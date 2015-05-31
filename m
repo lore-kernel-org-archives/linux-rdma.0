@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V2 3/9] IB/core: Add CQ creation time-stamping flag
-Date: Sun, 31 May 2015 15:14:11 +0300
-Message-ID: <1433074457-26437-4-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next V2 8/9] IB/mlx4: Support extended create_cq and query_device uverbs
+Date: Sun, 31 May 2015 15:14:16 +0300
+Message-ID: <1433074457-26437-9-git-send-email-ogerlitz@mellanox.com>
 References: <1433074457-26437-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1433074457-26437-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,30 +12,30 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add CQ creation flag which dictates that the created CQ will report
-completion time-stamp value in the WC.
+Add support for ib_uverbs_ex_create_cq and ib_uverbs_ex_query_device
+by setting the appropriate bit in uverbs_ex_cmd_mask.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/rdma/ib_verbs.h |    4 ++++
+ drivers/infiniband/hw/mlx4/main.c |    4 ++++
  1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 321a0b3..62e88e1 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -173,6 +173,10 @@ struct ib_odp_caps {
- 	} per_transport_caps;
- };
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 3992349..832d571 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -2323,6 +2323,10 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_FLOW);
+ 	}
  
-+enum ib_cq_creation_flags {
-+	IB_CQ_FLAGS_TIMESTAMP_COMPLETION   = 1 << 0,
-+};
++	ibdev->ib_dev.uverbs_ex_cmd_mask |=
++		(1ull << IB_USER_VERBS_EX_CMD_QUERY_DEVICE) |
++		(1ull << IB_USER_VERBS_EX_CMD_CREATE_CQ);
 +
- struct ib_cq_init_attr {
- 	unsigned int	cqe;
- 	int		comp_vector;
+ 	mlx4_ib_alloc_eqs(dev, ibdev);
+ 
+ 	spin_lock_init(&iboe->lock);
 -- 
 1.7.1
 
