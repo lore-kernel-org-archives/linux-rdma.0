@@ -1,55 +1,54 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next V1 10/11] IB/mlx4: Add timestamp_mask and
- hca_core_clock to query_device
-Date: Sat, 30 May 2015 23:49:28 +0300
-Message-ID: <CAJ3xEMhbB62nfOgAf3SYif+RWPaAb-8Ko5byZWtWxyZxKZ2Kgw@mail.gmail.com>
-References: <1432220202-9834-1-git-send-email-ogerlitz@mellanox.com>
-	<1432220202-9834-11-git-send-email-ogerlitz@mellanox.com>
-	<1432917684.114391.98.camel@redhat.com>
+From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Subject: Re: [PATCH 3/3] iser-target: Fix error path in isert_create_pi_ctx()
+Date: Sat, 30 May 2015 20:01:31 -0700
+Message-ID: <1433041291.17281.27.camel@haakon3.risingtidesystems.com>
+References: <1432966330-12230-1-git-send-email-roland@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1432917684.114391.98.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1432966330-12230-1-git-send-email-roland@kernel.org>
+Sender: target-devel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, Sagi Grimberg <sagig@mellanox.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, May 29, 2015 at 7:41 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> On Thu, 2015-05-21 at 17:56 +0300, Or Gerlitz wrote:
->> From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>
->> mlx4 needs to report the number of supported timestamp
->> bits (mask) and the hca_core_clock frequency.
->>
->> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> ---
->>  drivers/infiniband/hw/mlx4/main.c |    2 ++
->>  1 files changed, 2 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
->> index ef211c8..a5a90c4 100644
->> --- a/drivers/infiniband/hw/mlx4/main.c
->> +++ b/drivers/infiniband/hw/mlx4/main.c
->> @@ -233,6 +233,8 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
->>       props->max_total_mcast_qp_attach = props->max_mcast_qp_attach *
->>                                          props->max_mcast_grp;
->>       props->max_map_per_fmr = dev->dev->caps.max_fmr_maps;
->> +     props->hca_core_clock = dev->dev->caps.hca_core_clock;
->> +     props->timestamp_mask = 0xFFFFFFFFFFFFULL;
->>
->>  out:
->>       kfree(in_mad);
->
-> Or, please squash 8, 9, and 10 to a single patch.  They all are "add
-> support for timestamping to mlx4" but without squashing them together,
-> the support they add is broken/partial.
+On Fri, 2015-05-29 at 23:12 -0700, Roland Dreier wrote:
+> From: Roland Dreier <roland@purestorage.com>
+> 
+> We don't assign pi_ctx to desc->pi_ctx until we're certain to succeed
+> in the function.  That means the cleanup path should use the local
+> pi_ctx variable, not desc->pi_ctx.
+> 
+> This was detected by Coverity (CID 1260062).
+> 
+> Signed-off-by: Roland Dreier <roland@purestorage.com>
+> ---
+>  drivers/infiniband/ulp/isert/ib_isert.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+> index 327529ee85eb..3f40319a55da 100644
+> --- a/drivers/infiniband/ulp/isert/ib_isert.c
+> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
+> @@ -547,11 +547,11 @@ isert_create_pi_ctx(struct fast_reg_descriptor *desc,
+>  	return 0;
+>  
+>  err_prot_mr:
+> -	ib_dereg_mr(desc->pi_ctx->prot_mr);
+> +	ib_dereg_mr(pi_ctx->prot_mr);
+>  err_prot_frpl:
+> -	ib_free_fast_reg_page_list(desc->pi_ctx->prot_frpl);
+> +	ib_free_fast_reg_page_list(pi_ctx->prot_frpl);
+>  err_pi_ctx:
+> -	kfree(desc->pi_ctx);
+> +	kfree(pi_ctx);
+>  
+>  	return ret;
+>  }
 
-Sure, will do.
+Applied to target-pending/master.
 
-Or.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks Roland!
+
+--nab
