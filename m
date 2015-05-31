@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 1/3] IB/core cleanup: Add const to RDMA helpers
-Date: Sun, 31 May 2015 17:15:29 -0400
-Message-ID: <1433106931-5215-2-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 3/3] IB/core cleanup: Add const to args - agent_send_response
+Date: Sun, 31 May 2015 17:15:31 -0400
+Message-ID: <1433106931-5215-4-git-send-email-ira.weiny@intel.com>
 References: <1433106931-5215-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1433106931-5215-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,21 +12,10 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The ib_device passed to the new RDMA helpers is constant.  Declare the
-ib_device as const in the following functions.
+In order to support constant callers of agent_send_response we add const
+specifiers to the its pointer arguments.
 
-rdma_protocol_ib
-rdma_protocol_roce
-rdma_protocol_iwarp
-rdma_ib_or_roce
-rdma_cap_ib_mad
-rdma_cap_ib_smi
-rdma_cap_ib_cm
-rdma_cap_iw_cm
-rdma_cap_ib_sa
-rdma_cap_ib_mcast
-rdma_cap_af_ib
-rdma_cap_eth_ah
+Adjust the call tree accordingly.
 
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
@@ -34,112 +23,195 @@ Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Changes from V1:
 	Update commit message
 
- include/rdma/ib_verbs.h |   24 ++++++++++++------------
- 1 files changed, 12 insertions(+), 12 deletions(-)
+ drivers/infiniband/core/addr.c  |    4 ++--
+ drivers/infiniband/core/agent.c |    8 ++++----
+ drivers/infiniband/core/agent.h |    4 ++--
+ drivers/infiniband/core/cache.c |    8 ++++----
+ drivers/infiniband/core/verbs.c |    9 +++++----
+ include/rdma/ib_addr.h          |    6 +++---
+ include/rdma/ib_cache.h         |    8 ++++----
+ include/rdma/ib_verbs.h         |    9 +++++----
+ 8 files changed, 29 insertions(+), 27 deletions(-)
 
+diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
+index 38339d2..746cdf5 100644
+--- a/drivers/infiniband/core/addr.c
++++ b/drivers/infiniband/core/addr.c
+@@ -457,8 +457,8 @@ static void resolve_cb(int status, struct sockaddr *src_addr,
+ 	complete(&((struct resolve_cb_context *)context)->comp);
+ }
+ 
+-int rdma_addr_find_dmac_by_grh(union ib_gid *sgid, union ib_gid *dgid, u8 *dmac,
+-			       u16 *vlan_id)
++int rdma_addr_find_dmac_by_grh(const union ib_gid *sgid, const union ib_gid *dgid,
++			       u8 *dmac, u16 *vlan_id)
+ {
+ 	int ret = 0;
+ 	struct rdma_dev_addr dev_addr;
+diff --git a/drivers/infiniband/core/agent.c b/drivers/infiniband/core/agent.c
+index a6fc4d6..e51ea76 100644
+--- a/drivers/infiniband/core/agent.c
++++ b/drivers/infiniband/core/agent.c
+@@ -54,7 +54,7 @@ static DEFINE_SPINLOCK(ib_agent_port_list_lock);
+ static LIST_HEAD(ib_agent_port_list);
+ 
+ static struct ib_agent_port_private *
+-__ib_get_agent_port(struct ib_device *device, int port_num)
++__ib_get_agent_port(const struct ib_device *device, int port_num)
+ {
+ 	struct ib_agent_port_private *entry;
+ 
+@@ -67,7 +67,7 @@ __ib_get_agent_port(struct ib_device *device, int port_num)
+ }
+ 
+ static struct ib_agent_port_private *
+-ib_get_agent_port(struct ib_device *device, int port_num)
++ib_get_agent_port(const struct ib_device *device, int port_num)
+ {
+ 	struct ib_agent_port_private *entry;
+ 	unsigned long flags;
+@@ -78,8 +78,8 @@ ib_get_agent_port(struct ib_device *device, int port_num)
+ 	return entry;
+ }
+ 
+-void agent_send_response(struct ib_mad *mad, struct ib_grh *grh,
+-			 struct ib_wc *wc, struct ib_device *device,
++void agent_send_response(const struct ib_mad *mad, const struct ib_grh *grh,
++			 const struct ib_wc *wc, const struct ib_device *device,
+ 			 int port_num, int qpn)
+ {
+ 	struct ib_agent_port_private *port_priv;
+diff --git a/drivers/infiniband/core/agent.h b/drivers/infiniband/core/agent.h
+index 6669287..94b5fb5 100644
+--- a/drivers/infiniband/core/agent.h
++++ b/drivers/infiniband/core/agent.h
+@@ -44,8 +44,8 @@ extern int ib_agent_port_open(struct ib_device *device, int port_num);
+ 
+ extern int ib_agent_port_close(struct ib_device *device, int port_num);
+ 
+-extern void agent_send_response(struct ib_mad *mad, struct ib_grh *grh,
+-				struct ib_wc *wc, struct ib_device *device,
++extern void agent_send_response(const struct ib_mad *mad, const struct ib_grh *grh,
++				const struct ib_wc *wc, const struct ib_device *device,
+ 				int port_num, int qpn);
+ 
+ #endif	/* __AGENT_H_ */
+diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
+index 08921b3..871da83 100644
+--- a/drivers/infiniband/core/cache.c
++++ b/drivers/infiniband/core/cache.c
+@@ -85,10 +85,10 @@ int ib_get_cached_gid(struct ib_device *device,
+ }
+ EXPORT_SYMBOL(ib_get_cached_gid);
+ 
+-int ib_find_cached_gid(struct ib_device *device,
+-		       union ib_gid	*gid,
+-		       u8               *port_num,
+-		       u16              *index)
++int ib_find_cached_gid(struct ib_device   *device,
++		       const union ib_gid *gid,
++		       u8                 *port_num,
++		       u16                *index)
+ {
+ 	struct ib_gid_cache *cache;
+ 	unsigned long flags;
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 685a362..658c283 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -257,8 +257,9 @@ struct ib_ah *ib_create_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr)
+ }
+ EXPORT_SYMBOL(ib_create_ah);
+ 
+-int ib_init_ah_from_wc(struct ib_device *device, u8 port_num, struct ib_wc *wc,
+-		       struct ib_grh *grh, struct ib_ah_attr *ah_attr)
++int ib_init_ah_from_wc(struct ib_device *device, u8 port_num,
++		       const struct ib_wc *wc, const struct ib_grh *grh,
++		       struct ib_ah_attr *ah_attr)
+ {
+ 	u32 flow_class;
+ 	u16 gid_index;
+@@ -307,8 +308,8 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num, struct ib_wc *wc,
+ }
+ EXPORT_SYMBOL(ib_init_ah_from_wc);
+ 
+-struct ib_ah *ib_create_ah_from_wc(struct ib_pd *pd, struct ib_wc *wc,
+-				   struct ib_grh *grh, u8 port_num)
++struct ib_ah *ib_create_ah_from_wc(struct ib_pd *pd, const struct ib_wc *wc,
++				   const struct ib_grh *grh, u8 port_num)
+ {
+ 	struct ib_ah_attr ah_attr;
+ 	int ret;
+diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
+index ac54c27..fde33ac 100644
+--- a/include/rdma/ib_addr.h
++++ b/include/rdma/ib_addr.h
+@@ -111,8 +111,8 @@ int rdma_copy_addr(struct rdma_dev_addr *dev_addr, struct net_device *dev,
+ int rdma_addr_size(struct sockaddr *addr);
+ 
+ int rdma_addr_find_smac_by_sgid(union ib_gid *sgid, u8 *smac, u16 *vlan_id);
+-int rdma_addr_find_dmac_by_grh(union ib_gid *sgid, union ib_gid *dgid, u8 *smac,
+-			       u16 *vlan_id);
++int rdma_addr_find_dmac_by_grh(const union ib_gid *sgid, const union ib_gid *dgid,
++			       u8 *smac, u16 *vlan_id);
+ 
+ static inline u16 ib_addr_get_pkey(struct rdma_dev_addr *dev_addr)
+ {
+@@ -160,7 +160,7 @@ static inline int rdma_ip2gid(struct sockaddr *addr, union ib_gid *gid)
+ }
+ 
+ /* Important - sockaddr should be a union of sockaddr_in and sockaddr_in6 */
+-static inline void rdma_gid2ip(struct sockaddr *out, union ib_gid *gid)
++static inline void rdma_gid2ip(struct sockaddr *out, const union ib_gid *gid)
+ {
+ 	if (ipv6_addr_v4mapped((struct in6_addr *)gid)) {
+ 		struct sockaddr_in *out_in = (struct sockaddr_in *)out;
+diff --git a/include/rdma/ib_cache.h b/include/rdma/ib_cache.h
+index ad9a3c2..bd92130 100644
+--- a/include/rdma/ib_cache.h
++++ b/include/rdma/ib_cache.h
+@@ -64,10 +64,10 @@ int ib_get_cached_gid(struct ib_device    *device,
+  * ib_find_cached_gid() searches for the specified GID value in
+  * the local software cache.
+  */
+-int ib_find_cached_gid(struct ib_device *device,
+-		       union ib_gid	*gid,
+-		       u8               *port_num,
+-		       u16              *index);
++int ib_find_cached_gid(struct ib_device   *device,
++		       const union ib_gid *gid,
++		       u8                 *port_num,
++		       u16                *index);
+ 
+ /**
+  * ib_get_cached_pkey - Returns a cached PKey table entry
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index ad499bd..f19739a 100644
+index 48c9acb..7d78794 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -1831,22 +1831,22 @@ static inline u8 rdma_end_port(const struct ib_device *device)
- 		0 : device->phys_port_cnt;
- }
+@@ -2096,8 +2096,9 @@ struct ib_ah *ib_create_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr);
+  * @ah_attr: Returned attributes that can be used when creating an address
+  *   handle for replying to the message.
+  */
+-int ib_init_ah_from_wc(struct ib_device *device, u8 port_num, struct ib_wc *wc,
+-		       struct ib_grh *grh, struct ib_ah_attr *ah_attr);
++int ib_init_ah_from_wc(struct ib_device *device, u8 port_num,
++		       const struct ib_wc *wc, const struct ib_grh *grh,
++		       struct ib_ah_attr *ah_attr);
  
--static inline bool rdma_protocol_ib(struct ib_device *device, u8 port_num)
-+static inline bool rdma_protocol_ib(const struct ib_device *device, u8 port_num)
- {
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_IB;
- }
+ /**
+  * ib_create_ah_from_wc - Creates an address handle associated with the
+@@ -2111,8 +2112,8 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num, struct ib_wc *wc,
+  * The address handle is used to reference a local or global destination
+  * in all UD QP post sends.
+  */
+-struct ib_ah *ib_create_ah_from_wc(struct ib_pd *pd, struct ib_wc *wc,
+-				   struct ib_grh *grh, u8 port_num);
++struct ib_ah *ib_create_ah_from_wc(struct ib_pd *pd, const struct ib_wc *wc,
++				   const struct ib_grh *grh, u8 port_num);
  
--static inline bool rdma_protocol_roce(struct ib_device *device, u8 port_num)
-+static inline bool rdma_protocol_roce(const struct ib_device *device, u8 port_num)
- {
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_ROCE;
- }
- 
--static inline bool rdma_protocol_iwarp(struct ib_device *device, u8 port_num)
-+static inline bool rdma_protocol_iwarp(const struct ib_device *device, u8 port_num)
- {
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_IWARP;
- }
- 
--static inline bool rdma_ib_or_roce(struct ib_device *device, u8 port_num)
-+static inline bool rdma_ib_or_roce(const struct ib_device *device, u8 port_num)
- {
- 	return device->port_immutable[port_num].core_cap_flags &
- 		(RDMA_CORE_CAP_PROT_IB | RDMA_CORE_CAP_PROT_ROCE);
-@@ -1864,7 +1864,7 @@ static inline bool rdma_ib_or_roce(struct ib_device *device, u8 port_num)
-  *
-  * Return: true if the port supports sending/receiving of MAD packets.
-  */
--static inline bool rdma_cap_ib_mad(struct ib_device *device, u8 port_num)
-+static inline bool rdma_cap_ib_mad(const struct ib_device *device, u8 port_num)
- {
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_IB_MAD;
- }
-@@ -1889,7 +1889,7 @@ static inline bool rdma_cap_ib_mad(struct ib_device *device, u8 port_num)
-  *
-  * Return: true if the port provides an SMI.
-  */
--static inline bool rdma_cap_ib_smi(struct ib_device *device, u8 port_num)
-+static inline bool rdma_cap_ib_smi(const struct ib_device *device, u8 port_num)
- {
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_IB_SMI;
- }
-@@ -1909,7 +1909,7 @@ static inline bool rdma_cap_ib_smi(struct ib_device *device, u8 port_num)
-  * Return: true if the port supports an IB CM (this does not guarantee that
-  * a CM is actually running however).
-  */
--static inline bool rdma_cap_ib_cm(struct ib_device *device, u8 port_num)
-+static inline bool rdma_cap_ib_cm(const struct ib_device *device, u8 port_num)
- {
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_IB_CM;
- }
-@@ -1926,7 +1926,7 @@ static inline bool rdma_cap_ib_cm(struct ib_device *device, u8 port_num)
-  * Return: true if the port supports an iWARP CM (this does not guarantee that
-  * a CM is actually running however).
-  */
--static inline bool rdma_cap_iw_cm(struct ib_device *device, u8 port_num)
-+static inline bool rdma_cap_iw_cm(const struct ib_device *device, u8 port_num)
- {
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_IW_CM;
- }
-@@ -1946,7 +1946,7 @@ static inline bool rdma_cap_iw_cm(struct ib_device *device, u8 port_num)
-  * Administration interface.  This does not imply that the SA service is
-  * running locally.
-  */
--static inline bool rdma_cap_ib_sa(struct ib_device *device, u8 port_num)
-+static inline bool rdma_cap_ib_sa(const struct ib_device *device, u8 port_num)
- {
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_IB_SA;
- }
-@@ -1968,7 +1968,7 @@ static inline bool rdma_cap_ib_sa(struct ib_device *device, u8 port_num)
-  * overhead of registering/unregistering with the SM and tracking of the
-  * total number of queue pairs attached to the multicast group.
-  */
--static inline bool rdma_cap_ib_mcast(struct ib_device *device, u8 port_num)
-+static inline bool rdma_cap_ib_mcast(const struct ib_device *device, u8 port_num)
- {
- 	return rdma_cap_ib_sa(device, port_num);
- }
-@@ -1986,7 +1986,7 @@ static inline bool rdma_cap_ib_mcast(struct ib_device *device, u8 port_num)
-  * Return: true if the port uses a GID address to identify devices on the
-  * network.
-  */
--static inline bool rdma_cap_af_ib(struct ib_device *device, u8 port_num)
-+static inline bool rdma_cap_af_ib(const struct ib_device *device, u8 port_num)
- {
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_AF_IB;
- }
-@@ -2007,7 +2007,7 @@ static inline bool rdma_cap_af_ib(struct ib_device *device, u8 port_num)
-  * addition of a Global Route Header built from our Ethernet Address
-  * Handle into our header list for connectionless packets.
-  */
--static inline bool rdma_cap_eth_ah(struct ib_device *device, u8 port_num)
-+static inline bool rdma_cap_eth_ah(const struct ib_device *device, u8 port_num)
- {
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_ETH_AH;
- }
+ /**
+  * ib_modify_ah - Modifies the address vector associated with an address
 -- 
 1.7.1
 
