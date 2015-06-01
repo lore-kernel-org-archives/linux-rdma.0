@@ -1,58 +1,71 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH for-next 09/10] IB/mlx4: Add timestamp_mask and hca_core_clock
- to query_device
-Date: Mon, 1 Jun 2015 06:50:20 -0500 (CDT)
-Message-ID: <alpine.DEB.2.11.1506010645030.25165@east.gentwo.org>
-References: <CAJ3xEMh_g0zBza5HoVZTy9cTRbXqatzvBMAJcRjQhH7Zi=cHAg@mail.gmail.com> <20150527222108.GA7855@obsidianresearch.com> <5566BDE4.50709@mellanox.com> <alpine.DEB.2.11.1505280908001.16142@east.gentwo.org> <20150528162416.GA6515@obsidianresearch.com>
- <alpine.DEB.2.11.1505281212330.1711@east.gentwo.org> <20150528175043.GA10966@obsidianresearch.com> <alpine.DEB.2.11.1505281325150.1794@east.gentwo.org> <20150528195034.GA11182@obsidianresearch.com> <alpine.DEB.2.11.1505281522020.2703@east.gentwo.org>
- <20150528204749.GA12780@obsidianresearch.com> <1828884A29C6694DAF28B7E6B8A82373A8FE1F36@ORSMSX109.amr.corp.intel.com> <alpine.DEB.2.11.1505290846480.8178@east.gentwo.org> <1828884A29C6694DAF28B7E6B8A82373A8FE2069@ORSMSX109.amr.corp.intel.com>
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 0/3] Add const to various core functions
+Date: Mon, 01 Jun 2015 09:37:25 -0400
+Message-ID: <556C6015.50908@dev.mellanox.co.il>
+References: <1433106931-5215-1-git-send-email-ira.weiny@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FE2069-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1433106931-5215-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 29 May 2015, Hefty, Sean wrote:
+On 5/31/2015 5:15 PM, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> In order to support some of Jason's comments to add const to the functions I am
+> adding for OPA the following patches clean up the call trees of the currently
+> defined functions.
+> 
+> They stand on their own as clean up patches.  Therefore, I am submitting them
+> separately from the OPA patches.
+> 
+> ---
+> Changes from V1:
+> 	Clean up 0-day build
+> 	Clean up commit messages
+> 
+> Ira Weiny (3):
+>   IB/core cleanup: Add const to RDMA helpers
+>   IB/core cleanup: Add const on args - device->process_mad
+>   IB/core cleanup: Add const to args - agent_send_response
+> 
+>  drivers/infiniband/core/addr.c                |    4 +-
+>  drivers/infiniband/core/agent.c               |    8 ++--
+>  drivers/infiniband/core/agent.h               |    4 +-
+>  drivers/infiniband/core/cache.c               |    8 ++--
+>  drivers/infiniband/core/verbs.c               |    9 +++--
+>  drivers/infiniband/hw/amso1100/c2_provider.c  |    6 ++--
+>  drivers/infiniband/hw/cxgb3/iwch_provider.c   |    6 ++--
+>  drivers/infiniband/hw/cxgb4/provider.c        |    5 ++-
+>  drivers/infiniband/hw/ehca/ehca_iverbs.h      |    4 +-
+>  drivers/infiniband/hw/ehca/ehca_sqp.c         |   14 ++++----
+>  drivers/infiniband/hw/ipath/ipath_mad.c       |    8 ++--
+>  drivers/infiniband/hw/ipath/ipath_verbs.h     |    6 ++--
+>  drivers/infiniband/hw/mlx4/mad.c              |   21 +++++++------
+>  drivers/infiniband/hw/mlx4/mlx4_ib.h          |    8 ++--
+>  drivers/infiniband/hw/mlx5/mad.c              |    8 ++--
+>  drivers/infiniband/hw/mlx5/mlx5_ib.h          |    8 ++--
+>  drivers/infiniband/hw/mthca/mthca_cmd.c       |    4 +-
+>  drivers/infiniband/hw/mthca/mthca_cmd.h       |    4 +-
+>  drivers/infiniband/hw/mthca/mthca_dev.h       |    6 ++--
+>  drivers/infiniband/hw/mthca/mthca_mad.c       |   10 +++---
+>  drivers/infiniband/hw/nes/nes_verbs.c         |    4 +-
+>  drivers/infiniband/hw/ocrdma/ocrdma_ah.c      |    6 ++--
+>  drivers/infiniband/hw/ocrdma/ocrdma_ah.h      |    6 ++--
+>  drivers/infiniband/hw/qib/qib_mad.c           |   10 +++---
+>  drivers/infiniband/hw/qib/qib_verbs.h         |    4 +-
+>  drivers/net/ethernet/mellanox/mlx5/core/mad.c |    2 +-
+>  include/linux/mlx5/driver.h                   |    2 +-
+>  include/rdma/ib_addr.h                        |    6 ++--
+>  include/rdma/ib_cache.h                       |    8 ++--
+>  include/rdma/ib_verbs.h                       |   39 +++++++++++++------------
+>  30 files changed, 121 insertions(+), 117 deletions(-)
 
-> > What is the issue here? The timestamp is created when the processing is
-> > finished by the nic and the completion entry becomes available.
->
-> The timestamp is generated when a work completion entry is written.  If the=
-> re's a clear use case for this, it hasn't been described.  The use case you=
->  mentioned only works if there is a 1:1 relationship between a packet and a=
->  work completion.  That is not what is being defined here.
-
-It does make sense to have a timestamp when the work described by a CQ has
-been completed. For that you do not need a 1:1 correspondence.
-
-My use case is focused on single packet processing because that is what we
-do here.
-
-> > It is exactly defined like any other cycle counters in hardware and it is
-> > exposed using an API that allows multiple vendors to use these cycle
-> > counters without regard to a particular vendors implementation.
->
-> I disagree.  This is associated with a specific implementation.  It assumes=
->  that the counter is part of a CQ entry, and that the counter is written wh=
-> en the completion is written.  There's nothing that requires other vendors =
-> to follow that model, nor is it clear that this is a generic or useful enou=
-> gh operation that other vendors would want to follow this model.  Why not h=
-> ave the time stamp record the start of the transaction?  The end?  Have two=
->  stamps, once for the first packet, and one for the last?  Limit this to si=
-> ngle packet operations only?
-
-Why would you have a timestamp at the beginning of the transaction? That
-is useless because you can use packet capture devices to establish that
-timepoint. At that point you have not identified the CQ anyways.
-
-Having a timestamp when an action is complete makes sense, is generic
-and general.
-
-Adding the timestamp to the data means that the application now has to
-separate the metadata (timestamp) from the data stream. Not good.
-
+Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
