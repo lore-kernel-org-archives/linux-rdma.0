@@ -1,71 +1,41 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 0/3] Add const to various core functions
-Date: Mon, 01 Jun 2015 09:37:25 -0400
-Message-ID: <556C6015.50908@dev.mellanox.co.il>
-References: <1433106931-5215-1-git-send-email-ira.weiny@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next V2 0/9] Add completion timestamping support
+Date: Mon, 1 Jun 2015 08:58:43 -0500 (CDT)
+Message-ID: <alpine.DEB.2.11.1506010852360.26845@east.gentwo.org>
+References: <1433074457-26437-1-git-send-email-ogerlitz@mellanox.com> <1433098827.114391.179.camel@redhat.com> <CAAKD3BBo9A5AV9Uv-q1TgSQ6hs-oSUn5QsUT+5+6mk1RwW7AUA@mail.gmail.com> <1433157904.114391.188.camel@redhat.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1433106931-5215-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1433157904.114391.188.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/31/2015 5:15 PM, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
-> In order to support some of Jason's comments to add const to the functions I am
-> adding for OPA the following patches clean up the call trees of the currently
-> defined functions.
-> 
-> They stand on their own as clean up patches.  Therefore, I am submitting them
-> separately from the OPA patches.
-> 
-> ---
-> Changes from V1:
-> 	Clean up 0-day build
-> 	Clean up commit messages
-> 
-> Ira Weiny (3):
->   IB/core cleanup: Add const to RDMA helpers
->   IB/core cleanup: Add const on args - device->process_mad
->   IB/core cleanup: Add const to args - agent_send_response
-> 
->  drivers/infiniband/core/addr.c                |    4 +-
->  drivers/infiniband/core/agent.c               |    8 ++--
->  drivers/infiniband/core/agent.h               |    4 +-
->  drivers/infiniband/core/cache.c               |    8 ++--
->  drivers/infiniband/core/verbs.c               |    9 +++--
->  drivers/infiniband/hw/amso1100/c2_provider.c  |    6 ++--
->  drivers/infiniband/hw/cxgb3/iwch_provider.c   |    6 ++--
->  drivers/infiniband/hw/cxgb4/provider.c        |    5 ++-
->  drivers/infiniband/hw/ehca/ehca_iverbs.h      |    4 +-
->  drivers/infiniband/hw/ehca/ehca_sqp.c         |   14 ++++----
->  drivers/infiniband/hw/ipath/ipath_mad.c       |    8 ++--
->  drivers/infiniband/hw/ipath/ipath_verbs.h     |    6 ++--
->  drivers/infiniband/hw/mlx4/mad.c              |   21 +++++++------
->  drivers/infiniband/hw/mlx4/mlx4_ib.h          |    8 ++--
->  drivers/infiniband/hw/mlx5/mad.c              |    8 ++--
->  drivers/infiniband/hw/mlx5/mlx5_ib.h          |    8 ++--
->  drivers/infiniband/hw/mthca/mthca_cmd.c       |    4 +-
->  drivers/infiniband/hw/mthca/mthca_cmd.h       |    4 +-
->  drivers/infiniband/hw/mthca/mthca_dev.h       |    6 ++--
->  drivers/infiniband/hw/mthca/mthca_mad.c       |   10 +++---
->  drivers/infiniband/hw/nes/nes_verbs.c         |    4 +-
->  drivers/infiniband/hw/ocrdma/ocrdma_ah.c      |    6 ++--
->  drivers/infiniband/hw/ocrdma/ocrdma_ah.h      |    6 ++--
->  drivers/infiniband/hw/qib/qib_mad.c           |   10 +++---
->  drivers/infiniband/hw/qib/qib_verbs.h         |    4 +-
->  drivers/net/ethernet/mellanox/mlx5/core/mad.c |    2 +-
->  include/linux/mlx5/driver.h                   |    2 +-
->  include/rdma/ib_addr.h                        |    6 ++--
->  include/rdma/ib_cache.h                       |    8 ++--
->  include/rdma/ib_verbs.h                       |   39 +++++++++++++------------
->  30 files changed, 121 insertions(+), 117 deletions(-)
+On Mon, 1 Jun 2015, Doug Ledford wrote:
 
-Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> What's the point?  If it's raw, it's raw.  It's not coordinated between
+> adapters.  Whether it's in ns or ps or flipflops doesn't matter, it's a
+> flat number that has no reference to anything else, so the only thing
+> that matters is < another version of itself or not.
+
+It can be coordinated between different adapter through the use of time
+software that can work with cycles and frequencies to scale the value of
+the cycles to realtime. Software like that is available in ptpd,
+timekeeper etc. Each NIC basically has its own clock and the timekeeping
+software would have to track the scaling and the aberration factor over
+time in order to come up with accurate absolute time values derived from
+the cycle counters of these NICs. Since we are dealing here with values
+that need to be accurate to within less than 100ns this is not trivial and
+one can easily get a ns value that is absolutely useless.
+
+Since it is not trivial its better kept out of the timestamp support in
+the RDMA API. If the app developer wants a trivial conversion then they
+can opencode a simple multiplication by the frequency. At that point it
+should be clear though that this raw time value is of limited use given
+its inaccuracy  and the dependence on the NIC clock.
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
