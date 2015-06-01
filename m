@@ -1,137 +1,637 @@
-From: Alex Vainman <alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: Current patch statuses
-Date: Mon, 1 Jun 2015 07:31:08 +0000
-Message-ID: <DBXPR05MB06560D9D3547F4C9DD89A7B2C3B60@DBXPR05MB0656.eurprd05.prod.outlook.com>
-References: <1432936645.114391.156.camel@redhat.com>
+From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Subject: Re: [PATCH for-next V2 1/9] IB/core: Change provider's API of
+ create_cq to be extendible
+Date: Mon, 1 Jun 2015 14:51:15 +0530
+Message-ID: <CANjDDBiEiAWH6HZoOOj2bpbjGYd9bFUDZj3Pa6cPbiKBvOsMBA@mail.gmail.com>
+References: <1433074457-26437-1-git-send-email-ogerlitz@mellanox.com>
+	<1433074457-26437-2-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1432936645.114391.156.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1433074457-26437-2-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgRG91ZywNCg0KVGhhbmtzIGZvciB0aGUgZmVlZGJhY2suDQoNCj4+VGhlIGFiaWxpdHkgdG8g
-aGF2ZSBSU1MgdmlhIGhhc2hlZCByZWNlaXZlcyBhbmQgbXVsdGlwbGUgZmxvd3MgaXMgYSBzdGFy
-dCwNCj4+bm93IHlvdSBqdXN0IG5lZWQgdG8gYWRkIHBpbm5pbmcgdGhlIGZsb3dzIHRvIHNwZWNp
-ZmljIHNvY2tldHMgdGhhdCBhcmUNCj4+YWRqYWNlbnQgdG8gdGhlIFBDSSBidXMgdGhlIGNvbnRy
-b2xsZXIgaXMgb24gYW5kIHBvcHVsYXRpbmcgdGhlIG51bWJlcg0KPj5vZiB0aHJlYWRzIHRvIHVz
-ZSBmb3IgUlNTIGJhc2VkIHVwb24gdGhlIG51bWJlciBvZiBjb3Jlcy90aHJlYWRzIHBlcg0KPj5z
-b2NrZXQuDQpJIHRoaW5rIHRoYXQgdGhlIHByb3Bvc2VkIEFQSSBhbmQgdGhlIG92ZXJhbGwgc29s
-dXRpb24gYWxsb3dzIHRoYXQuDQoNCj4+SSdtIG5vdCBzdXJlIEkgbGlrZSB0aGUgc3BlY2lmaWMN
-Cj4+aW1wbGVtZW50YXRpb24uICBJdCBwdXRzIGEgbG90IG9mIG5ldywgY29tcGxleCBjb25maWd1
-cmF0aW9uIG9uIHRoZQ0KPj5hcHBsaWNhdGlvbi4gIA0KSSB0aGluayB0aGF0IGl0IGlzIGltcG9y
-dGFudCB0aGF0IHZlcmJzIEFQSSwgdGhhdCBjb21lcyB0byBwcm92aWRlIGRpcmVjdCANCmFjY2Vz
-cyB0byBIVyB3aWxsIGV4cGxpY2l0bHkgZXhwb3NlIFJTUyBzZXR0aW5ncyBhbmQgYWxsb3cgdmVy
-YnMgYXBwbGljYXRpb25zIA0KdG8gYWRqdXN0IFJTUyBjb25maWd1cmF0aW9uIHRvIHRoZWlyIG5l
-ZWRzIGluIG9yZGVyIHRvIGdldCB0aGUgMTAwJSBwZXJmb3JtYW5jZQ0KYmVuZWZpdCBmcm9tIHRo
-ZSBIVyBjYXBhYmlsaXRpZXMuDQpUaGUgYWJpbGl0eSB0byBjb250cm9sIFJTUyBoYXNoIGZ1bmN0
-aW9uIGFuZCB0aGUgSW5kaXJlY3Rpb24gdGFibGUgcHJvcGVydGllcw0KY2FuIGJlIGltcG9ydGFu
-dCBmb3IgZGlmZmVyZW50IGZhc3QgcGFja2V0IHByb2Nlc3Npbmcgc29sdXRpb25zOg0KLSBGb3Ig
-ZXhhbXBsZSBidW1wIGluIHRoZSB3aXJlIGFwcGxpY2F0aW9ucyBjYW4gcHJlZmVyIHN5bW1ldHJp
-YyANCiAgUlNTIHNvIGV4cG9zaW5nIGludGVyZmFjZSB0aGF0IGFsbG93cyB0byBjb25maWd1cmUg
-dGhlIGhhc2ggZnVuY3Rpb24gaXMNCiAgdmFsdWFibGUuDQotVGhlIGFwcGxpY2F0aW9ucyBjYW4g
-a25vdyB3aGljaCB0cmFmZmljIHR5cGUgaXQgd2lsbCBoYW5kbGUgYW5kIGFkanVzdCANCiAgd2hp
-Y2ggcGFja2V0cyBmaWVsZHMgc2hvdWxkIHBhcnRpY2lwYXRlIGluIHRoZSBSU1MgaGFzaCB0byBi
-ZXR0ZXIgDQogIGRpc3RyaWJ1dGUgdGhlIHRyYWZmaWMuDQotRXhwb3NpbmcgQVBJIHRoYXQgYWxs
-b3dzIHRvIHNldCBSU1MgaGFzaCBwcm9wZXJ0aWVzIGFuZCBSU1MgSW5kaXJlY3Rpb24gVGFibGUN
-CiBhbGxvd3MgYmV0dGVyIHZlcmJzIGludGVncmF0aW9uIHdpdGggc3VjaCBmcmFtZXdvcmtzIGFz
-IERQREsuIA0KDQpOb3RpY2UgdGhhdCB3ZSBkbyB0aGluayB0aGF0IG1vcmUgImhpZ2ggbGV2ZWwi
-IFJTUyBBUEkgdGhhdCByZXF1aXJlcyBsZXNzIGNoYW5nZXMNCmluIGFwcGxpY2F0aW9uIGxldmVs
-IHNob3VsZCBiZSBzdXBwb3J0ZWQgYnkgcmRtYV9jbS4NCg0KPj5PbiBvdGhlciB3b3JkcywgSSB3
-b3VsZCBsaWtlIHRvIHNlZSBhbiBhcHBsaWNhdGlvbg0KPj5nZXQgdGhlIGJlbmVmaXQgb2YgdGhp
-cyB3aXRob3V0IGhhdmluZyB0byBiZSByZWNvZGVkLiAgTWF5YmUgdGhleSBvbmx5DQo+PmdldCBh
-IGRlZmF1bHQgYmVuZWZpdCBhbmQgbm90IGFuIG9wdGltaXplZCBiZW5lZml0LCBhbmQgbWF5YmUg
-dGhlIHVzZXINCj4+aGFzIHRvIHNldCBhbiBlbnZpcm9ubWVudCB2YXJpYWJsZSBmb3IgbGliaWJ2
-ZXJicyBiZWZvcmUgaXQgZ2V0cyBlbmFibGVkDQo+PmJ5IGRlZmF1bHQsIGJ1dCBJIHdvdWxkIHN0
-aWxsIGxpa2UgdG8gc2VlIGEgbm9uLXJlY29tcGlsZWQgYXBwIGJlbmVmaXQNCj4+ZnJvbSB0aGlz
-Lg0KSSBhbSBub3Qgc3VyZSB0aGF0IEkgdW5kZXJzdGFuZCBob3cgZG9lcyB0aGUg4oCcbm8gcmVj
-b2RpbmfigJ0gDQphcHByb2FjaCBjYW4gd29yazoNCndoYXQg4oCcZGVmYXVsdOKAnSBiZW5lZml0
-IGNhbiBnZXQgYXBwbGljYXRpb24gdGhhdCB3b3JrcyBpbiBwb2xsaW5nIG1vZGU/IA0KSW4gcG9s
-bGluZyBtb2RlIGFwcGxpY2F0aW9uIHRocmVhZHMgYWZmaW5pdGllcyBkZWZpbmUgd2hpY2ggQ1BV
-IGNvcmUgYXJlIA0KdXRpbGl6ZWQgZm9yIGNvbXBsZXRpb25zIGFuZCBwYWNrZXQgcHJvY2Vzc2lu
-Zy4gDQpGb3IgZXhhbXBsZSBpZiBhcHBsaWNhdGlvbiBkZWNpZGVzIHRvIG9wZW4gYSBzaW5nbGUg
-dGhyZWFkIHRoYXQgcG9sbHMgQ1ENCmFuZCBwcm9jZXNzIGNvbXBsZXRpb25zIEkgZG9u4oCZdCBz
-ZWUgaG93IGlzIGl0IHBvc3NpYmxlIHRvIGJldHRlciBkaXN0cmlidXRlDQp0aGUgcHJvY2Vzc2lu
-ZyBiZXR3ZWVuIENQVSBjb3JlIHdpdGhvdXQgY2hhbmdpbmcgdGhlIGFwcGxpY2F0aW9uLg0KRm9y
-IEludGVycnVwdCBkcml2ZW4gYXBwbGljYXRpb25zIHdlIGNhbiBnZXQgc29tZSBwYXJ0aWFsIOKA
-nGRlZmF1bHTigJ0gYmVuZWZpdDoNCndlIGNhbiBsb2FkIGJhbGFuY2UgSW50ZXJydXB0IGhhbmRs
-ZXIgYW5kIOKAnGJvdHRvbSBoYWxm4oCdIHBhcnQgb2YgDQpwYWNrZXQgcHJvY2Vzc2luZyBidXQg
-bm90IHRoZSBwcm9jZXNzaW5nIHRoYXQgaXMgZG9uZSBpbiB1c2VyIHNwYWNlLiANClN0aWxsIHRo
-aXMgcmVxdWlyZXMgQVBJIGNoYW5nZXMgb3IgbWF5YmUgYWRkaW5nIHNvbWUgbmV3IGVudmlyb25t
-ZW50DQpwYXJhbWV0ZXIsIGFzIHlvdSBoYXZlIG1lbnRpb25lZCwgc2luY2UgYXBwbGljYXRpb24g
-b24gQ1EgY3JlYXRpb24gcHJvdmlkZXMNCmNvbXBfdmVjdG9yIGFuZCBydW5uaW5nIGNvbXBsZXRp
-b24gZXZlbnQgaGFuZGxlciBvbiBkaWZmZXJlbnQgY29yZXMgDQooYXMgdGhlIHJlc3VsdCBvZiBS
-U1MpIGFjdHVhbGx5IGJyZWFrcyB0aGlzIEFQSS4NCg0KVG8gc3VtbWFyaXplLCBpbiBteSBvcGlu
-aW9uIHZlcmJzIGlzIHRoZSByaWdodCBwbGFjZSB0byBleHBvc2UgUlNTIGludGVyZmFjZSANCnRo
-YXQgZ2l2ZXMgdmVyYnMgYXBwbGljYXRpb24gZnVsbCBjb250cm9sIG92ZXIgZGlmZmVyZW50IFJT
-UyBwcm9wZXJ0aWVzIA0KYW5kIG1vcmUgImhpZ2ggbGV2ZWwiIGFuZCBzaW1wbGUgUlNTIEFQSSBj
-YW4gYmUgZXhwb3NlZCB2aWEgcmRtYV9jbS4NClRoaXMgd2lsbCBhbGxvdyBmcm9tIG9uZSBzaWRl
-IHRvIGFuc3dlciB0aGUgbmVlZHMgb2Ygc29sdXRpb25zIHRoYXQgcmVxdWlyZXMNCnRoZSBhYmls
-aXR5IHRvIGRpcmVjdGx5IGFjY2VzcyBhbmQgY29uZmlndXJlIHRoZSBIVywgDQphcyB1c2VyIHNw
-YWNlIE5JQ3Mgc29sdXRpb25zLCBhbmQgb24gb3RoZXIgc2lkZSB0aGlzIGFuc3dlciB0aGUgbmVl
-ZHMgDQpvZiBhcHBsaWNhdGlvbnMgdGhhdCBsb29rIGZvciBtb3JlICJoaWdoIGxldmVsIiBBUEku
-DQoNClRoYW5rcywNCkFsZXhWDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBE
-b3VnIExlZGZvcmQgW21haWx0bzpkbGVkZm9yZEByZWRoYXQuY29tXSANClNlbnQ6IFNhdHVyZGF5
-LCBNYXkgMzAsIDIwMTUgMTI6NTcgQU0NClRvOiBSRE1BIG1haWxpbmcgbGlzdA0KQ2M6IFdlaW55
-LCBJcmE7IE1hdGFuIEJhcmFrOyBPciBHZXJsaXR6OyBIYWdnYWkgRXJhbjsgWWlzaGFpIEhhZGFz
-OyBBbGV4IFZhaW5tYW4NClN1YmplY3Q6IEN1cnJlbnQgcGF0Y2ggc3RhdHVzZXMNCg0KKiBJcmEn
-cyAzIHBhdGNoIGNvbnN0IGNsZWFudXA6IGdlbmVyYWxseSBhcHByb3ZlZCwgd2FpdGluZyBsYXRl
-c3QNCnZlcnNpb24NCiogSXJhJ3MgMTQgcGF0Y2ggT1BBIHNldDogSSBoYXZlbid0IHJldmlld2Vk
-IHlldCwgd2FpdGluZyBmb3IgbmV4dA0KdmVyc2lvbg0KKiBNYXRhbidzIDE0IHBhdGNoIFJvQ0Ug
-R0lEIHNldDogQ2hhbmdlcyB3ZXJlIHJlcXVlc3RlZCwgYXdhaXRpbmcgbmV4dA0KdmVyc2lvbg0K
-KiBPcidzIDExIHBhdGNoIHRpbWVzdGFtcCBzZXQ6IFRoZSBnZW5lcmFsIGlkZWEgaXMgT0ssIGNy
-ZWF0aW5nIGFuDQpleHRlbnNpb24gaXMgT0ssIGJ1dCBJIHRoaW5rIHRoZSBhY3R1YWwgdUFQSSBu
-ZWVkcyBuYWlsZWQgZG93biBhIGxpdHRsZQ0KbW9yZS4gIFJpZ2h0IG5vdyBpdCdzIHRvbyB2ZW5k
-b3IvbW9kZWwvZHJpdmVyIHNwZWNpZmljIGZvciBhIGdlbmVyYWwNCnVBUEkuDQoqIEhhZ2dhaSdz
-IDEyIHBhdGNoIGNtYSBuYW1lc3BhY2Ugc2V0OiBTZXJpb3VzIGNvbmNlcm5zIG92ZXIgdGhlDQpz
-dWl0YWJpbGl0eSBvZiBjcmVhdGluZyBtb3JlIHRoYW4gb25lIGxpbmsgcGVyIHVuaXF1ZSBndWlk
-L3BrZXkuDQpSZXF1ZXN0aW5nIHRoYXQgSGFnZ2FpIGludmVzdGlnYXRlIHVzaW5nIGFsaWFzIEdV
-SURzIGZvciBjb250YWluZXJzDQppbnN0ZWFkLg0KKiBPcidzIDMgcGF0Y2ggU1JJT1Ygc2V0OiBi
-b3RoIGNoYW5nZXMgYW5kIGNvb3JkaW5hdGlvbiB3aXRoDQpuZXRkZXYvaXByb3V0ZTIgZm9sa3Mg
-cmVxdWVzdGVkLCBhd2FpdGluZyByZXN1bHRzIG9mIHRoYXQgaW50ZXJhY3Rpb24NCmFuZCB1cGRh
-dGUgZm9yIDhieXRlIEdVSUQgbWFuYWdlbWVudA0KKiBZaXNoYWkncyAzIHBhdGNoIGhvdCByZW1v
-dmFsIHNldDogY2hhbmdlcyBpbiBsb2NraW5nIHJlcXVlc3RlZA0KKiBBbGV4J3MgVmVyYnMgUlNT
-IFJGQzogSSByZWFkIHRocm91Z2ggdGhlIHByb3Bvc2FsLCBidXQgSSBkaWRuJ3QNCnJlc2VhcmNo
-IGl0IGluIGVub3VnaCBkZXRhaWwgdG8gcHJvdmlkZSBoaWdoIHF1YWxpdHkgZmVlZGJhY2suICBC
-dXQgSQ0Kd2lsbCBnaXZlIGEgbGl0dGxlIGxvdyBxdWFsaXR5IGZlZWRiYWNrLiAgRmlyc3QgdGhl
-IGdvb2Q6IEknbSBnZW5lcmFsbHkNCnJlY2VwdGl2ZSB0byBhbnl0aGluZyB0aGF0IGltcHJvdmVz
-IG91ciBOVU1BIG9wZXJhdGlvbi4gIFdoaWxlIEkgZGlkbid0DQpzZWUgdGhhdCB0aGUgUlNTIG5l
-Y2Vzc2FyaWx5IHRvb2sgTlVNQSBpbnRvIGNvbnNpZGVyYXRpb24sIHRoZSBvdmVyYWxsDQpmcmFt
-ZXdvcmsgbG9va2VkIGxpa2UgYSBnb29kIHN0YXJ0aW5nIHBvaW50IGZvciBkb2luZyBleGFjdGx5
-IHRoYXQuICBUaGUNCmFiaWxpdHkgdG8gaGF2ZSBSU1MgdmlhIGhhc2hlZCByZWNlaXZlcyBhbmQg
-bXVsdGlwbGUgZmxvd3MgaXMgYSBzdGFydCwNCm5vdyB5b3UganVzdCBuZWVkIHRvIGFkZCBwaW5u
-aW5nIHRoZSBmbG93cyB0byBzcGVjaWZpYyBzb2NrZXRzIHRoYXQgYXJlDQphZGphY2VudCB0byB0
-aGUgUENJIGJ1cyB0aGUgY29udHJvbGxlciBpcyBvbiBhbmQgcG9wdWxhdGluZyB0aGUgbnVtYmVy
-DQpvZiB0aHJlYWRzIHRvIHVzZSBmb3IgUlNTIGJhc2VkIHVwb24gdGhlIG51bWJlciBvZiBjb3Jl
-cy90aHJlYWRzIHBlcg0Kc29ja2V0LiAgTmV4dCB0aGUgcXVlc3Rpb25hYmxlOiBJJ20gbm90IHN1
-cmUgSSBsaWtlIHRoZSBzcGVjaWZpYw0KaW1wbGVtZW50YXRpb24uICBJdCBwdXRzIGEgbG90IG9m
-IG5ldywgY29tcGxleCBjb25maWd1cmF0aW9uIG9uIHRoZQ0KYXBwbGljYXRpb24uICBCdXQgdGhl
-IGJlbmVmaXRzIG9mIHRoaXMgY291bGQgaGF2ZSBhIGRlZmF1bHQgc2V0dGluZw0Kd2l0aG91dCBy
-ZXF1aXJpbmcgYXBwbGljYXRpb24gaW50ZXJhY3Rpb24uICBJJ20gbm90IHN1cmUgSSB3b3VsZG4n
-dA0KcHJlZmVyIHNvbWV0aGluZyB0aGF0LCBieSBkZWZhdWx0LCBjcmVhdGVzIGFsbCBuZXcgUVBz
-IGFuZCBDUXMgc28gdGhhdA0KdGhleSBnbyB0aHJvdWdoIGEgZGVmYXVsdCBoYXNoaW5nIGFuZCBy
-ZWRpcmVjdGlvbiB3aXRob3V0IGFueSB1c2VyDQppbnRlcmFjdGlvbiBhdCBhbGwuICBPciBtYXli
-ZSB0aGUgdXNlciBzaW1wbHkgc2V0cyBhIGZsYWcgdG8gc2lnbmFsIHRoYXQNCnRoZXkgYXJlIE9L
-IHdpdGggbXVsdGl0aHJlYWQgY29tcGxldGlvbiBoYW5kbGluZyBhbmQgdGhleSBnZXQgaXQuICBP
-cg0Kc29tZXRoaW5nIGxpa2UgdGhhdC4gIE9uIG90aGVyIHdvcmRzLCBJIHdvdWxkIGxpa2UgdG8g
-c2VlIGFuIGFwcGxpY2F0aW9uDQpnZXQgdGhlIGJlbmVmaXQgb2YgdGhpcyB3aXRob3V0IGhhdmlu
-ZyB0byBiZSByZWNvZGVkLiAgTWF5YmUgdGhleSBvbmx5DQpnZXQgYSBkZWZhdWx0IGJlbmVmaXQg
-YW5kIG5vdCBhbiBvcHRpbWl6ZWQgYmVuZWZpdCwgYW5kIG1heWJlIHRoZSB1c2VyDQpoYXMgdG8g
-c2V0IGFuIGVudmlyb25tZW50IHZhcmlhYmxlIGZvciBsaWJpYnZlcmJzIGJlZm9yZSBpdCBnZXRz
-IGVuYWJsZWQNCmJ5IGRlZmF1bHQsIGJ1dCBJIHdvdWxkIHN0aWxsIGxpa2UgdG8gc2VlIGEgbm9u
-LXJlY29tcGlsZWQgYXBwIGJlbmVmaXQNCmZyb20gdGhpcy4gIFRoZSBwcm9wb3NhbCBJIHNlZSBo
-ZXJlIG1pZ2h0IGJlIGFibGUgdG8gZG8gdGhhdCBpZiB0aGUNCmNoYW5nZXMgdG8gbGliaWJ2ZXJi
-cyBhcmUgZG9uZSBwcm9wZXJseS4gIEFuZCBpZiB0aGUgaW1wbGVtZW50YXRpb24gaXMNCnJpZ2h0
-IGl0IG1pZ2h0IGJlIGFibGUgdG8gaGVscCB0aGUga2VybmVsIGNvbnN1bWVycyB0b28uICBTbywg
-cGxlYXNlDQprZWVwIHRoZXNlIHRoaW5ncyBpbiBtaW5kIGFzIHlvdSBjb250aW51ZSB0byB3b3Jr
-IG9uIHRoaXMuDQoNCkFuZCB3aXRoIHRoYXQsIEkndmUgZ290IHRvIGRvIHNvbWUgUmVkIEhhdCB3
-b3JrIGZvciBhIGJpdC4gIEkgd29uJ3QgYmUNCmFzIHJlc3BvbnNpdmUgdGhlIGVhcmx5IHBhcnQg
-b2YgbmV4dCB3ZWVrIGFzIGEgcmVzdWx0Lg0KDQotLSANCkRvdWcgTGVkZm9yZCA8ZGxlZGZvcmRA
-cmVkaGF0LmNvbT4NCiAgICAgICAgICAgICAgR1BHIEtleUlEOiAwRTU3MkZERA0KDQo=
+Looks good.
+
+Reviewed-By: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+
+On Sun, May 31, 2015 at 5:44 PM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>
+> Add a new ib_cq_init_attr structure which contains the
+> previous cqe (minimum number of CQ entries) and comp_vector
+> (completion vector) in addition to a new flags field.
+> All vendors' create_cq callbacks are changed in order
+> to work with the new API.
+>
+> This commit does not change any functionality.
+>
+> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/core/uverbs_cmd.c         |    6 ++++--
+>  drivers/infiniband/core/verbs.c              |    3 ++-
+>  drivers/infiniband/hw/amso1100/c2_provider.c |    7 ++++++-
+>  drivers/infiniband/hw/cxgb3/iwch_provider.c  |   11 ++++++++---
+>  drivers/infiniband/hw/cxgb4/cq.c             |    9 +++++++--
+>  drivers/infiniband/hw/cxgb4/iw_cxgb4.h       |    8 ++++----
+>  drivers/infiniband/hw/ehca/ehca_cq.c         |    7 ++++++-
+>  drivers/infiniband/hw/ehca/ehca_iverbs.h     |    3 ++-
+>  drivers/infiniband/hw/ipath/ipath_cq.c       |    9 +++++++--
+>  drivers/infiniband/hw/ipath/ipath_verbs.h    |    3 ++-
+>  drivers/infiniband/hw/mlx4/cq.c              |    8 +++++++-
+>  drivers/infiniband/hw/mlx4/mlx4_ib.h         |    3 ++-
+>  drivers/infiniband/hw/mlx5/cq.c              |   10 ++++++++--
+>  drivers/infiniband/hw/mlx5/main.c            |    3 ++-
+>  drivers/infiniband/hw/mlx5/mlx5_ib.h         |    5 +++--
+>  drivers/infiniband/hw/mthca/mthca_provider.c |    8 ++++++--
+>  drivers/infiniband/hw/nes/nes_verbs.c        |   11 ++++++++---
+>  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |    7 ++++++-
+>  drivers/infiniband/hw/ocrdma/ocrdma_verbs.h  |    6 ++++--
+>  drivers/infiniband/hw/qib/qib_cq.c           |   11 ++++++++---
+>  drivers/infiniband/hw/qib/qib_verbs.h        |    5 +++--
+>  drivers/infiniband/hw/usnic/usnic_ib_verbs.c |   10 +++++++---
+>  drivers/infiniband/hw/usnic/usnic_ib_verbs.h |    7 ++++---
+>  include/rdma/ib_verbs.h                      |   10 ++++++++--
+>  24 files changed, 124 insertions(+), 46 deletions(-)
+>
+> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+> index a9f0489..1954ebb 100644
+> --- a/drivers/infiniband/core/uverbs_cmd.c
+> +++ b/drivers/infiniband/core/uverbs_cmd.c
+> @@ -1341,6 +1341,7 @@ ssize_t ib_uverbs_create_cq(struct ib_uverbs_file *file,
+>         struct ib_uverbs_event_file    *ev_file = NULL;
+>         struct ib_cq                   *cq;
+>         int                             ret;
+> +       struct ib_cq_init_attr attr = {};
+>
+>         if (out_len < sizeof resp)
+>                 return -ENOSPC;
+> @@ -1376,8 +1377,9 @@ ssize_t ib_uverbs_create_cq(struct ib_uverbs_file *file,
+>         INIT_LIST_HEAD(&obj->comp_list);
+>         INIT_LIST_HEAD(&obj->async_list);
+>
+> -       cq = file->device->ib_dev->create_cq(file->device->ib_dev, cmd.cqe,
+> -                                            cmd.comp_vector,
+> +       attr.cqe = cmd.cqe;
+> +       attr.comp_vector = cmd.comp_vector;
+> +       cq = file->device->ib_dev->create_cq(file->device->ib_dev, &attr,
+>                                              file->ucontext, &udata);
+>         if (IS_ERR(cq)) {
+>                 ret = PTR_ERR(cq);
+> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+> index 685a362..f7615d4 100644
+> --- a/drivers/infiniband/core/verbs.c
+> +++ b/drivers/infiniband/core/verbs.c
+> @@ -1078,8 +1078,9 @@ struct ib_cq *ib_create_cq(struct ib_device *device,
+>                            void *cq_context, int cqe, int comp_vector)
+>  {
+>         struct ib_cq *cq;
+> +       struct ib_cq_init_attr attr = {.cqe = cqe, .comp_vector = comp_vector};
+>
+> -       cq = device->create_cq(device, cqe, comp_vector, NULL, NULL);
+> +       cq = device->create_cq(device, &attr, NULL, NULL);
+>
+>         if (!IS_ERR(cq)) {
+>                 cq->device        = device;
+> diff --git a/drivers/infiniband/hw/amso1100/c2_provider.c b/drivers/infiniband/hw/amso1100/c2_provider.c
+> index d396c39..a43e022 100644
+> --- a/drivers/infiniband/hw/amso1100/c2_provider.c
+> +++ b/drivers/infiniband/hw/amso1100/c2_provider.c
+> @@ -286,13 +286,18 @@ static int c2_destroy_qp(struct ib_qp *ib_qp)
+>         return 0;
+>  }
+>
+> -static struct ib_cq *c2_create_cq(struct ib_device *ibdev, int entries, int vector,
+> +static struct ib_cq *c2_create_cq(struct ib_device *ibdev,
+> +                                 const struct ib_cq_init_attr *attr,
+>                                   struct ib_ucontext *context,
+>                                   struct ib_udata *udata)
+>  {
+> +       int entries = attr->cqe;
+>         struct c2_cq *cq;
+>         int err;
+>
+> +       if (attr->flags)
+> +               return ERR_PTR(-EINVAL);
+> +
+>         cq = kmalloc(sizeof(*cq), GFP_KERNEL);
+>         if (!cq) {
+>                 pr_debug("%s: Unable to allocate CQ\n", __func__);
+> diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+> index 061ef08..2eaf7e8 100644
+> --- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
+> +++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+> @@ -138,10 +138,12 @@ static int iwch_destroy_cq(struct ib_cq *ib_cq)
+>         return 0;
+>  }
+>
+> -static struct ib_cq *iwch_create_cq(struct ib_device *ibdev, int entries, int vector,
+> -                            struct ib_ucontext *ib_context,
+> -                            struct ib_udata *udata)
+> +static struct ib_cq *iwch_create_cq(struct ib_device *ibdev,
+> +                                   const struct ib_cq_init_attr *attr,
+> +                                   struct ib_ucontext *ib_context,
+> +                                   struct ib_udata *udata)
+>  {
+> +       int entries = attr->cqe;
+>         struct iwch_dev *rhp;
+>         struct iwch_cq *chp;
+>         struct iwch_create_cq_resp uresp;
+> @@ -151,6 +153,9 @@ static struct ib_cq *iwch_create_cq(struct ib_device *ibdev, int entries, int ve
+>         size_t resplen;
+>
+>         PDBG("%s ib_dev %p entries %d\n", __func__, ibdev, entries);
+> +       if (attr->flags)
+> +               return ERR_PTR(-EINVAL);
+> +
+>         rhp = to_iwch_dev(ibdev);
+>         chp = kzalloc(sizeof(*chp), GFP_KERNEL);
+>         if (!chp)
+> diff --git a/drivers/infiniband/hw/cxgb4/cq.c b/drivers/infiniband/hw/cxgb4/cq.c
+> index 68ddb37..9a2c01c 100644
+> --- a/drivers/infiniband/hw/cxgb4/cq.c
+> +++ b/drivers/infiniband/hw/cxgb4/cq.c
+> @@ -866,10 +866,13 @@ int c4iw_destroy_cq(struct ib_cq *ib_cq)
+>         return 0;
+>  }
+>
+> -struct ib_cq *c4iw_create_cq(struct ib_device *ibdev, int entries,
+> -                            int vector, struct ib_ucontext *ib_context,
+> +struct ib_cq *c4iw_create_cq(struct ib_device *ibdev,
+> +                            const struct ib_cq_init_attr *attr,
+> +                            struct ib_ucontext *ib_context,
+>                              struct ib_udata *udata)
+>  {
+> +       int entries = attr->cqe;
+> +       int vector = attr->comp_vector;
+>         struct c4iw_dev *rhp;
+>         struct c4iw_cq *chp;
+>         struct c4iw_create_cq_resp uresp;
+> @@ -879,6 +882,8 @@ struct ib_cq *c4iw_create_cq(struct ib_device *ibdev, int entries,
+>         struct c4iw_mm_entry *mm, *mm2;
+>
+>         PDBG("%s ib_dev %p entries %d\n", __func__, ibdev, entries);
+> +       if (attr->flags)
+> +               return ERR_PTR(-EINVAL);
+>
+>         rhp = to_c4iw_dev(ibdev);
+>
+> diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+> index 97bb555..540ed02 100644
+> --- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+> +++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+> @@ -992,10 +992,10 @@ int c4iw_reregister_phys_mem(struct ib_mr *mr,
+>                                      int acc, u64 *iova_start);
+>  int c4iw_dereg_mr(struct ib_mr *ib_mr);
+>  int c4iw_destroy_cq(struct ib_cq *ib_cq);
+> -struct ib_cq *c4iw_create_cq(struct ib_device *ibdev, int entries,
+> -                                       int vector,
+> -                                       struct ib_ucontext *ib_context,
+> -                                       struct ib_udata *udata);
+> +struct ib_cq *c4iw_create_cq(struct ib_device *ibdev,
+> +                            const struct ib_cq_init_attr *attr,
+> +                            struct ib_ucontext *ib_context,
+> +                            struct ib_udata *udata);
+>  int c4iw_resize_cq(struct ib_cq *cq, int cqe, struct ib_udata *udata);
+>  int c4iw_arm_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags flags);
+>  int c4iw_destroy_qp(struct ib_qp *ib_qp);
+> diff --git a/drivers/infiniband/hw/ehca/ehca_cq.c b/drivers/infiniband/hw/ehca/ehca_cq.c
+> index 8cc8375..9b68b17 100644
+> --- a/drivers/infiniband/hw/ehca/ehca_cq.c
+> +++ b/drivers/infiniband/hw/ehca/ehca_cq.c
+> @@ -113,10 +113,12 @@ struct ehca_qp *ehca_cq_get_qp(struct ehca_cq *cq, int real_qp_num)
+>         return ret;
+>  }
+>
+> -struct ib_cq *ehca_create_cq(struct ib_device *device, int cqe, int comp_vector,
+> +struct ib_cq *ehca_create_cq(struct ib_device *device,
+> +                            const struct ib_cq_init_attr *attr,
+>                              struct ib_ucontext *context,
+>                              struct ib_udata *udata)
+>  {
+> +       int cqe = attr->cqe;
+>         static const u32 additional_cqe = 20;
+>         struct ib_cq *cq;
+>         struct ehca_cq *my_cq;
+> @@ -131,6 +133,9 @@ struct ib_cq *ehca_create_cq(struct ib_device *device, int cqe, int comp_vector,
+>         int ipz_rc, i;
+>         unsigned long flags;
+>
+> +       if (attr->flags)
+> +               return ERR_PTR(-EINVAL);
+> +
+>         if (cqe >= 0xFFFFFFFF - 64 - additional_cqe)
+>                 return ERR_PTR(-EINVAL);
+>
+> diff --git a/drivers/infiniband/hw/ehca/ehca_iverbs.h b/drivers/infiniband/hw/ehca/ehca_iverbs.h
+> index 077185b..952f2fb 100644
+> --- a/drivers/infiniband/hw/ehca/ehca_iverbs.h
+> +++ b/drivers/infiniband/hw/ehca/ehca_iverbs.h
+> @@ -129,7 +129,8 @@ int ehca_destroy_eq(struct ehca_shca *shca, struct ehca_eq *eq);
+>  void *ehca_poll_eq(struct ehca_shca *shca, struct ehca_eq *eq);
+>
+>
+> -struct ib_cq *ehca_create_cq(struct ib_device *device, int cqe, int comp_vector,
+> +struct ib_cq *ehca_create_cq(struct ib_device *device,
+> +                            const struct ib_cq_init_attr *attr,
+>                              struct ib_ucontext *context,
+>                              struct ib_udata *udata);
+>
+> diff --git a/drivers/infiniband/hw/ipath/ipath_cq.c b/drivers/infiniband/hw/ipath/ipath_cq.c
+> index 0416c6c..e9dd911 100644
+> --- a/drivers/infiniband/hw/ipath/ipath_cq.c
+> +++ b/drivers/infiniband/hw/ipath/ipath_cq.c
+> @@ -188,7 +188,7 @@ static void send_complete(unsigned long data)
+>  /**
+>   * ipath_create_cq - create a completion queue
+>   * @ibdev: the device this completion queue is attached to
+> - * @entries: the minimum size of the completion queue
+> + * @attr: creation attributes
+>   * @context: unused by the InfiniPath driver
+>   * @udata: unused by the InfiniPath driver
+>   *
+> @@ -197,16 +197,21 @@ static void send_complete(unsigned long data)
+>   *
+>   * Called by ib_create_cq() in the generic verbs code.
+>   */
+> -struct ib_cq *ipath_create_cq(struct ib_device *ibdev, int entries, int comp_vector,
+> +struct ib_cq *ipath_create_cq(struct ib_device *ibdev,
+> +                             const struct ib_cq_init_attr *attr,
+>                               struct ib_ucontext *context,
+>                               struct ib_udata *udata)
+>  {
+> +       int entries = attr->cqe;
+>         struct ipath_ibdev *dev = to_idev(ibdev);
+>         struct ipath_cq *cq;
+>         struct ipath_cq_wc *wc;
+>         struct ib_cq *ret;
+>         u32 sz;
+>
+> +       if (attr->flags)
+> +               return ERR_PTR(-EINVAL);
+> +
+>         if (entries < 1 || entries > ib_ipath_max_cqes) {
+>                 ret = ERR_PTR(-EINVAL);
+>                 goto done;
+> diff --git a/drivers/infiniband/hw/ipath/ipath_verbs.h b/drivers/infiniband/hw/ipath/ipath_verbs.h
+> index ae6cff4..c4e4e81 100644
+> --- a/drivers/infiniband/hw/ipath/ipath_verbs.h
+> +++ b/drivers/infiniband/hw/ipath/ipath_verbs.h
+> @@ -807,7 +807,8 @@ void ipath_cq_enter(struct ipath_cq *cq, struct ib_wc *entry, int sig);
+>
+>  int ipath_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *entry);
+>
+> -struct ib_cq *ipath_create_cq(struct ib_device *ibdev, int entries, int comp_vector,
+> +struct ib_cq *ipath_create_cq(struct ib_device *ibdev,
+> +                             const struct ib_cq_init_attr *attr,
+>                               struct ib_ucontext *context,
+>                               struct ib_udata *udata);
+>
+> diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
+> index 0176caa..8e44aaa 100644
+> --- a/drivers/infiniband/hw/mlx4/cq.c
+> +++ b/drivers/infiniband/hw/mlx4/cq.c
+> @@ -166,15 +166,21 @@ err_buf:
+>         return err;
+>  }
+>
+> -struct ib_cq *mlx4_ib_create_cq(struct ib_device *ibdev, int entries, int vector,
+> +struct ib_cq *mlx4_ib_create_cq(struct ib_device *ibdev,
+> +                               const struct ib_cq_init_attr *attr,
+>                                 struct ib_ucontext *context,
+>                                 struct ib_udata *udata)
+>  {
+> +       int entries = attr->cqe;
+> +       int vector = attr->comp_vector;
+>         struct mlx4_ib_dev *dev = to_mdev(ibdev);
+>         struct mlx4_ib_cq *cq;
+>         struct mlx4_uar *uar;
+>         int err;
+>
+> +       if (attr->flags)
+> +               return ERR_PTR(-EINVAL);
+> +
+>         if (entries < 1 || entries > dev->dev->caps.max_cqes)
+>                 return ERR_PTR(-EINVAL);
+>
+> diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+> index fce3934..f127efc 100644
+> --- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
+> +++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+> @@ -668,7 +668,8 @@ void mlx4_ib_free_fast_reg_page_list(struct ib_fast_reg_page_list *page_list);
+>
+>  int mlx4_ib_modify_cq(struct ib_cq *cq, u16 cq_count, u16 cq_period);
+>  int mlx4_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata);
+> -struct ib_cq *mlx4_ib_create_cq(struct ib_device *ibdev, int entries, int vector,
+> +struct ib_cq *mlx4_ib_create_cq(struct ib_device *ibdev,
+> +                               const struct ib_cq_init_attr *attr,
+>                                 struct ib_ucontext *context,
+>                                 struct ib_udata *udata);
+>  int mlx4_ib_destroy_cq(struct ib_cq *cq);
+> diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
+> index 2ee6b10..09fbae6 100644
+> --- a/drivers/infiniband/hw/mlx5/cq.c
+> +++ b/drivers/infiniband/hw/mlx5/cq.c
+> @@ -736,10 +736,13 @@ static void destroy_cq_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_cq *cq)
+>         mlx5_db_free(dev->mdev, &cq->db);
+>  }
+>
+> -struct ib_cq *mlx5_ib_create_cq(struct ib_device *ibdev, int entries,
+> -                               int vector, struct ib_ucontext *context,
+> +struct ib_cq *mlx5_ib_create_cq(struct ib_device *ibdev,
+> +                               const struct ib_cq_init_attr *attr,
+> +                               struct ib_ucontext *context,
+>                                 struct ib_udata *udata)
+>  {
+> +       int entries = attr->cqe;
+> +       int vector = attr->comp_vector;
+>         struct mlx5_create_cq_mbox_in *cqb = NULL;
+>         struct mlx5_ib_dev *dev = to_mdev(ibdev);
+>         struct mlx5_ib_cq *cq;
+> @@ -750,6 +753,9 @@ struct ib_cq *mlx5_ib_create_cq(struct ib_device *ibdev, int entries,
+>         int eqn;
+>         int err;
+>
+> +       if (attr->flags)
+> +               return ERR_PTR(-EINVAL);
+> +
+>         if (entries < 0)
+>                 return ERR_PTR(-EINVAL);
+>
+> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+> index b2fdb9c..9565c20 100644
+> --- a/drivers/infiniband/hw/mlx5/main.c
+> +++ b/drivers/infiniband/hw/mlx5/main.c
+> @@ -1087,6 +1087,7 @@ static int create_dev_resources(struct mlx5_ib_resources *devr)
+>  {
+>         struct ib_srq_init_attr attr;
+>         struct mlx5_ib_dev *dev;
+> +       struct ib_cq_init_attr cq_attr = {.cqe = 1};
+>         int ret = 0;
+>
+>         dev = container_of(devr, struct mlx5_ib_dev, devr);
+> @@ -1100,7 +1101,7 @@ static int create_dev_resources(struct mlx5_ib_resources *devr)
+>         devr->p0->uobject = NULL;
+>         atomic_set(&devr->p0->usecnt, 0);
+>
+> -       devr->c0 = mlx5_ib_create_cq(&dev->ib_dev, 1, 0, NULL, NULL);
+> +       devr->c0 = mlx5_ib_create_cq(&dev->ib_dev, &cq_attr, NULL, NULL);
+>         if (IS_ERR(devr->c0)) {
+>                 ret = PTR_ERR(devr->c0);
+>                 goto error1;
+> diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+> index dff1cfc..b086162 100644
+> --- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
+> +++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+> @@ -556,8 +556,9 @@ int mlx5_ib_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
+>  void *mlx5_get_send_wqe(struct mlx5_ib_qp *qp, int n);
+>  int mlx5_ib_read_user_wqe(struct mlx5_ib_qp *qp, int send, int wqe_index,
+>                           void *buffer, u32 length);
+> -struct ib_cq *mlx5_ib_create_cq(struct ib_device *ibdev, int entries,
+> -                               int vector, struct ib_ucontext *context,
+> +struct ib_cq *mlx5_ib_create_cq(struct ib_device *ibdev,
+> +                               const struct ib_cq_init_attr *attr,
+> +                               struct ib_ucontext *context,
+>                                 struct ib_udata *udata);
+>  int mlx5_ib_destroy_cq(struct ib_cq *cq);
+>  int mlx5_ib_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc);
+> diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
+> index 509d59e..f1b04bd 100644
+> --- a/drivers/infiniband/hw/mthca/mthca_provider.c
+> +++ b/drivers/infiniband/hw/mthca/mthca_provider.c
+> @@ -641,16 +641,20 @@ static int mthca_destroy_qp(struct ib_qp *qp)
+>         return 0;
+>  }
+>
+> -static struct ib_cq *mthca_create_cq(struct ib_device *ibdev, int entries,
+> -                                    int comp_vector,
+> +static struct ib_cq *mthca_create_cq(struct ib_device *ibdev,
+> +                                    const struct ib_cq_init_attr *attr,
+>                                      struct ib_ucontext *context,
+>                                      struct ib_udata *udata)
+>  {
+> +       int entries = attr->cqe;
+>         struct mthca_create_cq ucmd;
+>         struct mthca_cq *cq;
+>         int nent;
+>         int err;
+>
+> +       if (attr->flags)
+> +               return ERR_PTR(-EINVAL);
+> +
+>         if (entries < 1 || entries > to_mdev(ibdev)->limits.max_cqes)
+>                 return ERR_PTR(-EINVAL);
+>
+> diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+> index 05530e3..a9d62c5 100644
+> --- a/drivers/infiniband/hw/nes/nes_verbs.c
+> +++ b/drivers/infiniband/hw/nes/nes_verbs.c
+> @@ -1526,10 +1526,12 @@ static int nes_destroy_qp(struct ib_qp *ibqp)
+>  /**
+>   * nes_create_cq
+>   */
+> -static struct ib_cq *nes_create_cq(struct ib_device *ibdev, int entries,
+> -               int comp_vector,
+> -               struct ib_ucontext *context, struct ib_udata *udata)
+> +static struct ib_cq *nes_create_cq(struct ib_device *ibdev,
+> +                                  const struct ib_cq_init_attr *attr,
+> +                                  struct ib_ucontext *context,
+> +                                  struct ib_udata *udata)
+>  {
+> +       int entries = attr->cqe;
+>         u64 u64temp;
+>         struct nes_vnic *nesvnic = to_nesvnic(ibdev);
+>         struct nes_device *nesdev = nesvnic->nesdev;
+> @@ -1549,6 +1551,9 @@ static struct ib_cq *nes_create_cq(struct ib_device *ibdev, int entries,
+>         unsigned long flags;
+>         int ret;
+>
+> +       if (attr->flags)
+> +               return ERR_PTR(-EINVAL);
+> +
+>         if (entries > nesadapter->max_cqe)
+>                 return ERR_PTR(-EINVAL);
+>
+> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+> index 8771755..f441df6 100644
+> --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+> @@ -1000,10 +1000,12 @@ err:
+>         return status;
+>  }
+>
+> -struct ib_cq *ocrdma_create_cq(struct ib_device *ibdev, int entries, int vector,
+> +struct ib_cq *ocrdma_create_cq(struct ib_device *ibdev,
+> +                              const struct ib_cq_init_attr *attr,
+>                                struct ib_ucontext *ib_ctx,
+>                                struct ib_udata *udata)
+>  {
+> +       int entries = attr->cqe;
+>         struct ocrdma_cq *cq;
+>         struct ocrdma_dev *dev = get_ocrdma_dev(ibdev);
+>         struct ocrdma_ucontext *uctx = NULL;
+> @@ -1011,6 +1013,9 @@ struct ib_cq *ocrdma_create_cq(struct ib_device *ibdev, int entries, int vector,
+>         int status;
+>         struct ocrdma_create_cq_ureq ureq;
+>
+> +       if (attr->flags)
+> +               return ERR_PTR(-EINVAL);
+> +
+>         if (udata) {
+>                 if (ib_copy_from_udata(&ureq, udata, sizeof(ureq)))
+>                         return ERR_PTR(-EFAULT);
+> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
+> index 3cdc81e..e853195 100644
+> --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
+> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
+> @@ -59,8 +59,10 @@ struct ib_pd *ocrdma_alloc_pd(struct ib_device *,
+>                               struct ib_ucontext *, struct ib_udata *);
+>  int ocrdma_dealloc_pd(struct ib_pd *pd);
+>
+> -struct ib_cq *ocrdma_create_cq(struct ib_device *, int entries, int vector,
+> -                              struct ib_ucontext *, struct ib_udata *);
+> +struct ib_cq *ocrdma_create_cq(struct ib_device *ibdev,
+> +                              const struct ib_cq_init_attr *attr,
+> +                              struct ib_ucontext *ib_ctx,
+> +                              struct ib_udata *udata);
+>  int ocrdma_resize_cq(struct ib_cq *, int cqe, struct ib_udata *);
+>  int ocrdma_destroy_cq(struct ib_cq *);
+>
+> diff --git a/drivers/infiniband/hw/qib/qib_cq.c b/drivers/infiniband/hw/qib/qib_cq.c
+> index ab4e11c..2b45d0b 100644
+> --- a/drivers/infiniband/hw/qib/qib_cq.c
+> +++ b/drivers/infiniband/hw/qib/qib_cq.c
+> @@ -203,7 +203,7 @@ static void send_complete(struct kthread_work *work)
+>  /**
+>   * qib_create_cq - create a completion queue
+>   * @ibdev: the device this completion queue is attached to
+> - * @entries: the minimum size of the completion queue
+> + * @attr: creation attributes
+>   * @context: unused by the QLogic_IB driver
+>   * @udata: user data for libibverbs.so
+>   *
+> @@ -212,16 +212,21 @@ static void send_complete(struct kthread_work *work)
+>   *
+>   * Called by ib_create_cq() in the generic verbs code.
+>   */
+> -struct ib_cq *qib_create_cq(struct ib_device *ibdev, int entries,
+> -                           int comp_vector, struct ib_ucontext *context,
+> +struct ib_cq *qib_create_cq(struct ib_device *ibdev,
+> +                           const struct ib_cq_init_attr *attr,
+> +                           struct ib_ucontext *context,
+>                             struct ib_udata *udata)
+>  {
+> +       int entries = attr->cqe;
+>         struct qib_ibdev *dev = to_idev(ibdev);
+>         struct qib_cq *cq;
+>         struct qib_cq_wc *wc;
+>         struct ib_cq *ret;
+>         u32 sz;
+>
+> +       if (attr->flags)
+> +               return ERR_PTR(-EINVAL);
+> +
+>         if (entries < 1 || entries > ib_qib_max_cqes) {
+>                 ret = ERR_PTR(-EINVAL);
+>                 goto done;
+> diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
+> index bfc8948..e9b26a4 100644
+> --- a/drivers/infiniband/hw/qib/qib_verbs.h
+> +++ b/drivers/infiniband/hw/qib/qib_verbs.h
+> @@ -1007,8 +1007,9 @@ void qib_cq_enter(struct qib_cq *cq, struct ib_wc *entry, int sig);
+>
+>  int qib_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *entry);
+>
+> -struct ib_cq *qib_create_cq(struct ib_device *ibdev, int entries,
+> -                           int comp_vector, struct ib_ucontext *context,
+> +struct ib_cq *qib_create_cq(struct ib_device *ibdev,
+> +                           const struct ib_cq_init_attr *attr,
+> +                           struct ib_ucontext *context,
+>                             struct ib_udata *udata);
+>
+>  int qib_destroy_cq(struct ib_cq *ibcq);
+> diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+> index 53bd6a2..2b3f7e3 100644
+> --- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+> +++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+> @@ -570,13 +570,17 @@ int usnic_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+>         return status;
+>  }
+>
+> -struct ib_cq *usnic_ib_create_cq(struct ib_device *ibdev, int entries,
+> -                                       int vector, struct ib_ucontext *context,
+> -                                       struct ib_udata *udata)
+> +struct ib_cq *usnic_ib_create_cq(struct ib_device *ibdev,
+> +                                const struct ib_cq_init_attr *attr,
+> +                                struct ib_ucontext *context,
+> +                                struct ib_udata *udata)
+>  {
+>         struct ib_cq *cq;
+>
+>         usnic_dbg("\n");
+> +       if (attr->flags)
+> +               return ERR_PTR(-EINVAL);
+> +
+>         cq = kzalloc(sizeof(*cq), GFP_KERNEL);
+>         if (!cq)
+>                 return ERR_PTR(-EBUSY);
+> diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.h b/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
+> index 57ddba5..2ab8427 100644
+> --- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
+> +++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
+> @@ -46,9 +46,10 @@ struct ib_qp *usnic_ib_create_qp(struct ib_pd *pd,
+>  int usnic_ib_destroy_qp(struct ib_qp *qp);
+>  int usnic_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+>                                 int attr_mask, struct ib_udata *udata);
+> -struct ib_cq *usnic_ib_create_cq(struct ib_device *ibdev, int entries,
+> -                                       int vector, struct ib_ucontext *context,
+> -                                       struct ib_udata *udata);
+> +struct ib_cq *usnic_ib_create_cq(struct ib_device *ibdev,
+> +                                const struct ib_cq_init_attr *attr,
+> +                                struct ib_ucontext *context,
+> +                                struct ib_udata *udata);
+>  int usnic_ib_destroy_cq(struct ib_cq *cq);
+>  struct ib_mr *usnic_ib_reg_mr(struct ib_pd *pd, u64 start, u64 length,
+>                                 u64 virt_addr, int access_flags,
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> index ad499bd..6c715d7 100644
+> --- a/include/rdma/ib_verbs.h
+> +++ b/include/rdma/ib_verbs.h
+> @@ -173,6 +173,12 @@ struct ib_odp_caps {
+>         } per_transport_caps;
+>  };
+>
+> +struct ib_cq_init_attr {
+> +       unsigned int    cqe;
+> +       int             comp_vector;
+> +       u32             flags;
+> +};
+> +
+>  struct ib_device_attr {
+>         u64                     fw_ver;
+>         __be64                  sys_image_guid;
+> @@ -1614,8 +1620,8 @@ struct ib_device {
+>         int                        (*post_recv)(struct ib_qp *qp,
+>                                                 struct ib_recv_wr *recv_wr,
+>                                                 struct ib_recv_wr **bad_recv_wr);
+> -       struct ib_cq *             (*create_cq)(struct ib_device *device, int cqe,
+> -                                               int comp_vector,
+> +       struct ib_cq *             (*create_cq)(struct ib_device *device,
+> +                                               const struct ib_cq_init_attr *attr,
+>                                                 struct ib_ucontext *context,
+>                                                 struct ib_udata *udata);
+>         int                        (*modify_cq)(struct ib_cq *cq, u16 cq_count,
+> --
+> 1.7.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
