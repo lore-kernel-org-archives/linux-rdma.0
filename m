@@ -1,39 +1,28 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next V2 0/9] Add completion timestamping support
-Date: Mon, 1 Jun 2015 11:29:29 -0600
-Message-ID: <20150601172929.GA17715@obsidianresearch.com>
-References: <1433074457-26437-1-git-send-email-ogerlitz@mellanox.com>
- <1433098827.114391.179.camel@redhat.com>
- <CAAKD3BBo9A5AV9Uv-q1TgSQ6hs-oSUn5QsUT+5+6mk1RwW7AUA@mail.gmail.com>
- <1433157904.114391.188.camel@redhat.com>
- <20150601164322.GA14391@obsidianresearch.com>
- <1433178057.114391.208.camel@redhat.com>
+Subject: Re: [PATCH 0/3] Add const to various core functions
+Date: Mon, 1 Jun 2015 11:32:55 -0600
+Message-ID: <20150601173255.GA16113@obsidianresearch.com>
+References: <1433106931-5215-1-git-send-email-ira.weiny@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1433178057.114391.208.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1433106931-5215-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 01, 2015 at 01:00:57PM -0400, Doug Ledford wrote:
-> > case for this feature, generalizing too much may destroy the
-> > performance that is valuable here.
- 
-> I'm not convinced of that.  Steve has already spoke up about the
-> timestamps available in cxgb4.  Those are very different and yet still
-> highly valuable to someone investigating performance of their RDMA
-> application.
+On Sun, May 31, 2015 at 05:15:28PM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> In order to support some of Jason's comments to add const to the functions I am
+> adding for OPA the following patches clean up the call trees of the currently
+> defined functions.
 
-? cxgb4 looks nearly identical to me. There is only one HW time stamp
-'cqe_sge_ts', which occurs at some point in the flow, and is written
-the CQE. The current cycle counter can be read from SGE_TIMESTAMP_LO
-registers. Same as mlx4, really.
+This is longer than I imagined, but looks good.
 
-The rest is just bookkeeping and logging that doesn't require special
-verbs support for an app to implement.
+Reviewed-By: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
 Jason
 --
