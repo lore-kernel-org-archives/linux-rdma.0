@@ -1,437 +1,251 @@
-From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: Re: [PATCH for-next V2 6/9] IB/core: Pass hardware specific data in query_device
-Date: Mon, 1 Jun 2015 14:54:09 +0530
-Message-ID: <CANjDDBg2pSonSws0j6cGnYOMSrAr3W+CdPYDyVXzLOjjzA4kSA@mail.gmail.com>
+From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH for-next V2 0/9] Add completion timestamping support
+Date: Mon, 1 Jun 2015 12:30:10 +0300
+Message-ID: <CAAKD3BBo9A5AV9Uv-q1TgSQ6hs-oSUn5QsUT+5+6mk1RwW7AUA@mail.gmail.com>
 References: <1433074457-26437-1-git-send-email-ogerlitz@mellanox.com>
-	<1433074457-26437-7-git-send-email-ogerlitz@mellanox.com>
+	<1433098827.114391.179.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1433074457-26437-7-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1433098827.114391.179.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-ocrdma part Looks good.
+On Sun, May 31, 2015 at 10:00 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> On Sun, 2015-05-31 at 15:14 +0300, Or Gerlitz wrote:
+>> Hi Doug,
+>>
+>> This patchset adds completion timestamping supports for verbs consumers.
+>>
+>> Reviewing the weekend threads, we've changed the flag time to reflect
+>> that this is completion time-stamp and folded the mlx4 actual support
+>> into one patch.
+>>
+>> Regarding the related user-space support, it's possible to add what you
+>> were suggesting, ibv_get_raw_cqe_timestamp() -- returns ts in cycles and
+>> ibv_get_cqe_timestamp() -- returns ts in ns, this makes the value returned
+>> by the poll cq verb an opaque one that must go through one of  the convertors.
+>>
+>> We would to go for one helper ibv_get_timestamp(uint64_t raw_time, flag) which
+>> could get the raw time-stamp and one of the following flags: RAW_TIME, RAW_NS_TIME.
+>
+> I'm theoretically OK with something similar to the above.  However, the
+> NS time should not be raw.  It should be cooked and should be able to be
+> valid to compare between different adapters.  Right now, the cycle
+> counter that you are exposing is only useful for ordering between
+> packets received on a single adapter where the cycle counter is the same
+> on all packets.  Throw in a different vendor's card, or two of your own
+> cards, and the issue gets much more complex.  The cooked value should be
+> an actual, real time that can be used across these more complex
+> environments.  Because of that, it really shouldn't be called RAW.
+>
 
-Reviewed-By: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Thanks for the feedback Doug.
+We wanted to add RAW_NS in order to free the user from calculating it by himself
+(dividing the cycles value in the core_clock).
+In addition to this, it's possible to implement a future NS_TIME
+(without the "raw"), which
+will convert the opaque time to system wide ns.
 
-On Sun, May 31, 2015 at 5:44 PM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> So, if you want a single entry point, I would suggest something like
+> this:
 >
-> Vendors should be able to pass vendor specific data to/from
-> user-space via query_device uverb. In order to do this,
-> we need to pass the vendors' specific udata.
+> enum ib_timestamp_flags {
+>         IB_TIMESTAMP_COMPLETION = (1 << 0), // specify on create_cq
+>         IB_TIMESTAMP_WQE_BEGIN =  (1 << 1), // specify on create qp?
+>         IB_TIMESTAMP_WQE_END =    (1 << 2), // specify on create qp?
+>         IB_TIMESTAMP_RAW =        (1 << 31)
+> };
 >
-> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/core/device.c             |    4 +++-
->  drivers/infiniband/core/uverbs_cmd.c         |    2 +-
->  drivers/infiniband/hw/amso1100/c2_provider.c |    7 +++++--
->  drivers/infiniband/hw/cxgb3/iwch_provider.c  |    8 ++++++--
->  drivers/infiniband/hw/cxgb4/provider.c       |    8 ++++++--
->  drivers/infiniband/hw/ehca/ehca_hca.c        |    6 +++++-
->  drivers/infiniband/hw/ehca/ehca_iverbs.h     |    3 ++-
->  drivers/infiniband/hw/ipath/ipath_verbs.c    |    7 +++++--
->  drivers/infiniband/hw/mlx4/main.c            |    6 +++++-
->  drivers/infiniband/hw/mlx5/main.c            |    9 +++++++--
->  drivers/infiniband/hw/mthca/mthca_provider.c |    7 +++++--
->  drivers/infiniband/hw/nes/nes_verbs.c        |    6 +++++-
->  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |    6 +++++-
->  drivers/infiniband/hw/ocrdma/ocrdma_verbs.h  |    3 ++-
->  drivers/infiniband/hw/qib/qib_verbs.c        |    6 ++++--
->  drivers/infiniband/hw/usnic/usnic_ib_verbs.c |    6 +++++-
->  drivers/infiniband/hw/usnic/usnic_ib_verbs.h |    3 ++-
->  include/rdma/ib_verbs.h                      |    3 ++-
->  18 files changed, 75 insertions(+), 25 deletions(-)
+> enum ib_cq_creation_flags {
+>         IB_CQ_FLAGS_TIMESTAMP_COMPLETION = (1 << 0)
+> };
 >
-> diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-> index 568cb41..694bd66 100644
-> --- a/drivers/infiniband/core/device.c
-> +++ b/drivers/infiniband/core/device.c
-> @@ -539,9 +539,11 @@ EXPORT_SYMBOL(ib_dispatch_event);
->  int ib_query_device(struct ib_device *device,
->                     struct ib_device_attr *device_attr)
->  {
-> +       struct ib_udata uhw = {.outlen = 0, .inlen = 0};
-> +
->         memset(device_attr, 0, sizeof(*device_attr));
+> /**
+>  * ibv_get_timestamp - Return the requested timestamp for the given wc
+>  * @wc - work completion to get timestamp results from
+>  * @ts - struct timespec to return timestamp in
+>  * @flags - which timestamp to return and in what form
+>  *
+>  * Depending on the flags used to create the queue pair/completion
+>  * queue, different timestamps might be available.  Callers should
+>  * specify which timestamp they are interested in using the flags
+>  * element, and if they wish either a cooked or raw timestamp.  A
+>  * raw timestamp is implementation defined and will be passed back
+>  * in the tv_nsec portion of the struct timespec.  A raw timestamp
+>  * can not be relied upon to have any ordering value between more
+>  * than one HCA or driver.  A cooked timestamp will return a valid
+>  * struct timespec normalized as closely as possible to the return
+>  * value for CLOCK_MONOTONIC of clock_gettime at the time of the
+>  * timestamp.
+>  */
+> int ibv_get_timestamp(struct ibv_wc *wc, struct timespec *ts, int
+> flags);
 >
-> -       return device->query_device(device, device_attr);
-> +       return device->query_device(device, device_attr, &uhw);
->  }
->  EXPORT_SYMBOL(ib_query_device);
+
+We wanted to divide the flow here:
+In create_cq, the user notifies the kernel/HCA which timestamp he
+would like to get.
+It could be a completion timestamp, a start of WQE timestamp or
+whatever he wants.
+The timestamp the user gets in the WQE is opaque. Every vendor could
+implement it
+as it wants - in order to have minimal implication in performance.
+
+The second part is ibv_get_timestamp. It gets an opaque timestamp and
+outputs a converted value in respect to the time the user wanted to get.
+For example, if IB_TIMESTAMP_NS_TIME is given, the function should output
+a system-wide NS value (we would like to implement this only in the future).
+Currently, only RAW and RAW_NS will be supported, while RAW gives the time
+in cycles and RAW_NS gives a NS value with an unknown time reference.
+
+We think ibv_get_timestamp shouldn't get a wqe but a 64bit opaque value.
+The reason for this is that it could be used in order to translate query_values
+current time to different types of timestamp.
+What do you think?
+
+>> We think this would address the reviewer comments for the kernel submission.
+>>
+>> The user-space code is in (still uses IB_CQ_FLAGS_TIMESTAMP and miss the
+>> conversion functions)
+>>
+>>  https://github.com/matanb10/libibverbs timestamp-v1
+>>  https://github.com/matanb10/libmlx4 timestamp-v1
+>>
+>> Timestamping is used by applications in order to know when a WQE was
+>> received/transmitted by the HW. The value is given is HCA hardware cycles,
+>> but could be easily converted as the hardware's core clock frequecny is
+>> available through extension of query device.
+>>
+>> Moreover, we add an ability to read the HCA's current clock. This could be
+>> useful on order to synchronize events to the wall clock.
+>>
+>> This functionality is achieved by adding/extending the following verbs:
+>>
+>> create_cq - create_cq is extended in order to allow passing creation flags
+>> to the CQ creation function. We change IB/core --> vendors API
+>> to be easily extendible by passing a struct which contains
+>> comp_vectors, cqe and the new flags parameter. In order to create
+>> CQ which supports timestamping, IB_CQ_FLAGS_TIMESTAMP_COMPLETION should be given.
+>>
+>> query_device - We extend query_device uverb further by giving the hardware's
+>> clock frequency and the timestamp mask (the number of timestamp
+>> bits which are supported). If timestamp isn't supported, 0 is returned.
+>>
+>> In order to read the timestamp in the WQE, the user needs to query the device
+>> for support, create an appropriate CQ (using the extanded uverb with
+>> IB_CQ_FLAGS_TIMESTAMP_COMPLETION) and poll the CQ with an extended poll_cq verb (currently,
+>> only implemented in user-space).
+>>
+>> In mlx4, allowing the user to read the core clock efficiently involves mapping
+>> this area of the hardware to user-space (being done by using a mmap command)
+>> and reading the clock from the correct offset of the page.
+>>
+>> This offset is returned in the vendor's specific data from mlx4's kernel driver
+>> to the mlx4's user-space driver. query_device is modified in order to support
+>> passing this vendor specific data. A user-space application could use a new
+>> verb in order to read the hardware's clock.
+>>
+>> Translating the hardware's clock into ms could be done by dividing this
+>> value by hca_core_clock (which is returned by the extended version of
+>> query_device uverb).
+>>
+>> A user-space application could get the current HW's clock by executing
+>>
+>> ibv_query_values_ex(struct ibv_context *context, uint32_t q_values,
+>>                     struct ibv_values_ex *values)
+>>
+>> The function gets a mask of the values to query and return their values.
+>> Vendors could either implement this as a uverb command or use their
+>> user-space driver to return those values directly from the HW (the mlx4 way).
+>>
+>> Matan and Or.
+>>
+>> Changes from V1:
+>>  (1) fixed lustre IB's code build
+>>  (2) squashed mlx4 V1 9-11 patches into one
+>>  (3) changed IB_CQ_FLAGS_TIMESTAMP --> IB_CQ_FLAGS_TIMESTAMP_COMPLETION
+>>
+>> Changes from V0:
+>> (1) Pass ib_cq_init_attr instead of cqe and comp_vector.
+>> (2) Fix unneeded indentation.
+>> (3) Change flags to u32.
+>> (4) Add const to create_cq's ib_cq_init_attr argument in vendor implementation.
+>>
+>> Matan Barak (9):
+>>   IB/core: Change provider's API of create_cq to be extendible
+>>   IB/core: Change ib_create_cq to use struct ib_cq_init_attr
+>>   IB/core: Add CQ creation time-stamping flag
+>>   IB/core: Extend ib_uverbs_create_cq
+>>   IB/core: Add timestamp_mask and hca_core_clock to query_device
+>>   IB/core: Pass hardware specific data in query_device
+>>   IB/mlx4: Add mmap call to map the hardware clock
+>>   IB/mlx4: Support extended create_cq and query_device uverbs
+>>   IB/mlx4: Add support for CQ time-stamping
+>>
+>>  drivers/infiniband/core/device.c                   |    6 +-
+>>  drivers/infiniband/core/mad.c                      |    5 +-
+>>  drivers/infiniband/core/uverbs.h                   |    1 +
+>>  drivers/infiniband/core/uverbs_cmd.c               |  188 ++++++++++++++++----
+>>  drivers/infiniband/core/uverbs_main.c              |    1 +
+>>  drivers/infiniband/core/verbs.c                    |    4 +-
+>>  drivers/infiniband/hw/amso1100/c2_provider.c       |   14 ++-
+>>  drivers/infiniband/hw/cxgb3/iwch_provider.c        |   19 ++-
+>>  drivers/infiniband/hw/cxgb4/cq.c                   |    9 +-
+>>  drivers/infiniband/hw/cxgb4/iw_cxgb4.h             |    8 +-
+>>  drivers/infiniband/hw/cxgb4/provider.c             |    8 +-
+>>  drivers/infiniband/hw/ehca/ehca_cq.c               |    7 +-
+>>  drivers/infiniband/hw/ehca/ehca_hca.c              |    6 +-
+>>  drivers/infiniband/hw/ehca/ehca_iverbs.h           |    6 +-
+>>  drivers/infiniband/hw/ehca/ehca_main.c             |    6 +-
+>>  drivers/infiniband/hw/ipath/ipath_cq.c             |    9 +-
+>>  drivers/infiniband/hw/ipath/ipath_verbs.c          |    7 +-
+>>  drivers/infiniband/hw/ipath/ipath_verbs.h          |    3 +-
+>>  drivers/infiniband/hw/mlx4/cq.c                    |   13 ++-
+>>  drivers/infiniband/hw/mlx4/mad.c                   |    5 +-
+>>  drivers/infiniband/hw/mlx4/main.c                  |   67 +++++++-
+>>  drivers/infiniband/hw/mlx4/mlx4_ib.h               |   19 ++-
+>>  drivers/infiniband/hw/mlx5/cq.c                    |   10 +-
+>>  drivers/infiniband/hw/mlx5/main.c                  |   19 ++-
+>>  drivers/infiniband/hw/mlx5/mlx5_ib.h               |    5 +-
+>>  drivers/infiniband/hw/mthca/mthca_provider.c       |   15 ++-
+>>  drivers/infiniband/hw/nes/nes_verbs.c              |   17 ++-
+>>  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c        |   13 ++-
+>>  drivers/infiniband/hw/ocrdma/ocrdma_verbs.h        |    9 +-
+>>  drivers/infiniband/hw/qib/qib_cq.c                 |   11 +-
+>>  drivers/infiniband/hw/qib/qib_verbs.c              |    6 +-
+>>  drivers/infiniband/hw/qib/qib_verbs.h              |    5 +-
+>>  drivers/infiniband/hw/usnic/usnic_ib_verbs.c       |   16 ++-
+>>  drivers/infiniband/hw/usnic/usnic_ib_verbs.h       |   10 +-
+>>  drivers/infiniband/ulp/ipoib/ipoib_verbs.c         |    9 +-
+>>  drivers/infiniband/ulp/iser/iser_verbs.c           |    6 +-
+>>  drivers/infiniband/ulp/isert/ib_isert.c            |    6 +-
+>>  drivers/infiniband/ulp/srp/ib_srp.c                |   10 +-
+>>  drivers/infiniband/ulp/srpt/ib_srpt.c              |    5 +-
+>>  drivers/net/ethernet/mellanox/mlx4/main.c          |   19 ++
+>>  .../staging/lustre/lnet/klnds/o2iblnd/o2iblnd.c    |    7 +-
+>>  include/linux/mlx4/device.h                        |    9 +
+>>  include/rdma/ib_verbs.h                            |   25 ++-
+>>  include/uapi/rdma/ib_user_verbs.h                  |   19 ++
+>>  net/9p/trans_rdma.c                                |    5 +-
+>>  net/rds/ib_cm.c                                    |    8 +-
+>>  net/rds/iw_cm.c                                    |    8 +-
+>>  net/sunrpc/xprtrdma/svc_rdma_transport.c           |   10 +-
+>>  net/sunrpc/xprtrdma/verbs.c                        |   10 +-
+>>  49 files changed, 564 insertions(+), 139 deletions(-)
+>>
 >
-> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-> index 11ee298..bbb02ff 100644
-> --- a/drivers/infiniband/core/uverbs_cmd.c
-> +++ b/drivers/infiniband/core/uverbs_cmd.c
-> @@ -3428,7 +3428,7 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
->
->         memset(&attr, 0, sizeof(attr));
->
-> -       err = device->query_device(device, &attr);
-> +       err = device->query_device(device, &attr, uhw);
->         if (err)
->                 return err;
->
-> diff --git a/drivers/infiniband/hw/amso1100/c2_provider.c b/drivers/infiniband/hw/amso1100/c2_provider.c
-> index a43e022..382f109 100644
-> --- a/drivers/infiniband/hw/amso1100/c2_provider.c
-> +++ b/drivers/infiniband/hw/amso1100/c2_provider.c
-> @@ -63,13 +63,16 @@
->  #include "c2_provider.h"
->  #include "c2_user.h"
->
-> -static int c2_query_device(struct ib_device *ibdev,
-> -                          struct ib_device_attr *props)
-> +static int c2_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
-> +                          struct ib_udata *uhw)
->  {
->         struct c2_dev *c2dev = to_c2dev(ibdev);
->
->         pr_debug("%s:%u\n", __func__, __LINE__);
->
-> +       if (uhw->inlen || uhw->outlen)
-> +               return -EINVAL;
-> +
->         *props = c2dev->props;
->         return 0;
->  }
-> diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-> index 2eaf7e8..c4b5936 100644
-> --- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-> +++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-> @@ -1150,13 +1150,17 @@ static u64 fw_vers_string_to_u64(struct iwch_dev *iwch_dev)
->                (fw_mic & 0xffff);
->  }
->
-> -static int iwch_query_device(struct ib_device *ibdev,
-> -                            struct ib_device_attr *props)
-> +static int iwch_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
-> +                            struct ib_udata *uhw)
->  {
->
->         struct iwch_dev *dev;
-> +
->         PDBG("%s ibdev %p\n", __func__, ibdev);
->
-> +       if (uhw->inlen || uhw->outlen)
-> +               return -EINVAL;
-> +
->         dev = to_iwch_dev(ibdev);
->         memset(props, 0, sizeof *props);
->         memcpy(&props->sys_image_guid, dev->rdev.t3cdev_p->lldev->dev_addr, 6);
-> diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
-> index ef08a9f..05a96a5 100644
-> --- a/drivers/infiniband/hw/cxgb4/provider.c
-> +++ b/drivers/infiniband/hw/cxgb4/provider.c
-> @@ -301,13 +301,17 @@ static int c4iw_query_gid(struct ib_device *ibdev, u8 port, int index,
->         return 0;
->  }
->
-> -static int c4iw_query_device(struct ib_device *ibdev,
-> -                            struct ib_device_attr *props)
-> +static int c4iw_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
-> +                            struct ib_udata *uhw)
->  {
->
->         struct c4iw_dev *dev;
-> +
->         PDBG("%s ibdev %p\n", __func__, ibdev);
->
-> +       if (uhw->inlen || uhw->outlen)
-> +               return -EINVAL;
-> +
->         dev = to_c4iw_dev(ibdev);
->         memset(props, 0, sizeof *props);
->         memcpy(&props->sys_image_guid, dev->rdev.lldi.ports[0]->dev_addr, 6);
-> diff --git a/drivers/infiniband/hw/ehca/ehca_hca.c b/drivers/infiniband/hw/ehca/ehca_hca.c
-> index 9ed4d25..e8b1bb6 100644
-> --- a/drivers/infiniband/hw/ehca/ehca_hca.c
-> +++ b/drivers/infiniband/hw/ehca/ehca_hca.c
-> @@ -50,7 +50,8 @@ static unsigned int limit_uint(unsigned int value)
->         return min_t(unsigned int, value, INT_MAX);
->  }
->
-> -int ehca_query_device(struct ib_device *ibdev, struct ib_device_attr *props)
-> +int ehca_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
-> +                     struct ib_udata *uhw)
->  {
->         int i, ret = 0;
->         struct ehca_shca *shca = container_of(ibdev, struct ehca_shca,
-> @@ -71,6 +72,9 @@ int ehca_query_device(struct ib_device *ibdev, struct ib_device_attr *props)
->                 IB_DEVICE_PORT_ACTIVE_EVENT,  HCA_CAP_PORT_ACTIVE_EVENT,
->         };
->
-> +       if (uhw->inlen || uhw->outlen)
-> +               return -EINVAL;
-> +
->         rblock = ehca_alloc_fw_ctrlblock(GFP_KERNEL);
->         if (!rblock) {
->                 ehca_err(&shca->ib_device, "Can't allocate rblock memory.");
-> diff --git a/drivers/infiniband/hw/ehca/ehca_iverbs.h b/drivers/infiniband/hw/ehca/ehca_iverbs.h
-> index 952f2fb..192eef1 100644
-> --- a/drivers/infiniband/hw/ehca/ehca_iverbs.h
-> +++ b/drivers/infiniband/hw/ehca/ehca_iverbs.h
-> @@ -44,7 +44,8 @@
->
->  #include "ehca_classes.h"
->
-> -int ehca_query_device(struct ib_device *ibdev, struct ib_device_attr *props);
-> +int ehca_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
-> +                     struct ib_udata *uhw);
->
->  int ehca_query_port(struct ib_device *ibdev, u8 port,
->                     struct ib_port_attr *props);
-> diff --git a/drivers/infiniband/hw/ipath/ipath_verbs.c b/drivers/infiniband/hw/ipath/ipath_verbs.c
-> index 764081d..78af73c 100644
-> --- a/drivers/infiniband/hw/ipath/ipath_verbs.c
-> +++ b/drivers/infiniband/hw/ipath/ipath_verbs.c
-> @@ -1495,11 +1495,14 @@ bail:
->         return 0;
->  }
->
-> -static int ipath_query_device(struct ib_device *ibdev,
-> -                             struct ib_device_attr *props)
-> +static int ipath_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
-> +                             struct ib_udata *uhw)
->  {
->         struct ipath_ibdev *dev = to_idev(ibdev);
->
-> +       if (uhw->inlen || uhw->outlen)
-> +               return -EINVAL;
-> +
->         memset(props, 0, sizeof(*props));
->
->         props->device_cap_flags = IB_DEVICE_BAD_PKEY_CNTR |
-> diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-> index 3b90df0..914beae 100644
-> --- a/drivers/infiniband/hw/mlx4/main.c
-> +++ b/drivers/infiniband/hw/mlx4/main.c
-> @@ -132,7 +132,8 @@ static int num_ib_ports(struct mlx4_dev *dev)
->  }
->
->  static int mlx4_ib_query_device(struct ib_device *ibdev,
-> -                               struct ib_device_attr *props)
-> +                               struct ib_device_attr *props,
-> +                               struct ib_udata *uhw)
->  {
->         struct mlx4_ib_dev *dev = to_mdev(ibdev);
->         struct ib_smp *in_mad  = NULL;
-> @@ -140,6 +141,9 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
->         int err = -ENOMEM;
->         int have_ib_ports;
->
-> +       if (uhw->inlen || uhw->outlen)
-> +               return -EINVAL;
-> +
->         in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
->         out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
->         if (!in_mad || !out_mad)
-> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-> index b9976a0..5a8486c 100644
-> --- a/drivers/infiniband/hw/mlx5/main.c
-> +++ b/drivers/infiniband/hw/mlx5/main.c
-> @@ -63,7 +63,8 @@ static char mlx5_version[] =
->         DRIVER_VERSION " (" DRIVER_RELDATE ")\n";
->
->  static int mlx5_ib_query_device(struct ib_device *ibdev,
-> -                               struct ib_device_attr *props)
-> +                               struct ib_device_attr *props,
-> +                               struct ib_udata *uhw)
->  {
->         struct mlx5_ib_dev *dev = to_mdev(ibdev);
->         struct ib_smp *in_mad  = NULL;
-> @@ -74,6 +75,9 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
->         int max_sq_sg;
->         u64 flags;
->
-> +       if (uhw->inlen || uhw->outlen)
-> +               return -EINVAL;
-> +
->         gen = &dev->mdev->caps.gen;
->         in_mad  = kzalloc(sizeof(*in_mad), GFP_KERNEL);
->         out_mad = kmalloc(sizeof(*out_mad), GFP_KERNEL);
-> @@ -910,6 +914,7 @@ static int get_port_caps(struct mlx5_ib_dev *dev)
->         struct mlx5_general_caps *gen;
->         int err = -ENOMEM;
->         int port;
-> +       struct ib_udata uhw = {.inlen = 0, .outlen = 0};
->
->         gen = &dev->mdev->caps.gen;
->         pprops = kmalloc(sizeof(*pprops), GFP_KERNEL);
-> @@ -920,7 +925,7 @@ static int get_port_caps(struct mlx5_ib_dev *dev)
->         if (!dprops)
->                 goto out;
->
-> -       err = mlx5_ib_query_device(&dev->ib_dev, dprops);
-> +       err = mlx5_ib_query_device(&dev->ib_dev, dprops, &uhw);
->         if (err) {
->                 mlx5_ib_warn(dev, "query_device failed %d\n", err);
->                 goto out;
-> diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
-> index f1b04bd..d6d7c16 100644
-> --- a/drivers/infiniband/hw/mthca/mthca_provider.c
-> +++ b/drivers/infiniband/hw/mthca/mthca_provider.c
-> @@ -57,14 +57,17 @@ static void init_query_mad(struct ib_smp *mad)
->         mad->method        = IB_MGMT_METHOD_GET;
->  }
->
-> -static int mthca_query_device(struct ib_device *ibdev,
-> -                             struct ib_device_attr *props)
-> +static int mthca_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
-> +                             struct ib_udata *uhw)
->  {
->         struct ib_smp *in_mad  = NULL;
->         struct ib_smp *out_mad = NULL;
->         int err = -ENOMEM;
->         struct mthca_dev *mdev = to_mdev(ibdev);
->
-> +       if (uhw->inlen || uhw->outlen)
-> +               return -EINVAL;
-> +
->         in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
->         out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
->         if (!in_mad || !out_mad)
-> diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
-> index a9d62c5..0c2fb7a 100644
-> --- a/drivers/infiniband/hw/nes/nes_verbs.c
-> +++ b/drivers/infiniband/hw/nes/nes_verbs.c
-> @@ -512,12 +512,16 @@ static void nes_free_fast_reg_page_list(struct ib_fast_reg_page_list *pifrpl)
->  /**
->   * nes_query_device
->   */
-> -static int nes_query_device(struct ib_device *ibdev, struct ib_device_attr *props)
-> +static int nes_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
-> +                           struct ib_udata *uhw)
->  {
->         struct nes_vnic *nesvnic = to_nesvnic(ibdev);
->         struct nes_device *nesdev = nesvnic->nesdev;
->         struct nes_ib_device *nesibdev = nesvnic->nesibdev;
->
-> +       if (uhw->inlen || uhw->outlen)
-> +               return -EINVAL;
-> +
->         memset(props, 0, sizeof(*props));
->         memcpy(&props->sys_image_guid, nesvnic->netdev->dev_addr, 6);
->
-> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-> index f441df6..fce11ec 100644
-> --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-> @@ -61,10 +61,14 @@ int ocrdma_query_gid(struct ib_device *ibdev, u8 port,
->         return 0;
->  }
->
-> -int ocrdma_query_device(struct ib_device *ibdev, struct ib_device_attr *attr)
-> +int ocrdma_query_device(struct ib_device *ibdev, struct ib_device_attr *attr,
-> +                       struct ib_udata *uhw)
->  {
->         struct ocrdma_dev *dev = get_ocrdma_dev(ibdev);
->
-> +       if (uhw->inlen || uhw->outlen)
-> +               return -EINVAL;
-> +
->         memset(attr, 0, sizeof *attr);
->         memcpy(&attr->fw_ver, &dev->attr.fw_ver[0],
->                min(sizeof(dev->attr.fw_ver), sizeof(attr->fw_ver)));
-> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
-> index e853195..b15c608 100644
-> --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
-> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
-> @@ -36,7 +36,8 @@ int ocrdma_post_recv(struct ib_qp *, struct ib_recv_wr *,
->  int ocrdma_poll_cq(struct ib_cq *, int num_entries, struct ib_wc *wc);
->  int ocrdma_arm_cq(struct ib_cq *, enum ib_cq_notify_flags flags);
->
-> -int ocrdma_query_device(struct ib_device *, struct ib_device_attr *props);
-> +int ocrdma_query_device(struct ib_device *, struct ib_device_attr *props,
-> +                       struct ib_udata *uhw);
->  int ocrdma_query_port(struct ib_device *, u8 port, struct ib_port_attr *props);
->  int ocrdma_modify_port(struct ib_device *, u8 port, int mask,
->                        struct ib_port_modify *props);
-> diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-> index dba1c92..e1dad45 100644
-> --- a/drivers/infiniband/hw/qib/qib_verbs.c
-> +++ b/drivers/infiniband/hw/qib/qib_verbs.c
-> @@ -1550,12 +1550,14 @@ full:
->         }
->  }
->
-> -static int qib_query_device(struct ib_device *ibdev,
-> -                           struct ib_device_attr *props)
-> +static int qib_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
-> +                           struct ib_udata *uhw)
->  {
->         struct qib_devdata *dd = dd_from_ibdev(ibdev);
->         struct qib_ibdev *dev = to_idev(ibdev);
->
-> +       if (uhw->inlen || uhw->outlen)
-> +               return -EINVAL;
->         memset(props, 0, sizeof(*props));
->
->         props->device_cap_flags = IB_DEVICE_BAD_PKEY_CNTR |
-> diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-> index 2b3f7e3..7df4382 100644
-> --- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-> +++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-> @@ -248,7 +248,8 @@ enum rdma_link_layer usnic_ib_port_link_layer(struct ib_device *device,
->  }
->
->  int usnic_ib_query_device(struct ib_device *ibdev,
-> -                               struct ib_device_attr *props)
-> +                         struct ib_device_attr *props,
-> +                         struct ib_udata *uhw)
->  {
->         struct usnic_ib_dev *us_ibdev = to_usdev(ibdev);
->         union ib_gid gid;
-> @@ -257,6 +258,9 @@ int usnic_ib_query_device(struct ib_device *ibdev,
->         int qp_per_vf;
->
->         usnic_dbg("\n");
-> +       if (uhw->inlen || uhw->outlen)
-> +               return -EINVAL;
-> +
->         mutex_lock(&us_ibdev->usdev_lock);
->         us_ibdev->netdev->ethtool_ops->get_drvinfo(us_ibdev->netdev, &info);
->         us_ibdev->netdev->ethtool_ops->get_settings(us_ibdev->netdev, &cmd);
-> diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.h b/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
-> index 2ab8427..0bd04ef 100644
-> --- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
-> +++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
-> @@ -24,7 +24,8 @@
->  enum rdma_link_layer usnic_ib_port_link_layer(struct ib_device *device,
->                                                 u8 port_num);
->  int usnic_ib_query_device(struct ib_device *ibdev,
-> -                               struct ib_device_attr *props);
-> +                               struct ib_device_attr *props,
-> +                         struct ib_udata *uhw);
->  int usnic_ib_query_port(struct ib_device *ibdev, u8 port,
->                                 struct ib_port_attr *props);
->  enum rdma_protocol_type
-> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index a45f674..045b5b2 100644
-> --- a/include/rdma/ib_verbs.h
-> +++ b/include/rdma/ib_verbs.h
-> @@ -1562,7 +1562,8 @@ struct ib_device {
->         int                        (*get_protocol_stats)(struct ib_device *device,
->                                                          union rdma_protocol_stats *stats);
->         int                        (*query_device)(struct ib_device *device,
-> -                                                  struct ib_device_attr *device_attr);
-> +                                                  struct ib_device_attr *device_attr,
-> +                                                  struct ib_udata *udata);
->         int                        (*query_port)(struct ib_device *device,
->                                                  u8 port_num,
->                                                  struct ib_port_attr *port_attr);
-> --
-> 1.7.1
 >
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>               GPG KeyID: 0E572FDD
+>
+
+Thanks for taking a look.
+
+Matan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
