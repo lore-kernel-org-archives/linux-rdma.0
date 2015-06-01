@@ -1,46 +1,57 @@
 From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 09/10] IB/mlx4: Add timestamp_mask and hca_core_clock
+Subject: RE: [PATCH for-next 09/10] IB/mlx4: Add timestamp_mask and hca_core_clock
  to query_device
-Date: Mon, 1 Jun 2015 06:39:51 -0500 (CDT)
-Message-ID: <alpine.DEB.2.11.1506010635360.25165@east.gentwo.org>
+Date: Mon, 1 Jun 2015 06:50:20 -0500 (CDT)
+Message-ID: <alpine.DEB.2.11.1506010645030.25165@east.gentwo.org>
 References: <CAJ3xEMh_g0zBza5HoVZTy9cTRbXqatzvBMAJcRjQhH7Zi=cHAg@mail.gmail.com> <20150527222108.GA7855@obsidianresearch.com> <5566BDE4.50709@mellanox.com> <alpine.DEB.2.11.1505280908001.16142@east.gentwo.org> <20150528162416.GA6515@obsidianresearch.com>
  <alpine.DEB.2.11.1505281212330.1711@east.gentwo.org> <20150528175043.GA10966@obsidianresearch.com> <alpine.DEB.2.11.1505281325150.1794@east.gentwo.org> <20150528195034.GA11182@obsidianresearch.com> <alpine.DEB.2.11.1505281522020.2703@east.gentwo.org>
- <20150528204749.GA12780@obsidianresearch.com> <alpine.DEB.2.11.1505290845040.8178@east.gentwo.org> <1432918170.114391.104.camel@redhat.com> <1828884A29C6694DAF28B7E6B8A82373A8FE2126@ORSMSX109.amr.corp.intel.com> <1432919688.114391.116.camel@redhat.com>
+ <20150528204749.GA12780@obsidianresearch.com> <1828884A29C6694DAF28B7E6B8A82373A8FE1F36@ORSMSX109.amr.corp.intel.com> <alpine.DEB.2.11.1505290846480.8178@east.gentwo.org> <1828884A29C6694DAF28B7E6B8A82373A8FE2069@ORSMSX109.amr.corp.intel.com>
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1432919688.114391.116.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FE2069-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 29 May 2015, Doug Ledford wrote:
+On Fri, 29 May 2015, Hefty, Sean wrote:
 
-> The use case is clear IMO.  It's for financial trading software.  I
-> don't think they really care about details like whether it's the start
-> or end packet, or completion, or whatever.  They need a tie breaker
-> between when they have two different buy or sell orders on the same lot
-> of stock.  Any deterministic timing/ordering method will do as long as
-> they consistently apply it I think.  And the faster and lower overhead
-> the process, the better.  He doesn't really want a timestamp, he merely
-> wants a sequence ordering.  But a timestamp is what they are using to
-> get him what he needs.
+> > What is the issue here? The timestamp is created when the processing is
+> > finished by the nic and the completion entry becomes available.
 >
-> Is that a fair guess Christoph?
+> The timestamp is generated when a work completion entry is written.  If the=
+> re's a clear use case for this, it hasn't been described.  The use case you=
+>  mentioned only works if there is a 1:1 relationship between a packet and a=
+>  work completion.  That is not what is being defined here.
 
-We want to have a time stamp when the action is complete and the data is
-available to the application or the send action is complete and the CQ
-entry can be reused. That is a well defined point and that is how the time
-stamps function in the existing implementation. This is an obvious
-understanding and its pretty clear.
+It does make sense to have a timestamp when the work described by a CQ has
+been completed. For that you do not need a 1:1 correspondence.
 
-The time stamp needs to be at the end of the action because the timestamp
-is used to:
+My use case is focused on single packet processing because that is what we
+do here.
 
-1. Assess the impact of network processing. This can be compared with
-   packet timestamps from capture devices off the wire.
-2. Delineate the start of packet processing in software.
+> > It is exactly defined like any other cycle counters in hardware and it is
+> > exposed using an API that allows multiple vendors to use these cycle
+> > counters without regard to a particular vendors implementation.
+>
+> I disagree.  This is associated with a specific implementation.  It assumes=
+>  that the counter is part of a CQ entry, and that the counter is written wh=
+> en the completion is written.  There's nothing that requires other vendors =
+> to follow that model, nor is it clear that this is a generic or useful enou=
+> gh operation that other vendors would want to follow this model.  Why not h=
+> ave the time stamp record the start of the transaction?  The end?  Have two=
+>  stamps, once for the first packet, and one for the last?  Limit this to si=
+> ngle packet operations only?
 
+Why would you have a timestamp at the beginning of the transaction? That
+is useless because you can use packet capture devices to establish that
+timepoint. At that point you have not identified the CQ anyways.
+
+Having a timestamp when an action is complete makes sense, is generic
+and general.
+
+Adding the timestamp to the data means that the application now has to
+separate the metadata (timestamp) from the data stream. Not good.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
