@@ -1,129 +1,95 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next V2 0/9] Add completion timestamping support
-Date: Tue, 02 Jun 2015 10:53:08 -0400
-Message-ID: <1433256788.114391.226.camel@redhat.com>
-References: <1433074457-26437-1-git-send-email-ogerlitz@mellanox.com>
-	 <1433098827.114391.179.camel@redhat.com>
-	 <CAAKD3BBo9A5AV9Uv-q1TgSQ6hs-oSUn5QsUT+5+6mk1RwW7AUA@mail.gmail.com>
-	 <1433157904.114391.188.camel@redhat.com>
-	 <20150601164322.GA14391@obsidianresearch.com>
-	 <1433255724.114391.225.camel@redhat.com> <556DC167.5070205@mellanox.com>
+From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v4 for-next 07/14] IB/core: GID attribute should be
+ returned from verbs API and cache API
+Date: Tue, 2 Jun 2015 19:13:00 +0300
+Message-ID: <CAAKD3BALO6ts66Q0n-BVFz4Niu7L6jX0N-GHLXGp0DQ7Z7c9HA@mail.gmail.com>
+References: <1432045637-9090-1-git-send-email-matanb@mellanox.com>
+	<1432045637-9090-8-git-send-email-matanb@mellanox.com>
+	<20150519180649.GC18675@obsidianresearch.com>
+	<CAAKD3BAifeMcHbDwcaK7F6cjj=mAn3W0Ms2mOmoXDhaquFqKTA@mail.gmail.com>
+	<20150520181718.GD28496@obsidianresearch.com>
+	<CAAKD3BDJtpEhfhsB=o4hc=ARWMt7JgpqvbjXJVvsL_vLZRn8yQ@mail.gmail.com>
+	<20150528160748.GC2962@obsidianresearch.com>
+	<5567439C.7080700@mellanox.com>
+	<20150528170711.GA4345@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-cKuCqZwh29VPq5QsILiq"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <556DC167.5070205-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20150528170711.GA4345-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, May 28, 2015 at 8:07 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Thu, May 28, 2015 at 07:34:36PM +0300, Or Gerlitz wrote:
+>
+>> As for the RoCE GID table itself, adding in properly net-devices in their
+>> native Linux kernel form, namely with if_index and name-space -- seems to me
+>> the correct way to go.
+>
+> Well, no, it is goofy. Callers with a path have a if_index/net pair.
+> Several other callers have an actual struct netdevice.
+>
+> The first thing roce_gid_table_find_gid_by_port does is convert the
+> if_index/net pair back to a netdevice. This tells me the API is wrong,
+> callers that already have a netdevice should just pass it in, and path
+> is one that should be special cased to search.
+>
+> But I don't even want to talk about that for a clean up series.
+>
 
---=-cKuCqZwh29VPq5QsILiq
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+ib_find_cached_gid is used in cm_init_av_by_path. ndev is necessary
+in order to find the correct GID in the GID table, as otherwise if two upper
+devices has the same IP (hence GID), we might not found the bounded
+device correctly.
+Therefore, I suggest modifying ib_find_cached_gid (add netdevice),
 
-On Tue, 2015-06-02 at 17:44 +0300, Or Gerlitz wrote:
-> On 6/2/2015 5:35 PM, Doug Ledford wrote:
-> > On Mon, 2015-06-01 at 10:43 -0600, Jason Gunthorpe wrote:
-> >> On Mon, Jun 01, 2015 at 07:25:04AM -0400, Doug Ledford wrote:
-> >>
-> >>> attempted abstraction of ibverbs.  Passing in the wc struct allows th=
-e
-> >>> driver to internally allocate a wc struct with extra private elements
-> >>> and pass that back to the user, when the user passes it back to
-> >>> ibv_get_timestamp the elements are there in the private portion of th=
-e
-> >>> struct.
-> >> wc structures are allocated by the caller, there is no option for the
-> >> driver to create private elements.
-> > Well, they *are* using an extended work completion structure.  Unlike
-> > what I mentioned, where they create a larger one themselves, you have t=
-o
-> > allocate a struct ibv_wc_ex instead of a struct ibv_wc and then you hav=
-e
-> > to call poll_cq_ex, which expects a struct ibv_wc_ex.
-> >
-> > So, just so everyone is clear on this point: the current user space
-> > implementation of this feature creates an unversioned, newly named
-> > ibv_wc_ex struct that is ibv_wc with a 64bit timestamp tacked on at the
-> > end (not 64bit aligned either).  If we ever wanted to have a different
-> > extension to our ibv_wc struct, there is no good way to do that.  If, a=
-t
-> > some point, we had multiple extension and the user was able to select
-> > which they wanted to utilize, this structure extension is not flexible
-> > enough to deal with that.  At a minimum, if we are going to have a one
-> > shot extension to the wc struct like this, I would prefer to see it
-> > called struct ibv_wc_timestamp and there be a ibv_poll_cq_timestamp.  A=
-t
-> > least that way people would not use the generic _ex and assume this is
-> > the one and only _ex that we will ever need for work completions.
-> >
-> > Jason, when the XRC and flow steering extensions were added to
-> > libibverbs, you complained loudly that they were not added in the agree=
-d
-> > upon format and cited a previous on list discussion.  Do you have a lin=
-k
-> > to that discussion?
->=20
-> Doug,
->=20
-> Do we agree that this part of the discussion (and also the below point)=
-=20
-> are related to the libibverbs API to applications and not to the kernel=
-=20
-> -> user API to support time-stamping?
+In addition, vendors need to get the MAC of the ndev that relates to the GID
+in order to output a correct Ethernet header. This is currently done though
+ib_get_cached_gid. Without adding gid_attr, you get a buggy implementation
+that upper devices with different HW addresses would all map to the same MAC.
 
-Yes.
+> I want to know that the behavior of ib_find_cached_gid does not
+> change. If it hasn't changed then we don't need to change call
+> sites to pass in the optional netdev, because it must work as it does
+> today. Otherwise the cleanup is broken.
+>
 
-> Or.
->=20
-> >
-> >> AFAIK, Christoph's use case is essentially the only meaningful use
-> >> case for this feature, generalizing too much may destroy the
-> >> performance that is valuable here.
-> > There is actually room in a 64byte cacheline for two 64bit timestamps
-> > and another 2 bytes of padding or something else.
-> >
-> >
->=20
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Prior to those changes, the vendor resolved the MAC address twice.
+The current patchset *cleans* this up - instead of resolving all over again
+we map a GID entry from ndev.
 
+This conforms to a cleanup series as *no new functionality is added*.
+Modified API doesn't always imply new functionality but sometimes better design.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+> So, my specific advice is:
+>
+> - roce_gid_table_find_gid_by_port should accept a netdevice or null
 
+I agree
 
---=-cKuCqZwh29VPq5QsILiq
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+> - Always pass null for the netdevice for all call sites
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+I think we should stick with the path->net and path->if_index.
+They are used to indicate the bounded device of the cma.
+This device is then used in the ib_find_cached_gid.
 
-iQIcBAABCAAGBQJVbcNUAAoJELgmozMOVy/dDc8P/08j0+OUnU9CwJQzRSDrE7Ma
-u4LT8s6T9ql99z7llDBsG3Rbb0/0w/GPNYf8h5OJ8Z06tSioWICJ8rhpq4bE/44+
-h8as4TlNy6kI6XNOjcUnfEof2iXc5yOdQTRRVK/dTLiOfyrUiZqwSGCFU6DHjTHQ
-J3iv9v7JApxiYXi4HpO59KTHYmkevGgwCwR8I0L2TpXHRu5yTlYpFsPsCIT6pSV7
-C1kb5lci8f2asfntBMYr7FGF0UfitIUe+7hPwCon7Ss1mDBrjRAUi2mNpP7btDWq
-CP8khA1B86Gh8EETkhkgEwFSKm+NfrQeif2OVI3hymJ2zPTTACcT1WKfvYIJ1vq+
-iFW2rVZnLWD6pAeOHOVd0oC/te7AwH6vpblGn8SQW7BSsmE3zhS0CknvpYtpg/sc
-AOiLXSn77eh63DvQNjA/i1eFvgUouhotYJ+BBX2sdGKnmp692mRFZ8dztJ2jfthr
-jeS74hz2uLCQUybhL8lUfxM3eIIHVyLLKyUGRu9OsfdJIXCXsojFK9FaP1SUqtvI
-aqrnRZ6xKasp7M/o3r5Mej+j1mIuS2LInpq6YlZ1GDFzFYctHCfaX1i4SrhsdtwW
-BYib442DbbY3qA/GLTPT2ud/lOwX2Z3WqOPzqpZn9wWNT8lO/ey2RgFayrc1Ufnq
-argfjHDshE2NtvCDuGur
-=4sVb
------END PGP SIGNATURE-----
+> - Do not change the ib_* APIs during the clean up.
+>
 
---=-cKuCqZwh29VPq5QsILiq--
+I think we should keep the modified
+    (a) ib_get_cached_gid (output gid_attr)
+    (b) ib_find_cached_gid (input ndev)
+    (c) ib_find_cached_gid_by_port (input ndev)
+    (d) ib_query_gid (output gid_attr)
 
+> Jason
+
+Thanks for your review and looking for your comments regarding this.
+
+Matan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
