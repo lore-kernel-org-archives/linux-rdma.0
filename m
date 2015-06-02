@@ -1,118 +1,71 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next V2 0/9] Add completion timestamping support
-Date: Tue, 02 Jun 2015 15:56:02 -0400
-Message-ID: <1433274962.40123.17.camel@redhat.com>
-References: <1433074457-26437-1-git-send-email-ogerlitz@mellanox.com>
-	 <1433098827.114391.179.camel@redhat.com>
-	 <CAAKD3BBo9A5AV9Uv-q1TgSQ6hs-oSUn5QsUT+5+6mk1RwW7AUA@mail.gmail.com>
-	 <1433157904.114391.188.camel@redhat.com>
-	 <20150601164322.GA14391@obsidianresearch.com>
-	 <1433255724.114391.225.camel@redhat.com>
-	 <20150602180844.GD17776@obsidianresearch.com>
-	 <1433271083.40123.1.camel@redhat.com>
-	 <20150602190410.GA23362@obsidianresearch.com>
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
+Subject: Re: [PATCH v12 0/10] Support Write-Through mapping on x86
+Date: Tue, 2 Jun 2015 22:01:53 +0200
+Message-ID: <20150602200153.GN23057@wotan.suse.de>
+References: <1433187393-22688-1-git-send-email-toshi.kani@hp.com>
+ <20150602162103.GL23057@wotan.suse.de>
+ <1433270808.23540.155.camel@misato.fc.hp.com>
+ <20150602194354.GM23057@wotan.suse.de>
+ <CALCETrXho_xx27yq_Ji+xpD785xWGNpL-Tgbn17S8RbK6unQWA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-K7NuuJk+Sl4sEdKdF4zn"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150602190410.GA23362-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <CALCETrXho_xx27yq_Ji+xpD785xWGNpL-Tgbn17S8RbK6unQWA@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Andy Lutomirski <luto@amacapital.net>, linux-rdma@vger.kernel.org, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, Doug Ledford <dledford@redhat.com>, roland@purestorage.com
+Cc: Toshi Kani <toshi.kani@hp.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, X86 ML <x86@kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Juergen Gross <jgross@suse.com>, Stefan Bader <stefan.bader@canonical.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Yigal Korman <yigal@plexistor.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "Elliott, Robert (Server Storage)" <Elliott@hp.com>, Christoph Hellwig <hch@lst.de>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Jun 02, 2015 at 12:50:09PM -0700, Andy Lutomirski wrote:
+> On Tue, Jun 2, 2015 at 12:43 PM, Luis R. Rodriguez <mcgrof@suse.com> wrote:
+> > On Tue, Jun 02, 2015 at 12:46:48PM -0600, Toshi Kani wrote:
+> >> On Tue, 2015-06-02 at 18:21 +0200, Luis R. Rodriguez wrote:
+> >> > On Mon, Jun 01, 2015 at 01:36:23PM -0600, Toshi Kani wrote:
+> >> > > This patchset adds support of Write-Through (WT) mapping on x86.
+> >> > > The study below shows that using WT mapping may be useful for
+> >> > > non-volatile memory.
+> >> > >
+> >> > > http://www.hpl.hp.com/techreports/2012/HPL-2012-236.pdf
+> >> > >
+> >> > > The patchset consists of the following changes.
+> >> > >  - Patch 1/10 to 6/10 add ioremap_wt()
+> >> > >  - Patch 7/10 adds pgprot_writethrough()
+> >> > >  - Patch 8/10 to 9/10 add set_memory_wt()
+> >> > >  - Patch 10/10 changes the pmem driver to call ioremap_wt()
+> >> > >
+> >> > > All new/modified interfaces have been tested.
+> >> > >
+> >> > > The patchset is based on:
+> >> > > git://git.kernel.org/pub/scm/linux/kernel/git/bp/bp.git#tip-mm-2
+> >> >
+> >> > While at it can you also look at:
+> >> >
+> >> > mcgrof@ergon ~/linux-next (git::master)$ git grep -4 "writethrough" drivers/infiniband/
+> >>
+> >> Thanks for checking this.  The inifiniband driver uses WT mappings on
+> >> powerpc without proper WT interfaces defined.
+> >
+> > Right.
+> >
+> >>  They can be cleaned up by
+> >> a separate patch series to support WT on powerpc in the same way after
+> >> this patchset (support WT on x86) is settled.
+> >
+> > Who's gonna do that work though? How much work is it ? Is it too much to ask
+> > to roll it in this series?
+> >
+> 
+> I think the driver maintainers should do it.  For all I know,
+> something will go horribly wrong if those drivers suddenly start using
+> WT on x86.
 
---=-K7NuuJk+Sl4sEdKdF4zn
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+OK. Letting qib driver folks know.
 
-On Tue, 2015-06-02 at 13:04 -0600, Jason Gunthorpe wrote:
-> On Tue, Jun 02, 2015 at 02:51:23PM -0400, Doug Ledford wrote:
-> > On Tue, 2015-06-02 at 12:08 -0600, Jason Gunthorpe wrote:
-> > > On Tue, Jun 02, 2015 at 10:35:24AM -0400, Doug Ledford wrote:
-> > >=20
-> > > > So, just so everyone is clear on this point: the current user space
-> > > > implementation of this feature creates an unversioned, newly named
-> > > > ibv_wc_ex struct that is ibv_wc with a 64bit timestamp tacked on at=
- the
-> > > > end (not 64bit aligned either).  If we ever wanted to have a differ=
-ent
-> > > > extension to our ibv_wc struct, there is no good way to do that.
-> > >=20
-> > > No, if they followed (I didn't check yes) the extension scheme then t=
-he
-> > > poll call is
-> > >=20
-> > >  struct ibv_wc_ex wcs[num_wcs]
-> > >  ibv_poll_wc_ex(&wcs,num_wcs,sizeof(wcs[0]));
-> > >=20
-> > > And the drivers decide what to do based on the 3rd argument, which is
-> > > essentially the ABI version.
-> >=20
-> > Ick.  OK.  I would *much* prefer something done akin to the routines in
-> > packer.c of the kernel, but that's not my call to make, the decision on
-> > the ABI/API extension mechanism was made long ago.  It does, however,
-> > mean that extensions are serial and not modular, and that's a shame.
->=20
-> All verbs extensions are essentially serial, each extension requires a
-> fixed allocation of structure bytes, made by upstream.
->=20
-> This is also why no vendor may ship an extension that is not upstream
-> and continue to use the same soname as upstream. Similarly for the
-> kernel.
->=20
-> This is fairly performance neutral, while a packer.c scheme would be
-> unacceptably expensive, IMHO. poll_wc is one of the most performance
-> sensitive routines in the library.
-
-I disagree.  Obviously I haven't run them in a tight loop to confirm,
-but I looked at mthca, mlx4, and cxgb4 user libraries, and all of them
-have complex *_poll_one routines that convert their internal cqe's to
-wc's.  The packer routines aren't any more complex or any slower (at
-least not necessarily, it all depends on the particular transformation
-needed).  The packer routines are just hard to read.
-
-And, as Christoph pointed out, we can keep our wc in a single cache line
-right now.  However, we only need a few extensions to blow that out of
-the water.  If some extension comes along that gets allocated past the
-64byte cacheline size, and that extension is used far more frequently
-than say this timestamp, then we will have forced a cache line break on
-a frequently used item for a less frequently used item.  So, there would
-be benefits to a modular approach in terms of allowing the user to
-select what items they want and to keep their important items in that
-single cache line.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
---=-K7NuuJk+Sl4sEdKdF4zn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJVbgpSAAoJELgmozMOVy/d2c8P/0ODRAikl7Bm35l48sG0A99z
-rJuH1WSNZiAeeCQLa/1sjbvJlX6Kt+huqvdHfEgN6CTofcIw3bIzihpXPeiEI310
-QFyLfVEMfhHBuW3HwscnEhluSjdlqPZtfYDwZ0PeFQqFyvwV+/Sd4SoJxLYtWRq1
-lHGaxE8eMU88vcz0MNlD87UdW/5wwIimasJ/PEo1V5u8QzozX6tfwfPUAOJ+GZOD
-GuwhIvVaxWgPCVa35xNszUzb+juf7MnbpmxIA6cLM/wBPi+F5REN4/rNEklwvpCX
-B2POsnouvlY1OcQ+xIV7PgNkz6REkU9xH7W8FmVQt7AEkhELa+R0YQL9CMUx7Nrt
-lqDeSN4OYdKX6s3zvmubbRIY5w2+vSqddbrd648Y04K84JQnxz4BRNoD7mFGeoM4
-1t/SHYKAKu9XFfMzno+zoL3xErpIpFhxGxHUkbBCaZ8scVtBf2LrqcwKSxrl7Xyn
-A7E9zKz1mmadQHaIjb8HC9YahgF5MOE1G/ReQkvYn9Otcud1olP75x3dX8mGDlhX
-8YzRMZ8hbDd24GDgvJCfvDTPa9SrdiHIYpQ4UgZvlpiAWDGeqGd3SIjSl8dBcSdD
-ws38bnonqdmp/t8pZ9cEEkiNoXdpKwvhsJUM9nfVtNWnvB3OZVtlhMILUaAv7fal
-kYmzc8CfHIAdlDAegZux
-=LlkI
------END PGP SIGNATURE-----
-
---=-K7NuuJk+Sl4sEdKdF4zn--
+ Luis
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
