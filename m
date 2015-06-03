@@ -1,8 +1,8 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: [PATCH v4 for-next 00/12] Add network namespace support in the
  RDMA-CM
-Date: Wed, 3 Jun 2015 15:45:08 -0600
-Message-ID: <20150603214508.GA14968@obsidianresearch.com>
+Date: Wed, 3 Jun 2015 17:48:11 -0600
+Message-ID: <20150603234811.GA15128@obsidianresearch.com>
 References: <55674077.5040707@mellanox.com>
  <20150528174337.GA10448@obsidianresearch.com>
  <1432837360.114391.35.camel@redhat.com>
@@ -24,37 +24,38 @@ Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Haggai Eran
 List-Id: linux-rdma@vger.kernel.org
 
 On Wed, Jun 03, 2015 at 11:07:37PM +0300, Or Gerlitz wrote:
+
+> > I'm mostly fine with it as an optional capability, similar to macvlan,
+> > I just don't see how to cleanly integrate it with RDMA CM and
+> > namespaces. And I don't see what RDMA CM is supposed to do when
+> > it hits this case.
+> >
+> > So, any ideas that don't involve the searching for IP hack??
+> >
+> > [And yes, as discussed with Haggie, it is not the worst hack in the
+> >  world, and maybe we can live with it, but lets understand the trade
+> >  offs carefully]
+> 
 > As Haggai wrote, if we let the using IP address thing to fly up, we have
 > support for RDMA in containers using the RDMA-CM at IPoIB environments.
 > This will let people test, use, experiment, fix, interact (and even
 > production-it when static IP address assignment scheme is used).
 
-Sure, I think we all understand the goal, and you've explained some
-reasonable use cases for the child support.
+I just noticed ipvlan got merged a few months ago.. That certainly
+changed my view on this topic. It is basically a software
+version of the same-guid ipoib children scheme. Similar issues: Same MAC
+address as the parent, IPv6 SLAAC is disabled (?),  DHCP has similar
+issue (solved with RFC4361, and broadcasting fallback, it seems)..
 
-> Later, usage of alias GUIDs for IPoIB RTNL childs would allow to
-> remove the IP thing.
+The l2/l3 distinction in ipvlan is also very interesting. The L3 mode
+solves some of the security type issues. What do you think Haggi?
 
-How do we remove it? Along with same-guid child support? What is your
-idea here?
+Is there any chance standard things like ipvlan and macvlan could be
+used with rdma-cm if their master devices are IPoIB? Are we even on
+the right path to do that someday? Is that the plan for roce?
 
-> > Also, now that this has been brought up, I think you need to make a
-> > patch to fix the IPv6 SLAAC breakage this caused. It looks trivial to
-> > modify addrconf_ifid_infiniband to return error if the IPoIB child is
-> > sharing a guid. It was not good at all to push the child patches
-> > forward to 3.6/3.7 if you knew that IPv6 SLAAC was broken by them.
-> 
-> Till the alias GUID thing is introduced, maybe we can patch
-> addrconf_ifid_infiniband to use the QPN value from the device HW
-> address to come up with unique IPv6 link local address, agree? where
-> you think we can place the 24 bits QPN?
-
-I don't know if that is a good idea, an unstable SLAAC is not in
-spirit with the RFCs. The safest bet is to return error and disable
-SLAAC completely.
-
-But I'm just guessing here - I'm only feel strongly that something
-should be done to address this issue in the existing kernel.
+Any thoughts on the idea we still need ipoib same-guid children if
+ipvlan is available?
 
 Jason
 --
