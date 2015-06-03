@@ -1,89 +1,64 @@
 From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next V2 8/9] IB/mlx4: Support extended create_cq and
- query_device uverbs
-Date: Wed, 3 Jun 2015 22:35:03 +0300
-Message-ID: <CAJ3xEMiPkxf_Qu40AozMRWZaY-dAfEyAOZGyT9VYsNpQO1Q-Zw@mail.gmail.com>
+Subject: Re: [PATCH for-next V2 0/9] Add completion timestamping support
+Date: Wed, 3 Jun 2015 22:48:28 +0300
+Message-ID: <CAJ3xEMjZqwJC8=HrMBv_eSVKVtLW7qjVZNjtuD28octGPtYu6w@mail.gmail.com>
 References: <1433074457-26437-1-git-send-email-ogerlitz@mellanox.com>
-	<1433074457-26437-9-git-send-email-ogerlitz@mellanox.com>
-	<20150601165649.GC14391@obsidianresearch.com>
-	<CAAKD3BBsTFYKwOBK+6u04x6deRYzjYESJzbpyy83UtoChZhpOA@mail.gmail.com>
-	<20150602170736.GA17776@obsidianresearch.com>
-	<CAAKD3BARPocK1zZ2nYV0xWHqEASJTYbp1aQxwymi-TYTyK_vGA@mail.gmail.com>
-	<20150603163146.GD12073@obsidianresearch.com>
-	<CAJ3xEMhGdX-35WAjauKZE7+Wg39kbXP35UzYX33J6OB8g_9rYA@mail.gmail.com>
-	<20150603191609.GB7902@obsidianresearch.com>
+	<1433098827.114391.179.camel@redhat.com>
+	<CAAKD3BBo9A5AV9Uv-q1TgSQ6hs-oSUn5QsUT+5+6mk1RwW7AUA@mail.gmail.com>
+	<1433157904.114391.188.camel@redhat.com>
+	<20150601164322.GA14391@obsidianresearch.com>
+	<1433255724.114391.225.camel@redhat.com>
+	<20150602180844.GD17776@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150603191609.GB7902-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20150602180844.GD17776-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 3, 2015 at 10:16 PM, Jason Gunthorpe
+On Tue, Jun 2, 2015 at 9:08 PM, Jason Gunthorpe
 <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Wed, Jun 03, 2015 at 09:58:25PM +0300, Or Gerlitz wrote:
->> On Wed, Jun 3, 2015 at 7:31 PM, Jason Gunthorpe
->> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
->> > On Wed, Jun 03, 2015 at 11:57:12AM +0300, Matan Barak wrote:
->> >> That's a general comment regarding the extension mechanism.
->> >
->> > Yes, but it is also a specific comment about patch #4 which adds,
->> > ib_uverbs_ex_create_cq.
->> >
->> > Based on the implementation of create_cq, it is pretty clear that
->> > every driver supports ib_uverbs_ex_create_cq, so patch #4 should just
->> > force the flag in the device register function so it is globally enabled.
 
->> But the other drivers currently do not support any CQ creation flag
->> and hence no extended functionality, I don't see the point signaling
->> towards user-space that the verb is supported, please elaborate.
+> Or, the question in my mind based on looking at the UAPI patches is
+> what things should be driver private and what should be general.
+>
+> Broadly my thoughts:
+>  - Should the frequency and mask be general, or driver private? If the
+>    cycles->ns conversion is a function they should be driver private.
+>    Even if they are general at libibverbs, they don't *have* to be in
+>    the kernel's general query response.
 
-> They support the base functionality, the flags = 0 case.
+If they are general in libibverbs, what's the point not to put them in
+the kernel's general query response?
 
-which doesn't let consumers to use any new functionality.
+>  - Should frequency even be frequency? Most clocks are expressed
+>    accurately as a period in picoseconds. Frequency is more often
+>    imprecise. (eg ethernet is 3200 ps or 312.5MHz)
+>    However FDR/EDR is fractional for both (4693.33333333 ps vs
+>    213.0681818181818 MHz)
+>    Precision is very important for time conversions, so a
+>    multiply-divide scheme would be ideal.
 
-> There is no reason to block access to the base functionality via the
-> extended api. That just creates hassles for userspace.
-> If userspace detects the extended API is present, it can just
-> switch unconditionally all usage to that API.
+>From Christoph's response I got the impression that our proposal of
+exposing frequency and mask combined with raw time stamps excellently
+fits typical user needs, so I thought we're good. Doug made a comment
+that things look OK to him and the rest of the work would be when we
+come to review the user-space patches.
 
-This is user-space run time story, they don't have the knowledge that
-all the LL drivers supports the extended api for CQ creation. We had
-to check the flag and in all LL drivers since the in-kernel IB stack
-has no (and need not to have any) notion of extended calls.
+>    This is suggesting to me these details really are not general.
+>  - There should be much better definition on what all this stuff is,
+>    units for frequency? When is the timestamp applied?
 
-> This is how most new kernel syscalls are introduced (glibc
-> does this transparently).
+The timestamp is applied when the WC is generated, as Doug asked, we
+changed the flag name to reflect that. I guess that the units for
+frequency are MHz but I will check that and we can document it in the
+kernel IB core patch and later in man pages.
 
-That's an interesting comment. And you know what, basically we can add
-auto support for that call in uverbs.
-
-But the point here is a bit different: I somehow have the feeling that
-unless ~each and every one of your review comments are accepted to the
-letter, no inclusion.
-
-You are not the maintainer here, and even maintainers prefer not to
-force each of their detailed comments on submitters.
-
-This specific comment relates TINY in-kernel thing that can be changed later.
-
-If from ten comments you give me I accept as is five, with the other
-five I am trying to argue, on two of them we agree to my side, on two
-we go your side and on the last one we let the maintainer to cut, this
-is a healthy process that makes sense.
-
-Currently it's feels like of either accepting 98% of the comments you
-give or no acceptance.
-
-> Detecting what flags a driver supports (if any) is any entirely
-> different and orthogonal issue to introducing comp_mask/etc.
-
-I didn't say that the which flags are supported detection relates to
-exposing that extended uverbs call. I don't understand the "is any
-entirely different" part of the sentence, is that as of me being
-EMS-er?
+>  - Should an app even be exposed to mask? This is very difficult
+>    to use correctly in the general case. Only cases where an app is
+>    restarted more often than a wrap period are trivial to use properly.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
