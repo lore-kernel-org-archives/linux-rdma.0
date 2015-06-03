@@ -1,44 +1,40 @@
-From: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org (J. Bruce Fields)
-Subject: Re: NFSoRDMA bi-weekly developers meeting minutes (5/28/15)
-Date: Wed, 3 Jun 2015 12:55:18 -0400
-Message-ID: <20150603165518.GB8441@fieldses.org>
-References: <55675A52.1010700@oracle.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next V2 8/9] IB/mlx4: Support extended create_cq and
+ query_device uverbs
+Date: Wed, 3 Jun 2015 21:58:25 +0300
+Message-ID: <CAJ3xEMhGdX-35WAjauKZE7+Wg39kbXP35UzYX33J6OB8g_9rYA@mail.gmail.com>
+References: <1433074457-26437-1-git-send-email-ogerlitz@mellanox.com>
+	<1433074457-26437-9-git-send-email-ogerlitz@mellanox.com>
+	<20150601165649.GC14391@obsidianresearch.com>
+	<CAAKD3BBsTFYKwOBK+6u04x6deRYzjYESJzbpyy83UtoChZhpOA@mail.gmail.com>
+	<20150602170736.GA17776@obsidianresearch.com>
+	<CAAKD3BARPocK1zZ2nYV0xWHqEASJTYbp1aQxwymi-TYTyK_vGA@mail.gmail.com>
+	<20150603163146.GD12073@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <55675A52.1010700-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Charles EDWARD Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org" <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, "devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org" <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "dominique.martinet-KCE40YydGKI@public.gmane.org" <dominique.martinet-KCE40YydGKI@public.gmane.org>, "jeffrey.c.becker-NSQ8wuThN14@public.gmane.org" <jeffrey.c.becker-NSQ8wuThN14@public.gmane.org>, "rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org" <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>, "skc-YOWKrPYUwWM@public.gmane.org" <skc-YOWKrPYUwWM@public.gmane.org>, "sprabhu-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <sprabhu-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "SteveD-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <SteveD-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "wendy.cheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <wendy.cheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150603163146.GD12073-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 28, 2015 at 11:11:30AM -0700, Shirley Ma wrote:
-> NFSD workqueue mode vs. threading mode performance impacts: (Shirley)
-> ---------------------------------------------------------------------
-> Shirley has spent sometime test/fix/evaluating NFSD workqueue mode
-> originally implemented by Jeff Layton. NFSD workqueue patchset NFSD
-> workqueue modes benefit some workloads while global threading mode
-> benefits some other workloads. workqueue mode is better than per-cpu
-> threading mode in general. workqueue is per-cpu workqueue while global
-> threading mode is not per-cpu based. There might be some room to make
-> NFSD workqueue not worse than global threading mode, but this requires
-> to do more in depth performance investigation work.
-> 
-> Feel free to reply here for anything missing or incorrect. Thanks
-> everyone for joining the call and providing valuable inputs/work to
-> the community to make NFSoRDMA better.
+On Wed, Jun 3, 2015 at 7:31 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Wed, Jun 03, 2015 at 11:57:12AM +0300, Matan Barak wrote:
+>> That's a general comment regarding the extension mechanism.
+>
+> Yes, but it is also a specific comment about patch #4 which adds,
+> ib_uverbs_ex_create_cq.
+>
+> Based on the implementation of create_cq, it is pretty clear that
+> every driver supports ib_uverbs_ex_create_cq, so patch #4 should just
+> force the flag in the device register function so it is globally enabled.
 
-Are you planning to repost those patches to the list with a summary of
-the results so far?
-
-I don't necessarily expect that we'll have all performance problems
-worked out before merging, but we do need to judge the risk that the new
-threading mode never overcomes those regressions so that we're stuck
-supporting both old and new threading modes indefinitely.
-
---b.
+But the other drivers currently do not support any CQ creation flag
+and hence no extended functionality, I don't see the point signaling
+towards user-space that the verb is supported, please elaborate.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
