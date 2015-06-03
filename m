@@ -1,65 +1,86 @@
 From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH for-next V2 8/9] IB/mlx4: Support extended create_cq and
- query_device uverbs
-Date: Wed, 3 Jun 2015 11:57:12 +0300
-Message-ID: <CAAKD3BARPocK1zZ2nYV0xWHqEASJTYbp1aQxwymi-TYTyK_vGA@mail.gmail.com>
+Subject: Re: [PATCH for-next V2 2/9] IB/core: Change ib_create_cq to use
+ struct ib_cq_init_attr
+Date: Wed, 3 Jun 2015 12:04:23 +0300
+Message-ID: <CAAKD3BA7ZD4Gx5c16Ak+0_64rzazw+7n4frkuKHyrvdT=8ac6w@mail.gmail.com>
 References: <1433074457-26437-1-git-send-email-ogerlitz@mellanox.com>
-	<1433074457-26437-9-git-send-email-ogerlitz@mellanox.com>
-	<20150601165649.GC14391@obsidianresearch.com>
-	<CAAKD3BBsTFYKwOBK+6u04x6deRYzjYESJzbpyy83UtoChZhpOA@mail.gmail.com>
-	<20150602170736.GA17776@obsidianresearch.com>
+	<1433074457-26437-3-git-send-email-ogerlitz@mellanox.com>
+	<20150601165335.GB14391@obsidianresearch.com>
+	<CAAKD3BAyNpEKwM7xu=LzFo2F=qP=EN9ZteL2yyAgBVuPNmvtqA@mail.gmail.com>
+	<20150602172711.GB17776@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150602170736.GA17776-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20150602172711.GB17776-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 2, 2015 at 8:07 PM, Jason Gunthorpe
+On Tue, Jun 2, 2015 at 8:27 PM, Jason Gunthorpe
 <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Tue, Jun 02, 2015 at 10:21:47AM +0300, Matan Barak wrote:
->> On Mon, Jun 1, 2015 at 7:56 PM, Jason Gunthorpe
+> On Tue, Jun 02, 2015 at 10:29:14AM +0300, Matan Barak wrote:
+>> On Mon, Jun 1, 2015 at 7:53 PM, Jason Gunthorpe
 >> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
->> > On Sun, May 31, 2015 at 03:14:16PM +0300, Or Gerlitz wrote:
->> >> From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> >>
->> >> Add support for ib_uverbs_ex_create_cq and ib_uverbs_ex_query_device
->> >> by setting the appropriate bit in uverbs_ex_cmd_mask.
+>> > On Sun, May 31, 2015 at 03:14:10PM +0300, Or Gerlitz wrote:
 >> >
->> > Why is this a seperate patch? Surely the bits should be or'd in the patches
->> > that actually include the code to do the new commands?
+>> >> +     struct ib_cq_init_attr cq_attr;
+>> >>
+>> >>       /* Create new device info */
+>> >>       port_priv = kzalloc(sizeof *port_priv, GFP_KERNEL);
+>> >> @@ -2943,9 +2944,11 @@ static int ib_mad_port_open(struct ib_device *device,
+>> >>       if (has_smi)
+>> >>               cq_size *= 2;
+>> >>
+>> >> +     memset(&cq_attr, 0, sizeof(cq_attr));
+>> >> +     cq_attr.cqe = cq_size;
+>> >
+>> > Why does this patch switch to using memset when the prior patch used
+>> > = {} ?
 >> >
 >>
->> Although this patch can stand on its own (requesting unsupported flags
->> will just fail and the
->> comp_mask of uhw's will be disabled), there's no real value for not
->> squashing it into the other mlx4 patches.
+>> Why does it matter? Both are valid approaches, aren't they?
 >
-> Then there is something wrong with this 'uverbs_ex_cmd_mask' stuff -
-> the bit should be clear if the driver cannot handle the ex inputs, but
-> these patches make all drivers handle the ex style (by checking
-> flags), so all drivers should have some of the bits set..
+> Sure, but why mix and match techniques in the same code base? Is there
+> a reason?
 >
 
-That's a general comment regarding the extension mechanism.
-Since by nature the extended verbs as extendible, one consumer could support
-A and B while the other only supports A, but they both indicate they support
-this extension verb.
-You could argue that if the "flags" field wasn't tested, we would have need this
-uverbs_ex_cmd_mask - but because it could be also used by kernel consumers,
-this check is necessary.
+No reason. We'll change that to {} style.
 
-> An extended command that doesn't use any extended features should
-> transparently degrade to the normal command as often as possible.
+>> >> @@ -1075,12 +1075,11 @@ EXPORT_SYMBOL(ib_destroy_qp);
+>> >>  struct ib_cq *ib_create_cq(struct ib_device *device,
+>> >>                          ib_comp_handler comp_handler,
+>> >>                          void (*event_handler)(struct ib_event *, void *),
+>> >> -                        void *cq_context, int cqe, int comp_vector)
+>> >> +                        void *cq_context, struct ib_cq_init_attr *cq_attr)
+>> >>  {
+>> >>       struct ib_cq *cq;
+>> >> -     struct ib_cq_init_attr attr = {.cqe = cqe, .comp_vector = comp_vector};
+>> >>
+>> >> -     cq = device->create_cq(device, &attr, NULL, NULL);
+>> >> +     cq = device->create_cq(device, cq_attr, NULL, NULL);
+>> >
+>> > How does this compile without warnings?
+>> >
+>>
+>> Do you mean that there's a missing const here? It doesn't (and shouldn't)
+>> cause warnings.
+>
+> Warnings will be emitted when you compile with -Wcast-qual (make W=3).
+>
+> Some of the static tools may warn/error on implicitly casting away
+> const, I'm not sure.
+>
+> It is broadly undesirable to implicitly cast away const, even if the
+> Kernel warning defaults don't produce the message.
 >
 
-That means that uverbs_ex_cmd_mask should only be used on extended commands that
-are user-space specific.
-Anyway, we could add these  IB_USER_VERBS_EX_CMD flags to all vendors,
-but IMHO this general problem doesn't relate to this series,
-which is only about adding timestamp support.
+Why is it casting away the const?
+ib_create_cq gets a "struct ib_cq_init_attr *" and passes it to
+device->create_cq which gets a "const struct ib_cq_init_attr *",
+so I'm adding a const, which is perfectly fine.
+
+Anyway, we'll add const to ib_create_cq as well and run make W=3 to verify.
 
 > Jason
 
