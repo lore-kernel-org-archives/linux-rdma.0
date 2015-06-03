@@ -1,57 +1,60 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next V2 0/9] Add completion timestamping support
-Date: Wed, 3 Jun 2015 14:46:33 -0600
-Message-ID: <20150603204633.GE7902@obsidianresearch.com>
-References: <1433074457-26437-1-git-send-email-ogerlitz@mellanox.com>
- <1433098827.114391.179.camel@redhat.com>
- <CAAKD3BBo9A5AV9Uv-q1TgSQ6hs-oSUn5QsUT+5+6mk1RwW7AUA@mail.gmail.com>
- <1433157904.114391.188.camel@redhat.com>
- <20150601164322.GA14391@obsidianresearch.com>
- <1433255724.114391.225.camel@redhat.com>
- <20150602180844.GD17776@obsidianresearch.com>
- <CAJ3xEMjZqwJC8=HrMBv_eSVKVtLW7qjVZNjtuD28octGPtYu6w@mail.gmail.com>
+Subject: Re: [PATCH v4 for-next 00/12] Add network namespace support in the
+ RDMA-CM
+Date: Wed, 3 Jun 2015 15:45:08 -0600
+Message-ID: <20150603214508.GA14968@obsidianresearch.com>
+References: <55674077.5040707@mellanox.com>
+ <20150528174337.GA10448@obsidianresearch.com>
+ <1432837360.114391.35.camel@redhat.com>
+ <CAJ3xEMh2T5-56rFxWVdct2uAZYW1ZrKivWfS45V-mvhAfwyGaA@mail.gmail.com>
+ <1432850150.114391.56.camel@redhat.com>
+ <556ED0D5.8010502@mellanox.com>
+ <20150603161447.GC12073@obsidianresearch.com>
+ <CAJ3xEMjM53sYuEgQV3WPaN4WErk_YcojPY2zBcmq-+3W2dfD+A@mail.gmail.com>
+ <20150603195325.GC7902@obsidianresearch.com>
+ <CAJ3xEMiO+hEzOJ2oJ5G-mmBeaX4ZHvUyhNSAzsrRDui6dFjvCg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAJ3xEMjZqwJC8=HrMBv_eSVKVtLW7qjVZNjtuD28octGPtYu6w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAJ3xEMiO+hEzOJ2oJ5G-mmBeaX4ZHvUyhNSAzsrRDui6dFjvCg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 03, 2015 at 10:48:28PM +0300, Or Gerlitz wrote:
+On Wed, Jun 03, 2015 at 11:07:37PM +0300, Or Gerlitz wrote:
+> As Haggai wrote, if we let the using IP address thing to fly up, we have
+> support for RDMA in containers using the RDMA-CM at IPoIB environments.
+> This will let people test, use, experiment, fix, interact (and even
+> production-it when static IP address assignment scheme is used).
 
-> >  - Should the frequency and mask be general, or driver private? If the
-> >    cycles->ns conversion is a function they should be driver private.
-> >    Even if they are general at libibverbs, they don't *have* to be in
-> >    the kernel's general query response.
+Sure, I think we all understand the goal, and you've explained some
+reasonable use cases for the child support.
+
+> Later, usage of alias GUIDs for IPoIB RTNL childs would allow to
+> remove the IP thing.
+
+How do we remove it? Along with same-guid child support? What is your
+idea here?
+
+> > Also, now that this has been brought up, I think you need to make a
+> > patch to fix the IPv6 SLAAC breakage this caused. It looks trivial to
+> > modify addrconf_ifid_infiniband to return error if the IPoIB child is
+> > sharing a guid. It was not good at all to push the child patches
+> > forward to 3.6/3.7 if you knew that IPv6 SLAAC was broken by them.
 > 
-> If they are general in libibverbs, what's the point not to put them in
-> the kernel's general query response?
+> Till the alias GUID thing is introduced, maybe we can patch
+> addrconf_ifid_infiniband to use the QPN value from the device HW
+> address to come up with unique IPv6 link local address, agree? where
+> you think we can place the 24 bits QPN?
 
-If there is a timestamp_to_ns API then they would not be general in
-libiverbs either.
+I don't know if that is a good idea, an unstable SLAAC is not in
+spirit with the RFCs. The safest bet is to return error and disable
+SLAAC completely.
 
-> >  - Should frequency even be frequency? Most clocks are expressed
-> >    accurately as a period in picoseconds. Frequency is more often
-> >    imprecise. (eg ethernet is 3200 ps or 312.5MHz)
-> >    However FDR/EDR is fractional for both (4693.33333333 ps vs
-> >    213.0681818181818 MHz)
-> >    Precision is very important for time conversions, so a
-> >    multiply-divide scheme would be ideal.
-> 
-> From Christoph's response I got the impression that our proposal of
-> exposing frequency and mask combined with raw time stamps excellently
-> fits typical user needs, so I thought we're good. Doug made a comment
-> that things look OK to him and the rest of the work would be when we
-> come to review the user-space patches.
-
-This response ignores my point about precision.
-
-MHz is fine *for mlx hardware* but someone elses hardware that uses,
-say 312.5 MHz (ie the ethernet symbol clock) is NOT OK because MHz
-looses too much precision.
+But I'm just guessing here - I'm only feel strongly that something
+should be done to address this issue in the existing kernel.
 
 Jason
 --
