@@ -1,46 +1,54 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH v4 for-next 00/12] Add network namespace support in the
- RDMA-CM
-Date: Wed, 3 Jun 2015 10:14:47 -0600
-Message-ID: <20150603161447.GC12073@obsidianresearch.com>
-References: <1431841868-28063-1-git-send-email-haggaie@mellanox.com>
- <1432647280.28905.107.camel@redhat.com>
- <55671309.6080303@mellanox.com>
- <1432822057.114391.26.camel@redhat.com>
- <55674077.5040707@mellanox.com>
- <20150528174337.GA10448@obsidianresearch.com>
- <1432837360.114391.35.camel@redhat.com>
- <CAJ3xEMh2T5-56rFxWVdct2uAZYW1ZrKivWfS45V-mvhAfwyGaA@mail.gmail.com>
- <1432850150.114391.56.camel@redhat.com>
- <556ED0D5.8010502@mellanox.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH for-next V2 8/9] IB/mlx4: Support extended create_cq and
+ query_device uverbs
+Date: Wed, 3 Jun 2015 10:31:46 -0600
+Message-ID: <20150603163146.GD12073@obsidianresearch.com>
+References: <1433074457-26437-1-git-send-email-ogerlitz@mellanox.com>
+ <1433074457-26437-9-git-send-email-ogerlitz@mellanox.com>
+ <20150601165649.GC14391@obsidianresearch.com>
+ <CAAKD3BBsTFYKwOBK+6u04x6deRYzjYESJzbpyy83UtoChZhpOA@mail.gmail.com>
+ <20150602170736.GA17776@obsidianresearch.com>
+ <CAAKD3BARPocK1zZ2nYV0xWHqEASJTYbp1aQxwymi-TYTyK_vGA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <556ED0D5.8010502@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: Haggai Eran <haggaie@mellanox.com>
-Cc: Doug Ledford <dledford@redhat.com>, Or Gerlitz <gerlitz.or@gmail.com>, Or Gerlitz <ogerlitz@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux Netdev List <netdev@vger.kernel.org>, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>
+In-Reply-To: <CAAKD3BARPocK1zZ2nYV0xWHqEASJTYbp1aQxwymi-TYTyK_vGA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 03, 2015 at 01:03:01PM +0300, Haggai Eran wrote:
-> > Then I'm inclined to say that we should map for namespaces using device,
-> > port, guid/gid, pkey.  And in this situation, since a unique guid/gid on
-> > any given pkey maps to a unique dhcp identifier and a unique ipv6
-> > lladdr, this becomes freely interchangeable with device, port, pkey,
-> > address mappings that this patchset was built around.
+On Wed, Jun 03, 2015 at 11:57:12AM +0300, Matan Barak wrote:
+> That's a general comment regarding the extension mechanism.
+
+Yes, but it is also a specific comment about patch #4 which adds,
+ib_uverbs_ex_create_cq.
+
+Based on the implementation of create_cq, it is pretty clear that
+every driver supports ib_uverbs_ex_create_cq, so patch #4 should just
+force the flag in the device register function so it is globally
+enabled.
+
+query_device looks like it is the same, passing in the original
+structure length will always work on any device. So Mellanox should
+send a bugfix patch for that as well, unrelated to this series.
+
+> > An extended command that doesn't use any extended features should
+> > transparently degrade to the normal command as often as possible.
 > 
-> What if we change the namespaces patches to map (device, port, GID,
-> P_Key, IP) to netdev / namespace? That is, to use both the GID and the
-> IP address.
+> That means that uverbs_ex_cmd_mask should only be used on extended commands that
+> are user-space specific.
 
-As I keep saying, you are not supposed to use the IP address as a key
-to find the netdev, that is the wrong way to use the Linux netdev
-model.
+The bit should only be clear on commands that can never return
+anything but ENOSYS. Ie the kernel has no support for the command at
+all, or for some reason the driver cannot handle the call.
 
-Requiring unique GID/PKey allows the implementation to avoid this
-wrongness, which would be simplifying and more correct.
-
-That is the appeal to blocking this scenario when children are created.
+The latter case should be rare, it would be the case if we added a new
+command that was not extending an existing command, for instance.
 
 Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
