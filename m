@@ -1,77 +1,102 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v4 for-next 00/12] Add network namespace support in the RDMA-CM
-Date: Wed, 3 Jun 2015 23:07:37 +0300
-Message-ID: <CAJ3xEMiO+hEzOJ2oJ5G-mmBeaX4ZHvUyhNSAzsrRDui6dFjvCg@mail.gmail.com>
-References: <55671309.6080303@mellanox.com>
-	<1432822057.114391.26.camel@redhat.com>
-	<55674077.5040707@mellanox.com>
-	<20150528174337.GA10448@obsidianresearch.com>
-	<1432837360.114391.35.camel@redhat.com>
-	<CAJ3xEMh2T5-56rFxWVdct2uAZYW1ZrKivWfS45V-mvhAfwyGaA@mail.gmail.com>
-	<1432850150.114391.56.camel@redhat.com>
-	<556ED0D5.8010502@mellanox.com>
-	<20150603161447.GC12073@obsidianresearch.com>
-	<CAJ3xEMjM53sYuEgQV3WPaN4WErk_YcojPY2zBcmq-+3W2dfD+A@mail.gmail.com>
-	<20150603195325.GC7902@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH for-next V2 8/9] IB/mlx4: Support extended create_cq and
+ query_device uverbs
+Date: Wed, 3 Jun 2015 14:38:10 -0600
+Message-ID: <20150603203810.GD7902@obsidianresearch.com>
+References: <1433074457-26437-1-git-send-email-ogerlitz@mellanox.com>
+ <1433074457-26437-9-git-send-email-ogerlitz@mellanox.com>
+ <20150601165649.GC14391@obsidianresearch.com>
+ <CAAKD3BBsTFYKwOBK+6u04x6deRYzjYESJzbpyy83UtoChZhpOA@mail.gmail.com>
+ <20150602170736.GA17776@obsidianresearch.com>
+ <CAAKD3BARPocK1zZ2nYV0xWHqEASJTYbp1aQxwymi-TYTyK_vGA@mail.gmail.com>
+ <20150603163146.GD12073@obsidianresearch.com>
+ <CAJ3xEMhGdX-35WAjauKZE7+Wg39kbXP35UzYX33J6OB8g_9rYA@mail.gmail.com>
+ <20150603191609.GB7902@obsidianresearch.com>
+ <CAJ3xEMiPkxf_Qu40AozMRWZaY-dAfEyAOZGyT9VYsNpQO1Q-Zw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150603195325.GC7902-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAJ3xEMiPkxf_Qu40AozMRWZaY-dAfEyAOZGyT9VYsNpQO1Q-Zw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 3, 2015 at 10:53 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Wed, Jun 03, 2015 at 10:05:34PM +0300, Or Gerlitz wrote:
->
->> Indeed the DHCP story isn't working there and to get DHCP work
->> something has to be done. But this issue can't serve for blocking the
->> existing UAPI and introduce regression to working systems.
->
-> It is not DHCP that concerns me, it is the fact we can't combine net
-> namespaces, RDMA-CM and duplicate GUID IPoIB children together without
-> adding hacks to the kernel. Searching netdevs by IP is a hack.
->
-> I'm mostly fine with it as an optional capability, similar to macvlan,
-> I just don't see how to cleanly integrate it with RDMA CM and
-> namespaces. And I don't see what RDMA CM is supposed to do when
-> it hits this case.
->
-> So, any ideas that don't involve the searching for IP hack??
->
-> [And yes, as discussed with Haggie, it is not the worst hack in the
->  world, and maybe we can live with it, but lets understand the trade
->  offs carefully]
+On Wed, Jun 03, 2015 at 10:35:03PM +0300, Or Gerlitz wrote:
 
-As Haggai wrote, if we let the using IP address thing to fly up, we have
-support for RDMA in containers using the RDMA-CM at IPoIB environments.
-This will let people test, use, experiment, fix, interact (and even
-production-it when static IP address assignment scheme is used).
+> > They support the base functionality, the flags = 0 case.
+> 
+> which doesn't let consumers to use any new functionality.
 
-Later, usage of alias GUIDs for IPoIB RTNL childs would allow to
-remove the IP thing.
+So what? A call with flags = 0 works, why return ENOSYS for all
+drivers except mlx4 in that case? It doesn't make sense to be
+asymmetric like that.
 
-Later, the next stage/s in Matan's work on the RoCE GID table would
-allow to support MACVLAN and hence RoCE too.
+Again, the extension process (patch #4) was to introduce the flags, as
+long as the flags is processed properly then the syscall is
+functional and should not return ENOSYS. It does not matter which
+flags, if any, are supported.
 
-This is how the Linux kernel being evolved since the 2.5 failure to
-come up with giant releases -- doing things in relativity small steps.
+> But the point here is a bit different: I somehow have the feeling that
+> unless ~each and every one of your review comments are accepted to the
+> letter, no inclusion.
 
+I am just reviewing, Doug will have to decide if discussion is done or
+not. To be clear: 'no inclusion' from me would be a clear NAK
+statement.
 
-> Also, now that this has been brought up, I think you need to make a
-> patch to fix the IPv6 SLAAC breakage this caused. It looks trivial to
-> modify addrconf_ifid_infiniband to return error if the IPoIB child is
-> sharing a guid. It was not good at all to push the child patches
-> forward to 3.6/3.7 if you knew that IPv6 SLAAC was broken by them.
+If I'm going to provide my Reviewed-By I want to see:
+ 1) Comments addressed via a code change
+ 2) Comments addressed via a persuasive technical argument
+ 3) Comments addressed as 'too much work'/'un-important'/'personal preference'/etc.
+ 4) Comments addressed because I am wrong
 
-Till the alias GUID thing is introduced, maybe we can patch
-addrconf_ifid_infiniband to use the QPN value from the device HW
-address to come up with unique IPv6 link local address, agree? where
-you think we can place the 24 bits QPN?
+And try to be clear about it, explain clearly.
 
-Or.
+> You are not the maintainer here, and even maintainers prefer not to
+> force each of their detailed comments on submitters.
+
+This isn't a detailed comment, this is a significant point about how a
+UAPI is expected to work. And yes, UAPI is important, details are
+important and I will argue for my viewpoint.
+
+There is a huge difference between doing work on your own drivers and
+doing core work. I do not know many cases where a maintainer/reviewer
+of core sections will let details slide. There is a high expectation
+for core code, and a very high expectation for UAPI.
+
+> This specific comment relates TINY in-kernel thing that can be
+> changed later.
+
+Where is the pride? Do it right!
+
+> If from ten comments you give me I accept as is five, with the other
+> five I am trying to argue, on two of them we agree to my side, on two
+> we go your side and on the last one we let the maintainer to cut, this
+> is a healthy process that makes sense.
+
+Sure, but you have to make a persuasive technical argument.. You can't
+just argue..
+
+In this case, you completely skipped over my main point:
+ Drivers that only support flags == 0 should not return ENOSYS.
+
+I gave several reasons why I think this is important, and how
+userspace can use this, and how it is normal in the kernel.
+
+You responded to the reasons, but ignored the actual thesis, and
+didn't provide any counter reasons to support your idea:
+ Drivers that only support flags == 0 should return ENOSYS.
+
+So we are not debating, we are just arguing, and it isn't productive.
+
+> I don't understand the "is any entirely different" part of the
+> sentence, is that as of me being EMS-er?
+
+No, that is just me typoing 'an -> any'. Sorry
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
