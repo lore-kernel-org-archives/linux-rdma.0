@@ -1,65 +1,53 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next V2 0/9] Add completion timestamping support
-Date: Wed, 3 Jun 2015 22:48:28 +0300
-Message-ID: <CAJ3xEMjZqwJC8=HrMBv_eSVKVtLW7qjVZNjtuD28octGPtYu6w@mail.gmail.com>
-References: <1433074457-26437-1-git-send-email-ogerlitz@mellanox.com>
-	<1433098827.114391.179.camel@redhat.com>
-	<CAAKD3BBo9A5AV9Uv-q1TgSQ6hs-oSUn5QsUT+5+6mk1RwW7AUA@mail.gmail.com>
-	<1433157904.114391.188.camel@redhat.com>
-	<20150601164322.GA14391@obsidianresearch.com>
-	<1433255724.114391.225.camel@redhat.com>
-	<20150602180844.GD17776@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH v4 for-next 00/12] Add network namespace support in the
+ RDMA-CM
+Date: Wed, 3 Jun 2015 13:53:25 -0600
+Message-ID: <20150603195325.GC7902@obsidianresearch.com>
+References: <55671309.6080303@mellanox.com>
+ <1432822057.114391.26.camel@redhat.com>
+ <55674077.5040707@mellanox.com>
+ <20150528174337.GA10448@obsidianresearch.com>
+ <1432837360.114391.35.camel@redhat.com>
+ <CAJ3xEMh2T5-56rFxWVdct2uAZYW1ZrKivWfS45V-mvhAfwyGaA@mail.gmail.com>
+ <1432850150.114391.56.camel@redhat.com>
+ <556ED0D5.8010502@mellanox.com>
+ <20150603161447.GC12073@obsidianresearch.com>
+ <CAJ3xEMjM53sYuEgQV3WPaN4WErk_YcojPY2zBcmq-+3W2dfD+A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150602180844.GD17776-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAJ3xEMjM53sYuEgQV3WPaN4WErk_YcojPY2zBcmq-+3W2dfD+A@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Or Gerlitz <gerlitz.or@gmail.com>
+Cc: Doug Ledford <dledford@redhat.com>, Haggai Eran <haggaie@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux Netdev List <netdev@vger.kernel.org>, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 2, 2015 at 9:08 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+On Wed, Jun 03, 2015 at 10:05:34PM +0300, Or Gerlitz wrote:
 
-> Or, the question in my mind based on looking at the UAPI patches is
-> what things should be driver private and what should be general.
->
-> Broadly my thoughts:
->  - Should the frequency and mask be general, or driver private? If the
->    cycles->ns conversion is a function they should be driver private.
->    Even if they are general at libibverbs, they don't *have* to be in
->    the kernel's general query response.
+> Indeed the DHCP story isn't working there and to get DHCP work
+> something has to be done. But this issue can't serve for blocking the
+> existing UAPI and introduce regression to working systems.
 
-If they are general in libibverbs, what's the point not to put them in
-the kernel's general query response?
+It is not DHCP that concerns me, it is the fact we can't combine net
+namespaces, RDMA-CM and duplicate GUID IPoIB children together without
+adding hacks to the kernel. Searching netdevs by IP is a hack.
 
->  - Should frequency even be frequency? Most clocks are expressed
->    accurately as a period in picoseconds. Frequency is more often
->    imprecise. (eg ethernet is 3200 ps or 312.5MHz)
->    However FDR/EDR is fractional for both (4693.33333333 ps vs
->    213.0681818181818 MHz)
->    Precision is very important for time conversions, so a
->    multiply-divide scheme would be ideal.
+I'm mostly fine with it as an optional capability, similar to macvlan,
+I just don't see how to cleanly integrate it with RDMA CM and
+namespaces. And I don't see what RDMA CM is supposed to do when
+it hits this case.
 
->From Christoph's response I got the impression that our proposal of
-exposing frequency and mask combined with raw time stamps excellently
-fits typical user needs, so I thought we're good. Doug made a comment
-that things look OK to him and the rest of the work would be when we
-come to review the user-space patches.
+So, any ideas that don't involve the searching for IP hack??
 
->    This is suggesting to me these details really are not general.
->  - There should be much better definition on what all this stuff is,
->    units for frequency? When is the timestamp applied?
+[And yes, as discussed with Haggie, it is not the worst hack in the
+ world, and maybe we can live with it, but lets understand the trade
+ offs carefully]
 
-The timestamp is applied when the WC is generated, as Doug asked, we
-changed the flag name to reflect that. I guess that the units for
-frequency are MHz but I will check that and we can document it in the
-kernel IB core patch and later in man pages.
+Also, now that this has been brought up, I think you need to make a
+patch to fix the IPv6 SLAAC breakage this caused. It looks trivial to
+modify addrconf_ifid_infiniband to return error if the IPoIB child is
+sharing a guid. It was not good at all to push the child patches
+forward to 3.6/3.7 if you knew that IPv6 SLAAC was broken by them.
 
->  - Should an app even be exposed to mask? This is very difficult
->    to use correctly in the general case. Only cases where an app is
->    restarted more often than a wrap period are trivial to use properly.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jason
