@@ -1,45 +1,98 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next V2 0/9] Add completion timestamping support
-Date: Wed, 3 Jun 2015 22:25:40 -0600
-Message-ID: <20150604042540.GA8837@obsidianresearch.com>
-References: <1433074457-26437-1-git-send-email-ogerlitz@mellanox.com>
- <1433098827.114391.179.camel@redhat.com>
- <CAAKD3BBo9A5AV9Uv-q1TgSQ6hs-oSUn5QsUT+5+6mk1RwW7AUA@mail.gmail.com>
- <1433157904.114391.188.camel@redhat.com>
- <20150601164322.GA14391@obsidianresearch.com>
- <1433255724.114391.225.camel@redhat.com>
- <20150602180844.GD17776@obsidianresearch.com>
- <CAJ3xEMjZqwJC8=HrMBv_eSVKVtLW7qjVZNjtuD28octGPtYu6w@mail.gmail.com>
- <20150603204633.GE7902@obsidianresearch.com>
- <alpine.DEB.2.11.1506031953500.11879@east.gentwo.org>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v4 for-next 00/12] Add network namespace support in the
+ RDMA-CM
+Date: Thu, 4 Jun 2015 09:24:37 +0300
+Message-ID: <556FEF25.80409@mellanox.com>
+References: <55674077.5040707@mellanox.com>
+ <20150528174337.GA10448@obsidianresearch.com>
+ <1432837360.114391.35.camel@redhat.com>
+ <CAJ3xEMh2T5-56rFxWVdct2uAZYW1ZrKivWfS45V-mvhAfwyGaA@mail.gmail.com>
+ <1432850150.114391.56.camel@redhat.com> <556ED0D5.8010502@mellanox.com>
+ <20150603161447.GC12073@obsidianresearch.com>
+ <CAJ3xEMjM53sYuEgQV3WPaN4WErk_YcojPY2zBcmq-+3W2dfD+A@mail.gmail.com>
+ <20150603195325.GC7902@obsidianresearch.com>
+ <CAJ3xEMiO+hEzOJ2oJ5G-mmBeaX4ZHvUyhNSAzsrRDui6dFjvCg@mail.gmail.com>
+ <20150603234811.GA15128@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.11.1506031953500.11879-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
+In-Reply-To: <20150603234811.GA15128-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 03, 2015 at 07:55:58PM -0500, Christoph Lameter wrote:
+On 04/06/2015 02:48, Jason Gunthorpe wrote:
+> On Wed, Jun 03, 2015 at 11:07:37PM +0300, Or Gerlitz wrote:
+> 
+>>> I'm mostly fine with it as an optional capability, similar to macvlan,
+>>> I just don't see how to cleanly integrate it with RDMA CM and
+>>> namespaces. And I don't see what RDMA CM is supposed to do when
+>>> it hits this case.
+>>>
+>>> So, any ideas that don't involve the searching for IP hack??
+>>>
+>>> [And yes, as discussed with Haggie, it is not the worst hack in the
+>>>  world, and maybe we can live with it, but lets understand the trade
+>>>  offs carefully]
+>>
+>> As Haggai wrote, if we let the using IP address thing to fly up, we have
+>> support for RDMA in containers using the RDMA-CM at IPoIB environments.
+>> This will let people test, use, experiment, fix, interact (and even
+>> production-it when static IP address assignment scheme is used).
+> 
+> I just noticed ipvlan got merged a few months ago.. That certainly
+> changed my view on this topic. It is basically a software
+> version of the same-guid ipoib children scheme. Similar issues: Same MAC
+> address as the parent, IPv6 SLAAC is disabled (?),  DHCP has similar
+> issue (solved with RFC4361, and broadcasting fallback, it seems)..
+> 
+> The l2/l3 distinction in ipvlan is also very interesting. The L3 mode
+> solves some of the security type issues. What do you think Haggi?
+I think some issues ipvlan is trying to solve would also affect us using
+the alias GUIDs solution. ipvlan tries to solve among other the problem
+of a limited MAC filter table in NICs, and avoid using promiscuous mode.
+But the GID table is also limited, and we don't have something like
+promiscuous mode for GIDs in InfiniBand. For large scale use of
+containers we would need to also allow the current model.
 
-> I thknk the raw cycles and the rought oscillator speed are fine.
+As for L3 mode, it does seem more restrictive, as all routing decisions
+are done in the controlling namespace. Our current ipoib child interface
+implementation is more like the L2 version of ipvlan.
 
-Time keeping is designed to adjust for 100's of ppm drift between
-clocks.
+> 
+> Is there any chance standard things like ipvlan and macvlan could be
+> used with rdma-cm if their master devices are IPoIB? 
+These standard interfaces seem very much connected with Ethernet (both
+have an ARPHDR_ETHER-only check for their upper devices). I think
+macvlan's functionality would be covered by adding alias GUIDs to ipoib,
+and ipvlan L2 is covered by the current behavior. Perhaps it would be
+beneficial to try and make ipvlan more generic so that it would work
+over ipoib, giving us support for L3 mode.
 
-A communications clock source will be spec'd to be below 200ppm in
-accuracy. IB clocks are below 100 ppm, and PCI-E is 300ppm (approx, I
-didn't check, order of magnitue is close)
+As for rdma-cm support, the patch I had for ipoib attempts to scan each
+child's upper devices in order to support such topologies. We only
+tested it with bonding, but I think it would also work with such devices.
 
-That translates into 0.0625 Hz. for a 312.5 MHz ethernet reference clock
+> Are we even on
+> the right path to do that someday? Is that the plan for roce?
+Yes, for RoCE our goal for the start was to support namespaces in RDMA
+CM through macvlan devices. As long as we can update the RoCE gid table
+correctly for macvlan and ipvlan devices, the RDMA CM implementation
+shouldn't care where the details come from.
 
-Compared to 5,000,000 Hz in error from rounding.
+> Any thoughts on the idea we still need ipoib same-guid children if
+> ipvlan is available?
+If we port ipvlan to work over IPoIB interfaces and not just Ethernet,
+then ipvlan L2 would provide exactly the same functionality. There onyl
+difference I can think of is that ipvlan would use a single UD QP for
+all devices (and in connected-mode, a single RC QP between a pair of
+hosts), while ipoib would use a QP per child device, and multiple RC QPs
+for such pairs.
 
-So no, I disagree that rough is fine for anything.
-
-Jason
+Regards,
+Haggai
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
