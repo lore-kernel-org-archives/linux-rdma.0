@@ -1,40 +1,45 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH v4 for-next 00/12] Add network namespace support in the
- RDMA-CM
-Date: Thu, 4 Jun 2015 10:06:08 -0600
-Message-ID: <20150604160608.GA27699@obsidianresearch.com>
-References: <1432837360.114391.35.camel@redhat.com>
- <CAJ3xEMh2T5-56rFxWVdct2uAZYW1ZrKivWfS45V-mvhAfwyGaA@mail.gmail.com>
- <1432850150.114391.56.camel@redhat.com>
- <556ED0D5.8010502@mellanox.com>
- <20150603161447.GC12073@obsidianresearch.com>
- <CAJ3xEMjM53sYuEgQV3WPaN4WErk_YcojPY2zBcmq-+3W2dfD+A@mail.gmail.com>
- <20150603195325.GC7902@obsidianresearch.com>
- <CAJ3xEMiO+hEzOJ2oJ5G-mmBeaX4ZHvUyhNSAzsrRDui6dFjvCg@mail.gmail.com>
- <20150603214508.GA14968@obsidianresearch.com>
- <55701D4D.20307@mellanox.com>
+From: "Dave Goodell (dgoodell)" <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [patch] IB/usnic: clean up some error handling code
+Date: Thu, 4 Jun 2015 16:14:44 +0000
+Message-ID: <A7405890-8794-4A04-A6B6-C84094BBD58A@cisco.com>
+References: <20150604090218.GD22838@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <55701D4D.20307@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: Haggai Eran <haggaie@mellanox.com>
-Cc: Or Gerlitz <gerlitz.or@gmail.com>, Doug Ledford <dledford@redhat.com>, Or Gerlitz <ogerlitz@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux Netdev List <netdev@vger.kernel.org>, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150604090218.GD22838@mwanda>
+Content-Language: en-US
+Content-ID: <1B72002DACD459419A1B6921F4BC8905-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 04, 2015 at 12:41:33PM +0300, Haggai Eran wrote:
-> On 04/06/2015 00:45, Jason Gunthorpe wrote:
+On Jun 4, 2015, at 4:02 AM, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
 
-> > I don't know if that is a good idea, an unstable SLAAC is not in
-> > spirit with the RFCs. The safest bet is to return error and disable
-> > SLAAC completely.
+> This code causes a static checker warning:
+> 
+> 	drivers/infiniband/hw/usnic/usnic_uiom.c:476 usnic_uiom_alloc_pd()
+> 	warn: passing zero to 'PTR_ERR'
+> 
+> This code isn't buggy, but iommu_domain_alloc() doesn't return an error
+> pointer so we can simplify the error handling and silence the static
+> checker warning.
+> 
+> The static checker warning is to catch place which do:
+> 
+> 	if (!ptr)
+> 		return ERR_PTR(ptr);
+> 
+> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-> Maybe this is a silly question, but doesn't DAD already disable SLAAC
-> addresses when there's a conflict?
+Looks good to me, thanks.
 
-Yes, DAD should certainly trigger and disable the child, but the
-kernel should not rely on DAD for correctness, it is a safety net, and
-it isn't guarenteed 100% reliable.
+Reviewed-by: Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 
-Jason
+-Dave
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
