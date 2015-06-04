@@ -1,71 +1,57 @@
 From: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v3 3/4] IB/sa: Allocate SA query with kzalloc
-Date: Thu,  4 Jun 2015 08:26:48 -0400
-Message-ID: <1433420809-13529-4-git-send-email-kaike.wan@intel.com>
-References: <1433420809-13529-1-git-send-email-kaike.wan@intel.com>
+Subject: [PATCH v3 0/4] Sending kernel pathrecord query to user cache server
+Date: Thu,  4 Jun 2015 08:26:45 -0400
+Message-ID: <1433420809-13529-1-git-send-email-kaike.wan@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1433420809-13529-1-git-send-email-kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Replace kmalloc with kzalloc so that all uninitialized fields in SA query
-will be zero-ed out to avoid unintentional consequence. This prepares the
-SA query structure to accept new fields in the future.
+A SA cache is undeniably critical for fabric scalability and performance.
+In user space, the ibacm application provides a good example of pathrecord
+cache for address and route resolution. With the recent implementation of
+the provider architecture, ibacm offers more extensibility as a SA cache.
+In kernel, ipoib implements its own small cache for pathrecords, which is
+however not available for general use. Furthermore, the implementation of
+a SA cache in user space offers better flexibility, larger capacity, and
+more robustness for the system.
 
-Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/core/sa_query.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+In this patch series, a mechanism is implemented to allow ib_sa to
+send pathrecord query to a user application (eg ibacm) through netlink.
+Potentially, this mechanism could be easily extended to other SA queries.
 
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index c38f030..17e1cf7 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -739,7 +739,7 @@ int ib_sa_path_rec_get(struct ib_sa_client *client,
- 	port  = &sa_dev->port[port_num - sa_dev->start_port];
- 	agent = port->agent;
- 
--	query = kmalloc(sizeof *query, gfp_mask);
-+	query = kzalloc(sizeof(*query), gfp_mask);
- 	if (!query)
- 		return -ENOMEM;
- 
-@@ -861,7 +861,7 @@ int ib_sa_service_rec_query(struct ib_sa_client *client,
- 	    method != IB_SA_METHOD_DELETE)
- 		return -EINVAL;
- 
--	query = kmalloc(sizeof *query, gfp_mask);
-+	query = kzalloc(sizeof(*query), gfp_mask);
- 	if (!query)
- 		return -ENOMEM;
- 
-@@ -953,7 +953,7 @@ int ib_sa_mcmember_rec_query(struct ib_sa_client *client,
- 	port  = &sa_dev->port[port_num - sa_dev->start_port];
- 	agent = port->agent;
- 
--	query = kmalloc(sizeof *query, gfp_mask);
-+	query = kzalloc(sizeof(*query), gfp_mask);
- 	if (!query)
- 		return -ENOMEM;
- 
-@@ -1050,7 +1050,7 @@ int ib_sa_guid_info_rec_query(struct ib_sa_client *client,
- 	port  = &sa_dev->port[port_num - sa_dev->start_port];
- 	agent = port->agent;
- 
--	query = kmalloc(sizeof *query, gfp_mask);
-+	query = kzalloc(sizeof(*query), gfp_mask);
- 	if (!query)
- 		return -ENOMEM;
- 
--- 
-1.7.1
+With a customized test implemented in rdma_cm module (not included in this
+series), it was shown that the time to retrieve 1 million pathrecords
+dropped from 46660 jiffies (46.66 seconds) to 16119 jiffies (or 16.119
+seconds) on a two-node system, a reduction of more than 60%.
+
+Changes since v2:
+- Redesigned the communication protocol between the kernel and user space
+  application. Instead of the MAD packet format, the new protocol uses 
+  netlink message header and attributes to exchange request and 
+  response between the kernel and user space.The design was described
+  here:
+  http://www.spinics.net/lists/linux-rdma/msg25621.html
+
+Changes since v1:
+- Move kzalloc changes into a separate patch (Patch 3).
+- Remove redundant include line (Patch 4). 
+- Rename struct rdma_nl_resp_msg as structure ib_nl_resp_msg (Patch 4).
+
+Kaike Wan (4):
+  IB/netlink: Add defines for local service requests through netlink
+  IB/core: Check the presence of netlink multicast group listeners
+  IB/sa: Allocate SA query with kzalloc
+  IB/sa: Route SA pathrecord query through netlink
+
+ drivers/infiniband/core/netlink.c  |    8 +
+ drivers/infiniband/core/sa_query.c |  496 +++++++++++++++++++++++++++++++++++-
+ include/rdma/rdma_netlink.h        |    7 +
+ include/uapi/rdma/rdma_netlink.h   |   56 ++++
+ 4 files changed, 562 insertions(+), 5 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
