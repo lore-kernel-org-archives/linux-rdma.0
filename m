@@ -1,48 +1,59 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [patch] IB/usnic: clean up some error handling code
-Date: Thu, 4 Jun 2015 12:02:18 +0300
-Message-ID: <20150604090218.GD22838@mwanda>
+From: Haggai Eran <haggaie@mellanox.com>
+Subject: Re: [PATCH v4 for-next 00/12] Add network namespace support in the
+ RDMA-CM
+Date: Thu, 4 Jun 2015 12:41:33 +0300
+Message-ID: <55701D4D.20307@mellanox.com>
+References: <55674077.5040707@mellanox.com>
+ <20150528174337.GA10448@obsidianresearch.com>
+ <1432837360.114391.35.camel@redhat.com>
+ <CAJ3xEMh2T5-56rFxWVdct2uAZYW1ZrKivWfS45V-mvhAfwyGaA@mail.gmail.com>
+ <1432850150.114391.56.camel@redhat.com> <556ED0D5.8010502@mellanox.com>
+ <20150603161447.GC12073@obsidianresearch.com>
+ <CAJ3xEMjM53sYuEgQV3WPaN4WErk_YcojPY2zBcmq-+3W2dfD+A@mail.gmail.com>
+ <20150603195325.GC7902@obsidianresearch.com>
+ <CAJ3xEMiO+hEzOJ2oJ5G-mmBeaX4ZHvUyhNSAzsrRDui6dFjvCg@mail.gmail.com>
+ <20150603214508.GA14968@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Upinder Malhi <umalhi@cisco.com>
-Cc: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20150603214508.GA14968@obsidianresearch.com>
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Or Gerlitz <gerlitz.or@gmail.com>
+Cc: Doug Ledford <dledford@redhat.com>, Or Gerlitz <ogerlitz@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux Netdev List <netdev@vger.kernel.org>, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-This code causes a static checker warning:
+On 04/06/2015 00:45, Jason Gunthorpe wrote:
+> On Wed, Jun 03, 2015 at 11:07:37PM +0300, Or Gerlitz wrote:
+>> As Haggai wrote, if we let the using IP address thing to fly up, we have
+>> support for RDMA in containers using the RDMA-CM at IPoIB environments.
+>> This will let people test, use, experiment, fix, interact (and even
+>> production-it when static IP address assignment scheme is used).
+> 
+> Sure, I think we all understand the goal, and you've explained some
+> reasonable use cases for the child support.
+> 
+>> Later, usage of alias GUIDs for IPoIB RTNL childs would allow to
+>> remove the IP thing.
+> 
+> How do we remove it? Along with same-guid child support? What is your
+> idea here?
+> 
+>>> Also, now that this has been brought up, I think you need to make a
+>>> patch to fix the IPv6 SLAAC breakage this caused. It looks trivial to
+>>> modify addrconf_ifid_infiniband to return error if the IPoIB child is
+>>> sharing a guid. It was not good at all to push the child patches
+>>> forward to 3.6/3.7 if you knew that IPv6 SLAAC was broken by them.
+>>
+>> Till the alias GUID thing is introduced, maybe we can patch
+>> addrconf_ifid_infiniband to use the QPN value from the device HW
+>> address to come up with unique IPv6 link local address, agree? where
+>> you think we can place the 24 bits QPN?
+> 
+> I don't know if that is a good idea, an unstable SLAAC is not in
+> spirit with the RFCs. The safest bet is to return error and disable
+> SLAAC completely.
+Maybe this is a silly question, but doesn't DAD already disable SLAAC
+addresses when there's a conflict?
 
-	drivers/infiniband/hw/usnic/usnic_uiom.c:476 usnic_uiom_alloc_pd()
-	warn: passing zero to 'PTR_ERR'
-
-This code isn't buggy, but iommu_domain_alloc() doesn't return an error
-pointer so we can simplify the error handling and silence the static
-checker warning.
-
-The static checker warning is to catch place which do:
-
-	if (!ptr)
-		return ERR_PTR(ptr);
-
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-
-diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
-index 417de1f..cb2337f 100644
---- a/drivers/infiniband/hw/usnic/usnic_uiom.c
-+++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
-@@ -472,11 +472,10 @@ struct usnic_uiom_pd *usnic_uiom_alloc_pd(void)
- 		return ERR_PTR(-ENOMEM);
- 
- 	pd->domain = domain = iommu_domain_alloc(&pci_bus_type);
--	if (IS_ERR_OR_NULL(domain)) {
--		usnic_err("Failed to allocate IOMMU domain with err %ld\n",
--				PTR_ERR(pd->domain));
-+	if (!domain) {
-+		usnic_err("Failed to allocate IOMMU domain");
- 		kfree(pd);
--		return ERR_PTR(domain ? PTR_ERR(domain) : -ENOMEM);
-+		return ERR_PTR(-ENOMEM);
- 	}
- 
- 	iommu_set_fault_handler(pd->domain, usnic_uiom_dma_fault, NULL);
+Haggai
