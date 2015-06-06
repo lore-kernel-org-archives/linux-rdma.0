@@ -1,135 +1,149 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next V2 0/9] Add completion timestamping support
-Date: Sat, 06 Jun 2015 11:45:46 -0400
-Message-ID: <1433605546.40123.217.camel@redhat.com>
-References: <1433074457-26437-1-git-send-email-ogerlitz@mellanox.com>
-	 <1433098827.114391.179.camel@redhat.com>
-	 <CAAKD3BBo9A5AV9Uv-q1TgSQ6hs-oSUn5QsUT+5+6mk1RwW7AUA@mail.gmail.com>
-	 <1433157904.114391.188.camel@redhat.com>
-	 <20150601164322.GA14391@obsidianresearch.com>
-	 <1433255724.114391.225.camel@redhat.com>
-	 <20150602180844.GD17776@obsidianresearch.com>
-	 <CAJ3xEMjZqwJC8=HrMBv_eSVKVtLW7qjVZNjtuD28octGPtYu6w@mail.gmail.com>
-	 <20150603204633.GE7902@obsidianresearch.com>
-	 <alpine.DEB.2.11.1506031953500.11879@east.gentwo.org>
-	 <20150604042540.GA8837@obsidianresearch.com>
-	 <alpine.DEB.2.11.1506060304480.29634@east.gentwo.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-LPtEGPBNUzAM5Jtii801"
+From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH 01/14] IB/mad cleanup: Clean up function params -- find_mad_agent
+Date: Sat,  6 Jun 2015 14:38:22 -0400
+Message-ID: <1433615915-24591-2-git-send-email-ira.weiny@intel.com>
+References: <1433615915-24591-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.11.1506060304480.29634-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
+In-Reply-To: <1433615915-24591-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
---=-LPtEGPBNUzAM5Jtii801
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+find_mad_agent only needs read only access to the MAD header.  Update the
+ib_mad pointer to be const ib_mad_hdr.  Adjust call tree.
 
-On Sat, 2015-06-06 at 03:16 -0500, Christoph Lameter wrote:
-> On Wed, 3 Jun 2015, Jason Gunthorpe wrote:
->=20
-> > On Wed, Jun 03, 2015 at 07:55:58PM -0500, Christoph Lameter wrote:
-> >
-> > > I thknk the raw cycles and the rought oscillator speed are fine.
-> >
-> > Time keeping is designed to adjust for 100's of ppm drift between
-> > clocks.
->=20
-> What time keeping? Ntp? pptp is supposed to be accurate to 10s of ns and
-> we would need an accuracy in that range.
->=20
-> > A communications clock source will be spec'd to be below 200ppm in
-> > accuracy. IB clocks are below 100 ppm, and PCI-E is 300ppm (approx, I
-> > didn't check, order of magnitue is close)
->=20
-> Well that is not usable. ns are a billionth of a second which is the unit
-> of measurement of these activities here. A send action can be around 600-=
-1000ns.
-> If we are off by 200ppm then that is 200 microseconds meaning 200000 ns.
-> And its our experience that these clocks can be off by milliseconds in
-> practice.
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/core/mad.c | 36 ++++++++++++++++++------------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
-The ppm rating is based upon the speed of the clock, not time.  It's how
-many cycles of variance you are allowed from the target speed given in
-cycles / millions of cycles of the target clock frequency.  If you have
-a 312.5MHz clock, and your accuracy is specified as 100ppm, then the
-total clock variability is 312.5 * 100 =3D 31250 cycles (I suspect that
-this is an absolute variance, and so the tolerance would be +-1/2 of the
-total amount, but I don't know that for certain).
-
-> > That translates into 0.0625 Hz. for a 312.5 MHz ethernet reference cloc=
-k
-
-I don't know how this number is derived, but 0.0625Hz sounds like an odd
-variance.
-
-> Ok that is around 3ns per cycle? And you think the accuracy is therefore
-> in femtoseconds? I have never seen something that accurate. Wish somethin=
-g
-> like that would exist. Maybe in some labs that provide the source of
-> global timekeeping?
->=20
-> > Compared to 5,000,000 Hz in error from rounding.
->=20
-> Huh?
-
-He's pointing out that the design as specified passes the clock
-frequency to the user space library in terms of integer MHz.  The
-standard Ethernet clock frequency is 312.5MHz.  That .5MHz, or
-500,000Hz, must be rounded off as it is passed from the kernel to the
-user space library.  And that 500,000 cycle per second error in the
-stated speed of the clock is *way* larger than the +- error variance in
-the clocks you are using.  If you are having problems keeping your time
-numbers synchronized, then this is likely a bigger problem than the
-variance of the clocks.
-
-> > So no, I disagree that rough is fine for anything.
->=20
-> I am sorry but the practical issues that we are dealing with in
-> timekeeping today shows just the opposite. For a true comparison of clock=
-s
-> with nanosecond accuracy you would need time corrected values and that is
-> a challenge due to the variances of the clocks that we see.
-
-Jason's point, and one that isn't addressed yet, is that this might not
-be variance in the clocks and instead might be a design flaw in the API
-you are using and the way the clock speeds are passed to user space.
-Changing from int MHz to int KHz might solve your problem.
-
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
---=-LPtEGPBNUzAM5Jtii801
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJVcxWqAAoJELgmozMOVy/dylgP/0knDcM/6oIoXynAAxoesWLK
-s9noKJlOhZT9IT0rFBXl4EdFZiry65f319BGmazT/CvG+Q+xtrvzPLqAy4uCAZwX
-4l164PkoBLDhsIGTsQfXyQeC3ayKsMS0qWlUGo8LsR18XUstZbhKEeiaXCs+NH9U
-9Betp9YshUpC9YoeCtzH2LBo58k+qCl4B2w7zb0r5woc5B5/+iT8kWBVMIMrZNeV
-5twx4nPcCzH4XvHHUy6Px8FtM/inDMtd5IRsoCMUO2WryT2hwIBMAfXNyChNauDh
-T5wZ+XrarNEjuI1l4eztiiNHwoaBa50xYNOL7vr8g3BlYwuoOGCQyWmmgNG8uC3r
-ZQS7NskSm6dTeMvzgkJbHmFRG0uUPNAO2XYwIDPmkL/gD3gbuV57gsOs/wFSPKPz
-nCdQ8P+SXmJ6/pBdrSYLfOcPiy/gnA+M14bCPRLMgoGfsPBEB21mwVgdD9q3afDu
-BQkPA36aqwQ5rGH5iWg/SfAfpiuFwSKjEv5I6BmY2EvwV0arU2L2SIVoRC/rQNEq
-KUbNMnwXVunDP1VmBkyGWgHQB+3RKZ+H8VNtoXL8NfE/c3ZYYnwJOSFEEQr/RUpG
-cxRp1xbkCvSm2AjxJszdkns7sjM1JDrHNvHxlwhpNtfT6Y1npj1U2vP0MmOgQShn
-8tsQdXmI51yV4E7SdzIK
-=qRPL
------END PGP SIGNATURE-----
-
---=-LPtEGPBNUzAM5Jtii801--
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 600af266838c..71cf3d51dad0 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -73,7 +73,7 @@ static int method_in_use(struct ib_mad_mgmt_method_table **method,
+ static void remove_mad_reg_req(struct ib_mad_agent_private *priv);
+ static struct ib_mad_agent_private *find_mad_agent(
+ 					struct ib_mad_port_private *port_priv,
+-					struct ib_mad *mad);
++					const struct ib_mad_hdr *mad);
+ static int ib_mad_post_receive_mads(struct ib_mad_qp_info *qp_info,
+ 				    struct ib_mad_private *mad);
+ static void cancel_mads(struct ib_mad_agent_private *mad_agent_priv);
+@@ -813,7 +813,7 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
+ 		if (port_priv) {
+ 			memcpy(&mad_priv->mad.mad, smp, sizeof(struct ib_mad));
+ 			recv_mad_agent = find_mad_agent(port_priv,
+-						        &mad_priv->mad.mad);
++						        &mad_priv->mad.mad.mad_hdr);
+ 		}
+ 		if (!port_priv || !recv_mad_agent) {
+ 			/*
+@@ -1324,7 +1324,7 @@ static int check_vendor_class(struct ib_mad_mgmt_vendor_class *vendor_class)
+ }
+ 
+ static int find_vendor_oui(struct ib_mad_mgmt_vendor_class *vendor_class,
+-			   char *oui)
++			   const char *oui)
+ {
+ 	int i;
+ 
+@@ -1622,13 +1622,13 @@ out:
+ 
+ static struct ib_mad_agent_private *
+ find_mad_agent(struct ib_mad_port_private *port_priv,
+-	       struct ib_mad *mad)
++	       const struct ib_mad_hdr *mad_hdr)
+ {
+ 	struct ib_mad_agent_private *mad_agent = NULL;
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&port_priv->reg_lock, flags);
+-	if (ib_response_mad(&mad->mad_hdr)) {
++	if (ib_response_mad(mad_hdr)) {
+ 		u32 hi_tid;
+ 		struct ib_mad_agent_private *entry;
+ 
+@@ -1636,7 +1636,7 @@ find_mad_agent(struct ib_mad_port_private *port_priv,
+ 		 * Routing is based on high 32 bits of transaction ID
+ 		 * of MAD.
+ 		 */
+-		hi_tid = be64_to_cpu(mad->mad_hdr.tid) >> 32;
++		hi_tid = be64_to_cpu(mad_hdr->tid) >> 32;
+ 		list_for_each_entry(entry, &port_priv->agent_list, agent_list) {
+ 			if (entry->agent.hi_tid == hi_tid) {
+ 				mad_agent = entry;
+@@ -1648,45 +1648,45 @@ find_mad_agent(struct ib_mad_port_private *port_priv,
+ 		struct ib_mad_mgmt_method_table *method;
+ 		struct ib_mad_mgmt_vendor_class_table *vendor;
+ 		struct ib_mad_mgmt_vendor_class *vendor_class;
+-		struct ib_vendor_mad *vendor_mad;
++		const struct ib_vendor_mad *vendor_mad;
+ 		int index;
+ 
+ 		/*
+ 		 * Routing is based on version, class, and method
+ 		 * For "newer" vendor MADs, also based on OUI
+ 		 */
+-		if (mad->mad_hdr.class_version >= MAX_MGMT_VERSION)
++		if (mad_hdr->class_version >= MAX_MGMT_VERSION)
+ 			goto out;
+-		if (!is_vendor_class(mad->mad_hdr.mgmt_class)) {
++		if (!is_vendor_class(mad_hdr->mgmt_class)) {
+ 			class = port_priv->version[
+-					mad->mad_hdr.class_version].class;
++					mad_hdr->class_version].class;
+ 			if (!class)
+ 				goto out;
+-			if (convert_mgmt_class(mad->mad_hdr.mgmt_class) >=
++			if (convert_mgmt_class(mad_hdr->mgmt_class) >=
+ 			    IB_MGMT_MAX_METHODS)
+ 				goto out;
+ 			method = class->method_table[convert_mgmt_class(
+-							mad->mad_hdr.mgmt_class)];
++							mad_hdr->mgmt_class)];
+ 			if (method)
+-				mad_agent = method->agent[mad->mad_hdr.method &
++				mad_agent = method->agent[mad_hdr->method &
+ 							  ~IB_MGMT_METHOD_RESP];
+ 		} else {
+ 			vendor = port_priv->version[
+-					mad->mad_hdr.class_version].vendor;
++					mad_hdr->class_version].vendor;
+ 			if (!vendor)
+ 				goto out;
+ 			vendor_class = vendor->vendor_class[vendor_class_index(
+-						mad->mad_hdr.mgmt_class)];
++						mad_hdr->mgmt_class)];
+ 			if (!vendor_class)
+ 				goto out;
+ 			/* Find matching OUI */
+-			vendor_mad = (struct ib_vendor_mad *)mad;
++			vendor_mad = (const struct ib_vendor_mad *)mad_hdr;
+ 			index = find_vendor_oui(vendor_class, vendor_mad->oui);
+ 			if (index == -1)
+ 				goto out;
+ 			method = vendor_class->method_table[index];
+ 			if (method) {
+-				mad_agent = method->agent[mad->mad_hdr.method &
++				mad_agent = method->agent[mad_hdr->method &
+ 							  ~IB_MGMT_METHOD_RESP];
+ 			}
+ 		}
+@@ -2056,7 +2056,7 @@ local:
+ 		}
+ 	}
+ 
+-	mad_agent = find_mad_agent(port_priv, &recv->mad.mad);
++	mad_agent = find_mad_agent(port_priv, &recv->mad.mad.mad_hdr);
+ 	if (mad_agent) {
+ 		ib_mad_complete_recv(mad_agent, &recv->header.recv_wc);
+ 		/*
+-- 
+1.8.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
