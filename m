@@ -1,93 +1,47 @@
-From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 06/14] IB/mad: Create a generic helper for DR forwarding checks
-Date: Sat,  6 Jun 2015 14:38:27 -0400
-Message-ID: <1433615915-24591-7-git-send-email-ira.weiny@intel.com>
-References: <1433615915-24591-1-git-send-email-ira.weiny@intel.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next V2 0/9] Add completion timestamping support
+Date: Sat, 6 Jun 2015 23:25:25 +0300
+Message-ID: <CAJ3xEMicWcJTEPmUyL+1-Ke=MBQx_NXpSop0Q5tSS+C+Q6QWTw@mail.gmail.com>
+References: <1433074457-26437-1-git-send-email-ogerlitz@mellanox.com>
+	<1433098827.114391.179.camel@redhat.com>
+	<CAAKD3BBo9A5AV9Uv-q1TgSQ6hs-oSUn5QsUT+5+6mk1RwW7AUA@mail.gmail.com>
+	<1433157904.114391.188.camel@redhat.com>
+	<20150601164322.GA14391@obsidianresearch.com>
+	<1433255724.114391.225.camel@redhat.com>
+	<20150602180844.GD17776@obsidianresearch.com>
+	<CAJ3xEMjZqwJC8=HrMBv_eSVKVtLW7qjVZNjtuD28octGPtYu6w@mail.gmail.com>
+	<20150603204633.GE7902@obsidianresearch.com>
+	<alpine.DEB.2.11.1506031953500.11879@east.gentwo.org>
+	<20150604042540.GA8837@obsidianresearch.com>
+	<alpine.DEB.2.11.1506060304480.29634@east.gentwo.org>
+	<1433605546.40123.217.camel@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1433615915-24591-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1433605546.40123.217.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Sat, Jun 6, 2015 at 6:45 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
 
-IB and OPA SMPs share the same processing algorithm but have different header
-formats and permissive LID detection.
+>>> So no, I disagree that rough is fine for anything.
 
-Add a helper function which is generic to processing the DR forwarding checks which
-can be used by both IB and OPA SMP code.
+>> I am sorry but the practical issues that we are dealing with in
+>> timekeeping today shows just the opposite. For a true comparison of clocks
+>> with nanosecond accuracy you would need time corrected values and that is
+>> a challenge due to the variances of the clocks that we see.
 
-Use this function in the current IB function smi_check_forward_dr_smp.
+> Jason's point, and one that isn't addressed yet, is that this might not
+> be variance in the clocks and instead might be a design flaw in the API
+> you are using and the way the clock speeds are passed to user space.
+> Changing from int MHz to int KHz might solve your problem.
 
-Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+OK, so if we have the UAPI to pass the clock frequency in KHz that
+would put us in a better place? seems very much doable.
 
----
-Changes from V1:
-	Remove unnecessary inline qualifier
-	Change parameters to bool
-	Fix is permissive logic
-	Clean up commit message
-
- drivers/infiniband/core/smi.c | 25 ++++++++++++++++---------
- 1 file changed, 16 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/infiniband/core/smi.c b/drivers/infiniband/core/smi.c
-index eb39146adb80..c523b2df2571 100644
---- a/drivers/infiniband/core/smi.c
-+++ b/drivers/infiniband/core/smi.c
-@@ -234,21 +234,19 @@ enum smi_action smi_handle_dr_smp_recv(struct ib_smp *smp, u8 node_type,
- 					smp->dr_slid == IB_LID_PERMISSIVE);
- }
- 
--enum smi_forward_action smi_check_forward_dr_smp(struct ib_smp *smp)
-+static enum smi_forward_action __smi_check_forward_dr_smp(u8 hop_ptr, u8 hop_cnt,
-+							  u8 direction,
-+							  bool dr_dlid_is_permissive,
-+							  bool dr_slid_is_permissive)
- {
--	u8 hop_ptr, hop_cnt;
--
--	hop_ptr = smp->hop_ptr;
--	hop_cnt = smp->hop_cnt;
--
--	if (!ib_get_smp_direction(smp)) {
-+	if (!direction) {
- 		/* C14-9:2 -- intermediate hop */
- 		if (hop_ptr && hop_ptr < hop_cnt)
- 			return IB_SMI_FORWARD;
- 
- 		/* C14-9:3 -- at the end of the DR segment of path */
- 		if (hop_ptr == hop_cnt)
--			return (smp->dr_dlid == IB_LID_PERMISSIVE ?
-+			return (dr_dlid_is_permissive ?
- 				IB_SMI_SEND : IB_SMI_LOCAL);
- 
- 		/* C14-9:4 -- hop_ptr = hop_cnt + 1 -> give to SMA/SM */
-@@ -261,10 +259,19 @@ enum smi_forward_action smi_check_forward_dr_smp(struct ib_smp *smp)
- 
- 		/* C14-13:3 -- at the end of the DR segment of path */
- 		if (hop_ptr == 1)
--			return (smp->dr_slid != IB_LID_PERMISSIVE ?
-+			return (!dr_slid_is_permissive ?
- 				IB_SMI_SEND : IB_SMI_LOCAL);
- 	}
- 	return IB_SMI_LOCAL;
-+
-+}
-+
-+enum smi_forward_action smi_check_forward_dr_smp(struct ib_smp *smp)
-+{
-+	return __smi_check_forward_dr_smp(smp->hop_ptr, smp->hop_cnt,
-+					  ib_get_smp_direction(smp),
-+					  smp->dr_dlid == IB_LID_PERMISSIVE,
-+					  smp->dr_slid == IB_LID_PERMISSIVE);
- }
- 
- /*
--- 
-1.8.2
-
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
