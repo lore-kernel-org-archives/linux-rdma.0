@@ -1,46 +1,162 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 0/5] Indirect memory registration feature
-Date: Mon, 8 Jun 2015 16:39:23 +0300
-Message-ID: <55759B0B.8050805@mellanox.com>
-References: <1433769339-949-1-git-send-email-sagig@mellanox.com>
- <20150608132254.GA14773@infradead.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-next V5 00/12] Move RoCE GID management to IB/Core
+Date: Mon,  8 Jun 2015 17:12:03 +0300
+Message-ID: <1433772735-22416-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150608132254.GA14773-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-xCNTGe7nOvUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/8/2015 4:22 PM, Christoph Hellwig wrote:
-> On Mon, Jun 08, 2015 at 04:15:34PM +0300, Sagi Grimberg wrote:
->> There are couple of possible (sub-optimal) solutions to handle this limitation:
->
-> There is another one:  Set the block level SG_GAPS flags to ensure
-> the block layer never generates these SG lists.
->
+Previously, every vendor implemented its net device notifiers in its own
+driver. This introduces a huge code duplication as figuring
+whether an event is related to the vendor's net device in the
+various cases (bonding, vlan or any other upper device) is
+similar for all vendors. In the future, when multiple GID types will
+be supported, this code duplication would have gotten even worse.
 
-Hi Christoph,
+Therefore, we decided moving this into a common core core.
+roce_gid_table and roce_gid_mgmt were created in order to store and
+manage the new GID table, by filling it when getting the related events.
+Vendors now only have to implement modify_gid and get_netdev IB
+device calls, which are truly unique for each vendor.
+roce_gid_table is implemented as IB client that manages the GID
+table of the IB device. Each GID is associated with a GID type and a
+network device (which is mandatory for management of the GID table).
+The GID table is populated by using roce_gid_mgmt. roce_gid_mgmt
+registers to net device/inet/inet events and calls roce_gid_table
+in order to populate the GID table accordingly.
 
-I have learned about QUEUE_FLAG_SG_GAPS from your recent comments on
-the list. Won't setting this flag interfere with bio merges? Ideally
-I wouldn't want to restrict merges if my device supports this feature.
+Patch 0001 creates a new infrastructure for storing GIDs and their attributes
+in IB/core. This infrastructure support lock-less read of GIDs using a
+seqcounter. The data structure is initialized only for RoCE ports.
+Every gid has meta information describes its related net device.
 
-> Right now drivers tat set these would always fail SG_IO ioctls using
-> iovecs, but that can be fixed much more easily by doing high level
-> bounce buffering compared to these horrible workarounds deep down in the
-> stack.
->
+Patch 0002 replaces the locking schema for IB devices. Previously, device_mutex
+was used in order to lock the devices/clients list against every modification.
+However, downstream patches add new functions which iterate over the device
+list. Those functions could be executed for a workqueue contexts on behalf
+of IB clients. Thus, when a client is removed, we need to wait for all works
+to be finished. Since a client removal was done in device_mutex lock, we'll
+be in fact waiting for a work which requires to lock the device_mutex itself
+(=DEADLOCK). In order to mitigate this problem, we use rw semaphore to allow
+multiple readers. We use a mutex in order to solve races between adding
+(or removing) a client and a device simultaneously, which could have resulted
+in calling client->add (or client->remove) twice for the same device and client.
+This patch was sent as part of "Add network namespace support in the RDMA-CM"
+series.
 
-My tests have shown significant cpu savings with this against SW bounce
-buffering, especially for large transfers. I've seen applications that
-a significant part of their IO workload consists of this type of memory
-layout.
+Patches 0003, 0005 and 0007 add population of this table for various cases
+based on net device events. We always enable default gids for an active
+device (an active device is defined here as a device that doesn't have
+a bonding master or is the current active slave). This is done in order
+to allow loopback traffic. Patch 0007 adds proper bonding support -
+only the active slaves retain their master's IP based gids and default gids.
+Patch 0006 adds the required information for the bonding case, while patch
+0004 adds the required address for default GID.
 
-I must say that I've always considered SW bounce buffering as a
-work-around for an RDMA driver.
+The rest of the patches add support for ocrdma and mlx4 devices.
+
+This series is rebased over Doug's k.o/for-4.2 branch.
+
+Thanks,
+Devesh, Somnath, Moni and Matan
+
+Changes from V4:
+(1) Remove any API changes.
+(2) Fixed a bug regarding bonding upper devices.
+(3) Rebased ontop of Doug's k.o/for-4.2.
+
+Changes from V3:
+(1) Remove RoCE V2 functionality (it will be sent at later patchset).
+(2) Instead of removing qp_attr_mask flags, reserve them.
+(3) Remove the kref from IB devices in favor of rwsem.
+(4) Change the name of roce_gid_cache to roce_gid_table.
+(5) Fix a race when roce_gid_table is free'd while getting events.
+(6) Remove the roce_gid_cache active/inactive flag/API.
+
+Changes from V2:
+(1) When creating multiple vlans over an interface,
+    only the last created vlan's GID was populated in the table
+    (regression from V2).
+(2) Inactive slave of bonding sometimes lost GIDs related to IPs
+    that were directly applied to it.
+(3) Memory leak in mlx4
+(4) roce_gid_cache now calls modify_gid with zgid in order to cause
+    the provider to delete all the information it allocated for those
+    GIDs.
+(4) A mlx4 patch didn't compile and a downstream patch fixed it.
+(5) cma_configfs should depend on both address translation and configfs.
+(6) ocrdma driver redefined zgid.
+(7) Added event information for NETDEV_CHANGEUPPER event.
+
+Changes from V1:
+(1) Addressed Shachar and Haggai's comments
+(2) Fixed multicast support
+(3) Generalized bonding support
+(4) Added default GID after the IB device's net device was removed from bonding
+(5) Fixed bugs in mlx4 implementation regarding multicast
+(6) Fixed bugs in mlx4 when using XRC QPs after this patchset was applied
+(7) Fixed bug when the RoCE gid cache didn't exist
+(8) Moved the bonding's DRV macros to a private header
+(9) Support non-configfs configurations
+
+Haggai Eran (1):
+  IB/core: Add rwsem to allow reading device list or client list
+
+Matan Barak (7):
+  IB/core: Add RoCE GID table
+  IB/core: Add RoCE GID population
+  net/ipv6: Export addrconf_ifid_eui48
+  IB/core: Add default GID for RoCE GID table
+  net: Add info for NETDEV_CHANGEUPPER event
+  IB/core: Add RoCE table bonding support
+  IB/core: ib_cache routines should use roce_gid_table when needed
+
+Moni Shoua (3):
+  net/mlx4: Postpone the registration of net_device
+  IB/mlx4: Implement ib_device callbacks
+  IB/mlx4: Replace mechanism for RoCE GID management
+
+Somnath Kotur (1):
+  RDMA/ocrdma: Changes in driver to incorporate the moving of GID Table
+    mgmt to IB/Core.
+
+ drivers/infiniband/core/Makefile             |   3 +-
+ drivers/infiniband/core/cache.c              | 210 +++++--
+ drivers/infiniband/core/core_priv.h          |  61 +++
+ drivers/infiniband/core/device.c             | 133 ++++-
+ drivers/infiniband/core/roce_gid_mgmt.c      | 781 +++++++++++++++++++++++++++
+ drivers/infiniband/core/roce_gid_table.c     | 656 ++++++++++++++++++++++
+ drivers/infiniband/hw/mlx4/ah.c              |   2 +-
+ drivers/infiniband/hw/mlx4/main.c            | 713 ++++++++----------------
+ drivers/infiniband/hw/mlx4/mlx4_ib.h         |  21 +-
+ drivers/infiniband/hw/mlx4/qp.c              |  10 +-
+ drivers/infiniband/hw/ocrdma/ocrdma.h        |  10 +
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c     |   3 +
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c   | 233 +-------
+ drivers/infiniband/hw/ocrdma/ocrdma_sli.h    |  13 +
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |  31 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.h  |   4 +
+ drivers/net/bonding/bond_options.c           |  13 -
+ drivers/net/ethernet/mellanox/mlx4/en_main.c |  36 +-
+ drivers/net/ethernet/mellanox/mlx4/intf.c    |   3 +
+ include/linux/mlx4/device.h                  |   3 +-
+ include/linux/mlx4/driver.h                  |   1 +
+ include/linux/netdevice.h                    |  14 +
+ include/net/addrconf.h                       |  31 ++
+ include/net/bonding.h                        |   7 +
+ include/rdma/ib_addr.h                       |   2 +-
+ include/rdma/ib_verbs.h                      |  76 ++-
+ net/core/dev.c                               |  12 +-
+ net/ipv6/addrconf.c                          |  31 --
+ 28 files changed, 2253 insertions(+), 860 deletions(-)
+ create mode 100644 drivers/infiniband/core/roce_gid_mgmt.c
+ create mode 100644 drivers/infiniband/core/roce_gid_table.c
+
+-- 
+2.1.0
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
