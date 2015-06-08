@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 01/11] IB/iser: Remove an unneeded print for unaligned memory
-Date: Mon,  8 Jun 2015 16:15:13 +0300
-Message-ID: <1433769323-790-2-git-send-email-sagig@mellanox.com>
+Subject: [PATCH 06/11] IB/iser: Move fastreg descriptor allocation to iser_create_fastreg_desc
+Date: Mon,  8 Jun 2015 16:15:18 +0300
+Message-ID: <1433769323-790-7-git-send-email-sagig@mellanox.com>
 References: <1433769323-790-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1433769323-790-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,79 +10,90 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-We can do it in iser_aligned_data_len instead and
-it will save us an argument that is passed to
-fall_to_counce_buf just for the print.
+Don't have the caller allocate the structure and worry about
+freeing it in case the routine failed.
+
+This patch does not change any functionality.
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Adir Lev <adirl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iser_memory.c |   20 +++++++++-----------
- 1 files changed, 9 insertions(+), 11 deletions(-)
+ drivers/infiniband/ulp/iser/iser_verbs.c |   38 ++++++++++++-----------------
+ 1 files changed, 16 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index f0cdc96..b6889f6 100644
---- a/drivers/infiniband/ulp/iser/iser_memory.c
-+++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -330,8 +330,11 @@ static int iser_data_buf_aligned_len(struct iser_data_buf *data,
- 			break;
- 	}
- 	ret_len = (next_sg) ? i : i+1;
--	iser_dbg("Found %d aligned entries out of %d in sg:0x%p\n",
--		 ret_len, data->dma_nents, data);
-+
-+	if (unlikely(ret_len != data->dma_nents))
-+		iser_warn("rdma alignment violation (%d/%d aligned)\n",
-+			  ret_len, data->dma_nents);
-+
- 	return ret_len;
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index e100707..8762c61 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -339,17 +339,20 @@ iser_free_pi_ctx(struct iser_pi_context *pi_ctx)
+ 	kfree(pi_ctx);
  }
  
-@@ -407,15 +410,12 @@ iser_reg_dma(struct iser_device *device, struct iser_data_buf *mem,
- 
- static int fall_to_bounce_buf(struct iscsi_iser_task *iser_task,
- 			      struct iser_data_buf *mem,
--			      enum iser_data_dir cmd_dir,
--			      int aligned_len)
-+			      enum iser_data_dir cmd_dir)
+-static int
++static struct iser_fr_desc *
+ iser_create_fastreg_desc(struct ib_device *ib_device, struct ib_pd *pd,
+-			 bool pi_enable, struct iser_fr_desc *desc)
++			 bool pi_enable)
  {
- 	struct iscsi_conn *iscsi_conn = iser_task->iser_conn->iscsi_conn;
- 	struct iser_device *device = iser_task->iser_conn->ib_conn.device;
++	struct iser_fr_desc *desc;
+ 	int ret;
  
- 	iscsi_conn->fmr_unalign_cnt++;
--	iser_warn("rdma alignment violation (%d/%d aligned) or FMR not supported\n",
--		  aligned_len, mem->size);
++	desc = kzalloc(sizeof(*desc), GFP_KERNEL);
++	if (!desc)
++		return ERR_PTR(-ENOMEM);
++
+ 	ret = iser_alloc_reg_res(ib_device, pd, &desc->rsc);
+-	if (ret) {
+-		iser_err("failed to allocate reg_resources\n");
+-		return ret;
+-	}
++	if (ret)
++		goto reg_res_alloc_failure;
  
- 	if (iser_debug_level > 0)
- 		iser_data_buf_dump(mem, device->ib_device);
-@@ -537,8 +537,7 @@ int iser_reg_rdma_mem_fmr(struct iscsi_iser_task *iser_task,
+ 	if (pi_enable) {
+ 		ret = iser_alloc_pi_ctx(ib_device, pd, desc);
+@@ -357,12 +360,14 @@ iser_create_fastreg_desc(struct ib_device *ib_device, struct ib_pd *pd,
+ 			goto pi_ctx_alloc_failure;
+ 	}
  
- 	aligned_len = iser_data_buf_aligned_len(mem, ibdev);
- 	if (aligned_len != mem->dma_nents) {
--		err = fall_to_bounce_buf(iser_task, mem,
--					 cmd_dir, aligned_len);
-+		err = fall_to_bounce_buf(iser_task, mem, cmd_dir);
- 		if (err) {
- 			iser_err("failed to allocate bounce buffer\n");
- 			return err;
-@@ -800,8 +799,7 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
+-	return 0;
++	return desc;
  
- 	aligned_len = iser_data_buf_aligned_len(mem, ibdev);
- 	if (aligned_len != mem->dma_nents) {
--		err = fall_to_bounce_buf(iser_task, mem,
--					 cmd_dir, aligned_len);
-+		err = fall_to_bounce_buf(iser_task, mem, cmd_dir);
- 		if (err) {
- 			iser_err("failed to allocate bounce buffer\n");
- 			return err;
-@@ -828,7 +826,7 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
- 			aligned_len = iser_data_buf_aligned_len(mem, ibdev);
- 			if (aligned_len != mem->dma_nents) {
- 				err = fall_to_bounce_buf(iser_task, mem,
--							 cmd_dir, aligned_len);
-+							 cmd_dir);
- 				if (err) {
- 					iser_err("failed to allocate bounce buffer\n");
- 					return err;
+ pi_ctx_alloc_failure:
+ 	iser_free_reg_res(&desc->rsc);
++reg_res_alloc_failure:
++	kfree(desc);
+ 
+-	return ret;
++	return ERR_PTR(ret);
+ }
+ 
+ /**
+@@ -379,21 +384,10 @@ int iser_alloc_fastreg_pool(struct ib_conn *ib_conn, unsigned cmds_max)
+ 	INIT_LIST_HEAD(&ib_conn->fastreg.pool);
+ 	ib_conn->fastreg.pool_size = 0;
+ 	for (i = 0; i < cmds_max; i++) {
+-		desc = kzalloc(sizeof(*desc), GFP_KERNEL);
+-		if (!desc) {
+-			iser_err("Failed to allocate a new fast_reg descriptor\n");
+-			ret = -ENOMEM;
++		desc = iser_create_fastreg_desc(device->ib_device, device->pd,
++						ib_conn->pi_support);
++		if (IS_ERR(desc))
+ 			goto err;
+-		}
+-
+-		ret = iser_create_fastreg_desc(device->ib_device, device->pd,
+-					       ib_conn->pi_support, desc);
+-		if (ret) {
+-			iser_err("Failed to create fastreg descriptor err=%d\n",
+-				 ret);
+-			kfree(desc);
+-			goto err;
+-		}
+ 
+ 		list_add_tail(&desc->list, &ib_conn->fastreg.pool);
+ 		ib_conn->fastreg.pool_size++;
 -- 
 1.7.1
 
