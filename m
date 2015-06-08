@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V5 07/12] IB/core: Add RoCE table bonding support
-Date: Mon,  8 Jun 2015 17:12:10 +0300
-Message-ID: <1433772735-22416-8-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next V5 08/12] IB/core: ib_cache routines should use roce_gid_table when needed
+Date: Mon,  8 Jun 2015 17:12:11 +0300
+Message-ID: <1433772735-22416-9-git-send-email-matanb@mellanox.com>
 References: <1433772735-22416-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1433772735-22416-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,518 +10,475 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-xCNTGe7nOvUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Bonding is a unique behavior since when working in
-active-backup mode, only the current selected slave
-should occupy the default GIDs and the master's GID.
-Listening to bonding events and only adding the
-required GIDs to the active slave in the RoCE table
-GID table.
+When a port uses roce_gid_table, the following function
+(a) ib_find_cached_gid
+(b) ib_get_cached_gid
+
+should query the gid table accordingly.
+
+In order to query it, roce_gid_table is initialized
+when needed.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/roce_gid_mgmt.c | 327 ++++++++++++++++++++++++++++++--
- drivers/net/bonding/bond_options.c      |  13 --
- include/net/bonding.h                   |   7 +
- 3 files changed, 314 insertions(+), 33 deletions(-)
+ drivers/infiniband/core/cache.c  | 210 +++++++++++++++++++++++++++++----------
+ drivers/infiniband/core/device.c |  17 +++-
+ include/rdma/ib_verbs.h          |  21 +++-
+ 3 files changed, 193 insertions(+), 55 deletions(-)
 
-diff --git a/drivers/infiniband/core/roce_gid_mgmt.c b/drivers/infiniband/core/roce_gid_mgmt.c
-index 6dcd1c7..b019d4e 100644
---- a/drivers/infiniband/core/roce_gid_mgmt.c
-+++ b/drivers/infiniband/core/roce_gid_mgmt.c
-@@ -37,6 +37,7 @@
- 
- /* For in6_dev_get/in6_dev_put */
- #include <net/addrconf.h>
-+#include <net/bonding.h>
- 
- #include <rdma/ib_cache.h>
- #include <rdma/ib_addr.h>
-@@ -55,16 +56,17 @@ struct  update_gid_event_work {
- 	enum gid_op_type gid_op;
+diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
+index 871da83..217e639 100644
+--- a/drivers/infiniband/core/cache.c
++++ b/drivers/infiniband/core/cache.c
+@@ -58,64 +58,133 @@ struct ib_update_work {
+ 	u8                 port_num;
  };
  
--#define ROCE_NETDEV_CALLBACK_SZ		2
-+#define ROCE_NETDEV_CALLBACK_SZ		3
- struct netdev_event_work_cmd {
- 	roce_netdev_callback	cb;
- 	roce_netdev_filter	filter;
-+	struct net_device	*ndev;
-+	struct net_device	*f_ndev;
- };
+-int ib_get_cached_gid(struct ib_device *device,
+-		      u8                port_num,
+-		      int               index,
+-		      union ib_gid     *gid)
++static int __ib_get_cached_gid(struct ib_device *device,
++			       u8                port_num,
++			       int               index,
++			       union ib_gid     *gid)
+ {
+ 	struct ib_gid_cache *cache;
+ 	unsigned long flags;
+-	int ret = 0;
++	int ret = -ENOENT;
  
- struct netdev_event_work {
- 	struct work_struct		work;
- 	struct netdev_event_work_cmd	cmds[ROCE_NETDEV_CALLBACK_SZ];
--	struct net_device		*ndev;
- };
+ 	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
+ 		return -EINVAL;
++	if (!device->cache.gid_cache)
++		return -ENOENT;
  
- unsigned long roce_gid_type_mask_support(struct ib_device *ib_dev, u8 port)
-@@ -92,22 +94,96 @@ static void update_gid(enum gid_op_type gid_op, struct ib_device *ib_dev,
- 	}
+ 	read_lock_irqsave(&device->cache.lock, flags);
+ 
+ 	cache = device->cache.gid_cache[port_num - rdma_start_port(device)];
+-
+-	if (index < 0 || index >= cache->table_len)
+-		ret = -EINVAL;
+-	else
++	if (cache && index >= 0 && index < cache->table_len) {
+ 		*gid = cache->table[index];
++		ret = 0;
++	}
+ 
+ 	read_unlock_irqrestore(&device->cache.lock, flags);
+-
+ 	return ret;
  }
- 
-+#define IS_NETDEV_BONDING_MASTER(ndev)	\
-+	(((ndev)->priv_flags & IFF_BONDING) && \
-+	 ((ndev)->flags & IFF_MASTER))
 +
-+enum bonding_slave_state {
-+	BONDING_SLAVE_STATE_ACTIVE	= 1UL << 0,
-+	BONDING_SLAVE_STATE_INACTIVE	= 1UL << 1,
-+	BONDING_SLAVE_STATE_NA		= 1UL << 2,
-+};
-+
-+static enum bonding_slave_state is_eth_active_slave_of_bonding(struct net_device *idev,
-+							       struct net_device *upper)
++int ib_get_cached_gid(struct ib_device *device,
++		      u8                port_num,
++		      int               index,
++		      union ib_gid     *gid)
 +{
-+	if (upper && IS_NETDEV_BONDING_MASTER(upper)) {
-+		struct net_device *pdev;
++	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
++		return -EINVAL;
 +
-+		rcu_read_lock();
-+		pdev = bond_option_active_slave_get_rcu(netdev_priv(upper));
-+		rcu_read_unlock();
-+		if (pdev)
-+			return idev == pdev ? BONDING_SLAVE_STATE_ACTIVE :
-+				BONDING_SLAVE_STATE_INACTIVE;
++	if (rdma_cap_roce_gid_table(device, port_num))
++		return roce_gid_table_get_gid(device, port_num, index, gid,
++					      NULL);
++
++	if (rdma_protocol_roce(device, port_num))
++		return -EAGAIN;
++
++	return __ib_get_cached_gid(device, port_num, index, gid);
++}
+ EXPORT_SYMBOL(ib_get_cached_gid);
+ 
+-int ib_find_cached_gid(struct ib_device   *device,
+-		       const union ib_gid *gid,
+-		       u8                 *port_num,
+-		       u16                *index)
++static int ___ib_find_cached_gid_by_port(struct ib_device *device,
++					 u8               port_num,
++					 const union ib_gid *gid,
++					 u16              *index)
+ {
+ 	struct ib_gid_cache *cache;
++	u8 p = port_num - rdma_start_port(device);
++	int i;
++
++	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
++		return -EINVAL;
++	if (rdma_cap_roce_gid_table(device, port_num))
++		return -EPROTONOSUPPORT;
++	if (!device->cache.gid_cache)
++		return -ENOENT;
++
++	cache = device->cache.gid_cache[p];
++	if (!cache)
++		return -ENOENT;
++
++	for (i = 0; i < cache->table_len; ++i) {
++		if (!memcmp(gid, &cache->table[i], sizeof(*gid))) {
++			if (index)
++				*index = i;
++			return 0;
++		}
 +	}
 +
-+	return BONDING_SLAVE_STATE_NA;
++	return -ENOENT;
 +}
 +
-+static bool is_upper_dev_rcu(struct net_device *dev, struct net_device *upper)
++static int __ib_find_cached_gid(struct ib_device *device,
++				const union ib_gid *gid,
++				u8               *port_num,
++				u16              *index)
 +{
-+	struct net_device *_upper = NULL;
-+	struct list_head *iter;
-+
-+	rcu_read_lock();
-+	netdev_for_each_all_upper_dev_rcu(dev, _upper, iter) {
-+		if (_upper == upper)
+ 	unsigned long flags;
+-	int p, i;
++	u16 found_index;
++	int p;
+ 	int ret = -ENOENT;
+ 
+-	*port_num = -1;
++	if (port_num)
++		*port_num = -1;
+ 	if (index)
+ 		*index = -1;
+ 
+ 	read_lock_irqsave(&device->cache.lock, flags);
+ 
+-	for (p = 0; p <= rdma_end_port(device) - rdma_start_port(device); ++p) {
+-		cache = device->cache.gid_cache[p];
+-		for (i = 0; i < cache->table_len; ++i) {
+-			if (!memcmp(gid, &cache->table[i], sizeof *gid)) {
+-				*port_num = p + rdma_start_port(device);
+-				if (index)
+-					*index = i;
+-				ret = 0;
+-				goto found;
+-			}
++	for (p = rdma_start_port(device); p <= rdma_end_port(device); ++p) {
++		if (!___ib_find_cached_gid_by_port(device, p, gid,
++						   &found_index)) {
++			if (port_num)
++				*port_num = p;
++			ret = 0;
 +			break;
-+	}
+ 		}
+ 	}
+-found:
 +
-+	rcu_read_unlock();
-+	return _upper == upper;
+ 	read_unlock_irqrestore(&device->cache.lock, flags);
+ 
++	if (!ret && index)
++		*index = found_index;
++
++	return ret;
 +}
 +
-+static int _is_eth_port_of_netdev(struct ib_device *ib_dev, u8 port,
-+				  struct net_device *idev, void *cookie,
-+				  unsigned long bond_state)
++int ib_find_cached_gid(struct ib_device *device,
++		       const union ib_gid *gid,
++		       u8               *port_num,
++		       u16              *index)
 +{
-+	struct net_device *ndev = (struct net_device *)cookie;
-+	struct net_device *rdev;
-+	int res;
++	int ret = -ENOENT;
 +
-+	if (!idev)
-+		return 0;
++	/* Look for a RoCE device with the specified GID. */
++	if (device->cache.roce_gid_table)
++		ret = roce_gid_table_find_gid(device, gid, NULL,
++					      port_num, index);
 +
-+	rcu_read_lock();
-+	rdev = rdma_vlan_dev_real_dev(ndev);
-+	if (!rdev)
-+		rdev = ndev;
++	/* If no RoCE devices with the specified GID, look for IB device. */
++	if (ret)
++		ret =  __ib_find_cached_gid(device, gid, port_num, index);
 +
-+	res = ((is_upper_dev_rcu(idev, ndev) &&
-+	       (is_eth_active_slave_of_bonding(idev, rdev) &
-+		bond_state)) ||
-+	       rdev == idev);
-+
-+	rcu_read_unlock();
-+	return res;
-+}
-+
- static int is_eth_port_of_netdev(struct ib_device *ib_dev, u8 port,
- 				 struct net_device *idev, void *cookie)
+ 	return ret;
+ }
+ EXPORT_SYMBOL(ib_find_cached_gid);
+@@ -127,22 +196,23 @@ int ib_get_cached_pkey(struct ib_device *device,
  {
--	struct net_device *rdev;
--	struct net_device *mdev;
--	struct net_device *ndev = (struct net_device *)cookie;
-+	return _is_eth_port_of_netdev(ib_dev, port, idev, cookie,
-+				      BONDING_SLAVE_STATE_ACTIVE |
-+				      BONDING_SLAVE_STATE_NA);
-+}
+ 	struct ib_pkey_cache *cache;
+ 	unsigned long flags;
+-	int ret = 0;
++	int ret = -ENOENT;
  
-+static int is_eth_port_inactive_slave(struct ib_device *ib_dev, u8 port,
-+				      struct net_device *idev, void *cookie)
-+{
-+	struct net_device *mdev;
-+	int res;
- 	if (!idev)
- 		return 0;
+ 	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
+ 		return -EINVAL;
  
- 	rcu_read_lock();
- 	mdev = netdev_master_upper_dev_get_rcu(idev);
--	rdev = rdma_vlan_dev_real_dev(ndev);
-+	res = is_eth_active_slave_of_bonding(idev, mdev) ==
-+		BONDING_SLAVE_STATE_INACTIVE;
- 	rcu_read_unlock();
++	if (!device->cache.pkey_cache)
++		return -ENOENT;
++
+ 	read_lock_irqsave(&device->cache.lock, flags);
  
--	return (rdev ? rdev : ndev) == (mdev ? mdev : idev);
-+	return res;
- }
- 
- static int pass_all_filter(struct ib_device *ib_dev, u8 port,
-@@ -116,6 +192,34 @@ static int pass_all_filter(struct ib_device *ib_dev, u8 port,
- 	return 1;
- }
- 
-+static int upper_device_filter(struct ib_device *ib_dev, u8 port,
-+			       struct net_device *idev, void *cookie)
-+{
-+	struct net_device *ndev = (struct net_device *)cookie;
-+
-+	return idev == ndev || is_upper_dev_rcu(idev, ndev);
-+}
-+
-+static int bonding_slaves_filter(struct ib_device *ib_dev, u8 port,
-+				 struct net_device *idev, void *cookie)
-+{
-+	struct net_device *rdev;
-+	struct net_device *ndev = (struct net_device *)cookie;
-+	int res;
-+
-+	rdev = rdma_vlan_dev_real_dev(ndev);
-+
-+	ndev = rdev ? rdev : ndev;
-+	if (!idev || !IS_NETDEV_BONDING_MASTER(ndev))
-+		return 0;
-+
-+	rcu_read_lock();
-+	res = is_upper_dev_rcu(idev, ndev);
-+	rcu_read_unlock();
-+
-+	return res;
-+}
-+
- static void update_gid_ip(enum gid_op_type gid_op,
- 			  struct ib_device *ib_dev,
- 			  u8 port, struct net_device *ndev,
-@@ -137,8 +241,16 @@ static void enum_netdev_default_gids(struct ib_device *ib_dev,
- {
- 	unsigned long gid_type_mask;
- 
--	if (idev != ndev)
-+	rcu_read_lock();
-+	if (!idev ||
-+	    ((idev != ndev && !is_upper_dev_rcu(idev, ndev)) ||
-+	     is_eth_active_slave_of_bonding(idev,
-+					    netdev_master_upper_dev_get_rcu(idev)) ==
-+	     BONDING_SLAVE_STATE_INACTIVE)) {
-+		rcu_read_unlock();
- 		return;
+ 	cache = device->cache.pkey_cache[port_num - rdma_start_port(device)];
+-
+-	if (index < 0 || index >= cache->table_len)
+-		ret = -EINVAL;
+-	else
++	if (cache && index >= 0 && index < cache->table_len) {
+ 		*pkey = cache->table[index];
++		ret = 0;
 +	}
-+	rcu_read_unlock();
  
- 	gid_type_mask = roce_gid_type_mask_support(ib_dev, port);
- 
-@@ -146,6 +258,37 @@ static void enum_netdev_default_gids(struct ib_device *ib_dev,
- 				       ROCE_GID_TABLE_DEFAULT_MODE_SET);
+ 	read_unlock_irqrestore(&device->cache.lock, flags);
+-
+ 	return ret;
  }
+ EXPORT_SYMBOL(ib_get_cached_pkey);
+@@ -161,9 +231,14 @@ int ib_find_cached_pkey(struct ib_device *device,
+ 	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
+ 		return -EINVAL;
  
-+static void bond_delete_netdev_default_gids(struct ib_device *ib_dev,
-+					    u8 port, struct net_device *ndev,
-+					    struct net_device *idev)
-+{
-+	struct net_device *rdev = rdma_vlan_dev_real_dev(ndev);
++	if (!device->cache.pkey_cache)
++		return -ENOENT;
 +
-+	if (!idev)
+ 	read_lock_irqsave(&device->cache.lock, flags);
+ 
+ 	cache = device->cache.pkey_cache[port_num - rdma_start_port(device)];
++	if (!cache)
++		goto out;
+ 
+ 	*index = -1;
+ 
+@@ -182,8 +257,8 @@ int ib_find_cached_pkey(struct ib_device *device,
+ 		ret = 0;
+ 	}
+ 
++out:
+ 	read_unlock_irqrestore(&device->cache.lock, flags);
+-
+ 	return ret;
+ }
+ EXPORT_SYMBOL(ib_find_cached_pkey);
+@@ -201,9 +276,14 @@ int ib_find_exact_cached_pkey(struct ib_device *device,
+ 	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
+ 		return -EINVAL;
+ 
++	if (!device->cache.pkey_cache)
++		return -ENOENT;
++
+ 	read_lock_irqsave(&device->cache.lock, flags);
+ 
+ 	cache = device->cache.pkey_cache[port_num - rdma_start_port(device)];
++	if (!cache)
++		goto out;
+ 
+ 	*index = -1;
+ 
+@@ -213,9 +293,8 @@ int ib_find_exact_cached_pkey(struct ib_device *device,
+ 			ret = 0;
+ 			break;
+ 		}
+-
++out:
+ 	read_unlock_irqrestore(&device->cache.lock, flags);
+-
+ 	return ret;
+ }
+ EXPORT_SYMBOL(ib_find_exact_cached_pkey);
+@@ -225,13 +304,16 @@ int ib_get_cached_lmc(struct ib_device *device,
+ 		      u8                *lmc)
+ {
+ 	unsigned long flags;
+-	int ret = 0;
++	int ret = -ENOENT;
+ 
+ 	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
+ 		return -EINVAL;
+ 
+ 	read_lock_irqsave(&device->cache.lock, flags);
+-	*lmc = device->cache.lmc_cache[port_num - rdma_start_port(device)];
++	if (device->cache.lmc_cache) {
++		*lmc = device->cache.lmc_cache[port_num - rdma_start_port(device)];
++		ret = 0;
++	}
+ 	read_unlock_irqrestore(&device->cache.lock, flags);
+ 
+ 	return ret;
+@@ -243,9 +325,18 @@ static void ib_cache_update(struct ib_device *device,
+ {
+ 	struct ib_port_attr       *tprops = NULL;
+ 	struct ib_pkey_cache      *pkey_cache = NULL, *old_pkey_cache;
+-	struct ib_gid_cache       *gid_cache = NULL, *old_gid_cache;
++	struct ib_gid_cache       *gid_cache = NULL, *old_gid_cache = NULL;
+ 	int                        i;
+ 	int                        ret;
++	bool			   use_roce_gid_table =
++					rdma_cap_roce_gid_table(device, port);
++
++	if (port < rdma_start_port(device) || port > rdma_end_port(device))
 +		return;
 +
-+	if (!rdev)
-+		rdev = ndev;
-+
-+	rcu_read_lock();
-+
-+	if (is_upper_dev_rcu(idev, ndev) &&
-+	    is_eth_active_slave_of_bonding(idev, rdev) ==
-+	    BONDING_SLAVE_STATE_INACTIVE) {
-+		unsigned long gid_type_mask;
-+
-+		rcu_read_unlock();
-+
-+		gid_type_mask = roce_gid_type_mask_support(ib_dev, port);
-+
-+		roce_gid_table_set_default_gid(ib_dev, port, idev,
-+					       gid_type_mask,
-+					       ROCE_GID_TABLE_DEFAULT_MODE_DELETE);
-+	} else {
-+		rcu_read_unlock();
-+	}
-+}
-+
- static void enum_netdev_ipv4_ips(struct ib_device *ib_dev,
- 				 u8 port, struct net_device *ndev)
- {
-@@ -221,16 +364,22 @@ static void enum_netdev_ipv6_ips(struct ib_device *ib_dev,
- }
- #endif
++	if (!(device->cache.pkey_cache && device->cache.gid_cache &&
++	      device->cache.lmc_cache))
++		return;
  
-+static void _add_netdev_ips(struct ib_device *ib_dev, u8 port,
-+			    struct net_device *ndev)
-+{
-+	enum_netdev_ipv4_ips(ib_dev, port, ndev);
-+#if IS_ENABLED(CONFIG_IPV6)
-+	enum_netdev_ipv6_ips(ib_dev, port, ndev);
-+#endif
-+}
-+
- static void add_netdev_ips(struct ib_device *ib_dev, u8 port,
- 			   struct net_device *idev, void *cookie)
- {
- 	struct net_device *ndev = (struct net_device *)cookie;
+ 	tprops = kmalloc(sizeof *tprops, GFP_KERNEL);
+ 	if (!tprops)
+@@ -265,12 +356,14 @@ static void ib_cache_update(struct ib_device *device,
  
- 	enum_netdev_default_gids(ib_dev, port, ndev, idev);
--	enum_netdev_ipv4_ips(ib_dev, port, ndev);
--#if IS_ENABLED(CONFIG_IPV6)
--	enum_netdev_ipv6_ips(ib_dev, port, ndev);
--#endif
-+	_add_netdev_ips(ib_dev, port, ndev);
- }
+ 	pkey_cache->table_len = tprops->pkey_tbl_len;
  
- static void del_netdev_ips(struct ib_device *ib_dev, u8 port,
-@@ -284,6 +433,92 @@ static void callback_for_addr_gid_device_scan(struct ib_device *device,
- 			  &parsed->gid_attr);
- }
+-	gid_cache = kmalloc(sizeof *gid_cache + tprops->gid_tbl_len *
+-			    sizeof *gid_cache->table, GFP_KERNEL);
+-	if (!gid_cache)
+-		goto err;
++	if (!use_roce_gid_table) {
++		gid_cache = kmalloc(sizeof(*gid_cache) + tprops->gid_tbl_len *
++			    sizeof(*gid_cache->table), GFP_KERNEL);
++		if (!gid_cache)
++			goto err;
  
-+static void handle_netdev_upper(struct ib_device *ib_dev, u8 port,
-+				void *cookie,
-+				void (*handle_netdev)(struct ib_device *ib_dev,
-+						      u8 port,
-+						      struct net_device *ndev))
-+{
-+	struct net_device *ndev = (struct net_device *)cookie;
-+	struct upper_list {
-+		struct list_head list;
-+		struct net_device *upper;
-+	};
-+	struct net_device *upper;
-+	struct list_head *iter;
-+	struct upper_list *upper_iter;
-+	struct upper_list *upper_temp;
-+	LIST_HEAD(upper_list);
-+
-+	rcu_read_lock();
-+	netdev_for_each_all_upper_dev_rcu(ndev, upper, iter) {
-+		struct upper_list *entry = kmalloc(sizeof(*entry),
-+						   GFP_ATOMIC);
-+
-+		if (!entry) {
-+			pr_info("roce_gid_mgmt: couldn't allocate entry to delete ndev\n");
-+			continue;
-+		}
-+
-+		list_add_tail(&entry->list, &upper_list);
-+		dev_hold(upper);
-+		entry->upper = upper;
-+	}
-+	rcu_read_unlock();
-+
-+	handle_netdev(ib_dev, port, ndev);
-+	list_for_each_entry_safe(upper_iter, upper_temp, &upper_list,
-+				 list) {
-+		handle_netdev(ib_dev, port, upper_iter->upper);
-+		dev_put(upper_iter->upper);
-+		list_del(&upper_iter->list);
-+		kfree(upper_iter);
-+	}
-+}
-+
-+static void _roce_del_all_netdev_gids(struct ib_device *ib_dev, u8 port,
-+				      struct net_device *ndev)
-+{
-+	roce_del_all_netdev_gids(ib_dev, port, ndev);
-+}
-+
-+static void del_netdev_upper_ips(struct ib_device *ib_dev, u8 port,
-+				 struct net_device *idev, void *cookie)
-+{
-+	handle_netdev_upper(ib_dev, port, cookie, _roce_del_all_netdev_gids);
-+}
-+
-+static void add_netdev_upper_ips(struct ib_device *ib_dev, u8 port,
-+				 struct net_device *idev, void *cookie)
-+{
-+	handle_netdev_upper(ib_dev, port, cookie, _add_netdev_ips);
-+}
-+
-+static void del_netdev_default_ips_join(struct ib_device *ib_dev, u8 port,
-+					struct net_device *idev, void *cookie)
-+{
-+	struct net_device *mdev;
-+
-+	rcu_read_lock();
-+	mdev = netdev_master_upper_dev_get_rcu(idev);
-+	if (mdev)
-+		dev_hold(mdev);
-+	rcu_read_unlock();
-+
-+	if (mdev) {
-+		bond_delete_netdev_default_gids(ib_dev, port, mdev, idev);
-+		dev_put(mdev);
-+	}
-+}
-+
-+static void del_netdev_default_ips(struct ib_device *ib_dev, u8 port,
-+				   struct net_device *idev, void *cookie)
-+{
-+	struct net_device *ndev = (struct net_device *)cookie;
-+
-+	bond_delete_netdev_default_gids(ib_dev, port, ndev, idev);
-+}
-+
- /* The following functions operate on all IB devices. netdevice_event and
-  * addr_event execute ib_enum_roce_ports_of_netdev through a work.
-  * ib_enum_roce_ports_of_netdev iterates through all IB devices, thus proper
-@@ -296,11 +531,15 @@ static void netdevice_event_work_handler(struct work_struct *_work)
- 		container_of(_work, struct netdev_event_work, work);
- 	unsigned int i;
- 
--	for (i = 0; i < ARRAY_SIZE(work->cmds) && work->cmds[i].cb; i++)
--		ib_enum_roce_ports_of_netdev(work->cmds[i].filter, work->ndev,
--					     work->cmds[i].cb, work->ndev);
-+	for (i = 0; i < ARRAY_SIZE(work->cmds) && work->cmds[i].cb; i++) {
-+		ib_enum_roce_ports_of_netdev(work->cmds[i].filter,
-+					     work->cmds[i].f_ndev,
-+					     work->cmds[i].cb,
-+					     work->cmds[i].ndev);
-+		dev_put(work->cmds[i].ndev);
-+		dev_put(work->cmds[i].f_ndev);
+-	gid_cache->table_len = tprops->gid_tbl_len;
++		gid_cache->table_len = tprops->gid_tbl_len;
 +	}
  
--	dev_put(work->ndev);
- 	kfree(work);
- }
+ 	for (i = 0; i < pkey_cache->table_len; ++i) {
+ 		ret = ib_query_pkey(device, port, i, pkey_cache->table + i);
+@@ -281,22 +374,28 @@ static void ib_cache_update(struct ib_device *device,
+ 		}
+ 	}
  
-@@ -309,11 +548,24 @@ static int netdevice_event(struct notifier_block *this, unsigned long event,
- {
- 	static const struct netdev_event_work_cmd add_cmd = {
- 		.cb = add_netdev_ips, .filter = is_eth_port_of_netdev};
-+	static const struct netdev_event_work_cmd add_cmd_upper_ips = {
-+		.cb = add_netdev_upper_ips, .filter = is_eth_port_of_netdev};
- 	static const struct netdev_event_work_cmd del_cmd = {
- 		.cb = del_netdev_ips, .filter = pass_all_filter};
-+	static const struct netdev_event_work_cmd bonding_default_del_cmd_join = {
-+		.cb = del_netdev_default_ips_join, .filter = is_eth_port_inactive_slave};
-+	static const struct netdev_event_work_cmd bonding_default_del_cmd = {
-+		.cb = del_netdev_default_ips, .filter = is_eth_port_inactive_slave};
-+	static const struct netdev_event_work_cmd default_del_cmd = {
-+		.cb = del_netdev_default_ips, .filter = pass_all_filter};
-+	static const struct netdev_event_work_cmd bonding_event_ips_del_cmd = {
-+		.cb = del_netdev_upper_ips, .filter = bonding_slaves_filter};
-+	static const struct netdev_event_work_cmd upper_ips_del_cmd = {
-+		.cb = del_netdev_upper_ips, .filter = upper_device_filter};
- 	struct net_device *ndev = netdev_notifier_info_to_dev(ptr);
- 	struct netdev_event_work *ndev_work;
- 	struct netdev_event_work_cmd cmds[ROCE_NETDEV_CALLBACK_SZ] = { {NULL} };
-+	unsigned int i;
- 
- 	if (ndev->type != ARPHRD_ETHER)
- 		return NOTIFY_DONE;
-@@ -321,7 +573,8 @@ static int netdevice_event(struct notifier_block *this, unsigned long event,
- 	switch (event) {
- 	case NETDEV_REGISTER:
- 	case NETDEV_UP:
--		cmds[0] = add_cmd;
-+		cmds[0] = bonding_default_del_cmd_join;
-+		cmds[1] = add_cmd;
- 		break;
- 
- 	case NETDEV_UNREGISTER:
-@@ -332,9 +585,37 @@ static int netdevice_event(struct notifier_block *this, unsigned long event,
- 		break;
- 
- 	case NETDEV_CHANGEADDR:
--		cmds[0] = del_cmd;
-+		cmds[0] = default_del_cmd;
- 		cmds[1] = add_cmd;
- 		break;
-+
-+	case NETDEV_CHANGEUPPER:
-+		{
-+			struct netdev_changeupper_info *changeupper_info =
-+				container_of(ptr, struct netdev_changeupper_info, info);
-+
-+			if (changeupper_info->event ==
-+			    NETDEV_CHANGEUPPER_UNLINK) {
-+				cmds[0] = upper_ips_del_cmd;
-+				cmds[0].ndev = changeupper_info->upper;
-+				cmds[1] = add_cmd;
-+			} else if (changeupper_info->event ==
-+				   NETDEV_CHANGEUPPER_LINK) {
-+				cmds[0] = bonding_default_del_cmd;
-+				cmds[0].ndev = changeupper_info->upper;
-+				cmds[1] = add_cmd_upper_ips;
-+				cmds[1].ndev = changeupper_info->upper;
-+				cmds[1].f_ndev = changeupper_info->upper;
+-	for (i = 0; i < gid_cache->table_len; ++i) {
+-		ret = ib_query_gid(device, port, i, gid_cache->table + i);
+-		if (ret) {
+-			printk(KERN_WARNING "ib_query_gid failed (%d) for %s (index %d)\n",
+-			       ret, device->name, i);
+-			goto err;
++	if (!use_roce_gid_table) {
++		for (i = 0;  i < gid_cache->table_len; ++i) {
++			ret = ib_query_gid(device, port, i,
++					   gid_cache->table + i);
++			if (ret) {
++				printk(KERN_WARNING "ib_query_gid failed (%d) for %s (index %d)\n",
++				       ret, device->name, i);
++				goto err;
 +			}
-+		}
-+	break;
-+
-+	case NETDEV_BONDING_FAILOVER:
-+		cmds[0] = bonding_event_ips_del_cmd;
-+		cmds[1] = bonding_default_del_cmd_join;
-+		cmds[2] = add_cmd_upper_ips;
-+		break;
-+
- 	default:
- 		return NOTIFY_DONE;
- 	}
-@@ -346,8 +627,14 @@ static int netdevice_event(struct notifier_block *this, unsigned long event,
+ 		}
  	}
  
- 	memcpy(ndev_work->cmds, cmds, sizeof(ndev_work->cmds));
--	ndev_work->ndev = ndev;
--	dev_hold(ndev);
-+	for (i = 0; i < ARRAY_SIZE(ndev_work->cmds) && ndev_work->cmds[i].cb; i++) {
-+		if (!ndev_work->cmds[i].ndev)
-+			ndev_work->cmds[i].ndev = ndev;
-+		if (!ndev_work->cmds[i].f_ndev)
-+			ndev_work->cmds[i].f_ndev = ndev;
-+		dev_hold(ndev_work->cmds[i].ndev);
-+		dev_hold(ndev_work->cmds[i].f_ndev);
-+	}
- 	INIT_WORK(&ndev_work->work, netdevice_event_work_handler);
+ 	write_lock_irq(&device->cache.lock);
  
- 	queue_work(roce_gid_mgmt_wq, &ndev_work->work);
-diff --git a/drivers/net/bonding/bond_options.c b/drivers/net/bonding/bond_options.c
-index 4df2894..c4fe29a8 100644
---- a/drivers/net/bonding/bond_options.c
-+++ b/drivers/net/bonding/bond_options.c
-@@ -689,19 +689,6 @@ static int bond_option_mode_set(struct bonding *bond,
- 	return 0;
+ 	old_pkey_cache = device->cache.pkey_cache[port - rdma_start_port(device)];
+-	old_gid_cache  = device->cache.gid_cache [port - rdma_start_port(device)];
++	if (!use_roce_gid_table)
++		old_gid_cache  =
++			device->cache.gid_cache[port - rdma_start_port(device)];
+ 
+ 	device->cache.pkey_cache[port - rdma_start_port(device)] = pkey_cache;
+-	device->cache.gid_cache [port - rdma_start_port(device)] = gid_cache;
++	if (!use_roce_gid_table)
++		device->cache.gid_cache[port - rdma_start_port(device)] = gid_cache;
+ 
+ 	device->cache.lmc_cache[port - rdma_start_port(device)] = tprops->lmc;
+ 
+@@ -392,12 +491,19 @@ err:
+ 	kfree(device->cache.pkey_cache);
+ 	kfree(device->cache.gid_cache);
+ 	kfree(device->cache.lmc_cache);
++	device->cache.pkey_cache = NULL;
++	device->cache.gid_cache = NULL;
++	device->cache.lmc_cache = NULL;
  }
  
--static struct net_device *__bond_option_active_slave_get(struct bonding *bond,
--							 struct slave *slave)
--{
--	return bond_uses_primary(bond) && slave ? slave->dev : NULL;
--}
--
--struct net_device *bond_option_active_slave_get_rcu(struct bonding *bond)
--{
--	struct slave *slave = rcu_dereference(bond->curr_active_slave);
--
--	return __bond_option_active_slave_get(bond, slave);
--}
--
- static int bond_option_active_slave_set(struct bonding *bond,
- 					const struct bond_opt_value *newval)
+ static void ib_cache_cleanup_one(struct ib_device *device)
  {
-diff --git a/include/net/bonding.h b/include/net/bonding.h
-index 78ed135..81a94ed 100644
---- a/include/net/bonding.h
-+++ b/include/net/bonding.h
-@@ -307,6 +307,13 @@ static inline bool bond_uses_primary(struct bonding *bond)
- 	return bond_mode_uses_primary(BOND_MODE(bond));
+ 	int p;
+ 
++	if (!(device->cache.pkey_cache && device->cache.gid_cache &&
++	      device->cache.lmc_cache))
++		return;
++
+ 	ib_unregister_event_handler(&device->cache.event_handler);
+ 	flush_workqueue(ib_wq);
+ 
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 84edb9a..f9c6935 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -40,6 +40,7 @@
+ #include <linux/mutex.h>
+ #include <rdma/rdma_netlink.h>
+ #include <rdma/ib_addr.h>
++#include <rdma/ib_cache.h>
+ 
+ #include "core_priv.h"
+ 
+@@ -593,6 +594,10 @@ EXPORT_SYMBOL(ib_query_port);
+ int ib_query_gid(struct ib_device *device,
+ 		 u8 port_num, int index, union ib_gid *gid)
+ {
++	if (rdma_cap_roce_gid_table(device, port_num))
++		return roce_gid_table_get_gid(device, port_num, index, gid,
++					      NULL);
++
+ 	return device->query_gid(device, port_num, index, gid);
+ }
+ EXPORT_SYMBOL(ib_query_gid);
+@@ -738,18 +743,26 @@ EXPORT_SYMBOL(ib_modify_port);
+  *   a specified GID value occurs.
+  * @device: The device to query.
+  * @gid: The GID value to search for.
++ * @ndev: In RoCE, the net device of the device. Null means ignore.
+  * @port_num: The port number of the device where the GID value was found.
+  * @index: The index into the GID table where the GID was found.  This
+  *   parameter may be NULL.
+  */
+ int ib_find_gid(struct ib_device *device, union ib_gid *gid,
+-		u8 *port_num, u16 *index)
++		struct net_device *ndev, u8 *port_num, u16 *index)
+ {
+ 	union ib_gid tmp_gid;
+ 	int ret, port, i;
+ 
++	if (device->cache.roce_gid_table &&
++	    !roce_gid_table_find_gid(device, gid, ndev, port_num, index))
++		return 0;
++
+ 	for (port = rdma_start_port(device); port <= rdma_end_port(device); ++port) {
+-		for (i = 0; i < device->port_immutable[port].gid_tbl_len; ++i) {
++		if (rdma_cap_roce_gid_table(device, port))
++			continue;
++
++		for (i = 0; i < device->port_immutable[port].pkey_tbl_len; ++i) {
+ 			ret = ib_query_gid(device, port, i, &tmp_gid);
+ 			if (ret)
+ 				return ret;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 1f918b0..4806d8b 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2093,6 +2093,25 @@ static inline bool rdma_cap_read_multi_sge(struct ib_device *device,
+ 	return !(device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_IWARP);
  }
  
-+static inline struct net_device *bond_option_active_slave_get_rcu(struct bonding *bond)
++/**
++ * rdma_cap_roce_gid_table - Check if the port of device uses roce_gid_table
++ * @device: Device to check
++ * @port_num: Port number to check
++ *
++ * RoCE GID table mechanism manages the various GIDs for a device.
++ *
++ * NOTE: if allocating the port's GID table has failed, this call will still
++ * return true, but any RoCE GID table API will fail.
++ *
++ * Return: true if the port uses RoCE GID table mechanism in order to manage
++ * its GIDs.
++ */
++static inline bool rdma_cap_roce_gid_table(const struct ib_device *device,
++					   u8 port_num)
 +{
-+	struct slave *slave = rcu_dereference(bond->curr_active_slave);
-+
-+	return bond_uses_primary(bond) && slave ? slave->dev : NULL;
++	return rdma_protocol_roce(device, port_num) && device->cache.roce_gid_table;
 +}
 +
- static inline bool bond_slave_is_up(struct slave *slave)
- {
- 	return netif_running(slave->dev) && netif_carrier_ok(slave->dev);
+ int ib_query_gid(struct ib_device *device,
+ 		 u8 port_num, int index, union ib_gid *gid);
+ 
+@@ -2108,7 +2127,7 @@ int ib_modify_port(struct ib_device *device,
+ 		   struct ib_port_modify *port_modify);
+ 
+ int ib_find_gid(struct ib_device *device, union ib_gid *gid,
+-		u8 *port_num, u16 *index);
++		struct net_device *ndev, u8 *port_num, u16 *index);
+ 
+ int ib_find_pkey(struct ib_device *device,
+ 		 u8 port_num, u16 pkey, u16 *index);
 -- 
 2.1.0
 
