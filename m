@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V5 06/12] net: Add info for NETDEV_CHANGEUPPER event
-Date: Mon,  8 Jun 2015 17:12:09 +0300
-Message-ID: <1433772735-22416-7-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next V5 04/12] net/ipv6: Export addrconf_ifid_eui48
+Date: Mon,  8 Jun 2015 17:12:07 +0300
+Message-ID: <1433772735-22416-5-git-send-email-matanb@mellanox.com>
 References: <1433772735-22416-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1433772735-22416-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,86 +10,102 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-xCNTGe7nOvUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Consumers of NETDEV_CHANGEUPPER event sometimes want
-to know which upper device was linked/unlinked and which
-operation was carried. Adding extra information in the
-notifier info block.
+RoCE devices would like to have a default GID even
+when the interface is down. In order to do so,
+we use the IPv6 link local address as a default
+GID. addrconf_ifid_eui48 is used to gernerate
+this address.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/linux/netdevice.h | 14 ++++++++++++++
- net/core/dev.c            | 12 ++++++++++--
- 2 files changed, 24 insertions(+), 2 deletions(-)
+ include/net/addrconf.h | 31 +++++++++++++++++++++++++++++++
+ net/ipv6/addrconf.c    | 31 -------------------------------
+ 2 files changed, 31 insertions(+), 31 deletions(-)
 
-diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index 05b9a69..6cd142a 100644
---- a/include/linux/netdevice.h
-+++ b/include/linux/netdevice.h
-@@ -3553,6 +3553,20 @@ struct sk_buff *__skb_gso_segment(struct sk_buff *skb,
- struct sk_buff *skb_mac_gso_segment(struct sk_buff *skb,
- 				    netdev_features_t features);
+diff --git a/include/net/addrconf.h b/include/net/addrconf.h
+index 80456f7..89890e7 100644
+--- a/include/net/addrconf.h
++++ b/include/net/addrconf.h
+@@ -91,6 +91,37 @@ int ipv6_rcv_saddr_equal(const struct sock *sk, const struct sock *sk2);
+ void addrconf_join_solict(struct net_device *dev, const struct in6_addr *addr);
+ void addrconf_leave_solict(struct inet6_dev *idev, const struct in6_addr *addr);
  
-+enum netdev_changeupper_event {
-+	NETDEV_CHANGEUPPER_LINK,
-+	NETDEV_CHANGEUPPER_UNLINK,
-+};
++static inline int addrconf_ifid_eui48(u8 *eui, struct net_device *dev)
++{
++	if (dev->addr_len != ETH_ALEN)
++		return -1;
++	memcpy(eui, dev->dev_addr, 3);
++	memcpy(eui + 5, dev->dev_addr + 3, 3);
 +
-+struct netdev_changeupper_info {
-+	struct netdev_notifier_info	info; /* must be first */
-+	enum netdev_changeupper_event	event;
-+	struct net_device		*upper;
-+};
++	/*
++	 * The zSeries OSA network cards can be shared among various
++	 * OS instances, but the OSA cards have only one MAC address.
++	 * This leads to duplicate address conflicts in conjunction
++	 * with IPv6 if more than one instance uses the same card.
++	 *
++	 * The driver for these cards can deliver a unique 16-bit
++	 * identifier for each instance sharing the same card.  It is
++	 * placed instead of 0xFFFE in the interface identifier.  The
++	 * "u" bit of the interface identifier is not inverted in this
++	 * case.  Hence the resulting interface identifier has local
++	 * scope according to RFC2373.
++	 */
++	if (dev->dev_id) {
++		eui[3] = (dev->dev_id >> 8) & 0xFF;
++		eui[4] = dev->dev_id & 0xFF;
++	} else {
++		eui[3] = 0xFF;
++		eui[4] = 0xFE;
++		eui[0] ^= 2;
++	}
++	return 0;
++}
 +
-+void netdev_changeupper_info_change(struct net_device *dev,
-+				    struct netdev_changeupper_info *info);
-+
- struct netdev_bonding_info {
- 	ifslave	slave;
- 	ifbond	master;
-diff --git a/net/core/dev.c b/net/core/dev.c
-index 2c1c67f..ba73be4 100644
---- a/net/core/dev.c
-+++ b/net/core/dev.c
-@@ -5198,6 +5198,7 @@ static int __netdev_upper_dev_link(struct net_device *dev,
- 				   void *private)
+ static inline unsigned long addrconf_timeout_fixup(u32 timeout,
+ 						   unsigned int unit)
  {
- 	struct netdev_adjacent *i, *j, *to_i, *to_j;
-+	struct netdev_changeupper_info changeupper_info;
- 	int ret = 0;
- 
- 	ASSERT_RTNL();
-@@ -5253,7 +5254,10 @@ static int __netdev_upper_dev_link(struct net_device *dev,
- 			goto rollback_lower_mesh;
- 	}
- 
--	call_netdevice_notifiers(NETDEV_CHANGEUPPER, dev);
-+	changeupper_info.event = NETDEV_CHANGEUPPER_LINK;
-+	changeupper_info.upper = upper_dev;
-+	call_netdevice_notifiers_info(NETDEV_CHANGEUPPER, dev,
-+				      &changeupper_info.info);
- 	return 0;
- 
- rollback_lower_mesh:
-@@ -5349,6 +5353,7 @@ void netdev_upper_dev_unlink(struct net_device *dev,
- 			     struct net_device *upper_dev)
- {
- 	struct netdev_adjacent *i, *j;
-+	struct netdev_changeupper_info changeupper_info;
- 	ASSERT_RTNL();
- 
- 	__netdev_adjacent_dev_unlink_neighbour(dev, upper_dev);
-@@ -5370,7 +5375,10 @@ void netdev_upper_dev_unlink(struct net_device *dev,
- 	list_for_each_entry(i, &upper_dev->all_adj_list.upper, list)
- 		__netdev_adjacent_dev_unlink(dev, i->dev);
- 
--	call_netdevice_notifiers(NETDEV_CHANGEUPPER, dev);
-+	changeupper_info.event = NETDEV_CHANGEUPPER_UNLINK;
-+	changeupper_info.upper = upper_dev;
-+	call_netdevice_notifiers_info(NETDEV_CHANGEUPPER, dev,
-+				      &changeupper_info.info);
+diff --git a/net/ipv6/addrconf.c b/net/ipv6/addrconf.c
+index 37b70e8..7170c7b 100644
+--- a/net/ipv6/addrconf.c
++++ b/net/ipv6/addrconf.c
+@@ -1845,37 +1845,6 @@ static void addrconf_leave_anycast(struct inet6_ifaddr *ifp)
+ 	__ipv6_dev_ac_dec(ifp->idev, &addr);
  }
- EXPORT_SYMBOL(netdev_upper_dev_unlink);
  
+-static int addrconf_ifid_eui48(u8 *eui, struct net_device *dev)
+-{
+-	if (dev->addr_len != ETH_ALEN)
+-		return -1;
+-	memcpy(eui, dev->dev_addr, 3);
+-	memcpy(eui + 5, dev->dev_addr + 3, 3);
+-
+-	/*
+-	 * The zSeries OSA network cards can be shared among various
+-	 * OS instances, but the OSA cards have only one MAC address.
+-	 * This leads to duplicate address conflicts in conjunction
+-	 * with IPv6 if more than one instance uses the same card.
+-	 *
+-	 * The driver for these cards can deliver a unique 16-bit
+-	 * identifier for each instance sharing the same card.  It is
+-	 * placed instead of 0xFFFE in the interface identifier.  The
+-	 * "u" bit of the interface identifier is not inverted in this
+-	 * case.  Hence the resulting interface identifier has local
+-	 * scope according to RFC2373.
+-	 */
+-	if (dev->dev_id) {
+-		eui[3] = (dev->dev_id >> 8) & 0xFF;
+-		eui[4] = dev->dev_id & 0xFF;
+-	} else {
+-		eui[3] = 0xFF;
+-		eui[4] = 0xFE;
+-		eui[0] ^= 2;
+-	}
+-	return 0;
+-}
+-
+ static int addrconf_ifid_eui64(u8 *eui, struct net_device *dev)
+ {
+ 	if (dev->addr_len != IEEE802154_ADDR_LEN)
 -- 
 2.1.0
 
