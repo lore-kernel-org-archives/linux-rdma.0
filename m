@@ -1,53 +1,61 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 0/5] Indirect memory registration feature
-Date: Mon, 08 Jun 2015 17:42:15 +0300
-Message-ID: <5575A9C7.7000409@dev.mellanox.co.il>
-References: <1433769339-949-1-git-send-email-sagig@mellanox.com> <20150608132254.GA14773@infradead.org> <55759B0B.8050805@mellanox.com> <20150608135151.GA14021@infradead.org>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] IB/CMA: Fix condition to search for InfiniBand route
+Date: Mon, 8 Jun 2015 11:44:13 -0400
+Message-ID: <20150608154412.GA23803@phlsvsds.ph.intel.com>
+References: <1433770345-17354-1-git-send-email-monis@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150608135151.GA14021-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1433770345-17354-1-git-send-email-monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/8/2015 4:51 PM, Christoph Hellwig wrote:
-> On Mon, Jun 08, 2015 at 04:39:23PM +0300, Sagi Grimberg wrote:
->> I have learned about QUEUE_FLAG_SG_GAPS from your recent comments on
->> the list. Won't setting this flag interfere with bio merges?
+On Mon, Jun 08, 2015 at 04:32:25PM +0300, Moni Shoua wrote:
+> The flag RDMA_CORE_CAP_IB_SA is set when link layer is InfiniBand but
+> also when link layer is Ethernet.
+
+Why?  Ethernet does not have an SA nor need one.
+
 >
-> It would if any in-kernel consumer would actually generate such SG
-> lists.  But none does - the only source is vectored SG_IO support.
+> Therefore, link layer is not implied by
+> this flag.
 
-I think O_DIRECT allows user-space to generate vectored SG lists that
-are not aligned as well.
+Of course not.  This flag is explicitly saying this port needs to use the IB
+SA to resolve the route information.
 
->>
->> I must say that I've always considered SW bounce buffering as a
->> work-around for an RDMA driver.
->
-> bounce buffering is always a workaround, and offloading it to silicone
-> just makes it a worse hack.
+cma_resolve_ib_route finds the route information by issuing an SA query.
+Therefore it should only be called on ports which require an SA.
 
-I wouldn't say this is about offloading bounce buffering to silicon.
-The RDMA stack always imposed the alignment limitation as we can only
-give a page lists to the devices. Other drivers (qlogic/emulex FC
-drivers for example), use an _arbitrary_ SG lists where each element can
-point to any {addr, len}.
+Was this change inspired by a bug being found?  If so it seems the underlying
+device needs to be fixed to not set the RDMA_CORE_CAP_IB_SA flag when the link
+layer is ethernet.
 
-This puts the RDMA stack in line with other devices effectively
-allowing to register arbitrary SG lists.
+Ira
 
-> So please fix it in the proper layers
-> first,
-
-I agree that we can take care of bounce buffering in the block layer
-(or scsi for SG_IO) if the driver doesn't want to see any type of
-unaligned SG lists.
-
-But do you think that it should come before the stack can support this?
+> 
+> ---
+>  drivers/infiniband/core/cma.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+> index 3b943b7..f96d6fd 100644
+> --- a/drivers/infiniband/core/cma.c
+> +++ b/drivers/infiniband/core/cma.c
+> @@ -1993,7 +1993,7 @@ int rdma_resolve_route(struct rdma_cm_id *id, int timeout_ms)
+>  		return -EINVAL;
+>  
+>  	atomic_inc(&id_priv->refcount);
+> -	if (rdma_cap_ib_sa(id->device, id->port_num))
+> +	if (rdma_protocol_ib(id->device, id->port_num))
+>  		ret = cma_resolve_ib_route(id_priv, timeout_ms);
+>  	else if (rdma_protocol_roce(id->device, id->port_num))
+>  		ret = cma_resolve_iboe_route(id_priv);
+> -- 
+> 1.7.1
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
