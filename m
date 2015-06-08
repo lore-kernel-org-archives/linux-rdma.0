@@ -1,183 +1,302 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 10/11] IB/iser: Make reg_desc_get a per device routine
-Date: Mon,  8 Jun 2015 16:15:22 +0300
-Message-ID: <1433769323-790-11-git-send-email-sagig@mellanox.com>
+Subject: [PATCH 08/11] IB/iser: Maintain connection fmr_pool under a single registration descriptor
+Date: Mon,  8 Jun 2015 16:15:20 +0300
+Message-ID: <1433769323-790-9-git-send-email-sagig@mellanox.com>
 References: <1433769323-790-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1433769323-790-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Adir Lev <adirl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-As for fmrs we will hold a single registration descriptor
-as no need for multiple like in the frwr mode (descriptor
-for each task).
+From: Adir Lev <adirl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+This will allow us to unify the memory registration code path between
+the various methods which vary by the device capabilities.
+
+We also change the signature of iser_reg_page_vec to make it match
+iser_fast_reg_mr (and the future indirect registration method).
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Adir Lev <adirl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.h  |   16 ++++++++++--
- drivers/infiniband/ulp/iser/iser_memory.c |   38 +++++++++++++++++++++-------
- 2 files changed, 41 insertions(+), 13 deletions(-)
+ drivers/infiniband/ulp/iser/iscsi_iser.h  |   38 ++++++++-----------
+ drivers/infiniband/ulp/iser/iser_memory.c |   28 ++++++++------
+ drivers/infiniband/ulp/iser/iser_verbs.c  |   56 ++++++++++++++++++----------
+ 3 files changed, 68 insertions(+), 54 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
-index 9383360..758e56b 100644
+index 6670986..9383360 100644
 --- a/drivers/infiniband/ulp/iser/iscsi_iser.h
 +++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
-@@ -331,6 +331,8 @@ struct iser_comp {
-  * @free_reg_res:      Free registration resources
-  * @reg_rdma_mem:      Register memory buffers
-  * @unreg_rdma_mem:    Un-register memory buffers
-+ * @reg_desc_get:      Get a registration descriptor for pool
-+ * @reg_desc_put:      Get a registration descriptor to pool
+@@ -378,12 +378,20 @@ struct iser_device {
+  * struct iser_reg_resources - Fast registration recources
+  *
+  * @mr:         memory region
+- * @frpl:       fast reg page list
++ * @fmr_pool:   pool of fmrs
++ * @frpl:       fast reg page list used by frwrs
++ * @page_vec:   fast reg page list used by fmr pool
+  * @mr_valid:   is mr valid indicator
   */
- struct iser_reg_ops {
- 	int            (*alloc_reg_res)(struct ib_conn *ib_conn,
-@@ -340,6 +342,9 @@ struct iser_reg_ops {
- 				       enum iser_data_dir cmd_dir);
- 	void           (*unreg_rdma_mem)(struct iscsi_iser_task *iser_task,
- 					 enum iser_data_dir cmd_dir);
-+	struct iser_fr_desc * (*reg_desc_get)(struct ib_conn *ib_conn);
-+	void           (*reg_desc_put)(struct ib_conn *ib_conn,
-+				       struct iser_fr_desc *desc);
+ struct iser_reg_resources {
+-	struct ib_mr			 *mr;
+-	struct ib_fast_reg_page_list     *frpl;
++	union {
++		struct ib_mr             *mr;
++		struct ib_fmr_pool       *fmr_pool;
++	};
++	union {
++		struct ib_fast_reg_page_list     *frpl;
++		struct iser_page_vec             *page_vec;
++	};
+ 	u8				  mr_valid:1;
+ };
+ 
+@@ -418,28 +426,14 @@ struct iser_fr_desc {
+ /**
+  * struct iser_fr_pool: connection fast registration pool
+  *
++ * @list:                list of fastreg descriptors
+  * @lock:                protects fmr/fastreg pool
+- * @union.fmr:
+- *     @pool:            FMR pool for fast registrations
+- *     @page_vec:        fast reg page list to hold mapped commands pages
+- *                       used for registration
+- * @union.fastreg:
+- *     @pool:            Fast registration descriptors pool for fast
+- *                       registrations
+- *     @pool_size:       Size of pool
++ * @size:                size of the pool
+  */
+ struct iser_fr_pool {
+-	spinlock_t		     lock;
+-	union {
+-		struct {
+-			struct ib_fmr_pool              *pool;
+-			struct iser_page_vec            *page_vec;
+-		} fmr;
+-		struct {
+-			struct list_head	 pool;
+-			int			 pool_size;
+-		} fastreg;
+-	};
++	struct list_head        list;
++	spinlock_t              lock;
++	int                     size;
  };
  
  /**
-@@ -655,8 +660,13 @@ void iser_free_fastreg_pool(struct ib_conn *ib_conn);
- u8 iser_check_task_pi_status(struct iscsi_iser_task *iser_task,
- 			     enum iser_data_dir cmd_dir, sector_t *sector);
- struct iser_fr_desc *
--iser_reg_desc_get(struct ib_conn *ib_conn);
-+iser_reg_desc_get_fr(struct ib_conn *ib_conn);
- void
--iser_reg_desc_put(struct ib_conn *ib_conn,
--		  struct iser_fr_desc *desc);
-+iser_reg_desc_put_fr(struct ib_conn *ib_conn,
-+		     struct iser_fr_desc *desc);
-+struct iser_fr_desc *
-+iser_reg_desc_get_fmr(struct ib_conn *ib_conn);
-+void
-+iser_reg_desc_put_fmr(struct ib_conn *ib_conn,
-+		      struct iser_fr_desc *desc);
- #endif
 diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index 300e23c..7ee7f44 100644
+index d731ed7..c792929 100644
 --- a/drivers/infiniband/ulp/iser/iser_memory.c
 +++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -44,6 +44,8 @@ static struct iser_reg_ops fastreg_ops = {
- 	.free_reg_res	= iser_free_fastreg_pool,
- 	.reg_rdma_mem	= iser_reg_rdma_mem_fastreg,
- 	.unreg_rdma_mem	= iser_unreg_mem_fastreg,
-+	.reg_desc_get	= iser_reg_desc_get_fr,
-+	.reg_desc_put	= iser_reg_desc_put_fr,
- };
- 
- static struct iser_reg_ops fmr_ops = {
-@@ -51,6 +53,8 @@ static struct iser_reg_ops fmr_ops = {
- 	.free_reg_res	= iser_free_fmr_pool,
- 	.reg_rdma_mem	= iser_reg_rdma_mem_fmr,
- 	.unreg_rdma_mem	= iser_unreg_mem_fmr,
-+	.reg_desc_get	= iser_reg_desc_get_fmr,
-+	.reg_desc_put	= iser_reg_desc_put_fmr,
- };
- 
- int iser_assign_reg_ops(struct iser_device *device)
-@@ -182,7 +186,7 @@ iser_copy_to_bounce(struct iser_data_buf *data)
- }
- 
- struct iser_fr_desc *
--iser_reg_desc_get(struct ib_conn *ib_conn)
-+iser_reg_desc_get_fr(struct ib_conn *ib_conn)
- {
- 	struct iser_fr_pool *fr_pool = &ib_conn->fr_pool;
- 	struct iser_fr_desc *desc;
-@@ -198,8 +202,8 @@ iser_reg_desc_get(struct ib_conn *ib_conn)
- }
- 
- void
--iser_reg_desc_put(struct ib_conn *ib_conn,
--		  struct iser_fr_desc *desc)
-+iser_reg_desc_put_fr(struct ib_conn *ib_conn,
-+		     struct iser_fr_desc *desc)
- {
- 	struct iser_fr_pool *fr_pool = &ib_conn->fr_pool;
+@@ -189,7 +189,7 @@ iser_reg_desc_get(struct ib_conn *ib_conn)
  	unsigned long flags;
-@@ -209,6 +213,21 @@ iser_reg_desc_put(struct ib_conn *ib_conn,
+ 
+ 	spin_lock_irqsave(&fr_pool->lock, flags);
+-	desc = list_first_entry(&fr_pool->fastreg.pool,
++	desc = list_first_entry(&fr_pool->list,
+ 				struct iser_fr_desc, list);
+ 	list_del(&desc->list);
+ 	spin_unlock_irqrestore(&fr_pool->lock, flags);
+@@ -205,7 +205,7 @@ iser_reg_desc_put(struct ib_conn *ib_conn,
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&fr_pool->lock, flags);
+-	list_add(&desc->list, &fr_pool->fastreg.pool);
++	list_add(&desc->list, &fr_pool->list);
  	spin_unlock_irqrestore(&fr_pool->lock, flags);
  }
  
-+struct iser_fr_desc *
-+iser_reg_desc_get_fmr(struct ib_conn *ib_conn)
-+{
-+	struct iser_fr_pool *fr_pool = &ib_conn->fr_pool;
-+
-+	return list_first_entry(&fr_pool->list,
-+				struct iser_fr_desc, list);
-+}
-+
-+void
-+iser_reg_desc_put_fmr(struct ib_conn *ib_conn,
-+		      struct iser_fr_desc *desc)
-+{
-+}
-+
- /**
-  * iser_start_rdma_unaligned_sg
-  */
-@@ -544,13 +563,14 @@ void iser_unreg_mem_fmr(struct iscsi_iser_task *iser_task,
- void iser_unreg_mem_fastreg(struct iscsi_iser_task *iser_task,
- 			    enum iser_data_dir cmd_dir)
- {
-+	struct iser_device *device = iser_task->iser_conn->ib_conn.device;
- 	struct iser_mem_reg *reg = &iser_task->rdma_reg[cmd_dir];
- 
- 	if (!reg->mem_h)
- 		return;
- 
--	iser_reg_desc_put(&iser_task->iser_conn->ib_conn,
--			  reg->mem_h);
-+	device->reg_ops->reg_desc_put(&iser_task->iser_conn->ib_conn,
-+				     reg->mem_h);
- 	reg->mem_h = NULL;
- }
- 
-@@ -564,7 +584,6 @@ int iser_reg_rdma_mem_fmr(struct iscsi_iser_task *iser_task,
- 			  enum iser_data_dir cmd_dir)
+@@ -478,12 +478,13 @@ static int fall_to_bounce_buf(struct iscsi_iser_task *iser_task,
+ static
+ int iser_reg_page_vec(struct iscsi_iser_task *iser_task,
+ 		      struct iser_data_buf *mem,
+-		      struct iser_page_vec *page_vec,
++		      struct iser_reg_resources *rsc,
+ 		      struct iser_mem_reg *mem_reg)
  {
  	struct ib_conn *ib_conn = &iser_task->iser_conn->ib_conn;
 -	struct iser_fr_pool *fr_pool = &ib_conn->fr_pool;
- 	struct iser_device   *device = ib_conn->device;
- 	struct ib_device     *ibdev = device->ib_device;
- 	struct iser_data_buf *mem = &iser_task->data[cmd_dir];
-@@ -590,8 +609,7 @@ int iser_reg_rdma_mem_fmr(struct iscsi_iser_task *iser_task,
- 	} else { /* use FMR for multiple dma entries */
- 		struct iser_fr_desc *desc;
+ 	struct iser_device *device = ib_conn->device;
++	struct iser_page_vec *page_vec = rsc->page_vec;
++	struct ib_fmr_pool *fmr_pool = rsc->fmr_pool;
+ 	struct ib_pool_fmr *fmr;
+ 	int ret, plen;
  
--		desc = list_first_entry(&fr_pool->list,
--					struct iser_fr_desc, list);
-+		desc = device->reg_ops->reg_desc_get(ib_conn);
- 		err = iser_fast_reg_fmr(iser_task, mem, &desc->rsc, mem_reg);
- 		if (err && err != -EAGAIN) {
- 			iser_data_buf_dump(mem, ibdev);
-@@ -844,7 +862,7 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
- 
- 	if (mem->dma_nents != 1 ||
- 	    scsi_get_prot_op(iser_task->sc) != SCSI_PROT_NORMAL) {
--		desc = iser_reg_desc_get(ib_conn);
-+		desc = device->reg_ops->reg_desc_get(ib_conn);
- 		mem_reg->mem_h = desc;
+@@ -499,7 +500,7 @@ int iser_reg_page_vec(struct iscsi_iser_task *iser_task,
+ 		return -EINVAL;
  	}
  
-@@ -887,7 +905,7 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
- 	return 0;
- err_reg:
- 	if (desc)
--		iser_reg_desc_put(ib_conn, desc);
-+		device->reg_ops->reg_desc_put(ib_conn, desc);
+-	fmr  = ib_fmr_pool_map_phys(fr_pool->fmr.pool,
++	fmr  = ib_fmr_pool_map_phys(fmr_pool,
+ 				    page_vec->pages,
+ 				    page_vec->length,
+ 				    page_vec->pages[0]);
+@@ -587,20 +588,23 @@ int iser_reg_rdma_mem_fmr(struct iscsi_iser_task *iser_task,
+ 	if (mem->dma_nents == 1) {
+ 		return iser_reg_dma(device, mem, mem_reg);
+ 	} else { /* use FMR for multiple dma entries */
+-		err = iser_reg_page_vec(iser_task, mem,
+-					fr_pool->fmr.page_vec, mem_reg);
++		struct iser_fr_desc *desc;
++
++		desc = list_first_entry(&fr_pool->list,
++					struct iser_fr_desc, list);
++		err = iser_reg_page_vec(iser_task, mem, &desc->rsc, mem_reg);
+ 		if (err && err != -EAGAIN) {
+ 			iser_data_buf_dump(mem, ibdev);
+ 			iser_err("mem->dma_nents = %d (dlength = 0x%x)\n",
+ 				 mem->dma_nents,
+ 				 ntoh24(iser_task->desc.iscsi_header.dlength));
+ 			iser_err("page_vec: data_size = 0x%x, length = %d, offset = 0x%x\n",
+-				 fr_pool->fmr.page_vec->data_size,
+-				 fr_pool->fmr.page_vec->length,
+-				 fr_pool->fmr.page_vec->offset);
+-			for (i = 0; i < fr_pool->fmr.page_vec->length; i++)
++				 desc->rsc.page_vec->data_size,
++				 desc->rsc.page_vec->length,
++				 desc->rsc.page_vec->offset);
++			for (i = 0; i < desc->rsc.page_vec->length; i++)
+ 				iser_err("page_vec[%d] = 0x%llx\n", i,
+-					 (unsigned long long)fr_pool->fmr.page_vec->pages[i]);
++					 (unsigned long long)desc->rsc.page_vec->pages[i]);
+ 		}
+ 		if (err)
+ 			return err;
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index 055f7eb..6a407a3 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -201,17 +201,25 @@ int iser_alloc_fmr_pool(struct ib_conn *ib_conn, unsigned cmds_max)
+ 	struct iser_device *device = ib_conn->device;
+ 	struct iser_fr_pool *fr_pool = &ib_conn->fr_pool;
+ 	struct iser_page_vec *page_vec;
++	struct iser_fr_desc *desc;
+ 	struct ib_fmr_pool *fmr_pool;
+ 	struct ib_fmr_pool_param params;
+-	int ret = -ENOMEM;
++	int ret;
  
- 	return err;
++	INIT_LIST_HEAD(&fr_pool->list);
+ 	spin_lock_init(&fr_pool->lock);
+ 
++	desc = kzalloc(sizeof(*desc), GFP_KERNEL);
++	if (!desc)
++		return -ENOMEM;
++
+ 	page_vec = kmalloc(sizeof(*page_vec) +
+ 			   (sizeof(u64) * (ISCSI_ISER_SG_TABLESIZE + 1)),
+ 			   GFP_KERNEL);
+-	if (!page_vec)
+-		return ret;
++	if (!page_vec) {
++		ret = -ENOMEM;
++		goto err_frpl;
++	}
+ 
+ 	page_vec->pages = (u64 *)(page_vec + 1);
+ 
+@@ -233,16 +241,20 @@ int iser_alloc_fmr_pool(struct ib_conn *ib_conn, unsigned cmds_max)
+ 	if (IS_ERR(fmr_pool)) {
+ 		ret = PTR_ERR(fmr_pool);
+ 		iser_err("FMR allocation failed, err %d\n", ret);
+-		goto err;
++		goto err_fmr;
+ 	}
+ 
+-	fr_pool->fmr.page_vec = page_vec;
+-	fr_pool->fmr.pool = fmr_pool;
++	desc->rsc.page_vec = page_vec;
++	desc->rsc.fmr_pool = fmr_pool;
++	list_add(&desc->list, &fr_pool->list);
+ 
+ 	return 0;
+ 
+-err:
++err_fmr:
+ 	kfree(page_vec);
++err_frpl:
++	kfree(desc);
++
+ 	return ret;
  }
+ 
+@@ -252,14 +264,18 @@ err:
+ void iser_free_fmr_pool(struct ib_conn *ib_conn)
+ {
+ 	struct iser_fr_pool *fr_pool = &ib_conn->fr_pool;
++	struct iser_fr_desc *desc;
++
++	desc = list_first_entry(&fr_pool->list,
++				struct iser_fr_desc, list);
++	list_del(&desc->list);
+ 
+ 	iser_info("freeing conn %p fmr pool %p\n",
+-		  ib_conn, fr_pool->fmr.pool);
++		  ib_conn, desc->rsc.fmr_pool);
+ 
+-	ib_destroy_fmr_pool(fr_pool->fmr.pool);
+-	fr_pool->fmr.pool = NULL;
+-	kfree(fr_pool->fmr.page_vec);
+-	fr_pool->fmr.page_vec = NULL;
++	ib_destroy_fmr_pool(desc->rsc.fmr_pool);
++	kfree(desc->rsc.page_vec);
++	kfree(desc);
+ }
+ 
+ static int
+@@ -390,17 +406,17 @@ int iser_alloc_fastreg_pool(struct ib_conn *ib_conn, unsigned cmds_max)
+ 	struct iser_fr_desc *desc;
+ 	int i, ret;
+ 
+-	INIT_LIST_HEAD(&fr_pool->fastreg.pool);
++	INIT_LIST_HEAD(&fr_pool->list);
+ 	spin_lock_init(&fr_pool->lock);
+-	fr_pool->fastreg.pool_size = 0;
++	fr_pool->size = 0;
+ 	for (i = 0; i < cmds_max; i++) {
+ 		desc = iser_create_fastreg_desc(device->ib_device, device->pd,
+ 						ib_conn->pi_support);
+ 		if (IS_ERR(desc))
+ 			goto err;
+ 
+-		list_add_tail(&desc->list, &fr_pool->fastreg.pool);
+-		fr_pool->fastreg.pool_size++;
++		list_add_tail(&desc->list, &fr_pool->list);
++		fr_pool->size++;
+ 	}
+ 
+ 	return 0;
+@@ -419,12 +435,12 @@ void iser_free_fastreg_pool(struct ib_conn *ib_conn)
+ 	struct iser_fr_desc *desc, *tmp;
+ 	int i = 0;
+ 
+-	if (list_empty(&fr_pool->fastreg.pool))
++	if (list_empty(&fr_pool->list))
+ 		return;
+ 
+ 	iser_info("freeing conn %p fr pool\n", ib_conn);
+ 
+-	list_for_each_entry_safe(desc, tmp, &fr_pool->fastreg.pool, list) {
++	list_for_each_entry_safe(desc, tmp, &fr_pool->list, list) {
+ 		list_del(&desc->list);
+ 		iser_free_reg_res(&desc->rsc);
+ 		if (desc->pi_ctx)
+@@ -433,9 +449,9 @@ void iser_free_fastreg_pool(struct ib_conn *ib_conn)
+ 		++i;
+ 	}
+ 
+-	if (i < fr_pool->fastreg.pool_size)
++	if (i < fr_pool->size)
+ 		iser_warn("pool still has %d regions registered\n",
+-			  fr_pool->fastreg.pool_size - i);
++			  fr_pool->size - i);
+ }
+ 
+ /**
 -- 
 1.7.1
 
