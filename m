@@ -1,46 +1,74 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] IB/CMA: Fix condition to search for InfiniBand route
-Date: Mon, 8 Jun 2015 16:48:08 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FE5B07@ORSMSX109.amr.corp.intel.com>
-References: <1433770345-17354-1-git-send-email-monis@mellanox.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH v4 for-next 00/12] Add network namespace support in the
+ RDMA-CM
+Date: Mon, 8 Jun 2015 10:53:09 -0600
+Message-ID: <20150608165309.GA3042@obsidianresearch.com>
+References: <1432850150.114391.56.camel@redhat.com>
+ <556ED0D5.8010502@mellanox.com>
+ <20150603161447.GC12073@obsidianresearch.com>
+ <CAJ3xEMjM53sYuEgQV3WPaN4WErk_YcojPY2zBcmq-+3W2dfD+A@mail.gmail.com>
+ <20150603195325.GC7902@obsidianresearch.com>
+ <CAJ3xEMiO+hEzOJ2oJ5G-mmBeaX4ZHvUyhNSAzsrRDui6dFjvCg@mail.gmail.com>
+ <20150603234811.GA15128@obsidianresearch.com>
+ <556FEF25.80409@mellanox.com>
+ <20150604164058.GB27699@obsidianresearch.com>
+ <557549C2.2080605@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1433770345-17354-1-git-send-email-monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <557549C2.2080605@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: Haggai Eran <haggaie@mellanox.com>
+Cc: Or Gerlitz <gerlitz.or@gmail.com>, Doug Ledford <dledford@redhat.com>, Or Gerlitz <ogerlitz@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux Netdev List <netdev@vger.kernel.org>, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-> The flag RDMA_CORE_CAP_IB_SA is set when link layer is InfiniBand but
-> also when link layer is Ethernet. Therefore, link layer is not implied by
-
-This flag should NOT be set for Ethernet.  What is setting this?
-
-> this flag.
+On Mon, Jun 08, 2015 at 10:52:34AM +0300, Haggai Eran wrote:
+> On 04/06/2015 19:40, Jason Gunthorpe wrote:
+> > Discussion idea: Can we actually use the netstack to process the
+> > RDMA-CM packets? It looks like the netstack wants a skb to do this
+> > mid-layer work, so rdma-cm would have to synthesize a skb for the CM
+> > packets and pass it through netdev to apply all the transformations
+> > and access the various internal states (eg from ipvlan, bonding,
+> > etc). rdma-cm would have to 'catch' the skb once it is done traveling
+> > and resume its normal processing. Very similar to your notion of using
+> > UDP, but without any on-the-wire change.
+> > 
+> > This would fit in that same ingress spot I suggested adding the
+> > routing lookup, instead of routing we want the full stack to have a go
+> > at figuring out the final netdev.
+> > 
+> > This seems the most general because it will work for all the *vlan
+> > type drivers, bonding, and all of the RDMA technologies. (each would
+> > have a slightly different way to make the skb, but same basic idea)
+> > 
+> > Lots and lots of details to do that, but conceptually it seems pretty
+> > solid?
 > 
-> ---
->  drivers/infiniband/core/cma.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-> index 3b943b7..f96d6fd 100644
-> --- a/drivers/infiniband/core/cma.c
-> +++ b/drivers/infiniband/core/cma.c
-> @@ -1993,7 +1993,7 @@ int rdma_resolve_route(struct rdma_cm_id *id, int
-> timeout_ms)
->  		return -EINVAL;
-> 
->  	atomic_inc(&id_priv->refcount);
-> -	if (rdma_cap_ib_sa(id->device, id->port_num))
-> +	if (rdma_protocol_ib(id->device, id->port_num))
+> The problem is that the network stack can do all sort of changes to the
+> packets (like NAT), and it may be the case that the hardware can't
+> reflect these changes later on when creating a QP.
 
-This change looks wrong.  The check here has nothing to do with the link layer.  It is stating that route resolution must be done using an SA.
+Yes, I am aware of that, but there are also alot of things netdev can
+do that we can realize, like netfilter rules to block packets, for
+instance
 
+Ignoring NAT is a bad choice as well, the best would be to drop on
+NAT. It would be easy to detect if the netstack mangled the REQ skb
+packet, for instance.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+We can't track netdev after the QP is created, but totally ignoring
+one thing and while re-implementing others seems like a bad idea, long
+term...
+
+> I think it would be best to stick with resolving the net_dev using
+> the request parameters, and the simpler routing lookup. This way
+> RDMA CM remains in control, and if the user configures routing in an
+> unexpected way, it can just block the request.
+
+As I said, I think that is fine for the immediate IB support, but when
+you start talking about roce and emulating macvlan and ipvlan.. Then
+it starts to look really bad. At least think it through carefully
+before posting those series.
+
+Jason
