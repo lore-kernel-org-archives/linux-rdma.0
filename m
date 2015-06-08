@@ -1,438 +1,329 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 11/11] IB/iser: Unify fast memory registration flows
-Date: Mon,  8 Jun 2015 16:15:23 +0300
-Message-ID: <1433769323-790-12-git-send-email-sagig@mellanox.com>
-References: <1433769323-790-1-git-send-email-sagig@mellanox.com>
+Subject: [PATCH 2/5] IB/mlx5: Implement Fast Indirect Memory Registration Feature
+Date: Mon,  8 Jun 2015 16:15:36 +0300
+Message-ID: <1433769339-949-3-git-send-email-sagig@mellanox.com>
+References: <1433769339-949-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1433769323-790-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1433769339-949-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-iser_reg_rdma_mem_[fastreg|fmr] share a lot of code, and
-logically do the same thing other than the buffer registration
-method itself (iser_fast_reg_mr vs. iser_fast_reg_fmr).
-The DIF logic is not implemented in the FMR flow as there is no
-existing device that supports FMRs and Signature feature.
-
-This patch unifies the flow in a single routine iser_reg_rdma_mem
-and just split to fmr/frwr for the buffer registration itself.
-
-Also, for symmetry reasons, unify iser_unreg_rdma_mem (which will
-call the relevant device specific unreg routine).
+This patch implements:
+- ib_alloc/free_indir_reg_list() routines
+- ib_create_mr() extension for IB_MR_INDIRECT_REG
+- ib_post_send() extension for IB_WR_REG_INDIR_MR
+  and work completion of IB_WC_REG_INDIR_MR
+- Expose mlx5 indirect registration device capabilities
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Adir Lev <adirl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.h     |   23 ++--
- drivers/infiniband/ulp/iser/iser_initiator.c |   11 +-
- drivers/infiniband/ulp/iser/iser_memory.c    |  210 ++++++++++++--------------
- 3 files changed, 113 insertions(+), 131 deletions(-)
+ drivers/infiniband/hw/mlx5/cq.c      |    2 +
+ drivers/infiniband/hw/mlx5/main.c    |    4 +
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |   19 ++++++
+ drivers/infiniband/hw/mlx5/mr.c      |   66 +++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/qp.c      |  106 ++++++++++++++++++++++++++++++++++
+ 5 files changed, 197 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
-index 758e56b..9365343 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.h
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
-@@ -239,6 +239,7 @@ struct iser_data_buf {
- struct iser_device;
- struct iscsi_iser_task;
- struct iscsi_endpoint;
-+struct iser_reg_resources;
+diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
+index 2ee6b10..43495c6 100644
+--- a/drivers/infiniband/hw/mlx5/cq.c
++++ b/drivers/infiniband/hw/mlx5/cq.c
+@@ -111,6 +111,8 @@ static enum ib_wc_opcode get_umr_comp(struct mlx5_ib_wq *wq, int idx)
+ 	case IB_WR_FAST_REG_MR:
+ 		return IB_WC_FAST_REG_MR;
  
- /**
-  * struct iser_mem_reg - iSER memory registration info
-@@ -329,8 +330,8 @@ struct iser_comp {
-  *
-  * @alloc_reg_res:     Allocate registration resources
-  * @free_reg_res:      Free registration resources
-- * @reg_rdma_mem:      Register memory buffers
-- * @unreg_rdma_mem:    Un-register memory buffers
-+ * @fast_reg_mem:      Register memory buffers
-+ * @unreg_mem:         Un-register memory buffers
-  * @reg_desc_get:      Get a registration descriptor for pool
-  * @reg_desc_put:      Get a registration descriptor to pool
-  */
-@@ -338,10 +339,12 @@ struct iser_reg_ops {
- 	int            (*alloc_reg_res)(struct ib_conn *ib_conn,
- 					unsigned cmds_max);
- 	void           (*free_reg_res)(struct ib_conn *ib_conn);
--	int            (*reg_rdma_mem)(struct iscsi_iser_task *iser_task,
--				       enum iser_data_dir cmd_dir);
--	void           (*unreg_rdma_mem)(struct iscsi_iser_task *iser_task,
--					 enum iser_data_dir cmd_dir);
-+	int            (*reg_mem)(struct iscsi_iser_task *iser_task,
-+				  struct iser_data_buf *mem,
-+				  struct iser_reg_resources *rsc,
-+				  struct iser_mem_reg *reg);
-+	void           (*unreg_mem)(struct iscsi_iser_task *iser_task,
-+				    enum iser_data_dir cmd_dir);
- 	struct iser_fr_desc * (*reg_desc_get)(struct ib_conn *ib_conn);
- 	void           (*reg_desc_put)(struct ib_conn *ib_conn,
- 				       struct iser_fr_desc *desc);
-@@ -620,10 +623,10 @@ void iser_finalize_rdma_unaligned_sg(struct iscsi_iser_task *iser_task,
- 				     struct iser_data_buf *mem,
- 				     enum iser_data_dir cmd_dir);
++	case IB_WR_REG_INDIR_MR:
++		return IB_WC_REG_INDIR_MR;
+ 	default:
+ 		pr_warn("unknown completion status\n");
+ 		return 0;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 582bfd9..47a3d76 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -107,6 +107,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	if (flags & MLX5_DEV_CAP_FLAG_XRC)
+ 		props->device_cap_flags |= IB_DEVICE_XRC;
+ 	props->device_cap_flags |= IB_DEVICE_MEM_MGT_EXTENSIONS;
++	props->device_cap_flags |= IB_DEVICE_INDIR_REGISTRATION;
+ 	if (flags & MLX5_DEV_CAP_FLAG_SIG_HAND_OVER) {
+ 		props->device_cap_flags |= IB_DEVICE_SIGNATURE_HANDOVER;
+ 		/* At this stage no support for signature handover */
+@@ -145,6 +146,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	props->max_res_rd_atom	   = props->max_qp_rd_atom * props->max_qp;
+ 	props->max_srq_sge	   = max_rq_sg - 1;
+ 	props->max_fast_reg_page_list_len = (unsigned int)-1;
++	props->max_indir_reg_mr_list_len = 1 << gen->log_max_klm_list_size;
+ 	props->local_ca_ack_delay  = gen->local_ca_ack_delay;
+ 	props->atomic_cap	   = IB_ATOMIC_NONE;
+ 	props->masked_atomic_cap   = IB_ATOMIC_NONE;
+@@ -1302,6 +1304,8 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 	dev->ib_dev.free_fast_reg_page_list  = mlx5_ib_free_fast_reg_page_list;
+ 	dev->ib_dev.check_mr_status	= mlx5_ib_check_mr_status;
+ 	dev->ib_dev.get_port_immutable  = mlx5_port_immutable;
++	dev->ib_dev.alloc_indir_reg_list = mlx5_ib_alloc_indir_reg_list;
++	dev->ib_dev.free_indir_reg_list  = mlx5_ib_free_indir_reg_list;
  
--int  iser_reg_rdma_mem_fmr(struct iscsi_iser_task *task,
--			   enum iser_data_dir cmd_dir);
--int  iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *task,
--			       enum iser_data_dir cmd_dir);
-+int iser_reg_rdma_mem(struct iscsi_iser_task *task,
-+		      enum iser_data_dir dir);
-+void iser_unreg_rdma_mem(struct iscsi_iser_task *task,
-+			 enum iser_data_dir dir);
+ 	mlx5_ib_internal_query_odp_caps(dev);
  
- int  iser_connect(struct iser_conn *iser_conn,
- 		  struct sockaddr *src_addr,
-diff --git a/drivers/infiniband/ulp/iser/iser_initiator.c b/drivers/infiniband/ulp/iser/iser_initiator.c
-index 56c1efc..9382f94 100644
---- a/drivers/infiniband/ulp/iser/iser_initiator.c
-+++ b/drivers/infiniband/ulp/iser/iser_initiator.c
-@@ -49,7 +49,6 @@ static int iser_prepare_read_cmd(struct iscsi_task *task)
- 
- {
- 	struct iscsi_iser_task *iser_task = task->dd_data;
--	struct iser_device  *device = iser_task->iser_conn->ib_conn.device;
- 	struct iser_mem_reg *mem_reg;
- 	int err;
- 	struct iser_hdr *hdr = &iser_task->desc.iser_header;
-@@ -73,7 +72,7 @@ static int iser_prepare_read_cmd(struct iscsi_task *task)
- 			return err;
- 	}
- 
--	err = device->reg_ops->reg_rdma_mem(iser_task, ISER_DIR_IN);
-+	err = iser_reg_rdma_mem(iser_task, ISER_DIR_IN);
- 	if (err) {
- 		iser_err("Failed to set up Data-IN RDMA\n");
- 		return err;
-@@ -103,7 +102,6 @@ iser_prepare_write_cmd(struct iscsi_task *task,
- 		       unsigned int edtl)
- {
- 	struct iscsi_iser_task *iser_task = task->dd_data;
--	struct iser_device  *device = iser_task->iser_conn->ib_conn.device;
- 	struct iser_mem_reg *mem_reg;
- 	int err;
- 	struct iser_hdr *hdr = &iser_task->desc.iser_header;
-@@ -128,7 +126,7 @@ iser_prepare_write_cmd(struct iscsi_task *task,
- 			return err;
- 	}
- 
--	err = device->reg_ops->reg_rdma_mem(iser_task, ISER_DIR_OUT);
-+	err = iser_reg_rdma_mem(iser_task, ISER_DIR_OUT);
- 	if (err != 0) {
- 		iser_err("Failed to register write cmd RDMA mem\n");
- 		return err;
-@@ -666,7 +664,6 @@ void iser_task_rdma_init(struct iscsi_iser_task *iser_task)
- 
- void iser_task_rdma_finalize(struct iscsi_iser_task *iser_task)
- {
--	struct iser_device *device = iser_task->iser_conn->ib_conn.device;
- 	int is_rdma_data_aligned = 1;
- 	int is_rdma_prot_aligned = 1;
- 	int prot_count = scsi_prot_sg_count(iser_task->sc);
-@@ -703,7 +700,7 @@ void iser_task_rdma_finalize(struct iscsi_iser_task *iser_task)
- 	}
- 
- 	if (iser_task->dir[ISER_DIR_IN]) {
--		device->reg_ops->unreg_rdma_mem(iser_task, ISER_DIR_IN);
-+		iser_unreg_rdma_mem(iser_task, ISER_DIR_IN);
- 		if (is_rdma_data_aligned)
- 			iser_dma_unmap_task_data(iser_task,
- 						 &iser_task->data[ISER_DIR_IN],
-@@ -715,7 +712,7 @@ void iser_task_rdma_finalize(struct iscsi_iser_task *iser_task)
- 	}
- 
- 	if (iser_task->dir[ISER_DIR_OUT]) {
--		device->reg_ops->unreg_rdma_mem(iser_task, ISER_DIR_OUT);
-+		iser_unreg_rdma_mem(iser_task, ISER_DIR_OUT);
- 		if (is_rdma_data_aligned)
- 			iser_dma_unmap_task_data(iser_task,
- 						 &iser_task->data[ISER_DIR_OUT],
-diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index 7ee7f44..b1261d5 100644
---- a/drivers/infiniband/ulp/iser/iser_memory.c
-+++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -38,12 +38,22 @@
- #include <linux/scatterlist.h>
- 
- #include "iscsi_iser.h"
-+static
-+int iser_fast_reg_fmr(struct iscsi_iser_task *iser_task,
-+		      struct iser_data_buf *mem,
-+		      struct iser_reg_resources *rsc,
-+		      struct iser_mem_reg *mem_reg);
-+static
-+int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
-+		     struct iser_data_buf *mem,
-+		     struct iser_reg_resources *rsc,
-+		     struct iser_mem_reg *mem_reg);
- 
- static struct iser_reg_ops fastreg_ops = {
- 	.alloc_reg_res	= iser_alloc_fastreg_pool,
- 	.free_reg_res	= iser_free_fastreg_pool,
--	.reg_rdma_mem	= iser_reg_rdma_mem_fastreg,
--	.unreg_rdma_mem	= iser_unreg_mem_fastreg,
-+	.reg_mem	= iser_fast_reg_mr,
-+	.unreg_mem	= iser_unreg_mem_fastreg,
- 	.reg_desc_get	= iser_reg_desc_get_fr,
- 	.reg_desc_put	= iser_reg_desc_put_fr,
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index d8e07c1..68d8865 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -334,6 +334,13 @@ struct mlx5_ib_fast_reg_page_list {
+ 	dma_addr_t			map;
  };
-@@ -51,8 +61,8 @@ static struct iser_reg_ops fastreg_ops = {
- static struct iser_reg_ops fmr_ops = {
- 	.alloc_reg_res	= iser_alloc_fmr_pool,
- 	.free_reg_res	= iser_free_fmr_pool,
--	.reg_rdma_mem	= iser_reg_rdma_mem_fmr,
--	.unreg_rdma_mem	= iser_unreg_mem_fmr,
-+	.reg_mem	= iser_fast_reg_fmr,
-+	.unreg_mem	= iser_unreg_mem_fmr,
- 	.reg_desc_get	= iser_reg_desc_get_fmr,
- 	.reg_desc_put	= iser_reg_desc_put_fmr,
- };
-@@ -574,62 +584,6 @@ void iser_unreg_mem_fastreg(struct iscsi_iser_task *iser_task,
- 	reg->mem_h = NULL;
+ 
++struct mlx5_ib_indir_reg_list {
++	struct ib_indir_reg_list        ib_irl;
++	void                           *mapped_ilist;
++	struct mlx5_klm                *klms;
++	dma_addr_t                      map;
++};
++
+ struct mlx5_ib_umr_context {
+ 	enum ib_wc_status	status;
+ 	struct completion	done;
+@@ -508,6 +515,12 @@ static inline struct mlx5_ib_fast_reg_page_list *to_mfrpl(struct ib_fast_reg_pag
+ 	return container_of(ibfrpl, struct mlx5_ib_fast_reg_page_list, ibfrpl);
  }
  
--/**
-- * iser_reg_rdma_mem_fmr - Registers memory intended for RDMA,
-- * using FMR (if possible) obtaining rkey and va
-- *
-- * returns 0 on success, errno code on failure
-- */
--int iser_reg_rdma_mem_fmr(struct iscsi_iser_task *iser_task,
--			  enum iser_data_dir cmd_dir)
--{
--	struct ib_conn *ib_conn = &iser_task->iser_conn->ib_conn;
--	struct iser_device   *device = ib_conn->device;
--	struct ib_device     *ibdev = device->ib_device;
--	struct iser_data_buf *mem = &iser_task->data[cmd_dir];
--	struct iser_mem_reg *mem_reg;
--	int aligned_len;
--	int err;
--	int i;
--
--	mem_reg = &iser_task->rdma_reg[cmd_dir];
--
--	aligned_len = iser_data_buf_aligned_len(mem, ibdev);
--	if (aligned_len != mem->dma_nents) {
--		err = fall_to_bounce_buf(iser_task, mem, cmd_dir);
--		if (err) {
--			iser_err("failed to allocate bounce buffer\n");
--			return err;
--		}
--	}
--
--	/* if there a single dma entry, FMR is not needed */
--	if (mem->dma_nents == 1) {
--		return iser_reg_dma(device, mem, mem_reg);
--	} else { /* use FMR for multiple dma entries */
--		struct iser_fr_desc *desc;
--
--		desc = device->reg_ops->reg_desc_get(ib_conn);
--		err = iser_fast_reg_fmr(iser_task, mem, &desc->rsc, mem_reg);
--		if (err && err != -EAGAIN) {
--			iser_data_buf_dump(mem, ibdev);
--			iser_err("mem->dma_nents = %d (dlength = 0x%x)\n",
--				 mem->dma_nents,
--				 ntoh24(iser_task->desc.iscsi_header.dlength));
--			iser_err("page_vec: data_size = 0x%x, length = %d, offset = 0x%x\n",
--				 desc->rsc.page_vec->data_size,
--				 desc->rsc.page_vec->length,
--				 desc->rsc.page_vec->offset);
--			for (i = 0; i < desc->rsc.page_vec->length; i++)
--				iser_err("page_vec[%d] = 0x%llx\n", i,
--					 (unsigned long long)desc->rsc.page_vec->pages[i]);
--		}
--		if (err)
--			return err;
--	}
--	return 0;
--}
--
- static void
- iser_set_dif_domain(struct scsi_cmnd *sc, struct ib_sig_attrs *sig_attrs,
- 		    struct ib_sig_domain *domain)
-@@ -775,19 +729,12 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
- {
- 	struct ib_conn *ib_conn = &iser_task->iser_conn->ib_conn;
- 	struct iser_device *device = ib_conn->device;
--	struct ib_mr *mr;
--	struct ib_fast_reg_page_list *frpl;
-+	struct ib_mr *mr = rsc->mr;
-+	struct ib_fast_reg_page_list *frpl = rsc->frpl;
- 	struct ib_send_wr fastreg_wr, inv_wr;
- 	struct ib_send_wr *bad_wr, *wr = NULL;
- 	int ret, offset, size, plen;
++static inline struct mlx5_ib_indir_reg_list *
++to_mindir_list(struct ib_indir_reg_list *ib_irl)
++{
++	return container_of(ib_irl, struct mlx5_ib_indir_reg_list, ib_irl);
++}
++
+ struct mlx5_ib_ah {
+ 	struct ib_ah		ibah;
+ 	struct mlx5_av		av;
+@@ -578,6 +591,12 @@ struct ib_mr *mlx5_ib_alloc_fast_reg_mr(struct ib_pd *pd,
+ struct ib_fast_reg_page_list *mlx5_ib_alloc_fast_reg_page_list(struct ib_device *ibdev,
+ 							       int page_list_len);
+ void mlx5_ib_free_fast_reg_page_list(struct ib_fast_reg_page_list *page_list);
++
++struct ib_indir_reg_list *
++mlx5_ib_alloc_indir_reg_list(struct ib_device *device,
++			     unsigned int max_indir_list_len);
++void mlx5_ib_free_indir_reg_list(struct ib_indir_reg_list *indir_list);
++
+ struct ib_fmr *mlx5_ib_fmr_alloc(struct ib_pd *pd, int acc,
+ 				 struct ib_fmr_attr *fmr_attr);
+ int mlx5_ib_map_phys_fmr(struct ib_fmr *ibfmr, u64 *page_list,
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index 04b6787..25c7583 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -1300,6 +1300,9 @@ struct ib_mr *mlx5_ib_create_mr(struct ib_pd *pd,
+ 		++mr->sig->sigerr_count;
+ 	}
  
--	/* if there a single dma entry, dma mr suffices */
--	if (mem->dma_nents == 1)
--		return iser_reg_dma(device, mem, reg);
--
--	mr = rsc->mr;
--	frpl = rsc->frpl;
--
- 	plen = iser_sg_to_page_vec(mem, device->ib_device, frpl->page_list,
- 				   &offset, &size);
- 	if (plen * SIZE_4K < size) {
-@@ -834,78 +781,113 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
++	if (mr_init_attr->flags & IB_MR_INDIRECT_REG)
++		access_mode = MLX5_ACCESS_MODE_KLM;
++
+ 	in->seg.flags = MLX5_PERM_UMR_EN | access_mode;
+ 	err = mlx5_core_create_mkey(dev->mdev, &mr->mmr, in, sizeof(*in),
+ 				    NULL, NULL, NULL);
+@@ -1459,3 +1462,66 @@ int mlx5_ib_check_mr_status(struct ib_mr *ibmr, u32 check_mask,
+ done:
  	return ret;
  }
++
++struct ib_indir_reg_list *
++mlx5_ib_alloc_indir_reg_list(struct ib_device *device,
++			     unsigned int max_indir_list_len)
++{
++	struct device *ddev = device->dma_device;
++	struct mlx5_ib_indir_reg_list *mirl = NULL;
++	int dsize;
++	int err;
++
++	mirl = kzalloc(sizeof(*mirl), GFP_KERNEL);
++	if (!mirl)
++		return ERR_PTR(-ENOMEM);
++
++	mirl->ib_irl.sg_list = kcalloc(max_indir_list_len,
++				       sizeof(*mirl->ib_irl.sg_list),
++				       GFP_KERNEL);
++	if (!mirl->ib_irl.sg_list) {
++		err = -ENOMEM;
++		goto err_sg_list;
++	}
++
++	dsize = sizeof(*mirl->klms) * max_indir_list_len;
++	dsize += max_t(int, MLX5_UMR_ALIGN - ARCH_KMALLOC_MINALIGN, 0);
++	mirl->mapped_ilist = kzalloc(dsize, GFP_KERNEL);
++	if (!mirl->mapped_ilist) {
++		err = -ENOMEM;
++		goto err_mapped_list;
++	}
++
++	mirl->klms = (void *)ALIGN((uintptr_t)mirl->mapped_ilist,
++				   MLX5_UMR_ALIGN);
++	mirl->map = dma_map_single(ddev, mirl->klms,
++				   dsize, DMA_TO_DEVICE);
++	if (dma_mapping_error(ddev, mirl->map)) {
++		err = -ENOMEM;
++		goto err_dma_map;
++	}
++
++	return &mirl->ib_irl;
++err_dma_map:
++	kfree(mirl->mapped_ilist);
++err_mapped_list:
++	kfree(mirl->ib_irl.sg_list);
++err_sg_list:
++	kfree(mirl);
++
++	return ERR_PTR(err);
++}
++
++void
++mlx5_ib_free_indir_reg_list(struct ib_indir_reg_list *indir_list)
++{
++	struct mlx5_ib_indir_reg_list *mirl = to_mindir_list(indir_list);
++	struct device *ddev = indir_list->device->dma_device;
++	int dsize;
++
++	dsize = sizeof(*mirl->klms) * indir_list->max_indir_list_len;
++	dma_unmap_single(ddev, mirl->map, dsize, DMA_TO_DEVICE);
++	kfree(mirl->mapped_ilist);
++	kfree(mirl->ib_irl.sg_list);
++	kfree(mirl);
++}
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index d35f62d..64b969b 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -65,6 +65,7 @@ static const u32 mlx5_ib_opcode[] = {
+ 	[IB_WR_SEND_WITH_INV]			= MLX5_OPCODE_SEND_INVAL,
+ 	[IB_WR_LOCAL_INV]			= MLX5_OPCODE_UMR,
+ 	[IB_WR_FAST_REG_MR]			= MLX5_OPCODE_UMR,
++	[IB_WR_REG_INDIR_MR]			= MLX5_OPCODE_UMR,
+ 	[IB_WR_MASKED_ATOMIC_CMP_AND_SWP]	= MLX5_OPCODE_ATOMIC_MASKED_CS,
+ 	[IB_WR_MASKED_ATOMIC_FETCH_AND_ADD]	= MLX5_OPCODE_ATOMIC_MASKED_FA,
+ 	[MLX5_IB_WR_UMR]			= MLX5_OPCODE_UMR,
+@@ -2477,6 +2478,98 @@ static int set_frwr_li_wr(void **seg, struct ib_send_wr *wr, int *size,
+ 	return 0;
+ }
  
--/**
-- * iser_reg_rdma_mem_fastreg - Registers memory intended for RDMA,
-- * using Fast Registration WR (if possible) obtaining rkey and va
-- *
-- * returns 0 on success, errno code on failure
-- */
--int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
--			      enum iser_data_dir cmd_dir)
-+static int
-+iser_handle_unaligned_buf(struct iscsi_iser_task *task,
-+			  struct iser_data_buf *mem,
-+			  enum iser_data_dir dir)
- {
--	struct ib_conn *ib_conn = &iser_task->iser_conn->ib_conn;
--	struct iser_device *device = ib_conn->device;
--	struct ib_device *ibdev = device->ib_device;
--	struct iser_data_buf *mem = &iser_task->data[cmd_dir];
--	struct iser_mem_reg *mem_reg = &iser_task->rdma_reg[cmd_dir];
--	struct iser_fr_desc *desc = NULL;
-+	struct iser_conn *iser_conn = task->iser_conn;
-+	struct iser_device *device = iser_conn->ib_conn.device;
- 	int err, aligned_len;
- 
--	aligned_len = iser_data_buf_aligned_len(mem, ibdev);
-+	aligned_len = iser_data_buf_aligned_len(mem, device->ib_device);
- 	if (aligned_len != mem->dma_nents) {
--		err = fall_to_bounce_buf(iser_task, mem, cmd_dir);
--		if (err) {
--			iser_err("failed to allocate bounce buffer\n");
-+		err = fall_to_bounce_buf(task, mem, dir);
-+		if (err)
- 			return err;
--		}
- 	}
- 
++static void set_indir_mkey_segment(struct mlx5_mkey_seg *seg,
++				   struct ib_send_wr *wr, u32 pdn)
++{
++	u32 list_len = wr->wr.indir_reg.indir_list_len;
++
++	memset(seg, 0, sizeof(*seg));
++
++	seg->flags = get_umr_flags(wr->wr.indir_reg.access_flags) |
++				   MLX5_ACCESS_MODE_KLM;
++	seg->qpn_mkey7_0 = cpu_to_be32(0xffffff00 |
++			   mlx5_mkey_variant(wr->wr.indir_reg.mkey));
++	seg->flags_pd = cpu_to_be32(MLX5_MKEY_REMOTE_INVAL | pdn);
++	seg->len = cpu_to_be64(wr->wr.indir_reg.length);
++	seg->start_addr = cpu_to_be64(wr->wr.indir_reg.iova_start);
++	seg->xlt_oct_size =
++		cpu_to_be32(be16_to_cpu(get_klm_octo(list_len * 2)));
++}
++
++static void set_indir_data_seg(struct ib_send_wr *wr, struct mlx5_ib_qp *qp,
++			       u32 pa_key, void **seg, int *size)
++{
++	struct mlx5_wqe_data_seg *data = *seg;
++	struct mlx5_ib_indir_reg_list *mirl;
++	struct ib_sge *sg_list = wr->wr.indir_reg.indir_list->sg_list;
++	u32 list_len = wr->wr.indir_reg.indir_list_len;
++	int i;
++
++	mirl = to_mindir_list(wr->wr.indir_reg.indir_list);
++	for (i = 0; i < list_len; i++) {
++		mirl->klms[i].va = cpu_to_be64(sg_list[i].addr);
++		mirl->klms[i].key = cpu_to_be32(sg_list[i].lkey);
++		mirl->klms[i].bcount = cpu_to_be32(sg_list[i].length);
++	}
++
++	data->byte_count = cpu_to_be32(ALIGN(sizeof(struct mlx5_klm) *
++				       list_len, 64));
++	data->lkey = cpu_to_be32(pa_key);
++	data->addr = cpu_to_be64(mirl->map);
++	*seg += sizeof(*data);
++	*size += sizeof(*data) / 16;
++}
++
++static void set_indir_umr_segment(struct mlx5_wqe_umr_ctrl_seg *umr,
++				  struct ib_send_wr *wr)
++{
++	u64 mask;
++	u32 list_len = wr->wr.indir_reg.indir_list_len;
++
++	memset(umr, 0, sizeof(*umr));
++
++	umr->flags = MLX5_UMR_CHECK_NOT_FREE;
++	umr->klm_octowords = get_klm_octo(list_len * 2);
++	mask = MLX5_MKEY_MASK_LEN		|
++		MLX5_MKEY_MASK_PAGE_SIZE	|
++		MLX5_MKEY_MASK_START_ADDR	|
++		MLX5_MKEY_MASK_EN_RINVAL	|
++		MLX5_MKEY_MASK_KEY		|
++		MLX5_MKEY_MASK_LR		|
++		MLX5_MKEY_MASK_LW		|
++		MLX5_MKEY_MASK_RR		|
++		MLX5_MKEY_MASK_RW		|
++		MLX5_MKEY_MASK_A		|
++		MLX5_MKEY_MASK_FREE;
++
++	umr->mkey_mask = cpu_to_be64(mask);
++}
++
++static int set_indir_reg_wr(struct ib_send_wr *wr, struct mlx5_ib_qp *qp,
++			    void **seg, int *size)
++{
++	struct mlx5_ib_pd *pd = get_pd(qp);
++
++	if (unlikely(wr->send_flags & IB_SEND_INLINE))
++		return -EINVAL;
++
++	set_indir_umr_segment(*seg, wr);
++	*seg += sizeof(struct mlx5_wqe_umr_ctrl_seg);
++	*size += sizeof(struct mlx5_wqe_umr_ctrl_seg) / 16;
++	if (unlikely(*seg == qp->sq.qend))
++		*seg = mlx5_get_send_wqe(qp, 0);
++
++	set_indir_mkey_segment(*seg, wr, pd->pdn);
++	*seg += sizeof(struct mlx5_mkey_seg);
++	*size += sizeof(struct mlx5_mkey_seg) / 16;
++	if (unlikely(*seg == qp->sq.qend))
++		*seg = mlx5_get_send_wqe(qp, 0);
++
++	set_indir_data_seg(wr, qp, pd->pa_lkey, seg, size);
++
 +	return 0;
 +}
 +
-+static int
-+iser_reg_prot_sg(struct iscsi_iser_task *task,
-+		 struct iser_data_buf *mem,
-+		 struct iser_fr_desc *desc,
-+		 struct iser_mem_reg *reg)
-+{
-+	struct iser_device *device = task->iser_conn->ib_conn.device;
-+
-+	if (mem->dma_nents == 1)
-+		return iser_reg_dma(device, mem, reg);
-+
-+	return device->reg_ops->reg_mem(task, mem, &desc->pi_ctx->rsc, reg);
-+}
-+
-+static int
-+iser_reg_data_sg(struct iscsi_iser_task *task,
-+		 struct iser_data_buf *mem,
-+		 struct iser_fr_desc *desc,
-+		 struct iser_mem_reg *reg)
-+{
-+	struct iser_device *device = task->iser_conn->ib_conn.device;
-+
-+	if (mem->dma_nents == 1)
-+		return iser_reg_dma(device, mem, reg);
-+
-+	return device->reg_ops->reg_mem(task, mem, &desc->rsc, reg);
-+}
-+
-+int iser_reg_rdma_mem(struct iscsi_iser_task *task,
-+		      enum iser_data_dir dir)
-+{
-+	struct ib_conn *ib_conn = &task->iser_conn->ib_conn;
-+	struct iser_device *device = ib_conn->device;
-+	struct iser_data_buf *mem = &task->data[dir];
-+	struct iser_mem_reg *reg = &task->rdma_reg[dir];
-+	struct iser_fr_desc *desc = NULL;
-+	int err;
-+
-+	err = iser_handle_unaligned_buf(task, mem, dir);
-+	if (unlikely(err))
-+		return err;
-+
- 	if (mem->dma_nents != 1 ||
--	    scsi_get_prot_op(iser_task->sc) != SCSI_PROT_NORMAL) {
-+	    scsi_get_prot_op(task->sc) != SCSI_PROT_NORMAL) {
- 		desc = device->reg_ops->reg_desc_get(ib_conn);
--		mem_reg->mem_h = desc;
-+		reg->mem_h = desc;
- 	}
+ static void dump_wqe(struct mlx5_ib_qp *qp, int idx, int size_16)
+ {
+ 	__be32 *p = NULL;
+@@ -2688,6 +2781,19 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 				num_sge = 0;
+ 				break;
  
--	err = iser_fast_reg_mr(iser_task, mem,
--			       desc ? &desc->rsc : NULL, mem_reg);
--	if (err)
-+	err = iser_reg_data_sg(task, mem, desc, reg);
-+	if (unlikely(err))
- 		goto err_reg;
- 
--	if (scsi_get_prot_op(iser_task->sc) != SCSI_PROT_NORMAL) {
-+	if (scsi_get_prot_op(task->sc) != SCSI_PROT_NORMAL) {
- 		struct iser_mem_reg prot_reg;
- 
- 		memset(&prot_reg, 0, sizeof(prot_reg));
--		if (scsi_prot_sg_count(iser_task->sc)) {
--			mem = &iser_task->prot[cmd_dir];
--			aligned_len = iser_data_buf_aligned_len(mem, ibdev);
--			if (aligned_len != mem->dma_nents) {
--				err = fall_to_bounce_buf(iser_task, mem,
--							 cmd_dir);
--				if (err) {
--					iser_err("failed to allocate bounce buffer\n");
--					return err;
--				}
--			}
-+		if (scsi_prot_sg_count(task->sc)) {
-+			mem = &task->prot[dir];
-+			err = iser_handle_unaligned_buf(task, mem, dir);
-+			if (unlikely(err))
-+				goto err_reg;
- 
--			err = iser_fast_reg_mr(iser_task, mem,
--					       &desc->pi_ctx->rsc, &prot_reg);
--			if (err)
-+			err = iser_reg_prot_sg(task, mem, desc, &prot_reg);
-+			if (unlikely(err))
- 				goto err_reg;
- 		}
- 
--		err = iser_reg_sig_mr(iser_task, desc->pi_ctx, mem_reg,
--				      &prot_reg, mem_reg);
--		if (err) {
--			iser_err("Failed to register signature mr\n");
--			return err;
--		}
-+		err = iser_reg_sig_mr(task, desc->pi_ctx, reg,
-+				      &prot_reg, reg);
-+		if (unlikely(err))
-+			goto err_reg;
++			case IB_WR_REG_INDIR_MR:
++				next_fence = MLX5_FENCE_MODE_INITIATOR_SMALL;
++				qp->sq.wr_data[idx] = IB_WR_REG_INDIR_MR;
++				ctrl->imm = cpu_to_be32(wr->wr.indir_reg.mkey);
++				err = set_indir_reg_wr(wr, qp, &seg, &size);
++				if (err) {
++					mlx5_ib_warn(dev, "Failed to set indir_reg wqe\n");
++					*bad_wr = wr;
++					goto out;
++				}
++				num_sge = 0;
++				break;
 +
- 		desc->pi_ctx->sig_protected = 1;
- 	}
- 
- 	return 0;
-+
- err_reg:
- 	if (desc)
- 		device->reg_ops->reg_desc_put(ib_conn, desc);
- 
- 	return err;
- }
-+
-+void iser_unreg_rdma_mem(struct iscsi_iser_task *task,
-+			 enum iser_data_dir dir)
-+{
-+	struct iser_device *device = task->iser_conn->ib_conn.device;
-+
-+	device->reg_ops->unreg_mem(task, dir);
-+}
+ 			case IB_WR_REG_SIG_MR:
+ 				qp->sq.wr_data[idx] = IB_WR_REG_SIG_MR;
+ 				mr = to_mmr(wr->wr.sig_handover.sig_mr);
 -- 
 1.7.1
 
