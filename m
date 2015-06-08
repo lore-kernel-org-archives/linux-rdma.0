@@ -1,159 +1,152 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V5 00/12] Move RoCE GID management to IB/Core
-Date: Mon,  8 Jun 2015 17:12:03 +0300
-Message-ID: <1433772735-22416-1-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next V5 02/12] IB/core: Add rwsem to allow reading device list or client list
+Date: Mon,  8 Jun 2015 17:12:05 +0300
+Message-ID: <1433772735-22416-3-git-send-email-matanb@mellanox.com>
+References: <1433772735-22416-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1433772735-22416-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-xCNTGe7nOvUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-xCNTGe7nOvUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Previously, every vendor implemented its net device notifiers in its own
-driver. This introduces a huge code duplication as figuring
-whether an event is related to the vendor's net device in the
-various cases (bonding, vlan or any other upper device) is
-similar for all vendors. In the future, when multiple GID types will
-be supported, this code duplication would have gotten even worse.
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Therefore, we decided moving this into a common core core.
-roce_gid_table and roce_gid_mgmt were created in order to store and
-manage the new GID table, by filling it when getting the related events.
-Vendors now only have to implement modify_gid and get_netdev IB
-device calls, which are truly unique for each vendor.
-roce_gid_table is implemented as IB client that manages the GID
-table of the IB device. Each GID is associated with a GID type and a
-network device (which is mandatory for management of the GID table).
-The GID table is populated by using roce_gid_mgmt. roce_gid_mgmt
-registers to net device/inet/inet events and calls roce_gid_table
-in order to populate the GID table accordingly.
+Currently the RDMA subsystem's device list and client list are protected by
+a single mutex. This prevents adding user-facing APIs that iterate these
+lists, since using them may cause a deadlock. The patch attempts to solve
+this problem by adding a read-write semaphore to protect the lists. Readers
+now don't need the mutex, and are safe just by read-locking the semaphore.
 
-Patch 0001 creates a new infrastructure for storing GIDs and their attributes
-in IB/core. This infrastructure support lock-less read of GIDs using a
-seqcounter. The data structure is initialized only for RoCE ports.
-Every gid has meta information describes its related net device.
+The ib_register_device, ib_register_client, ib_unregister_device, and
+ib_unregister_client functions are modified to lock the semaphore for write
+during their respective list modification. Also, in order to make sure
+client callbacks are called only between add() and remove() calls, the code
+is changed to only add items to the lists after the add() calls and remove
+from the lists before the remove() calls.
 
-Patch 0002 replaces the locking schema for IB devices. Previously, device_mutex
-was used in order to lock the devices/clients list against every modification.
-However, downstream patches add new functions which iterate over the device
-list. Those functions could be executed for a workqueue contexts on behalf
-of IB clients. Thus, when a client is removed, we need to wait for all works
-to be finished. Since a client removal was done in device_mutex lock, we'll
-be in fact waiting for a work which requires to lock the device_mutex itself
-(=DEADLOCK). In order to mitigate this problem, we use rw semaphore to allow
-multiple readers. We use a mutex in order to solve races between adding
-(or removing) a client and a device simultaneously, which could have resulted
-in calling client->add (or client->remove) twice for the same device and client.
-This patch was sent as part of "Add network namespace support in the RDMA-CM"
-series.
+This patch attempts to solve a similar need [1] that was seen in the RoCE
+v2 patch series.
 
-Patches 0003, 0005 and 0007 add population of this table for various cases
-based on net device events. We always enable default gids for an active
-device (an active device is defined here as a device that doesn't have
-a bonding master or is the current active slave). This is done in order
-to allow loopback traffic. Patch 0007 adds proper bonding support -
-only the active slaves retain their master's IP based gids and default gids.
-Patch 0006 adds the required information for the bonding case, while patch
-0004 adds the required address for default GID.
+This patch is also a part of [2] "Add network namespace support in
+RDMA-CM" patch series.
 
-The rest of the patches add support for ocrdma and mlx4 devices.
+[1] http://www.spinics.net/lists/linux-rdma/msg24733.html
+[2] http://permalink.gmane.org/gmane.linux.drivers.rdma/25588
 
-This series is rebased over Doug's k.o/for-4.2 branch.
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/device.c | 39 ++++++++++++++++++++++++++++-----------
+ 1 file changed, 28 insertions(+), 11 deletions(-)
 
-Thanks,
-Devesh, Somnath, Moni and Matan
-
-Changes from V4:
-(1) Remove any API changes.
-(2) Fixed a bug regarding bonding upper devices.
-(3) Rebased ontop of Doug's k.o/for-4.2.
-
-Changes from V3:
-(1) Remove RoCE V2 functionality (it will be sent at later patchset).
-(2) Instead of removing qp_attr_mask flags, reserve them.
-(3) Remove the kref from IB devices in favor of rwsem.
-(4) Change the name of roce_gid_cache to roce_gid_table.
-(5) Fix a race when roce_gid_table is free'd while getting events.
-(6) Remove the roce_gid_cache active/inactive flag/API.
-
-Changes from V2:
-(1) When creating multiple vlans over an interface,
-    only the last created vlan's GID was populated in the table
-    (regression from V2).
-(2) Inactive slave of bonding sometimes lost GIDs related to IPs
-    that were directly applied to it.
-(3) Memory leak in mlx4
-(4) roce_gid_cache now calls modify_gid with zgid in order to cause
-    the provider to delete all the information it allocated for those
-    GIDs.
-(4) A mlx4 patch didn't compile and a downstream patch fixed it.
-(5) cma_configfs should depend on both address translation and configfs.
-(6) ocrdma driver redefined zgid.
-(7) Added event information for NETDEV_CHANGEUPPER event.
-
-Changes from V1:
-(1) Addressed Shachar and Haggai's comments
-(2) Fixed multicast support
-(3) Generalized bonding support
-(4) Added default GID after the IB device's net device was removed from bonding
-(5) Fixed bugs in mlx4 implementation regarding multicast
-(6) Fixed bugs in mlx4 when using XRC QPs after this patchset was applied
-(7) Fixed bug when the RoCE gid cache didn't exist
-(8) Moved the bonding's DRV macros to a private header
-(9) Support non-configfs configurations
-
-Haggai Eran (1):
-  IB/core: Add rwsem to allow reading device list or client list
-
-Matan Barak (7):
-  IB/core: Add RoCE GID table
-  IB/core: Add RoCE GID population
-  net/ipv6: Export addrconf_ifid_eui48
-  IB/core: Add default GID for RoCE GID table
-  net: Add info for NETDEV_CHANGEUPPER event
-  IB/core: Add RoCE table bonding support
-  IB/core: ib_cache routines should use roce_gid_table when needed
-
-Moni Shoua (3):
-  net/mlx4: Postpone the registration of net_device
-  IB/mlx4: Implement ib_device callbacks
-  IB/mlx4: Replace mechanism for RoCE GID management
-
-Somnath Kotur (1):
-  RDMA/ocrdma: Changes in driver to incorporate the moving of GID Table
-    mgmt to IB/Core.
-
- drivers/infiniband/core/Makefile             |   3 +-
- drivers/infiniband/core/cache.c              | 210 +++++--
- drivers/infiniband/core/core_priv.h          |  61 +++
- drivers/infiniband/core/device.c             | 133 ++++-
- drivers/infiniband/core/roce_gid_mgmt.c      | 781 +++++++++++++++++++++++++++
- drivers/infiniband/core/roce_gid_table.c     | 656 ++++++++++++++++++++++
- drivers/infiniband/hw/mlx4/ah.c              |   2 +-
- drivers/infiniband/hw/mlx4/main.c            | 713 ++++++++----------------
- drivers/infiniband/hw/mlx4/mlx4_ib.h         |  21 +-
- drivers/infiniband/hw/mlx4/qp.c              |  10 +-
- drivers/infiniband/hw/ocrdma/ocrdma.h        |  10 +
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c     |   3 +
- drivers/infiniband/hw/ocrdma/ocrdma_main.c   | 233 +-------
- drivers/infiniband/hw/ocrdma/ocrdma_sli.h    |  13 +
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |  31 +-
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.h  |   4 +
- drivers/net/bonding/bond_options.c           |  13 -
- drivers/net/ethernet/mellanox/mlx4/en_main.c |  36 +-
- drivers/net/ethernet/mellanox/mlx4/intf.c    |   3 +
- include/linux/mlx4/device.h                  |   3 +-
- include/linux/mlx4/driver.h                  |   1 +
- include/linux/netdevice.h                    |  14 +
- include/net/addrconf.h                       |  31 ++
- include/net/bonding.h                        |   7 +
- include/rdma/ib_addr.h                       |   2 +-
- include/rdma/ib_verbs.h                      |  76 ++-
- net/core/dev.c                               |  12 +-
- net/ipv6/addrconf.c                          |  31 --
- 28 files changed, 2253 insertions(+), 860 deletions(-)
- create mode 100644 drivers/infiniband/core/roce_gid_mgmt.c
- create mode 100644 drivers/infiniband/core/roce_gid_table.c
-
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 8d07c12..7e83f0d 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -55,17 +55,24 @@ struct ib_client_data {
+ struct workqueue_struct *ib_wq;
+ EXPORT_SYMBOL_GPL(ib_wq);
+ 
++/* The device_list and client_list contain devices and clients after their
++ * registration has completed, and the devices and clients are removed
++ * during unregistration. */
+ static LIST_HEAD(device_list);
+ static LIST_HEAD(client_list);
+ 
+ /*
+- * device_mutex protects access to both device_list and client_list.
+- * There's no real point to using multiple locks or something fancier
+- * like an rwsem: we always access both lists, and we're always
+- * modifying one list or the other list.  In any case this is not a
+- * hot path so there's no point in trying to optimize.
++ * device_mutex and lists_rwsem protect access to both device_list and
++ * client_list.  device_mutex protects writer access by device and client
++ * registration / de-registration.  lists_rwsem protects reader access to
++ * these lists.  Iterators of these lists must lock it for read, while updates
++ * to the lists must be done with a write lock. A special case is when the
++ * device_mutex is locked. In this case locking the lists for read access is
++ * not necessary as the device_mutex implies it.
+  */
+ static DEFINE_MUTEX(device_mutex);
++static DECLARE_RWSEM(lists_rwsem);
++
+ 
+ static int ib_device_check_mandatory(struct ib_device *device)
+ {
+@@ -294,8 +301,6 @@ int ib_register_device(struct ib_device *device,
+ 		goto out;
+ 	}
+ 
+-	list_add_tail(&device->core_list, &device_list);
+-
+ 	device->reg_state = IB_DEV_REGISTERED;
+ 
+ 	{
+@@ -306,6 +311,10 @@ int ib_register_device(struct ib_device *device,
+ 				client->add(device);
+ 	}
+ 
++	down_write(&lists_rwsem);
++	list_add_tail(&device->core_list, &device_list);
++	up_write(&lists_rwsem);
++
+  out:
+ 	mutex_unlock(&device_mutex);
+ 	return ret;
+@@ -326,12 +335,14 @@ void ib_unregister_device(struct ib_device *device)
+ 
+ 	mutex_lock(&device_mutex);
+ 
++	down_write(&lists_rwsem);
++	list_del(&device->core_list);
++	up_write(&lists_rwsem);
++
+ 	list_for_each_entry_reverse(client, &client_list, list)
+ 		if (client->remove)
+ 			client->remove(device);
+ 
+-	list_del(&device->core_list);
+-
+ 	mutex_unlock(&device_mutex);
+ 
+ 	ib_device_unregister_sysfs(device);
+@@ -364,11 +375,14 @@ int ib_register_client(struct ib_client *client)
+ 
+ 	mutex_lock(&device_mutex);
+ 
+-	list_add_tail(&client->list, &client_list);
+ 	list_for_each_entry(device, &device_list, core_list)
+ 		if (client->add && !add_client_context(device, client))
+ 			client->add(device);
+ 
++	down_write(&lists_rwsem);
++	list_add_tail(&client->list, &client_list);
++	up_write(&lists_rwsem);
++
+ 	mutex_unlock(&device_mutex);
+ 
+ 	return 0;
+@@ -391,6 +405,10 @@ void ib_unregister_client(struct ib_client *client)
+ 
+ 	mutex_lock(&device_mutex);
+ 
++	down_write(&lists_rwsem);
++	list_del(&client->list);
++	up_write(&lists_rwsem);
++
+ 	list_for_each_entry(device, &device_list, core_list) {
+ 		if (client->remove)
+ 			client->remove(device);
+@@ -403,7 +421,6 @@ void ib_unregister_client(struct ib_client *client)
+ 			}
+ 		spin_unlock_irqrestore(&device->client_data_lock, flags);
+ 	}
+-	list_del(&client->list);
+ 
+ 	mutex_unlock(&device_mutex);
+ }
 -- 
 2.1.0
 
