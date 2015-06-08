@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 04/11] IB/iser: Remove dead code in fmr_pool alloc/free
-Date: Mon,  8 Jun 2015 16:15:16 +0300
-Message-ID: <1433769323-790-5-git-send-email-sagig@mellanox.com>
+Subject: [PATCH 01/11] IB/iser: Remove an unneeded print for unaligned memory
+Date: Mon,  8 Jun 2015 16:15:13 +0300
+Message-ID: <1433769323-790-2-git-send-email-sagig@mellanox.com>
 References: <1433769323-790-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1433769323-790-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,66 +10,79 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In the past the we always tried to allocate an fmr_pool
-and if it failed on ENOSYS (not supported) then we continued
-with dma mr. This is not the case anymore and if we tried to
-allocate an fmr_pool then it is supported and we expect to succeed.
-
-Also, the check if fmr_pool is allocated when free is called is
-redundant as well as we are guaranteed it exists.
+We can do it in iser_aligned_data_len instead and
+it will save us an argument that is passed to
+fall_to_counce_buf just for the print.
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iser_verbs.c |   26 ++++++++++----------------
- 1 files changed, 10 insertions(+), 16 deletions(-)
+ drivers/infiniband/ulp/iser/iser_memory.c |   20 +++++++++-----------
+ 1 files changed, 9 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index e001346..2f99f95 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -241,22 +241,18 @@ int iser_create_fmr_pool(struct ib_conn *ib_conn, unsigned cmds_max)
- 				    IB_ACCESS_REMOTE_READ);
- 
- 	ib_conn->fmr.pool = ib_create_fmr_pool(device->pd, &params);
--	if (!IS_ERR(ib_conn->fmr.pool))
--		return 0;
-+	if (IS_ERR(ib_conn->fmr.pool)) {
-+		ret = PTR_ERR(ib_conn->fmr.pool);
-+		iser_err("FMR allocation failed, err %d\n", ret);
-+		goto err;
-+	}
+diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
+index f0cdc96..b6889f6 100644
+--- a/drivers/infiniband/ulp/iser/iser_memory.c
++++ b/drivers/infiniband/ulp/iser/iser_memory.c
+@@ -330,8 +330,11 @@ static int iser_data_buf_aligned_len(struct iser_data_buf *data,
+ 			break;
+ 	}
+ 	ret_len = (next_sg) ? i : i+1;
+-	iser_dbg("Found %d aligned entries out of %d in sg:0x%p\n",
+-		 ret_len, data->dma_nents, data);
 +
-+	return 0;
- 
--	/* no FMR => no need for page_vec */
-+err:
- 	kfree(ib_conn->fmr.page_vec);
- 	ib_conn->fmr.page_vec = NULL;
--
--	ret = PTR_ERR(ib_conn->fmr.pool);
--	ib_conn->fmr.pool = NULL;
--	if (ret != -ENOSYS) {
--		iser_err("FMR allocation failed, err %d\n", ret);
--		return ret;
--	} else {
--		iser_warn("FMRs are not supported, using unaligned mode\n");
--		return 0;
--	}
-+	return ret;
++	if (unlikely(ret_len != data->dma_nents))
++		iser_warn("rdma alignment violation (%d/%d aligned)\n",
++			  ret_len, data->dma_nents);
++
+ 	return ret_len;
  }
  
- /**
-@@ -267,9 +263,7 @@ void iser_free_fmr_pool(struct ib_conn *ib_conn)
- 	iser_info("freeing conn %p fmr pool %p\n",
- 		  ib_conn, ib_conn->fmr.pool);
+@@ -407,15 +410,12 @@ iser_reg_dma(struct iser_device *device, struct iser_data_buf *mem,
  
--	if (ib_conn->fmr.pool != NULL)
--		ib_destroy_fmr_pool(ib_conn->fmr.pool);
--
-+	ib_destroy_fmr_pool(ib_conn->fmr.pool);
- 	ib_conn->fmr.pool = NULL;
+ static int fall_to_bounce_buf(struct iscsi_iser_task *iser_task,
+ 			      struct iser_data_buf *mem,
+-			      enum iser_data_dir cmd_dir,
+-			      int aligned_len)
++			      enum iser_data_dir cmd_dir)
+ {
+ 	struct iscsi_conn *iscsi_conn = iser_task->iser_conn->iscsi_conn;
+ 	struct iser_device *device = iser_task->iser_conn->ib_conn.device;
  
- 	kfree(ib_conn->fmr.page_vec);
+ 	iscsi_conn->fmr_unalign_cnt++;
+-	iser_warn("rdma alignment violation (%d/%d aligned) or FMR not supported\n",
+-		  aligned_len, mem->size);
+ 
+ 	if (iser_debug_level > 0)
+ 		iser_data_buf_dump(mem, device->ib_device);
+@@ -537,8 +537,7 @@ int iser_reg_rdma_mem_fmr(struct iscsi_iser_task *iser_task,
+ 
+ 	aligned_len = iser_data_buf_aligned_len(mem, ibdev);
+ 	if (aligned_len != mem->dma_nents) {
+-		err = fall_to_bounce_buf(iser_task, mem,
+-					 cmd_dir, aligned_len);
++		err = fall_to_bounce_buf(iser_task, mem, cmd_dir);
+ 		if (err) {
+ 			iser_err("failed to allocate bounce buffer\n");
+ 			return err;
+@@ -800,8 +799,7 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
+ 
+ 	aligned_len = iser_data_buf_aligned_len(mem, ibdev);
+ 	if (aligned_len != mem->dma_nents) {
+-		err = fall_to_bounce_buf(iser_task, mem,
+-					 cmd_dir, aligned_len);
++		err = fall_to_bounce_buf(iser_task, mem, cmd_dir);
+ 		if (err) {
+ 			iser_err("failed to allocate bounce buffer\n");
+ 			return err;
+@@ -828,7 +826,7 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
+ 			aligned_len = iser_data_buf_aligned_len(mem, ibdev);
+ 			if (aligned_len != mem->dma_nents) {
+ 				err = fall_to_bounce_buf(iser_task, mem,
+-							 cmd_dir, aligned_len);
++							 cmd_dir);
+ 				if (err) {
+ 					iser_err("failed to allocate bounce buffer\n");
+ 					return err;
 -- 
 1.7.1
 
