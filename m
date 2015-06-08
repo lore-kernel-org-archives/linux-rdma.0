@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V5 09/12] net/mlx4: Postpone the registration of net_device
-Date: Mon,  8 Jun 2015 17:12:12 +0300
-Message-ID: <1433772735-22416-10-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next V5 10/12] IB/mlx4: Implement ib_device callbacks
+Date: Mon,  8 Jun 2015 17:12:13 +0300
+Message-ID: <1433772735-22416-11-git-send-email-matanb@mellanox.com>
 References: <1433772735-22416-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1433772735-22416-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,110 +12,316 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The mlx4 network driver was registered in the context of the 'add'
-function of the core driver (called when HW should be registered).
-This makes the netdev event NETDEV_REGISTER to be sent in a context
-where the answer to get_protocol_dev() callback returns NULL. This may
-be confusing to listeners of netdev events.
-This patch is a preparation to the patch that implements the
-get_netdev() callback in the IB/mlx4 driver.
+get_netdev: get the net_device on the physical port of the IB transport port. In
+port aggregation mode it is required to return the netdev of the active port.
+
+modify_gid: note for a change in the RoCE gid cache. Handle this by writing to
+the harsware GID table. It is possible that indexes in cahce and hardware tables
+won't match so a translation is required when modifying a QP or creating an
+address handle.
 
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx4/en_main.c | 36 ++++++++++++++++------------
- drivers/net/ethernet/mellanox/mlx4/intf.c    |  3 +++
- include/linux/mlx4/driver.h                  |  1 +
- 3 files changed, 25 insertions(+), 15 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c    | 213 ++++++++++++++++++++++++++++++++++-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h |  17 +++
+ include/linux/mlx4/device.h          |   3 +-
+ 3 files changed, 229 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/en_main.c b/drivers/net/ethernet/mellanox/mlx4/en_main.c
-index 913b716..a946e4b 100644
---- a/drivers/net/ethernet/mellanox/mlx4/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/en_main.c
-@@ -224,6 +224,26 @@ static void mlx4_en_remove(struct mlx4_dev *dev, void *endev_ptr)
- 	kfree(mdev);
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 69ae464..bf38e32 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -45,6 +45,9 @@
+ #include <rdma/ib_smi.h>
+ #include <rdma/ib_user_verbs.h>
+ #include <rdma/ib_addr.h>
++#include <rdma/ib_cache.h>
++
++#include <net/bonding.h>
+ 
+ #include <linux/mlx4/driver.h>
+ #include <linux/mlx4/cmd.h>
+@@ -129,6 +132,199 @@ static int num_ib_ports(struct mlx4_dev *dev)
+ 	return ib_ports;
  }
  
-+static void mlx4_en_activate(struct mlx4_dev *dev, void *ctx)
++static struct net_device *mlx4_ib_get_netdev(struct ib_device *device, u8 port_num)
 +{
-+	int i;
-+	struct mlx4_en_dev *mdev = ctx;
++	struct mlx4_ib_dev *ibdev = to_mdev(device);
 +
-+	/* Create a netdev for each port */
-+	mlx4_foreach_port(i, dev, MLX4_PORT_TYPE_ETH) {
-+		mlx4_info(mdev, "Activating port:%d\n", i);
-+		if (mlx4_en_init_netdev(mdev, i, &mdev->profile.prof[i]))
-+			mdev->pndev[i] = NULL;
++	if (mlx4_is_bonded(ibdev->dev)) {
++		struct net_device *dev;
++		struct net_device *upper = NULL;
++
++		rcu_read_lock();
++
++		dev = mlx4_get_protocol_dev(ibdev->dev, MLX4_PROT_ETH, port_num);
++		if (dev)
++			upper = netdev_master_upper_dev_get_rcu(dev);
++		else
++			goto unlock;
++		if (upper)
++			dev = bond_option_active_slave_get_rcu(netdev_priv(upper));
++unlock:
++		rcu_read_unlock();
++
++		return dev;
 +	}
 +
-+	/* register notifier */
-+	mdev->nb.notifier_call = mlx4_en_netdev_event;
-+	if (register_netdevice_notifier(&mdev->nb)) {
-+		mdev->nb.notifier_call = NULL;
-+		mlx4_err(mdev, "Failed to create notifier\n");
-+	}
++	return mlx4_get_protocol_dev(ibdev->dev, MLX4_PROT_ETH, port_num);
 +}
 +
- static void *mlx4_en_add(struct mlx4_dev *dev)
- {
- 	struct mlx4_en_dev *mdev;
-@@ -297,21 +317,6 @@ static void *mlx4_en_add(struct mlx4_dev *dev)
- 	mutex_init(&mdev->state_lock);
- 	mdev->device_up = true;
- 
--	/* Setup ports */
--
--	/* Create a netdev for each port */
--	mlx4_foreach_port(i, dev, MLX4_PORT_TYPE_ETH) {
--		mlx4_info(mdev, "Activating port:%d\n", i);
--		if (mlx4_en_init_netdev(mdev, i, &mdev->profile.prof[i]))
--			mdev->pndev[i] = NULL;
--	}
--	/* register notifier */
--	mdev->nb.notifier_call = mlx4_en_netdev_event;
--	if (register_netdevice_notifier(&mdev->nb)) {
--		mdev->nb.notifier_call = NULL;
--		mlx4_err(mdev, "Failed to create notifier\n");
--	}
--
- 	return mdev;
- 
- err_mr:
-@@ -335,6 +340,7 @@ static struct mlx4_interface mlx4_en_interface = {
- 	.event		= mlx4_en_event,
- 	.get_dev	= mlx4_en_get_netdev,
- 	.protocol	= MLX4_PROT_ETH,
-+	.activate	= mlx4_en_activate,
- };
- 
- static void mlx4_en_verify_params(void)
-diff --git a/drivers/net/ethernet/mellanox/mlx4/intf.c b/drivers/net/ethernet/mellanox/mlx4/intf.c
-index 6fce587..09e94c6 100644
---- a/drivers/net/ethernet/mellanox/mlx4/intf.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/intf.c
-@@ -63,8 +63,11 @@ static void mlx4_add_device(struct mlx4_interface *intf, struct mlx4_priv *priv)
- 		spin_lock_irq(&priv->ctx_lock);
- 		list_add_tail(&dev_ctx->list, &priv->ctx_list);
- 		spin_unlock_irq(&priv->ctx_lock);
-+		if (intf->activate)
-+			intf->activate(&priv->dev, dev_ctx->context);
- 	} else
- 		kfree(dev_ctx);
++static int mlx4_ib_update_gids(struct gid_entry *gids,
++			       struct mlx4_ib_dev *ibdev,
++			       u8 port_num)
++{
++	struct mlx4_cmd_mailbox *mailbox;
++	int err;
++	struct mlx4_dev *dev = ibdev->dev;
++	int i;
++	union ib_gid *gid_tbl;
 +
++	mailbox = mlx4_alloc_cmd_mailbox(dev);
++	if (IS_ERR(mailbox))
++		return -ENOMEM;
++
++	gid_tbl = mailbox->buf;
++
++	for (i = 0; i < MLX4_MAX_PORT_GIDS; ++i)
++		memcpy(&gid_tbl[i], &gids[i].gid, sizeof(union ib_gid));
++
++	err = mlx4_cmd(dev, mailbox->dma,
++		       MLX4_SET_PORT_GID_TABLE << 8 | port_num,
++		       1, MLX4_CMD_SET_PORT, MLX4_CMD_TIME_CLASS_B,
++		       MLX4_CMD_WRAPPED);
++	if (mlx4_is_bonded(dev))
++		err += mlx4_cmd(dev, mailbox->dma,
++				MLX4_SET_PORT_GID_TABLE << 8 | 2,
++				1, MLX4_CMD_SET_PORT, MLX4_CMD_TIME_CLASS_B,
++				MLX4_CMD_WRAPPED);
++
++	mlx4_free_cmd_mailbox(dev, mailbox);
++	return err;
++}
++
++static int mlx4_ib_modify_gid(struct ib_device *device,
++			      u8 port_num, unsigned int index,
++			      const union ib_gid *gid,
++			      const struct ib_gid_attr *attr,
++			      void **context)
++{
++	struct mlx4_ib_dev *ibdev = to_mdev(device);
++	struct mlx4_ib_iboe *iboe = &ibdev->iboe;
++	struct mlx4_port_gid_table   *port_gid_table;
++	int free = -1, found = -1;
++	int ret = 0;
++	int clear = !memcmp(&zgid, gid, sizeof(*gid));
++	int hw_update = 0;
++	int i;
++	struct gid_entry *gids = NULL;
++
++	if (!rdma_cap_roce_gid_table(device, port_num))
++		return -EINVAL;
++
++	if (port_num > MLX4_MAX_PORTS)
++		return -EINVAL;
++
++	if (!context)
++		return -EINVAL;
++
++	spin_lock_bh(&iboe->lock);
++	port_gid_table = &iboe->gids[port_num - 1];
++
++	if (clear) {
++		struct gid_cache_context *ctx = *context;
++
++		if (ctx) {
++			ctx->refcount--;
++			if (!ctx->refcount) {
++				unsigned int real_index = ctx->real_index;
++
++				memcpy(&port_gid_table->gids[real_index].gid, &zgid, sizeof(*gid));
++				kfree(port_gid_table->gids[real_index].ctx);
++				port_gid_table->gids[real_index].ctx = NULL;
++				hw_update = 1;
++			}
++		}
++	} else {
++		for (i = 0; i < MLX4_MAX_PORT_GIDS; ++i) {
++			if (!memcmp(&port_gid_table->gids[i].gid, gid, sizeof(*gid))) {
++				found = i;
++				break;
++			}
++			if (free < 0 && !memcmp(&port_gid_table->gids[i].gid, &zgid, sizeof(*gid)))
++				free = i; /* HW has space */
++		}
++
++		if (found < 0) {
++			if (free < 0) {
++				ret = -ENOSPC;
++			} else {
++				port_gid_table->gids[free].ctx = kmalloc(sizeof(*port_gid_table->gids[free].ctx), GFP_ATOMIC);
++				if (!port_gid_table->gids[free].ctx) {
++					ret = -ENOMEM;
++				} else {
++					*context = port_gid_table->gids[free].ctx;
++					memcpy(&port_gid_table->gids[free].gid, gid, sizeof(*gid));
++					port_gid_table->gids[free].ctx->real_index = free;
++					port_gid_table->gids[free].ctx->refcount = 1;
++					hw_update = 1;
++				}
++			}
++		} else {
++			struct gid_cache_context *ctx = port_gid_table->gids[found].ctx;
++			*context = ctx;
++			ctx->refcount++;
++		}
++	}
++	if (!ret && hw_update) {
++		gids = kmalloc(sizeof(*gids) * MLX4_MAX_PORT_GIDS, GFP_ATOMIC);
++		if (!gids) {
++			ret = -ENOMEM;
++		} else {
++			for (i = 0; i < MLX4_MAX_PORT_GIDS; i++)
++				memcpy(&gids[i].gid, &port_gid_table->gids[i].gid, sizeof(union ib_gid));
++		}
++	}
++	spin_unlock_bh(&iboe->lock);
++
++	if (!ret && hw_update) {
++		ret = mlx4_ib_update_gids(gids, ibdev, port_num);
++		kfree(gids);
++	}
++
++	return ret;
++}
++
++int mlx4_ib_gid_index_to_real_index(struct mlx4_ib_dev *ibdev,
++				    u8 port_num, int index)
++{
++	struct mlx4_ib_iboe *iboe = &ibdev->iboe;
++	struct gid_cache_context *ctx = NULL;
++	union ib_gid gid;
++	struct mlx4_port_gid_table   *port_gid_table;
++	int real_index = -EINVAL;
++	int i;
++	int ret;
++	unsigned long flags;
++
++	if (port_num > MLX4_MAX_PORTS)
++		return -EINVAL;
++
++	if (mlx4_is_bonded(ibdev->dev))
++		port_num = 1;
++
++	if (!rdma_cap_roce_gid_table(&ibdev->ib_dev, port_num))
++		return index;
++
++	ret = ib_get_cached_gid(&ibdev->ib_dev, port_num, index, &gid);
++	if (ret)
++		return ret;
++
++	if (!memcmp(&gid, &zgid, sizeof(gid)))
++		return -EINVAL;
++
++	spin_lock_irqsave(&iboe->lock, flags);
++	port_gid_table = &iboe->gids[port_num - 1];
++
++	for (i = 0; i < MLX4_MAX_PORT_GIDS; ++i)
++		if (!memcmp(&port_gid_table->gids[i].gid, &gid, sizeof(gid))) {
++			ctx = port_gid_table->gids[i].ctx;
++			break;
++		}
++	if (ctx)
++		real_index = ctx->real_index;
++	spin_unlock_irqrestore(&iboe->lock, flags);
++	return real_index;
++}
++
+ static int mlx4_ib_query_device(struct ib_device *ibdev,
+ 				struct ib_device_attr *props)
+ {
+@@ -477,11 +673,22 @@ out:
+ static int iboe_query_gid(struct ib_device *ibdev, u8 port, int index,
+ 			  union ib_gid *gid)
+ {
+-	struct mlx4_ib_dev *dev = to_mdev(ibdev);
++	int ret;
+ 
+-	*gid = dev->iboe.gid_table[port - 1][index];
++	if (!rdma_cap_roce_gid_table(ibdev, port)) {
++		struct mlx4_ib_dev *dev = to_mdev(ibdev);
+ 
+-	return 0;
++		*gid = dev->iboe.gid_table[port - 1][index];
++		return 0;
++	}
++
++	ret = ib_get_cached_gid(ibdev, port, index, gid);
++	if (ret == -EAGAIN) {
++		memcpy(gid, &zgid, sizeof(*gid));
++		return 0;
++	}
++
++	return ret;
  }
  
- static void mlx4_remove_device(struct mlx4_interface *intf, struct mlx4_priv *priv)
-diff --git a/include/linux/mlx4/driver.h b/include/linux/mlx4/driver.h
-index 9553a73..5a06d96 100644
---- a/include/linux/mlx4/driver.h
-+++ b/include/linux/mlx4/driver.h
-@@ -59,6 +59,7 @@ struct mlx4_interface {
- 	void			(*event) (struct mlx4_dev *dev, void *context,
- 					  enum mlx4_dev_event event, unsigned long param);
- 	void *			(*get_dev)(struct mlx4_dev *dev, void *context, u8 port);
-+	void			(*activate)(struct mlx4_dev *dev, void *context);
- 	struct list_head	list;
- 	enum mlx4_protocol	protocol;
- 	int			flags;
+ static int mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index 645d55e..c870ddb 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -456,6 +456,20 @@ struct mlx4_ib_sriov {
+ 	struct idr pv_id_table;
+ };
+ 
++struct gid_cache_context {
++	int real_index;
++	int refcount;
++};
++
++struct gid_entry {
++	union ib_gid	gid;
++	struct gid_cache_context *ctx;
++};
++
++struct mlx4_port_gid_table {
++	struct gid_entry gids[MLX4_MAX_PORT_GIDS];
++};
++
+ struct mlx4_ib_iboe {
+ 	spinlock_t		lock;
+ 	struct net_device      *netdevs[MLX4_MAX_PORTS];
+@@ -465,6 +479,7 @@ struct mlx4_ib_iboe {
+ 	struct notifier_block	nb_inet;
+ 	struct notifier_block	nb_inet6;
+ 	union ib_gid		gid_table[MLX4_MAX_PORTS][128];
++	struct mlx4_port_gid_table gids[MLX4_MAX_PORTS];
+ };
+ 
+ struct pkey_mgt {
+@@ -815,5 +830,7 @@ int mlx4_ib_rereg_user_mr(struct ib_mr *mr, int flags,
+ 			  u64 start, u64 length, u64 virt_addr,
+ 			  int mr_access_flags, struct ib_pd *pd,
+ 			  struct ib_udata *udata);
++int mlx4_ib_gid_index_to_real_index(struct mlx4_ib_dev *ibdev,
++				    u8 port_num, int index);
+ 
+ #endif /* MLX4_IB_H */
+diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+index 83e80ab..d439949 100644
+--- a/include/linux/mlx4/device.h
++++ b/include/linux/mlx4/device.h
+@@ -78,7 +78,8 @@ enum {
+ 
+ enum {
+ 	MLX4_MAX_PORTS		= 2,
+-	MLX4_MAX_PORT_PKEYS	= 128
++	MLX4_MAX_PORT_PKEYS	= 128,
++	MLX4_MAX_PORT_GIDS	= 128
+ };
+ 
+ /* base qkey for use in sriov tunnel-qp/proxy-qp communication.
 -- 
 2.1.0
 
