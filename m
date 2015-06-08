@@ -1,458 +1,296 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V5 11/12] IB/mlx4: Replace mechanism for RoCE GID management
-Date: Mon,  8 Jun 2015 17:12:14 +0300
-Message-ID: <1433772735-22416-12-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next V5 12/12] RDMA/ocrdma: Changes in driver to incorporate the moving of GID Table mgmt to IB/Core.
+Date: Mon,  8 Jun 2015 17:12:15 +0300
+Message-ID: <1433772735-22416-13-git-send-email-matanb@mellanox.com>
 References: <1433772735-22416-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1433772735-22416-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-xCNTGe7nOvUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-xCNTGe7nOvUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-Manage RoCE gid table with logic in IB/core, which is common to all
-vendors, and remove the mechanism from the mlx4 IB driver.
-Since management of the GID cache may lead to index mismatch with the
-hardware GID table, a translation between indexes is required when
-modifying a QP or creating an address handle.
+1.Check and set port capability flags to indicate RoCEV2 support.
+2.Change query_gid hook to return value from IB/Core GID Mgmt APIs.
+3.Get rid of all the netdev notifier chain subscription code as well as
+maintenance of SGID Table in memory.
+4.Implement get_netdev hook in driver.
 
-Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/ah.c      |   2 +-
- drivers/infiniband/hw/mlx4/main.c    | 510 ++---------------------------------
- drivers/infiniband/hw/mlx4/mlx4_ib.h |   4 -
- drivers/infiniband/hw/mlx4/qp.c      |  10 +-
- 4 files changed, 28 insertions(+), 498 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma.h       |  10 ++
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |   3 +
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c  | 233 +---------------------------
+ drivers/infiniband/hw/ocrdma/ocrdma_sli.h   |  13 ++
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |  31 +++-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.h |   4 +
+ 6 files changed, 62 insertions(+), 232 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/ah.c b/drivers/infiniband/hw/mlx4/ah.c
-index f50a546..7ad6f96 100644
---- a/drivers/infiniband/hw/mlx4/ah.c
-+++ b/drivers/infiniband/hw/mlx4/ah.c
-@@ -89,7 +89,7 @@ static struct ib_ah *create_iboe_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr
- 	if (vlan_tag < 0x1000)
- 		vlan_tag |= (ah_attr->sl & 7) << 13;
- 	ah->av.eth.port_pd = cpu_to_be32(to_mpd(pd)->pdn | (ah_attr->port_num << 24));
--	ah->av.eth.gid_index = ah_attr->grh.sgid_index;
-+	ah->av.eth.gid_index = mlx4_ib_gid_index_to_real_index(ibdev, ah_attr->port_num, ah_attr->grh.sgid_index);
- 	ah->av.eth.vlan = cpu_to_be16(vlan_tag);
- 	if (ah_attr->static_rate) {
- 		ah->av.eth.stat_rate = ah_attr->static_rate + MLX4_STAT_RATE_OFFSET;
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index bf38e32..18708a7 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -77,13 +77,6 @@ static const char mlx4_ib_version[] =
- 	DRV_NAME ": Mellanox ConnectX InfiniBand driver v"
- 	DRV_VERSION " (" DRV_RELDATE ")\n";
- 
--struct update_gid_work {
--	struct work_struct	work;
--	union ib_gid		gids[128];
--	struct mlx4_ib_dev     *dev;
--	int			port;
--};
--
- static void do_slave_init(struct mlx4_ib_dev *ibdev, int slave, int do_init);
- 
- static struct workqueue_struct *wq;
-@@ -560,7 +553,8 @@ static int eth_link_query_port(struct ib_device *ibdev, u8 port,
- 	props->active_width	=  (((u8 *)mailbox->buf)[5] == 0x40) ?
- 						IB_WIDTH_4X : IB_WIDTH_1X;
- 	props->active_speed	= IB_SPEED_QDR;
--	props->port_cap_flags	= IB_PORT_CM_SUP | IB_PORT_IP_BASED_GIDS;
-+	props->port_cap_flags	= IB_PORT_CM_SUP | IB_PORT_IP_BASED_GIDS |
-+				  IB_PORT_ROCE;
- 	props->gid_tbl_len	= mdev->dev->caps.gid_table_len[port];
- 	props->max_msg_sz	= mdev->dev->caps.max_msg_sz;
- 	props->pkey_tbl_len	= 1;
-@@ -569,12 +563,13 @@ static int eth_link_query_port(struct ib_device *ibdev, u8 port,
- 	props->state		= IB_PORT_DOWN;
- 	props->phys_state	= state_to_phys_state(props->state);
- 	props->active_mtu	= IB_MTU_256;
--	if (is_bonded)
--		rtnl_lock(); /* required to get upper dev */
- 	spin_lock_bh(&iboe->lock);
- 	ndev = iboe->netdevs[port - 1];
--	if (ndev && is_bonded)
--		ndev = netdev_master_upper_dev_get(ndev);
-+	if (ndev && is_bonded) {
-+		rcu_read_lock(); /* required to get upper dev */
-+		ndev = netdev_master_upper_dev_get_rcu(ndev);
-+		rcu_read_unlock();
-+	}
- 	if (!ndev)
- 		goto out_unlock;
- 
-@@ -586,8 +581,6 @@ static int eth_link_query_port(struct ib_device *ibdev, u8 port,
- 	props->phys_state	= state_to_phys_state(props->state);
- out_unlock:
- 	spin_unlock_bh(&iboe->lock);
--	if (is_bonded)
--		rtnl_unlock();
- out:
- 	mlx4_free_cmd_mailbox(mdev->dev, mailbox);
- 	return err;
-@@ -670,17 +663,19 @@ out:
- 	return err;
- }
- 
--static int iboe_query_gid(struct ib_device *ibdev, u8 port, int index,
--			  union ib_gid *gid)
-+static int mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
-+			     union ib_gid *gid)
- {
- 	int ret;
- 
--	if (!rdma_cap_roce_gid_table(ibdev, port)) {
--		struct mlx4_ib_dev *dev = to_mdev(ibdev);
-+	if (rdma_protocol_ib(ibdev, port))
-+		return __mlx4_ib_query_gid(ibdev, port, index, gid, 0);
- 
--		*gid = dev->iboe.gid_table[port - 1][index];
--		return 0;
--	}
-+	if (!rdma_protocol_roce(ibdev, port))
-+		return -ENODEV;
-+
-+	if (!rdma_cap_roce_gid_table(ibdev, port))
-+		return -ENODEV;
- 
- 	ret = ib_get_cached_gid(ibdev, port, index, gid);
- 	if (ret == -EAGAIN) {
-@@ -691,15 +686,6 @@ static int iboe_query_gid(struct ib_device *ibdev, u8 port, int index,
- 	return ret;
- }
- 
--static int mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
--			     union ib_gid *gid)
--{
--	if (rdma_port_get_link_layer(ibdev, port) == IB_LINK_LAYER_INFINIBAND)
--		return __mlx4_ib_query_gid(ibdev, port, index, gid, 0);
--	else
--		return iboe_query_gid(ibdev, port, index, gid);
--}
--
- int __mlx4_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
- 			 u16 *pkey, int netw_view)
- {
-@@ -1695,272 +1681,6 @@ static struct device_attribute *mlx4_class_attributes[] = {
- 	&dev_attr_board_id
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma.h b/drivers/infiniband/hw/ocrdma/ocrdma.h
+index c9780d9..ea6484c 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma.h
+@@ -99,6 +99,7 @@ struct ocrdma_dev_attr {
+ 	u8 local_ca_ack_delay;
+ 	u8 ird;
+ 	u8 num_ird_pages;
++	u8 roce_flags;
  };
  
--static void mlx4_addrconf_ifid_eui48(u8 *eui, u16 vlan_id,
--				     struct net_device *dev)
--{
--	memcpy(eui, dev->dev_addr, 3);
--	memcpy(eui + 5, dev->dev_addr + 3, 3);
--	if (vlan_id < 0x1000) {
--		eui[3] = vlan_id >> 8;
--		eui[4] = vlan_id & 0xff;
--	} else {
--		eui[3] = 0xff;
--		eui[4] = 0xfe;
--	}
--	eui[0] ^= 2;
--}
--
--static void update_gids_task(struct work_struct *work)
--{
--	struct update_gid_work *gw = container_of(work, struct update_gid_work, work);
--	struct mlx4_cmd_mailbox *mailbox;
--	union ib_gid *gids;
--	int err;
--	struct mlx4_dev	*dev = gw->dev->dev;
--	int is_bonded = mlx4_is_bonded(dev);
--
--	if (!gw->dev->ib_active)
--		return;
--
--	mailbox = mlx4_alloc_cmd_mailbox(dev);
--	if (IS_ERR(mailbox)) {
--		pr_warn("update gid table failed %ld\n", PTR_ERR(mailbox));
--		return;
--	}
--
--	gids = mailbox->buf;
--	memcpy(gids, gw->gids, sizeof gw->gids);
--
--	err = mlx4_cmd(dev, mailbox->dma, MLX4_SET_PORT_GID_TABLE << 8 | gw->port,
--		       MLX4_SET_PORT_ETH_OPCODE, MLX4_CMD_SET_PORT,
--		       MLX4_CMD_TIME_CLASS_B, MLX4_CMD_WRAPPED);
--	if (err)
--		pr_warn("set port command failed\n");
--	else
--		if ((gw->port == 1) || !is_bonded)
--			mlx4_ib_dispatch_event(gw->dev,
--					       is_bonded ? 1 : gw->port,
--					       IB_EVENT_GID_CHANGE);
--
--	mlx4_free_cmd_mailbox(dev, mailbox);
--	kfree(gw);
--}
--
--static void reset_gids_task(struct work_struct *work)
--{
--	struct update_gid_work *gw =
--			container_of(work, struct update_gid_work, work);
--	struct mlx4_cmd_mailbox *mailbox;
--	union ib_gid *gids;
--	int err;
--	struct mlx4_dev	*dev = gw->dev->dev;
--
--	if (!gw->dev->ib_active)
--		return;
--
--	mailbox = mlx4_alloc_cmd_mailbox(dev);
--	if (IS_ERR(mailbox)) {
--		pr_warn("reset gid table failed\n");
--		goto free;
--	}
--
--	gids = mailbox->buf;
--	memcpy(gids, gw->gids, sizeof(gw->gids));
--
--	if (mlx4_ib_port_link_layer(&gw->dev->ib_dev, gw->port) ==
--				    IB_LINK_LAYER_ETHERNET) {
--		err = mlx4_cmd(dev, mailbox->dma,
--			       MLX4_SET_PORT_GID_TABLE << 8 | gw->port,
--			       MLX4_SET_PORT_ETH_OPCODE, MLX4_CMD_SET_PORT,
--			       MLX4_CMD_TIME_CLASS_B,
--			       MLX4_CMD_WRAPPED);
--		if (err)
--			pr_warn("set port %d command failed\n", gw->port);
--	}
--
--	mlx4_free_cmd_mailbox(dev, mailbox);
--free:
--	kfree(gw);
--}
--
--static int update_gid_table(struct mlx4_ib_dev *dev, int port,
--			    union ib_gid *gid, int clear,
--			    int default_gid)
--{
--	struct update_gid_work *work;
--	int i;
--	int need_update = 0;
--	int free = -1;
--	int found = -1;
--	int max_gids;
--
--	if (default_gid) {
--		free = 0;
--	} else {
--		max_gids = dev->dev->caps.gid_table_len[port];
--		for (i = 1; i < max_gids; ++i) {
--			if (!memcmp(&dev->iboe.gid_table[port - 1][i], gid,
--				    sizeof(*gid)))
--				found = i;
--
--			if (clear) {
--				if (found >= 0) {
--					need_update = 1;
--					dev->iboe.gid_table[port - 1][found] =
--						zgid;
--					break;
--				}
--			} else {
--				if (found >= 0)
--					break;
--
--				if (free < 0 &&
--				    !memcmp(&dev->iboe.gid_table[port - 1][i],
--					    &zgid, sizeof(*gid)))
--					free = i;
--			}
--		}
--	}
--
--	if (found == -1 && !clear && free >= 0) {
--		dev->iboe.gid_table[port - 1][free] = *gid;
--		need_update = 1;
--	}
--
--	if (!need_update)
--		return 0;
--
--	work = kzalloc(sizeof(*work), GFP_ATOMIC);
--	if (!work)
--		return -ENOMEM;
--
--	memcpy(work->gids, dev->iboe.gid_table[port - 1], sizeof(work->gids));
--	INIT_WORK(&work->work, update_gids_task);
--	work->port = port;
--	work->dev = dev;
--	queue_work(wq, &work->work);
--
--	return 0;
--}
--
--static void mlx4_make_default_gid(struct  net_device *dev, union ib_gid *gid)
--{
--	gid->global.subnet_prefix = cpu_to_be64(0xfe80000000000000LL);
--	mlx4_addrconf_ifid_eui48(&gid->raw[8], 0xffff, dev);
--}
--
--
--static int reset_gid_table(struct mlx4_ib_dev *dev, u8 port)
--{
--	struct update_gid_work *work;
--
--	work = kzalloc(sizeof(*work), GFP_ATOMIC);
--	if (!work)
--		return -ENOMEM;
--
--	memset(dev->iboe.gid_table[port - 1], 0, sizeof(work->gids));
--	memset(work->gids, 0, sizeof(work->gids));
--	INIT_WORK(&work->work, reset_gids_task);
--	work->dev = dev;
--	work->port = port;
--	queue_work(wq, &work->work);
--	return 0;
--}
--
--static int mlx4_ib_addr_event(int event, struct net_device *event_netdev,
--			      struct mlx4_ib_dev *ibdev, union ib_gid *gid)
--{
--	struct mlx4_ib_iboe *iboe;
--	int port = 0;
--	struct net_device *real_dev = rdma_vlan_dev_real_dev(event_netdev) ?
--				rdma_vlan_dev_real_dev(event_netdev) :
--				event_netdev;
--	union ib_gid default_gid;
--
--	mlx4_make_default_gid(real_dev, &default_gid);
--
--	if (!memcmp(gid, &default_gid, sizeof(*gid)))
--		return 0;
--
--	if (event != NETDEV_DOWN && event != NETDEV_UP)
--		return 0;
--
--	if ((real_dev != event_netdev) &&
--	    (event == NETDEV_DOWN) &&
--	    rdma_link_local_addr((struct in6_addr *)gid))
--		return 0;
--
--	iboe = &ibdev->iboe;
--	spin_lock_bh(&iboe->lock);
--
--	for (port = 1; port <= ibdev->dev->caps.num_ports; ++port)
--		if ((netif_is_bond_master(real_dev) &&
--		     (real_dev == iboe->masters[port - 1])) ||
--		     (!netif_is_bond_master(real_dev) &&
--		     (real_dev == iboe->netdevs[port - 1])))
--			update_gid_table(ibdev, port, gid,
--					 event == NETDEV_DOWN, 0);
--
--	spin_unlock_bh(&iboe->lock);
--	return 0;
--
--}
--
--static u8 mlx4_ib_get_dev_port(struct net_device *dev,
--			       struct mlx4_ib_dev *ibdev)
--{
--	u8 port = 0;
--	struct mlx4_ib_iboe *iboe;
--	struct net_device *real_dev = rdma_vlan_dev_real_dev(dev) ?
--				rdma_vlan_dev_real_dev(dev) : dev;
--
--	iboe = &ibdev->iboe;
--
--	for (port = 1; port <= ibdev->dev->caps.num_ports; ++port)
--		if ((netif_is_bond_master(real_dev) &&
--		     (real_dev == iboe->masters[port - 1])) ||
--		     (!netif_is_bond_master(real_dev) &&
--		     (real_dev == iboe->netdevs[port - 1])))
--			break;
--
--	if ((port == 0) || (port > ibdev->dev->caps.num_ports))
--		return 0;
--	else
--		return port;
--}
--
--static int mlx4_ib_inet_event(struct notifier_block *this, unsigned long event,
--				void *ptr)
--{
--	struct mlx4_ib_dev *ibdev;
--	struct in_ifaddr *ifa = ptr;
--	union ib_gid gid;
--	struct net_device *event_netdev = ifa->ifa_dev->dev;
--
--	ipv6_addr_set_v4mapped(ifa->ifa_address, (struct in6_addr *)&gid);
--
--	ibdev = container_of(this, struct mlx4_ib_dev, iboe.nb_inet);
--
--	mlx4_ib_addr_event(event, event_netdev, ibdev, &gid);
--	return NOTIFY_DONE;
--}
--
--#if IS_ENABLED(CONFIG_IPV6)
--static int mlx4_ib_inet6_event(struct notifier_block *this, unsigned long event,
--				void *ptr)
--{
--	struct mlx4_ib_dev *ibdev;
--	struct inet6_ifaddr *ifa = ptr;
--	union  ib_gid *gid = (union ib_gid *)&ifa->addr;
--	struct net_device *event_netdev = ifa->idev->dev;
--
--	ibdev = container_of(this, struct mlx4_ib_dev, iboe.nb_inet6);
--
--	mlx4_ib_addr_event(event, event_netdev, ibdev, gid);
--	return NOTIFY_DONE;
--}
--#endif
--
- #define MLX4_IB_INVALID_MAC	((u64)-1)
- static void mlx4_ib_update_qps(struct mlx4_ib_dev *ibdev,
- 			       struct net_device *dev,
-@@ -2019,94 +1739,6 @@ unlock:
- 	mutex_unlock(&ibdev->qp1_proxy_lock[port - 1]);
+ struct ocrdma_dma_mem {
+@@ -574,4 +575,13 @@ static inline u8 ocrdma_is_enabled_and_synced(u32 state)
+ 		(state & OCRDMA_STATE_FLAG_SYNC);
  }
  
--static void mlx4_ib_get_dev_addr(struct net_device *dev,
--				 struct mlx4_ib_dev *ibdev, u8 port)
++static inline bool ocrdma_is_rocev2_supported(struct ocrdma_dev *dev)
++{
++	return (dev->attr.roce_flags & (OCRDMA_L3_TYPE_IPV4 <<
++					OCRDMA_ROUDP_FLAGS_SHIFT) ||
++		dev->attr.roce_flags & (OCRDMA_L3_TYPE_IPV6 <<
++					OCRDMA_ROUDP_FLAGS_SHIFT)) ?
++								true : false;
++}
++
+ #endif
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+index 0c9e959..42116a5 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+@@ -1112,6 +1112,9 @@ static void ocrdma_get_attr(struct ocrdma_dev *dev,
+ 	attr->local_ca_ack_delay = (rsp->max_pd_ca_ack_delay &
+ 				    OCRDMA_MBX_QUERY_CFG_CA_ACK_DELAY_MASK) >>
+ 	    OCRDMA_MBX_QUERY_CFG_CA_ACK_DELAY_SHIFT;
++	attr->roce_flags = (rsp->max_pd_ca_ack_delay &
++				OCRDMA_MBX_QUERY_CFG_L3_TYPE_MASK) >>
++				OCRDMA_MBX_QUERY_CFG_L3_TYPE_SHIFT;
+ 	attr->max_mw = rsp->max_mw;
+ 	attr->max_mr = rsp->max_mr;
+ 	attr->max_mr_size = ((u64)rsp->max_mr_size_hi << 32) |
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+index f552898..0d3e915 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+@@ -51,8 +51,6 @@ static LIST_HEAD(ocrdma_dev_list);
+ static DEFINE_SPINLOCK(ocrdma_devlist_lock);
+ static DEFINE_IDR(ocrdma_dev_id);
+ 
+-static union ib_gid ocrdma_zero_sgid;
+-
+ void ocrdma_get_guid(struct ocrdma_dev *dev, u8 *guid)
+ {
+ 	u8 mac_addr[6];
+@@ -67,135 +65,6 @@ void ocrdma_get_guid(struct ocrdma_dev *dev, u8 *guid)
+ 	guid[6] = mac_addr[4];
+ 	guid[7] = mac_addr[5];
+ }
+-
+-static bool ocrdma_add_sgid(struct ocrdma_dev *dev, union ib_gid *new_sgid)
+-{
+-	int i;
+-	unsigned long flags;
+-
+-	memset(&ocrdma_zero_sgid, 0, sizeof(union ib_gid));
+-
+-
+-	spin_lock_irqsave(&dev->sgid_lock, flags);
+-	for (i = 0; i < OCRDMA_MAX_SGID; i++) {
+-		if (!memcmp(&dev->sgid_tbl[i], &ocrdma_zero_sgid,
+-			    sizeof(union ib_gid))) {
+-			/* found free entry */
+-			memcpy(&dev->sgid_tbl[i], new_sgid,
+-			       sizeof(union ib_gid));
+-			spin_unlock_irqrestore(&dev->sgid_lock, flags);
+-			return true;
+-		} else if (!memcmp(&dev->sgid_tbl[i], new_sgid,
+-				   sizeof(union ib_gid))) {
+-			/* entry already present, no addition is required. */
+-			spin_unlock_irqrestore(&dev->sgid_lock, flags);
+-			return false;
+-		}
+-	}
+-	spin_unlock_irqrestore(&dev->sgid_lock, flags);
+-	return false;
+-}
+-
+-static bool ocrdma_del_sgid(struct ocrdma_dev *dev, union ib_gid *sgid)
+-{
+-	int found = false;
+-	int i;
+-	unsigned long flags;
+-
+-
+-	spin_lock_irqsave(&dev->sgid_lock, flags);
+-	/* first is default sgid, which cannot be deleted. */
+-	for (i = 1; i < OCRDMA_MAX_SGID; i++) {
+-		if (!memcmp(&dev->sgid_tbl[i], sgid, sizeof(union ib_gid))) {
+-			/* found matching entry */
+-			memset(&dev->sgid_tbl[i], 0, sizeof(union ib_gid));
+-			found = true;
+-			break;
+-		}
+-	}
+-	spin_unlock_irqrestore(&dev->sgid_lock, flags);
+-	return found;
+-}
+-
+-static int ocrdma_addr_event(unsigned long event, struct net_device *netdev,
+-			     union ib_gid *gid)
+-{
+-	struct ib_event gid_event;
+-	struct ocrdma_dev *dev;
+-	bool found = false;
+-	bool updated = false;
+-	bool is_vlan = false;
+-
+-	is_vlan = netdev->priv_flags & IFF_802_1Q_VLAN;
+-	if (is_vlan)
+-		netdev = rdma_vlan_dev_real_dev(netdev);
+-
+-	rcu_read_lock();
+-	list_for_each_entry_rcu(dev, &ocrdma_dev_list, entry) {
+-		if (dev->nic_info.netdev == netdev) {
+-			found = true;
+-			break;
+-		}
+-	}
+-	rcu_read_unlock();
+-
+-	if (!found)
+-		return NOTIFY_DONE;
+-
+-	mutex_lock(&dev->dev_lock);
+-	switch (event) {
+-	case NETDEV_UP:
+-		updated = ocrdma_add_sgid(dev, gid);
+-		break;
+-	case NETDEV_DOWN:
+-		updated = ocrdma_del_sgid(dev, gid);
+-		break;
+-	default:
+-		break;
+-	}
+-	if (updated) {
+-		/* GID table updated, notify the consumers about it */
+-		gid_event.device = &dev->ibdev;
+-		gid_event.element.port_num = 1;
+-		gid_event.event = IB_EVENT_GID_CHANGE;
+-		ib_dispatch_event(&gid_event);
+-	}
+-	mutex_unlock(&dev->dev_lock);
+-	return NOTIFY_OK;
+-}
+-
+-static int ocrdma_inetaddr_event(struct notifier_block *notifier,
+-				  unsigned long event, void *ptr)
+-{
+-	struct in_ifaddr *ifa = ptr;
+-	union ib_gid gid;
+-	struct net_device *netdev = ifa->ifa_dev->dev;
+-
+-	ipv6_addr_set_v4mapped(ifa->ifa_address, (struct in6_addr *)&gid);
+-	return ocrdma_addr_event(event, netdev, &gid);
+-}
+-
+-static struct notifier_block ocrdma_inetaddr_notifier = {
+-	.notifier_call = ocrdma_inetaddr_event
+-};
+-
+-#if IS_ENABLED(CONFIG_IPV6)
+-
+-static int ocrdma_inet6addr_event(struct notifier_block *notifier,
+-				  unsigned long event, void *ptr)
+-{
+-	struct inet6_ifaddr *ifa = (struct inet6_ifaddr *)ptr;
+-	union  ib_gid *gid = (union ib_gid *)&ifa->addr;
+-	struct net_device *netdev = ifa->idev->dev;
+-	return ocrdma_addr_event(event, netdev, gid);
+-}
+-
+-static struct notifier_block ocrdma_inet6addr_notifier = {
+-	.notifier_call = ocrdma_inet6addr_event
+-};
+-
+-#endif /* IPV6 and VLAN */
+-
+ static enum rdma_link_layer ocrdma_link_layer(struct ib_device *device,
+ 					      u8 port_num)
+ {
+@@ -263,6 +132,8 @@ static int ocrdma_register_device(struct ocrdma_dev *dev)
+ 	dev->ibdev.query_port = ocrdma_query_port;
+ 	dev->ibdev.modify_port = ocrdma_modify_port;
+ 	dev->ibdev.query_gid = ocrdma_query_gid;
++	dev->ibdev.get_netdev = ocrdma_get_netdev;
++	dev->ibdev.modify_gid = ocrdma_modify_gid;
+ 	dev->ibdev.get_link_layer = ocrdma_link_layer;
+ 	dev->ibdev.alloc_pd = ocrdma_alloc_pd;
+ 	dev->ibdev.dealloc_pd = ocrdma_dealloc_pd;
+@@ -325,12 +196,6 @@ static int ocrdma_register_device(struct ocrdma_dev *dev)
+ static int ocrdma_alloc_resources(struct ocrdma_dev *dev)
+ {
+ 	mutex_init(&dev->dev_lock);
+-	dev->sgid_tbl = kzalloc(sizeof(union ib_gid) *
+-				OCRDMA_MAX_SGID, GFP_KERNEL);
+-	if (!dev->sgid_tbl)
+-		goto alloc_err;
+-	spin_lock_init(&dev->sgid_lock);
+-
+ 	dev->cq_tbl = kzalloc(sizeof(struct ocrdma_cq *) *
+ 			      OCRDMA_MAX_CQ, GFP_KERNEL);
+ 	if (!dev->cq_tbl)
+@@ -362,7 +227,6 @@ static void ocrdma_free_resources(struct ocrdma_dev *dev)
+ 	kfree(dev->stag_arr);
+ 	kfree(dev->qp_tbl);
+ 	kfree(dev->cq_tbl);
+-	kfree(dev->sgid_tbl);
+ }
+ 
+ /* OCRDMA sysfs interface */
+@@ -408,68 +272,6 @@ static void ocrdma_remove_sysfiles(struct ocrdma_dev *dev)
+ 		device_remove_file(&dev->ibdev.dev, ocrdma_attributes[i]);
+ }
+ 
+-static void ocrdma_add_default_sgid(struct ocrdma_dev *dev)
+-{
+-	/* GID Index 0 - Invariant manufacturer-assigned EUI-64 */
+-	union ib_gid *sgid = &dev->sgid_tbl[0];
+-
+-	sgid->global.subnet_prefix = cpu_to_be64(0xfe80000000000000LL);
+-	ocrdma_get_guid(dev, &sgid->raw[8]);
+-}
+-
+-static void ocrdma_init_ipv4_gids(struct ocrdma_dev *dev,
+-				  struct net_device *net)
 -{
 -	struct in_device *in_dev;
--#if IS_ENABLED(CONFIG_IPV6)
--	struct inet6_dev *in6_dev;
--	union ib_gid  *pgid;
--	struct inet6_ifaddr *ifp;
--	union ib_gid default_gid;
--#endif
 -	union ib_gid gid;
--
--
--	if ((port == 0) || (port > ibdev->dev->caps.num_ports))
--		return;
--
--	/* IPv4 gids */
--	in_dev = in_dev_get(dev);
+-	in_dev = in_dev_get(net);
 -	if (in_dev) {
 -		for_ifa(in_dev) {
--			/*ifa->ifa_address;*/
 -			ipv6_addr_set_v4mapped(ifa->ifa_address,
 -					       (struct in6_addr *)&gid);
--			update_gid_table(ibdev, port, &gid, 0, 0);
+-			ocrdma_add_sgid(dev, &gid);
 -		}
 -		endfor_ifa(in_dev);
 -		in_dev_put(in_dev);
 -	}
+-}
+-
+-static void ocrdma_init_ipv6_gids(struct ocrdma_dev *dev,
+-				  struct net_device *net)
+-{
 -#if IS_ENABLED(CONFIG_IPV6)
--	mlx4_make_default_gid(dev, &default_gid);
--	/* IPv6 gids */
--	in6_dev = in6_dev_get(dev);
+-	struct inet6_dev *in6_dev;
+-	union ib_gid  *pgid;
+-	struct inet6_ifaddr *ifp;
+-	in6_dev = in6_dev_get(net);
 -	if (in6_dev) {
 -		read_lock_bh(&in6_dev->lock);
 -		list_for_each_entry(ifp, &in6_dev->addr_list, if_list) {
 -			pgid = (union ib_gid *)&ifp->addr;
--			if (!memcmp(pgid, &default_gid, sizeof(*pgid)))
--				continue;
--			update_gid_table(ibdev, port, pgid, 0, 0);
+-			ocrdma_add_sgid(dev, pgid);
 -		}
 -		read_unlock_bh(&in6_dev->lock);
 -		in6_dev_put(in6_dev);
@@ -460,253 +298,212 @@ index bf38e32..18708a7 100644
 -#endif
 -}
 -
--static void mlx4_ib_set_default_gid(struct mlx4_ib_dev *ibdev,
--				 struct  net_device *dev, u8 port)
+-static void ocrdma_init_gid_table(struct ocrdma_dev *dev)
 -{
--	union ib_gid gid;
--	mlx4_make_default_gid(dev, &gid);
--	update_gid_table(ibdev, port, &gid, 0, 1);
+-	struct  net_device *net_dev;
+-
+-	for_each_netdev(&init_net, net_dev) {
+-		struct net_device *real_dev = rdma_vlan_dev_real_dev(net_dev) ?
+-				rdma_vlan_dev_real_dev(net_dev) : net_dev;
+-
+-		if (real_dev == dev->nic_info.netdev) {
+-			ocrdma_add_default_sgid(dev);
+-			ocrdma_init_ipv4_gids(dev, net_dev);
+-			ocrdma_init_ipv6_gids(dev, net_dev);
+-		}
+-	}
 -}
 -
--static int mlx4_ib_init_gid_table(struct mlx4_ib_dev *ibdev)
--{
--	struct	net_device *dev;
--	struct mlx4_ib_iboe *iboe = &ibdev->iboe;
--	int i;
--	int err = 0;
--
--	for (i = 1; i <= ibdev->num_ports; ++i) {
--		if (rdma_port_get_link_layer(&ibdev->ib_dev, i) ==
--		    IB_LINK_LAYER_ETHERNET) {
--			err = reset_gid_table(ibdev, i);
--			if (err)
--				goto out;
--		}
--	}
--
--	read_lock(&dev_base_lock);
--	spin_lock_bh(&iboe->lock);
--
--	for_each_netdev(&init_net, dev) {
--		u8 port = mlx4_ib_get_dev_port(dev, ibdev);
--		/* port will be non-zero only for ETH ports */
--		if (port) {
--			mlx4_ib_set_default_gid(ibdev, dev, port);
--			mlx4_ib_get_dev_addr(dev, ibdev, port);
--		}
--	}
--
--	spin_unlock_bh(&iboe->lock);
--	read_unlock(&dev_base_lock);
--out:
--	return err;
--}
--
- static void mlx4_ib_scan_netdevs(struct mlx4_ib_dev *ibdev,
- 				 struct net_device *dev,
- 				 unsigned long event)
-@@ -2116,81 +1748,22 @@ static void mlx4_ib_scan_netdevs(struct mlx4_ib_dev *ibdev,
- 	int update_qps_port = -1;
- 	int port;
+ static struct ocrdma_dev *ocrdma_add(struct be_dev_info *dev_info)
+ {
+ 	int status = 0, i;
+@@ -498,7 +300,6 @@ static struct ocrdma_dev *ocrdma_add(struct be_dev_info *dev_info)
+ 		goto alloc_err;
  
-+	ASSERT_RTNL();
-+
- 	iboe = &ibdev->iboe;
- 
- 	spin_lock_bh(&iboe->lock);
- 	mlx4_foreach_ib_transport_port(port, ibdev->dev) {
--		enum ib_port_state	port_state = IB_PORT_NOP;
--		struct net_device *old_master = iboe->masters[port - 1];
--		struct net_device *curr_netdev;
--		struct net_device *curr_master;
- 
- 		iboe->netdevs[port - 1] =
- 			mlx4_get_protocol_dev(ibdev->dev, MLX4_PROT_ETH, port);
--		if (iboe->netdevs[port - 1])
--			mlx4_ib_set_default_gid(ibdev,
--						iboe->netdevs[port - 1], port);
--		curr_netdev = iboe->netdevs[port - 1];
--
--		if (iboe->netdevs[port - 1] &&
--		    netif_is_bond_slave(iboe->netdevs[port - 1])) {
--			iboe->masters[port - 1] = netdev_master_upper_dev_get(
--				iboe->netdevs[port - 1]);
--		} else {
--			iboe->masters[port - 1] = NULL;
--		}
--		curr_master = iboe->masters[port - 1];
- 
- 		if (dev == iboe->netdevs[port - 1] &&
- 		    (event == NETDEV_CHANGEADDR || event == NETDEV_REGISTER ||
- 		     event == NETDEV_UP || event == NETDEV_CHANGE))
- 			update_qps_port = port;
- 
--		if (curr_netdev) {
--			port_state = (netif_running(curr_netdev) && netif_carrier_ok(curr_netdev)) ?
--						IB_PORT_ACTIVE : IB_PORT_DOWN;
--			mlx4_ib_set_default_gid(ibdev, curr_netdev, port);
--			if (curr_master) {
--				/* if using bonding/team and a slave port is down, we
--				 * don't want the bond IP based gids in the table since
--				 * flows that select port by gid may get the down port.
--				*/
--				if (port_state == IB_PORT_DOWN &&
--				    !mlx4_is_bonded(ibdev->dev)) {
--					reset_gid_table(ibdev, port);
--					mlx4_ib_set_default_gid(ibdev,
--								curr_netdev,
--								port);
--				} else {
--					/* gids from the upper dev (bond/team)
--					 * should appear in port's gid table
--					*/
--					mlx4_ib_get_dev_addr(curr_master,
--							     ibdev, port);
--				}
--			}
--			/* if bonding is used it is possible that we add it to
--			 * masters only after IP address is assigned to the
--			 * net bonding interface.
--			*/
--			if (curr_master && (old_master != curr_master)) {
--				reset_gid_table(ibdev, port);
--				mlx4_ib_set_default_gid(ibdev,
--							curr_netdev, port);
--				mlx4_ib_get_dev_addr(curr_master, ibdev, port);
--			}
--
--			if (!curr_master && (old_master != curr_master)) {
--				reset_gid_table(ibdev, port);
--				mlx4_ib_set_default_gid(ibdev,
--							curr_netdev, port);
--				mlx4_ib_get_dev_addr(curr_netdev, ibdev, port);
--			}
--		} else {
--			reset_gid_table(ibdev, port);
--		}
- 	}
--
- 	spin_unlock_bh(&iboe->lock);
- 
- 	if (update_qps_port > 0)
-@@ -2394,6 +1967,8 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 						1 : ibdev->num_ports;
- 	ibdev->ib_dev.num_comp_vectors	= dev->caps.num_comp_vectors;
- 	ibdev->ib_dev.dma_device	= &dev->persist->pdev->dev;
-+	ibdev->ib_dev.get_netdev	= mlx4_ib_get_netdev;
-+	ibdev->ib_dev.modify_gid	= mlx4_ib_modify_gid;
- 
- 	if (dev->caps.userspace_caps)
- 		ibdev->ib_dev.uverbs_abi_ver = MLX4_IB_UVERBS_ABI_VERSION;
-@@ -2588,26 +2163,6 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 				goto err_notif;
- 			}
- 		}
--		if (!iboe->nb_inet.notifier_call) {
--			iboe->nb_inet.notifier_call = mlx4_ib_inet_event;
--			err = register_inetaddr_notifier(&iboe->nb_inet);
--			if (err) {
--				iboe->nb_inet.notifier_call = NULL;
--				goto err_notif;
--			}
--		}
--#if IS_ENABLED(CONFIG_IPV6)
--		if (!iboe->nb_inet6.notifier_call) {
--			iboe->nb_inet6.notifier_call = mlx4_ib_inet6_event;
--			err = register_inet6addr_notifier(&iboe->nb_inet6);
--			if (err) {
--				iboe->nb_inet6.notifier_call = NULL;
--				goto err_notif;
--			}
--		}
--#endif
--		if (mlx4_ib_init_gid_table(ibdev))
--			goto err_notif;
- 	}
- 
- 	for (j = 0; j < ARRAY_SIZE(mlx4_class_attributes); ++j) {
-@@ -2638,18 +2193,6 @@ err_notif:
- 			pr_warn("failure unregistering notifier\n");
- 		ibdev->iboe.nb.notifier_call = NULL;
- 	}
--	if (ibdev->iboe.nb_inet.notifier_call) {
--		if (unregister_inetaddr_notifier(&ibdev->iboe.nb_inet))
--			pr_warn("failure unregistering notifier\n");
--		ibdev->iboe.nb_inet.notifier_call = NULL;
--	}
--#if IS_ENABLED(CONFIG_IPV6)
--	if (ibdev->iboe.nb_inet6.notifier_call) {
--		if (unregister_inet6addr_notifier(&ibdev->iboe.nb_inet6))
--			pr_warn("failure unregistering notifier\n");
--		ibdev->iboe.nb_inet6.notifier_call = NULL;
--	}
--#endif
- 	flush_workqueue(wq);
- 
- 	mlx4_ib_close_sriov(ibdev);
-@@ -2773,19 +2316,6 @@ static void mlx4_ib_remove(struct mlx4_dev *dev, void *ibdev_ptr)
- 		kfree(ibdev->ib_uc_qpns_bitmap);
- 	}
- 
--	if (ibdev->iboe.nb_inet.notifier_call) {
--		if (unregister_inetaddr_notifier(&ibdev->iboe.nb_inet))
--			pr_warn("failure unregistering notifier\n");
--		ibdev->iboe.nb_inet.notifier_call = NULL;
--	}
--#if IS_ENABLED(CONFIG_IPV6)
--	if (ibdev->iboe.nb_inet6.notifier_call) {
--		if (unregister_inet6addr_notifier(&ibdev->iboe.nb_inet6))
--			pr_warn("failure unregistering notifier\n");
--		ibdev->iboe.nb_inet6.notifier_call = NULL;
--	}
--#endif
--
- 	iounmap(ibdev->uar_map);
- 	for (p = 0; p < ibdev->num_ports; ++p)
- 		if (ibdev->counters[p] != -1)
-diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-index c870ddb..19ffdab 100644
---- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
-+++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -473,12 +473,8 @@ struct mlx4_port_gid_table {
- struct mlx4_ib_iboe {
- 	spinlock_t		lock;
- 	struct net_device      *netdevs[MLX4_MAX_PORTS];
--	struct net_device      *masters[MLX4_MAX_PORTS];
- 	atomic64_t		mac[MLX4_MAX_PORTS];
- 	struct notifier_block 	nb;
--	struct notifier_block	nb_inet;
--	struct notifier_block	nb_inet6;
--	union ib_gid		gid_table[MLX4_MAX_PORTS][128];
- 	struct mlx4_port_gid_table gids[MLX4_MAX_PORTS];
+ 	ocrdma_init_service_level(dev);
+-	ocrdma_init_gid_table(dev);
+ 	status = ocrdma_register_device(dev);
+ 	if (status)
+ 		goto alloc_err;
+@@ -645,34 +446,12 @@ static struct ocrdma_driver ocrdma_drv = {
+ 	.be_abi_version		= OCRDMA_BE_ROCE_ABI_VERSION,
  };
  
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 02fc91c6..d4393a1 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -1292,14 +1292,18 @@ static int _mlx4_set_path(struct mlx4_ib_dev *dev, const struct ib_ah_attr *ah,
- 		path->static_rate = 0;
+-static void ocrdma_unregister_inet6addr_notifier(void)
+-{
+-#if IS_ENABLED(CONFIG_IPV6)
+-	unregister_inet6addr_notifier(&ocrdma_inet6addr_notifier);
+-#endif
+-}
+-
+-static void ocrdma_unregister_inetaddr_notifier(void)
+-{
+-	unregister_inetaddr_notifier(&ocrdma_inetaddr_notifier);
+-}
+-
+ static int __init ocrdma_init_module(void)
+ {
+ 	int status;
  
- 	if (ah->ah_flags & IB_AH_GRH) {
--		if (ah->grh.sgid_index >= dev->dev->caps.gid_table_len[port]) {
-+		int real_sgid_index = mlx4_ib_gid_index_to_real_index(dev,
-+								      port,
-+								      ah->grh.sgid_index);
+ 	ocrdma_init_debugfs();
+ 
+-	status = register_inetaddr_notifier(&ocrdma_inetaddr_notifier);
+-	if (status)
+-		return status;
+-
+-#if IS_ENABLED(CONFIG_IPV6)
+-	status = register_inet6addr_notifier(&ocrdma_inet6addr_notifier);
+-	if (status)
+-		goto err_notifier6;
+-#endif
+-
+ 	status = be_roce_register_driver(&ocrdma_drv);
+ 	if (status)
+ 		goto err_be_reg;
+@@ -680,19 +459,13 @@ static int __init ocrdma_init_module(void)
+ 	return 0;
+ 
+ err_be_reg:
+-#if IS_ENABLED(CONFIG_IPV6)
+-	ocrdma_unregister_inet6addr_notifier();
+-err_notifier6:
+-#endif
+-	ocrdma_unregister_inetaddr_notifier();
 +
-+		if (real_sgid_index >= dev->dev->caps.gid_table_len[port]) {
- 			pr_err("sgid_index (%u) too large. max is %d\n",
--			       ah->grh.sgid_index, dev->dev->caps.gid_table_len[port] - 1);
-+			       real_sgid_index, dev->dev->caps.gid_table_len[port] - 1);
- 			return -1;
- 		}
+ 	return status;
+ }
  
- 		path->grh_mylmc |= 1 << 7;
--		path->mgid_index = ah->grh.sgid_index;
-+		path->mgid_index = real_sgid_index;
- 		path->hop_limit  = ah->grh.hop_limit;
- 		path->tclass_flowlabel =
- 			cpu_to_be32((ah->grh.traffic_class << 20) |
+ static void __exit ocrdma_exit_module(void)
+ {
+ 	be_roce_unregister_driver(&ocrdma_drv);
+-	ocrdma_unregister_inet6addr_notifier();
+-	ocrdma_unregister_inetaddr_notifier();
+ 	ocrdma_rem_debugfs();
+ }
+ 
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
+index 243c87c..6b74eb9 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
+@@ -125,6 +125,14 @@ enum {
+ 	OCRDMA_DB_RQ_SHIFT		= 24
+ };
+ 
++enum {
++	OCRDMA_L3_TYPE_IB_GRH   = 0x00,
++	OCRDMA_L3_TYPE_IPV4     = 0x01,
++	OCRDMA_L3_TYPE_IPV6     = 0x02
++};
++
++#define OCRDMA_ROUDP_FLAGS_SHIFT	0x03
++
+ #define OCRDMA_DB_CQ_RING_ID_MASK       0x3FF	/* bits 0 - 9 */
+ #define OCRDMA_DB_CQ_RING_ID_EXT_MASK  0x0C00	/* bits 10-11 of qid at 12-11 */
+ /* qid #2 msbits at 12-11 */
+@@ -488,6 +496,9 @@ enum {
+ 	OCRDMA_MBX_QUERY_CFG_CA_ACK_DELAY_SHIFT		= 8,
+ 	OCRDMA_MBX_QUERY_CFG_CA_ACK_DELAY_MASK		= 0xFF <<
+ 				OCRDMA_MBX_QUERY_CFG_CA_ACK_DELAY_SHIFT,
++	OCRDMA_MBX_QUERY_CFG_L3_TYPE_SHIFT		 = 0,
++	OCRDMA_MBX_QUERY_CFG_L3_TYPE_MASK		= 0xFF <<
++				OCRDMA_MBX_QUERY_CFG_L3_TYPE_SHIFT,
+ 
+ 	OCRDMA_MBX_QUERY_CFG_MAX_SEND_SGE_SHIFT		= 0,
+ 	OCRDMA_MBX_QUERY_CFG_MAX_SEND_SGE_MASK		= 0xFFFF,
+@@ -1049,6 +1060,8 @@ enum {
+ 	OCRDMA_QP_PARAMS_STATE_MASK		= BIT(5) | BIT(6) | BIT(7),
+ 	OCRDMA_QP_PARAMS_FLAGS_SQD_ASYNC	= BIT(8),
+ 	OCRDMA_QP_PARAMS_FLAGS_INB_ATEN		= BIT(9),
++	OCRDMA_QP_PARAMS_FLAGS_L3_TYPE_SHIFT	= 11,
++	OCRDMA_QP_PARAMS_FLAGS_L3_TYPE_MASK	= BIT(11) | BIT(12) | BIT(13),
+ 	OCRDMA_QP_PARAMS_MAX_SGE_RECV_SHIFT	= 16,
+ 	OCRDMA_QP_PARAMS_MAX_SGE_RECV_MASK	= 0xFFFF <<
+ 					OCRDMA_QP_PARAMS_MAX_SGE_RECV_SHIFT,
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index cf1f515..f1c4290 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -31,6 +31,7 @@
+ #include <rdma/iw_cm.h>
+ #include <rdma/ib_umem.h>
+ #include <rdma/ib_addr.h>
++#include <rdma/ib_cache.h>
+ 
+ #include "ocrdma.h"
+ #include "ocrdma_hw.h"
+@@ -49,6 +50,7 @@ int ocrdma_query_pkey(struct ib_device *ibdev, u8 port, u16 index, u16 *pkey)
+ int ocrdma_query_gid(struct ib_device *ibdev, u8 port,
+ 		     int index, union ib_gid *sgid)
+ {
++	int ret;
+ 	struct ocrdma_dev *dev;
+ 
+ 	dev = get_ocrdma_dev(ibdev);
+@@ -56,7 +58,22 @@ int ocrdma_query_gid(struct ib_device *ibdev, u8 port,
+ 	if (index >= OCRDMA_MAX_SGID)
+ 		return -EINVAL;
+ 
+-	memcpy(sgid, &dev->sgid_tbl[index], sizeof(*sgid));
++	ret = ib_get_cached_gid(ibdev, port, index, sgid);
++	if (ret == -EAGAIN) {
++		memcpy(sgid, &zgid, sizeof(*sgid));
++		return 0;
++	}
++
++	return ret;
++}
++
++int ocrdma_modify_gid(struct ib_device *ibdev, u8 port_num, unsigned int index,
++		      const union ib_gid *gid, const struct ib_gid_attr *attr,
++		      void **context)
++{
++	struct ocrdma_dev *dev;
++
++	dev = get_ocrdma_dev(ibdev);
+ 
+ 	return 0;
+ }
+@@ -106,6 +123,15 @@ int ocrdma_query_device(struct ib_device *ibdev, struct ib_device_attr *attr)
+ 	return 0;
+ }
+ 
++struct net_device *ocrdma_get_netdev(struct ib_device *ibdev, u8 port_num)
++{
++	struct ocrdma_dev *dev = get_ocrdma_dev(ibdev);
++
++	if (dev)
++		return dev->nic_info.netdev;
++
++	return NULL;
++}
+ static inline void get_link_speed_and_width(struct ocrdma_dev *dev,
+ 					    u8 *ib_speed, u8 *ib_width)
+ {
+@@ -175,7 +201,8 @@ int ocrdma_query_port(struct ib_device *ibdev,
+ 	props->port_cap_flags =
+ 	    IB_PORT_CM_SUP |
+ 	    IB_PORT_REINIT_SUP |
+-	    IB_PORT_DEVICE_MGMT_SUP | IB_PORT_VENDOR_CLASS_SUP | IB_PORT_IP_BASED_GIDS;
++	    IB_PORT_DEVICE_MGMT_SUP | IB_PORT_VENDOR_CLASS_SUP |
++	    IB_PORT_IP_BASED_GIDS | IB_PORT_ROCE;
+ 	props->gid_tbl_len = OCRDMA_MAX_SGID;
+ 	props->pkey_tbl_len = 1;
+ 	props->bad_pkey_cntr = 0;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
+index 3cdc81e..b24795c 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
+@@ -47,6 +47,10 @@ ocrdma_query_protocol(struct ib_device *device, u8 port_num);
+ void ocrdma_get_guid(struct ocrdma_dev *, u8 *guid);
+ int ocrdma_query_gid(struct ib_device *, u8 port,
+ 		     int index, union ib_gid *gid);
++struct net_device *ocrdma_get_netdev(struct ib_device *device, u8 port_num);
++int ocrdma_modify_gid(struct ib_device *ibdev, u8 port_num, unsigned int index,
++		      const union ib_gid *gid, const struct ib_gid_attr *attr,
++		      void **context);
+ int ocrdma_query_pkey(struct ib_device *, u8 port, u16 index, u16 *pkey);
+ 
+ struct ib_ucontext *ocrdma_alloc_ucontext(struct ib_device *,
 -- 
 2.1.0
 
