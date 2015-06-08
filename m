@@ -1,54 +1,73 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 1/5] IB/core: Introduce Fast Indirect Memory
- Registration verbs API
-Date: Mon, 8 Jun 2015 20:49:20 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FE5C7C@ORSMSX109.amr.corp.intel.com>
-References: <1433769339-949-1-git-send-email-sagig@mellanox.com>
- <1433769339-949-2-git-send-email-sagig@mellanox.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/ipoib: Change To max_cm_mtu when changing mode to
+ connected
+Date: Mon, 08 Jun 2015 17:04:42 -0400
+Message-ID: <1433797482.90034.2.camel@redhat.com>
+References: <1433673371-5355-1-git-send-email-erezsh@mellanox.com>
+	 <20150608164224.GA2499@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-DfefRr7x1hXNWyW6QXP1"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1433769339-949-2-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20150608164224.GA2499-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ELi Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> In order to support that we provide the user with an interface
-> to pass a scattered list of buffers to the IB core layer called
-> ib_indir_reg_list and provide a new send work request opcode
-> called IB_WR_REG_INDIR_MR. We extend wr union with a new type of
-> memory registration called indir_reg where the user can place the
-> relevant information to perform such a memory registration.
-> 
-> The verbs user is expected to perform these steps:
-> 0. Make sure that the device supports Indirect memory registration via
->    ib_device_cap_flag IB_DEVICE_INDIR_REGISTRATION and make sure
->    that ib_device_attr max_indir_reg_mr_list_len suffice for the
->    expected scatterlist length
-> 
-> 1. Allocate a memory region with IB_MR_INDIRECT_REG creation flag
->    This is done via ib_create_mr() with:
->    mr_init_attr.flags = IB_MR_INDIRECT_REG
-> 
-> 2. Allocate an ib_indir_reg_list structure to hold the scattered buffers
->    pointers. This is done via new ib_alloc_indir_reg_list() verb
-> 
-> 3. Fill the scattered buffers in ib_indir_reg_list.sg_list
-> 
-> 4. Post a work request with a new opcode IB_WR_REG_INDIR_MR and
->    provide the filled ib_indir_reg_list
-> 
-> 5. Perform data transfer
-> 
-> 6. Get completion of kind IB_WC_REG_INDIR_MR (if requested)
-> 
-> 7. Free indirect MR and ib_indir_reg_list via
->    ib_dereg_mr() and ib_free_indir_reg_list()
 
-IMO, we need to introduce vendor specific header files and interfaces.  It is unmaintainable to drive an API from the bottom up and expose the 'bare metal' implementation of a bunch of disjoint pieces of hardware.  (Yeah, because we need yet another way of registering memory... just reading the process for a yet another set of hoops that an app must jump through in order to register memory makes my head hurt.)  Everything about this continual approach needs to end.
+--=-DfefRr7x1hXNWyW6QXP1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, 2015-06-08 at 10:42 -0600, Jason Gunthorpe wrote:
+> On Sun, Jun 07, 2015 at 01:36:11PM +0300, Erez Shitrit wrote:
+> >=20
+> > When switching between modes (datagram / connected) change the MTU
+> > accordingly.
+> > datagram mode up to 4K, connected mode up to (64K - 0x10).
+>=20
+> Is this a bug fix (describe the user visible impact)? Should it go to
+> -stable? Add a Fixes: line?
+
+I'm not sure I would call it a bug.  Setting the MTU to max
+automatically is a policy decision more than anything else.  Currently,
+you have to enable connected mode, then set the MTU.  Both initscripts
+and NetworkManager do this for you on Red Hat, so the user sees no
+difference here.  I can't speak to other OSes.  I'm OK with setting
+connected mode MTU to max by default once we get the scatter/gather
+support for IPoIB added.
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+--=-DfefRr7x1hXNWyW6QXP1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJVdgNqAAoJELgmozMOVy/d3ucP/0pHsyP0P+xpYvIUBsR6OPdY
+ecmCxO3BHABWWnTX3Rfqp89sF37smAOdBlj+Gqo2DqTfCRLQxCeXJWy4NCET/scL
+FPM/MS5YJGvl9JtgT/mgEv0l+u12OkKv7kHaq7ZtPLyoC4Zc9L6hduVxUva9ag0c
+cCplB9yL/Vej2cdTZm1Z5mvVZL3Ftq3kft4+aFIBdVg5WLcHeCNdq008l4LsGGR8
+++WbVvinMNvRXfJoqrkZD1iJXZcufbYeeyuGpBy510nY5ogRUchi8zB8bp5qk+Aw
+SnD0j9BMi8mQiWLanFg1CQPaiRaDR34P/JsM2O/fD29yCxWd11ADce6tNIVOJ0OE
+mmmYnNZg9EMvPwM0XfIp1hvIM9Xz3eEOhHb8LxdF5x5rJ6aYsospgNAU9kES+d2L
+UTl2c65+GTfgkmakJHuVirCyNfov3pmVOmeZiMjQpRUu5IxVz7jkGQZ+Bs7PZNHq
+04fXStpgIouXZfl86k7P0Nd1msMMCyzWg0CqOaEJI7M/dLJQjb4pP/aP8T6HWQZX
+Z/v6h8wl9VlXhHLZv97Yup7HHmdXlgzk65RwHOmg/7Kb4aaiZJytpnqncmCbFHDz
+zcoLO74Mo/4bsjogx4PCVIBAGIzYPsjJp2VALiMblZfGMzzk6opcPaWpOUOSZNNu
+8atEQ+bCzm0WGp2/sBrX
+=KJqF
+-----END PGP SIGNATURE-----
+
+--=-DfefRr7x1hXNWyW6QXP1--
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
