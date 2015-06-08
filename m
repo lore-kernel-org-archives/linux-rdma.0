@@ -1,61 +1,49 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/CMA: Fix condition to search for InfiniBand route
-Date: Mon, 8 Jun 2015 11:44:13 -0400
-Message-ID: <20150608154412.GA23803@phlsvsds.ph.intel.com>
-References: <1433770345-17354-1-git-send-email-monis@mellanox.com>
+From: "ira. weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v7 5/6] xprtrdma, svcrdma: Switch to generic logging helpers
+Date: Mon, 8 Jun 2015 12:00:17 -0400
+Message-ID: <20150608160016.GA24846@phlsvsds.ph.intel.com>
+References: <1431945633-18401-1-git-send-email-sagig@mellanox.com> <1431945633-18401-6-git-send-email-sagig@mellanox.com> <20150607060010.GA26768@phlsvsds.ph.intel.com> <55754F08.7000201@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1433770345-17354-1-git-send-email-monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <55754F08.7000201-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 08, 2015 at 04:32:25PM +0300, Moni Shoua wrote:
-> The flag RDMA_CORE_CAP_IB_SA is set when link layer is InfiniBand but
-> also when link layer is Ethernet.
+On Mon, Jun 08, 2015 at 11:15:04AM +0300, Sagi Grimberg wrote:
+> On 6/7/2015 9:00 AM, ira.weiny wrote:
+> >>@@ -201,9 +202,10 @@ static void qp_event_handler(struct ib_event *event, 
+> >>void *context)
+> >>  	case IB_EVENT_QP_ACCESS_ERR:
+> >>  	case IB_EVENT_DEVICE_FATAL:
+> >>  	default:
+> >>-		dprintk("svcrdma: QP ERROR event %d received for QP=%p, "
+> >>+		dprintk("svcrdma: QP ERROR event %s (%d) received for QP=%p, 
+> >>"
+> >>  			"closing transport\n",
+> >
+> >
+> >Generally it is recommended to keep strings on a single line for easier
+> >grepping of the code.
+> >
+> >"However, never break user-visible strings such as printk messages, because
+> >that breaks the ability to grep for them."
+> 
+> Hey Ira,
+> 
+> Note that this patch did not cause the line split so I prefer that this
+> nit will be addressed in a later patch (along with the rest of the
+> file/module).
 
-Why?  Ethernet does not have an SA nor need one.
-
->
-> Therefore, link layer is not implied by
-> this flag.
-
-Of course not.  This flag is explicitly saying this port needs to use the IB
-SA to resolve the route information.
-
-cma_resolve_ib_route finds the route information by issuing an SA query.
-Therefore it should only be called on ports which require an SA.
-
-Was this change inspired by a bug being found?  If so it seems the underlying
-device needs to be fixed to not set the RDMA_CORE_CAP_IB_SA flag when the link
-layer is ethernet.
+I am ok with that.
 
 Ira
 
 > 
-> ---
->  drivers/infiniband/core/cma.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-> index 3b943b7..f96d6fd 100644
-> --- a/drivers/infiniband/core/cma.c
-> +++ b/drivers/infiniband/core/cma.c
-> @@ -1993,7 +1993,7 @@ int rdma_resolve_route(struct rdma_cm_id *id, int timeout_ms)
->  		return -EINVAL;
->  
->  	atomic_inc(&id_priv->refcount);
-> -	if (rdma_cap_ib_sa(id->device, id->port_num))
-> +	if (rdma_protocol_ib(id->device, id->port_num))
->  		ret = cma_resolve_ib_route(id_priv, timeout_ms);
->  	else if (rdma_protocol_roce(id->device, id->port_num))
->  		ret = cma_resolve_iboe_route(id_priv);
-> -- 
-> 1.7.1
-> 
+> Sagi.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
