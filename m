@@ -1,40 +1,53 @@
-From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] IB/ipoib: Change To max_cm_mtu when changing mode to connected
-Date: Sun,  7 Jun 2015 13:36:11 +0300
-Message-ID: <1433673371-5355-1-git-send-email-erezsh@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, ELi Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Devesh Sharma <devesh.sharma@avagotech.com>
+Subject: Re: [PATCH] RDMA/ocrdma: fix double free on pd
+Date: Mon, 8 Jun 2015 11:22:57 +0530
+Message-ID: <CANjDDBhggAEgQf5g3yWPw2A03dmnFBGQETiZtMQrMqmOVsv2LQ@mail.gmail.com>
+References: <1433515647-28059-1-git-send-email-colin.king@canonical.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1433515647-28059-1-git-send-email-colin.king@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Colin King <colin.king@canonical.com>
+Cc: Selvin Xavier <selvin.xavier@emulex.com>, Devesh Sharma <devesh.sharma@emulex.com>, Mitesh Ahuja <mitesh.ahuja@emulex.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+Acked-By: Devesh Sharma <devesh.sharma@avagotech.com>
 
-When switching between modes (datagram / connected) change the MTU
-accordingly.
-datagram mode up to 4K, connected mode up to (64K - 0x10).
-
-Signed-off-by: ELi Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 9e1b203..5b74184 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -232,6 +232,7 @@ int ipoib_set_mode(struct net_device *dev, const char *buf)
- 		ipoib_warn(priv, "enabling connected mode "
- 			   "will cause multicast packet drops\n");
- 		netdev_update_features(dev);
-+		dev_set_mtu(dev, ipoib_cm_max_mtu(dev));
- 		rtnl_unlock();
- 		priv->tx_wr.send_flags &= ~IB_SEND_IP_CSUM;
- 
--- 
-1.7.11.3
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Fri, Jun 5, 2015 at 8:17 PM, Colin King <colin.king@canonical.com> wrote:
+> From: Colin Ian King <colin.king@canonical.com>
+>
+> A reorganisation of the PD allocation and deallocation in commit
+> 9ba1377daa ("RDMA/ocrdma: Move PD resource management to driver.")
+> introduced a double free on pd, as detected by static analysis by
+> smatch:
+>
+> drivers/infiniband/hw/ocrdma/ocrdma_verbs.c:682 ocrdma_alloc_pd()
+>   error: double free of 'pd'^
+>
+> The original call to ocrdma_mbx_dealloc_pd() (which does not kfree
+> pd) was replaced with a call to _ocrdma_dealloc_pd() (which does
+> kfree pd).  The kfree following this call causes the double free,
+> so just remove it to fix the problem.
+>
+> Fixes: 9ba1377daa ("RDMA/ocrdma: Move PD resource management to driver.")
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+> ---
+>  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 1 -
+>  1 file changed, 1 deletion(-)
+>
+> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+> index 9dcb660..219f212 100644
+> --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+> @@ -679,7 +679,6 @@ err:
+>                 ocrdma_release_ucontext_pd(uctx);
+>         } else {
+>                 status = _ocrdma_dealloc_pd(dev, pd);
+> -               kfree(pd);
+>         }
+>  exit:
+>         return ERR_PTR(status);
+> --
+> 2.1.4
+>
