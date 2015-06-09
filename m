@@ -1,130 +1,52 @@
-From: Mark Hairgrove <mhairgrove@nvidia.com>
-Subject: Re: [PATCH 05/36] HMM: introduce heterogeneous memory management
- v3.
-Date: Mon, 8 Jun 2015 18:54:29 -0700
-Message-ID: <alpine.DEB.2.00.1506081841490.1802@mdh-linux64-2.nvidia.com>
-References: <1432236705-4209-1-git-send-email-j.glisse@gmail.com> <1432236705-4209-6-git-send-email-j.glisse@gmail.com> <alpine.DEB.2.00.1506081222270.27796@mdh-linux64-2.nvidia.com> <20150608211740.GA5241@gmail.com>
+From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] IB/ipoib: Change To max_cm_mtu when changing mode to connected
+Date: Tue, 9 Jun 2015 09:06:47 +0300
+Message-ID: <CAAk-MO_=-C2JqoTsHFoVZZSHP5YU2g7AMwkQc6Vup3Ubf5Pv=A@mail.gmail.com>
+References: <1433673371-5355-1-git-send-email-erezsh@mellanox.com>
+	<20150608164224.GA2499@obsidianresearch.com>
+	<1433797482.90034.2.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="8323329-1917143692-1433814877=:1802"
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20150608211740.GA5241@gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Jerome Glisse <j.glisse@gmail.com>
-Cc: "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Linus Torvalds <torvalds@linux-foundation.org>, "joro@8bytes.org" <joro@8bytes.org>, Mel Gorman <mgorman@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Peter Zijlstra <peterz@infradead.org>, Andrea Arcangeli <aarcange@redhat.com>, Johannes Weiner <jweiner@redhat.com>, Larry Woodman <lwoodman@redhat.com>, Rik van Riel <riel@redhat.com>, Dave Airlie <airlied@redhat.com>, Brendan Conoboy <blc@redhat.com>, Joe Donohue <jdonohue@redhat.com>, Duncan Poole <dpoole@nvidia.com>, Sherry Cheung <SCheung@nvidia.com>, Subhash Gutti <sgutti@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, Lucien Dunning <ldunning@nvidia.com>, Mark Hairgrove <mhairgrove@nvidia.com>, Cameron Buschardt <cabuschardt@nvidia.com>, Arvind
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1433797482.90034.2.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ELi Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
---8323329-1917143692-1433814877=:1802
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-
-
-On Mon, 8 Jun 2015, Jerome Glisse wrote:
-
-> On Mon, Jun 08, 2015 at 12:40:18PM -0700, Mark Hairgrove wrote:
-> >
-> >
-> > On Thu, 21 May 2015, j.glisse@gmail.com wrote:
-> >
-> > > From: J=E9r=F4me Glisse <jglisse@redhat.com>
-> > >
-> > > This patch only introduce core HMM functions for registering a new
-> > > mirror and stopping a mirror as well as HMM device registering and
-> > > unregistering.
-> > >
-> > > [...]
-> > >
-> > > +/* struct hmm_device_operations - HMM device operation callback
-> > > + */
-> > > +struct hmm_device_ops {
-> > > +	/* release() - mirror must stop using the address space.
-> > > +	 *
-> > > +	 * @mirror: The mirror that link process address space with the d=
-evice.
-> > > +	 *
-> > > +	 * When this is call, device driver must kill all device thread u=
-sing
-> > > +	 * this mirror. Also, this callback is the last thing call by HMM=
- and
-> > > +	 * HMM will not access the mirror struct after this call (ie no m=
-ore
-> > > +	 * dereference of it so it is safe for the device driver to free =
-it).
-> > > +	 * It is call either from :
-> > > +	 *   - mm dying (all process using this mm exiting).
-> > > +	 *   - hmm_mirror_unregister() (if no other thread holds a refere=
-nce)
-> > > +	 *   - outcome of some device error reported by any of the device
-> > > +	 *     callback against that mirror.
-> > > +	 */
-> > > +	void (*release)(struct hmm_mirror *mirror);
-> > > +};
-> >
-> > The comment that ->release is called when the mm dies doesn't match t=
-he
-> > implementation. ->release is only called when the mirror is destroyed=
-, and
-> > that can only happen after the mirror has been unregistered. This may=
- not
-> > happen until after the mm dies.
-> >
-> > Is the intent for the driver to get the callback when the mm goes dow=
-n?
-> > That seems beneficial so the driver can kill whatever's happening on =
-the
-> > device. Otherwise the device may continue operating in a dead address
-> > space until the driver's file gets closed and it unregisters the mirr=
-or.
+On Tue, Jun 9, 2015 at 12:04 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> On Mon, 2015-06-08 at 10:42 -0600, Jason Gunthorpe wrote:
+>> On Sun, Jun 07, 2015 at 01:36:11PM +0300, Erez Shitrit wrote:
+>> >
+>> > When switching between modes (datagram / connected) change the MTU
+>> > accordingly.
+>> > datagram mode up to 4K, connected mode up to (64K - 0x10).
+>>
+>> Is this a bug fix (describe the user visible impact)? Should it go to
+>> -stable? Add a Fixes: line?
 >
-> This was the intent before merging free & release. I guess i need to
-> reinstate the free versus release callback. Sadly the lifetime for HMM
-> is more complex than mmu_notifier as we intend the mirror struct to
-> be embedded into a driver private struct.
+> I'm not sure I would call it a bug.  Setting the MTU to max
+> automatically is a policy decision more than anything else.  Currently,
+> you have to enable connected mode, then set the MTU.  Both initscripts
+> and NetworkManager do this for you on Red Hat, so the user sees no
+> difference here.  I can't speak to other OSes.  I'm OK with setting
 
-Can you clarify how that's different from mmu_notifiers? Those are also
-embedded into a driver-owned struct.
+The only real reason for a user to switch to CM mode is for the
+performance he can get, and this is only by the huge MTU the CM gives,
+so it somehow should be part of the "mode setting".
+As you said RH does it (in the new versions of its OS's only) via
+scripting outside of the driver code, other vendor doesn't.
 
-Is the goal to allow calling hmm_mirror_unregister from within the "mm is
-dying" HMM callback? I don't know whether that's really necessary as long
-as there's some association between the driver files and the mirrors.
+> connected mode MTU to max by default once we get the scatter/gather
+> support for IPoIB added.
 
+OK, great. Thanks.
 
-> > If so, I think there's a race here in the case of mm teardown happeni=
-ng
-> > concurrently with hmm_mirror_unregister.
-> >
-> > [...]
-> >
-> > Do you agree that this sequence can happen, or am I missing something
-> > which prevents it?
+> --
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>               GPG KeyID: 0E572FDD
 >
-> Can't happen because child have mm->hmm =3D NULL ie only one hmm per mm
-> and hmm is tie to only one mm. It is the responsability of the device
-> driver to make sure same apply to private reference to the hmm mirror
-> struct ie hmm_mirror should never be tie to a private file struct.
-
-It's useful for the driver to have some association between files and
-mirrors. If the file is closed prior to process exit we would like to
-unregister the mirror, otherwise it will persist until process teardown.
-The association doesn't have to be 1:1 but having the files ref count the
-mirror or something would be useful.
-
-But even if we assume no association at all between files and mirrors, ar=
-e
-you sure that prevents the race? The driver may choose to unregister the
-hmm_device at any point once its files are closed. In the case of module
-unload the device unregister can't be prevented. If mm teardown hasn't
-happened yet mirrors may still be active and registered on that
-hmm_device. The driver thus has to first call hmm_mirror_unregister on al=
-l
-active mirrors, then call hmm_device_unregister. mm teardown of those
-mirrors may trigger at any point in this sequence, so we're right back to
-that race.
---8323329-1917143692-1433814877=:1802--
-
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
