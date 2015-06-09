@@ -1,42 +1,47 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] IB/core: Get rid of redundant verb ib_destroy_mr
-Date: Mon, 8 Jun 2015 22:55:09 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FE5D77@ORSMSX109.amr.corp.intel.com>
-References: <1433769283-30541-1-git-send-email-sagig@mellanox.com>
+From: "Luis R. Rodriguez" <mcgrof-3uybbJdB1yH774rrrx3eTA@public.gmane.org>
+Subject: [PATCH v6 0/3] linux: address broken PAT drivers
+Date: Mon,  8 Jun 2015 17:20:19 -0700
+Message-ID: <1433809222-28261-1-git-send-email-mcgrof@do-not-panic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1433769283-30541-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org, bp-l3A5Bk7waGM@public.gmane.org
+Cc: tomi.valkeinen-l0cyMroinI0@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> --- a/drivers/infiniband/hw/mlx5/mr.c
-> +++ b/drivers/infiniband/hw/mlx5/mr.c
-> @@ -1174,6 +1174,18 @@ static int clean_mr(struct mlx5_ib_mr *mr)
->  	int umred = mr->umred;
->  	int err;
-> 
-> +	if (mr->sig) {
-> +		if (mlx5_core_destroy_psv(dev->mdev,
-> +					  mr->sig->psv_memory.psv_idx))
-> +			mlx5_ib_warn(dev, "failed to destroy mem psv %d\n",
-> +				     mr->sig->psv_memory.psv_idx);
-> +		if (mlx5_core_destroy_psv(dev->mdev,
-> +					  mr->sig->psv_wire.psv_idx))
-> +			mlx5_ib_warn(dev, "failed to destroy wire psv %d\n",
-> +				     mr->sig->psv_wire.psv_idx);
-> +		kfree(mr->sig);
-> +	}
-> +
->  	if (!umred) {
->  		err = destroy_mkey(dev, mr);
->  		if (err) {
+From: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
 
-This patch doesn't introduce this problem, but the err check suggests that deregistration can fail for some reason.  If so, should mr->sig be cleared above, so that a second call to dereg doesn't attempt to free the memory twice?
+Mauro,
+
+since the ivtv patch is already acked by the driver maintainer
+and depends on an x86 symbol that went through Boris' tree are you
+OK in it going through Boris' tree?
+
+Boris,
+
+provided the outcome of the above maintainer's preference for you
+to merge these please consider these patches for your tree. The
+maintainer path is the only thing pending for the 1 ivtv patch.
+The Infiniband subsystem maintainer, Doug, already provided his
+ACK for the ipath driver and for this to go through you.
+
+Luis R. Rodriguez (3):
+  ivtv: use arch_phys_wc_add() and require PAT disabled
+  IB/ipath: add counting for MTRR
+  IB/ipath: use arch_phys_wc_add() and require PAT disabled
+
+ drivers/infiniband/hw/ipath/Kconfig           |  3 ++
+ drivers/infiniband/hw/ipath/ipath_driver.c    | 18 ++++++---
+ drivers/infiniband/hw/ipath/ipath_kernel.h    |  4 +-
+ drivers/infiniband/hw/ipath/ipath_wc_x86_64.c | 43 +++++---------------
+ drivers/media/pci/ivtv/Kconfig                |  3 ++
+ drivers/media/pci/ivtv/ivtvfb.c               | 58 +++++++++++----------------
+ 6 files changed, 52 insertions(+), 77 deletions(-)
+
+-- 
+2.3.2.209.gd67f9d5.dirty
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
