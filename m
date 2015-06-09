@@ -1,51 +1,43 @@
-From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] IB/ipoib: Change To max_cm_mtu when changing mode to connected
-Date: Tue, 9 Jun 2015 09:06:47 +0300
-Message-ID: <CAAk-MO_=-C2JqoTsHFoVZZSHP5YU2g7AMwkQc6Vup3Ubf5Pv=A@mail.gmail.com>
-References: <1433673371-5355-1-git-send-email-erezsh@mellanox.com>
-	<20150608164224.GA2499@obsidianresearch.com>
-	<1433797482.90034.2.camel@redhat.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH 0/5] Indirect memory registration feature
+Date: Mon, 8 Jun 2015 23:20:54 -0700
+Message-ID: <20150609062054.GA13011@infradead.org>
+References: <1433769339-949-1-git-send-email-sagig@mellanox.com>
+ <20150608132254.GA14773@infradead.org>
+ <55759B0B.8050805@mellanox.com>
+ <20150608135151.GA14021@infradead.org>
+ <5575A9C7.7000409@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1433797482.90034.2.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5575A9C7.7000409-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ELi Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 9, 2015 at 12:04 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> On Mon, 2015-06-08 at 10:42 -0600, Jason Gunthorpe wrote:
->> On Sun, Jun 07, 2015 at 01:36:11PM +0300, Erez Shitrit wrote:
->> >
->> > When switching between modes (datagram / connected) change the MTU
->> > accordingly.
->> > datagram mode up to 4K, connected mode up to (64K - 0x10).
->>
->> Is this a bug fix (describe the user visible impact)? Should it go to
->> -stable? Add a Fixes: line?
->
-> I'm not sure I would call it a bug.  Setting the MTU to max
-> automatically is a policy decision more than anything else.  Currently,
-> you have to enable connected mode, then set the MTU.  Both initscripts
-> and NetworkManager do this for you on Red Hat, so the user sees no
-> difference here.  I can't speak to other OSes.  I'm OK with setting
+On Mon, Jun 08, 2015 at 05:42:15PM +0300, Sagi Grimberg wrote:
+> I wouldn't say this is about offloading bounce buffering to silicon.
+> The RDMA stack always imposed the alignment limitation as we can only
+> give a page lists to the devices. Other drivers (qlogic/emulex FC
+> drivers for example), use an _arbitrary_ SG lists where each element can
+> point to any {addr, len}.
 
-The only real reason for a user to switch to CM mode is for the
-performance he can get, and this is only by the huge MTU the CM gives,
-so it somehow should be part of the "mode setting".
-As you said RH does it (in the new versions of its OS's only) via
-scripting outside of the driver code, other vendor doesn't.
+Those are drivers for protocols that support real SG lists.   It seems
+only Infiniband and NVMe expose this silly limit.
 
-> connected mode MTU to max by default once we get the scatter/gather
-> support for IPoIB added.
+> >So please fix it in the proper layers
+> >first,
+> 
+> I agree that we can take care of bounce buffering in the block layer
+> (or scsi for SG_IO) if the driver doesn't want to see any type of
+> unaligned SG lists.
+> 
+> But do you think that it should come before the stack can support this?
 
-OK, great. Thanks.
-
-> --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->               GPG KeyID: 0E572FDD
->
+Yes, absolutely.  The other thing that needs to come first is a proper
+abstraction for MRs instead of hacking another type into all drivers.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
