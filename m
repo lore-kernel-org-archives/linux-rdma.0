@@ -1,74 +1,91 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/ipoib: Change To max_cm_mtu when changing mode to
- connected
-Date: Tue, 09 Jun 2015 09:38:55 -0400
-Message-ID: <1433857135.90034.13.camel@redhat.com>
-References: <1433673371-5355-1-git-send-email-erezsh@mellanox.com>
-	 <20150608164224.GA2499@obsidianresearch.com>
-	 <1433797482.90034.2.camel@redhat.com>
-	 <CAAk-MO_=-C2JqoTsHFoVZZSHP5YU2g7AMwkQc6Vup3Ubf5Pv=A@mail.gmail.com>
+Subject: Re: [PATCH for-4.1 2/2] iw_cxgb4: support for bar2 qid densities
+ exceeding the page size
+Date: Tue, 09 Jun 2015 10:03:14 -0400
+Message-ID: <1433858594.90034.14.camel@redhat.com>
+References: <1433854392-6531-1-git-send-email-hariprasad@chelsio.com>
+	 <1433854392-6531-3-git-send-email-hariprasad@chelsio.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-MCfQb6fOegXSm7zPuT0O"
+	protocol="application/pgp-signature"; boundary="=-CG/SVYMS5VCf4C8WMm29"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAAk-MO_=-C2JqoTsHFoVZZSHP5YU2g7AMwkQc6Vup3Ubf5Pv=A@mail.gmail.com>
+In-Reply-To: <1433854392-6531-3-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ELi Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-MCfQb6fOegXSm7zPuT0O
+--=-CG/SVYMS5VCf4C8WMm29
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, 2015-06-09 at 09:06 +0300, Erez Shitrit wrote:
-> On Tue, Jun 9, 2015 at 12:04 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote=
-:
-> > On Mon, 2015-06-08 at 10:42 -0600, Jason Gunthorpe wrote:
-> >> On Sun, Jun 07, 2015 at 01:36:11PM +0300, Erez Shitrit wrote:
-> >> >
-> >> > When switching between modes (datagram / connected) change the MTU
-> >> > accordingly.
-> >> > datagram mode up to 4K, connected mode up to (64K - 0x10).
-> >>
-> >> Is this a bug fix (describe the user visible impact)? Should it go to
-> >> -stable? Add a Fixes: line?
-> >
-> > I'm not sure I would call it a bug.  Setting the MTU to max
-> > automatically is a policy decision more than anything else.  Currently,
-> > you have to enable connected mode, then set the MTU.  Both initscripts
-> > and NetworkManager do this for you on Red Hat, so the user sees no
-> > difference here.  I can't speak to other OSes.  I'm OK with setting
+On Tue, 2015-06-09 at 18:23 +0530, Hariprasad Shenai wrote:
+> Handle this configuration:
 >=20
-> The only real reason for a user to switch to CM mode is for the
-> performance he can get, and this is only by the huge MTU the CM gives,
-> so it somehow should be part of the "mode setting".
-> As you said RH does it (in the new versions of its OS's only)
+>         Queues Per Page * SGE BAR2 Queue Register Area Size > Page Size
+>=20
+> Use cxgb4_bar2_sge_qregs() to obtain the proper location within the
+> bar2 region for a given qid.
+>=20
+> Rework the DB and GTS write functions to make use of this bar2 info.
+>=20
+> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/cxgb4/cq.c       | 22 ++++++------
+>  drivers/infiniband/hw/cxgb4/device.c   | 16 +++------
+>  drivers/infiniband/hw/cxgb4/iw_cxgb4.h |  5 +--
+>  drivers/infiniband/hw/cxgb4/qp.c       | 64 ++++++++++++++++++++++------=
+------
+>  drivers/infiniband/hw/cxgb4/t4.h       | 60 ++++++++++++++++++++--------=
+---
+>  5 files changed, 98 insertions(+), 69 deletions(-)
+>=20
+> diff --git a/drivers/infiniband/hw/cxgb4/cq.c b/drivers/infiniband/hw/cxg=
+b4/cq.c
+> index 68ddb37..8e5bbcb 100644
+> --- a/drivers/infiniband/hw/cxgb4/cq.c
+> +++ b/drivers/infiniband/hw/cxgb4/cq.c
+> @@ -156,19 +156,17 @@ static int create_cq(struct c4iw_rdev *rdev, struct=
+ t4_cq *cq,
+>  		goto err4;
+> =20
+>  	cq->gen =3D 1;
+> +	cq->gts =3D rdev->lldi.gts_reg;
+>  	cq->rdev =3D rdev;
+> -	if (user) {
+> -		u32 off =3D (cq->cqid << rdev->cqshift) & PAGE_MASK;
+> =20
+> -		cq->ugts =3D (u64)rdev->bar2_pa + off;
+> -	} else if (is_t4(rdev->lldi.adapter_type)) {
+> -		cq->gts =3D rdev->lldi.gts_reg;
+> -		cq->qid_mask =3D -1U;
+> -	} else {
+> -		u32 off =3D ((cq->cqid << rdev->cqshift) & PAGE_MASK) + 12;
+> -
+> -		cq->gts =3D rdev->bar2_kva + off;
+> -		cq->qid_mask =3D rdev->qpmask;
+> +	cq->bar2_va =3D c4iw_bar2_addrs(rdev, cq->cqid, T4_BAR2_QTYPE_INGRESS,
+> +				      &cq->bar2_qid,
+> +				      user ? &cq->bar2_pa : NULL);
+> +	if (user && !cq->bar2_va) {
+> +		pr_warn(MOD "%s: cqid %u not in BAR2 range.\n",
+> +			pci_name(rdev->lldi.pdev), cq->cqid);
+> +		ret =3D -EINVAL;
+> +		goto err4;
+>  	}
+>  	return 0;
+>  err4:
+> @@ -971,7 +969,7 @@ struct ib_cq *c4iw_create_cq(struct ib_device *ibdev,=
+ int entries,
+>  		insert_mmap(ucontext, mm);
+> =20
+>  		mm2->key =3D uresp.gts_key;
+> -		mm2->addr =3D chp->cq.ugts;
+> +		mm2->addr =3D (u64)(uintptr_t)chp->cq.bar2_pa;
 
-No, we do it in all versions of our OS, but you have to set the MTU
-parameter, we don't default it to anything for you (but this is no
-different than setting CM).  This is normal device setup.  Just like we
-don't default Ethernet interfaces to jumbo frames, the user needs to set
-the MTU on that interface.  And the user gets benefit at MTUs less than
-jumbo size.
-
->  via
-> scripting outside of the driver code, other vendor doesn't.
->=20
-> > connected mode MTU to max by default once we get the scatter/gather
-> > support for IPoIB added.
->=20
-> OK, great. Thanks.
->=20
-> > --
-> > Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> >               GPG KeyID: 0E572FDD
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Why are you using a cast here at all?  bar2_pa is already u64...
 
 
 --=20
@@ -76,7 +93,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
 
---=-MCfQb6fOegXSm7zPuT0O
+--=-CG/SVYMS5VCf4C8WMm29
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -84,22 +101,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJVduxvAAoJELgmozMOVy/d5pQQAIwMJh0U4p5ZsPdeWZpyKMEA
-wDZVMqz9oDaV7PfZMBBlKgSvJz4JLcdS98/KOtTC5Q2EIhXJnELfAQF+Jf1WnQnb
-sKhVHRAijduIHGOXbk8ALMREjhhYrIOMZprhV03pBxlsYPxau3TXXA6Eolj5K5pp
-80xhi/E8VJVIuwu6yAyNRsGq/VISoZ8I6MJ2CNbeeVsatY1pB2T4ZNa/s1UaEyTX
-hbNQbm+fX7KsDGB/txLKElgS8Ku855jV4rxykHKmv0/cE+GicUIgLfehi4KVrb5G
-Bvia25CsbHvbi5F3XlZRsVW3MMOBzhumnULdNDOuxLUnGwPXgWDZyYq6lJfykV9d
-v5JnyCh+CC3U7MfK/pZUPjiZ1lqp1gc13qAEsoGrbIyZMiLtPbCnuGc1IrByiDfx
-Z0/N41oQxwvTUDClghMPySWKk1Ygrpk1fo19s98OZVtNSZESIyMPp7LQunOeO6/I
-X7DzjOBRwjydeXYAGQOp3WXn4QUzurfqPNnqS+IUKZPFqz0IwLqltLp8YVPnxele
-FGATCfBHtnAkjIymcDNCa6Gr+RywwrCgvN00dtN+hT0S7J8Q10/B3nteEhRueynL
-CkRYIK7FQ7n2C+zO1hJfEdWqpe8NwQ09viUiVK798YfzsEcFzbbidBGopAxqsQZD
-kEi/CXYNLdje0bmrkgeo
-=CcCy
+iQIcBAABCAAGBQJVdvIiAAoJELgmozMOVy/dkJMP/jvGFIge4MjGcX4UaK9tr4Kx
+4QHfo2GPniAKES+UK2cjKSSzjw+nR56rchFO7g0RUuH1Rp8igIDV9rdeRt/kLqx6
+fIKpcr0u6YfxsOiliMVgefqiE+RbJyNQ8vkP9vi3JwVZuX/S1t+j0ORox6ArAxK2
+GuVZ5FgisUwB67euOybzvy5V2o/ccClwljpJucrNcaZBYWbImCT150YbYghVrqAp
+2tQhG7D6ivh6o318KOyByj28/xGv2Tzt22C5Wy2ewrdq0S1++pqE9dtgbRHjHmSP
+hX7mu2/NZ1n0OcktyaVeN8iIvAgtTLslledZ44DG6ndh1EFj4R3pSuSlPk/MsPF5
+RI4cLN0fgvCXf0Ee14NDRzBnd/QASasOK9zevsJ5OsSVt2WbUbe8yzYB6xJBMvtT
+X2P3vCUG/7OsoKRxsrf+xYD+LTA5IA9JJ71Xl6SIg+4E0sYrcNWF8mk4bMF7ZQlL
+QZth5VC6qtNwWA2GssdNtIptjThnbcW/SqoHcx5C5c5ApNFT/u8d3PC1asvDmcqg
+CC1vbwqKH4XrBPP3xdgEn5o++ExqeAOcReRo1bG/h5zrSHENy0c0DF96IrVtknZb
+60PfRrvo3XBIFW9mrpOMS/Mhc7KspZW0vVYbrHWE12JFdOp/aS7z7rY6r3eZRuoH
+iTvp9wO19um6//9dnBsS
+=1VJQ
 -----END PGP SIGNATURE-----
 
---=-MCfQb6fOegXSm7zPuT0O--
+--=-CG/SVYMS5VCf4C8WMm29--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
