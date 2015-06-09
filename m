@@ -1,259 +1,46 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v6 1/3] ivtv: use arch_phys_wc_add() and require PAT disabled
-Date: Tue, 09 Jun 2015 08:23:59 +0200
-Message-ID: <5576867F.8000003@xs4all.nl>
-References: <1433809222-28261-1-git-send-email-mcgrof@do-not-panic.com>	<1433809222-28261-2-git-send-email-mcgrof@do-not-panic.com> <20150608215625.39544c82@recife.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <20150608215625.39544c82@recife.lan>
-Sender: linux-media-owner@vger.kernel.org
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>, "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Cc: bp@suse.de, tomi.valkeinen@ti.com, bhelgaas@google.com, linux-media@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@suse.com>, Andy Walls <awalls@md.metrocast.net>, Doug Ledford <dledford@redhat.com>, Andy Lutomirski <luto@amacapital.net>, Suresh Siddha <sbsiddha@gmail.com>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Juergen Gross <jgross@suse.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Dave Airlie <airlied@redhat.com>, Antonino Daplas <adaplas@gmail.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Dave Hansen <dave.hansen@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, "Michael S. Tsirkin" <mst@redhat.com>, Stefan Bader <stefan.bader@canonical.com>, =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <syrjala@sci.fi>, Mel Gorman <mgorman@suse.de>, Vlastimil Babka <vbabka@suse.cz>, Davi
+From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH for-4.1 0/2] Adds support for user mode bar2 mapping and bar2 qid density
+Date: Tue,  9 Jun 2015 18:23:10 +0530
+Message-ID: <1433854392-6531-1-git-send-email-hariprasad@chelsio.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 06/09/2015 02:56 AM, Mauro Carvalho Chehab wrote:
-> Em Mon, 08 Jun 2015 17:20:20 -0700
-> "Luis R. Rodriguez" <mcgrof@do-not-panic.com> escreveu:
->=20
->> From: "Luis R. Rodriguez" <mcgrof@suse.com>
->>
->> We are burrying direct access to MTRR code support on
->> x86 in order to take advantage of PAT. In the future we
->> also want to make the default behaviour of ioremap_nocache()
->> to use strong UC, use of mtrr_add() on those systems
->> would make write-combining void.
->>
->> In order to help both enable us to later make strong
->> UC default and in order to phase out direct MTRR access
->> code port the driver over to arch_phys_wc_add() and
->> annotate that the device driver requires systems to
->> boot with PAT disabled, with the nopat kernel parameter.
->>
->> This is a worthy comprmise given that the hardware is
->> really rare these days, and perhaps only some lost souls
->> in some third world country are expected to be using this
->> feature of the device driver.
->>
->> Acked-by: Andy Walls <awalls@md.metrocast.net>
->> Cc: Andy Walls <awalls@md.metrocast.net>
->> Cc: Doug Ledford <dledford@redhat.com>
->> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->=20
-> Provided that you fix the issues below:
-> Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->=20
->> Cc: Andy Lutomirski <luto@amacapital.net>
->> Cc: Suresh Siddha <sbsiddha@gmail.com>
->> Cc: Ingo Molnar <mingo@elte.hu>
->> Cc: Thomas Gleixner <tglx@linutronix.de>
->> Cc: Juergen Gross <jgross@suse.com>
->> Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
->> Cc: Dave Airlie <airlied@redhat.com>
->> Cc: Bjorn Helgaas <bhelgaas@google.com>
->> Cc: Antonino Daplas <adaplas@gmail.com>
->> Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
->> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
->> Cc: Dave Hansen <dave.hansen@linux.intel.com>
->> Cc: Arnd Bergmann <arnd@arndb.de>
->> Cc: Michael S. Tsirkin <mst@redhat.com>
->> Cc: Stefan Bader <stefan.bader@canonical.com>
->> Cc: Ville Syrj=C3=A4l=C3=A4 <syrjala@sci.fi>
->> Cc: Mel Gorman <mgorman@suse.de>
->> Cc: Vlastimil Babka <vbabka@suse.cz>
->> Cc: Borislav Petkov <bp@suse.de>
->> Cc: Davidlohr Bueso <dbueso@suse.de>
->> Cc: konrad.wilk@oracle.com
->> Cc: ville.syrjala@linux.intel.com
->> Cc: david.vrabel@citrix.com
->> Cc: jbeulich@suse.com
->> Cc: toshi.kani@hp.com
->> Cc: Roger Pau Monn=C3=A9 <roger.pau@citrix.com>
->> Cc: linux-fbdev@vger.kernel.org
->> Cc: linux-kernel@vger.kernel.org
->> Cc: ivtv-devel@ivtvdriver.org
->> Cc: linux-media@vger.kernel.org
->> Cc: xen-devel@lists.xensource.com
->> Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
->> ---
->>  drivers/media/pci/ivtv/Kconfig  |  3 +++
->>  drivers/media/pci/ivtv/ivtvfb.c | 58 ++++++++++++++++--------------=
------------
->>  2 files changed, 26 insertions(+), 35 deletions(-)
->>
->> diff --git a/drivers/media/pci/ivtv/Kconfig b/drivers/media/pci/ivtv=
-/Kconfig
->> index dd6ee57e..b2a7f88 100644
->> --- a/drivers/media/pci/ivtv/Kconfig
->> +++ b/drivers/media/pci/ivtv/Kconfig
->> @@ -57,5 +57,8 @@ config VIDEO_FB_IVTV
->>  	  This is used in the Hauppauge PVR-350 card. There is a driver
->>  	  homepage at <http://www.ivtvdriver.org>.
->> =20
->> +	  If you have this hardware you will need to boot with PAT disable=
-d
->> +	  on your x86 systems, use the nopat kernel parameter.
->> +
->=20
-> Hmm... FB_IVTV is not hardware... it is framebuffer support for IVTV.
-> It is optional to use FB API for the video output port of this board,
-> instead of using V4L2 API.
+Hi,
 
-That's not true. It is hardware: it drives the video output OSD which o=
-verlays
-the video output. The reason it is optional is that it is hard to unloa=
-d a
-framebuffer module and most people don't need it.
+This patch series adds support for user mode bar2 mappings for T4 adapter
+and also adds  support for bar2 qid densities exceeding page size.
 
-So V4L2 drives the video output and ivtvfb drives the OSD overlay. So i=
-t is
-not a case of 'instead of'.
+This patch series has been created against Doug's github tree 'for-4.1'
+branch and includes patches on cxgb4 and iw_cxgb4 driver.
 
->=20
-> I would say, instead, something like:=20
->=20
-> 	"In order to use this module, you will need to boot with PAT disable=
-d
-> 	  on x86 systems, using the nopat kernel parameter."
+We have included all the maintainers of respective drivers. Kindly review
+the change and let us know in case of any review comments.
 
-I do agree with this change, but that's because this module is optional=
- and
-not for the reasons you mentioned above.
+Thanks
 
-Regards,
+Hariprasad Shenai (2):
+  cxgb4: Support for user mode bar2 mappings with T4
+  iw_cxgb4: support for bar2 qid densities exceeding the page size
 
-	Hans
+ drivers/infiniband/hw/cxgb4/cq.c                | 22 ++++-----
+ drivers/infiniband/hw/cxgb4/device.c            | 16 ++-----
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h          |  5 +-
+ drivers/infiniband/hw/cxgb4/qp.c                | 64 ++++++++++++++++---------
+ drivers/infiniband/hw/cxgb4/t4.h                | 60 +++++++++++++++--------
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4.h      |  1 +
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c |  4 +-
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_uld.h  |  1 +
+ drivers/net/ethernet/chelsio/cxgb4/sge.c        |  4 +-
+ drivers/net/ethernet/chelsio/cxgb4/t4_hw.c      |  7 +--
+ 10 files changed, 109 insertions(+), 75 deletions(-)
 
->=20
->>  	  To compile this driver as a module, choose M here: the
->>  	  module will be called ivtvfb.
->> diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivt=
-v/ivtvfb.c
->> index 9ff1230..7685ae3 100644
->> --- a/drivers/media/pci/ivtv/ivtvfb.c
->> +++ b/drivers/media/pci/ivtv/ivtvfb.c
->> @@ -44,8 +44,8 @@
->>  #include <linux/ivtvfb.h>
->>  #include <linux/slab.h>
->> =20
->> -#ifdef CONFIG_MTRR
->> -#include <asm/mtrr.h>
->> +#ifdef CONFIG_X86_64
->> +#include <asm/pat.h>
->>  #endif
->> =20
->>  #include "ivtv-driver.h"
->> @@ -155,12 +155,11 @@ struct osd_info {
->>  	/* Buffer size */
->>  	u32 video_buffer_size;
->> =20
->> -#ifdef CONFIG_MTRR
->>  	/* video_base rounded down as required by hardware MTRRs */
->>  	unsigned long fb_start_aligned_physaddr;
->>  	/* video_base rounded up as required by hardware MTRRs */
->>  	unsigned long fb_end_aligned_physaddr;
->> -#endif
->> +	int wc_cookie;
->> =20
->>  	/* Store the buffer offset */
->>  	int set_osd_coords_x;
->> @@ -1099,6 +1098,8 @@ static int ivtvfb_init_vidmode(struct ivtv *it=
-v)
->>  static int ivtvfb_init_io(struct ivtv *itv)
->>  {
->>  	struct osd_info *oi =3D itv->osd_info;
->> +	/* Find the largest power of two that maps the whole buffer */
->> +	int size_shift =3D 31;
->> =20
->>  	mutex_lock(&itv->serialize_lock);
->>  	if (ivtv_init_on_first_open(itv)) {
->> @@ -1132,29 +1133,16 @@ static int ivtvfb_init_io(struct ivtv *itv)
->>  			oi->video_pbase, oi->video_vbase,
->>  			oi->video_buffer_size / 1024);
->> =20
->> -#ifdef CONFIG_MTRR
->> -	{
->> -		/* Find the largest power of two that maps the whole buffer */
->> -		int size_shift =3D 31;
->> -
->> -		while (!(oi->video_buffer_size & (1 << size_shift))) {
->> -			size_shift--;
->> -		}
->> -		size_shift++;
->> -		oi->fb_start_aligned_physaddr =3D oi->video_pbase & ~((1 << size_=
-shift) - 1);
->> -		oi->fb_end_aligned_physaddr =3D oi->video_pbase + oi->video_buffe=
-r_size;
->> -		oi->fb_end_aligned_physaddr +=3D (1 << size_shift) - 1;
->> -		oi->fb_end_aligned_physaddr &=3D ~((1 << size_shift) - 1);
->> -		if (mtrr_add(oi->fb_start_aligned_physaddr,
->> -			oi->fb_end_aligned_physaddr - oi->fb_start_aligned_physaddr,
->> -			     MTRR_TYPE_WRCOMB, 1) < 0) {
->> -			IVTVFB_INFO("disabled mttr\n");
->> -			oi->fb_start_aligned_physaddr =3D 0;
->> -			oi->fb_end_aligned_physaddr =3D 0;
->> -		}
->> -	}
->> -#endif
->> -
->> +	while (!(oi->video_buffer_size & (1 << size_shift)))
->> +		size_shift--;
->> +	size_shift++;
->> +	oi->fb_start_aligned_physaddr =3D oi->video_pbase & ~((1 << size_s=
-hift) - 1);
->> +	oi->fb_end_aligned_physaddr =3D oi->video_pbase + oi->video_buffer=
-_size;
->> +	oi->fb_end_aligned_physaddr +=3D (1 << size_shift) - 1;
->> +	oi->fb_end_aligned_physaddr &=3D ~((1 << size_shift) - 1);
->> +	oi->wc_cookie =3D arch_phys_wc_add(oi->fb_start_aligned_physaddr,
->> +					 oi->fb_end_aligned_physaddr -
->> +					 oi->fb_start_aligned_physaddr);
->>  	/* Blank the entire osd. */
->>  	memset_io(oi->video_vbase, 0, oi->video_buffer_size);
->> =20
->> @@ -1172,14 +1160,7 @@ static void ivtvfb_release_buffers (struct iv=
-tv *itv)
->> =20
->>  	/* Release pseudo palette */
->>  	kfree(oi->ivtvfb_info.pseudo_palette);
->> -
->> -#ifdef CONFIG_MTRR
->> -	if (oi->fb_end_aligned_physaddr) {
->> -		mtrr_del(-1, oi->fb_start_aligned_physaddr,
->> -			oi->fb_end_aligned_physaddr - oi->fb_start_aligned_physaddr);
->> -	}
->> -#endif
->> -
->> +	arch_phys_wc_del(oi->wc_cookie);
->>  	kfree(oi);
->>  	itv->osd_info =3D NULL;
->>  }
->> @@ -1284,6 +1265,13 @@ static int __init ivtvfb_init(void)
->>  	int registered =3D 0;
->>  	int err;
->> =20
->> +#ifdef CONFIG_X86_64
->> +	if (WARN(pat_enabled(),
->> +		 "ivtvfb needs PAT disabled, boot with nopat kernel parameter\n")=
-) {
->> +		return EINVAL;
->=20
-> Errors are always negative. So:=20
-> 		return -EINVAL
->=20
-> Or, perhaps, -ENODEV.
->=20
->> +	}
->> +#endif
->> +
->>  	if (ivtvfb_card_id < -1 || ivtvfb_card_id >=3D IVTV_MAX_CARDS) {
->>  		printk(KERN_ERR "ivtvfb:  ivtvfb_card_id parameter is out of rang=
-e (valid range: -1 - %d)\n",
->>  		     IVTV_MAX_CARDS - 1);
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media=
-" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
+-- 
+2.3.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
