@@ -1,103 +1,66 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-4.1 2/2] iw_cxgb4: support for bar2 qid densities
- exceeding the page size
-Date: Tue, 09 Jun 2015 10:25:18 -0400
-Message-ID: <1433859918.90034.25.camel@redhat.com>
-References: <1433854392-6531-1-git-send-email-hariprasad@chelsio.com>
-			 <1433854392-6531-3-git-send-email-hariprasad@chelsio.com>
-		 <1433858594.90034.14.camel@redhat.com>
-		 <002301d0a2bd$9aef5840$d0ce08c0$@opengridcomputing.com>
-	 <1433859363.90034.19.camel@redhat.com>
-	 <003f01d0a2bf$377ac3b0$a6704b10$@opengridcomputing.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-KzdlkriBvOLQlubFTvhY"
+From: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH v4 2/4] IB/core: Check the presence of netlink multicast group listeners
+Date: Tue,  9 Jun 2015 10:57:15 -0400
+Message-ID: <1433861837-26177-3-git-send-email-kaike.wan@intel.com>
+References: <1433861837-26177-1-git-send-email-kaike.wan@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <003f01d0a2bf$377ac3b0$a6704b10$@opengridcomputing.com>
+In-Reply-To: <1433861837-26177-1-git-send-email-kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: 'Hariprasad Shenai' <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
---=-KzdlkriBvOLQlubFTvhY
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+This patch adds a function to check if listeners for a netlink multicast
+group are present.
 
-On Tue, 2015-06-09 at 09:18 -0500, Steve Wise wrote:
->=20
+Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/core/netlink.c |    8 ++++++++
+ include/rdma/rdma_netlink.h       |    7 +++++++
+ 2 files changed, 15 insertions(+), 0 deletions(-)
 
-> > > > Why are you using a cast here at all?  bar2_pa is already u64...
-> > > >
-> > >
-> > > So it should just have the (uintptr_t) cast?
-> >=20
-> > No, it should be no cast at all.  The uintptr_t cast is only for castin=
-g
-> > an int->ptr or ptr->int.  In those cases, if the size of an int !=3D si=
-ze
-> > of ptr, you can loose data, and uintptr_t tells the compiler "I know I'=
-m
-> > casting between possibly lossy data sizes and either A) I've checked an=
-d
-> > it's OK or B) I'm ok with ptr truncation and the loss won't hurt us".
-> > It basically turns off size checks when sticking a ptr into an int.  Yo=
-u
-> > should therefore use it only in those circumstances.  For example, when
-> > storing a cookie that doesn't have a strict uniqueness requirement, the
-> > loss due to truncation is probably OK.  Or if you know you are only
-> > doing something like initially storing an int into a pointer, and then
-> > later storing that pointer back into an int, so there can never be any
-> > truncation because the source of the ptr was always int sized.  Those
-> > are the times to use uintptr.  In this case, you have a real u64 going
-> > into a real u64, there should be no casts.
-> >
->=20
-> My bad.  I thought bar2_pa was a ptr...
-
-I didn't look up the actual structure definition, but:
-
-+       cq->bar2_va =3D c4iw_bar2_addrs(rdev, cq->cqid, T4_BAR2_QTYPE_INGRE=
-SS,
-+                                     &cq->bar2_qid,
-+                                     user ? &cq->bar2_pa : NULL);
-
-+void __iomem *c4iw_bar2_addrs(struct c4iw_rdev *rdev, unsigned int qid,
-+                             enum cxgb4_bar2_qtype qtype,
-+                             unsigned int *pbar2_qid, u64 *pbar2_pa)
-
-Looks like either it's a u64 or else there should be compiler warnings
-about passing &cq->bar2_pa to c4iw_bar2_addrs.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
---=-KzdlkriBvOLQlubFTvhY
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIbBAABCAAGBQJVdvdOAAoJELgmozMOVy/d9i4P92epvpaOqeUZifgNMLZPftC7
-OZOKnIV5PAvPf47TcGh0696JwDFkGejL06uJ2P3W/lqL2rlj3MOUMVCHTR7viMrv
-YnIXifo56tcpuG8mPzlegE51dpY4dAsxSXYT8Dy85ll+RBnD+J8G3RFYIncF7byU
-3dxa+ahEp799Tjw1GFnhdE4pL41bXK5/Hq7j8E384bgg2ggwdeQtBN978WFN8QRt
-TgIYO0mnhooLNCrbtjOvhD7SxUga8piNiT3Vy/+8mSn2jAGUEnJBY1RjCkjgTW2B
-8LM0z8JAHaCMOGHxp+AttJTDX9TN68RuuVEywJfFBpkfPq0iq5dUtZvuuaqnc8Nn
-cVcAG1m7Nt4gY7n6bIcnkS+7GCWqNB12822FMO25/cajx1Xd9i6BNnZWL0nbHCZK
-pzfZxpq5C9iSjPQdmcrz29EQrfwA/qAkzE8IkLMIENeRpcuyJ3noAwS/N6rZM78s
-97wFxOWiBdN15XecLmecwl/a/6L/R5m36GaGwytCvsZA4IHDQoq83bG5e3be3A7C
-LeHHtzYP2a79IlJ2LeF79xNmxJGQjO77ecL1/34VmOgSQsJDYxPMXCH1Tl4fPDxa
-mx3kNocOPYOsFpKj0YIhSsQSfHCFsqcliV8b6O5VQvTj90wMlsS43vlQMsyYLW9+
-TQwz5wkE2vEZnPQ4i5k=
-=pE/a
------END PGP SIGNATURE-----
-
---=-KzdlkriBvOLQlubFTvhY--
+diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
+index 23dd5a5..e0fc913 100644
+--- a/drivers/infiniband/core/netlink.c
++++ b/drivers/infiniband/core/netlink.c
+@@ -49,6 +49,14 @@ static DEFINE_MUTEX(ibnl_mutex);
+ static struct sock *nls;
+ static LIST_HEAD(client_list);
+ 
++int ibnl_chk_listeners(unsigned int group)
++{
++	if (netlink_has_listeners(nls, group) == 0)
++		return -1;
++	return 0;
++}
++EXPORT_SYMBOL(ibnl_chk_listeners);
++
+ int ibnl_add_client(int index, int nops,
+ 		    const struct ibnl_client_cbs cb_table[])
+ {
+diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
+index 0790882..5852661 100644
+--- a/include/rdma/rdma_netlink.h
++++ b/include/rdma/rdma_netlink.h
+@@ -77,4 +77,11 @@ int ibnl_unicast(struct sk_buff *skb, struct nlmsghdr *nlh,
+ int ibnl_multicast(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			unsigned int group, gfp_t flags);
+ 
++/**
++ * Check if there are any listeners to the netlink group
++ * @group: the netlink group ID
++ * Returns 0 on success or a negative for no listeners.
++ */
++int ibnl_chk_listeners(unsigned int group);
++
+ #endif /* _RDMA_NETLINK_H */
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
