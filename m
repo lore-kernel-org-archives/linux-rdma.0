@@ -1,89 +1,54 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 14/14] IB/mad: Add final OPA MAD processing
-Date: Wed, 10 Jun 2015 14:37:26 -0400
-Message-ID: <1433961446.71666.26.camel@redhat.com>
-References: <1433615915-24591-1-git-send-email-ira.weiny@intel.com>
-	 <1433615915-24591-15-git-send-email-ira.weiny@intel.com>
-	 <HE1PR05MB1418BB6C461790B76D9C02A3B1BD0@HE1PR05MB1418.eurprd05.prod.outlook.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH for-next V5 00/12] Move RoCE GID management to IB/Core
+Date: Wed, 10 Jun 2015 12:49:54 -0600
+Message-ID: <20150610184954.GA26404@obsidianresearch.com>
+References: <1433772735-22416-1-git-send-email-matanb@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FE5D17@ORSMSX109.amr.corp.intel.com>
+ <55769561.8000300@mellanox.com>
+ <5577FAFB.8020205@mellanox.com>
+ <20150610150010.GA11243@obsidianresearch.com>
+ <557852EE.5030107@mellanox.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-5X4hrF7i6nE+LvsxgRgg"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <HE1PR05MB1418BB6C461790B76D9C02A3B1BD0-eBadYZ65MZ87O8BmmlM1zNqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <557852EE.5030107-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-xCNTGe7nOvUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Jun 10, 2015 at 06:08:30PM +0300, Matan Barak wrote:
+> >It isn't really a cleanup because the whole gid table is new code and
+> >has latent elements for rocev2 - this is why it is so much bigger than
+> >it should be.
+> 
+> I disagree. Could you please point on anything that is RoCE V2 specific?
+> The essence of RoCE V2 in the previous series was the gid_type part.
+> This is now completely removed.
 
---=-5X4hrF7i6nE+LvsxgRgg
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Sure gid_type is gone, but I didn't say roceve2 specific, I said
+latent elements. ie I'm assuming reasons for the scary locking are
+because the ripped out rocev2 code needed it?  And some of the
+complexity that looks pointless now was supporting ripped out rocev2
+elements? That is not necessarily bad, but the code had better be good
+quailty and working..
 
-On Wed, 2015-06-10 at 06:30 +0000, Liran Liss wrote:
-> > From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->=20
-> Hi Ira,
->=20
-> OPA cannot impersonate IB; OPA node and link types have to be designated =
-as such.
-> In terms of MAD processing flows, both explicit (as in the handle_opa_smi=
-() call below) and implicit code paths (which share IB flows - there are se=
-veral cases) must make this distinction.
+But then I look at the patches, and the very first locking I test out
+looks wrong. I see call_rcu/synchronize_rcu being used without a
+single call to rcu_read_lock. So this fails #2 of the RCU review
+checklist (Seriously? Why am I catching this?)
 
-As far as in the kernel is concerned, the individual capability bits are
-much more important.  I would actually like to do away with the
-node_type variable from struct ib_device eventually.  As for user space,
-where we have to maintain ABI, node_type can be IB_CA (after all, the
-OPA devices are just like RoCE devices in that they implement IB VERBS
-as their user visible transport, and only addressing/management is
-different from link layer IB devices), link layer needs to be OPA.
+I stopped reading at that point.
 
-> > +static enum smi_action
-> > +handle_opa_smi(struct ib_mad_port_private *port_priv,
-> > +	       struct ib_mad_qp_info *qp_info,
-> > +	       struct ib_wc *wc,
-> > +	       int port_num,
-> > +	       struct ib_mad_private *recv,
-> > +	       struct ib_mad_private *response)
-> > +{
-> ...
-> > +	} else if (port_priv->device->node_type =3D=3D RDMA_NODE_IB_SWITCH)  =
-<----
->=20
-> --Liran
+I think you've got the right basic idea for a cleanup series here. It
+is time to buckle down and execute it well. Do an internal mellanox
+kernel team review of this series. Audit and fix all the locking,
+evaluate the code growth and design. Audit to confirm there is no
+functional change that is not documented in a commit message. Tell me
+v6 is the best effort *team Mellanox* can put forward.
 
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
---=-5X4hrF7i6nE+LvsxgRgg
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJVeIPmAAoJELgmozMOVy/dlvoQAIfQkoYOa5f7iymZ6wxQfV5x
-sQVzEfjoewrDlHktb9NBhch211Hi2XN4DR+UP8IgkCf0kTP0NzUN1tMajZXAUvkR
-DmkClieY0LE0X6ogJk1gwczJ/ZymKUrrss8ICgfofhBeWK1FAf8hkqv8An6YlE3k
-zZRtjaf/O7qWsEfcmXwiYzLP6TQVZkadOBd00WfM8mDwPIv0x5UnQfDcAAzjfOaO
-zPjSHvLeAmGn3E4fyN6UKCRmosUnu6XfaKpyE/l+jLJRAAADTEQl2VCAsR7QXqK8
-E3C05MGmgUwnzg2QNV6Kakh+izlHlhqi/7GjJJkpEdWCuKh6feGgvud0cqIx4YCv
-AHy56KDArXzK/VJlqZABsIF3PRB2uZjcEVeGnoiobqEW2Z5x5mHtPukIjV4geqTj
-VFcv2SP9Cio0CjDBZhlwaveZmQORVcQ7ZPzNdjH6NHBNU6+qkBjgeNdNXNlFKrTb
-ZFCp2SExr4l1Ib55L07yqAC8Sn9R990njrzVUxLsii8Ru3VWBHvb6xobSxywt17i
-P7m34W6LBzQko9o09nA3zyuj1qyRCwkR5yiiAySucPBGAHkzCxcD3NBpClI69zgr
-dYmnOHQdrWgWkJa0Y4V2n+v8qQW4lS3XBesW2lFlIjzReBmLEICAzYRMntAynQCh
-2MsdNqptWjAkGcKBv5Lk
-=lvlz
------END PGP SIGNATURE-----
-
---=-5X4hrF7i6nE+LvsxgRgg--
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
