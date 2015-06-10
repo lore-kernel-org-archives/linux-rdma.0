@@ -1,49 +1,35 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v4 4/4] IB/sa: Route SA pathrecord query through netlink
-Date: Wed, 10 Jun 2015 21:09:32 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E1109B14D@CRSMSX101.amr.corp.intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v4 0/4] Sending kernel pathrecord query to user cache
+ server
+Date: Wed, 10 Jun 2015 21:11:50 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FE6AD4@ORSMSX109.amr.corp.intel.com>
 References: <1433861837-26177-1-git-send-email-kaike.wan@intel.com>
- <1433861837-26177-5-git-send-email-kaike.wan@intel.com>
- <55787838.3020606@dev.mellanox.co.il>
- <20150610191026.GA28334@obsidianresearch.com>
- <5578955A.4070001@dev.mellanox.co.il>
+ <55783D84.6040709@dev.mellanox.co.il>
+ <3F128C9216C9B84BB6ED23EF16290AFB0CABCC2E@CRSMSX101.amr.corp.intel.com>
+ <55784C35.2020401@dev.mellanox.co.il>
+ <20150610180020.GC13497@phlsvsds.ph.intel.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FE6940@ORSMSX109.amr.corp.intel.com>
+ <2807E5FD2F6FDA4886F6618EAC48510E1109B12A@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="Windows-1252"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5578955A.4070001-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E1109B12A-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> On 6/10/2015 3:10 PM, Jason Gunthorpe wrote:
-> > On Wed, Jun 10, 2015 at 01:47:36PM -0400, Hal Rosenstock wrote:
-> >> On 6/9/2015 10:57 AM, kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> >>> From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> >>>
-> >>> This patch routes a SA pathrecord query to netlink first
-> >>
-> >> Should only unicast PRs be done in this manner or should API support
-> >> enabling for unicast and/or multicast ?
-> >>
-> >> AFAIK kernel doesn't query multicast PRs now (queries MCMRs) but this
-> >> seems like it would help make it future proof and not have to take
-> >> timeout on local query unless app supports it.
+> > > This series does not attempt to optimize the kernel needing to know
+> > > that a PR has been updated.  There are existing mechanisms for that.
 > >
-> > It is a good question. We can clearly extend toward that, using a MGID
-> > as the DGID and adding additional nested netlink fields.
-> >
-> > However, does it make sense?
+> > Does this exist in the kernel?
 > 
-> If it doesn't make sense, then should MGIDs as DGIDs never be requested via
-> the PR netlink API ?
-> 
+> At least some support, yes.  For example client reregister marks all IPoIB
+> paths as invalid.
 
-Why should we prevent it?  What does it hurt?
-
-Ira
+Reregister indicates that all PRs are now invalid?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
