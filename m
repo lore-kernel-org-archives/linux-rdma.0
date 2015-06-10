@@ -1,57 +1,40 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v4 0/4] Sending kernel pathrecord query to user cache
- server
-Date: Wed, 10 Jun 2015 10:39:49 -0400
-Message-ID: <55784C35.2020401@dev.mellanox.co.il>
-References: <1433861837-26177-1-git-send-email-kaike.wan@intel.com> <55783D84.6040709@dev.mellanox.co.il> <3F128C9216C9B84BB6ED23EF16290AFB0CABCC2E@CRSMSX101.amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH for-next V5 00/12] Move RoCE GID management to IB/Core
+Date: Wed, 10 Jun 2015 09:00:10 -0600
+Message-ID: <20150610150010.GA11243@obsidianresearch.com>
+References: <1433772735-22416-1-git-send-email-matanb@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FE5D17@ORSMSX109.amr.corp.intel.com>
+ <55769561.8000300@mellanox.com>
+ <5577FAFB.8020205@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <3F128C9216C9B84BB6ED23EF16290AFB0CABCC2E-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5577FAFB.8020205-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-xCNTGe7nOvUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/10/2015 10:22 AM, Wan, Kaike wrote:
-> 
-> 
->> -----Original Message-----
->> From: Hal Rosenstock [mailto:hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org]
->> Sent: Wednesday, June 10, 2015 9:37 AM
->>
->>>
->>> A SA cache is undeniably critical for fabric scalability and performance.
->>> In user space, the ibacm application provides a good example of
->>> pathrecord cache for address and route resolution. With the recent
->>> implementation of the provider architecture, ibacm offers more
->> extensibility as a SA cache.
->>> In kernel, ipoib implements its own small cache for pathrecords, which
->>> is however not available for general use. Furthermore, the
->>> implementation of a SA cache in user space offers better flexibility,
->>> larger capacity, and more robustness for the system.
->>>
->>> In this patch series, a mechanism is implemented to allow ib_sa to
->>> send pathrecord query to a user application (eg ibacm) through netlink.
->>
->> While this appears to address the current upstream use model for ACM with
->> it's multicast overlay backend where PRs are static, it does not appear to
->> address PR changes.
->> Should aging/revalidation of PRs be supported ? If so, would this make PRs
->> similar at "high" level to IP neighbor cache in kernel ?
-> 
-> Even for the default provider acmp, PRs will time out and the length of timeout is configurable. For other providers (eg ibssa), the PR change could be managed correctly and promptly, and this capability is beyond ibacm core itself. 
+On Wed, Jun 10, 2015 at 11:53:15AM +0300, Or Gerlitz wrote:
 
-That deals with the update of PR in user space (ACM). Doesn't kernel
-need some way of knowing PR was updated ?
+> Jason, can you ack that this post addressed your comments?
 
--- Hal
+Well, I asked for a cleanup series, multiple times, and this is the
+closest things have got.
 
-> Kaike
-> 
-> 
+It isn't really a cleanup because the whole gid table is new code and
+has latent elements for rocev2 - this is why it is so much bigger than
+it should be.
 
+The other core parts have been mostly trimmed, so that is the specific
+things discussed last round.
+
+Is it Ok to go ahead with the gid table as is? I don't know, I haven't
+studied the patch in any detail. Technically, that is not best
+practice for kernel development process.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
