@@ -1,50 +1,65 @@
-From: Fabian Frederick <fabf-AgBVmzD5pcezQB+pC5nmwQ@public.gmane.org>
-Subject: [PATCH 1/1 linux-next] IB/mthca: use swap() in mthca_make_profile()
-Date: Wed, 10 Jun 2015 18:31:51 +0200
-Message-ID: <1433953911-23735-1-git-send-email-fabf@skynet.be>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v4 0/4] Sending kernel pathrecord query to user cache
+ server
+Date: Wed, 10 Jun 2015 12:46:55 -0400
+Message-ID: <557869FF.2090804@dev.mellanox.co.il>
+References: <1433861837-26177-1-git-send-email-kaike.wan@intel.com> <55783D84.6040709@dev.mellanox.co.il> <3F128C9216C9B84BB6ED23EF16290AFB0CABCC2E@CRSMSX101.amr.corp.intel.com> <55784C35.2020401@dev.mellanox.co.il> <3F128C9216C9B84BB6ED23EF16290AFB0CABCC80@CRSMSX101.amr.corp.intel.com> <5578558B.1070503@dev.mellanox.co.il> <3F128C9216C9B84BB6ED23EF16290AFB0CABCCC5@CRSMSX101.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <3F128C9216C9B84BB6ED23EF16290AFB0CABCCC5-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>, Fabian Frederick <fabf-AgBVmzD5pcezQB+pC5nmwQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Use kernel.h macro definition.
+On 6/10/2015 11:49 AM, Wan, Kaike wrote:
+>>>>>>> A SA cache is undeniably critical for fabric scalability and performance.
+>>>>>>> In user space, the ibacm application provides a good example of
+>>>>>>> pathrecord cache for address and route resolution. With the recent
+>>>>>>> implementation of the provider architecture, ibacm offers more
+>>>>>> extensibility as a SA cache.
+>>>>>>> In kernel, ipoib implements its own small cache for pathrecords,
+>>>>>>> which is however not available for general use. Furthermore, the
+>>>>>>> implementation of a SA cache in user space offers better
+>>>>>>> flexibility, larger capacity, and more robustness for the system.
+>>>>>>>
+>>>>>>> In this patch series, a mechanism is implemented to allow ib_sa to
+>>>>>>> send pathrecord query to a user application (eg ibacm) through netlink.
+>>>>>>
+>>>>>> While this appears to address the current upstream use model for
+>>>>>> ACM with it's multicast overlay backend where PRs are static, it
+>>>>>> does not appear to address PR changes.
+>>>>>> Should aging/revalidation of PRs be supported ? If so, would this
+>>>>>> make PRs similar at "high" level to IP neighbor cache in kernel ?
+>>>>>
+>>>>> Even for the default provider acmp, PRs will time out and the length
+>>>>> of
+>>>> timeout is configurable. For other providers (eg ibssa), the PR
+>>>> change could be managed correctly and promptly, and this capability
+>>>> is beyond ibacm core itself.
+>>>>
+>>>> That deals with the update of PR in user space (ACM). Doesn't kernel
+>>>> need some way of knowing PR was updated ?
+>>>
+>>> Maybe. If a kernel client is interested in PR changes, it can register
+>>> for notification
+>>
+>> Wouldn't the notification mechanism be via netlink ? What would the
+>> granularity be for the registrations and notifications ?
+> 
+> Not necessarily. AFAIK, SA notification is not currently supported in kernel. One could register notification through netlink, as long as the user space application (eg: ibacm) supports it. But this would be a new feature, as Sean pointed out in previous e-mail.
 
-Thanks to Julia Lawall for Coccinelle scripting support.
+Such notifications are not necessarily tied to SA event reporting. In
+fact, Todd made argument at 2014 OFA Devcon that such mechanism is
+anathema to (exa)scalability.
 
-Signed-off-by: Fabian Frederick <fabf-AgBVmzD5pcezQB+pC5nmwQ@public.gmane.org>
----
- drivers/infiniband/hw/mthca/mthca_profile.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+-- Hal
 
-diff --git a/drivers/infiniband/hw/mthca/mthca_profile.c b/drivers/infiniband/hw/mthca/mthca_profile.c
-index 8edb28a..15d0644 100644
---- a/drivers/infiniband/hw/mthca/mthca_profile.c
-+++ b/drivers/infiniband/hw/mthca/mthca_profile.c
-@@ -77,7 +77,6 @@ s64 mthca_make_profile(struct mthca_dev *dev,
- 	u64 mem_base, mem_avail;
- 	s64 total_size = 0;
- 	struct mthca_resource *profile;
--	struct mthca_resource tmp;
- 	int i, j;
- 
- 	profile = kzalloc(MTHCA_RES_NUM * sizeof *profile, GFP_KERNEL);
-@@ -136,11 +135,8 @@ s64 mthca_make_profile(struct mthca_dev *dev,
- 	 */
- 	for (i = MTHCA_RES_NUM; i > 0; --i)
- 		for (j = 1; j < i; ++j) {
--			if (profile[j].size > profile[j - 1].size) {
--				tmp            = profile[j];
--				profile[j]     = profile[j - 1];
--				profile[j - 1] = tmp;
--			}
-+			if (profile[j].size > profile[j - 1].size)
-+				swap(profile[j], profile[j - 1]);
- 		}
- 
- 	for (i = 0; i < MTHCA_RES_NUM; ++i) {
--- 
-2.4.2
+> Kaike
+> 
+> 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
