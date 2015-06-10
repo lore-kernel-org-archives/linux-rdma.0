@@ -1,61 +1,35 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3] IB/ipoib: Scatter-Gather support in connected mode
-Date: Wed, 10 Jun 2015 19:02:23 +0300
-Message-ID: <20150610160223.GB2546@yuval-lab>
-References: <1431338642-22812-1-git-send-email-yuval.shaia@oracle.com>
- <CAAk-MO__VpkfV341o_BVOj_3t2xh+0HNwjQ7kmTYGSsqv3ngug@mail.gmail.com>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] IB/core: Don't warn on no SA support in event handler
+Date: Wed, 10 Jun 2015 16:15:08 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E11099957@CRSMSX101.amr.corp.intel.com>
+References: <1433927612-20517-1-git-send-email-monis@mellanox.com>
+ <55780D8C.1070600@profitbricks.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FE66CA@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAAk-MO__VpkfV341o_BVOj_3t2xh+0HNwjQ7kmTYGSsqv3ngug-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FE66CA-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: john.sobecki-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, christian-x8YiTEMPTCFhl2p70BpVqQ@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 10, 2015 at 04:06:18PM +0300, Erez Shitrit wrote:
-> > +               if (unlikely(ipoib_dma_map_tx(priv->ca, tx_req))) {
-> > +                       ++dev->stats.tx_errors;
-> > +                       dev_kfree_skb_any(skb);
-> > +                       return;
-> > +               }
+> > > Registering an event handler is done for a device. This device may
+> > > have one RoCE port (no SA cap) and one InfiniBand port (has SA cap).
+> > > Therefore, warning from the event handler about a specific port that
+> > > doesn't have SA cap is correct but pollutes the kernel log without a
+> > > need.
+> >
+> > Maybe we should think about register event handler per port :-P
 > 
-> I think you should call  skb_orphan(skb) and skb_dst_drop(skb) before
-> queuing the packet for sending.
-> (like it done in the else part below)
-Thanks Erez.
-This is already addressed in v4 (which is currently under test).
-> 
-> > +               rc = post_send_sg(priv, tx, tx->tx_head &
-> > +                                 (ipoib_sendq_size - 1),
-> > +                                 skb, tx_req->mapping);
-> > +       } else {
-> > +               addr = ib_dma_map_single(priv->ca, skb->data, skb->len,
-> > +                                        DMA_TO_DEVICE);
-> > +               if (unlikely(ib_dma_mapping_error(priv->ca, addr))) {
-> > +                       ++dev->stats.tx_errors;
-> > +                       dev_kfree_skb_any(skb);
-> > +                       return;
-> > +               }
-> > +
-> > +               tx_req->mapping[0] = addr;
-> >
-> > -       skb_orphan(skb);
-> > -       skb_dst_drop(skb);
-> > +               skb_orphan(skb);
-> > +               skb_dst_drop(skb);
-> >
-> > -       rc = post_send(priv, tx, tx->tx_head & (ipoib_sendq_size - 1),
-> > -                      addr, skb->len);
-> > +               rc = post_send(priv, tx, tx->tx_head & (ipoib_sendq_size - 1),
-> > +                              addr, skb->len);
-> > +       }
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I agree, though I think that can be added separately from this change.
+
+Also agreed.  We identified many places where we should split support to be per port while we did this work.  We need to start working up to that.  For the time being we should not break existing users (or in this case annoy them... ;-)
+
+Ira
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
