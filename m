@@ -1,71 +1,54 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next V5 00/12] Move RoCE GID management to IB/Core
-Date: Wed, 10 Jun 2015 11:53:15 +0300
-Message-ID: <5577FAFB.8020205@mellanox.com>
-References: <1433772735-22416-1-git-send-email-matanb@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FE5D17@ORSMSX109.amr.corp.intel.com>
- <55769561.8000300@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] IB/core: Don't warn on no SA support in event handler
+Date: Wed, 10 Jun 2015 12:13:32 +0300
+Message-ID: <1433927612-20517-1-git-send-email-monis@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55769561.8000300-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-xCNTGe7nOvUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/9/2015 10:27 AM, Matan Barak wrote:
->
->
-> On 6/9/2015 12:37 AM, Hefty, Sean wrote:
->>> Previously, every vendor implemented its net device notifiers in its 
->>> own
->>> driver. This introduces a huge code duplication as figuring
->>
->>
->>>   28 files changed, 2253 insertions(+), 860 deletions(-)
->>
->> How does adding 1400 lines of code help reduce code duplication?
->>
->> Can you please explain and justify why this change is actually needed?
->>
->
-> Let's look at this change from several perspectives:
->
-> (1) Each vedor lost ~250 lines of GID management code just by this 
-> change. In the future it's very probable that more vendor drivers will 
-> implement RoCE. This removes the burden and code duplication required 
-> by them to implement a full RoCE support and is a lot more scalable 
-> than the current approach.
->
-> (2) All vendors are now aligned. For example, mlx4 driver had bonding 
-> support but ocrdma didn't have such support. The user expects the same 
-> behavior regardless the vendor's driver.
->
-> (3) When making something more general it usually requires more lines 
-> of code as it introduces API and doesn't cut corners assuming anything 
-> on the vendor's driver.
->
-> (4) This is a per-requisite to the RoCE V2 series. I'm sure you 
-> remember we first submitted this patch-set as a part of the RoCE V2 
-> series. Adding more features to the RoCE GID management will make the 
-> code duplication a lot worse than just ~250 lines. I don't think it's 
-> fair playing "lets divide the RoCE V2 patch-set to several patch-sets" 
-> and then say "why do we need this <first part> at all". Let alone, the 
-> other there reasons are more than enough IMHO.
->
+Registering an event handler is done for a device. This device may have
+one RoCE port (no SA cap) and one InfiniBand port (has SA cap).
+Therefore, warning from the event handler about a specific port that
+doesn't have SA cap is correct but pollutes the kernel log without a
+need.
 
-Sean, this change is needed b/c two drivers have (mlx4 and ocrda) and 
-more two to come soon (mlx5 and soft-Roce) would have the very same 
-logic of constructing the port GID table according to netdev events and 
-such, no point in repeating this logic/code over and over.
+Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/multicast.c | 2 +-
+ drivers/infiniband/core/sa_query.c  | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Matan explained why we don't have 2 x Y deletions and 1 x Y insertions.
+diff --git a/drivers/infiniband/core/multicast.c b/drivers/infiniband/core/multicast.c
+index 605f20a..1244f02 100644
+--- a/drivers/infiniband/core/multicast.c
++++ b/drivers/infiniband/core/multicast.c
+@@ -780,7 +780,7 @@ static void mcast_event_handler(struct ib_event_handler *handler,
+ 	int index;
+ 
+ 	dev = container_of(handler, struct mcast_device, event_handler);
+-	if (WARN_ON(!rdma_cap_ib_mcast(dev->device, event->element.port_num)))
++	if (!rdma_cap_ib_mcast(dev->device, event->element.port_num))
+ 		return;
+ 
+ 	index = event->element.port_num - dev->start_port;
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index 7f7c8c9..3d0b7b2 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -450,7 +450,7 @@ static void ib_sa_event(struct ib_event_handler *handler, struct ib_event *event
+ 		struct ib_sa_port *port =
+ 			&sa_dev->port[event->element.port_num - sa_dev->start_port];
+ 
+-		if (WARN_ON(!rdma_cap_ib_sa(handler->device, port->port_num)))
++		if (!rdma_cap_ib_sa(handler->device, port->port_num))
+ 			return;
+ 
+ 		spin_lock_irqsave(&port->ah_lock, flags);
+-- 
+2.1.0
 
-Jason, can you ack that this post addressed your comments?
-
-Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
