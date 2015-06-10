@@ -1,39 +1,28 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH 14/14] IB/mad: Add final OPA MAD processing
-Date: Wed, 10 Jun 2015 06:30:58 +0000
-Message-ID: <HE1PR05MB1418BB6C461790B76D9C02A3B1BD0@HE1PR05MB1418.eurprd05.prod.outlook.com>
-References: <1433615915-24591-1-git-send-email-ira.weiny@intel.com>
- <1433615915-24591-15-git-send-email-ira.weiny@intel.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] IB/core: Don't advertise SA in RoCE port capabilities
+Date: Wed, 10 Jun 2015 11:36:58 +0300
+Message-ID: <5577F72A.2070008@mellanox.com>
+References: <1433914523-15347-1-git-send-email-monis@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1433615915-24591-15-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1433914523-15347-1-git-send-email-monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On 6/10/2015 8:35 AM, Moni Shoua wrote:
+> The Subnet Administrator (SA) is not a component of the RoCE spec.
+> Therefore, it should not be a capability of a RoCE port.
+>
+> Change-Id: Iadfaa56bdc9f6e28f46d009064c2d15969293cf7
 
-Hi Ira,
+Please remove the internal Gerrit IDs we use prior to sending patches out
 
-OPA cannot impersonate IB; OPA node and link types have to be designated as such.
-In terms of MAD processing flows, both explicit (as in the handle_opa_smi() call below) and implicit code paths (which share IB flows - there are several cases) must make this distinction.
+> Signed-off-by: Moni Shoua<monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-> +static enum smi_action
-> +handle_opa_smi(struct ib_mad_port_private *port_priv,
-> +	       struct ib_mad_qp_info *qp_info,
-> +	       struct ib_wc *wc,
-> +	       int port_num,
-> +	       struct ib_mad_private *recv,
-> +	       struct ib_mad_private *response)
-> +{
-...
-> +	} else if (port_priv->device->node_type == RDMA_NODE_IB_SWITCH)  <----
-
---Liran
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
