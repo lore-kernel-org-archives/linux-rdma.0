@@ -1,52 +1,45 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next V5 00/12] Move RoCE GID management to IB/Core
-Date: Wed, 10 Jun 2015 12:49:54 -0600
-Message-ID: <20150610184954.GA26404@obsidianresearch.com>
-References: <1433772735-22416-1-git-send-email-matanb@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FE5D17@ORSMSX109.amr.corp.intel.com>
- <55769561.8000300@mellanox.com>
- <5577FAFB.8020205@mellanox.com>
- <20150610150010.GA11243@obsidianresearch.com>
- <557852EE.5030107@mellanox.com>
+Subject: Re: [PATCH 14/14] IB/mad: Add final OPA MAD processing
+Date: Wed, 10 Jun 2015 12:56:53 -0600
+Message-ID: <20150610185653.GA28153@obsidianresearch.com>
+References: <1433615915-24591-1-git-send-email-ira.weiny@intel.com>
+ <1433615915-24591-15-git-send-email-ira.weiny@intel.com>
+ <HE1PR05MB1418BB6C461790B76D9C02A3B1BD0@HE1PR05MB1418.eurprd05.prod.outlook.com>
+ <1433961446.71666.26.camel@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <557852EE.5030107-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1433961446.71666.26.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-xCNTGe7nOvUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 10, 2015 at 06:08:30PM +0300, Matan Barak wrote:
-> >It isn't really a cleanup because the whole gid table is new code and
-> >has latent elements for rocev2 - this is why it is so much bigger than
-> >it should be.
+On Wed, Jun 10, 2015 at 02:37:26PM -0400, Doug Ledford wrote:
+> On Wed, 2015-06-10 at 06:30 +0000, Liran Liss wrote:
+> > > From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > 
+> > Hi Ira,
+> > 
+> > OPA cannot impersonate IB; OPA node and link types have to be
+> > designated as such.  In terms of MAD processing flows, both
+> > explicit (as in the handle_opa_smi() call below) and implicit code
+> > paths (which share IB flows - there are several cases) must make
+> > this distinction.
 > 
-> I disagree. Could you please point on anything that is RoCE V2 specific?
-> The essence of RoCE V2 in the previous series was the gid_type part.
-> This is now completely removed.
+> As far as in the kernel is concerned, the individual capability bits
+> are much more important.  I would actually like to do away with the
+> node_type variable from struct ib_device eventually.  As for user
+> space,
 
-Sure gid_type is gone, but I didn't say roceve2 specific, I said
-latent elements. ie I'm assuming reasons for the scary locking are
-because the ripped out rocev2 code needed it?  And some of the
-complexity that looks pointless now was supporting ripped out rocev2
-elements? That is not necessarily bad, but the code had better be good
-quailty and working..
+All SMI code has different behavior if it is running on a switch or
+HCA, so testing for 'switchyness' is very appropriate here.
+cap_is_switch_smi would be a nice refinement to let us drop nodetype.
 
-But then I look at the patches, and the very first locking I test out
-looks wrong. I see call_rcu/synchronize_rcu being used without a
-single call to rcu_read_lock. So this fails #2 of the RCU review
-checklist (Seriously? Why am I catching this?)
-
-I stopped reading at that point.
-
-I think you've got the right basic idea for a cleanup series here. It
-is time to buckle down and execute it well. Do an internal mellanox
-kernel team review of this series. Audit and fix all the locking,
-evaluate the code growth and design. Audit to confirm there is no
-functional change that is not documented in a commit message. Tell me
-v6 is the best effort *team Mellanox* can put forward.
+I don't have a problem with sharing the IBA constant names for MAD
+structures (like RDMA_NODE_IB_SWITCH) between IB and OPA code. They
+already share the structure layouts/etc.
 
 Jason
 --
