@@ -1,34 +1,50 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] IB/core: Don't warn on no SA support in event handler
-Date: Wed, 10 Jun 2015 16:15:08 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E11099957@CRSMSX101.amr.corp.intel.com>
-References: <1433927612-20517-1-git-send-email-monis@mellanox.com>
- <55780D8C.1070600@profitbricks.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FE66CA@ORSMSX109.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Fabian Frederick <fabf-AgBVmzD5pcezQB+pC5nmwQ@public.gmane.org>
+Subject: [PATCH 1/1 linux-next] IB/mthca: use swap() in mthca_make_profile()
+Date: Wed, 10 Jun 2015 18:31:51 +0200
+Message-ID: <1433953911-23735-1-git-send-email-fabf@skynet.be>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FE66CA-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>, Fabian Frederick <fabf-AgBVmzD5pcezQB+pC5nmwQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> > > Registering an event handler is done for a device. This device may
-> > > have one RoCE port (no SA cap) and one InfiniBand port (has SA cap).
-> > > Therefore, warning from the event handler about a specific port that
-> > > doesn't have SA cap is correct but pollutes the kernel log without a
-> > > need.
-> >
-> > Maybe we should think about register event handler per port :-P
-> 
-> I agree, though I think that can be added separately from this change.
+Use kernel.h macro definition.
 
-Also agreed.  We identified many places where we should split support to be per port while we did this work.  We need to start working up to that.  For the time being we should not break existing users (or in this case annoy them... ;-)
+Thanks to Julia Lawall for Coccinelle scripting support.
 
-Ira
+Signed-off-by: Fabian Frederick <fabf-AgBVmzD5pcezQB+pC5nmwQ@public.gmane.org>
+---
+ drivers/infiniband/hw/mthca/mthca_profile.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/infiniband/hw/mthca/mthca_profile.c b/drivers/infiniband/hw/mthca/mthca_profile.c
+index 8edb28a..15d0644 100644
+--- a/drivers/infiniband/hw/mthca/mthca_profile.c
++++ b/drivers/infiniband/hw/mthca/mthca_profile.c
+@@ -77,7 +77,6 @@ s64 mthca_make_profile(struct mthca_dev *dev,
+ 	u64 mem_base, mem_avail;
+ 	s64 total_size = 0;
+ 	struct mthca_resource *profile;
+-	struct mthca_resource tmp;
+ 	int i, j;
+ 
+ 	profile = kzalloc(MTHCA_RES_NUM * sizeof *profile, GFP_KERNEL);
+@@ -136,11 +135,8 @@ s64 mthca_make_profile(struct mthca_dev *dev,
+ 	 */
+ 	for (i = MTHCA_RES_NUM; i > 0; --i)
+ 		for (j = 1; j < i; ++j) {
+-			if (profile[j].size > profile[j - 1].size) {
+-				tmp            = profile[j];
+-				profile[j]     = profile[j - 1];
+-				profile[j - 1] = tmp;
+-			}
++			if (profile[j].size > profile[j - 1].size)
++				swap(profile[j], profile[j - 1]);
+ 		}
+ 
+ 	for (i = 0; i < MTHCA_RES_NUM; ++i) {
+-- 
+2.4.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
