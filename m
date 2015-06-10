@@ -1,148 +1,78 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v4 1/4] IB/netlink: Add defines for local service requests
- through netlink
-Date: Wed, 10 Jun 2015 13:47:19 -0400
-Message-ID: <55787827.7030003@dev.mellanox.co.il>
-References: <1433861837-26177-1-git-send-email-kaike.wan@intel.com> <1433861837-26177-2-git-send-email-kaike.wan@intel.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 14/14] IB/mad: Add final OPA MAD processing
+Date: Wed, 10 Jun 2015 13:54:23 -0400
+Message-ID: <20150610175423.GB13497@phlsvsds.ph.intel.com>
+References: <1433615915-24591-1-git-send-email-ira.weiny@intel.com> <1433615915-24591-15-git-send-email-ira.weiny@intel.com> <HE1PR05MB1418BB6C461790B76D9C02A3B1BD0@HE1PR05MB1418.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1433861837-26177-2-git-send-email-kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <HE1PR05MB1418BB6C461790B76D9C02A3B1BD0-eBadYZ65MZ87O8BmmlM1zNqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/9/2015 10:57 AM, kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Wed, Jun 10, 2015 at 06:30:58AM +0000, Liran Liss wrote:
+> > From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > 
-> This patch adds netlink defines for SA client, local service group, local
-> service operations, and related attributes.
+> Hi Ira,
 > 
-> Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  include/uapi/rdma/rdma_netlink.h |   82 ++++++++++++++++++++++++++++++++++++++
->  1 files changed, 82 insertions(+), 0 deletions(-)
+> OPA cannot impersonate IB; OPA node and link types have to be designated as such.
+
+This was discussed at length and we agreed that the kernel would have explicit
+capabilities communicated between the drivers and the core layers rather than
+using link layer to determine what core support was needed.
+
+For Node Type, OPA is its own "namespace" and as such we use the same values
+for "CA" and "Switch".  The code you reference below is explicitly executed
+only on OPA devices so I don't see why this is in conflict with IB.
+
+> In terms of MAD processing flows, both explicit (as in the handle_opa_smi() call below) and implicit code paths (which share IB flows - there are several cases) must make this distinction.
 > 
-> diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-> index 6e4bb42..341e9be 100644
-> --- a/include/uapi/rdma/rdma_netlink.h
-> +++ b/include/uapi/rdma/rdma_netlink.h
-> @@ -7,12 +7,14 @@ enum {
->  	RDMA_NL_RDMA_CM = 1,
->  	RDMA_NL_NES,
->  	RDMA_NL_C4IW,
-> +	RDMA_NL_SA,
->  	RDMA_NL_NUM_CLIENTS
->  };
->  
->  enum {
->  	RDMA_NL_GROUP_CM = 1,
->  	RDMA_NL_GROUP_IWPM,
-> +	RDMA_NL_GROUP_LS,
->  	RDMA_NL_NUM_GROUPS
->  };
->  
-> @@ -128,5 +130,85 @@ enum {
->  	IWPM_NLA_ERR_MAX
->  };
->  
-> +/* Local service group opcodes */
-> +enum {
-> +	RDMA_NL_LS_OP_RESOLVE = 0,
-> +	RDMA_NL_LS_OP_SET_TIMEOUT,
-> +	RDMA_NL_LS_NUM_OPS
-> +};
-> +
-> +/* Local service netlink message flags */
-> +#define RDMA_NL_LS_F_OK		0x0100	/* Success response */
-> +#define RDMA_NL_LS_F_ERR	0x0200	/* Failed response */
-> +
-> +/* Local service attribute type */
-> +enum {
-> +	LS_NLA_TYPE_STATUS = 0,
-> +	LS_NLA_TYPE_PATH_RECORD,
-> +	LS_NLA_TYPE_TIMEOUT,
-> +	LS_NLA_TYPE_SERVICE_ID,
-> +	LS_NLA_TYPE_DGID,
-> +	LS_NLA_TYPE_SGID,
-> +	LS_NLA_TYPE_TCLASS,
-> +	LS_NLA_TYPE_REVERSIBLE,
-> +	LS_NLA_TYPE_NUM_PATH,
 
-Should this be NUMB_PATH rather than NUM_PATH ?
+I agreed and all OPA differences are limited to device/ports which explicitly
+indicate they are OPA ports.
 
-> +	LS_NLA_TYPE_PKEY,
-> +	LS_NLA_TYPE_QOS_CLASS,
+For example:
 
-Should this include SL too ?
+        opa = rdma_cap_opa_mad(qp_info->port_priv->device,
+                               qp_info->port_priv->port_num);
 
-> +	LS_NLA_TYPE_MAX
-> +};
-> +
-> +/* Local service status attribute */
-> +enum {
-> +	LS_NLA_STATUS_SUCCESS = 0,
-> +	LS_NLA_STATUS_EINVAL,
-> +	LS_NLA_STATUS_ENODATA,
-> +	LS_NLA_STATUS_MAX
-> +};
-> +
-> +struct rdma_nla_ls_status {
-> +	__u32		status;
-> +};
-> +
-> +/* Local service pathrecord attribute: struct ib_path_rec_data */
-> +
-> +/* Local service timeout attribute */
-> +struct rdma_nla_ls_timeout {
-> +	__u32		timeout;
-> +};
-> +
-> +/* Local Service ServiceID attribute */
-> +struct rdma_nla_ls_service_id {
-> +	__be64		service_id;
-> +};
-> +
-> +/* Local Service DGID/SGID attribute: big endian */
-> +struct rdma_nla_ls_gid {
-> +	__u8		gid[16];
-> +};
-> +
-> +/* Local Service Traffic Class attribute */
-> +struct rdma_nla_ls_tclass {
-> +	__u8		tclass;
-> +};
-> +
-> +/* Local Service Reversible attribute */
-> +struct rdma_nla_ls_reversible {
-> +	__u32		reversible;
-> +};
+...
 
-Isn't __u8 sufficient for reversible ?
+        if (opa && ((struct ib_mad_hdr *)(recv->mad))->base_version == OPA_MGMT_BASE_VERSION) {
+                recv->header.recv_wc.mad_len = wc->byte_len - sizeof(struct ib_grh);
+                recv->header.recv_wc.mad_seg_size = sizeof(struct opa_mad);
+        } else {
+                recv->header.recv_wc.mad_len = sizeof(struct ib_mad);
+                recv->header.recv_wc.mad_seg_size = sizeof(struct ib_mad);
+        }
 
-> +
-> +/* Local Service numb_path attribute */
-> +struct rdma_nla_ls_numb_path {
-> +	__u8		numb_path;
-> +};
-> +
-> +/* Local Service Pkey attribute*/
-> +struct rdma_nla_ls_pkey {
-> +	__be16		pkey;
-> +};
-> +
-> +/* Local Service Qos Class attribute */
-> +struct rdma_nla_ls_qos_class {
-> +	__be16		qos_class;
-> +};
->  
->  #endif /* _UAPI_RDMA_NETLINK_H */
 
+If I missed a place where this is not the case please let me know but I made
+this change many months back and I'm pretty sure I caught them all.
+
+Thanks,
+Ira
+
+
+> > +static enum smi_action
+> > +handle_opa_smi(struct ib_mad_port_private *port_priv,
+> > +	       struct ib_mad_qp_info *qp_info,
+> > +	       struct ib_wc *wc,
+> > +	       int port_num,
+> > +	       struct ib_mad_private *recv,
+> > +	       struct ib_mad_private *response)
+> > +{
+> ...
+> > +	} else if (port_priv->device->node_type == RDMA_NODE_IB_SWITCH)  <----
+> 
+> --Liran
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
