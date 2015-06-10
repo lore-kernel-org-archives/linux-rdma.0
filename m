@@ -1,55 +1,80 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH for-next V2 0/9] Add completion timestamping support
-Date: Tue, 9 Jun 2015 20:26:21 -0500 (CDT)
-Message-ID: <alpine.DEB.2.11.1506092018190.6681@east.gentwo.org>
-References: <1433074457-26437-1-git-send-email-ogerlitz@mellanox.com> <1433098827.114391.179.camel@redhat.com> <CAAKD3BBo9A5AV9Uv-q1TgSQ6hs-oSUn5QsUT+5+6mk1RwW7AUA@mail.gmail.com> <1433157904.114391.188.camel@redhat.com> <20150601164322.GA14391@obsidianresearch.com>
- <1433255724.114391.225.camel@redhat.com> <20150602180844.GD17776@obsidianresearch.com> <1828884A29C6694DAF28B7E6B8A82373A8FE4F16@ORSMSX109.amr.corp.intel.com> <20150604164759.GC27699@obsidianresearch.com> <1828884A29C6694DAF28B7E6B8A82373A8FE4F98@ORSMSX109.amr.corp.intel.com>
- <alpine.DEB.2.11.1506060318570.29860@east.gentwo.org> <1828884A29C6694DAF28B7E6B8A82373A8FE5AB8@ORSMSX109.amr.corp.intel.com>
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Bob Ciotti <Bob.Ciotti-NSQ8wuThN14@public.gmane.org>
+Subject: rdmacm issue
+Date: Tue, 9 Jun 2015 18:52:43 -0700
+Message-ID: <5577986B.7070702@nasa.gov>
+Reply-To: <Bob.Ciotti-NSQ8wuThN14@public.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FE5AB8-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 8 Jun 2015, Hefty, Sean wrote:
+We have an issue where lustre servers and clients cannot talk to each other.
+There are about 11,000 clients all trying to connect to a server that just been rebooted
+(nbp6-oss3 in this example)
 
-> You're assuming that the only start time of interest is when a send operati=
-> on has been posted.  Jason asked what I would do with libfabric.  That inte=
-> rface supports triggered operations.  It has also been designed such that a=
->  rendezvous (that has to be one of the most difficult words in the English =
-> language to spell correctly, even with spell check) protocol could be imple=
-> mented by the provider.  On the receive side, it may be of interest to repo=
-> rt the start and ending time for larger transfers, primarily for debugging =
-> purposes.
+pfe21 is a lustre client thats trying to remount the filesystem from nbp6-oss3.
 
-There are multiple problems with libfrabric related to the use cases in my
-area. Most of all the lack of multicast support. Then there is the build
-up of software bloat on top. The interest here is in low latency
-operations. Redenzvous and other new features are really not wanted if
-they increase the latency.
+running rping server on pfe21 hangs and waits until the client tried to connect, then it prints out
+debug information up to cq_thread started. and hangs there, for a minute or so until issuing the two UNREACHABLE errors:
 
-> I have no idea how the time stamps are expected to be used, so why limit it=
-> ?  An app could just as easily create their own time stamp when reading a w=
-> ork completion, especially when the data is going into an anonymous receive=
->  buffer.  That would seem to work for your use case.
+pfe21 ~ # rping -v -s -d -P -p2 -a 10.151.27.19
+port 2
+created cm_id 0x60e350
+rdma_bind_addr successful
+rdma_listen
+cma_event type RDMA_CM_EVENT_CONNECT_REQUEST cma_id 0x60b620 (child)
+child cma 0x60b620
+created pd 0x60bd80
+created channel 0x60bda0
+created cq 0x60bdc0
+created qp 0x60bf00
+rping_setup_buffers called on cb 0x60b8c0
+allocated & registered buffers...
+accepting client connection request
+cq_thread started.
+cma_event type RDMA_CM_EVENT_UNREACHABLE cma_id 0x60b620 (child)
+cma event RDMA_CM_EVENT_UNREACHABLE, error -110
 
-No it cannot as described earlier. The work can be completed much earlier
-than when the polling thread gets around to check for it. We do that today
-since there is nothing better but this means that there is a gap there.
-On the send side you have no easy way to telling when the operation was
-complete without the timestamp.
 
-> I have no problem with a bare metal interface exposing this.  But pretendin=
-> g that it's generic and that this is the one and only way that this could b=
-> e implemented doesn't make it so.
+The rping client is started below. As soon as it starts, it runs up to the point
+of cq_thread started. Hangs there and eventually times out as well, issuing 4 error
+messages:
 
-This is a way it was implemented and its usable. Shooting for pie in the
-sky does not bring us anything. Nor ideas of requirements from a new
-experimental API that does not support the basic features that we need
-and seems to be on its way to mess up the latencies of access to RDMA
-operations.
+nbp6-oss3 ~ # rping -c -vp-d -S 30 -p 2 -a 10.151.27.19
+size 30
+port 2
+created cm_id 0x60f640
+cma_event type RDMA_CM_EVENT_ADDR_RESOLVED cma_id 0x60f640 (parent)
+cma_event type RDMA_CM_EVENT_ROUTE_RESOLVED cma_id 0x60f640 (parent)
+rdma_resolve_addr - rdma_resolve_route successful
+created pd 0x60ab10
+created channel 0x60ab30
+created cq 0x60ab50
+created qp 0x60ac60
+rping_setup_buffers called on cb 0x6072e0
+allocated & registered buffers...
+cq_thread started.
+cma_event type RDMA_CM_EVENT_UNREACHABLE cma_id 0x60f640 (parent)
+cma event RDMA_CM_EVENT_UNREACHABLE, error -110
+wait for CONNECTED state 4
+connect error -1
+
+
+Any ideas? The neighbor entries on both side were in a reachable state before the test. And the two systems did manage to find one another. Keep in mind that when this
+is going on, 11,000+ clients are trying to connect to nbp6-oss3
+
+Normally lustre mounts fine and rping have no issues. We have noticed some neighbor resolution issues and are considering ucast_solicit, mcast_solicit, and unres_qlen changes
+because we also occationally experience issues with icmp ping. Its typically been the experience that changing these configs have little effect.  Yes its probably the case that
+unicast arp refresh has long failed and 11,000+ clients may be multicasting for
+for arp.
+
+Any help or insight greatly appreciated.
+
+thx, bob
+
 
 
 --
