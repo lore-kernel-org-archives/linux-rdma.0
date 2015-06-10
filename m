@@ -1,78 +1,61 @@
 From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 14/14] IB/mad: Add final OPA MAD processing
-Date: Wed, 10 Jun 2015 13:54:23 -0400
-Message-ID: <20150610175423.GB13497@phlsvsds.ph.intel.com>
-References: <1433615915-24591-1-git-send-email-ira.weiny@intel.com> <1433615915-24591-15-git-send-email-ira.weiny@intel.com> <HE1PR05MB1418BB6C461790B76D9C02A3B1BD0@HE1PR05MB1418.eurprd05.prod.outlook.com>
+Subject: Re: [PATCH v4 0/4] Sending kernel pathrecord query to user cache server
+Date: Wed, 10 Jun 2015 14:00:21 -0400
+Message-ID: <20150610180020.GC13497@phlsvsds.ph.intel.com>
+References: <1433861837-26177-1-git-send-email-kaike.wan@intel.com> <55783D84.6040709@dev.mellanox.co.il> <3F128C9216C9B84BB6ED23EF16290AFB0CABCC2E@CRSMSX101.amr.corp.intel.com> <55784C35.2020401@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <HE1PR05MB1418BB6C461790B76D9C02A3B1BD0-eBadYZ65MZ87O8BmmlM1zNqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+In-Reply-To: <55784C35.2020401-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 10, 2015 at 06:30:58AM +0000, Liran Liss wrote:
-> > From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Wed, Jun 10, 2015 at 10:39:49AM -0400, Hal Rosenstock wrote:
+> On 6/10/2015 10:22 AM, Wan, Kaike wrote:
+> > 
+> > 
+> >> -----Original Message-----
+> >> From: Hal Rosenstock [mailto:hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org]
+> >> Sent: Wednesday, June 10, 2015 9:37 AM
+> >>
+> >>>
+> >>> A SA cache is undeniably critical for fabric scalability and performance.
+> >>> In user space, the ibacm application provides a good example of
+> >>> pathrecord cache for address and route resolution. With the recent
+> >>> implementation of the provider architecture, ibacm offers more
+> >> extensibility as a SA cache.
+> >>> In kernel, ipoib implements its own small cache for pathrecords, which
+> >>> is however not available for general use. Furthermore, the
+> >>> implementation of a SA cache in user space offers better flexibility,
+> >>> larger capacity, and more robustness for the system.
+> >>>
+> >>> In this patch series, a mechanism is implemented to allow ib_sa to
+> >>> send pathrecord query to a user application (eg ibacm) through netlink.
+> >>
+> >> While this appears to address the current upstream use model for ACM with
+> >> it's multicast overlay backend where PRs are static, it does not appear to
+> >> address PR changes.
+> >> Should aging/revalidation of PRs be supported ? If so, would this make PRs
+> >> similar at "high" level to IP neighbor cache in kernel ?
+> > 
+> > Even for the default provider acmp, PRs will time out and the length of timeout is configurable. For other providers (eg ibssa), the PR change could be managed correctly and promptly, and this capability is beyond ibacm core itself. 
 > 
-> Hi Ira,
-> 
-> OPA cannot impersonate IB; OPA node and link types have to be designated as such.
-
-This was discussed at length and we agreed that the kernel would have explicit
-capabilities communicated between the drivers and the core layers rather than
-using link layer to determine what core support was needed.
-
-For Node Type, OPA is its own "namespace" and as such we use the same values
-for "CA" and "Switch".  The code you reference below is explicitly executed
-only on OPA devices so I don't see why this is in conflict with IB.
-
-> In terms of MAD processing flows, both explicit (as in the handle_opa_smi() call below) and implicit code paths (which share IB flows - there are several cases) must make this distinction.
+> That deals with the update of PR in user space (ACM). Doesn't kernel
+> need some way of knowing PR was updated ?
 > 
 
-I agreed and all OPA differences are limited to device/ports which explicitly
-indicate they are OPA ports.
+This series does not attempt to optimize the kernel needing to know that a PR
+has been updated.  There are existing mechanisms for that.
 
-For example:
+In the future it would be nice to have more local support for such updates but
+I don't think this patch precludes that in any way.  Right now we are just
+taking the first step by making the actual query more efficient.
 
-        opa = rdma_cap_opa_mad(qp_info->port_priv->device,
-                               qp_info->port_priv->port_num);
-
-...
-
-        if (opa && ((struct ib_mad_hdr *)(recv->mad))->base_version == OPA_MGMT_BASE_VERSION) {
-                recv->header.recv_wc.mad_len = wc->byte_len - sizeof(struct ib_grh);
-                recv->header.recv_wc.mad_seg_size = sizeof(struct opa_mad);
-        } else {
-                recv->header.recv_wc.mad_len = sizeof(struct ib_mad);
-                recv->header.recv_wc.mad_seg_size = sizeof(struct ib_mad);
-        }
-
-
-If I missed a place where this is not the case please let me know but I made
-this change many months back and I'm pretty sure I caught them all.
-
-Thanks,
 Ira
 
-
-> > +static enum smi_action
-> > +handle_opa_smi(struct ib_mad_port_private *port_priv,
-> > +	       struct ib_mad_qp_info *qp_info,
-> > +	       struct ib_wc *wc,
-> > +	       int port_num,
-> > +	       struct ib_mad_private *recv,
-> > +	       struct ib_mad_private *response)
-> > +{
-> ...
-> > +	} else if (port_priv->device->node_type == RDMA_NODE_IB_SWITCH)  <----
-> 
-> --Liran
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
