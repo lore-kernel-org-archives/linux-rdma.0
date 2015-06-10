@@ -1,37 +1,39 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] IB/core: Don't advertise SA in RoCE port capabilities
-Date: Wed, 10 Jun 2015 08:35:23 +0300
-Message-ID: <1433914523-15347-1-git-send-email-monis@mellanox.com>
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH 14/14] IB/mad: Add final OPA MAD processing
+Date: Wed, 10 Jun 2015 06:30:58 +0000
+Message-ID: <HE1PR05MB1418BB6C461790B76D9C02A3B1BD0@HE1PR05MB1418.eurprd05.prod.outlook.com>
+References: <1433615915-24591-1-git-send-email-ira.weiny@intel.com>
+ <1433615915-24591-15-git-send-email-ira.weiny@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1433615915-24591-15-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The Subnet Administrator (SA) is not a component of the RoCE spec.
-Therefore, it should not be a capability of a RoCE port.
+> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Change-Id: Iadfaa56bdc9f6e28f46d009064c2d15969293cf7
-Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- include/rdma/ib_verbs.h | 1 -
- 1 file changed, 1 deletion(-)
+Hi Ira,
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 7d78794..7725cee 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -381,7 +381,6 @@ union rdma_protocol_stats {
- #define RDMA_CORE_PORT_IBA_ROCE        (RDMA_CORE_CAP_PROT_ROCE \
- 					| RDMA_CORE_CAP_IB_MAD  \
- 					| RDMA_CORE_CAP_IB_CM   \
--					| RDMA_CORE_CAP_IB_SA   \
- 					| RDMA_CORE_CAP_AF_IB   \
- 					| RDMA_CORE_CAP_ETH_AH)
- #define RDMA_CORE_PORT_IWARP           (RDMA_CORE_CAP_PROT_IWARP \
--- 
-2.1.0
+OPA cannot impersonate IB; OPA node and link types have to be designated as such.
+In terms of MAD processing flows, both explicit (as in the handle_opa_smi() call below) and implicit code paths (which share IB flows - there are several cases) must make this distinction.
 
+> +static enum smi_action
+> +handle_opa_smi(struct ib_mad_port_private *port_priv,
+> +	       struct ib_mad_qp_info *qp_info,
+> +	       struct ib_wc *wc,
+> +	       int port_num,
+> +	       struct ib_mad_private *recv,
+> +	       struct ib_mad_private *response)
+> +{
+...
+> +	} else if (port_priv->device->node_type == RDMA_NODE_IB_SWITCH)  <----
+
+--Liran
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
