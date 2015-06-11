@@ -1,36 +1,48 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v5 1/1] ibacm: Add support for pathrecord query through
- netlink
-Date: Thu, 11 Jun 2015 14:22:00 -0600
-Message-ID: <20150611202200.GA25813@obsidianresearch.com>
-References: <1434042265-5066-1-git-send-email-kaike.wan@intel.com>
- <20150611175940.GD20142@obsidianresearch.com>
- <2807E5FD2F6FDA4886F6618EAC48510E1109BDCF@CRSMSX101.amr.corp.intel.com>
+From: "Luis R. Rodriguez" <mcgrof-3uybbJdB1yH774rrrx3eTA@public.gmane.org>
+Subject: [PATCH v7 0/3] linux: address broken PAT drivers
+Date: Thu, 11 Jun 2015 13:19:51 -0700
+Message-ID: <1434053994-2196-1-git-send-email-mcgrof@do-not-panic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E1109BDCF-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: bp-l3A5Bk7waGM@public.gmane.org
+Cc: mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, luto-kltTT9wpgjJwATOyAt5JVQ@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 11, 2015 at 08:16:41PM +0000, Weiny, Ira wrote:
-> > For instance if we add SL it would be mandatory, but policy information like
-> > requesting net_device would be optional.
-> 
-> Why would SL be mandatory?
+From: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
 
-If the kernel asks for a specific SL then user space must respect that
-and return a path with that exact SL.
+Boris,
 
-If userspace does not know how to do that, then it must not answer the
-query. It cannot ignore the SL requirement and return a random SL.
+the following patches make use of the newly exported pat_enabled()
+which went in through your tree. All driver and respective subsystem
+maintainers have Acked these patches and are OK for them to go in through
+your tree. Please let me know if there any issues or questions.
 
-Hypothetically, assuming we add SL..
+This v7 series goes with the return value fixed to be negative, this
+was spotted by Mauro on the ivtv driver, I also spotted this then on
+the ipath driver so fixed that there too in this series. The v7 also
+goes with a small change on language on the Kconfig for the ivtv as
+requested by Mauro. The v7 also goes with a small change on language
+on the Kconfig for the ivtv as requested by Mauro.
 
-Jason
+Luis R. Rodriguez (3):
+  ivtv: use arch_phys_wc_add() and require PAT disabled
+  IB/ipath: add counting for MTRR
+  IB/ipath: use arch_phys_wc_add() and require PAT disabled
+
+ drivers/infiniband/hw/ipath/Kconfig           |  3 ++
+ drivers/infiniband/hw/ipath/ipath_driver.c    | 18 ++++++---
+ drivers/infiniband/hw/ipath/ipath_kernel.h    |  4 +-
+ drivers/infiniband/hw/ipath/ipath_wc_x86_64.c | 43 +++++---------------
+ drivers/media/pci/ivtv/Kconfig                |  3 ++
+ drivers/media/pci/ivtv/ivtvfb.c               | 58 +++++++++++----------------
+ 6 files changed, 52 insertions(+), 77 deletions(-)
+
+-- 
+2.3.2.209.gd67f9d5.dirty
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
