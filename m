@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 20/41] IB/hfi1: add memory region handling
-Date: Thu, 11 Jun 2015 19:10:16 -0400
-Message-ID: <20150611231016.16479.83107.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH 21/41] IB/hfi1: add misc OPA defines
+Date: Thu, 11 Jun 2015 19:10:21 -0400
+Message-ID: <20150611231021.16479.72401.stgit@phlsvslse11.ph.intel.com>
 References: <20150611230710.16479.62955.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -37,16 +37,18 @@ Signed-off-by: Sanath Kumar <sanath.s.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.
 Signed-off-by: Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Vlad Danushevsky <vladimir.danusevsky-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/mr.c |  546 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 546 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi1/mr.c
+ drivers/infiniband/hw/hfi1/opa_compat.h |  132 +++++++++++++++++++++++++++++++
+ 1 file changed, 132 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi1/opa_compat.h
 
-diff --git a/drivers/infiniband/hw/hfi1/mr.c b/drivers/infiniband/hw/hfi1/mr.c
+diff --git a/drivers/infiniband/hw/hfi1/opa_compat.h b/drivers/infiniband/hw/hfi1/opa_compat.h
 new file mode 100644
-index 0000000..23567f8
+index 0000000..c60ab08
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/mr.c
-@@ -0,0 +1,546 @@
++++ b/drivers/infiniband/hw/hfi1/opa_compat.h
+@@ -0,0 +1,132 @@
++#ifndef _LINUX_H
++#define _LINUX_H
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -97,502 +99,86 @@ index 0000000..23567f8
 + *
 + */
 +
-+#include <rdma/ib_umem.h>
-+#include <rdma/ib_smi.h>
-+
-+#include "hfi.h"
-+
-+/* Fast memory region */
-+struct hfi1_fmr {
-+	struct ib_fmr ibfmr;
-+	struct hfi1_mregion mr;        /* must be last */
-+};
-+
-+static inline struct hfi1_fmr *to_ifmr(struct ib_fmr *ibfmr)
-+{
-+	return container_of(ibfmr, struct hfi1_fmr, ibfmr);
-+}
-+
-+static int init_mregion(struct hfi1_mregion *mr, struct ib_pd *pd,
-+			int count)
-+{
-+	int m, i = 0;
-+	int rval = 0;
-+
-+	m = (count + HFI1_SEGSZ - 1) / HFI1_SEGSZ;
-+	for (; i < m; i++) {
-+		mr->map[i] = kzalloc(sizeof(*mr->map[0]), GFP_KERNEL);
-+		if (!mr->map[i])
-+			goto bail;
-+	}
-+	mr->mapsz = m;
-+	init_completion(&mr->comp);
-+	/* count returning the ptr to user */
-+	atomic_set(&mr->refcount, 1);
-+	mr->pd = pd;
-+	mr->max_segs = count;
-+out:
-+	return rval;
-+bail:
-+	while (i)
-+		kfree(mr->map[--i]);
-+	rval = -ENOMEM;
-+	goto out;
-+}
-+
-+static void deinit_mregion(struct hfi1_mregion *mr)
-+{
-+	int i = mr->mapsz;
-+
-+	mr->mapsz = 0;
-+	while (i)
-+		kfree(mr->map[--i]);
-+}
-+
-+
-+/**
-+ * hfi1_get_dma_mr - get a DMA memory region
-+ * @pd: protection domain for this memory region
-+ * @acc: access flags
-+ *
-+ * Returns the memory region on success, otherwise returns an errno.
-+ * Note that all DMA addresses should be created via the
-+ * struct ib_dma_mapping_ops functions (see dma.c).
++/*
++ * This header file is for OPA-specific definitions which are
++ * required by the HFI driver, and which aren't yet in the Linux
++ * IB core. We'll collect these all here, then merge them into
++ * the kernel when that's convenient.
 + */
-+struct ib_mr *hfi1_get_dma_mr(struct ib_pd *pd, int acc)
++
++/* OPA SMA attribute IDs */
++#define OPA_ATTRIB_ID_CONGESTION_INFO		cpu_to_be16(0x008b)
++#define OPA_ATTRIB_ID_HFI_CONGESTION_LOG	cpu_to_be16(0x008f)
++#define OPA_ATTRIB_ID_HFI_CONGESTION_SETTING	cpu_to_be16(0x0090)
++#define OPA_ATTRIB_ID_CONGESTION_CONTROL_TABLE	cpu_to_be16(0x0091)
++
++/* OPA PMA attribute IDs */
++#define OPA_PM_ATTRIB_ID_PORT_STATUS		cpu_to_be16(0x0040)
++#define OPA_PM_ATTRIB_ID_CLEAR_PORT_STATUS	cpu_to_be16(0x0041)
++#define OPA_PM_ATTRIB_ID_DATA_PORT_COUNTERS	cpu_to_be16(0x0042)
++#define OPA_PM_ATTRIB_ID_ERROR_PORT_COUNTERS	cpu_to_be16(0x0043)
++#define OPA_PM_ATTRIB_ID_ERROR_INFO		cpu_to_be16(0x0044)
++
++/* OPA status codes */
++#define OPA_PM_STATUS_REQUEST_TOO_LARGE		cpu_to_be16(0x100)
++
++static inline u8 port_states_to_logical_state(struct opa_port_states *ps)
 +{
-+	struct hfi1_mr *mr = NULL;
-+	struct ib_mr *ret;
-+	int rval;
-+
-+	if (to_ipd(pd)->user) {
-+		ret = ERR_PTR(-EPERM);
-+		goto bail;
-+	}
-+
-+	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
-+	if (!mr) {
-+		ret = ERR_PTR(-ENOMEM);
-+		goto bail;
-+	}
-+
-+	rval = init_mregion(&mr->mr, pd, 0);
-+	if (rval) {
-+		ret = ERR_PTR(rval);
-+		goto bail;
-+	}
-+
-+
-+	rval = hfi1_alloc_lkey(&mr->mr, 1);
-+	if (rval) {
-+		ret = ERR_PTR(rval);
-+		goto bail_mregion;
-+	}
-+
-+	mr->mr.access_flags = acc;
-+	ret = &mr->ibmr;
-+done:
-+	return ret;
-+
-+bail_mregion:
-+	deinit_mregion(&mr->mr);
-+bail:
-+	kfree(mr);
-+	goto done;
++	return ps->portphysstate_portstate & OPA_PI_MASK_PORT_STATE;
 +}
 +
-+static struct hfi1_mr *alloc_mr(int count, struct ib_pd *pd)
++static inline u8 port_states_to_phys_state(struct opa_port_states *ps)
 +{
-+	struct hfi1_mr *mr;
-+	int rval = -ENOMEM;
-+	int m;
-+
-+	/* Allocate struct plus pointers to first level page tables. */
-+	m = (count + HFI1_SEGSZ - 1) / HFI1_SEGSZ;
-+	mr = kzalloc(sizeof(*mr) + m * sizeof(mr->mr.map[0]), GFP_KERNEL);
-+	if (!mr)
-+		goto bail;
-+
-+	rval = init_mregion(&mr->mr, pd, count);
-+	if (rval)
-+		goto bail;
-+	/*
-+	 * ib_reg_phys_mr() will initialize mr->ibmr except for
-+	 * lkey and rkey.
-+	 */
-+	rval = hfi1_alloc_lkey(&mr->mr, 0);
-+	if (rval)
-+		goto bail_mregion;
-+	mr->ibmr.lkey = mr->mr.lkey;
-+	mr->ibmr.rkey = mr->mr.lkey;
-+done:
-+	return mr;
-+
-+bail_mregion:
-+	deinit_mregion(&mr->mr);
-+bail:
-+	kfree(mr);
-+	mr = ERR_PTR(rval);
-+	goto done;
-+}
-+
-+/**
-+ * hfi1_reg_phys_mr - register a physical memory region
-+ * @pd: protection domain for this memory region
-+ * @buffer_list: pointer to the list of physical buffers to register
-+ * @num_phys_buf: the number of physical buffers to register
-+ * @iova_start: the starting address passed over IB which maps to this MR
-+ *
-+ * Returns the memory region on success, otherwise returns an errno.
-+ */
-+struct ib_mr *hfi1_reg_phys_mr(struct ib_pd *pd,
-+			       struct ib_phys_buf *buffer_list,
-+			       int num_phys_buf, int acc, u64 *iova_start)
-+{
-+	struct hfi1_mr *mr;
-+	int n, m, i;
-+	struct ib_mr *ret;
-+
-+	mr = alloc_mr(num_phys_buf, pd);
-+	if (IS_ERR(mr)) {
-+		ret = (struct ib_mr *)mr;
-+		goto bail;
-+	}
-+
-+	mr->mr.user_base = *iova_start;
-+	mr->mr.iova = *iova_start;
-+	mr->mr.access_flags = acc;
-+
-+	m = 0;
-+	n = 0;
-+	for (i = 0; i < num_phys_buf; i++) {
-+		mr->mr.map[m]->segs[n].vaddr = (void *) buffer_list[i].addr;
-+		mr->mr.map[m]->segs[n].length = buffer_list[i].size;
-+		mr->mr.length += buffer_list[i].size;
-+		n++;
-+		if (n == HFI1_SEGSZ) {
-+			m++;
-+			n = 0;
-+		}
-+	}
-+
-+	ret = &mr->ibmr;
-+
-+bail:
-+	return ret;
-+}
-+
-+/**
-+ * hfi1_reg_user_mr - register a userspace memory region
-+ * @pd: protection domain for this memory region
-+ * @start: starting userspace address
-+ * @length: length of region to register
-+ * @mr_access_flags: access flags for this memory region
-+ * @udata: unused by the driver
-+ *
-+ * Returns the memory region on success, otherwise returns an errno.
-+ */
-+struct ib_mr *hfi1_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
-+			       u64 virt_addr, int mr_access_flags,
-+			       struct ib_udata *udata)
-+{
-+	struct hfi1_mr *mr;
-+	struct ib_umem *umem;
-+	struct scatterlist *sg;
-+	int n, m, entry;
-+	struct ib_mr *ret;
-+
-+	if (length == 0) {
-+		ret = ERR_PTR(-EINVAL);
-+		goto bail;
-+	}
-+
-+	umem = ib_umem_get(pd->uobject->context, start, length,
-+			   mr_access_flags, 0);
-+	if (IS_ERR(umem))
-+		return (void *) umem;
-+
-+	n = umem->nmap;
-+
-+	mr = alloc_mr(n, pd);
-+	if (IS_ERR(mr)) {
-+		ret = (struct ib_mr *)mr;
-+		ib_umem_release(umem);
-+		goto bail;
-+	}
-+
-+	mr->mr.user_base = start;
-+	mr->mr.iova = virt_addr;
-+	mr->mr.length = length;
-+	mr->mr.offset = ib_umem_offset(umem);
-+	mr->mr.access_flags = mr_access_flags;
-+	mr->umem = umem;
-+
-+	if (is_power_of_2(umem->page_size))
-+		mr->mr.page_shift = ilog2(umem->page_size);
-+	m = 0;
-+	n = 0;
-+	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry) {
-+			void *vaddr;
-+
-+			vaddr = page_address(sg_page(sg));
-+			if (!vaddr) {
-+				ret = ERR_PTR(-EINVAL);
-+				goto bail;
-+			}
-+			mr->mr.map[m]->segs[n].vaddr = vaddr;
-+			mr->mr.map[m]->segs[n].length = umem->page_size;
-+			n++;
-+			if (n == HFI1_SEGSZ) {
-+				m++;
-+				n = 0;
-+			}
-+	}
-+	ret = &mr->ibmr;
-+
-+bail:
-+	return ret;
-+}
-+
-+/**
-+ * hfi1_dereg_mr - unregister and free a memory region
-+ * @ibmr: the memory region to free
-+ *
-+ * Returns 0 on success.
-+ *
-+ * Note that this is called to free MRs created by hfi1_get_dma_mr()
-+ * or hfi1_reg_user_mr().
-+ */
-+int hfi1_dereg_mr(struct ib_mr *ibmr)
-+{
-+	struct hfi1_mr *mr = to_imr(ibmr);
-+	int ret = 0;
-+	unsigned long timeout;
-+
-+	hfi1_free_lkey(&mr->mr);
-+
-+	hfi1_put_mr(&mr->mr); /* will set completion if last */
-+	timeout = wait_for_completion_timeout(&mr->mr.comp,
-+		5 * HZ);
-+	if (!timeout) {
-+		dd_dev_err(
-+			dd_from_ibdev(mr->mr.pd->device),
-+			"hfi1_dereg_mr timeout mr %p pd %p refcount %u\n",
-+			mr, mr->mr.pd, atomic_read(&mr->mr.refcount));
-+		hfi1_get_mr(&mr->mr);
-+		ret = -EBUSY;
-+		goto out;
-+	}
-+	deinit_mregion(&mr->mr);
-+	if (mr->umem)
-+		ib_umem_release(mr->umem);
-+	kfree(mr);
-+out:
-+	return ret;
++	return ((ps->portphysstate_portstate &
++		  OPA_PI_MASK_PORT_PHYSICAL_STATE) >> 4) & 0xf;
 +}
 +
 +/*
-+ * Allocate a memory region usable with the
-+ * IB_WR_FAST_REG_MR send work request.
++ * OPA port physical states
++ * IB Volume 1, Table 146 PortInfo/IB Volume 2 Section 5.4.2(1) PortPhysState
++ * values.
 + *
-+ * Return the memory region on success, otherwise return an errno.
-+ */
-+struct ib_mr *hfi1_alloc_fast_reg_mr(struct ib_pd *pd, int max_page_list_len)
-+{
-+	struct hfi1_mr *mr;
-+
-+	mr = alloc_mr(max_page_list_len, pd);
-+	if (IS_ERR(mr))
-+		return (struct ib_mr *)mr;
-+
-+	return &mr->ibmr;
-+}
-+
-+struct ib_fast_reg_page_list *
-+hfi1_alloc_fast_reg_page_list(struct ib_device *ibdev, int page_list_len)
-+{
-+	unsigned size = page_list_len * sizeof(u64);
-+	struct ib_fast_reg_page_list *pl;
-+
-+	if (size > PAGE_SIZE)
-+		return ERR_PTR(-EINVAL);
-+
-+	pl = kzalloc(sizeof(*pl), GFP_KERNEL);
-+	if (!pl)
-+		return ERR_PTR(-ENOMEM);
-+
-+	pl->page_list = kzalloc(size, GFP_KERNEL);
-+	if (!pl->page_list)
-+		goto err_free;
-+
-+	return pl;
-+
-+err_free:
-+	kfree(pl);
-+	return ERR_PTR(-ENOMEM);
-+}
-+
-+void hfi1_free_fast_reg_page_list(struct ib_fast_reg_page_list *pl)
-+{
-+	kfree(pl->page_list);
-+	kfree(pl);
-+}
-+
-+/**
-+ * hfi1_alloc_fmr - allocate a fast memory region
-+ * @pd: the protection domain for this memory region
-+ * @mr_access_flags: access flags for this memory region
-+ * @fmr_attr: fast memory region attributes
++ * When writing, only values 0-3 are valid, other values are ignored.
++ * When reading, 0 is reserved.
 + *
-+ * Returns the memory region on success, otherwise returns an errno.
++ * Returned by the ibphys_portstate() routine.
 + */
-+struct ib_fmr *hfi1_alloc_fmr(struct ib_pd *pd, int mr_access_flags,
-+			      struct ib_fmr_attr *fmr_attr)
-+{
-+	struct hfi1_fmr *fmr;
-+	int m;
-+	struct ib_fmr *ret;
-+	int rval = -ENOMEM;
++enum opa_port_phys_state {
++	IB_PORTPHYSSTATE_NOP = 0,
++	/* 1 is reserved */
++	IB_PORTPHYSSTATE_POLLING = 2,
++	IB_PORTPHYSSTATE_DISABLED = 3,
++	IB_PORTPHYSSTATE_TRAINING = 4,
++	IB_PORTPHYSSTATE_LINKUP = 5,
++	IB_PORTPHYSSTATE_LINK_ERROR_RECOVERY = 6,
++	IB_PORTPHYSSTATE_PHY_TEST = 7,
++	/* 8 is reserved */
++	OPA_PORTPHYSSTATE_OFFLINE = 9,
++	OPA_PORTPHYSSTATE_GANGED = 10,
++	OPA_PORTPHYSSTATE_TEST = 11,
++	OPA_PORTPHYSSTATE_MAX = 11,
++	/* values 12-15 are reserved/ignored */
++};
 +
-+	/* Allocate struct plus pointers to first level page tables. */
-+	m = (fmr_attr->max_pages + HFI1_SEGSZ - 1) / HFI1_SEGSZ;
-+	fmr = kzalloc(sizeof(*fmr) + m * sizeof(fmr->mr.map[0]), GFP_KERNEL);
-+	if (!fmr)
-+		goto bail;
++/* where best to put this opcode? */
++#define CNP_OPCODE 0x80
 +
-+	rval = init_mregion(&fmr->mr, pd, fmr_attr->max_pages);
-+	if (rval)
-+		goto bail;
++/* OPA_PORT_TYPE_* definitions - these belong in opa_port_info.h */
++#define OPA_PORT_TYPE_UNKNOWN          0
++#define OPA_PORT_TYPE_DISCONNECTED     1
++/* port is not currently usable, CableInfo not available */
++#define OPA_PORT_TYPE_FIXED            2
++/* A fixed backplane port in a director class switch. All OPA ASICS */
++#define OPA_PORT_TYPE_VARIABLE         3
++/* A backplane port in a blade system, possibly mixed configuration */
++#define OPA_PORT_TYPE_STANDARD         4
++/* implies a SFF-8636 defined format for CableInfo (QSFP) */
++#define OPA_PORT_TYPE_SI_PHOTONICS      5
++/* A silicon photonics module implies TBD defined format for CableInfo
++ * as defined by Intel SFO group */
++/* 6 - 15 are reserved */
 +
-+	/*
-+	 * ib_alloc_fmr() will initialize fmr->ibfmr except for lkey &
-+	 * rkey.
-+	 */
-+	rval = hfi1_alloc_lkey(&fmr->mr, 0);
-+	if (rval)
-+		goto bail_mregion;
-+	fmr->ibfmr.rkey = fmr->mr.lkey;
-+	fmr->ibfmr.lkey = fmr->mr.lkey;
-+	/*
-+	 * Resources are allocated but no valid mapping (RKEY can't be
-+	 * used).
-+	 */
-+	fmr->mr.access_flags = mr_access_flags;
-+	fmr->mr.max_segs = fmr_attr->max_pages;
-+	fmr->mr.page_shift = fmr_attr->page_shift;
-+
-+	ret = &fmr->ibfmr;
-+done:
-+	return ret;
-+
-+bail_mregion:
-+	deinit_mregion(&fmr->mr);
-+bail:
-+	kfree(fmr);
-+	ret = ERR_PTR(rval);
-+	goto done;
-+}
-+
-+/**
-+ * hfi1_map_phys_fmr - set up a fast memory region
-+ * @ibmfr: the fast memory region to set up
-+ * @page_list: the list of pages to associate with the fast memory region
-+ * @list_len: the number of pages to associate with the fast memory region
-+ * @iova: the virtual address of the start of the fast memory region
-+ *
-+ * This may be called from interrupt context.
-+ */
-+
-+int hfi1_map_phys_fmr(struct ib_fmr *ibfmr, u64 *page_list,
-+		      int list_len, u64 iova)
-+{
-+	struct hfi1_fmr *fmr = to_ifmr(ibfmr);
-+	struct hfi1_lkey_table *rkt;
-+	unsigned long flags;
-+	int m, n, i;
-+	u32 ps;
-+	int ret;
-+
-+	i = atomic_read(&fmr->mr.refcount);
-+	if (i > 2)
-+		return -EBUSY;
-+
-+	if (list_len > fmr->mr.max_segs) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+	rkt = &to_idev(ibfmr->device)->lk_table;
-+	spin_lock_irqsave(&rkt->lock, flags);
-+	fmr->mr.user_base = iova;
-+	fmr->mr.iova = iova;
-+	ps = 1 << fmr->mr.page_shift;
-+	fmr->mr.length = list_len * ps;
-+	m = 0;
-+	n = 0;
-+	for (i = 0; i < list_len; i++) {
-+		fmr->mr.map[m]->segs[n].vaddr = (void *) page_list[i];
-+		fmr->mr.map[m]->segs[n].length = ps;
-+		if (++n == HFI1_SEGSZ) {
-+			m++;
-+			n = 0;
-+		}
-+	}
-+	spin_unlock_irqrestore(&rkt->lock, flags);
-+	ret = 0;
-+
-+bail:
-+	return ret;
-+}
-+
-+/**
-+ * hfi1_unmap_fmr - unmap fast memory regions
-+ * @fmr_list: the list of fast memory regions to unmap
-+ *
-+ * Returns 0 on success.
-+ */
-+int hfi1_unmap_fmr(struct list_head *fmr_list)
-+{
-+	struct hfi1_fmr *fmr;
-+	struct hfi1_lkey_table *rkt;
-+	unsigned long flags;
-+
-+	list_for_each_entry(fmr, fmr_list, ibfmr.list) {
-+		rkt = &to_idev(fmr->ibfmr.device)->lk_table;
-+		spin_lock_irqsave(&rkt->lock, flags);
-+		fmr->mr.user_base = 0;
-+		fmr->mr.iova = 0;
-+		fmr->mr.length = 0;
-+		spin_unlock_irqrestore(&rkt->lock, flags);
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * hfi1_dealloc_fmr - deallocate a fast memory region
-+ * @ibfmr: the fast memory region to deallocate
-+ *
-+ * Returns 0 on success.
-+ */
-+int hfi1_dealloc_fmr(struct ib_fmr *ibfmr)
-+{
-+	struct hfi1_fmr *fmr = to_ifmr(ibfmr);
-+	int ret = 0;
-+	unsigned long timeout;
-+
-+	hfi1_free_lkey(&fmr->mr);
-+	hfi1_put_mr(&fmr->mr); /* will set completion if last */
-+	timeout = wait_for_completion_timeout(&fmr->mr.comp,
-+		5 * HZ);
-+	if (!timeout) {
-+		hfi1_get_mr(&fmr->mr);
-+		ret = -EBUSY;
-+		goto out;
-+	}
-+	deinit_mregion(&fmr->mr);
-+	kfree(fmr);
-+out:
-+	return ret;
-+}
++#endif /* _LINUX_H */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
