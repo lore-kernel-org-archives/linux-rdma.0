@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 11/41] IB/hfi1: add PSM driver control/data path
-Date: Thu, 11 Jun 2015 19:09:28 -0400
-Message-ID: <20150611230927.16479.34957.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH 09/41] IB/hfi1: add low lower receive functions
+Date: Thu, 11 Jun 2015 19:09:17 -0400
+Message-ID: <20150611230917.16479.39964.stgit@phlsvslse11.ph.intel.com>
 References: <20150611230710.16479.62955.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -37,16 +37,16 @@ Signed-off-by: Sanath Kumar <sanath.s.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.
 Signed-off-by: Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Vlad Danushevsky <vladimir.danusevsky-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/file_ops.c | 2122 +++++++++++++++++++++++++++++++++
- 1 file changed, 2122 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi1/file_ops.c
+ drivers/infiniband/hw/hfi1/driver.c | 1061 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 1061 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi1/driver.c
 
-diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
+diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
 new file mode 100644
-index 0000000..8d794e8
+index 0000000..6db7668
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/file_ops.c
-@@ -0,0 +1,2122 @@
++++ b/drivers/infiniband/hw/hfi1/driver.c
+@@ -0,0 +1,1061 @@
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -96,2078 +96,1017 @@ index 0000000..8d794e8
 + * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + */
++
++#include <linux/spinlock.h>
 +#include <linux/pci.h>
-+#include <linux/poll.h>
-+#include <linux/cdev.h>
-+#include <linux/swap.h>
-+#include <linux/vmalloc.h>
-+#include <linux/highmem.h>
 +#include <linux/io.h>
-+#include <linux/jiffies.h>
-+#include <asm/pgtable.h>
 +#include <linux/delay.h>
-+#include <linux/export.h>
++#include <linux/netdevice.h>
++#include <linux/vmalloc.h>
 +#include <linux/module.h>
-+#include <linux/cred.h>
-+#include <linux/uio.h>
++#include <linux/prefetch.h>
 +
 +#include "hfi.h"
-+#include "pio.h"
-+#include "device.h"
-+#include "common.h"
 +#include "trace.h"
-+#include "user_sdma.h"
-+#include "eprom.h"
++#include "qp.h"
++#include "sdma.h"
 +
 +#undef pr_fmt
 +#define pr_fmt(fmt) DRIVER_NAME ": " fmt
 +
-+#define SEND_CTXT_HALT_TIMEOUT 1000 /* msecs */
++/*
++ * The size has to be longer than this string, so we can append
++ * board/chip information to it in the initialization code.
++ */
++const char ib_hfi1_version[] = HFI1_DRIVER_VERSION "\n";
++
++DEFINE_SPINLOCK(hfi1_devs_lock);
++LIST_HEAD(hfi1_dev_list);
++DEFINE_MUTEX(hfi1_mutex);	/* general driver use */
++
++unsigned int hfi1_max_mtu;
++module_param_named(max_mtu, hfi1_max_mtu, uint, S_IRUGO);
++MODULE_PARM_DESC(max_mtu, "Set max MTU bytes, default is 8192");
++
++unsigned int hfi1_cu = 1;
++module_param_named(cu, hfi1_cu, uint, S_IRUGO);
++MODULE_PARM_DESC(cu, "Credit return units");
++
++unsigned long hfi1_cap_mask = HFI1_CAP_MASK_DEFAULT;
++static int hfi1_caps_set(const char *, const struct kernel_param *);
++static int hfi1_caps_get(char *, const struct kernel_param *);
++static const struct kernel_param_ops cap_ops = {
++	.set = hfi1_caps_set,
++	.get = hfi1_caps_get
++};
++module_param_cb(cap_mask, &cap_ops, &hfi1_cap_mask, S_IWUSR | S_IRUGO);
++MODULE_PARM_DESC(cap_mask, "Bit mask of enabled/disabled HW features");
++
++MODULE_LICENSE("Dual BSD/GPL");
++MODULE_DESCRIPTION("Intel Omni-Path Architecture driver");
++MODULE_VERSION(HFI1_DRIVER_VERSION);
 +
 +/*
-+ * File operation functions
++ * MAX_PKT_RCV is the max # if packets processed per receive interrupt.
 + */
-+static int hfi1_file_open(struct inode *, struct file *);
-+static int hfi1_file_close(struct inode *, struct file *);
-+static ssize_t hfi1_file_write(struct file *, const char __user *,
-+			       size_t, loff_t *);
-+static ssize_t hfi1_write_iter(struct kiocb *, struct iov_iter *);
-+static unsigned int hfi1_poll(struct file *, struct poll_table_struct *);
-+static int hfi1_file_mmap(struct file *, struct vm_area_struct *);
++#define MAX_PKT_RECV 64
++#define EGR_HEAD_UPDATE_THRESHOLD 16
 +
-+static u64 kvirt_to_phys(void *);
-+static int assign_ctxt(struct file *, struct hfi1_user_info *);
-+static int init_subctxts(struct hfi1_ctxtdata *, const struct hfi1_user_info *);
-+static int user_init(struct file *);
-+static int get_ctxt_info(struct file *, void __user *, __u32);
-+static int get_base_info(struct file *, void __user *, __u32);
-+static int setup_ctxt(struct file *);
-+static int setup_subctxt(struct hfi1_ctxtdata *);
-+static int get_user_context(struct file *, struct hfi1_user_info *,
-+			    int, unsigned);
-+static int find_shared_ctxt(struct file *, const struct hfi1_user_info *);
-+static int allocate_ctxt(struct file *, struct hfi1_devdata *,
-+			 struct hfi1_user_info *);
-+static unsigned int poll_urgent(struct file *, struct poll_table_struct *);
-+static unsigned int poll_next(struct file *, struct poll_table_struct *);
-+static int user_event_ack(struct hfi1_ctxtdata *, int, unsigned long);
-+static int set_ctxt_pkey(struct hfi1_ctxtdata *, unsigned, u16);
-+static int manage_rcvq(struct hfi1_ctxtdata *, unsigned, int);
-+static int vma_fault(struct vm_area_struct *, struct vm_fault *);
-+static int exp_tid_setup(struct file *, struct hfi1_tid_info *);
-+static int exp_tid_free(struct file *, struct hfi1_tid_info *);
-+static void unlock_exp_tids(struct hfi1_ctxtdata *);
++struct hfi1_ib_stats hfi1_stats;
 +
-+static const struct file_operations hfi1_file_ops = {
-+	.owner = THIS_MODULE,
-+	.write = hfi1_file_write,
-+	.write_iter = hfi1_write_iter,
-+	.open = hfi1_file_open,
-+	.release = hfi1_file_close,
-+	.poll = hfi1_poll,
-+	.mmap = hfi1_file_mmap,
-+	.llseek = noop_llseek,
-+};
-+
-+static struct vm_operations_struct vm_ops = {
-+	.fault = vma_fault,
-+};
-+
-+/*
-+ * Types of memories mapped into user processes' space
-+ */
-+enum mmap_types {
-+	PIO_BUFS = 1,
-+	PIO_BUFS_SOP,
-+	PIO_CRED,
-+	RCV_HDRQ,
-+	RCV_EGRBUF,
-+	UREGS,
-+	EVENTS,
-+	STATUS,
-+	RTAIL,
-+	SUBCTXT_UREGS,
-+	SUBCTXT_RCV_HDRQ,
-+	SUBCTXT_EGRBUF,
-+	SDMA_COMP
-+};
-+
-+/*
-+ * Masks and offsets defining the mmap tokens
-+ */
-+#define HFI1_MMAP_OFFSET_MASK   0xfffULL
-+#define HFI1_MMAP_OFFSET_SHIFT  0
-+#define HFI1_MMAP_SUBCTXT_MASK  0xfULL
-+#define HFI1_MMAP_SUBCTXT_SHIFT 12
-+#define HFI1_MMAP_CTXT_MASK     0xffULL
-+#define HFI1_MMAP_CTXT_SHIFT    16
-+#define HFI1_MMAP_TYPE_MASK     0xfULL
-+#define HFI1_MMAP_TYPE_SHIFT    24
-+#define HFI1_MMAP_MAGIC_MASK    0xffffffffULL
-+#define HFI1_MMAP_MAGIC_SHIFT   32
-+
-+#define HFI1_MMAP_MAGIC         0xdabbad00
-+
-+#define HFI1_MMAP_TOKEN_SET(field, val)	\
-+	(((val) & HFI1_MMAP_##field##_MASK) << HFI1_MMAP_##field##_SHIFT)
-+#define HFI1_MMAP_TOKEN_GET(field, token) \
-+	(((token) >> HFI1_MMAP_##field##_SHIFT) & HFI1_MMAP_##field##_MASK)
-+#define HFI1_MMAP_TOKEN(type, ctxt, subctxt, addr)   \
-+	(HFI1_MMAP_TOKEN_SET(MAGIC, HFI1_MMAP_MAGIC) | \
-+	HFI1_MMAP_TOKEN_SET(TYPE, type) | \
-+	HFI1_MMAP_TOKEN_SET(CTXT, ctxt) | \
-+	HFI1_MMAP_TOKEN_SET(SUBCTXT, subctxt) | \
-+	HFI1_MMAP_TOKEN_SET(OFFSET, ((unsigned long)addr & ~PAGE_MASK)))
-+
-+#define EXP_TID_SET(field, value)			\
-+	(((value) & EXP_TID_TID##field##_MASK) <<	\
-+	 EXP_TID_TID##field##_SHIFT)
-+#define EXP_TID_CLEAR(tid, field) {					\
-+		(tid) &= ~(EXP_TID_TID##field##_MASK <<			\
-+			   EXP_TID_TID##field##_SHIFT);			\
-+			}
-+#define EXP_TID_RESET(tid, field, value) do {				\
-+		EXP_TID_CLEAR(tid, field);				\
-+		(tid) |= EXP_TID_SET(field, value);			\
-+	} while (0)
-+
-+#define dbg(fmt, ...)				\
-+	pr_info(fmt, ##__VA_ARGS__)
-+
-+
-+static inline int is_valid_mmap(u64 token)
++static int hfi1_caps_set(const char *val, const struct kernel_param *kp)
 +{
-+	return (HFI1_MMAP_TOKEN_GET(MAGIC, token) == HFI1_MMAP_MAGIC);
-+}
++	int ret = 0;
++	unsigned long *cap_mask_ptr = (unsigned long *)kp->arg,
++		cap_mask = *cap_mask_ptr, value, diff,
++		write_mask = ((HFI1_CAP_WRITABLE_MASK << HFI1_CAP_USER_SHIFT) |
++			      HFI1_CAP_WRITABLE_MASK);
 +
-+static int hfi1_file_open(struct inode *inode, struct file *fp)
-+{
-+	/* The real work is performed later in assign_ctxt() */
-+	fp->private_data = kzalloc(sizeof(struct hfi1_filedata), GFP_KERNEL);
-+	if (fp->private_data) /* no cpu affinity by default */
-+		((struct hfi1_filedata *)fp->private_data)->rec_cpu_num = -1;
-+	return fp->private_data ? 0 : -ENOMEM;
-+}
++	ret = kstrtoul(val, 0, &value);
++	if (ret) {
++		pr_warn("Invalid module parameter value for 'cap_mask'\n");
++		goto done;
++	}
++	/* Get the changed bits (except the locked bit) */
++	diff = value ^ (cap_mask & ~HFI1_CAP_LOCKED_SMASK);
 +
-+static ssize_t hfi1_file_write(struct file *fp, const char __user *data,
-+			       size_t count, loff_t *offset)
-+{
-+	const struct hfi1_cmd __user *ucmd;
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+	struct hfi1_cmd cmd;
-+	struct hfi1_user_info uinfo;
-+	struct hfi1_tid_info tinfo;
-+	ssize_t consumed = 0, copy = 0, ret = 0;
-+	void *dest = NULL;
-+	__u64 user_val = 0;
-+	int uctxt_required = 1;
-+	int must_be_root = 0;
-+
-+	if (count < sizeof(cmd)) {
-+		ret = -EINVAL;
-+		goto bail;
++	/* Remove any bits that are not allowed to change after driver load */
++	if (HFI1_CAP_LOCKED() && (diff & ~write_mask)) {
++		pr_warn("Ignoring non-writable capability bits %#lx\n",
++			diff & ~write_mask);
++		diff &= write_mask;
 +	}
 +
-+	ucmd = (const struct hfi1_cmd __user *)data;
-+	if (copy_from_user(&cmd, ucmd, sizeof(cmd))) {
-+		ret = -EFAULT;
-+		goto bail;
-+	}
-+
-+	consumed = sizeof(cmd);
-+
-+	switch (cmd.type) {
-+	case HFI1_CMD_ASSIGN_CTXT:
-+		uctxt_required = 0;	/* assigned user context not required */
-+		copy = sizeof(uinfo);
-+		dest = &uinfo;
-+		break;
-+	case HFI1_CMD_SDMA_STATUS_UPD:
-+	case HFI1_CMD_CREDIT_UPD:
-+		copy = 0;
-+		break;
-+	case HFI1_CMD_TID_UPDATE:
-+	case HFI1_CMD_TID_FREE:
-+		copy = sizeof(tinfo);
-+		dest = &tinfo;
-+		break;
-+	case HFI1_CMD_USER_INFO:
-+	case HFI1_CMD_RECV_CTRL:
-+	case HFI1_CMD_POLL_TYPE:
-+	case HFI1_CMD_ACK_EVENT:
-+	case HFI1_CMD_CTXT_INFO:
-+	case HFI1_CMD_SET_PKEY:
-+	case HFI1_CMD_CTXT_RESET:
-+		copy = 0;
-+		user_val = cmd.addr;
-+		break;
-+	case HFI1_CMD_EP_INFO:
-+	case HFI1_CMD_EP_ERASE_CHIP:
-+	case HFI1_CMD_EP_ERASE_P0:
-+	case HFI1_CMD_EP_ERASE_P1:
-+	case HFI1_CMD_EP_READ_P0:
-+	case HFI1_CMD_EP_READ_P1:
-+	case HFI1_CMD_EP_WRITE_P0:
-+	case HFI1_CMD_EP_WRITE_P1:
-+		uctxt_required = 0;	/* assigned user context not required */
-+		must_be_root = 1;	/* validate user */
-+		copy = 0;
-+		break;
-+	default:
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	/* If the command comes with user data, copy it. */
-+	if (copy) {
-+		if (copy_from_user(dest, (void __user *)cmd.addr, copy)) {
-+			ret = -EFAULT;
-+			goto bail;
-+		}
-+		consumed += copy;
-+	}
-+
-+	/*
-+	 * Make sure there is a uctxt when needed.
-+	 */
-+	if (uctxt_required && !uctxt) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	/* only root can do these operations */
-+	if (must_be_root && !capable(CAP_SYS_ADMIN)) {
-+		ret = -EPERM;
-+		goto bail;
-+	}
-+
-+	switch (cmd.type) {
-+	case HFI1_CMD_ASSIGN_CTXT:
-+		ret = assign_ctxt(fp, &uinfo);
-+		if (ret < 0)
-+			goto bail;
-+		ret = setup_ctxt(fp);
-+		if (ret)
-+			goto bail;
-+		ret = user_init(fp);
-+		break;
-+	case HFI1_CMD_CTXT_INFO:
-+		ret = get_ctxt_info(fp, (void __user *)(unsigned long)
-+				    user_val, cmd.len);
-+		break;
-+	case HFI1_CMD_USER_INFO:
-+		ret = get_base_info(fp, (void __user *)(unsigned long)
-+				    user_val, cmd.len);
-+		break;
-+	case HFI1_CMD_SDMA_STATUS_UPD:
-+		break;
-+	case HFI1_CMD_CREDIT_UPD:
-+		if (uctxt && uctxt->sc)
-+			sc_return_credits(uctxt->sc);
-+		break;
-+	case HFI1_CMD_TID_UPDATE:
-+		ret = exp_tid_setup(fp, &tinfo);
-+		if (!ret) {
-+			unsigned long addr;
-+			/*
-+			 * Copy the number of tidlist entries we used
-+			 * and the length of the buffer we registered.
-+			 * These fields are adjacent in the structure so
-+			 * we can copy them at the same time.
-+			 */
-+			addr = (unsigned long)cmd.addr +
-+				offsetof(struct hfi1_tid_info, tidcnt);
-+			if (copy_to_user((void __user *)addr, &tinfo.tidcnt,
-+					 sizeof(tinfo.tidcnt) +
-+					 sizeof(tinfo.length)))
-+				ret = -EFAULT;
-+		}
-+		break;
-+	case HFI1_CMD_TID_FREE:
-+		ret = exp_tid_free(fp, &tinfo);
-+		break;
-+	case HFI1_CMD_RECV_CTRL:
-+		ret = manage_rcvq(uctxt, subctxt_fp(fp), (int)user_val);
-+		break;
-+	case HFI1_CMD_POLL_TYPE:
-+		uctxt->poll_type = (typeof(uctxt->poll_type))user_val;
-+		break;
-+	case HFI1_CMD_ACK_EVENT:
-+		ret = user_event_ack(uctxt, subctxt_fp(fp), user_val);
-+		break;
-+	case HFI1_CMD_SET_PKEY:
-+		if (HFI1_CAP_IS_USET(PKEY_CHECK))
-+			ret = set_ctxt_pkey(uctxt, subctxt_fp(fp), user_val);
-+		else
-+			ret = -EPERM;
-+		break;
-+	case HFI1_CMD_CTXT_RESET: {
-+		struct send_context *sc;
-+		struct hfi1_devdata *dd;
-+
-+		if (!uctxt || !uctxt->dd || !uctxt->sc) {
-+			ret = -EINVAL;
-+			break;
-+		}
-+		/*
-+		 * There is no protection here. User level has to
-+		 * guarantee that no one will be writing to the send
-+		 * context while it is being re-initialized.
-+		 * If user level breaks that guarantee, it will break
-+		 * it's own context and no one else's.
-+		 */
-+		dd = uctxt->dd;
-+		sc = uctxt->sc;
-+		/*
-+		 * Wait until the interrupt handler has marked the
-+		 * context as halted or frozen. Report error if we time
-+		 * out.
-+		 */
-+		wait_event_interruptible_timeout(
-+			sc->halt_wait, (sc->flags & SCF_HALTED),
-+			msecs_to_jiffies(SEND_CTXT_HALT_TIMEOUT));
-+		if (!(sc->flags & SCF_HALTED)) {
-+			ret = -ENOLCK;
-+			break;
-+		}
-+		/*
-+		 * If the send context was halted due to a Freeze,
-+		 * wait until the device has been "unfrozen" before
-+		 * resetting the context.
-+		 */
-+		if (sc->flags & SCF_FROZEN) {
-+			wait_event_interruptible_timeout(
-+				dd->event_queue,
-+				!(ACCESS_ONCE(dd->flags) & HFI1_FROZEN),
-+				msecs_to_jiffies(SEND_CTXT_HALT_TIMEOUT));
-+			if (dd->flags & HFI1_FROZEN) {
-+				ret = -ENOLCK;
-+				break;
-+			}
-+			if (dd->flags & HFI1_FORCED_FREEZE) {
-+				/* Don't allow context reset if we are into
-+				 * forced freeze */
-+				ret = -ENODEV;
-+				break;
-+			}
-+			sc_disable(sc);
-+			ret = sc_enable(sc);
-+			hfi1_rcvctrl(dd, HFI1_RCVCTRL_CTXT_ENB,
-+				     uctxt->ctxt);
-+		} else
-+			ret = sc_restart(sc);
-+		if (!ret)
-+			sc_return_credits(sc);
-+		break;
-+	}
-+	case HFI1_CMD_EP_INFO:
-+	case HFI1_CMD_EP_ERASE_CHIP:
-+	case HFI1_CMD_EP_ERASE_P0:
-+	case HFI1_CMD_EP_ERASE_P1:
-+	case HFI1_CMD_EP_READ_P0:
-+	case HFI1_CMD_EP_READ_P1:
-+	case HFI1_CMD_EP_WRITE_P0:
-+	case HFI1_CMD_EP_WRITE_P1:
-+		ret = handle_eprom_command(&cmd);
-+		break;
-+	}
-+
-+	if (ret >= 0)
-+		ret = consumed;
-+bail:
++	/* Mask off any reserved bits */
++	diff &= ~HFI1_CAP_RESERVED_MASK;
++	/* Clear any previously set and changing bits */
++	cap_mask &= ~diff;
++	/* Update the bits with the new capability */
++	cap_mask |= (value & diff);
++	/* Check for any kernel/user restrictions */
++	diff = (cap_mask & (HFI1_CAP_MUST_HAVE_KERN << HFI1_CAP_USER_SHIFT)) ^
++		((cap_mask & HFI1_CAP_MUST_HAVE_KERN) << HFI1_CAP_USER_SHIFT);
++	cap_mask &= ~diff;
++	/* Set the bitmask to the final set */
++	*cap_mask_ptr = cap_mask;
++done:
 +	return ret;
 +}
 +
-+static ssize_t hfi1_write_iter(struct kiocb *kiocb, struct iov_iter *from)
++static int hfi1_caps_get(char *buffer, const struct kernel_param *kp)
 +{
-+	struct hfi1_user_sdma_pkt_q *pq;
-+	struct hfi1_user_sdma_comp_q *cq;
-+	int ret = 0, done = 0, reqs = 0;
-+	unsigned long dim = from->nr_segs;
++	unsigned long cap_mask = *(unsigned long *)kp->arg;
 +
-+	if (!user_sdma_comp_fp(kiocb->ki_filp) ||
-+	    !user_sdma_pkt_fp(kiocb->ki_filp)) {
-+		ret = -EIO;
-+		goto done;
-+	}
++	cap_mask &= ~HFI1_CAP_LOCKED_SMASK;
++	cap_mask |= ((cap_mask & HFI1_CAP_K2U) << HFI1_CAP_USER_SHIFT);
 +
-+	if (!iter_is_iovec(from) || !dim) {
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
-+	hfi1_cdbg(SDMA, "SDMA request from %u:%u (%lu)",
-+		  ctxt_fp(kiocb->ki_filp)->ctxt, subctxt_fp(kiocb->ki_filp),
-+		  dim);
-+	pq = user_sdma_pkt_fp(kiocb->ki_filp);
-+	cq = user_sdma_comp_fp(kiocb->ki_filp);
-+
-+	if (atomic_read(&pq->n_reqs) == pq->n_max_reqs) {
-+		ret = -ENOSPC;
-+		goto done;
-+	}
-+
-+	while (dim) {
-+		unsigned long count = 0;
-+
-+		ret = hfi1_user_sdma_process_request(
-+			kiocb->ki_filp,	(struct iovec *)(from->iov + done),
-+			dim, &count);
-+		if (ret)
-+			goto done;
-+		dim -= count;
-+		done += count;
-+		reqs++;
-+	}
-+done:
-+	return ret ? ret : reqs;
++	return scnprintf(buffer, PAGE_SIZE, "0x%lx", cap_mask);
 +}
 +
-+static int hfi1_file_mmap(struct file *fp, struct vm_area_struct *vma)
++const char *get_unit_name(int unit)
 +{
-+	struct hfi1_ctxtdata *uctxt;
++	static char iname[16];
++
++	snprintf(iname, sizeof(iname), DRIVER_NAME"_%u", unit);
++	return iname;
++}
++
++/*
++ * Return count of units with at least one port ACTIVE.
++ */
++int hfi1_count_active_units(void)
++{
 +	struct hfi1_devdata *dd;
-+	unsigned long flags, pfn;
-+	u64 token = vma->vm_pgoff << PAGE_SHIFT,
-+		memaddr = 0;
-+	u8 subctxt, mapio = 0, vmf = 0, type;
-+	ssize_t memlen = 0;
-+	int ret = 0;
-+	u16 ctxt;
-+
-+	uctxt = ctxt_fp(fp);
-+	if (!is_valid_mmap(token) || !uctxt ||
-+	    !(vma->vm_flags & VM_SHARED)) {
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+	dd = uctxt->dd;
-+	ctxt = HFI1_MMAP_TOKEN_GET(CTXT, token);
-+	subctxt = HFI1_MMAP_TOKEN_GET(SUBCTXT, token);
-+	type = HFI1_MMAP_TOKEN_GET(TYPE, token);
-+	if (ctxt != uctxt->ctxt || subctxt != subctxt_fp(fp)) {
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
-+	flags = vma->vm_flags;
-+
-+	switch (type) {
-+	case PIO_BUFS:
-+	case PIO_BUFS_SOP:
-+		memaddr = ((dd->physaddr + TXE_PIO_SEND) +
-+				/* chip pio base */
-+			   (uctxt->sc->hw_context * (1 << 16))) +
-+				/* 64K PIO space / ctxt */
-+			(type == PIO_BUFS_SOP ?
-+				(TXE_PIO_SIZE / 2) : 0); /* sop? */
-+		/*
-+		 * Map only the amount allocated to the context, not the
-+		 * entire available context's PIO space.
-+		 */
-+		memlen = ALIGN(uctxt->sc->credits * PIO_BLOCK_SIZE,
-+			       PAGE_SIZE);
-+		flags &= ~VM_MAYREAD;
-+		flags |= VM_DONTCOPY | VM_DONTEXPAND;
-+		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
-+		mapio = 1;
-+		break;
-+	case PIO_CRED:
-+		if (flags & VM_WRITE) {
-+			ret = -EPERM;
-+			goto done;
-+		}
-+		/*
-+		 * The credit return location for this context could be on the
-+		 * second or third page allocated for credit returns (if number
-+		 * of enabled contexts > 64 and 128 respectively).
-+		 */
-+		memaddr = dd->cr_base[uctxt->numa_id].pa +
-+			(((u64)uctxt->sc->hw_free -
-+			  (u64)dd->cr_base[uctxt->numa_id].va) & PAGE_MASK);
-+		memlen = PAGE_SIZE;
-+		flags &= ~VM_MAYWRITE;
-+		flags |= VM_DONTCOPY | VM_DONTEXPAND;
-+		/*
-+		 * The driver has already allocated memory for credit
-+		 * returns and programmed it into the chip. Has that
-+		 * memory been flagged as non-cached?
-+		 */
-+		/* vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot); */
-+		mapio = 1;
-+		break;
-+	case RCV_HDRQ:
-+		memaddr = uctxt->rcvhdrq_phys;
-+		memlen = uctxt->rcvhdrq_size;
-+		break;
-+	case RCV_EGRBUF: {
-+		unsigned long addr;
-+		int i;
-+		/*
-+		 * The RcvEgr buffer need to be handled differently
-+		 * as multiple non-contiguous pages need to be mapped
-+		 * into the user process.
-+		 */
-+		memlen = uctxt->egrbufs.size;
-+		if ((vma->vm_end - vma->vm_start) != memlen) {
-+			dd_dev_err(dd, "Eager buffer map size invalid (%lu != %lu)\n",
-+				   (vma->vm_end - vma->vm_start), memlen);
-+			ret = -EINVAL;
-+			goto done;
-+		}
-+		if (vma->vm_flags & VM_WRITE) {
-+			ret = -EPERM;
-+			goto done;
-+		}
-+		vma->vm_flags &= ~VM_MAYWRITE;
-+		addr = vma->vm_start;
-+		for (i = 0 ; i < uctxt->egrbufs.numbufs; i++) {
-+			ret = remap_pfn_range(
-+				vma, addr,
-+				uctxt->egrbufs.buffers[i].phys >> PAGE_SHIFT,
-+				uctxt->egrbufs.buffers[i].len,
-+				vma->vm_page_prot);
-+			if (ret < 0)
-+				goto done;
-+			addr += uctxt->egrbufs.buffers[i].len;
-+		}
-+		ret = 0;
-+		goto done;
-+	}
-+	case UREGS:
-+		/*
-+		 * Map only the page that contains this context's user
-+		 * registers.
-+		 */
-+		memaddr = (unsigned long)
-+			(dd->physaddr + RXE_PER_CONTEXT_USER)
-+			+ (uctxt->ctxt * RXE_PER_CONTEXT_SIZE);
-+		/*
-+		 * TidFlow table is on the same page as the rest of the
-+		 * user registers.
-+		 */
-+		memlen = PAGE_SIZE;
-+		flags |= VM_DONTCOPY | VM_DONTEXPAND;
-+		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-+		mapio = 1;
-+		break;
-+	case EVENTS:
-+		/*
-+		 * Use the page where this context's flags are. User level
-+		 * knows where it's own bitmap is within the page.
-+		 */
-+		memaddr = ((unsigned long)dd->events +
-+			   ((uctxt->ctxt - dd->first_user_ctxt) *
-+			    HFI1_MAX_SHARED_CTXTS)) & PAGE_MASK;
-+		memlen = PAGE_SIZE;
-+		/*
-+		 * v3.7 removes VM_RESERVED but the effect is kept by
-+		 * using VM_IO.
-+		 */
-+		flags |= VM_IO | VM_DONTEXPAND;
-+		vmf = 1;
-+		break;
-+	case STATUS:
-+		memaddr = kvirt_to_phys((void *)dd->status);
-+		memlen = PAGE_SIZE;
-+		flags |= VM_IO | VM_DONTEXPAND;
-+		break;
-+	case RTAIL:
-+		if (!HFI1_CAP_IS_USET(DMA_RTAIL)) {
-+			/*
-+			 * If the memory allocation failed, the context alloc
-+			 * also would have failed, so we would never get here
-+			 */
-+			ret = -EINVAL;
-+			goto done;
-+		}
-+		if (flags & VM_WRITE) {
-+			ret = -EPERM;
-+			goto done;
-+		}
-+		memaddr = uctxt->rcvhdrqtailaddr_phys;
-+		memlen = PAGE_SIZE;
-+		flags &= ~VM_MAYWRITE;
-+		break;
-+	case SUBCTXT_UREGS:
-+		memaddr = (u64)uctxt->subctxt_uregbase;
-+		memlen = PAGE_SIZE;
-+		flags |= VM_IO | VM_DONTEXPAND;
-+		vmf = 1;
-+		break;
-+	case SUBCTXT_RCV_HDRQ:
-+		memaddr = (u64)uctxt->subctxt_rcvhdr_base;
-+		memlen = uctxt->rcvhdrq_size * uctxt->subctxt_cnt;
-+		flags |= VM_IO | VM_DONTEXPAND;
-+		vmf = 1;
-+		break;
-+	case SUBCTXT_EGRBUF:
-+		memaddr = (u64)uctxt->subctxt_rcvegrbuf;
-+		memlen = uctxt->egrbufs.size * uctxt->subctxt_cnt;
-+		flags |= VM_IO | VM_DONTEXPAND;
-+		flags &= ~VM_MAYWRITE;
-+		vmf = 1;
-+		break;
-+	case SDMA_COMP: {
-+		struct hfi1_user_sdma_comp_q *cq;
-+
-+		if (!user_sdma_comp_fp(fp)) {
-+			ret = -EFAULT;
-+			goto done;
-+		}
-+		cq = user_sdma_comp_fp(fp);
-+		memaddr = (u64)cq->comps;
-+		memlen = ALIGN(sizeof(*cq->comps) * cq->nentries, PAGE_SIZE);
-+		flags |= VM_IO | VM_DONTEXPAND;
-+		vmf = 1;
-+		break;
-+	}
-+	default:
-+		ret = -EINVAL;
-+		break;
-+	}
-+
-+	if ((vma->vm_end - vma->vm_start) != memlen) {
-+		hfi1_cdbg(PROC, "%u:%u Memory size mismatch %lu:%lu",
-+			  uctxt->ctxt, subctxt_fp(fp),
-+			  (vma->vm_end - vma->vm_start), memlen);
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
-+	vma->vm_flags = flags;
-+	dd_dev_info(dd,
-+		    "%s: %u:%u type:%u io/vf:%d/%d, addr:0x%llx, len:%lu(%lu), flags:0x%lx\n",
-+		    __func__, ctxt, subctxt, type, mapio, vmf, memaddr, memlen,
-+		    vma->vm_end - vma->vm_start, vma->vm_flags);
-+	pfn = (unsigned long)(memaddr >> PAGE_SHIFT);
-+	if (vmf) {
-+		vma->vm_pgoff = pfn;
-+		vma->vm_ops = &vm_ops;
-+		ret = 0;
-+	} else if (mapio) {
-+		ret = io_remap_pfn_range(vma, vma->vm_start, pfn, memlen,
-+					 vma->vm_page_prot);
-+	} else {
-+		ret = remap_pfn_range(vma, vma->vm_start, pfn, memlen,
-+				      vma->vm_page_prot);
-+	}
-+done:
-+	return ret;
-+}
-+
-+/*
-+ * Local (non-chip) user memory is not mapped right away but as it is
-+ * accessed by the user-level code.
-+ */
-+static int vma_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
-+{
-+	struct page *page;
-+
-+	page = vmalloc_to_page((void *)(vmf->pgoff << PAGE_SHIFT));
-+	if (!page)
-+		return VM_FAULT_SIGBUS;
-+
-+	get_page(page);
-+	vmf->page = page;
-+
-+	return 0;
-+}
-+
-+static unsigned int hfi1_poll(struct file *fp, struct poll_table_struct *pt)
-+{
-+	struct hfi1_ctxtdata *uctxt;
-+	unsigned pollflag;
-+
-+	uctxt = ctxt_fp(fp);
-+	if (!uctxt)
-+		pollflag = POLLERR;
-+	else if (uctxt->poll_type == HFI1_POLL_TYPE_URGENT)
-+		pollflag = poll_urgent(fp, pt);
-+	else  if (uctxt->poll_type == HFI1_POLL_TYPE_ANYRCV)
-+		pollflag = poll_next(fp, pt);
-+	else /* invalid */
-+		pollflag = POLLERR;
-+
-+	return pollflag;
-+}
-+
-+static int hfi1_file_close(struct inode *inode, struct file *fp)
-+{
-+	struct hfi1_filedata *fdata = fp->private_data;
-+	struct hfi1_ctxtdata *uctxt = fdata->uctxt;
-+	struct hfi1_devdata *dd;
-+	unsigned long flags, *ev;
-+
-+	fp->private_data = NULL;
-+
-+	if (!uctxt)
-+		goto done;
-+
-+	hfi1_cdbg(PROC, "freeing ctxt %u:%u", uctxt->ctxt, fdata->subctxt);
-+	dd = uctxt->dd;
-+	mutex_lock(&hfi1_mutex);
-+
-+	flush_wc();
-+	/* drain user sdma queue */
-+	if (fdata->pq)
-+		hfi1_user_sdma_free_queues(fdata);
-+
-+	/*
-+	 * Clear any left over, unhandled events so the next process that
-+	 * gets this context doesn't get confused.
-+	 */
-+	ev = dd->events + ((uctxt->ctxt - dd->first_user_ctxt) *
-+			   HFI1_MAX_SHARED_CTXTS) + fdata->subctxt;
-+	*ev = 0;
-+
-+	if (--uctxt->cnt) {
-+		uctxt->active_slaves &= ~(1 << fdata->subctxt);
-+		uctxt->subpid[fdata->subctxt] = 0;
-+		mutex_unlock(&hfi1_mutex);
-+		goto done;
-+	}
-+
-+	spin_lock_irqsave(&dd->uctxt_lock, flags);
-+	/*
-+	 * Disable receive context and interrupt available, reset all
-+	 * RcvCtxtCtrl bits to default values.
-+	 */
-+	hfi1_rcvctrl(dd, HFI1_RCVCTRL_CTXT_DIS |
-+		     HFI1_RCVCTRL_TIDFLOW_DIS |
-+		     HFI1_RCVCTRL_INTRAVAIL_DIS |
-+		     HFI1_RCVCTRL_ONE_PKT_EGR_DIS |
-+		     HFI1_RCVCTRL_NO_RHQ_DROP_DIS |
-+		     HFI1_RCVCTRL_NO_EGR_DROP_DIS, uctxt->ctxt);
-+	/* Clear the context's J_KEY */
-+	hfi1_clear_ctxt_jkey(dd, uctxt->ctxt);
-+	/*
-+	 * Reset context integrity checks to default.
-+	 * (writes to CSRs probably belong in chip.c)
-+	 */
-+	write_kctxt_csr(dd, uctxt->sc->hw_context, SEND_CTXT_CHECK_ENABLE,
-+			hfi1_pkt_default_send_ctxt_mask(dd, uctxt->sc->type));
-+	sc_disable(uctxt->sc);
-+	uctxt->pid = 0;
-+	spin_unlock_irqrestore(&dd->uctxt_lock, flags);
-+
-+	dd->rcd[uctxt->ctxt] = NULL;
-+	uctxt->rcvwait_to = 0;
-+	uctxt->piowait_to = 0;
-+	uctxt->rcvnowait = 0;
-+	uctxt->pionowait = 0;
-+	uctxt->event_flags = 0;
-+
-+	hfi1_clear_tids(uctxt);
-+	hfi1_clear_ctxt_pkey(dd, uctxt->ctxt);
-+
-+	if (uctxt->tid_pg_list)
-+		unlock_exp_tids(uctxt);
-+
-+	hfi1_stats.sps_ctxts--;
-+	dd->freectxts++;
-+	mutex_unlock(&hfi1_mutex);
-+	hfi1_free_ctxtdata(dd, uctxt);
-+done:
-+	kfree(fdata);
-+	return 0;
-+}
-+
-+/*
-+ * Convert kernel *virtual* addresses to physical addresses.
-+ * This is used to vmalloc'ed addresses.
-+ */
-+static u64 kvirt_to_phys(void *addr)
-+{
-+	struct page *page;
-+	u64 paddr = 0;
-+
-+	page = vmalloc_to_page(addr);
-+	if (page)
-+		paddr = page_to_pfn(page) << PAGE_SHIFT;
-+
-+	return paddr;
-+}
-+
-+static int assign_ctxt(struct file *fp, struct hfi1_user_info *uinfo)
-+{
-+	int i_minor, ret = 0;
-+	unsigned swmajor, swminor, alg = HFI1_ALG_ACROSS;
-+
-+	swmajor = uinfo->userversion >> 16;
-+	if (swmajor != HFI1_USER_SWMAJOR) {
-+		ret = -ENODEV;
-+		goto done;
-+	}
-+
-+	swminor = uinfo->userversion & 0xffff;
-+
-+	if (uinfo->hfi1_alg < HFI1_ALG_COUNT)
-+		alg = uinfo->hfi1_alg;
-+
-+	mutex_lock(&hfi1_mutex);
-+	/* First, lets check if we need to setup a shared context? */
-+	if (uinfo->subctxt_cnt)
-+		ret = find_shared_ctxt(fp, uinfo);
-+
-+	/*
-+	 * We execute the following block if we couldn't find a
-+	 * shared context or if context sharing is not required.
-+	 */
-+	if (!ret) {
-+		i_minor = iminor(file_inode(fp)) - HFI1_USER_MINOR_BASE;
-+		ret = get_user_context(fp, uinfo, i_minor - 1, alg);
-+	}
-+	mutex_unlock(&hfi1_mutex);
-+done:
-+	return ret;
-+}
-+
-+static int get_user_context(struct file *fp, struct hfi1_user_info *uinfo,
-+			    int devno, unsigned alg)
-+{
-+	struct hfi1_devdata *dd = NULL;
-+	int ret = 0, devmax, npresent, nup, dev;
-+
-+	devmax = hfi1_count_units(&npresent, &nup);
-+	if (!npresent) {
-+		ret = -ENXIO;
-+		goto done;
-+	}
-+	if (!nup) {
-+		ret = -ENETDOWN;
-+		goto done;
-+	}
-+	if (devno >= 0) {
-+		dd = hfi1_lookup(devno);
-+		if (!dd)
-+			ret = -ENODEV;
-+		else if (!dd->freectxts)
-+			ret = -EBUSY;
-+	} else {
-+		struct hfi1_devdata *pdd;
-+
-+		if (alg == HFI1_ALG_ACROSS) {
-+			unsigned free = 0U;
-+
-+			for (dev = 0; dev < devmax; dev++) {
-+				pdd = hfi1_lookup(dev);
-+				if (pdd && pdd->freectxts &&
-+				    pdd->freectxts > free) {
-+					dd = pdd;
-+					free = pdd->freectxts;
-+				}
-+			}
-+		} else {
-+			for (dev = 0; dev < devmax; dev++) {
-+				pdd = hfi1_lookup(dev);
-+				if (pdd && pdd->freectxts) {
-+					dd = pdd;
-+					break;
-+				}
-+			}
-+		}
-+		if (!dd)
-+			ret = -EBUSY;
-+	}
-+done:
-+	return ret ? ret : allocate_ctxt(fp, dd, uinfo);
-+}
-+
-+static int find_shared_ctxt(struct file *fp,
-+			    const struct hfi1_user_info *uinfo)
-+{
-+	int devmax, ndev, i;
-+	int ret = 0;
-+
-+	devmax = hfi1_count_units(NULL, NULL);
-+
-+	for (ndev = 0; ndev < devmax; ndev++) {
-+		struct hfi1_devdata *dd = hfi1_lookup(ndev);
-+
-+		/* device portion of usable() */
-+		if (!(dd && (dd->flags & HFI1_PRESENT) && dd->kregbase))
-+			continue;
-+		for (i = dd->first_user_ctxt; i < dd->num_rcv_contexts; i++) {
-+			struct hfi1_ctxtdata *uctxt = dd->rcd[i];
-+
-+			/* Skip ctxts which are not yet open */
-+			if (!uctxt || !uctxt->cnt)
-+				continue;
-+			/* Skip ctxt if it doesn't match the requested one */
-+			if (memcmp(uctxt->uuid, uinfo->uuid,
-+				   sizeof(uctxt->uuid)) ||
-+			    uctxt->subctxt_id != uinfo->subctxt_id ||
-+			    uctxt->subctxt_cnt != uinfo->subctxt_cnt)
-+				continue;
-+
-+			/* Verify the sharing process matches the master */
-+			if (uctxt->userversion != uinfo->userversion ||
-+			    uctxt->cnt >= uctxt->subctxt_cnt) {
-+				ret = -EINVAL;
-+				goto done;
-+			}
-+			ctxt_fp(fp) = uctxt;
-+			subctxt_fp(fp) = uctxt->cnt++;
-+			uctxt->subpid[subctxt_fp(fp)] = current->pid;
-+			uctxt->active_slaves |= 1 << subctxt_fp(fp);
-+			ret = 1;
-+			goto done;
-+		}
-+	}
-+
-+done:
-+	return ret;
-+}
-+
-+static int allocate_ctxt(struct file *fp, struct hfi1_devdata *dd,
-+			 struct hfi1_user_info *uinfo)
-+{
-+	struct hfi1_ctxtdata *uctxt;
-+	unsigned ctxt;
-+	int ret;
-+
-+	if (dd->flags & HFI1_FROZEN) {
-+		/*
-+		 * Pick an error that is unique from all other errors
-+		 * that are returned so the user process knows that
-+		 * it tried to allocate while the SPC was frozen.  It
-+		 * it should be able to retry with success in a short
-+		 * while.
-+		 */
-+		return -EIO;
-+	}
-+
-+	for (ctxt = dd->first_user_ctxt; ctxt < dd->num_rcv_contexts; ctxt++)
-+		if (!dd->rcd[ctxt])
-+			break;
-+
-+	if (ctxt == dd->num_rcv_contexts)
-+		return -EBUSY;
-+
-+	uctxt = hfi1_create_ctxtdata(dd->pport, ctxt);
-+	if (!uctxt) {
-+		dd_dev_err(dd,
-+			   "Unable to allocate ctxtdata memory, failing open\n");
-+		return -ENOMEM;
-+	}
-+	/*
-+	 * Allocate and enable a PIO send context.
-+	 */
-+	uctxt->sc = sc_alloc(dd, SC_USER, uctxt->rcvhdrqentsize,
-+			     uctxt->numa_id);
-+	if (!uctxt->sc)
-+		return -ENOMEM;
-+
-+	dbg("allocated send context %u(%u)\n", uctxt->sc->sw_index,
-+		uctxt->sc->hw_context);
-+	ret = sc_enable(uctxt->sc);
-+	if (ret)
-+		return ret;
-+	/*
-+	 * Setup shared context resources if the user-level has requested
-+	 * shared contexts and this is the 'master' process.
-+	 * This has to be done here so the rest of the sub-contexts find the
-+	 * proper master.
-+	 */
-+	if (uinfo->subctxt_cnt && !subctxt_fp(fp)) {
-+		ret = init_subctxts(uctxt, uinfo);
-+		/*
-+		 * On error, we don't need to disable and de-allocate the
-+		 * send context because it will be done during file close
-+		 */
-+		if (ret)
-+			return ret;
-+	}
-+	uctxt->userversion = uinfo->userversion;
-+	uctxt->pid = current->pid;
-+	uctxt->flags = HFI1_CAP_UGET(MASK);
-+	init_waitqueue_head(&uctxt->wait);
-+	strlcpy(uctxt->comm, current->comm, sizeof(uctxt->comm));
-+	memcpy(uctxt->uuid, uinfo->uuid, sizeof(uctxt->uuid));
-+	uctxt->jkey = generate_jkey(current_uid());
-+	INIT_LIST_HEAD(&uctxt->sdma_queues);
-+	spin_lock_init(&uctxt->sdma_qlock);
-+	hfi1_stats.sps_ctxts++;
-+	dd->freectxts--;
-+	ctxt_fp(fp) = uctxt;
-+
-+	return 0;
-+}
-+
-+static int init_subctxts(struct hfi1_ctxtdata *uctxt,
-+			 const struct hfi1_user_info *uinfo)
-+{
-+	int ret = 0;
-+	unsigned num_subctxts;
-+
-+	num_subctxts = uinfo->subctxt_cnt;
-+	if (num_subctxts > HFI1_MAX_SHARED_CTXTS) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	uctxt->subctxt_cnt = uinfo->subctxt_cnt;
-+	uctxt->subctxt_id = uinfo->subctxt_id;
-+	uctxt->active_slaves = 1;
-+	uctxt->redirect_seq_cnt = 1;
-+	set_bit(HFI1_CTXT_MASTER_UNINIT, &uctxt->event_flags);
-+bail:
-+	return ret;
-+}
-+
-+static int setup_subctxt(struct hfi1_ctxtdata *uctxt)
-+{
-+	int ret = 0;
-+	unsigned num_subctxts = uctxt->subctxt_cnt;
-+
-+	uctxt->subctxt_uregbase = vmalloc_user(PAGE_SIZE);
-+	if (!uctxt->subctxt_uregbase) {
-+		ret = -ENOMEM;
-+		goto bail;
-+	}
-+	/* We can take the size of the RcvHdr Queue from the master */
-+	uctxt->subctxt_rcvhdr_base = vmalloc_user(uctxt->rcvhdrq_size *
-+						  num_subctxts);
-+	if (!uctxt->subctxt_rcvhdr_base) {
-+		ret = -ENOMEM;
-+		goto bail_ureg;
-+	}
-+
-+	uctxt->subctxt_rcvegrbuf = vmalloc_user(uctxt->egrbufs.size *
-+						num_subctxts);
-+	if (!uctxt->subctxt_rcvegrbuf) {
-+		ret = -ENOMEM;
-+		goto bail_rhdr;
-+	}
-+	goto bail;
-+bail_rhdr:
-+	vfree(uctxt->subctxt_rcvhdr_base);
-+bail_ureg:
-+	vfree(uctxt->subctxt_uregbase);
-+	uctxt->subctxt_uregbase = NULL;
-+bail:
-+	return ret;
-+}
-+
-+static int user_init(struct file *fp)
-+{
-+	int ret;
-+	unsigned int rcvctrl_ops = 0;
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+
-+	/* make sure that the context has already been setup */
-+	if (!test_bit(HFI1_CTXT_SETUP_DONE, &uctxt->event_flags)) {
-+		ret = -EFAULT;
-+		goto done;
-+	}
-+
-+	/*
-+	 * Subctxts don't need to initialize anything since master
-+	 * has done it.
-+	 */
-+	if (subctxt_fp(fp)) {
-+		ret = wait_event_interruptible(uctxt->wait,
-+			!test_bit(HFI1_CTXT_MASTER_UNINIT,
-+			&uctxt->event_flags));
-+		goto done;
-+	}
-+
-+	/* initialize poll variables... */
-+	uctxt->urgent = 0;
-+	uctxt->urgent_poll = 0;
-+
-+	/*
-+	 * Now enable the ctxt for receive.
-+	 * For chips that are set to DMA the tail register to memory
-+	 * when they change (and when the update bit transitions from
-+	 * 0 to 1.  So for those chips, we turn it off and then back on.
-+	 * This will (very briefly) affect any other open ctxts, but the
-+	 * duration is very short, and therefore isn't an issue.  We
-+	 * explicitly set the in-memory tail copy to 0 beforehand, so we
-+	 * don't have to wait to be sure the DMA update has happened
-+	 * (chip resets head/tail to 0 on transition to enable).
-+	 */
-+	if (uctxt->rcvhdrtail_kvaddr)
-+		clear_rcvhdrtail(uctxt);
-+
-+	/* Setup J_KEY before enabling the context */
-+	hfi1_set_ctxt_jkey(uctxt->dd, uctxt->ctxt, uctxt->jkey);
-+
-+	rcvctrl_ops = HFI1_RCVCTRL_CTXT_ENB;
-+	if (HFI1_CAP_KGET_MASK(uctxt->flags, HDRSUPP))
-+		rcvctrl_ops |= HFI1_RCVCTRL_TIDFLOW_ENB;
-+	/*
-+	 * Ignore the bit in the flags for now until proper
-+	 * support for multiple packet per rcv array entry is
-+	 * added.
-+	 */
-+	if (!HFI1_CAP_KGET_MASK(uctxt->flags, MULTI_PKT_EGR))
-+		rcvctrl_ops |= HFI1_RCVCTRL_ONE_PKT_EGR_ENB;
-+	if (HFI1_CAP_KGET_MASK(uctxt->flags, NODROP_EGR_FULL))
-+		rcvctrl_ops |= HFI1_RCVCTRL_NO_EGR_DROP_ENB;
-+	if (HFI1_CAP_KGET_MASK(uctxt->flags, NODROP_RHQ_FULL))
-+		rcvctrl_ops |= HFI1_RCVCTRL_NO_RHQ_DROP_ENB;
-+	if (HFI1_CAP_KGET_MASK(uctxt->flags, DMA_RTAIL))
-+		rcvctrl_ops |= HFI1_RCVCTRL_TAILUPD_ENB;
-+	hfi1_rcvctrl(uctxt->dd, rcvctrl_ops, uctxt->ctxt);
-+
-+	/* Notify any waiting slaves */
-+	if (uctxt->subctxt_cnt) {
-+		clear_bit(HFI1_CTXT_MASTER_UNINIT, &uctxt->event_flags);
-+		wake_up(&uctxt->wait);
-+	}
-+	ret = 0;
-+
-+done:
-+	return ret;
-+}
-+
-+static int get_ctxt_info(struct file *fp, void __user *ubase, __u32 len)
-+{
-+	struct hfi1_ctxt_info cinfo;
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+	struct hfi1_filedata *fd = fp->private_data;
-+	int ret = 0;
-+
-+	ret = hfi1_get_base_kinfo(uctxt, &cinfo);
-+	if (ret < 0)
-+		goto done;
-+	cinfo.num_active = hfi1_count_active_units();
-+	cinfo.unit = uctxt->dd->unit;
-+	cinfo.ctxt = uctxt->ctxt;
-+	cinfo.subctxt = subctxt_fp(fp);
-+	cinfo.rcvtids = roundup(uctxt->egrbufs.alloced,
-+				uctxt->dd->rcv_entries.group_size) +
-+		uctxt->expected_count;
-+	cinfo.credits = uctxt->sc->credits;
-+	cinfo.numa_node = uctxt->numa_id;
-+	cinfo.rec_cpu = fd->rec_cpu_num;
-+	cinfo.send_ctxt = uctxt->sc->hw_context;
-+
-+	cinfo.egrtids = uctxt->egrbufs.alloced;
-+	cinfo.rcvhdrq_cnt = uctxt->rcvhdrq_cnt;
-+	cinfo.rcvhdrq_entsize = uctxt->rcvhdrqentsize << 2;
-+	cinfo.sdma_ring_size = user_sdma_comp_fp(fp)->nentries;
-+	cinfo.rcvegr_size = uctxt->egrbufs.rcvtid_size;
-+
-+	trace_hfi1_ctxt_info(uctxt->dd, uctxt->ctxt, subctxt_fp(fp), cinfo);
-+	if (copy_to_user(ubase, &cinfo, sizeof(cinfo)))
-+		ret = -EFAULT;
-+done:
-+	return ret;
-+}
-+
-+static int setup_ctxt(struct file *fp)
-+{
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	int ret = 0;
-+
-+	/*
-+	 * Context should be set up only once (including allocation and
-+	 * programming of eager buffers. This is done if context sharing
-+	 * is not requested or by the master process.
-+	 */
-+	if (!uctxt->subctxt_cnt || !subctxt_fp(fp)) {
-+		ret = hfi1_init_ctxt(uctxt->sc);
-+		if (ret)
-+			goto done;
-+
-+		/* Now allocate the RcvHdr queue and eager buffers. */
-+		ret = hfi1_create_rcvhdrq(dd, uctxt);
-+		if (ret)
-+			goto done;
-+		ret = hfi1_setup_eagerbufs(uctxt);
-+		if (ret)
-+			goto done;
-+		if (uctxt->subctxt_cnt && !subctxt_fp(fp)) {
-+			ret = setup_subctxt(uctxt);
-+			if (ret)
-+				goto done;
-+		}
-+		/* Setup Expected Rcv memories */
-+		uctxt->tid_pg_list = vzalloc(uctxt->expected_count *
-+					     sizeof(struct page **));
-+		if (!uctxt->tid_pg_list) {
-+			ret = -ENOMEM;
-+			goto done;
-+		}
-+		uctxt->physshadow = vzalloc(uctxt->expected_count *
-+					    sizeof(*uctxt->physshadow));
-+		if (!uctxt->physshadow) {
-+			ret = -ENOMEM;
-+			goto done;
-+		}
-+		/* allocate expected TID map and initialize the cursor */
-+		atomic_set(&uctxt->tidcursor, 0);
-+		uctxt->numtidgroups = uctxt->expected_count /
-+			dd->rcv_entries.group_size;
-+		uctxt->tidmapcnt = uctxt->numtidgroups / BITS_PER_LONG +
-+			!!(uctxt->numtidgroups % BITS_PER_LONG);
-+		uctxt->tidusemap = kzalloc_node(uctxt->tidmapcnt *
-+						sizeof(*uctxt->tidusemap),
-+						GFP_KERNEL, uctxt->numa_id);
-+		if (!uctxt->tidusemap) {
-+			ret = -ENOMEM;
-+			goto done;
-+		}
-+		/*
-+		 * In case that the number of groups is not a multiple of
-+		 * 64 (the number of groups in a tidusemap element), mark
-+		 * the extra ones as used. This will effectively make them
-+		 * permanently used and should never be assigned. Otherwise,
-+		 * the code which checks how many free groups we have will
-+		 * get completely confused about the state of the bits.
-+		 */
-+		if (uctxt->numtidgroups % BITS_PER_LONG)
-+			uctxt->tidusemap[uctxt->tidmapcnt - 1] =
-+				~((1ULL << (uctxt->numtidgroups %
-+					    BITS_PER_LONG)) - 1);
-+		trace_hfi1_exp_tid_map(uctxt->ctxt, subctxt_fp(fp), 0,
-+				       uctxt->tidusemap, uctxt->tidmapcnt);
-+	}
-+	ret = hfi1_user_sdma_alloc_queues(uctxt, fp);
-+	if (ret)
-+		goto done;
-+
-+	set_bit(HFI1_CTXT_SETUP_DONE, &uctxt->event_flags);
-+done:
-+	return ret;
-+}
-+
-+static int get_base_info(struct file *fp, void __user *ubase, __u32 len)
-+{
-+	struct hfi1_base_info binfo;
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	ssize_t sz;
-+	unsigned offset;
-+	int ret = 0;
-+
-+	trace_hfi1_uctxtdata(uctxt->dd, uctxt);
-+
-+	memset(&binfo, 0, sizeof(binfo));
-+	binfo.hw_version = dd->revision;
-+	binfo.sw_version = HFI1_KERN_SWVERSION;
-+	binfo.bthqp = kdeth_qp;
-+	binfo.jkey = uctxt->jkey;
-+	/*
-+	 * If more than 64 contexts are enabled the allocated credit
-+	 * return will span two or three contiguous pages. Since we only
-+	 * map the page containing the context's credit return address,
-+	 * we need to calculate the offset in the proper page.
-+	 */
-+	offset = ((u64)uctxt->sc->hw_free -
-+		  (u64)dd->cr_base[uctxt->numa_id].va) % PAGE_SIZE;
-+	binfo.sc_credits_addr = HFI1_MMAP_TOKEN(PIO_CRED, uctxt->ctxt,
-+					       subctxt_fp(fp), offset);
-+	binfo.pio_bufbase = HFI1_MMAP_TOKEN(PIO_BUFS, uctxt->ctxt,
-+					    subctxt_fp(fp),
-+					    uctxt->sc->base_addr);
-+	binfo.pio_bufbase_sop = HFI1_MMAP_TOKEN(PIO_BUFS_SOP,
-+						uctxt->ctxt,
-+						subctxt_fp(fp),
-+						uctxt->sc->base_addr);
-+	binfo.rcvhdr_bufbase = HFI1_MMAP_TOKEN(RCV_HDRQ, uctxt->ctxt,
-+					       subctxt_fp(fp),
-+					       uctxt->rcvhdrq);
-+	binfo.rcvegr_bufbase = HFI1_MMAP_TOKEN(RCV_EGRBUF, uctxt->ctxt,
-+					       subctxt_fp(fp),
-+					       uctxt->egrbufs.rcvtids[0].phys);
-+	binfo.sdma_comp_bufbase = HFI1_MMAP_TOKEN(SDMA_COMP, uctxt->ctxt,
-+						 subctxt_fp(fp), 0);
-+	/*
-+	 * user regs are at
-+	 * (RXE_PER_CONTEXT_USER + (ctxt * RXE_PER_CONTEXT_SIZE))
-+	 */
-+	binfo.user_regbase = HFI1_MMAP_TOKEN(UREGS, uctxt->ctxt,
-+					    subctxt_fp(fp), 0);
-+	offset = ((((uctxt->ctxt - dd->first_user_ctxt) *
-+		    HFI1_MAX_SHARED_CTXTS) + subctxt_fp(fp)) *
-+		  sizeof(*dd->events)) & ~PAGE_MASK;
-+	binfo.events_bufbase = HFI1_MMAP_TOKEN(EVENTS, uctxt->ctxt,
-+					      subctxt_fp(fp),
-+					      offset);
-+	binfo.status_bufbase = HFI1_MMAP_TOKEN(STATUS, uctxt->ctxt,
-+					      subctxt_fp(fp),
-+					      dd->status);
-+	if (HFI1_CAP_IS_USET(DMA_RTAIL))
-+		binfo.rcvhdrtail_base = HFI1_MMAP_TOKEN(RTAIL, uctxt->ctxt,
-+						       subctxt_fp(fp), 0);
-+	if (uctxt->subctxt_cnt) {
-+		binfo.subctxt_uregbase = HFI1_MMAP_TOKEN(SUBCTXT_UREGS,
-+							uctxt->ctxt,
-+							subctxt_fp(fp), 0);
-+		binfo.subctxt_rcvhdrbuf = HFI1_MMAP_TOKEN(SUBCTXT_RCV_HDRQ,
-+							 uctxt->ctxt,
-+							 subctxt_fp(fp), 0);
-+		binfo.subctxt_rcvegrbuf = HFI1_MMAP_TOKEN(SUBCTXT_EGRBUF,
-+							 uctxt->ctxt,
-+							 subctxt_fp(fp), 0);
-+	}
-+	sz = (len < sizeof(binfo)) ? len : sizeof(binfo);
-+	if (copy_to_user(ubase, &binfo, sz))
-+		ret = -EFAULT;
-+	return ret;
-+}
-+
-+static unsigned int poll_urgent(struct file *fp,
-+				struct poll_table_struct *pt)
-+{
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	unsigned pollflag;
-+
-+	poll_wait(fp, &uctxt->wait, pt);
-+
-+	spin_lock_irq(&dd->uctxt_lock);
-+	if (uctxt->urgent != uctxt->urgent_poll) {
-+		pollflag = POLLIN | POLLRDNORM;
-+		uctxt->urgent_poll = uctxt->urgent;
-+	} else {
-+		pollflag = 0;
-+		set_bit(HFI1_CTXT_WAITING_URG, &uctxt->event_flags);
-+	}
-+	spin_unlock_irq(&dd->uctxt_lock);
-+
-+	return pollflag;
-+}
-+
-+static unsigned int poll_next(struct file *fp,
-+			      struct poll_table_struct *pt)
-+{
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	unsigned pollflag;
-+
-+	poll_wait(fp, &uctxt->wait, pt);
-+
-+	spin_lock_irq(&dd->uctxt_lock);
-+	if (hdrqempty(uctxt)) {
-+		set_bit(HFI1_CTXT_WAITING_RCV, &uctxt->event_flags);
-+		hfi1_rcvctrl(dd, HFI1_RCVCTRL_INTRAVAIL_ENB, uctxt->ctxt);
-+		pollflag = 0;
-+	} else
-+		pollflag = POLLIN | POLLRDNORM;
-+	spin_unlock_irq(&dd->uctxt_lock);
-+
-+	return pollflag;
-+}
-+
-+/*
-+ * Find all user contexts in use, and set the specified bit in their
-+ * event mask.
-+ * See also find_ctxt() for a similar use, that is specific to send buffers.
-+ */
-+int hfi1_set_uevent_bits(struct hfi1_pportdata *ppd, const int evtbit)
-+{
-+	struct hfi1_ctxtdata *uctxt;
-+	struct hfi1_devdata *dd = ppd->dd;
-+	unsigned ctxt;
-+	int ret = 0;
++	struct hfi1_pportdata *ppd;
 +	unsigned long flags;
++	int pidx, nunits_active = 0;
 +
-+	if (!dd->events) {
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
-+	spin_lock_irqsave(&dd->uctxt_lock, flags);
-+	for (ctxt = dd->first_user_ctxt; ctxt < dd->num_rcv_contexts;
-+	     ctxt++) {
-+		uctxt = dd->rcd[ctxt];
-+		if (uctxt) {
-+			unsigned long *evs = dd->events +
-+				(uctxt->ctxt - dd->first_user_ctxt) *
-+				HFI1_MAX_SHARED_CTXTS;
-+			int i;
-+			/*
-+			 * subctxt_cnt is 0 if not shared, so do base
-+			 * separately, first, then remaining subctxt, if any
-+			 */
-+			set_bit(evtbit, evs);
-+			for (i = 1; i < uctxt->subctxt_cnt; i++)
-+				set_bit(evtbit, evs + i);
++	spin_lock_irqsave(&hfi1_devs_lock, flags);
++	list_for_each_entry(dd, &hfi1_dev_list, list) {
++		if (!(dd->flags & HFI1_PRESENT) || !dd->kregbase)
++			continue;
++		for (pidx = 0; pidx < dd->num_pports; ++pidx) {
++			ppd = dd->pport + pidx;
++			if (ppd->lid && ppd->linkup) {
++				nunits_active++;
++				break;
++			}
 +		}
 +	}
-+	spin_unlock_irqrestore(&dd->uctxt_lock, flags);
-+done:
-+	return ret;
-+}
-+
-+/**
-+ * manage_rcvq - manage a context's receive queue
-+ * @uctxt: the context
-+ * @subctxt: the sub-context
-+ * @start_stop: action to carry out
-+ *
-+ * start_stop == 0 disables receive on the context, for use in queue
-+ * overflow conditions.  start_stop==1 re-enables, to be used to
-+ * re-init the software copy of the head register
-+ */
-+static int manage_rcvq(struct hfi1_ctxtdata *uctxt, unsigned subctxt,
-+		       int start_stop)
-+{
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	unsigned int rcvctrl_op;
-+
-+	if (subctxt)
-+		goto bail;
-+	/* atomically clear receive enable ctxt. */
-+	if (start_stop) {
-+		/*
-+		 * On enable, force in-memory copy of the tail register to
-+		 * 0, so that protocol code doesn't have to worry about
-+		 * whether or not the chip has yet updated the in-memory
-+		 * copy or not on return from the system call. The chip
-+		 * always resets it's tail register back to 0 on a
-+		 * transition from disabled to enabled.
-+		 */
-+		if (uctxt->rcvhdrtail_kvaddr)
-+			clear_rcvhdrtail(uctxt);
-+		rcvctrl_op = HFI1_RCVCTRL_CTXT_ENB;
-+	} else
-+		rcvctrl_op = HFI1_RCVCTRL_CTXT_DIS;
-+	hfi1_rcvctrl(dd, rcvctrl_op, uctxt->ctxt);
-+	/* always; new head should be equal to new tail; see above */
-+bail:
-+	return 0;
++	spin_unlock_irqrestore(&hfi1_devs_lock, flags);
++	return nunits_active;
 +}
 +
 +/*
-+ * clear the event notifier events for this context.
-+ * User process then performs actions appropriate to bit having been
-+ * set, if desired, and checks again in future.
++ * Return count of all units, optionally return in arguments
++ * the number of usable (present) units, and the number of
++ * ports that are up.
 + */
-+static int user_event_ack(struct hfi1_ctxtdata *uctxt, int subctxt,
-+			  unsigned long events)
++int hfi1_count_units(int *npresentp, int *nupp)
++{
++	int nunits = 0, npresent = 0, nup = 0;
++	struct hfi1_devdata *dd;
++	unsigned long flags;
++	int pidx;
++	struct hfi1_pportdata *ppd;
++
++	spin_lock_irqsave(&hfi1_devs_lock, flags);
++
++	list_for_each_entry(dd, &hfi1_dev_list, list) {
++		nunits++;
++		if ((dd->flags & HFI1_PRESENT) && dd->kregbase)
++			npresent++;
++		for (pidx = 0; pidx < dd->num_pports; ++pidx) {
++			ppd = dd->pport + pidx;
++			if (ppd->lid && ppd->linkup)
++				nup++;
++		}
++	}
++
++	spin_unlock_irqrestore(&hfi1_devs_lock, flags);
++
++	if (npresentp)
++		*npresentp = npresent;
++	if (nupp)
++		*nupp = nup;
++
++	return nunits;
++}
++
++/*
++ * Get address of eager buffer from it's index (allocated in chunks, not
++ * contiguous).
++ */
++static inline void *get_egrbuf(const struct hfi1_ctxtdata *rcd, u64 rhf,
++			       u32 *update)
++{
++	u32 idx = rhf_egr_index(rhf), offset = rhf_egr_buf_offset(rhf);
++
++	*update |= !(idx & (rcd->egrbufs.threshold - 1)) && !offset;
++	return (void *)(((u64)(rcd->egrbufs.rcvtids[idx].addr)) +
++			(offset * RCV_BUF_BLOCK_SIZE));
++}
++
++/*
++ * Validate and encode the a given RcvArray Buffer size.
++ * The function will check whether the given size falls within
++ * allowed size ranges for the respective type and, optionally,
++ * return the proper encoding.
++ */
++inline int hfi1_rcvbuf_validate(u32 size, u8 type, u16 *encoded)
++{
++	if (unlikely(!IS_ALIGNED(size, PAGE_SIZE)))
++		return 0;
++	if (unlikely(size < MIN_EAGER_BUFFER))
++		return 0;
++	if (size >
++	    (type == PT_EAGER ? MAX_EAGER_BUFFER : MAX_EXPECTED_BUFFER))
++		return 0;
++	if (encoded)
++		*encoded = ilog2(size / PAGE_SIZE) + 1;
++	return 1;
++}
++
++static void rcv_hdrerr(struct hfi1_ctxtdata *rcd, struct hfi1_pportdata *ppd,
++		       struct hfi1_packet *packet)
++{
++	struct hfi1_message_header *rhdr = packet->hdr;
++	u32 rte = rhf_rcv_type_err(packet->rhf);
++	int lnh = be16_to_cpu(rhdr->lrh[0]) & 3;
++	struct hfi1_ibport *ibp = &ppd->ibport_data;
++
++	if (packet->rhf & (RHF_VCRC_ERR | RHF_ICRC_ERR))
++		return;
++
++	if (packet->rhf & RHF_TID_ERR) {
++		/* For TIDERR and RC QPs preemptively schedule a NAK */
++		struct hfi1_ib_header *hdr = (struct hfi1_ib_header *)rhdr;
++		struct hfi1_other_headers *ohdr = NULL;
++		u32 tlen = rhf_pkt_len(packet->rhf); /* in bytes */
++		u16 lid  = be16_to_cpu(hdr->lrh[1]);
++		u32 qp_num;
++		u32 rcv_flags = 0;
++
++		/* Sanity check packet */
++		if (tlen < 24)
++			goto drop;
++
++		/* Check for GRH */
++		if (lnh == HFI1_LRH_BTH)
++			ohdr = &hdr->u.oth;
++		else if (lnh == HFI1_LRH_GRH) {
++			u32 vtf;
++
++			ohdr = &hdr->u.l.oth;
++			if (hdr->u.l.grh.next_hdr != IB_GRH_NEXT_HDR)
++				goto drop;
++			vtf = be32_to_cpu(hdr->u.l.grh.version_tclass_flow);
++			if ((vtf >> IB_GRH_VERSION_SHIFT) != IB_GRH_VERSION)
++				goto drop;
++			rcv_flags |= HFI1_HAS_GRH;
++		} else
++			goto drop;
++
++		/* Get the destination QP number. */
++		qp_num = be32_to_cpu(ohdr->bth[1]) & HFI1_QPN_MASK;
++		if (lid < HFI1_MULTICAST_LID_BASE) {
++			struct hfi1_qp *qp;
++
++			qp = hfi1_lookup_qpn(ibp, qp_num);
++			if (!qp)
++				goto drop;
++
++			/*
++			 * Handle only RC QPs - for other QP types drop error
++			 * packet.
++			 */
++			spin_lock(&qp->r_lock);
++
++			/* Check for valid receive state. */
++			if (!(ib_hfi1_state_ops[qp->state] &
++			      HFI1_PROCESS_RECV_OK)) {
++				ibp->n_pkt_drops++;
++			}
++
++			switch (qp->ibqp.qp_type) {
++			case IB_QPT_RC:
++				hfi1_rc_hdrerr(
++					rcd,
++					hdr,
++					rcv_flags,
++					qp);
++				break;
++			default:
++				/* For now don't handle any other QP types */
++				break;
++			}
++
++			spin_unlock(&qp->r_lock);
++			/*
++			 * Notify hfi1_destroy_qp() if it is waiting
++			 * for us to finish.
++			 */
++			if (atomic_dec_and_test(&qp->refcount))
++				wake_up(&qp->wait);
++		} /* Unicast QP */
++	} /* Valid packet with TIDErr */
++
++	/* handle "RcvTypeErr" flags */
++	switch (rte) {
++	case RHF_RTE_ERROR_OP_CODE_ERR:
++	{
++		u32 opcode;
++		void *ebuf = NULL;
++		__be32 *bth = NULL;
++
++		if (rhf_use_egr_bfr(packet->rhf))
++			ebuf = packet->ebuf;
++
++		if (ebuf == NULL)
++			goto drop; /* this should never happen */
++
++		if (lnh == HFI1_LRH_BTH)
++			bth = (__be32 *)ebuf;
++		else if (lnh == HFI1_LRH_GRH)
++			bth = (__be32 *)((char *)ebuf + sizeof(struct ib_grh));
++		else
++			goto drop;
++
++		opcode = be32_to_cpu(bth[0]) >> 24;
++		opcode &= 0xff;
++
++		if (opcode == CNP_OPCODE) {
++			/*
++			 * Only in pre-B0 h/w is the CNP_OPCODE handled
++			 * via this code path (errata 291394).
++			 */
++			struct hfi1_qp *qp = NULL;
++			u32 lqpn, rqpn;
++			u16 rlid;
++			u8 svc_type, sl, sc5;
++
++			sc5  = (be16_to_cpu(rhdr->lrh[0]) >> 4) & 0xf;
++			if (rhf_dc_info(packet->rhf))
++				sc5 |= 0x10;
++			sl = ibp->sc_to_sl[sc5];
++
++			lqpn = be32_to_cpu(bth[1]) & HFI1_QPN_MASK;
++			qp = hfi1_lookup_qpn(ibp, lqpn);
++			if (qp == NULL)
++				goto drop;
++
++			switch (qp->ibqp.qp_type) {
++			case IB_QPT_UD:
++				rlid = 0;
++				rqpn = 0;
++				svc_type = IB_CC_SVCTYPE_UD;
++				break;
++			case IB_QPT_UC:
++				rlid = be16_to_cpu(rhdr->lrh[3]);
++				rqpn = qp->remote_qpn;
++				svc_type = IB_CC_SVCTYPE_UC;
++				break;
++			default:
++				goto drop;
++			}
++			/* drop qp->refcount, wake waiters if it's 0 */
++			if (atomic_dec_and_test(&qp->refcount))
++				wake_up(&qp->wait);
++
++			process_becn(ppd, sl, rlid, lqpn, rqpn, svc_type);
++		}
++
++		packet->rhf &= ~RHF_RCV_TYPE_ERR_SMASK;
++		break;
++	}
++	default:
++		break;
++	}
++
++drop:
++	return;
++}
++
++static inline u32 init_packet(struct hfi1_ctxtdata *rcd,
++			      struct hfi1_packet *packet)
++{
++
++	packet->rsize = rcd->rcvhdrqentsize; /* words */
++	packet->maxcnt = rcd->rcvhdrq_cnt * packet->rsize; /* words */
++	packet->rcd = rcd;
++	packet->updegr = 0;
++	packet->etail = -1;
++	packet->rhf_addr = (__le32 *) rcd->rcvhdrq + rcd->head +
++			   rcd->dd->rhf_offset;
++	packet->rhf = rhf_to_cpu(packet->rhf_addr);
++	packet->rhqoff = rcd->head;
++	packet->numpkt = 1;
++	return packet->rhqoff;
++
++}
++
++#define RCV_PKT_OK 0x0
++#define RCV_PKT_MAX 0x1
++
++static inline int process_rcv_packet(struct hfi1_packet *packet)
++{
++	int ret = RCV_PKT_OK;
++
++	packet->hdr = hfi1_get_msgheader(packet->rcd->dd,
++					 packet->rhf_addr);
++	packet->hlen = (u8 *)packet->rhf_addr - (u8 *)packet->hdr;
++	packet->etype = rhf_rcv_type(packet->rhf);
++	/* total length */
++	packet->tlen = rhf_pkt_len(packet->rhf); /* in bytes */
++	packet->ebuf = NULL;
++
++	/*
++	 * Call a type specific handler for the packet. We
++	 * should be able to trust that etype won't be beyond
++	 * the range of valid indexes. If so something is really
++	 * wrong and we can probably just let things come
++	 * crashing down. There is no need to eat another
++	 * comparison in this performance critical code.
++	 */
++	packet->rcd->dd->rhf_rcv_function_map[packet->etype](packet);
++
++	/* Set up for the next packet */
++	packet->rhqoff += packet->rsize;
++	if (packet->rhqoff >= packet->maxcnt)
++		packet->rhqoff = 0;
++	if (packet->numpkt == MAX_PKT_RECV)
++		ret = RCV_PKT_MAX;
++
++	packet->rhf_addr = (__le32 *) packet->rcd->rcvhdrq + packet->rhqoff +
++				      packet->rcd->dd->rhf_offset;
++	packet->rhf = rhf_to_cpu(packet->rhf_addr);
++
++	packet->numpkt++;
++
++	return ret;
++}
++
++static inline void process_rcv_update(int last, struct hfi1_packet *packet)
++{
++	/*
++	 * Update head regs etc., every 16 packets, if not last pkt,
++	 * to help prevent rcvhdrq overflows, when many packets
++	 * are processed and queue is nearly full.
++	 * Don't request an interrupt for intermediate updates.
++	 */
++	if (!last && !(packet->numpkt & 0xf)) {
++		update_usrhead(packet->rcd, packet->rhqoff, packet->updegr,
++			       packet->etail, 0, 0);
++		packet->updegr = 0;
++	}
++}
++
++static inline void finish_packet(struct hfi1_packet *packet)
++{
++
++	/*
++	 * Nothing we need to free for the packet.
++	 *
++	 * The only thing we need to do is a final update and call for an
++	 * interrupt
++	 */
++	update_usrhead(packet->rcd, packet->rcd->head, packet->updegr,
++		       packet->etail, rcv_intr_dynamic, packet->numpkt);
++
++}
++
++static inline void process_rcv_qp_work(struct hfi1_packet *packet)
++{
++
++	struct hfi1_ctxtdata *rcd;
++	struct hfi1_qp *qp, *nqp;
++
++	rcd = packet->rcd;
++
++	/*
++	 * Notify hfi1_destroy_qp() if it is waiting
++	 * for lookaside_qp to finish.
++	 */
++	if (rcd->lookaside_qp) {
++		if (atomic_dec_and_test(&rcd->lookaside_qp->refcount))
++			wake_up(&rcd->lookaside_qp->wait);
++		rcd->lookaside_qp = NULL;
++	}
++
++	rcd->head = packet->rhqoff;
++
++	/*
++	 * Iterate over all QPs waiting to respond.
++	 * The list won't change since the IRQ is only run on one CPU.
++	 */
++	list_for_each_entry_safe(qp, nqp, &rcd->qp_wait_list, rspwait) {
++		list_del_init(&qp->rspwait);
++		if (qp->r_flags & HFI1_R_RSP_NAK) {
++			qp->r_flags &= ~HFI1_R_RSP_NAK;
++			hfi1_send_rc_ack(rcd, qp, 0);
++		}
++		if (qp->r_flags & HFI1_R_RSP_SEND) {
++			unsigned long flags;
++
++			qp->r_flags &= ~HFI1_R_RSP_SEND;
++			spin_lock_irqsave(&qp->s_lock, flags);
++			if (ib_hfi1_state_ops[qp->state] &
++					HFI1_PROCESS_OR_FLUSH_SEND)
++				hfi1_schedule_send(qp);
++			spin_unlock_irqrestore(&qp->s_lock, flags);
++		}
++		if (atomic_dec_and_test(&qp->refcount))
++			wake_up(&qp->wait);
++	}
++}
++
++/*
++ * Handle receive interrupts when using the no dma rtail option.
++ */
++void handle_receive_interrupt_nodma_rtail(struct hfi1_ctxtdata *rcd)
++{
++	u32 l, seq;
++	int last = 0;
++	struct hfi1_packet packet;
++
++	l = init_packet(rcd, &packet);
++	seq = rhf_rcv_seq(packet.rhf);
++	if (seq != rcd->seq_cnt)
++		goto bail;
++	packet.hdrqtail = 0;
++
++	while (!last) {
++		last = process_rcv_packet(&packet);
++		seq = rhf_rcv_seq(packet.rhf);
++		if (++rcd->seq_cnt > 13)
++			rcd->seq_cnt = 1;
++		if (seq != rcd->seq_cnt)
++			last = 1;
++		process_rcv_update(last, &packet);
++	}
++	process_rcv_qp_work(&packet);
++bail:
++	finish_packet(&packet);
++}
++
++void handle_receive_interrupt_dma_rtail(struct hfi1_ctxtdata *rcd)
++{
++	u32 l;
++	int last = 0;
++	struct hfi1_packet packet;
++
++	l = init_packet(rcd, &packet);
++	packet.hdrqtail = get_rcvhdrtail(rcd);
++	if (l == packet.hdrqtail)
++		goto bail;
++	smp_rmb();  /* prevent speculative reads of dma'ed hdrq */
++
++	while (!last) {
++		last = process_rcv_packet(&packet);
++		 if (packet.rhqoff == packet.hdrqtail)
++			last = 1;
++		process_rcv_update(last, &packet);
++	}
++	process_rcv_qp_work(&packet);
++bail:
++	finish_packet(&packet);
++
++}
++
++static inline void set_all_nodma_rtail(struct hfi1_devdata *dd)
 +{
 +	int i;
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	unsigned long *evs;
 +
-+	if (!dd->events)
-+		return 0;
-+
-+	evs = dd->events + ((uctxt->ctxt - dd->first_user_ctxt) *
-+			    HFI1_MAX_SHARED_CTXTS) + subctxt;
-+
-+	for (i = 0; i <= _HFI1_MAX_EVENT_BIT; i++) {
-+		if (!test_bit(i, &events))
-+			continue;
-+		clear_bit(i, evs);
-+	}
-+	return 0;
++	for (i = 0; i < dd->first_user_ctxt; i++)
++		dd->rcd[i]->do_interrupt =
++			&handle_receive_interrupt_nodma_rtail;
 +}
 +
-+#define num_user_pages(vaddr, len)					\
-+	(1 + (((((unsigned long)(vaddr) +				\
-+		 (unsigned long)(len) - 1) & PAGE_MASK) -		\
-+	       ((unsigned long)vaddr & PAGE_MASK)) >> PAGE_SHIFT))
++static inline void set_all_dma_rtail(struct hfi1_devdata *dd)
++{
++	int i;
 +
-+/**
-+ * tzcnt - count the number of trailing zeros in a 64bit value
-+ * @value: the value to be examined
++	for (i = 0; i < dd->first_user_ctxt; i++)
++		dd->rcd[i]->do_interrupt =
++			&handle_receive_interrupt_dma_rtail;
++}
++
++/*
++ * handle_receive_interrupt - receive a packet
++ * @rcd: the context
 + *
-+ * Returns the number of trailing least significant zeros in the
-+ * the input value. If the value is zero, return the number of
-+ * bits of the value.
++ * Called from interrupt handler for errors or receive interrupt.
++ * This is the slow path interrupt handler.
 + */
-+static inline u8 tzcnt(u64 value)
++void handle_receive_interrupt(struct hfi1_ctxtdata *rcd)
 +{
-+	return value ? __builtin_ctzl(value) : sizeof(value) * 8;
-+}
 +
-+static inline unsigned num_free_groups(unsigned long map, u16 *start)
-+{
-+	unsigned free;
-+	u16 bitidx = *start;
++	struct hfi1_devdata *dd = rcd->dd;
++	u32 l;
++	int last = 0, needset = 1;
++	struct hfi1_packet packet;
 +
-+	if (bitidx >= BITS_PER_LONG)
-+		return 0;
-+	/* "Turn off" any bits set before our bit index */
-+	map &= ~((1ULL << bitidx) - 1);
-+	free = tzcnt(map) - bitidx;
-+	while (!free && bitidx < BITS_PER_LONG) {
-+		/* Zero out the last set bit so we look at the rest */
-+		map &= ~(1ULL << bitidx);
-+		/*
-+		 * Account for the previously checked bits and advance
-+		 * the bit index. We don't have to check for bitidx
-+		 * getting bigger than BITS_PER_LONG here as it would
-+		 * mean extra instructions that we don't need. If it
-+		 * did happen, it would push free to a negative value
-+		 * which will break the loop.
-+		 */
-+		free = tzcnt(map) - ++bitidx;
-+	}
-+	*start = bitidx;
-+	return free;
-+}
++	l = init_packet(rcd, &packet);
 +
-+static int exp_tid_setup(struct file *fp, struct hfi1_tid_info *tinfo)
-+{
-+	int ret = 0;
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	unsigned tid, mapped = 0, npages, ngroups, exp_groups,
-+		tidpairs = uctxt->expected_count / 2;
-+	struct page **pages;
-+	unsigned long vaddr, tidmap[uctxt->tidmapcnt];
-+	dma_addr_t *phys;
-+	u32 tidlist[tidpairs], pairidx = 0, tidcursor;
-+	u16 useidx, idx, bitidx, tidcnt = 0;
++	if (!HFI1_CAP_IS_KSET(DMA_RTAIL)) {
++		u32 seq = rhf_rcv_seq(packet.rhf);
 +
-+	vaddr = tinfo->vaddr;
-+
-+	if (vaddr & ~PAGE_MASK) {
-+		ret = -EINVAL;
-+		goto bail;
++		if (seq != rcd->seq_cnt)
++			goto bail;
++		packet.hdrqtail = 0;
++	} else {
++		packet.hdrqtail = get_rcvhdrtail(rcd);
++		if (l == packet.hdrqtail)
++			goto bail;
++		smp_rmb();  /* prevent speculative reads of dma'ed hdrq */
 +	}
 +
-+	npages = num_user_pages(vaddr, tinfo->length);
-+	if (!npages) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+	if (!access_ok(VERIFY_WRITE, (void __user *)vaddr,
-+		       npages * PAGE_SIZE)) {
-+		dd_dev_err(dd, "Fail vaddr %p, %u pages, !access_ok\n",
-+			   (void *)vaddr, npages);
-+		ret = -EFAULT;
-+		goto bail;
-+	}
++	while (!last) {
 +
-+	memset(tidmap, 0, sizeof(tidmap[0]) * uctxt->tidmapcnt);
-+	memset(tidlist, 0, sizeof(tidlist[0]) * tidpairs);
++		if (unlikely(dd->do_drop && atomic_xchg(&dd->drop_packet,
++			DROP_PACKET_OFF) == DROP_PACKET_ON)) {
++			dd->do_drop = 0;
 +
-+	exp_groups = uctxt->expected_count / dd->rcv_entries.group_size;
-+	/* which group set do we look at first? */
-+	tidcursor = atomic_read(&uctxt->tidcursor);
-+	useidx = (tidcursor >> 16) & 0xffff;
-+	bitidx = tidcursor & 0xffff;
++			/* On to the next packet */
++			packet.rhqoff += packet.rsize;
++			packet.rhf_addr = (__le32 *) rcd->rcvhdrq +
++					  packet.rhqoff +
++					  dd->rhf_offset;
++			packet.rhf = rhf_to_cpu(packet.rhf_addr);
 +
-+	/*
-+	 * Keep going until we've mapped all pages or we've exhausted all
-+	 * RcvArray entries.
-+	 * This iterates over the number of tidmaps + 1
-+	 * (idx <= uctxt->tidmapcnt) so we check the bitmap which we
-+	 * started from one more time for any free bits before the
-+	 * starting point bit.
-+	 */
-+	for (mapped = 0, idx = 0;
-+	     mapped < npages && idx <= uctxt->tidmapcnt;) {
-+		u64 i, offset = 0;
-+		unsigned free, pinned, pmapped = 0, bits_used;
-+		u16 grp;
-+
-+		/*
-+		 * "Reserve" the needed group bits under lock so other
-+		 * processes can't step in the middle of it. Once
-+		 * reserved, we don't need the lock anymore since we
-+		 * are guaranteed the groups.
-+		 */
-+		spin_lock(&uctxt->exp_lock);
-+		if (uctxt->tidusemap[useidx] == -1ULL ||
-+		    bitidx >= BITS_PER_LONG) {
-+			/* no free groups in the set, use the next */
-+			useidx = (useidx + 1) % uctxt->tidmapcnt;
-+			idx++;
-+			bitidx = 0;
-+			spin_unlock(&uctxt->exp_lock);
-+			continue;
-+		}
-+		ngroups = ((npages - mapped) / dd->rcv_entries.group_size) +
-+			!!((npages - mapped) % dd->rcv_entries.group_size);
-+
-+		/*
-+		 * If we've gotten here, the current set of groups does have
-+		 * one or more free groups.
-+		 */
-+		free = num_free_groups(uctxt->tidusemap[useidx], &bitidx);
-+		if (!free) {
-+			/*
-+			 * Despite the check above, free could still come back
-+			 * as 0 because we don't check the entire bitmap but
-+			 * we start from bitidx.
-+			 */
-+			spin_unlock(&uctxt->exp_lock);
-+			continue;
-+		}
-+		bits_used = min(free, ngroups);
-+		tidmap[useidx] |= ((1ULL << bits_used) - 1) << bitidx;
-+		uctxt->tidusemap[useidx] |= tidmap[useidx];
-+		spin_unlock(&uctxt->exp_lock);
-+
-+		/*
-+		 * At this point, we know where in the map we have free bits.
-+		 * properly offset into the various "shadow" arrays and compute
-+		 * the RcvArray entry index.
-+		 */
-+		offset = ((useidx * BITS_PER_LONG) + bitidx) *
-+			dd->rcv_entries.group_size;
-+		pages = uctxt->tid_pg_list + offset;
-+		phys = uctxt->physshadow + offset;
-+		tid = uctxt->expected_base + offset;
-+
-+		/* Calculate how many pages we can pin based on free bits */
-+		pinned = min((bits_used * dd->rcv_entries.group_size),
-+			     (npages - mapped));
-+		/*
-+		 * Now that we know how many free RcvArray entries we have,
-+		 * we can pin that many user pages.
-+		 */
-+		ret = hfi1_get_user_pages(vaddr + (mapped * PAGE_SIZE),
-+					  pinned, pages);
-+		if (ret) {
-+			/*
-+			 * We can't continue because the pages array won't be
-+			 * initialized. This should never happen,
-+			 * unless perhaps the user has mpin'ed the pages
-+			 * themselves.
-+			 */
-+			dd_dev_info(dd,
-+				    "Failed to lock addr %p, %u pages: errno %d\n",
-+				    (void *) vaddr, pinned, -ret);
-+			/*
-+			 * Let go of the bits that we reserved since we are not
-+			 * going to use them.
-+			 */
-+			spin_lock(&uctxt->exp_lock);
-+			uctxt->tidusemap[useidx] &=
-+				~(((1ULL << bits_used) - 1) << bitidx);
-+			spin_unlock(&uctxt->exp_lock);
-+			goto done;
-+		}
-+		/*
-+		 * How many groups do we need based on how many pages we have
-+		 * pinned?
-+		 */
-+		ngroups = (pinned / dd->rcv_entries.group_size) +
-+			!!(pinned % dd->rcv_entries.group_size);
-+		/*
-+		 * Keep programming RcvArray entries for all the <ngroups> free
-+		 * groups.
-+		 */
-+		for (i = 0, grp = 0; grp < ngroups; i++, grp++) {
-+			unsigned j;
-+			u32 pair_size = 0, tidsize;
-+			/*
-+			 * This inner loop will program an entire group or the
-+			 * array of pinned pages (which ever limit is hit
-+			 * first).
-+			 */
-+			for (j = 0; j < dd->rcv_entries.group_size &&
-+				     pmapped < pinned; j++, pmapped++, tid++) {
-+				tidsize = PAGE_SIZE;
-+				phys[pmapped] = hfi1_map_page(dd->pcidev,
-+						   pages[pmapped], 0,
-+						   tidsize, PCI_DMA_FROMDEVICE);
-+				trace_hfi1_exp_rcv_set(uctxt->ctxt,
-+						       subctxt_fp(fp),
-+						       tid, vaddr,
-+						       phys[pmapped],
-+						       pages[pmapped]);
-+				/*
-+				 * Each RcvArray entry is programmed with one
-+				 * page * worth of memory. This will handle
-+				 * the 8K MTU as well as anything smaller
-+				 * due to the fact that both entries in the
-+				 * RcvTidPair are programmed with a page.
-+				 * PSM currently does not handle anything
-+				 * bigger than 8K MTU, so should we even worry
-+				 * about 10K here?
-+				 */
-+				hfi1_put_tid(dd, tid, PT_EXPECTED,
-+					     phys[pmapped],
-+					     ilog2(tidsize >> PAGE_SHIFT) + 1);
-+				pair_size += tidsize >> PAGE_SHIFT;
-+				EXP_TID_RESET(tidlist[pairidx], LEN, pair_size);
-+				if (!(tid % 2)) {
-+					tidlist[pairidx] |=
-+					   EXP_TID_SET(IDX,
-+						(tid - uctxt->expected_base)
-+						       / 2);
-+					tidlist[pairidx] |=
-+						EXP_TID_SET(CTRL, 1);
-+					tidcnt++;
-+				} else {
-+					tidlist[pairidx] |=
-+						EXP_TID_SET(CTRL, 2);
-+					pair_size = 0;
-+					pairidx++;
-+				}
-+			}
-+			/*
-+			 * We've programmed the entire group (or as much of the
-+			 * group as we'll use. Now, it's time to push it out...
-+			 */
-+			flush_wc();
-+		}
-+		mapped += pinned;
-+		atomic_set(&uctxt->tidcursor,
-+			   (((useidx & 0xffffff) << 16) |
-+			    ((bitidx + bits_used) & 0xffffff)));
-+	}
-+	trace_hfi1_exp_tid_map(uctxt->ctxt, subctxt_fp(fp), 0, uctxt->tidusemap,
-+			       uctxt->tidmapcnt);
-+
-+done:
-+	/* If we've mapped anything, copy relevant info to user */
-+	if (mapped) {
-+		if (copy_to_user((void __user *)(unsigned long)tinfo->tidlist,
-+				 tidlist, sizeof(tidlist[0]) * tidcnt)) {
-+			ret = -EFAULT;
-+			goto done;
-+		}
-+		/* copy TID info to user */
-+		if (copy_to_user((void __user *)(unsigned long)tinfo->tidmap,
-+				 tidmap, sizeof(tidmap[0]) * uctxt->tidmapcnt))
-+			ret = -EFAULT;
-+	}
-+bail:
-+	/*
-+	 * Calculate mapped length. New Exp TID protocol does not "unwind" and
-+	 * report an error if it can't map the entire buffer. It just reports
-+	 * the length that was mapped.
-+	 */
-+	tinfo->length = mapped * PAGE_SIZE;
-+	tinfo->tidcnt = tidcnt;
-+	return ret;
-+}
-+
-+static int exp_tid_free(struct file *fp, struct hfi1_tid_info *tinfo)
-+{
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	unsigned long tidmap[uctxt->tidmapcnt];
-+	struct page **pages;
-+	dma_addr_t *phys;
-+	u16 idx, bitidx, tid;
-+	int ret = 0;
-+
-+	if (copy_from_user(&tidmap, (void __user *)(unsigned long)
-+			   tinfo->tidmap,
-+			   sizeof(tidmap[0]) * uctxt->tidmapcnt)) {
-+		ret = -EFAULT;
-+		goto done;
-+	}
-+	for (idx = 0; idx < uctxt->tidmapcnt; idx++) {
-+		unsigned long map;
-+
-+		bitidx = 0;
-+		if (!tidmap[idx])
-+			continue;
-+		map = tidmap[idx];
-+		while ((bitidx = tzcnt(map)) < BITS_PER_LONG) {
-+			int i, pcount = 0;
-+			struct page *pshadow[dd->rcv_entries.group_size];
-+			unsigned offset = ((idx * BITS_PER_LONG) + bitidx) *
-+				dd->rcv_entries.group_size;
-+
-+			pages = uctxt->tid_pg_list + offset;
-+			phys = uctxt->physshadow + offset;
-+			tid = uctxt->expected_base + offset;
-+			for (i = 0; i < dd->rcv_entries.group_size;
-+			     i++, tid++) {
-+				if (pages[i]) {
-+					hfi1_put_tid(dd, tid, PT_INVALID,
-+						      0, 0);
-+					trace_hfi1_exp_rcv_free(uctxt->ctxt,
-+								subctxt_fp(fp),
-+								tid, phys[i],
-+								pages[i]);
-+					pci_unmap_page(dd->pcidev, phys[i],
-+					      PAGE_SIZE, PCI_DMA_FROMDEVICE);
-+					pshadow[pcount] = pages[i];
-+					pages[i] = NULL;
-+					pcount++;
-+					phys[i] = 0;
-+				}
-+			}
-+			flush_wc();
-+			hfi1_release_user_pages(pshadow, pcount);
-+			clear_bit(bitidx, &uctxt->tidusemap[idx]);
-+			map &= ~(1ULL<<bitidx);
-+		}
-+	}
-+	trace_hfi1_exp_tid_map(uctxt->ctxt, subctxt_fp(fp), 1, uctxt->tidusemap,
-+			       uctxt->tidmapcnt);
-+done:
-+	return ret;
-+}
-+
-+static void unlock_exp_tids(struct hfi1_ctxtdata *uctxt)
-+{
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	unsigned tid;
-+
-+	dd_dev_info(dd, "ctxt %u unlocking any locked expTID pages\n",
-+		    uctxt->ctxt);
-+	for (tid = 0; tid < uctxt->expected_count; tid++) {
-+		struct page *p = uctxt->tid_pg_list[tid];
-+		dma_addr_t phys;
-+
-+		if (!p)
-+			continue;
-+
-+		phys = uctxt->physshadow[tid];
-+		uctxt->physshadow[tid] = 0;
-+		uctxt->tid_pg_list[tid] = NULL;
-+		pci_unmap_page(dd->pcidev, phys, PAGE_SIZE, PCI_DMA_FROMDEVICE);
-+		hfi1_release_user_pages(&p, 1);
-+	}
-+}
-+
-+static int set_ctxt_pkey(struct hfi1_ctxtdata *uctxt, unsigned subctxt,
-+			 u16 pkey)
-+{
-+	int ret = -ENOENT, i, intable = 0;
-+	struct hfi1_pportdata *ppd = uctxt->ppd;
-+	struct hfi1_devdata *dd = uctxt->dd;
-+
-+	if (pkey == LIM_MGMT_P_KEY || pkey == FULL_MGMT_P_KEY) {
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
-+	for (i = 0; i < ARRAY_SIZE(ppd->pkeys); i++)
-+		if (pkey == ppd->pkeys[i]) {
-+			intable = 1;
-+			break;
++		} else {
++			last = process_rcv_packet(&packet);
 +		}
 +
-+	if (intable)
-+		ret = hfi1_set_ctxt_pkey(dd, uctxt->ctxt, pkey);
-+done:
-+	return ret;
-+}
++		if (!HFI1_CAP_IS_KSET(DMA_RTAIL)) {
++			u32 seq = rhf_rcv_seq(packet.rhf);
 +
-+static int ui_open(struct inode *inode, struct file *filp)
-+{
-+	struct hfi1_devdata *dd;
-+
-+	dd = container_of(inode->i_cdev, struct hfi1_devdata, ui_cdev);
-+	filp->private_data = dd; /* for other methods */
-+	return 0;
-+}
-+
-+static int ui_release(struct inode *inode, struct file *filp)
-+{
-+	/* nothing to do */
-+	return 0;
-+}
-+
-+static loff_t ui_lseek(struct file *filp, loff_t offset, int whence)
-+{
-+	struct hfi1_devdata *dd = filp->private_data;
-+
-+	switch (whence) {
-+	case SEEK_SET:
-+		break;
-+	case SEEK_CUR:
-+		offset += filp->f_pos;
-+		break;
-+	case SEEK_END:
-+		offset = (dd->kregend - dd->kregbase) - offset;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	if (offset < 0)
-+		return -EINVAL;
-+
-+	if (offset >= dd->kregend - dd->kregbase)
-+		return -EINVAL;
-+
-+	filp->f_pos = offset;
-+
-+	return filp->f_pos;
-+}
-+
-+/* NOTE: assumes unsigned long is 8 bytes */
-+static ssize_t ui_read(struct file *filp, char __user *buf, size_t count,
-+			loff_t *f_pos)
-+{
-+	struct hfi1_devdata *dd = filp->private_data;
-+	void __iomem *base;
-+	unsigned long total, data, csr_off;
-+
-+	/* only read 8 byte quantities */
-+	if ((count % 8) != 0)
-+		return -EINVAL;
-+	/* offset must be 8-byte aligned */
-+	if ((*f_pos % 8) != 0)
-+		return -EINVAL;
-+	/* destination buffer must be 8-byte aligned */
-+	if ((unsigned long)buf % 8 != 0)
-+		return -EINVAL;
-+	/* must be in range */
-+	if (*f_pos + count > dd->kregend - dd->kregbase)
-+		return -EINVAL;
-+	base = (void __iomem *)(dd->kregbase + *f_pos);
-+	csr_off = *f_pos;
-+	for (total = 0; total < count; total += 8, csr_off += 8) {
-+		/* accessing LCB CSRs requires more checks */
-+		if (is_lcb_offset(csr_off)) {
-+			if (read_lcb_csr(dd, csr_off, (u64 *)&data))
-+				break; /* failed */
-+		}
-+		/*
-+		 * Cannot read ASIC GPIO/QSFP* clear and force CSRs without a
-+		 * false parity error.  Avoid the whole issue by not reading
-+		 * them.  These registers are defined as having a read value
-+		 * of 0.
-+		 */
-+		else if (csr_off == ASIC_GPIO_CLEAR
-+				|| csr_off == ASIC_GPIO_FORCE
-+				|| csr_off == ASIC_QSFP1_CLEAR
-+				|| csr_off == ASIC_QSFP1_FORCE
-+				|| csr_off == ASIC_QSFP2_CLEAR
-+				|| csr_off == ASIC_QSFP2_FORCE)
-+			data = 0;
-+		else
-+			data = readq(base + total);
-+		if (put_user(data, (unsigned long __user *)(buf + total)))
-+			break;
-+	}
-+	*f_pos += total;
-+	return total;
-+}
-+
-+/* NOTE: assumes unsigned long is 8 bytes */
-+static ssize_t ui_write(struct file *filp, const char __user *buf,
-+			size_t count, loff_t *f_pos)
-+{
-+	struct hfi1_devdata *dd = filp->private_data;
-+	void __iomem *base;
-+	unsigned long total, data, csr_off;
-+	int in_lcb;
-+
-+	/* only write 8 byte quantities */
-+	if ((count % 8) != 0)
-+		return -EINVAL;
-+	/* offset must be 8-byte aligned */
-+	if ((*f_pos % 8) != 0)
-+		return -EINVAL;
-+	/* source buffer must be 8-byte aligned */
-+	if ((unsigned long)buf % 8 != 0)
-+		return -EINVAL;
-+	/* must be in range */
-+	if (*f_pos + count > dd->kregend - dd->kregbase)
-+		return -EINVAL;
-+
-+	base = (void __iomem *)dd->kregbase + *f_pos;
-+	csr_off = *f_pos;
-+	in_lcb = 0;
-+	for (total = 0; total < count; total += 8, csr_off += 8) {
-+		if (get_user(data, (unsigned long __user *)(buf + total)))
-+			break;
-+		/* accessing LCB CSRs requires a special procedure */
-+		if (is_lcb_offset(csr_off)) {
-+			if (!in_lcb) {
-+				int ret = acquire_lcb_access(dd, 1);
-+
-+				if (ret)
-+					break;
-+				in_lcb = 1;
++			if (++rcd->seq_cnt > 13)
++				rcd->seq_cnt = 1;
++			if (seq != rcd->seq_cnt)
++				last = 1;
++			if (needset) {
++				dd_dev_info(dd,
++					"Switching to NO_DMA_RTAIL\n");
++				set_all_nodma_rtail(dd);
++				needset = 0;
 +			}
 +		} else {
-+			if (in_lcb) {
-+				release_lcb_access(dd, 1);
-+				in_lcb = 0;
++			if (packet.rhqoff == packet.hdrqtail)
++				last = 1;
++			if (needset) {
++				dd_dev_info(dd,
++					    "Switching to DMA_RTAIL\n");
++				set_all_dma_rtail(dd);
++				needset = 0;
 +			}
 +		}
-+		writeq(data, base + total);
++
++		process_rcv_update(last, &packet);
 +	}
-+	if (in_lcb)
-+		release_lcb_access(dd, 1);
-+	*f_pos += total;
-+	return total;
++
++	process_rcv_qp_work(&packet);
++
++bail:
++	/*
++	 * Always write head at end, and setup rcv interrupt, even
++	 * if no packets were processed.
++	 */
++	finish_packet(&packet);
 +}
 +
-+static const struct file_operations ui_file_ops = {
-+	.owner = THIS_MODULE,
-+	.llseek = ui_lseek,
-+	.read = ui_read,
-+	.write = ui_write,
-+	.open = ui_open,
-+	.release = ui_release,
-+};
-+#define UI_OFFSET 192	/* device minor offset for UI devices */
-+static int create_ui = 1;
-+
-+static struct cdev wildcard_cdev;
-+static struct device *wildcard_device;
-+
-+static atomic_t user_count = ATOMIC_INIT(0);
-+
-+static void user_remove(struct hfi1_devdata *dd)
++/*
++ * Convert a given MTU size to the on-wire MAD packet enumeration.
++ * Return -1 if the size is invalid.
++ */
++int mtu_to_enum(u32 mtu, int default_if_bad)
 +{
-+	if (atomic_dec_return(&user_count) == 0)
-+		hfi1_cdev_cleanup(&wildcard_cdev, &wildcard_device);
-+
-+	hfi1_cdev_cleanup(&dd->user_cdev, &dd->user_device);
-+	hfi1_cdev_cleanup(&dd->ui_cdev, &dd->ui_device);
++	switch (mtu) {
++	case     0: return OPA_MTU_0;
++	case   256: return OPA_MTU_256;
++	case   512: return OPA_MTU_512;
++	case  1024: return OPA_MTU_1024;
++	case  2048: return OPA_MTU_2048;
++	case  4096: return OPA_MTU_4096;
++	case  8192: return OPA_MTU_8192;
++	case 10240: return OPA_MTU_10240;
++	}
++	return default_if_bad;
 +}
 +
-+static int user_add(struct hfi1_devdata *dd)
++u16 enum_to_mtu(int mtu)
 +{
-+	char name[10];
-+	int ret;
++	switch (mtu) {
++	case OPA_MTU_0:     return 0;
++	case OPA_MTU_256:   return 256;
++	case OPA_MTU_512:   return 512;
++	case OPA_MTU_1024:  return 1024;
++	case OPA_MTU_2048:  return 2048;
++	case OPA_MTU_4096:  return 4096;
++	case OPA_MTU_8192:  return 8192;
++	case OPA_MTU_10240: return 10240;
++	default: return 0xffff;
++	}
++}
 +
-+	if (atomic_inc_return(&user_count) == 1) {
-+		ret = hfi1_cdev_init(0, class_name(), &hfi1_file_ops,
-+				     &wildcard_cdev, &wildcard_device);
-+		if (ret)
-+			goto done;
++/*
++ * set_mtu - set the MTU
++ * @ppd: the per port data
++ *
++ * We can handle "any" incoming size, the issue here is whether we
++ * need to restrict our outgoing size.  We do not deal with what happens
++ * to programs that are already running when the size changes.
++ */
++int set_mtu(struct hfi1_pportdata *ppd)
++{
++	struct hfi1_devdata *dd = ppd->dd;
++	int i, drain, ret = 0, is_up = 0;
++
++	ppd->ibmtu = 0;
++	for (i = 0; i < hfi1_num_vls(ppd->vls_supported); i++)
++		if (ppd->ibmtu < dd->vld[i].mtu)
++			ppd->ibmtu = dd->vld[i].mtu;
++	ppd->ibmaxlen = ppd->ibmtu + lrh_max_header_bytes(ppd->dd);
++
++	mutex_lock(&ppd->hls_lock);
++	if (ppd->host_link_state == HLS_UP_INIT
++			|| ppd->host_link_state == HLS_UP_ARMED
++			|| ppd->host_link_state == HLS_UP_ACTIVE)
++		is_up = 1;
++
++	drain = !is_ax(dd) && is_up;
++
++	if (drain)
++		/*
++		 * MTU is specified per-VL. To ensure that no packet gets
++		 * stuck (due, e.g., to the MTU for the packet's VL being
++		 * reduced), empty the per-VL FIFOs before adjusting MTU.
++		 */
++		ret = stop_drain_data_vls(dd);
++
++	if (ret) {
++		dd_dev_err(dd, "%s: cannot stop/drain VLs - refusing to change per-VL MTUs\n",
++			   __func__);
++		goto err;
 +	}
 +
-+	snprintf(name, sizeof(name), "%s_%d", class_name(), dd->unit);
-+	ret = hfi1_cdev_init(dd->unit + 1, name, &hfi1_file_ops,
-+			     &dd->user_cdev, &dd->user_device);
-+	if (ret)
-+		goto done;
++	hfi1_set_ib_cfg(ppd, HFI1_IB_CFG_MTU, 0);
 +
-+	if (create_ui) {
-+		snprintf(name, sizeof(name),
-+			 "%s_ui%d", class_name(), dd->unit);
-+		ret = hfi1_cdev_init(dd->unit + UI_OFFSET, name, &ui_file_ops,
-+				     &dd->ui_cdev, &dd->ui_device);
-+		if (ret)
-+			goto done;
-+	}
++	if (drain)
++		open_fill_data_vls(dd); /* reopen all VLs */
++
++err:
++	mutex_unlock(&ppd->hls_lock);
++
++	return ret;
++}
++
++int hfi1_set_lid(struct hfi1_pportdata *ppd, u32 lid, u8 lmc)
++{
++	struct hfi1_devdata *dd = ppd->dd;
++
++	ppd->lid = lid;
++	ppd->lmc = lmc;
++	hfi1_set_ib_cfg(ppd, HFI1_IB_CFG_LIDLMC, 0);
++
++	dd_dev_info(dd, "IB%u:%u got a lid: 0x%x\n", dd->unit, ppd->port, lid);
 +
 +	return 0;
-+done:
-+	user_remove(dd);
-+	return ret;
 +}
 +
 +/*
-+ * Create per-unit files in /dev
++ * Following deal with the "obviously simple" task of overriding the state
++ * of the LEDs, which normally indicate link physical and logical status.
++ * The complications arise in dealing with different hardware mappings
++ * and the board-dependent routine being called from interrupts.
++ * and then there's the requirement to _flash_ them.
 + */
-+int hfi1_device_create(struct hfi1_devdata *dd)
-+{
-+	int r, ret;
++#define LED_OVER_FREQ_SHIFT 8
++#define LED_OVER_FREQ_MASK (0xFF<<LED_OVER_FREQ_SHIFT)
++/* Below is "non-zero" to force override, but both actual LEDs are off */
++#define LED_OVER_BOTH_OFF (8)
 +
-+	r = user_add(dd);
-+	ret = hfi1_diag_add(dd);
-+	if (r && !ret)
-+		ret = r;
++static void run_led_override(unsigned long opaque)
++{
++	struct hfi1_pportdata *ppd = (struct hfi1_pportdata *)opaque;
++	struct hfi1_devdata *dd = ppd->dd;
++	int timeoff;
++	int ph_idx;
++
++	if (!(dd->flags & HFI1_INITTED))
++		return;
++
++	ph_idx = ppd->led_override_phase++ & 1;
++	ppd->led_override = ppd->led_override_vals[ph_idx];
++	timeoff = ppd->led_override_timeoff;
++
++	/*
++	 * don't re-fire the timer if user asked for it to be off; we let
++	 * it fire one more time after they turn it off to simplify
++	 */
++	if (ppd->led_override_vals[0] || ppd->led_override_vals[1])
++		mod_timer(&ppd->led_override_timer, jiffies + timeoff);
++}
++
++void hfi1_set_led_override(struct hfi1_pportdata *ppd, unsigned int val)
++{
++	struct hfi1_devdata *dd = ppd->dd;
++	int timeoff, freq;
++
++	if (!(dd->flags & HFI1_INITTED))
++		return;
++
++	/* First check if we are blinking. If not, use 1HZ polling */
++	timeoff = HZ;
++	freq = (val & LED_OVER_FREQ_MASK) >> LED_OVER_FREQ_SHIFT;
++
++	if (freq) {
++		/* For blink, set each phase from one nybble of val */
++		ppd->led_override_vals[0] = val & 0xF;
++		ppd->led_override_vals[1] = (val >> 4) & 0xF;
++		timeoff = (HZ << 4)/freq;
++	} else {
++		/* Non-blink set both phases the same. */
++		ppd->led_override_vals[0] = val & 0xF;
++		ppd->led_override_vals[1] = val & 0xF;
++	}
++	ppd->led_override_timeoff = timeoff;
++
++	/*
++	 * If the timer has not already been started, do so. Use a "quick"
++	 * timeout so the function will be called soon, to look at our request.
++	 */
++	if (atomic_inc_return(&ppd->led_override_timer_active) == 1) {
++		/* Need to start timer */
++		init_timer(&ppd->led_override_timer);
++		ppd->led_override_timer.function = run_led_override;
++		ppd->led_override_timer.data = (unsigned long) ppd;
++		ppd->led_override_timer.expires = jiffies + 1;
++		add_timer(&ppd->led_override_timer);
++	} else {
++		if (ppd->led_override_vals[0] || ppd->led_override_vals[1])
++			mod_timer(&ppd->led_override_timer, jiffies + 1);
++		atomic_dec(&ppd->led_override_timer_active);
++	}
++}
++
++/**
++ * hfi1_reset_device - reset the chip if possible
++ * @unit: the device to reset
++ *
++ * Whether or not reset is successful, we attempt to re-initialize the chip
++ * (that is, much like a driver unload/reload).  We clear the INITTED flag
++ * so that the various entry points will fail until we reinitialize.  For
++ * now, we only allow this if no user contexts are open that use chip resources
++ */
++int hfi1_reset_device(int unit)
++{
++	int ret, i;
++	struct hfi1_devdata *dd = hfi1_lookup(unit);
++	struct hfi1_pportdata *ppd;
++	unsigned long flags;
++	int pidx;
++
++	if (!dd) {
++		ret = -ENODEV;
++		goto bail;
++	}
++
++	dd_dev_info(dd, "Reset on unit %u requested\n", unit);
++
++	if (!dd->kregbase || !(dd->flags & HFI1_PRESENT)) {
++		dd_dev_info(dd,
++			"Invalid unit number %u or not initialized or not present\n",
++			unit);
++		ret = -ENXIO;
++		goto bail;
++	}
++
++	spin_lock_irqsave(&dd->uctxt_lock, flags);
++	if (dd->rcd)
++		for (i = dd->first_user_ctxt; i < dd->num_rcv_contexts; i++) {
++			if (!dd->rcd[i] || !dd->rcd[i]->cnt)
++				continue;
++			spin_unlock_irqrestore(&dd->uctxt_lock, flags);
++			ret = -EBUSY;
++			goto bail;
++		}
++	spin_unlock_irqrestore(&dd->uctxt_lock, flags);
++
++	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
++		ppd = dd->pport + pidx;
++		if (atomic_read(&ppd->led_override_timer_active)) {
++			/* Need to stop LED timer, _then_ shut off LEDs */
++			del_timer_sync(&ppd->led_override_timer);
++			atomic_set(&ppd->led_override_timer_active, 0);
++		}
++
++		/* Shut off LEDs after we are sure timer is not running */
++		ppd->led_override = LED_OVER_BOTH_OFF;
++	}
++	if (dd->flags & HFI1_HAS_SEND_DMA)
++		sdma_exit(dd);
++
++	hfi1_reset_cpu_counters(dd);
++
++	ret = hfi1_init(dd, 1);
++
++	if (ret)
++		dd_dev_err(dd,
++			"Reinitialize unit %u after reset failed with %d\n",
++			unit, ret);
++	else
++		dd_dev_info(dd, "Reinitialized unit %u after resetting\n",
++			unit);
++
++bail:
 +	return ret;
 +}
 +
-+/*
-+ * Remove per-unit files in /dev
-+ * void, core kernel returns no errors for this stuff
-+ */
-+void hfi1_device_remove(struct hfi1_devdata *dd)
++void handle_eflags(struct hfi1_packet *packet)
 +{
-+	user_remove(dd);
-+	hfi1_diag_remove(dd);
++	struct hfi1_ctxtdata *rcd = packet->rcd;
++	u32 rte = rhf_rcv_type_err(packet->rhf);
++
++	dd_dev_err(rcd->dd,
++		"receive context %d: rhf 0x%016llx, errs [ %s%s%s%s%s%s%s%s] rte 0x%x\n",
++		rcd->ctxt, packet->rhf,
++		packet->rhf & RHF_K_HDR_LEN_ERR ? "k_hdr_len " : "",
++		packet->rhf & RHF_DC_UNC_ERR ? "dc_unc " : "",
++		packet->rhf & RHF_DC_ERR ? "dc " : "",
++		packet->rhf & RHF_TID_ERR ? "tid " : "",
++		packet->rhf & RHF_LEN_ERR ? "len " : "",
++		packet->rhf & RHF_ECC_ERR ? "ecc " : "",
++		packet->rhf & RHF_VCRC_ERR ? "vcrc " : "",
++		packet->rhf & RHF_ICRC_ERR ? "icrc " : "",
++		rte);
++
++	rcv_hdrerr(rcd, rcd->ppd, packet);
++}
++
++/*
++ * The following functions are called by the interrupt handler. They are type
++ * specific handlers for each packet type.
++ */
++int process_receive_ib(struct hfi1_packet *packet)
++{
++	trace_hfi1_rcvhdr(packet->rcd->ppd->dd,
++			  packet->rcd->ctxt,
++			  rhf_err_flags(packet->rhf),
++			  RHF_RCV_TYPE_IB,
++			  packet->hlen,
++			  packet->tlen,
++			  packet->updegr,
++			  rhf_egr_index(packet->rhf));
++
++	if (unlikely(rhf_err_flags(packet->rhf))) {
++		handle_eflags(packet);
++		return RHF_RCV_CONTINUE;
++	}
++
++	/* retrieve eager buffer details */
++	if (rhf_use_egr_bfr(packet->rhf)) {
++		packet->etail = rhf_egr_index(packet->rhf);
++		packet->ebuf = get_egrbuf(packet->rcd, packet->rhf,
++				 &packet->updegr);
++		/*
++		 * Prefetch the contents of the eager buffer.  It is
++		 * OK to send a negative length to prefetch_range().
++		 * The +2 is the size of the RHF.
++		 */
++		prefetch_range(packet->ebuf,
++			packet->tlen - ((packet->rcd->rcvhdrqentsize -
++				  (rhf_hdrq_offset(packet->rhf)+2)) * 4));
++	}
++
++
++	hfi1_ib_rcv(packet);
++	return RHF_RCV_CONTINUE;
++}
++
++int process_receive_bypass(struct hfi1_packet *packet)
++{
++	if (unlikely(rhf_err_flags(packet->rhf)))
++		handle_eflags(packet);
++
++	dd_dev_err(packet->rcd->dd,
++	   "Bypass packets are not supported in normal operation. Dropping\n");
++	return RHF_RCV_CONTINUE;
++}
++
++int process_receive_error(struct hfi1_packet *packet)
++{
++	handle_eflags(packet);
++	dd_dev_err(packet->rcd->dd,
++		   "Unhandled error packet received. Dropping.\n");
++	return RHF_RCV_CONTINUE;
++}
++
++int kdeth_process_expected(struct hfi1_packet *packet)
++{
++	if (unlikely(rhf_err_flags(packet->rhf)))
++		handle_eflags(packet);
++
++	dd_dev_err(packet->rcd->dd,
++		   "Unhandled expected packet received. Dropping.\n");
++	return RHF_RCV_CONTINUE;
++}
++
++int kdeth_process_eager(struct hfi1_packet *packet)
++{
++	if (unlikely(rhf_err_flags(packet->rhf)))
++		handle_eflags(packet);
++
++	dd_dev_err(packet->rcd->dd,
++		   "Unhandled eager packet received. Dropping.\n");
++	return RHF_RCV_CONTINUE;
++}
++
++int process_receive_invalid(struct hfi1_packet *packet)
++{
++	dd_dev_err(packet->rcd->dd, "Invalid packet type %d. Dropping\n",
++		rhf_rcv_type(packet->rhf));
++	return RHF_RCV_CONTINUE;
 +}
 
 --
