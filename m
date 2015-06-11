@@ -1,54 +1,63 @@
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Subject: [PATCH v6 2/3] IB/ipath: add counting for MTRR
-Date: Thu, 11 Jun 2015 10:50:01 -0700
-Message-ID: <1434045002-31575-3-git-send-email-mcgrof@do-not-panic.com>
-References: <1434045002-31575-1-git-send-email-mcgrof@do-not-panic.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1434045002-31575-1-git-send-email-mcgrof@do-not-panic.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: bp@suse.de
-Cc: mchehab@osg.samsung.com, tomi.valkeinen@ti.com, bhelgaas@google.com, luto@amacapital.net, linux-media@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@suse.com>, Toshi Kani <toshi.kani@hp.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Suresh Siddha <sbsiddha@gmail.com>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Juergen Gross <jgross@suse.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Dave Airlie <airlied@redhat.com>, Antonino Daplas <adaplas@gmail.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, infinipath@intel.com, linux-fbdev@vger.kernel.org
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH 14/14] IB/mad: Add final OPA MAD processing
+Date: Thu, 11 Jun 2015 18:27:54 +0000
+Message-ID: <HE1PR05MB141885494D6967919DAE135EB1BC0@HE1PR05MB1418.eurprd05.prod.outlook.com>
+References: <1433615915-24591-1-git-send-email-ira.weiny@intel.com>
+	 <1433615915-24591-15-git-send-email-ira.weiny@intel.com>
+	 <HE1PR05MB1418BB6C461790B76D9C02A3B1BD0@HE1PR05MB1418.eurprd05.prod.outlook.com>
+	 <1433961446.71666.26.camel@redhat.com>
+	 <20150610185653.GA28153@obsidianresearch.com>
+ <1433966378.71666.44.camel@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1433966378.71666.44.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
-
-There is no good reason not to, we eventually delete it as well.
-
-Cc: Toshi Kani <toshi.kani@hp.com>
-Cc: Roland Dreier <roland@kernel.org>
-Cc: Sean Hefty <sean.hefty@intel.com>
-Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: Suresh Siddha <sbsiddha@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Dave Airlie <airlied@redhat.com>
-Cc: Antonino Daplas <adaplas@gmail.com>
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: infinipath@intel.com
-Cc: linux-rdma@vger.kernel.org
-Cc: linux-fbdev@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
----
- drivers/infiniband/hw/ipath/ipath_wc_x86_64.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c b/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
-index 4ad0b93..70c1f3a 100644
---- a/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
-+++ b/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
-@@ -127,7 +127,7 @@ int ipath_enable_wc(struct ipath_devdata *dd)
- 			   "(addr %llx, len=0x%llx)\n",
- 			   (unsigned long long) pioaddr,
- 			   (unsigned long long) piolen);
--		cookie = mtrr_add(pioaddr, piolen, MTRR_TYPE_WRCOMB, 0);
-+		cookie = mtrr_add(pioaddr, piolen, MTRR_TYPE_WRCOMB, 1);
- 		if (cookie < 0) {
- 			{
- 				dev_info(&dd->pcidev->dev,
--- 
-2.3.2.209.gd67f9d5.dirty
+PiBGcm9tOiBEb3VnIExlZGZvcmQgW21haWx0bzpkbGVkZm9yZEByZWRoYXQuY29tXQ0KDQo+ID4g
+PiA+IE9QQSBjYW5ub3QgaW1wZXJzb25hdGUgSUI7IE9QQSBub2RlIGFuZCBsaW5rIHR5cGVzIGhh
+dmUgdG8gYmUNCj4gPiA+ID4gZGVzaWduYXRlZCBhcyBzdWNoLiAgSW4gdGVybXMgb2YgTUFEIHBy
+b2Nlc3NpbmcgZmxvd3MsIGJvdGgNCj4gPiA+ID4gZXhwbGljaXQgKGFzIGluIHRoZSBoYW5kbGVf
+b3BhX3NtaSgpIGNhbGwgYmVsb3cpIGFuZCBpbXBsaWNpdCBjb2RlDQo+ID4gPiA+IHBhdGhzICh3
+aGljaCBzaGFyZSBJQiBmbG93cyAtIHRoZXJlIGFyZSBzZXZlcmFsIGNhc2VzKSBtdXN0IG1ha2UN
+Cj4gPiA+ID4gdGhpcyBkaXN0aW5jdGlvbi4NCj4gPiA+DQo+ID4gPiBBcyBmYXIgYXMgaW4gdGhl
+IGtlcm5lbCBpcyBjb25jZXJuZWQsIHRoZSBpbmRpdmlkdWFsIGNhcGFiaWxpdHkgYml0cw0KPiA+
+ID4gYXJlIG11Y2ggbW9yZSBpbXBvcnRhbnQuICBJIHdvdWxkIGFjdHVhbGx5IGxpa2UgdG8gZG8g
+YXdheSB3aXRoIHRoZQ0KPiA+ID4gbm9kZV90eXBlIHZhcmlhYmxlIGZyb20gc3RydWN0IGliX2Rl
+dmljZSBldmVudHVhbGx5LiAgQXMgZm9yIHVzZXINCj4gPiA+IHNwYWNlLA0KDQpXZSBhZ3JlZWQg
+b24gdGhlIGNvbmNlcHQgb2YgY2FwYWJpbGl0eSBiaXRzIGZvciB0aGUgc2FrZSBvZiBzaW1wbGlm
+eWluZyBjb2RlIHNoYXJpbmcuDQpUaGF0IGlzIE9LLg0KDQpCdXQgdGhlIG5vZGVfdHlwZSBzdGFu
+ZHMgZm9yIG1vcmUgdGhhbiBqdXN0IGFuIGFic3RyYWN0IFJETUEgZGV2aWNlOg0KSW4gSUIsIGl0
+IGRlc2lnbmF0ZXMgYW4gaW5zdGFuY2Ugb2YgYW4gaW5kdXN0cnktc3RhbmRhcmQsIHdlbGwtZGVm
+aW5lZCwgZGV2aWNlIHR5cGU6IGl0J3MgcG9zc2libGUgbGluayB0eXBlcywgdHJhbnNwb3J0LCBz
+ZW1hbnRpY3MsIG1hbmFnZW1lbnQsIGV2ZXJ5dGhpbmcuDQpJdCAqc2hvdWxkKiBiZSBleHBvc2Vk
+IHRvIHVzZXItc3BhY2Ugc28gYXBwcyB0aGF0IGtub3cgYW5kIGNhcmUgd2hhdCB0aGV5IGFyZSBy
+dW5uaW5nIG9uIGNvdWxkIGNvbnRpbnVlIHRvIHdvcmsuDQoNClRoZSBwbGFjZSBmb3IgYWJzdHJh
+Y3Rpb24gaXMgaW4gdGhlIHJkbWFjbS9DTUEsIHdoaWNoIHNlcnZlcyBhcHBsaWNhdGlvbnMgdGhh
+dCBqdXN0DQp3YW50IHNvbWUgUkRNQSBmdW5jdGlvbmFsaXR5IHJlZ2FyZGxlc3Mgb2YgdGhlIHVu
+ZGVybHlpbmcgdGVjaG5vbG9neS4NCg0KPiA+DQo+ID4gQWxsIFNNSSBjb2RlIGhhcyBkaWZmZXJl
+bnQgYmVoYXZpb3IgaWYgaXQgaXMgcnVubmluZyBvbiBhIHN3aXRjaCBvcg0KPiA+IEhDQSwgc28g
+dGVzdGluZyBmb3IgJ3N3aXRjaHluZXNzJyBpcyB2ZXJ5IGFwcHJvcHJpYXRlIGhlcmUuDQo+IA0K
+PiBTdXJlLi4uDQo+IA0KPiA+IGNhcF9pc19zd2l0Y2hfc21pIHdvdWxkIGJlIGEgbmljZSByZWZp
+bmVtZW50IHRvIGxldCB1cyBkcm9wIG5vZGV0eXBlLg0KPiANCj4gRXhhY3RseSwgd2UgbmVlZCBh
+IGJpdCBhZGRlZCB0byB0aGUgaW1tdXRhYmxlIGRhdGEgYml0cywgYW5kIGEgbmV3IGNhcF8NCj4g
+aGVscGVyLCBhbmQgdGhlbiBub2RldHlwZSBpcyByZWFkeSB0byBiZSByZXRpcmVkLiAgQWRkIGEg
+Yml0LCBkcm9wIGENCj4gdTggOy0pDQo+IA0KDQpUaGlzIGlzIGluZGVlZCBhIHZpYWJsZSBzb2x1
+dGlvbi4NCg0KPiA+IEkgZG9uJ3QgaGF2ZSBhIHByb2JsZW0gd2l0aCBzaGFyaW5nIHRoZSBJQkEg
+Y29uc3RhbnQgbmFtZXMgZm9yIE1BRA0KPiA+IHN0cnVjdHVyZXMgKGxpa2UgUkRNQV9OT0RFX0lC
+X1NXSVRDSCkgYmV0d2VlbiBJQiBhbmQgT1BBIGNvZGUuIFRoZXkNCj4gPiBhbHJlYWR5IHNoYXJl
+IHRoZSBzdHJ1Y3R1cmUgbGF5b3V0cy9ldGMuDQo+ID4NCg0KVGhlIG5vZGUgdHlwZSBpcyByZWZs
+ZWN0ZWQgdG8gdXNlci1zcGFjZSwgd2hpY2gsIGFzIEkgbWVudGlvbmVkIGFib3ZlLCBpcyBpbXBv
+cnRhbnQuDQpBYnVzaW5nIHRoaXMgZW51bWVyYXRpb24gaXMgbWlzbGVhZGluZywgZXZlbiBpbiB0
+aGUga2VybmVsLg0KSmFzb24ncyBwcm9wb3NhbCBmb3IgYSAnY2FwX2lzX3N3aXRjaF9zbWknIGlz
+IG1vcmUgcmVhZGFibGUsIGFuZCBkaXJlY3RseSBpbiBsaW5lIHdpdGgNCnRoZSBleHBsaWNpdCBj
+YXBhYmlsaXR5IGFwcHJvYWNoIHRoYXQgd2UgZGlzY3Vzc2VkLg0KDQo=
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
