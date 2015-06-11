@@ -1,7 +1,7 @@
 From: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v5 1/4] IB/netlink: Add defines for local service requests through netlink
-Date: Thu, 11 Jun 2015 13:03:42 -0400
-Message-ID: <1434042225-4975-2-git-send-email-kaike.wan@intel.com>
+Subject: [PATCH v5 2/4] IB/core: Check the presence of netlink multicast group listeners
+Date: Thu, 11 Jun 2015 13:03:43 -0400
+Message-ID: <1434042225-4975-3-git-send-email-kaike.wan@intel.com>
 References: <1434042225-4975-1-git-send-email-kaike.wan@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1434042225-4975-1-git-send-email-kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,122 +12,53 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-This patch adds netlink defines for SA client, local service group, local
-service operations, and related attributes.
+This patch adds a function to check if listeners for a netlink multicast
+group are present.
 
 Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- include/uapi/rdma/rdma_netlink.h |   82 ++++++++++++++++++++++++++++++++++++++
- 1 files changed, 82 insertions(+), 0 deletions(-)
+ drivers/infiniband/core/netlink.c |    8 ++++++++
+ include/rdma/rdma_netlink.h       |    7 +++++++
+ 2 files changed, 15 insertions(+), 0 deletions(-)
 
-diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index 6e4bb42..6aa9281 100644
---- a/include/uapi/rdma/rdma_netlink.h
-+++ b/include/uapi/rdma/rdma_netlink.h
-@@ -7,12 +7,14 @@ enum {
- 	RDMA_NL_RDMA_CM = 1,
- 	RDMA_NL_NES,
- 	RDMA_NL_C4IW,
-+	RDMA_NL_SA,
- 	RDMA_NL_NUM_CLIENTS
- };
+diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
+index 23dd5a5..e0fc913 100644
+--- a/drivers/infiniband/core/netlink.c
++++ b/drivers/infiniband/core/netlink.c
+@@ -49,6 +49,14 @@ static DEFINE_MUTEX(ibnl_mutex);
+ static struct sock *nls;
+ static LIST_HEAD(client_list);
  
- enum {
- 	RDMA_NL_GROUP_CM = 1,
- 	RDMA_NL_GROUP_IWPM,
-+	RDMA_NL_GROUP_LS,
- 	RDMA_NL_NUM_GROUPS
- };
++int ibnl_chk_listeners(unsigned int group)
++{
++	if (netlink_has_listeners(nls, group) == 0)
++		return -1;
++	return 0;
++}
++EXPORT_SYMBOL(ibnl_chk_listeners);
++
+ int ibnl_add_client(int index, int nops,
+ 		    const struct ibnl_client_cbs cb_table[])
+ {
+diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
+index 0790882..5852661 100644
+--- a/include/rdma/rdma_netlink.h
++++ b/include/rdma/rdma_netlink.h
+@@ -77,4 +77,11 @@ int ibnl_unicast(struct sk_buff *skb, struct nlmsghdr *nlh,
+ int ibnl_multicast(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			unsigned int group, gfp_t flags);
  
-@@ -128,5 +130,85 @@ enum {
- 	IWPM_NLA_ERR_MAX
- };
- 
-+/* Local service group opcodes */
-+enum {
-+	RDMA_NL_LS_OP_RESOLVE = 0,
-+	RDMA_NL_LS_OP_SET_TIMEOUT,
-+	RDMA_NL_LS_NUM_OPS
-+};
++/**
++ * Check if there are any listeners to the netlink group
++ * @group: the netlink group ID
++ * Returns 0 on success or a negative for no listeners.
++ */
++int ibnl_chk_listeners(unsigned int group);
 +
-+/* Local service netlink message flags */
-+#define RDMA_NL_LS_F_OK		0x0100	/* Success response */
-+#define RDMA_NL_LS_F_ERR	0x0200	/* Failed response */
-+
-+/* Local service attribute type */
-+enum {
-+	LS_NLA_TYPE_STATUS = 0,
-+	LS_NLA_TYPE_PATH_RECORD,
-+	LS_NLA_TYPE_TIMEOUT,
-+	LS_NLA_TYPE_SERVICE_ID,
-+	LS_NLA_TYPE_DGID,
-+	LS_NLA_TYPE_SGID,
-+	LS_NLA_TYPE_TCLASS,
-+	LS_NLA_TYPE_REVERSIBLE,
-+	LS_NLA_TYPE_NUMB_PATH,
-+	LS_NLA_TYPE_PKEY,
-+	LS_NLA_TYPE_QOS_CLASS,
-+	LS_NLA_TYPE_MAX
-+};
-+
-+/* Local service status attribute */
-+enum {
-+	LS_NLA_STATUS_SUCCESS = 0,
-+	LS_NLA_STATUS_EINVAL,
-+	LS_NLA_STATUS_ENODATA,
-+	LS_NLA_STATUS_MAX
-+};
-+
-+struct rdma_nla_ls_status {
-+	__u32		status;
-+};
-+
-+/* Local service pathrecord attribute: struct ib_path_rec_data */
-+
-+/* Local service timeout attribute */
-+struct rdma_nla_ls_timeout {
-+	__u32		timeout;
-+};
-+
-+/* Local Service ServiceID attribute */
-+struct rdma_nla_ls_service_id {
-+	__be64		service_id;
-+};
-+
-+/* Local Service DGID/SGID attribute: big endian */
-+struct rdma_nla_ls_gid {
-+	__u8		gid[16];
-+};
-+
-+/* Local Service Traffic Class attribute */
-+struct rdma_nla_ls_tclass {
-+	__u8		tclass;
-+};
-+
-+/* Local Service Reversible attribute */
-+struct rdma_nla_ls_reversible {
-+	__u32		reversible;
-+};
-+
-+/* Local Service numb_path attribute */
-+struct rdma_nla_ls_numb_path {
-+	__u8		numb_path;
-+};
-+
-+/* Local Service Pkey attribute*/
-+struct rdma_nla_ls_pkey {
-+	__be16		pkey;
-+};
-+
-+/* Local Service Qos Class attribute */
-+struct rdma_nla_ls_qos_class {
-+	__be16		qos_class;
-+};
- 
- #endif /* _UAPI_RDMA_NETLINK_H */
+ #endif /* _RDMA_NETLINK_H */
 -- 
 1.7.1
 
