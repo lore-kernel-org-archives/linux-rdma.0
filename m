@@ -1,143 +1,166 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next V5 00/12] Move RoCE GID management to IB/Core
-Date: Wed, 10 Jun 2015 21:06:28 -0400
-Message-ID: <1433984788.71666.78.camel@redhat.com>
-References: <1433772735-22416-1-git-send-email-matanb@mellanox.com>
-	 <1828884A29C6694DAF28B7E6B8A82373A8FE5D17@ORSMSX109.amr.corp.intel.com>
-	 <55769561.8000300@mellanox.com> <5577FAFB.8020205@mellanox.com>
-	 <20150610150010.GA11243@obsidianresearch.com>
-	 <557852EE.5030107@mellanox.com>
-	 <20150610184954.GA26404@obsidianresearch.com>
+From: Mark Hairgrove <mhairgrove@nvidia.com>
+Subject: Re: [PATCH 05/36] HMM: introduce heterogeneous memory management
+ v3.
+Date: Wed, 10 Jun 2015 18:15:08 -0700
+Message-ID: <alpine.DEB.2.00.1506101757580.8383@mdh-linux64-2.nvidia.com>
+References: <1432236705-4209-1-git-send-email-j.glisse@gmail.com> <1432236705-4209-6-git-send-email-j.glisse@gmail.com> <alpine.DEB.2.00.1506081222270.27796@mdh-linux64-2.nvidia.com> <20150608211740.GA5241@gmail.com> <alpine.DEB.2.00.1506081841490.1802@mdh-linux64-2.nvidia.com>
+ <20150609155601.GA3101@gmail.com> <alpine.DEB.2.00.1506091939490.21359@mdh-linux64-2.nvidia.com> <20150610154237.GA13465@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-OTrgCb+Wek5arzkQoi3u"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150610184954.GA26404-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-xCNTGe7nOvUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="US-ASCII"
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20150610154237.GA13465@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Jerome Glisse <j.glisse@gmail.com>
+Cc: "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Linus Torvalds <torvalds@linux-foundation.org>, "joro@8bytes.org" <joro@8bytes.org>, Mel Gorman <mgorman@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Peter Zijlstra <peterz@infradead.org>, Andrea Arcangeli <aarcange@redhat.com>, Johannes Weiner <jweiner@redhat.com>, Larry Woodman <lwoodman@redhat.com>, Rik van Riel <riel@redhat.com>, Dave Airlie <airlied@redhat.com>, Brendan Conoboy <blc@redhat.com>, Joe Donohue <jdonohue@redhat.com>, Duncan Poole <dpoole@nvidia.com>, Sherry Cheung <SCheung@nvidia.com>, Subhash Gutti <sgutti@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, Lucien Dunning <ldunning@nvidia.com>, Cameron Buschardt <cabuschardt@nvidia.com>, Arvind Gopalakrishnan <arvindg@nvidia.com>, Haggai Eran <hag>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-OTrgCb+Wek5arzkQoi3u
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2015-06-10 at 12:49 -0600, Jason Gunthorpe wrote:
-> On Wed, Jun 10, 2015 at 06:08:30PM +0300, Matan Barak wrote:
-> > >It isn't really a cleanup because the whole gid table is new code and
-> > >has latent elements for rocev2 - this is why it is so much bigger than
-> > >it should be.
-> >=20
-> > I disagree. Could you please point on anything that is RoCE V2 specific=
-?
-> > The essence of RoCE V2 in the previous series was the gid_type part.
-> > This is now completely removed.
->=20
-> Sure gid_type is gone, but I didn't say roceve2 specific, I said
-> latent elements. ie I'm assuming reasons for the scary locking are
-> because the ripped out rocev2 code needed it?  And some of the
-> complexity that looks pointless now was supporting ripped out rocev2
-> elements? That is not necessarily bad, but the code had better be good
-> quailty and working..
->=20
-> But then I look at the patches, and the very first locking I test out
-> looks wrong. I see call_rcu/synchronize_rcu being used without a
-> single call to rcu_read_lock. So this fails #2 of the RCU review
-> checklist (Seriously? Why am I catching this?)
->=20
-> I stopped reading at that point.
+On Wed, 10 Jun 2015, Jerome Glisse wrote:
 
-The way they chose to split up patches is part of the problem here.
+> [...]
+> 
+> Like said, just ignore current code it is utterly broken in so many way
+> when it comes to lifetime. I screw that part badly when reworking the
+> patchset, i was focusing on other part.
+> 
+> I fixed that in my tree, i am waiting for more review on other part as
+> anyway the lifetime thing is easy to rework/fix.
+> 
+> http://cgit.freedesktop.org/~glisse/linux/log/?h=hmm
+> 
 
-People tend to push the "patches should be small, self contained,
-incremental" ideal.  In some cases, that gets carried to an extreme.  In
-this case, patch 1 introduces one side of the locking and patch 3 and 5
-introduce the other halves.
-
-In all, this needs to be re-ordered first off:
-
-Patch 4 should be 1 and netdev@ should be Cc:ed
-Patch 6 should be 2 and netdev@ should be Cc:ed
-Patch 2 should be 3 (or just all by itself in a separate submission)
-Patch 1, 3, and 5 should be squashed down to a single patch so that the
-locking can actually be analyzed for correctness.
-
-> I think you've got the right basic idea for a cleanup series here. It
-> is time to buckle down and execute it well.
-
-Except that this isn't really a cleanup, and calling it that clouds the
-issue.  Both the mlx4 and ocrdma drivers implement incomplete RoCE gid
-management support.  If this were a true cleanup, they would just merge
-the support from mlx4 and ocrdma to core and switch the drivers over to
-it.  But that's not the case.  The new core code implements everything
-that the two drivers do, and then some more.  And in the process is
-standardizes some things that weren't standardized before.  So, a much
-more accurate description of this would be to say that the patchset
-implements a core RoCE GID management that is a much more complete
-management engine than either driver's engine, and that the last few
-patches remove the partial engines from the drivers and switch the
-drivers over to the core engine.
-
-My only complaints so far are these:
-
-1)  I would have preferred that this be treated just like the other ib
-cache items.  The source of changes are different, but in essence, the
-RoCE gid table *is* a cache.  It's not real until the hardware writes
-it.  I would have preferred to see the handling of the roce_gid_table
-all contained in the cache file with the other cache operations.  If you
-wanted to keep the management portion in its own file, that I would have
-been fine with, but anything that manipulated the table should have been
-with the other cache manipulation functions.
-
-2)  I'm not convinced at all that RCU was needed and that a rwlock
-wouldn't have been sufficient.  What drove you to use RCU and do you
-have numbers to back up that it matters?
-
->  Do an internal mellanox
-> kernel team review of this series. Audit and fix all the locking,
-> evaluate the code growth and design. Audit to confirm there is no
-> functional change that is not documented in a commit message. Tell me
-> v6 is the best effort *team Mellanox* can put forward.
->=20
-> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ok, I'm working through the other patches so I'll check the updates out 
+once I've made it through. My primary interest in this discussion is 
+making sure we know the plan for mirror and device lifetimes.
 
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+> > So to confirm, on all file operations from user space the driver is 
+> > expected to check that current->mm matches the mm associated with the 
+> > struct file's hmm_mirror?
+> 
+> Well you might have a valid usecase for that, just be aware that
+> anything your driver do with the hmm_mirror will actually impact
+> the mm of the parent. Which i assume is not what you want.
+> 
+> I would actualy thought that what you want is having a way to find
+> hmm_mirror using both device file & mm as a key. Otherwise you can
+> not really use HMM with process that like to fork themself. Which
+> is a valid usecase to me. For instance process start using HMM
+> through your driver, decide to fork itself and to also use HMM
+> through your driver inside its child.
+
+Agreed, that sounds reasonable, and the use case is valid. I was digging 
+into this to make sure we don't prevent that.
 
 
---=-OTrgCb+Wek5arzkQoi3u
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+> > 
+> > On file->release the driver still ought to call hmm_mirror_unregister 
+> > regardless of whether the mms match, otherwise we'll never tear down the 
+> > mirror. That means we're not saved from the race condition because 
+> > hmm_mirror_unregister can happen in one thread while hmm_notifier_release 
+> > might be happening in another thread.
+> 
+> Again there is no race the mirror list is the synchronization point and
+> it is protected by a lock. So either hmm_mirror_unregister() wins or the
+> other thread hmm_notifier_release()
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Yes, I agree. That's not the race I'm worried about. I'm worried about a 
+race on the device lifetime, but in order to hit that one first 
+hmm_notifier_release must take the lock and remove the mirror from the 
+list before hmm_mirror_unregister does it. That's why I brought it up.
 
-iQIcBAABCAAGBQJVeN8UAAoJELgmozMOVy/dhGoQAKRWdb5B9kHULyNLlJIRlzsm
-L+G/48eSRbv5nMIxRe0jIId8b5WD20RyFxg8fC5UOoYhavGeB7kdDFr+IES0aB0b
-6Wv1G04BqaD2Ex8mXFO3saJqk6AzMbZeAxpaYaROivrg07YIaD1SKeQaXaWUcr7O
-/oJN6A9RZgm40E6Jk2RVvX9ZWpbs5ldfhp01p9Xu5q9Hau45SQ2ODUpicLr7/kfY
-RbZHQHntb4bPwwghRlLmAkT1vSOTE9/y0MxhoWPe+tFVWiHnp1au0Yjr0mlRoxr1
-J3yBCw1I9VR2qAyiSu8n8LdPvr0a3h06gdZBPDMTmjXo3SfnwuALoO9yLHbsGIGJ
-YPwmUnoXVl73YuJKNQOFL7PBqLy1bIsiNqM379PVg6Dt2bqA5agy0BKEhQXERSNg
-nbIWhGIa50NyvW6u25m8Z6rW7ofuKYqUu60TivAdd6w6zqil6F3SCCDnKF5j8eXM
-gveQMDcJMgwTWlOvs29hWodZgyldECYo5an/6rXIbNA+h+iV5MFjSozk4q8Jy0FK
-VDhG+TwzmfSfIHnyjq4T8swpychsSoSJsF7mWj112UAOFWm/sH7t2rYWROO6OsXj
-63YsB+7Q0FaH9DC1JOgxs+cgfiFIQYBLJ9dg2Vj0IjBi6YT2Pa5GqZnF1M4EdbmX
-BVZty33Eiag/4MiY6EoV
-=QEVl
------END PGP SIGNATURE-----
 
---=-OTrgCb+Wek5arzkQoi3u--
+> 
+> You unregister as soon as you want, it is up to your driver to do it,
+> i do not enforce anything. The only thing i enforce is that you can
+> not unregister the hmm device driver before all mirror are unregistered
+> and free.
+> 
+> So yes for device driver you want to unregister when device file is
+> close (which happens when the process exit).
+
+Sounds good.
+
+
+> 
+> There is no race here, the mirror struct will only be freed once as again
+> the list is a synchronization point. Whoever remove the mirror from the
+> list is responsible to drop the list reference.
+> 
+> In the fixed code the only thing that will happen twice is the ->release()
+> callback. Even that can be work around to garanty it is call only once.
+> 
+> Anyway i do not see anyrace here.
+> 
+
+The mirror lifetime is fine. The problem I see is with the device lifetime 
+on a multi-core system. Imagine this sequence:
+
+- On CPU1 the mm associated with the mirror is going down
+- On CPU2 the driver unregisters the mirror then the device
+
+When this happens, the last device mutex_unlock on CPU1 is the only thing 
+preventing the free of the device in CPU2. That doesn't work, as described 
+in this thread: https://lkml.org/lkml/2013/12/2/997
+
+Here's the full sequence again with mutex_unlock split apart. Hopefully 
+this shows the device_unregister problem more clearly:
+
+CPU1 (mm release)                   CPU2 (driver)
+----------------------              ----------------------
+hmm_notifier_release
+  down_write(&hmm->rwsem);
+  hlist_del_init(&mirror->mlist);
+  up_write(&hmm->rwsem);
+
+  // CPU1 thread is preempted or 
+  // something
+                                    hmm_mirror_unregister
+                                      hmm_mirror_kill
+                                        down_write(&hmm->rwsem);
+                                        // mirror removed by CPU1 already
+                                        // so hlist_unhashed returns 1
+                                        up_write(&hmm->rwsem);
+
+                                      hmm_mirror_unref(&mirror);
+                                      // Mirror ref now 1
+
+                                      // CPU2 thread is preempted or
+                                      // something
+// CPU1 thread is scheduled
+
+hmm_mirror_unref(&mirror);
+  // Mirror ref now 0, cleanup
+  hmm_mirror_destroy(&mirror)
+    mutex_lock(&device->mutex);
+    list_del_init(&mirror->dlist);
+    device->ops->release(mirror);
+      kfree(mirror);
+                                      // CPU2 thread is scheduled, now
+                                      // both CPU1 and CPU2 are running
+
+                                    hmm_device_unregister
+                                      mutex_lock(&device->mutex);
+                                        mutex_optimistic_spin()
+    mutex_unlock(&device->mutex);
+      [...]
+      __mutex_unlock_common_slowpath
+        // CPU2 releases lock
+        atomic_set(&lock->count, 1);
+                                          // Spinning CPU2 acquires now-
+                                          // free lock
+                                      // mutex_lock returns
+                                      // Device list empty
+                                      mutex_unlock(&device->mutex);
+                                      return 0;
+                                    kfree(hmm_device);
+        // CPU1 still accessing 
+        // hmm_device->mutex in 
+        //__mutex_unlock_common_slowpath
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
