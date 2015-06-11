@@ -1,51 +1,28 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 41/41] IB/core: Add opa driver to kbuild
-Date: Thu, 11 Jun 2015 19:12:09 -0400
-Message-ID: <20150611231209.16479.39321.stgit@phlsvslse11.ph.intel.com>
-References: <20150611230710.16479.62955.stgit@phlsvslse11.ph.intel.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [patch -next] net/mlx5_core: fix an error code
+Date: Thu, 11 Jun 2015 16:13:22 -0700 (PDT)
+Message-ID: <20150611.161322.1223689868555454353.davem@davemloft.net>
+References: <20150611085001.GB27393@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150611230710.16479.62955.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+In-Reply-To: <20150611085001.GB27393@mwanda>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+Cc: eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Date: Thu, 11 Jun 2015 11:50:01 +0300
 
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/Kconfig     |    1 +
- drivers/infiniband/hw/Makefile |    1 +
- 2 files changed, 2 insertions(+)
+> We return success if mlx5e_alloc_sq_db() fails but we should return an
+> error code.
+> 
+> Fixes: f62b8bb8f2d3 ('net/mlx5: Extend mlx5_core to support ConnectX-4 Ethernet functionality')
+> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index b899531..dd24c3d 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -57,6 +57,7 @@ config INFINIBAND_ADDR_TRANS
- source "drivers/infiniband/hw/mthca/Kconfig"
- source "drivers/infiniband/hw/ipath/Kconfig"
- source "drivers/infiniband/hw/qib/Kconfig"
-+source "drivers/infiniband/hw/hfi1/Kconfig"
- source "drivers/infiniband/hw/ehca/Kconfig"
- source "drivers/infiniband/hw/amso1100/Kconfig"
- source "drivers/infiniband/hw/cxgb3/Kconfig"
-diff --git a/drivers/infiniband/hw/Makefile b/drivers/infiniband/hw/Makefile
-index e900b03..f3f4d9d 100644
---- a/drivers/infiniband/hw/Makefile
-+++ b/drivers/infiniband/hw/Makefile
-@@ -1,6 +1,7 @@
- obj-$(CONFIG_INFINIBAND_MTHCA)		+= mthca/
- obj-$(CONFIG_INFINIBAND_IPATH)		+= ipath/
- obj-$(CONFIG_INFINIBAND_QIB)		+= qib/
-+obj-$(CONFIG_INFINIBAND_HFI1)		+= hfi1/
- obj-$(CONFIG_INFINIBAND_EHCA)		+= ehca/
- obj-$(CONFIG_INFINIBAND_AMSO1100)	+= amso1100/
- obj-$(CONFIG_INFINIBAND_CXGB3)		+= cxgb3/
-
+Applied, thanks Dan.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
