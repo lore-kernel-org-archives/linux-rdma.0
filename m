@@ -1,189 +1,195 @@
-From: Mark Hairgrove <mhairgrove@nvidia.com>
-Subject: Re: [PATCH 05/36] HMM: introduce heterogeneous memory management
- v3.
-Date: Thu, 11 Jun 2015 15:26:46 -0700
-Message-ID: <alpine.DEB.2.00.1506111520350.25907@mdh-linux64-2.nvidia.com>
-References: <1432236705-4209-1-git-send-email-j.glisse@gmail.com> <1432236705-4209-6-git-send-email-j.glisse@gmail.com> <alpine.DEB.2.00.1506081222270.27796@mdh-linux64-2.nvidia.com> <20150608211740.GA5241@gmail.com> <alpine.DEB.2.00.1506081841490.1802@mdh-linux64-2.nvidia.com>
- <20150609155601.GA3101@gmail.com> <alpine.DEB.2.00.1506091939490.21359@mdh-linux64-2.nvidia.com> <20150610154237.GA13465@gmail.com> <alpine.DEB.2.00.1506101757580.8383@mdh-linux64-2.nvidia.com> <20150611142313.GA26195@gmail.com>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 00/41] Add OPA gen1 driver
+Date: Thu, 11 Jun 2015 19:08:28 -0400
+Message-ID: <20150611230710.16479.62955.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="8323329-399658917-1434061614=:25907"
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20150611142313.GA26195@gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Jerome Glisse <j.glisse@gmail.com>
-Cc: "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Linus Torvalds <torvalds@linux-foundation.org>, "joro@8bytes.org" <joro@8bytes.org>, Mel Gorman <mgorman@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Peter Zijlstra <peterz@infradead.org>, Andrea Arcangeli <aarcange@redhat.com>, Johannes Weiner <jweiner@redhat.com>, Larry Woodman <lwoodman@redhat.com>, Rik van Riel <riel@redhat.com>, Dave Airlie <airlied@redhat.com>, Brendan Conoboy <blc@redhat.com>, Joe Donohue <jdonohue@redhat.com>, Duncan Poole <dpoole@nvidia.com>, Sherry Cheung <SCheung@nvidia.com>, Subhash Gutti <sgutti@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, Lucien Dunning <ldunning@nvidia.com>, Cameron Buschardt <cabuschardt@nvidia.com>, Arvind Gopalakrishnan <arvindg@nvidia.com>, Haggai Eran <hag>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---8323329-399658917-1434061614=:25907
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+This patch series adds the OPA gen1 driver.
+
+The patch depends on the this MAD patch series:
+
+https://patchwork.kernel.org/patch/6584551/
+
+The patches add the files and headers and the last
+patch add the build hooks.
+
+---
+
+Jubin John (1):
+      IB/core: Add opa driver to kbuild
+
+Mike Marciniszyn (40):
+      IB/core: Add OPA Port header definitions
+      IB/hfi1: add chip specific support
+      IB/hfi1: add common header file definitions
+      IB/hfi1: add completion queue processing
+      IB/hfi1: add debugfs handling
+      IB/hfi1: add char device instantiation code
+      IB/hfi1: add diagnostic hooks
+      IB/hfi1: add dma operation hooks
+      IB/hfi1: add low lower receive functions
+      IB/hfi1: add eeprom hooks
+      IB/hfi1: add PSM driver control/data path
+      IB/hfi1: add firmware hooks
+      IB/hfi1: add general hfi header file
+      IB/hfi1: add module init hooks
+      IB/hfi1: add interrupt hooks
+      IB/hfi1: add progress delay/restart hooks
+      IB/hfi1: add rkey/lkey validation
+      IB/hfi1: add OPA mad handling
+      IB/hfi1: add user/kernel memory sharing hooks
+      IB/hfi1: add memory region handling
+      IB/hfi1: add misc OPA defines
+      IB/hfi1: add pcie routines
+      IB/hfi1: add pio handling
+      IB/hfi1: add platform config definitions
+      IB/hfi1: add qp handling
+      IB/hfi1: add qsfp handling
+      IB/hfi1: add RC QP handling
+      IB/hfi1: add routines for RC/UC
+      IB/hfi1: add sdma routines
+      IB/hfi1: add SRQ handling
+      IB/hfi1: add sysfs routines
+      IB/hfi1: add tracepoint debug routines
+      IB/hfi1: add QSFP twsi routines
+      IB/hfi1: add UC QP handling
+      IB/hfi1: add UD QP handling
+      IB/hfi1: add low level page locking
+      IB/hfi1: add PSM sdma hooks
+      IB/hfi1: add general verbs handling
+      IB/hfi1: add multicast routines
+      IB/hfi1: add driver make/config files
 
 
+ drivers/infiniband/Kconfig                   |    1 
+ drivers/infiniband/hw/Makefile               |    1 
+ drivers/infiniband/hw/hfi1/Kconfig           |   27 
+ drivers/infiniband/hw/hfi1/Makefile          |   20 
+ drivers/infiniband/hw/hfi1/chip.c            |10624 ++++++++++++++++++++++++++
+ drivers/infiniband/hw/hfi1/chip.h            | 1013 ++
+ drivers/infiniband/hw/hfi1/chip_registers.h  | 1285 +++
+ drivers/infiniband/hw/hfi1/common.h          |  416 +
+ drivers/infiniband/hw/hfi1/cq.c              |  556 +
+ drivers/infiniband/hw/hfi1/debugfs.c         |  899 ++
+ drivers/infiniband/hw/hfi1/debugfs.h         |   78 
+ drivers/infiniband/hw/hfi1/device.c          |  142 
+ drivers/infiniband/hw/hfi1/device.h          |   61 
+ drivers/infiniband/hw/hfi1/diag.c            | 1873 +++++
+ drivers/infiniband/hw/hfi1/dma.c             |  185 
+ drivers/infiniband/hw/hfi1/driver.c          | 1061 +++
+ drivers/infiniband/hw/hfi1/eprom.c           |  475 +
+ drivers/infiniband/hw/hfi1/eprom.h           |   55 
+ drivers/infiniband/hw/hfi1/file_ops.c        | 2122 +++++
+ drivers/infiniband/hw/hfi1/firmware.c        | 1550 ++++
+ drivers/infiniband/hw/hfi1/hfi.h             | 1738 ++++
+ drivers/infiniband/hw/hfi1/init.c            | 1709 ++++
+ drivers/infiniband/hw/hfi1/intr.c            |  204 
+ drivers/infiniband/hw/hfi1/iowait.h          |  186 
+ drivers/infiniband/hw/hfi1/keys.c            |  407 +
+ drivers/infiniband/hw/hfi1/mad.c             | 4087 ++++++++++
+ drivers/infiniband/hw/hfi1/mad.h             |  477 +
+ drivers/infiniband/hw/hfi1/mmap.c            |  192 
+ drivers/infiniband/hw/hfi1/mr.c              |  546 +
+ drivers/infiniband/hw/hfi1/opa_compat.h      |  132 
+ drivers/infiniband/hw/hfi1/pcie.c            | 1254 +++
+ drivers/infiniband/hw/hfi1/pio.c             | 1764 ++++
+ drivers/infiniband/hw/hfi1/pio.h             |  224 +
+ drivers/infiniband/hw/hfi1/pio_copy.c        |  867 ++
+ drivers/infiniband/hw/hfi1/platform_config.h |  286 +
+ drivers/infiniband/hw/hfi1/qp.c              | 1692 ++++
+ drivers/infiniband/hw/hfi1/qp.h              |  206 +
+ drivers/infiniband/hw/hfi1/qsfp.c            |  546 +
+ drivers/infiniband/hw/hfi1/qsfp.h            |  222 +
+ drivers/infiniband/hw/hfi1/rc.c              | 2456 ++++++
+ drivers/infiniband/hw/hfi1/ruc.c             |  944 ++
+ drivers/infiniband/hw/hfi1/sdma.c            | 2947 +++++++
+ drivers/infiniband/hw/hfi1/sdma.h            | 1122 +++
+ drivers/infiniband/hw/hfi1/srq.c             |  397 +
+ drivers/infiniband/hw/hfi1/sysfs.c           | 1083 +++
+ drivers/infiniband/hw/hfi1/trace.c           |  211 +
+ drivers/infiniband/hw/hfi1/trace.h           | 1390 +++
+ drivers/infiniband/hw/hfi1/twsi.c            |  518 +
+ drivers/infiniband/hw/hfi1/twsi.h            |   68 
+ drivers/infiniband/hw/hfi1/uc.c              |  601 +
+ drivers/infiniband/hw/hfi1/ud.c              |  886 ++
+ drivers/infiniband/hw/hfi1/user_pages.c      |  156 
+ drivers/infiniband/hw/hfi1/user_sdma.c       | 1450 ++++
+ drivers/infiniband/hw/hfi1/user_sdma.h       |   89 
+ drivers/infiniband/hw/hfi1/verbs.c           | 2214 +++++
+ drivers/infiniband/hw/hfi1/verbs.h           | 1191 +++
+ drivers/infiniband/hw/hfi1/verbs_mcast.c     |  385 +
+ include/rdma/opa_port_info.h                 |  452 +
+ include/rdma/opa_smi.h                       |   47 
+ include/uapi/rdma/hfi/hfi1_user.h            |  427 +
+ 60 files changed, 58217 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi1/Kconfig
+ create mode 100644 drivers/infiniband/hw/hfi1/Makefile
+ create mode 100644 drivers/infiniband/hw/hfi1/chip.c
+ create mode 100644 drivers/infiniband/hw/hfi1/chip.h
+ create mode 100644 drivers/infiniband/hw/hfi1/chip_registers.h
+ create mode 100644 drivers/infiniband/hw/hfi1/common.h
+ create mode 100644 drivers/infiniband/hw/hfi1/cq.c
+ create mode 100644 drivers/infiniband/hw/hfi1/debugfs.c
+ create mode 100644 drivers/infiniband/hw/hfi1/debugfs.h
+ create mode 100644 drivers/infiniband/hw/hfi1/device.c
+ create mode 100644 drivers/infiniband/hw/hfi1/device.h
+ create mode 100644 drivers/infiniband/hw/hfi1/diag.c
+ create mode 100644 drivers/infiniband/hw/hfi1/dma.c
+ create mode 100644 drivers/infiniband/hw/hfi1/driver.c
+ create mode 100644 drivers/infiniband/hw/hfi1/eprom.c
+ create mode 100644 drivers/infiniband/hw/hfi1/eprom.h
+ create mode 100644 drivers/infiniband/hw/hfi1/file_ops.c
+ create mode 100644 drivers/infiniband/hw/hfi1/firmware.c
+ create mode 100644 drivers/infiniband/hw/hfi1/hfi.h
+ create mode 100644 drivers/infiniband/hw/hfi1/init.c
+ create mode 100644 drivers/infiniband/hw/hfi1/intr.c
+ create mode 100644 drivers/infiniband/hw/hfi1/iowait.h
+ create mode 100644 drivers/infiniband/hw/hfi1/keys.c
+ create mode 100644 drivers/infiniband/hw/hfi1/mad.c
+ create mode 100644 drivers/infiniband/hw/hfi1/mad.h
+ create mode 100644 drivers/infiniband/hw/hfi1/mmap.c
+ create mode 100644 drivers/infiniband/hw/hfi1/mr.c
+ create mode 100644 drivers/infiniband/hw/hfi1/opa_compat.h
+ create mode 100644 drivers/infiniband/hw/hfi1/pcie.c
+ create mode 100644 drivers/infiniband/hw/hfi1/pio.c
+ create mode 100644 drivers/infiniband/hw/hfi1/pio.h
+ create mode 100644 drivers/infiniband/hw/hfi1/pio_copy.c
+ create mode 100644 drivers/infiniband/hw/hfi1/platform_config.h
+ create mode 100644 drivers/infiniband/hw/hfi1/qp.c
+ create mode 100644 drivers/infiniband/hw/hfi1/qp.h
+ create mode 100644 drivers/infiniband/hw/hfi1/qsfp.c
+ create mode 100644 drivers/infiniband/hw/hfi1/qsfp.h
+ create mode 100644 drivers/infiniband/hw/hfi1/rc.c
+ create mode 100644 drivers/infiniband/hw/hfi1/ruc.c
+ create mode 100644 drivers/infiniband/hw/hfi1/sdma.c
+ create mode 100644 drivers/infiniband/hw/hfi1/sdma.h
+ create mode 100644 drivers/infiniband/hw/hfi1/srq.c
+ create mode 100644 drivers/infiniband/hw/hfi1/sysfs.c
+ create mode 100644 drivers/infiniband/hw/hfi1/trace.c
+ create mode 100644 drivers/infiniband/hw/hfi1/trace.h
+ create mode 100644 drivers/infiniband/hw/hfi1/twsi.c
+ create mode 100644 drivers/infiniband/hw/hfi1/twsi.h
+ create mode 100644 drivers/infiniband/hw/hfi1/uc.c
+ create mode 100644 drivers/infiniband/hw/hfi1/ud.c
+ create mode 100644 drivers/infiniband/hw/hfi1/user_pages.c
+ create mode 100644 drivers/infiniband/hw/hfi1/user_sdma.c
+ create mode 100644 drivers/infiniband/hw/hfi1/user_sdma.h
+ create mode 100644 drivers/infiniband/hw/hfi1/verbs.c
+ create mode 100644 drivers/infiniband/hw/hfi1/verbs.h
+ create mode 100644 drivers/infiniband/hw/hfi1/verbs_mcast.c
+ create mode 100644 include/rdma/opa_port_info.h
+ create mode 100644 include/uapi/rdma/hfi/hfi1_user.h
 
-On Thu, 11 Jun 2015, Jerome Glisse wrote:
-
-> On Wed, Jun 10, 2015 at 06:15:08PM -0700, Mark Hairgrove wrote:
->=20
-> [...]
-> > > There is no race here, the mirror struct will only be freed once as=
- again
-> > > the list is a synchronization point. Whoever remove the mirror from=
- the
-> > > list is responsible to drop the list reference.
-> > >=20
-> > > In the fixed code the only thing that will happen twice is the ->re=
-lease()
-> > > callback. Even that can be work around to garanty it is call only o=
-nce.
-> > >=20
-> > > Anyway i do not see anyrace here.
-> > >=20
-> >=20
-> > The mirror lifetime is fine. The problem I see is with the device lif=
-etime=20
-> > on a multi-core system. Imagine this sequence:
-> >=20
-> > - On CPU1 the mm associated with the mirror is going down
-> > - On CPU2 the driver unregisters the mirror then the device
-> >=20
-> > When this happens, the last device mutex_unlock on CPU1 is the only t=
-hing=20
-> > preventing the free of the device in CPU2. That doesn't work, as desc=
-ribed=20
-> > in this thread: https://lkml.org/lkml/2013/12/2/997
-> >=20
-> > Here's the full sequence again with mutex_unlock split apart. Hopeful=
-ly=20
-> > this shows the device_unregister problem more clearly:
-> >=20
-> > CPU1 (mm release)                   CPU2 (driver)
-> > ----------------------              ----------------------
-> > hmm_notifier_release
-> >   down_write(&hmm->rwsem);
-> >   hlist_del_init(&mirror->mlist);
-> >   up_write(&hmm->rwsem);
-> >=20
-> >   // CPU1 thread is preempted or=20
-> >   // something
-> >                                     hmm_mirror_unregister
-> >                                       hmm_mirror_kill
-> >                                         down_write(&hmm->rwsem);
-> >                                         // mirror removed by CPU1 alr=
-eady
-> >                                         // so hlist_unhashed returns =
-1
-> >                                         up_write(&hmm->rwsem);
-> >=20
-> >                                       hmm_mirror_unref(&mirror);
-> >                                       // Mirror ref now 1
-> >=20
-> >                                       // CPU2 thread is preempted or
-> >                                       // something
-> > // CPU1 thread is scheduled
-> >=20
-> > hmm_mirror_unref(&mirror);
-> >   // Mirror ref now 0, cleanup
-> >   hmm_mirror_destroy(&mirror)
-> >     mutex_lock(&device->mutex);
-> >     list_del_init(&mirror->dlist);
-> >     device->ops->release(mirror);
-> >       kfree(mirror);
-> >                                       // CPU2 thread is scheduled, no=
-w
-> >                                       // both CPU1 and CPU2 are runni=
-ng
-> >=20
-> >                                     hmm_device_unregister
-> >                                       mutex_lock(&device->mutex);
-> >                                         mutex_optimistic_spin()
-> >     mutex_unlock(&device->mutex);
-> >       [...]
-> >       __mutex_unlock_common_slowpath
-> >         // CPU2 releases lock
-> >         atomic_set(&lock->count, 1);
-> >                                           // Spinning CPU2 acquires n=
-ow-
-> >                                           // free lock
-> >                                       // mutex_lock returns
-> >                                       // Device list empty
-> >                                       mutex_unlock(&device->mutex);
-> >                                       return 0;
-> >                                     kfree(hmm_device);
-> >         // CPU1 still accessing=20
-> >         // hmm_device->mutex in=20
-> >         //__mutex_unlock_common_slowpath
->=20
-> Ok i see the race you are afraid of and really it is an unlikely one
-> __mutex_unlock_common_slowpath() take a spinlock right after allowing
-> other to take the mutex, when we are in your scenario there is no
-> contention on that spinlock so it is taken right away and as there
-> is no one in the mutex wait list then it goes directly to unlock the
-> spinlock and return. You can ignore the debug function as if debugging
-> is enabled than the mutex_lock() would need to also take the spinlock
-> and thus you would have proper synchronization btw 2 thread thanks to
-> the mutex.wait_lock.
->=20
-> So basicly while CPU1 is going :
-> spin_lock(mutex.wait_lock)
-> if (!list_empty(mutex.wait_list)) {
->   // wait_list is empty so branch not taken
-> }
-> spin_unlock(mutex.wait_lock)
->=20
-> CPU2 would have to test the mirror list and mutex_unlock and return
-> before the spin_unlock() of CPU1. This is a tight race, i can add a
-> synchronize_rcu() to device_unregister after the mutex_unlock() so
-> that we also add a grace period before the device is potentialy freed
-> which should make that race completely unlikely.
->=20
-> Moreover for something really bad to happen it would need that the
-> freed memory to be reallocated right away by some other thread. Which
-> really sound unlikely unless CPU1 is the slowest of all :)
->=20
-> Cheers,
-> J=E9r=F4me
->=20
-
-But CPU1 could get preempted between the atomic_set and the=20
-spin_lock_mutex, and then it doesn't matter whether or not a grace period=
-=20
-has elapsed before CPU2 proceeds.
-
-Making race conditions less likely just makes them harder to pinpoint whe=
-n=20
-they inevitably appear in the wild. I don't think it makes sense to spend=
-=20
-any effort in making a race condition less likely, and that thread I=20
-referenced (https://lkml.org/lkml/2013/12/2/997) is fairly strong evidenc=
-e=20
-that fixing this race actually matters. So, I think this race condition=20
-really needs to be fixed.
-
-One fix is for hmm_mirror_unregister to wait for hmm_notifier_release=20
-completion between hmm_mirror_kill and hmm_mirror_unref. It can do this b=
-y=20
-calling synchronize_srcu() on the mmu_notifier's srcu. This has the=20
-benefit that the driver is guaranteed not to get the "mm is dead" callbac=
-k=20
-after hmm_mirror_unregister returns.
-
-In fact, are there any callbacks on the mirror that can arrive after=20
-hmm_mirror_unregister? If so, how will hmm_device_unregister solve them?
-
->From a general standpoint, hmm_device_unregister must perform some kind o=
-f=20
-synchronization to be sure that all mirrors are completely released and=20
-done and no new callbacks will trigger. Since that has to be true, can't=20
-that synchronization be moved into hmm_mirror_unregister instead?
-
-If that happens there's no need for a "mirror can be freed" ->release=20
-callback at all because the driver is guaranteed that a mirror is done=20
-after hmm_mirror_unregister.
---8323329-399658917-1434061614=:25907--
-
+-- 
+Mike
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
