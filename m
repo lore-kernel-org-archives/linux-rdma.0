@@ -1,97 +1,487 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-4.1 0/2] Adds support for user mode bar2 mapping and
- bar2 qid density
-Date: Thu, 11 Jun 2015 10:10:41 -0400
-Message-ID: <1434031841.71666.163.camel@redhat.com>
-References: <1433854392-6531-1-git-send-email-hariprasad@chelsio.com>
-	 <1433998881.71666.147.camel@redhat.com>
-	 <005201d0a450$0dd27660$29776320$@opengridcomputing.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v4 1/1] ibacm: Add support for pathrecord query through
+ netlink
+Date: Thu, 11 Jun 2015 10:15:11 -0400
+Message-ID: <557997EF.7070707@dev.mellanox.co.il>
+References: <1433861878-26264-1-git-send-email-kaike.wan@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-assQzzQBAuKJWlrlwreX"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <005201d0a450$0dd27660$29776320$@opengridcomputing.com>
+In-Reply-To: <1433861878-26264-1-git-send-email-kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: 'Hariprasad Shenai' <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 6/9/2015 10:57 AM, kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> This patch enables ibacm to process pathrecord queries through netlink.
+> Since ibacm can cache pathrecords, this implementation provides an easy
+> pathrecord cache for kernel components and therefore offers great
+> performance advantage on large fabric systems.
+> 
+> Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  src/acm.c |  360 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+>  1 files changed, 357 insertions(+), 3 deletions(-)
+> 
+> diff --git a/src/acm.c b/src/acm.c
+> index 7649725..d180bd2 100644
+> --- a/src/acm.c
+> +++ b/src/acm.c
+> @@ -46,6 +46,8 @@
+>  #include <infiniband/acm_prov.h>
+>  #include <infiniband/umad.h>
+>  #include <infiniband/verbs.h>
+> +#include <infiniband/umad_types.h>
+> +#include <infiniband/umad_sa.h>
+>  #include <dlist.h>
+>  #include <dlfcn.h> 
+>  #include <search.h>
+> @@ -55,6 +57,8 @@
+>  #include <netinet/in.h>
+>  #include <linux/netlink.h>
+>  #include <linux/rtnetlink.h>
+> +#include <rdma/rdma_netlink.h>
+> +#include <rdma/ib_user_sa.h>
+>  #include <poll.h>
+>  #include "acm_mad.h"
+>  #include "acm_util.h"
+> @@ -66,6 +70,7 @@
+>  #define MAX_EP_ADDR 4
+>  #define NL_MSG_BUF_SIZE 4096
+>  #define ACM_PROV_NAME_SIZE 64
+> +#define NL_CLIENT_INDEX 0
+>  
+>  struct acmc_subnet {
+>  	DLIST_ENTRY            entry;
+> @@ -151,6 +156,26 @@ struct acmc_sa_req {
+>  	struct acm_sa_mad	mad;
+>  };
+>  
+> +struct acm_nl_status {
+> +	struct nlattr			attr_hdr;
+> +	struct rdma_nla_ls_status	status;
+> +};
+> +
+> +struct acm_nl_path {
+> +	struct nlattr			attr_hdr;
+> +	struct ib_path_rec_data		rec;
+> +};
+> +
+> +struct acm_nl_msg {
+> +	struct nlmsghdr				nlmsg_header;
+> +	union {
+> +		uint8_t				data[ACM_MSG_DATA_LENGTH];
+> +		struct nlattr			attr[0];
+> +		struct acm_nl_status		status[0];
+> +		struct acm_nl_path		path[0];
+> +	};
+> +};
+> +
+>  static char def_prov_name[ACM_PROV_NAME_SIZE] = "ibacmp";
+>  static DLIST_ENTRY provider_list;
+>  static struct acmc_prov *def_provider = NULL;
+> @@ -172,6 +197,7 @@ static struct acmc_ep *acm_find_ep(struct acmc_port *port, uint16_t pkey);
+>  static int acm_ep_insert_addr(struct acmc_ep *ep, const char *name, uint8_t *addr,
+>  			      size_t addr_len, uint8_t addr_type);
+>  static void acm_event_handler(struct acmc_device *dev);
+> +static int acm_nl_send(SOCKET sock, struct acm_msg *msg);
+>  
+>  static struct sa_data {
+>  	int		timeout;
+> @@ -466,7 +492,11 @@ int acm_resolve_response(uint64_t id, struct acm_msg *msg)
+>  		goto release;
+>  	}
+>  
+> -	ret = send(client->sock, (char *) msg, msg->hdr.length, 0);
+> +	if (id == NL_CLIENT_INDEX)
+> +		ret = acm_nl_send(client->sock, msg);
+> +	else
+> +		ret = send(client->sock, (char *) msg, msg->hdr.length, 0);
+> +
+>  	if (ret != msg->hdr.length)
+>  		acm_log(0, "ERROR - failed to send response\n");
+>  	else
+> @@ -597,6 +627,8 @@ static void acm_svr_accept(void)
+>  	}
+>  
+>  	for (i = 0; i < FD_SETSIZE - 1; i++) {
+> +		if (i == NL_CLIENT_INDEX)
+> +			continue;
+>  		if (!atomic_get(&client_array[i].refcnt))
+>  			break;
+>  	}
+> @@ -1346,6 +1378,323 @@ static void acm_ipnl_handler(void)
+>  	}
+>  }
+>  
+> +static int acm_nl_send(SOCKET sock, struct acm_msg *msg)
+> +{
+> +	struct sockaddr_nl dst_addr;
+> +	struct acm_nl_msg acmnlmsg;
+> +	struct acm_nl_msg *orig;
+> +	int ret;
+> +	int datalen;
+> +
+> +	orig = (struct acm_nl_msg *) msg->hdr.tid;
+> +
+> +	memset(&dst_addr, 0, sizeof(dst_addr));
+> +	dst_addr.nl_family = AF_NETLINK;
+> +	dst_addr.nl_groups = (1 << (RDMA_NL_GROUP_LS - 1));
+> +
+> +	memset(&acmnlmsg, 0, sizeof(acmnlmsg));
+> +	acmnlmsg.nlmsg_header.nlmsg_len = NLMSG_HDRLEN;
+> +	acmnlmsg.nlmsg_header.nlmsg_pid = getpid();
+> +	acmnlmsg.nlmsg_header.nlmsg_type = orig->nlmsg_header.nlmsg_type;
+> +	acmnlmsg.nlmsg_header.nlmsg_flags = NLM_F_REQUEST;
+> +	acmnlmsg.nlmsg_header.nlmsg_seq = orig->nlmsg_header.nlmsg_seq;
+> +
+> +	if (msg->hdr.status != ACM_STATUS_SUCCESS) {
+> +		acm_log(2, "acm status no success = %d\n", msg->hdr.status);
+> +		acmnlmsg.nlmsg_header.nlmsg_flags |= RDMA_NL_LS_F_ERR;
+> +		acmnlmsg.nlmsg_header.nlmsg_len +=
+> +			NLA_ALIGN(sizeof(struct acm_nl_status));
+> +		acmnlmsg.status[0].attr_hdr.nla_type = LS_NLA_TYPE_STATUS;
+> +		acmnlmsg.status[0].attr_hdr.nla_len = NLA_HDRLEN +
+> +			sizeof(struct rdma_nla_ls_status);
+> +		if (msg->hdr.status == ACM_STATUS_EINVAL)
+> +			acmnlmsg.status[0].status.status = LS_NLA_STATUS_EINVAL;
+> +		else
+> +			acmnlmsg.status[0].status.status =
+> +				LS_NLA_STATUS_ENODATA;
+> +	} else {
+> +		acm_log(2, "acm status success\n");
+> +		acmnlmsg.nlmsg_header.nlmsg_flags |= RDMA_NL_LS_F_OK;
+> +		acmnlmsg.nlmsg_header.nlmsg_len +=
+> +			NLA_ALIGN(sizeof(struct acm_nl_path));
+> +		acmnlmsg.path[0].attr_hdr.nla_type = LS_NLA_TYPE_PATH_RECORD;
+> +		acmnlmsg.path[0].attr_hdr.nla_len = sizeof(struct acm_nl_path);
+> +		acmnlmsg.path[0].rec.flags =
+> +			IB_PATH_GMP | IB_PATH_PRIMARY | IB_PATH_BIDIRECTIONAL;
+> +		memcpy(acmnlmsg.path[0].rec.path_rec,
+> +		       &msg->resolve_data[0].info.path,
+> +		       sizeof(struct ibv_path_record));
+> +	}
+> +
+> +	datalen = NLMSG_ALIGN(acmnlmsg.nlmsg_header.nlmsg_len);
+> +	ret = sendto(sock, &acmnlmsg, datalen, 0,
+> +		     (const struct sockaddr *)&dst_addr,
+> +		     (socklen_t)sizeof(dst_addr));
+> +	if (ret != datalen) {
+> +		acm_log(0, "ERROR - sendto = %d errno = %d\n", ret, errno);
+> +		ret = -1;
+> +	} else {
+> +		ret = msg->hdr.length;
+> +	}
+> +
+> +	free(orig);
+> +
+> +	return ret;
+> +}
+> +
+> +#define NLA_LEN(nla)	((nla)->nla_len - NLA_HDRLEN)
+> +#define NLA_DATA(nla)	((char *)(nla) + NLA_HDRLEN)
+> +
+> +static void acm_nl_parse_path_attr(struct nlattr *attr,
+> +				   struct acm_ep_addr_data *data)
 
---=-assQzzQBAuKJWlrlwreX
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Should this return status as to whether parsing was successful or not ?
 
-On Thu, 2015-06-11 at 09:08 -0500, Steve Wise wrote:
-> > -----Original Message-----
-> > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-fy+rA21nqHI@public.gmane.org=
-rnel.org] On Behalf Of Doug Ledford
-> > Sent: Thursday, June 11, 2015 12:01 AM
-> > To: Hariprasad Shenai
-> > Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org; leedom@che=
-lsio.com; nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
-> > Subject: Re: [PATCH for-4.1 0/2] Adds support for user mode bar2 mappin=
-g and bar2 qid density
-> >=20
-> > On Tue, 2015-06-09 at 18:23 +0530, Hariprasad Shenai wrote:
-> > > Hi,
-> > >
-> > > This patch series adds support for user mode bar2 mappings for T4 ada=
-pter
-> > > and also adds  support for bar2 qid densities exceeding page size.
-> > >
-> > > This patch series has been created against Doug's github tree 'for-4.=
-1'
-> > > branch and includes patches on cxgb4 and iw_cxgb4 driver.
-> > >
-> > > We have included all the maintainers of respective drivers. Kindly re=
-view
-> > > the change and let us know in case of any review comments.
-> >=20
-> > I didn't catch this in my original responses to this thread.  But, your
-> > subject calls this out for 4.1.  You do realize that 4.1 is already at
-> > 4.1-rc7.  Did you really mean for a patchset this large to go in at thi=
-s
-> > late stage of the rc cycles?  And if so, what's the justification?
-> >=20
-> > Otherwise, I fixed up the cast issue I brought up and have this ready t=
-o
-> > apply to 4.2.  But if you *really* mean 4.1, speak up with the problem
-> > this solves and why it's so bad it can't wait.
-> >
->=20
-> 4.2 is fine with me.  The changes are too great for 4.1-rc7.
+> +{
+> +	struct ibv_path_record *path;
+> +	struct rdma_nla_ls_service_id  *sid;
+> +	struct rdma_nla_ls_gid *gid;
+> +	struct rdma_nla_ls_tclass *tcl;
+> +	struct rdma_nla_ls_reversible *rev;
+> +	struct rdma_nla_ls_numb_path *npath;
+> +	struct rdma_nla_ls_pkey *pkey;
+> +	struct rdma_nla_ls_qos_class *qos;
+> +	uint16_t val;
+> +
+> +#define IBV_PATH_RECORD_QOS_MASK 0xfff0
+> +
+> +	path = &data->info.path;
+> +	switch (attr->nla_type & NLA_TYPE_MASK) {
+> +	case LS_NLA_TYPE_SERVICE_ID:
+> +		sid = (struct rdma_nla_ls_service_id *) NLA_DATA(attr);
+> +		if (NLA_LEN(attr) == sizeof(sid->service_id)) {
+> +			acm_log(2, "service_id 0x%llx\n", sid->service_id);
+> +			path->service_id = sid->service_id;
+> +		}
+> +		break;
+> +
+> +	case LS_NLA_TYPE_DGID:
+> +		gid = (struct rdma_nla_ls_gid *) NLA_DATA(attr);
+> +		if (NLA_LEN(attr) == sizeof(gid->gid)) {
+> +			acm_format_name(2, log_data, sizeof(log_data),
+> +					ACM_ADDRESS_GID, gid->gid,
+> +					sizeof(union ibv_gid));
+> +			acm_log(2, "path dgid %s\n", log_data);
+> +			memcpy(path->dgid.raw, gid->gid, sizeof(path->dgid));
+> +			data->flags |= ACM_EP_FLAG_DEST;
+> +		}
+> +		break;
+> +
+> +	case LS_NLA_TYPE_SGID:
+> +		gid = (struct rdma_nla_ls_gid *) NLA_DATA(attr);
+> +		if (NLA_LEN(attr) == sizeof(gid->gid)) {
+> +			acm_format_name(2, log_data, sizeof(log_data),
+> +					ACM_ADDRESS_GID, gid->gid,
+> +					sizeof(union ibv_gid));
+> +			acm_log(2, "path sgid %s\n", log_data);
+> +			memcpy(path->sgid.raw, gid->gid, sizeof(path->sgid));
+> +			data->flags |= ACM_EP_FLAG_SOURCE;
+> +		}
+> +		break;
+> +
+> +	case LS_NLA_TYPE_TCLASS:
+> +		tcl = (struct rdma_nla_ls_tclass *) NLA_DATA(attr);
+> +		if (NLA_LEN(attr) == sizeof(tcl->tclass)) {
+> +			acm_log(2, "tclass 0x%x\n", tcl->tclass);
+> +			path->tclass = tcl->tclass;
+> +		}
+> +		break;
+> +
+> +	case LS_NLA_TYPE_REVERSIBLE:
+> +		rev = (struct rdma_nla_ls_reversible *) NLA_DATA(attr);
+> +		if (NLA_LEN(attr) == sizeof(rev->reversible)) {
+> +			acm_log(2, "reversible 0x%x\n", rev->reversible);
+> +			if (rev->reversible)
+> +				path->reversible_numpath |=
+> +					IBV_PATH_RECORD_REVERSIBLE;
+> +			else
+> +				path->reversible_numpath &=
+> +					~IBV_PATH_RECORD_REVERSIBLE;
+> +		}
+> +		break;
+> +
+> +	case LS_NLA_TYPE_NUMB_PATH:
+> +		npath = (struct rdma_nla_ls_numb_path *) NLA_DATA(attr);
+> +		if (NLA_LEN(attr) == sizeof(npath->numb_path)) {
+> +			acm_log(2, "numb_path %d\n", npath->numb_path);
+> +			path->reversible_numpath &= IBV_PATH_RECORD_REVERSIBLE;
+> +			path->reversible_numpath |=
+> +				(npath->numb_path &
+> +				 (~IBV_PATH_RECORD_REVERSIBLE));
+> +		}
+> +		break;
+> +
+> +	case LS_NLA_TYPE_PKEY:
+> +		pkey = (struct rdma_nla_ls_pkey *) NLA_DATA(attr);
+> +		if (NLA_LEN(attr) == sizeof(pkey->pkey)) {
+> +			acm_log(2, "pkey 0x%x\n", pkey->pkey);
+> +			path->pkey = pkey->pkey;
+> +		}
+> +		break;
+> +
+> +	case LS_NLA_TYPE_QOS_CLASS:
+> +		qos = (struct rdma_nla_ls_qos_class *) NLA_DATA(attr);
+> +		if (NLA_LEN(attr) == sizeof(qos->qos_class)) {
+> +			acm_log(2, "qos_class 0x%x\n", qos->qos_class);
+> +			val = ntohs(path->qosclass_sl);
+> +			val &= ~IBV_PATH_RECORD_QOS_MASK;
+> +			val |= (ntohs(qos->qos_class) &
+> +				IBV_PATH_RECORD_QOS_MASK);
+> +			path->qosclass_sl = htons(val);
+> +		}
+> +		break;
+> +
+> +	default:
+> +		acm_log(1, "WARN: unknown attr %x\n", attr->nla_type);
+> +		break;
 
-Whew!  Good ;-)  Applied for 4.2.
+Is this a parsing failure case ?
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+> +	}
+> +}
+> +
+> +static void acm_nl_process_resolve(struct acmc_client *client,
+> +				   struct acm_nl_msg *acmnlmsg)
+> +{
+> +	struct acm_msg msg;
+> +	struct nlattr *attr;
+> +	int payload_len;
+> +	int rem;
+> +	int total_attr_len;
+> +
+> +	memset(&msg, 0, sizeof(msg));
+> +	msg.hdr.opcode = ACM_OP_RESOLVE;
+> +	msg.hdr.version = ACM_VERSION;
+> +	msg.hdr.length = ACM_MSG_HDR_LENGTH + ACM_MSG_EP_LENGTH;
+> +	msg.hdr.status = ACM_STATUS_SUCCESS;
+> +	msg.hdr.tid = (uint64_t) acmnlmsg;
+> +	msg.resolve_data[0].type = ACM_EP_INFO_PATH;
+> +
+> +	payload_len = acmnlmsg->nlmsg_header.nlmsg_len - NLMSG_HDRLEN;
+> +	attr = NLMSG_DATA(&acmnlmsg->nlmsg_header);
+> +	rem = payload_len;
+> +	while (1) {
+> +		if (rem < (int) sizeof(*attr) ||
+> +		    attr->nla_len < sizeof(*attr) ||
+> +		    attr->nla_len > rem)
+> +			break;
+> +
+> +		acm_nl_parse_path_attr(attr, &msg.resolve_data[0]);
+> +
+> +		/* Next attribute */
+> +		total_attr_len = NLA_ALIGN(attr->nla_len);
+> +		rem -= total_attr_len;
+> +		attr = (struct nlattr *) ((char *) attr + total_attr_len);
+> +	}
+> +
 
+Since ACM does not resolve multicast PRs, as an optimization here, some
+minor check of DGID could be done and if it's multicast DGID, ENODATA
+could be indicated in NL message.
 
---=-assQzzQBAuKJWlrlwreX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+-- Hal
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJVeZbhAAoJELgmozMOVy/dgtQP+wQGJOLoqph9VqiLNzC5BMfx
-+OnNoJM/kEDVw+T6oyksYIGnbzHdBj1NfaK/KQOY9CCazmPscFTVz/9eA8XP0WNZ
-nTAI0DBZZhAgyw3FTpPqGcr337c+uYiz1TFfkBRWpcLfzMgDO1W9Prcj5KNLNj/s
-+bhoDN4vMz81Xrv/QLKNIHXkT36rB7UmGf1ZnlBv6XbfQOp+1l9MhaDILwS1Z6CE
-MCO6zVNqG9YIdJ2bX/+s7yhVroMgpFxmISZ+ENR26XkY4I7uEiOrR7SKay7XLgBQ
-6ecoGzrmdHyZ6SExAqdByIW3sU7fDQ4Z/lEHU2YgI2y/DSowvVeFCX8G5AVFTIcU
-0Fdbjz8wvjSKYiFSUD9UBRXMcvg2DM+wELJdgyg/t5KYD2i0CQBD1lhybcujT7gL
-by2UHqhP5326vA3SXlM1UfG0psLSxgDHIZkQIfpYvbYDZLimRzC5lAEQ0Jg0/j1s
-WK60o1r5BbzZtDji+rgZkLU+L6yNPwp0vsONAsYjEraS8GmbI8nfoQ64iba27E+W
-GQm/63+dpYo1HK9f6NalU3Sw0yZapYgJKBGQOuVpNjMviTrlSt4IXuqdZn4+Ga27
-XBb5VK9ZTZ5cIKPl7p/gCi9PRbWbZHby/YCYKOaVSiX73ITWb+6da2sBh22Wvb7u
-bT+hzHeVq7xzYquWJch3
-=TIWG
------END PGP SIGNATURE-----
-
---=-assQzzQBAuKJWlrlwreX--
+> +	atomic_inc(&counter[ACM_CNTR_RESOLVE]);
+> +	acm_svr_resolve(client, &msg);
+> +}
+> +
+> +static void acm_nl_process_invalid_request(struct acmc_client *client,
+> +					   struct acm_nl_msg *acmnlmsg)
+> +{
+> +	struct acm_msg msg;
+> +
+> +	memset(&msg, 0, sizeof(msg));
+> +	msg.hdr.opcode = ACM_OP_RESOLVE;
+> +	msg.hdr.version = ACM_VERSION;
+> +	msg.hdr.length = ACM_MSG_HDR_LENGTH;
+> +	msg.hdr.status = ACM_STATUS_EINVAL;
+> +	msg.hdr.tid = (uint64_t) acmnlmsg;
+> +
+> +	acm_nl_send(client->sock, &msg);
+> +}
+> +
+> +static int acm_nl_is_valid_resolve_request(struct acm_nl_msg *acmnlmsg)
+> +{
+> +	int payload_len;
+> +
+> +	payload_len = acmnlmsg->nlmsg_header.nlmsg_len - NLMSG_HDRLEN;
+> +	if (payload_len < sizeof(struct nlattr))
+> +		return 0;
+> +
+> +	return 1;
+> +}
+> +
+> +static void acm_nl_receive(struct acmc_client *client)
+> +{
+> +	struct acm_nl_msg *acmnlmsg;
+> +	int datalen = sizeof(*acmnlmsg);
+> +	int ret;
+> +	uint16_t client_inx, op;
+> +
+> +	acmnlmsg = calloc(1, sizeof(*acmnlmsg));
+> +	if (!acmnlmsg) {
+> +		acm_log(0, "Out of memory for recving nl msg.\n");
+> +		return;
+> +	}
+> +	ret = recv(client->sock, acmnlmsg, datalen, 0);
+> +	if (!NLMSG_OK(&acmnlmsg->nlmsg_header, ret)) {
+> +		acm_log(0, "Netlink receive error: %d.\n", ret);
+> +		goto rcv_cleanup;
+> +	}
+> +
+> +	acm_log(2, "nlmsg: len %d type 0x%x flags 0x%x seq %d pid %d\n",
+> +		acmnlmsg->nlmsg_header.nlmsg_len,
+> +		acmnlmsg->nlmsg_header.nlmsg_type,
+> +		acmnlmsg->nlmsg_header.nlmsg_flags,
+> +		acmnlmsg->nlmsg_header.nlmsg_seq,
+> +		acmnlmsg->nlmsg_header.nlmsg_pid);
+> +
+> +	/* Currently we handle only request from the SA client */
+> +	client_inx = RDMA_NL_GET_CLIENT(acmnlmsg->nlmsg_header.nlmsg_type);
+> +	op = RDMA_NL_GET_OP(acmnlmsg->nlmsg_header.nlmsg_type);
+> +	if (client_inx != RDMA_NL_SA)
+> +		goto rcv_cleanup;
+> +
+> +	switch (op) {
+> +	case RDMA_NL_LS_OP_RESOLVE:
+> +		if (acm_nl_is_valid_resolve_request(acmnlmsg))
+> +			acm_nl_process_resolve(client, acmnlmsg);
+> +		else
+> +			acm_nl_process_invalid_request(client, acmnlmsg);
+> +		break;
+> +	default:
+> +		/* Not supported*/
+> +		acm_log(1, "WARN - invalid opcode %x\n", op);
+> +		acm_nl_process_invalid_request(client, acmnlmsg);
+> +		break;
+> +	}
+> +
+> +	return;
+> +rcv_cleanup:
+> +	free(acmnlmsg);
+> +}
+> +
+> +static int acm_init_nl(void)
+> +{
+> +	struct sockaddr_nl src_addr;
+> +	int ret;
+> +	SOCKET nl_rcv_socket;
+> +
+> +	nl_rcv_socket = socket(PF_NETLINK, SOCK_RAW, NETLINK_RDMA);
+> +	if (nl_rcv_socket == INVALID_SOCKET) {
+> +		acm_log(0, "ERROR - unable to allocate netlink recv socket\n");
+> +		return socket_errno();
+> +	}
+> +
+> +	memset(&src_addr, 0, sizeof(src_addr));
+> +	src_addr.nl_family = AF_NETLINK;
+> +	src_addr.nl_pid = getpid();
+> +	src_addr.nl_groups = (1 << (RDMA_NL_GROUP_LS - 1));
+> +
+> +	ret = bind(nl_rcv_socket, (struct sockaddr *)&src_addr,
+> +		   sizeof(src_addr));
+> +	if (ret == SOCKET_ERROR) {
+> +		acm_log(0, "ERROR - unable to bind netlink socket\n");
+> +		return socket_errno();
+> +	}
+> +
+> +	/* init nl client structure */
+> +	client_array[NL_CLIENT_INDEX].sock = nl_rcv_socket;
+> +	return 0;
+> +}
+> +
+>  static void acm_server(void)
+>  {
+>  	fd_set readfds;
+> @@ -1360,12 +1709,14 @@ static void acm_server(void)
+>  		acm_log(0, "ERROR - server listen failed\n");
+>  		return;
+>  	}
+> +	ret = acm_init_nl();
+> +	if (ret)
+> +		acm_log(1, "Warn - Netlink init failed\n");
+>  
+>  	while (1) {
+>  		n = (int) listen_socket;
+>  		FD_ZERO(&readfds);
+>  		FD_SET(listen_socket, &readfds);
+> -
+>  		n = max(n, (int) ip_mon_socket);
+>  		FD_SET(ip_mon_socket, &readfds);
+>  
+> @@ -1399,7 +1750,10 @@ static void acm_server(void)
+>  			if (client_array[i].sock != INVALID_SOCKET &&
+>  				FD_ISSET(client_array[i].sock, &readfds)) {
+>  				acm_log(2, "receiving from client %d\n", i);
+> -				acm_svr_receive(&client_array[i]);
+> +				if (i == NL_CLIENT_INDEX)
+> +					acm_nl_receive(&client_array[i]);
+> +				else
+> +					acm_svr_receive(&client_array[i]);
+>  			}
+>  		}
+>  
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
