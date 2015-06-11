@@ -1,62 +1,53 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH 14/14] IB/mad: Add final OPA MAD processing
-Date: Thu, 11 Jun 2015 18:27:54 +0000
-Message-ID: <HE1PR05MB141885494D6967919DAE135EB1BC0@HE1PR05MB1418.eurprd05.prod.outlook.com>
-References: <1433615915-24591-1-git-send-email-ira.weiny@intel.com>
-	 <1433615915-24591-15-git-send-email-ira.weiny@intel.com>
-	 <HE1PR05MB1418BB6C461790B76D9C02A3B1BD0@HE1PR05MB1418.eurprd05.prod.outlook.com>
-	 <1433961446.71666.26.camel@redhat.com>
-	 <20150610185653.GA28153@obsidianresearch.com>
- <1433966378.71666.44.camel@redhat.com>
+From: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v5 1/1] ibacm: Add support for pathrecord query through
+ netlink
+Date: Thu, 11 Jun 2015 18:31:53 +0000
+Message-ID: <3F128C9216C9B84BB6ED23EF16290AFB0CABD2BD@CRSMSX101.amr.corp.intel.com>
+References: <1434042265-5066-1-git-send-email-kaike.wan@intel.com>
+ <20150611175940.GD20142@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1433966378.71666.44.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20150611175940.GD20142-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBGcm9tOiBEb3VnIExlZGZvcmQgW21haWx0bzpkbGVkZm9yZEByZWRoYXQuY29tXQ0KDQo+ID4g
-PiA+IE9QQSBjYW5ub3QgaW1wZXJzb25hdGUgSUI7IE9QQSBub2RlIGFuZCBsaW5rIHR5cGVzIGhh
-dmUgdG8gYmUNCj4gPiA+ID4gZGVzaWduYXRlZCBhcyBzdWNoLiAgSW4gdGVybXMgb2YgTUFEIHBy
-b2Nlc3NpbmcgZmxvd3MsIGJvdGgNCj4gPiA+ID4gZXhwbGljaXQgKGFzIGluIHRoZSBoYW5kbGVf
-b3BhX3NtaSgpIGNhbGwgYmVsb3cpIGFuZCBpbXBsaWNpdCBjb2RlDQo+ID4gPiA+IHBhdGhzICh3
-aGljaCBzaGFyZSBJQiBmbG93cyAtIHRoZXJlIGFyZSBzZXZlcmFsIGNhc2VzKSBtdXN0IG1ha2UN
-Cj4gPiA+ID4gdGhpcyBkaXN0aW5jdGlvbi4NCj4gPiA+DQo+ID4gPiBBcyBmYXIgYXMgaW4gdGhl
-IGtlcm5lbCBpcyBjb25jZXJuZWQsIHRoZSBpbmRpdmlkdWFsIGNhcGFiaWxpdHkgYml0cw0KPiA+
-ID4gYXJlIG11Y2ggbW9yZSBpbXBvcnRhbnQuICBJIHdvdWxkIGFjdHVhbGx5IGxpa2UgdG8gZG8g
-YXdheSB3aXRoIHRoZQ0KPiA+ID4gbm9kZV90eXBlIHZhcmlhYmxlIGZyb20gc3RydWN0IGliX2Rl
-dmljZSBldmVudHVhbGx5LiAgQXMgZm9yIHVzZXINCj4gPiA+IHNwYWNlLA0KDQpXZSBhZ3JlZWQg
-b24gdGhlIGNvbmNlcHQgb2YgY2FwYWJpbGl0eSBiaXRzIGZvciB0aGUgc2FrZSBvZiBzaW1wbGlm
-eWluZyBjb2RlIHNoYXJpbmcuDQpUaGF0IGlzIE9LLg0KDQpCdXQgdGhlIG5vZGVfdHlwZSBzdGFu
-ZHMgZm9yIG1vcmUgdGhhbiBqdXN0IGFuIGFic3RyYWN0IFJETUEgZGV2aWNlOg0KSW4gSUIsIGl0
-IGRlc2lnbmF0ZXMgYW4gaW5zdGFuY2Ugb2YgYW4gaW5kdXN0cnktc3RhbmRhcmQsIHdlbGwtZGVm
-aW5lZCwgZGV2aWNlIHR5cGU6IGl0J3MgcG9zc2libGUgbGluayB0eXBlcywgdHJhbnNwb3J0LCBz
-ZW1hbnRpY3MsIG1hbmFnZW1lbnQsIGV2ZXJ5dGhpbmcuDQpJdCAqc2hvdWxkKiBiZSBleHBvc2Vk
-IHRvIHVzZXItc3BhY2Ugc28gYXBwcyB0aGF0IGtub3cgYW5kIGNhcmUgd2hhdCB0aGV5IGFyZSBy
-dW5uaW5nIG9uIGNvdWxkIGNvbnRpbnVlIHRvIHdvcmsuDQoNClRoZSBwbGFjZSBmb3IgYWJzdHJh
-Y3Rpb24gaXMgaW4gdGhlIHJkbWFjbS9DTUEsIHdoaWNoIHNlcnZlcyBhcHBsaWNhdGlvbnMgdGhh
-dCBqdXN0DQp3YW50IHNvbWUgUkRNQSBmdW5jdGlvbmFsaXR5IHJlZ2FyZGxlc3Mgb2YgdGhlIHVu
-ZGVybHlpbmcgdGVjaG5vbG9neS4NCg0KPiA+DQo+ID4gQWxsIFNNSSBjb2RlIGhhcyBkaWZmZXJl
-bnQgYmVoYXZpb3IgaWYgaXQgaXMgcnVubmluZyBvbiBhIHN3aXRjaCBvcg0KPiA+IEhDQSwgc28g
-dGVzdGluZyBmb3IgJ3N3aXRjaHluZXNzJyBpcyB2ZXJ5IGFwcHJvcHJpYXRlIGhlcmUuDQo+IA0K
-PiBTdXJlLi4uDQo+IA0KPiA+IGNhcF9pc19zd2l0Y2hfc21pIHdvdWxkIGJlIGEgbmljZSByZWZp
-bmVtZW50IHRvIGxldCB1cyBkcm9wIG5vZGV0eXBlLg0KPiANCj4gRXhhY3RseSwgd2UgbmVlZCBh
-IGJpdCBhZGRlZCB0byB0aGUgaW1tdXRhYmxlIGRhdGEgYml0cywgYW5kIGEgbmV3IGNhcF8NCj4g
-aGVscGVyLCBhbmQgdGhlbiBub2RldHlwZSBpcyByZWFkeSB0byBiZSByZXRpcmVkLiAgQWRkIGEg
-Yml0LCBkcm9wIGENCj4gdTggOy0pDQo+IA0KDQpUaGlzIGlzIGluZGVlZCBhIHZpYWJsZSBzb2x1
-dGlvbi4NCg0KPiA+IEkgZG9uJ3QgaGF2ZSBhIHByb2JsZW0gd2l0aCBzaGFyaW5nIHRoZSBJQkEg
-Y29uc3RhbnQgbmFtZXMgZm9yIE1BRA0KPiA+IHN0cnVjdHVyZXMgKGxpa2UgUkRNQV9OT0RFX0lC
-X1NXSVRDSCkgYmV0d2VlbiBJQiBhbmQgT1BBIGNvZGUuIFRoZXkNCj4gPiBhbHJlYWR5IHNoYXJl
-IHRoZSBzdHJ1Y3R1cmUgbGF5b3V0cy9ldGMuDQo+ID4NCg0KVGhlIG5vZGUgdHlwZSBpcyByZWZs
-ZWN0ZWQgdG8gdXNlci1zcGFjZSwgd2hpY2gsIGFzIEkgbWVudGlvbmVkIGFib3ZlLCBpcyBpbXBv
-cnRhbnQuDQpBYnVzaW5nIHRoaXMgZW51bWVyYXRpb24gaXMgbWlzbGVhZGluZywgZXZlbiBpbiB0
-aGUga2VybmVsLg0KSmFzb24ncyBwcm9wb3NhbCBmb3IgYSAnY2FwX2lzX3N3aXRjaF9zbWknIGlz
-IG1vcmUgcmVhZGFibGUsIGFuZCBkaXJlY3RseSBpbiBsaW5lIHdpdGgNCnRoZSBleHBsaWNpdCBj
-YXBhYmlsaXR5IGFwcHJvYWNoIHRoYXQgd2UgZGlzY3Vzc2VkLg0KDQo=
+> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
+> Sent: Thursday, June 11, 2015 2:00 PM
+> To: Wan, Kaike
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Fleck, John; Weiny, Ira
+> Subject: Re: [PATCH v5 1/1] ibacm: Add support for pathrecord query
+> through netlink
+> 
+> On Thu, Jun 11, 2015 at 01:04:25PM -0400, kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> > +static int acm_nl_parse_path_attr(struct nlattr *attr,
+> > +				   struct acm_ep_addr_data *data)
+> 
+> > +	switch (attr->nla_type & NLA_TYPE_MASK) {
+> > +	default:
+> > +		acm_log(1, "WARN: unknown attr %x\n", attr->nla_type);
+> > +		ret = -1;
+> > +		break;
+> 
+> I would like to see a mandatory/optional scheme here.
+> 
+> For instance if we add SL it would be mandatory, but policy information like
+> requesting net_device would be optional.
+> 
+
+Are you saying the following:
+1. all mandatory attributes must be present in the message. Otherwise, the request is invalid.
+2. Optional attributes are optional. If they are absent, it is fine. If they are present, they can still be ignored, depending on the application.
+
+Then what are the mandatory attributes: sgid, dgid, slid, dlid, pkey, reversise, qos, mtu, rate, or anything related to the pathrecord selection (can be used to set comp_mask during a query)?
+
+What are the optional attributes?
+
+Kaike
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
