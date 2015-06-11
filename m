@@ -1,136 +1,49 @@
-From: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v5 1/4] IB/netlink: Add defines for local service
- requests through netlink
-Date: Thu, 11 Jun 2015 23:45:46 +0000
-Message-ID: <3F128C9216C9B84BB6ED23EF16290AFB0CABE5EE@CRSMSX101.amr.corp.intel.com>
-References: <1434042225-4975-1-git-send-email-kaike.wan@intel.com>
- <1434042225-4975-2-git-send-email-kaike.wan@intel.com>
- <20150611175803.GC20142@obsidianresearch.com>
- <3F128C9216C9B84BB6ED23EF16290AFB0CABD2CD@CRSMSX101.amr.corp.intel.com>
- <20150611185136.GC20779@obsidianresearch.com>
- <3F128C9216C9B84BB6ED23EF16290AFB0CABD33C@CRSMSX101.amr.corp.intel.com>
- <20150611195154.GB24457@obsidianresearch.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 14/14] IB/mad: Add final OPA MAD processing
+Date: Thu, 11 Jun 2015 23:52:39 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FEF321@ORSMSX109.amr.corp.intel.com>
+References: <1433615915-24591-1-git-send-email-ira.weiny@intel.com>
+  <1433615915-24591-15-git-send-email-ira.weiny@intel.com>
+  <HE1PR05MB1418BB6C461790B76D9C02A3B1BD0@HE1PR05MB1418.eurprd05.prod.outlook.com>
+  <1433961446.71666.26.camel@redhat.com>
+  <20150610185653.GA28153@obsidianresearch.com>
+ <1433966378.71666.44.camel@redhat.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FEF1EA@ORSMSX109.amr.corp.intel.com>
+ <557A18C0.6010200@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150611195154.GB24457-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <557A18C0.6010200-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
-> Sent: Thursday, June 11, 2015 3:52 PM
-> To: Wan, Kaike
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Fleck, John; Weiny, Ira
-> Subject: Re: [PATCH v5 1/4] IB/netlink: Add defines for local service requests
-> through netlink
-> 
-> On Thu, Jun 11, 2015 at 07:21:11PM +0000, Wan, Kaike wrote:
-> > > Recommend a 'QP Type' with options of:
-> > >  - RC QP: Return up to the full 6 path tuple with full APM data
-> > >  - UD QP: Return a single non-reversible path
-> > >  - GMP QP: Return up to two reversible GMP paths.
-> > >
-> > > If it is hard to get accurate information then you can sketch this
-> > > in and infer RC QP and GMP QP by the request having the reversible
-> > > set bit. But ideally RDMA CM and SRP would request RC QP, IPoIB would
-> request UD QP.
-> >
-> > It's quite indirect here for this implementation.
-> > (ib_sa_path_rec_get())
-> >
-> > Caller         reversible                        numb_path             QP Type
-> > cma              1                                                1                     GMP
-> > ipoib             Not set                                    1 (?)                UD
-> > srp                Not set                                    1                      UD
-> 
-> CMA (mostly) and SRP use RC paths. IPoIB uses UD and RC. The IPoIB path
-> record query looks wrong for RC mode because it does not request reversible,
-> that should be fixed independently.
-> 
-> The indirection is because you don't want to modify the callers to provide
-> their additional information, which is probably  a mistake. Add a netlink fill
-> callback and do it there?
-
-Apparently, to achieve this goal, we need the following changes:
- 
-1. Caller (cma, ipoib, srp):
- - Add a new callback to handle multiple pathrecords returned in the response.
-- Change the calling function to supply additional context info.
-
-The problem is that currently only one copy of pathrecord is required for these callers and we need to find the use of other pathrecords in these callers. Otherwise, we simply are overdesigning.
-
-2. ib_sa: 
-  - Add a function  to take additional context info;
- - Code this addition context into new attributes.
-- New callback function to return multiple pathrecords to the caller. 
-
-3. User space application:
-
-Apparently, ibacm can only return one copy of pathrecord and we need to find something different to test the code. And the current implementation of ibacm can't make use of the supplied context info (QP type or whatever).
-
-I think that these changes run well beyond the original goal of this patch series to speed up the pathrecord query performance and may warranty a subsequent patch series.
-
-For this patch series, how about limiting the change to combining reversible and numb_path into reversible_numb_path attribute?
-
-
-
-> 
-> > In addition, on the user side, we need to convert QP type back into
-> > reversible_numpath again, which may not interpret the original request
-> > correctly.  Why should we do all the translation?
-> 
-> The goal is to carry enough context information so that user space can do
-> something smart. We have alot more information available to drive policy
-> than is present in the simple IBA Path Record MAD.
-> 
-> In this case, the kernel does not actually care about numb paths or reversible,
-> except in the context of how it intends to use the path(s).
-> 
-> For instance, having CM ask for reversible makes no sense, since in the
-> general case it wants the 3 path tuple of
-> GMP(reversible=1),FORWARD(reversible=0),RETURN(reversible=0). Similarly,
-> it doesn't make sense to ask for numbPath=1 because in the general case it
-> wants the 6 path APM set.
-> 
-> Being more specific here allows userspace to implement more detailed policy
-> beyond what the IB Path Record scheme allows. And for that we need the
-> context information from the requestor.
-> 
-> acm won't use it, it will always request numbPaths=1 and derive the
-> reversible bit from this netlink field. (or always set reversible=1)
-> 
-> > Is QP type definition already exported to user space?
-> 
-> QP Type could be a bad name, open to ideas
-> 
-> > I see  IBV_QPT_RC/UC/UD/RAW_PACKET/XRC_SEND/XRC_RECV, but not
-> GMP in verbs.h.
-> 
-> GMP is a special case of UD.
-> 
-> > > > +/* Local Service ServiceID attribute */ struct
-> > > > +rdma_nla_ls_service_id {
-> > > > +	__be64		service_id;
-> > > > +};
-> > >
-> > > Do not expose BE to userspace, everything should be in cpu order.
-> >
-> > If we use cpu order, we need to do two conversions: from BE to cpu
-> > order in kernel and from cpu order to BE in user space. Struct
-> > ib_user_path_rec contains many __be32 fields.
-> 
-> I don't see a problem with the extra conversion.
-
-That's fine. I can do the conversion on both sides. In the future, if the callers do not do the conversion, there will be only one conversion on the user space side:
-
-caller (cpu byte order) ->ib_sa (cpu byte order) ->user space (cpu byte order ->network byte order).
-
-Kaike
-
+PiA+IEkgYWdyZWUgdGhhdCB0aGUgbm9kZSB0eXBlIGVudW0gaXNuJ3QgcGFydGljdWxhcmx5IHVz
+ZWZ1bCBhbmQgc2hvdWxkIGJlDQo+IHJldGlyZWQuDQo+IA0KPiBBcmUgeW91IHJlZmVycmluZyB0
+byBrZXJuZWwgc3BhY2Ugb3IgdXNlciBzcGFjZSBvciBib3RoID8NCg0KU2hvcnQgdGVybSwga2Vy
+bmVsIHNwYWNlLiAgVXNlciBzcGFjZSBuZWVkcyB0byBrZWVwIHNvbWV0aGluZyBhcm91bmQgZm9y
+IGJhY2t3YXJkcyBjb21wYXRpYmlsaXR5Lg0KDQpCdXQgdGhlIGluIHRyZWUgY29kZSB3aWxsIG5l
+dmVyIGV4cG9zZSB0aGlzIHZhbHVlIHVwLg0KDQo+ID4gQnV0IGV2ZW4gaWYgd2UgZG8sIEknbSBu
+b3Qgc3VyZSB0aGlzIGlzIHRoZSBjb3JyZWN0IGFwcHJvYWNoLiAgSSBkb24ndA0KPiBrbm93IHRo
+aXMgZm9yIGEgZmFjdCwNCj4gPiBidXQgaXQgc2VlbXMgbW9yZSBsaWtlbHkgdGhhdCBzb21lb25l
+IHdvdWxkIGVtYmVkIExpbnV4IG9uIGFuIElCIHN3aXRjaA0KPiB0aGFuIHRoZXkgd291bGQgcGx1
+ZyBhbiBJQiBzd2l0Y2gNCj4gPiBpbnRvIGEgTGludXggYmFzZWQgc3lzdGVtLiAgVGhlIGNvZGUg
+aXMgZGVzaWduZWQgYXJvdW5kIHRoZSBsYXR0ZXIuDQo+IE1ha2luZyB0aGlzIGEgc3lzdGVtIHdp
+ZGUgc2V0dGluZyBtaWdodCBzaW1wbGlmeSB0aGUgY29kZSBhbmQgb3B0aW1pemUgdGhlDQo+IGNv
+ZGUgcGF0aHMuDQo+IA0KPiBJIHRoaW5rIHdlIG5lZWQgdG8gZGlzY3VzcyBob3cgdXNlciBzcGFj
+ZSB3b3VsZCBiZSBhZGRyZXNzZWQuDQoNClRoaXMgaXMgYW4gaXNzdWUgd2l0aCBvdXQgb2YgdHJl
+ZSBkcml2ZXJzLiAgV2UncmUgaGF2aW5nIHRvIGd1ZXNzIHdoYXQgdGhpbmdzIG1pZ2h0IGJlIGRv
+aW5nLiAgQXJlIGFsbCBkZXZpY2VzIGJlaW5nIGV4cG9zZWQgdXAgYXMgYSAnc3dpdGNoJywgb3Ig
+aXMgdGhlcmUgZXZlciBhIGNhc2Ugd2hlcmUgdGhlcmUncyBhICdzd2l0Y2gnIGRldmljZSBhbmQg
+YW4gSENBIGRldmljZSBiZWluZyByZXBvcnRlZCB0b2dldGhlciwgb3IgKGhpZ2hseSB1bmxpa2Vs
+eSkgYSBzd2l0Y2ggZGV2aWNlIGFuZCBhbiBSTklDPw0KDQpJZiB0aGUgcmVhbCB1c2UgY2FzZSBp
+cyB0byBlbWJlZCBMaW51eCBvbiBhIHN3aXRjaCwgdGhlbiB3ZSBjb3VsZCBsb29rIGF0IG1ha2lu
+ZyB0aGF0IGEgc3lzdGVtIHdpZGUgc2V0dGluZywgcmF0aGVyIHRoYW4gcGVyIGRldmljZS4gIFRo
+aXMgY291bGQgY2xlYW4gdXAgdGhlIGtlcm5lbCB3aXRob3V0IGltcGFjdGluZyB0aGUgdUFCSS4N
+Cg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
