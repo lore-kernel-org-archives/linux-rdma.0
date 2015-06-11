@@ -1,55 +1,62 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next V5 12/12] RDMA/ocrdma: Changes in driver to
- incorporate the moving of GID Table mgmt to IB/Core.
-Date: Wed, 10 Jun 2015 22:11:24 -0600
-Message-ID: <20150611041124.GC16599@obsidianresearch.com>
+Subject: Re: [PATCH for-next V5 03/12] IB/core: Add RoCE GID population
+Date: Wed, 10 Jun 2015 22:18:31 -0600
+Message-ID: <20150611041831.GD16599@obsidianresearch.com>
 References: <1433772735-22416-1-git-send-email-matanb@mellanox.com>
- <1433772735-22416-13-git-send-email-matanb@mellanox.com>
+ <1433772735-22416-4-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1433772735-22416-13-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1433772735-22416-4-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-xCNTGe7nOvUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-xCNTGe7nOvUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 08, 2015 at 05:12:15PM +0300, Matan Barak wrote:
-> From: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-> 
-> 1.Check and set port capability flags to indicate RoCEV2 support.
+On Mon, Jun 08, 2015 at 05:12:06PM +0300, Matan Barak wrote:
+>  drivers/infiniband/core/core_priv.h      |  26 ++
+>  drivers/infiniband/core/device.c         |  77 +++++
 
-??? This series has nothing to with rocev2 now, what is this about?
+I wouldn't mind seeing the core portion which consists of adding
+the get_netdev be it's own little mini-series of three, adding the
+core and the two driver enablement changes.
 
->  	mutex_init(&dev->dev_lock);
-> -	dev->sgid_tbl = kzalloc(sizeof(union ib_gid) *
-> -				OCRDMA_MAX_SGID, GFP_KERNEL);
+> +				rcu_read_lock();
+> +				if (ib_dev->get_netdev)
+> +					idev =
+> ib_dev->get_netdev(ib_dev, port);
 
-Should sgid_tbl be dropped from the structure?
+If it wasn't clear from before, don't hold a rcu_read_lock around a
+driver call back, return a net_device that is already dev_hold'd or
+null.
 
-> +int ocrdma_modify_gid(struct ib_device *ibdev, u8 port_num, unsigned int index,
-> +		      const union ib_gid *gid, const struct ib_gid_attr *attr,
-> +		      void **context)
+> +	down_read(&lists_rwsem);
+> +	list_for_each_entry_rcu(dev, &device_list, core_list)
+
+No _rcu
+
+> +void ib_dev_roce_ports_of_netdev(struct ib_device *ib_dev, roce_netdev_filter filter,
+> +					 void *filter_cookie, roce_netdev_callback cb,
+> +					 void *cookie)
 > +{
-> +	struct ocrdma_dev *dev;
+> +	u8 port;
 > +
-> +	dev = get_ocrdma_dev(ibdev);
->  
->  	return 0;
->  }
+> +	if (ib_dev->modify_gid)
+[..]
+> +		if (ib_dev->get_netdev)
+> +			idev = ib_dev->get_netdev(ib_dev, port);
 
-Empty modify gid? Shouldn't it be completely empty?
+Why check modify_gid and then go on to test and call get_netdev? That
+seems strange for a general purpose core API.
 
-This is correct? This HW sends the full SGID in the WQE?
+> +	/* When calling get_netdev, the HW vendor's driver should return the
+> +	 * net device of device @device at port @port_num. The function
+> +	 * is called in rtnl_lock. The HW vendor's device driver must guarantee
+> +	 * to return NULL before the net device has reached
+> +	 * NETDEV_UNREGISTER_FINAL state.
 
-> +enum {
-> +     OCRDMA_L3_TYPE_IB_GRH   = 0x00,
-> +     OCRDMA_L3_TYPE_IPV4     = 0x01,
-> +     OCRDMA_L3_TYPE_IPV6     = 0x02
-> +};
-
-These added constants are not used? Probably others as well?
+rtnl_lock ? That doesn't seem to match what is going on..
 
 Jason
 --
