@@ -1,49 +1,65 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 14/14] IB/mad: Add final OPA MAD processing
-Date: Thu, 11 Jun 2015 23:52:39 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FEF321@ORSMSX109.amr.corp.intel.com>
-References: <1433615915-24591-1-git-send-email-ira.weiny@intel.com>
-  <1433615915-24591-15-git-send-email-ira.weiny@intel.com>
-  <HE1PR05MB1418BB6C461790B76D9C02A3B1BD0@HE1PR05MB1418.eurprd05.prod.outlook.com>
-  <1433961446.71666.26.camel@redhat.com>
-  <20150610185653.GA28153@obsidianresearch.com>
- <1433966378.71666.44.camel@redhat.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FEF1EA@ORSMSX109.amr.corp.intel.com>
- <557A18C0.6010200@dev.mellanox.co.il>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v5 1/4] IB/netlink: Add defines for local service
+ requests through netlink
+Date: Thu, 11 Jun 2015 23:56:17 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E1109C100@CRSMSX101.amr.corp.intel.com>
+References: <1434042225-4975-1-git-send-email-kaike.wan@intel.com>
+ <1434042225-4975-2-git-send-email-kaike.wan@intel.com>
+ <20150611175803.GC20142@obsidianresearch.com>
+ <3F128C9216C9B84BB6ED23EF16290AFB0CABD2CD@CRSMSX101.amr.corp.intel.com>
+ <20150611185136.GC20779@obsidianresearch.com>
+ <3F128C9216C9B84BB6ED23EF16290AFB0CABD33C@CRSMSX101.amr.corp.intel.com>
+ <20150611195154.GB24457@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <557A18C0.6010200-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20150611195154.GB24457-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiA+IEkgYWdyZWUgdGhhdCB0aGUgbm9kZSB0eXBlIGVudW0gaXNuJ3QgcGFydGljdWxhcmx5IHVz
-ZWZ1bCBhbmQgc2hvdWxkIGJlDQo+IHJldGlyZWQuDQo+IA0KPiBBcmUgeW91IHJlZmVycmluZyB0
-byBrZXJuZWwgc3BhY2Ugb3IgdXNlciBzcGFjZSBvciBib3RoID8NCg0KU2hvcnQgdGVybSwga2Vy
-bmVsIHNwYWNlLiAgVXNlciBzcGFjZSBuZWVkcyB0byBrZWVwIHNvbWV0aGluZyBhcm91bmQgZm9y
-IGJhY2t3YXJkcyBjb21wYXRpYmlsaXR5Lg0KDQpCdXQgdGhlIGluIHRyZWUgY29kZSB3aWxsIG5l
-dmVyIGV4cG9zZSB0aGlzIHZhbHVlIHVwLg0KDQo+ID4gQnV0IGV2ZW4gaWYgd2UgZG8sIEknbSBu
-b3Qgc3VyZSB0aGlzIGlzIHRoZSBjb3JyZWN0IGFwcHJvYWNoLiAgSSBkb24ndA0KPiBrbm93IHRo
-aXMgZm9yIGEgZmFjdCwNCj4gPiBidXQgaXQgc2VlbXMgbW9yZSBsaWtlbHkgdGhhdCBzb21lb25l
-IHdvdWxkIGVtYmVkIExpbnV4IG9uIGFuIElCIHN3aXRjaA0KPiB0aGFuIHRoZXkgd291bGQgcGx1
-ZyBhbiBJQiBzd2l0Y2gNCj4gPiBpbnRvIGEgTGludXggYmFzZWQgc3lzdGVtLiAgVGhlIGNvZGUg
-aXMgZGVzaWduZWQgYXJvdW5kIHRoZSBsYXR0ZXIuDQo+IE1ha2luZyB0aGlzIGEgc3lzdGVtIHdp
-ZGUgc2V0dGluZyBtaWdodCBzaW1wbGlmeSB0aGUgY29kZSBhbmQgb3B0aW1pemUgdGhlDQo+IGNv
-ZGUgcGF0aHMuDQo+IA0KPiBJIHRoaW5rIHdlIG5lZWQgdG8gZGlzY3VzcyBob3cgdXNlciBzcGFj
-ZSB3b3VsZCBiZSBhZGRyZXNzZWQuDQoNClRoaXMgaXMgYW4gaXNzdWUgd2l0aCBvdXQgb2YgdHJl
-ZSBkcml2ZXJzLiAgV2UncmUgaGF2aW5nIHRvIGd1ZXNzIHdoYXQgdGhpbmdzIG1pZ2h0IGJlIGRv
-aW5nLiAgQXJlIGFsbCBkZXZpY2VzIGJlaW5nIGV4cG9zZWQgdXAgYXMgYSAnc3dpdGNoJywgb3Ig
-aXMgdGhlcmUgZXZlciBhIGNhc2Ugd2hlcmUgdGhlcmUncyBhICdzd2l0Y2gnIGRldmljZSBhbmQg
-YW4gSENBIGRldmljZSBiZWluZyByZXBvcnRlZCB0b2dldGhlciwgb3IgKGhpZ2hseSB1bmxpa2Vs
-eSkgYSBzd2l0Y2ggZGV2aWNlIGFuZCBhbiBSTklDPw0KDQpJZiB0aGUgcmVhbCB1c2UgY2FzZSBp
-cyB0byBlbWJlZCBMaW51eCBvbiBhIHN3aXRjaCwgdGhlbiB3ZSBjb3VsZCBsb29rIGF0IG1ha2lu
-ZyB0aGF0IGEgc3lzdGVtIHdpZGUgc2V0dGluZywgcmF0aGVyIHRoYW4gcGVyIGRldmljZS4gIFRo
-aXMgY291bGQgY2xlYW4gdXAgdGhlIGtlcm5lbCB3aXRob3V0IGltcGFjdGluZyB0aGUgdUFCSS4N
-Cg==
+> 
+> > Is QP type definition already exported to user space?
+> 
+> QP Type could be a bad name, open to ideas
+
+I think the name "QP Type" is bad...
+
+I want to say "transport type" but I don't think that really communicates what we want here.
+
+> 
+> > I see  IBV_QPT_RC/UC/UD/RAW_PACKET/XRC_SEND/XRC_RECV, but not
+> GMP in verbs.h.
+> 
+> GMP is a special case of UD.
+
+I think this is where QP Type (or "Transport type") are not equivalent to if a path needs to be reversible or not.
+
+To properly derive the reversibility requires more than the transport.  There is nothing which precludes me from requesting a reversible path for any QP Type.
+
+This is really a "protocol" attribute and it seems that each protocol could potentially want a reversible Path Record independent of the QP or "Transport Type".
+
+> 
+> > > > +/* Local Service ServiceID attribute */ struct
+> > > > +rdma_nla_ls_service_id {
+> > > > +	__be64		service_id;
+> > > > +};
+> > >
+> > > Do not expose BE to userspace, everything should be in cpu order.
+> >
+> > If we use cpu order, we need to do two conversions: from BE to cpu
+> > order in kernel and from cpu order to BE in user space. Struct
+> > ib_user_path_rec contains many __be32 fields.
+> 
+> I don't see a problem with the extra conversion.
+
+Neither do I.  All user space values should be in host order.
+
+Ira
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
