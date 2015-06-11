@@ -1,33 +1,177 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [patch -next] net/mlx5_core: fix an error code
-Date: Thu, 11 Jun 2015 11:50:01 +0300
-Message-ID: <20150611085001.GB27393@mwanda>
+From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH for-next V5 00/12] Move RoCE GID management to IB/Core
+Date: Thu, 11 Jun 2015 12:49:14 +0300
+Message-ID: <CAAKD3BChd10Gd4P2Mwm+46aW+PJBT3j7K-BLex0Fkm5UdtUG3w@mail.gmail.com>
+References: <1433772735-22416-1-git-send-email-matanb@mellanox.com>
+	<1828884A29C6694DAF28B7E6B8A82373A8FE5D17@ORSMSX109.amr.corp.intel.com>
+	<55769561.8000300@mellanox.com>
+	<5577FAFB.8020205@mellanox.com>
+	<20150610150010.GA11243@obsidianresearch.com>
+	<557852EE.5030107@mellanox.com>
+	<20150610184954.GA26404@obsidianresearch.com>
+	<CAAKD3BB90iZ98B2ADG+=ZYuEVtLq26a99BEjQCR8U1vzvcG+Gw@mail.gmail.com>
+	<20150610220154.GA4391@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Eli Cohen <eli@mellanox.com>, Amir Vadai <amirv@mellanox.com>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150610220154.GA4391-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-iNbyuHi0droAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-We return success if mlx5e_alloc_sq_db() fails but we should return an
-error code.
+On Thu, Jun 11, 2015 at 1:01 AM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Wed, Jun 10, 2015 at 11:19:03PM +0300, Matan Barak wrote:
+>
+>> > Sure gid_type is gone, but I didn't say roceve2 specific, I said
+>> > latent elements. ie I'm assuming reasons for the scary locking are
+>> > because the ripped out rocev2 code needed it?  And some of the
+>> > complexity that looks pointless now was supporting ripped out rocev2
+>> > elements? That is not necessarily bad, but the code had better be good
+>> > quailty and working..
+>>
+>> Why do you think the locks have anything to do with roce v2?
+>
+> What else could they be for? The current mlx4 driver doesn't use use
+> agressive performance locking.
+>
+> After writing this email, I am of the opinion that the locking should
+> be simplified to rwsem and mutex, and every use of rcu, READ_ONCE and
+> seqlock should be ditched.
+>
 
-Fixes: f62b8bb8f2d3 ('net/mlx5: Extend mlx5_core to support ConnectX-4 Ethernet functionality')
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+No, that's not true.
+For example cm_init_av_by_path calls ib_find_cached_gid *in a
+spinlock* which in turns go to the roce_gid_table_find_gid.
+So it's obvious you can't use a semaphore/mutex.
+write_gid calls the vendor's modify_gid which might be a sleepable
+context - so you can't use spin locks here.
+There are other ways around this, but I think seqcount does this pretty easily.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index 7348c51..075e517 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -525,7 +525,8 @@ static int mlx5e_create_sq(struct mlx5e_channel *c,
- 	sq->uar_map     = sq->uar.map;
- 	sq->bf_buf_size = (1 << MLX5_CAP_GEN(mdev, log_bf_reg_size)) / 2;
- 
--	if (mlx5e_alloc_sq_db(sq, cpu_to_node(c->cpu)))
-+	err = mlx5e_alloc_sq_db(sq, cpu_to_node(c->cpu));
-+	if (err)
- 		goto err_sq_wq_destroy;
- 
- 	sq->txq = netdev_get_tx_queue(priv->netdev,
+READ_ONCE protects something entirely different.
+roce_gid_table_client_cleanup_one sets the roce_gid_table to NULL in
+order to indicate future calls that its being
+destroyed and then flushes the workqueue. In order to avoid crashing
+in roce_gid_table, we first store the pointer with
+READ_ONCE such that we'll always have a valid pointer.
+
+>> > But then I look at the patches, and the very first locking I test out
+>> > looks wrong. I see call_rcu/synchronize_rcu being used without a
+>> > single call to rcu_read_lock. So this fails #2 of the RCU review
+>> > checklist (Seriously? Why am I catching this?)
+>> >
+>> > I stopped reading at that point.
+>> >
+>>
+>> Well, that's easy to explain - write_gid could be called with one of
+>> roce_gid_table's find API.
+>
+> That doesn't explain anything.
+>
+> You can't use call_rcu without also using rcu_dereference and
+> rcu_read_lock. It doesn't make any sense otherwise.
+>
+> Your explanation seems confused too, did you reasearch this? Did you
+> read the RCU checklist? Is this a knee-jerk reply? Please be thoughtfull.
+>
+>>  find is called and returns a ndev
+>>  write_gid is called and calls dev_put(ndev)
+>>  ndev is freed
+>>  find uses the ndev
+>
+> Are you trying to say that this rcu is protecting this:
+>
+> +static int find_gid(struct ib_roce_gid_table *table, const union ib_gid *gid,
+> +                   const struct ib_gid_attr *val, unsigned long mask)
+> +{
+> [..]
+> +               if (mask & GID_ATTR_FIND_MASK_NETDEV &&
+> +                   attr->ndev != val->ndev)
+> +                       continue;
+>
+> That is an unlocked access to a RCU protected value, without
+> rcu_dereference. Fails two points on the RCU checklist.
+>
+
+No, that's not what I'm saying.
+When roce_gid_table_get_gid is called:
+rcu_read_lock();
+roce_gid_table_get_gid(..., attr);
+/* attr->ndev is valid here */
+rcu_read_unlock();
+
+However, since netdev_wait_allrefs do rcu_barrier, we could probably
+ditch rcu_barrier from our code.
+I'll look at that more carefully before doing so.
+
+> Where does it return ndev?
+>
+> Honestly, since RCU is done wrong, and I'm very suspicious seqlock is
+> done wrong too, I would *strongly* encourage v6 to have simple
+> read/write sem and mutex locking and nothing fancy for performance. I
+> don't want to go round and round on subtle performance locking for a
+> *cleanup patch*.
+>
+
+How is seqcount relates to RCU exactly?!? Anyway, I explained why
+seqcount was chosen here and unless there is a good reason to switch
+to another locking method, I prefer not to. "Having a feeling" that if
+A is wrong (and to be exact, the rcu usage you pointed out above isn't
+wrong but might just be unnecessary because of netdev_wait_allrefs)
+doesn't mean B is wrong.
+
+> There is also this RCU confusion:
+>
+> +                               rcu_read_lock();
+> +                               if (ib_dev->get_netdev)
+> +                                       idev = ib_dev->get_netdev(ib_dev, port);
+>
+> When holding the rcu_read_lock it should be obvious what the RCU
+> protected data is. There is no way holding it around a driver call
+> back makes any sense.
+>
+> The driver should return a held netdev or null.
+>
+> .. and maybe more, I stopped looking
+>
+
+I agree, rcu_dereference is missing here, but as you suggested we'll
+use dev_hold by the vendor driver.
+
+>> By calling the find API in RCU, your ndev is protected.
+>
+> When implementing locking, identify the data being locked, and
+> confirm that every possible access to that data follows the required
+> locking rules. In this case the data being locked is the
+> table->data_vec[ix].attr.ndev pointer.
+>
+> It was the very first thing I checked, in the very first patch.
+>
+
+We'll go over the RCU usages here. A lot of them just compare
+pointers, so they are safe as it is.
+
+>> > I think you've got the right basic idea for a cleanup series here. It
+>> > is time to buckle down and execute it well. Do an internal mellanox
+>> > kernel team review of this series. Audit and fix all the locking,
+>> > evaluate the code growth and design. Audit to confirm there is no
+>> > functional change that is not documented in a commit message. Tell me
+>> > v6 is the best effort *team Mellanox* can put forward.
+>>
+>> Jason, I really appreciate your review. If you have any comments, I
+>> would like to either fix or write you back. This series wasn't sent
+>> without being looked at by the internal team here.
+>
+> Well, I am looking at this thinking I don't want to invest time in
+> searching for things I think your team can find on it's own.
+>
+> Take a breather, produce v6 very carefully.
+>
+> Jason
+
+Matan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
