@@ -1,116 +1,73 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: LINUX RDMA MAILING LIST MONITOR ALERT - RE: [PATCH for-next V5
- 00/12] Move RoCE GID management to IB/Core
-Date: Wed, 10 Jun 2015 22:19:30 -0400
-Message-ID: <1433989170.71666.106.camel@redhat.com>
-References: <AM2PR05MB0866392FDB15F32719EE692DC5BD0@AM2PR05MB0866.eurprd05.prod.outlook.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH for-next V5 00/12] Move RoCE GID management to IB/Core
+Date: Wed, 10 Jun 2015 21:57:27 -0600
+Message-ID: <20150611035727.GA16599@obsidianresearch.com>
+References: <1433772735-22416-1-git-send-email-matanb@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FE5D17@ORSMSX109.amr.corp.intel.com>
+ <55769561.8000300@mellanox.com>
+ <5577FAFB.8020205@mellanox.com>
+ <20150610150010.GA11243@obsidianresearch.com>
+ <557852EE.5030107@mellanox.com>
+ <20150610184954.GA26404@obsidianresearch.com>
+ <1433984788.71666.78.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-k7/X6maUJHS7Eox2lE5k"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AM2PR05MB0866392FDB15F32719EE692DC5BD0-Wc3DjHnhGid0Y6zYyX2GR9qRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1433984788.71666.78.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Diego Crupnicoff <Diego-goXnUAHYgFxWk0Htik3J/w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-goXnUAHYgFxWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Matan Barak <matanb-goXnUAHYgFxWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-goXnUAHYgFxWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-xCNTGe7nOvUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-xCNTGe7nOvUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Jun 10, 2015 at 09:06:28PM -0400, Doug Ledford wrote:
 
---=-k7/X6maUJHS7Eox2lE5k
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+> People tend to push the "patches should be small, self contained,
+> incremental" ideal.  In some cases, that gets carried to an extreme.  In
+> this case, patch 1 introduces one side of the locking and patch 3 and 5
+> introduce the other halves.
 
-On Wed, 2015-06-10 at 23:17 +0000, Diego Crupnicoff wrote:
-> Here Sean reacts to our RoCEv2 patches (same thread as the one I sent bef=
-ore with Jason's feedback).
-> Sean is not even making technical statements to dismiss our patches. He h=
-as been rejecting all our previous revs of this set with loose FUD comments=
-. In this case he chose to count the lines of code.=20
+I already did spot check patches 3 and 5 for exactly that. They add
+other uses of RCU, but they appear to be totally different -
+objectional for style reasons, but probably not incorrect.
 
-Sean made a observation: the code was claimed to be a cleanup while it
-is significantly larger in size than the code it is cleaning up.  A
-cleanup usually doesn't increase size count significantly.  This is
-especially true when the cleanup also included deduplication.  It's a
-valid assessment.  As I pointed out in the thread, the problem here is
-as much as anything else calling the patch set a cleanup.  It is more
-than that.  It replaces two partial implementations of RoCE GID
-management with one more complete, standardized one.  Once you get past
-the improper use of the term cleanup for this patchset, you can review
-it more productively.
+For instance the rcu lock grabs in patch 3 and 5 are protecting the
+call to netdev_master_upper_dev_get_rcu in patch 10. 'get_netdev' is
+more correctly called 'get_netdev_rcu' in this design. (as I said, this
+placement of rcu_read_lock is ugly).
 
-Sean, while the code is more than a cleanup, it does not include RoCEv2
-code and they did do as Jason requested in removing it.  You're under no
-obligation to review the code, but your stated reason for ignoring it is
-only partially correct.
+.. and just searching through the patches for 'rcu' to write this, I
+noticed this:
 
-This isn't the first email to have a less than constructive tone.  I
-would appreciate it if people took a moment to breath before hitting
-send and remember that we built up quite a backlog of work that needs to
-be reviewed and everyone may be a bit frustrated as they try to get
-their own projects approved, so please be considerate and constructive.
++void ib_enum_roce_ports_of_netdev(roce_netdev_filter filter,
+[..]
++	down_read(&lists_rwsem);
++	list_for_each_entry_rcu(dev, &device_list, core_list)
++	     ib_dev_roce_ports_of_netdev(dev, filter, filter_cookie, cb,
++					    cookie);
++	up_read(&lists_rwsem);
 
->=20
-> > -----Original Message-----
-> > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Hefty, Sean
-> > Sent: Wednesday, June 10, 2015 12:10 PM
-> > To: Or Gerlitz; Doug Ledford; Jason Gunthorpe
-> > Cc: Matan Barak; Moni Shoua; Somnath Kotur; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Subject: RE: [PATCH for-next V5 00/12] Move RoCE GID management to
-> > IB/Core
-> >=20
-> > > Sean, this change is needed b/c two drivers have (mlx4 and ocrda) and
-> > > more two to come soon (mlx5 and soft-Roce) would have the very same
-> > > logic of constructing the port GID table according to netdev events
-> > > and such, no point in repeating this logic/code over and over.
-> > >
-> > > Matan explained why we don't have 2 x Y deletions and 1 x Y insertion=
-s.
-> >=20
-> > It more than doubles the amount of code.  That's not a cleanup.  It int=
-roduces
-> > a bunch of new functionality.  Jason has asked repeatedly to remove the
-> > RoCEv2 code, and that has been ignored repeatedly.  As far as I'm conce=
-rned,
-> > this patch is not worth my time, and I will no longer even bother follo=
-wing
-> > this series.
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n the
-> > body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-> > http://vger.kernel.org/majordomo-info.html
+Should't call list_for_each_entry_rcu under a rwsem, this is just left over
+from the old locking regime...
 
+> > I think you've got the right basic idea for a cleanup series here. It
+> > is time to buckle down and execute it well.
+> 
+> Except that this isn't really a cleanup, and calling it that clouds the
+> issue.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+Well, I've been asking for a cleanup .. The entire goal is to make
+things more reviewable and a no-functional-change cleanup would sure
+help that..
 
+> it. But that's not the case.  The new core code implements everything
+> that the two drivers do, and then some more.
 
---=-k7/X6maUJHS7Eox2lE5k
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+I'd be interested to see a list of the 'some more' included in the
+patch comments, I didn't look with a fine toothed comb, but not much
+functional stood out to me...
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIbBAABCAAGBQJVePAyAAoJELgmozMOVy/dcskP9Raa86CHXjp+YDNsurdpQmoR
-7kWh90UAxydrnUB9IBJpNMO2uh1DXstA/z1DdxxpFgXDEGTLULwCHR90Qi2c0cAm
-GzT1spNd+/6yyr/Q9vqAjYmfvw4WksIGH3g7UFiggCz2b6pBUzEfJTHH9khIrEu3
-LunouYg55mmSSnQT/INYlVDFQg2CCtLlnpfUp0QRAooF9QB8qHrCPxNvYpPpUG6P
-qOmkOhJPPF39hzrUbr7nLtECxi+MNqldEZbHnVLLI/VHKntFEl4D5qPGtvh5r8Sa
-eBrz3H6cn8s3us1OXHfky8Kq81na3n72UAWOtttw/5TzeDTv1kDVYrD+dSnLLJQq
-RVh4WhPbgdUKMgp26SwOtN7ztXx+BNCHPwK0Rkss9zjkIkIzMxVrOTRANDLF4S3e
-bEgg5rNcnBWKeiqXm4OwYarYIReqQIQ41YNQBZGw+U/KkQwVTvDAgQ6gqrVkpZSg
-DoA1LmiKJy6Xz8o95OQMUFZmzr1rqE1YZ/VRVvOq/TjjtyndqW9u7R/AaL+8WuEc
-NuKCwmqEVCJ023ii+uIDKmctvXDXGuAqg3i7XF5g8GvMYQHUQSprJzRdRrGmtB2t
-GweY+fLr+xtMjVOXXbqkit47a0xm9p4XIwVQw1k9hG6At0a+8e/DqTvVzKKRxV0z
-/cxhnkiSMSgbB90Xwl8=
-=zNls
------END PGP SIGNATURE-----
-
---=-k7/X6maUJHS7Eox2lE5k--
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
