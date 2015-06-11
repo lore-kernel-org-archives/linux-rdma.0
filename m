@@ -1,30 +1,39 @@
-From: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
-Subject: Re: [PATCH v6 0/3] linux: address broken PAT drivers
-Date: Thu, 11 Jun 2015 22:07:28 +0200
-Message-ID: <20150611200728.GC23057@wotan.suse.de>
-References: <1434045002-31575-1-git-send-email-mcgrof@do-not-panic.com>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v5 1/1] ibacm: Add support for pathrecord query through
+ netlink
+Date: Thu, 11 Jun 2015 20:16:41 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E1109BDCF@CRSMSX101.amr.corp.intel.com>
+References: <1434042265-5066-1-git-send-email-kaike.wan@intel.com>
+ <20150611175940.GD20142@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1434045002-31575-1-git-send-email-mcgrof-3uybbJdB1yH774rrrx3eTA@public.gmane.org>
+In-Reply-To: <20150611175940.GD20142-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Luis R. Rodriguez" <mcgrof-3uybbJdB1yH774rrrx3eTA@public.gmane.org>
-Cc: bp-l3A5Bk7waGM@public.gmane.org, mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, luto-kltTT9wpgjJwATOyAt5JVQ@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 11, 2015 at 10:49:59AM -0700, Luis R. Rodriguez wrote:
-> From: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
+> On Thu, Jun 11, 2015 at 01:04:25PM -0400, kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> > +static int acm_nl_parse_path_attr(struct nlattr *attr,
+> > +				   struct acm_ep_addr_data *data)
 > 
-> Mauro,
+> > +	switch (attr->nla_type & NLA_TYPE_MASK) {
+> > +	default:
+> > +		acm_log(1, "WARN: unknown attr %x\n", attr->nla_type);
+> > +		ret = -1;
+> > +		break;
 > 
-> since the ivtv patch is already acked by the driver maintainer
-> and depends on an x86 symbol that went through Boris' tree are you
-> OK in it going through Boris' tree?
+> I would like to see a mandatory/optional scheme here.
+> 
+> For instance if we add SL it would be mandatory, but policy information like
+> requesting net_device would be optional.
 
-Sorry I resent v6 by mistake, will send the v7 with the fix you requested.
+Why would SL be mandatory?
 
- Luis
+Ira
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
