@@ -1,84 +1,63 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next V2 0/9] Add completion timestamping support
-Date: Wed, 10 Jun 2015 19:54:37 -0400
-Message-ID: <1433980477.71666.57.camel@redhat.com>
-References: <1433074457-26437-1-git-send-email-ogerlitz@mellanox.com>
-	 <1433098827.114391.179.camel@redhat.com>
-	 <CAAKD3BBo9A5AV9Uv-q1TgSQ6hs-oSUn5QsUT+5+6mk1RwW7AUA@mail.gmail.com>
-	 <1433157904.114391.188.camel@redhat.com>
-	 <20150601164322.GA14391@obsidianresearch.com>
-	 <1433255724.114391.225.camel@redhat.com>
-	 <20150602180844.GD17776@obsidianresearch.com>
-	 <1828884A29C6694DAF28B7E6B8A82373A8FE4F16@ORSMSX109.amr.corp.intel.com>
-	 <20150604164759.GC27699@obsidianresearch.com>
-	 <1828884A29C6694DAF28B7E6B8A82373A8FE4F98@ORSMSX109.amr.corp.intel.com>
-	 <alpine.DEB.2.11.1506060318570.29860@east.gentwo.org>
-	 <1828884A29C6694DAF28B7E6B8A82373A8FE5AB8@ORSMSX109.amr.corp.intel.com>
-	 <alpine.DEB.2.11.1506092018190.6681@east.gentwo.org>
-	 <5577F93F.9030405@mellanox.com>
+Subject: Re: [PATCH for-next V5 00/12] Move RoCE GID management to IB/Core
+Date: Wed, 10 Jun 2015 20:15:56 -0400
+Message-ID: <1433981756.71666.60.camel@redhat.com>
+References: <1433772735-22416-1-git-send-email-matanb@mellanox.com>
+	 <1828884A29C6694DAF28B7E6B8A82373A8FE5D17@ORSMSX109.amr.corp.intel.com>
+	 <55769561.8000300@mellanox.com> <5577FAFB.8020205@mellanox.com>
+	 <20150610150010.GA11243@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-Xw6l7QBzqloDBS5dfqEZ"
+	protocol="application/pgp-signature"; boundary="=-yX2g+izD9W7DQiax6Bui"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5577F93F.9030405-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20150610150010.GA11243-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-xCNTGe7nOvUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-Xw6l7QBzqloDBS5dfqEZ
+--=-yX2g+izD9W7DQiax6Bui
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2015-06-10 at 11:45 +0300, Or Gerlitz wrote:
-> On 6/10/2015 4:26 AM, Christoph Lameter wrote:
-> >> >I have no problem with a bare metal interface exposing this.  But pre=
-tendin=3D
-> >> >g that it's generic and that this is the one and only way that this c=
-ould b=3D
-> >> >e implemented doesn't make it so.
-> > This is a way it was implemented and its usable. Shooting for pie in th=
-e
-> > sky does not bring us anything. Nor ideas of requirements from a new
-> > experimental API that does not support the basic features that we need
-> > and seems to be on its way to mess up the latencies of access to RDMA o=
-perations.
+On Wed, 2015-06-10 at 09:00 -0600, Jason Gunthorpe wrote:
+> On Wed, Jun 10, 2015 at 11:53:15AM +0300, Or Gerlitz wrote:
 >=20
-> Doug,
+> > Jason, can you ack that this post addressed your comments?
 >=20
-> What's your maintainer say here?
+> Well, I asked for a cleanup series, multiple times, and this is the
+> closest things have got.
 >=20
-> The current proposal has:
->=20
-> 1. raw HCA clock completion generation time-stamp for CQEs
-> 2. HCA clock frequency in KHZ
-> 3. mask telling how many bits are relevant from the 64bit time-stamp
->=20
-> This is fairly simple, practical and very much usable to FSI=20
-> applications and users, and can be extended later if someone comes up=20
-> with better/other combination of the frequency/mask. Have a GO?
+> It isn't really a cleanup because the whole gid table is new code and
+> has latent elements for rocev2 - this is why it is so much bigger than
+> it should be.
 
-This is all related to the kernel <-> libibverbs interface.  In that
-regard, I'm fine with what we have here.
+I'm not sure the complexity here is "latent RoCEv2" stuff versus simple
+over-design.  I didn't see anything in the RoCEv2 that warranted this
+level of complexity either.
 
-To be more specific, the CQ creation flags and use of create_cq_ex and
-the extension of the query_device struct and use of extended query
-device are really the only user visible items here, and I'm OK with
-those.  None of these items are hot path items and structure growth with
-new fields is not the major item it is for the wc struct.
+Just to be clear, I'm currently reviewing the RCU usage here.  Jason has
+brought up specific issue, if I can't convince myself that his
+objections to the RCU usage are wrong, then I'm going to second his
+request that we go back to a more simplistic rwlock.
 
-Now, the change to the wc struct and the change to ibv_poll_cq are more
-important and still need some work to get to a final implementation IMO.
-But that work is all limited to libibverbs and doesn't impact this
-kernel patchset.
+> The other core parts have been mostly trimmed, so that is the specific
+> things discussed last round.
+>=20
+> Is it Ok to go ahead with the gid table as is? I don't know, I haven't
+> studied the patch in any detail. Technically, that is not best
+> practice for kernel development process.
+>=20
+> Jason
+
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
 
---=-Xw6l7QBzqloDBS5dfqEZ
+--=-yX2g+izD9W7DQiax6Bui
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -86,22 +65,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJVeM49AAoJELgmozMOVy/d2g4P/0LB4ICCaFkWNXJC1Qrjy3/5
-rB92FKaILk5GqoL96vdEfDFy5G694UI+Wjyl3dzK1Bj6b/a1JMWoKCTp2FmWoHDN
-ELsfFkvS32mLTI0885O0t3Xmdc0Cnz2KK41qQJO8g+xg57Nd0gOEKGswLFwB1aHj
-zInWPR7AsU+UDEZnoo1UK4u6hgCfjkiw4S+QkG5KXF+6wVtDxL3I/sfSv+kzAZ1J
-PpVuJtmdCLoKKHsODENOIVABXeX+2w8Fk0Hm8f/UOdDsDuC3RcG2sKeueS1sMNX7
-/B0n+XE2NqujlpKHI+7SV2tPosgsMsVs43SCcRdG5/I2XA59d7AE15UaXxOK1Uo7
-jhHMeIL47q5f+ATqsNcQgGEzBbdr7z4QkTYj0apbVdUSQJNkCxEAPZZiz+scJjBd
-m2PPPhg5CAxHgznsgt0S9RuxciL2jW379np+Fxoept5J8Om93JyKWEQW3ieK7MZo
-slA+aspTVFVhRQ/Gc2guajTOYH9Qxq84k38uMrwNeHo6/nIr5Z06Q2h1cGQtsT+F
-Y056JAZPNxyDDyHOZQiEUJV7EAZpTp+lrCSHWo4bCoc9fZDS+FnfwkDjFAKZ+u3B
-V5qYKX6MtmQFKwAO+d/BcdwMMOPzvu9ouRykezYbU5qXp1uip9X1PecRe9V/+6x7
-gUFGUNOTnRlMqBw7/OOc
-=nalC
+iQIcBAABCAAGBQJVeNM8AAoJELgmozMOVy/dFTYQALh5J/ZZzKaaN3stsjC1IO5u
+BBjGHQv53+j+xsy82FydkvhaOX3DF+N+sjLGREU7kKLkMRhOtjocHQxtAKfynycT
+1/8bOmUMlGQaUF/6Xx03Df+OveT/Z4hlkdUDej4+j0DPZTQ6BGZOmQ/Hr4WAyqTo
+wu+yKJyzLo7QEirqHSxLibQA9terH0D0Are654aY+xOG86/ILTCXGV9mH0vqCHzg
+qDBY7RIwok16aMW70dP0vJ2h3WoP0phwEwpeT/FnxAj7vlZWz5xs8r6u4sBoFHEc
+VsrdTrW558N+huMqJR3g5CfmOTQy2fXdkJfIrMCb0zEk9U/Pkkh5ynrX0iAFQ+JQ
+z6jB+LlBEZPzVnLqWfm1EgzI9TF+6ZjB9batOSV5dlltlgiC6b0IaJSqIKLEFbPG
+1LbYrX6sKP6hG72Uuk5KTl2HaEdxwoef7E5afx5f3TFx1+i9J1WIR+qul1M/pbm/
+wa2aB0otvz2Ly9FsgM/tPI9VaTI/OC3qKzLFG0TSyVnYt0VnaZWX+rrXnM/Vt/OT
+HR6/hrrENfJzyIfhEAeyMKE/ibqqjx4breAfwsylZWGaylsl7erI4XRw2P5NKNpt
+sEmU8HX+rqxG1zpKgz6SRGBLCgTCnIPwbNrTCitdJdJCWbF91vKybNT8DzY8E5zt
+aZLS0smrS88WTIdHPdpz
+=NQ7n
 -----END PGP SIGNATURE-----
 
---=-Xw6l7QBzqloDBS5dfqEZ--
+--=-yX2g+izD9W7DQiax6Bui--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
