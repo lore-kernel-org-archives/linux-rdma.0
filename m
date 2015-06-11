@@ -1,41 +1,53 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v4 4/4] IB/sa: Route SA pathrecord query through netlink
-Date: Thu, 11 Jun 2015 16:08:05 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E1109B94A@CRSMSX101.amr.corp.intel.com>
-References: <1433861837-26177-1-git-send-email-kaike.wan@intel.com>
- <1433861837-26177-5-git-send-email-kaike.wan@intel.com>
- <55787838.3020606@dev.mellanox.co.il>
- <20150610191026.GA28334@obsidianresearch.com>
- <5578955A.4070001@dev.mellanox.co.il>
- <2807E5FD2F6FDA4886F6618EAC48510E1109B14D@CRSMSX101.amr.corp.intel.com>
- <55797DF3.6050304@dev.mellanox.co.il>
- <3F128C9216C9B84BB6ED23EF16290AFB0CABD089@CRSMSX101.amr.corp.intel.com>
- <55798C31.5090600@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: clsoto-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
+Subject: [PATCH] IB/ucm: ib_ucm_release_dev clears wrong bit if devnum is greater than IB_UCM_MAX_DEVICES
+Date: Thu, 11 Jun 2015 11:06:41 -0500
+Message-ID: <1434038801-6513-1-git-send-email-clsoto@linux.vnet.ibm.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55798C31.5090600-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, brking-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Carol L Soto <clsoto-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> >> If user space PR capabilities (unicast, multicast, both) is
-> >> supported, it affects the API.
-> > How? If we can query SA for multicast PRs without joining the
-> > multicast groups, what additional changes in netlink API do we need to
-> support both?
-> 
-> Nothing to support both but if we wanted to disable one or other based on user
-> space we would but it sounds like we don't need/want this but would use user
-> space rejection/no data for this.
-> 
+From: Carol L Soto <clsoto-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 
-Yes I think we should allow userspace to decide if this is supported or not.  That allows for more flexibility.
+ib_ucm_release_dev clears wrong bit if devnum is greater than IB_UCM_MAX_DEVICES.
 
-Ira
+Signed-off-by: Carol L Soto <clsoto-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+---
+ drivers/infiniband/core/ucm.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
+index f2f6393..e2fd085 100644
+--- a/drivers/infiniband/core/ucm.c
++++ b/drivers/infiniband/core/ucm.c
+@@ -1193,6 +1193,7 @@ static int ib_ucm_close(struct inode *inode, struct file *filp)
+ 	return 0;
+ }
+ 
++static DECLARE_BITMAP(overflow_map, IB_UCM_MAX_DEVICES);
+ static void ib_ucm_release_dev(struct device *dev)
+ {
+ 	struct ib_ucm_device *ucm_dev;
+@@ -1202,7 +1203,7 @@ static void ib_ucm_release_dev(struct device *dev)
+ 	if (ucm_dev->devnum < IB_UCM_MAX_DEVICES)
+ 		clear_bit(ucm_dev->devnum, dev_map);
+ 	else
+-		clear_bit(ucm_dev->devnum - IB_UCM_MAX_DEVICES, dev_map);
++		clear_bit(ucm_dev->devnum - IB_UCM_MAX_DEVICES, overflow_map);
+ 	kfree(ucm_dev);
+ }
+ 
+@@ -1226,7 +1227,6 @@ static ssize_t show_ibdev(struct device *dev, struct device_attribute *attr,
+ static DEVICE_ATTR(ibdev, S_IRUGO, show_ibdev, NULL);
+ 
+ static dev_t overflow_maj;
+-static DECLARE_BITMAP(overflow_map, IB_UCM_MAX_DEVICES);
+ static int find_overflow_devnum(void)
+ {
+ 	int ret;
+-- 
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
