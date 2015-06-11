@@ -1,44 +1,54 @@
 From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Subject: [PATCH v6 0/3] linux: address broken PAT drivers
-Date: Thu, 11 Jun 2015 10:49:59 -0700
-Message-ID: <1434045002-31575-1-git-send-email-mcgrof@do-not-panic.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: [PATCH v6 2/3] IB/ipath: add counting for MTRR
+Date: Thu, 11 Jun 2015 10:50:01 -0700
+Message-ID: <1434045002-31575-3-git-send-email-mcgrof@do-not-panic.com>
+References: <1434045002-31575-1-git-send-email-mcgrof@do-not-panic.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1434045002-31575-1-git-send-email-mcgrof@do-not-panic.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: bp@suse.de
-Cc: mchehab@osg.samsung.com, tomi.valkeinen@ti.com, bhelgaas@google.com, luto@amacapital.net, linux-media@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@suse.com>
+Cc: mchehab@osg.samsung.com, tomi.valkeinen@ti.com, bhelgaas@google.com, luto@amacapital.net, linux-media@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@suse.com>, Toshi Kani <toshi.kani@hp.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Suresh Siddha <sbsiddha@gmail.com>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Juergen Gross <jgross@suse.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Dave Airlie <airlied@redhat.com>, Antonino Daplas <adaplas@gmail.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, infinipath@intel.com, linux-fbdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 From: "Luis R. Rodriguez" <mcgrof@suse.com>
 
-Mauro,
+There is no good reason not to, we eventually delete it as well.
 
-since the ivtv patch is already acked by the driver maintainer
-and depends on an x86 symbol that went through Boris' tree are you
-OK in it going through Boris' tree?
+Cc: Toshi Kani <toshi.kani@hp.com>
+Cc: Roland Dreier <roland@kernel.org>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Suresh Siddha <sbsiddha@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Dave Airlie <airlied@redhat.com>
+Cc: Antonino Daplas <adaplas@gmail.com>
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: infinipath@intel.com
+Cc: linux-rdma@vger.kernel.org
+Cc: linux-fbdev@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
+---
+ drivers/infiniband/hw/ipath/ipath_wc_x86_64.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Boris,
-
-provided the outcome of the above maintainer's preference for you
-to merge these please consider these patches for your tree. The
-maintainer path is the only thing pending for the 1 ivtv patch.
-The Infiniband subsystem maintainer, Doug, already provided his
-ACK for the ipath driver and for this to go through you.
-
-Luis R. Rodriguez (3):
-  ivtv: use arch_phys_wc_add() and require PAT disabled
-  IB/ipath: add counting for MTRR
-  IB/ipath: use arch_phys_wc_add() and require PAT disabled
-
- drivers/infiniband/hw/ipath/Kconfig           |  3 ++
- drivers/infiniband/hw/ipath/ipath_driver.c    | 18 ++++++---
- drivers/infiniband/hw/ipath/ipath_kernel.h    |  4 +-
- drivers/infiniband/hw/ipath/ipath_wc_x86_64.c | 43 +++++---------------
- drivers/media/pci/ivtv/Kconfig                |  3 ++
- drivers/media/pci/ivtv/ivtvfb.c               | 58 +++++++++++----------------
- 6 files changed, 52 insertions(+), 77 deletions(-)
-
+diff --git a/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c b/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
+index 4ad0b93..70c1f3a 100644
+--- a/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
++++ b/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
+@@ -127,7 +127,7 @@ int ipath_enable_wc(struct ipath_devdata *dd)
+ 			   "(addr %llx, len=0x%llx)\n",
+ 			   (unsigned long long) pioaddr,
+ 			   (unsigned long long) piolen);
+-		cookie = mtrr_add(pioaddr, piolen, MTRR_TYPE_WRCOMB, 0);
++		cookie = mtrr_add(pioaddr, piolen, MTRR_TYPE_WRCOMB, 1);
+ 		if (cookie < 0) {
+ 			{
+ 				dev_info(&dd->pcidev->dev,
 -- 
 2.3.2.209.gd67f9d5.dirty
