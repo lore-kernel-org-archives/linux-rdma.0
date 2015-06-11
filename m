@@ -1,91 +1,41 @@
-From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH for-next V5 00/12] Move RoCE GID management to IB/Core
-Date: Thu, 11 Jun 2015 13:15:44 +0300
-Message-ID: <CAAKD3BDizeKKKshdtbDAGhCCqh-=0tnNdLRxTMEjgV1M1T0Paw@mail.gmail.com>
-References: <1433772735-22416-1-git-send-email-matanb@mellanox.com>
-	<1828884A29C6694DAF28B7E6B8A82373A8FE5D17@ORSMSX109.amr.corp.intel.com>
-	<55769561.8000300@mellanox.com>
-	<5577FAFB.8020205@mellanox.com>
-	<20150610150010.GA11243@obsidianresearch.com>
-	<557852EE.5030107@mellanox.com>
-	<20150610184954.GA26404@obsidianresearch.com>
-	<1433984788.71666.78.camel@redhat.com>
-	<20150611035727.GA16599@obsidianresearch.com>
+From: Or Gerlitz <gerlitz.or@gmail.com>
+Subject: Re: [patch -next] net/mlx5_core: fix an error code
+Date: Thu, 11 Jun 2015 14:28:27 +0300
+Message-ID: <CAJ3xEMi4ZgFTG9OLNgN=81g56QWK-GCF790d3v=9rWHhMmqLvQ@mail.gmail.com>
+References: <20150611085001.GB27393@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150611035727.GA16599-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-iNbyuHi0droAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20150611085001.GB27393@mwanda>
+Sender: netdev-owner@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Eli Cohen <eli@mellanox.com>, Amir Vadai <amirv@mellanox.com>, Linux Netdev List <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, kernel-janitors@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>, Achiad Shochat <achiad@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 11, 2015 at 6:57 AM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Wed, Jun 10, 2015 at 09:06:28PM -0400, Doug Ledford wrote:
+On Thu, Jun 11, 2015 at 11:50 AM, Dan Carpenter
+<dan.carpenter@oracle.com> wrote:
+> We return success if mlx5e_alloc_sq_db() fails but we should return an
+> error code.
 >
->> People tend to push the "patches should be small, self contained,
->> incremental" ideal.  In some cases, that gets carried to an extreme.  In
->> this case, patch 1 introduces one side of the locking and patch 3 and 5
->> introduce the other halves.
+> Fixes: f62b8bb8f2d3 ('net/mlx5: Extend mlx5_core to support ConnectX-4 Ethernet functionality')
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 >
-> I already did spot check patches 3 and 5 for exactly that. They add
-> other uses of RCU, but they appear to be totally different -
-> objectional for style reasons, but probably not incorrect.
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> index 7348c51..075e517 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> @@ -525,7 +525,8 @@ static int mlx5e_create_sq(struct mlx5e_channel *c,
+>         sq->uar_map     = sq->uar.map;
+>         sq->bf_buf_size = (1 << MLX5_CAP_GEN(mdev, log_bf_reg_size)) / 2;
 >
-> For instance the rcu lock grabs in patch 3 and 5 are protecting the
-> call to netdev_master_upper_dev_get_rcu in patch 10. 'get_netdev' is
-> more correctly called 'get_netdev_rcu' in this design. (as I said, this
-> placement of rcu_read_lock is ugly).
+> -       if (mlx5e_alloc_sq_db(sq, cpu_to_node(c->cpu)))
+> +       err = mlx5e_alloc_sq_db(sq, cpu_to_node(c->cpu));
+> +       if (err)
+>                 goto err_sq_wq_destroy;
 >
+>         sq->txq = netdev_get_tx_queue(priv->netdev,
 
-Correct, get_netdev is assumed to be called under rcu.
-We'll switch to a version where the vendor calls dev_hold before it returns.
+Dan, nice catch, the team here just handed me the same fix, but you
+submitted 1st...
 
-> .. and just searching through the patches for 'rcu' to write this, I
-> noticed this:
->
-> +void ib_enum_roce_ports_of_netdev(roce_netdev_filter filter,
-> [..]
-> +       down_read(&lists_rwsem);
-> +       list_for_each_entry_rcu(dev, &device_list, core_list)
-> +            ib_dev_roce_ports_of_netdev(dev, filter, filter_cookie, cb,
-> +                                           cookie);
-> +       up_read(&lists_rwsem);
->
-> Should't call list_for_each_entry_rcu under a rwsem, this is just left over
-> from the old locking regime...
->
-
-Correct, thanks.
-
->> > I think you've got the right basic idea for a cleanup series here. It
->> > is time to buckle down and execute it well.
->>
->> Except that this isn't really a cleanup, and calling it that clouds the
->> issue.
->
-> Well, I've been asking for a cleanup .. The entire goal is to make
-> things more reviewable and a no-functional-change cleanup would sure
-> help that..
->
->> it. But that's not the case.  The new core code implements everything
->> that the two drivers do, and then some more.
->
-> I'd be interested to see a list of the 'some more' included in the
-> patch comments, I didn't look with a fine toothed comb, but not much
-> functional stood out to me...
->
-
-Functionality wise, it's on par with the mlx4 implementation -
-supports regular Ethernet device, bonding, vlans and default GIDs.
-
-> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Or Gerlitz <ogerlitz@mellanox.com>
