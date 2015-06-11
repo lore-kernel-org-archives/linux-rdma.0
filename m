@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 28/41] IB/hfi1: add routines for RC/UC
-Date: Thu, 11 Jun 2015 19:10:59 -0400
-Message-ID: <20150611231059.16479.58100.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH 32/41] IB/hfi1: add tracepoint debug routines
+Date: Thu, 11 Jun 2015 19:11:21 -0400
+Message-ID: <20150611231121.16479.94213.stgit@phlsvslse11.ph.intel.com>
 References: <20150611230710.16479.62955.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -37,16 +37,18 @@ Signed-off-by: Sanath Kumar <sanath.s.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.
 Signed-off-by: Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Vlad Danushevsky <vladimir.danusevsky-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/ruc.c |  944 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 944 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi1/ruc.c
+ drivers/infiniband/hw/hfi1/trace.c |  211 +++++
+ drivers/infiniband/hw/hfi1/trace.h | 1390 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 1601 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi1/trace.c
+ create mode 100644 drivers/infiniband/hw/hfi1/trace.h
 
-diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
+diff --git a/drivers/infiniband/hw/hfi1/trace.c b/drivers/infiniband/hw/hfi1/trace.c
 new file mode 100644
-index 0000000..1811e5e
+index 0000000..afbb212
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/ruc.c
-@@ -0,0 +1,944 @@
++++ b/drivers/infiniband/hw/hfi1/trace.c
+@@ -0,0 +1,211 @@
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -96,901 +98,1564 @@ index 0000000..1811e5e
 + * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + */
++#define CREATE_TRACE_POINTS
++#define HFI1_TRACE_DO_NOT_CREATE_INLINES
++#include "trace.h"
 +
-+#include <linux/spinlock.h>
++u8 ibhdr_exhdr_len(struct hfi1_ib_header *hdr)
++{
++	struct hfi1_other_headers *ohdr;
++	u8 opcode;
++	u8 lnh = (u8)(be16_to_cpu(hdr->lrh[0]) & 3);
++
++	if (lnh == HFI1_LRH_BTH)
++		ohdr = &hdr->u.oth;
++	else
++		ohdr = &hdr->u.l.oth;
++	opcode = be32_to_cpu(ohdr->bth[0]) >> 24;
++	return hdr_len_by_opcode[opcode] == 0 ?
++	       0 : hdr_len_by_opcode[opcode] - (12 + 8);
++}
++
++#define IMM_PRN  "imm %d"
++#define RETH_PRN "reth vaddr 0x%.16llx rkey 0x%.8x dlen 0x%.8x"
++#define AETH_PRN "aeth syn 0x%.2x msn 0x%.8x"
++#define DETH_PRN "deth qkey 0x%.8x sqpn 0x%.6x"
++#define ATOMICACKETH_PRN "origdata %lld"
++#define ATOMICETH_PRN "vaddr 0x%llx rkey 0x%.8x sdata %lld cdata %lld"
++
++#define OP(transport, op) IB_OPCODE_## transport ## _ ## op
++
++static u64 ib_u64_get(__be32 *p)
++{
++	return ((u64)be32_to_cpu(p[0]) << 32) | be32_to_cpu(p[1]);
++}
++
++const char *parse_everbs_hdrs(
++	struct trace_seq *p,
++	u8 opcode,
++	void *ehdrs)
++{
++	union ib_ehdrs *eh = ehdrs;
++	const char *ret = trace_seq_buffer_ptr(p);
++
++	switch (opcode) {
++	/* imm */
++	case OP(RC, SEND_LAST_WITH_IMMEDIATE):
++	case OP(UC, SEND_LAST_WITH_IMMEDIATE):
++	case OP(RC, SEND_ONLY_WITH_IMMEDIATE):
++	case OP(UC, SEND_ONLY_WITH_IMMEDIATE):
++	case OP(RC, RDMA_WRITE_LAST_WITH_IMMEDIATE):
++	case OP(UC, RDMA_WRITE_LAST_WITH_IMMEDIATE):
++		trace_seq_printf(p, IMM_PRN,
++			be32_to_cpu(eh->imm_data));
++		break;
++	/* reth + imm */
++	case OP(RC, RDMA_WRITE_ONLY_WITH_IMMEDIATE):
++	case OP(UC, RDMA_WRITE_ONLY_WITH_IMMEDIATE):
++		trace_seq_printf(p, RETH_PRN " " IMM_PRN,
++			(unsigned long long)ib_u64_get(
++				(__be32 *)&eh->rc.reth.vaddr),
++			be32_to_cpu(eh->rc.reth.rkey),
++			be32_to_cpu(eh->rc.reth.length),
++			be32_to_cpu(eh->rc.imm_data));
++		break;
++	/* reth */
++	case OP(RC, RDMA_READ_REQUEST):
++	case OP(RC, RDMA_WRITE_FIRST):
++	case OP(UC, RDMA_WRITE_FIRST):
++	case OP(RC, RDMA_WRITE_ONLY):
++	case OP(UC, RDMA_WRITE_ONLY):
++		trace_seq_printf(p, RETH_PRN,
++			(unsigned long long)ib_u64_get(
++				(__be32 *)&eh->rc.reth.vaddr),
++			be32_to_cpu(eh->rc.reth.rkey),
++			be32_to_cpu(eh->rc.reth.length));
++		break;
++	case OP(RC, RDMA_READ_RESPONSE_FIRST):
++	case OP(RC, RDMA_READ_RESPONSE_LAST):
++	case OP(RC, RDMA_READ_RESPONSE_ONLY):
++	case OP(RC, ACKNOWLEDGE):
++		trace_seq_printf(p, AETH_PRN,
++			be32_to_cpu(eh->aeth) >> 24,
++			be32_to_cpu(eh->aeth) & HFI1_QPN_MASK);
++		break;
++	/* aeth + atomicacketh */
++	case OP(RC, ATOMIC_ACKNOWLEDGE):
++		trace_seq_printf(p, AETH_PRN " " ATOMICACKETH_PRN,
++			(be32_to_cpu(eh->at.aeth) >> 24) & 0xff,
++			be32_to_cpu(eh->at.aeth) & HFI1_QPN_MASK,
++			(unsigned long long)ib_u64_get(eh->at.atomic_ack_eth));
++		break;
++	/* atomiceth */
++	case OP(RC, COMPARE_SWAP):
++	case OP(RC, FETCH_ADD):
++		trace_seq_printf(p, ATOMICETH_PRN,
++			(unsigned long long)ib_u64_get(eh->atomic_eth.vaddr),
++			eh->atomic_eth.rkey,
++			(unsigned long long)ib_u64_get(
++				(__be32 *)&eh->atomic_eth.swap_data),
++			(unsigned long long) ib_u64_get(
++				 (__be32 *)&eh->atomic_eth.compare_data));
++		break;
++	/* deth */
++	case OP(UD, SEND_ONLY):
++	case OP(UD, SEND_ONLY_WITH_IMMEDIATE):
++		trace_seq_printf(p, DETH_PRN,
++			be32_to_cpu(eh->ud.deth[0]),
++			be32_to_cpu(eh->ud.deth[1]) & HFI1_QPN_MASK);
++		break;
++	}
++	trace_seq_putc(p, 0);
++	return ret;
++}
++
++const char *parse_sdma_flags(
++	struct trace_seq *p,
++	u64 desc0, u64 desc1)
++{
++	const char *ret = trace_seq_buffer_ptr(p);
++	char flags[5] = { 'x', 'x', 'x', 'x', 0 };
++
++	flags[0] = (desc1 & SDMA_DESC1_INT_REQ_FLAG) ? 'I' : '-';
++	flags[1] = (desc1 & SDMA_DESC1_HEAD_TO_HOST_FLAG) ?  'H' : '-';
++	flags[2] = (desc0 & SDMA_DESC0_FIRST_DESC_FLAG) ? 'F' : '-';
++	flags[3] = (desc0 & SDMA_DESC0_LAST_DESC_FLAG) ? 'L' : '-';
++	trace_seq_printf(p, "%s", flags);
++	if (desc0 & SDMA_DESC0_FIRST_DESC_FLAG)
++		trace_seq_printf(p, " amode:%u aidx:%u alen:%u",
++			(u8)((desc1 >> SDMA_DESC1_HEADER_MODE_SHIFT)
++				& SDMA_DESC1_HEADER_MODE_MASK),
++			(u8)((desc1 >> SDMA_DESC1_HEADER_INDEX_SHIFT)
++				& SDMA_DESC1_HEADER_INDEX_MASK),
++			(u8)((desc1 >> SDMA_DESC1_HEADER_DWS_SHIFT)
++				& SDMA_DESC1_HEADER_DWS_MASK));
++	return ret;
++}
++
++const char *print_u32_array(
++	struct trace_seq *p,
++	u32 *arr, int len)
++{
++	int i;
++	const char *ret = trace_seq_buffer_ptr(p);
++
++	for (i = 0; i < len ; i++)
++		trace_seq_printf(p, "%s%#x", i == 0 ? "" : " ", arr[i]);
++	trace_seq_putc(p, 0);
++	return ret;
++}
++
++const char *print_u64_array(
++	struct trace_seq *p,
++	u64 *arr, int len)
++{
++	int i;
++	const char *ret = trace_seq_buffer_ptr(p);
++
++	for (i = 0; i < len; i++)
++		trace_seq_printf(p, "%s0x%016llx", i == 0 ? "" : " ", arr[i]);
++	trace_seq_putc(p, 0);
++	return ret;
++}
++
++#undef HFI1_TRACE_DO_NOT_CREATE_INLINES
+diff --git a/drivers/infiniband/hw/hfi1/trace.h b/drivers/infiniband/hw/hfi1/trace.h
+new file mode 100644
+index 0000000..84f8ad3
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi1/trace.h
+@@ -0,0 +1,1390 @@
++/*
++ *
++ * This file is provided under a dual BSD/GPLv2 license.  When using or
++ * redistributing this file, you may do so under either license.
++ *
++ * GPL LICENSE SUMMARY
++ *
++ * Copyright(c) 2015 Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * BSD LICENSE
++ *
++ * Copyright(c) 2015 Intel Corporation.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ *  - Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ *  - Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *  - Neither the name of Intel Corporation nor the names of its
++ *    contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ */
++#undef TRACE_SYSTEM_VAR
++#define TRACE_SYSTEM_VAR hfi1
++
++#if !defined(__HFI1_TRACE_H) || defined(TRACE_HEADER_MULTI_READ)
++#define __HFI1_TRACE_H
++
++#include <linux/tracepoint.h>
++#include <linux/trace_seq.h>
 +
 +#include "hfi.h"
 +#include "mad.h"
-+#include "qp.h"
 +#include "sdma.h"
 +
-+/*
-+ * Convert the AETH RNR timeout code into the number of microseconds.
-+ */
-+const u32 ib_hfi1_rnr_table[32] = {
-+	655360,	/* 00: 655.36 */
-+	10,	/* 01:    .01 */
-+	20,	/* 02     .02 */
-+	30,	/* 03:    .03 */
-+	40,	/* 04:    .04 */
-+	60,	/* 05:    .06 */
-+	80,	/* 06:    .08 */
-+	120,	/* 07:    .12 */
-+	160,	/* 08:    .16 */
-+	240,	/* 09:    .24 */
-+	320,	/* 0A:    .32 */
-+	480,	/* 0B:    .48 */
-+	640,	/* 0C:    .64 */
-+	960,	/* 0D:    .96 */
-+	1280,	/* 0E:   1.28 */
-+	1920,	/* 0F:   1.92 */
-+	2560,	/* 10:   2.56 */
-+	3840,	/* 11:   3.84 */
-+	5120,	/* 12:   5.12 */
-+	7680,	/* 13:   7.68 */
-+	10240,	/* 14:  10.24 */
-+	15360,	/* 15:  15.36 */
-+	20480,	/* 16:  20.48 */
-+	30720,	/* 17:  30.72 */
-+	40960,	/* 18:  40.96 */
-+	61440,	/* 19:  61.44 */
-+	81920,	/* 1A:  81.92 */
-+	122880,	/* 1B: 122.88 */
-+	163840,	/* 1C: 163.84 */
-+	245760,	/* 1D: 245.76 */
-+	327680,	/* 1E: 327.68 */
-+	491520	/* 1F: 491.52 */
-+};
++#define DD_DEV_ENTRY(dd)       __string(dev, dev_name(&(dd)->pcidev->dev))
++#define DD_DEV_ASSIGN(dd)      __assign_str(dev, dev_name(&(dd)->pcidev->dev))
 +
-+/*
-+ * Validate a RWQE and fill in the SGE state.
-+ * Return 1 if OK.
-+ */
-+static int init_sge(struct hfi1_qp *qp, struct hfi1_rwqe *wqe)
-+{
-+	int i, j, ret;
-+	struct ib_wc wc;
-+	struct hfi1_lkey_table *rkt;
-+	struct hfi1_pd *pd;
-+	struct hfi1_sge_state *ss;
++#define packettype_name(etype) { RHF_RCV_TYPE_##etype, #etype }
++#define show_packettype(etype)                  \
++__print_symbolic(etype,                         \
++	packettype_name(EXPECTED),              \
++	packettype_name(EAGER),                 \
++	packettype_name(IB),                    \
++	packettype_name(ERROR),                 \
++	packettype_name(BYPASS))
 +
-+	rkt = &to_idev(qp->ibqp.device)->lk_table;
-+	pd = to_ipd(qp->ibqp.srq ? qp->ibqp.srq->pd : qp->ibqp.pd);
-+	ss = &qp->r_sge;
-+	ss->sg_list = qp->r_sg_list;
-+	qp->r_len = 0;
-+	for (i = j = 0; i < wqe->num_sge; i++) {
-+		if (wqe->sg_list[i].length == 0)
-+			continue;
-+		/* Check LKEY */
-+		if (!hfi1_lkey_ok(rkt, pd, j ? &ss->sg_list[j - 1] : &ss->sge,
-+				  &wqe->sg_list[i], IB_ACCESS_LOCAL_WRITE))
-+			goto bad_lkey;
-+		qp->r_len += wqe->sg_list[i].length;
-+		j++;
-+	}
-+	ss->num_sge = j;
-+	ss->total_len = qp->r_len;
-+	ret = 1;
-+	goto bail;
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi1_rx
 +
-+bad_lkey:
-+	while (j) {
-+		struct hfi1_sge *sge = --j ? &ss->sg_list[j - 1] : &ss->sge;
++TRACE_EVENT(hfi1_rcvhdr,
++	TP_PROTO(struct hfi1_devdata *dd,
++		 u64 eflags,
++		 u32 ctxt,
++		 u32 etype,
++		 u32 hlen,
++		 u32 tlen,
++		 u32 updegr,
++		 u32 etail),
++	TP_ARGS(dd, ctxt, eflags, etype, hlen, tlen, updegr, etail),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(dd)
++		__field(u64, eflags)
++		__field(u32, ctxt)
++		__field(u32, etype)
++		__field(u32, hlen)
++		__field(u32, tlen)
++		__field(u32, updegr)
++		__field(u32, etail)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(dd);
++		__entry->eflags = eflags;
++		__entry->ctxt = ctxt;
++		__entry->etype = etype;
++		__entry->hlen = hlen;
++		__entry->tlen = tlen;
++		__entry->updegr = updegr;
++		__entry->etail = etail;
++	),
++	TP_printk(
++"[%s] ctxt %d eflags 0x%llx etype %d,%s hlen %d tlen %d updegr %d etail %d",
++		__get_str(dev),
++		__entry->ctxt,
++		__entry->eflags,
++		__entry->etype, show_packettype(__entry->etype),
++		__entry->hlen,
++		__entry->tlen,
++		__entry->updegr,
++		__entry->etail
++	)
++);
 +
-+		hfi1_put_mr(sge->mr);
-+	}
-+	ss->num_sge = 0;
-+	memset(&wc, 0, sizeof(wc));
-+	wc.wr_id = wqe->wr_id;
-+	wc.status = IB_WC_LOC_PROT_ERR;
-+	wc.opcode = IB_WC_RECV;
-+	wc.qp = &qp->ibqp;
-+	/* Signal solicited completion event. */
-+	hfi1_cq_enter(to_icq(qp->ibqp.recv_cq), &wc, 1);
-+	ret = 0;
-+bail:
-+	return ret;
-+}
++TRACE_EVENT(hfi1_receive_interrupt,
++	TP_PROTO(struct hfi1_devdata *dd, u32 ctxt),
++	TP_ARGS(dd, ctxt),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(dd)
++		__field(u32, ctxt)
++		__field(u8, slow_path)
++		__field(u8, dma_rtail)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(dd);
++		__entry->ctxt = ctxt;
++		if (dd->rcd[ctxt]->do_interrupt ==
++		    &handle_receive_interrupt) {
++			__entry->slow_path = 1;
++			__entry->dma_rtail = 0xFF;
++		} else if (dd->rcd[ctxt]->do_interrupt ==
++			&handle_receive_interrupt_dma_rtail){
++			__entry->dma_rtail = 1;
++			__entry->slow_path = 0;
++		} else if (dd->rcd[ctxt]->do_interrupt ==
++			 &handle_receive_interrupt_nodma_rtail) {
++			__entry->dma_rtail = 0;
++			__entry->slow_path = 0;
++		}
++	),
++	TP_printk(
++		"[%s] ctxt %d SlowPath: %d DmaRtail: %d",
++		__get_str(dev),
++		__entry->ctxt,
++		__entry->slow_path,
++		__entry->dma_rtail
++	)
++);
 +
-+/**
-+ * hfi1_get_rwqe - copy the next RWQE into the QP's RWQE
-+ * @qp: the QP
-+ * @wr_id_only: update qp->r_wr_id only, not qp->r_sge
-+ *
-+ * Return -1 if there is a local error, 0 if no RWQE is available,
-+ * otherwise return 1.
-+ *
-+ * Can be called from interrupt level.
-+ */
-+int hfi1_get_rwqe(struct hfi1_qp *qp, int wr_id_only)
-+{
-+	unsigned long flags;
-+	struct hfi1_rq *rq;
-+	struct hfi1_rwq *wq;
-+	struct hfi1_srq *srq;
-+	struct hfi1_rwqe *wqe;
-+	void (*handler)(struct ib_event *, void *);
-+	u32 tail;
-+	int ret;
++const char *print_u64_array(struct trace_seq *, u64 *, int);
 +
-+	if (qp->ibqp.srq) {
-+		srq = to_isrq(qp->ibqp.srq);
-+		handler = srq->ibsrq.event_handler;
-+		rq = &srq->rq;
-+	} else {
-+		srq = NULL;
-+		handler = NULL;
-+		rq = &qp->r_rq;
-+	}
++TRACE_EVENT(hfi1_exp_tid_map,
++	    TP_PROTO(unsigned ctxt, u16 subctxt, int dir,
++		     unsigned long *maps, u16 count),
++	    TP_ARGS(ctxt, subctxt, dir, maps, count),
++	    TP_STRUCT__entry(
++		    __field(unsigned, ctxt)
++		    __field(u16, subctxt)
++		    __field(int, dir)
++		    __field(u16, count)
++		    __dynamic_array(unsigned long, maps, sizeof(*maps) * count)
++		    ),
++	    TP_fast_assign(
++		    __entry->ctxt = ctxt;
++		    __entry->subctxt = subctxt;
++		    __entry->dir = dir;
++		    __entry->count = count;
++		    memcpy(__get_dynamic_array(maps), maps,
++			   sizeof(*maps) * count);
++		    ),
++	    TP_printk("[%3u:%02u] %s tidmaps %s",
++		      __entry->ctxt,
++		      __entry->subctxt,
++		      (__entry->dir ? ">" : "<"),
++		      print_u64_array(p, __get_dynamic_array(maps),
++				      __entry->count)
++		    )
++	);
 +
-+	spin_lock_irqsave(&rq->lock, flags);
-+	if (!(ib_hfi1_state_ops[qp->state] & HFI1_PROCESS_RECV_OK)) {
-+		ret = 0;
-+		goto unlock;
-+	}
++TRACE_EVENT(hfi1_exp_rcv_set,
++	    TP_PROTO(unsigned ctxt, u16 subctxt, u32 tid,
++		     unsigned long vaddr, u64 phys_addr, void *page),
++	    TP_ARGS(ctxt, subctxt, tid, vaddr, phys_addr, page),
++	    TP_STRUCT__entry(
++		    __field(unsigned, ctxt)
++		    __field(u16, subctxt)
++		    __field(u32, tid)
++		    __field(unsigned long, vaddr)
++		    __field(u64, phys_addr)
++		    __field(void *, page)
++		    ),
++	    TP_fast_assign(
++		    __entry->ctxt = ctxt;
++		    __entry->subctxt = subctxt;
++		    __entry->tid = tid;
++		    __entry->vaddr = vaddr;
++		    __entry->phys_addr = phys_addr;
++		    __entry->page = page;
++		    ),
++	    TP_printk("[%u:%u] TID %u, vaddrs 0x%lx, physaddr 0x%llx, pgp %p",
++		      __entry->ctxt,
++		      __entry->subctxt,
++		      __entry->tid,
++		      __entry->vaddr,
++		      __entry->phys_addr,
++		      __entry->page
++		    )
++	);
 +
-+	wq = rq->wq;
-+	tail = wq->tail;
-+	/* Validate tail before using it since it is user writable. */
-+	if (tail >= rq->size)
-+		tail = 0;
-+	if (unlikely(tail == wq->head)) {
-+		ret = 0;
-+		goto unlock;
-+	}
-+	/* Make sure entry is read after head index is read. */
-+	smp_rmb();
-+	wqe = get_rwqe_ptr(rq, tail);
-+	/*
-+	 * Even though we update the tail index in memory, the verbs
-+	 * consumer is not supposed to post more entries until a
-+	 * completion is generated.
-+	 */
-+	if (++tail >= rq->size)
-+		tail = 0;
-+	wq->tail = tail;
-+	if (!wr_id_only && !init_sge(qp, wqe)) {
-+		ret = -1;
-+		goto unlock;
-+	}
-+	qp->r_wr_id = wqe->wr_id;
++TRACE_EVENT(hfi1_exp_rcv_free,
++	    TP_PROTO(unsigned ctxt, u16 subctxt, u32 tid,
++		     unsigned long phys, void *page),
++	    TP_ARGS(ctxt, subctxt, tid, phys, page),
++	    TP_STRUCT__entry(
++		    __field(unsigned, ctxt)
++		    __field(u16, subctxt)
++		    __field(u32, tid)
++		    __field(unsigned long, phys)
++		    __field(void *, page)
++		    ),
++	    TP_fast_assign(
++		    __entry->ctxt = ctxt;
++		    __entry->subctxt = subctxt;
++		    __entry->tid = tid;
++		    __entry->phys = phys;
++		    __entry->page = page;
++		    ),
++	    TP_printk("[%u:%u] freeing TID %u, 0x%lx, pgp %p",
++		      __entry->ctxt,
++		      __entry->subctxt,
++		      __entry->tid,
++		      __entry->phys,
++		      __entry->page
++		    )
++	);
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi1_tx
 +
-+	ret = 1;
-+	set_bit(HFI1_R_WRID_VALID, &qp->r_aflags);
-+	if (handler) {
-+		u32 n;
++TRACE_EVENT(hfi1_piofree,
++	TP_PROTO(struct send_context *sc, int extra),
++	TP_ARGS(sc, extra),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(sc->dd)
++		__field(u32, sw_index)
++		__field(u32, hw_context)
++		__field(int, extra)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(sc->dd);
++		__entry->sw_index = sc->sw_index;
++		__entry->hw_context = sc->hw_context;
++		__entry->extra = extra;
++	),
++	TP_printk(
++		"[%s] ctxt %u(%u) extra %d",
++		__get_str(dev),
++		__entry->sw_index,
++		__entry->hw_context,
++		__entry->extra
++	)
++);
 +
-+		/*
-+		 * Validate head pointer value and compute
-+		 * the number of remaining WQEs.
-+		 */
-+		n = wq->head;
-+		if (n >= rq->size)
-+			n = 0;
-+		if (n < tail)
-+			n += rq->size - tail;
++TRACE_EVENT(hfi1_wantpiointr,
++	TP_PROTO(struct send_context *sc, u32 needint, u64 credit_ctrl),
++	TP_ARGS(sc, needint, credit_ctrl),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(sc->dd)
++		__field(u32, sw_index)
++		__field(u32, hw_context)
++		__field(u32, needint)
++		__field(u64, credit_ctrl)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(sc->dd);
++		__entry->sw_index = sc->sw_index;
++		__entry->hw_context = sc->hw_context;
++		__entry->needint = needint;
++		__entry->credit_ctrl = credit_ctrl;
++	),
++	TP_printk(
++		"[%s] ctxt %u(%u) on %d credit_ctrl 0x%llx",
++		__get_str(dev),
++		__entry->sw_index,
++		__entry->hw_context,
++		__entry->needint,
++		(unsigned long long)__entry->credit_ctrl
++	)
++);
++
++DECLARE_EVENT_CLASS(hfi1_qpsleepwakeup_template,
++	TP_PROTO(struct hfi1_qp *qp, u32 flags),
++	TP_ARGS(qp, flags),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++		__field(u32, qpn)
++		__field(u32, flags)
++		__field(u32, s_flags)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device))
++		__entry->flags = flags;
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->s_flags = qp->s_flags;
++	),
++	TP_printk(
++		"[%s] qpn 0x%x flags 0x%x s_flags 0x%x",
++		__get_str(dev),
++		__entry->qpn,
++		__entry->flags,
++		__entry->s_flags
++	)
++);
++
++DEFINE_EVENT(hfi1_qpsleepwakeup_template, hfi1_qpwakeup,
++	     TP_PROTO(struct hfi1_qp *qp, u32 flags),
++	     TP_ARGS(qp, flags));
++
++DEFINE_EVENT(hfi1_qpsleepwakeup_template, hfi1_qpsleep,
++	     TP_PROTO(struct hfi1_qp *qp, u32 flags),
++	     TP_ARGS(qp, flags));
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi1_ibhdrs
++
++u8 ibhdr_exhdr_len(struct hfi1_ib_header *hdr);
++const char *parse_everbs_hdrs(
++	struct trace_seq *p,
++	u8 opcode,
++	void *ehdrs);
++
++#define __parse_ib_ehdrs(op, ehdrs) parse_everbs_hdrs(p, op, ehdrs)
++
++const char *parse_sdma_flags(
++	struct trace_seq *p,
++	u64 desc0, u64 desc1);
++
++#define __parse_sdma_flags(desc0, desc1) parse_sdma_flags(p, desc0, desc1)
++
++
++#define lrh_name(lrh) { HFI1_##lrh, #lrh }
++#define show_lnh(lrh)                    \
++__print_symbolic(lrh,                    \
++	lrh_name(LRH_BTH),               \
++	lrh_name(LRH_GRH))
++
++#define ib_opcode_name(opcode) { IB_OPCODE_##opcode, #opcode  }
++#define show_ib_opcode(opcode)                             \
++__print_symbolic(opcode,                                   \
++	ib_opcode_name(RC_SEND_FIRST),                     \
++	ib_opcode_name(RC_SEND_MIDDLE),                    \
++	ib_opcode_name(RC_SEND_LAST),                      \
++	ib_opcode_name(RC_SEND_LAST_WITH_IMMEDIATE),       \
++	ib_opcode_name(RC_SEND_ONLY),                      \
++	ib_opcode_name(RC_SEND_ONLY_WITH_IMMEDIATE),       \
++	ib_opcode_name(RC_RDMA_WRITE_FIRST),               \
++	ib_opcode_name(RC_RDMA_WRITE_MIDDLE),              \
++	ib_opcode_name(RC_RDMA_WRITE_LAST),                \
++	ib_opcode_name(RC_RDMA_WRITE_LAST_WITH_IMMEDIATE), \
++	ib_opcode_name(RC_RDMA_WRITE_ONLY),                \
++	ib_opcode_name(RC_RDMA_WRITE_ONLY_WITH_IMMEDIATE), \
++	ib_opcode_name(RC_RDMA_READ_REQUEST),              \
++	ib_opcode_name(RC_RDMA_READ_RESPONSE_FIRST),       \
++	ib_opcode_name(RC_RDMA_READ_RESPONSE_MIDDLE),      \
++	ib_opcode_name(RC_RDMA_READ_RESPONSE_LAST),        \
++	ib_opcode_name(RC_RDMA_READ_RESPONSE_ONLY),        \
++	ib_opcode_name(RC_ACKNOWLEDGE),                    \
++	ib_opcode_name(RC_ATOMIC_ACKNOWLEDGE),             \
++	ib_opcode_name(RC_COMPARE_SWAP),                   \
++	ib_opcode_name(RC_FETCH_ADD),                      \
++	ib_opcode_name(UC_SEND_FIRST),                     \
++	ib_opcode_name(UC_SEND_MIDDLE),                    \
++	ib_opcode_name(UC_SEND_LAST),                      \
++	ib_opcode_name(UC_SEND_LAST_WITH_IMMEDIATE),       \
++	ib_opcode_name(UC_SEND_ONLY),                      \
++	ib_opcode_name(UC_SEND_ONLY_WITH_IMMEDIATE),       \
++	ib_opcode_name(UC_RDMA_WRITE_FIRST),               \
++	ib_opcode_name(UC_RDMA_WRITE_MIDDLE),              \
++	ib_opcode_name(UC_RDMA_WRITE_LAST),                \
++	ib_opcode_name(UC_RDMA_WRITE_LAST_WITH_IMMEDIATE), \
++	ib_opcode_name(UC_RDMA_WRITE_ONLY),                \
++	ib_opcode_name(UC_RDMA_WRITE_ONLY_WITH_IMMEDIATE), \
++	ib_opcode_name(UD_SEND_ONLY),                      \
++	ib_opcode_name(UD_SEND_ONLY_WITH_IMMEDIATE))
++
++
++#define LRH_PRN "vl %d lver %d sl %d lnh %d,%s dlid %.4x len %d slid %.4x"
++#define BTH_PRN \
++	"op 0x%.2x,%s se %d m %d pad %d tver %d pkey 0x%.4x " \
++	"f %d b %d qpn 0x%.6x a %d psn 0x%.8x"
++#define EHDR_PRN "%s"
++
++DECLARE_EVENT_CLASS(hfi1_ibhdr_template,
++	TP_PROTO(struct hfi1_devdata *dd,
++		 struct hfi1_ib_header *hdr),
++	TP_ARGS(dd, hdr),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(dd)
++		/* LRH */
++		__field(u8, vl)
++		__field(u8, lver)
++		__field(u8, sl)
++		__field(u8, lnh)
++		__field(u16, dlid)
++		__field(u16, len)
++		__field(u16, slid)
++		/* BTH */
++		__field(u8, opcode)
++		__field(u8, se)
++		__field(u8, m)
++		__field(u8, pad)
++		__field(u8, tver)
++		__field(u16, pkey)
++		__field(u8, f)
++		__field(u8, b)
++		__field(u32, qpn)
++		__field(u8, a)
++		__field(u32, psn)
++		/* extended headers */
++		__dynamic_array(u8, ehdrs, ibhdr_exhdr_len(hdr))
++	),
++	TP_fast_assign(
++		struct hfi1_other_headers *ohdr;
++
++		DD_DEV_ASSIGN(dd);
++		/* LRH */
++		__entry->vl =
++			(u8)(be16_to_cpu(hdr->lrh[0]) >> 12);
++		__entry->lver =
++			(u8)(be16_to_cpu(hdr->lrh[0]) >> 8) & 0xf;
++		__entry->sl =
++			(u8)(be16_to_cpu(hdr->lrh[0] >> 4) & 0xf);
++		__entry->lnh =
++			(u8)(be16_to_cpu(hdr->lrh[0]) & 3);
++		__entry->dlid =
++			be16_to_cpu(hdr->lrh[1]);
++		/* allow for larger len */
++		__entry->len =
++			be16_to_cpu(hdr->lrh[2]);
++		__entry->slid =
++			be16_to_cpu(hdr->lrh[3]);
++		/* BTH */
++		if (__entry->lnh == HFI1_LRH_BTH)
++			ohdr = &hdr->u.oth;
 +		else
-+			n -= tail;
-+		if (n < srq->limit) {
-+			struct ib_event ev;
++			ohdr = &hdr->u.l.oth;
++		__entry->opcode =
++			(be32_to_cpu(ohdr->bth[0]) >> 24) & 0xff;
++		__entry->se =
++			(be32_to_cpu(ohdr->bth[0]) >> 23) & 1;
++		__entry->m =
++			 (be32_to_cpu(ohdr->bth[0]) >> 22) & 1;
++		__entry->pad =
++			(be32_to_cpu(ohdr->bth[0]) >> 20) & 3;
++		__entry->tver =
++			(be32_to_cpu(ohdr->bth[0]) >> 16) & 0xf;
++		__entry->pkey =
++			be32_to_cpu(ohdr->bth[0]) & 0xffff;
++		__entry->f =
++			(be32_to_cpu(ohdr->bth[1]) >> HFI1_FECN_SHIFT)
++			& HFI1_FECN_MASK;
++		__entry->b =
++			(be32_to_cpu(ohdr->bth[1]) >> HFI1_BECN_SHIFT)
++			& HFI1_BECN_MASK;
++		__entry->qpn =
++			be32_to_cpu(ohdr->bth[1]) & HFI1_QPN_MASK;
++		__entry->a =
++			(be32_to_cpu(ohdr->bth[2]) >> 31) & 1;
++		/* allow for larger PSN */
++		__entry->psn =
++			be32_to_cpu(ohdr->bth[2]) & 0x7fffffff;
++		/* extended headers */
++		 memcpy(
++			__get_dynamic_array(ehdrs),
++			&ohdr->u,
++			ibhdr_exhdr_len(hdr));
++	),
++	TP_printk("[%s] " LRH_PRN " " BTH_PRN " " EHDR_PRN,
++		__get_str(dev),
++		/* LRH */
++		__entry->vl,
++		__entry->lver,
++		__entry->sl,
++		__entry->lnh, show_lnh(__entry->lnh),
++		__entry->dlid,
++		__entry->len,
++		__entry->slid,
++		/* BTH */
++		__entry->opcode, show_ib_opcode(__entry->opcode),
++		__entry->se,
++		__entry->m,
++		__entry->pad,
++		__entry->tver,
++		__entry->pkey,
++		__entry->f,
++		__entry->b,
++		__entry->qpn,
++		__entry->a,
++		__entry->psn,
++		/* extended headers */
++		__parse_ib_ehdrs(
++			__entry->opcode,
++			(void *)__get_dynamic_array(ehdrs))
++	)
++);
 +
-+			srq->limit = 0;
-+			spin_unlock_irqrestore(&rq->lock, flags);
-+			ev.device = qp->ibqp.device;
-+			ev.element.srq = qp->ibqp.srq;
-+			ev.event = IB_EVENT_SRQ_LIMIT_REACHED;
-+			handler(&ev, srq->ibsrq.srq_context);
-+			goto bail;
-+		}
-+	}
-+unlock:
-+	spin_unlock_irqrestore(&rq->lock, flags);
-+bail:
-+	return ret;
-+}
++DEFINE_EVENT(hfi1_ibhdr_template, input_ibhdr,
++	     TP_PROTO(struct hfi1_devdata *dd, struct hfi1_ib_header *hdr),
++	     TP_ARGS(dd, hdr));
 +
-+/*
-+ * Switch to alternate path.
-+ * The QP s_lock should be held and interrupts disabled.
-+ */
-+void hfi1_migrate_qp(struct hfi1_qp *qp)
-+{
-+	struct ib_event ev;
++DEFINE_EVENT(hfi1_ibhdr_template, output_ibhdr,
++	     TP_PROTO(struct hfi1_devdata *dd, struct hfi1_ib_header *hdr),
++	     TP_ARGS(dd, hdr));
 +
-+	qp->s_mig_state = IB_MIG_MIGRATED;
-+	qp->remote_ah_attr = qp->alt_ah_attr;
-+	qp->port_num = qp->alt_ah_attr.port_num;
-+	qp->s_pkey_index = qp->s_alt_pkey_index;
-+	qp->s_flags |= HFI1_S_AHG_CLEAR;
++#define SNOOP_PRN \
++	"slid %.4x dlid %.4x qpn 0x%.6x opcode 0x%.2x,%s " \
++	"svc lvl %d pkey 0x%.4x [header = %d bytes] [data = %d bytes]"
 +
-+	ev.device = qp->ibqp.device;
-+	ev.element.qp = &qp->ibqp;
-+	ev.event = IB_EVENT_PATH_MIG;
-+	qp->ibqp.event_handler(&ev, qp->ibqp.qp_context);
-+}
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi1_snoop
 +
-+static __be64 get_sguid(struct hfi1_ibport *ibp, unsigned index)
-+{
-+	if (!index) {
-+		struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
 +
-+		return ppd->guid;
-+	}
-+	return ibp->guids[index - 1];
-+}
++TRACE_EVENT(snoop_capture,
++	TP_PROTO(struct hfi1_devdata *dd,
++		 int hdr_len,
++		 struct hfi1_ib_header *hdr,
++		 int data_len,
++		 void *data),
++	TP_ARGS(dd, hdr_len, hdr, data_len, data),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(dd)
++		__field(u16, slid)
++		__field(u16, dlid)
++		__field(u32, qpn)
++		__field(u8, opcode)
++		__field(u8, sl)
++		__field(u16, pkey)
++		__field(u32, hdr_len)
++		__field(u32, data_len)
++		__field(u8, lnh)
++		__dynamic_array(u8, raw_hdr, hdr_len)
++		__dynamic_array(u8, raw_pkt, data_len)
++	),
++	TP_fast_assign(
++		struct hfi1_other_headers *ohdr;
 +
-+static int gid_ok(union ib_gid *gid, __be64 gid_prefix, __be64 id)
-+{
-+	return (gid->global.interface_id == id &&
-+		(gid->global.subnet_prefix == gid_prefix ||
-+		 gid->global.subnet_prefix == IB_DEFAULT_GID_PREFIX));
-+}
-+
-+/*
-+ *
-+ * This should be called with the QP r_lock held.
-+ *
-+ * The s_lock will be acquired around the hfi1_migrate_qp() call.
-+ */
-+int hfi1_ruc_check_hdr(struct hfi1_ibport *ibp, struct hfi1_ib_header *hdr,
-+		       int has_grh, struct hfi1_qp *qp, u32 bth0)
-+{
-+	__be64 guid;
-+	unsigned long flags;
-+	u8 sc5 = ibp->sl_to_sc[qp->remote_ah_attr.sl];
-+
-+	if (qp->s_mig_state == IB_MIG_ARMED && (bth0 & IB_BTH_MIG_REQ)) {
-+		if (!has_grh) {
-+			if (qp->alt_ah_attr.ah_flags & IB_AH_GRH)
-+				goto err;
-+		} else {
-+			if (!(qp->alt_ah_attr.ah_flags & IB_AH_GRH))
-+				goto err;
-+			guid = get_sguid(ibp, qp->alt_ah_attr.grh.sgid_index);
-+			if (!gid_ok(&hdr->u.l.grh.dgid, ibp->gid_prefix, guid))
-+				goto err;
-+			if (!gid_ok(&hdr->u.l.grh.sgid,
-+			    qp->alt_ah_attr.grh.dgid.global.subnet_prefix,
-+			    qp->alt_ah_attr.grh.dgid.global.interface_id))
-+				goto err;
-+		}
-+		if (unlikely(ingress_pkey_check(ppd_from_ibp(ibp), (u16)bth0,
-+						sc5, qp->s_alt_pkey_index,
-+						be16_to_cpu(hdr->lrh[3])))) {
-+			hfi1_bad_pqkey(ibp, IB_NOTICE_TRAP_BAD_PKEY,
-+				       (u16)bth0,
-+				       (be16_to_cpu(hdr->lrh[0]) >> 4) & 0xF,
-+				       0, qp->ibqp.qp_num,
-+				       hdr->lrh[3], hdr->lrh[1]);
-+			goto err;
-+		}
-+		/* Validate the SLID. See Ch. 9.6.1.5 and 17.2.8 */
-+		if (be16_to_cpu(hdr->lrh[3]) != qp->alt_ah_attr.dlid ||
-+		    ppd_from_ibp(ibp)->port != qp->alt_ah_attr.port_num)
-+			goto err;
-+		spin_lock_irqsave(&qp->s_lock, flags);
-+		hfi1_migrate_qp(qp);
-+		spin_unlock_irqrestore(&qp->s_lock, flags);
-+	} else {
-+		if (!has_grh) {
-+			if (qp->remote_ah_attr.ah_flags & IB_AH_GRH)
-+				goto err;
-+		} else {
-+			if (!(qp->remote_ah_attr.ah_flags & IB_AH_GRH))
-+				goto err;
-+			guid = get_sguid(ibp,
-+					 qp->remote_ah_attr.grh.sgid_index);
-+			if (!gid_ok(&hdr->u.l.grh.dgid, ibp->gid_prefix, guid))
-+				goto err;
-+			if (!gid_ok(&hdr->u.l.grh.sgid,
-+			    qp->remote_ah_attr.grh.dgid.global.subnet_prefix,
-+			    qp->remote_ah_attr.grh.dgid.global.interface_id))
-+				goto err;
-+		}
-+		if (unlikely(ingress_pkey_check(ppd_from_ibp(ibp), (u16)bth0,
-+						sc5, qp->s_pkey_index,
-+						be16_to_cpu(hdr->lrh[3])))) {
-+			hfi1_bad_pqkey(ibp, IB_NOTICE_TRAP_BAD_PKEY,
-+				       (u16)bth0,
-+				       (be16_to_cpu(hdr->lrh[0]) >> 4) & 0xF,
-+				       0, qp->ibqp.qp_num,
-+				       hdr->lrh[3], hdr->lrh[1]);
-+			goto err;
-+		}
-+		/* Validate the SLID. See Ch. 9.6.1.5 */
-+		if (be16_to_cpu(hdr->lrh[3]) != qp->remote_ah_attr.dlid ||
-+		    ppd_from_ibp(ibp)->port != qp->port_num)
-+			goto err;
-+		if (qp->s_mig_state == IB_MIG_REARM &&
-+		    !(bth0 & IB_BTH_MIG_REQ))
-+			qp->s_mig_state = IB_MIG_ARMED;
-+	}
-+
-+	return 0;
-+
-+err:
-+	return 1;
-+}
-+
-+/**
-+ * ruc_loopback - handle UC and RC loopback requests
-+ * @sqp: the sending QP
-+ *
-+ * This is called from hfi1_do_send() to
-+ * forward a WQE addressed to the same HCA.
-+ * Note that although we are single threaded due to the tasklet, we still
-+ * have to protect against post_send().  We don't have to worry about
-+ * receive interrupts since this is a connected protocol and all packets
-+ * will pass through here.
-+ */
-+static void ruc_loopback(struct hfi1_qp *sqp)
-+{
-+	struct hfi1_ibport *ibp = to_iport(sqp->ibqp.device, sqp->port_num);
-+	struct hfi1_qp *qp;
-+	struct hfi1_swqe *wqe;
-+	struct hfi1_sge *sge;
-+	unsigned long flags;
-+	struct ib_wc wc;
-+	u64 sdata;
-+	atomic64_t *maddr;
-+	enum ib_wc_status send_status;
-+	int release;
-+	int ret;
-+
-+	/*
-+	 * Note that we check the responder QP state after
-+	 * checking the requester's state.
-+	 */
-+	qp = hfi1_lookup_qpn(ibp, sqp->remote_qpn);
-+
-+	spin_lock_irqsave(&sqp->s_lock, flags);
-+
-+	/* Return if we are already busy processing a work request. */
-+	if ((sqp->s_flags & (HFI1_S_BUSY | HFI1_S_ANY_WAIT)) ||
-+	    !(ib_hfi1_state_ops[sqp->state] & HFI1_PROCESS_OR_FLUSH_SEND))
-+		goto unlock;
-+
-+	sqp->s_flags |= HFI1_S_BUSY;
-+
-+again:
-+	if (sqp->s_last == sqp->s_head)
-+		goto clr_busy;
-+	wqe = get_swqe_ptr(sqp, sqp->s_last);
-+
-+	/* Return if it is not OK to start a new work request. */
-+	if (!(ib_hfi1_state_ops[sqp->state] & HFI1_PROCESS_NEXT_SEND_OK)) {
-+		if (!(ib_hfi1_state_ops[sqp->state] & HFI1_FLUSH_SEND))
-+			goto clr_busy;
-+		/* We are in the error state, flush the work request. */
-+		send_status = IB_WC_WR_FLUSH_ERR;
-+		goto flush_send;
-+	}
-+
-+	/*
-+	 * We can rely on the entry not changing without the s_lock
-+	 * being held until we update s_last.
-+	 * We increment s_cur to indicate s_last is in progress.
-+	 */
-+	if (sqp->s_last == sqp->s_cur) {
-+		if (++sqp->s_cur >= sqp->s_size)
-+			sqp->s_cur = 0;
-+	}
-+	spin_unlock_irqrestore(&sqp->s_lock, flags);
-+
-+	if (!qp || !(ib_hfi1_state_ops[qp->state] & HFI1_PROCESS_RECV_OK) ||
-+	    qp->ibqp.qp_type != sqp->ibqp.qp_type) {
-+		ibp->n_pkt_drops++;
-+		/*
-+		 * For RC, the requester would timeout and retry so
-+		 * shortcut the timeouts and just signal too many retries.
-+		 */
-+		if (sqp->ibqp.qp_type == IB_QPT_RC)
-+			send_status = IB_WC_RETRY_EXC_ERR;
++		__entry->lnh = (u8)(be16_to_cpu(hdr->lrh[0]) & 3);
++		if (__entry->lnh == HFI1_LRH_BTH)
++			ohdr = &hdr->u.oth;
 +		else
-+			send_status = IB_WC_SUCCESS;
-+		goto serr;
-+	}
++			ohdr = &hdr->u.l.oth;
++		DD_DEV_ASSIGN(dd);
++		__entry->slid = be16_to_cpu(hdr->lrh[3]);
++		__entry->dlid = be16_to_cpu(hdr->lrh[1]);
++		__entry->qpn = be32_to_cpu(ohdr->bth[1]) & HFI1_QPN_MASK;
++		__entry->opcode = (be32_to_cpu(ohdr->bth[0]) >> 24) & 0xff;
++		__entry->sl = (u8)(be16_to_cpu(hdr->lrh[0] >> 4) & 0xf);
++		__entry->pkey =	be32_to_cpu(ohdr->bth[0]) & 0xffff;
++		__entry->hdr_len = hdr_len;
++		__entry->data_len = data_len;
++		memcpy(__get_dynamic_array(raw_hdr), hdr, hdr_len);
++		memcpy(__get_dynamic_array(raw_pkt), data, data_len);
++	),
++	TP_printk("[%s] " SNOOP_PRN,
++		__get_str(dev),
++		__entry->slid,
++		__entry->dlid,
++		__entry->qpn,
++		__entry->opcode,
++		show_ib_opcode(__entry->opcode),
++		__entry->sl,
++		__entry->pkey,
++		__entry->hdr_len,
++		__entry->data_len
++	)
++);
 +
-+	memset(&wc, 0, sizeof(wc));
-+	send_status = IB_WC_SUCCESS;
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi1_ctxts
 +
-+	release = 1;
-+	sqp->s_sge.sge = wqe->sg_list[0];
-+	sqp->s_sge.sg_list = wqe->sg_list + 1;
-+	sqp->s_sge.num_sge = wqe->wr.num_sge;
-+	sqp->s_len = wqe->length;
-+	switch (wqe->wr.opcode) {
-+	case IB_WR_SEND_WITH_IMM:
-+		wc.wc_flags = IB_WC_WITH_IMM;
-+		wc.ex.imm_data = wqe->wr.ex.imm_data;
-+		/* FALLTHROUGH */
-+	case IB_WR_SEND:
-+		ret = hfi1_get_rwqe(qp, 0);
-+		if (ret < 0)
-+			goto op_err;
-+		if (!ret)
-+			goto rnr_nak;
-+		break;
++#define UCTXT_FMT \
++	"cred:%u, credaddr:0x%llx, piobase:0x%llx, rcvhdr_cnt:%u, "	\
++	"rcvbase:0x%llx, rcvegrc:%u, rcvegrb:0x%llx"
++TRACE_EVENT(hfi1_uctxtdata,
++	    TP_PROTO(struct hfi1_devdata *dd, struct hfi1_ctxtdata *uctxt),
++	    TP_ARGS(dd, uctxt),
++	    TP_STRUCT__entry(
++		    DD_DEV_ENTRY(dd)
++		    __field(unsigned, ctxt)
++		    __field(u32, credits)
++		    __field(u64, hw_free)
++		    __field(u64, piobase)
++		    __field(u16, rcvhdrq_cnt)
++		    __field(u64, rcvhdrq_phys)
++		    __field(u32, eager_cnt)
++		    __field(u64, rcvegr_phys)
++		    ),
++	    TP_fast_assign(
++		    DD_DEV_ASSIGN(dd);
++		    __entry->ctxt = uctxt->ctxt;
++		    __entry->credits = uctxt->sc->credits;
++		    __entry->hw_free = (u64)uctxt->sc->hw_free;
++		    __entry->piobase = (u64)uctxt->sc->base_addr;
++		    __entry->rcvhdrq_cnt = uctxt->rcvhdrq_cnt;
++		    __entry->rcvhdrq_phys = uctxt->rcvhdrq_phys;
++		    __entry->eager_cnt = uctxt->egrbufs.alloced;
++		    __entry->rcvegr_phys = uctxt->egrbufs.rcvtids[0].phys;
++		    ),
++	    TP_printk(
++		    "[%s] ctxt %u " UCTXT_FMT,
++		    __get_str(dev),
++		    __entry->ctxt,
++		    __entry->credits,
++		    __entry->hw_free,
++		    __entry->piobase,
++		    __entry->rcvhdrq_cnt,
++		    __entry->rcvhdrq_phys,
++		    __entry->eager_cnt,
++		    __entry->rcvegr_phys
++		    )
++	);
 +
-+	case IB_WR_RDMA_WRITE_WITH_IMM:
-+		if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_WRITE)))
-+			goto inv_err;
-+		wc.wc_flags = IB_WC_WITH_IMM;
-+		wc.ex.imm_data = wqe->wr.ex.imm_data;
-+		ret = hfi1_get_rwqe(qp, 1);
-+		if (ret < 0)
-+			goto op_err;
-+		if (!ret)
-+			goto rnr_nak;
-+		/* FALLTHROUGH */
-+	case IB_WR_RDMA_WRITE:
-+		if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_WRITE)))
-+			goto inv_err;
-+		if (wqe->length == 0)
-+			break;
-+		if (unlikely(!hfi1_rkey_ok(qp, &qp->r_sge.sge, wqe->length,
-+					   wqe->wr.wr.rdma.remote_addr,
-+					   wqe->wr.wr.rdma.rkey,
-+					   IB_ACCESS_REMOTE_WRITE)))
-+			goto acc_err;
-+		qp->r_sge.sg_list = NULL;
-+		qp->r_sge.num_sge = 1;
-+		qp->r_sge.total_len = wqe->length;
-+		break;
++#define CINFO_FMT \
++	"egrtids:%u, egr_size:%u, hdrq_cnt:%u, hdrq_size:%u, sdma_ring_size:%u"
++TRACE_EVENT(hfi1_ctxt_info,
++	    TP_PROTO(struct hfi1_devdata *dd, unsigned ctxt, unsigned subctxt,
++		     struct hfi1_ctxt_info cinfo),
++	    TP_ARGS(dd, ctxt, subctxt, cinfo),
++	    TP_STRUCT__entry(
++		    DD_DEV_ENTRY(dd)
++		    __field(unsigned, ctxt)
++		    __field(unsigned, subctxt)
++		    __field(u16, egrtids)
++		    __field(u16, rcvhdrq_cnt)
++		    __field(u16, rcvhdrq_size)
++		    __field(u16, sdma_ring_size)
++		    __field(u32, rcvegr_size)
++		    ),
++	    TP_fast_assign(
++		    DD_DEV_ASSIGN(dd);
++		    __entry->ctxt = ctxt;
++		    __entry->subctxt = subctxt;
++		    __entry->egrtids = cinfo.egrtids;
++		    __entry->rcvhdrq_cnt = cinfo.rcvhdrq_cnt;
++		    __entry->rcvhdrq_size = cinfo.rcvhdrq_entsize;
++		    __entry->sdma_ring_size = cinfo.sdma_ring_size;
++		    __entry->rcvegr_size = cinfo.rcvegr_size;
++		    ),
++	    TP_printk(
++		    "[%s] ctxt %u:%u " CINFO_FMT,
++		    __get_str(dev),
++		    __entry->ctxt,
++		    __entry->subctxt,
++		    __entry->egrtids,
++		    __entry->rcvegr_size,
++		    __entry->rcvhdrq_cnt,
++		    __entry->rcvhdrq_size,
++		    __entry->sdma_ring_size
++		    )
++	);
 +
-+	case IB_WR_RDMA_READ:
-+		if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_READ)))
-+			goto inv_err;
-+		if (unlikely(!hfi1_rkey_ok(qp, &sqp->s_sge.sge, wqe->length,
-+					   wqe->wr.wr.rdma.remote_addr,
-+					   wqe->wr.wr.rdma.rkey,
-+					   IB_ACCESS_REMOTE_READ)))
-+			goto acc_err;
-+		release = 0;
-+		sqp->s_sge.sg_list = NULL;
-+		sqp->s_sge.num_sge = 1;
-+		qp->r_sge.sge = wqe->sg_list[0];
-+		qp->r_sge.sg_list = wqe->sg_list + 1;
-+		qp->r_sge.num_sge = wqe->wr.num_sge;
-+		qp->r_sge.total_len = wqe->length;
-+		break;
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi1_sma
 +
-+	case IB_WR_ATOMIC_CMP_AND_SWP:
-+	case IB_WR_ATOMIC_FETCH_AND_ADD:
-+		if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_ATOMIC)))
-+			goto inv_err;
-+		if (unlikely(!hfi1_rkey_ok(qp, &qp->r_sge.sge, sizeof(u64),
-+					   wqe->wr.wr.atomic.remote_addr,
-+					   wqe->wr.wr.atomic.rkey,
-+					   IB_ACCESS_REMOTE_ATOMIC)))
-+			goto acc_err;
-+		/* Perform atomic OP and save result. */
-+		maddr = (atomic64_t *) qp->r_sge.sge.vaddr;
-+		sdata = wqe->wr.wr.atomic.compare_add;
-+		*(u64 *) sqp->s_sge.sge.vaddr =
-+			(wqe->wr.opcode == IB_WR_ATOMIC_FETCH_AND_ADD) ?
-+			(u64) atomic64_add_return(sdata, maddr) - sdata :
-+			(u64) cmpxchg((u64 *) qp->r_sge.sge.vaddr,
-+				      sdata, wqe->wr.wr.atomic.swap);
-+		hfi1_put_mr(qp->r_sge.sge.mr);
-+		qp->r_sge.num_sge = 0;
-+		goto send_comp;
++#define BCT_FORMAT \
++	"shared_limit %x vls 0-7 [%x,%x][%x,%x][%x,%x][%x,%x][%x,%x][%x,%x][%x,%x][%x,%x] 15 [%x,%x]"
 +
-+	default:
-+		send_status = IB_WC_LOC_QP_OP_ERR;
-+		goto serr;
-+	}
++#define BCT(field) \
++	be16_to_cpu( \
++		((struct buffer_control *)__get_dynamic_array(bct))->field \
++	)
 +
-+	sge = &sqp->s_sge.sge;
-+	while (sqp->s_len) {
-+		u32 len = sqp->s_len;
++DECLARE_EVENT_CLASS(hfi1_bct_template,
++	TP_PROTO(struct hfi1_devdata *dd, struct buffer_control *bc),
++	TP_ARGS(dd, bc),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(dd)
++		__dynamic_array(u8, bct, sizeof(*bc))
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(dd);
++		memcpy(
++			__get_dynamic_array(bct),
++			bc,
++			sizeof(*bc));
++	),
++	TP_printk(BCT_FORMAT,
++		BCT(overall_shared_limit),
 +
-+		if (len > sge->length)
-+			len = sge->length;
-+		if (len > sge->sge_length)
-+			len = sge->sge_length;
-+		BUG_ON(len == 0);
-+		hfi1_copy_sge(&qp->r_sge, sge->vaddr, len, release);
-+		sge->vaddr += len;
-+		sge->length -= len;
-+		sge->sge_length -= len;
-+		if (sge->sge_length == 0) {
-+			if (!release)
-+				hfi1_put_mr(sge->mr);
-+			if (--sqp->s_sge.num_sge)
-+				*sge = *sqp->s_sge.sg_list++;
-+		} else if (sge->length == 0 && sge->mr->lkey) {
-+			if (++sge->n >= HFI1_SEGSZ) {
-+				if (++sge->m >= sge->mr->mapsz)
-+					break;
-+				sge->n = 0;
-+			}
-+			sge->vaddr =
-+				sge->mr->map[sge->m]->segs[sge->n].vaddr;
-+			sge->length =
-+				sge->mr->map[sge->m]->segs[sge->n].length;
-+		}
-+		sqp->s_len -= len;
-+	}
-+	if (release)
-+		hfi1_put_ss(&qp->r_sge);
++		BCT(vl[0].dedicated),
++		BCT(vl[0].shared),
 +
-+	if (!test_and_clear_bit(HFI1_R_WRID_VALID, &qp->r_aflags))
-+		goto send_comp;
++		BCT(vl[1].dedicated),
++		BCT(vl[1].shared),
 +
-+	if (wqe->wr.opcode == IB_WR_RDMA_WRITE_WITH_IMM)
-+		wc.opcode = IB_WC_RECV_RDMA_WITH_IMM;
-+	else
-+		wc.opcode = IB_WC_RECV;
-+	wc.wr_id = qp->r_wr_id;
-+	wc.status = IB_WC_SUCCESS;
-+	wc.byte_len = wqe->length;
-+	wc.qp = &qp->ibqp;
-+	wc.src_qp = qp->remote_qpn;
-+	wc.slid = qp->remote_ah_attr.dlid;
-+	wc.sl = qp->remote_ah_attr.sl;
-+	wc.port_num = 1;
-+	/* Signal completion event if the solicited bit is set. */
-+	hfi1_cq_enter(to_icq(qp->ibqp.recv_cq), &wc,
-+		      wqe->wr.send_flags & IB_SEND_SOLICITED);
++		BCT(vl[2].dedicated),
++		BCT(vl[2].shared),
 +
-+send_comp:
-+	spin_lock_irqsave(&sqp->s_lock, flags);
-+	ibp->n_loop_pkts++;
-+flush_send:
-+	sqp->s_rnr_retry = sqp->s_rnr_retry_cnt;
-+	hfi1_send_complete(sqp, wqe, send_status);
-+	goto again;
++		BCT(vl[3].dedicated),
++		BCT(vl[3].shared),
 +
-+rnr_nak:
-+	/* Handle RNR NAK */
-+	if (qp->ibqp.qp_type == IB_QPT_UC)
-+		goto send_comp;
-+	ibp->n_rnr_naks++;
-+	/*
-+	 * Note: we don't need the s_lock held since the BUSY flag
-+	 * makes this single threaded.
-+	 */
-+	if (sqp->s_rnr_retry == 0) {
-+		send_status = IB_WC_RNR_RETRY_EXC_ERR;
-+		goto serr;
-+	}
-+	if (sqp->s_rnr_retry_cnt < 7)
-+		sqp->s_rnr_retry--;
-+	spin_lock_irqsave(&sqp->s_lock, flags);
-+	if (!(ib_hfi1_state_ops[sqp->state] & HFI1_PROCESS_RECV_OK))
-+		goto clr_busy;
-+	sqp->s_flags |= HFI1_S_WAIT_RNR;
-+	sqp->s_timer.function = hfi1_rc_rnr_retry;
-+	sqp->s_timer.expires = jiffies +
-+		usecs_to_jiffies(ib_hfi1_rnr_table[qp->r_min_rnr_timer]);
-+	add_timer(&sqp->s_timer);
-+	goto clr_busy;
++		BCT(vl[4].dedicated),
++		BCT(vl[4].shared),
 +
-+op_err:
-+	send_status = IB_WC_REM_OP_ERR;
-+	wc.status = IB_WC_LOC_QP_OP_ERR;
-+	goto err;
++		BCT(vl[5].dedicated),
++		BCT(vl[5].shared),
 +
-+inv_err:
-+	send_status = IB_WC_REM_INV_REQ_ERR;
-+	wc.status = IB_WC_LOC_QP_OP_ERR;
-+	goto err;
++		BCT(vl[6].dedicated),
++		BCT(vl[6].shared),
 +
-+acc_err:
-+	send_status = IB_WC_REM_ACCESS_ERR;
-+	wc.status = IB_WC_LOC_PROT_ERR;
-+err:
-+	/* responder goes to error state */
-+	hfi1_rc_error(qp, wc.status);
++		BCT(vl[7].dedicated),
++		BCT(vl[7].shared),
 +
-+serr:
-+	spin_lock_irqsave(&sqp->s_lock, flags);
-+	hfi1_send_complete(sqp, wqe, send_status);
-+	if (sqp->ibqp.qp_type == IB_QPT_RC) {
-+		int lastwqe = hfi1_error_qp(sqp, IB_WC_WR_FLUSH_ERR);
++		BCT(vl[15].dedicated),
++		BCT(vl[15].shared)
++	)
++);
 +
-+		sqp->s_flags &= ~HFI1_S_BUSY;
-+		spin_unlock_irqrestore(&sqp->s_lock, flags);
-+		if (lastwqe) {
-+			struct ib_event ev;
 +
-+			ev.device = sqp->ibqp.device;
-+			ev.element.qp = &sqp->ibqp;
-+			ev.event = IB_EVENT_QP_LAST_WQE_REACHED;
-+			sqp->ibqp.event_handler(&ev, sqp->ibqp.qp_context);
-+		}
-+		goto done;
-+	}
-+clr_busy:
-+	sqp->s_flags &= ~HFI1_S_BUSY;
-+unlock:
-+	spin_unlock_irqrestore(&sqp->s_lock, flags);
-+done:
-+	if (qp && atomic_dec_and_test(&qp->refcount))
-+		wake_up(&qp->wait);
-+}
++DEFINE_EVENT(hfi1_bct_template, bct_set,
++	     TP_PROTO(struct hfi1_devdata *dd, struct buffer_control *bc),
++	     TP_ARGS(dd, bc));
 +
-+/**
-+ * hfi1_make_grh - construct a GRH header
-+ * @ibp: a pointer to the IB port
-+ * @hdr: a pointer to the GRH header being constructed
-+ * @grh: the global route address to send to
-+ * @hwords: the number of 32 bit words of header being sent
-+ * @nwords: the number of 32 bit words of data being sent
-+ *
-+ * Return the size of the header in 32 bit words.
-+ */
-+u32 hfi1_make_grh(struct hfi1_ibport *ibp, struct ib_grh *hdr,
-+		  struct ib_global_route *grh, u32 hwords, u32 nwords)
-+{
-+	hdr->version_tclass_flow =
-+		cpu_to_be32((IB_GRH_VERSION << IB_GRH_VERSION_SHIFT) |
-+			    (grh->traffic_class << IB_GRH_TCLASS_SHIFT) |
-+			    (grh->flow_label << IB_GRH_FLOW_SHIFT));
-+	hdr->paylen = cpu_to_be16((hwords - 2 + nwords + SIZE_OF_CRC) << 2);
-+	/* next_hdr is defined by C8-7 in ch. 8.4.1 */
-+	hdr->next_hdr = IB_GRH_NEXT_HDR;
-+	hdr->hop_limit = grh->hop_limit;
-+	/* The SGID is 32-bit aligned. */
-+	hdr->sgid.global.subnet_prefix = ibp->gid_prefix;
-+	hdr->sgid.global.interface_id =
-+		grh->sgid_index && grh->sgid_index < ARRAY_SIZE(ibp->guids) ?
-+		ibp->guids[grh->sgid_index - 1] : ppd_from_ibp(ibp)->guid;
-+	hdr->dgid = grh->dgid;
++DEFINE_EVENT(hfi1_bct_template, bct_get,
++	     TP_PROTO(struct hfi1_devdata *dd, struct buffer_control *bc),
++	     TP_ARGS(dd, bc));
 +
-+	/* GRH header size in 32-bit words. */
-+	return sizeof(struct ib_grh) / sizeof(u32);
-+}
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi1_sdma
++
++TRACE_EVENT(hfi1_sdma_descriptor,
++	TP_PROTO(
++		struct sdma_engine *sde,
++		u64 desc0,
++		u64 desc1,
++		u16 e,
++		void *descp),
++	TP_ARGS(sde, desc0, desc1, e, descp),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(sde->dd)
++		__field(void *, descp)
++		__field(u64, desc0)
++		__field(u64, desc1)
++		__field(u16, e)
++		__field(u8, idx)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(sde->dd);
++		__entry->desc0 = desc0;
++		__entry->desc1 = desc1;
++		__entry->idx = sde->this_idx;
++		__entry->descp = descp;
++		__entry->e = e;
++	),
++	TP_printk(
++		"[%s] SDE(%u) flags:%s addr:0x%016llx gen:%u len:%u d0:%016llx d1:%016llx to %p,%u",
++		__get_str(dev),
++		__entry->idx,
++		__parse_sdma_flags(__entry->desc0, __entry->desc1),
++		(__entry->desc0 >> SDMA_DESC0_PHY_ADDR_SHIFT)
++			& SDMA_DESC0_PHY_ADDR_MASK,
++		(u8)((__entry->desc1 >> SDMA_DESC1_GENERATION_SHIFT)
++			& SDMA_DESC1_GENERATION_MASK),
++		(u16)((__entry->desc0 >> SDMA_DESC0_BYTE_COUNT_SHIFT)
++			& SDMA_DESC0_BYTE_COUNT_MASK),
++		__entry->desc0,
++		__entry->desc1,
++		__entry->descp,
++		__entry->e
++	)
++);
++
++TRACE_EVENT(hfi1_sdma_engine_select,
++	TP_PROTO(struct hfi1_devdata *dd, u32 sel, u8 vl, u8 idx),
++	TP_ARGS(dd, sel, vl, idx),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(dd)
++		__field(u32, sel)
++		__field(u8, vl)
++		__field(u8, idx)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(dd);
++		__entry->sel = sel;
++		__entry->vl = vl;
++		__entry->idx = idx;
++	),
++	TP_printk(
++		"[%s] selecting SDE %u sel 0x%x vl %u",
++		__get_str(dev),
++		__entry->idx,
++		__entry->sel,
++		__entry->vl
++	)
++);
++
++DECLARE_EVENT_CLASS(hfi1_sdma_engine_class,
++	TP_PROTO(
++		struct sdma_engine *sde,
++		u64 status
++	),
++	TP_ARGS(sde, status),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(sde->dd)
++		__field(u64, status)
++		__field(u8, idx)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(sde->dd);
++		__entry->status = status;
++		__entry->idx = sde->this_idx;
++	),
++	TP_printk(
++		"[%s] SDE(%u) status %llx",
++		__get_str(dev),
++		__entry->idx,
++		(unsigned long long)__entry->status
++	)
++);
++
++DEFINE_EVENT(hfi1_sdma_engine_class, hfi1_sdma_engine_interrupt,
++	TP_PROTO(
++		struct sdma_engine *sde,
++		u64 status
++	),
++	TP_ARGS(sde, status)
++);
++
++DEFINE_EVENT(hfi1_sdma_engine_class, hfi1_sdma_engine_progress,
++	TP_PROTO(
++		struct sdma_engine *sde,
++		u64 status
++	),
++	TP_ARGS(sde, status)
++);
++
++DECLARE_EVENT_CLASS(hfi1_sdma_ahg_ad,
++	TP_PROTO(
++		struct sdma_engine *sde,
++		int aidx
++	),
++	TP_ARGS(sde, aidx),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(sde->dd)
++		__field(int, aidx)
++		__field(u8, idx)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(sde->dd);
++		__entry->idx = sde->this_idx;
++		__entry->aidx = aidx;
++	),
++	TP_printk(
++		"[%s] SDE(%u) aidx %d",
++		__get_str(dev),
++		__entry->idx,
++		__entry->aidx
++	)
++);
++
++DEFINE_EVENT(hfi1_sdma_ahg_ad, hfi1_ahg_allocate,
++	     TP_PROTO(
++		struct sdma_engine *sde,
++		int aidx
++	     ),
++	     TP_ARGS(sde, aidx));
++
++DEFINE_EVENT(hfi1_sdma_ahg_ad, hfi1_ahg_deallocate,
++	     TP_PROTO(
++		struct sdma_engine *sde,
++		int aidx
++	     ),
++	     TP_ARGS(sde, aidx));
++
++#ifdef CONFIG_HFI1_DEBUG_SDMA_ORDER
++TRACE_EVENT(hfi1_sdma_progress,
++	TP_PROTO(
++		struct sdma_engine *sde,
++		u16 hwhead,
++		u16 swhead,
++		struct sdma_txreq *txp
++	),
++	TP_ARGS(sde, hwhead, swhead, txp),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(sde->dd)
++		__field(u64, sn)
++		__field(u16, hwhead)
++		__field(u16, swhead)
++		__field(u16, txnext)
++		__field(u16, tx_tail)
++		__field(u16, tx_head)
++		__field(u8, idx)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(sde->dd);
++		__entry->hwhead = hwhead;
++		__entry->swhead = swhead;
++		__entry->tx_tail = sde->tx_tail;
++		__entry->tx_head = sde->tx_head;
++		__entry->txnext = txp ? txp->next_descq_idx : ~0;
++		__entry->idx = sde->this_idx;
++		__entry->sn = txp ? txp->sn : ~0;
++	),
++	TP_printk(
++		"[%s] SDE(%u) sn %llu hwhead %u swhead %u next_descq_idx %u tx_head %u tx_tail %u",
++		__get_str(dev),
++		__entry->idx,
++		__entry->sn,
++		__entry->hwhead,
++		__entry->swhead,
++		__entry->txnext,
++		__entry->tx_head,
++		__entry->tx_tail
++	)
++);
++#else
++TRACE_EVENT(hfi1_sdma_progress,
++	    TP_PROTO(
++		struct sdma_engine *sde,
++		u16 hwhead,
++		u16 swhead,
++		struct sdma_txreq *txp
++	    ),
++	TP_ARGS(sde, hwhead, swhead, txp),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(sde->dd)
++		__field(u16, hwhead)
++		__field(u16, swhead)
++		__field(u16, txnext)
++		__field(u16, tx_tail)
++		__field(u16, tx_head)
++		__field(u8, idx)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(sde->dd);
++		__entry->hwhead = hwhead;
++		__entry->swhead = swhead;
++		__entry->tx_tail = sde->tx_tail;
++		__entry->tx_head = sde->tx_head;
++		__entry->txnext = txp ? txp->next_descq_idx : ~0;
++		__entry->idx = sde->this_idx;
++	),
++	TP_printk(
++		"[%s] SDE(%u) hwhead %u swhead %u next_descq_idx %u tx_head %u tx_tail %u",
++		__get_str(dev),
++		__entry->idx,
++		__entry->hwhead,
++		__entry->swhead,
++		__entry->txnext,
++		__entry->tx_head,
++		__entry->tx_tail
++	)
++);
++#endif
++
++DECLARE_EVENT_CLASS(hfi1_sdma_sn,
++	TP_PROTO(
++		struct sdma_engine *sde,
++		u64 sn
++	),
++	TP_ARGS(sde, sn),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(sde->dd)
++		__field(u64, sn)
++		__field(u8, idx)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(sde->dd);
++		__entry->sn = sn;
++		__entry->idx = sde->this_idx;
++	),
++	TP_printk(
++		"[%s] SDE(%u) sn %llu",
++		__get_str(dev),
++		__entry->idx,
++		__entry->sn
++	)
++);
++
++DEFINE_EVENT(hfi1_sdma_sn, hfi1_sdma_out_sn,
++	     TP_PROTO(
++		struct sdma_engine *sde,
++		u64 sn
++	     ),
++	     TP_ARGS(sde, sn)
++);
++
++DEFINE_EVENT(hfi1_sdma_sn, hfi1_sdma_in_sn,
++	     TP_PROTO(
++		struct sdma_engine *sde,
++		u64 sn
++	     ),
++	     TP_ARGS(sde, sn)
++);
++
++#define USDMA_HDR_FORMAT \
++	"[%s:%u:%u:%u] PBC=(0x%x 0x%x) LRH=(0x%x 0x%x) BTH=(0x%x 0x%x 0x%x) KDETH=(0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x) TIDVal=0x%x"
++
++TRACE_EVENT(hfi1_sdma_user_header,
++	    TP_PROTO(struct hfi1_devdata *dd, u16 ctxt, u8 subctxt, u16 req,
++		     struct hfi1_pkt_header *hdr, u32 tidval),
++	    TP_ARGS(dd, ctxt, subctxt, req, hdr, tidval),
++	    TP_STRUCT__entry(
++		    DD_DEV_ENTRY(dd)
++		    __field(u16, ctxt)
++		    __field(u8, subctxt)
++		    __field(u16, req)
++		    __field(__le32, pbc0)
++		    __field(__le32, pbc1)
++		    __field(__be32, lrh0)
++		    __field(__be32, lrh1)
++		    __field(__be32, bth0)
++		    __field(__be32, bth1)
++		    __field(__be32, bth2)
++		    __field(__le32, kdeth0)
++		    __field(__le32, kdeth1)
++		    __field(__le32, kdeth2)
++		    __field(__le32, kdeth3)
++		    __field(__le32, kdeth4)
++		    __field(__le32, kdeth5)
++		    __field(__le32, kdeth6)
++		    __field(__le32, kdeth7)
++		    __field(__le32, kdeth8)
++		    __field(u32, tidval)
++		    ),
++	    TP_fast_assign(
++		    __le32 *pbc = (__le32 *)hdr->pbc;
++		    __be32 *lrh = (__be32 *)hdr->lrh;
++		    __be32 *bth = (__be32 *)hdr->bth;
++		    __le32 *kdeth = (__le32 *)&hdr->kdeth;
++
++		    DD_DEV_ASSIGN(dd);
++		    __entry->ctxt = ctxt;
++		    __entry->subctxt = subctxt;
++		    __entry->req = req;
++		    __entry->pbc0 = pbc[0];
++		    __entry->pbc1 = pbc[1];
++		    __entry->lrh0 = be32_to_cpu(lrh[0]);
++		    __entry->lrh1 = be32_to_cpu(lrh[1]);
++		    __entry->bth0 = be32_to_cpu(bth[0]);
++		    __entry->bth1 = be32_to_cpu(bth[1]);
++		    __entry->bth2 = be32_to_cpu(bth[2]);
++		    __entry->kdeth0 = kdeth[0];
++		    __entry->kdeth1 = kdeth[1];
++		    __entry->kdeth2 = kdeth[2];
++		    __entry->kdeth3 = kdeth[3];
++		    __entry->kdeth4 = kdeth[4];
++		    __entry->kdeth5 = kdeth[5];
++		    __entry->kdeth6 = kdeth[6];
++		    __entry->kdeth7 = kdeth[7];
++		    __entry->kdeth8 = kdeth[8];
++		    __entry->tidval = tidval;
++		    ),
++	    TP_printk(USDMA_HDR_FORMAT,
++		      __get_str(dev),
++		      __entry->ctxt,
++		      __entry->subctxt,
++		      __entry->req,
++		      __entry->pbc1,
++		      __entry->pbc0,
++		      __entry->lrh0,
++		      __entry->lrh1,
++		      __entry->bth0,
++		      __entry->bth1,
++		      __entry->bth2,
++		      __entry->kdeth0,
++		      __entry->kdeth1,
++		      __entry->kdeth2,
++		      __entry->kdeth3,
++		      __entry->kdeth4,
++		      __entry->kdeth5,
++		      __entry->kdeth6,
++		      __entry->kdeth7,
++		      __entry->kdeth8,
++		      __entry->tidval
++		    )
++	);
++
++#define SDMA_UREQ_FMT \
++	"[%s:%u:%u] ver/op=0x%x, iovcnt=%u, npkts=%u, frag=%u, idx=%u"
++TRACE_EVENT(hfi1_sdma_user_reqinfo,
++	    TP_PROTO(struct hfi1_devdata *dd, u16 ctxt, u8 subctxt, u16 *i),
++	    TP_ARGS(dd, ctxt, subctxt, i),
++	    TP_STRUCT__entry(
++		    DD_DEV_ENTRY(dd);
++		    __field(u16, ctxt)
++		    __field(u8, subctxt)
++		    __field(u8, ver_opcode)
++		    __field(u8, iovcnt)
++		    __field(u16, npkts)
++		    __field(u16, fragsize)
++		    __field(u16, comp_idx)
++		    ),
++	    TP_fast_assign(
++		    DD_DEV_ASSIGN(dd);
++		    __entry->ctxt = ctxt;
++		    __entry->subctxt = subctxt;
++		    __entry->ver_opcode = i[0] & 0xff;
++		    __entry->iovcnt = (i[0] >> 8) & 0xff;
++		    __entry->npkts = i[1];
++		    __entry->fragsize = i[2];
++		    __entry->comp_idx = i[3];
++		    ),
++	    TP_printk(SDMA_UREQ_FMT,
++		      __get_str(dev),
++		      __entry->ctxt,
++		      __entry->subctxt,
++		      __entry->ver_opcode,
++		      __entry->iovcnt,
++		      __entry->npkts,
++		      __entry->fragsize,
++		      __entry->comp_idx
++		    )
++	);
++
++#define usdma_complete_name(st) { st, #st }
++#define show_usdma_complete_state(st)			\
++	__print_symbolic(st,				\
++			 usdma_complete_name(FREE),	\
++			 usdma_complete_name(QUEUED),	\
++			 usdma_complete_name(COMPLETE), \
++			 usdma_complete_name(ERROR))
++
++TRACE_EVENT(hfi1_sdma_user_completion,
++	    TP_PROTO(struct hfi1_devdata *dd, u16 ctxt, u8 subctxt, u16 idx,
++		     u8 state, int code),
++	    TP_ARGS(dd, ctxt, subctxt, idx, state, code),
++	    TP_STRUCT__entry(
++		    DD_DEV_ENTRY(dd)
++		    __field(u16, ctxt)
++		    __field(u8, subctxt)
++		    __field(u16, idx)
++		    __field(u8, state)
++		    __field(int, code)
++		    ),
++	    TP_fast_assign(
++		    DD_DEV_ASSIGN(dd);
++		    __entry->ctxt = ctxt;
++		    __entry->subctxt = subctxt;
++		    __entry->idx = idx;
++		    __entry->state = state;
++		    __entry->code = code;
++		    ),
++	    TP_printk("[%s:%u:%u:%u] SDMA completion state %s (%d)",
++		      __get_str(dev), __entry->ctxt, __entry->subctxt,
++		      __entry->idx, show_usdma_complete_state(__entry->state),
++		      __entry->code)
++	);
++
++const char *print_u32_array(struct trace_seq *, u32 *, int);
++#define __print_u32_hex(arr, len) print_u32_array(p, arr, len)
++
++TRACE_EVENT(hfi1_sdma_user_header_ahg,
++	    TP_PROTO(struct hfi1_devdata *dd, u16 ctxt, u8 subctxt, u16 req,
++		     u8 sde, u8 ahgidx, u32 *ahg, int len, u32 tidval),
++	    TP_ARGS(dd, ctxt, subctxt, req, sde, ahgidx, ahg, len, tidval),
++	    TP_STRUCT__entry(
++		    DD_DEV_ENTRY(dd)
++		    __field(u16, ctxt)
++		    __field(u8, subctxt)
++		    __field(u16, req)
++		    __field(u8, sde)
++		    __field(u8, idx)
++		    __field(int, len)
++		    __field(u32, tidval)
++		    __array(u32, ahg, 10)
++		    ),
++	    TP_fast_assign(
++		    DD_DEV_ASSIGN(dd);
++		    __entry->ctxt = ctxt;
++		    __entry->subctxt = subctxt;
++		    __entry->req = req;
++		    __entry->sde = sde;
++		    __entry->idx = ahgidx;
++		    __entry->len = len;
++		    __entry->tidval = tidval;
++		    memcpy(__entry->ahg, ahg, len * sizeof(u32));
++		    ),
++	    TP_printk("[%s:%u:%u:%u] (SDE%u/AHG%u) ahg[0-%d]=(%s) TIDVal=0x%x",
++		      __get_str(dev),
++		      __entry->ctxt,
++		      __entry->subctxt,
++		      __entry->req,
++		      __entry->sde,
++		      __entry->idx,
++		      __entry->len - 1,
++		      __print_u32_hex(__entry->ahg, __entry->len),
++		      __entry->tidval
++		    )
++	);
++
++TRACE_EVENT(hfi1_sdma_state,
++	TP_PROTO(
++		struct sdma_engine *sde,
++		const char *cstate,
++		const char *nstate
++	),
++	TP_ARGS(sde, cstate, nstate),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(sde->dd)
++		__string(curstate, cstate)
++		__string(newstate, nstate)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(sde->dd);
++		__assign_str(curstate, cstate);
++		__assign_str(newstate, nstate);
++	),
++	TP_printk("[%s] current state %s new state %s",
++		__get_str(dev),
++		__get_str(curstate),
++		__get_str(newstate)
++	)
++);
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi1_rc
++
++DECLARE_EVENT_CLASS(hfi1_sdma_rc,
++	TP_PROTO(struct hfi1_qp *qp, u32 psn),
++	TP_ARGS(qp, psn),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++		__field(u32, qpn)
++		__field(u32, flags)
++		__field(u32, psn)
++		__field(u32, sending_psn)
++		__field(u32, sending_hpsn)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device))
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->flags = qp->s_flags;
++		__entry->psn = psn;
++		__entry->sending_psn = qp->s_sending_psn;
++		__entry->sending_hpsn = qp->s_sending_hpsn;
++	),
++	TP_printk(
++		"[%s] qpn 0x%x flags 0x%x psn 0x%x sending_psn 0x%x sending_hpsn 0x%x",
++		__get_str(dev),
++		__entry->qpn,
++		__entry->flags,
++		__entry->psn,
++		__entry->sending_psn,
++		__entry->sending_psn
++	)
++);
++
++DEFINE_EVENT(hfi1_sdma_rc, hfi1_rc_sendcomplete,
++	     TP_PROTO(struct hfi1_qp *qp, u32 psn),
++	     TP_ARGS(qp, psn)
++);
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi1_misc
++
++TRACE_EVENT(hfi1_interrupt,
++	TP_PROTO(struct hfi1_devdata *dd, const struct is_table *is_entry,
++		 int src),
++	TP_ARGS(dd, is_entry, src),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(dd)
++		__array(char, buf, 64)
++		__field(int, src)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(dd)
++		is_entry->is_name(__entry->buf, 64, src - is_entry->start);
++		__entry->src = src;
++	),
++	TP_printk("[%s] source: %s [%d]", __get_str(dev), __entry->buf,
++		  __entry->src)
++);
 +
 +/*
-+ * free_ahg - clear ahg from QP
++ * Note:
++ * This produces a REALLY ugly trace in the console output when the string is
++ * too long.
 + */
-+void clear_ahg(struct hfi1_qp *qp)
-+{
-+	qp->s_hdr->ahgcount = 0;
-+	qp->s_flags &= ~(HFI1_S_AHG_VALID | HFI1_S_AHG_CLEAR);
-+	if (qp->s_sde)
-+		sdma_ahg_free(qp->s_sde, qp->s_ahgidx);
-+	qp->s_ahgidx = -1;
-+	qp->s_sde = NULL;
-+}
 +
-+#define BTH2_OFFSET (offsetof(struct hfi1_pio_header, hdr.u.oth.bth[2]) / 4)
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi1_trace
 +
-+/**
-+ * build_ahg - create ahg in s_hdr
-+ * @qp: a pointer to QP
-+ * @npsn: the next PSN for the request/response
-+ *
-+ * This routine handles the AHG by allocating an ahg entry and causing the
-+ * copy of the first middle.
-+ *
-+ * Subsequent middles use the copied entry, editing the
-+ * PSN with 1 or 2 edits.
-+ */
-+static inline void build_ahg(struct hfi1_qp *qp, u32 npsn)
-+{
-+	if (unlikely(qp->s_flags & HFI1_S_AHG_CLEAR))
-+		clear_ahg(qp);
-+	if (!(qp->s_flags & HFI1_S_AHG_VALID)) {
-+		/* first middle that needs copy  */
-+		if (qp->s_ahgidx < 0) {
-+			if (!qp->s_sde)
-+				qp->s_sde = qp_to_sdma_engine(qp, qp->s_sc);
-+			qp->s_ahgidx = sdma_ahg_alloc(qp->s_sde);
-+		}
-+		if (qp->s_ahgidx >= 0) {
-+			qp->s_ahgpsn = npsn;
-+			qp->s_hdr->tx_flags |= SDMA_TXREQ_F_AHG_COPY;
-+			/* save to protect a change in another thread */
-+			qp->s_hdr->sde = qp->s_sde;
-+			qp->s_hdr->ahgidx = qp->s_ahgidx;
-+			qp->s_flags |= HFI1_S_AHG_VALID;
-+		}
-+	} else {
-+		/* subsequent middle after valid */
-+		if (qp->s_ahgidx >= 0) {
-+			qp->s_hdr->tx_flags |= SDMA_TXREQ_F_USE_AHG;
-+			qp->s_hdr->ahgidx = qp->s_ahgidx;
-+			qp->s_hdr->ahgcount++;
-+			qp->s_hdr->ahgdesc[0] =
-+				sdma_build_ahg_descriptor(
-+					(__force u16)cpu_to_be16((u16)npsn),
-+					BTH2_OFFSET,
-+					16,
-+					16);
-+			if ((npsn & 0xffff0000) !=
-+					(qp->s_ahgpsn & 0xffff0000)) {
-+				qp->s_hdr->ahgcount++;
-+				qp->s_hdr->ahgdesc[1] =
-+					sdma_build_ahg_descriptor(
-+						(__force u16)cpu_to_be16(
-+							(u16)(npsn >> 16)),
-+						BTH2_OFFSET,
-+						0,
-+						16);
-+			}
-+		}
-+	}
-+}
++#define MAX_MSG_LEN 512
 +
-+void hfi1_make_ruc_header(struct hfi1_qp *qp, struct hfi1_other_headers *ohdr,
-+			  u32 bth0, u32 bth2, int middle)
-+{
-+	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
-+	u16 lrh0;
-+	u32 nwords;
-+	u32 extra_bytes;
-+	u8 sc5;
-+
-+	/* Construct the header. */
-+	extra_bytes = -qp->s_cur_size & 3;
-+	nwords = (qp->s_cur_size + extra_bytes) >> 2;
-+	lrh0 = HFI1_LRH_BTH;
-+	if (unlikely(qp->remote_ah_attr.ah_flags & IB_AH_GRH)) {
-+		qp->s_hdrwords += hfi1_make_grh(ibp, &qp->s_hdr->ibh.u.l.grh,
-+					       &qp->remote_ah_attr.grh,
-+					       qp->s_hdrwords, nwords);
-+		lrh0 = HFI1_LRH_GRH;
-+		middle = 0;
-+	}
-+	sc5 = ibp->sl_to_sc[qp->remote_ah_attr.sl];
-+	lrh0 |= (sc5 & 0xf) << 12 | (qp->remote_ah_attr.sl & 0xf) << 4;
-+	qp->s_sc = sc5;
-+	/*
-+	 * reset s_hdr/AHG fields
-+	 *
-+	 * This insures that the ahgentry/ahgcount
-+	 * are at a non-AHG default to protect
-+	 * build_verbs_tx_desc() from using
-+	 * an include ahgidx.
-+	 *
-+	 * build_ahg() will modify as appropriate
-+	 * to use the AHG feature.
-+	 */
-+	qp->s_hdr->tx_flags = 0;
-+	qp->s_hdr->ahgcount = 0;
-+	qp->s_hdr->ahgidx = 0;
-+	qp->s_hdr->sde = NULL;
-+	if (qp->s_mig_state == IB_MIG_MIGRATED)
-+		bth0 |= IB_BTH_MIG_REQ;
-+	else
-+		middle = 0;
-+	if (middle)
-+		build_ahg(qp, bth2);
-+	else
-+		qp->s_flags &= ~HFI1_S_AHG_VALID;
-+	qp->s_hdr->ibh.lrh[0] = cpu_to_be16(lrh0);
-+	qp->s_hdr->ibh.lrh[1] = cpu_to_be16(qp->remote_ah_attr.dlid);
-+	qp->s_hdr->ibh.lrh[2] =
-+		cpu_to_be16(qp->s_hdrwords + nwords + SIZE_OF_CRC);
-+	qp->s_hdr->ibh.lrh[3] = cpu_to_be16(ppd_from_ibp(ibp)->lid |
-+				       qp->remote_ah_attr.src_path_bits);
-+	bth0 |= hfi1_get_pkey(ibp, qp->s_pkey_index);
-+	bth0 |= extra_bytes << 20;
-+	ohdr->bth[0] = cpu_to_be32(bth0);
-+	ohdr->bth[1] = cpu_to_be32(qp->remote_qpn);
-+	if (test_and_clear_bit(HFI1_S_ECN, &qp->s_aflags))
-+		/* we recently received a FECN, so return a BECN */
-+		ohdr->bth[1] |= cpu_to_be32(HFI1_BECN_MASK << HFI1_BECN_SHIFT);
-+	ohdr->bth[2] = cpu_to_be32(bth2);
-+}
-+
-+/**
-+ * hfi1_do_send - perform a send on a QP
-+ * @work: contains a pointer to the QP
-+ *
-+ * Process entries in the send work queue until credit or queue is
-+ * exhausted.  Only allow one CPU to send a packet per QP (tasklet).
-+ * Otherwise, two threads could send packets out of order.
-+ */
-+void hfi1_do_send(struct work_struct *work)
-+{
-+	struct iowait *wait = container_of(work, struct iowait, iowork);
-+	struct hfi1_qp *qp = container_of(wait, struct hfi1_qp, s_iowait);
-+	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
-+	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
-+	int (*make_req)(struct hfi1_qp *qp);
-+	unsigned long flags;
-+
-+	if ((qp->ibqp.qp_type == IB_QPT_RC ||
-+	     qp->ibqp.qp_type == IB_QPT_UC) &&
-+	    !loopback &&
-+	    (qp->remote_ah_attr.dlid & ~((1 << ppd->lmc) - 1)) == ppd->lid) {
-+		ruc_loopback(qp);
-+		return;
-+	}
-+
-+	if (qp->ibqp.qp_type == IB_QPT_RC)
-+		make_req = hfi1_make_rc_req;
-+	else if (qp->ibqp.qp_type == IB_QPT_UC)
-+		make_req = hfi1_make_uc_req;
-+	else
-+		make_req = hfi1_make_ud_req;
-+
-+	spin_lock_irqsave(&qp->s_lock, flags);
-+
-+	/* Return if we are already busy processing a work request. */
-+	if (!hfi1_send_ok(qp)) {
-+		spin_unlock_irqrestore(&qp->s_lock, flags);
-+		return;
-+	}
-+
-+	qp->s_flags |= HFI1_S_BUSY;
-+
-+	spin_unlock_irqrestore(&qp->s_lock, flags);
-+
-+	do {
-+		/* Check for a constructed packet to be sent. */
-+		if (qp->s_hdrwords != 0) {
-+			/*
-+			 * If the packet cannot be sent now, return and
-+			 * the send tasklet will be woken up later.
-+			 */
-+			if (hfi1_verbs_send(qp, qp->s_hdr, qp->s_hdrwords,
-+					    qp->s_cur_sge, qp->s_cur_size))
-+				break;
-+			/* Record that s_hdr is empty. */
-+			qp->s_hdrwords = 0;
-+		}
-+	} while (make_req(qp));
-+}
++DECLARE_EVENT_CLASS(hfi1_trace_template,
++	TP_PROTO(const char *function, struct va_format *vaf),
++	TP_ARGS(function, vaf),
++	TP_STRUCT__entry(
++		__string(function, function)
++		__dynamic_array(char, msg, MAX_MSG_LEN)
++	),
++	TP_fast_assign(
++		__assign_str(function, function);
++		WARN_ON_ONCE(vsnprintf(__get_dynamic_array(msg),
++		     MAX_MSG_LEN, vaf->fmt,
++		     *vaf->va) >= MAX_MSG_LEN);
++	),
++	TP_printk("(%s) %s",
++		  __get_str(function),
++		  __get_str(msg))
++);
 +
 +/*
-+ * This should be called with s_lock held.
++ * It may be nice to macroize the __hfi1_trace but the va_* stuff requires an
++ * actual function to work and can not be in a macro. Also the fmt can not be a
++ * constant char * because we need to be able to manipulate the \n if it is
++ * present.
 + */
-+void hfi1_send_complete(struct hfi1_qp *qp, struct hfi1_swqe *wqe,
-+			enum ib_wc_status status)
-+{
-+	u32 old_last, last;
-+	unsigned i;
++#define __hfi1_trace_event(lvl) \
++DEFINE_EVENT(hfi1_trace_template, hfi1_ ##lvl,				\
++	TP_PROTO(const char *function, struct va_format *vaf),		\
++	TP_ARGS(function, vaf))
 +
-+	if (!(ib_hfi1_state_ops[qp->state] & HFI1_PROCESS_OR_FLUSH_SEND))
-+		return;
-+
-+	for (i = 0; i < wqe->wr.num_sge; i++) {
-+		struct hfi1_sge *sge = &wqe->sg_list[i];
-+
-+		hfi1_put_mr(sge->mr);
-+	}
-+	if (qp->ibqp.qp_type == IB_QPT_UD ||
-+	    qp->ibqp.qp_type == IB_QPT_SMI ||
-+	    qp->ibqp.qp_type == IB_QPT_GSI)
-+		atomic_dec(&to_iah(wqe->wr.wr.ud.ah)->refcount);
-+
-+	/* See ch. 11.2.4.1 and 10.7.3.1 */
-+	if (!(qp->s_flags & HFI1_S_SIGNAL_REQ_WR) ||
-+	    (wqe->wr.send_flags & IB_SEND_SIGNALED) ||
-+	    status != IB_WC_SUCCESS) {
-+		struct ib_wc wc;
-+
-+		memset(&wc, 0, sizeof(wc));
-+		wc.wr_id = wqe->wr.wr_id;
-+		wc.status = status;
-+		wc.opcode = ib_hfi1_wc_opcode[wqe->wr.opcode];
-+		wc.qp = &qp->ibqp;
-+		if (status == IB_WC_SUCCESS)
-+			wc.byte_len = wqe->length;
-+		hfi1_cq_enter(to_icq(qp->ibqp.send_cq), &wc,
-+			      status != IB_WC_SUCCESS);
-+	}
-+
-+	last = qp->s_last;
-+	old_last = last;
-+	if (++last >= qp->s_size)
-+		last = 0;
-+	qp->s_last = last;
-+	if (qp->s_acked == old_last)
-+		qp->s_acked = last;
-+	if (qp->s_cur == old_last)
-+		qp->s_cur = last;
-+	if (qp->s_tail == old_last)
-+		qp->s_tail = last;
-+	if (qp->state == IB_QPS_SQD && last == qp->s_cur)
-+		qp->s_draining = 0;
++#ifdef HFI1_TRACE_DO_NOT_CREATE_INLINES
++#define __hfi1_trace_fn(fn) __hfi1_trace_event(fn)
++#else
++#define __hfi1_trace_fn(fn) \
++__hfi1_trace_event(fn); \
++__printf(2, 3) \
++static inline void __hfi1_trace_##fn(const char *func, char *fmt, ...)	\
++{									\
++	struct va_format vaf = {					\
++		.fmt = fmt,						\
++	};								\
++	va_list args;							\
++									\
++	va_start(args, fmt);						\
++	vaf.va = &args;							\
++	trace_hfi1_ ##fn(func, &vaf);					\
++	va_end(args);							\
++	return;								\
 +}
++#endif
++
++/*
++ * To create a new trace level simply define it as below. This will create all
++ * the hooks for calling hfi1_cdbg(LVL, fmt, ...); as well as take care of all
++ * the debugfs stuff.
++ */
++__hfi1_trace_fn(RVPKT);
++__hfi1_trace_fn(INIT);
++__hfi1_trace_fn(VERB);
++__hfi1_trace_fn(PKT);
++__hfi1_trace_fn(PROC);
++__hfi1_trace_fn(MM);
++__hfi1_trace_fn(ERRPKT);
++__hfi1_trace_fn(SDMA);
++__hfi1_trace_fn(VPKT);
++__hfi1_trace_fn(LINKVERB);
++__hfi1_trace_fn(VERBOSE);
++__hfi1_trace_fn(DEBUG);
++__hfi1_trace_fn(SNOOP);
++__hfi1_trace_fn(CNTR);
++__hfi1_trace_fn(PIO);
++__hfi1_trace_fn(DC8051);
++__hfi1_trace_fn(FIRMWARE);
++__hfi1_trace_fn(RCVCTRL);
++__hfi1_trace_fn(TID);
++
++#define hfi1_cdbg(which, fmt, ...) \
++	__hfi1_trace_##which(__func__, fmt, ##__VA_ARGS__)
++
++#define hfi1_dbg(fmt, ...) \
++	hfi1_cdbg(DEBUG, fmt, ##__VA_ARGS__)
++
++/*
++ * Define HFI1_EARLY_DBG at compile time or here to enable early trace
++ * messages. Do not check in an enablement for this.
++ */
++
++#ifdef HFI1_EARLY_DBG
++#define hfi1_dbg_early(fmt, ...) \
++	trace_printk(fmt, ##__VA_ARGS__)
++#else
++#define hfi1_dbg_early(fmt, ...)
++#endif
++
++#endif /* __HFI1_TRACE_H */
++
++#undef TRACE_INCLUDE_PATH
++#undef TRACE_INCLUDE_FILE
++#define TRACE_INCLUDE_PATH .
++#define TRACE_INCLUDE_FILE trace
++#include <trace/define_trace.h>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
