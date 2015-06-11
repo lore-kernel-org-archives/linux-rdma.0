@@ -1,8 +1,10 @@
 From: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v5 1/1] ibacm: Add support for pathrecord query through netlink
-Date: Thu, 11 Jun 2015 13:04:25 -0400
-Message-ID: <1434042265-5066-1-git-send-email-kaike.wan@intel.com>
+Subject: [PATCH v5 4/4] IB/sa: Route SA pathrecord query through netlink
+Date: Thu, 11 Jun 2015 13:03:45 -0400
+Message-ID: <1434042225-4975-5-git-send-email-kaike.wan@intel.com>
+References: <1434042225-4975-1-git-send-email-kaike.wan@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1434042225-4975-1-git-send-email-kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,499 +12,620 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-This patch enables ibacm to process pathrecord queries through netlink.
-Since ibacm can cache pathrecords, this implementation provides an easy
-pathrecord cache for kernel components and therefore offers great
-performance advantage on large fabric systems.
+This patch routes a SA pathrecord query to netlink first and processes the
+response appropriately. If a failure is returned, the request will be sent
+through IB. The decision whether to route the request to netlink first is
+determined by the presence of a listener for the local service netlink
+multicast group. If the user-space local service netlink multicast group
+listener is not present, the request will be sent through IB, just like
+what is currently being done.
 
 Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
-Changes since v4:
-- Add error handling for unknown or incorrectly formated attributes.
-  The request will be NACKed.
+ drivers/infiniband/core/sa_query.c |  515 +++++++++++++++++++++++++++++++++++-
+ 1 files changed, 514 insertions(+), 1 deletions(-)
 
-Changes since v3:
-- Change the parsing from struct ib_user_path_rec to basic attributes.
-
-Changes since v2:
-- Redesign the communication protocol between the kernel and ibacm, as
-  described below:
-  http://www.spinics.net/lists/linux-rdma/msg25621.html
-
-Changes since v1:
-- Check rmpp_flags for rmpp MAD instead of rmpp_version. 
-
-
- src/acm.c |  385 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 382 insertions(+), 3 deletions(-)
-
-diff --git a/src/acm.c b/src/acm.c
-index 7649725..bd64a93 100644
---- a/src/acm.c
-+++ b/src/acm.c
-@@ -46,6 +46,8 @@
- #include <infiniband/acm_prov.h>
- #include <infiniband/umad.h>
- #include <infiniband/verbs.h>
-+#include <infiniband/umad_types.h>
-+#include <infiniband/umad_sa.h>
- #include <dlist.h>
- #include <dlfcn.h> 
- #include <search.h>
-@@ -55,6 +57,8 @@
- #include <netinet/in.h>
- #include <linux/netlink.h>
- #include <linux/rtnetlink.h>
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index 17e1cf7..e063593 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -45,12 +45,21 @@
+ #include <uapi/linux/if_ether.h>
+ #include <rdma/ib_pack.h>
+ #include <rdma/ib_cache.h>
 +#include <rdma/rdma_netlink.h>
-+#include <rdma/ib_user_sa.h>
- #include <poll.h>
- #include "acm_mad.h"
- #include "acm_util.h"
-@@ -66,6 +70,7 @@
- #define MAX_EP_ADDR 4
- #define NL_MSG_BUF_SIZE 4096
- #define ACM_PROV_NAME_SIZE 64
-+#define NL_CLIENT_INDEX 0
++#include <net/netlink.h>
++#include <uapi/rdma/ib_user_sa.h>
++#include <rdma/ib_marshall.h>
+ #include "sa.h"
  
- struct acmc_subnet {
- 	DLIST_ENTRY            entry;
-@@ -151,6 +156,26 @@ struct acmc_sa_req {
- 	struct acm_sa_mad	mad;
+ MODULE_AUTHOR("Roland Dreier");
+ MODULE_DESCRIPTION("InfiniBand subnet administration query support");
+ MODULE_LICENSE("Dual BSD/GPL");
+ 
++#define IB_SA_LOCAL_SVC_TIMEOUT_MIN		100
++#define IB_SA_LOCAL_SVC_TIMEOUT_DEFAULT		2000
++#define IB_SA_LOCAL_SVC_TIMEOUT_MAX		200000
++static int sa_local_svc_timeout_ms = IB_SA_LOCAL_SVC_TIMEOUT_DEFAULT;
++
+ struct ib_sa_sm_ah {
+ 	struct ib_ah        *ah;
+ 	struct kref          ref;
+@@ -80,8 +89,24 @@ struct ib_sa_query {
+ 	struct ib_mad_send_buf *mad_buf;
+ 	struct ib_sa_sm_ah     *sm_ah;
+ 	int			id;
++	u32			flags;
  };
  
-+struct acm_nl_status {
-+	struct nlattr			attr_hdr;
-+	struct rdma_nla_ls_status	status;
++#define IB_SA_ENABLE_LOCAL_SERVICE	0x00000001
++#define IB_SA_CANCEL			0x00000002
++
++#define IB_SA_LOCAL_SVC_ENABLED(query) \
++	((query)->flags & IB_SA_ENABLE_LOCAL_SERVICE)
++#define IB_SA_ENABLE_LOCAL_SVC(query) \
++	((query)->flags |= IB_SA_ENABLE_LOCAL_SERVICE)
++#define IB_SA_DISABLE_LOCAL_SVC(query) \
++	((query)->flags &= ~IB_SA_ENABLE_LOCAL_SERVICE)
++
++#define IB_SA_QUERY_CANCELLED(query) \
++	((query)->flags & IB_SA_CANCEL)
++#define IB_SA_CANCEL_QUERY(query) \
++	((query)->flags |= IB_SA_CANCEL)
++
+ struct ib_sa_service_query {
+ 	void (*callback)(int, struct ib_sa_service_rec *, void *);
+ 	void *context;
+@@ -106,6 +131,26 @@ struct ib_sa_mcmember_query {
+ 	struct ib_sa_query sa_query;
+ };
+ 
++struct ib_nl_request_info {
++	struct list_head list;
++	u32 seq;
++	unsigned long timeout;
++	struct ib_sa_query *query;
 +};
 +
-+struct acm_nl_path {
-+	struct nlattr			attr_hdr;
-+	struct ib_path_rec_data		rec;
++struct ib_nl_attr_info {
++	u16 len;	/* Total attr len: header + payload + padding */
++	ib_sa_comp_mask comp_mask;
++	void *input;
++	void (*set_attrs)(struct sk_buff *skb, struct ib_nl_attr_info *info);
 +};
 +
-+struct acm_nl_msg {
-+	struct nlmsghdr				nlmsg_header;
-+	union {
-+		uint8_t				data[ACM_MSG_DATA_LENGTH];
-+		struct nlattr			attr[0];
-+		struct acm_nl_status		status[0];
-+		struct acm_nl_path		path[0];
-+	};
-+};
++static LIST_HEAD(ib_nl_request_list);
++static DEFINE_SPINLOCK(ib_nl_request_lock);
++static atomic_t ib_nl_sa_request_seq;
++static struct workqueue_struct *ib_nl_wq;
++static struct delayed_work ib_nl_timed_work;
 +
- static char def_prov_name[ACM_PROV_NAME_SIZE] = "ibacmp";
- static DLIST_ENTRY provider_list;
- static struct acmc_prov *def_provider = NULL;
-@@ -172,6 +197,7 @@ static struct acmc_ep *acm_find_ep(struct acmc_port *port, uint16_t pkey);
- static int acm_ep_insert_addr(struct acmc_ep *ep, const char *name, uint8_t *addr,
- 			      size_t addr_len, uint8_t addr_type);
- static void acm_event_handler(struct acmc_device *dev);
-+static int acm_nl_send(SOCKET sock, struct acm_msg *msg);
+ static void ib_sa_add_one(struct ib_device *device);
+ static void ib_sa_remove_one(struct ib_device *device);
  
- static struct sa_data {
- 	int		timeout;
-@@ -466,7 +492,11 @@ int acm_resolve_response(uint64_t id, struct acm_msg *msg)
- 		goto release;
- 	}
+@@ -381,6 +426,433 @@ static const struct ib_field guidinfo_rec_table[] = {
+ 	  .size_bits    = 512 },
+ };
  
--	ret = send(client->sock, (char *) msg, msg->hdr.length, 0);
-+	if (id == NL_CLIENT_INDEX)
-+		ret = acm_nl_send(client->sock, msg);
-+	else
-+		ret = send(client->sock, (char *) msg, msg->hdr.length, 0);
-+
- 	if (ret != msg->hdr.length)
- 		acm_log(0, "ERROR - failed to send response\n");
- 	else
-@@ -597,6 +627,8 @@ static void acm_svr_accept(void)
- 	}
- 
- 	for (i = 0; i < FD_SETSIZE - 1; i++) {
-+		if (i == NL_CLIENT_INDEX)
-+			continue;
- 		if (!atomic_get(&client_array[i].refcnt))
- 			break;
- 	}
-@@ -1346,6 +1378,348 @@ static void acm_ipnl_handler(void)
- 	}
- }
- 
-+static int acm_nl_send(SOCKET sock, struct acm_msg *msg)
++static int ib_nl_send_msg(int opcode, struct ib_nl_attr_info *attrs, u32 seq)
 +{
-+	struct sockaddr_nl dst_addr;
-+	struct acm_nl_msg acmnlmsg;
-+	struct acm_nl_msg *orig;
-+	int ret;
-+	int datalen;
-+
-+	orig = (struct acm_nl_msg *) msg->hdr.tid;
-+
-+	memset(&dst_addr, 0, sizeof(dst_addr));
-+	dst_addr.nl_family = AF_NETLINK;
-+	dst_addr.nl_groups = (1 << (RDMA_NL_GROUP_LS - 1));
-+
-+	memset(&acmnlmsg, 0, sizeof(acmnlmsg));
-+	acmnlmsg.nlmsg_header.nlmsg_len = NLMSG_HDRLEN;
-+	acmnlmsg.nlmsg_header.nlmsg_pid = getpid();
-+	acmnlmsg.nlmsg_header.nlmsg_type = orig->nlmsg_header.nlmsg_type;
-+	acmnlmsg.nlmsg_header.nlmsg_flags = NLM_F_REQUEST;
-+	acmnlmsg.nlmsg_header.nlmsg_seq = orig->nlmsg_header.nlmsg_seq;
-+
-+	if (msg->hdr.status != ACM_STATUS_SUCCESS) {
-+		acm_log(2, "acm status no success = %d\n", msg->hdr.status);
-+		acmnlmsg.nlmsg_header.nlmsg_flags |= RDMA_NL_LS_F_ERR;
-+		acmnlmsg.nlmsg_header.nlmsg_len +=
-+			NLA_ALIGN(sizeof(struct acm_nl_status));
-+		acmnlmsg.status[0].attr_hdr.nla_type = LS_NLA_TYPE_STATUS;
-+		acmnlmsg.status[0].attr_hdr.nla_len = NLA_HDRLEN +
-+			sizeof(struct rdma_nla_ls_status);
-+		if (msg->hdr.status == ACM_STATUS_EINVAL)
-+			acmnlmsg.status[0].status.status = LS_NLA_STATUS_EINVAL;
-+		else
-+			acmnlmsg.status[0].status.status =
-+				LS_NLA_STATUS_ENODATA;
-+	} else {
-+		acm_log(2, "acm status success\n");
-+		acmnlmsg.nlmsg_header.nlmsg_flags |= RDMA_NL_LS_F_OK;
-+		acmnlmsg.nlmsg_header.nlmsg_len +=
-+			NLA_ALIGN(sizeof(struct acm_nl_path));
-+		acmnlmsg.path[0].attr_hdr.nla_type = LS_NLA_TYPE_PATH_RECORD;
-+		acmnlmsg.path[0].attr_hdr.nla_len = sizeof(struct acm_nl_path);
-+		acmnlmsg.path[0].rec.flags =
-+			IB_PATH_GMP | IB_PATH_PRIMARY | IB_PATH_BIDIRECTIONAL;
-+		memcpy(acmnlmsg.path[0].rec.path_rec,
-+		       &msg->resolve_data[0].info.path,
-+		       sizeof(struct ibv_path_record));
-+	}
-+
-+	datalen = NLMSG_ALIGN(acmnlmsg.nlmsg_header.nlmsg_len);
-+	ret = sendto(sock, &acmnlmsg, datalen, 0,
-+		     (const struct sockaddr *)&dst_addr,
-+		     (socklen_t)sizeof(dst_addr));
-+	if (ret != datalen) {
-+		acm_log(0, "ERROR - sendto = %d errno = %d\n", ret, errno);
-+		ret = -1;
-+	} else {
-+		ret = msg->hdr.length;
-+	}
-+
-+	free(orig);
-+
-+	return ret;
-+}
-+
-+#define NLA_LEN(nla)	((nla)->nla_len - NLA_HDRLEN)
-+#define NLA_DATA(nla)	((char *)(nla) + NLA_HDRLEN)
-+
-+static int acm_nl_parse_path_attr(struct nlattr *attr,
-+				   struct acm_ep_addr_data *data)
-+{
-+	struct ibv_path_record *path;
-+	struct rdma_nla_ls_service_id  *sid;
-+	struct rdma_nla_ls_gid *gid;
-+	struct rdma_nla_ls_tclass *tcl;
-+	struct rdma_nla_ls_reversible *rev;
-+	struct rdma_nla_ls_numb_path *npath;
-+	struct rdma_nla_ls_pkey *pkey;
-+	struct rdma_nla_ls_qos_class *qos;
-+	uint16_t val;
++	struct sk_buff *skb = NULL;
++	struct nlmsghdr *nlh;
++	void *data;
 +	int ret = 0;
 +
-+#define IBV_PATH_RECORD_QOS_MASK 0xfff0
++	if (attrs->len <= 0)
++		return -EMSGSIZE;
 +
-+	path = &data->info.path;
-+	switch (attr->nla_type & NLA_TYPE_MASK) {
-+	case LS_NLA_TYPE_SERVICE_ID:
-+		sid = (struct rdma_nla_ls_service_id *) NLA_DATA(attr);
-+		if (NLA_LEN(attr) == sizeof(sid->service_id)) {
-+			acm_log(2, "service_id 0x%llx\n", sid->service_id);
-+			path->service_id = sid->service_id;
-+		} else {
-+			ret = -1;
-+		}
-+		break;
-+
-+	case LS_NLA_TYPE_DGID:
-+		gid = (struct rdma_nla_ls_gid *) NLA_DATA(attr);
-+		if (NLA_LEN(attr) == sizeof(gid->gid)) {
-+			acm_format_name(2, log_data, sizeof(log_data),
-+					ACM_ADDRESS_GID, gid->gid,
-+					sizeof(union ibv_gid));
-+			acm_log(2, "path dgid %s\n", log_data);
-+			memcpy(path->dgid.raw, gid->gid, sizeof(path->dgid));
-+			data->flags |= ACM_EP_FLAG_DEST;
-+		} else {
-+			ret = -1;
-+		}
-+		break;
-+
-+	case LS_NLA_TYPE_SGID:
-+		gid = (struct rdma_nla_ls_gid *) NLA_DATA(attr);
-+		if (NLA_LEN(attr) == sizeof(gid->gid)) {
-+			acm_format_name(2, log_data, sizeof(log_data),
-+					ACM_ADDRESS_GID, gid->gid,
-+					sizeof(union ibv_gid));
-+			acm_log(2, "path sgid %s\n", log_data);
-+			memcpy(path->sgid.raw, gid->gid, sizeof(path->sgid));
-+			data->flags |= ACM_EP_FLAG_SOURCE;
-+		} else {
-+			ret = -1;
-+		}
-+		break;
-+
-+	case LS_NLA_TYPE_TCLASS:
-+		tcl = (struct rdma_nla_ls_tclass *) NLA_DATA(attr);
-+		if (NLA_LEN(attr) == sizeof(tcl->tclass)) {
-+			acm_log(2, "tclass 0x%x\n", tcl->tclass);
-+			path->tclass = tcl->tclass;
-+		} else {
-+			ret = -1;
-+		}
-+		break;
-+
-+	case LS_NLA_TYPE_REVERSIBLE:
-+		rev = (struct rdma_nla_ls_reversible *) NLA_DATA(attr);
-+		if (NLA_LEN(attr) == sizeof(rev->reversible)) {
-+			acm_log(2, "reversible 0x%x\n", rev->reversible);
-+			if (rev->reversible)
-+				path->reversible_numpath |=
-+					IBV_PATH_RECORD_REVERSIBLE;
-+			else
-+				path->reversible_numpath &=
-+					~IBV_PATH_RECORD_REVERSIBLE;
-+		} else {
-+			ret = -1;
-+		}
-+		break;
-+
-+	case LS_NLA_TYPE_NUMB_PATH:
-+		npath = (struct rdma_nla_ls_numb_path *) NLA_DATA(attr);
-+		if (NLA_LEN(attr) == sizeof(npath->numb_path)) {
-+			acm_log(2, "numb_path %d\n", npath->numb_path);
-+			path->reversible_numpath &= IBV_PATH_RECORD_REVERSIBLE;
-+			path->reversible_numpath |=
-+				(npath->numb_path &
-+				 (~IBV_PATH_RECORD_REVERSIBLE));
-+		} else {
-+			ret = -1;
-+		}
-+		break;
-+
-+	case LS_NLA_TYPE_PKEY:
-+		pkey = (struct rdma_nla_ls_pkey *) NLA_DATA(attr);
-+		if (NLA_LEN(attr) == sizeof(pkey->pkey)) {
-+			acm_log(2, "pkey 0x%x\n", pkey->pkey);
-+			path->pkey = pkey->pkey;
-+		} else {
-+			ret = -1;
-+		}
-+		break;
-+
-+	case LS_NLA_TYPE_QOS_CLASS:
-+		qos = (struct rdma_nla_ls_qos_class *) NLA_DATA(attr);
-+		if (NLA_LEN(attr) == sizeof(qos->qos_class)) {
-+			acm_log(2, "qos_class 0x%x\n", qos->qos_class);
-+			val = ntohs(path->qosclass_sl);
-+			val &= ~IBV_PATH_RECORD_QOS_MASK;
-+			val |= (ntohs(qos->qos_class) &
-+				IBV_PATH_RECORD_QOS_MASK);
-+			path->qosclass_sl = htons(val);
-+		} else {
-+			ret = -1;
-+		}
-+		break;
-+
-+	default:
-+		acm_log(1, "WARN: unknown attr %x\n", attr->nla_type);
-+		ret = -1;
-+		break;
++	skb = nlmsg_new(attrs->len, GFP_KERNEL);
++	if (!skb) {
++		pr_err("alloc failed ret=%d\n", ret);
++		return -ENOMEM;
 +	}
++
++	/* Put nlmsg header only for now */
++	data = ibnl_put_msg(skb, &nlh, seq, 0, RDMA_NL_SA,
++			    opcode, GFP_KERNEL);
++	if (!data) {
++		kfree_skb(skb);
++		return -EMSGSIZE;
++	}
++
++	/* Add attributes */
++	attrs->set_attrs(skb, attrs);
++
++	/* Repair the nlmsg header length */
++	nlmsg_end(skb, nlh);
++
++	ret = ibnl_multicast(skb, nlh, RDMA_NL_GROUP_LS, GFP_KERNEL);
++	if (!ret) {
++		ret = attrs->len;
++	} else {
++		if (ret != -ESRCH)
++			pr_err("ibnl_multicast failed l=%d, r=%d\n",
++			       attrs->len, ret);
++		ret = 0;
++	}
++	return ret;
++}
++
++static struct ib_nl_request_info *
++ib_nl_alloc_request(struct ib_sa_query *query)
++{
++	struct ib_nl_request_info *rinfo;
++
++	rinfo = kzalloc(sizeof(*rinfo), GFP_ATOMIC);
++	if (rinfo == NULL)
++		return ERR_PTR(-ENOMEM);
++
++	INIT_LIST_HEAD(&rinfo->list);
++	rinfo->seq = (u32)atomic_inc_return(&ib_nl_sa_request_seq);
++	rinfo->query = query;
++
++	return rinfo;
++}
++
++static void ib_nl_set_path_rec_attrs(struct sk_buff *skb,
++				     struct ib_nl_attr_info *info)
++{
++	struct ib_sa_path_rec *sa_rec = info->input;
++
++	if (info->comp_mask & IB_SA_PATH_REC_SERVICE_ID)
++		nla_put(skb, LS_NLA_TYPE_SERVICE_ID,
++			sizeof(sa_rec->service_id), &sa_rec->service_id);
++	if (info->comp_mask & IB_SA_PATH_REC_DGID)
++		nla_put(skb, LS_NLA_TYPE_DGID, sizeof(sa_rec->dgid),
++			&sa_rec->dgid);
++	if (info->comp_mask & IB_SA_PATH_REC_SGID)
++		nla_put(skb, LS_NLA_TYPE_SGID, sizeof(sa_rec->sgid),
++			&sa_rec->sgid);
++	if (info->comp_mask & IB_SA_PATH_REC_TRAFFIC_CLASS)
++		nla_put(skb, LS_NLA_TYPE_TCLASS, sizeof(sa_rec->traffic_class),
++			&sa_rec->traffic_class);
++	if (info->comp_mask & IB_SA_PATH_REC_REVERSIBLE)
++		nla_put(skb, LS_NLA_TYPE_REVERSIBLE,
++			sizeof(sa_rec->reversible), &sa_rec->reversible);
++	if (info->comp_mask & IB_SA_PATH_REC_NUMB_PATH)
++		nla_put(skb, LS_NLA_TYPE_NUMB_PATH,
++			sizeof(sa_rec->numb_path), &sa_rec->numb_path);
++	if (info->comp_mask & IB_SA_PATH_REC_PKEY)
++		nla_put(skb, LS_NLA_TYPE_PKEY, sizeof(sa_rec->pkey),
++			&sa_rec->pkey);
++	if (info->comp_mask & IB_SA_PATH_REC_QOS_CLASS)
++		nla_put(skb, LS_NLA_TYPE_QOS_CLASS,
++			sizeof(sa_rec->qos_class), &sa_rec->qos_class);
++}
++
++static int ib_nl_get_path_rec_attrs_len(struct ib_nl_attr_info *info)
++{
++	int len = 0;
++
++	if (info->comp_mask & IB_SA_PATH_REC_SERVICE_ID)
++		len += nla_total_size(sizeof(struct rdma_nla_ls_service_id));
++	if (info->comp_mask & IB_SA_PATH_REC_DGID)
++		len += nla_total_size(sizeof(struct rdma_nla_ls_gid));
++	if (info->comp_mask & IB_SA_PATH_REC_SGID)
++		len += nla_total_size(sizeof(struct rdma_nla_ls_gid));
++	if (info->comp_mask & IB_SA_PATH_REC_TRAFFIC_CLASS)
++		len += nla_total_size(sizeof(struct rdma_nla_ls_tclass));
++	if (info->comp_mask & IB_SA_PATH_REC_REVERSIBLE)
++		len += nla_total_size(sizeof(struct rdma_nla_ls_reversible));
++	if (info->comp_mask & IB_SA_PATH_REC_NUMB_PATH)
++		len += nla_total_size(sizeof(struct rdma_nla_ls_numb_path));
++	if (info->comp_mask & IB_SA_PATH_REC_PKEY)
++		len += nla_total_size(sizeof(struct rdma_nla_ls_pkey));
++	if (info->comp_mask & IB_SA_PATH_REC_QOS_CLASS)
++		len += nla_total_size(sizeof(struct rdma_nla_ls_qos_class));
++
++	return len;
++}
++
++static int ib_nl_send_request(struct ib_nl_request_info *rinfo)
++{
++	struct ib_nl_attr_info info;
++	int opcode;
++	struct ib_sa_mad *mad;
++	unsigned long flags;
++	unsigned long delay;
++	int ret;
++
++	mad = rinfo->query->mad_buf->mad;
++	switch (mad->mad_hdr.attr_id) {
++	case cpu_to_be16(IB_SA_ATTR_PATH_REC):
++		opcode = RDMA_NL_LS_OP_RESOLVE;
++		mad = rinfo->query->mad_buf->mad;
++		info.comp_mask = mad->sa_hdr.comp_mask;
++		info.input = rinfo->query->mad_buf->context[1];
++		rinfo->query->mad_buf->context[1] = NULL;
++		info.len = ib_nl_get_path_rec_attrs_len(&info);
++		info.set_attrs = ib_nl_set_path_rec_attrs;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	spin_lock_irqsave(&ib_nl_request_lock, flags);
++	ret = ib_nl_send_msg(opcode, &info, rinfo->seq);
++	if (ret <= 0) {
++		ret = -EIO;
++		goto request_out;
++	} else {
++		ret = 0;
++	}
++
++	delay = msecs_to_jiffies(sa_local_svc_timeout_ms);
++	rinfo->timeout = delay + jiffies;
++	list_add_tail(&rinfo->list, &ib_nl_request_list);
++	/* Start the timeout if this is the only request */
++	if (ib_nl_request_list.next == &rinfo->list)
++		queue_delayed_work(ib_nl_wq, &ib_nl_timed_work, delay);
++
++request_out:
++	spin_unlock_irqrestore(&ib_nl_request_lock, flags);
 +
 +	return ret;
 +}
 +
-+static void acm_nl_process_invalid_request(struct acmc_client *client,
-+					   struct acm_nl_msg *acmnlmsg)
++static int ib_nl_make_request(struct ib_sa_query *query)
 +{
-+	struct acm_msg msg;
++	struct ib_nl_request_info *rinfo;
++	int ret;
 +
-+	memset(&msg, 0, sizeof(msg));
-+	msg.hdr.opcode = ACM_OP_RESOLVE;
-+	msg.hdr.version = ACM_VERSION;
-+	msg.hdr.length = ACM_MSG_HDR_LENGTH;
-+	msg.hdr.status = ACM_STATUS_EINVAL;
-+	msg.hdr.tid = (uint64_t) acmnlmsg;
++	rinfo = ib_nl_alloc_request(query);
++	if (IS_ERR(rinfo))
++		return -ENOMEM;
 +
-+	acm_nl_send(client->sock, &msg);
++	ret = ib_nl_send_request(rinfo);
++	if (ret)
++		kfree(rinfo);
++
++	return ret;
 +}
 +
-+static void acm_nl_process_resolve(struct acmc_client *client,
-+				   struct acm_nl_msg *acmnlmsg)
++static int ib_nl_cancel_request(struct ib_sa_query *query)
 +{
-+	struct acm_msg msg;
-+	struct nlattr *attr;
-+	int payload_len;
-+	int rem;
-+	int total_attr_len;
-+	int status;
++	unsigned long flags;
++	struct ib_nl_request_info *rinfo;
++	int found = 0;
 +
-+	memset(&msg, 0, sizeof(msg));
-+	msg.hdr.opcode = ACM_OP_RESOLVE;
-+	msg.hdr.version = ACM_VERSION;
-+	msg.hdr.length = ACM_MSG_HDR_LENGTH + ACM_MSG_EP_LENGTH;
-+	msg.hdr.status = ACM_STATUS_SUCCESS;
-+	msg.hdr.tid = (uint64_t) acmnlmsg;
-+	msg.resolve_data[0].type = ACM_EP_INFO_PATH;
-+
-+	payload_len = acmnlmsg->nlmsg_header.nlmsg_len - NLMSG_HDRLEN;
-+	attr = NLMSG_DATA(&acmnlmsg->nlmsg_header);
-+	rem = payload_len;
-+	while (1) {
-+		if (rem < (int) sizeof(*attr) ||
-+		    attr->nla_len < sizeof(*attr) ||
-+		    attr->nla_len > rem)
++	spin_lock_irqsave(&ib_nl_request_lock, flags);
++	list_for_each_entry(rinfo, &ib_nl_request_list, list) {
++		/* Let the timeout to take care of the callback */
++		if (query == rinfo->query) {
++			IB_SA_CANCEL_QUERY(query);
++			rinfo->timeout = jiffies;
++			list_move(&rinfo->list, &ib_nl_request_list);
++			found = 1;
++			mod_delayed_work(ib_nl_wq, &ib_nl_timed_work, 1);
 +			break;
++		}
++	}
++	spin_unlock_irqrestore(&ib_nl_request_lock, flags);
 +
-+		status = acm_nl_parse_path_attr(attr, &msg.resolve_data[0]);
-+		if (status) {
-+			acm_nl_process_invalid_request(client, acmnlmsg);
-+			return;
++	return found;
++}
++
++static void send_handler(struct ib_mad_agent *agent,
++			 struct ib_mad_send_wc *mad_send_wc);
++
++static void ib_nl_process_good_resolve_rsp(struct ib_sa_query *query,
++					   const struct nlmsghdr *nlh)
++{
++	struct ib_mad_send_wc mad_send_wc;
++	struct ib_sa_mad *mad = NULL;
++	const struct nlattr *head, *curr;
++	struct ib_path_rec_data  *rec;
++	int len, rem;
++
++	if (query->callback) {
++		head = (const struct nlattr *) nlmsg_data(nlh);
++		len = nlmsg_len(nlh);
++		nla_for_each_attr(curr, head, len, rem) {
++			if (curr->nla_type == LS_NLA_TYPE_PATH_RECORD) {
++				rec = nla_data(curr);
++				if ((rec->flags && IB_PATH_GMP) &&
++				    (rec->flags && IB_PATH_PRIMARY)) {
++					mad = query->mad_buf->mad;
++					mad->mad_hdr.method |=
++						IB_MGMT_METHOD_RESP;
++					memcpy(mad->data, rec->path_rec,
++					       sizeof(rec->path_rec));
++					query->callback(query, 0, mad);
++					break;
++				}
++			}
++		}
++	}
++
++	mad_send_wc.send_buf = query->mad_buf;
++	mad_send_wc.status = IB_WC_SUCCESS;
++	send_handler(query->mad_buf->mad_agent, &mad_send_wc);
++}
++
++static void ib_nl_request_timeout(struct work_struct *work)
++{
++	unsigned long flags;
++	struct ib_nl_request_info *rinfo;
++	struct ib_sa_query *query;
++	unsigned long delay;
++	struct ib_mad_send_wc mad_send_wc;
++	int ret;
++
++	spin_lock_irqsave(&ib_nl_request_lock, flags);
++	while (!list_empty(&ib_nl_request_list)) {
++		rinfo = list_entry(ib_nl_request_list.next,
++				   struct ib_nl_request_info, list);
++
++		if (time_after(rinfo->timeout, jiffies)) {
++			delay = rinfo->timeout - jiffies;
++			if ((long)delay <= 0)
++				delay = 1;
++			queue_delayed_work(ib_nl_wq, &ib_nl_timed_work, delay);
++			break;
 +		}
 +
-+		/* Next attribute */
-+		total_attr_len = NLA_ALIGN(attr->nla_len);
-+		rem -= total_attr_len;
-+		attr = (struct nlattr *) ((char *) attr + total_attr_len);
++		list_del(&rinfo->list);
++		query = rinfo->query;
++		IB_SA_DISABLE_LOCAL_SVC(query);
++		/* Hold the lock to protect against query cancellation */
++		if (IB_SA_QUERY_CANCELLED(query))
++			ret = -1;
++		else
++			ret = ib_post_send_mad(query->mad_buf, NULL);
++		if (ret) {
++			mad_send_wc.send_buf = query->mad_buf;
++			mad_send_wc.status = IB_WC_WR_FLUSH_ERR;
++			spin_unlock_irqrestore(&ib_nl_request_lock, flags);
++			send_handler(query->port->agent, &mad_send_wc);
++			spin_lock_irqsave(&ib_nl_request_lock, flags);
++		}
++		kfree(rinfo);
 +	}
-+
-+	atomic_inc(&counter[ACM_CNTR_RESOLVE]);
-+	acm_svr_resolve(client, &msg);
++	spin_unlock_irqrestore(&ib_nl_request_lock, flags);
 +}
 +
-+static int acm_nl_is_valid_resolve_request(struct acm_nl_msg *acmnlmsg)
++static inline int ib_nl_is_good_resolve_resp(const struct nlmsghdr *nlh)
 +{
-+	int payload_len;
++	const struct nlattr *head, *curr;
++	struct ib_path_rec_data  *rec;
++	int len, rem;
 +
-+	payload_len = acmnlmsg->nlmsg_header.nlmsg_len - NLMSG_HDRLEN;
-+	if (payload_len < sizeof(struct nlattr))
++	if (nlh->nlmsg_flags & RDMA_NL_LS_F_ERR)
 +		return 0;
 +
-+	return 1;
-+}
++	if (!(nlh->nlmsg_flags & RDMA_NL_LS_F_OK))
++		return 0;
 +
-+static void acm_nl_receive(struct acmc_client *client)
-+{
-+	struct acm_nl_msg *acmnlmsg;
-+	int datalen = sizeof(*acmnlmsg);
-+	int ret;
-+	uint16_t client_inx, op;
++	if (nlmsg_len(nlh) < nla_attr_size(sizeof(*rec)))
++		return 0;
 +
-+	acmnlmsg = calloc(1, sizeof(*acmnlmsg));
-+	if (!acmnlmsg) {
-+		acm_log(0, "Out of memory for recving nl msg.\n");
-+		return;
-+	}
-+	ret = recv(client->sock, acmnlmsg, datalen, 0);
-+	if (!NLMSG_OK(&acmnlmsg->nlmsg_header, ret)) {
-+		acm_log(0, "Netlink receive error: %d.\n", ret);
-+		goto rcv_cleanup;
++	head = (const struct nlattr *) nlmsg_data(nlh);
++	len = nlmsg_len(nlh);
++	nla_for_each_attr(curr, head, len, rem) {
++		if (curr->nla_type == LS_NLA_TYPE_PATH_RECORD) {
++			rec = nla_data(curr);
++			if ((rec->flags && IB_PATH_GMP) &&
++			    (rec->flags && IB_PATH_PRIMARY))
++				return 1;
++		}
 +	}
 +
-+	acm_log(2, "nlmsg: len %d type 0x%x flags 0x%x seq %d pid %d\n",
-+		acmnlmsg->nlmsg_header.nlmsg_len,
-+		acmnlmsg->nlmsg_header.nlmsg_type,
-+		acmnlmsg->nlmsg_header.nlmsg_flags,
-+		acmnlmsg->nlmsg_header.nlmsg_seq,
-+		acmnlmsg->nlmsg_header.nlmsg_pid);
-+
-+	/* Currently we handle only request from the SA client */
-+	client_inx = RDMA_NL_GET_CLIENT(acmnlmsg->nlmsg_header.nlmsg_type);
-+	op = RDMA_NL_GET_OP(acmnlmsg->nlmsg_header.nlmsg_type);
-+	if (client_inx != RDMA_NL_SA)
-+		goto rcv_cleanup;
-+
-+	switch (op) {
-+	case RDMA_NL_LS_OP_RESOLVE:
-+		if (acm_nl_is_valid_resolve_request(acmnlmsg))
-+			acm_nl_process_resolve(client, acmnlmsg);
-+		else
-+			acm_nl_process_invalid_request(client, acmnlmsg);
-+		break;
-+	default:
-+		/* Not supported*/
-+		acm_log(1, "WARN - invalid opcode %x\n", op);
-+		acm_nl_process_invalid_request(client, acmnlmsg);
-+		break;
-+	}
-+
-+	return;
-+rcv_cleanup:
-+	free(acmnlmsg);
-+}
-+
-+static int acm_init_nl(void)
-+{
-+	struct sockaddr_nl src_addr;
-+	int ret;
-+	SOCKET nl_rcv_socket;
-+
-+	nl_rcv_socket = socket(PF_NETLINK, SOCK_RAW, NETLINK_RDMA);
-+	if (nl_rcv_socket == INVALID_SOCKET) {
-+		acm_log(0, "ERROR - unable to allocate netlink recv socket\n");
-+		return socket_errno();
-+	}
-+
-+	memset(&src_addr, 0, sizeof(src_addr));
-+	src_addr.nl_family = AF_NETLINK;
-+	src_addr.nl_pid = getpid();
-+	src_addr.nl_groups = (1 << (RDMA_NL_GROUP_LS - 1));
-+
-+	ret = bind(nl_rcv_socket, (struct sockaddr *)&src_addr,
-+		   sizeof(src_addr));
-+	if (ret == SOCKET_ERROR) {
-+		acm_log(0, "ERROR - unable to bind netlink socket\n");
-+		return socket_errno();
-+	}
-+
-+	/* init nl client structure */
-+	client_array[NL_CLIENT_INDEX].sock = nl_rcv_socket;
 +	return 0;
 +}
 +
- static void acm_server(void)
++static int ib_nl_handle_set_timeout(struct sk_buff *skb,
++				    struct netlink_callback *cb)
++{
++	const struct nlmsghdr *nlh = (struct nlmsghdr *)cb->nlh;
++	int timeout, delta, abs_delta;
++	const struct nlattr *attr;
++	struct rdma_nla_ls_timeout *to_attr;
++	unsigned long flags;
++	struct ib_nl_request_info *rinfo;
++	long delay = 0;
++
++	if (nlmsg_len(nlh) < nla_attr_size(sizeof(*to_attr)))
++		goto settimeout_out;
++
++	attr = (const struct nlattr *) nlmsg_data(nlh);
++	if (attr->nla_type != LS_NLA_TYPE_TIMEOUT ||
++	    nla_len(attr) != sizeof(*to_attr))
++		goto settimeout_out;
++
++	to_attr = (struct rdma_nla_ls_timeout *) nla_data(attr);
++	timeout = (int) to_attr->timeout;
++	if (timeout < IB_SA_LOCAL_SVC_TIMEOUT_MIN)
++		timeout = IB_SA_LOCAL_SVC_TIMEOUT_MIN;
++	if (timeout > IB_SA_LOCAL_SVC_TIMEOUT_MAX)
++		timeout = IB_SA_LOCAL_SVC_TIMEOUT_MAX;
++
++	delta = timeout - sa_local_svc_timeout_ms;
++	if (delta < 0)
++		abs_delta = -delta;
++	else
++		abs_delta = delta;
++
++	if (delta != 0) {
++		spin_lock_irqsave(&ib_nl_request_lock, flags);
++		sa_local_svc_timeout_ms = timeout;
++		list_for_each_entry(rinfo, &ib_nl_request_list, list) {
++			if (delta < 0 && abs_delta > rinfo->timeout)
++				rinfo->timeout = 0;
++			else
++				rinfo->timeout += delta;
++
++			/* Get the new delay from the first entry */
++			if (!delay) {
++				delay = rinfo->timeout - jiffies;
++				if (delay <= 0)
++					delay = 1;
++			}
++		}
++		if (delay)
++			mod_delayed_work(ib_nl_wq, &ib_nl_timed_work,
++					 (unsigned long)delay);
++		spin_unlock_irqrestore(&ib_nl_request_lock, flags);
++	}
++
++settimeout_out:
++	return skb->len;
++}
++
++static int ib_nl_handle_resolve_resp(struct sk_buff *skb,
++				     struct netlink_callback *cb)
++{
++	const struct nlmsghdr *nlh = (struct nlmsghdr *)cb->nlh;
++	unsigned long flags;
++	struct ib_nl_request_info *rinfo;
++	struct ib_sa_query *query;
++	struct ib_mad_send_buf *send_buf;
++	struct ib_mad_send_wc mad_send_wc;
++	int found = 0;
++	int ret;
++
++	spin_lock_irqsave(&ib_nl_request_lock, flags);
++	list_for_each_entry(rinfo, &ib_nl_request_list, list) {
++		/*
++		 * If the query is cancelled, let the timeout routine
++		 * take care of it.
++		 */
++		if (nlh->nlmsg_seq == rinfo->seq) {
++			found = !IB_SA_QUERY_CANCELLED(rinfo->query);
++			if (found)
++				list_del(&rinfo->list);
++			break;
++		}
++	}
++
++	if (!found) {
++		spin_unlock_irqrestore(&ib_nl_request_lock, flags);
++		goto resp_out;
++	}
++
++	query = rinfo->query;
++	send_buf = query->mad_buf;
++
++	if (!ib_nl_is_good_resolve_resp(nlh)) {
++		/* if the result is a failure, send out the packet via IB */
++		IB_SA_DISABLE_LOCAL_SVC(query);
++		ret = ib_post_send_mad(query->mad_buf, NULL);
++		spin_unlock_irqrestore(&ib_nl_request_lock, flags);
++		if (ret) {
++			mad_send_wc.send_buf = send_buf;
++			mad_send_wc.status = IB_WC_GENERAL_ERR;
++			send_handler(query->port->agent, &mad_send_wc);
++		}
++	} else {
++		spin_unlock_irqrestore(&ib_nl_request_lock, flags);
++		ib_nl_process_good_resolve_rsp(query, nlh);
++	}
++
++	kfree(rinfo);
++resp_out:
++	return skb->len;
++}
++
++static struct ibnl_client_cbs ib_sa_cb_table[] = {
++	[RDMA_NL_LS_OP_RESOLVE] = {
++		.dump = ib_nl_handle_resolve_resp,
++		.module = THIS_MODULE },
++	[RDMA_NL_LS_OP_SET_TIMEOUT] = {
++		.dump = ib_nl_handle_set_timeout,
++		.module = THIS_MODULE },
++};
++
+ static void free_sm_ah(struct kref *kref)
  {
- 	fd_set readfds;
-@@ -1360,12 +1734,14 @@ static void acm_server(void)
- 		acm_log(0, "ERROR - server listen failed\n");
- 		return;
+ 	struct ib_sa_sm_ah *sm_ah = container_of(kref, struct ib_sa_sm_ah, ref);
+@@ -502,7 +974,13 @@ void ib_sa_cancel_query(int id, struct ib_sa_query *query)
+ 	mad_buf = query->mad_buf;
+ 	spin_unlock_irqrestore(&idr_lock, flags);
+ 
+-	ib_cancel_mad(agent, mad_buf);
++	/*
++	 * If the query is still on the netlink request list, schedule
++	 * it to be cancelled by the timeout routine. Otherwise, it has been
++	 * sent to the MAD layer and has to be cancelled from there.
++	 */
++	if (!ib_nl_cancel_request(query))
++		ib_cancel_mad(agent, mad_buf);
+ }
+ EXPORT_SYMBOL(ib_sa_cancel_query);
+ 
+@@ -638,6 +1116,14 @@ static int send_mad(struct ib_sa_query *query, int timeout_ms, gfp_t gfp_mask)
+ 	query->mad_buf->context[0] = query;
+ 	query->id = id;
+ 
++	if (IB_SA_LOCAL_SVC_ENABLED(query)) {
++		if (!ibnl_chk_listeners(RDMA_NL_GROUP_LS)) {
++			if (!ib_nl_make_request(query))
++				return id;
++		}
++		IB_SA_DISABLE_LOCAL_SVC(query);
++	}
++
+ 	ret = ib_post_send_mad(query->mad_buf, NULL);
+ 	if (ret) {
+ 		spin_lock_irqsave(&idr_lock, flags);
+@@ -766,6 +1252,9 @@ int ib_sa_path_rec_get(struct ib_sa_client *client,
+ 
+ 	*sa_query = &query->sa_query;
+ 
++	IB_SA_ENABLE_LOCAL_SVC(&query->sa_query);
++	query->sa_query.mad_buf->context[1] = rec;
++
+ 	ret = send_mad(&query->sa_query, timeout_ms, gfp_mask);
+ 	if (ret < 0)
+ 		goto err2;
+@@ -1250,6 +1739,8 @@ static int __init ib_sa_init(void)
+ 
+ 	get_random_bytes(&tid, sizeof tid);
+ 
++	atomic_set(&ib_nl_sa_request_seq, 0);
++
+ 	ret = ib_register_client(&sa_client);
+ 	if (ret) {
+ 		printk(KERN_ERR "Couldn't register ib_sa client\n");
+@@ -1262,7 +1753,25 @@ static int __init ib_sa_init(void)
+ 		goto err2;
  	}
-+	ret = acm_init_nl();
-+	if (ret)
-+		acm_log(1, "Warn - Netlink init failed\n");
  
- 	while (1) {
- 		n = (int) listen_socket;
- 		FD_ZERO(&readfds);
- 		FD_SET(listen_socket, &readfds);
--
- 		n = max(n, (int) ip_mon_socket);
- 		FD_SET(ip_mon_socket, &readfds);
++	ib_nl_wq = create_singlethread_workqueue("ib_nl_sa_wq");
++	if (!ib_nl_wq) {
++		ret = -ENOMEM;
++		goto err3;
++	}
++
++	if (ibnl_add_client(RDMA_NL_SA, RDMA_NL_LS_NUM_OPS,
++			    ib_sa_cb_table)) {
++		pr_err("Failed to add netlink callback\n");
++		ret = -EINVAL;
++		goto err4;
++	}
++	INIT_DELAYED_WORK(&ib_nl_timed_work, ib_nl_request_timeout);
++
+ 	return 0;
++err4:
++	destroy_workqueue(ib_nl_wq);
++err3:
++	mcast_cleanup();
+ err2:
+ 	ib_unregister_client(&sa_client);
+ err1:
+@@ -1271,6 +1780,10 @@ err1:
  
-@@ -1399,7 +1775,10 @@ static void acm_server(void)
- 			if (client_array[i].sock != INVALID_SOCKET &&
- 				FD_ISSET(client_array[i].sock, &readfds)) {
- 				acm_log(2, "receiving from client %d\n", i);
--				acm_svr_receive(&client_array[i]);
-+				if (i == NL_CLIENT_INDEX)
-+					acm_nl_receive(&client_array[i]);
-+				else
-+					acm_svr_receive(&client_array[i]);
- 			}
- 		}
- 
+ static void __exit ib_sa_cleanup(void)
+ {
++	ibnl_remove_client(RDMA_NL_SA);
++	cancel_delayed_work(&ib_nl_timed_work);
++	flush_workqueue(ib_nl_wq);
++	destroy_workqueue(ib_nl_wq);
+ 	mcast_cleanup();
+ 	ib_unregister_client(&sa_client);
+ 	idr_destroy(&query_idr);
 -- 
 1.7.1
 
