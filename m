@@ -1,91 +1,62 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] RDMA/ocrdma: fix double free on pd
-Date: Thu, 11 Jun 2015 01:15:30 -0400
-Message-ID: <1433999730.71666.149.camel@redhat.com>
-References: <1433515647-28059-1-git-send-email-colin.king@canonical.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH for-next V5 00/12] Move RoCE GID management to IB/Core
+Date: Wed, 10 Jun 2015 23:38:23 -0600
+Message-ID: <20150611053823.GA22369@obsidianresearch.com>
+References: <1433772735-22416-1-git-send-email-matanb@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FE5D17@ORSMSX109.amr.corp.intel.com>
+ <55769561.8000300@mellanox.com>
+ <5577FAFB.8020205@mellanox.com>
+ <20150610150010.GA11243@obsidianresearch.com>
+ <557852EE.5030107@mellanox.com>
+ <20150610184954.GA26404@obsidianresearch.com>
+ <1433984788.71666.78.camel@redhat.com>
+ <20150611035727.GA16599@obsidianresearch.com>
+ <1433998199.71666.144.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-NdysXpOQQjXQrldXWQ6w"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1433515647-28059-1-git-send-email-colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1433998199.71666.144.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Cc: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Mitesh Ahuja <mitesh.ahuja-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-xCNTGe7nOvUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Jun 11, 2015 at 12:49:59AM -0400, Doug Ledford wrote:
 
---=-NdysXpOQQjXQrldXWQ6w
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+> fact that the mlx4 driver and the ocrdma driver had their own gid
+> management code, there were some distinct differences between the two.
+> The gid at index 0 never matched up in my testing for example.  One
+> supported bonding, the other didn't.  Even if you tried to limit things
+> to a cleanup, you would still end up altering behavior of both drivers
+> just because the cleanup would have to merge the two implementations and
+> the result would be different than either one of them.
 
-On Fri, 2015-06-05 at 15:47 +0100, Colin King wrote:
-> From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
->=20
-> A reorganisation of the PD allocation and deallocation in commit
-> 9ba1377daa ("RDMA/ocrdma: Move PD resource management to driver.")
-> introduced a double free on pd, as detected by static analysis by
-> smatch:
->=20
-> drivers/infiniband/hw/ocrdma/ocrdma_verbs.c:682 ocrdma_alloc_pd()
->   error: double free of 'pd'^
->=20
-> The original call to ocrdma_mbx_dealloc_pd() (which does not kfree
-> pd) was replaced with a call to _ocrdma_dealloc_pd() (which does
-> kfree pd).  The kfree following this call causes the double free,
-> so just remove it to fix the problem.
->=20
-> Fixes: 9ba1377daa ("RDMA/ocrdma: Move PD resource management to driver.")
-> Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-> ---
->  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 1 -
->  1 file changed, 1 deletion(-)
->=20
-> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infini=
-band/hw/ocrdma/ocrdma_verbs.c
-> index 9dcb660..219f212 100644
-> --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-> @@ -679,7 +679,6 @@ err:
->  		ocrdma_release_ucontext_pd(uctx);
->  	} else {
->  		status =3D _ocrdma_dealloc_pd(dev, pd);
-> -		kfree(pd);
->  	}
->  exit:
->  	return ERR_PTR(status);
+This is very interesting detail, I would be very happy to see the user
+visible functional changes to ocrdma listed in it's commit message.
 
-Thanks, applied.
+I always understood that ocrdma would have some change, at least from
+bonding, my 'no functional change' litmus test was that mlx4 operation
+doesn't have a change. My expectation is the current v5 achieves that?
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+> I get the impression that a lot of the extra is scalability changes for
+> perceived need (probably due to upcoming namespace/container additions).
+> But, just to be fair, the entire mlx4 gid code was -500 lines and
+> included bonding support.  The base gid code addition was +500 for the
+> gid table, +600 for the table population functions, +170 for default
+> gids, +290 for bonding support, and +140 lines to hook it into the
+> existing cache routines.  While part of this might be would seem to be
+> the over-designed locking, part of it is probably exactly as Matan said,
+> code growth due to generalization and standardization.
 
+Line count is such a funny metric.. It is very, very hard to write
+succinct code, and I have no magic wand to shrink this particular
+patch set down further. I suspect it could be made smaller, but that
+would require more study than I care to employ :)
 
---=-NdysXpOQQjXQrldXWQ6w
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+I feel line count is a hopeless avenue to argue, but also a red flag.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJVeRlyAAoJELgmozMOVy/d6RsP/i1Dxzx+BJJSC8/x+lN8MHjE
-/bhV2zsFeHjvsklLpVoqhuppyZQVZEqF8hPp2GSU/x0t4YubPmlmm7LxJiLjf6J2
-FeqxVHm2kHvWLE2RY+mnbkIdTx2rZivUnFbwfpuya0WltSEPbRmLzoqGe50nvHtR
-3rODYlSdweL5Uocpw9ew0VCIfmG020ZENKaAv0VEzDLeO+r5s6WrTGj2fTJPDEn7
-nlPYg4M4CxmL9HT4NYiiJuEY+1azW2gZ6ItWH8bONMMWGPSGwAMoetLOLa1PmL6f
-vs2Flp/LqLpZRseYLBk2ldLf/5JqAzv1aqjfxp6Z7oYQXns19OgwebPR12GFH5fg
-yLpXCzT+mJMOpXsEp9ZaKTvQ2m4opv55aT+P8ue4o9Dk+E+l6eXODy5/rrPy7Qn0
-PBasp2gKQzG1IxVf6yjD0BM0XPtlXNV/9ZBM2/ALyRGf613xtzTYmMZ2e41E91AA
-zXlrManxjKcUoV0nwSH8t+e92p1ZplMo4iiaKRLnD+yy13+Wlo9JkGEqQ9Nu8I0k
-r4aT+19RguWvTPpNml4hOpXHKwMOtdMtfUMvNe8An05dWJeIUL9qpizF7O7YpUdw
-xp/ArE4rcurppB8xAwMQ6I5VdCNYNYk/qcwA3F8sdeEqG10H/D81LrSdpl8UDcR7
-Ccz3Tklu8vy+wx/7jt/f
-=nuDu
------END PGP SIGNATURE-----
-
---=-NdysXpOQQjXQrldXWQ6w--
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
