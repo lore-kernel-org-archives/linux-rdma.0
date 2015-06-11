@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 05/41] IB/hfi1: add debugfs handling
-Date: Thu, 11 Jun 2015 19:08:55 -0400
-Message-ID: <20150611230855.16479.82872.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH 07/41] IB/hfi1: add diagnostic hooks
+Date: Thu, 11 Jun 2015 19:09:06 -0400
+Message-ID: <20150611230906.16479.32497.stgit@phlsvslse11.ph.intel.com>
 References: <20150611230710.16479.62955.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -37,19 +37,16 @@ Signed-off-by: Sanath Kumar <sanath.s.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.
 Signed-off-by: Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Vlad Danushevsky <vladimir.danusevsky-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/debugfs.c |  899 ++++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/hfi1/debugfs.h |   78 +++
- 2 files changed, 977 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi1/debugfs.c
- create mode 100644 drivers/infiniband/hw/hfi1/debugfs.h
+ drivers/infiniband/hw/hfi1/diag.c | 1873 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 1873 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi1/diag.c
 
-diff --git a/drivers/infiniband/hw/hfi1/debugfs.c b/drivers/infiniband/hw/hfi1/debugfs.c
+diff --git a/drivers/infiniband/hw/hfi1/diag.c b/drivers/infiniband/hw/hfi1/diag.c
 new file mode 100644
-index 0000000..acd2269
+index 0000000..6461fd4
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/debugfs.c
-@@ -0,0 +1,899 @@
-+#ifdef CONFIG_DEBUG_FS
++++ b/drivers/infiniband/hw/hfi1/diag.c
+@@ -0,0 +1,1873 @@
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -99,939 +96,1830 @@ index 0000000..acd2269
 + * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + */
-+#include <linux/debugfs.h>
-+#include <linux/seq_file.h>
-+#include <linux/kernel.h>
++
++/*
++ * This file contains support for diagnostic functions.  It is accessed by
++ * opening the hfi1_diag device, normally minor number 129.  Diagnostic use
++ * of the chip may render the chip or board unusable until the driver
++ * is unloaded, or in some cases, until the system is rebooted.
++ *
++ * Accesses to the chip through this interface are not similar to going
++ * through the /sys/bus/pci resource mmap interface.
++ */
++
++#include <linux/io.h>
++#include <linux/pci.h>
++#include <linux/poll.h>
++#include <linux/vmalloc.h>
 +#include <linux/export.h>
-+
++#include <linux/fs.h>
++#include <linux/uaccess.h>
++#include <linux/module.h>
++#include <rdma/ib_smi.h>
 +#include "hfi.h"
-+#include "debugfs.h"
 +#include "device.h"
-+#include "qp.h"
-+#include "sdma.h"
++#include "common.h"
++#include "trace.h"
 +
-+static struct dentry *hfi1_dbg_root;
++#undef pr_fmt
++#define pr_fmt(fmt) DRIVER_NAME ": " fmt
++#define snoop_dbg(fmt, ...) \
++	hfi1_cdbg(SNOOP, fmt, ##__VA_ARGS__)
 +
-+#define private2dd(file) (file_inode(file)->i_private)
-+#define private2ppd(file) (file_inode(file)->i_private)
++/* Snoop option mask */
++#define SNOOP_DROP_SEND	(1 << 0)
++#define SNOOP_USE_METADATA	(1 << 1)
 +
-+#define DEBUGFS_SEQ_FILE_OPS(name) \
-+static const struct seq_operations _##name##_seq_ops = { \
-+	.start = _##name##_seq_start, \
-+	.next  = _##name##_seq_next, \
-+	.stop  = _##name##_seq_stop, \
-+	.show  = _##name##_seq_show \
-+}
-+#define DEBUGFS_SEQ_FILE_OPEN(name) \
-+static int _##name##_open(struct inode *inode, struct file *s) \
-+{ \
-+	struct seq_file *seq; \
-+	int ret; \
-+	ret =  seq_open(s, &_##name##_seq_ops); \
-+	if (ret) \
-+		return ret; \
-+	seq = s->private_data; \
-+	seq->private = inode->i_private; \
-+	return 0; \
-+}
++static u8 snoop_flags;
 +
-+#define DEBUGFS_FILE_OPS(name) \
-+static const struct file_operations _##name##_file_ops = { \
-+	.owner   = THIS_MODULE, \
-+	.open    = _##name##_open, \
-+	.read    = seq_read, \
-+	.llseek  = seq_lseek, \
-+	.release = seq_release \
-+}
++/*
++ * Extract packet length from LRH header.
++ * Why & 0x7FF? Because len is only 11 bits in case it wasn't 0'd we throw the
++ * bogus bits away. This is in Dwords so multiply by 4 to get size in bytes
++ */
++#define HFI1_GET_PKT_LEN(x)      (((be16_to_cpu((x)->lrh[2]) & 0x7FF)) << 2)
 +
-+#define DEBUGFS_FILE_CREATE(name, parent, data, ops, mode)	\
-+do { \
-+	struct dentry *ent; \
-+	ent = debugfs_create_file(name, mode, parent, \
-+		data, ops); \
-+	if (!ent) \
-+		pr_warn("create of %s failed\n", name); \
-+} while (0)
++enum hfi1_filter_status {
++	HFI1_FILTER_HIT,
++	HFI1_FILTER_ERR,
++	HFI1_FILTER_MISS
++};
 +
++/* snoop processing functions */
++rhf_rcv_function_ptr snoop_rhf_rcv_functions[8] = {
++	[RHF_RCV_TYPE_EXPECTED] = snoop_recv_handler,
++	[RHF_RCV_TYPE_EAGER]    = snoop_recv_handler,
++	[RHF_RCV_TYPE_IB]       = snoop_recv_handler,
++	[RHF_RCV_TYPE_ERROR]    = snoop_recv_handler,
++	[RHF_RCV_TYPE_BYPASS]   = snoop_recv_handler,
++	[RHF_RCV_TYPE_INVALID5] = process_receive_invalid,
++	[RHF_RCV_TYPE_INVALID6] = process_receive_invalid,
++	[RHF_RCV_TYPE_INVALID7] = process_receive_invalid
++};
 +
-+#define DEBUGFS_SEQ_FILE_CREATE(name, parent, data) \
-+	DEBUGFS_FILE_CREATE(#name, parent, data, &_##name##_file_ops, S_IRUGO)
++/* Snoop packet structure */
++struct snoop_packet {
++	struct list_head list;
++	u32 total_len;
++	u8 data[];
++};
 +
-+static void *_opcode_stats_seq_start(struct seq_file *s, loff_t *pos)
-+__acquires(RCU)
++/* Do not make these an enum or it will blow up the capture_md */
++#define PKT_DIR_EGRESS 0x0
++#define PKT_DIR_INGRESS 0x1
++
++/* Packet capture metadata returned to the user with the packet. */
++struct capture_md {
++	u8 port;
++	u8 dir;
++	u8 reserved[6];
++	union {
++		u64 pbc;
++		u64 rhf;
++	} u;
++};
++
++static atomic_t diagpkt_count = ATOMIC_INIT(0);
++static struct cdev diagpkt_cdev;
++static struct device *diagpkt_device;
++
++static ssize_t diagpkt_write(struct file *fp, const char __user *data,
++				 size_t count, loff_t *off);
++
++static const struct file_operations diagpkt_file_ops = {
++	.owner = THIS_MODULE,
++	.write = diagpkt_write,
++	.llseek = noop_llseek,
++};
++
++/*
++ * This is used for communication with user space for snoop extended IOCTLs
++ */
++struct hfi1_link_info {
++	 __be64 node_guid;
++	u8 port_mode;
++	u8 port_state;
++	u16 link_speed_active;
++	u16 link_width_active;
++	u16 vl15_init;
++	u8 port_number;
++	/*
++	 * Add padding to make this a full IB SMP payload. Note: changing the
++	 * size of this structure will make the IOCTLs created with _IOWR
++	 * change.
++	 * Be sure to run tests on all IOCTLs when making changes to this
++	 * structure.
++	 */
++	u8 res[47];
++};
++
++/*
++ * This starts our ioctl sequence numbers *way* off from the ones
++ * defined in ib_core.
++ */
++#define SNOOP_CAPTURE_VERSION 0x1
++
++#define IB_IOCTL_MAGIC          0x1b /* See Documentation/ioctl-number.txt */
++#define HFI1_SNOOP_IOC_MAGIC IB_IOCTL_MAGIC
++#define HFI1_SNOOP_IOC_BASE_SEQ 0x80
++
++#define HFI1_SNOOP_IOCGETLINKSTATE \
++	_IO(HFI1_SNOOP_IOC_MAGIC, HFI1_SNOOP_IOC_BASE_SEQ)
++#define HFI1_SNOOP_IOCSETLINKSTATE \
++	_IO(HFI1_SNOOP_IOC_MAGIC, HFI1_SNOOP_IOC_BASE_SEQ+1)
++#define HFI1_SNOOP_IOCCLEARQUEUE \
++	_IO(HFI1_SNOOP_IOC_MAGIC, HFI1_SNOOP_IOC_BASE_SEQ+2)
++#define HFI1_SNOOP_IOCCLEARFILTER \
++	_IO(HFI1_SNOOP_IOC_MAGIC, HFI1_SNOOP_IOC_BASE_SEQ+3)
++#define HFI1_SNOOP_IOCSETFILTER \
++	_IO(HFI1_SNOOP_IOC_MAGIC, HFI1_SNOOP_IOC_BASE_SEQ+4)
++#define HFI1_SNOOP_IOCGETVERSION \
++	_IO(HFI1_SNOOP_IOC_MAGIC, HFI1_SNOOP_IOC_BASE_SEQ+5)
++#define HFI1_SNOOP_IOCSET_OPTS \
++	_IO(HFI1_SNOOP_IOC_MAGIC, HFI1_SNOOP_IOC_BASE_SEQ+6)
++
++/*
++ * These offsets +6/+7 could change, but these are already known and used
++ * IOCTL numbers so don't change them without a good reason.
++ */
++#define HFI1_SNOOP_IOCGETLINKSTATE_EXTRA \
++	_IOWR(HFI1_SNOOP_IOC_MAGIC, HFI1_SNOOP_IOC_BASE_SEQ+6, \
++		struct hfi1_link_info)
++#define HFI1_SNOOP_IOCSETLINKSTATE_EXTRA \
++	_IOWR(HFI1_SNOOP_IOC_MAGIC, HFI1_SNOOP_IOC_BASE_SEQ+7, \
++		struct hfi1_link_info)
++
++static int hfi1_snoop_open(struct inode *in, struct file *fp);
++static ssize_t hfi1_snoop_read(struct file *fp, char __user *data,
++				size_t pkt_len, loff_t *off);
++static ssize_t hfi1_snoop_write(struct file *fp, const char __user *data,
++				 size_t count, loff_t *off);
++static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg);
++static unsigned int hfi1_snoop_poll(struct file *fp,
++					struct poll_table_struct *wait);
++static int hfi1_snoop_release(struct inode *in, struct file *fp);
++
++struct hfi1_packet_filter_command {
++	int opcode;
++	int length;
++	void *value_ptr;
++};
++
++/* Can't re-use PKT_DIR_*GRESS here because 0 means no packets for this */
++#define HFI1_SNOOP_INGRESS 0x1
++#define HFI1_SNOOP_EGRESS  0x2
++
++enum hfi1_packet_filter_opcodes {
++	FILTER_BY_LID,
++	FILTER_BY_DLID,
++	FILTER_BY_MAD_MGMT_CLASS,
++	FILTER_BY_QP_NUMBER,
++	FILTER_BY_PKT_TYPE,
++	FILTER_BY_SERVICE_LEVEL,
++	FILTER_BY_PKEY,
++	FILTER_BY_DIRECTION,
++};
++
++static const struct file_operations snoop_file_ops = {
++	.owner = THIS_MODULE,
++	.open = hfi1_snoop_open,
++	.read = hfi1_snoop_read,
++	.unlocked_ioctl = hfi1_ioctl,
++	.poll = hfi1_snoop_poll,
++	.write = hfi1_snoop_write,
++	.release = hfi1_snoop_release
++};
++
++struct hfi1_filter_array {
++	int (*filter)(void *, void *, void *);
++};
++
++static int hfi1_filter_lid(void *ibhdr, void *packet_data, void *value);
++static int hfi1_filter_dlid(void *ibhdr, void *packet_data, void *value);
++static int hfi1_filter_mad_mgmt_class(void *ibhdr, void *packet_data,
++				      void *value);
++static int hfi1_filter_qp_number(void *ibhdr, void *packet_data, void *value);
++static int hfi1_filter_ibpacket_type(void *ibhdr, void *packet_data,
++				     void *value);
++static int hfi1_filter_ib_service_level(void *ibhdr, void *packet_data,
++					void *value);
++static int hfi1_filter_ib_pkey(void *ibhdr, void *packet_data, void *value);
++static int hfi1_filter_direction(void *ibhdr, void *packet_data, void *value);
++
++static struct hfi1_filter_array hfi1_filters[] = {
++	{ hfi1_filter_lid },
++	{ hfi1_filter_dlid },
++	{ hfi1_filter_mad_mgmt_class },
++	{ hfi1_filter_qp_number },
++	{ hfi1_filter_ibpacket_type },
++	{ hfi1_filter_ib_service_level },
++	{ hfi1_filter_ib_pkey },
++	{ hfi1_filter_direction },
++};
++
++#define HFI1_MAX_FILTERS	ARRAY_SIZE(hfi1_filters)
++#define HFI1_DIAG_MINOR_BASE	129
++
++static int hfi1_snoop_add(struct hfi1_devdata *dd, const char *name);
++
++int hfi1_diag_add(struct hfi1_devdata *dd)
 +{
-+	struct hfi1_opcode_stats_perctx *opstats;
++	char name[16];
++	int ret = 0;
 +
-+	rcu_read_lock();
-+	if (*pos >= ARRAY_SIZE(opstats->stats))
-+		return NULL;
-+	return pos;
-+}
++	snprintf(name, sizeof(name), "%s_diagpkt%d", class_name(),
++		 dd->unit);
++	/*
++	 * Do this for each device as opposed to the normal diagpkt
++	 * interface which is one per host
++	 */
++	ret = hfi1_snoop_add(dd, name);
++	if (ret)
++		dd_dev_err(dd, "Unable to init snoop/capture device");
 +
-+static void *_opcode_stats_seq_next(struct seq_file *s, void *v, loff_t *pos)
-+{
-+	struct hfi1_opcode_stats_perctx *opstats;
-+
-+	++*pos;
-+	if (*pos >= ARRAY_SIZE(opstats->stats))
-+		return NULL;
-+	return pos;
-+}
-+
-+
-+static void _opcode_stats_seq_stop(struct seq_file *s, void *v)
-+__releases(RCU)
-+{
-+	rcu_read_unlock();
-+}
-+
-+static int _opcode_stats_seq_show(struct seq_file *s, void *v)
-+{
-+	loff_t *spos = v;
-+	loff_t i = *spos, j;
-+	u64 n_packets = 0, n_bytes = 0;
-+	struct hfi1_ibdev *ibd = (struct hfi1_ibdev *)s->private;
-+	struct hfi1_devdata *dd = dd_from_dev(ibd);
-+
-+	for (j = 0; j < dd->first_user_ctxt; j++) {
-+		if (!dd->rcd[j])
-+			continue;
-+		n_packets += dd->rcd[j]->opstats->stats[i].n_packets;
-+		n_bytes += dd->rcd[j]->opstats->stats[i].n_bytes;
++	snprintf(name, sizeof(name), "%s_diagpkt", class_name());
++	if (atomic_inc_return(&diagpkt_count) == 1) {
++		ret = hfi1_cdev_init(HFI1_DIAGPKT_MINOR, name,
++				     &diagpkt_file_ops, &diagpkt_cdev,
++				     &diagpkt_device);
 +	}
-+	if (!n_packets && !n_bytes)
-+		return SEQ_SKIP;
-+	seq_printf(s, "%02llx %llu/%llu\n", i,
-+		(unsigned long long) n_packets,
-+		(unsigned long long) n_bytes);
 +
-+	return 0;
++	return ret;
 +}
 +
-+DEBUGFS_SEQ_FILE_OPS(opcode_stats);
-+DEBUGFS_SEQ_FILE_OPEN(opcode_stats)
-+DEBUGFS_FILE_OPS(opcode_stats);
-+
-+static void *_ctx_stats_seq_start(struct seq_file *s, loff_t *pos)
++/* this must be called w/ dd->snoop_in_lock held */
++static void drain_snoop_list(struct list_head *queue)
 +{
-+	struct hfi1_ibdev *ibd = (struct hfi1_ibdev *)s->private;
-+	struct hfi1_devdata *dd = dd_from_dev(ibd);
++	struct list_head *pos, *q;
++	struct snoop_packet *packet;
 +
-+	if (!*pos)
-+		return SEQ_START_TOKEN;
-+	if (*pos >= dd->first_user_ctxt)
-+		return NULL;
-+	return pos;
++	list_for_each_safe(pos, q, queue) {
++		packet = list_entry(pos, struct snoop_packet, list);
++		list_del(pos);
++		kfree(packet);
++	}
 +}
 +
-+static void *_ctx_stats_seq_next(struct seq_file *s, void *v, loff_t *pos)
++static void hfi1_snoop_remove(struct hfi1_devdata *dd)
 +{
-+	struct hfi1_ibdev *ibd = (struct hfi1_ibdev *)s->private;
-+	struct hfi1_devdata *dd = dd_from_dev(ibd);
++	unsigned long flags = 0;
 +
-+	if (v == SEQ_START_TOKEN)
-+		return pos;
-+
-+	++*pos;
-+	if (*pos >= dd->first_user_ctxt)
-+		return NULL;
-+	return pos;
++	spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
++	drain_snoop_list(&dd->hfi1_snoop.queue);
++	hfi1_cdev_cleanup(&dd->hfi1_snoop.cdev, &dd->hfi1_snoop.class_dev);
++	spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
 +}
 +
-+static void _ctx_stats_seq_stop(struct seq_file *s, void *v)
++void hfi1_diag_remove(struct hfi1_devdata *dd)
 +{
-+	/* nothing allocated */
++
++	hfi1_snoop_remove(dd);
++	if (atomic_dec_and_test(&diagpkt_count))
++		hfi1_cdev_cleanup(&diagpkt_cdev, &diagpkt_device);
++	hfi1_cdev_cleanup(&dd->diag_cdev, &dd->diag_device);
 +}
 +
-+static int _ctx_stats_seq_show(struct seq_file *s, void *v)
-+{
-+	loff_t *spos;
-+	loff_t i, j;
-+	u64 n_packets = 0;
-+	struct hfi1_ibdev *ibd = (struct hfi1_ibdev *)s->private;
-+	struct hfi1_devdata *dd = dd_from_dev(ibd);
 +
-+	if (v == SEQ_START_TOKEN) {
-+		seq_puts(s, "Ctx:npkts\n");
-+		return 0;
++/*
++ * Allocated structure shared between the credit return mechanism and
++ * diagpkt_send().
++ */
++struct diagpkt_wait {
++	struct completion credits_returned;
++	int code;
++	atomic_t count;
++};
++
++/*
++ * When each side is finished with the structure, they call this.
++ * The last user frees the structure.
++ */
++static void put_diagpkt_wait(struct diagpkt_wait *wait)
++{
++	if (atomic_dec_and_test(&wait->count))
++		kfree(wait);
++}
++
++/*
++ * Callback from the credit return code.  Set the complete, which
++ * will let diapkt_send() continue.
++ */
++static void diagpkt_complete(void *arg, int code)
++{
++	struct diagpkt_wait *wait = (struct diagpkt_wait *)arg;
++
++	wait->code = code;
++	complete(&wait->credits_returned);
++	put_diagpkt_wait(wait);	/* finished with the structure */
++}
++
++/**
++ * diagpkt_send - send a packet
++ * @dp: diag packet descriptor
++ */
++static ssize_t diagpkt_send(struct diag_pkt *dp)
++{
++	struct hfi1_devdata *dd;
++	struct send_context *sc;
++	struct pio_buf *pbuf;
++	u32 *tmpbuf = NULL;
++	ssize_t ret = 0;
++	u32 pkt_len, total_len;
++	pio_release_cb credit_cb = NULL;
++	void *credit_arg = NULL;
++	struct diagpkt_wait *wait = NULL;
++
++	dd = hfi1_lookup(dp->unit);
++	if (!dd || !(dd->flags & HFI1_PRESENT) || !dd->kregbase) {
++		ret = -ENODEV;
++		goto bail;
++	}
++	if (!(dd->flags & HFI1_INITTED)) {
++		/* no hardware, freeze, etc. */
++		ret = -ENODEV;
++		goto bail;
 +	}
 +
-+	spos = v;
-+	i = *spos;
++	if (dp->version != _DIAG_PKT_VERS) {
++		dd_dev_err(dd, "Invalid version %u for diagpkt_write\n",
++			    dp->version);
++		ret = -EINVAL;
++		goto bail;
++	}
 +
-+	if (!dd->rcd[i])
-+		return SEQ_SKIP;
++	/* send count must be an exact number of dwords */
++	if (dp->len & 3) {
++		ret = -EINVAL;
++		goto bail;
++	}
 +
-+	for (j = 0; j < ARRAY_SIZE(dd->rcd[i]->opstats->stats); j++)
-+		n_packets += dd->rcd[i]->opstats->stats[j].n_packets;
++	/* there is only port 1 */
++	if (dp->port != 1) {
++		ret = -EINVAL;
++		goto bail;
++	}
 +
-+	if (!n_packets)
-+		return SEQ_SKIP;
++	/* need a valid context */
++	if (dp->sw_index >= dd->num_send_contexts) {
++		ret = -EINVAL;
++		goto bail;
++	}
++	/* can only use kernel contexts */
++	if (dd->send_contexts[dp->sw_index].type != SC_KERNEL) {
++		ret = -EINVAL;
++		goto bail;
++	}
++	/* must be allocated */
++	sc = dd->send_contexts[dp->sw_index].sc;
++	if (!sc) {
++		ret = -EINVAL;
++		goto bail;
++	}
++	/* must be enabled */
++	if (!(sc->flags & SCF_ENABLED)) {
++		ret = -EINVAL;
++		goto bail;
++	}
 +
-+	seq_printf(s, "  %llu:%llu\n", i, n_packets);
-+	return 0;
++	/* allocate a buffer and copy the data in */
++	tmpbuf = vmalloc(dp->len);
++	if (!tmpbuf) {
++		ret = -ENOMEM;
++		goto bail;
++	}
++
++	if (copy_from_user(tmpbuf,
++			   (const void __user *) (unsigned long) dp->data,
++			   dp->len)) {
++		ret = -EFAULT;
++		goto bail;
++	}
++
++	/*
++	 * pkt_len is how much data we have to write, includes header and data.
++	 * total_len is length of the packet in Dwords plus the PBC should not
++	 * include the CRC.
++	 */
++	pkt_len = dp->len >> 2;
++	total_len = pkt_len + 2; /* PBC + packet */
++
++	/* if 0, fill in a default */
++	if (dp->pbc == 0) {
++		struct hfi1_pportdata *ppd = dd->pport;
++
++		hfi1_cdbg(PKT, "Generating PBC");
++		dp->pbc = create_pbc(ppd, 0, 0, 0, total_len);
++	} else {
++		hfi1_cdbg(PKT, "Using passed in PBC");
++	}
++
++	hfi1_cdbg(PKT, "Egress PBC content is 0x%llx", dp->pbc);
++
++	/*
++	 * The caller wants to wait until the packet is sent and to
++	 * check for errors.  The best we can do is wait until
++	 * the buffer credits are returned and check if any packet
++	 * error has occurred.  If there are any late errors, this
++	 * could miss it.  If there are other senders who generate
++	 * an error, this may find it.  However, in general, it
++	 * should catch most.
++	 */
++	if (dp->flags & F_DIAGPKT_WAIT) {
++		/* always force a credit return */
++		dp->pbc |= PBC_CREDIT_RETURN;
++		/* turn on credit return interrupts */
++		sc_add_credit_return_intr(sc);
++		wait = kmalloc(sizeof(*wait), GFP_KERNEL);
++		if (!wait) {
++			ret = -ENOMEM;
++			goto bail;
++		}
++		init_completion(&wait->credits_returned);
++		atomic_set(&wait->count, 2);
++		wait->code = PRC_OK;
++
++		credit_cb = diagpkt_complete;
++		credit_arg = wait;
++	}
++
++	pbuf = sc_buffer_alloc(sc, total_len, credit_cb, credit_arg);
++	if (!pbuf) {
++		/*
++		 * No send buffer means no credit callback.  Undo
++		 * the wait set-up that was done above.  We free wait
++		 * because the callback will never be called.
++		 */
++		if (dp->flags & F_DIAGPKT_WAIT) {
++			sc_del_credit_return_intr(sc);
++			kfree(wait);
++			wait = NULL;
++		}
++		ret = -ENOSPC;
++		goto bail;
++	}
++
++	pio_copy(dd, pbuf, dp->pbc, tmpbuf, pkt_len);
++	/* no flush needed as the HW knows the packet size */
++
++	ret = sizeof(*dp);
++
++	if (dp->flags & F_DIAGPKT_WAIT) {
++		/* wait for credit return */
++		ret = wait_for_completion_interruptible(
++						&wait->credits_returned);
++		/*
++		 * If the wait returns an error, the wait was interrupted,
++		 * e.g. with a ^C in the user program.  The callback is
++		 * still pending.  This is OK as the wait structure is
++		 * kmalloc'ed and the structure will free itself when
++		 * all users are done with it.
++		 *
++		 * A context disable occurs on a send context restart, so
++		 * include that in the list of errors below to check for.
++		 * NOTE: PRC_FILL_ERR is at best informational and cannot
++		 * be depended on.
++		 */
++		if (!ret && (((wait->code & PRC_STATUS_ERR)
++				|| (wait->code & PRC_FILL_ERR)
++				|| (wait->code & PRC_SC_DISABLE))))
++			ret = -EIO;
++
++		put_diagpkt_wait(wait);	/* finished with the structure */
++		sc_del_credit_return_intr(sc);
++	}
++
++bail:
++	vfree(tmpbuf);
++	return ret;
 +}
 +
-+DEBUGFS_SEQ_FILE_OPS(ctx_stats);
-+DEBUGFS_SEQ_FILE_OPEN(ctx_stats)
-+DEBUGFS_FILE_OPS(ctx_stats);
-+
-+static void *_qp_stats_seq_start(struct seq_file *s, loff_t *pos)
-+__acquires(RCU)
++static ssize_t diagpkt_write(struct file *fp, const char __user *data,
++				 size_t count, loff_t *off)
 +{
-+	struct qp_iter *iter;
-+	loff_t n = *pos;
++	struct hfi1_devdata *dd;
++	struct send_context *sc;
++	u8 vl;
 +
-+	rcu_read_lock();
-+	iter = qp_iter_init(s->private);
-+	if (!iter)
-+		return NULL;
++	struct diag_pkt dp;
 +
-+	while (n--) {
-+		if (qp_iter_next(iter)) {
-+			kfree(iter);
-+			return NULL;
++	if (count != sizeof(dp))
++		return -EINVAL;
++
++	if (copy_from_user(&dp, data, sizeof(dp)))
++		return -EFAULT;
++
++	/*
++	* The Send Context is derived from the PbcVL value
++	* if PBC is populated
++	*/
++	if (dp.pbc) {
++		dd = hfi1_lookup(dp.unit);
++		if (dd == NULL)
++			return -ENODEV;
++		vl = (dp.pbc >> PBC_VL_SHIFT) & PBC_VL_MASK;
++		sc = dd->vld[vl].sc;
++		if (sc) {
++			dp.sw_index = sc->sw_index;
++			hfi1_cdbg(
++			       PKT,
++			       "Packet sent over VL %d via Send Context %u(%u)",
++			       vl, sc->sw_index, sc->hw_context);
 +		}
 +	}
 +
-+	return iter;
++	return diagpkt_send(&dp);
 +}
 +
-+static void *_qp_stats_seq_next(struct seq_file *s, void *iter_ptr,
-+				   loff_t *pos)
++static int hfi1_snoop_add(struct hfi1_devdata *dd, const char *name)
 +{
-+	struct qp_iter *iter = iter_ptr;
++	int ret = 0;
 +
-+	(*pos)++;
++	dd->hfi1_snoop.mode_flag = 0;
++	spin_lock_init(&dd->hfi1_snoop.snoop_lock);
++	INIT_LIST_HEAD(&dd->hfi1_snoop.queue);
++	init_waitqueue_head(&dd->hfi1_snoop.waitq);
 +
-+	if (qp_iter_next(iter)) {
-+		kfree(iter);
-+		return NULL;
++	ret = hfi1_cdev_init(HFI1_SNOOP_CAPTURE_BASE + dd->unit, name,
++			     &snoop_file_ops,
++			     &dd->hfi1_snoop.cdev, &dd->hfi1_snoop.class_dev);
++
++	if (ret) {
++		dd_dev_err(dd, "Couldn't create %s device: %d", name, ret);
++		hfi1_cdev_cleanup(&dd->hfi1_snoop.cdev,
++				 &dd->hfi1_snoop.class_dev);
 +	}
 +
-+	return iter;
++	return ret;
 +}
 +
-+static void _qp_stats_seq_stop(struct seq_file *s, void *iter_ptr)
-+__releases(RCU)
++static struct hfi1_devdata *hfi1_dd_from_sc_inode(struct inode *in)
 +{
-+	rcu_read_unlock();
++	int unit = iminor(in) - HFI1_SNOOP_CAPTURE_BASE;
++	struct hfi1_devdata *dd = NULL;
++
++	dd = hfi1_lookup(unit);
++	return dd;
++
 +}
 +
-+static int _qp_stats_seq_show(struct seq_file *s, void *iter_ptr)
++/* clear or restore send context integrity checks */
++static void adjust_integrity_checks(struct hfi1_devdata *dd)
 +{
-+	struct qp_iter *iter = iter_ptr;
++	struct send_context *sc;
++	unsigned long sc_flags;
++	int i;
 +
-+	if (!iter)
-+		return 0;
++	spin_lock_irqsave(&dd->sc_lock, sc_flags);
++	for (i = 0; i < dd->num_send_contexts; i++) {
++		int enable;
 +
-+	qp_iter_print(s, iter);
++		sc = dd->send_contexts[i].sc;
++
++		if (!sc)
++			continue;	/* not allocated */
++
++		enable = likely(!HFI1_CAP_IS_KSET(NO_INTEGRITY)) &&
++			 dd->hfi1_snoop.mode_flag != HFI1_PORT_SNOOP_MODE;
++
++		set_pio_integrity(sc);
++
++		if (enable) /* take HFI_CAP_* flags into account */
++			hfi1_init_ctxt(sc);
++	}
++	spin_unlock_irqrestore(&dd->sc_lock, sc_flags);
++}
++
++static int hfi1_snoop_open(struct inode *in, struct file *fp)
++{
++	int ret;
++	int mode_flag = 0;
++	unsigned long flags = 0;
++	struct hfi1_devdata *dd;
++	struct list_head *queue;
++
++	mutex_lock(&hfi1_mutex);
++
++	dd = hfi1_dd_from_sc_inode(in);
++	if (dd == NULL) {
++		ret = -ENODEV;
++		goto bail;
++	}
++
++	/*
++	 * File mode determines snoop or capture. Some existing user
++	 * applications expect the capture device to be able to be opened RDWR
++	 * because they expect a dedicated capture device. For this reason we
++	 * support a module param to force capture mode even if the file open
++	 * mode matches snoop.
++	 */
++	if ((fp->f_flags & O_ACCMODE) == O_RDONLY) {
++		snoop_dbg("Capture Enabled");
++		mode_flag = HFI1_PORT_CAPTURE_MODE;
++	} else if ((fp->f_flags & O_ACCMODE) == O_RDWR) {
++		snoop_dbg("Snoop Enabled");
++		mode_flag = HFI1_PORT_SNOOP_MODE;
++	} else {
++		snoop_dbg("Invalid");
++		ret =  -EINVAL;
++		goto bail;
++	}
++	queue = &dd->hfi1_snoop.queue;
++
++	/*
++	 * We are not supporting snoop and capture at the same time.
++	 */
++	spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
++	if (dd->hfi1_snoop.mode_flag) {
++		ret = -EBUSY;
++		spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
++		goto bail;
++	}
++
++	dd->hfi1_snoop.mode_flag = mode_flag;
++	drain_snoop_list(queue);
++
++	dd->hfi1_snoop.filter_callback = NULL;
++	dd->hfi1_snoop.filter_value = NULL;
++
++	/*
++	 * Send side packet integrity checks are not helpful when snooping so
++	 * disable and re-enable when we stop snooping.
++	 */
++	if (mode_flag == HFI1_PORT_SNOOP_MODE) {
++		/* clear after snoop mode is on */
++		adjust_integrity_checks(dd); /* clear */
++
++		/*
++		 * We also do not want to be doing the DLID LMC check for
++		 * ingressed packets.
++		 */
++		dd->hfi1_snoop.dcc_cfg = read_csr(dd, DCC_CFG_PORT_CONFIG1);
++		write_csr(dd, DCC_CFG_PORT_CONFIG1,
++			  (dd->hfi1_snoop.dcc_cfg >> 32) << 32);
++	}
++
++	/*
++	 * As soon as we set these function pointers the recv and send handlers
++	 * are active. This is a race condition so we must make sure to drain
++	 * the queue and init filter values above. Technically we should add
++	 * locking here but all that will happen is on recv a packet will get
++	 * allocated and get stuck on the snoop_lock before getting added to the
++	 * queue. Same goes for send.
++	 */
++	dd->rhf_rcv_function_map = snoop_rhf_rcv_functions;
++	dd->process_pio_send = snoop_send_pio_handler;
++	dd->process_dma_send = snoop_send_pio_handler;
++	dd->pio_inline_send = snoop_inline_pio_send;
++
++	spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
++	ret = 0;
++
++bail:
++	mutex_unlock(&hfi1_mutex);
++
++	return ret;
++}
++
++static int hfi1_snoop_release(struct inode *in, struct file *fp)
++{
++	unsigned long flags = 0;
++	struct hfi1_devdata *dd;
++	int mode_flag;
++
++	dd = hfi1_dd_from_sc_inode(in);
++	if (dd == NULL)
++		return -ENODEV;
++
++	spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
++
++	/* clear the snoop mode before re-adjusting send context CSRs */
++	mode_flag = dd->hfi1_snoop.mode_flag;
++	dd->hfi1_snoop.mode_flag = 0;
++
++	/*
++	 * Drain the queue and clear the filters we are done with it. Don't
++	 * forget to restore the packet integrity checks
++	 */
++	drain_snoop_list(&dd->hfi1_snoop.queue);
++	if (mode_flag == HFI1_PORT_SNOOP_MODE) {
++		/* restore after snoop mode is clear */
++		adjust_integrity_checks(dd); /* restore */
++
++		/*
++		 * Also should probably reset the DCC_CONFIG1 register for DLID
++		 * checking on incoming packets again. Use the value saved when
++		 * opening the snoop device.
++		 */
++		write_csr(dd, DCC_CFG_PORT_CONFIG1, dd->hfi1_snoop.dcc_cfg);
++	}
++
++	dd->hfi1_snoop.filter_callback = NULL;
++	kfree(dd->hfi1_snoop.filter_value);
++	dd->hfi1_snoop.filter_value = NULL;
++
++	/*
++	 * User is done snooping and capturing, return control to the normal
++	 * handler. Re-enable SDMA handling.
++	 */
++	dd->rhf_rcv_function_map = dd->normal_rhf_rcv_functions;
++	dd->process_pio_send = hfi1_verbs_send_pio;
++	dd->process_dma_send = hfi1_verbs_send_dma;
++	dd->pio_inline_send = pio_copy;
++
++	spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
++
++	snoop_dbg("snoop/capture device released");
 +
 +	return 0;
 +}
 +
-+DEBUGFS_SEQ_FILE_OPS(qp_stats);
-+DEBUGFS_SEQ_FILE_OPEN(qp_stats)
-+DEBUGFS_FILE_OPS(qp_stats);
-+
-+static void *_sdes_seq_start(struct seq_file *s, loff_t *pos)
-+__acquires(RCU)
++static unsigned int hfi1_snoop_poll(struct file *fp,
++				    struct poll_table_struct *wait)
 +{
-+	struct hfi1_ibdev *ibd;
++	int ret = 0;
++	unsigned long flags = 0;
++
 +	struct hfi1_devdata *dd;
 +
-+	rcu_read_lock();
-+	ibd = (struct hfi1_ibdev *)s->private;
-+	dd = dd_from_dev(ibd);
-+	if (!dd->per_sdma || *pos >= dd->num_sdma)
-+		return NULL;
-+	return pos;
++	dd = hfi1_dd_from_sc_inode(fp->f_inode);
++	if (dd == NULL)
++		return -ENODEV;
++
++	spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
++
++	poll_wait(fp, &dd->hfi1_snoop.waitq, wait);
++	if (!list_empty(&dd->hfi1_snoop.queue))
++		ret |= POLLIN | POLLRDNORM;
++
++	spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
++	return ret;
++
 +}
 +
-+static void *_sdes_seq_next(struct seq_file *s, void *v, loff_t *pos)
++static ssize_t hfi1_snoop_write(struct file *fp, const char __user *data,
++				size_t count, loff_t *off)
 +{
-+	struct hfi1_ibdev *ibd = (struct hfi1_ibdev *)s->private;
-+	struct hfi1_devdata *dd = dd_from_dev(ibd);
-+
-+	++*pos;
-+	if (!dd->per_sdma || *pos >= dd->num_sdma)
-+		return NULL;
-+	return pos;
-+}
-+
-+
-+static void _sdes_seq_stop(struct seq_file *s, void *v)
-+__releases(RCU)
-+{
-+	rcu_read_unlock();
-+}
-+
-+static int _sdes_seq_show(struct seq_file *s, void *v)
-+{
-+	struct hfi1_ibdev *ibd = (struct hfi1_ibdev *)s->private;
-+	struct hfi1_devdata *dd = dd_from_dev(ibd);
-+	loff_t *spos = v;
-+	loff_t i = *spos;
-+
-+	sdma_seqfile_dump_sde(s, &dd->per_sdma[i]);
-+	return 0;
-+}
-+
-+DEBUGFS_SEQ_FILE_OPS(sdes);
-+DEBUGFS_SEQ_FILE_OPEN(sdes)
-+DEBUGFS_FILE_OPS(sdes);
-+
-+/* read the per-device counters */
-+static ssize_t dev_counters_read(struct file *file, char __user *buf,
-+				 size_t count, loff_t *ppos)
-+{
-+	u64 *counters;
-+	size_t avail;
++	struct diag_pkt dpkt;
 +	struct hfi1_devdata *dd;
-+	ssize_t rval;
-+
-+	rcu_read_lock();
-+	dd = private2dd(file);
-+	avail = hfi1_read_cntrs(dd, *ppos, NULL, &counters);
-+	rval =  simple_read_from_buffer(buf, count, ppos, counters, avail);
-+	rcu_read_unlock();
-+	return rval;
-+}
-+
-+/* read the per-device counters */
-+static ssize_t dev_names_read(struct file *file, char __user *buf,
-+			      size_t count, loff_t *ppos)
-+{
-+	char *names;
-+	size_t avail;
-+	struct hfi1_devdata *dd;
-+	ssize_t rval;
-+
-+	rcu_read_lock();
-+	dd = private2dd(file);
-+	avail = hfi1_read_cntrs(dd, *ppos, &names, NULL);
-+	rval =  simple_read_from_buffer(buf, count, ppos, names, avail);
-+	rcu_read_unlock();
-+	return rval;
-+}
-+
-+struct counter_info {
-+	char *name;
-+	const struct file_operations ops;
-+};
-+
-+/*
-+ * Could use file_inode(file)->i_ino to figure out which file,
-+ * instead of separate routine for each, but for now, this works...
-+ */
-+
-+/* read the per-port names (same for each port) */
-+static ssize_t portnames_read(struct file *file, char __user *buf,
-+			      size_t count, loff_t *ppos)
-+{
-+	char *names;
-+	size_t avail;
-+	struct hfi1_devdata *dd;
-+	ssize_t rval;
-+
-+	rcu_read_lock();
-+	dd = private2dd(file);
-+	/* port number n/a here since names are constant */
-+	avail = hfi1_read_portcntrs(dd, *ppos, 0, &names, NULL);
-+	rval = simple_read_from_buffer(buf, count, ppos, names, avail);
-+	rcu_read_unlock();
-+	return rval;
-+}
-+
-+/* read the per-port counters */
-+static ssize_t portcntrs_debugfs_read(struct file *file, char __user *buf,
-+				size_t count, loff_t *ppos)
-+{
-+	u64 *counters;
-+	size_t avail;
-+	struct hfi1_devdata *dd;
++	size_t ret;
++	u8 byte_two, sl, sc5, sc4, vl, byte_one;
++	struct send_context *sc;
++	u32 len;
++	u64 pbc;
++	struct hfi1_ibport *ibp;
 +	struct hfi1_pportdata *ppd;
-+	ssize_t rval;
 +
-+	rcu_read_lock();
-+	ppd = private2ppd(file);
-+	dd = ppd->dd;
-+	avail = hfi1_read_portcntrs(dd, *ppos, ppd->port - 1, NULL, &counters);
-+	rval = simple_read_from_buffer(buf, count, ppos, counters, avail);
-+	rcu_read_unlock();
-+	return rval;
-+}
++	dd = hfi1_dd_from_sc_inode(fp->f_inode);
++	if (dd == NULL)
++		return -ENODEV;
 +
-+/*
-+ * read the per-port QSFP data for ppd
-+ */
-+static ssize_t qsfp_debugfs_dump(struct file *file, char __user *buf,
-+			   size_t count, loff_t *ppos)
-+{
-+	struct hfi1_pportdata *ppd;
-+	char *tmp;
-+	int ret;
++	ppd = dd->pport;
++	snoop_dbg("received %lu bytes from user", count);
 +
-+	rcu_read_lock();
-+	ppd = private2ppd(file);
-+	tmp = kmalloc(PAGE_SIZE, GFP_KERNEL);
-+	if (!tmp) {
-+		rcu_read_unlock();
-+		return -ENOMEM;
-+	}
++	memset(&dpkt, 0, sizeof(struct diag_pkt));
++	dpkt.version = _DIAG_PKT_VERS;
++	dpkt.unit = dd->unit;
++	dpkt.port = 1;
 +
-+	ret = qsfp_dump(ppd, tmp, PAGE_SIZE);
-+	if (ret > 0)
-+		ret = simple_read_from_buffer(buf, count, ppos, tmp, ret);
-+	rcu_read_unlock();
-+	kfree(tmp);
-+	return ret;
-+}
++	if (likely(!(snoop_flags & SNOOP_USE_METADATA))) {
++		/*
++		* We need to generate the PBC and not let diagpkt_send do it,
++		* to do this we need the VL and the length in dwords.
++		* The VL can be determined by using the SL and looking up the
++		* SC. Then the SC can be converted into VL. The exception to
++		* this is those packets which are from an SMI queue pair.
++		* Since we can't detect anything about the QP here we have to
++		* rely on the SC. If its 0xF then we assume its SMI and
++		* do not look at the SL.
++		*/
++		if (copy_from_user(&byte_one, data, 1))
++			return -EINVAL;
 +
-+/* Do an i2c write operation on the chain for the given HFI. */
-+static ssize_t __i2c_debugfs_write(struct file *file, const char __user *buf,
-+			   size_t count, loff_t *ppos, u32 target)
-+{
-+	struct hfi1_pportdata *ppd;
-+	char *buff;
-+	int ret;
-+	int i2c_addr;
-+	int offset;
-+	int total_written;
++		if (copy_from_user(&byte_two, data+1, 1))
++			return -EINVAL;
 +
-+	rcu_read_lock();
-+	ppd = private2ppd(file);
-+
-+	buff = kmalloc(count, GFP_KERNEL);
-+	if (!buff) {
-+		ret = -ENOMEM;
-+		goto _return;
-+	}
-+
-+	ret = copy_from_user(buff, buf, count);
-+	if (ret > 0) {
-+		ret = -EFAULT;
-+		goto _free;
-+	}
-+
-+	i2c_addr = (*ppos >> 16) & 0xff;
-+	offset = *ppos & 0xffff;
-+
-+	total_written = i2c_write(ppd, target, i2c_addr, offset, buff, count);
-+	if (total_written < 0) {
-+		ret = total_written;
-+		goto _free;
-+	}
-+
-+	*ppos += total_written;
-+
-+	ret = total_written;
-+
-+ _free:
-+	kfree(buff);
-+ _return:
-+	rcu_read_unlock();
-+	return ret;
-+}
-+
-+/* Do an i2c write operation on chain for HFI 0. */
-+static ssize_t i2c1_debugfs_write(struct file *file, const char __user *buf,
-+			   size_t count, loff_t *ppos)
-+{
-+	return __i2c_debugfs_write(file, buf, count, ppos, 0);
-+}
-+
-+/* Do an i2c write operation on chain for HFI 1. */
-+static ssize_t i2c2_debugfs_write(struct file *file, const char __user *buf,
-+			   size_t count, loff_t *ppos)
-+{
-+	return __i2c_debugfs_write(file, buf, count, ppos, 1);
-+}
-+
-+/* Do an i2c read operation on the chain for the given HFI. */
-+static ssize_t __i2c_debugfs_read(struct file *file, char __user *buf,
-+			size_t count, loff_t *ppos, u32 target)
-+{
-+	struct hfi1_pportdata *ppd;
-+	char *buff;
-+	int ret;
-+	int i2c_addr;
-+	int offset;
-+	int total_read;
-+
-+	rcu_read_lock();
-+	ppd = private2ppd(file);
-+
-+	buff = kmalloc(count, GFP_KERNEL);
-+	if (!buff) {
-+		ret = -ENOMEM;
-+		goto _return;
-+	}
-+
-+	i2c_addr = (*ppos >> 16) & 0xff;
-+	offset = *ppos & 0xffff;
-+
-+	total_read = i2c_read(ppd, target, i2c_addr, offset, buff, count);
-+	if (total_read < 0) {
-+		ret = total_read;
-+		goto _free;
-+	}
-+
-+	*ppos += total_read;
-+
-+	ret = copy_to_user(buf, buff, total_read);
-+	if (ret > 0) {
-+		ret = -EFAULT;
-+		goto _free;
-+	}
-+
-+	ret = total_read;
-+
-+ _free:
-+	kfree(buff);
-+ _return:
-+	rcu_read_unlock();
-+	return ret;
-+}
-+
-+/* Do an i2c read operation on chain for HFI 0. */
-+static ssize_t i2c1_debugfs_read(struct file *file, char __user *buf,
-+			size_t count, loff_t *ppos)
-+{
-+	return __i2c_debugfs_read(file, buf, count, ppos, 0);
-+}
-+
-+/* Do an i2c read operation on chain for HFI 1. */
-+static ssize_t i2c2_debugfs_read(struct file *file, char __user *buf,
-+			size_t count, loff_t *ppos)
-+{
-+	return __i2c_debugfs_read(file, buf, count, ppos, 1);
-+}
-+
-+/* Do a QSFP write operation on the i2c chain for the given HFI. */
-+static ssize_t __qsfp_debugfs_write(struct file *file, const char __user *buf,
-+			   size_t count, loff_t *ppos, u32 target)
-+{
-+	struct hfi1_pportdata *ppd;
-+	char *buff;
-+	int ret;
-+	int total_written;
-+
-+	rcu_read_lock();
-+	if (*ppos + count > QSFP_PAGESIZE * 4) { /* base page + page00-page03 */
-+		ret = -EINVAL;
-+		goto _return;
-+	}
-+
-+	ppd = private2ppd(file);
-+
-+	buff = kmalloc(count, GFP_KERNEL);
-+	if (!buff) {
-+		ret = -ENOMEM;
-+		goto _return;
-+	}
-+
-+	ret = copy_from_user(buff, buf, count);
-+	if (ret > 0) {
-+		ret = -EFAULT;
-+		goto _free;
-+	}
-+
-+	total_written = qsfp_write(ppd, target, *ppos, buff, count);
-+	if (total_written < 0) {
-+		ret = total_written;
-+		goto _free;
-+	}
-+
-+	*ppos += total_written;
-+
-+	ret = total_written;
-+
-+ _free:
-+	kfree(buff);
-+ _return:
-+	rcu_read_unlock();
-+	return ret;
-+}
-+
-+/* Do a QSFP write operation on i2c chain for HFI 0. */
-+static ssize_t qsfp1_debugfs_write(struct file *file, const char __user *buf,
-+			   size_t count, loff_t *ppos)
-+{
-+	return __qsfp_debugfs_write(file, buf, count, ppos, 0);
-+}
-+
-+/* Do a QSFP write operation on i2c chain for HFI 1. */
-+static ssize_t qsfp2_debugfs_write(struct file *file, const char __user *buf,
-+			   size_t count, loff_t *ppos)
-+{
-+	return __qsfp_debugfs_write(file, buf, count, ppos, 1);
-+}
-+
-+/* Do a QSFP read operation on the i2c chain for the given HFI. */
-+static ssize_t __qsfp_debugfs_read(struct file *file, char __user *buf,
-+			size_t count, loff_t *ppos, u32 target)
-+{
-+	struct hfi1_pportdata *ppd;
-+	char *buff;
-+	int ret;
-+	int total_read;
-+
-+	rcu_read_lock();
-+	if (*ppos + count > QSFP_PAGESIZE * 4) { /* base page + page00-page03 */
-+		ret = -EINVAL;
-+		goto _return;
-+	}
-+
-+	ppd = private2ppd(file);
-+
-+	buff = kmalloc(count, GFP_KERNEL);
-+	if (!buff) {
-+		ret = -ENOMEM;
-+		goto _return;
-+	}
-+
-+	total_read = qsfp_read(ppd, target, *ppos, buff, count);
-+	if (total_read < 0) {
-+		ret = total_read;
-+		goto _free;
-+	}
-+
-+	*ppos += total_read;
-+
-+	ret = copy_to_user(buf, buff, total_read);
-+	if (ret > 0) {
-+		ret = -EFAULT;
-+		goto _free;
-+	}
-+
-+	ret = total_read;
-+
-+ _free:
-+	kfree(buff);
-+ _return:
-+	rcu_read_unlock();
-+	return ret;
-+}
-+
-+/* Do a QSFP read operation on i2c chain for HFI 0. */
-+static ssize_t qsfp1_debugfs_read(struct file *file, char __user *buf,
-+			size_t count, loff_t *ppos)
-+{
-+	return __qsfp_debugfs_read(file, buf, count, ppos, 0);
-+}
-+
-+/* Do a QSFP read operation on i2c chain for HFI 1. */
-+static ssize_t qsfp2_debugfs_read(struct file *file, char __user *buf,
-+			size_t count, loff_t *ppos)
-+{
-+	return __qsfp_debugfs_read(file, buf, count, ppos, 1);
-+}
-+
-+#define DEBUGFS_OPS(nm, readroutine, writeroutine)	\
-+{ \
-+	.name = nm, \
-+	.ops = { \
-+		.read = readroutine, \
-+		.write = writeroutine, \
-+		.llseek = generic_file_llseek, \
-+	}, \
-+}
-+
-+static const struct counter_info cntr_ops[] = {
-+	DEBUGFS_OPS("counter_names", dev_names_read, NULL),
-+	DEBUGFS_OPS("counters", dev_counters_read, NULL),
-+	DEBUGFS_OPS("portcounter_names", portnames_read, NULL),
-+};
-+
-+static const struct counter_info port_cntr_ops[] = {
-+	DEBUGFS_OPS("port%dcounters", portcntrs_debugfs_read, NULL),
-+	DEBUGFS_OPS("i2c1", i2c1_debugfs_read, i2c1_debugfs_write),
-+	DEBUGFS_OPS("i2c2", i2c2_debugfs_read, i2c2_debugfs_write),
-+	DEBUGFS_OPS("qsfp_dump%d", qsfp_debugfs_dump, NULL),
-+	DEBUGFS_OPS("qsfp1", qsfp1_debugfs_read, qsfp1_debugfs_write),
-+	DEBUGFS_OPS("qsfp2", qsfp2_debugfs_read, qsfp2_debugfs_write),
-+};
-+
-+void hfi1_dbg_ibdev_init(struct hfi1_ibdev *ibd)
-+{
-+	char name[sizeof("port0counters") + 1];
-+	char link[10];
-+	struct hfi1_devdata *dd = dd_from_dev(ibd);
-+	struct hfi1_pportdata *ppd;
-+	int unit = dd->unit;
-+	int i, j;
-+
-+	if (!hfi1_dbg_root)
-+		return;
-+	snprintf(name, sizeof(name), "%s_%d", class_name(), unit);
-+	snprintf(link, sizeof(link), "%d", unit);
-+	ibd->hfi1_ibdev_dbg = debugfs_create_dir(name, hfi1_dbg_root);
-+	if (!ibd->hfi1_ibdev_dbg) {
-+		pr_warn("create of %s failed\n", name);
-+		return;
-+	}
-+	ibd->hfi1_ibdev_link =
-+		debugfs_create_symlink(link, hfi1_dbg_root, name);
-+	if (!ibd->hfi1_ibdev_link) {
-+		pr_warn("create of %s symlink failed\n", name);
-+		return;
-+	}
-+	DEBUGFS_SEQ_FILE_CREATE(opcode_stats, ibd->hfi1_ibdev_dbg, ibd);
-+	DEBUGFS_SEQ_FILE_CREATE(ctx_stats, ibd->hfi1_ibdev_dbg, ibd);
-+	DEBUGFS_SEQ_FILE_CREATE(qp_stats, ibd->hfi1_ibdev_dbg, ibd);
-+	DEBUGFS_SEQ_FILE_CREATE(sdes, ibd->hfi1_ibdev_dbg, ibd);
-+	/* dev counter files */
-+	for (i = 0; i < ARRAY_SIZE(cntr_ops); i++)
-+		DEBUGFS_FILE_CREATE(cntr_ops[i].name,
-+				    ibd->hfi1_ibdev_dbg,
-+				    dd,
-+				    &cntr_ops[i].ops, S_IRUGO);
-+	/* per port files */
-+	for (ppd = dd->pport, j = 0; j < dd->num_pports; j++, ppd++)
-+		for (i = 0; i < ARRAY_SIZE(port_cntr_ops); i++) {
-+			snprintf(name,
-+				 sizeof(name),
-+				 port_cntr_ops[i].name,
-+				 j + 1);
-+			DEBUGFS_FILE_CREATE(name,
-+					    ibd->hfi1_ibdev_dbg,
-+					    ppd,
-+					    &port_cntr_ops[i].ops,
-+					    port_cntr_ops[i].ops.write == NULL ?
-+					    S_IRUGO : S_IRUGO|S_IWUSR);
++		sc4 = (byte_one >> 4) & 0xf;
++		if (sc4 == 0xF) {
++			snoop_dbg("Detected VL15 packet ignoring SL in packet");
++			vl = sc4;
++		} else {
++			sl = (byte_two >> 4) & 0xf;
++			ibp = to_iport(&dd->verbs_dev.ibdev, 1);
++			sc5 = ibp->sl_to_sc[sl];
++			vl = sc_to_vlt(dd, sc5);
++			if (vl != sc4) {
++				snoop_dbg("VL %d does not match SC %d of packet",
++					  vl, sc4);
++				return -EINVAL;
++			}
 +		}
++
++		sc = dd->vld[vl].sc; /* Look up the context based on VL */
++		if (sc) {
++			dpkt.sw_index = sc->sw_index;
++			snoop_dbg("Sending on context %u(%u)", sc->sw_index,
++				  sc->hw_context);
++		} else {
++			snoop_dbg("Could not find context for vl %d", vl);
++			return -EINVAL;
++		}
++
++		len = (count >> 2) + 2; /* Add in PBC */
++		pbc = create_pbc(ppd, 0, 0, vl, len);
++	} else {
++		if (copy_from_user(&pbc, data, sizeof(pbc)))
++			return -EINVAL;
++		vl = (pbc >> PBC_VL_SHIFT) & PBC_VL_MASK;
++		sc = dd->vld[vl].sc; /* Look up the context based on VL */
++		if (sc) {
++			dpkt.sw_index = sc->sw_index;
++		} else {
++			snoop_dbg("Could not find context for vl %d", vl);
++			return -EINVAL;
++		}
++		data += sizeof(pbc);
++		count -= sizeof(pbc);
++	}
++	dpkt.len = count;
++	dpkt.data = (unsigned long)data;
++
++	len = (count >> 2) + 2; /* Add in PBC */
++	pbc = create_pbc(ppd, 0, 0, vl, len);
++	snoop_dbg("PBC: vl=0x%llx Length=0x%llx",
++		  (pbc >> 12) & 0xf,
++		  (pbc & 0xfff));
++
++	dpkt.pbc = pbc;
++	ret = diagpkt_send(&dpkt);
++	/*
++	 * diagpkt_send only returns number of bytes in the diagpkt so patch
++	 * that up here before returning.
++	 */
++	if (ret == sizeof(dpkt))
++		return count;
++
++	return ret;
 +}
 +
-+void hfi1_dbg_ibdev_exit(struct hfi1_ibdev *ibd)
++static ssize_t hfi1_snoop_read(struct file *fp, char __user *data,
++			       size_t pkt_len, loff_t *off)
 +{
-+	if (!hfi1_dbg_root)
-+		goto out;
-+	debugfs_remove(ibd->hfi1_ibdev_link);
-+	debugfs_remove_recursive(ibd->hfi1_ibdev_dbg);
-+out:
-+	ibd->hfi1_ibdev_dbg = NULL;
-+	synchronize_rcu();
++	ssize_t ret = 0;
++	unsigned long flags = 0;
++	struct snoop_packet *packet = NULL;
++	struct hfi1_devdata *dd;
++
++	dd = hfi1_dd_from_sc_inode(fp->f_inode);
++	if (dd == NULL)
++		return -ENODEV;
++
++	spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
++
++	while (list_empty(&dd->hfi1_snoop.queue)) {
++		spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
++
++		if (fp->f_flags & O_NONBLOCK)
++			return -EAGAIN;
++
++		if (wait_event_interruptible(
++				dd->hfi1_snoop.waitq,
++				!list_empty(&dd->hfi1_snoop.queue)))
++			return -EINTR;
++
++		spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
++	}
++
++	if (!list_empty(&dd->hfi1_snoop.queue)) {
++		packet = list_entry(dd->hfi1_snoop.queue.next,
++				    struct snoop_packet, list);
++		list_del(&packet->list);
++		spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
++		if (pkt_len >= packet->total_len) {
++			if (copy_to_user(data, packet->data,
++				packet->total_len))
++				ret = -EFAULT;
++			else
++				ret = packet->total_len;
++		} else
++			ret = -EINVAL;
++
++		kfree(packet);
++	} else
++		spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
++
++	return ret;
 +}
 +
-+/*
-+ * driver stats field names, one line per stat, single string.  Used by
-+ * programs like hfistats to print the stats in a way which works for
-+ * different versions of drivers, without changing program source.
-+ * if hfi1_ib_stats changes, this needs to change.  Names need to be
-+ * 12 chars or less (w/o newline), for proper display by hfistats utility.
-+ */
-+static const char * const hfi1_statnames[] = {
-+	/* must be element 0*/
-+	"KernIntr",
-+	"ErrorIntr",
-+	"Tx_Errs",
-+	"Rcv_Errs",
-+	"H/W_Errs",
-+	"NoPIOBufs",
-+	"CtxtsOpen",
-+	"RcvLen_Errs",
-+	"EgrBufFull",
-+	"EgrHdrFull"
-+};
-+
-+static void *_driver_stats_names_seq_start(struct seq_file *s, loff_t *pos)
-+__acquires(RCU)
++static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
 +{
-+	rcu_read_lock();
-+	if (*pos >= ARRAY_SIZE(hfi1_statnames))
-+		return NULL;
-+	return pos;
++	struct hfi1_devdata *dd;
++	void *filter_value = NULL;
++	long ret = 0;
++	int value = 0;
++	u8 physState = 0;
++	u8 linkState = 0;
++	u16 devState = 0;
++	unsigned long flags = 0;
++	unsigned long *argp = NULL;
++	struct hfi1_packet_filter_command filter_cmd = {0};
++	int mode_flag = 0;
++	struct hfi1_pportdata *ppd = NULL;
++	unsigned int index;
++	struct hfi1_link_info link_info;
++
++	dd = hfi1_dd_from_sc_inode(fp->f_inode);
++	if (dd == NULL)
++		return -ENODEV;
++
++	spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
++
++	mode_flag = dd->hfi1_snoop.mode_flag;
++
++	if (((_IOC_DIR(cmd) & _IOC_READ)
++	    && !access_ok(VERIFY_WRITE, (void __user *)arg, _IOC_SIZE(cmd)))
++	    || ((_IOC_DIR(cmd) & _IOC_WRITE)
++	    && !access_ok(VERIFY_READ, (void __user *)arg, _IOC_SIZE(cmd)))) {
++		ret = -EFAULT;
++	} else if (!capable(CAP_SYS_ADMIN)) {
++		ret = -EPERM;
++	} else if ((mode_flag & HFI1_PORT_CAPTURE_MODE) &&
++		   (cmd != HFI1_SNOOP_IOCCLEARQUEUE) &&
++		   (cmd != HFI1_SNOOP_IOCCLEARFILTER) &&
++		   (cmd != HFI1_SNOOP_IOCSETFILTER)) {
++		/* Capture devices are allowed only 3 operations
++		 * 1.Clear capture queue
++		 * 2.Clear capture filter
++		 * 3.Set capture filter
++		 * Other are invalid.
++		 */
++		ret = -EINVAL;
++	} else {
++		switch (cmd) {
++		case HFI1_SNOOP_IOCSETLINKSTATE:
++			snoop_dbg("HFI1_SNOOP_IOCSETLINKSTATE is not valid");
++			ret = -EINVAL;
++			break;
++
++		case HFI1_SNOOP_IOCSETLINKSTATE_EXTRA:
++			memset(&link_info, 0, sizeof(link_info));
++
++			ret = copy_from_user(&link_info,
++				(struct hfi1_link_info __user *)arg,
++				sizeof(link_info));
++			if (ret)
++				break;
++
++			value = link_info.port_state;
++			index = link_info.port_number;
++			if (index > dd->num_pports - 1) {
++				ret = -EINVAL;
++				break;
++			}
++
++			ppd = &dd->pport[index];
++			if (!ppd) {
++				ret = -EINVAL;
++				break;
++			}
++
++			/* What we want to transition to */
++			physState = (value >> 4) & 0xF;
++			linkState = value & 0xF;
++			snoop_dbg("Setting link state 0x%x", value);
++
++			switch (linkState) {
++			case IB_PORT_NOP:
++				if (physState == 0)
++					break;
++					/* fall through */
++			case IB_PORT_DOWN:
++				switch (physState) {
++				case 0:
++					devState = HLS_DN_DOWNDEF;
++					break;
++				case 2:
++					devState = HLS_DN_POLL;
++					break;
++				case 3:
++					devState = HLS_DN_DISABLE;
++					break;
++				default:
++					ret = -EINVAL;
++					goto done;
++				}
++				ret = set_link_state(ppd, devState);
++				break;
++			case IB_PORT_ARMED:
++				ret = set_link_state(ppd, HLS_UP_ARMED);
++				if (!ret)
++					send_idle_sma(dd, SMA_IDLE_ARM);
++				break;
++			case IB_PORT_ACTIVE:
++				ret = set_link_state(ppd, HLS_UP_ACTIVE);
++				if (!ret)
++					send_idle_sma(dd, SMA_IDLE_ACTIVE);
++				break;
++			default:
++				ret = -EINVAL;
++				break;
++			}
++
++			if (ret)
++				break;
++			/* fall through */
++		case HFI1_SNOOP_IOCGETLINKSTATE:
++		case HFI1_SNOOP_IOCGETLINKSTATE_EXTRA:
++			if (cmd == HFI1_SNOOP_IOCGETLINKSTATE_EXTRA) {
++				memset(&link_info, 0, sizeof(link_info));
++				ret = copy_from_user(&link_info,
++					(struct hfi1_link_info __user *)arg,
++					sizeof(link_info));
++				index = link_info.port_number;
++			} else {
++				ret = __get_user(index, (int __user *) arg);
++				if (ret !=  0)
++					break;
++			}
++
++			if (index > dd->num_pports - 1) {
++				ret = -EINVAL;
++				break;
++			}
++
++			ppd = &dd->pport[index];
++			if (!ppd) {
++				ret = -EINVAL;
++				break;
++			}
++			value = hfi1_ibphys_portstate(ppd);
++			value <<= 4;
++			value |= driver_lstate(ppd);
++
++			snoop_dbg("Link port | Link State: %d", value);
++
++			if ((cmd == HFI1_SNOOP_IOCGETLINKSTATE_EXTRA) ||
++			    (cmd == HFI1_SNOOP_IOCSETLINKSTATE_EXTRA)) {
++				link_info.port_state = value;
++				link_info.node_guid = ppd->guid;
++				link_info.link_speed_active =
++							ppd->link_speed_active;
++				link_info.link_width_active =
++							ppd->link_width_active;
++				ret = copy_to_user(
++					(struct hfi1_link_info __user *)arg,
++					&link_info, sizeof(link_info));
++			} else {
++				ret = __put_user(value, (int __user *)arg);
++			}
++			break;
++
++		case HFI1_SNOOP_IOCCLEARQUEUE:
++			snoop_dbg("Clearing snoop queue");
++			drain_snoop_list(&dd->hfi1_snoop.queue);
++			break;
++
++		case HFI1_SNOOP_IOCCLEARFILTER:
++			snoop_dbg("Clearing filter");
++			if (dd->hfi1_snoop.filter_callback) {
++				/* Drain packets first */
++				drain_snoop_list(&dd->hfi1_snoop.queue);
++				dd->hfi1_snoop.filter_callback = NULL;
++			}
++			kfree(dd->hfi1_snoop.filter_value);
++			dd->hfi1_snoop.filter_value = NULL;
++			break;
++
++		case HFI1_SNOOP_IOCSETFILTER:
++			snoop_dbg("Setting filter");
++			/* just copy command structure */
++			argp = (unsigned long *)arg;
++			ret = copy_from_user(&filter_cmd, (void __user *)argp,
++					     sizeof(filter_cmd));
++			if (ret < 0) {
++				pr_alert("Error copying filter command\n");
++				break;
++			}
++			if (filter_cmd.opcode >= HFI1_MAX_FILTERS) {
++				pr_alert("Invalid opcode in request\n");
++				ret = -EINVAL;
++				break;
++			}
++
++			snoop_dbg("Opcode %d Len %d Ptr %p",
++				   filter_cmd.opcode, filter_cmd.length,
++				   filter_cmd.value_ptr);
++
++			filter_value = kzalloc(
++						filter_cmd.length * sizeof(u8),
++						GFP_KERNEL);
++			if (!filter_value) {
++				pr_alert("Not enough memory\n");
++				ret = -ENOMEM;
++				break;
++			}
++			/* copy remaining data from userspace */
++			ret = copy_from_user((u8 *)filter_value,
++					(void __user *)filter_cmd.value_ptr,
++					filter_cmd.length);
++			if (ret < 0) {
++				kfree(filter_value);
++				pr_alert("Error copying filter data\n");
++				break;
++			}
++			/* Drain packets first */
++			drain_snoop_list(&dd->hfi1_snoop.queue);
++			dd->hfi1_snoop.filter_callback =
++				hfi1_filters[filter_cmd.opcode].filter;
++			/* just in case we see back to back sets */
++			kfree(dd->hfi1_snoop.filter_value);
++			dd->hfi1_snoop.filter_value = filter_value;
++
++			break;
++		case HFI1_SNOOP_IOCGETVERSION:
++			value = SNOOP_CAPTURE_VERSION;
++			snoop_dbg("Getting version: %d", value);
++			ret = __put_user(value, (int __user *)arg);
++			break;
++		case HFI1_SNOOP_IOCSET_OPTS:
++			snoop_flags = 0;
++			ret = __get_user(value, (int __user *) arg);
++			if (ret != 0)
++				break;
++
++			snoop_dbg("Setting snoop option %d", value);
++			if (value & SNOOP_DROP_SEND)
++				snoop_flags |= SNOOP_DROP_SEND;
++			if (value & SNOOP_USE_METADATA)
++				snoop_flags |= SNOOP_USE_METADATA;
++			break;
++		default:
++			ret = -ENOTTY;
++			break;
++		}
++	}
++done:
++	spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
++	return ret;
 +}
 +
-+static void *_driver_stats_names_seq_next(
-+	struct seq_file *s,
-+	void *v,
-+	loff_t *pos)
++static void snoop_list_add_tail(struct snoop_packet *packet,
++				struct hfi1_devdata *dd)
 +{
-+	++*pos;
-+	if (*pos >= ARRAY_SIZE(hfi1_statnames))
-+		return NULL;
-+	return pos;
++	unsigned long flags = 0;
++
++	spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
++	if (likely((dd->hfi1_snoop.mode_flag & HFI1_PORT_SNOOP_MODE) ||
++		   (dd->hfi1_snoop.mode_flag & HFI1_PORT_CAPTURE_MODE))) {
++		list_add_tail(&packet->list, &dd->hfi1_snoop.queue);
++		snoop_dbg("Added packet to list");
++	}
++
++	/*
++	 * Technically we can could have closed the snoop device while waiting
++	 * on the above lock and it is gone now. The snoop mode_flag will
++	 * prevent us from adding the packet to the queue though.
++	 */
++
++	spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
++	wake_up_interruptible(&dd->hfi1_snoop.waitq);
 +}
 +
-+static void _driver_stats_names_seq_stop(struct seq_file *s, void *v)
-+__releases(RCU)
++static inline int hfi1_filter_check(void *val, const char *msg)
 +{
-+	rcu_read_unlock();
-+}
-+
-+static int _driver_stats_names_seq_show(struct seq_file *s, void *v)
-+{
-+	loff_t *spos = v;
-+
-+	seq_printf(s, "%s\n", hfi1_statnames[*spos]);
++	if (!val) {
++		snoop_dbg("Error invalid %s value for filter", msg);
++		return HFI1_FILTER_ERR;
++	}
 +	return 0;
 +}
 +
-+DEBUGFS_SEQ_FILE_OPS(driver_stats_names);
-+DEBUGFS_SEQ_FILE_OPEN(driver_stats_names)
-+DEBUGFS_FILE_OPS(driver_stats_names);
-+
-+static void *_driver_stats_seq_start(struct seq_file *s, loff_t *pos)
-+__acquires(RCU)
++static int hfi1_filter_lid(void *ibhdr, void *packet_data, void *value)
 +{
-+	rcu_read_lock();
-+	if (*pos >= ARRAY_SIZE(hfi1_statnames))
-+		return NULL;
-+	return pos;
++	struct hfi1_ib_header *hdr;
++	int ret;
++
++	ret = hfi1_filter_check(ibhdr, "header");
++	if (ret)
++		return ret;
++	ret = hfi1_filter_check(value, "user");
++	if (ret)
++		return ret;
++	hdr = (struct hfi1_ib_header *)ibhdr;
++
++	if (*((u16 *)value) == be16_to_cpu(hdr->lrh[3])) /* matches slid */
++		return HFI1_FILTER_HIT; /* matched */
++
++	return HFI1_FILTER_MISS; /* Not matched */
 +}
 +
-+static void *_driver_stats_seq_next(struct seq_file *s, void *v, loff_t *pos)
++static int hfi1_filter_dlid(void *ibhdr, void *packet_data, void *value)
 +{
-+	++*pos;
-+	if (*pos >= ARRAY_SIZE(hfi1_statnames))
-+		return NULL;
-+	return pos;
++	struct hfi1_ib_header *hdr;
++	int ret;
++
++	ret = hfi1_filter_check(ibhdr, "header");
++	if (ret)
++		return ret;
++	ret = hfi1_filter_check(value, "user");
++	if (ret)
++		return ret;
++
++	hdr = (struct hfi1_ib_header *)ibhdr;
++
++	if (*((u16 *)value) == be16_to_cpu(hdr->lrh[1]))
++		return HFI1_FILTER_HIT;
++
++	return HFI1_FILTER_MISS;
 +}
 +
-+static void _driver_stats_seq_stop(struct seq_file *s, void *v)
-+__releases(RCU)
++/* Not valid for outgoing packets, send handler passes null for data*/
++static int hfi1_filter_mad_mgmt_class(void *ibhdr, void *packet_data,
++				      void *value)
 +{
-+	rcu_read_unlock();
-+}
++	struct hfi1_ib_header *hdr;
++	struct hfi1_other_headers *ohdr = NULL;
++	struct ib_smp *smp = NULL;
++	u32 qpn = 0;
++	int ret;
 +
-+static u64 hfi1_sps_ints(void)
-+{
-+	unsigned long flags;
-+	struct hfi1_devdata *dd;
-+	u64 sps_ints = 0;
++	ret = hfi1_filter_check(ibhdr, "header");
++	if (ret)
++		return ret;
++	ret = hfi1_filter_check(packet_data, "packet_data");
++	if (ret)
++		return ret;
++	ret = hfi1_filter_check(value, "user");
++	if (ret)
++		return ret;
 +
-+	spin_lock_irqsave(&hfi1_devs_lock, flags);
-+	list_for_each_entry(dd, &hfi1_dev_list, list) {
-+		sps_ints += get_all_cpu_total(dd->int_counter);
-+	}
-+	spin_unlock_irqrestore(&hfi1_devs_lock, flags);
-+	return sps_ints;
-+}
++	hdr = (struct hfi1_ib_header *)ibhdr;
 +
-+static int _driver_stats_seq_show(struct seq_file *s, void *v)
-+{
-+	loff_t *spos = v;
-+	char *buffer;
-+	u64 *stats = (u64 *)&hfi1_stats;
-+	size_t sz = seq_get_buf(s, &buffer);
-+
-+	if (sz < sizeof(u64))
-+		return SEQ_SKIP;
-+	/* special case for interrupts */
-+	if (*spos == 0)
-+		*(u64 *)buffer = hfi1_sps_ints();
++	/* Check for GRH */
++	if ((be16_to_cpu(hdr->lrh[0]) & 3) == HFI1_LRH_BTH)
++		ohdr = &hdr->u.oth; /* LRH + BTH + DETH */
 +	else
-+		*(u64 *)buffer = stats[*spos];
-+	seq_commit(s,  sizeof(u64));
-+	return 0;
++		ohdr = &hdr->u.l.oth; /* LRH + GRH + BTH + DETH */
++
++	qpn = be32_to_cpu(ohdr->bth[1]) & 0x00FFFFFF;
++	if (qpn <= 1) {
++		smp = (struct ib_smp *)packet_data;
++		if (*((u8 *)value) == smp->mgmt_class)
++			return HFI1_FILTER_HIT;
++		else
++			return HFI1_FILTER_MISS;
++	}
++	return HFI1_FILTER_ERR;
 +}
 +
-+DEBUGFS_SEQ_FILE_OPS(driver_stats);
-+DEBUGFS_SEQ_FILE_OPEN(driver_stats)
-+DEBUGFS_FILE_OPS(driver_stats);
-+
-+void hfi1_dbg_init(void)
++static int hfi1_filter_qp_number(void *ibhdr, void *packet_data, void *value)
 +{
-+	hfi1_dbg_root  = debugfs_create_dir(DRIVER_NAME, NULL);
-+	if (!hfi1_dbg_root)
-+		pr_warn("init of debugfs failed\n");
-+	DEBUGFS_SEQ_FILE_CREATE(driver_stats_names, hfi1_dbg_root, NULL);
-+	DEBUGFS_SEQ_FILE_CREATE(driver_stats, hfi1_dbg_root, NULL);
++
++	struct hfi1_ib_header *hdr;
++	struct hfi1_other_headers *ohdr = NULL;
++	int ret;
++
++	ret = hfi1_filter_check(ibhdr, "header");
++	if (ret)
++		return ret;
++	ret = hfi1_filter_check(value, "user");
++	if (ret)
++		return ret;
++
++	hdr = (struct hfi1_ib_header *)ibhdr;
++
++	/* Check for GRH */
++	if ((be16_to_cpu(hdr->lrh[0]) & 3) == HFI1_LRH_BTH)
++		ohdr = &hdr->u.oth; /* LRH + BTH + DETH */
++	else
++		ohdr = &hdr->u.l.oth; /* LRH + GRH + BTH + DETH */
++	if (*((u32 *)value) == (be32_to_cpu(ohdr->bth[1]) & 0x00FFFFFF))
++		return HFI1_FILTER_HIT;
++
++	return HFI1_FILTER_MISS;
 +}
 +
-+void hfi1_dbg_exit(void)
++static int hfi1_filter_ibpacket_type(void *ibhdr, void *packet_data,
++				     void *value)
 +{
-+	debugfs_remove_recursive(hfi1_dbg_root);
-+	hfi1_dbg_root = NULL;
++	u32 lnh = 0;
++	u8 opcode = 0;
++	struct hfi1_ib_header *hdr;
++	struct hfi1_other_headers *ohdr = NULL;
++	int ret;
++
++	ret = hfi1_filter_check(ibhdr, "header");
++	if (ret)
++		return ret;
++	ret = hfi1_filter_check(value, "user");
++	if (ret)
++		return ret;
++
++	hdr = (struct hfi1_ib_header *)ibhdr;
++
++	lnh = (be16_to_cpu(hdr->lrh[0]) & 3);
++
++	if (lnh == HFI1_LRH_BTH)
++		ohdr = &hdr->u.oth;
++	else if (lnh == HFI1_LRH_GRH)
++		ohdr = &hdr->u.l.oth;
++	else
++		return HFI1_FILTER_ERR;
++
++	opcode = be32_to_cpu(ohdr->bth[0]) >> 24;
++
++	if (*((u8 *)value) == ((opcode >> 5) & 0x7))
++		return HFI1_FILTER_HIT;
++
++	return HFI1_FILTER_MISS;
 +}
 +
-+#endif
-diff --git a/drivers/infiniband/hw/hfi1/debugfs.h b/drivers/infiniband/hw/hfi1/debugfs.h
-new file mode 100644
-index 0000000..92d6fe1
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/debugfs.h
-@@ -0,0 +1,78 @@
-+#ifndef _HFI1_DEBUGFS_H
-+#define _HFI1_DEBUGFS_H
++static int hfi1_filter_ib_service_level(void *ibhdr, void *packet_data,
++					void *value)
++{
++	struct hfi1_ib_header *hdr;
++	int ret;
++
++	ret = hfi1_filter_check(ibhdr, "header");
++	if (ret)
++		return ret;
++	ret = hfi1_filter_check(value, "user");
++	if (ret)
++		return ret;
++
++	hdr = (struct hfi1_ib_header *)ibhdr;
++
++	if ((*((u8 *)value)) == ((be16_to_cpu(hdr->lrh[0]) >> 4) & 0xF))
++		return HFI1_FILTER_HIT;
++
++	return HFI1_FILTER_MISS;
++}
++
++static int hfi1_filter_ib_pkey(void *ibhdr, void *packet_data, void *value)
++{
++
++	u32 lnh = 0;
++	struct hfi1_ib_header *hdr;
++	struct hfi1_other_headers *ohdr = NULL;
++	int ret;
++
++	ret = hfi1_filter_check(ibhdr, "header");
++	if (ret)
++		return ret;
++	ret = hfi1_filter_check(value, "user");
++	if (ret)
++		return ret;
++
++	hdr = (struct hfi1_ib_header *)ibhdr;
++
++	lnh = (be16_to_cpu(hdr->lrh[0]) & 3);
++	if (lnh == HFI1_LRH_BTH)
++		ohdr = &hdr->u.oth;
++	else if (lnh == HFI1_LRH_GRH)
++		ohdr = &hdr->u.l.oth;
++	else
++		return HFI1_FILTER_ERR;
++
++	/* P_key is 16-bit entity, however top most bit indicates
++	 * type of membership. 0 for limited and 1 for Full.
++	 * Limited members cannot accept information from other
++	 * Limited members, but communication is allowed between
++	 * every other combination of membership.
++	 * Hence we'll omit comparing top-most bit while filtering
++	 */
++
++	if ((*(u16 *)value & 0x7FFF) ==
++		((be32_to_cpu(ohdr->bth[0])) & 0x7FFF))
++		return HFI1_FILTER_HIT;
++
++	return HFI1_FILTER_MISS;
++}
++
 +/*
-+ *
-+ * This file is provided under a dual BSD/GPLv2 license.  When using or
-+ * redistributing this file, you may do so under either license.
-+ *
-+ * GPL LICENSE SUMMARY
-+ *
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * BSD LICENSE
-+ *
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ *  - Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *  - Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *  - Neither the name of Intel Corporation nor the names of its
-+ *    contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
++ * If packet_data is NULL then this is coming from one of the send functions.
++ * Thus we know if its an ingressed or egressed packet.
 + */
-+
-+struct hfi1_ibdev;
-+#ifdef CONFIG_DEBUG_FS
-+void hfi1_dbg_ibdev_init(struct hfi1_ibdev *ibd);
-+void hfi1_dbg_ibdev_exit(struct hfi1_ibdev *ibd);
-+void hfi1_dbg_init(void);
-+void hfi1_dbg_exit(void);
-+#else
-+static inline void hfi1_dbg_ibdev_init(struct hfi1_ibdev *ibd)
++static int hfi1_filter_direction(void *ibhdr, void *packet_data, void *value)
 +{
++	u8 user_dir = *(u8 *)value;
++	int ret;
++
++	ret = hfi1_filter_check(value, "user");
++	if (ret)
++		return ret;
++
++	if (packet_data) {
++		/* Incoming packet */
++		if (user_dir & HFI1_SNOOP_INGRESS)
++			return HFI1_FILTER_HIT;
++	} else {
++		/* Outgoing packet */
++		if (user_dir & HFI1_SNOOP_EGRESS)
++			return HFI1_FILTER_HIT;
++	}
++
++	return HFI1_FILTER_MISS;
 +}
 +
-+void hfi1_dbg_ibdev_exit(struct hfi1_ibdev *ibd)
++/*
++ * Allocate a snoop packet. The structure that is stored in the ring buffer, not
++ * to be confused with an hfi packet type.
++ */
++static struct snoop_packet *allocate_snoop_packet(u32 hdr_len,
++						  u32 data_len,
++						  u32 md_len)
 +{
++
++	struct snoop_packet *packet = NULL;
++
++	packet = kzalloc(sizeof(struct snoop_packet) + hdr_len + data_len
++			 + md_len,
++			 GFP_ATOMIC);
++	if (likely(packet))
++		INIT_LIST_HEAD(&packet->list);
++
++
++	return packet;
 +}
 +
-+void hfi1_dbg_init(void)
++/*
++ * Instead of having snoop and capture code intermixed with the recv functions,
++ * both the interrupt handler and hfi1_ib_rcv() we are going to hijack the call
++ * and land in here for snoop/capture but if not enabled the call will go
++ * through as before. This gives us a single point to constrain all of the snoop
++ * snoop recv logic. There is nothing special that needs to happen for bypass
++ * packets. This routine should not try to look into the packet. It just copied
++ * it. There is no guarantee for filters when it comes to bypass packets as
++ * there is no specific support. Bottom line is this routine does now even know
++ * what a bypass packet is.
++ */
++int snoop_recv_handler(struct hfi1_packet *packet)
 +{
++	struct hfi1_pportdata *ppd = packet->rcd->ppd;
++	struct hfi1_ib_header *hdr = packet->hdr;
++	int header_size = packet->hlen;
++	void *data = packet->ebuf;
++	u32 tlen = packet->tlen;
++	struct snoop_packet *s_packet = NULL;
++	int ret;
++	int snoop_mode = 0;
++	u32 md_len = 0;
++	struct capture_md md;
++
++	snoop_dbg("PACKET IN: hdr size %d tlen %d data %p", header_size, tlen,
++		  data);
++
++	trace_snoop_capture(ppd->dd, header_size, hdr, tlen - header_size,
++			    data);
++
++	if (!ppd->dd->hfi1_snoop.filter_callback) {
++		snoop_dbg("filter not set");
++		ret = HFI1_FILTER_HIT;
++	} else {
++		ret = ppd->dd->hfi1_snoop.filter_callback(hdr, data,
++					ppd->dd->hfi1_snoop.filter_value);
++	}
++
++	switch (ret) {
++	case HFI1_FILTER_ERR:
++		snoop_dbg("Error in filter call");
++		break;
++	case HFI1_FILTER_MISS:
++		snoop_dbg("Filter Miss");
++		break;
++	case HFI1_FILTER_HIT:
++
++		if (ppd->dd->hfi1_snoop.mode_flag & HFI1_PORT_SNOOP_MODE)
++			snoop_mode = 1;
++		if ((snoop_mode == 0) ||
++		    unlikely(snoop_flags & SNOOP_USE_METADATA))
++			md_len = sizeof(struct capture_md);
++
++
++		s_packet = allocate_snoop_packet(header_size,
++						 tlen - header_size,
++						 md_len);
++		if (unlikely(s_packet == NULL)) {
++			dd_dev_err(ppd->dd,
++				"Unable to allocate snoop/capture packet\n");
++			break;
++		}
++
++		if (md_len > 0) {
++			memset(&md, 0, sizeof(struct capture_md));
++			md.port = 1;
++			md.dir = PKT_DIR_INGRESS;
++			md.u.rhf = packet->rhf;
++			memcpy(s_packet->data, &md, md_len);
++		}
++
++		/* We should always have a header */
++		if (hdr) {
++			memcpy(s_packet->data + md_len, hdr, header_size);
++		} else {
++			dd_dev_err(ppd->dd, "Unable to copy header to snoop/capture packet\n");
++			kfree(s_packet);
++			break;
++		}
++
++		/*
++		 * Packets with no data are possible. If there is no data needed
++		 * to take care of the last 4 bytes which are normally included
++		 * with data buffers and are included in tlen.  Since we kzalloc
++		 * the buffer we do not need to set any values but if we decide
++		 * not to use kzalloc we should zero them.
++		 */
++		if (data)
++			memcpy(s_packet->data + header_size + md_len, data,
++			       tlen - header_size);
++
++		s_packet->total_len = tlen + md_len;
++		snoop_list_add_tail(s_packet, ppd->dd);
++
++		/*
++		 * If we are snooping the packet not capturing then throw away
++		 * after adding to the list.
++		 */
++		snoop_dbg("Capturing packet");
++		if (ppd->dd->hfi1_snoop.mode_flag & HFI1_PORT_SNOOP_MODE) {
++			snoop_dbg("Throwing packet away");
++			/*
++			 * If we are dropping the packet we still may need to
++			 * handle the case where error flags are set, this is
++			 * normally done by the type specific handler but that
++			 * won't be called in this case.
++			 */
++			if (unlikely(rhf_err_flags(packet->rhf)))
++				handle_eflags(packet);
++
++			/* throw the packet on the floor */
++			return RHF_RCV_CONTINUE;
++		}
++		break;
++	default:
++		break;
++	}
++
++	/*
++	 * We do not care what type of packet came in here - just pass it off
++	 * to the normal handler.
++	 */
++	return ppd->dd->normal_rhf_rcv_functions[rhf_rcv_type(packet->rhf)]
++			(packet);
 +}
 +
-+void hfi1_dbg_exit(void)
++/*
++ * Handle snooping and capturing packets when sdma is being used.
++ */
++int snoop_send_dma_handler(struct hfi1_qp *qp, struct ahg_ib_header *ibhdr,
++			   u32 hdrwords, struct hfi1_sge_state *ss, u32 len,
++			   u32 plen, u32 dwords, u64 pbc)
 +{
++	pr_alert("Snooping/Capture of  Send DMA Packets Is Not Supported!\n");
++	snoop_dbg("Unsupported Operation");
++	return hfi1_verbs_send_dma(qp, ibhdr, hdrwords, ss, len, plen, dwords,
++				  0);
 +}
 +
-+#endif
++/*
++ * Handle snooping and capturing packets when pio is being used. Does not handle
++ * bypass packets. The only way to send a bypass packet currently is to use the
++ * diagpkt interface. When that interface is enable snoop/capture is not.
++ */
++int snoop_send_pio_handler(struct hfi1_qp *qp, struct ahg_ib_header *ahdr,
++			   u32 hdrwords, struct hfi1_sge_state *ss, u32 len,
++			   u32 plen, u32 dwords, u64 pbc)
++{
++	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
++	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
++	struct snoop_packet *s_packet = NULL;
++	u32 *hdr = (u32 *)&ahdr->ibh;
++	u32 length = 0;
++	struct hfi1_sge_state temp_ss;
++	void *data = NULL;
++	void *data_start = NULL;
++	int ret;
++	int snoop_mode = 0;
++	int md_len = 0;
++	struct capture_md md;
++	u32 vl;
++	u32 hdr_len = hdrwords << 2;
++	u32 tlen = HFI1_GET_PKT_LEN(&ahdr->ibh);
 +
-+#endif                          /* _HFI1_DEBUGFS_H */
++	md.u.pbc = 0;
++
++	snoop_dbg("PACKET OUT: hdrword %u len %u plen %u dwords %u tlen %u",
++		  hdrwords, len, plen, dwords, tlen);
++	if (ppd->dd->hfi1_snoop.mode_flag & HFI1_PORT_SNOOP_MODE)
++		snoop_mode = 1;
++	if ((snoop_mode == 0) ||
++	    unlikely(snoop_flags & SNOOP_USE_METADATA))
++		md_len = sizeof(struct capture_md);
++
++	/* not using ss->total_len as arg 2 b/c that does not count CRC */
++	s_packet = allocate_snoop_packet(hdr_len, tlen - hdr_len, md_len);
++	s_packet->total_len = tlen + md_len;
++	if (unlikely(s_packet == NULL)) {
++		dd_dev_err(ppd->dd,
++			   "Unable to allocate snoop/capture packet\n");
++		goto out;
++	}
++
++	if (md_len > 0) {
++		memset(&md, 0, sizeof(struct capture_md));
++		md.port = 1;
++		md.dir = PKT_DIR_EGRESS;
++		if (likely(pbc == 0)) {
++			vl = be16_to_cpu(ahdr->ibh.lrh[0]) >> 12;
++			md.u.pbc = create_pbc(ppd, 0, qp->s_srate, vl, plen);
++		} else {
++			md.u.pbc = 0;
++		}
++		memcpy(s_packet->data, &md, md_len);
++	} else {
++		md.u.pbc = pbc;
++	}
++
++	/* Copy header */
++	if (likely(hdr)) {
++		memcpy(s_packet->data + md_len, hdr, hdr_len);
++	} else {
++		dd_dev_err(ppd->dd,
++			   "Unable to copy header to snoop/capture packet\n");
++		kfree(s_packet);
++		goto out;
++	}
++
++	if (ss) {
++		data = s_packet->data + hdr_len + md_len;
++		data_start = data;
++
++		/*
++		 * Copy SGE State
++		 * The update_sge() function below will not modify the
++		 * individual SGEs in the array. It will make a copy each time
++		 * and operate on that. So we only need to copy this instance
++		 * and it won't impact PIO.
++		 */
++		temp_ss = *ss;
++		length = len;
++
++		snoop_dbg("Need to copy %d bytes", length);
++		while (length) {
++			void *addr = temp_ss.sge.vaddr;
++			u32 slen = temp_ss.sge.length;
++
++			if (slen > length) {
++				slen = length;
++				snoop_dbg("slen %d > len %d", slen, length);
++			}
++			snoop_dbg("copy %d to %p", slen, addr);
++			memcpy(data, addr, slen);
++			update_sge(&temp_ss, slen);
++			length -= slen;
++			data += slen;
++			snoop_dbg("data is now %p bytes left %d", data, length);
++		}
++		snoop_dbg("Completed SGE copy");
++	}
++
++	/*
++	 * Why do the filter check down here? Because the event tracing has its
++	 * own filtering and we need to have the walked the SGE list.
++	 */
++	if (!ppd->dd->hfi1_snoop.filter_callback) {
++		snoop_dbg("filter not set\n");
++		ret = HFI1_FILTER_HIT;
++	} else {
++		ret = ppd->dd->hfi1_snoop.filter_callback(
++					&ahdr->ibh,
++					NULL,
++					ppd->dd->hfi1_snoop.filter_value);
++	}
++
++	switch (ret) {
++	case HFI1_FILTER_ERR:
++		snoop_dbg("Error in filter call");
++		/* fall through */
++	case HFI1_FILTER_MISS:
++		snoop_dbg("Filter Miss");
++		kfree(s_packet);
++		break;
++	case HFI1_FILTER_HIT:
++		snoop_dbg("Capturing packet");
++		snoop_list_add_tail(s_packet, ppd->dd);
++
++		if (unlikely((snoop_flags & SNOOP_DROP_SEND) &&
++			     (ppd->dd->hfi1_snoop.mode_flag &
++			      HFI1_PORT_SNOOP_MODE))) {
++			unsigned long flags;
++
++			snoop_dbg("Dropping packet");
++			if (qp->s_wqe) {
++				spin_lock_irqsave(&qp->s_lock, flags);
++				hfi1_send_complete(
++					qp,
++					qp->s_wqe,
++					IB_WC_SUCCESS);
++				spin_unlock_irqrestore(&qp->s_lock, flags);
++			} else if (qp->ibqp.qp_type == IB_QPT_RC) {
++				spin_lock_irqsave(&qp->s_lock, flags);
++				hfi1_rc_send_complete(qp, &ahdr->ibh);
++				spin_unlock_irqrestore(&qp->s_lock, flags);
++			}
++			return 0;
++		}
++		break;
++	default:
++		kfree(s_packet);
++		break;
++	}
++out:
++	return hfi1_verbs_send_pio(qp, ahdr, hdrwords, ss, len, plen, dwords,
++				  md.u.pbc);
++}
++
++/*
++ * Callers of this must pass a hfi1_ib_header type for the from ptr. Currently
++ * this can be used anywhere, but the intention is for inline ACKs for RC and
++ * CCA packets. We don't restrict this usage though.
++ */
++void snoop_inline_pio_send(struct hfi1_devdata *dd, struct pio_buf *pbuf,
++			   u64 pbc, const void *from, size_t count)
++{
++	int snoop_mode = 0;
++	int md_len = 0;
++	struct capture_md md;
++	struct snoop_packet *s_packet = NULL;
++
++	/*
++	 * count is in dwords so we need to convert to bytes.
++	 * We also need to account for CRC which would be tacked on by hardware.
++	 */
++	int packet_len = (count << 2) + 4;
++	int ret;
++
++	snoop_dbg("ACK OUT: len %d", packet_len);
++
++	if (!dd->hfi1_snoop.filter_callback) {
++		snoop_dbg("filter not set");
++		ret = HFI1_FILTER_HIT;
++	} else {
++		ret = dd->hfi1_snoop.filter_callback(
++				(struct hfi1_ib_header *)from,
++				NULL,
++				dd->hfi1_snoop.filter_value);
++	}
++
++	switch (ret) {
++	case HFI1_FILTER_ERR:
++		snoop_dbg("Error in filter call");
++		/* fall through */
++	case HFI1_FILTER_MISS:
++		snoop_dbg("Filter Miss");
++		break;
++	case HFI1_FILTER_HIT:
++		snoop_dbg("Capturing packet");
++		if (dd->hfi1_snoop.mode_flag & HFI1_PORT_SNOOP_MODE)
++			snoop_mode = 1;
++		if ((snoop_mode == 0) ||
++		    unlikely(snoop_flags & SNOOP_USE_METADATA))
++			md_len = sizeof(struct capture_md);
++
++		s_packet = allocate_snoop_packet(packet_len, 0, md_len);
++		s_packet->total_len = packet_len + md_len;
++		if (unlikely(s_packet == NULL)) {
++			dd_dev_err(dd,
++			   "Unable to allocate snoop/capture packet\n");
++			goto inline_pio_out;
++		}
++
++		/* Fill in the metadata for the packet */
++		if (md_len > 0) {
++			memset(&md, 0, sizeof(struct capture_md));
++			md.port = 1;
++			md.dir = PKT_DIR_EGRESS;
++			md.u.pbc = pbc;
++			memcpy(s_packet->data, &md, md_len);
++		}
++
++		/* Add the packet data which is a single buffer */
++		memcpy(s_packet->data + md_len, from, packet_len);
++
++		snoop_list_add_tail(s_packet, dd);
++
++		if (unlikely((snoop_flags & SNOOP_DROP_SEND) && snoop_mode)) {
++			snoop_dbg("Dropping packet");
++			return;
++		}
++		break;
++	default:
++		break;
++	}
++
++inline_pio_out:
++	pio_copy(dd, pbuf, pbc, from, count);
++
++}
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
