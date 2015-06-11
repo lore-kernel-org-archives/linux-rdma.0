@@ -1,42 +1,33 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next V3 1/8] IB/core: Change provider's API of
- create_cq to be extendible
-Date: Thu, 11 Jun 2015 11:55:55 -0600
-Message-ID: <20150611175555.GB20142@obsidianresearch.com>
-References: <1434029727-6062-1-git-send-email-ogerlitz@mellanox.com>
- <1434029727-6062-2-git-send-email-ogerlitz@mellanox.com>
+Subject: Re: [PATCH v5 1/1] ibacm: Add support for pathrecord query through
+ netlink
+Date: Thu, 11 Jun 2015 11:59:40 -0600
+Message-ID: <20150611175940.GD20142@obsidianresearch.com>
+References: <1434042265-5066-1-git-send-email-kaike.wan@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1434029727-6062-2-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1434042265-5066-1-git-send-email-kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 11, 2015 at 04:35:20PM +0300, Or Gerlitz wrote:
-> From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> Add a new ib_cq_init_attr structure which contains the
-> previous cqe (minimum number of CQ entries) and comp_vector
-> (completion vector) in addition to a new flags field.
-> All vendors' create_cq callbacks are changed in order
-> to work with the new API.
-> 
-> This commit does not change any functionality.
-> 
-> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Thu, Jun 11, 2015 at 01:04:25PM -0400, kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> +static int acm_nl_parse_path_attr(struct nlattr *attr,
+> +				   struct acm_ep_addr_data *data)
 
-You need to collect any Reviwed-By's etc people provide to earlier
-series, and include them when spining a new revision.  For instance
+> +	switch (attr->nla_type & NLA_TYPE_MASK) {
+> +	default:
+> +		acm_log(1, "WARN: unknown attr %x\n", attr->nla_type);
+> +		ret = -1;
+> +		break;
 
-http://permalink.gmane.org/gmane.linux.drivers.rdma/26129
+I would like to see a mandatory/optional scheme here.
 
-I think I had provided a Reviewed-By for some of these patches too.
-
-It isn't reasonable to expect Doug to do that.
+For instance if we add SL it would be mandatory, but policy
+information like requesting net_device would be optional.
 
 Jason
 --
