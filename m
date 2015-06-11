@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 03/41] IB/hfi1: add common header file definitions
-Date: Thu, 11 Jun 2015 19:08:45 -0400
-Message-ID: <20150611230844.16479.93708.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH 04/41] IB/hfi1: add completion queue processing
+Date: Thu, 11 Jun 2015 19:08:50 -0400
+Message-ID: <20150611230850.16479.68980.stgit@phlsvslse11.ph.intel.com>
 References: <20150611230710.16479.62955.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -37,16 +37,16 @@ Signed-off-by: Sanath Kumar <sanath.s.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.
 Signed-off-by: Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Vlad Danushevsky <vladimir.danusevsky-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/common.h |  416 +++++++++++++++++++++++++++++++++++
- 1 file changed, 416 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi1/common.h
+ drivers/infiniband/hw/hfi1/cq.c |  556 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 556 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi1/cq.c
 
-diff --git a/drivers/infiniband/hw/hfi1/common.h b/drivers/infiniband/hw/hfi1/common.h
+diff --git a/drivers/infiniband/hw/hfi1/cq.c b/drivers/infiniband/hw/hfi1/cq.c
 new file mode 100644
-index 0000000..161af4c
+index 0000000..05de35e
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/common.h
-@@ -0,0 +1,416 @@
++++ b/drivers/infiniband/hw/hfi1/cq.c
+@@ -0,0 +1,556 @@
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -97,372 +97,512 @@ index 0000000..161af4c
 + *
 + */
 +
-+#ifndef _COMMON_H
-+#define _COMMON_H
++#include <linux/err.h>
++#include <linux/slab.h>
++#include <linux/vmalloc.h>
++#include <linux/kthread.h>
 +
-+#include <rdma/hfi/hfi1_user.h>
++#include "verbs.h"
++#include "hfi.h"
 +
-+/*
-+ * This file contains defines, structures, etc. that are used
-+ * to communicate between kernel and user code.
-+ */
-+
-+/* version of protocol header (known to chip also). In the long run,
-+ * we should be able to generate and accept a range of version numbers;
-+ * for now we only accept one, and it's compiled in.
-+ */
-+#define IPS_PROTO_VERSION 2
-+
-+/*
-+ * These are compile time constants that you may want to enable or disable
-+ * if you are trying to debug problems with code or performance.
-+ * HFI1_VERBOSE_TRACING define as 1 if you want additional tracing in
-+ * fast path code
-+ * HFI1_TRACE_REGWRITES define as 1 if you want register writes to be
-+ * traced in fast path code
-+ * _HFI1_TRACING define as 0 if you want to remove all tracing in a
-+ * compilation unit
-+ */
-+
-+/*
-+ * If a packet's QP[23:16] bits match this value, then it is
-+ * a PSM packet and the hardware will expect a KDETH header
-+ * following the BTH.
-+ */
-+#define DEFAULT_KDETH_QP 0x80
-+
-+/* driver/hw feature set bitmask */
-+#define HFI1_CAP_USER_SHIFT      24
-+#define HFI1_CAP_MASK            ((1UL << HFI1_CAP_USER_SHIFT) - 1)
-+/* locked flag - if set, only HFI1_CAP_WRITABLE_MASK bits can be set */
-+#define HFI1_CAP_LOCKED_SHIFT    63
-+#define HFI1_CAP_LOCKED_MASK     0x1ULL
-+#define HFI1_CAP_LOCKED_SMASK    (HFI1_CAP_LOCKED_MASK << HFI1_CAP_LOCKED_SHIFT)
-+/* extra bits used between kernel and user processes */
-+#define HFI1_CAP_MISC_SHIFT      (HFI1_CAP_USER_SHIFT * 2)
-+#define HFI1_CAP_MISC_MASK       ((1ULL << (HFI1_CAP_LOCKED_SHIFT - \
-+					   HFI1_CAP_MISC_SHIFT)) - 1)
-+
-+#define HFI1_CAP_KSET(cap) ({ hfi1_cap_mask |= HFI1_CAP_##cap; hfi1_cap_mask; })
-+#define HFI1_CAP_KCLEAR(cap)						\
-+	({								\
-+		hfi1_cap_mask &= ~HFI1_CAP_##cap;			\
-+		hfi1_cap_mask;						\
-+	})
-+#define HFI1_CAP_USET(cap)						\
-+	({								\
-+		hfi1_cap_mask |= (HFI1_CAP_##cap << HFI1_CAP_USER_SHIFT); \
-+		hfi1_cap_mask;						\
-+		})
-+#define HFI1_CAP_UCLEAR(cap)						\
-+	({								\
-+		hfi1_cap_mask &= ~(HFI1_CAP_##cap << HFI1_CAP_USER_SHIFT); \
-+		hfi1_cap_mask;						\
-+	})
-+#define HFI1_CAP_SET(cap)						\
-+	({								\
-+		hfi1_cap_mask |= (HFI1_CAP_##cap | (HFI1_CAP_##cap <<	\
-+						  HFI1_CAP_USER_SHIFT)); \
-+		hfi1_cap_mask;						\
-+	})
-+#define HFI1_CAP_CLEAR(cap)						\
-+	({								\
-+		hfi1_cap_mask &= ~(HFI1_CAP_##cap |			\
-+				  (HFI1_CAP_##cap << HFI1_CAP_USER_SHIFT)); \
-+		hfi1_cap_mask;						\
-+	})
-+#define HFI1_CAP_LOCK()							\
-+	({ hfi1_cap_mask |= HFI1_CAP_LOCKED_SMASK; hfi1_cap_mask; })
-+#define HFI1_CAP_LOCKED() (!!(hfi1_cap_mask & HFI1_CAP_LOCKED_SMASK))
-+/*
-+ * The set of capability bits that can be changed after initial load
-+ * This set is the same for kernel and user contexts. However, for
-+ * user contexts, the set can be further filtered by using the
-+ * HFI1_CAP_RESERVED_MASK bits.
-+ */
-+#define HFI1_CAP_WRITABLE_MASK   (HFI1_CAP_ENABLE_SMA |			\
-+				 HFI1_CAP_SDMA_AHG |			\
-+				 HFI1_CAP_HDRSUPP |			\
-+				 HFI1_CAP_MULTI_PKT_EGR |		\
-+				 HFI1_CAP_NODROP_RHQ_FULL |		\
-+				 HFI1_CAP_NODROP_EGR_FULL |		\
-+				 HFI1_CAP_ALLOW_PERM_JKEY |		\
-+				 HFI1_CAP_STATIC_RATE_CTRL |		\
-+				 HFI1_CAP_PRINT_UNIMPL)
-+/*
-+ * A set of capability bits that are "global" and are not allowed to be
-+ * set in the user bitmask.
-+ */
-+#define HFI1_CAP_RESERVED_MASK   ((HFI1_CAP_SDMA |			\
-+				  HFI1_CAP_ENABLE_SMA |			\
-+				  HFI1_CAP_USE_SDMA_HEAD |		\
-+				  HFI1_CAP_EXTENDED_PSN |		\
-+				  HFI1_CAP_PRINT_UNIMPL |		\
-+				  HFI1_CAP_QSFP_ENABLED |		\
-+				  HFI1_CAP_NO_INTEGRITY |		\
-+				  HFI1_CAP_PKEY_CHECK) <<		\
-+				 HFI1_CAP_USER_SHIFT)
-+/*
-+ * Set of capabilities that need to be enabled for kernel context in
-+ * order to be allowed for user contexts, as well.
-+ */
-+#define HFI1_CAP_MUST_HAVE_KERN (HFI1_CAP_STATIC_RATE_CTRL)
-+/* Default enabled capabilities (both kernel and user) */
-+#define HFI1_CAP_MASK_DEFAULT    (HFI1_CAP_HDRSUPP |			\
-+				 HFI1_CAP_NODROP_RHQ_FULL |		\
-+				 HFI1_CAP_NODROP_EGR_FULL |		\
-+				 HFI1_CAP_SDMA |			\
-+				 HFI1_CAP_ENABLE_SMA |			\
-+				 HFI1_CAP_PRINT_UNIMPL |		\
-+				 HFI1_CAP_STATIC_RATE_CTRL |		\
-+				 HFI1_CAP_QSFP_ENABLED |		\
-+				 HFI1_CAP_PKEY_CHECK |			\
-+				 HFI1_CAP_MULTI_PKT_EGR |		\
-+				 HFI1_CAP_EXTENDED_PSN |		\
-+				 ((HFI1_CAP_HDRSUPP |			\
-+				   HFI1_CAP_MULTI_PKT_EGR |		\
-+				   HFI1_CAP_STATIC_RATE_CTRL |		\
-+				   HFI1_CAP_PKEY_CHECK |		\
-+				   HFI1_CAP_EARLY_CREDIT_RETURN) <<	\
-+				  HFI1_CAP_USER_SHIFT))
-+/*
-+ * A bitmask of kernel/global capabilities that should be communicated
-+ * to user level processes.
-+ */
-+#define HFI1_CAP_K2U (HFI1_CAP_SDMA |			\
-+		     HFI1_CAP_EXTENDED_PSN |		\
-+		     HFI1_CAP_PKEY_CHECK |		\
-+		     HFI1_CAP_NO_INTEGRITY)
-+
-+#define HFI1_USER_SWVERSION ((HFI1_USER_SWMAJOR << 16) | HFI1_USER_SWMINOR)
-+
-+#ifndef HFI1_KERN_TYPE
-+#define HFI1_KERN_TYPE 0
-+#endif
-+
-+/*
-+ * Similarly, this is the kernel version going back to the user.  It's
-+ * slightly different, in that we want to tell if the driver was built as
-+ * part of a Intel release, or from the driver from openfabrics.org,
-+ * kernel.org, or a standard distribution, for support reasons.
-+ * The high bit is 0 for non-Intel and 1 for Intel-built/supplied.
++/**
++ * hfi1_cq_enter - add a new entry to the completion queue
++ * @cq: completion queue
++ * @entry: work completion entry to add
++ * @sig: true if @entry is a solicited entry
 + *
-+ * It's returned by the driver to the user code during initialization in the
-+ * spi_sw_version field of hfi1_base_info, so the user code can in turn
-+ * check for compatibility with the kernel.
-+*/
-+#define HFI1_KERN_SWVERSION ((HFI1_KERN_TYPE << 31) | HFI1_USER_SWVERSION)
-+
-+/*
-+ * Define the driver version number.  This is something that refers only
-+ * to the driver itself, not the software interfaces it supports.
++ * This may be called with qp->s_lock held.
 + */
-+#ifndef HFI1_DRIVER_VERSION_BASE
-+#define HFI1_DRIVER_VERSION_BASE "0.9-123"
-+#endif
++void hfi1_cq_enter(struct hfi1_cq *cq, struct ib_wc *entry, int solicited)
++{
++	struct hfi1_cq_wc *wc;
++	unsigned long flags;
++	u32 head;
++	u32 next;
 +
-+/* create the final driver version string */
-+#ifdef HFI1_IDSTR
-+#define HFI1_DRIVER_VERSION HFI1_DRIVER_VERSION_BASE " " HFI1_IDSTR
-+#else
-+#define HFI1_DRIVER_VERSION HFI1_DRIVER_VERSION_BASE
-+#endif
++	spin_lock_irqsave(&cq->lock, flags);
 +
-+/*
-+ * Diagnostics can send a packet by writing the following
-+ * struct to the diag packet special file.
++	/*
++	 * Note that the head pointer might be writable by user processes.
++	 * Take care to verify it is a sane value.
++	 */
++	wc = cq->queue;
++	head = wc->head;
++	if (head >= (unsigned) cq->ibcq.cqe) {
++		head = cq->ibcq.cqe;
++		next = 0;
++	} else
++		next = head + 1;
++	if (unlikely(next == wc->tail)) {
++		spin_unlock_irqrestore(&cq->lock, flags);
++		if (cq->ibcq.event_handler) {
++			struct ib_event ev;
++
++			ev.device = cq->ibcq.device;
++			ev.element.cq = &cq->ibcq;
++			ev.event = IB_EVENT_CQ_ERR;
++			cq->ibcq.event_handler(&ev, cq->ibcq.cq_context);
++		}
++		return;
++	}
++	if (cq->ip) {
++		wc->uqueue[head].wr_id = entry->wr_id;
++		wc->uqueue[head].status = entry->status;
++		wc->uqueue[head].opcode = entry->opcode;
++		wc->uqueue[head].vendor_err = entry->vendor_err;
++		wc->uqueue[head].byte_len = entry->byte_len;
++		wc->uqueue[head].ex.imm_data =
++			(__u32 __force)entry->ex.imm_data;
++		wc->uqueue[head].qp_num = entry->qp->qp_num;
++		wc->uqueue[head].src_qp = entry->src_qp;
++		wc->uqueue[head].wc_flags = entry->wc_flags;
++		wc->uqueue[head].pkey_index = entry->pkey_index;
++		wc->uqueue[head].slid = entry->slid;
++		wc->uqueue[head].sl = entry->sl;
++		wc->uqueue[head].dlid_path_bits = entry->dlid_path_bits;
++		wc->uqueue[head].port_num = entry->port_num;
++		/* Make sure entry is written before the head index. */
++		smp_wmb();
++	} else
++		wc->kqueue[head] = *entry;
++	wc->head = next;
++
++	if (cq->notify == IB_CQ_NEXT_COMP ||
++	    (cq->notify == IB_CQ_SOLICITED &&
++	     (solicited || entry->status != IB_WC_SUCCESS))) {
++		struct kthread_worker *worker;
++		/*
++		 * This will cause send_complete() to be called in
++		 * another thread.
++		 */
++		smp_read_barrier_depends(); /* see hfi1_cq_exit */
++		worker = cq->dd->worker;
++		if (likely(worker)) {
++			cq->notify = IB_CQ_NONE;
++			cq->triggered++;
++			queue_kthread_work(worker, &cq->comptask);
++		}
++	}
++
++	spin_unlock_irqrestore(&cq->lock, flags);
++}
++
++/**
++ * hfi1_poll_cq - poll for work completion entries
++ * @ibcq: the completion queue to poll
++ * @num_entries: the maximum number of entries to return
++ * @entry: pointer to array where work completions are placed
 + *
-+ * This allows a custom PBC qword, so that special modes and deliberate
-+ * changes to CRCs can be used.
++ * Returns the number of completion entries polled.
++ *
++ * This may be called from interrupt context.  Also called by ib_poll_cq()
++ * in the generic verbs code.
 + */
-+#define _DIAG_PKT_VERS 1
-+struct diag_pkt {
-+	__u16 version;		/* structure version */
-+	__u16 unit;		/* which device */
-+	__u16 sw_index;		/* send sw index to use */
-+	__u16 len;		/* data length, in bytes */
-+	__u16 port;		/* port number */
-+	__u16 unused;
-+	__u32 flags;		/* call flags */
-+	__u64 data;		/* user data pointer */
-+	__u64 pbc;		/* PBC for the packet */
-+};
++int hfi1_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *entry)
++{
++	struct hfi1_cq *cq = to_icq(ibcq);
++	struct hfi1_cq_wc *wc;
++	unsigned long flags;
++	int npolled;
++	u32 tail;
 +
-+/* diag_pkt flags */
-+#define F_DIAGPKT_WAIT 0x1	/* wait until packet is sent */
++	/* The kernel can only poll a kernel completion queue */
++	if (cq->ip) {
++		npolled = -EINVAL;
++		goto bail;
++	}
 +
-+/*
-+ * The next set of defines are for packet headers, and chip register
-+ * and memory bits that are visible to and/or used by user-mode software.
++	spin_lock_irqsave(&cq->lock, flags);
++
++	wc = cq->queue;
++	tail = wc->tail;
++	if (tail > (u32) cq->ibcq.cqe)
++		tail = (u32) cq->ibcq.cqe;
++	for (npolled = 0; npolled < num_entries; ++npolled, ++entry) {
++		if (tail == wc->head)
++			break;
++		/* The kernel doesn't need a RMB since it has the lock. */
++		*entry = wc->kqueue[tail];
++		if (tail >= cq->ibcq.cqe)
++			tail = 0;
++		else
++			tail++;
++	}
++	wc->tail = tail;
++
++	spin_unlock_irqrestore(&cq->lock, flags);
++
++bail:
++	return npolled;
++}
++
++static void send_complete(struct kthread_work *work)
++{
++	struct hfi1_cq *cq = container_of(work, struct hfi1_cq, comptask);
++
++	/*
++	 * The completion handler will most likely rearm the notification
++	 * and poll for all pending entries.  If a new completion entry
++	 * is added while we are in this routine, queue_work()
++	 * won't call us again until we return so we check triggered to
++	 * see if we need to call the handler again.
++	 */
++	for (;;) {
++		u8 triggered = cq->triggered;
++
++		/*
++		 * IPoIB connected mode assumes the callback is from a
++		 * soft IRQ. We simulate this by blocking "bottom halves".
++		 * See the implementation for ipoib_cm_handle_tx_wc(),
++		 * netif_tx_lock_bh() and netif_tx_lock().
++		 */
++		local_bh_disable();
++		cq->ibcq.comp_handler(&cq->ibcq, cq->ibcq.cq_context);
++		local_bh_enable();
++
++		if (cq->triggered == triggered)
++			return;
++	}
++}
++
++/**
++ * hfi1_create_cq - create a completion queue
++ * @ibdev: the device this completion queue is attached to
++ * @entries: the minimum size of the completion queue
++ * @context: unused by the driver
++ * @udata: user data for libibverbs.so
++ *
++ * Returns a pointer to the completion queue or negative errno values
++ * for failure.
++ *
++ * Called by ib_create_cq() in the generic verbs code.
 + */
++struct ib_cq *hfi1_create_cq(struct ib_device *ibdev, int entries,
++			     int comp_vector, struct ib_ucontext *context,
++			     struct ib_udata *udata)
++{
++	struct hfi1_ibdev *dev = to_idev(ibdev);
++	struct hfi1_cq *cq;
++	struct hfi1_cq_wc *wc;
++	struct ib_cq *ret;
++	u32 sz;
 +
-+/*
-+ * Receive Header Flags
++	if (entries < 1 || entries > hfi1_max_cqes) {
++		ret = ERR_PTR(-EINVAL);
++		goto done;
++	}
++
++	/* Allocate the completion queue structure. */
++	cq = kmalloc(sizeof(*cq), GFP_KERNEL);
++	if (!cq) {
++		ret = ERR_PTR(-ENOMEM);
++		goto done;
++	}
++
++	/*
++	 * Allocate the completion queue entries and head/tail pointers.
++	 * This is allocated separately so that it can be resized and
++	 * also mapped into user space.
++	 * We need to use vmalloc() in order to support mmap and large
++	 * numbers of entries.
++	 */
++	sz = sizeof(*wc);
++	if (udata && udata->outlen >= sizeof(__u64))
++		sz += sizeof(struct ib_uverbs_wc) * (entries + 1);
++	else
++		sz += sizeof(struct ib_wc) * (entries + 1);
++	wc = vmalloc_user(sz);
++	if (!wc) {
++		ret = ERR_PTR(-ENOMEM);
++		goto bail_cq;
++	}
++
++	/*
++	 * Return the address of the WC as the offset to mmap.
++	 * See hfi1_mmap() for details.
++	 */
++	if (udata && udata->outlen >= sizeof(__u64)) {
++		int err;
++
++		cq->ip = hfi1_create_mmap_info(dev, sz, context, wc);
++		if (!cq->ip) {
++			ret = ERR_PTR(-ENOMEM);
++			goto bail_wc;
++		}
++
++		err = ib_copy_to_udata(udata, &cq->ip->offset,
++				       sizeof(cq->ip->offset));
++		if (err) {
++			ret = ERR_PTR(err);
++			goto bail_ip;
++		}
++	} else
++		cq->ip = NULL;
++
++	spin_lock(&dev->n_cqs_lock);
++	if (dev->n_cqs_allocated == hfi1_max_cqs) {
++		spin_unlock(&dev->n_cqs_lock);
++		ret = ERR_PTR(-ENOMEM);
++		goto bail_ip;
++	}
++
++	dev->n_cqs_allocated++;
++	spin_unlock(&dev->n_cqs_lock);
++
++	if (cq->ip) {
++		spin_lock_irq(&dev->pending_lock);
++		list_add(&cq->ip->pending_mmaps, &dev->pending_mmaps);
++		spin_unlock_irq(&dev->pending_lock);
++	}
++
++	/*
++	 * ib_create_cq() will initialize cq->ibcq except for cq->ibcq.cqe.
++	 * The number of entries should be >= the number requested or return
++	 * an error.
++	 */
++	cq->dd = dd_from_dev(dev);
++	cq->ibcq.cqe = entries;
++	cq->notify = IB_CQ_NONE;
++	cq->triggered = 0;
++	spin_lock_init(&cq->lock);
++	init_kthread_work(&cq->comptask, send_complete);
++	wc->head = 0;
++	wc->tail = 0;
++	cq->queue = wc;
++
++	ret = &cq->ibcq;
++
++	goto done;
++
++bail_ip:
++	kfree(cq->ip);
++bail_wc:
++	vfree(wc);
++bail_cq:
++	kfree(cq);
++done:
++	return ret;
++}
++
++/**
++ * hfi1_destroy_cq - destroy a completion queue
++ * @ibcq: the completion queue to destroy.
++ *
++ * Returns 0 for success.
++ *
++ * Called by ib_destroy_cq() in the generic verbs code.
 + */
-+#define RHF_PKT_LEN_SHIFT	0
-+#define RHF_PKT_LEN_MASK	0xfffull
-+#define RHF_PKT_LEN_SMASK (RHF_PKT_LEN_MASK << RHF_PKT_LEN_SHIFT)
++int hfi1_destroy_cq(struct ib_cq *ibcq)
++{
++	struct hfi1_ibdev *dev = to_idev(ibcq->device);
++	struct hfi1_cq *cq = to_icq(ibcq);
 +
-+#define RHF_RCV_TYPE_SHIFT	12
-+#define RHF_RCV_TYPE_MASK	0x7ull
-+#define RHF_RCV_TYPE_SMASK (RHF_RCV_TYPE_MASK << RHF_RCV_TYPE_SHIFT)
++	flush_kthread_work(&cq->comptask);
++	spin_lock(&dev->n_cqs_lock);
++	dev->n_cqs_allocated--;
++	spin_unlock(&dev->n_cqs_lock);
++	if (cq->ip)
++		kref_put(&cq->ip->ref, hfi1_release_mmap_info);
++	else
++		vfree(cq->queue);
++	kfree(cq);
 +
-+#define RHF_USE_EGR_BFR_SHIFT	15
-+#define RHF_USE_EGR_BFR_MASK	0x1ull
-+#define RHF_USE_EGR_BFR_SMASK (RHF_USE_EGR_BFR_MASK << RHF_USE_EGR_BFR_SHIFT)
++	return 0;
++}
 +
-+#define RHF_EGR_INDEX_SHIFT	16
-+#define RHF_EGR_INDEX_MASK	0x7ffull
-+#define RHF_EGR_INDEX_SMASK (RHF_EGR_INDEX_MASK << RHF_EGR_INDEX_SHIFT)
-+
-+#define RHF_DC_INFO_SHIFT	27
-+#define RHF_DC_INFO_MASK	0x1ull
-+#define RHF_DC_INFO_SMASK (RHF_DC_INFO_MASK << RHF_DC_INFO_SHIFT)
-+
-+#define RHF_RCV_SEQ_SHIFT	28
-+#define RHF_RCV_SEQ_MASK	0xfull
-+#define RHF_RCV_SEQ_SMASK (RHF_RCV_SEQ_MASK << RHF_RCV_SEQ_SHIFT)
-+
-+#define RHF_EGR_OFFSET_SHIFT	32
-+#define RHF_EGR_OFFSET_MASK	0xfffull
-+#define RHF_EGR_OFFSET_SMASK (RHF_EGR_OFFSET_MASK << RHF_EGR_OFFSET_SHIFT)
-+#define RHF_HDRQ_OFFSET_SHIFT	44
-+#define RHF_HDRQ_OFFSET_MASK	0x1ffull
-+#define RHF_HDRQ_OFFSET_SMASK (RHF_HDRQ_OFFSET_MASK << RHF_HDRQ_OFFSET_SHIFT)
-+#define RHF_K_HDR_LEN_ERR	(0x1ull << 53)
-+#define RHF_DC_UNC_ERR		(0x1ull << 54)
-+#define RHF_DC_ERR		(0x1ull << 55)
-+#define RHF_RCV_TYPE_ERR_SHIFT	56
-+#define RHF_RCV_TYPE_ERR_MASK	0x7ul
-+#define RHF_RCV_TYPE_ERR_SMASK (RHF_RCV_TYPE_ERR_MASK << RHF_RCV_TYPE_ERR_SHIFT)
-+#define RHF_TID_ERR		(0x1ull << 59)
-+#define RHF_LEN_ERR		(0x1ull << 60)
-+#define RHF_ECC_ERR		(0x1ull << 61)
-+#define RHF_VCRC_ERR		(0x1ull << 62)
-+#define RHF_ICRC_ERR		(0x1ull << 63)
-+
-+#define RHF_ERROR_SMASK 0xffe0000000000000ull		/* bits 63:53 */
-+
-+/* RHF receive types */
-+#define RHF_RCV_TYPE_EXPECTED 0
-+#define RHF_RCV_TYPE_EAGER    1
-+#define RHF_RCV_TYPE_IB       2 /* normal IB, IB Raw, or IPv6 */
-+#define RHF_RCV_TYPE_ERROR    3
-+#define RHF_RCV_TYPE_BYPASS   4
-+#define RHF_RCV_TYPE_INVALID5 5
-+#define RHF_RCV_TYPE_INVALID6 6
-+#define RHF_RCV_TYPE_INVALID7 7
-+
-+/* RHF receive type error - expected packet errors */
-+#define RHF_RTE_EXPECTED_FLOW_SEQ_ERR	0x2
-+#define RHF_RTE_EXPECTED_FLOW_GEN_ERR	0x4
-+
-+/* RHF receive type error - eager packet errors */
-+#define RHF_RTE_EAGER_NO_ERR		0x0
-+
-+/* RHF receive type error - IB packet errors */
-+#define RHF_RTE_IB_NO_ERR		0x0
-+
-+/* RHF receive type error - error packet errors */
-+#define RHF_RTE_ERROR_NO_ERR		0x0
-+#define RHF_RTE_ERROR_OP_CODE_ERR	0x1
-+#define RHF_RTE_ERROR_KHDR_MIN_LEN_ERR	0x2
-+#define RHF_RTE_ERROR_KHDR_HCRC_ERR	0x3
-+#define RHF_RTE_ERROR_KHDR_KVER_ERR	0x4
-+#define RHF_RTE_ERROR_CONTEXT_ERR	0x5
-+#define RHF_RTE_ERROR_KHDR_TID_ERR	0x6
-+
-+/* RHF receive type error - bypass packet errors */
-+#define RHF_RTE_BYPASS_NO_ERR		0x0
-+
-+/*
-+ * This structure contains the first field common to all protocols
-+ * that employ this chip.
++/**
++ * hfi1_req_notify_cq - change the notification type for a completion queue
++ * @ibcq: the completion queue
++ * @notify_flags: the type of notification to request
++ *
++ * Returns 0 for success.
++ *
++ * This may be called from interrupt context.  Also called by
++ * ib_req_notify_cq() in the generic verbs code.
 + */
-+struct hfi1_message_header {
-+	__be16 lrh[4];
-+};
-+
-+/* IB - LRH header constants */
-+#define HFI1_LRH_GRH 0x0003      /* 1. word of IB LRH - next header: GRH */
-+#define HFI1_LRH_BTH 0x0002      /* 1. word of IB LRH - next header: BTH */
-+
-+/* misc. */
-+#define SIZE_OF_CRC 1
-+
-+#define LIM_MGMT_P_KEY       0x7FFF
-+#define FULL_MGMT_P_KEY      0xFFFF
-+
-+#define DEFAULT_P_KEY LIM_MGMT_P_KEY
-+#define HFI1_PERMISSIVE_LID 0xFFFF
-+#define HFI1_AETH_CREDIT_SHIFT 24
-+#define HFI1_AETH_CREDIT_MASK 0x1F
-+#define HFI1_AETH_CREDIT_INVAL 0x1F
-+#define HFI1_MSN_MASK 0xFFFFFF
-+#define HFI1_QPN_MASK 0xFFFFFF
-+#define HFI1_FECN_SHIFT 31
-+#define HFI1_FECN_MASK 0x1
-+#define HFI1_BECN_SHIFT 30
-+#define HFI1_BECN_MASK 0x1
-+#define HFI1_MULTICAST_LID_BASE 0xC000
-+
-+static inline __u64 rhf_to_cpu(const __le32 *rbuf)
++int hfi1_req_notify_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags notify_flags)
 +{
-+	return __le64_to_cpu(*((__le64 *)rbuf));
++	struct hfi1_cq *cq = to_icq(ibcq);
++	unsigned long flags;
++	int ret = 0;
++
++	spin_lock_irqsave(&cq->lock, flags);
++	/*
++	 * Don't change IB_CQ_NEXT_COMP to IB_CQ_SOLICITED but allow
++	 * any other transitions (see C11-31 and C11-32 in ch. 11.4.2.2).
++	 */
++	if (cq->notify != IB_CQ_NEXT_COMP)
++		cq->notify = notify_flags & IB_CQ_SOLICITED_MASK;
++
++	if ((notify_flags & IB_CQ_REPORT_MISSED_EVENTS) &&
++	    cq->queue->head != cq->queue->tail)
++		ret = 1;
++
++	spin_unlock_irqrestore(&cq->lock, flags);
++
++	return ret;
 +}
 +
-+static inline u64 rhf_err_flags(u64 rhf)
++/**
++ * hfi1_resize_cq - change the size of the CQ
++ * @ibcq: the completion queue
++ *
++ * Returns 0 for success.
++ */
++int hfi1_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata)
 +{
-+	return rhf & RHF_ERROR_SMASK;
++	struct hfi1_cq *cq = to_icq(ibcq);
++	struct hfi1_cq_wc *old_wc;
++	struct hfi1_cq_wc *wc;
++	u32 head, tail, n;
++	int ret;
++	u32 sz;
++
++	if (cqe < 1 || cqe > hfi1_max_cqes) {
++		ret = -EINVAL;
++		goto bail;
++	}
++
++	/*
++	 * Need to use vmalloc() if we want to support large #s of entries.
++	 */
++	sz = sizeof(*wc);
++	if (udata && udata->outlen >= sizeof(__u64))
++		sz += sizeof(struct ib_uverbs_wc) * (cqe + 1);
++	else
++		sz += sizeof(struct ib_wc) * (cqe + 1);
++	wc = vmalloc_user(sz);
++	if (!wc) {
++		ret = -ENOMEM;
++		goto bail;
++	}
++
++	/* Check that we can write the offset to mmap. */
++	if (udata && udata->outlen >= sizeof(__u64)) {
++		__u64 offset = 0;
++
++		ret = ib_copy_to_udata(udata, &offset, sizeof(offset));
++		if (ret)
++			goto bail_free;
++	}
++
++	spin_lock_irq(&cq->lock);
++	/*
++	 * Make sure head and tail are sane since they
++	 * might be user writable.
++	 */
++	old_wc = cq->queue;
++	head = old_wc->head;
++	if (head > (u32) cq->ibcq.cqe)
++		head = (u32) cq->ibcq.cqe;
++	tail = old_wc->tail;
++	if (tail > (u32) cq->ibcq.cqe)
++		tail = (u32) cq->ibcq.cqe;
++	if (head < tail)
++		n = cq->ibcq.cqe + 1 + head - tail;
++	else
++		n = head - tail;
++	if (unlikely((u32)cqe < n)) {
++		ret = -EINVAL;
++		goto bail_unlock;
++	}
++	for (n = 0; tail != head; n++) {
++		if (cq->ip)
++			wc->uqueue[n] = old_wc->uqueue[tail];
++		else
++			wc->kqueue[n] = old_wc->kqueue[tail];
++		if (tail == (u32) cq->ibcq.cqe)
++			tail = 0;
++		else
++			tail++;
++	}
++	cq->ibcq.cqe = cqe;
++	wc->head = n;
++	wc->tail = 0;
++	cq->queue = wc;
++	spin_unlock_irq(&cq->lock);
++
++	vfree(old_wc);
++
++	if (cq->ip) {
++		struct hfi1_ibdev *dev = to_idev(ibcq->device);
++		struct hfi1_mmap_info *ip = cq->ip;
++
++		hfi1_update_mmap_info(dev, ip, sz, wc);
++
++		/*
++		 * Return the offset to mmap.
++		 * See hfi1_mmap() for details.
++		 */
++		if (udata && udata->outlen >= sizeof(__u64)) {
++			ret = ib_copy_to_udata(udata, &ip->offset,
++					       sizeof(ip->offset));
++			if (ret)
++				goto bail;
++		}
++
++		spin_lock_irq(&dev->pending_lock);
++		if (list_empty(&ip->pending_mmaps))
++			list_add(&ip->pending_mmaps, &dev->pending_mmaps);
++		spin_unlock_irq(&dev->pending_lock);
++	}
++
++	ret = 0;
++	goto bail;
++
++bail_unlock:
++	spin_unlock_irq(&cq->lock);
++bail_free:
++	vfree(wc);
++bail:
++	return ret;
 +}
 +
-+static inline u32 rhf_rcv_type(u64 rhf)
++int hfi1_cq_init(struct hfi1_devdata *dd)
 +{
-+	return (rhf >> RHF_RCV_TYPE_SHIFT) & RHF_RCV_TYPE_MASK;
++	int ret = 0;
++	int cpu;
++	struct task_struct *task;
++
++	if (dd->worker)
++		return 0;
++	dd->worker = kzalloc(sizeof(*dd->worker), GFP_KERNEL);
++	if (!dd->worker)
++		return -ENOMEM;
++	init_kthread_worker(dd->worker);
++	task = kthread_create_on_node(
++		kthread_worker_fn,
++		dd->worker,
++		dd->assigned_node_id,
++		"hfi1_cq%d", dd->unit);
++	if (IS_ERR(task))
++		goto task_fail;
++	cpu = cpumask_first(cpumask_of_node(dd->assigned_node_id));
++	kthread_bind(task, cpu);
++	wake_up_process(task);
++out:
++	return ret;
++task_fail:
++	ret = PTR_ERR(task);
++	kfree(dd->worker);
++	dd->worker = NULL;
++	goto out;
 +}
 +
-+static inline u32 rhf_rcv_type_err(u64 rhf)
++void hfi1_cq_exit(struct hfi1_devdata *dd)
 +{
-+	return (rhf >> RHF_RCV_TYPE_ERR_SHIFT) & RHF_RCV_TYPE_ERR_MASK;
-+}
++	struct kthread_worker *worker;
 +
-+/* return size is in bytes, not DWORDs */
-+static inline u32 rhf_pkt_len(u64 rhf)
-+{
-+	return ((rhf & RHF_PKT_LEN_SMASK) >> RHF_PKT_LEN_SHIFT) << 2;
++	worker = dd->worker;
++	if (!worker)
++		return;
++	/* blocks future queuing from send_complete() */
++	dd->worker = NULL;
++	smp_wmb(); /* See hfi1_cq_enter */
++	flush_kthread_worker(worker);
++	kthread_stop(worker->task);
++	kfree(worker);
 +}
-+
-+static inline u32 rhf_egr_index(u64 rhf)
-+{
-+	return (rhf >> RHF_EGR_INDEX_SHIFT) & RHF_EGR_INDEX_MASK;
-+}
-+
-+static inline u32 rhf_rcv_seq(u64 rhf)
-+{
-+	return (rhf >> RHF_RCV_SEQ_SHIFT) & RHF_RCV_SEQ_MASK;
-+}
-+
-+/* returned offset is in DWORDS */
-+static inline u32 rhf_hdrq_offset(u64 rhf)
-+{
-+	return (rhf >> RHF_HDRQ_OFFSET_SHIFT) & RHF_HDRQ_OFFSET_MASK;
-+}
-+
-+static inline u64 rhf_use_egr_bfr(u64 rhf)
-+{
-+	return rhf & RHF_USE_EGR_BFR_SMASK;
-+}
-+
-+static inline u64 rhf_dc_info(u64 rhf)
-+{
-+	return rhf & RHF_DC_INFO_SMASK;
-+}
-+
-+static inline u32 rhf_egr_buf_offset(u64 rhf)
-+{
-+	return (rhf >> RHF_EGR_OFFSET_SHIFT) & RHF_EGR_OFFSET_MASK;
-+}
-+#endif /* _COMMON_H */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
