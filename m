@@ -1,41 +1,60 @@
-From: Or Gerlitz <gerlitz.or@gmail.com>
-Subject: Re: [patch -next] net/mlx5_core: fix an error code
-Date: Thu, 11 Jun 2015 14:28:27 +0300
-Message-ID: <CAJ3xEMi4ZgFTG9OLNgN=81g56QWK-GCF790d3v=9rWHhMmqLvQ@mail.gmail.com>
-References: <20150611085001.GB27393@mwanda>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v4 4/4] IB/sa: Route SA pathrecord query through netlink
+Date: Thu, 11 Jun 2015 08:24:19 -0400
+Message-ID: <55797DF3.6050304@dev.mellanox.co.il>
+References: <1433861837-26177-1-git-send-email-kaike.wan@intel.com> <1433861837-26177-5-git-send-email-kaike.wan@intel.com> <55787838.3020606@dev.mellanox.co.il> <20150610191026.GA28334@obsidianresearch.com> <5578955A.4070001@dev.mellanox.co.il> <2807E5FD2F6FDA4886F6618EAC48510E1109B14D@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20150611085001.GB27393@mwanda>
-Sender: netdev-owner@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Eli Cohen <eli@mellanox.com>, Amir Vadai <amirv@mellanox.com>, Linux Netdev List <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, kernel-janitors@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>, Achiad Shochat <achiad@mellanox.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E1109B14D-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 11, 2015 at 11:50 AM, Dan Carpenter
-<dan.carpenter@oracle.com> wrote:
-> We return success if mlx5e_alloc_sq_db() fails but we should return an
-> error code.
->
-> Fixes: f62b8bb8f2d3 ('net/mlx5: Extend mlx5_core to support ConnectX-4 Ethernet functionality')
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
->
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-> index 7348c51..075e517 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-> @@ -525,7 +525,8 @@ static int mlx5e_create_sq(struct mlx5e_channel *c,
->         sq->uar_map     = sq->uar.map;
->         sq->bf_buf_size = (1 << MLX5_CAP_GEN(mdev, log_bf_reg_size)) / 2;
->
-> -       if (mlx5e_alloc_sq_db(sq, cpu_to_node(c->cpu)))
-> +       err = mlx5e_alloc_sq_db(sq, cpu_to_node(c->cpu));
-> +       if (err)
->                 goto err_sq_wq_destroy;
->
->         sq->txq = netdev_get_tx_queue(priv->netdev,
+On 6/10/2015 5:09 PM, Weiny, Ira wrote:
+>> On 6/10/2015 3:10 PM, Jason Gunthorpe wrote:
+>>> On Wed, Jun 10, 2015 at 01:47:36PM -0400, Hal Rosenstock wrote:
+>>>> On 6/9/2015 10:57 AM, kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+>>>>> From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>>>>>
+>>>>> This patch routes a SA pathrecord query to netlink first
+>>>>
+>>>> Should only unicast PRs be done in this manner or should API support
+>>>> enabling for unicast and/or multicast ?
+>>>>
+>>>> AFAIK kernel doesn't query multicast PRs now (queries MCMRs) but this
+>>>> seems like it would help make it future proof and not have to take
+>>>> timeout on local query unless app supports it.
+>>>
+>>> It is a good question. We can clearly extend toward that, using a MGID
+>>> as the DGID and adding additional nested netlink fields.
+>>>
+>>> However, does it make sense?
+>>
+>> If it doesn't make sense, then should MGIDs as DGIDs never be requested via
+>> the PR netlink API ?
+>>
+> 
+> Why should we prevent it?  What does it hurt?
 
-Dan, nice catch, the team here just handed me the same fix, but you
-submitted 1st...
+It's merely an optimization in that round trip to user space is avoided
+with user space needing to perform some validation/lookup which would
+fail in case multicast PRs not supported (which is case for ACM with
+multicast backend).
 
-Acked-by: Or Gerlitz <ogerlitz@mellanox.com>
+If user space PR capabilities (unicast, multicast, both) is supported,
+it affects the API. Maybe it's overkill but requires user space to
+indicate no PR available for multicast DGIDs. I think this is the
+tradeoff to be made/decided.
+
+-- Hal
+
+> Ira
+> 
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
