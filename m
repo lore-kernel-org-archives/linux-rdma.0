@@ -1,184 +1,207 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V3 8/8] IB/mlx4: Add support for CQ time-stamping
-Date: Thu, 11 Jun 2015 16:35:27 +0300
-Message-ID: <1434029727-6062-9-git-send-email-ogerlitz@mellanox.com>
-References: <1434029727-6062-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next V3 0/8] Add completion timestamping support
+Date: Thu, 11 Jun 2015 16:35:19 +0300
+Message-ID: <1434029727-6062-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1434029727-6062-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hi Doug,
 
-This includes:
+This patchset adds the kernel control path for completion timestamping 
+support by user-space verbs consumers. 
 
-* support allocation of CQ with the TIMESTAMP_COMPLETION creation flag.
+Timestamping is used by applications in order to know when a WQE was 
+received/transmitted by the HW. The value is given is HCA hardware cycles,
+but could be easily converted as the hardware's core clock frequecny is 
+available through extension of query device. 
 
-* add timestamp_mask and hca_core_clock to query_device, reporting the
-  number of supported timestamp bits (mask) and the hca_core_clock frequency.
+Moreover, we add an ability to read the HCA's current clock. This could be 
+useful on order to synchronize events to the wall clock.
 
-* return hca core clock's offset in query_device vendor's data,
-  this is needed in order to read the HCA's core clock.
+This functionality is achieved by adding/extending the following verbs:
 
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/cq.c      |    9 +++++--
- drivers/infiniband/hw/mlx4/main.c    |   42 ++++++++++++++++++++++++++++++++-
- drivers/infiniband/hw/mlx4/mlx4_ib.h |   16 +++++++++++++
- 3 files changed, 62 insertions(+), 5 deletions(-)
+create_cq - create_cq is extended in order to allow passing creation flags
+to the CQ creation function. We change IB/core --> vendors API
+to be easily extendible by passing a struct which contains
+comp_vectors, cqe and the new flags parameter. In order to create
+CQ which supports timestamping, IB_CQ_FLAGS_TIMESTAMP_COMPLETION should be given.
 
-diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
-index 8e44aaa..36eb3d0 100644
---- a/drivers/infiniband/hw/mlx4/cq.c
-+++ b/drivers/infiniband/hw/mlx4/cq.c
-@@ -166,6 +166,7 @@ err_buf:
- 	return err;
- }
- 
-+#define CQ_CREATE_FLAGS_SUPPORTED IB_CQ_FLAGS_TIMESTAMP_COMPLETION
- struct ib_cq *mlx4_ib_create_cq(struct ib_device *ibdev,
- 				const struct ib_cq_init_attr *attr,
- 				struct ib_ucontext *context,
-@@ -178,10 +179,10 @@ struct ib_cq *mlx4_ib_create_cq(struct ib_device *ibdev,
- 	struct mlx4_uar *uar;
- 	int err;
- 
--	if (attr->flags)
-+	if (entries < 1 || entries > dev->dev->caps.max_cqes)
- 		return ERR_PTR(-EINVAL);
- 
--	if (entries < 1 || entries > dev->dev->caps.max_cqes)
-+	if (attr->flags & ~CQ_CREATE_FLAGS_SUPPORTED)
- 		return ERR_PTR(-EINVAL);
- 
- 	cq = kmalloc(sizeof *cq, GFP_KERNEL);
-@@ -194,6 +195,7 @@ struct ib_cq *mlx4_ib_create_cq(struct ib_device *ibdev,
- 	spin_lock_init(&cq->lock);
- 	cq->resize_buf = NULL;
- 	cq->resize_umem = NULL;
-+	cq->create_flags = attr->flags;
- 	INIT_LIST_HEAD(&cq->send_qp_list);
- 	INIT_LIST_HEAD(&cq->recv_qp_list);
- 
-@@ -237,7 +239,8 @@ struct ib_cq *mlx4_ib_create_cq(struct ib_device *ibdev,
- 		vector = dev->eq_table[vector % ibdev->num_comp_vectors];
- 
- 	err = mlx4_cq_alloc(dev->dev, entries, &cq->buf.mtt, uar,
--			    cq->db.dma, &cq->mcq, vector, 0, 0);
-+			    cq->db.dma, &cq->mcq, vector, 0,
-+			    !!(cq->create_flags & IB_CQ_FLAGS_TIMESTAMP_COMPLETION));
- 	if (err)
- 		goto err_dbmap;
- 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index a4abebf..37c2660 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -140,10 +140,27 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
- 	struct ib_smp *out_mad = NULL;
- 	int err = -ENOMEM;
- 	int have_ib_ports;
-+	struct mlx4_uverbs_ex_query_device cmd;
-+	struct mlx4_uverbs_ex_query_device_resp resp = {.comp_mask = 0};
-+	struct mlx4_clock_params clock_params;
- 
--	if (uhw->inlen || uhw->outlen)
--		return -EINVAL;
-+	if (uhw->inlen) {
-+		if (uhw->inlen < sizeof(cmd))
-+			return -EINVAL;
-+
-+		err = ib_copy_from_udata(&cmd, uhw, sizeof(cmd));
-+		if (err)
-+			return err;
-+
-+		if (cmd.comp_mask)
-+			return -EINVAL;
-+
-+		if (cmd.reserved)
-+			return -EINVAL;
-+	}
- 
-+	resp.response_length = offsetof(typeof(resp), response_length) +
-+		sizeof(resp.response_length);
- 	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
- 	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
- 	if (!in_mad || !out_mad)
-@@ -233,7 +250,24 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
- 	props->max_total_mcast_qp_attach = props->max_mcast_qp_attach *
- 					   props->max_mcast_grp;
- 	props->max_map_per_fmr = dev->dev->caps.max_fmr_maps;
-+	props->hca_core_clock = dev->dev->caps.hca_core_clock * 1000UL;
-+	props->timestamp_mask = 0xFFFFFFFFFFFFULL;
- 
-+	err = mlx4_get_internal_clock_params(dev->dev, &clock_params);
-+	if (err)
-+		goto out;
-+
-+	if (uhw->outlen >= resp.response_length + sizeof(resp.hca_core_clock_offset)) {
-+		resp.hca_core_clock_offset = clock_params.offset % PAGE_SIZE;
-+		resp.response_length += sizeof(resp.hca_core_clock_offset);
-+		resp.comp_mask |= QUERY_DEVICE_RESP_MASK_TIMESTAMP;
-+	}
-+
-+	if (uhw->outlen) {
-+		err = ib_copy_to_udata(uhw, &resp, resp.response_length);
-+		if (err)
-+			goto out;
-+	}
- out:
- 	kfree(in_mad);
- 	kfree(out_mad);
-@@ -2322,6 +2356,10 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_FLOW);
- 	}
- 
-+	ibdev->ib_dev.uverbs_ex_cmd_mask |=
-+		(1ull << IB_USER_VERBS_EX_CMD_QUERY_DEVICE) |
-+		(1ull << IB_USER_VERBS_EX_CMD_CREATE_CQ);
-+
- 	mlx4_ib_alloc_eqs(dev, ibdev);
- 
- 	spin_lock_init(&iboe->lock);
-diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-index f127efc..8421e15 100644
---- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
-+++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -110,6 +110,7 @@ struct mlx4_ib_cq {
- 	struct mutex		resize_mutex;
- 	struct ib_umem	       *umem;
- 	struct ib_umem	       *resize_umem;
-+	int			create_flags;
- 	/* List of qps that it serves.*/
- 	struct list_head		send_qp_list;
- 	struct list_head		recv_qp_list;
-@@ -555,6 +556,21 @@ struct mlx4_ib_qp_tunnel_init_attr {
- 	u8 port;
- };
- 
-+struct mlx4_uverbs_ex_query_device {
-+	__u32 comp_mask;
-+	__u32 reserved;
-+};
-+
-+enum query_device_resp_mask {
-+	QUERY_DEVICE_RESP_MASK_TIMESTAMP = 1UL << 0,
-+};
-+
-+struct mlx4_uverbs_ex_query_device_resp {
-+	__u32 comp_mask;
-+	__u32 response_length;
-+	__u64 hca_core_clock_offset;
-+};
-+
- static inline struct mlx4_ib_dev *to_mdev(struct ib_device *ibdev)
- {
- 	return container_of(ibdev, struct mlx4_ib_dev, ib_dev);
--- 
-1.7.1
+query_device - We extend query_device uverb further by giving the hardware's
+clock frequency and the timestamp mask (the number of timestamp
+bits which are supported). If timestamp isn't supported, 0 is returned.
+
+In order to read the timestamp in the WQE, the user needs to query the device 
+for support, create an appropriate CQ (using the extanded uverb with
+IB_CQ_FLAGS_TIMESTAMP_COMPLETION) and poll the CQ with an extended poll_cq verb (currently,
+only implemented in user-space).
+
+In mlx4, allowing the user to read the core clock efficiently involves mapping
+this area of the hardware to user-space (being done by using a mmap command)
+and reading the clock from the correct offset of the page. 
+
+This offset is returned in the vendor's specific data from mlx4's kernel driver 
+to the mlx4's user-space driver. query_device is modified in order to support
+passing this vendor specific data. A user-space application could use a new
+verb in order to read the hardware's clock.
+
+Translating the hardware's clock into ms could be done by dividing this
+value by hca_core_clock (which is returned by the extended version of
+query_device uverb).
+
+The below V2 --> V3 changes address the review comments on the kernel bits. 
+
+Jason had another comment calling for re-thinking / questioning the 
+need for a dedicated uverbs_ex_cmd_mask in the IB device. This goes 
+beyond the scope of this specific series. 
+
+Matan and Or.
+
+Changes from V2:
+ (1) Use KHZ for hca_core_clock
+ (2) ib_create_cq gets const cq_attr
+ (3  use {} initialization instead of memset
+ (4) squashed last two mlx4 patches
+
+Changes from V1:
+ (1) fixed lustre IB's code build
+ (2) squashed mlx4 V1 9-11 patches into one
+ (3) changed IB_CQ_FLAGS_TIMESTAMP --> IB_CQ_FLAGS_TIMESTAMP_COMPLETION
+
+Changes from V0:
+(1) Pass ib_cq_init_attr instead of cqe and comp_vector.
+(2) Fix unneeded indentation.
+(3) Change flags to u32.
+(4) Add const to create_cq's ib_cq_init_attr argument in vendor implementation.
+
+Matan Barak (9):
+  IB/core: Change provider's API of create_cq to be extendible
+  IB/core: Change ib_create_cq to use struct ib_cq_init_attr
+  IB/core: Add CQ creation time-stamping flag
+  IB/core: Extend ib_uverbs_create_cq
+  IB/core: Add timestamp_mask and hca_core_clock to query_device
+  IB/core: Pass hardware specific data in query_device
+  IB/mlx4: Add mmap call to map the hardware clock
+  IB/mlx4: Support extended create_cq and query_device uverbs
+  IB/mlx4: Add support for CQ time-stamping
+
+ drivers/infiniband/core/device.c                   |    6 +-
+ drivers/infiniband/core/mad.c                      |    5 +-
+ drivers/infiniband/core/uverbs.h                   |    1 +
+ drivers/infiniband/core/uverbs_cmd.c               |  188 ++++++++++++++++----
+ drivers/infiniband/core/uverbs_main.c              |    1 +
+ drivers/infiniband/core/verbs.c                    |    4 +-
+ drivers/infiniband/hw/amso1100/c2_provider.c       |   14 ++-
+ drivers/infiniband/hw/cxgb3/iwch_provider.c        |   19 ++-
+ drivers/infiniband/hw/cxgb4/cq.c                   |    9 +-
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h             |    8 +-
+ drivers/infiniband/hw/cxgb4/provider.c             |    8 +-
+ drivers/infiniband/hw/ehca/ehca_cq.c               |    7 +-
+ drivers/infiniband/hw/ehca/ehca_hca.c              |    6 +-
+ drivers/infiniband/hw/ehca/ehca_iverbs.h           |    6 +-
+ drivers/infiniband/hw/ehca/ehca_main.c             |    6 +-
+ drivers/infiniband/hw/ipath/ipath_cq.c             |    9 +-
+ drivers/infiniband/hw/ipath/ipath_verbs.c          |    7 +-
+ drivers/infiniband/hw/ipath/ipath_verbs.h          |    3 +-
+ drivers/infiniband/hw/mlx4/cq.c                    |   13 ++-
+ drivers/infiniband/hw/mlx4/mad.c                   |    5 +-
+ drivers/infiniband/hw/mlx4/main.c                  |   67 +++++++-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h               |   19 ++-
+ drivers/infiniband/hw/mlx5/cq.c                    |   10 +-
+ drivers/infiniband/hw/mlx5/main.c                  |   19 ++-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h               |    5 +-
+ drivers/infiniband/hw/mthca/mthca_provider.c       |   15 ++-
+ drivers/infiniband/hw/nes/nes_verbs.c              |   17 ++-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c        |   13 ++-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.h        |    9 +-
+ drivers/infiniband/hw/qib/qib_cq.c                 |   11 +-
+ drivers/infiniband/hw/qib/qib_verbs.c              |    6 +-
+ drivers/infiniband/hw/qib/qib_verbs.h              |    5 +-
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c       |   16 ++-
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.h       |   10 +-
+ drivers/infiniband/ulp/ipoib/ipoib_verbs.c         |    9 +-
+ drivers/infiniband/ulp/iser/iser_verbs.c           |    6 +-
+ drivers/infiniband/ulp/isert/ib_isert.c            |    6 +-
+ drivers/infiniband/ulp/srp/ib_srp.c                |   10 +-
+ drivers/infiniband/ulp/srpt/ib_srpt.c              |    5 +-
+ drivers/net/ethernet/mellanox/mlx4/main.c          |   19 ++
+ .../staging/lustre/lnet/klnds/o2iblnd/o2iblnd.c    |    7 +-
+ include/linux/mlx4/device.h                        |    9 +
+ include/rdma/ib_verbs.h                            |   25 ++-
+ include/uapi/rdma/ib_user_verbs.h                  |   19 ++
+ net/9p/trans_rdma.c                                |    5 +-
+ net/rds/ib_cm.c                                    |    8 +-
+ net/rds/iw_cm.c                                    |    8 +-
+ net/sunrpc/xprtrdma/svc_rdma_transport.c           |   10 +-
+ net/sunrpc/xprtrdma/verbs.c                        |   10 +-
+ 49 files changed, 564 insertions(+), 139 deletions(-)
+
+
+
+*** BLURB HERE ***
+
+Matan Barak (8):
+  IB/core: Change provider's API of create_cq to be extendible
+  IB/core: Change ib_create_cq to use struct ib_cq_init_attr
+  IB/core: Add CQ creation time-stamping flag
+  IB/core: Extend ib_uverbs_create_cq
+  IB/core: Add timestamp_mask and hca_core_clock to query_device
+  IB/core: Pass hardware specific data in query_device
+  IB/mlx4: Add mmap call to map the hardware clock
+  IB/mlx4: Add support for CQ time-stamping
+
+ drivers/infiniband/core/device.c                   |    6 +-
+ drivers/infiniband/core/mad.c                      |    4 +-
+ drivers/infiniband/core/uverbs.h                   |    1 +
+ drivers/infiniband/core/uverbs_cmd.c               |  188 ++++++++++++++++----
+ drivers/infiniband/core/uverbs_main.c              |    1 +
+ drivers/infiniband/core/verbs.c                    |    5 +-
+ drivers/infiniband/hw/amso1100/c2_provider.c       |   14 ++-
+ drivers/infiniband/hw/cxgb3/iwch_provider.c        |   19 ++-
+ drivers/infiniband/hw/cxgb4/cq.c                   |    9 +-
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h             |    8 +-
+ drivers/infiniband/hw/cxgb4/provider.c             |    8 +-
+ drivers/infiniband/hw/ehca/ehca_cq.c               |    7 +-
+ drivers/infiniband/hw/ehca/ehca_hca.c              |    6 +-
+ drivers/infiniband/hw/ehca/ehca_iverbs.h           |    6 +-
+ drivers/infiniband/hw/ehca/ehca_main.c             |    5 +-
+ drivers/infiniband/hw/ipath/ipath_cq.c             |    9 +-
+ drivers/infiniband/hw/ipath/ipath_verbs.c          |    7 +-
+ drivers/infiniband/hw/ipath/ipath_verbs.h          |    3 +-
+ drivers/infiniband/hw/mlx4/cq.c                    |   13 ++-
+ drivers/infiniband/hw/mlx4/mad.c                   |    4 +-
+ drivers/infiniband/hw/mlx4/main.c                  |   66 +++++++-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h               |   19 ++-
+ drivers/infiniband/hw/mlx5/cq.c                    |   10 +-
+ drivers/infiniband/hw/mlx5/main.c                  |   18 ++-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h               |    5 +-
+ drivers/infiniband/hw/mthca/mthca_provider.c       |   15 ++-
+ drivers/infiniband/hw/nes/nes_verbs.c              |   17 ++-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c        |   13 ++-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.h        |    9 +-
+ drivers/infiniband/hw/qib/qib_cq.c                 |   11 +-
+ drivers/infiniband/hw/qib/qib_verbs.c              |    6 +-
+ drivers/infiniband/hw/qib/qib_verbs.h              |    5 +-
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c       |   16 ++-
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.h       |   10 +-
+ drivers/infiniband/ulp/ipoib/ipoib_verbs.c         |    8 +-
+ drivers/infiniband/ulp/iser/iser_verbs.c           |    5 +-
+ drivers/infiniband/ulp/isert/ib_isert.c            |    5 +-
+ drivers/infiniband/ulp/srp/ib_srp.c                |    9 +-
+ drivers/infiniband/ulp/srpt/ib_srpt.c              |    4 +-
+ drivers/net/ethernet/mellanox/mlx4/main.c          |   19 ++
+ .../staging/lustre/lnet/klnds/o2iblnd/o2iblnd.c    |    6 +-
+ include/linux/mlx4/device.h                        |    9 +
+ include/rdma/ib_verbs.h                            |   26 ++-
+ include/uapi/rdma/ib_user_verbs.h                  |   19 ++
+ net/9p/trans_rdma.c                                |    4 +-
+ net/rds/ib_cm.c                                    |    7 +-
+ net/rds/iw_cm.c                                    |    7 +-
+ net/sunrpc/xprtrdma/svc_rdma_transport.c           |    9 +-
+ net/sunrpc/xprtrdma/verbs.c                        |    9 +-
+ 49 files changed, 550 insertions(+), 139 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
