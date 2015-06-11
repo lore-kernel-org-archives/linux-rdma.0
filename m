@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 33/41] IB/hfi1: add QSFP twsi routines
-Date: Thu, 11 Jun 2015 19:11:26 -0400
-Message-ID: <20150611231126.16479.55011.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH 28/41] IB/hfi1: add routines for RC/UC
+Date: Thu, 11 Jun 2015 19:10:59 -0400
+Message-ID: <20150611231059.16479.58100.stgit@phlsvslse11.ph.intel.com>
 References: <20150611230710.16479.62955.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -37,18 +37,16 @@ Signed-off-by: Sanath Kumar <sanath.s.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.
 Signed-off-by: Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Vlad Danushevsky <vladimir.danusevsky-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/twsi.c |  518 +++++++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/hfi1/twsi.h |   68 +++++
- 2 files changed, 586 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi1/twsi.c
- create mode 100644 drivers/infiniband/hw/hfi1/twsi.h
+ drivers/infiniband/hw/hfi1/ruc.c |  944 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 944 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi1/ruc.c
 
-diff --git a/drivers/infiniband/hw/hfi1/twsi.c b/drivers/infiniband/hw/hfi1/twsi.c
+diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
 new file mode 100644
-index 0000000..ea54fd2
+index 0000000..1811e5e
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/twsi.c
-@@ -0,0 +1,518 @@
++++ b/drivers/infiniband/hw/hfi1/ruc.c
+@@ -0,0 +1,944 @@
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -99,548 +97,900 @@ index 0000000..ea54fd2
 + *
 + */
 +
-+#include <linux/delay.h>
-+#include <linux/pci.h>
-+#include <linux/vmalloc.h>
++#include <linux/spinlock.h>
 +
 +#include "hfi.h"
-+#include "twsi.h"
++#include "mad.h"
++#include "qp.h"
++#include "sdma.h"
 +
 +/*
-+ * "Two Wire Serial Interface" support.
-+ *
-+ * Originally written for a not-quite-i2c serial eeprom, which is
-+ * still used on some supported boards. Later boards have added a
-+ * variety of other uses, most board-specific, so the bit-boffing
-+ * part has been split off to this file, while the other parts
-+ * have been moved to chip-specific files.
-+ *
-+ * We have also dropped all pretense of fully generic (e.g. pretend
-+ * we don't know whether '1' is the higher voltage) interface, as
-+ * the restrictions of the generic i2c interface (e.g. no access from
-+ * driver itself) make it unsuitable for this use.
++ * Convert the AETH RNR timeout code into the number of microseconds.
 + */
-+
-+#define READ_CMD 1
-+#define WRITE_CMD 0
-+
-+/**
-+ * i2c_wait_for_writes - wait for a write
-+ * @dd: the hfi1_ib device
-+ *
-+ * We use this instead of udelay directly, so we can make sure
-+ * that previous register writes have been flushed all the way
-+ * to the chip.  Since we are delaying anyway, the cost doesn't
-+ * hurt, and makes the bit twiddling more regular
-+ */
-+static void i2c_wait_for_writes(struct hfi1_devdata *dd, u32 target)
-+{
-+	/*
-+	 * implicit read of EXTStatus is as good as explicit
-+	 * read of scratch, if all we want to do is flush
-+	 * writes.
-+	 */
-+	hfi1_gpio_mod(dd, target, 0, 0, 0);
-+	rmb(); /* inlined, so prevent compiler reordering */
-+}
++const u32 ib_hfi1_rnr_table[32] = {
++	655360,	/* 00: 655.36 */
++	10,	/* 01:    .01 */
++	20,	/* 02     .02 */
++	30,	/* 03:    .03 */
++	40,	/* 04:    .04 */
++	60,	/* 05:    .06 */
++	80,	/* 06:    .08 */
++	120,	/* 07:    .12 */
++	160,	/* 08:    .16 */
++	240,	/* 09:    .24 */
++	320,	/* 0A:    .32 */
++	480,	/* 0B:    .48 */
++	640,	/* 0C:    .64 */
++	960,	/* 0D:    .96 */
++	1280,	/* 0E:   1.28 */
++	1920,	/* 0F:   1.92 */
++	2560,	/* 10:   2.56 */
++	3840,	/* 11:   3.84 */
++	5120,	/* 12:   5.12 */
++	7680,	/* 13:   7.68 */
++	10240,	/* 14:  10.24 */
++	15360,	/* 15:  15.36 */
++	20480,	/* 16:  20.48 */
++	30720,	/* 17:  30.72 */
++	40960,	/* 18:  40.96 */
++	61440,	/* 19:  61.44 */
++	81920,	/* 1A:  81.92 */
++	122880,	/* 1B: 122.88 */
++	163840,	/* 1C: 163.84 */
++	245760,	/* 1D: 245.76 */
++	327680,	/* 1E: 327.68 */
++	491520	/* 1F: 491.52 */
++};
 +
 +/*
-+ * QSFP modules are allowed to hold SCL low for 500uSec. Allow twice that
-+ * for "almost compliant" modules
++ * Validate a RWQE and fill in the SGE state.
++ * Return 1 if OK.
 + */
-+#define SCL_WAIT_USEC 1000
-+
-+/* BUF_WAIT is time bus must be free between STOP or ACK and to next START.
-+ * Should be 20, but some chips need more.
-+ */
-+#define TWSI_BUF_WAIT_USEC 60
-+
-+static void scl_out(struct hfi1_devdata *dd, u32 target, u8 bit)
++static int init_sge(struct hfi1_qp *qp, struct hfi1_rwqe *wqe)
 +{
-+	u32 mask;
++	int i, j, ret;
++	struct ib_wc wc;
++	struct hfi1_lkey_table *rkt;
++	struct hfi1_pd *pd;
++	struct hfi1_sge_state *ss;
 +
-+	udelay(1);
-+
-+	mask = QSFP_HFI0_I2CCLK;
-+
-+	/* SCL is meant to be bare-drain, so never set "OUT", just DIR */
-+	hfi1_gpio_mod(dd, target, 0, bit ? 0 : mask, mask);
-+
-+	/*
-+	 * Allow for slow slaves by simple
-+	 * delay for falling edge, sampling on rise.
-+	 */
-+	if (!bit)
-+		udelay(2);
-+	else {
-+		int rise_usec;
-+
-+		for (rise_usec = SCL_WAIT_USEC; rise_usec > 0; rise_usec -= 2) {
-+			if (mask & hfi1_gpio_mod(dd, target, 0, 0, 0))
-+				break;
-+			udelay(2);
-+		}
-+		if (rise_usec <= 0)
-+			dd_dev_err(dd, "SCL interface stuck low > %d uSec\n",
-+				    SCL_WAIT_USEC);
++	rkt = &to_idev(qp->ibqp.device)->lk_table;
++	pd = to_ipd(qp->ibqp.srq ? qp->ibqp.srq->pd : qp->ibqp.pd);
++	ss = &qp->r_sge;
++	ss->sg_list = qp->r_sg_list;
++	qp->r_len = 0;
++	for (i = j = 0; i < wqe->num_sge; i++) {
++		if (wqe->sg_list[i].length == 0)
++			continue;
++		/* Check LKEY */
++		if (!hfi1_lkey_ok(rkt, pd, j ? &ss->sg_list[j - 1] : &ss->sge,
++				  &wqe->sg_list[i], IB_ACCESS_LOCAL_WRITE))
++			goto bad_lkey;
++		qp->r_len += wqe->sg_list[i].length;
++		j++;
 +	}
-+	i2c_wait_for_writes(dd, target);
-+}
-+
-+static void sda_out(struct hfi1_devdata *dd, u32 target, u8 bit)
-+{
-+	u32 mask;
-+
-+	mask = QSFP_HFI0_I2CDAT;
-+
-+	/* SDA is meant to be bare-drain, so never set "OUT", just DIR */
-+	hfi1_gpio_mod(dd, target, 0, bit ? 0 : mask, mask);
-+
-+	i2c_wait_for_writes(dd, target);
-+	udelay(2);
-+}
-+
-+static u8 sda_in(struct hfi1_devdata *dd, u32 target, int wait)
-+{
-+	u32 read_val, mask;
-+
-+	mask = QSFP_HFI0_I2CDAT;
-+	/* SDA is meant to be bare-drain, so never set "OUT", just DIR */
-+	hfi1_gpio_mod(dd, target, 0, 0, mask);
-+	read_val = hfi1_gpio_mod(dd, target, 0, 0, 0);
-+	if (wait)
-+		i2c_wait_for_writes(dd, target);
-+	return (read_val & mask) >> GPIO_SDA_NUM;
-+}
-+
-+/**
-+ * i2c_ackrcv - see if ack following write is true
-+ * @dd: the hfi1_ib device
-+ */
-+static int i2c_ackrcv(struct hfi1_devdata *dd, u32 target)
-+{
-+	u8 ack_received;
-+
-+	/* AT ENTRY SCL = LOW */
-+	/* change direction, ignore data */
-+	ack_received = sda_in(dd, target, 1);
-+	scl_out(dd, target, 1);
-+	ack_received = sda_in(dd, target, 1) == 0;
-+	scl_out(dd, target, 0);
-+	return ack_received;
-+}
-+
-+static void stop_cmd(struct hfi1_devdata *dd, u32 target);
-+
-+/**
-+ * rd_byte - read a byte, sending STOP on last, else ACK
-+ * @dd: the hfi1_ib device
-+ *
-+ * Returns byte shifted out of device
-+ */
-+static int rd_byte(struct hfi1_devdata *dd, u32 target, int last)
-+{
-+	int bit_cntr, data;
-+
-+	data = 0;
-+
-+	for (bit_cntr = 7; bit_cntr >= 0; --bit_cntr) {
-+		data <<= 1;
-+		scl_out(dd, target, 1);
-+		data |= sda_in(dd, target, 0);
-+		scl_out(dd, target, 0);
-+	}
-+	if (last) {
-+		scl_out(dd, target, 1);
-+		stop_cmd(dd, target);
-+	} else {
-+		sda_out(dd, target, 0);
-+		scl_out(dd, target, 1);
-+		scl_out(dd, target, 0);
-+		sda_out(dd, target, 1);
-+	}
-+	return data;
-+}
-+
-+/**
-+ * wr_byte - write a byte, one bit at a time
-+ * @dd: the hfi1_ib device
-+ * @data: the byte to write
-+ *
-+ * Returns 0 if we got the following ack, otherwise 1
-+ */
-+static int wr_byte(struct hfi1_devdata *dd, u32 target, u8 data)
-+{
-+	int bit_cntr;
-+	u8 bit;
-+
-+	for (bit_cntr = 7; bit_cntr >= 0; bit_cntr--) {
-+		bit = (data >> bit_cntr) & 1;
-+		sda_out(dd, target, bit);
-+		scl_out(dd, target, 1);
-+		scl_out(dd, target, 0);
-+	}
-+	return (!i2c_ackrcv(dd, target)) ? 1 : 0;
-+}
-+
-+/*
-+ * issue TWSI start sequence:
-+ * (both clock/data high, clock high, data low while clock is high)
-+ */
-+static void start_seq(struct hfi1_devdata *dd, u32 target)
-+{
-+	sda_out(dd, target, 1);
-+	scl_out(dd, target, 1);
-+	sda_out(dd, target, 0);
-+	udelay(1);
-+	scl_out(dd, target, 0);
-+}
-+
-+/**
-+ * stop_seq - transmit the stop sequence
-+ * @dd: the hfi1_ib device
-+ *
-+ * (both clock/data low, clock high, data high while clock is high)
-+ */
-+static void stop_seq(struct hfi1_devdata *dd, u32 target)
-+{
-+	scl_out(dd, target, 0);
-+	sda_out(dd, target, 0);
-+	scl_out(dd, target, 1);
-+	sda_out(dd, target, 1);
-+}
-+
-+/**
-+ * stop_cmd - transmit the stop condition
-+ * @dd: the hfi1_ib device
-+ *
-+ * (both clock/data low, clock high, data high while clock is high)
-+ */
-+static void stop_cmd(struct hfi1_devdata *dd, u32 target)
-+{
-+	stop_seq(dd, target);
-+	udelay(TWSI_BUF_WAIT_USEC);
-+}
-+
-+/**
-+ * hfi1_twsi_reset - reset I2C communication
-+ * @dd: the hfi1_ib device
-+ */
-+
-+int hfi1_twsi_reset(struct hfi1_devdata *dd, u32 target)
-+{
-+	int clock_cycles_left = 9;
-+	int was_high = 0;
-+	u32 pins, mask;
-+
-+	/* Both SCL and SDA should be high. If not, there
-+	 * is something wrong.
-+	 */
-+	mask = QSFP_HFI0_I2CCLK | QSFP_HFI0_I2CDAT;
-+
-+	/*
-+	 * Force pins to desired innocuous state.
-+	 * This is the default power-on state with out=0 and dir=0,
-+	 * So tri-stated and should be floating high (barring HW problems)
-+	 */
-+	hfi1_gpio_mod(dd, target, 0, 0, mask);
-+
-+	/*
-+	 * Clock nine times to get all listeners into a sane state.
-+	 * If SDA does not go high at any point, we are wedged.
-+	 * One vendor recommends then issuing START followed by STOP.
-+	 * we cannot use our "normal" functions to do that, because
-+	 * if SCL drops between them, another vendor's part will
-+	 * wedge, dropping SDA and keeping it low forever, at the end of
-+	 * the next transaction (even if it was not the device addressed).
-+	 * So our START and STOP take place with SCL held high.
-+	 */
-+	while (clock_cycles_left--) {
-+		scl_out(dd, target, 0);
-+		scl_out(dd, target, 1);
-+		/* Note if SDA is high, but keep clocking to sync slave */
-+		was_high |= sda_in(dd, target, 0);
-+	}
-+
-+	if (was_high) {
-+		/*
-+		 * We saw a high, which we hope means the slave is sync'd.
-+		 * Issue START, STOP, pause for T_BUF.
-+		 */
-+
-+		pins = hfi1_gpio_mod(dd, target, 0, 0, 0);
-+		if ((pins & mask) != mask)
-+			dd_dev_err(dd, "GPIO pins not at rest: %d\n",
-+				    pins & mask);
-+		/* Drop SDA to issue START */
-+		udelay(1); /* Guarantee .6 uSec setup */
-+		sda_out(dd, target, 0);
-+		udelay(1); /* Guarantee .6 uSec hold */
-+		/* At this point, SCL is high, SDA low. Raise SDA for STOP */
-+		sda_out(dd, target, 1);
-+		udelay(TWSI_BUF_WAIT_USEC);
-+	}
-+
-+	return !was_high;
-+}
-+
-+#define HFI1_TWSI_START 0x100
-+#define HFI1_TWSI_STOP 0x200
-+
-+/* Write byte to TWSI, optionally prefixed with START or suffixed with
-+ * STOP.
-+ * returns 0 if OK (ACK received), else != 0
-+ */
-+static int twsi_wr(struct hfi1_devdata *dd, u32 target, int data, int flags)
-+{
-+	int ret = 1;
-+
-+	if (flags & HFI1_TWSI_START)
-+		start_seq(dd, target);
-+
-+	/* Leaves SCL low (from i2c_ackrcv()) */
-+	ret = wr_byte(dd, target, data);
-+
-+	if (flags & HFI1_TWSI_STOP)
-+		stop_cmd(dd, target);
-+	return ret;
-+}
-+
-+/* Added functionality for IBA7220-based cards */
-+#define HFI1_TEMP_DEV 0x98
-+
-+/*
-+ * hfi1_twsi_blk_rd
-+ * General interface for data transfer from twsi devices.
-+ * One vestige of its former role is that it recognizes a device
-+ * HFI1_TWSI_NO_DEV and does the correct operation for the legacy part,
-+ * which responded to all TWSI device codes, interpreting them as
-+ * address within device. On all other devices found on board handled by
-+ * this driver, the device is followed by a one-byte "address" which selects
-+ * the "register" or "offset" within the device from which data should
-+ * be read.
-+ */
-+int hfi1_twsi_blk_rd(struct hfi1_devdata *dd, u32 target, int dev, int addr,
-+		     void *buffer, int len)
-+{
-+	int ret;
-+	u8 *bp = buffer;
-+
++	ss->num_sge = j;
++	ss->total_len = qp->r_len;
 +	ret = 1;
-+
-+	if (dev == HFI1_TWSI_NO_DEV) {
-+		/* legacy not-really-I2C */
-+		addr = (addr << 1) | READ_CMD;
-+		ret = twsi_wr(dd, target, addr, HFI1_TWSI_START);
-+	} else {
-+		/* Actual I2C */
-+		ret = twsi_wr(dd, target, dev | WRITE_CMD, HFI1_TWSI_START);
-+		if (ret) {
-+			stop_cmd(dd, target);
-+			ret = 1;
-+			goto bail;
-+		}
-+		/*
-+		 * SFF spec claims we do _not_ stop after the addr
-+		 * but simply issue a start with the "read" dev-addr.
-+		 * Since we are implicitly waiting for ACK here,
-+		 * we need t_buf (nominally 20uSec) before that start,
-+		 * and cannot rely on the delay built in to the STOP
-+		 */
-+		ret = twsi_wr(dd, target, addr, 0);
-+		udelay(TWSI_BUF_WAIT_USEC);
-+
-+		if (ret) {
-+			dd_dev_err(dd,
-+				"Failed to write interface read addr %02X\n",
-+				addr);
-+			ret = 1;
-+			goto bail;
-+		}
-+		ret = twsi_wr(dd, target, dev | READ_CMD, HFI1_TWSI_START);
-+	}
-+	if (ret) {
-+		stop_cmd(dd, target);
-+		ret = 1;
-+		goto bail;
-+	}
-+
-+	/*
-+	 * block devices keeps clocking data out as long as we ack,
-+	 * automatically incrementing the address. Some have "pages"
-+	 * whose boundaries will not be crossed, but the handling
-+	 * of these is left to the caller, who is in a better
-+	 * position to know.
-+	 */
-+	while (len-- > 0) {
-+		/*
-+		 * Get and store data, sending ACK if length remaining,
-+		 * else STOP
-+		 */
-+		*bp++ = rd_byte(dd, target, !len);
-+	}
-+
-+	ret = 0;
-+
-+bail:
-+	return ret;
-+}
-+
-+/*
-+ * hfi1_twsi_blk_wr
-+ * General interface for data transfer to twsi devices.
-+ * One vestige of its former role is that it recognizes a device
-+ * HFI1_TWSI_NO_DEV and does the correct operation for the legacy part,
-+ * which responded to all TWSI device codes, interpreting them as
-+ * address within device. On all other devices found on board handled by
-+ * this driver, the device is followed by a one-byte "address" which selects
-+ * the "register" or "offset" within the device to which data should
-+ * be written.
-+ */
-+int hfi1_twsi_blk_wr(struct hfi1_devdata *dd, u32 target, int dev, int addr,
-+		     const void *buffer, int len)
-+{
-+	int sub_len;
-+	const u8 *bp = buffer;
-+	int max_wait_time, i;
-+	int ret = 1;
-+
-+	while (len > 0) {
-+		if (dev == HFI1_TWSI_NO_DEV) {
-+			if (twsi_wr(dd, target, (addr << 1) | WRITE_CMD,
-+				    HFI1_TWSI_START)) {
-+				goto failed_write;
-+			}
-+		} else {
-+			/* Real I2C */
-+			if (twsi_wr(dd, target,
-+				    dev | WRITE_CMD, HFI1_TWSI_START))
-+				goto failed_write;
-+			ret = twsi_wr(dd, target, addr, 0);
-+			if (ret) {
-+				dd_dev_err(dd,
-+					"Failed to write interface write addr %02X\n",
-+					addr);
-+				goto failed_write;
-+			}
-+		}
-+
-+		sub_len = min(len, 4);
-+		addr += sub_len;
-+		len -= sub_len;
-+
-+		for (i = 0; i < sub_len; i++)
-+			if (twsi_wr(dd, target, *bp++, 0))
-+				goto failed_write;
-+
-+		stop_cmd(dd, target);
-+
-+		/*
-+		 * Wait for write complete by waiting for a successful
-+		 * read (the chip replies with a zero after the write
-+		 * cmd completes, and before it writes to the eeprom.
-+		 * The startcmd for the read will fail the ack until
-+		 * the writes have completed.   We do this inline to avoid
-+		 * the debug prints that are in the real read routine
-+		 * if the startcmd fails.
-+		 * We also use the proper device address, so it doesn't matter
-+		 * whether we have real eeprom_dev. Legacy likes any address.
-+		 */
-+		max_wait_time = 100;
-+		while (twsi_wr(dd, target,
-+			       dev | READ_CMD, HFI1_TWSI_START)) {
-+			stop_cmd(dd, target);
-+			if (!--max_wait_time)
-+				goto failed_write;
-+		}
-+		/* now read (and ignore) the resulting byte */
-+		rd_byte(dd, target, 1);
-+	}
-+
-+	ret = 0;
 +	goto bail;
 +
-+failed_write:
-+	stop_cmd(dd, target);
-+	ret = 1;
++bad_lkey:
++	while (j) {
++		struct hfi1_sge *sge = --j ? &ss->sg_list[j - 1] : &ss->sge;
 +
++		hfi1_put_mr(sge->mr);
++	}
++	ss->num_sge = 0;
++	memset(&wc, 0, sizeof(wc));
++	wc.wr_id = wqe->wr_id;
++	wc.status = IB_WC_LOC_PROT_ERR;
++	wc.opcode = IB_WC_RECV;
++	wc.qp = &qp->ibqp;
++	/* Signal solicited completion event. */
++	hfi1_cq_enter(to_icq(qp->ibqp.recv_cq), &wc, 1);
++	ret = 0;
 +bail:
 +	return ret;
 +}
-diff --git a/drivers/infiniband/hw/hfi1/twsi.h b/drivers/infiniband/hw/hfi1/twsi.h
-new file mode 100644
-index 0000000..5907e02
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/twsi.h
-@@ -0,0 +1,68 @@
-+#ifndef _TWSI_H
-+#define _TWSI_H
++
++/**
++ * hfi1_get_rwqe - copy the next RWQE into the QP's RWQE
++ * @qp: the QP
++ * @wr_id_only: update qp->r_wr_id only, not qp->r_sge
++ *
++ * Return -1 if there is a local error, 0 if no RWQE is available,
++ * otherwise return 1.
++ *
++ * Can be called from interrupt level.
++ */
++int hfi1_get_rwqe(struct hfi1_qp *qp, int wr_id_only)
++{
++	unsigned long flags;
++	struct hfi1_rq *rq;
++	struct hfi1_rwq *wq;
++	struct hfi1_srq *srq;
++	struct hfi1_rwqe *wqe;
++	void (*handler)(struct ib_event *, void *);
++	u32 tail;
++	int ret;
++
++	if (qp->ibqp.srq) {
++		srq = to_isrq(qp->ibqp.srq);
++		handler = srq->ibsrq.event_handler;
++		rq = &srq->rq;
++	} else {
++		srq = NULL;
++		handler = NULL;
++		rq = &qp->r_rq;
++	}
++
++	spin_lock_irqsave(&rq->lock, flags);
++	if (!(ib_hfi1_state_ops[qp->state] & HFI1_PROCESS_RECV_OK)) {
++		ret = 0;
++		goto unlock;
++	}
++
++	wq = rq->wq;
++	tail = wq->tail;
++	/* Validate tail before using it since it is user writable. */
++	if (tail >= rq->size)
++		tail = 0;
++	if (unlikely(tail == wq->head)) {
++		ret = 0;
++		goto unlock;
++	}
++	/* Make sure entry is read after head index is read. */
++	smp_rmb();
++	wqe = get_rwqe_ptr(rq, tail);
++	/*
++	 * Even though we update the tail index in memory, the verbs
++	 * consumer is not supposed to post more entries until a
++	 * completion is generated.
++	 */
++	if (++tail >= rq->size)
++		tail = 0;
++	wq->tail = tail;
++	if (!wr_id_only && !init_sge(qp, wqe)) {
++		ret = -1;
++		goto unlock;
++	}
++	qp->r_wr_id = wqe->wr_id;
++
++	ret = 1;
++	set_bit(HFI1_R_WRID_VALID, &qp->r_aflags);
++	if (handler) {
++		u32 n;
++
++		/*
++		 * Validate head pointer value and compute
++		 * the number of remaining WQEs.
++		 */
++		n = wq->head;
++		if (n >= rq->size)
++			n = 0;
++		if (n < tail)
++			n += rq->size - tail;
++		else
++			n -= tail;
++		if (n < srq->limit) {
++			struct ib_event ev;
++
++			srq->limit = 0;
++			spin_unlock_irqrestore(&rq->lock, flags);
++			ev.device = qp->ibqp.device;
++			ev.element.srq = qp->ibqp.srq;
++			ev.event = IB_EVENT_SRQ_LIMIT_REACHED;
++			handler(&ev, srq->ibsrq.srq_context);
++			goto bail;
++		}
++	}
++unlock:
++	spin_unlock_irqrestore(&rq->lock, flags);
++bail:
++	return ret;
++}
++
++/*
++ * Switch to alternate path.
++ * The QP s_lock should be held and interrupts disabled.
++ */
++void hfi1_migrate_qp(struct hfi1_qp *qp)
++{
++	struct ib_event ev;
++
++	qp->s_mig_state = IB_MIG_MIGRATED;
++	qp->remote_ah_attr = qp->alt_ah_attr;
++	qp->port_num = qp->alt_ah_attr.port_num;
++	qp->s_pkey_index = qp->s_alt_pkey_index;
++	qp->s_flags |= HFI1_S_AHG_CLEAR;
++
++	ev.device = qp->ibqp.device;
++	ev.element.qp = &qp->ibqp;
++	ev.event = IB_EVENT_PATH_MIG;
++	qp->ibqp.event_handler(&ev, qp->ibqp.qp_context);
++}
++
++static __be64 get_sguid(struct hfi1_ibport *ibp, unsigned index)
++{
++	if (!index) {
++		struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
++
++		return ppd->guid;
++	}
++	return ibp->guids[index - 1];
++}
++
++static int gid_ok(union ib_gid *gid, __be64 gid_prefix, __be64 id)
++{
++	return (gid->global.interface_id == id &&
++		(gid->global.subnet_prefix == gid_prefix ||
++		 gid->global.subnet_prefix == IB_DEFAULT_GID_PREFIX));
++}
++
 +/*
 + *
-+ * This file is provided under a dual BSD/GPLv2 license.  When using or
-+ * redistributing this file, you may do so under either license.
++ * This should be called with the QP r_lock held.
 + *
-+ * GPL LICENSE SUMMARY
-+ *
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * BSD LICENSE
-+ *
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ *  - Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *  - Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *  - Neither the name of Intel Corporation nor the names of its
-+ *    contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
++ * The s_lock will be acquired around the hfi1_migrate_qp() call.
 + */
++int hfi1_ruc_check_hdr(struct hfi1_ibport *ibp, struct hfi1_ib_header *hdr,
++		       int has_grh, struct hfi1_qp *qp, u32 bth0)
++{
++	__be64 guid;
++	unsigned long flags;
++	u8 sc5 = ibp->sl_to_sc[qp->remote_ah_attr.sl];
 +
-+#define HFI1_TWSI_NO_DEV 0xFF
++	if (qp->s_mig_state == IB_MIG_ARMED && (bth0 & IB_BTH_MIG_REQ)) {
++		if (!has_grh) {
++			if (qp->alt_ah_attr.ah_flags & IB_AH_GRH)
++				goto err;
++		} else {
++			if (!(qp->alt_ah_attr.ah_flags & IB_AH_GRH))
++				goto err;
++			guid = get_sguid(ibp, qp->alt_ah_attr.grh.sgid_index);
++			if (!gid_ok(&hdr->u.l.grh.dgid, ibp->gid_prefix, guid))
++				goto err;
++			if (!gid_ok(&hdr->u.l.grh.sgid,
++			    qp->alt_ah_attr.grh.dgid.global.subnet_prefix,
++			    qp->alt_ah_attr.grh.dgid.global.interface_id))
++				goto err;
++		}
++		if (unlikely(ingress_pkey_check(ppd_from_ibp(ibp), (u16)bth0,
++						sc5, qp->s_alt_pkey_index,
++						be16_to_cpu(hdr->lrh[3])))) {
++			hfi1_bad_pqkey(ibp, IB_NOTICE_TRAP_BAD_PKEY,
++				       (u16)bth0,
++				       (be16_to_cpu(hdr->lrh[0]) >> 4) & 0xF,
++				       0, qp->ibqp.qp_num,
++				       hdr->lrh[3], hdr->lrh[1]);
++			goto err;
++		}
++		/* Validate the SLID. See Ch. 9.6.1.5 and 17.2.8 */
++		if (be16_to_cpu(hdr->lrh[3]) != qp->alt_ah_attr.dlid ||
++		    ppd_from_ibp(ibp)->port != qp->alt_ah_attr.port_num)
++			goto err;
++		spin_lock_irqsave(&qp->s_lock, flags);
++		hfi1_migrate_qp(qp);
++		spin_unlock_irqrestore(&qp->s_lock, flags);
++	} else {
++		if (!has_grh) {
++			if (qp->remote_ah_attr.ah_flags & IB_AH_GRH)
++				goto err;
++		} else {
++			if (!(qp->remote_ah_attr.ah_flags & IB_AH_GRH))
++				goto err;
++			guid = get_sguid(ibp,
++					 qp->remote_ah_attr.grh.sgid_index);
++			if (!gid_ok(&hdr->u.l.grh.dgid, ibp->gid_prefix, guid))
++				goto err;
++			if (!gid_ok(&hdr->u.l.grh.sgid,
++			    qp->remote_ah_attr.grh.dgid.global.subnet_prefix,
++			    qp->remote_ah_attr.grh.dgid.global.interface_id))
++				goto err;
++		}
++		if (unlikely(ingress_pkey_check(ppd_from_ibp(ibp), (u16)bth0,
++						sc5, qp->s_pkey_index,
++						be16_to_cpu(hdr->lrh[3])))) {
++			hfi1_bad_pqkey(ibp, IB_NOTICE_TRAP_BAD_PKEY,
++				       (u16)bth0,
++				       (be16_to_cpu(hdr->lrh[0]) >> 4) & 0xF,
++				       0, qp->ibqp.qp_num,
++				       hdr->lrh[3], hdr->lrh[1]);
++			goto err;
++		}
++		/* Validate the SLID. See Ch. 9.6.1.5 */
++		if (be16_to_cpu(hdr->lrh[3]) != qp->remote_ah_attr.dlid ||
++		    ppd_from_ibp(ibp)->port != qp->port_num)
++			goto err;
++		if (qp->s_mig_state == IB_MIG_REARM &&
++		    !(bth0 & IB_BTH_MIG_REQ))
++			qp->s_mig_state = IB_MIG_ARMED;
++	}
 +
-+struct hfi1_devdata;
++	return 0;
 +
-+/* Bit position of SDA pin in ASIC_QSFP* registers  */
-+#define  GPIO_SDA_NUM 1
++err:
++	return 1;
++}
 +
-+/* these functions must be called with qsfp_lock held */
-+int hfi1_twsi_reset(struct hfi1_devdata *dd, u32 target);
-+int hfi1_twsi_blk_rd(struct hfi1_devdata *dd, u32 target, int dev, int addr,
-+		     void *buffer, int len);
-+int hfi1_twsi_blk_wr(struct hfi1_devdata *dd, u32 target, int dev, int addr,
-+		     const void *buffer, int len);
++/**
++ * ruc_loopback - handle UC and RC loopback requests
++ * @sqp: the sending QP
++ *
++ * This is called from hfi1_do_send() to
++ * forward a WQE addressed to the same HCA.
++ * Note that although we are single threaded due to the tasklet, we still
++ * have to protect against post_send().  We don't have to worry about
++ * receive interrupts since this is a connected protocol and all packets
++ * will pass through here.
++ */
++static void ruc_loopback(struct hfi1_qp *sqp)
++{
++	struct hfi1_ibport *ibp = to_iport(sqp->ibqp.device, sqp->port_num);
++	struct hfi1_qp *qp;
++	struct hfi1_swqe *wqe;
++	struct hfi1_sge *sge;
++	unsigned long flags;
++	struct ib_wc wc;
++	u64 sdata;
++	atomic64_t *maddr;
++	enum ib_wc_status send_status;
++	int release;
++	int ret;
 +
++	/*
++	 * Note that we check the responder QP state after
++	 * checking the requester's state.
++	 */
++	qp = hfi1_lookup_qpn(ibp, sqp->remote_qpn);
 +
-+#endif /* _TWSI_H */
++	spin_lock_irqsave(&sqp->s_lock, flags);
++
++	/* Return if we are already busy processing a work request. */
++	if ((sqp->s_flags & (HFI1_S_BUSY | HFI1_S_ANY_WAIT)) ||
++	    !(ib_hfi1_state_ops[sqp->state] & HFI1_PROCESS_OR_FLUSH_SEND))
++		goto unlock;
++
++	sqp->s_flags |= HFI1_S_BUSY;
++
++again:
++	if (sqp->s_last == sqp->s_head)
++		goto clr_busy;
++	wqe = get_swqe_ptr(sqp, sqp->s_last);
++
++	/* Return if it is not OK to start a new work request. */
++	if (!(ib_hfi1_state_ops[sqp->state] & HFI1_PROCESS_NEXT_SEND_OK)) {
++		if (!(ib_hfi1_state_ops[sqp->state] & HFI1_FLUSH_SEND))
++			goto clr_busy;
++		/* We are in the error state, flush the work request. */
++		send_status = IB_WC_WR_FLUSH_ERR;
++		goto flush_send;
++	}
++
++	/*
++	 * We can rely on the entry not changing without the s_lock
++	 * being held until we update s_last.
++	 * We increment s_cur to indicate s_last is in progress.
++	 */
++	if (sqp->s_last == sqp->s_cur) {
++		if (++sqp->s_cur >= sqp->s_size)
++			sqp->s_cur = 0;
++	}
++	spin_unlock_irqrestore(&sqp->s_lock, flags);
++
++	if (!qp || !(ib_hfi1_state_ops[qp->state] & HFI1_PROCESS_RECV_OK) ||
++	    qp->ibqp.qp_type != sqp->ibqp.qp_type) {
++		ibp->n_pkt_drops++;
++		/*
++		 * For RC, the requester would timeout and retry so
++		 * shortcut the timeouts and just signal too many retries.
++		 */
++		if (sqp->ibqp.qp_type == IB_QPT_RC)
++			send_status = IB_WC_RETRY_EXC_ERR;
++		else
++			send_status = IB_WC_SUCCESS;
++		goto serr;
++	}
++
++	memset(&wc, 0, sizeof(wc));
++	send_status = IB_WC_SUCCESS;
++
++	release = 1;
++	sqp->s_sge.sge = wqe->sg_list[0];
++	sqp->s_sge.sg_list = wqe->sg_list + 1;
++	sqp->s_sge.num_sge = wqe->wr.num_sge;
++	sqp->s_len = wqe->length;
++	switch (wqe->wr.opcode) {
++	case IB_WR_SEND_WITH_IMM:
++		wc.wc_flags = IB_WC_WITH_IMM;
++		wc.ex.imm_data = wqe->wr.ex.imm_data;
++		/* FALLTHROUGH */
++	case IB_WR_SEND:
++		ret = hfi1_get_rwqe(qp, 0);
++		if (ret < 0)
++			goto op_err;
++		if (!ret)
++			goto rnr_nak;
++		break;
++
++	case IB_WR_RDMA_WRITE_WITH_IMM:
++		if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_WRITE)))
++			goto inv_err;
++		wc.wc_flags = IB_WC_WITH_IMM;
++		wc.ex.imm_data = wqe->wr.ex.imm_data;
++		ret = hfi1_get_rwqe(qp, 1);
++		if (ret < 0)
++			goto op_err;
++		if (!ret)
++			goto rnr_nak;
++		/* FALLTHROUGH */
++	case IB_WR_RDMA_WRITE:
++		if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_WRITE)))
++			goto inv_err;
++		if (wqe->length == 0)
++			break;
++		if (unlikely(!hfi1_rkey_ok(qp, &qp->r_sge.sge, wqe->length,
++					   wqe->wr.wr.rdma.remote_addr,
++					   wqe->wr.wr.rdma.rkey,
++					   IB_ACCESS_REMOTE_WRITE)))
++			goto acc_err;
++		qp->r_sge.sg_list = NULL;
++		qp->r_sge.num_sge = 1;
++		qp->r_sge.total_len = wqe->length;
++		break;
++
++	case IB_WR_RDMA_READ:
++		if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_READ)))
++			goto inv_err;
++		if (unlikely(!hfi1_rkey_ok(qp, &sqp->s_sge.sge, wqe->length,
++					   wqe->wr.wr.rdma.remote_addr,
++					   wqe->wr.wr.rdma.rkey,
++					   IB_ACCESS_REMOTE_READ)))
++			goto acc_err;
++		release = 0;
++		sqp->s_sge.sg_list = NULL;
++		sqp->s_sge.num_sge = 1;
++		qp->r_sge.sge = wqe->sg_list[0];
++		qp->r_sge.sg_list = wqe->sg_list + 1;
++		qp->r_sge.num_sge = wqe->wr.num_sge;
++		qp->r_sge.total_len = wqe->length;
++		break;
++
++	case IB_WR_ATOMIC_CMP_AND_SWP:
++	case IB_WR_ATOMIC_FETCH_AND_ADD:
++		if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_ATOMIC)))
++			goto inv_err;
++		if (unlikely(!hfi1_rkey_ok(qp, &qp->r_sge.sge, sizeof(u64),
++					   wqe->wr.wr.atomic.remote_addr,
++					   wqe->wr.wr.atomic.rkey,
++					   IB_ACCESS_REMOTE_ATOMIC)))
++			goto acc_err;
++		/* Perform atomic OP and save result. */
++		maddr = (atomic64_t *) qp->r_sge.sge.vaddr;
++		sdata = wqe->wr.wr.atomic.compare_add;
++		*(u64 *) sqp->s_sge.sge.vaddr =
++			(wqe->wr.opcode == IB_WR_ATOMIC_FETCH_AND_ADD) ?
++			(u64) atomic64_add_return(sdata, maddr) - sdata :
++			(u64) cmpxchg((u64 *) qp->r_sge.sge.vaddr,
++				      sdata, wqe->wr.wr.atomic.swap);
++		hfi1_put_mr(qp->r_sge.sge.mr);
++		qp->r_sge.num_sge = 0;
++		goto send_comp;
++
++	default:
++		send_status = IB_WC_LOC_QP_OP_ERR;
++		goto serr;
++	}
++
++	sge = &sqp->s_sge.sge;
++	while (sqp->s_len) {
++		u32 len = sqp->s_len;
++
++		if (len > sge->length)
++			len = sge->length;
++		if (len > sge->sge_length)
++			len = sge->sge_length;
++		BUG_ON(len == 0);
++		hfi1_copy_sge(&qp->r_sge, sge->vaddr, len, release);
++		sge->vaddr += len;
++		sge->length -= len;
++		sge->sge_length -= len;
++		if (sge->sge_length == 0) {
++			if (!release)
++				hfi1_put_mr(sge->mr);
++			if (--sqp->s_sge.num_sge)
++				*sge = *sqp->s_sge.sg_list++;
++		} else if (sge->length == 0 && sge->mr->lkey) {
++			if (++sge->n >= HFI1_SEGSZ) {
++				if (++sge->m >= sge->mr->mapsz)
++					break;
++				sge->n = 0;
++			}
++			sge->vaddr =
++				sge->mr->map[sge->m]->segs[sge->n].vaddr;
++			sge->length =
++				sge->mr->map[sge->m]->segs[sge->n].length;
++		}
++		sqp->s_len -= len;
++	}
++	if (release)
++		hfi1_put_ss(&qp->r_sge);
++
++	if (!test_and_clear_bit(HFI1_R_WRID_VALID, &qp->r_aflags))
++		goto send_comp;
++
++	if (wqe->wr.opcode == IB_WR_RDMA_WRITE_WITH_IMM)
++		wc.opcode = IB_WC_RECV_RDMA_WITH_IMM;
++	else
++		wc.opcode = IB_WC_RECV;
++	wc.wr_id = qp->r_wr_id;
++	wc.status = IB_WC_SUCCESS;
++	wc.byte_len = wqe->length;
++	wc.qp = &qp->ibqp;
++	wc.src_qp = qp->remote_qpn;
++	wc.slid = qp->remote_ah_attr.dlid;
++	wc.sl = qp->remote_ah_attr.sl;
++	wc.port_num = 1;
++	/* Signal completion event if the solicited bit is set. */
++	hfi1_cq_enter(to_icq(qp->ibqp.recv_cq), &wc,
++		      wqe->wr.send_flags & IB_SEND_SOLICITED);
++
++send_comp:
++	spin_lock_irqsave(&sqp->s_lock, flags);
++	ibp->n_loop_pkts++;
++flush_send:
++	sqp->s_rnr_retry = sqp->s_rnr_retry_cnt;
++	hfi1_send_complete(sqp, wqe, send_status);
++	goto again;
++
++rnr_nak:
++	/* Handle RNR NAK */
++	if (qp->ibqp.qp_type == IB_QPT_UC)
++		goto send_comp;
++	ibp->n_rnr_naks++;
++	/*
++	 * Note: we don't need the s_lock held since the BUSY flag
++	 * makes this single threaded.
++	 */
++	if (sqp->s_rnr_retry == 0) {
++		send_status = IB_WC_RNR_RETRY_EXC_ERR;
++		goto serr;
++	}
++	if (sqp->s_rnr_retry_cnt < 7)
++		sqp->s_rnr_retry--;
++	spin_lock_irqsave(&sqp->s_lock, flags);
++	if (!(ib_hfi1_state_ops[sqp->state] & HFI1_PROCESS_RECV_OK))
++		goto clr_busy;
++	sqp->s_flags |= HFI1_S_WAIT_RNR;
++	sqp->s_timer.function = hfi1_rc_rnr_retry;
++	sqp->s_timer.expires = jiffies +
++		usecs_to_jiffies(ib_hfi1_rnr_table[qp->r_min_rnr_timer]);
++	add_timer(&sqp->s_timer);
++	goto clr_busy;
++
++op_err:
++	send_status = IB_WC_REM_OP_ERR;
++	wc.status = IB_WC_LOC_QP_OP_ERR;
++	goto err;
++
++inv_err:
++	send_status = IB_WC_REM_INV_REQ_ERR;
++	wc.status = IB_WC_LOC_QP_OP_ERR;
++	goto err;
++
++acc_err:
++	send_status = IB_WC_REM_ACCESS_ERR;
++	wc.status = IB_WC_LOC_PROT_ERR;
++err:
++	/* responder goes to error state */
++	hfi1_rc_error(qp, wc.status);
++
++serr:
++	spin_lock_irqsave(&sqp->s_lock, flags);
++	hfi1_send_complete(sqp, wqe, send_status);
++	if (sqp->ibqp.qp_type == IB_QPT_RC) {
++		int lastwqe = hfi1_error_qp(sqp, IB_WC_WR_FLUSH_ERR);
++
++		sqp->s_flags &= ~HFI1_S_BUSY;
++		spin_unlock_irqrestore(&sqp->s_lock, flags);
++		if (lastwqe) {
++			struct ib_event ev;
++
++			ev.device = sqp->ibqp.device;
++			ev.element.qp = &sqp->ibqp;
++			ev.event = IB_EVENT_QP_LAST_WQE_REACHED;
++			sqp->ibqp.event_handler(&ev, sqp->ibqp.qp_context);
++		}
++		goto done;
++	}
++clr_busy:
++	sqp->s_flags &= ~HFI1_S_BUSY;
++unlock:
++	spin_unlock_irqrestore(&sqp->s_lock, flags);
++done:
++	if (qp && atomic_dec_and_test(&qp->refcount))
++		wake_up(&qp->wait);
++}
++
++/**
++ * hfi1_make_grh - construct a GRH header
++ * @ibp: a pointer to the IB port
++ * @hdr: a pointer to the GRH header being constructed
++ * @grh: the global route address to send to
++ * @hwords: the number of 32 bit words of header being sent
++ * @nwords: the number of 32 bit words of data being sent
++ *
++ * Return the size of the header in 32 bit words.
++ */
++u32 hfi1_make_grh(struct hfi1_ibport *ibp, struct ib_grh *hdr,
++		  struct ib_global_route *grh, u32 hwords, u32 nwords)
++{
++	hdr->version_tclass_flow =
++		cpu_to_be32((IB_GRH_VERSION << IB_GRH_VERSION_SHIFT) |
++			    (grh->traffic_class << IB_GRH_TCLASS_SHIFT) |
++			    (grh->flow_label << IB_GRH_FLOW_SHIFT));
++	hdr->paylen = cpu_to_be16((hwords - 2 + nwords + SIZE_OF_CRC) << 2);
++	/* next_hdr is defined by C8-7 in ch. 8.4.1 */
++	hdr->next_hdr = IB_GRH_NEXT_HDR;
++	hdr->hop_limit = grh->hop_limit;
++	/* The SGID is 32-bit aligned. */
++	hdr->sgid.global.subnet_prefix = ibp->gid_prefix;
++	hdr->sgid.global.interface_id =
++		grh->sgid_index && grh->sgid_index < ARRAY_SIZE(ibp->guids) ?
++		ibp->guids[grh->sgid_index - 1] : ppd_from_ibp(ibp)->guid;
++	hdr->dgid = grh->dgid;
++
++	/* GRH header size in 32-bit words. */
++	return sizeof(struct ib_grh) / sizeof(u32);
++}
++
++/*
++ * free_ahg - clear ahg from QP
++ */
++void clear_ahg(struct hfi1_qp *qp)
++{
++	qp->s_hdr->ahgcount = 0;
++	qp->s_flags &= ~(HFI1_S_AHG_VALID | HFI1_S_AHG_CLEAR);
++	if (qp->s_sde)
++		sdma_ahg_free(qp->s_sde, qp->s_ahgidx);
++	qp->s_ahgidx = -1;
++	qp->s_sde = NULL;
++}
++
++#define BTH2_OFFSET (offsetof(struct hfi1_pio_header, hdr.u.oth.bth[2]) / 4)
++
++/**
++ * build_ahg - create ahg in s_hdr
++ * @qp: a pointer to QP
++ * @npsn: the next PSN for the request/response
++ *
++ * This routine handles the AHG by allocating an ahg entry and causing the
++ * copy of the first middle.
++ *
++ * Subsequent middles use the copied entry, editing the
++ * PSN with 1 or 2 edits.
++ */
++static inline void build_ahg(struct hfi1_qp *qp, u32 npsn)
++{
++	if (unlikely(qp->s_flags & HFI1_S_AHG_CLEAR))
++		clear_ahg(qp);
++	if (!(qp->s_flags & HFI1_S_AHG_VALID)) {
++		/* first middle that needs copy  */
++		if (qp->s_ahgidx < 0) {
++			if (!qp->s_sde)
++				qp->s_sde = qp_to_sdma_engine(qp, qp->s_sc);
++			qp->s_ahgidx = sdma_ahg_alloc(qp->s_sde);
++		}
++		if (qp->s_ahgidx >= 0) {
++			qp->s_ahgpsn = npsn;
++			qp->s_hdr->tx_flags |= SDMA_TXREQ_F_AHG_COPY;
++			/* save to protect a change in another thread */
++			qp->s_hdr->sde = qp->s_sde;
++			qp->s_hdr->ahgidx = qp->s_ahgidx;
++			qp->s_flags |= HFI1_S_AHG_VALID;
++		}
++	} else {
++		/* subsequent middle after valid */
++		if (qp->s_ahgidx >= 0) {
++			qp->s_hdr->tx_flags |= SDMA_TXREQ_F_USE_AHG;
++			qp->s_hdr->ahgidx = qp->s_ahgidx;
++			qp->s_hdr->ahgcount++;
++			qp->s_hdr->ahgdesc[0] =
++				sdma_build_ahg_descriptor(
++					(__force u16)cpu_to_be16((u16)npsn),
++					BTH2_OFFSET,
++					16,
++					16);
++			if ((npsn & 0xffff0000) !=
++					(qp->s_ahgpsn & 0xffff0000)) {
++				qp->s_hdr->ahgcount++;
++				qp->s_hdr->ahgdesc[1] =
++					sdma_build_ahg_descriptor(
++						(__force u16)cpu_to_be16(
++							(u16)(npsn >> 16)),
++						BTH2_OFFSET,
++						0,
++						16);
++			}
++		}
++	}
++}
++
++void hfi1_make_ruc_header(struct hfi1_qp *qp, struct hfi1_other_headers *ohdr,
++			  u32 bth0, u32 bth2, int middle)
++{
++	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
++	u16 lrh0;
++	u32 nwords;
++	u32 extra_bytes;
++	u8 sc5;
++
++	/* Construct the header. */
++	extra_bytes = -qp->s_cur_size & 3;
++	nwords = (qp->s_cur_size + extra_bytes) >> 2;
++	lrh0 = HFI1_LRH_BTH;
++	if (unlikely(qp->remote_ah_attr.ah_flags & IB_AH_GRH)) {
++		qp->s_hdrwords += hfi1_make_grh(ibp, &qp->s_hdr->ibh.u.l.grh,
++					       &qp->remote_ah_attr.grh,
++					       qp->s_hdrwords, nwords);
++		lrh0 = HFI1_LRH_GRH;
++		middle = 0;
++	}
++	sc5 = ibp->sl_to_sc[qp->remote_ah_attr.sl];
++	lrh0 |= (sc5 & 0xf) << 12 | (qp->remote_ah_attr.sl & 0xf) << 4;
++	qp->s_sc = sc5;
++	/*
++	 * reset s_hdr/AHG fields
++	 *
++	 * This insures that the ahgentry/ahgcount
++	 * are at a non-AHG default to protect
++	 * build_verbs_tx_desc() from using
++	 * an include ahgidx.
++	 *
++	 * build_ahg() will modify as appropriate
++	 * to use the AHG feature.
++	 */
++	qp->s_hdr->tx_flags = 0;
++	qp->s_hdr->ahgcount = 0;
++	qp->s_hdr->ahgidx = 0;
++	qp->s_hdr->sde = NULL;
++	if (qp->s_mig_state == IB_MIG_MIGRATED)
++		bth0 |= IB_BTH_MIG_REQ;
++	else
++		middle = 0;
++	if (middle)
++		build_ahg(qp, bth2);
++	else
++		qp->s_flags &= ~HFI1_S_AHG_VALID;
++	qp->s_hdr->ibh.lrh[0] = cpu_to_be16(lrh0);
++	qp->s_hdr->ibh.lrh[1] = cpu_to_be16(qp->remote_ah_attr.dlid);
++	qp->s_hdr->ibh.lrh[2] =
++		cpu_to_be16(qp->s_hdrwords + nwords + SIZE_OF_CRC);
++	qp->s_hdr->ibh.lrh[3] = cpu_to_be16(ppd_from_ibp(ibp)->lid |
++				       qp->remote_ah_attr.src_path_bits);
++	bth0 |= hfi1_get_pkey(ibp, qp->s_pkey_index);
++	bth0 |= extra_bytes << 20;
++	ohdr->bth[0] = cpu_to_be32(bth0);
++	ohdr->bth[1] = cpu_to_be32(qp->remote_qpn);
++	if (test_and_clear_bit(HFI1_S_ECN, &qp->s_aflags))
++		/* we recently received a FECN, so return a BECN */
++		ohdr->bth[1] |= cpu_to_be32(HFI1_BECN_MASK << HFI1_BECN_SHIFT);
++	ohdr->bth[2] = cpu_to_be32(bth2);
++}
++
++/**
++ * hfi1_do_send - perform a send on a QP
++ * @work: contains a pointer to the QP
++ *
++ * Process entries in the send work queue until credit or queue is
++ * exhausted.  Only allow one CPU to send a packet per QP (tasklet).
++ * Otherwise, two threads could send packets out of order.
++ */
++void hfi1_do_send(struct work_struct *work)
++{
++	struct iowait *wait = container_of(work, struct iowait, iowork);
++	struct hfi1_qp *qp = container_of(wait, struct hfi1_qp, s_iowait);
++	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
++	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
++	int (*make_req)(struct hfi1_qp *qp);
++	unsigned long flags;
++
++	if ((qp->ibqp.qp_type == IB_QPT_RC ||
++	     qp->ibqp.qp_type == IB_QPT_UC) &&
++	    !loopback &&
++	    (qp->remote_ah_attr.dlid & ~((1 << ppd->lmc) - 1)) == ppd->lid) {
++		ruc_loopback(qp);
++		return;
++	}
++
++	if (qp->ibqp.qp_type == IB_QPT_RC)
++		make_req = hfi1_make_rc_req;
++	else if (qp->ibqp.qp_type == IB_QPT_UC)
++		make_req = hfi1_make_uc_req;
++	else
++		make_req = hfi1_make_ud_req;
++
++	spin_lock_irqsave(&qp->s_lock, flags);
++
++	/* Return if we are already busy processing a work request. */
++	if (!hfi1_send_ok(qp)) {
++		spin_unlock_irqrestore(&qp->s_lock, flags);
++		return;
++	}
++
++	qp->s_flags |= HFI1_S_BUSY;
++
++	spin_unlock_irqrestore(&qp->s_lock, flags);
++
++	do {
++		/* Check for a constructed packet to be sent. */
++		if (qp->s_hdrwords != 0) {
++			/*
++			 * If the packet cannot be sent now, return and
++			 * the send tasklet will be woken up later.
++			 */
++			if (hfi1_verbs_send(qp, qp->s_hdr, qp->s_hdrwords,
++					    qp->s_cur_sge, qp->s_cur_size))
++				break;
++			/* Record that s_hdr is empty. */
++			qp->s_hdrwords = 0;
++		}
++	} while (make_req(qp));
++}
++
++/*
++ * This should be called with s_lock held.
++ */
++void hfi1_send_complete(struct hfi1_qp *qp, struct hfi1_swqe *wqe,
++			enum ib_wc_status status)
++{
++	u32 old_last, last;
++	unsigned i;
++
++	if (!(ib_hfi1_state_ops[qp->state] & HFI1_PROCESS_OR_FLUSH_SEND))
++		return;
++
++	for (i = 0; i < wqe->wr.num_sge; i++) {
++		struct hfi1_sge *sge = &wqe->sg_list[i];
++
++		hfi1_put_mr(sge->mr);
++	}
++	if (qp->ibqp.qp_type == IB_QPT_UD ||
++	    qp->ibqp.qp_type == IB_QPT_SMI ||
++	    qp->ibqp.qp_type == IB_QPT_GSI)
++		atomic_dec(&to_iah(wqe->wr.wr.ud.ah)->refcount);
++
++	/* See ch. 11.2.4.1 and 10.7.3.1 */
++	if (!(qp->s_flags & HFI1_S_SIGNAL_REQ_WR) ||
++	    (wqe->wr.send_flags & IB_SEND_SIGNALED) ||
++	    status != IB_WC_SUCCESS) {
++		struct ib_wc wc;
++
++		memset(&wc, 0, sizeof(wc));
++		wc.wr_id = wqe->wr.wr_id;
++		wc.status = status;
++		wc.opcode = ib_hfi1_wc_opcode[wqe->wr.opcode];
++		wc.qp = &qp->ibqp;
++		if (status == IB_WC_SUCCESS)
++			wc.byte_len = wqe->length;
++		hfi1_cq_enter(to_icq(qp->ibqp.send_cq), &wc,
++			      status != IB_WC_SUCCESS);
++	}
++
++	last = qp->s_last;
++	old_last = last;
++	if (++last >= qp->s_size)
++		last = 0;
++	qp->s_last = last;
++	if (qp->s_acked == old_last)
++		qp->s_acked = last;
++	if (qp->s_cur == old_last)
++		qp->s_cur = last;
++	if (qp->s_tail == old_last)
++		qp->s_tail = last;
++	if (qp->state == IB_QPS_SQD && last == qp->s_cur)
++		qp->s_draining = 0;
++}
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
