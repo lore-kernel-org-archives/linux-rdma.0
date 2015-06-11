@@ -1,77 +1,67 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Don't warn on no SA support in event handler
-Date: Thu, 11 Jun 2015 01:03:04 -0400
-Message-ID: <1433998984.71666.148.camel@redhat.com>
-References: <1433927612-20517-1-git-send-email-monis@mellanox.com>
+Subject: Re: [PATCH] RDMA/ocrdma: fix double free on pd
+Date: Thu, 11 Jun 2015 01:15:30 -0400
+Message-ID: <1433999730.71666.149.camel@redhat.com>
+References: <1433515647-28059-1-git-send-email-colin.king@canonical.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-fDOKxBiiCZzwaQFpu1xJ"
+	protocol="application/pgp-signature"; boundary="=-NdysXpOQQjXQrldXWQ6w"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1433927612-20517-1-git-send-email-monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1433515647-28059-1-git-send-email-colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Cc: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Mitesh Ahuja <mitesh.ahuja-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-fDOKxBiiCZzwaQFpu1xJ
+--=-NdysXpOQQjXQrldXWQ6w
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2015-06-10 at 12:13 +0300, Moni Shoua wrote:
-> Registering an event handler is done for a device. This device may have
-> one RoCE port (no SA cap) and one InfiniBand port (has SA cap).
-> Therefore, warning from the event handler about a specific port that
-> doesn't have SA cap is correct but pollutes the kernel log without a
-> need.
+On Fri, 2015-06-05 at 15:47 +0100, Colin King wrote:
+> From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
 >=20
-> Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> A reorganisation of the PD allocation and deallocation in commit
+> 9ba1377daa ("RDMA/ocrdma: Move PD resource management to driver.")
+> introduced a double free on pd, as detected by static analysis by
+> smatch:
+>=20
+> drivers/infiniband/hw/ocrdma/ocrdma_verbs.c:682 ocrdma_alloc_pd()
+>   error: double free of 'pd'^
+>=20
+> The original call to ocrdma_mbx_dealloc_pd() (which does not kfree
+> pd) was replaced with a call to _ocrdma_dealloc_pd() (which does
+> kfree pd).  The kfree following this call causes the double free,
+> so just remove it to fix the problem.
+>=20
+> Fixes: 9ba1377daa ("RDMA/ocrdma: Move PD resource management to driver.")
+> Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 1 -
+>  1 file changed, 1 deletion(-)
+>=20
+> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infini=
+band/hw/ocrdma/ocrdma_verbs.c
+> index 9dcb660..219f212 100644
+> --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+> @@ -679,7 +679,6 @@ err:
+>  		ocrdma_release_ucontext_pd(uctx);
+>  	} else {
+>  		status =3D _ocrdma_dealloc_pd(dev, pd);
+> -		kfree(pd);
+>  	}
+>  exit:
+>  	return ERR_PTR(status);
 
 Thanks, applied.
-
-> ---
->  drivers/infiniband/core/multicast.c | 2 +-
->  drivers/infiniband/core/sa_query.c  | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
->=20
-> diff --git a/drivers/infiniband/core/multicast.c b/drivers/infiniband/cor=
-e/multicast.c
-> index 605f20a..1244f02 100644
-> --- a/drivers/infiniband/core/multicast.c
-> +++ b/drivers/infiniband/core/multicast.c
-> @@ -780,7 +780,7 @@ static void mcast_event_handler(struct ib_event_handl=
-er *handler,
->  	int index;
-> =20
->  	dev =3D container_of(handler, struct mcast_device, event_handler);
-> -	if (WARN_ON(!rdma_cap_ib_mcast(dev->device, event->element.port_num)))
-> +	if (!rdma_cap_ib_mcast(dev->device, event->element.port_num))
->  		return;
-> =20
->  	index =3D event->element.port_num - dev->start_port;
-> diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core=
-/sa_query.c
-> index 7f7c8c9..3d0b7b2 100644
-> --- a/drivers/infiniband/core/sa_query.c
-> +++ b/drivers/infiniband/core/sa_query.c
-> @@ -450,7 +450,7 @@ static void ib_sa_event(struct ib_event_handler *hand=
-ler, struct ib_event *event
->  		struct ib_sa_port *port =3D
->  			&sa_dev->port[event->element.port_num - sa_dev->start_port];
-> =20
-> -		if (WARN_ON(!rdma_cap_ib_sa(handler->device, port->port_num)))
-> +		if (!rdma_cap_ib_sa(handler->device, port->port_num))
->  			return;
-> =20
->  		spin_lock_irqsave(&port->ah_lock, flags);
-
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
 
---=-fDOKxBiiCZzwaQFpu1xJ
+--=-NdysXpOQQjXQrldXWQ6w
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -79,22 +69,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJVeRaIAAoJELgmozMOVy/dsiMQALsMdL9dCb1GIs/DqXitqAzD
-+52qmaL1wj/o8GXnMl/8uYqZeu7JvzX0so3fgSyq0WMkGBo4NUgHUAvrI1YuczuV
-sTaRUVsguvdnjPsM2esoZ795mdgkW73rhZfpsuDaPbu+a/JVk7/jni8kafsZyYu8
-hdol8eyghlBOJBxyzzwxZrHsOgvwwD6LQCN/IY5BncouRkqkWuQAj64yhJKBfL0v
-AiDouCa0DzottqT4K/nmraq0l88tXvJRn61knlJue1zvvB2bUrT+sXVu6UfIfOMw
-jf/qlD4orwa3TjwbeEkoxhPyHBnyJs6KI4Anxdx5PA5pjmcksY0MgX7Gvw/C8LZa
-FEEuwv/Cw+2y6u34yvsNaiubp30GHo6yGl3Ke988FfQQ8fHxIMBoCyl1JsrzruY/
-cMf/VpXH7XXYcl22nz0O++8FSYx/cZfasQGWhpIm9101F0QBrEnmBjEhkdsfWlSy
-rcyjiUCS7E1c+EfyYKobI7iUvT6ZH8uUbRW5a93vjK7snzx4aa5cvXM5/WYB72US
-RsXfmAGDEpAxZWf+Uprb3oe0yVH+dWzEKT4vVRu2qTmIlAa/s2Zg/5VMEzMv2Dib
-zdcIuxVx87+tiBrfEeBQWshBm01ijd9fK1gKoPMTRMXgyb5e6tZp7EiUmxzJdcFZ
-bGxcWGbZoa0ulqtzJga8
-=mDGc
+iQIcBAABCAAGBQJVeRlyAAoJELgmozMOVy/d6RsP/i1Dxzx+BJJSC8/x+lN8MHjE
+/bhV2zsFeHjvsklLpVoqhuppyZQVZEqF8hPp2GSU/x0t4YubPmlmm7LxJiLjf6J2
+FeqxVHm2kHvWLE2RY+mnbkIdTx2rZivUnFbwfpuya0WltSEPbRmLzoqGe50nvHtR
+3rODYlSdweL5Uocpw9ew0VCIfmG020ZENKaAv0VEzDLeO+r5s6WrTGj2fTJPDEn7
+nlPYg4M4CxmL9HT4NYiiJuEY+1azW2gZ6ItWH8bONMMWGPSGwAMoetLOLa1PmL6f
+vs2Flp/LqLpZRseYLBk2ldLf/5JqAzv1aqjfxp6Z7oYQXns19OgwebPR12GFH5fg
+yLpXCzT+mJMOpXsEp9ZaKTvQ2m4opv55aT+P8ue4o9Dk+E+l6eXODy5/rrPy7Qn0
+PBasp2gKQzG1IxVf6yjD0BM0XPtlXNV/9ZBM2/ALyRGf613xtzTYmMZ2e41E91AA
+zXlrManxjKcUoV0nwSH8t+e92p1ZplMo4iiaKRLnD+yy13+Wlo9JkGEqQ9Nu8I0k
+r4aT+19RguWvTPpNml4hOpXHKwMOtdMtfUMvNe8An05dWJeIUL9qpizF7O7YpUdw
+xp/ArE4rcurppB8xAwMQ6I5VdCNYNYk/qcwA3F8sdeEqG10H/D81LrSdpl8UDcR7
+Ccz3Tklu8vy+wx/7jt/f
+=nuDu
 -----END PGP SIGNATURE-----
 
---=-fDOKxBiiCZzwaQFpu1xJ--
+--=-NdysXpOQQjXQrldXWQ6w--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
