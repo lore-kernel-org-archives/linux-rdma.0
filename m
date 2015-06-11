@@ -1,147 +1,205 @@
-From: Jerome Glisse <j.glisse@gmail.com>
-Subject: Re: [PATCH 05/36] HMM: introduce heterogeneous memory management v3.
-Date: Thu, 11 Jun 2015 10:23:14 -0400
-Message-ID: <20150611142313.GA26195@gmail.com>
-References: <1432236705-4209-1-git-send-email-j.glisse@gmail.com>
- <1432236705-4209-6-git-send-email-j.glisse@gmail.com>
- <alpine.DEB.2.00.1506081222270.27796@mdh-linux64-2.nvidia.com>
- <20150608211740.GA5241@gmail.com>
- <alpine.DEB.2.00.1506081841490.1802@mdh-linux64-2.nvidia.com>
- <20150609155601.GA3101@gmail.com>
- <alpine.DEB.2.00.1506091939490.21359@mdh-linux64-2.nvidia.com>
- <20150610154237.GA13465@gmail.com>
- <alpine.DEB.2.00.1506101757580.8383@mdh-linux64-2.nvidia.com>
+From: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v4 1/1] ibacm: Add support for pathrecord query through
+ netlink
+Date: Thu, 11 Jun 2015 14:25:52 +0000
+Message-ID: <3F128C9216C9B84BB6ED23EF16290AFB0CABD14B@CRSMSX101.amr.corp.intel.com>
+References: <1433861878-26264-1-git-send-email-kaike.wan@intel.com>
+ <557997EF.7070707@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1506101757580.8383@mdh-linux64-2.nvidia.com>
-Sender: owner-linux-mm@kvack.org
-To: Mark Hairgrove <mhairgrove@nvidia.com>
-Cc: "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Linus Torvalds <torvalds@linux-foundation.org>, "joro@8bytes.org" <joro@8bytes.org>, Mel Gorman <mgorman@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Peter Zijlstra <peterz@infradead.org>, Andrea Arcangeli <aarcange@redhat.com>, Johannes Weiner <jweiner@redhat.com>, Larry Woodman <lwoodman@redhat.com>, Rik van Riel <riel@redhat.com>, Dave Airlie <airlied@redhat.com>, Brendan Conoboy <blc@redhat.com>, Joe Donohue <jdonohue@redhat.com>, Duncan Poole <dpoole@nvidia.com>, Sherry Cheung <SCheung@nvidia.com>, Subhash Gutti <sgutti@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, Lucien Dunning <ldunning@nvidia.com>, Cameron Buschardt <cabuschardt@nvidia.com>, Arvind Gopalakrishnan <arvindg@nvidia.com>, Haggai
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <557997EF.7070707-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 10, 2015 at 06:15:08PM -0700, Mark Hairgrove wrote:
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Hal Rosenstock
+> Sent: Thursday, June 11, 2015 10:15 AM
+> 
+> On 6/9/2015 10:57 AM, kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> > From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> >
+> > This patch enables ibacm to process pathrecord queries through netlink.
+> > Since ibacm can cache pathrecords, this implementation provides an
+> > easy pathrecord cache for kernel components and therefore offers great
+> > performance advantage on large fabric systems.
+> >
+> > Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Signed-off-by: John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > ---
+> > +#define NLA_LEN(nla)	((nla)->nla_len - NLA_HDRLEN)
+> > +#define NLA_DATA(nla)	((char *)(nla) + NLA_HDRLEN)
+> > +
+> > +static void acm_nl_parse_path_attr(struct nlattr *attr,
+> > +				   struct acm_ep_addr_data *data)
+> 
+> Should this return status as to whether parsing was successful or not ?
+> 
+> > +{
+> > +	struct ibv_path_record *path;
+> > +	struct rdma_nla_ls_service_id  *sid;
+> > +	struct rdma_nla_ls_gid *gid;
+> > +	struct rdma_nla_ls_tclass *tcl;
+> > +	struct rdma_nla_ls_reversible *rev;
+> > +	struct rdma_nla_ls_numb_path *npath;
+> > +	struct rdma_nla_ls_pkey *pkey;
+> > +	struct rdma_nla_ls_qos_class *qos;
+> > +	uint16_t val;
+> > +
+> > +#define IBV_PATH_RECORD_QOS_MASK 0xfff0
+> > +
+> > +	path = &data->info.path;
+> > +	switch (attr->nla_type & NLA_TYPE_MASK) {
+> > +	case LS_NLA_TYPE_SERVICE_ID:
+> > +		sid = (struct rdma_nla_ls_service_id *) NLA_DATA(attr);
+> > +		if (NLA_LEN(attr) == sizeof(sid->service_id)) {
+> > +			acm_log(2, "service_id 0x%llx\n", sid->service_id);
+> > +			path->service_id = sid->service_id;
+> > +		}
+> > +		break;
+> > +
+> > +	case LS_NLA_TYPE_DGID:
+> > +		gid = (struct rdma_nla_ls_gid *) NLA_DATA(attr);
+> > +		if (NLA_LEN(attr) == sizeof(gid->gid)) {
+> > +			acm_format_name(2, log_data, sizeof(log_data),
+> > +					ACM_ADDRESS_GID, gid->gid,
+> > +					sizeof(union ibv_gid));
+> > +			acm_log(2, "path dgid %s\n", log_data);
+> > +			memcpy(path->dgid.raw, gid->gid, sizeof(path-
+> >dgid));
+> > +			data->flags |= ACM_EP_FLAG_DEST;
+> > +		}
+> > +		break;
+> > +
+> > +	case LS_NLA_TYPE_SGID:
+> > +		gid = (struct rdma_nla_ls_gid *) NLA_DATA(attr);
+> > +		if (NLA_LEN(attr) == sizeof(gid->gid)) {
+> > +			acm_format_name(2, log_data, sizeof(log_data),
+> > +					ACM_ADDRESS_GID, gid->gid,
+> > +					sizeof(union ibv_gid));
+> > +			acm_log(2, "path sgid %s\n", log_data);
+> > +			memcpy(path->sgid.raw, gid->gid, sizeof(path->sgid));
+> > +			data->flags |= ACM_EP_FLAG_SOURCE;
+> > +		}
+> > +		break;
+> > +
+> > +	case LS_NLA_TYPE_TCLASS:
+> > +		tcl = (struct rdma_nla_ls_tclass *) NLA_DATA(attr);
+> > +		if (NLA_LEN(attr) == sizeof(tcl->tclass)) {
+> > +			acm_log(2, "tclass 0x%x\n", tcl->tclass);
+> > +			path->tclass = tcl->tclass;
+> > +		}
+> > +		break;
+> > +
+> > +	case LS_NLA_TYPE_REVERSIBLE:
+> > +		rev = (struct rdma_nla_ls_reversible *) NLA_DATA(attr);
+> > +		if (NLA_LEN(attr) == sizeof(rev->reversible)) {
+> > +			acm_log(2, "reversible 0x%x\n", rev->reversible);
+> > +			if (rev->reversible)
+> > +				path->reversible_numpath |=
+> > +					IBV_PATH_RECORD_REVERSIBLE;
+> > +			else
+> > +				path->reversible_numpath &=
+> > +					~IBV_PATH_RECORD_REVERSIBLE;
+> > +		}
+> > +		break;
+> > +
+> > +	case LS_NLA_TYPE_NUMB_PATH:
+> > +		npath = (struct rdma_nla_ls_numb_path *) NLA_DATA(attr);
+> > +		if (NLA_LEN(attr) == sizeof(npath->numb_path)) {
+> > +			acm_log(2, "numb_path %d\n", npath->numb_path);
+> > +			path->reversible_numpath &=
+> IBV_PATH_RECORD_REVERSIBLE;
+> > +			path->reversible_numpath |=
+> > +				(npath->numb_path &
+> > +				 (~IBV_PATH_RECORD_REVERSIBLE));
+> > +		}
+> > +		break;
+> > +
+> > +	case LS_NLA_TYPE_PKEY:
+> > +		pkey = (struct rdma_nla_ls_pkey *) NLA_DATA(attr);
+> > +		if (NLA_LEN(attr) == sizeof(pkey->pkey)) {
+> > +			acm_log(2, "pkey 0x%x\n", pkey->pkey);
+> > +			path->pkey = pkey->pkey;
+> > +		}
+> > +		break;
+> > +
+> > +	case LS_NLA_TYPE_QOS_CLASS:
+> > +		qos = (struct rdma_nla_ls_qos_class *) NLA_DATA(attr);
+> > +		if (NLA_LEN(attr) == sizeof(qos->qos_class)) {
+> > +			acm_log(2, "qos_class 0x%x\n", qos->qos_class);
+> > +			val = ntohs(path->qosclass_sl);
+> > +			val &= ~IBV_PATH_RECORD_QOS_MASK;
+> > +			val |= (ntohs(qos->qos_class) &
+> > +				IBV_PATH_RECORD_QOS_MASK);
+> > +			path->qosclass_sl = htons(val);
+> > +		}
+> > +		break;
+> > +
+> > +	default:
+> > +		acm_log(1, "WARN: unknown attr %x\n", attr->nla_type);
+> > +		break;
+> 
+> Is this a parsing failure case ?
 
-[...]
-> > There is no race here, the mirror struct will only be freed once as a=
-gain
-> > the list is a synchronization point. Whoever remove the mirror from t=
-he
-> > list is responsible to drop the list reference.
-> >=20
-> > In the fixed code the only thing that will happen twice is the ->rele=
-ase()
-> > callback. Even that can be work around to garanty it is call only onc=
-e.
-> >=20
-> > Anyway i do not see anyrace here.
-> >=20
->=20
-> The mirror lifetime is fine. The problem I see is with the device lifet=
-ime=20
-> on a multi-core system. Imagine this sequence:
->=20
-> - On CPU1 the mm associated with the mirror is going down
-> - On CPU2 the driver unregisters the mirror then the device
->=20
-> When this happens, the last device mutex_unlock on CPU1 is the only thi=
-ng=20
-> preventing the free of the device in CPU2. That doesn't work, as descri=
-bed=20
-> in this thread: https://lkml.org/lkml/2013/12/2/997
->=20
-> Here's the full sequence again with mutex_unlock split apart. Hopefully=
-=20
-> this shows the device_unregister problem more clearly:
->=20
-> CPU1 (mm release)                   CPU2 (driver)
-> ----------------------              ----------------------
-> hmm_notifier_release
->   down_write(&hmm->rwsem);
->   hlist_del_init(&mirror->mlist);
->   up_write(&hmm->rwsem);
->=20
->   // CPU1 thread is preempted or=20
->   // something
->                                     hmm_mirror_unregister
->                                       hmm_mirror_kill
->                                         down_write(&hmm->rwsem);
->                                         // mirror removed by CPU1 alrea=
-dy
->                                         // so hlist_unhashed returns 1
->                                         up_write(&hmm->rwsem);
->=20
->                                       hmm_mirror_unref(&mirror);
->                                       // Mirror ref now 1
->=20
->                                       // CPU2 thread is preempted or
->                                       // something
-> // CPU1 thread is scheduled
->=20
-> hmm_mirror_unref(&mirror);
->   // Mirror ref now 0, cleanup
->   hmm_mirror_destroy(&mirror)
->     mutex_lock(&device->mutex);
->     list_del_init(&mirror->dlist);
->     device->ops->release(mirror);
->       kfree(mirror);
->                                       // CPU2 thread is scheduled, now
->                                       // both CPU1 and CPU2 are running
->=20
->                                     hmm_device_unregister
->                                       mutex_lock(&device->mutex);
->                                         mutex_optimistic_spin()
->     mutex_unlock(&device->mutex);
->       [...]
->       __mutex_unlock_common_slowpath
->         // CPU2 releases lock
->         atomic_set(&lock->count, 1);
->                                           // Spinning CPU2 acquires now=
--
->                                           // free lock
->                                       // mutex_lock returns
->                                       // Device list empty
->                                       mutex_unlock(&device->mutex);
->                                       return 0;
->                                     kfree(hmm_device);
->         // CPU1 still accessing=20
->         // hmm_device->mutex in=20
->         //__mutex_unlock_common_slowpath
+The error handling code, which was also suggested by Jason,  will be added in next revision. 
 
-Ok i see the race you are afraid of and really it is an unlikely one
-__mutex_unlock_common_slowpath() take a spinlock right after allowing
-other to take the mutex, when we are in your scenario there is no
-contention on that spinlock so it is taken right away and as there
-is no one in the mutex wait list then it goes directly to unlock the
-spinlock and return. You can ignore the debug function as if debugging
-is enabled than the mutex_lock() would need to also take the spinlock
-and thus you would have proper synchronization btw 2 thread thanks to
-the mutex.wait_lock.
+> 
+> > +	}
+> > +}
+> > +
+> > +static void acm_nl_process_resolve(struct acmc_client *client,
+> > +				   struct acm_nl_msg *acmnlmsg)
+> > +{
+> > +	struct acm_msg msg;
+> > +	struct nlattr *attr;
+> > +	int payload_len;
+> > +	int rem;
+> > +	int total_attr_len;
+> > +
+> > +	memset(&msg, 0, sizeof(msg));
+> > +	msg.hdr.opcode = ACM_OP_RESOLVE;
+> > +	msg.hdr.version = ACM_VERSION;
+> > +	msg.hdr.length = ACM_MSG_HDR_LENGTH +
+> ACM_MSG_EP_LENGTH;
+> > +	msg.hdr.status = ACM_STATUS_SUCCESS;
+> > +	msg.hdr.tid = (uint64_t) acmnlmsg;
+> > +	msg.resolve_data[0].type = ACM_EP_INFO_PATH;
+> > +
+> > +	payload_len = acmnlmsg->nlmsg_header.nlmsg_len -
+> NLMSG_HDRLEN;
+> > +	attr = NLMSG_DATA(&acmnlmsg->nlmsg_header);
+> > +	rem = payload_len;
+> > +	while (1) {
+> > +		if (rem < (int) sizeof(*attr) ||
+> > +		    attr->nla_len < sizeof(*attr) ||
+> > +		    attr->nla_len > rem)
+> > +			break;
+> > +
+> > +		acm_nl_parse_path_attr(attr, &msg.resolve_data[0]);
+> > +
+> > +		/* Next attribute */
+> > +		total_attr_len = NLA_ALIGN(attr->nla_len);
+> > +		rem -= total_attr_len;
+> > +		attr = (struct nlattr *) ((char *) attr + total_attr_len);
+> > +	}
+> > +
+> 
+> Since ACM does not resolve multicast PRs,
 
-So basicly while CPU1 is going :
-spin_lock(mutex.wait_lock)
-if (!list_empty(mutex.wait_list)) {
-  // wait_list is empty so branch not taken
-}
-spin_unlock(mutex.wait_lock)
+Why not? The multicast gid will be used as the dgid and ibacm will not ask peers for address resolution. Instead, It will ask SA directly for the multicast pathrecord (route resolution only). I can't see why it can't be done here.
 
-CPU2 would have to test the mirror list and mutex_unlock and return
-before the spin_unlock() of CPU1. This is a tight race, i can add a
-synchronize_rcu() to device_unregister after the mutex_unlock() so
-that we also add a grace period before the device is potentialy freed
-which should make that race completely unlikely.
-
-Moreover for something really bad to happen it would need that the
-freed memory to be reallocated right away by some other thread. Which
-really sound unlikely unless CPU1 is the slowest of all :)
-
-Cheers,
-J=E9r=F4me
-
+> as an optimization here, some
+> minor check of DGID could be done and if it's multicast DGID, ENODATA
+> could be indicated in NL message.
+> 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=3Dmailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
