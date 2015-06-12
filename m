@@ -1,93 +1,97 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/1 linux-next] IB/mthca: use swap() in mthca_make_profile()
-Date: Fri, 12 Jun 2015 11:24:17 -0400
-Message-ID: <557AF9A1.80003@redhat.com>
-References: <1433953911-23735-1-git-send-email-fabf@skynet.be>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH for-next V5 00/12] Move RoCE GID management to IB/Core
+Date: Fri, 12 Jun 2015 10:11:58 -0600
+Message-ID: <20150612161158.GA21425@obsidianresearch.com>
+References: <1433772735-22416-1-git-send-email-matanb@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FE5D17@ORSMSX109.amr.corp.intel.com>
+ <55769561.8000300@mellanox.com>
+ <5577FAFB.8020205@mellanox.com>
+ <20150610150010.GA11243@obsidianresearch.com>
+ <557852EE.5030107@mellanox.com>
+ <20150610184954.GA26404@obsidianresearch.com>
+ <CAAKD3BB90iZ98B2ADG+=ZYuEVtLq26a99BEjQCR8U1vzvcG+Gw@mail.gmail.com>
+ <20150610220154.GA4391@obsidianresearch.com>
+ <CAJ3xEMiXWN9wC5u6iapKMVb4=bfzdnuy3CaZryV0nOFL_Cgmhw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="kc3bdwHnQwvq4BjQ6mLbw1vt9XeXiGbrO"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1433953911-23735-1-git-send-email-fabf-AgBVmzD5pcezQB+pC5nmwQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAJ3xEMiXWN9wC5u6iapKMVb4=bfzdnuy3CaZryV0nOFL_Cgmhw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Fabian Frederick <fabf-AgBVmzD5pcezQB+pC5nmwQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-iNbyuHi0droAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---kc3bdwHnQwvq4BjQ6mLbw1vt9XeXiGbrO
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On Fri, Jun 12, 2015 at 03:29:25PM +0300, Or Gerlitz wrote:
 
-On 06/10/2015 12:31 PM, Fabian Frederick wrote:
-> Use kernel.h macro definition.
->=20
-> Thanks to Julia Lawall for Coccinelle scripting support.
->=20
-> Signed-off-by: Fabian Frederick <fabf-AgBVmzD5pcezQB+pC5nmwQ@public.gmane.org>
+> I understand the email thread went down into further details from this
+> point and on, but still, I'd like to stop here and ask for short
+> clarification -- my understanding of things re this reader-writer
+> scheme is the following:
+> 
+> 1. some reader/s can't be made to sleep as they make calls in atomic context
+> and hence it wouldn't be correct to use RW semaphore
+> 
+> 2. some writers go to sleep (invoke driver call to the firmware) and
+> hence they can't be holding RW spinlock
+> 
+> Agree? if not, can you shortly say what's wrong in these assumptions,
+> or I should just deeply read the thread.
 
-Thanks, applied.
+Sure, broadly.
 
-> ---
->  drivers/infiniband/hw/mthca/mthca_profile.c | 8 ++------
->  1 file changed, 2 insertions(+), 6 deletions(-)
->=20
-> diff --git a/drivers/infiniband/hw/mthca/mthca_profile.c b/drivers/infi=
-niband/hw/mthca/mthca_profile.c
-> index 8edb28a..15d0644 100644
-> --- a/drivers/infiniband/hw/mthca/mthca_profile.c
-> +++ b/drivers/infiniband/hw/mthca/mthca_profile.c
-> @@ -77,7 +77,6 @@ s64 mthca_make_profile(struct mthca_dev *dev,
->  	u64 mem_base, mem_avail;
->  	s64 total_size =3D 0;
->  	struct mthca_resource *profile;
-> -	struct mthca_resource tmp;
->  	int i, j;
-> =20
->  	profile =3D kzalloc(MTHCA_RES_NUM * sizeof *profile, GFP_KERNEL);
-> @@ -136,11 +135,8 @@ s64 mthca_make_profile(struct mthca_dev *dev,
->  	 */
->  	for (i =3D MTHCA_RES_NUM; i > 0; --i)
->  		for (j =3D 1; j < i; ++j) {
-> -			if (profile[j].size > profile[j - 1].size) {
-> -				tmp            =3D profile[j];
-> -				profile[j]     =3D profile[j - 1];
-> -				profile[j - 1] =3D tmp;
-> -			}
-> +			if (profile[j].size > profile[j - 1].size)
-> +				swap(profile[j], profile[j - 1]);
->  		}
-> =20
->  	for (i =3D 0; i < MTHCA_RES_NUM; ++i) {
->=20
+> B/c if these assumptions are correct, seqlock/seqcount seem to me very
+> much like the right approach. It addresses the constraints 1 and 2
+> above, simple/robust to implement/use
 
+Well, it is anything but simple. There are two subtle complex things
+going on with this use of seqlock:
+ - If you hold a seqlock while sleeping and ignore the read-retry
+   mechanism then upon update readers see three states: NEW,OLD,INVALID
+- It is impossible to dev_hold attr->ndev without using RCU
 
+You read the patch, did you understand those subtle details were
+happening? It took me a few re-reads to get it..
 
---kc3bdwHnQwvq4BjQ6mLbw1vt9XeXiGbrO
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Far better is a simple spin lock:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+lock(table->lock)
+spin_lock()
+attr = ...;
+invalid = 1;
+spin_unlock();
 
-iQIcBAEBCAAGBQJVevmhAAoJELgmozMOVy/dvkIP/icwHmRVJEOprv3UPRwu6C7b
-xIWvziHSuo/XhTqtBosnndNtNVWKLvHcJWTJlKagXtPmxTFWc8npjXnggCi55NII
-Fqe117H0akd8qrIdZLYLuT4cozDy+Yfgv0KiVJ5zkcAobHTDzrHBkPu6IAWNbh0N
-XUF786AP38qND1IaDkn77UDTQBUZm8BjeyeICv/igj8THeqmATBAWGs0XhlyKtTL
-UY0tKG6a7RzWm0Q9yG2sjKy8wSR9gBmigRLlqbyFtBtIWbB4aAJJeh/qJcFTlM/4
-QmnOetHO3n0/Pxcml2yOrJBQcpfe/RzG249Cnojzt89EHgg+JdTnyMeDSttPfjIA
-pPpjPdpuCmpKCvsY00q1VLB+K0H37iqPAjzmD+OZifbWWsOedpJgQPPbOcaBiT1w
-opAcUqaQHhpz1dQpsqDd62/mVzJfZ73jz+Ee+D8h7PLJ256hJkj2b+XjgBEUsyZg
-65vx2YQixJXNJ4cvXz5WTTQjA55dpe1PGMKsKzLuiJPqUvlS8Z2puDlJZz/QiyL1
-knapjpI6ZPwAvLIl8gK5nIQHP9kAo/aJhPpjsbVJbwG6Ad0Bj+s73KrsfU39isPc
-woRygBFq4zI54b4zsvI2JFAMc8y+yxWfxUbMhjQk2ACrt0AVXd2FRkt7UF3B/xET
-oa8HJT8AC+VTFB2HTNgg
-=Dxla
------END PGP SIGNATURE-----
+driver->update_gid
 
---kc3bdwHnQwvq4BjQ6mLbw1vt9XeXiGbrO--
+spin_lock()
+invalid = 0;
+spin_unlock();
+unlock(table->lock)
+
+Which solves *exactly* the same problem and doesn't require RCU to
+extract the ndev. [In this case, I think the invalid state is actually
+undesirable, so I'd work to eliminate it]
+
+I keep being suprised by this insistance on performance locking.  99%
+of the time the performance locks and simple locks are
+interchangeable. If you reach a situation where you think you *NEED* a
+performance lock and can't see how to do it with a simple lock, almost
+certainly, you are doing something wrong.
+
+So as a reviewer, asking for simple locks should get the author to
+consider their locking carefully and either produce something correct
+with simple locks or solve the issues with their performance locks,
+independently.
+
+Especially with RCU, there is no excuse, there is a RCU review
+checklist, and both Matan and Yishai's v1 patches *blatantly* fail points
+in that list. 'RCU is used wrong, read the checklist' is all a reviewer
+should have to say.
+
+Being drawing into a stupid argument is pointless, and in future I'm
+going to stop taking the bait. :)
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
