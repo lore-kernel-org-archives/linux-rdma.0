@@ -1,7 +1,7 @@
 From: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v6 3/4] IB/sa: Allocate SA query with kzalloc
-Date: Fri, 12 Jun 2015 10:06:05 -0400
-Message-ID: <1434117966-17978-4-git-send-email-kaike.wan@intel.com>
+Subject: [PATCH v6 2/4] IB/core: Check the presence of netlink multicast group listeners
+Date: Fri, 12 Jun 2015 10:06:04 -0400
+Message-ID: <1434117966-17978-3-git-send-email-kaike.wan@intel.com>
 References: <1434117966-17978-1-git-send-email-kaike.wan@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1434117966-17978-1-git-send-email-kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,58 +12,53 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Replace kmalloc with kzalloc so that all uninitialized fields in SA query
-will be zero-ed out to avoid unintentional consequence. This prepares the
-SA query structure to accept new fields in the future.
+This patch adds a function to check if listeners for a netlink multicast
+group are present.
 
 Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/sa_query.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/infiniband/core/netlink.c |    8 ++++++++
+ include/rdma/rdma_netlink.h       |    7 +++++++
+ 2 files changed, 15 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index c38f030..17e1cf7 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -739,7 +739,7 @@ int ib_sa_path_rec_get(struct ib_sa_client *client,
- 	port  = &sa_dev->port[port_num - sa_dev->start_port];
- 	agent = port->agent;
+diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
+index 23dd5a5..e0fc913 100644
+--- a/drivers/infiniband/core/netlink.c
++++ b/drivers/infiniband/core/netlink.c
+@@ -49,6 +49,14 @@ static DEFINE_MUTEX(ibnl_mutex);
+ static struct sock *nls;
+ static LIST_HEAD(client_list);
  
--	query = kmalloc(sizeof *query, gfp_mask);
-+	query = kzalloc(sizeof(*query), gfp_mask);
- 	if (!query)
- 		return -ENOMEM;
++int ibnl_chk_listeners(unsigned int group)
++{
++	if (netlink_has_listeners(nls, group) == 0)
++		return -1;
++	return 0;
++}
++EXPORT_SYMBOL(ibnl_chk_listeners);
++
+ int ibnl_add_client(int index, int nops,
+ 		    const struct ibnl_client_cbs cb_table[])
+ {
+diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
+index 0790882..5852661 100644
+--- a/include/rdma/rdma_netlink.h
++++ b/include/rdma/rdma_netlink.h
+@@ -77,4 +77,11 @@ int ibnl_unicast(struct sk_buff *skb, struct nlmsghdr *nlh,
+ int ibnl_multicast(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			unsigned int group, gfp_t flags);
  
-@@ -861,7 +861,7 @@ int ib_sa_service_rec_query(struct ib_sa_client *client,
- 	    method != IB_SA_METHOD_DELETE)
- 		return -EINVAL;
- 
--	query = kmalloc(sizeof *query, gfp_mask);
-+	query = kzalloc(sizeof(*query), gfp_mask);
- 	if (!query)
- 		return -ENOMEM;
- 
-@@ -953,7 +953,7 @@ int ib_sa_mcmember_rec_query(struct ib_sa_client *client,
- 	port  = &sa_dev->port[port_num - sa_dev->start_port];
- 	agent = port->agent;
- 
--	query = kmalloc(sizeof *query, gfp_mask);
-+	query = kzalloc(sizeof(*query), gfp_mask);
- 	if (!query)
- 		return -ENOMEM;
- 
-@@ -1050,7 +1050,7 @@ int ib_sa_guid_info_rec_query(struct ib_sa_client *client,
- 	port  = &sa_dev->port[port_num - sa_dev->start_port];
- 	agent = port->agent;
- 
--	query = kmalloc(sizeof *query, gfp_mask);
-+	query = kzalloc(sizeof(*query), gfp_mask);
- 	if (!query)
- 		return -ENOMEM;
- 
++/**
++ * Check if there are any listeners to the netlink group
++ * @group: the netlink group ID
++ * Returns 0 on success or a negative for no listeners.
++ */
++int ibnl_chk_listeners(unsigned int group);
++
+ #endif /* _RDMA_NETLINK_H */
 -- 
 1.7.1
 
