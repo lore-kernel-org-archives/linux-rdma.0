@@ -1,69 +1,58 @@
-From: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v5 1/4] IB/netlink: Add defines for local service
- requests through netlink
-Date: Fri, 12 Jun 2015 00:28:44 +0000
-Message-ID: <3F128C9216C9B84BB6ED23EF16290AFB0CABE6B3@CRSMSX101.amr.corp.intel.com>
-References: <1434042225-4975-1-git-send-email-kaike.wan@intel.com>
- <1434042225-4975-2-git-send-email-kaike.wan@intel.com>
- <20150611175803.GC20142@obsidianresearch.com>
- <3F128C9216C9B84BB6ED23EF16290AFB0CABD2CD@CRSMSX101.amr.corp.intel.com>
- <20150611185136.GC20779@obsidianresearch.com>
- <3F128C9216C9B84BB6ED23EF16290AFB0CABD33C@CRSMSX101.amr.corp.intel.com>
- <20150611195154.GB24457@obsidianresearch.com>
- <3F128C9216C9B84BB6ED23EF16290AFB0CABE5EE@CRSMSX101.amr.corp.intel.com>
- <20150612002133.GA17666@obsidianresearch.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next V3 1/8] IB/core: Change provider's API of
+ create_cq to be extendible
+Date: Fri, 12 Jun 2015 06:06:00 +0300
+Message-ID: <CAJ3xEMgA0UorV3ERz_M7-H0Z4c6tmK2e_k84c6VExhzjQJ+9LQ@mail.gmail.com>
+References: <1434029727-6062-1-git-send-email-ogerlitz@mellanox.com>
+	<1434029727-6062-2-git-send-email-ogerlitz@mellanox.com>
+	<20150611175555.GB20142@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150612002133.GA17666-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20150611175555.GB20142-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
-> Sent: Thursday, June 11, 2015 8:22 PM
-> To: Wan, Kaike
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Fleck, John; Weiny, Ira
-> Subject: Re: [PATCH v5 1/4] IB/netlink: Add defines for local service requests
-> through netlink
-> 
-> On Thu, Jun 11, 2015 at 11:45:46PM +0000, Wan, Kaike wrote:
-> > Apparently, to achieve this goal, we need the following changes:
-> 
-> I don't expect anything more than a proper hole in the UAPI to make this
-> work.
-> 
-> I already have patches that implement full kernel support for the 6-path
-> format, and globally enable APM. With this netlink interface it becomes
-> feasible to mainline them. That will require some reworking of what you've
-> done, but I don't expect you to do that.
-> 
-> The only remaining thing we need here is that tiny bit of policy information
-> for the kernel to specify what the intended use of the path is:
->  - For connected CM operation (6 path records)
->  - For unidirectional UD (1 path record)
->  - For 'misc' GMP like operation (at least 1 reversible path record)
-> 
-> I'm happy if you call it PATH_USE_XX
-> 
-> Testing the reversible bit should be enough to rough this in, if not reversible it
-> is PATH_USE_UNIDIRECTIONAL_UD, otherwise it is PATH_USE_GMP.
-> 
-> Recommend that userspace treat any unknown usage type as GMP (it is the
+On Thu, Jun 11, 2015 at 8:55 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Thu, Jun 11, 2015 at 04:35:20PM +0300, Or Gerlitz wrote:
+>> From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>
+>> Add a new ib_cq_init_attr structure which contains the
+>> previous cqe (minimum number of CQ entries) and comp_vector
+>> (completion vector) in addition to a new flags field.
+>> All vendors' create_cq callbacks are changed in order
+>> to work with the new API.
+>>
+>> This commit does not change any functionality.
+>>
+>> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>
+> You need to collect any Reviwed-By's etc people provide to earlier
+> series, and include them when spining a new revision.  For instance
 
-> most general).
+Right, I agree, but our official WW here has ended and the merge
+window is likely to open Monday, I hope this time Doug can do that and
+pick the patches today so they can pass linux-next built tests and
+such in his tree
 
-That would be cool. If we add this attribute, should we remove reversible and numb_path attributes?
+> http://permalink.gmane.org/gmane.linux.drivers.rdma/26129
+>
+> I think I had provided a Reviewed-By for some of these patches too.
 
-Kaike
+You only provided your reviewed by to patch #1 and said once we do
+the last fix to #2 it can go there too.
 
-> 
-> Ira: Do you like 'path use' better as a name? I think I do..
-> 
-> Jason
+> It isn't reasonable to expect Doug to do that.
+
+next time I'll make sure not to forget it, so
+
+Add Jason's Reviewed-By to patches #1/#2
+
+Reviewed-By: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org> to patch #2
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
