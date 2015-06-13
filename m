@@ -1,90 +1,93 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Upstream mlx4 driver very broken (when using SRIOV)
-Date: Sat, 13 Jun 2015 01:35:01 -0400
-Message-ID: <557BC105.3070405@redhat.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Upstream mlx4 driver very broken (when using SRIOV)
+Date: Sat, 13 Jun 2015 10:18:31 +0300
+Message-ID: <CAJ3xEMjn-T+qzRU1OSbrp=q5PcKkG30wqQhdnde2S_ThBMtSRA@mail.gmail.com>
+References: <557BC105.3070405@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="bCN5N5m35Aj1PTVSHKkTF65ADOiFM6Mtu"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <557BC105.3070405-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---bCN5N5m35Aj1PTVSHKkTF65ADOiFM6Mtu
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+On Sat, Jun 13, 2015 at 8:35 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> I ran across a problem today when I went to do some run tests of my
+> for-4.2 tree.  For a second there, I was about to seriously have a
+> conniption fit.  But, after about 6 hours of work bisecting and
+> debugging, I've come to find that I wasn't so crazy after all.
+>
+> When I went to install my for-4.2 tree, IPoIB was totally busted, as in
+> DOA.  I knew the 4.1 code I submitted to Linus I had checked, but I
+> wanted to have a good starting point for a bisection so I compiled a
+> kernel from my for-4.1-rc branch.  And it was DOA too.  That seriously
+> unnerved me because I knew I tested that code.  I did a number of manual
+> checkouts at possible suspicious code points, and none of them showed
+> that the problem was resolved.  Then I started doing some debugging on
+> both the afflicted machine and on the opensm server.  I finally saw that
+> the afflicted machine was claiming that it was attempting to join the
+> multicast group, but was reporting error 110 (ETIMEDOUT).  The opensm
+> server was not seeing the requests at all.
+>
+> Long story short, I did my testing in the 4.1 merge window and rc phase
+> on machines without SRIOV enabled, but when you enable SRIOV in the mlx4
+> driver, the current driver seems to have broken QP0/QP1 multiplexing
+> support because the host becomes unable to join the IPoIB multicast
+> groups.  In addition, with SRIOV enabled, mlx4_en throws corruption
+> errors on reboot and requires that the machine be power cycled as
+> opposed to rebooting cleanly.  From what I can tell, the 4.0 release
 
-I ran across a problem today when I went to do some run tests of my
-for-4.2 tree.  For a second there, I was about to seriously have a
-conniption fit.  But, after about 6 hours of work bisecting and
-debugging, I've come to find that I wasn't so crazy after all.
+Doug,
 
-When I went to install my for-4.2 tree, IPoIB was totally busted, as in
-DOA.  I knew the 4.1 code I submitted to Linus I had checked, but I
-wanted to have a good starting point for a bisection so I compiled a
-kernel from my for-4.1-rc branch.  And it was DOA too.  That seriously
-unnerved me because I knew I tested that code.  I did a number of manual
-checkouts at possible suspicious code points, and none of them showed
-that the problem was resolved.  Then I started doing some debugging on
-both the afflicted machine and on the opensm server.  I finally saw that
-the afflicted machine was claiming that it was attempting to join the
-multicast group, but was reporting error 110 (ETIMEDOUT).  The opensm
-server was not seeing the requests at all.
+So now my weekend mood is busted too, probably was a mistake to pick
+into my gmail account (but I can't promise to never do it again) -- NM
+I'll manage.
 
-Long story short, I did my testing in the 4.1 merge window and rc phase
-on machines without SRIOV enabled, but when you enable SRIOV in the mlx4
-driver, the current driver seems to have broken QP0/QP1 multiplexing
-support because the host becomes unable to join the IPoIB multicast
-groups.  In addition, with SRIOV enabled, mlx4_en throws corruption
-errors on reboot and requires that the machine be power cycled as
-opposed to rebooting cleanly.  From what I can tell, the 4.0 release
-kernel has this problem too, and it still exists at least as far as
-4.1-rc7 + all of my queued up -next patches.
+AFAIK, our regression systems for upstream do run SRIOV tests, and as
+I know very well, I've been working on upstream code with mlx4 SRIOV
+over the last couple of weeks on daily manner (I've been using net and
+net-next but it should be good coverage)... I wonder what fell between
+the cracks here... let's see -- but **please** be more precise when
+you report on breakage (here and elsewhere):
 
-=46rom my /etc/modprobe.d/mlx4.conf file if you want to try and duplicate=
-:
+1. set ipoib debug flags (both of them) and do ifdown/ifup to the NIC
+instance that fails joining groups (which? you didn't say if this is
+total failure e.g of the IPv4 multicast group or of some other
+group/s) and send the resulted log
 
-options mlx4_core probe_vf=3D0 num_vfs=3D7 port_type_array=3D1,2
-options mlx4_en pfctx=3D0x28 pfcrx=3D0x28
+2. re "broken QP0/QP1 multiplexing support" that this means you see
+address resolution failure with rdma-cm apps? indeed, no ping, no
+rping... but this doesn't mean QP0/QP1 multiplexing broken. If you
+have ping (ICMP) working, try
 
-And I'm guessing that your internal regression tests must not have a
-machine in IB/Eth SRIOV mode as a standard config.  I would consider
-adding it to the mix.  I have it myself, but only on a few machines and
-I don't always use them for initial testing.
+$ rping -dvs
+$ rping -dvca SERVER
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+and send us the output
 
+3. Re "with SRIOV enabled, mlx4_en throws corruption errors on reboot"
+- show them to us
 
+To sum up: Send us some boring dmesg outputs from your problematic
+setup that go beyond your analysis, as well as your "lspci | grep nox"
+output + the dmesg of mlx4_core when loaded with debug_level=1 (I'd
+like to see the FW version and various other outputs).
 
---bCN5N5m35Aj1PTVSHKkTF65ADOiFM6Mtu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+> kernel has this problem too, and it still exists at least as far as
+> 4.1-rc7 + all of my queued up -next patches.
+>
+> From my /etc/modprobe.d/mlx4.conf file if you want to try and duplicate:
+>
+> options mlx4_core probe_vf=0 num_vfs=7 port_type_array=1,2
+> options mlx4_en pfctx=0x28 pfcrx=0x28
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+AFAIK pfctx/pfcrx are eight bits, not sure what's  the 0x20 is for
 
-iQIcBAEBCAAGBQJVe8EFAAoJELgmozMOVy/dZhAQAJkD3VAj4+K+RFuT1FXqFt51
-HYD5pC8nw7vy/d5LU/2dM2k+Qmg0bZ5uPvhjysgahJzrvM5R+78EITtSwlGu0Kqs
-xEL9fNX11tmLgxuli/gY8Dm1c+b+bySq2NGwLsDlYWBzQjTJAxeVyYRjrnZhU7AQ
-bkDg6nKCFAW0FnQ30XbzB+rCQyUc6r8kBxbDt21Xn5g4J3KaXJMi/SKbHUPG7YEM
-OXhLqmBTQahwdSz2n4jBQ1D8p7dQI8zx2Wm3pP8qF4E3UWeozdYWLyWxMAjHA/k0
-5x7dPA9+eOSjzIF278xotv541nqNJqN7LOfHICoVas9eOypVNXXSDdsSODy7qYaM
-mHR+24zBVzUcqKnKeAqYK4iH4O84Vg+JUZbWZ6g/KQRPjaixTXoMgK6lzOHqaM4X
-9iX6F4CUZxs7CLbyApcLoLQ9Yi1mqAXNYcImqeQ/poQIL3Nm7jWdFUyWQ6HLNwWS
-oDECnnioukJrjA8VsrO52S7BBib3nFNR3umK1VsXvG3RvR3qqsc7ijGg1NOPBYu2
-w8ZyBeFyE2367vlmIqGg3B2MRgMFU86jyCccibcCYvJdHB4X39YTW8bIcvjsof5R
-Z9fH2quIaIrhyzBZsuperRKNjB1xvvCFxWx6i7/NEHF5ibi28NQthDokmp2JujRP
-ebzOXJUK1TDy7PLNy0TY
-=Y6l8
------END PGP SIGNATURE-----
-
---bCN5N5m35Aj1PTVSHKkTF65ADOiFM6Mtu--
+> And I'm guessing that your internal regression tests must not have a
+> machine in IB/Eth SRIOV mode as a standard config.  I would consider
+> adding it to the mix.  I have it myself, but only on a few machines and
+> I don't always use them for initial testing.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
