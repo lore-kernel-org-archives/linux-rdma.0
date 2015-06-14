@@ -1,74 +1,72 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH REPOST libmlx4] Add IP and TCP/UDP TX checksum offload support
-Date: Sun, 14 Jun 2015 13:13:38 +0300
-Message-ID: <1434276818-15972-1-git-send-email-ogerlitz@mellanox.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Upstream mlx4 driver very broken (when using SRIOV)
+Date: Sun, 14 Jun 2015 17:31:06 +0300
+Message-ID: <CAJ3xEMi--ygFeYC12iiivXnbZLd=ox22fzt_f1+TFn7M0Emhug@mail.gmail.com>
+References: <557BC105.3070405@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <557BC105.3070405-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Sat, Jun 13, 2015 at 8:35 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> I ran across a problem today when I went to do some run tests of my
+> for-4.2 tree.  For a second there, I was about to seriously have a
+> conniption fit.  But, after about 6 hours of work bisecting and
+> debugging, I've come to find that I wasn't so crazy after all.
+>
+> When I went to install my for-4.2 tree, IPoIB was totally busted, as in
+> DOA.  I knew the 4.1 code I submitted to Linus I had checked, but I
+> wanted to have a good starting point for a bisection so I compiled a
+> kernel from my for-4.1-rc branch.  And it was DOA too.  That seriously
+> unnerved me because I knew I tested that code.  I did a number of manual
+> checkouts at possible suspicious code points, and none of them showed
+> that the problem was resolved.  Then I started doing some debugging on
+> both the afflicted machine and on the opensm server.  I finally saw that
+> the afflicted machine was claiming that it was attempting to join the
+> multicast group, but was reporting error 110 (ETIMEDOUT).  The opensm
+> server was not seeing the requests at all.
+>
+> Long story short, I did my testing in the 4.1 merge window and rc phase
+> on machines without SRIOV enabled, but when you enable SRIOV in the mlx4
+> driver, the current driver seems to have broken QP0/QP1 multiplexing
+> support because the host becomes unable to join the IPoIB multicast
+> groups.  In addition, with SRIOV enabled, mlx4_en throws corruption
+> errors on reboot and requires that the machine be power cycled as
+> opposed to rebooting cleanly.  From what I can tell, the 4.0 release
+> kernel has this problem too, and it still exists at least as far as
+> 4.1-rc7 + all of my queued up -next patches.
+>
+> From my /etc/modprobe.d/mlx4.conf file if you want to try and duplicate:
+>
+> options mlx4_core probe_vf=0 num_vfs=7 port_type_array=1,2
 
-Add support for IBV_SEND_IP_CSUM for posted send work-requests.
+Doug,
 
-When this flag is set, enable the HW checksum calculation by setting
-MLX4_WQE_CTRL_IP_CSUM and MLX4_WQE_CTRL_TCP_UDP_CSUM flags in the WQE
-control segment.
+You were 100% right, due to recent FW bug SRIOV QP0/QP1 PV is broken
+with VPI config of IB/Eth (port_type_array=1,2), personally, I didn't
+step on it, since I moved my working environment to Eth/IB (2,1)
+couple of weeks ago, Oh well.
 
-Signed-off-by: Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- src/qp.c  |   11 ++++++++++-
- src/wqe.h |    2 ++
- 2 files changed, 12 insertions(+), 1 deletions(-)
+The fix is easy, disable Granular VF QoS in that VPI config, I tested
+it and sent that now to net [1]
 
-diff --git a/src/qp.c b/src/qp.c
-index 721bed4..5b800e7 100644
---- a/src/qp.c
-+++ b/src/qp.c
-@@ -286,6 +286,10 @@ int mlx4_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
- 			break;
- 
- 		case IBV_QPT_UD:
-+			ctrl->srcrb_flags |=
-+				wr->send_flags & IBV_SEND_IP_CSUM ?
-+				htonl(MLX4_WQE_CTRL_IP_CSUM |
-+				      MLX4_WQE_CTRL_TCP_UDP_CSUM) : 0;
- 			set_datagram_seg(wqe, wr);
- 			wqe  += sizeof (struct mlx4_wqe_datagram_seg);
- 			size += sizeof (struct mlx4_wqe_datagram_seg) / 16;
-@@ -294,7 +298,12 @@ int mlx4_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
- 		case IBV_QPT_RAW_PACKET:
- 			/* For raw eth, the MLX4_WQE_CTRL_SOLICIT flag is used
- 			 * to indicate that no icrc should be calculated */
--			ctrl->srcrb_flags |= htonl(MLX4_WQE_CTRL_SOLICIT);
-+			ctrl->srcrb_flags |=
-+				wr->send_flags & IBV_SEND_IP_CSUM ?
-+				htonl(MLX4_WQE_CTRL_IP_CSUM |
-+				      MLX4_WQE_CTRL_TCP_UDP_CSUM |
-+				      MLX4_WQE_CTRL_SOLICIT) :
-+				htonl(MLX4_WQE_CTRL_SOLICIT);
- 			break;
- 
- 		default:
-diff --git a/src/wqe.h b/src/wqe.h
-index bbd22ba..ebd5167 100644
---- a/src/wqe.h
-+++ b/src/wqe.h
-@@ -41,6 +41,8 @@ enum {
- 	MLX4_WQE_CTRL_FENCE	= 1 << 6,
- 	MLX4_WQE_CTRL_CQ_UPDATE	= 3 << 2,
- 	MLX4_WQE_CTRL_SOLICIT	= 1 << 1,
-+	MLX4_WQE_CTRL_IP_CSUM	= 1 << 4,
-+	MLX4_WQE_CTRL_TCP_UDP_CSUM = 1 << 5
- };
- 
- enum {
--- 
-1.7.1
+We should check how come the upstream regression environment didn't
+catch that up.
 
+Or.
+
+[1] http://patchwork.ozlabs.org/patch/483991/
+
+> options mlx4_en pfctx=0x28 pfcrx=0x28
+>
+> And I'm guessing that your internal regression tests must not have a
+> machine in IB/Eth SRIOV mode as a standard config.  I would consider
+> adding it to the mix.  I have it myself, but only on a few machines and
+> I don't always use them for initial testing.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
