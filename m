@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 16/49] IB/hfi1: add PSM driver control/data path
-Date: Mon, 15 Jun 2015 09:27:24 -0400
-Message-ID: <20150615132724.29741.30086.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH v2 12/49] IB/hfi1: add diagnostic hooks
+Date: Mon, 15 Jun 2015 09:27:03 -0400
+Message-ID: <20150615132703.29741.30293.stgit@phlsvslse11.ph.intel.com>
 References: <20150615132434.29741.35258.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -37,16 +37,16 @@ Signed-off-by: Sanath Kumar <sanath.s.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.
 Signed-off-by: Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Vlad Danushevsky <vladimir.danusevsky-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/file_ops.c | 2122 +++++++++++++++++++++++++++++++++
- 1 file changed, 2122 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi1/file_ops.c
+ drivers/infiniband/hw/hfi1/diag.c | 1873 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 1873 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi1/diag.c
 
-diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
+diff --git a/drivers/infiniband/hw/hfi1/diag.c b/drivers/infiniband/hw/hfi1/diag.c
 new file mode 100644
-index 0000000..8d794e8
+index 0000000..6461fd4
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/file_ops.c
-@@ -0,0 +1,2122 @@
++++ b/drivers/infiniband/hw/hfi1/diag.c
+@@ -0,0 +1,1873 @@
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -96,2078 +96,1829 @@ index 0000000..8d794e8
 + * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + */
++
++/*
++ * This file contains support for diagnostic functions.  It is accessed by
++ * opening the hfi1_diag device, normally minor number 129.  Diagnostic use
++ * of the chip may render the chip or board unusable until the driver
++ * is unloaded, or in some cases, until the system is rebooted.
++ *
++ * Accesses to the chip through this interface are not similar to going
++ * through the /sys/bus/pci resource mmap interface.
++ */
++
++#include <linux/io.h>
 +#include <linux/pci.h>
 +#include <linux/poll.h>
-+#include <linux/cdev.h>
-+#include <linux/swap.h>
 +#include <linux/vmalloc.h>
-+#include <linux/highmem.h>
-+#include <linux/io.h>
-+#include <linux/jiffies.h>
-+#include <asm/pgtable.h>
-+#include <linux/delay.h>
 +#include <linux/export.h>
++#include <linux/fs.h>
++#include <linux/uaccess.h>
 +#include <linux/module.h>
-+#include <linux/cred.h>
-+#include <linux/uio.h>
-+
++#include <rdma/ib_smi.h>
 +#include "hfi.h"
-+#include "pio.h"
 +#include "device.h"
 +#include "common.h"
 +#include "trace.h"
-+#include "user_sdma.h"
-+#include "eprom.h"
 +
 +#undef pr_fmt
 +#define pr_fmt(fmt) DRIVER_NAME ": " fmt
++#define snoop_dbg(fmt, ...) \
++	hfi1_cdbg(SNOOP, fmt, ##__VA_ARGS__)
 +
-+#define SEND_CTXT_HALT_TIMEOUT 1000 /* msecs */
++/* Snoop option mask */
++#define SNOOP_DROP_SEND	(1 << 0)
++#define SNOOP_USE_METADATA	(1 << 1)
++
++static u8 snoop_flags;
 +
 +/*
-+ * File operation functions
++ * Extract packet length from LRH header.
++ * Why & 0x7FF? Because len is only 11 bits in case it wasn't 0'd we throw the
++ * bogus bits away. This is in Dwords so multiply by 4 to get size in bytes
 + */
-+static int hfi1_file_open(struct inode *, struct file *);
-+static int hfi1_file_close(struct inode *, struct file *);
-+static ssize_t hfi1_file_write(struct file *, const char __user *,
-+			       size_t, loff_t *);
-+static ssize_t hfi1_write_iter(struct kiocb *, struct iov_iter *);
-+static unsigned int hfi1_poll(struct file *, struct poll_table_struct *);
-+static int hfi1_file_mmap(struct file *, struct vm_area_struct *);
++#define HFI1_GET_PKT_LEN(x)      (((be16_to_cpu((x)->lrh[2]) & 0x7FF)) << 2)
 +
-+static u64 kvirt_to_phys(void *);
-+static int assign_ctxt(struct file *, struct hfi1_user_info *);
-+static int init_subctxts(struct hfi1_ctxtdata *, const struct hfi1_user_info *);
-+static int user_init(struct file *);
-+static int get_ctxt_info(struct file *, void __user *, __u32);
-+static int get_base_info(struct file *, void __user *, __u32);
-+static int setup_ctxt(struct file *);
-+static int setup_subctxt(struct hfi1_ctxtdata *);
-+static int get_user_context(struct file *, struct hfi1_user_info *,
-+			    int, unsigned);
-+static int find_shared_ctxt(struct file *, const struct hfi1_user_info *);
-+static int allocate_ctxt(struct file *, struct hfi1_devdata *,
-+			 struct hfi1_user_info *);
-+static unsigned int poll_urgent(struct file *, struct poll_table_struct *);
-+static unsigned int poll_next(struct file *, struct poll_table_struct *);
-+static int user_event_ack(struct hfi1_ctxtdata *, int, unsigned long);
-+static int set_ctxt_pkey(struct hfi1_ctxtdata *, unsigned, u16);
-+static int manage_rcvq(struct hfi1_ctxtdata *, unsigned, int);
-+static int vma_fault(struct vm_area_struct *, struct vm_fault *);
-+static int exp_tid_setup(struct file *, struct hfi1_tid_info *);
-+static int exp_tid_free(struct file *, struct hfi1_tid_info *);
-+static void unlock_exp_tids(struct hfi1_ctxtdata *);
++enum hfi1_filter_status {
++	HFI1_FILTER_HIT,
++	HFI1_FILTER_ERR,
++	HFI1_FILTER_MISS
++};
 +
-+static const struct file_operations hfi1_file_ops = {
++/* snoop processing functions */
++rhf_rcv_function_ptr snoop_rhf_rcv_functions[8] = {
++	[RHF_RCV_TYPE_EXPECTED] = snoop_recv_handler,
++	[RHF_RCV_TYPE_EAGER]    = snoop_recv_handler,
++	[RHF_RCV_TYPE_IB]       = snoop_recv_handler,
++	[RHF_RCV_TYPE_ERROR]    = snoop_recv_handler,
++	[RHF_RCV_TYPE_BYPASS]   = snoop_recv_handler,
++	[RHF_RCV_TYPE_INVALID5] = process_receive_invalid,
++	[RHF_RCV_TYPE_INVALID6] = process_receive_invalid,
++	[RHF_RCV_TYPE_INVALID7] = process_receive_invalid
++};
++
++/* Snoop packet structure */
++struct snoop_packet {
++	struct list_head list;
++	u32 total_len;
++	u8 data[];
++};
++
++/* Do not make these an enum or it will blow up the capture_md */
++#define PKT_DIR_EGRESS 0x0
++#define PKT_DIR_INGRESS 0x1
++
++/* Packet capture metadata returned to the user with the packet. */
++struct capture_md {
++	u8 port;
++	u8 dir;
++	u8 reserved[6];
++	union {
++		u64 pbc;
++		u64 rhf;
++	} u;
++};
++
++static atomic_t diagpkt_count = ATOMIC_INIT(0);
++static struct cdev diagpkt_cdev;
++static struct device *diagpkt_device;
++
++static ssize_t diagpkt_write(struct file *fp, const char __user *data,
++				 size_t count, loff_t *off);
++
++static const struct file_operations diagpkt_file_ops = {
 +	.owner = THIS_MODULE,
-+	.write = hfi1_file_write,
-+	.write_iter = hfi1_write_iter,
-+	.open = hfi1_file_open,
-+	.release = hfi1_file_close,
-+	.poll = hfi1_poll,
-+	.mmap = hfi1_file_mmap,
++	.write = diagpkt_write,
 +	.llseek = noop_llseek,
 +};
 +
-+static struct vm_operations_struct vm_ops = {
-+	.fault = vma_fault,
++/*
++ * This is used for communication with user space for snoop extended IOCTLs
++ */
++struct hfi1_link_info {
++	 __be64 node_guid;
++	u8 port_mode;
++	u8 port_state;
++	u16 link_speed_active;
++	u16 link_width_active;
++	u16 vl15_init;
++	u8 port_number;
++	/*
++	 * Add padding to make this a full IB SMP payload. Note: changing the
++	 * size of this structure will make the IOCTLs created with _IOWR
++	 * change.
++	 * Be sure to run tests on all IOCTLs when making changes to this
++	 * structure.
++	 */
++	u8 res[47];
 +};
 +
 +/*
-+ * Types of memories mapped into user processes' space
++ * This starts our ioctl sequence numbers *way* off from the ones
++ * defined in ib_core.
 + */
-+enum mmap_types {
-+	PIO_BUFS = 1,
-+	PIO_BUFS_SOP,
-+	PIO_CRED,
-+	RCV_HDRQ,
-+	RCV_EGRBUF,
-+	UREGS,
-+	EVENTS,
-+	STATUS,
-+	RTAIL,
-+	SUBCTXT_UREGS,
-+	SUBCTXT_RCV_HDRQ,
-+	SUBCTXT_EGRBUF,
-+	SDMA_COMP
++#define SNOOP_CAPTURE_VERSION 0x1
++
++#define IB_IOCTL_MAGIC          0x1b /* See Documentation/ioctl-number.txt */
++#define HFI1_SNOOP_IOC_MAGIC IB_IOCTL_MAGIC
++#define HFI1_SNOOP_IOC_BASE_SEQ 0x80
++
++#define HFI1_SNOOP_IOCGETLINKSTATE \
++	_IO(HFI1_SNOOP_IOC_MAGIC, HFI1_SNOOP_IOC_BASE_SEQ)
++#define HFI1_SNOOP_IOCSETLINKSTATE \
++	_IO(HFI1_SNOOP_IOC_MAGIC, HFI1_SNOOP_IOC_BASE_SEQ+1)
++#define HFI1_SNOOP_IOCCLEARQUEUE \
++	_IO(HFI1_SNOOP_IOC_MAGIC, HFI1_SNOOP_IOC_BASE_SEQ+2)
++#define HFI1_SNOOP_IOCCLEARFILTER \
++	_IO(HFI1_SNOOP_IOC_MAGIC, HFI1_SNOOP_IOC_BASE_SEQ+3)
++#define HFI1_SNOOP_IOCSETFILTER \
++	_IO(HFI1_SNOOP_IOC_MAGIC, HFI1_SNOOP_IOC_BASE_SEQ+4)
++#define HFI1_SNOOP_IOCGETVERSION \
++	_IO(HFI1_SNOOP_IOC_MAGIC, HFI1_SNOOP_IOC_BASE_SEQ+5)
++#define HFI1_SNOOP_IOCSET_OPTS \
++	_IO(HFI1_SNOOP_IOC_MAGIC, HFI1_SNOOP_IOC_BASE_SEQ+6)
++
++/*
++ * These offsets +6/+7 could change, but these are already known and used
++ * IOCTL numbers so don't change them without a good reason.
++ */
++#define HFI1_SNOOP_IOCGETLINKSTATE_EXTRA \
++	_IOWR(HFI1_SNOOP_IOC_MAGIC, HFI1_SNOOP_IOC_BASE_SEQ+6, \
++		struct hfi1_link_info)
++#define HFI1_SNOOP_IOCSETLINKSTATE_EXTRA \
++	_IOWR(HFI1_SNOOP_IOC_MAGIC, HFI1_SNOOP_IOC_BASE_SEQ+7, \
++		struct hfi1_link_info)
++
++static int hfi1_snoop_open(struct inode *in, struct file *fp);
++static ssize_t hfi1_snoop_read(struct file *fp, char __user *data,
++				size_t pkt_len, loff_t *off);
++static ssize_t hfi1_snoop_write(struct file *fp, const char __user *data,
++				 size_t count, loff_t *off);
++static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg);
++static unsigned int hfi1_snoop_poll(struct file *fp,
++					struct poll_table_struct *wait);
++static int hfi1_snoop_release(struct inode *in, struct file *fp);
++
++struct hfi1_packet_filter_command {
++	int opcode;
++	int length;
++	void *value_ptr;
 +};
 +
-+/*
-+ * Masks and offsets defining the mmap tokens
-+ */
-+#define HFI1_MMAP_OFFSET_MASK   0xfffULL
-+#define HFI1_MMAP_OFFSET_SHIFT  0
-+#define HFI1_MMAP_SUBCTXT_MASK  0xfULL
-+#define HFI1_MMAP_SUBCTXT_SHIFT 12
-+#define HFI1_MMAP_CTXT_MASK     0xffULL
-+#define HFI1_MMAP_CTXT_SHIFT    16
-+#define HFI1_MMAP_TYPE_MASK     0xfULL
-+#define HFI1_MMAP_TYPE_SHIFT    24
-+#define HFI1_MMAP_MAGIC_MASK    0xffffffffULL
-+#define HFI1_MMAP_MAGIC_SHIFT   32
++/* Can't re-use PKT_DIR_*GRESS here because 0 means no packets for this */
++#define HFI1_SNOOP_INGRESS 0x1
++#define HFI1_SNOOP_EGRESS  0x2
 +
-+#define HFI1_MMAP_MAGIC         0xdabbad00
++enum hfi1_packet_filter_opcodes {
++	FILTER_BY_LID,
++	FILTER_BY_DLID,
++	FILTER_BY_MAD_MGMT_CLASS,
++	FILTER_BY_QP_NUMBER,
++	FILTER_BY_PKT_TYPE,
++	FILTER_BY_SERVICE_LEVEL,
++	FILTER_BY_PKEY,
++	FILTER_BY_DIRECTION,
++};
 +
-+#define HFI1_MMAP_TOKEN_SET(field, val)	\
-+	(((val) & HFI1_MMAP_##field##_MASK) << HFI1_MMAP_##field##_SHIFT)
-+#define HFI1_MMAP_TOKEN_GET(field, token) \
-+	(((token) >> HFI1_MMAP_##field##_SHIFT) & HFI1_MMAP_##field##_MASK)
-+#define HFI1_MMAP_TOKEN(type, ctxt, subctxt, addr)   \
-+	(HFI1_MMAP_TOKEN_SET(MAGIC, HFI1_MMAP_MAGIC) | \
-+	HFI1_MMAP_TOKEN_SET(TYPE, type) | \
-+	HFI1_MMAP_TOKEN_SET(CTXT, ctxt) | \
-+	HFI1_MMAP_TOKEN_SET(SUBCTXT, subctxt) | \
-+	HFI1_MMAP_TOKEN_SET(OFFSET, ((unsigned long)addr & ~PAGE_MASK)))
++static const struct file_operations snoop_file_ops = {
++	.owner = THIS_MODULE,
++	.open = hfi1_snoop_open,
++	.read = hfi1_snoop_read,
++	.unlocked_ioctl = hfi1_ioctl,
++	.poll = hfi1_snoop_poll,
++	.write = hfi1_snoop_write,
++	.release = hfi1_snoop_release
++};
 +
-+#define EXP_TID_SET(field, value)			\
-+	(((value) & EXP_TID_TID##field##_MASK) <<	\
-+	 EXP_TID_TID##field##_SHIFT)
-+#define EXP_TID_CLEAR(tid, field) {					\
-+		(tid) &= ~(EXP_TID_TID##field##_MASK <<			\
-+			   EXP_TID_TID##field##_SHIFT);			\
-+			}
-+#define EXP_TID_RESET(tid, field, value) do {				\
-+		EXP_TID_CLEAR(tid, field);				\
-+		(tid) |= EXP_TID_SET(field, value);			\
-+	} while (0)
++struct hfi1_filter_array {
++	int (*filter)(void *, void *, void *);
++};
 +
-+#define dbg(fmt, ...)				\
-+	pr_info(fmt, ##__VA_ARGS__)
++static int hfi1_filter_lid(void *ibhdr, void *packet_data, void *value);
++static int hfi1_filter_dlid(void *ibhdr, void *packet_data, void *value);
++static int hfi1_filter_mad_mgmt_class(void *ibhdr, void *packet_data,
++				      void *value);
++static int hfi1_filter_qp_number(void *ibhdr, void *packet_data, void *value);
++static int hfi1_filter_ibpacket_type(void *ibhdr, void *packet_data,
++				     void *value);
++static int hfi1_filter_ib_service_level(void *ibhdr, void *packet_data,
++					void *value);
++static int hfi1_filter_ib_pkey(void *ibhdr, void *packet_data, void *value);
++static int hfi1_filter_direction(void *ibhdr, void *packet_data, void *value);
 +
++static struct hfi1_filter_array hfi1_filters[] = {
++	{ hfi1_filter_lid },
++	{ hfi1_filter_dlid },
++	{ hfi1_filter_mad_mgmt_class },
++	{ hfi1_filter_qp_number },
++	{ hfi1_filter_ibpacket_type },
++	{ hfi1_filter_ib_service_level },
++	{ hfi1_filter_ib_pkey },
++	{ hfi1_filter_direction },
++};
 +
-+static inline int is_valid_mmap(u64 token)
++#define HFI1_MAX_FILTERS	ARRAY_SIZE(hfi1_filters)
++#define HFI1_DIAG_MINOR_BASE	129
++
++static int hfi1_snoop_add(struct hfi1_devdata *dd, const char *name);
++
++int hfi1_diag_add(struct hfi1_devdata *dd)
 +{
-+	return (HFI1_MMAP_TOKEN_GET(MAGIC, token) == HFI1_MMAP_MAGIC);
-+}
-+
-+static int hfi1_file_open(struct inode *inode, struct file *fp)
-+{
-+	/* The real work is performed later in assign_ctxt() */
-+	fp->private_data = kzalloc(sizeof(struct hfi1_filedata), GFP_KERNEL);
-+	if (fp->private_data) /* no cpu affinity by default */
-+		((struct hfi1_filedata *)fp->private_data)->rec_cpu_num = -1;
-+	return fp->private_data ? 0 : -ENOMEM;
-+}
-+
-+static ssize_t hfi1_file_write(struct file *fp, const char __user *data,
-+			       size_t count, loff_t *offset)
-+{
-+	const struct hfi1_cmd __user *ucmd;
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+	struct hfi1_cmd cmd;
-+	struct hfi1_user_info uinfo;
-+	struct hfi1_tid_info tinfo;
-+	ssize_t consumed = 0, copy = 0, ret = 0;
-+	void *dest = NULL;
-+	__u64 user_val = 0;
-+	int uctxt_required = 1;
-+	int must_be_root = 0;
-+
-+	if (count < sizeof(cmd)) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	ucmd = (const struct hfi1_cmd __user *)data;
-+	if (copy_from_user(&cmd, ucmd, sizeof(cmd))) {
-+		ret = -EFAULT;
-+		goto bail;
-+	}
-+
-+	consumed = sizeof(cmd);
-+
-+	switch (cmd.type) {
-+	case HFI1_CMD_ASSIGN_CTXT:
-+		uctxt_required = 0;	/* assigned user context not required */
-+		copy = sizeof(uinfo);
-+		dest = &uinfo;
-+		break;
-+	case HFI1_CMD_SDMA_STATUS_UPD:
-+	case HFI1_CMD_CREDIT_UPD:
-+		copy = 0;
-+		break;
-+	case HFI1_CMD_TID_UPDATE:
-+	case HFI1_CMD_TID_FREE:
-+		copy = sizeof(tinfo);
-+		dest = &tinfo;
-+		break;
-+	case HFI1_CMD_USER_INFO:
-+	case HFI1_CMD_RECV_CTRL:
-+	case HFI1_CMD_POLL_TYPE:
-+	case HFI1_CMD_ACK_EVENT:
-+	case HFI1_CMD_CTXT_INFO:
-+	case HFI1_CMD_SET_PKEY:
-+	case HFI1_CMD_CTXT_RESET:
-+		copy = 0;
-+		user_val = cmd.addr;
-+		break;
-+	case HFI1_CMD_EP_INFO:
-+	case HFI1_CMD_EP_ERASE_CHIP:
-+	case HFI1_CMD_EP_ERASE_P0:
-+	case HFI1_CMD_EP_ERASE_P1:
-+	case HFI1_CMD_EP_READ_P0:
-+	case HFI1_CMD_EP_READ_P1:
-+	case HFI1_CMD_EP_WRITE_P0:
-+	case HFI1_CMD_EP_WRITE_P1:
-+		uctxt_required = 0;	/* assigned user context not required */
-+		must_be_root = 1;	/* validate user */
-+		copy = 0;
-+		break;
-+	default:
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	/* If the command comes with user data, copy it. */
-+	if (copy) {
-+		if (copy_from_user(dest, (void __user *)cmd.addr, copy)) {
-+			ret = -EFAULT;
-+			goto bail;
-+		}
-+		consumed += copy;
-+	}
-+
-+	/*
-+	 * Make sure there is a uctxt when needed.
-+	 */
-+	if (uctxt_required && !uctxt) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	/* only root can do these operations */
-+	if (must_be_root && !capable(CAP_SYS_ADMIN)) {
-+		ret = -EPERM;
-+		goto bail;
-+	}
-+
-+	switch (cmd.type) {
-+	case HFI1_CMD_ASSIGN_CTXT:
-+		ret = assign_ctxt(fp, &uinfo);
-+		if (ret < 0)
-+			goto bail;
-+		ret = setup_ctxt(fp);
-+		if (ret)
-+			goto bail;
-+		ret = user_init(fp);
-+		break;
-+	case HFI1_CMD_CTXT_INFO:
-+		ret = get_ctxt_info(fp, (void __user *)(unsigned long)
-+				    user_val, cmd.len);
-+		break;
-+	case HFI1_CMD_USER_INFO:
-+		ret = get_base_info(fp, (void __user *)(unsigned long)
-+				    user_val, cmd.len);
-+		break;
-+	case HFI1_CMD_SDMA_STATUS_UPD:
-+		break;
-+	case HFI1_CMD_CREDIT_UPD:
-+		if (uctxt && uctxt->sc)
-+			sc_return_credits(uctxt->sc);
-+		break;
-+	case HFI1_CMD_TID_UPDATE:
-+		ret = exp_tid_setup(fp, &tinfo);
-+		if (!ret) {
-+			unsigned long addr;
-+			/*
-+			 * Copy the number of tidlist entries we used
-+			 * and the length of the buffer we registered.
-+			 * These fields are adjacent in the structure so
-+			 * we can copy them at the same time.
-+			 */
-+			addr = (unsigned long)cmd.addr +
-+				offsetof(struct hfi1_tid_info, tidcnt);
-+			if (copy_to_user((void __user *)addr, &tinfo.tidcnt,
-+					 sizeof(tinfo.tidcnt) +
-+					 sizeof(tinfo.length)))
-+				ret = -EFAULT;
-+		}
-+		break;
-+	case HFI1_CMD_TID_FREE:
-+		ret = exp_tid_free(fp, &tinfo);
-+		break;
-+	case HFI1_CMD_RECV_CTRL:
-+		ret = manage_rcvq(uctxt, subctxt_fp(fp), (int)user_val);
-+		break;
-+	case HFI1_CMD_POLL_TYPE:
-+		uctxt->poll_type = (typeof(uctxt->poll_type))user_val;
-+		break;
-+	case HFI1_CMD_ACK_EVENT:
-+		ret = user_event_ack(uctxt, subctxt_fp(fp), user_val);
-+		break;
-+	case HFI1_CMD_SET_PKEY:
-+		if (HFI1_CAP_IS_USET(PKEY_CHECK))
-+			ret = set_ctxt_pkey(uctxt, subctxt_fp(fp), user_val);
-+		else
-+			ret = -EPERM;
-+		break;
-+	case HFI1_CMD_CTXT_RESET: {
-+		struct send_context *sc;
-+		struct hfi1_devdata *dd;
-+
-+		if (!uctxt || !uctxt->dd || !uctxt->sc) {
-+			ret = -EINVAL;
-+			break;
-+		}
-+		/*
-+		 * There is no protection here. User level has to
-+		 * guarantee that no one will be writing to the send
-+		 * context while it is being re-initialized.
-+		 * If user level breaks that guarantee, it will break
-+		 * it's own context and no one else's.
-+		 */
-+		dd = uctxt->dd;
-+		sc = uctxt->sc;
-+		/*
-+		 * Wait until the interrupt handler has marked the
-+		 * context as halted or frozen. Report error if we time
-+		 * out.
-+		 */
-+		wait_event_interruptible_timeout(
-+			sc->halt_wait, (sc->flags & SCF_HALTED),
-+			msecs_to_jiffies(SEND_CTXT_HALT_TIMEOUT));
-+		if (!(sc->flags & SCF_HALTED)) {
-+			ret = -ENOLCK;
-+			break;
-+		}
-+		/*
-+		 * If the send context was halted due to a Freeze,
-+		 * wait until the device has been "unfrozen" before
-+		 * resetting the context.
-+		 */
-+		if (sc->flags & SCF_FROZEN) {
-+			wait_event_interruptible_timeout(
-+				dd->event_queue,
-+				!(ACCESS_ONCE(dd->flags) & HFI1_FROZEN),
-+				msecs_to_jiffies(SEND_CTXT_HALT_TIMEOUT));
-+			if (dd->flags & HFI1_FROZEN) {
-+				ret = -ENOLCK;
-+				break;
-+			}
-+			if (dd->flags & HFI1_FORCED_FREEZE) {
-+				/* Don't allow context reset if we are into
-+				 * forced freeze */
-+				ret = -ENODEV;
-+				break;
-+			}
-+			sc_disable(sc);
-+			ret = sc_enable(sc);
-+			hfi1_rcvctrl(dd, HFI1_RCVCTRL_CTXT_ENB,
-+				     uctxt->ctxt);
-+		} else
-+			ret = sc_restart(sc);
-+		if (!ret)
-+			sc_return_credits(sc);
-+		break;
-+	}
-+	case HFI1_CMD_EP_INFO:
-+	case HFI1_CMD_EP_ERASE_CHIP:
-+	case HFI1_CMD_EP_ERASE_P0:
-+	case HFI1_CMD_EP_ERASE_P1:
-+	case HFI1_CMD_EP_READ_P0:
-+	case HFI1_CMD_EP_READ_P1:
-+	case HFI1_CMD_EP_WRITE_P0:
-+	case HFI1_CMD_EP_WRITE_P1:
-+		ret = handle_eprom_command(&cmd);
-+		break;
-+	}
-+
-+	if (ret >= 0)
-+		ret = consumed;
-+bail:
-+	return ret;
-+}
-+
-+static ssize_t hfi1_write_iter(struct kiocb *kiocb, struct iov_iter *from)
-+{
-+	struct hfi1_user_sdma_pkt_q *pq;
-+	struct hfi1_user_sdma_comp_q *cq;
-+	int ret = 0, done = 0, reqs = 0;
-+	unsigned long dim = from->nr_segs;
-+
-+	if (!user_sdma_comp_fp(kiocb->ki_filp) ||
-+	    !user_sdma_pkt_fp(kiocb->ki_filp)) {
-+		ret = -EIO;
-+		goto done;
-+	}
-+
-+	if (!iter_is_iovec(from) || !dim) {
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
-+	hfi1_cdbg(SDMA, "SDMA request from %u:%u (%lu)",
-+		  ctxt_fp(kiocb->ki_filp)->ctxt, subctxt_fp(kiocb->ki_filp),
-+		  dim);
-+	pq = user_sdma_pkt_fp(kiocb->ki_filp);
-+	cq = user_sdma_comp_fp(kiocb->ki_filp);
-+
-+	if (atomic_read(&pq->n_reqs) == pq->n_max_reqs) {
-+		ret = -ENOSPC;
-+		goto done;
-+	}
-+
-+	while (dim) {
-+		unsigned long count = 0;
-+
-+		ret = hfi1_user_sdma_process_request(
-+			kiocb->ki_filp,	(struct iovec *)(from->iov + done),
-+			dim, &count);
-+		if (ret)
-+			goto done;
-+		dim -= count;
-+		done += count;
-+		reqs++;
-+	}
-+done:
-+	return ret ? ret : reqs;
-+}
-+
-+static int hfi1_file_mmap(struct file *fp, struct vm_area_struct *vma)
-+{
-+	struct hfi1_ctxtdata *uctxt;
-+	struct hfi1_devdata *dd;
-+	unsigned long flags, pfn;
-+	u64 token = vma->vm_pgoff << PAGE_SHIFT,
-+		memaddr = 0;
-+	u8 subctxt, mapio = 0, vmf = 0, type;
-+	ssize_t memlen = 0;
-+	int ret = 0;
-+	u16 ctxt;
-+
-+	uctxt = ctxt_fp(fp);
-+	if (!is_valid_mmap(token) || !uctxt ||
-+	    !(vma->vm_flags & VM_SHARED)) {
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+	dd = uctxt->dd;
-+	ctxt = HFI1_MMAP_TOKEN_GET(CTXT, token);
-+	subctxt = HFI1_MMAP_TOKEN_GET(SUBCTXT, token);
-+	type = HFI1_MMAP_TOKEN_GET(TYPE, token);
-+	if (ctxt != uctxt->ctxt || subctxt != subctxt_fp(fp)) {
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
-+	flags = vma->vm_flags;
-+
-+	switch (type) {
-+	case PIO_BUFS:
-+	case PIO_BUFS_SOP:
-+		memaddr = ((dd->physaddr + TXE_PIO_SEND) +
-+				/* chip pio base */
-+			   (uctxt->sc->hw_context * (1 << 16))) +
-+				/* 64K PIO space / ctxt */
-+			(type == PIO_BUFS_SOP ?
-+				(TXE_PIO_SIZE / 2) : 0); /* sop? */
-+		/*
-+		 * Map only the amount allocated to the context, not the
-+		 * entire available context's PIO space.
-+		 */
-+		memlen = ALIGN(uctxt->sc->credits * PIO_BLOCK_SIZE,
-+			       PAGE_SIZE);
-+		flags &= ~VM_MAYREAD;
-+		flags |= VM_DONTCOPY | VM_DONTEXPAND;
-+		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
-+		mapio = 1;
-+		break;
-+	case PIO_CRED:
-+		if (flags & VM_WRITE) {
-+			ret = -EPERM;
-+			goto done;
-+		}
-+		/*
-+		 * The credit return location for this context could be on the
-+		 * second or third page allocated for credit returns (if number
-+		 * of enabled contexts > 64 and 128 respectively).
-+		 */
-+		memaddr = dd->cr_base[uctxt->numa_id].pa +
-+			(((u64)uctxt->sc->hw_free -
-+			  (u64)dd->cr_base[uctxt->numa_id].va) & PAGE_MASK);
-+		memlen = PAGE_SIZE;
-+		flags &= ~VM_MAYWRITE;
-+		flags |= VM_DONTCOPY | VM_DONTEXPAND;
-+		/*
-+		 * The driver has already allocated memory for credit
-+		 * returns and programmed it into the chip. Has that
-+		 * memory been flagged as non-cached?
-+		 */
-+		/* vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot); */
-+		mapio = 1;
-+		break;
-+	case RCV_HDRQ:
-+		memaddr = uctxt->rcvhdrq_phys;
-+		memlen = uctxt->rcvhdrq_size;
-+		break;
-+	case RCV_EGRBUF: {
-+		unsigned long addr;
-+		int i;
-+		/*
-+		 * The RcvEgr buffer need to be handled differently
-+		 * as multiple non-contiguous pages need to be mapped
-+		 * into the user process.
-+		 */
-+		memlen = uctxt->egrbufs.size;
-+		if ((vma->vm_end - vma->vm_start) != memlen) {
-+			dd_dev_err(dd, "Eager buffer map size invalid (%lu != %lu)\n",
-+				   (vma->vm_end - vma->vm_start), memlen);
-+			ret = -EINVAL;
-+			goto done;
-+		}
-+		if (vma->vm_flags & VM_WRITE) {
-+			ret = -EPERM;
-+			goto done;
-+		}
-+		vma->vm_flags &= ~VM_MAYWRITE;
-+		addr = vma->vm_start;
-+		for (i = 0 ; i < uctxt->egrbufs.numbufs; i++) {
-+			ret = remap_pfn_range(
-+				vma, addr,
-+				uctxt->egrbufs.buffers[i].phys >> PAGE_SHIFT,
-+				uctxt->egrbufs.buffers[i].len,
-+				vma->vm_page_prot);
-+			if (ret < 0)
-+				goto done;
-+			addr += uctxt->egrbufs.buffers[i].len;
-+		}
-+		ret = 0;
-+		goto done;
-+	}
-+	case UREGS:
-+		/*
-+		 * Map only the page that contains this context's user
-+		 * registers.
-+		 */
-+		memaddr = (unsigned long)
-+			(dd->physaddr + RXE_PER_CONTEXT_USER)
-+			+ (uctxt->ctxt * RXE_PER_CONTEXT_SIZE);
-+		/*
-+		 * TidFlow table is on the same page as the rest of the
-+		 * user registers.
-+		 */
-+		memlen = PAGE_SIZE;
-+		flags |= VM_DONTCOPY | VM_DONTEXPAND;
-+		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-+		mapio = 1;
-+		break;
-+	case EVENTS:
-+		/*
-+		 * Use the page where this context's flags are. User level
-+		 * knows where it's own bitmap is within the page.
-+		 */
-+		memaddr = ((unsigned long)dd->events +
-+			   ((uctxt->ctxt - dd->first_user_ctxt) *
-+			    HFI1_MAX_SHARED_CTXTS)) & PAGE_MASK;
-+		memlen = PAGE_SIZE;
-+		/*
-+		 * v3.7 removes VM_RESERVED but the effect is kept by
-+		 * using VM_IO.
-+		 */
-+		flags |= VM_IO | VM_DONTEXPAND;
-+		vmf = 1;
-+		break;
-+	case STATUS:
-+		memaddr = kvirt_to_phys((void *)dd->status);
-+		memlen = PAGE_SIZE;
-+		flags |= VM_IO | VM_DONTEXPAND;
-+		break;
-+	case RTAIL:
-+		if (!HFI1_CAP_IS_USET(DMA_RTAIL)) {
-+			/*
-+			 * If the memory allocation failed, the context alloc
-+			 * also would have failed, so we would never get here
-+			 */
-+			ret = -EINVAL;
-+			goto done;
-+		}
-+		if (flags & VM_WRITE) {
-+			ret = -EPERM;
-+			goto done;
-+		}
-+		memaddr = uctxt->rcvhdrqtailaddr_phys;
-+		memlen = PAGE_SIZE;
-+		flags &= ~VM_MAYWRITE;
-+		break;
-+	case SUBCTXT_UREGS:
-+		memaddr = (u64)uctxt->subctxt_uregbase;
-+		memlen = PAGE_SIZE;
-+		flags |= VM_IO | VM_DONTEXPAND;
-+		vmf = 1;
-+		break;
-+	case SUBCTXT_RCV_HDRQ:
-+		memaddr = (u64)uctxt->subctxt_rcvhdr_base;
-+		memlen = uctxt->rcvhdrq_size * uctxt->subctxt_cnt;
-+		flags |= VM_IO | VM_DONTEXPAND;
-+		vmf = 1;
-+		break;
-+	case SUBCTXT_EGRBUF:
-+		memaddr = (u64)uctxt->subctxt_rcvegrbuf;
-+		memlen = uctxt->egrbufs.size * uctxt->subctxt_cnt;
-+		flags |= VM_IO | VM_DONTEXPAND;
-+		flags &= ~VM_MAYWRITE;
-+		vmf = 1;
-+		break;
-+	case SDMA_COMP: {
-+		struct hfi1_user_sdma_comp_q *cq;
-+
-+		if (!user_sdma_comp_fp(fp)) {
-+			ret = -EFAULT;
-+			goto done;
-+		}
-+		cq = user_sdma_comp_fp(fp);
-+		memaddr = (u64)cq->comps;
-+		memlen = ALIGN(sizeof(*cq->comps) * cq->nentries, PAGE_SIZE);
-+		flags |= VM_IO | VM_DONTEXPAND;
-+		vmf = 1;
-+		break;
-+	}
-+	default:
-+		ret = -EINVAL;
-+		break;
-+	}
-+
-+	if ((vma->vm_end - vma->vm_start) != memlen) {
-+		hfi1_cdbg(PROC, "%u:%u Memory size mismatch %lu:%lu",
-+			  uctxt->ctxt, subctxt_fp(fp),
-+			  (vma->vm_end - vma->vm_start), memlen);
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
-+	vma->vm_flags = flags;
-+	dd_dev_info(dd,
-+		    "%s: %u:%u type:%u io/vf:%d/%d, addr:0x%llx, len:%lu(%lu), flags:0x%lx\n",
-+		    __func__, ctxt, subctxt, type, mapio, vmf, memaddr, memlen,
-+		    vma->vm_end - vma->vm_start, vma->vm_flags);
-+	pfn = (unsigned long)(memaddr >> PAGE_SHIFT);
-+	if (vmf) {
-+		vma->vm_pgoff = pfn;
-+		vma->vm_ops = &vm_ops;
-+		ret = 0;
-+	} else if (mapio) {
-+		ret = io_remap_pfn_range(vma, vma->vm_start, pfn, memlen,
-+					 vma->vm_page_prot);
-+	} else {
-+		ret = remap_pfn_range(vma, vma->vm_start, pfn, memlen,
-+				      vma->vm_page_prot);
-+	}
-+done:
-+	return ret;
-+}
-+
-+/*
-+ * Local (non-chip) user memory is not mapped right away but as it is
-+ * accessed by the user-level code.
-+ */
-+static int vma_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
-+{
-+	struct page *page;
-+
-+	page = vmalloc_to_page((void *)(vmf->pgoff << PAGE_SHIFT));
-+	if (!page)
-+		return VM_FAULT_SIGBUS;
-+
-+	get_page(page);
-+	vmf->page = page;
-+
-+	return 0;
-+}
-+
-+static unsigned int hfi1_poll(struct file *fp, struct poll_table_struct *pt)
-+{
-+	struct hfi1_ctxtdata *uctxt;
-+	unsigned pollflag;
-+
-+	uctxt = ctxt_fp(fp);
-+	if (!uctxt)
-+		pollflag = POLLERR;
-+	else if (uctxt->poll_type == HFI1_POLL_TYPE_URGENT)
-+		pollflag = poll_urgent(fp, pt);
-+	else  if (uctxt->poll_type == HFI1_POLL_TYPE_ANYRCV)
-+		pollflag = poll_next(fp, pt);
-+	else /* invalid */
-+		pollflag = POLLERR;
-+
-+	return pollflag;
-+}
-+
-+static int hfi1_file_close(struct inode *inode, struct file *fp)
-+{
-+	struct hfi1_filedata *fdata = fp->private_data;
-+	struct hfi1_ctxtdata *uctxt = fdata->uctxt;
-+	struct hfi1_devdata *dd;
-+	unsigned long flags, *ev;
-+
-+	fp->private_data = NULL;
-+
-+	if (!uctxt)
-+		goto done;
-+
-+	hfi1_cdbg(PROC, "freeing ctxt %u:%u", uctxt->ctxt, fdata->subctxt);
-+	dd = uctxt->dd;
-+	mutex_lock(&hfi1_mutex);
-+
-+	flush_wc();
-+	/* drain user sdma queue */
-+	if (fdata->pq)
-+		hfi1_user_sdma_free_queues(fdata);
-+
-+	/*
-+	 * Clear any left over, unhandled events so the next process that
-+	 * gets this context doesn't get confused.
-+	 */
-+	ev = dd->events + ((uctxt->ctxt - dd->first_user_ctxt) *
-+			   HFI1_MAX_SHARED_CTXTS) + fdata->subctxt;
-+	*ev = 0;
-+
-+	if (--uctxt->cnt) {
-+		uctxt->active_slaves &= ~(1 << fdata->subctxt);
-+		uctxt->subpid[fdata->subctxt] = 0;
-+		mutex_unlock(&hfi1_mutex);
-+		goto done;
-+	}
-+
-+	spin_lock_irqsave(&dd->uctxt_lock, flags);
-+	/*
-+	 * Disable receive context and interrupt available, reset all
-+	 * RcvCtxtCtrl bits to default values.
-+	 */
-+	hfi1_rcvctrl(dd, HFI1_RCVCTRL_CTXT_DIS |
-+		     HFI1_RCVCTRL_TIDFLOW_DIS |
-+		     HFI1_RCVCTRL_INTRAVAIL_DIS |
-+		     HFI1_RCVCTRL_ONE_PKT_EGR_DIS |
-+		     HFI1_RCVCTRL_NO_RHQ_DROP_DIS |
-+		     HFI1_RCVCTRL_NO_EGR_DROP_DIS, uctxt->ctxt);
-+	/* Clear the context's J_KEY */
-+	hfi1_clear_ctxt_jkey(dd, uctxt->ctxt);
-+	/*
-+	 * Reset context integrity checks to default.
-+	 * (writes to CSRs probably belong in chip.c)
-+	 */
-+	write_kctxt_csr(dd, uctxt->sc->hw_context, SEND_CTXT_CHECK_ENABLE,
-+			hfi1_pkt_default_send_ctxt_mask(dd, uctxt->sc->type));
-+	sc_disable(uctxt->sc);
-+	uctxt->pid = 0;
-+	spin_unlock_irqrestore(&dd->uctxt_lock, flags);
-+
-+	dd->rcd[uctxt->ctxt] = NULL;
-+	uctxt->rcvwait_to = 0;
-+	uctxt->piowait_to = 0;
-+	uctxt->rcvnowait = 0;
-+	uctxt->pionowait = 0;
-+	uctxt->event_flags = 0;
-+
-+	hfi1_clear_tids(uctxt);
-+	hfi1_clear_ctxt_pkey(dd, uctxt->ctxt);
-+
-+	if (uctxt->tid_pg_list)
-+		unlock_exp_tids(uctxt);
-+
-+	hfi1_stats.sps_ctxts--;
-+	dd->freectxts++;
-+	mutex_unlock(&hfi1_mutex);
-+	hfi1_free_ctxtdata(dd, uctxt);
-+done:
-+	kfree(fdata);
-+	return 0;
-+}
-+
-+/*
-+ * Convert kernel *virtual* addresses to physical addresses.
-+ * This is used to vmalloc'ed addresses.
-+ */
-+static u64 kvirt_to_phys(void *addr)
-+{
-+	struct page *page;
-+	u64 paddr = 0;
-+
-+	page = vmalloc_to_page(addr);
-+	if (page)
-+		paddr = page_to_pfn(page) << PAGE_SHIFT;
-+
-+	return paddr;
-+}
-+
-+static int assign_ctxt(struct file *fp, struct hfi1_user_info *uinfo)
-+{
-+	int i_minor, ret = 0;
-+	unsigned swmajor, swminor, alg = HFI1_ALG_ACROSS;
-+
-+	swmajor = uinfo->userversion >> 16;
-+	if (swmajor != HFI1_USER_SWMAJOR) {
-+		ret = -ENODEV;
-+		goto done;
-+	}
-+
-+	swminor = uinfo->userversion & 0xffff;
-+
-+	if (uinfo->hfi1_alg < HFI1_ALG_COUNT)
-+		alg = uinfo->hfi1_alg;
-+
-+	mutex_lock(&hfi1_mutex);
-+	/* First, lets check if we need to setup a shared context? */
-+	if (uinfo->subctxt_cnt)
-+		ret = find_shared_ctxt(fp, uinfo);
-+
-+	/*
-+	 * We execute the following block if we couldn't find a
-+	 * shared context or if context sharing is not required.
-+	 */
-+	if (!ret) {
-+		i_minor = iminor(file_inode(fp)) - HFI1_USER_MINOR_BASE;
-+		ret = get_user_context(fp, uinfo, i_minor - 1, alg);
-+	}
-+	mutex_unlock(&hfi1_mutex);
-+done:
-+	return ret;
-+}
-+
-+static int get_user_context(struct file *fp, struct hfi1_user_info *uinfo,
-+			    int devno, unsigned alg)
-+{
-+	struct hfi1_devdata *dd = NULL;
-+	int ret = 0, devmax, npresent, nup, dev;
-+
-+	devmax = hfi1_count_units(&npresent, &nup);
-+	if (!npresent) {
-+		ret = -ENXIO;
-+		goto done;
-+	}
-+	if (!nup) {
-+		ret = -ENETDOWN;
-+		goto done;
-+	}
-+	if (devno >= 0) {
-+		dd = hfi1_lookup(devno);
-+		if (!dd)
-+			ret = -ENODEV;
-+		else if (!dd->freectxts)
-+			ret = -EBUSY;
-+	} else {
-+		struct hfi1_devdata *pdd;
-+
-+		if (alg == HFI1_ALG_ACROSS) {
-+			unsigned free = 0U;
-+
-+			for (dev = 0; dev < devmax; dev++) {
-+				pdd = hfi1_lookup(dev);
-+				if (pdd && pdd->freectxts &&
-+				    pdd->freectxts > free) {
-+					dd = pdd;
-+					free = pdd->freectxts;
-+				}
-+			}
-+		} else {
-+			for (dev = 0; dev < devmax; dev++) {
-+				pdd = hfi1_lookup(dev);
-+				if (pdd && pdd->freectxts) {
-+					dd = pdd;
-+					break;
-+				}
-+			}
-+		}
-+		if (!dd)
-+			ret = -EBUSY;
-+	}
-+done:
-+	return ret ? ret : allocate_ctxt(fp, dd, uinfo);
-+}
-+
-+static int find_shared_ctxt(struct file *fp,
-+			    const struct hfi1_user_info *uinfo)
-+{
-+	int devmax, ndev, i;
++	char name[16];
 +	int ret = 0;
 +
-+	devmax = hfi1_count_units(NULL, NULL);
-+
-+	for (ndev = 0; ndev < devmax; ndev++) {
-+		struct hfi1_devdata *dd = hfi1_lookup(ndev);
-+
-+		/* device portion of usable() */
-+		if (!(dd && (dd->flags & HFI1_PRESENT) && dd->kregbase))
-+			continue;
-+		for (i = dd->first_user_ctxt; i < dd->num_rcv_contexts; i++) {
-+			struct hfi1_ctxtdata *uctxt = dd->rcd[i];
-+
-+			/* Skip ctxts which are not yet open */
-+			if (!uctxt || !uctxt->cnt)
-+				continue;
-+			/* Skip ctxt if it doesn't match the requested one */
-+			if (memcmp(uctxt->uuid, uinfo->uuid,
-+				   sizeof(uctxt->uuid)) ||
-+			    uctxt->subctxt_id != uinfo->subctxt_id ||
-+			    uctxt->subctxt_cnt != uinfo->subctxt_cnt)
-+				continue;
-+
-+			/* Verify the sharing process matches the master */
-+			if (uctxt->userversion != uinfo->userversion ||
-+			    uctxt->cnt >= uctxt->subctxt_cnt) {
-+				ret = -EINVAL;
-+				goto done;
-+			}
-+			ctxt_fp(fp) = uctxt;
-+			subctxt_fp(fp) = uctxt->cnt++;
-+			uctxt->subpid[subctxt_fp(fp)] = current->pid;
-+			uctxt->active_slaves |= 1 << subctxt_fp(fp);
-+			ret = 1;
-+			goto done;
-+		}
-+	}
-+
-+done:
-+	return ret;
-+}
-+
-+static int allocate_ctxt(struct file *fp, struct hfi1_devdata *dd,
-+			 struct hfi1_user_info *uinfo)
-+{
-+	struct hfi1_ctxtdata *uctxt;
-+	unsigned ctxt;
-+	int ret;
-+
-+	if (dd->flags & HFI1_FROZEN) {
-+		/*
-+		 * Pick an error that is unique from all other errors
-+		 * that are returned so the user process knows that
-+		 * it tried to allocate while the SPC was frozen.  It
-+		 * it should be able to retry with success in a short
-+		 * while.
-+		 */
-+		return -EIO;
-+	}
-+
-+	for (ctxt = dd->first_user_ctxt; ctxt < dd->num_rcv_contexts; ctxt++)
-+		if (!dd->rcd[ctxt])
-+			break;
-+
-+	if (ctxt == dd->num_rcv_contexts)
-+		return -EBUSY;
-+
-+	uctxt = hfi1_create_ctxtdata(dd->pport, ctxt);
-+	if (!uctxt) {
-+		dd_dev_err(dd,
-+			   "Unable to allocate ctxtdata memory, failing open\n");
-+		return -ENOMEM;
-+	}
++	snprintf(name, sizeof(name), "%s_diagpkt%d", class_name(),
++		 dd->unit);
 +	/*
-+	 * Allocate and enable a PIO send context.
++	 * Do this for each device as opposed to the normal diagpkt
++	 * interface which is one per host
 +	 */
-+	uctxt->sc = sc_alloc(dd, SC_USER, uctxt->rcvhdrqentsize,
-+			     uctxt->numa_id);
-+	if (!uctxt->sc)
-+		return -ENOMEM;
-+
-+	dbg("allocated send context %u(%u)\n", uctxt->sc->sw_index,
-+		uctxt->sc->hw_context);
-+	ret = sc_enable(uctxt->sc);
++	ret = hfi1_snoop_add(dd, name);
 +	if (ret)
-+		return ret;
-+	/*
-+	 * Setup shared context resources if the user-level has requested
-+	 * shared contexts and this is the 'master' process.
-+	 * This has to be done here so the rest of the sub-contexts find the
-+	 * proper master.
-+	 */
-+	if (uinfo->subctxt_cnt && !subctxt_fp(fp)) {
-+		ret = init_subctxts(uctxt, uinfo);
-+		/*
-+		 * On error, we don't need to disable and de-allocate the
-+		 * send context because it will be done during file close
-+		 */
-+		if (ret)
-+			return ret;
-+	}
-+	uctxt->userversion = uinfo->userversion;
-+	uctxt->pid = current->pid;
-+	uctxt->flags = HFI1_CAP_UGET(MASK);
-+	init_waitqueue_head(&uctxt->wait);
-+	strlcpy(uctxt->comm, current->comm, sizeof(uctxt->comm));
-+	memcpy(uctxt->uuid, uinfo->uuid, sizeof(uctxt->uuid));
-+	uctxt->jkey = generate_jkey(current_uid());
-+	INIT_LIST_HEAD(&uctxt->sdma_queues);
-+	spin_lock_init(&uctxt->sdma_qlock);
-+	hfi1_stats.sps_ctxts++;
-+	dd->freectxts--;
-+	ctxt_fp(fp) = uctxt;
++		dd_dev_err(dd, "Unable to init snoop/capture device");
 +
-+	return 0;
++	snprintf(name, sizeof(name), "%s_diagpkt", class_name());
++	if (atomic_inc_return(&diagpkt_count) == 1) {
++		ret = hfi1_cdev_init(HFI1_DIAGPKT_MINOR, name,
++				     &diagpkt_file_ops, &diagpkt_cdev,
++				     &diagpkt_device);
++	}
++
++	return ret;
 +}
 +
-+static int init_subctxts(struct hfi1_ctxtdata *uctxt,
-+			 const struct hfi1_user_info *uinfo)
++/* this must be called w/ dd->snoop_in_lock held */
++static void drain_snoop_list(struct list_head *queue)
 +{
-+	int ret = 0;
-+	unsigned num_subctxts;
++	struct list_head *pos, *q;
++	struct snoop_packet *packet;
 +
-+	num_subctxts = uinfo->subctxt_cnt;
-+	if (num_subctxts > HFI1_MAX_SHARED_CTXTS) {
++	list_for_each_safe(pos, q, queue) {
++		packet = list_entry(pos, struct snoop_packet, list);
++		list_del(pos);
++		kfree(packet);
++	}
++}
++
++static void hfi1_snoop_remove(struct hfi1_devdata *dd)
++{
++	unsigned long flags = 0;
++
++	spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
++	drain_snoop_list(&dd->hfi1_snoop.queue);
++	hfi1_cdev_cleanup(&dd->hfi1_snoop.cdev, &dd->hfi1_snoop.class_dev);
++	spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
++}
++
++void hfi1_diag_remove(struct hfi1_devdata *dd)
++{
++
++	hfi1_snoop_remove(dd);
++	if (atomic_dec_and_test(&diagpkt_count))
++		hfi1_cdev_cleanup(&diagpkt_cdev, &diagpkt_device);
++	hfi1_cdev_cleanup(&dd->diag_cdev, &dd->diag_device);
++}
++
++
++/*
++ * Allocated structure shared between the credit return mechanism and
++ * diagpkt_send().
++ */
++struct diagpkt_wait {
++	struct completion credits_returned;
++	int code;
++	atomic_t count;
++};
++
++/*
++ * When each side is finished with the structure, they call this.
++ * The last user frees the structure.
++ */
++static void put_diagpkt_wait(struct diagpkt_wait *wait)
++{
++	if (atomic_dec_and_test(&wait->count))
++		kfree(wait);
++}
++
++/*
++ * Callback from the credit return code.  Set the complete, which
++ * will let diapkt_send() continue.
++ */
++static void diagpkt_complete(void *arg, int code)
++{
++	struct diagpkt_wait *wait = (struct diagpkt_wait *)arg;
++
++	wait->code = code;
++	complete(&wait->credits_returned);
++	put_diagpkt_wait(wait);	/* finished with the structure */
++}
++
++/**
++ * diagpkt_send - send a packet
++ * @dp: diag packet descriptor
++ */
++static ssize_t diagpkt_send(struct diag_pkt *dp)
++{
++	struct hfi1_devdata *dd;
++	struct send_context *sc;
++	struct pio_buf *pbuf;
++	u32 *tmpbuf = NULL;
++	ssize_t ret = 0;
++	u32 pkt_len, total_len;
++	pio_release_cb credit_cb = NULL;
++	void *credit_arg = NULL;
++	struct diagpkt_wait *wait = NULL;
++
++	dd = hfi1_lookup(dp->unit);
++	if (!dd || !(dd->flags & HFI1_PRESENT) || !dd->kregbase) {
++		ret = -ENODEV;
++		goto bail;
++	}
++	if (!(dd->flags & HFI1_INITTED)) {
++		/* no hardware, freeze, etc. */
++		ret = -ENODEV;
++		goto bail;
++	}
++
++	if (dp->version != _DIAG_PKT_VERS) {
++		dd_dev_err(dd, "Invalid version %u for diagpkt_write\n",
++			    dp->version);
 +		ret = -EINVAL;
 +		goto bail;
 +	}
 +
-+	uctxt->subctxt_cnt = uinfo->subctxt_cnt;
-+	uctxt->subctxt_id = uinfo->subctxt_id;
-+	uctxt->active_slaves = 1;
-+	uctxt->redirect_seq_cnt = 1;
-+	set_bit(HFI1_CTXT_MASTER_UNINIT, &uctxt->event_flags);
-+bail:
-+	return ret;
-+}
++	/* send count must be an exact number of dwords */
++	if (dp->len & 3) {
++		ret = -EINVAL;
++		goto bail;
++	}
 +
-+static int setup_subctxt(struct hfi1_ctxtdata *uctxt)
-+{
-+	int ret = 0;
-+	unsigned num_subctxts = uctxt->subctxt_cnt;
++	/* there is only port 1 */
++	if (dp->port != 1) {
++		ret = -EINVAL;
++		goto bail;
++	}
 +
-+	uctxt->subctxt_uregbase = vmalloc_user(PAGE_SIZE);
-+	if (!uctxt->subctxt_uregbase) {
++	/* need a valid context */
++	if (dp->sw_index >= dd->num_send_contexts) {
++		ret = -EINVAL;
++		goto bail;
++	}
++	/* can only use kernel contexts */
++	if (dd->send_contexts[dp->sw_index].type != SC_KERNEL) {
++		ret = -EINVAL;
++		goto bail;
++	}
++	/* must be allocated */
++	sc = dd->send_contexts[dp->sw_index].sc;
++	if (!sc) {
++		ret = -EINVAL;
++		goto bail;
++	}
++	/* must be enabled */
++	if (!(sc->flags & SCF_ENABLED)) {
++		ret = -EINVAL;
++		goto bail;
++	}
++
++	/* allocate a buffer and copy the data in */
++	tmpbuf = vmalloc(dp->len);
++	if (!tmpbuf) {
 +		ret = -ENOMEM;
 +		goto bail;
 +	}
-+	/* We can take the size of the RcvHdr Queue from the master */
-+	uctxt->subctxt_rcvhdr_base = vmalloc_user(uctxt->rcvhdrq_size *
-+						  num_subctxts);
-+	if (!uctxt->subctxt_rcvhdr_base) {
-+		ret = -ENOMEM;
-+		goto bail_ureg;
++
++	if (copy_from_user(tmpbuf,
++			   (const void __user *) (unsigned long) dp->data,
++			   dp->len)) {
++		ret = -EFAULT;
++		goto bail;
 +	}
 +
-+	uctxt->subctxt_rcvegrbuf = vmalloc_user(uctxt->egrbufs.size *
-+						num_subctxts);
-+	if (!uctxt->subctxt_rcvegrbuf) {
-+		ret = -ENOMEM;
-+		goto bail_rhdr;
++	/*
++	 * pkt_len is how much data we have to write, includes header and data.
++	 * total_len is length of the packet in Dwords plus the PBC should not
++	 * include the CRC.
++	 */
++	pkt_len = dp->len >> 2;
++	total_len = pkt_len + 2; /* PBC + packet */
++
++	/* if 0, fill in a default */
++	if (dp->pbc == 0) {
++		struct hfi1_pportdata *ppd = dd->pport;
++
++		hfi1_cdbg(PKT, "Generating PBC");
++		dp->pbc = create_pbc(ppd, 0, 0, 0, total_len);
++	} else {
++		hfi1_cdbg(PKT, "Using passed in PBC");
 +	}
-+	goto bail;
-+bail_rhdr:
-+	vfree(uctxt->subctxt_rcvhdr_base);
-+bail_ureg:
-+	vfree(uctxt->subctxt_uregbase);
-+	uctxt->subctxt_uregbase = NULL;
++
++	hfi1_cdbg(PKT, "Egress PBC content is 0x%llx", dp->pbc);
++
++	/*
++	 * The caller wants to wait until the packet is sent and to
++	 * check for errors.  The best we can do is wait until
++	 * the buffer credits are returned and check if any packet
++	 * error has occurred.  If there are any late errors, this
++	 * could miss it.  If there are other senders who generate
++	 * an error, this may find it.  However, in general, it
++	 * should catch most.
++	 */
++	if (dp->flags & F_DIAGPKT_WAIT) {
++		/* always force a credit return */
++		dp->pbc |= PBC_CREDIT_RETURN;
++		/* turn on credit return interrupts */
++		sc_add_credit_return_intr(sc);
++		wait = kmalloc(sizeof(*wait), GFP_KERNEL);
++		if (!wait) {
++			ret = -ENOMEM;
++			goto bail;
++		}
++		init_completion(&wait->credits_returned);
++		atomic_set(&wait->count, 2);
++		wait->code = PRC_OK;
++
++		credit_cb = diagpkt_complete;
++		credit_arg = wait;
++	}
++
++	pbuf = sc_buffer_alloc(sc, total_len, credit_cb, credit_arg);
++	if (!pbuf) {
++		/*
++		 * No send buffer means no credit callback.  Undo
++		 * the wait set-up that was done above.  We free wait
++		 * because the callback will never be called.
++		 */
++		if (dp->flags & F_DIAGPKT_WAIT) {
++			sc_del_credit_return_intr(sc);
++			kfree(wait);
++			wait = NULL;
++		}
++		ret = -ENOSPC;
++		goto bail;
++	}
++
++	pio_copy(dd, pbuf, dp->pbc, tmpbuf, pkt_len);
++	/* no flush needed as the HW knows the packet size */
++
++	ret = sizeof(*dp);
++
++	if (dp->flags & F_DIAGPKT_WAIT) {
++		/* wait for credit return */
++		ret = wait_for_completion_interruptible(
++						&wait->credits_returned);
++		/*
++		 * If the wait returns an error, the wait was interrupted,
++		 * e.g. with a ^C in the user program.  The callback is
++		 * still pending.  This is OK as the wait structure is
++		 * kmalloc'ed and the structure will free itself when
++		 * all users are done with it.
++		 *
++		 * A context disable occurs on a send context restart, so
++		 * include that in the list of errors below to check for.
++		 * NOTE: PRC_FILL_ERR is at best informational and cannot
++		 * be depended on.
++		 */
++		if (!ret && (((wait->code & PRC_STATUS_ERR)
++				|| (wait->code & PRC_FILL_ERR)
++				|| (wait->code & PRC_SC_DISABLE))))
++			ret = -EIO;
++
++		put_diagpkt_wait(wait);	/* finished with the structure */
++		sc_del_credit_return_intr(sc);
++	}
++
 +bail:
++	vfree(tmpbuf);
 +	return ret;
 +}
 +
-+static int user_init(struct file *fp)
++static ssize_t diagpkt_write(struct file *fp, const char __user *data,
++				 size_t count, loff_t *off)
++{
++	struct hfi1_devdata *dd;
++	struct send_context *sc;
++	u8 vl;
++
++	struct diag_pkt dp;
++
++	if (count != sizeof(dp))
++		return -EINVAL;
++
++	if (copy_from_user(&dp, data, sizeof(dp)))
++		return -EFAULT;
++
++	/*
++	* The Send Context is derived from the PbcVL value
++	* if PBC is populated
++	*/
++	if (dp.pbc) {
++		dd = hfi1_lookup(dp.unit);
++		if (dd == NULL)
++			return -ENODEV;
++		vl = (dp.pbc >> PBC_VL_SHIFT) & PBC_VL_MASK;
++		sc = dd->vld[vl].sc;
++		if (sc) {
++			dp.sw_index = sc->sw_index;
++			hfi1_cdbg(
++			       PKT,
++			       "Packet sent over VL %d via Send Context %u(%u)",
++			       vl, sc->sw_index, sc->hw_context);
++		}
++	}
++
++	return diagpkt_send(&dp);
++}
++
++static int hfi1_snoop_add(struct hfi1_devdata *dd, const char *name)
++{
++	int ret = 0;
++
++	dd->hfi1_snoop.mode_flag = 0;
++	spin_lock_init(&dd->hfi1_snoop.snoop_lock);
++	INIT_LIST_HEAD(&dd->hfi1_snoop.queue);
++	init_waitqueue_head(&dd->hfi1_snoop.waitq);
++
++	ret = hfi1_cdev_init(HFI1_SNOOP_CAPTURE_BASE + dd->unit, name,
++			     &snoop_file_ops,
++			     &dd->hfi1_snoop.cdev, &dd->hfi1_snoop.class_dev);
++
++	if (ret) {
++		dd_dev_err(dd, "Couldn't create %s device: %d", name, ret);
++		hfi1_cdev_cleanup(&dd->hfi1_snoop.cdev,
++				 &dd->hfi1_snoop.class_dev);
++	}
++
++	return ret;
++}
++
++static struct hfi1_devdata *hfi1_dd_from_sc_inode(struct inode *in)
++{
++	int unit = iminor(in) - HFI1_SNOOP_CAPTURE_BASE;
++	struct hfi1_devdata *dd = NULL;
++
++	dd = hfi1_lookup(unit);
++	return dd;
++
++}
++
++/* clear or restore send context integrity checks */
++static void adjust_integrity_checks(struct hfi1_devdata *dd)
++{
++	struct send_context *sc;
++	unsigned long sc_flags;
++	int i;
++
++	spin_lock_irqsave(&dd->sc_lock, sc_flags);
++	for (i = 0; i < dd->num_send_contexts; i++) {
++		int enable;
++
++		sc = dd->send_contexts[i].sc;
++
++		if (!sc)
++			continue;	/* not allocated */
++
++		enable = likely(!HFI1_CAP_IS_KSET(NO_INTEGRITY)) &&
++			 dd->hfi1_snoop.mode_flag != HFI1_PORT_SNOOP_MODE;
++
++		set_pio_integrity(sc);
++
++		if (enable) /* take HFI_CAP_* flags into account */
++			hfi1_init_ctxt(sc);
++	}
++	spin_unlock_irqrestore(&dd->sc_lock, sc_flags);
++}
++
++static int hfi1_snoop_open(struct inode *in, struct file *fp)
 +{
 +	int ret;
-+	unsigned int rcvctrl_ops = 0;
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
++	int mode_flag = 0;
++	unsigned long flags = 0;
++	struct hfi1_devdata *dd;
++	struct list_head *queue;
 +
-+	/* make sure that the context has already been setup */
-+	if (!test_bit(HFI1_CTXT_SETUP_DONE, &uctxt->event_flags)) {
-+		ret = -EFAULT;
-+		goto done;
++	mutex_lock(&hfi1_mutex);
++
++	dd = hfi1_dd_from_sc_inode(in);
++	if (dd == NULL) {
++		ret = -ENODEV;
++		goto bail;
 +	}
 +
 +	/*
-+	 * Subctxts don't need to initialize anything since master
-+	 * has done it.
++	 * File mode determines snoop or capture. Some existing user
++	 * applications expect the capture device to be able to be opened RDWR
++	 * because they expect a dedicated capture device. For this reason we
++	 * support a module param to force capture mode even if the file open
++	 * mode matches snoop.
 +	 */
-+	if (subctxt_fp(fp)) {
-+		ret = wait_event_interruptible(uctxt->wait,
-+			!test_bit(HFI1_CTXT_MASTER_UNINIT,
-+			&uctxt->event_flags));
-+		goto done;
++	if ((fp->f_flags & O_ACCMODE) == O_RDONLY) {
++		snoop_dbg("Capture Enabled");
++		mode_flag = HFI1_PORT_CAPTURE_MODE;
++	} else if ((fp->f_flags & O_ACCMODE) == O_RDWR) {
++		snoop_dbg("Snoop Enabled");
++		mode_flag = HFI1_PORT_SNOOP_MODE;
++	} else {
++		snoop_dbg("Invalid");
++		ret =  -EINVAL;
++		goto bail;
 +	}
-+
-+	/* initialize poll variables... */
-+	uctxt->urgent = 0;
-+	uctxt->urgent_poll = 0;
++	queue = &dd->hfi1_snoop.queue;
 +
 +	/*
-+	 * Now enable the ctxt for receive.
-+	 * For chips that are set to DMA the tail register to memory
-+	 * when they change (and when the update bit transitions from
-+	 * 0 to 1.  So for those chips, we turn it off and then back on.
-+	 * This will (very briefly) affect any other open ctxts, but the
-+	 * duration is very short, and therefore isn't an issue.  We
-+	 * explicitly set the in-memory tail copy to 0 beforehand, so we
-+	 * don't have to wait to be sure the DMA update has happened
-+	 * (chip resets head/tail to 0 on transition to enable).
++	 * We are not supporting snoop and capture at the same time.
 +	 */
-+	if (uctxt->rcvhdrtail_kvaddr)
-+		clear_rcvhdrtail(uctxt);
-+
-+	/* Setup J_KEY before enabling the context */
-+	hfi1_set_ctxt_jkey(uctxt->dd, uctxt->ctxt, uctxt->jkey);
-+
-+	rcvctrl_ops = HFI1_RCVCTRL_CTXT_ENB;
-+	if (HFI1_CAP_KGET_MASK(uctxt->flags, HDRSUPP))
-+		rcvctrl_ops |= HFI1_RCVCTRL_TIDFLOW_ENB;
-+	/*
-+	 * Ignore the bit in the flags for now until proper
-+	 * support for multiple packet per rcv array entry is
-+	 * added.
-+	 */
-+	if (!HFI1_CAP_KGET_MASK(uctxt->flags, MULTI_PKT_EGR))
-+		rcvctrl_ops |= HFI1_RCVCTRL_ONE_PKT_EGR_ENB;
-+	if (HFI1_CAP_KGET_MASK(uctxt->flags, NODROP_EGR_FULL))
-+		rcvctrl_ops |= HFI1_RCVCTRL_NO_EGR_DROP_ENB;
-+	if (HFI1_CAP_KGET_MASK(uctxt->flags, NODROP_RHQ_FULL))
-+		rcvctrl_ops |= HFI1_RCVCTRL_NO_RHQ_DROP_ENB;
-+	if (HFI1_CAP_KGET_MASK(uctxt->flags, DMA_RTAIL))
-+		rcvctrl_ops |= HFI1_RCVCTRL_TAILUPD_ENB;
-+	hfi1_rcvctrl(uctxt->dd, rcvctrl_ops, uctxt->ctxt);
-+
-+	/* Notify any waiting slaves */
-+	if (uctxt->subctxt_cnt) {
-+		clear_bit(HFI1_CTXT_MASTER_UNINIT, &uctxt->event_flags);
-+		wake_up(&uctxt->wait);
++	spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
++	if (dd->hfi1_snoop.mode_flag) {
++		ret = -EBUSY;
++		spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
++		goto bail;
 +	}
++
++	dd->hfi1_snoop.mode_flag = mode_flag;
++	drain_snoop_list(queue);
++
++	dd->hfi1_snoop.filter_callback = NULL;
++	dd->hfi1_snoop.filter_value = NULL;
++
++	/*
++	 * Send side packet integrity checks are not helpful when snooping so
++	 * disable and re-enable when we stop snooping.
++	 */
++	if (mode_flag == HFI1_PORT_SNOOP_MODE) {
++		/* clear after snoop mode is on */
++		adjust_integrity_checks(dd); /* clear */
++
++		/*
++		 * We also do not want to be doing the DLID LMC check for
++		 * ingressed packets.
++		 */
++		dd->hfi1_snoop.dcc_cfg = read_csr(dd, DCC_CFG_PORT_CONFIG1);
++		write_csr(dd, DCC_CFG_PORT_CONFIG1,
++			  (dd->hfi1_snoop.dcc_cfg >> 32) << 32);
++	}
++
++	/*
++	 * As soon as we set these function pointers the recv and send handlers
++	 * are active. This is a race condition so we must make sure to drain
++	 * the queue and init filter values above. Technically we should add
++	 * locking here but all that will happen is on recv a packet will get
++	 * allocated and get stuck on the snoop_lock before getting added to the
++	 * queue. Same goes for send.
++	 */
++	dd->rhf_rcv_function_map = snoop_rhf_rcv_functions;
++	dd->process_pio_send = snoop_send_pio_handler;
++	dd->process_dma_send = snoop_send_pio_handler;
++	dd->pio_inline_send = snoop_inline_pio_send;
++
++	spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
 +	ret = 0;
 +
-+done:
-+	return ret;
-+}
-+
-+static int get_ctxt_info(struct file *fp, void __user *ubase, __u32 len)
-+{
-+	struct hfi1_ctxt_info cinfo;
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+	struct hfi1_filedata *fd = fp->private_data;
-+	int ret = 0;
-+
-+	ret = hfi1_get_base_kinfo(uctxt, &cinfo);
-+	if (ret < 0)
-+		goto done;
-+	cinfo.num_active = hfi1_count_active_units();
-+	cinfo.unit = uctxt->dd->unit;
-+	cinfo.ctxt = uctxt->ctxt;
-+	cinfo.subctxt = subctxt_fp(fp);
-+	cinfo.rcvtids = roundup(uctxt->egrbufs.alloced,
-+				uctxt->dd->rcv_entries.group_size) +
-+		uctxt->expected_count;
-+	cinfo.credits = uctxt->sc->credits;
-+	cinfo.numa_node = uctxt->numa_id;
-+	cinfo.rec_cpu = fd->rec_cpu_num;
-+	cinfo.send_ctxt = uctxt->sc->hw_context;
-+
-+	cinfo.egrtids = uctxt->egrbufs.alloced;
-+	cinfo.rcvhdrq_cnt = uctxt->rcvhdrq_cnt;
-+	cinfo.rcvhdrq_entsize = uctxt->rcvhdrqentsize << 2;
-+	cinfo.sdma_ring_size = user_sdma_comp_fp(fp)->nentries;
-+	cinfo.rcvegr_size = uctxt->egrbufs.rcvtid_size;
-+
-+	trace_hfi1_ctxt_info(uctxt->dd, uctxt->ctxt, subctxt_fp(fp), cinfo);
-+	if (copy_to_user(ubase, &cinfo, sizeof(cinfo)))
-+		ret = -EFAULT;
-+done:
-+	return ret;
-+}
-+
-+static int setup_ctxt(struct file *fp)
-+{
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	int ret = 0;
-+
-+	/*
-+	 * Context should be set up only once (including allocation and
-+	 * programming of eager buffers. This is done if context sharing
-+	 * is not requested or by the master process.
-+	 */
-+	if (!uctxt->subctxt_cnt || !subctxt_fp(fp)) {
-+		ret = hfi1_init_ctxt(uctxt->sc);
-+		if (ret)
-+			goto done;
-+
-+		/* Now allocate the RcvHdr queue and eager buffers. */
-+		ret = hfi1_create_rcvhdrq(dd, uctxt);
-+		if (ret)
-+			goto done;
-+		ret = hfi1_setup_eagerbufs(uctxt);
-+		if (ret)
-+			goto done;
-+		if (uctxt->subctxt_cnt && !subctxt_fp(fp)) {
-+			ret = setup_subctxt(uctxt);
-+			if (ret)
-+				goto done;
-+		}
-+		/* Setup Expected Rcv memories */
-+		uctxt->tid_pg_list = vzalloc(uctxt->expected_count *
-+					     sizeof(struct page **));
-+		if (!uctxt->tid_pg_list) {
-+			ret = -ENOMEM;
-+			goto done;
-+		}
-+		uctxt->physshadow = vzalloc(uctxt->expected_count *
-+					    sizeof(*uctxt->physshadow));
-+		if (!uctxt->physshadow) {
-+			ret = -ENOMEM;
-+			goto done;
-+		}
-+		/* allocate expected TID map and initialize the cursor */
-+		atomic_set(&uctxt->tidcursor, 0);
-+		uctxt->numtidgroups = uctxt->expected_count /
-+			dd->rcv_entries.group_size;
-+		uctxt->tidmapcnt = uctxt->numtidgroups / BITS_PER_LONG +
-+			!!(uctxt->numtidgroups % BITS_PER_LONG);
-+		uctxt->tidusemap = kzalloc_node(uctxt->tidmapcnt *
-+						sizeof(*uctxt->tidusemap),
-+						GFP_KERNEL, uctxt->numa_id);
-+		if (!uctxt->tidusemap) {
-+			ret = -ENOMEM;
-+			goto done;
-+		}
-+		/*
-+		 * In case that the number of groups is not a multiple of
-+		 * 64 (the number of groups in a tidusemap element), mark
-+		 * the extra ones as used. This will effectively make them
-+		 * permanently used and should never be assigned. Otherwise,
-+		 * the code which checks how many free groups we have will
-+		 * get completely confused about the state of the bits.
-+		 */
-+		if (uctxt->numtidgroups % BITS_PER_LONG)
-+			uctxt->tidusemap[uctxt->tidmapcnt - 1] =
-+				~((1ULL << (uctxt->numtidgroups %
-+					    BITS_PER_LONG)) - 1);
-+		trace_hfi1_exp_tid_map(uctxt->ctxt, subctxt_fp(fp), 0,
-+				       uctxt->tidusemap, uctxt->tidmapcnt);
-+	}
-+	ret = hfi1_user_sdma_alloc_queues(uctxt, fp);
-+	if (ret)
-+		goto done;
-+
-+	set_bit(HFI1_CTXT_SETUP_DONE, &uctxt->event_flags);
-+done:
-+	return ret;
-+}
-+
-+static int get_base_info(struct file *fp, void __user *ubase, __u32 len)
-+{
-+	struct hfi1_base_info binfo;
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	ssize_t sz;
-+	unsigned offset;
-+	int ret = 0;
-+
-+	trace_hfi1_uctxtdata(uctxt->dd, uctxt);
-+
-+	memset(&binfo, 0, sizeof(binfo));
-+	binfo.hw_version = dd->revision;
-+	binfo.sw_version = HFI1_KERN_SWVERSION;
-+	binfo.bthqp = kdeth_qp;
-+	binfo.jkey = uctxt->jkey;
-+	/*
-+	 * If more than 64 contexts are enabled the allocated credit
-+	 * return will span two or three contiguous pages. Since we only
-+	 * map the page containing the context's credit return address,
-+	 * we need to calculate the offset in the proper page.
-+	 */
-+	offset = ((u64)uctxt->sc->hw_free -
-+		  (u64)dd->cr_base[uctxt->numa_id].va) % PAGE_SIZE;
-+	binfo.sc_credits_addr = HFI1_MMAP_TOKEN(PIO_CRED, uctxt->ctxt,
-+					       subctxt_fp(fp), offset);
-+	binfo.pio_bufbase = HFI1_MMAP_TOKEN(PIO_BUFS, uctxt->ctxt,
-+					    subctxt_fp(fp),
-+					    uctxt->sc->base_addr);
-+	binfo.pio_bufbase_sop = HFI1_MMAP_TOKEN(PIO_BUFS_SOP,
-+						uctxt->ctxt,
-+						subctxt_fp(fp),
-+						uctxt->sc->base_addr);
-+	binfo.rcvhdr_bufbase = HFI1_MMAP_TOKEN(RCV_HDRQ, uctxt->ctxt,
-+					       subctxt_fp(fp),
-+					       uctxt->rcvhdrq);
-+	binfo.rcvegr_bufbase = HFI1_MMAP_TOKEN(RCV_EGRBUF, uctxt->ctxt,
-+					       subctxt_fp(fp),
-+					       uctxt->egrbufs.rcvtids[0].phys);
-+	binfo.sdma_comp_bufbase = HFI1_MMAP_TOKEN(SDMA_COMP, uctxt->ctxt,
-+						 subctxt_fp(fp), 0);
-+	/*
-+	 * user regs are at
-+	 * (RXE_PER_CONTEXT_USER + (ctxt * RXE_PER_CONTEXT_SIZE))
-+	 */
-+	binfo.user_regbase = HFI1_MMAP_TOKEN(UREGS, uctxt->ctxt,
-+					    subctxt_fp(fp), 0);
-+	offset = ((((uctxt->ctxt - dd->first_user_ctxt) *
-+		    HFI1_MAX_SHARED_CTXTS) + subctxt_fp(fp)) *
-+		  sizeof(*dd->events)) & ~PAGE_MASK;
-+	binfo.events_bufbase = HFI1_MMAP_TOKEN(EVENTS, uctxt->ctxt,
-+					      subctxt_fp(fp),
-+					      offset);
-+	binfo.status_bufbase = HFI1_MMAP_TOKEN(STATUS, uctxt->ctxt,
-+					      subctxt_fp(fp),
-+					      dd->status);
-+	if (HFI1_CAP_IS_USET(DMA_RTAIL))
-+		binfo.rcvhdrtail_base = HFI1_MMAP_TOKEN(RTAIL, uctxt->ctxt,
-+						       subctxt_fp(fp), 0);
-+	if (uctxt->subctxt_cnt) {
-+		binfo.subctxt_uregbase = HFI1_MMAP_TOKEN(SUBCTXT_UREGS,
-+							uctxt->ctxt,
-+							subctxt_fp(fp), 0);
-+		binfo.subctxt_rcvhdrbuf = HFI1_MMAP_TOKEN(SUBCTXT_RCV_HDRQ,
-+							 uctxt->ctxt,
-+							 subctxt_fp(fp), 0);
-+		binfo.subctxt_rcvegrbuf = HFI1_MMAP_TOKEN(SUBCTXT_EGRBUF,
-+							 uctxt->ctxt,
-+							 subctxt_fp(fp), 0);
-+	}
-+	sz = (len < sizeof(binfo)) ? len : sizeof(binfo);
-+	if (copy_to_user(ubase, &binfo, sz))
-+		ret = -EFAULT;
-+	return ret;
-+}
-+
-+static unsigned int poll_urgent(struct file *fp,
-+				struct poll_table_struct *pt)
-+{
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	unsigned pollflag;
-+
-+	poll_wait(fp, &uctxt->wait, pt);
-+
-+	spin_lock_irq(&dd->uctxt_lock);
-+	if (uctxt->urgent != uctxt->urgent_poll) {
-+		pollflag = POLLIN | POLLRDNORM;
-+		uctxt->urgent_poll = uctxt->urgent;
-+	} else {
-+		pollflag = 0;
-+		set_bit(HFI1_CTXT_WAITING_URG, &uctxt->event_flags);
-+	}
-+	spin_unlock_irq(&dd->uctxt_lock);
-+
-+	return pollflag;
-+}
-+
-+static unsigned int poll_next(struct file *fp,
-+			      struct poll_table_struct *pt)
-+{
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	unsigned pollflag;
-+
-+	poll_wait(fp, &uctxt->wait, pt);
-+
-+	spin_lock_irq(&dd->uctxt_lock);
-+	if (hdrqempty(uctxt)) {
-+		set_bit(HFI1_CTXT_WAITING_RCV, &uctxt->event_flags);
-+		hfi1_rcvctrl(dd, HFI1_RCVCTRL_INTRAVAIL_ENB, uctxt->ctxt);
-+		pollflag = 0;
-+	} else
-+		pollflag = POLLIN | POLLRDNORM;
-+	spin_unlock_irq(&dd->uctxt_lock);
-+
-+	return pollflag;
-+}
-+
-+/*
-+ * Find all user contexts in use, and set the specified bit in their
-+ * event mask.
-+ * See also find_ctxt() for a similar use, that is specific to send buffers.
-+ */
-+int hfi1_set_uevent_bits(struct hfi1_pportdata *ppd, const int evtbit)
-+{
-+	struct hfi1_ctxtdata *uctxt;
-+	struct hfi1_devdata *dd = ppd->dd;
-+	unsigned ctxt;
-+	int ret = 0;
-+	unsigned long flags;
-+
-+	if (!dd->events) {
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
-+	spin_lock_irqsave(&dd->uctxt_lock, flags);
-+	for (ctxt = dd->first_user_ctxt; ctxt < dd->num_rcv_contexts;
-+	     ctxt++) {
-+		uctxt = dd->rcd[ctxt];
-+		if (uctxt) {
-+			unsigned long *evs = dd->events +
-+				(uctxt->ctxt - dd->first_user_ctxt) *
-+				HFI1_MAX_SHARED_CTXTS;
-+			int i;
-+			/*
-+			 * subctxt_cnt is 0 if not shared, so do base
-+			 * separately, first, then remaining subctxt, if any
-+			 */
-+			set_bit(evtbit, evs);
-+			for (i = 1; i < uctxt->subctxt_cnt; i++)
-+				set_bit(evtbit, evs + i);
-+		}
-+	}
-+	spin_unlock_irqrestore(&dd->uctxt_lock, flags);
-+done:
-+	return ret;
-+}
-+
-+/**
-+ * manage_rcvq - manage a context's receive queue
-+ * @uctxt: the context
-+ * @subctxt: the sub-context
-+ * @start_stop: action to carry out
-+ *
-+ * start_stop == 0 disables receive on the context, for use in queue
-+ * overflow conditions.  start_stop==1 re-enables, to be used to
-+ * re-init the software copy of the head register
-+ */
-+static int manage_rcvq(struct hfi1_ctxtdata *uctxt, unsigned subctxt,
-+		       int start_stop)
-+{
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	unsigned int rcvctrl_op;
-+
-+	if (subctxt)
-+		goto bail;
-+	/* atomically clear receive enable ctxt. */
-+	if (start_stop) {
-+		/*
-+		 * On enable, force in-memory copy of the tail register to
-+		 * 0, so that protocol code doesn't have to worry about
-+		 * whether or not the chip has yet updated the in-memory
-+		 * copy or not on return from the system call. The chip
-+		 * always resets it's tail register back to 0 on a
-+		 * transition from disabled to enabled.
-+		 */
-+		if (uctxt->rcvhdrtail_kvaddr)
-+			clear_rcvhdrtail(uctxt);
-+		rcvctrl_op = HFI1_RCVCTRL_CTXT_ENB;
-+	} else
-+		rcvctrl_op = HFI1_RCVCTRL_CTXT_DIS;
-+	hfi1_rcvctrl(dd, rcvctrl_op, uctxt->ctxt);
-+	/* always; new head should be equal to new tail; see above */
 +bail:
++	mutex_unlock(&hfi1_mutex);
++
++	return ret;
++}
++
++static int hfi1_snoop_release(struct inode *in, struct file *fp)
++{
++	unsigned long flags = 0;
++	struct hfi1_devdata *dd;
++	int mode_flag;
++
++	dd = hfi1_dd_from_sc_inode(in);
++	if (dd == NULL)
++		return -ENODEV;
++
++	spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
++
++	/* clear the snoop mode before re-adjusting send context CSRs */
++	mode_flag = dd->hfi1_snoop.mode_flag;
++	dd->hfi1_snoop.mode_flag = 0;
++
++	/*
++	 * Drain the queue and clear the filters we are done with it. Don't
++	 * forget to restore the packet integrity checks
++	 */
++	drain_snoop_list(&dd->hfi1_snoop.queue);
++	if (mode_flag == HFI1_PORT_SNOOP_MODE) {
++		/* restore after snoop mode is clear */
++		adjust_integrity_checks(dd); /* restore */
++
++		/*
++		 * Also should probably reset the DCC_CONFIG1 register for DLID
++		 * checking on incoming packets again. Use the value saved when
++		 * opening the snoop device.
++		 */
++		write_csr(dd, DCC_CFG_PORT_CONFIG1, dd->hfi1_snoop.dcc_cfg);
++	}
++
++	dd->hfi1_snoop.filter_callback = NULL;
++	kfree(dd->hfi1_snoop.filter_value);
++	dd->hfi1_snoop.filter_value = NULL;
++
++	/*
++	 * User is done snooping and capturing, return control to the normal
++	 * handler. Re-enable SDMA handling.
++	 */
++	dd->rhf_rcv_function_map = dd->normal_rhf_rcv_functions;
++	dd->process_pio_send = hfi1_verbs_send_pio;
++	dd->process_dma_send = hfi1_verbs_send_dma;
++	dd->pio_inline_send = pio_copy;
++
++	spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
++
++	snoop_dbg("snoop/capture device released");
++
 +	return 0;
 +}
 +
-+/*
-+ * clear the event notifier events for this context.
-+ * User process then performs actions appropriate to bit having been
-+ * set, if desired, and checks again in future.
-+ */
-+static int user_event_ack(struct hfi1_ctxtdata *uctxt, int subctxt,
-+			  unsigned long events)
-+{
-+	int i;
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	unsigned long *evs;
-+
-+	if (!dd->events)
-+		return 0;
-+
-+	evs = dd->events + ((uctxt->ctxt - dd->first_user_ctxt) *
-+			    HFI1_MAX_SHARED_CTXTS) + subctxt;
-+
-+	for (i = 0; i <= _HFI1_MAX_EVENT_BIT; i++) {
-+		if (!test_bit(i, &events))
-+			continue;
-+		clear_bit(i, evs);
-+	}
-+	return 0;
-+}
-+
-+#define num_user_pages(vaddr, len)					\
-+	(1 + (((((unsigned long)(vaddr) +				\
-+		 (unsigned long)(len) - 1) & PAGE_MASK) -		\
-+	       ((unsigned long)vaddr & PAGE_MASK)) >> PAGE_SHIFT))
-+
-+/**
-+ * tzcnt - count the number of trailing zeros in a 64bit value
-+ * @value: the value to be examined
-+ *
-+ * Returns the number of trailing least significant zeros in the
-+ * the input value. If the value is zero, return the number of
-+ * bits of the value.
-+ */
-+static inline u8 tzcnt(u64 value)
-+{
-+	return value ? __builtin_ctzl(value) : sizeof(value) * 8;
-+}
-+
-+static inline unsigned num_free_groups(unsigned long map, u16 *start)
-+{
-+	unsigned free;
-+	u16 bitidx = *start;
-+
-+	if (bitidx >= BITS_PER_LONG)
-+		return 0;
-+	/* "Turn off" any bits set before our bit index */
-+	map &= ~((1ULL << bitidx) - 1);
-+	free = tzcnt(map) - bitidx;
-+	while (!free && bitidx < BITS_PER_LONG) {
-+		/* Zero out the last set bit so we look at the rest */
-+		map &= ~(1ULL << bitidx);
-+		/*
-+		 * Account for the previously checked bits and advance
-+		 * the bit index. We don't have to check for bitidx
-+		 * getting bigger than BITS_PER_LONG here as it would
-+		 * mean extra instructions that we don't need. If it
-+		 * did happen, it would push free to a negative value
-+		 * which will break the loop.
-+		 */
-+		free = tzcnt(map) - ++bitidx;
-+	}
-+	*start = bitidx;
-+	return free;
-+}
-+
-+static int exp_tid_setup(struct file *fp, struct hfi1_tid_info *tinfo)
++static unsigned int hfi1_snoop_poll(struct file *fp,
++				    struct poll_table_struct *wait)
 +{
 +	int ret = 0;
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	unsigned tid, mapped = 0, npages, ngroups, exp_groups,
-+		tidpairs = uctxt->expected_count / 2;
-+	struct page **pages;
-+	unsigned long vaddr, tidmap[uctxt->tidmapcnt];
-+	dma_addr_t *phys;
-+	u32 tidlist[tidpairs], pairidx = 0, tidcursor;
-+	u16 useidx, idx, bitidx, tidcnt = 0;
++	unsigned long flags = 0;
 +
-+	vaddr = tinfo->vaddr;
-+
-+	if (vaddr & ~PAGE_MASK) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	npages = num_user_pages(vaddr, tinfo->length);
-+	if (!npages) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+	if (!access_ok(VERIFY_WRITE, (void __user *)vaddr,
-+		       npages * PAGE_SIZE)) {
-+		dd_dev_err(dd, "Fail vaddr %p, %u pages, !access_ok\n",
-+			   (void *)vaddr, npages);
-+		ret = -EFAULT;
-+		goto bail;
-+	}
-+
-+	memset(tidmap, 0, sizeof(tidmap[0]) * uctxt->tidmapcnt);
-+	memset(tidlist, 0, sizeof(tidlist[0]) * tidpairs);
-+
-+	exp_groups = uctxt->expected_count / dd->rcv_entries.group_size;
-+	/* which group set do we look at first? */
-+	tidcursor = atomic_read(&uctxt->tidcursor);
-+	useidx = (tidcursor >> 16) & 0xffff;
-+	bitidx = tidcursor & 0xffff;
-+
-+	/*
-+	 * Keep going until we've mapped all pages or we've exhausted all
-+	 * RcvArray entries.
-+	 * This iterates over the number of tidmaps + 1
-+	 * (idx <= uctxt->tidmapcnt) so we check the bitmap which we
-+	 * started from one more time for any free bits before the
-+	 * starting point bit.
-+	 */
-+	for (mapped = 0, idx = 0;
-+	     mapped < npages && idx <= uctxt->tidmapcnt;) {
-+		u64 i, offset = 0;
-+		unsigned free, pinned, pmapped = 0, bits_used;
-+		u16 grp;
-+
-+		/*
-+		 * "Reserve" the needed group bits under lock so other
-+		 * processes can't step in the middle of it. Once
-+		 * reserved, we don't need the lock anymore since we
-+		 * are guaranteed the groups.
-+		 */
-+		spin_lock(&uctxt->exp_lock);
-+		if (uctxt->tidusemap[useidx] == -1ULL ||
-+		    bitidx >= BITS_PER_LONG) {
-+			/* no free groups in the set, use the next */
-+			useidx = (useidx + 1) % uctxt->tidmapcnt;
-+			idx++;
-+			bitidx = 0;
-+			spin_unlock(&uctxt->exp_lock);
-+			continue;
-+		}
-+		ngroups = ((npages - mapped) / dd->rcv_entries.group_size) +
-+			!!((npages - mapped) % dd->rcv_entries.group_size);
-+
-+		/*
-+		 * If we've gotten here, the current set of groups does have
-+		 * one or more free groups.
-+		 */
-+		free = num_free_groups(uctxt->tidusemap[useidx], &bitidx);
-+		if (!free) {
-+			/*
-+			 * Despite the check above, free could still come back
-+			 * as 0 because we don't check the entire bitmap but
-+			 * we start from bitidx.
-+			 */
-+			spin_unlock(&uctxt->exp_lock);
-+			continue;
-+		}
-+		bits_used = min(free, ngroups);
-+		tidmap[useidx] |= ((1ULL << bits_used) - 1) << bitidx;
-+		uctxt->tidusemap[useidx] |= tidmap[useidx];
-+		spin_unlock(&uctxt->exp_lock);
-+
-+		/*
-+		 * At this point, we know where in the map we have free bits.
-+		 * properly offset into the various "shadow" arrays and compute
-+		 * the RcvArray entry index.
-+		 */
-+		offset = ((useidx * BITS_PER_LONG) + bitidx) *
-+			dd->rcv_entries.group_size;
-+		pages = uctxt->tid_pg_list + offset;
-+		phys = uctxt->physshadow + offset;
-+		tid = uctxt->expected_base + offset;
-+
-+		/* Calculate how many pages we can pin based on free bits */
-+		pinned = min((bits_used * dd->rcv_entries.group_size),
-+			     (npages - mapped));
-+		/*
-+		 * Now that we know how many free RcvArray entries we have,
-+		 * we can pin that many user pages.
-+		 */
-+		ret = hfi1_get_user_pages(vaddr + (mapped * PAGE_SIZE),
-+					  pinned, pages);
-+		if (ret) {
-+			/*
-+			 * We can't continue because the pages array won't be
-+			 * initialized. This should never happen,
-+			 * unless perhaps the user has mpin'ed the pages
-+			 * themselves.
-+			 */
-+			dd_dev_info(dd,
-+				    "Failed to lock addr %p, %u pages: errno %d\n",
-+				    (void *) vaddr, pinned, -ret);
-+			/*
-+			 * Let go of the bits that we reserved since we are not
-+			 * going to use them.
-+			 */
-+			spin_lock(&uctxt->exp_lock);
-+			uctxt->tidusemap[useidx] &=
-+				~(((1ULL << bits_used) - 1) << bitidx);
-+			spin_unlock(&uctxt->exp_lock);
-+			goto done;
-+		}
-+		/*
-+		 * How many groups do we need based on how many pages we have
-+		 * pinned?
-+		 */
-+		ngroups = (pinned / dd->rcv_entries.group_size) +
-+			!!(pinned % dd->rcv_entries.group_size);
-+		/*
-+		 * Keep programming RcvArray entries for all the <ngroups> free
-+		 * groups.
-+		 */
-+		for (i = 0, grp = 0; grp < ngroups; i++, grp++) {
-+			unsigned j;
-+			u32 pair_size = 0, tidsize;
-+			/*
-+			 * This inner loop will program an entire group or the
-+			 * array of pinned pages (which ever limit is hit
-+			 * first).
-+			 */
-+			for (j = 0; j < dd->rcv_entries.group_size &&
-+				     pmapped < pinned; j++, pmapped++, tid++) {
-+				tidsize = PAGE_SIZE;
-+				phys[pmapped] = hfi1_map_page(dd->pcidev,
-+						   pages[pmapped], 0,
-+						   tidsize, PCI_DMA_FROMDEVICE);
-+				trace_hfi1_exp_rcv_set(uctxt->ctxt,
-+						       subctxt_fp(fp),
-+						       tid, vaddr,
-+						       phys[pmapped],
-+						       pages[pmapped]);
-+				/*
-+				 * Each RcvArray entry is programmed with one
-+				 * page * worth of memory. This will handle
-+				 * the 8K MTU as well as anything smaller
-+				 * due to the fact that both entries in the
-+				 * RcvTidPair are programmed with a page.
-+				 * PSM currently does not handle anything
-+				 * bigger than 8K MTU, so should we even worry
-+				 * about 10K here?
-+				 */
-+				hfi1_put_tid(dd, tid, PT_EXPECTED,
-+					     phys[pmapped],
-+					     ilog2(tidsize >> PAGE_SHIFT) + 1);
-+				pair_size += tidsize >> PAGE_SHIFT;
-+				EXP_TID_RESET(tidlist[pairidx], LEN, pair_size);
-+				if (!(tid % 2)) {
-+					tidlist[pairidx] |=
-+					   EXP_TID_SET(IDX,
-+						(tid - uctxt->expected_base)
-+						       / 2);
-+					tidlist[pairidx] |=
-+						EXP_TID_SET(CTRL, 1);
-+					tidcnt++;
-+				} else {
-+					tidlist[pairidx] |=
-+						EXP_TID_SET(CTRL, 2);
-+					pair_size = 0;
-+					pairidx++;
-+				}
-+			}
-+			/*
-+			 * We've programmed the entire group (or as much of the
-+			 * group as we'll use. Now, it's time to push it out...
-+			 */
-+			flush_wc();
-+		}
-+		mapped += pinned;
-+		atomic_set(&uctxt->tidcursor,
-+			   (((useidx & 0xffffff) << 16) |
-+			    ((bitidx + bits_used) & 0xffffff)));
-+	}
-+	trace_hfi1_exp_tid_map(uctxt->ctxt, subctxt_fp(fp), 0, uctxt->tidusemap,
-+			       uctxt->tidmapcnt);
-+
-+done:
-+	/* If we've mapped anything, copy relevant info to user */
-+	if (mapped) {
-+		if (copy_to_user((void __user *)(unsigned long)tinfo->tidlist,
-+				 tidlist, sizeof(tidlist[0]) * tidcnt)) {
-+			ret = -EFAULT;
-+			goto done;
-+		}
-+		/* copy TID info to user */
-+		if (copy_to_user((void __user *)(unsigned long)tinfo->tidmap,
-+				 tidmap, sizeof(tidmap[0]) * uctxt->tidmapcnt))
-+			ret = -EFAULT;
-+	}
-+bail:
-+	/*
-+	 * Calculate mapped length. New Exp TID protocol does not "unwind" and
-+	 * report an error if it can't map the entire buffer. It just reports
-+	 * the length that was mapped.
-+	 */
-+	tinfo->length = mapped * PAGE_SIZE;
-+	tinfo->tidcnt = tidcnt;
-+	return ret;
-+}
-+
-+static int exp_tid_free(struct file *fp, struct hfi1_tid_info *tinfo)
-+{
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	unsigned long tidmap[uctxt->tidmapcnt];
-+	struct page **pages;
-+	dma_addr_t *phys;
-+	u16 idx, bitidx, tid;
-+	int ret = 0;
-+
-+	if (copy_from_user(&tidmap, (void __user *)(unsigned long)
-+			   tinfo->tidmap,
-+			   sizeof(tidmap[0]) * uctxt->tidmapcnt)) {
-+		ret = -EFAULT;
-+		goto done;
-+	}
-+	for (idx = 0; idx < uctxt->tidmapcnt; idx++) {
-+		unsigned long map;
-+
-+		bitidx = 0;
-+		if (!tidmap[idx])
-+			continue;
-+		map = tidmap[idx];
-+		while ((bitidx = tzcnt(map)) < BITS_PER_LONG) {
-+			int i, pcount = 0;
-+			struct page *pshadow[dd->rcv_entries.group_size];
-+			unsigned offset = ((idx * BITS_PER_LONG) + bitidx) *
-+				dd->rcv_entries.group_size;
-+
-+			pages = uctxt->tid_pg_list + offset;
-+			phys = uctxt->physshadow + offset;
-+			tid = uctxt->expected_base + offset;
-+			for (i = 0; i < dd->rcv_entries.group_size;
-+			     i++, tid++) {
-+				if (pages[i]) {
-+					hfi1_put_tid(dd, tid, PT_INVALID,
-+						      0, 0);
-+					trace_hfi1_exp_rcv_free(uctxt->ctxt,
-+								subctxt_fp(fp),
-+								tid, phys[i],
-+								pages[i]);
-+					pci_unmap_page(dd->pcidev, phys[i],
-+					      PAGE_SIZE, PCI_DMA_FROMDEVICE);
-+					pshadow[pcount] = pages[i];
-+					pages[i] = NULL;
-+					pcount++;
-+					phys[i] = 0;
-+				}
-+			}
-+			flush_wc();
-+			hfi1_release_user_pages(pshadow, pcount);
-+			clear_bit(bitidx, &uctxt->tidusemap[idx]);
-+			map &= ~(1ULL<<bitidx);
-+		}
-+	}
-+	trace_hfi1_exp_tid_map(uctxt->ctxt, subctxt_fp(fp), 1, uctxt->tidusemap,
-+			       uctxt->tidmapcnt);
-+done:
-+	return ret;
-+}
-+
-+static void unlock_exp_tids(struct hfi1_ctxtdata *uctxt)
-+{
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	unsigned tid;
-+
-+	dd_dev_info(dd, "ctxt %u unlocking any locked expTID pages\n",
-+		    uctxt->ctxt);
-+	for (tid = 0; tid < uctxt->expected_count; tid++) {
-+		struct page *p = uctxt->tid_pg_list[tid];
-+		dma_addr_t phys;
-+
-+		if (!p)
-+			continue;
-+
-+		phys = uctxt->physshadow[tid];
-+		uctxt->physshadow[tid] = 0;
-+		uctxt->tid_pg_list[tid] = NULL;
-+		pci_unmap_page(dd->pcidev, phys, PAGE_SIZE, PCI_DMA_FROMDEVICE);
-+		hfi1_release_user_pages(&p, 1);
-+	}
-+}
-+
-+static int set_ctxt_pkey(struct hfi1_ctxtdata *uctxt, unsigned subctxt,
-+			 u16 pkey)
-+{
-+	int ret = -ENOENT, i, intable = 0;
-+	struct hfi1_pportdata *ppd = uctxt->ppd;
-+	struct hfi1_devdata *dd = uctxt->dd;
-+
-+	if (pkey == LIM_MGMT_P_KEY || pkey == FULL_MGMT_P_KEY) {
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
-+	for (i = 0; i < ARRAY_SIZE(ppd->pkeys); i++)
-+		if (pkey == ppd->pkeys[i]) {
-+			intable = 1;
-+			break;
-+		}
-+
-+	if (intable)
-+		ret = hfi1_set_ctxt_pkey(dd, uctxt->ctxt, pkey);
-+done:
-+	return ret;
-+}
-+
-+static int ui_open(struct inode *inode, struct file *filp)
-+{
 +	struct hfi1_devdata *dd;
 +
-+	dd = container_of(inode->i_cdev, struct hfi1_devdata, ui_cdev);
-+	filp->private_data = dd; /* for other methods */
-+	return 0;
++	dd = hfi1_dd_from_sc_inode(fp->f_inode);
++	if (dd == NULL)
++		return -ENODEV;
++
++	spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
++
++	poll_wait(fp, &dd->hfi1_snoop.waitq, wait);
++	if (!list_empty(&dd->hfi1_snoop.queue))
++		ret |= POLLIN | POLLRDNORM;
++
++	spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
++	return ret;
++
 +}
 +
-+static int ui_release(struct inode *inode, struct file *filp)
++static ssize_t hfi1_snoop_write(struct file *fp, const char __user *data,
++				size_t count, loff_t *off)
 +{
-+	/* nothing to do */
-+	return 0;
-+}
++	struct diag_pkt dpkt;
++	struct hfi1_devdata *dd;
++	size_t ret;
++	u8 byte_two, sl, sc5, sc4, vl, byte_one;
++	struct send_context *sc;
++	u32 len;
++	u64 pbc;
++	struct hfi1_ibport *ibp;
++	struct hfi1_pportdata *ppd;
 +
-+static loff_t ui_lseek(struct file *filp, loff_t offset, int whence)
-+{
-+	struct hfi1_devdata *dd = filp->private_data;
++	dd = hfi1_dd_from_sc_inode(fp->f_inode);
++	if (dd == NULL)
++		return -ENODEV;
 +
-+	switch (whence) {
-+	case SEEK_SET:
-+		break;
-+	case SEEK_CUR:
-+		offset += filp->f_pos;
-+		break;
-+	case SEEK_END:
-+		offset = (dd->kregend - dd->kregbase) - offset;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
++	ppd = dd->pport;
++	snoop_dbg("received %lu bytes from user", count);
 +
-+	if (offset < 0)
-+		return -EINVAL;
++	memset(&dpkt, 0, sizeof(struct diag_pkt));
++	dpkt.version = _DIAG_PKT_VERS;
++	dpkt.unit = dd->unit;
++	dpkt.port = 1;
 +
-+	if (offset >= dd->kregend - dd->kregbase)
-+		return -EINVAL;
-+
-+	filp->f_pos = offset;
-+
-+	return filp->f_pos;
-+}
-+
-+/* NOTE: assumes unsigned long is 8 bytes */
-+static ssize_t ui_read(struct file *filp, char __user *buf, size_t count,
-+			loff_t *f_pos)
-+{
-+	struct hfi1_devdata *dd = filp->private_data;
-+	void __iomem *base;
-+	unsigned long total, data, csr_off;
-+
-+	/* only read 8 byte quantities */
-+	if ((count % 8) != 0)
-+		return -EINVAL;
-+	/* offset must be 8-byte aligned */
-+	if ((*f_pos % 8) != 0)
-+		return -EINVAL;
-+	/* destination buffer must be 8-byte aligned */
-+	if ((unsigned long)buf % 8 != 0)
-+		return -EINVAL;
-+	/* must be in range */
-+	if (*f_pos + count > dd->kregend - dd->kregbase)
-+		return -EINVAL;
-+	base = (void __iomem *)(dd->kregbase + *f_pos);
-+	csr_off = *f_pos;
-+	for (total = 0; total < count; total += 8, csr_off += 8) {
-+		/* accessing LCB CSRs requires more checks */
-+		if (is_lcb_offset(csr_off)) {
-+			if (read_lcb_csr(dd, csr_off, (u64 *)&data))
-+				break; /* failed */
-+		}
++	if (likely(!(snoop_flags & SNOOP_USE_METADATA))) {
 +		/*
-+		 * Cannot read ASIC GPIO/QSFP* clear and force CSRs without a
-+		 * false parity error.  Avoid the whole issue by not reading
-+		 * them.  These registers are defined as having a read value
-+		 * of 0.
-+		 */
-+		else if (csr_off == ASIC_GPIO_CLEAR
-+				|| csr_off == ASIC_GPIO_FORCE
-+				|| csr_off == ASIC_QSFP1_CLEAR
-+				|| csr_off == ASIC_QSFP1_FORCE
-+				|| csr_off == ASIC_QSFP2_CLEAR
-+				|| csr_off == ASIC_QSFP2_FORCE)
-+			data = 0;
-+		else
-+			data = readq(base + total);
-+		if (put_user(data, (unsigned long __user *)(buf + total)))
-+			break;
-+	}
-+	*f_pos += total;
-+	return total;
-+}
++		* We need to generate the PBC and not let diagpkt_send do it,
++		* to do this we need the VL and the length in dwords.
++		* The VL can be determined by using the SL and looking up the
++		* SC. Then the SC can be converted into VL. The exception to
++		* this is those packets which are from an SMI queue pair.
++		* Since we can't detect anything about the QP here we have to
++		* rely on the SC. If its 0xF then we assume its SMI and
++		* do not look at the SL.
++		*/
++		if (copy_from_user(&byte_one, data, 1))
++			return -EINVAL;
 +
-+/* NOTE: assumes unsigned long is 8 bytes */
-+static ssize_t ui_write(struct file *filp, const char __user *buf,
-+			size_t count, loff_t *f_pos)
-+{
-+	struct hfi1_devdata *dd = filp->private_data;
-+	void __iomem *base;
-+	unsigned long total, data, csr_off;
-+	int in_lcb;
++		if (copy_from_user(&byte_two, data+1, 1))
++			return -EINVAL;
 +
-+	/* only write 8 byte quantities */
-+	if ((count % 8) != 0)
-+		return -EINVAL;
-+	/* offset must be 8-byte aligned */
-+	if ((*f_pos % 8) != 0)
-+		return -EINVAL;
-+	/* source buffer must be 8-byte aligned */
-+	if ((unsigned long)buf % 8 != 0)
-+		return -EINVAL;
-+	/* must be in range */
-+	if (*f_pos + count > dd->kregend - dd->kregbase)
-+		return -EINVAL;
-+
-+	base = (void __iomem *)dd->kregbase + *f_pos;
-+	csr_off = *f_pos;
-+	in_lcb = 0;
-+	for (total = 0; total < count; total += 8, csr_off += 8) {
-+		if (get_user(data, (unsigned long __user *)(buf + total)))
-+			break;
-+		/* accessing LCB CSRs requires a special procedure */
-+		if (is_lcb_offset(csr_off)) {
-+			if (!in_lcb) {
-+				int ret = acquire_lcb_access(dd, 1);
-+
-+				if (ret)
-+					break;
-+				in_lcb = 1;
-+			}
++		sc4 = (byte_one >> 4) & 0xf;
++		if (sc4 == 0xF) {
++			snoop_dbg("Detected VL15 packet ignoring SL in packet");
++			vl = sc4;
 +		} else {
-+			if (in_lcb) {
-+				release_lcb_access(dd, 1);
-+				in_lcb = 0;
++			sl = (byte_two >> 4) & 0xf;
++			ibp = to_iport(&dd->verbs_dev.ibdev, 1);
++			sc5 = ibp->sl_to_sc[sl];
++			vl = sc_to_vlt(dd, sc5);
++			if (vl != sc4) {
++				snoop_dbg("VL %d does not match SC %d of packet",
++					  vl, sc4);
++				return -EINVAL;
 +			}
 +		}
-+		writeq(data, base + total);
++
++		sc = dd->vld[vl].sc; /* Look up the context based on VL */
++		if (sc) {
++			dpkt.sw_index = sc->sw_index;
++			snoop_dbg("Sending on context %u(%u)", sc->sw_index,
++				  sc->hw_context);
++		} else {
++			snoop_dbg("Could not find context for vl %d", vl);
++			return -EINVAL;
++		}
++
++		len = (count >> 2) + 2; /* Add in PBC */
++		pbc = create_pbc(ppd, 0, 0, vl, len);
++	} else {
++		if (copy_from_user(&pbc, data, sizeof(pbc)))
++			return -EINVAL;
++		vl = (pbc >> PBC_VL_SHIFT) & PBC_VL_MASK;
++		sc = dd->vld[vl].sc; /* Look up the context based on VL */
++		if (sc) {
++			dpkt.sw_index = sc->sw_index;
++		} else {
++			snoop_dbg("Could not find context for vl %d", vl);
++			return -EINVAL;
++		}
++		data += sizeof(pbc);
++		count -= sizeof(pbc);
 +	}
-+	if (in_lcb)
-+		release_lcb_access(dd, 1);
-+	*f_pos += total;
-+	return total;
++	dpkt.len = count;
++	dpkt.data = (unsigned long)data;
++
++	len = (count >> 2) + 2; /* Add in PBC */
++	pbc = create_pbc(ppd, 0, 0, vl, len);
++	snoop_dbg("PBC: vl=0x%llx Length=0x%llx",
++		  (pbc >> 12) & 0xf,
++		  (pbc & 0xfff));
++
++	dpkt.pbc = pbc;
++	ret = diagpkt_send(&dpkt);
++	/*
++	 * diagpkt_send only returns number of bytes in the diagpkt so patch
++	 * that up here before returning.
++	 */
++	if (ret == sizeof(dpkt))
++		return count;
++
++	return ret;
 +}
 +
-+static const struct file_operations ui_file_ops = {
-+	.owner = THIS_MODULE,
-+	.llseek = ui_lseek,
-+	.read = ui_read,
-+	.write = ui_write,
-+	.open = ui_open,
-+	.release = ui_release,
-+};
-+#define UI_OFFSET 192	/* device minor offset for UI devices */
-+static int create_ui = 1;
-+
-+static struct cdev wildcard_cdev;
-+static struct device *wildcard_device;
-+
-+static atomic_t user_count = ATOMIC_INIT(0);
-+
-+static void user_remove(struct hfi1_devdata *dd)
++static ssize_t hfi1_snoop_read(struct file *fp, char __user *data,
++			       size_t pkt_len, loff_t *off)
 +{
-+	if (atomic_dec_return(&user_count) == 0)
-+		hfi1_cdev_cleanup(&wildcard_cdev, &wildcard_device);
++	ssize_t ret = 0;
++	unsigned long flags = 0;
++	struct snoop_packet *packet = NULL;
++	struct hfi1_devdata *dd;
 +
-+	hfi1_cdev_cleanup(&dd->user_cdev, &dd->user_device);
-+	hfi1_cdev_cleanup(&dd->ui_cdev, &dd->ui_device);
++	dd = hfi1_dd_from_sc_inode(fp->f_inode);
++	if (dd == NULL)
++		return -ENODEV;
++
++	spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
++
++	while (list_empty(&dd->hfi1_snoop.queue)) {
++		spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
++
++		if (fp->f_flags & O_NONBLOCK)
++			return -EAGAIN;
++
++		if (wait_event_interruptible(
++				dd->hfi1_snoop.waitq,
++				!list_empty(&dd->hfi1_snoop.queue)))
++			return -EINTR;
++
++		spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
++	}
++
++	if (!list_empty(&dd->hfi1_snoop.queue)) {
++		packet = list_entry(dd->hfi1_snoop.queue.next,
++				    struct snoop_packet, list);
++		list_del(&packet->list);
++		spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
++		if (pkt_len >= packet->total_len) {
++			if (copy_to_user(data, packet->data,
++				packet->total_len))
++				ret = -EFAULT;
++			else
++				ret = packet->total_len;
++		} else
++			ret = -EINVAL;
++
++		kfree(packet);
++	} else
++		spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
++
++	return ret;
 +}
 +
-+static int user_add(struct hfi1_devdata *dd)
++static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
 +{
-+	char name[10];
++	struct hfi1_devdata *dd;
++	void *filter_value = NULL;
++	long ret = 0;
++	int value = 0;
++	u8 physState = 0;
++	u8 linkState = 0;
++	u16 devState = 0;
++	unsigned long flags = 0;
++	unsigned long *argp = NULL;
++	struct hfi1_packet_filter_command filter_cmd = {0};
++	int mode_flag = 0;
++	struct hfi1_pportdata *ppd = NULL;
++	unsigned int index;
++	struct hfi1_link_info link_info;
++
++	dd = hfi1_dd_from_sc_inode(fp->f_inode);
++	if (dd == NULL)
++		return -ENODEV;
++
++	spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
++
++	mode_flag = dd->hfi1_snoop.mode_flag;
++
++	if (((_IOC_DIR(cmd) & _IOC_READ)
++	    && !access_ok(VERIFY_WRITE, (void __user *)arg, _IOC_SIZE(cmd)))
++	    || ((_IOC_DIR(cmd) & _IOC_WRITE)
++	    && !access_ok(VERIFY_READ, (void __user *)arg, _IOC_SIZE(cmd)))) {
++		ret = -EFAULT;
++	} else if (!capable(CAP_SYS_ADMIN)) {
++		ret = -EPERM;
++	} else if ((mode_flag & HFI1_PORT_CAPTURE_MODE) &&
++		   (cmd != HFI1_SNOOP_IOCCLEARQUEUE) &&
++		   (cmd != HFI1_SNOOP_IOCCLEARFILTER) &&
++		   (cmd != HFI1_SNOOP_IOCSETFILTER)) {
++		/* Capture devices are allowed only 3 operations
++		 * 1.Clear capture queue
++		 * 2.Clear capture filter
++		 * 3.Set capture filter
++		 * Other are invalid.
++		 */
++		ret = -EINVAL;
++	} else {
++		switch (cmd) {
++		case HFI1_SNOOP_IOCSETLINKSTATE:
++			snoop_dbg("HFI1_SNOOP_IOCSETLINKSTATE is not valid");
++			ret = -EINVAL;
++			break;
++
++		case HFI1_SNOOP_IOCSETLINKSTATE_EXTRA:
++			memset(&link_info, 0, sizeof(link_info));
++
++			ret = copy_from_user(&link_info,
++				(struct hfi1_link_info __user *)arg,
++				sizeof(link_info));
++			if (ret)
++				break;
++
++			value = link_info.port_state;
++			index = link_info.port_number;
++			if (index > dd->num_pports - 1) {
++				ret = -EINVAL;
++				break;
++			}
++
++			ppd = &dd->pport[index];
++			if (!ppd) {
++				ret = -EINVAL;
++				break;
++			}
++
++			/* What we want to transition to */
++			physState = (value >> 4) & 0xF;
++			linkState = value & 0xF;
++			snoop_dbg("Setting link state 0x%x", value);
++
++			switch (linkState) {
++			case IB_PORT_NOP:
++				if (physState == 0)
++					break;
++					/* fall through */
++			case IB_PORT_DOWN:
++				switch (physState) {
++				case 0:
++					devState = HLS_DN_DOWNDEF;
++					break;
++				case 2:
++					devState = HLS_DN_POLL;
++					break;
++				case 3:
++					devState = HLS_DN_DISABLE;
++					break;
++				default:
++					ret = -EINVAL;
++					goto done;
++				}
++				ret = set_link_state(ppd, devState);
++				break;
++			case IB_PORT_ARMED:
++				ret = set_link_state(ppd, HLS_UP_ARMED);
++				if (!ret)
++					send_idle_sma(dd, SMA_IDLE_ARM);
++				break;
++			case IB_PORT_ACTIVE:
++				ret = set_link_state(ppd, HLS_UP_ACTIVE);
++				if (!ret)
++					send_idle_sma(dd, SMA_IDLE_ACTIVE);
++				break;
++			default:
++				ret = -EINVAL;
++				break;
++			}
++
++			if (ret)
++				break;
++			/* fall through */
++		case HFI1_SNOOP_IOCGETLINKSTATE:
++		case HFI1_SNOOP_IOCGETLINKSTATE_EXTRA:
++			if (cmd == HFI1_SNOOP_IOCGETLINKSTATE_EXTRA) {
++				memset(&link_info, 0, sizeof(link_info));
++				ret = copy_from_user(&link_info,
++					(struct hfi1_link_info __user *)arg,
++					sizeof(link_info));
++				index = link_info.port_number;
++			} else {
++				ret = __get_user(index, (int __user *) arg);
++				if (ret !=  0)
++					break;
++			}
++
++			if (index > dd->num_pports - 1) {
++				ret = -EINVAL;
++				break;
++			}
++
++			ppd = &dd->pport[index];
++			if (!ppd) {
++				ret = -EINVAL;
++				break;
++			}
++			value = hfi1_ibphys_portstate(ppd);
++			value <<= 4;
++			value |= driver_lstate(ppd);
++
++			snoop_dbg("Link port | Link State: %d", value);
++
++			if ((cmd == HFI1_SNOOP_IOCGETLINKSTATE_EXTRA) ||
++			    (cmd == HFI1_SNOOP_IOCSETLINKSTATE_EXTRA)) {
++				link_info.port_state = value;
++				link_info.node_guid = ppd->guid;
++				link_info.link_speed_active =
++							ppd->link_speed_active;
++				link_info.link_width_active =
++							ppd->link_width_active;
++				ret = copy_to_user(
++					(struct hfi1_link_info __user *)arg,
++					&link_info, sizeof(link_info));
++			} else {
++				ret = __put_user(value, (int __user *)arg);
++			}
++			break;
++
++		case HFI1_SNOOP_IOCCLEARQUEUE:
++			snoop_dbg("Clearing snoop queue");
++			drain_snoop_list(&dd->hfi1_snoop.queue);
++			break;
++
++		case HFI1_SNOOP_IOCCLEARFILTER:
++			snoop_dbg("Clearing filter");
++			if (dd->hfi1_snoop.filter_callback) {
++				/* Drain packets first */
++				drain_snoop_list(&dd->hfi1_snoop.queue);
++				dd->hfi1_snoop.filter_callback = NULL;
++			}
++			kfree(dd->hfi1_snoop.filter_value);
++			dd->hfi1_snoop.filter_value = NULL;
++			break;
++
++		case HFI1_SNOOP_IOCSETFILTER:
++			snoop_dbg("Setting filter");
++			/* just copy command structure */
++			argp = (unsigned long *)arg;
++			ret = copy_from_user(&filter_cmd, (void __user *)argp,
++					     sizeof(filter_cmd));
++			if (ret < 0) {
++				pr_alert("Error copying filter command\n");
++				break;
++			}
++			if (filter_cmd.opcode >= HFI1_MAX_FILTERS) {
++				pr_alert("Invalid opcode in request\n");
++				ret = -EINVAL;
++				break;
++			}
++
++			snoop_dbg("Opcode %d Len %d Ptr %p",
++				   filter_cmd.opcode, filter_cmd.length,
++				   filter_cmd.value_ptr);
++
++			filter_value = kzalloc(
++						filter_cmd.length * sizeof(u8),
++						GFP_KERNEL);
++			if (!filter_value) {
++				pr_alert("Not enough memory\n");
++				ret = -ENOMEM;
++				break;
++			}
++			/* copy remaining data from userspace */
++			ret = copy_from_user((u8 *)filter_value,
++					(void __user *)filter_cmd.value_ptr,
++					filter_cmd.length);
++			if (ret < 0) {
++				kfree(filter_value);
++				pr_alert("Error copying filter data\n");
++				break;
++			}
++			/* Drain packets first */
++			drain_snoop_list(&dd->hfi1_snoop.queue);
++			dd->hfi1_snoop.filter_callback =
++				hfi1_filters[filter_cmd.opcode].filter;
++			/* just in case we see back to back sets */
++			kfree(dd->hfi1_snoop.filter_value);
++			dd->hfi1_snoop.filter_value = filter_value;
++
++			break;
++		case HFI1_SNOOP_IOCGETVERSION:
++			value = SNOOP_CAPTURE_VERSION;
++			snoop_dbg("Getting version: %d", value);
++			ret = __put_user(value, (int __user *)arg);
++			break;
++		case HFI1_SNOOP_IOCSET_OPTS:
++			snoop_flags = 0;
++			ret = __get_user(value, (int __user *) arg);
++			if (ret != 0)
++				break;
++
++			snoop_dbg("Setting snoop option %d", value);
++			if (value & SNOOP_DROP_SEND)
++				snoop_flags |= SNOOP_DROP_SEND;
++			if (value & SNOOP_USE_METADATA)
++				snoop_flags |= SNOOP_USE_METADATA;
++			break;
++		default:
++			ret = -ENOTTY;
++			break;
++		}
++	}
++done:
++	spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
++	return ret;
++}
++
++static void snoop_list_add_tail(struct snoop_packet *packet,
++				struct hfi1_devdata *dd)
++{
++	unsigned long flags = 0;
++
++	spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
++	if (likely((dd->hfi1_snoop.mode_flag & HFI1_PORT_SNOOP_MODE) ||
++		   (dd->hfi1_snoop.mode_flag & HFI1_PORT_CAPTURE_MODE))) {
++		list_add_tail(&packet->list, &dd->hfi1_snoop.queue);
++		snoop_dbg("Added packet to list");
++	}
++
++	/*
++	 * Technically we can could have closed the snoop device while waiting
++	 * on the above lock and it is gone now. The snoop mode_flag will
++	 * prevent us from adding the packet to the queue though.
++	 */
++
++	spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
++	wake_up_interruptible(&dd->hfi1_snoop.waitq);
++}
++
++static inline int hfi1_filter_check(void *val, const char *msg)
++{
++	if (!val) {
++		snoop_dbg("Error invalid %s value for filter", msg);
++		return HFI1_FILTER_ERR;
++	}
++	return 0;
++}
++
++static int hfi1_filter_lid(void *ibhdr, void *packet_data, void *value)
++{
++	struct hfi1_ib_header *hdr;
 +	int ret;
 +
-+	if (atomic_inc_return(&user_count) == 1) {
-+		ret = hfi1_cdev_init(0, class_name(), &hfi1_file_ops,
-+				     &wildcard_cdev, &wildcard_device);
-+		if (ret)
-+			goto done;
-+	}
-+
-+	snprintf(name, sizeof(name), "%s_%d", class_name(), dd->unit);
-+	ret = hfi1_cdev_init(dd->unit + 1, name, &hfi1_file_ops,
-+			     &dd->user_cdev, &dd->user_device);
++	ret = hfi1_filter_check(ibhdr, "header");
 +	if (ret)
-+		goto done;
++		return ret;
++	ret = hfi1_filter_check(value, "user");
++	if (ret)
++		return ret;
++	hdr = (struct hfi1_ib_header *)ibhdr;
 +
-+	if (create_ui) {
-+		snprintf(name, sizeof(name),
-+			 "%s_ui%d", class_name(), dd->unit);
-+		ret = hfi1_cdev_init(dd->unit + UI_OFFSET, name, &ui_file_ops,
-+				     &dd->ui_cdev, &dd->ui_device);
-+		if (ret)
-+			goto done;
++	if (*((u16 *)value) == be16_to_cpu(hdr->lrh[3])) /* matches slid */
++		return HFI1_FILTER_HIT; /* matched */
++
++	return HFI1_FILTER_MISS; /* Not matched */
++}
++
++static int hfi1_filter_dlid(void *ibhdr, void *packet_data, void *value)
++{
++	struct hfi1_ib_header *hdr;
++	int ret;
++
++	ret = hfi1_filter_check(ibhdr, "header");
++	if (ret)
++		return ret;
++	ret = hfi1_filter_check(value, "user");
++	if (ret)
++		return ret;
++
++	hdr = (struct hfi1_ib_header *)ibhdr;
++
++	if (*((u16 *)value) == be16_to_cpu(hdr->lrh[1]))
++		return HFI1_FILTER_HIT;
++
++	return HFI1_FILTER_MISS;
++}
++
++/* Not valid for outgoing packets, send handler passes null for data*/
++static int hfi1_filter_mad_mgmt_class(void *ibhdr, void *packet_data,
++				      void *value)
++{
++	struct hfi1_ib_header *hdr;
++	struct hfi1_other_headers *ohdr = NULL;
++	struct ib_smp *smp = NULL;
++	u32 qpn = 0;
++	int ret;
++
++	ret = hfi1_filter_check(ibhdr, "header");
++	if (ret)
++		return ret;
++	ret = hfi1_filter_check(packet_data, "packet_data");
++	if (ret)
++		return ret;
++	ret = hfi1_filter_check(value, "user");
++	if (ret)
++		return ret;
++
++	hdr = (struct hfi1_ib_header *)ibhdr;
++
++	/* Check for GRH */
++	if ((be16_to_cpu(hdr->lrh[0]) & 3) == HFI1_LRH_BTH)
++		ohdr = &hdr->u.oth; /* LRH + BTH + DETH */
++	else
++		ohdr = &hdr->u.l.oth; /* LRH + GRH + BTH + DETH */
++
++	qpn = be32_to_cpu(ohdr->bth[1]) & 0x00FFFFFF;
++	if (qpn <= 1) {
++		smp = (struct ib_smp *)packet_data;
++		if (*((u8 *)value) == smp->mgmt_class)
++			return HFI1_FILTER_HIT;
++		else
++			return HFI1_FILTER_MISS;
++	}
++	return HFI1_FILTER_ERR;
++}
++
++static int hfi1_filter_qp_number(void *ibhdr, void *packet_data, void *value)
++{
++
++	struct hfi1_ib_header *hdr;
++	struct hfi1_other_headers *ohdr = NULL;
++	int ret;
++
++	ret = hfi1_filter_check(ibhdr, "header");
++	if (ret)
++		return ret;
++	ret = hfi1_filter_check(value, "user");
++	if (ret)
++		return ret;
++
++	hdr = (struct hfi1_ib_header *)ibhdr;
++
++	/* Check for GRH */
++	if ((be16_to_cpu(hdr->lrh[0]) & 3) == HFI1_LRH_BTH)
++		ohdr = &hdr->u.oth; /* LRH + BTH + DETH */
++	else
++		ohdr = &hdr->u.l.oth; /* LRH + GRH + BTH + DETH */
++	if (*((u32 *)value) == (be32_to_cpu(ohdr->bth[1]) & 0x00FFFFFF))
++		return HFI1_FILTER_HIT;
++
++	return HFI1_FILTER_MISS;
++}
++
++static int hfi1_filter_ibpacket_type(void *ibhdr, void *packet_data,
++				     void *value)
++{
++	u32 lnh = 0;
++	u8 opcode = 0;
++	struct hfi1_ib_header *hdr;
++	struct hfi1_other_headers *ohdr = NULL;
++	int ret;
++
++	ret = hfi1_filter_check(ibhdr, "header");
++	if (ret)
++		return ret;
++	ret = hfi1_filter_check(value, "user");
++	if (ret)
++		return ret;
++
++	hdr = (struct hfi1_ib_header *)ibhdr;
++
++	lnh = (be16_to_cpu(hdr->lrh[0]) & 3);
++
++	if (lnh == HFI1_LRH_BTH)
++		ohdr = &hdr->u.oth;
++	else if (lnh == HFI1_LRH_GRH)
++		ohdr = &hdr->u.l.oth;
++	else
++		return HFI1_FILTER_ERR;
++
++	opcode = be32_to_cpu(ohdr->bth[0]) >> 24;
++
++	if (*((u8 *)value) == ((opcode >> 5) & 0x7))
++		return HFI1_FILTER_HIT;
++
++	return HFI1_FILTER_MISS;
++}
++
++static int hfi1_filter_ib_service_level(void *ibhdr, void *packet_data,
++					void *value)
++{
++	struct hfi1_ib_header *hdr;
++	int ret;
++
++	ret = hfi1_filter_check(ibhdr, "header");
++	if (ret)
++		return ret;
++	ret = hfi1_filter_check(value, "user");
++	if (ret)
++		return ret;
++
++	hdr = (struct hfi1_ib_header *)ibhdr;
++
++	if ((*((u8 *)value)) == ((be16_to_cpu(hdr->lrh[0]) >> 4) & 0xF))
++		return HFI1_FILTER_HIT;
++
++	return HFI1_FILTER_MISS;
++}
++
++static int hfi1_filter_ib_pkey(void *ibhdr, void *packet_data, void *value)
++{
++
++	u32 lnh = 0;
++	struct hfi1_ib_header *hdr;
++	struct hfi1_other_headers *ohdr = NULL;
++	int ret;
++
++	ret = hfi1_filter_check(ibhdr, "header");
++	if (ret)
++		return ret;
++	ret = hfi1_filter_check(value, "user");
++	if (ret)
++		return ret;
++
++	hdr = (struct hfi1_ib_header *)ibhdr;
++
++	lnh = (be16_to_cpu(hdr->lrh[0]) & 3);
++	if (lnh == HFI1_LRH_BTH)
++		ohdr = &hdr->u.oth;
++	else if (lnh == HFI1_LRH_GRH)
++		ohdr = &hdr->u.l.oth;
++	else
++		return HFI1_FILTER_ERR;
++
++	/* P_key is 16-bit entity, however top most bit indicates
++	 * type of membership. 0 for limited and 1 for Full.
++	 * Limited members cannot accept information from other
++	 * Limited members, but communication is allowed between
++	 * every other combination of membership.
++	 * Hence we'll omit comparing top-most bit while filtering
++	 */
++
++	if ((*(u16 *)value & 0x7FFF) ==
++		((be32_to_cpu(ohdr->bth[0])) & 0x7FFF))
++		return HFI1_FILTER_HIT;
++
++	return HFI1_FILTER_MISS;
++}
++
++/*
++ * If packet_data is NULL then this is coming from one of the send functions.
++ * Thus we know if its an ingressed or egressed packet.
++ */
++static int hfi1_filter_direction(void *ibhdr, void *packet_data, void *value)
++{
++	u8 user_dir = *(u8 *)value;
++	int ret;
++
++	ret = hfi1_filter_check(value, "user");
++	if (ret)
++		return ret;
++
++	if (packet_data) {
++		/* Incoming packet */
++		if (user_dir & HFI1_SNOOP_INGRESS)
++			return HFI1_FILTER_HIT;
++	} else {
++		/* Outgoing packet */
++		if (user_dir & HFI1_SNOOP_EGRESS)
++			return HFI1_FILTER_HIT;
 +	}
 +
-+	return 0;
-+done:
-+	user_remove(dd);
-+	return ret;
++	return HFI1_FILTER_MISS;
 +}
 +
 +/*
-+ * Create per-unit files in /dev
++ * Allocate a snoop packet. The structure that is stored in the ring buffer, not
++ * to be confused with an hfi packet type.
 + */
-+int hfi1_device_create(struct hfi1_devdata *dd)
++static struct snoop_packet *allocate_snoop_packet(u32 hdr_len,
++						  u32 data_len,
++						  u32 md_len)
 +{
-+	int r, ret;
 +
-+	r = user_add(dd);
-+	ret = hfi1_diag_add(dd);
-+	if (r && !ret)
-+		ret = r;
-+	return ret;
++	struct snoop_packet *packet = NULL;
++
++	packet = kzalloc(sizeof(struct snoop_packet) + hdr_len + data_len
++			 + md_len,
++			 GFP_ATOMIC);
++	if (likely(packet))
++		INIT_LIST_HEAD(&packet->list);
++
++
++	return packet;
 +}
 +
 +/*
-+ * Remove per-unit files in /dev
-+ * void, core kernel returns no errors for this stuff
++ * Instead of having snoop and capture code intermixed with the recv functions,
++ * both the interrupt handler and hfi1_ib_rcv() we are going to hijack the call
++ * and land in here for snoop/capture but if not enabled the call will go
++ * through as before. This gives us a single point to constrain all of the snoop
++ * snoop recv logic. There is nothing special that needs to happen for bypass
++ * packets. This routine should not try to look into the packet. It just copied
++ * it. There is no guarantee for filters when it comes to bypass packets as
++ * there is no specific support. Bottom line is this routine does now even know
++ * what a bypass packet is.
 + */
-+void hfi1_device_remove(struct hfi1_devdata *dd)
++int snoop_recv_handler(struct hfi1_packet *packet)
 +{
-+	user_remove(dd);
-+	hfi1_diag_remove(dd);
++	struct hfi1_pportdata *ppd = packet->rcd->ppd;
++	struct hfi1_ib_header *hdr = packet->hdr;
++	int header_size = packet->hlen;
++	void *data = packet->ebuf;
++	u32 tlen = packet->tlen;
++	struct snoop_packet *s_packet = NULL;
++	int ret;
++	int snoop_mode = 0;
++	u32 md_len = 0;
++	struct capture_md md;
++
++	snoop_dbg("PACKET IN: hdr size %d tlen %d data %p", header_size, tlen,
++		  data);
++
++	trace_snoop_capture(ppd->dd, header_size, hdr, tlen - header_size,
++			    data);
++
++	if (!ppd->dd->hfi1_snoop.filter_callback) {
++		snoop_dbg("filter not set");
++		ret = HFI1_FILTER_HIT;
++	} else {
++		ret = ppd->dd->hfi1_snoop.filter_callback(hdr, data,
++					ppd->dd->hfi1_snoop.filter_value);
++	}
++
++	switch (ret) {
++	case HFI1_FILTER_ERR:
++		snoop_dbg("Error in filter call");
++		break;
++	case HFI1_FILTER_MISS:
++		snoop_dbg("Filter Miss");
++		break;
++	case HFI1_FILTER_HIT:
++
++		if (ppd->dd->hfi1_snoop.mode_flag & HFI1_PORT_SNOOP_MODE)
++			snoop_mode = 1;
++		if ((snoop_mode == 0) ||
++		    unlikely(snoop_flags & SNOOP_USE_METADATA))
++			md_len = sizeof(struct capture_md);
++
++
++		s_packet = allocate_snoop_packet(header_size,
++						 tlen - header_size,
++						 md_len);
++		if (unlikely(s_packet == NULL)) {
++			dd_dev_err(ppd->dd,
++				"Unable to allocate snoop/capture packet\n");
++			break;
++		}
++
++		if (md_len > 0) {
++			memset(&md, 0, sizeof(struct capture_md));
++			md.port = 1;
++			md.dir = PKT_DIR_INGRESS;
++			md.u.rhf = packet->rhf;
++			memcpy(s_packet->data, &md, md_len);
++		}
++
++		/* We should always have a header */
++		if (hdr) {
++			memcpy(s_packet->data + md_len, hdr, header_size);
++		} else {
++			dd_dev_err(ppd->dd, "Unable to copy header to snoop/capture packet\n");
++			kfree(s_packet);
++			break;
++		}
++
++		/*
++		 * Packets with no data are possible. If there is no data needed
++		 * to take care of the last 4 bytes which are normally included
++		 * with data buffers and are included in tlen.  Since we kzalloc
++		 * the buffer we do not need to set any values but if we decide
++		 * not to use kzalloc we should zero them.
++		 */
++		if (data)
++			memcpy(s_packet->data + header_size + md_len, data,
++			       tlen - header_size);
++
++		s_packet->total_len = tlen + md_len;
++		snoop_list_add_tail(s_packet, ppd->dd);
++
++		/*
++		 * If we are snooping the packet not capturing then throw away
++		 * after adding to the list.
++		 */
++		snoop_dbg("Capturing packet");
++		if (ppd->dd->hfi1_snoop.mode_flag & HFI1_PORT_SNOOP_MODE) {
++			snoop_dbg("Throwing packet away");
++			/*
++			 * If we are dropping the packet we still may need to
++			 * handle the case where error flags are set, this is
++			 * normally done by the type specific handler but that
++			 * won't be called in this case.
++			 */
++			if (unlikely(rhf_err_flags(packet->rhf)))
++				handle_eflags(packet);
++
++			/* throw the packet on the floor */
++			return RHF_RCV_CONTINUE;
++		}
++		break;
++	default:
++		break;
++	}
++
++	/*
++	 * We do not care what type of packet came in here - just pass it off
++	 * to the normal handler.
++	 */
++	return ppd->dd->normal_rhf_rcv_functions[rhf_rcv_type(packet->rhf)]
++			(packet);
++}
++
++/*
++ * Handle snooping and capturing packets when sdma is being used.
++ */
++int snoop_send_dma_handler(struct hfi1_qp *qp, struct ahg_ib_header *ibhdr,
++			   u32 hdrwords, struct hfi1_sge_state *ss, u32 len,
++			   u32 plen, u32 dwords, u64 pbc)
++{
++	pr_alert("Snooping/Capture of  Send DMA Packets Is Not Supported!\n");
++	snoop_dbg("Unsupported Operation");
++	return hfi1_verbs_send_dma(qp, ibhdr, hdrwords, ss, len, plen, dwords,
++				  0);
++}
++
++/*
++ * Handle snooping and capturing packets when pio is being used. Does not handle
++ * bypass packets. The only way to send a bypass packet currently is to use the
++ * diagpkt interface. When that interface is enable snoop/capture is not.
++ */
++int snoop_send_pio_handler(struct hfi1_qp *qp, struct ahg_ib_header *ahdr,
++			   u32 hdrwords, struct hfi1_sge_state *ss, u32 len,
++			   u32 plen, u32 dwords, u64 pbc)
++{
++	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
++	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
++	struct snoop_packet *s_packet = NULL;
++	u32 *hdr = (u32 *)&ahdr->ibh;
++	u32 length = 0;
++	struct hfi1_sge_state temp_ss;
++	void *data = NULL;
++	void *data_start = NULL;
++	int ret;
++	int snoop_mode = 0;
++	int md_len = 0;
++	struct capture_md md;
++	u32 vl;
++	u32 hdr_len = hdrwords << 2;
++	u32 tlen = HFI1_GET_PKT_LEN(&ahdr->ibh);
++
++	md.u.pbc = 0;
++
++	snoop_dbg("PACKET OUT: hdrword %u len %u plen %u dwords %u tlen %u",
++		  hdrwords, len, plen, dwords, tlen);
++	if (ppd->dd->hfi1_snoop.mode_flag & HFI1_PORT_SNOOP_MODE)
++		snoop_mode = 1;
++	if ((snoop_mode == 0) ||
++	    unlikely(snoop_flags & SNOOP_USE_METADATA))
++		md_len = sizeof(struct capture_md);
++
++	/* not using ss->total_len as arg 2 b/c that does not count CRC */
++	s_packet = allocate_snoop_packet(hdr_len, tlen - hdr_len, md_len);
++	s_packet->total_len = tlen + md_len;
++	if (unlikely(s_packet == NULL)) {
++		dd_dev_err(ppd->dd,
++			   "Unable to allocate snoop/capture packet\n");
++		goto out;
++	}
++
++	if (md_len > 0) {
++		memset(&md, 0, sizeof(struct capture_md));
++		md.port = 1;
++		md.dir = PKT_DIR_EGRESS;
++		if (likely(pbc == 0)) {
++			vl = be16_to_cpu(ahdr->ibh.lrh[0]) >> 12;
++			md.u.pbc = create_pbc(ppd, 0, qp->s_srate, vl, plen);
++		} else {
++			md.u.pbc = 0;
++		}
++		memcpy(s_packet->data, &md, md_len);
++	} else {
++		md.u.pbc = pbc;
++	}
++
++	/* Copy header */
++	if (likely(hdr)) {
++		memcpy(s_packet->data + md_len, hdr, hdr_len);
++	} else {
++		dd_dev_err(ppd->dd,
++			   "Unable to copy header to snoop/capture packet\n");
++		kfree(s_packet);
++		goto out;
++	}
++
++	if (ss) {
++		data = s_packet->data + hdr_len + md_len;
++		data_start = data;
++
++		/*
++		 * Copy SGE State
++		 * The update_sge() function below will not modify the
++		 * individual SGEs in the array. It will make a copy each time
++		 * and operate on that. So we only need to copy this instance
++		 * and it won't impact PIO.
++		 */
++		temp_ss = *ss;
++		length = len;
++
++		snoop_dbg("Need to copy %d bytes", length);
++		while (length) {
++			void *addr = temp_ss.sge.vaddr;
++			u32 slen = temp_ss.sge.length;
++
++			if (slen > length) {
++				slen = length;
++				snoop_dbg("slen %d > len %d", slen, length);
++			}
++			snoop_dbg("copy %d to %p", slen, addr);
++			memcpy(data, addr, slen);
++			update_sge(&temp_ss, slen);
++			length -= slen;
++			data += slen;
++			snoop_dbg("data is now %p bytes left %d", data, length);
++		}
++		snoop_dbg("Completed SGE copy");
++	}
++
++	/*
++	 * Why do the filter check down here? Because the event tracing has its
++	 * own filtering and we need to have the walked the SGE list.
++	 */
++	if (!ppd->dd->hfi1_snoop.filter_callback) {
++		snoop_dbg("filter not set\n");
++		ret = HFI1_FILTER_HIT;
++	} else {
++		ret = ppd->dd->hfi1_snoop.filter_callback(
++					&ahdr->ibh,
++					NULL,
++					ppd->dd->hfi1_snoop.filter_value);
++	}
++
++	switch (ret) {
++	case HFI1_FILTER_ERR:
++		snoop_dbg("Error in filter call");
++		/* fall through */
++	case HFI1_FILTER_MISS:
++		snoop_dbg("Filter Miss");
++		kfree(s_packet);
++		break;
++	case HFI1_FILTER_HIT:
++		snoop_dbg("Capturing packet");
++		snoop_list_add_tail(s_packet, ppd->dd);
++
++		if (unlikely((snoop_flags & SNOOP_DROP_SEND) &&
++			     (ppd->dd->hfi1_snoop.mode_flag &
++			      HFI1_PORT_SNOOP_MODE))) {
++			unsigned long flags;
++
++			snoop_dbg("Dropping packet");
++			if (qp->s_wqe) {
++				spin_lock_irqsave(&qp->s_lock, flags);
++				hfi1_send_complete(
++					qp,
++					qp->s_wqe,
++					IB_WC_SUCCESS);
++				spin_unlock_irqrestore(&qp->s_lock, flags);
++			} else if (qp->ibqp.qp_type == IB_QPT_RC) {
++				spin_lock_irqsave(&qp->s_lock, flags);
++				hfi1_rc_send_complete(qp, &ahdr->ibh);
++				spin_unlock_irqrestore(&qp->s_lock, flags);
++			}
++			return 0;
++		}
++		break;
++	default:
++		kfree(s_packet);
++		break;
++	}
++out:
++	return hfi1_verbs_send_pio(qp, ahdr, hdrwords, ss, len, plen, dwords,
++				  md.u.pbc);
++}
++
++/*
++ * Callers of this must pass a hfi1_ib_header type for the from ptr. Currently
++ * this can be used anywhere, but the intention is for inline ACKs for RC and
++ * CCA packets. We don't restrict this usage though.
++ */
++void snoop_inline_pio_send(struct hfi1_devdata *dd, struct pio_buf *pbuf,
++			   u64 pbc, const void *from, size_t count)
++{
++	int snoop_mode = 0;
++	int md_len = 0;
++	struct capture_md md;
++	struct snoop_packet *s_packet = NULL;
++
++	/*
++	 * count is in dwords so we need to convert to bytes.
++	 * We also need to account for CRC which would be tacked on by hardware.
++	 */
++	int packet_len = (count << 2) + 4;
++	int ret;
++
++	snoop_dbg("ACK OUT: len %d", packet_len);
++
++	if (!dd->hfi1_snoop.filter_callback) {
++		snoop_dbg("filter not set");
++		ret = HFI1_FILTER_HIT;
++	} else {
++		ret = dd->hfi1_snoop.filter_callback(
++				(struct hfi1_ib_header *)from,
++				NULL,
++				dd->hfi1_snoop.filter_value);
++	}
++
++	switch (ret) {
++	case HFI1_FILTER_ERR:
++		snoop_dbg("Error in filter call");
++		/* fall through */
++	case HFI1_FILTER_MISS:
++		snoop_dbg("Filter Miss");
++		break;
++	case HFI1_FILTER_HIT:
++		snoop_dbg("Capturing packet");
++		if (dd->hfi1_snoop.mode_flag & HFI1_PORT_SNOOP_MODE)
++			snoop_mode = 1;
++		if ((snoop_mode == 0) ||
++		    unlikely(snoop_flags & SNOOP_USE_METADATA))
++			md_len = sizeof(struct capture_md);
++
++		s_packet = allocate_snoop_packet(packet_len, 0, md_len);
++		s_packet->total_len = packet_len + md_len;
++		if (unlikely(s_packet == NULL)) {
++			dd_dev_err(dd,
++			   "Unable to allocate snoop/capture packet\n");
++			goto inline_pio_out;
++		}
++
++		/* Fill in the metadata for the packet */
++		if (md_len > 0) {
++			memset(&md, 0, sizeof(struct capture_md));
++			md.port = 1;
++			md.dir = PKT_DIR_EGRESS;
++			md.u.pbc = pbc;
++			memcpy(s_packet->data, &md, md_len);
++		}
++
++		/* Add the packet data which is a single buffer */
++		memcpy(s_packet->data + md_len, from, packet_len);
++
++		snoop_list_add_tail(s_packet, dd);
++
++		if (unlikely((snoop_flags & SNOOP_DROP_SEND) && snoop_mode)) {
++			snoop_dbg("Dropping packet");
++			return;
++		}
++		break;
++	default:
++		break;
++	}
++
++inline_pio_out:
++	pio_copy(dd, pbuf, pbc, from, count);
++
 +}
 
 --
