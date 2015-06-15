@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 35/49] IB/hfi1: add routines for RC/UC
-Date: Mon, 15 Jun 2015 09:29:07 -0400
-Message-ID: <20150615132907.29741.51780.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH v2 37/49] IB/hfi1: add sdma header file
+Date: Mon, 15 Jun 2015 09:29:18 -0400
+Message-ID: <20150615132918.29741.4055.stgit@phlsvslse11.ph.intel.com>
 References: <20150615132434.29741.35258.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -37,16 +37,18 @@ Signed-off-by: Sanath Kumar <sanath.s.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.
 Signed-off-by: Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Vlad Danushevsky <vladimir.danusevsky-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/ruc.c |  944 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 944 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi1/ruc.c
+ drivers/infiniband/hw/hfi1/sdma.h | 1122 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 1122 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi1/sdma.h
 
-diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
+diff --git a/drivers/infiniband/hw/hfi1/sdma.h b/drivers/infiniband/hw/hfi1/sdma.h
 new file mode 100644
-index 0000000..1811e5e
+index 0000000..2d2ff07
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/ruc.c
-@@ -0,0 +1,944 @@
++++ b/drivers/infiniband/hw/hfi1/sdma.h
+@@ -0,0 +1,1122 @@
++#ifndef _HFI1_SDMA_H
++#define _HFI1_SDMA_H
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -97,900 +99,1076 @@ index 0000000..1811e5e
 + *
 + */
 +
-+#include <linux/spinlock.h>
++#include <linux/types.h>
++#include <linux/list.h>
++#include <asm/byteorder.h>
++#include <linux/workqueue.h>
++#include <linux/rculist.h>
 +
 +#include "hfi.h"
-+#include "mad.h"
-+#include "qp.h"
-+#include "sdma.h"
++#include "verbs.h"
++
++/* increased for AHG */
++#define NUM_DESC 6
++/* Hardware limit */
++#define MAX_DESC 64
++/* Hardware limit for SDMA packet size */
++#define MAX_SDMA_PKT_SIZE ((16 * 1024) - 1)
++
++
++#define SDMA_TXREQ_S_OK        0
++#define SDMA_TXREQ_S_SENDERROR 1
++#define SDMA_TXREQ_S_ABORTED   2
++#define SDMA_TXREQ_S_SHUTDOWN  3
++
++/* flags bits */
++#define SDMA_TXREQ_F_URGENT       0x0001
++#define SDMA_TXREQ_F_AHG_COPY     0x0002
++#define SDMA_TXREQ_F_USE_AHG      0x0004
++
++#define SDMA_MAP_NONE          0
++#define SDMA_MAP_SINGLE        1
++#define SDMA_MAP_PAGE          2
++
++#define SDMA_AHG_VALUE_MASK          0xffff
++#define SDMA_AHG_VALUE_SHIFT         0
++#define SDMA_AHG_INDEX_MASK          0xf
++#define SDMA_AHG_INDEX_SHIFT         16
++#define SDMA_AHG_FIELD_LEN_MASK      0xf
++#define SDMA_AHG_FIELD_LEN_SHIFT     20
++#define SDMA_AHG_FIELD_START_MASK    0x1f
++#define SDMA_AHG_FIELD_START_SHIFT   24
++#define SDMA_AHG_UPDATE_ENABLE_MASK  0x1
++#define SDMA_AHG_UPDATE_ENABLE_SHIFT 31
++
++/* AHG modes */
 +
 +/*
-+ * Convert the AETH RNR timeout code into the number of microseconds.
++ * Be aware the ordering and values
++ * for SDMA_AHG_APPLY_UPDATE[123]
++ * are assumed in generating a skip
++ * count in submit_tx() in sdma.c
 + */
-+const u32 ib_hfi1_rnr_table[32] = {
-+	655360,	/* 00: 655.36 */
-+	10,	/* 01:    .01 */
-+	20,	/* 02     .02 */
-+	30,	/* 03:    .03 */
-+	40,	/* 04:    .04 */
-+	60,	/* 05:    .06 */
-+	80,	/* 06:    .08 */
-+	120,	/* 07:    .12 */
-+	160,	/* 08:    .16 */
-+	240,	/* 09:    .24 */
-+	320,	/* 0A:    .32 */
-+	480,	/* 0B:    .48 */
-+	640,	/* 0C:    .64 */
-+	960,	/* 0D:    .96 */
-+	1280,	/* 0E:   1.28 */
-+	1920,	/* 0F:   1.92 */
-+	2560,	/* 10:   2.56 */
-+	3840,	/* 11:   3.84 */
-+	5120,	/* 12:   5.12 */
-+	7680,	/* 13:   7.68 */
-+	10240,	/* 14:  10.24 */
-+	15360,	/* 15:  15.36 */
-+	20480,	/* 16:  20.48 */
-+	30720,	/* 17:  30.72 */
-+	40960,	/* 18:  40.96 */
-+	61440,	/* 19:  61.44 */
-+	81920,	/* 1A:  81.92 */
-+	122880,	/* 1B: 122.88 */
-+	163840,	/* 1C: 163.84 */
-+	245760,	/* 1D: 245.76 */
-+	327680,	/* 1E: 327.68 */
-+	491520	/* 1F: 491.52 */
++#define SDMA_AHG_NO_AHG              0
++#define SDMA_AHG_COPY                1
++#define SDMA_AHG_APPLY_UPDATE1       2
++#define SDMA_AHG_APPLY_UPDATE2       3
++#define SDMA_AHG_APPLY_UPDATE3       4
++
++/*
++ * Bits defined in the send DMA descriptor.
++ */
++#define SDMA_DESC0_FIRST_DESC_FLAG      (1ULL<<63)
++#define SDMA_DESC0_LAST_DESC_FLAG       (1ULL<<62)
++#define SDMA_DESC0_BYTE_COUNT_SHIFT     48
++#define SDMA_DESC0_BYTE_COUNT_WIDTH     14
++#define SDMA_DESC0_BYTE_COUNT_MASK \
++	((1ULL<<SDMA_DESC0_BYTE_COUNT_WIDTH)-1ULL)
++#define SDMA_DESC0_BYTE_COUNT_SMASK \
++	(SDMA_DESC0_BYTE_COUNT_MASK<<SDMA_DESC0_BYTE_COUNT_SHIFT)
++#define SDMA_DESC0_PHY_ADDR_SHIFT       0
++#define SDMA_DESC0_PHY_ADDR_WIDTH       48
++#define SDMA_DESC0_PHY_ADDR_MASK \
++	((1ULL<<SDMA_DESC0_PHY_ADDR_WIDTH)-1ULL)
++#define SDMA_DESC0_PHY_ADDR_SMASK \
++	(SDMA_DESC0_PHY_ADDR_MASK<<SDMA_DESC0_PHY_ADDR_SHIFT)
++
++#define SDMA_DESC1_HEADER_UPDATE1_SHIFT 32
++#define SDMA_DESC1_HEADER_UPDATE1_WIDTH 32
++#define SDMA_DESC1_HEADER_UPDATE1_MASK \
++	((1ULL<<SDMA_DESC1_HEADER_UPDATE1_WIDTH)-1ULL)
++#define SDMA_DESC1_HEADER_UPDATE1_SMASK \
++	(SDMA_DESC1_HEADER_UPDATE1_MASK<<SDMA_DESC1_HEADER_UPDATE1_SHIFT)
++#define SDMA_DESC1_HEADER_MODE_SHIFT    13
++#define SDMA_DESC1_HEADER_MODE_WIDTH    3
++#define SDMA_DESC1_HEADER_MODE_MASK \
++	((1ULL<<SDMA_DESC1_HEADER_MODE_WIDTH)-1ULL)
++#define SDMA_DESC1_HEADER_MODE_SMASK \
++	(SDMA_DESC1_HEADER_MODE_MASK<<SDMA_DESC1_HEADER_MODE_SHIFT)
++#define SDMA_DESC1_HEADER_INDEX_SHIFT   8
++#define SDMA_DESC1_HEADER_INDEX_WIDTH   5
++#define SDMA_DESC1_HEADER_INDEX_MASK \
++	((1ULL<<SDMA_DESC1_HEADER_INDEX_WIDTH)-1ULL)
++#define SDMA_DESC1_HEADER_INDEX_SMASK \
++	(SDMA_DESC1_HEADER_INDEX_MASK<<SDMA_DESC1_HEADER_INDEX_SHIFT)
++#define SDMA_DESC1_HEADER_DWS_SHIFT     4
++#define SDMA_DESC1_HEADER_DWS_WIDTH     4
++#define SDMA_DESC1_HEADER_DWS_MASK \
++	((1ULL<<SDMA_DESC1_HEADER_DWS_WIDTH)-1ULL)
++#define SDMA_DESC1_HEADER_DWS_SMASK \
++	(SDMA_DESC1_HEADER_DWS_MASK<<SDMA_DESC1_HEADER_DWS_SHIFT)
++#define SDMA_DESC1_GENERATION_SHIFT     2
++#define SDMA_DESC1_GENERATION_WIDTH     2
++#define SDMA_DESC1_GENERATION_MASK \
++	((1ULL<<SDMA_DESC1_GENERATION_WIDTH)-1ULL)
++#define SDMA_DESC1_GENERATION_SMASK \
++	(SDMA_DESC1_GENERATION_MASK<<SDMA_DESC1_GENERATION_SHIFT)
++#define SDMA_DESC1_INT_REQ_FLAG         (1ULL<<1)
++#define SDMA_DESC1_HEAD_TO_HOST_FLAG    (1ULL<<0)
++
++enum sdma_states {
++	sdma_state_s00_hw_down,
++	sdma_state_s10_hw_start_up_halt_wait,
++	sdma_state_s15_hw_start_up_clean_wait,
++	sdma_state_s20_idle,
++	sdma_state_s30_sw_clean_up_wait,
++	sdma_state_s40_hw_clean_up_wait,
++	sdma_state_s50_hw_halt_wait,
++	sdma_state_s60_idle_halt_wait,
++	sdma_state_s80_hw_freeze,
++	sdma_state_s82_freeze_sw_clean,
++	sdma_state_s99_running,
++};
++
++enum sdma_events {
++	sdma_event_e00_go_hw_down,
++	sdma_event_e10_go_hw_start,
++	sdma_event_e15_hw_halt_done,
++	sdma_event_e25_hw_clean_up_done,
++	sdma_event_e30_go_running,
++	sdma_event_e40_sw_cleaned,
++	sdma_event_e50_hw_cleaned,
++	sdma_event_e60_hw_halted,
++	sdma_event_e70_go_idle,
++	sdma_event_e80_hw_freeze,
++	sdma_event_e81_hw_frozen,
++	sdma_event_e82_hw_unfreeze,
++	sdma_event_e85_link_down,
++	sdma_event_e90_sw_halted,
++};
++
++struct sdma_set_state_action {
++	unsigned op_enable:1;
++	unsigned op_intenable:1;
++	unsigned op_halt:1;
++	unsigned op_cleanup:1;
++	unsigned go_s99_running_tofalse:1;
++	unsigned go_s99_running_totrue:1;
++};
++
++struct sdma_state {
++	struct kref          kref;
++	struct completion    comp;
++	enum sdma_states current_state;
++	unsigned             current_op;
++	unsigned             go_s99_running;
++	/* debugging/development */
++	enum sdma_states previous_state;
++	unsigned             previous_op;
++	enum sdma_events last_event;
++};
++
++/**
++ * DOC: sdma exported routines
++ *
++ * These sdma routines fit into three categories:
++ * - The SDMA API for building and submitting packets
++ *   to the ring
++ *
++ * - Initialization and tear down routines to buildup
++ *   and tear down SDMA
++ *
++ * - ISR entrances to handle interrupts, state changes
++ *   and errors
++ */
++
++/**
++ * DOC: sdma PSM/verbs API
++ *
++ * The sdma API is designed to be used by both PSM
++ * and verbs to supply packets to the SDMA ring.
++ *
++ * The usage of the API is as follows:
++ *
++ * Embed a struct iowait in the QP or
++ * PQ.  The iowait should be initialized with a
++ * call to iowait_init().
++ *
++ * The user of the API should create an allocation method
++ * for their version of the txreq. slabs, pre-allocated lists,
++ * and dma pools can be used.  Once the user's overload of
++ * the sdma_txreq has been allocated, the sdma_txreq member
++ * must be initialized with sdma_txinit() or sdma_txinit_ahg().
++ *
++ * The txreq must be declared with the sdma_txreq first.
++ *
++ * The tx request, once initialized,  is manipulated with calls to
++ * sdma_txadd_daddr(), sdma_txadd_page(), or sdma_txadd_kvaddr()
++ * for each disjoint memory location.  It is the user's responsibility
++ * to understand the packet boundaries and page boundaries to do the
++ * appropriate number of sdma_txadd_* calls..  The user
++ * must be prepared to deal with failures from these routines due to
++ * either memory allocation or dma_mapping failures.
++ *
++ * The mapping specifics for each memory location are recorded
++ * in the tx. Memory locations added with sdma_txadd_page()
++ * and sdma_txadd_kvaddr() are automatically mapped when added
++ * to the tx and nmapped as part of the progress processing in the
++ * SDMA interrupt handling.
++ *
++ * sdma_txadd_daddr() is used to add an dma_addr_t memory to the
++ * tx.   An example of a use case would be a pre-allocated
++ * set of headers allocated via dma_pool_alloc() or
++ * dma_alloc_coherent().  For these memory locations, it
++ * is the responsibility of the user to handle that unmapping.
++ * (This would usually be at an unload or job termination.)
++ *
++ * The routine sdma_send_txreq() is used to submit
++ * a tx to the ring after the appropriate number of
++ * sdma_txadd_* have been done.
++ *
++ * If it is desired to send a burst of sdma_txreqs, sdma_send_txlist()
++ * can be used to submit a list of packets.
++ *
++ * The user is free to use the link overhead in the struct sdma_txreq as
++ * long as the tx isn't in flight.
++ *
++ * The extreme degenerate case of the number of descriptors
++ * exceeding the ring size is automatically handled as
++ * memory locations are added.  An overflow of the descriptor
++ * array that is part of the sdma_txreq is also automatically
++ * handled.
++ *
++ */
++
++/**
++ * DOC: Infrastructure calls
++ *
++ * sdma_init() is used to initialize data structures and
++ * CSRs for the desired number of SDMA engines.
++ *
++ * sdma_start() is used to kick the SDMA engines initialized
++ * with sdma_init().   Interrupts must be enabled at this
++ * point since aspects of the state machine are interrupt
++ * driven.
++ *
++ * sdma_engine_error() and sdma_engine_interrupt() are
++ * entrances for interrupts.
++ *
++ * sdma_map_init() is for the management of the mapping
++ * table when the number of vls is changed.
++ *
++ */
++
++/*
++ * struct hw_sdma_desc - raw 128 bit SDMA descriptor
++ *
++ * This is the raw descriptor in the SDMA ring
++ */
++struct hw_sdma_desc {
++	/* private:  don't use directly */
++	__le64 qw[2];
 +};
 +
 +/*
-+ * Validate a RWQE and fill in the SGE state.
-+ * Return 1 if OK.
++ * struct sdma_desc - canonical fragment descriptor
++ *
++ * This is the descriptor carried in the tx request
++ * corresponding to each fragment.
++ *
 + */
-+static int init_sge(struct hfi1_qp *qp, struct hfi1_rwqe *wqe)
-+{
-+	int i, j, ret;
-+	struct ib_wc wc;
-+	struct hfi1_lkey_table *rkt;
-+	struct hfi1_pd *pd;
-+	struct hfi1_sge_state *ss;
++struct sdma_desc {
++	/* private:  don't use directly */
++	u64 qw[2];
++};
 +
-+	rkt = &to_idev(qp->ibqp.device)->lk_table;
-+	pd = to_ipd(qp->ibqp.srq ? qp->ibqp.srq->pd : qp->ibqp.pd);
-+	ss = &qp->r_sge;
-+	ss->sg_list = qp->r_sg_list;
-+	qp->r_len = 0;
-+	for (i = j = 0; i < wqe->num_sge; i++) {
-+		if (wqe->sg_list[i].length == 0)
-+			continue;
-+		/* Check LKEY */
-+		if (!hfi1_lkey_ok(rkt, pd, j ? &ss->sg_list[j - 1] : &ss->sge,
-+				  &wqe->sg_list[i], IB_ACCESS_LOCAL_WRITE))
-+			goto bad_lkey;
-+		qp->r_len += wqe->sg_list[i].length;
-+		j++;
-+	}
-+	ss->num_sge = j;
-+	ss->total_len = qp->r_len;
-+	ret = 1;
-+	goto bail;
-+
-+bad_lkey:
-+	while (j) {
-+		struct hfi1_sge *sge = --j ? &ss->sg_list[j - 1] : &ss->sge;
-+
-+		hfi1_put_mr(sge->mr);
-+	}
-+	ss->num_sge = 0;
-+	memset(&wc, 0, sizeof(wc));
-+	wc.wr_id = wqe->wr_id;
-+	wc.status = IB_WC_LOC_PROT_ERR;
-+	wc.opcode = IB_WC_RECV;
-+	wc.qp = &qp->ibqp;
-+	/* Signal solicited completion event. */
-+	hfi1_cq_enter(to_icq(qp->ibqp.recv_cq), &wc, 1);
-+	ret = 0;
-+bail:
-+	return ret;
-+}
++struct sdma_txreq;
++typedef void (*callback_t)(struct sdma_txreq *, int, int);
 +
 +/**
-+ * hfi1_get_rwqe - copy the next RWQE into the QP's RWQE
-+ * @qp: the QP
-+ * @wr_id_only: update qp->r_wr_id only, not qp->r_sge
++ * struct sdma_txreq - the sdma_txreq structure (one per packet)
++ * @list: for use by user and by queuing for wait
 + *
-+ * Return -1 if there is a local error, 0 if no RWQE is available,
-+ * otherwise return 1.
++ * This is the representation of a packet which consists of some
++ * number of fragments.   Storage is provided to within the structure.
++ * for all fragments.
 + *
-+ * Can be called from interrupt level.
++ * The storage for the descriptors are automatically extended as needed
++ * when the currently allocation is exceeded.
++ *
++ * The user (Verbs or PSM) may overload this structure with fields
++ * specific to their use by putting this struct first in their struct.
++ * The method of allocation of the overloaded structure is user dependent
++ *
++ * The list is the only public field in the structure.
++ *
 + */
-+int hfi1_get_rwqe(struct hfi1_qp *qp, int wr_id_only)
++
++struct sdma_txreq {
++	struct list_head list;
++	/* private: */
++	struct sdma_desc *descp;
++	/* private: */
++	void *coalesce_buf;
++	/* private: */
++	struct iowait *wait;
++	/* private: */
++	callback_t                  complete;
++#ifdef CONFIG_HFI1_DEBUG_SDMA_ORDER
++	u64 sn;
++#endif
++	/* private: - used in coalesce/pad processing */
++	u16                         packet_len;
++	/* private: - down-counted to trigger last */
++	u16                         tlen;
++	/* private: flags */
++	u16                         flags;
++	/* private: */
++	u16                         num_desc;
++	/* private: */
++	u16                         desc_limit;
++	/* private: */
++	u16                         next_descq_idx;
++	/* private: */
++	struct sdma_desc descs[NUM_DESC];
++};
++
++struct verbs_txreq {
++	struct sdma_txreq       txreq;
++	struct hfi1_qp           *qp;
++	struct hfi1_swqe         *wqe;
++	struct hfi1_mregion	*mr;
++	struct hfi1_sge_state    *ss;
++	struct sdma_engine     *sde;
++	u16                     hdr_dwords;
++	u16                     hdr_inx;
++};
++
++/**
++ * struct sdma_engine - Data pertaining to each SDMA engine.
++ * @dd: a back-pointer to the device data
++ * @ppd: per port back-pointer
++ * @imask: mask for irq manipulation
++ * @idle_mask: mask for determining if an interrupt is due to sdma_idle
++ *
++ * This structure has the state for each sdma_engine.
++ *
++ * Accessing to non public fields are not supported
++ * since the private members are subject to change.
++ */
++struct sdma_engine {
++	/* read mostly */
++	struct hfi1_devdata *dd;
++	struct hfi1_pportdata *ppd;
++	/* private: */
++	void __iomem *tail_csr;
++	u64 imask;			/* clear interrupt mask */
++	u64 idle_mask;
++	u64 progress_mask;
++	/* private: */
++	struct workqueue_struct *wq;
++	/* private: */
++	volatile __le64      *head_dma; /* DMA'ed by chip */
++	/* private: */
++	dma_addr_t            head_phys;
++	/* private: */
++	struct hw_sdma_desc *descq;
++	/* private: */
++	unsigned descq_full_count;
++	struct sdma_txreq **tx_ring;
++	/* private: */
++	dma_addr_t            descq_phys;
++	/* private */
++	u32 sdma_mask;
++	/* private */
++	struct sdma_state state;
++	/* private: */
++	u8 sdma_shift;
++	/* private: */
++	u8 this_idx; /* zero relative engine */
++	/* protect changes to senddmactrl shadow */
++	spinlock_t senddmactrl_lock;
++	/* private: */
++	u64 p_senddmactrl;		/* shadow per-engine SendDmaCtrl */
++
++	/* read/write using tail_lock */
++	spinlock_t            tail_lock ____cacheline_aligned_in_smp;
++#ifdef CONFIG_HFI1_DEBUG_SDMA_ORDER
++	/* private: */
++	u64                   tail_sn;
++#endif
++	/* private: */
++	u32                   descq_tail;
++	/* private: */
++	unsigned long         ahg_bits;
++	/* private: */
++	u16                   desc_avail;
++	/* private: */
++	u16                   tx_tail;
++	/* private: */
++	u16 descq_cnt;
++
++	/* read/write using head_lock */
++	/* private: */
++	seqlock_t            head_lock ____cacheline_aligned_in_smp;
++#ifdef CONFIG_HFI1_DEBUG_SDMA_ORDER
++	/* private: */
++	u64                   head_sn;
++#endif
++	/* private: */
++	u32                   descq_head;
++	/* private: */
++	u16                   tx_head;
++	/* private: */
++	u64                   last_status;
++
++	/* private: */
++	struct list_head      dmawait;
++
++	/* CONFIG SDMA for now, just blindly duplicate */
++	/* private: */
++	struct tasklet_struct sdma_hw_clean_up_task
++		____cacheline_aligned_in_smp;
++
++	/* private: */
++	struct tasklet_struct sdma_sw_clean_up_task
++		____cacheline_aligned_in_smp;
++	/* private: */
++	struct work_struct err_halt_worker;
++	/* private */
++	struct timer_list     err_progress_check_timer;
++	u32                   progress_check_head;
++	/* private: */
++	struct work_struct flush_worker;
++	spinlock_t flushlist_lock;
++	/* private: */
++	struct list_head flushlist;
++};
++
++
++int sdma_init(struct hfi1_devdata *dd, u8 port);
++void sdma_start(struct hfi1_devdata *dd);
++void sdma_exit(struct hfi1_devdata *dd);
++void sdma_all_running(struct hfi1_devdata *dd);
++void sdma_all_idle(struct hfi1_devdata *dd);
++void sdma_freeze_notify(struct hfi1_devdata *dd, int go_idle);
++void sdma_freeze(struct hfi1_devdata *dd);
++void sdma_unfreeze(struct hfi1_devdata *dd);
++void sdma_wait(struct hfi1_devdata *dd);
++
++/**
++ * sdma_empty() - idle engine test
++ * @engine: sdma engine
++ *
++ * Currently used by verbs as a latency optimization.
++ *
++ * Return:
++ * 1 - empty, 0 - non-empty
++ */
++static inline int sdma_empty(struct sdma_engine *sde)
++{
++	return sde->descq_tail == sde->descq_head;
++}
++
++static inline u16 sdma_descq_freecnt(struct sdma_engine *sde)
++{
++	return sde->descq_cnt -
++		(sde->descq_tail -
++		 ACCESS_ONCE(sde->descq_head)) - 1;
++}
++
++static inline u16 sdma_descq_inprocess(struct sdma_engine *sde)
++{
++	return sde->descq_cnt - sdma_descq_freecnt(sde);
++}
++
++/*
++ * Either head_lock or tail lock required to see
++ * a steady state.
++ */
++static inline int __sdma_running(struct sdma_engine *engine)
++{
++	return engine->state.current_state == sdma_state_s99_running;
++}
++
++
++/**
++ * sdma_running() - state suitability test
++ * @engine: sdma engine
++ *
++ * sdma_running probes the internal state to determine if it is suitable
++ * for submitting packets.
++ *
++ * Return:
++ * 1 - ok to submit, 0 - not ok to submit
++ *
++ */
++static inline int sdma_running(struct sdma_engine *engine)
 +{
 +	unsigned long flags;
-+	struct hfi1_rq *rq;
-+	struct hfi1_rwq *wq;
-+	struct hfi1_srq *srq;
-+	struct hfi1_rwqe *wqe;
-+	void (*handler)(struct ib_event *, void *);
-+	u32 tail;
 +	int ret;
 +
-+	if (qp->ibqp.srq) {
-+		srq = to_isrq(qp->ibqp.srq);
-+		handler = srq->ibsrq.event_handler;
-+		rq = &srq->rq;
-+	} else {
-+		srq = NULL;
-+		handler = NULL;
-+		rq = &qp->r_rq;
-+	}
-+
-+	spin_lock_irqsave(&rq->lock, flags);
-+	if (!(ib_hfi1_state_ops[qp->state] & HFI1_PROCESS_RECV_OK)) {
-+		ret = 0;
-+		goto unlock;
-+	}
-+
-+	wq = rq->wq;
-+	tail = wq->tail;
-+	/* Validate tail before using it since it is user writable. */
-+	if (tail >= rq->size)
-+		tail = 0;
-+	if (unlikely(tail == wq->head)) {
-+		ret = 0;
-+		goto unlock;
-+	}
-+	/* Make sure entry is read after head index is read. */
-+	smp_rmb();
-+	wqe = get_rwqe_ptr(rq, tail);
-+	/*
-+	 * Even though we update the tail index in memory, the verbs
-+	 * consumer is not supposed to post more entries until a
-+	 * completion is generated.
-+	 */
-+	if (++tail >= rq->size)
-+		tail = 0;
-+	wq->tail = tail;
-+	if (!wr_id_only && !init_sge(qp, wqe)) {
-+		ret = -1;
-+		goto unlock;
-+	}
-+	qp->r_wr_id = wqe->wr_id;
-+
-+	ret = 1;
-+	set_bit(HFI1_R_WRID_VALID, &qp->r_aflags);
-+	if (handler) {
-+		u32 n;
-+
-+		/*
-+		 * Validate head pointer value and compute
-+		 * the number of remaining WQEs.
-+		 */
-+		n = wq->head;
-+		if (n >= rq->size)
-+			n = 0;
-+		if (n < tail)
-+			n += rq->size - tail;
-+		else
-+			n -= tail;
-+		if (n < srq->limit) {
-+			struct ib_event ev;
-+
-+			srq->limit = 0;
-+			spin_unlock_irqrestore(&rq->lock, flags);
-+			ev.device = qp->ibqp.device;
-+			ev.element.srq = qp->ibqp.srq;
-+			ev.event = IB_EVENT_SRQ_LIMIT_REACHED;
-+			handler(&ev, srq->ibsrq.srq_context);
-+			goto bail;
-+		}
-+	}
-+unlock:
-+	spin_unlock_irqrestore(&rq->lock, flags);
-+bail:
++	spin_lock_irqsave(&engine->tail_lock, flags);
++	ret = __sdma_running(engine);
++	spin_unlock_irqrestore(&engine->tail_lock, flags);
 +	return ret;
 +}
 +
-+/*
-+ * Switch to alternate path.
-+ * The QP s_lock should be held and interrupts disabled.
-+ */
-+void hfi1_migrate_qp(struct hfi1_qp *qp)
-+{
-+	struct ib_event ev;
++void _sdma_txreq_ahgadd(
++	struct sdma_txreq *tx,
++	u8 num_ahg,
++	u8 ahg_entry,
++	u32 *ahg,
++	u8 ahg_hlen);
 +
-+	qp->s_mig_state = IB_MIG_MIGRATED;
-+	qp->remote_ah_attr = qp->alt_ah_attr;
-+	qp->port_num = qp->alt_ah_attr.port_num;
-+	qp->s_pkey_index = qp->s_alt_pkey_index;
-+	qp->s_flags |= HFI1_S_AHG_CLEAR;
 +
-+	ev.device = qp->ibqp.device;
-+	ev.element.qp = &qp->ibqp;
-+	ev.event = IB_EVENT_PATH_MIG;
-+	qp->ibqp.event_handler(&ev, qp->ibqp.qp_context);
-+}
-+
-+static __be64 get_sguid(struct hfi1_ibport *ibp, unsigned index)
-+{
-+	if (!index) {
-+		struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
-+
-+		return ppd->guid;
-+	}
-+	return ibp->guids[index - 1];
-+}
-+
-+static int gid_ok(union ib_gid *gid, __be64 gid_prefix, __be64 id)
-+{
-+	return (gid->global.interface_id == id &&
-+		(gid->global.subnet_prefix == gid_prefix ||
-+		 gid->global.subnet_prefix == IB_DEFAULT_GID_PREFIX));
-+}
-+
-+/*
++/**
++ * sdma_txinit_ahg() - initialize an sdma_txreq struct with AHG
++ * @tx: tx request to initialize
++ * @flags: flags to key last descriptor additions
++ * @tlen: total packet length (pbc + headers + data)
++ * @ahg_entry: ahg entry to use  (0 - 31)
++ * @num_ahg: ahg descriptor for first descriptor (0 - 9)
++ * @ahg: array of AHG descriptors (up to 9 entries)
++ * @ahg_hlen: number of bytes from ASIC entry to use
++ * @cb: callback
 + *
-+ * This should be called with the QP r_lock held.
++ * The allocation of the sdma_txreq and it enclosing structure is user
++ * dependent.  This routine must be called to initialize the user independent
++ * fields.
 + *
-+ * The s_lock will be acquired around the hfi1_migrate_qp() call.
++ * The currently supported flags are SDMA_TXREQ_F_URGENT,
++ * SDMA_TXREQ_F_AHG_COPY, and SDMA_TXREQ_F_USE_AHG.
++ *
++ * SDMA_TXREQ_F_URGENT is used for latency sensitive situations where the
++ * completion is desired as soon as possible.
++ *
++ * SDMA_TXREQ_F_AHG_COPY causes the header in the first descriptor to be
++ * copied to chip entry. SDMA_TXREQ_F_USE_AHG causes the code to add in
++ * the AHG descriptors into the first 1 to 3 descriptors.
++ *
++ * Completions of submitted requests can be gotten on selected
++ * txreqs by giving a completion routine callback to sdma_txinit() or
++ * sdma_txinit_ahg().  The environment in which the callback runs
++ * can be from an ISR, a tasklet, or a thread, so no sleeping
++ * kernel routines can be used.   Aspects of the sdma ring may
++ * be locked so care should be taken with locking.
++ *
++ * The callback pointer can be NULL to avoid any callback for the packet
++ * being submitted. The callback will be provided this tx, a status, and a flag.
++ *
++ * The status will be one of SDMA_TXREQ_S_OK, SDMA_TXREQ_S_SENDERROR,
++ * SDMA_TXREQ_S_ABORTED, or SDMA_TXREQ_S_SHUTDOWN.
++ *
++ * The flag, if the is the iowait had been used, indicates the iowait
++ * sdma_busy count has reached zero.
++ *
++ * user data portion of tlen should be precise.   The sdma_txadd_* entrances
++ * will pad with a descriptor references 1 - 3 bytes when the number of bytes
++ * specified in tlen have been supplied to the sdma_txreq.
++ *
++ * ahg_hlen is used to determine the number of on-chip entry bytes to
++ * use as the header.   This is for cases where the stored header is
++ * larger than the header to be used in a packet.  This is typical
++ * for verbs where an RDMA_WRITE_FIRST is larger than the packet in
++ * and RDMA_WRITE_MIDDLE.
++ *
 + */
-+int hfi1_ruc_check_hdr(struct hfi1_ibport *ibp, struct hfi1_ib_header *hdr,
-+		       int has_grh, struct hfi1_qp *qp, u32 bth0)
++static inline int sdma_txinit_ahg(
++	struct sdma_txreq *tx,
++	u16 flags,
++	u16 tlen,
++	u8 ahg_entry,
++	u8 num_ahg,
++	u32 *ahg,
++	u8 ahg_hlen,
++	void (*cb)(struct sdma_txreq *, int, int))
 +{
-+	__be64 guid;
-+	unsigned long flags;
-+	u8 sc5 = ibp->sl_to_sc[qp->remote_ah_attr.sl];
-+
-+	if (qp->s_mig_state == IB_MIG_ARMED && (bth0 & IB_BTH_MIG_REQ)) {
-+		if (!has_grh) {
-+			if (qp->alt_ah_attr.ah_flags & IB_AH_GRH)
-+				goto err;
-+		} else {
-+			if (!(qp->alt_ah_attr.ah_flags & IB_AH_GRH))
-+				goto err;
-+			guid = get_sguid(ibp, qp->alt_ah_attr.grh.sgid_index);
-+			if (!gid_ok(&hdr->u.l.grh.dgid, ibp->gid_prefix, guid))
-+				goto err;
-+			if (!gid_ok(&hdr->u.l.grh.sgid,
-+			    qp->alt_ah_attr.grh.dgid.global.subnet_prefix,
-+			    qp->alt_ah_attr.grh.dgid.global.interface_id))
-+				goto err;
-+		}
-+		if (unlikely(ingress_pkey_check(ppd_from_ibp(ibp), (u16)bth0,
-+						sc5, qp->s_alt_pkey_index,
-+						be16_to_cpu(hdr->lrh[3])))) {
-+			hfi1_bad_pqkey(ibp, IB_NOTICE_TRAP_BAD_PKEY,
-+				       (u16)bth0,
-+				       (be16_to_cpu(hdr->lrh[0]) >> 4) & 0xF,
-+				       0, qp->ibqp.qp_num,
-+				       hdr->lrh[3], hdr->lrh[1]);
-+			goto err;
-+		}
-+		/* Validate the SLID. See Ch. 9.6.1.5 and 17.2.8 */
-+		if (be16_to_cpu(hdr->lrh[3]) != qp->alt_ah_attr.dlid ||
-+		    ppd_from_ibp(ibp)->port != qp->alt_ah_attr.port_num)
-+			goto err;
-+		spin_lock_irqsave(&qp->s_lock, flags);
-+		hfi1_migrate_qp(qp);
-+		spin_unlock_irqrestore(&qp->s_lock, flags);
-+	} else {
-+		if (!has_grh) {
-+			if (qp->remote_ah_attr.ah_flags & IB_AH_GRH)
-+				goto err;
-+		} else {
-+			if (!(qp->remote_ah_attr.ah_flags & IB_AH_GRH))
-+				goto err;
-+			guid = get_sguid(ibp,
-+					 qp->remote_ah_attr.grh.sgid_index);
-+			if (!gid_ok(&hdr->u.l.grh.dgid, ibp->gid_prefix, guid))
-+				goto err;
-+			if (!gid_ok(&hdr->u.l.grh.sgid,
-+			    qp->remote_ah_attr.grh.dgid.global.subnet_prefix,
-+			    qp->remote_ah_attr.grh.dgid.global.interface_id))
-+				goto err;
-+		}
-+		if (unlikely(ingress_pkey_check(ppd_from_ibp(ibp), (u16)bth0,
-+						sc5, qp->s_pkey_index,
-+						be16_to_cpu(hdr->lrh[3])))) {
-+			hfi1_bad_pqkey(ibp, IB_NOTICE_TRAP_BAD_PKEY,
-+				       (u16)bth0,
-+				       (be16_to_cpu(hdr->lrh[0]) >> 4) & 0xF,
-+				       0, qp->ibqp.qp_num,
-+				       hdr->lrh[3], hdr->lrh[1]);
-+			goto err;
-+		}
-+		/* Validate the SLID. See Ch. 9.6.1.5 */
-+		if (be16_to_cpu(hdr->lrh[3]) != qp->remote_ah_attr.dlid ||
-+		    ppd_from_ibp(ibp)->port != qp->port_num)
-+			goto err;
-+		if (qp->s_mig_state == IB_MIG_REARM &&
-+		    !(bth0 & IB_BTH_MIG_REQ))
-+			qp->s_mig_state = IB_MIG_ARMED;
-+	}
-+
++	if (tlen == 0)
++		return -ENODATA;
++	if (tlen > MAX_SDMA_PKT_SIZE)
++		return -EMSGSIZE;
++	tx->desc_limit = ARRAY_SIZE(tx->descs);
++	tx->descp = &tx->descs[0];
++	INIT_LIST_HEAD(&tx->list);
++	tx->num_desc = 0;
++	tx->flags = flags;
++	tx->complete = cb;
++	tx->coalesce_buf = NULL;
++	tx->wait = NULL;
++	tx->tlen = tx->packet_len = tlen;
++	tx->descs[0].qw[0] = SDMA_DESC0_FIRST_DESC_FLAG;
++	tx->descs[0].qw[1] = 0;
++	if (flags & SDMA_TXREQ_F_AHG_COPY)
++		tx->descs[0].qw[1] |=
++			(((u64)ahg_entry & SDMA_DESC1_HEADER_INDEX_MASK)
++				<< SDMA_DESC1_HEADER_INDEX_SHIFT) |
++			(((u64)SDMA_AHG_COPY & SDMA_DESC1_HEADER_MODE_MASK)
++				<< SDMA_DESC1_HEADER_MODE_SHIFT);
++	else if (flags & SDMA_TXREQ_F_USE_AHG && num_ahg)
++		_sdma_txreq_ahgadd(tx, num_ahg, ahg_entry, ahg, ahg_hlen);
 +	return 0;
-+
-+err:
-+	return 1;
 +}
 +
 +/**
-+ * ruc_loopback - handle UC and RC loopback requests
-+ * @sqp: the sending QP
++ * sdma_txinit() - initialize an sdma_txreq struct (no AHG)
++ * @tx: tx request to initialize
++ * @flags: flags to key last descriptor additions
++ * @tlen: total packet length (pbc + headers + data)
++ * @cb: callback pointer
 + *
-+ * This is called from hfi1_do_send() to
-+ * forward a WQE addressed to the same HCA.
-+ * Note that although we are single threaded due to the tasklet, we still
-+ * have to protect against post_send().  We don't have to worry about
-+ * receive interrupts since this is a connected protocol and all packets
-+ * will pass through here.
++ * The allocation of the sdma_txreq and it enclosing structure is user
++ * dependent.  This routine must be called to initialize the user
++ * independent fields.
++ *
++ * The currently supported flags is SDMA_TXREQ_F_URGENT.
++ *
++ * SDMA_TXREQ_F_URGENT is used for latency sensitive situations where the
++ * completion is desired as soon as possible.
++ *
++ * Completions of submitted requests can be gotten on selected
++ * txreqs by giving a completion routine callback to sdma_txinit() or
++ * sdma_txinit_ahg().  The environment in which the callback runs
++ * can be from an ISR, a tasklet, or a thread, so no sleeping
++ * kernel routines can be used.   The head size of the sdma ring may
++ * be locked so care should be taken with locking.
++ *
++ * The callback pointer can be NULL to avoid any callback for the packet
++ * being submitted.
++ *
++ * The callback, if non-NULL,  will be provided this tx and a status.  The
++ * status will be one of SDMA_TXREQ_S_OK, SDMA_TXREQ_S_SENDERROR,
++ * SDMA_TXREQ_S_ABORTED, or SDMA_TXREQ_S_SHUTDOWN.
++ *
 + */
-+static void ruc_loopback(struct hfi1_qp *sqp)
++static inline int sdma_txinit(
++	struct sdma_txreq *tx,
++	u16 flags,
++	u16 tlen,
++	void (*cb)(struct sdma_txreq *, int, int))
 +{
-+	struct hfi1_ibport *ibp = to_iport(sqp->ibqp.device, sqp->port_num);
-+	struct hfi1_qp *qp;
-+	struct hfi1_swqe *wqe;
-+	struct hfi1_sge *sge;
-+	unsigned long flags;
-+	struct ib_wc wc;
-+	u64 sdata;
-+	atomic64_t *maddr;
-+	enum ib_wc_status send_status;
-+	int release;
-+	int ret;
-+
-+	/*
-+	 * Note that we check the responder QP state after
-+	 * checking the requester's state.
-+	 */
-+	qp = hfi1_lookup_qpn(ibp, sqp->remote_qpn);
-+
-+	spin_lock_irqsave(&sqp->s_lock, flags);
-+
-+	/* Return if we are already busy processing a work request. */
-+	if ((sqp->s_flags & (HFI1_S_BUSY | HFI1_S_ANY_WAIT)) ||
-+	    !(ib_hfi1_state_ops[sqp->state] & HFI1_PROCESS_OR_FLUSH_SEND))
-+		goto unlock;
-+
-+	sqp->s_flags |= HFI1_S_BUSY;
-+
-+again:
-+	if (sqp->s_last == sqp->s_head)
-+		goto clr_busy;
-+	wqe = get_swqe_ptr(sqp, sqp->s_last);
-+
-+	/* Return if it is not OK to start a new work request. */
-+	if (!(ib_hfi1_state_ops[sqp->state] & HFI1_PROCESS_NEXT_SEND_OK)) {
-+		if (!(ib_hfi1_state_ops[sqp->state] & HFI1_FLUSH_SEND))
-+			goto clr_busy;
-+		/* We are in the error state, flush the work request. */
-+		send_status = IB_WC_WR_FLUSH_ERR;
-+		goto flush_send;
-+	}
-+
-+	/*
-+	 * We can rely on the entry not changing without the s_lock
-+	 * being held until we update s_last.
-+	 * We increment s_cur to indicate s_last is in progress.
-+	 */
-+	if (sqp->s_last == sqp->s_cur) {
-+		if (++sqp->s_cur >= sqp->s_size)
-+			sqp->s_cur = 0;
-+	}
-+	spin_unlock_irqrestore(&sqp->s_lock, flags);
-+
-+	if (!qp || !(ib_hfi1_state_ops[qp->state] & HFI1_PROCESS_RECV_OK) ||
-+	    qp->ibqp.qp_type != sqp->ibqp.qp_type) {
-+		ibp->n_pkt_drops++;
-+		/*
-+		 * For RC, the requester would timeout and retry so
-+		 * shortcut the timeouts and just signal too many retries.
-+		 */
-+		if (sqp->ibqp.qp_type == IB_QPT_RC)
-+			send_status = IB_WC_RETRY_EXC_ERR;
-+		else
-+			send_status = IB_WC_SUCCESS;
-+		goto serr;
-+	}
-+
-+	memset(&wc, 0, sizeof(wc));
-+	send_status = IB_WC_SUCCESS;
-+
-+	release = 1;
-+	sqp->s_sge.sge = wqe->sg_list[0];
-+	sqp->s_sge.sg_list = wqe->sg_list + 1;
-+	sqp->s_sge.num_sge = wqe->wr.num_sge;
-+	sqp->s_len = wqe->length;
-+	switch (wqe->wr.opcode) {
-+	case IB_WR_SEND_WITH_IMM:
-+		wc.wc_flags = IB_WC_WITH_IMM;
-+		wc.ex.imm_data = wqe->wr.ex.imm_data;
-+		/* FALLTHROUGH */
-+	case IB_WR_SEND:
-+		ret = hfi1_get_rwqe(qp, 0);
-+		if (ret < 0)
-+			goto op_err;
-+		if (!ret)
-+			goto rnr_nak;
-+		break;
-+
-+	case IB_WR_RDMA_WRITE_WITH_IMM:
-+		if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_WRITE)))
-+			goto inv_err;
-+		wc.wc_flags = IB_WC_WITH_IMM;
-+		wc.ex.imm_data = wqe->wr.ex.imm_data;
-+		ret = hfi1_get_rwqe(qp, 1);
-+		if (ret < 0)
-+			goto op_err;
-+		if (!ret)
-+			goto rnr_nak;
-+		/* FALLTHROUGH */
-+	case IB_WR_RDMA_WRITE:
-+		if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_WRITE)))
-+			goto inv_err;
-+		if (wqe->length == 0)
-+			break;
-+		if (unlikely(!hfi1_rkey_ok(qp, &qp->r_sge.sge, wqe->length,
-+					   wqe->wr.wr.rdma.remote_addr,
-+					   wqe->wr.wr.rdma.rkey,
-+					   IB_ACCESS_REMOTE_WRITE)))
-+			goto acc_err;
-+		qp->r_sge.sg_list = NULL;
-+		qp->r_sge.num_sge = 1;
-+		qp->r_sge.total_len = wqe->length;
-+		break;
-+
-+	case IB_WR_RDMA_READ:
-+		if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_READ)))
-+			goto inv_err;
-+		if (unlikely(!hfi1_rkey_ok(qp, &sqp->s_sge.sge, wqe->length,
-+					   wqe->wr.wr.rdma.remote_addr,
-+					   wqe->wr.wr.rdma.rkey,
-+					   IB_ACCESS_REMOTE_READ)))
-+			goto acc_err;
-+		release = 0;
-+		sqp->s_sge.sg_list = NULL;
-+		sqp->s_sge.num_sge = 1;
-+		qp->r_sge.sge = wqe->sg_list[0];
-+		qp->r_sge.sg_list = wqe->sg_list + 1;
-+		qp->r_sge.num_sge = wqe->wr.num_sge;
-+		qp->r_sge.total_len = wqe->length;
-+		break;
-+
-+	case IB_WR_ATOMIC_CMP_AND_SWP:
-+	case IB_WR_ATOMIC_FETCH_AND_ADD:
-+		if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_ATOMIC)))
-+			goto inv_err;
-+		if (unlikely(!hfi1_rkey_ok(qp, &qp->r_sge.sge, sizeof(u64),
-+					   wqe->wr.wr.atomic.remote_addr,
-+					   wqe->wr.wr.atomic.rkey,
-+					   IB_ACCESS_REMOTE_ATOMIC)))
-+			goto acc_err;
-+		/* Perform atomic OP and save result. */
-+		maddr = (atomic64_t *) qp->r_sge.sge.vaddr;
-+		sdata = wqe->wr.wr.atomic.compare_add;
-+		*(u64 *) sqp->s_sge.sge.vaddr =
-+			(wqe->wr.opcode == IB_WR_ATOMIC_FETCH_AND_ADD) ?
-+			(u64) atomic64_add_return(sdata, maddr) - sdata :
-+			(u64) cmpxchg((u64 *) qp->r_sge.sge.vaddr,
-+				      sdata, wqe->wr.wr.atomic.swap);
-+		hfi1_put_mr(qp->r_sge.sge.mr);
-+		qp->r_sge.num_sge = 0;
-+		goto send_comp;
-+
-+	default:
-+		send_status = IB_WC_LOC_QP_OP_ERR;
-+		goto serr;
-+	}
-+
-+	sge = &sqp->s_sge.sge;
-+	while (sqp->s_len) {
-+		u32 len = sqp->s_len;
-+
-+		if (len > sge->length)
-+			len = sge->length;
-+		if (len > sge->sge_length)
-+			len = sge->sge_length;
-+		BUG_ON(len == 0);
-+		hfi1_copy_sge(&qp->r_sge, sge->vaddr, len, release);
-+		sge->vaddr += len;
-+		sge->length -= len;
-+		sge->sge_length -= len;
-+		if (sge->sge_length == 0) {
-+			if (!release)
-+				hfi1_put_mr(sge->mr);
-+			if (--sqp->s_sge.num_sge)
-+				*sge = *sqp->s_sge.sg_list++;
-+		} else if (sge->length == 0 && sge->mr->lkey) {
-+			if (++sge->n >= HFI1_SEGSZ) {
-+				if (++sge->m >= sge->mr->mapsz)
-+					break;
-+				sge->n = 0;
-+			}
-+			sge->vaddr =
-+				sge->mr->map[sge->m]->segs[sge->n].vaddr;
-+			sge->length =
-+				sge->mr->map[sge->m]->segs[sge->n].length;
-+		}
-+		sqp->s_len -= len;
-+	}
-+	if (release)
-+		hfi1_put_ss(&qp->r_sge);
-+
-+	if (!test_and_clear_bit(HFI1_R_WRID_VALID, &qp->r_aflags))
-+		goto send_comp;
-+
-+	if (wqe->wr.opcode == IB_WR_RDMA_WRITE_WITH_IMM)
-+		wc.opcode = IB_WC_RECV_RDMA_WITH_IMM;
-+	else
-+		wc.opcode = IB_WC_RECV;
-+	wc.wr_id = qp->r_wr_id;
-+	wc.status = IB_WC_SUCCESS;
-+	wc.byte_len = wqe->length;
-+	wc.qp = &qp->ibqp;
-+	wc.src_qp = qp->remote_qpn;
-+	wc.slid = qp->remote_ah_attr.dlid;
-+	wc.sl = qp->remote_ah_attr.sl;
-+	wc.port_num = 1;
-+	/* Signal completion event if the solicited bit is set. */
-+	hfi1_cq_enter(to_icq(qp->ibqp.recv_cq), &wc,
-+		      wqe->wr.send_flags & IB_SEND_SOLICITED);
-+
-+send_comp:
-+	spin_lock_irqsave(&sqp->s_lock, flags);
-+	ibp->n_loop_pkts++;
-+flush_send:
-+	sqp->s_rnr_retry = sqp->s_rnr_retry_cnt;
-+	hfi1_send_complete(sqp, wqe, send_status);
-+	goto again;
-+
-+rnr_nak:
-+	/* Handle RNR NAK */
-+	if (qp->ibqp.qp_type == IB_QPT_UC)
-+		goto send_comp;
-+	ibp->n_rnr_naks++;
-+	/*
-+	 * Note: we don't need the s_lock held since the BUSY flag
-+	 * makes this single threaded.
-+	 */
-+	if (sqp->s_rnr_retry == 0) {
-+		send_status = IB_WC_RNR_RETRY_EXC_ERR;
-+		goto serr;
-+	}
-+	if (sqp->s_rnr_retry_cnt < 7)
-+		sqp->s_rnr_retry--;
-+	spin_lock_irqsave(&sqp->s_lock, flags);
-+	if (!(ib_hfi1_state_ops[sqp->state] & HFI1_PROCESS_RECV_OK))
-+		goto clr_busy;
-+	sqp->s_flags |= HFI1_S_WAIT_RNR;
-+	sqp->s_timer.function = hfi1_rc_rnr_retry;
-+	sqp->s_timer.expires = jiffies +
-+		usecs_to_jiffies(ib_hfi1_rnr_table[qp->r_min_rnr_timer]);
-+	add_timer(&sqp->s_timer);
-+	goto clr_busy;
-+
-+op_err:
-+	send_status = IB_WC_REM_OP_ERR;
-+	wc.status = IB_WC_LOC_QP_OP_ERR;
-+	goto err;
-+
-+inv_err:
-+	send_status = IB_WC_REM_INV_REQ_ERR;
-+	wc.status = IB_WC_LOC_QP_OP_ERR;
-+	goto err;
-+
-+acc_err:
-+	send_status = IB_WC_REM_ACCESS_ERR;
-+	wc.status = IB_WC_LOC_PROT_ERR;
-+err:
-+	/* responder goes to error state */
-+	hfi1_rc_error(qp, wc.status);
-+
-+serr:
-+	spin_lock_irqsave(&sqp->s_lock, flags);
-+	hfi1_send_complete(sqp, wqe, send_status);
-+	if (sqp->ibqp.qp_type == IB_QPT_RC) {
-+		int lastwqe = hfi1_error_qp(sqp, IB_WC_WR_FLUSH_ERR);
-+
-+		sqp->s_flags &= ~HFI1_S_BUSY;
-+		spin_unlock_irqrestore(&sqp->s_lock, flags);
-+		if (lastwqe) {
-+			struct ib_event ev;
-+
-+			ev.device = sqp->ibqp.device;
-+			ev.element.qp = &sqp->ibqp;
-+			ev.event = IB_EVENT_QP_LAST_WQE_REACHED;
-+			sqp->ibqp.event_handler(&ev, sqp->ibqp.qp_context);
-+		}
-+		goto done;
-+	}
-+clr_busy:
-+	sqp->s_flags &= ~HFI1_S_BUSY;
-+unlock:
-+	spin_unlock_irqrestore(&sqp->s_lock, flags);
-+done:
-+	if (qp && atomic_dec_and_test(&qp->refcount))
-+		wake_up(&qp->wait);
++	return sdma_txinit_ahg(tx, flags, tlen, 0, 0, NULL, 0, cb);
 +}
 +
-+/**
-+ * hfi1_make_grh - construct a GRH header
-+ * @ibp: a pointer to the IB port
-+ * @hdr: a pointer to the GRH header being constructed
-+ * @grh: the global route address to send to
-+ * @hwords: the number of 32 bit words of header being sent
-+ * @nwords: the number of 32 bit words of data being sent
-+ *
-+ * Return the size of the header in 32 bit words.
-+ */
-+u32 hfi1_make_grh(struct hfi1_ibport *ibp, struct ib_grh *hdr,
-+		  struct ib_global_route *grh, u32 hwords, u32 nwords)
++/* helpers - don't use */
++static inline int sdma_mapping_type(struct sdma_desc *d)
 +{
-+	hdr->version_tclass_flow =
-+		cpu_to_be32((IB_GRH_VERSION << IB_GRH_VERSION_SHIFT) |
-+			    (grh->traffic_class << IB_GRH_TCLASS_SHIFT) |
-+			    (grh->flow_label << IB_GRH_FLOW_SHIFT));
-+	hdr->paylen = cpu_to_be16((hwords - 2 + nwords + SIZE_OF_CRC) << 2);
-+	/* next_hdr is defined by C8-7 in ch. 8.4.1 */
-+	hdr->next_hdr = IB_GRH_NEXT_HDR;
-+	hdr->hop_limit = grh->hop_limit;
-+	/* The SGID is 32-bit aligned. */
-+	hdr->sgid.global.subnet_prefix = ibp->gid_prefix;
-+	hdr->sgid.global.interface_id =
-+		grh->sgid_index && grh->sgid_index < ARRAY_SIZE(ibp->guids) ?
-+		ibp->guids[grh->sgid_index - 1] : ppd_from_ibp(ibp)->guid;
-+	hdr->dgid = grh->dgid;
-+
-+	/* GRH header size in 32-bit words. */
-+	return sizeof(struct ib_grh) / sizeof(u32);
++	return (d->qw[1] & SDMA_DESC1_GENERATION_SMASK)
++		>> SDMA_DESC1_GENERATION_SHIFT;
 +}
 +
-+/*
-+ * free_ahg - clear ahg from QP
-+ */
-+void clear_ahg(struct hfi1_qp *qp)
++static inline size_t sdma_mapping_len(struct sdma_desc *d)
 +{
-+	qp->s_hdr->ahgcount = 0;
-+	qp->s_flags &= ~(HFI1_S_AHG_VALID | HFI1_S_AHG_CLEAR);
-+	if (qp->s_sde)
-+		sdma_ahg_free(qp->s_sde, qp->s_ahgidx);
-+	qp->s_ahgidx = -1;
-+	qp->s_sde = NULL;
++	return (d->qw[0] & SDMA_DESC0_BYTE_COUNT_SMASK)
++		>> SDMA_DESC0_BYTE_COUNT_SHIFT;
 +}
 +
-+#define BTH2_OFFSET (offsetof(struct hfi1_pio_header, hdr.u.oth.bth[2]) / 4)
-+
-+/**
-+ * build_ahg - create ahg in s_hdr
-+ * @qp: a pointer to QP
-+ * @npsn: the next PSN for the request/response
-+ *
-+ * This routine handles the AHG by allocating an ahg entry and causing the
-+ * copy of the first middle.
-+ *
-+ * Subsequent middles use the copied entry, editing the
-+ * PSN with 1 or 2 edits.
-+ */
-+static inline void build_ahg(struct hfi1_qp *qp, u32 npsn)
++static inline dma_addr_t sdma_mapping_addr(struct sdma_desc *d)
 +{
-+	if (unlikely(qp->s_flags & HFI1_S_AHG_CLEAR))
-+		clear_ahg(qp);
-+	if (!(qp->s_flags & HFI1_S_AHG_VALID)) {
-+		/* first middle that needs copy  */
-+		if (qp->s_ahgidx < 0) {
-+			if (!qp->s_sde)
-+				qp->s_sde = qp_to_sdma_engine(qp, qp->s_sc);
-+			qp->s_ahgidx = sdma_ahg_alloc(qp->s_sde);
-+		}
-+		if (qp->s_ahgidx >= 0) {
-+			qp->s_ahgpsn = npsn;
-+			qp->s_hdr->tx_flags |= SDMA_TXREQ_F_AHG_COPY;
-+			/* save to protect a change in another thread */
-+			qp->s_hdr->sde = qp->s_sde;
-+			qp->s_hdr->ahgidx = qp->s_ahgidx;
-+			qp->s_flags |= HFI1_S_AHG_VALID;
-+		}
++	return (d->qw[0] & SDMA_DESC0_PHY_ADDR_SMASK)
++		>> SDMA_DESC0_PHY_ADDR_SHIFT;
++}
++
++static inline void make_tx_sdma_desc(
++	struct sdma_txreq *tx,
++	int type,
++	dma_addr_t addr,
++	size_t len)
++{
++	struct sdma_desc *desc = &tx->descp[tx->num_desc];
++
++	if (!tx->num_desc) {
++		/* qw[0] zero; qw[1] first, ahg mode already in from init */
++		desc->qw[1] |= ((u64)type & SDMA_DESC1_GENERATION_MASK)
++				<< SDMA_DESC1_GENERATION_SHIFT;
 +	} else {
-+		/* subsequent middle after valid */
-+		if (qp->s_ahgidx >= 0) {
-+			qp->s_hdr->tx_flags |= SDMA_TXREQ_F_USE_AHG;
-+			qp->s_hdr->ahgidx = qp->s_ahgidx;
-+			qp->s_hdr->ahgcount++;
-+			qp->s_hdr->ahgdesc[0] =
-+				sdma_build_ahg_descriptor(
-+					(__force u16)cpu_to_be16((u16)npsn),
-+					BTH2_OFFSET,
-+					16,
-+					16);
-+			if ((npsn & 0xffff0000) !=
-+					(qp->s_ahgpsn & 0xffff0000)) {
-+				qp->s_hdr->ahgcount++;
-+				qp->s_hdr->ahgdesc[1] =
-+					sdma_build_ahg_descriptor(
-+						(__force u16)cpu_to_be16(
-+							(u16)(npsn >> 16)),
-+						BTH2_OFFSET,
-+						0,
-+						16);
-+			}
-+		}
++		desc->qw[0] = 0;
++		desc->qw[1] = ((u64)type & SDMA_DESC1_GENERATION_MASK)
++				<< SDMA_DESC1_GENERATION_SHIFT;
 +	}
++	desc->qw[0] |= (((u64)addr & SDMA_DESC0_PHY_ADDR_MASK)
++				<< SDMA_DESC0_PHY_ADDR_SHIFT) |
++			(((u64)len & SDMA_DESC0_BYTE_COUNT_MASK)
++				<< SDMA_DESC0_BYTE_COUNT_SHIFT);
 +}
 +
-+void hfi1_make_ruc_header(struct hfi1_qp *qp, struct hfi1_other_headers *ohdr,
-+			  u32 bth0, u32 bth2, int middle)
-+{
-+	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
-+	u16 lrh0;
-+	u32 nwords;
-+	u32 extra_bytes;
-+	u8 sc5;
++/* helper to extend txreq */
++int _extend_sdma_tx_descs(struct hfi1_devdata *, struct sdma_txreq *);
++int _pad_sdma_tx_descs(struct hfi1_devdata *, struct sdma_txreq *);
++void sdma_txclean(struct hfi1_devdata *, struct sdma_txreq *);
 +
-+	/* Construct the header. */
-+	extra_bytes = -qp->s_cur_size & 3;
-+	nwords = (qp->s_cur_size + extra_bytes) >> 2;
-+	lrh0 = HFI1_LRH_BTH;
-+	if (unlikely(qp->remote_ah_attr.ah_flags & IB_AH_GRH)) {
-+		qp->s_hdrwords += hfi1_make_grh(ibp, &qp->s_hdr->ibh.u.l.grh,
-+					       &qp->remote_ah_attr.grh,
-+					       qp->s_hdrwords, nwords);
-+		lrh0 = HFI1_LRH_GRH;
-+		middle = 0;
++/* helpers used by public routines */
++static inline void _sdma_close_tx(struct hfi1_devdata *dd,
++				  struct sdma_txreq *tx)
++{
++	tx->descp[tx->num_desc].qw[0] |=
++		SDMA_DESC0_LAST_DESC_FLAG;
++	tx->descp[tx->num_desc].qw[1] |=
++		dd->default_desc1;
++	if (tx->flags & SDMA_TXREQ_F_URGENT)
++		tx->descp[tx->num_desc].qw[1] |=
++			(SDMA_DESC1_HEAD_TO_HOST_FLAG|
++			 SDMA_DESC1_INT_REQ_FLAG);
++}
++
++static inline int _sdma_txadd_daddr(
++	struct hfi1_devdata *dd,
++	int type,
++	struct sdma_txreq *tx,
++	dma_addr_t addr,
++	u16 len)
++{
++	int rval = 0;
++
++	if ((unlikely(tx->num_desc == tx->desc_limit))) {
++		rval = _extend_sdma_tx_descs(dd, tx);
++		if (rval)
++			return rval;
 +	}
-+	sc5 = ibp->sl_to_sc[qp->remote_ah_attr.sl];
-+	lrh0 |= (sc5 & 0xf) << 12 | (qp->remote_ah_attr.sl & 0xf) << 4;
-+	qp->s_sc = sc5;
-+	/*
-+	 * reset s_hdr/AHG fields
-+	 *
-+	 * This insures that the ahgentry/ahgcount
-+	 * are at a non-AHG default to protect
-+	 * build_verbs_tx_desc() from using
-+	 * an include ahgidx.
-+	 *
-+	 * build_ahg() will modify as appropriate
-+	 * to use the AHG feature.
-+	 */
-+	qp->s_hdr->tx_flags = 0;
-+	qp->s_hdr->ahgcount = 0;
-+	qp->s_hdr->ahgidx = 0;
-+	qp->s_hdr->sde = NULL;
-+	if (qp->s_mig_state == IB_MIG_MIGRATED)
-+		bth0 |= IB_BTH_MIG_REQ;
-+	else
-+		middle = 0;
-+	if (middle)
-+		build_ahg(qp, bth2);
-+	else
-+		qp->s_flags &= ~HFI1_S_AHG_VALID;
-+	qp->s_hdr->ibh.lrh[0] = cpu_to_be16(lrh0);
-+	qp->s_hdr->ibh.lrh[1] = cpu_to_be16(qp->remote_ah_attr.dlid);
-+	qp->s_hdr->ibh.lrh[2] =
-+		cpu_to_be16(qp->s_hdrwords + nwords + SIZE_OF_CRC);
-+	qp->s_hdr->ibh.lrh[3] = cpu_to_be16(ppd_from_ibp(ibp)->lid |
-+				       qp->remote_ah_attr.src_path_bits);
-+	bth0 |= hfi1_get_pkey(ibp, qp->s_pkey_index);
-+	bth0 |= extra_bytes << 20;
-+	ohdr->bth[0] = cpu_to_be32(bth0);
-+	ohdr->bth[1] = cpu_to_be32(qp->remote_qpn);
-+	if (test_and_clear_bit(HFI1_S_ECN, &qp->s_aflags))
-+		/* we recently received a FECN, so return a BECN */
-+		ohdr->bth[1] |= cpu_to_be32(HFI1_BECN_MASK << HFI1_BECN_SHIFT);
-+	ohdr->bth[2] = cpu_to_be32(bth2);
++	make_tx_sdma_desc(
++		tx,
++		type,
++		addr, len);
++	BUG_ON(len > tx->tlen);
++	tx->tlen -= len;
++	/* special cases for last */
++	if (!tx->tlen) {
++		if (tx->packet_len & (sizeof(u32) - 1))
++			rval = _pad_sdma_tx_descs(dd, tx);
++		else
++			_sdma_close_tx(dd, tx);
++	}
++	tx->num_desc++;
++	return rval;
 +}
 +
 +/**
-+ * hfi1_do_send - perform a send on a QP
-+ * @work: contains a pointer to the QP
++ * sdma_txadd_page() - add a page to the sdma_txreq
++ * @dd: the device to use for mapping
++ * @tx: tx request to which the page is added
++ * @page: page to map
++ * @offset: offset within the page
++ * @len: length in bytes
 + *
-+ * Process entries in the send work queue until credit or queue is
-+ * exhausted.  Only allow one CPU to send a packet per QP (tasklet).
-+ * Otherwise, two threads could send packets out of order.
++ * This is used to add a page/offset/length descriptor.
++ *
++ * The mapping/unmapping of the page/offset/len is automatically handled.
++ *
++ * Return:
++ * 0 - success, -ENOSPC - mapping fail, -ENOMEM - couldn't
++ * extend descriptor array or couldn't allocate coalesce
++ * buffer.
++ *
 + */
-+void hfi1_do_send(struct work_struct *work)
++static inline int sdma_txadd_page(
++	struct hfi1_devdata *dd,
++	struct sdma_txreq *tx,
++	struct page *page,
++	unsigned long offset,
++	u16 len)
 +{
-+	struct iowait *wait = container_of(work, struct iowait, iowork);
-+	struct hfi1_qp *qp = container_of(wait, struct hfi1_qp, s_iowait);
-+	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
-+	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
-+	int (*make_req)(struct hfi1_qp *qp);
-+	unsigned long flags;
-+
-+	if ((qp->ibqp.qp_type == IB_QPT_RC ||
-+	     qp->ibqp.qp_type == IB_QPT_UC) &&
-+	    !loopback &&
-+	    (qp->remote_ah_attr.dlid & ~((1 << ppd->lmc) - 1)) == ppd->lid) {
-+		ruc_loopback(qp);
-+		return;
++	dma_addr_t addr =
++		dma_map_page(
++			&dd->pcidev->dev,
++			page,
++			offset,
++			len,
++			DMA_TO_DEVICE);
++	if (unlikely(dma_mapping_error(&dd->pcidev->dev, addr))) {
++		sdma_txclean(dd, tx);
++		return -ENOSPC;
 +	}
-+
-+	if (qp->ibqp.qp_type == IB_QPT_RC)
-+		make_req = hfi1_make_rc_req;
-+	else if (qp->ibqp.qp_type == IB_QPT_UC)
-+		make_req = hfi1_make_uc_req;
-+	else
-+		make_req = hfi1_make_ud_req;
-+
-+	spin_lock_irqsave(&qp->s_lock, flags);
-+
-+	/* Return if we are already busy processing a work request. */
-+	if (!hfi1_send_ok(qp)) {
-+		spin_unlock_irqrestore(&qp->s_lock, flags);
-+		return;
-+	}
-+
-+	qp->s_flags |= HFI1_S_BUSY;
-+
-+	spin_unlock_irqrestore(&qp->s_lock, flags);
-+
-+	do {
-+		/* Check for a constructed packet to be sent. */
-+		if (qp->s_hdrwords != 0) {
-+			/*
-+			 * If the packet cannot be sent now, return and
-+			 * the send tasklet will be woken up later.
-+			 */
-+			if (hfi1_verbs_send(qp, qp->s_hdr, qp->s_hdrwords,
-+					    qp->s_cur_sge, qp->s_cur_size))
-+				break;
-+			/* Record that s_hdr is empty. */
-+			qp->s_hdrwords = 0;
-+		}
-+	} while (make_req(qp));
++	return _sdma_txadd_daddr(
++			dd, SDMA_MAP_PAGE, tx, addr, len);
 +}
++
++/**
++ * sdma_txadd_daddr() - add a dma address to the sdma_txreq
++ * @dd: the device to use for mapping
++ * @tx: sdma_txreq to which the page is added
++ * @addr: dma address mapped by caller
++ * @len: length in bytes
++ *
++ * This is used to add a descriptor for memory that is already dma mapped.
++ *
++ * In this case, there is no unmapping as part of the progress processing for
++ * this memory location.
++ *
++ * Return:
++ * 0 - success, -ENOMEM - couldn't extend descriptor array
++ */
++
++static inline int sdma_txadd_daddr(
++	struct hfi1_devdata *dd,
++	struct sdma_txreq *tx,
++	dma_addr_t addr,
++	u16 len)
++{
++	return _sdma_txadd_daddr(dd, SDMA_MAP_NONE, tx, addr, len);
++}
++
++/**
++ * sdma_txadd_kvaddr() - add a kernel virtual address to sdma_txreq
++ * @dd: the device to use for mapping
++ * @tx: sdma_txreq to which the page is added
++ * @kvaddr: the kernel virtual address
++ * @len: length in bytes
++ *
++ * This is used to add a descriptor referenced by the indicated kvaddr and
++ * len.
++ *
++ * The mapping/unmapping of the kvaddr and len is automatically handled.
++ *
++ * Return:
++ * 0 - success, -ENOSPC - mapping fail, -ENOMEM - couldn't extend
++ * descriptor array
++ */
++static inline int sdma_txadd_kvaddr(
++	struct hfi1_devdata *dd,
++	struct sdma_txreq *tx,
++	void *kvaddr,
++	u16 len)
++{
++	dma_addr_t addr =
++		dma_map_single(
++			&dd->pcidev->dev,
++			kvaddr,
++			len,
++			DMA_TO_DEVICE);
++	if (unlikely(dma_mapping_error(&dd->pcidev->dev, addr))) {
++		sdma_txclean(dd, tx);
++		return -ENOSPC;
++	}
++	return _sdma_txadd_daddr(
++			dd, SDMA_MAP_SINGLE, tx, addr, len);
++}
++
++struct iowait;
++
++int sdma_send_txreq(struct sdma_engine *sde,
++		    struct iowait *wait,
++		    struct sdma_txreq *tx);
++int sdma_send_txlist(struct sdma_engine *sde,
++		     struct iowait *wait,
++		     struct list_head *tx_list);
++
++int sdma_ahg_alloc(struct sdma_engine *sde);
++void sdma_ahg_free(struct sdma_engine *sde, int ahg_index);
++
++/**
++ * sdma_build_ahg - build ahg descriptor
++ * @data
++ * @dwindex
++ * @startbit
++ * @bits
++ *
++ * Build and return a 32 bit descriptor.
++ */
++static inline u32 sdma_build_ahg_descriptor(
++	u16 data,
++	u8 dwindex,
++	u8 startbit,
++	u8 bits)
++{
++	return (u32)(1UL << SDMA_AHG_UPDATE_ENABLE_SHIFT |
++		((startbit & SDMA_AHG_FIELD_START_MASK) <<
++		SDMA_AHG_FIELD_START_SHIFT) |
++		((bits & SDMA_AHG_FIELD_LEN_MASK) <<
++		SDMA_AHG_FIELD_LEN_SHIFT) |
++		((dwindex & SDMA_AHG_INDEX_MASK) <<
++		SDMA_AHG_INDEX_SHIFT) |
++		((data & SDMA_AHG_VALUE_MASK) <<
++		SDMA_AHG_VALUE_SHIFT));
++}
++
++/**
++ * sdma_progress - use seq number of detect head progress
++ * @sde: sdma_engine to check
++ * @seq: base seq count
++ * @tx: txreq for which we need to check descriptor availability
++ *
++ * This is used in the appropriate spot in the sleep routine
++ * to check for potential ring progress.  This routine gets the
++ * seqcount before queuing the iowait structure for progress.
++ *
++ * If the seqcount indicates that progress needs to be checked,
++ * re-submission is detected by checking whether the descriptor
++ * queue has enough descriptor for the txreq.
++ */
++static inline unsigned sdma_progress(struct sdma_engine *sde, unsigned seq,
++				     struct sdma_txreq *tx)
++{
++	if (read_seqretry(&sde->head_lock, seq)) {
++		sde->desc_avail = sdma_descq_freecnt(sde);
++		if (tx->num_desc > sde->desc_avail)
++			return 0;
++		return 1;
++	}
++	return 0;
++}
++
++/**
++ * sdma_iowait_schedule() - initialize wait structure
++ * @sde: sdma_engine to schedule
++ * @wait: wait struct to schedule
++ *
++ * This function initializes the iowait
++ * structure embedded in the QP or PQ.
++ *
++ */
++static inline void sdma_iowait_schedule(
++	struct sdma_engine *sde,
++	struct iowait *wait)
++{
++	iowait_schedule(wait, sde->wq);
++}
++
++/* for use by interrupt handling */
++void sdma_engine_error(struct sdma_engine *sde, u64 status);
++void sdma_engine_interrupt(struct sdma_engine *sde, u64 status);
 +
 +/*
-+ * This should be called with s_lock held.
++ *
++ * The diagram below details the relationship of the mapping structures
++ *
++ * Since the mapping now allows for non-uniform engines per vl, the
++ * number of engines for a vl is either the vl_engines[vl] or
++ * a computation based on num_sdma/num_vls:
++ *
++ * For example:
++ * nactual = vl_engines ? vl_engines[vl] : num_sdma/num_vls
++ *
++ * n = roundup to next highest power of 2 using nactual
++ *
++ * In the case where there are num_sdma/num_vls doesn't divide
++ * evenly, the extras are added from the last vl downward.
++ *
++ * For the case where n > nactual, the engines are assigned
++ * in a round robin fashion wrapping back to the first engine
++ * for a particular vl.
++ *
++ *               dd->sdma_map
++ *                    |                                   sdma_map_elem[0]
++ *                    |                                +--------------------+
++ *                    v                                |       mask         |
++ *               sdma_vl_map                           |--------------------|
++ *      +--------------------------+                   | sde[0] -> eng 1    |
++ *      |    list (RCU)            |                   |--------------------|
++ *      |--------------------------|                 ->| sde[1] -> eng 2    |
++ *      |    mask                  |              --/  |--------------------|
++ *      |--------------------------|            -/     |        *           |
++ *      |    actual_vls (max 8)    |          -/       |--------------------|
++ *      |--------------------------|       --/         | sde[n] -> eng n    |
++ *      |    vls (max 8)           |     -/            +--------------------+
++ *      |--------------------------|  --/
++ *      |    map[0]                |-/
++ *      |--------------------------|                   +--------------------+
++ *      |    map[1]                |---                |       mask         |
++ *      |--------------------------|   \----           |--------------------|
++ *      |           *              |        \--        | sde[0] -> eng 1+n  |
++ *      |           *              |           \----   |--------------------|
++ *      |           *              |                \->| sde[1] -> eng 2+n  |
++ *      |--------------------------|                   |--------------------|
++ *      |   map[vls - 1]           |-                  |         *          |
++ *      +--------------------------+ \-                |--------------------|
++ *                                     \-              | sde[m] -> eng m+n  |
++ *                                       \             +--------------------+
++ *                                        \-
++ *                                          \
++ *                                           \-        +--------------------+
++ *                                             \-      |       mask         |
++ *                                               \     |--------------------|
++ *                                                \-   | sde[0] -> eng 1+m+n|
++ *                                                  \- |--------------------|
++ *                                                    >| sde[1] -> eng 2+m+n|
++ *                                                     |--------------------|
++ *                                                     |         *          |
++ *                                                     |--------------------|
++ *                                                     | sde[o] -> eng o+m+n|
++ *                                                     +--------------------+
++ *
 + */
-+void hfi1_send_complete(struct hfi1_qp *qp, struct hfi1_swqe *wqe,
-+			enum ib_wc_status status)
++
++/**
++ * struct sdma_map_elem - mapping for a vl
++ * @mask - selector mask
++ * @sde - array of engines for this vl
++ *
++ * The mask is used to "mod" the selector
++ * to produce index into the trailing
++ * array of sdes.
++ */
++struct sdma_map_elem {
++	u32 mask;
++	struct sdma_engine *sde[0];
++};
++
++/**
++ * struct sdma_map_el - mapping for a vl
++ * @list - rcu head for free callback
++ * @mask - vl mask to "mod" the vl to produce an index to map array
++ * @actual_vls - number of vls
++ * @vls - number of vls rounded to next power of 2
++ * @map - array of sdma_map_elem entries
++ *
++ * This is the parent mapping structure.  The trailing
++ * members of the struct point to sdma_map_elem entries, which
++ * in turn point to an array of sde's for that vl.
++ */
++struct sdma_vl_map {
++	struct rcu_head list;
++	u32 mask;
++	u8 actual_vls;
++	u8 vls;
++	struct sdma_map_elem *map[0];
++};
++
++int sdma_map_init(
++	struct hfi1_devdata *dd,
++	u8 port,
++	u8 num_vls,
++	u8 *vl_engines);
++
++/* slow path */
++void _sdma_engine_progress_schedule(struct sdma_engine *sde);
++
++/**
++ * sdma_engine_progress_schedule() - schedule progress on engine
++ * @sde: sdma_engine to schedule progress
++ *
++ * This is the fast path.
++ *
++ */
++static inline void sdma_engine_progress_schedule(
++	struct sdma_engine *sde)
 +{
-+	u32 old_last, last;
-+	unsigned i;
-+
-+	if (!(ib_hfi1_state_ops[qp->state] & HFI1_PROCESS_OR_FLUSH_SEND))
++	if (!sde || sdma_descq_inprocess(sde) < (sde->descq_cnt / 8))
 +		return;
-+
-+	for (i = 0; i < wqe->wr.num_sge; i++) {
-+		struct hfi1_sge *sge = &wqe->sg_list[i];
-+
-+		hfi1_put_mr(sge->mr);
-+	}
-+	if (qp->ibqp.qp_type == IB_QPT_UD ||
-+	    qp->ibqp.qp_type == IB_QPT_SMI ||
-+	    qp->ibqp.qp_type == IB_QPT_GSI)
-+		atomic_dec(&to_iah(wqe->wr.wr.ud.ah)->refcount);
-+
-+	/* See ch. 11.2.4.1 and 10.7.3.1 */
-+	if (!(qp->s_flags & HFI1_S_SIGNAL_REQ_WR) ||
-+	    (wqe->wr.send_flags & IB_SEND_SIGNALED) ||
-+	    status != IB_WC_SUCCESS) {
-+		struct ib_wc wc;
-+
-+		memset(&wc, 0, sizeof(wc));
-+		wc.wr_id = wqe->wr.wr_id;
-+		wc.status = status;
-+		wc.opcode = ib_hfi1_wc_opcode[wqe->wr.opcode];
-+		wc.qp = &qp->ibqp;
-+		if (status == IB_WC_SUCCESS)
-+			wc.byte_len = wqe->length;
-+		hfi1_cq_enter(to_icq(qp->ibqp.send_cq), &wc,
-+			      status != IB_WC_SUCCESS);
-+	}
-+
-+	last = qp->s_last;
-+	old_last = last;
-+	if (++last >= qp->s_size)
-+		last = 0;
-+	qp->s_last = last;
-+	if (qp->s_acked == old_last)
-+		qp->s_acked = last;
-+	if (qp->s_cur == old_last)
-+		qp->s_cur = last;
-+	if (qp->s_tail == old_last)
-+		qp->s_tail = last;
-+	if (qp->state == IB_QPS_SQD && last == qp->s_cur)
-+		qp->s_draining = 0;
++	_sdma_engine_progress_schedule(sde);
 +}
++
++struct sdma_engine *sdma_select_engine_sc(
++	struct hfi1_devdata *dd,
++	u32 selector,
++	u8 sc5);
++
++struct sdma_engine *sdma_select_engine_vl(
++	struct hfi1_devdata *dd,
++	u32 selector,
++	u8 vl);
++
++void sdma_seqfile_dump_sde(struct seq_file *s, struct sdma_engine *);
++
++#ifdef CONFIG_SDMA_VERBOSITY
++void sdma_dumpstate(struct sdma_engine *);
++#endif
++static inline char *slashstrip(char *s)
++{
++	char *r = s;
++
++	while (*s)
++		if (*s++ == '/')
++			r = s;
++	return r;
++}
++
++u16 sdma_get_descq_cnt(void);
++
++extern uint mod_num_sdma;
++
++void sdma_update_lmc(struct hfi1_devdata *dd, u64 mask, u32 lid);
++
++#endif
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
