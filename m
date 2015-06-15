@@ -1,28 +1,24 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 00/41] Add OPA gen1 driver
-Date: Mon, 15 Jun 2015 14:48:17 -0500 (CDT)
-Message-ID: <alpine.DEB.2.11.1506151439250.3542@east.gentwo.org>
-References: <20150611230710.16479.62955.stgit@phlsvslse11.ph.intel.com>
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150611230710.16479.62955.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: "Hefty, Sean" <sean.hefty@intel.com>
+Subject: RE: [PATCH 03/11] IB/cm: Expose service ID in request events
+Date: Mon, 15 Jun 2015 21:25:21 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FF59F8@ORSMSX109.amr.corp.intel.com>
+References: <1434358036-15526-1-git-send-email-haggaie@mellanox.com>
+ <1434358036-15526-4-git-send-email-haggaie@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1434358036-15526-4-git-send-email-haggaie@mellanox.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Haggai Eran <haggaie@mellanox.com>, Doug Ledford <dledford@redhat.com>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Ummm.. Could we get some more descriptions as to what this code is for?
+> Expose the service ID on an incoming CM or SIDR request to the event
+> handler. This will allow the RDMA CM module to de-multiplex connection
+> requests based on the information encoded in the service ID.
+> 
+> Signed-off-by: Haggai Eran <haggaie@mellanox.com>
 
-Do we have a new OmniPath protocol here as well or is it IB? Which
-standards are followed?
-
-I think the APIs that the driver uses need to be documented somewhere in
-particular if new sysfs entries etc are created.
-
-Are there any user space tools to control/exercise the driver and the
-protocol stack?
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Sean Hefty <sean.hefty@intel.com>
