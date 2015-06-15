@@ -1,54 +1,41 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 06/41] IB/hfi1: add char device instantiation code
-Date: Mon, 15 Jun 2015 11:34:23 -0600
-Message-ID: <20150615173423.GA528@obsidianresearch.com>
-References: <20150611230710.16479.62955.stgit@phlsvslse11.ph.intel.com>
- <20150611230901.16479.18231.stgit@phlsvslse11.ph.intel.com>
- <CAJ3xEMjRPdqWSGSwaEvyhmMQOFqaEi9ZzD5oKzmOhJyERLz4-w@mail.gmail.com>
+Subject: Re: [PATCH v5 1/4] IB/netlink: Add defines for local service
+ requests through netlink
+Date: Mon, 15 Jun 2015 12:06:48 -0600
+Message-ID: <20150615180648.GA1089@obsidianresearch.com>
+References: <1434042225-4975-2-git-send-email-kaike.wan@intel.com>
+ <20150611175803.GC20142@obsidianresearch.com>
+ <3F128C9216C9B84BB6ED23EF16290AFB0CABD2CD@CRSMSX101.amr.corp.intel.com>
+ <20150611185136.GC20779@obsidianresearch.com>
+ <3F128C9216C9B84BB6ED23EF16290AFB0CABD33C@CRSMSX101.amr.corp.intel.com>
+ <20150611195154.GB24457@obsidianresearch.com>
+ <3F128C9216C9B84BB6ED23EF16290AFB0CABE5EE@CRSMSX101.amr.corp.intel.com>
+ <20150612002133.GA17666@obsidianresearch.com>
+ <3F128C9216C9B84BB6ED23EF16290AFB0CABE6B3@CRSMSX101.amr.corp.intel.com>
+ <2807E5FD2F6FDA4886F6618EAC48510E1109C1F6@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAJ3xEMjRPdqWSGSwaEvyhmMQOFqaEi9ZzD5oKzmOhJyERLz4-w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E1109C1F6-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jun 14, 2015 at 11:58:00PM +0300, Or Gerlitz wrote:
-> On Fri, Jun 12, 2015 at 2:09 AM, Mike Marciniszyn
-> <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> > +++ b/drivers/infiniband/hw/hfi1/device.c
+On Fri, Jun 12, 2015 at 05:24:32AM +0000, Weiny, Ira wrote:
 > 
-> > +int __init dev_init(void)
-> > +{
-> > +       int ret;
-> > +
-> > +       ret = alloc_chrdev_region(&hfi1_dev, 0, HFI1_NMINORS, DRIVER_NAME);
-> > +       if (ret < 0) {
-> > +               pr_err("Could not allocate chrdev region (err %d)\n", -ret);
-> > +               goto done;
-> > +       }
-> > +
-> > +       class = class_create(THIS_MODULE, class_name());
-> > +       if (IS_ERR(class)) {
-> > +               ret = PTR_ERR(class);
-> > +               pr_err("Could not create device class (err %d)\n", -ret);
-> > +               unregister_chrdev_region(hfi1_dev, HFI1_NMINORS);
-> > +       }
-> > +
-> > +done:
-> > +       return ret;
-> > +}
+> PATH_USE_* is a better name.  But I think the defines should be:
 > 
-> so what's the role of the char-device? why should a low-level driver
-> which is part of the upstream RDMA stack contain a char-device?
+> PATH_USE_ANY (or ALL?)
 
-I for one would like to see a summary of any non-standard UAPI from
-this driver.
+How about PATH_USE_CONNECTED?
 
-Was Al Viro's comment on qib addressed here? That would be a
-showstopper for me..
+> Why not treat unknown type as "ANY/ALL" and return all 6 if
+> possible.  If not possible/supported (ie like ibacm) return GMP
+> which is always valid.
+
+Make sense to me..
 
 Jason
 --
