@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 41/49] IB/hfi1: add QSFP twsi routines
-Date: Mon, 15 Jun 2015 09:29:40 -0400
-Message-ID: <20150615132940.29741.5148.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH v2 40/49] IB/hfi1: add tracepoint debug routines
+Date: Mon, 15 Jun 2015 09:29:34 -0400
+Message-ID: <20150615132934.29741.50220.stgit@phlsvslse11.ph.intel.com>
 References: <20150615132434.29741.35258.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -37,18 +37,18 @@ Signed-off-by: Sanath Kumar <sanath.s.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.
 Signed-off-by: Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Vlad Danushevsky <vladimir.danusevsky-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/twsi.c |  518 +++++++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/hfi1/twsi.h |   68 +++++
- 2 files changed, 586 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi1/twsi.c
- create mode 100644 drivers/infiniband/hw/hfi1/twsi.h
+ drivers/infiniband/hw/hfi1/trace.c |  211 +++++
+ drivers/infiniband/hw/hfi1/trace.h | 1390 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 1601 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi1/trace.c
+ create mode 100644 drivers/infiniband/hw/hfi1/trace.h
 
-diff --git a/drivers/infiniband/hw/hfi1/twsi.c b/drivers/infiniband/hw/hfi1/twsi.c
+diff --git a/drivers/infiniband/hw/hfi1/trace.c b/drivers/infiniband/hw/hfi1/trace.c
 new file mode 100644
-index 0000000..ea54fd2
+index 0000000..afbb212
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/twsi.c
-@@ -0,0 +1,518 @@
++++ b/drivers/infiniband/hw/hfi1/trace.c
+@@ -0,0 +1,211 @@
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -98,549 +98,1564 @@ index 0000000..ea54fd2
 + * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + */
++#define CREATE_TRACE_POINTS
++#define HFI1_TRACE_DO_NOT_CREATE_INLINES
++#include "trace.h"
 +
-+#include <linux/delay.h>
-+#include <linux/pci.h>
-+#include <linux/vmalloc.h>
++u8 ibhdr_exhdr_len(struct hfi1_ib_header *hdr)
++{
++	struct hfi1_other_headers *ohdr;
++	u8 opcode;
++	u8 lnh = (u8)(be16_to_cpu(hdr->lrh[0]) & 3);
++
++	if (lnh == HFI1_LRH_BTH)
++		ohdr = &hdr->u.oth;
++	else
++		ohdr = &hdr->u.l.oth;
++	opcode = be32_to_cpu(ohdr->bth[0]) >> 24;
++	return hdr_len_by_opcode[opcode] == 0 ?
++	       0 : hdr_len_by_opcode[opcode] - (12 + 8);
++}
++
++#define IMM_PRN  "imm %d"
++#define RETH_PRN "reth vaddr 0x%.16llx rkey 0x%.8x dlen 0x%.8x"
++#define AETH_PRN "aeth syn 0x%.2x msn 0x%.8x"
++#define DETH_PRN "deth qkey 0x%.8x sqpn 0x%.6x"
++#define ATOMICACKETH_PRN "origdata %lld"
++#define ATOMICETH_PRN "vaddr 0x%llx rkey 0x%.8x sdata %lld cdata %lld"
++
++#define OP(transport, op) IB_OPCODE_## transport ## _ ## op
++
++static u64 ib_u64_get(__be32 *p)
++{
++	return ((u64)be32_to_cpu(p[0]) << 32) | be32_to_cpu(p[1]);
++}
++
++const char *parse_everbs_hdrs(
++	struct trace_seq *p,
++	u8 opcode,
++	void *ehdrs)
++{
++	union ib_ehdrs *eh = ehdrs;
++	const char *ret = trace_seq_buffer_ptr(p);
++
++	switch (opcode) {
++	/* imm */
++	case OP(RC, SEND_LAST_WITH_IMMEDIATE):
++	case OP(UC, SEND_LAST_WITH_IMMEDIATE):
++	case OP(RC, SEND_ONLY_WITH_IMMEDIATE):
++	case OP(UC, SEND_ONLY_WITH_IMMEDIATE):
++	case OP(RC, RDMA_WRITE_LAST_WITH_IMMEDIATE):
++	case OP(UC, RDMA_WRITE_LAST_WITH_IMMEDIATE):
++		trace_seq_printf(p, IMM_PRN,
++			be32_to_cpu(eh->imm_data));
++		break;
++	/* reth + imm */
++	case OP(RC, RDMA_WRITE_ONLY_WITH_IMMEDIATE):
++	case OP(UC, RDMA_WRITE_ONLY_WITH_IMMEDIATE):
++		trace_seq_printf(p, RETH_PRN " " IMM_PRN,
++			(unsigned long long)ib_u64_get(
++				(__be32 *)&eh->rc.reth.vaddr),
++			be32_to_cpu(eh->rc.reth.rkey),
++			be32_to_cpu(eh->rc.reth.length),
++			be32_to_cpu(eh->rc.imm_data));
++		break;
++	/* reth */
++	case OP(RC, RDMA_READ_REQUEST):
++	case OP(RC, RDMA_WRITE_FIRST):
++	case OP(UC, RDMA_WRITE_FIRST):
++	case OP(RC, RDMA_WRITE_ONLY):
++	case OP(UC, RDMA_WRITE_ONLY):
++		trace_seq_printf(p, RETH_PRN,
++			(unsigned long long)ib_u64_get(
++				(__be32 *)&eh->rc.reth.vaddr),
++			be32_to_cpu(eh->rc.reth.rkey),
++			be32_to_cpu(eh->rc.reth.length));
++		break;
++	case OP(RC, RDMA_READ_RESPONSE_FIRST):
++	case OP(RC, RDMA_READ_RESPONSE_LAST):
++	case OP(RC, RDMA_READ_RESPONSE_ONLY):
++	case OP(RC, ACKNOWLEDGE):
++		trace_seq_printf(p, AETH_PRN,
++			be32_to_cpu(eh->aeth) >> 24,
++			be32_to_cpu(eh->aeth) & HFI1_QPN_MASK);
++		break;
++	/* aeth + atomicacketh */
++	case OP(RC, ATOMIC_ACKNOWLEDGE):
++		trace_seq_printf(p, AETH_PRN " " ATOMICACKETH_PRN,
++			(be32_to_cpu(eh->at.aeth) >> 24) & 0xff,
++			be32_to_cpu(eh->at.aeth) & HFI1_QPN_MASK,
++			(unsigned long long)ib_u64_get(eh->at.atomic_ack_eth));
++		break;
++	/* atomiceth */
++	case OP(RC, COMPARE_SWAP):
++	case OP(RC, FETCH_ADD):
++		trace_seq_printf(p, ATOMICETH_PRN,
++			(unsigned long long)ib_u64_get(eh->atomic_eth.vaddr),
++			eh->atomic_eth.rkey,
++			(unsigned long long)ib_u64_get(
++				(__be32 *)&eh->atomic_eth.swap_data),
++			(unsigned long long) ib_u64_get(
++				 (__be32 *)&eh->atomic_eth.compare_data));
++		break;
++	/* deth */
++	case OP(UD, SEND_ONLY):
++	case OP(UD, SEND_ONLY_WITH_IMMEDIATE):
++		trace_seq_printf(p, DETH_PRN,
++			be32_to_cpu(eh->ud.deth[0]),
++			be32_to_cpu(eh->ud.deth[1]) & HFI1_QPN_MASK);
++		break;
++	}
++	trace_seq_putc(p, 0);
++	return ret;
++}
++
++const char *parse_sdma_flags(
++	struct trace_seq *p,
++	u64 desc0, u64 desc1)
++{
++	const char *ret = trace_seq_buffer_ptr(p);
++	char flags[5] = { 'x', 'x', 'x', 'x', 0 };
++
++	flags[0] = (desc1 & SDMA_DESC1_INT_REQ_FLAG) ? 'I' : '-';
++	flags[1] = (desc1 & SDMA_DESC1_HEAD_TO_HOST_FLAG) ?  'H' : '-';
++	flags[2] = (desc0 & SDMA_DESC0_FIRST_DESC_FLAG) ? 'F' : '-';
++	flags[3] = (desc0 & SDMA_DESC0_LAST_DESC_FLAG) ? 'L' : '-';
++	trace_seq_printf(p, "%s", flags);
++	if (desc0 & SDMA_DESC0_FIRST_DESC_FLAG)
++		trace_seq_printf(p, " amode:%u aidx:%u alen:%u",
++			(u8)((desc1 >> SDMA_DESC1_HEADER_MODE_SHIFT)
++				& SDMA_DESC1_HEADER_MODE_MASK),
++			(u8)((desc1 >> SDMA_DESC1_HEADER_INDEX_SHIFT)
++				& SDMA_DESC1_HEADER_INDEX_MASK),
++			(u8)((desc1 >> SDMA_DESC1_HEADER_DWS_SHIFT)
++				& SDMA_DESC1_HEADER_DWS_MASK));
++	return ret;
++}
++
++const char *print_u32_array(
++	struct trace_seq *p,
++	u32 *arr, int len)
++{
++	int i;
++	const char *ret = trace_seq_buffer_ptr(p);
++
++	for (i = 0; i < len ; i++)
++		trace_seq_printf(p, "%s%#x", i == 0 ? "" : " ", arr[i]);
++	trace_seq_putc(p, 0);
++	return ret;
++}
++
++const char *print_u64_array(
++	struct trace_seq *p,
++	u64 *arr, int len)
++{
++	int i;
++	const char *ret = trace_seq_buffer_ptr(p);
++
++	for (i = 0; i < len; i++)
++		trace_seq_printf(p, "%s0x%016llx", i == 0 ? "" : " ", arr[i]);
++	trace_seq_putc(p, 0);
++	return ret;
++}
++
++#undef HFI1_TRACE_DO_NOT_CREATE_INLINES
+diff --git a/drivers/infiniband/hw/hfi1/trace.h b/drivers/infiniband/hw/hfi1/trace.h
+new file mode 100644
+index 0000000..84f8ad3
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi1/trace.h
+@@ -0,0 +1,1390 @@
++/*
++ *
++ * This file is provided under a dual BSD/GPLv2 license.  When using or
++ * redistributing this file, you may do so under either license.
++ *
++ * GPL LICENSE SUMMARY
++ *
++ * Copyright(c) 2015 Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * BSD LICENSE
++ *
++ * Copyright(c) 2015 Intel Corporation.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ *  - Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ *  - Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *  - Neither the name of Intel Corporation nor the names of its
++ *    contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ */
++#undef TRACE_SYSTEM_VAR
++#define TRACE_SYSTEM_VAR hfi1
++
++#if !defined(__HFI1_TRACE_H) || defined(TRACE_HEADER_MULTI_READ)
++#define __HFI1_TRACE_H
++
++#include <linux/tracepoint.h>
++#include <linux/trace_seq.h>
 +
 +#include "hfi.h"
-+#include "twsi.h"
++#include "mad.h"
++#include "sdma.h"
 +
-+/*
-+ * "Two Wire Serial Interface" support.
-+ *
-+ * Originally written for a not-quite-i2c serial eeprom, which is
-+ * still used on some supported boards. Later boards have added a
-+ * variety of other uses, most board-specific, so the bit-boffing
-+ * part has been split off to this file, while the other parts
-+ * have been moved to chip-specific files.
-+ *
-+ * We have also dropped all pretense of fully generic (e.g. pretend
-+ * we don't know whether '1' is the higher voltage) interface, as
-+ * the restrictions of the generic i2c interface (e.g. no access from
-+ * driver itself) make it unsuitable for this use.
-+ */
++#define DD_DEV_ENTRY(dd)       __string(dev, dev_name(&(dd)->pcidev->dev))
++#define DD_DEV_ASSIGN(dd)      __assign_str(dev, dev_name(&(dd)->pcidev->dev))
 +
-+#define READ_CMD 1
-+#define WRITE_CMD 0
++#define packettype_name(etype) { RHF_RCV_TYPE_##etype, #etype }
++#define show_packettype(etype)                  \
++__print_symbolic(etype,                         \
++	packettype_name(EXPECTED),              \
++	packettype_name(EAGER),                 \
++	packettype_name(IB),                    \
++	packettype_name(ERROR),                 \
++	packettype_name(BYPASS))
 +
-+/**
-+ * i2c_wait_for_writes - wait for a write
-+ * @dd: the hfi1_ib device
-+ *
-+ * We use this instead of udelay directly, so we can make sure
-+ * that previous register writes have been flushed all the way
-+ * to the chip.  Since we are delaying anyway, the cost doesn't
-+ * hurt, and makes the bit twiddling more regular
-+ */
-+static void i2c_wait_for_writes(struct hfi1_devdata *dd, u32 target)
-+{
-+	/*
-+	 * implicit read of EXTStatus is as good as explicit
-+	 * read of scratch, if all we want to do is flush
-+	 * writes.
-+	 */
-+	hfi1_gpio_mod(dd, target, 0, 0, 0);
-+	rmb(); /* inlined, so prevent compiler reordering */
-+}
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi1_rx
 +
-+/*
-+ * QSFP modules are allowed to hold SCL low for 500uSec. Allow twice that
-+ * for "almost compliant" modules
-+ */
-+#define SCL_WAIT_USEC 1000
++TRACE_EVENT(hfi1_rcvhdr,
++	TP_PROTO(struct hfi1_devdata *dd,
++		 u64 eflags,
++		 u32 ctxt,
++		 u32 etype,
++		 u32 hlen,
++		 u32 tlen,
++		 u32 updegr,
++		 u32 etail),
++	TP_ARGS(dd, ctxt, eflags, etype, hlen, tlen, updegr, etail),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(dd)
++		__field(u64, eflags)
++		__field(u32, ctxt)
++		__field(u32, etype)
++		__field(u32, hlen)
++		__field(u32, tlen)
++		__field(u32, updegr)
++		__field(u32, etail)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(dd);
++		__entry->eflags = eflags;
++		__entry->ctxt = ctxt;
++		__entry->etype = etype;
++		__entry->hlen = hlen;
++		__entry->tlen = tlen;
++		__entry->updegr = updegr;
++		__entry->etail = etail;
++	),
++	TP_printk(
++"[%s] ctxt %d eflags 0x%llx etype %d,%s hlen %d tlen %d updegr %d etail %d",
++		__get_str(dev),
++		__entry->ctxt,
++		__entry->eflags,
++		__entry->etype, show_packettype(__entry->etype),
++		__entry->hlen,
++		__entry->tlen,
++		__entry->updegr,
++		__entry->etail
++	)
++);
 +
-+/* BUF_WAIT is time bus must be free between STOP or ACK and to next START.
-+ * Should be 20, but some chips need more.
-+ */
-+#define TWSI_BUF_WAIT_USEC 60
-+
-+static void scl_out(struct hfi1_devdata *dd, u32 target, u8 bit)
-+{
-+	u32 mask;
-+
-+	udelay(1);
-+
-+	mask = QSFP_HFI0_I2CCLK;
-+
-+	/* SCL is meant to be bare-drain, so never set "OUT", just DIR */
-+	hfi1_gpio_mod(dd, target, 0, bit ? 0 : mask, mask);
-+
-+	/*
-+	 * Allow for slow slaves by simple
-+	 * delay for falling edge, sampling on rise.
-+	 */
-+	if (!bit)
-+		udelay(2);
-+	else {
-+		int rise_usec;
-+
-+		for (rise_usec = SCL_WAIT_USEC; rise_usec > 0; rise_usec -= 2) {
-+			if (mask & hfi1_gpio_mod(dd, target, 0, 0, 0))
-+				break;
-+			udelay(2);
++TRACE_EVENT(hfi1_receive_interrupt,
++	TP_PROTO(struct hfi1_devdata *dd, u32 ctxt),
++	TP_ARGS(dd, ctxt),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(dd)
++		__field(u32, ctxt)
++		__field(u8, slow_path)
++		__field(u8, dma_rtail)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(dd);
++		__entry->ctxt = ctxt;
++		if (dd->rcd[ctxt]->do_interrupt ==
++		    &handle_receive_interrupt) {
++			__entry->slow_path = 1;
++			__entry->dma_rtail = 0xFF;
++		} else if (dd->rcd[ctxt]->do_interrupt ==
++			&handle_receive_interrupt_dma_rtail){
++			__entry->dma_rtail = 1;
++			__entry->slow_path = 0;
++		} else if (dd->rcd[ctxt]->do_interrupt ==
++			 &handle_receive_interrupt_nodma_rtail) {
++			__entry->dma_rtail = 0;
++			__entry->slow_path = 0;
 +		}
-+		if (rise_usec <= 0)
-+			dd_dev_err(dd, "SCL interface stuck low > %d uSec\n",
-+				    SCL_WAIT_USEC);
-+	}
-+	i2c_wait_for_writes(dd, target);
-+}
++	),
++	TP_printk(
++		"[%s] ctxt %d SlowPath: %d DmaRtail: %d",
++		__get_str(dev),
++		__entry->ctxt,
++		__entry->slow_path,
++		__entry->dma_rtail
++	)
++);
 +
-+static void sda_out(struct hfi1_devdata *dd, u32 target, u8 bit)
-+{
-+	u32 mask;
++const char *print_u64_array(struct trace_seq *, u64 *, int);
 +
-+	mask = QSFP_HFI0_I2CDAT;
++TRACE_EVENT(hfi1_exp_tid_map,
++	    TP_PROTO(unsigned ctxt, u16 subctxt, int dir,
++		     unsigned long *maps, u16 count),
++	    TP_ARGS(ctxt, subctxt, dir, maps, count),
++	    TP_STRUCT__entry(
++		    __field(unsigned, ctxt)
++		    __field(u16, subctxt)
++		    __field(int, dir)
++		    __field(u16, count)
++		    __dynamic_array(unsigned long, maps, sizeof(*maps) * count)
++		    ),
++	    TP_fast_assign(
++		    __entry->ctxt = ctxt;
++		    __entry->subctxt = subctxt;
++		    __entry->dir = dir;
++		    __entry->count = count;
++		    memcpy(__get_dynamic_array(maps), maps,
++			   sizeof(*maps) * count);
++		    ),
++	    TP_printk("[%3u:%02u] %s tidmaps %s",
++		      __entry->ctxt,
++		      __entry->subctxt,
++		      (__entry->dir ? ">" : "<"),
++		      print_u64_array(p, __get_dynamic_array(maps),
++				      __entry->count)
++		    )
++	);
 +
-+	/* SDA is meant to be bare-drain, so never set "OUT", just DIR */
-+	hfi1_gpio_mod(dd, target, 0, bit ? 0 : mask, mask);
++TRACE_EVENT(hfi1_exp_rcv_set,
++	    TP_PROTO(unsigned ctxt, u16 subctxt, u32 tid,
++		     unsigned long vaddr, u64 phys_addr, void *page),
++	    TP_ARGS(ctxt, subctxt, tid, vaddr, phys_addr, page),
++	    TP_STRUCT__entry(
++		    __field(unsigned, ctxt)
++		    __field(u16, subctxt)
++		    __field(u32, tid)
++		    __field(unsigned long, vaddr)
++		    __field(u64, phys_addr)
++		    __field(void *, page)
++		    ),
++	    TP_fast_assign(
++		    __entry->ctxt = ctxt;
++		    __entry->subctxt = subctxt;
++		    __entry->tid = tid;
++		    __entry->vaddr = vaddr;
++		    __entry->phys_addr = phys_addr;
++		    __entry->page = page;
++		    ),
++	    TP_printk("[%u:%u] TID %u, vaddrs 0x%lx, physaddr 0x%llx, pgp %p",
++		      __entry->ctxt,
++		      __entry->subctxt,
++		      __entry->tid,
++		      __entry->vaddr,
++		      __entry->phys_addr,
++		      __entry->page
++		    )
++	);
 +
-+	i2c_wait_for_writes(dd, target);
-+	udelay(2);
-+}
++TRACE_EVENT(hfi1_exp_rcv_free,
++	    TP_PROTO(unsigned ctxt, u16 subctxt, u32 tid,
++		     unsigned long phys, void *page),
++	    TP_ARGS(ctxt, subctxt, tid, phys, page),
++	    TP_STRUCT__entry(
++		    __field(unsigned, ctxt)
++		    __field(u16, subctxt)
++		    __field(u32, tid)
++		    __field(unsigned long, phys)
++		    __field(void *, page)
++		    ),
++	    TP_fast_assign(
++		    __entry->ctxt = ctxt;
++		    __entry->subctxt = subctxt;
++		    __entry->tid = tid;
++		    __entry->phys = phys;
++		    __entry->page = page;
++		    ),
++	    TP_printk("[%u:%u] freeing TID %u, 0x%lx, pgp %p",
++		      __entry->ctxt,
++		      __entry->subctxt,
++		      __entry->tid,
++		      __entry->phys,
++		      __entry->page
++		    )
++	);
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi1_tx
 +
-+static u8 sda_in(struct hfi1_devdata *dd, u32 target, int wait)
-+{
-+	u32 read_val, mask;
++TRACE_EVENT(hfi1_piofree,
++	TP_PROTO(struct send_context *sc, int extra),
++	TP_ARGS(sc, extra),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(sc->dd)
++		__field(u32, sw_index)
++		__field(u32, hw_context)
++		__field(int, extra)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(sc->dd);
++		__entry->sw_index = sc->sw_index;
++		__entry->hw_context = sc->hw_context;
++		__entry->extra = extra;
++	),
++	TP_printk(
++		"[%s] ctxt %u(%u) extra %d",
++		__get_str(dev),
++		__entry->sw_index,
++		__entry->hw_context,
++		__entry->extra
++	)
++);
 +
-+	mask = QSFP_HFI0_I2CDAT;
-+	/* SDA is meant to be bare-drain, so never set "OUT", just DIR */
-+	hfi1_gpio_mod(dd, target, 0, 0, mask);
-+	read_val = hfi1_gpio_mod(dd, target, 0, 0, 0);
-+	if (wait)
-+		i2c_wait_for_writes(dd, target);
-+	return (read_val & mask) >> GPIO_SDA_NUM;
-+}
++TRACE_EVENT(hfi1_wantpiointr,
++	TP_PROTO(struct send_context *sc, u32 needint, u64 credit_ctrl),
++	TP_ARGS(sc, needint, credit_ctrl),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(sc->dd)
++		__field(u32, sw_index)
++		__field(u32, hw_context)
++		__field(u32, needint)
++		__field(u64, credit_ctrl)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(sc->dd);
++		__entry->sw_index = sc->sw_index;
++		__entry->hw_context = sc->hw_context;
++		__entry->needint = needint;
++		__entry->credit_ctrl = credit_ctrl;
++	),
++	TP_printk(
++		"[%s] ctxt %u(%u) on %d credit_ctrl 0x%llx",
++		__get_str(dev),
++		__entry->sw_index,
++		__entry->hw_context,
++		__entry->needint,
++		(unsigned long long)__entry->credit_ctrl
++	)
++);
 +
-+/**
-+ * i2c_ackrcv - see if ack following write is true
-+ * @dd: the hfi1_ib device
-+ */
-+static int i2c_ackrcv(struct hfi1_devdata *dd, u32 target)
-+{
-+	u8 ack_received;
++DECLARE_EVENT_CLASS(hfi1_qpsleepwakeup_template,
++	TP_PROTO(struct hfi1_qp *qp, u32 flags),
++	TP_ARGS(qp, flags),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++		__field(u32, qpn)
++		__field(u32, flags)
++		__field(u32, s_flags)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device))
++		__entry->flags = flags;
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->s_flags = qp->s_flags;
++	),
++	TP_printk(
++		"[%s] qpn 0x%x flags 0x%x s_flags 0x%x",
++		__get_str(dev),
++		__entry->qpn,
++		__entry->flags,
++		__entry->s_flags
++	)
++);
 +
-+	/* AT ENTRY SCL = LOW */
-+	/* change direction, ignore data */
-+	ack_received = sda_in(dd, target, 1);
-+	scl_out(dd, target, 1);
-+	ack_received = sda_in(dd, target, 1) == 0;
-+	scl_out(dd, target, 0);
-+	return ack_received;
-+}
++DEFINE_EVENT(hfi1_qpsleepwakeup_template, hfi1_qpwakeup,
++	     TP_PROTO(struct hfi1_qp *qp, u32 flags),
++	     TP_ARGS(qp, flags));
 +
-+static void stop_cmd(struct hfi1_devdata *dd, u32 target);
++DEFINE_EVENT(hfi1_qpsleepwakeup_template, hfi1_qpsleep,
++	     TP_PROTO(struct hfi1_qp *qp, u32 flags),
++	     TP_ARGS(qp, flags));
 +
-+/**
-+ * rd_byte - read a byte, sending STOP on last, else ACK
-+ * @dd: the hfi1_ib device
-+ *
-+ * Returns byte shifted out of device
-+ */
-+static int rd_byte(struct hfi1_devdata *dd, u32 target, int last)
-+{
-+	int bit_cntr, data;
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi1_ibhdrs
 +
-+	data = 0;
++u8 ibhdr_exhdr_len(struct hfi1_ib_header *hdr);
++const char *parse_everbs_hdrs(
++	struct trace_seq *p,
++	u8 opcode,
++	void *ehdrs);
 +
-+	for (bit_cntr = 7; bit_cntr >= 0; --bit_cntr) {
-+		data <<= 1;
-+		scl_out(dd, target, 1);
-+		data |= sda_in(dd, target, 0);
-+		scl_out(dd, target, 0);
-+	}
-+	if (last) {
-+		scl_out(dd, target, 1);
-+		stop_cmd(dd, target);
-+	} else {
-+		sda_out(dd, target, 0);
-+		scl_out(dd, target, 1);
-+		scl_out(dd, target, 0);
-+		sda_out(dd, target, 1);
-+	}
-+	return data;
-+}
++#define __parse_ib_ehdrs(op, ehdrs) parse_everbs_hdrs(p, op, ehdrs)
 +
-+/**
-+ * wr_byte - write a byte, one bit at a time
-+ * @dd: the hfi1_ib device
-+ * @data: the byte to write
-+ *
-+ * Returns 0 if we got the following ack, otherwise 1
-+ */
-+static int wr_byte(struct hfi1_devdata *dd, u32 target, u8 data)
-+{
-+	int bit_cntr;
-+	u8 bit;
++const char *parse_sdma_flags(
++	struct trace_seq *p,
++	u64 desc0, u64 desc1);
 +
-+	for (bit_cntr = 7; bit_cntr >= 0; bit_cntr--) {
-+		bit = (data >> bit_cntr) & 1;
-+		sda_out(dd, target, bit);
-+		scl_out(dd, target, 1);
-+		scl_out(dd, target, 0);
-+	}
-+	return (!i2c_ackrcv(dd, target)) ? 1 : 0;
-+}
++#define __parse_sdma_flags(desc0, desc1) parse_sdma_flags(p, desc0, desc1)
++
++
++#define lrh_name(lrh) { HFI1_##lrh, #lrh }
++#define show_lnh(lrh)                    \
++__print_symbolic(lrh,                    \
++	lrh_name(LRH_BTH),               \
++	lrh_name(LRH_GRH))
++
++#define ib_opcode_name(opcode) { IB_OPCODE_##opcode, #opcode  }
++#define show_ib_opcode(opcode)                             \
++__print_symbolic(opcode,                                   \
++	ib_opcode_name(RC_SEND_FIRST),                     \
++	ib_opcode_name(RC_SEND_MIDDLE),                    \
++	ib_opcode_name(RC_SEND_LAST),                      \
++	ib_opcode_name(RC_SEND_LAST_WITH_IMMEDIATE),       \
++	ib_opcode_name(RC_SEND_ONLY),                      \
++	ib_opcode_name(RC_SEND_ONLY_WITH_IMMEDIATE),       \
++	ib_opcode_name(RC_RDMA_WRITE_FIRST),               \
++	ib_opcode_name(RC_RDMA_WRITE_MIDDLE),              \
++	ib_opcode_name(RC_RDMA_WRITE_LAST),                \
++	ib_opcode_name(RC_RDMA_WRITE_LAST_WITH_IMMEDIATE), \
++	ib_opcode_name(RC_RDMA_WRITE_ONLY),                \
++	ib_opcode_name(RC_RDMA_WRITE_ONLY_WITH_IMMEDIATE), \
++	ib_opcode_name(RC_RDMA_READ_REQUEST),              \
++	ib_opcode_name(RC_RDMA_READ_RESPONSE_FIRST),       \
++	ib_opcode_name(RC_RDMA_READ_RESPONSE_MIDDLE),      \
++	ib_opcode_name(RC_RDMA_READ_RESPONSE_LAST),        \
++	ib_opcode_name(RC_RDMA_READ_RESPONSE_ONLY),        \
++	ib_opcode_name(RC_ACKNOWLEDGE),                    \
++	ib_opcode_name(RC_ATOMIC_ACKNOWLEDGE),             \
++	ib_opcode_name(RC_COMPARE_SWAP),                   \
++	ib_opcode_name(RC_FETCH_ADD),                      \
++	ib_opcode_name(UC_SEND_FIRST),                     \
++	ib_opcode_name(UC_SEND_MIDDLE),                    \
++	ib_opcode_name(UC_SEND_LAST),                      \
++	ib_opcode_name(UC_SEND_LAST_WITH_IMMEDIATE),       \
++	ib_opcode_name(UC_SEND_ONLY),                      \
++	ib_opcode_name(UC_SEND_ONLY_WITH_IMMEDIATE),       \
++	ib_opcode_name(UC_RDMA_WRITE_FIRST),               \
++	ib_opcode_name(UC_RDMA_WRITE_MIDDLE),              \
++	ib_opcode_name(UC_RDMA_WRITE_LAST),                \
++	ib_opcode_name(UC_RDMA_WRITE_LAST_WITH_IMMEDIATE), \
++	ib_opcode_name(UC_RDMA_WRITE_ONLY),                \
++	ib_opcode_name(UC_RDMA_WRITE_ONLY_WITH_IMMEDIATE), \
++	ib_opcode_name(UD_SEND_ONLY),                      \
++	ib_opcode_name(UD_SEND_ONLY_WITH_IMMEDIATE))
++
++
++#define LRH_PRN "vl %d lver %d sl %d lnh %d,%s dlid %.4x len %d slid %.4x"
++#define BTH_PRN \
++	"op 0x%.2x,%s se %d m %d pad %d tver %d pkey 0x%.4x " \
++	"f %d b %d qpn 0x%.6x a %d psn 0x%.8x"
++#define EHDR_PRN "%s"
++
++DECLARE_EVENT_CLASS(hfi1_ibhdr_template,
++	TP_PROTO(struct hfi1_devdata *dd,
++		 struct hfi1_ib_header *hdr),
++	TP_ARGS(dd, hdr),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(dd)
++		/* LRH */
++		__field(u8, vl)
++		__field(u8, lver)
++		__field(u8, sl)
++		__field(u8, lnh)
++		__field(u16, dlid)
++		__field(u16, len)
++		__field(u16, slid)
++		/* BTH */
++		__field(u8, opcode)
++		__field(u8, se)
++		__field(u8, m)
++		__field(u8, pad)
++		__field(u8, tver)
++		__field(u16, pkey)
++		__field(u8, f)
++		__field(u8, b)
++		__field(u32, qpn)
++		__field(u8, a)
++		__field(u32, psn)
++		/* extended headers */
++		__dynamic_array(u8, ehdrs, ibhdr_exhdr_len(hdr))
++	),
++	TP_fast_assign(
++		struct hfi1_other_headers *ohdr;
++
++		DD_DEV_ASSIGN(dd);
++		/* LRH */
++		__entry->vl =
++			(u8)(be16_to_cpu(hdr->lrh[0]) >> 12);
++		__entry->lver =
++			(u8)(be16_to_cpu(hdr->lrh[0]) >> 8) & 0xf;
++		__entry->sl =
++			(u8)(be16_to_cpu(hdr->lrh[0] >> 4) & 0xf);
++		__entry->lnh =
++			(u8)(be16_to_cpu(hdr->lrh[0]) & 3);
++		__entry->dlid =
++			be16_to_cpu(hdr->lrh[1]);
++		/* allow for larger len */
++		__entry->len =
++			be16_to_cpu(hdr->lrh[2]);
++		__entry->slid =
++			be16_to_cpu(hdr->lrh[3]);
++		/* BTH */
++		if (__entry->lnh == HFI1_LRH_BTH)
++			ohdr = &hdr->u.oth;
++		else
++			ohdr = &hdr->u.l.oth;
++		__entry->opcode =
++			(be32_to_cpu(ohdr->bth[0]) >> 24) & 0xff;
++		__entry->se =
++			(be32_to_cpu(ohdr->bth[0]) >> 23) & 1;
++		__entry->m =
++			 (be32_to_cpu(ohdr->bth[0]) >> 22) & 1;
++		__entry->pad =
++			(be32_to_cpu(ohdr->bth[0]) >> 20) & 3;
++		__entry->tver =
++			(be32_to_cpu(ohdr->bth[0]) >> 16) & 0xf;
++		__entry->pkey =
++			be32_to_cpu(ohdr->bth[0]) & 0xffff;
++		__entry->f =
++			(be32_to_cpu(ohdr->bth[1]) >> HFI1_FECN_SHIFT)
++			& HFI1_FECN_MASK;
++		__entry->b =
++			(be32_to_cpu(ohdr->bth[1]) >> HFI1_BECN_SHIFT)
++			& HFI1_BECN_MASK;
++		__entry->qpn =
++			be32_to_cpu(ohdr->bth[1]) & HFI1_QPN_MASK;
++		__entry->a =
++			(be32_to_cpu(ohdr->bth[2]) >> 31) & 1;
++		/* allow for larger PSN */
++		__entry->psn =
++			be32_to_cpu(ohdr->bth[2]) & 0x7fffffff;
++		/* extended headers */
++		 memcpy(
++			__get_dynamic_array(ehdrs),
++			&ohdr->u,
++			ibhdr_exhdr_len(hdr));
++	),
++	TP_printk("[%s] " LRH_PRN " " BTH_PRN " " EHDR_PRN,
++		__get_str(dev),
++		/* LRH */
++		__entry->vl,
++		__entry->lver,
++		__entry->sl,
++		__entry->lnh, show_lnh(__entry->lnh),
++		__entry->dlid,
++		__entry->len,
++		__entry->slid,
++		/* BTH */
++		__entry->opcode, show_ib_opcode(__entry->opcode),
++		__entry->se,
++		__entry->m,
++		__entry->pad,
++		__entry->tver,
++		__entry->pkey,
++		__entry->f,
++		__entry->b,
++		__entry->qpn,
++		__entry->a,
++		__entry->psn,
++		/* extended headers */
++		__parse_ib_ehdrs(
++			__entry->opcode,
++			(void *)__get_dynamic_array(ehdrs))
++	)
++);
++
++DEFINE_EVENT(hfi1_ibhdr_template, input_ibhdr,
++	     TP_PROTO(struct hfi1_devdata *dd, struct hfi1_ib_header *hdr),
++	     TP_ARGS(dd, hdr));
++
++DEFINE_EVENT(hfi1_ibhdr_template, output_ibhdr,
++	     TP_PROTO(struct hfi1_devdata *dd, struct hfi1_ib_header *hdr),
++	     TP_ARGS(dd, hdr));
++
++#define SNOOP_PRN \
++	"slid %.4x dlid %.4x qpn 0x%.6x opcode 0x%.2x,%s " \
++	"svc lvl %d pkey 0x%.4x [header = %d bytes] [data = %d bytes]"
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi1_snoop
++
++
++TRACE_EVENT(snoop_capture,
++	TP_PROTO(struct hfi1_devdata *dd,
++		 int hdr_len,
++		 struct hfi1_ib_header *hdr,
++		 int data_len,
++		 void *data),
++	TP_ARGS(dd, hdr_len, hdr, data_len, data),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(dd)
++		__field(u16, slid)
++		__field(u16, dlid)
++		__field(u32, qpn)
++		__field(u8, opcode)
++		__field(u8, sl)
++		__field(u16, pkey)
++		__field(u32, hdr_len)
++		__field(u32, data_len)
++		__field(u8, lnh)
++		__dynamic_array(u8, raw_hdr, hdr_len)
++		__dynamic_array(u8, raw_pkt, data_len)
++	),
++	TP_fast_assign(
++		struct hfi1_other_headers *ohdr;
++
++		__entry->lnh = (u8)(be16_to_cpu(hdr->lrh[0]) & 3);
++		if (__entry->lnh == HFI1_LRH_BTH)
++			ohdr = &hdr->u.oth;
++		else
++			ohdr = &hdr->u.l.oth;
++		DD_DEV_ASSIGN(dd);
++		__entry->slid = be16_to_cpu(hdr->lrh[3]);
++		__entry->dlid = be16_to_cpu(hdr->lrh[1]);
++		__entry->qpn = be32_to_cpu(ohdr->bth[1]) & HFI1_QPN_MASK;
++		__entry->opcode = (be32_to_cpu(ohdr->bth[0]) >> 24) & 0xff;
++		__entry->sl = (u8)(be16_to_cpu(hdr->lrh[0] >> 4) & 0xf);
++		__entry->pkey =	be32_to_cpu(ohdr->bth[0]) & 0xffff;
++		__entry->hdr_len = hdr_len;
++		__entry->data_len = data_len;
++		memcpy(__get_dynamic_array(raw_hdr), hdr, hdr_len);
++		memcpy(__get_dynamic_array(raw_pkt), data, data_len);
++	),
++	TP_printk("[%s] " SNOOP_PRN,
++		__get_str(dev),
++		__entry->slid,
++		__entry->dlid,
++		__entry->qpn,
++		__entry->opcode,
++		show_ib_opcode(__entry->opcode),
++		__entry->sl,
++		__entry->pkey,
++		__entry->hdr_len,
++		__entry->data_len
++	)
++);
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi1_ctxts
++
++#define UCTXT_FMT \
++	"cred:%u, credaddr:0x%llx, piobase:0x%llx, rcvhdr_cnt:%u, "	\
++	"rcvbase:0x%llx, rcvegrc:%u, rcvegrb:0x%llx"
++TRACE_EVENT(hfi1_uctxtdata,
++	    TP_PROTO(struct hfi1_devdata *dd, struct hfi1_ctxtdata *uctxt),
++	    TP_ARGS(dd, uctxt),
++	    TP_STRUCT__entry(
++		    DD_DEV_ENTRY(dd)
++		    __field(unsigned, ctxt)
++		    __field(u32, credits)
++		    __field(u64, hw_free)
++		    __field(u64, piobase)
++		    __field(u16, rcvhdrq_cnt)
++		    __field(u64, rcvhdrq_phys)
++		    __field(u32, eager_cnt)
++		    __field(u64, rcvegr_phys)
++		    ),
++	    TP_fast_assign(
++		    DD_DEV_ASSIGN(dd);
++		    __entry->ctxt = uctxt->ctxt;
++		    __entry->credits = uctxt->sc->credits;
++		    __entry->hw_free = (u64)uctxt->sc->hw_free;
++		    __entry->piobase = (u64)uctxt->sc->base_addr;
++		    __entry->rcvhdrq_cnt = uctxt->rcvhdrq_cnt;
++		    __entry->rcvhdrq_phys = uctxt->rcvhdrq_phys;
++		    __entry->eager_cnt = uctxt->egrbufs.alloced;
++		    __entry->rcvegr_phys = uctxt->egrbufs.rcvtids[0].phys;
++		    ),
++	    TP_printk(
++		    "[%s] ctxt %u " UCTXT_FMT,
++		    __get_str(dev),
++		    __entry->ctxt,
++		    __entry->credits,
++		    __entry->hw_free,
++		    __entry->piobase,
++		    __entry->rcvhdrq_cnt,
++		    __entry->rcvhdrq_phys,
++		    __entry->eager_cnt,
++		    __entry->rcvegr_phys
++		    )
++	);
++
++#define CINFO_FMT \
++	"egrtids:%u, egr_size:%u, hdrq_cnt:%u, hdrq_size:%u, sdma_ring_size:%u"
++TRACE_EVENT(hfi1_ctxt_info,
++	    TP_PROTO(struct hfi1_devdata *dd, unsigned ctxt, unsigned subctxt,
++		     struct hfi1_ctxt_info cinfo),
++	    TP_ARGS(dd, ctxt, subctxt, cinfo),
++	    TP_STRUCT__entry(
++		    DD_DEV_ENTRY(dd)
++		    __field(unsigned, ctxt)
++		    __field(unsigned, subctxt)
++		    __field(u16, egrtids)
++		    __field(u16, rcvhdrq_cnt)
++		    __field(u16, rcvhdrq_size)
++		    __field(u16, sdma_ring_size)
++		    __field(u32, rcvegr_size)
++		    ),
++	    TP_fast_assign(
++		    DD_DEV_ASSIGN(dd);
++		    __entry->ctxt = ctxt;
++		    __entry->subctxt = subctxt;
++		    __entry->egrtids = cinfo.egrtids;
++		    __entry->rcvhdrq_cnt = cinfo.rcvhdrq_cnt;
++		    __entry->rcvhdrq_size = cinfo.rcvhdrq_entsize;
++		    __entry->sdma_ring_size = cinfo.sdma_ring_size;
++		    __entry->rcvegr_size = cinfo.rcvegr_size;
++		    ),
++	    TP_printk(
++		    "[%s] ctxt %u:%u " CINFO_FMT,
++		    __get_str(dev),
++		    __entry->ctxt,
++		    __entry->subctxt,
++		    __entry->egrtids,
++		    __entry->rcvegr_size,
++		    __entry->rcvhdrq_cnt,
++		    __entry->rcvhdrq_size,
++		    __entry->sdma_ring_size
++		    )
++	);
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi1_sma
++
++#define BCT_FORMAT \
++	"shared_limit %x vls 0-7 [%x,%x][%x,%x][%x,%x][%x,%x][%x,%x][%x,%x][%x,%x][%x,%x] 15 [%x,%x]"
++
++#define BCT(field) \
++	be16_to_cpu( \
++		((struct buffer_control *)__get_dynamic_array(bct))->field \
++	)
++
++DECLARE_EVENT_CLASS(hfi1_bct_template,
++	TP_PROTO(struct hfi1_devdata *dd, struct buffer_control *bc),
++	TP_ARGS(dd, bc),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(dd)
++		__dynamic_array(u8, bct, sizeof(*bc))
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(dd);
++		memcpy(
++			__get_dynamic_array(bct),
++			bc,
++			sizeof(*bc));
++	),
++	TP_printk(BCT_FORMAT,
++		BCT(overall_shared_limit),
++
++		BCT(vl[0].dedicated),
++		BCT(vl[0].shared),
++
++		BCT(vl[1].dedicated),
++		BCT(vl[1].shared),
++
++		BCT(vl[2].dedicated),
++		BCT(vl[2].shared),
++
++		BCT(vl[3].dedicated),
++		BCT(vl[3].shared),
++
++		BCT(vl[4].dedicated),
++		BCT(vl[4].shared),
++
++		BCT(vl[5].dedicated),
++		BCT(vl[5].shared),
++
++		BCT(vl[6].dedicated),
++		BCT(vl[6].shared),
++
++		BCT(vl[7].dedicated),
++		BCT(vl[7].shared),
++
++		BCT(vl[15].dedicated),
++		BCT(vl[15].shared)
++	)
++);
++
++
++DEFINE_EVENT(hfi1_bct_template, bct_set,
++	     TP_PROTO(struct hfi1_devdata *dd, struct buffer_control *bc),
++	     TP_ARGS(dd, bc));
++
++DEFINE_EVENT(hfi1_bct_template, bct_get,
++	     TP_PROTO(struct hfi1_devdata *dd, struct buffer_control *bc),
++	     TP_ARGS(dd, bc));
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi1_sdma
++
++TRACE_EVENT(hfi1_sdma_descriptor,
++	TP_PROTO(
++		struct sdma_engine *sde,
++		u64 desc0,
++		u64 desc1,
++		u16 e,
++		void *descp),
++	TP_ARGS(sde, desc0, desc1, e, descp),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(sde->dd)
++		__field(void *, descp)
++		__field(u64, desc0)
++		__field(u64, desc1)
++		__field(u16, e)
++		__field(u8, idx)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(sde->dd);
++		__entry->desc0 = desc0;
++		__entry->desc1 = desc1;
++		__entry->idx = sde->this_idx;
++		__entry->descp = descp;
++		__entry->e = e;
++	),
++	TP_printk(
++		"[%s] SDE(%u) flags:%s addr:0x%016llx gen:%u len:%u d0:%016llx d1:%016llx to %p,%u",
++		__get_str(dev),
++		__entry->idx,
++		__parse_sdma_flags(__entry->desc0, __entry->desc1),
++		(__entry->desc0 >> SDMA_DESC0_PHY_ADDR_SHIFT)
++			& SDMA_DESC0_PHY_ADDR_MASK,
++		(u8)((__entry->desc1 >> SDMA_DESC1_GENERATION_SHIFT)
++			& SDMA_DESC1_GENERATION_MASK),
++		(u16)((__entry->desc0 >> SDMA_DESC0_BYTE_COUNT_SHIFT)
++			& SDMA_DESC0_BYTE_COUNT_MASK),
++		__entry->desc0,
++		__entry->desc1,
++		__entry->descp,
++		__entry->e
++	)
++);
++
++TRACE_EVENT(hfi1_sdma_engine_select,
++	TP_PROTO(struct hfi1_devdata *dd, u32 sel, u8 vl, u8 idx),
++	TP_ARGS(dd, sel, vl, idx),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(dd)
++		__field(u32, sel)
++		__field(u8, vl)
++		__field(u8, idx)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(dd);
++		__entry->sel = sel;
++		__entry->vl = vl;
++		__entry->idx = idx;
++	),
++	TP_printk(
++		"[%s] selecting SDE %u sel 0x%x vl %u",
++		__get_str(dev),
++		__entry->idx,
++		__entry->sel,
++		__entry->vl
++	)
++);
++
++DECLARE_EVENT_CLASS(hfi1_sdma_engine_class,
++	TP_PROTO(
++		struct sdma_engine *sde,
++		u64 status
++	),
++	TP_ARGS(sde, status),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(sde->dd)
++		__field(u64, status)
++		__field(u8, idx)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(sde->dd);
++		__entry->status = status;
++		__entry->idx = sde->this_idx;
++	),
++	TP_printk(
++		"[%s] SDE(%u) status %llx",
++		__get_str(dev),
++		__entry->idx,
++		(unsigned long long)__entry->status
++	)
++);
++
++DEFINE_EVENT(hfi1_sdma_engine_class, hfi1_sdma_engine_interrupt,
++	TP_PROTO(
++		struct sdma_engine *sde,
++		u64 status
++	),
++	TP_ARGS(sde, status)
++);
++
++DEFINE_EVENT(hfi1_sdma_engine_class, hfi1_sdma_engine_progress,
++	TP_PROTO(
++		struct sdma_engine *sde,
++		u64 status
++	),
++	TP_ARGS(sde, status)
++);
++
++DECLARE_EVENT_CLASS(hfi1_sdma_ahg_ad,
++	TP_PROTO(
++		struct sdma_engine *sde,
++		int aidx
++	),
++	TP_ARGS(sde, aidx),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(sde->dd)
++		__field(int, aidx)
++		__field(u8, idx)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(sde->dd);
++		__entry->idx = sde->this_idx;
++		__entry->aidx = aidx;
++	),
++	TP_printk(
++		"[%s] SDE(%u) aidx %d",
++		__get_str(dev),
++		__entry->idx,
++		__entry->aidx
++	)
++);
++
++DEFINE_EVENT(hfi1_sdma_ahg_ad, hfi1_ahg_allocate,
++	     TP_PROTO(
++		struct sdma_engine *sde,
++		int aidx
++	     ),
++	     TP_ARGS(sde, aidx));
++
++DEFINE_EVENT(hfi1_sdma_ahg_ad, hfi1_ahg_deallocate,
++	     TP_PROTO(
++		struct sdma_engine *sde,
++		int aidx
++	     ),
++	     TP_ARGS(sde, aidx));
++
++#ifdef CONFIG_HFI1_DEBUG_SDMA_ORDER
++TRACE_EVENT(hfi1_sdma_progress,
++	TP_PROTO(
++		struct sdma_engine *sde,
++		u16 hwhead,
++		u16 swhead,
++		struct sdma_txreq *txp
++	),
++	TP_ARGS(sde, hwhead, swhead, txp),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(sde->dd)
++		__field(u64, sn)
++		__field(u16, hwhead)
++		__field(u16, swhead)
++		__field(u16, txnext)
++		__field(u16, tx_tail)
++		__field(u16, tx_head)
++		__field(u8, idx)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(sde->dd);
++		__entry->hwhead = hwhead;
++		__entry->swhead = swhead;
++		__entry->tx_tail = sde->tx_tail;
++		__entry->tx_head = sde->tx_head;
++		__entry->txnext = txp ? txp->next_descq_idx : ~0;
++		__entry->idx = sde->this_idx;
++		__entry->sn = txp ? txp->sn : ~0;
++	),
++	TP_printk(
++		"[%s] SDE(%u) sn %llu hwhead %u swhead %u next_descq_idx %u tx_head %u tx_tail %u",
++		__get_str(dev),
++		__entry->idx,
++		__entry->sn,
++		__entry->hwhead,
++		__entry->swhead,
++		__entry->txnext,
++		__entry->tx_head,
++		__entry->tx_tail
++	)
++);
++#else
++TRACE_EVENT(hfi1_sdma_progress,
++	    TP_PROTO(
++		struct sdma_engine *sde,
++		u16 hwhead,
++		u16 swhead,
++		struct sdma_txreq *txp
++	    ),
++	TP_ARGS(sde, hwhead, swhead, txp),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(sde->dd)
++		__field(u16, hwhead)
++		__field(u16, swhead)
++		__field(u16, txnext)
++		__field(u16, tx_tail)
++		__field(u16, tx_head)
++		__field(u8, idx)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(sde->dd);
++		__entry->hwhead = hwhead;
++		__entry->swhead = swhead;
++		__entry->tx_tail = sde->tx_tail;
++		__entry->tx_head = sde->tx_head;
++		__entry->txnext = txp ? txp->next_descq_idx : ~0;
++		__entry->idx = sde->this_idx;
++	),
++	TP_printk(
++		"[%s] SDE(%u) hwhead %u swhead %u next_descq_idx %u tx_head %u tx_tail %u",
++		__get_str(dev),
++		__entry->idx,
++		__entry->hwhead,
++		__entry->swhead,
++		__entry->txnext,
++		__entry->tx_head,
++		__entry->tx_tail
++	)
++);
++#endif
++
++DECLARE_EVENT_CLASS(hfi1_sdma_sn,
++	TP_PROTO(
++		struct sdma_engine *sde,
++		u64 sn
++	),
++	TP_ARGS(sde, sn),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(sde->dd)
++		__field(u64, sn)
++		__field(u8, idx)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(sde->dd);
++		__entry->sn = sn;
++		__entry->idx = sde->this_idx;
++	),
++	TP_printk(
++		"[%s] SDE(%u) sn %llu",
++		__get_str(dev),
++		__entry->idx,
++		__entry->sn
++	)
++);
++
++DEFINE_EVENT(hfi1_sdma_sn, hfi1_sdma_out_sn,
++	     TP_PROTO(
++		struct sdma_engine *sde,
++		u64 sn
++	     ),
++	     TP_ARGS(sde, sn)
++);
++
++DEFINE_EVENT(hfi1_sdma_sn, hfi1_sdma_in_sn,
++	     TP_PROTO(
++		struct sdma_engine *sde,
++		u64 sn
++	     ),
++	     TP_ARGS(sde, sn)
++);
++
++#define USDMA_HDR_FORMAT \
++	"[%s:%u:%u:%u] PBC=(0x%x 0x%x) LRH=(0x%x 0x%x) BTH=(0x%x 0x%x 0x%x) KDETH=(0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x) TIDVal=0x%x"
++
++TRACE_EVENT(hfi1_sdma_user_header,
++	    TP_PROTO(struct hfi1_devdata *dd, u16 ctxt, u8 subctxt, u16 req,
++		     struct hfi1_pkt_header *hdr, u32 tidval),
++	    TP_ARGS(dd, ctxt, subctxt, req, hdr, tidval),
++	    TP_STRUCT__entry(
++		    DD_DEV_ENTRY(dd)
++		    __field(u16, ctxt)
++		    __field(u8, subctxt)
++		    __field(u16, req)
++		    __field(__le32, pbc0)
++		    __field(__le32, pbc1)
++		    __field(__be32, lrh0)
++		    __field(__be32, lrh1)
++		    __field(__be32, bth0)
++		    __field(__be32, bth1)
++		    __field(__be32, bth2)
++		    __field(__le32, kdeth0)
++		    __field(__le32, kdeth1)
++		    __field(__le32, kdeth2)
++		    __field(__le32, kdeth3)
++		    __field(__le32, kdeth4)
++		    __field(__le32, kdeth5)
++		    __field(__le32, kdeth6)
++		    __field(__le32, kdeth7)
++		    __field(__le32, kdeth8)
++		    __field(u32, tidval)
++		    ),
++	    TP_fast_assign(
++		    __le32 *pbc = (__le32 *)hdr->pbc;
++		    __be32 *lrh = (__be32 *)hdr->lrh;
++		    __be32 *bth = (__be32 *)hdr->bth;
++		    __le32 *kdeth = (__le32 *)&hdr->kdeth;
++
++		    DD_DEV_ASSIGN(dd);
++		    __entry->ctxt = ctxt;
++		    __entry->subctxt = subctxt;
++		    __entry->req = req;
++		    __entry->pbc0 = pbc[0];
++		    __entry->pbc1 = pbc[1];
++		    __entry->lrh0 = be32_to_cpu(lrh[0]);
++		    __entry->lrh1 = be32_to_cpu(lrh[1]);
++		    __entry->bth0 = be32_to_cpu(bth[0]);
++		    __entry->bth1 = be32_to_cpu(bth[1]);
++		    __entry->bth2 = be32_to_cpu(bth[2]);
++		    __entry->kdeth0 = kdeth[0];
++		    __entry->kdeth1 = kdeth[1];
++		    __entry->kdeth2 = kdeth[2];
++		    __entry->kdeth3 = kdeth[3];
++		    __entry->kdeth4 = kdeth[4];
++		    __entry->kdeth5 = kdeth[5];
++		    __entry->kdeth6 = kdeth[6];
++		    __entry->kdeth7 = kdeth[7];
++		    __entry->kdeth8 = kdeth[8];
++		    __entry->tidval = tidval;
++		    ),
++	    TP_printk(USDMA_HDR_FORMAT,
++		      __get_str(dev),
++		      __entry->ctxt,
++		      __entry->subctxt,
++		      __entry->req,
++		      __entry->pbc1,
++		      __entry->pbc0,
++		      __entry->lrh0,
++		      __entry->lrh1,
++		      __entry->bth0,
++		      __entry->bth1,
++		      __entry->bth2,
++		      __entry->kdeth0,
++		      __entry->kdeth1,
++		      __entry->kdeth2,
++		      __entry->kdeth3,
++		      __entry->kdeth4,
++		      __entry->kdeth5,
++		      __entry->kdeth6,
++		      __entry->kdeth7,
++		      __entry->kdeth8,
++		      __entry->tidval
++		    )
++	);
++
++#define SDMA_UREQ_FMT \
++	"[%s:%u:%u] ver/op=0x%x, iovcnt=%u, npkts=%u, frag=%u, idx=%u"
++TRACE_EVENT(hfi1_sdma_user_reqinfo,
++	    TP_PROTO(struct hfi1_devdata *dd, u16 ctxt, u8 subctxt, u16 *i),
++	    TP_ARGS(dd, ctxt, subctxt, i),
++	    TP_STRUCT__entry(
++		    DD_DEV_ENTRY(dd);
++		    __field(u16, ctxt)
++		    __field(u8, subctxt)
++		    __field(u8, ver_opcode)
++		    __field(u8, iovcnt)
++		    __field(u16, npkts)
++		    __field(u16, fragsize)
++		    __field(u16, comp_idx)
++		    ),
++	    TP_fast_assign(
++		    DD_DEV_ASSIGN(dd);
++		    __entry->ctxt = ctxt;
++		    __entry->subctxt = subctxt;
++		    __entry->ver_opcode = i[0] & 0xff;
++		    __entry->iovcnt = (i[0] >> 8) & 0xff;
++		    __entry->npkts = i[1];
++		    __entry->fragsize = i[2];
++		    __entry->comp_idx = i[3];
++		    ),
++	    TP_printk(SDMA_UREQ_FMT,
++		      __get_str(dev),
++		      __entry->ctxt,
++		      __entry->subctxt,
++		      __entry->ver_opcode,
++		      __entry->iovcnt,
++		      __entry->npkts,
++		      __entry->fragsize,
++		      __entry->comp_idx
++		    )
++	);
++
++#define usdma_complete_name(st) { st, #st }
++#define show_usdma_complete_state(st)			\
++	__print_symbolic(st,				\
++			 usdma_complete_name(FREE),	\
++			 usdma_complete_name(QUEUED),	\
++			 usdma_complete_name(COMPLETE), \
++			 usdma_complete_name(ERROR))
++
++TRACE_EVENT(hfi1_sdma_user_completion,
++	    TP_PROTO(struct hfi1_devdata *dd, u16 ctxt, u8 subctxt, u16 idx,
++		     u8 state, int code),
++	    TP_ARGS(dd, ctxt, subctxt, idx, state, code),
++	    TP_STRUCT__entry(
++		    DD_DEV_ENTRY(dd)
++		    __field(u16, ctxt)
++		    __field(u8, subctxt)
++		    __field(u16, idx)
++		    __field(u8, state)
++		    __field(int, code)
++		    ),
++	    TP_fast_assign(
++		    DD_DEV_ASSIGN(dd);
++		    __entry->ctxt = ctxt;
++		    __entry->subctxt = subctxt;
++		    __entry->idx = idx;
++		    __entry->state = state;
++		    __entry->code = code;
++		    ),
++	    TP_printk("[%s:%u:%u:%u] SDMA completion state %s (%d)",
++		      __get_str(dev), __entry->ctxt, __entry->subctxt,
++		      __entry->idx, show_usdma_complete_state(__entry->state),
++		      __entry->code)
++	);
++
++const char *print_u32_array(struct trace_seq *, u32 *, int);
++#define __print_u32_hex(arr, len) print_u32_array(p, arr, len)
++
++TRACE_EVENT(hfi1_sdma_user_header_ahg,
++	    TP_PROTO(struct hfi1_devdata *dd, u16 ctxt, u8 subctxt, u16 req,
++		     u8 sde, u8 ahgidx, u32 *ahg, int len, u32 tidval),
++	    TP_ARGS(dd, ctxt, subctxt, req, sde, ahgidx, ahg, len, tidval),
++	    TP_STRUCT__entry(
++		    DD_DEV_ENTRY(dd)
++		    __field(u16, ctxt)
++		    __field(u8, subctxt)
++		    __field(u16, req)
++		    __field(u8, sde)
++		    __field(u8, idx)
++		    __field(int, len)
++		    __field(u32, tidval)
++		    __array(u32, ahg, 10)
++		    ),
++	    TP_fast_assign(
++		    DD_DEV_ASSIGN(dd);
++		    __entry->ctxt = ctxt;
++		    __entry->subctxt = subctxt;
++		    __entry->req = req;
++		    __entry->sde = sde;
++		    __entry->idx = ahgidx;
++		    __entry->len = len;
++		    __entry->tidval = tidval;
++		    memcpy(__entry->ahg, ahg, len * sizeof(u32));
++		    ),
++	    TP_printk("[%s:%u:%u:%u] (SDE%u/AHG%u) ahg[0-%d]=(%s) TIDVal=0x%x",
++		      __get_str(dev),
++		      __entry->ctxt,
++		      __entry->subctxt,
++		      __entry->req,
++		      __entry->sde,
++		      __entry->idx,
++		      __entry->len - 1,
++		      __print_u32_hex(__entry->ahg, __entry->len),
++		      __entry->tidval
++		    )
++	);
++
++TRACE_EVENT(hfi1_sdma_state,
++	TP_PROTO(
++		struct sdma_engine *sde,
++		const char *cstate,
++		const char *nstate
++	),
++	TP_ARGS(sde, cstate, nstate),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(sde->dd)
++		__string(curstate, cstate)
++		__string(newstate, nstate)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(sde->dd);
++		__assign_str(curstate, cstate);
++		__assign_str(newstate, nstate);
++	),
++	TP_printk("[%s] current state %s new state %s",
++		__get_str(dev),
++		__get_str(curstate),
++		__get_str(newstate)
++	)
++);
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi1_rc
++
++DECLARE_EVENT_CLASS(hfi1_sdma_rc,
++	TP_PROTO(struct hfi1_qp *qp, u32 psn),
++	TP_ARGS(qp, psn),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++		__field(u32, qpn)
++		__field(u32, flags)
++		__field(u32, psn)
++		__field(u32, sending_psn)
++		__field(u32, sending_hpsn)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device))
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->flags = qp->s_flags;
++		__entry->psn = psn;
++		__entry->sending_psn = qp->s_sending_psn;
++		__entry->sending_hpsn = qp->s_sending_hpsn;
++	),
++	TP_printk(
++		"[%s] qpn 0x%x flags 0x%x psn 0x%x sending_psn 0x%x sending_hpsn 0x%x",
++		__get_str(dev),
++		__entry->qpn,
++		__entry->flags,
++		__entry->psn,
++		__entry->sending_psn,
++		__entry->sending_psn
++	)
++);
++
++DEFINE_EVENT(hfi1_sdma_rc, hfi1_rc_sendcomplete,
++	     TP_PROTO(struct hfi1_qp *qp, u32 psn),
++	     TP_ARGS(qp, psn)
++);
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi1_misc
++
++TRACE_EVENT(hfi1_interrupt,
++	TP_PROTO(struct hfi1_devdata *dd, const struct is_table *is_entry,
++		 int src),
++	TP_ARGS(dd, is_entry, src),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(dd)
++		__array(char, buf, 64)
++		__field(int, src)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(dd)
++		is_entry->is_name(__entry->buf, 64, src - is_entry->start);
++		__entry->src = src;
++	),
++	TP_printk("[%s] source: %s [%d]", __get_str(dev), __entry->buf,
++		  __entry->src)
++);
 +
 +/*
-+ * issue TWSI start sequence:
-+ * (both clock/data high, clock high, data low while clock is high)
-+ */
-+static void start_seq(struct hfi1_devdata *dd, u32 target)
-+{
-+	sda_out(dd, target, 1);
-+	scl_out(dd, target, 1);
-+	sda_out(dd, target, 0);
-+	udelay(1);
-+	scl_out(dd, target, 0);
-+}
-+
-+/**
-+ * stop_seq - transmit the stop sequence
-+ * @dd: the hfi1_ib device
-+ *
-+ * (both clock/data low, clock high, data high while clock is high)
-+ */
-+static void stop_seq(struct hfi1_devdata *dd, u32 target)
-+{
-+	scl_out(dd, target, 0);
-+	sda_out(dd, target, 0);
-+	scl_out(dd, target, 1);
-+	sda_out(dd, target, 1);
-+}
-+
-+/**
-+ * stop_cmd - transmit the stop condition
-+ * @dd: the hfi1_ib device
-+ *
-+ * (both clock/data low, clock high, data high while clock is high)
-+ */
-+static void stop_cmd(struct hfi1_devdata *dd, u32 target)
-+{
-+	stop_seq(dd, target);
-+	udelay(TWSI_BUF_WAIT_USEC);
-+}
-+
-+/**
-+ * hfi1_twsi_reset - reset I2C communication
-+ * @dd: the hfi1_ib device
++ * Note:
++ * This produces a REALLY ugly trace in the console output when the string is
++ * too long.
 + */
 +
-+int hfi1_twsi_reset(struct hfi1_devdata *dd, u32 target)
-+{
-+	int clock_cycles_left = 9;
-+	int was_high = 0;
-+	u32 pins, mask;
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi1_trace
 +
-+	/* Both SCL and SDA should be high. If not, there
-+	 * is something wrong.
-+	 */
-+	mask = QSFP_HFI0_I2CCLK | QSFP_HFI0_I2CDAT;
++#define MAX_MSG_LEN 512
 +
-+	/*
-+	 * Force pins to desired innocuous state.
-+	 * This is the default power-on state with out=0 and dir=0,
-+	 * So tri-stated and should be floating high (barring HW problems)
-+	 */
-+	hfi1_gpio_mod(dd, target, 0, 0, mask);
-+
-+	/*
-+	 * Clock nine times to get all listeners into a sane state.
-+	 * If SDA does not go high at any point, we are wedged.
-+	 * One vendor recommends then issuing START followed by STOP.
-+	 * we cannot use our "normal" functions to do that, because
-+	 * if SCL drops between them, another vendor's part will
-+	 * wedge, dropping SDA and keeping it low forever, at the end of
-+	 * the next transaction (even if it was not the device addressed).
-+	 * So our START and STOP take place with SCL held high.
-+	 */
-+	while (clock_cycles_left--) {
-+		scl_out(dd, target, 0);
-+		scl_out(dd, target, 1);
-+		/* Note if SDA is high, but keep clocking to sync slave */
-+		was_high |= sda_in(dd, target, 0);
-+	}
-+
-+	if (was_high) {
-+		/*
-+		 * We saw a high, which we hope means the slave is sync'd.
-+		 * Issue START, STOP, pause for T_BUF.
-+		 */
-+
-+		pins = hfi1_gpio_mod(dd, target, 0, 0, 0);
-+		if ((pins & mask) != mask)
-+			dd_dev_err(dd, "GPIO pins not at rest: %d\n",
-+				    pins & mask);
-+		/* Drop SDA to issue START */
-+		udelay(1); /* Guarantee .6 uSec setup */
-+		sda_out(dd, target, 0);
-+		udelay(1); /* Guarantee .6 uSec hold */
-+		/* At this point, SCL is high, SDA low. Raise SDA for STOP */
-+		sda_out(dd, target, 1);
-+		udelay(TWSI_BUF_WAIT_USEC);
-+	}
-+
-+	return !was_high;
-+}
-+
-+#define HFI1_TWSI_START 0x100
-+#define HFI1_TWSI_STOP 0x200
-+
-+/* Write byte to TWSI, optionally prefixed with START or suffixed with
-+ * STOP.
-+ * returns 0 if OK (ACK received), else != 0
-+ */
-+static int twsi_wr(struct hfi1_devdata *dd, u32 target, int data, int flags)
-+{
-+	int ret = 1;
-+
-+	if (flags & HFI1_TWSI_START)
-+		start_seq(dd, target);
-+
-+	/* Leaves SCL low (from i2c_ackrcv()) */
-+	ret = wr_byte(dd, target, data);
-+
-+	if (flags & HFI1_TWSI_STOP)
-+		stop_cmd(dd, target);
-+	return ret;
-+}
-+
-+/* Added functionality for IBA7220-based cards */
-+#define HFI1_TEMP_DEV 0x98
++DECLARE_EVENT_CLASS(hfi1_trace_template,
++	TP_PROTO(const char *function, struct va_format *vaf),
++	TP_ARGS(function, vaf),
++	TP_STRUCT__entry(
++		__string(function, function)
++		__dynamic_array(char, msg, MAX_MSG_LEN)
++	),
++	TP_fast_assign(
++		__assign_str(function, function);
++		WARN_ON_ONCE(vsnprintf(__get_dynamic_array(msg),
++		     MAX_MSG_LEN, vaf->fmt,
++		     *vaf->va) >= MAX_MSG_LEN);
++	),
++	TP_printk("(%s) %s",
++		  __get_str(function),
++		  __get_str(msg))
++);
 +
 +/*
-+ * hfi1_twsi_blk_rd
-+ * General interface for data transfer from twsi devices.
-+ * One vestige of its former role is that it recognizes a device
-+ * HFI1_TWSI_NO_DEV and does the correct operation for the legacy part,
-+ * which responded to all TWSI device codes, interpreting them as
-+ * address within device. On all other devices found on board handled by
-+ * this driver, the device is followed by a one-byte "address" which selects
-+ * the "register" or "offset" within the device from which data should
-+ * be read.
++ * It may be nice to macroize the __hfi1_trace but the va_* stuff requires an
++ * actual function to work and can not be in a macro. Also the fmt can not be a
++ * constant char * because we need to be able to manipulate the \n if it is
++ * present.
 + */
-+int hfi1_twsi_blk_rd(struct hfi1_devdata *dd, u32 target, int dev, int addr,
-+		     void *buffer, int len)
-+{
-+	int ret;
-+	u8 *bp = buffer;
++#define __hfi1_trace_event(lvl) \
++DEFINE_EVENT(hfi1_trace_template, hfi1_ ##lvl,				\
++	TP_PROTO(const char *function, struct va_format *vaf),		\
++	TP_ARGS(function, vaf))
 +
-+	ret = 1;
-+
-+	if (dev == HFI1_TWSI_NO_DEV) {
-+		/* legacy not-really-I2C */
-+		addr = (addr << 1) | READ_CMD;
-+		ret = twsi_wr(dd, target, addr, HFI1_TWSI_START);
-+	} else {
-+		/* Actual I2C */
-+		ret = twsi_wr(dd, target, dev | WRITE_CMD, HFI1_TWSI_START);
-+		if (ret) {
-+			stop_cmd(dd, target);
-+			ret = 1;
-+			goto bail;
-+		}
-+		/*
-+		 * SFF spec claims we do _not_ stop after the addr
-+		 * but simply issue a start with the "read" dev-addr.
-+		 * Since we are implicitly waiting for ACK here,
-+		 * we need t_buf (nominally 20uSec) before that start,
-+		 * and cannot rely on the delay built in to the STOP
-+		 */
-+		ret = twsi_wr(dd, target, addr, 0);
-+		udelay(TWSI_BUF_WAIT_USEC);
-+
-+		if (ret) {
-+			dd_dev_err(dd,
-+				"Failed to write interface read addr %02X\n",
-+				addr);
-+			ret = 1;
-+			goto bail;
-+		}
-+		ret = twsi_wr(dd, target, dev | READ_CMD, HFI1_TWSI_START);
-+	}
-+	if (ret) {
-+		stop_cmd(dd, target);
-+		ret = 1;
-+		goto bail;
-+	}
-+
-+	/*
-+	 * block devices keeps clocking data out as long as we ack,
-+	 * automatically incrementing the address. Some have "pages"
-+	 * whose boundaries will not be crossed, but the handling
-+	 * of these is left to the caller, who is in a better
-+	 * position to know.
-+	 */
-+	while (len-- > 0) {
-+		/*
-+		 * Get and store data, sending ACK if length remaining,
-+		 * else STOP
-+		 */
-+		*bp++ = rd_byte(dd, target, !len);
-+	}
-+
-+	ret = 0;
-+
-+bail:
-+	return ret;
++#ifdef HFI1_TRACE_DO_NOT_CREATE_INLINES
++#define __hfi1_trace_fn(fn) __hfi1_trace_event(fn)
++#else
++#define __hfi1_trace_fn(fn) \
++__hfi1_trace_event(fn); \
++__printf(2, 3) \
++static inline void __hfi1_trace_##fn(const char *func, char *fmt, ...)	\
++{									\
++	struct va_format vaf = {					\
++		.fmt = fmt,						\
++	};								\
++	va_list args;							\
++									\
++	va_start(args, fmt);						\
++	vaf.va = &args;							\
++	trace_hfi1_ ##fn(func, &vaf);					\
++	va_end(args);							\
++	return;								\
 +}
++#endif
 +
 +/*
-+ * hfi1_twsi_blk_wr
-+ * General interface for data transfer to twsi devices.
-+ * One vestige of its former role is that it recognizes a device
-+ * HFI1_TWSI_NO_DEV and does the correct operation for the legacy part,
-+ * which responded to all TWSI device codes, interpreting them as
-+ * address within device. On all other devices found on board handled by
-+ * this driver, the device is followed by a one-byte "address" which selects
-+ * the "register" or "offset" within the device to which data should
-+ * be written.
++ * To create a new trace level simply define it as below. This will create all
++ * the hooks for calling hfi1_cdbg(LVL, fmt, ...); as well as take care of all
++ * the debugfs stuff.
 + */
-+int hfi1_twsi_blk_wr(struct hfi1_devdata *dd, u32 target, int dev, int addr,
-+		     const void *buffer, int len)
-+{
-+	int sub_len;
-+	const u8 *bp = buffer;
-+	int max_wait_time, i;
-+	int ret = 1;
++__hfi1_trace_fn(RVPKT);
++__hfi1_trace_fn(INIT);
++__hfi1_trace_fn(VERB);
++__hfi1_trace_fn(PKT);
++__hfi1_trace_fn(PROC);
++__hfi1_trace_fn(MM);
++__hfi1_trace_fn(ERRPKT);
++__hfi1_trace_fn(SDMA);
++__hfi1_trace_fn(VPKT);
++__hfi1_trace_fn(LINKVERB);
++__hfi1_trace_fn(VERBOSE);
++__hfi1_trace_fn(DEBUG);
++__hfi1_trace_fn(SNOOP);
++__hfi1_trace_fn(CNTR);
++__hfi1_trace_fn(PIO);
++__hfi1_trace_fn(DC8051);
++__hfi1_trace_fn(FIRMWARE);
++__hfi1_trace_fn(RCVCTRL);
++__hfi1_trace_fn(TID);
 +
-+	while (len > 0) {
-+		if (dev == HFI1_TWSI_NO_DEV) {
-+			if (twsi_wr(dd, target, (addr << 1) | WRITE_CMD,
-+				    HFI1_TWSI_START)) {
-+				goto failed_write;
-+			}
-+		} else {
-+			/* Real I2C */
-+			if (twsi_wr(dd, target,
-+				    dev | WRITE_CMD, HFI1_TWSI_START))
-+				goto failed_write;
-+			ret = twsi_wr(dd, target, addr, 0);
-+			if (ret) {
-+				dd_dev_err(dd,
-+					"Failed to write interface write addr %02X\n",
-+					addr);
-+				goto failed_write;
-+			}
-+		}
++#define hfi1_cdbg(which, fmt, ...) \
++	__hfi1_trace_##which(__func__, fmt, ##__VA_ARGS__)
 +
-+		sub_len = min(len, 4);
-+		addr += sub_len;
-+		len -= sub_len;
++#define hfi1_dbg(fmt, ...) \
++	hfi1_cdbg(DEBUG, fmt, ##__VA_ARGS__)
 +
-+		for (i = 0; i < sub_len; i++)
-+			if (twsi_wr(dd, target, *bp++, 0))
-+				goto failed_write;
-+
-+		stop_cmd(dd, target);
-+
-+		/*
-+		 * Wait for write complete by waiting for a successful
-+		 * read (the chip replies with a zero after the write
-+		 * cmd completes, and before it writes to the eeprom.
-+		 * The startcmd for the read will fail the ack until
-+		 * the writes have completed.   We do this inline to avoid
-+		 * the debug prints that are in the real read routine
-+		 * if the startcmd fails.
-+		 * We also use the proper device address, so it doesn't matter
-+		 * whether we have real eeprom_dev. Legacy likes any address.
-+		 */
-+		max_wait_time = 100;
-+		while (twsi_wr(dd, target,
-+			       dev | READ_CMD, HFI1_TWSI_START)) {
-+			stop_cmd(dd, target);
-+			if (!--max_wait_time)
-+				goto failed_write;
-+		}
-+		/* now read (and ignore) the resulting byte */
-+		rd_byte(dd, target, 1);
-+	}
-+
-+	ret = 0;
-+	goto bail;
-+
-+failed_write:
-+	stop_cmd(dd, target);
-+	ret = 1;
-+
-+bail:
-+	return ret;
-+}
-diff --git a/drivers/infiniband/hw/hfi1/twsi.h b/drivers/infiniband/hw/hfi1/twsi.h
-new file mode 100644
-index 0000000..5907e02
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/twsi.h
-@@ -0,0 +1,68 @@
-+#ifndef _TWSI_H
-+#define _TWSI_H
 +/*
-+ *
-+ * This file is provided under a dual BSD/GPLv2 license.  When using or
-+ * redistributing this file, you may do so under either license.
-+ *
-+ * GPL LICENSE SUMMARY
-+ *
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * BSD LICENSE
-+ *
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ *  - Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *  - Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *  - Neither the name of Intel Corporation nor the names of its
-+ *    contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
++ * Define HFI1_EARLY_DBG at compile time or here to enable early trace
++ * messages. Do not check in an enablement for this.
 + */
 +
-+#define HFI1_TWSI_NO_DEV 0xFF
++#ifdef HFI1_EARLY_DBG
++#define hfi1_dbg_early(fmt, ...) \
++	trace_printk(fmt, ##__VA_ARGS__)
++#else
++#define hfi1_dbg_early(fmt, ...)
++#endif
 +
-+struct hfi1_devdata;
++#endif /* __HFI1_TRACE_H */
 +
-+/* Bit position of SDA pin in ASIC_QSFP* registers  */
-+#define  GPIO_SDA_NUM 1
-+
-+/* these functions must be called with qsfp_lock held */
-+int hfi1_twsi_reset(struct hfi1_devdata *dd, u32 target);
-+int hfi1_twsi_blk_rd(struct hfi1_devdata *dd, u32 target, int dev, int addr,
-+		     void *buffer, int len);
-+int hfi1_twsi_blk_wr(struct hfi1_devdata *dd, u32 target, int dev, int addr,
-+		     const void *buffer, int len);
-+
-+
-+#endif /* _TWSI_H */
++#undef TRACE_INCLUDE_PATH
++#undef TRACE_INCLUDE_FILE
++#define TRACE_INCLUDE_PATH .
++#define TRACE_INCLUDE_FILE trace
++#include <trace/define_trace.h>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
