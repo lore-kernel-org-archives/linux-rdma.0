@@ -1,43 +1,28 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v5 1/4] IB/netlink: Add defines for local service
- requests through netlink
-Date: Mon, 15 Jun 2015 12:06:48 -0600
-Message-ID: <20150615180648.GA1089@obsidianresearch.com>
-References: <1434042225-4975-2-git-send-email-kaike.wan@intel.com>
- <20150611175803.GC20142@obsidianresearch.com>
- <3F128C9216C9B84BB6ED23EF16290AFB0CABD2CD@CRSMSX101.amr.corp.intel.com>
- <20150611185136.GC20779@obsidianresearch.com>
- <3F128C9216C9B84BB6ED23EF16290AFB0CABD33C@CRSMSX101.amr.corp.intel.com>
- <20150611195154.GB24457@obsidianresearch.com>
- <3F128C9216C9B84BB6ED23EF16290AFB0CABE5EE@CRSMSX101.amr.corp.intel.com>
- <20150612002133.GA17666@obsidianresearch.com>
- <3F128C9216C9B84BB6ED23EF16290AFB0CABE6B3@CRSMSX101.amr.corp.intel.com>
- <2807E5FD2F6FDA4886F6618EAC48510E1109C1F6@CRSMSX101.amr.corp.intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 06/41] IB/hfi1: add char device instantiation code
+Date: Mon, 15 Jun 2015 18:11:02 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FF5828@ORSMSX109.amr.corp.intel.com>
+References: <20150611230710.16479.62955.stgit@phlsvslse11.ph.intel.com>
+ <20150611230901.16479.18231.stgit@phlsvslse11.ph.intel.com>
+ <CAJ3xEMjRPdqWSGSwaEvyhmMQOFqaEi9ZzD5oKzmOhJyERLz4-w@mail.gmail.com>
+ <20150615173423.GA528@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E1109C1F6-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20150615173423.GA528-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jun 12, 2015 at 05:24:32AM +0000, Weiny, Ira wrote:
-> 
-> PATH_USE_* is a better name.  But I think the defines should be:
-> 
-> PATH_USE_ANY (or ALL?)
+> Was Al Viro's comment on qib addressed here? That would be a
+> showstopper for me..
 
-How about PATH_USE_CONNECTED?
+Do you have a link to this comment?  I'm missing a bunch of messages from this thread and can't find anything from Al in the logs.
 
-> Why not treat unknown type as "ANY/ALL" and return all 6 if
-> possible.  If not possible/supported (ie like ibacm) return GMP
-> which is always valid.
-
-Make sense to me..
-
-Jason
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
