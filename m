@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 26/49] IB/hfi1: add user/kernel memory sharing hooks
-Date: Mon, 15 Jun 2015 09:28:18 -0400
-Message-ID: <20150615132818.29741.95358.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH v2 28/49] IB/hfi1: add misc OPA defines
+Date: Mon, 15 Jun 2015 09:28:29 -0400
+Message-ID: <20150615132829.29741.43567.stgit@phlsvslse11.ph.intel.com>
 References: <20150615132434.29741.35258.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -37,16 +37,18 @@ Signed-off-by: Sanath Kumar <sanath.s.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.
 Signed-off-by: Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Vlad Danushevsky <vladimir.danusevsky-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/mmap.c |  192 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 192 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi1/mmap.c
+ drivers/infiniband/hw/hfi1/opa_compat.h |  132 +++++++++++++++++++++++++++++++
+ 1 file changed, 132 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi1/opa_compat.h
 
-diff --git a/drivers/infiniband/hw/hfi1/mmap.c b/drivers/infiniband/hw/hfi1/mmap.c
+diff --git a/drivers/infiniband/hw/hfi1/opa_compat.h b/drivers/infiniband/hw/hfi1/opa_compat.h
 new file mode 100644
-index 0000000..5173b1c
+index 0000000..c60ab08
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/mmap.c
-@@ -0,0 +1,192 @@
++++ b/drivers/infiniband/hw/hfi1/opa_compat.h
+@@ -0,0 +1,132 @@
++#ifndef _LINUX_H
++#define _LINUX_H
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -97,148 +99,86 @@ index 0000000..5173b1c
 + *
 + */
 +
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/vmalloc.h>
-+#include <linux/mm.h>
-+#include <linux/errno.h>
-+#include <asm/pgtable.h>
-+
-+#include "verbs.h"
-+
-+/**
-+ * hfi1_release_mmap_info - free mmap info structure
-+ * @ref: a pointer to the kref within struct hfi1_mmap_info
++/*
++ * This header file is for OPA-specific definitions which are
++ * required by the HFI driver, and which aren't yet in the Linux
++ * IB core. We'll collect these all here, then merge them into
++ * the kernel when that's convenient.
 + */
-+void hfi1_release_mmap_info(struct kref *ref)
++
++/* OPA SMA attribute IDs */
++#define OPA_ATTRIB_ID_CONGESTION_INFO		cpu_to_be16(0x008b)
++#define OPA_ATTRIB_ID_HFI_CONGESTION_LOG	cpu_to_be16(0x008f)
++#define OPA_ATTRIB_ID_HFI_CONGESTION_SETTING	cpu_to_be16(0x0090)
++#define OPA_ATTRIB_ID_CONGESTION_CONTROL_TABLE	cpu_to_be16(0x0091)
++
++/* OPA PMA attribute IDs */
++#define OPA_PM_ATTRIB_ID_PORT_STATUS		cpu_to_be16(0x0040)
++#define OPA_PM_ATTRIB_ID_CLEAR_PORT_STATUS	cpu_to_be16(0x0041)
++#define OPA_PM_ATTRIB_ID_DATA_PORT_COUNTERS	cpu_to_be16(0x0042)
++#define OPA_PM_ATTRIB_ID_ERROR_PORT_COUNTERS	cpu_to_be16(0x0043)
++#define OPA_PM_ATTRIB_ID_ERROR_INFO		cpu_to_be16(0x0044)
++
++/* OPA status codes */
++#define OPA_PM_STATUS_REQUEST_TOO_LARGE		cpu_to_be16(0x100)
++
++static inline u8 port_states_to_logical_state(struct opa_port_states *ps)
 +{
-+	struct hfi1_mmap_info *ip =
-+		container_of(ref, struct hfi1_mmap_info, ref);
-+	struct hfi1_ibdev *dev = to_idev(ip->context->device);
++	return ps->portphysstate_portstate & OPA_PI_MASK_PORT_STATE;
++}
 +
-+	spin_lock_irq(&dev->pending_lock);
-+	list_del(&ip->pending_mmaps);
-+	spin_unlock_irq(&dev->pending_lock);
-+
-+	vfree(ip->obj);
-+	kfree(ip);
++static inline u8 port_states_to_phys_state(struct opa_port_states *ps)
++{
++	return ((ps->portphysstate_portstate &
++		  OPA_PI_MASK_PORT_PHYSICAL_STATE) >> 4) & 0xf;
 +}
 +
 +/*
-+ * open and close keep track of how many times the CQ is mapped,
-+ * to avoid releasing it.
++ * OPA port physical states
++ * IB Volume 1, Table 146 PortInfo/IB Volume 2 Section 5.4.2(1) PortPhysState
++ * values.
++ *
++ * When writing, only values 0-3 are valid, other values are ignored.
++ * When reading, 0 is reserved.
++ *
++ * Returned by the ibphys_portstate() routine.
 + */
-+static void hfi1_vma_open(struct vm_area_struct *vma)
-+{
-+	struct hfi1_mmap_info *ip = vma->vm_private_data;
-+
-+	kref_get(&ip->ref);
-+}
-+
-+static void hfi1_vma_close(struct vm_area_struct *vma)
-+{
-+	struct hfi1_mmap_info *ip = vma->vm_private_data;
-+
-+	kref_put(&ip->ref, hfi1_release_mmap_info);
-+}
-+
-+static struct vm_operations_struct hfi1_vm_ops = {
-+	.open =     hfi1_vma_open,
-+	.close =    hfi1_vma_close,
++enum opa_port_phys_state {
++	IB_PORTPHYSSTATE_NOP = 0,
++	/* 1 is reserved */
++	IB_PORTPHYSSTATE_POLLING = 2,
++	IB_PORTPHYSSTATE_DISABLED = 3,
++	IB_PORTPHYSSTATE_TRAINING = 4,
++	IB_PORTPHYSSTATE_LINKUP = 5,
++	IB_PORTPHYSSTATE_LINK_ERROR_RECOVERY = 6,
++	IB_PORTPHYSSTATE_PHY_TEST = 7,
++	/* 8 is reserved */
++	OPA_PORTPHYSSTATE_OFFLINE = 9,
++	OPA_PORTPHYSSTATE_GANGED = 10,
++	OPA_PORTPHYSSTATE_TEST = 11,
++	OPA_PORTPHYSSTATE_MAX = 11,
++	/* values 12-15 are reserved/ignored */
 +};
 +
-+/**
-+ * hfi1_mmap - create a new mmap region
-+ * @context: the IB user context of the process making the mmap() call
-+ * @vma: the VMA to be initialized
-+ * Return zero if the mmap is OK. Otherwise, return an errno.
-+ */
-+int hfi1_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
-+{
-+	struct hfi1_ibdev *dev = to_idev(context->device);
-+	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
-+	unsigned long size = vma->vm_end - vma->vm_start;
-+	struct hfi1_mmap_info *ip, *pp;
-+	int ret = -EINVAL;
++/* where best to put this opcode? */
++#define CNP_OPCODE 0x80
 +
-+	/*
-+	 * Search the device's list of objects waiting for a mmap call.
-+	 * Normally, this list is very short since a call to create a
-+	 * CQ, QP, or SRQ is soon followed by a call to mmap().
-+	 */
-+	spin_lock_irq(&dev->pending_lock);
-+	list_for_each_entry_safe(ip, pp, &dev->pending_mmaps,
-+				 pending_mmaps) {
-+		/* Only the creator is allowed to mmap the object */
-+		if (context != ip->context || (__u64) offset != ip->offset)
-+			continue;
-+		/* Don't allow a mmap larger than the object. */
-+		if (size > ip->size)
-+			break;
++/* OPA_PORT_TYPE_* definitions - these belong in opa_port_info.h */
++#define OPA_PORT_TYPE_UNKNOWN          0
++#define OPA_PORT_TYPE_DISCONNECTED     1
++/* port is not currently usable, CableInfo not available */
++#define OPA_PORT_TYPE_FIXED            2
++/* A fixed backplane port in a director class switch. All OPA ASICS */
++#define OPA_PORT_TYPE_VARIABLE         3
++/* A backplane port in a blade system, possibly mixed configuration */
++#define OPA_PORT_TYPE_STANDARD         4
++/* implies a SFF-8636 defined format for CableInfo (QSFP) */
++#define OPA_PORT_TYPE_SI_PHOTONICS      5
++/* A silicon photonics module implies TBD defined format for CableInfo
++ * as defined by Intel SFO group */
++/* 6 - 15 are reserved */
 +
-+		list_del_init(&ip->pending_mmaps);
-+		spin_unlock_irq(&dev->pending_lock);
-+
-+		ret = remap_vmalloc_range(vma, ip->obj, 0);
-+		if (ret)
-+			goto done;
-+		vma->vm_ops = &hfi1_vm_ops;
-+		vma->vm_private_data = ip;
-+		hfi1_vma_open(vma);
-+		goto done;
-+	}
-+	spin_unlock_irq(&dev->pending_lock);
-+done:
-+	return ret;
-+}
-+
-+/*
-+ * Allocate information for hfi1_mmap
-+ */
-+struct hfi1_mmap_info *hfi1_create_mmap_info(struct hfi1_ibdev *dev,
-+					     u32 size,
-+					     struct ib_ucontext *context,
-+					     void *obj) {
-+	struct hfi1_mmap_info *ip;
-+
-+	ip = kmalloc(sizeof(*ip), GFP_KERNEL);
-+	if (!ip)
-+		goto bail;
-+
-+	size = PAGE_ALIGN(size);
-+
-+	spin_lock_irq(&dev->mmap_offset_lock);
-+	if (dev->mmap_offset == 0)
-+		dev->mmap_offset = PAGE_SIZE;
-+	ip->offset = dev->mmap_offset;
-+	dev->mmap_offset += size;
-+	spin_unlock_irq(&dev->mmap_offset_lock);
-+
-+	INIT_LIST_HEAD(&ip->pending_mmaps);
-+	ip->size = size;
-+	ip->context = context;
-+	ip->obj = obj;
-+	kref_init(&ip->ref);
-+
-+bail:
-+	return ip;
-+}
-+
-+void hfi1_update_mmap_info(struct hfi1_ibdev *dev, struct hfi1_mmap_info *ip,
-+			   u32 size, void *obj)
-+{
-+	size = PAGE_ALIGN(size);
-+
-+	spin_lock_irq(&dev->mmap_offset_lock);
-+	if (dev->mmap_offset == 0)
-+		dev->mmap_offset = PAGE_SIZE;
-+	ip->offset = dev->mmap_offset;
-+	dev->mmap_offset += size;
-+	spin_unlock_irq(&dev->mmap_offset_lock);
-+
-+	ip->size = size;
-+	ip->obj = obj;
-+}
++#endif /* _LINUX_H */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
