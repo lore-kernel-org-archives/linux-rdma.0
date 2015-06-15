@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 07/49] IB/hfi1: add chip specific headers
-Date: Mon, 15 Jun 2015 09:26:36 -0400
-Message-ID: <20150615132636.29741.91117.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH v2 08/49] IB/hfi1: add common header file definitions
+Date: Mon, 15 Jun 2015 09:26:41 -0400
+Message-ID: <20150615132641.29741.60107.stgit@phlsvslse11.ph.intel.com>
 References: <20150615132434.29741.35258.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -37,18 +37,16 @@ Signed-off-by: Sanath Kumar <sanath.s.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.
 Signed-off-by: Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Vlad Danushevsky <vladimir.danusevsky-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/chip.h | 1013 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 1013 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi1/chip.h
+ drivers/infiniband/hw/hfi1/common.h |  416 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 416 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi1/common.h
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.h b/drivers/infiniband/hw/hfi1/chip.h
+diff --git a/drivers/infiniband/hw/hfi1/common.h b/drivers/infiniband/hw/hfi1/common.h
 new file mode 100644
-index 0000000..8cb1dfc
+index 0000000..161af4c
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/chip.h
-@@ -0,0 +1,1013 @@
-+#ifndef _CHIP_H
-+#define _CHIP_H
++++ b/drivers/infiniband/hw/hfi1/common.h
+@@ -0,0 +1,416 @@
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -99,967 +97,372 @@ index 0000000..8cb1dfc
 + *
 + */
 +
++#ifndef _COMMON_H
++#define _COMMON_H
++
++#include <rdma/hfi/hfi1_user.h>
++
 +/*
-+ * This file contains all of the defines that is specific to the HFI chip
++ * This file contains defines, structures, etc. that are used
++ * to communicate between kernel and user code.
 + */
 +
-+/* sizes */
-+#define CCE_NUM_MSIX_VECTORS 256
-+#define CCE_NUM_INT_CSRS 12
-+#define CCE_NUM_INT_MAP_CSRS 96
-+#define NUM_INTERRUPT_SOURCES 768
-+#define RXE_NUM_CONTEXTS 160
-+#define RXE_PER_CONTEXT_SIZE 0x1000	/* 4k */
-+#define RXE_NUM_TID_FLOWS 32
-+#define RXE_NUM_DATA_VL 8
-+#define TXE_NUM_CONTEXTS 160
-+#define TXE_NUM_SDMA_ENGINES 16
-+#define NUM_CONTEXTS_PER_SET 8
-+#define VL_ARB_HIGH_PRIO_TABLE_SIZE 16
-+#define VL_ARB_LOW_PRIO_TABLE_SIZE 16
-+#define VL_ARB_TABLE_SIZE 16
-+#define TXE_NUM_32_BIT_COUNTER 7
-+#define TXE_NUM_64_BIT_COUNTER 30
-+#define TXE_NUM_DATA_VL 8
-+#define TXE_PIO_SIZE (32 * 0x100000)	/* 32 MB */
-+#define PIO_BLOCK_SIZE 64			/* bytes */
-+#define SDMA_BLOCK_SIZE 64			/* bytes */
-+#define RCV_BUF_BLOCK_SIZE 64               /* bytes */
-+#define PIO_CMASK 0x7ff	/* counter mask for free and fill counters */
-+#define MAX_EAGER_ENTRIES    2048	/* max receive eager entries */
-+#define MAX_TID_PAIR_ENTRIES 1024	/* max receive expected pairs */
-+/* Virtual? Allocation Unit, defined as AU = 8*2^vAU, 64 bytes, AU is fixed
-+   at 64 bytes for all generation one devices */
-+#define CM_VAU 3
-+/* HFI link credit count, AKA receive buffer depth (RBUF_DEPTH) */
-+#define CM_GLOBAL_CREDITS 0x940
-+/* Number of PKey entries in the HW */
-+#define MAX_PKEY_VALUES 16
-+
-+#include "chip_registers.h"
-+
-+#define RXE_PER_CONTEXT_USER   (RXE + RXE_PER_CONTEXT_OFFSET)
-+#define TXE_PIO_SEND (TXE + TXE_PIO_SEND_OFFSET)
-+
-+/* PBC flags */
-+#define PBC_INTR		(1ull << 31)
-+#define PBC_DC_INFO_SHIFT	(30)
-+#define PBC_DC_INFO		(1ull << PBC_DC_INFO_SHIFT)
-+#define PBC_TEST_EBP	(1ull << 29)
-+#define PBC_PACKET_BYPASS	(1ull << 28)
-+#define PBC_CREDIT_RETURN	(1ull << 25)
-+#define PBC_INSERT_BYPASS_ICRC (1ull << 24)
-+#define PBC_TEST_BAD_ICRC	(1ull << 23)
-+#define PBC_FECN		(1ull << 22)
-+
-+/* PbcInsertHcrc field settings */
-+#define PBC_IHCRC_LKDETH 0x0	/* insert @ local KDETH offset */
-+#define PBC_IHCRC_GKDETH 0x1	/* insert @ global KDETH offset */
-+#define PBC_IHCRC_NONE   0x2	/* no HCRC inserted */
-+
-+/* PBC fields */
-+#define PBC_STATIC_RATE_CONTROL_COUNT_SHIFT 32
-+#define PBC_STATIC_RATE_CONTROL_COUNT_MASK 0xffffull
-+#define PBC_STATIC_RATE_CONTROL_COUNT_SMASK \
-+	(PBC_STATIC_RATE_CONTROL_COUNT_MASK << \
-+	PBC_STATIC_RATE_CONTROL_COUNT_SHIFT)
-+
-+#define PBC_INSERT_HCRC_SHIFT 26
-+#define PBC_INSERT_HCRC_MASK 0x3ull
-+#define PBC_INSERT_HCRC_SMASK \
-+	(PBC_INSERT_HCRC_MASK << PBC_INSERT_HCRC_SHIFT)
-+
-+#define PBC_VL_SHIFT 12
-+#define PBC_VL_MASK 0xfull
-+#define PBC_VL_SMASK (PBC_VL_MASK << PBC_VL_SHIFT)
-+
-+#define PBC_LENGTH_DWS_SHIFT 0
-+#define PBC_LENGTH_DWS_MASK 0xfffull
-+#define PBC_LENGTH_DWS_SMASK \
-+	(PBC_LENGTH_DWS_MASK << PBC_LENGTH_DWS_SHIFT)
-+
-+/* Credit Return Fields */
-+#define CR_COUNTER_SHIFT 0
-+#define CR_COUNTER_MASK 0x7ffull
-+#define CR_COUNTER_SMASK (CR_COUNTER_MASK << CR_COUNTER_SHIFT)
-+
-+#define CR_STATUS_SHIFT 11
-+#define CR_STATUS_MASK 0x1ull
-+#define CR_STATUS_SMASK (CR_STATUS_MASK << CR_STATUS_SHIFT)
-+
-+#define CR_CREDIT_RETURN_DUE_TO_PBC_SHIFT 12
-+#define CR_CREDIT_RETURN_DUE_TO_PBC_MASK 0x1ull
-+#define CR_CREDIT_RETURN_DUE_TO_PBC_SMASK \
-+	(CR_CREDIT_RETURN_DUE_TO_PBC_MASK << \
-+	CR_CREDIT_RETURN_DUE_TO_PBC_SHIFT)
-+
-+#define CR_CREDIT_RETURN_DUE_TO_THRESHOLD_SHIFT 13
-+#define CR_CREDIT_RETURN_DUE_TO_THRESHOLD_MASK 0x1ull
-+#define CR_CREDIT_RETURN_DUE_TO_THRESHOLD_SMASK \
-+	(CR_CREDIT_RETURN_DUE_TO_THRESHOLD_MASK << \
-+	CR_CREDIT_RETURN_DUE_TO_THRESHOLD_SHIFT)
-+
-+#define CR_CREDIT_RETURN_DUE_TO_ERR_SHIFT 14
-+#define CR_CREDIT_RETURN_DUE_TO_ERR_MASK 0x1ull
-+#define CR_CREDIT_RETURN_DUE_TO_ERR_SMASK \
-+	(CR_CREDIT_RETURN_DUE_TO_ERR_MASK << \
-+	CR_CREDIT_RETURN_DUE_TO_ERR_SHIFT)
-+
-+#define CR_CREDIT_RETURN_DUE_TO_FORCE_SHIFT 15
-+#define CR_CREDIT_RETURN_DUE_TO_FORCE_MASK 0x1ull
-+#define CR_CREDIT_RETURN_DUE_TO_FORCE_SMASK \
-+	(CR_CREDIT_RETURN_DUE_TO_FORCE_MASK << \
-+	CR_CREDIT_RETURN_DUE_TO_FORCE_SHIFT)
-+
-+/* interrupt source numbers */
-+#define IS_GENERAL_ERR_START	  0
-+#define IS_SDMAENG_ERR_START	 16
-+#define IS_SENDCTXT_ERR_START	 32
-+#define IS_SDMA_START		192 /* includes SDmaProgress,SDmaIdle */
-+#define IS_VARIOUS_START		240
-+#define IS_DC_START			248
-+#define IS_RCVAVAIL_START		256
-+#define IS_RCVURGENT_START		416
-+#define IS_SENDCREDIT_START		576
-+#define IS_RESERVED_START		736
-+#define IS_MAX_SOURCES		768
-+
-+/* derived interrupt source values */
-+#define IS_GENERAL_ERR_END		IS_SDMAENG_ERR_START
-+#define IS_SDMAENG_ERR_END		IS_SENDCTXT_ERR_START
-+#define IS_SENDCTXT_ERR_END		IS_SDMA_START
-+#define IS_SDMA_END			IS_VARIOUS_START
-+#define IS_VARIOUS_END		IS_DC_START
-+#define IS_DC_END			IS_RCVAVAIL_START
-+#define IS_RCVAVAIL_END		IS_RCVURGENT_START
-+#define IS_RCVURGENT_END		IS_SENDCREDIT_START
-+#define IS_SENDCREDIT_END		IS_RESERVED_START
-+#define IS_RESERVED_END		IS_MAX_SOURCES
-+
-+/* absolute interrupt numbers for QSFP1Int and QSFP2Int */
-+#define QSFP1_INT		242
-+#define QSFP2_INT		243
-+
-+/* DCC_CFG_PORT_CONFIG logical link states */
-+#define LSTATE_DOWN    0x1
-+#define LSTATE_INIT    0x2
-+#define LSTATE_ARMED   0x3
-+#define LSTATE_ACTIVE  0x4
-+
-+/* DC8051_STS_CUR_STATE port values (physical link states) */
-+#define PLS_DISABLED			   0x30
-+#define PLS_OFFLINE				   0x90
-+#define PLS_OFFLINE_QUIET			   0x90
-+#define PLS_OFFLINE_PLANNED_DOWN_INFORM	   0x91
-+#define PLS_OFFLINE_READY_TO_QUIET_LT	   0x92
-+#define PLS_OFFLINE_REPORT_FAILURE		   0x93
-+#define PLS_OFFLINE_READY_TO_QUIET_BCC	   0x94
-+#define PLS_POLLING				   0x20
-+#define PLS_POLLING_QUIET			   0x20
-+#define PLS_POLLING_ACTIVE			   0x21
-+#define PLS_CONFIGPHY			   0x40
-+#define PLS_CONFIGPHY_DEBOUCE		   0x40
-+#define PLS_CONFIGPHY_ESTCOMM		   0x41
-+#define PLS_CONFIGPHY_ESTCOMM_TXRX_HUNT	   0x42
-+#define PLS_CONFIGPHY_ESTcOMM_LOCAL_COMPLETE   0x43
-+#define PLS_CONFIGPHY_OPTEQ			   0x44
-+#define PLS_CONFIGPHY_OPTEQ_OPTIMIZING	   0x44
-+#define PLS_CONFIGPHY_OPTEQ_LOCAL_COMPLETE	   0x45
-+#define PLS_CONFIGPHY_VERIFYCAP		   0x46
-+#define PLS_CONFIGPHY_VERIFYCAP_EXCHANGE	   0x46
-+#define PLS_CONFIGPHY_VERIFYCAP_LOCAL_COMPLETE 0x47
-+#define PLS_CONFIGLT			   0x48
-+#define PLS_CONFIGLT_CONFIGURE		   0x48
-+#define PLS_CONFIGLT_LINK_TRANSFER_ACTIVE	   0x49
-+#define PLS_LINKUP				   0x50
-+#define PLS_PHYTEST				   0xB0
-+#define PLS_INTERNAL_SERDES_LOOPBACK	   0xe1
-+#define PLS_QUICK_LINKUP			   0xe2
-+
-+/* DC_DC8051_CFG_HOST_CMD_0.REQ_TYPE - 8051 host commands */
-+#define HCMD_LOAD_CONFIG_DATA  0x01
-+#define HCMD_READ_CONFIG_DATA  0x02
-+#define HCMD_CHANGE_PHY_STATE  0x03
-+#define HCMD_SEND_LCB_IDLE_MSG 0x04
-+#define HCMD_MISC		   0x05
-+#define HCMD_READ_LCB_IDLE_MSG 0x06
-+#define HCMD_READ_LCB_CSR      0x07
-+#define HCMD_INTERFACE_TEST	   0xff
-+
-+/* DC_DC8051_CFG_HOST_CMD_1.RETURN_CODE - 8051 host command return */
-+#define HCMD_SUCCESS 2
-+
-+/* DC_DC8051_DBG_ERR_INFO_SET_BY_8051.ERROR - error flags */
-+#define SPICO_ROM_FAILED		    (1 <<  0)
-+#define UNKNOWN_FRAME		    (1 <<  1)
-+#define TARGET_BER_NOT_MET		    (1 <<  2)
-+#define FAILED_SERDES_INTERNAL_LOOPBACK (1 <<  3)
-+#define FAILED_SERDES_INIT		    (1 <<  4)
-+#define FAILED_LNI_POLLING		    (1 <<  5)
-+#define FAILED_LNI_DEBOUNCE		    (1 <<  6)
-+#define FAILED_LNI_ESTBCOMM		    (1 <<  7)
-+#define FAILED_LNI_OPTEQ		    (1 <<  8)
-+#define FAILED_LNI_VERIFY_CAP1	    (1 <<  9)
-+#define FAILED_LNI_VERIFY_CAP2	    (1 << 10)
-+#define FAILED_LNI_CONFIGLT		    (1 << 11)
-+
-+#define FAILED_LNI (FAILED_LNI_POLLING | FAILED_LNI_DEBOUNCE \
-+			| FAILED_LNI_ESTBCOMM | FAILED_LNI_OPTEQ \
-+			| FAILED_LNI_VERIFY_CAP1 \
-+			| FAILED_LNI_VERIFY_CAP2 \
-+			| FAILED_LNI_CONFIGLT)
-+
-+/* DC_DC8051_DBG_ERR_INFO_SET_BY_8051.HOST_MSG - host message flags */
-+#define HOST_REQ_DONE	   (1 << 0)
-+#define BC_PWR_MGM_MSG	   (1 << 1)
-+#define BC_SMA_MSG		   (1 << 2)
-+#define BC_BCC_UNKOWN_MSG	   (1 << 3)
-+#define BC_IDLE_UNKNOWN_MSG	   (1 << 4)
-+#define EXT_DEVICE_CFG_REQ	   (1 << 5)
-+#define VERIFY_CAP_FRAME	   (1 << 6)
-+#define LINKUP_ACHIEVED	   (1 << 7)
-+#define LINK_GOING_DOWN	   (1 << 8)
-+#define LINK_WIDTH_DOWNGRADED  (1 << 9)
-+
-+/* DC_DC8051_CFG_EXT_DEV_1.REQ_TYPE - 8051 host requests */
-+#define HREQ_LOAD_CONFIG	0x01
-+#define HREQ_SAVE_CONFIG	0x02
-+#define HREQ_READ_CONFIG	0x03
-+#define HREQ_SET_TX_EQ_ABS	0x04
-+#define HREQ_SET_TX_EQ_REL	0x05
-+#define HREQ_ENABLE		0x06
-+#define HREQ_CONFIG_DONE	0xfe
-+#define HREQ_INTERFACE_TEST	0xff
-+
-+/* DC_DC8051_CFG_EXT_DEV_0.RETURN_CODE - 8051 host request return codes */
-+#define HREQ_INVALID		0x01
-+#define HREQ_SUCCESS		0x02
-+#define HREQ_NOT_SUPPORTED		0x03
-+#define HREQ_FEATURE_NOT_SUPPORTED	0x04 /* request specific feature */
-+#define HREQ_REQUEST_REJECTED	0xfe
-+#define HREQ_EXECUTION_ONGOING	0xff
-+
-+/* MISC host command functions */
-+#define HCMD_MISC_REQUEST_LCB_ACCESS 0x1
-+#define HCMD_MISC_GRANT_LCB_ACCESS   0x2
-+
-+/* idle flit message types */
-+#define IDLE_PHYSICAL_LINK_MGMT 0x1
-+#define IDLE_CRU		    0x2
-+#define IDLE_SMA		    0x3
-+#define IDLE_POWER_MGMT	    0x4
-+
-+/* idle flit message send fields (both send and read) */
-+#define IDLE_PAYLOAD_MASK 0xffffffffffull /* 40 bits */
-+#define IDLE_PAYLOAD_SHIFT 8
-+#define IDLE_MSG_TYPE_MASK 0xf
-+#define IDLE_MSG_TYPE_SHIFT 0
-+
-+/* idle flit message read fields */
-+#define READ_IDLE_MSG_TYPE_MASK 0xf
-+#define READ_IDLE_MSG_TYPE_SHIFT 0
-+
-+/* SMA idle flit payload commands */
-+#define SMA_IDLE_ARM	1
-+#define SMA_IDLE_ACTIVE 2
-+
-+/* DC_DC8051_CFG_MODE.GENERAL bits */
-+#define DISABLE_SELF_GUID_CHECK 0x2
-+
-+/*
-+ * Eager buffer minimum and maximum sizes supported by the hardware.
-+ * All power-of-two sizes in between are supported as well.
-+ * MAX_EAGER_BUFFER_TOTAL is the maximum size of memory
-+ * allocatable for Eager buffer to a single context. All others
-+ * are limits for the RcvArray entries.
++/* version of protocol header (known to chip also). In the long run,
++ * we should be able to generate and accept a range of version numbers;
++ * for now we only accept one, and it's compiled in.
 + */
-+#define MIN_EAGER_BUFFER       (4 * 1024)
-+#define MAX_EAGER_BUFFER       (256 * 1024)
-+#define MAX_EAGER_BUFFER_TOTAL (64 * (1 << 20)) /* max per ctxt 64MB */
-+#define MAX_EXPECTED_BUFFER    (2048 * 1024)
++#define IPS_PROTO_VERSION 2
 +
 +/*
-+ * Receive expected base and count and eager base and count increment -
-+ * the CSR fields hold multiples of this value.
++ * These are compile time constants that you may want to enable or disable
++ * if you are trying to debug problems with code or performance.
++ * HFI1_VERBOSE_TRACING define as 1 if you want additional tracing in
++ * fast path code
++ * HFI1_TRACE_REGWRITES define as 1 if you want register writes to be
++ * traced in fast path code
++ * _HFI1_TRACING define as 0 if you want to remove all tracing in a
++ * compilation unit
 + */
-+#define RCV_SHIFT 3
-+#define RCV_INCREMENT (1 << RCV_SHIFT)
 +
 +/*
-+ * Receive header queue entry increment - the CSR holds multiples of
-+ * this value.
++ * If a packet's QP[23:16] bits match this value, then it is
++ * a PSM packet and the hardware will expect a KDETH header
++ * following the BTH.
 + */
-+#define HDRQ_SIZE_SHIFT 5
-+#define HDRQ_INCREMENT (1 << HDRQ_SIZE_SHIFT)
++#define DEFAULT_KDETH_QP 0x80
 +
++/* driver/hw feature set bitmask */
++#define HFI1_CAP_USER_SHIFT      24
++#define HFI1_CAP_MASK            ((1UL << HFI1_CAP_USER_SHIFT) - 1)
++/* locked flag - if set, only HFI1_CAP_WRITABLE_MASK bits can be set */
++#define HFI1_CAP_LOCKED_SHIFT    63
++#define HFI1_CAP_LOCKED_MASK     0x1ULL
++#define HFI1_CAP_LOCKED_SMASK    (HFI1_CAP_LOCKED_MASK << HFI1_CAP_LOCKED_SHIFT)
++/* extra bits used between kernel and user processes */
++#define HFI1_CAP_MISC_SHIFT      (HFI1_CAP_USER_SHIFT * 2)
++#define HFI1_CAP_MISC_MASK       ((1ULL << (HFI1_CAP_LOCKED_SHIFT - \
++					   HFI1_CAP_MISC_SHIFT)) - 1)
++
++#define HFI1_CAP_KSET(cap) ({ hfi1_cap_mask |= HFI1_CAP_##cap; hfi1_cap_mask; })
++#define HFI1_CAP_KCLEAR(cap)						\
++	({								\
++		hfi1_cap_mask &= ~HFI1_CAP_##cap;			\
++		hfi1_cap_mask;						\
++	})
++#define HFI1_CAP_USET(cap)						\
++	({								\
++		hfi1_cap_mask |= (HFI1_CAP_##cap << HFI1_CAP_USER_SHIFT); \
++		hfi1_cap_mask;						\
++		})
++#define HFI1_CAP_UCLEAR(cap)						\
++	({								\
++		hfi1_cap_mask &= ~(HFI1_CAP_##cap << HFI1_CAP_USER_SHIFT); \
++		hfi1_cap_mask;						\
++	})
++#define HFI1_CAP_SET(cap)						\
++	({								\
++		hfi1_cap_mask |= (HFI1_CAP_##cap | (HFI1_CAP_##cap <<	\
++						  HFI1_CAP_USER_SHIFT)); \
++		hfi1_cap_mask;						\
++	})
++#define HFI1_CAP_CLEAR(cap)						\
++	({								\
++		hfi1_cap_mask &= ~(HFI1_CAP_##cap |			\
++				  (HFI1_CAP_##cap << HFI1_CAP_USER_SHIFT)); \
++		hfi1_cap_mask;						\
++	})
++#define HFI1_CAP_LOCK()							\
++	({ hfi1_cap_mask |= HFI1_CAP_LOCKED_SMASK; hfi1_cap_mask; })
++#define HFI1_CAP_LOCKED() (!!(hfi1_cap_mask & HFI1_CAP_LOCKED_SMASK))
 +/*
-+ * Freeze handling flags
++ * The set of capability bits that can be changed after initial load
++ * This set is the same for kernel and user contexts. However, for
++ * user contexts, the set can be further filtered by using the
++ * HFI1_CAP_RESERVED_MASK bits.
 + */
-+#define FREEZE_ABORT     0x01	/* do not do recovery */
-+#define FREEZE_SELF	     0x02	/* initiate the freeze */
-+#define FREEZE_LINK_DOWN 0x04	/* link is down */
-+
++#define HFI1_CAP_WRITABLE_MASK   (HFI1_CAP_ENABLE_SMA |			\
++				 HFI1_CAP_SDMA_AHG |			\
++				 HFI1_CAP_HDRSUPP |			\
++				 HFI1_CAP_MULTI_PKT_EGR |		\
++				 HFI1_CAP_NODROP_RHQ_FULL |		\
++				 HFI1_CAP_NODROP_EGR_FULL |		\
++				 HFI1_CAP_ALLOW_PERM_JKEY |		\
++				 HFI1_CAP_STATIC_RATE_CTRL |		\
++				 HFI1_CAP_PRINT_UNIMPL)
 +/*
-+ * Chip implementation codes.
++ * A set of capability bits that are "global" and are not allowed to be
++ * set in the user bitmask.
 + */
-+#define ICODE_RTL_SILICON		0x00
-+#define ICODE_RTL_VCS_SIMULATION	0x01
-+#define ICODE_FPGA_EMULATION	0x02
-+#define ICODE_FUNCTIONAL_SIMULATOR	0x03
-+
-+/* 8051 general register Field IDs */
-+#define TX_SETTINGS		     0x06
-+#define VERIFY_CAP_LOCAL_PHY	     0x07
-+#define VERIFY_CAP_LOCAL_FABRIC	     0x08
-+#define VERIFY_CAP_LOCAL_LINK_WIDTH  0x09
-+#define LOCAL_DEVICE_ID		     0x0a
-+#define LOCAL_LNI_INFO		     0x0c
-+#define REMOTE_LNI_INFO              0x0d
-+#define MISC_STATUS		     0x0e
-+#define VERIFY_CAP_REMOTE_PHY	     0x0f
-+#define VERIFY_CAP_REMOTE_FABRIC     0x10
-+#define VERIFY_CAP_REMOTE_LINK_WIDTH 0x11
-+#define LAST_LOCAL_STATE_COMPLETE    0x12
-+#define LAST_REMOTE_STATE_COMPLETE   0x13
-+#define LINK_QUALITY_INFO            0x14
-+#define REMOTE_DEVICE_ID	     0x15
-+
-+/* Lane ID for general configuration registers */
-+#define GENERAL_CONFIG 4
-+
-+/* LOAD_DATA 8051 command shifts and fields */
-+#define LOAD_DATA_FIELD_ID_SHIFT 40
-+#define LOAD_DATA_FIELD_ID_MASK 0xfull
-+#define LOAD_DATA_LANE_ID_SHIFT 32
-+#define LOAD_DATA_LANE_ID_MASK 0xfull
-+#define LOAD_DATA_DATA_SHIFT   0x0
-+#define LOAD_DATA_DATA_MASK   0xffffffffull
-+
-+/* READ_DATA 8051 command shifts and fields */
-+#define READ_DATA_FIELD_ID_SHIFT 40
-+#define READ_DATA_FIELD_ID_MASK 0xfull
-+#define READ_DATA_LANE_ID_SHIFT 32
-+#define READ_DATA_LANE_ID_MASK 0xfull
-+#define READ_DATA_DATA_SHIFT   0x0
-+#define READ_DATA_DATA_MASK   0xffffffffull
-+
-+/* TX settings fields */
-+#define ENABLE_LANE_TX_SHIFT		0
-+#define ENABLE_LANE_TX_MASK		0xff
-+#define TX_POLARITY_INVERSION_SHIFT	8
-+#define TX_POLARITY_INVERSION_MASK	0xff
-+#define RX_POLARITY_INVERSION_SHIFT	16
-+#define RX_POLARITY_INVERSION_MASK	0xff
-+#define MAX_RATE_SHIFT			24
-+#define MAX_RATE_MASK			0xff
-+
-+/* verify capability PHY fields */
-+#define CONTINIOUS_REMOTE_UPDATE_SUPPORT_SHIFT	0x4
-+#define CONTINIOUS_REMOTE_UPDATE_SUPPORT_MASK	0x1
-+#define POWER_MANAGEMENT_SHIFT			0x0
-+#define POWER_MANAGEMENT_MASK			0xf
-+
-+/* 8051 lane register Field IDs */
-+#define SPICO_FW_VERSION 0x7	/* SPICO firmware version */
-+
-+/* SPICO firmware version fields */
-+#define SPICO_ROM_VERSION_SHIFT 0
-+#define SPICO_ROM_VERSION_MASK 0xffff
-+#define SPICO_ROM_PROD_ID_SHIFT 16
-+#define SPICO_ROM_PROD_ID_MASK 0xffff
-+
-+/* verify capability fabric fields */
-+#define VAU_SHIFT	0
-+#define VAU_MASK	0x0007
-+#define Z_SHIFT		3
-+#define Z_MASK		0x0001
-+#define VCU_SHIFT	4
-+#define VCU_MASK	0x0007
-+#define VL15BUF_SHIFT	8
-+#define VL15BUF_MASK	0x0fff
-+#define CRC_SIZES_SHIFT 20
-+#define CRC_SIZES_MASK	0x7
-+
-+/* verify capability local link width fields */
-+#define LINK_WIDTH_SHIFT 0		/* also for remote link width */
-+#define LINK_WIDTH_MASK 0xffff		/* also for remote link width */
-+#define LOCAL_FLAG_BITS_SHIFT 16
-+#define LOCAL_FLAG_BITS_MASK 0xff
-+#define MISC_CONFIG_BITS_SHIFT 24
-+#define MISC_CONFIG_BITS_MASK 0xff
-+
-+/* verify capability remote link width fields */
-+#define REMOTE_TX_RATE_SHIFT 16
-+#define REMOTE_TX_RATE_MASK 0xff
-+
-+/* LOCAL_DEVICE_ID fields */
-+#define LOCAL_DEVICE_REV_SHIFT 0
-+#define LOCAL_DEVICE_REV_MASK 0xff
-+#define LOCAL_DEVICE_ID_SHIFT 8
-+#define LOCAL_DEVICE_ID_MASK 0xffff
-+
-+/* REMOTE_DEVICE_ID fields */
-+#define REMOTE_DEVICE_REV_SHIFT 0
-+#define REMOTE_DEVICE_REV_MASK 0xff
-+#define REMOTE_DEVICE_ID_SHIFT 8
-+#define REMOTE_DEVICE_ID_MASK 0xffff
-+
-+/* local LNI link width fields */
-+#define ENABLE_LANE_RX_SHIFT 16
-+#define ENABLE_LANE_RX_MASK  0xff
-+
-+/* mask, shift for reading 'mgmt_enabled' value from REMOTE_LNI_INFO field */
-+#define MGMT_ALLOWED_SHIFT 23
-+#define MGMT_ALLOWED_MASK 0x1
-+
-+/* mask, shift for 'link_quality' within LINK_QUALITY_INFO field */
-+#define LINK_QUALITY_SHIFT 24
-+#define LINK_QUALITY_MASK  0x7
-+
++#define HFI1_CAP_RESERVED_MASK   ((HFI1_CAP_SDMA |			\
++				  HFI1_CAP_ENABLE_SMA |			\
++				  HFI1_CAP_USE_SDMA_HEAD |		\
++				  HFI1_CAP_EXTENDED_PSN |		\
++				  HFI1_CAP_PRINT_UNIMPL |		\
++				  HFI1_CAP_QSFP_ENABLED |		\
++				  HFI1_CAP_NO_INTEGRITY |		\
++				  HFI1_CAP_PKEY_CHECK) <<		\
++				 HFI1_CAP_USER_SHIFT)
 +/*
-+ * mask, shift for reading 'planned_down_remote_reason_code'
-+ * from LINK_QUALITY_INFO field
++ * Set of capabilities that need to be enabled for kernel context in
++ * order to be allowed for user contexts, as well.
 + */
-+#define DOWN_REMOTE_REASON_SHIFT 16
-+#define DOWN_REMOTE_REASON_MASK  0xff
-+
-+/* verify capability PHY power management bits */
-+#define PWRM_BER_CONTROL	0x1
-+#define PWRM_BANDWIDTH_CONTROL	0x2
-+
-+/* verify capability fabric CRC size bits */
-+enum {
-+	CAP_CRC_14B = (1 << 0), /* 14b CRC */
-+	CAP_CRC_48B = (1 << 1), /* 48b CRC */
-+	CAP_CRC_12B_16B_PER_LANE = (1 << 2) /* 12b-16b per lane CRC */
-+};
-+
-+#define SUPPORTED_CRCS (CAP_CRC_14B | CAP_CRC_48B | \
-+			    CAP_CRC_12B_16B_PER_LANE)
-+
-+/* misc status version fields */
-+#define STS_FM_VERSION_A_SHIFT 16
-+#define STS_FM_VERSION_A_MASK  0xff
-+#define STS_FM_VERSION_B_SHIFT 24
-+#define STS_FM_VERSION_B_MASK  0xff
-+
-+/* LCB_CFG_CRC_MODE TX_VAL and RX_VAL CRC mode values */
-+#define LCB_CRC_16B			0x0	/* 16b CRC */
-+#define LCB_CRC_14B			0x1	/* 14b CRC */
-+#define LCB_CRC_48B			0x2	/* 48b CRC */
-+#define LCB_CRC_12B_16B_PER_LANE	0x3	/* 12b-16b per lane CRC */
-+
-+/* the following enum is (almost) a copy/paste of the definition
-+ * in the OPA spec, section 20.2.2.6.8 (PortInfo) */
-+enum {
-+	PORT_LTP_CRC_MODE_NONE = 0,
-+	PORT_LTP_CRC_MODE_14 = 1, /* 14-bit LTP CRC mode (optional) */
-+	PORT_LTP_CRC_MODE_16 = 2, /* 16-bit LTP CRC mode */
-+	PORT_LTP_CRC_MODE_48 = 4,
-+		/* 48-bit overlapping LTP CRC mode (optional) */
-+	PORT_LTP_CRC_MODE_PER_LANE = 8
-+		/* 12 to 16 bit per lane LTP CRC mode (optional) */
-+};
-+
-+/* timeouts */
-+#define LINK_RESTART_DELAY 1000		/* link restart delay, in ms */
-+#define TIMEOUT_8051_START 5000         /* 8051 start timeout, in ms */
-+#define DC8051_COMMAND_TIMEOUT 5000	/* DC8051 command timeout, in ms */
-+#define FREEZE_STATUS_TIMEOUT 20	/* wait for freeze indicators, in ms */
-+#define VL_STATUS_CLEAR_TIMEOUT 5000	/* per-VL status clear, in ms */
-+#define CCE_STATUS_TIMEOUT 10		/* time to clear CCE Status, in ms */
-+
-+/* cclock tick time, in picoseconds per tick: 1/speed * 10^12  */
-+#define ASIC_CCLOCK_PS  1242	/* 805 MHz */
-+#define FPGA_CCLOCK_PS 30300	/*  33 MHz */
-+
++#define HFI1_CAP_MUST_HAVE_KERN (HFI1_CAP_STATIC_RATE_CTRL)
++/* Default enabled capabilities (both kernel and user) */
++#define HFI1_CAP_MASK_DEFAULT    (HFI1_CAP_HDRSUPP |			\
++				 HFI1_CAP_NODROP_RHQ_FULL |		\
++				 HFI1_CAP_NODROP_EGR_FULL |		\
++				 HFI1_CAP_SDMA |			\
++				 HFI1_CAP_ENABLE_SMA |			\
++				 HFI1_CAP_PRINT_UNIMPL |		\
++				 HFI1_CAP_STATIC_RATE_CTRL |		\
++				 HFI1_CAP_QSFP_ENABLED |		\
++				 HFI1_CAP_PKEY_CHECK |			\
++				 HFI1_CAP_MULTI_PKT_EGR |		\
++				 HFI1_CAP_EXTENDED_PSN |		\
++				 ((HFI1_CAP_HDRSUPP |			\
++				   HFI1_CAP_MULTI_PKT_EGR |		\
++				   HFI1_CAP_STATIC_RATE_CTRL |		\
++				   HFI1_CAP_PKEY_CHECK |		\
++				   HFI1_CAP_EARLY_CREDIT_RETURN) <<	\
++				  HFI1_CAP_USER_SHIFT))
 +/*
-+ * Mask of enabled MISC errors.  Do not enable the two RSA engine errors -
-+ * see firmware.c:run_rsa() for details.
++ * A bitmask of kernel/global capabilities that should be communicated
++ * to user level processes.
 + */
-+#define DRIVER_MISC_MASK \
-+	(~(MISC_ERR_STATUS_MISC_FW_AUTH_FAILED_ERR_SMASK \
-+		| MISC_ERR_STATUS_MISC_KEY_MISMATCH_ERR_SMASK))
++#define HFI1_CAP_K2U (HFI1_CAP_SDMA |			\
++		     HFI1_CAP_EXTENDED_PSN |		\
++		     HFI1_CAP_PKEY_CHECK |		\
++		     HFI1_CAP_NO_INTEGRITY)
 +
-+/* valid values for the loopback module parameter */
-+#define LOOPBACK_NONE	0	/* no loopback - default */
-+#define LOOPBACK_SERDES 1
-+#define LOOPBACK_LCB	2
-+#define LOOPBACK_CABLE	3	/* external cable */
++#define HFI1_USER_SWVERSION ((HFI1_USER_SWMAJOR << 16) | HFI1_USER_SWMINOR)
 +
-+/* read and write hardware registers */
-+u64 read_csr(const struct hfi1_devdata *dd, u32 offset);
-+void write_csr(const struct hfi1_devdata *dd, u32 offset, u64 value);
++#ifndef HFI1_KERN_TYPE
++#define HFI1_KERN_TYPE 0
++#endif
 +
 +/*
-+ * The *_kctxt_* flavor of the CSR read/write functions are for
-+ * per-context or per-SDMA CSRs that are not mappable to user-space.
-+ * Their spacing is not a PAGE_SIZE multiple.
-+ */
-+static inline u64 read_kctxt_csr(const struct hfi1_devdata *dd, int ctxt,
-+				 u32 offset0)
-+{
-+	/* kernel per-context CSRs are separated by 0x100 */
-+	return read_csr(dd, offset0 + (0x100 * ctxt));
-+}
-+
-+static inline void write_kctxt_csr(struct hfi1_devdata *dd, int ctxt,
-+				   u32 offset0, u64 value)
-+{
-+	/* kernel per-context CSRs are separated by 0x100 */
-+	write_csr(dd, offset0 + (0x100 * ctxt), value);
-+}
-+
-+int read_lcb_csr(struct hfi1_devdata *dd, u32 offset, u64 *data);
-+int write_lcb_csr(struct hfi1_devdata *dd, u32 offset, u64 data);
-+
-+void __iomem *get_csr_addr(
-+	struct hfi1_devdata *dd,
-+	u32 offset);
-+
-+static inline void __iomem *get_kctxt_csr_addr(
-+	struct hfi1_devdata *dd,
-+	int ctxt,
-+	u32 offset0)
-+{
-+	return get_csr_addr(dd, offset0 + (0x100 * ctxt));
-+}
-+
-+/*
-+ * The *_uctxt_* flavor of the CSR read/write functions are for
-+ * per-context CSRs that are mappable to user space. All these CSRs
-+ * are spaced by a PAGE_SIZE multiple in order to be mappable to
-+ * different processes without exposing other contexts' CSRs
-+ */
-+static inline u64 read_uctxt_csr(const struct hfi1_devdata *dd, int ctxt,
-+				 u32 offset0)
-+{
-+	/* user per-context CSRs are separated by 0x1000 */
-+	return read_csr(dd, offset0 + (0x1000 * ctxt));
-+}
-+
-+static inline void write_uctxt_csr(struct hfi1_devdata *dd, int ctxt,
-+				   u32 offset0, u64 value)
-+{
-+	/* user per-context CSRs are separated by 0x1000 */
-+	write_csr(dd, offset0 + (0x1000 * ctxt), value);
-+}
-+
-+u64 create_pbc(struct hfi1_pportdata *ppd, u64, int, u32, u32);
-+
-+/* firmware.c */
-+#define NUM_PCIE_SERDES 16	/* number of PCIe serdes on the SBus */
-+extern const u8 pcie_serdes_broadcast[];
-+extern const u8 pcie_pcs_addrs[2][NUM_PCIE_SERDES];
-+/* SBus commands */
-+#define RESET_SBUS_RECEIVER 0x20
-+#define WRITE_SBUS_RECEIVER 0x21
-+void sbus_request(struct hfi1_devdata *dd,
-+		  u8 receiver_addr, u8 data_addr, u8 command, u32 data_in);
-+int sbus_request_slow(struct hfi1_devdata *dd,
-+		      u8 receiver_addr, u8 data_addr, u8 command, u32 data_in);
-+void set_sbus_fast_mode(struct hfi1_devdata *dd);
-+void clear_sbus_fast_mode(struct hfi1_devdata *dd);
-+int hfi1_firmware_init(struct hfi1_devdata *dd);
-+int load_pcie_firmware(struct hfi1_devdata *dd);
-+int load_firmware(struct hfi1_devdata *dd);
-+void dispose_firmware(void);
-+int acquire_hw_mutex(struct hfi1_devdata *dd);
-+void release_hw_mutex(struct hfi1_devdata *dd);
-+void fabric_serdes_reset(struct hfi1_devdata *dd);
-+
-+/* chip.c */
-+void read_misc_status(struct hfi1_devdata *dd, u8 *ver_a, u8 *ver_b);
-+void read_guid(struct hfi1_devdata *dd);
-+int wait_fm_ready(struct hfi1_devdata *dd, u32 mstimeout);
-+void set_link_down_reason(struct hfi1_pportdata *ppd, u8 lcl_reason,
-+			  u8 neigh_reason, u8 rem_reason);
-+int set_link_state(struct hfi1_pportdata *, u32 state);
-+int port_ltp_to_cap(int port_ltp);
-+void handle_verify_cap(struct work_struct *work);
-+void handle_freeze(struct work_struct *work);
-+void handle_link_up(struct work_struct *work);
-+void handle_link_down(struct work_struct *work);
-+void handle_link_downgrade(struct work_struct *work);
-+void handle_sma_message(struct work_struct *work);
-+void start_freeze_handling(struct hfi1_pportdata *ppd, int flags);
-+int send_idle_sma(struct hfi1_devdata *dd, u64 message);
-+int start_link(struct hfi1_pportdata *ppd);
-+void init_qsfp(struct hfi1_pportdata *ppd);
-+int bringup_serdes(struct hfi1_pportdata *ppd);
-+void set_intr_state(struct hfi1_devdata *dd, u32 enable);
-+void apply_link_downgrade_policy(struct hfi1_pportdata *ppd,
-+				 int refresh_widths);
-+void update_usrhead(struct hfi1_ctxtdata *, u32, u32, u32, u32, u32);
-+int stop_drain_data_vls(struct hfi1_devdata *dd);
-+int open_fill_data_vls(struct hfi1_devdata *dd);
-+u32 ns_to_cclock(struct hfi1_devdata *dd, u32 ns);
-+u32 cclock_to_ns(struct hfi1_devdata *dd, u32 cclock);
-+void get_linkup_link_widths(struct hfi1_pportdata *ppd);
-+void read_ltp_rtt(struct hfi1_devdata *dd);
-+void clear_linkup_counters(struct hfi1_devdata *dd);
-+u32 hdrqempty(struct hfi1_ctxtdata *rcd);
-+int is_a0(struct hfi1_devdata *dd);
-+int is_ax(struct hfi1_devdata *dd);
-+int is_bx(struct hfi1_devdata *dd);
-+
-+int acquire_lcb_access(struct hfi1_devdata *dd, int sleep_ok);
-+int release_lcb_access(struct hfi1_devdata *dd, int sleep_ok);
-+#define LCB_START DC_LCB_CSRS
-+#define LCB_END   DC_8051_CSRS /* next block is 8051 */
-+static inline int is_lcb_offset(u32 offset)
-+{
-+	return (offset >= LCB_START && offset < LCB_END);
-+}
-+
-+extern uint num_vls;
-+
-+extern uint disable_integrity;
-+u64 read_dev_cntr(struct hfi1_devdata *dd, int index, int vl);
-+u64 write_dev_cntr(struct hfi1_devdata *dd, int index, int vl, u64 data);
-+u64 read_port_cntr(struct hfi1_pportdata *ppd, int index, int vl);
-+u64 write_port_cntr(struct hfi1_pportdata *ppd, int index, int vl, u64 data);
-+
-+/* Per VL indexes */
-+enum {
-+	C_VL_0 = 0,
-+	C_VL_1,
-+	C_VL_2,
-+	C_VL_3,
-+	C_VL_4,
-+	C_VL_5,
-+	C_VL_6,
-+	C_VL_7,
-+	C_VL_15,
-+	C_VL_COUNT
-+};
-+
-+static inline int vl_from_idx(int idx)
-+{
-+	return (idx == C_VL_15 ? 15 : idx);
-+}
-+
-+static inline int idx_from_vl(int vl)
-+{
-+	return (vl == 15 ? C_VL_15 : vl);
-+}
-+
-+/* Per device counter indexes */
-+enum {
-+	C_RCV_OVF = 0,
-+	C_RX_TID_FULL,
-+	C_RX_TID_INVALID,
-+	C_RX_TID_FLGMS,
-+	C_RX_CTX_RHQS,
-+	C_RX_CTX_EGRS,
-+	C_RCV_TID_FLSMS,
-+	C_CCE_PCI_CR_ST,
-+	C_CCE_PCI_TR_ST,
-+	C_CCE_PIO_WR_ST,
-+	C_CCE_ERR_INT,
-+	C_CCE_SDMA_INT,
-+	C_CCE_MISC_INT,
-+	C_CCE_RCV_AV_INT,
-+	C_CCE_RCV_URG_INT,
-+	C_CCE_SEND_CR_INT,
-+	C_DC_UNC_ERR,
-+	C_DC_RCV_ERR,
-+	C_DC_FM_CFG_ERR,
-+	C_DC_RMT_PHY_ERR,
-+	C_DC_DROPPED_PKT,
-+	C_DC_MC_XMIT_PKTS,
-+	C_DC_MC_RCV_PKTS,
-+	C_DC_XMIT_CERR,
-+	C_DC_RCV_CERR,
-+	C_DC_RCV_FCC,
-+	C_DC_XMIT_FCC,
-+	C_DC_XMIT_FLITS,
-+	C_DC_RCV_FLITS,
-+	C_DC_XMIT_PKTS,
-+	C_DC_RCV_PKTS,
-+	C_DC_RX_FLIT_VL,
-+	C_DC_RX_PKT_VL,
-+	C_DC_RCV_FCN,
-+	C_DC_RCV_FCN_VL,
-+	C_DC_RCV_BCN,
-+	C_DC_RCV_BCN_VL,
-+	C_DC_RCV_BBL,
-+	C_DC_RCV_BBL_VL,
-+	C_DC_MARK_FECN,
-+	C_DC_MARK_FECN_VL,
-+	C_DC_TOTAL_CRC,
-+	C_DC_CRC_LN0,
-+	C_DC_CRC_LN1,
-+	C_DC_CRC_LN2,
-+	C_DC_CRC_LN3,
-+	C_DC_CRC_MULT_LN,
-+	C_DC_TX_REPLAY,
-+	C_DC_RX_REPLAY,
-+	C_DC_SEQ_CRC_CNT,
-+	C_DC_ESC0_ONLY_CNT,
-+	C_DC_ESC0_PLUS1_CNT,
-+	C_DC_ESC0_PLUS2_CNT,
-+	C_DC_REINIT_FROM_PEER_CNT,
-+	C_DC_SBE_CNT,
-+	C_DC_MISC_FLG_CNT,
-+	C_DC_PRF_GOOD_LTP_CNT,
-+	C_DC_PRF_ACCEPTED_LTP_CNT,
-+	C_DC_PRF_RX_FLIT_CNT,
-+	C_DC_PRF_TX_FLIT_CNT,
-+	C_DC_PRF_CLK_CNTR,
-+	C_DC_PG_DBG_FLIT_CRDTS_CNT,
-+	C_DC_PG_STS_PAUSE_COMPLETE_CNT,
-+	C_DC_PG_STS_TX_SBE_CNT,
-+	C_DC_PG_STS_TX_MBE_CNT,
-+	C_SW_CPU_INTR,
-+	DEV_CNTR_LAST  /* Must be kept last */
-+};
-+
-+/* Per port counter indexes */
-+enum {
-+	C_TX_UNSUP_VL = 0,
-+	C_TX_INVAL_LEN,
-+	C_TX_MM_LEN_ERR,
-+	C_TX_UNDERRUN,
-+	C_TX_FLOW_STALL,
-+	C_TX_DROPPED,
-+	C_TX_HDR_ERR,
-+	C_TX_PKT,
-+	C_TX_WORDS,
-+	C_TX_WAIT,
-+	C_TX_FLIT_VL,
-+	C_TX_PKT_VL,
-+	C_TX_WAIT_VL,
-+	C_RX_PKT,
-+	C_RX_WORDS,
-+	C_SW_LINK_DOWN,
-+	C_SW_LINK_UP,
-+	C_SW_XMIT_DSCD,
-+	C_SW_XMIT_DSCD_VL,
-+	C_SW_XMIT_CSTR_ERR,
-+	C_SW_RCV_CSTR_ERR,
-+	C_SW_IBP_LOOP_PKTS,
-+	C_SW_IBP_RC_RESENDS,
-+	C_SW_IBP_RNR_NAKS,
-+	C_SW_IBP_OTHER_NAKS,
-+	C_SW_IBP_RC_TIMEOUTS,
-+	C_SW_IBP_PKT_DROPS,
-+	C_SW_IBP_DMA_WAIT,
-+	C_SW_IBP_RC_SEQNAK,
-+	C_SW_IBP_RC_DUPREQ,
-+	C_SW_IBP_RDMA_SEQ,
-+	C_SW_IBP_UNALIGNED,
-+	C_SW_IBP_SEQ_NAK,
-+	C_SW_CPU_RC_ACKS,
-+	C_SW_CPU_RC_QACKS,
-+	C_SW_CPU_RC_DELAYED_COMP,
-+	C_RCV_HDR_OVF_0,
-+	C_RCV_HDR_OVF_1,
-+	C_RCV_HDR_OVF_2,
-+	C_RCV_HDR_OVF_3,
-+	C_RCV_HDR_OVF_4,
-+	C_RCV_HDR_OVF_5,
-+	C_RCV_HDR_OVF_6,
-+	C_RCV_HDR_OVF_7,
-+	C_RCV_HDR_OVF_8,
-+	C_RCV_HDR_OVF_9,
-+	C_RCV_HDR_OVF_10,
-+	C_RCV_HDR_OVF_11,
-+	C_RCV_HDR_OVF_12,
-+	C_RCV_HDR_OVF_13,
-+	C_RCV_HDR_OVF_14,
-+	C_RCV_HDR_OVF_15,
-+	C_RCV_HDR_OVF_16,
-+	C_RCV_HDR_OVF_17,
-+	C_RCV_HDR_OVF_18,
-+	C_RCV_HDR_OVF_19,
-+	C_RCV_HDR_OVF_20,
-+	C_RCV_HDR_OVF_21,
-+	C_RCV_HDR_OVF_22,
-+	C_RCV_HDR_OVF_23,
-+	C_RCV_HDR_OVF_24,
-+	C_RCV_HDR_OVF_25,
-+	C_RCV_HDR_OVF_26,
-+	C_RCV_HDR_OVF_27,
-+	C_RCV_HDR_OVF_28,
-+	C_RCV_HDR_OVF_29,
-+	C_RCV_HDR_OVF_30,
-+	C_RCV_HDR_OVF_31,
-+	C_RCV_HDR_OVF_32,
-+	C_RCV_HDR_OVF_33,
-+	C_RCV_HDR_OVF_34,
-+	C_RCV_HDR_OVF_35,
-+	C_RCV_HDR_OVF_36,
-+	C_RCV_HDR_OVF_37,
-+	C_RCV_HDR_OVF_38,
-+	C_RCV_HDR_OVF_39,
-+	C_RCV_HDR_OVF_40,
-+	C_RCV_HDR_OVF_41,
-+	C_RCV_HDR_OVF_42,
-+	C_RCV_HDR_OVF_43,
-+	C_RCV_HDR_OVF_44,
-+	C_RCV_HDR_OVF_45,
-+	C_RCV_HDR_OVF_46,
-+	C_RCV_HDR_OVF_47,
-+	C_RCV_HDR_OVF_48,
-+	C_RCV_HDR_OVF_49,
-+	C_RCV_HDR_OVF_50,
-+	C_RCV_HDR_OVF_51,
-+	C_RCV_HDR_OVF_52,
-+	C_RCV_HDR_OVF_53,
-+	C_RCV_HDR_OVF_54,
-+	C_RCV_HDR_OVF_55,
-+	C_RCV_HDR_OVF_56,
-+	C_RCV_HDR_OVF_57,
-+	C_RCV_HDR_OVF_58,
-+	C_RCV_HDR_OVF_59,
-+	C_RCV_HDR_OVF_60,
-+	C_RCV_HDR_OVF_61,
-+	C_RCV_HDR_OVF_62,
-+	C_RCV_HDR_OVF_63,
-+	C_RCV_HDR_OVF_64,
-+	C_RCV_HDR_OVF_65,
-+	C_RCV_HDR_OVF_66,
-+	C_RCV_HDR_OVF_67,
-+	C_RCV_HDR_OVF_68,
-+	C_RCV_HDR_OVF_69,
-+	C_RCV_HDR_OVF_70,
-+	C_RCV_HDR_OVF_71,
-+	C_RCV_HDR_OVF_72,
-+	C_RCV_HDR_OVF_73,
-+	C_RCV_HDR_OVF_74,
-+	C_RCV_HDR_OVF_75,
-+	C_RCV_HDR_OVF_76,
-+	C_RCV_HDR_OVF_77,
-+	C_RCV_HDR_OVF_78,
-+	C_RCV_HDR_OVF_79,
-+	C_RCV_HDR_OVF_80,
-+	C_RCV_HDR_OVF_81,
-+	C_RCV_HDR_OVF_82,
-+	C_RCV_HDR_OVF_83,
-+	C_RCV_HDR_OVF_84,
-+	C_RCV_HDR_OVF_85,
-+	C_RCV_HDR_OVF_86,
-+	C_RCV_HDR_OVF_87,
-+	C_RCV_HDR_OVF_88,
-+	C_RCV_HDR_OVF_89,
-+	C_RCV_HDR_OVF_90,
-+	C_RCV_HDR_OVF_91,
-+	C_RCV_HDR_OVF_92,
-+	C_RCV_HDR_OVF_93,
-+	C_RCV_HDR_OVF_94,
-+	C_RCV_HDR_OVF_95,
-+	C_RCV_HDR_OVF_96,
-+	C_RCV_HDR_OVF_97,
-+	C_RCV_HDR_OVF_98,
-+	C_RCV_HDR_OVF_99,
-+	C_RCV_HDR_OVF_100,
-+	C_RCV_HDR_OVF_101,
-+	C_RCV_HDR_OVF_102,
-+	C_RCV_HDR_OVF_103,
-+	C_RCV_HDR_OVF_104,
-+	C_RCV_HDR_OVF_105,
-+	C_RCV_HDR_OVF_106,
-+	C_RCV_HDR_OVF_107,
-+	C_RCV_HDR_OVF_108,
-+	C_RCV_HDR_OVF_109,
-+	C_RCV_HDR_OVF_110,
-+	C_RCV_HDR_OVF_111,
-+	C_RCV_HDR_OVF_112,
-+	C_RCV_HDR_OVF_113,
-+	C_RCV_HDR_OVF_114,
-+	C_RCV_HDR_OVF_115,
-+	C_RCV_HDR_OVF_116,
-+	C_RCV_HDR_OVF_117,
-+	C_RCV_HDR_OVF_118,
-+	C_RCV_HDR_OVF_119,
-+	C_RCV_HDR_OVF_120,
-+	C_RCV_HDR_OVF_121,
-+	C_RCV_HDR_OVF_122,
-+	C_RCV_HDR_OVF_123,
-+	C_RCV_HDR_OVF_124,
-+	C_RCV_HDR_OVF_125,
-+	C_RCV_HDR_OVF_126,
-+	C_RCV_HDR_OVF_127,
-+	C_RCV_HDR_OVF_128,
-+	C_RCV_HDR_OVF_129,
-+	C_RCV_HDR_OVF_130,
-+	C_RCV_HDR_OVF_131,
-+	C_RCV_HDR_OVF_132,
-+	C_RCV_HDR_OVF_133,
-+	C_RCV_HDR_OVF_134,
-+	C_RCV_HDR_OVF_135,
-+	C_RCV_HDR_OVF_136,
-+	C_RCV_HDR_OVF_137,
-+	C_RCV_HDR_OVF_138,
-+	C_RCV_HDR_OVF_139,
-+	C_RCV_HDR_OVF_140,
-+	C_RCV_HDR_OVF_141,
-+	C_RCV_HDR_OVF_142,
-+	C_RCV_HDR_OVF_143,
-+	C_RCV_HDR_OVF_144,
-+	C_RCV_HDR_OVF_145,
-+	C_RCV_HDR_OVF_146,
-+	C_RCV_HDR_OVF_147,
-+	C_RCV_HDR_OVF_148,
-+	C_RCV_HDR_OVF_149,
-+	C_RCV_HDR_OVF_150,
-+	C_RCV_HDR_OVF_151,
-+	C_RCV_HDR_OVF_152,
-+	C_RCV_HDR_OVF_153,
-+	C_RCV_HDR_OVF_154,
-+	C_RCV_HDR_OVF_155,
-+	C_RCV_HDR_OVF_156,
-+	C_RCV_HDR_OVF_157,
-+	C_RCV_HDR_OVF_158,
-+	C_RCV_HDR_OVF_159,
-+	PORT_CNTR_LAST /* Must be kept last */
-+};
-+
-+u64 get_all_cpu_total(u64 __percpu *cntr);
-+void hfi1_start_cleanup(struct hfi1_devdata *dd);
-+void hfi1_clear_tids(struct hfi1_ctxtdata *rcd);
-+struct hfi1_message_header *hfi1_get_msgheader(
-+				struct hfi1_devdata *dd, __le32 *rhf_addr);
-+int hfi1_get_base_kinfo(struct hfi1_ctxtdata *rcd,
-+			struct hfi1_ctxt_info *kinfo);
-+u64 hfi1_gpio_mod(struct hfi1_devdata *dd, u32 target, u32 data, u32 dir,
-+		  u32 mask);
-+int hfi1_init_ctxt(struct send_context *sc);
-+void hfi1_put_tid(struct hfi1_devdata *dd, u32 index,
-+		  u32 type, unsigned long pa, u16 order);
-+void hfi1_quiet_serdes(struct hfi1_pportdata *ppd);
-+void hfi1_rcvctrl(struct hfi1_devdata *dd, unsigned int op, int ctxt);
-+u32 hfi1_read_cntrs(struct hfi1_devdata *dd, loff_t pos, char **namep,
-+		    u64 **cntrp);
-+u32 hfi1_read_portcntrs(struct hfi1_devdata *dd, loff_t pos, u32 port,
-+			char **namep, u64 **cntrp);
-+u8 hfi1_ibphys_portstate(struct hfi1_pportdata *ppd);
-+int hfi1_get_ib_cfg(struct hfi1_pportdata *ppd, int which);
-+int hfi1_set_ib_cfg(struct hfi1_pportdata *ppd, int which, u32 val);
-+int hfi1_set_ctxt_jkey(struct hfi1_devdata *dd, unsigned ctxt, u16 jkey);
-+int hfi1_clear_ctxt_jkey(struct hfi1_devdata *dd, unsigned ctxt);
-+int hfi1_set_ctxt_pkey(struct hfi1_devdata *dd, unsigned ctxt, u16 pkey);
-+int hfi1_clear_ctxt_pkey(struct hfi1_devdata *dd, unsigned ctxt);
-+void hfi1_read_link_quality(struct hfi1_devdata *dd, u8 *link_quality);
-+
-+/*
-+ * Interrupt source table.
++ * Similarly, this is the kernel version going back to the user.  It's
++ * slightly different, in that we want to tell if the driver was built as
++ * part of a Intel release, or from the driver from openfabrics.org,
++ * kernel.org, or a standard distribution, for support reasons.
++ * The high bit is 0 for non-Intel and 1 for Intel-built/supplied.
 + *
-+ * Each entry is an interrupt source "type".  It is ordered by increasing
-+ * number.
++ * It's returned by the driver to the user code during initialization in the
++ * spi_sw_version field of hfi1_base_info, so the user code can in turn
++ * check for compatibility with the kernel.
++*/
++#define HFI1_KERN_SWVERSION ((HFI1_KERN_TYPE << 31) | HFI1_USER_SWVERSION)
++
++/*
++ * Define the driver version number.  This is something that refers only
++ * to the driver itself, not the software interfaces it supports.
 + */
-+struct is_table {
-+	int start;	 /* interrupt source type start */
-+	int end;	 /* interrupt source type end */
-+	/* routine that returns the name of the interrupt source */
-+	char *(*is_name)(char *name, size_t size, unsigned int source);
-+	/* routine to call when receiving an interrupt */
-+	void (*is_int)(struct hfi1_devdata *dd, unsigned int source);
++#ifndef HFI1_DRIVER_VERSION_BASE
++#define HFI1_DRIVER_VERSION_BASE "0.9-123"
++#endif
++
++/* create the final driver version string */
++#ifdef HFI1_IDSTR
++#define HFI1_DRIVER_VERSION HFI1_DRIVER_VERSION_BASE " " HFI1_IDSTR
++#else
++#define HFI1_DRIVER_VERSION HFI1_DRIVER_VERSION_BASE
++#endif
++
++/*
++ * Diagnostics can send a packet by writing the following
++ * struct to the diag packet special file.
++ *
++ * This allows a custom PBC qword, so that special modes and deliberate
++ * changes to CRCs can be used.
++ */
++#define _DIAG_PKT_VERS 1
++struct diag_pkt {
++	__u16 version;		/* structure version */
++	__u16 unit;		/* which device */
++	__u16 sw_index;		/* send sw index to use */
++	__u16 len;		/* data length, in bytes */
++	__u16 port;		/* port number */
++	__u16 unused;
++	__u32 flags;		/* call flags */
++	__u64 data;		/* user data pointer */
++	__u64 pbc;		/* PBC for the packet */
 +};
 +
-+#endif /* _CHIP_H */
++/* diag_pkt flags */
++#define F_DIAGPKT_WAIT 0x1	/* wait until packet is sent */
 +
++/*
++ * The next set of defines are for packet headers, and chip register
++ * and memory bits that are visible to and/or used by user-mode software.
++ */
++
++/*
++ * Receive Header Flags
++ */
++#define RHF_PKT_LEN_SHIFT	0
++#define RHF_PKT_LEN_MASK	0xfffull
++#define RHF_PKT_LEN_SMASK (RHF_PKT_LEN_MASK << RHF_PKT_LEN_SHIFT)
++
++#define RHF_RCV_TYPE_SHIFT	12
++#define RHF_RCV_TYPE_MASK	0x7ull
++#define RHF_RCV_TYPE_SMASK (RHF_RCV_TYPE_MASK << RHF_RCV_TYPE_SHIFT)
++
++#define RHF_USE_EGR_BFR_SHIFT	15
++#define RHF_USE_EGR_BFR_MASK	0x1ull
++#define RHF_USE_EGR_BFR_SMASK (RHF_USE_EGR_BFR_MASK << RHF_USE_EGR_BFR_SHIFT)
++
++#define RHF_EGR_INDEX_SHIFT	16
++#define RHF_EGR_INDEX_MASK	0x7ffull
++#define RHF_EGR_INDEX_SMASK (RHF_EGR_INDEX_MASK << RHF_EGR_INDEX_SHIFT)
++
++#define RHF_DC_INFO_SHIFT	27
++#define RHF_DC_INFO_MASK	0x1ull
++#define RHF_DC_INFO_SMASK (RHF_DC_INFO_MASK << RHF_DC_INFO_SHIFT)
++
++#define RHF_RCV_SEQ_SHIFT	28
++#define RHF_RCV_SEQ_MASK	0xfull
++#define RHF_RCV_SEQ_SMASK (RHF_RCV_SEQ_MASK << RHF_RCV_SEQ_SHIFT)
++
++#define RHF_EGR_OFFSET_SHIFT	32
++#define RHF_EGR_OFFSET_MASK	0xfffull
++#define RHF_EGR_OFFSET_SMASK (RHF_EGR_OFFSET_MASK << RHF_EGR_OFFSET_SHIFT)
++#define RHF_HDRQ_OFFSET_SHIFT	44
++#define RHF_HDRQ_OFFSET_MASK	0x1ffull
++#define RHF_HDRQ_OFFSET_SMASK (RHF_HDRQ_OFFSET_MASK << RHF_HDRQ_OFFSET_SHIFT)
++#define RHF_K_HDR_LEN_ERR	(0x1ull << 53)
++#define RHF_DC_UNC_ERR		(0x1ull << 54)
++#define RHF_DC_ERR		(0x1ull << 55)
++#define RHF_RCV_TYPE_ERR_SHIFT	56
++#define RHF_RCV_TYPE_ERR_MASK	0x7ul
++#define RHF_RCV_TYPE_ERR_SMASK (RHF_RCV_TYPE_ERR_MASK << RHF_RCV_TYPE_ERR_SHIFT)
++#define RHF_TID_ERR		(0x1ull << 59)
++#define RHF_LEN_ERR		(0x1ull << 60)
++#define RHF_ECC_ERR		(0x1ull << 61)
++#define RHF_VCRC_ERR		(0x1ull << 62)
++#define RHF_ICRC_ERR		(0x1ull << 63)
++
++#define RHF_ERROR_SMASK 0xffe0000000000000ull		/* bits 63:53 */
++
++/* RHF receive types */
++#define RHF_RCV_TYPE_EXPECTED 0
++#define RHF_RCV_TYPE_EAGER    1
++#define RHF_RCV_TYPE_IB       2 /* normal IB, IB Raw, or IPv6 */
++#define RHF_RCV_TYPE_ERROR    3
++#define RHF_RCV_TYPE_BYPASS   4
++#define RHF_RCV_TYPE_INVALID5 5
++#define RHF_RCV_TYPE_INVALID6 6
++#define RHF_RCV_TYPE_INVALID7 7
++
++/* RHF receive type error - expected packet errors */
++#define RHF_RTE_EXPECTED_FLOW_SEQ_ERR	0x2
++#define RHF_RTE_EXPECTED_FLOW_GEN_ERR	0x4
++
++/* RHF receive type error - eager packet errors */
++#define RHF_RTE_EAGER_NO_ERR		0x0
++
++/* RHF receive type error - IB packet errors */
++#define RHF_RTE_IB_NO_ERR		0x0
++
++/* RHF receive type error - error packet errors */
++#define RHF_RTE_ERROR_NO_ERR		0x0
++#define RHF_RTE_ERROR_OP_CODE_ERR	0x1
++#define RHF_RTE_ERROR_KHDR_MIN_LEN_ERR	0x2
++#define RHF_RTE_ERROR_KHDR_HCRC_ERR	0x3
++#define RHF_RTE_ERROR_KHDR_KVER_ERR	0x4
++#define RHF_RTE_ERROR_CONTEXT_ERR	0x5
++#define RHF_RTE_ERROR_KHDR_TID_ERR	0x6
++
++/* RHF receive type error - bypass packet errors */
++#define RHF_RTE_BYPASS_NO_ERR		0x0
++
++/*
++ * This structure contains the first field common to all protocols
++ * that employ this chip.
++ */
++struct hfi1_message_header {
++	__be16 lrh[4];
++};
++
++/* IB - LRH header constants */
++#define HFI1_LRH_GRH 0x0003      /* 1. word of IB LRH - next header: GRH */
++#define HFI1_LRH_BTH 0x0002      /* 1. word of IB LRH - next header: BTH */
++
++/* misc. */
++#define SIZE_OF_CRC 1
++
++#define LIM_MGMT_P_KEY       0x7FFF
++#define FULL_MGMT_P_KEY      0xFFFF
++
++#define DEFAULT_P_KEY LIM_MGMT_P_KEY
++#define HFI1_PERMISSIVE_LID 0xFFFF
++#define HFI1_AETH_CREDIT_SHIFT 24
++#define HFI1_AETH_CREDIT_MASK 0x1F
++#define HFI1_AETH_CREDIT_INVAL 0x1F
++#define HFI1_MSN_MASK 0xFFFFFF
++#define HFI1_QPN_MASK 0xFFFFFF
++#define HFI1_FECN_SHIFT 31
++#define HFI1_FECN_MASK 0x1
++#define HFI1_BECN_SHIFT 30
++#define HFI1_BECN_MASK 0x1
++#define HFI1_MULTICAST_LID_BASE 0xC000
++
++static inline __u64 rhf_to_cpu(const __le32 *rbuf)
++{
++	return __le64_to_cpu(*((__le64 *)rbuf));
++}
++
++static inline u64 rhf_err_flags(u64 rhf)
++{
++	return rhf & RHF_ERROR_SMASK;
++}
++
++static inline u32 rhf_rcv_type(u64 rhf)
++{
++	return (rhf >> RHF_RCV_TYPE_SHIFT) & RHF_RCV_TYPE_MASK;
++}
++
++static inline u32 rhf_rcv_type_err(u64 rhf)
++{
++	return (rhf >> RHF_RCV_TYPE_ERR_SHIFT) & RHF_RCV_TYPE_ERR_MASK;
++}
++
++/* return size is in bytes, not DWORDs */
++static inline u32 rhf_pkt_len(u64 rhf)
++{
++	return ((rhf & RHF_PKT_LEN_SMASK) >> RHF_PKT_LEN_SHIFT) << 2;
++}
++
++static inline u32 rhf_egr_index(u64 rhf)
++{
++	return (rhf >> RHF_EGR_INDEX_SHIFT) & RHF_EGR_INDEX_MASK;
++}
++
++static inline u32 rhf_rcv_seq(u64 rhf)
++{
++	return (rhf >> RHF_RCV_SEQ_SHIFT) & RHF_RCV_SEQ_MASK;
++}
++
++/* returned offset is in DWORDS */
++static inline u32 rhf_hdrq_offset(u64 rhf)
++{
++	return (rhf >> RHF_HDRQ_OFFSET_SHIFT) & RHF_HDRQ_OFFSET_MASK;
++}
++
++static inline u64 rhf_use_egr_bfr(u64 rhf)
++{
++	return rhf & RHF_USE_EGR_BFR_SMASK;
++}
++
++static inline u64 rhf_dc_info(u64 rhf)
++{
++	return rhf & RHF_DC_INFO_SMASK;
++}
++
++static inline u32 rhf_egr_buf_offset(u64 rhf)
++{
++	return (rhf >> RHF_EGR_OFFSET_SHIFT) & RHF_EGR_OFFSET_MASK;
++}
++#endif /* _COMMON_H */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
