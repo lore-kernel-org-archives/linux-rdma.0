@@ -1,317 +1,210 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v4] IB/ipoib: Scatter-Gather support in connected mode
-Date: Mon, 15 Jun 2015 03:10:17 -0700
-Message-ID: <1434363017-22612-1-git-send-email-yuval.shaia@oracle.com>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2 00/49] Add OPA gen1 driver
+Date: Mon, 15 Jun 2015 09:25:58 -0400
+Message-ID: <20150615132434.29741.35258.stgit@phlsvslse11.ph.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, john.sobecki-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, christian-x8YiTEMPTCFhl2p70BpVqQ@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-By default, IPoIB-CM driver uses 64k MTU. Larger MTU gives better
-performance.
-This MTU plus overhead puts the memory allocation for IP based packets at
-32 4k pages (order 5), which have to be contiguous.
-When the system memory under pressure, it was observed that allocating 128k
-contiguous physical memory is difficult and causes serious errors (such as
-system becomes unusable).
+This patch series adds the OPA gen1 driver.
 
-This enhancement resolve the issue by removing the physically contiguous
-memory requirement using Scatter/Gather feature that exists in Linux stack.
+The patches are based on the the following repo/branch:
+	git://github.com/dledford/linux.git: to-be-rebased/for-4.2
 
-With this fix Scatter-Gather will be supported also in connected mode.
+The patches add the files and headers and the last
+patch adds the build hooks.
 
-This change reverts some of the change made in commit e112373fd6aa
-("IPoIB/cm: Reduce connected mode TX object size)".
+Differences from v1:
+- larger files split are split up due to filesize issues
+- 0 day build issues with cpumask usage
+- 0 day RCU sparse issues
+- Adjustments for create_cq() and query_device() to compile
+  with the above branch
 
-The ability to use SG in IPoIB CM is possible because the coupling
-between NETIF_F_SG and NETIF_F_CSUM was removed in commit
-ec5f06156423 ("net: Kill link between CSUM and SG features.")
-
-Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Acked-by: Christian Marie <christian-x8YiTEMPTCFhl2p70BpVqQ@public.gmane.org>
 ---
-v4:
-* Use 12 hex-digits commit identifier
-* Add Acked-by: Christian Marie <christian-x8YiTEMPTCFhl2p70BpVqQ@public.gmane.org>
-* Merge ipoib_cm_dma_unmap_tx and ipoib_dma_unmap_tx
-* Take out common code from ud's post_send and cm's post_send
-v3:
-* Add an empty line to start a new paragraph
-v2:
-* Enhance commit log message
----
- drivers/infiniband/ulp/ipoib/ipoib.h      |    8 +++++-
- drivers/infiniband/ulp/ipoib/ipoib_cm.c   |   33 ++++++++++-------------
- drivers/infiniband/ulp/ipoib/ipoib_ib.c   |   41 +++++++++++++++++-----------
- drivers/infiniband/ulp/ipoib/ipoib_main.c |    2 +-
- 4 files changed, 47 insertions(+), 37 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index bd94b0a..2c0f79f 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -239,7 +239,7 @@ struct ipoib_cm_tx {
- 	struct net_device   *dev;
- 	struct ipoib_neigh  *neigh;
- 	struct ipoib_path   *path;
--	struct ipoib_cm_tx_buf *tx_ring;
-+	struct ipoib_tx_buf *tx_ring;
- 	unsigned	     tx_head;
- 	unsigned	     tx_tail;
- 	unsigned long	     flags;
-@@ -504,6 +504,12 @@ int ipoib_mcast_stop_thread(struct net_device *dev);
- void ipoib_mcast_dev_down(struct net_device *dev);
- void ipoib_mcast_dev_flush(struct net_device *dev);
- 
-+int ipoib_dma_map_tx(struct ib_device *ca, struct ipoib_tx_buf *tx_req);
-+void ipoib_dma_unmap_tx(struct ipoib_dev_priv *priv,
-+			struct ipoib_tx_buf *tx_req);
-+inline void ipoib_build_sge(struct ipoib_dev_priv *priv,
-+			    struct ipoib_tx_buf *tx_req);
-+
- #ifdef CONFIG_INFINIBAND_IPOIB_DEBUG
- struct ipoib_mcast_iter *ipoib_mcast_iter_init(struct net_device *dev);
- int ipoib_mcast_iter_next(struct ipoib_mcast_iter *iter);
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-index cf32a77..ee39be6 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -694,14 +694,12 @@ repost:
- static inline int post_send(struct ipoib_dev_priv *priv,
- 			    struct ipoib_cm_tx *tx,
- 			    unsigned int wr_id,
--			    u64 addr, int len)
-+			    struct ipoib_tx_buf *tx_req)
- {
- 	struct ib_send_wr *bad_wr;
- 
--	priv->tx_sge[0].addr          = addr;
--	priv->tx_sge[0].length        = len;
-+	ipoib_build_sge(priv, tx_req);
- 
--	priv->tx_wr.num_sge	= 1;
- 	priv->tx_wr.wr_id	= wr_id | IPOIB_OP_CM;
- 
- 	return ib_post_send(tx->qp, &priv->tx_wr, &bad_wr);
-@@ -710,8 +708,7 @@ static inline int post_send(struct ipoib_dev_priv *priv,
- void ipoib_cm_send(struct net_device *dev, struct sk_buff *skb, struct ipoib_cm_tx *tx)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
--	struct ipoib_cm_tx_buf *tx_req;
--	u64 addr;
-+	struct ipoib_tx_buf *tx_req;
- 	int rc;
- 
- 	if (unlikely(skb->len > tx->mtu)) {
-@@ -735,24 +732,21 @@ void ipoib_cm_send(struct net_device *dev, struct sk_buff *skb, struct ipoib_cm_
- 	 */
- 	tx_req = &tx->tx_ring[tx->tx_head & (ipoib_sendq_size - 1)];
- 	tx_req->skb = skb;
--	addr = ib_dma_map_single(priv->ca, skb->data, skb->len, DMA_TO_DEVICE);
--	if (unlikely(ib_dma_mapping_error(priv->ca, addr))) {
-+
-+	if (unlikely(ipoib_dma_map_tx(priv->ca, tx_req))) {
- 		++dev->stats.tx_errors;
- 		dev_kfree_skb_any(skb);
- 		return;
- 	}
- 
--	tx_req->mapping = addr;
--
- 	skb_orphan(skb);
- 	skb_dst_drop(skb);
- 
--	rc = post_send(priv, tx, tx->tx_head & (ipoib_sendq_size - 1),
--		       addr, skb->len);
-+	rc = post_send(priv, tx, tx->tx_head & (ipoib_sendq_size - 1), tx_req);
- 	if (unlikely(rc)) {
- 		ipoib_warn(priv, "post_send failed, error %d\n", rc);
- 		++dev->stats.tx_errors;
--		ib_dma_unmap_single(priv->ca, addr, skb->len, DMA_TO_DEVICE);
-+		ipoib_dma_unmap_tx(priv, tx_req);
- 		dev_kfree_skb_any(skb);
- 	} else {
- 		dev->trans_start = jiffies;
-@@ -777,7 +771,7 @@ void ipoib_cm_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 	struct ipoib_cm_tx *tx = wc->qp->qp_context;
- 	unsigned int wr_id = wc->wr_id & ~IPOIB_OP_CM;
--	struct ipoib_cm_tx_buf *tx_req;
-+	struct ipoib_tx_buf *tx_req;
- 	unsigned long flags;
- 
- 	ipoib_dbg_data(priv, "cm send completion: id %d, status: %d\n",
-@@ -791,7 +785,7 @@ void ipoib_cm_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
- 
- 	tx_req = &tx->tx_ring[wr_id];
- 
--	ib_dma_unmap_single(priv->ca, tx_req->mapping, tx_req->skb->len, DMA_TO_DEVICE);
-+	ipoib_dma_unmap_tx(priv, tx_req);
- 
- 	/* FIXME: is this right? Shouldn't we only increment on success? */
- 	++dev->stats.tx_packets;
-@@ -1036,6 +1030,9 @@ static struct ib_qp *ipoib_cm_create_tx_qp(struct net_device *dev, struct ipoib_
- 
- 	struct ib_qp *tx_qp;
- 
-+	if (dev->features & NETIF_F_SG)
-+		attr.cap.max_send_sge = MAX_SKB_FRAGS + 1;
-+
- 	tx_qp = ib_create_qp(priv->pd, &attr);
- 	if (PTR_ERR(tx_qp) == -EINVAL) {
- 		ipoib_warn(priv, "can't use GFP_NOIO for QPs on device %s, using GFP_KERNEL\n",
-@@ -1170,7 +1167,7 @@ err_tx:
- static void ipoib_cm_tx_destroy(struct ipoib_cm_tx *p)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(p->dev);
--	struct ipoib_cm_tx_buf *tx_req;
-+	struct ipoib_tx_buf *tx_req;
- 	unsigned long begin;
- 
- 	ipoib_dbg(priv, "Destroy active connection 0x%x head 0x%x tail 0x%x\n",
-@@ -1197,8 +1194,7 @@ timeout:
- 
- 	while ((int) p->tx_tail - (int) p->tx_head < 0) {
- 		tx_req = &p->tx_ring[p->tx_tail & (ipoib_sendq_size - 1)];
--		ib_dma_unmap_single(priv->ca, tx_req->mapping, tx_req->skb->len,
--				    DMA_TO_DEVICE);
-+		ipoib_dma_unmap_tx(priv, tx_req);
- 		dev_kfree_skb_any(tx_req->skb);
- 		++p->tx_tail;
- 		netif_tx_lock_bh(p->dev);
-@@ -1455,7 +1451,6 @@ static void ipoib_cm_stale_task(struct work_struct *work)
- 	spin_unlock_irq(&priv->lock);
- }
- 
--
- static ssize_t show_mode(struct device *d, struct device_attribute *attr,
- 			 char *buf)
- {
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index 63b92cb..5e6dc43 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -263,8 +263,7 @@ repost:
- 			   "for buf %d\n", wr_id);
- }
- 
--static int ipoib_dma_map_tx(struct ib_device *ca,
--			    struct ipoib_tx_buf *tx_req)
-+int ipoib_dma_map_tx(struct ib_device *ca, struct ipoib_tx_buf *tx_req)
- {
- 	struct sk_buff *skb = tx_req->skb;
- 	u64 *mapping = tx_req->mapping;
-@@ -305,8 +304,8 @@ partial_error:
- 	return -EIO;
- }
- 
--static void ipoib_dma_unmap_tx(struct ib_device *ca,
--			       struct ipoib_tx_buf *tx_req)
-+void ipoib_dma_unmap_tx(struct ipoib_dev_priv *priv,
-+			struct ipoib_tx_buf *tx_req)
- {
- 	struct sk_buff *skb = tx_req->skb;
- 	u64 *mapping = tx_req->mapping;
-@@ -314,7 +313,8 @@ static void ipoib_dma_unmap_tx(struct ib_device *ca,
- 	int off;
- 
- 	if (skb_headlen(skb)) {
--		ib_dma_unmap_single(ca, mapping[0], skb_headlen(skb), DMA_TO_DEVICE);
-+		ib_dma_unmap_single(priv->ca, mapping[0], skb_headlen(skb),
-+				    DMA_TO_DEVICE);
- 		off = 1;
- 	} else
- 		off = 0;
-@@ -322,8 +322,8 @@ static void ipoib_dma_unmap_tx(struct ib_device *ca,
- 	for (i = 0; i < skb_shinfo(skb)->nr_frags; ++i) {
- 		const skb_frag_t *frag = &skb_shinfo(skb)->frags[i];
- 
--		ib_dma_unmap_page(ca, mapping[i + off], skb_frag_size(frag),
--				  DMA_TO_DEVICE);
-+		ib_dma_unmap_page(priv->ca, mapping[i + off],
-+				  skb_frag_size(frag), DMA_TO_DEVICE);
- 	}
- }
- 
-@@ -389,7 +389,7 @@ static void ipoib_ib_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
- 
- 	tx_req = &priv->tx_ring[wr_id];
- 
--	ipoib_dma_unmap_tx(priv->ca, tx_req);
-+	ipoib_dma_unmap_tx(priv, tx_req);
- 
- 	++dev->stats.tx_packets;
- 	dev->stats.tx_bytes += tx_req->skb->len;
-@@ -507,13 +507,9 @@ void ipoib_send_comp_handler(struct ib_cq *cq, void *dev_ptr)
- 	mod_timer(&priv->poll_timer, jiffies);
- }
- 
--static inline int post_send(struct ipoib_dev_priv *priv,
--			    unsigned int wr_id,
--			    struct ib_ah *address, u32 qpn,
--			    struct ipoib_tx_buf *tx_req,
--			    void *head, int hlen)
-+inline void ipoib_build_sge(struct ipoib_dev_priv *priv,
-+			    struct ipoib_tx_buf *tx_req)
- {
--	struct ib_send_wr *bad_wr;
- 	int i, off;
- 	struct sk_buff *skb = tx_req->skb;
- 	skb_frag_t *frags = skb_shinfo(skb)->frags;
-@@ -532,6 +528,19 @@ static inline int post_send(struct ipoib_dev_priv *priv,
- 		priv->tx_sge[i + off].length = skb_frag_size(&frags[i]);
- 	}
- 	priv->tx_wr.num_sge	     = nr_frags + off;
-+}
-+
-+static inline int post_send(struct ipoib_dev_priv *priv,
-+			    unsigned int wr_id,
-+			    struct ib_ah *address, u32 qpn,
-+			    struct ipoib_tx_buf *tx_req,
-+			    void *head, int hlen)
-+{
-+	struct ib_send_wr *bad_wr;
-+	struct sk_buff *skb = tx_req->skb;
-+
-+	ipoib_build_sge(priv, tx_req);
-+
- 	priv->tx_wr.wr_id 	     = wr_id;
- 	priv->tx_wr.wr.ud.remote_qpn = qpn;
- 	priv->tx_wr.wr.ud.ah 	     = address;
-@@ -617,7 +626,7 @@ void ipoib_send(struct net_device *dev, struct sk_buff *skb,
- 		ipoib_warn(priv, "post_send failed, error %d\n", rc);
- 		++dev->stats.tx_errors;
- 		--priv->tx_outstanding;
--		ipoib_dma_unmap_tx(priv->ca, tx_req);
-+		ipoib_dma_unmap_tx(priv, tx_req);
- 		dev_kfree_skb_any(skb);
- 		if (netif_queue_stopped(dev))
- 			netif_wake_queue(dev);
-@@ -868,7 +877,7 @@ int ipoib_ib_dev_stop(struct net_device *dev)
- 			while ((int) priv->tx_tail - (int) priv->tx_head < 0) {
- 				tx_req = &priv->tx_ring[priv->tx_tail &
- 							(ipoib_sendq_size - 1)];
--				ipoib_dma_unmap_tx(priv->ca, tx_req);
-+				ipoib_dma_unmap_tx(priv, tx_req);
- 				dev_kfree_skb_any(tx_req->skb);
- 				++priv->tx_tail;
- 				--priv->tx_outstanding;
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 9e1b203..4ee2784 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -190,7 +190,7 @@ static netdev_features_t ipoib_fix_features(struct net_device *dev, netdev_featu
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 
- 	if (test_bit(IPOIB_FLAG_ADMIN_CM, &priv->flags))
--		features &= ~(NETIF_F_SG | NETIF_F_IP_CSUM | NETIF_F_TSO);
-+		features &= ~(NETIF_F_IP_CSUM | NETIF_F_TSO);
- 
- 	return features;
- }
+Ira Weiny (1):
+      IB/core: Add OPA Port header definitions
+
+Jubin John (1):
+      IB/core: Add opa driver to kbuild
+
+Mike Marciniszyn (47):
+      IB/hfi1: add chip specific support part1
+      IB/hfi1: add chip specific support part2
+      IB/hfi1: add chip specific support part3
+      IB/hfi1: add chip specific support part4
+      IB/hfi1: add chip register definitions
+      IB/hfi1: add chip specific headers
+      IB/hfi1: add common header file definitions
+      IB/hfi1: add completion queue processing
+      IB/hfi1: add debugfs handling
+      IB/hfi1: add char device instantiation code
+      IB/hfi1: add diagnostic hooks
+      IB/hfi1: add dma operation hooks
+      IB/hfi1: add low lower receive functions
+      IB/hfi1: add eeprom hooks
+      IB/hfi1: add PSM driver control/data path
+      IB/hfi1: add firmware hooks
+      IB/hfi1: add general hfi header file
+      IB/hfi1: add module init hooks
+      IB/hfi1: add interrupt hooks
+      IB/hfi1: add progress delay/restart hooks
+      IB/hfi1: add rkey/lkey validation
+      IB/hfi1: add OPA mad handling part1
+      IB/hfi1: add OPA mad handling part2
+      IB/hfi1: add local mad header
+      IB/hfi1: add user/kernel memory sharing hooks
+      IB/hfi1: add memory region handling
+      IB/hfi1: add misc OPA defines
+      IB/hfi1: add pcie routines
+      IB/hfi1: add pio handling
+      IB/hfi1: add platform config definitions
+      IB/hfi1: add qp handling
+      IB/hfi1: add qsfp handling
+      IB/hfi1: add RC QP handling
+      IB/hfi1: add routines for RC/UC
+      IB/hfi1: add sdma routines
+      IB/hfi1: add sdma header file
+      IB/hfi1: add SRQ handling
+      IB/hfi1: add sysfs routines
+      IB/hfi1: add tracepoint debug routines
+      IB/hfi1: add QSFP twsi routines
+      IB/hfi1: add UC QP handling
+      IB/hfi1: add UD QP handling
+      IB/hfi1: add low level page locking
+      IB/hfi1: add PSM sdma hooks
+      IB/hfi1: add general verbs handling
+      IB/hfi1: add multicast routines
+      IB/hfi1: add driver make/config files
+
+
+ drivers/infiniband/Kconfig                   |    1 
+ drivers/infiniband/hw/Makefile               |    1 
+ drivers/infiniband/hw/hfi1/Kconfig           |   27 
+ drivers/infiniband/hw/hfi1/Makefile          |   20 
+ drivers/infiniband/hw/hfi1/chip.c            |10626 ++++++++++++++++++++++++++
+ drivers/infiniband/hw/hfi1/chip.h            | 1013 ++
+ drivers/infiniband/hw/hfi1/chip_registers.h  | 1285 +++
+ drivers/infiniband/hw/hfi1/common.h          |  416 +
+ drivers/infiniband/hw/hfi1/cq.c              |  559 +
+ drivers/infiniband/hw/hfi1/debugfs.c         |  899 ++
+ drivers/infiniband/hw/hfi1/debugfs.h         |   78 
+ drivers/infiniband/hw/hfi1/device.c          |  142 
+ drivers/infiniband/hw/hfi1/device.h          |   61 
+ drivers/infiniband/hw/hfi1/diag.c            | 1873 +++++
+ drivers/infiniband/hw/hfi1/dma.c             |  185 
+ drivers/infiniband/hw/hfi1/driver.c          | 1061 +++
+ drivers/infiniband/hw/hfi1/eprom.c           |  475 +
+ drivers/infiniband/hw/hfi1/eprom.h           |   55 
+ drivers/infiniband/hw/hfi1/file_ops.c        | 2122 +++++
+ drivers/infiniband/hw/hfi1/firmware.c        | 1550 ++++
+ drivers/infiniband/hw/hfi1/hfi.h             | 1738 ++++
+ drivers/infiniband/hw/hfi1/init.c            | 1709 ++++
+ drivers/infiniband/hw/hfi1/intr.c            |  204 
+ drivers/infiniband/hw/hfi1/iowait.h          |  186 
+ drivers/infiniband/hw/hfi1/keys.c            |  407 +
+ drivers/infiniband/hw/hfi1/mad.c             | 4087 ++++++++++
+ drivers/infiniband/hw/hfi1/mad.h             |  477 +
+ drivers/infiniband/hw/hfi1/mmap.c            |  192 
+ drivers/infiniband/hw/hfi1/mr.c              |  546 +
+ drivers/infiniband/hw/hfi1/opa_compat.h      |  132 
+ drivers/infiniband/hw/hfi1/pcie.c            | 1254 +++
+ drivers/infiniband/hw/hfi1/pio.c             | 1764 ++++
+ drivers/infiniband/hw/hfi1/pio.h             |  224 +
+ drivers/infiniband/hw/hfi1/pio_copy.c        |  867 ++
+ drivers/infiniband/hw/hfi1/platform_config.h |  286 +
+ drivers/infiniband/hw/hfi1/qp.c              | 1692 ++++
+ drivers/infiniband/hw/hfi1/qp.h              |  206 +
+ drivers/infiniband/hw/hfi1/qsfp.c            |  546 +
+ drivers/infiniband/hw/hfi1/qsfp.h            |  222 +
+ drivers/infiniband/hw/hfi1/rc.c              | 2456 ++++++
+ drivers/infiniband/hw/hfi1/ruc.c             |  944 ++
+ drivers/infiniband/hw/hfi1/sdma.c            | 2950 +++++++
+ drivers/infiniband/hw/hfi1/sdma.h            | 1122 +++
+ drivers/infiniband/hw/hfi1/srq.c             |  397 +
+ drivers/infiniband/hw/hfi1/sysfs.c           | 1083 +++
+ drivers/infiniband/hw/hfi1/trace.c           |  211 +
+ drivers/infiniband/hw/hfi1/trace.h           | 1390 +++
+ drivers/infiniband/hw/hfi1/twsi.c            |  518 +
+ drivers/infiniband/hw/hfi1/twsi.h            |   68 
+ drivers/infiniband/hw/hfi1/uc.c              |  601 +
+ drivers/infiniband/hw/hfi1/ud.c              |  886 ++
+ drivers/infiniband/hw/hfi1/user_pages.c      |  156 
+ drivers/infiniband/hw/hfi1/user_sdma.c       | 1450 ++++
+ drivers/infiniband/hw/hfi1/user_sdma.h       |   89 
+ drivers/infiniband/hw/hfi1/verbs.c           | 2215 +++++
+ drivers/infiniband/hw/hfi1/verbs.h           | 1193 +++
+ drivers/infiniband/hw/hfi1/verbs_mcast.c     |  385 +
+ include/rdma/opa_port_info.h                 |  433 +
+ include/rdma/opa_smi.h                       |   47 
+ include/uapi/rdma/hfi/hfi1_user.h            |  427 +
+ 60 files changed, 58209 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi1/Kconfig
+ create mode 100644 drivers/infiniband/hw/hfi1/Makefile
+ create mode 100644 drivers/infiniband/hw/hfi1/chip.c
+ create mode 100644 drivers/infiniband/hw/hfi1/chip.h
+ create mode 100644 drivers/infiniband/hw/hfi1/chip_registers.h
+ create mode 100644 drivers/infiniband/hw/hfi1/common.h
+ create mode 100644 drivers/infiniband/hw/hfi1/cq.c
+ create mode 100644 drivers/infiniband/hw/hfi1/debugfs.c
+ create mode 100644 drivers/infiniband/hw/hfi1/debugfs.h
+ create mode 100644 drivers/infiniband/hw/hfi1/device.c
+ create mode 100644 drivers/infiniband/hw/hfi1/device.h
+ create mode 100644 drivers/infiniband/hw/hfi1/diag.c
+ create mode 100644 drivers/infiniband/hw/hfi1/dma.c
+ create mode 100644 drivers/infiniband/hw/hfi1/driver.c
+ create mode 100644 drivers/infiniband/hw/hfi1/eprom.c
+ create mode 100644 drivers/infiniband/hw/hfi1/eprom.h
+ create mode 100644 drivers/infiniband/hw/hfi1/file_ops.c
+ create mode 100644 drivers/infiniband/hw/hfi1/firmware.c
+ create mode 100644 drivers/infiniband/hw/hfi1/hfi.h
+ create mode 100644 drivers/infiniband/hw/hfi1/init.c
+ create mode 100644 drivers/infiniband/hw/hfi1/intr.c
+ create mode 100644 drivers/infiniband/hw/hfi1/iowait.h
+ create mode 100644 drivers/infiniband/hw/hfi1/keys.c
+ create mode 100644 drivers/infiniband/hw/hfi1/mad.c
+ create mode 100644 drivers/infiniband/hw/hfi1/mad.h
+ create mode 100644 drivers/infiniband/hw/hfi1/mmap.c
+ create mode 100644 drivers/infiniband/hw/hfi1/mr.c
+ create mode 100644 drivers/infiniband/hw/hfi1/opa_compat.h
+ create mode 100644 drivers/infiniband/hw/hfi1/pcie.c
+ create mode 100644 drivers/infiniband/hw/hfi1/pio.c
+ create mode 100644 drivers/infiniband/hw/hfi1/pio.h
+ create mode 100644 drivers/infiniband/hw/hfi1/pio_copy.c
+ create mode 100644 drivers/infiniband/hw/hfi1/platform_config.h
+ create mode 100644 drivers/infiniband/hw/hfi1/qp.c
+ create mode 100644 drivers/infiniband/hw/hfi1/qp.h
+ create mode 100644 drivers/infiniband/hw/hfi1/qsfp.c
+ create mode 100644 drivers/infiniband/hw/hfi1/qsfp.h
+ create mode 100644 drivers/infiniband/hw/hfi1/rc.c
+ create mode 100644 drivers/infiniband/hw/hfi1/ruc.c
+ create mode 100644 drivers/infiniband/hw/hfi1/sdma.c
+ create mode 100644 drivers/infiniband/hw/hfi1/sdma.h
+ create mode 100644 drivers/infiniband/hw/hfi1/srq.c
+ create mode 100644 drivers/infiniband/hw/hfi1/sysfs.c
+ create mode 100644 drivers/infiniband/hw/hfi1/trace.c
+ create mode 100644 drivers/infiniband/hw/hfi1/trace.h
+ create mode 100644 drivers/infiniband/hw/hfi1/twsi.c
+ create mode 100644 drivers/infiniband/hw/hfi1/twsi.h
+ create mode 100644 drivers/infiniband/hw/hfi1/uc.c
+ create mode 100644 drivers/infiniband/hw/hfi1/ud.c
+ create mode 100644 drivers/infiniband/hw/hfi1/user_pages.c
+ create mode 100644 drivers/infiniband/hw/hfi1/user_sdma.c
+ create mode 100644 drivers/infiniband/hw/hfi1/user_sdma.h
+ create mode 100644 drivers/infiniband/hw/hfi1/verbs.c
+ create mode 100644 drivers/infiniband/hw/hfi1/verbs.h
+ create mode 100644 drivers/infiniband/hw/hfi1/verbs_mcast.c
+ create mode 100644 include/rdma/opa_port_info.h
+ create mode 100644 include/uapi/rdma/hfi/hfi1_user.h
+
 -- 
-1.7.1
-
+Mike
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
