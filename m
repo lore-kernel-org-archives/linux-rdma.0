@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 09/49] IB/hfi1: add completion queue processing
-Date: Mon, 15 Jun 2015 09:26:47 -0400
-Message-ID: <20150615132647.29741.58302.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH v2 13/49] IB/hfi1: add dma operation hooks
+Date: Mon, 15 Jun 2015 09:27:08 -0400
+Message-ID: <20150615132708.29741.75455.stgit@phlsvslse11.ph.intel.com>
 References: <20150615132434.29741.35258.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -37,16 +37,16 @@ Signed-off-by: Sanath Kumar <sanath.s.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.
 Signed-off-by: Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Vlad Danushevsky <vladimir.danusevsky-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/cq.c |  559 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 559 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi1/cq.c
+ drivers/infiniband/hw/hfi1/dma.c |  185 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 185 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi1/dma.c
 
-diff --git a/drivers/infiniband/hw/hfi1/cq.c b/drivers/infiniband/hw/hfi1/cq.c
+diff --git a/drivers/infiniband/hw/hfi1/dma.c b/drivers/infiniband/hw/hfi1/dma.c
 new file mode 100644
-index 0000000..b0be03a
+index 0000000..6e86a71
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/cq.c
-@@ -0,0 +1,559 @@
++++ b/drivers/infiniband/hw/hfi1/dma.c
+@@ -0,0 +1,185 @@
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -96,516 +96,142 @@ index 0000000..b0be03a
 + * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + */
-+
-+#include <linux/err.h>
-+#include <linux/slab.h>
-+#include <linux/vmalloc.h>
-+#include <linux/kthread.h>
++#include <linux/types.h>
++#include <linux/scatterlist.h>
 +
 +#include "verbs.h"
-+#include "hfi.h"
 +
-+/**
-+ * hfi1_cq_enter - add a new entry to the completion queue
-+ * @cq: completion queue
-+ * @entry: work completion entry to add
-+ * @sig: true if @entry is a solicited entry
++#define BAD_DMA_ADDRESS ((u64) 0)
++
++/*
++ * The following functions implement driver specific replacements
++ * for the ib_dma_*() functions.
 + *
-+ * This may be called with qp->s_lock held.
++ * These functions return kernel virtual addresses instead of
++ * device bus addresses since the driver uses the CPU to copy
++ * data instead of using hardware DMA.
 + */
-+void hfi1_cq_enter(struct hfi1_cq *cq, struct ib_wc *entry, int solicited)
++
++static int hfi1_mapping_error(struct ib_device *dev, u64 dma_addr)
 +{
-+	struct hfi1_cq_wc *wc;
-+	unsigned long flags;
-+	u32 head;
-+	u32 next;
-+
-+	spin_lock_irqsave(&cq->lock, flags);
-+
-+	/*
-+	 * Note that the head pointer might be writable by user processes.
-+	 * Take care to verify it is a sane value.
-+	 */
-+	wc = cq->queue;
-+	head = wc->head;
-+	if (head >= (unsigned) cq->ibcq.cqe) {
-+		head = cq->ibcq.cqe;
-+		next = 0;
-+	} else
-+		next = head + 1;
-+	if (unlikely(next == wc->tail)) {
-+		spin_unlock_irqrestore(&cq->lock, flags);
-+		if (cq->ibcq.event_handler) {
-+			struct ib_event ev;
-+
-+			ev.device = cq->ibcq.device;
-+			ev.element.cq = &cq->ibcq;
-+			ev.event = IB_EVENT_CQ_ERR;
-+			cq->ibcq.event_handler(&ev, cq->ibcq.cq_context);
-+		}
-+		return;
-+	}
-+	if (cq->ip) {
-+		wc->uqueue[head].wr_id = entry->wr_id;
-+		wc->uqueue[head].status = entry->status;
-+		wc->uqueue[head].opcode = entry->opcode;
-+		wc->uqueue[head].vendor_err = entry->vendor_err;
-+		wc->uqueue[head].byte_len = entry->byte_len;
-+		wc->uqueue[head].ex.imm_data =
-+			(__u32 __force)entry->ex.imm_data;
-+		wc->uqueue[head].qp_num = entry->qp->qp_num;
-+		wc->uqueue[head].src_qp = entry->src_qp;
-+		wc->uqueue[head].wc_flags = entry->wc_flags;
-+		wc->uqueue[head].pkey_index = entry->pkey_index;
-+		wc->uqueue[head].slid = entry->slid;
-+		wc->uqueue[head].sl = entry->sl;
-+		wc->uqueue[head].dlid_path_bits = entry->dlid_path_bits;
-+		wc->uqueue[head].port_num = entry->port_num;
-+		/* Make sure entry is written before the head index. */
-+		smp_wmb();
-+	} else
-+		wc->kqueue[head] = *entry;
-+	wc->head = next;
-+
-+	if (cq->notify == IB_CQ_NEXT_COMP ||
-+	    (cq->notify == IB_CQ_SOLICITED &&
-+	     (solicited || entry->status != IB_WC_SUCCESS))) {
-+		struct kthread_worker *worker;
-+		/*
-+		 * This will cause send_complete() to be called in
-+		 * another thread.
-+		 */
-+		smp_read_barrier_depends(); /* see hfi1_cq_exit */
-+		worker = cq->dd->worker;
-+		if (likely(worker)) {
-+			cq->notify = IB_CQ_NONE;
-+			cq->triggered++;
-+			queue_kthread_work(worker, &cq->comptask);
-+		}
-+	}
-+
-+	spin_unlock_irqrestore(&cq->lock, flags);
++	return dma_addr == BAD_DMA_ADDRESS;
 +}
 +
-+/**
-+ * hfi1_poll_cq - poll for work completion entries
-+ * @ibcq: the completion queue to poll
-+ * @num_entries: the maximum number of entries to return
-+ * @entry: pointer to array where work completions are placed
-+ *
-+ * Returns the number of completion entries polled.
-+ *
-+ * This may be called from interrupt context.  Also called by ib_poll_cq()
-+ * in the generic verbs code.
-+ */
-+int hfi1_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *entry)
++static u64 hfi1_dma_map_single(struct ib_device *dev, void *cpu_addr,
++			       size_t size, enum dma_data_direction direction)
 +{
-+	struct hfi1_cq *cq = to_icq(ibcq);
-+	struct hfi1_cq_wc *wc;
-+	unsigned long flags;
-+	int npolled;
-+	u32 tail;
-+
-+	/* The kernel can only poll a kernel completion queue */
-+	if (cq->ip) {
-+		npolled = -EINVAL;
-+		goto bail;
-+	}
-+
-+	spin_lock_irqsave(&cq->lock, flags);
-+
-+	wc = cq->queue;
-+	tail = wc->tail;
-+	if (tail > (u32) cq->ibcq.cqe)
-+		tail = (u32) cq->ibcq.cqe;
-+	for (npolled = 0; npolled < num_entries; ++npolled, ++entry) {
-+		if (tail == wc->head)
-+			break;
-+		/* The kernel doesn't need a RMB since it has the lock. */
-+		*entry = wc->kqueue[tail];
-+		if (tail >= cq->ibcq.cqe)
-+			tail = 0;
-+		else
-+			tail++;
-+	}
-+	wc->tail = tail;
-+
-+	spin_unlock_irqrestore(&cq->lock, flags);
-+
-+bail:
-+	return npolled;
++	BUG_ON(!valid_dma_direction(direction));
++	return (u64) cpu_addr;
 +}
 +
-+static void send_complete(struct kthread_work *work)
++static void hfi1_dma_unmap_single(struct ib_device *dev, u64 addr, size_t size,
++				  enum dma_data_direction direction)
 +{
-+	struct hfi1_cq *cq = container_of(work, struct hfi1_cq, comptask);
-+
-+	/*
-+	 * The completion handler will most likely rearm the notification
-+	 * and poll for all pending entries.  If a new completion entry
-+	 * is added while we are in this routine, queue_work()
-+	 * won't call us again until we return so we check triggered to
-+	 * see if we need to call the handler again.
-+	 */
-+	for (;;) {
-+		u8 triggered = cq->triggered;
-+
-+		/*
-+		 * IPoIB connected mode assumes the callback is from a
-+		 * soft IRQ. We simulate this by blocking "bottom halves".
-+		 * See the implementation for ipoib_cm_handle_tx_wc(),
-+		 * netif_tx_lock_bh() and netif_tx_lock().
-+		 */
-+		local_bh_disable();
-+		cq->ibcq.comp_handler(&cq->ibcq, cq->ibcq.cq_context);
-+		local_bh_enable();
-+
-+		if (cq->triggered == triggered)
-+			return;
-+	}
++	BUG_ON(!valid_dma_direction(direction));
 +}
 +
-+/**
-+ * hfi1_create_cq - create a completion queue
-+ * @ibdev: the device this completion queue is attached to
-+ * @entries: the minimum size of the completion queue
-+ * @context: unused by the driver
-+ * @udata: user data for libibverbs.so
-+ *
-+ * Returns a pointer to the completion queue or negative errno values
-+ * for failure.
-+ *
-+ * Called by ib_create_cq() in the generic verbs code.
-+ */
-+struct ib_cq *hfi1_create_cq(
-+	struct ib_device *ibdev,
-+	const struct ib_cq_init_attr *attr,
-+	struct ib_ucontext *context,
-+	struct ib_udata *udata)
++static u64 hfi1_dma_map_page(struct ib_device *dev, struct page *page,
++			     unsigned long offset, size_t size,
++			    enum dma_data_direction direction)
 +{
-+	struct hfi1_ibdev *dev = to_idev(ibdev);
-+	struct hfi1_cq *cq;
-+	struct hfi1_cq_wc *wc;
-+	struct ib_cq *ret;
-+	u32 sz;
-+	unsigned int entries = attr->cqe;
++	u64 addr;
 +
-+	if (entries < 1 || entries > hfi1_max_cqes) {
-+		ret = ERR_PTR(-EINVAL);
++	BUG_ON(!valid_dma_direction(direction));
++
++	if (offset + size > PAGE_SIZE) {
++		addr = BAD_DMA_ADDRESS;
 +		goto done;
 +	}
 +
-+	/* Allocate the completion queue structure. */
-+	cq = kmalloc(sizeof(*cq), GFP_KERNEL);
-+	if (!cq) {
-+		ret = ERR_PTR(-ENOMEM);
-+		goto done;
-+	}
++	addr = (u64) page_address(page);
++	if (addr)
++		addr += offset;
 +
-+	/*
-+	 * Allocate the completion queue entries and head/tail pointers.
-+	 * This is allocated separately so that it can be resized and
-+	 * also mapped into user space.
-+	 * We need to use vmalloc() in order to support mmap and large
-+	 * numbers of entries.
-+	 */
-+	sz = sizeof(*wc);
-+	if (udata && udata->outlen >= sizeof(__u64))
-+		sz += sizeof(struct ib_uverbs_wc) * (entries + 1);
-+	else
-+		sz += sizeof(struct ib_wc) * (entries + 1);
-+	wc = vmalloc_user(sz);
-+	if (!wc) {
-+		ret = ERR_PTR(-ENOMEM);
-+		goto bail_cq;
-+	}
-+
-+	/*
-+	 * Return the address of the WC as the offset to mmap.
-+	 * See hfi1_mmap() for details.
-+	 */
-+	if (udata && udata->outlen >= sizeof(__u64)) {
-+		int err;
-+
-+		cq->ip = hfi1_create_mmap_info(dev, sz, context, wc);
-+		if (!cq->ip) {
-+			ret = ERR_PTR(-ENOMEM);
-+			goto bail_wc;
-+		}
-+
-+		err = ib_copy_to_udata(udata, &cq->ip->offset,
-+				       sizeof(cq->ip->offset));
-+		if (err) {
-+			ret = ERR_PTR(err);
-+			goto bail_ip;
-+		}
-+	} else
-+		cq->ip = NULL;
-+
-+	spin_lock(&dev->n_cqs_lock);
-+	if (dev->n_cqs_allocated == hfi1_max_cqs) {
-+		spin_unlock(&dev->n_cqs_lock);
-+		ret = ERR_PTR(-ENOMEM);
-+		goto bail_ip;
-+	}
-+
-+	dev->n_cqs_allocated++;
-+	spin_unlock(&dev->n_cqs_lock);
-+
-+	if (cq->ip) {
-+		spin_lock_irq(&dev->pending_lock);
-+		list_add(&cq->ip->pending_mmaps, &dev->pending_mmaps);
-+		spin_unlock_irq(&dev->pending_lock);
-+	}
-+
-+	/*
-+	 * ib_create_cq() will initialize cq->ibcq except for cq->ibcq.cqe.
-+	 * The number of entries should be >= the number requested or return
-+	 * an error.
-+	 */
-+	cq->dd = dd_from_dev(dev);
-+	cq->ibcq.cqe = entries;
-+	cq->notify = IB_CQ_NONE;
-+	cq->triggered = 0;
-+	spin_lock_init(&cq->lock);
-+	init_kthread_work(&cq->comptask, send_complete);
-+	wc->head = 0;
-+	wc->tail = 0;
-+	cq->queue = wc;
-+
-+	ret = &cq->ibcq;
-+
-+	goto done;
-+
-+bail_ip:
-+	kfree(cq->ip);
-+bail_wc:
-+	vfree(wc);
-+bail_cq:
-+	kfree(cq);
 +done:
-+	return ret;
++	return addr;
 +}
 +
-+/**
-+ * hfi1_destroy_cq - destroy a completion queue
-+ * @ibcq: the completion queue to destroy.
-+ *
-+ * Returns 0 for success.
-+ *
-+ * Called by ib_destroy_cq() in the generic verbs code.
-+ */
-+int hfi1_destroy_cq(struct ib_cq *ibcq)
++static void hfi1_dma_unmap_page(struct ib_device *dev, u64 addr, size_t size,
++				enum dma_data_direction direction)
 +{
-+	struct hfi1_ibdev *dev = to_idev(ibcq->device);
-+	struct hfi1_cq *cq = to_icq(ibcq);
-+
-+	flush_kthread_work(&cq->comptask);
-+	spin_lock(&dev->n_cqs_lock);
-+	dev->n_cqs_allocated--;
-+	spin_unlock(&dev->n_cqs_lock);
-+	if (cq->ip)
-+		kref_put(&cq->ip->ref, hfi1_release_mmap_info);
-+	else
-+		vfree(cq->queue);
-+	kfree(cq);
-+
-+	return 0;
++	BUG_ON(!valid_dma_direction(direction));
 +}
 +
-+/**
-+ * hfi1_req_notify_cq - change the notification type for a completion queue
-+ * @ibcq: the completion queue
-+ * @notify_flags: the type of notification to request
-+ *
-+ * Returns 0 for success.
-+ *
-+ * This may be called from interrupt context.  Also called by
-+ * ib_req_notify_cq() in the generic verbs code.
-+ */
-+int hfi1_req_notify_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags notify_flags)
++static int hfi1_map_sg(struct ib_device *dev, struct scatterlist *sgl,
++		       int nents, enum dma_data_direction direction)
 +{
-+	struct hfi1_cq *cq = to_icq(ibcq);
-+	unsigned long flags;
-+	int ret = 0;
++	struct scatterlist *sg;
++	u64 addr;
++	int i;
++	int ret = nents;
 +
-+	spin_lock_irqsave(&cq->lock, flags);
-+	/*
-+	 * Don't change IB_CQ_NEXT_COMP to IB_CQ_SOLICITED but allow
-+	 * any other transitions (see C11-31 and C11-32 in ch. 11.4.2.2).
-+	 */
-+	if (cq->notify != IB_CQ_NEXT_COMP)
-+		cq->notify = notify_flags & IB_CQ_SOLICITED_MASK;
++	BUG_ON(!valid_dma_direction(direction));
 +
-+	if ((notify_flags & IB_CQ_REPORT_MISSED_EVENTS) &&
-+	    cq->queue->head != cq->queue->tail)
-+		ret = 1;
-+
-+	spin_unlock_irqrestore(&cq->lock, flags);
-+
-+	return ret;
-+}
-+
-+/**
-+ * hfi1_resize_cq - change the size of the CQ
-+ * @ibcq: the completion queue
-+ *
-+ * Returns 0 for success.
-+ */
-+int hfi1_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata)
-+{
-+	struct hfi1_cq *cq = to_icq(ibcq);
-+	struct hfi1_cq_wc *old_wc;
-+	struct hfi1_cq_wc *wc;
-+	u32 head, tail, n;
-+	int ret;
-+	u32 sz;
-+
-+	if (cqe < 1 || cqe > hfi1_max_cqes) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	/*
-+	 * Need to use vmalloc() if we want to support large #s of entries.
-+	 */
-+	sz = sizeof(*wc);
-+	if (udata && udata->outlen >= sizeof(__u64))
-+		sz += sizeof(struct ib_uverbs_wc) * (cqe + 1);
-+	else
-+		sz += sizeof(struct ib_wc) * (cqe + 1);
-+	wc = vmalloc_user(sz);
-+	if (!wc) {
-+		ret = -ENOMEM;
-+		goto bail;
-+	}
-+
-+	/* Check that we can write the offset to mmap. */
-+	if (udata && udata->outlen >= sizeof(__u64)) {
-+		__u64 offset = 0;
-+
-+		ret = ib_copy_to_udata(udata, &offset, sizeof(offset));
-+		if (ret)
-+			goto bail_free;
-+	}
-+
-+	spin_lock_irq(&cq->lock);
-+	/*
-+	 * Make sure head and tail are sane since they
-+	 * might be user writable.
-+	 */
-+	old_wc = cq->queue;
-+	head = old_wc->head;
-+	if (head > (u32) cq->ibcq.cqe)
-+		head = (u32) cq->ibcq.cqe;
-+	tail = old_wc->tail;
-+	if (tail > (u32) cq->ibcq.cqe)
-+		tail = (u32) cq->ibcq.cqe;
-+	if (head < tail)
-+		n = cq->ibcq.cqe + 1 + head - tail;
-+	else
-+		n = head - tail;
-+	if (unlikely((u32)cqe < n)) {
-+		ret = -EINVAL;
-+		goto bail_unlock;
-+	}
-+	for (n = 0; tail != head; n++) {
-+		if (cq->ip)
-+			wc->uqueue[n] = old_wc->uqueue[tail];
-+		else
-+			wc->kqueue[n] = old_wc->kqueue[tail];
-+		if (tail == (u32) cq->ibcq.cqe)
-+			tail = 0;
-+		else
-+			tail++;
-+	}
-+	cq->ibcq.cqe = cqe;
-+	wc->head = n;
-+	wc->tail = 0;
-+	cq->queue = wc;
-+	spin_unlock_irq(&cq->lock);
-+
-+	vfree(old_wc);
-+
-+	if (cq->ip) {
-+		struct hfi1_ibdev *dev = to_idev(ibcq->device);
-+		struct hfi1_mmap_info *ip = cq->ip;
-+
-+		hfi1_update_mmap_info(dev, ip, sz, wc);
-+
-+		/*
-+		 * Return the offset to mmap.
-+		 * See hfi1_mmap() for details.
-+		 */
-+		if (udata && udata->outlen >= sizeof(__u64)) {
-+			ret = ib_copy_to_udata(udata, &ip->offset,
-+					       sizeof(ip->offset));
-+			if (ret)
-+				goto bail;
++	for_each_sg(sgl, sg, nents, i) {
++		addr = (u64) page_address(sg_page(sg));
++		if (!addr) {
++			ret = 0;
++			break;
 +		}
-+
-+		spin_lock_irq(&dev->pending_lock);
-+		if (list_empty(&ip->pending_mmaps))
-+			list_add(&ip->pending_mmaps, &dev->pending_mmaps);
-+		spin_unlock_irq(&dev->pending_lock);
++		sg->dma_address = addr + sg->offset;
++#ifdef CONFIG_NEED_SG_DMA_LENGTH
++		sg->dma_length = sg->length;
++#endif
 +	}
-+
-+	ret = 0;
-+	goto bail;
-+
-+bail_unlock:
-+	spin_unlock_irq(&cq->lock);
-+bail_free:
-+	vfree(wc);
-+bail:
 +	return ret;
 +}
 +
-+int hfi1_cq_init(struct hfi1_devdata *dd)
++static void hfi1_unmap_sg(struct ib_device *dev,
++			  struct scatterlist *sg, int nents,
++			 enum dma_data_direction direction)
 +{
-+	int ret = 0;
-+	int cpu;
-+	struct task_struct *task;
-+
-+	if (dd->worker)
-+		return 0;
-+	dd->worker = kzalloc(sizeof(*dd->worker), GFP_KERNEL);
-+	if (!dd->worker)
-+		return -ENOMEM;
-+	init_kthread_worker(dd->worker);
-+	task = kthread_create_on_node(
-+		kthread_worker_fn,
-+		dd->worker,
-+		dd->assigned_node_id,
-+		"hfi1_cq%d", dd->unit);
-+	if (IS_ERR(task))
-+		goto task_fail;
-+	cpu = cpumask_first(cpumask_of_node(dd->assigned_node_id));
-+	kthread_bind(task, cpu);
-+	wake_up_process(task);
-+out:
-+	return ret;
-+task_fail:
-+	ret = PTR_ERR(task);
-+	kfree(dd->worker);
-+	dd->worker = NULL;
-+	goto out;
++	BUG_ON(!valid_dma_direction(direction));
 +}
 +
-+void hfi1_cq_exit(struct hfi1_devdata *dd)
++static void hfi1_sync_single_for_cpu(struct ib_device *dev, u64 addr,
++				     size_t size, enum dma_data_direction dir)
 +{
-+	struct kthread_worker *worker;
-+
-+	worker = dd->worker;
-+	if (!worker)
-+		return;
-+	/* blocks future queuing from send_complete() */
-+	dd->worker = NULL;
-+	smp_wmb(); /* See hfi1_cq_enter */
-+	flush_kthread_worker(worker);
-+	kthread_stop(worker->task);
-+	kfree(worker);
 +}
++
++static void hfi1_sync_single_for_device(struct ib_device *dev, u64 addr,
++					size_t size,
++					enum dma_data_direction dir)
++{
++}
++
++static void *hfi1_dma_alloc_coherent(struct ib_device *dev, size_t size,
++				     u64 *dma_handle, gfp_t flag)
++{
++	struct page *p;
++	void *addr = NULL;
++
++	p = alloc_pages(flag, get_order(size));
++	if (p)
++		addr = page_address(p);
++	if (dma_handle)
++		*dma_handle = (u64) addr;
++	return addr;
++}
++
++static void hfi1_dma_free_coherent(struct ib_device *dev, size_t size,
++				   void *cpu_addr, u64 dma_handle)
++{
++	free_pages((unsigned long) cpu_addr, get_order(size));
++}
++
++struct ib_dma_mapping_ops hfi1_dma_mapping_ops = {
++	.mapping_error = hfi1_mapping_error,
++	.map_single = hfi1_dma_map_single,
++	.unmap_single = hfi1_dma_unmap_single,
++	.map_page = hfi1_dma_map_page,
++	.unmap_page = hfi1_dma_unmap_page,
++	.map_sg = hfi1_map_sg,
++	.unmap_sg = hfi1_unmap_sg,
++	.sync_single_for_cpu = hfi1_sync_single_for_cpu,
++	.sync_single_for_device = hfi1_sync_single_for_device,
++	.alloc_coherent = hfi1_dma_alloc_coherent,
++	.free_coherent = hfi1_dma_free_coherent
++};
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
