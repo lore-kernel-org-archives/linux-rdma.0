@@ -1,50 +1,242 @@
-From: Vaishali Thakkar <vthakkar1994-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/ipath: Convert use of __constant_<foo> to <foo>
-Date: Tue, 16 Jun 2015 17:13:05 +0530
-Message-ID: <20150616114305.GA6350@vaishali-Ideapad-Z570>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 05/11] IB/cm: Share listening CM IDs
+Date: Tue, 16 Jun 2015 15:50:39 +0300
+Message-ID: <55801B9F.1050402@mellanox.com>
+References: <1434358036-15526-1-git-send-email-haggaie@mellanox.com>
+ <1434358036-15526-6-git-send-email-haggaie@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FF5AAE@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FF5AAE-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In little endian cases, the macros be16_to_cpu and cpu_to_be64
-unfolds to __swab{16,64} which provides special case for constants.
-In big endian cases, __constant_be16_to_cpu and be16_to_cpu
-expand directly to the same expression. The same applies for
-__constant_cpu_to_be64 and cpu_to_be64.
+On 16/06/2015 01:13, Hefty, Sean wrote:
+>> @@ -722,6 +725,7 @@ struct ib_cm_id *ib_create_cm_id(struct ib_device
+>> *device,
+>>  	INIT_LIST_HEAD(&cm_id_priv->work_list);
+>>  	atomic_set(&cm_id_priv->work_count, -1);
+>>  	atomic_set(&cm_id_priv->refcount, 1);
+>> +	cm_id_priv->listen_sharecount = 1;
+> 
+> This is setting the listen count before we know whether the cm_id will actually be used to listen.
 
-So, replace __constant_be16_to_cpu with be16_to_cpu and
-__constant_cpu_to_be64 with cpu_to_be64, with the goal of getting
-rid of the definition of __constant_be16_to_cpu and
-__constant_cpu_to_be64 completely.
+Right. I'll move it to the new_id case in ib_cm_id_create_and_listen.
 
-Signed-off-by: Vaishali Thakkar <vthakkar1994-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/ipath/ipath_verbs.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> 
+>>  	return &cm_id_priv->id;
+>>
+>>  error:
+>> @@ -847,11 +851,21 @@ retest:
+>>  	spin_lock_irq(&cm_id_priv->lock);
+>>  	switch (cm_id->state) {
+>>  	case IB_CM_LISTEN:
+>> -		cm_id->state = IB_CM_IDLE;
+>>  		spin_unlock_irq(&cm_id_priv->lock);
+>> +
+>>  		spin_lock_irq(&cm.lock);
+>> +		if (--cm_id_priv->listen_sharecount > 0) {
+>> +			/* The id is still shared. */
+>> +			atomic_dec(&cm_id_priv->refcount);
+>> +			spin_unlock_irq(&cm.lock);
+>> +			return;
+>> +		}
+>>  		rb_erase(&cm_id_priv->service_node, &cm.listen_service_table);
+>>  		spin_unlock_irq(&cm.lock);
+>> +
+>> +		spin_lock_irq(&cm_id_priv->lock);
+>> +		cm_id->state = IB_CM_IDLE;
+>> +		spin_unlock_irq(&cm_id_priv->lock);
+> 
+> Why is the state being changed?  The cm_id is about to be freed anyway.
 
-diff --git a/drivers/infiniband/hw/ipath/ipath_verbs.c b/drivers/infiniband/hw/ipath/ipath_verbs.c
-index 44ea939..5da33ec 100644
---- a/drivers/infiniband/hw/ipath/ipath_verbs.c
-+++ b/drivers/infiniband/hw/ipath/ipath_verbs.c
-@@ -2023,9 +2023,9 @@ int ipath_register_ib_device(struct ipath_devdata *dd)
- 
- 	spin_lock_init(&idev->qp_table.lock);
- 	spin_lock_init(&idev->lk_table.lock);
--	idev->sm_lid = __constant_be16_to_cpu(IB_LID_PERMISSIVE);
-+	idev->sm_lid = be16_to_cpu(IB_LID_PERMISSIVE);
- 	/* Set the prefix to the default value (see ch. 4.1.1) */
--	idev->gid_prefix = __constant_cpu_to_be64(0xfe80000000000000ULL);
-+	idev->gid_prefix = cpu_to_be64(0xfe80000000000000ULL);
- 
- 	ret = ipath_init_qp_table(idev, ib_ipath_qp_table_size);
- 	if (ret)
--- 
-1.9.1
+It matches the rest of the code, but I don't think it is actually being
+used for listening ids. I will drop it.
+
+> 
+> 
+>>  		break;
+>>  	case IB_CM_SIDR_REQ_SENT:
+>>  		cm_id->state = IB_CM_IDLE;
+>> @@ -929,11 +943,32 @@ void ib_destroy_cm_id(struct ib_cm_id *cm_id)
+>>  }
+>>  EXPORT_SYMBOL(ib_destroy_cm_id);
+>>
+>> -int ib_cm_listen(struct ib_cm_id *cm_id, __be64 service_id, __be64
+>> service_mask,
+>> -		 struct ib_cm_compare_data *compare_data)
+>> +/**
+>> + * __ib_cm_listen - Initiates listening on the specified service ID for
+>> + *   connection and service ID resolution requests.
+>> + * @cm_id: Connection identifier associated with the listen request.
+>> + * @service_id: Service identifier matched against incoming connection
+>> + *   and service ID resolution requests.  The service ID should be
+>> specified
+>> + *   network-byte order.  If set to IB_CM_ASSIGN_SERVICE_ID, the CM will
+>> + *   assign a service ID to the caller.
+>> + * @service_mask: Mask applied to service ID used to listen across a
+>> + *   range of service IDs.  If set to 0, the service ID is matched
+>> + *   exactly.  This parameter is ignored if %service_id is set to
+>> + *   IB_CM_ASSIGN_SERVICE_ID.
+>> + * @compare_data: This parameter is optional.  It specifies data that
+>> must
+>> + *   appear in the private data of a connection request for the specified
+>> + *   listen request.
+>> + * @lock: If set, lock the cm.lock spin-lock when adding the id to the
+>> + *   listener tree. When false, the caller must already hold the spin-
+>> lock,
+>> + *   and compare_data must be NULL.
+>> + */
+>> +static int __ib_cm_listen(struct ib_cm_id *cm_id, __be64 service_id,
+>> +			  __be64 service_mask,
+>> +			  struct ib_cm_compare_data *compare_data,
+>> +			  bool lock)
+>>  {
+>>  	struct cm_id_private *cm_id_priv, *cur_cm_id_priv;
+>> -	unsigned long flags;
+>> +	unsigned long flags = 0;
+>>  	int ret = 0;
+>>
+>>  	service_mask = service_mask ? service_mask : ~cpu_to_be64(0);
+>> @@ -959,7 +994,8 @@ int ib_cm_listen(struct ib_cm_id *cm_id, __be64
+>> service_id, __be64 service_mask,
+>>
+>>  	cm_id->state = IB_CM_LISTEN;
+>>
+>> -	spin_lock_irqsave(&cm.lock, flags);
+>> +	if (lock)
+>> +		spin_lock_irqsave(&cm.lock, flags);
+> 
+> I'm not a fan of this sort of locking structure.  Why not just move the locking into the outside calls completely?  I.e. move to ib_cm_listen() instead of passing in true.
+
+The reason is that this function can sleep when called compare_data !=
+NULL, allocating the id's compare_data with GFP_KERNEL. But, since the
+compare_data is going away in a later patch, I can actually fix the
+locking at that point. I'll change the patch that removes compare_data
+to also remove the lock parameter.
+
+> 
+> 
+>>  	if (service_id == IB_CM_ASSIGN_SERVICE_ID) {
+>>  		cm_id->service_id = cpu_to_be64(cm.listen_service_id++);
+>>  		cm_id->service_mask = ~cpu_to_be64(0);
+>> @@ -968,7 +1004,8 @@ int ib_cm_listen(struct ib_cm_id *cm_id, __be64
+>> service_id, __be64 service_mask,
+>>  		cm_id->service_mask = service_mask;
+>>  	}
+>>  	cur_cm_id_priv = cm_insert_listen(cm_id_priv);
+>> -	spin_unlock_irqrestore(&cm.lock, flags);
+>> +	if (lock)
+>> +		spin_unlock_irqrestore(&cm.lock, flags);
+>>
+>>  	if (cur_cm_id_priv) {
+>>  		cm_id->state = IB_CM_IDLE;
+>> @@ -978,8 +1015,86 @@ int ib_cm_listen(struct ib_cm_id *cm_id, __be64
+>> service_id, __be64 service_mask,
+>>  	}
+>>  	return ret;
+>>  }
+>> +
+>> +int ib_cm_listen(struct ib_cm_id *cm_id, __be64 service_id, __be64
+>> service_mask,
+>> +		 struct ib_cm_compare_data *compare_data)
+>> +{
+>> +	return __ib_cm_listen(cm_id, service_id, service_mask, compare_data,
+>> +			      true);
+>> +}
+>>  EXPORT_SYMBOL(ib_cm_listen);
+>>
+>> +/**
+>> + * Create a new listening ib_cm_id and listen on the given service ID.
+>> + *
+>> + * If there's an existing ID listening on that same device and service
+>> ID,
+>> + * return it.
+>> + *
+>> + * @device: Device associated with the cm_id.  All related communication
+>> will
+>> + * be associated with the specified device.
+>> + * @cm_handler: Callback invoked to notify the user of CM events.
+>> + * @service_id: Service identifier matched against incoming connection
+>> + *   and service ID resolution requests.  The service ID should be
+>> specified
+>> + *   network-byte order.  If set to IB_CM_ASSIGN_SERVICE_ID, the CM will
+>> + *   assign a service ID to the caller.
+>> + * @service_mask: Mask applied to service ID used to listen across a
+>> + *   range of service IDs.  If set to 0, the service ID is matched
+>> + *   exactly.  This parameter is ignored if %service_id is set to
+>> + *   IB_CM_ASSIGN_SERVICE_ID.
+>> + *
+>> + * Callers should call ib_destroy_cm_id when done with the listener ID.
+>> + */
+>> +struct ib_cm_id *ib_cm_id_create_and_listen(
+> 
+> Maybe ib_cm_insert_listen() instead?
+
+Okay.
+
+> 
+>> +		struct ib_device *device,
+>> +		ib_cm_handler cm_handler,
+>> +		__be64 service_id,
+>> +		__be64 service_mask)
+>> +{
+>> +	struct cm_id_private *cm_id_priv;
+>> +	struct ib_cm_id *cm_id;
+>> +	unsigned long flags;
+>> +	int err = 0;
+>> +
+>> +	/* Create an ID in advance, since the creation may sleep */
+>> +	cm_id = ib_create_cm_id(device, cm_handler, NULL);
+>> +	if (IS_ERR(cm_id))
+>> +		return cm_id;
+>> +
+>> +	spin_lock_irqsave(&cm.lock, flags);
+>> +
+>> +	if (service_id == IB_CM_ASSIGN_SERVICE_ID)
+>> +		goto new_id;
+>> +
+>> +	/* Find an existing ID */
+>> +	cm_id_priv = cm_find_listen(device, service_id, NULL);
+>> +	if (cm_id_priv) {
+>> +		atomic_inc(&cm_id_priv->refcount);
+>> +		++cm_id_priv->listen_sharecount;
+>> +		spin_unlock_irqrestore(&cm.lock, flags);
+>> +
+>> +		ib_destroy_cm_id(cm_id);
+>> +		cm_id = &cm_id_priv->id;
+>> +		if (cm_id->cm_handler != cm_handler || cm_id->context)
+>> +			/* Sharing an ib_cm_id with different handlers is not
+>> +			 * supported */
+>> +			return ERR_PTR(-EINVAL);
+> 
+> This leaks listen_sharecount references.
+
+Thanks. I'll fix that.
+
+> 
+> 
+>> +		return cm_id;
+>> +	}
+>> +
+>> +new_id:
+>> +	/* Use newly created ID */
+>> +	err = __ib_cm_listen(cm_id, service_id, service_mask, NULL, false);
+>> +
+>> +	spin_unlock_irqrestore(&cm.lock, flags);
+>> +
+>> +	if (err) {
+>> +		ib_destroy_cm_id(cm_id);
+>> +		return ERR_PTR(err);
+>> +	}
+>> +	return cm_id;
+>> +}
+>> +EXPORT_SYMBOL(ib_cm_id_create_and_listen);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
