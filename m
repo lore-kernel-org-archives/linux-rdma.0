@@ -1,76 +1,47 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v2 25/49] IB/hfi1: add local mad header
-Date: Mon, 15 Jun 2015 23:27:10 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FF5B18@ORSMSX109.amr.corp.intel.com>
-References: <20150615132434.29741.35258.stgit@phlsvslse11.ph.intel.com>
- <20150615132813.29741.3528.stgit@phlsvslse11.ph.intel.com>
+From: Haggai Eran <haggaie@mellanox.com>
+Subject: Re: [PATCH 08/11] IB/cma: Add net_dev and private data checks to
+ RDMA CM
+Date: Tue, 16 Jun 2015 08:26:26 +0300
+Message-ID: <557FB382.5090300@mellanox.com>
+References: <1434358036-15526-1-git-send-email-haggaie@mellanox.com>
+ <1434358036-15526-9-git-send-email-haggaie@mellanox.com>
+ <20150615170837.GA14982@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150615132813.29741.3528.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20150615170837.GA14982@obsidianresearch.com>
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-PiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L2hmaTEvbWFkLmggfCAgNDc3DQo+ICsrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrDQo+ICAxIGZpbGUgY2hhbmdlZCwgNDc3IGluc2Vy
-dGlvbnMoKykNCj4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2luZmluaWJhbmQvaHcvaGZp
-MS9tYWQuaA0KPiANCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9oZmkxL21h
-ZC5oDQo+IGIvZHJpdmVycy9pbmZpbmliYW5kL2h3L2hmaTEvbWFkLmgNCj4gbmV3IGZpbGUgbW9k
-ZSAxMDA2NDQNCj4gaW5kZXggMDAwMDAwMC4uYWY2MTI0OQ0KDQpTbmlwDQoNCj4gKyNpbmNsdWRl
-IDxyZG1hL2liX3BtYS5oPg0KPiArI2RlZmluZSBVU0VfUElfTEVEX0VOQUJMRQkxIC8qIHVzZSBs
-ZWQgZW5hYmxlZCBiaXQgaW4gc3RydWN0DQo+ICsJCQkJICAgKiBvcGFfcG9ydF9zdGF0ZXMsIGlm
-IGF2YWlsYWJsZSAqLw0KPiArI2luY2x1ZGUgPHJkbWEvb3BhX3NtaS5oPg0KPiArI2luY2x1ZGUg
-PHJkbWEvb3BhX3BvcnRfaW5mby5oPg0KPiArI2lmbmRlZiBQSV9MRURfRU5BQkxFX1NVUA0KPiAr
-I2RlZmluZSBQSV9MRURfRU5BQkxFX1NVUCAwDQo+ICsjZW5kaWYNCj4gKyNpbmNsdWRlICJvcGFf
-Y29tcGF0LmgiDQo+ICsNCj4gKyNkZWZpbmUgSUJfU01QX1VOU1VQX1ZFUlNJT04gICAgY3B1X3Rv
-X2JlMTYoMHgwMDA0KQ0KPiArI2RlZmluZSBJQl9TTVBfVU5TVVBfTUVUSE9EICAgICBjcHVfdG9f
-YmUxNigweDAwMDgpDQo+ICsjZGVmaW5lIElCX1NNUF9VTlNVUF9NRVRIX0FUVFIgIGNwdV90b19i
-ZTE2KDB4MDAwQykNCj4gKyNkZWZpbmUgSUJfU01QX0lOVkFMSURfRklFTEQgICAgY3B1X3RvX2Jl
-MTYoMHgwMDFDKQ0KPiArDQo+ICtzdHJ1Y3QgaWJfbm9kZV9pbmZvIHsNCj4gKwl1OCBiYXNlX3Zl
-cnNpb247DQo+ICsJdTggY2xhc3NfdmVyc2lvbjsNCj4gKwl1OCBub2RlX3R5cGU7DQo+ICsJdTgg
-bnVtX3BvcnRzOw0KPiArCV9fYmU2NCBzeXNfZ3VpZDsNCj4gKwlfX2JlNjQgbm9kZV9ndWlkOw0K
-PiArCV9fYmU2NCBwb3J0X2d1aWQ7DQo+ICsJX19iZTE2IHBhcnRpdGlvbl9jYXA7DQo+ICsJX19i
-ZTE2IGRldmljZV9pZDsNCj4gKwlfX2JlMzIgcmV2aXNpb247DQo+ICsJdTggbG9jYWxfcG9ydF9u
-dW07DQo+ICsJdTggdmVuZG9yX2lkWzNdOw0KPiArfSBfX3BhY2tlZDsNCj4gKw0KPiArc3RydWN0
-IGliX21hZF9ub3RpY2VfYXR0ciB7DQo+ICsJdTggZ2VuZXJpY190eXBlOw0KPiArCXU4IHByb2Rf
-dHlwZV9tc2I7DQo+ICsJX19iZTE2IHByb2RfdHlwZV9sc2I7DQo+ICsJX19iZTE2IHRyYXBfbnVt
-Ow0KPiArCV9fYmUxNiBpc3N1ZXJfbGlkOw0KPiArCV9fYmUxNiB0b2dnbGVfY291bnQ7DQo+ICsN
-Cj4gKwl1bmlvbiB7DQo+ICsJCXN0cnVjdCB7DQo+ICsJCQl1OAlkZXRhaWxzWzU0XTsNCj4gKwkJ
-fSByYXdfZGF0YTsNCj4gKw0KPiArCQlzdHJ1Y3Qgew0KPiArCQkJX19iZTE2CXJlc2VydmVkOw0K
-PiArCQkJX19iZTE2CWxpZDsJCS8qIHdoZXJlIHZpb2xhdGlvbiBoYXBwZW5lZCAqLw0KPiArCQkJ
-dTgJcG9ydF9udW07CS8qIHdoZXJlIHZpb2xhdGlvbiBoYXBwZW5lZCAqLw0KPiArCQl9IF9fcGFj
-a2VkIG50Y18xMjlfMTMxOw0KPiArDQo+ICsJCXN0cnVjdCB7DQo+ICsJCQlfX2JlMTYJcmVzZXJ2
-ZWQ7DQo+ICsJCQlfX2JlMTYJbGlkOwkJLyogTElEIHdoZXJlIGNoYW5nZSBvY2N1cnJlZCAqLw0K
-PiArCQkJdTgJcmVzZXJ2ZWQyOw0KPiArCQkJdTgJbG9jYWxfY2hhbmdlczsJLyogbG93IGJpdCAt
-IGxvY2FsIGNoYW5nZXMgKi8NCj4gKwkJCV9fYmUzMgluZXdfY2FwX21hc2s7CS8qIG5ldyBjYXBh
-YmlsaXR5IG1hc2sgKi8NCj4gKwkJCXU4CXJlc2VydmVkMzsNCj4gKwkJCXU4CWNoYW5nZV9mbGFn
-czsJLyogbG93IDMgYml0cyBvbmx5ICovDQo+ICsJCX0gX19wYWNrZWQgbnRjXzE0NDsNCj4gKw0K
-PiArCQlzdHJ1Y3Qgew0KPiArCQkJX19iZTE2CXJlc2VydmVkOw0KPiArCQkJX19iZTE2CWxpZDsJ
-CS8qIGxpZCB3aGVyZSBzeXMgZ3VpZCBjaGFuZ2VkICovDQo+ICsJCQlfX2JlMTYJcmVzZXJ2ZWQy
-Ow0KPiArCQkJX19iZTY0CW5ld19zeXNfZ3VpZDsNCj4gKwkJfSBfX3BhY2tlZCBudGNfMTQ1Ow0K
-PiArDQo+ICsJCXN0cnVjdCB7DQo+ICsJCQlfX2JlMTYJcmVzZXJ2ZWQ7DQo+ICsJCQlfX2JlMTYJ
-bGlkOw0KPiArCQkJX19iZTE2CWRyX3NsaWQ7DQo+ICsJCQl1OAltZXRob2Q7DQo+ICsJCQl1OAly
-ZXNlcnZlZDI7DQo+ICsJCQlfX2JlMTYJYXR0cl9pZDsNCj4gKwkJCV9fYmUzMglhdHRyX21vZDsN
-Cj4gKwkJCV9fYmU2NAlta2V5Ow0KPiArCQkJdTgJcmVzZXJ2ZWQzOw0KPiArCQkJdTgJZHJfdHJ1
-bmNfaG9wOw0KPiArCQkJdTgJZHJfcnRuX3BhdGhbMzBdOw0KPiArCQl9IF9fcGFja2VkIG50Y18y
-NTY7DQo+ICsNCj4gKwkJc3RydWN0IHsNCj4gKwkJCV9fYmUxNgkJcmVzZXJ2ZWQ7DQo+ICsJCQlf
-X2JlMTYJCWxpZDE7DQo+ICsJCQlfX2JlMTYJCWxpZDI7DQo+ICsJCQlfX2JlMzIJCWtleTsNCj4g
-KwkJCV9fYmUzMgkJc2xfcXAxOwkvKiBTTDogaGlnaCA0IGJpdHMgKi8NCj4gKwkJCV9fYmUzMgkJ
-cXAyOwkvKiBoaWdoIDggYml0cyByZXNlcnZlZCAqLw0KPiArCQkJdW5pb24gaWJfZ2lkCWdpZDE7
-DQo+ICsJCQl1bmlvbiBpYl9naWQJZ2lkMjsNCj4gKwkJfSBfX3BhY2tlZCBudGNfMjU3XzI1ODsN
-Cj4gKw0KPiArCX0gZGV0YWlsczsNCj4gK307DQo+ICsNCj4gKy8qDQo+ICsgKiBHZW5lcmljIHRy
-YXAvbm90aWNlIHR5cGVzDQo+ICsgKi8NCj4gKyNkZWZpbmUgSUJfTk9USUNFX1RZUEVfRkFUQUwJ
-MHg4MA0KPiArI2RlZmluZSBJQl9OT1RJQ0VfVFlQRV9VUkdFTlQJMHg4MQ0KPiArI2RlZmluZSBJ
-Ql9OT1RJQ0VfVFlQRV9TRUNVUklUWQkweDgyDQo+ICsjZGVmaW5lIElCX05PVElDRV9UWVBFX1NN
-CTB4ODMNCj4gKyNkZWZpbmUgSUJfTk9USUNFX1RZUEVfSU5GTwkweDg0DQoNClNuaXAgdGhlIGVu
-ZC4uLg0KDQoNClRoZXNlIGFyZSBnZW5lcmljIHZhbHVlcyBhbmQgZGF0YSBzdHJ1Y3R1cmVzLiAg
-V2h5IGFyZSB0aGV5IGlzb2xhdGVkIGludG8gYSBkcml2ZXIgc3BlY2lmaWMgZm9sZGVyLCB2ZXJz
-dXMgYmVpbmcgaW4gYSBjb21tb24gaW5jbHVkZSBsb2NhdGlvbj8NCg==
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 15/06/2015 20:08, Jason Gunthorpe wrote:
+> On Mon, Jun 15, 2015 at 11:47:13AM +0300, Haggai Eran wrote:
+>> Instead of relying on a the ib_cm module to check an incoming CM request's
+>> private data header, add these checks to the RDMA CM module. This allows a
+>> following patch to to clean up the ib_cm interface and remove the code that
+>> looks into the private headers. It will also allow supporting namespaces in
+>> RDMA CM by making these checks namespace aware later on.
+> 
+> I was expecting one of these patches to flow the net_device from here:
+> 
+>> +static struct net_device *cma_get_net_dev(struct ib_cm_event *ib_event,
+>> +					  const struct cma_req_info *req)
+>> +{
+> 
+> Down through cma_req_handler and cma_new_conn_id so that we get rid of
+> the cma_translate_addr on the ingress side.
+> 
+> Having the ingress side use one ingress net_device for all processing
+> seems very important to me...
+
+Is it really very important? I thought the bound_dev_if of a passive
+connection id is only used by the netlink statistics mechanism.
+
+If you insist, I can set bound_dev_if based on the results of
+cma_get_net_dev. That would cause the rdma_translate_ip call in
+cma_translate_addr to exit early after calling rdma_copy_addr with the
+chosen net_dev.
+
+Haggai
