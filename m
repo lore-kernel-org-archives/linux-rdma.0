@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v3 04/49] IB/hfi1: add chip specific support part3
-Date: Wed, 17 Jun 2015 08:28:57 -0400
-Message-ID: <20150617122857.8744.51697.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH v3 06/49] IB/hfi1: add chip register definitions
+Date: Wed, 17 Jun 2015 08:29:08 -0400
+Message-ID: <20150617122907.8744.54994.stgit@phlsvslse11.ph.intel.com>
 References: <20150617122755.8744.44665.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -37,2998 +37,1301 @@ Signed-off-by: Sanath Kumar <sanath.s.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.
 Signed-off-by: Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Vlad Danushevsky <vladimir.danusevsky-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c | 2981 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 2981 insertions(+)
+ drivers/infiniband/hw/hfi1/chip_registers.h | 1285 +++++++++++++++++++++++++++
+ 1 file changed, 1285 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi1/chip_registers.h
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index ed03311..7019499 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -5030,3 +5030,2984 @@ static int read_idle_message(struct hfi1_devdata *dd, u64 type, u64 *data_out)
- static int read_idle_sma(struct hfi1_devdata *dd, u64 *data)
- {
- 	return read_idle_message(dd,
-+			(u64)IDLE_SMA << IDLE_MSG_TYPE_SHIFT, data);
-+}
+diff --git a/drivers/infiniband/hw/hfi1/chip_registers.h b/drivers/infiniband/hw/hfi1/chip_registers.h
+new file mode 100644
+index 0000000..4ae0403
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi1/chip_registers.h
+@@ -0,0 +1,1285 @@
++#ifndef DEF_CHIP_REG
++#define DEF_CHIP_REG
 +
 +/*
-+ * Send an idle LCB message.
 + *
-+ * Returns 0 on success, -EINVAL on error
-+ */
-+static int send_idle_message(struct hfi1_devdata *dd, u64 data)
-+{
-+	int ret;
-+
-+	dd_dev_info(dd, "%s: sending idle message 0x%llx\n", __func__, data);
-+	ret = do_8051_command(dd, HCMD_SEND_LCB_IDLE_MSG, data, NULL);
-+	if (ret != HCMD_SUCCESS) {
-+		dd_dev_err(dd, "send idle message: data 0x%llx, err %d\n",
-+			data, ret);
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+/*
-+ * Send an idle SMA message.
++ * This file is provided under a dual BSD/GPLv2 license.  When using or
++ * redistributing this file, you may do so under either license.
 + *
-+ * Returns 0 on success, -EINVAL on error
-+ */
-+int send_idle_sma(struct hfi1_devdata *dd, u64 message)
-+{
-+	u64 data;
-+
-+	data = ((message & IDLE_PAYLOAD_MASK) << IDLE_PAYLOAD_SHIFT)
-+		| ((u64)IDLE_SMA << IDLE_MSG_TYPE_SHIFT);
-+	return send_idle_message(dd, data);
-+}
-+
-+/*
-+ * Initialize the LCB then do a quick link up.  This may or may not be
-+ * in loopback.
++ * GPL LICENSE SUMMARY
 + *
-+ * return 0 on success, -errno on error
-+ */
-+static int do_quick_linkup(struct hfi1_devdata *dd)
-+{
-+	u64 reg;
-+	unsigned long timeout;
-+	int ret;
-+
-+	lcb_shutdown(dd, 0);
-+
-+	if (loopback) {
-+		/* LCB_CFG_LOOPBACK.VAL = 2 */
-+		/* LCB_CFG_LANE_WIDTH.VAL = 0 */
-+		write_csr(dd, DC_LCB_CFG_LOOPBACK,
-+			IB_PACKET_TYPE << DC_LCB_CFG_LOOPBACK_VAL_SHIFT);
-+		write_csr(dd, DC_LCB_CFG_LANE_WIDTH, 0);
-+	}
-+
-+	/* start the LCBs */
-+	/* LCB_CFG_TX_FIFOS_RESET.VAL = 0 */
-+	write_csr(dd, DC_LCB_CFG_TX_FIFOS_RESET, 0);
-+
-+	/* simulator only loopback steps */
-+	if (loopback && dd->icode == ICODE_FUNCTIONAL_SIMULATOR) {
-+		/* LCB_CFG_RUN.EN = 1 */
-+		write_csr(dd, DC_LCB_CFG_RUN,
-+			1ull << DC_LCB_CFG_RUN_EN_SHIFT);
-+
-+		/* watch LCB_STS_LINK_TRANSFER_ACTIVE */
-+		timeout = jiffies + msecs_to_jiffies(10);
-+		while (1) {
-+			reg = read_csr(dd,
-+				DC_LCB_STS_LINK_TRANSFER_ACTIVE);
-+			if (reg)
-+				break;
-+			if (time_after(jiffies, timeout)) {
-+				dd_dev_err(dd,
-+					"timeout waiting for LINK_TRANSFER_ACTIVE\n");
-+				return -ETIMEDOUT;
-+			}
-+			udelay(2);
-+		}
-+
-+		write_csr(dd, DC_LCB_CFG_ALLOW_LINK_UP,
-+			1ull << DC_LCB_CFG_ALLOW_LINK_UP_VAL_SHIFT);
-+	}
-+
-+	if (!loopback) {
-+		/*
-+		 * When doing quick linkup and not in loopback, both
-+		 * sides must be done with LCB set-up before either
-+		 * starts the quick linkup.  Put a delay here so that
-+		 * both sides can be started and have a chance to be
-+		 * done with LCB set up before resuming.
-+		 */
-+		dd_dev_err(dd,
-+			"Pausing for peer to be finished with LCB set up\n");
-+		msleep(5000);
-+		dd_dev_err(dd,
-+			"Continuing with quick linkup\n");
-+	}
-+
-+	write_csr(dd, DC_LCB_ERR_EN, 0); /* mask LCB errors */
-+	set_8051_lcb_access(dd);
-+
-+	/*
-+	 * State "quick" LinkUp request sets the physical link state to
-+	 * LinkUp without a verify capability sequence.
-+	 * This state is in simulator v37 and later.
-+	 */
-+	ret = set_physical_link_state(dd, PLS_QUICK_LINKUP);
-+	if (ret != HCMD_SUCCESS) {
-+		dd_dev_err(dd,
-+			"%s: set physical link state to quick LinkUp failed with return %d\n",
-+			__func__, ret);
-+
-+		set_host_lcb_access(dd);
-+		write_csr(dd, DC_LCB_ERR_EN, ~0ull); /* watch LCB errors */
-+
-+		if (ret >= 0)
-+			ret = -EINVAL;
-+		return ret;
-+	}
-+
-+	return 0; /* success */
-+}
-+
-+/*
-+ * Set the SerDes to internal loopback mode.
-+ * Returns 0 on success, -errno on error.
-+ */
-+static int set_serdes_loopback_mode(struct hfi1_devdata *dd)
-+{
-+	int ret;
-+
-+	ret = set_physical_link_state(dd, PLS_INTERNAL_SERDES_LOOPBACK);
-+	if (ret == HCMD_SUCCESS)
-+		return 0;
-+	dd_dev_err(dd,
-+		"Set physical link state to SerDes Loopback failed with return %d\n",
-+		ret);
-+	if (ret >= 0)
-+		ret = -EINVAL;
-+	return ret;
-+}
-+
-+/*
-+ * Do all special steps to set up loopback.
-+ */
-+static int init_loopback(struct hfi1_devdata *dd)
-+{
-+	dd_dev_info(dd, "Entering loopback mode\n");
-+
-+	/* all loopbacks should disable self GUID check */
-+	write_csr(dd, DC_DC8051_CFG_MODE,
-+		(read_csr(dd, DC_DC8051_CFG_MODE) | DISABLE_SELF_GUID_CHECK));
-+
-+	/*
-+	 * The simulator has only one loopback option - LCB.  Switch
-+	 * to that option, which includes quick link up.
-+	 *
-+	 * Accept all valid loopback values.
-+	 */
-+	if ((dd->icode == ICODE_FUNCTIONAL_SIMULATOR)
-+		&& (loopback == LOOPBACK_SERDES
-+			|| loopback == LOOPBACK_LCB
-+			|| loopback == LOOPBACK_CABLE)) {
-+		loopback = LOOPBACK_LCB;
-+		quick_linkup = 1;
-+		return 0;
-+	}
-+
-+	/* handle serdes loopback */
-+	if (loopback == LOOPBACK_SERDES) {
-+		/* internal serdes loopack needs quick linkup on RTL */
-+		if (dd->icode == ICODE_RTL_SILICON)
-+			quick_linkup = 1;
-+		return set_serdes_loopback_mode(dd);
-+	}
-+
-+	/* LCB loopback - handled at poll time */
-+	if (loopback == LOOPBACK_LCB) {
-+		quick_linkup = 1; /* LCB is always quick linkup */
-+
-+		/* not supported in emulation due to emulation RTL changes */
-+		if (dd->icode == ICODE_FPGA_EMULATION) {
-+			dd_dev_err(dd,
-+				"LCB loopback not supported in emulation\n");
-+			return -EINVAL;
-+		}
-+		return 0;
-+	}
-+
-+	/* external cable loopback requires no extra steps */
-+	if (loopback == LOOPBACK_CABLE)
-+		return 0;
-+
-+	dd_dev_err(dd, "Invalid loopback mode %d\n", loopback);
-+	return -EINVAL;
-+}
-+
-+/*
-+ * Translate from the OPA_LINK_WIDTH handed to us by the FM to bits
-+ * used in the Verify Capability link width attribute.
-+ */
-+static u16 opa_to_vc_link_widths(u16 opa_widths)
-+{
-+	int i;
-+	u16 result = 0;
-+
-+	static const struct link_bits {
-+		u16 from;
-+		u16 to;
-+	} opa_link_xlate[] = {
-+		{ OPA_LINK_WIDTH_1X, 1 << (1-1)  },
-+		{ OPA_LINK_WIDTH_2X, 1 << (2-1)  },
-+		{ OPA_LINK_WIDTH_3X, 1 << (3-1)  },
-+		{ OPA_LINK_WIDTH_4X, 1 << (4-1)  },
-+	};
-+
-+	for (i = 0; i < ARRAY_SIZE(opa_link_xlate); i++) {
-+		if (opa_widths & opa_link_xlate[i].from)
-+			result |= opa_link_xlate[i].to;
-+	}
-+	return result;
-+}
-+
-+/*
-+ * Set link attributes before moving to polling.
-+ */
-+static int set_local_link_attributes(struct hfi1_pportdata *ppd)
-+{
-+	struct hfi1_devdata *dd = ppd->dd;
-+	u8 enable_lane_tx;
-+	u8 tx_polarity_inversion;
-+	u8 rx_polarity_inversion;
-+	u8 max_rate;
-+	int ret;
-+
-+	/* reset our fabric serdes to clear any lingering problems */
-+	fabric_serdes_reset(dd);
-+
-+	/* set the max rate - need to read-modify-write */
-+	ret = read_tx_settings(dd, &enable_lane_tx, &tx_polarity_inversion,
-+		&rx_polarity_inversion, &max_rate);
-+	if (ret != HCMD_SUCCESS)
-+		goto set_local_link_attributes_fail;
-+
-+	/* set the max rate to the fastest enabled */
-+	if (ppd->link_speed_enabled & OPA_LINK_SPEED_25G)
-+		max_rate = 1;
-+	else
-+		max_rate = 0;
-+	ret = write_tx_settings(dd, enable_lane_tx, tx_polarity_inversion,
-+		     rx_polarity_inversion, max_rate);
-+	if (ret != HCMD_SUCCESS)
-+		goto set_local_link_attributes_fail;
-+
-+	/*
-+	 * DC supports continuous updates.
-+	 */
-+	ret = write_vc_local_phy(dd, 0 /* no power management */,
-+				     1 /* continuous updates */);
-+	if (ret != HCMD_SUCCESS)
-+		goto set_local_link_attributes_fail;
-+
-+	/* z=1 in the next call: AU of 0 is not supported by the hardware */
-+	ret = write_vc_local_fabric(dd, dd->vau, 1, dd->vcu, dd->vl15_init,
-+				    ppd->port_crc_mode_enabled);
-+	if (ret != HCMD_SUCCESS)
-+		goto set_local_link_attributes_fail;
-+
-+	ret = write_vc_local_link_width(dd, 0, 0,
-+		     opa_to_vc_link_widths(ppd->link_width_enabled));
-+	if (ret != HCMD_SUCCESS)
-+		goto set_local_link_attributes_fail;
-+
-+	/* let peer know who we are */
-+	ret = write_local_device_id(dd, dd->pcidev->device, dd->minrev);
-+	if (ret == HCMD_SUCCESS)
-+		return 0;
-+
-+set_local_link_attributes_fail:
-+	dd_dev_err(dd,
-+		"Failed to set local link attributes, return 0x%x\n",
-+		ret);
-+	return ret;
-+}
-+
-+/*
-+ * Call this to start the link.  Schedule a retry if the cable is not
-+ * present or if unable to start polling.  Do not do anything if the
-+ * link is disabled.  Returns 0 if link is disabled or moved to polling
-+ */
-+int start_link(struct hfi1_pportdata *ppd)
-+{
-+	if (!ppd->link_enabled) {
-+		dd_dev_info(ppd->dd,
-+			"%s: stopping link start because link is disabled\n",
-+			__func__);
-+		return 0;
-+	}
-+	if (!ppd->driver_link_ready) {
-+		dd_dev_info(ppd->dd,
-+			"%s: stopping link start because driver is not ready\n",
-+			__func__);
-+		return 0;
-+	}
-+
-+	if (qsfp_mod_present(ppd) || loopback == LOOPBACK_SERDES ||
-+			loopback == LOOPBACK_LCB ||
-+			ppd->dd->icode == ICODE_FUNCTIONAL_SIMULATOR)
-+		return set_link_state(ppd, HLS_DN_POLL);
-+
-+	dd_dev_info(ppd->dd,
-+		"%s: stopping link start because no cable is present\n",
-+		__func__);
-+	return -EAGAIN;
-+}
-+
-+static void reset_qsfp(struct hfi1_pportdata *ppd)
-+{
-+	struct hfi1_devdata *dd = ppd->dd;
-+	u64 mask, qsfp_mask;
-+
-+	mask = (u64)QSFP_HFI0_RESET_N;
-+	qsfp_mask = read_csr(dd,
-+		dd->hfi1_id ? ASIC_QSFP2_OE : ASIC_QSFP1_OE);
-+	qsfp_mask |= mask;
-+	write_csr(dd,
-+		dd->hfi1_id ? ASIC_QSFP2_OE : ASIC_QSFP1_OE,
-+		qsfp_mask);
-+
-+	qsfp_mask = read_csr(dd,
-+		dd->hfi1_id ? ASIC_QSFP2_OUT : ASIC_QSFP1_OUT);
-+	qsfp_mask &= ~mask;
-+	write_csr(dd,
-+		dd->hfi1_id ? ASIC_QSFP2_OUT : ASIC_QSFP1_OUT,
-+		qsfp_mask);
-+	udelay(10);
-+	qsfp_mask |= mask;
-+	write_csr(dd,
-+		dd->hfi1_id ? ASIC_QSFP2_OUT : ASIC_QSFP1_OUT,
-+		qsfp_mask);
-+}
-+
-+static int handle_qsfp_error_conditions(struct hfi1_pportdata *ppd,
-+					u8 *qsfp_interrupt_status)
-+{
-+	struct hfi1_devdata *dd = ppd->dd;
-+
-+	if ((qsfp_interrupt_status[0] & QSFP_HIGH_TEMP_ALARM) ||
-+		(qsfp_interrupt_status[0] & QSFP_HIGH_TEMP_WARNING))
-+		dd_dev_info(dd,
-+			"%s: QSFP cable on fire\n",
-+			__func__);
-+
-+	if ((qsfp_interrupt_status[0] & QSFP_LOW_TEMP_ALARM) ||
-+		(qsfp_interrupt_status[0] & QSFP_LOW_TEMP_WARNING))
-+		dd_dev_info(dd,
-+			"%s: QSFP cable temperature too low\n",
-+			__func__);
-+
-+	if ((qsfp_interrupt_status[1] & QSFP_HIGH_VCC_ALARM) ||
-+		(qsfp_interrupt_status[1] & QSFP_HIGH_VCC_WARNING))
-+		dd_dev_info(dd,
-+			"%s: QSFP supply voltage too high\n",
-+			__func__);
-+
-+	if ((qsfp_interrupt_status[1] & QSFP_LOW_VCC_ALARM) ||
-+		(qsfp_interrupt_status[1] & QSFP_LOW_VCC_WARNING))
-+		dd_dev_info(dd,
-+			"%s: QSFP supply voltage too low\n",
-+			__func__);
-+
-+	/* Byte 2 is vendor specific */
-+
-+	if ((qsfp_interrupt_status[3] & QSFP_HIGH_POWER_ALARM) ||
-+		(qsfp_interrupt_status[3] & QSFP_HIGH_POWER_WARNING))
-+		dd_dev_info(dd,
-+			"%s: Cable RX channel 1/2 power too high\n",
-+			__func__);
-+
-+	if ((qsfp_interrupt_status[3] & QSFP_LOW_POWER_ALARM) ||
-+		(qsfp_interrupt_status[3] & QSFP_LOW_POWER_WARNING))
-+		dd_dev_info(dd,
-+			"%s: Cable RX channel 1/2 power too low\n",
-+			__func__);
-+
-+	if ((qsfp_interrupt_status[4] & QSFP_HIGH_POWER_ALARM) ||
-+		(qsfp_interrupt_status[4] & QSFP_HIGH_POWER_WARNING))
-+		dd_dev_info(dd,
-+			"%s: Cable RX channel 3/4 power too high\n",
-+			__func__);
-+
-+	if ((qsfp_interrupt_status[4] & QSFP_LOW_POWER_ALARM) ||
-+		(qsfp_interrupt_status[4] & QSFP_LOW_POWER_WARNING))
-+		dd_dev_info(dd,
-+			"%s: Cable RX channel 3/4 power too low\n",
-+			__func__);
-+
-+	if ((qsfp_interrupt_status[5] & QSFP_HIGH_BIAS_ALARM) ||
-+		(qsfp_interrupt_status[5] & QSFP_HIGH_BIAS_WARNING))
-+		dd_dev_info(dd,
-+			"%s: Cable TX channel 1/2 bias too high\n",
-+			__func__);
-+
-+	if ((qsfp_interrupt_status[5] & QSFP_LOW_BIAS_ALARM) ||
-+		(qsfp_interrupt_status[5] & QSFP_LOW_BIAS_WARNING))
-+		dd_dev_info(dd,
-+			"%s: Cable TX channel 1/2 bias too low\n",
-+			__func__);
-+
-+	if ((qsfp_interrupt_status[6] & QSFP_HIGH_BIAS_ALARM) ||
-+		(qsfp_interrupt_status[6] & QSFP_HIGH_BIAS_WARNING))
-+		dd_dev_info(dd,
-+			"%s: Cable TX channel 3/4 bias too high\n",
-+			__func__);
-+
-+	if ((qsfp_interrupt_status[6] & QSFP_LOW_BIAS_ALARM) ||
-+		(qsfp_interrupt_status[6] & QSFP_LOW_BIAS_WARNING))
-+		dd_dev_info(dd,
-+			"%s: Cable TX channel 3/4 bias too low\n",
-+			__func__);
-+
-+	if ((qsfp_interrupt_status[7] & QSFP_HIGH_POWER_ALARM) ||
-+		(qsfp_interrupt_status[7] & QSFP_HIGH_POWER_WARNING))
-+		dd_dev_info(dd,
-+			"%s: Cable TX channel 1/2 power too high\n",
-+			__func__);
-+
-+	if ((qsfp_interrupt_status[7] & QSFP_LOW_POWER_ALARM) ||
-+		(qsfp_interrupt_status[7] & QSFP_LOW_POWER_WARNING))
-+		dd_dev_info(dd,
-+			"%s: Cable TX channel 1/2 power too low\n",
-+			__func__);
-+
-+	if ((qsfp_interrupt_status[8] & QSFP_HIGH_POWER_ALARM) ||
-+		(qsfp_interrupt_status[8] & QSFP_HIGH_POWER_WARNING))
-+		dd_dev_info(dd,
-+			"%s: Cable TX channel 3/4 power too high\n",
-+			__func__);
-+
-+	if ((qsfp_interrupt_status[8] & QSFP_LOW_POWER_ALARM) ||
-+		(qsfp_interrupt_status[8] & QSFP_LOW_POWER_WARNING))
-+		dd_dev_info(dd,
-+			"%s: Cable TX channel 3/4 power too low\n",
-+			__func__);
-+
-+	/* Bytes 9-10 and 11-12 are reserved */
-+	/* Bytes 13-15 are vendor specific */
-+
-+	return 0;
-+}
-+
-+static int do_pre_lni_host_behaviors(struct hfi1_pportdata *ppd)
-+{
-+	refresh_qsfp_cache(ppd, &ppd->qsfp_info);
-+
-+	return 0;
-+}
-+
-+static int do_qsfp_intr_fallback(struct hfi1_pportdata *ppd)
-+{
-+	struct hfi1_devdata *dd = ppd->dd;
-+	u8 qsfp_interrupt_status = 0;
-+
-+	if (qsfp_read(ppd, dd->hfi1_id, 2, &qsfp_interrupt_status, 1)
-+		!= 1) {
-+		dd_dev_info(dd,
-+			"%s: Failed to read status of QSFP module\n",
-+			__func__);
-+		return -EIO;
-+	}
-+
-+	/* We don't care about alarms & warnings with a non-functional INT_N */
-+	if (!(qsfp_interrupt_status & QSFP_DATA_NOT_READY))
-+		do_pre_lni_host_behaviors(ppd);
-+
-+	return 0;
-+}
-+
-+/* This routine will only be scheduled if the QSFP module is present */
-+static void qsfp_event(struct work_struct *work)
-+{
-+	struct qsfp_data *qd;
-+	struct hfi1_pportdata *ppd;
-+	struct hfi1_devdata *dd;
-+
-+	qd = container_of(work, struct qsfp_data, qsfp_work);
-+	ppd = qd->ppd;
-+	dd = ppd->dd;
-+
-+	/* Sanity check */
-+	if (!qsfp_mod_present(ppd))
-+		return;
-+
-+	/*
-+	 * Turn DC back on after cables has been
-+	 * re-inserted. Up until now, the DC has been in
-+	 * reset to save power.
-+	 */
-+	dc_start(dd);
-+
-+	if (qd->cache_refresh_required) {
-+		msleep(3000);
-+		reset_qsfp(ppd);
-+
-+		/* Check for QSFP interrupt after t_init (SFF 8679)
-+		 * + extra
-+		 */
-+		msleep(3000);
-+		if (!qd->qsfp_interrupt_functional) {
-+			if (do_qsfp_intr_fallback(ppd) < 0)
-+				dd_dev_info(dd, "%s: QSFP fallback failed\n",
-+					__func__);
-+			ppd->driver_link_ready = 1;
-+			start_link(ppd);
-+		}
-+	}
-+
-+	if (qd->check_interrupt_flags) {
-+		u8 qsfp_interrupt_status[16] = {0,};
-+
-+		if (qsfp_read(ppd, dd->hfi1_id, 6,
-+			      &qsfp_interrupt_status[0], 16) != 16) {
-+			dd_dev_info(dd,
-+				"%s: Failed to read status of QSFP module\n",
-+				__func__);
-+		} else {
-+			unsigned long flags;
-+			u8 data_status;
-+
-+			spin_lock_irqsave(&ppd->qsfp_info.qsfp_lock, flags);
-+			ppd->qsfp_info.check_interrupt_flags = 0;
-+			spin_unlock_irqrestore(&ppd->qsfp_info.qsfp_lock,
-+								flags);
-+
-+			if (qsfp_read(ppd, dd->hfi1_id, 2, &data_status, 1)
-+				 != 1) {
-+				dd_dev_info(dd,
-+				"%s: Failed to read status of QSFP module\n",
-+					__func__);
-+			}
-+			if (!(data_status & QSFP_DATA_NOT_READY)) {
-+				do_pre_lni_host_behaviors(ppd);
-+				start_link(ppd);
-+			} else
-+				handle_qsfp_error_conditions(ppd,
-+						qsfp_interrupt_status);
-+		}
-+	}
-+}
-+
-+void init_qsfp(struct hfi1_pportdata *ppd)
-+{
-+	struct hfi1_devdata *dd = ppd->dd;
-+	u64 qsfp_mask;
-+
-+	if (loopback == LOOPBACK_SERDES || loopback == LOOPBACK_LCB ||
-+			ppd->dd->icode == ICODE_FUNCTIONAL_SIMULATOR ||
-+			!HFI1_CAP_IS_KSET(QSFP_ENABLED)) {
-+		ppd->driver_link_ready = 1;
-+		return;
-+	}
-+
-+	ppd->qsfp_info.ppd = ppd;
-+	INIT_WORK(&ppd->qsfp_info.qsfp_work, qsfp_event);
-+
-+	qsfp_mask = (u64)(QSFP_HFI0_INT_N | QSFP_HFI0_MODPRST_N);
-+	/* Clear current status to avoid spurious interrupts */
-+	write_csr(dd,
-+			dd->hfi1_id ?
-+				ASIC_QSFP2_CLEAR :
-+				ASIC_QSFP1_CLEAR,
-+		qsfp_mask);
-+
-+	/* Handle active low nature of INT_N and MODPRST_N pins */
-+	if (qsfp_mod_present(ppd))
-+		qsfp_mask &= ~(u64)QSFP_HFI0_MODPRST_N;
-+	write_csr(dd,
-+		  dd->hfi1_id ? ASIC_QSFP2_INVERT : ASIC_QSFP1_INVERT,
-+		  qsfp_mask);
-+
-+	/* Allow only INT_N and MODPRST_N to trigger QSFP interrupts */
-+	qsfp_mask |= (u64)QSFP_HFI0_MODPRST_N;
-+	write_csr(dd,
-+		dd->hfi1_id ? ASIC_QSFP2_MASK : ASIC_QSFP1_MASK,
-+		qsfp_mask);
-+
-+	if (qsfp_mod_present(ppd)) {
-+		msleep(3000);
-+		reset_qsfp(ppd);
-+
-+		/* Check for QSFP interrupt after t_init (SFF 8679)
-+		 * + extra
-+		 */
-+		msleep(3000);
-+		if (!ppd->qsfp_info.qsfp_interrupt_functional) {
-+			if (do_qsfp_intr_fallback(ppd) < 0)
-+				dd_dev_info(dd,
-+					"%s: QSFP fallback failed\n",
-+					__func__);
-+			ppd->driver_link_ready = 1;
-+		}
-+	}
-+}
-+
-+int bringup_serdes(struct hfi1_pportdata *ppd)
-+{
-+	struct hfi1_devdata *dd = ppd->dd;
-+	u64 guid;
-+	int ret;
-+
-+	if (HFI1_CAP_IS_KSET(EXTENDED_PSN))
-+		add_rcvctrl(dd, RCV_CTRL_RCV_EXTENDED_PSN_ENABLE_SMASK);
-+
-+	guid = be64_to_cpu(ppd->guid);
-+	if (!guid) {
-+		if (dd->base_guid)
-+			guid = be64_to_cpu(dd->base_guid) + ppd->port - 1;
-+		ppd->guid = cpu_to_be64(guid);
-+	}
-+
-+	/* the link defaults to enabled */
-+	ppd->link_enabled = 1;
-+	/* Set linkinit_reason on power up per OPA spec */
-+	ppd->linkinit_reason = OPA_LINKINIT_REASON_LINKUP;
-+
-+	if (loopback) {
-+		ret = init_loopback(dd);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	return start_link(ppd);
-+}
-+
-+void hfi1_quiet_serdes(struct hfi1_pportdata *ppd)
-+{
-+	struct hfi1_devdata *dd = ppd->dd;
-+
-+	/*
-+	 * Shut down the link and keep it down.   First turn off that the
-+	 * driver wants to allow the link to be up (driver_link_ready).
-+	 * Then make sure the link is not automatically restarted
-+	 * (link_enabled).  Cancel any pending restart.  And finally
-+	 * go offline.
-+	 */
-+	ppd->driver_link_ready = 0;
-+	ppd->link_enabled = 0;
-+
-+	set_link_down_reason(ppd, OPA_LINKDOWN_REASON_SMA_DISABLED, 0,
-+	  OPA_LINKDOWN_REASON_SMA_DISABLED);
-+	set_link_state(ppd, HLS_DN_OFFLINE);
-+
-+	/* disable the port */
-+	clear_rcvctrl(dd, RCV_CTRL_RCV_PORT_ENABLE_SMASK);
-+}
-+
-+static inline int init_cpu_counters(struct hfi1_devdata *dd)
-+{
-+	struct hfi1_pportdata *ppd;
-+	int i;
-+
-+	ppd = (struct hfi1_pportdata *)(dd + 1);
-+	for (i = 0; i < dd->num_pports; i++, ppd++) {
-+		ppd->ibport_data.rc_acks = NULL;
-+		ppd->ibport_data.rc_qacks = NULL;
-+		ppd->ibport_data.rc_acks = alloc_percpu(u64);
-+		ppd->ibport_data.rc_qacks = alloc_percpu(u64);
-+		ppd->ibport_data.rc_delayed_comp = alloc_percpu(u64);
-+		if ((ppd->ibport_data.rc_acks == NULL) ||
-+		    (ppd->ibport_data.rc_delayed_comp == NULL) ||
-+		    (ppd->ibport_data.rc_qacks == NULL))
-+			return -ENOMEM;
-+	}
-+
-+	return 0;
-+}
-+
-+static const char * const pt_names[] = {
-+	"expected",
-+	"eager",
-+	"invalid"
-+};
-+
-+static const char *pt_name(u32 type)
-+{
-+	return type >= ARRAY_SIZE(pt_names) ? "unknown" : pt_names[type];
-+}
-+
-+/*
-+ * index is the index into the receive array
-+ */
-+void hfi1_put_tid(struct hfi1_devdata *dd, u32 index,
-+		  u32 type, unsigned long pa, u16 order)
-+{
-+	u64 reg;
-+	void __iomem *base = (dd->rcvarray_wc ? dd->rcvarray_wc :
-+			      (dd->kregbase + RCV_ARRAY));
-+
-+	if (!(dd->flags & HFI1_PRESENT))
-+		goto done;
-+
-+	if (type == PT_INVALID) {
-+		pa = 0;
-+	} else if (type > PT_INVALID) {
-+		dd_dev_err(dd,
-+			"unexpected receive array type %u for index %u, not handled\n",
-+			type, index);
-+		goto done;
-+	}
-+
-+	hfi1_cdbg(TID, "type %s, index 0x%x, pa 0x%lx, bsize 0x%lx",
-+		  pt_name(type), index, pa, (unsigned long)order);
-+
-+#define RT_ADDR_SHIFT 12	/* 4KB kernel address boundary */
-+	reg = RCV_ARRAY_RT_WRITE_ENABLE_SMASK
-+		| (u64)order << RCV_ARRAY_RT_BUF_SIZE_SHIFT
-+		| ((pa >> RT_ADDR_SHIFT) & RCV_ARRAY_RT_ADDR_MASK)
-+					<< RCV_ARRAY_RT_ADDR_SHIFT;
-+	writeq(reg, base + (index * 8));
-+
-+	if (type == PT_EAGER)
-+		/*
-+		 * Eager entries are written one-by-one so we have to push them
-+		 * after we write the entry.
-+		 */
-+		flush_wc();
-+done:
-+	return;
-+}
-+
-+void hfi1_clear_tids(struct hfi1_ctxtdata *rcd)
-+{
-+	struct hfi1_devdata *dd = rcd->dd;
-+	u32 i;
-+
-+	/* this could be optimized */
-+	for (i = rcd->eager_base; i < rcd->eager_base +
-+		     rcd->egrbufs.alloced; i++)
-+		hfi1_put_tid(dd, i, PT_INVALID, 0, 0);
-+
-+	for (i = rcd->expected_base;
-+			i < rcd->expected_base + rcd->expected_count; i++)
-+		hfi1_put_tid(dd, i, PT_INVALID, 0, 0);
-+}
-+
-+int hfi1_get_base_kinfo(struct hfi1_ctxtdata *rcd,
-+			struct hfi1_ctxt_info *kinfo)
-+{
-+	kinfo->runtime_flags = (HFI1_MISC_GET() << HFI1_CAP_USER_SHIFT) |
-+		HFI1_CAP_UGET(MASK) | HFI1_CAP_KGET(K2U);
-+	return 0;
-+}
-+
-+struct hfi1_message_header *hfi1_get_msgheader(
-+				struct hfi1_devdata *dd, __le32 *rhf_addr)
-+{
-+	u32 offset = rhf_hdrq_offset(rhf_to_cpu(rhf_addr));
-+
-+	return (struct hfi1_message_header *)
-+		(rhf_addr - dd->rhf_offset + offset);
-+}
-+
-+static const char * const ib_cfg_name_strings[] = {
-+	"HFI1_IB_CFG_LIDLMC",
-+	"HFI1_IB_CFG_LWID_DG_ENB",
-+	"HFI1_IB_CFG_LWID_ENB",
-+	"HFI1_IB_CFG_LWID",
-+	"HFI1_IB_CFG_SPD_ENB",
-+	"HFI1_IB_CFG_SPD",
-+	"HFI1_IB_CFG_RXPOL_ENB",
-+	"HFI1_IB_CFG_LREV_ENB",
-+	"HFI1_IB_CFG_LINKLATENCY",
-+	"HFI1_IB_CFG_HRTBT",
-+	"HFI1_IB_CFG_OP_VLS",
-+	"HFI1_IB_CFG_VL_HIGH_CAP",
-+	"HFI1_IB_CFG_VL_LOW_CAP",
-+	"HFI1_IB_CFG_OVERRUN_THRESH",
-+	"HFI1_IB_CFG_PHYERR_THRESH",
-+	"HFI1_IB_CFG_LINKDEFAULT",
-+	"HFI1_IB_CFG_PKEYS",
-+	"HFI1_IB_CFG_MTU",
-+	"HFI1_IB_CFG_LSTATE",
-+	"HFI1_IB_CFG_VL_HIGH_LIMIT",
-+	"HFI1_IB_CFG_PMA_TICKS",
-+	"HFI1_IB_CFG_PORT"
-+};
-+
-+static const char *ib_cfg_name(int which)
-+{
-+	if (which < 0 || which >= ARRAY_SIZE(ib_cfg_name_strings))
-+		return "invalid";
-+	return ib_cfg_name_strings[which];
-+}
-+
-+int hfi1_get_ib_cfg(struct hfi1_pportdata *ppd, int which)
-+{
-+	struct hfi1_devdata *dd = ppd->dd;
-+	int val = 0;
-+
-+	switch (which) {
-+	case HFI1_IB_CFG_LWID_ENB: /* allowed Link-width */
-+		val = ppd->link_width_enabled;
-+		break;
-+	case HFI1_IB_CFG_LWID: /* currently active Link-width */
-+		val = ppd->link_width_active;
-+		break;
-+	case HFI1_IB_CFG_SPD_ENB: /* allowed Link speeds */
-+		val = ppd->link_speed_enabled;
-+		break;
-+	case HFI1_IB_CFG_SPD: /* current Link speed */
-+		val = ppd->link_speed_active;
-+		break;
-+
-+	case HFI1_IB_CFG_RXPOL_ENB: /* Auto-RX-polarity enable */
-+	case HFI1_IB_CFG_LREV_ENB: /* Auto-Lane-reversal enable */
-+	case HFI1_IB_CFG_LINKLATENCY:
-+		goto unimplemented;
-+
-+	case HFI1_IB_CFG_OP_VLS:
-+		val = ppd->vls_operational;
-+		break;
-+	case HFI1_IB_CFG_VL_HIGH_CAP: /* VL arb high priority table size */
-+		val = VL_ARB_HIGH_PRIO_TABLE_SIZE;
-+		break;
-+	case HFI1_IB_CFG_VL_LOW_CAP: /* VL arb low priority table size */
-+		val = VL_ARB_LOW_PRIO_TABLE_SIZE;
-+		break;
-+	case HFI1_IB_CFG_OVERRUN_THRESH: /* IB overrun threshold */
-+		val = ppd->overrun_threshold;
-+		break;
-+	case HFI1_IB_CFG_PHYERR_THRESH: /* IB PHY error threshold */
-+		val = ppd->phy_error_threshold;
-+		break;
-+	case HFI1_IB_CFG_LINKDEFAULT: /* IB link default (sleep/poll) */
-+		val = dd->link_default;
-+		break;
-+
-+	case HFI1_IB_CFG_HRTBT: /* Heartbeat off/enable/auto */
-+	case HFI1_IB_CFG_PMA_TICKS:
-+	default:
-+unimplemented:
-+		if (HFI1_CAP_IS_KSET(PRINT_UNIMPL))
-+			dd_dev_info(
-+				dd,
-+				"%s: which %s: not implemented\n",
-+				__func__,
-+				ib_cfg_name(which));
-+		break;
-+	}
-+
-+	return val;
-+}
-+
-+/*
-+ * The largest MAD packet size.
-+ */
-+#define MAX_MAD_PACKET 2048
-+
-+/*
-+ * Return the maximum header bytes that can go on the _wire_
-+ * for this device. This count includes the ICRC which is
-+ * not part of the packet held in memory but it is appended
-+ * by the HW.
-+ * This is dependent on the device's receive header entry size.
-+ * HFI allows this to be set per-receive context, but the
-+ * driver presently enforces a global value.
-+ */
-+u32 lrh_max_header_bytes(struct hfi1_devdata *dd)
-+{
-+	/*
-+	 * The maximum non-payload (MTU) bytes in LRH.PktLen are
-+	 * the Receive Header Entry Size minus the PBC (or RHF) size
-+	 * plus one DW for the ICRC appended by HW.
-+	 *
-+	 * dd->rcd[0].rcvhdrqentsize is in DW.
-+	 * We use rcd[0] as all context will have the same value. Also,
-+	 * the first kernel context would have been allocated by now so
-+	 * we are guaranteed a valid value.
-+	 */
-+	return (dd->rcd[0]->rcvhdrqentsize - 2/*PBC/RHF*/ + 1/*ICRC*/) << 2;
-+}
-+
-+/*
-+ * Set Send Length
-+ * @ppd - per port data
++ * Copyright(c) 2015 Intel Corporation.
 + *
-+ * Set the MTU by limiting how many DWs may be sent.  The SendLenCheck*
-+ * registers compare against LRH.PktLen, so use the max bytes included
-+ * in the LRH.
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
 + *
-+ * This routine changes all VL values except VL15, which it maintains at
-+ * the same value.
-+ */
-+static void set_send_length(struct hfi1_pportdata *ppd)
-+{
-+	struct hfi1_devdata *dd = ppd->dd;
-+	u32 max_hb = lrh_max_header_bytes(dd), maxvlmtu = 0, dcmtu;
-+	u64 len1 = 0, len2 = (((dd->vld[15].mtu + max_hb) >> 2)
-+			      & SEND_LEN_CHECK1_LEN_VL15_MASK) <<
-+		SEND_LEN_CHECK1_LEN_VL15_SHIFT;
-+	int i;
-+
-+	for (i = 0; i < hfi1_num_vls(ppd->vls_supported); i++) {
-+		if (dd->vld[i].mtu > maxvlmtu)
-+			maxvlmtu = dd->vld[i].mtu;
-+		if (i <= 3)
-+			len1 |= (((dd->vld[i].mtu + max_hb) >> 2)
-+				 & SEND_LEN_CHECK0_LEN_VL0_MASK) <<
-+				((i % 4) * SEND_LEN_CHECK0_LEN_VL1_SHIFT);
-+		else
-+			len2 |= (((dd->vld[i].mtu + max_hb) >> 2)
-+				 & SEND_LEN_CHECK1_LEN_VL4_MASK) <<
-+				((i % 4) * SEND_LEN_CHECK1_LEN_VL5_SHIFT);
-+	}
-+	write_csr(dd, SEND_LEN_CHECK0, len1);
-+	write_csr(dd, SEND_LEN_CHECK1, len2);
-+	/* adjust kernel credit return thresholds based on new MTUs */
-+	/* all kernel receive contexts have the same hdrqentsize */
-+	for (i = 0; i < hfi1_num_vls(ppd->vls_supported); i++) {
-+		sc_set_cr_threshold(dd->vld[i].sc,
-+			sc_mtu_to_threshold(dd->vld[i].sc, dd->vld[i].mtu,
-+				dd->rcd[0]->rcvhdrqentsize));
-+	}
-+	sc_set_cr_threshold(dd->vld[15].sc,
-+		sc_mtu_to_threshold(dd->vld[15].sc, dd->vld[15].mtu,
-+			dd->rcd[0]->rcvhdrqentsize));
-+
-+	/* Adjust maximum MTU for the port in DC */
-+	dcmtu = maxvlmtu == 10240 ? DCC_CFG_PORT_MTU_CAP_10240 :
-+		(ilog2(maxvlmtu >> 8) + 1);
-+	len1 = read_csr(ppd->dd, DCC_CFG_PORT_CONFIG);
-+	len1 &= ~DCC_CFG_PORT_CONFIG_MTU_CAP_SMASK;
-+	len1 |= ((u64)dcmtu & DCC_CFG_PORT_CONFIG_MTU_CAP_MASK) <<
-+		DCC_CFG_PORT_CONFIG_MTU_CAP_SHIFT;
-+	write_csr(ppd->dd, DCC_CFG_PORT_CONFIG, len1);
-+}
-+
-+static void set_lidlmc(struct hfi1_pportdata *ppd)
-+{
-+	int i;
-+	u64 sreg = 0;
-+	struct hfi1_devdata *dd = ppd->dd;
-+	u32 mask = ~((1U << ppd->lmc) - 1);
-+	u64 c1 = read_csr(ppd->dd, DCC_CFG_PORT_CONFIG1);
-+
-+	if (dd->hfi1_snoop.mode_flag)
-+		dd_dev_info(dd, "Set lid/lmc while snooping");
-+
-+	c1 &= ~(DCC_CFG_PORT_CONFIG1_TARGET_DLID_SMASK
-+		| DCC_CFG_PORT_CONFIG1_DLID_MASK_SMASK);
-+	c1 |= ((ppd->lid & DCC_CFG_PORT_CONFIG1_TARGET_DLID_MASK)
-+			<< DCC_CFG_PORT_CONFIG1_TARGET_DLID_SHIFT)|
-+	      ((mask & DCC_CFG_PORT_CONFIG1_DLID_MASK_MASK)
-+			<< DCC_CFG_PORT_CONFIG1_DLID_MASK_SHIFT);
-+	write_csr(ppd->dd, DCC_CFG_PORT_CONFIG1, c1);
-+
-+	/*
-+	 * Iterate over all the send contexts and set their SLID check
-+	 */
-+	sreg = ((mask & SEND_CTXT_CHECK_SLID_MASK_MASK) <<
-+			SEND_CTXT_CHECK_SLID_MASK_SHIFT) |
-+	       (((ppd->lid & mask) & SEND_CTXT_CHECK_SLID_VALUE_MASK) <<
-+			SEND_CTXT_CHECK_SLID_VALUE_SHIFT);
-+
-+	for (i = 0; i < dd->chip_send_contexts; i++) {
-+		hfi1_cdbg(LINKVERB, "SendContext[%d].SLID_CHECK = 0x%x",
-+			  i, (u32)sreg);
-+		write_kctxt_csr(dd, i, SEND_CTXT_CHECK_SLID, sreg);
-+	}
-+
-+	/* Now we have to do the same thing for the sdma engines */
-+	sdma_update_lmc(dd, mask, ppd->lid);
-+}
-+
-+static int wait_phy_linkstate(struct hfi1_devdata *dd, u32 state, u32 msecs)
-+{
-+	unsigned long timeout;
-+	u32 curr_state;
-+
-+	timeout = jiffies + msecs_to_jiffies(msecs);
-+	while (1) {
-+		curr_state = read_physical_state(dd);
-+		if (curr_state == state)
-+			break;
-+		if (time_after(jiffies, timeout)) {
-+			dd_dev_err(dd,
-+				"timeout waiting for phy link state 0x%x, current state is 0x%x\n",
-+				state, curr_state);
-+			return -ETIMEDOUT;
-+		}
-+		usleep_range(1950, 2050); /* sleep 2ms-ish */
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * Helper for set_link_state().  Do not call except from that routine.
-+ * Expects ppd->hls_mutex to be held.
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
 + *
-+ * @rem_reason value to be sent to the neighbor
++ * BSD LICENSE
 + *
-+ * LinkDownReasons only set if transition succeeds.
-+ */
-+static int goto_offline(struct hfi1_pportdata *ppd, u8 rem_reason)
-+{
-+	struct hfi1_devdata *dd = ppd->dd;
-+	u32 pstate, previous_state;
-+	u32 last_local_state;
-+	u32 last_remote_state;
-+	int ret;
-+	int do_transition;
-+	int do_wait;
-+
-+	previous_state = ppd->host_link_state;
-+	ppd->host_link_state = HLS_GOING_OFFLINE;
-+	pstate = read_physical_state(dd);
-+	if (pstate == PLS_OFFLINE) {
-+		do_transition = 0;	/* in right state */
-+		do_wait = 0;		/* ...no need to wait */
-+	} else if ((pstate & 0xff) == PLS_OFFLINE) {
-+		do_transition = 0;	/* in an offline transient state */
-+		do_wait = 1;		/* ...wait for it to settle */
-+	} else {
-+		do_transition = 1;	/* need to move to offline */
-+		do_wait = 1;		/* ...will need to wait */
-+	}
-+
-+	if (do_transition) {
-+		ret = set_physical_link_state(dd,
-+			PLS_OFFLINE | (rem_reason << 8));
-+
-+		if (ret != HCMD_SUCCESS) {
-+			dd_dev_err(dd,
-+				"Failed to transition to Offline link state, return %d\n",
-+				ret);
-+			return -EINVAL;
-+		}
-+		if (ppd->offline_disabled_reason == OPA_LINKDOWN_REASON_NONE)
-+			ppd->offline_disabled_reason =
-+			OPA_LINKDOWN_REASON_TRANSIENT;
-+	}
-+
-+	if (do_wait) {
-+		/* it can take a while for the link to go down */
-+		ret = wait_phy_linkstate(dd, PLS_OFFLINE, 5000);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	/* make sure the logical state is also down */
-+	wait_logical_linkstate(ppd, IB_PORT_DOWN, 1000);
-+
-+	/*
-+	 * Now in charge of LCB - must be after the physical state is
-+	 * offline.quiet and before host_link_state is changed.
-+	 */
-+	set_host_lcb_access(dd);
-+	write_csr(dd, DC_LCB_ERR_EN, ~0ull); /* watch LCB errors */
-+	ppd->host_link_state = HLS_LINK_COOLDOWN; /* LCB access allowed */
-+
-+	/*
-+	 * The LNI has a mandatory wait time after the physical state
-+	 * moves to Offline.Quiet.  The wait time may be different
-+	 * depending on how the link went down.  The 8051 firmware
-+	 * will observe the needed wait time and only move to ready
-+	 * when that is completed.  The largest of the quiet timeouts
-+	 * is 2.5s, so wait that long and then a bit more.
-+	 */
-+	ret = wait_fm_ready(dd, 3000);
-+	if (ret) {
-+		dd_dev_err(dd,
-+			"After going offline, timed out waiting for the 8051 to become ready to accept host requests\n");
-+		/* state is really offline, so make it so */
-+		ppd->host_link_state = HLS_DN_OFFLINE;
-+		return ret;
-+	}
-+
-+	/*
-+	 * The state is now offline and the 8051 is ready to accept host
-+	 * requests.
-+	 *	- change our state
-+	 *	- notify others if we were previously in a linkup state
-+	 */
-+	ppd->host_link_state = HLS_DN_OFFLINE;
-+	if (previous_state & HLS_UP) {
-+		/* went down while link was up */
-+		handle_linkup_change(dd, 0);
-+	} else if (previous_state
-+			& (HLS_DN_POLL | HLS_VERIFY_CAP | HLS_GOING_UP)) {
-+		/* went down while attempting link up */
-+		/* byte 1 of last_*_state is the failure reason */
-+		read_last_local_state(dd, &last_local_state);
-+		read_last_remote_state(dd, &last_remote_state);
-+		dd_dev_err(dd,
-+			"LNI failure last states: local 0x%08x, remote 0x%08x\n",
-+			last_local_state, last_remote_state);
-+	}
-+
-+	/* the active link width (downgrade) is 0 on link down */
-+	ppd->link_width_active = 0;
-+	ppd->link_width_downgrade_tx_active = 0;
-+	ppd->link_width_downgrade_rx_active = 0;
-+	ppd->current_egress_rate = 0;
-+	return 0;
-+}
-+
-+/* return the link state name */
-+static const char *link_state_name(u32 state)
-+{
-+	const char *name;
-+	int n = ilog2(state);
-+	static const char * const names[] = {
-+		[__HLS_UP_INIT_BP]	 = "INIT",
-+		[__HLS_UP_ARMED_BP]	 = "ARMED",
-+		[__HLS_UP_ACTIVE_BP]	 = "ACTIVE",
-+		[__HLS_DN_DOWNDEF_BP]	 = "DOWNDEF",
-+		[__HLS_DN_POLL_BP]	 = "POLL",
-+		[__HLS_DN_DISABLE_BP]	 = "DISABLE",
-+		[__HLS_DN_OFFLINE_BP]	 = "OFFLINE",
-+		[__HLS_VERIFY_CAP_BP]	 = "VERIFY_CAP",
-+		[__HLS_GOING_UP_BP]	 = "GOING_UP",
-+		[__HLS_GOING_OFFLINE_BP] = "GOING_OFFLINE",
-+		[__HLS_LINK_COOLDOWN_BP] = "LINK_COOLDOWN"
-+	};
-+
-+	name = n < ARRAY_SIZE(names) ? names[n] : NULL;
-+	return name ? name : "unknown";
-+}
-+
-+/* return the link state reason name */
-+static const char *link_state_reason_name(struct hfi1_pportdata *ppd, u32 state)
-+{
-+	if (state == HLS_UP_INIT) {
-+		switch (ppd->linkinit_reason) {
-+		case OPA_LINKINIT_REASON_LINKUP:
-+			return "(LINKUP)";
-+		case OPA_LINKINIT_REASON_FLAPPING:
-+			return "(FLAPPING)";
-+		case OPA_LINKINIT_OUTSIDE_POLICY:
-+			return "(OUTSIDE_POLICY)";
-+		case OPA_LINKINIT_QUARANTINED:
-+			return "(QUARANTINED)";
-+		case OPA_LINKINIT_INSUFIC_CAPABILITY:
-+			return "(INSUFIC_CAPABILITY)";
-+		default:
-+			break;
-+		}
-+	}
-+	return "";
-+}
-+
-+void set_link_down_reason(struct hfi1_pportdata *ppd, u8 lcl_reason,
-+			  u8 neigh_reason, u8 rem_reason)
-+{
-+	if (ppd->local_link_down_reason.latest == 0 &&
-+	    ppd->neigh_link_down_reason.latest == 0) {
-+		ppd->local_link_down_reason.latest = lcl_reason;
-+		ppd->neigh_link_down_reason.latest = neigh_reason;
-+		ppd->remote_link_down_reason = rem_reason;
-+	}
-+}
-+
-+/*
-+ * Change the physical and/or logical link state.
++ * Copyright(c) 2015 Intel Corporation.
 + *
-+ * Returns 0 on success, -errno on failure.
-+ */
-+int set_link_state(struct hfi1_pportdata *ppd, u32 state)
-+{
-+	struct hfi1_devdata *dd = ppd->dd;
-+	struct ib_event event = {.device = NULL};
-+	int ret1, ret = 0;
-+	int was_up, is_down;
-+	int orig_new_state, poll_bounce;
-+
-+	mutex_lock(&ppd->hls_lock);
-+
-+	orig_new_state = state;
-+	if (state == HLS_DN_DOWNDEF)
-+		state = dd->link_default;
-+
-+	/* interpret poll -> poll as a link bounce */
-+	poll_bounce = ppd->host_link_state == HLS_DN_POLL
-+				&& state == HLS_DN_POLL;
-+
-+	dd_dev_info(dd, "%s: current %s, new %s %s%s\n", __func__,
-+		link_state_name(ppd->host_link_state),
-+		link_state_name(orig_new_state),
-+		poll_bounce ? "(bounce) " : "",
-+		link_state_reason_name(ppd, state));
-+
-+	was_up = !!(ppd->host_link_state & HLS_UP);
-+
-+	/*
-+	 * If we're going to a (HLS_*) link state that implies the logical
-+	 * link state is neither of (IB_PORT_ARMED, IB_PORT_ACTIVE), then
-+	 * reset is_sm_config_started to 0.
-+	 */
-+	if (!(state & (HLS_UP_ARMED | HLS_UP_ACTIVE)))
-+		ppd->is_sm_config_started = 0;
-+
-+	/*
-+	 * Do nothing if the states match.  Let a poll to poll link bounce
-+	 * go through.
-+	 */
-+	if (ppd->host_link_state == state && !poll_bounce)
-+		goto done;
-+
-+	switch (state) {
-+	case HLS_UP_INIT:
-+		if (ppd->host_link_state == HLS_DN_POLL && (quick_linkup
-+			    || dd->icode == ICODE_FUNCTIONAL_SIMULATOR)) {
-+			/*
-+			 * Quick link up jumps from polling to here.
-+			 *
-+			 * Whether in normal or loopback mode, the
-+			 * simulator jumps from polling to link up.
-+			 * Accept that here.
-+			 */
-+			/* OK */;
-+		} else if (ppd->host_link_state != HLS_GOING_UP) {
-+			goto unexpected;
-+		}
-+
-+		ppd->host_link_state = HLS_UP_INIT;
-+		ret = wait_logical_linkstate(ppd, IB_PORT_INIT, 1000);
-+		if (ret) {
-+			/* logical state didn't change, stay at going_up */
-+			ppd->host_link_state = HLS_GOING_UP;
-+			dd_dev_err(dd,
-+				"%s: logical state did not change to INIT\n",
-+				__func__);
-+		} else {
-+			/* clear old transient LINKINIT_REASON code */
-+			if (ppd->linkinit_reason >= OPA_LINKINIT_REASON_CLEAR)
-+				ppd->linkinit_reason =
-+					OPA_LINKINIT_REASON_LINKUP;
-+
-+			/* enable the port */
-+			add_rcvctrl(dd, RCV_CTRL_RCV_PORT_ENABLE_SMASK);
-+
-+			handle_linkup_change(dd, 1);
-+		}
-+		break;
-+	case HLS_UP_ARMED:
-+		if (ppd->host_link_state != HLS_UP_INIT)
-+			goto unexpected;
-+
-+		ppd->host_link_state = HLS_UP_ARMED;
-+		set_logical_state(dd, LSTATE_ARMED);
-+		ret = wait_logical_linkstate(ppd, IB_PORT_ARMED, 1000);
-+		if (ret) {
-+			/* logical state didn't change, stay at init */
-+			ppd->host_link_state = HLS_UP_INIT;
-+			dd_dev_err(dd,
-+				"%s: logical state did not change to ARMED\n",
-+				__func__);
-+		}
-+		/*
-+		 * The simulator does not currently implement SMA messages,
-+		 * so neighbor_normal is not set.  Set it here when we first
-+		 * move to Armed.
-+		 */
-+		if (dd->icode == ICODE_FUNCTIONAL_SIMULATOR)
-+			ppd->neighbor_normal = 1;
-+		break;
-+	case HLS_UP_ACTIVE:
-+		if (ppd->host_link_state != HLS_UP_ARMED)
-+			goto unexpected;
-+
-+		ppd->host_link_state = HLS_UP_ACTIVE;
-+		set_logical_state(dd, LSTATE_ACTIVE);
-+		ret = wait_logical_linkstate(ppd, IB_PORT_ACTIVE, 1000);
-+		if (ret) {
-+			/* logical state didn't change, stay at armed */
-+			ppd->host_link_state = HLS_UP_ARMED;
-+			dd_dev_err(dd,
-+				"%s: logical state did not change to ACTIVE\n",
-+				__func__);
-+		} else {
-+
-+			/* tell all engines to go running */
-+			sdma_all_running(dd);
-+
-+			/* Signal the IB layer that the port has went active */
-+			event.device = &dd->verbs_dev.ibdev;
-+			event.element.port_num = ppd->port;
-+			event.event = IB_EVENT_PORT_ACTIVE;
-+		}
-+		break;
-+	case HLS_DN_POLL:
-+		if ((ppd->host_link_state == HLS_DN_DISABLE ||
-+		     ppd->host_link_state == HLS_DN_OFFLINE) &&
-+		    dd->dc_shutdown)
-+			dc_start(dd);
-+		/* Hand LED control to the DC */
-+		write_csr(dd, DCC_CFG_LED_CNTRL, 0);
-+
-+		if (ppd->host_link_state != HLS_DN_OFFLINE) {
-+			u8 tmp = ppd->link_enabled;
-+
-+			ret = goto_offline(ppd, ppd->remote_link_down_reason);
-+			if (ret) {
-+				ppd->link_enabled = tmp;
-+				break;
-+			}
-+			ppd->remote_link_down_reason = 0;
-+
-+			if (ppd->driver_link_ready)
-+				ppd->link_enabled = 1;
-+		}
-+
-+		ret = set_local_link_attributes(ppd);
-+		if (ret)
-+			break;
-+
-+		ppd->port_error_action = 0;
-+		ppd->host_link_state = HLS_DN_POLL;
-+
-+		if (quick_linkup) {
-+			/* quick linkup does not go into polling */
-+			ret = do_quick_linkup(dd);
-+		} else {
-+			ret1 = set_physical_link_state(dd, PLS_POLLING);
-+			if (ret1 != HCMD_SUCCESS) {
-+				dd_dev_err(dd,
-+					"Failed to transition to Polling link state, return 0x%x\n",
-+					ret1);
-+				ret = -EINVAL;
-+			}
-+		}
-+		ppd->offline_disabled_reason = OPA_LINKDOWN_REASON_NONE;
-+		/*
-+		 * If an error occurred above, go back to offline.  The
-+		 * caller may reschedule another attempt.
-+		 */
-+		if (ret)
-+			goto_offline(ppd, 0);
-+		break;
-+	case HLS_DN_DISABLE:
-+		/* link is disabled */
-+		ppd->link_enabled = 0;
-+
-+		/* allow any state to transition to disabled */
-+
-+		/* must transition to offline first */
-+		if (ppd->host_link_state != HLS_DN_OFFLINE) {
-+			ret = goto_offline(ppd, ppd->remote_link_down_reason);
-+			if (ret)
-+				break;
-+			ppd->remote_link_down_reason = 0;
-+		}
-+
-+		ret1 = set_physical_link_state(dd, PLS_DISABLED);
-+		if (ret1 != HCMD_SUCCESS) {
-+			dd_dev_err(dd,
-+				"Failed to transition to Disabled link state, return 0x%x\n",
-+				ret1);
-+			ret = -EINVAL;
-+			break;
-+		}
-+		ppd->host_link_state = HLS_DN_DISABLE;
-+		dc_shutdown(dd);
-+		break;
-+	case HLS_DN_OFFLINE:
-+		if (ppd->host_link_state == HLS_DN_DISABLE)
-+			dc_start(dd);
-+
-+		/* allow any state to transition to offline */
-+		ret = goto_offline(ppd, ppd->remote_link_down_reason);
-+		if (!ret)
-+			ppd->remote_link_down_reason = 0;
-+		break;
-+	case HLS_VERIFY_CAP:
-+		if (ppd->host_link_state != HLS_DN_POLL)
-+			goto unexpected;
-+		ppd->host_link_state = HLS_VERIFY_CAP;
-+		break;
-+	case HLS_GOING_UP:
-+		if (ppd->host_link_state != HLS_VERIFY_CAP)
-+			goto unexpected;
-+
-+		ret1 = set_physical_link_state(dd, PLS_LINKUP);
-+		if (ret1 != HCMD_SUCCESS) {
-+			dd_dev_err(dd,
-+				"Failed to transition to link up state, return 0x%x\n",
-+				ret1);
-+			ret = -EINVAL;
-+			break;
-+		}
-+		ppd->host_link_state = HLS_GOING_UP;
-+		break;
-+
-+	case HLS_GOING_OFFLINE:		/* transient within goto_offline() */
-+	case HLS_LINK_COOLDOWN:		/* transient within goto_offline() */
-+	default:
-+		dd_dev_info(dd, "%s: state 0x%x: not supported\n",
-+			__func__, state);
-+		ret = -EINVAL;
-+		break;
-+	}
-+
-+	is_down = !!(ppd->host_link_state & (HLS_DN_POLL |
-+			HLS_DN_DISABLE | HLS_DN_OFFLINE));
-+
-+	if (was_up && is_down && ppd->local_link_down_reason.sma == 0 &&
-+	    ppd->neigh_link_down_reason.sma == 0) {
-+		ppd->local_link_down_reason.sma =
-+		  ppd->local_link_down_reason.latest;
-+		ppd->neigh_link_down_reason.sma =
-+		  ppd->neigh_link_down_reason.latest;
-+	}
-+
-+	goto done;
-+
-+unexpected:
-+	dd_dev_err(dd, "%s: unexpected state transition from %s to %s\n",
-+		__func__, link_state_name(ppd->host_link_state),
-+		link_state_name(state));
-+	ret = -EINVAL;
-+
-+done:
-+	mutex_unlock(&ppd->hls_lock);
-+
-+	if (event.device)
-+		ib_dispatch_event(&event);
-+
-+	return ret;
-+}
-+
-+int hfi1_set_ib_cfg(struct hfi1_pportdata *ppd, int which, u32 val)
-+{
-+	u64 reg;
-+	int ret = 0;
-+
-+	switch (which) {
-+	case HFI1_IB_CFG_LIDLMC:
-+		set_lidlmc(ppd);
-+		break;
-+	case HFI1_IB_CFG_VL_HIGH_LIMIT:
-+		/*
-+		 * The VL Arbitrator high limit is sent in units of 4k
-+		 * bytes, while HFI stores it in units of 64 bytes.
-+		 */
-+		val *= 4096/64;
-+		reg = ((u64)val & SEND_HIGH_PRIORITY_LIMIT_LIMIT_MASK)
-+			<< SEND_HIGH_PRIORITY_LIMIT_LIMIT_SHIFT;
-+		write_csr(ppd->dd, SEND_HIGH_PRIORITY_LIMIT, reg);
-+		break;
-+	case HFI1_IB_CFG_LINKDEFAULT: /* IB link default (sleep/poll) */
-+		/* HFI only supports POLL as the default link down state */
-+		if (val != HLS_DN_POLL)
-+			ret = -EINVAL;
-+		break;
-+	case HFI1_IB_CFG_OP_VLS:
-+		if (ppd->vls_operational != val) {
-+			ppd->vls_operational = val;
-+			BUG_ON(!ppd->port);
-+			ret = sdma_map_init(
-+				ppd->dd,
-+				ppd->port - 1,
-+				hfi1_num_vls(val),
-+				NULL);
-+		}
-+		break;
-+	/*
-+	 * For link width, link width downgrade, and speed enable, always AND
-+	 * the setting with what is actually supported.  This has two benefits.
-+	 * First, enabled can't have unsupported values, no matter what the
-+	 * SM or FM might want.  Second, the ALL_SUPPORTED wildcards that mean
-+	 * "fill in with your supported value" have all the bits in the
-+	 * field set, so simply ANDing with supported has the desired result.
-+	 */
-+	case HFI1_IB_CFG_LWID_ENB: /* set allowed Link-width */
-+		ppd->link_width_enabled = val & ppd->link_width_supported;
-+		break;
-+	case HFI1_IB_CFG_LWID_DG_ENB: /* set allowed link width downgrade */
-+		ppd->link_width_downgrade_enabled =
-+				val & ppd->link_width_downgrade_supported;
-+		break;
-+	case HFI1_IB_CFG_SPD_ENB: /* allowed Link speeds */
-+		ppd->link_speed_enabled = val & ppd->link_speed_supported;
-+		break;
-+	case HFI1_IB_CFG_OVERRUN_THRESH: /* IB overrun threshold */
-+		/*
-+		 * HFI does not follow IB specs, save this value
-+		 * so we can report it, if asked.
-+		 */
-+		ppd->overrun_threshold = val;
-+		break;
-+	case HFI1_IB_CFG_PHYERR_THRESH: /* IB PHY error threshold */
-+		/*
-+		 * HFI does not follow IB specs, save this value
-+		 * so we can report it, if asked.
-+		 */
-+		ppd->phy_error_threshold = val;
-+		break;
-+
-+	case HFI1_IB_CFG_MTU:
-+		set_send_length(ppd);
-+		break;
-+
-+	case HFI1_IB_CFG_PKEYS:
-+		if (HFI1_CAP_IS_KSET(PKEY_CHECK))
-+			set_partition_keys(ppd);
-+		break;
-+
-+	default:
-+		if (HFI1_CAP_IS_KSET(PRINT_UNIMPL))
-+			dd_dev_info(ppd->dd,
-+			  "%s: which %s, val 0x%x: not implemented\n",
-+			  __func__, ib_cfg_name(which), val);
-+		break;
-+	}
-+	return ret;
-+}
-+
-+/* begin functions related to vl arbitration table caching */
-+static void init_vl_arb_caches(struct hfi1_pportdata *ppd)
-+{
-+	int i;
-+
-+	BUILD_BUG_ON(VL_ARB_TABLE_SIZE !=
-+			VL_ARB_LOW_PRIO_TABLE_SIZE);
-+	BUILD_BUG_ON(VL_ARB_TABLE_SIZE !=
-+			VL_ARB_HIGH_PRIO_TABLE_SIZE);
-+
-+	/*
-+	 * Note that we always return values directly from the
-+	 * 'vl_arb_cache' (and do no CSR reads) in response to a
-+	 * 'Get(VLArbTable)'. This is obviously correct after a
-+	 * 'Set(VLArbTable)', since the cache will then be up to
-+	 * date. But it's also correct prior to any 'Set(VLArbTable)'
-+	 * since then both the cache, and the relevant h/w registers
-+	 * will be zeroed.
-+	 */
-+
-+	for (i = 0; i < MAX_PRIO_TABLE; i++)
-+		spin_lock_init(&ppd->vl_arb_cache[i].lock);
-+}
-+
-+/*
-+ * vl_arb_lock_cache
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
 + *
-+ * All other vl_arb_* functions should be called only after locking
-+ * the cache.
-+ */
-+static inline struct vl_arb_cache *
-+vl_arb_lock_cache(struct hfi1_pportdata *ppd, int idx)
-+{
-+	if (idx != LO_PRIO_TABLE && idx != HI_PRIO_TABLE)
-+		return NULL;
-+	spin_lock(&ppd->vl_arb_cache[idx].lock);
-+	return &ppd->vl_arb_cache[idx];
-+}
-+
-+static inline void vl_arb_unlock_cache(struct hfi1_pportdata *ppd, int idx)
-+{
-+	spin_unlock(&ppd->vl_arb_cache[idx].lock);
-+}
-+
-+static void vl_arb_get_cache(struct vl_arb_cache *cache,
-+			     struct ib_vl_weight_elem *vl)
-+{
-+	memcpy(vl, cache->table, VL_ARB_TABLE_SIZE * sizeof(*vl));
-+}
-+
-+static void vl_arb_set_cache(struct vl_arb_cache *cache,
-+			     struct ib_vl_weight_elem *vl)
-+{
-+	memcpy(cache->table, vl, VL_ARB_TABLE_SIZE * sizeof(*vl));
-+}
-+
-+static int vl_arb_match_cache(struct vl_arb_cache *cache,
-+			      struct ib_vl_weight_elem *vl)
-+{
-+	return !memcmp(cache->table, vl, VL_ARB_TABLE_SIZE * sizeof(*vl));
-+}
-+/* end functions related to vl arbitration table caching */
-+
-+static int set_vl_weights(struct hfi1_pportdata *ppd, u32 target,
-+			  u32 size, struct ib_vl_weight_elem *vl)
-+{
-+	struct hfi1_devdata *dd = ppd->dd;
-+	u64 reg;
-+	unsigned int i, is_up = 0;
-+	int drain, ret = 0;
-+
-+	mutex_lock(&ppd->hls_lock);
-+
-+	if (ppd->host_link_state & HLS_UP)
-+		is_up = 1;
-+
-+	drain = !is_ax(dd) && is_up;
-+
-+	if (drain)
-+		/*
-+		 * Before adjusting VL arbitration weights, empty per-VL
-+		 * FIFOs, otherwise a packet whose VL weight is being
-+		 * set to 0 could get stuck in a FIFO with no chance to
-+		 * egress.
-+		 */
-+		ret = stop_drain_data_vls(dd);
-+
-+	if (ret) {
-+		dd_dev_err(
-+			dd,
-+			"%s: cannot stop/drain VLs - refusing to change VL arbitration weights\n",
-+			__func__);
-+		goto err;
-+	}
-+
-+	for (i = 0; i < size; i++, vl++) {
-+		/*
-+		 * NOTE: The low priority shift and mask are used here, but
-+		 * they are the same for both the low and high registers.
-+		 */
-+		reg = (((u64)vl->vl & SEND_LOW_PRIORITY_LIST_VL_MASK)
-+				<< SEND_LOW_PRIORITY_LIST_VL_SHIFT)
-+		      | (((u64)vl->weight
-+				& SEND_LOW_PRIORITY_LIST_WEIGHT_MASK)
-+				<< SEND_LOW_PRIORITY_LIST_WEIGHT_SHIFT);
-+		write_csr(dd, target + (i * 8), reg);
-+	}
-+	pio_send_control(dd, PSC_GLOBAL_VLARB_ENABLE);
-+
-+	if (drain)
-+		open_fill_data_vls(dd); /* reopen all VLs */
-+
-+err:
-+	mutex_unlock(&ppd->hls_lock);
-+
-+	return ret;
-+}
-+
-+/*
-+ * Read one credit merge VL register.
-+ */
-+static void read_one_cm_vl(struct hfi1_devdata *dd, u32 csr,
-+			   struct vl_limit *vll)
-+{
-+	u64 reg = read_csr(dd, csr);
-+
-+	vll->dedicated = cpu_to_be16(
-+		(reg >> SEND_CM_CREDIT_VL_DEDICATED_LIMIT_VL_SHIFT)
-+		& SEND_CM_CREDIT_VL_DEDICATED_LIMIT_VL_MASK);
-+	vll->shared = cpu_to_be16(
-+		(reg >> SEND_CM_CREDIT_VL_SHARED_LIMIT_VL_SHIFT)
-+		& SEND_CM_CREDIT_VL_SHARED_LIMIT_VL_MASK);
-+}
-+
-+/*
-+ * Read the current credit merge limits.
-+ */
-+static int get_buffer_control(struct hfi1_devdata *dd,
-+			      struct buffer_control *bc, u16 *overall_limit)
-+{
-+	u64 reg;
-+	int i;
-+
-+	/* not all entries are filled in */
-+	memset(bc, 0, sizeof(*bc));
-+
-+	/* OPA and HFI have a 1-1 mapping */
-+	for (i = 0; i < TXE_NUM_DATA_VL; i++)
-+		read_one_cm_vl(dd, SEND_CM_CREDIT_VL + (8*i), &bc->vl[i]);
-+
-+	/* NOTE: assumes that VL* and VL15 CSRs are bit-wise identical */
-+	read_one_cm_vl(dd, SEND_CM_CREDIT_VL15, &bc->vl[15]);
-+
-+	reg = read_csr(dd, SEND_CM_GLOBAL_CREDIT);
-+	bc->overall_shared_limit = cpu_to_be16(
-+		(reg >> SEND_CM_GLOBAL_CREDIT_SHARED_LIMIT_SHIFT)
-+		& SEND_CM_GLOBAL_CREDIT_SHARED_LIMIT_MASK);
-+	if (overall_limit)
-+		*overall_limit = (reg
-+			>> SEND_CM_GLOBAL_CREDIT_TOTAL_CREDIT_LIMIT_SHIFT)
-+			& SEND_CM_GLOBAL_CREDIT_TOTAL_CREDIT_LIMIT_MASK;
-+	return sizeof(struct buffer_control);
-+}
-+
-+static int get_sc2vlnt(struct hfi1_devdata *dd, struct sc2vlnt *dp)
-+{
-+	u64 reg;
-+	int i;
-+
-+	/* each register contains 16 SC->VLnt mappings, 4 bits each */
-+	reg = read_csr(dd, DCC_CFG_SC_VL_TABLE_15_0);
-+	for (i = 0; i < sizeof(u64); i++) {
-+		u8 byte = *(((u8 *)&reg) + i);
-+
-+		dp->vlnt[2 * i] = byte & 0xf;
-+		dp->vlnt[(2 * i) + 1] = (byte & 0xf0) >> 4;
-+	}
-+
-+	reg = read_csr(dd, DCC_CFG_SC_VL_TABLE_31_16);
-+	for (i = 0; i < sizeof(u64); i++) {
-+		u8 byte = *(((u8 *)&reg) + i);
-+
-+		dp->vlnt[16 + (2 * i)] = byte & 0xf;
-+		dp->vlnt[16 + (2 * i) + 1] = (byte & 0xf0) >> 4;
-+	}
-+	return sizeof(struct sc2vlnt);
-+}
-+
-+static void get_vlarb_preempt(struct hfi1_devdata *dd, u32 nelems,
-+			      struct ib_vl_weight_elem *vl)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < nelems; i++, vl++) {
-+		vl->vl = 0xf;
-+		vl->weight = 0;
-+	}
-+}
-+
-+static void set_sc2vlnt(struct hfi1_devdata *dd, struct sc2vlnt *dp)
-+{
-+	write_csr(dd, DCC_CFG_SC_VL_TABLE_15_0,
-+		DC_SC_VL_VAL(15_0,
-+		0, dp->vlnt[0] & 0xf,
-+		1, dp->vlnt[1] & 0xf,
-+		2, dp->vlnt[2] & 0xf,
-+		3, dp->vlnt[3] & 0xf,
-+		4, dp->vlnt[4] & 0xf,
-+		5, dp->vlnt[5] & 0xf,
-+		6, dp->vlnt[6] & 0xf,
-+		7, dp->vlnt[7] & 0xf,
-+		8, dp->vlnt[8] & 0xf,
-+		9, dp->vlnt[9] & 0xf,
-+		10, dp->vlnt[10] & 0xf,
-+		11, dp->vlnt[11] & 0xf,
-+		12, dp->vlnt[12] & 0xf,
-+		13, dp->vlnt[13] & 0xf,
-+		14, dp->vlnt[14] & 0xf,
-+		15, dp->vlnt[15] & 0xf));
-+	write_csr(dd, DCC_CFG_SC_VL_TABLE_31_16,
-+		DC_SC_VL_VAL(31_16,
-+		16, dp->vlnt[16] & 0xf,
-+		17, dp->vlnt[17] & 0xf,
-+		18, dp->vlnt[18] & 0xf,
-+		19, dp->vlnt[19] & 0xf,
-+		20, dp->vlnt[20] & 0xf,
-+		21, dp->vlnt[21] & 0xf,
-+		22, dp->vlnt[22] & 0xf,
-+		23, dp->vlnt[23] & 0xf,
-+		24, dp->vlnt[24] & 0xf,
-+		25, dp->vlnt[25] & 0xf,
-+		26, dp->vlnt[26] & 0xf,
-+		27, dp->vlnt[27] & 0xf,
-+		28, dp->vlnt[28] & 0xf,
-+		29, dp->vlnt[29] & 0xf,
-+		30, dp->vlnt[30] & 0xf,
-+		31, dp->vlnt[31] & 0xf));
-+}
-+
-+static void nonzero_msg(struct hfi1_devdata *dd, int idx, const char *what,
-+			u16 limit)
-+{
-+	if (limit != 0)
-+		dd_dev_info(dd, "Invalid %s limit %d on VL %d, ignoring\n",
-+			what, (int)limit, idx);
-+}
-+
-+/* change only the shared limit portion of SendCmGLobalCredit */
-+static void set_global_shared(struct hfi1_devdata *dd, u16 limit)
-+{
-+	u64 reg;
-+
-+	reg = read_csr(dd, SEND_CM_GLOBAL_CREDIT);
-+	reg &= ~SEND_CM_GLOBAL_CREDIT_SHARED_LIMIT_SMASK;
-+	reg |= (u64)limit << SEND_CM_GLOBAL_CREDIT_SHARED_LIMIT_SHIFT;
-+	write_csr(dd, SEND_CM_GLOBAL_CREDIT, reg);
-+}
-+
-+/* change only the total credit limit portion of SendCmGLobalCredit */
-+static void set_global_limit(struct hfi1_devdata *dd, u16 limit)
-+{
-+	u64 reg;
-+
-+	reg = read_csr(dd, SEND_CM_GLOBAL_CREDIT);
-+	reg &= ~SEND_CM_GLOBAL_CREDIT_TOTAL_CREDIT_LIMIT_SMASK;
-+	reg |= (u64)limit << SEND_CM_GLOBAL_CREDIT_TOTAL_CREDIT_LIMIT_SHIFT;
-+	write_csr(dd, SEND_CM_GLOBAL_CREDIT, reg);
-+}
-+
-+/* set the given per-VL shared limit */
-+static void set_vl_shared(struct hfi1_devdata *dd, int vl, u16 limit)
-+{
-+	u64 reg;
-+	u32 addr;
-+
-+	if (vl < TXE_NUM_DATA_VL)
-+		addr = SEND_CM_CREDIT_VL + (8 * vl);
-+	else
-+		addr = SEND_CM_CREDIT_VL15;
-+
-+	reg = read_csr(dd, addr);
-+	reg &= ~SEND_CM_CREDIT_VL_SHARED_LIMIT_VL_SMASK;
-+	reg |= (u64)limit << SEND_CM_CREDIT_VL_SHARED_LIMIT_VL_SHIFT;
-+	write_csr(dd, addr, reg);
-+}
-+
-+/* set the given per-VL dedicated limit */
-+static void set_vl_dedicated(struct hfi1_devdata *dd, int vl, u16 limit)
-+{
-+	u64 reg;
-+	u32 addr;
-+
-+	if (vl < TXE_NUM_DATA_VL)
-+		addr = SEND_CM_CREDIT_VL + (8 * vl);
-+	else
-+		addr = SEND_CM_CREDIT_VL15;
-+
-+	reg = read_csr(dd, addr);
-+	reg &= ~SEND_CM_CREDIT_VL_DEDICATED_LIMIT_VL_SMASK;
-+	reg |= (u64)limit << SEND_CM_CREDIT_VL_DEDICATED_LIMIT_VL_SHIFT;
-+	write_csr(dd, addr, reg);
-+}
-+
-+/* spin until the given per-VL status mask bits clear */
-+static void wait_for_vl_status_clear(struct hfi1_devdata *dd, u64 mask,
-+				     const char *which)
-+{
-+	unsigned long timeout;
-+	u64 reg;
-+
-+	timeout = jiffies + msecs_to_jiffies(VL_STATUS_CLEAR_TIMEOUT);
-+	while (1) {
-+		reg = read_csr(dd, SEND_CM_CREDIT_USED_STATUS) & mask;
-+
-+		if (reg == 0)
-+			return;	/* success */
-+		if (time_after(jiffies, timeout))
-+			break;		/* timed out */
-+		udelay(1);
-+	}
-+
-+	dd_dev_err(dd,
-+		"%s credit change status not clearing after %dms, mask 0x%llx, not clear 0x%llx\n",
-+		which, VL_STATUS_CLEAR_TIMEOUT, mask, reg);
-+	/*
-+	 * If this occurs, it is likely there was a credit loss on the link.
-+	 * The only recovery from that is a link bounce.
-+	 */
-+	dd_dev_err(dd,
-+		"Continuing anyway.  A credit loss may occur.  Suggest a link bounce\n");
-+}
-+
-+/*
-+ * The number of credits on the VLs may be changed while everything
-+ * is "live", but the following algorithm must be followed due to
-+ * how the hardware is actually implemented.  In particular,
-+ * Return_Credit_Status[] is the only correct status check.
++ *  - Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ *  - Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *  - Neither the name of Intel Corporation nor the names of its
++ *    contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
 + *
-+ * if (reducing Global_Shared_Credit_Limit or any shared limit changing)
-+ *     set Global_Shared_Credit_Limit = 0
-+ *     use_all_vl = 1
-+ * mask0 = all VLs that are changing either dedicated or shared limits
-+ * set Shared_Limit[mask0] = 0
-+ * spin until Return_Credit_Status[use_all_vl ? all VL : mask0] == 0
-+ * if (changing any dedicated limit)
-+ *     mask1 = all VLs that are lowering dedicated limits
-+ *     lower Dedicated_Limit[mask1]
-+ *     spin until Return_Credit_Status[mask1] == 0
-+ *     raise Dedicated_Limits
-+ * raise Shared_Limits
-+ * raise Global_Shared_Credit_Limit
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
-+ * lower = if the new limit is lower, set the limit to the new value
-+ * raise = if the new limit is higher than the current value (may be changed
-+ *	earlier in the algorithm), set the new limit to the new value
 + */
-+static int set_buffer_control(struct hfi1_devdata *dd,
-+			      struct buffer_control *new_bc)
-+{
-+	u64 changing_mask, ld_mask, stat_mask;
-+	int change_count;
-+	int i, use_all_mask;
-+	int this_shared_changing;
-+	/*
-+	 * A0: add the variable any_shared_limit_changing below and in the
-+	 * algorithm above.  If removing A0 support, it can be removed.
-+	 */
-+	int any_shared_limit_changing;
-+	struct buffer_control cur_bc;
-+	u8 changing[OPA_MAX_VLS];
-+	u8 lowering_dedicated[OPA_MAX_VLS];
-+	u16 cur_total;
-+	u32 new_total = 0;
-+	const u64 all_mask =
-+	SEND_CM_CREDIT_USED_STATUS_VL0_RETURN_CREDIT_STATUS_SMASK
-+	 | SEND_CM_CREDIT_USED_STATUS_VL1_RETURN_CREDIT_STATUS_SMASK
-+	 | SEND_CM_CREDIT_USED_STATUS_VL2_RETURN_CREDIT_STATUS_SMASK
-+	 | SEND_CM_CREDIT_USED_STATUS_VL3_RETURN_CREDIT_STATUS_SMASK
-+	 | SEND_CM_CREDIT_USED_STATUS_VL4_RETURN_CREDIT_STATUS_SMASK
-+	 | SEND_CM_CREDIT_USED_STATUS_VL5_RETURN_CREDIT_STATUS_SMASK
-+	 | SEND_CM_CREDIT_USED_STATUS_VL6_RETURN_CREDIT_STATUS_SMASK
-+	 | SEND_CM_CREDIT_USED_STATUS_VL7_RETURN_CREDIT_STATUS_SMASK
-+	 | SEND_CM_CREDIT_USED_STATUS_VL15_RETURN_CREDIT_STATUS_SMASK;
 +
-+#define valid_vl(idx) ((idx) < TXE_NUM_DATA_VL || (idx) == 15)
-+#define NUM_USABLE_VLS 16	/* look at VL15 and less */
-+
-+
-+	/* find the new total credits, do sanity check on unused VLs */
-+	for (i = 0; i < OPA_MAX_VLS; i++) {
-+		if (valid_vl(i)) {
-+			new_total += be16_to_cpu(new_bc->vl[i].dedicated);
-+			continue;
-+		}
-+		nonzero_msg(dd, i, "dedicated",
-+			be16_to_cpu(new_bc->vl[i].dedicated));
-+		nonzero_msg(dd, i, "shared",
-+			be16_to_cpu(new_bc->vl[i].shared));
-+		new_bc->vl[i].dedicated = 0;
-+		new_bc->vl[i].shared = 0;
-+	}
-+	new_total += be16_to_cpu(new_bc->overall_shared_limit);
-+	if (new_total > (u32)dd->link_credits)
-+		return -EINVAL;
-+	/* fetch the current values */
-+	get_buffer_control(dd, &cur_bc, &cur_total);
-+
-+	/*
-+	 * Create the masks we will use.
-+	 */
-+	memset(changing, 0, sizeof(changing));
-+	memset(lowering_dedicated, 0, sizeof(lowering_dedicated));
-+	/* NOTE: Assumes that the individual VL bits are adjacent and in
-+	   increasing order */
-+	stat_mask =
-+		SEND_CM_CREDIT_USED_STATUS_VL0_RETURN_CREDIT_STATUS_SMASK;
-+	changing_mask = 0;
-+	ld_mask = 0;
-+	change_count = 0;
-+	any_shared_limit_changing = 0;
-+	for (i = 0; i < NUM_USABLE_VLS; i++, stat_mask <<= 1) {
-+		if (!valid_vl(i))
-+			continue;
-+		this_shared_changing = new_bc->vl[i].shared
-+						!= cur_bc.vl[i].shared;
-+		if (this_shared_changing)
-+			any_shared_limit_changing = 1;
-+		if (new_bc->vl[i].dedicated != cur_bc.vl[i].dedicated
-+				|| this_shared_changing) {
-+			changing[i] = 1;
-+			changing_mask |= stat_mask;
-+			change_count++;
-+		}
-+		if (be16_to_cpu(new_bc->vl[i].dedicated) <
-+					be16_to_cpu(cur_bc.vl[i].dedicated)) {
-+			lowering_dedicated[i] = 1;
-+			ld_mask |= stat_mask;
-+		}
-+	}
-+
-+	/* bracket the credit change with a total adjustment */
-+	if (new_total > cur_total)
-+		set_global_limit(dd, new_total);
-+
-+	/*
-+	 * Start the credit change algorithm.
-+	 */
-+	use_all_mask = 0;
-+	if ((be16_to_cpu(new_bc->overall_shared_limit) <
-+				be16_to_cpu(cur_bc.overall_shared_limit))
-+			|| (is_a0(dd) && any_shared_limit_changing)) {
-+		set_global_shared(dd, 0);
-+		cur_bc.overall_shared_limit = 0;
-+		use_all_mask = 1;
-+	}
-+
-+	for (i = 0; i < NUM_USABLE_VLS; i++) {
-+		if (!valid_vl(i))
-+			continue;
-+
-+		if (changing[i]) {
-+			set_vl_shared(dd, i, 0);
-+			cur_bc.vl[i].shared = 0;
-+		}
-+	}
-+
-+	wait_for_vl_status_clear(dd, use_all_mask ? all_mask : changing_mask,
-+		"shared");
-+
-+	if (change_count > 0) {
-+		for (i = 0; i < NUM_USABLE_VLS; i++) {
-+			if (!valid_vl(i))
-+				continue;
-+
-+			if (lowering_dedicated[i]) {
-+				set_vl_dedicated(dd, i,
-+					be16_to_cpu(new_bc->vl[i].dedicated));
-+				cur_bc.vl[i].dedicated =
-+						new_bc->vl[i].dedicated;
-+			}
-+		}
-+
-+		wait_for_vl_status_clear(dd, ld_mask, "dedicated");
-+
-+		/* now raise all dedicated that are going up */
-+		for (i = 0; i < NUM_USABLE_VLS; i++) {
-+			if (!valid_vl(i))
-+				continue;
-+
-+			if (be16_to_cpu(new_bc->vl[i].dedicated) >
-+					be16_to_cpu(cur_bc.vl[i].dedicated))
-+				set_vl_dedicated(dd, i,
-+					be16_to_cpu(new_bc->vl[i].dedicated));
-+		}
-+	}
-+
-+	/* next raise all shared that are going up */
-+	for (i = 0; i < NUM_USABLE_VLS; i++) {
-+		if (!valid_vl(i))
-+			continue;
-+
-+		if (be16_to_cpu(new_bc->vl[i].shared) >
-+				be16_to_cpu(cur_bc.vl[i].shared))
-+			set_vl_shared(dd, i, be16_to_cpu(new_bc->vl[i].shared));
-+	}
-+
-+	/* finally raise the global shared */
-+	if (be16_to_cpu(new_bc->overall_shared_limit) >
-+			be16_to_cpu(cur_bc.overall_shared_limit))
-+		set_global_shared(dd,
-+			be16_to_cpu(new_bc->overall_shared_limit));
-+
-+	/* bracket the credit change with a total adjustment */
-+	if (new_total < cur_total)
-+		set_global_limit(dd, new_total);
-+	return 0;
-+}
-+
-+/*
-+ * Read the given fabric manager table. Return the size of the
-+ * table (in bytes) on success, and a negative error code on
-+ * failure.
-+ */
-+int fm_get_table(struct hfi1_pportdata *ppd, int which, void *t)
-+
-+{
-+	int size;
-+	struct vl_arb_cache *vlc;
-+
-+	switch (which) {
-+	case FM_TBL_VL_HIGH_ARB:
-+		size = 256;
-+		/*
-+		 * OPA specifies 128 elements (of 2 bytes each), though
-+		 * HFI supports only 16 elements in h/w.
-+		 */
-+		vlc = vl_arb_lock_cache(ppd, HI_PRIO_TABLE);
-+		vl_arb_get_cache(vlc, t);
-+		vl_arb_unlock_cache(ppd, HI_PRIO_TABLE);
-+		break;
-+	case FM_TBL_VL_LOW_ARB:
-+		size = 256;
-+		/*
-+		 * OPA specifies 128 elements (of 2 bytes each), though
-+		 * HFI supports only 16 elements in h/w.
-+		 */
-+		vlc = vl_arb_lock_cache(ppd, LO_PRIO_TABLE);
-+		vl_arb_get_cache(vlc, t);
-+		vl_arb_unlock_cache(ppd, LO_PRIO_TABLE);
-+		break;
-+	case FM_TBL_BUFFER_CONTROL:
-+		size = get_buffer_control(ppd->dd, t, NULL);
-+		break;
-+	case FM_TBL_SC2VLNT:
-+		size = get_sc2vlnt(ppd->dd, t);
-+		break;
-+	case FM_TBL_VL_PREEMPT_ELEMS:
-+		size = 256;
-+		/* OPA specifies 128 elements, of 2 bytes each */
-+		get_vlarb_preempt(ppd->dd, OPA_MAX_VLS, t);
-+		break;
-+	case FM_TBL_VL_PREEMPT_MATRIX:
-+		size = 256;
-+		/*
-+		 * OPA specifies that this is the same size as the VL
-+		 * arbitration tables (i.e., 256 bytes).
-+		 */
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	return size;
-+}
-+
-+/*
-+ * Write the given fabric manager table.
-+ */
-+int fm_set_table(struct hfi1_pportdata *ppd, int which, void *t)
-+{
-+	int ret = 0;
-+	struct vl_arb_cache *vlc;
-+
-+	switch (which) {
-+	case FM_TBL_VL_HIGH_ARB:
-+		vlc = vl_arb_lock_cache(ppd, HI_PRIO_TABLE);
-+		if (vl_arb_match_cache(vlc, t)) {
-+			vl_arb_unlock_cache(ppd, HI_PRIO_TABLE);
-+			break;
-+		}
-+		vl_arb_set_cache(vlc, t);
-+		vl_arb_unlock_cache(ppd, HI_PRIO_TABLE);
-+		ret = set_vl_weights(ppd, SEND_HIGH_PRIORITY_LIST,
-+				     VL_ARB_HIGH_PRIO_TABLE_SIZE, t);
-+		break;
-+	case FM_TBL_VL_LOW_ARB:
-+		vlc = vl_arb_lock_cache(ppd, LO_PRIO_TABLE);
-+		if (vl_arb_match_cache(vlc, t)) {
-+			vl_arb_unlock_cache(ppd, LO_PRIO_TABLE);
-+			break;
-+		}
-+		vl_arb_set_cache(vlc, t);
-+		vl_arb_unlock_cache(ppd, LO_PRIO_TABLE);
-+		ret = set_vl_weights(ppd, SEND_LOW_PRIORITY_LIST,
-+				     VL_ARB_LOW_PRIO_TABLE_SIZE, t);
-+		break;
-+	case FM_TBL_BUFFER_CONTROL:
-+		ret = set_buffer_control(ppd->dd, t);
-+		break;
-+	case FM_TBL_SC2VLNT:
-+		set_sc2vlnt(ppd->dd, t);
-+		break;
-+	default:
-+		ret = -EINVAL;
-+	}
-+	return ret;
-+}
-+
-+/*
-+ * Disable all data VLs.
-+ *
-+ * Return 0 if disabled, non-zero if the VLs cannot be disabled.
-+ */
-+static int disable_data_vls(struct hfi1_devdata *dd)
-+{
-+	if (is_a0(dd))
-+		return 1;
-+
-+	pio_send_control(dd, PSC_DATA_VL_DISABLE);
-+
-+	return 0;
-+}
-+
-+/*
-+ * open_fill_data_vls() - the counterpart to stop_drain_data_vls().
-+ * Just re-enables all data VLs (the "fill" part happens
-+ * automatically - the name was chosen for symmetry with
-+ * stop_drain_data_vls()).
-+ *
-+ * Return 0 if successful, non-zero if the VLs cannot be enabled.
-+ */
-+int open_fill_data_vls(struct hfi1_devdata *dd)
-+{
-+	if (is_a0(dd))
-+		return 1;
-+
-+	pio_send_control(dd, PSC_DATA_VL_ENABLE);
-+
-+	return 0;
-+}
-+
-+/*
-+ * drain_data_vls() - assumes that disable_data_vls() has been called,
-+ * wait for occupancy (of per-VL FIFOs) for all contexts, and SDMA
-+ * engines to drop to 0.
-+ */
-+static void drain_data_vls(struct hfi1_devdata *dd)
-+{
-+	sc_wait(dd);
-+	sdma_wait(dd);
-+	pause_for_credit_return(dd);
-+}
-+
-+/*
-+ * stop_drain_data_vls() - disable, then drain all per-VL fifos.
-+ *
-+ * Use open_fill_data_vls() to resume using data VLs.  This pair is
-+ * meant to be used like this:
-+ *
-+ * stop_drain_data_vls(dd);
-+ * // do things with per-VL resources
-+ * open_fill_data_vls(dd);
-+ */
-+int stop_drain_data_vls(struct hfi1_devdata *dd)
-+{
-+	int ret;
-+
-+	ret = disable_data_vls(dd);
-+	if (ret == 0)
-+		drain_data_vls(dd);
-+
-+	return ret;
-+}
-+
-+/*
-+ * Convert a nanosecond time to a cclock count.  No matter how slow
-+ * the cclock, a non-zero ns will always have a non-zero result.
-+ */
-+u32 ns_to_cclock(struct hfi1_devdata *dd, u32 ns)
-+{
-+	u32 cclocks;
-+
-+	if (dd->icode == ICODE_FPGA_EMULATION)
-+		cclocks = (ns * 1000) / FPGA_CCLOCK_PS;
-+	else  /* simulation pretends to be ASIC */
-+		cclocks = (ns * 1000) / ASIC_CCLOCK_PS;
-+	if (ns && !cclocks)	/* if ns nonzero, must be at least 1 */
-+		cclocks = 1;
-+	return cclocks;
-+}
-+
-+/*
-+ * Convert a cclock count to nanoseconds. Not matter how slow
-+ * the cclock, a non-zero cclocks will always have a non-zero result.
-+ */
-+u32 cclock_to_ns(struct hfi1_devdata *dd, u32 cclocks)
-+{
-+	u32 ns;
-+
-+	if (dd->icode == ICODE_FPGA_EMULATION)
-+		ns = (cclocks * FPGA_CCLOCK_PS) / 1000;
-+	else  /* simulation pretends to be ASIC */
-+		ns = (cclocks * ASIC_CCLOCK_PS) / 1000;
-+	if (cclocks && !ns)
-+		ns = 1;
-+	return ns;
-+}
-+
-+/*
-+ * Dynamically adjust the receive interrupt timeout for a context based on
-+ * incoming packet rate.
-+ *
-+ * NOTE: Dynamic adjustment does not allow rcv_intr_count to be zero.
-+ */
-+static void adjust_rcv_timeout(struct hfi1_ctxtdata *rcd, u32 npkts)
-+{
-+	struct hfi1_devdata *dd = rcd->dd;
-+	u32 timeout = rcd->rcvavail_timeout;
-+
-+	/*
-+	 * This algorithm doubles or halves the timeout depending on whether
-+	 * the number of packets received in this interrupt were less than or
-+	 * greater equal the interrupt count.
-+	 *
-+	 * The calculations below do not allow a steady state to be achieved.
-+	 * Only at the endpoints it is possible to have an unchanging
-+	 * timeout.
-+	 */
-+	if (npkts < rcv_intr_count) {
-+		/*
-+		 * Not enough packets arrived before the timeout, adjust
-+		 * timeout downward.
-+		 */
-+		if (timeout < 2) /* already at minimum? */
-+			return;
-+		timeout >>= 1;
-+	} else {
-+		/*
-+		 * More than enough packets arrived before the timeout, adjust
-+		 * timeout upward.
-+		 */
-+		if (timeout >= dd->rcv_intr_timeout_csr) /* already at max? */
-+			return;
-+		timeout = min(timeout << 1, dd->rcv_intr_timeout_csr);
-+	}
-+
-+	rcd->rcvavail_timeout = timeout;
-+	/* timeout cannot be larger than rcv_intr_timeout_csr which has already
-+	   been verified to be in range */
-+	write_kctxt_csr(dd, rcd->ctxt, RCV_AVAIL_TIME_OUT,
-+		(u64)timeout << RCV_AVAIL_TIME_OUT_TIME_OUT_RELOAD_SHIFT);
-+}
-+
-+void update_usrhead(struct hfi1_ctxtdata *rcd, u32 hd, u32 updegr, u32 egrhd,
-+		    u32 intr_adjust, u32 npkts)
-+{
-+	struct hfi1_devdata *dd = rcd->dd;
-+	u64 reg;
-+	u32 ctxt = rcd->ctxt;
-+
-+	/*
-+	 * Need to write timeout register before updating RcvHdrHead to ensure
-+	 * that a new value is used when the HW decides to restart counting.
-+	 */
-+	if (intr_adjust)
-+		adjust_rcv_timeout(rcd, npkts);
-+	if (updegr) {
-+		reg = (egrhd & RCV_EGR_INDEX_HEAD_HEAD_MASK)
-+			<< RCV_EGR_INDEX_HEAD_HEAD_SHIFT;
-+		write_uctxt_csr(dd, ctxt, RCV_EGR_INDEX_HEAD, reg);
-+	}
-+	mmiowb();
-+	reg = ((u64)rcv_intr_count << RCV_HDR_HEAD_COUNTER_SHIFT) |
-+		(((u64)hd & RCV_HDR_HEAD_HEAD_MASK)
-+			<< RCV_HDR_HEAD_HEAD_SHIFT);
-+	write_uctxt_csr(dd, ctxt, RCV_HDR_HEAD, reg);
-+	mmiowb();
-+}
-+
-+u32 hdrqempty(struct hfi1_ctxtdata *rcd)
-+{
-+	u32 head, tail;
-+
-+	head = (read_uctxt_csr(rcd->dd, rcd->ctxt, RCV_HDR_HEAD)
-+		& RCV_HDR_HEAD_HEAD_SMASK) >> RCV_HDR_HEAD_HEAD_SHIFT;
-+
-+	if (rcd->rcvhdrtail_kvaddr)
-+		tail = get_rcvhdrtail(rcd);
-+	else
-+		tail = read_uctxt_csr(rcd->dd, rcd->ctxt, RCV_HDR_TAIL);
-+
-+	return head == tail;
-+}
-+
-+/*
-+ * Context Control and Receive Array encoding for buffer size:
-+ *	0x0 invalid
-+ *	0x1   4 KB
-+ *	0x2   8 KB
-+ *	0x3  16 KB
-+ *	0x4  32 KB
-+ *	0x5  64 KB
-+ *	0x6 128 KB
-+ *	0x7 256 KB
-+ *	0x8 512 KB (Receive Array only)
-+ *	0x9   1 MB (Receive Array only)
-+ *	0xa   2 MB (Receive Array only)
-+ *
-+ *	0xB-0xF - reserved (Receive Array only)
-+ *
-+ *
-+ * This routine assumes that the value has already been sanity checked.
-+ */
-+static u32 encoded_size(u32 size)
-+{
-+	switch (size) {
-+	case   4*1024: return 0x1;
-+	case   8*1024: return 0x2;
-+	case  16*1024: return 0x3;
-+	case  32*1024: return 0x4;
-+	case  64*1024: return 0x5;
-+	case 128*1024: return 0x6;
-+	case 256*1024: return 0x7;
-+	case 512*1024: return 0x8;
-+	case   1*1024*1024: return 0x9;
-+	case   2*1024*1024: return 0xa;
-+	}
-+	return 0x1;	/* if invalid, go with the minimum size */
-+}
-+
-+void hfi1_rcvctrl(struct hfi1_devdata *dd, unsigned int op, int ctxt)
-+{
-+	struct hfi1_ctxtdata *rcd;
-+	u64 rcvctrl, reg;
-+	int did_enable = 0;
-+
-+	rcd = dd->rcd[ctxt];
-+	if (!rcd)
-+		return;
-+
-+	hfi1_cdbg(RCVCTRL, "ctxt %d op 0x%x", ctxt, op);
-+
-+	rcvctrl = read_kctxt_csr(dd, ctxt, RCV_CTXT_CTRL);
-+	/* if the context already enabled, don't do the extra steps */
-+	if ((op & HFI1_RCVCTRL_CTXT_ENB)
-+			&& !(rcvctrl & RCV_CTXT_CTRL_ENABLE_SMASK)) {
-+		/* reset the tail and hdr addresses, and sequence count */
-+		write_kctxt_csr(dd, ctxt, RCV_HDR_ADDR,
-+				rcd->rcvhdrq_phys);
-+		if (HFI1_CAP_KGET_MASK(rcd->flags, DMA_RTAIL))
-+			write_kctxt_csr(dd, ctxt, RCV_HDR_TAIL_ADDR,
-+					rcd->rcvhdrqtailaddr_phys);
-+		rcd->seq_cnt = 1;
-+
-+		/* reset the cached receive header queue head value */
-+		rcd->head = 0;
-+
-+		/*
-+		 * Zero the receive header queue so we don't get false
-+		 * positives when checking the sequence number.  The
-+		 * sequence numbers could land exactly on the same spot.
-+		 * E.g. a rcd restart before the receive header wrapped.
-+		 */
-+		memset(rcd->rcvhdrq, 0, rcd->rcvhdrq_size);
-+
-+		/* starting timeout */
-+		rcd->rcvavail_timeout = dd->rcv_intr_timeout_csr;
-+
-+		/* enable the context */
-+		rcvctrl |= RCV_CTXT_CTRL_ENABLE_SMASK;
-+
-+		/* clean the egr buffer size first */
-+		rcvctrl &= ~RCV_CTXT_CTRL_EGR_BUF_SIZE_SMASK;
-+		rcvctrl |= ((u64)encoded_size(rcd->egrbufs.rcvtid_size)
-+				& RCV_CTXT_CTRL_EGR_BUF_SIZE_MASK)
-+					<< RCV_CTXT_CTRL_EGR_BUF_SIZE_SHIFT;
-+
-+		/* zero RcvHdrHead - set RcvHdrHead.Counter after enable */
-+		write_uctxt_csr(dd, ctxt, RCV_HDR_HEAD, 0);
-+		did_enable = 1;
-+
-+		/* zero RcvEgrIndexHead */
-+		write_uctxt_csr(dd, ctxt, RCV_EGR_INDEX_HEAD, 0);
-+
-+		/* set eager count and base index */
-+		reg = (((u64)(rcd->egrbufs.alloced >> RCV_SHIFT)
-+			& RCV_EGR_CTRL_EGR_CNT_MASK)
-+		       << RCV_EGR_CTRL_EGR_CNT_SHIFT) |
-+			(((rcd->eager_base >> RCV_SHIFT)
-+			  & RCV_EGR_CTRL_EGR_BASE_INDEX_MASK)
-+			 << RCV_EGR_CTRL_EGR_BASE_INDEX_SHIFT);
-+		write_kctxt_csr(dd, ctxt, RCV_EGR_CTRL, reg);
-+
-+		/*
-+		 * Set TID (expected) count and base index.
-+		 * rcd->expected_count is set to individual RcvArray entries,
-+		 * not pairs, and the CSR takes a pair-count in groups of
-+		 * four, so divide by 8.
-+		 */
-+		reg = (((rcd->expected_count >> RCV_SHIFT)
-+					& RCV_TID_CTRL_TID_PAIR_CNT_MASK)
-+				<< RCV_TID_CTRL_TID_PAIR_CNT_SHIFT) |
-+		      (((rcd->expected_base >> RCV_SHIFT)
-+					& RCV_TID_CTRL_TID_BASE_INDEX_MASK)
-+				<< RCV_TID_CTRL_TID_BASE_INDEX_SHIFT);
-+		write_kctxt_csr(dd, ctxt, RCV_TID_CTRL, reg);
-+		if (ctxt == VL15CTXT)
-+			write_csr(dd, RCV_VL15, VL15CTXT);
-+	}
-+	if (op & HFI1_RCVCTRL_CTXT_DIS) {
-+		write_csr(dd, RCV_VL15, 0);
-+		rcvctrl &= ~RCV_CTXT_CTRL_ENABLE_SMASK;
-+	}
-+	if (op & HFI1_RCVCTRL_INTRAVAIL_ENB)
-+		rcvctrl |= RCV_CTXT_CTRL_INTR_AVAIL_SMASK;
-+	if (op & HFI1_RCVCTRL_INTRAVAIL_DIS)
-+		rcvctrl &= ~RCV_CTXT_CTRL_INTR_AVAIL_SMASK;
-+	if (op & HFI1_RCVCTRL_TAILUPD_ENB && rcd->rcvhdrqtailaddr_phys)
-+		rcvctrl |= RCV_CTXT_CTRL_TAIL_UPD_SMASK;
-+	if (op & HFI1_RCVCTRL_TAILUPD_DIS)
-+		rcvctrl &= ~RCV_CTXT_CTRL_TAIL_UPD_SMASK;
-+	if (op & HFI1_RCVCTRL_TIDFLOW_ENB)
-+		rcvctrl |= RCV_CTXT_CTRL_TID_FLOW_ENABLE_SMASK;
-+	if (op & HFI1_RCVCTRL_TIDFLOW_DIS)
-+		rcvctrl &= ~RCV_CTXT_CTRL_TID_FLOW_ENABLE_SMASK;
-+	if (op & HFI1_RCVCTRL_ONE_PKT_EGR_ENB) {
-+		/* In one-packet-per-eager mode, the size comes from
-+		   the RcvArray entry. */
-+		rcvctrl &= ~RCV_CTXT_CTRL_EGR_BUF_SIZE_SMASK;
-+		rcvctrl |= RCV_CTXT_CTRL_ONE_PACKET_PER_EGR_BUFFER_SMASK;
-+	}
-+	if (op & HFI1_RCVCTRL_ONE_PKT_EGR_DIS)
-+		rcvctrl &= ~RCV_CTXT_CTRL_ONE_PACKET_PER_EGR_BUFFER_SMASK;
-+	if (op & HFI1_RCVCTRL_NO_RHQ_DROP_ENB)
-+		rcvctrl |= RCV_CTXT_CTRL_DONT_DROP_RHQ_FULL_SMASK;
-+	if (op & HFI1_RCVCTRL_NO_RHQ_DROP_DIS)
-+		rcvctrl &= ~RCV_CTXT_CTRL_DONT_DROP_RHQ_FULL_SMASK;
-+	if (op & HFI1_RCVCTRL_NO_EGR_DROP_ENB)
-+		rcvctrl |= RCV_CTXT_CTRL_DONT_DROP_EGR_FULL_SMASK;
-+	if (op & HFI1_RCVCTRL_NO_EGR_DROP_DIS)
-+		rcvctrl &= ~RCV_CTXT_CTRL_DONT_DROP_EGR_FULL_SMASK;
-+	rcd->rcvctrl = rcvctrl;
-+	hfi1_cdbg(RCVCTRL, "ctxt %d rcvctrl 0x%llx\n", ctxt, rcvctrl);
-+	write_kctxt_csr(dd, ctxt, RCV_CTXT_CTRL, rcd->rcvctrl);
-+
-+	/* work around sticky RcvCtxtStatus.BlockedRHQFull */
-+	if (did_enable
-+	    && (rcvctrl & RCV_CTXT_CTRL_DONT_DROP_RHQ_FULL_SMASK)) {
-+		reg = read_kctxt_csr(dd, ctxt, RCV_CTXT_STATUS);
-+		if (reg != 0) {
-+			dd_dev_info(dd, "ctxt %d status %lld (blocked)\n",
-+				ctxt, reg);
-+			read_uctxt_csr(dd, ctxt, RCV_HDR_HEAD);
-+			write_uctxt_csr(dd, ctxt, RCV_HDR_HEAD, 0x10);
-+			write_uctxt_csr(dd, ctxt, RCV_HDR_HEAD, 0x00);
-+			read_uctxt_csr(dd, ctxt, RCV_HDR_HEAD);
-+			reg = read_kctxt_csr(dd, ctxt, RCV_CTXT_STATUS);
-+			dd_dev_info(dd, "ctxt %d status %lld (%s blocked)\n",
-+				ctxt, reg, reg == 0 ? "not" : "still");
-+		}
-+	}
-+
-+	if (did_enable) {
-+		/*
-+		 * The interrupt timeout and count must be set after
-+		 * the context is enabled to take effect.
-+		 */
-+		/* set interrupt timeout */
-+		write_kctxt_csr(dd, ctxt, RCV_AVAIL_TIME_OUT,
-+			(u64)rcd->rcvavail_timeout <<
-+				RCV_AVAIL_TIME_OUT_TIME_OUT_RELOAD_SHIFT);
-+
-+		/* set RcvHdrHead.Counter, zero RcvHdrHead.Head (again) */
-+		reg = (u64)rcv_intr_count << RCV_HDR_HEAD_COUNTER_SHIFT;
-+		write_uctxt_csr(dd, ctxt, RCV_HDR_HEAD, reg);
-+	}
-+
-+	if (op & (HFI1_RCVCTRL_TAILUPD_DIS | HFI1_RCVCTRL_CTXT_DIS))
-+		/*
-+		 * If the context has been disabled and the Tail Update has
-+		 * been cleared, clear the RCV_HDR_TAIL_ADDR CSR so
-+		 * it doesn't contain an address that is invalid.
-+		 */
-+		write_kctxt_csr(dd, ctxt, RCV_HDR_TAIL_ADDR, 0);
-+}
-+
-+u32 hfi1_read_cntrs(struct hfi1_devdata *dd, loff_t pos, char **namep,
-+		    u64 **cntrp)
-+{
-+	int ret;
-+	u64 val = 0;
-+
-+	if (namep) {
-+		ret = dd->cntrnameslen;
-+		if (pos != 0) {
-+			dd_dev_err(dd, "read_cntrs does not support indexing");
-+			return 0;
-+		}
-+		*namep = dd->cntrnames;
-+	} else {
-+		const struct cntr_entry *entry;
-+		int i, j;
-+
-+		ret = (dd->ndevcntrs) * sizeof(u64);
-+		if (pos != 0) {
-+			dd_dev_err(dd, "read_cntrs does not support indexing");
-+			return 0;
-+		}
-+
-+		/* Get the start of the block of counters */
-+		*cntrp = dd->cntrs;
-+
-+		/*
-+		 * Now go and fill in each counter in the block.
-+		 */
-+		for (i = 0; i < DEV_CNTR_LAST; i++) {
-+			entry = &dev_cntrs[i];
-+			hfi1_cdbg(CNTR, "reading %s", entry->name);
-+			if (entry->flags & CNTR_DISABLED) {
-+				/* Nothing */
-+				hfi1_cdbg(CNTR, "\tDisabled\n");
-+			} else {
-+				if (entry->flags & CNTR_VL) {
-+					hfi1_cdbg(CNTR, "\tPer VL\n");
-+					for (j = 0; j < C_VL_COUNT; j++) {
-+						val = entry->rw_cntr(entry,
-+								  dd, j,
-+								  CNTR_MODE_R,
-+								  0);
-+						hfi1_cdbg(
-+						   CNTR,
-+						   "\t\tRead 0x%llx for %d\n",
-+						   val, j);
-+						dd->cntrs[entry->offset + j] =
-+									    val;
-+					}
-+				} else {
-+					val = entry->rw_cntr(entry, dd,
-+							CNTR_INVALID_VL,
-+							CNTR_MODE_R, 0);
-+					dd->cntrs[entry->offset] = val;
-+					hfi1_cdbg(CNTR, "\tRead 0x%llx", val);
-+				}
-+			}
-+		}
-+	}
-+	return ret;
-+}
-+
-+/*
-+ * Used by sysfs to create files for hfi stats to read
-+ */
-+u32 hfi1_read_portcntrs(struct hfi1_devdata *dd, loff_t pos, u32 port,
-+			char **namep, u64 **cntrp)
-+{
-+	int ret;
-+	u64 val = 0;
-+
-+	if (namep) {
-+		ret = dd->portcntrnameslen;
-+		if (pos != 0) {
-+			dd_dev_err(dd, "index not supported");
-+			return 0;
-+		}
-+		*namep = dd->portcntrnames;
-+	} else {
-+		const struct cntr_entry *entry;
-+		struct hfi1_pportdata *ppd;
-+		int i, j;
-+
-+		ret = (dd->nportcntrs) * sizeof(u64);
-+		if (pos != 0) {
-+			dd_dev_err(dd, "indexing not supported");
-+			return 0;
-+		}
-+		ppd = (struct hfi1_pportdata *)(dd + 1 + port);
-+		*cntrp = ppd->cntrs;
-+
-+		for (i = 0; i < PORT_CNTR_LAST; i++) {
-+			entry = &port_cntrs[i];
-+			hfi1_cdbg(CNTR, "reading %s", entry->name);
-+			if (entry->flags & CNTR_DISABLED) {
-+				/* Nothing */
-+				hfi1_cdbg(CNTR, "\tDisabled\n");
-+				continue;
-+			}
-+
-+			if (entry->flags & CNTR_VL) {
-+				hfi1_cdbg(CNTR, "\tPer VL");
-+				for (j = 0; j < C_VL_COUNT; j++) {
-+					val = entry->rw_cntr(entry, ppd, j,
-+							       CNTR_MODE_R,
-+							       0);
-+					hfi1_cdbg(
-+					   CNTR,
-+					   "\t\tRead 0x%llx for %d",
-+					   val, j);
-+					ppd->cntrs[entry->offset + j] = val;
-+				}
-+			} else {
-+				val = entry->rw_cntr(entry, ppd,
-+						       CNTR_INVALID_VL,
-+						       CNTR_MODE_R,
-+						       0);
-+				ppd->cntrs[entry->offset] = val;
-+				hfi1_cdbg(CNTR, "\tRead 0x%llx", val);
-+			}
-+		}
-+	}
-+	return ret;
-+}
-+
-+static void free_cntrs(struct hfi1_devdata *dd)
-+{
-+	struct hfi1_pportdata *ppd;
-+	int i;
-+
-+	if (dd->synth_stats_timer.data)
-+		del_timer_sync(&dd->synth_stats_timer);
-+	dd->synth_stats_timer.data = 0;
-+	ppd = (struct hfi1_pportdata *)(dd + 1);
-+	for (i = 0; i < dd->num_pports; i++, ppd++) {
-+		kfree(ppd->cntrs);
-+		kfree(ppd->scntrs);
-+		free_percpu(ppd->ibport_data.rc_acks);
-+		free_percpu(ppd->ibport_data.rc_qacks);
-+		free_percpu(ppd->ibport_data.rc_delayed_comp);
-+		ppd->cntrs = NULL;
-+		ppd->scntrs = NULL;
-+		ppd->ibport_data.rc_acks = NULL;
-+		ppd->ibport_data.rc_qacks = NULL;
-+		ppd->ibport_data.rc_delayed_comp = NULL;
-+	}
-+	kfree(dd->portcntrnames);
-+	dd->portcntrnames = NULL;
-+	kfree(dd->cntrs);
-+	dd->cntrs = NULL;
-+	kfree(dd->scntrs);
-+	dd->scntrs = NULL;
-+	kfree(dd->cntrnames);
-+	dd->cntrnames = NULL;
-+}
-+
-+#define CNTR_MAX 0xFFFFFFFFFFFFFFFFULL
-+#define CNTR_32BIT_MAX 0x00000000FFFFFFFF
-+
-+static u64 read_dev_port_cntr(struct hfi1_devdata *dd, struct cntr_entry *entry,
-+			      u64 *psval, void *context, int vl)
-+{
-+	u64 val;
-+	u64 sval = *psval;
-+
-+	if (entry->flags & CNTR_DISABLED) {
-+		dd_dev_err(dd, "Counter %s not enabled", entry->name);
-+		return 0;
-+	}
-+
-+	hfi1_cdbg(CNTR, "cntr: %s vl %d psval 0x%llx", entry->name, vl, *psval);
-+
-+	val = entry->rw_cntr(entry, context, vl, CNTR_MODE_R, 0);
-+
-+	/* If its a synthetic counter there is more work we need to do */
-+	if (entry->flags & CNTR_SYNTH) {
-+		if (sval == CNTR_MAX) {
-+			/* No need to read already saturated */
-+			return CNTR_MAX;
-+		}
-+
-+		if (entry->flags & CNTR_32BIT) {
-+			/* 32bit counters can wrap multiple times */
-+			u64 upper = sval >> 32;
-+			u64 lower = (sval << 32) >> 32;
-+
-+			if (lower > val) { /* hw wrapped */
-+				if (upper == CNTR_32BIT_MAX)
-+					val = CNTR_MAX;
-+				else
-+					upper++;
-+			}
-+
-+			if (val != CNTR_MAX)
-+				val = (upper << 32) | val;
-+
-+		} else {
-+			/* If we rolled we are saturated */
-+			if ((val < sval) || (val > CNTR_MAX))
-+				val = CNTR_MAX;
-+		}
-+	}
-+
-+	*psval = val;
-+
-+	hfi1_cdbg(CNTR, "\tNew val=0x%llx", val);
-+
-+	return val;
-+}
-+
-+static u64 write_dev_port_cntr(struct hfi1_devdata *dd,
-+			       struct cntr_entry *entry,
-+			       u64 *psval, void *context, int vl, u64 data)
-+{
-+	u64 val;
-+
-+	if (entry->flags & CNTR_DISABLED) {
-+		dd_dev_err(dd, "Counter %s not enabled", entry->name);
-+		return 0;
-+	}
-+
-+	hfi1_cdbg(CNTR, "cntr: %s vl %d psval 0x%llx", entry->name, vl, *psval);
-+
-+	if (entry->flags & CNTR_SYNTH) {
-+		*psval = data;
-+		if (entry->flags & CNTR_32BIT) {
-+			val = entry->rw_cntr(entry, context, vl, CNTR_MODE_W,
-+					     (data << 32) >> 32);
-+			val = data; /* return the full 64bit value */
-+		} else {
-+			val = entry->rw_cntr(entry, context, vl, CNTR_MODE_W,
-+					     data);
-+		}
-+	} else {
-+		val = entry->rw_cntr(entry, context, vl, CNTR_MODE_W, data);
-+	}
-+
-+	*psval = val;
-+
-+	hfi1_cdbg(CNTR, "\tNew val=0x%llx", val);
-+
-+	return val;
-+}
-+
-+u64 read_dev_cntr(struct hfi1_devdata *dd, int index, int vl)
-+{
-+	struct cntr_entry *entry;
-+	u64 *sval;
-+
-+	entry = &dev_cntrs[index];
-+	sval = dd->scntrs + entry->offset;
-+
-+	if (vl != CNTR_INVALID_VL)
-+		sval += vl;
-+
-+	return read_dev_port_cntr(dd, entry, sval, dd, vl);
-+}
-+
-+u64 write_dev_cntr(struct hfi1_devdata *dd, int index, int vl, u64 data)
-+{
-+	struct cntr_entry *entry;
-+	u64 *sval;
-+
-+	entry = &dev_cntrs[index];
-+	sval = dd->scntrs + entry->offset;
-+
-+	if (vl != CNTR_INVALID_VL)
-+		sval += vl;
-+
-+	return write_dev_port_cntr(dd, entry, sval, dd, vl, data);
-+}
-+
-+u64 read_port_cntr(struct hfi1_pportdata *ppd, int index, int vl)
-+{
-+	struct cntr_entry *entry;
-+	u64 *sval;
-+
-+	entry = &port_cntrs[index];
-+	sval = ppd->scntrs + entry->offset;
-+
-+	if (vl != CNTR_INVALID_VL)
-+		sval += vl;
-+
-+	if ((index >= C_RCV_HDR_OVF_FIRST + ppd->dd->num_rcv_contexts) &&
-+	    (index <= C_RCV_HDR_OVF_LAST)) {
-+		/* We do not want to bother for disabled contexts */
-+		return 0;
-+	}
-+
-+	return read_dev_port_cntr(ppd->dd, entry, sval, ppd, vl);
-+}
-+
-+u64 write_port_cntr(struct hfi1_pportdata *ppd, int index, int vl, u64 data)
-+{
-+	struct cntr_entry *entry;
-+	u64 *sval;
-+
-+	entry = &port_cntrs[index];
-+	sval = ppd->scntrs + entry->offset;
-+
-+	if (vl != CNTR_INVALID_VL)
-+		sval += vl;
-+
-+	if ((index >= C_RCV_HDR_OVF_FIRST + ppd->dd->num_rcv_contexts) &&
-+	    (index <= C_RCV_HDR_OVF_LAST)) {
-+		/* We do not want to bother for disabled contexts */
-+		return 0;
-+	}
-+
-+	return write_dev_port_cntr(ppd->dd, entry, sval, ppd, vl, data);
-+}
-+
-+static void update_synth_timer(unsigned long opaque)
-+{
-+	u64 cur_tx;
-+	u64 cur_rx;
-+	u64 total_flits;
-+	u8 update = 0;
-+	int i, j, vl;
-+	struct hfi1_pportdata *ppd;
-+	struct cntr_entry *entry;
-+
-+	struct hfi1_devdata *dd = (struct hfi1_devdata *)opaque;
-+
-+	/*
-+	 * Rather than keep beating on the CSRs pick a minimal set that we can
-+	 * check to watch for potential roll over. We can do this by looking at
-+	 * the number of flits sent/recv. If the total flits exceeds 32bits then
-+	 * we have to iterate all the counters and update.
-+	 */
-+	entry = &dev_cntrs[C_DC_RCV_FLITS];
-+	cur_rx = entry->rw_cntr(entry, dd, CNTR_INVALID_VL, CNTR_MODE_R, 0);
-+
-+	entry = &dev_cntrs[C_DC_XMIT_FLITS];
-+	cur_tx = entry->rw_cntr(entry, dd, CNTR_INVALID_VL, CNTR_MODE_R, 0);
-+
-+	hfi1_cdbg(
-+	    CNTR,
-+	    "[%d] curr tx=0x%llx rx=0x%llx :: last tx=0x%llx rx=0x%llx\n",
-+	    dd->unit, cur_tx, cur_rx, dd->last_tx, dd->last_rx);
-+
-+	if ((cur_tx < dd->last_tx) || (cur_rx < dd->last_rx)) {
-+		/*
-+		 * May not be strictly necessary to update but it won't hurt and
-+		 * simplifies the logic here.
-+		 */
-+		update = 1;
-+		hfi1_cdbg(CNTR, "[%d] Tripwire counter rolled, updating",
-+			  dd->unit);
-+	} else {
-+		total_flits = (cur_tx - dd->last_tx) + (cur_rx - dd->last_rx);
-+		hfi1_cdbg(CNTR,
-+			  "[%d] total flits 0x%llx limit 0x%llx\n", dd->unit,
-+			  total_flits, (u64)CNTR_32BIT_MAX);
-+		if (total_flits >= CNTR_32BIT_MAX) {
-+			hfi1_cdbg(CNTR, "[%d] 32bit limit hit, updating",
-+				  dd->unit);
-+			update = 1;
-+		}
-+	}
-+
-+	if (update) {
-+		hfi1_cdbg(CNTR, "[%d] Updating dd and ppd counters", dd->unit);
-+		for (i = 0; i < DEV_CNTR_LAST; i++) {
-+			entry = &dev_cntrs[i];
-+			if (entry->flags & CNTR_VL) {
-+				for (vl = 0; vl < C_VL_COUNT; vl++)
-+					read_dev_cntr(dd, i, vl);
-+			} else {
-+				read_dev_cntr(dd, i, CNTR_INVALID_VL);
-+			}
-+		}
-+		ppd = (struct hfi1_pportdata *)(dd + 1);
-+		for (i = 0; i < dd->num_pports; i++, ppd++) {
-+			for (j = 0; j < PORT_CNTR_LAST; j++) {
-+				entry = &port_cntrs[j];
-+				if (entry->flags & CNTR_VL) {
-+					for (vl = 0; vl < C_VL_COUNT; vl++)
-+						read_port_cntr(ppd, j, vl);
-+				} else {
-+					read_port_cntr(ppd, j, CNTR_INVALID_VL);
-+				}
-+			}
-+		}
-+
-+		/*
-+		 * We want the value in the register. The goal is to keep track
-+		 * of the number of "ticks" not the counter value. In other
-+		 * words if the register rolls we want to notice it and go ahead
-+		 * and force an update.
-+		 */
-+		entry = &dev_cntrs[C_DC_XMIT_FLITS];
-+		dd->last_tx = entry->rw_cntr(entry, dd, CNTR_INVALID_VL,
-+						CNTR_MODE_R, 0);
-+
-+		entry = &dev_cntrs[C_DC_RCV_FLITS];
-+		dd->last_rx = entry->rw_cntr(entry, dd, CNTR_INVALID_VL,
-+						CNTR_MODE_R, 0);
-+
-+		hfi1_cdbg(CNTR, "[%d] setting last tx/rx to 0x%llx 0x%llx",
-+			  dd->unit, dd->last_tx, dd->last_rx);
-+
-+	} else {
-+		hfi1_cdbg(CNTR, "[%d] No update necessary", dd->unit);
-+	}
-+
-+mod_timer(&dd->synth_stats_timer, jiffies + HZ * SYNTH_CNT_TIME);
-+}
-+
-+#define C_MAX_NAME 13 /* 12 chars + one for /0 */
-+static int init_cntrs(struct hfi1_devdata *dd)
-+{
-+	int i, rcv_ctxts, index, j;
-+	size_t sz;
-+	char *p;
-+	char name[C_MAX_NAME];
-+	struct hfi1_pportdata *ppd;
-+
-+	/* set up the stats timer; the add_timer is done at the end */
-+	init_timer(&dd->synth_stats_timer);
-+	dd->synth_stats_timer.function = update_synth_timer;
-+	dd->synth_stats_timer.data = (unsigned long) dd;
-+
-+	/***********************/
-+	/* per device counters */
-+	/***********************/
-+
-+	/* size names and determine how many we have*/
-+	dd->ndevcntrs = 0;
-+	sz = 0;
-+	index = 0;
-+
-+	for (i = 0; i < DEV_CNTR_LAST; i++) {
-+		hfi1_dbg_early("Init cntr %s\n", dev_cntrs[i].name);
-+		if (dev_cntrs[i].flags & CNTR_DISABLED) {
-+			hfi1_dbg_early("\tSkipping %s\n", dev_cntrs[i].name);
-+			continue;
-+		}
-+
-+		if (dev_cntrs[i].flags & CNTR_VL) {
-+			hfi1_dbg_early("\tProcessing VL cntr\n");
-+			dev_cntrs[i].offset = index;
-+			for (j = 0; j < C_VL_COUNT; j++) {
-+				memset(name, '\0', C_MAX_NAME);
-+				snprintf(name, C_MAX_NAME, "%s%d",
-+					dev_cntrs[i].name,
-+					vl_from_idx(j));
-+				sz += strlen(name);
-+				sz++;
-+				hfi1_dbg_early("\t\t%s\n", name);
-+				dd->ndevcntrs++;
-+				index++;
-+			}
-+		} else {
-+			/* +1 for newline  */
-+			sz += strlen(dev_cntrs[i].name) + 1;
-+			dd->ndevcntrs++;
-+			dev_cntrs[i].offset = index;
-+			index++;
-+			hfi1_dbg_early("\tAdding %s\n", dev_cntrs[i].name);
-+		}
-+	}
-+
++#define CORE		0x000000000000
++#define CCE			(CORE + 0x000000000000)
++#define ASIC		(CORE + 0x000000400000)
++#define MISC		(CORE + 0x000000500000)
++#define DC_TOP_CSRS		(CORE + 0x000000600000)
++#define CHIP_DEBUG		(CORE + 0x000000700000)
++#define RXE			(CORE + 0x000001000000)
++#define TXE			(CORE + 0x000001800000)
++#define DCC_CSRS		(DC_TOP_CSRS + 0x000000000000)
++#define DC_LCB_CSRS		(DC_TOP_CSRS + 0x000000001000)
++#define DC_8051_CSRS		(DC_TOP_CSRS + 0x000000002000)
++#define PCIE		0
++
++#define ASIC_NUM_SCRATCH 4
++#define CCE_ERR_INT_CNT 0
++#define CCE_MISC_INT_CNT 2
++#define CCE_NUM_32_BIT_COUNTERS 3
++#define CCE_NUM_32_BIT_INT_COUNTERS 6
++#define CCE_NUM_INT_CSRS 12
++#define CCE_NUM_INT_MAP_CSRS 96
++#define CCE_NUM_MSIX_PBAS 4
++#define CCE_NUM_MSIX_VECTORS 256
++#define CCE_NUM_SCRATCH 4
++#define CCE_PCIE_POSTED_CRDT_STALL_CNT 2
++#define CCE_PCIE_TRGT_STALL_CNT 0
++#define CCE_PIO_WR_STALL_CNT 1
++#define CCE_RCV_AVAIL_INT_CNT 3
++#define CCE_RCV_URGENT_INT_CNT 4
++#define CCE_SDMA_INT_CNT 1
++#define CCE_SEND_CREDIT_INT_CNT 5
++#define DCC_CFG_LED_CNTRL (DCC_CSRS + 0x000000000040)
++#define DCC_CFG_LED_CNTRL_LED_CNTRL_SMASK 0x10ull
++#define DCC_CFG_LED_CNTRL_LED_SW_BLINK_RATE_SHIFT 0
++#define DCC_CFG_LED_CNTRL_LED_SW_BLINK_RATE_SMASK 0xFull
++#define DCC_CFG_PORT_CONFIG (DCC_CSRS + 0x000000000008)
++#define DCC_CFG_PORT_CONFIG1 (DCC_CSRS + 0x000000000010)
++#define DCC_CFG_PORT_CONFIG1_DLID_MASK_MASK 0xFFFFull
++#define DCC_CFG_PORT_CONFIG1_DLID_MASK_SHIFT 16
++#define DCC_CFG_PORT_CONFIG1_DLID_MASK_SMASK 0xFFFF0000ull
++#define DCC_CFG_PORT_CONFIG1_TARGET_DLID_MASK 0xFFFFull
++#define DCC_CFG_PORT_CONFIG1_TARGET_DLID_SHIFT 0
++#define DCC_CFG_PORT_CONFIG1_TARGET_DLID_SMASK 0xFFFFull
++#define DCC_CFG_PORT_CONFIG_LINK_STATE_MASK 0x7ull
++#define DCC_CFG_PORT_CONFIG_LINK_STATE_SHIFT 48
++#define DCC_CFG_PORT_CONFIG_LINK_STATE_SMASK 0x7000000000000ull
++#define DCC_CFG_PORT_CONFIG_MTU_CAP_MASK 0x7ull
++#define DCC_CFG_PORT_CONFIG_MTU_CAP_SHIFT 32
++#define DCC_CFG_PORT_CONFIG_MTU_CAP_SMASK 0x700000000ull
++#define DCC_CFG_RESET (DCC_CSRS + 0x000000000000)
++#define DCC_CFG_RESET_RESET_LCB_SHIFT 0
++#define DCC_CFG_RESET_RESET_RX_FPE_SHIFT 2
++#define DCC_CFG_SC_VL_TABLE_15_0 (DCC_CSRS + 0x000000000028)
++#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY0_SHIFT 0
++#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY10_SHIFT 40
++#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY11_SHIFT 44
++#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY12_SHIFT 48
++#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY13_SHIFT 52
++#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY14_SHIFT 56
++#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY15_SHIFT 60
++#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY1_SHIFT 4
++#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY2_SHIFT 8
++#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY3_SHIFT 12
++#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY4_SHIFT 16
++#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY5_SHIFT 20
++#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY6_SHIFT 24
++#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY7_SHIFT 28
++#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY8_SHIFT 32
++#define DCC_CFG_SC_VL_TABLE_15_0_ENTRY9_SHIFT 36
++#define DCC_CFG_SC_VL_TABLE_31_16 (DCC_CSRS + 0x000000000030)
++#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY16_SHIFT 0
++#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY17_SHIFT 4
++#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY18_SHIFT 8
++#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY19_SHIFT 12
++#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY20_SHIFT 16
++#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY21_SHIFT 20
++#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY22_SHIFT 24
++#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY23_SHIFT 28
++#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY24_SHIFT 32
++#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY25_SHIFT 36
++#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY26_SHIFT 40
++#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY27_SHIFT 44
++#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY28_SHIFT 48
++#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY29_SHIFT 52
++#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY30_SHIFT 56
++#define DCC_CFG_SC_VL_TABLE_31_16_ENTRY31_SHIFT 60
++#define DCC_ERR_DROPPED_PKT_CNT (DCC_CSRS + 0x000000000120)
++#define DCC_ERR_FLG (DCC_CSRS + 0x000000000050)
++#define DCC_ERR_FLG_BAD_CRDT_ACK_ERR_SMASK 0x4000ull
++#define DCC_ERR_FLG_BAD_CTRL_DIST_ERR_SMASK 0x200000ull
++#define DCC_ERR_FLG_BAD_CTRL_FLIT_ERR_SMASK 0x10000ull
++#define DCC_ERR_FLG_BAD_DLID_TARGET_ERR_SMASK 0x200ull
++#define DCC_ERR_FLG_BAD_HEAD_DIST_ERR_SMASK 0x800000ull
++#define DCC_ERR_FLG_BAD_L2_ERR_SMASK 0x2ull
++#define DCC_ERR_FLG_BAD_LVER_ERR_SMASK 0x400ull
++#define DCC_ERR_FLG_BAD_MID_TAIL_ERR_SMASK 0x8ull
++#define DCC_ERR_FLG_BAD_PKT_LENGTH_ERR_SMASK 0x4000000ull
++#define DCC_ERR_FLG_BAD_PREEMPTION_ERR_SMASK 0x10ull
++#define DCC_ERR_FLG_BAD_SC_ERR_SMASK 0x4ull
++#define DCC_ERR_FLG_BAD_TAIL_DIST_ERR_SMASK 0x400000ull
++#define DCC_ERR_FLG_BAD_VL_MARKER_ERR_SMASK 0x80ull
++#define DCC_ERR_FLG_CLR (DCC_CSRS + 0x000000000060)
++#define DCC_ERR_FLG_CSR_ACCESS_BLOCKED_HOST_SMASK 0x8000000000ull
++#define DCC_ERR_FLG_CSR_ACCESS_BLOCKED_UC_SMASK 0x10000000000ull
++#define DCC_ERR_FLG_CSR_INVAL_ADDR_SMASK 0x400000000000ull
++#define DCC_ERR_FLG_CSR_PARITY_ERR_SMASK 0x200000000000ull
++#define DCC_ERR_FLG_DLID_ZERO_ERR_SMASK 0x40000000ull
++#define DCC_ERR_FLG_EN (DCC_CSRS + 0x000000000058)
++#define DCC_ERR_FLG_EN_CSR_ACCESS_BLOCKED_HOST_SMASK 0x8000000000ull
++#define DCC_ERR_FLG_EN_CSR_ACCESS_BLOCKED_UC_SMASK 0x10000000000ull
++#define DCC_ERR_FLG_EVENT_CNTR_PARITY_ERR_SMASK 0x20000ull
++#define DCC_ERR_FLG_EVENT_CNTR_ROLLOVER_ERR_SMASK 0x40000ull
++#define DCC_ERR_FLG_FMCONFIG_ERR_SMASK 0x40000000000000ull
++#define DCC_ERR_FLG_FPE_TX_FIFO_OVFLW_ERR_SMASK 0x2000000000ull
++#define DCC_ERR_FLG_FPE_TX_FIFO_UNFLW_ERR_SMASK 0x4000000000ull
++#define DCC_ERR_FLG_LATE_EBP_ERR_SMASK 0x1000000000ull
++#define DCC_ERR_FLG_LATE_LONG_ERR_SMASK 0x800000000ull
++#define DCC_ERR_FLG_LATE_SHORT_ERR_SMASK 0x400000000ull
++#define DCC_ERR_FLG_LENGTH_MTU_ERR_SMASK 0x80000000ull
++#define DCC_ERR_FLG_LINK_ERR_SMASK 0x80000ull
++#define DCC_ERR_FLG_MISC_CNTR_ROLLOVER_ERR_SMASK 0x100000ull
++#define DCC_ERR_FLG_NONVL15_STATE_ERR_SMASK 0x1000000ull
++#define DCC_ERR_FLG_PERM_NVL15_ERR_SMASK 0x10000000ull
++#define DCC_ERR_FLG_PREEMPTION_ERR_SMASK 0x20ull
++#define DCC_ERR_FLG_PREEMPTIONVL15_ERR_SMASK 0x40ull
++#define DCC_ERR_FLG_RCVPORT_ERR_SMASK 0x80000000000000ull
++#define DCC_ERR_FLG_RX_BYTE_SHFT_PARITY_ERR_SMASK 0x1000000000000ull
++#define DCC_ERR_FLG_RX_CTRL_PARITY_MBE_ERR_SMASK 0x100000000000ull
++#define DCC_ERR_FLG_RX_EARLY_DROP_ERR_SMASK 0x200000000ull
++#define DCC_ERR_FLG_SLID_ZERO_ERR_SMASK 0x20000000ull
++#define DCC_ERR_FLG_TX_BYTE_SHFT_PARITY_ERR_SMASK 0x800000000000ull
++#define DCC_ERR_FLG_TX_CTRL_PARITY_ERR_SMASK 0x20000000000ull
++#define DCC_ERR_FLG_TX_CTRL_PARITY_MBE_ERR_SMASK 0x40000000000ull
++#define DCC_ERR_FLG_TX_SC_PARITY_ERR_SMASK 0x80000000000ull
++#define DCC_ERR_FLG_UNCORRECTABLE_ERR_SMASK 0x2000ull
++#define DCC_ERR_FLG_UNSUP_PKT_TYPE_SMASK 0x8000ull
++#define DCC_ERR_FLG_UNSUP_VL_ERR_SMASK 0x8000000ull
++#define DCC_ERR_FLG_VL15_MULTI_ERR_SMASK 0x2000000ull
++#define DCC_ERR_FMCONFIG_ERR_CNT (DCC_CSRS + 0x000000000110)
++#define DCC_ERR_INFO_FMCONFIG (DCC_CSRS + 0x000000000090)
++#define DCC_ERR_INFO_PORTRCV (DCC_CSRS + 0x000000000078)
++#define DCC_ERR_INFO_PORTRCV_HDR0 (DCC_CSRS + 0x000000000080)
++#define DCC_ERR_INFO_PORTRCV_HDR1 (DCC_CSRS + 0x000000000088)
++#define DCC_ERR_INFO_UNCORRECTABLE (DCC_CSRS + 0x000000000098)
++#define DCC_ERR_PORTRCV_ERR_CNT (DCC_CSRS + 0x000000000108)
++#define DCC_ERR_RCVREMOTE_PHY_ERR_CNT (DCC_CSRS + 0x000000000118)
++#define DCC_ERR_UNCORRECTABLE_CNT (DCC_CSRS + 0x000000000100)
++#define DCC_PRF_PORT_MARK_FECN_CNT (DCC_CSRS + 0x000000000330)
++#define DCC_PRF_PORT_RCV_BECN_CNT (DCC_CSRS + 0x000000000290)
++#define DCC_PRF_PORT_RCV_BUBBLE_CNT (DCC_CSRS + 0x0000000002E0)
++#define DCC_PRF_PORT_RCV_CORRECTABLE_CNT (DCC_CSRS + 0x000000000140)
++#define DCC_PRF_PORT_RCV_DATA_CNT (DCC_CSRS + 0x000000000198)
++#define DCC_PRF_PORT_RCV_FECN_CNT (DCC_CSRS + 0x000000000240)
++#define DCC_PRF_PORT_RCV_MULTICAST_PKT_CNT (DCC_CSRS + 0x000000000130)
++#define DCC_PRF_PORT_RCV_PKTS_CNT (DCC_CSRS + 0x0000000001A8)
++#define DCC_PRF_PORT_VL_MARK_FECN_CNT (DCC_CSRS + 0x000000000338)
++#define DCC_PRF_PORT_VL_RCV_BECN_CNT (DCC_CSRS + 0x000000000298)
++#define DCC_PRF_PORT_VL_RCV_BUBBLE_CNT (DCC_CSRS + 0x0000000002E8)
++#define DCC_PRF_PORT_VL_RCV_DATA_CNT (DCC_CSRS + 0x0000000001B0)
++#define DCC_PRF_PORT_VL_RCV_FECN_CNT (DCC_CSRS + 0x000000000248)
++#define DCC_PRF_PORT_VL_RCV_PKTS_CNT (DCC_CSRS + 0x0000000001F8)
++#define DCC_PRF_PORT_XMIT_CORRECTABLE_CNT (DCC_CSRS + 0x000000000138)
++#define DCC_PRF_PORT_XMIT_DATA_CNT (DCC_CSRS + 0x000000000190)
++#define DCC_PRF_PORT_XMIT_MULTICAST_CNT (DCC_CSRS + 0x000000000128)
++#define DCC_PRF_PORT_XMIT_PKTS_CNT (DCC_CSRS + 0x0000000001A0)
++#define DCC_PRF_RX_FLOW_CRTL_CNT (DCC_CSRS + 0x000000000180)
++#define DCC_PRF_TX_FLOW_CRTL_CNT (DCC_CSRS + 0x000000000188)
++#define DC_DC8051_CFG_CSR_ACCESS_SEL (DC_8051_CSRS + 0x000000000110)
++#define DC_DC8051_CFG_CSR_ACCESS_SEL_DCC_SMASK 0x2ull
++#define DC_DC8051_CFG_CSR_ACCESS_SEL_LCB_SMASK 0x1ull
++#define DC_DC8051_CFG_EXT_DEV_0 (DC_8051_CSRS + 0x000000000118)
++#define DC_DC8051_CFG_EXT_DEV_0_COMPLETED_SMASK 0x1ull
++#define DC_DC8051_CFG_EXT_DEV_0_RETURN_CODE_SHIFT 8
++#define DC_DC8051_CFG_EXT_DEV_0_RSP_DATA_SHIFT 16
++#define DC_DC8051_CFG_EXT_DEV_1 (DC_8051_CSRS + 0x000000000120)
++#define DC_DC8051_CFG_EXT_DEV_1_REQ_DATA_MASK 0xFFFFull
++#define DC_DC8051_CFG_EXT_DEV_1_REQ_DATA_SHIFT 16
++#define DC_DC8051_CFG_EXT_DEV_1_REQ_DATA_SMASK 0xFFFF0000ull
++#define DC_DC8051_CFG_EXT_DEV_1_REQ_NEW_SMASK 0x1ull
++#define DC_DC8051_CFG_EXT_DEV_1_REQ_TYPE_MASK 0xFFull
++#define DC_DC8051_CFG_EXT_DEV_1_REQ_TYPE_SHIFT 8
++#define DC_DC8051_CFG_HOST_CMD_0 (DC_8051_CSRS + 0x000000000028)
++#define DC_DC8051_CFG_HOST_CMD_0_REQ_DATA_MASK 0xFFFFFFFFFFFFull
++#define DC_DC8051_CFG_HOST_CMD_0_REQ_DATA_SHIFT 16
++#define DC_DC8051_CFG_HOST_CMD_0_REQ_NEW_SMASK 0x1ull
++#define DC_DC8051_CFG_HOST_CMD_0_REQ_TYPE_MASK 0xFFull
++#define DC_DC8051_CFG_HOST_CMD_0_REQ_TYPE_SHIFT 8
++#define DC_DC8051_CFG_HOST_CMD_1 (DC_8051_CSRS + 0x000000000030)
++#define DC_DC8051_CFG_HOST_CMD_1_COMPLETED_SMASK 0x1ull
++#define DC_DC8051_CFG_HOST_CMD_1_RETURN_CODE_MASK 0xFFull
++#define DC_DC8051_CFG_HOST_CMD_1_RETURN_CODE_SHIFT 8
++#define DC_DC8051_CFG_HOST_CMD_1_RSP_DATA_MASK 0xFFFFFFFFFFFFull
++#define DC_DC8051_CFG_HOST_CMD_1_RSP_DATA_SHIFT 16
++#define DC_DC8051_CFG_LOCAL_GUID (DC_8051_CSRS + 0x000000000038)
++#define DC_DC8051_CFG_MODE (DC_8051_CSRS + 0x000000000070)
++#define DC_DC8051_CFG_RAM_ACCESS_CTRL (DC_8051_CSRS + 0x000000000008)
++#define DC_DC8051_CFG_RAM_ACCESS_CTRL_ADDRESS_MASK 0x7FFFull
++#define DC_DC8051_CFG_RAM_ACCESS_CTRL_ADDRESS_SHIFT 0
++#define DC_DC8051_CFG_RAM_ACCESS_CTRL_WRITE_ENA_SMASK 0x1000000ull
++#define DC_DC8051_CFG_RAM_ACCESS_SETUP (DC_8051_CSRS + 0x000000000000)
++#define DC_DC8051_CFG_RAM_ACCESS_SETUP_AUTO_INCR_ADDR_SMASK 0x100ull
++#define DC_DC8051_CFG_RAM_ACCESS_SETUP_RAM_SEL_SMASK 0x1ull
++#define DC_DC8051_CFG_RAM_ACCESS_STATUS (DC_8051_CSRS + 0x000000000018)
++#define DC_DC8051_CFG_RAM_ACCESS_STATUS_ACCESS_COMPLETED_SMASK 0x10000ull
++#define DC_DC8051_CFG_RAM_ACCESS_WR_DATA (DC_8051_CSRS + 0x000000000010)
++#define DC_DC8051_CFG_RST (DC_8051_CSRS + 0x000000000068)
++#define DC_DC8051_CFG_RST_CRAM_SMASK 0x2ull
++#define DC_DC8051_CFG_RST_DRAM_SMASK 0x4ull
++#define DC_DC8051_CFG_RST_IRAM_SMASK 0x8ull
++#define DC_DC8051_CFG_RST_M8051W_SMASK 0x1ull
++#define DC_DC8051_CFG_RST_SFR_SMASK 0x10ull
++#define DC_DC8051_DBG_ERR_INFO_SET_BY_8051 (DC_8051_CSRS + 0x0000000000D8)
++#define DC_DC8051_DBG_ERR_INFO_SET_BY_8051_ERROR_MASK 0xFFFFFFFFull
++#define DC_DC8051_DBG_ERR_INFO_SET_BY_8051_ERROR_SHIFT 16
++#define DC_DC8051_DBG_ERR_INFO_SET_BY_8051_HOST_MSG_MASK 0xFFFFull
++#define DC_DC8051_DBG_ERR_INFO_SET_BY_8051_HOST_MSG_SHIFT 0
++#define DC_DC8051_ERR_CLR (DC_8051_CSRS + 0x0000000000E8)
++#define DC_DC8051_ERR_EN (DC_8051_CSRS + 0x0000000000F0)
++#define DC_DC8051_ERR_EN_LOST_8051_HEART_BEAT_SMASK 0x2ull
++#define DC_DC8051_ERR_FLG (DC_8051_CSRS + 0x0000000000E0)
++#define DC_DC8051_ERR_FLG_CRAM_MBE_SMASK 0x4ull
++#define DC_DC8051_ERR_FLG_CRAM_SBE_SMASK 0x8ull
++#define DC_DC8051_ERR_FLG_DRAM_MBE_SMASK 0x10ull
++#define DC_DC8051_ERR_FLG_DRAM_SBE_SMASK 0x20ull
++#define DC_DC8051_ERR_FLG_INVALID_CSR_ADDR_SMASK 0x400ull
++#define DC_DC8051_ERR_FLG_IRAM_MBE_SMASK 0x40ull
++#define DC_DC8051_ERR_FLG_IRAM_SBE_SMASK 0x80ull
++#define DC_DC8051_ERR_FLG_LOST_8051_HEART_BEAT_SMASK 0x2ull
++#define DC_DC8051_ERR_FLG_SET_BY_8051_SMASK 0x1ull
++#define DC_DC8051_ERR_FLG_UNMATCHED_SECURE_MSG_ACROSS_BCC_LANES_SMASK 0x100ull
++#define DC_DC8051_STS_CUR_STATE (DC_8051_CSRS + 0x000000000060)
++#define DC_DC8051_STS_CUR_STATE_FIRMWARE_MASK 0xFFull
++#define DC_DC8051_STS_CUR_STATE_FIRMWARE_SHIFT 16
++#define DC_DC8051_STS_CUR_STATE_PORT_MASK 0xFFull
++#define DC_DC8051_STS_CUR_STATE_PORT_SHIFT 0
++#define DC_DC8051_STS_LOCAL_FM_SECURITY (DC_8051_CSRS + 0x000000000050)
++#define DC_DC8051_STS_LOCAL_FM_SECURITY_DISABLED_MASK 0x1ull
++#define DC_DC8051_STS_REMOTE_FM_SECURITY (DC_8051_CSRS + 0x000000000058)
++#define DC_DC8051_STS_REMOTE_GUID (DC_8051_CSRS + 0x000000000040)
++#define DC_DC8051_STS_REMOTE_NODE_TYPE (DC_8051_CSRS + 0x000000000048)
++#define DC_DC8051_STS_REMOTE_NODE_TYPE_VAL_MASK 0x3ull
++#define DC_LCB_CFG_ALLOW_LINK_UP (DC_LCB_CSRS + 0x000000000128)
++#define DC_LCB_CFG_ALLOW_LINK_UP_VAL_SHIFT 0
++#define DC_LCB_CFG_CRC_MODE (DC_LCB_CSRS + 0x000000000058)
++#define DC_LCB_CFG_CRC_MODE_TX_VAL_SHIFT 0
++#define DC_LCB_CFG_IGNORE_LOST_RCLK (DC_LCB_CSRS + 0x000000000020)
++#define DC_LCB_CFG_IGNORE_LOST_RCLK_EN_SMASK 0x1ull
++#define DC_LCB_CFG_LANE_WIDTH (DC_LCB_CSRS + 0x000000000100)
++#define DC_LCB_CFG_LINK_KILL_EN (DC_LCB_CSRS + 0x000000000120)
++#define DC_LCB_CFG_LINK_KILL_EN_FLIT_INPUT_BUF_MBE_SMASK 0x100000ull
++#define DC_LCB_CFG_LINK_KILL_EN_REPLAY_BUF_MBE_SMASK 0x400000ull
++#define DC_LCB_CFG_LN_DCLK (DC_LCB_CSRS + 0x000000000060)
++#define DC_LCB_CFG_LOOPBACK (DC_LCB_CSRS + 0x0000000000F8)
++#define DC_LCB_CFG_LOOPBACK_VAL_SHIFT 0
++#define DC_LCB_CFG_RUN (DC_LCB_CSRS + 0x000000000000)
++#define DC_LCB_CFG_RUN_EN_SHIFT 0
++#define DC_LCB_CFG_RX_FIFOS_RADR (DC_LCB_CSRS + 0x000000000018)
++#define DC_LCB_CFG_RX_FIFOS_RADR_DO_NOT_JUMP_VAL_SHIFT 8
++#define DC_LCB_CFG_RX_FIFOS_RADR_OK_TO_JUMP_VAL_SHIFT 4
++#define DC_LCB_CFG_RX_FIFOS_RADR_RST_VAL_SHIFT 0
++#define DC_LCB_CFG_TX_FIFOS_RADR (DC_LCB_CSRS + 0x000000000010)
++#define DC_LCB_CFG_TX_FIFOS_RADR_RST_VAL_SHIFT 0
++#define DC_LCB_CFG_TX_FIFOS_RESET (DC_LCB_CSRS + 0x000000000008)
++#define DC_LCB_CFG_TX_FIFOS_RESET_VAL_SHIFT 0
++#define DC_LCB_ERR_CLR (DC_LCB_CSRS + 0x000000000308)
++#define DC_LCB_ERR_EN (DC_LCB_CSRS + 0x000000000310)
++#define DC_LCB_ERR_FLG (DC_LCB_CSRS + 0x000000000300)
++#define DC_LCB_ERR_FLG_REDUNDANT_FLIT_PARITY_ERR_SMASK 0x20000000ull
++#define DC_LCB_ERR_FLG_NEG_EDGE_LINK_TRANSFER_ACTIVE_SMASK 0x10000000ull
++#define DC_LCB_ERR_FLG_HOLD_REINIT_SMASK 0x8000000ull
++#define DC_LCB_ERR_FLG_RST_FOR_INCOMPLT_RND_TRIP_SMASK 0x4000000ull
++#define DC_LCB_ERR_FLG_RST_FOR_LINK_TIMEOUT_SMASK 0x2000000ull
++#define DC_LCB_ERR_FLG_CREDIT_RETURN_FLIT_MBE_SMASK 0x1000000ull
++#define DC_LCB_ERR_FLG_REPLAY_BUF_SBE_SMASK 0x800000ull
++#define DC_LCB_ERR_FLG_REPLAY_BUF_MBE_SMASK 0x400000ull
++#define DC_LCB_ERR_FLG_FLIT_INPUT_BUF_SBE_SMASK 0x200000ull
++#define DC_LCB_ERR_FLG_FLIT_INPUT_BUF_MBE_SMASK 0x100000ull
++#define DC_LCB_ERR_FLG_VL_ACK_INPUT_WRONG_CRC_MODE_SMASK 0x80000ull
++#define DC_LCB_ERR_FLG_VL_ACK_INPUT_PARITY_ERR_SMASK 0x40000ull
++#define DC_LCB_ERR_FLG_VL_ACK_INPUT_BUF_OFLW_SMASK 0x20000ull
++#define DC_LCB_ERR_FLG_FLIT_INPUT_BUF_OFLW_SMASK 0x10000ull
++#define DC_LCB_ERR_FLG_ILLEGAL_FLIT_ENCODING_SMASK 0x8000ull
++#define DC_LCB_ERR_FLG_ILLEGAL_NULL_LTP_SMASK 0x4000ull
++#define DC_LCB_ERR_FLG_UNEXPECTED_ROUND_TRIP_MARKER_SMASK 0x2000ull
++#define DC_LCB_ERR_FLG_UNEXPECTED_REPLAY_MARKER_SMASK 0x1000ull
++#define DC_LCB_ERR_FLG_RCLK_STOPPED_SMASK 0x800ull
++#define DC_LCB_ERR_FLG_CRC_ERR_CNT_HIT_LIMIT_SMASK 0x400ull
++#define DC_LCB_ERR_FLG_REINIT_FOR_LN_DEGRADE_SMASK 0x200ull
++#define DC_LCB_ERR_FLG_REINIT_FROM_PEER_SMASK 0x100ull
++#define DC_LCB_ERR_FLG_SEQ_CRC_ERR_SMASK 0x80ull
++#define DC_LCB_ERR_FLG_RX_LESS_THAN_FOUR_LNS_SMASK 0x40ull
++#define DC_LCB_ERR_FLG_TX_LESS_THAN_FOUR_LNS_SMASK 0x20ull
++#define DC_LCB_ERR_FLG_LOST_REINIT_STALL_OR_TOS_SMASK 0x10ull
++#define DC_LCB_ERR_FLG_ALL_LNS_FAILED_REINIT_TEST_SMASK 0x8ull
++#define DC_LCB_ERR_FLG_RST_FOR_FAILED_DESKEW_SMASK 0x4ull
++#define DC_LCB_ERR_FLG_INVALID_CSR_ADDR_SMASK 0x2ull
++#define DC_LCB_ERR_FLG_CSR_PARITY_ERR_SMASK 0x1ull
++#define DC_LCB_ERR_INFO_CRC_ERR_LN0 (DC_LCB_CSRS + 0x000000000328)
++#define DC_LCB_ERR_INFO_CRC_ERR_LN1 (DC_LCB_CSRS + 0x000000000330)
++#define DC_LCB_ERR_INFO_CRC_ERR_LN2 (DC_LCB_CSRS + 0x000000000338)
++#define DC_LCB_ERR_INFO_CRC_ERR_LN3 (DC_LCB_CSRS + 0x000000000340)
++#define DC_LCB_ERR_INFO_CRC_ERR_MULTI_LN (DC_LCB_CSRS + 0x000000000348)
++#define DC_LCB_ERR_INFO_ESCAPE_0_ONLY_CNT (DC_LCB_CSRS + 0x000000000368)
++#define DC_LCB_ERR_INFO_ESCAPE_0_PLUS1_CNT (DC_LCB_CSRS + 0x000000000370)
++#define DC_LCB_ERR_INFO_ESCAPE_0_PLUS2_CNT (DC_LCB_CSRS + 0x000000000378)
++#define DC_LCB_ERR_INFO_MISC_FLG_CNT (DC_LCB_CSRS + 0x000000000390)
++#define DC_LCB_ERR_INFO_REINIT_FROM_PEER_CNT (DC_LCB_CSRS + 0x000000000380)
++#define DC_LCB_ERR_INFO_RX_REPLAY_CNT (DC_LCB_CSRS + 0x000000000358)
++#define DC_LCB_ERR_INFO_SBE_CNT (DC_LCB_CSRS + 0x000000000388)
++#define DC_LCB_ERR_INFO_SEQ_CRC_CNT (DC_LCB_CSRS + 0x000000000360)
++#define DC_LCB_ERR_INFO_TOTAL_CRC_ERR (DC_LCB_CSRS + 0x000000000320)
++#define DC_LCB_ERR_INFO_TX_REPLAY_CNT (DC_LCB_CSRS + 0x000000000350)
++#define DC_LCB_PG_DBG_FLIT_CRDTS_CNT (DC_LCB_CSRS + 0x000000000580)
++#define DC_LCB_PG_STS_PAUSE_COMPLETE_CNT (DC_LCB_CSRS + 0x0000000005F8)
++#define DC_LCB_PG_STS_TX_MBE_CNT (DC_LCB_CSRS + 0x000000000608)
++#define DC_LCB_PG_STS_TX_SBE_CNT (DC_LCB_CSRS + 0x000000000600)
++#define DC_LCB_PRF_ACCEPTED_LTP_CNT (DC_LCB_CSRS + 0x000000000408)
++#define DC_LCB_PRF_CLK_CNTR (DC_LCB_CSRS + 0x000000000420)
++#define DC_LCB_PRF_GOOD_LTP_CNT (DC_LCB_CSRS + 0x000000000400)
++#define DC_LCB_PRF_RX_FLIT_CNT (DC_LCB_CSRS + 0x000000000410)
++#define DC_LCB_PRF_TX_FLIT_CNT (DC_LCB_CSRS + 0x000000000418)
++#define DC_LCB_STS_LINK_TRANSFER_ACTIVE (DC_LCB_CSRS + 0x000000000468)
++#define DC_LCB_STS_ROUND_TRIP_LTP_CNT (DC_LCB_CSRS + 0x0000000004B0)
++#define RCV_BUF_OVFL_CNT 10
++#define RCV_CONTEXT_EGR_STALL 22
++#define RCV_CONTEXT_RHQ_STALL 21
++#define RCV_DATA_PKT_CNT 0
++#define RCV_DWORD_CNT 1
++#define RCV_TID_FLOW_GEN_MISMATCH_CNT 20
++#define RCV_TID_FLOW_SEQ_MISMATCH_CNT 23
++#define RCV_TID_FULL_ERR_CNT 18
++#define RCV_TID_VALID_ERR_CNT 19
++#define RXE_NUM_32_BIT_COUNTERS 24
++#define RXE_NUM_64_BIT_COUNTERS 2
++#define RXE_NUM_RSM_INSTANCES 4
++#define RXE_NUM_TID_FLOWS 32
++#define RXE_PER_CONTEXT_OFFSET 0x0300000
++#define SEND_DATA_PKT_CNT 0
++#define SEND_DATA_PKT_VL0_CNT 12
++#define SEND_DATA_VL0_CNT 3
++#define SEND_DROPPED_PKT_CNT 5
++#define SEND_DWORD_CNT 1
++#define SEND_FLOW_STALL_CNT 4
++#define SEND_HEADERS_ERR_CNT 6
++#define SEND_LEN_ERR_CNT 1
++#define SEND_MAX_MIN_LEN_ERR_CNT 2
++#define SEND_UNDERRUN_CNT 3
++#define SEND_UNSUP_VL_ERR_CNT 0
++#define SEND_WAIT_CNT 2
++#define SEND_WAIT_VL0_CNT 21
++#define TXE_PIO_SEND_OFFSET 0x0800000
++#define ASIC_CFG_DRV_STR (ASIC + 0x000000000048)
++#define ASIC_CFG_MUTEX (ASIC + 0x000000000040)
++#define ASIC_CFG_SBUS_EXECUTE (ASIC + 0x000000000008)
++#define ASIC_CFG_SBUS_EXECUTE_EXECUTE_SMASK 0x1ull
++#define ASIC_CFG_SBUS_EXECUTE_FAST_MODE_SMASK 0x2ull
++#define ASIC_CFG_SBUS_REQUEST (ASIC + 0x000000000000)
++#define ASIC_CFG_SBUS_REQUEST_COMMAND_SHIFT 16
++#define ASIC_CFG_SBUS_REQUEST_DATA_ADDR_SHIFT 8
++#define ASIC_CFG_SBUS_REQUEST_DATA_IN_SHIFT 32
++#define ASIC_CFG_SBUS_REQUEST_RECEIVER_ADDR_SHIFT 0
++#define ASIC_CFG_SCRATCH (ASIC + 0x000000000020)
++#define ASIC_CFG_THERM_POLL_EN (ASIC + 0x000000000050)
++#define ASIC_EEP_ADDR_CMD (ASIC + 0x000000000308)
++#define ASIC_EEP_ADDR_CMD_EP_ADDR_MASK 0xFFFFFFull
++#define ASIC_EEP_CTL_STAT (ASIC + 0x000000000300)
++#define ASIC_EEP_CTL_STAT_EP_RESET_SMASK 0x4ull
++#define ASIC_EEP_CTL_STAT_RATE_SPI_SHIFT 8
++#define ASIC_EEP_CTL_STAT_RESETCSR 0x0000000083818000ull
++#define ASIC_EEP_DATA (ASIC + 0x000000000310)
++#define ASIC_GPIO_CLEAR (ASIC + 0x000000000230)
++#define ASIC_GPIO_FORCE (ASIC + 0x000000000238)
++#define ASIC_GPIO_IN (ASIC + 0x000000000200)
++#define ASIC_GPIO_INVERT (ASIC + 0x000000000210)
++#define ASIC_GPIO_MASK (ASIC + 0x000000000220)
++#define ASIC_GPIO_OE (ASIC + 0x000000000208)
++#define ASIC_GPIO_OUT (ASIC + 0x000000000218)
++#define ASIC_PCIE_SD_HOST_CMD (ASIC + 0x000000000100)
++#define ASIC_PCIE_SD_HOST_CMD_INTRPT_CMD_SHIFT 0
++#define ASIC_PCIE_SD_HOST_CMD_SBR_MODE_SMASK 0x400ull
++#define ASIC_PCIE_SD_HOST_CMD_SBUS_RCVR_ADDR_SHIFT 2
++#define ASIC_PCIE_SD_HOST_CMD_TIMER_MASK 0xFFFFFull
++#define ASIC_PCIE_SD_HOST_CMD_TIMER_SHIFT 12
++#define ASIC_PCIE_SD_HOST_STATUS (ASIC + 0x000000000108)
++#define ASIC_PCIE_SD_HOST_STATUS_FW_DNLD_ERR_MASK 0x7ull
++#define ASIC_PCIE_SD_HOST_STATUS_FW_DNLD_ERR_SHIFT 2
++#define ASIC_PCIE_SD_HOST_STATUS_FW_DNLD_STS_MASK 0x3ull
++#define ASIC_PCIE_SD_HOST_STATUS_FW_DNLD_STS_SHIFT 0
++#define ASIC_PCIE_SD_INTRPT_DATA_CODE (ASIC + 0x000000000110)
++#define ASIC_PCIE_SD_INTRPT_ENABLE (ASIC + 0x000000000118)
++#define ASIC_PCIE_SD_INTRPT_LIST (ASIC + 0x000000000180)
++#define ASIC_PCIE_SD_INTRPT_LIST_INTRPT_CODE_SHIFT 16
++#define ASIC_PCIE_SD_INTRPT_LIST_INTRPT_DATA_SHIFT 0
++#define ASIC_PCIE_SD_INTRPT_STATUS (ASIC + 0x000000000128)
++#define ASIC_QSFP1_CLEAR (ASIC + 0x000000000270)
++#define ASIC_QSFP1_FORCE (ASIC + 0x000000000278)
++#define ASIC_QSFP1_IN (ASIC + 0x000000000240)
++#define ASIC_QSFP1_INVERT (ASIC + 0x000000000250)
++#define ASIC_QSFP1_MASK (ASIC + 0x000000000260)
++#define ASIC_QSFP1_OE (ASIC + 0x000000000248)
++#define ASIC_QSFP1_OUT (ASIC + 0x000000000258)
++#define ASIC_QSFP1_STATUS (ASIC + 0x000000000268)
++#define ASIC_QSFP2_CLEAR (ASIC + 0x0000000002B0)
++#define ASIC_QSFP2_FORCE (ASIC + 0x0000000002B8)
++#define ASIC_QSFP2_IN (ASIC + 0x000000000280)
++#define ASIC_QSFP2_INVERT (ASIC + 0x000000000290)
++#define ASIC_QSFP2_MASK (ASIC + 0x0000000002A0)
++#define ASIC_QSFP2_OE (ASIC + 0x000000000288)
++#define ASIC_QSFP2_OUT (ASIC + 0x000000000298)
++#define ASIC_QSFP2_STATUS (ASIC + 0x0000000002A8)
++#define ASIC_STS_SBUS_COUNTERS (ASIC + 0x000000000018)
++#define ASIC_STS_SBUS_COUNTERS_EXECUTE_CNT_MASK 0xFFFFull
++#define ASIC_STS_SBUS_COUNTERS_EXECUTE_CNT_SHIFT 0
++#define ASIC_STS_SBUS_COUNTERS_RCV_DATA_VALID_CNT_MASK 0xFFFFull
++#define ASIC_STS_SBUS_COUNTERS_RCV_DATA_VALID_CNT_SHIFT 16
++#define ASIC_STS_SBUS_RESULT (ASIC + 0x000000000010)
++#define ASIC_STS_SBUS_RESULT_DONE_SMASK 0x1ull
++#define ASIC_STS_SBUS_RESULT_RCV_DATA_VALID_SMASK 0x2ull
++#define ASIC_STS_THERM (ASIC + 0x000000000058)
++#define ASIC_STS_THERM_CRIT_TEMP_MASK 0x7FFull
++#define ASIC_STS_THERM_CRIT_TEMP_SHIFT 18
++#define ASIC_STS_THERM_CURR_TEMP_MASK 0x7FFull
++#define ASIC_STS_THERM_CURR_TEMP_SHIFT 2
++#define ASIC_STS_THERM_HI_TEMP_MASK 0x7FFull
++#define ASIC_STS_THERM_HI_TEMP_SHIFT 50
++#define ASIC_STS_THERM_LO_TEMP_MASK 0x7FFull
++#define ASIC_STS_THERM_LO_TEMP_SHIFT 34
++#define ASIC_STS_THERM_LOW_SHIFT 13
++#define CCE_COUNTER_ARRAY32 (CCE + 0x000000000060)
++#define CCE_CTRL (CCE + 0x000000000010)
++#define CCE_CTRL_RXE_RESUME_SMASK 0x800ull
++#define CCE_CTRL_SPC_FREEZE_SMASK 0x100ull
++#define CCE_CTRL_SPC_UNFREEZE_SMASK 0x200ull
++#define CCE_CTRL_TXE_RESUME_SMASK 0x2000ull
++#define CCE_DC_CTRL (CCE + 0x0000000000B8)
++#define CCE_DC_CTRL_DC_RESET_SMASK 0x1ull
++#define CCE_DC_CTRL_RESETCSR 0x0000000000000001ull
++#define CCE_ERR_CLEAR (CCE + 0x000000000050)
++#define CCE_ERR_MASK (CCE + 0x000000000048)
++#define CCE_ERR_STATUS (CCE + 0x000000000040)
++#define CCE_ERR_STATUS_CCE_CLI0_ASYNC_FIFO_PARITY_ERR_SMASK 0x40ull
++#define CCE_ERR_STATUS_CCE_CLI1_ASYNC_FIFO_DBG_PARITY_ERROR_SMASK 0x1000ull
++#define CCE_ERR_STATUS_CCE_CLI1_ASYNC_FIFO_PIO_CRDT_PARITY_ERR_SMASK \
++		0x200ull
++#define CCE_ERR_STATUS_CCE_CLI1_ASYNC_FIFO_RXDMA_PARITY_ERROR_SMASK \
++		0x800ull
++#define CCE_ERR_STATUS_CCE_CLI1_ASYNC_FIFO_SDMA_HD_PARITY_ERR_SMASK \
++		0x400ull
++#define CCE_ERR_STATUS_CCE_CLI2_ASYNC_FIFO_PARITY_ERR_SMASK 0x100ull
++#define CCE_ERR_STATUS_CCE_CSR_CFG_BUS_PARITY_ERR_SMASK 0x80ull
++#define CCE_ERR_STATUS_CCE_CSR_PARITY_ERR_SMASK 0x1ull
++#define CCE_ERR_STATUS_CCE_CSR_READ_BAD_ADDR_ERR_SMASK 0x2ull
++#define CCE_ERR_STATUS_CCE_CSR_WRITE_BAD_ADDR_ERR_SMASK 0x4ull
++#define CCE_ERR_STATUS_CCE_INT_MAP_COR_ERR_SMASK 0x4000000000ull
++#define CCE_ERR_STATUS_CCE_INT_MAP_UNC_ERR_SMASK 0x8000000000ull
++#define CCE_ERR_STATUS_CCE_MSIX_CSR_PARITY_ERR_SMASK 0x10000000000ull
++#define CCE_ERR_STATUS_CCE_MSIX_TABLE_COR_ERR_SMASK 0x1000000000ull
++#define CCE_ERR_STATUS_CCE_MSIX_TABLE_UNC_ERR_SMASK 0x2000000000ull
++#define CCE_ERR_STATUS_CCE_RCPL_ASYNC_FIFO_PARITY_ERR_SMASK 0x400000000ull
++#define CCE_ERR_STATUS_CCE_RSPD_DATA_PARITY_ERR_SMASK 0x20ull
++#define CCE_ERR_STATUS_CCE_RXDMA_CONV_FIFO_PARITY_ERR_SMASK 0x800000000ull
++#define CCE_ERR_STATUS_CCE_SEG_READ_BAD_ADDR_ERR_SMASK 0x100000000ull
++#define CCE_ERR_STATUS_CCE_SEG_WRITE_BAD_ADDR_ERR_SMASK 0x200000000ull
++#define CCE_ERR_STATUS_CCE_TRGT_ACCESS_ERR_SMASK 0x10ull
++#define CCE_ERR_STATUS_CCE_TRGT_ASYNC_FIFO_PARITY_ERR_SMASK 0x8ull
++#define CCE_ERR_STATUS_CCE_TRGT_CPL_TIMEOUT_ERR_SMASK 0x40000000ull
++#define CCE_ERR_STATUS_LA_TRIGGERED_SMASK 0x80000000ull
++#define CCE_ERR_STATUS_PCIC_CPL_DAT_QCOR_ERR_SMASK 0x40000ull
++#define CCE_ERR_STATUS_PCIC_CPL_DAT_QUNC_ERR_SMASK 0x4000000ull
++#define CCE_ERR_STATUS_PCIC_CPL_HD_QCOR_ERR_SMASK 0x20000ull
++#define CCE_ERR_STATUS_PCIC_CPL_HD_QUNC_ERR_SMASK 0x2000000ull
++#define CCE_ERR_STATUS_PCIC_NPOST_DAT_QPARITY_ERR_SMASK 0x100000ull
++#define CCE_ERR_STATUS_PCIC_NPOST_HQ_PARITY_ERR_SMASK 0x80000ull
++#define CCE_ERR_STATUS_PCIC_POST_DAT_QCOR_ERR_SMASK 0x10000ull
++#define CCE_ERR_STATUS_PCIC_POST_DAT_QUNC_ERR_SMASK 0x1000000ull
++#define CCE_ERR_STATUS_PCIC_POST_HD_QCOR_ERR_SMASK 0x8000ull
++#define CCE_ERR_STATUS_PCIC_POST_HD_QUNC_ERR_SMASK 0x800000ull
++#define CCE_ERR_STATUS_PCIC_RECEIVE_PARITY_ERR_SMASK 0x20000000ull
++#define CCE_ERR_STATUS_PCIC_RETRY_MEM_COR_ERR_SMASK 0x2000ull
++#define CCE_ERR_STATUS_PCIC_RETRY_MEM_UNC_ERR_SMASK 0x200000ull
++#define CCE_ERR_STATUS_PCIC_RETRY_SOT_MEM_COR_ERR_SMASK 0x4000ull
++#define CCE_ERR_STATUS_PCIC_RETRY_SOT_MEM_UNC_ERR_SMASK 0x400000ull
++#define CCE_ERR_STATUS_PCIC_TRANSMIT_BACK_PARITY_ERR_SMASK 0x10000000ull
++#define CCE_ERR_STATUS_PCIC_TRANSMIT_FRONT_PARITY_ERR_SMASK 0x8000000ull
++#define CCE_INT_CLEAR (CCE + 0x000000110A00)
++#define CCE_INT_COUNTER_ARRAY32 (CCE + 0x000000110D00)
++#define CCE_INT_FORCE (CCE + 0x000000110B00)
++#define CCE_INT_MAP (CCE + 0x000000110500)
++#define CCE_INT_MASK (CCE + 0x000000110900)
++#define CCE_INT_STATUS (CCE + 0x000000110800)
++#define CCE_MSIX_INT_GRANTED (CCE + 0x000000110200)
++#define CCE_MSIX_TABLE_LOWER (CCE + 0x000000100000)
++#define CCE_MSIX_TABLE_UPPER (CCE + 0x000000100008)
++#define CCE_MSIX_TABLE_UPPER_RESETCSR 0x0000000100000000ull
++#define CCE_MSIX_VEC_CLR_WITHOUT_INT (CCE + 0x000000110400)
++#define CCE_REVISION (CCE + 0x000000000000)
++#define CCE_REVISION2 (CCE + 0x000000000008)
++#define CCE_REVISION2_HFI_ID_MASK 0x1ull
++#define CCE_REVISION2_HFI_ID_SHIFT 0
++#define CCE_REVISION2_IMPL_CODE_SHIFT 8
++#define CCE_REVISION2_IMPL_REVISION_SHIFT 16
++#define CCE_REVISION_BOARD_ID_LOWER_NIBBLE_MASK 0xFull
++#define CCE_REVISION_BOARD_ID_LOWER_NIBBLE_SHIFT 32
++#define CCE_REVISION_CHIP_REV_MAJOR_MASK 0xFFull
++#define CCE_REVISION_CHIP_REV_MAJOR_SHIFT 8
++#define CCE_REVISION_CHIP_REV_MINOR_MASK 0xFFull
++#define CCE_REVISION_CHIP_REV_MINOR_SHIFT 0
++#define CCE_REVISION_SW_MASK 0xFFull
++#define CCE_REVISION_SW_SHIFT 24
++#define CCE_SCRATCH (CCE + 0x000000000020)
++#define CCE_STATUS (CCE + 0x000000000018)
++#define CCE_STATUS_RXE_FROZE_SMASK 0x2ull
++#define CCE_STATUS_RXE_PAUSED_SMASK 0x20ull
++#define CCE_STATUS_SDMA_FROZE_SMASK 0x1ull
++#define CCE_STATUS_SDMA_PAUSED_SMASK 0x10ull
++#define CCE_STATUS_TXE_FROZE_SMASK 0x4ull
++#define CCE_STATUS_TXE_PAUSED_SMASK 0x40ull
++#define CCE_STATUS_TXE_PIO_FROZE_SMASK 0x8ull
++#define CCE_STATUS_TXE_PIO_PAUSED_SMASK 0x80ull
++#define MISC_CFG_FW_CTRL (MISC + 0x000000001000)
++#define MISC_CFG_FW_CTRL_FW_8051_LOADED_SMASK 0x2ull
++#define MISC_CFG_FW_CTRL_RSA_STATUS_SHIFT 2
++#define MISC_CFG_FW_CTRL_RSA_STATUS_SMASK 0xCull
++#define MISC_CFG_RSA_CMD (MISC + 0x000000000A08)
++#define MISC_CFG_RSA_MODULUS (MISC + 0x000000000400)
++#define MISC_CFG_RSA_MU (MISC + 0x000000000A10)
++#define MISC_CFG_RSA_R2 (MISC + 0x000000000000)
++#define MISC_CFG_RSA_SIGNATURE (MISC + 0x000000000200)
++#define MISC_CFG_SHA_PRELOAD (MISC + 0x000000000A00)
++#define MISC_ERR_CLEAR (MISC + 0x000000002010)
++#define MISC_ERR_MASK (MISC + 0x000000002008)
++#define MISC_ERR_STATUS (MISC + 0x000000002000)
++#define MISC_ERR_STATUS_MISC_PLL_LOCK_FAIL_ERR_SMASK 0x1000ull
++#define MISC_ERR_STATUS_MISC_MBIST_FAIL_ERR_SMASK 0x800ull
++#define MISC_ERR_STATUS_MISC_INVALID_EEP_CMD_ERR_SMASK 0x400ull
++#define MISC_ERR_STATUS_MISC_EFUSE_DONE_PARITY_ERR_SMASK 0x200ull
++#define MISC_ERR_STATUS_MISC_EFUSE_WRITE_ERR_SMASK 0x100ull
++#define MISC_ERR_STATUS_MISC_EFUSE_READ_BAD_ADDR_ERR_SMASK 0x80ull
++#define MISC_ERR_STATUS_MISC_EFUSE_CSR_PARITY_ERR_SMASK 0x40ull
++#define MISC_ERR_STATUS_MISC_FW_AUTH_FAILED_ERR_SMASK 0x20ull
++#define MISC_ERR_STATUS_MISC_KEY_MISMATCH_ERR_SMASK 0x10ull
++#define MISC_ERR_STATUS_MISC_SBUS_WRITE_FAILED_ERR_SMASK 0x8ull
++#define MISC_ERR_STATUS_MISC_CSR_WRITE_BAD_ADDR_ERR_SMASK 0x4ull
++#define MISC_ERR_STATUS_MISC_CSR_READ_BAD_ADDR_ERR_SMASK 0x2ull
++#define MISC_ERR_STATUS_MISC_CSR_PARITY_ERR_SMASK 0x1ull
++#define PCI_CFG_MSIX0 (PCIE + 0x0000000000B0)
++#define PCI_CFG_REG1 (PCIE + 0x000000000004)
++#define PCI_CFG_REG11 (PCIE + 0x00000000002C)
++#define PCIE_CFG_SPCIE1 (PCIE + 0x00000000014C)
++#define PCIE_CFG_SPCIE2 (PCIE + 0x000000000150)
++#define PCIE_CFG_TPH2 (PCIE + 0x000000000180)
++#define RCV_ARRAY (RXE + 0x000000200000)
++#define RCV_ARRAY_CNT (RXE + 0x000000000018)
++#define RCV_ARRAY_RT_ADDR_MASK 0xFFFFFFFFFull
++#define RCV_ARRAY_RT_ADDR_SHIFT 0
++#define RCV_ARRAY_RT_BUF_SIZE_SHIFT 36
++#define RCV_ARRAY_RT_WRITE_ENABLE_SMASK 0x8000000000000000ull
++#define RCV_AVAIL_TIME_OUT (RXE + 0x000000100050)
++#define RCV_AVAIL_TIME_OUT_TIME_OUT_RELOAD_MASK 0xFFull
++#define RCV_AVAIL_TIME_OUT_TIME_OUT_RELOAD_SHIFT 0
++#define RCV_BTH_QP (RXE + 0x000000000028)
++#define RCV_BTH_QP_KDETH_QP_MASK 0xFFull
++#define RCV_BTH_QP_KDETH_QP_SHIFT 16
++#define RCV_BYPASS (RXE + 0x000000000038)
++#define RCV_CONTEXTS (RXE + 0x000000000010)
++#define RCV_COUNTER_ARRAY32 (RXE + 0x000000000400)
++#define RCV_COUNTER_ARRAY64 (RXE + 0x000000000500)
++#define RCV_CTRL (RXE + 0x000000000000)
++#define RCV_CTRL_RCV_BYPASS_ENABLE_SMASK 0x10ull
++#define RCV_CTRL_RCV_EXTENDED_PSN_ENABLE_SMASK 0x40ull
++#define RCV_CTRL_RCV_PARTITION_KEY_ENABLE_SMASK 0x4ull
++#define RCV_CTRL_RCV_PORT_ENABLE_SMASK 0x1ull
++#define RCV_CTRL_RCV_QP_MAP_ENABLE_SMASK 0x2ull
++#define RCV_CTRL_RCV_RSM_ENABLE_SMASK 0x20ull
++#define RCV_CTRL_RX_RBUF_INIT_SMASK 0x200ull
++#define RCV_CTXT_CTRL (RXE + 0x000000100000)
++#define RCV_CTXT_CTRL_DONT_DROP_EGR_FULL_SMASK 0x4ull
++#define RCV_CTXT_CTRL_DONT_DROP_RHQ_FULL_SMASK 0x8ull
++#define RCV_CTXT_CTRL_EGR_BUF_SIZE_MASK 0x7ull
++#define RCV_CTXT_CTRL_EGR_BUF_SIZE_SHIFT 8
++#define RCV_CTXT_CTRL_EGR_BUF_SIZE_SMASK 0x700ull
++#define RCV_CTXT_CTRL_ENABLE_SMASK 0x1ull
++#define RCV_CTXT_CTRL_INTR_AVAIL_SMASK 0x20ull
++#define RCV_CTXT_CTRL_ONE_PACKET_PER_EGR_BUFFER_SMASK 0x2ull
++#define RCV_CTXT_CTRL_TAIL_UPD_SMASK 0x40ull
++#define RCV_CTXT_CTRL_TID_FLOW_ENABLE_SMASK 0x10ull
++#define RCV_CTXT_STATUS (RXE + 0x000000100008)
++#define RCV_EGR_CTRL (RXE + 0x000000100010)
++#define RCV_EGR_CTRL_EGR_BASE_INDEX_MASK 0x1FFFull
++#define RCV_EGR_CTRL_EGR_BASE_INDEX_SHIFT 0
++#define RCV_EGR_CTRL_EGR_CNT_MASK 0x1FFull
++#define RCV_EGR_CTRL_EGR_CNT_SHIFT 32
++#define RCV_EGR_INDEX_HEAD (RXE + 0x000000300018)
++#define RCV_EGR_INDEX_HEAD_HEAD_MASK 0x7FFull
++#define RCV_EGR_INDEX_HEAD_HEAD_SHIFT 0
++#define RCV_ERR_CLEAR (RXE + 0x000000000070)
++#define RCV_ERR_INFO (RXE + 0x000000000050)
++#define RCV_ERR_INFO_RCV_EXCESS_BUFFER_OVERRUN_SC_SMASK 0x1Full
++#define RCV_ERR_INFO_RCV_EXCESS_BUFFER_OVERRUN_SMASK 0x20ull
++#define RCV_ERR_MASK (RXE + 0x000000000068)
++#define RCV_ERR_STATUS (RXE + 0x000000000060)
++#define RCV_ERR_STATUS_RX_CSR_PARITY_ERR_SMASK 0x8000000000000000ull
++#define RCV_ERR_STATUS_RX_CSR_READ_BAD_ADDR_ERR_SMASK 0x2000000000000000ull
++#define RCV_ERR_STATUS_RX_CSR_WRITE_BAD_ADDR_ERR_SMASK \
++		0x4000000000000000ull
++#define RCV_ERR_STATUS_RX_DC_INTF_PARITY_ERR_SMASK 0x2ull
++#define RCV_ERR_STATUS_RX_DC_SOP_EOP_PARITY_ERR_SMASK 0x200ull
++#define RCV_ERR_STATUS_RX_DMA_CSR_COR_ERR_SMASK 0x1ull
++#define RCV_ERR_STATUS_RX_DMA_CSR_PARITY_ERR_SMASK 0x200000000000000ull
++#define RCV_ERR_STATUS_RX_DMA_CSR_UNC_ERR_SMASK 0x1000000000000000ull
++#define RCV_ERR_STATUS_RX_DMA_DATA_FIFO_RD_COR_ERR_SMASK \
++		0x40000000000000ull
++#define RCV_ERR_STATUS_RX_DMA_DATA_FIFO_RD_UNC_ERR_SMASK \
++		0x20000000000000ull
++#define RCV_ERR_STATUS_RX_DMA_DQ_FSM_ENCODING_ERR_SMASK \
++		0x800000000000000ull
++#define RCV_ERR_STATUS_RX_DMA_EQ_FSM_ENCODING_ERR_SMASK \
++		0x400000000000000ull
++#define RCV_ERR_STATUS_RX_DMA_FLAG_COR_ERR_SMASK 0x800ull
++#define RCV_ERR_STATUS_RX_DMA_FLAG_UNC_ERR_SMASK 0x400ull
++#define RCV_ERR_STATUS_RX_DMA_HDR_FIFO_RD_COR_ERR_SMASK 0x10000000000000ull
++#define RCV_ERR_STATUS_RX_DMA_HDR_FIFO_RD_UNC_ERR_SMASK 0x8000000000000ull
++#define RCV_ERR_STATUS_RX_HQ_INTR_CSR_PARITY_ERR_SMASK 0x200000000000ull
++#define RCV_ERR_STATUS_RX_HQ_INTR_FSM_ERR_SMASK 0x400000000000ull
++#define RCV_ERR_STATUS_RX_LOOKUP_CSR_PARITY_ERR_SMASK 0x100000000000ull
++#define RCV_ERR_STATUS_RX_LOOKUP_DES_PART1_UNC_COR_ERR_SMASK \
++		0x10000000000ull
++#define RCV_ERR_STATUS_RX_LOOKUP_DES_PART1_UNC_ERR_SMASK 0x8000000000ull
++#define RCV_ERR_STATUS_RX_LOOKUP_DES_PART2_PARITY_ERR_SMASK \
++		0x20000000000ull
++#define RCV_ERR_STATUS_RX_LOOKUP_RCV_ARRAY_COR_ERR_SMASK 0x80000000000ull
++#define RCV_ERR_STATUS_RX_LOOKUP_RCV_ARRAY_UNC_ERR_SMASK 0x40000000000ull
++#define RCV_ERR_STATUS_RX_RBUF_BAD_LOOKUP_ERR_SMASK 0x40000000ull
++#define RCV_ERR_STATUS_RX_RBUF_BLOCK_LIST_READ_COR_ERR_SMASK 0x100000ull
++#define RCV_ERR_STATUS_RX_RBUF_BLOCK_LIST_READ_UNC_ERR_SMASK 0x80000ull
++#define RCV_ERR_STATUS_RX_RBUF_CSR_QENT_CNT_PARITY_ERR_SMASK 0x400000ull
++#define RCV_ERR_STATUS_RX_RBUF_CSR_QEOPDW_PARITY_ERR_SMASK 0x10000000ull
++#define RCV_ERR_STATUS_RX_RBUF_CSR_QHD_PTR_PARITY_ERR_SMASK 0x2000000ull
++#define RCV_ERR_STATUS_RX_RBUF_CSR_QHEAD_BUF_NUM_PARITY_ERR_SMASK \
++		0x200000ull
++#define RCV_ERR_STATUS_RX_RBUF_CSR_QNEXT_BUF_PARITY_ERR_SMASK 0x800000ull
++#define RCV_ERR_STATUS_RX_RBUF_CSR_QNUM_OF_PKT_PARITY_ERR_SMASK \
++		0x8000000ull
++#define RCV_ERR_STATUS_RX_RBUF_CSR_QTL_PTR_PARITY_ERR_SMASK 0x4000000ull
++#define RCV_ERR_STATUS_RX_RBUF_CSR_QVLD_BIT_PARITY_ERR_SMASK 0x1000000ull
++#define RCV_ERR_STATUS_RX_RBUF_CTX_ID_PARITY_ERR_SMASK 0x20000000ull
++#define RCV_ERR_STATUS_RX_RBUF_DATA_COR_ERR_SMASK 0x100000000000000ull
++#define RCV_ERR_STATUS_RX_RBUF_DATA_UNC_ERR_SMASK 0x80000000000000ull
++#define RCV_ERR_STATUS_RX_RBUF_DESC_PART1_COR_ERR_SMASK 0x1000000000000ull
++#define RCV_ERR_STATUS_RX_RBUF_DESC_PART1_UNC_ERR_SMASK 0x800000000000ull
++#define RCV_ERR_STATUS_RX_RBUF_DESC_PART2_COR_ERR_SMASK 0x4000000000000ull
++#define RCV_ERR_STATUS_RX_RBUF_DESC_PART2_UNC_ERR_SMASK 0x2000000000000ull
++#define RCV_ERR_STATUS_RX_RBUF_EMPTY_ERR_SMASK 0x100000000ull
++#define RCV_ERR_STATUS_RX_RBUF_FL_INITDONE_PARITY_ERR_SMASK 0x800000000ull
++#define RCV_ERR_STATUS_RX_RBUF_FL_INIT_WR_ADDR_PARITY_ERR_SMASK \
++		0x1000000000ull
++#define RCV_ERR_STATUS_RX_RBUF_FL_RD_ADDR_PARITY_ERR_SMASK 0x200000000ull
++#define RCV_ERR_STATUS_RX_RBUF_FL_WR_ADDR_PARITY_ERR_SMASK 0x400000000ull
++#define RCV_ERR_STATUS_RX_RBUF_FREE_LIST_COR_ERR_SMASK 0x4000ull
++#define RCV_ERR_STATUS_RX_RBUF_FREE_LIST_UNC_ERR_SMASK 0x2000ull
++#define RCV_ERR_STATUS_RX_RBUF_FULL_ERR_SMASK 0x80000000ull
++#define RCV_ERR_STATUS_RX_RBUF_LOOKUP_DES_COR_ERR_SMASK 0x40000ull
++#define RCV_ERR_STATUS_RX_RBUF_LOOKUP_DES_REG_UNC_COR_ERR_SMASK 0x10000ull
++#define RCV_ERR_STATUS_RX_RBUF_LOOKUP_DES_REG_UNC_ERR_SMASK 0x8000ull
++#define RCV_ERR_STATUS_RX_RBUF_LOOKUP_DES_UNC_ERR_SMASK 0x20000ull
++#define RCV_ERR_STATUS_RX_RBUF_NEXT_FREE_BUF_COR_ERR_SMASK 0x4000000000ull
++#define RCV_ERR_STATUS_RX_RBUF_NEXT_FREE_BUF_UNC_ERR_SMASK 0x2000000000ull
++#define RCV_ERR_STATUS_RX_RCV_CSR_PARITY_ERR_SMASK 0x100ull
++#define RCV_ERR_STATUS_RX_RCV_DATA_COR_ERR_SMASK 0x20ull
++#define RCV_ERR_STATUS_RX_RCV_DATA_UNC_ERR_SMASK 0x10ull
++#define RCV_ERR_STATUS_RX_RCV_FSM_ENCODING_ERR_SMASK 0x1000ull
++#define RCV_ERR_STATUS_RX_RCV_HDR_COR_ERR_SMASK 0x8ull
++#define RCV_ERR_STATUS_RX_RCV_HDR_UNC_ERR_SMASK 0x4ull
++#define RCV_ERR_STATUS_RX_RCV_QP_MAP_TABLE_COR_ERR_SMASK 0x80ull
++#define RCV_ERR_STATUS_RX_RCV_QP_MAP_TABLE_UNC_ERR_SMASK 0x40ull
++#define RCV_HDR_ADDR (RXE + 0x000000100028)
++#define RCV_HDR_CNT (RXE + 0x000000100030)
++#define RCV_HDR_CNT_CNT_MASK 0x1FFull
++#define RCV_HDR_CNT_CNT_SHIFT 0
++#define RCV_HDR_ENT_SIZE (RXE + 0x000000100038)
++#define RCV_HDR_ENT_SIZE_ENT_SIZE_MASK 0x7ull
++#define RCV_HDR_ENT_SIZE_ENT_SIZE_SHIFT 0
++#define RCV_HDR_HEAD (RXE + 0x000000300008)
++#define RCV_HDR_HEAD_COUNTER_MASK 0xFFull
++#define RCV_HDR_HEAD_COUNTER_SHIFT 32
++#define RCV_HDR_HEAD_HEAD_MASK 0x7FFFFull
++#define RCV_HDR_HEAD_HEAD_SHIFT 0
++#define RCV_HDR_HEAD_HEAD_SMASK 0x7FFFFull
++#define RCV_HDR_OVFL_CNT (RXE + 0x000000100058)
++#define RCV_HDR_SIZE (RXE + 0x000000100040)
++#define RCV_HDR_SIZE_HDR_SIZE_MASK 0x1Full
++#define RCV_HDR_SIZE_HDR_SIZE_SHIFT 0
++#define RCV_HDR_TAIL (RXE + 0x000000300000)
++#define RCV_HDR_TAIL_ADDR (RXE + 0x000000100048)
++#define RCV_KEY_CTRL (RXE + 0x000000100020)
++#define RCV_KEY_CTRL_JOB_KEY_ENABLE_SMASK 0x200000000ull
++#define RCV_KEY_CTRL_JOB_KEY_VALUE_MASK 0xFFFFull
++#define RCV_KEY_CTRL_JOB_KEY_VALUE_SHIFT 0
++#define RCV_MULTICAST (RXE + 0x000000000030)
++#define RCV_PARTITION_KEY (RXE + 0x000000000200)
++#define RCV_PARTITION_KEY_PARTITION_KEY_A_MASK 0xFFFFull
++#define RCV_PARTITION_KEY_PARTITION_KEY_B_SHIFT 16
++#define RCV_QP_MAP_TABLE (RXE + 0x000000000100)
++#define RCV_RSM_CFG (RXE + 0x000000000600)
++#define RCV_RSM_CFG_ENABLE_OR_CHAIN_RSM0_MASK 0x1ull
++#define RCV_RSM_CFG_ENABLE_OR_CHAIN_RSM0_SHIFT 0
++#define RCV_RSM_CFG_PACKET_TYPE_SHIFT 60
++#define RCV_RSM_MAP_TABLE (RXE + 0x000000000900)
++#define RCV_RSM_MAP_TABLE_RCV_CONTEXT_A_MASK 0xFFull
++#define RCV_RSM_MATCH (RXE + 0x000000000800)
++#define RCV_RSM_MATCH_MASK1_SHIFT 0
++#define RCV_RSM_MATCH_MASK2_SHIFT 16
++#define RCV_RSM_MATCH_VALUE1_SHIFT 8
++#define RCV_RSM_MATCH_VALUE2_SHIFT 24
++#define RCV_RSM_SELECT (RXE + 0x000000000700)
++#define RCV_RSM_SELECT_FIELD1_OFFSET_SHIFT 0
++#define RCV_RSM_SELECT_FIELD2_OFFSET_SHIFT 16
++#define RCV_RSM_SELECT_INDEX1_OFFSET_SHIFT 32
++#define RCV_RSM_SELECT_INDEX1_WIDTH_SHIFT 44
++#define RCV_RSM_SELECT_INDEX2_OFFSET_SHIFT 48
++#define RCV_RSM_SELECT_INDEX2_WIDTH_SHIFT 60
++#define RCV_STATUS (RXE + 0x000000000008)
++#define RCV_STATUS_RX_PKT_IN_PROGRESS_SMASK 0x1ull
++#define RCV_STATUS_RX_RBUF_INIT_DONE_SMASK 0x200ull
++#define RCV_STATUS_RX_RBUF_PKT_PENDING_SMASK 0x40ull
++#define RCV_TID_CTRL (RXE + 0x000000100018)
++#define RCV_TID_CTRL_TID_BASE_INDEX_MASK 0x1FFFull
++#define RCV_TID_CTRL_TID_BASE_INDEX_SHIFT 0
++#define RCV_TID_CTRL_TID_PAIR_CNT_MASK 0x1FFull
++#define RCV_TID_CTRL_TID_PAIR_CNT_SHIFT 32
++#define RCV_TID_FLOW_TABLE (RXE + 0x000000300800)
++#define RCV_VL15 (RXE + 0x000000000048)
++#define SEND_BTH_QP (TXE + 0x0000000000A0)
++#define SEND_BTH_QP_KDETH_QP_MASK 0xFFull
++#define SEND_BTH_QP_KDETH_QP_SHIFT 16
++#define SEND_CM_CREDIT_USED_STATUS (TXE + 0x000000000510)
++#define SEND_CM_CREDIT_USED_STATUS_VL0_RETURN_CREDIT_STATUS_SMASK \
++		0x1000000000000ull
++#define SEND_CM_CREDIT_USED_STATUS_VL15_RETURN_CREDIT_STATUS_SMASK \
++		0x8000000000000000ull
++#define SEND_CM_CREDIT_USED_STATUS_VL1_RETURN_CREDIT_STATUS_SMASK \
++		0x2000000000000ull
++#define SEND_CM_CREDIT_USED_STATUS_VL2_RETURN_CREDIT_STATUS_SMASK \
++		0x4000000000000ull
++#define SEND_CM_CREDIT_USED_STATUS_VL3_RETURN_CREDIT_STATUS_SMASK \
++		0x8000000000000ull
++#define SEND_CM_CREDIT_USED_STATUS_VL4_RETURN_CREDIT_STATUS_SMASK \
++		0x10000000000000ull
++#define SEND_CM_CREDIT_USED_STATUS_VL5_RETURN_CREDIT_STATUS_SMASK \
++		0x20000000000000ull
++#define SEND_CM_CREDIT_USED_STATUS_VL6_RETURN_CREDIT_STATUS_SMASK \
++		0x40000000000000ull
++#define SEND_CM_CREDIT_USED_STATUS_VL7_RETURN_CREDIT_STATUS_SMASK \
++		0x80000000000000ull
++#define SEND_CM_CREDIT_VL (TXE + 0x000000000600)
++#define SEND_CM_CREDIT_VL15 (TXE + 0x000000000678)
++#define SEND_CM_CREDIT_VL15_DEDICATED_LIMIT_VL_SHIFT 0
++#define SEND_CM_CREDIT_VL_DEDICATED_LIMIT_VL_MASK 0xFFFFull
++#define SEND_CM_CREDIT_VL_DEDICATED_LIMIT_VL_SHIFT 0
++#define SEND_CM_CREDIT_VL_DEDICATED_LIMIT_VL_SMASK 0xFFFFull
++#define SEND_CM_CREDIT_VL_SHARED_LIMIT_VL_MASK 0xFFFFull
++#define SEND_CM_CREDIT_VL_SHARED_LIMIT_VL_SHIFT 16
++#define SEND_CM_CREDIT_VL_SHARED_LIMIT_VL_SMASK 0xFFFF0000ull
++#define SEND_CM_CTRL (TXE + 0x000000000500)
++#define SEND_CM_CTRL_FORCE_CREDIT_MODE_SMASK 0x8ull
++#define SEND_CM_CTRL_RESETCSR 0x0000000000000020ull
++#define SEND_CM_GLOBAL_CREDIT (TXE + 0x000000000508)
++#define SEND_CM_GLOBAL_CREDIT_AU_SHIFT 16
++#define SEND_CM_GLOBAL_CREDIT_RESETCSR 0x0000094000030000ull
++#define SEND_CM_GLOBAL_CREDIT_SHARED_LIMIT_MASK 0xFFFFull
++#define SEND_CM_GLOBAL_CREDIT_SHARED_LIMIT_SHIFT 0
++#define SEND_CM_GLOBAL_CREDIT_SHARED_LIMIT_SMASK 0xFFFFull
++#define SEND_CM_GLOBAL_CREDIT_TOTAL_CREDIT_LIMIT_MASK 0xFFFFull
++#define SEND_CM_GLOBAL_CREDIT_TOTAL_CREDIT_LIMIT_SHIFT 32
++#define SEND_CM_GLOBAL_CREDIT_TOTAL_CREDIT_LIMIT_SMASK 0xFFFF00000000ull
++#define SEND_CM_LOCAL_AU_TABLE0_TO3 (TXE + 0x000000000520)
++#define SEND_CM_LOCAL_AU_TABLE0_TO3_LOCAL_AU_TABLE0_SHIFT 0
++#define SEND_CM_LOCAL_AU_TABLE0_TO3_LOCAL_AU_TABLE1_SHIFT 16
++#define SEND_CM_LOCAL_AU_TABLE0_TO3_LOCAL_AU_TABLE2_SHIFT 32
++#define SEND_CM_LOCAL_AU_TABLE0_TO3_LOCAL_AU_TABLE3_SHIFT 48
++#define SEND_CM_LOCAL_AU_TABLE4_TO7 (TXE + 0x000000000528)
++#define SEND_CM_LOCAL_AU_TABLE4_TO7_LOCAL_AU_TABLE4_SHIFT 0
++#define SEND_CM_LOCAL_AU_TABLE4_TO7_LOCAL_AU_TABLE5_SHIFT 16
++#define SEND_CM_LOCAL_AU_TABLE4_TO7_LOCAL_AU_TABLE6_SHIFT 32
++#define SEND_CM_LOCAL_AU_TABLE4_TO7_LOCAL_AU_TABLE7_SHIFT 48
++#define SEND_CM_REMOTE_AU_TABLE0_TO3 (TXE + 0x000000000530)
++#define SEND_CM_REMOTE_AU_TABLE4_TO7 (TXE + 0x000000000538)
++#define SEND_CM_TIMER_CTRL (TXE + 0x000000000518)
++#define SEND_CONTEXTS (TXE + 0x000000000010)
++#define SEND_CONTEXT_SET_CTRL (TXE + 0x000000000200)
++#define SEND_COUNTER_ARRAY32 (TXE + 0x000000000300)
++#define SEND_COUNTER_ARRAY64 (TXE + 0x000000000400)
++#define SEND_CTRL (TXE + 0x000000000000)
++#define SEND_CTRL_CM_RESET_SMASK 0x4ull
++#define SEND_CTRL_SEND_ENABLE_SMASK 0x1ull
++#define SEND_CTRL_VL_ARBITER_ENABLE_SMASK 0x2ull
++#define SEND_CTXT_CHECK_ENABLE (TXE + 0x000000100080)
++#define SEND_CTXT_CHECK_ENABLE_CHECK_BYPASS_VL_MAPPING_SMASK 0x80ull
++#define SEND_CTXT_CHECK_ENABLE_CHECK_ENABLE_SMASK 0x1ull
++#define SEND_CTXT_CHECK_ENABLE_CHECK_JOB_KEY_SMASK 0x4ull
++#define SEND_CTXT_CHECK_ENABLE_CHECK_OPCODE_SMASK 0x20ull
++#define SEND_CTXT_CHECK_ENABLE_CHECK_PARTITION_KEY_SMASK 0x8ull
++#define SEND_CTXT_CHECK_ENABLE_CHECK_SLID_SMASK 0x10ull
++#define SEND_CTXT_CHECK_ENABLE_CHECK_VL_MAPPING_SMASK 0x40ull
++#define SEND_CTXT_CHECK_ENABLE_CHECK_VL_SMASK 0x2ull
++#define SEND_CTXT_CHECK_ENABLE_DISALLOW_BAD_PKT_LEN_SMASK 0x20000ull
++#define SEND_CTXT_CHECK_ENABLE_DISALLOW_BYPASS_BAD_PKT_LEN_SMASK \
++		0x200000ull
++#define SEND_CTXT_CHECK_ENABLE_DISALLOW_BYPASS_SMASK 0x800ull
++#define SEND_CTXT_CHECK_ENABLE_DISALLOW_GRH_SMASK 0x400ull
++#define SEND_CTXT_CHECK_ENABLE_DISALLOW_KDETH_PACKETS_SMASK 0x1000ull
++#define SEND_CTXT_CHECK_ENABLE_DISALLOW_NON_KDETH_PACKETS_SMASK 0x2000ull
++#define SEND_CTXT_CHECK_ENABLE_DISALLOW_PBC_STATIC_RATE_CONTROL_SMASK \
++		0x100000ull
++#define SEND_CTXT_CHECK_ENABLE_DISALLOW_PBC_TEST_SMASK 0x10000ull
++#define SEND_CTXT_CHECK_ENABLE_DISALLOW_RAW_IPV6_SMASK 0x200ull
++#define SEND_CTXT_CHECK_ENABLE_DISALLOW_RAW_SMASK 0x100ull
++#define SEND_CTXT_CHECK_ENABLE_DISALLOW_TOO_LONG_BYPASS_PACKETS_SMASK \
++		0x80000ull
++#define SEND_CTXT_CHECK_ENABLE_DISALLOW_TOO_LONG_IB_PACKETS_SMASK \
++		0x40000ull
++#define SEND_CTXT_CHECK_ENABLE_DISALLOW_TOO_SMALL_BYPASS_PACKETS_SMASK \
++		0x8000ull
++#define SEND_CTXT_CHECK_ENABLE_DISALLOW_TOO_SMALL_IB_PACKETS_SMASK \
++		0x4000ull
++#define SEND_CTXT_CHECK_JOB_KEY (TXE + 0x000000100090)
++#define SEND_CTXT_CHECK_JOB_KEY_ALLOW_PERMISSIVE_SMASK 0x100000000ull
++#define SEND_CTXT_CHECK_JOB_KEY_MASK_SMASK 0xFFFF0000ull
++#define SEND_CTXT_CHECK_JOB_KEY_VALUE_MASK 0xFFFFull
++#define SEND_CTXT_CHECK_JOB_KEY_VALUE_SHIFT 0
++#define SEND_CTXT_CHECK_OPCODE (TXE + 0x0000001000A8)
++#define SEND_CTXT_CHECK_OPCODE_MASK_SHIFT 8
++#define SEND_CTXT_CHECK_OPCODE_VALUE_SHIFT 0
++#define SEND_CTXT_CHECK_PARTITION_KEY (TXE + 0x000000100098)
++#define SEND_CTXT_CHECK_PARTITION_KEY_VALUE_MASK 0xFFFFull
++#define SEND_CTXT_CHECK_PARTITION_KEY_VALUE_SHIFT 0
++#define SEND_CTXT_CHECK_SLID (TXE + 0x0000001000A0)
++#define SEND_CTXT_CHECK_SLID_MASK_MASK 0xFFFFull
++#define SEND_CTXT_CHECK_SLID_MASK_SHIFT 16
++#define SEND_CTXT_CHECK_SLID_VALUE_MASK 0xFFFFull
++#define SEND_CTXT_CHECK_SLID_VALUE_SHIFT 0
++#define SEND_CTXT_CHECK_VL (TXE + 0x000000100088)
++#define SEND_CTXT_CREDIT_CTRL (TXE + 0x000000100010)
++#define SEND_CTXT_CREDIT_CTRL_CREDIT_INTR_SMASK 0x20000ull
++#define SEND_CTXT_CREDIT_CTRL_EARLY_RETURN_SMASK 0x10000ull
++#define SEND_CTXT_CREDIT_CTRL_THRESHOLD_MASK 0x7FFull
++#define SEND_CTXT_CREDIT_CTRL_THRESHOLD_SHIFT 0
++#define SEND_CTXT_CREDIT_CTRL_THRESHOLD_SMASK 0x7FFull
++#define SEND_CTXT_CREDIT_FORCE (TXE + 0x000000100028)
++#define SEND_CTXT_CREDIT_FORCE_FORCE_RETURN_SMASK 0x1ull
++#define SEND_CTXT_CREDIT_RETURN_ADDR (TXE + 0x000000100020)
++#define SEND_CTXT_CREDIT_RETURN_ADDR_ADDRESS_SMASK 0xFFFFFFFFFFC0ull
++#define SEND_CTXT_CTRL (TXE + 0x000000100000)
++#define SEND_CTXT_CTRL_CTXT_BASE_MASK 0x3FFFull
++#define SEND_CTXT_CTRL_CTXT_BASE_SHIFT 32
++#define SEND_CTXT_CTRL_CTXT_DEPTH_MASK 0x7FFull
++#define SEND_CTXT_CTRL_CTXT_DEPTH_SHIFT 48
++#define SEND_CTXT_CTRL_CTXT_ENABLE_SMASK 0x1ull
++#define SEND_CTXT_ERR_CLEAR (TXE + 0x000000100050)
++#define SEND_CTXT_ERR_MASK (TXE + 0x000000100048)
++#define SEND_CTXT_ERR_STATUS (TXE + 0x000000100040)
++#define SEND_CTXT_ERR_STATUS_PIO_DISALLOWED_PACKET_ERR_SMASK 0x2ull
++#define SEND_CTXT_ERR_STATUS_PIO_INCONSISTENT_SOP_ERR_SMASK 0x1ull
++#define SEND_CTXT_ERR_STATUS_PIO_WRITE_CROSSES_BOUNDARY_ERR_SMASK 0x4ull
++#define SEND_CTXT_ERR_STATUS_PIO_WRITE_OUT_OF_BOUNDS_ERR_SMASK 0x10ull
++#define SEND_CTXT_ERR_STATUS_PIO_WRITE_OVERFLOW_ERR_SMASK 0x8ull
++#define SEND_CTXT_STATUS (TXE + 0x000000100008)
++#define SEND_CTXT_STATUS_CTXT_HALTED_SMASK 0x1ull
++#define SEND_DMA_BASE_ADDR (TXE + 0x000000200010)
++#define SEND_DMA_CHECK_ENABLE (TXE + 0x000000200080)
++#define SEND_DMA_CHECK_ENABLE_CHECK_BYPASS_VL_MAPPING_SMASK 0x80ull
++#define SEND_DMA_CHECK_ENABLE_CHECK_ENABLE_SMASK 0x1ull
++#define SEND_DMA_CHECK_ENABLE_CHECK_JOB_KEY_SMASK 0x4ull
++#define SEND_DMA_CHECK_ENABLE_CHECK_OPCODE_SMASK 0x20ull
++#define SEND_DMA_CHECK_ENABLE_CHECK_PARTITION_KEY_SMASK 0x8ull
++#define SEND_DMA_CHECK_ENABLE_CHECK_SLID_SMASK 0x10ull
++#define SEND_DMA_CHECK_ENABLE_CHECK_VL_MAPPING_SMASK 0x40ull
++#define SEND_DMA_CHECK_ENABLE_CHECK_VL_SMASK 0x2ull
++#define SEND_DMA_CHECK_ENABLE_DISALLOW_BAD_PKT_LEN_SMASK 0x20000ull
++#define SEND_DMA_CHECK_ENABLE_DISALLOW_BYPASS_BAD_PKT_LEN_SMASK 0x200000ull
++#define SEND_DMA_CHECK_ENABLE_DISALLOW_PBC_STATIC_RATE_CONTROL_SMASK \
++		0x100000ull
++#define SEND_DMA_CHECK_ENABLE_DISALLOW_RAW_IPV6_SMASK 0x200ull
++#define SEND_DMA_CHECK_ENABLE_DISALLOW_RAW_SMASK 0x100ull
++#define SEND_DMA_CHECK_ENABLE_DISALLOW_TOO_LONG_BYPASS_PACKETS_SMASK \
++		0x80000ull
++#define SEND_DMA_CHECK_ENABLE_DISALLOW_TOO_LONG_IB_PACKETS_SMASK 0x40000ull
++#define SEND_DMA_CHECK_ENABLE_DISALLOW_TOO_SMALL_BYPASS_PACKETS_SMASK \
++		0x8000ull
++#define SEND_DMA_CHECK_ENABLE_DISALLOW_TOO_SMALL_IB_PACKETS_SMASK 0x4000ull
++#define SEND_DMA_CHECK_JOB_KEY (TXE + 0x000000200090)
++#define SEND_DMA_CHECK_OPCODE (TXE + 0x0000002000A8)
++#define SEND_DMA_CHECK_PARTITION_KEY (TXE + 0x000000200098)
++#define SEND_DMA_CHECK_SLID (TXE + 0x0000002000A0)
++#define SEND_DMA_CHECK_SLID_MASK_MASK 0xFFFFull
++#define SEND_DMA_CHECK_SLID_MASK_SHIFT 16
++#define SEND_DMA_CHECK_SLID_VALUE_MASK 0xFFFFull
++#define SEND_DMA_CHECK_SLID_VALUE_SHIFT 0
++#define SEND_DMA_CHECK_VL (TXE + 0x000000200088)
++#define SEND_DMA_CTRL (TXE + 0x000000200000)
++#define SEND_DMA_CTRL_SDMA_CLEANUP_SMASK 0x4ull
++#define SEND_DMA_CTRL_SDMA_ENABLE_SMASK 0x1ull
++#define SEND_DMA_CTRL_SDMA_HALT_SMASK 0x2ull
++#define SEND_DMA_CTRL_SDMA_INT_ENABLE_SMASK 0x8ull
++#define SEND_DMA_DESC_CNT (TXE + 0x000000200050)
++#define SEND_DMA_DESC_CNT_CNT_MASK 0xFFFFull
++#define SEND_DMA_DESC_CNT_CNT_SHIFT 0
++#define SEND_DMA_ENG_ERR_CLEAR (TXE + 0x000000200070)
++#define SEND_DMA_ENG_ERR_CLEAR_SDMA_HEADER_REQUEST_FIFO_UNC_ERR_MASK 0x1ull
++#define SEND_DMA_ENG_ERR_CLEAR_SDMA_HEADER_REQUEST_FIFO_UNC_ERR_SHIFT 18
++#define SEND_DMA_ENG_ERR_MASK (TXE + 0x000000200068)
++#define SEND_DMA_ENG_ERR_STATUS (TXE + 0x000000200060)
++#define SEND_DMA_ENG_ERR_STATUS_SDMA_ASSEMBLY_UNC_ERR_SMASK 0x8000ull
++#define SEND_DMA_ENG_ERR_STATUS_SDMA_DESC_TABLE_UNC_ERR_SMASK 0x4000ull
++#define SEND_DMA_ENG_ERR_STATUS_SDMA_FIRST_DESC_ERR_SMASK 0x10ull
++#define SEND_DMA_ENG_ERR_STATUS_SDMA_GEN_MISMATCH_ERR_SMASK 0x2ull
++#define SEND_DMA_ENG_ERR_STATUS_SDMA_HALT_ERR_SMASK 0x40ull
++#define SEND_DMA_ENG_ERR_STATUS_SDMA_HEADER_ADDRESS_ERR_SMASK 0x800ull
++#define SEND_DMA_ENG_ERR_STATUS_SDMA_HEADER_LENGTH_ERR_SMASK 0x1000ull
++#define SEND_DMA_ENG_ERR_STATUS_SDMA_HEADER_REQUEST_FIFO_UNC_ERR_SMASK \
++		0x40000ull
++#define SEND_DMA_ENG_ERR_STATUS_SDMA_HEADER_SELECT_ERR_SMASK 0x400ull
++#define SEND_DMA_ENG_ERR_STATUS_SDMA_HEADER_STORAGE_UNC_ERR_SMASK \
++		0x20000ull
++#define SEND_DMA_ENG_ERR_STATUS_SDMA_LENGTH_MISMATCH_ERR_SMASK 0x80ull
++#define SEND_DMA_ENG_ERR_STATUS_SDMA_MEM_READ_ERR_SMASK 0x20ull
++#define SEND_DMA_ENG_ERR_STATUS_SDMA_PACKET_DESC_OVERFLOW_ERR_SMASK \
++		0x100ull
++#define SEND_DMA_ENG_ERR_STATUS_SDMA_PACKET_TRACKING_UNC_ERR_SMASK \
++		0x10000ull
++#define SEND_DMA_ENG_ERR_STATUS_SDMA_TAIL_OUT_OF_BOUNDS_ERR_SMASK 0x8ull
++#define SEND_DMA_ENG_ERR_STATUS_SDMA_TIMEOUT_ERR_SMASK 0x2000ull
++#define SEND_DMA_ENG_ERR_STATUS_SDMA_TOO_LONG_ERR_SMASK 0x4ull
++#define SEND_DMA_ENG_ERR_STATUS_SDMA_WRONG_DW_ERR_SMASK 0x1ull
++#define SEND_DMA_ENGINES (TXE + 0x000000000018)
++#define SEND_DMA_ERR_CLEAR (TXE + 0x000000000070)
++#define SEND_DMA_ERR_MASK (TXE + 0x000000000068)
++#define SEND_DMA_ERR_STATUS (TXE + 0x000000000060)
++#define SEND_DMA_ERR_STATUS_SDMA_CSR_PARITY_ERR_SMASK 0x2ull
++#define SEND_DMA_ERR_STATUS_SDMA_PCIE_REQ_TRACKING_COR_ERR_SMASK 0x8ull
++#define SEND_DMA_ERR_STATUS_SDMA_PCIE_REQ_TRACKING_UNC_ERR_SMASK 0x4ull
++#define SEND_DMA_ERR_STATUS_SDMA_RPY_TAG_ERR_SMASK 0x1ull
++#define SEND_DMA_HEAD (TXE + 0x000000200028)
++#define SEND_DMA_HEAD_ADDR (TXE + 0x000000200030)
++#define SEND_DMA_LEN_GEN (TXE + 0x000000200018)
++#define SEND_DMA_LEN_GEN_GENERATION_SHIFT 16
++#define SEND_DMA_LEN_GEN_LENGTH_SHIFT 6
++#define SEND_DMA_MEMORY (TXE + 0x0000002000B0)
++#define SEND_DMA_MEMORY_SDMA_MEMORY_CNT_SHIFT 16
++#define SEND_DMA_MEMORY_SDMA_MEMORY_INDEX_SHIFT 0
++#define SEND_DMA_MEM_SIZE (TXE + 0x000000000028)
++#define SEND_DMA_PRIORITY_THLD (TXE + 0x000000200038)
++#define SEND_DMA_RELOAD_CNT (TXE + 0x000000200048)
++#define SEND_DMA_STATUS (TXE + 0x000000200008)
++#define SEND_DMA_STATUS_ENG_CLEANED_UP_SMASK 0x200000000000000ull
++#define SEND_DMA_STATUS_ENG_HALTED_SMASK 0x100000000000000ull
++#define SEND_DMA_TAIL (TXE + 0x000000200020)
++#define SEND_EGRESS_CTXT_STATUS (TXE + 0x000000000800)
++#define SEND_EGRESS_CTXT_STATUS_CTXT_EGRESS_HALT_STATUS_SMASK 0x10000ull
++#define SEND_EGRESS_CTXT_STATUS_CTXT_EGRESS_PACKET_OCCUPANCY_SHIFT 0
++#define SEND_EGRESS_CTXT_STATUS_CTXT_EGRESS_PACKET_OCCUPANCY_SMASK \
++		0x3FFFull
++#define SEND_EGRESS_ERR_CLEAR (TXE + 0x000000000090)
++#define SEND_EGRESS_ERR_INFO (TXE + 0x000000000F00)
++#define SEND_EGRESS_ERR_INFO_BAD_PKT_LEN_ERR_SMASK 0x20000ull
++#define SEND_EGRESS_ERR_INFO_BYPASS_ERR_SMASK 0x800ull
++#define SEND_EGRESS_ERR_INFO_GRH_ERR_SMASK 0x400ull
++#define SEND_EGRESS_ERR_INFO_JOB_KEY_ERR_SMASK 0x4ull
++#define SEND_EGRESS_ERR_INFO_KDETH_PACKETS_ERR_SMASK 0x1000ull
++#define SEND_EGRESS_ERR_INFO_NON_KDETH_PACKETS_ERR_SMASK 0x2000ull
++#define SEND_EGRESS_ERR_INFO_OPCODE_ERR_SMASK 0x20ull
++#define SEND_EGRESS_ERR_INFO_PARTITION_KEY_ERR_SMASK 0x8ull
++#define SEND_EGRESS_ERR_INFO_PBC_STATIC_RATE_CONTROL_ERR_SMASK 0x100000ull
++#define SEND_EGRESS_ERR_INFO_PBC_TEST_ERR_SMASK 0x10000ull
++#define SEND_EGRESS_ERR_INFO_RAW_ERR_SMASK 0x100ull
++#define SEND_EGRESS_ERR_INFO_RAW_IPV6_ERR_SMASK 0x200ull
++#define SEND_EGRESS_ERR_INFO_SLID_ERR_SMASK 0x10ull
++#define SEND_EGRESS_ERR_INFO_TOO_LONG_BYPASS_PACKETS_ERR_SMASK 0x80000ull
++#define SEND_EGRESS_ERR_INFO_TOO_LONG_IB_PACKET_ERR_SMASK 0x40000ull
++#define SEND_EGRESS_ERR_INFO_TOO_SMALL_BYPASS_PACKETS_ERR_SMASK 0x8000ull
++#define SEND_EGRESS_ERR_INFO_TOO_SMALL_IB_PACKETS_ERR_SMASK 0x4000ull
++#define SEND_EGRESS_ERR_INFO_VL_ERR_SMASK 0x2ull
++#define SEND_EGRESS_ERR_INFO_VL_MAPPING_ERR_SMASK 0x40ull
++#define SEND_EGRESS_ERR_MASK (TXE + 0x000000000088)
++#define SEND_EGRESS_ERR_SOURCE (TXE + 0x000000000F08)
++#define SEND_EGRESS_ERR_STATUS (TXE + 0x000000000080)
++#define SEND_EGRESS_ERR_STATUS_TX_CONFIG_PARITY_ERR_SMASK 0x8000ull
++#define SEND_EGRESS_ERR_STATUS_TX_CREDIT_OVERRUN_ERR_SMASK \
++		0x200000000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_CREDIT_RETURN_PARITY_ERR_SMASK \
++		0x20000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_CREDIT_RETURN_VL_ERR_SMASK \
++		0x800000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_EGRESS_FIFO_COR_ERR_SMASK \
++		0x2000000000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_EGRESS_FIFO_UNC_ERR_SMASK \
++		0x200000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_EGRESS_FIFO_UNDERRUN_OR_PARITY_ERR_SMASK \
++		0x8ull
++#define SEND_EGRESS_ERR_STATUS_TX_HCRC_INSERTION_ERR_SMASK \
++		0x400000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_ILLEGAL_VL_ERR_SMASK 0x1000ull
++#define SEND_EGRESS_ERR_STATUS_TX_INCORRECT_LINK_STATE_ERR_SMASK 0x20ull
++#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_CSR_PARITY_ERR_SMASK 0x2000ull
++#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO0_COR_ERR_SMASK \
++		0x1000000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO0_UNC_OR_PARITY_ERR_SMASK \
++		0x100000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO1_COR_ERR_SMASK \
++		0x2000000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO1_UNC_OR_PARITY_ERR_SMASK \
++		0x200000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO2_COR_ERR_SMASK \
++		0x4000000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO2_UNC_OR_PARITY_ERR_SMASK \
++		0x400000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO3_COR_ERR_SMASK \
++		0x8000000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO3_UNC_OR_PARITY_ERR_SMASK \
++		0x800000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO4_COR_ERR_SMASK \
++		0x10000000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO4_UNC_OR_PARITY_ERR_SMASK \
++		0x1000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO5_COR_ERR_SMASK \
++		0x20000000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO5_UNC_OR_PARITY_ERR_SMASK \
++		0x2000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO6_COR_ERR_SMASK \
++		0x40000000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO6_UNC_OR_PARITY_ERR_SMASK \
++		0x4000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO7_COR_ERR_SMASK \
++		0x80000000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO7_UNC_OR_PARITY_ERR_SMASK \
++		0x8000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO8_COR_ERR_SMASK \
++		0x100000000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_LAUNCH_FIFO8_UNC_OR_PARITY_ERR_SMASK \
++		0x10000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_LINKDOWN_ERR_SMASK 0x10ull
++#define SEND_EGRESS_ERR_STATUS_TX_PIO_LAUNCH_INTF_PARITY_ERR_SMASK 0x80ull
++#define SEND_EGRESS_ERR_STATUS_TX_PKT_INTEGRITY_MEM_COR_ERR_SMASK 0x1ull
++#define SEND_EGRESS_ERR_STATUS_TX_PKT_INTEGRITY_MEM_UNC_ERR_SMASK 0x2ull
++#define SEND_EGRESS_ERR_STATUS_TX_READ_PIO_MEMORY_COR_ERR_SMASK \
++		0x1000000000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_READ_PIO_MEMORY_CSR_UNC_ERR_SMASK \
++		0x8000000000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_READ_PIO_MEMORY_UNC_ERR_SMASK \
++		0x100000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_READ_SDMA_MEMORY_COR_ERR_SMASK \
++		0x800000000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_READ_SDMA_MEMORY_CSR_UNC_ERR_SMASK \
++		0x4000000000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_READ_SDMA_MEMORY_UNC_ERR_SMASK \
++		0x80000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_SB_HDR_COR_ERR_SMASK 0x400000000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_SB_HDR_UNC_ERR_SMASK 0x40000000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_SBRD_CTL_CSR_PARITY_ERR_SMASK 0x4000ull
++#define SEND_EGRESS_ERR_STATUS_TX_SBRD_CTL_STATE_MACHINE_PARITY_ERR_SMASK \
++		0x800ull
++#define SEND_EGRESS_ERR_STATUS_TX_SDMA0_DISALLOWED_PACKET_ERR_SMASK \
++		0x10000ull
++#define SEND_EGRESS_ERR_STATUS_TX_SDMA10_DISALLOWED_PACKET_ERR_SMASK \
++		0x4000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_SDMA11_DISALLOWED_PACKET_ERR_SMASK \
++		0x8000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_SDMA12_DISALLOWED_PACKET_ERR_SMASK \
++		0x10000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_SDMA13_DISALLOWED_PACKET_ERR_SMASK \
++		0x20000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_SDMA14_DISALLOWED_PACKET_ERR_SMASK \
++		0x40000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_SDMA15_DISALLOWED_PACKET_ERR_SMASK \
++		0x80000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_SDMA1_DISALLOWED_PACKET_ERR_SMASK \
++		0x20000ull
++#define SEND_EGRESS_ERR_STATUS_TX_SDMA2_DISALLOWED_PACKET_ERR_SMASK \
++		0x40000ull
++#define SEND_EGRESS_ERR_STATUS_TX_SDMA3_DISALLOWED_PACKET_ERR_SMASK \
++		0x80000ull
++#define SEND_EGRESS_ERR_STATUS_TX_SDMA4_DISALLOWED_PACKET_ERR_SMASK \
++		0x100000ull
++#define SEND_EGRESS_ERR_STATUS_TX_SDMA5_DISALLOWED_PACKET_ERR_SMASK \
++		0x200000ull
++#define SEND_EGRESS_ERR_STATUS_TX_SDMA6_DISALLOWED_PACKET_ERR_SMASK \
++		0x400000ull
++#define SEND_EGRESS_ERR_STATUS_TX_SDMA7_DISALLOWED_PACKET_ERR_SMASK \
++		0x800000ull
++#define SEND_EGRESS_ERR_STATUS_TX_SDMA8_DISALLOWED_PACKET_ERR_SMASK \
++		0x1000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_SDMA9_DISALLOWED_PACKET_ERR_SMASK \
++		0x2000000ull
++#define SEND_EGRESS_ERR_STATUS_TX_SDMA_LAUNCH_INTF_PARITY_ERR_SMASK \
++		0x100ull
++#define SEND_EGRESS_SEND_DMA_STATUS (TXE + 0x000000000E00)
++#define SEND_EGRESS_SEND_DMA_STATUS_SDMA_EGRESS_PACKET_OCCUPANCY_SHIFT 0
++#define SEND_EGRESS_SEND_DMA_STATUS_SDMA_EGRESS_PACKET_OCCUPANCY_SMASK \
++		0x3FFFull
++#define SEND_ERR_CLEAR (TXE + 0x0000000000F0)
++#define SEND_ERR_MASK (TXE + 0x0000000000E8)
++#define SEND_ERR_STATUS (TXE + 0x0000000000E0)
++#define SEND_ERR_STATUS_SEND_CSR_PARITY_ERR_SMASK 0x1ull
++#define SEND_ERR_STATUS_SEND_CSR_READ_BAD_ADDR_ERR_SMASK 0x2ull
++#define SEND_ERR_STATUS_SEND_CSR_WRITE_BAD_ADDR_ERR_SMASK 0x4ull
++#define SEND_HIGH_PRIORITY_LIMIT (TXE + 0x000000000030)
++#define SEND_HIGH_PRIORITY_LIMIT_LIMIT_MASK 0x3FFFull
++#define SEND_HIGH_PRIORITY_LIMIT_LIMIT_SHIFT 0
++#define SEND_HIGH_PRIORITY_LIST (TXE + 0x000000000180)
++#define SEND_LEN_CHECK0 (TXE + 0x0000000000D0)
++#define SEND_LEN_CHECK0_LEN_VL0_MASK 0xFFFull
++#define SEND_LEN_CHECK0_LEN_VL1_SHIFT 12
++#define SEND_LEN_CHECK1 (TXE + 0x0000000000D8)
++#define SEND_LEN_CHECK1_LEN_VL15_MASK 0xFFFull
++#define SEND_LEN_CHECK1_LEN_VL15_SHIFT 48
++#define SEND_LEN_CHECK1_LEN_VL4_MASK 0xFFFull
++#define SEND_LEN_CHECK1_LEN_VL5_SHIFT 12
++#define SEND_LOW_PRIORITY_LIST (TXE + 0x000000000100)
++#define SEND_LOW_PRIORITY_LIST_VL_MASK 0x7ull
++#define SEND_LOW_PRIORITY_LIST_VL_SHIFT 16
++#define SEND_LOW_PRIORITY_LIST_WEIGHT_MASK 0xFFull
++#define SEND_LOW_PRIORITY_LIST_WEIGHT_SHIFT 0
++#define SEND_PIO_ERR_CLEAR (TXE + 0x000000000050)
++#define SEND_PIO_ERR_CLEAR_PIO_INIT_SM_IN_ERR_SMASK 0x20000ull
++#define SEND_PIO_ERR_MASK (TXE + 0x000000000048)
++#define SEND_PIO_ERR_STATUS (TXE + 0x000000000040)
++#define SEND_PIO_ERR_STATUS_PIO_BLOCK_QW_COUNT_PARITY_ERR_SMASK \
++		0x1000000ull
++#define SEND_PIO_ERR_STATUS_PIO_CREDIT_RET_FIFO_PARITY_ERR_SMASK 0x8000ull
++#define SEND_PIO_ERR_STATUS_PIO_CSR_PARITY_ERR_SMASK 0x4ull
++#define SEND_PIO_ERR_STATUS_PIO_CURRENT_FREE_CNT_PARITY_ERR_SMASK \
++		0x100000000ull
++#define SEND_PIO_ERR_STATUS_PIO_HOST_ADDR_MEM_COR_ERR_SMASK 0x100000ull
++#define SEND_PIO_ERR_STATUS_PIO_HOST_ADDR_MEM_UNC_ERR_SMASK 0x80000ull
++#define SEND_PIO_ERR_STATUS_PIO_INIT_SM_IN_ERR_SMASK 0x20000ull
++#define SEND_PIO_ERR_STATUS_PIO_LAST_RETURNED_CNT_PARITY_ERR_SMASK \
++		0x200000000ull
++#define SEND_PIO_ERR_STATUS_PIO_PCC_FIFO_PARITY_ERR_SMASK 0x20ull
++#define SEND_PIO_ERR_STATUS_PIO_PCC_SOP_HEAD_PARITY_ERR_SMASK \
++		0x400000000ull
++#define SEND_PIO_ERR_STATUS_PIO_PEC_FIFO_PARITY_ERR_SMASK 0x40ull
++#define SEND_PIO_ERR_STATUS_PIO_PEC_SOP_HEAD_PARITY_ERR_SMASK \
++		0x800000000ull
++#define SEND_PIO_ERR_STATUS_PIO_PKT_EVICT_FIFO_PARITY_ERR_SMASK 0x200ull
++#define SEND_PIO_ERR_STATUS_PIO_PKT_EVICT_SM_OR_ARB_SM_ERR_SMASK 0x40000ull
++#define SEND_PIO_ERR_STATUS_PIO_PPMC_BQC_MEM_PARITY_ERR_SMASK 0x10000000ull
++#define SEND_PIO_ERR_STATUS_PIO_PPMC_PBL_FIFO_ERR_SMASK 0x10000ull
++#define SEND_PIO_ERR_STATUS_PIO_PPMC_SOP_LEN_ERR_SMASK 0x20000000ull
++#define SEND_PIO_ERR_STATUS_PIO_SB_MEM_FIFO0_ERR_SMASK 0x8ull
++#define SEND_PIO_ERR_STATUS_PIO_SB_MEM_FIFO1_ERR_SMASK 0x10ull
++#define SEND_PIO_ERR_STATUS_PIO_SBRDCTL_CRREL_PARITY_ERR_SMASK 0x80ull
++#define SEND_PIO_ERR_STATUS_PIO_SBRDCTRL_CRREL_FIFO_PARITY_ERR_SMASK \
++		0x100ull
++#define SEND_PIO_ERR_STATUS_PIO_SM_PKT_RESET_PARITY_ERR_SMASK 0x400ull
++#define SEND_PIO_ERR_STATUS_PIO_STATE_MACHINE_ERR_SMASK 0x400000ull
++#define SEND_PIO_ERR_STATUS_PIO_VL_FIFO_PARITY_ERR_SMASK 0x8000000ull
++#define SEND_PIO_ERR_STATUS_PIO_VLF_SOP_PARITY_ERR_SMASK 0x4000000ull
++#define SEND_PIO_ERR_STATUS_PIO_VLF_VL_LEN_PARITY_ERR_SMASK 0x2000000ull
++#define SEND_PIO_ERR_STATUS_PIO_VL_LEN_MEM_BANK0_COR_ERR_SMASK 0x2000ull
++#define SEND_PIO_ERR_STATUS_PIO_VL_LEN_MEM_BANK0_UNC_ERR_SMASK 0x800ull
++#define SEND_PIO_ERR_STATUS_PIO_VL_LEN_MEM_BANK1_COR_ERR_SMASK 0x4000ull
++#define SEND_PIO_ERR_STATUS_PIO_VL_LEN_MEM_BANK1_UNC_ERR_SMASK 0x1000ull
++#define SEND_PIO_ERR_STATUS_PIO_WRITE_ADDR_PARITY_ERR_SMASK 0x2ull
++#define SEND_PIO_ERR_STATUS_PIO_WRITE_BAD_CTXT_ERR_SMASK 0x1ull
++#define SEND_PIO_ERR_STATUS_PIO_WRITE_DATA_PARITY_ERR_SMASK 0x200000ull
++#define SEND_PIO_ERR_STATUS_PIO_WRITE_QW_VALID_PARITY_ERR_SMASK 0x800000ull
++#define SEND_PIO_INIT_CTXT (TXE + 0x000000000038)
++#define SEND_PIO_INIT_CTXT_PIO_ALL_CTXT_INIT_SMASK 0x1ull
++#define SEND_PIO_INIT_CTXT_PIO_CTXT_NUM_MASK 0xFFull
++#define SEND_PIO_INIT_CTXT_PIO_CTXT_NUM_SHIFT 8
++#define SEND_PIO_INIT_CTXT_PIO_INIT_ERR_SMASK 0x8ull
++#define SEND_PIO_INIT_CTXT_PIO_INIT_IN_PROGRESS_SMASK 0x4ull
++#define SEND_PIO_INIT_CTXT_PIO_SINGLE_CTXT_INIT_SMASK 0x2ull
++#define SEND_PIO_MEM_SIZE (TXE + 0x000000000020)
++#define SEND_SC2VLT0 (TXE + 0x0000000000B0)
++#define SEND_SC2VLT0_SC0_SHIFT 0
++#define SEND_SC2VLT0_SC1_SHIFT 8
++#define SEND_SC2VLT0_SC2_SHIFT 16
++#define SEND_SC2VLT0_SC3_SHIFT 24
++#define SEND_SC2VLT0_SC4_SHIFT 32
++#define SEND_SC2VLT0_SC5_SHIFT 40
++#define SEND_SC2VLT0_SC6_SHIFT 48
++#define SEND_SC2VLT0_SC7_SHIFT 56
++#define SEND_SC2VLT1 (TXE + 0x0000000000B8)
++#define SEND_SC2VLT1_SC10_SHIFT 16
++#define SEND_SC2VLT1_SC11_SHIFT 24
++#define SEND_SC2VLT1_SC12_SHIFT 32
++#define SEND_SC2VLT1_SC13_SHIFT 40
++#define SEND_SC2VLT1_SC14_SHIFT 48
++#define SEND_SC2VLT1_SC15_SHIFT 56
++#define SEND_SC2VLT1_SC8_SHIFT 0
++#define SEND_SC2VLT1_SC9_SHIFT 8
++#define SEND_SC2VLT2 (TXE + 0x0000000000C0)
++#define SEND_SC2VLT2_SC16_SHIFT 0
++#define SEND_SC2VLT2_SC17_SHIFT 8
++#define SEND_SC2VLT2_SC18_SHIFT 16
++#define SEND_SC2VLT2_SC19_SHIFT 24
++#define SEND_SC2VLT2_SC20_SHIFT 32
++#define SEND_SC2VLT2_SC21_SHIFT 40
++#define SEND_SC2VLT2_SC22_SHIFT 48
++#define SEND_SC2VLT2_SC23_SHIFT 56
++#define SEND_SC2VLT3 (TXE + 0x0000000000C8)
++#define SEND_SC2VLT3_SC24_SHIFT 0
++#define SEND_SC2VLT3_SC25_SHIFT 8
++#define SEND_SC2VLT3_SC26_SHIFT 16
++#define SEND_SC2VLT3_SC27_SHIFT 24
++#define SEND_SC2VLT3_SC28_SHIFT 32
++#define SEND_SC2VLT3_SC29_SHIFT 40
++#define SEND_SC2VLT3_SC30_SHIFT 48
++#define SEND_SC2VLT3_SC31_SHIFT 56
++#define SEND_STATIC_RATE_CONTROL (TXE + 0x0000000000A8)
++#define SEND_STATIC_RATE_CONTROL_CSR_SRC_RELOAD_SHIFT 0
++#define SEND_STATIC_RATE_CONTROL_CSR_SRC_RELOAD_SMASK 0xFFFFull
++#define PCIE_CFG_REG_PL2 (PCIE + 0x000000000708)
++#define PCIE_CFG_REG_PL102 (PCIE + 0x000000000898)
++#define PCIE_CFG_REG_PL102_GEN3_EQ_POST_CURSOR_PSET_SHIFT 12
++#define PCIE_CFG_REG_PL102_GEN3_EQ_CURSOR_PSET_SHIFT 6
++#define PCIE_CFG_REG_PL102_GEN3_EQ_PRE_CURSOR_PSET_SHIFT 0
++#define PCIE_CFG_REG_PL103 (PCIE + 0x00000000089C)
++#define PCIE_CFG_REG_PL105 (PCIE + 0x0000000008A4)
++#define PCIE_CFG_REG_PL105_GEN3_EQ_VIOLATE_COEF_RULES_SMASK 0x1ull
++#define PCIE_CFG_REG_PL2_LOW_PWR_ENT_CNT_SHIFT 24
++#define PCIE_CFG_REG_PL100 (PCIE + 0x000000000890)
++#define PCIE_CFG_REG_PL100_EQ_EIEOS_CNT_SMASK 0x400ull
++#define PCIE_CFG_REG_PL101 (PCIE + 0x000000000894)
++#define PCIE_CFG_REG_PL101_GEN3_EQ_LOCAL_FS_SHIFT 6
++#define PCIE_CFG_REG_PL101_GEN3_EQ_LOCAL_LF_SHIFT 0
++#define PCIE_CFG_REG_PL106 (PCIE + 0x0000000008A8)
++#define PCIE_CFG_REG_PL106_GEN3_EQ_PSET_REQ_VEC_SHIFT 8
++#define PCIE_CFG_REG_PL106_GEN3_EQ_EVAL2MS_DISABLE_SMASK 0x20ull
++#define PCIE_CFG_REG_PL106_GEN3_EQ_PHASE23_EXIT_MODE_SMASK 0x10ull
++
++#endif          /* DEF_CHIP_REG */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
