@@ -1,66 +1,86 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 06/41] IB/hfi1: add char device instantiation code
-Date: Wed, 17 Jun 2015 10:31:40 -0600
-Message-ID: <20150617163140.GA22242@obsidianresearch.com>
-References: <20150611230710.16479.62955.stgit@phlsvslse11.ph.intel.com>
- <20150611230901.16479.18231.stgit@phlsvslse11.ph.intel.com>
- <CAJ3xEMjRPdqWSGSwaEvyhmMQOFqaEi9ZzD5oKzmOhJyERLz4-w@mail.gmail.com>
- <20150615173423.GA528@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FF5828@ORSMSX109.amr.corp.intel.com>
- <20150615181348.GC1089@obsidianresearch.com>
- <32E1700B9017364D9B60AED9960492BC2574E174@fmsmsx120.amr.corp.intel.com>
- <32E1700B9017364D9B60AED9960492BC2575144C@fmsmsx120.amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH 04/11] IB/cm: Expose DGID in SIDR request events
+Date: Wed, 17 Jun 2015 11:06:12 -0600
+Message-ID: <20150617170612.GB27232@obsidianresearch.com>
+References: <1434358036-15526-1-git-send-email-haggaie@mellanox.com>
+ <1434358036-15526-5-git-send-email-haggaie@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FF5A3F@ORSMSX109.amr.corp.intel.com>
+ <20150615220852.GB4384@obsidianresearch.com>
+ <55800793.4040103@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <32E1700B9017364D9B60AED9960492BC2575144C-RjuIdWtd+YbTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <55800793.4040103@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: Haggai Eran <haggaie@mellanox.com>
+Cc: "Hefty, Sean" <sean.hefty@intel.com>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 17, 2015 at 12:05:08PM +0000, Marciniszyn, Mike wrote:
+On Tue, Jun 16, 2015 at 02:25:07PM +0300, Haggai Eran wrote:
 
-> Jason, what is your take on ioctl vs. write.
+> > But how is that going to work? How is the sender to know it should be
+> > sending a GRH with the CM message?
+> 
+> If the admin wants to use SIDR with alias GIDs, they will need to
+> configure the system to enable GRH for such GMPs. (This series doesn't
+> include such a patch).
 
-Well, I think the global view keeps changing, so I'm not sure what is
-trendy now..
+Gross.
 
-But personally, I hate seeing write() used to emulate ioctl() because
-'ioctl is bad'. ie if you are 'writing' a struct that contains user
-pointers and you expect the kernel to read/write to user memory, then
-use ioctl. (and that is the 'badness' of ioctl, so pretending it is
-write doesn't help anything)
+> Regarding APM, currently the ib_cm code always sends the GMP to the
+> primary path anyway, right? And in any case, one would expect the
+> primary path's GID to have a valid net_device and local routing rules,
+> so I think for the purpose of demuxing and validating the request using
+> the primary path should be fine.
 
-If you can formulate your communication like netlink does, where it is
-more like a network RPC, where *everything* is in the buffer passed
-to write and you have to call read to get a reply, then use
-read/write. This is generally considered preferable, and is what
-people mean when they say write is preferred. As I understand
-it.
+The current code works that way, but it is not what I'd expect
+generally.
 
-netlink is a reasonable low speed format to use for this kind of
-serialization, either via the common mux or via your own char device.
+For instance, future APM support will be able to drive dual-rail and
+policy will decide which rail is the current best rail for data
+transfer. So the GMP may be directed to the IPoIB device with port 1,
+but the data transfer may happen on the RDMA port 2. [Note, I already
+have very rough patches that do this de-coupling]
 
-I also wonder about all those sysfs files. I think the over reliance
-on sysfs in rdma may have been a mistake, sending the same information
-over netlink would be more consistent with what netdev is doing. (eg
-you can't view the netdev IP addresses via sysfs, but you can view
-rdma guids via sysfs)
+> Why do you think the GMP's net_device should be used over the one of the
+> future RDMA channel?
 
-Overall, I'd be alot happier with your driver patchset if it was split
-as 'core only, no UAPI changes' followed up by 'Add UAPI for X'.
+The code needs to match the incoming GMP with the logical netdev that
+rx's *that GMP*. The fact that goes on to setup an RDMA channel is not
+relevant, the nature of the future RDMA channel should not impact how
+the GMP is recieved.
 
-If you can't make a verbs provider work under 'core only' then I think
-something is very wrong...
+> So far we can work without GRH for CM requests, and also without GRH for
+> SIDR requests if we rely on layer 3 for the interface resolution. I'm
+> not against adding a LLADDR to the protocol somehow, but I don't think
+> we should abandon all these use cases and the interoperability with
+> existing software.
 
-UAPI stuff in drivers is often a red flag, and you guys should think
-really carefully about what OPA elements should be buried in the
-driver and what elements should be common to all OPA adapters.
+Well, there is a middle ground. Lets say we get the LLADDR in the GMP
+somehow, then we get 100% correct operation when it is present.
+
+For degraded operation we have the (device,port,pkey) and possibly
+(device,port,pkey,gid) if there was a GRH. We also have the IP address
+hack.
+
+So, I'd say, search in this sequence:
+ - If the LLADDR is present, just find the right netdev
+ - Otherwise search for (device,port,pkey) / (device,port,pkey,gid)
+   If there is only one match then that is unambiguously the correct
+   device to use.
+ - Repeat the above search, but add the IP address. This is the hack
+   we perform for compatibility.
+
+There is no reason to hackily look at the GMP path parameters if we are
+relying on #3 above as the hack to save us in the legacy ambiguous case.
+
+.. and to answer your question in the other email, I think we should
+keep the hack clearly distinct from the proper operation (in fact,
+perhaps it should be user configurable). So #3 should be a distinct
+step taken when all else fails, not integrated into earlier steps.
+
+So, this series as it stands just needs to do #2/#3 above and you guys
+can figure out the LLADDR business later.
 
 Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
