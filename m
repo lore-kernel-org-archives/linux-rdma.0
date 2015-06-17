@@ -1,58 +1,33 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 14/14] IB/mad: Add final OPA MAD processing
-Date: Tue, 16 Jun 2015 22:12:38 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FF61F0@ORSMSX109.amr.corp.intel.com>
-References: <1433615915-24591-1-git-send-email-ira.weiny@intel.com>
-	 <1433615915-24591-15-git-send-email-ira.weiny@intel.com>
-	 <HE1PR05MB1418BB6C461790B76D9C02A3B1BD0@HE1PR05MB1418.eurprd05.prod.outlook.com>
-	 <1433961446.71666.26.camel@redhat.com>
-	 <20150610185653.GA28153@obsidianresearch.com>
- <1433966378.71666.44.camel@redhat.com>
- <HE1PR05MB141885494D6967919DAE135EB1BC0@HE1PR05MB1418.eurprd05.prod.outlook.com>
- <557AEB5D.1040003@redhat.com>
- <HE1PR05MB14182DCD7003B52A28BB62A5B1B90@HE1PR05MB1418.eurprd05.prod.outlook.com>
- <557E6514.1060600@redhat.com>
+Subject: RE: [PATCH acm] acme.c: Fix IPv6 address handling in inet_any_pton
+Date: Wed, 17 Jun 2015 05:50:03 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FF64BF@ORSMSX109.amr.corp.intel.com>
+References: <558026A4.3090907@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <557E6514.1060600-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <558026A4.3090907-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ilya Nelkenbaum <ilyan-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBZb3UncmUgcmlnaHQgdGhhdCBhcHBzIGNhbiBiZSBjb2RlZCB0byBvdGhlciBDQSB0eXBlcywg
-bGlrZSBSTklDcyBhbmQNCj4gVVNOSUNzLiAgSG93ZXZlciwgdGhvc2UgYXJlIGFsbCB2ZXJ5IGRp
-ZmZlcmVudCBmcm9tIGFuIElCX0NBIGR1ZSB0bw0KPiBsaW1pdGVkIHF1ZXVlIHBhaXIgdHlwZXMg
-b3IgbGltaXRlZCBwcmltaXRpdmVzLiAgSWYgT1BBIGhhZCB0aGF0IHNhbWUNCj4gbGltaXRhdGlv
-biB0aGVuIEkgd291bGQgYWdyZWUgaXQgbmVlZHMgYSBkaWZmZXJlbnQgbm9kZSB0eXBlLg0KPiAN
-Cj4gU28gdGhpcyB3aWxsIGJlIG15IGxpdG11cyB0ZXN0LiAgQ3VycmVudGx5LCBhbiBhcHAgdGhh
-dCBzdXBwb3J0cyBhbGwgb2YNCj4gdGhlIFJETUEgdHlwZXMgbG9va3MgbGlrZSB0aGlzOg0KPiAN
-Cj4gaWYgKG5vZGVfdHlwZSA9PSBSTklDKQ0KPiAJZG8gaXdhcnB5IHN0dWZmDQo+IGVsc2UgaWYg
-KG5vZGVfdHlwZSA9PSBVU05JQykNCj4gCWRvIFVTTklDIHN0dWZmDQo+IGVsc2UgaWYgKG5vZGVf
-dHlwZSA9PSBJQl9DQSkNCj4gCWRvIElCIHZlcmJzIHN0dWZmDQo+IAlpZiAobGlua19sYXllciA9
-PSBFdGhlcm5ldCkNCj4gCQlkbyBSb0NFIGFkZHJlc3NpbmcvbWFuYWdlbWVudA0KPiAJZWxzZQ0K
-PiAJCWRvIElCIGFkZHJlc3NpbmcvbWFuYWdlbWVudA0KDQpUaGUgbm9kZSB0eXBlIHZhbHVlcyB3
-ZXJlIG9yaWdpbmFsbHkgZGVmaW5lZCB0byBhbGlnbiB3aXRoIHRoZSBJQiBtYW5hZ2VtZW50IE5v
-ZGVJbmZvIHN0cnVjdHVyZS4gIEFGQUlDVCwgdGhlcmUgd2FzIG5vIGludGVudCB0byBhc3NvY2lh
-dGUgdGhvc2UgdmFsdWVzIHdpdGggc3BlY2lmaWMgZnVuY3Rpb25hbGl0eSBvciBhZGRyZXNzaW5n
-IG9yIHZlcmJzIHN1cHBvcnQgb3IgYW55dGhpbmcgZWxzZSwgcmVhbGx5LCBvdXRzaWRlIG9mIHdo
-YXQgSUIgbWFuYWdlbWVudCBuZWVkZWQuDQoNCmlXYXJwIGFkZGVkIGEgbmV3IG5vZGUgdHlwZSwg
-c28gdGhhdCB0aGUgSUIgbWFuYWdlbWVudCBjb2RlIGNvdWxkIGlnbm9yZSB0aG9zZSBkZXZpY2Vz
-LiAgUm9DRSBiYXNpY2FsbHkgYnJva2UgdGhpcyBhc3NvY2lhdGlvbiBieSBmb3JjaW5nIGFkZGl0
-aW9uYWwgY2hlY2tzIGluIHRoZSBsb2NhbCBtYW5hZ2VtZW50IGNvZGUgdG8gYWxzbyBjaGVjayBh
-Z2FpbnN0IHRoZSBsaW5rIGxheWVyLiAgVGhlIHJlY2VudCBtYWQgY2FwYWJpbGl0eSBiaXRzIGFy
-ZSBhIHN1cGVyaW9yIHNvbHV0aW9uLCBtYWtpbmcgdGhlIG5vZGUgdHlwZSBvYnNvbGV0ZS4gDQoN
-CkF0IHRoaXMgcG9pbnQsIHRoZSBub2RlIHR5cGUgZXNzZW50aWFsbHkgaW5kaWNhdGVzIGlmIHdl
-IHN0YXJ0IGNvdW50aW5nIHBvcnRzIGF0IGEgbnVtZXJpYyB2YWx1ZSAwIG9yIDEuICBUaGUgTm9k
-ZVR5cGUgdGhhdCBhbiBPUEEgY2hhbm5lbCBhZGFwdGVyIHdpbGwgcmVwb3J0IGluIGEgTm9kZUlu
-Zm8gc3RydWN0dXJlIHdpbGwgYmUgMSwgdGhlIHNhbWUgdmFsdWUgYXMgaWYgaXQgd2VyZSBhbiBJ
-QiBjaGFubmVsIGFkYXB0ZXIuDQoNCkluIHRoZSBlbmQsIHRoaXMgYXJndW1lbnQgbWF0dGVycyBv
-bmUgaW90YS4gIFRoZSBrZXJuZWwgY29kZSBiYXJlbHkgcmVsaWVzIG9uIHRoZSBub2RlIHR5cGUs
-IGFuZCBhIHVzZXIgc3BhY2UgdmVyYnMgcHJvdmlkZXIgY2FuIHJlcG9ydCB3aGF0ZXZlciB2YWx1
-ZSBpdCB3YW50cy4NCg0KLSBTZWFuDQo=
+Thanks - applied manually
+
+>  acm/src/acme.c |    2 +-
+
+Path?
+
+> diff --git a/acm/src/acme.c b/acm/src/acme.c
+> index 9bf7557..d54c8b9 100644
+> --- a/acm/src/acme.c
+> +++ b/acm/src/acme.c
+> @@ -787,7 +787,7 @@ static int inet_any_pton(char *addr, struct sockaddr
+
+This was off by a couple hundred lines.  Can you check your branch?
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
