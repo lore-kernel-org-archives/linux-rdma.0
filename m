@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v3 33/49] IB/hfi1: add qsfp handling
-Date: Wed, 17 Jun 2015 08:31:33 -0400
-Message-ID: <20150617123133.8744.70776.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH v3 32/49] IB/hfi1: add qp handling
+Date: Wed, 17 Jun 2015 08:31:28 -0400
+Message-ID: <20150617123128.8744.37072.stgit@phlsvslse11.ph.intel.com>
 References: <20150617122755.8744.44665.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -37,18 +37,18 @@ Signed-off-by: Sanath Kumar <sanath.s.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.
 Signed-off-by: Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Vlad Danushevsky <vladimir.danusevsky-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/qsfp.c |  546 +++++++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/hfi1/qsfp.h |  222 +++++++++++++++
- 2 files changed, 768 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi1/qsfp.c
- create mode 100644 drivers/infiniband/hw/hfi1/qsfp.h
+ drivers/infiniband/hw/hfi1/qp.c | 1692 +++++++++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/hfi1/qp.h |  206 +++++
+ 2 files changed, 1898 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi1/qp.c
+ create mode 100644 drivers/infiniband/hw/hfi1/qp.h
 
-diff --git a/drivers/infiniband/hw/hfi1/qsfp.c b/drivers/infiniband/hw/hfi1/qsfp.c
+diff --git a/drivers/infiniband/hw/hfi1/qp.c b/drivers/infiniband/hw/hfi1/qp.c
 new file mode 100644
-index 0000000..001cfac
+index 0000000..40db5d7
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/qsfp.c
-@@ -0,0 +1,546 @@
++++ b/drivers/infiniband/hw/hfi1/qp.c
+@@ -0,0 +1,1692 @@
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -99,508 +99,1656 @@ index 0000000..001cfac
 + *
 + */
 +
-+#include <linux/delay.h>
-+#include <linux/pci.h>
++#include <linux/err.h>
 +#include <linux/vmalloc.h>
++#include <linux/jhash.h>
++#include <linux/module.h>
++#include <linux/random.h>
++#include <linux/seq_file.h>
 +
 +#include "hfi.h"
-+#include "twsi.h"
++#include "qp.h"
++#include "trace.h"
++#include "sdma.h"
 +
-+/*
-+ * QSFP support for hfi driver, using "Two Wire Serial Interface" driver
-+ * in twsi.c
-+ */
-+#define I2C_MAX_RETRY 4
++#define BITS_PER_PAGE           (PAGE_SIZE*BITS_PER_BYTE)
++#define BITS_PER_PAGE_MASK      (BITS_PER_PAGE-1)
 +
-+/*
-+ * Unlocked i2c write.  Must hold dd->qsfp_i2c_mutex.
-+ */
-+static int __i2c_write(struct hfi1_pportdata *ppd, u32 target, int i2c_addr,
-+		       int offset, void *bp, int len)
++static unsigned int hfi1_qp_table_size = 256;
++module_param_named(qp_table_size, hfi1_qp_table_size, uint, S_IRUGO);
++MODULE_PARM_DESC(qp_table_size, "QP table size");
++
++static void flush_tx_list(struct hfi1_qp *qp);
++static int iowait_sleep(
++	struct sdma_engine *sde,
++	struct iowait *wait,
++	struct sdma_txreq *stx,
++	unsigned seq);
++static void iowait_wakeup(struct iowait *wait, int reason);
++
++static inline unsigned mk_qpn(struct hfi1_qpn_table *qpt,
++			      struct qpn_map *map, unsigned off)
 +{
-+	struct hfi1_devdata *dd = ppd->dd;
-+	int ret, cnt;
-+	u8 *buff = bp;
-+
-+	/* Make sure TWSI bus is in sane state. */
-+	ret = hfi1_twsi_reset(dd, target);
-+	if (ret) {
-+		hfi1_dev_porterr(dd, ppd->port,
-+				 "I2C interface Reset for write failed\n");
-+		return -EIO;
-+	}
-+
-+	cnt = 0;
-+	while (cnt < len) {
-+		int wlen = len - cnt;
-+
-+		ret = hfi1_twsi_blk_wr(dd, target, i2c_addr, offset,
-+				       buff + cnt, wlen);
-+		if (ret) {
-+			/* hfi1_twsi_blk_wr() 1 for error, else 0 */
-+			return -EIO;
-+		}
-+		offset += wlen;
-+		cnt += wlen;
-+	}
-+
-+	/* Must wait min 20us between qsfp i2c transactions */
-+	udelay(20);
-+
-+	return cnt;
-+}
-+
-+int i2c_write(struct hfi1_pportdata *ppd, u32 target, int i2c_addr, int offset,
-+	      void *bp, int len)
-+{
-+	struct hfi1_devdata *dd = ppd->dd;
-+	int ret;
-+
-+	ret = mutex_lock_interruptible(&dd->qsfp_i2c_mutex);
-+	if (!ret) {
-+		ret = __i2c_write(ppd, target, i2c_addr, offset, bp, len);
-+		mutex_unlock(&dd->qsfp_i2c_mutex);
-+	}
-+
-+	return ret;
++	return (map - qpt->map) * BITS_PER_PAGE + off;
 +}
 +
 +/*
-+ * Unlocked i2c read.  Must hold dd->qsfp_i2c_mutex.
++ * Convert the AETH credit code into the number of credits.
 + */
-+static int __i2c_read(struct hfi1_pportdata *ppd, u32 target, int i2c_addr,
-+		      int offset, void *bp, int len)
-+{
-+	struct hfi1_devdata *dd = ppd->dd;
-+	int ret, cnt, pass = 0;
-+	int stuck = 0;
-+	u8 *buff = bp;
-+
-+	/* Make sure TWSI bus is in sane state. */
-+	ret = hfi1_twsi_reset(dd, target);
-+	if (ret) {
-+		hfi1_dev_porterr(dd, ppd->port,
-+				 "I2C interface Reset for read failed\n");
-+		ret = -EIO;
-+		stuck = 1;
-+		goto exit;
-+	}
-+
-+	cnt = 0;
-+	while (cnt < len) {
-+		int rlen = len - cnt;
-+
-+		ret = hfi1_twsi_blk_rd(dd, target, i2c_addr, offset,
-+				       buff + cnt, rlen);
-+		/* Some QSFP's fail first try. Retry as experiment */
-+		if (ret && cnt == 0 && ++pass < I2C_MAX_RETRY)
-+			continue;
-+		if (ret) {
-+			/* hfi1_twsi_blk_rd() 1 for error, else 0 */
-+			ret = -EIO;
-+			goto exit;
-+		}
-+		offset += rlen;
-+		cnt += rlen;
-+	}
-+
-+	ret = cnt;
-+
-+exit:
-+	if (stuck)
-+		dd_dev_err(dd, "I2C interface bus stuck non-idle\n");
-+
-+	if (pass >= I2C_MAX_RETRY && ret)
-+		hfi1_dev_porterr(dd, ppd->port,
-+				 "I2C failed even retrying\n");
-+	else if (pass)
-+		hfi1_dev_porterr(dd, ppd->port, "I2C retries: %d\n", pass);
-+
-+	/* Must wait min 20us between qsfp i2c transactions */
-+	udelay(20);
-+
-+	return ret;
-+}
-+
-+int i2c_read(struct hfi1_pportdata *ppd, u32 target, int i2c_addr, int offset,
-+	     void *bp, int len)
-+{
-+	struct hfi1_devdata *dd = ppd->dd;
-+	int ret;
-+
-+	ret = mutex_lock_interruptible(&dd->qsfp_i2c_mutex);
-+	if (!ret) {
-+		ret = __i2c_read(ppd, target, i2c_addr, offset, bp, len);
-+		mutex_unlock(&dd->qsfp_i2c_mutex);
-+	}
-+
-+	return ret;
-+}
-+
-+int qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
-+	       int len)
-+{
-+	int count = 0;
-+	int offset;
-+	int nwrite;
-+	int ret;
-+	u8 page;
-+
-+	ret = mutex_lock_interruptible(&ppd->dd->qsfp_i2c_mutex);
-+	if (ret)
-+		return ret;
-+
-+	while (count < len) {
-+		/*
-+		 * Set the qsfp page based on a zero-based addresss
-+		 * and a page size of QSFP_PAGESIZE bytes.
-+		 */
-+		page = (u8)(addr / QSFP_PAGESIZE);
-+
-+		ret = __i2c_write(ppd, target, QSFP_DEV,
-+					QSFP_PAGE_SELECT_BYTE_OFFS, &page, 1);
-+		if (ret != 1) {
-+			hfi1_dev_porterr(
-+			ppd->dd,
-+			ppd->port,
-+			"can't write QSFP_PAGE_SELECT_BYTE: %d\n", ret);
-+			ret = -EIO;
-+			break;
-+		}
-+
-+		/* truncate write to end of page if crossing page boundary */
-+		offset = addr % QSFP_PAGESIZE;
-+		nwrite = len - count;
-+		if ((offset + nwrite) > QSFP_PAGESIZE)
-+			nwrite = QSFP_PAGESIZE - offset;
-+
-+		ret = __i2c_write(ppd, target, QSFP_DEV, offset, bp + count,
-+					nwrite);
-+		if (ret <= 0)	/* stop on error or nothing read */
-+			break;
-+
-+		count += ret;
-+		addr += ret;
-+	}
-+
-+	mutex_unlock(&ppd->dd->qsfp_i2c_mutex);
-+
-+	if (ret < 0)
-+		return ret;
-+	return count;
-+}
-+
-+int qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
-+	      int len)
-+{
-+	int count = 0;
-+	int offset;
-+	int nread;
-+	int ret;
-+	u8 page;
-+
-+	ret = mutex_lock_interruptible(&ppd->dd->qsfp_i2c_mutex);
-+	if (ret)
-+		return ret;
-+
-+	while (count < len) {
-+		/*
-+		 * Set the qsfp page based on a zero-based address
-+		 * and a page size of QSFP_PAGESIZE bytes.
-+		 */
-+		page = (u8)(addr / QSFP_PAGESIZE);
-+		ret = __i2c_write(ppd, target, QSFP_DEV,
-+					QSFP_PAGE_SELECT_BYTE_OFFS, &page, 1);
-+		if (ret != 1) {
-+			hfi1_dev_porterr(
-+			ppd->dd,
-+			ppd->port,
-+			"can't write QSFP_PAGE_SELECT_BYTE: %d\n", ret);
-+			ret = -EIO;
-+			break;
-+		}
-+
-+		/* truncate read to end of page if crossing page boundary */
-+		offset = addr % QSFP_PAGESIZE;
-+		nread = len - count;
-+		if ((offset + nread) > QSFP_PAGESIZE)
-+			nread = QSFP_PAGESIZE - offset;
-+
-+		ret = __i2c_read(ppd, target, QSFP_DEV, offset, bp + count,
-+					nread);
-+		if (ret <= 0)	/* stop on error or nothing read */
-+			break;
-+
-+		count += ret;
-+		addr += ret;
-+	}
-+
-+	mutex_unlock(&ppd->dd->qsfp_i2c_mutex);
-+
-+	if (ret < 0)
-+		return ret;
-+	return count;
-+}
-+
-+/*
-+ * This function caches the QSFP memory range in 128 byte chunks.
-+ * As an example, the next byte after address 255 is byte 128 from
-+ * upper page 01H (if existing) rather than byte 0 from lower page 00H.
-+ */
-+int refresh_qsfp_cache(struct hfi1_pportdata *ppd, struct qsfp_data *cp)
-+{
-+	u32 target = ppd->dd->hfi1_id;
-+	int ret;
-+	unsigned long flags;
-+	u8 *cache = &cp->cache[0];
-+
-+	/* ensure sane contents on invalid reads, for cable swaps */
-+	memset(cache, 0, (QSFP_MAX_NUM_PAGES*128));
-+	dd_dev_info(ppd->dd, "%s: called\n", __func__);
-+	if (!qsfp_mod_present(ppd)) {
-+		ret = -ENODEV;
-+		goto bail;
-+	}
-+
-+	ret = qsfp_read(ppd, target, 0, cache, 256);
-+	if (ret != 256) {
-+		dd_dev_info(ppd->dd,
-+			"%s: Read of pages 00H failed, expected 256, got %d\n",
-+			__func__, ret);
-+		goto bail;
-+	}
-+
-+	if (cache[0] != 0x0C && cache[0] != 0x0D)
-+		goto bail;
-+
-+	/* Is paging enabled? */
-+	if (!(cache[2] & 4)) {
-+
-+		/* Paging enabled, page 03 required */
-+		if ((cache[195] & 0xC0) == 0xC0) {
-+			/* all */
-+			ret = qsfp_read(ppd, target, 384, cache + 256, 128);
-+			if (ret <= 0 || ret != 128) {
-+				dd_dev_info(ppd->dd, "%s: failed\n", __func__);
-+				goto bail;
-+			}
-+			ret = qsfp_read(ppd, target, 640, cache + 384, 128);
-+			if (ret <= 0 || ret != 128) {
-+				dd_dev_info(ppd->dd, "%s: failed\n", __func__);
-+				goto bail;
-+			}
-+			ret = qsfp_read(ppd, target, 896, cache + 512, 128);
-+			if (ret <= 0 || ret != 128) {
-+				dd_dev_info(ppd->dd, "%s: failed\n", __func__);
-+				goto bail;
-+			}
-+		} else if ((cache[195] & 0x80) == 0x80) {
-+			/* only page 2 and 3 */
-+			ret = qsfp_read(ppd, target, 640, cache + 384, 128);
-+			if (ret <= 0 || ret != 128) {
-+				dd_dev_info(ppd->dd, "%s: failed\n", __func__);
-+				goto bail;
-+			}
-+			ret = qsfp_read(ppd, target, 896, cache + 512, 128);
-+			if (ret <= 0 || ret != 128) {
-+				dd_dev_info(ppd->dd, "%s: failed\n", __func__);
-+				goto bail;
-+			}
-+		} else if ((cache[195] & 0x40) == 0x40) {
-+			/* only page 1 and 3 */
-+			ret = qsfp_read(ppd, target, 384, cache + 256, 128);
-+			if (ret <= 0 || ret != 128) {
-+				dd_dev_info(ppd->dd, "%s: failed\n", __func__);
-+				goto bail;
-+			}
-+			ret = qsfp_read(ppd, target, 896, cache + 512, 128);
-+			if (ret <= 0 || ret != 128) {
-+				dd_dev_info(ppd->dd, "%s: failed\n", __func__);
-+				goto bail;
-+			}
-+		} else {
-+			/* only page 3 */
-+			ret = qsfp_read(ppd, target, 896, cache + 512, 128);
-+			if (ret <= 0 || ret != 128) {
-+				dd_dev_info(ppd->dd, "%s: failed\n", __func__);
-+				goto bail;
-+			}
-+		}
-+	}
-+
-+	spin_lock_irqsave(&ppd->qsfp_info.qsfp_lock, flags);
-+	ppd->qsfp_info.cache_valid = 1;
-+	ppd->qsfp_info.cache_refresh_required = 0;
-+	spin_unlock_irqrestore(&ppd->qsfp_info.qsfp_lock, flags);
-+
-+	return 0;
-+
-+bail:
-+	memset(cache, 0, (QSFP_MAX_NUM_PAGES*128));
-+	return ret;
-+}
-+
-+const char * const hfi1_qsfp_devtech[16] = {
-+	"850nm VCSEL", "1310nm VCSEL", "1550nm VCSEL", "1310nm FP",
-+	"1310nm DFB", "1550nm DFB", "1310nm EML", "1550nm EML",
-+	"Cu Misc", "1490nm DFB", "Cu NoEq", "Cu Eq",
-+	"Undef", "Cu Active BothEq", "Cu FarEq", "Cu NearEq"
++static u32 credit_table[31] = {
++	0,                      /* 0 */
++	1,                      /* 1 */
++	2,                      /* 2 */
++	3,                      /* 3 */
++	4,                      /* 4 */
++	6,                      /* 5 */
++	8,                      /* 6 */
++	12,                     /* 7 */
++	16,                     /* 8 */
++	24,                     /* 9 */
++	32,                     /* A */
++	48,                     /* B */
++	64,                     /* C */
++	96,                     /* D */
++	128,                    /* E */
++	192,                    /* F */
++	256,                    /* 10 */
++	384,                    /* 11 */
++	512,                    /* 12 */
++	768,                    /* 13 */
++	1024,                   /* 14 */
++	1536,                   /* 15 */
++	2048,                   /* 16 */
++	3072,                   /* 17 */
++	4096,                   /* 18 */
++	6144,                   /* 19 */
++	8192,                   /* 1A */
++	12288,                  /* 1B */
++	16384,                  /* 1C */
++	24576,                  /* 1D */
++	32768                   /* 1E */
 +};
 +
-+#define QSFP_DUMP_CHUNK 16 /* Holds longest string */
-+#define QSFP_DEFAULT_HDR_CNT 224
-+
-+static const char *pwr_codes = "1.5W2.0W2.5W3.5W";
-+
-+int qsfp_mod_present(struct hfi1_pportdata *ppd)
++static void get_map_page(struct hfi1_qpn_table *qpt, struct qpn_map *map)
 +{
-+	if (HFI1_CAP_IS_KSET(QSFP_ENABLED)) {
-+		struct hfi1_devdata *dd = ppd->dd;
-+		u64 reg;
++	unsigned long page = get_zeroed_page(GFP_KERNEL);
 +
-+		reg = read_csr(dd,
-+			dd->hfi1_id ? ASIC_QSFP2_IN : ASIC_QSFP1_IN);
-+		return !(reg & QSFP_HFI0_MODPRST_N);
-+	}
-+	/* always return cable present */
-+	return 1;
++	/*
++	 * Free the page if someone raced with us installing it.
++	 */
++
++	spin_lock(&qpt->lock);
++	if (map->page)
++		free_page(page);
++	else
++		map->page = (void *)page;
++	spin_unlock(&qpt->lock);
 +}
 +
 +/*
-+ * This function maps QSFP memory addresses in 128 byte chunks in the following
-+ * fashion per the CableInfo SMA query definition in the IBA 1.3 spec/OPA Gen 1
-+ * spec
-+ * For addr 000-127, lower page 00h
-+ * For addr 128-255, upper page 00h
-+ * For addr 256-383, upper page 01h
-+ * For addr 384-511, upper page 02h
-+ * For addr 512-639, upper page 03h
-+ *
-+ * For addresses beyond this range, it returns the invalid range of data buffer
-+ * set to 0.
-+ * For upper pages that are optional, if they are not valid, returns the
-+ * particular range of bytes in the data buffer set to 0.
++ * Allocate the next available QPN or
++ * zero/one for QP type IB_QPT_SMI/IB_QPT_GSI.
 + */
-+int get_cable_info(struct hfi1_devdata *dd, u32 port_num, u32 addr, u32 len,
-+		   u8 *data)
++static int alloc_qpn(struct hfi1_devdata *dd, struct hfi1_qpn_table *qpt,
++		     enum ib_qp_type type, u8 port)
 +{
-+	struct hfi1_pportdata *ppd;
-+	u32 excess_len = len;
-+	int ret = 0;
++	u32 i, offset, max_scan, qpn;
++	struct qpn_map *map;
++	u32 ret;
 +
-+	if (port_num > dd->num_pports || port_num < 1) {
-+		dd_dev_info(dd, "%s: Invalid port number %d\n",
-+				__func__, port_num);
-+		ret = -EINVAL;
-+		goto set_zeroes;
++	if (type == IB_QPT_SMI || type == IB_QPT_GSI) {
++		unsigned n;
++
++		ret = type == IB_QPT_GSI;
++		n = 1 << (ret + 2 * (port - 1));
++		spin_lock(&qpt->lock);
++		if (qpt->flags & n)
++			ret = -EINVAL;
++		else
++			qpt->flags |= n;
++		spin_unlock(&qpt->lock);
++		goto bail;
 +	}
 +
-+	ppd = dd->pport + (port_num - 1);
-+	if (!qsfp_mod_present(ppd)) {
-+		ret = -ENODEV;
-+		goto set_zeroes;
++	qpn = qpt->last + qpt->incr;
++	if (qpn >= QPN_MAX)
++		qpn = qpt->incr | ((qpt->last & 1) ^ 1);
++	/* offset carries bit 0 */
++	offset = qpn & BITS_PER_PAGE_MASK;
++	map = &qpt->map[qpn / BITS_PER_PAGE];
++	max_scan = qpt->nmaps - !offset;
++	for (i = 0;;) {
++		if (unlikely(!map->page)) {
++			get_map_page(qpt, map);
++			if (unlikely(!map->page))
++				break;
++		}
++		do {
++			if (!test_and_set_bit(offset, map->page)) {
++				qpt->last = qpn;
++				ret = qpn;
++				goto bail;
++			}
++			offset += qpt->incr;
++			/*
++			 * This qpn might be bogus if offset >= BITS_PER_PAGE.
++			 * That is OK.   It gets re-assigned below
++			 */
++			qpn = mk_qpn(qpt, map, offset);
++		} while (offset < BITS_PER_PAGE && qpn < QPN_MAX);
++		/*
++		 * In order to keep the number of pages allocated to a
++		 * minimum, we scan the all existing pages before increasing
++		 * the size of the bitmap table.
++		 */
++		if (++i > max_scan) {
++			if (qpt->nmaps == QPNMAP_ENTRIES)
++				break;
++			map = &qpt->map[qpt->nmaps++];
++			/* start at incr with current bit 0 */
++			offset = qpt->incr | (offset & 1);
++		} else if (map < &qpt->map[qpt->nmaps]) {
++			++map;
++			/* start at incr with current bit 0 */
++			offset = qpt->incr | (offset & 1);
++		} else {
++			map = &qpt->map[0];
++			/* wrap to first map page, invert bit 0 */
++			offset = qpt->incr | ((offset & 1) ^ 1);
++		}
++		/* there can be no bits at shift and below */
++		BUG_ON(offset & (dd->qos_shift - 1));
++		qpn = mk_qpn(qpt, map, offset);
 +	}
 +
-+	if (!ppd->qsfp_info.cache_valid) {
-+		ret = -EINVAL;
-+		goto set_zeroes;
-+	}
++	ret = -ENOMEM;
 +
-+	if (addr >= (QSFP_MAX_NUM_PAGES * 128)) {
-+		ret = -ERANGE;
-+		goto set_zeroes;
-+	}
-+
-+	if ((addr + len) >= (QSFP_MAX_NUM_PAGES * 128)) {
-+		excess_len = (addr + len) - (QSFP_MAX_NUM_PAGES * 128);
-+		memcpy(data, &ppd->qsfp_info.cache[addr], (len - excess_len));
-+		data += (len - excess_len);
-+		goto set_zeroes;
-+	}
-+
-+	memcpy(data, &ppd->qsfp_info.cache[addr], len);
-+	return 0;
-+
-+set_zeroes:
-+	memset(data, 0, excess_len);
++bail:
 +	return ret;
 +}
 +
-+int qsfp_dump(struct hfi1_pportdata *ppd, char *buf, int len)
++static void free_qpn(struct hfi1_qpn_table *qpt, u32 qpn)
 +{
-+	u8 *cache = &ppd->qsfp_info.cache[0];
-+	u8 bin_buff[QSFP_DUMP_CHUNK];
-+	char lenstr[6];
-+	int sofar, ret;
-+	int bidx = 0;
-+	u8 *atten = &cache[QSFP_ATTEN_OFFS];
-+	u8 *vendor_oui = &cache[QSFP_VOUI_OFFS];
++	struct qpn_map *map;
 +
-+	sofar = 0;
-+	lenstr[0] = ' ';
-+	lenstr[1] = '\0';
++	map = qpt->map + qpn / BITS_PER_PAGE;
++	if (map->page)
++		clear_bit(qpn & BITS_PER_PAGE_MASK, map->page);
++}
 +
-+	if (ppd->qsfp_info.cache_valid) {
++static inline unsigned qpn_hash(struct hfi1_qp_ibdev *dev, u32 qpn)
++{
++	return jhash_1word(qpn, dev->qp_rnd) &
++		(dev->qp_table_size - 1);
++}
 +
-+		if (QSFP_IS_CU(cache[QSFP_MOD_TECH_OFFS]))
-+			sprintf(lenstr, "%dM ", cache[QSFP_MOD_LEN_OFFS]);
 +
-+		sofar += scnprintf(buf + sofar, len - sofar, "PWR:%.3sW\n",
-+				pwr_codes +
-+				(QSFP_PWR(cache[QSFP_MOD_PWR_OFFS]) * 4));
++/*
++ * Put the QP into the hash table.
++ * The hash table holds a reference to the QP.
++ */
++static void insert_qp(struct hfi1_ibdev *dev, struct hfi1_qp *qp)
++{
++	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
++	unsigned long flags;
++	unsigned n = qpn_hash(dev->qp_dev, qp->ibqp.qp_num);
 +
-+		sofar += scnprintf(buf + sofar, len - sofar, "TECH:%s%s\n",
-+				lenstr,
-+			hfi1_qsfp_devtech[(cache[QSFP_MOD_TECH_OFFS]) >> 4]);
++	atomic_inc(&qp->refcount);
++	spin_lock_irqsave(&dev->qp_dev->qpt_lock, flags);
 +
-+		sofar += scnprintf(buf + sofar, len - sofar, "Vendor:%.*s\n",
-+				   QSFP_VEND_LEN, &cache[QSFP_VEND_OFFS]);
++	if (qp->ibqp.qp_num == 0)
++		rcu_assign_pointer(ibp->qp0, qp);
++	else if (qp->ibqp.qp_num == 1)
++		rcu_assign_pointer(ibp->qp1, qp);
++	else {
++		qp->next = dev->qp_dev->qp_table[n];
++		rcu_assign_pointer(dev->qp_dev->qp_table[n], qp);
++	}
 +
-+		sofar += scnprintf(buf + sofar, len - sofar, "OUI:%06X\n",
-+				   QSFP_OUI(vendor_oui));
++	spin_unlock_irqrestore(&dev->qp_dev->qpt_lock, flags);
++}
 +
-+		sofar += scnprintf(buf + sofar, len - sofar, "Part#:%.*s\n",
-+				   QSFP_PN_LEN, &cache[QSFP_PN_OFFS]);
++/*
++ * Remove the QP from the table so it can't be found asynchronously by
++ * the receive interrupt routine.
++ */
++static void remove_qp(struct hfi1_ibdev *dev, struct hfi1_qp *qp)
++{
++	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
++	unsigned n = qpn_hash(dev->qp_dev, qp->ibqp.qp_num);
++	unsigned long flags;
++	int removed = 1;
 +
-+		sofar += scnprintf(buf + sofar, len - sofar, "Rev:%.*s\n",
-+				   QSFP_REV_LEN, &cache[QSFP_REV_OFFS]);
++	spin_lock_irqsave(&dev->qp_dev->qpt_lock, flags);
 +
-+		if (QSFP_IS_CU(cache[QSFP_MOD_TECH_OFFS]))
-+			sofar += scnprintf(buf + sofar, len - sofar,
-+				"Atten:%d, %d\n",
-+				QSFP_ATTEN_SDR(atten),
-+				QSFP_ATTEN_DDR(atten));
++	if (rcu_dereference_protected(ibp->qp0,
++			lockdep_is_held(&dev->qp_dev->qpt_lock)) == qp) {
++		RCU_INIT_POINTER(ibp->qp0, NULL);
++	} else if (rcu_dereference_protected(ibp->qp1,
++			lockdep_is_held(&dev->qp_dev->qpt_lock)) == qp) {
++		RCU_INIT_POINTER(ibp->qp1, NULL);
++	} else {
++		struct hfi1_qp *q;
++		struct hfi1_qp __rcu **qpp;
 +
-+		sofar += scnprintf(buf + sofar, len - sofar, "Serial:%.*s\n",
-+				   QSFP_SN_LEN, &cache[QSFP_SN_OFFS]);
-+
-+		sofar += scnprintf(buf + sofar, len - sofar, "Date:%.*s\n",
-+				   QSFP_DATE_LEN, &cache[QSFP_DATE_OFFS]);
-+
-+		sofar += scnprintf(buf + sofar, len - sofar, "Lot:%.*s\n",
-+				   QSFP_LOT_LEN, &cache[QSFP_LOT_OFFS]);
-+
-+		while (bidx < QSFP_DEFAULT_HDR_CNT) {
-+			int iidx;
-+
-+			memcpy(bin_buff, &cache[bidx], QSFP_DUMP_CHUNK);
-+			for (iidx = 0; iidx < QSFP_DUMP_CHUNK; ++iidx) {
-+				sofar += scnprintf(buf + sofar, len-sofar,
-+					" %02X", bin_buff[iidx]);
++		removed = 0;
++		qpp = &dev->qp_dev->qp_table[n];
++		for (; (q = rcu_dereference_protected(*qpp,
++				lockdep_is_held(&dev->qp_dev->qpt_lock)))
++					!= NULL;
++				qpp = &q->next)
++			if (q == qp) {
++				RCU_INIT_POINTER(*qpp,
++				 rcu_dereference_protected(qp->next,
++				 lockdep_is_held(&dev->qp_dev->qpt_lock)));
++				removed = 1;
++				break;
 +			}
-+			sofar += scnprintf(buf + sofar, len - sofar, "\n");
-+			bidx += QSFP_DUMP_CHUNK;
++	}
++
++	spin_unlock_irqrestore(&dev->qp_dev->qpt_lock, flags);
++	if (removed) {
++		synchronize_rcu();
++		if (atomic_dec_and_test(&qp->refcount))
++			wake_up(&qp->wait);
++	}
++}
++
++/**
++ * free_all_qps - check for QPs still in use
++ * @qpt: the QP table to empty
++ *
++ * There should not be any QPs still in use.
++ * Free memory for table.
++ */
++static unsigned free_all_qps(struct hfi1_devdata *dd)
++{
++	struct hfi1_ibdev *dev = &dd->verbs_dev;
++	unsigned long flags;
++	struct hfi1_qp *qp;
++	unsigned n, qp_inuse = 0;
++
++	for (n = 0; n < dd->num_pports; n++) {
++		struct hfi1_ibport *ibp = &dd->pport[n].ibport_data;
++
++		if (!hfi1_mcast_tree_empty(ibp))
++			qp_inuse++;
++		rcu_read_lock();
++		if (rcu_dereference(ibp->qp0))
++			qp_inuse++;
++		if (rcu_dereference(ibp->qp1))
++			qp_inuse++;
++		rcu_read_unlock();
++	}
++
++	if (!dev->qp_dev)
++		goto bail;
++	spin_lock_irqsave(&dev->qp_dev->qpt_lock, flags);
++	for (n = 0; n < dev->qp_dev->qp_table_size; n++) {
++		qp = rcu_dereference_protected(dev->qp_dev->qp_table[n],
++			lockdep_is_held(&dev->qp_dev->qpt_lock));
++		RCU_INIT_POINTER(dev->qp_dev->qp_table[n], NULL);
++
++		for (; qp; qp = rcu_dereference_protected(qp->next,
++				lockdep_is_held(&dev->qp_dev->qpt_lock)))
++			qp_inuse++;
++	}
++	spin_unlock_irqrestore(&dev->qp_dev->qpt_lock, flags);
++	synchronize_rcu();
++bail:
++	return qp_inuse;
++}
++
++/**
++ * hfi1_lookup_qpn - return the QP with the given QPN
++ * @qpt: the QP table
++ * @qpn: the QP number to look up
++ *
++ * The caller is responsible for decrementing the QP reference count
++ * when done.
++ */
++struct hfi1_qp *hfi1_lookup_qpn(struct hfi1_ibport *ibp, u32 qpn)
++{
++	struct hfi1_qp *qp = NULL;
++
++	rcu_read_lock();
++	if (unlikely(qpn <= 1)) {
++		if (qpn == 0)
++			qp = rcu_dereference(ibp->qp0);
++		else
++			qp = rcu_dereference(ibp->qp1);
++		if (qp)
++			atomic_inc(&qp->refcount);
++	} else {
++		struct hfi1_ibdev *dev = &ppd_from_ibp(ibp)->dd->verbs_dev;
++		unsigned n = qpn_hash(dev->qp_dev, qpn);
++
++		for (qp = rcu_dereference(dev->qp_dev->qp_table[n]); qp;
++			qp = rcu_dereference(qp->next))
++			if (qp->ibqp.qp_num == qpn) {
++				atomic_inc(&qp->refcount);
++				break;
++			}
++	}
++	rcu_read_unlock();
++	return qp;
++}
++
++/**
++ * reset_qp - initialize the QP state to the reset state
++ * @qp: the QP to reset
++ * @type: the QP type
++ */
++static void reset_qp(struct hfi1_qp *qp, enum ib_qp_type type)
++{
++	qp->remote_qpn = 0;
++	qp->qkey = 0;
++	qp->qp_access_flags = 0;
++	iowait_init(
++		&qp->s_iowait,
++		1,
++		hfi1_do_send,
++		iowait_sleep,
++		iowait_wakeup);
++	qp->s_flags &= HFI1_S_SIGNAL_REQ_WR;
++	qp->s_hdrwords = 0;
++	qp->s_wqe = NULL;
++	qp->s_draining = 0;
++	qp->s_next_psn = 0;
++	qp->s_last_psn = 0;
++	qp->s_sending_psn = 0;
++	qp->s_sending_hpsn = 0;
++	qp->s_psn = 0;
++	qp->r_psn = 0;
++	qp->r_msn = 0;
++	if (type == IB_QPT_RC) {
++		qp->s_state = IB_OPCODE_RC_SEND_LAST;
++		qp->r_state = IB_OPCODE_RC_SEND_LAST;
++	} else {
++		qp->s_state = IB_OPCODE_UC_SEND_LAST;
++		qp->r_state = IB_OPCODE_UC_SEND_LAST;
++	}
++	qp->s_ack_state = IB_OPCODE_RC_ACKNOWLEDGE;
++	qp->r_nak_state = 0;
++	qp->r_aflags = 0;
++	qp->r_flags = 0;
++	qp->s_head = 0;
++	qp->s_tail = 0;
++	qp->s_cur = 0;
++	qp->s_acked = 0;
++	qp->s_last = 0;
++	qp->s_ssn = 1;
++	qp->s_lsn = 0;
++	clear_ahg(qp);
++	qp->s_mig_state = IB_MIG_MIGRATED;
++	memset(qp->s_ack_queue, 0, sizeof(qp->s_ack_queue));
++	qp->r_head_ack_queue = 0;
++	qp->s_tail_ack_queue = 0;
++	qp->s_num_rd_atomic = 0;
++	if (qp->r_rq.wq) {
++		qp->r_rq.wq->head = 0;
++		qp->r_rq.wq->tail = 0;
++	}
++	qp->r_sge.num_sge = 0;
++}
++
++static void clear_mr_refs(struct hfi1_qp *qp, int clr_sends)
++{
++	unsigned n;
++
++	if (test_and_clear_bit(HFI1_R_REWIND_SGE, &qp->r_aflags))
++		hfi1_put_ss(&qp->s_rdma_read_sge);
++
++	hfi1_put_ss(&qp->r_sge);
++
++	if (clr_sends) {
++		while (qp->s_last != qp->s_head) {
++			struct hfi1_swqe *wqe = get_swqe_ptr(qp, qp->s_last);
++			unsigned i;
++
++			for (i = 0; i < wqe->wr.num_sge; i++) {
++				struct hfi1_sge *sge = &wqe->sg_list[i];
++
++				hfi1_put_mr(sge->mr);
++			}
++			if (qp->ibqp.qp_type == IB_QPT_UD ||
++			    qp->ibqp.qp_type == IB_QPT_SMI ||
++			    qp->ibqp.qp_type == IB_QPT_GSI)
++				atomic_dec(&to_iah(wqe->wr.wr.ud.ah)->refcount);
++			if (++qp->s_last >= qp->s_size)
++				qp->s_last = 0;
++		}
++		if (qp->s_rdma_mr) {
++			hfi1_put_mr(qp->s_rdma_mr);
++			qp->s_rdma_mr = NULL;
 +		}
 +	}
-+	ret = sofar;
++
++	if (qp->ibqp.qp_type != IB_QPT_RC)
++		return;
++
++	for (n = 0; n < ARRAY_SIZE(qp->s_ack_queue); n++) {
++		struct hfi1_ack_entry *e = &qp->s_ack_queue[n];
++
++		if (e->opcode == IB_OPCODE_RC_RDMA_READ_REQUEST &&
++		    e->rdma_sge.mr) {
++			hfi1_put_mr(e->rdma_sge.mr);
++			e->rdma_sge.mr = NULL;
++		}
++	}
++}
++
++/**
++ * hfi1_error_qp - put a QP into the error state
++ * @qp: the QP to put into the error state
++ * @err: the receive completion error to signal if a RWQE is active
++ *
++ * Flushes both send and receive work queues.
++ * Returns true if last WQE event should be generated.
++ * The QP r_lock and s_lock should be held and interrupts disabled.
++ * If we are already in error state, just return.
++ */
++int hfi1_error_qp(struct hfi1_qp *qp, enum ib_wc_status err)
++{
++	struct hfi1_ibdev *dev = to_idev(qp->ibqp.device);
++	struct ib_wc wc;
++	int ret = 0;
++
++	if (qp->state == IB_QPS_ERR || qp->state == IB_QPS_RESET)
++		goto bail;
++
++	qp->state = IB_QPS_ERR;
++
++	if (qp->s_flags & (HFI1_S_TIMER | HFI1_S_WAIT_RNR)) {
++		qp->s_flags &= ~(HFI1_S_TIMER | HFI1_S_WAIT_RNR);
++		del_timer(&qp->s_timer);
++	}
++
++	if (qp->s_flags & HFI1_S_ANY_WAIT_SEND)
++		qp->s_flags &= ~HFI1_S_ANY_WAIT_SEND;
++
++	spin_lock(&dev->pending_lock);
++	if (!list_empty(&qp->s_iowait.list) && !(qp->s_flags & HFI1_S_BUSY)) {
++		qp->s_flags &= ~HFI1_S_ANY_WAIT_IO;
++		list_del_init(&qp->s_iowait.list);
++		if (atomic_dec_and_test(&qp->refcount))
++			wake_up(&qp->wait);
++	}
++	spin_unlock(&dev->pending_lock);
++
++	if (!(qp->s_flags & HFI1_S_BUSY)) {
++		qp->s_hdrwords = 0;
++		if (qp->s_rdma_mr) {
++			hfi1_put_mr(qp->s_rdma_mr);
++			qp->s_rdma_mr = NULL;
++		}
++		flush_tx_list(qp);
++	}
++
++	/* Schedule the sending tasklet to drain the send work queue. */
++	if (qp->s_last != qp->s_head)
++		hfi1_schedule_send(qp);
++
++	clear_mr_refs(qp, 0);
++
++	memset(&wc, 0, sizeof(wc));
++	wc.qp = &qp->ibqp;
++	wc.opcode = IB_WC_RECV;
++
++	if (test_and_clear_bit(HFI1_R_WRID_VALID, &qp->r_aflags)) {
++		wc.wr_id = qp->r_wr_id;
++		wc.status = err;
++		hfi1_cq_enter(to_icq(qp->ibqp.recv_cq), &wc, 1);
++	}
++	wc.status = IB_WC_WR_FLUSH_ERR;
++
++	if (qp->r_rq.wq) {
++		struct hfi1_rwq *wq;
++		u32 head;
++		u32 tail;
++
++		spin_lock(&qp->r_rq.lock);
++
++		/* sanity check pointers before trusting them */
++		wq = qp->r_rq.wq;
++		head = wq->head;
++		if (head >= qp->r_rq.size)
++			head = 0;
++		tail = wq->tail;
++		if (tail >= qp->r_rq.size)
++			tail = 0;
++		while (tail != head) {
++			wc.wr_id = get_rwqe_ptr(&qp->r_rq, tail)->wr_id;
++			if (++tail >= qp->r_rq.size)
++				tail = 0;
++			hfi1_cq_enter(to_icq(qp->ibqp.recv_cq), &wc, 1);
++		}
++		wq->tail = tail;
++
++		spin_unlock(&qp->r_rq.lock);
++	} else if (qp->ibqp.event_handler)
++		ret = 1;
++
++bail:
 +	return ret;
 +}
-diff --git a/drivers/infiniband/hw/hfi1/qsfp.h b/drivers/infiniband/hw/hfi1/qsfp.h
++
++static void flush_tx_list(struct hfi1_qp *qp)
++{
++	while (!list_empty(&qp->s_iowait.tx_head)) {
++		struct sdma_txreq *tx;
++
++		tx = list_first_entry(
++			&qp->s_iowait.tx_head,
++			struct sdma_txreq,
++			list);
++		list_del_init(&tx->list);
++		hfi1_put_txreq(
++			container_of(tx, struct verbs_txreq, txreq));
++	}
++}
++
++static void flush_iowait(struct hfi1_qp *qp)
++{
++	struct hfi1_ibdev *dev = to_idev(qp->ibqp.device);
++	unsigned long flags;
++
++	spin_lock_irqsave(&dev->pending_lock, flags);
++	if (!list_empty(&qp->s_iowait.list)) {
++		list_del_init(&qp->s_iowait.list);
++		if (atomic_dec_and_test(&qp->refcount))
++			wake_up(&qp->wait);
++	}
++	spin_unlock_irqrestore(&dev->pending_lock, flags);
++}
++
++static inline int opa_mtu_enum_to_int(int mtu)
++{
++	switch (mtu) {
++	case OPA_MTU_8192:  return 8192;
++	case OPA_MTU_10240: return 10240;
++	default:            return -1;
++	}
++}
++
++/**
++ * This function is what we would push to the core layer if we wanted to be a
++ * "first class citizen".  Instead we hide this here and rely on Verbs ULPs
++ * to blindly pass the MTU enum value from the PathRecord to us.
++ *
++ * The actual flag used to determine "8k MTU" will change and is currently
++ * unknown.
++ */
++static inline int verbs_mtu_enum_to_int(struct ib_device *dev, enum ib_mtu mtu)
++{
++	int val = opa_mtu_enum_to_int((int)mtu);
++
++	if (val > 0)
++		return val;
++	return ib_mtu_enum_to_int(mtu);
++}
++
++
++/**
++ * hfi1_modify_qp - modify the attributes of a queue pair
++ * @ibqp: the queue pair who's attributes we're modifying
++ * @attr: the new attributes
++ * @attr_mask: the mask of attributes to modify
++ * @udata: user data for libibverbs.so
++ *
++ * Returns 0 on success, otherwise returns an errno.
++ */
++int hfi1_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
++		   int attr_mask, struct ib_udata *udata)
++{
++	struct hfi1_ibdev *dev = to_idev(ibqp->device);
++	struct hfi1_qp *qp = to_iqp(ibqp);
++	enum ib_qp_state cur_state, new_state;
++	struct ib_event ev;
++	int lastwqe = 0;
++	int mig = 0;
++	int ret;
++	u32 pmtu = 0; /* for gcc warning only */
++	struct hfi1_devdata *dd;
++
++	spin_lock_irq(&qp->r_lock);
++	spin_lock(&qp->s_lock);
++
++	cur_state = attr_mask & IB_QP_CUR_STATE ?
++		attr->cur_qp_state : qp->state;
++	new_state = attr_mask & IB_QP_STATE ? attr->qp_state : cur_state;
++
++	if (!ib_modify_qp_is_ok(cur_state, new_state, ibqp->qp_type,
++				attr_mask, IB_LINK_LAYER_UNSPECIFIED))
++		goto inval;
++
++	if (attr_mask & IB_QP_AV) {
++		if (attr->ah_attr.dlid >= HFI1_MULTICAST_LID_BASE)
++			goto inval;
++		if (hfi1_check_ah(qp->ibqp.device, &attr->ah_attr))
++			goto inval;
++	}
++
++	if (attr_mask & IB_QP_ALT_PATH) {
++		if (attr->alt_ah_attr.dlid >= HFI1_MULTICAST_LID_BASE)
++			goto inval;
++		if (hfi1_check_ah(qp->ibqp.device, &attr->alt_ah_attr))
++			goto inval;
++		if (attr->alt_pkey_index >= hfi1_get_npkeys(dd_from_dev(dev)))
++			goto inval;
++	}
++
++	if (attr_mask & IB_QP_PKEY_INDEX)
++		if (attr->pkey_index >= hfi1_get_npkeys(dd_from_dev(dev)))
++			goto inval;
++
++	if (attr_mask & IB_QP_MIN_RNR_TIMER)
++		if (attr->min_rnr_timer > 31)
++			goto inval;
++
++	if (attr_mask & IB_QP_PORT)
++		if (qp->ibqp.qp_type == IB_QPT_SMI ||
++		    qp->ibqp.qp_type == IB_QPT_GSI ||
++		    attr->port_num == 0 ||
++		    attr->port_num > ibqp->device->phys_port_cnt)
++			goto inval;
++
++	if (attr_mask & IB_QP_DEST_QPN)
++		if (attr->dest_qp_num > HFI1_QPN_MASK)
++			goto inval;
++
++	if (attr_mask & IB_QP_RETRY_CNT)
++		if (attr->retry_cnt > 7)
++			goto inval;
++
++	if (attr_mask & IB_QP_RNR_RETRY)
++		if (attr->rnr_retry > 7)
++			goto inval;
++
++	/*
++	 * Don't allow invalid path_mtu values.  OK to set greater
++	 * than the active mtu (or even the max_cap, if we have tuned
++	 * that to a small mtu.  We'll set qp->path_mtu
++	 * to the lesser of requested attribute mtu and active,
++	 * for packetizing messages.
++	 * Note that the QP port has to be set in INIT and MTU in RTR.
++	 */
++	if (attr_mask & IB_QP_PATH_MTU) {
++		int mtu, pidx = qp->port_num - 1;
++
++		dd = dd_from_dev(dev);
++		mtu = verbs_mtu_enum_to_int(ibqp->device, attr->path_mtu);
++		if (mtu == -1)
++			goto inval;
++
++		if (mtu > dd->pport[pidx].ibmtu)
++			pmtu = mtu_to_enum(dd->pport[pidx].ibmtu, IB_MTU_2048);
++		else
++			pmtu = attr->path_mtu;
++	}
++
++	if (attr_mask & IB_QP_PATH_MIG_STATE) {
++		if (attr->path_mig_state == IB_MIG_REARM) {
++			if (qp->s_mig_state == IB_MIG_ARMED)
++				goto inval;
++			if (new_state != IB_QPS_RTS)
++				goto inval;
++		} else if (attr->path_mig_state == IB_MIG_MIGRATED) {
++			if (qp->s_mig_state == IB_MIG_REARM)
++				goto inval;
++			if (new_state != IB_QPS_RTS && new_state != IB_QPS_SQD)
++				goto inval;
++			if (qp->s_mig_state == IB_MIG_ARMED)
++				mig = 1;
++		} else
++			goto inval;
++	}
++
++	if (attr_mask & IB_QP_MAX_DEST_RD_ATOMIC)
++		if (attr->max_dest_rd_atomic > HFI1_MAX_RDMA_ATOMIC)
++			goto inval;
++
++	switch (new_state) {
++	case IB_QPS_RESET:
++		if (qp->state != IB_QPS_RESET) {
++			qp->state = IB_QPS_RESET;
++			flush_iowait(qp);
++			qp->s_flags &= ~(HFI1_S_TIMER | HFI1_S_ANY_WAIT);
++			spin_unlock(&qp->s_lock);
++			spin_unlock_irq(&qp->r_lock);
++			/* Stop the sending work queue and retry timer */
++			cancel_work_sync(&qp->s_iowait.iowork);
++			del_timer_sync(&qp->s_timer);
++			iowait_sdma_drain(&qp->s_iowait);
++			flush_tx_list(qp);
++			remove_qp(dev, qp);
++			wait_event(qp->wait, !atomic_read(&qp->refcount));
++			spin_lock_irq(&qp->r_lock);
++			spin_lock(&qp->s_lock);
++			clear_mr_refs(qp, 1);
++			clear_ahg(qp);
++			reset_qp(qp, ibqp->qp_type);
++		}
++		break;
++
++	case IB_QPS_RTR:
++		/* Allow event to re-trigger if QP set to RTR more than once */
++		qp->r_flags &= ~HFI1_R_COMM_EST;
++		qp->state = new_state;
++		break;
++
++	case IB_QPS_SQD:
++		qp->s_draining = qp->s_last != qp->s_cur;
++		qp->state = new_state;
++		break;
++
++	case IB_QPS_SQE:
++		if (qp->ibqp.qp_type == IB_QPT_RC)
++			goto inval;
++		qp->state = new_state;
++		break;
++
++	case IB_QPS_ERR:
++		lastwqe = hfi1_error_qp(qp, IB_WC_WR_FLUSH_ERR);
++		break;
++
++	default:
++		qp->state = new_state;
++		break;
++	}
++
++	if (attr_mask & IB_QP_PKEY_INDEX)
++		qp->s_pkey_index = attr->pkey_index;
++
++	if (attr_mask & IB_QP_PORT)
++		qp->port_num = attr->port_num;
++
++	if (attr_mask & IB_QP_DEST_QPN)
++		qp->remote_qpn = attr->dest_qp_num;
++
++	if (attr_mask & IB_QP_SQ_PSN) {
++		qp->s_next_psn = attr->sq_psn & PSN_MODIFY_MASK;
++		qp->s_psn = qp->s_next_psn;
++		qp->s_sending_psn = qp->s_next_psn;
++		qp->s_last_psn = qp->s_next_psn - 1;
++		qp->s_sending_hpsn = qp->s_last_psn;
++	}
++
++	if (attr_mask & IB_QP_RQ_PSN)
++		qp->r_psn = attr->rq_psn & PSN_MODIFY_MASK;
++
++	if (attr_mask & IB_QP_ACCESS_FLAGS)
++		qp->qp_access_flags = attr->qp_access_flags;
++
++	if (attr_mask & IB_QP_AV) {
++		qp->remote_ah_attr = attr->ah_attr;
++		qp->s_srate = attr->ah_attr.static_rate;
++		qp->srate_mbps = ib_rate_to_mbps(qp->s_srate);
++	}
++
++	if (attr_mask & IB_QP_ALT_PATH) {
++		qp->alt_ah_attr = attr->alt_ah_attr;
++		qp->s_alt_pkey_index = attr->alt_pkey_index;
++	}
++
++	if (attr_mask & IB_QP_PATH_MIG_STATE) {
++		qp->s_mig_state = attr->path_mig_state;
++		if (mig) {
++			qp->remote_ah_attr = qp->alt_ah_attr;
++			qp->port_num = qp->alt_ah_attr.port_num;
++			qp->s_pkey_index = qp->s_alt_pkey_index;
++			qp->s_flags |= HFI1_S_AHG_CLEAR;
++		}
++	}
++
++	if (attr_mask & IB_QP_PATH_MTU) {
++		struct hfi1_ibport *ibp;
++		u8 sc, vl;
++		u32 mtu;
++
++		dd = dd_from_dev(dev);
++		ibp = &dd->pport[qp->port_num - 1].ibport_data;
++
++		sc = ibp->sl_to_sc[qp->remote_ah_attr.sl];
++		vl = sc_to_vlt(dd, sc);
++
++		mtu = verbs_mtu_enum_to_int(ibqp->device, pmtu);
++		if (vl < PER_VL_SEND_CONTEXTS)
++			mtu = min_t(u32, mtu, dd->vld[vl].mtu);
++		pmtu = mtu_to_enum(mtu, OPA_MTU_8192);
++
++		qp->path_mtu = pmtu;
++		qp->pmtu = mtu;
++	}
++
++	if (attr_mask & IB_QP_RETRY_CNT) {
++		qp->s_retry_cnt = attr->retry_cnt;
++		qp->s_retry = attr->retry_cnt;
++	}
++
++	if (attr_mask & IB_QP_RNR_RETRY) {
++		qp->s_rnr_retry_cnt = attr->rnr_retry;
++		qp->s_rnr_retry = attr->rnr_retry;
++	}
++
++	if (attr_mask & IB_QP_MIN_RNR_TIMER)
++		qp->r_min_rnr_timer = attr->min_rnr_timer;
++
++	if (attr_mask & IB_QP_TIMEOUT) {
++		qp->timeout = attr->timeout;
++		qp->timeout_jiffies =
++			usecs_to_jiffies((4096UL * (1UL << qp->timeout)) /
++				1000UL);
++	}
++
++	if (attr_mask & IB_QP_QKEY)
++		qp->qkey = attr->qkey;
++
++	if (attr_mask & IB_QP_MAX_DEST_RD_ATOMIC)
++		qp->r_max_rd_atomic = attr->max_dest_rd_atomic;
++
++	if (attr_mask & IB_QP_MAX_QP_RD_ATOMIC)
++		qp->s_max_rd_atomic = attr->max_rd_atomic;
++
++	spin_unlock(&qp->s_lock);
++	spin_unlock_irq(&qp->r_lock);
++
++	if (cur_state == IB_QPS_RESET && new_state == IB_QPS_INIT)
++		insert_qp(dev, qp);
++
++	if (lastwqe) {
++		ev.device = qp->ibqp.device;
++		ev.element.qp = &qp->ibqp;
++		ev.event = IB_EVENT_QP_LAST_WQE_REACHED;
++		qp->ibqp.event_handler(&ev, qp->ibqp.qp_context);
++	}
++	if (mig) {
++		ev.device = qp->ibqp.device;
++		ev.element.qp = &qp->ibqp;
++		ev.event = IB_EVENT_PATH_MIG;
++		qp->ibqp.event_handler(&ev, qp->ibqp.qp_context);
++	}
++	ret = 0;
++	goto bail;
++
++inval:
++	spin_unlock(&qp->s_lock);
++	spin_unlock_irq(&qp->r_lock);
++	ret = -EINVAL;
++
++bail:
++	return ret;
++}
++
++int hfi1_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
++		  int attr_mask, struct ib_qp_init_attr *init_attr)
++{
++	struct hfi1_qp *qp = to_iqp(ibqp);
++
++	attr->qp_state = qp->state;
++	attr->cur_qp_state = attr->qp_state;
++	attr->path_mtu = qp->path_mtu;
++	attr->path_mig_state = qp->s_mig_state;
++	attr->qkey = qp->qkey;
++	attr->rq_psn = mask_psn(qp->r_psn);
++	attr->sq_psn = mask_psn(qp->s_next_psn);
++	attr->dest_qp_num = qp->remote_qpn;
++	attr->qp_access_flags = qp->qp_access_flags;
++	attr->cap.max_send_wr = qp->s_size - 1;
++	attr->cap.max_recv_wr = qp->ibqp.srq ? 0 : qp->r_rq.size - 1;
++	attr->cap.max_send_sge = qp->s_max_sge;
++	attr->cap.max_recv_sge = qp->r_rq.max_sge;
++	attr->cap.max_inline_data = 0;
++	attr->ah_attr = qp->remote_ah_attr;
++	attr->alt_ah_attr = qp->alt_ah_attr;
++	attr->pkey_index = qp->s_pkey_index;
++	attr->alt_pkey_index = qp->s_alt_pkey_index;
++	attr->en_sqd_async_notify = 0;
++	attr->sq_draining = qp->s_draining;
++	attr->max_rd_atomic = qp->s_max_rd_atomic;
++	attr->max_dest_rd_atomic = qp->r_max_rd_atomic;
++	attr->min_rnr_timer = qp->r_min_rnr_timer;
++	attr->port_num = qp->port_num;
++	attr->timeout = qp->timeout;
++	attr->retry_cnt = qp->s_retry_cnt;
++	attr->rnr_retry = qp->s_rnr_retry_cnt;
++	attr->alt_port_num = qp->alt_ah_attr.port_num;
++	attr->alt_timeout = qp->alt_timeout;
++
++	init_attr->event_handler = qp->ibqp.event_handler;
++	init_attr->qp_context = qp->ibqp.qp_context;
++	init_attr->send_cq = qp->ibqp.send_cq;
++	init_attr->recv_cq = qp->ibqp.recv_cq;
++	init_attr->srq = qp->ibqp.srq;
++	init_attr->cap = attr->cap;
++	if (qp->s_flags & HFI1_S_SIGNAL_REQ_WR)
++		init_attr->sq_sig_type = IB_SIGNAL_REQ_WR;
++	else
++		init_attr->sq_sig_type = IB_SIGNAL_ALL_WR;
++	init_attr->qp_type = qp->ibqp.qp_type;
++	init_attr->port_num = qp->port_num;
++	return 0;
++}
++
++/**
++ * hfi1_compute_aeth - compute the AETH (syndrome + MSN)
++ * @qp: the queue pair to compute the AETH for
++ *
++ * Returns the AETH.
++ */
++__be32 hfi1_compute_aeth(struct hfi1_qp *qp)
++{
++	u32 aeth = qp->r_msn & HFI1_MSN_MASK;
++
++	if (qp->ibqp.srq) {
++		/*
++		 * Shared receive queues don't generate credits.
++		 * Set the credit field to the invalid value.
++		 */
++		aeth |= HFI1_AETH_CREDIT_INVAL << HFI1_AETH_CREDIT_SHIFT;
++	} else {
++		u32 min, max, x;
++		u32 credits;
++		struct hfi1_rwq *wq = qp->r_rq.wq;
++		u32 head;
++		u32 tail;
++
++		/* sanity check pointers before trusting them */
++		head = wq->head;
++		if (head >= qp->r_rq.size)
++			head = 0;
++		tail = wq->tail;
++		if (tail >= qp->r_rq.size)
++			tail = 0;
++		/*
++		 * Compute the number of credits available (RWQEs).
++		 * There is a small chance that the pair of reads are
++		 * not atomic, which is OK, since the fuzziness is
++		 * resolved as further ACKs go out.
++		 */
++		credits = head - tail;
++		if ((int)credits < 0)
++			credits += qp->r_rq.size;
++		/*
++		 * Binary search the credit table to find the code to
++		 * use.
++		 */
++		min = 0;
++		max = 31;
++		for (;;) {
++			x = (min + max) / 2;
++			if (credit_table[x] == credits)
++				break;
++			if (credit_table[x] > credits)
++				max = x;
++			else if (min == x)
++				break;
++			else
++				min = x;
++		}
++		aeth |= x << HFI1_AETH_CREDIT_SHIFT;
++	}
++	return cpu_to_be32(aeth);
++}
++
++/**
++ * hfi1_create_qp - create a queue pair for a device
++ * @ibpd: the protection domain who's device we create the queue pair for
++ * @init_attr: the attributes of the queue pair
++ * @udata: user data for libibverbs.so
++ *
++ * Returns the queue pair on success, otherwise returns an errno.
++ *
++ * Called by the ib_create_qp() core verbs function.
++ */
++struct ib_qp *hfi1_create_qp(struct ib_pd *ibpd,
++			     struct ib_qp_init_attr *init_attr,
++			     struct ib_udata *udata)
++{
++	struct hfi1_qp *qp;
++	int err;
++	struct hfi1_swqe *swq = NULL;
++	struct hfi1_ibdev *dev;
++	struct hfi1_devdata *dd;
++	size_t sz;
++	size_t sg_list_sz;
++	struct ib_qp *ret;
++
++	if (init_attr->cap.max_send_sge > hfi1_max_sges ||
++	    init_attr->cap.max_send_wr > hfi1_max_qp_wrs ||
++	    init_attr->create_flags) {
++		ret = ERR_PTR(-EINVAL);
++		goto bail;
++	}
++
++	/* Check receive queue parameters if no SRQ is specified. */
++	if (!init_attr->srq) {
++		if (init_attr->cap.max_recv_sge > hfi1_max_sges ||
++		    init_attr->cap.max_recv_wr > hfi1_max_qp_wrs) {
++			ret = ERR_PTR(-EINVAL);
++			goto bail;
++		}
++		if (init_attr->cap.max_send_sge +
++		    init_attr->cap.max_send_wr +
++		    init_attr->cap.max_recv_sge +
++		    init_attr->cap.max_recv_wr == 0) {
++			ret = ERR_PTR(-EINVAL);
++			goto bail;
++		}
++	}
++
++	switch (init_attr->qp_type) {
++	case IB_QPT_SMI:
++	case IB_QPT_GSI:
++		if (init_attr->port_num == 0 ||
++		    init_attr->port_num > ibpd->device->phys_port_cnt) {
++			ret = ERR_PTR(-EINVAL);
++			goto bail;
++		}
++	case IB_QPT_UC:
++	case IB_QPT_RC:
++	case IB_QPT_UD:
++		sz = sizeof(struct hfi1_sge) *
++			init_attr->cap.max_send_sge +
++			sizeof(struct hfi1_swqe);
++		swq = vmalloc((init_attr->cap.max_send_wr + 1) * sz);
++		if (swq == NULL) {
++			ret = ERR_PTR(-ENOMEM);
++			goto bail;
++		}
++		sz = sizeof(*qp);
++		sg_list_sz = 0;
++		if (init_attr->srq) {
++			struct hfi1_srq *srq = to_isrq(init_attr->srq);
++
++			if (srq->rq.max_sge > 1)
++				sg_list_sz = sizeof(*qp->r_sg_list) *
++					(srq->rq.max_sge - 1);
++		} else if (init_attr->cap.max_recv_sge > 1)
++			sg_list_sz = sizeof(*qp->r_sg_list) *
++				(init_attr->cap.max_recv_sge - 1);
++		qp = kzalloc(sz + sg_list_sz, GFP_KERNEL);
++		if (!qp) {
++			ret = ERR_PTR(-ENOMEM);
++			goto bail_swq;
++		}
++		RCU_INIT_POINTER(qp->next, NULL);
++		qp->s_hdr = kzalloc(sizeof(*qp->s_hdr), GFP_KERNEL);
++		if (!qp->s_hdr) {
++			ret = ERR_PTR(-ENOMEM);
++			goto bail_qp;
++		}
++		qp->timeout_jiffies =
++			usecs_to_jiffies((4096UL * (1UL << qp->timeout)) /
++				1000UL);
++		if (init_attr->srq)
++			sz = 0;
++		else {
++			qp->r_rq.size = init_attr->cap.max_recv_wr + 1;
++			qp->r_rq.max_sge = init_attr->cap.max_recv_sge;
++			sz = (sizeof(struct ib_sge) * qp->r_rq.max_sge) +
++				sizeof(struct hfi1_rwqe);
++			qp->r_rq.wq = vmalloc_user(sizeof(struct hfi1_rwq) +
++						   qp->r_rq.size * sz);
++			if (!qp->r_rq.wq) {
++				ret = ERR_PTR(-ENOMEM);
++				goto bail_qp;
++			}
++		}
++
++		/*
++		 * ib_create_qp() will initialize qp->ibqp
++		 * except for qp->ibqp.qp_num.
++		 */
++		spin_lock_init(&qp->r_lock);
++		spin_lock_init(&qp->s_lock);
++		spin_lock_init(&qp->r_rq.lock);
++		atomic_set(&qp->refcount, 0);
++		init_waitqueue_head(&qp->wait);
++		init_timer(&qp->s_timer);
++		qp->s_timer.data = (unsigned long)qp;
++		INIT_LIST_HEAD(&qp->rspwait);
++		qp->state = IB_QPS_RESET;
++		qp->s_wq = swq;
++		qp->s_size = init_attr->cap.max_send_wr + 1;
++		qp->s_max_sge = init_attr->cap.max_send_sge;
++		if (init_attr->sq_sig_type == IB_SIGNAL_REQ_WR)
++			qp->s_flags = HFI1_S_SIGNAL_REQ_WR;
++		dev = to_idev(ibpd->device);
++		dd = dd_from_dev(dev);
++		err = alloc_qpn(dd, &dev->qp_dev->qpn_table, init_attr->qp_type,
++				init_attr->port_num);
++		if (err < 0) {
++			ret = ERR_PTR(err);
++			vfree(qp->r_rq.wq);
++			goto bail_qp;
++		}
++		qp->ibqp.qp_num = err;
++		qp->port_num = init_attr->port_num;
++		reset_qp(qp, init_attr->qp_type);
++		break;
++
++	default:
++		/* Don't support raw QPs */
++		ret = ERR_PTR(-ENOSYS);
++		goto bail;
++	}
++
++	init_attr->cap.max_inline_data = 0;
++
++	/*
++	 * Return the address of the RWQ as the offset to mmap.
++	 * See hfi1_mmap() for details.
++	 */
++	if (udata && udata->outlen >= sizeof(__u64)) {
++		if (!qp->r_rq.wq) {
++			__u64 offset = 0;
++
++			err = ib_copy_to_udata(udata, &offset,
++					       sizeof(offset));
++			if (err) {
++				ret = ERR_PTR(err);
++				goto bail_ip;
++			}
++		} else {
++			u32 s = sizeof(struct hfi1_rwq) + qp->r_rq.size * sz;
++
++			qp->ip = hfi1_create_mmap_info(dev, s,
++						      ibpd->uobject->context,
++						      qp->r_rq.wq);
++			if (!qp->ip) {
++				ret = ERR_PTR(-ENOMEM);
++				goto bail_ip;
++			}
++
++			err = ib_copy_to_udata(udata, &(qp->ip->offset),
++					       sizeof(qp->ip->offset));
++			if (err) {
++				ret = ERR_PTR(err);
++				goto bail_ip;
++			}
++		}
++	}
++
++	spin_lock(&dev->n_qps_lock);
++	if (dev->n_qps_allocated == hfi1_max_qps) {
++		spin_unlock(&dev->n_qps_lock);
++		ret = ERR_PTR(-ENOMEM);
++		goto bail_ip;
++	}
++
++	dev->n_qps_allocated++;
++	spin_unlock(&dev->n_qps_lock);
++
++	if (qp->ip) {
++		spin_lock_irq(&dev->pending_lock);
++		list_add(&qp->ip->pending_mmaps, &dev->pending_mmaps);
++		spin_unlock_irq(&dev->pending_lock);
++	}
++
++	ret = &qp->ibqp;
++	goto bail;
++
++bail_ip:
++	if (qp->ip)
++		kref_put(&qp->ip->ref, hfi1_release_mmap_info);
++	else
++		vfree(qp->r_rq.wq);
++	free_qpn(&dev->qp_dev->qpn_table, qp->ibqp.qp_num);
++bail_qp:
++	kfree(qp->s_hdr);
++	kfree(qp);
++bail_swq:
++	vfree(swq);
++bail:
++	return ret;
++}
++
++/**
++ * hfi1_destroy_qp - destroy a queue pair
++ * @ibqp: the queue pair to destroy
++ *
++ * Returns 0 on success.
++ *
++ * Note that this can be called while the QP is actively sending or
++ * receiving!
++ */
++int hfi1_destroy_qp(struct ib_qp *ibqp)
++{
++	struct hfi1_qp *qp = to_iqp(ibqp);
++	struct hfi1_ibdev *dev = to_idev(ibqp->device);
++
++	/* Make sure HW and driver activity is stopped. */
++	spin_lock_irq(&qp->r_lock);
++	spin_lock(&qp->s_lock);
++	if (qp->state != IB_QPS_RESET) {
++		qp->state = IB_QPS_RESET;
++		flush_iowait(qp);
++		qp->s_flags &= ~(HFI1_S_TIMER | HFI1_S_ANY_WAIT);
++		spin_unlock(&qp->s_lock);
++		spin_unlock_irq(&qp->r_lock);
++		cancel_work_sync(&qp->s_iowait.iowork);
++		del_timer_sync(&qp->s_timer);
++		iowait_sdma_drain(&qp->s_iowait);
++		flush_tx_list(qp);
++		remove_qp(dev, qp);
++		wait_event(qp->wait, !atomic_read(&qp->refcount));
++		spin_lock_irq(&qp->r_lock);
++		spin_lock(&qp->s_lock);
++		clear_mr_refs(qp, 1);
++		clear_ahg(qp);
++	}
++	spin_unlock(&qp->s_lock);
++	spin_unlock_irq(&qp->r_lock);
++
++	/* all user's cleaned up, mark it available */
++	free_qpn(&dev->qp_dev->qpn_table, qp->ibqp.qp_num);
++	spin_lock(&dev->n_qps_lock);
++	dev->n_qps_allocated--;
++	spin_unlock(&dev->n_qps_lock);
++
++	if (qp->ip)
++		kref_put(&qp->ip->ref, hfi1_release_mmap_info);
++	else
++		vfree(qp->r_rq.wq);
++	vfree(qp->s_wq);
++	kfree(qp->s_hdr);
++	kfree(qp);
++	return 0;
++}
++
++/**
++ * init_qpn_table - initialize the QP number table for a device
++ * @qpt: the QPN table
++ */
++static int init_qpn_table(struct hfi1_devdata *dd, struct hfi1_qpn_table *qpt)
++{
++	u32 offset, qpn, i;
++	struct qpn_map *map;
++	int ret = 0;
++
++	spin_lock_init(&qpt->lock);
++
++	qpt->last = 0;
++	qpt->incr = 1 << dd->qos_shift;
++
++	/* insure we don't assign QPs from KDETH 64K window */
++	qpn = kdeth_qp << 16;
++	qpt->nmaps = qpn / BITS_PER_PAGE;
++	/* This should always be zero */
++	offset = qpn & BITS_PER_PAGE_MASK;
++	map = &qpt->map[qpt->nmaps];
++	dd_dev_info(dd, "Reserving QPNs for KDETH window from 0x%x to 0x%x\n",
++		qpn, qpn + 65535);
++	for (i = 0; i < 65536; i++) {
++		if (!map->page) {
++			get_map_page(qpt, map);
++			if (!map->page) {
++				ret = -ENOMEM;
++				break;
++			}
++		}
++		set_bit(offset, map->page);
++		offset++;
++		if (offset == BITS_PER_PAGE) {
++			/* next page */
++			qpt->nmaps++;
++			map++;
++			offset = 0;
++		}
++	}
++	return ret;
++}
++
++/**
++ * free_qpn_table - free the QP number table for a device
++ * @qpt: the QPN table
++ */
++static void free_qpn_table(struct hfi1_qpn_table *qpt)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(qpt->map); i++)
++		free_page((unsigned long) qpt->map[i].page);
++}
++
++/**
++ * hfi1_get_credit - flush the send work queue of a QP
++ * @qp: the qp who's send work queue to flush
++ * @aeth: the Acknowledge Extended Transport Header
++ *
++ * The QP s_lock should be held.
++ */
++void hfi1_get_credit(struct hfi1_qp *qp, u32 aeth)
++{
++	u32 credit = (aeth >> HFI1_AETH_CREDIT_SHIFT) & HFI1_AETH_CREDIT_MASK;
++
++	/*
++	 * If the credit is invalid, we can send
++	 * as many packets as we like.  Otherwise, we have to
++	 * honor the credit field.
++	 */
++	if (credit == HFI1_AETH_CREDIT_INVAL) {
++		if (!(qp->s_flags & HFI1_S_UNLIMITED_CREDIT)) {
++			qp->s_flags |= HFI1_S_UNLIMITED_CREDIT;
++			if (qp->s_flags & HFI1_S_WAIT_SSN_CREDIT) {
++				qp->s_flags &= ~HFI1_S_WAIT_SSN_CREDIT;
++				hfi1_schedule_send(qp);
++			}
++		}
++	} else if (!(qp->s_flags & HFI1_S_UNLIMITED_CREDIT)) {
++		/* Compute new LSN (i.e., MSN + credit) */
++		credit = (aeth + credit_table[credit]) & HFI1_MSN_MASK;
++		if (cmp_msn(credit, qp->s_lsn) > 0) {
++			qp->s_lsn = credit;
++			if (qp->s_flags & HFI1_S_WAIT_SSN_CREDIT) {
++				qp->s_flags &= ~HFI1_S_WAIT_SSN_CREDIT;
++				hfi1_schedule_send(qp);
++			}
++		}
++	}
++}
++
++void hfi1_qp_wakeup(struct hfi1_qp *qp, u32 flag)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&qp->s_lock, flags);
++	if (qp->s_flags & flag) {
++		qp->s_flags &= ~flag;
++		trace_hfi1_qpwakeup(qp, flag);
++		hfi1_schedule_send(qp);
++	}
++	spin_unlock_irqrestore(&qp->s_lock, flags);
++	/* Notify hfi1_destroy_qp() if it is waiting. */
++	if (atomic_dec_and_test(&qp->refcount))
++		wake_up(&qp->wait);
++}
++
++static int iowait_sleep(
++	struct sdma_engine *sde,
++	struct iowait *wait,
++	struct sdma_txreq *stx,
++	unsigned seq)
++{
++	struct verbs_txreq *tx = container_of(stx, struct verbs_txreq, txreq);
++	struct hfi1_qp *qp;
++	unsigned long flags;
++	int ret = 0;
++	struct hfi1_ibdev *dev;
++
++	qp = tx->qp;
++
++	spin_lock_irqsave(&qp->s_lock, flags);
++	if (ib_hfi1_state_ops[qp->state] & HFI1_PROCESS_RECV_OK) {
++
++		/*
++		 * If we couldn't queue the DMA request, save the info
++		 * and try again later rather than destroying the
++		 * buffer and undoing the side effects of the copy.
++		 */
++		/* Make a common routine? */
++		dev = &sde->dd->verbs_dev;
++		list_add_tail(&stx->list, &wait->tx_head);
++		spin_lock(&dev->pending_lock);
++		if (sdma_progress(sde, seq, stx))
++			goto eagain;
++		if (list_empty(&qp->s_iowait.list)) {
++			struct hfi1_ibport *ibp =
++				to_iport(qp->ibqp.device, qp->port_num);
++
++			ibp->n_dmawait++;
++			qp->s_flags |= HFI1_S_WAIT_DMA_DESC;
++			list_add_tail(&qp->s_iowait.list, &sde->dmawait);
++			trace_hfi1_qpsleep(qp, HFI1_S_WAIT_DMA_DESC);
++			atomic_inc(&qp->refcount);
++		}
++		spin_unlock(&dev->pending_lock);
++		qp->s_flags &= ~HFI1_S_BUSY;
++		spin_unlock_irqrestore(&qp->s_lock, flags);
++		ret = -EBUSY;
++	} else {
++		spin_unlock_irqrestore(&qp->s_lock, flags);
++		hfi1_put_txreq(tx);
++	}
++	return ret;
++eagain:
++	spin_unlock(&dev->pending_lock);
++	spin_unlock_irqrestore(&qp->s_lock, flags);
++	list_del_init(&stx->list);
++	return -EAGAIN;
++}
++
++static void iowait_wakeup(struct iowait *wait, int reason)
++{
++	struct hfi1_qp *qp = container_of(wait, struct hfi1_qp, s_iowait);
++
++	BUG_ON(reason != SDMA_AVAIL_REASON);
++	hfi1_qp_wakeup(qp, HFI1_S_WAIT_DMA_DESC);
++}
++
++int hfi1_qp_init(struct hfi1_ibdev *dev)
++{
++	struct hfi1_devdata *dd = dd_from_dev(dev);
++	int i;
++	int ret = -ENOMEM;
++
++	/* allocate parent object */
++	dev->qp_dev = kzalloc(sizeof(*dev->qp_dev), GFP_KERNEL);
++	if (!dev->qp_dev)
++		goto nomem;
++	/* allocate hash table */
++	dev->qp_dev->qp_table_size = hfi1_qp_table_size;
++	get_random_bytes(&dev->qp_dev->qp_rnd,
++		sizeof(dev->qp_dev->qp_rnd));
++	dev->qp_dev->qp_table =
++		kmalloc(dev->qp_dev->qp_table_size *
++				sizeof(*dev->qp_dev->qp_table),
++			GFP_KERNEL);
++	if (!dev->qp_dev->qp_table)
++		goto nomem;
++	for (i = 0; i < dev->qp_dev->qp_table_size; i++)
++		RCU_INIT_POINTER(dev->qp_dev->qp_table[i], NULL);
++	spin_lock_init(&dev->qp_dev->qpt_lock);
++	/* initialize qpn map */
++	ret = init_qpn_table(dd, &dev->qp_dev->qpn_table);
++	if (ret)
++		goto nomem;
++	return ret;
++nomem:
++	if (dev->qp_dev) {
++		kfree(dev->qp_dev->qp_table);
++		free_qpn_table(&dev->qp_dev->qpn_table);
++		kfree(dev->qp_dev);
++	}
++	return ret;
++}
++
++void hfi1_qp_exit(struct hfi1_ibdev *dev)
++{
++	struct hfi1_devdata *dd = dd_from_dev(dev);
++	u32 qps_inuse;
++
++	qps_inuse = free_all_qps(dd);
++	if (qps_inuse)
++		dd_dev_err(dd, "QP memory leak! %u still in use\n",
++			   qps_inuse);
++	if (dev->qp_dev) {
++		kfree(dev->qp_dev->qp_table);
++		free_qpn_table(&dev->qp_dev->qpn_table);
++		kfree(dev->qp_dev);
++	}
++}
++
++/**
++ *
++ * qp_to_sdma_engine - map a qp to a send engine
++ * @qp: the QP
++ * @sc5: the 5 bit sc
++ *
++ * Return:
++ * A send engine for the qp or NULL for SMI type qp.
++ */
++struct sdma_engine *qp_to_sdma_engine(struct hfi1_qp *qp, u8 sc5)
++{
++	struct hfi1_devdata *dd = dd_from_ibdev(qp->ibqp.device);
++	struct sdma_engine *sde;
++
++	if (!(dd->flags & HFI1_HAS_SEND_DMA))
++		return NULL;
++	switch (qp->ibqp.qp_type) {
++	case IB_QPT_UC:
++	case IB_QPT_RC:
++		break;
++	case IB_QPT_SMI:
++		return NULL;
++	default:
++		break;
++	}
++	sde =  sdma_select_engine_sc(dd, qp->ibqp.qp_num >> dd->qos_shift, sc5);
++	return sde;
++}
++
++struct qp_iter {
++	struct hfi1_ibdev *dev;
++	struct hfi1_qp *qp;
++	int specials;
++	int n;
++};
++
++struct qp_iter *qp_iter_init(struct hfi1_ibdev *dev)
++{
++	struct qp_iter *iter;
++
++	iter = kzalloc(sizeof(*iter), GFP_KERNEL);
++	if (!iter)
++		return NULL;
++
++	iter->dev = dev;
++	iter->specials = dev->ibdev.phys_port_cnt * 2;
++	if (qp_iter_next(iter)) {
++		kfree(iter);
++		return NULL;
++	}
++
++	return iter;
++}
++
++int qp_iter_next(struct qp_iter *iter)
++{
++	struct hfi1_ibdev *dev = iter->dev;
++	int n = iter->n;
++	int ret = 1;
++	struct hfi1_qp *pqp = iter->qp;
++	struct hfi1_qp *qp;
++
++	/*
++	 * The approach is to consider the special qps
++	 * as an additional table entries before the
++	 * real hash table.  Since the qp code sets
++	 * the qp->next hash link to NULL, this works just fine.
++	 *
++	 * iter->specials is 2 * # ports
++	 *
++	 * n = 0..iter->specials is the special qp indices
++	 *
++	 * n = iter->specials..dev->qp_dev->qp_table_size+iter->specials are
++	 * the potential hash bucket entries
++	 *
++	 */
++	for (; n <  dev->qp_dev->qp_table_size + iter->specials; n++) {
++		if (pqp) {
++			qp = rcu_dereference(pqp->next);
++		} else {
++			if (n < iter->specials) {
++				struct hfi1_pportdata *ppd;
++				struct hfi1_ibport *ibp;
++				int pidx;
++
++				pidx = n % dev->ibdev.phys_port_cnt;
++				ppd = &dd_from_dev(dev)->pport[pidx];
++				ibp = &ppd->ibport_data;
++
++				if (!(n & 1))
++					qp = rcu_dereference(ibp->qp0);
++				else
++					qp = rcu_dereference(ibp->qp1);
++			} else {
++				qp = rcu_dereference(
++					dev->qp_dev->qp_table[
++						(n - iter->specials)]);
++			}
++		}
++		pqp = qp;
++		if (qp) {
++			iter->qp = qp;
++			iter->n = n;
++			return 0;
++		}
++	}
++	return ret;
++}
++
++static const char * const qp_type_str[] = {
++	"SMI", "GSI", "RC", "UC", "UD",
++};
++
++static int qp_idle(struct hfi1_qp *qp)
++{
++	return
++		qp->s_last == qp->s_acked &&
++		qp->s_acked == qp->s_cur &&
++		qp->s_cur == qp->s_tail &&
++		qp->s_tail == qp->s_head;
++}
++
++void qp_iter_print(struct seq_file *s, struct qp_iter *iter)
++{
++	struct hfi1_swqe *wqe;
++	struct hfi1_qp *qp = iter->qp;
++	struct sdma_engine *sde;
++
++	sde = qp_to_sdma_engine(qp, qp->s_sc);
++	wqe = get_swqe_ptr(qp, qp->s_last);
++	seq_printf(s,
++		   "N %d %s QP%u R %u %s %u %u %u f=%x %u %u %u %u %u PSN %x %x %x %x %x (%u %u %u %u %u %u) QP%u LID %x SL %u MTU %d %u %u %u SDE %p,%u\n",
++		   iter->n,
++		   qp_idle(qp) ? "I" : "B",
++		   qp->ibqp.qp_num,
++		   atomic_read(&qp->refcount),
++		   qp_type_str[qp->ibqp.qp_type],
++		   qp->state,
++		   wqe ? wqe->wr.opcode : 0,
++		   qp->s_hdrwords,
++		   qp->s_flags,
++		   atomic_read(&qp->s_iowait.sdma_busy),
++		   !list_empty(&qp->s_iowait.list),
++		   qp->timeout,
++		   wqe ? wqe->ssn : 0,
++		   qp->s_lsn,
++		   qp->s_last_psn,
++		   qp->s_psn, qp->s_next_psn,
++		   qp->s_sending_psn, qp->s_sending_hpsn,
++		   qp->s_last, qp->s_acked, qp->s_cur,
++		   qp->s_tail, qp->s_head, qp->s_size,
++		   qp->remote_qpn,
++		   qp->remote_ah_attr.dlid,
++		   qp->remote_ah_attr.sl,
++		   qp->pmtu,
++		   qp->s_retry_cnt,
++		   qp->timeout,
++		   qp->s_rnr_retry_cnt,
++		   sde,
++		   sde ? sde->this_idx : 0);
++}
+diff --git a/drivers/infiniband/hw/hfi1/qp.h b/drivers/infiniband/hw/hfi1/qp.h
 new file mode 100644
-index 0000000..d30c2a6
+index 0000000..442d2d1
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/qsfp.h
-@@ -0,0 +1,222 @@
++++ b/drivers/infiniband/hw/hfi1/qp.h
+@@ -0,0 +1,206 @@
++#ifndef _QP_H
++#define _QP_H
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -650,179 +1798,161 @@ index 0000000..d30c2a6
 + * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + */
-+/* QSFP support common definitions, for hfi driver */
 +
-+#define QSFP_DEV 0xA0
-+#define QSFP_PWR_LAG_MSEC 2000
-+#define QSFP_MODPRS_LAG_MSEC 20
-+/* 128 byte pages, per SFF 8636 rev 2.4 */
-+#define QSFP_MAX_NUM_PAGES	5
++#include "verbs.h"
++
++#define QPN_MAX                 (1 << 24)
++#define QPNMAP_ENTRIES          (QPN_MAX / PAGE_SIZE / BITS_PER_BYTE)
 +
 +/*
-+ * Below are masks for QSFP pins.  Pins are the same for HFI0 and HFI1.
-+ * _N means asserted low
++ * QPN-map pages start out as NULL, they get allocated upon
++ * first use and are never deallocated. This way,
++ * large bitmaps are not allocated unless large numbers of QPs are used.
 + */
-+#define QSFP_HFI0_I2CCLK    (1 << 0)
-+#define QSFP_HFI0_I2CDAT    (1 << 1)
-+#define QSFP_HFI0_RESET_N   (1 << 2)
-+#define QSFP_HFI0_INT_N	    (1 << 3)
-+#define QSFP_HFI0_MODPRST_N (1 << 4)
-+
-+/* QSFP is paged at 256 bytes */
-+#define QSFP_PAGESIZE 256
-+
-+/* Defined fields that Intel requires of qualified cables */
-+/* Byte 0 is Identifier, not checked */
-+/* Byte 1 is reserved "status MSB" */
-+/* Byte 2 is "status LSB" We only care that D2 "Flat Mem" is set. */
-+/*
-+ * Rest of first 128 not used, although 127 is reserved for page select
-+ * if module is not "Flat memory".
-+ */
-+#define QSFP_PAGE_SELECT_BYTE_OFFS 127
-+/* Byte 128 is Identifier: must be 0x0c for QSFP, or 0x0d for QSFP+ */
-+#define QSFP_MOD_ID_OFFS 128
-+/*
-+ * Byte 129 is "Extended Identifier". We only care about D7,D6: Power class
-+ *  0:1.5W, 1:2.0W, 2:2.5W, 3:3.5W
-+ */
-+#define QSFP_MOD_PWR_OFFS 129
-+/* Byte 130 is Connector type. Not Intel req'd */
-+/* Bytes 131..138 are Transceiver types, bit maps for various tech, none IB */
-+/* Byte 139 is encoding. code 0x01 is 8b10b. Not Intel req'd */
-+/* byte 140 is nominal bit-rate, in units of 100Mbits/sec Not Intel req'd */
-+/* Byte 141 is Extended Rate Select. Not Intel req'd */
-+/* Bytes 142..145 are lengths for various fiber types. Not Intel req'd */
-+/* Byte 146 is length for Copper. Units of 1 meter */
-+#define QSFP_MOD_LEN_OFFS 146
-+/*
-+ * Byte 147 is Device technology. D0..3 not Intel req'd
-+ * D4..7 select from 15 choices, translated by table:
-+ */
-+#define QSFP_MOD_TECH_OFFS 147
-+extern const char *const hfi1_qsfp_devtech[16];
-+/* Active Equalization includes fiber, copper full EQ, and copper near Eq */
-+#define QSFP_IS_ACTIVE(tech) ((0xA2FF >> ((tech) >> 4)) & 1)
-+/* Active Equalization includes fiber, copper full EQ, and copper far Eq */
-+#define QSFP_IS_ACTIVE_FAR(tech) ((0x32FF >> ((tech) >> 4)) & 1)
-+/* Attenuation should be valid for copper other than full/near Eq */
-+#define QSFP_HAS_ATTEN(tech) ((0x4D00 >> ((tech) >> 4)) & 1)
-+/* Length is only valid if technology is "copper" */
-+#define QSFP_IS_CU(tech) ((0xED00 >> ((tech) >> 4)) & 1)
-+#define QSFP_TECH_1490 9
-+
-+#define QSFP_OUI(oui) (((unsigned)oui[0] << 16) | ((unsigned)oui[1] << 8) | \
-+			oui[2])
-+#define QSFP_OUI_AMPHENOL 0x415048
-+#define QSFP_OUI_FINISAR  0x009065
-+#define QSFP_OUI_GORE     0x002177
-+
-+/* Bytes 148..163 are Vendor Name, Left-justified Blank-filled */
-+#define QSFP_VEND_OFFS 148
-+#define QSFP_VEND_LEN 16
-+/* Byte 164 is IB Extended transceiver codes Bits D0..3 are SDR,DDR,QDR,EDR */
-+#define QSFP_IBXCV_OFFS 164
-+/* Bytes 165..167 are Vendor OUI number */
-+#define QSFP_VOUI_OFFS 165
-+#define QSFP_VOUI_LEN 3
-+/* Bytes 168..183 are Vendor Part Number, string */
-+#define QSFP_PN_OFFS 168
-+#define QSFP_PN_LEN 16
-+/* Bytes 184,185 are Vendor Rev. Left Justified, Blank-filled */
-+#define QSFP_REV_OFFS 184
-+#define QSFP_REV_LEN 2
-+/*
-+ * Bytes 186,187 are Wavelength, if Optical. Not Intel req'd
-+ *  If copper, they are attenuation in dB:
-+ * Byte 186 is at 2.5Gb/sec (SDR), Byte 187 at 5.0Gb/sec (DDR)
-+ */
-+#define QSFP_ATTEN_OFFS 186
-+#define QSFP_ATTEN_LEN 2
-+/* Bytes 188,189 are Wavelength tolerance, not Intel req'd */
-+/* Byte 190 is Max Case Temp. Not Intel req'd */
-+/* Byte 191 is LSB of sum of bytes 128..190. Not Intel req'd */
-+#define QSFP_CC_OFFS 191
-+/* Bytes 192..195 are Options implemented in qsfp. Not Intel req'd */
-+/* Bytes 196..211 are Serial Number, String */
-+#define QSFP_SN_OFFS 196
-+#define QSFP_SN_LEN 16
-+/* Bytes 212..219 are date-code YYMMDD (MM==1 for Jan) */
-+#define QSFP_DATE_OFFS 212
-+#define QSFP_DATE_LEN 6
-+/* Bytes 218,219 are optional lot-code, string */
-+#define QSFP_LOT_OFFS 218
-+#define QSFP_LOT_LEN 2
-+/* Bytes 220, 221 indicate monitoring options, Not Intel req'd */
-+/* Byte 223 is LSB of sum of bytes 192..222 */
-+#define QSFP_CC_EXT_OFFS 223
-+
-+/*
-+ * Interrupt flag masks
-+ */
-+#define QSFP_DATA_NOT_READY		0x01
-+
-+#define QSFP_HIGH_TEMP_ALARM		0x80
-+#define QSFP_LOW_TEMP_ALARM		0x40
-+#define QSFP_HIGH_TEMP_WARNING		0x20
-+#define QSFP_LOW_TEMP_WARNING		0x10
-+
-+#define QSFP_HIGH_VCC_ALARM		0x80
-+#define QSFP_LOW_VCC_ALARM		0x40
-+#define QSFP_HIGH_VCC_WARNING		0x20
-+#define QSFP_LOW_VCC_WARNING		0x10
-+
-+#define QSFP_HIGH_POWER_ALARM		0x88
-+#define QSFP_LOW_POWER_ALARM		0x44
-+#define QSFP_HIGH_POWER_WARNING		0x22
-+#define QSFP_LOW_POWER_WARNING		0x11
-+
-+#define QSFP_HIGH_BIAS_ALARM		0x88
-+#define QSFP_LOW_BIAS_ALARM		0x44
-+#define QSFP_HIGH_BIAS_WARNING		0x22
-+#define QSFP_LOW_BIAS_WARNING		0x11
-+
-+/*
-+ * struct qsfp_data encapsulates state of QSFP device for one port.
-+ * it will be part of port-specific data if a board supports QSFP.
-+ *
-+ * Since multiple board-types use QSFP, and their pport_data structs
-+ * differ (in the chip-specific section), we need a pointer to its head.
-+ *
-+ * Avoiding premature optimization, we will have one work_struct per port,
-+ * and let the qsfp_lock arbitrate access to common resources.
-+ *
-+ */
-+
-+#define QSFP_PWR(pbyte) (((pbyte) >> 6) & 3)
-+#define QSFP_ATTEN_SDR(attenarray) (attenarray[0])
-+#define QSFP_ATTEN_DDR(attenarray) (attenarray[1])
-+
-+struct qsfp_data {
-+	/* Helps to find our way */
-+	struct hfi1_pportdata *ppd;
-+	struct work_struct qsfp_work;
-+	u8 cache[QSFP_MAX_NUM_PAGES*128];
-+	spinlock_t qsfp_lock;
-+	u8 check_interrupt_flags;
-+	u8 qsfp_interrupt_functional;
-+	u8 cache_valid;
-+	u8 cache_refresh_required;
++struct qpn_map {
++	void *page;
 +};
 +
-+int refresh_qsfp_cache(struct hfi1_pportdata *ppd,
-+		       struct qsfp_data *cp);
-+int qsfp_mod_present(struct hfi1_pportdata *ppd);
-+int get_cable_info(struct hfi1_devdata *dd, u32 port_num, u32 addr,
-+		   u32 len, u8 *data);
++struct hfi1_qpn_table {
++	spinlock_t lock; /* protect changes in this struct */
++	unsigned flags;         /* flags for QP0/1 allocated for each port */
++	u32 last;               /* last QP number allocated */
++	u32 nmaps;              /* size of the map table */
++	u16 limit;
++	u8  incr;
++	/* bit map of free QP numbers other than 0/1 */
++	struct qpn_map map[QPNMAP_ENTRIES];
++};
 +
-+int i2c_write(struct hfi1_pportdata *ppd, u32 target, int i2c_addr,
-+	      int offset, void *bp, int len);
-+int i2c_read(struct hfi1_pportdata *ppd, u32 target, int i2c_addr,
-+	     int offset, void *bp, int len);
-+int qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
-+	       int len);
-+int qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
-+	      int len);
++struct hfi1_qp_ibdev {
++	u32 qp_table_size;
++	u32 qp_rnd;
++	struct hfi1_qp __rcu **qp_table;
++	spinlock_t qpt_lock;
++	struct hfi1_qpn_table qpn_table;
++};
++
++/**
++ * hfi1_lookup_qpn - return the QP with the given QPN
++ * @ibp: a pointer to the IB port
++ * @qpn: the QP number to look up
++ *
++ * The caller is responsible for decrementing the QP reference count
++ * when done.
++ */
++struct hfi1_qp *hfi1_lookup_qpn(struct hfi1_ibport *ibp, u32 qpn);
++
++/**
++ * hfi1_error_qp - put a QP into the error state
++ * @qp: the QP to put into the error state
++ * @err: the receive completion error to signal if a RWQE is active
++ *
++ * Flushes both send and receive work queues.
++ * Returns true if last WQE event should be generated.
++ * The QP r_lock and s_lock should be held and interrupts disabled.
++ * If we are already in error state, just return.
++ */
++int hfi1_error_qp(struct hfi1_qp *qp, enum ib_wc_status err);
++
++/**
++ * hfi1_modify_qp - modify the attributes of a queue pair
++ * @ibqp: the queue pair who's attributes we're modifying
++ * @attr: the new attributes
++ * @attr_mask: the mask of attributes to modify
++ * @udata: user data for libibverbs.so
++ *
++ * Returns 0 on success, otherwise returns an errno.
++ */
++int hfi1_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
++		   int attr_mask, struct ib_udata *udata);
++
++int hfi1_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
++		  int attr_mask, struct ib_qp_init_attr *init_attr);
++
++/**
++ * hfi1_compute_aeth - compute the AETH (syndrome + MSN)
++ * @qp: the queue pair to compute the AETH for
++ *
++ * Returns the AETH.
++ */
++__be32 hfi1_compute_aeth(struct hfi1_qp *qp);
++
++/**
++ * hfi1_create_qp - create a queue pair for a device
++ * @ibpd: the protection domain who's device we create the queue pair for
++ * @init_attr: the attributes of the queue pair
++ * @udata: user data for libibverbs.so
++ *
++ * Returns the queue pair on success, otherwise returns an errno.
++ *
++ * Called by the ib_create_qp() core verbs function.
++ */
++struct ib_qp *hfi1_create_qp(struct ib_pd *ibpd,
++			     struct ib_qp_init_attr *init_attr,
++			     struct ib_udata *udata);
++/**
++ * hfi1_destroy_qp - destroy a queue pair
++ * @ibqp: the queue pair to destroy
++ *
++ * Returns 0 on success.
++ *
++ * Note that this can be called while the QP is actively sending or
++ * receiving!
++ */
++int hfi1_destroy_qp(struct ib_qp *ibqp);
++
++/**
++ * hfi1_get_credit - flush the send work queue of a QP
++ * @qp: the qp who's send work queue to flush
++ * @aeth: the Acknowledge Extended Transport Header
++ *
++ * The QP s_lock should be held.
++ */
++void hfi1_get_credit(struct hfi1_qp *qp, u32 aeth);
++
++/**
++ * hfi1_qp_init - allocate QP tables
++ * @dev: a pointer to the hfi1_ibdev
++ */
++int hfi1_qp_init(struct hfi1_ibdev *dev);
++
++/**
++ * hfi1_qp_exit - free the QP related structures
++ * @dev: a pointer to the hfi1_ibdev
++ */
++void hfi1_qp_exit(struct hfi1_ibdev *dev);
++
++/**
++ * hfi1_qp_waitup - wake up on the indicated event
++ * @qp: the QP
++ * @flag: flag the qp on which the qp is stalled
++ */
++void hfi1_qp_wakeup(struct hfi1_qp *qp, u32 flag);
++
++struct sdma_engine *qp_to_sdma_engine(struct hfi1_qp *qp, u8 sc5);
++
++struct qp_iter;
++
++/**
++ * qp_iter_init - wake up on the indicated event
++ * @dev: the hfi1_ibdev
++ */
++struct qp_iter *qp_iter_init(struct hfi1_ibdev *dev);
++
++/**
++ * qp_iter_next - wakeup on the indicated event
++ * @iter: the iterator for the qp hash list
++ */
++int qp_iter_next(struct qp_iter *iter);
++
++/**
++ * qp_iter_next - wake up on the indicated event
++ * @s: the seq_file to emit the qp information on
++ * @iter: the iterator for the qp hash list
++ */
++void qp_iter_print(struct seq_file *s, struct qp_iter *iter);
++
++#endif /* _PIO_H */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
