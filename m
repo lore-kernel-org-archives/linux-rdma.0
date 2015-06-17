@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v3 25/49] IB/hfi1: add local mad header
-Date: Wed, 17 Jun 2015 08:30:50 -0400
-Message-ID: <20150617123050.8744.66380.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH v3 26/49] IB/hfi1: add user/kernel memory sharing hooks
+Date: Wed, 17 Jun 2015 08:30:55 -0400
+Message-ID: <20150617123055.8744.75158.stgit@phlsvslse11.ph.intel.com>
 References: <20150617122755.8744.44665.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -37,16 +37,16 @@ Signed-off-by: Sanath Kumar <sanath.s.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.
 Signed-off-by: Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Vlad Danushevsky <vladimir.danusevsky-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/mad.h |  285 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 285 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi1/mad.h
+ drivers/infiniband/hw/hfi1/mmap.c |  192 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 192 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi1/mmap.c
 
-diff --git a/drivers/infiniband/hw/hfi1/mad.h b/drivers/infiniband/hw/hfi1/mad.h
+diff --git a/drivers/infiniband/hw/hfi1/mmap.c b/drivers/infiniband/hw/hfi1/mmap.c
 new file mode 100644
-index 0000000..220be48
+index 0000000..5173b1c
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/mad.h
-@@ -0,0 +1,285 @@
++++ b/drivers/infiniband/hw/hfi1/mmap.c
+@@ -0,0 +1,192 @@
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -96,242 +96,149 @@ index 0000000..220be48
 + * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + */
-+#ifndef _HFI1_MAD_H
-+#define _HFI1_MAD_H
 +
-+#include <rdma/ib_pma.h>
-+#define USE_PI_LED_ENABLE	1 /* use led enabled bit in struct
-+				   * opa_port_states, if available */
-+#include <rdma/opa_smi.h>
-+#include <rdma/opa_port_info.h>
-+#ifndef PI_LED_ENABLE_SUP
-+#define PI_LED_ENABLE_SUP 0
-+#endif
-+#include "opa_compat.h"
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/vmalloc.h>
++#include <linux/mm.h>
++#include <linux/errno.h>
++#include <asm/pgtable.h>
 +
-+#define IB_SMP_UNSUP_VERSION    cpu_to_be16(0x0004)
-+#define IB_SMP_UNSUP_METHOD     cpu_to_be16(0x0008)
-+#define IB_SMP_UNSUP_METH_ATTR  cpu_to_be16(0x000C)
-+#define IB_SMP_INVALID_FIELD    cpu_to_be16(0x001C)
++#include "verbs.h"
 +
-+#define OPA_MAX_PREEMPT_CAP         32
-+#define OPA_VLARB_LOW_ELEMENTS       0
-+#define OPA_VLARB_HIGH_ELEMENTS      1
-+#define OPA_VLARB_PREEMPT_ELEMENTS   2
-+#define OPA_VLARB_PREEMPT_MATRIX     3
++/**
++ * hfi1_release_mmap_info - free mmap info structure
++ * @ref: a pointer to the kref within struct hfi1_mmap_info
++ */
++void hfi1_release_mmap_info(struct kref *ref)
++{
++	struct hfi1_mmap_info *ip =
++		container_of(ref, struct hfi1_mmap_info, ref);
++	struct hfi1_ibdev *dev = to_idev(ip->context->device);
 +
-+#define HFI1_XMIT_RATE_UNSUPPORTED               0x0
-+#define HFI1_XMIT_RATE_PICO                      0x7
-+/* number of 4nsec cycles equaling 2secs */
-+#define HFI1_CONG_TIMER_PSINTERVAL               0x1DCD64EC
++	spin_lock_irq(&dev->pending_lock);
++	list_del(&ip->pending_mmaps);
++	spin_unlock_irq(&dev->pending_lock);
 +
-+#define IB_CC_SVCTYPE_RC 0x0
-+#define IB_CC_SVCTYPE_UC 0x1
-+#define IB_CC_SVCTYPE_RD 0x2
-+#define IB_CC_SVCTYPE_UD 0x3
-+
++	vfree(ip->obj);
++	kfree(ip);
++}
 +
 +/*
-+ * There should be an equivalent IB #define for the following, but
-+ * I cannot find it.
++ * open and close keep track of how many times the CQ is mapped,
++ * to avoid releasing it.
 + */
-+#define OPA_CC_LOG_TYPE_HFI	2
++static void hfi1_vma_open(struct vm_area_struct *vma)
++{
++	struct hfi1_mmap_info *ip = vma->vm_private_data;
 +
-+struct opa_hfi1_cong_log_event_internal {
-+	u32 lqpn;
-+	u32 rqpn;
-+	u8 sl;
-+	u8 svc_type;
-+	u32 rlid;
-+	s64 timestamp; /* wider than 32 bits to detect 32 bit rollover */
++	kref_get(&ip->ref);
++}
++
++static void hfi1_vma_close(struct vm_area_struct *vma)
++{
++	struct hfi1_mmap_info *ip = vma->vm_private_data;
++
++	kref_put(&ip->ref, hfi1_release_mmap_info);
++}
++
++static struct vm_operations_struct hfi1_vm_ops = {
++	.open =     hfi1_vma_open,
++	.close =    hfi1_vma_close,
 +};
 +
-+struct opa_hfi1_cong_log_event {
-+	u8 local_qp_cn_entry[3];
-+	u8 remote_qp_number_cn_entry[3];
-+	u8 sl_svc_type_cn_entry; /* 5 bits SL, 3 bits svc type */
-+	u8 reserved;
-+	__be32 remote_lid_cn_entry;
-+	__be32 timestamp_cn_entry;
-+} __packed;
++/**
++ * hfi1_mmap - create a new mmap region
++ * @context: the IB user context of the process making the mmap() call
++ * @vma: the VMA to be initialized
++ * Return zero if the mmap is OK. Otherwise, return an errno.
++ */
++int hfi1_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
++{
++	struct hfi1_ibdev *dev = to_idev(context->device);
++	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
++	unsigned long size = vma->vm_end - vma->vm_start;
++	struct hfi1_mmap_info *ip, *pp;
++	int ret = -EINVAL;
 +
-+#define OPA_CONG_LOG_ELEMS	96
++	/*
++	 * Search the device's list of objects waiting for a mmap call.
++	 * Normally, this list is very short since a call to create a
++	 * CQ, QP, or SRQ is soon followed by a call to mmap().
++	 */
++	spin_lock_irq(&dev->pending_lock);
++	list_for_each_entry_safe(ip, pp, &dev->pending_mmaps,
++				 pending_mmaps) {
++		/* Only the creator is allowed to mmap the object */
++		if (context != ip->context || (__u64) offset != ip->offset)
++			continue;
++		/* Don't allow a mmap larger than the object. */
++		if (size > ip->size)
++			break;
 +
-+struct opa_hfi1_cong_log {
-+	u8 log_type;
-+	u8 congestion_flags;
-+	__be16 threshold_event_counter;
-+	__be32 current_time_stamp;
-+	u8 threshold_cong_event_map[OPA_MAX_SLS/8];
-+	struct opa_hfi1_cong_log_event events[OPA_CONG_LOG_ELEMS];
-+} __packed;
++		list_del_init(&ip->pending_mmaps);
++		spin_unlock_irq(&dev->pending_lock);
 +
-+#define IB_CC_TABLE_CAP_DEFAULT 31
-+
-+/* Port control flags */
-+#define IB_CC_CCS_PC_SL_BASED 0x01
-+
-+struct opa_congestion_setting_entry {
-+	u8 ccti_increase;
-+	u8 reserved;
-+	__be16 ccti_timer;
-+	u8 trigger_threshold;
-+	u8 ccti_min; /* min CCTI for cc table */
-+} __packed;
-+
-+struct opa_congestion_setting_entry_shadow {
-+	u8 ccti_increase;
-+	u8 reserved;
-+	u16 ccti_timer;
-+	u8 trigger_threshold;
-+	u8 ccti_min; /* min CCTI for cc table */
-+} __packed;
-+
-+struct opa_congestion_setting_attr {
-+	__be32 control_map;
-+	__be16 port_control;
-+	struct opa_congestion_setting_entry entries[OPA_MAX_SLS];
-+} __packed;
-+
-+struct opa_congestion_setting_attr_shadow {
-+	u32 control_map;
-+	u16 port_control;
-+	struct opa_congestion_setting_entry_shadow entries[OPA_MAX_SLS];
-+} __packed;
-+
-+#define IB_CC_TABLE_ENTRY_INCREASE_DEFAULT 1
-+#define IB_CC_TABLE_ENTRY_TIMER_DEFAULT 1
-+
-+/* 64 Congestion Control table entries in a single MAD */
-+#define IB_CCT_ENTRIES 64
-+#define IB_CCT_MIN_ENTRIES (IB_CCT_ENTRIES * 2)
-+
-+struct ib_cc_table_entry {
-+	__be16 entry; /* shift:2, multiplier:14 */
-+};
-+
-+struct ib_cc_table_entry_shadow {
-+	u16 entry; /* shift:2, multiplier:14 */
-+};
-+
-+struct ib_cc_table_attr {
-+	__be16 ccti_limit; /* max CCTI for cc table */
-+	struct ib_cc_table_entry ccti_entries[IB_CCT_ENTRIES];
-+} __packed;
-+
-+struct ib_cc_table_attr_shadow {
-+	u16 ccti_limit; /* max CCTI for cc table */
-+	struct ib_cc_table_entry_shadow ccti_entries[IB_CCT_ENTRIES];
-+} __packed;
-+
-+#define CC_TABLE_SHADOW_MAX \
-+	(IB_CC_TABLE_CAP_DEFAULT * IB_CCT_ENTRIES)
-+
-+struct cc_table_shadow {
-+	u16 ccti_limit; /* max CCTI for cc table */
-+	struct ib_cc_table_entry_shadow entries[CC_TABLE_SHADOW_MAX];
-+} __packed;
++		ret = remap_vmalloc_range(vma, ip->obj, 0);
++		if (ret)
++			goto done;
++		vma->vm_ops = &hfi1_vm_ops;
++		vma->vm_private_data = ip;
++		hfi1_vma_open(vma);
++		goto done;
++	}
++	spin_unlock_irq(&dev->pending_lock);
++done:
++	return ret;
++}
 +
 +/*
-+ * struct cc_state combines the (active) per-port congestion control
-+ * table, and the (active) per-SL congestion settings. cc_state data
-+ * may need to be read in code paths that we want to be fast, so it
-+ * is an RCU protected structure.
++ * Allocate information for hfi1_mmap
 + */
-+struct cc_state {
-+	struct rcu_head rcu;
-+	struct cc_table_shadow cct;
-+	struct opa_congestion_setting_attr_shadow cong_setting;
-+};
++struct hfi1_mmap_info *hfi1_create_mmap_info(struct hfi1_ibdev *dev,
++					     u32 size,
++					     struct ib_ucontext *context,
++					     void *obj) {
++	struct hfi1_mmap_info *ip;
 +
-+/*
-+ * OPA BufferControl MAD
-+ */
++	ip = kmalloc(sizeof(*ip), GFP_KERNEL);
++	if (!ip)
++		goto bail;
 +
-+/* attribute modifier macros */
-+#define OPA_AM_NPORT_SHIFT	24
-+#define OPA_AM_NPORT_MASK	0xff
-+#define OPA_AM_NPORT_SMASK	(OPA_AM_NPORT_MASK << OPA_AM_NPORT_SHIFT)
-+#define OPA_AM_NPORT(am)	(((am) >> OPA_AM_NPORT_SHIFT) & \
-+					OPA_AM_NPORT_MASK)
++	size = PAGE_ALIGN(size);
 +
-+#define OPA_AM_NBLK_SHIFT	24
-+#define OPA_AM_NBLK_MASK	0xff
-+#define OPA_AM_NBLK_SMASK	(OPA_AM_NBLK_MASK << OPA_AM_NBLK_SHIFT)
-+#define OPA_AM_NBLK(am)		(((am) >> OPA_AM_NBLK_SHIFT) & \
-+					OPA_AM_NBLK_MASK)
++	spin_lock_irq(&dev->mmap_offset_lock);
++	if (dev->mmap_offset == 0)
++		dev->mmap_offset = PAGE_SIZE;
++	ip->offset = dev->mmap_offset;
++	dev->mmap_offset += size;
++	spin_unlock_irq(&dev->mmap_offset_lock);
 +
-+#define OPA_AM_START_BLK_SHIFT	0
-+#define OPA_AM_START_BLK_MASK	0xff
-+#define OPA_AM_START_BLK_SMASK	(OPA_AM_START_BLK_MASK << \
-+					OPA_AM_START_BLK_SHIFT)
-+#define OPA_AM_START_BLK(am)	(((am) >> OPA_AM_START_BLK_SHIFT) & \
-+					OPA_AM_START_BLK_MASK)
++	INIT_LIST_HEAD(&ip->pending_mmaps);
++	ip->size = size;
++	ip->context = context;
++	ip->obj = obj;
++	kref_init(&ip->ref);
 +
-+#define OPA_AM_PORTNUM_SHIFT	0
-+#define OPA_AM_PORTNUM_MASK	0xff
-+#define OPA_AM_PORTNUM_SMASK	(OPA_AM_PORTNUM_MASK << OPA_AM_PORTNUM_SHIFT)
-+#define OPA_AM_PORTNUM(am)	(((am) >> OPA_AM_PORTNUM_SHIFT) & \
-+					OPA_AM_PORTNUM_MASK)
++bail:
++	return ip;
++}
 +
-+#define OPA_AM_ASYNC_SHIFT	12
-+#define OPA_AM_ASYNC_MASK	0x1
-+#define OPA_AM_ASYNC_SMASK	(OPA_AM_ASYNC_MASK << OPA_AM_ASYNC_SHIFT)
-+#define OPA_AM_ASYNC(am)	(((am) >> OPA_AM_ASYNC_SHIFT) & \
-+					OPA_AM_ASYNC_MASK)
++void hfi1_update_mmap_info(struct hfi1_ibdev *dev, struct hfi1_mmap_info *ip,
++			   u32 size, void *obj)
++{
++	size = PAGE_ALIGN(size);
 +
-+#define OPA_AM_START_SM_CFG_SHIFT	9
-+#define OPA_AM_START_SM_CFG_MASK	0x1
-+#define OPA_AM_START_SM_CFG_SMASK	(OPA_AM_START_SM_CFG_MASK << \
-+						OPA_AM_START_SM_CFG_SHIFT)
-+#define OPA_AM_START_SM_CFG(am)		(((am) >> OPA_AM_START_SM_CFG_SHIFT) \
-+						& OPA_AM_START_SM_CFG_MASK)
++	spin_lock_irq(&dev->mmap_offset_lock);
++	if (dev->mmap_offset == 0)
++		dev->mmap_offset = PAGE_SIZE;
++	ip->offset = dev->mmap_offset;
++	dev->mmap_offset += size;
++	spin_unlock_irq(&dev->mmap_offset_lock);
 +
-+#define OPA_AM_CI_ADDR_SHIFT	19
-+#define OPA_AM_CI_ADDR_MASK	0xfff
-+#define OPA_AM_CI_ADDR_SMASK	(OPA_AM_CI_ADDR_MASK << OPA_CI_ADDR_SHIFT)
-+#define OPA_AM_CI_ADDR(am)	(((am) >> OPA_AM_CI_ADDR_SHIFT) & \
-+					OPA_AM_CI_ADDR_MASK)
-+
-+#define OPA_AM_CI_LEN_SHIFT	13
-+#define OPA_AM_CI_LEN_MASK	0x3f
-+#define OPA_AM_CI_LEN_SMASK	(OPA_AM_CI_LEN_MASK << OPA_CI_LEN_SHIFT)
-+#define OPA_AM_CI_LEN(am)	(((am) >> OPA_AM_CI_LEN_SHIFT) & \
-+					OPA_AM_CI_LEN_MASK)
-+
-+/* error info macros */
-+#define OPA_EI_STATUS_SMASK	0x80
-+#define OPA_EI_CODE_SMASK	0x0f
-+
-+struct vl_limit {
-+	__be16 dedicated;
-+	__be16 shared;
-+};
-+
-+struct buffer_control {
-+	__be16 reserved;
-+	__be16 overall_shared_limit;
-+	struct vl_limit vl[OPA_MAX_VLS];
-+};
-+
-+struct sc2vlnt {
-+	u8 vlnt[32]; /* 5 bit VL, 3 bits reserved */
-+};
-+
-+/*
-+ * The PortSamplesControl.CounterMasks field is an array of 3 bit fields
-+ * which specify the N'th counter's capabilities. See ch. 16.1.3.2.
-+ * We support 5 counters which only count the mandatory quantities.
-+ */
-+#define COUNTER_MASK(q, n) (q << ((9 - n) * 3))
-+#define COUNTER_MASK0_9 \
-+	cpu_to_be32(COUNTER_MASK(1, 0) | \
-+		    COUNTER_MASK(1, 1) | \
-+		    COUNTER_MASK(1, 2) | \
-+		    COUNTER_MASK(1, 3) | \
-+		    COUNTER_MASK(1, 4))
-+
-+#endif				/* _HFI1_MAD_H */
++	ip->size = size;
++	ip->obj = obj;
++}
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
