@@ -1,35 +1,45 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 04/11] IB/cm: Expose DGID in SIDR request events
-Date: Wed, 17 Jun 2015 10:45:51 +0000
-Message-ID: <HE1PR05MB13552BDBD1DA476D1CDD0352C1A60@HE1PR05MB1355.eurprd05.prod.outlook.com>
-References: <1434358036-15526-1-git-send-email-haggaie@mellanox.com>
- <1434358036-15526-5-git-send-email-haggaie@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FF5A3F@ORSMSX109.amr.corp.intel.com>
- <557FC77F.1090604@mellanox.com>,<1828884A29C6694DAF28B7E6B8A82373A8FF6017@ORSMSX109.amr.corp.intel.com>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v2 39/49] IB/hfi1: add sysfs routines
+Date: Wed, 17 Jun 2015 11:48:27 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC257513D9@fmsmsx120.amr.corp.intel.com>
+References: <20150615132434.29741.35258.stgit@phlsvslse11.ph.intel.com>
+	<20150615132929.29741.87559.stgit@phlsvslse11.ph.intel.com>
+	<CAJ3xEMiiqY04q4pnjRSm=7UBnS_jQJP-KhAkYEvu7FAu-F98sA@mail.gmail.com>
+ <CAJ3xEMiJ_0pFUvPJN7ov50v0hOZVsN7qC27ZbG5+pfmVuZQuMw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FF6017-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <CAJ3xEMiJ_0pFUvPJN7ov50v0hOZVsN7qC27ZbG5+pfmVuZQuMw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tuesday, June 16, 2015 7:47 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> To: Haggai Eran; Doug Ledford
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Liran Liss; Guy Shapiro; Shachar Raindel; Yotam Kenneth; Jason Gunthorpe
-> Subject: RE: [PATCH 04/11] IB/cm: Expose DGID in SIDR request events
-> 
->> The idea is to allow SIDR request to be sorted by the GID, when we will
->> have alias GIDs for IPoIB.
-> 
-> Please limit this series, or at least the early patches in this series, to simply moving the de-mux out of the ib_cm and into the rdma_cm.
-
-Fair enough. I'll remove this patch and the related code from this series.
-
-Haggai
+PiANCj4gd2hhdCdzIFNDIGFuZCB3aGF0J3MgU0MtdG8tVkw/IGFyZW4ndCB5b3UgdXNpbmcgU00g
+dG8gZG8gc3VjaCBtYXBwaW5ncz8gaWYgdGhpcw0KPiBhbmQgdGhlIGJlbG93IHN5c2ZzIHdvcmst
+YXJvdW5kL3MgZm9yIHRoZSBtYXliZSBjdXJyZW50IGxhY2sgb2YgU00gdG8NCj4gY29uZmlndXJl
+IHRoZSBwb3J0PyB3aHkgZG8gdGhlIHVwc3RyZWFtIGtlcm5lbCBoYXMgdG8gY2Fycnkgfmh1bmRy
+ZWRzIG9mIHN5c2ZzDQo+IGVudHJpZXMgZm9yZXZlciBmb3Igc3VjaCBub24tZG9jdW1lbnRlZCB0
+aGluZ3M/DQo+IA0KDQpUaGlzIHN5c2ZzIGVudHJpZXMgYXJlIHVzZWQgYnkgUFNNMiB0byBmb3Jt
+IHBhY2tldHMgZnJvbSB1c2VyIHNwYWNlLg0KDQo+IA0KPiANCj4gDQo+ID4+ICtIRkkxX1NMMlND
+X0FUVFIoMCk7DQo+IA0KPiBzYW1lIGNvbW1lbnQgb24gU0wyU0MNCj4gDQo+ID4+ICtIRkkxX1ZM
+Mk1UVV9BVFRSKDApOw0KPiANCj4gc2FtZSBjb21tZW50IG9uIFZMMk1UVSwgd2h5IGluIHN5c2Zz
+PyENCj4gDQoNClNhbWUgYW5zd2VyLg0KDQo+ID4+ICtIRkkxX0RJQUdDX0FUVFIocmNfcmVzZW5k
+cyk7DQo+ID4+ICtIRkkxX0RJQUdDX0FUVFJfUENQVShyY19hY2tzLCBDX1NXX0NQVV9SQ19BQ0tT
+LA0KPiBDTlRSX0lOVkFMSURfVkwpOw0KPiA+PiArSEZJMV9ESUFHQ19BVFRSX1BDUFUocmNfcWFj
+a3MsIENfU1dfQ1BVX1JDX1FBQ0tTLA0KPiBDTlRSX0lOVkFMSURfVkwpOw0KPiA+PiArSEZJMV9E
+SUFHQ19BVFRSX1BDUFUocmNfZGVsYXllZF9jb21wLA0KPiBDX1NXX0NQVV9SQ19ERUxBWUVEX0NP
+TVAsDQo+ID4+ICsgICAgICAgQ05UUl9JTlZBTElEX1ZMKTsNCj4gPj4gK0hGSTFfRElBR0NfQVRU
+UihzZXFfbmFrcyk7DQo+ID4+ICtIRkkxX0RJQUdDX0FUVFIocmRtYV9zZXEpOw0KPiA+PiArSEZJ
+MV9ESUFHQ19BVFRSKHJucl9uYWtzKTsNCj4gPj4gK0hGSTFfRElBR0NfQVRUUihvdGhlcl9uYWtz
+KTsNCj4gPj4gK0hGSTFfRElBR0NfQVRUUihyY190aW1lb3V0cyk7DQo+ID4+ICtIRkkxX0RJQUdD
+X0FUVFIobG9vcF9wa3RzKTsNCj4gPj4gK0hGSTFfRElBR0NfQVRUUihwa3RfZHJvcHMpOw0KPiA+
+PiArSEZJMV9ESUFHQ19BVFRSKGRtYXdhaXQpOw0KPiA+PiArSEZJMV9ESUFHQ19BVFRSKHVuYWxp
+Z25lZCk7DQo+ID4+ICtIRkkxX0RJQUdDX0FUVFIocmNfZHVwcmVxKTsNCj4gPj4gK0hGSTFfRElB
+R0NfQVRUUihyY19zZXFuYWspOw0KPiANCg0KVGhlIGNvdW50ZXJzIGNhbiBiZSBtZXRlcmVkIHZp
+YSBvdGhlciBtZWNoYW5pc21zLiAgIFRoZXkgd2lsbCBiZSByZW1vdmVkIGluIHYzLg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
