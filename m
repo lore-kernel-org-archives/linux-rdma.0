@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v3 39/49] IB/hfi1: add sysfs routines
-Date: Wed, 17 Jun 2015 08:32:06 -0400
-Message-ID: <20150617123205.8744.22203.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH v3 35/49] IB/hfi1: add routines for RC/UC
+Date: Wed, 17 Jun 2015 08:31:44 -0400
+Message-ID: <20150617123144.8744.47769.stgit@phlsvslse11.ph.intel.com>
 References: <20150617122755.8744.44665.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -37,16 +37,16 @@ Signed-off-by: Sanath Kumar <sanath.s.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.
 Signed-off-by: Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Vlad Danushevsky <vladimir.danusevsky-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/sysfs.c | 1083 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 1083 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi1/sysfs.c
+ drivers/infiniband/hw/hfi1/ruc.c |  944 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 944 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi1/ruc.c
 
-diff --git a/drivers/infiniband/hw/hfi1/sysfs.c b/drivers/infiniband/hw/hfi1/sysfs.c
+diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
 new file mode 100644
-index 0000000..fdedb20
+index 0000000..1811e5e
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/sysfs.c
-@@ -0,0 +1,1083 @@
++++ b/drivers/infiniband/hw/hfi1/ruc.c
+@@ -0,0 +1,944 @@
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -96,1039 +96,900 @@ index 0000000..fdedb20
 + * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + */
-+#include <linux/ctype.h>
++
++#include <linux/spinlock.h>
 +
 +#include "hfi.h"
 +#include "mad.h"
-+#include "trace.h"
++#include "qp.h"
++#include "sdma.h"
 +
-+/* start of per-port functions */
 +/*
-+ * Get/Set heartbeat enable. OR of 1=enabled, 2=auto
++ * Convert the AETH RNR timeout code into the number of microseconds.
 + */
-+static ssize_t show_hrtbt_enb(struct hfi1_pportdata *ppd, char *buf)
-+{
-+	int ret;
++const u32 ib_hfi1_rnr_table[32] = {
++	655360,	/* 00: 655.36 */
++	10,	/* 01:    .01 */
++	20,	/* 02     .02 */
++	30,	/* 03:    .03 */
++	40,	/* 04:    .04 */
++	60,	/* 05:    .06 */
++	80,	/* 06:    .08 */
++	120,	/* 07:    .12 */
++	160,	/* 08:    .16 */
++	240,	/* 09:    .24 */
++	320,	/* 0A:    .32 */
++	480,	/* 0B:    .48 */
++	640,	/* 0C:    .64 */
++	960,	/* 0D:    .96 */
++	1280,	/* 0E:   1.28 */
++	1920,	/* 0F:   1.92 */
++	2560,	/* 10:   2.56 */
++	3840,	/* 11:   3.84 */
++	5120,	/* 12:   5.12 */
++	7680,	/* 13:   7.68 */
++	10240,	/* 14:  10.24 */
++	15360,	/* 15:  15.36 */
++	20480,	/* 16:  20.48 */
++	30720,	/* 17:  30.72 */
++	40960,	/* 18:  40.96 */
++	61440,	/* 19:  61.44 */
++	81920,	/* 1A:  81.92 */
++	122880,	/* 1B: 122.88 */
++	163840,	/* 1C: 163.84 */
++	245760,	/* 1D: 245.76 */
++	327680,	/* 1E: 327.68 */
++	491520	/* 1F: 491.52 */
++};
 +
-+	ret = hfi1_get_ib_cfg(ppd, HFI1_IB_CFG_HRTBT);
-+	ret = scnprintf(buf, PAGE_SIZE, "%d\n", ret);
++/*
++ * Validate a RWQE and fill in the SGE state.
++ * Return 1 if OK.
++ */
++static int init_sge(struct hfi1_qp *qp, struct hfi1_rwqe *wqe)
++{
++	int i, j, ret;
++	struct ib_wc wc;
++	struct hfi1_lkey_table *rkt;
++	struct hfi1_pd *pd;
++	struct hfi1_sge_state *ss;
++
++	rkt = &to_idev(qp->ibqp.device)->lk_table;
++	pd = to_ipd(qp->ibqp.srq ? qp->ibqp.srq->pd : qp->ibqp.pd);
++	ss = &qp->r_sge;
++	ss->sg_list = qp->r_sg_list;
++	qp->r_len = 0;
++	for (i = j = 0; i < wqe->num_sge; i++) {
++		if (wqe->sg_list[i].length == 0)
++			continue;
++		/* Check LKEY */
++		if (!hfi1_lkey_ok(rkt, pd, j ? &ss->sg_list[j - 1] : &ss->sge,
++				  &wqe->sg_list[i], IB_ACCESS_LOCAL_WRITE))
++			goto bad_lkey;
++		qp->r_len += wqe->sg_list[i].length;
++		j++;
++	}
++	ss->num_sge = j;
++	ss->total_len = qp->r_len;
++	ret = 1;
++	goto bail;
++
++bad_lkey:
++	while (j) {
++		struct hfi1_sge *sge = --j ? &ss->sg_list[j - 1] : &ss->sge;
++
++		hfi1_put_mr(sge->mr);
++	}
++	ss->num_sge = 0;
++	memset(&wc, 0, sizeof(wc));
++	wc.wr_id = wqe->wr_id;
++	wc.status = IB_WC_LOC_PROT_ERR;
++	wc.opcode = IB_WC_RECV;
++	wc.qp = &qp->ibqp;
++	/* Signal solicited completion event. */
++	hfi1_cq_enter(to_icq(qp->ibqp.recv_cq), &wc, 1);
++	ret = 0;
++bail:
 +	return ret;
 +}
 +
-+static ssize_t store_hrtbt_enb(struct hfi1_pportdata *ppd, const char *buf,
-+			       size_t count)
++/**
++ * hfi1_get_rwqe - copy the next RWQE into the QP's RWQE
++ * @qp: the QP
++ * @wr_id_only: update qp->r_wr_id only, not qp->r_sge
++ *
++ * Return -1 if there is a local error, 0 if no RWQE is available,
++ * otherwise return 1.
++ *
++ * Can be called from interrupt level.
++ */
++int hfi1_get_rwqe(struct hfi1_qp *qp, int wr_id_only)
 +{
-+	struct hfi1_devdata *dd = ppd->dd;
++	unsigned long flags;
++	struct hfi1_rq *rq;
++	struct hfi1_rwq *wq;
++	struct hfi1_srq *srq;
++	struct hfi1_rwqe *wqe;
++	void (*handler)(struct ib_event *, void *);
++	u32 tail;
 +	int ret;
-+	u16 val;
 +
-+	ret = kstrtou16(buf, 0, &val);
-+	if (ret) {
-+		dd_dev_err(dd, "attempt to set invalid Heartbeat enable\n");
-+		return ret;
++	if (qp->ibqp.srq) {
++		srq = to_isrq(qp->ibqp.srq);
++		handler = srq->ibsrq.event_handler;
++		rq = &srq->rq;
++	} else {
++		srq = NULL;
++		handler = NULL;
++		rq = &qp->r_rq;
 +	}
 +
++	spin_lock_irqsave(&rq->lock, flags);
++	if (!(ib_hfi1_state_ops[qp->state] & HFI1_PROCESS_RECV_OK)) {
++		ret = 0;
++		goto unlock;
++	}
++
++	wq = rq->wq;
++	tail = wq->tail;
++	/* Validate tail before using it since it is user writable. */
++	if (tail >= rq->size)
++		tail = 0;
++	if (unlikely(tail == wq->head)) {
++		ret = 0;
++		goto unlock;
++	}
++	/* Make sure entry is read after head index is read. */
++	smp_rmb();
++	wqe = get_rwqe_ptr(rq, tail);
 +	/*
-+	 * Set the "intentional" heartbeat enable per either of
-+	 * "Enable" and "Auto", as these are normally set together.
-+	 * This bit is consulted when leaving loopback mode,
-+	 * because entering loopback mode overrides it and automatically
-+	 * disables heartbeat.
++	 * Even though we update the tail index in memory, the verbs
++	 * consumer is not supposed to post more entries until a
++	 * completion is generated.
 +	 */
-+	ret = hfi1_set_ib_cfg(ppd, HFI1_IB_CFG_HRTBT, val);
-+	return ret < 0 ? ret : count;
-+}
-+
-+static ssize_t store_led_override(struct hfi1_pportdata *ppd, const char *buf,
-+				  size_t count)
-+{
-+	struct hfi1_devdata *dd = ppd->dd;
-+	int ret;
-+	u16 val;
-+
-+	ret = kstrtou16(buf, 0, &val);
-+	if (ret) {
-+		dd_dev_err(dd, "attempt to set invalid LED override\n");
-+		return ret;
++	if (++tail >= rq->size)
++		tail = 0;
++	wq->tail = tail;
++	if (!wr_id_only && !init_sge(qp, wqe)) {
++		ret = -1;
++		goto unlock;
 +	}
-+
-+	hfi1_set_led_override(ppd, val);
-+	return count;
-+}
-+
-+static ssize_t show_status(struct hfi1_pportdata *ppd, char *buf)
-+{
-+	ssize_t ret;
-+
-+	if (!ppd->statusp)
-+		ret = -EINVAL;
-+	else
-+		ret = scnprintf(buf, PAGE_SIZE, "0x%llx\n",
-+				(unsigned long long) *(ppd->statusp));
-+	return ret;
-+}
-+
-+/*
-+ * For userland compatibility, these offsets must remain fixed.
-+ * They are strings for HFI1_STATUS_*
-+ */
-+static const char * const hfi1_status_str[] = {
-+	"Initted",
-+	"",
-+	"",
-+	"",
-+	"",
-+	"Present",
-+	"IB_link_up",
-+	"IB_configured",
-+	"",
-+	"Fatal_Hardware_Error",
-+	NULL,
-+};
-+
-+static ssize_t show_status_str(struct hfi1_pportdata *ppd, char *buf)
-+{
-+	int i, any;
-+	u64 s;
-+	ssize_t ret;
-+
-+	if (!ppd->statusp) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	s = *(ppd->statusp);
-+	*buf = '\0';
-+	for (any = i = 0; s && hfi1_status_str[i]; i++) {
-+		if (s & 1) {
-+			/* if overflow */
-+			if (any && strlcat(buf, " ", PAGE_SIZE) >= PAGE_SIZE)
-+				break;
-+			if (strlcat(buf, hfi1_status_str[i], PAGE_SIZE) >=
-+					PAGE_SIZE)
-+				break;
-+			any = 1;
-+		}
-+		s >>= 1;
-+	}
-+	if (any)
-+		strlcat(buf, "\n", PAGE_SIZE);
-+
-+	ret = strlen(buf);
-+
-+bail:
-+	return ret;
-+}
-+
-+/* end of per-port functions */
-+
-+/*
-+ * Start of per-port file structures and support code
-+ * Because we are fitting into other infrastructure, we have to supply the
-+ * full set of kobject/sysfs_ops structures and routines.
-+ */
-+#define HFI1_PORT_ATTR(name, mode, show, store) \
-+	static struct hfi1_port_attr port_attr_##name = \
-+		__ATTR(name, mode, show, store)
-+
-+struct hfi1_port_attr {
-+	struct attribute attr;
-+	ssize_t (*show)(struct hfi1_pportdata *, char *);
-+	ssize_t (*store)(struct hfi1_pportdata *, const char *, size_t);
-+};
-+
-+HFI1_PORT_ATTR(led_override, S_IWUSR, NULL, store_led_override);
-+HFI1_PORT_ATTR(hrtbt_enable, S_IWUSR | S_IRUGO, show_hrtbt_enb,
-+	       store_hrtbt_enb);
-+HFI1_PORT_ATTR(status, S_IRUGO, show_status, NULL);
-+HFI1_PORT_ATTR(status_str, S_IRUGO, show_status_str, NULL);
-+
-+static struct attribute *port_default_attributes[] = {
-+	&port_attr_led_override.attr,
-+	&port_attr_hrtbt_enable.attr,
-+	&port_attr_status.attr,
-+	&port_attr_status_str.attr,
-+	NULL
-+};
-+
-+/*
-+ * Start of per-port congestion control structures and support code
-+ */
-+
-+/*
-+ * Congestion control table size followed by table entries
-+ */
-+static ssize_t read_cc_table_bin(struct file *filp, struct kobject *kobj,
-+		struct bin_attribute *bin_attr,
-+		char *buf, loff_t pos, size_t count)
-+{
-+	int ret;
-+	struct hfi1_pportdata *ppd =
-+		container_of(kobj, struct hfi1_pportdata, pport_cc_kobj);
-+	struct cc_state *cc_state;
-+
-+	ret = ppd->total_cct_entry * sizeof(struct ib_cc_table_entry_shadow)
-+		 + sizeof(__be16);
-+
-+	if (pos > ret)
-+		return -EINVAL;
-+
-+	if (count > ret - pos)
-+		count = ret - pos;
-+
-+	if (!count)
-+		return count;
-+
-+	rcu_read_lock();
-+	cc_state = get_cc_state(ppd);
-+	if (cc_state == NULL) {
-+		rcu_read_unlock();
-+		return -EINVAL;
-+	}
-+	memcpy(buf, &cc_state->cct, count);
-+	rcu_read_unlock();
-+
-+	return count;
-+}
-+
-+static void port_release(struct kobject *kobj)
-+{
-+	/* nothing to do since memory is freed by hfi1_free_devdata() */
-+}
-+
-+static struct kobj_type port_cc_ktype = {
-+	.release = port_release,
-+};
-+
-+static struct bin_attribute cc_table_bin_attr = {
-+	.attr = {.name = "cc_table_bin", .mode = 0444},
-+	.read = read_cc_table_bin,
-+	.size = PAGE_SIZE,
-+};
-+
-+/*
-+ * Congestion settings: port control, control map and an array of 16
-+ * entries for the congestion entries - increase, timer, event log
-+ * trigger threshold and the minimum injection rate delay.
-+ */
-+static ssize_t read_cc_setting_bin(struct file *filp, struct kobject *kobj,
-+		struct bin_attribute *bin_attr,
-+		char *buf, loff_t pos, size_t count)
-+{
-+	int ret;
-+	struct hfi1_pportdata *ppd =
-+		container_of(kobj, struct hfi1_pportdata, pport_cc_kobj);
-+	struct cc_state *cc_state;
-+
-+	ret = sizeof(struct opa_congestion_setting_attr_shadow);
-+
-+	if (pos > ret)
-+		return -EINVAL;
-+	if (count > ret - pos)
-+		count = ret - pos;
-+
-+	if (!count)
-+		return count;
-+
-+	rcu_read_lock();
-+	cc_state = get_cc_state(ppd);
-+	if (cc_state == NULL) {
-+		rcu_read_unlock();
-+		return -EINVAL;
-+	}
-+	memcpy(buf, &cc_state->cong_setting, count);
-+	rcu_read_unlock();
-+
-+	return count;
-+}
-+
-+static struct bin_attribute cc_setting_bin_attr = {
-+	.attr = {.name = "cc_settings_bin", .mode = 0444},
-+	.read = read_cc_setting_bin,
-+	.size = PAGE_SIZE,
-+};
-+
-+
-+static ssize_t portattr_show(struct kobject *kobj,
-+			     struct attribute *attr, char *buf)
-+{
-+	struct hfi1_port_attr *pattr =
-+		container_of(attr, struct hfi1_port_attr, attr);
-+	struct hfi1_pportdata *ppd =
-+		container_of(kobj, struct hfi1_pportdata, pport_kobj);
-+
-+	return pattr->show(ppd, buf);
-+}
-+
-+static ssize_t portattr_store(struct kobject *kobj,
-+			      struct attribute *attr,
-+			      const char *buf, size_t len)
-+{
-+	struct hfi1_port_attr *pattr =
-+		container_of(attr, struct hfi1_port_attr, attr);
-+	struct hfi1_pportdata *ppd =
-+		container_of(kobj, struct hfi1_pportdata, pport_kobj);
-+
-+	return pattr->store(ppd, buf, len);
-+}
-+
-+
-+static const struct sysfs_ops hfi1_port_ops = {
-+	.show = portattr_show,
-+	.store = portattr_store,
-+};
-+
-+static struct kobj_type hfi1_port_ktype = {
-+	.release = port_release,
-+	.sysfs_ops = &hfi1_port_ops,
-+	.default_attrs = port_default_attributes
-+};
-+
-+/* Start sc2vl */
-+#define HFI1_SC2VL_ATTR(N)				    \
-+	static struct hfi1_sc2vl_attr hfi1_sc2vl_attr_##N = { \
-+		.attr = { .name = __stringify(N), .mode = 0444 }, \
-+		.sc = N \
-+	}
-+
-+struct hfi1_sc2vl_attr {
-+	struct attribute attr;
-+	int sc;
-+};
-+
-+HFI1_SC2VL_ATTR(0);
-+HFI1_SC2VL_ATTR(1);
-+HFI1_SC2VL_ATTR(2);
-+HFI1_SC2VL_ATTR(3);
-+HFI1_SC2VL_ATTR(4);
-+HFI1_SC2VL_ATTR(5);
-+HFI1_SC2VL_ATTR(6);
-+HFI1_SC2VL_ATTR(7);
-+HFI1_SC2VL_ATTR(8);
-+HFI1_SC2VL_ATTR(9);
-+HFI1_SC2VL_ATTR(10);
-+HFI1_SC2VL_ATTR(11);
-+HFI1_SC2VL_ATTR(12);
-+HFI1_SC2VL_ATTR(13);
-+HFI1_SC2VL_ATTR(14);
-+HFI1_SC2VL_ATTR(15);
-+HFI1_SC2VL_ATTR(16);
-+HFI1_SC2VL_ATTR(17);
-+HFI1_SC2VL_ATTR(18);
-+HFI1_SC2VL_ATTR(19);
-+HFI1_SC2VL_ATTR(20);
-+HFI1_SC2VL_ATTR(21);
-+HFI1_SC2VL_ATTR(22);
-+HFI1_SC2VL_ATTR(23);
-+HFI1_SC2VL_ATTR(24);
-+HFI1_SC2VL_ATTR(25);
-+HFI1_SC2VL_ATTR(26);
-+HFI1_SC2VL_ATTR(27);
-+HFI1_SC2VL_ATTR(28);
-+HFI1_SC2VL_ATTR(29);
-+HFI1_SC2VL_ATTR(30);
-+HFI1_SC2VL_ATTR(31);
-+
-+
-+static struct attribute *sc2vl_default_attributes[] = {
-+	&hfi1_sc2vl_attr_0.attr,
-+	&hfi1_sc2vl_attr_1.attr,
-+	&hfi1_sc2vl_attr_2.attr,
-+	&hfi1_sc2vl_attr_3.attr,
-+	&hfi1_sc2vl_attr_4.attr,
-+	&hfi1_sc2vl_attr_5.attr,
-+	&hfi1_sc2vl_attr_6.attr,
-+	&hfi1_sc2vl_attr_7.attr,
-+	&hfi1_sc2vl_attr_8.attr,
-+	&hfi1_sc2vl_attr_9.attr,
-+	&hfi1_sc2vl_attr_10.attr,
-+	&hfi1_sc2vl_attr_11.attr,
-+	&hfi1_sc2vl_attr_12.attr,
-+	&hfi1_sc2vl_attr_13.attr,
-+	&hfi1_sc2vl_attr_14.attr,
-+	&hfi1_sc2vl_attr_15.attr,
-+	&hfi1_sc2vl_attr_16.attr,
-+	&hfi1_sc2vl_attr_17.attr,
-+	&hfi1_sc2vl_attr_18.attr,
-+	&hfi1_sc2vl_attr_19.attr,
-+	&hfi1_sc2vl_attr_20.attr,
-+	&hfi1_sc2vl_attr_21.attr,
-+	&hfi1_sc2vl_attr_22.attr,
-+	&hfi1_sc2vl_attr_23.attr,
-+	&hfi1_sc2vl_attr_24.attr,
-+	&hfi1_sc2vl_attr_25.attr,
-+	&hfi1_sc2vl_attr_26.attr,
-+	&hfi1_sc2vl_attr_27.attr,
-+	&hfi1_sc2vl_attr_28.attr,
-+	&hfi1_sc2vl_attr_29.attr,
-+	&hfi1_sc2vl_attr_30.attr,
-+	&hfi1_sc2vl_attr_31.attr,
-+	NULL
-+};
-+
-+static ssize_t sc2vl_attr_show(struct kobject *kobj, struct attribute *attr,
-+			       char *buf)
-+{
-+	struct hfi1_sc2vl_attr *sattr =
-+		container_of(attr, struct hfi1_sc2vl_attr, attr);
-+	struct hfi1_pportdata *ppd =
-+		container_of(kobj, struct hfi1_pportdata, sc2vl_kobj);
-+	struct hfi1_devdata *dd = ppd->dd;
-+
-+	return sprintf(buf, "%u\n", *((u8 *)dd->sc2vl + sattr->sc));
-+}
-+
-+static const struct sysfs_ops hfi1_sc2vl_ops = {
-+	.show = sc2vl_attr_show,
-+};
-+
-+static struct kobj_type hfi1_sc2vl_ktype = {
-+	.release = port_release,
-+	.sysfs_ops = &hfi1_sc2vl_ops,
-+	.default_attrs = sc2vl_default_attributes
-+};
-+
-+/* End sc2vl */
-+
-+/* Start sl2sc */
-+#define HFI1_SL2SC_ATTR(N)				    \
-+	static struct hfi1_sl2sc_attr hfi1_sl2sc_attr_##N = {	  \
-+		.attr = { .name = __stringify(N), .mode = 0444 }, \
-+		.sl = N						  \
-+	}
-+
-+struct hfi1_sl2sc_attr {
-+	struct attribute attr;
-+	int sl;
-+};
-+
-+HFI1_SL2SC_ATTR(0);
-+HFI1_SL2SC_ATTR(1);
-+HFI1_SL2SC_ATTR(2);
-+HFI1_SL2SC_ATTR(3);
-+HFI1_SL2SC_ATTR(4);
-+HFI1_SL2SC_ATTR(5);
-+HFI1_SL2SC_ATTR(6);
-+HFI1_SL2SC_ATTR(7);
-+HFI1_SL2SC_ATTR(8);
-+HFI1_SL2SC_ATTR(9);
-+HFI1_SL2SC_ATTR(10);
-+HFI1_SL2SC_ATTR(11);
-+HFI1_SL2SC_ATTR(12);
-+HFI1_SL2SC_ATTR(13);
-+HFI1_SL2SC_ATTR(14);
-+HFI1_SL2SC_ATTR(15);
-+HFI1_SL2SC_ATTR(16);
-+HFI1_SL2SC_ATTR(17);
-+HFI1_SL2SC_ATTR(18);
-+HFI1_SL2SC_ATTR(19);
-+HFI1_SL2SC_ATTR(20);
-+HFI1_SL2SC_ATTR(21);
-+HFI1_SL2SC_ATTR(22);
-+HFI1_SL2SC_ATTR(23);
-+HFI1_SL2SC_ATTR(24);
-+HFI1_SL2SC_ATTR(25);
-+HFI1_SL2SC_ATTR(26);
-+HFI1_SL2SC_ATTR(27);
-+HFI1_SL2SC_ATTR(28);
-+HFI1_SL2SC_ATTR(29);
-+HFI1_SL2SC_ATTR(30);
-+HFI1_SL2SC_ATTR(31);
-+
-+
-+static struct attribute *sl2sc_default_attributes[] = {
-+	&hfi1_sl2sc_attr_0.attr,
-+	&hfi1_sl2sc_attr_1.attr,
-+	&hfi1_sl2sc_attr_2.attr,
-+	&hfi1_sl2sc_attr_3.attr,
-+	&hfi1_sl2sc_attr_4.attr,
-+	&hfi1_sl2sc_attr_5.attr,
-+	&hfi1_sl2sc_attr_6.attr,
-+	&hfi1_sl2sc_attr_7.attr,
-+	&hfi1_sl2sc_attr_8.attr,
-+	&hfi1_sl2sc_attr_9.attr,
-+	&hfi1_sl2sc_attr_10.attr,
-+	&hfi1_sl2sc_attr_11.attr,
-+	&hfi1_sl2sc_attr_12.attr,
-+	&hfi1_sl2sc_attr_13.attr,
-+	&hfi1_sl2sc_attr_14.attr,
-+	&hfi1_sl2sc_attr_15.attr,
-+	&hfi1_sl2sc_attr_16.attr,
-+	&hfi1_sl2sc_attr_17.attr,
-+	&hfi1_sl2sc_attr_18.attr,
-+	&hfi1_sl2sc_attr_19.attr,
-+	&hfi1_sl2sc_attr_20.attr,
-+	&hfi1_sl2sc_attr_21.attr,
-+	&hfi1_sl2sc_attr_22.attr,
-+	&hfi1_sl2sc_attr_23.attr,
-+	&hfi1_sl2sc_attr_24.attr,
-+	&hfi1_sl2sc_attr_25.attr,
-+	&hfi1_sl2sc_attr_26.attr,
-+	&hfi1_sl2sc_attr_27.attr,
-+	&hfi1_sl2sc_attr_28.attr,
-+	&hfi1_sl2sc_attr_29.attr,
-+	&hfi1_sl2sc_attr_30.attr,
-+	&hfi1_sl2sc_attr_31.attr,
-+	NULL
-+};
-+
-+static ssize_t sl2sc_attr_show(struct kobject *kobj, struct attribute *attr,
-+			       char *buf)
-+{
-+	struct hfi1_sl2sc_attr *sattr =
-+		container_of(attr, struct hfi1_sl2sc_attr, attr);
-+	struct hfi1_pportdata *ppd =
-+		container_of(kobj, struct hfi1_pportdata, sl2sc_kobj);
-+	struct hfi1_ibport *ibp = &ppd->ibport_data;
-+
-+	return sprintf(buf, "%u\n", ibp->sl_to_sc[sattr->sl]);
-+}
-+
-+static const struct sysfs_ops hfi1_sl2sc_ops = {
-+	.show = sl2sc_attr_show,
-+};
-+
-+static struct kobj_type hfi1_sl2sc_ktype = {
-+	.release = port_release,
-+	.sysfs_ops = &hfi1_sl2sc_ops,
-+	.default_attrs = sl2sc_default_attributes
-+};
-+
-+/* End sl2sc */
-+
-+/* Start vl2mtu */
-+
-+#define HFI1_VL2MTU_ATTR(N) \
-+	static struct hfi1_vl2mtu_attr hfi1_vl2mtu_attr_##N = { \
-+		.attr = { .name = __stringify(N), .mode = 0444 }, \
-+		.vl = N						  \
-+	}
-+
-+struct hfi1_vl2mtu_attr {
-+	struct attribute attr;
-+	int vl;
-+};
-+
-+HFI1_VL2MTU_ATTR(0);
-+HFI1_VL2MTU_ATTR(1);
-+HFI1_VL2MTU_ATTR(2);
-+HFI1_VL2MTU_ATTR(3);
-+HFI1_VL2MTU_ATTR(4);
-+HFI1_VL2MTU_ATTR(5);
-+HFI1_VL2MTU_ATTR(6);
-+HFI1_VL2MTU_ATTR(7);
-+HFI1_VL2MTU_ATTR(8);
-+HFI1_VL2MTU_ATTR(9);
-+HFI1_VL2MTU_ATTR(10);
-+HFI1_VL2MTU_ATTR(11);
-+HFI1_VL2MTU_ATTR(12);
-+HFI1_VL2MTU_ATTR(13);
-+HFI1_VL2MTU_ATTR(14);
-+HFI1_VL2MTU_ATTR(15);
-+
-+static struct attribute *vl2mtu_default_attributes[] = {
-+	&hfi1_vl2mtu_attr_0.attr,
-+	&hfi1_vl2mtu_attr_1.attr,
-+	&hfi1_vl2mtu_attr_2.attr,
-+	&hfi1_vl2mtu_attr_3.attr,
-+	&hfi1_vl2mtu_attr_4.attr,
-+	&hfi1_vl2mtu_attr_5.attr,
-+	&hfi1_vl2mtu_attr_6.attr,
-+	&hfi1_vl2mtu_attr_7.attr,
-+	&hfi1_vl2mtu_attr_8.attr,
-+	&hfi1_vl2mtu_attr_9.attr,
-+	&hfi1_vl2mtu_attr_10.attr,
-+	&hfi1_vl2mtu_attr_11.attr,
-+	&hfi1_vl2mtu_attr_12.attr,
-+	&hfi1_vl2mtu_attr_13.attr,
-+	&hfi1_vl2mtu_attr_14.attr,
-+	&hfi1_vl2mtu_attr_15.attr,
-+	NULL
-+};
-+
-+static ssize_t vl2mtu_attr_show(struct kobject *kobj, struct attribute *attr,
-+				char *buf)
-+{
-+	struct hfi1_vl2mtu_attr *vlattr =
-+		container_of(attr, struct hfi1_vl2mtu_attr, attr);
-+	struct hfi1_pportdata *ppd =
-+		container_of(kobj, struct hfi1_pportdata, vl2mtu_kobj);
-+	struct hfi1_devdata *dd = ppd->dd;
-+
-+	return sprintf(buf, "%u\n", dd->vld[vlattr->vl].mtu);
-+}
-+
-+static const struct sysfs_ops hfi1_vl2mtu_ops = {
-+	.show = vl2mtu_attr_show,
-+};
-+
-+static struct kobj_type hfi1_vl2mtu_ktype = {
-+	.release = port_release,
-+	.sysfs_ops = &hfi1_vl2mtu_ops,
-+	.default_attrs = vl2mtu_default_attributes
-+};
-+
-+/* Start diag_counters */
-+#define HFI1_DIAGC_NORMAL 0x0
-+#define HFI1_DIAGC_PCPU   0x1
-+
-+#define HFI1_DIAGC_ATTR(N) \
-+	static struct hfi1_diagc_attr diagc_attr_##N = { \
-+		.attr = { .name = __stringify(N), .mode = 0664 }, \
-+		.counter = offsetof(struct hfi1_ibport, n_##N), \
-+		.type = HFI1_DIAGC_NORMAL, \
-+		.vl = CNTR_INVALID_VL \
-+	}
-+
-+#define HFI1_DIAGC_ATTR_PCPU(N, V, L) \
-+	static struct hfi1_diagc_attr diagc_attr_##N = { \
-+		.attr = { .name = __stringify(N), .mode = 0664 }, \
-+		.counter = V, \
-+		.type = HFI1_DIAGC_PCPU, \
-+		.vl = L \
-+	}
-+
-+struct hfi1_diagc_attr {
-+	struct attribute attr;
-+	size_t counter;
-+	int type;
-+	int vl;
-+};
-+
-+HFI1_DIAGC_ATTR(rc_resends);
-+HFI1_DIAGC_ATTR_PCPU(rc_acks, C_SW_CPU_RC_ACKS, CNTR_INVALID_VL);
-+HFI1_DIAGC_ATTR_PCPU(rc_qacks, C_SW_CPU_RC_QACKS, CNTR_INVALID_VL);
-+HFI1_DIAGC_ATTR_PCPU(rc_delayed_comp, C_SW_CPU_RC_DELAYED_COMP,
-+	CNTR_INVALID_VL);
-+HFI1_DIAGC_ATTR(seq_naks);
-+HFI1_DIAGC_ATTR(rdma_seq);
-+HFI1_DIAGC_ATTR(rnr_naks);
-+HFI1_DIAGC_ATTR(other_naks);
-+HFI1_DIAGC_ATTR(rc_timeouts);
-+HFI1_DIAGC_ATTR(loop_pkts);
-+HFI1_DIAGC_ATTR(pkt_drops);
-+HFI1_DIAGC_ATTR(dmawait);
-+HFI1_DIAGC_ATTR(unaligned);
-+HFI1_DIAGC_ATTR(rc_dupreq);
-+HFI1_DIAGC_ATTR(rc_seqnak);
-+
-+static struct attribute *diagc_default_attributes[] = {
-+	&diagc_attr_rc_resends.attr,
-+	&diagc_attr_rc_acks.attr,
-+	&diagc_attr_rc_qacks.attr,
-+	&diagc_attr_rc_delayed_comp.attr,
-+	&diagc_attr_seq_naks.attr,
-+	&diagc_attr_rdma_seq.attr,
-+	&diagc_attr_rnr_naks.attr,
-+	&diagc_attr_other_naks.attr,
-+	&diagc_attr_rc_timeouts.attr,
-+	&diagc_attr_loop_pkts.attr,
-+	&diagc_attr_pkt_drops.attr,
-+	&diagc_attr_dmawait.attr,
-+	&diagc_attr_unaligned.attr,
-+	&diagc_attr_rc_dupreq.attr,
-+	&diagc_attr_rc_seqnak.attr,
-+	NULL
-+};
-+
-+static ssize_t diagc_attr_show(struct kobject *kobj, struct attribute *attr,
-+			       char *buf)
-+{
-+	struct hfi1_diagc_attr *dattr =
-+		container_of(attr, struct hfi1_diagc_attr, attr);
-+	struct hfi1_pportdata *ppd =
-+		container_of(kobj, struct hfi1_pportdata, diagc_kobj);
-+	struct hfi1_ibport *hfip = &ppd->ibport_data;
-+
-+	switch (dattr->type) {
-+	case (HFI1_DIAGC_PCPU):
-+		return(sprintf(buf, "%lld\n",
-+			read_port_cntr(ppd,
-+				       dattr->counter,
-+				       dattr->vl)));
-+	case (HFI1_DIAGC_NORMAL):
-+		/* Fall through */
-+	default:
-+		return sprintf(buf, "%u\n",
-+			*(u32 *)((char *)hfip + dattr->counter));
-+	}
-+}
-+
-+static ssize_t diagc_attr_store(struct kobject *kobj, struct attribute *attr,
-+				const char *buf, size_t size)
-+{
-+	struct hfi1_diagc_attr *dattr =
-+		container_of(attr, struct hfi1_diagc_attr, attr);
-+	struct hfi1_pportdata *ppd =
-+		container_of(kobj, struct hfi1_pportdata, diagc_kobj);
-+	struct hfi1_ibport *hfip = &ppd->ibport_data;
-+	u32 val;
-+	int ret;
-+
-+	ret = kstrtou32(buf, 0, &val);
-+	if (ret)
-+		return ret;
-+	*(u32 *)((char *)hfip + dattr->counter) = val;
-+	return size;
-+}
-+
-+static const struct sysfs_ops hfi1_diagc_ops = {
-+	.show = diagc_attr_show,
-+	.store = diagc_attr_store,
-+};
-+
-+static struct kobj_type diagc_ktype = {
-+	.release = port_release,
-+	.sysfs_ops = &hfi1_diagc_ops,
-+	.default_attrs = diagc_default_attributes
-+};
-+
-+/* End diag_counters */
-+
-+/* end of per-port file structures and support code */
-+
-+/*
-+ * Start of per-unit (or driver, in some cases, but replicated
-+ * per unit) functions (these get a device *)
-+ */
-+static ssize_t show_rev(struct device *device, struct device_attribute *attr,
-+			char *buf)
-+{
-+	struct hfi1_ibdev *dev =
-+		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+
-+	return sprintf(buf, "%x\n", dd_from_dev(dev)->minrev);
-+}
-+
-+static ssize_t show_hca(struct device *device, struct device_attribute *attr,
-+			char *buf)
-+{
-+	struct hfi1_ibdev *dev =
-+		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+	struct hfi1_devdata *dd = dd_from_dev(dev);
-+	int ret;
-+
-+	if (!dd->boardname)
-+		ret = -EINVAL;
-+	else
-+		ret = scnprintf(buf, PAGE_SIZE, "%s\n", dd->boardname);
-+	return ret;
-+}
-+
-+static ssize_t show_version(struct device *device,
-+			    struct device_attribute *attr, char *buf)
-+{
-+	/* The string printed here is already newline-terminated. */
-+	return scnprintf(buf, PAGE_SIZE, "%s", (char *)ib_hfi1_version);
-+}
-+
-+static ssize_t show_boardversion(struct device *device,
-+				 struct device_attribute *attr, char *buf)
-+{
-+	struct hfi1_ibdev *dev =
-+		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+	struct hfi1_devdata *dd = dd_from_dev(dev);
-+
-+	/* The string printed here is already newline-terminated. */
-+	return scnprintf(buf, PAGE_SIZE, "%s", dd->boardversion);
-+}
-+
-+
-+static ssize_t show_localbus_info(struct device *device,
-+				  struct device_attribute *attr, char *buf)
-+{
-+	struct hfi1_ibdev *dev =
-+		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+	struct hfi1_devdata *dd = dd_from_dev(dev);
-+
-+	return scnprintf(buf, PAGE_SIZE, "%s\n", dd->lbus_info);
-+}
-+
-+
-+static ssize_t show_nctxts(struct device *device,
-+			   struct device_attribute *attr, char *buf)
-+{
-+	struct hfi1_ibdev *dev =
-+		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+	struct hfi1_devdata *dd = dd_from_dev(dev);
-+
-+	/*
-+	 * Return the smaller of send and receive contexts.
-+	 * Normally, user level applications would require both a send
-+	 * and a receive context, so returning the smaller of the two counts
-+	 * give a more accurate picture of total contexts available.
-+	 */
-+	return scnprintf(buf, PAGE_SIZE, "%u\n",
-+			 min(dd->num_rcv_contexts - dd->first_user_ctxt,
-+			     (u32)dd->sc_sizes[SC_USER].count));
-+}
-+
-+static ssize_t show_nfreectxts(struct device *device,
-+			   struct device_attribute *attr, char *buf)
-+{
-+	struct hfi1_ibdev *dev =
-+		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+	struct hfi1_devdata *dd = dd_from_dev(dev);
-+
-+	/* Return the number of free user ports (contexts) available. */
-+	return scnprintf(buf, PAGE_SIZE, "%u\n", dd->freectxts);
-+}
-+
-+static ssize_t show_serial(struct device *device,
-+			   struct device_attribute *attr, char *buf)
-+{
-+	struct hfi1_ibdev *dev =
-+		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+	struct hfi1_devdata *dd = dd_from_dev(dev);
-+
-+	return scnprintf(buf, PAGE_SIZE, "%s", dd->serial);
-+
-+}
-+
-+static ssize_t store_chip_reset(struct device *device,
-+				struct device_attribute *attr, const char *buf,
-+				size_t count)
-+{
-+	struct hfi1_ibdev *dev =
-+		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+	struct hfi1_devdata *dd = dd_from_dev(dev);
-+	int ret;
-+
-+	if (count < 5 || memcmp(buf, "reset", 5) || !dd->diag_client) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	ret = hfi1_reset_device(dd->unit);
-+bail:
-+	return ret < 0 ? ret : count;
-+}
-+
-+/*
-+ * Convert the reported temperature from an integer (reported in
-+ * units of 0.25C) to a floating point number.
-+ */
-+#define temp2str(temp, buf, size, idx)					\
-+	scnprintf((buf) + (idx), (size) - (idx), "%u.%02u ",		\
-+			      ((temp) >> 2), ((temp) & 0x3) * 25)
-+
-+/*
-+ * Dump tempsense values, in decimal, to ease shell-scripts.
-+ */
-+static ssize_t show_tempsense(struct device *device,
-+			      struct device_attribute *attr, char *buf)
-+{
-+	struct hfi1_ibdev *dev =
-+		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+	struct hfi1_devdata *dd = dd_from_dev(dev);
-+	struct hfi1_temp temp;
-+	int ret = -ENXIO;
-+
-+	ret = hfi1_tempsense_rd(dd, &temp);
-+	if (!ret) {
-+		int idx = 0;
-+
-+		idx += temp2str(temp.curr, buf, PAGE_SIZE, idx);
-+		idx += temp2str(temp.lo_lim, buf, PAGE_SIZE, idx);
-+		idx += temp2str(temp.hi_lim, buf, PAGE_SIZE, idx);
-+		idx += temp2str(temp.crit_lim, buf, PAGE_SIZE, idx);
-+		idx += scnprintf(buf + idx, PAGE_SIZE - idx,
-+				"%u %u %u\n", temp.triggers & 0x1,
-+				temp.triggers & 0x2, temp.triggers & 0x4);
-+		ret = idx;
-+	}
-+	return ret;
-+}
-+
-+/*
-+ * end of per-unit (or driver, in some cases, but replicated
-+ * per unit) functions
-+ */
-+
-+/* start of per-unit file structures and support code */
-+static DEVICE_ATTR(hw_rev, S_IRUGO, show_rev, NULL);
-+static DEVICE_ATTR(hca_type, S_IRUGO, show_hca, NULL);
-+static DEVICE_ATTR(board_id, S_IRUGO, show_hca, NULL);
-+static DEVICE_ATTR(version, S_IRUGO, show_version, NULL);
-+static DEVICE_ATTR(nctxts, S_IRUGO, show_nctxts, NULL);
-+static DEVICE_ATTR(nfreectxts, S_IRUGO, show_nfreectxts, NULL);
-+static DEVICE_ATTR(serial, S_IRUGO, show_serial, NULL);
-+static DEVICE_ATTR(boardversion, S_IRUGO, show_boardversion, NULL);
-+static DEVICE_ATTR(tempsense, S_IRUGO, show_tempsense, NULL);
-+static DEVICE_ATTR(localbus_info, S_IRUGO, show_localbus_info, NULL);
-+static DEVICE_ATTR(chip_reset, S_IWUSR, NULL, store_chip_reset);
-+
-+static struct device_attribute *hfi1_attributes[] = {
-+	&dev_attr_hw_rev,
-+	&dev_attr_hca_type,
-+	&dev_attr_board_id,
-+	&dev_attr_version,
-+	&dev_attr_nctxts,
-+	&dev_attr_nfreectxts,
-+	&dev_attr_serial,
-+	&dev_attr_boardversion,
-+	&dev_attr_tempsense,
-+	&dev_attr_localbus_info,
-+	&dev_attr_chip_reset,
-+};
-+
-+int hfi1_create_port_files(struct ib_device *ibdev, u8 port_num,
-+			   struct kobject *kobj)
-+{
-+	struct hfi1_pportdata *ppd;
-+	struct hfi1_devdata *dd = dd_from_ibdev(ibdev);
-+	int ret;
-+
-+	if (!port_num || port_num > dd->num_pports) {
-+		dd_dev_err(dd,
-+			"Skipping infiniband class with invalid port %u\n",
-+			port_num);
-+		ret = -ENODEV;
-+		goto bail;
-+	}
-+	ppd = &dd->pport[port_num - 1];
-+
-+	ret = kobject_init_and_add(&ppd->pport_kobj, &hfi1_port_ktype, kobj,
-+				   "linkcontrol");
-+	if (ret) {
-+		dd_dev_err(dd,
-+			"Skipping linkcontrol sysfs info, (err %d) port %u\n",
-+			ret, port_num);
-+		goto bail;
-+	}
-+	kobject_uevent(&ppd->pport_kobj, KOBJ_ADD);
-+
-+	ret = kobject_init_and_add(&ppd->sc2vl_kobj, &hfi1_sc2vl_ktype, kobj,
-+				   "sc2vl");
-+	if (ret) {
-+		dd_dev_err(dd,
-+			   "Skipping sc2vl sysfs info, (err %d) port %u\n",
-+			   ret, port_num);
-+		goto bail_link;
-+	}
-+	kobject_uevent(&ppd->sc2vl_kobj, KOBJ_ADD);
-+	ret = kobject_init_and_add(&ppd->sl2sc_kobj, &hfi1_sl2sc_ktype, kobj,
-+				   "sl2sc");
-+	if (ret) {
-+		dd_dev_err(dd,
-+			   "Skipping sl2sc sysfs info, (err %d) port %u\n",
-+			   ret, port_num);
-+		goto bail_link;
-+	}
-+	kobject_uevent(&ppd->sl2sc_kobj, KOBJ_ADD);
-+
-+	ret = kobject_init_and_add(&ppd->vl2mtu_kobj, &hfi1_vl2mtu_ktype, kobj,
-+				   "vl2mtu");
-+	if (ret) {
-+		dd_dev_err(dd,
-+			   "Skipping vl2mtu sysfs info, (err %d) port %u\n",
-+			   ret, port_num);
-+		goto bail_sl;
-+	}
-+	kobject_uevent(&ppd->vl2mtu_kobj, KOBJ_ADD);
-+
-+	ret = kobject_init_and_add(&ppd->diagc_kobj, &diagc_ktype, kobj,
-+				   "diag_counters");
-+	if (ret) {
-+		dd_dev_err(dd,
-+			"Skipping diag_counters sysfs info, (err %d) port %u\n",
-+			ret, port_num);
-+		goto bail_mtu;
-+	}
-+	kobject_uevent(&ppd->diagc_kobj, KOBJ_ADD);
-+
-+	ret = kobject_init_and_add(&ppd->pport_cc_kobj, &port_cc_ktype,
-+				   kobj, "CCMgtA");
-+	if (ret) {
-+		dd_dev_err(dd,
-+		 "Skipping Congestion Control sysfs info, (err %d) port %u\n",
-+		 ret, port_num);
-+		goto bail_diagc;
-+	}
-+
-+	kobject_uevent(&ppd->pport_cc_kobj, KOBJ_ADD);
-+
-+	ret = sysfs_create_bin_file(&ppd->pport_cc_kobj,
-+				&cc_setting_bin_attr);
-+	if (ret) {
-+		dd_dev_err(dd,
-+		 "Skipping Congestion Control setting sysfs info, (err %d) port %u\n",
-+		 ret, port_num);
-+		goto bail_cc;
-+	}
-+
-+	ret = sysfs_create_bin_file(&ppd->pport_cc_kobj,
-+				&cc_table_bin_attr);
-+	if (ret) {
-+		dd_dev_err(dd,
-+		 "Skipping Congestion Control table sysfs info, (err %d) port %u\n",
-+		 ret, port_num);
-+		goto bail_cc_entry_bin;
-+	}
-+
-+	dd_dev_info(dd,
-+		"IB%u: Congestion Control Agent enabled for port %d\n",
-+		dd->unit, port_num);
-+
-+	return 0;
-+
-+bail_cc_entry_bin:
-+	sysfs_remove_bin_file(&ppd->pport_cc_kobj, &cc_setting_bin_attr);
-+bail_cc:
-+	kobject_put(&ppd->pport_cc_kobj);
-+bail_diagc:
-+	kobject_put(&ppd->diagc_kobj);
-+bail_mtu:
-+	kobject_put(&ppd->vl2mtu_kobj);
-+bail_sl:
-+	kobject_put(&ppd->sc2vl_kobj);
-+bail_link:
-+	kobject_put(&ppd->pport_kobj);
-+bail:
-+	return ret;
-+}
-+
-+/*
-+ * Register and create our files in /sys/class/infiniband.
-+ */
-+int hfi1_verbs_register_sysfs(struct hfi1_devdata *dd)
-+{
-+	struct ib_device *dev = &dd->verbs_dev.ibdev;
-+	int i, ret;
-+
-+	for (i = 0; i < ARRAY_SIZE(hfi1_attributes); ++i) {
-+		ret = device_create_file(&dev->dev, hfi1_attributes[i]);
-+		if (ret)
++	qp->r_wr_id = wqe->wr_id;
++
++	ret = 1;
++	set_bit(HFI1_R_WRID_VALID, &qp->r_aflags);
++	if (handler) {
++		u32 n;
++
++		/*
++		 * Validate head pointer value and compute
++		 * the number of remaining WQEs.
++		 */
++		n = wq->head;
++		if (n >= rq->size)
++			n = 0;
++		if (n < tail)
++			n += rq->size - tail;
++		else
++			n -= tail;
++		if (n < srq->limit) {
++			struct ib_event ev;
++
++			srq->limit = 0;
++			spin_unlock_irqrestore(&rq->lock, flags);
++			ev.device = qp->ibqp.device;
++			ev.element.srq = qp->ibqp.srq;
++			ev.event = IB_EVENT_SRQ_LIMIT_REACHED;
++			handler(&ev, srq->ibsrq.srq_context);
 +			goto bail;
++		}
 +	}
-+
-+	return 0;
++unlock:
++	spin_unlock_irqrestore(&rq->lock, flags);
 +bail:
-+	for (i = 0; i < ARRAY_SIZE(hfi1_attributes); ++i)
-+		device_remove_file(&dev->dev, hfi1_attributes[i]);
 +	return ret;
 +}
 +
 +/*
-+ * Unregister and remove our files in /sys/class/infiniband.
++ * Switch to alternate path.
++ * The QP s_lock should be held and interrupts disabled.
 + */
-+void hfi1_verbs_unregister_sysfs(struct hfi1_devdata *dd)
++void hfi1_migrate_qp(struct hfi1_qp *qp)
 +{
-+	struct hfi1_pportdata *ppd;
-+	int i;
++	struct ib_event ev;
 +
-+	for (i = 0; i < dd->num_pports; i++) {
-+		ppd = &dd->pport[i];
++	qp->s_mig_state = IB_MIG_MIGRATED;
++	qp->remote_ah_attr = qp->alt_ah_attr;
++	qp->port_num = qp->alt_ah_attr.port_num;
++	qp->s_pkey_index = qp->s_alt_pkey_index;
++	qp->s_flags |= HFI1_S_AHG_CLEAR;
 +
-+		sysfs_remove_bin_file(&ppd->pport_cc_kobj,
-+			&cc_setting_bin_attr);
-+		sysfs_remove_bin_file(&ppd->pport_cc_kobj,
-+			&cc_table_bin_attr);
-+		kobject_put(&ppd->pport_cc_kobj);
-+		kobject_put(&ppd->vl2mtu_kobj);
-+		kobject_put(&ppd->sc2vl_kobj);
-+		kobject_put(&ppd->pport_kobj);
++	ev.device = qp->ibqp.device;
++	ev.element.qp = &qp->ibqp;
++	ev.event = IB_EVENT_PATH_MIG;
++	qp->ibqp.event_handler(&ev, qp->ibqp.qp_context);
++}
++
++static __be64 get_sguid(struct hfi1_ibport *ibp, unsigned index)
++{
++	if (!index) {
++		struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
++
++		return ppd->guid;
 +	}
++	return ibp->guids[index - 1];
++}
++
++static int gid_ok(union ib_gid *gid, __be64 gid_prefix, __be64 id)
++{
++	return (gid->global.interface_id == id &&
++		(gid->global.subnet_prefix == gid_prefix ||
++		 gid->global.subnet_prefix == IB_DEFAULT_GID_PREFIX));
++}
++
++/*
++ *
++ * This should be called with the QP r_lock held.
++ *
++ * The s_lock will be acquired around the hfi1_migrate_qp() call.
++ */
++int hfi1_ruc_check_hdr(struct hfi1_ibport *ibp, struct hfi1_ib_header *hdr,
++		       int has_grh, struct hfi1_qp *qp, u32 bth0)
++{
++	__be64 guid;
++	unsigned long flags;
++	u8 sc5 = ibp->sl_to_sc[qp->remote_ah_attr.sl];
++
++	if (qp->s_mig_state == IB_MIG_ARMED && (bth0 & IB_BTH_MIG_REQ)) {
++		if (!has_grh) {
++			if (qp->alt_ah_attr.ah_flags & IB_AH_GRH)
++				goto err;
++		} else {
++			if (!(qp->alt_ah_attr.ah_flags & IB_AH_GRH))
++				goto err;
++			guid = get_sguid(ibp, qp->alt_ah_attr.grh.sgid_index);
++			if (!gid_ok(&hdr->u.l.grh.dgid, ibp->gid_prefix, guid))
++				goto err;
++			if (!gid_ok(&hdr->u.l.grh.sgid,
++			    qp->alt_ah_attr.grh.dgid.global.subnet_prefix,
++			    qp->alt_ah_attr.grh.dgid.global.interface_id))
++				goto err;
++		}
++		if (unlikely(ingress_pkey_check(ppd_from_ibp(ibp), (u16)bth0,
++						sc5, qp->s_alt_pkey_index,
++						be16_to_cpu(hdr->lrh[3])))) {
++			hfi1_bad_pqkey(ibp, IB_NOTICE_TRAP_BAD_PKEY,
++				       (u16)bth0,
++				       (be16_to_cpu(hdr->lrh[0]) >> 4) & 0xF,
++				       0, qp->ibqp.qp_num,
++				       hdr->lrh[3], hdr->lrh[1]);
++			goto err;
++		}
++		/* Validate the SLID. See Ch. 9.6.1.5 and 17.2.8 */
++		if (be16_to_cpu(hdr->lrh[3]) != qp->alt_ah_attr.dlid ||
++		    ppd_from_ibp(ibp)->port != qp->alt_ah_attr.port_num)
++			goto err;
++		spin_lock_irqsave(&qp->s_lock, flags);
++		hfi1_migrate_qp(qp);
++		spin_unlock_irqrestore(&qp->s_lock, flags);
++	} else {
++		if (!has_grh) {
++			if (qp->remote_ah_attr.ah_flags & IB_AH_GRH)
++				goto err;
++		} else {
++			if (!(qp->remote_ah_attr.ah_flags & IB_AH_GRH))
++				goto err;
++			guid = get_sguid(ibp,
++					 qp->remote_ah_attr.grh.sgid_index);
++			if (!gid_ok(&hdr->u.l.grh.dgid, ibp->gid_prefix, guid))
++				goto err;
++			if (!gid_ok(&hdr->u.l.grh.sgid,
++			    qp->remote_ah_attr.grh.dgid.global.subnet_prefix,
++			    qp->remote_ah_attr.grh.dgid.global.interface_id))
++				goto err;
++		}
++		if (unlikely(ingress_pkey_check(ppd_from_ibp(ibp), (u16)bth0,
++						sc5, qp->s_pkey_index,
++						be16_to_cpu(hdr->lrh[3])))) {
++			hfi1_bad_pqkey(ibp, IB_NOTICE_TRAP_BAD_PKEY,
++				       (u16)bth0,
++				       (be16_to_cpu(hdr->lrh[0]) >> 4) & 0xF,
++				       0, qp->ibqp.qp_num,
++				       hdr->lrh[3], hdr->lrh[1]);
++			goto err;
++		}
++		/* Validate the SLID. See Ch. 9.6.1.5 */
++		if (be16_to_cpu(hdr->lrh[3]) != qp->remote_ah_attr.dlid ||
++		    ppd_from_ibp(ibp)->port != qp->port_num)
++			goto err;
++		if (qp->s_mig_state == IB_MIG_REARM &&
++		    !(bth0 & IB_BTH_MIG_REQ))
++			qp->s_mig_state = IB_MIG_ARMED;
++	}
++
++	return 0;
++
++err:
++	return 1;
++}
++
++/**
++ * ruc_loopback - handle UC and RC loopback requests
++ * @sqp: the sending QP
++ *
++ * This is called from hfi1_do_send() to
++ * forward a WQE addressed to the same HCA.
++ * Note that although we are single threaded due to the tasklet, we still
++ * have to protect against post_send().  We don't have to worry about
++ * receive interrupts since this is a connected protocol and all packets
++ * will pass through here.
++ */
++static void ruc_loopback(struct hfi1_qp *sqp)
++{
++	struct hfi1_ibport *ibp = to_iport(sqp->ibqp.device, sqp->port_num);
++	struct hfi1_qp *qp;
++	struct hfi1_swqe *wqe;
++	struct hfi1_sge *sge;
++	unsigned long flags;
++	struct ib_wc wc;
++	u64 sdata;
++	atomic64_t *maddr;
++	enum ib_wc_status send_status;
++	int release;
++	int ret;
++
++	/*
++	 * Note that we check the responder QP state after
++	 * checking the requester's state.
++	 */
++	qp = hfi1_lookup_qpn(ibp, sqp->remote_qpn);
++
++	spin_lock_irqsave(&sqp->s_lock, flags);
++
++	/* Return if we are already busy processing a work request. */
++	if ((sqp->s_flags & (HFI1_S_BUSY | HFI1_S_ANY_WAIT)) ||
++	    !(ib_hfi1_state_ops[sqp->state] & HFI1_PROCESS_OR_FLUSH_SEND))
++		goto unlock;
++
++	sqp->s_flags |= HFI1_S_BUSY;
++
++again:
++	if (sqp->s_last == sqp->s_head)
++		goto clr_busy;
++	wqe = get_swqe_ptr(sqp, sqp->s_last);
++
++	/* Return if it is not OK to start a new work request. */
++	if (!(ib_hfi1_state_ops[sqp->state] & HFI1_PROCESS_NEXT_SEND_OK)) {
++		if (!(ib_hfi1_state_ops[sqp->state] & HFI1_FLUSH_SEND))
++			goto clr_busy;
++		/* We are in the error state, flush the work request. */
++		send_status = IB_WC_WR_FLUSH_ERR;
++		goto flush_send;
++	}
++
++	/*
++	 * We can rely on the entry not changing without the s_lock
++	 * being held until we update s_last.
++	 * We increment s_cur to indicate s_last is in progress.
++	 */
++	if (sqp->s_last == sqp->s_cur) {
++		if (++sqp->s_cur >= sqp->s_size)
++			sqp->s_cur = 0;
++	}
++	spin_unlock_irqrestore(&sqp->s_lock, flags);
++
++	if (!qp || !(ib_hfi1_state_ops[qp->state] & HFI1_PROCESS_RECV_OK) ||
++	    qp->ibqp.qp_type != sqp->ibqp.qp_type) {
++		ibp->n_pkt_drops++;
++		/*
++		 * For RC, the requester would timeout and retry so
++		 * shortcut the timeouts and just signal too many retries.
++		 */
++		if (sqp->ibqp.qp_type == IB_QPT_RC)
++			send_status = IB_WC_RETRY_EXC_ERR;
++		else
++			send_status = IB_WC_SUCCESS;
++		goto serr;
++	}
++
++	memset(&wc, 0, sizeof(wc));
++	send_status = IB_WC_SUCCESS;
++
++	release = 1;
++	sqp->s_sge.sge = wqe->sg_list[0];
++	sqp->s_sge.sg_list = wqe->sg_list + 1;
++	sqp->s_sge.num_sge = wqe->wr.num_sge;
++	sqp->s_len = wqe->length;
++	switch (wqe->wr.opcode) {
++	case IB_WR_SEND_WITH_IMM:
++		wc.wc_flags = IB_WC_WITH_IMM;
++		wc.ex.imm_data = wqe->wr.ex.imm_data;
++		/* FALLTHROUGH */
++	case IB_WR_SEND:
++		ret = hfi1_get_rwqe(qp, 0);
++		if (ret < 0)
++			goto op_err;
++		if (!ret)
++			goto rnr_nak;
++		break;
++
++	case IB_WR_RDMA_WRITE_WITH_IMM:
++		if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_WRITE)))
++			goto inv_err;
++		wc.wc_flags = IB_WC_WITH_IMM;
++		wc.ex.imm_data = wqe->wr.ex.imm_data;
++		ret = hfi1_get_rwqe(qp, 1);
++		if (ret < 0)
++			goto op_err;
++		if (!ret)
++			goto rnr_nak;
++		/* FALLTHROUGH */
++	case IB_WR_RDMA_WRITE:
++		if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_WRITE)))
++			goto inv_err;
++		if (wqe->length == 0)
++			break;
++		if (unlikely(!hfi1_rkey_ok(qp, &qp->r_sge.sge, wqe->length,
++					   wqe->wr.wr.rdma.remote_addr,
++					   wqe->wr.wr.rdma.rkey,
++					   IB_ACCESS_REMOTE_WRITE)))
++			goto acc_err;
++		qp->r_sge.sg_list = NULL;
++		qp->r_sge.num_sge = 1;
++		qp->r_sge.total_len = wqe->length;
++		break;
++
++	case IB_WR_RDMA_READ:
++		if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_READ)))
++			goto inv_err;
++		if (unlikely(!hfi1_rkey_ok(qp, &sqp->s_sge.sge, wqe->length,
++					   wqe->wr.wr.rdma.remote_addr,
++					   wqe->wr.wr.rdma.rkey,
++					   IB_ACCESS_REMOTE_READ)))
++			goto acc_err;
++		release = 0;
++		sqp->s_sge.sg_list = NULL;
++		sqp->s_sge.num_sge = 1;
++		qp->r_sge.sge = wqe->sg_list[0];
++		qp->r_sge.sg_list = wqe->sg_list + 1;
++		qp->r_sge.num_sge = wqe->wr.num_sge;
++		qp->r_sge.total_len = wqe->length;
++		break;
++
++	case IB_WR_ATOMIC_CMP_AND_SWP:
++	case IB_WR_ATOMIC_FETCH_AND_ADD:
++		if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_ATOMIC)))
++			goto inv_err;
++		if (unlikely(!hfi1_rkey_ok(qp, &qp->r_sge.sge, sizeof(u64),
++					   wqe->wr.wr.atomic.remote_addr,
++					   wqe->wr.wr.atomic.rkey,
++					   IB_ACCESS_REMOTE_ATOMIC)))
++			goto acc_err;
++		/* Perform atomic OP and save result. */
++		maddr = (atomic64_t *) qp->r_sge.sge.vaddr;
++		sdata = wqe->wr.wr.atomic.compare_add;
++		*(u64 *) sqp->s_sge.sge.vaddr =
++			(wqe->wr.opcode == IB_WR_ATOMIC_FETCH_AND_ADD) ?
++			(u64) atomic64_add_return(sdata, maddr) - sdata :
++			(u64) cmpxchg((u64 *) qp->r_sge.sge.vaddr,
++				      sdata, wqe->wr.wr.atomic.swap);
++		hfi1_put_mr(qp->r_sge.sge.mr);
++		qp->r_sge.num_sge = 0;
++		goto send_comp;
++
++	default:
++		send_status = IB_WC_LOC_QP_OP_ERR;
++		goto serr;
++	}
++
++	sge = &sqp->s_sge.sge;
++	while (sqp->s_len) {
++		u32 len = sqp->s_len;
++
++		if (len > sge->length)
++			len = sge->length;
++		if (len > sge->sge_length)
++			len = sge->sge_length;
++		BUG_ON(len == 0);
++		hfi1_copy_sge(&qp->r_sge, sge->vaddr, len, release);
++		sge->vaddr += len;
++		sge->length -= len;
++		sge->sge_length -= len;
++		if (sge->sge_length == 0) {
++			if (!release)
++				hfi1_put_mr(sge->mr);
++			if (--sqp->s_sge.num_sge)
++				*sge = *sqp->s_sge.sg_list++;
++		} else if (sge->length == 0 && sge->mr->lkey) {
++			if (++sge->n >= HFI1_SEGSZ) {
++				if (++sge->m >= sge->mr->mapsz)
++					break;
++				sge->n = 0;
++			}
++			sge->vaddr =
++				sge->mr->map[sge->m]->segs[sge->n].vaddr;
++			sge->length =
++				sge->mr->map[sge->m]->segs[sge->n].length;
++		}
++		sqp->s_len -= len;
++	}
++	if (release)
++		hfi1_put_ss(&qp->r_sge);
++
++	if (!test_and_clear_bit(HFI1_R_WRID_VALID, &qp->r_aflags))
++		goto send_comp;
++
++	if (wqe->wr.opcode == IB_WR_RDMA_WRITE_WITH_IMM)
++		wc.opcode = IB_WC_RECV_RDMA_WITH_IMM;
++	else
++		wc.opcode = IB_WC_RECV;
++	wc.wr_id = qp->r_wr_id;
++	wc.status = IB_WC_SUCCESS;
++	wc.byte_len = wqe->length;
++	wc.qp = &qp->ibqp;
++	wc.src_qp = qp->remote_qpn;
++	wc.slid = qp->remote_ah_attr.dlid;
++	wc.sl = qp->remote_ah_attr.sl;
++	wc.port_num = 1;
++	/* Signal completion event if the solicited bit is set. */
++	hfi1_cq_enter(to_icq(qp->ibqp.recv_cq), &wc,
++		      wqe->wr.send_flags & IB_SEND_SOLICITED);
++
++send_comp:
++	spin_lock_irqsave(&sqp->s_lock, flags);
++	ibp->n_loop_pkts++;
++flush_send:
++	sqp->s_rnr_retry = sqp->s_rnr_retry_cnt;
++	hfi1_send_complete(sqp, wqe, send_status);
++	goto again;
++
++rnr_nak:
++	/* Handle RNR NAK */
++	if (qp->ibqp.qp_type == IB_QPT_UC)
++		goto send_comp;
++	ibp->n_rnr_naks++;
++	/*
++	 * Note: we don't need the s_lock held since the BUSY flag
++	 * makes this single threaded.
++	 */
++	if (sqp->s_rnr_retry == 0) {
++		send_status = IB_WC_RNR_RETRY_EXC_ERR;
++		goto serr;
++	}
++	if (sqp->s_rnr_retry_cnt < 7)
++		sqp->s_rnr_retry--;
++	spin_lock_irqsave(&sqp->s_lock, flags);
++	if (!(ib_hfi1_state_ops[sqp->state] & HFI1_PROCESS_RECV_OK))
++		goto clr_busy;
++	sqp->s_flags |= HFI1_S_WAIT_RNR;
++	sqp->s_timer.function = hfi1_rc_rnr_retry;
++	sqp->s_timer.expires = jiffies +
++		usecs_to_jiffies(ib_hfi1_rnr_table[qp->r_min_rnr_timer]);
++	add_timer(&sqp->s_timer);
++	goto clr_busy;
++
++op_err:
++	send_status = IB_WC_REM_OP_ERR;
++	wc.status = IB_WC_LOC_QP_OP_ERR;
++	goto err;
++
++inv_err:
++	send_status = IB_WC_REM_INV_REQ_ERR;
++	wc.status = IB_WC_LOC_QP_OP_ERR;
++	goto err;
++
++acc_err:
++	send_status = IB_WC_REM_ACCESS_ERR;
++	wc.status = IB_WC_LOC_PROT_ERR;
++err:
++	/* responder goes to error state */
++	hfi1_rc_error(qp, wc.status);
++
++serr:
++	spin_lock_irqsave(&sqp->s_lock, flags);
++	hfi1_send_complete(sqp, wqe, send_status);
++	if (sqp->ibqp.qp_type == IB_QPT_RC) {
++		int lastwqe = hfi1_error_qp(sqp, IB_WC_WR_FLUSH_ERR);
++
++		sqp->s_flags &= ~HFI1_S_BUSY;
++		spin_unlock_irqrestore(&sqp->s_lock, flags);
++		if (lastwqe) {
++			struct ib_event ev;
++
++			ev.device = sqp->ibqp.device;
++			ev.element.qp = &sqp->ibqp;
++			ev.event = IB_EVENT_QP_LAST_WQE_REACHED;
++			sqp->ibqp.event_handler(&ev, sqp->ibqp.qp_context);
++		}
++		goto done;
++	}
++clr_busy:
++	sqp->s_flags &= ~HFI1_S_BUSY;
++unlock:
++	spin_unlock_irqrestore(&sqp->s_lock, flags);
++done:
++	if (qp && atomic_dec_and_test(&qp->refcount))
++		wake_up(&qp->wait);
++}
++
++/**
++ * hfi1_make_grh - construct a GRH header
++ * @ibp: a pointer to the IB port
++ * @hdr: a pointer to the GRH header being constructed
++ * @grh: the global route address to send to
++ * @hwords: the number of 32 bit words of header being sent
++ * @nwords: the number of 32 bit words of data being sent
++ *
++ * Return the size of the header in 32 bit words.
++ */
++u32 hfi1_make_grh(struct hfi1_ibport *ibp, struct ib_grh *hdr,
++		  struct ib_global_route *grh, u32 hwords, u32 nwords)
++{
++	hdr->version_tclass_flow =
++		cpu_to_be32((IB_GRH_VERSION << IB_GRH_VERSION_SHIFT) |
++			    (grh->traffic_class << IB_GRH_TCLASS_SHIFT) |
++			    (grh->flow_label << IB_GRH_FLOW_SHIFT));
++	hdr->paylen = cpu_to_be16((hwords - 2 + nwords + SIZE_OF_CRC) << 2);
++	/* next_hdr is defined by C8-7 in ch. 8.4.1 */
++	hdr->next_hdr = IB_GRH_NEXT_HDR;
++	hdr->hop_limit = grh->hop_limit;
++	/* The SGID is 32-bit aligned. */
++	hdr->sgid.global.subnet_prefix = ibp->gid_prefix;
++	hdr->sgid.global.interface_id =
++		grh->sgid_index && grh->sgid_index < ARRAY_SIZE(ibp->guids) ?
++		ibp->guids[grh->sgid_index - 1] : ppd_from_ibp(ibp)->guid;
++	hdr->dgid = grh->dgid;
++
++	/* GRH header size in 32-bit words. */
++	return sizeof(struct ib_grh) / sizeof(u32);
++}
++
++/*
++ * free_ahg - clear ahg from QP
++ */
++void clear_ahg(struct hfi1_qp *qp)
++{
++	qp->s_hdr->ahgcount = 0;
++	qp->s_flags &= ~(HFI1_S_AHG_VALID | HFI1_S_AHG_CLEAR);
++	if (qp->s_sde)
++		sdma_ahg_free(qp->s_sde, qp->s_ahgidx);
++	qp->s_ahgidx = -1;
++	qp->s_sde = NULL;
++}
++
++#define BTH2_OFFSET (offsetof(struct hfi1_pio_header, hdr.u.oth.bth[2]) / 4)
++
++/**
++ * build_ahg - create ahg in s_hdr
++ * @qp: a pointer to QP
++ * @npsn: the next PSN for the request/response
++ *
++ * This routine handles the AHG by allocating an ahg entry and causing the
++ * copy of the first middle.
++ *
++ * Subsequent middles use the copied entry, editing the
++ * PSN with 1 or 2 edits.
++ */
++static inline void build_ahg(struct hfi1_qp *qp, u32 npsn)
++{
++	if (unlikely(qp->s_flags & HFI1_S_AHG_CLEAR))
++		clear_ahg(qp);
++	if (!(qp->s_flags & HFI1_S_AHG_VALID)) {
++		/* first middle that needs copy  */
++		if (qp->s_ahgidx < 0) {
++			if (!qp->s_sde)
++				qp->s_sde = qp_to_sdma_engine(qp, qp->s_sc);
++			qp->s_ahgidx = sdma_ahg_alloc(qp->s_sde);
++		}
++		if (qp->s_ahgidx >= 0) {
++			qp->s_ahgpsn = npsn;
++			qp->s_hdr->tx_flags |= SDMA_TXREQ_F_AHG_COPY;
++			/* save to protect a change in another thread */
++			qp->s_hdr->sde = qp->s_sde;
++			qp->s_hdr->ahgidx = qp->s_ahgidx;
++			qp->s_flags |= HFI1_S_AHG_VALID;
++		}
++	} else {
++		/* subsequent middle after valid */
++		if (qp->s_ahgidx >= 0) {
++			qp->s_hdr->tx_flags |= SDMA_TXREQ_F_USE_AHG;
++			qp->s_hdr->ahgidx = qp->s_ahgidx;
++			qp->s_hdr->ahgcount++;
++			qp->s_hdr->ahgdesc[0] =
++				sdma_build_ahg_descriptor(
++					(__force u16)cpu_to_be16((u16)npsn),
++					BTH2_OFFSET,
++					16,
++					16);
++			if ((npsn & 0xffff0000) !=
++					(qp->s_ahgpsn & 0xffff0000)) {
++				qp->s_hdr->ahgcount++;
++				qp->s_hdr->ahgdesc[1] =
++					sdma_build_ahg_descriptor(
++						(__force u16)cpu_to_be16(
++							(u16)(npsn >> 16)),
++						BTH2_OFFSET,
++						0,
++						16);
++			}
++		}
++	}
++}
++
++void hfi1_make_ruc_header(struct hfi1_qp *qp, struct hfi1_other_headers *ohdr,
++			  u32 bth0, u32 bth2, int middle)
++{
++	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
++	u16 lrh0;
++	u32 nwords;
++	u32 extra_bytes;
++	u8 sc5;
++
++	/* Construct the header. */
++	extra_bytes = -qp->s_cur_size & 3;
++	nwords = (qp->s_cur_size + extra_bytes) >> 2;
++	lrh0 = HFI1_LRH_BTH;
++	if (unlikely(qp->remote_ah_attr.ah_flags & IB_AH_GRH)) {
++		qp->s_hdrwords += hfi1_make_grh(ibp, &qp->s_hdr->ibh.u.l.grh,
++					       &qp->remote_ah_attr.grh,
++					       qp->s_hdrwords, nwords);
++		lrh0 = HFI1_LRH_GRH;
++		middle = 0;
++	}
++	sc5 = ibp->sl_to_sc[qp->remote_ah_attr.sl];
++	lrh0 |= (sc5 & 0xf) << 12 | (qp->remote_ah_attr.sl & 0xf) << 4;
++	qp->s_sc = sc5;
++	/*
++	 * reset s_hdr/AHG fields
++	 *
++	 * This insures that the ahgentry/ahgcount
++	 * are at a non-AHG default to protect
++	 * build_verbs_tx_desc() from using
++	 * an include ahgidx.
++	 *
++	 * build_ahg() will modify as appropriate
++	 * to use the AHG feature.
++	 */
++	qp->s_hdr->tx_flags = 0;
++	qp->s_hdr->ahgcount = 0;
++	qp->s_hdr->ahgidx = 0;
++	qp->s_hdr->sde = NULL;
++	if (qp->s_mig_state == IB_MIG_MIGRATED)
++		bth0 |= IB_BTH_MIG_REQ;
++	else
++		middle = 0;
++	if (middle)
++		build_ahg(qp, bth2);
++	else
++		qp->s_flags &= ~HFI1_S_AHG_VALID;
++	qp->s_hdr->ibh.lrh[0] = cpu_to_be16(lrh0);
++	qp->s_hdr->ibh.lrh[1] = cpu_to_be16(qp->remote_ah_attr.dlid);
++	qp->s_hdr->ibh.lrh[2] =
++		cpu_to_be16(qp->s_hdrwords + nwords + SIZE_OF_CRC);
++	qp->s_hdr->ibh.lrh[3] = cpu_to_be16(ppd_from_ibp(ibp)->lid |
++				       qp->remote_ah_attr.src_path_bits);
++	bth0 |= hfi1_get_pkey(ibp, qp->s_pkey_index);
++	bth0 |= extra_bytes << 20;
++	ohdr->bth[0] = cpu_to_be32(bth0);
++	ohdr->bth[1] = cpu_to_be32(qp->remote_qpn);
++	if (test_and_clear_bit(HFI1_S_ECN, &qp->s_aflags))
++		/* we recently received a FECN, so return a BECN */
++		ohdr->bth[1] |= cpu_to_be32(HFI1_BECN_MASK << HFI1_BECN_SHIFT);
++	ohdr->bth[2] = cpu_to_be32(bth2);
++}
++
++/**
++ * hfi1_do_send - perform a send on a QP
++ * @work: contains a pointer to the QP
++ *
++ * Process entries in the send work queue until credit or queue is
++ * exhausted.  Only allow one CPU to send a packet per QP (tasklet).
++ * Otherwise, two threads could send packets out of order.
++ */
++void hfi1_do_send(struct work_struct *work)
++{
++	struct iowait *wait = container_of(work, struct iowait, iowork);
++	struct hfi1_qp *qp = container_of(wait, struct hfi1_qp, s_iowait);
++	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
++	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
++	int (*make_req)(struct hfi1_qp *qp);
++	unsigned long flags;
++
++	if ((qp->ibqp.qp_type == IB_QPT_RC ||
++	     qp->ibqp.qp_type == IB_QPT_UC) &&
++	    !loopback &&
++	    (qp->remote_ah_attr.dlid & ~((1 << ppd->lmc) - 1)) == ppd->lid) {
++		ruc_loopback(qp);
++		return;
++	}
++
++	if (qp->ibqp.qp_type == IB_QPT_RC)
++		make_req = hfi1_make_rc_req;
++	else if (qp->ibqp.qp_type == IB_QPT_UC)
++		make_req = hfi1_make_uc_req;
++	else
++		make_req = hfi1_make_ud_req;
++
++	spin_lock_irqsave(&qp->s_lock, flags);
++
++	/* Return if we are already busy processing a work request. */
++	if (!hfi1_send_ok(qp)) {
++		spin_unlock_irqrestore(&qp->s_lock, flags);
++		return;
++	}
++
++	qp->s_flags |= HFI1_S_BUSY;
++
++	spin_unlock_irqrestore(&qp->s_lock, flags);
++
++	do {
++		/* Check for a constructed packet to be sent. */
++		if (qp->s_hdrwords != 0) {
++			/*
++			 * If the packet cannot be sent now, return and
++			 * the send tasklet will be woken up later.
++			 */
++			if (hfi1_verbs_send(qp, qp->s_hdr, qp->s_hdrwords,
++					    qp->s_cur_sge, qp->s_cur_size))
++				break;
++			/* Record that s_hdr is empty. */
++			qp->s_hdrwords = 0;
++		}
++	} while (make_req(qp));
++}
++
++/*
++ * This should be called with s_lock held.
++ */
++void hfi1_send_complete(struct hfi1_qp *qp, struct hfi1_swqe *wqe,
++			enum ib_wc_status status)
++{
++	u32 old_last, last;
++	unsigned i;
++
++	if (!(ib_hfi1_state_ops[qp->state] & HFI1_PROCESS_OR_FLUSH_SEND))
++		return;
++
++	for (i = 0; i < wqe->wr.num_sge; i++) {
++		struct hfi1_sge *sge = &wqe->sg_list[i];
++
++		hfi1_put_mr(sge->mr);
++	}
++	if (qp->ibqp.qp_type == IB_QPT_UD ||
++	    qp->ibqp.qp_type == IB_QPT_SMI ||
++	    qp->ibqp.qp_type == IB_QPT_GSI)
++		atomic_dec(&to_iah(wqe->wr.wr.ud.ah)->refcount);
++
++	/* See ch. 11.2.4.1 and 10.7.3.1 */
++	if (!(qp->s_flags & HFI1_S_SIGNAL_REQ_WR) ||
++	    (wqe->wr.send_flags & IB_SEND_SIGNALED) ||
++	    status != IB_WC_SUCCESS) {
++		struct ib_wc wc;
++
++		memset(&wc, 0, sizeof(wc));
++		wc.wr_id = wqe->wr.wr_id;
++		wc.status = status;
++		wc.opcode = ib_hfi1_wc_opcode[wqe->wr.opcode];
++		wc.qp = &qp->ibqp;
++		if (status == IB_WC_SUCCESS)
++			wc.byte_len = wqe->length;
++		hfi1_cq_enter(to_icq(qp->ibqp.send_cq), &wc,
++			      status != IB_WC_SUCCESS);
++	}
++
++	last = qp->s_last;
++	old_last = last;
++	if (++last >= qp->s_size)
++		last = 0;
++	qp->s_last = last;
++	if (qp->s_acked == old_last)
++		qp->s_acked = last;
++	if (qp->s_cur == old_last)
++		qp->s_cur = last;
++	if (qp->s_tail == old_last)
++		qp->s_tail = last;
++	if (qp->state == IB_QPS_SQD && last == qp->s_cur)
++		qp->s_draining = 0;
 +}
 
 --
