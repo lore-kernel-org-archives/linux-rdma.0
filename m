@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v3 20/49] IB/hfi1: add interrupt hooks
-Date: Wed, 17 Jun 2015 08:30:23 -0400
-Message-ID: <20150617123023.8744.44017.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH v3 21/49] IB/hfi1: add progress delay/restart hooks
+Date: Wed, 17 Jun 2015 08:30:28 -0400
+Message-ID: <20150617123028.8744.79229.stgit@phlsvslse11.ph.intel.com>
 References: <20150617122755.8744.44665.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -37,16 +37,18 @@ Signed-off-by: Sanath Kumar <sanath.s.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.
 Signed-off-by: Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Vlad Danushevsky <vladimir.danusevsky-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/intr.c |  204 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 204 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi1/intr.c
+ drivers/infiniband/hw/hfi1/iowait.h |  186 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 186 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi1/iowait.h
 
-diff --git a/drivers/infiniband/hw/hfi1/intr.c b/drivers/infiniband/hw/hfi1/intr.c
+diff --git a/drivers/infiniband/hw/hfi1/iowait.h b/drivers/infiniband/hw/hfi1/iowait.h
 new file mode 100644
-index 0000000..4780b89
+index 0000000..fa361b4
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/intr.c
-@@ -0,0 +1,204 @@
++++ b/drivers/infiniband/hw/hfi1/iowait.h
+@@ -0,0 +1,186 @@
++#ifndef _HFI1_IOWAIT_H
++#define _HFI1_IOWAIT_H
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -97,160 +99,140 @@ index 0000000..4780b89
 + *
 + */
 +
-+#include <linux/pci.h>
-+#include <linux/delay.h>
-+
-+#include "hfi.h"
-+#include "common.h"
-+#include "sdma.h"
-+
-+/**
-+ * format_hwmsg - format a single hwerror message
-+ * @msg message buffer
-+ * @msgl length of message buffer
-+ * @hwmsg message to add to message buffer
-+ */
-+static void format_hwmsg(char *msg, size_t msgl, const char *hwmsg)
-+{
-+	strlcat(msg, "[", msgl);
-+	strlcat(msg, hwmsg, msgl);
-+	strlcat(msg, "]", msgl);
-+}
-+
-+/**
-+ * hfi1_format_hwerrors - format hardware error messages for display
-+ * @hwerrs hardware errors bit vector
-+ * @hwerrmsgs hardware error descriptions
-+ * @nhwerrmsgs number of hwerrmsgs
-+ * @msg message buffer
-+ * @msgl message buffer length
-+ */
-+void hfi1_format_hwerrors(u64 hwerrs, const struct hfi1_hwerror_msgs *hwerrmsgs,
-+			  size_t nhwerrmsgs, char *msg, size_t msgl)
-+{
-+	int i;
-+
-+	for (i = 0; i < nhwerrmsgs; i++)
-+		if (hwerrs & hwerrmsgs[i].mask)
-+			format_hwmsg(msg, msgl, hwerrmsgs[i].msg);
-+}
-+
-+static void signal_ib_event(struct hfi1_pportdata *ppd, enum ib_event_type ev)
-+{
-+	struct ib_event event;
-+	struct hfi1_devdata *dd = ppd->dd;
-+
-+	/*
-+	 * Only call ib_dispatch_event() if the IB device has been
-+	 * registered.  HFI1_INITED is set iff the driver has successfully
-+	 * registered with the IB core.
-+	 */
-+	if (!(dd->flags & HFI1_INITTED))
-+		return;
-+	event.device = &dd->verbs_dev.ibdev;
-+	event.element.port_num = ppd->port;
-+	event.event = ev;
-+	ib_dispatch_event(&event);
-+}
++#include <linux/list.h>
++#include <linux/workqueue.h>
++#include <linux/sched.h>
 +
 +/*
-+ * Handle a linkup or link down notification.
-+ * This is called outside an interrupt.
++ * typedef (*restart_t)() - restart callback
++ * @work: pointer to work structure
 + */
-+void handle_linkup_change(struct hfi1_devdata *dd, u32 linkup)
++typedef void (*restart_t)(struct work_struct *work);
++
++struct sdma_txreq;
++struct sdma_engine;
++/**
++ * struct iowait - linkage for delayed progress/waiting
++ * @list: used to add/insert into QP/PQ wait lists
++ * @tx_head: overflow list of sdma_txreq's
++ * @sleep: no space callback
++ * @wakeup: space callback
++ * @iowork: workqueue overhead
++ * @wait_dma: wait for sdma_busy == 0
++ * @sdma_busy: # of packets in flight
++ * @count: total number of descriptors in tx_head'ed list
++ * @tx_limit: limit for overflow queuing
++ * @tx_count: number of tx entry's in tx_head'ed list
++ *
++ * This is to be embedded in user's state structure
++ * (QP or PQ).
++ *
++ * The sleep and wakeup members are a
++ * bit misnamed.   They do not strictly
++ * speaking sleep or wake up, but they
++ * are callbacks for the ULP to implement
++ * what ever queuing/dequeuing of
++ * the embedded iowait and its containing struct
++ * when a resource shortage like SDMA ring space is seen.
++ *
++ * Both potentially have locks help
++ * so sleeping is not allowed.
++ *
++ * The wait_dma member along with the iow
++ */
++
++struct iowait {
++	struct list_head list;
++	struct list_head tx_head;
++	int (*sleep)(
++		struct sdma_engine *sde,
++		struct iowait *wait,
++		struct sdma_txreq *tx,
++		unsigned seq);
++	void (*wakeup)(struct iowait *wait, int reason);
++	struct work_struct iowork;
++	wait_queue_head_t wait_dma;
++	atomic_t sdma_busy;
++	u32 count;
++	u32 tx_limit;
++	u32 tx_count;
++};
++
++#define SDMA_AVAIL_REASON 0
++
++/**
++ * iowait_init() - initialize wait structure
++ * @wait: wait struct to initialize
++ * @tx_limit: limit for overflow queuing
++ * @func: restart function for workqueue
++ * @sleep: sleep function for no space
++ * @wakeup: wakeup function for no space
++ *
++ * This function initializes the iowait
++ * structure embedded in the QP or PQ.
++ *
++ */
++
++static inline void iowait_init(
++	struct iowait *wait,
++	u32 tx_limit,
++	void (*func)(struct work_struct *work),
++	int (*sleep)(
++		struct sdma_engine *sde,
++		struct iowait *wait,
++		struct sdma_txreq *tx,
++		unsigned seq),
++	void (*wakeup)(struct iowait *wait, int reason))
 +{
-+	struct hfi1_pportdata *ppd = &dd->pport[0];
-+	enum ib_event_type ev;
-+
-+	if (!(ppd->linkup ^ !!linkup))
-+		return;	/* no change, nothing to do */
-+
-+	if (linkup) {
-+		/*
-+		 * Quick linkup and all link up on the simulator does not
-+		 * trigger or implement:
-+		 *	- VerifyCap interrupt
-+		 *	- VerifyCap frames
-+		 * But rather moves directly to LinkUp.
-+		 *
-+		 * Do the work of the VerifyCap interrupt handler,
-+		 * handle_verify_cap(), but do not try moving the state to
-+		 * LinkUp as we are already there.
-+		 *
-+		 * NOTE: This uses this device's vAU, vCU, and vl15_init for
-+		 * the remote values.  Both sides must be using the values.
-+		 */
-+		if (quick_linkup
-+			    || dd->icode == ICODE_FUNCTIONAL_SIMULATOR) {
-+			set_up_vl15(dd, dd->vau, dd->vl15_init);
-+			assign_remote_cm_au_table(dd, dd->vcu);
-+			ppd->neighbor_guid =
-+				cpu_to_be64(read_csr(dd,
-+					DC_DC8051_STS_REMOTE_GUID));
-+			ppd->neighbor_type =
-+				read_csr(dd, DC_DC8051_STS_REMOTE_NODE_TYPE) &
-+					DC_DC8051_STS_REMOTE_NODE_TYPE_VAL_MASK;
-+			dd_dev_info(dd,
-+				"Neighbor GUID: %llx Neighbor type %d\n",
-+				be64_to_cpu(ppd->neighbor_guid),
-+				ppd->neighbor_type);
-+		}
-+
-+		/* physical link went up */
-+		ppd->linkup = 1;
-+		ppd->offline_disabled_reason = OPA_LINKDOWN_REASON_NONE;
-+
-+		/* link widths are not available until the link is fully up */
-+		get_linkup_link_widths(ppd);
-+
-+	} else {
-+		/* physical link went down */
-+		ppd->linkup = 0;
-+
-+		/* clear HW details of the previous connection */
-+		reset_link_credits(dd);
-+
-+		/* freeze after a link down to guarantee a clean egress */
-+		start_freeze_handling(ppd, FREEZE_SELF|FREEZE_LINK_DOWN);
-+
-+		ev = IB_EVENT_PORT_ERR;
-+
-+		hfi1_set_uevent_bits(ppd, _HFI1_EVENT_LINKDOWN_BIT);
-+
-+		/* if we are down, the neighbor is down */
-+		ppd->neighbor_normal = 0;
-+
-+		/* notify IB of the link change */
-+		signal_ib_event(ppd, ev);
-+	}
-+
-+
++	wait->count = 0;
++	INIT_LIST_HEAD(&wait->list);
++	INIT_LIST_HEAD(&wait->tx_head);
++	INIT_WORK(&wait->iowork, func);
++	init_waitqueue_head(&wait->wait_dma);
++	atomic_set(&wait->sdma_busy, 0);
++	wait->tx_limit = tx_limit;
++	wait->sleep = sleep;
++	wait->wakeup = wakeup;
 +}
 +
-+/*
-+ * Handle receive or urgent interrupts for user contexts.  This means a user
-+ * process was waiting for a packet to arrive, and didn't want to poll.
++/**
++ * iowait_schedule() - initialize wait structure
++ * @wait: wait struct to schedule
++ * @wq: workqueue for schedule
 + */
-+void handle_user_interrupt(struct hfi1_ctxtdata *rcd)
++static inline void iowait_schedule(
++	struct iowait *wait,
++	struct workqueue_struct *wq)
 +{
-+	struct hfi1_devdata *dd = rcd->dd;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&dd->uctxt_lock, flags);
-+	if (!rcd->cnt)
-+		goto done;
-+
-+	if (test_and_clear_bit(HFI1_CTXT_WAITING_RCV, &rcd->event_flags)) {
-+		wake_up_interruptible(&rcd->wait);
-+		hfi1_rcvctrl(dd, HFI1_RCVCTRL_INTRAVAIL_DIS, rcd->ctxt);
-+	} else if (test_and_clear_bit(HFI1_CTXT_WAITING_URG,
-+							&rcd->event_flags)) {
-+		rcd->urgent++;
-+		wake_up_interruptible(&rcd->wait);
-+	}
-+done:
-+	spin_unlock_irqrestore(&dd->uctxt_lock, flags);
++	queue_work(wq, &wait->iowork);
 +}
++
++/**
++ * iowait_sdma_drain() - wait for DMAs to drain
++ *
++ * @wait: iowait structure
++ *
++ * This will delay until the iowait sdmas have
++ * completed.
++ */
++static inline void iowait_sdma_drain(struct iowait *wait)
++{
++	wait_event(wait->wait_dma, !atomic_read(&wait->sdma_busy));
++}
++
++/**
++ * iowait_drain_wakeup() - trigger iowait_drain() waiter
++ *
++ * @wait: iowait structure
++ *
++ * This will trigger any waiters.
++ */
++static inline void iowait_drain_wakeup(struct iowait *wait)
++{
++	wake_up(&wait->wait_dma);
++}
++
++#endif
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
