@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v3 01/49] IB/core: Add header definitions
-Date: Wed, 17 Jun 2015 08:28:41 -0400
-Message-ID: <20150617122840.8744.38451.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH v3 03/49] IB/hfi1: add chip specific support part2
+Date: Wed, 17 Jun 2015 08:28:51 -0400
+Message-ID: <20150617122851.8744.80472.stgit@phlsvslse11.ph.intel.com>
 References: <20150617122755.8744.44665.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,1289 +13,2931 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-Add common OPA header definitions for driver
-build:
-- opa_port_info.h
-- opa_smi.h
-- hfi1_user.sh
-
-Additionally, ib_mad.h, has additional definitions
-that are common to ib_drivers including:
-- trap support
-- cca support
-
-The qib driver has the duplication removed in favor
-those in ib_mad.h
-
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: John, Jubin <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Andrew Friedley <andrew.friedley-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Arthur Kepner <arthur.kepner-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Brendan Cunningham <brendan.cunningham-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Brian Welty <brian.welty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Caz Yokoyama <caz.yokoyama-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jim Snow <jim.m.snow-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: John Gregor <john.a.gregor-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Kevin Pine <kevin.pine-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Kyle Liddell <kyle.liddell-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ravi Krishnaswamy <ravi.krishnaswamy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sadanand Warrier <sadanand.warrier-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sanath Kumar <sanath.s.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Vlad Danushevsky <vladimir.danusevsky-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_mad.h |  147 +-----------
- include/rdma/ib_mad.h               |  138 +++++++++++
- include/rdma/opa_port_info.h        |  433 +++++++++++++++++++++++++++++++++++
- include/rdma/opa_smi.h              |   47 ++++
- include/uapi/rdma/hfi/hfi1_user.h   |  427 +++++++++++++++++++++++++++++++++++
- 5 files changed, 1053 insertions(+), 139 deletions(-)
- create mode 100644 include/rdma/opa_port_info.h
- create mode 100644 include/uapi/rdma/hfi/hfi1_user.h
+ drivers/infiniband/hw/hfi1/chip.c | 2890 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 2890 insertions(+)
 
-diff --git a/drivers/infiniband/hw/qib/qib_mad.h b/drivers/infiniband/hw/qib/qib_mad.h
-index 941d4d5..57e99dc 100644
---- a/drivers/infiniband/hw/qib/qib_mad.h
-+++ b/drivers/infiniband/hw/qib/qib_mad.h
-@@ -36,148 +36,17 @@
- 
- #include <rdma/ib_pma.h>
- 
--#define IB_SMP_UNSUP_VERSION    cpu_to_be16(0x0004)
--#define IB_SMP_UNSUP_METHOD     cpu_to_be16(0x0008)
--#define IB_SMP_UNSUP_METH_ATTR  cpu_to_be16(0x000C)
--#define IB_SMP_INVALID_FIELD    cpu_to_be16(0x001C)
-+#define IB_SMP_UNSUP_VERSION \
-+cpu_to_be16(IB_MGMT_MAD_STATUS_BAD_VERSION)
- 
--struct ib_node_info {
--	u8 base_version;
--	u8 class_version;
--	u8 node_type;
--	u8 num_ports;
--	__be64 sys_guid;
--	__be64 node_guid;
--	__be64 port_guid;
--	__be16 partition_cap;
--	__be16 device_id;
--	__be32 revision;
--	u8 local_port_num;
--	u8 vendor_id[3];
--} __packed;
--
--struct ib_mad_notice_attr {
--	u8 generic_type;
--	u8 prod_type_msb;
--	__be16 prod_type_lsb;
--	__be16 trap_num;
--	__be16 issuer_lid;
--	__be16 toggle_count;
--
--	union {
--		struct {
--			u8	details[54];
--		} raw_data;
--
--		struct {
--			__be16	reserved;
--			__be16	lid;		/* where violation happened */
--			u8	port_num;	/* where violation happened */
--		} __packed ntc_129_131;
--
--		struct {
--			__be16	reserved;
--			__be16	lid;		/* LID where change occurred */
--			u8	reserved2;
--			u8	local_changes;	/* low bit - local changes */
--			__be32	new_cap_mask;	/* new capability mask */
--			u8	reserved3;
--			u8	change_flags;	/* low 3 bits only */
--		} __packed ntc_144;
--
--		struct {
--			__be16	reserved;
--			__be16	lid;		/* lid where sys guid changed */
--			__be16	reserved2;
--			__be64	new_sys_guid;
--		} __packed ntc_145;
--
--		struct {
--			__be16	reserved;
--			__be16	lid;
--			__be16	dr_slid;
--			u8	method;
--			u8	reserved2;
--			__be16	attr_id;
--			__be32	attr_mod;
--			__be64	mkey;
--			u8	reserved3;
--			u8	dr_trunc_hop;
--			u8	dr_rtn_path[30];
--		} __packed ntc_256;
--
--		struct {
--			__be16		reserved;
--			__be16		lid1;
--			__be16		lid2;
--			__be32		key;
--			__be32		sl_qp1;	/* SL: high 4 bits */
--			__be32		qp2;	/* high 8 bits reserved */
--			union ib_gid	gid1;
--			union ib_gid	gid2;
--		} __packed ntc_257_258;
--
--	} details;
--};
--
--/*
-- * Generic trap/notice types
-- */
--#define IB_NOTICE_TYPE_FATAL	0x80
--#define IB_NOTICE_TYPE_URGENT	0x81
--#define IB_NOTICE_TYPE_SECURITY	0x82
--#define IB_NOTICE_TYPE_SM	0x83
--#define IB_NOTICE_TYPE_INFO	0x84
-+#define IB_SMP_UNSUP_METHOD \
-+cpu_to_be16(IB_MGMT_MAD_STATUS_UNSUPPORTED_METHOD)
- 
--/*
-- * Generic trap/notice producers
-- */
--#define IB_NOTICE_PROD_CA		cpu_to_be16(1)
--#define IB_NOTICE_PROD_SWITCH		cpu_to_be16(2)
--#define IB_NOTICE_PROD_ROUTER		cpu_to_be16(3)
--#define IB_NOTICE_PROD_CLASS_MGR	cpu_to_be16(4)
-+#define IB_SMP_UNSUP_METH_ATTR \
-+cpu_to_be16(IB_MGMT_MAD_STATUS_UNSUPPORTED_METHOD_ATTRIB)
- 
--/*
-- * Generic trap/notice numbers
-- */
--#define IB_NOTICE_TRAP_LLI_THRESH	cpu_to_be16(129)
--#define IB_NOTICE_TRAP_EBO_THRESH	cpu_to_be16(130)
--#define IB_NOTICE_TRAP_FLOW_UPDATE	cpu_to_be16(131)
--#define IB_NOTICE_TRAP_CAP_MASK_CHG	cpu_to_be16(144)
--#define IB_NOTICE_TRAP_SYS_GUID_CHG	cpu_to_be16(145)
--#define IB_NOTICE_TRAP_BAD_MKEY		cpu_to_be16(256)
--#define IB_NOTICE_TRAP_BAD_PKEY		cpu_to_be16(257)
--#define IB_NOTICE_TRAP_BAD_QKEY		cpu_to_be16(258)
--
--/*
-- * Repress trap/notice flags
-- */
--#define IB_NOTICE_REPRESS_LLI_THRESH	(1 << 0)
--#define IB_NOTICE_REPRESS_EBO_THRESH	(1 << 1)
--#define IB_NOTICE_REPRESS_FLOW_UPDATE	(1 << 2)
--#define IB_NOTICE_REPRESS_CAP_MASK_CHG	(1 << 3)
--#define IB_NOTICE_REPRESS_SYS_GUID_CHG	(1 << 4)
--#define IB_NOTICE_REPRESS_BAD_MKEY	(1 << 5)
--#define IB_NOTICE_REPRESS_BAD_PKEY	(1 << 6)
--#define IB_NOTICE_REPRESS_BAD_QKEY	(1 << 7)
--
--/*
-- * Generic trap/notice other local changes flags (trap 144).
-- */
--#define IB_NOTICE_TRAP_LSE_CHG		0x04	/* Link Speed Enable changed */
--#define IB_NOTICE_TRAP_LWE_CHG		0x02	/* Link Width Enable changed */
--#define IB_NOTICE_TRAP_NODE_DESC_CHG	0x01
--
--/*
-- * Generic trap/notice M_Key volation flags in dr_trunc_hop (trap 256).
-- */
--#define IB_NOTICE_TRAP_DR_NOTICE	0x80
--#define IB_NOTICE_TRAP_DR_TRUNC		0x40
--
--struct ib_vl_weight_elem {
--	u8      vl;     /* Only low 4 bits, upper 4 bits reserved */
--	u8      weight;
--};
-+#define IB_SMP_INVALID_FIELD \
-+cpu_to_be16(IB_MGMT_MAD_STATUS_INVALID_ATTRIB_VALUE)
- 
- #define IB_VLARB_LOWPRI_0_31    1
- #define IB_VLARB_LOWPRI_32_63   2
-diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
-index c8422d5..d5ac022 100644
---- a/include/rdma/ib_mad.h
-+++ b/include/rdma/ib_mad.h
-@@ -127,6 +127,60 @@
- #define IB_DEFAULT_PKEY_PARTIAL 0x7FFF
- #define IB_DEFAULT_PKEY_FULL	0xFFFF
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index 2bb026d..ed03311 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -2140,3 +2140,2893 @@ static void handle_cce_err(struct hfi1_devdata *dd, u32 unused, u64 reg)
+ 	}
+ }
  
 +/*
-+ * Generic trap/notice types
++ * Check counters for receive errors that do not have an interrupt
++ * associated with them.
 + */
-+#define IB_NOTICE_TYPE_FATAL	0x80
-+#define IB_NOTICE_TYPE_URGENT	0x81
-+#define IB_NOTICE_TYPE_SECURITY	0x82
-+#define IB_NOTICE_TYPE_SM	0x83
-+#define IB_NOTICE_TYPE_INFO	0x84
++#define RCVERR_CHECK_TIME 10
++static void update_rcverr_timer(unsigned long opaque)
++{
++	struct hfi1_devdata *dd = (struct hfi1_devdata *)opaque;
++	struct hfi1_pportdata *ppd = dd->pport;
++	u32 cur_ovfl_cnt = read_dev_cntr(dd, C_RCV_OVF, CNTR_INVALID_VL);
++
++	if (dd->rcv_ovfl_cnt < cur_ovfl_cnt &&
++		ppd->port_error_action & OPA_PI_MASK_EX_BUFFER_OVERRUN) {
++		dd_dev_info(dd, "%s: PortErrorAction bounce\n", __func__);
++		set_link_down_reason(ppd,
++		  OPA_LINKDOWN_REASON_EXCESSIVE_BUFFER_OVERRUN, 0,
++			OPA_LINKDOWN_REASON_EXCESSIVE_BUFFER_OVERRUN);
++		start_link(ppd);
++	}
++	dd->rcv_ovfl_cnt = (u32) cur_ovfl_cnt;
++
++	mod_timer(&dd->rcverr_timer, jiffies + HZ * RCVERR_CHECK_TIME);
++}
++
++static int init_rcverr(struct hfi1_devdata *dd)
++{
++	init_timer(&dd->rcverr_timer);
++	dd->rcverr_timer.function = update_rcverr_timer;
++	dd->rcverr_timer.data = (unsigned long) dd;
++	/* Assume the hardware counter has been reset */
++	dd->rcv_ovfl_cnt = 0;
++	return mod_timer(&dd->rcverr_timer, jiffies + HZ * RCVERR_CHECK_TIME);
++}
++
++static void free_rcverr(struct hfi1_devdata *dd)
++{
++	if (dd->rcverr_timer.data)
++		del_timer_sync(&dd->rcverr_timer);
++	dd->rcverr_timer.data = 0;
++}
++
++static void handle_rxe_err(struct hfi1_devdata *dd, u32 unused, u64 reg)
++{
++	char buf[96];
++
++	dd_dev_info(dd, "Receive Error: %s\n",
++		rxe_err_status_string(buf, sizeof(buf), reg));
++
++	if (reg & ALL_RXE_FREEZE_ERR) {
++		int flags = 0;
++
++		/*
++		 * Freeze mode recovery is disabled for the errors
++		 * in RXE_FREEZE_ABORT_MASK
++		 */
++		if (is_a0(dd) && (reg & RXE_FREEZE_ABORT_MASK))
++			flags = FREEZE_ABORT;
++
++		start_freeze_handling(dd->pport, flags);
++	}
++}
++
++static void handle_misc_err(struct hfi1_devdata *dd, u32 unused, u64 reg)
++{
++	char buf[96];
++
++	dd_dev_info(dd, "Misc Error: %s",
++		misc_err_status_string(buf, sizeof(buf), reg));
++}
++
++static void handle_pio_err(struct hfi1_devdata *dd, u32 unused, u64 reg)
++{
++	char buf[96];
++
++	dd_dev_info(dd, "PIO Error: %s\n",
++		pio_err_status_string(buf, sizeof(buf), reg));
++
++	if (reg & ALL_PIO_FREEZE_ERR)
++		start_freeze_handling(dd->pport, 0);
++}
++
++static void handle_sdma_err(struct hfi1_devdata *dd, u32 unused, u64 reg)
++{
++	char buf[96];
++
++	dd_dev_info(dd, "SDMA Error: %s\n",
++		sdma_err_status_string(buf, sizeof(buf), reg));
++
++	if (reg & ALL_SDMA_FREEZE_ERR)
++		start_freeze_handling(dd->pport, 0);
++}
++
++static void count_port_inactive(struct hfi1_devdata *dd)
++{
++	struct hfi1_pportdata *ppd = dd->pport;
++
++	if (ppd->port_xmit_discards < ~(u64)0)
++		ppd->port_xmit_discards++;
++}
 +
 +/*
-+ * Generic trap/notice producers
++ * We have had a "disallowed packet" error during egress. Determine the
++ * integrity check which failed, and update relevant error counter, etc.
++ *
++ * Note that the SEND_EGRESS_ERR_INFO register has only a single
++ * bit of state per integrity check, and so we can miss the reason for an
++ * egress error if more than one packet fails the same integrity check
++ * since we cleared the corresponding bit in SEND_EGRESS_ERR_INFO.
 + */
-+#define IB_NOTICE_PROD_CA		cpu_to_be16(1)
-+#define IB_NOTICE_PROD_SWITCH		cpu_to_be16(2)
-+#define IB_NOTICE_PROD_ROUTER		cpu_to_be16(3)
-+#define IB_NOTICE_PROD_CLASS_MGR	cpu_to_be16(4)
++static void handle_send_egress_err_info(struct hfi1_devdata *dd)
++{
++	struct hfi1_pportdata *ppd = dd->pport;
++	u64 src = read_csr(dd, SEND_EGRESS_ERR_SOURCE); /* read first */
++	u64 info = read_csr(dd, SEND_EGRESS_ERR_INFO);
++	char buf[96];
++
++	/* clear down all observed info as quickly as possible after read */
++	write_csr(dd, SEND_EGRESS_ERR_INFO, info);
++
++	dd_dev_info(dd,
++		"Egress Error Info: 0x%llx, %s Egress Error Src 0x%llx\n",
++		info, egress_err_info_string(buf, sizeof(buf), info), src);
++
++	/* Eventually add other counters for each bit */
++
++	if (info & SEND_EGRESS_ERR_INFO_TOO_LONG_IB_PACKET_ERR_SMASK) {
++		if (ppd->port_xmit_discards < ~(u64)0)
++			ppd->port_xmit_discards++;
++	}
++}
 +
 +/*
-+ * Generic trap/notice numbers
++ * Input value is a bit position within the SEND_EGRESS_ERR_STATUS
++ * register. Does it represent a 'port inactive' error?
 + */
-+#define IB_NOTICE_TRAP_LLI_THRESH	cpu_to_be16(129)
-+#define IB_NOTICE_TRAP_EBO_THRESH	cpu_to_be16(130)
-+#define IB_NOTICE_TRAP_FLOW_UPDATE	cpu_to_be16(131)
-+#define IB_NOTICE_TRAP_CAP_MASK_CHG	cpu_to_be16(144)
-+#define IB_NOTICE_TRAP_SYS_GUID_CHG	cpu_to_be16(145)
-+#define IB_NOTICE_TRAP_BAD_MKEY		cpu_to_be16(256)
-+#define IB_NOTICE_TRAP_BAD_PKEY		cpu_to_be16(257)
-+#define IB_NOTICE_TRAP_BAD_QKEY		cpu_to_be16(258)
++static inline int port_inactive_err(u64 posn)
++{
++	return (posn >= SEES(TX_LINKDOWN) &&
++		posn <= SEES(TX_INCORRECT_LINK_STATE));
++}
 +
 +/*
-+ * Repress trap/notice flags
++ * Input value is a bit position within the SEND_EGRESS_ERR_STATUS
++ * register. Does it represent a 'disallowed packet' error?
 + */
-+#define IB_NOTICE_REPRESS_LLI_THRESH	(1 << 0)
-+#define IB_NOTICE_REPRESS_EBO_THRESH	(1 << 1)
-+#define IB_NOTICE_REPRESS_FLOW_UPDATE	(1 << 2)
-+#define IB_NOTICE_REPRESS_CAP_MASK_CHG	(1 << 3)
-+#define IB_NOTICE_REPRESS_SYS_GUID_CHG	(1 << 4)
-+#define IB_NOTICE_REPRESS_BAD_MKEY	(1 << 5)
-+#define IB_NOTICE_REPRESS_BAD_PKEY	(1 << 6)
-+#define IB_NOTICE_REPRESS_BAD_QKEY	(1 << 7)
++static inline int disallowed_pkt_err(u64 posn)
++{
++	return (posn >= SEES(TX_SDMA0_DISALLOWED_PACKET) &&
++		posn <= SEES(TX_SDMA15_DISALLOWED_PACKET));
++}
++
++static void handle_egress_err(struct hfi1_devdata *dd, u32 unused, u64 reg)
++{
++	u64 reg_copy = reg, handled = 0;
++	char buf[96];
++
++	if (reg & ALL_TXE_EGRESS_FREEZE_ERR)
++		start_freeze_handling(dd->pport, 0);
++	if (is_a0(dd) && (reg &
++		    SEND_EGRESS_ERR_STATUS_TX_CREDIT_RETURN_VL_ERR_SMASK)
++		    && (dd->icode != ICODE_FUNCTIONAL_SIMULATOR))
++		start_freeze_handling(dd->pport, 0);
++
++	while (reg_copy) {
++		int posn = fls64(reg_copy);
++		/*
++		 * fls64() returns a 1-based offset, but we generally
++		 * want 0-based offsets.
++		 */
++		int shift = posn - 1;
++
++		if (port_inactive_err(shift)) {
++			count_port_inactive(dd);
++			handled |= (1ULL << shift);
++		} else if (disallowed_pkt_err(shift)) {
++			handle_send_egress_err_info(dd);
++			handled |= (1ULL << shift);
++		}
++		clear_bit(shift, (unsigned long *)&reg_copy);
++	}
++
++	reg &= ~handled;
++
++	if (reg)
++		dd_dev_info(dd, "Egress Error: %s\n",
++			egress_err_status_string(buf, sizeof(buf), reg));
++}
++
++static void handle_txe_err(struct hfi1_devdata *dd, u32 unused, u64 reg)
++{
++	char buf[96];
++
++	dd_dev_info(dd, "Send Error: %s\n",
++		send_err_status_string(buf, sizeof(buf), reg));
++
++}
 +
 +/*
-+ * Generic trap/notice other local changes flags (trap 144).
++ * The maximum number of times the error clear down will loop before
++ * blocking a repeating error.  This value is arbitrary.
 + */
-+#define IB_NOTICE_TRAP_LSE_CHG		0x04	/* Link Speed Enable changed */
-+#define IB_NOTICE_TRAP_LWE_CHG		0x02	/* Link Width Enable changed */
-+#define IB_NOTICE_TRAP_NODE_DESC_CHG	0x01
++#define MAX_CLEAR_COUNT 20
 +
 +/*
-+ * Generic trap/notice M_Key volation flags in dr_trunc_hop (trap 256).
++ * Clear and handle an error register.  All error interrupts are funneled
++ * through here to have a central location to correctly handle single-
++ * or multi-shot errors.
++ *
++ * For non per-context registers, call this routine with a context value
++ * of 0 so the per-context offset is zero.
++ *
++ * If the handler loops too many times, assume that something is wrong
++ * and can't be fixed, so mask the error bits.
 + */
-+#define IB_NOTICE_TRAP_DR_NOTICE	0x80
-+#define IB_NOTICE_TRAP_DR_TRUNC		0x40
++static void interrupt_clear_down(struct hfi1_devdata *dd,
++				 u32 context,
++				 const struct err_reg_info *eri)
++{
++	u64 reg;
++	u32 count;
 +
- enum {
- 	IB_MGMT_MAD_HDR = 24,
- 	IB_MGMT_MAD_DATA = 232,
-@@ -240,6 +294,90 @@ struct ib_class_port_info {
- 	__be32			trap_qkey;
- };
- 
-+struct ib_node_info {
-+	u8 base_version;
-+	u8 class_version;
-+	u8 node_type;
-+	u8 num_ports;
-+	__be64 sys_guid;
-+	__be64 node_guid;
-+	__be64 port_guid;
-+	__be16 partition_cap;
-+	__be16 device_id;
-+	__be32 revision;
-+	u8 local_port_num;
-+	u8 vendor_id[3];
-+} __packed;
++	/* read in a loop until no more errors are seen */
++	count = 0;
++	while (1) {
++		reg = read_kctxt_csr(dd, context, eri->status);
++		if (reg == 0)
++			break;
++		write_kctxt_csr(dd, context, eri->clear, reg);
++		if (likely(eri->handler))
++			eri->handler(dd, context, reg);
++		count++;
++		if (count > MAX_CLEAR_COUNT) {
++			u64 mask;
 +
-+struct ib_mad_notice_attr {
-+	u8 generic_type;
-+	u8 prod_type_msb;
-+	__be16 prod_type_lsb;
-+	__be16 trap_num;
-+	__be16 issuer_lid;
-+	__be16 toggle_count;
++			dd_dev_err(dd, "Repeating %s bits 0x%llx - masking\n",
++				eri->desc, reg);
++			/*
++			 * Read-modify-write so any other masked bits
++			 * remain masked.
++			 */
++			mask = read_kctxt_csr(dd, context, eri->mask);
++			mask &= ~reg;
++			write_kctxt_csr(dd, context, eri->mask, mask);
++			break;
++		}
++	}
++}
 +
-+	union {
-+		struct {
-+			u8	details[54];
-+		} raw_data;
++/*
++ * CCE block "misc" interrupt.  Source is < 16.
++ */
++static void is_misc_err_int(struct hfi1_devdata *dd, unsigned int source)
++{
++	const struct err_reg_info *eri = &misc_errs[source];
 +
-+		struct {
-+			__be16	reserved;
-+			__be16	lid;		/* where violation happened */
-+			u8	port_num;	/* where violation happened */
-+		} __packed ntc_129_131;
++	if (eri->handler) {
++		interrupt_clear_down(dd, 0, eri);
++	} else {
++		dd_dev_err(dd, "Unexpected misc interrupt (%u) - reserved\n",
++			source);
++	}
++}
 +
-+		struct {
-+			__be16	reserved;
-+			__be16	lid;		/* LID where change occurred */
-+			u8	reserved2;
-+			u8	local_changes;	/* low bit - local changes */
-+			__be32	new_cap_mask;	/* new capability mask */
-+			u8	reserved3;
-+			u8	change_flags;	/* low 3 bits only */
-+		} __packed ntc_144;
++static char *send_context_err_status_string(char *buf, int buf_len, u64 flags)
++{
++	return flag_string(buf, buf_len, flags,
++			sc_err_status_flags, ARRAY_SIZE(sc_err_status_flags));
++}
 +
-+		struct {
-+			__be16	reserved;
-+			__be16	lid;		/* lid where sys guid changed */
-+			__be16	reserved2;
-+			__be64	new_sys_guid;
-+		} __packed ntc_145;
++/*
++ * Send context error interrupt.  Source (hw_context) is < 160.
++ *
++ * All send context errors cause the send context to halt.  The normal
++ * clear-down mechanism cannot be used because we cannot clear the
++ * error bits until several other long-running items are done first.
++ * This is OK because with the context halted, nothing else is going
++ * to happen on it anyway.
++ */
++static void is_sendctxt_err_int(struct hfi1_devdata *dd,
++				unsigned int hw_context)
++{
++	struct send_context_info *sci;
++	struct send_context *sc;
++	char flags[96];
++	u64 status;
++	u32 sw_index;
 +
-+		struct {
-+			__be16	reserved;
-+			__be16	lid;
-+			__be16	dr_slid;
-+			u8	method;
-+			u8	reserved2;
-+			__be16	attr_id;
-+			__be32	attr_mod;
-+			__be64	mkey;
-+			u8	reserved3;
-+			u8	dr_trunc_hop;
-+			u8	dr_rtn_path[30];
-+		} __packed ntc_256;
++	sw_index = dd->hw_to_sw[hw_context];
++	if (sw_index >= dd->num_send_contexts) {
++		dd_dev_err(dd,
++			"out of range sw index %u for send context %u\n",
++			sw_index, hw_context);
++		return;
++	}
++	sci = &dd->send_contexts[sw_index];
++	sc = sci->sc;
++	if (!sc) {
++		dd_dev_err(dd, "%s: context %u(%u): no sc?\n", __func__,
++			sw_index, hw_context);
++		return;
++	}
 +
-+		struct {
-+			__be16		reserved;
-+			__be16		lid1;
-+			__be16		lid2;
-+			__be32		key;
-+			__be32		sl_qp1;	/* SL: high 4 bits */
-+			__be32		qp2;	/* high 8 bits reserved */
-+			union ib_gid	gid1;
-+			union ib_gid	gid2;
-+		} __packed ntc_257_258;
++	/* tell the software that a halt has begun */
++	sc_stop(sc, SCF_HALTED);
 +
-+	} details;
++	status = read_kctxt_csr(dd, hw_context, SEND_CTXT_ERR_STATUS);
++
++	dd_dev_info(dd, "Send Context %u(%u) Error: %s\n", sw_index, hw_context,
++		send_context_err_status_string(flags, sizeof(flags), status));
++
++	if (status & SEND_CTXT_ERR_STATUS_PIO_DISALLOWED_PACKET_ERR_SMASK)
++		handle_send_egress_err_info(dd);
++
++	/*
++	 * Automatically restart halted kernel contexts out of interrupt
++	 * context.  User contexts must ask the driver to restart the context.
++	 */
++	if (sc->type != SC_USER)
++		queue_work(dd->pport->hfi1_wq, &sc->halt_work);
++}
++
++static void handle_sdma_eng_err(struct hfi1_devdata *dd,
++				unsigned int source, u64 status)
++{
++	struct sdma_engine *sde;
++
++	sde = &dd->per_sdma[source];
++	/* BUG_ON(source != 0); */
++#ifdef CONFIG_SDMA_VERBOSITY
++	dd_dev_err(sde->dd, "CONFIG SDMA(%u) %s:%d %s()\n", sde->this_idx,
++		   slashstrip(__FILE__), __LINE__, __func__);
++	dd_dev_err(sde->dd, "CONFIG SDMA(%u) source: %u status 0x%llx\n",
++		   sde->this_idx, source, (unsigned long long)status);
++#endif
++	sdma_engine_error(sde, status);
++}
++
++/*
++ * CCE block SDMA error interrupt.  Source is < 16.
++ */
++static void is_sdma_eng_err_int(struct hfi1_devdata *dd, unsigned int source)
++{
++#ifdef CONFIG_SDMA_VERBOSITY
++	struct sdma_engine *sde = &dd->per_sdma[source];
++
++	dd_dev_err(dd, "CONFIG SDMA(%u) %s:%d %s()\n", sde->this_idx,
++		   slashstrip(__FILE__), __LINE__, __func__);
++	dd_dev_err(dd, "CONFIG SDMA(%u) source: %u\n", sde->this_idx,
++		   source);
++	sdma_dumpstate(sde);
++#endif
++	interrupt_clear_down(dd, source, &sdma_eng_err);
++}
++
++/*
++ * CCE block "various" interrupt.  Source is < 8.
++ */
++static void is_various_int(struct hfi1_devdata *dd, unsigned int source)
++{
++	const struct err_reg_info *eri = &various_err[source];
++
++	/*
++	 * TCritInt cannot go through interrupt_clear_down()
++	 * because it is not a second tier interrupt. The handler
++	 * should be called directly.
++	 */
++	if (source == TCRIT_INT_SOURCE)
++		handle_temp_err(dd);
++	else if (eri->handler)
++		interrupt_clear_down(dd, 0, eri);
++	else
++		dd_dev_info(dd,
++			"%s: Unimplemented/reserved interrupt %d\n",
++			__func__, source);
++}
++
++static void handle_qsfp_int(struct hfi1_devdata *dd, u32 src_ctx, u64 reg)
++{
++	/* source is always zero */
++	struct hfi1_pportdata *ppd = dd->pport;
++	unsigned long flags;
++	u64 qsfp_int_mgmt = (u64)(QSFP_HFI0_INT_N | QSFP_HFI0_MODPRST_N);
++
++	if (reg & QSFP_HFI0_MODPRST_N) {
++
++		dd_dev_info(dd, "%s: ModPresent triggered QSFP interrupt\n",
++				__func__);
++
++		if (!qsfp_mod_present(ppd)) {
++			ppd->driver_link_ready = 0;
++			/*
++			 * Cable removed, reset all our information about the
++			 * cache and cable capabilities
++			 */
++
++			spin_lock_irqsave(&ppd->qsfp_info.qsfp_lock, flags);
++			/*
++			 * We don't set cache_refresh_required here as we expect
++			 * an interrupt when a cable is inserted
++			 */
++			ppd->qsfp_info.cache_valid = 0;
++			ppd->qsfp_info.qsfp_interrupt_functional = 0;
++			spin_unlock_irqrestore(&ppd->qsfp_info.qsfp_lock,
++						flags);
++			write_csr(dd,
++					dd->hfi1_id ?
++						ASIC_QSFP2_INVERT :
++						ASIC_QSFP1_INVERT,
++				qsfp_int_mgmt);
++			if (ppd->host_link_state == HLS_DN_POLL) {
++				/*
++				 * The link is still in POLL. This means
++				 * that the normal link down processing
++				 * will not happen. We have to do it here
++				 * before turning the DC off.
++				 */
++				queue_work(ppd->hfi1_wq, &ppd->link_down_work);
++			}
++		} else {
++			spin_lock_irqsave(&ppd->qsfp_info.qsfp_lock, flags);
++			ppd->qsfp_info.cache_valid = 0;
++			ppd->qsfp_info.cache_refresh_required = 1;
++			spin_unlock_irqrestore(&ppd->qsfp_info.qsfp_lock,
++						flags);
++
++			qsfp_int_mgmt &= ~(u64)QSFP_HFI0_MODPRST_N;
++			write_csr(dd,
++					dd->hfi1_id ?
++						ASIC_QSFP2_INVERT :
++						ASIC_QSFP1_INVERT,
++				qsfp_int_mgmt);
++		}
++	}
++
++	if (reg & QSFP_HFI0_INT_N) {
++
++		dd_dev_info(dd, "%s: IntN triggered QSFP interrupt\n",
++				__func__);
++		spin_lock_irqsave(&ppd->qsfp_info.qsfp_lock, flags);
++		ppd->qsfp_info.check_interrupt_flags = 1;
++		ppd->qsfp_info.qsfp_interrupt_functional = 1;
++		spin_unlock_irqrestore(&ppd->qsfp_info.qsfp_lock, flags);
++	}
++
++	/* Schedule the QSFP work only if there is a cable attached. */
++	if (qsfp_mod_present(ppd))
++		queue_work(ppd->hfi1_wq, &ppd->qsfp_info.qsfp_work);
++}
++
++static int request_host_lcb_access(struct hfi1_devdata *dd)
++{
++	int ret;
++
++	ret = do_8051_command(dd, HCMD_MISC,
++		(u64)HCMD_MISC_REQUEST_LCB_ACCESS << LOAD_DATA_FIELD_ID_SHIFT,
++		NULL);
++	if (ret != HCMD_SUCCESS) {
++		dd_dev_err(dd, "%s: command failed with error %d\n",
++			__func__, ret);
++	}
++	return ret == HCMD_SUCCESS ? 0 : -EBUSY;
++}
++
++static int request_8051_lcb_access(struct hfi1_devdata *dd)
++{
++	int ret;
++
++	ret = do_8051_command(dd, HCMD_MISC,
++		(u64)HCMD_MISC_GRANT_LCB_ACCESS << LOAD_DATA_FIELD_ID_SHIFT,
++		NULL);
++	if (ret != HCMD_SUCCESS) {
++		dd_dev_err(dd, "%s: command failed with error %d\n",
++			__func__, ret);
++	}
++	return ret == HCMD_SUCCESS ? 0 : -EBUSY;
++}
++
++/*
++ * Set the LCB selector - allow host access.  The DCC selector always
++ * points to the host.
++ */
++static inline void set_host_lcb_access(struct hfi1_devdata *dd)
++{
++	write_csr(dd, DC_DC8051_CFG_CSR_ACCESS_SEL,
++				DC_DC8051_CFG_CSR_ACCESS_SEL_DCC_SMASK
++				| DC_DC8051_CFG_CSR_ACCESS_SEL_LCB_SMASK);
++}
++
++/*
++ * Clear the LCB selector - allow 8051 access.  The DCC selector always
++ * points to the host.
++ */
++static inline void set_8051_lcb_access(struct hfi1_devdata *dd)
++{
++	write_csr(dd, DC_DC8051_CFG_CSR_ACCESS_SEL,
++				DC_DC8051_CFG_CSR_ACCESS_SEL_DCC_SMASK);
++}
++
++/*
++ * Acquire LCB access from the 8051.  If the host already has access,
++ * just increment a counter.  Otherwise, inform the 8051 that the
++ * host is taking access.
++ *
++ * Returns:
++ *	0 on success
++ *	-EBUSY if the 8051 has control and cannot be disturbed
++ *	-errno if unable to acquire access from the 8051
++ */
++int acquire_lcb_access(struct hfi1_devdata *dd, int sleep_ok)
++{
++	struct hfi1_pportdata *ppd = dd->pport;
++	int ret = 0;
++
++	/*
++	 * Use the host link state lock so the operation of this routine
++	 * { link state check, selector change, count increment } can occur
++	 * as a unit against a link state change.  Otherwise there is a
++	 * race between the state change and the count increment.
++	 */
++	if (sleep_ok) {
++		mutex_lock(&ppd->hls_lock);
++	} else {
++		while (mutex_trylock(&ppd->hls_lock) == EBUSY)
++			udelay(1);
++	}
++
++	/* this access is valid only when the link is up */
++	if ((ppd->host_link_state & HLS_UP) == 0) {
++		dd_dev_info(dd, "%s: link state %s not up\n",
++			__func__, link_state_name(ppd->host_link_state));
++		ret = -EBUSY;
++		goto done;
++	}
++
++	if (dd->lcb_access_count == 0) {
++		ret = request_host_lcb_access(dd);
++		if (ret) {
++			dd_dev_err(dd,
++				"%s: unable to acquire LCB access, err %d\n",
++				__func__, ret);
++			goto done;
++		}
++		set_host_lcb_access(dd);
++	}
++	dd->lcb_access_count++;
++done:
++	mutex_unlock(&ppd->hls_lock);
++	return ret;
++}
++
++/*
++ * Release LCB access by decrementing the use count.  If the count is moving
++ * from 1 to 0, inform 8051 that it has control back.
++ *
++ * Returns:
++ *	0 on success
++ *	-errno if unable to release access to the 8051
++ */
++int release_lcb_access(struct hfi1_devdata *dd, int sleep_ok)
++{
++	int ret = 0;
++
++	/*
++	 * Use the host link state lock because the acquire needed it.
++	 * Here, we only need to keep { selector change, count decrement }
++	 * as a unit.
++	 */
++	if (sleep_ok) {
++		mutex_lock(&dd->pport->hls_lock);
++	} else {
++		while (mutex_trylock(&dd->pport->hls_lock) == EBUSY)
++			udelay(1);
++	}
++
++	if (dd->lcb_access_count == 0) {
++		dd_dev_err(dd, "%s: LCB access count is zero.  Skipping.\n",
++			__func__);
++		goto done;
++	}
++
++	if (dd->lcb_access_count == 1) {
++		set_8051_lcb_access(dd);
++		ret = request_8051_lcb_access(dd);
++		if (ret) {
++			dd_dev_err(dd,
++				"%s: unable to release LCB access, err %d\n",
++				__func__, ret);
++			/* restore host access if the grant didn't work */
++			set_host_lcb_access(dd);
++			goto done;
++		}
++	}
++	dd->lcb_access_count--;
++done:
++	mutex_unlock(&dd->pport->hls_lock);
++	return ret;
++}
++
++/*
++ * Initialize LCB access variables and state.  Called during driver load,
++ * after most of the initialization is finished.
++ *
++ * The DC default is LCB access on for the host.  The driver defaults to
++ * leaving access to the 8051.  Assign access now - this constrains the call
++ * to this routine to be after all LCB set-up is done.  In particular, after
++ * hf1_init_dd() -> set_up_interrupts() -> clear_all_interrupts()
++ */
++static void init_lcb_access(struct hfi1_devdata *dd)
++{
++	dd->lcb_access_count = 0;
++}
++
++/*
++ * Write a response back to a 8051 request.
++ */
++static void hreq_response(struct hfi1_devdata *dd, u8 return_code, u16 rsp_data)
++{
++	write_csr(dd, DC_DC8051_CFG_EXT_DEV_0,
++		DC_DC8051_CFG_EXT_DEV_0_COMPLETED_SMASK
++		| (u64)return_code << DC_DC8051_CFG_EXT_DEV_0_RETURN_CODE_SHIFT
++		| (u64)rsp_data << DC_DC8051_CFG_EXT_DEV_0_RSP_DATA_SHIFT);
++}
++
++/*
++ * Handle requests from the 8051.
++ */
++static void handle_8051_request(struct hfi1_devdata *dd)
++{
++	u64 reg;
++	u16 data;
++	u8 type;
++
++	reg = read_csr(dd, DC_DC8051_CFG_EXT_DEV_1);
++	if ((reg & DC_DC8051_CFG_EXT_DEV_1_REQ_NEW_SMASK) == 0)
++		return;	/* no request */
++
++	/* zero out COMPLETED so the response is seen */
++	write_csr(dd, DC_DC8051_CFG_EXT_DEV_0, 0);
++
++	/* extract request details */
++	type = (reg >> DC_DC8051_CFG_EXT_DEV_1_REQ_TYPE_SHIFT)
++			& DC_DC8051_CFG_EXT_DEV_1_REQ_TYPE_MASK;
++	data = (reg >> DC_DC8051_CFG_EXT_DEV_1_REQ_DATA_SHIFT)
++			& DC_DC8051_CFG_EXT_DEV_1_REQ_DATA_MASK;
++
++	switch (type) {
++	case HREQ_LOAD_CONFIG:
++	case HREQ_SAVE_CONFIG:
++	case HREQ_READ_CONFIG:
++	case HREQ_SET_TX_EQ_ABS:
++	case HREQ_SET_TX_EQ_REL:
++	case HREQ_ENABLE:
++		dd_dev_info(dd, "8051 request: request 0x%x not supported\n",
++			type);
++		hreq_response(dd, HREQ_NOT_SUPPORTED, 0);
++		break;
++
++	case HREQ_CONFIG_DONE:
++		hreq_response(dd, HREQ_SUCCESS, 0);
++		break;
++
++	case HREQ_INTERFACE_TEST:
++		hreq_response(dd, HREQ_SUCCESS, data);
++		break;
++
++	default:
++		dd_dev_err(dd, "8051 request: unknown request 0x%x\n", type);
++		hreq_response(dd, HREQ_NOT_SUPPORTED, 0);
++		break;
++	}
++}
++
++static void write_global_credit(struct hfi1_devdata *dd,
++				u8 vau, u16 total, u16 shared)
++{
++	write_csr(dd, SEND_CM_GLOBAL_CREDIT,
++		((u64)total
++			<< SEND_CM_GLOBAL_CREDIT_TOTAL_CREDIT_LIMIT_SHIFT)
++		| ((u64)shared
++			<< SEND_CM_GLOBAL_CREDIT_SHARED_LIMIT_SHIFT)
++		| ((u64)vau << SEND_CM_GLOBAL_CREDIT_AU_SHIFT));
++}
++
++/*
++ * Set up initial VL15 credits of the remote.  Assumes the rest of
++ * the CM credit registers are zero from a previous global or credit reset .
++ */
++void set_up_vl15(struct hfi1_devdata *dd, u8 vau, u16 vl15buf)
++{
++	/* leave shared count at zero for both global and VL15 */
++	write_global_credit(dd, vau, vl15buf, 0);
++	write_csr(dd, SEND_CM_CREDIT_VL15, (u64)vl15buf
++		    << SEND_CM_CREDIT_VL15_DEDICATED_LIMIT_VL_SHIFT);
++}
++
++/*
++ * Zero all credit details from the previous connection and
++ * reset the CM manager's internal counters.
++ */
++void reset_link_credits(struct hfi1_devdata *dd)
++{
++	int i;
++
++	/* remove all previous VL credit limits */
++	for (i = 0; i < TXE_NUM_DATA_VL; i++)
++		write_csr(dd, SEND_CM_CREDIT_VL + (8*i), 0);
++	write_csr(dd, SEND_CM_CREDIT_VL15, 0);
++	write_global_credit(dd, 0, 0, 0);
++	/* reset the CM block */
++	pio_send_control(dd, PSC_CM_RESET);
++}
++
++/* convert a vCU to a CU */
++static u32 vcu_to_cu(u8 vcu)
++{
++	return 1 << vcu;
++}
++
++/* convert a CU to a vCU */
++static u8 cu_to_vcu(u32 cu)
++{
++	return ilog2(cu);
++}
++
++/* convert a vAU to an AU */
++static u32 vau_to_au(u8 vau)
++{
++	return 8 * (1 << vau);
++}
++
++static void set_linkup_defaults(struct hfi1_pportdata *ppd)
++{
++	ppd->sm_trap_qp = 0x0;
++	ppd->sa_qp = 0x1;
++}
++
++/*
++ * Graceful LCB shutdown.  This leaves the LCB FIFOs in reset.
++ */
++static void lcb_shutdown(struct hfi1_devdata *dd, int abort)
++{
++	u64 reg;
++
++	/* clear lcb run: LCB_CFG_RUN.EN = 0 */
++	write_csr(dd, DC_LCB_CFG_RUN, 0);
++	/* set tx fifo reset: LCB_CFG_TX_FIFOS_RESET.VAL = 1 */
++	write_csr(dd, DC_LCB_CFG_TX_FIFOS_RESET,
++		1ull << DC_LCB_CFG_TX_FIFOS_RESET_VAL_SHIFT);
++	/* set dcc reset csr: DCC_CFG_RESET.{reset_lcb,reset_rx_fpe} = 1 */
++	dd->lcb_err_en = read_csr(dd, DC_LCB_ERR_EN);
++	reg = read_csr(dd, DCC_CFG_RESET);
++	write_csr(dd, DCC_CFG_RESET,
++		reg
++		| (1ull << DCC_CFG_RESET_RESET_LCB_SHIFT)
++		| (1ull << DCC_CFG_RESET_RESET_RX_FPE_SHIFT));
++	(void) read_csr(dd, DCC_CFG_RESET); /* make sure the write completed */
++	if (!abort) {
++		udelay(1);    /* must hold for the longer of 16cclks or 20ns */
++		write_csr(dd, DCC_CFG_RESET, reg);
++		write_csr(dd, DC_LCB_ERR_EN, dd->lcb_err_en);
++	}
++}
++
++/*
++ * This routine should be called after the link has been transitioned to
++ * OFFLINE (OFFLINE state has the side effect of putting the SerDes into
++ * reset).
++ *
++ * The expectation is that the caller of this routine would have taken
++ * care of properly transitioning the link into the correct state.
++ */
++static void dc_shutdown(struct hfi1_devdata *dd)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&dd->dc8051_lock, flags);
++	if (dd->dc_shutdown) {
++		spin_unlock_irqrestore(&dd->dc8051_lock, flags);
++		return;
++	}
++	dd->dc_shutdown = 1;
++	spin_unlock_irqrestore(&dd->dc8051_lock, flags);
++	/* Shutdown the LCB */
++	lcb_shutdown(dd, 1);
++	/* Going to OFFLINE would have causes the 8051 to put the
++	 * SerDes into reset already. Just need to shut down the 8051,
++	 * itself. */
++	write_csr(dd, DC_DC8051_CFG_RST, 0x1);
++}
++
++/* Calling this after the DC has been brought out of reset should not
++ * do any damage. */
++static void dc_start(struct hfi1_devdata *dd)
++{
++	unsigned long flags;
++	int ret;
++
++	spin_lock_irqsave(&dd->dc8051_lock, flags);
++	if (!dd->dc_shutdown)
++		goto done;
++	spin_unlock_irqrestore(&dd->dc8051_lock, flags);
++	/* Take the 8051 out of reset */
++	write_csr(dd, DC_DC8051_CFG_RST, 0ull);
++	/* Wait until 8051 is ready */
++	ret = wait_fm_ready(dd, TIMEOUT_8051_START);
++	if (ret) {
++		dd_dev_err(dd, "%s: timeout starting 8051 firmware\n",
++			__func__);
++	}
++	/* Take away reset for LCB and RX FPE (set in lcb_shutdown). */
++	write_csr(dd, DCC_CFG_RESET, 0x10);
++	/* lcb_shutdown() with abort=1 does not restore these */
++	write_csr(dd, DC_LCB_ERR_EN, dd->lcb_err_en);
++	spin_lock_irqsave(&dd->dc8051_lock, flags);
++	dd->dc_shutdown = 0;
++done:
++	spin_unlock_irqrestore(&dd->dc8051_lock, flags);
++}
++
++/*
++ * These LCB adjustments are for the Aurora SerDes core in the FPGA.
++ */
++static void adjust_lcb_for_fpga_serdes(struct hfi1_devdata *dd)
++{
++	u64 rx_radr, tx_radr;
++	u32 version;
++
++	if (dd->icode != ICODE_FPGA_EMULATION)
++		return;
++
++	/*
++	 * These LCB defaults on emulator _s are good, nothing to do here:
++	 *	LCB_CFG_TX_FIFOS_RADR
++	 *	LCB_CFG_RX_FIFOS_RADR
++	 *	LCB_CFG_LN_DCLK
++	 *	LCB_CFG_IGNORE_LOST_RCLK
++	 */
++	if (is_emulator_s(dd))
++		return;
++	/* else this is _p */
++
++	version = emulator_rev(dd);
++	if (!is_a0(dd))
++		version = 0x2d;	/* all B0 use 0x2d or higher settings */
++
++	if (version <= 0x12) {
++		/* release 0x12 and below */
++
++		/*
++		 * LCB_CFG_RX_FIFOS_RADR.RST_VAL = 0x9
++		 * LCB_CFG_RX_FIFOS_RADR.OK_TO_JUMP_VAL = 0x9
++		 * LCB_CFG_RX_FIFOS_RADR.DO_NOT_JUMP_VAL = 0xa
++		 */
++		rx_radr =
++		      0xaull << DC_LCB_CFG_RX_FIFOS_RADR_DO_NOT_JUMP_VAL_SHIFT
++		    | 0x9ull << DC_LCB_CFG_RX_FIFOS_RADR_OK_TO_JUMP_VAL_SHIFT
++		    | 0x9ull << DC_LCB_CFG_RX_FIFOS_RADR_RST_VAL_SHIFT;
++		/*
++		 * LCB_CFG_TX_FIFOS_RADR.ON_REINIT = 0 (default)
++		 * LCB_CFG_TX_FIFOS_RADR.RST_VAL = 6
++		 */
++		tx_radr = 6ull << DC_LCB_CFG_TX_FIFOS_RADR_RST_VAL_SHIFT;
++	} else if (version <= 0x18) {
++		/* release 0x13 up to 0x18 */
++		/* LCB_CFG_RX_FIFOS_RADR = 0x988 */
++		rx_radr =
++		      0x9ull << DC_LCB_CFG_RX_FIFOS_RADR_DO_NOT_JUMP_VAL_SHIFT
++		    | 0x8ull << DC_LCB_CFG_RX_FIFOS_RADR_OK_TO_JUMP_VAL_SHIFT
++		    | 0x8ull << DC_LCB_CFG_RX_FIFOS_RADR_RST_VAL_SHIFT;
++		tx_radr = 7ull << DC_LCB_CFG_TX_FIFOS_RADR_RST_VAL_SHIFT;
++	} else if (version == 0x19) {
++		/* release 0x19 */
++		/* LCB_CFG_RX_FIFOS_RADR = 0xa99 */
++		rx_radr =
++		      0xAull << DC_LCB_CFG_RX_FIFOS_RADR_DO_NOT_JUMP_VAL_SHIFT
++		    | 0x9ull << DC_LCB_CFG_RX_FIFOS_RADR_OK_TO_JUMP_VAL_SHIFT
++		    | 0x9ull << DC_LCB_CFG_RX_FIFOS_RADR_RST_VAL_SHIFT;
++		tx_radr = 3ull << DC_LCB_CFG_TX_FIFOS_RADR_RST_VAL_SHIFT;
++	} else if (version == 0x1a) {
++		/* release 0x1a */
++		/* LCB_CFG_RX_FIFOS_RADR = 0x988 */
++		rx_radr =
++		      0x9ull << DC_LCB_CFG_RX_FIFOS_RADR_DO_NOT_JUMP_VAL_SHIFT
++		    | 0x8ull << DC_LCB_CFG_RX_FIFOS_RADR_OK_TO_JUMP_VAL_SHIFT
++		    | 0x8ull << DC_LCB_CFG_RX_FIFOS_RADR_RST_VAL_SHIFT;
++		tx_radr = 7ull << DC_LCB_CFG_TX_FIFOS_RADR_RST_VAL_SHIFT;
++		write_csr(dd, DC_LCB_CFG_LN_DCLK, 1ull);
++	} else {
++		/* release 0x1b and higher */
++		/* LCB_CFG_RX_FIFOS_RADR = 0x877 */
++		rx_radr =
++		      0x8ull << DC_LCB_CFG_RX_FIFOS_RADR_DO_NOT_JUMP_VAL_SHIFT
++		    | 0x7ull << DC_LCB_CFG_RX_FIFOS_RADR_OK_TO_JUMP_VAL_SHIFT
++		    | 0x7ull << DC_LCB_CFG_RX_FIFOS_RADR_RST_VAL_SHIFT;
++		tx_radr = 3ull << DC_LCB_CFG_TX_FIFOS_RADR_RST_VAL_SHIFT;
++	}
++
++	write_csr(dd, DC_LCB_CFG_RX_FIFOS_RADR, rx_radr);
++	/* LCB_CFG_IGNORE_LOST_RCLK.EN = 1 */
++	write_csr(dd, DC_LCB_CFG_IGNORE_LOST_RCLK,
++		DC_LCB_CFG_IGNORE_LOST_RCLK_EN_SMASK);
++	write_csr(dd, DC_LCB_CFG_TX_FIFOS_RADR, tx_radr);
++}
++
++/*
++ * Handle a SMA idle message
++ *
++ * This is a work-queue function outside of the interrupt.
++ */
++void handle_sma_message(struct work_struct *work)
++{
++	struct hfi1_pportdata *ppd = container_of(work, struct hfi1_pportdata,
++							sma_message_work);
++	struct hfi1_devdata *dd = ppd->dd;
++	u64 msg;
++	int ret;
++
++	/* msg is bytes 1-4 of the 40-bit idle message - the command code
++	   is stripped off */
++	ret = read_idle_sma(dd, &msg);
++	if (ret)
++		return;
++	dd_dev_info(dd, "%s: SMA message 0x%llx\n", __func__, msg);
++	/*
++	 * React to the SMA message.  Byte[1] (0 for us) is the command.
++	 */
++	switch (msg & 0xff) {
++	case SMA_IDLE_ARM:
++		/*
++		 * See OPAv1 table 9-14 - HFI and External Switch Ports Key
++		 * State Transitions
++		 *
++		 * Only expected in INIT or ARMED, discard otherwise.
++		 */
++		if (ppd->host_link_state & (HLS_UP_INIT | HLS_UP_ARMED))
++			ppd->neighbor_normal = 1;
++		break;
++	case SMA_IDLE_ACTIVE:
++		/*
++		 * See OPAv1 table 9-14 - HFI and External Switch Ports Key
++		 * State Transitions
++		 *
++		 * Can activate the node.  Discard otherwise.
++		 */
++		if (ppd->host_link_state == HLS_UP_ARMED
++					&& ppd->is_active_optimize_enabled) {
++			ppd->neighbor_normal = 1;
++			ret = set_link_state(ppd, HLS_UP_ACTIVE);
++			if (ret)
++				dd_dev_err(
++					dd,
++					"%s: received Active SMA idle message, couldn't set link to Active\n",
++					__func__);
++		}
++		break;
++	default:
++		dd_dev_err(dd,
++			"%s: received unexpected SMA idle message 0x%llx\n",
++			__func__, msg);
++		break;
++	}
++}
++
++static void adjust_rcvctrl(struct hfi1_devdata *dd, u64 add, u64 clear)
++{
++	u64 rcvctrl;
++	unsigned long flags;
++
++	spin_lock_irqsave(&dd->rcvctrl_lock, flags);
++	rcvctrl = read_csr(dd, RCV_CTRL);
++	rcvctrl |= add;
++	rcvctrl &= ~clear;
++	write_csr(dd, RCV_CTRL, rcvctrl);
++	spin_unlock_irqrestore(&dd->rcvctrl_lock, flags);
++}
++
++static inline void add_rcvctrl(struct hfi1_devdata *dd, u64 add)
++{
++	adjust_rcvctrl(dd, add, 0);
++}
++
++static inline void clear_rcvctrl(struct hfi1_devdata *dd, u64 clear)
++{
++	adjust_rcvctrl(dd, 0, clear);
++}
++
++/*
++ * Called from all interrupt handlers to start handling an SPC freeze.
++ */
++void start_freeze_handling(struct hfi1_pportdata *ppd, int flags)
++{
++	struct hfi1_devdata *dd = ppd->dd;
++	struct send_context *sc;
++	int i;
++
++	if (flags & FREEZE_SELF)
++		write_csr(dd, CCE_CTRL, CCE_CTRL_SPC_FREEZE_SMASK);
++
++	/* enter frozen mode */
++	dd->flags |= HFI1_FROZEN;
++
++	/* notify all SDMA engines that they are going into a freeze */
++	sdma_freeze_notify(dd, !!(flags & FREEZE_LINK_DOWN));
++
++	/* do halt pre-handling on all enabled send contexts */
++	for (i = 0; i < dd->num_send_contexts; i++) {
++		sc = dd->send_contexts[i].sc;
++		if (sc && (sc->flags & SCF_ENABLED))
++			sc_stop(sc, SCF_FROZEN | SCF_HALTED);
++	}
++
++	/* Send context are frozen. Notify user space */
++	hfi1_set_uevent_bits(ppd, _HFI1_EVENT_FROZEN_BIT);
++
++	if (flags & FREEZE_ABORT) {
++		dd_dev_err(dd,
++			   "Aborted freeze recovery. Please REBOOT system\n");
++		return;
++	}
++	/* queue non-interrupt handler */
++	queue_work(ppd->hfi1_wq, &ppd->freeze_work);
++}
++
++/*
++ * Wait until all 4 sub-blocks indicate that they have frozen or unfrozen,
++ * depending on the "freeze" parameter.
++ *
++ * No need to return an error if it times out, our only option
++ * is to proceed anyway.
++ */
++static void wait_for_freeze_status(struct hfi1_devdata *dd, int freeze)
++{
++	unsigned long timeout;
++	u64 reg;
++
++	timeout = jiffies + msecs_to_jiffies(FREEZE_STATUS_TIMEOUT);
++	while (1) {
++		reg = read_csr(dd, CCE_STATUS);
++		if (freeze) {
++			/* waiting until all indicators are set */
++			if ((reg & ALL_FROZE) == ALL_FROZE)
++				return;	/* all done */
++		} else {
++			/* waiting until all indicators are clear */
++			if ((reg & ALL_FROZE) == 0)
++				return; /* all done */
++		}
++
++		if (time_after(jiffies, timeout)) {
++			dd_dev_err(dd,
++				"Time out waiting for SPC %sfreeze, bits 0x%llx, expecting 0x%llx, continuing",
++				freeze ? "" : "un",
++				reg & ALL_FROZE,
++				freeze ? ALL_FROZE : 0ull);
++			return;
++		}
++		usleep_range(80, 120);
++	}
++}
++
++/*
++ * Do all freeze handling for the RXE block.
++ */
++static void rxe_freeze(struct hfi1_devdata *dd)
++{
++	int i;
++
++	/* disable port */
++	clear_rcvctrl(dd, RCV_CTRL_RCV_PORT_ENABLE_SMASK);
++
++	/* disable all receive contexts */
++	for (i = 0; i < dd->num_rcv_contexts; i++)
++		hfi1_rcvctrl(dd, HFI1_RCVCTRL_CTXT_DIS, i);
++}
++
++/*
++ * Unfreeze handling for the RXE block - kernel contexts only.
++ * This will also enable the port.  User contexts will do unfreeze
++ * handling on a per-context basis as they call into the driver.
++ *
++ */
++static void rxe_kernel_unfreeze(struct hfi1_devdata *dd)
++{
++	int i;
++
++	/* enable all kernel contexts */
++	for (i = 0; i < dd->n_krcv_queues; i++)
++		hfi1_rcvctrl(dd, HFI1_RCVCTRL_CTXT_ENB, i);
++
++	/* enable port */
++	add_rcvctrl(dd, RCV_CTRL_RCV_PORT_ENABLE_SMASK);
++}
++
++/*
++ * Non-interrupt SPC freeze handling.
++ *
++ * This is a work-queue function outside of the triggering interrupt.
++ */
++void handle_freeze(struct work_struct *work)
++{
++	struct hfi1_pportdata *ppd = container_of(work, struct hfi1_pportdata,
++								freeze_work);
++	struct hfi1_devdata *dd = ppd->dd;
++
++	/* wait for freeze indicators on all affected blocks */
++	dd_dev_info(dd, "Entering SPC freeze\n");
++	wait_for_freeze_status(dd, 1);
++
++	/* SPC is now frozen */
++
++	/* do send PIO freeze steps */
++	pio_freeze(dd);
++
++	/* do send DMA freeze steps */
++	sdma_freeze(dd);
++
++	/* do send egress freeze steps - nothing to do */
++
++	/* do receive freeze steps */
++	rxe_freeze(dd);
++
++	/*
++	 * Unfreeze the hardware - clear the freeze, wait for each
++	 * block's frozen bit to clear, then clear the frozen flag.
++	 */
++	write_csr(dd, CCE_CTRL, CCE_CTRL_SPC_UNFREEZE_SMASK);
++	wait_for_freeze_status(dd, 0);
++
++	if (is_a0(dd)) {
++		write_csr(dd, CCE_CTRL, CCE_CTRL_SPC_FREEZE_SMASK);
++		wait_for_freeze_status(dd, 1);
++		write_csr(dd, CCE_CTRL, CCE_CTRL_SPC_UNFREEZE_SMASK);
++		wait_for_freeze_status(dd, 0);
++	}
++
++	/* do send PIO unfreeze steps for kernel contexts */
++	pio_kernel_unfreeze(dd);
++
++	/* do send DMA unfreeze steps */
++	sdma_unfreeze(dd);
++
++	/* do send egress unfreeze steps - nothing to do */
++
++	/* do receive unfreeze steps for kernel contexts */
++	rxe_kernel_unfreeze(dd);
++
++	/*
++	 * The unfreeze procedure touches global device registers when
++	 * it disables and re-enables RXE. Mark the device unfrozen
++	 * after all that is done so other parts of the driver waiting
++	 * for the device to unfreeze don't do things out of order.
++	 *
++	 * The above implies that the meaning of HFI1_FROZEN flag is
++	 * "Device has gone into freeze mode and freeze mode handling
++	 * is still in progress."
++	 *
++	 * The flag will be removed when freeze mode processing has
++	 * completed.
++	 */
++	dd->flags &= ~HFI1_FROZEN;
++	wake_up(&dd->event_queue);
++
++	/* no longer frozen */
++	dd_dev_err(dd, "Exiting SPC freeze\n");
++}
++
++/*
++ * Handle a link up interrupt from the 8051.
++ *
++ * This is a work-queue function outside of the interrupt.
++ */
++void handle_link_up(struct work_struct *work)
++{
++	struct hfi1_pportdata *ppd = container_of(work, struct hfi1_pportdata,
++								link_up_work);
++	set_link_state(ppd, HLS_UP_INIT);
++
++	/* cache the read of DC_LCB_STS_ROUND_TRIP_LTP_CNT */
++	read_ltp_rtt(ppd->dd);
++	/*
++	 * OPA specifies that certain counters are cleared on a transition
++	 * to link up, so do that.
++	 */
++	clear_linkup_counters(ppd->dd);
++	/*
++	 * And (re)set link up default values.
++	 */
++	set_linkup_defaults(ppd);
++
++	/* enforce link speed enabled */
++	if ((ppd->link_speed_active & ppd->link_speed_enabled) == 0) {
++		/* oops - current speed is not enabled, bounce */
++		dd_dev_err(ppd->dd,
++			"Link speed active 0x%x is outside enabled 0x%x, downing link\n",
++			ppd->link_speed_active, ppd->link_speed_enabled);
++		set_link_down_reason(ppd, OPA_LINKDOWN_REASON_SPEED_POLICY, 0,
++			OPA_LINKDOWN_REASON_SPEED_POLICY);
++		set_link_state(ppd, HLS_DN_OFFLINE);
++		start_link(ppd);
++	}
++}
++
++/*
++ * Handle a link down interrupt from the 8051.
++ *
++ * This is a work-queue function outside of the interrupt.
++ */
++void handle_link_down(struct work_struct *work)
++{
++	u8 lcl_reason, neigh_reason = 0;
++	struct hfi1_pportdata *ppd = container_of(work, struct hfi1_pportdata,
++								link_down_work);
++	lcl_reason = 0;
++
++	read_planned_down_reason_code(ppd->dd, &neigh_reason);
++
++	/*
++	 * If no reason, assume peer-initiated but missed
++	 * LinkGoingDown idle flits.
++	 */
++	if (neigh_reason == 0)
++		lcl_reason = OPA_LINKDOWN_REASON_NEIGHBOR_UNKNOWN;
++
++	set_link_down_reason(ppd, lcl_reason, neigh_reason, 0);
++	set_link_state(ppd, HLS_DN_OFFLINE);
++
++	/* disable the port */
++	clear_rcvctrl(ppd->dd, RCV_CTRL_RCV_PORT_ENABLE_SMASK);
++
++	/* If there is no cable attached, turn the DC off. Otherwise,
++	 * start the link bring up. */
++	if (!qsfp_mod_present(ppd))
++		dc_shutdown(ppd->dd);
++	else
++		start_link(ppd);
++}
++
++/*
++ * Mask conversion: Capability exchange to Port LTP.  The capability
++ * exchange has an implicit 16b CRC that is mandatory.
++ */
++static int cap_to_port_ltp(int cap)
++{
++	int port_ltp = PORT_LTP_CRC_MODE_16; /* this mode is mandatory */
++
++	if (cap & CAP_CRC_14B)
++		port_ltp |= PORT_LTP_CRC_MODE_14;
++	if (cap & CAP_CRC_48B)
++		port_ltp |= PORT_LTP_CRC_MODE_48;
++	if (cap & CAP_CRC_12B_16B_PER_LANE)
++		port_ltp |= PORT_LTP_CRC_MODE_PER_LANE;
++
++	return port_ltp;
++}
++
++/*
++ * Convert an OPA Port LTP mask to capability mask
++ */
++int port_ltp_to_cap(int port_ltp)
++{
++	int cap_mask = 0;
++
++	if (port_ltp & PORT_LTP_CRC_MODE_14)
++		cap_mask |= CAP_CRC_14B;
++	if (port_ltp & PORT_LTP_CRC_MODE_48)
++		cap_mask |= CAP_CRC_48B;
++	if (port_ltp & PORT_LTP_CRC_MODE_PER_LANE)
++		cap_mask |= CAP_CRC_12B_16B_PER_LANE;
++
++	return cap_mask;
++}
++
++/*
++ * Convert a single DC LCB CRC mode to an OPA Port LTP mask.
++ */
++static int lcb_to_port_ltp(int lcb_crc)
++{
++	int port_ltp = 0;
++
++	if (lcb_crc == LCB_CRC_12B_16B_PER_LANE)
++		port_ltp = PORT_LTP_CRC_MODE_PER_LANE;
++	else if (lcb_crc == LCB_CRC_48B)
++		port_ltp = PORT_LTP_CRC_MODE_48;
++	else if (lcb_crc == LCB_CRC_14B)
++		port_ltp = PORT_LTP_CRC_MODE_14;
++	else
++		port_ltp = PORT_LTP_CRC_MODE_16;
++
++	return port_ltp;
++}
++
++static int neigh_is_hfi(struct hfi1_pportdata *ppd)
++{
++	return (ppd->neighbor_type & OPA_PI_MASK_NEIGH_NODE_TYPE) == 0;
++}
++
++/*
++ * Our neighbor has indicated that we are allowed to act as a fabric
++ * manager, so place the full management partition key in the second
++ * (0-based) pkey array position (see OPAv1, section 20.2.2.6.8). Note
++ * that we should already have the limited management partition key in
++ * array element 1, and also that the port is not yet up when
++ * add_full_mgmt_pkey() is invoked.
++ */
++static void add_full_mgmt_pkey(struct hfi1_pportdata *ppd)
++{
++	struct hfi1_devdata *dd = ppd->dd;
++
++	/* Sanity check - ppd->pkeys[2] should be 0 */
++	if (ppd->pkeys[2] != 0)
++		dd_dev_err(dd, "%s pkey[2] already set to 0x%x, resetting it to 0x%x\n",
++			   __func__, ppd->pkeys[2], FULL_MGMT_P_KEY);
++	ppd->pkeys[2] = FULL_MGMT_P_KEY;
++	(void)hfi1_set_ib_cfg(ppd, HFI1_IB_CFG_PKEYS, 0);
++}
++
++/*
++ * Convert the given link width to the OPA link width bitmask.
++ */
++static u16 link_width_to_bits(struct hfi1_devdata *dd, u16 width)
++{
++	switch (width) {
++	case 1: return OPA_LINK_WIDTH_1X;
++	case 2: return OPA_LINK_WIDTH_2X;
++	case 3: return OPA_LINK_WIDTH_3X;
++	default:
++		/* NOTE: 0 in simulation */
++		dd_dev_info(dd, "%s: invalid width %d, using 4\n",
++			__func__, width);
++		/* fall through */
++	case 4: return OPA_LINK_WIDTH_4X;
++	}
++}
++
++/*
++ * Do a population count on the bottom nibble.
++ */
++static const u8 bit_counts[16] = {
++	0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4
++};
++static inline u8 nibble_to_count(u8 nibble)
++{
++	return bit_counts[nibble & 0xf];
++}
++
++/*
++ * Read the active lane information from the 8051 registers and return
++ * their widths.
++ *
++ * Active lane information is found in these 8051 registers:
++ *	enable_lane_tx
++ *	enable_lane_rx
++ */
++static void get_link_widths(struct hfi1_devdata *dd, u16 *tx_width,
++			    u16 *rx_width)
++{
++	u16 tx, rx;
++	u8 enable_lane_rx;
++	u8 enable_lane_tx;
++	u8 tx_polarity_inversion;
++	u8 rx_polarity_inversion;
++	u8 max_rate;
++
++	/* read the active lanes */
++	read_tx_settings(dd, &enable_lane_tx, &tx_polarity_inversion,
++				&rx_polarity_inversion, &max_rate);
++	read_local_lni(dd, &enable_lane_rx);
++
++	/* convert to counts */
++	tx = nibble_to_count(enable_lane_tx);
++	rx = nibble_to_count(enable_lane_rx);
++
++	/*
++	 * Remove the setting of link_speed_active in this routine
++	 * when the 8051 firmware is using the "real" LNI and not the
++	 * "engineering" LNI.
++	 *
++	 * Set link_speed_active here, overriding what was set in
++	 * handle_verify_cap().  This is because the 8051 firmware using
++	 * the "engineering" LNI does not correctly set the max_speed field.
++	 * For now, to find the speed, look at max_rate after link up.  This
++	 * routine is called in handle_verify_cap(),after linkup, and during
++	 * a downgrade.  max_rate should not change after linkup so
++	 * re-setting link_speed_active here should not matter.
++	 */
++	if (dd->icode == ICODE_RTL_SILICON) {
++		/* max_rate: 0 = 12.5G, 1 = 25G */
++		switch (max_rate) {
++		case 0:
++			dd->pport[0].link_speed_active = OPA_LINK_SPEED_12_5G;
++			break;
++		default:
++			dd_dev_err(dd,
++				"%s: unexpected max rate %d, using 25Gb\n",
++				__func__, (int)max_rate);
++			/* fall through */
++		case 1:
++			dd->pport[0].link_speed_active = OPA_LINK_SPEED_25G;
++			break;
++		}
++	}
++
++	dd_dev_info(dd,
++		"Fabric active lanes (width): tx 0x%x (%d), rx 0x%x (%d)\n",
++		enable_lane_tx, tx, enable_lane_rx, rx);
++	*tx_width = link_width_to_bits(dd, tx);
++	*rx_width = link_width_to_bits(dd, rx);
++}
++
++/*
++ * Read verify_cap_local_fm_link_width[1] to obtain the link widths.
++ * Valid after the end of VerifyCap and during LinkUp.  Does not change
++ * after link up.  I.e. look elsewhere for downgrade information.
++ *
++ * Bits are:
++ *	+ bits [7:4] contain the number of active transmitters
++ *	+ bits [3:0] contain the number of active receivers
++ * These are numbers 1 through 4 and can be different values if the
++ * link is asymmetric.
++ *
++ * verify_cap_local_fm_link_width[0] retains its original value.
++ */
++static void get_linkup_widths(struct hfi1_devdata *dd, u16 *tx_width,
++			      u16 *rx_width)
++{
++	u16 widths, tx, rx;
++	u8 misc_bits, local_flags;
++	u16 active_tx, active_rx;
++
++	read_vc_local_link_width(dd, &misc_bits, &local_flags, &widths);
++	tx = widths >> 12;
++	rx = (widths >> 8) & 0xf;
++	dd_dev_info(dd, "%s: active tx %d, active rx %d\n", __func__, tx, rx);
++
++	*tx_width = link_width_to_bits(dd, tx);
++	*rx_width = link_width_to_bits(dd, rx);
++
++	/* print the active widths */
++	get_link_widths(dd, &active_tx, &active_rx);
++}
++
++/*
++ * Set ppd->link_width_active and ppd->link_width_downgrade_active using
++ * hardware information when the link first comes up.
++ *
++ * The link width is not available until after VerifyCap.AllFramesReceived
++ * (the trigger for handle_verify_cap), so this is outside that routine
++ * and should be called when the 8051 signals linkup.
++ */
++void get_linkup_link_widths(struct hfi1_pportdata *ppd)
++{
++	u16 tx_width, rx_width;
++
++	/* get end-of-LNI link widths */
++	get_linkup_widths(ppd->dd, &tx_width, &rx_width);
++
++	/* use tx_width as the link is supposed to be symmetric on link up */
++	ppd->link_width_active = tx_width;
++	/* link width downgrade active (LWD.A) starts out matching LW.A */
++	ppd->link_width_downgrade_tx_active = ppd->link_width_active;
++	ppd->link_width_downgrade_rx_active = ppd->link_width_active;
++	/* per OPA spec, on link up LWD.E resets to LWD.S */
++	ppd->link_width_downgrade_enabled = ppd->link_width_downgrade_supported;
++	/* cache the active egress rate (units {10^6 bits/sec]) */
++	ppd->current_egress_rate = active_egress_rate(ppd);
++}
++
++/*
++ * Handle a verify capabilities interrupt from the 8051.
++ *
++ * This is a work-queue function outside of the interrupt.
++ */
++void handle_verify_cap(struct work_struct *work)
++{
++	struct hfi1_pportdata *ppd = container_of(work, struct hfi1_pportdata,
++								link_vc_work);
++	struct hfi1_devdata *dd = ppd->dd;
++	u64 reg;
++	u8 power_management;
++	u8 continious;
++	u8 vcu;
++	u8 vau;
++	u8 z;
++	u16 vl15buf;
++	u16 link_widths;
++	u16 crc_mask;
++	u16 crc_val;
++	u16 device_id;
++	u16 active_tx, active_rx;
++	u8 partner_supported_crc;
++	u8 remote_tx_rate;
++	u8 device_rev;
++
++	set_link_state(ppd, HLS_VERIFY_CAP);
++
++	lcb_shutdown(dd, 0);
++	adjust_lcb_for_fpga_serdes(dd);
++
++	/*
++	 * These are now valid:
++	 *	remote VerifyCap fields in the general LNI config
++	 *	CSR DC8051_STS_REMOTE_GUID
++	 *	CSR DC8051_STS_REMOTE_NODE_TYPE
++	 *	CSR DC8051_STS_REMOTE_FM_SECURITY
++	 */
++	read_vc_remote_phy(dd, &power_management, &continious);
++	read_vc_remote_fabric(
++		dd,
++		&vau,
++		&z,
++		&vcu,
++		&vl15buf,
++		&partner_supported_crc);
++	read_vc_remote_link_width(dd, &remote_tx_rate, &link_widths);
++	read_remote_device_id(dd, &device_id, &device_rev);
++	/*
++	 * And the 'MgmtAllowed' information, which is exchanged during
++	 * LNI, is also be available at this point.
++	 */
++	read_mgmt_allowed(dd, &ppd->mgmt_allowed);
++	/* print the active widths */
++	get_link_widths(dd, &active_tx, &active_rx);
++	dd_dev_info(dd,
++		"Peer PHY: power management 0x%x, continuous updates 0x%x\n",
++		(int)power_management, (int)continious);
++	dd_dev_info(dd,
++		"Peer Fabric: vAU %d, Z %d, vCU %d, vl15 credits 0x%x, CRC sizes 0x%x\n",
++		(int)vau,
++		(int)z,
++		(int)vcu,
++		(int)vl15buf,
++		(int)partner_supported_crc);
++	dd_dev_info(dd, "Peer Link Width: tx rate 0x%x, widths 0x%x\n",
++		(u32)remote_tx_rate, (u32)link_widths);
++	dd_dev_info(dd, "Peer Device ID: 0x%04x, Revision 0x%02x\n",
++		(u32)device_id, (u32)device_rev);
++	/*
++	 * The peer vAU value just read is the peer receiver value.  HFI does
++	 * not support a transmit vAU of 0 (AU == 8).  We advertised that
++	 * with Z=1 in the fabric capabilities sent to the peer.  The peer
++	 * will see our Z=1, and, if it advertised a vAU of 0, will move its
++	 * receive to vAU of 1 (AU == 16).  Do the same here.  We do not care
++	 * about the peer Z value - our sent vAU is 3 (hardwired) and is not
++	 * subject to the Z value exception.
++	 */
++	if (vau == 0)
++		vau = 1;
++	set_up_vl15(dd, vau, vl15buf);
++
++	/* set up the LCB CRC mode */
++	crc_mask = ppd->port_crc_mode_enabled & partner_supported_crc;
++
++	/* order is important: use the lowest bit in common */
++	if (crc_mask & CAP_CRC_14B)
++		crc_val = LCB_CRC_14B;
++	else if (crc_mask & CAP_CRC_48B)
++		crc_val = LCB_CRC_48B;
++	else if (crc_mask & CAP_CRC_12B_16B_PER_LANE)
++		crc_val = LCB_CRC_12B_16B_PER_LANE;
++	else
++		crc_val = LCB_CRC_16B;
++
++	dd_dev_info(dd, "Final LCB CRC mode: %d\n", (int)crc_val);
++	write_csr(dd, DC_LCB_CFG_CRC_MODE,
++		  (u64)crc_val << DC_LCB_CFG_CRC_MODE_TX_VAL_SHIFT);
++
++	/* set (14b only) or clear sideband credit */
++	reg = read_csr(dd, SEND_CM_CTRL);
++	if (crc_val == LCB_CRC_14B && crc_14b_sideband) {
++		write_csr(dd, SEND_CM_CTRL,
++			reg | SEND_CM_CTRL_FORCE_CREDIT_MODE_SMASK);
++	} else {
++		write_csr(dd, SEND_CM_CTRL,
++			reg & ~SEND_CM_CTRL_FORCE_CREDIT_MODE_SMASK);
++	}
++
++	/* remote_tx_rate: 0 = 12.5G, 1 = 25G */
++	switch (remote_tx_rate) {
++	case 0:
++		ppd->link_speed_active = OPA_LINK_SPEED_12_5G;
++		break;
++	default:
++		dd_dev_err(dd, "%s: unexpected remote tx rate %d, using 25Gb\n",
++			__func__, (int)remote_tx_rate);
++		/* fall through */
++	case 1:
++		ppd->link_speed_active = OPA_LINK_SPEED_25G;
++		break;
++	}
++
++	/*
++	 * Cache the values of the supported, enabled, and active
++	 * LTP CRC modes to return in 'portinfo' queries. But the bit
++	 * flags that are returned in the portinfo query differ from
++	 * what's in the link_crc_mask, crc_sizes, and crc_val
++	 * variables. Convert these here.
++	 */
++	ppd->port_ltp_crc_mode = cap_to_port_ltp(link_crc_mask) << 8;
++		/* supported crc modes */
++	ppd->port_ltp_crc_mode |=
++		cap_to_port_ltp(ppd->port_crc_mode_enabled) << 4;
++		/* enabled crc modes */
++	ppd->port_ltp_crc_mode |= lcb_to_port_ltp(crc_val);
++		/* active crc mode */
++
++	/* set up the remote credit return table */
++	assign_remote_cm_au_table(dd, vcu);
++
++	/*
++	 * The LCB is reset on entry to handle_verify_cap(), so this must
++	 * be applied on every link up.
++	 *
++	 * Adjust LCB error kill enable to kill the link if
++	 * these RBUF errors are seen:
++	 *	REPLAY_BUF_MBE_SMASK
++	 *	FLIT_INPUT_BUF_MBE_SMASK
++	 */
++	if (is_a0(dd)) {			/* fixed in B0 */
++		reg = read_csr(dd, DC_LCB_CFG_LINK_KILL_EN);
++		reg |= DC_LCB_CFG_LINK_KILL_EN_REPLAY_BUF_MBE_SMASK
++			| DC_LCB_CFG_LINK_KILL_EN_FLIT_INPUT_BUF_MBE_SMASK;
++		write_csr(dd, DC_LCB_CFG_LINK_KILL_EN, reg);
++	}
++
++	/* pull LCB fifos out of reset - all fifo clocks must be stable */
++	write_csr(dd, DC_LCB_CFG_TX_FIFOS_RESET, 0);
++
++	/* give 8051 access to the LCB CSRs */
++	write_csr(dd, DC_LCB_ERR_EN, 0); /* mask LCB errors */
++	set_8051_lcb_access(dd);
++
++	ppd->neighbor_guid =
++		cpu_to_be64(read_csr(dd, DC_DC8051_STS_REMOTE_GUID));
++	ppd->neighbor_type =
++		read_csr(dd, DC_DC8051_STS_REMOTE_NODE_TYPE) &
++		DC_DC8051_STS_REMOTE_NODE_TYPE_VAL_MASK;
++	ppd->neighbor_fm_security =
++		read_csr(dd, DC_DC8051_STS_REMOTE_FM_SECURITY) &
++		DC_DC8051_STS_LOCAL_FM_SECURITY_DISABLED_MASK;
++	dd_dev_info(dd, "Neighbor Guid: %llx Neighbor type %d MgmtAllowed %d FM security bypass %d\n",
++		be64_to_cpu(ppd->neighbor_guid), ppd->neighbor_type,
++		ppd->mgmt_allowed, ppd->neighbor_fm_security);
++	if (neigh_is_hfi(ppd))
++		ppd->part_enforce =
++			HFI1_PART_ENFORCE_IN | HFI1_PART_ENFORCE_OUT;
++	if (ppd->mgmt_allowed)
++		add_full_mgmt_pkey(ppd);
++
++	/* tell the 8051 to go to LinkUp */
++	set_link_state(ppd, HLS_GOING_UP);
++}
++
++/*
++ * Apply the link width downgrade enabled policy against the current active
++ * link widths.
++ *
++ * Called when the enabled policy changes or the active link widths change.
++ */
++void apply_link_downgrade_policy(struct hfi1_pportdata *ppd, int refresh_widths)
++{
++	int skip = 1;
++	int do_bounce = 0;
++	u16 lwde = ppd->link_width_downgrade_enabled;
++	u16 tx, rx;
++
++	mutex_lock(&ppd->hls_lock);
++	/* only apply if the link is up */
++	if (ppd->host_link_state & HLS_UP)
++		skip = 0;
++	mutex_unlock(&ppd->hls_lock);
++	if (skip)
++		return;
++
++	if (refresh_widths) {
++		get_link_widths(ppd->dd, &tx, &rx);
++		ppd->link_width_downgrade_tx_active = tx;
++		ppd->link_width_downgrade_rx_active = rx;
++	}
++
++	if (lwde == 0) {
++		/* downgrade is disabled */
++
++		/* bounce if not at starting active width */
++		if ((ppd->link_width_active !=
++					ppd->link_width_downgrade_tx_active)
++				|| (ppd->link_width_active !=
++					ppd->link_width_downgrade_rx_active)) {
++			dd_dev_err(ppd->dd,
++				"Link downgrade is disabled and link has downgraded, downing link\n");
++			dd_dev_err(ppd->dd,
++				"  original 0x%x, tx active 0x%x, rx active 0x%x\n",
++				ppd->link_width_active,
++				ppd->link_width_downgrade_tx_active,
++				ppd->link_width_downgrade_rx_active);
++			do_bounce = 1;
++		}
++	} else if ((lwde & ppd->link_width_downgrade_tx_active) == 0
++		|| (lwde & ppd->link_width_downgrade_rx_active) == 0) {
++		/* Tx or Rx is outside the enabled policy */
++		dd_dev_err(ppd->dd,
++			"Link is outside of downgrade allowed, downing link\n");
++		dd_dev_err(ppd->dd,
++			"  enabled 0x%x, tx active 0x%x, rx active 0x%x\n",
++			lwde,
++			ppd->link_width_downgrade_tx_active,
++			ppd->link_width_downgrade_rx_active);
++		do_bounce = 1;
++	}
++
++	if (do_bounce) {
++		set_link_down_reason(ppd, OPA_LINKDOWN_REASON_WIDTH_POLICY, 0,
++		  OPA_LINKDOWN_REASON_WIDTH_POLICY);
++		set_link_state(ppd, HLS_DN_OFFLINE);
++		start_link(ppd);
++	}
++}
++
++/*
++ * Handle a link downgrade interrupt from the 8051.
++ *
++ * This is a work-queue function outside of the interrupt.
++ */
++void handle_link_downgrade(struct work_struct *work)
++{
++	struct hfi1_pportdata *ppd = container_of(work, struct hfi1_pportdata,
++							link_downgrade_work);
++
++	dd_dev_info(ppd->dd, "8051: Link width downgrade\n");
++	apply_link_downgrade_policy(ppd, 1);
++}
++
++static char *dcc_err_string(char *buf, int buf_len, u64 flags)
++{
++	return flag_string(buf, buf_len, flags, dcc_err_flags,
++		ARRAY_SIZE(dcc_err_flags));
++}
++
++static char *lcb_err_string(char *buf, int buf_len, u64 flags)
++{
++	return flag_string(buf, buf_len, flags, lcb_err_flags,
++		ARRAY_SIZE(lcb_err_flags));
++}
++
++static char *dc8051_err_string(char *buf, int buf_len, u64 flags)
++{
++	return flag_string(buf, buf_len, flags, dc8051_err_flags,
++		ARRAY_SIZE(dc8051_err_flags));
++}
++
++static char *dc8051_info_err_string(char *buf, int buf_len, u64 flags)
++{
++	return flag_string(buf, buf_len, flags, dc8051_info_err_flags,
++		ARRAY_SIZE(dc8051_info_err_flags));
++}
++
++static char *dc8051_info_host_msg_string(char *buf, int buf_len, u64 flags)
++{
++	return flag_string(buf, buf_len, flags, dc8051_info_host_msg_flags,
++		ARRAY_SIZE(dc8051_info_host_msg_flags));
++}
++
++static void handle_8051_interrupt(struct hfi1_devdata *dd, u32 unused, u64 reg)
++{
++	struct hfi1_pportdata *ppd = dd->pport;
++	u64 info, err, host_msg;
++	int queue_link_down = 0;
++	char buf[96];
++
++	/* look at the flags */
++	if (reg & DC_DC8051_ERR_FLG_SET_BY_8051_SMASK) {
++		/* 8051 information set by firmware */
++		/* read DC8051_DBG_ERR_INFO_SET_BY_8051 for details */
++		info = read_csr(dd, DC_DC8051_DBG_ERR_INFO_SET_BY_8051);
++		err = (info >> DC_DC8051_DBG_ERR_INFO_SET_BY_8051_ERROR_SHIFT)
++			& DC_DC8051_DBG_ERR_INFO_SET_BY_8051_ERROR_MASK;
++		host_msg = (info >>
++			DC_DC8051_DBG_ERR_INFO_SET_BY_8051_HOST_MSG_SHIFT)
++			& DC_DC8051_DBG_ERR_INFO_SET_BY_8051_HOST_MSG_MASK;
++
++		/*
++		 * Handle error flags.
++		 */
++		if (err & FAILED_LNI) {
++			/*
++			 * LNI error indications are cleared by the 8051
++			 * only when starting polling.  Only pay attention
++			 * to them when in the states that occur during
++			 * LNI.
++			 */
++			if (ppd->host_link_state
++			    & (HLS_DN_POLL | HLS_VERIFY_CAP | HLS_GOING_UP)) {
++				queue_link_down = 1;
++				dd_dev_info(dd, "Link error: %s\n",
++					dc8051_info_err_string(buf,
++						sizeof(buf),
++						err & FAILED_LNI));
++			}
++			err &= ~(u64)FAILED_LNI;
++		}
++		if (err) {
++			/* report remaining errors, but do not do anything */
++			dd_dev_err(dd, "8051 info error: %s\n",
++				dc8051_info_err_string(buf, sizeof(buf), err));
++		}
++
++		/*
++		 * Handle host message flags.
++		 */
++		if (host_msg & HOST_REQ_DONE) {
++			/*
++			 * Presently, the driver does a busy wait for
++			 * host requests to complete.  This is only an
++			 * informational message.
++			 * NOTE: The 8051 clears the host message
++			 * information *on the next 8051 command*.
++			 * Therefore, when linkup is achieved,
++			 * this flag will still be set.
++			 */
++			host_msg &= ~(u64)HOST_REQ_DONE;
++		}
++		if (host_msg & BC_SMA_MSG) {
++			queue_work(ppd->hfi1_wq, &ppd->sma_message_work);
++			host_msg &= ~(u64)BC_SMA_MSG;
++		}
++		if (host_msg & LINKUP_ACHIEVED) {
++			dd_dev_info(dd, "8051: Link up\n");
++			queue_work(ppd->hfi1_wq, &ppd->link_up_work);
++			host_msg &= ~(u64)LINKUP_ACHIEVED;
++		}
++		if (host_msg & EXT_DEVICE_CFG_REQ) {
++			handle_8051_request(dd);
++			host_msg &= ~(u64)EXT_DEVICE_CFG_REQ;
++		}
++		if (host_msg & VERIFY_CAP_FRAME) {
++			queue_work(ppd->hfi1_wq, &ppd->link_vc_work);
++			host_msg &= ~(u64)VERIFY_CAP_FRAME;
++		}
++		if (host_msg & LINK_GOING_DOWN) {
++			const char *extra = "";
++			/* no downgrade action needed if going down */
++			if (host_msg & LINK_WIDTH_DOWNGRADED) {
++				host_msg &= ~(u64)LINK_WIDTH_DOWNGRADED;
++				extra = " (ignoring downgrade)";
++			}
++			dd_dev_info(dd, "8051: Link down%s\n", extra);
++			queue_link_down = 1;
++			host_msg &= ~(u64)LINK_GOING_DOWN;
++		}
++		if (host_msg & LINK_WIDTH_DOWNGRADED) {
++			queue_work(ppd->hfi1_wq, &ppd->link_downgrade_work);
++			host_msg &= ~(u64)LINK_WIDTH_DOWNGRADED;
++		}
++		if (host_msg) {
++			/* report remaining messages, but do not do anything */
++			dd_dev_info(dd, "8051 info host message: %s\n",
++				dc8051_info_host_msg_string(buf, sizeof(buf),
++					host_msg));
++		}
++
++		reg &= ~DC_DC8051_ERR_FLG_SET_BY_8051_SMASK;
++	}
++	if (reg & DC_DC8051_ERR_FLG_LOST_8051_HEART_BEAT_SMASK) {
++		/*
++		 * Lost the 8051 heartbeat.  If this happens, we
++		 * receive constant interrupts about it.  Disable
++		 * the interrupt after the first.
++		 */
++		dd_dev_err(dd, "Lost 8051 heartbeat\n");
++		write_csr(dd, DC_DC8051_ERR_EN,
++			read_csr(dd, DC_DC8051_ERR_EN)
++			  & ~DC_DC8051_ERR_EN_LOST_8051_HEART_BEAT_SMASK);
++
++		reg &= ~DC_DC8051_ERR_FLG_LOST_8051_HEART_BEAT_SMASK;
++	}
++	if (reg) {
++		/* report the error, but do not do anything */
++		dd_dev_err(dd, "8051 error: %s\n",
++			dc8051_err_string(buf, sizeof(buf), reg));
++	}
++
++	if (queue_link_down) {
++		/* if the link is already going down or disabled, do not
++		 * queue another */
++		if ((ppd->host_link_state
++				    & (HLS_GOING_OFFLINE|HLS_LINK_COOLDOWN))
++				|| ppd->link_enabled == 0) {
++			dd_dev_info(dd, "%s: not queuing link down\n",
++				__func__);
++		} else {
++			queue_work(ppd->hfi1_wq, &ppd->link_down_work);
++		}
++	}
++}
++
++static const char * const fm_config_txt[] = {
++[0] =
++	"BadHeadDist: Distance violation between two head flits",
++[1] =
++	"BadTailDist: Distance violation between two tail flits",
++[2] =
++	"BadCtrlDist: Distance violation between two credit control flits",
++[3] =
++	"BadCrdAck: Credits return for unsupported VL",
++[4] =
++	"UnsupportedVLMarker: Received VL Marker",
++[5] =
++	"BadPreempt: Exceeded the preemption nesting level",
++[6] =
++	"BadControlFlit: Received unsupported control flit",
++/* no 7 */
++[8] =
++	"UnsupportedVLMarker: Received VL Marker for unconfigured or disabled VL",
 +};
 +
-+struct ib_vl_weight_elem {
-+	u8      vl;     /* VL is low 5 bits, upper 3 bits reserved */
-+	u8      weight;
++static const char * const port_rcv_txt[] = {
++[1] =
++	"BadPktLen: Illegal PktLen",
++[2] =
++	"PktLenTooLong: Packet longer than PktLen",
++[3] =
++	"PktLenTooShort: Packet shorter than PktLen",
++[4] =
++	"BadSLID: Illegal SLID (0, using multicast as SLID, does not include security validation of SLID)",
++[5] =
++	"BadDLID: Illegal DLID (0, doesn't match HFI)",
++[6] =
++	"BadL2: Illegal L2 opcode",
++[7] =
++	"BadSC: Unsupported SC",
++[9] =
++	"BadRC: Illegal RC",
++[11] =
++	"PreemptError: Preempting with same VL",
++[12] =
++	"PreemptVL15: Preempting a VL15 packet",
++[13] =
++	"BadVLMarker: VL Marker for an unpreempted VL",
 +};
 +
- /**
-  * ib_mad_send_buf - MAD data buffer and work request for sends.
-  * @next: A pointer used to chain together MADs for posting.
-diff --git a/include/rdma/opa_port_info.h b/include/rdma/opa_port_info.h
-new file mode 100644
-index 0000000..391dae1
---- /dev/null
-+++ b/include/rdma/opa_port_info.h
-@@ -0,0 +1,433 @@
++#define OPA_LDR_FMCONFIG_OFFSET 16
++#define OPA_LDR_PORTRCV_OFFSET 0
++static void handle_dcc_err(struct hfi1_devdata *dd, u32 unused, u64 reg)
++{
++	u64 info, hdr0, hdr1;
++	const char *extra;
++	char buf[96];
++	struct hfi1_pportdata *ppd = dd->pport;
++	u8 lcl_reason = 0;
++	int do_bounce = 0;
++
++	if (reg & DCC_ERR_FLG_UNCORRECTABLE_ERR_SMASK) {
++		if (!(dd->err_info_uncorrectable & OPA_EI_STATUS_SMASK)) {
++			info = read_csr(dd, DCC_ERR_INFO_UNCORRECTABLE);
++			dd->err_info_uncorrectable = info & OPA_EI_CODE_SMASK;
++			/* set status bit */
++			dd->err_info_uncorrectable |= OPA_EI_STATUS_SMASK;
++		}
++		reg &= ~DCC_ERR_FLG_UNCORRECTABLE_ERR_SMASK;
++	}
++
++	if (reg & DCC_ERR_FLG_LINK_ERR_SMASK) {
++		struct hfi1_pportdata *ppd = dd->pport;
++		/* this counter saturates at (2^32) - 1 */
++		if (ppd->link_downed < (u32)UINT_MAX)
++			ppd->link_downed++;
++		reg &= ~DCC_ERR_FLG_LINK_ERR_SMASK;
++	}
++
++	if (reg & DCC_ERR_FLG_FMCONFIG_ERR_SMASK) {
++		u8 reason_valid = 1;
++
++		info = read_csr(dd, DCC_ERR_INFO_FMCONFIG);
++		if (!(dd->err_info_fmconfig & OPA_EI_STATUS_SMASK)) {
++			dd->err_info_fmconfig = info & OPA_EI_CODE_SMASK;
++			/* set status bit */
++			dd->err_info_fmconfig |= OPA_EI_STATUS_SMASK;
++		}
++		switch (info) {
++		case 0:
++		case 1:
++		case 2:
++		case 3:
++		case 4:
++		case 5:
++		case 6:
++			extra = fm_config_txt[info];
++			break;
++		case 8:
++			extra = fm_config_txt[info];
++			if (!do_bounce && ppd->port_error_action &
++			    OPA_PI_MASK_FM_CFG_UNSUPPORTED_VL_MARKER) {
++				do_bounce = 1;
++				/*
++				 * lcl_reason cannot be derived from info
++				 * for this error
++				 */
++				lcl_reason =
++				  OPA_LINKDOWN_REASON_UNSUPPORTED_VL_MARKER;
++			}
++			break;
++		default:
++			reason_valid = 0;
++			snprintf(buf, sizeof(buf), "reserved%lld", info);
++			extra = buf;
++			break;
++		}
++
++		if (reason_valid && !do_bounce) {
++			do_bounce = ppd->port_error_action &
++			(1 << (OPA_LDR_FMCONFIG_OFFSET + info));
++			lcl_reason = (lcl_reason ? lcl_reason :
++			  info + OPA_LINKDOWN_REASON_BAD_HEAD_DIST);
++		}
++
++		/* just report this */
++		dd_dev_info(dd, "DCC Error: fmconfig error: %s\n", extra);
++		reg &= ~DCC_ERR_FLG_FMCONFIG_ERR_SMASK;
++	}
++
++	if (reg & DCC_ERR_FLG_RCVPORT_ERR_SMASK) {
++		u8 reason_valid = 1;
++
++		info = read_csr(dd, DCC_ERR_INFO_PORTRCV);
++		hdr0 = read_csr(dd, DCC_ERR_INFO_PORTRCV_HDR0);
++		hdr1 = read_csr(dd, DCC_ERR_INFO_PORTRCV_HDR1);
++		if (!(dd->err_info_rcvport.status_and_code &
++		      OPA_EI_STATUS_SMASK)) {
++			dd->err_info_rcvport.status_and_code =
++				info & OPA_EI_CODE_SMASK;
++			/* set status bit */
++			dd->err_info_rcvport.status_and_code |=
++				OPA_EI_STATUS_SMASK;
++			/* save first 2 flits in the packet that caused
++			 * the error */
++			 dd->err_info_rcvport.packet_flit1 = hdr0;
++			 dd->err_info_rcvport.packet_flit2 = hdr1;
++		}
++		switch (info & 0xf) {
++		case 1:
++		case 2:
++		case 3:
++		case 4:
++		case 5:
++		case 6:
++		case 7:
++		case 9:
++		case 11:
++		case 12:
++		case 13:
++			extra = port_rcv_txt[info & 0xf];
++			break;
++		default:
++			reason_valid = 0;
++			snprintf(buf, sizeof(buf), "reserved%lld", info);
++			extra = buf;
++			break;
++		}
++
++		if (reason_valid && !do_bounce) {
++			do_bounce = ppd->port_error_action &
++			  (1 << ((info & 0xf) + OPA_LDR_PORTRCV_OFFSET));
++			lcl_reason =
++			  (info & 0xf) + OPA_LINKDOWN_REASON_RCV_ERROR_0;
++		}
++
++		/* just report this */
++		dd_dev_info(dd, "DCC Error: PortRcv error: %s\n", extra);
++		dd_dev_info(dd, "           hdr0 0x%llx, hdr1 0x%llx\n",
++			hdr0, hdr1);
++
++		reg &= ~DCC_ERR_FLG_RCVPORT_ERR_SMASK;
++	}
++
++	if (reg & DCC_ERR_FLG_EN_CSR_ACCESS_BLOCKED_UC_SMASK) {
++		/* informative only */
++		dd_dev_info(dd, "8051 access to LCB blocked\n");
++		reg &= ~DCC_ERR_FLG_EN_CSR_ACCESS_BLOCKED_UC_SMASK;
++	}
++	if (reg & DCC_ERR_FLG_EN_CSR_ACCESS_BLOCKED_HOST_SMASK) {
++		/* informative only */
++		dd_dev_info(dd, "host access to LCB blocked\n");
++		reg &= ~DCC_ERR_FLG_EN_CSR_ACCESS_BLOCKED_HOST_SMASK;
++	}
++
++	/* report any remaining errors */
++	if (reg)
++		dd_dev_info(dd, "DCC Error: %s\n",
++			dcc_err_string(buf, sizeof(buf), reg));
++
++	if (lcl_reason == 0)
++		lcl_reason = OPA_LINKDOWN_REASON_UNKNOWN;
++
++	if (do_bounce) {
++		dd_dev_info(dd, "%s: PortErrorAction bounce\n", __func__);
++		set_link_down_reason(ppd, lcl_reason, 0, lcl_reason);
++		start_link(ppd);
++	}
++}
++
++static void handle_lcb_err(struct hfi1_devdata *dd, u32 unused, u64 reg)
++{
++	char buf[96];
++
++	dd_dev_info(dd, "LCB Error: %s\n",
++		lcb_err_string(buf, sizeof(buf), reg));
++}
++
 +/*
-+ * Copyright (c) 2014 Intel Corporation.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
++ * CCE block DC interrupt.  Source is < 8.
 + */
++static void is_dc_int(struct hfi1_devdata *dd, unsigned int source)
++{
++	const struct err_reg_info *eri = &dc_errs[source];
 +
-+#if !defined(OPA_PORT_INFO_H)
-+#define OPA_PORT_INFO_H
++	if (eri->handler) {
++		interrupt_clear_down(dd, 0, eri);
++	} else if (source == 3 /* dc_lbm_int */) {
++		/*
++		 * This indicates that a parity error has occurred on the
++		 * address/control lines presented to the LBM.  The error
++		 * is a single pulse, there is no associated error flag,
++		 * and it is non-maskable.  This is because if a parity
++		 * error occurs on the request the request is dropped.
++		 * This should never occur, but it is nice to know if it
++		 * ever does.
++		 */
++		dd_dev_err(dd, "Parity error in DC LBM block\n");
++	} else {
++		dd_dev_err(dd, "Invalid DC interrupt %u\n", source);
++	}
++}
 +
-+/* Temporary until HFI driver is updated */
-+#ifndef USE_PI_LED_ENABLE
-+#define USE_PI_LED_ENABLE 0
++/*
++ * TX block send credit interrupt.  Source is < 160.
++ */
++static void is_send_credit_int(struct hfi1_devdata *dd, unsigned int source)
++{
++	sc_group_release_update(dd, source);
++}
++
++/*
++ * TX block SDMA interrupt.  Source is < 48.
++ *
++ * SDMA interrupts are grouped by type:
++ *
++ *	 0 -  N-1 = SDma
++ *	 N - 2N-1 = SDmaProgress
++ *	2N - 3N-1 = SDmaIdle
++ */
++static void is_sdma_eng_int(struct hfi1_devdata *dd, unsigned int source)
++{
++	/* what interrupt */
++	unsigned int what  = source / TXE_NUM_SDMA_ENGINES;
++	/* which engine */
++	unsigned int which = source % TXE_NUM_SDMA_ENGINES;
++
++#ifdef CONFIG_SDMA_VERBOSITY
++	dd_dev_err(dd, "CONFIG SDMA(%u) %s:%d %s()\n", which,
++		   slashstrip(__FILE__), __LINE__, __func__);
++	sdma_dumpstate(&dd->per_sdma[which]);
 +#endif
 +
-+#define OPA_PORT_LINK_MODE_NOP	0		/* No change */
-+#define OPA_PORT_LINK_MODE_OPA	4		/* Port mode is OPA */
++	if (likely(what < 3 && which < dd->num_sdma)) {
++		sdma_engine_interrupt(&dd->per_sdma[which], 1ull << source);
++	} else {
++		/* should not happen */
++		dd_dev_err(dd, "Invalid SDMA interrupt 0x%x\n", source);
++	}
++}
 +
-+#define OPA_PORT_PACKET_FORMAT_NOP	0		/* No change */
-+#define OPA_PORT_PACKET_FORMAT_8B	1		/* Format 8B */
-+#define OPA_PORT_PACKET_FORMAT_9B	2		/* Format 9B */
-+#define OPA_PORT_PACKET_FORMAT_10B	4		/* Format 10B */
-+#define OPA_PORT_PACKET_FORMAT_16B	8		/* Format 16B */
-+
-+#define OPA_PORT_LTP_CRC_MODE_NONE	0	/* No change */
-+#define OPA_PORT_LTP_CRC_MODE_14	1	/* 14-bit LTP CRC mode (optional) */
-+#define OPA_PORT_LTP_CRC_MODE_16	2	/* 16-bit LTP CRC mode */
-+#define OPA_PORT_LTP_CRC_MODE_48	4	/* 48-bit LTP CRC mode (optional) */
-+#define OPA_PORT_LTP_CRC_MODE_PER_LANE  8	/* 12/16-bit per lane LTP CRC mode */
-+
-+/* Link Down / Neighbor Link Down Reason; indicated as follows: */
-+#define OPA_LINKDOWN_REASON_NONE				0	/* No specified reason */
-+#define OPA_LINKDOWN_REASON_RCV_ERROR_0				1
-+#define OPA_LINKDOWN_REASON_BAD_PKT_LEN				2
-+#define OPA_LINKDOWN_REASON_PKT_TOO_LONG			3
-+#define OPA_LINKDOWN_REASON_PKT_TOO_SHORT			4
-+#define OPA_LINKDOWN_REASON_BAD_SLID				5
-+#define OPA_LINKDOWN_REASON_BAD_DLID				6
-+#define OPA_LINKDOWN_REASON_BAD_L2				7
-+#define OPA_LINKDOWN_REASON_BAD_SC				8
-+#define OPA_LINKDOWN_REASON_RCV_ERROR_8				9
-+#define OPA_LINKDOWN_REASON_BAD_MID_TAIL			10
-+#define OPA_LINKDOWN_REASON_RCV_ERROR_10			11
-+#define OPA_LINKDOWN_REASON_PREEMPT_ERROR			12
-+#define OPA_LINKDOWN_REASON_PREEMPT_VL15			13
-+#define OPA_LINKDOWN_REASON_BAD_VL_MARKER			14
-+#define OPA_LINKDOWN_REASON_RCV_ERROR_14			15
-+#define OPA_LINKDOWN_REASON_RCV_ERROR_15			16
-+#define OPA_LINKDOWN_REASON_BAD_HEAD_DIST			17
-+#define OPA_LINKDOWN_REASON_BAD_TAIL_DIST			18
-+#define OPA_LINKDOWN_REASON_BAD_CTRL_DIST			19
-+#define OPA_LINKDOWN_REASON_BAD_CREDIT_ACK			20
-+#define OPA_LINKDOWN_REASON_UNSUPPORTED_VL_MARKER		21
-+#define OPA_LINKDOWN_REASON_BAD_PREEMPT				22
-+#define OPA_LINKDOWN_REASON_BAD_CONTROL_FLIT			23
-+#define OPA_LINKDOWN_REASON_EXCEED_MULTICAST_LIMIT		24
-+#define OPA_LINKDOWN_REASON_RCV_ERROR_24			25
-+#define OPA_LINKDOWN_REASON_RCV_ERROR_25			26
-+#define OPA_LINKDOWN_REASON_RCV_ERROR_26			27
-+#define OPA_LINKDOWN_REASON_RCV_ERROR_27			28
-+#define OPA_LINKDOWN_REASON_RCV_ERROR_28			29
-+#define OPA_LINKDOWN_REASON_RCV_ERROR_29			30
-+#define OPA_LINKDOWN_REASON_RCV_ERROR_30			31
-+#define OPA_LINKDOWN_REASON_EXCESSIVE_BUFFER_OVERRUN		32
-+#define OPA_LINKDOWN_REASON_UNKNOWN				33
-+/* 34 -reserved */
-+#define OPA_LINKDOWN_REASON_REBOOT				35
-+#define OPA_LINKDOWN_REASON_NEIGHBOR_UNKNOWN			36
-+/* 37-38 reserved */
-+#define OPA_LINKDOWN_REASON_FM_BOUNCE				39
-+#define OPA_LINKDOWN_REASON_SPEED_POLICY			40
-+#define OPA_LINKDOWN_REASON_WIDTH_POLICY			41
-+/* 42-48 reserved */
-+#define OPA_LINKDOWN_REASON_DISCONNECTED			49
-+#define OPA_LINKDOWN_REASONLOCAL_MEDIA_NOT_INSTALLED		50
-+#define OPA_LINKDOWN_REASON_NOT_INSTALLED			51
-+#define OPA_LINKDOWN_REASON_CHASSIS_CONFIG			52
-+/* 53 reserved */
-+#define OPA_LINKDOWN_REASON_END_TO_END_NOT_INSTALLED		54
-+/* 55 reserved */
-+#define OPA_LINKDOWN_REASON_POWER_POLICY			56
-+#define OPA_LINKDOWN_REASON_LINKSPEED_POLICY			57
-+#define OPA_LINKDOWN_REASON_LINKWIDTH_POLICY			58
-+/* 59 reserved */
-+#define OPA_LINKDOWN_REASON_SWITCH_MGMT				60
-+#define OPA_LINKDOWN_REASON_SMA_DISABLED			61
-+/* 62 reserved */
-+#define OPA_LINKDOWN_REASON_TRANSIENT				63
-+/* 64-255 reserved */
-+
-+/* OPA Link Init reason; indicated as follows: */
-+/* 3-7; 11-15 reserved; 8-15 cleared on Polling->LinkUp */
-+#define OPA_LINKINIT_REASON_NOP                 0
-+#define OPA_LINKINIT_REASON_LINKUP              (1 << 4)
-+#define OPA_LINKINIT_REASON_FLAPPING            (2 << 4)
-+#define OPA_LINKINIT_REASON_CLEAR               (8 << 4)
-+#define OPA_LINKINIT_OUTSIDE_POLICY             (8 << 4)
-+#define OPA_LINKINIT_QUARANTINED                (9 << 4)
-+#define OPA_LINKINIT_INSUFIC_CAPABILITY         (10 << 4)
-+
-+#define OPA_LINK_SPEED_NOP              0x0000  /*  Reserved (1-5 Gbps) */
-+#define OPA_LINK_SPEED_12_5G            0x0001  /*  12.5 Gbps */
-+#define OPA_LINK_SPEED_25G              0x0002  /*  25.78125?  Gbps (EDR) */
-+
-+#define OPA_LINK_WIDTH_1X            0x0001
-+#define OPA_LINK_WIDTH_2X            0x0002
-+#define OPA_LINK_WIDTH_3X            0x0004
-+#define OPA_LINK_WIDTH_4X            0x0008
-+
-+#define OPA_CAP_MASK3_IsSnoopSupported            (1 << 7)
-+#define OPA_CAP_MASK3_IsAsyncSC2VLSupported       (1 << 6)
-+#define OPA_CAP_MASK3_IsAddrRangeConfigSupported  (1 << 5)
-+#define OPA_CAP_MASK3_IsPassThroughSupported      (1 << 4)
-+#define OPA_CAP_MASK3_IsSharedSpaceSupported      (1 << 3)
-+/* reserved (1 << 2) */
-+#define OPA_CAP_MASK3_IsVLMarkerSupported         (1 << 1)
-+#define OPA_CAP_MASK3_IsVLrSupported              (1 << 0)
-+
-+/**
-+ * new MTU values
++/*
++ * RX block receive available interrupt.  Source is < 160.
 + */
-+enum {
-+	OPA_MTU_8192  = 6,
-+	OPA_MTU_10240 = 7,
++static void is_rcv_avail_int(struct hfi1_devdata *dd, unsigned int source)
++{
++	struct hfi1_ctxtdata *rcd;
++	char *err_detail;
++
++	if (likely(source < dd->num_rcv_contexts)) {
++		rcd = dd->rcd[source];
++		if (rcd) {
++			if (source < dd->first_user_ctxt)
++				rcd->do_interrupt(rcd);
++			else
++				handle_user_interrupt(rcd);
++			return;	/* OK */
++		}
++		/* received an interrupt, but no rcd */
++		err_detail = "dataless";
++	} else {
++		/* received an interrupt, but are not using that context */
++		err_detail = "out of range";
++	}
++	dd_dev_err(dd, "unexpected %s receive available context interrupt %u\n",
++		err_detail, source);
++}
++
++/*
++ * RX block receive urgent interrupt.  Source is < 160.
++ */
++static void is_rcv_urgent_int(struct hfi1_devdata *dd, unsigned int source)
++{
++	struct hfi1_ctxtdata *rcd;
++	char *err_detail;
++
++	if (likely(source < dd->num_rcv_contexts)) {
++		rcd = dd->rcd[source];
++		if (rcd) {
++			/* only pay attention to user urgent interrupts */
++			if (source >= dd->first_user_ctxt)
++				handle_user_interrupt(rcd);
++			return;	/* OK */
++		}
++		/* received an interrupt, but no rcd */
++		err_detail = "dataless";
++	} else {
++		/* received an interrupt, but are not using that context */
++		err_detail = "out of range";
++	}
++	dd_dev_err(dd, "unexpected %s receive urgent context interrupt %u\n",
++		err_detail, source);
++}
++
++/*
++ * Reserved range interrupt.  Should not be called in normal operation.
++ */
++static void is_reserved_int(struct hfi1_devdata *dd, unsigned int source)
++{
++	char name[64];
++
++	dd_dev_err(dd, "unexpected %s interrupt\n",
++				is_reserved_name(name, sizeof(name), source));
++}
++
++static const struct is_table is_table[] = {
++/* start		     end
++				name func		interrupt func */
++{ IS_GENERAL_ERR_START,  IS_GENERAL_ERR_END,
++				is_misc_err_name,	is_misc_err_int },
++{ IS_SDMAENG_ERR_START,  IS_SDMAENG_ERR_END,
++				is_sdma_eng_err_name,	is_sdma_eng_err_int },
++{ IS_SENDCTXT_ERR_START, IS_SENDCTXT_ERR_END,
++				is_sendctxt_err_name,	is_sendctxt_err_int },
++{ IS_SDMA_START,	     IS_SDMA_END,
++				is_sdma_eng_name,	is_sdma_eng_int },
++{ IS_VARIOUS_START,	     IS_VARIOUS_END,
++				is_various_name,	is_various_int },
++{ IS_DC_START,	     IS_DC_END,
++				is_dc_name,		is_dc_int },
++{ IS_RCVAVAIL_START,     IS_RCVAVAIL_END,
++				is_rcv_avail_name,	is_rcv_avail_int },
++{ IS_RCVURGENT_START,    IS_RCVURGENT_END,
++				is_rcv_urgent_name,	is_rcv_urgent_int },
++{ IS_SENDCREDIT_START,   IS_SENDCREDIT_END,
++				is_send_credit_name,	is_send_credit_int},
++{ IS_RESERVED_START,     IS_RESERVED_END,
++				is_reserved_name,	is_reserved_int},
 +};
 +
-+enum {
-+	OPA_PORT_PHYS_CONF_DISCONNECTED = 0,
-+	OPA_PORT_PHYS_CONF_STANDARD     = 1,
-+	OPA_PORT_PHYS_CONF_FIXED        = 2,
-+	OPA_PORT_PHYS_CONF_VARIABLE     = 3,
-+	OPA_PORT_PHYS_CONF_SI_PHOTO     = 4
-+};
++/*
++ * Interrupt source interrupt - called when the given source has an interrupt.
++ * Source is a bit index into an array of 64-bit integers.
++ */
++static void is_interrupt(struct hfi1_devdata *dd, unsigned int source)
++{
++	const struct is_table *entry;
 +
-+enum port_info_field_masks {
-+	/* vl.cap */
-+	OPA_PI_MASK_VL_CAP                        = 0x1F,
-+	/* port_states.ledenable_offlinereason */
-+	OPA_PI_MASK_OFFLINE_REASON                = 0x0F,
-+	OPA_PI_MASK_LED_ENABLE                    = 0x40,
-+	/* port_states.unsleepstate_downdefstate */
-+	OPA_PI_MASK_UNSLEEP_STATE                 = 0xF0,
-+	OPA_PI_MASK_DOWNDEF_STATE                 = 0x0F,
-+	/* port_states.portphysstate_portstate */
-+	OPA_PI_MASK_PORT_PHYSICAL_STATE           = 0xF0,
-+	OPA_PI_MASK_PORT_STATE                    = 0x0F,
-+	/* port_phys_conf */
-+	OPA_PI_MASK_PORT_PHYSICAL_CONF            = 0x0F,
-+	/* collectivemask_multicastmask */
-+	OPA_PI_MASK_COLLECT_MASK                  = 0x38,
-+	OPA_PI_MASK_MULTICAST_MASK                = 0x07,
-+	/* mkeyprotect_lmc */
-+	OPA_PI_MASK_MKEY_PROT_BIT                 = 0xC0,
-+	OPA_PI_MASK_LMC                           = 0x0F,
-+	/* smsl */
-+	OPA_PI_MASK_SMSL                          = 0x1F,
-+	/* partenforce_filterraw */
-+	/* Filter Raw In/Out bits 1 and 2 were removed */
-+	OPA_PI_MASK_LINKINIT_REASON               = 0xF0,
-+	OPA_PI_MASK_PARTITION_ENFORCE_IN          = 0x08,
-+	OPA_PI_MASK_PARTITION_ENFORCE_OUT         = 0x04,
-+	/* operational_vls */
-+	OPA_PI_MASK_OPERATIONAL_VL                = 0x1F,
-+	/* sa_qp */
-+	OPA_PI_MASK_SA_QP                         = 0x00FFFFFF,
-+	/* sm_trap_qp */
-+	OPA_PI_MASK_SM_TRAP_QP                    = 0x00FFFFFF,
-+	/* localphy_overrun_errors */
-+	OPA_PI_MASK_LOCAL_PHY_ERRORS              = 0xF0,
-+	OPA_PI_MASK_OVERRUN_ERRORS                = 0x0F,
-+	/* clientrereg_subnettimeout */
-+	OPA_PI_MASK_CLIENT_REREGISTER             = 0x80,
-+	OPA_PI_MASK_SUBNET_TIMEOUT                = 0x1F,
-+	/* port_link_mode */
-+	OPA_PI_MASK_PORT_LINK_SUPPORTED           = (0x001F << 10),
-+	OPA_PI_MASK_PORT_LINK_ENABLED             = (0x001F <<  5),
-+	OPA_PI_MASK_PORT_LINK_ACTIVE              = (0x001F <<  0),
-+	/* port_link_crc_mode */
-+	OPA_PI_MASK_PORT_LINK_CRC_SUPPORTED       = 0x0F00,
-+	OPA_PI_MASK_PORT_LINK_CRC_ENABLED         = 0x00F0,
-+	OPA_PI_MASK_PORT_LINK_CRC_ACTIVE          = 0x000F,
-+	/* port_mode */
-+	OPA_PI_MASK_PORT_MODE_SECURITY_CHECK      = 0x0001,
-+	OPA_PI_MASK_PORT_MODE_16B_TRAP_QUERY      = 0x0002,
-+	OPA_PI_MASK_PORT_MODE_PKEY_CONVERT        = 0x0004,
-+	OPA_PI_MASK_PORT_MODE_SC2SC_MAPPING       = 0x0008,
-+	OPA_PI_MASK_PORT_MODE_VL_MARKER           = 0x0010,
-+	OPA_PI_MASK_PORT_PASS_THROUGH             = 0x0020,
-+	OPA_PI_MASK_PORT_ACTIVE_OPTOMIZE          = 0x0040,
-+	/* flit_control.interleave */
-+	OPA_PI_MASK_INTERLEAVE_DIST_SUP           = (0x0003 << 12),
-+	OPA_PI_MASK_INTERLEAVE_DIST_ENABLE        = (0x0003 << 10),
-+	OPA_PI_MASK_INTERLEAVE_MAX_NEST_TX        = (0x001F <<  5),
-+	OPA_PI_MASK_INTERLEAVE_MAX_NEST_RX        = (0x001F <<  0),
++	/* avoids a double compare by walking the table in-order */
++	for (entry = &is_table[0]; entry->is_name; entry++) {
++		if (source < entry->end) {
++			trace_hfi1_interrupt(dd, entry, source);
++			entry->is_int(dd, source - entry->start);
++			return;
++		}
++	}
++	/* fell off the end */
++	dd_dev_err(dd, "invalid interrupt source %u\n", source);
++}
 +
-+	/* port_error_action */
-+	OPA_PI_MASK_EX_BUFFER_OVERRUN                  = 0x80000000,
-+		/* 7 bits reserved */
-+	OPA_PI_MASK_FM_CFG_ERR_EXCEED_MULTICAST_LIMIT  = 0x00800000,
-+	OPA_PI_MASK_FM_CFG_BAD_CONTROL_FLIT            = 0x00400000,
-+	OPA_PI_MASK_FM_CFG_BAD_PREEMPT                 = 0x00200000,
-+	OPA_PI_MASK_FM_CFG_UNSUPPORTED_VL_MARKER       = 0x00100000,
-+	OPA_PI_MASK_FM_CFG_BAD_CRDT_ACK                = 0x00080000,
-+	OPA_PI_MASK_FM_CFG_BAD_CTRL_DIST               = 0x00040000,
-+	OPA_PI_MASK_FM_CFG_BAD_TAIL_DIST               = 0x00020000,
-+	OPA_PI_MASK_FM_CFG_BAD_HEAD_DIST               = 0x00010000,
-+		/* 2 bits reserved */
-+	OPA_PI_MASK_PORT_RCV_BAD_VL_MARKER             = 0x00002000,
-+	OPA_PI_MASK_PORT_RCV_PREEMPT_VL15              = 0x00001000,
-+	OPA_PI_MASK_PORT_RCV_PREEMPT_ERROR             = 0x00000800,
-+		/* 1 bit reserved */
-+	OPA_PI_MASK_PORT_RCV_BAD_MidTail               = 0x00000200,
-+		/* 1 bit reserved */
-+	OPA_PI_MASK_PORT_RCV_BAD_SC                    = 0x00000080,
-+	OPA_PI_MASK_PORT_RCV_BAD_L2                    = 0x00000040,
-+	OPA_PI_MASK_PORT_RCV_BAD_DLID                  = 0x00000020,
-+	OPA_PI_MASK_PORT_RCV_BAD_SLID                  = 0x00000010,
-+	OPA_PI_MASK_PORT_RCV_PKTLEN_TOOSHORT           = 0x00000008,
-+	OPA_PI_MASK_PORT_RCV_PKTLEN_TOOLONG            = 0x00000004,
-+	OPA_PI_MASK_PORT_RCV_BAD_PKTLEN                = 0x00000002,
-+	OPA_PI_MASK_PORT_RCV_BAD_LT                    = 0x00000001,
++/*
++ * General interrupt handler.  This is able to correctly handle
++ * all interrupts in case INTx is used.
++ */
++static irqreturn_t general_interrupt(int irq, void *data)
++{
++	struct hfi1_devdata *dd = data;
++	u64 regs[CCE_NUM_INT_CSRS];
++	u32 bit;
++	int i;
 +
-+	/* pass_through.res_drctl */
-+	OPA_PI_MASK_PASS_THROUGH_DR_CONTROL       = 0x01,
++	this_cpu_inc(*dd->int_counter);
 +
-+	/* buffer_units */
-+	OPA_PI_MASK_BUF_UNIT_VL15_INIT            = (0x00000FFF  << 11),
-+	OPA_PI_MASK_BUF_UNIT_VL15_CREDIT_RATE     = (0x0000001F  <<  6),
-+	OPA_PI_MASK_BUF_UNIT_CREDIT_ACK           = (0x00000003  <<  3),
-+	OPA_PI_MASK_BUF_UNIT_BUF_ALLOC            = (0x00000003  <<  0),
++	/* phase 1: scan and clear all handled interrupts */
++	for (i = 0; i < CCE_NUM_INT_CSRS; i++) {
++		if (dd->gi_mask[i] == 0) {
++			regs[i] = 0;	/* used later */
++			continue;
++		}
++		regs[i] = read_csr(dd, CCE_INT_STATUS + (8 * i)) &
++				dd->gi_mask[i];
++		/* only clear if anything is set */
++		if (regs[i])
++			write_csr(dd, CCE_INT_CLEAR + (8 * i), regs[i]);
++	}
 +
-+	/* neigh_mtu.pvlx_to_mtu */
-+	OPA_PI_MASK_NEIGH_MTU_PVL0                = 0xF0,
-+	OPA_PI_MASK_NEIGH_MTU_PVL1                = 0x0F,
++	/* phase 2: call the appropriate handler */
++	for_each_set_bit(bit, (unsigned long *)&regs[0],
++						CCE_NUM_INT_CSRS*64) {
++		is_interrupt(dd, bit);
++	}
 +
-+	/* neigh_mtu.vlstall_hoq_life */
-+	OPA_PI_MASK_VL_STALL                      = (0x03 << 5),
-+	OPA_PI_MASK_HOQ_LIFE                      = (0x1F << 0),
++	return IRQ_HANDLED;
++}
 +
-+	/* port_neigh_mode */
-+	OPA_PI_MASK_NEIGH_MGMT_ALLOWED            = (0x01 << 3),
-+	OPA_PI_MASK_NEIGH_FW_AUTH_BYPASS          = (0x01 << 2),
-+	OPA_PI_MASK_NEIGH_NODE_TYPE               = (0x03 << 0),
++static irqreturn_t sdma_interrupt(int irq, void *data)
++{
++	struct sdma_engine *sde = data;
++	struct hfi1_devdata *dd = sde->dd;
++	u64 status;
 +
-+	/* resptime_value */
-+	OPA_PI_MASK_RESPONSE_TIME_VALUE           = 0x1F,
-+
-+	/* mtucap */
-+	OPA_PI_MASK_MTU_CAP                       = 0x0F,
-+};
-+
-+#if USE_PI_LED_ENABLE
-+struct opa_port_states {
-+	u8     reserved;
-+	u8     ledenable_offlinereason;   /* 1 res, 1 bit, 6 bits */
-+	u8     reserved2;
-+	u8     portphysstate_portstate;   /* 4 bits, 4 bits */
-+};
-+#define PI_LED_ENABLE_SUP 1
-+#else
-+struct opa_port_states {
-+	u8     reserved;
-+	u8     offline_reason;            /* 2 res, 6 bits */
-+	u8     reserved2;
-+	u8     portphysstate_portstate;   /* 4 bits, 4 bits */
-+};
-+#define PI_LED_ENABLE_SUP 0
++#ifdef CONFIG_SDMA_VERBOSITY
++	dd_dev_err(dd, "CONFIG SDMA(%u) %s:%d %s()\n", sde->this_idx,
++		   slashstrip(__FILE__), __LINE__, __func__);
++	sdma_dumpstate(sde);
 +#endif
 +
-+struct opa_port_state_info {
-+	struct opa_port_states port_states;
-+	u16 link_width_downgrade_tx_active;
-+	u16 link_width_downgrade_rx_active;
-+};
++	this_cpu_inc(*dd->int_counter);
 +
-+struct opa_port_info {
-+	__be32 lid;
-+	__be32 flow_control_mask;
++	/* This read_csr is really bad in the hot path */
++	status = read_csr(dd,
++			CCE_INT_STATUS + (8*(IS_SDMA_START/64)))
++			& sde->imask;
++	if (likely(status)) {
++		/* clear the interrupt(s) */
++		write_csr(dd,
++			CCE_INT_CLEAR + (8*(IS_SDMA_START/64)),
++			status);
 +
-+	struct {
-+		u8     res;                       /* was inittype */
-+		u8     cap;                       /* 3 res, 5 bits */
-+		__be16 high_limit;
-+		__be16 preempt_limit;
-+		u8     arb_high_cap;
-+		u8     arb_low_cap;
-+	} vl;
++		/* handle the interrupt(s) */
++		sdma_engine_interrupt(sde, status);
++	} else
++		dd_dev_err(dd, "SDMA engine %u interrupt, but no status bits set\n",
++			sde->this_idx);
 +
-+	struct opa_port_states  port_states;
-+	u8     port_phys_conf;                    /* 4 res, 4 bits */
-+	u8     collectivemask_multicastmask;      /* 2 res, 3, 3 */
-+	u8     mkeyprotect_lmc;                   /* 2 bits, 2 res, 4 bits */
-+	u8     smsl;                              /* 3 res, 5 bits */
-+
-+	u8     partenforce_filterraw;             /* bit fields */
-+	u8     operational_vls;                    /* 3 res, 5 bits */
-+	__be16 pkey_8b;
-+	__be16 pkey_10b;
-+	__be16 mkey_violations;
-+
-+	__be16 pkey_violations;
-+	__be16 qkey_violations;
-+	__be32 sm_trap_qp;                        /* 8 bits, 24 bits */
-+
-+	__be32 sa_qp;                             /* 8 bits, 24 bits */
-+	u8     neigh_port_num;
-+	u8     link_down_reason;
-+	u8     neigh_link_down_reason;
-+	u8     clientrereg_subnettimeout;	  /* 1 bit, 2 bits, 5 */
-+
-+	struct {
-+		__be16 supported;
-+		__be16 enabled;
-+		__be16 active;
-+	} link_speed;
-+	struct {
-+		__be16 supported;
-+		__be16 enabled;
-+		__be16 active;
-+	} link_width;
-+	struct {
-+		__be16 supported;
-+		__be16 enabled;
-+		__be16 tx_active;
-+		__be16 rx_active;
-+	} link_width_downgrade;
-+	__be16 port_link_mode;                  /* 1 res, 5 bits, 5 bits, 5 bits */
-+	__be16 port_ltp_crc_mode;               /* 4 res, 4 bits, 4 bits, 4 bits */
-+
-+	__be16 port_mode;                       /* 9 res, bit fields */
-+	struct {
-+		__be16 supported;
-+		__be16 enabled;
-+	} port_packet_format;
-+	struct {
-+		__be16 interleave;  /* 2 res, 2,2,5,5 */
-+		struct {
-+			__be16 min_initial;
-+			__be16 min_tail;
-+			u8     large_pkt_limit;
-+			u8     small_pkt_limit;
-+			u8     max_small_pkt_limit;
-+			u8     preemption_limit;
-+		} preemption;
-+	} flit_control;
-+
-+	__be32 reserved4;
-+	__be32 port_error_action; /* bit field */
-+
-+	struct {
-+		u8 egress_port;
-+		u8 res_drctl;                    /* 7 res, 1 */
-+	} pass_through;
-+	__be16 mkey_lease_period;
-+	__be32 buffer_units;                     /* 9 res, 12, 5, 3, 3 */
-+
-+	__be32 reserved5;
-+	__be32 sm_lid;
-+
-+	__be64 mkey;
-+
-+	__be64 subnet_prefix;
-+
-+	struct {
-+		u8 pvlx_to_mtu[OPA_MAX_VLS/2]; /* 4 bits, 4 bits */
-+	} neigh_mtu;
-+
-+	struct {
-+		u8 vlstall_hoqlife;             /* 3 bits, 5 bits */
-+	} xmit_q[OPA_MAX_VLS];
-+
-+	struct {
-+		u8 addr[16];
-+	} ipaddr_ipv6;
-+
-+	struct {
-+		u8 addr[4];
-+	} ipaddr_ipv4;
-+
-+	u32    reserved6;
-+	u32    reserved7;
-+	u32    reserved8;
-+
-+	__be64 neigh_node_guid;
-+
-+	__be32 ib_cap_mask;
-+	__be16 reserved9;                    /* was ib_cap_mask2 */
-+	__be16 opa_cap_mask;
-+
-+	__be32 reserved10;                   /* was link_roundtrip_latency */
-+	__be16 overall_buffer_space;
-+	__be16 reserved11;                   /* was max_credit_hint */
-+
-+	__be16 diag_code;
-+	struct {
-+		u8 buffer;
-+		u8 wire;
-+	} replay_depth;
-+	u8     port_neigh_mode;
-+	u8     mtucap;                          /* 4 res, 4 bits */
-+
-+	u8     resptimevalue;		        /* 3 res, 5 bits */
-+	u8     local_port_num;
-+	u8     reserved12;
-+	u8     reserved13;                       /* was guid_cap */
-+} __attribute__ ((packed));
-+
-+#endif /* OPA_PORT_INFO_H */
-diff --git a/include/rdma/opa_smi.h b/include/rdma/opa_smi.h
-index 29063e8..4a529ef 100644
---- a/include/rdma/opa_smi.h
-+++ b/include/rdma/opa_smi.h
-@@ -40,6 +40,10 @@
- #define OPA_SMP_DR_DATA_SIZE			1872
- #define OPA_SMP_MAX_PATH_HOPS			64
- 
-+#define OPA_MAX_VLS				32
-+#define OPA_MAX_SLS				32
-+#define OPA_MAX_SCS				32
-+
- #define OPA_SMI_CLASS_VERSION			0x80
- 
- #define OPA_LID_PERMISSIVE			cpu_to_be32(0xFFFFFFFF)
-@@ -73,6 +77,49 @@ struct opa_smp {
- } __packed;
- 
- 
-+/* Subnet management attributes */
-+/* ... */
-+#define OPA_ATTRIB_ID_NODE_DESCRIPTION		cpu_to_be16(0x0010)
-+#define OPA_ATTRIB_ID_NODE_INFO			cpu_to_be16(0x0011)
-+#define OPA_ATTRIB_ID_PORT_INFO			cpu_to_be16(0x0015)
-+#define OPA_ATTRIB_ID_PARTITION_TABLE		cpu_to_be16(0x0016)
-+#define OPA_ATTRIB_ID_SL_TO_SC_MAP		cpu_to_be16(0x0017)
-+#define OPA_ATTRIB_ID_VL_ARBITRATION		cpu_to_be16(0x0018)
-+#define OPA_ATTRIB_ID_SM_INFO			cpu_to_be16(0x0020)
-+#define OPA_ATTRIB_ID_CABLE_INFO		cpu_to_be16(0x0032)
-+#define OPA_ATTRIB_ID_AGGREGATE			cpu_to_be16(0x0080)
-+#define OPA_ATTRIB_ID_SC_TO_SL_MAP		cpu_to_be16(0x0082)
-+#define OPA_ATTRIB_ID_SC_TO_VLR_MAP		cpu_to_be16(0x0083)
-+#define OPA_ATTRIB_ID_SC_TO_VLT_MAP		cpu_to_be16(0x0084)
-+#define OPA_ATTRIB_ID_SC_TO_VLNT_MAP		cpu_to_be16(0x0085)
-+/* ... */
-+#define OPA_ATTRIB_ID_PORT_STATE_INFO		cpu_to_be16(0x0087)
-+/* ... */
-+#define OPA_ATTRIB_ID_BUFFER_CONTROL_TABLE	cpu_to_be16(0x008A)
-+/* ... */
-+
-+struct opa_node_description {
-+	u8 data[64];
-+} __attribute__ ((packed));
-+
-+struct opa_node_info {
-+	u8      base_version;
-+	u8      class_version;
-+	u8      node_type;
-+	u8      num_ports;
-+	__be32  reserved;
-+	__be64  system_image_guid;
-+	__be64  node_guid;
-+	__be64  port_guid;
-+	__be16  partition_cap;
-+	__be16  device_id;
-+	__be32  revision;
-+	u8      local_port_num;
-+	u8      vendor_id[3];   /* network byte order */
-+} __attribute__ ((packed));
-+
-+#define OPA_PARTITION_TABLE_BLK_SIZE 32
-+
- static inline u8
- opa_get_smp_direction(struct opa_smp *smp)
- {
-diff --git a/include/uapi/rdma/hfi/hfi1_user.h b/include/uapi/rdma/hfi/hfi1_user.h
-new file mode 100644
-index 0000000..2ee745a
---- /dev/null
-+++ b/include/uapi/rdma/hfi/hfi1_user.h
-@@ -0,0 +1,427 @@
-+/*
-+ *
-+ * This file is provided under a dual BSD/GPLv2 license.  When using or
-+ * redistributing this file, you may do so under either license.
-+ *
-+ * GPL LICENSE SUMMARY
-+ *
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * BSD LICENSE
-+ *
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ *  - Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *  - Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *  - Neither the name of Intel Corporation nor the names of its
-+ *    contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ */
++	return IRQ_HANDLED;
++}
 +
 +/*
-+ * This file contains defines, structures, etc. that are used
-+ * to communicate between kernel and user code.
++ * NOTE: this routine expects to be on its own MSI-X interrupt.  If
++ * multiple receive contexts share the same MSI-X interrupt, then this
++ * routine must check for who received it.
 + */
++static irqreturn_t receive_context_interrupt(int irq, void *data)
++{
++	struct hfi1_ctxtdata *rcd = data;
++	struct hfi1_devdata *dd = rcd->dd;
 +
-+#ifndef _LINUX__HFI1_USER_H
-+#define _LINUX__HFI1_USER_H
++	trace_hfi1_receive_interrupt(dd, rcd->ctxt);
++	this_cpu_inc(*dd->int_counter);
 +
-+#include <linux/types.h>
++	/* clear the interrupt */
++	write_csr(rcd->dd, CCE_INT_CLEAR + (8*rcd->ireg), rcd->imask);
++
++	/* handle the interrupt */
++	rcd->do_interrupt(rcd);
++
++	return IRQ_HANDLED;
++}
++
++/* ========================================================================= */
++
++static u32 read_physical_state(struct hfi1_devdata *dd)
++{
++	u64 reg;
++
++	reg = read_csr(dd, DC_DC8051_STS_CUR_STATE);
++	return (reg >> DC_DC8051_STS_CUR_STATE_PORT_SHIFT)
++				& DC_DC8051_STS_CUR_STATE_PORT_MASK;
++}
++
++static u32 read_logical_state(struct hfi1_devdata *dd)
++{
++	u64 reg;
++
++	reg = read_csr(dd, DCC_CFG_PORT_CONFIG);
++	return (reg >> DCC_CFG_PORT_CONFIG_LINK_STATE_SHIFT)
++				& DCC_CFG_PORT_CONFIG_LINK_STATE_MASK;
++}
++
++static void set_logical_state(struct hfi1_devdata *dd, u32 chip_lstate)
++{
++	u64 reg;
++
++	reg = read_csr(dd, DCC_CFG_PORT_CONFIG);
++	/* clear current state, set new state */
++	reg &= ~DCC_CFG_PORT_CONFIG_LINK_STATE_SMASK;
++	reg |= (u64)chip_lstate << DCC_CFG_PORT_CONFIG_LINK_STATE_SHIFT;
++	write_csr(dd, DCC_CFG_PORT_CONFIG, reg);
++}
 +
 +/*
-+ * This version number is given to the driver by the user code during
-+ * initialization in the spu_userversion field of hfi1_user_info, so
-+ * the driver can check for compatibility with user code.
-+ *
-+ * The major version changes when data structures change in an incompatible
-+ * way. The driver must be the same for initialization to succeed.
++ * Use the 8051 to read a LCB CSR.
 + */
-+#define HFI1_USER_SWMAJOR 4
++static int read_lcb_via_8051(struct hfi1_devdata *dd, u32 addr, u64 *data)
++{
++	u32 regno;
++	int ret;
++
++	if (dd->icode == ICODE_FUNCTIONAL_SIMULATOR) {
++		if (acquire_lcb_access(dd, 0) == 0) {
++			*data = read_csr(dd, addr);
++			release_lcb_access(dd, 0);
++			return 0;
++		}
++		return -EBUSY;
++	}
++
++	/* register is an index of LCB registers: (offset - base) / 8 */
++	regno = (addr - DC_LCB_CFG_RUN) >> 3;
++	ret = do_8051_command(dd, HCMD_READ_LCB_CSR, regno, data);
++	if (ret != HCMD_SUCCESS)
++		return -EBUSY;
++	return 0;
++}
 +
 +/*
-+ * Minor version differences are always compatible
-+ * a within a major version, however if user software is larger
-+ * than driver software, some new features and/or structure fields
-+ * may not be implemented; the user code must deal with this if it
-+ * cares, or it must abort after initialization reports the difference.
++ * Read an LCB CSR.  Access may not be in host control, so check.
++ * Return 0 on success, -EBUSY on failure.
 + */
-+#define HFI1_USER_SWMINOR 0
++int read_lcb_csr(struct hfi1_devdata *dd, u32 addr, u64 *data)
++{
++	struct hfi1_pportdata *ppd = dd->pport;
++
++	/* if up, go through the 8051 for the value */
++	if (ppd->host_link_state & HLS_UP)
++		return read_lcb_via_8051(dd, addr, data);
++	/* if going up or down, no access */
++	if (ppd->host_link_state & (HLS_GOING_UP | HLS_GOING_OFFLINE))
++		return -EBUSY;
++	/* otherwise, host has access */
++	*data = read_csr(dd, addr);
++	return 0;
++}
 +
 +/*
-+ * Set of HW and driver capability/feature bits.
-+ * These bit values are used to configure enabled/disabled HW and
-+ * driver features. The same set of bits are communicated to user
-+ * space.
++ * Use the 8051 to write a LCB CSR.
 + */
-+#define HFI1_CAP_DMA_RTAIL        (1UL <<  0) /* Use DMA'ed RTail value */
-+#define HFI1_CAP_SDMA             (1UL <<  1) /* Enable SDMA support */
-+#define HFI1_CAP_SDMA_AHG         (1UL <<  2) /* Enable SDMA AHG support */
-+#define HFI1_CAP_EXTENDED_PSN     (1UL <<  3) /* Enable Extended PSN support */
-+#define HFI1_CAP_HDRSUPP          (1UL <<  4) /* Enable Header Suppression */
-+#define HFI1_CAP_ENABLE_SMA       (1UL <<  5) /* Enable driver SM Agent */
-+#define HFI1_CAP_USE_SDMA_HEAD    (1UL <<  6) /* DMA Hdr Q tail vs. use CSR */
-+#define HFI1_CAP_MULTI_PKT_EGR    (1UL <<  7) /* Enable multi-packet Egr buffs*/
-+#define HFI1_CAP_NODROP_RHQ_FULL  (1UL <<  8) /* Don't drop on Hdr Q full */
-+#define HFI1_CAP_NODROP_EGR_FULL  (1UL <<  9) /* Don't drop on EGR buffs full */
-+#define HFI1_CAP_TID_UNMAP        (1UL << 10) /* Enable Expected TID caching */
-+#define HFI1_CAP_PRINT_UNIMPL     (1UL << 11) /* Show for unimplemented feats */
-+#define HFI1_CAP_ALLOW_PERM_JKEY  (1UL << 12) /* Allow use of permissive JKEY */
-+#define HFI1_CAP_NO_INTEGRITY     (1UL << 13) /* Enable ctxt integrity checks */
-+#define HFI1_CAP_PKEY_CHECK       (1UL << 14) /* Enable ctxt PKey checking */
-+#define HFI1_CAP_STATIC_RATE_CTRL (1UL << 15) /* Allow PBC.StaticRateControl */
-+#define HFI1_CAP_QSFP_ENABLED     (1UL << 16) /* Enable QSFP check during LNI */
-+#define HFI1_CAP_SDMA_HEAD_CHECK  (1UL << 17) /* SDMA head checking */
-+#define HFI1_CAP_EARLY_CREDIT_RETURN (1UL << 18) /* early credit return */
++static int write_lcb_via_8051(struct hfi1_devdata *dd, u32 addr, u64 data)
++{
 +
-+#define HFI1_RCVHDR_ENTSIZE_2    (1UL << 0)
-+#define HFI1_RCVHDR_ENTSIZE_16   (1UL << 1)
-+#define HFI1_RCVDHR_ENTSIZE_32   (1UL << 2)
++	if (acquire_lcb_access(dd, 0) == 0) {
++		write_csr(dd, addr, data);
++		release_lcb_access(dd, 0);
++		return 0;
++	}
++	return -EBUSY;
++}
 +
 +/*
-+ * If the unit is specified via open, HCA choice is fixed.  If port is
-+ * specified, it's also fixed.  Otherwise we try to spread contexts
-+ * across ports and HCAs, using different algorithms.  WITHIN is
-+ * the old default, prior to this mechanism.
++ * Write an LCB CSR.  Access may not be in host control, so check.
++ * Return 0 on success, -EBUSY on failure.
 + */
-+#define HFI1_ALG_ACROSS 0 /* round robin contexts across HCAs, then
-+			  * ports; this is the default */
-+#define HFI1_ALG_WITHIN 1 /* use all contexts on an HCA (round robin
-+			  * active ports within), then next HCA */
-+#define HFI1_ALG_COUNT  2 /* number of algorithm choices */
++int write_lcb_csr(struct hfi1_devdata *dd, u32 addr, u64 data)
++{
++	struct hfi1_pportdata *ppd = dd->pport;
 +
-+
-+/* User commands. */
-+#define HFI1_CMD_ASSIGN_CTXT     1	/* allocate HCA and context */
-+#define HFI1_CMD_CTXT_INFO       2	/* find out what resources we got */
-+#define HFI1_CMD_USER_INFO       3	/* set up userspace */
-+#define HFI1_CMD_TID_UPDATE      4	/* update expected TID entries */
-+#define HFI1_CMD_TID_FREE        5	/* free expected TID entries */
-+#define HFI1_CMD_CREDIT_UPD      6	/* force an update of PIO credit */
-+#define HFI1_CMD_SDMA_STATUS_UPD 7       /* force update of SDMA status ring */
-+
-+#define HFI1_CMD_RECV_CTRL       8	/* control receipt of packets */
-+#define HFI1_CMD_POLL_TYPE       9	/* set the kind of polling we want */
-+#define HFI1_CMD_ACK_EVENT       10	/* ack & clear user status bits */
-+#define HFI1_CMD_SET_PKEY        11      /* set context's pkey */
-+#define HFI1_CMD_CTXT_RESET      12      /* reset context's HW send context */
-+/* separate EPROM commands from normal PSM commands */
-+#define HFI1_CMD_EP_INFO         64      /* read EPROM device ID */
-+#define HFI1_CMD_EP_ERASE_CHIP   65      /* erase whole EPROM */
-+#define HFI1_CMD_EP_ERASE_P0     66      /* erase EPROM partition 0 */
-+#define HFI1_CMD_EP_ERASE_P1     67      /* erase EPROM partition 1 */
-+#define HFI1_CMD_EP_READ_P0      68      /* read EPROM partition 0 */
-+#define HFI1_CMD_EP_READ_P1      69      /* read EPROM partition 1 */
-+#define HFI1_CMD_EP_WRITE_P0     70      /* write EPROM partition 0 */
-+#define HFI1_CMD_EP_WRITE_P1     71      /* write EPROM partition 1 */
-+
-+#define _HFI1_EVENT_FROZEN_BIT       0
-+#define _HFI1_EVENT_LINKDOWN_BIT     1
-+#define _HFI1_EVENT_LID_CHANGE_BIT   2
-+#define _HFI1_EVENT_LMC_CHANGE_BIT   3
-+#define _HFI1_EVENT_SL2VL_CHANGE_BIT 4
-+#define _HFI1_MAX_EVENT_BIT _HFI1_EVENT_SL2VL_CHANGE_BIT
-+
-+#define HFI1_EVENT_FROZEN                (1UL << _HFI1_EVENT_FROZEN_BIT)
-+#define HFI1_EVENT_LINKDOWN_BIT		(1UL << _HFI1_EVENT_LINKDOWN_BIT)
-+#define HFI1_EVENT_LID_CHANGE_BIT	(1UL << _HFI1_EVENT_LID_CHANGE_BIT)
-+#define HFI1_EVENT_LMC_CHANGE_BIT	(1UL << _HFI1_EVENT_LMC_CHANGE_BIT)
-+#define HFI1_EVENT_SL2VL_CHANGE_BIT	(1UL << _HFI1_EVENT_SL2VL_CHANGE_BIT)
++	/* if up, go through the 8051 for the value */
++	if (ppd->host_link_state & HLS_UP)
++		return write_lcb_via_8051(dd, addr, data);
++	/* if going up or down, no access */
++	if (ppd->host_link_state & (HLS_GOING_UP | HLS_GOING_OFFLINE))
++		return -EBUSY;
++	/* otherwise, host has access */
++	write_csr(dd, addr, data);
++	return 0;
++}
 +
 +/*
-+ * These are the status bits readable (in ASCII form, 64bit value)
-+ * from the "status" sysfs file.  For binary compatibility, values
-+ * must remain as is; removed states can be reused for different
-+ * purposes.
++ * Returns:
++ *	< 0 = Linux error, not able to get access
++ *	> 0 = 8051 command RETURN_CODE
 + */
-+#define HFI1_STATUS_INITTED       0x1    /* basic initialization done */
-+/* Chip has been found and initialized */
-+#define HFI1_STATUS_CHIP_PRESENT 0x20
-+/* IB link is at ACTIVE, usable for data traffic */
-+#define HFI1_STATUS_IB_READY     0x40
-+/* link is configured, LID, MTU, etc. have been set */
-+#define HFI1_STATUS_IB_CONF      0x80
-+/* A Fatal hardware error has occurred. */
-+#define HFI1_STATUS_HWERROR     0x200
++static int do_8051_command(
++	struct hfi1_devdata *dd,
++	u32 type,
++	u64 in_data,
++	u64 *out_data)
++{
++	u64 reg, completed;
++	int return_code;
++	unsigned long flags;
++	unsigned long timeout;
 +
-+/*
-+ * Number of supported shared contexts.
-+ * This is the maximum number of software contexts that can share
-+ * a hardware send/receive context.
-+ */
-+#define HFI1_MAX_SHARED_CTXTS 8
++	hfi1_cdbg(DC8051, "type %d, data 0x%012llx", type, in_data);
 +
-+/*
-+ * Poll types
-+ */
-+#define HFI1_POLL_TYPE_ANYRCV     0x0
-+#define HFI1_POLL_TYPE_URGENT     0x1
-+
-+/*
-+ * This structure is passed to the driver to tell it where
-+ * user code buffers are, sizes, etc.   The offsets and sizes of the
-+ * fields must remain unchanged, for binary compatibility.  It can
-+ * be extended, if userversion is changed so user code can tell, if needed
-+ */
-+struct hfi1_user_info {
 +	/*
-+	 * version of user software, to detect compatibility issues.
-+	 * Should be set to HFI1_USER_SWVERSION.
++	 * Alternative to holding the lock for a long time:
++	 * - keep busy wait - have other users bounce off
 +	 */
-+	__u32 userversion;
-+	__u16 pad;
-+	/* HFI selection algorithm, if unit has not selected */
-+	__u16 hfi1_alg;
++	spin_lock_irqsave(&dd->dc8051_lock, flags);
++
++
++	/* We can't send any commands to the 8051 if it's in reset */
++	if (dd->dc_shutdown) {
++		return_code = -ENODEV;
++		goto fail;
++	}
++
 +	/*
-+	 * If two or more processes wish to share a context, each process
-+	 * must set the subcontext_cnt and subcontext_id to the same
-+	 * values.  The only restriction on the subcontext_id is that
-+	 * it be unique for a given node.
++	 * If an 8051 host command timed out previously, then the 8051 is
++	 * stuck.
++	 *
++	 * On first timeout, attempt to reset and restart the entire DC
++	 * block (including 8051). (Is this too big of a hammer?)
++	 *
++	 * If the 8051 times out a second time, the reset did not bring it
++	 * back to healthy life. In that case, fail any subsequent commands.
 +	 */
-+	__u16 subctxt_cnt;
-+	__u16 subctxt_id;
-+	/* 128bit UUID passed in by PSM. */
-+	__u8 uuid[16];
-+};
++	if (dd->dc8051_timed_out) {
++		if (dd->dc8051_timed_out > 1) {
++			dd_dev_err(dd,
++				   "Previous 8051 host command timed out, skipping command %u\n",
++				   type);
++			return_code = -ENXIO;
++			goto fail;
++		}
++		spin_unlock_irqrestore(&dd->dc8051_lock, flags);
++		dc_shutdown(dd);
++		dc_start(dd);
++		spin_lock_irqsave(&dd->dc8051_lock, flags);
++	}
 +
-+struct hfi1_ctxt_info {
-+	__u64 runtime_flags;    /* chip/drv runtime flags (HFI1_CAP_*) */
-+	__u32 rcvegr_size;      /* size of each eager buffer */
-+	__u16 num_active;       /* number of active units */
-+	__u16 unit;             /* unit (chip) assigned to caller */
-+	__u16 ctxt;             /* ctxt on unit assigned to caller */
-+	__u16 subctxt;          /* subctxt on unit assigned to caller */
-+	__u16 rcvtids;          /* number of Rcv TIDs for this context */
-+	__u16 credits;          /* number of PIO credits for this context */
-+	__u16 numa_node;        /* NUMA node of the assigned device */
-+	__u16 rec_cpu;          /* cpu # for affinity (0xffff if none) */
-+	__u16 send_ctxt;        /* send context in use by this user context */
-+	__u16 egrtids;          /* number of RcvArray entries for Eager Rcvs */
-+	__u16 rcvhdrq_cnt;      /* number of RcvHdrQ entries */
-+	__u16 rcvhdrq_entsize;  /* size (in bytes) for each RcvHdrQ entry */
-+	__u16 sdma_ring_size;   /* number of entries in SDMA request ring */
-+};
-+
-+struct hfi1_tid_info {
-+	/* virtual address of first page in transfer */
-+	__u64 vaddr;
-+	/* pointer to tid array. this array is big enough */
-+	__u64 tidlist;
-+	/* number of tids programmed by this request */
-+	__u32 tidcnt;
-+	/* length of transfer buffer programmed by this request */
-+	__u32 length;
 +	/*
-+	 * pointer to bitmap of TIDs used for this call;
-+	 * checked for being large enough at open
++	 * If there is no timeout, then the 8051 command interface is
++	 * waiting for a command.
 +	 */
-+	__u64 tidmap;
-+};
 +
-+struct hfi1_cmd {
-+	__u32 type;        /* command type */
-+	__u32 len;         /* length of struct pointed to by add */
-+	__u64 addr;        /* pointer to user structure */
-+};
++	/*
++	 * Do two writes: the first to stabilize the type and req_data, the
++	 * second to activate.
++	 */
++	reg = ((u64)type & DC_DC8051_CFG_HOST_CMD_0_REQ_TYPE_MASK)
++			<< DC_DC8051_CFG_HOST_CMD_0_REQ_TYPE_SHIFT
++		| (in_data & DC_DC8051_CFG_HOST_CMD_0_REQ_DATA_MASK)
++			<< DC_DC8051_CFG_HOST_CMD_0_REQ_DATA_SHIFT;
++	write_csr(dd, DC_DC8051_CFG_HOST_CMD_0, reg);
++	reg |= DC_DC8051_CFG_HOST_CMD_0_REQ_NEW_SMASK;
++	write_csr(dd, DC_DC8051_CFG_HOST_CMD_0, reg);
 +
-+enum hfi1_sdma_comp_state {
-+	FREE = 0,
-+	QUEUED,
-+	COMPLETE,
-+	ERROR
-+};
++	/* wait for completion, alternate: interrupt */
++	timeout = jiffies + msecs_to_jiffies(
++				quick_linkup ? 20000 : DC8051_COMMAND_TIMEOUT);
++	while (1) {
++		reg = read_csr(dd, DC_DC8051_CFG_HOST_CMD_1);
++		completed = reg & DC_DC8051_CFG_HOST_CMD_1_COMPLETED_SMASK;
++		if (completed)
++			break;
++		if (time_after(jiffies, timeout)) {
++			dd->dc8051_timed_out++;
++			dd_dev_err(dd, "8051 host command %u timeout\n", type);
++			if (out_data)
++				*out_data = 0;
++			return_code = -ETIMEDOUT;
++			goto fail;
++		}
++		udelay(2);
++	}
++
++	if (out_data) {
++		*out_data = (reg >> DC_DC8051_CFG_HOST_CMD_1_RSP_DATA_SHIFT)
++				& DC_DC8051_CFG_HOST_CMD_1_RSP_DATA_MASK;
++		if (type == HCMD_READ_LCB_CSR) {
++			/* top 16 bits are in a different register */
++			*out_data |= (read_csr(dd, DC_DC8051_CFG_EXT_DEV_1)
++				& DC_DC8051_CFG_EXT_DEV_1_REQ_DATA_SMASK)
++				<< (48
++				    - DC_DC8051_CFG_EXT_DEV_1_REQ_DATA_SHIFT);
++		}
++	}
++	return_code = (reg >> DC_DC8051_CFG_HOST_CMD_1_RETURN_CODE_SHIFT)
++				& DC_DC8051_CFG_HOST_CMD_1_RETURN_CODE_MASK;
++	dd->dc8051_timed_out = 0;
++	/*
++	 * Clear command for next user.
++	 */
++	write_csr(dd, DC_DC8051_CFG_HOST_CMD_0, 0);
++
++fail:
++	spin_unlock_irqrestore(&dd->dc8051_lock, flags);
++
++	return return_code;
++}
++
++static int set_physical_link_state(struct hfi1_devdata *dd, u64 state)
++{
++	return do_8051_command(dd, HCMD_CHANGE_PHY_STATE, state, NULL);
++}
++
++static int load_8051_config(struct hfi1_devdata *dd, u8 field_id,
++			    u8 lane_id, u32 config_data)
++{
++	u64 data;
++	int ret;
++
++	data = (u64)field_id << LOAD_DATA_FIELD_ID_SHIFT
++		| (u64)lane_id << LOAD_DATA_LANE_ID_SHIFT
++		| (u64)config_data << LOAD_DATA_DATA_SHIFT;
++	ret = do_8051_command(dd, HCMD_LOAD_CONFIG_DATA, data, NULL);
++	if (ret != HCMD_SUCCESS) {
++		dd_dev_err(dd,
++			"load 8051 config: field id %d, lane %d, err %d\n",
++			(int)field_id, (int)lane_id, ret);
++	}
++	return ret;
++}
++
++static int read_8051_config(struct hfi1_devdata *dd, u8 field_id,
++			    u8 lane_id, u32 *config_data)
++{
++	u64 in_data;
++	u64 out_data;
++	int ret;
++
++	in_data = (u64)field_id << READ_DATA_FIELD_ID_SHIFT
++			| (u64)lane_id << READ_DATA_LANE_ID_SHIFT;
++	ret = do_8051_command(dd, HCMD_READ_CONFIG_DATA, in_data,
++				&out_data);
++	if (ret != HCMD_SUCCESS) {
++		dd_dev_err(dd,
++			"read 8051 config: field id %d, lane %d, err %d failed\n",
++			(int)field_id, (int)lane_id, ret);
++		out_data = 0;
++	}
++	*config_data = (out_data >> READ_DATA_DATA_SHIFT) & READ_DATA_DATA_MASK;
++	return ret;
++}
++
++static int write_vc_local_phy(struct hfi1_devdata *dd, u8 power_management,
++			      u8 continuous)
++{
++	u32 frame;
++
++	frame = continuous << CONTINIOUS_REMOTE_UPDATE_SUPPORT_SHIFT
++		| power_management << POWER_MANAGEMENT_SHIFT;
++	return load_8051_config(dd, VERIFY_CAP_LOCAL_PHY,
++				GENERAL_CONFIG, frame);
++}
++
++static int write_vc_local_fabric(struct hfi1_devdata *dd, u8 vau, u8 z, u8 vcu,
++				 u16 vl15buf, u8 crc_sizes)
++{
++	u32 frame;
++
++	frame = (u32)vau << VAU_SHIFT
++		| (u32)z << Z_SHIFT
++		| (u32)vcu << VCU_SHIFT
++		| (u32)vl15buf << VL15BUF_SHIFT
++		| (u32)crc_sizes << CRC_SIZES_SHIFT;
++	return load_8051_config(dd, VERIFY_CAP_LOCAL_FABRIC,
++				GENERAL_CONFIG, frame);
++}
++
++static void read_vc_local_link_width(struct hfi1_devdata *dd, u8 *misc_bits,
++				     u8 *flag_bits, u16 *link_widths)
++{
++	u32 frame;
++
++	read_8051_config(dd, VERIFY_CAP_LOCAL_LINK_WIDTH, GENERAL_CONFIG,
++				&frame);
++	*misc_bits = (frame >> MISC_CONFIG_BITS_SHIFT) & MISC_CONFIG_BITS_MASK;
++	*flag_bits = (frame >> LOCAL_FLAG_BITS_SHIFT) & LOCAL_FLAG_BITS_MASK;
++	*link_widths = (frame >> LINK_WIDTH_SHIFT) & LINK_WIDTH_MASK;
++}
++
++static int write_vc_local_link_width(struct hfi1_devdata *dd,
++				     u8 misc_bits,
++				     u8 flag_bits,
++				     u16 link_widths)
++{
++	u32 frame;
++
++	frame = (u32)misc_bits << MISC_CONFIG_BITS_SHIFT
++		| (u32)flag_bits << LOCAL_FLAG_BITS_SHIFT
++		| (u32)link_widths << LINK_WIDTH_SHIFT;
++	return load_8051_config(dd, VERIFY_CAP_LOCAL_LINK_WIDTH, GENERAL_CONFIG,
++		     frame);
++}
++
++static int write_local_device_id(struct hfi1_devdata *dd, u16 device_id,
++				 u8 device_rev)
++{
++	u32 frame;
++
++	frame = ((u32)device_id << LOCAL_DEVICE_ID_SHIFT)
++		| ((u32)device_rev << LOCAL_DEVICE_REV_SHIFT);
++	return load_8051_config(dd, LOCAL_DEVICE_ID, GENERAL_CONFIG, frame);
++}
++
++static void read_remote_device_id(struct hfi1_devdata *dd, u16 *device_id,
++				  u8 *device_rev)
++{
++	u32 frame;
++
++	read_8051_config(dd, REMOTE_DEVICE_ID, GENERAL_CONFIG, &frame);
++	*device_id = (frame >> REMOTE_DEVICE_ID_SHIFT) & REMOTE_DEVICE_ID_MASK;
++	*device_rev = (frame >> REMOTE_DEVICE_REV_SHIFT)
++			& REMOTE_DEVICE_REV_MASK;
++}
++
++void read_misc_status(struct hfi1_devdata *dd, u8 *ver_a, u8 *ver_b)
++{
++	u32 frame;
++
++	read_8051_config(dd, MISC_STATUS, GENERAL_CONFIG, &frame);
++	*ver_a = (frame >> STS_FM_VERSION_A_SHIFT) & STS_FM_VERSION_A_MASK;
++	*ver_b = (frame >> STS_FM_VERSION_B_SHIFT) & STS_FM_VERSION_B_MASK;
++}
++
++static void read_vc_remote_phy(struct hfi1_devdata *dd, u8 *power_management,
++			       u8 *continuous)
++{
++	u32 frame;
++
++	read_8051_config(dd, VERIFY_CAP_REMOTE_PHY, GENERAL_CONFIG, &frame);
++	*power_management = (frame >> POWER_MANAGEMENT_SHIFT)
++					& POWER_MANAGEMENT_MASK;
++	*continuous = (frame >> CONTINIOUS_REMOTE_UPDATE_SUPPORT_SHIFT)
++					& CONTINIOUS_REMOTE_UPDATE_SUPPORT_MASK;
++}
++
++static void read_vc_remote_fabric(struct hfi1_devdata *dd, u8 *vau, u8 *z,
++				  u8 *vcu, u16 *vl15buf, u8 *crc_sizes)
++{
++	u32 frame;
++
++	read_8051_config(dd, VERIFY_CAP_REMOTE_FABRIC, GENERAL_CONFIG, &frame);
++	*vau = (frame >> VAU_SHIFT) & VAU_MASK;
++	*z = (frame >> Z_SHIFT) & Z_MASK;
++	*vcu = (frame >> VCU_SHIFT) & VCU_MASK;
++	*vl15buf = (frame >> VL15BUF_SHIFT) & VL15BUF_MASK;
++	*crc_sizes = (frame >> CRC_SIZES_SHIFT) & CRC_SIZES_MASK;
++}
++
++static void read_vc_remote_link_width(struct hfi1_devdata *dd,
++				      u8 *remote_tx_rate,
++				      u16 *link_widths)
++{
++	u32 frame;
++
++	read_8051_config(dd, VERIFY_CAP_REMOTE_LINK_WIDTH, GENERAL_CONFIG,
++				&frame);
++	*remote_tx_rate = (frame >> REMOTE_TX_RATE_SHIFT)
++				& REMOTE_TX_RATE_MASK;
++	*link_widths = (frame >> LINK_WIDTH_SHIFT) & LINK_WIDTH_MASK;
++}
++
++static void read_local_lni(struct hfi1_devdata *dd, u8 *enable_lane_rx)
++{
++	u32 frame;
++
++	read_8051_config(dd, LOCAL_LNI_INFO, GENERAL_CONFIG, &frame);
++	*enable_lane_rx = (frame >> ENABLE_LANE_RX_SHIFT) & ENABLE_LANE_RX_MASK;
++}
++
++static void read_mgmt_allowed(struct hfi1_devdata *dd, u8 *mgmt_allowed)
++{
++	u32 frame;
++
++	read_8051_config(dd, REMOTE_LNI_INFO, GENERAL_CONFIG, &frame);
++	*mgmt_allowed = (frame >> MGMT_ALLOWED_SHIFT) & MGMT_ALLOWED_MASK;
++}
++
++static void read_last_local_state(struct hfi1_devdata *dd, u32 *lls)
++{
++	read_8051_config(dd, LAST_LOCAL_STATE_COMPLETE, GENERAL_CONFIG, lls);
++}
++
++static void read_last_remote_state(struct hfi1_devdata *dd, u32 *lrs)
++{
++	read_8051_config(dd, LAST_REMOTE_STATE_COMPLETE, GENERAL_CONFIG, lrs);
++}
++
++void hfi1_read_link_quality(struct hfi1_devdata *dd, u8 *link_quality)
++{
++	u32 frame;
++
++	read_8051_config(dd, LINK_QUALITY_INFO, GENERAL_CONFIG, &frame);
++	*link_quality = (frame >> LINK_QUALITY_SHIFT) & LINK_QUALITY_MASK;
++}
++
++static void read_planned_down_reason_code(struct hfi1_devdata *dd, u8 *pdrrc)
++{
++	u32 frame;
++
++	read_8051_config(dd, LINK_QUALITY_INFO, GENERAL_CONFIG, &frame);
++	*pdrrc = (frame >> DOWN_REMOTE_REASON_SHIFT) & DOWN_REMOTE_REASON_MASK;
++}
++
++static int read_tx_settings(struct hfi1_devdata *dd,
++			    u8 *enable_lane_tx,
++			    u8 *tx_polarity_inversion,
++			    u8 *rx_polarity_inversion,
++			    u8 *max_rate)
++{
++	u32 frame;
++	int ret;
++
++	ret = read_8051_config(dd, TX_SETTINGS, GENERAL_CONFIG, &frame);
++	*enable_lane_tx = (frame >> ENABLE_LANE_TX_SHIFT)
++				& ENABLE_LANE_TX_MASK;
++	*tx_polarity_inversion = (frame >> TX_POLARITY_INVERSION_SHIFT)
++				& TX_POLARITY_INVERSION_MASK;
++	*rx_polarity_inversion = (frame >> RX_POLARITY_INVERSION_SHIFT)
++				& RX_POLARITY_INVERSION_MASK;
++	*max_rate = (frame >> MAX_RATE_SHIFT) & MAX_RATE_MASK;
++	return ret;
++}
++
++static int write_tx_settings(struct hfi1_devdata *dd,
++			     u8 enable_lane_tx,
++			     u8 tx_polarity_inversion,
++			     u8 rx_polarity_inversion,
++			     u8 max_rate)
++{
++	u32 frame;
++
++	/* no need to mask, all variable sizes match field widths */
++	frame = enable_lane_tx << ENABLE_LANE_TX_SHIFT
++		| tx_polarity_inversion << TX_POLARITY_INVERSION_SHIFT
++		| rx_polarity_inversion << RX_POLARITY_INVERSION_SHIFT
++		| max_rate << MAX_RATE_SHIFT;
++	return load_8051_config(dd, TX_SETTINGS, GENERAL_CONFIG, frame);
++}
++
++static void check_fabric_firmware_versions(struct hfi1_devdata *dd)
++{
++	u32 frame, version, prod_id;
++	int ret, lane;
++
++	/* 4 lanes */
++	for (lane = 0; lane < 4; lane++) {
++		ret = read_8051_config(dd, SPICO_FW_VERSION, lane, &frame);
++		if (ret != HCMD_SUCCESS) {
++			dd_dev_err(
++				dd,
++				"Unable to read lane %d firmware details\n",
++				lane);
++			continue;
++		}
++		version = (frame >> SPICO_ROM_VERSION_SHIFT)
++					& SPICO_ROM_VERSION_MASK;
++		prod_id = (frame >> SPICO_ROM_PROD_ID_SHIFT)
++					& SPICO_ROM_PROD_ID_MASK;
++		dd_dev_info(dd,
++			"Lane %d firmware: version 0x%04x, prod_id 0x%04x\n",
++			lane, version, prod_id);
++	}
++}
 +
 +/*
-+ * SDMA completion ring entry
-+ */
-+struct hfi1_sdma_comp_entry {
-+	__u32 status;
-+	__u32 errcode;
-+};
-+
-+/*
-+ * Device status and notifications from driver to user-space.
-+ */
-+struct hfi1_status {
-+	__u64 dev;      /* device/hw status bits */
-+	__u64 port;     /* port state and status bits */
-+	char freezemsg[0];
-+};
-+
-+/*
-+ * This structure is returned by the driver immediately after
-+ * open to get implementation-specific info, and info specific to this
-+ * instance.
++ * Read an idle LCB message.
 + *
-+ * This struct must have explicit pad fields where type sizes
-+ * may result in different alignments between 32 and 64 bit
-+ * programs, since the 64 bit * bit kernel requires the user code
-+ * to have matching offsets
++ * Returns 0 on success, -EINVAL on error
 + */
-+struct hfi1_base_info {
-+	/* version of hardware, for feature checking. */
-+	__u32 hw_version;
-+	/* version of software, for feature checking. */
-+	__u32 sw_version;
-+	/* Job key */
-+	__u16 jkey;
-+	__u16 padding1;
-+	/*
-+	 * The special QP (queue pair) value that identifies PSM
-+	 * protocol packet from standard IB packets.
-+	 */
-+	__u32 bthqp;
-+	/* PIO credit return address, */
-+	__u64 sc_credits_addr;
-+	/*
-+	 * Base address of write-only pio buffers for this process.
-+	 * Each buffer has sendpio_credits*64 bytes.
-+	 */
-+	__u64 pio_bufbase_sop;
-+	/*
-+	 * Base address of write-only pio buffers for this process.
-+	 * Each buffer has sendpio_credits*64 bytes.
-+	 */
-+	__u64 pio_bufbase;
-+	/* address where receive buffer queue is mapped into */
-+	__u64 rcvhdr_bufbase;
-+	/* base address of Eager receive buffers. */
-+	__u64 rcvegr_bufbase;
-+	/* base address of SDMA completion ring */
-+	__u64 sdma_comp_bufbase;
-+	/*
-+	 * User register base for init code, not to be used directly by
-+	 * protocol or applications.  Always maps real chip register space.
-+	 * the register addresses are:
-+	 * ur_rcvhdrhead, ur_rcvhdrtail, ur_rcvegrhead, ur_rcvegrtail,
-+	 * ur_rcvtidflow
-+	 */
-+	__u64 user_regbase;
-+	/* notification events */
-+	__u64 events_bufbase;
-+	/* status page */
-+	__u64 status_bufbase;
-+	/* rcvhdrtail update */
-+	__u64 rcvhdrtail_base;
-+	/*
-+	 * shared memory pages for subctxts if ctxt is shared; these cover
-+	 * all the processes in the group sharing a single context.
-+	 * all have enough space for the num_subcontexts value on this job.
-+	 */
-+	__u64 subctxt_uregbase;
-+	__u64 subctxt_rcvegrbuf;
-+	__u64 subctxt_rcvhdrbuf;
-+};
++static int read_idle_message(struct hfi1_devdata *dd, u64 type, u64 *data_out)
++{
++	int ret;
 +
-+enum sdma_req_opcode {
-+	EXPECTED = 0,
-+	EAGER
-+};
-+
-+#define HFI1_SDMA_REQ_VERSION_MASK 0xF
-+#define HFI1_SDMA_REQ_VERSION_SHIFT 0x0
-+#define HFI1_SDMA_REQ_OPCODE_MASK 0xF
-+#define HFI1_SDMA_REQ_OPCODE_SHIFT 0x4
-+#define HFI1_SDMA_REQ_IOVCNT_MASK 0xFF
-+#define HFI1_SDMA_REQ_IOVCNT_SHIFT 0x8
-+
-+struct sdma_req_info {
-+	/*
-+	 * bits 0-3 - version (currently unused)
-+	 * bits 4-7 - opcode (enum sdma_req_opcode)
-+	 * bits 8-15 - io vector count
-+	 */
-+	__u16 ctrl;
-+	/*
-+	 * Number of fragments contained in this request.
-+	 * User-space has already computed how many
-+	 * fragment-sized packet the user buffer will be
-+	 * split into.
-+	 */
-+	__u16 npkts;
-+	/*
-+	 * Size of each fragment the user buffer will be
-+	 * split into.
-+	 */
-+	__u16 fragsize;
-+	/*
-+	 * Index of the slot in the SDMA completion ring
-+	 * this request should be using. User-space is
-+	 * in charge of managing its own ring.
-+	 */
-+	__u16 comp_idx;
-+} __packed;
++	ret = do_8051_command(dd, HCMD_READ_LCB_IDLE_MSG,
++		type, data_out);
++	if (ret != HCMD_SUCCESS) {
++		dd_dev_err(dd, "read idle message: type %d, err %d\n",
++			(u32)type, ret);
++		return -EINVAL;
++	}
++	dd_dev_info(dd, "%s: read idle message 0x%llx\n", __func__, *data_out);
++	/* return only the payload as we already know the type */
++	*data_out >>= IDLE_PAYLOAD_SHIFT;
++	return 0;
++}
 +
 +/*
-+ * SW KDETH header.
-+ * swdata is SW defined portion.
++ * Read an idle SMA message.  To be done in response to a notification from
++ * the 8051.
++ *
++ * Returns 0 on success, -EINVAL on error
 + */
-+struct hfi1_kdeth_header {
-+	__le32 ver_tid_offset;
-+	__le16 jkey;
-+	__le16 hcrc;
-+	__le32 swdata[7];
-+} __packed;
-+
-+/*
-+ * Structure describing the headers that User space uses. The
-+ * structure above is a subset of this one.
-+ */
-+struct hfi1_pkt_header {
-+	__le16 pbc[4];
-+	__be16 lrh[4];
-+	__be32 bth[3];
-+	struct hfi1_kdeth_header kdeth;
-+} __packed;
-+
-+
-+/*
-+ * The list of usermode accessible registers.
-+ */
-+enum hfi1_ureg {
-+	/* (RO)  DMA RcvHdr to be used next. */
-+	ur_rcvhdrtail = 0,
-+	/* (RW)  RcvHdr entry to be processed next by host. */
-+	ur_rcvhdrhead = 1,
-+	/* (RO)  Index of next Eager index to use. */
-+	ur_rcvegrindextail = 2,
-+	/* (RW)  Eager TID to be processed next */
-+	ur_rcvegrindexhead = 3,
-+	/* (RO)  Receive Eager Offset Tail */
-+	ur_rcvegroffsettail = 4,
-+	/* For internal use only; max register number. */
-+	ur_maxreg,
-+	/* (RW)  Receive TID flow table */
-+	ur_rcvtidflowtable = 256
-+};
-+
-+#endif /* _LINIUX__HFI1_USER_H */
++static int read_idle_sma(struct hfi1_devdata *dd, u64 *data)
++{
++	return read_idle_message(dd,
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
