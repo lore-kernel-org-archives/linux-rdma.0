@@ -1,38 +1,69 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH REPOST libibverbs] Add IP and TCP/UDP TX checksum offload
- support
-Date: Thu, 18 Jun 2015 10:38:42 -0600
-Message-ID: <20150618163842.GA14348@obsidianresearch.com>
-References: <1434276784-15909-1-git-send-email-ogerlitz@mellanox.com>
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH 14/14] IB/mad: Add final OPA MAD processing
+Date: Thu, 18 Jun 2015 20:12:48 +0000
+Message-ID: <HE1PR05MB14180FC99DE7DE7B5F88D2B9B1A50@HE1PR05MB1418.eurprd05.prod.outlook.com>
+References: <1433615915-24591-1-git-send-email-ira.weiny@intel.com>
+	 <1433615915-24591-15-git-send-email-ira.weiny@intel.com>
+	 <HE1PR05MB1418BB6C461790B76D9C02A3B1BD0@HE1PR05MB1418.eurprd05.prod.outlook.com>
+	 <1433961446.71666.26.camel@redhat.com>
+	 <20150610185653.GA28153@obsidianresearch.com>
+ <1433966378.71666.44.camel@redhat.com>
+ <HE1PR05MB141885494D6967919DAE135EB1BC0@HE1PR05MB1418.eurprd05.prod.outlook.com>
+ <557AEB5D.1040003@redhat.com>
+ <HE1PR05MB14182DCD7003B52A28BB62A5B1B90@HE1PR05MB1418.eurprd05.prod.outlook.com>
+ <557E6514.1060600@redhat.com>
+ <HE1PR05MB1418C8F8E54FCC790B0CCAE3B1A70@HE1PR05MB1418.eurprd05.prod.outlook.com>
+ <2807E5FD2F6FDA4886F6618EAC48510E1109EA02@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1434276784-15909-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E1109EA02-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jun 14, 2015 at 01:13:04PM +0300, Or Gerlitz wrote:
-> From: Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> Add a device capability flag IB_DEVICE_IP_SUM to denote checksum offload
-> support. Devices should set this flag if they support insertion of IP, TCP
-> and UDP checksums on outgoing IP packets sent over IB UD or ETH RAW_PACKET QPs.
-
-It would be really nice to see the man page discuss exactly what is
-done here, there are quite a few different options for checksum.
-
-IPoIB maps this to 'NETIF_F_IP_CSUM', so only UDP/TCP checksum in
-IPv4.
-
-What value should be placed in the checksum header(s) prior to issuing
-the send? It looks like IPoIB uses the CHECKSUM_PARTIAL protocol ?
-
-This should all be made clear in the man page, IMHO.
-
-Jason
+PiBGcm9tOiBXZWlueSwgSXJhIFttYWlsdG86aXJhLndlaW55QGludGVsLmNvbV0NCg0KPiA+IGli
+X3ZlcmJzIGRlZmluZSBhbiAqZXh0ZW5zaXZlKiBkaXJlY3QgSFcgYWNjZXNzIEFQSSwgd2hpY2gg
+aXMgY29uc3RhbnRseQ0KPiA+IGV2b2x2aW5nLg0KPiANCj4gVGhpcyBpcyB0aGUgcHJvYmxlbSB3
+aXRoIHZlcmJzLi4uDQoNCkh1aD8NCkl0IGlzIGl0cyBzdHJlbmd0aCwgaWYgeW91IGRvbid0IGJy
+ZWFrIGJhY2t3YXJkIGNvbXBhdGliaWxpdHkuLi4NCg0KPiANCj4gPiBZb3UgY2Fubm90IGRlc2Ny
+aWJlIHRoZSBpbnRyaWNhdGUgb2JqZWN0IHJlbGF0aW9ucyBhbmQgc2VtYW50aWNzIHRocm91Z2gg
+YW4NCj4gPiBBUEkuDQo+ID4gSW4gYWRkaXRpb24sIHlvdSBjYW4ndCBhYnN0cmFjdCBhbnl0aGlu
+ZyBvciBmaXggc3R1ZmYgaW4gU1cuDQo+ID4gVGhlIG9ubHkgd2F5IHRvICp0cnVseSoga25vdyB3
+aGF0IHRvIGV4cGVjdCB3aGVuIHBlcmZvcm1pbmcgVmVyYnMgY2FsbHMNCj4gaXMgdG8NCj4gPiBj
+aGVjayB0aGUgbm9kZSB0eXBlLg0KPiANCj4gSG93IGNhbiB5b3Ugc2F5IHRoaXM/DQo+IA0KPiBt
+dGhjYSwgbWx4NCwgbWx4NSwgYW5kIHFpYiBhbGwgaGF2ZSBkaWZmZXJlbnQgc2V0cyBvZiBmdW5j
+dGlvbmFsaXR5Li4uIGFsbCB3aXRoDQo+IHRoZSBzYW1lIG5vZGUgdHlwZS4gIE9QQSBoYXMgdGhl
+IHNhbWUgc2V0IGFzIHFpYi4uLiAgc2FtZSBub2RlIHR5cGUuDQo+IA0KDQpPbmx5IHRoYXQgcWli
+IGlzIElCLCB3aGljaCBpcyBmdWxseSBpbnRlcm9wZXJhYmxlIHdpdGggbWx4Kg0KDQo+ID4NCj4g
+PiBpYl92ZXJicyB3YXMgbmV2ZXIgb25seSBhbiBBUEkuIEl0IHN0YXJ0ZWQgYXMgdGhlIExpbnV4
+IGltcGxlbWVudGF0aW9uIG9mDQo+IHRoZQ0KPiA+IElCVEEgc3RhbmRhcmQsIHdpdGggZ3VhcmFu
+dGVlZCBzZW1hbnRpY3MgYW5kIHdpcmUgcHJvdG9jb2wuDQo+ID4gTGF0ZXIsIHRoZSBpbnRlcmZh
+Y2Ugd2FzIHJldXNlZCB0byBzdXBwb3J0IGFkZGl0aW9uYWwgUkRNQSBkZXZpY2VzLg0KPiBIb3dl
+dmVyLA0KPiA+IHlvdSBjb3VsZCAqYWx3YXlzKiBjaGVjayB0aGUgbm9kZSB0eXBlIGlmIHlvdSB3
+YW50ZWQgdG8sIHRoZXJlYnkgcmV0YWluaW5nDQo+IHRoZQ0KPiA+IHN0YW5kYXJkIGd1YXJhbnRl
+ZXMuIFdpbi13aW4gc2l0dWF0aW9uLi4uDQo+IA0KPiBOb3QgdHJ1ZSBhdCBhbGwuICBGb3IgZXhh
+bXBsZSwgUWliIGRvZXMgbm90IHN1cHBvcnQgWFJDIGFuZCB5ZXQgaGFzIHRoZSBzYW1lDQo+IG5v
+ZGUgdHlwZSBhcyBtbHg0ICg1KS4uLg0KDQpUaGUgbm9kZSB0eXBlIGlzIGZvciBndWFyYW50ZWVp
+bmcgc2VtYW50aWNzIGFuZCBpbnRlcm9wIGZvciB0aGUgZmVhdHVyZXMgdGhhdCB5b3UgZG8gaW1w
+bGVtZW50Li4uDQoNCj4gDQo+ID4NCj4gPiBUaGlzIGlzIGEgdmVyeSBzdHJvbmcgcHJvcGVydHk7
+IHdlIHNob3VsZCBub3QgZ2l2ZSB1cCBvbiBpdC4NCj4gDQo+IE9uIHRoZSBjb250cmFyeSB0aGUg
+cHJvcGVydHkgaXMgd2VhayBhbmQgaW1wbGllcyBmdW5jdGlvbmFsaXR5IG9yIGxhY2sgb2YNCj4g
+ZnVuY3Rpb25hbGl0eSByYXRoZXIgdGhhbiBiZWluZyBleHBsaWNpdC4gIFRoaXMgd2FzIGRvbmUg
+YmVjYXVzZSBnZXR0aW5nDQo+IGNoYW5nZXMgdG8ga2VybmVsIEFCSXMgd2FzIGhhcmQgYW5kIHdl
+IHRvb2sgYSBzaG9ydGN1dCB3aXRoIG5vZGUgdHlwZQ0KPiB3aGljaCB3ZSBzaG91bGQgbm90IGhh
+dmUuICBPUEEgYXR0ZW1wdHMgdG8gc3RvcCB0aGlzIG1hZG5lc3MgYW5kIHN1cHBvcnRzDQo+IHRo
+ZSBmdW5jdGlvbmFsaXR5IG9mIHZlcmJzIF9Bc18gX0RlZmluZWRfIHJhdGhlciB0aGFuIGNyZWF0
+aW5nIHlldCBhbm90aGVyDQo+IHNldCBvZiB0aGluZ3Mgd2hpY2ggYXBwbGljYXRpb25zIG5lZWQg
+dG8gY2hlY2sgYWdhaW5zdC4NCj4gDQoNCkkgdG90YWxseSBhZ3JlZSB0aGF0IHdlIHNob3VsZCBp
+bXByb3ZlIHRoZSBleHByZXNzaXZlbmVzcyBhbmQgYWNjdXJhY3kgb2Ygb3VyIGNhcGFiaWxpdGll
+czsNCnlvdSBkb24ndCBuZWVkIE9QQSBmb3IgdGhpcy4gVW5mb3J0dW5hdGVseSwgaXQgaXMgbm90
+IGFsd2F5cyB0aGUgY2FzZS4gDQoNCkFsc28sIHRoZXJlIGFyZSBiZWhhdmlvcnMgdGhhdCBhcmUg
+bm90IGRlZmluZWQgYnkgdGhlIEFQSSwgYnV0IHN0aWxsIHJlbHkgb24gdGhlIG5vZGUgdHlwZS4N
+Ck1hbmFnZW1lbnQgYXBwbGljYXRpb25zICwgZm9yIGV4YW1wbGUuDQoNCi0tTGlyYW4NCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
