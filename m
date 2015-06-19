@@ -1,35 +1,35 @@
 From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Upstream mlx4 driver very broken (when using SRIOV)
-Date: Fri, 19 Jun 2015 13:41:52 +0300
-Message-ID: <CAJ3xEMiiq_41jzkyuXyqcoUk-tV=i4grreQt_gNyQaXSdO-73Q@mail.gmail.com>
-References: <557BC105.3070405@redhat.com>
-	<CAJ3xEMi--ygFeYC12iiivXnbZLd=ox22fzt_f1+TFn7M0Emhug@mail.gmail.com>
-	<CFEE2FE0-21D6-469F-8B16-C211DED6BB45@redhat.com>
+Subject: Re: [PATCH v3 00/49] Add OPA gen1 driver
+Date: Fri, 19 Jun 2015 13:55:47 +0300
+Message-ID: <CAJ3xEMiire8aFGr8FkcA_PEELAGpF7fxwWNwS3_L4wvK9s+Pkw@mail.gmail.com>
+References: <20150617122755.8744.44665.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CFEE2FE0-21D6-469F-8B16-C211DED6BB45-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20150617122755.8744.44665.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jun 19, 2015 at 3:57 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
->> On Jun 14, 2015, at 10:31 AM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+On Wed, Jun 17, 2015, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> This patch series adds the OPA gen1 driver.
 
->> The fix is easy, disable Granular VF QoS in that VPI config, I tested
->> it and sent that now to net [1]
+>       IB/hfi1: add qp handling
+>       IB/hfi1: add RC QP handling
+>       IB/hfi1: add routines for RC/UC
+>       IB/hfi1: add UC QP handling
+>       IB/hfi1: add UD QP handling
 
+Mike,
 
-> Did this fix the mlx4_en shutdown issue too, or is there another patch needed for that?
+This is the 3rd time in a row {(1) ipath (2) qib (3) OPA Gen1} for you
+guys to implement IB transports in SW @ your low-level drivers.
 
-I don't think it would. I wasn't able to reproduce that one BTW, do
-you see it only with your VPI IB/Eth SRIOV config or elsewhere too?
-did the fix I sent solved the SQP SRIOV issue?
+So... enough is enough, please put it in a (say) libibtrans kernel
+module residing in the IB core and use it in this driver, to begin
+with.
 
-
->> [1] http://patchwork.ozlabs.org/patch/483991/
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
