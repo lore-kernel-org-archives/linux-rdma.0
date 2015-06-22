@@ -1,72 +1,42 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCHv2 RFC] IB: Add rdma_cap_ib_switch helper and use where
- appropriate
-Date: Mon, 22 Jun 2015 18:11:31 -0400
-Message-ID: <55888813.9040803@dev.mellanox.co.il>
-References: <5583536C.3010504@dev.mellanox.co.il> <20150622202056.GA8049@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: "Luis R. Rodriguez" <mcgrof-3uybbJdB1yH774rrrx3eTA@public.gmane.org>
+Subject: [PATCH 0/2] x86/mm/pat: don't use WARN for nopat requirement
+Date: Mon, 22 Jun 2015 15:31:56 -0700
+Message-ID: <1435012318-381-1-git-send-email-mcgrof@do-not-panic.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150622202056.GA8049-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: bp-l3A5Bk7waGM@public.gmane.org, mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/22/2015 4:20 PM, Jason Gunthorpe wrote:
-> On Thu, Jun 18, 2015 at 07:25:32PM -0400, Hal Rosenstock wrote:
->> Persuant to Liran's comments on node_type on linux-rdma
->> mailing list:
->>
->> In an effort to reform the RDMA core and ULPs to minimize use of
->> node_type in struct ib_device, an additional bit is added to
->> struct ib_device for is_switch (IB switch). This is needed 
->> to be initialized by any IB switch device driver. This is a 
->> NEW requirement on such device drivers which are all
->> "out of tree".
->>
->> In addition, an ib_switch helper was added to ib_verbs.h
->> based on the is_switch device bit rather than node_type
->> (although those should be consistent).
->>
->> The RDMA core (MAD, SMI, agent, sa_query, multicast, sysfs)
->> as well as (IPoIB and SRP) ULPs are updated where
->> appropriate to use this new helper. In some cases,
->> the helper is now used under the covers of using
->> rdma_[start end]_port rather than the open coding
->> previously used.
->>
->> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> Looks pretty good now.
-> 
-> Reviewed-By: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> 
-> Although a bitfield isn't my preference:
-> 
->> index 986fddb..b0f898e 100644
->> +++ b/include/rdma/ib_verbs.h
->> @@ -1745,6 +1745,7 @@ struct ib_device {
->>  	char			     node_desc[64];
->>  	__be64			     node_guid;
->>  	u32			     local_dma_lkey;
->> +	u16                          is_switch:1;
->>  	u8                           node_type;
->>  	u8                           phys_port_cnt;
+From: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
 
-What would be better/what would be your preference ?
+Mauro, Doug,
 
-Note that there still remain a couple of node type checks in the kernel
-that we may want to remove. There's an IB CA check in cma.c:rdma_notify
-as well as in rds/ib.c:rds_ib_add_one and rds_ib_laddr_check and an RNIC
-check in rds/iw.c:rds_iw_add_one and rds_iw_laddr_check. Should these be
-changed not to use node type ?
+The 0-day robot found using WARN() on built-in kernels confusing. Upon
+further thought pr_warn() is better and will likely also not confuse
+humans too.
 
--- Hal
+Boris, provided maintainers Ack, please consider these patches.
 
-> Jason
-> 
+These depend on pat_enabled() exported symbol which went in through
+the x86 tree, so I suppose this also needs to go through there. This
+is an example issue of cross-tree collateral evolution follow ups,
+one reason why I punted the a RFD and proposal for a linux-oven [0].
+In that regard I suppose follow ups like these would need to go through
+that tree as well.
+
+[0] http://lkml.kernel.org/r/20150619231255.GC7487-dAjH6bxAqesAS62YNPtMr3dQhYtBYE6JAL8bYrjMMd8@public.gmane.org
+
+Luis R. Rodriguez (2):
+  x86/mm/pat, drivers/infiniband/ipath: replace WARN() with pr_warn()
+  x86/mm/pat, drivers/media/ivtv: replace WARN() with pr_warn()
+
+ drivers/infiniband/hw/ipath/ipath_driver.c | 6 ++++--
+ drivers/media/pci/ivtv/ivtvfb.c            | 6 ++++--
+ 2 files changed, 8 insertions(+), 4 deletions(-)
+
+-- 
+2.3.2.209.gd67f9d5.dirty
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
