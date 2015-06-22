@@ -1,61 +1,59 @@
-From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [ANNOUNCE] OFED 3.18-rc3 release is available
-Date: Mon, 22 Jun 2015 19:22:22 +0300
-Message-ID: <5588363E.20808@dev.mellanox.co.il>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCHv2 RFC] IB: Add rdma_cap_ib_switch helper and use where
+ appropriate
+Date: Mon, 22 Jun 2015 14:20:56 -0600
+Message-ID: <20150622202056.GA8049@obsidianresearch.com>
+References: <5583536C.3010504@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5583536C.3010504-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
-OFED-3.18-rc3 is available at:
+On Thu, Jun 18, 2015 at 07:25:32PM -0400, Hal Rosenstock wrote:
+> Persuant to Liran's comments on node_type on linux-rdma
+> mailing list:
+> 
+> In an effort to reform the RDMA core and ULPs to minimize use of
+> node_type in struct ib_device, an additional bit is added to
+> struct ib_device for is_switch (IB switch). This is needed 
+> to be initialized by any IB switch device driver. This is a 
+> NEW requirement on such device drivers which are all
+> "out of tree".
+> 
+> In addition, an ib_switch helper was added to ib_verbs.h
+> based on the is_switch device bit rather than node_type
+> (although those should be consistent).
+> 
+> The RDMA core (MAD, SMI, agent, sa_query, multicast, sysfs)
+> as well as (IPoIB and SRP) ULPs are updated where
+> appropriate to use this new helper. In some cases,
+> the helper is now used under the covers of using
+> rdma_[start end]_port rather than the open coding
+> previously used.
+> 
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-https://www.openfabrics.org/downloads/OFED/ofed-3.18/OFED-3.18-rc3.tgz
+Looks pretty good now.
 
-To get BUILD_ID run ofed_info
+Reviewed-By: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
-Please report any issues in bugzilla
-http://bugs.openfabrics.org/bugzilla/ for OFED 3.18
+Although a bitfield isn't my preference:
 
-Release notes: https://www.openfabrics.org/downloads/OFED/release_notes/OFED_3.18-rc3_release_notes
+> index 986fddb..b0f898e 100644
+> +++ b/include/rdma/ib_verbs.h
+> @@ -1745,6 +1745,7 @@ struct ib_device {
+>  	char			     node_desc[64];
+>  	__be64			     node_guid;
+>  	u32			     local_dma_lkey;
+> +	u16                          is_switch:1;
+>  	u8                           node_type;
+>  	u8                           phys_port_cnt;
 
-OFED-3.18-rc3 Main Changes from OFED-3.18-rc2
--------------------------------------------------------------------------------
-1. Updated packages:
-  - dapl-2.1.5
-  - libfabric-1.0.0
-  - librdmacm-1.0.21
-  - mstflint-4.0.1-1.42.g0d3b372
-
-
-2. compat-rdma changes
-  - RDMA/ocrdma: insert Dual/BSD license.
-  - IB/ipoib: Change To max_cm_mtu when changing mode to connected
-  - RDMA/ocrdma : ocrdma upstream sync up patch.
-  - NFS/RDMA: fix for RHEL7.1
-  - be2net: Fixing the build failure for SLES11 SP4
-  - Fix XEON PHI compilation
-  - compat-rdma/linux-next-pending: Adding changes to enable the use of the tos field for iwarp providers
-  - gen-compat-config.sh: Added XPS related staff
-  - openibd: Check if iwpmd is running before unloading modules
-  - compat-rdma.spec: Updated content of compat-rdma-devel RPM
-  - compat-rdma: add backport to fix ofed-bz2539
-  - compat-rdma: add backport to fix ofed-bz2539
-  - Fixed openibd stop on OSes using systemd
-  - compat-rdma.spec: Fixed openibd header
-  - mlx4/5: Added bug fixes
-  - IB/core: Added fixes from upstream
-  - ibdev2netdev: Added dev_port support
-  - mlx4/backport: Fixed dev_id
-  - iw_cxgb4: use wildcard mapping for getting remote addr info
-  - cxgb4: update firmware to 1.3.32
-  - compat-rdma.spec: Added systemd support for all relevant OSes
-
-Regards,
-Vladimir
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
