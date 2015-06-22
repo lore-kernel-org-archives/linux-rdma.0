@@ -1,33 +1,72 @@
-From: Brandon Falk <bfalk-kQ3ioHgQxLs9XoPSrs7Ehg@public.gmane.org>
-Subject: Infiniband Adapter with Documentation
-Date: Mon, 22 Jun 2015 18:04:32 -0400
-Message-ID: <CAK9+cJVe+z_eWTsf6nVR-Gaqs2KeiCxXak-vXpBO23G5pWZ-gg@mail.gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCHv2 RFC] IB: Add rdma_cap_ib_switch helper and use where
+ appropriate
+Date: Mon, 22 Jun 2015 18:11:31 -0400
+Message-ID: <55888813.9040803@dev.mellanox.co.il>
+References: <5583536C.3010504@dev.mellanox.co.il> <20150622202056.GA8049@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150622202056.GA8049-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Heya,
+On 6/22/2015 4:20 PM, Jason Gunthorpe wrote:
+> On Thu, Jun 18, 2015 at 07:25:32PM -0400, Hal Rosenstock wrote:
+>> Persuant to Liran's comments on node_type on linux-rdma
+>> mailing list:
+>>
+>> In an effort to reform the RDMA core and ULPs to minimize use of
+>> node_type in struct ib_device, an additional bit is added to
+>> struct ib_device for is_switch (IB switch). This is needed 
+>> to be initialized by any IB switch device driver. This is a 
+>> NEW requirement on such device drivers which are all
+>> "out of tree".
+>>
+>> In addition, an ib_switch helper was added to ib_verbs.h
+>> based on the is_switch device bit rather than node_type
+>> (although those should be consistent).
+>>
+>> The RDMA core (MAD, SMI, agent, sa_query, multicast, sysfs)
+>> as well as (IPoIB and SRP) ULPs are updated where
+>> appropriate to use this new helper. In some cases,
+>> the helper is now used under the covers of using
+>> rdma_[start end]_port rather than the open coding
+>> previously used.
+>>
+>> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> Looks pretty good now.
+> 
+> Reviewed-By: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> 
+> Although a bitfield isn't my preference:
+> 
+>> index 986fddb..b0f898e 100644
+>> +++ b/include/rdma/ib_verbs.h
+>> @@ -1745,6 +1745,7 @@ struct ib_device {
+>>  	char			     node_desc[64];
+>>  	__be64			     node_guid;
+>>  	u32			     local_dma_lkey;
+>> +	u16                          is_switch:1;
+>>  	u8                           node_type;
+>>  	u8                           phys_port_cnt;
 
-I have a compute cluster which uses a completely custom OS (not binary
-or source compatible with Linux by any means), and I'm really
-interested in Infiniband support. Are there any adapters out there
-that have development guides for system level stuff (such as PCI
-BAR/MMIO space, etc). I'd ideally implement for the Mellanox
-ConnectX-4, but I'm willing to go where the documentation is.
+What would be better/what would be your preference ?
 
-I just want to make a limited driver capable of RDMA writes and reads,
-not planning on supporting much more beyond that. How feasible is
-that? I've written multiple 1GbE drivers and a 10GbE driver
-(specifically for the X540) which was a 8 hour project thanks to good
-documentation. Is documentation of this sort available for Infiniband?
+Note that there still remain a couple of node type checks in the kernel
+that we may want to remove. There's an IB CA check in cma.c:rdma_notify
+as well as in rds/ib.c:rds_ib_add_one and rds_ib_laddr_check and an RNIC
+check in rds/iw.c:rds_iw_add_one and rds_iw_laddr_check. Should these be
+changed not to use node type ?
 
-I'd be looking for the Infiniband equivalent of this
-https://www-ssl.intel.com/content/dam/www/public/us/en/documents/datasheets/ethernet-x540-datasheet.pdf
-.
+-- Hal
 
--B
+> Jason
+> 
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
