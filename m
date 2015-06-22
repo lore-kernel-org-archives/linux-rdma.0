@@ -1,7 +1,7 @@
 From: "Luis R. Rodriguez" <mcgrof-3uybbJdB1yH774rrrx3eTA@public.gmane.org>
-Subject: [PATCH 1/2] x86/mm/pat, drivers/infiniband/ipath: replace WARN() with pr_warn()
-Date: Mon, 22 Jun 2015 15:31:57 -0700
-Message-ID: <1435012318-381-2-git-send-email-mcgrof@do-not-panic.com>
+Subject: [PATCH 2/2] x86/mm/pat, drivers/media/ivtv: replace WARN() with pr_warn()
+Date: Mon, 22 Jun 2015 15:31:58 -0700
+Message-ID: <1435012318-381-3-git-send-email-mcgrof@do-not-panic.com>
 References: <1435012318-381-1-git-send-email-mcgrof@do-not-panic.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1435012318-381-1-git-send-email-mcgrof-3uybbJdB1yH774rrrx3eTA@public.gmane.org>
@@ -17,33 +17,33 @@ On built-in kernels this will always splat. Fix that.
 Reported-by: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> [0-day test robot]
 Signed-off-by: Luis R. Rodriguez <mcgrof-IBi9RG/b67k@public.gmane.org>
 ---
- drivers/infiniband/hw/ipath/ipath_driver.c | 6 ++++--
+ drivers/media/pci/ivtv/ivtvfb.c | 6 ++++--
  1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ipath/ipath_driver.c b/drivers/infiniband/hw/ipath/ipath_driver.c
-index 2d7e503..871dbe5 100644
---- a/drivers/infiniband/hw/ipath/ipath_driver.c
-+++ b/drivers/infiniband/hw/ipath/ipath_driver.c
-@@ -31,6 +31,8 @@
-  * SOFTWARE.
+diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
+index 4cb365d..6f0c364 100644
+--- a/drivers/media/pci/ivtv/ivtvfb.c
++++ b/drivers/media/pci/ivtv/ivtvfb.c
+@@ -38,6 +38,8 @@
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   */
  
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +
- #include <linux/sched.h>
- #include <linux/spinlock.h>
- #include <linux/idr.h>
-@@ -399,8 +401,8 @@ static int ipath_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	u32 bar0 = 0, bar1 = 0;
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/fb.h>
+@@ -1266,8 +1268,8 @@ static int __init ivtvfb_init(void)
+ 	int err;
  
  #ifdef CONFIG_X86_64
 -	if (WARN(pat_enabled(),
--		 "ipath needs PAT disabled, boot with nopat kernel parameter\n")) {
+-		 "ivtvfb needs PAT disabled, boot with nopat kernel parameter\n")) {
 +	if (pat_enabled()) {
-+		pr_warn("ipath needs PAT disabled, boot with nopat kernel parameter\n");
- 		ret = -ENODEV;
- 		goto bail;
++		pr_warn("ivtvfb needs PAT disabled, boot with nopat kernel parameter\n");
+ 		return -ENODEV;
  	}
+ #endif
 -- 
 2.3.2.209.gd67f9d5.dirty
 
