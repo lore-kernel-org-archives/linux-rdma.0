@@ -1,220 +1,92 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v1 07/12] IB/cma: Helper functions to access port space IDRs
-Date: Mon, 22 Jun 2015 15:42:36 +0300
-Message-ID: <1434976961-27424-8-git-send-email-haggaie@mellanox.com>
-References: <1434976961-27424-1-git-send-email-haggaie@mellanox.com>
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-next V5 0/5] HW Device hot-removal support
+Date: Mon, 22 Jun 2015 17:47:13 +0300
+Message-ID: <1434984438-21733-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1434976961-27424-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Add helper functions to access the IDRs by port-space and port number.
+Currently, if there is any user space application using an IB device,
+it is impossible to unload the HW device driver for this device.
 
-Pass around the port-space enum in cma.c instead of using pointers to
-port-space IDRs.
+Similarly, if the device is hot-unplugged or reset, the device driver
+hardware removal flow blocks until all user contexts are destroyed.
 
-Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/cma.c | 81 ++++++++++++++++++++++++++++++++-----------
- 1 file changed, 60 insertions(+), 21 deletions(-)
+This patchset removes the above limitations from both uverbs and ucma.
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 21cc6c99008b..02914bf1e548 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -113,6 +113,22 @@ static DEFINE_IDR(udp_ps);
- static DEFINE_IDR(ipoib_ps);
- static DEFINE_IDR(ib_ps);
- 
-+static struct idr *cma_idr(enum rdma_port_space ps)
-+{
-+	switch (ps) {
-+	case RDMA_PS_TCP:
-+		return &tcp_ps;
-+	case RDMA_PS_UDP:
-+		return &udp_ps;
-+	case RDMA_PS_IPOIB:
-+		return &ipoib_ps;
-+	case RDMA_PS_IB:
-+		return &ib_ps;
-+	default:
-+		return NULL;
-+	}
-+}
-+
- struct cma_device {
- 	struct list_head	list;
- 	struct ib_device	*device;
-@@ -122,11 +138,33 @@ struct cma_device {
- };
- 
- struct rdma_bind_list {
--	struct idr		*ps;
-+	enum rdma_port_space	ps;
- 	struct hlist_head	owners;
- 	unsigned short		port;
- };
- 
-+static int cma_ps_alloc(enum rdma_port_space ps,
-+			struct rdma_bind_list *bind_list, int snum)
-+{
-+	struct idr *idr = cma_idr(ps);
-+
-+	return idr_alloc(idr, bind_list, snum, snum + 1, GFP_KERNEL);
-+}
-+
-+static struct rdma_bind_list *cma_ps_find(enum rdma_port_space ps, int snum)
-+{
-+	struct idr *idr = cma_idr(ps);
-+
-+	return idr_find(idr, snum);
-+}
-+
-+static void cma_ps_remove(enum rdma_port_space ps, int snum)
-+{
-+	struct idr *idr = cma_idr(ps);
-+
-+	idr_remove(idr, snum);
-+}
-+
- enum {
- 	CMA_OPTION_AFONLY,
- };
-@@ -1053,7 +1091,7 @@ static void cma_release_port(struct rdma_id_private *id_priv)
- 	mutex_lock(&lock);
- 	hlist_del(&id_priv->node);
- 	if (hlist_empty(&bind_list->owners)) {
--		idr_remove(bind_list->ps, bind_list->port);
-+		cma_ps_remove(bind_list->ps, bind_list->port);
- 		kfree(bind_list);
- 	}
- 	mutex_unlock(&lock);
-@@ -2349,8 +2387,8 @@ static void cma_bind_port(struct rdma_bind_list *bind_list,
- 	hlist_add_head(&id_priv->node, &bind_list->owners);
- }
- 
--static int cma_alloc_port(struct idr *ps, struct rdma_id_private *id_priv,
--			  unsigned short snum)
-+static int cma_alloc_port(enum rdma_port_space ps,
-+			  struct rdma_id_private *id_priv, unsigned short snum)
- {
- 	struct rdma_bind_list *bind_list;
- 	int ret;
-@@ -2359,7 +2397,7 @@ static int cma_alloc_port(struct idr *ps, struct rdma_id_private *id_priv,
- 	if (!bind_list)
- 		return -ENOMEM;
- 
--	ret = idr_alloc(ps, bind_list, snum, snum + 1, GFP_KERNEL);
-+	ret = cma_ps_alloc(ps, bind_list, snum);
- 	if (ret < 0)
- 		goto err;
- 
-@@ -2372,7 +2410,8 @@ err:
- 	return ret == -ENOSPC ? -EADDRNOTAVAIL : ret;
- }
- 
--static int cma_alloc_any_port(struct idr *ps, struct rdma_id_private *id_priv)
-+static int cma_alloc_any_port(enum rdma_port_space ps,
-+			      struct rdma_id_private *id_priv)
- {
- 	static unsigned int last_used_port;
- 	int low, high, remaining;
-@@ -2383,7 +2422,7 @@ static int cma_alloc_any_port(struct idr *ps, struct rdma_id_private *id_priv)
- 	rover = prandom_u32() % remaining + low;
- retry:
- 	if (last_used_port != rover &&
--	    !idr_find(ps, (unsigned short) rover)) {
-+	    !cma_ps_find(ps, (unsigned short)rover)) {
- 		int ret = cma_alloc_port(ps, id_priv, rover);
- 		/*
- 		 * Remember previously used port number in order to avoid
-@@ -2438,7 +2477,8 @@ static int cma_check_port(struct rdma_bind_list *bind_list,
- 	return 0;
- }
- 
--static int cma_use_port(struct idr *ps, struct rdma_id_private *id_priv)
-+static int cma_use_port(enum rdma_port_space ps,
-+			struct rdma_id_private *id_priv)
- {
- 	struct rdma_bind_list *bind_list;
- 	unsigned short snum;
-@@ -2448,7 +2488,7 @@ static int cma_use_port(struct idr *ps, struct rdma_id_private *id_priv)
- 	if (snum < PROT_SOCK && !capable(CAP_NET_BIND_SERVICE))
- 		return -EACCES;
- 
--	bind_list = idr_find(ps, snum);
-+	bind_list = cma_ps_find(ps, snum);
- 	if (!bind_list) {
- 		ret = cma_alloc_port(ps, id_priv, snum);
- 	} else {
-@@ -2471,25 +2511,24 @@ static int cma_bind_listen(struct rdma_id_private *id_priv)
- 	return ret;
- }
- 
--static struct idr *cma_select_inet_ps(struct rdma_id_private *id_priv)
-+static enum rdma_port_space cma_select_inet_ps(
-+		struct rdma_id_private *id_priv)
- {
- 	switch (id_priv->id.ps) {
- 	case RDMA_PS_TCP:
--		return &tcp_ps;
- 	case RDMA_PS_UDP:
--		return &udp_ps;
- 	case RDMA_PS_IPOIB:
--		return &ipoib_ps;
- 	case RDMA_PS_IB:
--		return &ib_ps;
-+		return id_priv->id.ps;
- 	default:
--		return NULL;
-+
-+		return 0;
- 	}
- }
- 
--static struct idr *cma_select_ib_ps(struct rdma_id_private *id_priv)
-+static enum rdma_port_space cma_select_ib_ps(struct rdma_id_private *id_priv)
- {
--	struct idr *ps = NULL;
-+	enum rdma_port_space ps = 0;
- 	struct sockaddr_ib *sib;
- 	u64 sid_ps, mask, sid;
- 
-@@ -2499,15 +2538,15 @@ static struct idr *cma_select_ib_ps(struct rdma_id_private *id_priv)
- 
- 	if ((id_priv->id.ps == RDMA_PS_IB) && (sid == (RDMA_IB_IP_PS_IB & mask))) {
- 		sid_ps = RDMA_IB_IP_PS_IB;
--		ps = &ib_ps;
-+		ps = RDMA_PS_IB;
- 	} else if (((id_priv->id.ps == RDMA_PS_IB) || (id_priv->id.ps == RDMA_PS_TCP)) &&
- 		   (sid == (RDMA_IB_IP_PS_TCP & mask))) {
- 		sid_ps = RDMA_IB_IP_PS_TCP;
--		ps = &tcp_ps;
-+		ps = RDMA_PS_TCP;
- 	} else if (((id_priv->id.ps == RDMA_PS_IB) || (id_priv->id.ps == RDMA_PS_UDP)) &&
- 		   (sid == (RDMA_IB_IP_PS_UDP & mask))) {
- 		sid_ps = RDMA_IB_IP_PS_UDP;
--		ps = &udp_ps;
-+		ps = RDMA_PS_UDP;
- 	}
- 
- 	if (ps) {
-@@ -2520,7 +2559,7 @@ static struct idr *cma_select_ib_ps(struct rdma_id_private *id_priv)
- 
- static int cma_get_port(struct rdma_id_private *id_priv)
- {
--	struct idr *ps;
-+	enum rdma_port_space ps;
- 	int ret;
- 
- 	if (cma_family(id_priv) != AF_IB)
--- 
-1.7.11.2
+The IB-core and uverbs layers are still required to remain loaded as
+long as there are user applications using the verbs API. However, the
+hardware device drivers are not blocked any more by the user space
+activity.
+
+To support this, the hardware device needs to expose a new kernel API
+named 'disassociate_ucontext'. The device driver is given a ucontext
+to detach from, and it should block this user context from any future
+hardware access. In the IB-core level, we use this interface to
+deactivate all ucontext that address a specific device when handling a
+remove_one callback for it.
+
+In the RDMA-CM layer, a similar change is needed in the ucma module,
+to prevent blocking of the remove_one operation. This allows for
+hot-removal of devices with RDMA-CM users in the user space.
+
+The first two patches are preparation for this series.
+The first patch fixes a reference counting issue pointed by Jason Gunthorpe.
+The second patch is a preparation step for deploying RCU for the device
+removal flow.
+
+The third patch introduces the new API between the HW device driver and
+the IB core. For devices which implement the functionality, IB core
+will use it in remove_one, disassociating any active ucontext from the
+hardware device. Other drivers that didn't implement it will behave as
+today, remove_one will block until all ucontexts referring the device
+are destroyed before returning.
+
+The fourth patch provides implementation of this API for the mlx4
+driver.
+
+The last patch extends ucma to avoid blocking remove_one operation in
+the cma module. When such device removal event is received, ucma is
+turning all user contexts to zombie contexts. This is done by
+releasing all underlying resources and preventing any further user
+operations on the context.
+
+Changes from V4:
+#patch #1,#3 - addressed Jason's comments.
+#patch #2, #4 - rebased upon last stuff.
+
+Changes from V3:
+Add 2 patches as a preparation for this series, details above.
+patch #3: Change the locking schema based on Jason's comments.
+
+Changes from V2:
+patch #1: Rebase over ODP patches.
+
+Changes from V1:
+patch #1: Use uverbs flags instead of disassociate support, drop fatal_event_raised flag.
+patch #3: Add support in ucma for handling device removal.
+
+Changes from V0:
+patch #1: ib_uverbs_close, reduced mutex scope to enable tasks run in parallel.
+
+Yishai Hadas (5):
+  IB/uverbs: Fix reference counting usage of event files
+  IB/uverbs: Explicitly pass ib_dev to uverbs commands
+  IB/uverbs: Enable device removal when there are active user space
+    applications
+  IB/mlx4_ib: Disassociate support
+  IB/ucma: HW Device hot-removal support
+
+ drivers/infiniband/core/ucma.c        |  130 ++++++++++-
+ drivers/infiniband/core/uverbs.h      |   13 +-
+ drivers/infiniband/core/uverbs_cmd.c  |  114 ++++++----
+ drivers/infiniband/core/uverbs_main.c |  406 +++++++++++++++++++++++++++------
+ drivers/infiniband/hw/mlx4/main.c     |  139 +++++++++++-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h  |   13 +
+ include/rdma/ib_verbs.h               |    1 +
+ 7 files changed, 690 insertions(+), 126 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
