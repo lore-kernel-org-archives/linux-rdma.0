@@ -1,31 +1,35 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2] IB/srpt: Convert use of __constant_cpu_to_beXX to
- cpu_to_beXX
-Date: Wed, 24 Jun 2015 10:18:44 -0700
-Message-ID: <558AE674.3080805@sandisk.com>
-References: <20150624044213.GA4998@vaishali-Ideapad-Z570>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150624044213.GA4998@vaishali-Ideapad-Z570>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vaishali Thakkar <vthakkar1994-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+Subject: [PATCH v2 0/2] x86/mm/pat: modify nopat requirement warning
+Date: Wed, 24 Jun 2015 10:23:18 -0700
+Message-ID: <1435166600-11956-1-git-send-email-mcgrof@do-not-panic.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bp@suse.de, andy@silverblocksystems.net, mchehab@osg.samsung.com, dledford@redhat.com
+Cc: mingo@kernel.org, fengguang.wu@intel.com, linux-media@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@suse.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 06/23/2015 09:42 PM, Vaishali Thakkar wrote:
-> In little endian cases, the macro cpu_to_be{16,32,64} unfolds to
-> __swab{16,32,64} which provides special case for constants. In
-> big endian cases, __constant_cpu_to_be{16,32,64} and
-> cpu_to_be{16,32,64} expand directly to the same expression. So,
-> replace __constant_cpu_to_be{16,32,64} with cpu_to_be{16,32,64}
-> with the goal of getting rid of the definitions of
-> __constant_cpu_to_be{16,32,64} completely.
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
 
-Reviewed-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+The 0-day robot found that the notpat requirement warning was
+being triggered on the ivtv driver on the module init path,
+that will always trigger on built-in devices. We want that warning
+to trigger only if real hardware is found so this moves the ivtv
+warning out under its quasi-probe routine. The ipath driver already
+had the warning issued on its probe so no shift of code is needed
+there. Upon further thought though we decided WARN() messages would
+confuse people so instead just change these to sensible single
+pr_warn() messages for both drivers.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This goes build and load tested.
+
+Luis R. Rodriguez (2):
+  x86/mm/pat, drivers/infiniband/ipath: replace WARN() with pr_warn()
+  x86/mm/pat, drivers/media/ivtv: move pat warn and replace WARN() with
+    pr_warn()
+
+ drivers/infiniband/hw/ipath/ipath_driver.c |  6 ++++--
+ drivers/media/pci/ivtv/ivtvfb.c            | 15 +++++++++------
+ 2 files changed, 13 insertions(+), 8 deletions(-)
+
+-- 
+2.3.2.209.gd67f9d5.dirty
