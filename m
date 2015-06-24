@@ -1,73 +1,59 @@
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Subject: [PATCH v2 2/2] x86/mm/pat, drivers/media/ivtv: move pat warn and replace WARN() with pr_warn()
-Date: Wed, 24 Jun 2015 10:23:20 -0700
-Message-ID: <1435166600-11956-3-git-send-email-mcgrof@do-not-panic.com>
-References: <1435166600-11956-1-git-send-email-mcgrof@do-not-panic.com>
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1435166600-11956-1-git-send-email-mcgrof@do-not-panic.com>
-Sender: linux-media-owner@vger.kernel.org
-To: bp@suse.de, andy@silverblocksystems.net, mchehab@osg.samsung.com, dledford@redhat.com
-Cc: mingo@kernel.org, fengguang.wu@intel.com, linux-media@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@suse.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH for-next V5 1/5] IB/uverbs: Fix reference counting usage
+ of event files
+Date: Wed, 24 Jun 2015 11:57:38 -0600
+Message-ID: <20150624175738.GC21033@obsidianresearch.com>
+References: <1434984438-21733-1-git-send-email-yishaih@mellanox.com>
+ <1434984438-21733-2-git-send-email-yishaih@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1434984438-21733-2-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
+On Mon, Jun 22, 2015 at 05:47:14PM +0300, Yishai Hadas wrote:
+>  	fd_install(resp.async_fd, filp);
+> @@ -386,6 +376,7 @@ ssize_t ib_uverbs_get_context(struct ib_uverbs_file *file,
+>  	return in_len;
+>  
+>  err_file:
+> +	ib_uverbs_free_async_event_file(file);
+>  	fput(filp);
 
-On built-in kernels this warning will always splat as this is part
-of the module init. Fix that by shifting the PAT requirement check
-out under the code that does the "quasi-probe" for the device. This
-device driver relies on an existing driver to find its own devices,
-it looks for that device driver and its own found devices, then
-uses driver_for_each_device() to try to see if it can probe each of
-those devices as a frambuffer device with ivtvfb_init_card(). We
-tuck the PAT requiremenet check then on the ivtvfb_init_card()
-call making the check at least require an ivtv device present
-before complaining.
+This looks really weird. 
 
-Reported-by: Fengguang Wu <fengguang.wu@intel.com> [0-day test robot]
-Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
----
- drivers/media/pci/ivtv/ivtvfb.c | 15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+> +void ib_uverbs_free_async_event_file(struct ib_uverbs_file *file)
+> +{
+> +	kref_put(&file->async_file->ref, ib_uverbs_release_event_file);
+> +	file->async_file = NULL;
+> +}
 
-diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
-index 4cb365d..8b95eef 100644
---- a/drivers/media/pci/ivtv/ivtvfb.c
-+++ b/drivers/media/pci/ivtv/ivtvfb.c
-@@ -38,6 +38,8 @@
-     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/fb.h>
-@@ -1171,6 +1173,13 @@ static int ivtvfb_init_card(struct ivtv *itv)
- {
- 	int rc;
- 
-+#ifdef CONFIG_X86_64
-+	if (pat_enabled()) {
-+		pr_warn("ivtvfb needs PAT disabled, boot with nopat kernel parameter\n");
-+		return -ENODEV;
-+	}
-+#endif
-+
- 	if (itv->osd_info) {
- 		IVTVFB_ERR("Card %d already initialised\n", ivtvfb_card_id);
- 		return -EBUSY;
-@@ -1265,12 +1274,6 @@ static int __init ivtvfb_init(void)
- 	int registered = 0;
- 	int err;
- 
--#ifdef CONFIG_X86_64
--	if (WARN(pat_enabled(),
--		 "ivtvfb needs PAT disabled, boot with nopat kernel parameter\n")) {
--		return -ENODEV;
--	}
--#endif
- 
- 	if (ivtvfb_card_id < -1 || ivtvfb_card_id >= IVTV_MAX_CARDS) {
- 		printk(KERN_ERR "ivtvfb:  ivtvfb_card_id parameter is out of range (valid range: -1 - %d)\n",
--- 
-2.3.2.209.gd67f9d5.dirty
+So that put is supposed to pair with this get?
+
+> +		uverbs_file->async_file = ev_file;
+> +		kref_get(&uverbs_file->async_file->ref);
+
+[..]
+
+> +	fput(filp);
+> +	uverbs_file->async_file = NULL;
+
+But isn't it null?
+
+Again again, WTF? async_file is a kref'd thing, if you copy or assign
+to it you need to manipulate the kref, so the null assign should be
+dropping the ref.
+
+Whis looks good enough to remove ib_uverbs_free_async_event_file, if
+the flip is created OK then the uverbs_file->async file can remain set
+until the uverbs file is closed.
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
