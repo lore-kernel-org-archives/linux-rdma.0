@@ -1,54 +1,40 @@
-From: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] rds: rds_ib_device.refcount overflow
-Date: Wed, 24 Jun 2015 12:54:40 +0800
-Message-ID: <1435121680-11491-1-git-send-email-wen.gang.wang@oracle.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v8 1/6] IB/core, cma: Nice log-friendly string helpers
+Date: Wed, 24 Jun 2015 15:38:33 +0300
+Message-ID: <CAJ3xEMjrVNK-APZHpU9o1diwFX99weYaUq=bFhiUmrEr41xpjA@mail.gmail.com>
+References: <1432028899-15211-1-git-send-email-sagig@mellanox.com>
+	<1432028899-15211-2-git-send-email-sagig@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1432028899-15211-2-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-There lacks a dropping on rds_ib_device.refcount in case rds_ib_alloc_fmr
-failed(mr pool running out). this lead to the refcount overflow.
+On Tue, May 19, 2015 at 12:48 PM, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
 
-A complain in line 117(see following) is seen. From vmcore:
-s_ib_rdma_mr_pool_depleted is 2147485544 and rds_ibdev->refcount is -2147475448.
-That is the evidence the mr pool is used up. so rds_ib_alloc_fmr is very likely
-to return ERR_PTR(-EAGAIN).
+> +++ b/drivers/infiniband/core/cma.c
 
-115 void rds_ib_dev_put(struct rds_ib_device *rds_ibdev)
-116 {
-117         BUG_ON(atomic_read(&rds_ibdev->refcount) <= 0);
-118         if (atomic_dec_and_test(&rds_ibdev->refcount))
-119                 queue_work(rds_wq, &rds_ibdev->free_work);
-120 }
+> +const char *rdma_event_msg(enum rdma_cm_event_type event)
+> +{
+> +       size_t index = event;
+> +
+> +       return (index < ARRAY_SIZE(cma_events) && cma_events[index]) ?
+> +                       cma_events[index] : "unrecognized event";
+> +}
+> +EXPORT_SYMBOL(rdma_event_msg);
 
-fix is to drop refcount when rds_ib_alloc_fmr failed.
+I am getting the following warning from sparse,
 
-Signed-off-by: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/rds/ib_rdma.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+drivers/infiniband/core/cma.c:87:12: error: symbol 'rdma_event_msg'
+redeclared with different type (originally declared at
+include/rdma/rdma_cm.h:65) - different modifiers
 
-diff --git a/net/rds/ib_rdma.c b/net/rds/ib_rdma.c
-index 273b8bf..657ba9f 100644
---- a/net/rds/ib_rdma.c
-+++ b/net/rds/ib_rdma.c
-@@ -759,8 +759,10 @@ void *rds_ib_get_mr(struct scatterlist *sg, unsigned long nents,
- 	}
- 
- 	ibmr = rds_ib_alloc_fmr(rds_ibdev);
--	if (IS_ERR(ibmr))
-+	if (IS_ERR(ibmr)) {
-+		rds_ib_dev_put(rds_ibdev);
- 		return ibmr;
-+	}
- 
- 	ret = rds_ib_map_fmr(rds_ibdev, ibmr, sg, nents);
- 	if (ret == 0)
--- 
-2.1.0
+worth looking and fixing
 
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
