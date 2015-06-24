@@ -1,147 +1,70 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V6 04/10] IB/core: Add rwsem to allow reading device list or client list
-Date: Wed, 24 Jun 2015 15:59:20 +0300
-Message-ID: <1435150766-6803-5-git-send-email-matanb@mellanox.com>
+From: Matan Barak <matanb@mellanox.com>
+Subject: [PATCH for-next V6 03/10] net/bonding: Export bond_option_active_slave_get_rcu
+Date: Wed, 24 Jun 2015 15:59:19 +0300
+Message-ID: <1435150766-6803-4-git-send-email-matanb@mellanox.com>
 References: <1435150766-6803-1-git-send-email-matanb@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1435150766-6803-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1435150766-6803-1-git-send-email-matanb@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: linux-rdma@vger.kernel.org, Moni Shoua <monis@mellanox.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Matan Barak <matanb@mellanox.com>, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Some consumers of the netdev events API would like to know who is the
+active slave when a NETDEV_CHANGEUPPER or NETDEV_BONDING_FAILOVER
+events occur. For example, when managing RoCE GIDs, GIDs based on the
+bond's ips should only be set on the port which corresponds to active
+slave netdevice.
 
-Currently the RDMA subsystem's device list and client list are
-protected by a single mutex. This prevents adding user-facing APIs
-that iterate these lists, since using them may cause a deadlock.
-The patch attempts to solve this problem by adding a read-write
-semaphore to protect the lists. Readers now don't need the mutex,
-and are safe just by read-locking the semaphore.
-
-The ib_register_device, ib_register_client, ib_unregister_device, and
-ib_unregister_client functions are modified to lock the semaphore for
-write during their respective list modification. Also, in order to
-make sure client callbacks are called only between add() and remove()
-calls, the code is changed to only add items to the lists after the
-add() calls and remove from the lists before the remove() calls.
-
-Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Matan Barak <matanb@mellanox.com>
 ---
- drivers/infiniband/core/device.c | 39 ++++++++++++++++++++++++++++-----------
- 1 file changed, 28 insertions(+), 11 deletions(-)
+ drivers/net/bonding/bond_options.c | 13 -------------
+ include/net/bonding.h              |  7 +++++++
+ 2 files changed, 7 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 9567756..f08d438 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -55,17 +55,24 @@ struct ib_client_data {
- struct workqueue_struct *ib_wq;
- EXPORT_SYMBOL_GPL(ib_wq);
- 
-+/* The device_list and client_list contain devices and clients after their
-+ * registration has completed, and the devices and clients are removed
-+ * during unregistration. */
- static LIST_HEAD(device_list);
- static LIST_HEAD(client_list);
- 
- /*
-- * device_mutex protects access to both device_list and client_list.
-- * There's no real point to using multiple locks or something fancier
-- * like an rwsem: we always access both lists, and we're always
-- * modifying one list or the other list.  In any case this is not a
-- * hot path so there's no point in trying to optimize.
-+ * device_mutex and lists_rwsem protect access to both device_list and
-+ * client_list.  device_mutex protects writer access by device and client
-+ * registration / de-registration.  lists_rwsem protects reader access to
-+ * these lists.  Iterators of these lists must lock it for read, while updates
-+ * to the lists must be done with a write lock. A special case is when the
-+ * device_mutex is locked. In this case locking the lists for read access is
-+ * not necessary as the device_mutex implies it.
-  */
- static DEFINE_MUTEX(device_mutex);
-+static DECLARE_RWSEM(lists_rwsem);
-+
- 
- static int ib_device_check_mandatory(struct ib_device *device)
- {
-@@ -305,8 +312,6 @@ int ib_register_device(struct ib_device *device,
- 		goto out;
- 	}
- 
--	list_add_tail(&device->core_list, &device_list);
--
- 	device->reg_state = IB_DEV_REGISTERED;
- 
- 	{
-@@ -317,6 +322,10 @@ int ib_register_device(struct ib_device *device,
- 				client->add(device);
- 	}
- 
-+	down_write(&lists_rwsem);
-+	list_add_tail(&device->core_list, &device_list);
-+	up_write(&lists_rwsem);
-+
-  out:
- 	mutex_unlock(&device_mutex);
- 	return ret;
-@@ -337,12 +346,14 @@ void ib_unregister_device(struct ib_device *device)
- 
- 	mutex_lock(&device_mutex);
- 
-+	down_write(&lists_rwsem);
-+	list_del(&device->core_list);
-+	up_write(&lists_rwsem);
-+
- 	list_for_each_entry_reverse(client, &client_list, list)
- 		if (client->remove)
- 			client->remove(device);
- 
--	list_del(&device->core_list);
--
- 	mutex_unlock(&device_mutex);
- 
- 	ib_device_unregister_sysfs(device);
-@@ -375,11 +386,14 @@ int ib_register_client(struct ib_client *client)
- 
- 	mutex_lock(&device_mutex);
- 
--	list_add_tail(&client->list, &client_list);
- 	list_for_each_entry(device, &device_list, core_list)
- 		if (client->add && !add_client_context(device, client))
- 			client->add(device);
- 
-+	down_write(&lists_rwsem);
-+	list_add_tail(&client->list, &client_list);
-+	up_write(&lists_rwsem);
-+
- 	mutex_unlock(&device_mutex);
- 
+diff --git a/drivers/net/bonding/bond_options.c b/drivers/net/bonding/bond_options.c
+index 4df2894..c4fe29a8 100644
+--- a/drivers/net/bonding/bond_options.c
++++ b/drivers/net/bonding/bond_options.c
+@@ -689,19 +689,6 @@ static int bond_option_mode_set(struct bonding *bond,
  	return 0;
-@@ -402,6 +416,10 @@ void ib_unregister_client(struct ib_client *client)
- 
- 	mutex_lock(&device_mutex);
- 
-+	down_write(&lists_rwsem);
-+	list_del(&client->list);
-+	up_write(&lists_rwsem);
-+
- 	list_for_each_entry(device, &device_list, core_list) {
- 		if (client->remove)
- 			client->remove(device);
-@@ -414,7 +432,6 @@ void ib_unregister_client(struct ib_client *client)
- 			}
- 		spin_unlock_irqrestore(&device->client_data_lock, flags);
- 	}
--	list_del(&client->list);
- 
- 	mutex_unlock(&device_mutex);
  }
+ 
+-static struct net_device *__bond_option_active_slave_get(struct bonding *bond,
+-							 struct slave *slave)
+-{
+-	return bond_uses_primary(bond) && slave ? slave->dev : NULL;
+-}
+-
+-struct net_device *bond_option_active_slave_get_rcu(struct bonding *bond)
+-{
+-	struct slave *slave = rcu_dereference(bond->curr_active_slave);
+-
+-	return __bond_option_active_slave_get(bond, slave);
+-}
+-
+ static int bond_option_active_slave_set(struct bonding *bond,
+ 					const struct bond_opt_value *newval)
+ {
+diff --git a/include/net/bonding.h b/include/net/bonding.h
+index 78ed135..81a94ed 100644
+--- a/include/net/bonding.h
++++ b/include/net/bonding.h
+@@ -307,6 +307,13 @@ static inline bool bond_uses_primary(struct bonding *bond)
+ 	return bond_mode_uses_primary(BOND_MODE(bond));
+ }
+ 
++static inline struct net_device *bond_option_active_slave_get_rcu(struct bonding *bond)
++{
++	struct slave *slave = rcu_dereference(bond->curr_active_slave);
++
++	return bond_uses_primary(bond) && slave ? slave->dev : NULL;
++}
++
+ static inline bool bond_slave_is_up(struct slave *slave)
+ {
+ 	return netif_running(slave->dev) && netif_carrier_ok(slave->dev);
 -- 
 2.1.0
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Cc: netdev@vger.kernel.org
