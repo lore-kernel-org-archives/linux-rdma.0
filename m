@@ -1,54 +1,73 @@
-From: "Luis R. Rodriguez" <mcgrof-3uybbJdB1yH774rrrx3eTA@public.gmane.org>
-Subject: [PATCH v2 1/2] x86/mm/pat, drivers/infiniband/ipath: replace WARN() with pr_warn()
-Date: Wed, 24 Jun 2015 10:23:19 -0700
-Message-ID: <1435166600-11956-2-git-send-email-mcgrof@do-not-panic.com>
+From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+Subject: [PATCH v2 2/2] x86/mm/pat, drivers/media/ivtv: move pat warn and replace WARN() with pr_warn()
+Date: Wed, 24 Jun 2015 10:23:20 -0700
+Message-ID: <1435166600-11956-3-git-send-email-mcgrof@do-not-panic.com>
 References: <1435166600-11956-1-git-send-email-mcgrof@do-not-panic.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1435166600-11956-1-git-send-email-mcgrof-3uybbJdB1yH774rrrx3eTA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bp-l3A5Bk7waGM@public.gmane.org, andy-JCKMKWeByS3xr+NhZqW+5SMd26UNKDXL@public.gmane.org, mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1435166600-11956-1-git-send-email-mcgrof@do-not-panic.com>
+Sender: linux-media-owner@vger.kernel.org
+To: bp@suse.de, andy@silverblocksystems.net, mchehab@osg.samsung.com, dledford@redhat.com
+Cc: mingo@kernel.org, fengguang.wu@intel.com, linux-media@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@suse.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
 
-WARN() may confuse users, fix that. ipath_init_one() is part the
-device's probe so this would only be triggered if a corresponding
-device was found.
+On built-in kernels this warning will always splat as this is part
+of the module init. Fix that by shifting the PAT requirement check
+out under the code that does the "quasi-probe" for the device. This
+device driver relies on an existing driver to find its own devices,
+it looks for that device driver and its own found devices, then
+uses driver_for_each_device() to try to see if it can probe each of
+those devices as a frambuffer device with ivtvfb_init_card(). We
+tuck the PAT requiremenet check then on the ivtvfb_init_card()
+call making the check at least require an ivtv device present
+before complaining.
 
-Signed-off-by: Luis R. Rodriguez <mcgrof-IBi9RG/b67k@public.gmane.org>
+Reported-by: Fengguang Wu <fengguang.wu@intel.com> [0-day test robot]
+Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
 ---
- drivers/infiniband/hw/ipath/ipath_driver.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/media/pci/ivtv/ivtvfb.c | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ipath/ipath_driver.c b/drivers/infiniband/hw/ipath/ipath_driver.c
-index 2d7e503..871dbe5 100644
---- a/drivers/infiniband/hw/ipath/ipath_driver.c
-+++ b/drivers/infiniband/hw/ipath/ipath_driver.c
-@@ -31,6 +31,8 @@
-  * SOFTWARE.
+diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
+index 4cb365d..8b95eef 100644
+--- a/drivers/media/pci/ivtv/ivtvfb.c
++++ b/drivers/media/pci/ivtv/ivtvfb.c
+@@ -38,6 +38,8 @@
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   */
  
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +
- #include <linux/sched.h>
- #include <linux/spinlock.h>
- #include <linux/idr.h>
-@@ -399,8 +401,8 @@ static int ipath_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	u32 bar0 = 0, bar1 = 0;
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/fb.h>
+@@ -1171,6 +1173,13 @@ static int ivtvfb_init_card(struct ivtv *itv)
+ {
+ 	int rc;
  
- #ifdef CONFIG_X86_64
--	if (WARN(pat_enabled(),
--		 "ipath needs PAT disabled, boot with nopat kernel parameter\n")) {
++#ifdef CONFIG_X86_64
 +	if (pat_enabled()) {
-+		pr_warn("ipath needs PAT disabled, boot with nopat kernel parameter\n");
- 		ret = -ENODEV;
- 		goto bail;
- 	}
++		pr_warn("ivtvfb needs PAT disabled, boot with nopat kernel parameter\n");
++		return -ENODEV;
++	}
++#endif
++
+ 	if (itv->osd_info) {
+ 		IVTVFB_ERR("Card %d already initialised\n", ivtvfb_card_id);
+ 		return -EBUSY;
+@@ -1265,12 +1274,6 @@ static int __init ivtvfb_init(void)
+ 	int registered = 0;
+ 	int err;
+ 
+-#ifdef CONFIG_X86_64
+-	if (WARN(pat_enabled(),
+-		 "ivtvfb needs PAT disabled, boot with nopat kernel parameter\n")) {
+-		return -ENODEV;
+-	}
+-#endif
+ 
+ 	if (ivtvfb_card_id < -1 || ivtvfb_card_id >= IVTV_MAX_CARDS) {
+ 		printk(KERN_ERR "ivtvfb:  ivtvfb_card_id parameter is out of range (valid range: -1 - %d)\n",
 -- 
 2.3.2.209.gd67f9d5.dirty
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
