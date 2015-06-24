@@ -1,41 +1,113 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v8 1/6] IB/core, cma: Nice log-friendly string helpers
-Date: Wed, 24 Jun 2015 15:38:33 +0300
-Message-ID: <CAJ3xEMjrVNK-APZHpU9o1diwFX99weYaUq=bFhiUmrEr41xpjA@mail.gmail.com>
-References: <1432028899-15211-1-git-send-email-sagig@mellanox.com>
-	<1432028899-15211-2-git-send-email-sagig@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1432028899-15211-2-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+From: Matan Barak <matanb@mellanox.com>
+Subject: [PATCH for-next V6 01/10] net/ipv6: Export addrconf_ifid_eui48
+Date: Wed, 24 Jun 2015 15:59:17 +0300
+Message-ID: <1435150766-6803-2-git-send-email-matanb@mellanox.com>
+References: <1435150766-6803-1-git-send-email-matanb@mellanox.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1435150766-6803-1-git-send-email-matanb@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: linux-rdma@vger.kernel.org, Moni Shoua <monis@mellanox.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Matan Barak <matanb@mellanox.com>, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 19, 2015 at 12:48 PM, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+For loopback purposes, RoCE devices should have a default GID in the
+port GID table, even when the interface is down. In order to do so,
+we use the IPv6 link local address which would have been genenrated
+for the related Ethernet netdevice when it goes up as a default GID.
 
-> +++ b/drivers/infiniband/core/cma.c
+addrconf_ifid_eui48 is used to gernerate this address, export it.
 
-> +const char *rdma_event_msg(enum rdma_cm_event_type event)
-> +{
-> +       size_t index = event;
-> +
-> +       return (index < ARRAY_SIZE(cma_events) && cma_events[index]) ?
-> +                       cma_events[index] : "unrecognized event";
-> +}
-> +EXPORT_SYMBOL(rdma_event_msg);
+Signed-off-by: Matan Barak <matanb@mellanox.com>
+---
+ include/net/addrconf.h | 31 +++++++++++++++++++++++++++++++
+ net/ipv6/addrconf.c    | 31 -------------------------------
+ 2 files changed, 31 insertions(+), 31 deletions(-)
 
-I am getting the following warning from sparse,
+diff --git a/include/net/addrconf.h b/include/net/addrconf.h
+index 80456f7..89890e7 100644
+--- a/include/net/addrconf.h
++++ b/include/net/addrconf.h
+@@ -91,6 +91,37 @@ int ipv6_rcv_saddr_equal(const struct sock *sk, const struct sock *sk2);
+ void addrconf_join_solict(struct net_device *dev, const struct in6_addr *addr);
+ void addrconf_leave_solict(struct inet6_dev *idev, const struct in6_addr *addr);
+ 
++static inline int addrconf_ifid_eui48(u8 *eui, struct net_device *dev)
++{
++	if (dev->addr_len != ETH_ALEN)
++		return -1;
++	memcpy(eui, dev->dev_addr, 3);
++	memcpy(eui + 5, dev->dev_addr + 3, 3);
++
++	/*
++	 * The zSeries OSA network cards can be shared among various
++	 * OS instances, but the OSA cards have only one MAC address.
++	 * This leads to duplicate address conflicts in conjunction
++	 * with IPv6 if more than one instance uses the same card.
++	 *
++	 * The driver for these cards can deliver a unique 16-bit
++	 * identifier for each instance sharing the same card.  It is
++	 * placed instead of 0xFFFE in the interface identifier.  The
++	 * "u" bit of the interface identifier is not inverted in this
++	 * case.  Hence the resulting interface identifier has local
++	 * scope according to RFC2373.
++	 */
++	if (dev->dev_id) {
++		eui[3] = (dev->dev_id >> 8) & 0xFF;
++		eui[4] = dev->dev_id & 0xFF;
++	} else {
++		eui[3] = 0xFF;
++		eui[4] = 0xFE;
++		eui[0] ^= 2;
++	}
++	return 0;
++}
++
+ static inline unsigned long addrconf_timeout_fixup(u32 timeout,
+ 						   unsigned int unit)
+ {
+diff --git a/net/ipv6/addrconf.c b/net/ipv6/addrconf.c
+index 37b70e8..7170c7b 100644
+--- a/net/ipv6/addrconf.c
++++ b/net/ipv6/addrconf.c
+@@ -1845,37 +1845,6 @@ static void addrconf_leave_anycast(struct inet6_ifaddr *ifp)
+ 	__ipv6_dev_ac_dec(ifp->idev, &addr);
+ }
+ 
+-static int addrconf_ifid_eui48(u8 *eui, struct net_device *dev)
+-{
+-	if (dev->addr_len != ETH_ALEN)
+-		return -1;
+-	memcpy(eui, dev->dev_addr, 3);
+-	memcpy(eui + 5, dev->dev_addr + 3, 3);
+-
+-	/*
+-	 * The zSeries OSA network cards can be shared among various
+-	 * OS instances, but the OSA cards have only one MAC address.
+-	 * This leads to duplicate address conflicts in conjunction
+-	 * with IPv6 if more than one instance uses the same card.
+-	 *
+-	 * The driver for these cards can deliver a unique 16-bit
+-	 * identifier for each instance sharing the same card.  It is
+-	 * placed instead of 0xFFFE in the interface identifier.  The
+-	 * "u" bit of the interface identifier is not inverted in this
+-	 * case.  Hence the resulting interface identifier has local
+-	 * scope according to RFC2373.
+-	 */
+-	if (dev->dev_id) {
+-		eui[3] = (dev->dev_id >> 8) & 0xFF;
+-		eui[4] = dev->dev_id & 0xFF;
+-	} else {
+-		eui[3] = 0xFF;
+-		eui[4] = 0xFE;
+-		eui[0] ^= 2;
+-	}
+-	return 0;
+-}
+-
+ static int addrconf_ifid_eui64(u8 *eui, struct net_device *dev)
+ {
+ 	if (dev->addr_len != IEEE802154_ADDR_LEN)
+-- 
+2.1.0
 
-drivers/infiniband/core/cma.c:87:12: error: symbol 'rdma_event_msg'
-redeclared with different type (originally declared at
-include/rdma/rdma_cm.h:65) - different modifiers
-
-worth looking and fixing
-
-Or.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Cc: netdev@vger.kernel.org
