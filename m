@@ -1,479 +1,701 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V6 06/10] IB/core: Add RoCE table bonding support
-Date: Wed, 24 Jun 2015 15:59:22 +0300
-Message-ID: <1435150766-6803-7-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next V6 09/10] IB/mlx4: Replace mechanism for RoCE GID management
+Date: Wed, 24 Jun 2015 15:59:25 +0300
+Message-ID: <1435150766-6803-10-git-send-email-matanb@mellanox.com>
 References: <1435150766-6803-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1435150766-6803-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Handling bonding and other devices require us to all all GIDs of the
-net-devices which are upper-devices of the RoCE port related
-net-device.
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Active-backup configurations imposes even more challenges as the
-default GID should only be set on the active devices (this is
-necessary as otherwise the same MAC could be used for several
-slaves and thus several slaves will have identical GIDs).
+Manage RoCE gid table with logic in IB/core, which is common to all
+vendors, and remove the mechanism from the mlx4 IB driver.
+Since management of the GID cache may lead to index mismatch with the
+hardware GID table, a translation between indexes is required when
+modifying a QP or creating an address handle.
 
-Managing these configurations are done by listening to:
-(a) NETDEV_CHANGEUPPER event
-	(1) if a related net-device is linked, delete all inactive
-	    slaves default GIDs and add the upper device GIDs.
-	(2) if a related net-device is unlinked, delete all upper GIDs
-	    and add the default GIDs.
-(b) NETDEV_BONDING_FAILOVER:
-	(1) delete the bond GIDs from inactive slaves
-	(2) delete the inactive slave's default GIDs
-	(3) Add the bond GIDs to the active slave.
-
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/roce_gid_mgmt.c | 305 +++++++++++++++++++++++++++++---
- 1 file changed, 285 insertions(+), 20 deletions(-)
+ drivers/infiniband/hw/mlx4/ah.c      |   2 +-
+ drivers/infiniband/hw/mlx4/main.c    | 513 ++---------------------------------
+ drivers/infiniband/hw/mlx4/mlx4_ib.h |   4 -
+ drivers/infiniband/hw/mlx4/qp.c      |  10 +-
+ 4 files changed, 35 insertions(+), 494 deletions(-)
 
-diff --git a/drivers/infiniband/core/roce_gid_mgmt.c b/drivers/infiniband/core/roce_gid_mgmt.c
-index 7bf4798..6eecdfb 100644
---- a/drivers/infiniband/core/roce_gid_mgmt.c
-+++ b/drivers/infiniband/core/roce_gid_mgmt.c
-@@ -37,6 +37,7 @@
+diff --git a/drivers/infiniband/hw/mlx4/ah.c b/drivers/infiniband/hw/mlx4/ah.c
+index f50a546..7ad6f96 100644
+--- a/drivers/infiniband/hw/mlx4/ah.c
++++ b/drivers/infiniband/hw/mlx4/ah.c
+@@ -89,7 +89,7 @@ static struct ib_ah *create_iboe_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr
+ 	if (vlan_tag < 0x1000)
+ 		vlan_tag |= (ah_attr->sl & 7) << 13;
+ 	ah->av.eth.port_pd = cpu_to_be32(to_mpd(pd)->pdn | (ah_attr->port_num << 24));
+-	ah->av.eth.gid_index = ah_attr->grh.sgid_index;
++	ah->av.eth.gid_index = mlx4_ib_gid_index_to_real_index(ibdev, ah_attr->port_num, ah_attr->grh.sgid_index);
+ 	ah->av.eth.vlan = cpu_to_be16(vlan_tag);
+ 	if (ah_attr->static_rate) {
+ 		ah->av.eth.stat_rate = ah_attr->static_rate + MLX4_STAT_RATE_OFFSET;
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 8f4e17d..3a6ad72 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -77,13 +77,6 @@ static const char mlx4_ib_version[] =
+ 	DRV_NAME ": Mellanox ConnectX InfiniBand driver v"
+ 	DRV_VERSION " (" DRV_RELDATE ")\n";
  
- /* For in6_dev_get/in6_dev_put */
- #include <net/addrconf.h>
-+#include <net/bonding.h>
+-struct update_gid_work {
+-	struct work_struct	work;
+-	union ib_gid		gids[128];
+-	struct mlx4_ib_dev     *dev;
+-	int			port;
+-};
+-
+ static void do_slave_init(struct mlx4_ib_dev *ibdev, int slave, int do_init);
  
- #include <rdma/ib_cache.h>
- #include <rdma/ib_addr.h>
-@@ -53,16 +54,17 @@ struct update_gid_event_work {
- 	enum gid_op_type gid_op;
- };
+ static struct workqueue_struct *wq;
+@@ -645,12 +638,13 @@ static int eth_link_query_port(struct ib_device *ibdev, u8 port,
+ 	props->state		= IB_PORT_DOWN;
+ 	props->phys_state	= state_to_phys_state(props->state);
+ 	props->active_mtu	= IB_MTU_256;
+-	if (is_bonded)
+-		rtnl_lock(); /* required to get upper dev */
+ 	spin_lock_bh(&iboe->lock);
+ 	ndev = iboe->netdevs[port - 1];
+-	if (ndev && is_bonded)
+-		ndev = netdev_master_upper_dev_get(ndev);
++	if (ndev && is_bonded) {
++		rcu_read_lock(); /* required to get upper dev */
++		ndev = netdev_master_upper_dev_get_rcu(ndev);
++		rcu_read_unlock();
++	}
+ 	if (!ndev)
+ 		goto out_unlock;
  
--#define ROCE_NETDEV_CALLBACK_SZ		2
-+#define ROCE_NETDEV_CALLBACK_SZ		3
- struct netdev_event_work_cmd {
- 	roce_netdev_callback	cb;
- 	roce_netdev_filter	filter;
-+	struct net_device	*ndev;
-+	struct net_device	*filter_ndev;
- };
- 
- struct netdev_event_work {
- 	struct work_struct		work;
- 	struct netdev_event_work_cmd	cmds[ROCE_NETDEV_CALLBACK_SZ];
--	struct net_device		*ndev;
- };
- 
- static void update_gid(enum gid_op_type gid_op, struct ib_device *ib_dev,
-@@ -79,12 +81,70 @@ static void update_gid(enum gid_op_type gid_op, struct ib_device *ib_dev,
- 	}
+@@ -662,8 +656,6 @@ static int eth_link_query_port(struct ib_device *ibdev, u8 port,
+ 	props->phys_state	= state_to_phys_state(props->state);
+ out_unlock:
+ 	spin_unlock_bh(&iboe->lock);
+-	if (is_bonded)
+-		rtnl_unlock();
+ out:
+ 	mlx4_free_cmd_mailbox(mdev->dev, mailbox);
+ 	return err;
+@@ -746,23 +738,27 @@ out:
+ 	return err;
  }
  
-+enum bonding_slave_state {
-+	BONDING_SLAVE_STATE_ACTIVE	= 1UL << 0,
-+	BONDING_SLAVE_STATE_INACTIVE	= 1UL << 1,
-+	/* No primary slave or the device isn't a slave in bonding */
-+	BONDING_SLAVE_STATE_NA		= 1UL << 2,
-+};
-+
-+static enum bonding_slave_state is_eth_active_slave_of_bonding_rcu(struct net_device *dev,
-+								   struct net_device *upper)
-+{
-+	if (upper && netif_is_bond_master(upper)) {
-+		struct net_device *pdev =
-+			bond_option_active_slave_get_rcu(netdev_priv(upper));
-+
-+		if (pdev)
-+			return dev == pdev ? BONDING_SLAVE_STATE_ACTIVE :
-+				BONDING_SLAVE_STATE_INACTIVE;
-+	}
-+
-+	return BONDING_SLAVE_STATE_NA;
-+}
-+
-+static bool is_upper_dev_rcu(struct net_device *dev, struct net_device *upper)
-+{
-+	struct net_device *_upper = NULL;
-+	struct list_head *iter;
-+
-+	netdev_for_each_all_upper_dev_rcu(dev, _upper, iter)
-+		if (_upper == upper)
-+			break;
-+
-+	return _upper == upper;
-+}
-+
-+#define REQUIRED_BOND_STATES		(BONDING_SLAVE_STATE_ACTIVE |	\
-+					 BONDING_SLAVE_STATE_NA)
- static int is_eth_port_of_netdev(struct ib_device *ib_dev, u8 port,
- 				 struct net_device *rdma_ndev, void *cookie)
+-static int iboe_query_gid(struct ib_device *ibdev, u8 port, int index,
+-			  union ib_gid *gid)
+-{
+-	struct mlx4_ib_dev *dev = to_mdev(ibdev);
+-
+-	*gid = dev->iboe.gid_table[port - 1][index];
+-
+-	return 0;
+-}
+-
+ static int mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
+ 			     union ib_gid *gid)
  {
-+	struct net_device *event_ndev = (struct net_device *)cookie;
- 	struct net_device *real_dev;
-+	int res;
+-	if (rdma_port_get_link_layer(ibdev, port) == IB_LINK_LAYER_INFINIBAND)
++	int ret;
 +
-+	if (!rdma_ndev)
++	if (rdma_protocol_ib(ibdev, port))
+ 		return __mlx4_ib_query_gid(ibdev, port, index, gid, 0);
+-	else
+-		return iboe_query_gid(ibdev, port, index, gid);
++
++	if (!rdma_protocol_roce(ibdev, port))
++		return -ENODEV;
++
++	if (!rdma_cap_roce_gid_table(ibdev, port))
++		return -ENODEV;
++
++	ret = ib_get_cached_gid(ibdev, port, index, gid);
++	if (ret == -EAGAIN) {
++		memcpy(gid, &zgid, sizeof(*gid));
 +		return 0;
++	}
 +
-+	rcu_read_lock();
-+	real_dev = rdma_vlan_dev_real_dev(event_ndev);
-+	if (!real_dev)
-+		real_dev = event_ndev;
-+
-+	res = ((is_upper_dev_rcu(rdma_ndev, event_ndev) &&
-+	       (is_eth_active_slave_of_bonding_rcu(rdma_ndev, real_dev) &
-+		REQUIRED_BOND_STATES)) ||
-+	       real_dev == rdma_ndev);
-+
-+	rcu_read_unlock();
-+	return res;
-+}
-+
-+static int is_eth_port_inactive_slave(struct ib_device *ib_dev, u8 port,
-+				      struct net_device *rdma_ndev, void *cookie)
-+{
- 	struct net_device *master_dev;
--	struct net_device *event_ndev = (struct net_device *)cookie;
- 	int res;
- 
- 	if (!rdma_ndev)
-@@ -92,9 +152,8 @@ static int is_eth_port_of_netdev(struct ib_device *ib_dev, u8 port,
- 
- 	rcu_read_lock();
- 	master_dev = netdev_master_upper_dev_get_rcu(rdma_ndev);
--	real_dev = rdma_vlan_dev_real_dev(event_ndev);
--	res = (real_dev ? real_dev : event_ndev) ==
--		(master_dev ? master_dev : rdma_ndev);
-+	res = is_eth_active_slave_of_bonding_rcu(rdma_ndev, master_dev) ==
-+		BONDING_SLAVE_STATE_INACTIVE;
- 	rcu_read_unlock();
- 
- 	return res;
-@@ -106,6 +165,25 @@ static int pass_all_filter(struct ib_device *ib_dev, u8 port,
- 	return 1;
++	return ret;
  }
  
-+static int upper_device_filter(struct ib_device *ib_dev, u8 port,
-+			       struct net_device *rdma_ndev, void *cookie)
-+{
-+	struct net_device *event_ndev = (struct net_device *)cookie;
-+	int res;
-+
-+	if (!rdma_ndev)
-+		return 0;
-+
-+	if (rdma_ndev == event_ndev)
-+		return 1;
-+
-+	rcu_read_lock();
-+	res = is_upper_dev_rcu(rdma_ndev, event_ndev);
-+	rcu_read_unlock();
-+
-+	return res;
-+}
-+
- static void update_gid_ip(enum gid_op_type gid_op,
- 			  struct ib_device *ib_dev,
- 			  u8 port, struct net_device *ndev,
-@@ -125,13 +203,49 @@ static void enum_netdev_default_gids(struct ib_device *ib_dev,
- 				     u8 port, struct net_device *event_ndev,
- 				     struct net_device *rdma_ndev)
- {
--	if (rdma_ndev != event_ndev)
-+	rcu_read_lock();
-+	if (!rdma_ndev ||
-+	    ((rdma_ndev != event_ndev &&
-+	      !is_upper_dev_rcu(rdma_ndev, event_ndev)) ||
-+	     is_eth_active_slave_of_bonding_rcu(rdma_ndev,
-+						netdev_master_upper_dev_get_rcu(rdma_ndev)) ==
-+	     BONDING_SLAVE_STATE_INACTIVE)) {
-+		rcu_read_unlock();
- 		return;
-+	}
-+	rcu_read_unlock();
+ int __mlx4_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
+@@ -1778,272 +1774,6 @@ static struct device_attribute *mlx4_class_attributes[] = {
+ 	&dev_attr_board_id
+ };
  
- 	ib_cache_gid_set_default_gid(ib_dev, port, rdma_ndev,
- 				     IB_CACHE_GID_DEFAULT_MODE_SET);
+-static void mlx4_addrconf_ifid_eui48(u8 *eui, u16 vlan_id,
+-				     struct net_device *dev)
+-{
+-	memcpy(eui, dev->dev_addr, 3);
+-	memcpy(eui + 5, dev->dev_addr + 3, 3);
+-	if (vlan_id < 0x1000) {
+-		eui[3] = vlan_id >> 8;
+-		eui[4] = vlan_id & 0xff;
+-	} else {
+-		eui[3] = 0xff;
+-		eui[4] = 0xfe;
+-	}
+-	eui[0] ^= 2;
+-}
+-
+-static void update_gids_task(struct work_struct *work)
+-{
+-	struct update_gid_work *gw = container_of(work, struct update_gid_work, work);
+-	struct mlx4_cmd_mailbox *mailbox;
+-	union ib_gid *gids;
+-	int err;
+-	struct mlx4_dev	*dev = gw->dev->dev;
+-	int is_bonded = mlx4_is_bonded(dev);
+-
+-	if (!gw->dev->ib_active)
+-		return;
+-
+-	mailbox = mlx4_alloc_cmd_mailbox(dev);
+-	if (IS_ERR(mailbox)) {
+-		pr_warn("update gid table failed %ld\n", PTR_ERR(mailbox));
+-		return;
+-	}
+-
+-	gids = mailbox->buf;
+-	memcpy(gids, gw->gids, sizeof gw->gids);
+-
+-	err = mlx4_cmd(dev, mailbox->dma, MLX4_SET_PORT_GID_TABLE << 8 | gw->port,
+-		       MLX4_SET_PORT_ETH_OPCODE, MLX4_CMD_SET_PORT,
+-		       MLX4_CMD_TIME_CLASS_B, MLX4_CMD_WRAPPED);
+-	if (err)
+-		pr_warn("set port command failed\n");
+-	else
+-		if ((gw->port == 1) || !is_bonded)
+-			mlx4_ib_dispatch_event(gw->dev,
+-					       is_bonded ? 1 : gw->port,
+-					       IB_EVENT_GID_CHANGE);
+-
+-	mlx4_free_cmd_mailbox(dev, mailbox);
+-	kfree(gw);
+-}
+-
+-static void reset_gids_task(struct work_struct *work)
+-{
+-	struct update_gid_work *gw =
+-			container_of(work, struct update_gid_work, work);
+-	struct mlx4_cmd_mailbox *mailbox;
+-	union ib_gid *gids;
+-	int err;
+-	struct mlx4_dev	*dev = gw->dev->dev;
+-
+-	if (!gw->dev->ib_active)
+-		return;
+-
+-	mailbox = mlx4_alloc_cmd_mailbox(dev);
+-	if (IS_ERR(mailbox)) {
+-		pr_warn("reset gid table failed\n");
+-		goto free;
+-	}
+-
+-	gids = mailbox->buf;
+-	memcpy(gids, gw->gids, sizeof(gw->gids));
+-
+-	if (mlx4_ib_port_link_layer(&gw->dev->ib_dev, gw->port) ==
+-				    IB_LINK_LAYER_ETHERNET) {
+-		err = mlx4_cmd(dev, mailbox->dma,
+-			       MLX4_SET_PORT_GID_TABLE << 8 | gw->port,
+-			       MLX4_SET_PORT_ETH_OPCODE, MLX4_CMD_SET_PORT,
+-			       MLX4_CMD_TIME_CLASS_B,
+-			       MLX4_CMD_WRAPPED);
+-		if (err)
+-			pr_warn("set port %d command failed\n", gw->port);
+-	}
+-
+-	mlx4_free_cmd_mailbox(dev, mailbox);
+-free:
+-	kfree(gw);
+-}
+-
+-static int update_gid_table(struct mlx4_ib_dev *dev, int port,
+-			    union ib_gid *gid, int clear,
+-			    int default_gid)
+-{
+-	struct update_gid_work *work;
+-	int i;
+-	int need_update = 0;
+-	int free = -1;
+-	int found = -1;
+-	int max_gids;
+-
+-	if (default_gid) {
+-		free = 0;
+-	} else {
+-		max_gids = dev->dev->caps.gid_table_len[port];
+-		for (i = 1; i < max_gids; ++i) {
+-			if (!memcmp(&dev->iboe.gid_table[port - 1][i], gid,
+-				    sizeof(*gid)))
+-				found = i;
+-
+-			if (clear) {
+-				if (found >= 0) {
+-					need_update = 1;
+-					dev->iboe.gid_table[port - 1][found] =
+-						zgid;
+-					break;
+-				}
+-			} else {
+-				if (found >= 0)
+-					break;
+-
+-				if (free < 0 &&
+-				    !memcmp(&dev->iboe.gid_table[port - 1][i],
+-					    &zgid, sizeof(*gid)))
+-					free = i;
+-			}
+-		}
+-	}
+-
+-	if (found == -1 && !clear && free >= 0) {
+-		dev->iboe.gid_table[port - 1][free] = *gid;
+-		need_update = 1;
+-	}
+-
+-	if (!need_update)
+-		return 0;
+-
+-	work = kzalloc(sizeof(*work), GFP_ATOMIC);
+-	if (!work)
+-		return -ENOMEM;
+-
+-	memcpy(work->gids, dev->iboe.gid_table[port - 1], sizeof(work->gids));
+-	INIT_WORK(&work->work, update_gids_task);
+-	work->port = port;
+-	work->dev = dev;
+-	queue_work(wq, &work->work);
+-
+-	return 0;
+-}
+-
+-static void mlx4_make_default_gid(struct  net_device *dev, union ib_gid *gid)
+-{
+-	gid->global.subnet_prefix = cpu_to_be64(0xfe80000000000000LL);
+-	mlx4_addrconf_ifid_eui48(&gid->raw[8], 0xffff, dev);
+-}
+-
+-
+-static int reset_gid_table(struct mlx4_ib_dev *dev, u8 port)
+-{
+-	struct update_gid_work *work;
+-
+-	work = kzalloc(sizeof(*work), GFP_ATOMIC);
+-	if (!work)
+-		return -ENOMEM;
+-
+-	memset(dev->iboe.gid_table[port - 1], 0, sizeof(work->gids));
+-	memset(work->gids, 0, sizeof(work->gids));
+-	INIT_WORK(&work->work, reset_gids_task);
+-	work->dev = dev;
+-	work->port = port;
+-	queue_work(wq, &work->work);
+-	return 0;
+-}
+-
+-static int mlx4_ib_addr_event(int event, struct net_device *event_netdev,
+-			      struct mlx4_ib_dev *ibdev, union ib_gid *gid)
+-{
+-	struct mlx4_ib_iboe *iboe;
+-	int port = 0;
+-	struct net_device *real_dev = rdma_vlan_dev_real_dev(event_netdev) ?
+-				rdma_vlan_dev_real_dev(event_netdev) :
+-				event_netdev;
+-	union ib_gid default_gid;
+-
+-	mlx4_make_default_gid(real_dev, &default_gid);
+-
+-	if (!memcmp(gid, &default_gid, sizeof(*gid)))
+-		return 0;
+-
+-	if (event != NETDEV_DOWN && event != NETDEV_UP)
+-		return 0;
+-
+-	if ((real_dev != event_netdev) &&
+-	    (event == NETDEV_DOWN) &&
+-	    rdma_link_local_addr((struct in6_addr *)gid))
+-		return 0;
+-
+-	iboe = &ibdev->iboe;
+-	spin_lock_bh(&iboe->lock);
+-
+-	for (port = 1; port <= ibdev->dev->caps.num_ports; ++port)
+-		if ((netif_is_bond_master(real_dev) &&
+-		     (real_dev == iboe->masters[port - 1])) ||
+-		     (!netif_is_bond_master(real_dev) &&
+-		     (real_dev == iboe->netdevs[port - 1])))
+-			update_gid_table(ibdev, port, gid,
+-					 event == NETDEV_DOWN, 0);
+-
+-	spin_unlock_bh(&iboe->lock);
+-	return 0;
+-
+-}
+-
+-static u8 mlx4_ib_get_dev_port(struct net_device *dev,
+-			       struct mlx4_ib_dev *ibdev)
+-{
+-	u8 port = 0;
+-	struct mlx4_ib_iboe *iboe;
+-	struct net_device *real_dev = rdma_vlan_dev_real_dev(dev) ?
+-				rdma_vlan_dev_real_dev(dev) : dev;
+-
+-	iboe = &ibdev->iboe;
+-
+-	for (port = 1; port <= ibdev->dev->caps.num_ports; ++port)
+-		if ((netif_is_bond_master(real_dev) &&
+-		     (real_dev == iboe->masters[port - 1])) ||
+-		     (!netif_is_bond_master(real_dev) &&
+-		     (real_dev == iboe->netdevs[port - 1])))
+-			break;
+-
+-	if ((port == 0) || (port > ibdev->dev->caps.num_ports))
+-		return 0;
+-	else
+-		return port;
+-}
+-
+-static int mlx4_ib_inet_event(struct notifier_block *this, unsigned long event,
+-				void *ptr)
+-{
+-	struct mlx4_ib_dev *ibdev;
+-	struct in_ifaddr *ifa = ptr;
+-	union ib_gid gid;
+-	struct net_device *event_netdev = ifa->ifa_dev->dev;
+-
+-	ipv6_addr_set_v4mapped(ifa->ifa_address, (struct in6_addr *)&gid);
+-
+-	ibdev = container_of(this, struct mlx4_ib_dev, iboe.nb_inet);
+-
+-	mlx4_ib_addr_event(event, event_netdev, ibdev, &gid);
+-	return NOTIFY_DONE;
+-}
+-
+-#if IS_ENABLED(CONFIG_IPV6)
+-static int mlx4_ib_inet6_event(struct notifier_block *this, unsigned long event,
+-				void *ptr)
+-{
+-	struct mlx4_ib_dev *ibdev;
+-	struct inet6_ifaddr *ifa = ptr;
+-	union  ib_gid *gid = (union ib_gid *)&ifa->addr;
+-	struct net_device *event_netdev = ifa->idev->dev;
+-
+-	ibdev = container_of(this, struct mlx4_ib_dev, iboe.nb_inet6);
+-
+-	mlx4_ib_addr_event(event, event_netdev, ibdev, gid);
+-	return NOTIFY_DONE;
+-}
+-#endif
+-
+ #define MLX4_IB_INVALID_MAC	((u64)-1)
+ static void mlx4_ib_update_qps(struct mlx4_ib_dev *ibdev,
+ 			       struct net_device *dev,
+@@ -2102,94 +1832,6 @@ unlock:
+ 	mutex_unlock(&ibdev->qp1_proxy_lock[port - 1]);
  }
  
-+static void bond_delete_netdev_default_gids(struct ib_device *ib_dev,
-+					    u8 port,
-+					    struct net_device *event_ndev,
-+					    struct net_device *rdma_ndev)
-+{
-+	struct net_device *real_dev = rdma_vlan_dev_real_dev(event_ndev);
+-static void mlx4_ib_get_dev_addr(struct net_device *dev,
+-				 struct mlx4_ib_dev *ibdev, u8 port)
+-{
+-	struct in_device *in_dev;
+-#if IS_ENABLED(CONFIG_IPV6)
+-	struct inet6_dev *in6_dev;
+-	union ib_gid  *pgid;
+-	struct inet6_ifaddr *ifp;
+-	union ib_gid default_gid;
+-#endif
+-	union ib_gid gid;
+-
+-
+-	if ((port == 0) || (port > ibdev->dev->caps.num_ports))
+-		return;
+-
+-	/* IPv4 gids */
+-	in_dev = in_dev_get(dev);
+-	if (in_dev) {
+-		for_ifa(in_dev) {
+-			/*ifa->ifa_address;*/
+-			ipv6_addr_set_v4mapped(ifa->ifa_address,
+-					       (struct in6_addr *)&gid);
+-			update_gid_table(ibdev, port, &gid, 0, 0);
+-		}
+-		endfor_ifa(in_dev);
+-		in_dev_put(in_dev);
+-	}
+-#if IS_ENABLED(CONFIG_IPV6)
+-	mlx4_make_default_gid(dev, &default_gid);
+-	/* IPv6 gids */
+-	in6_dev = in6_dev_get(dev);
+-	if (in6_dev) {
+-		read_lock_bh(&in6_dev->lock);
+-		list_for_each_entry(ifp, &in6_dev->addr_list, if_list) {
+-			pgid = (union ib_gid *)&ifp->addr;
+-			if (!memcmp(pgid, &default_gid, sizeof(*pgid)))
+-				continue;
+-			update_gid_table(ibdev, port, pgid, 0, 0);
+-		}
+-		read_unlock_bh(&in6_dev->lock);
+-		in6_dev_put(in6_dev);
+-	}
+-#endif
+-}
+-
+-static void mlx4_ib_set_default_gid(struct mlx4_ib_dev *ibdev,
+-				 struct  net_device *dev, u8 port)
+-{
+-	union ib_gid gid;
+-	mlx4_make_default_gid(dev, &gid);
+-	update_gid_table(ibdev, port, &gid, 0, 1);
+-}
+-
+-static int mlx4_ib_init_gid_table(struct mlx4_ib_dev *ibdev)
+-{
+-	struct	net_device *dev;
+-	struct mlx4_ib_iboe *iboe = &ibdev->iboe;
+-	int i;
+-	int err = 0;
+-
+-	for (i = 1; i <= ibdev->num_ports; ++i) {
+-		if (rdma_port_get_link_layer(&ibdev->ib_dev, i) ==
+-		    IB_LINK_LAYER_ETHERNET) {
+-			err = reset_gid_table(ibdev, i);
+-			if (err)
+-				goto out;
+-		}
+-	}
+-
+-	read_lock(&dev_base_lock);
+-	spin_lock_bh(&iboe->lock);
+-
+-	for_each_netdev(&init_net, dev) {
+-		u8 port = mlx4_ib_get_dev_port(dev, ibdev);
+-		/* port will be non-zero only for ETH ports */
+-		if (port) {
+-			mlx4_ib_set_default_gid(ibdev, dev, port);
+-			mlx4_ib_get_dev_addr(dev, ibdev, port);
+-		}
+-	}
+-
+-	spin_unlock_bh(&iboe->lock);
+-	read_unlock(&dev_base_lock);
+-out:
+-	return err;
+-}
+-
+ static void mlx4_ib_scan_netdevs(struct mlx4_ib_dev *ibdev,
+ 				 struct net_device *dev,
+ 				 unsigned long event)
+@@ -2199,81 +1841,22 @@ static void mlx4_ib_scan_netdevs(struct mlx4_ib_dev *ibdev,
+ 	int update_qps_port = -1;
+ 	int port;
+ 
++	ASSERT_RTNL();
 +
-+	if (!rdma_ndev)
-+		return;
-+
-+	if (!real_dev)
-+		real_dev = event_ndev;
-+
-+	rcu_read_lock();
-+
-+	if (is_upper_dev_rcu(rdma_ndev, event_ndev) &&
-+	    is_eth_active_slave_of_bonding_rcu(rdma_ndev, real_dev) ==
-+	    BONDING_SLAVE_STATE_INACTIVE) {
-+		rcu_read_unlock();
-+
-+		ib_cache_gid_set_default_gid(ib_dev, port, rdma_ndev,
-+					     IB_CACHE_GID_DEFAULT_MODE_DELETE);
-+	} else {
-+		rcu_read_unlock();
-+	}
-+}
-+
- static void enum_netdev_ipv4_ips(struct ib_device *ib_dev,
- 				 u8 port, struct net_device *ndev)
- {
-@@ -205,15 +319,21 @@ static void enum_netdev_ipv6_ips(struct ib_device *ib_dev,
+ 	iboe = &ibdev->iboe;
+ 
+ 	spin_lock_bh(&iboe->lock);
+ 	mlx4_foreach_ib_transport_port(port, ibdev->dev) {
+-		enum ib_port_state	port_state = IB_PORT_NOP;
+-		struct net_device *old_master = iboe->masters[port - 1];
+-		struct net_device *curr_netdev;
+-		struct net_device *curr_master;
+ 
+ 		iboe->netdevs[port - 1] =
+ 			mlx4_get_protocol_dev(ibdev->dev, MLX4_PROT_ETH, port);
+-		if (iboe->netdevs[port - 1])
+-			mlx4_ib_set_default_gid(ibdev,
+-						iboe->netdevs[port - 1], port);
+-		curr_netdev = iboe->netdevs[port - 1];
+-
+-		if (iboe->netdevs[port - 1] &&
+-		    netif_is_bond_slave(iboe->netdevs[port - 1])) {
+-			iboe->masters[port - 1] = netdev_master_upper_dev_get(
+-				iboe->netdevs[port - 1]);
+-		} else {
+-			iboe->masters[port - 1] = NULL;
+-		}
+-		curr_master = iboe->masters[port - 1];
+ 
+ 		if (dev == iboe->netdevs[port - 1] &&
+ 		    (event == NETDEV_CHANGEADDR || event == NETDEV_REGISTER ||
+ 		     event == NETDEV_UP || event == NETDEV_CHANGE))
+ 			update_qps_port = port;
+ 
+-		if (curr_netdev) {
+-			port_state = (netif_running(curr_netdev) && netif_carrier_ok(curr_netdev)) ?
+-						IB_PORT_ACTIVE : IB_PORT_DOWN;
+-			mlx4_ib_set_default_gid(ibdev, curr_netdev, port);
+-			if (curr_master) {
+-				/* if using bonding/team and a slave port is down, we
+-				 * don't want the bond IP based gids in the table since
+-				 * flows that select port by gid may get the down port.
+-				*/
+-				if (port_state == IB_PORT_DOWN &&
+-				    !mlx4_is_bonded(ibdev->dev)) {
+-					reset_gid_table(ibdev, port);
+-					mlx4_ib_set_default_gid(ibdev,
+-								curr_netdev,
+-								port);
+-				} else {
+-					/* gids from the upper dev (bond/team)
+-					 * should appear in port's gid table
+-					*/
+-					mlx4_ib_get_dev_addr(curr_master,
+-							     ibdev, port);
+-				}
+-			}
+-			/* if bonding is used it is possible that we add it to
+-			 * masters only after IP address is assigned to the
+-			 * net bonding interface.
+-			*/
+-			if (curr_master && (old_master != curr_master)) {
+-				reset_gid_table(ibdev, port);
+-				mlx4_ib_set_default_gid(ibdev,
+-							curr_netdev, port);
+-				mlx4_ib_get_dev_addr(curr_master, ibdev, port);
+-			}
+-
+-			if (!curr_master && (old_master != curr_master)) {
+-				reset_gid_table(ibdev, port);
+-				mlx4_ib_set_default_gid(ibdev,
+-							curr_netdev, port);
+-				mlx4_ib_get_dev_addr(curr_netdev, ibdev, port);
+-			}
+-		} else {
+-			reset_gid_table(ibdev, port);
+-		}
  	}
- }
+-
+ 	spin_unlock_bh(&iboe->lock);
  
-+static void _add_netdev_ips(struct ib_device *ib_dev, u8 port,
-+			    struct net_device *ndev)
-+{
-+	enum_netdev_ipv4_ips(ib_dev, port, ndev);
-+	if (IS_ENABLED(CONFIG_IPV6))
-+		enum_netdev_ipv6_ips(ib_dev, port, ndev);
-+}
-+
- static void add_netdev_ips(struct ib_device *ib_dev, u8 port,
- 			   struct net_device *rdma_ndev, void *cookie)
- {
- 	struct net_device *event_ndev = (struct net_device *)cookie;
+ 	if (update_qps_port > 0)
+@@ -2479,6 +2062,9 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 						1 : ibdev->num_ports;
+ 	ibdev->ib_dev.num_comp_vectors	= dev->caps.num_comp_vectors;
+ 	ibdev->ib_dev.dma_device	= &dev->persist->pdev->dev;
++	ibdev->ib_dev.get_netdev	= mlx4_ib_get_netdev;
++	ibdev->ib_dev.add_gid		= mlx4_ib_add_gid;
++	ibdev->ib_dev.del_gid		= mlx4_ib_del_gid;
  
- 	enum_netdev_default_gids(ib_dev, port, event_ndev, rdma_ndev);
--	enum_netdev_ipv4_ips(ib_dev, port, event_ndev);
--	if (IS_ENABLED(CONFIG_IPV6))
--		enum_netdev_ipv6_ips(ib_dev, port, event_ndev);
-+	_add_netdev_ips(ib_dev, port, event_ndev);
- }
- 
- static void del_netdev_ips(struct ib_device *ib_dev, u8 port,
-@@ -265,6 +385,94 @@ static void callback_for_addr_gid_device_scan(struct ib_device *device,
- 			  &parsed->gid_attr);
- }
- 
-+static void handle_netdev_upper(struct ib_device *ib_dev, u8 port,
-+				void *cookie,
-+				void (*handle_netdev)(struct ib_device *ib_dev,
-+						      u8 port,
-+						      struct net_device *ndev))
-+{
-+	struct net_device *ndev = (struct net_device *)cookie;
-+	struct upper_list {
-+		struct list_head list;
-+		struct net_device *upper;
-+	};
-+	struct net_device *upper;
-+	struct list_head *iter;
-+	struct upper_list *upper_iter;
-+	struct upper_list *upper_temp;
-+	LIST_HEAD(upper_list);
-+
-+	rcu_read_lock();
-+	netdev_for_each_all_upper_dev_rcu(ndev, upper, iter) {
-+		struct upper_list *entry = kmalloc(sizeof(*entry),
-+						   GFP_ATOMIC);
-+
-+		if (!entry) {
-+			pr_info("roce_gid_mgmt: couldn't allocate entry to delete ndev\n");
-+			continue;
-+		}
-+
-+		list_add_tail(&entry->list, &upper_list);
-+		dev_hold(upper);
-+		entry->upper = upper;
-+	}
-+	rcu_read_unlock();
-+
-+	handle_netdev(ib_dev, port, ndev);
-+	list_for_each_entry_safe(upper_iter, upper_temp, &upper_list,
-+				 list) {
-+		handle_netdev(ib_dev, port, upper_iter->upper);
-+		dev_put(upper_iter->upper);
-+		list_del(&upper_iter->list);
-+		kfree(upper_iter);
-+	}
-+}
-+
-+static void _roce_del_all_netdev_gids(struct ib_device *ib_dev, u8 port,
-+				      struct net_device *event_ndev)
-+{
-+	ib_cache_gid_del_all_netdev_gids(ib_dev, port, event_ndev);
-+}
-+
-+static void del_netdev_upper_ips(struct ib_device *ib_dev, u8 port,
-+				 struct net_device *rdma_ndev, void *cookie)
-+{
-+	handle_netdev_upper(ib_dev, port, cookie, _roce_del_all_netdev_gids);
-+}
-+
-+static void add_netdev_upper_ips(struct ib_device *ib_dev, u8 port,
-+				 struct net_device *rdma_ndev, void *cookie)
-+{
-+	handle_netdev_upper(ib_dev, port, cookie, _add_netdev_ips);
-+}
-+
-+static void del_netdev_default_ips_join(struct ib_device *ib_dev, u8 port,
-+					struct net_device *rdma_ndev,
-+					void *cookie)
-+{
-+	struct net_device *master_ndev;
-+
-+	rcu_read_lock();
-+	master_ndev = netdev_master_upper_dev_get_rcu(rdma_ndev);
-+	if (master_ndev)
-+		dev_hold(master_ndev);
-+	rcu_read_unlock();
-+
-+	if (master_ndev) {
-+		bond_delete_netdev_default_gids(ib_dev, port, master_ndev,
-+						rdma_ndev);
-+		dev_put(master_ndev);
-+	}
-+}
-+
-+static void del_netdev_default_ips(struct ib_device *ib_dev, u8 port,
-+				   struct net_device *rdma_ndev, void *cookie)
-+{
-+	struct net_device *event_ndev = (struct net_device *)cookie;
-+
-+	bond_delete_netdev_default_gids(ib_dev, port, event_ndev, rdma_ndev);
-+}
-+
- /* The following functions operate on all IB devices. netdevice_event and
-  * addr_event execute ib_enum_all_roce_netdevs through a work.
-  * ib_enum_all_roce_netdevs iterates through all IB devices.
-@@ -276,17 +484,22 @@ static void netdevice_event_work_handler(struct work_struct *_work)
- 		container_of(_work, struct netdev_event_work, work);
- 	unsigned int i;
- 
--	for (i = 0; i < ARRAY_SIZE(work->cmds) && work->cmds[i].cb; i++)
--		ib_enum_all_roce_netdevs(work->cmds[i].filter, work->ndev,
--					 work->cmds[i].cb, work->ndev);
-+	for (i = 0; i < ARRAY_SIZE(work->cmds) && work->cmds[i].cb; i++) {
-+		ib_enum_all_roce_netdevs(work->cmds[i].filter,
-+					 work->cmds[i].filter_ndev,
-+					 work->cmds[i].cb,
-+					 work->cmds[i].ndev);
-+		dev_put(work->cmds[i].ndev);
-+		dev_put(work->cmds[i].filter_ndev);
-+	}
- 
--	dev_put(work->ndev);
- 	kfree(work);
- }
- 
- static int netdevice_queue_work(struct netdev_event_work_cmd *cmds,
- 				struct net_device *ndev)
- {
-+	unsigned int i;
- 	struct netdev_event_work *ndev_work =
- 		kmalloc(sizeof(*ndev_work), GFP_KERNEL);
- 
-@@ -296,8 +509,14 @@ static int netdevice_queue_work(struct netdev_event_work_cmd *cmds,
+ 	if (dev->caps.userspace_caps)
+ 		ibdev->ib_dev.uverbs_abi_ver = MLX4_IB_UVERBS_ABI_VERSION;
+@@ -2677,26 +2263,6 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 				goto err_notif;
+ 			}
+ 		}
+-		if (!iboe->nb_inet.notifier_call) {
+-			iboe->nb_inet.notifier_call = mlx4_ib_inet_event;
+-			err = register_inetaddr_notifier(&iboe->nb_inet);
+-			if (err) {
+-				iboe->nb_inet.notifier_call = NULL;
+-				goto err_notif;
+-			}
+-		}
+-#if IS_ENABLED(CONFIG_IPV6)
+-		if (!iboe->nb_inet6.notifier_call) {
+-			iboe->nb_inet6.notifier_call = mlx4_ib_inet6_event;
+-			err = register_inet6addr_notifier(&iboe->nb_inet6);
+-			if (err) {
+-				iboe->nb_inet6.notifier_call = NULL;
+-				goto err_notif;
+-			}
+-		}
+-#endif
+-		if (mlx4_ib_init_gid_table(ibdev))
+-			goto err_notif;
  	}
  
- 	memcpy(ndev_work->cmds, cmds, sizeof(ndev_work->cmds));
--	ndev_work->ndev = ndev;
--	dev_hold(ndev);
-+	for (i = 0; i < ARRAY_SIZE(ndev_work->cmds) && ndev_work->cmds[i].cb; i++) {
-+		if (!ndev_work->cmds[i].ndev)
-+			ndev_work->cmds[i].ndev = ndev;
-+		if (!ndev_work->cmds[i].filter_ndev)
-+			ndev_work->cmds[i].filter_ndev = ndev;
-+		dev_hold(ndev_work->cmds[i].ndev);
-+		dev_hold(ndev_work->cmds[i].filter_ndev);
-+	}
- 	INIT_WORK(&ndev_work->work, netdevice_event_work_handler);
- 
- 	queue_work(ib_wq, &ndev_work->work);
-@@ -305,13 +524,45 @@ static int netdevice_queue_work(struct netdev_event_work_cmd *cmds,
- 	return NOTIFY_DONE;
- }
- 
-+static const struct netdev_event_work_cmd add_cmd = {
-+	.cb = add_netdev_ips, .filter = is_eth_port_of_netdev};
-+static const struct netdev_event_work_cmd add_cmd_upper_ips = {
-+	.cb = add_netdev_upper_ips, .filter = is_eth_port_of_netdev};
-+
-+static void netdevice_event_changeupper(struct netdev_changeupper_info *changeupper_info,
-+					struct netdev_event_work_cmd *cmds)
-+{
-+	static const struct netdev_event_work_cmd upper_ips_del_cmd = {
-+		.cb = del_netdev_upper_ips, .filter = upper_device_filter};
-+	static const struct netdev_event_work_cmd bonding_default_del_cmd = {
-+		.cb = del_netdev_default_ips, .filter = is_eth_port_inactive_slave};
-+
-+	if (changeupper_info->event ==
-+	    NETDEV_CHANGEUPPER_UNLINK) {
-+		cmds[0] = upper_ips_del_cmd;
-+		cmds[0].ndev = changeupper_info->upper;
-+		cmds[1] = add_cmd;
-+	} else if (changeupper_info->event ==
-+		   NETDEV_CHANGEUPPER_LINK) {
-+		cmds[0] = bonding_default_del_cmd;
-+		cmds[0].ndev = changeupper_info->upper;
-+		cmds[1] = add_cmd_upper_ips;
-+		cmds[1].ndev = changeupper_info->upper;
-+		cmds[1].filter_ndev = changeupper_info->upper;
-+	}
-+}
-+
- static int netdevice_event(struct notifier_block *this, unsigned long event,
- 			   void *ptr)
- {
--	static const struct netdev_event_work_cmd add_cmd = {
--		.cb = add_netdev_ips, .filter = is_eth_port_of_netdev};
- 	static const struct netdev_event_work_cmd del_cmd = {
- 		.cb = del_netdev_ips, .filter = pass_all_filter};
-+	static const struct netdev_event_work_cmd bonding_default_del_cmd_join = {
-+		.cb = del_netdev_default_ips_join, .filter = is_eth_port_inactive_slave};
-+	static const struct netdev_event_work_cmd default_del_cmd = {
-+		.cb = del_netdev_default_ips, .filter = pass_all_filter};
-+	static const struct netdev_event_work_cmd bonding_event_ips_del_cmd = {
-+		.cb = del_netdev_upper_ips, .filter = upper_device_filter};
- 	struct net_device *ndev = netdev_notifier_info_to_dev(ptr);
- 	struct netdev_event_work_cmd cmds[ROCE_NETDEV_CALLBACK_SZ] = { {NULL} };
- 
-@@ -321,7 +572,8 @@ static int netdevice_event(struct notifier_block *this, unsigned long event,
- 	switch (event) {
- 	case NETDEV_REGISTER:
- 	case NETDEV_UP:
--		cmds[0] = add_cmd;
-+		cmds[0] = bonding_default_del_cmd_join;
-+		cmds[1] = add_cmd;
- 		break;
- 
- 	case NETDEV_UNREGISTER:
-@@ -332,9 +584,22 @@ static int netdevice_event(struct notifier_block *this, unsigned long event,
- 		break;
- 
- 	case NETDEV_CHANGEADDR:
--		cmds[0] = del_cmd;
-+		cmds[0] = default_del_cmd;
- 		cmds[1] = add_cmd;
- 		break;
-+
-+	case NETDEV_CHANGEUPPER:
-+		netdevice_event_changeupper(
-+			container_of(ptr, struct netdev_changeupper_info, info),
-+			cmds);
-+		break;
-+
-+	case NETDEV_BONDING_FAILOVER:
-+		cmds[0] = bonding_event_ips_del_cmd;
-+		cmds[1] = bonding_default_del_cmd_join;
-+		cmds[2] = add_cmd_upper_ips;
-+		break;
-+
- 	default:
- 		return NOTIFY_DONE;
+ 	for (j = 0; j < ARRAY_SIZE(mlx4_class_attributes); ++j) {
+@@ -2727,18 +2293,6 @@ err_notif:
+ 			pr_warn("failure unregistering notifier\n");
+ 		ibdev->iboe.nb.notifier_call = NULL;
  	}
+-	if (ibdev->iboe.nb_inet.notifier_call) {
+-		if (unregister_inetaddr_notifier(&ibdev->iboe.nb_inet))
+-			pr_warn("failure unregistering notifier\n");
+-		ibdev->iboe.nb_inet.notifier_call = NULL;
+-	}
+-#if IS_ENABLED(CONFIG_IPV6)
+-	if (ibdev->iboe.nb_inet6.notifier_call) {
+-		if (unregister_inet6addr_notifier(&ibdev->iboe.nb_inet6))
+-			pr_warn("failure unregistering notifier\n");
+-		ibdev->iboe.nb_inet6.notifier_call = NULL;
+-	}
+-#endif
+ 	flush_workqueue(wq);
+ 
+ 	mlx4_ib_close_sriov(ibdev);
+@@ -2862,19 +2416,6 @@ static void mlx4_ib_remove(struct mlx4_dev *dev, void *ibdev_ptr)
+ 		kfree(ibdev->ib_uc_qpns_bitmap);
+ 	}
+ 
+-	if (ibdev->iboe.nb_inet.notifier_call) {
+-		if (unregister_inetaddr_notifier(&ibdev->iboe.nb_inet))
+-			pr_warn("failure unregistering notifier\n");
+-		ibdev->iboe.nb_inet.notifier_call = NULL;
+-	}
+-#if IS_ENABLED(CONFIG_IPV6)
+-	if (ibdev->iboe.nb_inet6.notifier_call) {
+-		if (unregister_inet6addr_notifier(&ibdev->iboe.nb_inet6))
+-			pr_warn("failure unregistering notifier\n");
+-		ibdev->iboe.nb_inet6.notifier_call = NULL;
+-	}
+-#endif
+-
+ 	iounmap(ibdev->uar_map);
+ 	for (p = 0; p < ibdev->num_ports; ++p)
+ 		if (ibdev->counters[p] != -1)
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index 72de5a4..f43d016 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -474,12 +474,8 @@ struct mlx4_port_gid_table {
+ struct mlx4_ib_iboe {
+ 	spinlock_t		lock;
+ 	struct net_device      *netdevs[MLX4_MAX_PORTS];
+-	struct net_device      *masters[MLX4_MAX_PORTS];
+ 	atomic64_t		mac[MLX4_MAX_PORTS];
+ 	struct notifier_block 	nb;
+-	struct notifier_block	nb_inet;
+-	struct notifier_block	nb_inet6;
+-	union ib_gid		gid_table[MLX4_MAX_PORTS][128];
+ 	struct mlx4_port_gid_table gids[MLX4_MAX_PORTS];
+ };
+ 
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 02fc91c6..d4393a1 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -1292,14 +1292,18 @@ static int _mlx4_set_path(struct mlx4_ib_dev *dev, const struct ib_ah_attr *ah,
+ 		path->static_rate = 0;
+ 
+ 	if (ah->ah_flags & IB_AH_GRH) {
+-		if (ah->grh.sgid_index >= dev->dev->caps.gid_table_len[port]) {
++		int real_sgid_index = mlx4_ib_gid_index_to_real_index(dev,
++								      port,
++								      ah->grh.sgid_index);
++
++		if (real_sgid_index >= dev->dev->caps.gid_table_len[port]) {
+ 			pr_err("sgid_index (%u) too large. max is %d\n",
+-			       ah->grh.sgid_index, dev->dev->caps.gid_table_len[port] - 1);
++			       real_sgid_index, dev->dev->caps.gid_table_len[port] - 1);
+ 			return -1;
+ 		}
+ 
+ 		path->grh_mylmc |= 1 << 7;
+-		path->mgid_index = ah->grh.sgid_index;
++		path->mgid_index = real_sgid_index;
+ 		path->hop_limit  = ah->grh.hop_limit;
+ 		path->tclass_flowlabel =
+ 			cpu_to_be32((ah->grh.traffic_class << 20) |
 -- 
 2.1.0
 
