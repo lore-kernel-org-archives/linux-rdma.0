@@ -1,77 +1,55 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH v2 2/2] x86/mm/pat, drivers/media/ivtv: move pat warn and
- replace WARN() with pr_warn()
-Date: Thu, 25 Jun 2015 08:51:47 +0200
-Message-ID: <20150625065147.GB5339@gmail.com>
-References: <1435166600-11956-1-git-send-email-mcgrof@do-not-panic.com>
- <1435166600-11956-3-git-send-email-mcgrof@do-not-panic.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next V6 00/10] Move RoCE GID management to IB/Core
+Date: Thu, 25 Jun 2015 11:34:43 +0300
+Message-ID: <CAJ3xEMjZgMPWA0jm3ReM4Cb1Q-Gz-vXh=XguSYUMAVD+qPA6Zg@mail.gmail.com>
+References: <1435150766-6803-1-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1435166600-11956-3-git-send-email-mcgrof@do-not-panic.com>
-Sender: linux-media-owner@vger.kernel.org
-To: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Cc: bp@suse.de, andy@silverblocksystems.net, mchehab@osg.samsung.com, dledford@redhat.com, fengguang.wu@intel.com, linux-media@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@suse.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1435150766-6803-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Jun 24, 2015 at 3:59 PM, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+[...]
+> Changes from V5:
+> (1) Incoporate the changes to cache.c so we use the same infrastructure
+>     to manage both IB and RoCE (per Doug's request)
+> (2) Replace the locking mechanism in the IB core GID cache from seqcount +
+>     rcu to rwlock (addressing comments from Jason)
+> (3) get_netdev returns a helded (dev_hold) device
+> (4) Squashed the RocE GID table, RoCE GID management and default GID handling
+>     code into one patch (per Doug's request).
+> (5) Change modify_gid to add_gid and del_gid.
+> (6) set the netdev related changes into three dedicated patches and make
+>     them be 1st in the series.
 
-* Luis R. Rodriguez <mcgrof@do-not-panic.com> wrote:
+Hi Jason, Doug,
 
-> From: "Luis R. Rodriguez" <mcgrof@suse.com>
-> 
-> On built-in kernels this warning will always splat as this is part
-> of the module init. Fix that by shifting the PAT requirement check
-> out under the code that does the "quasi-probe" for the device. This
-> device driver relies on an existing driver to find its own devices,
-> it looks for that device driver and its own found devices, then
-> uses driver_for_each_device() to try to see if it can probe each of
-> those devices as a frambuffer device with ivtvfb_init_card(). We
-> tuck the PAT requiremenet check then on the ivtvfb_init_card()
-> call making the check at least require an ivtv device present
-> before complaining.
-> 
-> Reported-by: Fengguang Wu <fengguang.wu@intel.com> [0-day test robot]
-> Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
-> ---
->  drivers/media/pci/ivtv/ivtvfb.c | 15 +++++++++------
->  1 file changed, 9 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
-> index 4cb365d..8b95eef 100644
-> --- a/drivers/media/pci/ivtv/ivtvfb.c
-> +++ b/drivers/media/pci/ivtv/ivtvfb.c
-> @@ -38,6 +38,8 @@
->      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
->   */
->  
-> +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-> +
->  #include <linux/module.h>
->  #include <linux/kernel.h>
->  #include <linux/fb.h>
-> @@ -1171,6 +1173,13 @@ static int ivtvfb_init_card(struct ivtv *itv)
->  {
->  	int rc;
->  
-> +#ifdef CONFIG_X86_64
-> +	if (pat_enabled()) {
-> +		pr_warn("ivtvfb needs PAT disabled, boot with nopat kernel parameter\n");
-> +		return -ENODEV;
-> +	}
-> +#endif
-> +
->  	if (itv->osd_info) {
->  		IVTVFB_ERR("Card %d already initialised\n", ivtvfb_card_id);
->  		return -EBUSY;
+So... are we finally OK wrt the feedback  you provided?
 
-Same argument as for ipath: why not make arch_phys_wc_add() fail on PAT and return 
--1, and check it in arch_phys_wc_del()?
+Matan and team have carefully addressed the review comments, let us
+know how you see this
+(same for Haggai's V1 series post, will love to get your feedback to
+know where we are there too).
 
-That way we don't do anything drastic, the remaining few drivers still keep 
-working (albeit suboptimally - can be worked around with the 'nopat' boot option) 
-- yet we've reduced the use of MTRRs drastically.
+Or.
 
-Thanks,
-
-	Ingo
+> Changes from V4:
+> (1) Remove any API changes.
+> (2) Fixed a bug regarding bonding upper devices.
+> (3) Rebased ontop of Doug's k.o/for-4.2.
+>
+> Changes from V3:
+> (1) Remove RoCE V2 functionality (it will be sent at later patchset).
+> (2) Instead of removing qp_attr_mask flags, reserve them.
+> (3) Remove the kref from IB devices in favor of rwsem.
+> (4) Change the name of roce_gid_cache to roce_gid_table.
+> (5) Fix a race when roce_gid_table is free'd while getting events.
+> (6) Remove the roce_gid_cache active/inactive flag/API.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
