@@ -1,71 +1,36 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: [PATCH RFC] RDMA/core: add rdma_get_dma_mr()
-Date: Thu, 25 Jun 2015 16:48:46 -0500
-Message-ID: <007601d0af90$b633e4b0$229bae10$@opengridcomputing.com>
-References: <20150625212917.14869.66238.stgit@build.ogc.int> <20150625213944.GA27780@obsidianresearch.com>
+Date: Thu, 25 Jun 2015 22:37:17 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FF9ECA@ORSMSX109.amr.corp.intel.com>
+References: <20150625212917.14869.66238.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150625213944.GA27780-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <20150625212917.14869.66238.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-> -----Original Message-----
-> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
-> Sent: Thursday, June 25, 2015 4:40 PM
-> To: Steve Wise
-> Cc: sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH RFC] RDMA/core: add rdma_get_dma_mr()
-> 
-> On Thu, Jun 25, 2015 at 04:29:17PM -0500, Steve Wise wrote:
-> 
-> > - * ib_dma_mapping_error - check a DMA addr for error
-> > + * rdma_mr_roles - possible roles a MR will be used for
-> > + *
-> > + * This allows a transport independent RDMA application to
-> > + * create MRs that are usable for all the desired roles w/o
-> > + * having to understand which access rights are needed.
-> > + */
-> > +enum rdma_mr_roles {
-> > +	RDMA_MRR_RECV			= 1,
-> > +	RDMA_MRR_SEND			= (1<<1),
-> > +	RDMA_MRR_READ_SOURCE		= (1<<2),
-> > +	RDMA_MRR_READ_SINK		= (1<<3),
-> > +	RDMA_MRR_WRITE_SOURCE		= (1<<4),
-> > +	RDMA_MRR_WRITE_SINK		= (1<<5),
-> > +	RDMA_MRR_ATOMIC			= (1<<6),
-> > +	RDMA_MRR_MW_BIND		= (1<<7),
-> > +	RDMA_MRR_ZERO_BASED		= (1<<8),
-> > +	RDMA_MRR_ACCESS_ON_DEMAND	= (1<<9),
-> 
-> So we don't have this problem again, it would be best to explicitly
-> list exactly which ib_wc_opcode members what use a RKEY are matched to
-> which MMR flags
-> 
-> RDMA_MRR_RECV
->   LOCAL: post to receive work queue
-> RDMA_MRR_READ_SOURCE
->   LOCAL: post IB_WC_RDMA_READ to send work queue
-> RDMA_MRR_READ_SINK
->   REMOTE: respond to IB_WC_RDMA_READ
-> [..]
-> 
-> Seems reasonable to me otherwise
->
-
-Good idea. 
-
-Thanks for the reviews!
-
-Steve.
-
+PiArZW51bSByZG1hX21yX3JvbGVzIHsNCg0KSSB3b3VsZCBkcm9wIG5hbWluZyB0aGUgZW51bSAt
+IGl0IHNob3VsZG4ndCBiZSB1c2VkLCBhcyB0aGUgdmFsdWVzIGFyZSBiaXQgZmxhZ3MuDQoNCj4g
+KwlSRE1BX01SUl9SRUNWCQkJPSAxLA0KPiArCVJETUFfTVJSX1NFTkQJCQk9ICgxPDwxKSwNCj4g
+KwlSRE1BX01SUl9SRUFEX1NPVVJDRQkJPSAoMTw8MiksDQo+ICsJUkRNQV9NUlJfUkVBRF9TSU5L
+CQk9ICgxPDwzKSwNCj4gKwlSRE1BX01SUl9XUklURV9TT1VSQ0UJCT0gKDE8PDQpLA0KPiArCVJE
+TUFfTVJSX1dSSVRFX1NJTksJCT0gKDE8PDUpLA0KPiArCVJETUFfTVJSX0FUT01JQwkJCT0gKDE8
+PDYpLA0KPiArCVJETUFfTVJSX01XX0JJTkQJCT0gKDE8PDcpLA0KPiArCVJETUFfTVJSX1pFUk9f
+QkFTRUQJCT0gKDE8PDgpLA0KDQpUaGVyZSdzICdzb21ldGhpbmcnIGRpZmZlcmVudCBhYm91dCB0
+aGlzIHJvbGUgdGhhdCBjYXVzZSBtZSBoZXNpdGF0aW9uLiAgTWF5YmUgdGhhdCBpdCdzIGRlcGVu
+ZGVudCBvbiBvdGhlciByb2xlcyBiZWluZyBzZXQgdG8gYmUgdXNlZnVsPyAgSSdtIG5vdCBzdXJl
+Lg0KDQpNYXliZSB3ZSBuZWVkIGJvdGggcm9sZXMgYW5kIHJlZ2lzdHJhdGlvbiBmbGFncywgd2l0
+aCB0aGlzIGRlY2xhcmVkIGFzIGEgZmxhZz8NCg0KPiArCVJETUFfTVJSX0FDQ0VTU19PTl9ERU1B
+TkQJPSAoMTw8OSksDQoNClRoaXMgb25lIGlzIGV2ZW4gbW9yZSBkaWZmZXJlbnQsIGFzIGl0IGRv
+ZXNuJ3QgaW1wYWN0IGhvdyB0aGUgTVIgaW50ZXJhY3RzIHdpdGggdGhlIGludGVyZmFjZXMsIG9y
+IGNoYW5nZSBob3cgdGhlIGFwcGxpY2F0aW9uIHVzZXMgdGhlIE1SLiAgVGhpcyBpcyByZWFsbHkg
+YSBoaW50IHRvIHRoZSBwcm92aWRlciByZWdhcmRpbmcgdGhlIHNlbGVjdGlvbiBvZiBkaWZmZXJl
+bnQgaW1wbGVtZW50YXRpb24gZmxvd3MuDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
