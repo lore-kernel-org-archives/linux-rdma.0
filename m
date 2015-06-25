@@ -1,114 +1,157 @@
-From: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
-Subject: Re: [PATCH v2 2/2] x86/mm/pat, drivers/media/ivtv: move pat warn and
- replace WARN() with pr_warn()
-Date: Thu, 25 Jun 2015 19:38:47 +0200
-Message-ID: <20150625173847.GH3005@wotan.suse.de>
-References: <1435166600-11956-1-git-send-email-mcgrof@do-not-panic.com>
- <1435166600-11956-3-git-send-email-mcgrof@do-not-panic.com>
- <20150625065147.GB5339@gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH for-next V5 1/5] IB/uverbs: Fix reference counting usage
+ of event files
+Date: Thu, 25 Jun 2015 11:52:28 -0600
+Message-ID: <20150625175228.GF21033@obsidianresearch.com>
+References: <1434984438-21733-1-git-send-email-yishaih@mellanox.com>
+ <1434984438-21733-2-git-send-email-yishaih@mellanox.com>
+ <20150624175738.GC21033@obsidianresearch.com>
+ <558BE9FA.9060402@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20150625065147.GB5339-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <558BE9FA.9060402-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hyong-Youb Kim <hkim-Z0sFnEBmPCA@public.gmane.org>, Andy Walls <awalls-Xoej9cPu4Z+RGvkDC/A1pg@public.gmane.org>, benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org
-Cc: "Luis R. Rodriguez" <mcgrof-3uybbJdB1yH774rrrx3eTA@public.gmane.org>, bp-l3A5Bk7waGM@public.gmane.org, andy-JCKMKWeByS3xr+NhZqW+5SMd26UNKDXL@public.gmane.org, mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 25, 2015 at 08:51:47AM +0200, Ingo Molnar wrote:
+On Thu, Jun 25, 2015 at 02:46:02PM +0300, Yishai Hadas wrote:
+> On 6/24/2015 8:57 PM, Jason Gunthorpe wrote:
+> >On Mon, Jun 22, 2015 at 05:47:14PM +0300, Yishai Hadas wrote:
+> >>  	fd_install(resp.async_fd, filp);
+> >>@@ -386,6 +376,7 @@ ssize_t ib_uverbs_get_context(struct ib_uverbs_file *file,
+> >>  	return in_len;
+> >>
+> >>  err_file:
+> >>+	ib_uverbs_free_async_event_file(file);
+> >>  	fput(filp);
+> >
+> >This looks really weird.
 > 
-> * Luis R. Rodriguez <mcgrof-3uybbJdB1yH774rrrx3eTA@public.gmane.org> wrote:
+> We need to cleanup all by that step otherwise we might leak that async file,
+> see my last comment below which clarifies that point.
+> As ib_uverbs_release_event_file is static function in uverbs_main it makes
+> sense to expose this cleanup function similar to ib_uverbs_alloc_event_file
+> which is exposed from uverbs_main and make the allocation.
+
+Okay, sure, that makes sense.
+
+> >Again again, WTF? async_file is a kref'd thing, if you copy or assign
+> >to it you need to manipulate the kref, so the null assign should be
+> >dropping the ref.
+>
+> The logic in ib_uverbs_alloc_event_file if kref oriented, the original code
+> which uses free didn't follow this convention, currently in case
+
+Yes, and you fixed it, this is good:
+
+@@ -557,15 +563,38 @@  struct file *ib_uverbs_alloc_event_file(struct ib_uverbs_file *uverbs_file,
+	ev_file = kmalloc(sizeof *ev_file, GFP_KERNEL);
+	kref_init(&ev_file->ref);
+        if (IS_ERR(filp))
++		goto err;
++err:
++	kref_put(&ev_file->ref, ib_uverbs_release_event_file);
+
+The kref_init and the kref_put are a matching pair, great!
+
+> had an error after that the file was created (e.g ib_register_event_handler)
+> need to use fput(filp) to make an extra cleanup which again uses ref count
+> handling.
+
+Yep, that is a good idea too. But understand what it means,
+
+When this happens:
+ 	filp = anon_inode_getfile("[infinibandevent]", &uverbs_event_fops,
+ 				  ev_file, O_RDONLY);
+The unref pairs for these gets:
+	kref_init(&ev_file->ref);
++	kref_get(&uverbs_file->ref);
+
+Are logically moved into flip, and now fput(flip) will call
+ib_uverbs_event_close() and both those krefs will be released.
+
+For this reason, for clarity, I would also move the
+'kref_get(&uverbs_file->ref);' to be before anon_inode_getfile()
+
+Which means this:
+
+@@ -557,15 +563,38 @@  struct file *ib_uverbs_alloc_event_file(struct ib_uverbs_file *uverbs_file,
++	kref_get(&uverbs_file->ref);
++	if (is_async) {
++		if (ret)
++			goto put_file;
++put_file:
++	fput(filp);
++err:
++	kref_put(&ev_file->ref, ib_uverbs_release_event_file);
+
+Is a double put on ev_file, since fput -> ib_uverbs_event_close does one, and
+then err does another. (remember, the ref was moved into the flip)
+
+Next:
+
++	if (is_async) {
++		uverbs_file->async_file = ev_file;
++		kref_get(&uverbs_file->async_file->ref);
++		if (ret)
++			goto put_file;
++put_file:
++	uverbs_file->async_file = NULL;
+
+Where is the paired kref_put? There are two I can see:
+
++void ib_uverbs_free_async_event_file(struct ib_uverbs_file *file)
++{
++	kref_put(&file->async_file->ref, ib_uverbs_release_event_file);
+-----
+static int ib_uverbs_close(struct inode *inode, struct file *filp)
+		kref_put(&file->async_file->ref, ib_uverbs_release_event_file);
+
+As far as I can tell, neither of these are called, so we have an
+unbalanced put.
+
+Which brings me back to my statement:
+
+> >Again again, WTF? async_file is a kref'd thing, if you copy or assign
+> >to it you need to manipulate the kref, so the null assign should be
+> >dropping the ref.
+
+So, the two possible fixes are
+1) Make the call to ib_uverbs_free_async_event_file() happen even if
+   ib_uverbs_alloc_event_file() fails
+2) Do in ib_uverbs_alloc_event_file
++	kref_put(&uverbs_file->async_file->ref, ib_uverbs_release_event_file);
++	uverbs_file->async_file = NULL;
+   Which may as well just be a call to ib_uverbs_free_async_event_file()
+
+In either situation the naked async_file = NULL is fixed to have a
+kref beside it.
+
+This is basic invariant of how kref works. Read the 'rules' in
+Documentation/kref.txt
+
+So, as I reviewer, I see a kref'd variable (async_file) being
+manipulated without corresponding kref code. I *KNOW* something is
+wrong. You answer didn't address this, you needed to ID where the
+pair'd kref_put was and justify having the '= NULL' so far away from
+it.
+
+> >Whis looks good enough to remove ib_uverbs_free_async_event_file, if
+> >the flip is created OK then the uverbs_file->async file can remain set
+> >until the uverbs file is closed.
 > 
-> > From: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
-> > 
-> > On built-in kernels this warning will always splat as this is part
-> > of the module init. Fix that by shifting the PAT requirement check
-> > out under the code that does the "quasi-probe" for the device. This
-> > device driver relies on an existing driver to find its own devices,
-> > it looks for that device driver and its own found devices, then
-> > uses driver_for_each_device() to try to see if it can probe each of
-> > those devices as a frambuffer device with ivtvfb_init_card(). We
-> > tuck the PAT requiremenet check then on the ivtvfb_init_card()
-> > call making the check at least require an ivtv device present
-> > before complaining.
-> > 
-> > Reported-by: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> [0-day test robot]
-> > Signed-off-by: Luis R. Rodriguez <mcgrof-IBi9RG/b67k@public.gmane.org>
-> > ---
-> >  drivers/media/pci/ivtv/ivtvfb.c | 15 +++++++++------
-> >  1 file changed, 9 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
-> > index 4cb365d..8b95eef 100644
-> > --- a/drivers/media/pci/ivtv/ivtvfb.c
-> > +++ b/drivers/media/pci/ivtv/ivtvfb.c
-> > @@ -38,6 +38,8 @@
-> >      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-> >   */
-> >  
-> > +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-> > +
-> >  #include <linux/module.h>
-> >  #include <linux/kernel.h>
-> >  #include <linux/fb.h>
-> > @@ -1171,6 +1173,13 @@ static int ivtvfb_init_card(struct ivtv *itv)
-> >  {
-> >  	int rc;
-> >  
-> > +#ifdef CONFIG_X86_64
-> > +	if (pat_enabled()) {
-> > +		pr_warn("ivtvfb needs PAT disabled, boot with nopat kernel parameter\n");
-> > +		return -ENODEV;
-> > +	}
-> > +#endif
-> > +
-> >  	if (itv->osd_info) {
-> >  		IVTVFB_ERR("Card %d already initialised\n", ivtvfb_card_id);
-> >  		return -EBUSY;
-> 
-> Same argument as for ipath: why not make arch_phys_wc_add() fail on PAT and return 
-> -1, and check it in arch_phys_wc_del()?
+> This is wrong, as file->ucontext is NULL because of the failure in
+> copy_to_user, application might recall to ib_uverbs_get_context in that case
+> we leak that previous async_file, that's why the code must cleanup and put
+> NULL by that step. To your request put WARN_ON(uverbs_file->async_file) as
+> part of ib_uverbs_alloc_event_file to make sure that we don't hit that case.
 
-The arch_phys_wc_add() is a no-op for PAT systems but for PAT to work we need
-not only need to add this in where we replace the MTRR call but we also need
-to convert ioremap_nocache() calls to ioremap_wc() but only if things were
-split up already.
+Yes, that makes sense.
 
-We racked our heads [0] [1] trying to figure out how to do the split for ivtv. The
-issues with ivtv were that the firmware decides where the WC area is and does
-not provide APIs to expose it. Then alternatives are to for example just use WC
-on the entire full range and use work arounds write(); wmb(); read(); for MMIO
-registers. That idea came from the use case of the Myricom Ethernet device
-driver which uses WC as a compromise to address a performance regression if
-it didn't use WC on an entire range, it uses the work around for the MMIO
-registers. I considered very *briefly* adding a generic API that would let
-device driver use this but dropped the idea as it seems this was not a common
-issue and this was rather a work around.
-
-I should note that Benjamin recenlty noted that power pc (and he says possibly
-more) writel() and co contains an implicit mb(). That addresses some of it may
-maybe not all requirements.
-
-[0] http://lkml.kernel.org/r/1429146457.1899.99.camel-xioobY1GIEhKttHedORAlB2eb7JE58TQ@public.gmane.org
-[1] https://marc.info/?t=142894741100005&r=1&w=2
-
-> That way we don't do anything drastic, the remaining few drivers still keep 
-> working (albeit suboptimally - can be worked around with the 'nopat' boot option) 
-> - yet we've reduced the use of MTRRs drastically.
-
-It seems the 3 drivers that needed hackery are ancient, not common and likely
-adding a general fix more work than the gains provided through it. We'd need
-to address not only the use of the arch_phys calls but also to split their MMIO
-registers / WC desire area. This later part was the harder part of all this.
-Fortunately the "norm" is that modern devices have a full PCI bar designated
-for each now. Furthermore in the future we should hope for buses that do the
-negotiation of this for us and we can just map things out for them in the
-kernel. benh seems to note ppc does some hackery for this but I wouldn't bet
-on it being viable without issues on x86 just unless a thorough review / big
-wagers are made.
-
-  Luis
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
