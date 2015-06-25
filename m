@@ -1,107 +1,114 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next V5 3/5] IB/uverbs: Enable device removal when
- there are active user space applications
-Date: Thu, 25 Jun 2015 11:09:37 -0600
-Message-ID: <20150625170937.GE21033@obsidianresearch.com>
-References: <1434984438-21733-1-git-send-email-yishaih@mellanox.com>
- <1434984438-21733-4-git-send-email-yishaih@mellanox.com>
- <20150624182519.GD21033@obsidianresearch.com>
- <558C0775.4000104@dev.mellanox.co.il>
+From: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
+Subject: Re: [PATCH v2 1/2] x86/mm/pat, drivers/infiniband/ipath: replace
+ WARN() with pr_warn()
+Date: Thu, 25 Jun 2015 19:15:49 +0200
+Message-ID: <20150625171549.GG3005@wotan.suse.de>
+References: <1435166600-11956-1-git-send-email-mcgrof@do-not-panic.com>
+ <1435166600-11956-2-git-send-email-mcgrof@do-not-panic.com>
+ <20150625064922.GA5339@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <558C0775.4000104-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20150625064922.GA5339-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "Luis R. Rodriguez" <mcgrof-3uybbJdB1yH774rrrx3eTA@public.gmane.org>, bp-l3A5Bk7waGM@public.gmane.org, andy-JCKMKWeByS3xr+NhZqW+5SMd26UNKDXL@public.gmane.org, mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 25, 2015 at 04:51:49PM +0300, Yishai Hadas wrote:
-> On 6/24/2015 9:25 PM, Jason Gunthorpe wrote:
-> >Is not holding the RCU lock while ib_uverbs_release_dev is reading
-> >ib_dev. The barriers in kref are not strong enough to guarentee the RCU
-> >protected data will be visible. (remember when I asked if you checked
-> >all of these?)
+On Thu, Jun 25, 2015 at 08:49:22AM +0200, Ingo Molnar wrote:
 > 
-> This is not a locking problem, the only option that here the reference count
-> becomes 0 is if ib_uverbs_remove_one was previously called and decreased the
-> reference count that was taken upon load. However, it was done after that
-> rcu_assign_pointer(uverbs_dev->ib_dev, NULL) was called so the check whether
-> if (!dev->ib_dev) is fully protected and can't race with HW removal flow.
+> * Luis R. Rodriguez <mcgrof-3uybbJdB1yH774rrrx3eTA@public.gmane.org> wrote:
+> 
+> > From: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
+> > 
+> > WARN() may confuse users, fix that. ipath_init_one() is part the
+> > device's probe so this would only be triggered if a corresponding
+> > device was found.
+> > 
+> > Signed-off-by: Luis R. Rodriguez <mcgrof-IBi9RG/b67k@public.gmane.org>
+> > ---
+> >  drivers/infiniband/hw/ipath/ipath_driver.c | 6 ++++--
+> >  1 file changed, 4 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/infiniband/hw/ipath/ipath_driver.c b/drivers/infiniband/hw/ipath/ipath_driver.c
+> > index 2d7e503..871dbe5 100644
+> > --- a/drivers/infiniband/hw/ipath/ipath_driver.c
+> > +++ b/drivers/infiniband/hw/ipath/ipath_driver.c
+> > @@ -31,6 +31,8 @@
+> >   * SOFTWARE.
+> >   */
+> >  
+> > +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+> > +
+> >  #include <linux/sched.h>
+> >  #include <linux/spinlock.h>
+> >  #include <linux/idr.h>
+> > @@ -399,8 +401,8 @@ static int ipath_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
+> >  	u32 bar0 = 0, bar1 = 0;
+> >  
+> >  #ifdef CONFIG_X86_64
+> > -	if (WARN(pat_enabled(),
+> > -		 "ipath needs PAT disabled, boot with nopat kernel parameter\n")) {
+> > +	if (pat_enabled()) {
+> > +		pr_warn("ipath needs PAT disabled, boot with nopat kernel parameter\n");
+> >  		ret = -ENODEV;
+> >  		goto bail;
+> >  	}
+> 
+> So driver init will always fail with this on modern kernels.
 
-The problem with RCU is not to do with instruction concurrancy, you
-need to convince yourself the unlocked accesses have *data* coherency,
-that is what rcu_derference and friends are all about.
+Nope, I double checked this, ipath_init_one() is the PCI probe routine,
+not the module init call. It should probably be renamed.
 
-So, looked too briefly yesterday (sorry, busy), but it turns out that
-atomic_sub_return guarentees a full smp_mb(), so the data barrier in
-kref_put *IS* strong enough for this use. Thus it is OK.
+> Btw., on a second thought, ipath uses MTRRs to enable WC:
+> 
+>         ret = ipath_enable_wc(dd);
+>         if (ret)
+>                 ret = 0;
+> 
+> Note how it ignores any failures - the driver still works even if WC was not 
+> enabled.
 
-> The kref is used to manage the uverbs_dev allocation, the internal code in
-> ib_uverbs_release_dev depends on the state. Usually the natural place to
-> free the memory is as part of the release function as done in other kernel
-> places. In case that ib_device was previously removed it can be safely freed
-> here as it's called when the last client disconnected, this logic is
-> introduced by this patch. In case there is a need to wait clients as the
-> driver doesn't support HW device removal the free can't be done internally
-> but must be done externally in ib_uverbs_remove_one when last client
-> disconnected and complete should be used instead. As of I believe that we
-> can stay with only one kref that manage the uverbs_dev which is safe as I
-> pointed above.
+Ah, well WC strategy requires a split of the MMIO registers and the desired
+WC area, right now they are combined for some type of ipath devices. There
+are two things to consider when thinking about whether or not we want to
+do the work required to do the split:
 
-Many other places in the kernel split the 'can i complete remove'
-counter (ie the active count) from the kref. It just makes things
-simpler and cleaner
+1) The state of affairs of the ipath driver
+2) The effort required to do the ipath MMIO register / WC split
 
-When you changed the flow to do both things, it breaks the error
-handling, ie this:
+As for 1): the ipath driver is deprecated, the folks who maintain it
+haven't used the driver in testing for 3-4 years now. The ipath driver
+powers the old HTX bus card that only work in AMD systems, the replacement
+driver is the qib infiniband driver , it powers all PCI-E cards. Doug
+was even talking about removing the driver from the kernel [0] [1].
 
-@@ -924,6 +1062,13 @@  static void ib_uverbs_add_one(struct ib_device *device)
-	uverbs_dev = kzalloc(sizeof *uverbs_dev, GFP_KERNEL);
- 	init_completion(&uverbs_dev->comp);
- 	uverbs_dev->xrcd_tree = RB_ROOT;
- 	mutex_init(&uverbs_dev->xrcd_tree_mutex);
-+	mutex_init(&uverbs_dev->lists_mutex);
-+	ret = init_srcu_struct(&uverbs_dev->disassociate_srcu);
-+	if (ret)
-+		goto err_init;
+As for 2): I looked into doing the split and what makes it really
+hard is that the ipath driver has a character device that is used
+for diagnostics which lets userspace poke at the PCI device's
+ioremap'd space, for the split case some magic needs to be done to
+ensure the driver uses the right offset. So apart from addressing the
+split and driver's use the character device mapping calls also would
+need to be fixed.
 
-+err_init:
- 	kref_put(&uverbs_dev->ref, ib_uverbs_release_dev);
- 	wait_for_completion(&uverbs_dev->comp);
- 	kfree(uverbs_dev);
+I did the work on the atyfb driver to demo work effort required to
+address the split, I did look to doing it for both the ipath and
+ivtv driver but for both 1) and 2) indicated it was not worth it.
 
-Is now a double kfree.
+[0] http://lkml.kernel.org/r/1429728791.121496.10.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+[1] http://lkml.kernel.org/r/1430159932.44548.20.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 
-So, to fix this, we need to have two different uses of kput, one that
-is protected by the implicit locking of add_one/remove_one, and one
-that is usable otherwise.
+> So why don't you simply extend ipath_enable_wc() to generate the warning message 
+> and return -EINVAL - which still keeps the driver working on modern kernels?
 
-The former should always be the same, and wrapped in a function:
+We would need to do the split.
 
-// ONLY callable from remove_one/add_one
-static void free_uverbs_dev(..)
-{
-	bool need_wait = uverbs_dev->ib_dev;
-	kref_put(&uverbs_dev->ref, ib_uverbs_release_dev);
-	if (need_wait) {
-		wait_for_completion(&uverbs_dev->comp);
- 		cleanup_srcu_struct(&uverbs_dev->disassociate_srcu);
-		kfree(uverbs_dev);
-	}
-}
+> Just inform the user about 'nopat' if he wants WC for this driver.
 
-Workable, but it sure makes the kref weird and ugly and abnormal.
+If we had the split we could do this.
 
-99% of the time, seeing a dereference after a kref would be an error,
-only when a kref is pretending to be an atomic does it matter. I am of
-the opinion that abusing kref for something that is not memory
-reference counting is wrong, it makes the code hard to audit and
-understand because everyone *expects* standard rules to be followed
-with kref.
-
-Jason
+  Luis
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
