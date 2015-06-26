@@ -1,91 +1,74 @@
-From: Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 2/2] x86/mm/pat, drivers/media/ivtv: move pat warn and
- replace WARN() with pr_warn()
-Date: Fri, 26 Jun 2015 10:45:46 +0200
-Message-ID: <20150626084546.GD26303@gmail.com>
-References: <1435166600-11956-1-git-send-email-mcgrof@do-not-panic.com>
- <1435166600-11956-3-git-send-email-mcgrof@do-not-panic.com>
- <20150625065147.GB5339@gmail.com>
- <20150625173847.GH3005@wotan.suse.de>
+From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] IB/cm: Do not queue a work when the device is going to be removed
+Date: Fri, 26 Jun 2015 14:07:07 +0300
+Message-ID: <CAAk-MO_-FdMPwHZxE_JoiNeoTPVP0bQmzsdogovicELpk21pxQ@mail.gmail.com>
+References: <1435241602-12104-1-git-send-email-erezsh@mellanox.com>
+	<558C238F.1030702@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150625173847.GH3005-B4tOwbsTzaBolqkO4TVVkw@public.gmane.org>
+In-Reply-To: <558C238F.1030702-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
-Cc: Hyong-Youb Kim <hkim-Z0sFnEBmPCA@public.gmane.org>, Andy Walls <awalls-Xoej9cPu4Z+RGvkDC/A1pg@public.gmane.org>, benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org, "Luis R. Rodriguez" <mcgrof-3uybbJdB1yH774rrrx3eTA@public.gmane.org>, bp-l3A5Bk7waGM@public.gmane.org, andy-JCKMKWeByS3xr+NhZqW+5SMd26UNKDXL@public.gmane.org, mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Jun 25, 2015 at 6:51 PM, Bart Van Assche
+<bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
+> On 06/25/2015 07:13 AM, Erez Shitrit wrote:
+>>
+>> @@ -3864,14 +3904,23 @@ static void cm_remove_one(struct ib_device
+>> *ib_device)
+>>         list_del(&cm_dev->list);
+>>         write_unlock_irqrestore(&cm.device_lock, flags);
+>>
+>> +       spin_lock_irq(&cm.lock);
+>> +       cm_dev->going_down = 1;
+>> +       spin_unlock_irq(&cm.lock);
+>> +
+>>         for (i = 1; i <= ib_device->phys_port_cnt; i++) {
+>>                 if (!rdma_cap_ib_cm(ib_device, i))
+>>                         continue;
+>>
+>>                 port = cm_dev->port[i-1];
+>>                 ib_modify_port(ib_device, port->port_num, 0,
+>> &port_modify);
+>> -               ib_unregister_mad_agent(port->mad_agent);
+>> +               /*
+>> +                * We flush the queue here after the going_down set, this
+>> +                * verify that no new works will be queued in the recv
+>> handler,
+>> +                * after that we can call the unregister_mad_agent
+>> +                */
+>>                 flush_workqueue(cm.wq);
+>> +               ib_unregister_mad_agent(port->mad_agent);
+>>                 cm_remove_port_fs(port);
+>>         }
+>>         device_unregister(cm_dev->device);
+>
+>
+> Hello Erez,
+>
+> How about splitting unregister_mad_agent() into two functions, one that
+> stops the invocation of the receive callbacks and another one that cancels
+> all sends ? If the new function that stops the receive callbacks would be
+> invoked before flush_workqueue(), would that be safe ?
+No, still works that are pending in the queue will need the mad_agent,
+the best is to finish all the pending works, and not let new works to
+come in.
 
-* Luis R. Rodriguez <mcgrof-IBi9RG/b67k@public.gmane.org> wrote:
-
-> On Thu, Jun 25, 2015 at 08:51:47AM +0200, Ingo Molnar wrote:
-> > 
-> > * Luis R. Rodriguez <mcgrof-3uybbJdB1yH774rrrx3eTA@public.gmane.org> wrote:
-> > 
-> > > From: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
-> > > 
-> > > On built-in kernels this warning will always splat as this is part
-> > > of the module init. Fix that by shifting the PAT requirement check
-> > > out under the code that does the "quasi-probe" for the device. This
-> > > device driver relies on an existing driver to find its own devices,
-> > > it looks for that device driver and its own found devices, then
-> > > uses driver_for_each_device() to try to see if it can probe each of
-> > > those devices as a frambuffer device with ivtvfb_init_card(). We
-> > > tuck the PAT requiremenet check then on the ivtvfb_init_card()
-> > > call making the check at least require an ivtv device present
-> > > before complaining.
-> > > 
-> > > Reported-by: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> [0-day test robot]
-> > > Signed-off-by: Luis R. Rodriguez <mcgrof-IBi9RG/b67k@public.gmane.org>
-> > > ---
-> > >  drivers/media/pci/ivtv/ivtvfb.c | 15 +++++++++------
-> > >  1 file changed, 9 insertions(+), 6 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
-> > > index 4cb365d..8b95eef 100644
-> > > --- a/drivers/media/pci/ivtv/ivtvfb.c
-> > > +++ b/drivers/media/pci/ivtv/ivtvfb.c
-> > > @@ -38,6 +38,8 @@
-> > >      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-> > >   */
-> > >  
-> > > +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-> > > +
-> > >  #include <linux/module.h>
-> > >  #include <linux/kernel.h>
-> > >  #include <linux/fb.h>
-> > > @@ -1171,6 +1173,13 @@ static int ivtvfb_init_card(struct ivtv *itv)
-> > >  {
-> > >  	int rc;
-> > >  
-> > > +#ifdef CONFIG_X86_64
-> > > +	if (pat_enabled()) {
-> > > +		pr_warn("ivtvfb needs PAT disabled, boot with nopat kernel parameter\n");
-> > > +		return -ENODEV;
-> > > +	}
-> > > +#endif
-> > > +
-> > >  	if (itv->osd_info) {
-> > >  		IVTVFB_ERR("Card %d already initialised\n", ivtvfb_card_id);
-> > >  		return -EBUSY;
-> > 
-> > Same argument as for ipath: why not make arch_phys_wc_add() fail on PAT and 
-> > return -1, and check it in arch_phys_wc_del()?
-> 
-> The arch_phys_wc_add() is a no-op for PAT systems but for PAT to work we need 
-> not only need to add this in where we replace the MTRR call but we also need to 
-> convert ioremap_nocache() calls to ioremap_wc() but only if things were split up 
-> already.
-
-We don't need to do that: for such legacy drivers we can fall back to UC just 
-fine, and inform the user that by booting with 'nopat' the old behavior will be 
-back...
-
-Thanks,
-
-	Ingo
+ Would that allow to
+> drop the new flag "going_down" since the workqueue implementation already
+> sets __WQ_DRAINING ?
+>
+> Thanks,
+>
+> Bart.
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
