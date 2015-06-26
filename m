@@ -1,75 +1,110 @@
-From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] IB/cm: Do not queue a work when the device is going to be removed
-Date: Fri, 26 Jun 2015 14:07:07 +0300
-Message-ID: <CAAk-MO_-FdMPwHZxE_JoiNeoTPVP0bQmzsdogovicELpk21pxQ@mail.gmail.com>
-References: <1435241602-12104-1-git-send-email-erezsh@mellanox.com>
-	<558C238F.1030702@sandisk.com>
+From: Andy Walls <andy@silverblocksystems.net>
+Subject: Re: [PATCH v2 2/2] x86/mm/pat, drivers/media/ivtv: move pat warn
+ and replace WARN() with pr_warn()
+Date: Fri, 26 Jun 2015 08:36:01 -0400
+Message-ID: <1435322161.2713.10.camel@localhost>
+References: <1435166600-11956-1-git-send-email-mcgrof@do-not-panic.com>
+	 <1435166600-11956-3-git-send-email-mcgrof@do-not-panic.com>
+	 <20150625065147.GB5339@gmail.com> <20150625173847.GH3005@wotan.suse.de>
+	 <20150626084546.GD26303@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <558C238F.1030702-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <20150626084546.GD26303@gmail.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Ingo Molnar <mingo@kernel.org>
+Cc: "Luis R. Rodriguez" <mcgrof@suse.com>, Hyong-Youb Kim <hkim@cspi.com>, Andy Walls <awalls@md.metrocast.net>, benh@kernel.crashing.org, "Luis R. Rodriguez" <mcgrof@do-not-panic.com>, bp@suse.de, mchehab@osg.samsung.com, dledford@redhat.com, fengguang.wu@intel.com, linux-media@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 25, 2015 at 6:51 PM, Bart Van Assche
-<bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
-> On 06/25/2015 07:13 AM, Erez Shitrit wrote:
->>
->> @@ -3864,14 +3904,23 @@ static void cm_remove_one(struct ib_device
->> *ib_device)
->>         list_del(&cm_dev->list);
->>         write_unlock_irqrestore(&cm.device_lock, flags);
->>
->> +       spin_lock_irq(&cm.lock);
->> +       cm_dev->going_down = 1;
->> +       spin_unlock_irq(&cm.lock);
->> +
->>         for (i = 1; i <= ib_device->phys_port_cnt; i++) {
->>                 if (!rdma_cap_ib_cm(ib_device, i))
->>                         continue;
->>
->>                 port = cm_dev->port[i-1];
->>                 ib_modify_port(ib_device, port->port_num, 0,
->> &port_modify);
->> -               ib_unregister_mad_agent(port->mad_agent);
->> +               /*
->> +                * We flush the queue here after the going_down set, this
->> +                * verify that no new works will be queued in the recv
->> handler,
->> +                * after that we can call the unregister_mad_agent
->> +                */
->>                 flush_workqueue(cm.wq);
->> +               ib_unregister_mad_agent(port->mad_agent);
->>                 cm_remove_port_fs(port);
->>         }
->>         device_unregister(cm_dev->device);
->
->
-> Hello Erez,
->
-> How about splitting unregister_mad_agent() into two functions, one that
-> stops the invocation of the receive callbacks and another one that cancels
-> all sends ? If the new function that stops the receive callbacks would be
-> invoked before flush_workqueue(), would that be safe ?
-No, still works that are pending in the queue will need the mad_agent,
-the best is to finish all the pending works, and not let new works to
-come in.
+On Fri, 2015-06-26 at 10:45 +0200, Ingo Molnar wrote:
+> * Luis R. Rodriguez <mcgrof@suse.com> wrote:
+> 
+> > On Thu, Jun 25, 2015 at 08:51:47AM +0200, Ingo Molnar wrote:
+> > > 
+> > > * Luis R. Rodriguez <mcgrof@do-not-panic.com> wrote:
+> > > 
+> > > > From: "Luis R. Rodriguez" <mcgrof@suse.com>
+> > > > 
+> > > > On built-in kernels this warning will always splat as this is part
+> > > > of the module init. Fix that by shifting the PAT requirement check
+> > > > out under the code that does the "quasi-probe" for the device. This
+> > > > device driver relies on an existing driver to find its own devices,
+> > > > it looks for that device driver and its own found devices, then
+> > > > uses driver_for_each_device() to try to see if it can probe each of
+> > > > those devices as a frambuffer device with ivtvfb_init_card(). We
+> > > > tuck the PAT requiremenet check then on the ivtvfb_init_card()
+> > > > call making the check at least require an ivtv device present
+> > > > before complaining.
+> > > > 
+> > > > Reported-by: Fengguang Wu <fengguang.wu@intel.com> [0-day test robot]
+> > > > Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
+> > > > ---
+> > > >  drivers/media/pci/ivtv/ivtvfb.c | 15 +++++++++------
+> > > >  1 file changed, 9 insertions(+), 6 deletions(-)
+> > > > 
+> > > > diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
+> > > > index 4cb365d..8b95eef 100644
+> > > > --- a/drivers/media/pci/ivtv/ivtvfb.c
+> > > > +++ b/drivers/media/pci/ivtv/ivtvfb.c
+> > > > @@ -38,6 +38,8 @@
+> > > >      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+> > > >   */
+> > > >  
+> > > > +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+> > > > +
+> > > >  #include <linux/module.h>
+> > > >  #include <linux/kernel.h>
+> > > >  #include <linux/fb.h>
+> > > > @@ -1171,6 +1173,13 @@ static int ivtvfb_init_card(struct ivtv *itv)
+> > > >  {
+> > > >  	int rc;
+> > > >  
+> > > > +#ifdef CONFIG_X86_64
+> > > > +	if (pat_enabled()) {
+> > > > +		pr_warn("ivtvfb needs PAT disabled, boot with nopat kernel parameter\n");
+> > > > +		return -ENODEV;
+> > > > +	}
+> > > > +#endif
+> > > > +
+> > > >  	if (itv->osd_info) {
+> > > >  		IVTVFB_ERR("Card %d already initialised\n", ivtvfb_card_id);
+> > > >  		return -EBUSY;
+> > > 
+> > > Same argument as for ipath: why not make arch_phys_wc_add() fail on PAT and 
+> > > return -1, and check it in arch_phys_wc_del()?
+> > 
+> > The arch_phys_wc_add() is a no-op for PAT systems but for PAT to work we need 
+> > not only need to add this in where we replace the MTRR call but we also need to 
+> > convert ioremap_nocache() calls to ioremap_wc() but only if things were split up 
+> > already.
+> 
 
- Would that allow to
-> drop the new flag "going_down" since the workqueue implementation already
-> sets __WQ_DRAINING ?
->
-> Thanks,
->
-> Bart.
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi Ingo,
+
+> We don't need to do that: for such legacy drivers we can fall back to UC just 
+> fine, and inform the user that by booting with 'nopat' the old behavior will be 
+> back...
+
+This is really a "user experience" decision.
+
+IMO anyone who is still using ivtvfb and an old conventional PCI PVR-350
+to render, at SDTV resolution, an X Desktop display or video playback on
+a television screen, isn't going to give a hoot about modern things like
+PAT.  The user will simply want the framebuffer performance they are
+accustomed to having with their system.  UC will probably yield
+unsatisfactory performance for an ivtvfb framebuffer.
+
+With that in mind, I would think it better to obviously and clearly
+disable the ivtvfb framebuffer module with PAT enabled, so the user will
+check the log and read the steps needed to obtain acceptable
+performance.
+
+Maybe that's me just wanting to head off the "poor ivtvfb performance
+with latest kernel" bug reports.
+
+Whatever the decision, my stock response to bug reports related to this
+will always be "What do the logs say?".
+
+Regards,
+Andy
