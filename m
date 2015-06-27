@@ -1,87 +1,68 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH RFC 2/2] RDMA/isert: Support iWARP transport
-Date: Sat, 27 Jun 2015 12:12:11 +0300
-Message-ID: <558E68EB.9040205@dev.mellanox.co.il>
+Date: Sat, 27 Jun 2015 12:33:04 +0300
+Message-ID: <558E6DD0.90104@mellanox.com>
 References: <20150625153754.13272.432.stgit@build.ogc.int>
  <20150625153922.13272.41789.stgit@build.ogc.int>
- <558C317E.4010402@mellanox.com>
- <005401d0af69$53f5a9e0$fbe0fda0$@opengridcomputing.com>
+ <20150625182505.GA15337@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FF9D60@ORSMSX109.amr.corp.intel.com>
+ <005a01d0af75$70c9eb60$525dc220$@opengridcomputing.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FF9D96@ORSMSX109.amr.corp.intel.com>
+ <20150625191220.GA15726@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FF9DF9@ORSMSX109.amr.corp.intel.com>
+ <006901d0af7c$be6c04a0$3b440de0$@opengridcomputing.com>
+ <20150625192934.GB15726@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <005401d0af69$53f5a9e0$fbe0fda0$@opengridcomputing.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Steve Wise <swise@opengridcomputing.com>, linux-rdma@vger.kernel.org
-Cc: 'Or Gerlitz' <ogerlitz@mellanox.com>, 'Roi Dayan' <roid@mellanox.com>, 'target-devel' <target-devel@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150625192934.GB15726-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, orgerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, 'Roi Dayan' <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/25/2015 8:06 PM, Steve Wise wrote:
+On 6/25/2015 10:29 PM, Jason Gunthorpe wrote:
+> On Thu, Jun 25, 2015 at 02:25:49PM -0500, Steve Wise wrote:
 >
+>> To stage the changes we could introduce a new function that returns
+>> the needed ib_access_flags value given the desired opcodes.  Then
+>> have a series that changes all the existing ULPs to make use of this
+>> new function.
 >
->> -----Original Message-----
->> From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-owner@vger.kernel.org] On Behalf Of Sagi Grimberg
->> Sent: Thursday, June 25, 2015 11:51 AM
->> To: Steve Wise; linux-rdma@vger.kernel.org
->> Cc: Or Gerlitz; Roi Dayan; target-devel
->> Subject: Re: [PATCH RFC 2/2] RDMA/isert: Support iWARP transport
->>
->> On 6/25/2015 6:39 PM, Steve Wise wrote:
->>> Memory regions that are the target of an iWARP RDMA READ RESPONSE need
->>> REMOTE_WRITE access rights.  So enable REMOTE_WRITE for iWARP devices.
->>>
->>> iWARP RDMA READ target sge depth is 1.  So save the max_read_sge in
->>> the target device structure and use that when creating RDMA_READ work
->>> requests.
->>
->> Hi Steve,
->>
->> CC'ing target-devel...
->>
->>>
->>> Signed-off-by: Steve Wise <swise@opengridcomputing.com>
->>> Tested-by: Vasu Dev <vasu.dev@intel.com>
->>> ---
->>>    drivers/infiniband/ulp/isert/ib_isert.c |   55 ++++++++++++++++++++++++++-----
->>>    drivers/infiniband/ulp/isert/ib_isert.h |    1 +
->>>    2 files changed, 48 insertions(+), 8 deletions(-)
->>>
->>> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
->>> index 9e7b492..b5cde5d 100644
->>> --- a/drivers/infiniband/ulp/isert/ib_isert.c
->>> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
->>> @@ -165,6 +165,11 @@ isert_create_qp(struct isert_conn *isert_conn,
->>>    	attr.cap.max_send_sge = max(2, device->dev_attr.max_sge - 2);
->>>    	isert_conn->max_sge = attr.cap.max_send_sge;
->>>
->>> +	if (rdma_cap_read_multi_sge(device->ib_device, cma_id->port_num))
->>> +		isert_conn->max_read_sge = isert_conn->max_sge;
->>> +	else
->>> +		isert_conn->max_read_sge = 1;
->>> +
->>
->> I think it would make sense to change now max_sge to max_write_sge.
->>
+> I wouldn't be afraid to add a new create_mr entry point that does the
+> right thing, we can unexport/delete the old one when all kernel users
+> are gone. Trivially the core can just have a default that translates
+> based on iwarp/!iwarp for now.
 >
-> Ok.
->
->> And, shouldn't we just use:
->> max_wr_sge = max(2, device->dev_attr.max_sge - 2);
->> max_rd_sge = device->dev_attr.max_sge_rd;
->>
->> Does the Chelsio device reports max_sge_rd != 1 ?
->>
->
-> Yes, but I wasn't sure max_sge_rd is really the read target max sge.
 
-Why not?
+Note that we have ib_create_mr() that receives an easily extensible
+ib_mr_init_attr (similar to qp creation). I think this is a good
+opportunity to unite all the create routines to ib_create_mr.
 
-> I don't see it being set by the mlx* drivers.
+ib_get_dma_mr will become:
+ib_mr_init_attr.type = IB_MR_DMA;
+ib_mr_init_attr.mr_access_flags = mr_access_flags;
+ib_create_mr(pd, &ib_mr_init_attr);
 
-Umm, that's a bug.
-Let me send an easy fix for all mlx drivers.
+ib_alloc_fast_reg_mr will become:
+ib_mr_init_attr.type = IB_MR_FAST_REG;
+ib_create_mr(pd, &ib_mr_init_attr);
 
-> Also since we have the new rdma_cap_read_multi_sge() helper, I thought I should use it. :)
+ib_reg_phys_mr (if we don't want to kill it by now) will become:
+ib_mr_init_attr.type = IB_MR_REG_PHYS;
+ib_mr_init_attr.arr = phys_buf_array;
+ib_mr_init_attr.max_reg_descriptors = num_phys_buf;
+ib_mr_init_attr.mr_access_flags = mr_access_flags;
+ib_mr_init_attr.iova_start = iova_start;
+ib_create_mr(pd, &ib_mr_init_attr);
 
-I think that reading the exact device caps max_sge, max_sge_is better
-and more straight forward...
+The core layer will spread these in the different driver routines
+(although it would be nice if the drivers can have a single MR craetion
+routine that can handle all MR types (including fail if unsupported).
+
+Thoughts?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
