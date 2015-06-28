@@ -1,7 +1,7 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH RFC] RDMA/core: add rdma_get_dma_mr()
-Date: Sun, 28 Jun 2015 18:47:15 +0300
-Message-ID: <55901703.3050001@mellanox.com>
+Date: Sun, 28 Jun 2015 19:01:08 +0300
+Message-ID: <55901A44.8020103@mellanox.com>
 References: <20150625212917.14869.66238.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,23 +14,23 @@ Cc: sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@p
 List-Id: linux-rdma@vger.kernel.org
 
 On 26/06/2015 00:29, Steve Wise wrote:
-> +enum rdma_mr_roles {
-> +	RDMA_MRR_RECV			= 1,
-> +	RDMA_MRR_SEND			= (1<<1),
-> +	RDMA_MRR_READ_SOURCE		= (1<<2),
-> +	RDMA_MRR_READ_SINK		= (1<<3),
+> The semantics for MR access rights are not consistent across RDMA
+> protocols.  So rather than have applications try and glean what they need,
+> have them pass in the intended roles for the MR to be allocated and let
+> the RDMA core select the appropriate access rights given the roles and
+> device capabilities.
 
-Maybe it's just me, but it took me a second to figure out which was the
-source and which was the sink in RDMA reads. Do you think calling them
-initiator and responder/target would be better?
+I wanted to point out that with this scheme the ULP may sometimes get an
+MR with a wider set of permissions that it asked for, and I'm not sure
+that's always safe. Perhaps the ULP wants to guarantee that the MR
+doesn't allow certain kinds of accesses and doesn't expect the verbs
+layer to change that.
 
-> +	RDMA_MRR_WRITE_SOURCE		= (1<<4),
-> +	RDMA_MRR_WRITE_SINK		= (1<<5),
-> +	RDMA_MRR_ATOMIC			= (1<<6),
-> +	RDMA_MRR_MW_BIND		= (1<<7),
-> +	RDMA_MRR_ZERO_BASED		= (1<<8),
-> +	RDMA_MRR_ACCESS_ON_DEMAND	= (1<<9),
-> +};
+This patch looks fine since it is just a helper function, but if you
+replace the MR creation with these flags, you might confuse users to
+think that they can control e.g. write sink and read sink separately.
+
+Haggai
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
