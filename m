@@ -1,47 +1,106 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH] mlx4, mlx5, mthca: Expose max_sge_rd correctly
-Date: Mon, 29 Jun 2015 14:35:59 -0500
-Message-ID: <00a701d0b2a2$d3270420$79750c60$@opengridcomputing.com>
-References: <1435601564-10830-1-git-send-email-sagig@mellanox.com> <55918B1A.6030102@opengridcomputing.com> <20150629181710.GA32025@obsidianresearch.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH for-next V5 1/5] IB/uverbs: Fix reference counting usage
+ of event files
+Date: Tue, 30 Jun 2015 00:22:02 +0300
+Message-ID: <5591B6FA.4000400@dev.mellanox.co.il>
+References: <1434984438-21733-1-git-send-email-yishaih@mellanox.com> <1434984438-21733-2-git-send-email-yishaih@mellanox.com> <20150624175738.GC21033@obsidianresearch.com> <558BE9FA.9060402@dev.mellanox.co.il> <20150625175228.GF21033@obsidianresearch.com> <559005A0.4070800@dev.mellanox.co.il> <20150629174038.GB2755@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150629181710.GA32025-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <20150629174038.GB2755-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: 'Sagi Grimberg' <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Eli Cohen' <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Or Gerlitz' <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
-> Sent: Monday, June 29, 2015 1:17 PM
-> To: Steve Wise
-> Cc: Sagi Grimberg; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Eli Cohen; Or Gerlitz
-> Subject: Re: [PATCH] mlx4, mlx5, mthca: Expose max_sge_rd correctly
-> 
-> On Mon, Jun 29, 2015 at 01:14:50PM -0500, Steve Wise wrote:
-> >
-> > On 6/29/2015 1:12 PM, Sagi Grimberg wrote:
-> > >Applications must not assume that max_sge and max_sge_rd
-> > >are the same, Hence expose max_sge_rd correctly as well.
-> > >
-> > >Reported-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> > >Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >
-> > How about I pull this into my iSER series since the iSER changes
-> > will depend on this?
-> 
-> We will need a trivial patch for ipath and qib as well
+On 6/29/2015 8:40 PM, Jason Gunthorpe wrote:
+> On Sun, Jun 28, 2015 at 05:33:04PM +0300, Yishai Hadas wrote:
 >
+>> You are wrong here, we have here balanced put, the first is done as
+>> part of fput(filp) -> ib_uverbs_event_close_file ->
+>> kref_put(&file->ref, ib_uverbs_release_event_file) and the second at
+>> the end of this function as part of the err: label
+>> kref_put(&ev_file->ref, ib_uverbs_release_event_file);
+>
+> Ugh, that is so gross, seriously? Sure, the counts work out, but that
+> is *totally unreadable*.
+>
+> Sigh, just use this:
+>
+>   struct file *ib_uverbs_alloc_event_file(struct ib_uverbs_file *uverbs_file,
+>                                          int is_async)
+>   {
+>          struct ib_uverbs_event_file *ev_file;
+>          struct file *filp;
+> +       int ret;
+>
+> -       ev_file = kmalloc(sizeof *ev_file, GFP_KERNEL);
+> +       ev_file = kzalloc(sizeof(*ev_file), GFP_KERNEL);
+>          if (!ev_file)
+>                  return ERR_PTR(-ENOMEM);
+>
+> @@ -555,15 +561,41 @@ struct file *ib_uverbs_alloc_event_file(struct ib_uverbs_file *uverbs_file,
+>          INIT_LIST_HEAD(&ev_file->event_list);
+>          init_waitqueue_head(&ev_file->poll_wait);
+>          ev_file->uverbs_file = uverbs_file;
+> +       kref_get(&ev_file->uverbs_file->ref);
+>          ev_file->async_queue = NULL;
+> -       ev_file->is_async    = is_async;
+>          ev_file->is_closed   = 0;
+>
+>          filp = anon_inode_getfile("[infinibandevent]", &uverbs_event_fops,
+>                                    ev_file, O_RDONLY);
+>          if (IS_ERR(filp))
+> -               kfree(ev_file);
+> +               goto err_put_refs;
+> +
+> +       if (is_async) {
+> +               WARN_ON(uverbs_file->async_file);
+> +               uverbs_file->async_file = ev_file;
+> +               kref_get(&uverbs_file->async_file->ref);
+> +               INIT_IB_EVENT_HANDLER(&uverbs_file->event_handler,
+> +                                     uverbs_file->device->ib_dev,
+> +                                     ib_uverbs_event_handler);
+> +               ret = ib_register_event_handler(&uverbs_file->event_handler);
+> +               if (ret)
+> +                       goto err_put_file;
+> +
+> +               /* At that point async file stuff was fully set */
+> +               ev_file->is_async = 1;
+> +       }
+> +
+> +       return filp;
+> +
+> +err_put_file:
+> +       fput(filp);
+> +       kref_put(&uverbs_file->async_file->ref, ib_uverbs_release_file);
 
-I'll add these.
+It should be:
+kref_put(&uverbs_file->async_file->ref, ib_uverbs_release_event_file)
+instead of:
+kref_put(&uverbs_file->async_file->ref, ib_uverbs_release_file);
+
+Please note that in that approach we duplicate above line as it appears 
+here and in below err_put_refs label as uverbs_file->async_file is 
+really ev_file.
+
+In my patch we used one line instead of those duplicated lines, however 
+as you think that it clarifies things will go with your suggestion after 
+fixing above note, thanks.
 
 
+> +       uverbs_file->async_file = NULL;
+> +       return ERR_PTR(ret);
+>
+> +err_put_refs:
+> +       kref_put(&ev_file->uverbs_file->ref, ib_uverbs_release_file);
+> +       kref_put(&ev_file->ref, ib_uverbs_release_event_file);
+>          return filp;
+>   }
+>
+> Jason
+>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
