@@ -1,119 +1,60 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH v2 2/2] x86/mm/pat, drivers/media/ivtv: move pat warn and
- replace WARN() with pr_warn()
-Date: Mon, 29 Jun 2015 08:55:05 +0200
-Message-ID: <20150629065505.GB17509@gmail.com>
-References: <1435166600-11956-1-git-send-email-mcgrof@do-not-panic.com>
- <1435166600-11956-3-git-send-email-mcgrof@do-not-panic.com>
- <20150625065147.GB5339@gmail.com>
- <20150625173847.GH3005@wotan.suse.de>
- <20150626084546.GD26303@gmail.com>
- <1435322161.2713.10.camel@localhost>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH RFC] RDMA/core: add rdma_get_dma_mr()
+Date: Mon, 29 Jun 2015 08:47:55 -0500
+Message-ID: <003001d0b272$3367a230$9a36e690$@opengridcomputing.com>
+References: <20150625212917.14869.66238.stgit@build.ogc.int> <55901703.3050001@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1435322161.2713.10.camel@localhost>
-Sender: linux-media-owner@vger.kernel.org
-To: Andy Walls <andy@silverblocksystems.net>
-Cc: "Luis R. Rodriguez" <mcgrof@suse.com>, Hyong-Youb Kim <hkim@cspi.com>, Andy Walls <awalls@md.metrocast.net>, benh@kernel.crashing.org, "Luis R. Rodriguez" <mcgrof@do-not-panic.com>, bp@suse.de, mchehab@osg.samsung.com, dledford@redhat.com, fengguang.wu@intel.com, linux-media@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain;
+	charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <55901703.3050001-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Haggai Eran' <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
+Cc: sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-* Andy Walls <andy@silverblocksystems.net> wrote:
 
-> On Fri, 2015-06-26 at 10:45 +0200, Ingo Molnar wrote:
-> > * Luis R. Rodriguez <mcgrof@suse.com> wrote:
-> > 
-> > > On Thu, Jun 25, 2015 at 08:51:47AM +0200, Ingo Molnar wrote:
-> > > > 
-> > > > * Luis R. Rodriguez <mcgrof@do-not-panic.com> wrote:
-> > > > 
-> > > > > From: "Luis R. Rodriguez" <mcgrof@suse.com>
-> > > > > 
-> > > > > On built-in kernels this warning will always splat as this is part
-> > > > > of the module init. Fix that by shifting the PAT requirement check
-> > > > > out under the code that does the "quasi-probe" for the device. This
-> > > > > device driver relies on an existing driver to find its own devices,
-> > > > > it looks for that device driver and its own found devices, then
-> > > > > uses driver_for_each_device() to try to see if it can probe each of
-> > > > > those devices as a frambuffer device with ivtvfb_init_card(). We
-> > > > > tuck the PAT requiremenet check then on the ivtvfb_init_card()
-> > > > > call making the check at least require an ivtv device present
-> > > > > before complaining.
-> > > > > 
-> > > > > Reported-by: Fengguang Wu <fengguang.wu@intel.com> [0-day test robot]
-> > > > > Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
-> > > > > ---
-> > > > >  drivers/media/pci/ivtv/ivtvfb.c | 15 +++++++++------
-> > > > >  1 file changed, 9 insertions(+), 6 deletions(-)
-> > > > > 
-> > > > > diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
-> > > > > index 4cb365d..8b95eef 100644
-> > > > > --- a/drivers/media/pci/ivtv/ivtvfb.c
-> > > > > +++ b/drivers/media/pci/ivtv/ivtvfb.c
-> > > > > @@ -38,6 +38,8 @@
-> > > > >      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-> > > > >   */
-> > > > >  
-> > > > > +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-> > > > > +
-> > > > >  #include <linux/module.h>
-> > > > >  #include <linux/kernel.h>
-> > > > >  #include <linux/fb.h>
-> > > > > @@ -1171,6 +1173,13 @@ static int ivtvfb_init_card(struct ivtv *itv)
-> > > > >  {
-> > > > >  	int rc;
-> > > > >  
-> > > > > +#ifdef CONFIG_X86_64
-> > > > > +	if (pat_enabled()) {
-> > > > > +		pr_warn("ivtvfb needs PAT disabled, boot with nopat kernel parameter\n");
-> > > > > +		return -ENODEV;
-> > > > > +	}
-> > > > > +#endif
-> > > > > +
-> > > > >  	if (itv->osd_info) {
-> > > > >  		IVTVFB_ERR("Card %d already initialised\n", ivtvfb_card_id);
-> > > > >  		return -EBUSY;
-> > > > 
-> > > > Same argument as for ipath: why not make arch_phys_wc_add() fail on PAT and 
-> > > > return -1, and check it in arch_phys_wc_del()?
-> > > 
-> > > The arch_phys_wc_add() is a no-op for PAT systems but for PAT to work we need 
-> > > not only need to add this in where we replace the MTRR call but we also need to 
-> > > convert ioremap_nocache() calls to ioremap_wc() but only if things were split up 
-> > > already.
-> > 
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Haggai Eran
+> Sent: Sunday, June 28, 2015 10:47 AM
+> To: Steve Wise; jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
+> Cc: sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: [PATCH RFC] RDMA/core: add rdma_get_dma_mr()
 > 
-> Hi Ingo,
+> On 26/06/2015 00:29, Steve Wise wrote:
+> > +enum rdma_mr_roles {
+> > +	RDMA_MRR_RECV			= 1,
+> > +	RDMA_MRR_SEND			= (1<<1),
+> > +	RDMA_MRR_READ_SOURCE		= (1<<2),
+> > +	RDMA_MRR_READ_SINK		= (1<<3),
 > 
-> > We don't need to do that: for such legacy drivers we can fall back to UC just 
-> > fine, and inform the user that by booting with 'nopat' the old behavior will be 
-> > back...
-> 
-> This is really a "user experience" decision.
-> 
-> IMO anyone who is still using ivtvfb and an old conventional PCI PVR-350 to 
-> render, at SDTV resolution, an X Desktop display or video playback on a 
-> television screen, isn't going to give a hoot about modern things like PAT.  The 
-> user will simply want the framebuffer performance they are accustomed to having 
-> with their system.  UC will probably yield unsatisfactory performance for an 
-> ivtvfb framebuffer.
-> 
-> With that in mind, I would think it better to obviously and clearly disable the 
-> ivtvfb framebuffer module with PAT enabled, so the user will check the log and 
-> read the steps needed to obtain acceptable performance.
-> 
-> Maybe that's me just wanting to head off the "poor ivtvfb performance with 
-> latest kernel" bug reports.
-> 
-> Whatever the decision, my stock response to bug reports related to this will 
-> always be "What do the logs say?".
+> Maybe it's just me, but it took me a second to figure out which was the
+> source and which was the sink in RDMA reads. Do you think calling them
+> initiator and responder/target would be better?
 
-So what if that frame buffer is their only (working) frame buffer? A slow 
-framebuffer is still much better at giving people logs to look at than a 
-non-working one.
+Not to me.  For an RDMA operation, the "initiator" is the app that issues the read request WR.  That app doesn't create what I call the READ_SOURCE MR.  Its peer application does.  So calling READ_SOURCE something like READ_INITIATOR doesn't make sense to me.   That's why I thought SOURCE and SINK were clearer.  Perhaps not...
 
-Thanks,
+I have a new version I'll send out soon that will comment all of these in the enum declaration.  Perhaps that will make it clear.
 
-	Ingo
+
+> 
+> > +	RDMA_MRR_WRITE_SOURCE		= (1<<4),
+> > +	RDMA_MRR_WRITE_SINK		= (1<<5),
+> > +	RDMA_MRR_ATOMIC			= (1<<6),
+> > +	RDMA_MRR_MW_BIND		= (1<<7),
+> > +	RDMA_MRR_ZERO_BASED		= (1<<8),
+> > +	RDMA_MRR_ACCESS_ON_DEMAND	= (1<<9),
+> > +};
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
