@@ -1,7 +1,7 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH V2 3/5] RDMA/core: transport-independent access flags
-Date: Mon, 29 Jun 2015 16:36:18 -0500
-Message-ID: <20150629213618.4188.50574.stgit@build.ogc.int>
+Subject: [PATCH V2 4/5] RDMA/iser: support iWARP devices
+Date: Mon, 29 Jun 2015 16:36:24 -0500
+Message-ID: <20150629213624.4188.94135.stgit@build.ogc.int>
 References: <20150629213332.4188.87551.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,187 +13,81 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The semantics for MR access flags are not consistent across RDMA
-protocols.  So rather than have applications try and glean what they
-need, have them pass in the intended roles and attributes for the MR to
-be allocated and let the RDMA core select the appropriate access flags
-given the roles, attributes, and device capabilities.
+Limit the sg tablesize based on the device fast reg depth.
 
-We introduce rdma_mr_roles and rdma_mr_attributes that enumerate the
-possible roles and attributes for a MR.  These are documented in the
-enums themselves.
+Use rdma_get_dma_mr() to allocate the DMA MR.
 
-New services exported:
-
-rdma_device_access_flags() - given the intended MR roles and attributes
-passed in, return the ib_access_flags bits for the device.
-
-rdma_get_dma_mr() - allocate a dma mr using the applications intended
-MR roles and MR attributes.  This uses rdma_device_access_flags().
-
-rdma_fast_reg_access_flags() - return the ib_access_flags bits needed
-for a fast register WR given the applications intended MR roles and
-MR attributes.  This uses rdma_device_access_flags().
+Use rdma_fast_reg_access_flags() to set the access_flags for fast
+register work requests.
 
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c |   30 ++++++++++++
- include/rdma/ib_verbs.h         |  101 +++++++++++++++++++++++++++++++++++++++
- 2 files changed, 131 insertions(+), 0 deletions(-)
+ drivers/infiniband/ulp/iser/iscsi_iser.c  |    7 +++++++
+ drivers/infiniband/ulp/iser/iser_memory.c |    7 +++----
+ drivers/infiniband/ulp/iser/iser_verbs.c  |    7 ++++---
+ 3 files changed, 14 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index bac3fb4..2aa7c92 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -1144,6 +1144,36 @@ struct ib_mr *ib_get_dma_mr(struct ib_pd *pd, int mr_access_flags)
- }
- EXPORT_SYMBOL(ib_get_dma_mr);
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
+index 6a594aa..ec692f7 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.c
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
+@@ -640,6 +640,13 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
+ 						   SHOST_DIX_GUARD_CRC);
+ 		}
  
-+int rdma_device_access_flags(struct ib_pd *pd, int roles, int attrs)
-+{
-+	int access_flags = attrs;
++		/*
++		 * Limit the sg_tablesize based on the device max fastreg page
++		 * list length.
++		 */
++		shost->sg_tablesize = min_t(u32, shost->sg_tablesize,
++			ib_conn->device->dev_attr.max_fast_reg_page_list_len);
 +
-+	if (roles & RDMA_MRR_RECV)
-+		access_flags |= IB_ACCESS_LOCAL_WRITE;
-+
-+	if (roles & RDMA_MRR_WRITE_DEST)
-+		access_flags |= IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_WRITE;
-+
-+	if (roles & RDMA_MRR_READ_DEST) {
-+		access_flags |= IB_ACCESS_LOCAL_WRITE;
-+		if (rdma_protocol_iwarp(pd->device,
-+					rdma_start_port(pd->device)))
-+			access_flags |= IB_ACCESS_REMOTE_WRITE;
-+	}
-+
-+	if (roles & RDMA_MRR_READ_SOURCE)
-+		access_flags |= IB_ACCESS_REMOTE_READ;
-+
-+	if (roles & RDMA_MRR_ATOMIC)
-+		access_flags |= IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_ATOMIC;
-+
-+	if (roles & RDMA_MRR_MW_BIND)
-+		access_flags |= IB_ACCESS_MW_BIND;
-+
-+	return access_flags;
-+}
-+EXPORT_SYMBOL(rdma_device_access_flags);
-+
- struct ib_mr *ib_reg_phys_mr(struct ib_pd *pd,
- 			     struct ib_phys_buf *phys_buf_array,
- 			     int num_phys_buf,
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 986fddb..135592d 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -2494,6 +2494,107 @@ static inline int ib_req_ncomp_notif(struct ib_cq *cq, int wc_cnt)
- struct ib_mr *ib_get_dma_mr(struct ib_pd *pd, int mr_access_flags);
+ 		if (iscsi_host_add(shost,
+ 				   ib_conn->device->ib_device->dma_device)) {
+ 			mutex_unlock(&iser_conn->state_mutex);
+diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
+index f0cdc96..3a19483 100644
+--- a/drivers/infiniband/ulp/iser/iser_memory.c
++++ b/drivers/infiniband/ulp/iser/iser_memory.c
+@@ -757,10 +757,9 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
+ 	fastreg_wr.wr.fast_reg.page_shift = SHIFT_4K;
+ 	fastreg_wr.wr.fast_reg.length = size;
+ 	fastreg_wr.wr.fast_reg.rkey = mr->rkey;
+-	fastreg_wr.wr.fast_reg.access_flags = (IB_ACCESS_LOCAL_WRITE  |
+-					       IB_ACCESS_REMOTE_WRITE |
+-					       IB_ACCESS_REMOTE_READ);
+-
++	fastreg_wr.wr.fast_reg.access_flags =
++		rdma_fast_reg_access_flags(device->pd, RDMA_MRR_WRITE_DEST |
++					   RDMA_MRR_READ_SOURCE, 0);
+ 	if (!wr)
+ 		wr = &fastreg_wr;
+ 	else
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index 5c9f565..4da368c 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -80,6 +80,7 @@ static int iser_create_device_ib_res(struct iser_device *device)
+ {
+ 	struct ib_device_attr *dev_attr = &device->dev_attr;
+ 	int ret, i, max_cqe;
++	int mr_roles;
  
- /**
-+ * rdma_mr_roles - possible roles an RDMA MR will be used for
-+ *
-+ * This allows a transport independent RDMA application to
-+ * create MRs that are usable for all the desired roles w/o
-+ * having to understand which access rights are needed.
-+ */
-+enum {
-+
-+	/* lkey used in a ib_recv_wr sge */
-+	RDMA_MRR_RECV			= 1,
-+
-+	/* lkey used for a IB_WR_SEND in the ib_send_wr sge */
-+	RDMA_MRR_SEND			= (1<<1),
-+
-+	/* rkey used for a IB_WR_RDMA_READ in ib_send_wr wr.rdma.rkey */
-+	RDMA_MRR_READ_SOURCE		= (1<<2),
-+
-+	/* lkey used for a IB_WR_RDMA_READ in the ib_send_wr sge */
-+	RDMA_MRR_READ_DEST		= (1<<3),
-+
-+	/* lkey used for a IB_WR_RDMA_WRITE in the ib_send_wr sge */
-+	RDMA_MRR_WRITE_SOURCE		= (1<<4),
-+
-+	/* rkey used for a IB_WR_RDMA_WRITE in ib_send_wr wr.rdma.rkey */
-+	RDMA_MRR_WRITE_DEST		= (1<<5),
-+
-+	/*
-+	 * rkey used for a IB_WR_ATOMIC/MASKED_ATOMIC in ib_send_wr
-+	 * wr.atomic.rkey
-+	 */
-+	RDMA_MRR_ATOMIC			= (1<<6),
-+
-+	/* MR used for a IB_WR_MW_BIND in ib_send_wr wr.bind_mw.bind_info.mr */
-+	RDMA_MRR_MW_BIND		= (1<<7),
-+};
-+
-+/**
-+ * rdma_mr_attributes - attributes for rdma memory regions
-+ */
-+enum {
-+	RDMA_MRA_ZERO_BASED		= IB_ZERO_BASED,
-+	RDMA_MRA_ACCESS_ON_DEMAND	= IB_ACCESS_ON_DEMAND,
-+};
-+
-+/**
-+ * rdma_device_access_flags - Returns the device-specific MR access flags.
-+ * @pd: The protection domain associated with the memory region.
-+ * @roles: The intended roles of the MR
-+ * @attrs: The desired attributes of the MR
-+ *
-+ * Use the intended roles from @roles along with @attrs and the device
-+ * capabilities to generate the needed access rights.
-+ *
-+ * Return: the ib_access_flags value needed to allocate the MR.
-+ */
-+int rdma_device_access_flags(struct ib_pd *pd, int roles, int attrs);
-+
-+/**
-+ * rdma_get_dma_mr - Returns a memory region for system memory that is
-+ * usable for DMA.
-+ * @pd: The protection domain associated with the memory region.
-+ * @roles: The intended roles of the MR
-+ * @attrs: The desired attributes of the MR
-+ *
-+ * Use the intended roles from @roles along with @attrs and the device
-+ * capabilities to define the needed access rights, and call
-+ * ib_get_dma_mr() to allocate the MR.
-+ *
-+ * Note that the ib_dma_*() functions defined below must be used
-+ * to create/destroy addresses used with the Lkey or Rkey returned
-+ * by ib_get_dma_mr().
-+ *
-+ * Return: struct ib_mr pointer upon success, or a pointer encoded errno upon
-+ * failure.
-+ */
-+static inline struct ib_mr *rdma_get_dma_mr(struct ib_pd *pd, int roles,
-+					    int attrs)
-+{
-+	return ib_get_dma_mr(pd, rdma_device_access_flags(pd, roles, attrs));
-+}
-+
-+/**
-+ * rdma_fast_reg_access_flags - Returns the access flags needed for a fast
-+ * register operation.
-+ * @pd: The protection domain associated with the memory region.
-+ * @roles: The intended roles of the MR
-+ * @attrs: The desired attributes of the MR
-+ *
-+ * Use the intended roles from @roles along with @attrs and the device
-+ * capabilities to define the needed access rights for a fast registration
-+ * work request.
-+ *
-+ * Return: the ib_access_flags value needed for fast registration.
-+ */
-+static inline int rdma_fast_reg_access_flags(struct ib_pd *pd, int roles,
-+					     int attrs)
-+{
-+	return rdma_device_access_flags(pd, roles, attrs);
-+}
-+
-+/**
-  * ib_dma_mapping_error - check a DMA addr for error
-  * @dev: The device for which the dma_addr was created
-  * @dma_addr: The DMA address to check
+ 	ret = ib_query_device(device->ib_device, dev_attr);
+ 	if (ret) {
+@@ -149,9 +150,9 @@ static int iser_create_device_ib_res(struct iser_device *device)
+ 			     (unsigned long)comp);
+ 	}
+ 
+-	device->mr = ib_get_dma_mr(device->pd, IB_ACCESS_LOCAL_WRITE |
+-				   IB_ACCESS_REMOTE_WRITE |
+-				   IB_ACCESS_REMOTE_READ);
++	mr_roles = RDMA_MRR_SEND | RDMA_MRR_RECV | RDMA_MRR_WRITE_DEST |
++		   RDMA_MRR_READ_SOURCE;
++	device->mr = rdma_get_dma_mr(device->pd, mr_roles, 0);
+ 	if (IS_ERR(device->mr))
+ 		goto dma_mr_err;
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
