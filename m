@@ -1,47 +1,94 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH RFC] RDMA/core: add rdma_get_dma_mr()
-Date: Mon, 29 Jun 2015 16:08:04 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FFA952@ORSMSX109.amr.corp.intel.com>
-References: <20150625212917.14869.66238.stgit@build.ogc.int>
- <55901703.3050001@mellanox.com>
- <003001d0b272$3367a230$9a36e690$@opengridcomputing.com>
- <20150629155503.GA2755@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH for-next V5 1/5] IB/uverbs: Fix reference counting usage
+ of event files
+Date: Mon, 29 Jun 2015 11:40:38 -0600
+Message-ID: <20150629174038.GB2755@obsidianresearch.com>
+References: <1434984438-21733-1-git-send-email-yishaih@mellanox.com>
+ <1434984438-21733-2-git-send-email-yishaih@mellanox.com>
+ <20150624175738.GC21033@obsidianresearch.com>
+ <558BE9FA.9060402@dev.mellanox.co.il>
+ <20150625175228.GF21033@obsidianresearch.com>
+ <559005A0.4070800@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150629155503.GA2755-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <559005A0.4070800-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: 'Haggai Eran' <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> > > > +enum rdma_mr_roles {
-> > > > +	RDMA_MRR_RECV			= 1,
-> > > > +	RDMA_MRR_SEND			= (1<<1),
-> > > > +	RDMA_MRR_READ_SOURCE		= (1<<2),
-> > > > +	RDMA_MRR_READ_SINK		= (1<<3),
-> > >
-> > > Maybe it's just me, but it took me a second to figure out which was
-> the
-> > > source and which was the sink in RDMA reads. Do you think calling them
-> > > initiator and responder/target would be better?
-> >
-> > Not to me.  For an RDMA operation, the "initiator" is the app that
-> > issues the read request WR.  That app doesn't create what I call the
-> > READ_SOURCE MR.  Its peer application does.  So calling READ_SOURCE
-> > something like READ_INITIATOR doesn't make sense to me.  That's why
-> > I thought SOURCE and SINK were clearer.  Perhaps not...
-> 
-> I would call SOURCE the RESPONDER..
-> 
-> Initiator/Poster and Responder is closest to the language used in
-> other places in the API for READ.
+On Sun, Jun 28, 2015 at 05:33:04PM +0300, Yishai Hadas wrote:
 
-I agree with Steve.  I think of this in terms of copy and like source/dest myself, similar to source/sink.  A memory buffer is not a responder or initiator.
+> You are wrong here, we have here balanced put, the first is done as
+> part of fput(filp) -> ib_uverbs_event_close_file ->
+> kref_put(&file->ref, ib_uverbs_release_event_file) and the second at
+> the end of this function as part of the err: label
+> kref_put(&ev_file->ref, ib_uverbs_release_event_file);
 
-In hindsight, we probably never should have exposed initiator_depth and responder_resources.  Those values have been an endless source of confusion and bugs.
+Ugh, that is so gross, seriously? Sure, the counts work out, but that
+is *totally unreadable*.
+
+Sigh, just use this:
+
+ struct file *ib_uverbs_alloc_event_file(struct ib_uverbs_file *uverbs_file,
+                                        int is_async)
+ {
+        struct ib_uverbs_event_file *ev_file;
+        struct file *filp;
++       int ret;
+ 
+-       ev_file = kmalloc(sizeof *ev_file, GFP_KERNEL);
++       ev_file = kzalloc(sizeof(*ev_file), GFP_KERNEL);
+        if (!ev_file)
+                return ERR_PTR(-ENOMEM);
+ 
+@@ -555,15 +561,41 @@ struct file *ib_uverbs_alloc_event_file(struct ib_uverbs_file *uverbs_file,
+        INIT_LIST_HEAD(&ev_file->event_list);
+        init_waitqueue_head(&ev_file->poll_wait);
+        ev_file->uverbs_file = uverbs_file;
++       kref_get(&ev_file->uverbs_file->ref);
+        ev_file->async_queue = NULL;
+-       ev_file->is_async    = is_async;
+        ev_file->is_closed   = 0;
+ 
+        filp = anon_inode_getfile("[infinibandevent]", &uverbs_event_fops,
+                                  ev_file, O_RDONLY);
+        if (IS_ERR(filp))
+-               kfree(ev_file);
++               goto err_put_refs;
++
++       if (is_async) {
++               WARN_ON(uverbs_file->async_file);
++               uverbs_file->async_file = ev_file;
++               kref_get(&uverbs_file->async_file->ref);
++               INIT_IB_EVENT_HANDLER(&uverbs_file->event_handler,
++                                     uverbs_file->device->ib_dev,
++                                     ib_uverbs_event_handler);
++               ret = ib_register_event_handler(&uverbs_file->event_handler);
++               if (ret)
++                       goto err_put_file;
++
++               /* At that point async file stuff was fully set */
++               ev_file->is_async = 1;
++       }
++
++       return filp;
++
++err_put_file:
++       fput(filp);
++       kref_put(&uverbs_file->async_file->ref, ib_uverbs_release_file);
++       uverbs_file->async_file = NULL;
++       return ERR_PTR(ret);
+ 
++err_put_refs:
++       kref_put(&ev_file->uverbs_file->ref, ib_uverbs_release_file);
++       kref_put(&ev_file->ref, ib_uverbs_release_event_file);
+        return filp;
+ }
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
