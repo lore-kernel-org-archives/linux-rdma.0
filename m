@@ -1,24 +1,64 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH 0/2] update ocrdma to dual license
-Date: Mon, 29 Jun 2015 23:06:31 -0700
-Message-ID: <20150630060631.GA21105@infradead.org>
-References: <1434127505-17739-1-git-send-email-devesh.sharma@avagotech.com>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V2 3/5] RDMA/core: transport-independent access flags
+Date: Tue, 30 Jun 2015 10:24:55 +0300
+Message-ID: <55924447.1030707@mellanox.com>
+References: <20150629213332.4188.87551.stgit@build.ogc.int>
+ <20150629213618.4188.50574.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1434127505-17739-1-git-send-email-devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+In-Reply-To: <20150629213618.4188.50574.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jun 12, 2015 at 10:15:03PM +0530, Devesh Sharma wrote:
-> A series to update the license from GPL to GPL/Dual-BSD licensing
-> for ocrdma source.
+On 30/06/2015 00:36, Steve Wise wrote:
+>  /**
+> + * rdma_mr_roles - possible roles an RDMA MR will be used for
+> + *
+> + * This allows a transport independent RDMA application to
+> + * create MRs that are usable for all the desired roles w/o
+> + * having to understand which access rights are needed.
+> + */
+> +enum {
+> +
+> +	/* lkey used in a ib_recv_wr sge */
+> +	RDMA_MRR_RECV			= 1,
+> +
+> +	/* lkey used for a IB_WR_SEND in the ib_send_wr sge */
+> +	RDMA_MRR_SEND			= (1<<1),
+Perhaps you should mention that this covers all the IB_WR_SEND* opcodes
+(SEND_WITH_IMM and SEND_WITH_INV). READ, WRITE and ATOMICs also have
+several variants.
 
-Do you have a written consent from everyone who contributed to the
-driver to do this?
+> +
+> +	/* rkey used for a IB_WR_RDMA_READ in ib_send_wr wr.rdma.rkey */
+> +	RDMA_MRR_READ_SOURCE		= (1<<2),
+> +
+> +	/* lkey used for a IB_WR_RDMA_READ in the ib_send_wr sge */
+> +	RDMA_MRR_READ_DEST		= (1<<3),
+> +
+> +	/* lkey used for a IB_WR_RDMA_WRITE in the ib_send_wr sge */
+> +	RDMA_MRR_WRITE_SOURCE		= (1<<4),
+> +
+> +	/* rkey used for a IB_WR_RDMA_WRITE in ib_send_wr wr.rdma.rkey */
+> +	RDMA_MRR_WRITE_DEST		= (1<<5),
+> +
+> +	/*
+> +	 * rkey used for a IB_WR_ATOMIC/MASKED_ATOMIC in ib_send_wr
+> +	 * wr.atomic.rkey
+> +	 */
+> +	RDMA_MRR_ATOMIC			= (1<<6),
+What about using as an lkey in an IB_WR_ATOMIC/MASKED_ATOMIC in the
+ib_send_wr sge? Do you want that to be covered by RDMA_MRR_SEND?
+
+> +
+> +	/* MR used for a IB_WR_MW_BIND in ib_send_wr wr.bind_mw.bind_info.mr */
+> +	RDMA_MRR_MW_BIND		= (1<<7),
+> +};
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
