@@ -1,35 +1,45 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH V2 4/5] RDMA/iser: support iWARP devices
-Date: Tue, 30 Jun 2015 17:03:39 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FFB028@ORSMSX109.amr.corp.intel.com>
-References: <20150629213332.4188.87551.stgit@build.ogc.int>
- <20150629213624.4188.94135.stgit@build.ogc.int>
- <559260BE.6060301@dev.mellanox.co.il>
- <002201d0b341$b706b2a0$251417e0$@opengridcomputing.com>
- <20150630164501.GC30149@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH for-next V6 1/5] IB/uverbs: Fix reference counting usage
+ of event files
+Date: Tue, 30 Jun 2015 11:04:42 -0600
+Message-ID: <20150630170442.GA2819@obsidianresearch.com>
+References: <1435659967-27173-1-git-send-email-yishaih@mellanox.com>
+ <1435659967-27173-2-git-send-email-yishaih@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150630164501.GC30149-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1435659967-27173-2-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> > I prefer to decouple the iSER changes with this core work.
-> > Jason/Sean... thoughts?  I could do the iSER w/o patch 3, and the
-> > follow up with a series that includes our final solution on
-> > transport independent memory registration and change all the TI
-> > kernel users (iser and nfsrdma) along with it.
-> 
-> There has a been a big push lately to drop the strange transport
-> specific stuff - if you are comitted to seeing the access flag clean
-> up series through then I don't see a problem with using whatever order
-> you like.
+On Tue, Jun 30, 2015 at 01:26:03PM +0300, Yishai Hadas wrote:
 
-I agree.
+> Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+Reviewed-By: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+
+>  err_file:
+> +	ib_uverbs_free_async_event_file(file);
+>  	fput(filp);
+
+> +void ib_uverbs_free_async_event_file(struct ib_uverbs_file *file)
+> +{
+> +	kref_put(&file->async_file->ref, ib_uverbs_release_event_file);
+> +	file->async_file = NULL;
+> +}
+
+Mm, I figured out why that looks so wonky - there is no locking on the
+async_file assign. Other cases were relying on
+ib_register_event_handler not succeeding for locking, this doesn't
+have that luxury. The async_file usage looks really weird overall,
+there may be something strange there. But - that seems like a job for
+another day..
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
