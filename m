@@ -1,55 +1,47 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next V5 1/5] IB/uverbs: Fix reference counting usage
- of event files
-Date: Mon, 29 Jun 2015 15:48:47 -0600
-Message-ID: <20150629214847.GA15888@obsidianresearch.com>
-References: <1434984438-21733-1-git-send-email-yishaih@mellanox.com>
- <1434984438-21733-2-git-send-email-yishaih@mellanox.com>
- <20150624175738.GC21033@obsidianresearch.com>
- <558BE9FA.9060402@dev.mellanox.co.il>
- <20150625175228.GF21033@obsidianresearch.com>
- <559005A0.4070800@dev.mellanox.co.il>
- <20150629174038.GB2755@obsidianresearch.com>
- <5591B6FA.4000400@dev.mellanox.co.il>
+From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Subject: Re: [PATCH 0/2] update ocrdma to dual license
+Date: Tue, 30 Jun 2015 11:33:58 +0530
+Message-ID: <CANjDDBiB_CDnGsuF5Lkif+wD_ZPNkiHB-joeSaYHev9Tt=s0Bg@mail.gmail.com>
+References: <1434127505-17739-1-git-send-email-devesh.sharma@avagotech.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5591B6FA.4000400-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1434127505-17739-1-git-send-email-devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 30, 2015 at 12:22:02AM +0300, Yishai Hadas wrote:
-> It should be:
-> kref_put(&uverbs_file->async_file->ref, ib_uverbs_release_event_file)
-> instead of:
-> kref_put(&uverbs_file->async_file->ref, ib_uverbs_release_file);
+Hi Doug,
 
-Right
+a gentle reminder to pull this simple patch-set to your tree.
 
-> Please note that in that approach we duplicate above line as it appears here
-> and in below err_put_refs label as uverbs_file->async_file is really
-> ev_file.
+-Regards
+Devesh
 
-Well, sort of. Yes, it is the same value, but no, it isn't the same
-kref.
-
-Just like locking always works on data, not code, krefs should always
-be applied to the pointer not to the pointed data. The kref
-manipulation should always be near the pointer value change it is
-working for, and have a clear relation to the pointer it is krefing.
-
-> In my patch we used one line instead of those duplicated lines, however as
-> you think that it clarifies things will go with your suggestion after fixing
-> above note, thanks.
-
-You shouldn't think of them as duplicates, they are for different
-things, even if the actual functionality is the same. It is
-*documentation*
-
-Jason
+On Fri, Jun 12, 2015 at 10:15 PM, Devesh Sharma
+<devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org> wrote:
+> A series to update the license from GPL to GPL/Dual-BSD licensing
+> for ocrdma source.
+>
+> Devesh Sharma (2):
+>   RDMA/ocrdma: update license from gpl to dual license
+>   RDMA/ocrdma: update module license to dual license
+>
+>  drivers/infiniband/hw/ocrdma/ocrdma.h       |   53 ++++++++++++++++---------
+>  drivers/infiniband/hw/ocrdma/ocrdma_abi.h   |   53 ++++++++++++++++---------
+>  drivers/infiniband/hw/ocrdma/ocrdma_ah.c    |   53 ++++++++++++++++---------
+>  drivers/infiniband/hw/ocrdma/ocrdma_ah.h    |   53 ++++++++++++++++---------
+>  drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |   53 ++++++++++++++++---------
+>  drivers/infiniband/hw/ocrdma/ocrdma_hw.h    |   53 ++++++++++++++++---------
+>  drivers/infiniband/hw/ocrdma/ocrdma_main.c  |   55 +++++++++++++++++----------
+>  drivers/infiniband/hw/ocrdma/ocrdma_sli.h   |   53 ++++++++++++++++---------
+>  drivers/infiniband/hw/ocrdma/ocrdma_stats.c |   53 ++++++++++++++++---------
+>  drivers/infiniband/hw/ocrdma/ocrdma_stats.h |   53 ++++++++++++++++---------
+>  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |   53 ++++++++++++++++---------
+>  drivers/infiniband/hw/ocrdma/ocrdma_verbs.h |   53 ++++++++++++++++---------
+>  12 files changed, 409 insertions(+), 229 deletions(-)
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
