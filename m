@@ -1,52 +1,67 @@
 From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH V2 4/5] RDMA/iser: support iWARP devices
-Date: Tue, 30 Jun 2015 13:42:14 -0500
-Message-ID: <004901d0b364$7b7151f0$7253f5d0$@opengridcomputing.com>
-References: <20150629213332.4188.87551.stgit@build.ogc.int> <20150629213624.4188.94135.stgit@build.ogc.int> <559260BE.6060301@dev.mellanox.co.il> <002201d0b341$b706b2a0$251417e0$@opengridcomputing.com> <20150630164501.GC30149@obsidianresearch.com> <1828884A29C6694DAF28B7E6B8A82373A8FFB028@ORSMSX109.amr.corp.intel.com>
+Subject: RE: [PATCH V2 3/5] RDMA/core: transport-independent access flags
+Date: Tue, 30 Jun 2015 13:56:37 -0500
+Message-ID: <004b01d0b366$7e42fda0$7ac8f8e0$@opengridcomputing.com>
+References: <20150629213332.4188.87551.stgit@build.ogc.int> <20150629213618.4188.50574.stgit@build.ogc.int> <20150630162103.GA30149@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FFB028-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20150630162103.GA30149-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'infinipath' <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-
 > -----Original Message-----
-> From: Hefty, Sean [mailto:sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
-> Sent: Tuesday, June 30, 2015 12:04 PM
-> To: Jason Gunthorpe; Steve Wise
-> Cc: 'Sagi Grimberg'; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; infinipath;
-> eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-> Subject: RE: [PATCH V2 4/5] RDMA/iser: support iWARP devices
+> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
+> Sent: Tuesday, June 30, 2015 11:21 AM
+> To: Steve Wise
+> Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org;
+> eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+> Subject: Re: [PATCH V2 3/5] RDMA/core: transport-independent access flags
 > 
-> > > I prefer to decouple the iSER changes with this core work.
-> > > Jason/Sean... thoughts?  I could do the iSER w/o patch 3, and the
-> > > follow up with a series that includes our final solution on
-> > > transport independent memory registration and change all the TI
-> > > kernel users (iser and nfsrdma) along with it.
-> >
-> > There has a been a big push lately to drop the strange transport
-> > specific stuff - if you are comitted to seeing the access flag clean
-> > up series through then I don't see a problem with using whatever order
-> > you like.
+> On Mon, Jun 29, 2015 at 04:36:18PM -0500, Steve Wise wrote:
+> > +int rdma_device_access_flags(struct ib_pd *pd, int roles, int attrs)
+> > +{
+> > +	int access_flags = attrs;
 > 
-> I agree.
+> No RDMA_MRR_SEND ?
+>
 
-Ok, then I'll do this:
+Send need no explicit access flags.  There is no LOCAL_READ access flag.
+ 
+> > +	if (roles & RDMA_MRR_RECV)
+> > +		access_flags |= IB_ACCESS_LOCAL_WRITE;
+> > +
+> > +	if (roles & RDMA_MRR_WRITE_DEST)
+> > +		access_flags |= IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_WRITE;
+> 
+> Is IB_ACCESS_LOCAL_WRITE needed?
+> 
 
-1) series with iser changes to enable iwarp including mlx/ipath/qib patches to set max_sge_rd
-2) series on transport independent access flags / memory reg - updating the kernel ULPs too.
+Yes.  You must have LOCAL_WRITE if you set REMOTE_WRITE.
 
-Thanks,
+> > +	if (roles & RDMA_MRR_READ_DEST) {
+> > +		access_flags |= IB_ACCESS_LOCAL_WRITE;
+> > +		if (rdma_protocol_iwarp(pd->device,
+> > +					rdma_start_port(pd->device)))
+> > +			access_flags |= IB_ACCESS_REMOTE_WRITE;
+> > +	}
+> 
+> So on iWarp if I want to issue a RDMA_READ then I have to allow the
+> far side uncontrolled write access to the same memory? Is there
+> something else protecting it?
+>
+
+Only the fact that the rkey of your MR setup for MRR_READ_DEST doesn't have to be advertised to the peer application.  So the peer
+app doesn't know what the rkey is.   But the fact is that an MR with REMOTE_WRITE access flags can be used as the destination of
+RDMA reads and RDMA writes for iWARP. 
 
 Steve.
-
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
