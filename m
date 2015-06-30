@@ -1,106 +1,53 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next V6 3/5] IB/uverbs: Enable device removal when
- there are active user space applications
-Date: Tue, 30 Jun 2015 12:40:35 -0600
-Message-ID: <20150630184035.GC2819@obsidianresearch.com>
-References: <1435659967-27173-1-git-send-email-yishaih@mellanox.com>
- <1435659967-27173-4-git-send-email-yishaih@mellanox.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH V2 4/5] RDMA/iser: support iWARP devices
+Date: Tue, 30 Jun 2015 13:42:14 -0500
+Message-ID: <004901d0b364$7b7151f0$7253f5d0$@opengridcomputing.com>
+References: <20150629213332.4188.87551.stgit@build.ogc.int> <20150629213624.4188.94135.stgit@build.ogc.int> <559260BE.6060301@dev.mellanox.co.il> <002201d0b341$b706b2a0$251417e0$@opengridcomputing.com> <20150630164501.GC30149@obsidianresearch.com> <1828884A29C6694DAF28B7E6B8A82373A8FFB028@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1435659967-27173-4-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FFB028-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'infinipath' <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 30, 2015 at 01:26:05PM +0300, Yishai Hadas wrote:
->  struct ib_uverbs_device {
-> -	struct kref				ref;
-> +	struct kref				comp_ref;
-> +	struct kref				free_ref;
 
-So.. I was looking at this, and there is something wrong with the
-existing code. 
 
-This old code:
+> -----Original Message-----
+> From: Hefty, Sean [mailto:sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
+> Sent: Tuesday, June 30, 2015 12:04 PM
+> To: Jason Gunthorpe; Steve Wise
+> Cc: 'Sagi Grimberg'; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; infinipath;
+> eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+> Subject: RE: [PATCH V2 4/5] RDMA/iser: support iWARP devices
+> 
+> > > I prefer to decouple the iSER changes with this core work.
+> > > Jason/Sean... thoughts?  I could do the iSER w/o patch 3, and the
+> > > follow up with a series that includes our final solution on
+> > > transport independent memory registration and change all the TI
+> > > kernel users (iser and nfsrdma) along with it.
+> >
+> > There has a been a big push lately to drop the strange transport
+> > specific stuff - if you are comitted to seeing the access flag clean
+> > up series through then I don't see a problem with using whatever order
+> > you like.
+> 
+> I agree.
 
-	cdev_del(&uverbs_dev->cdev);
-	[..]
- 	wait_for_completion(&uverbs_dev->comp);
--	kfree(uverbs_dev);
+Ok, then I'll do this:
 
-Has built in to it an assumption that when cdev_del returns there can
-be no possible open() running. Which doesn't appear to be true, cdev
-calls open unlocked and relies on refcounting to make everything work
-out.
+1) series with iser changes to enable iwarp including mlx/ipath/qib patches to set max_sge_rd
+2) series on transport independent access flags / memory reg - updating the kernel ULPs too.
 
-Even other places in the rdma core work this way, eg user_mad.
+Thanks,
 
-Which means open can be running concurrently with the rest of that
-stuff, which creates several obvious problems.
+Steve.
 
-I *think* (and I am not totally sure) that when you use cdev with a
-dynamic structure, it *must* be chained off of a kobject for the
-containing structure. Certainly, other examples in the kernel I've
-looked at recently do this. (Typically the cdev will be part of the
 
-Ie it should look like this:
-
-  struct ib_uverbs_device {
-	struct kobject			        kobj;
-	struct cdev			        cdev;
-
-	cdev_init(&uverbs_dev->cdev, NULL);
-	uverbs_dev->cdev.kobj.parent = &uverbs_dev->kobj;
-	cdev_add(..)
-
-The cdev will hold a kref on the parent (the containing structure) and
-only when that kref is released is it guaranteed that open will never
-be called again.
-
-So, kobj becomes your free_ref, and cdev properly chains off it to
-close that little hole with kref.
-
----
-
-The next problem is that open can run concurrently with
-wait_for_completion, so the waiting scheme is wrong too.
-
-This is a great example of why you should never use a kref for an
-active count. It seems like the right thing, but it is subtly wrong.
-
-krefs have this special property:
-
-kref_get()
-        WARN_ON_ONCE(atomic_inc_return(&kref->refcount) < 2);
-
-So when the code did this:
-
--	kref_put(&uverbs_dev->ref, ib_uverbs_release_dev);
--	wait_for_completion(&uverbs_dev->comp);
--	kfree(uverbs_dev);
-
-There is a race where another CPU may be in ib_uverbs_open
-about to do kref_get, which will trigger the above WARN_ON, or a
-use after free race with the kfree
-
-A good way to implement this pattern is to use an atomic with a
-bias. See how kernfs_get_active/kernfs_put_active/kernfs_drain work
-for a very good example of this scheme.
-
-This is an existing bug, I think a dedicated patch which
- - adds the kobj and moves the kfree(uverbs_dev) into it
- - Fixes the active count scheme to use an atomic not a kref
-
-Would be appropriate. Once done the disassociate patch doesn't have to
-really do anything with this stuff.
-
-I would also recommend looking at other uses of cdev_add in the rdma
-core, they may be similarly off..
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
