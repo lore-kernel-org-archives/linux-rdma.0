@@ -1,47 +1,42 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH 1/5] IB/core: Introduce Fast Indirect Memory Registration
- verbs API
-Date: Wed, 1 Jul 2015 00:23:24 -0700
-Message-ID: <20150701072324.GC31381@infradead.org>
-References: <1433769339-949-1-git-send-email-sagig@mellanox.com>
- <1433769339-949-2-git-send-email-sagig@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FE5C7C@ORSMSX109.amr.corp.intel.com>
- <559281B4.6010807@dev.mellanox.co.il>
- <20150630121002.GA24169@infradead.org>
- <559292CE.9010303@dev.mellanox.co.il>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V2 3/5] RDMA/core: transport-independent access flags
+Date: Wed, 1 Jul 2015 10:35:17 +0300
+Message-ID: <55939835.6090606@mellanox.com>
+References: <20150629213332.4188.87551.stgit@build.ogc.int>
+ <20150629213618.4188.50574.stgit@build.ogc.int>
+ <55925B70.1070409@mellanox.com>
+ <001e01d0b341$1eefe9f0$5ccfbdd0$@opengridcomputing.com>
+ <20150630164247.GB30149@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <559292CE.9010303-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20150630164247.GB30149-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Boaz Harrosh <boaz-/8YdC2HfS5554TAoqtyWWQ@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 30, 2015 at 03:59:58PM +0300, Sagi Grimberg wrote:
-> Putting the generic API discussion aside for a moment. Indirect
-> registration just a generalizes FRWR for SG-lists. The API I
-> proposed is a completely symmetrical API for FRWR. So applications that
-> implements FRWR can very easily use indirect registration. So I don't
-> think it is "a giant nightmare".
-> 
-> A generic memory registration API would set as an abstraction layer
-> that just make the registration operation easier for ULPs. It will be
-> implemented above the core verbs layer (It wouldn't make sense to do
-> this abstraction below the verbs) so it will need this API in the core
-> verbs layer just as well.
-> 
-> Do you have another suggestion on how to expose this feature in the core
-> layer?
+On 6/30/2015 7:42 PM, Jason Gunthorpe wrote:
+>> NFSRDMA currently checks the transport type to decide how to set the
+>> >access flags for memory registration.  With the new services
+>> >exported in this series, we can change/simplify NFSRDMA to not have
+>> >to know the transport type.
+> It would be excellent if this series actually went through and got rid
+> of all the now deprecated users. This would confirm we have the right
+> API here and prune off the old stuff. This is fairly trivial to do, I think?
+>
+> The goal is to make things simpler, maintaining two kernel APIs is not
+> simpler:)
 
-Convert the FRWR API with one that takes SGLs, and expose a feature to tell
-the client if it can take discontig SGLs.  Next trey to expand the FRWR
-API to also cover other memory registration schemes.
+Agree.
 
-> 
-> Sagi.
----end quoted text---
+Steve, you should 1st go and port NFSoRDMA to your proposal (patch) for 
+IB core changes, so we can see the change in action for a code which is 
+working today on multiple transports, iser should be 2nd.
+
+Or.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
