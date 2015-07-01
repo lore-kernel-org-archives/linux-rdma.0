@@ -1,74 +1,48 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V3 4/4] RDMA/isert: Support iWARP transport
-Date: Wed, 1 Jul 2015 20:16:26 +0300
-Message-ID: <5594206A.90001@dev.mellanox.co.il>
-References: <20150701162936.6501.45512.stgit@build.ogc.int>
- <20150701163058.6501.39171.stgit@build.ogc.int>
+From: Joseph Salisbury <joseph.salisbury-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Subject: [PATCH][v3.19.y-ckt] IB/ipoib: change init sequence ordering
+Date: Wed, 01 Jul 2015 13:27:30 -0400
+Message-ID: <55942302.10602@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150701163058.6501.39171.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Cc: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Kamal Mostafa <kamal.mostafa-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/1/2015 7:30 PM, Steve Wise wrote:
-> Memory regions that are the target of an iWARP RDMA READ RESPONSE need
-> REMOTE_WRITE access rights.  So enable REMOTE_WRITE for iWARP devices.
->
-> Use the device's max_sge_rd capability to compute the target's read sge
-> depth.  Save both the read and write max_sge values in the isert_conn
-> struct, and use these when creating RDMA_READ work requests
->
-> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> ---
->   drivers/infiniband/ulp/isert/ib_isert.c |   54 ++++++++++++++++++++++++++-----
->   drivers/infiniband/ulp/isert/ib_isert.h |    3 +-
->   2 files changed, 47 insertions(+), 10 deletions(-)
->
-> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-> index 9e7b492..8334dd0 100644
-> --- a/drivers/infiniband/ulp/isert/ib_isert.c
-> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
-> @@ -163,7 +163,9 @@ isert_create_qp(struct isert_conn *isert_conn,
->   	 * outgoing control PDU responses.
->   	 */
->   	attr.cap.max_send_sge = max(2, device->dev_attr.max_sge - 2);
-> -	isert_conn->max_sge = attr.cap.max_send_sge;
-> +	isert_conn->max_write_sge = attr.cap.max_send_sge;
-> +	isert_conn->max_read_sge = min_t(u32, device->dev_attr.max_sge_rd,
-> +					 attr.cap.max_send_sge);
->
->   	attr.cap.max_recv_sge = 1;
->   	attr.sq_sig_type = IB_SIGNAL_REQ_WR;
-> @@ -348,6 +350,17 @@ out_cq:
->   	return ret;
->   }
->
-> +static int any_port_is_iwarp(struct isert_device *device)
-> +{
-> +	int i;
-> +
-> +	for (i = rdma_start_port(device->ib_device);
-> +	     i <= rdma_end_port(device->ib_device); i++)
-> +		if (rdma_protocol_iwarp(device->ib_device, i))
-> +			return 1;
-> +	return 0;
-> +}
-> +
+Hello,
 
-Lets get rid of that as soon as possible...
-
-However,
-Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Please consider including upstream commits
+be7aa663fc1d9156798f5af3c60e6df45e1fe5de and
+e135106fac9525352feb8e49077c8f46c3eaf288 in the next v3.19.y-ckt
+release.  They were included mainline as of v4.1-rc1.  These commits
+have been tested and confirmed to resolve
+http://bugs.launchpad.net/bugs/1467912 .
 
 
-Nic,
+commit be7aa663fc1d9156798f5af3c60e6df45e1fe5de
+Author: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Date:   Sat Feb 21 19:27:00 2015 -0500
 
-I think it makes sense that this will go via doug's tree.
-Any objection?
+    IB/ipoib: change init sequence ordering
+
+commit e135106fac9525352feb8e49077c8f46c3eaf288
+Author: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Date:   Sat Feb 21 19:26:59 2015 -0500
+
+    IB/ipoib: factor out ah flushing
+
+The bug reporter states this bug is only happening with the 3.19 kernel,
+these commits may not be needed in other stable kernels.
+
+
+
+Sincerely,
+
+Joseph Salisbury
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
