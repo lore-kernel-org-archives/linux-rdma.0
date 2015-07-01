@@ -1,56 +1,51 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rc-fixes 2/2] IB/mlx4: Do not attemp to report HCA clock offset on VFs
-Date: Wed,  1 Jul 2015 14:31:02 +0300
-Message-ID: <1435750262-32210-3-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH rc-fixes 1/2] IB/IPoIB: Fix bad error flow in ipoib_add_port()
+Date: Wed,  1 Jul 2015 14:31:01 +0300
+Message-ID: <1435750262-32210-2-git-send-email-ogerlitz@mellanox.com>
 References: <1435750262-32210-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1435750262-32210-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-mlx4 VFs can provide CQE raw time-stamping services, but they
-don't have the hca core clock mapped to their PCI bars.
+Error values of ib_query_port() and ib_query_device() weren't propagated
+correctly. Because of that, ipoib_add_port() could return NULL value,
+which escaped the IS_ERR() check in ipoib_add_one() and we crashed.
 
-As such, we should not attempt to query and report the clock offset
-to user space for VFs. Doing so causes query_device over VFs to fail
-with -ENOSUPP.
-
-Fixes: 4b664c4355b2 ('IB/mlx4: Add support for CQ time-stamping')
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 067a691..f419a72 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -253,14 +253,15 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
- 	props->hca_core_clock = dev->dev->caps.hca_core_clock * 1000UL;
- 	props->timestamp_mask = 0xFFFFFFFFFFFFULL;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index da149c2..55231bb 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1577,7 +1577,8 @@ static struct net_device *ipoib_add_port(const char *format,
+ 	SET_NETDEV_DEV(priv->dev, hca->dma_device);
+ 	priv->dev->dev_id = port - 1;
  
--	err = mlx4_get_internal_clock_params(dev->dev, &clock_params);
--	if (err)
--		goto out;
-+	if (!mlx4_is_slave(dev->dev))
-+		err = mlx4_get_internal_clock_params(dev->dev, &clock_params);
- 
- 	if (uhw->outlen >= resp.response_length + sizeof(resp.hca_core_clock_offset)) {
--		resp.hca_core_clock_offset = clock_params.offset % PAGE_SIZE;
- 		resp.response_length += sizeof(resp.hca_core_clock_offset);
--		resp.comp_mask |= QUERY_DEVICE_RESP_MASK_TIMESTAMP;
-+		if (!err && !mlx4_is_slave(dev->dev)) {
-+			resp.comp_mask |= QUERY_DEVICE_RESP_MASK_TIMESTAMP;
-+			resp.hca_core_clock_offset = clock_params.offset % PAGE_SIZE;
-+		}
+-	if (!ib_query_port(hca, port, &attr))
++	result = ib_query_port(hca, port, &attr);
++	if (!result)
+ 		priv->max_ib_mtu = ib_mtu_enum_to_int(attr.max_mtu);
+ 	else {
+ 		printk(KERN_WARNING "%s: ib_query_port %d failed\n",
+@@ -1598,7 +1599,8 @@ static struct net_device *ipoib_add_port(const char *format,
+ 		goto device_init_failed;
  	}
  
- 	if (uhw->outlen) {
+-	if (ipoib_set_dev_features(priv, hca))
++	result = ipoib_set_dev_features(priv, hca);
++	if (result)
+ 		goto device_init_failed;
+ 
+ 	/*
 -- 
 2.3.7
 
