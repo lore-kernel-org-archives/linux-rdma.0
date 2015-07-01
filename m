@@ -1,94 +1,67 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH][v3.19.y-ckt] IB/ipoib: change init sequence ordering
-Date: Wed, 01 Jul 2015 13:42:28 -0400
-Message-ID: <55942684.1000502@redhat.com>
-References: <55942302.10602@canonical.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH V3 3/4] RDMA/iser: limit sg tablesize to device fastreg max depth
+Date: Wed, 1 Jul 2015 13:11:56 -0500
+Message-ID: <005201d0b429$6a26c950$3e745bf0$@opengridcomputing.com>
+References: <20150701162936.6501.45512.stgit@build.ogc.int> <20150701163052.6501.27775.stgit@build.ogc.int> <55941E6F.5080208@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="4xIx3wEFaOi7qnvfD4WGpielJVQsQ3XPH"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55942302.10602@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joseph Salisbury <joseph.salisbury@canonical.com>, Kamal Mostafa <kamal.mostafa@canonical.com>
-Cc: sean.hefty@intel.com, hal.rosenstock@gmail.com, roland@purestorage.com, ogerlitz@mellanox.com, erezsh@mellanox.com, alex.estrin@intel.com, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, kamalh@mellanox.com
+Content-Type: text/plain;
+	charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <55941E6F.5080208-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---4xIx3wEFaOi7qnvfD4WGpielJVQsQ3XPH
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-On 07/01/2015 01:27 PM, Joseph Salisbury wrote:
-> Hello,
->=20
-> Please consider including upstream commits
-> be7aa663fc1d9156798f5af3c60e6df45e1fe5de and
-> e135106fac9525352feb8e49077c8f46c3eaf288 in the next v3.19.y-ckt
-> release.  They were included mainline as of v4.1-rc1.  These commits
-> have been tested and confirmed to resolve
-> http://bugs.launchpad.net/bugs/1467912 .
->=20
->=20
-> commit be7aa663fc1d9156798f5af3c60e6df45e1fe5de
-> Author: Doug Ledford <dledford@redhat.com>
-> Date:   Sat Feb 21 19:27:00 2015 -0500
->=20
->     IB/ipoib: change init sequence ordering
->=20
-> commit e135106fac9525352feb8e49077c8f46c3eaf288
-> Author: Doug Ledford <dledford@redhat.com>
-> Date:   Sat Feb 21 19:26:59 2015 -0500
->=20
->     IB/ipoib: factor out ah flushing
->=20
-> The bug reporter states this bug is only happening with the 3.19 kernel=
-,
-> these commits may not be needed in other stable kernels.
-
-I have no objection to these two patches going into a 3.19 stable
-kernel.  They are both stand alone, safe patches.
-
-However, there is no difference in the IPoIB code between 3.18 and 3.19,
-and I didn't think this bug existed in 3.19 (my commit logs called the
-work preparatory for upcoming patches).  If your testing does in fact
-show that this is only a 3.19 bug, and 3.18 tests clear, then that means
-the bug was introduced by some other change in the core kernel (probably
-in how work queues are scheduled and we likely had a situation where our
-code worked based upon how they used to be scheduled, but with the
-change we now need explicit flushes).
-
-In any case, ack from me for these two patches.
 
 
---=20
-Doug Ledford <dledford@redhat.com>
-              GPG KeyID: 0E572FDD
+> -----Original Message-----
+> From: Sagi Grimberg [mailto:sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org]
+> Sent: Wednesday, July 01, 2015 12:08 PM
+> To: Steve Wise; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+> Cc: roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org; target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+> Subject: Re: [PATCH V3 3/4] RDMA/iser: limit sg tablesize to device fastreg max depth
+> 
+> On 7/1/2015 7:30 PM, Steve Wise wrote:
+> > Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> > ---
+> >   drivers/infiniband/ulp/iser/iscsi_iser.c |    7 +++++++
+> >   1 files changed, 7 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
+> > index 6a594aa..ec692f7 100644
+> > --- a/drivers/infiniband/ulp/iser/iscsi_iser.c
+> > +++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
+> > @@ -640,6 +640,13 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
+> >   						   SHOST_DIX_GUARD_CRC);
+> >   		}
+> >
+> > +		/*
+> > +		 * Limit the sg_tablesize based on the device max fastreg page
+> > +		 * list length.
+> > +		 */
+> > +		shost->sg_tablesize = min_t(u32, shost->sg_tablesize,
+> > +			ib_conn->device->dev_attr.max_fast_reg_page_list_len);
+> > +
+> >   		if (iscsi_host_add(shost,
+> >   				   ib_conn->device->ib_device->dma_device)) {
+> >   			mutex_unlock(&iser_conn->state_mutex);
+> >
+> 
+> You forgot to add my Reviewed-by on this.
+> 
+> So again (for patchworks),
+> 
+> Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+My bad...Sorry Sagi!
 
 
 
---4xIx3wEFaOi7qnvfD4WGpielJVQsQ3XPH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJVlCaEAAoJELgmozMOVy/d99sP/j1Go6ZTQ6MKSljgoAHww1xy
-PQu7z9OAjOJk8q7l+UltLOHhsft3noZ3QLiboGx5f5yq2Y9oWBzhc0EfutcpHCD8
-Ko0fvPC2pczm1squ5vT+AFtZwVtzjs1lxKQ5HyGdlu6anzjmdQ2619YdRwlWT/Mw
-wQ4btdFLiR2w69CwJTjPWip665FaLtWwaUzJLKAUaIbjZQIg+pGQYXQqXEr1CTBb
-U2mZyg15YjsdP2VDePtWCEuyBlk+rIDaRUP8fwL6SJcDxay/lXfkxIx3tAXY2TIa
-d8S+pyRiZL5J/VeJaTFV3CvOo+uOhkVcNe2L/poDGEtrBBP7HegEVM3QhtiVNfvy
-4U818GDNVAblomFiupZ/Cijuj5C7zQSkWBDP1pB9EaUeTt6ydgn3bPk3d28jveNa
-Czrg3qZnNzH5HvcneYj0yLdTA7ts21eefWJMujen3EvVmAR76vL3lb18/BZrmPSV
-0wYb6v1hd9PFAtQw5GTRt26+sswFDLDK7SA31/4XfJi/+piS5gG3p1X/NPMNOZJ8
-VOC6BSnHqL9BQZwrEgZk0BYX5dM89yB58+Zuy7hRIs6KR+tjP6WQCZCe35sVbt/P
-9dRa7A6Hlt4xq14F4YXJ8oTaKazE2rvuYBWLUS3/UlRt/r9texbE/oI23Ciwd9uO
-vTCVEcn697W17exrUsUY
-=pLt/
------END PGP SIGNATURE-----
-
---4xIx3wEFaOi7qnvfD4WGpielJVQsQ3XPH--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
