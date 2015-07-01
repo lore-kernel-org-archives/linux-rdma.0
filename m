@@ -1,61 +1,57 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rc-fixes 1/2] IB/IPoIB: Fix bad error flow in ipoib_add_port()
-Date: Wed, 1 Jul 2015 15:29:18 -0400
-Message-ID: <20150701192918.GA4497@phlsvsds.ph.intel.com>
-References: <1435750262-32210-1-git-send-email-ogerlitz@mellanox.com> <1435750262-32210-2-git-send-email-ogerlitz@mellanox.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V3 3/4] RDMA/iser: limit sg tablesize to device fastreg
+ max depth
+Date: Wed, 1 Jul 2015 23:27:19 +0300
+Message-ID: <CAJ3xEMidOySxVe_SsZ_02HQNi5F2fMZX8e9n2H9y1YoK3uj6vQ@mail.gmail.com>
+References: <20150701162936.6501.45512.stgit@build.ogc.int>
+	<20150701163052.6501.27775.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1435750262-32210-2-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20150701163052.6501.27775.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 01, 2015 at 02:31:01PM +0300, Or Gerlitz wrote:
-> From: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> Error values of ib_query_port() and ib_query_device() weren't propagated
-> correctly. Because of that, ipoib_add_port() could return NULL value,
-> which escaped the IS_ERR() check in ipoib_add_one() and we crashed.
-> 
-> Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Wed, Jul 1, 2015 at 7:30 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+please no empty change-logs for this driver (and elsewhere), find
+something that fills @ least one sentence, it's easy.
 
+Also, we are aiming to initiate (Sagi please make sure you follow on
+this practice too) commit titles for the iser initiator with Capital
+letter, so s/limit/Limit/g
+
+> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 > ---
->  drivers/infiniband/ulp/ipoib/ipoib_main.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> index da149c2..55231bb 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> @@ -1577,7 +1577,8 @@ static struct net_device *ipoib_add_port(const char *format,
->  	SET_NETDEV_DEV(priv->dev, hca->dma_device);
->  	priv->dev->dev_id = port - 1;
->  
-> -	if (!ib_query_port(hca, port, &attr))
-> +	result = ib_query_port(hca, port, &attr);
-> +	if (!result)
->  		priv->max_ib_mtu = ib_mtu_enum_to_int(attr.max_mtu);
->  	else {
->  		printk(KERN_WARNING "%s: ib_query_port %d failed\n",
-> @@ -1598,7 +1599,8 @@ static struct net_device *ipoib_add_port(const char *format,
->  		goto device_init_failed;
->  	}
->  
-> -	if (ipoib_set_dev_features(priv, hca))
-> +	result = ipoib_set_dev_features(priv, hca);
-> +	if (result)
->  		goto device_init_failed;
->  
->  	/*
-> -- 
-> 2.3.7
-> 
+>  drivers/infiniband/ulp/iser/iscsi_iser.c |    7 +++++++
+>  1 files changed, 7 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
+> index 6a594aa..ec692f7 100644
+> --- a/drivers/infiniband/ulp/iser/iscsi_iser.c
+> +++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
+> @@ -640,6 +640,13 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
+>                                                    SHOST_DIX_GUARD_CRC);
+>                 }
+>
+> +               /*
+> +                * Limit the sg_tablesize based on the device max fastreg page
+> +                * list length.
+> +                */
+> +               shost->sg_tablesize = min_t(u32, shost->sg_tablesize,
+> +                       ib_conn->device->dev_attr.max_fast_reg_page_list_len);
+> +
+
+I guess you should also somehow recap shost->max_sectors (which is
+hard coded to 1024 (== 512KB IO) now) for your needs.
+
+
+>                 if (iscsi_host_add(shost,
+>                                    ib_conn->device->ib_device->dma_device)) {
+>                         mutex_unlock(&iser_conn->state_mutex);
+>
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
