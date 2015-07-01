@@ -1,62 +1,45 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V3 3/4] RDMA/iser: limit sg tablesize to device fastreg
- max depth
-Date: Wed, 1 Jul 2015 23:27:19 +0300
-Message-ID: <CAJ3xEMidOySxVe_SsZ_02HQNi5F2fMZX8e9n2H9y1YoK3uj6vQ@mail.gmail.com>
+From: Or Gerlitz <gerlitz.or@gmail.com>
+Subject: Re: [PATCH V3 4/4] RDMA/isert: Support iWARP transport
+Date: Wed, 1 Jul 2015 23:33:26 +0300
+Message-ID: <CAJ3xEMjWVwbW0sgVsMj3hPLMRZgJ8srMG89gYzUEbvQAHBaUEw@mail.gmail.com>
 References: <20150701162936.6501.45512.stgit@build.ogc.int>
-	<20150701163052.6501.27775.stgit@build.ogc.int>
+	<20150701163058.6501.39171.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150701163052.6501.27775.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <20150701163058.6501.39171.stgit@build.ogc.int>
+Sender: target-devel-owner@vger.kernel.org
+To: Steve Wise <swise@opengridcomputing.com>
+Cc: Doug Ledford <dledford@redhat.com>, Roi Dayan <roid@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Sagi Grimberg <sagig@mellanox.com>, Mike Marciniszyn <infinipath@intel.com>, target-devel@vger.kernel.org, Eli Cohen <eli@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 1, 2015 at 7:30 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
+On Wed, Jul 1, 2015 at 7:30 PM, Steve Wise <swise@opengridcomputing.com> wrote:
+> Memory regions that are the target of an iWARP RDMA READ RESPONSE need
+> REMOTE_WRITE access rights.  So enable REMOTE_WRITE for iWARP devices.
 
-please no empty change-logs for this driver (and elsewhere), find
-something that fills @ least one sentence, it's easy.
+I don't see the point to mess the code with this branching on the
+iwarp specific diffs from IB/RoCE -- note that the MRs for which you
+mangle their access flags are LOCAL and not advertised to external
+entity (initiator), hence why not just OR into the access flags what
+iwarp needs?!
 
-Also, we are aiming to initiate (Sagi please make sure you follow on
-this practice too) commit titles for the iser initiator with Capital
-letter, so s/limit/Limit/g
+> Use the device's max_sge_rd capability to compute the target's read sge
+> depth.  Save both the read and write max_sge values in the isert_conn
+> struct, and use these when creating RDMA_READ work requests
 
-> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> ---
->  drivers/infiniband/ulp/iser/iscsi_iser.c |    7 +++++++
->  1 files changed, 7 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
-> index 6a594aa..ec692f7 100644
-> --- a/drivers/infiniband/ulp/iser/iscsi_iser.c
-> +++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-> @@ -640,6 +640,13 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
->                                                    SHOST_DIX_GUARD_CRC);
->                 }
->
-> +               /*
-> +                * Limit the sg_tablesize based on the device max fastreg page
-> +                * list length.
-> +                */
-> +               shost->sg_tablesize = min_t(u32, shost->sg_tablesize,
-> +                       ib_conn->device->dev_attr.max_fast_reg_page_list_len);
+We have here strictly two related but different changes, break this to
+two patches.
+
+> +static int any_port_is_iwarp(struct isert_device *device)
+> +{
+> +       int i;
+> +
+> +       for (i = rdma_start_port(device->ib_device);
+> +            i <= rdma_end_port(device->ib_device); i++)
+> +               if (rdma_protocol_iwarp(device->ib_device, i))
+> +                       return 1;
+> +       return 0;
+> +}
 > +
 
-I guess you should also somehow recap shost->max_sectors (which is
-hard coded to 1024 (== 512KB IO) now) for your needs.
-
-
->                 if (iscsi_host_add(shost,
->                                    ib_conn->device->ib_device->dma_device)) {
->                         mutex_unlock(&iser_conn->state_mutex);
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If this needed @ all, put in one of the IB core headers, not in a ULP source
