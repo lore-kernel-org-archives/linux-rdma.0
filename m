@@ -1,74 +1,62 @@
-From: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v7 4/4] IB/sa: Route SA pathrecord query through netlink
-Date: Wed, 1 Jul 2015 11:38:22 +0000
-Message-ID: <3F128C9216C9B84BB6ED23EF16290AFB0CAC2482@CRSMSX101.amr.corp.intel.com>
-References: <1435671955-9744-1-git-send-email-kaike.wan@intel.com>
- <1435671955-9744-5-git-send-email-kaike.wan@intel.com>
- <20150630222445.GA1918@obsidianresearch.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH V2 4/5] RDMA/iser: support iWARP devices
+Date: Wed, 1 Jul 2015 09:08:38 -0500
+Message-ID: <000901d0b407$6d9c1260$48d43720$@opengridcomputing.com>
+References: <20150629213332.4188.87551.stgit@build.ogc.int> <20150629213624.4188.94135.stgit@build.ogc.int> <559260BE.6060301@dev.mellanox.co.il> <002201d0b341$b706b2a0$251417e0$@opengridcomputing.com> <20150630164501.GC30149@obsidianresearch.com> <1828884A29C6694DAF28B7E6B8A82373A8FFB028@ORSMSX109.amr.corp.intel.com> <004901d0b364$7b7151f0$7253f5d0$@opengridcomputing.com> <55939942.9050701@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150630222445.GA1918-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <55939942.9050701-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: 'Or Gerlitz' <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
-> Sent: Tuesday, June 30, 2015 6:25 PM
-> To: Wan, Kaike
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Fleck, John; Weiny, Ira
-> Subject: Re: [PATCH v7 4/4] IB/sa: Route SA pathrecord query through netlink
+
+
+> -----Original Message-----
+> From: Or Gerlitz [mailto:ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
+> Sent: Wednesday, July 01, 2015 2:40 AM
+> To: Steve Wise
+> Cc: 'Hefty, Sean'; 'Jason Gunthorpe'; 'Sagi Grimberg'; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; linux-
+> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: [PATCH V2 4/5] RDMA/iser: support iWARP devices
 > 
-> On Tue, Jun 30, 2015 at 09:45:55AM -0400, kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> On 6/30/2015 9:42 PM, Steve Wise wrote:
+> >>>> I prefer to decouple the iSER changes with this core work.
+> >>>> Jason/Sean... thoughts?  I could do the iSER w/o patch 3, and the
+> >>>> follow up with a series that includes our final solution on
+> >>>> transport independent memory registration and change all the TI
+> >>>> kernel users (iser and nfsrdma) along with it.
+> >>> There has a been a big push lately to drop the strange transport
+> >>> specific stuff - if you are comitted to seeing the access flag clean
+> >>> up series through then I don't see a problem with using whatever order
+> >>> you like.
+> >> I agree.
+> > Ok, then I'll do this:
+> >
+> > 1) series with iser changes to enable iwarp including mlx/ipath/qib patches to set max_sge_rd
+> > 2) series on transport independent access flags / memory reg - updating the kernel ULPs too.
+> not following... OTOH for iser to work over iwarp too we **only** (your
+> #1) need to patch some IB/RoCE drivers to properly set their advertized
+> max_sge_rd but no core changes but OTOH we **also** need  (your #2) an
+> IB core patch/series with independent access flags for porting (say)
+> NFSoRDMA to use the same code for multiple transports? explain...
 > 
-> > +static inline int ib_nl_is_good_resolve_resp(const struct nlmsghdr
-> > +*nlh) {
-> > +	const struct nlattr *head, *curr;
-> > +	int len, rem;
-> > +
-> > +	if (nlh->nlmsg_flags & RDMA_NL_LS_F_ERR)
-> > +		return 0;
-> > +
-> > +	if (!(nlh->nlmsg_flags & RDMA_NL_LS_F_OK))
-> > +		return 0;
-> > +
-> > +	if (nlmsg_len(nlh) < nla_attr_size(sizeof(*rec)))
-> > +		return 0;
-> 
-> Um, why are you sending patches that are not even compile tested?
+>
 
-My bad. I had a debugging patch on top of these patches and I built them together to do the tests (rdma_cm, ipoib, srp), but forgot to compile the rest after popping off the debugging patch. 
+First, I'll submit iSER patches that enable iWARP in the same manner that NFSRDMA does.  Namely, have iSER look at the transport
+type and set the MR access flags accordingly.  That is a very simple set of changes.  I submitted this as the first series earlier
+in the week.  The main comment was to fix the rdma drivers to set max_sge_rd and use that to adjust the read sge depth.  
 
-> 
-> drivers/infiniband/core/sa_query.c: In function 'ib_nl_is_good_resolve_resp':
-> drivers/infiniband/core/sa_query.c:732:45: error: 'rec' undeclared (first use
-> in this function)
->   if (nlmsg_len(nlh) < nla_attr_size(sizeof(*rec)))
-> 
-> This routine should also be using nla_parse and friends, not a roll your own.
+Next, I'll submit the transport independent core changes to remove the ULPS from having to know about transport access_flag
+differences.  Included in this series will be changes to iSER and NFSRDMA to make use of the new services.
 
-Yes, I can use nla_find() for this purpose here.
+Steve.
 
-> 
-> And you didn't address all the comments either..
-
-I addressed your comments with questions in an previous reply, but did not hear from you.
-
-See
-
-http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg25614.html
-
-
-
-Thanks,
-
-Kaike
-
-> 
-> Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
