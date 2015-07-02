@@ -1,76 +1,70 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH V2 3/5] RDMA/core: transport-independent access flags
-Date: Thu, 2 Jul 2015 08:57:15 -0500
-Message-ID: <000001d0b4cf$00647d40$012d77c0$@opengridcomputing.com>
-References: <20150629213332.4188.87551.stgit@build.ogc.int> <20150629213618.4188.50574.stgit@build.ogc.int> <55925FAE.4090004@dev.mellanox.co.il> <1828884A29C6694DAF28B7E6B8A82373A8FFB053@ORSMSX109.amr.corp.intel.com> <5594D8BC.8000300@dev.mellanox.co.il> <559539E0.9030808@opengridcomputing.com> <55953B4A.1070509@dev.mellanox.co.il>
+From: Steve Wise <swise@opengridcomputing.com>
+Subject: [PATCH V4 0/5] iSER support for iWARP
+Date: Thu, 02 Jul 2015 10:16:03 -0500
+Message-ID: <20150702151508.12946.29133.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55953B4A.1070509-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, 'infinipath' <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+Sender: target-devel-owner@vger.kernel.org
+To: dledford@redhat.com
+Cc: roid@mellanox.com, linux-rdma@vger.kernel.org, sagig@mellanox.com, infinipath@intel.com, target-devel@vger.kernel.org, eli@mellanox.com, ogerlitz@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
+The following series implements support for iWARP transports in the iSER
+initiator and target.  This is based on Doug's k.o/for-4.2 branch.
+
+I've tested this on cxgb4 and mlx4 hardware.
+
+Changes since V3:
+
+Fixed commit messages based on feedback.
+
+iser: adjust max_sectors
+
+isert: split into 2 patches
+
+isert: always set REMOTE_WRITE for dma mrs
+
+Changes since V2:
+
+The transport independent work is removed from this series and will
+be submitted in a subsequent series.  This V3 series now enables iWARP
+using existing core services.
+
+Changes since V1:
+
+Introduce and use transport-independent RDMA core services for allocating
+DMA MRs and computing fast register access flags.
+
+Correctly set the device max_sge_rd capability in several rdma device
+drivers.
+
+isert: use device capability max_sge_rd for the read sge depth.
+
+isert: change max_sge to max_write_sge in struct isert_conn.
+
+---
+
+Sagi Grimberg (1):
+      mlx4, mlx5, mthca: Expose max_sge_rd correctly
+
+Steve Wise (4):
+      ipath,qib: Expose max_sge_rd correctly
+      RDMA/iser: Limit sg tablesize and max_sectors to device fastreg max depth
+      RDMA/isert: Set REMOTE_WRITE on DMA MRs to support iWARP devices
+      RDMA/isert: Limit read depth based on the device max_sge_rd capability
 
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Sagi Grimberg
-> Sent: Thursday, July 02, 2015 8:23 AM
-> To: Steve Wise; Hefty, Sean; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-> Cc: roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org; infinipath;
-> eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-> Subject: Re: [PATCH V2 3/5] RDMA/core: transport-independent access flags
-> 
-> On 7/2/2015 4:17 PM, Steve Wise wrote:
-> > On 7/2/2015 1:22 AM, Sagi Grimberg wrote:
-> >> On 6/30/2015 8:10 PM, Hefty, Sean wrote:
-> >>>> I suggest to start consolidating to ib_create_mr() that receives an
-> >>>> extensible ib_mr_init_attr and additional attributes can be mr_roles
-> >>>> and mr_attrs.
-> >>>
-> >>> I think this makes sense, but does it really help?
-> >>> If the end result is that the app and providers basically
-> >>> end up switching on mr_attr::type, we end up reducing the
-> >>> number of APIs, but the code complexity remains the same.
-> >>>
-> >>
-> >> I think it will reduce code complexity. First, the callers
-> >> will have a single API to allocate a memory key. I'm not sure why you
-> >> say that app needs to switch on mr::type, it knows which type it wants.
-> >>
-> >
-> > I dont see how doing this is less complex:
-> >
-> > attr = FASTREG
-> > mr = create_mr(attr)
-> >
-> > vs:
-> >
-> > mr = lloc_fast_reg_mr()
-> 
-> The simplification is that you can facilitate changes like your
-> mr_roles and any other things we may want to add to mr allocation
-> easily instead of suggesting wrappers over wrappers over wrappers.
-> 
-> This is why I suggested it in the first place.
-> 
-
-Regardless of have one create_mr() or having create_sig_mr(), create_fast_reg_mr(), get_dma_mr(), we'll still need to define the roles/attributes to make them transport independent, and we'll still need to have an entry point that will compute access_flags given roles and attributes to be used when posting frmrs...  I don't see wrappers over wrappers over wrappers.
-
-I'm not really opposed to creating a single entry point, but rather I'm not really seeing vast utility of doing so.  
-
-Anybody else have an opinion?
-
-Steve.
-
-
-
+ drivers/infiniband/hw/ipath/ipath_verbs.c    |    1 +
+ drivers/infiniband/hw/mlx4/main.c            |    1 +
+ drivers/infiniband/hw/mlx5/main.c            |    1 +
+ drivers/infiniband/hw/mthca/mthca_provider.c |    1 +
+ drivers/infiniband/hw/qib/qib_verbs.c        |    1 +
+ drivers/infiniband/ulp/iser/iscsi_iser.c     |    9 +++++++
+ drivers/infiniband/ulp/isert/ib_isert.c      |   34 +++++++++++++++++++-------
+ drivers/infiniband/ulp/isert/ib_isert.h      |    3 ++
+ 8 files changed, 41 insertions(+), 10 deletions(-)
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Steve.
