@@ -1,40 +1,44 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [PATCH V3 4/4] RDMA/isert: Support iWARP transport
-Date: Thu, 2 Jul 2015 09:28:46 +0300
-Message-ID: <5594DA1E.7040604@dev.mellanox.co.il>
-References: <20150701162936.6501.45512.stgit@build.ogc.int>
- <20150701163058.6501.39171.stgit@build.ogc.int>
- <CAJ3xEMjWVwbW0sgVsMj3hPLMRZgJ8srMG89gYzUEbvQAHBaUEw@mail.gmail.com>
- <009a01d0b43f$f5fa8640$e1ef92c0$@opengridcomputing.com>
- <CAJ3xEMhehOBvmFBFNwZEda3Wc3UyyyK8iH6HrYfVbD0=8MUa-A@mail.gmail.com>
+From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Subject: Re: [PATCH 0/2] update ocrdma to dual license
+Date: Thu, 2 Jul 2015 14:21:32 +0530
+Message-ID: <CANjDDBinTi43KTt14C7cJ0Uo=Do8Vt3G6bXutLbsViUFUG=jRg@mail.gmail.com>
+References: <1434127505-17739-1-git-send-email-devesh.sharma@avagotech.com>
+	<20150630060631.GA21105@infradead.org>
+	<CANjDDBh3pxLFe2o08KzAtw8dtVq94GK04x4YZ0nXA+YnVh5Bng@mail.gmail.com>
+	<20150701072120.GB31381@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <CAJ3xEMhehOBvmFBFNwZEda3Wc3UyyyK8iH6HrYfVbD0=8MUa-A@mail.gmail.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Or Gerlitz <gerlitz.or@gmail.com>, Steve Wise <swise@opengridcomputing.com>
-Cc: Doug Ledford <dledford@redhat.com>, Roi Dayan <roid@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Sagi Grimberg <sagig@mellanox.com>, Mike Marciniszyn <infinipath@intel.com>, target-devel@vger.kernel.org, Eli Cohen <eli@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150701072120.GB31381-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/2/2015 12:03 AM, Or Gerlitz wrote:
-> On Wed, Jul 1, 2015 at 11:53 PM, Steve Wise <swise@opengridcomputing.com> wrote:
->>> From: Or Gerlitz [mailto:gerlitz.or@gmail.com]
->
->> Yes, the MR is a local MR, but it is used for REMOTE access for iWARP, but not IB.  It think the reason is that in iWARP there is no distinction between local and remote keys.  For iwarp you get 1 key called a Steering Tag or STAG that is used both locally and advertised to the peer (if to be used for REMOTE IO).  Further, that STAG is sent to the peer in the RDMA READ REQUEST and the peer iWARP stack uses it to generate READ RESPONSE messages with the advertised STAG as the READ DESTINATION.  And thus these STAGs require REMOTE_WRITE access flags.  In IB, I believe the "key" sent in the READ REQUEST is not the MR lkey or rkey at all, but a one-shot transaction key, valid for that READ operation only, and the local IB stack uses this key to map to the destination MR/lkey when processing
-  the RDMA READ RESPONSE.  This difference in the protocols is what drives the access flag difference.
->
->
-> Since in IB/RoCE the key sent on the wire isn't actually something
-> that can be used as rkey by the peer, we can safely do the extra
-> access flags Oring always and not worry which transport is used.
->
->
->> Regardless, I'm not sure what you propose I do differently?  The code in this patch does OR the needed access flag if the device is iWARP when creating the DMA_MR.
->
-> So always OR and don't branch
+Christoph,
 
-Or has a good point.
-The DMA mkey in target mode is discrete and not sent to any peer.
 
-Sagi.
+Apologies, I misspoke in my response to you.  There was a study of the
+code and we thought it was reasonable to post.  However, in retrospect
+we should have used more due diligence.  We're going back to seek
+explicit consent from key contributors.
+
+
+-Regards
+Devesh
+
+On Wed, Jul 1, 2015 at 12:51 PM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
+> On Tue, Jun 30, 2015 at 04:19:43PM +0530, Devesh Sharma wrote:
+>> Hi Christoph, I really do not have it.
+>>
+>> However, this change is initiated with consent of Emulex management.
+>
+> Emulex managament can't relicense code written by other people.
+>
+> There isn't a lot of non-Emulex contributions here, but you'll have to be
+> really careful with it, and this whole patchset absolutely misses due
+> care.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
