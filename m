@@ -1,7 +1,8 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH V4 2/5] ipath,qib: Expose max_sge_rd correctly
-Date: Thu, 02 Jul 2015 10:16:14 -0500
-Message-ID: <20150702151614.12946.30191.stgit@build.ogc.int>
+Subject: [PATCH V4 3/5] RDMA/iser: Limit sg tablesize and max_sectors to
+ device fastreg max depth
+Date: Thu, 02 Jul 2015 10:16:19 -0500
+Message-ID: <20150702151619.12946.79500.stgit@build.ogc.int>
 References: <20150702151508.12946.29133.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,40 +14,37 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Applications must not assume that max_sge and max_sge_rd are the same,
-Hence expose max_sge_rd correctly as well.
+Currently the sg tablesize, which dictates fast register page list
+depth to use, does not take into account the limits of the rdma device.
+So adjust it once we discover the device fastreg max depth limit.  Also
+adjust the max_sectors based on the resulting sg tablesize.
 
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Acked-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/ipath/ipath_verbs.c |    1 +
- drivers/infiniband/hw/qib/qib_verbs.c     |    1 +
- 2 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/infiniband/ulp/iser/iscsi_iser.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ipath/ipath_verbs.c b/drivers/infiniband/hw/ipath/ipath_verbs.c
-index 48253b8..d958236 100644
---- a/drivers/infiniband/hw/ipath/ipath_verbs.c
-+++ b/drivers/infiniband/hw/ipath/ipath_verbs.c
-@@ -1521,6 +1521,7 @@ static int ipath_query_device(struct ib_device *ibdev, struct ib_device_attr *pr
- 	props->max_qp = ib_ipath_max_qps;
- 	props->max_qp_wr = ib_ipath_max_qp_wrs;
- 	props->max_sge = ib_ipath_max_sges;
-+	props->max_sge_rd = ib_ipath_max_sges;
- 	props->max_cq = ib_ipath_max_cqs;
- 	props->max_ah = ib_ipath_max_ahs;
- 	props->max_cqe = ib_ipath_max_cqes;
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index a05d1a3..bc723b5 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.c
-+++ b/drivers/infiniband/hw/qib/qib_verbs.c
-@@ -1574,6 +1574,7 @@ static int qib_query_device(struct ib_device *ibdev, struct ib_device_attr *prop
- 	props->max_qp = ib_qib_max_qps;
- 	props->max_qp_wr = ib_qib_max_qp_wrs;
- 	props->max_sge = ib_qib_max_sges;
-+	props->max_sge_rd = ib_qib_max_sges;
- 	props->max_cq = ib_qib_max_cqs;
- 	props->max_ah = ib_qib_max_ahs;
- 	props->max_cqe = ib_qib_max_cqes;
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
+index 6a594aa..0ed8638 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.c
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
+@@ -640,6 +640,15 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
+ 						   SHOST_DIX_GUARD_CRC);
+ 		}
+ 
++		/*
++		 * Limit the sg_tablesize and max_sectors based on the device
++		 * max fastreg page list length.
++		 */
++		shost->sg_tablesize = min_t(u32, shost->sg_tablesize,
++			ib_conn->device->dev_attr.max_fast_reg_page_list_len);
++		shost->max_sectors =
++			min(1024, (shost->sg_tablesize * PAGE_SIZE) >> 9);
++
+ 		if (iscsi_host_add(shost,
+ 				   ib_conn->device->ib_device->dma_device)) {
+ 			mutex_unlock(&iser_conn->state_mutex);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
