@@ -1,35 +1,46 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V3 4/4] RDMA/isert: Support iWARP transport
-Date: Thu, 2 Jul 2015 10:39:37 -0600
-Message-ID: <20150702163937.GB4642@obsidianresearch.com>
-References: <20150701162936.6501.45512.stgit@build.ogc.int>
- <20150701163058.6501.39171.stgit@build.ogc.int>
- <CAJ3xEMjWVwbW0sgVsMj3hPLMRZgJ8srMG89gYzUEbvQAHBaUEw@mail.gmail.com>
- <009a01d0b43f$f5fa8640$e1ef92c0$@opengridcomputing.com>
- <CAJ3xEMhehOBvmFBFNwZEda3Wc3UyyyK8iH6HrYfVbD0=8MUa-A@mail.gmail.com>
- <5594DA1E.7040604@dev.mellanox.co.il>
+From: Kamal Mostafa <kamal@canonical.com>
+Subject: Re: [PATCH][v3.19.y-ckt] IB/ipoib: change init sequence ordering
+Date: Thu, 02 Jul 2015 10:16:09 -0700
+Message-ID: <1435857369.23145.2.camel@fourier>
+References: <55942302.10602@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5594DA1E.7040604-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <55942302.10602@canonical.com>
+Sender: stable-owner@vger.kernel.org
+To: Joseph Salisbury <joseph.salisbury@canonical.com>
+Cc: Kamal Mostafa <kamal.mostafa@canonical.com>, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, roland@purestorage.com, ogerlitz@mellanox.com, erezsh@mellanox.com, alex.estrin@intel.com, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, kamalh@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 02, 2015 at 09:28:46AM +0300, Sagi Grimberg wrote:
+On Wed, 2015-07-01 at 13:27 -0400, Joseph Salisbury wrote:
+> Hello,
+> 
+> Please consider including upstream commits
+> be7aa663fc1d9156798f5af3c60e6df45e1fe5de and
+> e135106fac9525352feb8e49077c8f46c3eaf288 in the next v3.19.y-ckt
+> release.  They were included mainline as of v4.1-rc1.  These commits
+> have been tested and confirmed to resolve
+> http://bugs.launchpad.net/bugs/1467912 .
+> 
+> 
+> commit be7aa663fc1d9156798f5af3c60e6df45e1fe5de
+> Author: Doug Ledford <dledford@redhat.com>
+> Date:   Sat Feb 21 19:27:00 2015 -0500
+> 
+>     IB/ipoib: change init sequence ordering
+> 
+> commit e135106fac9525352feb8e49077c8f46c3eaf288
+> Author: Doug Ledford <dledford@redhat.com>
+> Date:   Sat Feb 21 19:26:59 2015 -0500
+> 
+>     IB/ipoib: factor out ah flushing
+> 
+> The bug reporter states this bug is only happening with the 3.19 kernel,
+> these commits may not be needed in other stable kernels.
 
-> Or has a good point.
-> The DMA mkey in target mode is discrete and not sent to any peer.
+Queued up for 3.19-stable.
 
-That doesn't mean the peer cannot guess it.
+And thanks very much for the extra analysis and ack on this, Doug.
 
-Using the right permission is clearly a stronger protection, we
-shouldn't weaken IB just to accommodate iWarp's limitations.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ -Kamal
