@@ -1,52 +1,41 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH V4 3/5] RDMA/iser: Limit sg tablesize and max_sectors to
- device fastreg max depth
-Date: Thu, 02 Jul 2015 10:16:19 -0500
-Message-ID: <20150702151619.12946.79500.stgit@build.ogc.int>
+From: Steve Wise <swise@opengridcomputing.com>
+Subject: [PATCH V4 4/5] RDMA/isert: Set REMOTE_WRITE on DMA MRs to support
+ iWARP devices
+Date: Thu, 02 Jul 2015 10:16:24 -0500
+Message-ID: <20150702151624.12946.45034.stgit@build.ogc.int>
 References: <20150702151508.12946.29133.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150702151508.12946.29133.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <20150702151508.12946.29133.stgit@build.ogc.int>
+Sender: target-devel-owner@vger.kernel.org
+To: dledford@redhat.com
+Cc: roid@mellanox.com, linux-rdma@vger.kernel.org, sagig@mellanox.com, infinipath@intel.com, target-devel@vger.kernel.org, eli@mellanox.com, ogerlitz@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-Currently the sg tablesize, which dictates fast register page list
-depth to use, does not take into account the limits of the rdma device.
-So adjust it once we discover the device fastreg max depth limit.  Also
-adjust the max_sectors based on the resulting sg tablesize.
+iWARP devices require REMOTE_WRITE for MRs used as the destination of an
+RDMA READ.  IB does not require this.  Since isert never advertises the
+rkey of its DMA MRs to the peer, just add REMOTE_WRITE to the access flags
+when allocating DMA MRs for all devices.
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Steve Wise <swise@opengridcomputing.com>
+Reviewed-by: Sagi Grimberg <sagig@mellanox.com>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+ drivers/infiniband/ulp/isert/ib_isert.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
-index 6a594aa..0ed8638 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.c
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-@@ -640,6 +640,15 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
- 						   SHOST_DIX_GUARD_CRC);
- 		}
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index 9e7b492..2737ade 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -383,7 +383,8 @@ isert_create_device_ib_res(struct isert_device *device)
+ 		goto out_cq;
+ 	}
  
-+		/*
-+		 * Limit the sg_tablesize and max_sectors based on the device
-+		 * max fastreg page list length.
-+		 */
-+		shost->sg_tablesize = min_t(u32, shost->sg_tablesize,
-+			ib_conn->device->dev_attr.max_fast_reg_page_list_len);
-+		shost->max_sectors =
-+			min(1024, (shost->sg_tablesize * PAGE_SIZE) >> 9);
-+
- 		if (iscsi_host_add(shost,
- 				   ib_conn->device->ib_device->dma_device)) {
- 			mutex_unlock(&iser_conn->state_mutex);
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-	device->mr = ib_get_dma_mr(device->pd, IB_ACCESS_LOCAL_WRITE);
++	device->mr = ib_get_dma_mr(device->pd, IB_ACCESS_LOCAL_WRITE |
++					       IB_ACCESS_REMOTE_WRITE);
+ 	if (IS_ERR(device->mr)) {
+ 		ret = PTR_ERR(device->mr);
+ 		isert_err("failed to create dma mr, device %p, ret=%d\n",
