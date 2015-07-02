@@ -1,46 +1,54 @@
-From: Kamal Mostafa <kamal@canonical.com>
-Subject: Re: [PATCH][v3.19.y-ckt] IB/ipoib: change init sequence ordering
-Date: Thu, 02 Jul 2015 10:16:09 -0700
-Message-ID: <1435857369.23145.2.camel@fourier>
-References: <55942302.10602@canonical.com>
+From: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH for-4.2 0/1] RDMA/core: Fixes for port mapper client
+ registration
+Date: Thu, 2 Jul 2015 12:46:09 -0500
+Message-ID: <20150702174609.GA11108@TENIKOLO-MOBL2>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <55942302.10602@canonical.com>
-Sender: stable-owner@vger.kernel.org
-To: Joseph Salisbury <joseph.salisbury@canonical.com>
-Cc: Kamal Mostafa <kamal.mostafa@canonical.com>, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, roland@purestorage.com, ogerlitz@mellanox.com, erezsh@mellanox.com, alex.estrin@intel.com, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, kamalh@mellanox.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2015-07-01 at 13:27 -0400, Joseph Salisbury wrote:
-> Hello,
-> 
-> Please consider including upstream commits
-> be7aa663fc1d9156798f5af3c60e6df45e1fe5de and
-> e135106fac9525352feb8e49077c8f46c3eaf288 in the next v3.19.y-ckt
-> release.  They were included mainline as of v4.1-rc1.  These commits
-> have been tested and confirmed to resolve
-> http://bugs.launchpad.net/bugs/1467912 .
-> 
-> 
-> commit be7aa663fc1d9156798f5af3c60e6df45e1fe5de
-> Author: Doug Ledford <dledford@redhat.com>
-> Date:   Sat Feb 21 19:27:00 2015 -0500
-> 
->     IB/ipoib: change init sequence ordering
-> 
-> commit e135106fac9525352feb8e49077c8f46c3eaf288
-> Author: Doug Ledford <dledford@redhat.com>
-> Date:   Sat Feb 21 19:26:59 2015 -0500
-> 
->     IB/ipoib: factor out ah flushing
-> 
-> The bug reporter states this bug is only happening with the 3.19 kernel,
-> these commits may not be needed in other stable kernels.
+This patch has been reworked, but is very similar to the previously
+submitted (10/16/2014) patch, which was forgotten:
 
-Queued up for 3.19-stable.
+[PATCH 1/1] RDMA/core: Fixes for port mapper client registration
+https://www.mail-archive.com/linux-rdma%40vger.kernel.org/msg21512.html
 
-And thanks very much for the extra analysis and ack on this, Doug.
+This patch is addressing the same issue as the previous one -
+the clients which have provided their mapping info
+to the user space service after it is restarted, are treated as
+unregistered and are not allowed to make remove mapping requests.
 
- -Kamal
+If the user space port mapper service is restarted, it notifies
+the port mapper clients and they provide the mapping information they
+have in use. At this time with the fix the registration type of the client
+is set to IWPM_REG_INCOMPL and the client is allowed to make remove
+mapping requests to the user space service.
+
+There are some improvements in the current patch:
+1) Adding functions to set/check registration type
+2) New clients (calling iwpm_init()) have their registration set to IWPM_REG_UNDEF
+3) If the port mapper user space service is not available, then the client
+   registration stays IWPM_REG_UNDEF and the registration type won't be
+   checked until the service becomes available (obviously no mappings are 
+   possible, if the user space service isn't running).
+
+For these changes to take effect no provider changes are necessary.
+The patch contains fixes for the current registration logic.
+
+Tatyana Nikolova (1):
+  RDMA/core: Fixes for port mapper client registration
+
+ drivers/infiniband/core/iwpm_msg.c  |   33 ++++++++++++++++-----------------
+ drivers/infiniband/core/iwpm_util.c |   12 ++++++++++--
+ drivers/infiniband/core/iwpm_util.h |   28 ++++++++++++++++++++++------
+ 3 files changed, 48 insertions(+), 25 deletions(-)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
