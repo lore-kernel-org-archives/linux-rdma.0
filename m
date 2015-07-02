@@ -1,57 +1,57 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH V3 4/4] RDMA/isert: Support iWARP transport
-Date: Thu, 02 Jul 2015 08:17:43 -0500
-Message-ID: <559539F7.5050905@opengridcomputing.com>
-References: <20150701162936.6501.45512.stgit@build.ogc.int> <20150701163058.6501.39171.stgit@build.ogc.int> <CAJ3xEMjWVwbW0sgVsMj3hPLMRZgJ8srMG89gYzUEbvQAHBaUEw@mail.gmail.com> <009a01d0b43f$f5fa8640$e1ef92c0$@opengridcomputing.com> <CAJ3xEMhehOBvmFBFNwZEda3Wc3UyyyK8iH6HrYfVbD0=8MUa-A@mail.gmail.com> <5594DA1E.7040604@dev.mellanox.co.il>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH V2 3/5] RDMA/core: transport-independent access flags
+Date: Thu, 2 Jul 2015 16:23:22 +0300
+Message-ID: <55953B4A.1070509@dev.mellanox.co.il>
+References: <20150629213332.4188.87551.stgit@build.ogc.int>
+ <20150629213618.4188.50574.stgit@build.ogc.int>
+ <55925FAE.4090004@dev.mellanox.co.il>
+ <1828884A29C6694DAF28B7E6B8A82373A8FFB053@ORSMSX109.amr.corp.intel.com>
+ <5594D8BC.8000300@dev.mellanox.co.il>
+ <559539E0.9030808@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5594DA1E.7040604-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <559539E0.9030808-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/2/2015 1:28 AM, Sagi Grimberg wrote:
-> On 7/2/2015 12:03 AM, Or Gerlitz wrote:
->> On Wed, Jul 1, 2015 at 11:53 PM, Steve Wise 
->> <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
->>>> From: Or Gerlitz [mailto:gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
+On 7/2/2015 4:17 PM, Steve Wise wrote:
+> On 7/2/2015 1:22 AM, Sagi Grimberg wrote:
+>> On 6/30/2015 8:10 PM, Hefty, Sean wrote:
+>>>> I suggest to start consolidating to ib_create_mr() that receives an
+>>>> extensible ib_mr_init_attr and additional attributes can be mr_roles
+>>>> and mr_attrs.
+>>>
+>>> I think this makes sense, but does it really help?
+>>> If the end result is that the app and providers basically
+>>> end up switching on mr_attr::type, we end up reducing the
+>>> number of APIs, but the code complexity remains the same.
+>>>
 >>
->>> Yes, the MR is a local MR, but it is used for REMOTE access for 
->>> iWARP, but not IB.  It think the reason is that in iWARP there is no 
->>> distinction between local and remote keys.  For iwarp you get 1 key 
->>> called a Steering Tag or STAG that is used both locally and 
->>> advertised to the peer (if to be used for REMOTE IO).  Further, that 
->>> STAG is sent to the peer in the RDMA READ REQUEST and the peer iWARP 
->>> stack uses it to generate READ RESPONSE messages with the advertised 
->>> STAG as the READ DESTINATION.  And thus these STAGs require 
->>> REMOTE_WRITE access flags.  In IB, I believe the "key" sent in the 
->>> READ REQUEST is not the MR lkey or rkey at all, but a one-shot 
->>> transaction key, valid for that READ operation only, and the local 
->>> IB stack uses this key to map to the destination MR/lkey when 
->>> processing the RDMA READ RESPONSE. This difference in the protocols 
->>> is what drives the access flag difference.
+>> I think it will reduce code complexity. First, the callers
+>> will have a single API to allocate a memory key. I'm not sure why you
+>> say that app needs to switch on mr::type, it knows which type it wants.
 >>
->>
->> Since in IB/RoCE the key sent on the wire isn't actually something
->> that can be used as rkey by the peer, we can safely do the extra
->> access flags Oring always and not worry which transport is used.
->>
->>
->>> Regardless, I'm not sure what you propose I do differently?  The 
->>> code in this patch does OR the needed access flag if the device is 
->>> iWARP when creating the DMA_MR.
->>
->> So always OR and don't branch
 >
-> Or has a good point.
-> The DMA mkey in target mode is discrete and not sent to any peer.
+> I dont see how doing this is less complex:
 >
+> attr = FASTREG
+> mr = create_mr(attr)
+>
+> vs:
+>
+> mr = lloc_fast_reg_mr()
 
-Yup.  I agree.
+The simplification is that you can facilitate changes like your
+mr_roles and any other things we may want to add to mr allocation
+easily instead of suggesting wrappers over wrappers over wrappers.
 
+This is why I suggested it in the first place.
+
+Sagi.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
