@@ -1,52 +1,40 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V2 3/5] RDMA/core: transport-independent access flags
-Date: Thu, 2 Jul 2015 09:22:52 +0300
-Message-ID: <5594D8BC.8000300@dev.mellanox.co.il>
-References: <20150629213332.4188.87551.stgit@build.ogc.int>
- <20150629213618.4188.50574.stgit@build.ogc.int>
- <55925FAE.4090004@dev.mellanox.co.il>
- <1828884A29C6694DAF28B7E6B8A82373A8FFB053@ORSMSX109.amr.corp.intel.com>
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: [PATCH V3 4/4] RDMA/isert: Support iWARP transport
+Date: Thu, 2 Jul 2015 09:28:46 +0300
+Message-ID: <5594DA1E.7040604@dev.mellanox.co.il>
+References: <20150701162936.6501.45512.stgit@build.ogc.int>
+ <20150701163058.6501.39171.stgit@build.ogc.int>
+ <CAJ3xEMjWVwbW0sgVsMj3hPLMRZgJ8srMG89gYzUEbvQAHBaUEw@mail.gmail.com>
+ <009a01d0b43f$f5fa8640$e1ef92c0$@opengridcomputing.com>
+ <CAJ3xEMhehOBvmFBFNwZEda3Wc3UyyyK8iH6HrYfVbD0=8MUa-A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FFB053-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <CAJ3xEMhehOBvmFBFNwZEda3Wc3UyyyK8iH6HrYfVbD0=8MUa-A@mail.gmail.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Or Gerlitz <gerlitz.or@gmail.com>, Steve Wise <swise@opengridcomputing.com>
+Cc: Doug Ledford <dledford@redhat.com>, Roi Dayan <roid@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Sagi Grimberg <sagig@mellanox.com>, Mike Marciniszyn <infinipath@intel.com>, target-devel@vger.kernel.org, Eli Cohen <eli@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/30/2015 8:10 PM, Hefty, Sean wrote:
->> I suggest to start consolidating to ib_create_mr() that receives an
->> extensible ib_mr_init_attr and additional attributes can be mr_roles
->> and mr_attrs.
+On 7/2/2015 12:03 AM, Or Gerlitz wrote:
+> On Wed, Jul 1, 2015 at 11:53 PM, Steve Wise <swise@opengridcomputing.com> wrote:
+>>> From: Or Gerlitz [mailto:gerlitz.or@gmail.com]
 >
-> I think this makes sense, but does it really help?
-> If the end result is that the app and providers basically
-> end up switching on mr_attr::type, we end up reducing the
-> number of APIs, but the code complexity remains the same.
+>> Yes, the MR is a local MR, but it is used for REMOTE access for iWARP, but not IB.  It think the reason is that in iWARP there is no distinction between local and remote keys.  For iwarp you get 1 key called a Steering Tag or STAG that is used both locally and advertised to the peer (if to be used for REMOTE IO).  Further, that STAG is sent to the peer in the RDMA READ REQUEST and the peer iWARP stack uses it to generate READ RESPONSE messages with the advertised STAG as the READ DESTINATION.  And thus these STAGs require REMOTE_WRITE access flags.  In IB, I believe the "key" sent in the READ REQUEST is not the MR lkey or rkey at all, but a one-shot transaction key, valid for that READ operation only, and the local IB stack uses this key to map to the destination MR/lkey when processing
+  the RDMA READ RESPONSE.  This difference in the protocols is what drives the access flag difference.
 >
+>
+> Since in IB/RoCE the key sent on the wire isn't actually something
+> that can be used as rkey by the peer, we can safely do the extra
+> access flags Oring always and not worry which transport is used.
+>
+>
+>> Regardless, I'm not sure what you propose I do differently?  The code in this patch does OR the needed access flag if the device is iWARP when creating the DMA_MR.
+>
+> So always OR and don't branch
 
-I think it will reduce code complexity. First, the callers
-will have a single API to allocate a memory key. I'm not sure why you
-say that app needs to switch on mr::type, it knows which type it wants.
+Or has a good point.
+The DMA mkey in target mode is discrete and not sent to any peer.
 
-As for drivers, From what I've seen, usually there is a single memory
-key allocation interface to the HW and for each API and drivers call it
-with a slightly different attributes and maybe do some extra driver
-specific logic.
-
-Yes, probably drivers will need to switch on mr_attr::type, but maybe
-just just to determine the correct HW interface and hopefully not to
-a completely different logic. I think that drivers can benefit in
-reduced code duplication in total.
-
-As a first step, we can do a naive switch on mr_attr::type in the
-drivers but I'd expect driver developers to change this logic in their
-driver.
-
-Thoughts?
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sagi.
