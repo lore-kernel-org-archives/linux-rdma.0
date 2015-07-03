@@ -1,104 +1,88 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH infiniband-diags] Close additional file descriptor in iblinkinfo in advance
-Date: Fri, 3 Jul 2015 11:28:58 -0400
-Message-ID: <20150703152857.GI15224@phlsvsds.ph.intel.com>
-References: <552FB794.7080503@dev.mellanox.co.il> <5550F731.9070005@dev.mellanox.co.il>
+From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Subject: Re: Deprecating ipath
+Date: Fri, 3 Jul 2015 08:36:46 -0700
+Message-ID: <20150703153646.GA11227@kroah.com>
+References: <32E1700B9017364D9B60AED9960492BC257567C3@fmsmsx120.amr.corp.intel.com>
+ <CAB=NE6WTPKUF3EUVk6Z91pd+PYTjLdrLHr0Gn=n9+Z98cVdPWg@mail.gmail.com>
+ <20150626165401.GA14699@kroah.com>
+ <D2F193D21ECD8C45917AD3D5B26513300C48DAD5@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <5550F731.9070005-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <D2F193D21ECD8C45917AD3D5B26513300C48DAD5-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, One Thousand Gnomes <gnomes-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, May 11, 2015 at 02:38:41PM -0400, Hal Rosenstock wrote:
-> From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Date: Tue, 14 Apr 2015 18:14:48 +0300
+On Fri, Jul 03, 2015 at 01:25:25PM +0000, Dalessandro, Dennis wrote:
+> > -----Original Message-----
+> > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Greg Kroah-Hartman
+> > Sent: Friday, June 26, 2015 12:54 PM
+> > To: Luis R. Rodriguez
+> > Cc: Marciniszyn, Mike; Borislav Petkov; Ingo Molnar; One Thousand Gnomes;
+> > Doug Ledford; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > Subject: Re: Deprecating ipath
+> > 
+> > On Fri, Jun 26, 2015 at 09:23:27AM -0700, Luis R. Rodriguez wrote:
+> > > On Fri, Jun 26, 2015 at 9:17 AM, Marciniszyn, Mike
+> > > <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> > > > Doug,
+> > > >
+> > > > We have been given the go ahead to start the deprecation process for
+> > thie ipath driver.
+> > >
+> > > That's great! Do you mean removal from Linux?
+> > >
+> > > > What do I need to do to get that done?
+> > >
+> > > Feature removal txt file was removed from the kernel so there is no
+> > > "schedule" per se, not sure what the process these days is for driver
+> > > removal. How about punting it to staging for a release or two and then
+> > > remove it? Not sure if that would be frowned upon or welcomed.
+> > 
+> > That is the process for driver removal, so of course it is welcomed :)
+> > 
+> > > That would have the cost of moving history through directories but git
+> > > --follow helps with that these days. The gain of moving it to staging
+> > > IMHO would be that if anyone who might care would need to complain
+> > may
+> > > do so for a directory change for 1-2 release may spot this easily and
+> > > the issues would be much less than an immediate removal.
+> > 
+> > Yes, that's why we do it this way.
+> > 
+> > Mike, feel free to send me a patch for this if you want me to queue it up for
+> > 4.3.  For 4.2 it's too late.
+> > 
+> > thanks,
+> > 
+> > greg k-h
+> > --
 > 
-> Additional file descriptor for SMP MADs should be closed before running
-> ibnd_discover_fabric() to avoid parallel usage of two SMP file descriptors
-> 
-> Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  src/iblinkinfo.c |   16 ++++++++++------
->  1 files changed, 10 insertions(+), 6 deletions(-)
-> 
-> diff --git a/src/iblinkinfo.c b/src/iblinkinfo.c
-> index 92ff3c6..9dcf698 100644
-> --- a/src/iblinkinfo.c
-> +++ b/src/iblinkinfo.c
-> @@ -594,6 +594,7 @@ int main(int argc, char **argv)
->  	ibnd_fabric_t *diff_fabric = NULL;
->  	struct ibmad_port *ibmad_port;
->  	ib_portid_t port_id = { 0 };
-> +	uint8_t ni[IB_SMP_DATA_SIZE] = { 0 };
->  	int mgmt_classes[3] =
->  	    { IB_SMI_CLASS, IB_SMI_DIRECT_CLASS, IB_SA_CLASS };
->  
-> @@ -653,12 +654,20 @@ int main(int argc, char **argv)
->  		config.timeout_ms = ibd_timeout;
->  	}
->  
-> +	if (!smp_query_via(ni, &port_id, IB_ATTR_NODE_INFO, 0,
-> +				   ibd_timeout, ibmad_port)){
-> +			mad_rpc_close_port(ibmad_port);
-> +			fprintf(stderr,
-> +				"Failed to get local Node Info\n");
-> +			exit(1);
-> +	}
+> Greg, how would you like to consume that patch? There are a number of large
+> files. We can break things up into a series and send through email. We could
+> also post a repo somewhere that you can do a pull from. Something else?
 
-You can't do this here.  This results in the Node Info being incorrect for a
-partial fabric DR query.  For example,
+If you use -M to 'git format-patch' when generating a patch, it will
+show that you just moved the files around the directory tree, and the
+patch should be quite small and easy to email and review.
 
-[root@phcppriv12 sbin]# ./iblinkinfo -D 0,1,1
-Failed to find port: 0,1,1
+In fact, you should use that as a default for all patches, as it's now a
+standard that normal patch can use to consume, I have this in my
+.gitalias file:
+	[alias]
+		fp = format-patch -M
 
-Please fix the DR query,
-Ira
+and just use 'git fp' all the time.
 
->  	config.flags = ibd_ibnetdisc_flags;
->  	config.mkey = ibd_mkey;
->  
->  	node_name_map = open_node_name_map(node_name_map_file);
->  
->  	if (dr_path && load_cache_file) {
-> +		mad_rpc_close_port(ibmad_port);
->  		fprintf(stderr, "Cannot specify cache and direct route path\n");
->  		exit(1);
->  	}
-> @@ -678,6 +687,7 @@ int main(int argc, char **argv)
->  			IBWARN("Failed to resolve %s; attempting full scan\n",
->  			       guid_str);
->  	}
-> +	mad_rpc_close_port(ibmad_port);
->  
->  	if (diff_cache_file &&
->  	    !(diff_fabric = ibnd_load_fabric(diff_cache_file, 0)))
-> @@ -723,11 +733,6 @@ int main(int argc, char **argv)
->  			fprintf(stderr, "Failed to find port: %s\n", guid_str);
->  	} else if (!all && dr_path) {
->  		ibnd_port_t *p = NULL;
-> -		uint8_t ni[IB_SMP_DATA_SIZE] = { 0 };
-> -
-> -		if (!smp_query_via(ni, &port_id, IB_ATTR_NODE_INFO, 0,
-> -				   ibd_timeout, ibmad_port))
-> -			return -1;
->  		mad_decode_field(ni, IB_NODE_PORT_GUID_F, &(guid));
->  
->  		p = ibnd_find_port_guid(fabric, guid);
-> @@ -758,6 +763,5 @@ int main(int argc, char **argv)
->  
->  close_port:
->  	close_node_name_map(node_name_map);
-> -	mad_rpc_close_port(ibmad_port);
->  	exit(rc);
->  }
-> -- 
-> 1.7.8.2
-> 
+try that and see what the results are.
+
+thanks,
+
+greg k-h
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
