@@ -1,60 +1,39 @@
 From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V4 3/5] RDMA/iser: Limit sg tablesize and max_sectors to
- device fastreg max depth
-Date: Sun, 5 Jul 2015 12:57:55 +0300
-Message-ID: <5598FFA3.5020508@dev.mellanox.co.il>
-References: <20150702151508.12946.29133.stgit@build.ogc.int>
- <20150702151619.12946.79500.stgit@build.ogc.int>
+Subject: Re: [PATCH V3 4/4] RDMA/isert: Support iWARP transport
+Date: Sat, 4 Jul 2015 13:51:17 +0300
+Message-ID: <5597BAA5.4070208@dev.mellanox.co.il>
+References: <20150701162936.6501.45512.stgit@build.ogc.int>
+ <20150701163058.6501.39171.stgit@build.ogc.int>
+ <CAJ3xEMjWVwbW0sgVsMj3hPLMRZgJ8srMG89gYzUEbvQAHBaUEw@mail.gmail.com>
+ <009a01d0b43f$f5fa8640$e1ef92c0$@opengridcomputing.com>
+ <CAJ3xEMhehOBvmFBFNwZEda3Wc3UyyyK8iH6HrYfVbD0=8MUa-A@mail.gmail.com>
+ <5594DA1E.7040604@dev.mellanox.co.il>
+ <20150702163937.GB4642@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150702151619.12946.79500.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
+In-Reply-To: <20150702163937.GB4642-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/2/2015 6:16 PM, Steve Wise wrote:
-> Currently the sg tablesize, which dictates fast register page list
-> depth to use, does not take into account the limits of the rdma device.
-> So adjust it once we discover the device fastreg max depth limit.  Also
-> adjust the max_sectors based on the resulting sg tablesize.
+On 7/2/2015 7:39 PM, Jason Gunthorpe wrote:
+> On Thu, Jul 02, 2015 at 09:28:46AM +0300, Sagi Grimberg wrote:
 >
-> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->   drivers/infiniband/ulp/iser/iscsi_iser.c |    9 +++++++++
->   1 files changed, 9 insertions(+), 0 deletions(-)
+>> Or has a good point.
+>> The DMA mkey in target mode is discrete and not sent to any peer.
 >
-> diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
-> index 6a594aa..0ed8638 100644
-> --- a/drivers/infiniband/ulp/iser/iscsi_iser.c
-> +++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-> @@ -640,6 +640,15 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
->   						   SHOST_DIX_GUARD_CRC);
->   		}
+> That doesn't mean the peer cannot guess it.
 >
-> +		/*
-> +		 * Limit the sg_tablesize and max_sectors based on the device
-> +		 * max fastreg page list length.
-> +		 */
-> +		shost->sg_tablesize = min_t(u32, shost->sg_tablesize,
-> +			ib_conn->device->dev_attr.max_fast_reg_page_list_len);
-> +		shost->max_sectors =
-> +			min(1024, (shost->sg_tablesize * PAGE_SIZE) >> 9);
-> +
+> Using the right permission is clearly a stronger protection, we
+> shouldn't weaken IB just to accommodate iWarp's limitations.
+>
 
-Steve,
+Can't argue with that.
 
-This triggers a compilation warning:
-drivers/infiniband/ulp/iser/iscsi_iser.c: In function 
-iscsi_iser_session_create:
-drivers/infiniband/ulp/iser/iscsi_iser.c:653: warning: comparison of 
-distinct pointer types lacks a cast
-
-For next time, let's remove the reviewed-by tags and I'll re-review the
-patches.
+Sorry Steve for the hassle...
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
