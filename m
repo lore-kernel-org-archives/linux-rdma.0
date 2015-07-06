@@ -1,79 +1,215 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3] libibverbs init.c: conditionally emit warning if no
- userspace driver found
-Date: Mon, 06 Jul 2015 12:51:53 -0400
-Message-ID: <559AB229.7060608@redhat.com>
-References: <1431440068-19037-1-git-send-email-jsquyres@cisco.com> <BED0001D-0051-4ACD-8506-8FA07E625694@cisco.com> <1432044878.5304.1.camel@opteya.com> <1432049804.3114.41.camel@redhat.com> <1432133301.5304.10.camel@opteya.com> <1432139226.3114.83.camel@redhat.com> <1828884A29C6694DAF28B7E6B8A82373A8FDD9BC@ORSMSX109.amr.corp.intel.com> <1432141870.3114.89.camel@redhat.com> <B397943B-9919-47CC-94E9-98A2A0BEFE8F@cisco.com> <1432305861.28905.83.camel@redhat.com> <22F52D8B-92CB-47B2-8A9A-DD20B36C3305@cisco.com> <1433350209.40123.55.camel@redhat.com> <0FB46382-3793-4056-BB40-8FFBA67ACF85@cisco.com> <CA0ED4EA-C64E-47F2-9B6B-5B995BECA77D@redhat.com> <F9B48EF8-8760-45A0-8322-CE4FC859D5B6@cisco.com>
+From: "Steve Wise" <swise@opengridcomputing.com>
+Subject: RE: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+Date: Mon, 6 Jul 2015 11:55:49 -0500
+Message-ID: <002b01d0b80c$9c711780$d5534680$@opengridcomputing.com>
+References: <20150705231831.12029.80307.stgit@build2.ogc.int> <20150705232158.12029.25472.stgit@build2.ogc.int> <559A340E.9000000@dev.mellanox.co.il> <001601d0b7f9$3e1d6d40$ba5847c0$@opengridcomputing.com> <559AAA22.1000608@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="3Ew23g4lRNkcgqFBvwW5BMH9HHCtngxVe"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <F9B48EF8-8760-45A0-8322-CE4FC859D5B6-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain;
+	charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <559AAA22.1000608@dev.mellanox.co.il>
+Content-Language: en-us
+Sender: target-devel-owner@vger.kernel.org
+To: 'Sagi Grimberg' <sagig@dev.mellanox.co.il>, dledford@redhat.com
+Cc: sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, trond.myklebust@primarydata.com, bfields@fieldses.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---3Ew23g4lRNkcgqFBvwW5BMH9HHCtngxVe
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-On 07/06/2015 09:35 AM, Jeff Squyres (jsquyres) wrote:
-> On Jun 17, 2015, at 10:25 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> wrote:
->>=20
->> The patch is accepted, I just haven=E2=80=99t pushed it out yet.
->=20
-> Is there a timeline for when this patch will be available in the
-> upstream git repo and released in a new version of libibverbs?
->=20
-> I ask because we'd like to see this patch get into upstream distro
-> libibverbs releases.  Once that happens, we can start planning the
-> end of the horrible hackarounds we had to put into place (e.g., in
-> Open MPI) to suppress the misleading libibverbs output.
->=20
-> Thanks!
->=20
-
-The goal I had in mind was to work through this merge window until we
-are in RCs on kernel stuff, then shift my focus to libibverbs and try to
-work through a few of the outstanding issues for it and maybe have a
-release prior to the next merge window for the kernel.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
 
 
+> -----Original Message-----
+> From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-owner@vger.kernel.org] On Behalf Of Sagi Grimberg
+> Sent: Monday, July 06, 2015 11:18 AM
+> To: Steve Wise; dledford@redhat.com
+> Cc: sagig@mellanox.com; ogerlitz@mellanox.com; roid@mellanox.com; linux-rdma@vger.kernel.org; eli@mellanox.com; target-
+> devel@vger.kernel.org; linux-nfs@vger.kernel.org; trond.myklebust@primarydata.com; bfields@fieldses.org
+> Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+> 
+> On 7/6/2015 5:37 PM, Steve Wise wrote:
+> >
+> >
+> >> -----Original Message-----
+> >> From: Sagi Grimberg [mailto:sagig@dev.mellanox.co.il]
+> >> Sent: Monday, July 06, 2015 2:54 AM
+> >> To: Steve Wise; dledford@redhat.com
+> >> Cc: sagig@mellanox.com; ogerlitz@mellanox.com; roid@mellanox.com; linux-rdma@vger.kernel.org; eli@mellanox.com; target-
+> >> devel@vger.kernel.org; linux-nfs@vger.kernel.org; trond.myklebust@primarydata.com; bfields@fieldses.org
+> >> Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+> >>
+> >> On 7/6/2015 2:22 AM, Steve Wise wrote:
+> >>> The semantics for MR access flags are not consistent across RDMA
+> >>> protocols.  So rather than have applications try and glean what they
+> >>> need, have them pass in the intended roles and attributes for the MR to
+> >>> be allocated and let the RDMA core select the appropriate access flags
+> >>> given the roles, attributes, and device capabilities.
+> >>>
+> >>> We introduce rdma_mr_roles and rdma_mr_attributes that enumerate the
+> >>> possible roles and attributes for a MR.  These are documented in the
+> >>> enums themselves.
+> >>>
+> >>> New services exported:
+> >>>
+> >>> rdma_device_access_flags() - given the intended MR roles and attributes
+> >>> passed in, return the ib_access_flags bits for the device.
+> >>>
+> >>> rdma_get_dma_mr() - allocate a dma mr using the applications intended
+> >>> MR roles and MR attributes.  This uses rdma_device_access_flags().
+> >>>
+> >>> rdma_fast_reg_access_flags() - return the ib_access_flags bits needed
+> >>> for a fast register WR given the applications intended MR roles and
+> >>> MR attributes.  This uses rdma_device_access_flags().
+> >>>
+> >>> Signed-off-by: Steve Wise <swise@opengridcomputing.com>
+> >>> ---
+> >>>
+> >>>    drivers/infiniband/core/verbs.c |   30 +++++++++++
+> >>>    include/rdma/ib_verbs.h         |  106 +++++++++++++++++++++++++++++++++++++++
+> >>>    2 files changed, 136 insertions(+), 0 deletions(-)
+> >>>
+> >>> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+> >>> index bac3fb4..f42595c 100644
+> >>> --- a/drivers/infiniband/core/verbs.c
+> >>> +++ b/drivers/infiniband/core/verbs.c
+> >>> @@ -1144,6 +1144,36 @@ struct ib_mr *ib_get_dma_mr(struct ib_pd *pd, int mr_access_flags)
+> >>>    }
+> >>>    EXPORT_SYMBOL(ib_get_dma_mr);
+> >>>
+> >>> +int rdma_device_access_flags(struct ib_pd *pd, int roles, int attrs)
+> >>> +{
+> >>> +	int access_flags = attrs;
+> >>> +
+> >>> +	if (roles & RDMA_MRR_RECV)
+> >>> +		access_flags |= IB_ACCESS_LOCAL_WRITE;
+> >>> +
+> >>> +	if (roles & RDMA_MRR_WRITE_DEST)
+> >>> +		access_flags |= IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_WRITE;
+> >>> +
+> >>> +	if (roles & RDMA_MRR_READ_DEST) {
+> >>> +		access_flags |= IB_ACCESS_LOCAL_WRITE;
+> >>> +		if (rdma_protocol_iwarp(pd->device,
+> >>> +					rdma_start_port(pd->device)))
+> >>> +			access_flags |= IB_ACCESS_REMOTE_WRITE;
+> >>> +	}
+> >>> +
+> >>> +	if (roles & RDMA_MRR_READ_SOURCE)
+> >>> +		access_flags |= IB_ACCESS_REMOTE_READ;
+> >>> +
+> >>> +	if (roles & RDMA_MRR_ATOMIC_DEST)
+> >>> +		access_flags |= IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_ATOMIC;
+> >>> +
+> >>> +	if (roles & RDMA_MRR_MW_BIND)
+> >>> +		access_flags |= IB_ACCESS_MW_BIND;
+> >>> +
+> >>> +	return access_flags;
+> >>> +}
+> >>> +EXPORT_SYMBOL(rdma_device_access_flags);
+> >>> +
+> >>>    struct ib_mr *ib_reg_phys_mr(struct ib_pd *pd,
+> >>>    			     struct ib_phys_buf *phys_buf_array,
+> >>>    			     int num_phys_buf,
+> >>> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> >>> index 986fddb..da1eadf 100644
+> >>> --- a/include/rdma/ib_verbs.h
+> >>> +++ b/include/rdma/ib_verbs.h
+> >>> @@ -2494,6 +2494,112 @@ static inline int ib_req_ncomp_notif(struct ib_cq *cq, int wc_cnt)
+> >>>    struct ib_mr *ib_get_dma_mr(struct ib_pd *pd, int mr_access_flags);
+> >>>
+> >>>    /**
+> >>> + * rdma_mr_roles - possible roles an RDMA MR will be used for
+> >>> + *
+> >>> + * This allows a transport independent RDMA application to
+> >>> + * create MRs that are usable for all the desired roles w/o
+> >>> + * having to understand which access rights are needed.
+> >>> + */
+> >>> +enum {
+> >>> +
+> >>> +	/* lkey used in a ib_recv_wr sge */
+> >>> +	RDMA_MRR_RECV			= 1,
+> >>> +
+> >>> +	/* lkey used for IB_WR_SEND* ops in the ib_send_wr sge */
+> >>> +	RDMA_MRR_SEND			= (1<<1),
+> >>> +
+> >>> +	/* rkey used for IB_WR_RDMA_READ* ops in ib_send_wr wr.rdma.rkey */
+> >>> +	RDMA_MRR_READ_SOURCE		= (1<<2),
+> >>> +
+> >>> +	/* lkey used for IB_WR_RDMA_READ* ops in the ib_send_wr sge */
+> >>> +	RDMA_MRR_READ_DEST		= (1<<3),
+> >>> +
+> >>> +	/* lkey used for IB_WR_RDMA_WRITE* ops in the ib_send_wr sge */
+> >>> +	RDMA_MRR_WRITE_SOURCE		= (1<<4),
+> >>> +
+> >>> +	/* rkey used for IB_WR_RDMA_WRITE* ops in ib_send_wr wr.rdma.rkey */
+> >>> +	RDMA_MRR_WRITE_DEST		= (1<<5),
+> >>> +
+> >>> +	/*
+> >>> +	 * lkey used for IB_WR_ATOMIC/MASKED_ATOMIC* ops in the ib_send_wr sge
+> >>> +	 */
+> >>> +	RDMA_MRR_ATOMIC_SOURCE		= (1<<6),
+> >>> +
+> >>> +	/*
+> >>> +	 * rkey used for IB_WR_ATOMIC/MASKED_ATOMIC* ops in ib_send_wr
+> >>> +	 * wr.atomic.rkey
+> >>> +	 */
+> >>> +	RDMA_MRR_ATOMIC_DEST		= (1<<7),
+> >>> +
+> >>> +	/* MR used for a IB_WR_MW_BIND in ib_send_wr wr.bind_mw.bind_info.mr */
+> >>> +	RDMA_MRR_MW_BIND		= (1<<8),
+> >>> +};
+> >>> +
+> >>> +/**
+> >>> + * rdma_mr_attributes - attributes for rdma memory regions
+> >>> + */
+> >>> +enum {
+> >>> +	RDMA_MRA_ZERO_BASED		= IB_ZERO_BASED,
+> >>> +	RDMA_MRA_ACCESS_ON_DEMAND	= IB_ACCESS_ON_DEMAND,
+> >>> +};
+> >>> +
+> >>> +/**
+> >>> + * rdma_device_access_flags - Returns the device-specific MR access flags.
+> >>> + * @pd: The protection domain associated with the memory region.
+> >>> + * @roles: The intended roles of the MR
+> >>> + * @attrs: The desired attributes of the MR
+> >>> + *
+> >>> + * Use the intended roles from @roles along with @attrs and the device
+> >>> + * capabilities to generate the needed access rights.
+> >>> + *
+> >>> + * Return: the ib_access_flags value needed to allocate the MR.
+> >>> + */
+> >>> +int rdma_device_access_flags(struct ib_pd *pd, int roles, int attrs);
+> >>> +
+> >>> +/**
+> >>> + * rdma_get_dma_mr - Returns a memory region for system memory that is
+> >>> + * usable for DMA.
+> >>> + * @pd: The protection domain associated with the memory region.
+> >>> + * @roles: The intended roles of the MR
+> >>> + * @attrs: The desired attributes of the MR
+> >>> + *
+> >>> + * Use the intended roles from @roles along with @attrs and the device
+> >>> + * capabilities to define the needed access rights, and call
+> >>> + * ib_get_dma_mr() to allocate the MR.
+> >>> + *
+> >>> + * Note that the ib_dma_*() functions defined below must be used
+> >>> + * to create/destroy addresses used with the Lkey or Rkey returned
+> >>> + * by ib_get_dma_mr().
+> >>> + *
+> >>> + * Return: struct ib_mr pointer upon success, or a pointer encoded errno upon
+> >>> + * failure.
+> >>> + */
+> >>> +static inline struct ib_mr *rdma_get_dma_mr(struct ib_pd *pd, int roles,
+> >>> +					    int attrs)
+> >>> +{
+> >>> +	return ib_get_dma_mr(pd, rdma_device_access_flags(pd, roles, attrs));
+> >>> +}
+> >>> +
+> >>
+> >> I still think this wrapper should go away...
+> >
+> > Ok. I'll remove all uses of ib_get_dma_mr()...
+> >
+> >
+> 
+> I meant that rdma_get_dma_mr can go away. I'd prefer to get the
+> needed access_flags and just call existing verb.
+> 
 
---3Ew23g4lRNkcgqFBvwW5BMH9HHCtngxVe
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJVmrIpAAoJELgmozMOVy/dbo4P/iv7M5MD9HRew+z8+YCtI6SA
-5TmTLAzA/Qw/G0OUUvZiVQtbLi1Ie+3VC7Fef41ZRm8Gk+Fo04nsnpqtqmpdesyQ
-Se7MXOYEw6o92+MCS8Hk0ZfEpnR6RTVazfEKE6Y7UVjQFHg80o7pD/LgZ86RA5eC
-q8mrSqlbUj55oPWQSeEL5hbDRsLIwQ3grNIt4nvHqVBd9FZOBhHMSKUPj2VoUjBV
-qZ4WHdASdYEC3fubYLj8lbQWG3vJBIWNjKOHBo6gNDf9CcmbYaMcp42I/qp20Z7s
-s7i/BHQGoBkwxTgQFakE0OB35JMBCwPnOE1SAe+60VzLlJKD9SBsiY4X8i3X6599
-gwVqPWevwth6r27j7+rGdogj7N+hlxg6/XS4vcpeecBQc4b9lqhPAQPaeyuSpF6c
-0zw7l/rwC0SZxyaPS/kRv+BT+7XXUUdtgZVRas2N5rjIgPlN8sazqPU2kAmt84d+
-EC8BFTUPDzIkIJEKDljIgZaWF9qKQpmIi7tmhtGO4/Xe4FBY9DHcWwKR9tnXD7gc
-tdqWCOKu6f6nibv8+v8Gsb2iBYVo3y3k+4sejoJtSEgpU87tVCH7prx6IQJwSNyR
-ngwcAzdqq0LaUSuOVJdrSIvmDnQybC5lxCOdzVrme8fgrAvYvP7P7yt8+oG1yk0Y
-zqFEyukMOmj+eEoAGVGb
-=vpis
------END PGP SIGNATURE-----
-
---3Ew23g4lRNkcgqFBvwW5BMH9HHCtngxVe--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So just export rdma_device_access_flags(rd, roles, attrs), and then change the ULPs to call this to obtain the access flags.  That is ok with me.  What do others think?
