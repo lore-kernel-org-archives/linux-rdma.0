@@ -1,73 +1,89 @@
-From: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] rds: rds_ib_device.refcount overflow
-Date: Mon, 06 Jul 2015 11:01:42 +0800
-Message-ID: <5599EF96.4010105@oracle.com>
-References: <1435121680-11491-1-git-send-email-wen.gang.wang@oracle.com>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+Date: Sun, 5 Jul 2015 22:25:15 -0700
+Message-ID: <20150706052515.GA1109@infradead.org>
+References: <20150705231831.12029.80307.stgit@build2.ogc.int>
+ <20150705232158.12029.25472.stgit@build2.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1435121680-11491-1-git-send-email-wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <target-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150705232158.12029.25472.stgit@build2.ogc.int>
+Sender: target-devel-owner@vger.kernel.org
+To: Steve Wise <swise@opengridcomputing.com>
+Cc: dledford@redhat.com, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, trond.myklebust@primarydata.com, bfields@fieldses.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
-
-Could you please review this patch?
-
-thanks,
-wengang
-
-=E5=9C=A8 2015=E5=B9=B406=E6=9C=8824=E6=97=A5 12:54, Wengang Wang =E5=86=
-=99=E9=81=93:
-> There lacks a dropping on rds_ib_device.refcount in case rds_ib_alloc=
-_fmr
-> failed(mr pool running out). this lead to the refcount overflow.
->
-> A complain in line 117(see following) is seen. From vmcore:
-> s_ib_rdma_mr_pool_depleted is 2147485544 and rds_ibdev->refcount is -=
-2147475448.
-> That is the evidence the mr pool is used up. so rds_ib_alloc_fmr is v=
-ery likely
-> to return ERR_PTR(-EAGAIN).
->
-> 115 void rds_ib_dev_put(struct rds_ib_device *rds_ibdev)
-> 116 {
-> 117         BUG_ON(atomic_read(&rds_ibdev->refcount) <=3D 0);
-> 118         if (atomic_dec_and_test(&rds_ibdev->refcount))
-> 119                 queue_work(rds_wq, &rds_ibdev->free_work);
-> 120 }
->
-> fix is to drop refcount when rds_ib_alloc_fmr failed.
->
-> Signed-off-by: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+On Sun, Jul 05, 2015 at 06:22:00PM -0500, Steve Wise wrote:
+> The semantics for MR access flags are not consistent across RDMA
+> protocols.  So rather than have applications try and glean what they
+> need, have them pass in the intended roles and attributes for the MR to
+> be allocated and let the RDMA core select the appropriate access flags
+> given the roles, attributes, and device capabilities.
+> 
+> We introduce rdma_mr_roles and rdma_mr_attributes that enumerate the
+> possible roles and attributes for a MR.  These are documented in the
+> enums themselves.
+> 
+> New services exported:
+> 
+> rdma_device_access_flags() - given the intended MR roles and attributes
+> passed in, return the ib_access_flags bits for the device.
+> 
+> rdma_get_dma_mr() - allocate a dma mr using the applications intended
+> MR roles and MR attributes.  This uses rdma_device_access_flags().
+> 
+> rdma_fast_reg_access_flags() - return the ib_access_flags bits needed
+> for a fast register WR given the applications intended MR roles and
+> MR attributes.  This uses rdma_device_access_flags().
+> 
+> Signed-off-by: Steve Wise <swise@opengridcomputing.com>
 > ---
->   net/rds/ib_rdma.c | 4 +++-
->   1 file changed, 3 insertions(+), 1 deletion(-)
->
-> diff --git a/net/rds/ib_rdma.c b/net/rds/ib_rdma.c
-> index 273b8bf..657ba9f 100644
-> --- a/net/rds/ib_rdma.c
-> +++ b/net/rds/ib_rdma.c
-> @@ -759,8 +759,10 @@ void *rds_ib_get_mr(struct scatterlist *sg, unsi=
-gned long nents,
->   	}
->  =20
->   	ibmr =3D rds_ib_alloc_fmr(rds_ibdev);
-> -	if (IS_ERR(ibmr))
-> +	if (IS_ERR(ibmr)) {
-> +		rds_ib_dev_put(rds_ibdev);
->   		return ibmr;
-> +	}
->  =20
->   	ret =3D rds_ib_map_fmr(rds_ibdev, ibmr, sg, nents);
->   	if (ret =3D=3D 0)
+> 
+>  drivers/infiniband/core/verbs.c |   30 +++++++++++
+>  include/rdma/ib_verbs.h         |  106 +++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 136 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+> index bac3fb4..f42595c 100644
+> --- a/drivers/infiniband/core/verbs.c
+> +++ b/drivers/infiniband/core/verbs.c
+> @@ -1144,6 +1144,36 @@ struct ib_mr *ib_get_dma_mr(struct ib_pd *pd, int mr_access_flags)
+>  }
+>  EXPORT_SYMBOL(ib_get_dma_mr);
+>  
+> +int rdma_device_access_flags(struct ib_pd *pd, int roles, int attrs)
+> +{
+> +	int access_flags = attrs;
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please add an assert for the values that are allowed for attrs.
+
+It also would be highly useful to add a kerneldoc comment describing
+the function and the parameters.  Also __bitwise sparse tricks
+to ensure the right flags are passed wouldn't be a too bad idea.
+
+> +/**
+> + * rdma_mr_attributes - attributes for rdma memory regions
+> + */
+> +enum {
+> +	RDMA_MRA_ZERO_BASED		= IB_ZERO_BASED,
+> +	RDMA_MRA_ACCESS_ON_DEMAND	= IB_ACCESS_ON_DEMAND,
+> +};
+
+Why not specfiy these as separate nuerical namespace?
+
+> +/**
+> + * rdma_device_access_flags - Returns the device-specific MR access flags.
+> + * @pd: The protection domain associated with the memory region.
+> + * @roles: The intended roles of the MR
+> + * @attrs: The desired attributes of the MR
+> + *
+> + * Use the intended roles from @roles along with @attrs and the device
+> + * capabilities to generate the needed access rights.
+> + *
+> + * Return: the ib_access_flags value needed to allocate the MR.
+> + */
+> +int rdma_device_access_flags(struct ib_pd *pd, int roles, int attrs);
+
+Oh, here we have kerneldoc comments, just in the wrong place.  Please
+move them to the function defintion.
