@@ -1,44 +1,99 @@
-From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v3] libibverbs init.c: conditionally emit warning if no
- userspace driver found
-Date: Mon, 6 Jul 2015 13:35:50 +0000
-Message-ID: <F9B48EF8-8760-45A0-8322-CE4FC859D5B6@cisco.com>
-References: <1431440068-19037-1-git-send-email-jsquyres@cisco.com>
- <BED0001D-0051-4ACD-8506-8FA07E625694@cisco.com>
- <1432044878.5304.1.camel@opteya.com> <1432049804.3114.41.camel@redhat.com>
- <1432133301.5304.10.camel@opteya.com> <1432139226.3114.83.camel@redhat.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FDD9BC@ORSMSX109.amr.corp.intel.com>
- <1432141870.3114.89.camel@redhat.com>
- <B397943B-9919-47CC-94E9-98A2A0BEFE8F@cisco.com>
- <1432305861.28905.83.camel@redhat.com>
- <22F52D8B-92CB-47B2-8A9A-DD20B36C3305@cisco.com>
- <1433350209.40123.55.camel@redhat.com>
- <0FB46382-3793-4056-BB40-8FFBA67ACF85@cisco.com>
- <CA0ED4EA-C64E-47F2-9B6B-5B995BECA77D@redhat.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH for-next V6 3/5] IB/uverbs: Enable device removal when
+ there are active user space applications
+Date: Mon, 06 Jul 2015 17:08:08 +0300
+Message-ID: <559A8BC8.60507@dev.mellanox.co.il>
+References: <1435659967-27173-1-git-send-email-yishaih@mellanox.com> <1435659967-27173-4-git-send-email-yishaih@mellanox.com> <20150630184035.GC2819@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CA0ED4EA-C64E-47F2-9B6B-5B995BECA77D-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <ABB2A94D55B77D479F1772F02F1C5EAE-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
+In-Reply-To: <20150630184035.GC2819-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, achiang-VXdhtT5mjnY@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gSnVuIDE3LCAyMDE1LCBhdCAxMDoyNSBBTSwgRG91ZyBMZWRmb3JkIDxkbGVkZm9yZEByZWRo
-YXQuY29tPiB3cm90ZToNCj4gDQo+IFRoZSBwYXRjaCBpcyBhY2NlcHRlZCwgSSBqdXN0IGhhdmVu
-4oCZdCBwdXNoZWQgaXQgb3V0IHlldC4NCg0KSXMgdGhlcmUgYSB0aW1lbGluZSBmb3Igd2hlbiB0
-aGlzIHBhdGNoIHdpbGwgYmUgYXZhaWxhYmxlIGluIHRoZSB1cHN0cmVhbSBnaXQgcmVwbyBhbmQg
-cmVsZWFzZWQgaW4gYSBuZXcgdmVyc2lvbiBvZiBsaWJpYnZlcmJzPw0KDQpJIGFzayBiZWNhdXNl
-IHdlJ2QgbGlrZSB0byBzZWUgdGhpcyBwYXRjaCBnZXQgaW50byB1cHN0cmVhbSBkaXN0cm8gbGli
-aWJ2ZXJicyByZWxlYXNlcy4gIE9uY2UgdGhhdCBoYXBwZW5zLCB3ZSBjYW4gc3RhcnQgcGxhbm5p
-bmcgdGhlIGVuZCBvZiB0aGUgaG9ycmlibGUgaGFja2Fyb3VuZHMgd2UgaGFkIHRvIHB1dCBpbnRv
-IHBsYWNlIChlLmcuLCBpbiBPcGVuIE1QSSkgdG8gc3VwcHJlc3MgdGhlIG1pc2xlYWRpbmcgbGli
-aWJ2ZXJicyBvdXRwdXQuDQoNClRoYW5rcyENCg0KLS0gDQpKZWZmIFNxdXlyZXMNCmpzcXV5cmVz
-QGNpc2NvLmNvbQ0KRm9yIGNvcnBvcmF0ZSBsZWdhbCBpbmZvcm1hdGlvbiBnbyB0bzogaHR0cDov
-L3d3dy5jaXNjby5jb20vd2ViL2Fib3V0L2RvaW5nX2J1c2luZXNzL2xlZ2FsL2NyaS8NCg0K
+On 6/30/2015 9:40 PM, Jason Gunthorpe wrote:
+> On Tue, Jun 30, 2015 at 01:26:05PM +0300, Yishai Hadas wrote:
+>>   struct ib_uverbs_device {
+>> -	struct kref				ref;
+>> +	struct kref				comp_ref;
+>> +	struct kref				free_ref;
+>
+> So.. I was looking at this, and there is something wrong with the
+> existing code.
+>
+> This old code:
+>
+> 	cdev_del(&uverbs_dev->cdev);
+> 	[..]
+>   	wait_for_completion(&uverbs_dev->comp);
+> -	kfree(uverbs_dev);
+>
+> Has built in to it an assumption that when cdev_del returns there can
+> be no possible open() running. Which doesn't appear to be true, cdev
+> calls open unlocked and relies on refcounting to make everything work
+> out.
+
+The patch that introduces this bug was added 5 years ago by Alex Chiang 
+and Signed-off-by: Roland Dreier.
+
+Look at commit ID:2a72f212263701b927559f6850446421d5906c41, it can be 
+seen also at: 
+http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=2a72f212263701b 
+
+
+Before this commit there was a device look-up table that was protected 
+by a spin_lock used by ib_uverbs_open and by ib_uverbs_remove_one. When 
+it was dropped and container_of was used instead, it enabled the race 
+with remove_one as dev might be freed just after:
+dev = container_of(inode->i_cdev, struct ib_uverbs_device, cdev) but 
+before the kref_get.
+
+In addition, this buggy patch added some dead code as 
+container_of(x,y,z) can never be NULL and so dev can never be NULL.
+As a result the comment above ib_uverbs_open saying "the open method 
+will either immediately run -ENXIO" is wrong as it can never happen.
+
+  static int ib_uverbs_open(struct inode *inode, struct file *filp)
+  {
+@@ -631,13 +628,10 @@ static int ib_uverbs_open(struct inode *inode, 
+struct file *filp)
+  	struct ib_uverbs_file *file;
+  	int ret;
+
+-	spin_lock(&map_lock);
+-	dev = dev_table[iminor(inode) - IB_UVERBS_BASE_MINOR];
++	dev = container_of(inode->i_cdev, struct ib_uverbs_device, cdev);
+  	if (dev)
+  		kref_get(&dev->ref);
+-	spin_unlock(&map_lock);
+-
+-	if (!dev)
++	else
+  		return -ENXIO;
+
+
+Doug/Jason,
+AFAIK V6 addressed all opened comments raised by Jason, including the 
+last one that asked to use 2 separate krefs for both complete and free, 
+it didn't introduced the problem above.
+
+I believe that we should go forward and take the series. Please consider 
+that this series fixes an existing oops in patch #1 and adds a missing 
+functionality in the kernel, "Enable device removal when there are 
+active user space clients".
+
+To fix the existing 5 years bug an orthogonal patch that fixes the buggy 
+patch should be sent.
+
+Alex/Roland:
+Please review above, any option that you'll contribute a patch that 
+solves that problem ? any comment on ?
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
