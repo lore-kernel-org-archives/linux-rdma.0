@@ -1,15 +1,15 @@
 From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
-Date: Mon, 6 Jul 2015 10:53:50 +0300
-Message-ID: <559A340E.9000000@dev.mellanox.co.il>
+Date: Mon, 6 Jul 2015 10:58:46 +0300
+Message-ID: <559A3536.3020807@dev.mellanox.co.il>
 References: <20150705231831.12029.80307.stgit@build2.ogc.int>
  <20150705232158.12029.25472.stgit@build2.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20150705232158.12029.25472.stgit-PBeJgSbIpn97NCTnQtmixQ@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
@@ -179,9 +179,28 @@ On 7/6/2015 2:22 AM, Steve Wise wrote:
 > +	return ib_get_dma_mr(pd, rdma_device_access_flags(pd, roles, attrs));
 > +}
 > +
+> +/**
+> + * rdma_fast_reg_access_flags - Returns the access flags needed for a fast
+> + * register operation.
+> + * @pd: The protection domain associated with the memory region.
+> + * @roles: The intended roles of the MR
+> + * @attrs: The desired attributes of the MR
+> + *
+> + * Use the intended roles from @roles along with @attrs and the device
+> + * capabilities to define the needed access rights for a fast registration
+> + * work request.
+> + *
+> + * Return: the ib_access_flags value needed for fast registration.
+> + */
+> +static inline int rdma_fast_reg_access_flags(struct ib_pd *pd, int roles,
+> +					     int attrs)
+> +{
+> +	return rdma_device_access_flags(pd, roles, attrs);
+> +}
 
-I still think this wrapper should go away...
+Why do we have rdma_fast_reg_access_flags() that just trampolines to
+rdma_device_access_flags()? why do we need it?
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
