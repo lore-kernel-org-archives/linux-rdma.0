@@ -1,83 +1,64 @@
-From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: [PATCH V5 3/5] RDMA/iser: Limit sg tablesize and max_sectors to device fastreg max depth
-Date: Tue, 7 Jul 2015 08:59:39 -0500
-Message-ID: <000601d0b8bd$2aa599d0$7ff0cd70$@opengridcomputing.com>
-References: <20150705174353.10042.39648.stgit@build2.ogc.int> <20150705174452.10042.44695.stgit@build2.ogc.int> <559A335A.90506@dev.mellanox.co.il> <001401d0b7f9$09c21b40$1d4651c0$@opengridcomputing.com> <559B712D.7020105@dev.mellanox.co.il>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+Date: Tue, 7 Jul 2015 09:05:15 -0500
+Message-ID: <000b01d0b8bd$f2bfcc10$d83f6430$@opengridcomputing.com>
+References: <20150705231831.12029.80307.stgit@build2.ogc.int> <20150705232158.12029.25472.stgit@build2.ogc.int> <559A340E.9000000@dev.mellanox.co.il> <001601d0b7f9$3e1d6d40$ba5847c0$@opengridcomputing.com> <559AAA22.1000608@dev.mellanox.co.il> <20150707090001.GB11736@infradead.org> <559B9891.8060907@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <559B712D.7020105@dev.mellanox.co.il>
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <559B9891.8060907-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Content-Language: en-us
-Sender: target-devel-owner@vger.kernel.org
-To: 'Sagi Grimberg' <sagig@dev.mellanox.co.il>, dledford@redhat.com
-Cc: infinipath@intel.com, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
 
 > -----Original Message-----
-> From: Sagi Grimberg [mailto:sagig@dev.mellanox.co.il]
-> Sent: Tuesday, July 07, 2015 1:27 AM
-> To: Steve Wise; dledford@redhat.com
-> Cc: infinipath@intel.com; sagig@mellanox.com; ogerlitz@mellanox.com; roid@mellanox.com; linux-rdma@vger.kernel.org;
-> eli@mellanox.com; target-devel@vger.kernel.org
-> Subject: Re: [PATCH V5 3/5] RDMA/iser: Limit sg tablesize and max_sectors to device fastreg max depth
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Sagi Grimberg
+> Sent: Tuesday, July 07, 2015 4:15 AM
+> To: Christoph Hellwig
+> Cc: Steve Wise; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org; bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+> Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
 > 
-> On 7/6/2015 5:35 PM, Steve Wise wrote:
-> >
-> >
-> >> -----Original Message-----
-> >> From: Sagi Grimberg [mailto:sagig@dev.mellanox.co.il]
-> >> Sent: Monday, July 06, 2015 2:51 AM
-> >> To: Steve Wise; dledford@redhat.com
-> >> Cc: infinipath@intel.com; sagig@mellanox.com; ogerlitz@mellanox.com; roid@mellanox.com; linux-rdma@vger.kernel.org;
-> >> eli@mellanox.com; target-devel@vger.kernel.org
-> >> Subject: Re: [PATCH V5 3/5] RDMA/iser: Limit sg tablesize and max_sectors to device fastreg max depth
+> On 7/7/2015 12:00 PM, Christoph Hellwig wrote:
+> > On Mon, Jul 06, 2015 at 07:17:38PM +0300, Sagi Grimberg wrote:
+> >>> Ok. I'll remove all uses of ib_get_dma_mr()...
+> >>>
+> >>>
 > >>
-> >> On 7/5/2015 8:44 PM, Steve Wise wrote:
-> >>> Currently the sg tablesize, which dictates fast register page list
-> >>> depth to use, does not take into account the limits of the rdma device.
-> >>> So adjust it once we discover the device fastreg max depth limit.  Also
-> >>> adjust the max_sectors based on the resulting sg tablesize.
-> >>>
-> >>> Signed-off-by: Steve Wise <swise@opengridcomputing.com>
-> >>> ---
-> >>>
-> >>>    drivers/infiniband/ulp/iser/iscsi_iser.c |    9 +++++++++
-> >>>    1 files changed, 9 insertions(+), 0 deletions(-)
-> >>>
-> >>> diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
-> >>> index 6a594aa..de8730d 100644
-> >>> --- a/drivers/infiniband/ulp/iser/iscsi_iser.c
-> >>> +++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-> >>> @@ -640,6 +640,15 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
-> >>>    						   SHOST_DIX_GUARD_CRC);
-> >>>    		}
-> >>>
-> >>> +		/*
-> >>> +		 * Limit the sg_tablesize and max_sectors based on the device
-> >>> +		 * max fastreg page list length.
-> >>> +		 */
-> >>> +		shost->sg_tablesize = min_t(unsigned short, shost->sg_tablesize,
-> >>> +			ib_conn->device->dev_attr.max_fast_reg_page_list_len);
-> >>> +		shost->max_sectors = min_t(unsigned int,
-> >>> +			1024, (shost->sg_tablesize * PAGE_SIZE) >> 9);
-> >>> +
-> >>
-> >> The min statement is meaningless for max_sectors - you do a min between
-> >> default sg_tablesize and frpl length - so the maximum sg_tablesize is
-> >> 128 which is 1024 max_sectors.
+> >> I meant that rdma_get_dma_mr can go away. I'd prefer to get the
+> >> needed access_flags and just call existing verb.
 > >
-> > I'm not following.  What if ib_conn->device->dev_attr.max_fast_reg_page_list_len is say, 32?
-> > Then shost->sg_tablesize is set to 32, and max_sectors is set to (32*4K) >> 9 == 256 512B sectors.
+> > I strongly disagree.  As this series has shown the existing API is not
+> > epressive enough for all transports.  It thus needs to go away and be
+> > fully replaced by the new API introduced here.
+> >
 > 
-> Correct - but it cannot exceed 1024 (as it is derived from sg_tablesize
-> which is maximum 128).
+> Christoph,
+> 
+> I wasn't arguing about having a transport independent API. I was
+> referring to this wrapper specifically that trampolines to
+> ib_get_dma_mr() with rdma_device_access_flags(pd, roles, attrs) helper.
+> 
+> The rdma_device_access_flags() itself is fine. However, given that
+> this helper is used elsewhere as well, I don't see the point of having
+> yet another helper specifically just for the dma_mr case that does
+> nothing more than trampolines with a call to rdma_device_access_flags().
+> 
 
-Actually it is initialized to 1024 in iscsi_iser_sht / iscsi_iser.c, so it isn't derived from sg_tables (although it probably should be).  I can remove the min_t() though.
+I took the feedback from Christoph and Jason to mean I should remove ib_get_dma_mr() entirely and pull its guts into
+rdma_get_dma_mr(), and change all the users of ib_get_dma_mr() to use rdma_get_dma_mr().  So the net result isn't a wrapper.  It
+would of course still use rdma_device_access_flags()...
 
-Hey Or, thoughts?
+Steve. 
 
-Steve.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
