@@ -1,88 +1,99 @@
-From: "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH for-4.2 0/1] RDMA/core: Fixes for port mapper client
- registration
-Date: Mon, 6 Jul 2015 20:59:42 +0000
-Message-ID: <13AA599688F47243B14FCFCCC2C803BB0DAFE093@fmsmsx104.amr.corp.intel.com>
-References: <20150702174609.GA11108@TENIKOLO-MOBL2>
- <003301d0b810$10b02070$32106150$@opengridcomputing.com>
+From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Subject: Re: [PATCH V5 0/5] iSER support for iWARP
+Date: Mon, 06 Jul 2015 17:38:53 -0700
+Message-ID: <1436229533.6297.0.camel@haakon3.risingtidesystems.com>
+References: <20150705174353.10042.39648.stgit@build2.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <003301d0b810$10b02070$32106150$@opengridcomputing.com>
-Content-Language: en-US
+In-Reply-To: <20150705174353.10042.39648.stgit-PBeJgSbIpn97NCTnQtmixQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "Lacombe, John S" <john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Steve,
+Hi Steve & Co,
 
->> how can I reproduce the original bug/issue and then test this fix on iw_cxgb4?
-
-Have iwpmd running and start an rdma application. 
-Leave the rdma application running and restart the iwpmd. 
-When you stop the application, if you have the debug enabled, you will see that the remove mapping request from the client driver to the port mapper service isn't going through, (without the fix, it isn't allowed, because the client is treated as unregistered).
-
-Tatyana
-
------Original Message-----
-From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Steve Wise
-Sent: Monday, July 06, 2015 12:21 PM
-To: Nikolova, Tatyana E; 'Doug Ledford'
-Cc: Lacombe, John S; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: RE: [PATCH for-4.2 0/1] RDMA/core: Fixes for port mapper client registration
-
-
-
-> -----Original Message-----
-> From: Tatyana Nikolova [mailto:Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
-> Sent: Thursday, July 02, 2015 12:46 PM
-> To: Doug Ledford
-> Cc: john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org; swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org; 
-> linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: [PATCH for-4.2 0/1] RDMA/core: Fixes for port mapper client 
-> registration
+On Sun, 2015-07-05 at 12:44 -0500, Steve Wise wrote:
+> The following series implements support for iWARP transports in the iSER
+> initiator and target.  This is based on Doug's k.o/for-4.2 branch.
 > 
-> This patch has been reworked, but is very similar to the previously 
-> submitted (10/16/2014) patch, which was forgotten:
+> I've tested this on cxgb4 and mlx4 hardware.
 > 
-> [PATCH 1/1] RDMA/core: Fixes for port mapper client registration 
-> https://www.mail-archive.com/linux-rdma%40vger.kernel.org/msg21512.htm
-> l
+> Changes since V4:
 > 
-> This patch is addressing the same issue as the previous one - the 
-> clients which have provided their mapping info to the user space 
-> service after it is restarted, are treated as unregistered and are not 
-> allowed to make remove mapping requests.
+> iser: fixedcompiler warning
 > 
-> If the user space port mapper service is restarted, it notifies the 
-> port mapper clients and they provide the mapping information they have 
-> in use. At this time with the fix the registration type of the client 
-> is set to IWPM_REG_INCOMPL and the client is allowed to make remove 
-> mapping requests to the user space service.
+> isert: back to setting REMOTE_WRITE only for iWARP devices
 > 
-> There are some improvements in the current patch:
-> 1) Adding functions to set/check registration type
-> 2) New clients (calling iwpm_init()) have their registration set to 
-> IWPM_REG_UNDEF
-> 3) If the port mapper user space service is not available, then the client
->    registration stays IWPM_REG_UNDEF and the registration type won't be
->    checked until the service becomes available (obviously no mappings are
->    possible, if the user space service isn't running).
+> Changes since V3:
 > 
-> For these changes to take effect no provider changes are necessary.
-> The patch contains fixes for the current registration logic.
+> Fixed commit messages based on feedback.
+> 
+> iser: adjust max_sectors
+> 
+> isert: split into 2 patches
+> 
+> isert: always set REMOTE_WRITE for dma mrs
+> 
+> Changes since V2:
+> 
+> The transport independent work is removed from this series and will
+> be submitted in a subsequent series.  This V3 series now enables iWARP
+> using existing core services.
+> 
+> Changes since V1:
+> 
+> Introduce and use transport-independent RDMA core services for allocating
+> DMA MRs and computing fast register access flags.
+> 
+> Correctly set the device max_sge_rd capability in several rdma device
+> drivers.
+> 
+> isert: use device capability max_sge_rd for the read sge depth.
+> 
+> isert: change max_sge to max_write_sge in struct isert_conn.
+> 
+> ---
+> 
+> Sagi Grimberg (1):
+>       mlx4, mlx5, mthca: Expose max_sge_rd correctly
+> 
+> Steve Wise (4):
+>       RDMA/isert: Limit read depth based on the device max_sge_rd capability
+>       RDMA/isert: Set REMOTE_WRITE on DMA MRs to support iWARP devices
+>       RDMA/iser: Limit sg tablesize and max_sectors to device fastreg max depth
+>       ipath,qib: Expose max_sge_rd correctly
+> 
+> 
+>  drivers/infiniband/hw/ipath/ipath_verbs.c    |    1 
+>  drivers/infiniband/hw/mlx4/main.c            |    1 
+>  drivers/infiniband/hw/mlx5/main.c            |    1 
+>  drivers/infiniband/hw/mthca/mthca_provider.c |    1 
+>  drivers/infiniband/hw/qib/qib_verbs.c        |    1 
+>  drivers/infiniband/ulp/iser/iscsi_iser.c     |    9 ++++
+>  drivers/infiniband/ulp/isert/ib_isert.c      |   53 ++++++++++++++++++++++----
+>  drivers/infiniband/ulp/isert/ib_isert.h      |    3 +
+>  8 files changed, 60 insertions(+), 10 deletions(-)
 > 
 
-Hey Tatyana, how can I reproduce the original bug/issue and then test this fix on iw_cxgb4? 
+Very excited to see iWARP support for iser-initiator + iser-target.  ;)
+
+No objections to taking the iser-target changes through Doug's
+infiniband.git.  For the target pieces:
+
+Acked-by: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+
+Also Doug, since this series is sufficiently small enough, and allows a class
+of hardware that people are expecting to function with iser to 'just work', I'd
+recommend to go ahead and push this series for v4.2-rc code.
+
+Thank you,
+
+--nab
 
 
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
