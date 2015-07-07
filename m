@@ -1,70 +1,61 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V5 3/5] RDMA/iser: Limit sg tablesize and max_sectors
- to device fastreg max depth
-Date: Tue, 7 Jul 2015 17:32:12 +0300
-Message-ID: <559BE2EC.8030806@mellanox.com>
-References: <20150705174353.10042.39648.stgit@build2.ogc.int>
- <20150705174452.10042.44695.stgit@build2.ogc.int>
- <559A335A.90506@dev.mellanox.co.il>
- <001401d0b7f9$09c21b40$1d4651c0$@opengridcomputing.com>
- <559B712D.7020105@dev.mellanox.co.il>
- <000601d0b8bd$2aa599d0$7ff0cd70$@opengridcomputing.com>
+From: Haggai Eran <haggaie@mellanox.com>
+Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+Date: Tue, 7 Jul 2015 17:34:13 +0300
+Message-ID: <559BE365.4070007@mellanox.com>
+References: <20150705231831.12029.80307.stgit@build2.ogc.int>
+ <20150705232158.12029.25472.stgit@build2.ogc.int>
+ <559A2991.3040304@mellanox.com>
+ <001e01d0b8bf$9785ff70$c691fe50$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <000601d0b8bd$2aa599d0$7ff0cd70$@opengridcomputing.com>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <001e01d0b8bf$9785ff70$c691fe50$@opengridcomputing.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Steve Wise <swise@opengridcomputing.com>, dledford@redhat.com
+Cc: sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, trond.myklebust@primarydata.com, bfields@fieldses.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/7/2015 4:59 PM, Steve Wise wrote:
->>>>> > >>>diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
->>>>> > >>>index 6a594aa..de8730d 100644
->>>>> > >>>--- a/drivers/infiniband/ulp/iser/iscsi_iser.c
->>>>> > >>>+++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
->>>>> > >>>@@ -640,6 +640,15 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
->>>>> > >>>    						   SHOST_DIX_GUARD_CRC);
->>>>> > >>>    		}
->>>>> > >>>
->>>>> > >>>+		/*
->>>>> > >>>+		 * Limit the sg_tablesize and max_sectors based on the device
->>>>> > >>>+		 * max fastreg page list length.
->>>>> > >>>+		 */
->>>>> > >>>+		shost->sg_tablesize = min_t(unsigned short, shost->sg_tablesize,
->>>>> > >>>+			ib_conn->device->dev_attr.max_fast_reg_page_list_len);
->>>>> > >>>+		shost->max_sectors = min_t(unsigned int,
->>>>> > >>>+			1024, (shost->sg_tablesize * PAGE_SIZE) >> 9);
->>>>> > >>>+
->>>> > >>
->>>> > >>The min statement is meaningless for max_sectors - you do a min between
->>>> > >>default sg_tablesize and frpl length - so the maximum sg_tablesize is
->>>> > >>128 which is 1024 max_sectors.
->>> > >
->>> > >I'm not following.  What if ib_conn->device->dev_attr.max_fast_reg_page_list_len is say, 32?
->>> > >Then shost->sg_tablesize is set to 32, and max_sectors is set to (32*4K) >> 9 == 256 512B sectors.
->> >
->> >Correct - but it cannot exceed 1024 (as it is derived from sg_tablesize
->> >which is maximum 128).
-> Actually it is initialized to 1024 in iscsi_iser_sht / iscsi_iser.c, so it isn't derived from sg_tables (although it probably should be).  I can remove the min_t() though.
->
-> Hey Or, thoughts?
+On 07/07/2015 17:17, Steve Wise wrote:
+> 
+> 
+>> -----Original Message-----
+>> From: linux-nfs-owner@vger.kernel.org [mailto:linux-nfs-owner@vger.kernel.org] On Behalf Of Haggai Eran
+>> Sent: Monday, July 06, 2015 2:09 AM
+>> To: Steve Wise; dledford@redhat.com
+>> Cc: sagig@mellanox.com; ogerlitz@mellanox.com; roid@mellanox.com; linux-rdma@vger.kernel.org; eli@mellanox.com; target-
+>> devel@vger.kernel.org; linux-nfs@vger.kernel.org; trond.myklebust@primarydata.com; bfields@fieldses.org
+>> Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+>>
+>> On 06/07/2015 02:22, Steve Wise wrote:
+>>> +int rdma_device_access_flags(struct ib_pd *pd, int roles, int attrs)
+>>> +{
+>>> +	int access_flags = attrs;
+>>> +
+>>> +	if (roles & RDMA_MRR_RECV)
+>>> +		access_flags |= IB_ACCESS_LOCAL_WRITE;
+>>> +
+>>> +	if (roles & RDMA_MRR_WRITE_DEST)
+>>> +		access_flags |= IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_WRITE;
+>>> +
+>>> +	if (roles & RDMA_MRR_READ_DEST) {
+>>> +		access_flags |= IB_ACCESS_LOCAL_WRITE;
+>>> +		if (rdma_protocol_iwarp(pd->device,
+>>> +					rdma_start_port(pd->device)))
+>>> +			access_flags |= IB_ACCESS_REMOTE_WRITE;
+>>> +	}
+>>> +
+>>> +	if (roles & RDMA_MRR_READ_SOURCE)
+>>> +		access_flags |= IB_ACCESS_REMOTE_READ;
+>>> +
+>>> +	if (roles & RDMA_MRR_ATOMIC_DEST)
+>>> +		access_flags |= IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_ATOMIC;
+>>
+>> I think you need LOCAL_WRITE for ATOMIC_SOURCE in order to receive the
+>> results of the atomic operation.
+>>
+> 
+> Where/how are the results returned?  In a recv completion?  If so, then that MR would need RDMA_MRR_RECV, not RDMA_MRR_ATOMIC_SOURCE.
 
-Originally, we've put the double restriction of 128 SG entries AND 1024 
-sectors to make sure that whatever SG is up there, it'snot spanning > 
-512KB.
-
-Think on SG whose one/some of their element/s is > one page or on 
-systems with > 4KB page size or others examples... since your patch 
-touched the number of SG entries I was thinking you need to make sure no 
-regression was introduced re the max_sectors to be <= 1024
-
-If U2 are @ consensus that this is  the case with the original patch w.o 
-further changes, let it be.
-
-Or.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+They are returned in the scatter list provided in ib_send_wr.sg_list,
+similarly to how RDMA read results are returned.
