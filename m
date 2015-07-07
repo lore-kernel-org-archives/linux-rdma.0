@@ -1,65 +1,42 @@
-From: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: IBV_SEND_INLINE Behavior Differing from Spec
-Date: Tue, 7 Jul 2015 05:59:04 +0000
-Message-ID: <AM3PR05MB09354D182E55A1A06BBE9E21DC920@AM3PR05MB0935.eurprd05.prod.outlook.com>
-References: <CAPb9-SECy6OJ5S8SCv_3y18MC4NVGJprtNFmimq5MkxK4xg6jw@mail.gmail.com>
-	<CAL1RGDUHLBAj6dd8gEy=Ro5zMxckF8b3_7KhzZNZayHr7tWOqQ@mail.gmail.com>
- <CAPb9-SH9LgLKsvZ2uq9cYVaDowrgBTBCOq-yy2+eu_acQ25+OQ@mail.gmail.com>
+From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+Subject: Re: [PATCH v2 2/2] x86/mm/pat, drivers/media/ivtv: move pat warn and
+ replace WARN() with pr_warn()
+Date: Mon, 6 Jul 2015 23:53:20 -0700
+Message-ID: <CAB=NE6WzpSLREPkLt0k1_42V5DGKYQx3cqMnGeOFwv1-wkxVhg@mail.gmail.com>
+References: <1435166600-11956-1-git-send-email-mcgrof@do-not-panic.com>
+ <1435166600-11956-3-git-send-email-mcgrof@do-not-panic.com>
+ <20150625065147.GB5339@gmail.com> <20150625173847.GH3005@wotan.suse.de>
+ <20150626084546.GD26303@gmail.com> <1435322161.2713.10.camel@localhost>
+ <20150629065505.GB17509@gmail.com> <57337D5A-7486-4D01-8316-DFAF4CAF3DA7@md.metrocast.net>
+ <20150707004417.GM7021@wotan.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAPb9-SH9LgLKsvZ2uq9cYVaDowrgBTBCOq-yy2+eu_acQ25+OQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christopher Mitchell <christopher-1z5WdJkP5Frk1uMJSBkQmQ@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150707004417.GM7021@wotan.suse.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andy Lutomirski <luto@amacapital.net>, Ingo Molnar <mingo@kernel.org>
+Cc: Andy Walls <awalls@md.metrocast.net>, Andy Walls <andy@silverblocksystems.net>, Toshi Kani <toshi.kani@hp.com>, Hyong-Youb Kim <hkim@cspi.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, "Luis R. Rodriguez" <mcgrof@do-not-panic.com>, Borislav Petkov <bp@suse.de>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Doug Ledford <dledford@redhat.com>, Fengguang Wu <fengguang.wu@intel.com>, linux-media@vger.kernel.org, linux-rdma@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-DQpIaSwNCg0KPiBGcm9tOiBsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRv
-OmxpbnV4LXJkbWEtDQo+IG93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIENocmlz
-dG9waGVyIE1pdGNoZWxsDQo+IFNlbnQ6IFR1ZXNkYXksIEp1bHkgMDcsIDIwMTUgNToyMSBBTQ0K
-PiANCj4gUm9sYW5kLA0KPiANCj4gTXkgbGlibWx4NCBpcyBuYW1lZCBsaWJtbHg0LXJkbWF2Mi5z
-byBhbmQgdGltZXN0YW1wZWQgMjAxNC0wMS0wMSAoZnJvbQ0KPiB0aGUgcGFja2FnZSBsaWJtbHg0
-LTEsIDEuMC41LTF1YnVudHUxIGZvciBVYnVudHUgVHJ1c3R5IDE0LjA0KS4NCg0KVGhpcyBpcyBn
-b29kIHRvIGFsaWduIHVzIG9uIHRoZSBzb3VyY2UgY29kZS4gUmVhZGluZyB0aGVyZSwgSSBzZWUg
-dGhlDQpmb2xsb3dpbmcgY29kZSBoYW5kbGluZyBpbmxpbmUgZGF0YSBjb3B5Og0KCQkJCXdoaWxl
-IChsZW4gPj0gTUxYNF9JTkxJTkVfQUxJR04gLSBvZmYpIHsNCgkJCQkJdG9fY29weSA9IE1MWDRf
-SU5MSU5FX0FMSUdOIC0gb2ZmOw0KCQkJCQltZW1jcHkod3FlLCBhZGRyLCB0b19jb3B5KTsNCgkJ
-CQkJbGVuIC09IHRvX2NvcHk7DQoJCQkJCXdxZSArPSB0b19jb3B5Ow0KCQkJCQlhZGRyICs9IHRv
-X2NvcHk7DQoJCQkJCXNlZ19sZW4gKz0gdG9fY29weTsNCgkJCQkJd21iKCk7IC8qIHNlZSBjb21t
-ZW50IGJlbG93ICovDQoJCQkJCXNlZy0+Ynl0ZV9jb3VudCA9IGh0b25sKE1MWDRfSU5MSU5FX1NF
-RyB8IHNlZ19sZW4pOw0KCQkJCQlzZWdfbGVuID0gMDsNCgkJCQkJc2VnID0gd3FlOw0KCQkJCQl3
-cWUgKz0gc2l6ZW9mICpzZWc7DQoJCQkJCW9mZiA9IHNpemVvZiAqc2VnOw0KCQkJCQkrK251bV9z
-ZWc7DQoJCQkJfQ0KDQoJCQkJbWVtY3B5KHdxZSwgYWRkciwgbGVuKTsNCgkJCQl3cWUgKz0gbGVu
-Ow0KCQkJCXNlZ19sZW4gKz0gbGVuOw0KCQkJCW9mZiArPSBsZW47DQoNCk5vdGUgdGhlIG1lbWNw
-eSB0byB0aGUgd29yayBxdWV1ZSBlbGVtZW50ICgid3FlIikuIFRoaXMgYnVmZmVyIGlzIGNvbXBs
-ZXRlbHkNCmluZGVwZW5kZW50IG9mIHRoZSBvcmlnaW5hbCBkYXRhIGJ1ZmZlci4gVW5sZXNzIG1l
-bWNweSBzdGFydGVkIGJlaGF2aW5nDQpkaWZmZXJlbnRseSByZWNlbnRseSwgdGhpcyBkb2VzIG5v
-dCBzZWVtIGxpa2Ugc29tZXRoaW5nIHRoYXQgY2FuIHByb2R1Y2UNCnRoZSBzeW1wdG9tcyB5b3Ug
-YXJlIGRlc2NyaWJpbmcuDQoNCj4gSSB1c2UNCj4gYSBtdXRleC1wcm90ZWN0ZWQgRklGTyBvZiBz
-ZW5kIGJ1ZmZlcnMgdG8gbWFrZSBzdXJlIG9ubHkgb25lIHRocmVhZCBpcw0KPiBhYmxlIHRvIGFj
-cXVpcmUgYSBwYXJ0aWN1bGFyIHNlbmQgYnVmZmVyIGF0IGEgdGltZSwgYW5kIG15IGFwcGxpY2F0
-aW9uDQo+IGRvZXMgbm90IG1vZGlmeSBhIHNlbmQgYnVmZmVyIGFmdGVyIGl0IHBhc3NlcyBpdCB0
-byBteSBtZXNzYWdlLXNlbmRpbmcNCj4gbWV0aG9kLg0KDQpXaGlsZSBub3QgZGlyZWN0bHkgcmVs
-YXRlZCB0byBpc3N1ZSBhdCBoYW5kLCB5b3UgbWlnaHQgd2FudCB0byBjb25zaWRlcg0KYSBkZXNp
-Z24gd2hlcmUgZWFjaCB0aHJlYWQgaXMgdXNpbmcgYW4gaW5kZXBlbmRlbnQgd29yayBxdWV1ZSwg
-dG8gcHJldmVudA0KZGF0YSBkZXBlbmRlbmNpZXMgYW5kIGxvY2tpbmcgYmV0d2VlbiB0aHJlYWRz
-Lg0KDQo+IEkndmUgYWxzbyByZXBsaWNhdGVkIHRoaXMgd2l0aCBhIHNpbmdsZS10aHJlYWRlZCB2
-ZXJzaW9uIG9mDQo+IHRoZSBhcHBsaWNhdGlvbjsgc29tZXRoaW5nIGFzIHNpbXBsZSBhcyB6ZXJv
-aW5nIG91dCB0aGUgZmlyc3QgYnl0ZSBvZg0KPiB0aGUgc2VuZCBidWZmZXIgb24gdGhlIGxpbmUg
-YWZ0ZXIgaWJ2X3Bvc3Rfc2VuZCgpIGlzIGVub3VnaCB0bw0KPiBvY2Nhc2lvbmFsbHkgdHJpZ2dl
-ciB0aGlzIGJlaGF2aW9yLg0KPg0KDQpDYW4geW91IHByb3ZpZGUgYSBzaG9ydCByZXByb2R1Y2Vy
-IGNvZGUgZm9yIHRoaXM/DQoNCkNvdWxkIGl0IGJlIHRoYXQgeW91IGFyZSBjYWxsaW5nICJmb3Jr
-IiAob3IgYSB2YXJpYW50IG9mIGl0LCBpLmUuIHN5c3RlbSgpKQ0KaW4geW91ciBjb2RlIGFmdGVy
-IGRvaW5nIHRoZSBtZW1vcnkgcmVnaXN0cmF0aW9uIGFuZCBiZWZvcmUgY2FsbGluZw0KdGhlIHBv
-c3Qgc2VuZCB2ZXJiPyBUaGlzIGNhbiBsZWFkIHRvIHNpbWlsYXIgYmVoYXZpb3JzLCBhcyB0aGUg
-bWVtb3J5IHBhZ2UNCmlzIENvV2VkIGFuZCB0aGUgcmVnaXN0ZXJlZCBtZW1vcnkgcGFnZXMgb2Yg
-dGhlIHdvcmsgcXVldWUgbWlnaHQgZGlmZmVyIGZyb20NCndoYXQgbGlibWx4NCBpcyB3cml0aW5n
-IGludG8uDQoNClRoYW5rcywNCi0tU2hhY2hhcg0KDQpOLkIuIHlvdSBtaWdodCB3YW50IHRvIGF2
-b2lkIHRvcC1wb3N0aW5nIGluIE9TUyBtYWlsaW5nIGxpc3RzLCBhcyBpdCBtYWtlcyBpdA0KaGFy
-ZCB0byBtYWludGFpbiBjb250ZXh0Lg0KDQo=
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Mon, Jul 6, 2015 at 5:44 PM, Luis R. Rodriguez <mcgrof@suse.com> wrote:
+> If we really wanted to we could consider arch_phys_wc_add()
+
+I mean adding a __arch_phys_wc_add() which does not check for pat_enabled().
+
+> and
+> deal with that this will not check for pat_enabled() and forces MTRR...
+> I think Andy Luto won't like that very much though ? I at least don't
+> like it since we did all this work to finally leave only 1 piece of
+> code with direct MTRR access... Seems a bit sad. Since ipath will
+> be removed we'd have only ivtv driver using this API, I am not sure if
+> its worth it.
+
+Since ipath is going away soon we'd just have one driver with the icky
+#ifdef code. I'd rather see that and then require semantics / grammer
+rules to require ioremap_wc() when used with arch_phys_wc_add(). I
+don't think ivtv is worth to consider breaking the semantics and
+requirements.
+
+> Thoughts?
+
+ Luis
