@@ -1,60 +1,69 @@
-From: Christopher Mitchell <christopher-1z5WdJkP5Frk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: IBV_SEND_INLINE Behavior Differing from Spec
-Date: Mon, 6 Jul 2015 22:21:11 -0400
-Message-ID: <CAPb9-SH9LgLKsvZ2uq9cYVaDowrgBTBCOq-yy2+eu_acQ25+OQ@mail.gmail.com>
-References: <CAPb9-SECy6OJ5S8SCv_3y18MC4NVGJprtNFmimq5MkxK4xg6jw@mail.gmail.com>
-	<CAL1RGDUHLBAj6dd8gEy=Ro5zMxckF8b3_7KhzZNZayHr7tWOqQ@mail.gmail.com>
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: [PATCH V5 3/5] RDMA/iser: Limit sg tablesize and max_sectors to
+ device fastreg max depth
+Date: Tue, 7 Jul 2015 09:26:53 +0300
+Message-ID: <559B712D.7020105@dev.mellanox.co.il>
+References: <20150705174353.10042.39648.stgit@build2.ogc.int>
+ <20150705174452.10042.44695.stgit@build2.ogc.int>
+ <559A335A.90506@dev.mellanox.co.il>
+ <001401d0b7f9$09c21b40$1d4651c0$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDUHLBAj6dd8gEy=Ro5zMxckF8b3_7KhzZNZayHr7tWOqQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <001401d0b7f9$09c21b40$1d4651c0$@opengridcomputing.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Steve Wise <swise@opengridcomputing.com>, dledford@redhat.com
+Cc: infinipath@intel.com, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Roland,
+On 7/6/2015 5:35 PM, Steve Wise wrote:
+>
+>
+>> -----Original Message-----
+>> From: Sagi Grimberg [mailto:sagig@dev.mellanox.co.il]
+>> Sent: Monday, July 06, 2015 2:51 AM
+>> To: Steve Wise; dledford@redhat.com
+>> Cc: infinipath@intel.com; sagig@mellanox.com; ogerlitz@mellanox.com; roid@mellanox.com; linux-rdma@vger.kernel.org;
+>> eli@mellanox.com; target-devel@vger.kernel.org
+>> Subject: Re: [PATCH V5 3/5] RDMA/iser: Limit sg tablesize and max_sectors to device fastreg max depth
+>>
+>> On 7/5/2015 8:44 PM, Steve Wise wrote:
+>>> Currently the sg tablesize, which dictates fast register page list
+>>> depth to use, does not take into account the limits of the rdma device.
+>>> So adjust it once we discover the device fastreg max depth limit.  Also
+>>> adjust the max_sectors based on the resulting sg tablesize.
+>>>
+>>> Signed-off-by: Steve Wise <swise@opengridcomputing.com>
+>>> ---
+>>>
+>>>    drivers/infiniband/ulp/iser/iscsi_iser.c |    9 +++++++++
+>>>    1 files changed, 9 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
+>>> index 6a594aa..de8730d 100644
+>>> --- a/drivers/infiniband/ulp/iser/iscsi_iser.c
+>>> +++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
+>>> @@ -640,6 +640,15 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
+>>>    						   SHOST_DIX_GUARD_CRC);
+>>>    		}
+>>>
+>>> +		/*
+>>> +		 * Limit the sg_tablesize and max_sectors based on the device
+>>> +		 * max fastreg page list length.
+>>> +		 */
+>>> +		shost->sg_tablesize = min_t(unsigned short, shost->sg_tablesize,
+>>> +			ib_conn->device->dev_attr.max_fast_reg_page_list_len);
+>>> +		shost->max_sectors = min_t(unsigned int,
+>>> +			1024, (shost->sg_tablesize * PAGE_SIZE) >> 9);
+>>> +
+>>
+>> The min statement is meaningless for max_sectors - you do a min between
+>> default sg_tablesize and frpl length - so the maximum sg_tablesize is
+>> 128 which is 1024 max_sectors.
+>
+> I'm not following.  What if ib_conn->device->dev_attr.max_fast_reg_page_list_len is say, 32?
+> Then shost->sg_tablesize is set to 32, and max_sectors is set to (32*4K) >> 9 == 256 512B sectors.
 
-My libmlx4 is named libmlx4-rdmav2.so and timestamped 2014-01-01 (from
-the package libmlx4-1, 1.0.5-1ubuntu1 for Ubuntu Trusty 14.04). I use
-a mutex-protected FIFO of send buffers to make sure only one thread is
-able to acquire a particular send buffer at a time, and my application
-does not modify a send buffer after it passes it to my message-sending
-method. I've also replicated this with a single-threaded version of
-the application; something as simple as zeroing out the first byte of
-the send buffer on the line after ibv_post_send() is enough to
-occasionally trigger this behavior.
-
-Thanks,
-Christopher
-
-On Sun, Jul 5, 2015 at 12:28 PM, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org> wrote:
-> On Fri, Jul 3, 2015 at 2:50 PM, Christopher Mitchell
-> <christopher-1z5WdJkP5Frk1uMJSBkQmQ@public.gmane.org> wrote:
->> The manpage for ibv_post_send indicates that if you specify the
->> IBV_SEND_INLINE flag, that you can immediately re-use the buffer after
->> ibv_post_send() returns. However, I have found that if I modify the
->> buffer immediately after ibv_post_send(), the changes are rarely
->> reflected in the presumably already-posted message. I'm using
->> ConnectX-3 cards and RC connections, if that's relevant. Is this a
->> known issue, and/or is it possible I'm missing something obvious?
->
-> I can't see any way to get the behavior you're seeing.  What version
-> of libmlx4 are you using?
->
-> The reason I say I don't see how that can happen is that in
-> mlx4_post_send() in libmlx4, if IBV_SEND_INLINE is set, the code
-> memcpys the data into the descriptor and does not keep any reference
-> to the pointers passed in through the sg ilst.  So I don't see how the
-> hardware could even detect that you change the data after
-> ibv_post_send().
->
-> Or what do you mean about "after ibv_post_send()"?  Are you possibly
-> changing the data from another thread and racing with the memcpy
-> before ibv_post_send() returns?
->
->  - R.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Correct - but it cannot exceed 1024 (as it is derived from sg_tablesize
+which is maximum 128).
