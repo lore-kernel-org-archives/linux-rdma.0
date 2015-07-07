@@ -1,61 +1,33 @@
-From: Haggai Eran <haggaie@mellanox.com>
-Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
-Date: Tue, 7 Jul 2015 17:34:13 +0300
-Message-ID: <559BE365.4070007@mellanox.com>
-References: <20150705231831.12029.80307.stgit@build2.ogc.int>
- <20150705232158.12029.25472.stgit@build2.ogc.int>
- <559A2991.3040304@mellanox.com>
- <001e01d0b8bf$9785ff70$c691fe50$@opengridcomputing.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <001e01d0b8bf$9785ff70$c691fe50$@opengridcomputing.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Steve Wise <swise@opengridcomputing.com>, dledford@redhat.com
-Cc: sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, trond.myklebust@primarydata.com, bfields@fieldses.org
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH 0/2] lockdep warning fixes
+Date: Tue,  7 Jul 2015 17:45:11 +0300
+Message-ID: <1436280313-21451-1-git-send-email-haggaie@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/07/2015 17:17, Steve Wise wrote:
-> 
-> 
->> -----Original Message-----
->> From: linux-nfs-owner@vger.kernel.org [mailto:linux-nfs-owner@vger.kernel.org] On Behalf Of Haggai Eran
->> Sent: Monday, July 06, 2015 2:09 AM
->> To: Steve Wise; dledford@redhat.com
->> Cc: sagig@mellanox.com; ogerlitz@mellanox.com; roid@mellanox.com; linux-rdma@vger.kernel.org; eli@mellanox.com; target-
->> devel@vger.kernel.org; linux-nfs@vger.kernel.org; trond.myklebust@primarydata.com; bfields@fieldses.org
->> Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
->>
->> On 06/07/2015 02:22, Steve Wise wrote:
->>> +int rdma_device_access_flags(struct ib_pd *pd, int roles, int attrs)
->>> +{
->>> +	int access_flags = attrs;
->>> +
->>> +	if (roles & RDMA_MRR_RECV)
->>> +		access_flags |= IB_ACCESS_LOCAL_WRITE;
->>> +
->>> +	if (roles & RDMA_MRR_WRITE_DEST)
->>> +		access_flags |= IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_WRITE;
->>> +
->>> +	if (roles & RDMA_MRR_READ_DEST) {
->>> +		access_flags |= IB_ACCESS_LOCAL_WRITE;
->>> +		if (rdma_protocol_iwarp(pd->device,
->>> +					rdma_start_port(pd->device)))
->>> +			access_flags |= IB_ACCESS_REMOTE_WRITE;
->>> +	}
->>> +
->>> +	if (roles & RDMA_MRR_READ_SOURCE)
->>> +		access_flags |= IB_ACCESS_REMOTE_READ;
->>> +
->>> +	if (roles & RDMA_MRR_ATOMIC_DEST)
->>> +		access_flags |= IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_ATOMIC;
->>
->> I think you need LOCAL_WRITE for ATOMIC_SOURCE in order to receive the
->> results of the atomic operation.
->>
-> 
-> Where/how are the results returned?  In a recv completion?  If so, then that MR would need RDMA_MRR_RECV, not RDMA_MRR_ATOMIC_SOURCE.
+Hi,
 
-They are returned in the scatter list provided in ib_send_wr.sg_list,
-similarly to how RDMA read results are returned.
+These two patches fix a couple of lockdep warnings I ran into, in IPoIB and
+RDMA CM.
+
+Regards,
+Haggai
+
+Haggai Eran (2):
+  IB/ucma: Fix lockdep warning in ucma_lock_files
+  IB/ipoib: Prevent lockdep warning in __ipoib_ib_dev_flush
+
+ drivers/infiniband/core/ucma.c          |  4 ++--
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c | 13 +++++++------
+ 2 files changed, 9 insertions(+), 8 deletions(-)
+
+-- 
+1.7.11.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
