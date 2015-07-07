@@ -1,95 +1,83 @@
-From: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v7 1/4] IB/netlink: Add defines for local service
- requests through netlink
-Date: Tue, 7 Jul 2015 10:57:53 +0000
-Message-ID: <3F128C9216C9B84BB6ED23EF16290AFB0CAC3105@CRSMSX101.amr.corp.intel.com>
-References: <1435671955-9744-1-git-send-email-kaike.wan@intel.com>
- <1435671955-9744-2-git-send-email-kaike.wan@intel.com>
- <20150703211605.GA5595@obsidianresearch.com>
- <3F128C9216C9B84BB6ED23EF16290AFB0CAC2F01@CRSMSX101.amr.corp.intel.com>
- <20150706205837.GA26164@obsidianresearch.com>
+From: "Steve Wise" <swise@opengridcomputing.com>
+Subject: RE: [PATCH V5 3/5] RDMA/iser: Limit sg tablesize and max_sectors to device fastreg max depth
+Date: Tue, 7 Jul 2015 08:59:39 -0500
+Message-ID: <000601d0b8bd$2aa599d0$7ff0cd70$@opengridcomputing.com>
+References: <20150705174353.10042.39648.stgit@build2.ogc.int> <20150705174452.10042.44695.stgit@build2.ogc.int> <559A335A.90506@dev.mellanox.co.il> <001401d0b7f9$09c21b40$1d4651c0$@opengridcomputing.com> <559B712D.7020105@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+	charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150706205837.GA26164-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <559B712D.7020105@dev.mellanox.co.il>
+Content-Language: en-us
+Sender: target-devel-owner@vger.kernel.org
+To: 'Sagi Grimberg' <sagig@dev.mellanox.co.il>, dledford@redhat.com
+Cc: infinipath@intel.com, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
-> Sent: Monday, July 06, 2015 4:59 PM
-> To: Wan, Kaike
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Fleck, John; Weiny, Ira
-> Subject: Re: [PATCH v7 1/4] IB/netlink: Add defines for local service requests
-> through netlink
+
+
+> -----Original Message-----
+> From: Sagi Grimberg [mailto:sagig@dev.mellanox.co.il]
+> Sent: Tuesday, July 07, 2015 1:27 AM
+> To: Steve Wise; dledford@redhat.com
+> Cc: infinipath@intel.com; sagig@mellanox.com; ogerlitz@mellanox.com; roid@mellanox.com; linux-rdma@vger.kernel.org;
+> eli@mellanox.com; target-devel@vger.kernel.org
+> Subject: Re: [PATCH V5 3/5] RDMA/iser: Limit sg tablesize and max_sectors to device fastreg max depth
 > 
-> > > > +/* Local service status attribute */ enum {
-> > > > +	LS_NLA_STATUS_SUCCESS = 0,
-> > > > +	LS_NLA_STATUS_EINVAL,
-> > > > +	LS_NLA_STATUS_ENODATA,
-> > > > +	LS_NLA_STATUS_MAX
-> > > > +};
-> > >
-> > > So, this is never used, there seems to be a bunch of never used
-> > > stuff
-> > > - please audit everything and get rid of the cruft before re-sending
-> anything.
+> On 7/6/2015 5:35 PM, Steve Wise wrote:
 > >
-> > Well, EINVAL and ENODATA are not used by the kernel, but used by the
-> > application (ibacm). Should this file
-> > (include/uapi/rdma/rdma_netlink.h) contain only defines used by both
-> > kernel and application? In that case, the kernel may see unrecognized
-> > status value if it ever decides to check the status code when the
-> > response status is ERR.
-> 
-> Get rid of the status value completely, it serves no current purpose. If in
-> future we need something we can always add a new attribute.
-> 
-> Don't pollute the kernel headers with ibacm implementation details.
-
-OK.
-
-> 
-> > > We need a way to encode three reply types, I suggest:
-> > >  RDMA_NL_LS_F_ERR
-> > >    For some reason the listener could not respond. The kernel should
-> > >    issue the request on its own. Identical to a timeout.
-> > >  Good flags, but an empty reply with no LS_NLA_TYPE_PATH_RECORDs
-> > >    The listener responded and there are no paths. Return no paths
-> > >    failure to requestor.
-> > >  Good flags, and up to 6 LS_NLA_TYPE_PATH_RECORDs
-> > >    Success
 > >
-> > Current implementation can be easily modified to handle these three cases.
-> 
-> Are you going to use this scheme or do you have a different idea?
-
-Just use this scheme to avoid redundant queries to SA.
-
-Kaike
-
-> 
-> > > There are only two remaining problems I see with the actual netlink
-> > > schema:
-> > >  1) There is no easy indication what port the request is coming
-> > >     from. User space absolutely needs that to be able to forward a
-> > >     request on to the proper SA. Yes, we could look at the SGID, but
-> > >     with gid aliases that seems like alot of work for a performant
-> > >     API. Ideas? Include the hardware port GUID? Port Number? Device
-> > >     Name?
-> > >     Not sure, but does need to be addressed.
+> >> -----Original Message-----
+> >> From: Sagi Grimberg [mailto:sagig@dev.mellanox.co.il]
+> >> Sent: Monday, July 06, 2015 2:51 AM
+> >> To: Steve Wise; dledford@redhat.com
+> >> Cc: infinipath@intel.com; sagig@mellanox.com; ogerlitz@mellanox.com; roid@mellanox.com; linux-rdma@vger.kernel.org;
+> >> eli@mellanox.com; target-devel@vger.kernel.org
+> >> Subject: Re: [PATCH V5 3/5] RDMA/iser: Limit sg tablesize and max_sectors to device fastreg max depth
+> >>
+> >> On 7/5/2015 8:44 PM, Steve Wise wrote:
+> >>> Currently the sg tablesize, which dictates fast register page list
+> >>> depth to use, does not take into account the limits of the rdma device.
+> >>> So adjust it once we discover the device fastreg max depth limit.  Also
+> >>> adjust the max_sectors based on the resulting sg tablesize.
+> >>>
+> >>> Signed-off-by: Steve Wise <swise@opengridcomputing.com>
+> >>> ---
+> >>>
+> >>>    drivers/infiniband/ulp/iser/iscsi_iser.c |    9 +++++++++
+> >>>    1 files changed, 9 insertions(+), 0 deletions(-)
+> >>>
+> >>> diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
+> >>> index 6a594aa..de8730d 100644
+> >>> --- a/drivers/infiniband/ulp/iser/iscsi_iser.c
+> >>> +++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
+> >>> @@ -640,6 +640,15 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
+> >>>    						   SHOST_DIX_GUARD_CRC);
+> >>>    		}
+> >>>
+> >>> +		/*
+> >>> +		 * Limit the sg_tablesize and max_sectors based on the device
+> >>> +		 * max fastreg page list length.
+> >>> +		 */
+> >>> +		shost->sg_tablesize = min_t(unsigned short, shost->sg_tablesize,
+> >>> +			ib_conn->device->dev_attr.max_fast_reg_page_list_len);
+> >>> +		shost->max_sectors = min_t(unsigned int,
+> >>> +			1024, (shost->sg_tablesize * PAGE_SIZE) >> 9);
+> >>> +
+> >>
+> >> The min statement is meaningless for max_sectors - you do a min between
+> >> default sg_tablesize and frpl length - so the maximum sg_tablesize is
+> >> 128 which is 1024 max_sectors.
 > >
-> > We can pass the device name and port number to the user application.
-> > The device and port_num are two of the parameters to
-> > ib_sa_path_rec_get().
+> > I'm not following.  What if ib_conn->device->dev_attr.max_fast_reg_page_list_len is say, 32?
+> > Then shost->sg_tablesize is set to 32, and max_sectors is set to (32*4K) >> 9 == 256 512B sectors.
 > 
-> That might be best, a ifindex would be even better, but we don't have one...
-> 
-> Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Correct - but it cannot exceed 1024 (as it is derived from sg_tablesize
+> which is maximum 128).
+
+Actually it is initialized to 1024 in iscsi_iser_sht / iscsi_iser.c, so it isn't derived from sg_tables (although it probably should be).  I can remove the min_t() though.
+
+Hey Or, thoughts?
+
+Steve.
