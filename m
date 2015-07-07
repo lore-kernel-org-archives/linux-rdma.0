@@ -1,98 +1,88 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 1/2] IB/ucma: Fix lockdep warning in ucma_lock_files
-Date: Tue,  7 Jul 2015 17:45:12 +0300
-Message-ID: <1436280313-21451-2-git-send-email-haggaie@mellanox.com>
-References: <1436280313-21451-1-git-send-email-haggaie@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1436280313-21451-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: "Steve Wise" <swise@opengridcomputing.com>
+Subject: RE: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+Date: Tue, 7 Jul 2015 09:46:33 -0500
+Message-ID: <003201d0b8c3$b7e29e00$27a7da00$@opengridcomputing.com>
+References: <20150705231831.12029.80307.stgit@build2.ogc.int> <20150705232158.12029.25472.stgit@build2.ogc.int> <559A2991.3040304@mellanox.com> <001e01d0b8bf$9785ff70$c691fe50$@opengridcomputing.com> <559BE365.4070007@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <559BE365.4070007@mellanox.com>
+Content-Language: en-us
+Sender: target-devel-owner@vger.kernel.org
+To: 'Haggai Eran' <haggaie@mellanox.com>, dledford@redhat.com
+Cc: sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, trond.myklebust@primarydata.com, bfields@fieldses.org
 List-Id: linux-rdma@vger.kernel.org
 
-The ucma_lock_files() locks the mut mutex on two files, e.g. for migrating
-an ID. Use mutex_lock_nested() to prevent the warning below.
 
- =============================================
- [ INFO: possible recursive locking detected ]
- 4.1.0-rc6-hmm+ #40 Tainted: G           O
- ---------------------------------------------
- pingpong_rpc_se/10260 is trying to acquire lock:
-  (&file->mut){+.+.+.}, at: [<ffffffffa047ac55>] ucma_migrate_id+0xc5/0x248 [rdma_ucm]
 
- but task is already holding lock:
-  (&file->mut){+.+.+.}, at: [<ffffffffa047ac4b>] ucma_migrate_id+0xbb/0x248 [rdma_ucm]
+> -----Original Message-----
+> From: Haggai Eran [mailto:haggaie@mellanox.com]
+> Sent: Tuesday, July 07, 2015 9:34 AM
+> To: Steve Wise; dledford@redhat.com
+> Cc: sagig@mellanox.com; ogerlitz@mellanox.com; roid@mellanox.com; linux-rdma@vger.kernel.org; eli@mellanox.com; target-
+> devel@vger.kernel.org; linux-nfs@vger.kernel.org; trond.myklebust@primarydata.com; bfields@fieldses.org
+> Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+> 
+> On 07/07/2015 17:17, Steve Wise wrote:
+> >
+> >
+> >> -----Original Message-----
+> >> From: linux-nfs-owner@vger.kernel.org [mailto:linux-nfs-owner@vger.kernel.org] On Behalf Of Haggai Eran
+> >> Sent: Monday, July 06, 2015 2:09 AM
+> >> To: Steve Wise; dledford@redhat.com
+> >> Cc: sagig@mellanox.com; ogerlitz@mellanox.com; roid@mellanox.com; linux-rdma@vger.kernel.org; eli@mellanox.com; target-
+> >> devel@vger.kernel.org; linux-nfs@vger.kernel.org; trond.myklebust@primarydata.com; bfields@fieldses.org
+> >> Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+> >>
+> >> On 06/07/2015 02:22, Steve Wise wrote:
+> >>> +int rdma_device_access_flags(struct ib_pd *pd, int roles, int attrs)
+> >>> +{
+> >>> +	int access_flags = attrs;
+> >>> +
+> >>> +	if (roles & RDMA_MRR_RECV)
+> >>> +		access_flags |= IB_ACCESS_LOCAL_WRITE;
+> >>> +
+> >>> +	if (roles & RDMA_MRR_WRITE_DEST)
+> >>> +		access_flags |= IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_WRITE;
+> >>> +
+> >>> +	if (roles & RDMA_MRR_READ_DEST) {
+> >>> +		access_flags |= IB_ACCESS_LOCAL_WRITE;
+> >>> +		if (rdma_protocol_iwarp(pd->device,
+> >>> +					rdma_start_port(pd->device)))
+> >>> +			access_flags |= IB_ACCESS_REMOTE_WRITE;
+> >>> +	}
+> >>> +
+> >>> +	if (roles & RDMA_MRR_READ_SOURCE)
+> >>> +		access_flags |= IB_ACCESS_REMOTE_READ;
+> >>> +
+> >>> +	if (roles & RDMA_MRR_ATOMIC_DEST)
+> >>> +		access_flags |= IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_ATOMIC;
+> >>
+> >> I think you need LOCAL_WRITE for ATOMIC_SOURCE in order to receive the
+> >> results of the atomic operation.
+> >>
+> >
+> > Where/how are the results returned?  In a recv completion?  If so, then that MR would need RDMA_MRR_RECV, not
+> RDMA_MRR_ATOMIC_SOURCE.
+> 
+> They are returned in the scatter list provided in ib_send_wr.sg_list,
+> similarly to how RDMA read results are returned.
 
- other info that might help us debug this:
-  Possible unsafe locking scenario:
+Ah.  Hmm.  I was confused about how the atomic operations worked.  
 
-        CPU0
-        ----
-   lock(&file->mut);
-   lock(&file->mut);
+Is this correct:
 
-  *** DEADLOCK ***
+ib_send_wr.wr.atomic.remote_addr : the peer's address that will be the target of the atomic operation.
+ib_send_wr.wr.atomic.compare_add/compare_add_mask: the data to be used in the atomic compare-and-add on the target address
+ib_send_wr.wr.atomic.swap/swap_mask: the data to be used in an atomic swap on the target address.
+ib_send_wr.sg_list: results from the swap or compare/add.
 
-  May be due to missing lock nesting notation
+Is the above correct? 
 
- 1 lock held by pingpong_rpc_se/10260:
-  #0:  (&file->mut){+.+.+.}, at: [<ffffffffa047ac4b>] ucma_migrate_id+0xbb/0x248 [rdma_ucm]
+Maybe the two role names should be RDMA_MRR_ATOMIC_TARGET and RDMA_MRR_ATOMIC_RESULT?
 
- stack backtrace:
- CPU: 0 PID: 10260 Comm: pingpong_rpc_se Tainted: G           O    4.1.0-rc6-hmm+ #40
- Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2007
-  ffff8801f85b63d0 ffff880195677b58 ffffffff81668f49 0000000000000001
-  ffffffff825cbbe0 ffff880195677c38 ffffffff810bb991 ffff880100000000
-  ffff880100000000 ffff880100000001 ffff8801f85b7010 ffffffff8121bee9
- Call Trace:
-  [<ffffffff81668f49>] dump_stack+0x4f/0x6e
-  [<ffffffff810bb991>] __lock_acquire+0x741/0x1820
-  [<ffffffff8121bee9>] ? dput+0x29/0x320
-  [<ffffffff810bcb38>] lock_acquire+0xc8/0x240
-  [<ffffffffa047ac55>] ? ucma_migrate_id+0xc5/0x248 [rdma_ucm]
-  [<ffffffff8166b901>] ? mutex_lock_nested+0x291/0x3e0
-  [<ffffffff8166b6d5>] mutex_lock_nested+0x65/0x3e0
-  [<ffffffffa047ac55>] ? ucma_migrate_id+0xc5/0x248 [rdma_ucm]
-  [<ffffffff810baeed>] ? trace_hardirqs_on+0xd/0x10
-  [<ffffffff8166b66e>] ? mutex_unlock+0xe/0x10
-  [<ffffffffa047ac55>] ucma_migrate_id+0xc5/0x248 [rdma_ucm]
-  [<ffffffffa0478474>] ucma_write+0xa4/0xb0 [rdma_ucm]
-  [<ffffffff81200674>] __vfs_write+0x34/0x100
-  [<ffffffff8112427c>] ? __audit_syscall_entry+0xac/0x110
-  [<ffffffff810ec055>] ? current_kernel_time+0xc5/0xe0
-  [<ffffffff812aa4d3>] ? security_file_permission+0x23/0x90
-  [<ffffffff8120088d>] ? rw_verify_area+0x5d/0xe0
-  [<ffffffff812009bb>] vfs_write+0xab/0x120
-  [<ffffffff81201519>] SyS_write+0x59/0xd0
-  [<ffffffff8112427c>] ? __audit_syscall_entry+0xac/0x110
-  [<ffffffff8166ffee>] system_call_fastpath+0x12/0x76
+Steve.
 
-Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/ucma.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index ad45469f7582..a700cdb13f3d 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -1354,10 +1354,10 @@ static void ucma_lock_files(struct ucma_file *file1, struct ucma_file *file2)
- 	/* Acquire mutex's based on pointer comparison to prevent deadlock. */
- 	if (file1 < file2) {
- 		mutex_lock(&file1->mut);
--		mutex_lock(&file2->mut);
-+		mutex_lock_nested(&file2->mut, SINGLE_DEPTH_NESTING);
- 	} else {
- 		mutex_lock(&file2->mut);
--		mutex_lock(&file1->mut);
-+		mutex_lock_nested(&file1->mut, SINGLE_DEPTH_NESTING);
- 	}
- }
  
--- 
-1.7.11.2
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
