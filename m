@@ -1,7 +1,7 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 2/2] IB/ipoib: Prevent lockdep warning in __ipoib_ib_dev_flush
-Date: Tue,  7 Jul 2015 17:45:13 +0300
-Message-ID: <1436280313-21451-3-git-send-email-haggaie@mellanox.com>
+Subject: [PATCH 1/2] IB/ucma: Fix lockdep warning in ucma_lock_files
+Date: Tue,  7 Jul 2015 17:45:12 +0300
+Message-ID: <1436280313-21451-2-git-send-email-haggaie@mellanox.com>
 References: <1436280313-21451-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1436280313-21451-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,125 +10,85 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-__ipoib_ib_dev_flush calls itself recursively on child devices, and lockdep
-complains about locking vlan_rwsem twice (see below). Use down_read_nested
-instead of down_read to prevent the warning.
+The ucma_lock_files() locks the mut mutex on two files, e.g. for migrating
+an ID. Use mutex_lock_nested() to prevent the warning below.
 
  =============================================
  [ INFO: possible recursive locking detected ]
- 4.1.0-rc4+ #36 Tainted: G           O
+ 4.1.0-rc6-hmm+ #40 Tainted: G           O
  ---------------------------------------------
- kworker/u20:2/261 is trying to acquire lock:
-  (&priv->vlan_rwsem){.+.+..}, at: [<ffffffffa0791e2a>] __ipoib_ib_dev_flush+0x3a/0x2b0 [ib_ipoib]
+ pingpong_rpc_se/10260 is trying to acquire lock:
+  (&file->mut){+.+.+.}, at: [<ffffffffa047ac55>] ucma_migrate_id+0xc5/0x248 [rdma_ucm]
 
  but task is already holding lock:
-  (&priv->vlan_rwsem){.+.+..}, at: [<ffffffffa0791e2a>] __ipoib_ib_dev_flush+0x3a/0x2b0 [ib_ipoib]
+  (&file->mut){+.+.+.}, at: [<ffffffffa047ac4b>] ucma_migrate_id+0xbb/0x248 [rdma_ucm]
 
  other info that might help us debug this:
   Possible unsafe locking scenario:
 
         CPU0
         ----
-   lock(&priv->vlan_rwsem);
-   lock(&priv->vlan_rwsem);
+   lock(&file->mut);
+   lock(&file->mut);
 
   *** DEADLOCK ***
 
   May be due to missing lock nesting notation
 
- 3 locks held by kworker/u20:2/261:
-  #0:  ("%s""ipoib_flush"){.+.+..}, at: [<ffffffff810827cc>] process_one_work+0x15c/0x760
-  #1:  ((&priv->flush_heavy)){+.+...}, at: [<ffffffff810827cc>] process_one_work+0x15c/0x760
-  #2:  (&priv->vlan_rwsem){.+.+..}, at: [<ffffffffa0791e2a>] __ipoib_ib_dev_flush+0x3a/0x2b0 [ib_ipoib]
+ 1 lock held by pingpong_rpc_se/10260:
+  #0:  (&file->mut){+.+.+.}, at: [<ffffffffa047ac4b>] ucma_migrate_id+0xbb/0x248 [rdma_ucm]
 
  stack backtrace:
- CPU: 3 PID: 261 Comm: kworker/u20:2 Tainted: G           O    4.1.0-rc4+ #36
+ CPU: 0 PID: 10260 Comm: pingpong_rpc_se Tainted: G           O    4.1.0-rc6-hmm+ #40
  Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2007
- Workqueue: ipoib_flush ipoib_ib_dev_flush_heavy [ib_ipoib]
-  ffff8801c6c54790 ffff8801c9927af8 ffffffff81665238 0000000000000001
-  ffffffff825b5b30 ffff8801c9927bd8 ffffffff810bba51 ffff880100000000
-  ffffffff00000001 ffff880100000001 ffff8801c6c55428 ffff8801c6c54790
+  ffff8801f85b63d0 ffff880195677b58 ffffffff81668f49 0000000000000001
+  ffffffff825cbbe0 ffff880195677c38 ffffffff810bb991 ffff880100000000
+  ffff880100000000 ffff880100000001 ffff8801f85b7010 ffffffff8121bee9
  Call Trace:
-  [<ffffffff81665238>] dump_stack+0x4f/0x6f
-  [<ffffffff810bba51>] __lock_acquire+0x741/0x1820
-  [<ffffffff810bcbf8>] lock_acquire+0xc8/0x240
-  [<ffffffffa0791e2a>] ? __ipoib_ib_dev_flush+0x3a/0x2b0 [ib_ipoib]
-  [<ffffffff81669d2c>] down_read+0x4c/0x70
-  [<ffffffffa0791e2a>] ? __ipoib_ib_dev_flush+0x3a/0x2b0 [ib_ipoib]
-  [<ffffffffa0791e2a>] __ipoib_ib_dev_flush+0x3a/0x2b0 [ib_ipoib]
-  [<ffffffffa0791e4a>] __ipoib_ib_dev_flush+0x5a/0x2b0 [ib_ipoib]
-  [<ffffffffa07920ba>] ipoib_ib_dev_flush_heavy+0x1a/0x20 [ib_ipoib]
-  [<ffffffff81082871>] process_one_work+0x201/0x760
-  [<ffffffff810827cc>] ? process_one_work+0x15c/0x760
-  [<ffffffff81082ef0>] worker_thread+0x120/0x4d0
-  [<ffffffff81082dd0>] ? process_one_work+0x760/0x760
-  [<ffffffff81082dd0>] ? process_one_work+0x760/0x760
-  [<ffffffff81088b7e>] kthread+0xfe/0x120
-  [<ffffffff81088a80>] ? __init_kthread_worker+0x70/0x70
-  [<ffffffff8166c6e2>] ret_from_fork+0x42/0x70
-  [<ffffffff81088a80>] ? __init_kthread_worker+0x70/0x70
+  [<ffffffff81668f49>] dump_stack+0x4f/0x6e
+  [<ffffffff810bb991>] __lock_acquire+0x741/0x1820
+  [<ffffffff8121bee9>] ? dput+0x29/0x320
+  [<ffffffff810bcb38>] lock_acquire+0xc8/0x240
+  [<ffffffffa047ac55>] ? ucma_migrate_id+0xc5/0x248 [rdma_ucm]
+  [<ffffffff8166b901>] ? mutex_lock_nested+0x291/0x3e0
+  [<ffffffff8166b6d5>] mutex_lock_nested+0x65/0x3e0
+  [<ffffffffa047ac55>] ? ucma_migrate_id+0xc5/0x248 [rdma_ucm]
+  [<ffffffff810baeed>] ? trace_hardirqs_on+0xd/0x10
+  [<ffffffff8166b66e>] ? mutex_unlock+0xe/0x10
+  [<ffffffffa047ac55>] ucma_migrate_id+0xc5/0x248 [rdma_ucm]
+  [<ffffffffa0478474>] ucma_write+0xa4/0xb0 [rdma_ucm]
+  [<ffffffff81200674>] __vfs_write+0x34/0x100
+  [<ffffffff8112427c>] ? __audit_syscall_entry+0xac/0x110
+  [<ffffffff810ec055>] ? current_kernel_time+0xc5/0xe0
+  [<ffffffff812aa4d3>] ? security_file_permission+0x23/0x90
+  [<ffffffff8120088d>] ? rw_verify_area+0x5d/0xe0
+  [<ffffffff812009bb>] vfs_write+0xab/0x120
+  [<ffffffff81201519>] SyS_write+0x59/0xd0
+  [<ffffffff8112427c>] ? __audit_syscall_entry+0xac/0x110
+  [<ffffffff8166ffee>] system_call_fastpath+0x12/0x76
 
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_ib.c | 13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ drivers/infiniband/core/ucma.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index 63b92cbb29ad..058150ff5aa1 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -985,20 +985,21 @@ static inline int update_child_pkey(struct ipoib_dev_priv *priv)
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index ad45469f7582..a700cdb13f3d 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -1354,10 +1354,10 @@ static void ucma_lock_files(struct ucma_file *file1, struct ucma_file *file2)
+ 	/* Acquire mutex's based on pointer comparison to prevent deadlock. */
+ 	if (file1 < file2) {
+ 		mutex_lock(&file1->mut);
+-		mutex_lock(&file2->mut);
++		mutex_lock_nested(&file2->mut, SINGLE_DEPTH_NESTING);
+ 	} else {
+ 		mutex_lock(&file2->mut);
+-		mutex_lock(&file1->mut);
++		mutex_lock_nested(&file1->mut, SINGLE_DEPTH_NESTING);
+ 	}
  }
  
- static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
--				enum ipoib_flush_level level)
-+				enum ipoib_flush_level level,
-+				int nesting)
- {
- 	struct ipoib_dev_priv *cpriv;
- 	struct net_device *dev = priv->dev;
- 	int result;
- 
--	down_read(&priv->vlan_rwsem);
-+	down_read_nested(&priv->vlan_rwsem, nesting);
- 
- 	/*
- 	 * Flush any child interfaces too -- they might be up even if
- 	 * the parent is down.
- 	 */
- 	list_for_each_entry(cpriv, &priv->child_intfs, list)
--		__ipoib_ib_dev_flush(cpriv, level);
-+		__ipoib_ib_dev_flush(cpriv, level, nesting + 1);
- 
- 	up_read(&priv->vlan_rwsem);
- 
-@@ -1076,7 +1077,7 @@ void ipoib_ib_dev_flush_light(struct work_struct *work)
- 	struct ipoib_dev_priv *priv =
- 		container_of(work, struct ipoib_dev_priv, flush_light);
- 
--	__ipoib_ib_dev_flush(priv, IPOIB_FLUSH_LIGHT);
-+	__ipoib_ib_dev_flush(priv, IPOIB_FLUSH_LIGHT, 0);
- }
- 
- void ipoib_ib_dev_flush_normal(struct work_struct *work)
-@@ -1084,7 +1085,7 @@ void ipoib_ib_dev_flush_normal(struct work_struct *work)
- 	struct ipoib_dev_priv *priv =
- 		container_of(work, struct ipoib_dev_priv, flush_normal);
- 
--	__ipoib_ib_dev_flush(priv, IPOIB_FLUSH_NORMAL);
-+	__ipoib_ib_dev_flush(priv, IPOIB_FLUSH_NORMAL, 0);
- }
- 
- void ipoib_ib_dev_flush_heavy(struct work_struct *work)
-@@ -1092,7 +1093,7 @@ void ipoib_ib_dev_flush_heavy(struct work_struct *work)
- 	struct ipoib_dev_priv *priv =
- 		container_of(work, struct ipoib_dev_priv, flush_heavy);
- 
--	__ipoib_ib_dev_flush(priv, IPOIB_FLUSH_HEAVY);
-+	__ipoib_ib_dev_flush(priv, IPOIB_FLUSH_HEAVY, 0);
- }
- 
- void ipoib_ib_dev_cleanup(struct net_device *dev)
 -- 
 1.7.11.2
 
