@@ -1,77 +1,32 @@
-From: Johannes Thumshirn <jthumshirn@suse.de>
-Subject: [PATCH] IB/core: Destroy ocrdma_dev_id IDR on module exit
-Date: Wed,  8 Jul 2015 17:23:00 +0200
-Message-ID: <1436368980-31088-1-git-send-email-jthumshirn@suse.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Selvin Xavier <selvin.xavier@avagotech.com>, Devesh Sharma <devesh.sharma@avagotech.com>, Mitesh Ahuja <mitesh.ahuja@avagotech.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Johannes Thumshirn <jthumshirn@suse.de>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+Date: Wed, 8 Jul 2015 17:14:04 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FFD4C0@ORSMSX109.amr.corp.intel.com>
+References: <559AAA22.1000608@dev.mellanox.co.il>
+ <20150707090001.GB11736@infradead.org> <559B9891.8060907@dev.mellanox.co.il>
+ <000b01d0b8bd$f2bfcc10$d83f6430$@opengridcomputing.com>
+ <20150707161751.GA623@obsidianresearch.com>
+ <559BFE03.4020709@dev.mellanox.co.il>
+ <20150707213628.GA5661@obsidianresearch.com>
+ <559CD174.4040901@dev.mellanox.co.il> <20150708081320.GB24203@infradead.org>
+ <559CF5E8.6080000@dev.mellanox.co.il> <20150708102035.GA28421@infradead.org>
+ <559D0498.9050809@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <559D0498.9050809-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org" <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>, "bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Destroy ocrdma_dev_id IDR on module exit, reclaiming the allocated memory.
+> I am still not clear if all of us agree that we need it.
+> Sean and Steve had some disclaimers...
 
-This was detected by the following semantic patch (written by Luis Rodriguez
-<mcgrof@suse.com>)
-<SmPL>
-@ defines_module_init @
-declarer name module_init, module_exit;
-declarer name DEFINE_IDR;
-identifier init;
-@@
-
-module_init(init);
-
-@ defines_module_exit @
-identifier exit;
-@@
-
-module_exit(exit);
-
-@ declares_idr depends on defines_module_init && defines_module_exit @
-identifier idr;
-@@
-
-DEFINE_IDR(idr);
-
-@ on_exit_calls_destroy depends on declares_idr && defines_module_exit @
-identifier declares_idr.idr, defines_module_exit.exit;
-@@
-
-exit(void)
-{
- ...
- idr_destroy(&idr);
- ...
-}
-
-@ missing_module_idr_destroy depends on declares_idr && defines_module_exit && !on_exit_calls_destroy @
-identifier declares_idr.idr, defines_module_exit.exit;
-@@
-
-exit(void)
-{
- ...
- +idr_destroy(&idr);
- }
- 
-</SmPL>
-
-Signed-off-by: Johannes Thumshirn <jthumshirn@suse.de>
----
- drivers/infiniband/hw/ocrdma/ocrdma_main.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-index 8a1398b..d98a707 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-@@ -696,6 +696,7 @@ static void __exit ocrdma_exit_module(void)
- 	ocrdma_unregister_inet6addr_notifier();
- 	ocrdma_unregister_inetaddr_notifier();
- 	ocrdma_rem_debugfs();
-+	idr_destroy(&ocrdma_dev_id);
- }
- 
- module_init(ocrdma_init_module);
--- 
-2.4.3
+A single entry point doesn't help a whole lot if the app must deal with different behavior based on how the API is used.  We have a single entry point for post_send, for example, and that makes things worse.  IMO, we need fewer registration *methods* not fewer calls.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
