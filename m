@@ -1,28 +1,39 @@
-From: 'Christoph Hellwig' <hch@infradead.org>
+From: 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
-Date: Wed, 8 Jul 2015 01:11:19 -0700
-Message-ID: <20150708081119.GA24203@infradead.org>
-References: <20150705231831.12029.80307.stgit@build2.ogc.int>
- <20150705232158.12029.25472.stgit@build2.ogc.int>
- <559A340E.9000000@dev.mellanox.co.il>
+Date: Wed, 8 Jul 2015 01:13:20 -0700
+Message-ID: <20150708081320.GB24203@infradead.org>
+References: <559A340E.9000000@dev.mellanox.co.il>
  <001601d0b7f9$3e1d6d40$ba5847c0$@opengridcomputing.com>
  <559AAA22.1000608@dev.mellanox.co.il>
  <20150707090001.GB11736@infradead.org>
  <559B9891.8060907@dev.mellanox.co.il>
  <000b01d0b8bd$f2bfcc10$d83f6430$@opengridcomputing.com>
+ <20150707161751.GA623@obsidianresearch.com>
+ <559BFE03.4020709@dev.mellanox.co.il>
+ <20150707213628.GA5661@obsidianresearch.com>
+ <559CD174.4040901@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <target-devel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <000b01d0b8bd$f2bfcc10$d83f6430$@opengridcomputing.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Steve Wise <swise@opengridcomputing.com>
-Cc: 'Sagi Grimberg' <sagig@dev.mellanox.co.il>, 'Christoph Hellwig' <hch@infradead.org>, dledford@redhat.com, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, trond.myklebust@primarydata.com, bfields@fieldses.org
+In-Reply-To: <559CD174.4040901-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 07, 2015 at 09:05:15AM -0500, Steve Wise wrote:
-> I took the feedback from Christoph and Jason to mean I should remove ib_get_dma_mr() entirely and pull its guts into
-> rdma_get_dma_mr(), and change all the users of ib_get_dma_mr() to use rdma_get_dma_mr().  So the net result isn't a wrapper.  It
-> would of course still use rdma_device_access_flags()...
+On Wed, Jul 08, 2015 at 10:29:56AM +0300, Sagi Grimberg wrote:
+> I don't necessarily agree. The API we'd want is a single API at all
+> the call sites to all types of MRs. We have different QP types, and
+> still we don't have an allocation API for each and every one.
+> I honestly don't see why we have that for MRs.
+> 
+> If we can converge to a single API for MR allocation we can just get it
+> right once.
 
-That's what I'd prefer, yes.
+That sounds even better in the long run, but sorting out one problem at
+a time seems like the easier way forward.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
