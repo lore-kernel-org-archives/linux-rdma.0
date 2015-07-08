@@ -1,91 +1,55 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 0/2] update ocrdma to dual license
-Date: Wed, 08 Jul 2015 17:08:57 -0400
-Message-ID: <559D9169.1040009@redhat.com>
-References: <CANjDDBh3pxLFe2o08KzAtw8dtVq94GK04x4YZ0nXA+YnVh5Bng@mail.gmail.com> <20150701072120.GB31381@infradead.org> <CANjDDBinTi43KTt14C7cJ0Uo=Do8Vt3G6bXutLbsViUFUG=jRg@mail.gmail.com> <2807E5FD2F6FDA4886F6618EAC48510E110A880D@CRSMSX101.amr.corp.intel.com> <20150703155234.GA6099@infradead.org> <CANjDDBh1C8Hh_MN9P1=N-g9tvwa-GF0h387_SHiE12cNVKfH2Q@mail.gmail.com> <20150708080108.GB5668@infradead.org> <559D7FA9.1040200@redhat.com> <20150708200212.GA28030@infradead.org> <559D84C4.2030303@redhat.com> <20150708202500.GA7938@infradead.org>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH v1 01/12] IB/core: pass client data to remove() callbacks
+Date: Wed, 8 Jul 2015 15:34:10 -0600
+Message-ID: <20150708213410.GA19624@obsidianresearch.com>
+References: <1434976961-27424-1-git-send-email-haggaie@mellanox.com>
+ <1434976961-27424-2-git-send-email-haggaie@mellanox.com>
+ <20150708202910.GA16812@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="AiNLXAfrW4JTddlD9vdDQ4PSBvJQfCO3a"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150708202500.GA7938-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150708202910.GA16812@obsidianresearch.com>
+Sender: netdev-owner@vger.kernel.org
+To: Haggai Eran <haggaie@mellanox.com>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---AiNLXAfrW4JTddlD9vdDQ4PSBvJQfCO3a
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On Wed, Jul 08, 2015 at 02:29:10PM -0600, Jason Gunthorpe wrote:
+> On Mon, Jun 22, 2015 at 03:42:30PM +0300, Haggai Eran wrote:
+> > An ib_client callback that is called with the lists_rwsem locked only for
+> > read is protected from changes to the IB client lists, but not from
+> > ib_unregister_device() freeing its client data. This is because
+> > ib_unregister_device() will remove the device from the device list with
+> > lists_rwsem locked for write, but perform the rest of the cleanup,
+> > including the call to remove() without that lock.
+> 
+> I was going to look at this, but, uh.. it seems mangled, doesn't
+> apply, doesn't seem fixable from here.
 
-On 07/08/2015 04:25 PM, Christoph Hellwig wrote:
-> On Wed, Jul 08, 2015 at 04:15:00PM -0400, Doug Ledford wrote:
->> On 07/08/2015 04:02 PM, Christoph Hellwig wrote:
->>> So how about someone tells OFED to stop trying to enforce this BS?
->>
->> Unfortunately, simply "not enforcing" a bylaw of a multi-company
->> organization isn't really a valid option, you should know that.  You
->> have to work to change the bylaw, which usually involves its own
->> draconian process.
->=20
-> Looks like it's time to get that started.
+Okay, I see, it sits on top of the patch from Matan's last
+posting.. My bad.
 
-If they care to, then I'm sure they can.  Unlike you, they might
-consider the dual license a benefit.
+Hum... I have to say I don't really like this, changing the ordering
+of client_data = NULL with respect to client->remove doesn't seem like
+a great idea - and the rds changes look scary to me, at least I
+couldn't confidently say they were OK..
 
->  Or just tell OFED to piss off
-> because they really shouldn't be able to have that sort of influence
-> over code in the Linux kernel.
+And that isn't really the issue - this has nothing to do with
+client_data, it is all about not having a callback running when doing
+remove.
 
-OFED is a distribution made by the EWG that is a working group of the
-OFA.  You can't tell OFED to piss off, it's an inanimate object.  You
-*could* tell the EWG or OFA to do so.  However, they don't really have
-influence over the linux kernel except that their members contribute
-more code to the RDMA stack than all other contributors combined by
-orders of magnitude.  If an individual code contributor (read Avagotech)
-decides that they wish to comply with the EWG bylaws and make their own
-code compliant (read ocrdma driver), I have no problem with that.  If
-this weren't their code, or if they weren't actively maintaining it and
-the primary contributors to its ongoing changes, it would be a different
-issue.  But that's not the case,  So I'm not inclined to take the stance
-you are.  And since I know they are currently pursuing due diligence on
-getting permission to do so, I'm inclined to block further patches from
-non-Avagotech addresses until either the change is complete or abandoned.=
+It looks like the way out of this is to have ib_get_net_dev_by_params
+iterate over the client_data_list and use a dedicated flag in that
+struct to indicate that client&device combination is
+remove-in-progress.
 
+This would be a bit more efficient as well, and I would suggest
+passing the context in as an arg to the callback.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+client_data_list would change a bit to become write locked first by
+write(lists_rwsem), and then second by the spin lock, so holding
+read(lists_rwsem) while iterating is enough locking, and you'd hold
+lists_rwsem while kfreeing.
 
-
-
---AiNLXAfrW4JTddlD9vdDQ4PSBvJQfCO3a
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJVnZFpAAoJELgmozMOVy/dbUYP/1STuq0FJfO54xjLxjb9U4el
-BdwUAzx79CLTLnm3qn3nWM0eT0p/jAgOHDDkmEfw4XY64RPbH1H1zt6TjIb5pSM9
-RieDpWDAJYFHqXC+A8a4+dx24ueDem2Sxk4JzyEd6cajBXH1O9nfx7D/zP7eVmbi
-EBPN4SIJGeJIOIb5fgIrptnTYN0VZsneA7M4b/nbrA97uNlMytwVtF5mqTHY23U/
-EWuci8fAou0XMwwI3GlriDTS5JbqCwnFQSU6KcykcNySu15vtdTd2QcrjP1oqzjS
-t6FzVYHsbwNYt+OAh6jxp1dlfIA7zYbGL2mDuZBHULfVmaCWgjl1FYhRX3sL6W4G
-zxICiwpYUiky/yqwSFbh9d5k0l667x/eVZVw6aRa7HriuCx+gGaEd2U/v3LhzGYx
-6JX7vFxC0OEVyB9k64+OPoc43giLhG5myDX9SsfXELutVSFRhiF7kW0k1LFn3gwo
-ABnuf5MD3e6IwJuqZ5U7p+O1p0aVosQ/smFZLRWLZmn9M5gObrUxyavCkf/O2+8L
-d+813bQcfSN/Q8XCuySZ66byD2UzIGf60XieCB80mY6/zuzFzE0Nv4aIf9YnqUZj
-Uu15aVhq+7bFNffEodKsZSI8eNlP4CbxpGJIyDL2IGD3Dg4MfSL0IrC2LA4yHEZz
-TE81ta+zJdnOgeu4rP1k
-=o27W
------END PGP SIGNATURE-----
-
---AiNLXAfrW4JTddlD9vdDQ4PSBvJQfCO3a--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jason
