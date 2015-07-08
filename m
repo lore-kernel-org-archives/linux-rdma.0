@@ -1,17 +1,17 @@
-From: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
-Subject: [PATCH] IB/core: Destroy multcast_idr on moudle exit
-Date: Wed,  8 Jul 2015 17:21:15 +0200
-Message-ID: <1436368875-31014-1-git-send-email-jthumshirn@suse.de>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Subject: [PATCH] IB/core: Destroy ocrdma_dev_id IDR on module exit
+Date: Wed,  8 Jul 2015 17:23:00 +0200
+Message-ID: <1436368980-31088-1-git-send-email-jthumshirn@suse.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Selvin Xavier <selvin.xavier@avagotech.com>, Devesh Sharma <devesh.sharma@avagotech.com>, Mitesh Ahuja <mitesh.ahuja@avagotech.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Johannes Thumshirn <jthumshirn@suse.de>
 List-Id: linux-rdma@vger.kernel.org
 
-Destroy multcast_idr on moudle exit, reclaiming the allocated memory.
+Destroy ocrdma_dev_id IDR on module exit, reclaiming the allocated memory.
 
 This was detected by the following semantic patch (written by Luis Rodriguez
-<mcgrof-IBi9RG/b67k@public.gmane.org>)
+<mcgrof@suse.com>)
 <SmPL>
 @ defines_module_init @
 declarer name module_init, module_exit;
@@ -52,31 +52,26 @@ exit(void)
 {
  ...
  +idr_destroy(&idr);
-}
+ }
  
 </SmPL>
 
-Signed-off-by: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
+Signed-off-by: Johannes Thumshirn <jthumshirn@suse.de>
 ---
- drivers/infiniband/core/ucma.c | 1 +
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c | 1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index ad45469..fb50598 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -1616,6 +1616,7 @@ static void __exit ucma_cleanup(void)
- 	device_remove_file(ucma_misc.this_device, &dev_attr_abi_version);
- 	misc_deregister(&ucma_misc);
- 	idr_destroy(&ctx_idr);
-+	idr_destroy(&multicast_idr);
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+index 8a1398b..d98a707 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+@@ -696,6 +696,7 @@ static void __exit ocrdma_exit_module(void)
+ 	ocrdma_unregister_inet6addr_notifier();
+ 	ocrdma_unregister_inetaddr_notifier();
+ 	ocrdma_rem_debugfs();
++	idr_destroy(&ocrdma_dev_id);
  }
  
- module_init(ucma_init);
+ module_init(ocrdma_init_module);
 -- 
 2.4.3
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
