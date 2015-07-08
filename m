@@ -1,46 +1,46 @@
-From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: Re: [PATCH 0/2] update ocrdma to dual license
-Date: Wed, 8 Jul 2015 12:26:56 +0530
-Message-ID: <CANjDDBh1C8Hh_MN9P1=N-g9tvwa-GF0h387_SHiE12cNVKfH2Q@mail.gmail.com>
-References: <1434127505-17739-1-git-send-email-devesh.sharma@avagotech.com>
-	<20150630060631.GA21105@infradead.org>
-	<CANjDDBh3pxLFe2o08KzAtw8dtVq94GK04x4YZ0nXA+YnVh5Bng@mail.gmail.com>
-	<20150701072120.GB31381@infradead.org>
-	<CANjDDBinTi43KTt14C7cJ0Uo=Do8Vt3G6bXutLbsViUFUG=jRg@mail.gmail.com>
-	<2807E5FD2F6FDA4886F6618EAC48510E110A880D@CRSMSX101.amr.corp.intel.com>
-	<20150703155234.GA6099@infradead.org>
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+Date: Wed, 8 Jul 2015 10:29:56 +0300
+Message-ID: <559CD174.4040901@dev.mellanox.co.il>
+References: <20150705231831.12029.80307.stgit@build2.ogc.int>
+ <20150705232158.12029.25472.stgit@build2.ogc.int>
+ <559A340E.9000000@dev.mellanox.co.il>
+ <001601d0b7f9$3e1d6d40$ba5847c0$@opengridcomputing.com>
+ <559AAA22.1000608@dev.mellanox.co.il> <20150707090001.GB11736@infradead.org>
+ <559B9891.8060907@dev.mellanox.co.il>
+ <000b01d0b8bd$f2bfcc10$d83f6430$@opengridcomputing.com>
+ <20150707161751.GA623@obsidianresearch.com>
+ <559BFE03.4020709@dev.mellanox.co.il>
+ <20150707213628.GA5661@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150703155234.GA6099-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <20150707213628.GA5661@obsidianresearch.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Steve Wise <swise@opengridcomputing.com>, 'Christoph Hellwig' <hch@infradead.org>, dledford@redhat.com, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, trond.myklebust@primarydata.com, bfields@fieldses.org, Oren Duer <oren@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Christoph,
-
-On Fri, Jul 3, 2015 at 9:22 PM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
-> On Fri, Jul 03, 2015 at 03:38:55PM +0000, Weiny, Ira wrote:
->> >
->> > Christoph,
->> >
->> >
->> > Apologies, I misspoke in my response to you.  There was a study of the code and
->> > we thought it was reasonable to post.  However, in retrospect we should have
->> > used more due diligence.  We're going back to seek explicit consent from key
->> > contributors.
->>
->> I'm no legal expert, but don't you need consent from _all_ contributors?
+On 7/8/2015 12:36 AM, Jason Gunthorpe wrote:
+> On Tue, Jul 07, 2015 at 07:27:47PM +0300, Sagi Grimberg wrote:
 >
-> Exactly.  I'd also like to see a really good argument why you'd want to
-> relicense code that's been part of the kernel for a while.
+>> Doesn't it look odd to you?
+>
+> Sure, but the oddness is that rdma_device_access_flags exists at all,
+> not the wrapper. The wrapper is what we want the API to look like,
 
-We (Emulex/Avago) were lobbied by the Open-Fabrics Alliance (OFA) to
-change the licensing from just GPLv2 to a dual GPLv2/BSD license.
-They would prefer the elements in the OFED stack all be dual licensed.
-We're trying  to move to this position.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I don't necessarily agree. The API we'd want is a single API at all
+the call sites to all types of MRs. We have different QP types, and
+still we don't have an allocation API for each and every one.
+I honestly don't see why we have that for MRs.
+
+If we can converge to a single API for MR allocation we can just get it
+right once.
+
+> if we could trivially change the WR format as well then
+> rdma_device_access_flags wouldn't even exist at all.
+
+I have taken some time to truly think about that following Christoph's
+comments to my indirect registration patches. This is one of the things
+I'm looking at.
