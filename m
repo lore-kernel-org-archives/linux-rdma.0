@@ -1,42 +1,94 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Mlx4: BUG: unable to handle kernel at ffffffffa02be210
-Date: Wed, 8 Jul 2015 21:22:26 +0300
-Message-ID: <CAJ3xEMhrsxaE9y1HUPSrB9cnbENQOC6v3zM-oOy2rXeuMRZWXA@mail.gmail.com>
-References: <CAD+HZHXi2bB59eWLYaGiXj5-b5w3V1NhwUJbSjx5NfdmhEaRhA@mail.gmail.com>
-	<559D1562.2070309@mellanox.com>
-	<CAD+HZHVCMa97zEQ1SB=JXCKHOGgSO93BPyLha2PDrOOTsHTUCw@mail.gmail.com>
-	<559D2A80.4040909@mellanox.com>
-	<CAD+HZHWBn-KZCsskSGPKLtntj-LjDRodda9jngr+qcKSxLhkGQ@mail.gmail.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+Date: Wed, 8 Jul 2015 13:08:42 -0600
+Message-ID: <20150708190842.GB11740@obsidianresearch.com>
+References: <559A340E.9000000@dev.mellanox.co.il>
+ <001601d0b7f9$3e1d6d40$ba5847c0$@opengridcomputing.com>
+ <559AAA22.1000608@dev.mellanox.co.il>
+ <20150707090001.GB11736@infradead.org>
+ <559B9891.8060907@dev.mellanox.co.il>
+ <000b01d0b8bd$f2bfcc10$d83f6430$@opengridcomputing.com>
+ <20150707161751.GA623@obsidianresearch.com>
+ <559BFE03.4020709@dev.mellanox.co.il>
+ <20150707213628.GA5661@obsidianresearch.com>
+ <559CD174.4040901@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAD+HZHWBn-KZCsskSGPKLtntj-LjDRodda9jngr+qcKSxLhkGQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jack Wang <xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <target-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <559CD174.4040901@dev.mellanox.co.il>
+Sender: target-devel-owner@vger.kernel.org
+To: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Cc: Steve Wise <swise@opengridcomputing.com>, 'Christoph Hellwig' <hch@infradead.org>, dledford@redhat.com, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, trond.myklebust@primarydata.com, bfields@fieldses.org, Oren Duer <oren@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 8, 2015 at 5:07 PM, Jack Wang <xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> Looks the last one is missing in OFED 2.4 driver, I just checked the
-> history of mainline
->
-> commit bf1bac5b7882daa41249f85fbc97828f0597de5c
-> Author: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-> Date:   Thu Oct 23 15:57:27 2014 +0300
->
->   net/mlx4_core: Call synchronize_irq() before freeing EQ buffer
+On Wed, Jul 08, 2015 at 10:29:56AM +0300, Sagi Grimberg wrote:
+> >Sure, but the oddness is that rdma_device_access_flags exists at all,
+> >not the wrapper. The wrapper is what we want the API to look like,
+> 
+> I don't necessarily agree. The API we'd want is a single API at all
+> the call sites to all types of MRs.
 
-[...]
+Well, I'm speaking specifically about the access protection flags
+because that is all this patch set is working on.
 
-> This fix looks fit the bug we're hitting. Yes, we plan to update 3.0
-> OFED recently, and the fix is included there.
-> Will report if the bug is still there
+What to do about the rest of the mess is a whole other problem,
+and completely orthogonal to the access protection problem.
 
-Again... could you comment why aren't you using the stock 3.18.14 mlx4
-driver? what feature is missing there for your needs?
+> We have different QP types, and still we don't have an allocation
+> API for each and every one.  I honestly don't see why we have that
+> for MRs.
 
-Or.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The MR stuff was never really designed, the HW people provided some
+capability and the SW side just raw exposed it, thoughtlessly.
+
+> If we can converge to a single API for MR allocation we can just get it
+> right once.
+
+I'm not sure focusing on MR is the right layer, but who knows.
+
+Every time I look at this, I just shake my head and go *WTF*?
+
+Even something simple like issuing a SEND against local memory seems
+horribly complicated. Why do we have local_dma_lkey and ib_get_dma_mr?
+
+Why is code using iWarp calling ib_get_dma_mr with
+RDMA_MRR_READ_DEST/IB_ACCESS_REMOTE_WRITE ? That is insecure.
+
+Why on earth is NFS using frmr to create RDMA READ lkeys?
+
+The flags change is easy, and makes sense, but this whole thing looks
+deeply rotten.
+
+I'd strongly suggest a MR cleanup should look first at purging lkey
+completely from the in-kernel API.
+
+I think when you do that, it quickly becomes clear that iWarp's
+problem is not a seemingly minor issue with different flag bits, but
+that iWarp *cannot* use local_dma_lkey as a RDMA READ local buffer.
+Using ib_get_dma_mr(IB_ACCESS_REMOTE_WRITE) is an insecure work
+around. So iWarp (and only iWarp) should take the pain of spinning up
+temporary local MRs for RDMA READ.
+
+This should all be hidden under a common API and it shouldn't be
+sprinkled all over the place in NFS, iSER, etc.
+
+So, I'd say, first order of buisness to fix the MR mess would be to
+purge lkey from the in-kernel API and rationalize the local side to
+something cleaner.
+
+Then, what is left is all remote MRs and maybe it will be clearer what
+to do about them then...
+
+> >if we could trivially change the WR format as well then
+> >rdma_device_access_flags wouldn't even exist at all.
+> 
+> I have taken some time to truly think about that following Christoph's
+> comments to my indirect registration patches. This is one of the things
+> I'm looking at.
+
+I really hope you can come up with something here, I'm sure you can
+get some help on this issue, because all the storage ULPs are
+suffering together under this awful set of APIs.
+
+Jason
