@@ -1,32 +1,42 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
-Date: Wed, 8 Jul 2015 17:14:04 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FFD4C0@ORSMSX109.amr.corp.intel.com>
-References: <559AAA22.1000608@dev.mellanox.co.il>
- <20150707090001.GB11736@infradead.org> <559B9891.8060907@dev.mellanox.co.il>
- <000b01d0b8bd$f2bfcc10$d83f6430$@opengridcomputing.com>
- <20150707161751.GA623@obsidianresearch.com>
- <559BFE03.4020709@dev.mellanox.co.il>
- <20150707213628.GA5661@obsidianresearch.com>
- <559CD174.4040901@dev.mellanox.co.il> <20150708081320.GB24203@infradead.org>
- <559CF5E8.6080000@dev.mellanox.co.il> <20150708102035.GA28421@infradead.org>
- <559D0498.9050809@dev.mellanox.co.il>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Mlx4: BUG: unable to handle kernel at ffffffffa02be210
+Date: Wed, 8 Jul 2015 21:22:26 +0300
+Message-ID: <CAJ3xEMhrsxaE9y1HUPSrB9cnbENQOC6v3zM-oOy2rXeuMRZWXA@mail.gmail.com>
+References: <CAD+HZHXi2bB59eWLYaGiXj5-b5w3V1NhwUJbSjx5NfdmhEaRhA@mail.gmail.com>
+	<559D1562.2070309@mellanox.com>
+	<CAD+HZHVCMa97zEQ1SB=JXCKHOGgSO93BPyLha2PDrOOTsHTUCw@mail.gmail.com>
+	<559D2A80.4040909@mellanox.com>
+	<CAD+HZHWBn-KZCsskSGPKLtntj-LjDRodda9jngr+qcKSxLhkGQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <559D0498.9050809-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org" <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>, "bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAD+HZHWBn-KZCsskSGPKLtntj-LjDRodda9jngr+qcKSxLhkGQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jack Wang <xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> I am still not clear if all of us agree that we need it.
-> Sean and Steve had some disclaimers...
+On Wed, Jul 8, 2015 at 5:07 PM, Jack Wang <xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> Looks the last one is missing in OFED 2.4 driver, I just checked the
+> history of mainline
+>
+> commit bf1bac5b7882daa41249f85fbc97828f0597de5c
+> Author: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+> Date:   Thu Oct 23 15:57:27 2014 +0300
+>
+>   net/mlx4_core: Call synchronize_irq() before freeing EQ buffer
 
-A single entry point doesn't help a whole lot if the app must deal with different behavior based on how the API is used.  We have a single entry point for post_send, for example, and that makes things worse.  IMO, we need fewer registration *methods* not fewer calls.
+[...]
+
+> This fix looks fit the bug we're hitting. Yes, we plan to update 3.0
+> OFED recently, and the fix is included there.
+> Will report if the bug is still there
+
+Again... could you comment why aren't you using the stock 3.18.14 mlx4
+driver? what feature is missing there for your needs?
+
+Or.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
