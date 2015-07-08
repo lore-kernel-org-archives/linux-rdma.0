@@ -1,51 +1,44 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-4.2 1/1] RDMA/nes: Fix for incorrect recording of
- the MAC address
-Date: Wed, 08 Jul 2015 18:35:20 -0400
-Message-ID: <559DA5A8.1080602@redhat.com>
-References: <20150702175229.GA12160@TENIKOLO-MOBL2>
+Subject: Re: [PATCH 0/2] lockdep warning fixes
+Date: Wed, 08 Jul 2015 18:36:25 -0400
+Message-ID: <559DA5E9.5050500@redhat.com>
+References: <1436280313-21451-1-git-send-email-haggaie@mellanox.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="2rJN0SC4F7NOi1tSVUrnmJxL81H7OjXwI"
+ boundary="1G0gtmN4hWEd2ATT8C0oulCj94nr0Wo2X"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150702175229.GA12160@TENIKOLO-MOBL2>
+In-Reply-To: <1436280313-21451-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---2rJN0SC4F7NOi1tSVUrnmJxL81H7OjXwI
+--1G0gtmN4hWEd2ATT8C0oulCj94nr0Wo2X
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 07/02/2015 01:52 PM, Tatyana Nikolova wrote:
-> Fix for incorrect recording of the MAC address
+On 07/07/2015 10:45 AM, Haggai Eran wrote:
+> Hi,
 >=20
-> Signed-off-by: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/nes/nes_hw.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+> These two patches fix a couple of lockdep warnings I ran into, in IPoIB=
+ and
+> RDMA CM.
 >=20
-> diff --git a/drivers/infiniband/hw/nes/nes_hw.c b/drivers/infiniband/hw=
-/nes/nes_hw.c
-> index 02120d3..4713dd7 100644
-> --- a/drivers/infiniband/hw/nes/nes_hw.c
-> +++ b/drivers/infiniband/hw/nes/nes_hw.c
-> @@ -3861,7 +3861,7 @@ void nes_manage_arp_cache(struct net_device *netd=
-ev, unsigned char *mac_addr,
->  				(((u32)mac_addr[2]) << 24) | (((u32)mac_addr[3]) << 16) |
->  				(((u32)mac_addr[4]) << 8)  | (u32)mac_addr[5]);
->  		cqp_wqe->wqe_words[NES_CQP_ARP_WQE_MAC_HIGH_IDX] =3D cpu_to_le32(
-> -				(((u32)mac_addr[0]) << 16) | (u32)mac_addr[1]);
-> +				(((u32)mac_addr[0]) << 8) | (u32)mac_addr[1]);
->  	} else {
->  		cqp_wqe->wqe_words[NES_CQP_ARP_WQE_MAC_ADDR_LOW_IDX] =3D 0;
->  		cqp_wqe->wqe_words[NES_CQP_ARP_WQE_MAC_HIGH_IDX] =3D 0;
+> Regards,
+> Haggai
+>=20
+> Haggai Eran (2):
+>   IB/ucma: Fix lockdep warning in ucma_lock_files
+>   IB/ipoib: Prevent lockdep warning in __ipoib_ib_dev_flush
+>=20
+>  drivers/infiniband/core/ucma.c          |  4 ++--
+>  drivers/infiniband/ulp/ipoib/ipoib_ib.c | 13 +++++++------
+>  2 files changed, 9 insertions(+), 8 deletions(-)
 >=20
 
-Thanks, applied.
+Thanks, both applied.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -53,7 +46,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---2rJN0SC4F7NOi1tSVUrnmJxL81H7OjXwI
+--1G0gtmN4hWEd2ATT8C0oulCj94nr0Wo2X
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -62,22 +55,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJVnaWoAAoJELgmozMOVy/d0aUP/jWcfEPDJ698Rgb280gGegL/
-FZkEP+4O7M+xKAWVLxqNF9s/gLnhkMcm7gFSfM8s9CC2OmLYUVfz+za6xhk1iKwt
-LFFufQ9PNuVAzjtMD67fGgf1iR1jsKwTdRsdZp7LrAbEHohixZ6ETgW3zc7HMLo3
-hEOceQP9ie77e5TtUEJSAaxlTPH4vRdI1e32JMYkF/kVLK0PMNI5D5jKS78PN8Dk
-yG36yNh75y95x/Nh28jKgTq1rB9wO+QBRdNrXi5ngl4lvqbEN4r9mydLzMdkQW7I
-cGn3G9N3dtfFdS5F+BpU84ybPSE0oOovs/6o/N2GXKOKwgGzGYfLoVy6VPsJcuwG
-U5QDi9e2kmFcGpW2HDqDc1Ty2Hh/j6nGxunM0DqYinlH3l085aWqToHm28gixc57
-Xb1KV/hQNWVSUL5dXdN7Wi60y8ThsNrN29mOqV3lgL8qsmgY+jRDVDY+oeLm5al/
-q0FjMKBBoKcIxicUzWW3ZkfE0wyDsibAkxL8luD6QNi0cqfpnLYrnq/sIgyaYKsL
-2sR6gzP/h1e4r8FP1ImAbbjwmdBbgQcVra0o1sQS8+DBJW07If2+HPyWegIKvep3
-QGCpV74BvFSW9oYtHcvdu1T9S/YFeh1vpCLgozS7CkLujbbq+n8x8m4OuQjJ/pXd
-gRPwnBZdIVleJKSuoYN1
-=Vhpf
+iQIcBAEBCAAGBQJVnaXpAAoJELgmozMOVy/dlPwP/2tX4fx+xtkhW/2KlEIBi8ob
+DWxg7o7S26fLVbKXxsG+US6vvYBdtXAU4xiyW7J9/TcojqXG7o80X4KelYxqHFg0
+ywQ761ebXTLf0Fzr9mWTO9xMFCA9QlFihgSAc4eu4jwJaHDxXwxQcMtcgaThF0sz
+FME/jEBPX/2DVjEjZFjsih5QZ2faJ9KdJIEuXZKFi7cvX19LZI6Df1Zo5fjty7BV
+aKBeWdFG/aj5ZTVPCigMQR34YcZcetb1jeLNAECC1/4ijCCOUWiFOtdDmJ1gCp8y
+elFYil8Ux6os9TfC6MWJ66Nu1lpLzMVQvb8nCCfpYGSmlN8uNsIPGcnLeTt0M7L6
+qiOH6tBgooB1BSUez8XorYHjPE6l0OWLh/qEA4SzPfeX+kocrtpBKOB7gAXt4cUJ
+x13fJ+8N1MdiXXArnkcqDA2Dfz3KkWAeAzM9lX4ELQtxJjF4To2yJsutBAU46v7q
+K20cSIpFd6stewpxN7nS0Oizp95D6GEOGH+2uIMpJgLuxRx3VZrySC8MMZy3eHhz
+iXlhDRRrqnG+0+i9gL3EBBR8sNqDwZqKMRGRsJuRagIkB7Cljltb3M+MdraC6Jw9
+GzxMO1+HXCW04qDOIuTbt/ud2JDkefIPUH2trNHuZApRtNJTGzMHSeDIkF83JEl8
+IGlGJBneG5kHXsCH+S3h
+=u0iu
 -----END PGP SIGNATURE-----
 
---2rJN0SC4F7NOi1tSVUrnmJxL81H7OjXwI--
+--1G0gtmN4hWEd2ATT8C0oulCj94nr0Wo2X--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
