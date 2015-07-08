@@ -1,48 +1,35 @@
 From: Maninder Singh <maninder1.s-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v2] infiniband: free only allocated items
-Date: Wed, 08 Jul 2015 09:43:35 +0530
-Message-ID: <1436328815-28072-1-git-send-email-maninder1.s@samsung.com>
+Subject: Re: [PATCH 1/1] infiniband: Remove redundant NULL check before kfree
+Date: Wed, 08 Jul 2015 04:23:33 +0000 (GMT)
+Message-ID: <1037392254.437811436329408244.JavaMail.weblogic@ep2mlwas06a>
+Reply-To: maninder1.s-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+MIME-version: 1.0
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: pankaj.m-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, Maninder Singh <maninder1.s-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, PANKAJ MISHRA <pankaj.m-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- o If allocation of dm fails, no need to free it.
- o Free only allocated items.
+SGVsbG8sDQoNCj4+ICsJCQlmb3IgKGkgPSAwOyBpIDwgZGV2LT5jYXBzLm51bV9wb3J0czsgaSsr
+KQ0KPj4gKwkJCQlrZnJlZShkbVtpXSk7DQo+PiAJCQlnb3RvIG91dDsNCj4+IAkJfQ0KPj4gCX0N
+Cj4+IC0tDQo+PiAxLjcuOS41DQo+PiANCj4NCj5JZiB5b3UgYXJlIGdvaW5nIHRvIGNoYW5nZSB0
+aGlzLCB5b3UgbWlnaHQgYXMgd2VsbCBtYWtlIGl0IDEwMCUgY29ycmVjdDoNCj4NCj5ply07DQo+
+d2hpbGUgKGkgPj0gMCkNCj4Ja2ZyZWUoZG1baV0pOw0KPg0KPlRoZW4geW91IGRvbpJ0IGhhdmUg
+dG8gd29ycnkgYWJvdXQgd2hldGhlciBrZnJlZSB3b3JrcyBvbiBOVUxMLCBldmVyeSBpdGVtIHlv
+dSBmcmVlIHdpbGwgYmUgZ3VhcmFudGVlZCB0byBiZSBub24tTlVMTC4NClRoYW5rcyBmb3Igc3Vn
+Z2VzdGlvbiA6KQ0KU2VudCBuZXcgcGF0Y2ggd2l0aCBkZXNjcmliZWQgY2hhbmdlcywgSSB3YXMg
+dGhpbmtpbmcgb25lIG1vcmUgdGhpbmcuDQoNCkluIGJlbG93IGNvZGUgOi0NCiAgICAgICAgaWYg
+KCFpYmRldi0+c3Jpb3YuaXNfZ29pbmdfZG93bikNCiAgICAgICAgICAgIHF1ZXVlX3dvcmsoaWJk
+ZXYtPnNyaW92LmRlbXV4W2ldLnVkX3dxLCAmZG1baV0tPndvcmspOw0KICAgICAgICBzcGluX3Vu
+bG9ja19pcnFyZXN0b3JlKCZpYmRldi0+c3Jpb3YuZ29pbmdfZG93bl9sb2NrLCBmbGFncyk7DQog
+ICAgfQ0Kb3V0Og0KICAgIGtmcmVlKGRtKTsNCiAgICByZXR1cm47DQoNCmRtIGlzIGZyZWVkIGFm
+dGVyIHF1ZXVlX3dvcmssIGlzIGl0IGNvcnJlY3QgdG8gZnJlZSBkbSB3aGVuIG90aGVyIGRtW2ld
+IGFyZSBhbGxvY2F0ZWQgPyBpIGRpZCBub3QgZ2V0IGl0Lg0KDQpUaGFua3MNCk1hbmluZGVyDQot
+LS0tLS0tLS0tLS0=
 
-Signed-off-by: Maninder Singh <maninder1.s-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/main.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 067a691..253498f 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -2669,17 +2669,15 @@ static void do_slave_init(struct mlx4_ib_dev *ibdev, int slave, int do_init)
- 	dm = kcalloc(ports, sizeof(*dm), GFP_ATOMIC);
- 	if (!dm) {
- 		pr_err("failed to allocate memory for tunneling qp update\n");
--		goto out;
-+		return;
- 	}
- 
- 	for (i = 0; i < ports; i++) {
- 		dm[i] = kmalloc(sizeof (struct mlx4_ib_demux_work), GFP_ATOMIC);
- 		if (!dm[i]) {
- 			pr_err("failed to allocate memory for tunneling qp update work struct\n");
--			for (i = 0; i < dev->caps.num_ports; i++) {
--				if (dm[i])
--					kfree(dm[i]);
--			}
-+			while (--i >= 0)
-+				kfree(dm[i]);
- 			goto out;
- 		}
- 	}
--- 
-1.7.9.5
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
