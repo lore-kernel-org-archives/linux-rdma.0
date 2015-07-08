@@ -1,64 +1,57 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Destroy ocrdma_dev_id IDR on module exit
-Date: Wed, 08 Jul 2015 17:43:17 -0400
-Message-ID: <559D9975.5020306@redhat.com>
-References: <1436368980-31088-1-git-send-email-jthumshirn@suse.de>
+From: Tom Talpey <tom@talpey.com>
+Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+Date: Wed, 08 Jul 2015 17:38:05 -0400
+Message-ID: <559D983D.6000804@talpey.com>
+References: <559A340E.9000000@dev.mellanox.co.il> <001601d0b7f9$3e1d6d40$ba5847c0$@opengridcomputing.com> <559AAA22.1000608@dev.mellanox.co.il> <20150707090001.GB11736@infradead.org> <559B9891.8060907@dev.mellanox.co.il> <000b01d0b8bd$f2bfcc10$d83f6430$@opengridcomputing.com> <20150707161751.GA623@obsidianresearch.com> <559BFE03.4020709@dev.mellanox.co.il> <20150707213628.GA5661@obsidianresearch.com> <559CD174.4040901@dev.mellanox.co.il> <20150708190842.GB11740@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="qq94X3H7VXdjT0O2IOVVX8nHOqhWxTT28"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1436368980-31088-1-git-send-email-jthumshirn-l3A5Bk7waGM@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Mitesh Ahuja <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <20150708190842.GB11740@obsidianresearch.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Sagi Grimberg <sagig@dev.mellanox.co.il>
+Cc: Steve Wise <swise@opengridcomputing.com>, 'Christoph Hellwig' <hch@infradead.org>, dledford@redhat.com, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, trond.myklebust@primarydata.com, bfields@fieldses.org, Oren Duer <oren@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---qq94X3H7VXdjT0O2IOVVX8nHOqhWxTT28
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On 7/8/2015 3:08 PM, Jason Gunthorpe wrote:
+> The MR stuff was never really designed, the HW people provided some
+> capability and the SW side just raw exposed it, thoughtlessly.
 
-On 07/08/2015 11:23 AM, Johannes Thumshirn wrote:
-> Destroy ocrdma_dev_id IDR on module exit, reclaiming the allocated memo=
-ry.
->
+Jason, I don't disagree that the API can be improved. I have some
+responses to your statements below though.
 
-Thanks, applied.
+> Why is code using iWarp calling ib_get_dma_mr with
+> RDMA_MRR_READ_DEST/IB_ACCESS_REMOTE_WRITE ? That is insecure.
 
+Because the iWARP protocol requires it, which was very much an
+intentional decision. It actually is not insecure, as discussed
+in detail in RFC5042. However, it is different from Infiniband.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+> Why on earth is NFS using frmr to create RDMA READ lkeys?
 
+Because NFS desires to have a single code path that works for all
+transports. In addition, using the IB dma_mr as an lkey means that
+large I/O (common with NFS) would require multiple RDMA Read
+operations, when the page list exceeded the local scatter/gather
+limit of the device.
 
+> I think when you do that, it quickly becomes clear that iWarp's
+> problem is not a seemingly minor issue with different flag bits, but
+> that iWarp *cannot* use local_dma_lkey as a RDMA READ local buffer.
+> Using ib_get_dma_mr(IB_ACCESS_REMOTE_WRITE) is an insecure work
+> around. So iWarp (and only iWarp) should take the pain of spinning up
+> temporary local MRs for RDMA READ.
 
---qq94X3H7VXdjT0O2IOVVX8nHOqhWxTT28
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+That is entirely the wrong layer to address this. It would prevent
+reuse of MRs, and require upper layers to be aware that this was
+the case - which is exactly the opposite of what you are trying
+to achieve.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+> This should all be hidden under a common API and it shouldn't be
+> sprinkled all over the place in NFS, iSER, etc.
 
-iQIcBAEBCAAGBQJVnZl1AAoJELgmozMOVy/dbEgP/i1V/19MdUJ9i2vppXH+7AOe
-eQvSNZtWdyhPWgbLk9wEp6SEecr4cYH0f0FpT6bOKe9CeNxwqv9fxk6XJIBixWSc
-W3UPDN2g7Ou1zsz+K4zxoXNOR+o+vNhwfCAWrVZNhun6F9YS/lysNrIuXpMXd12A
-OvXRZSx6WfxqnGy/SnOEAB5vkZU1FGPCh4gch6LNJN5BwKaGVGQXCl7+N9iWvWX+
-7jquYlJYsqAHf7YO3f4iXPhNgJ5MLWNU/0QV1eP9ypnqlICjyhLXVbZ/UQUAwLHn
-jmwHjqD5KgGKyyq48pYm1iXjpjXqq5Z5qRYFTcL9E01eclBNPWAowMNXnzFGL7r6
-86xK7rmmbSBIkeB/i3LEXCHO5ZwEPLGDSm2HZUr07IwhJ8+ZCoJvW135aY7Sc6gB
-PSf94kab8ISu5OfQe2UGC1IuHZZF6RzUw80eAO1npobTkdSgmTY99v7lMb7EOsgT
-+kCxOXB+lIjg9AdNOMK5Kw1z114wyzKlNM1DVP8JDPQsszIKbbimS0p1+x18f2vS
-mnc2gzTURUfE3OlQ92d9Ol9L9HUtGBZoNRrQSv32IAhyzxeRvQY1Yk6C1DJSKt7I
-OIpcsMcCUvNnFFa7cF2gdLSY6H1EcaOjr9k51IflY3wQ+F87Y0PrSAGTkThr1wg3
-IubM617FIhtVwtEG+oKF
-=hr8H
------END PGP SIGNATURE-----
+Are you arguing that all upper layer storage protocols take a single
+common approach to memory registration? That is a very different
+discussion.
 
---qq94X3H7VXdjT0O2IOVVX8nHOqhWxTT28--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tom.
