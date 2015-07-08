@@ -1,94 +1,90 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
-Date: Wed, 8 Jul 2015 13:08:42 -0600
-Message-ID: <20150708190842.GB11740@obsidianresearch.com>
-References: <559A340E.9000000@dev.mellanox.co.il>
- <001601d0b7f9$3e1d6d40$ba5847c0$@opengridcomputing.com>
- <559AAA22.1000608@dev.mellanox.co.il>
- <20150707090001.GB11736@infradead.org>
- <559B9891.8060907@dev.mellanox.co.il>
- <000b01d0b8bd$f2bfcc10$d83f6430$@opengridcomputing.com>
- <20150707161751.GA623@obsidianresearch.com>
- <559BFE03.4020709@dev.mellanox.co.il>
- <20150707213628.GA5661@obsidianresearch.com>
- <559CD174.4040901@dev.mellanox.co.il>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 0/2] update ocrdma to dual license
+Date: Wed, 08 Jul 2015 15:33:03 -0400
+Message-ID: <559D7AEF.6070405@redhat.com>
+References: <1434127505-17739-1-git-send-email-devesh.sharma@avagotech.com>	<20150630060631.GA21105@infradead.org>	<CANjDDBh3pxLFe2o08KzAtw8dtVq94GK04x4YZ0nXA+YnVh5Bng@mail.gmail.com>	<20150701072120.GB31381@infradead.org> <CANjDDBinTi43KTt14C7cJ0Uo=Do8Vt3G6bXutLbsViUFUG=jRg@mail.gmail.com> <2807E5FD2F6FDA4886F6618EAC48510E110A880D@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <target-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <559CD174.4040901@dev.mellanox.co.il>
-Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Cc: Steve Wise <swise@opengridcomputing.com>, 'Christoph Hellwig' <hch@infradead.org>, dledford@redhat.com, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, trond.myklebust@primarydata.com, bfields@fieldses.org, Oren Duer <oren@mellanox.com>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="8SCc6OcureIwQEHXJBTwGD9kuXuU41oIM"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E110A880D-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 08, 2015 at 10:29:56AM +0300, Sagi Grimberg wrote:
-> >Sure, but the oddness is that rdma_device_access_flags exists at all,
-> >not the wrapper. The wrapper is what we want the API to look like,
-> 
-> I don't necessarily agree. The API we'd want is a single API at all
-> the call sites to all types of MRs.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--8SCc6OcureIwQEHXJBTwGD9kuXuU41oIM
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Well, I'm speaking specifically about the access protection flags
-because that is all this patch set is working on.
+On 07/03/2015 11:38 AM, Weiny, Ira wrote:
+>>
+>> Christoph,
+>>
+>>
+>> Apologies, I misspoke in my response to you.  There was a study of the=
+ code and
+>> we thought it was reasonable to post.  However, in retrospect we shoul=
+d have
+>> used more due diligence.  We're going back to seek explicit consent fr=
+om key
+>> contributors.
+>=20
+> I'm no legal expert, but don't you need consent from _all_ contributors=
+?
 
-What to do about the rest of the mess is a whole other problem,
-and completely orthogonal to the access protection problem.
+I am not a lawyer, but this has been explained to me on numerous
+occasions, so I relay the layman's interpretation here:
 
-> We have different QP types, and still we don't have an allocation
-> API for each and every one.  I honestly don't see why we have that
-> for MRs.
+No, you don't always need everyone's approval.  There are contributions
+that are not legally copyright worthy.
 
-The MR stuff was never really designed, the HW people provided some
-capability and the SW side just raw exposed it, thoughtlessly.
+Anyone with questions should speak to a copyright/trademark specialist
+attorney and discuss things such as the Merger Doctrine (I think that's
+what it's called).  My memory is clear enough to know that exceptions
+exist, but my memory of the name of the principle under which these
+exceptions exist might be wrong.
 
-> If we can converge to a single API for MR allocation we can just get it
-> right once.
+As far as it would apply to the ocrdma driver though, you either have to
+default to asking each contributor for permission, or each contributor's
+patches would need to be analyzed by a competent attorney in this area
+and all of the contributors with patches that are not exempted would
+have to be contacted.
 
-I'm not sure focusing on MR is the right layer, but who knows.
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
 
-Every time I look at this, I just shake my head and go *WTF*?
 
-Even something simple like issuing a SEND against local memory seems
-horribly complicated. Why do we have local_dma_lkey and ib_get_dma_mr?
 
-Why is code using iWarp calling ib_get_dma_mr with
-RDMA_MRR_READ_DEST/IB_ACCESS_REMOTE_WRITE ? That is insecure.
+--8SCc6OcureIwQEHXJBTwGD9kuXuU41oIM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-Why on earth is NFS using frmr to create RDMA READ lkeys?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-The flags change is easy, and makes sense, but this whole thing looks
-deeply rotten.
+iQIcBAEBCAAGBQJVnXrvAAoJELgmozMOVy/djsAQAJcNa5A/R4LOkI3LMEcg16rC
+BdByQ1VjeDH9myp4uRkqNa/I+O1XMiAbXj2fCB5n/3ZPhEbIvVJ9CLl0wCqAO57w
+F7ywCm6mCMhAu/9UAoCxwfno+0AXzN79zUQazsKJKco/XH+ZMOA8nTGLgWBrWCmq
+XLCpB/MGlZ4MKF7bb0qArsbBfiOVwRwn/Smln8N6dKQr+EPpwVi3sez0acUNr04i
+gThg97zDyOTcg1FA/VL35PptXQv02jgaKonhurx/9vX3XdfuW3M8W/zZQxEIFI9K
+9ptuvMxCqPwsSfrXe1s/fqSF4dX8/KgMzp+pnhM4RR3JK0SmBaWt7Y657elXfzUa
+l264KrpHpqVPbrtSZgiKEQ7UnS3+NAAvJFR3XbyplqcEPtfEgfq/DT9cpGZUxOy4
+6P6YYQUjB55yKO20kX/ugGd2TtWxY/QFvIHaDcczSAUyVeBVZ6VzMMM/LDNXlknE
+q7XvtTFHBLdQmf5D02lRJsWWiKH7daeO1TkpXiK+kP5b1N9bn+pHwxFXuQIrJDm2
+dEfoWk0Watstj6kqIhI0iSPuva4aK876mhEctyX7TA3fnwYdbovGELi//PrOyl1W
+hl3SfB6ng8yDE5OkSy2/ECRSGKf9SLmA/XNe92Q86vSKzBaBizUlGh4KNfWKIxpn
+aIZrohyTdkLeetAtaFkW
+=4oQ/
+-----END PGP SIGNATURE-----
 
-I'd strongly suggest a MR cleanup should look first at purging lkey
-completely from the in-kernel API.
-
-I think when you do that, it quickly becomes clear that iWarp's
-problem is not a seemingly minor issue with different flag bits, but
-that iWarp *cannot* use local_dma_lkey as a RDMA READ local buffer.
-Using ib_get_dma_mr(IB_ACCESS_REMOTE_WRITE) is an insecure work
-around. So iWarp (and only iWarp) should take the pain of spinning up
-temporary local MRs for RDMA READ.
-
-This should all be hidden under a common API and it shouldn't be
-sprinkled all over the place in NFS, iSER, etc.
-
-So, I'd say, first order of buisness to fix the MR mess would be to
-purge lkey from the in-kernel API and rationalize the local side to
-something cleaner.
-
-Then, what is left is all remote MRs and maybe it will be clearer what
-to do about them then...
-
-> >if we could trivially change the WR format as well then
-> >rdma_device_access_flags wouldn't even exist at all.
-> 
-> I have taken some time to truly think about that following Christoph's
-> comments to my indirect registration patches. This is one of the things
-> I'm looking at.
-
-I really hope you can come up with something here, I'm sure you can
-get some help on this issue, because all the storage ULPs are
-suffering together under this awful set of APIs.
-
-Jason
+--8SCc6OcureIwQEHXJBTwGD9kuXuU41oIM--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
