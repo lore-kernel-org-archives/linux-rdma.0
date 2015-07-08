@@ -1,100 +1,37 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V3] IB/mad: Fix 0-day build
-Date: Wed, 08 Jul 2015 19:01:13 -0400
-Message-ID: <559DABB9.4070802@redhat.com>
-References: <1435248289-16477-1-git-send-email-ira.weiny@intel.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2 39/49] IB/hfi1: add sysfs routines
+Date: Wed, 8 Jul 2015 19:22:42 -0400
+Message-ID: <20150708232240.GA19936@phlsvsds.ph.intel.com>
+References: <20150615132434.29741.35258.stgit@phlsvslse11.ph.intel.com> <20150615132929.29741.87559.stgit@phlsvslse11.ph.intel.com> <CAJ3xEMiiqY04q4pnjRSm=7UBnS_jQJP-KhAkYEvu7FAu-F98sA@mail.gmail.com> <CAJ3xEMiJ_0pFUvPJN7ov50v0hOZVsN7qC27ZbG5+pfmVuZQuMw@mail.gmail.com> <32E1700B9017364D9B60AED9960492BC257513D9@fmsmsx120.amr.corp.intel.com> <CAJ3xEMjdhyk2OOfeCV4sZMF=Fh06H-hJn_2y85V0eBLYBBgPiA@mail.gmail.com> <32E1700B9017364D9B60AED9960492BC2575DB49@fmsmsx120.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="7ej5he2jpWu9gFqQ1hDQ7OPGvNKNlLm6A"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1435248289-16477-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <32E1700B9017364D9B60AED9960492BC2575DB49-RjuIdWtd+YbTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---7ej5he2jpWu9gFqQ1hDQ7OPGvNKNlLm6A
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On Wed, Jul 08, 2015 at 10:32:44PM +0000, Marciniszyn, Mike wrote:
+> > > This sysfs entries are used by PSM2 to form packets from user space.
+> > 
+> > You didn't explain what's SC and what's SC-to-VL and why PSM2 can't talk to
+> > the SM to query that.
 
-On 06/25/2015 12:04 PM, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->=20
-> The define OPA_LID_PERMISSIVE is big endian and was compared to cpu val=
-ue
-> opa_drslid.
->=20
-> 0-day build caught this while building with the OPA (hfi1) driver which=
- was
-> recently sent to the list.
->=20
-> Fixes: 8e4349d13f33 (IB/mad: Add final OPA MAD processing)
->=20
-> Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Reviewed-by: John, Jubin <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->=20
-> ---
-> Changes from V2
-> 	Really update the commit message
+Like IB the SL to SC to VL maps are available via SMA queries on the local
+port.  However, it is more secure if SMP queries are limited to root or
+management nodes.  (This is also true in IB.)
 
-I made some changes to the commit message, but patch was taken as is.
+So requiring PSM, ie regular applications, to issue SMA queries on the local
+port is not appropriate as it precludes a more secure policy of restricting
+the umad interface.
 
->=20
->  drivers/infiniband/core/mad.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/ma=
-d.c
-> index a4b1466c1bf6..9c90a729db62 100644
-> --- a/drivers/infiniband/core/mad.c
-> +++ b/drivers/infiniband/core/mad.c
-> @@ -794,7 +794,7 @@ static int handle_outgoing_dr_smp(struct ib_mad_age=
-nt_private *mad_agent_priv,
->  			goto out;
->  		}
->  		opa_drslid =3D be32_to_cpu(opa_smp->route.dr.dr_slid);
-> -		if (opa_drslid !=3D OPA_LID_PERMISSIVE &&
-> +		if (opa_drslid !=3D be32_to_cpu(OPA_LID_PERMISSIVE) &&
->  		    opa_drslid & 0xffff0000) {
->  			ret =3D -EINVAL;
->  			dev_err(&device->dev, "OPA Invalid dr_slid 0x%x\n",
->=20
+sysfs is IMO a reasonable interface to communicate these tables to regular
+user applications.
 
+Ira
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---7ej5he2jpWu9gFqQ1hDQ7OPGvNKNlLm6A
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJVnau5AAoJELgmozMOVy/dggIQAIhGu9JrAKxftVYxT/jKrvsD
-BUIlWSZjsXa0m2LJtI+fg3oyOf1XIpOKrpXXkehv/QlRktn/quA9Ytev7bddbTjY
-hK4k+CMJSotHbySsiewStFeKB+kbuxKMWeo4Y+GjNPogj8VIbz4iwN5960IwbydN
-LaYaMn8jMmWOTee0YToXah/6pECNf61hlEEot+m3Sll2w/aqLbX3Hzf+iaEYlR8A
-oaTvq51tYnR6L22eRp6TuCsEFVdmZ73MsUmKteQQyDD5cqWtIlgyHc4LGg02ettb
-s3zF8pPuflQL20aGFcnM2r3xucu11+75RSbl+6IgIy+m2PYqQ4N5GI7kRQEJLliZ
-xRobBJAl4MRYWqYkEnXUmdoIa7cWKwjoqU1bhRKHKnBk6FytOexQ+WjB93yq4gtH
-x4eYWsP56KowTz9XhZMPWkccltM8jyp7uDcAsOYU7JmP8Ntc8HmQjjtWPTGZEqIi
-/RD5Z8Epuh3Ga7QR9lu/Uo3QQyFdaB8DYWIQNRe8JHqsjkykNNKjIj76IiGDUojB
-V2JNb55Bys24UzykEmYu3f55S3+zGug3Q5LW8EKqasMtUu8iV3ZBlFkHazXdSVFP
-XWgPoDXYUuODxdBvi4itdm2jAa1PB4mYXQSSTU9iu3kTQV9R5WZx4TGlIyI88LGn
-yyXDA+8tDU8W9aYQDEAh
-=0XOv
------END PGP SIGNATURE-----
-
---7ej5he2jpWu9gFqQ1hDQ7OPGvNKNlLm6A--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
