@@ -1,55 +1,66 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH v1 01/12] IB/core: pass client data to remove() callbacks
-Date: Wed, 8 Jul 2015 15:34:10 -0600
-Message-ID: <20150708213410.GA19624@obsidianresearch.com>
-References: <1434976961-27424-1-git-send-email-haggaie@mellanox.com>
- <1434976961-27424-2-git-send-email-haggaie@mellanox.com>
- <20150708202910.GA16812@obsidianresearch.com>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 06/41] IB/hfi1: add char device instantiation code
+Date: Wed, 8 Jul 2015 21:42:39 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC2575DA43@fmsmsx120.amr.corp.intel.com>
+References: <20150611230710.16479.62955.stgit@phlsvslse11.ph.intel.com>
+ <20150611230901.16479.18231.stgit@phlsvslse11.ph.intel.com>
+ <CAJ3xEMjRPdqWSGSwaEvyhmMQOFqaEi9ZzD5oKzmOhJyERLz4-w@mail.gmail.com>
+ <20150615173423.GA528@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FF5828@ORSMSX109.amr.corp.intel.com>
+ <20150615181348.GC1089@obsidianresearch.com>
+ <32E1700B9017364D9B60AED9960492BC2574E174@fmsmsx120.amr.corp.intel.com>
+ <32E1700B9017364D9B60AED9960492BC2575144C@fmsmsx120.amr.corp.intel.com>
+ <20150617163140.GA22242@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150708202910.GA16812@obsidianresearch.com>
-Sender: netdev-owner@vger.kernel.org
-To: Haggai Eran <haggaie@mellanox.com>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150617163140.GA22242-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 08, 2015 at 02:29:10PM -0600, Jason Gunthorpe wrote:
-> On Mon, Jun 22, 2015 at 03:42:30PM +0300, Haggai Eran wrote:
-> > An ib_client callback that is called with the lists_rwsem locked only for
-> > read is protected from changes to the IB client lists, but not from
-> > ib_unregister_device() freeing its client data. This is because
-> > ib_unregister_device() will remove the device from the device list with
-> > lists_rwsem locked for write, but perform the rest of the cleanup,
-> > including the call to remove() without that lock.
+> netlink is a reasonable low speed format to use for this kind of serialization,
+> either via the common mux or via your own char device.
 > 
-> I was going to look at this, but, uh.. it seems mangled, doesn't
-> apply, doesn't seem fixable from here.
 
-Okay, I see, it sits on top of the patch from Matan's last
-posting.. My bad.
+A couple of follow-up netlink questions.
 
-Hum... I have to say I don't really like this, changing the ordering
-of client_data = NULL with respect to client->remove doesn't seem like
-a great idea - and the rds changes look scary to me, at least I
-couldn't confidently say they were OK..
+1.  I assume you are talking about generic netlink vs. say the RDMA netlink.
 
-And that isn't really the issue - this has nothing to do with
-client_data, it is all about not having a callback running when doing
-remove.
+The generic netlink handles dynamic id assignment which would seem to make it a better choice.
 
-It looks like the way out of this is to have ib_get_net_dev_by_params
-iterate over the client_data_list and use a dedicated flag in that
-struct to indicate that client&device combination is
-remove-in-progress.
+2.  Can you clarify "via your own char device"?
 
-This would be a bit more efficient as well, and I would suggest
-passing the context in as an arg to the callback.
+I think netlink is char device independent.   For PSM2, the mmap() overload is required for setting up direct hardware access, so we need the device.
 
-client_data_list would change a bit to become write locked first by
-write(lists_rwsem), and then second by the spin lock, so holding
-read(lists_rwsem) while iterating is enough locking, and you'd hold
-lists_rwsem while kfreeing.
+The difference here is that PSM[12] also uses aio/iter overload for bulk SDMA traffic.  The use of write() as a control is consistent with the core.
 
-Jason
+> I also wonder about all those sysfs files. I think the over reliance on sysfs in
+> rdma may have been a mistake, sending the same information over netlink
+> would be more consistent with what netdev is doing. (eg you can't view the
+> netdev IP addresses via sysfs, but you can view rdma guids via sysfs)
+> 
+
+The current sysfs usage is consistent with PSM1/qib use with updates for OPA differences.   I will update the sysfs docs for both qib and wfr as part of the patch set.
+
+> Overall, I'd be alot happier with your driver patchset if it was split as 'core
+> only, no UAPI changes' followed up by 'Add UAPI for X'.
+> 
+> If you can't make a verbs provider work under 'core only' then I think
+> something is very wrong...
+> 
+> UAPI stuff in drivers is often a red flag, and you guys should think really
+> carefully about what OPA elements should be buried in the driver and what
+> elements should be common to all OPA adapters.
+> 
+
+By UAPI, do you mean the file in the include/uapi, the sysfs additions, the PSM side of the driver, or all these?
+
+Mike
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
