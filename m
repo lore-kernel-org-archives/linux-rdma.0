@@ -1,26 +1,28 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Destroy multcast_idr on moudle exit
-Date: Wed, 08 Jul 2015 17:42:51 -0400
-Message-ID: <559D995B.1010106@redhat.com>
-References: <1436368875-31014-1-git-send-email-jthumshirn@suse.de>
+Subject: Re: [PATCH] IB/core: Destroy ocrdma_dev_id IDR on module exit
+Date: Wed, 08 Jul 2015 17:43:17 -0400
+Message-ID: <559D9975.5020306@redhat.com>
+References: <1436368980-31088-1-git-send-email-jthumshirn@suse.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="QVl33pXHoidfw1TXwKOWmcEg3W3f45rCP"
+ boundary="qq94X3H7VXdjT0O2IOVVX8nHOqhWxTT28"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1436368875-31014-1-git-send-email-jthumshirn-l3A5Bk7waGM@public.gmane.org>
+In-Reply-To: <1436368980-31088-1-git-send-email-jthumshirn-l3A5Bk7waGM@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Mitesh Ahuja <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---QVl33pXHoidfw1TXwKOWmcEg3W3f45rCP
+--qq94X3H7VXdjT0O2IOVVX8nHOqhWxTT28
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 07/08/2015 11:21 AM, Johannes Thumshirn wrote:
-> Destroy multcast_idr on moudle exit, reclaiming the allocated memory.
+On 07/08/2015 11:23 AM, Johannes Thumshirn wrote:
+> Destroy ocrdma_dev_id IDR on module exit, reclaiming the allocated memo=
+ry.
+>
 
 Thanks, applied.
 
@@ -31,7 +33,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---QVl33pXHoidfw1TXwKOWmcEg3W3f45rCP
+--qq94X3H7VXdjT0O2IOVVX8nHOqhWxTT28
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -40,22 +42,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJVnZlcAAoJELgmozMOVy/dJl0P/ii7+YNv4XiRWQEwd+9y8YPf
-sd7AC/9s0Oo72e5XIlEQW8Dt9DNWQLZ+/Q+7IbAdvukKfvEEXtMCoLRdP/XlSV4A
-slYzHVxXlQAXGWWuOPW5E0Y4yQYuFPWW4t5yAyQuy0TiJHrU4nC1723BaYXCiLZj
-m/bRIZ82ymo2v5wQVxoOpp+d1H5N6GpC/kf+TdRWy6BIHzpd8E116MY3waZTr9xv
-qxl3frnoqyS4r5cNtTfzvWSJst0PaKqRFhCFxMKmXG4cOl6xn8j2OYIO26jsAxcr
-PNSjQ1YYa+pBjPbRI0OXfZfTwlhM7g9EmCn84nPmiA2QMa+8gu0EbqaHbus7yz5s
-YG1c8VgbFiZsRKbIq5AJN36HOYx3qeBoZheQv6gAA+0iprEMwSwujnixeHeLv38Y
-4dEuZxhWvkHzsE3rHV3tAjVFCnWZ6E+qUEx54i2EMH1jkAdImCqZxyFZo/saQN1O
-ucyc1a98wORk3TtGR6Y0/yz29/vOAes2j+iBqbrymkd8CIpM1P/oejIQboXgca5e
-c6lxtIL1iTZMllndtiZYrf/tgSjweRpzmlrJFJLo/h942gG9ZkAfsUsYizdz8n5B
-tT/XPPfoSKF361GBhm3fqmMDD5KH9WhpXgfwsTThTZ5YvuipU4sGyb+GXblRIBPH
-J3njg61mtlXSnl2Px7sh
-=WK1+
+iQIcBAEBCAAGBQJVnZl1AAoJELgmozMOVy/dbEgP/i1V/19MdUJ9i2vppXH+7AOe
+eQvSNZtWdyhPWgbLk9wEp6SEecr4cYH0f0FpT6bOKe9CeNxwqv9fxk6XJIBixWSc
+W3UPDN2g7Ou1zsz+K4zxoXNOR+o+vNhwfCAWrVZNhun6F9YS/lysNrIuXpMXd12A
+OvXRZSx6WfxqnGy/SnOEAB5vkZU1FGPCh4gch6LNJN5BwKaGVGQXCl7+N9iWvWX+
+7jquYlJYsqAHf7YO3f4iXPhNgJ5MLWNU/0QV1eP9ypnqlICjyhLXVbZ/UQUAwLHn
+jmwHjqD5KgGKyyq48pYm1iXjpjXqq5Z5qRYFTcL9E01eclBNPWAowMNXnzFGL7r6
+86xK7rmmbSBIkeB/i3LEXCHO5ZwEPLGDSm2HZUr07IwhJ8+ZCoJvW135aY7Sc6gB
+PSf94kab8ISu5OfQe2UGC1IuHZZF6RzUw80eAO1npobTkdSgmTY99v7lMb7EOsgT
++kCxOXB+lIjg9AdNOMK5Kw1z114wyzKlNM1DVP8JDPQsszIKbbimS0p1+x18f2vS
+mnc2gzTURUfE3OlQ92d9Ol9L9HUtGBZoNRrQSv32IAhyzxeRvQY1Yk6C1DJSKt7I
+OIpcsMcCUvNnFFa7cF2gdLSY6H1EcaOjr9k51IflY3wQ+F87Y0PrSAGTkThr1wg3
+IubM617FIhtVwtEG+oKF
+=hr8H
 -----END PGP SIGNATURE-----
 
---QVl33pXHoidfw1TXwKOWmcEg3W3f45rCP--
+--qq94X3H7VXdjT0O2IOVVX8nHOqhWxTT28--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
