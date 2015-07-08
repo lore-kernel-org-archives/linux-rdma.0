@@ -1,45 +1,49 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
-Date: Tue, 7 Jul 2015 15:36:28 -0600
-Message-ID: <20150707213628.GA5661@obsidianresearch.com>
-References: <20150705231831.12029.80307.stgit@build2.ogc.int>
- <20150705232158.12029.25472.stgit@build2.ogc.int>
- <559A340E.9000000@dev.mellanox.co.il>
- <001601d0b7f9$3e1d6d40$ba5847c0$@opengridcomputing.com>
- <559AAA22.1000608@dev.mellanox.co.il>
- <20150707090001.GB11736@infradead.org>
- <559B9891.8060907@dev.mellanox.co.il>
- <000b01d0b8bd$f2bfcc10$d83f6430$@opengridcomputing.com>
- <20150707161751.GA623@obsidianresearch.com>
- <559BFE03.4020709@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Maninder Singh <maninder1.s-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH v2] infiniband: free only allocated items
+Date: Wed, 08 Jul 2015 09:43:35 +0530
+Message-ID: <1436328815-28072-1-git-send-email-maninder1.s@samsung.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <559BFE03.4020709-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: pankaj.m-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, Maninder Singh <maninder1.s-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 07, 2015 at 07:27:47PM +0300, Sagi Grimberg wrote:
+ o If allocation of dm fails, no need to free it.
+ o Free only allocated items.
 
-> Doesn't it look odd to you?
+Signed-off-by: Maninder Singh <maninder1.s-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx4/main.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-Sure, but the oddness is that rdma_device_access_flags exists at all,
-not the wrapper. The wrapper is what we want the API to look like,
-if we could trivially change the WR format as well then
-rdma_device_access_flags wouldn't even exist at all.
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 067a691..253498f 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -2669,17 +2669,15 @@ static void do_slave_init(struct mlx4_ib_dev *ibdev, int slave, int do_init)
+ 	dm = kcalloc(ports, sizeof(*dm), GFP_ATOMIC);
+ 	if (!dm) {
+ 		pr_err("failed to allocate memory for tunneling qp update\n");
+-		goto out;
++		return;
+ 	}
+ 
+ 	for (i = 0; i < ports; i++) {
+ 		dm[i] = kmalloc(sizeof (struct mlx4_ib_demux_work), GFP_ATOMIC);
+ 		if (!dm[i]) {
+ 			pr_err("failed to allocate memory for tunneling qp update work struct\n");
+-			for (i = 0; i < dev->caps.num_ports; i++) {
+-				if (dm[i])
+-					kfree(dm[i]);
+-			}
++			while (--i >= 0)
++				kfree(dm[i]);
+ 			goto out;
+ 		}
+ 	}
+-- 
+1.7.9.5
 
-> >I expect well need to keep the driver entry point for user space, but
-> >we should be able to hide the API and flags from other modules.
-> 
-> dma_mr for user-space?? How can this be relevant for user-space?
-
-I didn't mean dma_mr specifically, but all the other driver entry
-points that use the old-style IBV_ACCESS_* flags.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
