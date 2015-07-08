@@ -1,39 +1,49 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH v1 01/12] IB/core: pass client data to remove() callbacks
-Date: Wed, 8 Jul 2015 14:29:10 -0600
-Message-ID: <20150708202910.GA16812@obsidianresearch.com>
-References: <1434976961-27424-1-git-send-email-haggaie@mellanox.com>
- <1434976961-27424-2-git-send-email-haggaie@mellanox.com>
+From: 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+Date: Wed, 8 Jul 2015 13:32:05 -0700
+Message-ID: <20150708203205.GA21847@infradead.org>
+References: <001601d0b7f9$3e1d6d40$ba5847c0$@opengridcomputing.com>
+ <559AAA22.1000608@dev.mellanox.co.il>
+ <20150707090001.GB11736@infradead.org>
+ <559B9891.8060907@dev.mellanox.co.il>
+ <000b01d0b8bd$f2bfcc10$d83f6430$@opengridcomputing.com>
+ <20150707161751.GA623@obsidianresearch.com>
+ <559BFE03.4020709@dev.mellanox.co.il>
+ <20150707213628.GA5661@obsidianresearch.com>
+ <559CD174.4040901@dev.mellanox.co.il>
+ <20150708190842.GB11740@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1434976961-27424-2-git-send-email-haggaie@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: Haggai Eran <haggaie@mellanox.com>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>
+In-Reply-To: <20150708190842.GB11740-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 22, 2015 at 03:42:30PM +0300, Haggai Eran wrote:
-> An ib_client callback that is called with the lists_rwsem locked only for
-> read is protected from changes to the IB client lists, but not from
-> ib_unregister_device() freeing its client data. This is because
-> ib_unregister_device() will remove the device from the device list with
-> lists_rwsem locked for write, but perform the rest of the cleanup,
-> including the call to remove() without that lock.
+On Wed, Jul 08, 2015 at 01:08:42PM -0600, Jason Gunthorpe wrote:
+> Then, what is left is all remote MRs and maybe it will be clearer what
+> to do about them then...
 
-I was going to look at this, but, uh.. it seems mangled, doesn't
-apply, doesn't seem fixable from here.
+>From looking at that for a while the APIs needed seem pretty simple
+to me from a consumer perspective:
 
-It isn't on top of any of Doug's trees that I can find and it has
-this:
+struct rdma_mr *rmda_alloc_mr(struct ib_pd *pd, unsigned int nr_pages);
+void rdma_free_mr(struct rdma_mr *mr);
 
-> @@ -348,21 +348,22 @@ void ib_unregister_device(struct ib_device *device)
->  
->  	down_write(&lists_rwsem);
->  	list_del(&device->core_list);
+/* updates *sg if the SG couldn't be fully registered due to offsets */
+int rdma_register_sg(struct rdma_mr *mr, struct scatterlist **sg,
+		u32 *pkey, u32 *offset, u32 *len);
+void rdma_unregister_sg(struct rdma_mr *mr, struct scatterlist *sg);
 
-..  lists_rwsem is what this patch is supposed to be adding, so I
-don't know what went wrong here....
+plus maybe a pool alloc API if we care about FMR performance.
 
-Jason
+Note that this assumes that the iSER bounce buffer hacks are replaced
+with the QUEUE_FLAG_SG_GAPS flags and a change to the SG_IO code to
+bounce buffer for vectored SG_IO calls.  I'm happy to provide a patch
+for that if I can find a volunteer for testing.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
