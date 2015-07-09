@@ -1,44 +1,88 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/2] lockdep warning fixes
-Date: Thu, 9 Jul 2015 13:49:35 +0300
-Message-ID: <CAJ3xEMiydOEN_baOJcdcH0=LL+6Qv2HM5XJGirjqFHfz4zif5g@mail.gmail.com>
-References: <1436280313-21451-1-git-send-email-haggaie@mellanox.com>
-	<559DA5E9.5050500@redhat.com>
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+Date: Thu, 9 Jul 2015 14:02:03 +0300
+Message-ID: <559E54AB.2010905@dev.mellanox.co.il>
+References: <559AAA22.1000608@dev.mellanox.co.il>
+ <20150707090001.GB11736@infradead.org> <559B9891.8060907@dev.mellanox.co.il>
+ <000b01d0b8bd$f2bfcc10$d83f6430$@opengridcomputing.com>
+ <20150707161751.GA623@obsidianresearch.com>
+ <559BFE03.4020709@dev.mellanox.co.il>
+ <20150707213628.GA5661@obsidianresearch.com>
+ <559CD174.4040901@dev.mellanox.co.il>
+ <20150708190842.GB11740@obsidianresearch.com> <559D983D.6000804@talpey.com>
+ <20150708233604.GA20765@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <559DA5E9.5050500-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <20150708233604.GA20765@obsidianresearch.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Tom Talpey <tom@talpey.com>
+Cc: Steve Wise <swise@opengridcomputing.com>, 'Christoph Hellwig' <hch@infradead.org>, dledford@redhat.com, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, trond.myklebust@primarydata.com, bfields@fieldses.org, Oren Duer <oren@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 9, 2015 at 1:36 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> Thanks, both applied.
+On 7/9/2015 2:36 AM, Jason Gunthorpe wrote:
 
-to where?! Doug, I didn't see any update on your gitbub nor your
-kernel.org tree, and again, it's a bit annoying to chase two trees w.o
-clear branching policy... can you use something with clear name (say)
-4.2-fixes on your github and it would be clear that 4.2 rc fixes go
-there?
+>
+> I'm arguing upper layer protocols should never even see local memory
+> registration, that it is totally irrelevant to them. So yes, you can
+> call that a common approach to memory registration if you like..
+>
+> Basically it appears there is nothing that NFS can do to optimize that
+> process that cannot be done in the driver/core equally effectively and
+> shared between all ULPs. If you see something otherwise, I'm really
+> interested to hear about it.
+>
+> Even your case of the MR trade off for S/G list limitations - that is
+> a performance point NFS has no buisness choosing. The driver is best
+> placed to know when to switch between S/G lists, multiple RDMA READs
+> and MR. The trade off will shift depending on HW limits:
+>   - Old mthca hardware is probably better to use multiple RDMA READ
+>   - mlx4 is probably better to use FRMR
+>   - mlx5 is likely best with indirect MR
+>   - All of the above are likely best to exhaust the S/G list first
+>
+> The same basic argument is true of WRITE, SEND and RECV. If the S/G
+> list is exhausted then the API should transparently build a local MR
+> to linearize the buffer, and the API should be designed so the core
+> code can do that without the ULP having to be involved in those
+> details.
+>
+> Is it possible?
+>
+> Jason
+>
 
-Also, I didn't see a note from you on picking the fixes from Ira and
-myself to address the comments from Linus..
+Jason,
 
-Ira's https://patchwork.kernel.org/patch/6675271/ -- this still has
-blank line that I asked Ira to remove, so if you can either ask him to
-do so, or clean this up yourself...
+We have protocol that involves remote memory keys transfer in their
+standards so I don't see how we can remove it altogether from ULPs.
 
-mine https://patchwork.kernel.org/patch/6675921/
+Putting that aside,
 
-and the mlx4 fix Matan's code plus the ipoib fix
+My main problem with this approach is that once you do non-trivial
+things such as memory registration completely under the hood, it is
+a slippery slope for device drivers.
 
-https://patchwork.kernel.org/patch/6702851/
-https://patchwork.kernel.org/patch/6702841/
+If say a driver decides to register memory without the caller knowing,
+it would need to post an extra work request on the send queue. So once
+it sees the completion, it needs to silently consume it and have some
+non trivial logic to invalidate it (another work request!) either from
+poll_cq context or another thread.
 
+Moreover, this also means that the driver needs to allocate bigger send
+queues for possible future memory registration (depending on the IO
+pattern maybe). And I really don't like an API that instructs the user
+"please allocate some extra room in your send queue as I might need it".
 
-Or.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This would also require the drivers to take a huristic approach on how
+much memory registration resources are needed for all possible
+consumers (ipoib, sdp, srp, iser, nfs, more...) which might have
+different requirements.
+
+I know that these are implementation details, but the point is that
+vendor drivers can easily become a complete mess. I think we should
+try to find a balanced approach where both consumers and providers are
+not completely messed up.
+
+Sagi.
