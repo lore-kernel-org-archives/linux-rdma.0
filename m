@@ -1,88 +1,84 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
-Date: Thu, 9 Jul 2015 14:02:03 +0300
-Message-ID: <559E54AB.2010905@dev.mellanox.co.il>
-References: <559AAA22.1000608@dev.mellanox.co.il>
- <20150707090001.GB11736@infradead.org> <559B9891.8060907@dev.mellanox.co.il>
- <000b01d0b8bd$f2bfcc10$d83f6430$@opengridcomputing.com>
- <20150707161751.GA623@obsidianresearch.com>
- <559BFE03.4020709@dev.mellanox.co.il>
- <20150707213628.GA5661@obsidianresearch.com>
- <559CD174.4040901@dev.mellanox.co.il>
- <20150708190842.GB11740@obsidianresearch.com> <559D983D.6000804@talpey.com>
- <20150708233604.GA20765@obsidianresearch.com>
+From: Jack Wang <xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Mlx4: BUG: unable to handle kernel at ffffffffa02be210
+Date: Thu, 9 Jul 2015 13:14:05 +0200
+Message-ID: <CAD+HZHXcrejwu=dAhmL7vZ=tkAPswm2LiCgwK42kEe5XDvBvhQ@mail.gmail.com>
+References: <CAD+HZHXi2bB59eWLYaGiXj5-b5w3V1NhwUJbSjx5NfdmhEaRhA@mail.gmail.com>
+	<559D1562.2070309@mellanox.com>
+	<CAD+HZHVCMa97zEQ1SB=JXCKHOGgSO93BPyLha2PDrOOTsHTUCw@mail.gmail.com>
+	<559D2A80.4040909@mellanox.com>
+	<CAD+HZHWBn-KZCsskSGPKLtntj-LjDRodda9jngr+qcKSxLhkGQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20150708233604.GA20765@obsidianresearch.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Tom Talpey <tom@talpey.com>
-Cc: Steve Wise <swise@opengridcomputing.com>, 'Christoph Hellwig' <hch@infradead.org>, dledford@redhat.com, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, trond.myklebust@primarydata.com, bfields@fieldses.org, Oren Duer <oren@mellanox.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAD+HZHWBn-KZCsskSGPKLtntj-LjDRodda9jngr+qcKSxLhkGQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/9/2015 2:36 AM, Jason Gunthorpe wrote:
+Hi Or,
 
+I managed to update the kernel to OFED 3.0 to verify the bug, but I
+can still produce the bug, maybe there're still some synchronice_irq
+is missing?
+
+Thanks
+Jack
+
+2015-07-08 16:07 GMT+02:00 Jack Wang <xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
+> Thanks for your time.
 >
-> I'm arguing upper layer protocols should never even see local memory
-> registration, that it is totally irrelevant to them. So yes, you can
-> call that a common approach to memory registration if you like..
+> Looks the last one is missing in OFED 2.4 driver, I just checked the
+> history of mainline
 >
-> Basically it appears there is nothing that NFS can do to optimize that
-> process that cannot be done in the driver/core equally effectively and
-> shared between all ULPs. If you see something otherwise, I'm really
-> interested to hear about it.
+> commit bf1bac5b7882daa41249f85fbc97828f0597de5c
+> Author: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+> Date:   Thu Oct 23 15:57:27 2014 +0300
 >
-> Even your case of the MR trade off for S/G list limitations - that is
-> a performance point NFS has no buisness choosing. The driver is best
-> placed to know when to switch between S/G lists, multiple RDMA READs
-> and MR. The trade off will shift depending on HW limits:
->   - Old mthca hardware is probably better to use multiple RDMA READ
->   - mlx4 is probably better to use FRMR
->   - mlx5 is likely best with indirect MR
->   - All of the above are likely best to exhaust the S/G list first
+>     net/mlx4_core: Call synchronize_irq() before freeing EQ buffer
 >
-> The same basic argument is true of WRITE, SEND and RECV. If the S/G
-> list is exhausted then the API should transparently build a local MR
-> to linearize the buffer, and the API should be designed so the core
-> code can do that without the ULP having to be involved in those
-> details.
+>     After moving the EQ ownership to software effectively destroying it, call
+>     synchronize_irq() to ensure that any handler routines running on other CPU
+>     cores finish execution. Only then free the EQ buffer.
+>     The same thing is done when we destroy a CQ which is one of the sources
+>     generating interrupts. In the case of CQ we want to avoid
+> completion handlers
+>     on a CQ that was destroyed. In the case we do the same to avoid receiving
+>     asynchronous events after the EQ has been destroyed and its buffers freed.
 >
-> Is it possible?
+>     Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>     Signed-off-by: David S. Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 >
-> Jason
+> This fix looks fit the bug we're hitting. Yes, we plan to update 3.0
+> OFED recently, and the fix is included there.
+> Will report if the bug is still there
 >
-
-Jason,
-
-We have protocol that involves remote memory keys transfer in their
-standards so I don't see how we can remove it altogether from ULPs.
-
-Putting that aside,
-
-My main problem with this approach is that once you do non-trivial
-things such as memory registration completely under the hood, it is
-a slippery slope for device drivers.
-
-If say a driver decides to register memory without the caller knowing,
-it would need to post an extra work request on the send queue. So once
-it sees the completion, it needs to silently consume it and have some
-non trivial logic to invalidate it (another work request!) either from
-poll_cq context or another thread.
-
-Moreover, this also means that the driver needs to allocate bigger send
-queues for possible future memory registration (depending on the IO
-pattern maybe). And I really don't like an API that instructs the user
-"please allocate some extra room in your send queue as I might need it".
-
-This would also require the drivers to take a huristic approach on how
-much memory registration resources are needed for all possible
-consumers (ipoib, sdp, srp, iser, nfs, more...) which might have
-different requirements.
-
-I know that these are implementation details, but the point is that
-vendor drivers can easily become a complete mess. I think we should
-try to find a balanced approach where both consumers and providers are
-not completely messed up.
-
-Sagi.
+> Thanks again.
+> Jack
+>
+> 2015-07-08 15:49 GMT+02:00 Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>:
+>> On 7/8/2015 3:47 PM, Jack Wang wrote:
+>>>
+>>> static void mlx4_ib_cq_comp(struct mlx4_cq *cq)
+>>> 47 {
+>>> 48 struct ib_cq *ibcq = &to_mibcq(cq)->ibcq;
+>>> 49 ibcq->comp_handler(ibcq, ibcq->cq_context);
+>>> 50 }
+>>>
+>>> Looks like cq use-after-free? I have no idea where.
+>>
+>>
+>> see if you have in the code base you're using (why not the stock 3.18.14
+>> driver, BTW?) all the synchronize_irq
+>> calls we have in the latest upstream driver:
+>>
+>> drivers/net/ethernet/mellanox/mlx4/cq.c:371:
+>> synchronize_irq(priv->eq_table.eq[MLX4_CQ_TO_EQ_VECTOR(cq->vector)].irq);
+>> drivers/net/ethernet/mellanox/mlx4/cq.c:374:
+>> synchronize_irq(priv->eq_table.eq[MLX4_EQ_ASYNC].irq);
+>> drivers/net/ethernet/mellanox/mlx4/eq.c:1088: synchronize_irq(eq->irq);
+>>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
