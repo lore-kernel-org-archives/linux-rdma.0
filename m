@@ -1,130 +1,104 @@
 From: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v8 2/4] IB/core: Add rdma netlink helper functions
-Date: Thu,  9 Jul 2015 13:34:26 -0400
-Message-ID: <1436463268-32365-3-git-send-email-kaike.wan@intel.com>
-References: <1436463268-32365-1-git-send-email-kaike.wan@intel.com>
+Subject: [PATCH v8 0/4] Sending kernel pathrecord query to user cache server
+Date: Thu,  9 Jul 2015 13:34:24 -0400
+Message-ID: <1436463268-32365-1-git-send-email-kaike.wan@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1436463268-32365-1-git-send-email-kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-This patch adds a function to check if listeners for a netlink multicast
-group are present. It also adds a function to receive netlink response
-messages.
+A SA cache is undeniably critical for fabric scalability and performance.
+In user space, the ibacm application provides a good example of pathrecord
+cache for address and route resolution. With the recent implementation of
+the provider architecture, ibacm offers more extensibility as a SA cache.
+In kernel, ipoib implements its own small cache for pathrecords, which is
+however not available for general use. Furthermore, the implementation of
+a SA cache in user space offers better flexibility, larger capacity, and
+more robustness for the system.
 
-Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/core/netlink.c |   55 +++++++++++++++++++++++++++++++++++++
- include/rdma/rdma_netlink.h       |    7 +++++
- 2 files changed, 62 insertions(+), 0 deletions(-)
+In this patch series, a mechanism is implemented to allow ib_sa to
+send pathrecord query to a user application (eg ibacm) through netlink.
+Potentially, this mechanism could be easily extended to other SA queries.
 
-diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-index 23dd5a5..d47df93 100644
---- a/drivers/infiniband/core/netlink.c
-+++ b/drivers/infiniband/core/netlink.c
-@@ -49,6 +49,14 @@ static DEFINE_MUTEX(ibnl_mutex);
- static struct sock *nls;
- static LIST_HEAD(client_list);
- 
-+int ibnl_chk_listeners(unsigned int group)
-+{
-+	if (netlink_has_listeners(nls, group) == 0)
-+		return -1;
-+	return 0;
-+}
-+EXPORT_SYMBOL(ibnl_chk_listeners);
-+
- int ibnl_add_client(int index, int nops,
- 		    const struct ibnl_client_cbs cb_table[])
- {
-@@ -151,6 +159,23 @@ static int ibnl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
- 			    !client->cb_table[op].dump)
- 				return -EINVAL;
- 
-+			/*
-+			 * For response or local service set_timeout request,
-+			 * there is no need to use netlink_dump_start.
-+			 */
-+			if (!(nlh->nlmsg_flags & NLM_F_REQUEST) ||
-+			    (index == RDMA_NL_LS &&
-+			     op == RDMA_NL_LS_OP_SET_TIMEOUT)) {
-+				struct netlink_callback cb = {
-+					.skb = skb,
-+					.nlh = nlh,
-+					.dump = client->cb_table[op].dump,
-+					.module = client->cb_table[op].module,
-+				};
-+
-+				return cb.dump(skb, &cb);
-+			}
-+
- 			{
- 				struct netlink_dump_control c = {
- 					.dump = client->cb_table[op].dump,
-@@ -165,9 +190,39 @@ static int ibnl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
- 	return -EINVAL;
- }
- 
-+static void ibnl_rcv_reply_skb(struct sk_buff *skb)
-+{
-+	struct nlmsghdr *nlh;
-+	int msglen;
-+
-+	/*
-+	 * Process responses until there is no more message or the first
-+	 * request. Generally speaking, it is not recommended to mix responses
-+	 * with requests.
-+	 */
-+	while (skb->len >= nlmsg_total_size(0)) {
-+		nlh = nlmsg_hdr(skb);
-+
-+		if (nlh->nlmsg_len < NLMSG_HDRLEN || skb->len < nlh->nlmsg_len)
-+			return;
-+
-+		/* Handle response only */
-+		if (nlh->nlmsg_flags & NLM_F_REQUEST)
-+			return;
-+
-+		ibnl_rcv_msg(skb, nlh);
-+
-+		msglen = NLMSG_ALIGN(nlh->nlmsg_len);
-+		if (msglen > skb->len)
-+			msglen = skb->len;
-+		skb_pull(skb, msglen);
-+	}
-+}
-+
- static void ibnl_rcv(struct sk_buff *skb)
- {
- 	mutex_lock(&ibnl_mutex);
-+	ibnl_rcv_reply_skb(skb);
- 	netlink_rcv_skb(skb, &ibnl_rcv_msg);
- 	mutex_unlock(&ibnl_mutex);
- }
-diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
-index 0790882..5852661 100644
---- a/include/rdma/rdma_netlink.h
-+++ b/include/rdma/rdma_netlink.h
-@@ -77,4 +77,11 @@ int ibnl_unicast(struct sk_buff *skb, struct nlmsghdr *nlh,
- int ibnl_multicast(struct sk_buff *skb, struct nlmsghdr *nlh,
- 			unsigned int group, gfp_t flags);
- 
-+/**
-+ * Check if there are any listeners to the netlink group
-+ * @group: the netlink group ID
-+ * Returns 0 on success or a negative for no listeners.
-+ */
-+int ibnl_chk_listeners(unsigned int group);
-+
- #endif /* _RDMA_NETLINK_H */
--- 
-1.7.1
+With a customized test implemented in rdma_cm module (not included in this
+series), it was shown that the time to retrieve 1 million pathrecords
+dropped from 47053 jiffies (47.053 seconds) to 10339 jiffies (or 10.339
+seconds) on a two-node system, a reduction of 78%.
+
+Changes since v7:
+-Patch 1:
+  - Replace RDMA_NL_SA with RDMA_NL_LS;
+  - Remove the defines for status attribute;
+  - Remove RDMA_NL_LS_F_OK;
+  - Remove a few structures for simple attribute data;
+  - Add the family header for RESOLVE request; 
+  - Add comments about different attributes.
+-Patch 2:
+  - Add a helper function to receive netlink responses;
+  - Modify ibnl_rcv_msg() to invoke the callback directly for netlink
+    response and the SET_TIMEOUT request instead of netlink_dump_start.
+-Patch 4:
+  - Replace the netlink macros with static inline functions;
+  - Simplify the request path with fewer and direct function calls;
+  - Fold the netlink request structure into the ib_sa_query structure;
+  - Drop the numb_path comparison when determining path_use;
+  - Encode the RESOLVE family header when building the request;
+  - Determine the anticipated pathrecord data flags by path_use;
+  - Use nla_parse() to parse SET_TIMEOUT request message;
+
+Changes since v6:
+- Patch 4:
+  - Replace __u8/16/64 with u8/16/64;
+  - Remove the pathrecord flags testing when checking a netlink response;
+  - Remove a few error prints;
+
+Changes since v5:
+- Patch 1:
+  - Replace reversible and numb_path attributes with path_use attribute.
+  - Define Mandatory attribute flag.
+  - Define attribute data types in cpu byte order.
+- Patch 4:
+  - Change the calculation of total attribute len;
+  - Modify the setting of attributes.
+
+Changes since v4:
+- Patch 1: rename LS_NLA_TYPE_NUM_PATH as LS_NLA_TYPE_NUMB_PATH.
+- Patch 4: remove the renaming of LS_NLA_TYPE_NUM_PATH as
+           LS_NLA_TYPE_NUMB_PATH.
+
+Changes since v3:
+- Patch 1: add basic RESOLVE attribute types.
+- Patch 4: change the encoding of the RESOLVE request message based on
+  the new attribute types and the input comp_mask. Change the response
+  handling by iterating all attributes.
+
+Changes since v2:
+- Redesigne the communication protocol between the kernel and user space
+  application. Instead of the MAD packet format, the new protocol uses
+  netlink message header and attributes to exchange request and
+  response between the kernel and user space.The design was described
+  here:
+  http://www.spinics.net/lists/linux-rdma/msg25621.html
+
+Changes since v1:
+- Move kzalloc changes into a separate patch (Patch 3).
+- Remove redundant include line (Patch 4).
+- Rename struct rdma_nl_resp_msg as structure ib_nl_resp_msg (Patch 4).
+
+Kaike Wan (4):
+  IB/netlink: Add defines for local service requests through netlink
+  IB/core: Add rdma netlink helper functions
+  IB/sa: Allocate SA query with kzalloc
+  IB/sa: Route SA pathrecord query through netlink
+
+ drivers/infiniband/core/netlink.c  |   55 +++++
+ drivers/infiniband/core/sa_query.c |  473 +++++++++++++++++++++++++++++++++++-
+ include/rdma/rdma_netlink.h        |    7 +
+ include/uapi/rdma/rdma_netlink.h   |   83 +++++++
+ 4 files changed, 613 insertions(+), 5 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
