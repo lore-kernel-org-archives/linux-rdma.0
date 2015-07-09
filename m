@@ -1,64 +1,43 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
-Date: Thu, 9 Jul 2015 11:58:58 +0300
-Message-ID: <559E37D2.9090103@dev.mellanox.co.il>
-References: <559AAA22.1000608@dev.mellanox.co.il>
- <20150707090001.GB11736@infradead.org> <559B9891.8060907@dev.mellanox.co.il>
- <000b01d0b8bd$f2bfcc10$d83f6430$@opengridcomputing.com>
- <20150707161751.GA623@obsidianresearch.com>
- <559BFE03.4020709@dev.mellanox.co.il>
- <20150707213628.GA5661@obsidianresearch.com>
- <559CD174.4040901@dev.mellanox.co.il>
- <20150708190842.GB11740@obsidianresearch.com>
- <20150708203205.GA21847@infradead.org>
- <20150709000337.GE16812@obsidianresearch.com>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v1 03/12] IB/ipoib: Return IPoIB devices matching connection
+ parameters
+Date: Thu, 9 Jul 2015 12:57:31 +0300
+Message-ID: <559E458B.4020709@mellanox.com>
+References: <1434976961-27424-1-git-send-email-haggaie@mellanox.com>
+ <1434976961-27424-4-git-send-email-haggaie@mellanox.com>
+ <20150708234111.GC16812@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150709000337.GE16812-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150708234111.GC16812-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/9/2015 3:03 AM, Jason Gunthorpe wrote:
-> On Wed, Jul 08, 2015 at 01:32:05PM -0700, 'Christoph Hellwig' wrote:
->> On Wed, Jul 08, 2015 at 01:08:42PM -0600, Jason Gunthorpe wrote:
->>> Then, what is left is all remote MRs and maybe it will be clearer what
->>> to do about them then...
->>
->>  From looking at that for a while the APIs needed seem pretty simple
->> to me from a consumer perspective:
->>
->> struct rdma_mr *rmda_alloc_mr(struct ib_pd *pd, unsigned int nr_pages);
->> void rdma_free_mr(struct rdma_mr *mr);
->
-> The major trouble with that is that the new MR types work by posting
-> work to the send queue, that work creates the MR.
->
-> I don't know all the details of how those schemes work, but it doesn't
-> look like it fits into this model ?
->
-> Maybe if rdma_register_sg was the only API and it accepted a QP, under
-> the hood it could re-use a pooled/create a non-queued (F)MR, or issue
-> FRMR, or work with indirect?
+On 09/07/2015 02:41, Jason Gunthorpe wrote:
+> On Mon, Jun 22, 2015 at 03:42:32PM +0300, Haggai Eran wrote:
+>> +		if (net_dev) {
+>> +			ipoib_warn(priv, "matching net_dev found: %s\n",
+>> +				   net_dev->name);
+> 
+> Is that a debug print?
 
-I think it's confusing to possibly do completely different registration
-methods which has different implications on the consumer RDMA channel.
+Yes, I'm afraid it slipped in somehow. I'll remove it.
 
->
-> It would be nice if it is that simple :)
+> 
+>> +	default:
+>> +		dev_warn(&dev->dev, "duplicate IP address detected\n");
+>> +		/* Fall through */
+> 
+> Surely that needs some kind of rate limit?
 
-It can be simple if we consolidate on a single method.
+I'll use dev_warn_ratelimited().
 
->
-> Sagi, are FMRs, FRMRs and Indirect MRs documented any place? I can't
-> recall off hand if FRMR was ever published by the IBTA?
-
-I don't know if FMRs are in IBTA.
-FRMRs are in under 10.6.3.7 FAST REGISTRATION (vol 1)
+Thanks,
+Haggai
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
