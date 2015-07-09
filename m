@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 3/5] svcrdma: Clean up svc_rdma_get_reply_array()
-Date: Thu, 09 Jul 2015 16:45:28 -0400
-Message-ID: <20150709204528.8481.2755.stgit@klimt.1015granger.net>
+Subject: [PATCH v1 4/5] svcrdma: Remove svc_rdma_fastreg()
+Date: Thu, 09 Jul 2015 16:45:37 -0400
+Message-ID: <20150709204537.8481.26204.stgit@klimt.1015granger.net>
 References: <20150709204230.8481.45457.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -12,204 +12,73 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Kernel coding conventions frown upon having large nontrivial
-functions in header files, and the preference these days is to
-allow the compiler to make inlining decisions if possible.
-
-As these functions are re-homed into a .c file, be sure that
-comparisons with fields in struct rpcrdma_msg are with be32
-constants.
-
-This is a refactoring change; no behavior change is intended.
+Commit 0bf4828983df ("svcrdma: refactor marshalling logic") removed
+the last call site for svc_rdma_fastreg().
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
 
- include/linux/sunrpc/svc_rdma.h       |   81 +--------------------------------
- net/sunrpc/xprtrdma/svc_rdma_sendto.c |   73 ++++++++++++++++++++++++++++++
- 2 files changed, 75 insertions(+), 79 deletions(-)
+ include/linux/sunrpc/svc_rdma.h          |    1 -
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |   34 ------------------------------
+ 2 files changed, 0 insertions(+), 35 deletions(-)
 
 diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
-index cb94ee4..ca4d86a 100644
+index ca4d86a..13af61b 100644
 --- a/include/linux/sunrpc/svc_rdma.h
 +++ b/include/linux/sunrpc/svc_rdma.h
-@@ -213,6 +213,8 @@ extern int rdma_read_chunk_frmr(struct svcxprt_rdma *, struct svc_rqst *,
- 
- /* svc_rdma_sendto.c */
- extern int svc_rdma_sendto(struct svc_rqst *);
-+extern struct rpcrdma_read_chunk *
-+	svc_rdma_get_read_chunk(struct rpcrdma_msg *);
- 
- /* svc_rdma_transport.c */
- extern int svc_rdma_send(struct svcxprt_rdma *, struct ib_send_wr *);
-@@ -238,83 +240,4 @@ extern void svc_rdma_prep_reply_hdr(struct svc_rqst *);
- extern int svc_rdma_init(void);
- extern void svc_rdma_cleanup(void);
- 
--/*
-- * Returns the address of the first read chunk or <nul> if no read chunk is
-- * present
-- */
--static inline struct rpcrdma_read_chunk *
--svc_rdma_get_read_chunk(struct rpcrdma_msg *rmsgp)
--{
--	struct rpcrdma_read_chunk *ch =
--		(struct rpcrdma_read_chunk *)&rmsgp->rm_body.rm_chunks[0];
--
--	if (ch->rc_discrim == 0)
--		return NULL;
--
--	return ch;
--}
--
--/*
-- * Returns the address of the first read write array element or <nul> if no
-- * write array list is present
-- */
--static inline struct rpcrdma_write_array *
--svc_rdma_get_write_array(struct rpcrdma_msg *rmsgp)
--{
--	if (rmsgp->rm_body.rm_chunks[0] != 0
--	    || rmsgp->rm_body.rm_chunks[1] == 0)
--		return NULL;
--
--	return (struct rpcrdma_write_array *)&rmsgp->rm_body.rm_chunks[1];
--}
--
--/*
-- * Returns the address of the first reply array element or <nul> if no
-- * reply array is present
-- */
--static inline struct rpcrdma_write_array *
--svc_rdma_get_reply_array(struct rpcrdma_msg *rmsgp)
--{
--	struct rpcrdma_read_chunk *rch;
--	struct rpcrdma_write_array *wr_ary;
--	struct rpcrdma_write_array *rp_ary;
--
--	/* XXX: Need to fix when reply list may occur with read-list and/or
--	 * write list */
--	if (rmsgp->rm_body.rm_chunks[0] != 0 ||
--	    rmsgp->rm_body.rm_chunks[1] != 0)
--		return NULL;
--
--	rch = svc_rdma_get_read_chunk(rmsgp);
--	if (rch) {
--		while (rch->rc_discrim)
--			rch++;
--
--		/* The reply list follows an empty write array located
--		 * at 'rc_position' here. The reply array is at rc_target.
--		 */
--		rp_ary = (struct rpcrdma_write_array *)&rch->rc_target;
--
--		goto found_it;
--	}
--
--	wr_ary = svc_rdma_get_write_array(rmsgp);
--	if (wr_ary) {
--		rp_ary = (struct rpcrdma_write_array *)
--			&wr_ary->
--			wc_array[ntohl(wr_ary->wc_nchunks)].wc_target.rs_length;
--
--		goto found_it;
--	}
--
--	/* No read list, no write list */
--	rp_ary = (struct rpcrdma_write_array *)
--		&rmsgp->rm_body.rm_chunks[2];
--
-- found_it:
--	if (rp_ary->wc_discrim == 0)
--		return NULL;
--
--	return rp_ary;
--}
- #endif
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-index 95412ab..1dfae83 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-@@ -136,6 +136,79 @@ static dma_addr_t dma_map_xdr(struct svcxprt_rdma *xprt,
- 	return dma_addr;
+@@ -227,7 +227,6 @@ extern void svc_rdma_put_context(struct svc_rdma_op_ctxt *, int);
+ extern void svc_rdma_unmap_dma(struct svc_rdma_op_ctxt *ctxt);
+ extern struct svc_rdma_req_map *svc_rdma_get_req_map(void);
+ extern void svc_rdma_put_req_map(struct svc_rdma_req_map *);
+-extern int svc_rdma_fastreg(struct svcxprt_rdma *, struct svc_rdma_fastreg_mr *);
+ extern struct svc_rdma_fastreg_mr *svc_rdma_get_frmr(struct svcxprt_rdma *);
+ extern void svc_rdma_put_frmr(struct svcxprt_rdma *,
+ 			      struct svc_rdma_fastreg_mr *);
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index f4b9732..4054a9d 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -1202,40 +1202,6 @@ static int svc_rdma_secure_port(struct svc_rqst *rqstp)
+ 	return 1;
  }
  
-+/* Returns the address of the first read chunk or <nul> if no read chunk
-+ * is present
-+ */
-+struct rpcrdma_read_chunk *
-+svc_rdma_get_read_chunk(struct rpcrdma_msg *rmsgp)
-+{
-+	struct rpcrdma_read_chunk *ch =
-+		(struct rpcrdma_read_chunk *)&rmsgp->rm_body.rm_chunks[0];
-+
-+	if (ch->rc_discrim == xdr_zero)
-+		return NULL;
-+	return ch;
-+}
-+
-+/* Returns the address of the first read write array element or <nul>
-+ * if no write array list is present
-+ */
-+static struct rpcrdma_write_array *
-+svc_rdma_get_write_array(struct rpcrdma_msg *rmsgp)
-+{
-+	if (rmsgp->rm_body.rm_chunks[0] != xdr_zero ||
-+	    rmsgp->rm_body.rm_chunks[1] == xdr_zero)
-+		return NULL;
-+	return (struct rpcrdma_write_array *)&rmsgp->rm_body.rm_chunks[1];
-+}
-+
-+/* Returns the address of the first reply array element or <nul> if no
-+ * reply array is present
-+ */
-+static struct rpcrdma_write_array *
-+svc_rdma_get_reply_array(struct rpcrdma_msg *rmsgp)
-+{
-+	struct rpcrdma_read_chunk *rch;
-+	struct rpcrdma_write_array *wr_ary;
-+	struct rpcrdma_write_array *rp_ary;
-+
-+	/* XXX: Need to fix when reply chunk may occur with read list
-+	 *	and/or write list.
-+	 */
-+	if (rmsgp->rm_body.rm_chunks[0] != xdr_zero ||
-+	    rmsgp->rm_body.rm_chunks[1] != xdr_zero)
-+		return NULL;
-+
-+	rch = svc_rdma_get_read_chunk(rmsgp);
-+	if (rch) {
-+		while (rch->rc_discrim != xdr_zero)
-+			rch++;
-+
-+		/* The reply chunk follows an empty write array located
-+		 * at 'rc_position' here. The reply array is at rc_target.
-+		 */
-+		rp_ary = (struct rpcrdma_write_array *)&rch->rc_target;
-+		goto found_it;
-+	}
-+
-+	wr_ary = svc_rdma_get_write_array(rmsgp);
-+	if (wr_ary) {
-+		int chunk = be32_to_cpu(wr_ary->wc_nchunks);
-+
-+		rp_ary = (struct rpcrdma_write_array *)
-+			 &wr_ary->wc_array[chunk].wc_target.rs_length;
-+		goto found_it;
-+	}
-+
-+	/* No read list, no write list */
-+	rp_ary = (struct rpcrdma_write_array *)&rmsgp->rm_body.rm_chunks[2];
-+
-+ found_it:
-+	if (rp_ary->wc_discrim == xdr_zero)
-+		return NULL;
-+	return rp_ary;
-+}
-+
- /* Assumptions:
-  * - The specified write_len can be represented in sc_max_sge * PAGE_SIZE
-  */
+-/*
+- * Attempt to register the kvec representing the RPC memory with the
+- * device.
+- *
+- * Returns:
+- *  NULL : The device does not support fastreg or there were no more
+- *         fastreg mr.
+- *  frmr : The kvec register request was successfully posted.
+- *    <0 : An error was encountered attempting to register the kvec.
+- */
+-int svc_rdma_fastreg(struct svcxprt_rdma *xprt,
+-		     struct svc_rdma_fastreg_mr *frmr)
+-{
+-	struct ib_send_wr fastreg_wr;
+-	u8 key;
+-
+-	/* Bump the key */
+-	key = (u8)(frmr->mr->lkey & 0x000000FF);
+-	ib_update_fast_reg_key(frmr->mr, ++key);
+-
+-	/* Prepare FASTREG WR */
+-	memset(&fastreg_wr, 0, sizeof fastreg_wr);
+-	fastreg_wr.opcode = IB_WR_FAST_REG_MR;
+-	fastreg_wr.send_flags = IB_SEND_SIGNALED;
+-	fastreg_wr.wr.fast_reg.iova_start = (unsigned long)frmr->kva;
+-	fastreg_wr.wr.fast_reg.page_list = frmr->page_list;
+-	fastreg_wr.wr.fast_reg.page_list_len = frmr->page_list_len;
+-	fastreg_wr.wr.fast_reg.page_shift = PAGE_SHIFT;
+-	fastreg_wr.wr.fast_reg.length = frmr->map_len;
+-	fastreg_wr.wr.fast_reg.access_flags = frmr->access_flags;
+-	fastreg_wr.wr.fast_reg.rkey = frmr->mr->lkey;
+-	return svc_rdma_send(xprt, &fastreg_wr);
+-}
+-
+ int svc_rdma_send(struct svcxprt_rdma *xprt, struct ib_send_wr *wr)
+ {
+ 	struct ib_send_wr *bad_wr, *n_wr;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
