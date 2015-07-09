@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 2/5] svcrdma: Fix send_reply() scatter/gather set-up
-Date: Thu, 09 Jul 2015 16:45:18 -0400
-Message-ID: <20150709204518.8481.10431.stgit@klimt.1015granger.net>
+Subject: [PATCH v1 3/5] svcrdma: Clean up svc_rdma_get_reply_array()
+Date: Thu, 09 Jul 2015 16:45:28 -0400
+Message-ID: <20150709204528.8481.2755.stgit@klimt.1015granger.net>
 References: <20150709204230.8481.45457.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -12,80 +12,204 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The Linux NFS server returns garbage in the data payload of inline
-NFS/RDMA READ replies. These are READs of under 1000 bytes or so
-where the client has not provided either a reply chunk or a write
-list.
+Kernel coding conventions frown upon having large nontrivial
+functions in header files, and the preference these days is to
+allow the compiler to make inlining decisions if possible.
 
-The NFS server delivers the data payload for an NFS READ reply to
-the transport in an xdr_buf page list. If the NFS client did not
-provide a reply chunk or a write list, send_reply() is supposed to
-set up a separate sge for the page containing the READ data, and
-another sge for XDR padding if needed, then post all of the sges via
-a single SEND Work Request.
+As these functions are re-homed into a .c file, be sure that
+comparisons with fields in struct rpcrdma_msg are with be32
+constants.
 
-The problem is send_reply() does not advance through the xdr_buf
-when setting up scatter/gather entries for SEND WR. It always calls
-dma_map_xdr with xdr_off set to zero. When there's more than one
-sge, dma_map_xdr() sets up the SEND sge's so they all point to the
-xdr_buf's head.
+This is a refactoring change; no behavior change is intended.
 
-The current Linux NFS/RDMA client always provides a reply chunk or
-a write list when performing an NFS READ over RDMA. Therefore, it
-does not exercise this particular case. The Linux server has never
-had to use more than one extra sge for building RPC/RDMA replies
-with a Linux client.
-
-However, an NFS/RDMA client _is_ allowed to send small NFS READs
-without setting up a write list or reply chunk. The NFS READ reply
-fits entirely within the inline reply buffer in this case. This is
-perhaps a more efficient way of performing NFS READs that the Linux
-NFS/RDMA client may some day adopt.
-
-Fixes: b432e6b3d9c1 ('svcrdma: Change DMA mapping logic to . . .')
-BugLink: https://bugzilla.linux-nfs.org/show_bug.cgi?id=285
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
 
- net/sunrpc/xprtrdma/svc_rdma_sendto.c |   10 +++++++++-
- 1 files changed, 9 insertions(+), 1 deletions(-)
+ include/linux/sunrpc/svc_rdma.h       |   81 +--------------------------------
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c |   73 ++++++++++++++++++++++++++++++
+ 2 files changed, 75 insertions(+), 79 deletions(-)
 
+diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
+index cb94ee4..ca4d86a 100644
+--- a/include/linux/sunrpc/svc_rdma.h
++++ b/include/linux/sunrpc/svc_rdma.h
+@@ -213,6 +213,8 @@ extern int rdma_read_chunk_frmr(struct svcxprt_rdma *, struct svc_rqst *,
+ 
+ /* svc_rdma_sendto.c */
+ extern int svc_rdma_sendto(struct svc_rqst *);
++extern struct rpcrdma_read_chunk *
++	svc_rdma_get_read_chunk(struct rpcrdma_msg *);
+ 
+ /* svc_rdma_transport.c */
+ extern int svc_rdma_send(struct svcxprt_rdma *, struct ib_send_wr *);
+@@ -238,83 +240,4 @@ extern void svc_rdma_prep_reply_hdr(struct svc_rqst *);
+ extern int svc_rdma_init(void);
+ extern void svc_rdma_cleanup(void);
+ 
+-/*
+- * Returns the address of the first read chunk or <nul> if no read chunk is
+- * present
+- */
+-static inline struct rpcrdma_read_chunk *
+-svc_rdma_get_read_chunk(struct rpcrdma_msg *rmsgp)
+-{
+-	struct rpcrdma_read_chunk *ch =
+-		(struct rpcrdma_read_chunk *)&rmsgp->rm_body.rm_chunks[0];
+-
+-	if (ch->rc_discrim == 0)
+-		return NULL;
+-
+-	return ch;
+-}
+-
+-/*
+- * Returns the address of the first read write array element or <nul> if no
+- * write array list is present
+- */
+-static inline struct rpcrdma_write_array *
+-svc_rdma_get_write_array(struct rpcrdma_msg *rmsgp)
+-{
+-	if (rmsgp->rm_body.rm_chunks[0] != 0
+-	    || rmsgp->rm_body.rm_chunks[1] == 0)
+-		return NULL;
+-
+-	return (struct rpcrdma_write_array *)&rmsgp->rm_body.rm_chunks[1];
+-}
+-
+-/*
+- * Returns the address of the first reply array element or <nul> if no
+- * reply array is present
+- */
+-static inline struct rpcrdma_write_array *
+-svc_rdma_get_reply_array(struct rpcrdma_msg *rmsgp)
+-{
+-	struct rpcrdma_read_chunk *rch;
+-	struct rpcrdma_write_array *wr_ary;
+-	struct rpcrdma_write_array *rp_ary;
+-
+-	/* XXX: Need to fix when reply list may occur with read-list and/or
+-	 * write list */
+-	if (rmsgp->rm_body.rm_chunks[0] != 0 ||
+-	    rmsgp->rm_body.rm_chunks[1] != 0)
+-		return NULL;
+-
+-	rch = svc_rdma_get_read_chunk(rmsgp);
+-	if (rch) {
+-		while (rch->rc_discrim)
+-			rch++;
+-
+-		/* The reply list follows an empty write array located
+-		 * at 'rc_position' here. The reply array is at rc_target.
+-		 */
+-		rp_ary = (struct rpcrdma_write_array *)&rch->rc_target;
+-
+-		goto found_it;
+-	}
+-
+-	wr_ary = svc_rdma_get_write_array(rmsgp);
+-	if (wr_ary) {
+-		rp_ary = (struct rpcrdma_write_array *)
+-			&wr_ary->
+-			wc_array[ntohl(wr_ary->wc_nchunks)].wc_target.rs_length;
+-
+-		goto found_it;
+-	}
+-
+-	/* No read list, no write list */
+-	rp_ary = (struct rpcrdma_write_array *)
+-		&rmsgp->rm_body.rm_chunks[2];
+-
+- found_it:
+-	if (rp_ary->wc_discrim == 0)
+-		return NULL;
+-
+-	return rp_ary;
+-}
+ #endif
 diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-index d25cd43..95412ab 100644
+index 95412ab..1dfae83 100644
 --- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
 +++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-@@ -384,6 +384,7 @@ static int send_reply(struct svcxprt_rdma *rdma,
- 		      int byte_count)
- {
- 	struct ib_send_wr send_wr;
-+	u32 xdr_off;
- 	int sge_no;
- 	int sge_bytes;
- 	int page_no;
-@@ -418,8 +419,8 @@ static int send_reply(struct svcxprt_rdma *rdma,
- 	ctxt->direction = DMA_TO_DEVICE;
+@@ -136,6 +136,79 @@ static dma_addr_t dma_map_xdr(struct svcxprt_rdma *xprt,
+ 	return dma_addr;
+ }
  
- 	/* Map the payload indicated by 'byte_count' */
-+	xdr_off = 0;
- 	for (sge_no = 1; byte_count && sge_no < vec->count; sge_no++) {
--		int xdr_off = 0;
- 		sge_bytes = min_t(size_t, vec->sge[sge_no].iov_len, byte_count);
- 		byte_count -= sge_bytes;
- 		ctxt->sge[sge_no].addr =
-@@ -457,6 +458,13 @@ static int send_reply(struct svcxprt_rdma *rdma,
- 	}
- 	rqstp->rq_next_page = rqstp->rq_respages + 1;
- 
-+	/* The loop above bumps sc_dma_used for each sge. The
-+	 * xdr_buf.tail gets a separate sge, but resides in the
-+	 * same page as xdr_buf.head. Don't count it twice.
-+	 */
-+	if (sge_no > ctxt->count)
-+		atomic_dec(&rdma->sc_dma_used);
++/* Returns the address of the first read chunk or <nul> if no read chunk
++ * is present
++ */
++struct rpcrdma_read_chunk *
++svc_rdma_get_read_chunk(struct rpcrdma_msg *rmsgp)
++{
++	struct rpcrdma_read_chunk *ch =
++		(struct rpcrdma_read_chunk *)&rmsgp->rm_body.rm_chunks[0];
 +
- 	if (sge_no > rdma->sc_max_sge) {
- 		pr_err("svcrdma: Too many sges (%d)\n", sge_no);
- 		goto err;
++	if (ch->rc_discrim == xdr_zero)
++		return NULL;
++	return ch;
++}
++
++/* Returns the address of the first read write array element or <nul>
++ * if no write array list is present
++ */
++static struct rpcrdma_write_array *
++svc_rdma_get_write_array(struct rpcrdma_msg *rmsgp)
++{
++	if (rmsgp->rm_body.rm_chunks[0] != xdr_zero ||
++	    rmsgp->rm_body.rm_chunks[1] == xdr_zero)
++		return NULL;
++	return (struct rpcrdma_write_array *)&rmsgp->rm_body.rm_chunks[1];
++}
++
++/* Returns the address of the first reply array element or <nul> if no
++ * reply array is present
++ */
++static struct rpcrdma_write_array *
++svc_rdma_get_reply_array(struct rpcrdma_msg *rmsgp)
++{
++	struct rpcrdma_read_chunk *rch;
++	struct rpcrdma_write_array *wr_ary;
++	struct rpcrdma_write_array *rp_ary;
++
++	/* XXX: Need to fix when reply chunk may occur with read list
++	 *	and/or write list.
++	 */
++	if (rmsgp->rm_body.rm_chunks[0] != xdr_zero ||
++	    rmsgp->rm_body.rm_chunks[1] != xdr_zero)
++		return NULL;
++
++	rch = svc_rdma_get_read_chunk(rmsgp);
++	if (rch) {
++		while (rch->rc_discrim != xdr_zero)
++			rch++;
++
++		/* The reply chunk follows an empty write array located
++		 * at 'rc_position' here. The reply array is at rc_target.
++		 */
++		rp_ary = (struct rpcrdma_write_array *)&rch->rc_target;
++		goto found_it;
++	}
++
++	wr_ary = svc_rdma_get_write_array(rmsgp);
++	if (wr_ary) {
++		int chunk = be32_to_cpu(wr_ary->wc_nchunks);
++
++		rp_ary = (struct rpcrdma_write_array *)
++			 &wr_ary->wc_array[chunk].wc_target.rs_length;
++		goto found_it;
++	}
++
++	/* No read list, no write list */
++	rp_ary = (struct rpcrdma_write_array *)&rmsgp->rm_body.rm_chunks[2];
++
++ found_it:
++	if (rp_ary->wc_discrim == xdr_zero)
++		return NULL;
++	return rp_ary;
++}
++
+ /* Assumptions:
+  * - The specified write_len can be represented in sc_max_sge * PAGE_SIZE
+  */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
