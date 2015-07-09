@@ -1,86 +1,55 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 4/5] svcrdma: Remove svc_rdma_fastreg()
-Date: Thu, 09 Jul 2015 16:45:37 -0400
-Message-ID: <20150709204537.8481.26204.stgit@klimt.1015granger.net>
+Subject: [PATCH v1 1/5] NFS/RDMA Release resources in svcrdma when device is
+	removed
+Date: Thu, 09 Jul 2015 16:45:08 -0400
+Message-ID: <20150709204508.8481.29228.stgit@klimt.1015granger.net>
 References: <20150709204230.8481.45457.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20150709204230.8481.45457.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Commit 0bf4828983df ("svcrdma: refactor marshalling logic") removed
-the last call site for svc_rdma_fastreg().
+From: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+When removing underlying RDMA device, the rmmod will hang forever if there
+are any outstanding NFS/RDMA client mounts. The outstanding NFS/RDMA counts
+could also prevent the server from shutting down. Further debugging shows
+that the existing connections are not teared down and resource are not
+released when receiving RDMA_CM_EVENT_DEVICE_REMOVAL event. It seems the
+original code missing svc_xprt_put() in RDMA_CM_EVENT_REMOVAL event handler
+thus svc_xprt_free is never invoked to release the existing connection
+resources.
+
+The patch has been passed removing, adding device back and forth without
+stopping NFS/RDMA service. This will also allow a device to be unplugged
+and swapped out without shutting down NFS service.
+
+BugLink: https://bugzilla.linux-nfs.org/show_bug.cgi?id=252
+Signed-off-by: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
 
- include/linux/sunrpc/svc_rdma.h          |    1 -
- net/sunrpc/xprtrdma/svc_rdma_transport.c |   34 ------------------------------
- 2 files changed, 0 insertions(+), 35 deletions(-)
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
-index ca4d86a..13af61b 100644
---- a/include/linux/sunrpc/svc_rdma.h
-+++ b/include/linux/sunrpc/svc_rdma.h
-@@ -227,7 +227,6 @@ extern void svc_rdma_put_context(struct svc_rdma_op_ctxt *, int);
- extern void svc_rdma_unmap_dma(struct svc_rdma_op_ctxt *ctxt);
- extern struct svc_rdma_req_map *svc_rdma_get_req_map(void);
- extern void svc_rdma_put_req_map(struct svc_rdma_req_map *);
--extern int svc_rdma_fastreg(struct svcxprt_rdma *, struct svc_rdma_fastreg_mr *);
- extern struct svc_rdma_fastreg_mr *svc_rdma_get_frmr(struct svcxprt_rdma *);
- extern void svc_rdma_put_frmr(struct svcxprt_rdma *,
- 			      struct svc_rdma_fastreg_mr *);
 diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-index f4b9732..4054a9d 100644
+index 6b36279..f4b9732 100644
 --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
 +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-@@ -1202,40 +1202,6 @@ static int svc_rdma_secure_port(struct svc_rqst *rqstp)
- 	return 1;
- }
- 
--/*
-- * Attempt to register the kvec representing the RPC memory with the
-- * device.
-- *
-- * Returns:
-- *  NULL : The device does not support fastreg or there were no more
-- *         fastreg mr.
-- *  frmr : The kvec register request was successfully posted.
-- *    <0 : An error was encountered attempting to register the kvec.
-- */
--int svc_rdma_fastreg(struct svcxprt_rdma *xprt,
--		     struct svc_rdma_fastreg_mr *frmr)
--{
--	struct ib_send_wr fastreg_wr;
--	u8 key;
--
--	/* Bump the key */
--	key = (u8)(frmr->mr->lkey & 0x000000FF);
--	ib_update_fast_reg_key(frmr->mr, ++key);
--
--	/* Prepare FASTREG WR */
--	memset(&fastreg_wr, 0, sizeof fastreg_wr);
--	fastreg_wr.opcode = IB_WR_FAST_REG_MR;
--	fastreg_wr.send_flags = IB_SEND_SIGNALED;
--	fastreg_wr.wr.fast_reg.iova_start = (unsigned long)frmr->kva;
--	fastreg_wr.wr.fast_reg.page_list = frmr->page_list;
--	fastreg_wr.wr.fast_reg.page_list_len = frmr->page_list_len;
--	fastreg_wr.wr.fast_reg.page_shift = PAGE_SHIFT;
--	fastreg_wr.wr.fast_reg.length = frmr->map_len;
--	fastreg_wr.wr.fast_reg.access_flags = frmr->access_flags;
--	fastreg_wr.wr.fast_reg.rkey = frmr->mr->lkey;
--	return svc_rdma_send(xprt, &fastreg_wr);
--}
--
- int svc_rdma_send(struct svcxprt_rdma *xprt, struct ib_send_wr *wr)
- {
- 	struct ib_send_wr *bad_wr, *n_wr;
+@@ -659,6 +659,7 @@ static int rdma_cma_handler(struct rdma_cm_id *cma_id,
+ 		if (xprt) {
+ 			set_bit(XPT_CLOSE, &xprt->xpt_flags);
+ 			svc_xprt_enqueue(xprt);
++			svc_xprt_put(xprt);
+ 		}
+ 		break;
+ 	default:
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
