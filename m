@@ -1,69 +1,79 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-4.2 2/2] IB/mlx4: Optimize do_slave_init
-Date: Thu,  9 Jul 2015 10:26:50 -0400
-Message-ID: <ba67097e948b1fde775309c7b7955d3c10fcf8e4.1436452010.git.dledford@redhat.com>
-References: <062f47dbcfcc4533e473b0866166ed7de1bc190c.1436452010.git.dledford@redhat.com>
+Subject: Re: [PATCH for-4.2] IB/mlx4: Fix and optimize SRIOV slave init
+Date: Thu, 09 Jul 2015 10:27:47 -0400
+Message-ID: <559E84E3.9040208@redhat.com>
+References: <23f3dca9ff4b71155bd898be1f3cbd8eeb9df27f.1436394658.git.dledford@redhat.com> <559E30C3.5050702@mellanox.com> <559E69AD.9050406@redhat.com> <559E7EFA.3070805@mellanox.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="Q61k8VqqU6SfhEiDDmxja866w3gkHMTm7"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <062f47dbcfcc4533e473b0866166ed7de1bc190c.1436452010.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-In-Reply-To: <062f47dbcfcc4533e473b0866166ed7de1bc190c.1436452010.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-References: <062f47dbcfcc4533e473b0866166ed7de1bc190c.1436452010.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <559E7EFA.3070805-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Maninder Singh <maninder1.s-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-There is little chance our memory allocation will fail, so we can
-combine initializing the work structs with allocating them instead of
-looping through all of them once to allocate and again to initialize.
-Then when we need to actually find out if our device is up or in the
-process of going down, have all of our work structs batched up, take the
-spin_lock once and only once, and do all of the batch under the one
-spin_lock invocation instead of incurring all of the locked memory cycles
-we would otherwise incur to take/release the spin_lock over and over
-again.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--Q61k8VqqU6SfhEiDDmxja866w3gkHMTm7
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/main.c | 16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+On 07/09/2015 10:02 AM, Or Gerlitz wrote:
+> On 7/9/2015 3:31 PM, Doug Ledford wrote:
+>>> i Doug,
+>>> >
+>>> >I'd like Jack to review this before we ack, not sure if he's in toda=
+y,
+>>> >so he might get to look on that only on Sunday.
+>> Try to get it reviewed before then please.  If it passes my
+>> build/functional tests (which I want to get to today), it will go in a=
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 1c59e4749736..8be6db816460 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -2681,20 +2681,22 @@ static void do_slave_init(struct mlx4_ib_dev *ibdev, int slave, int do_init)
- 				kfree(dm[i]);
- 			goto out;
- 		}
--	}
--	/* initialize or tear down tunnel QPs for the slave */
--	for (i = 0; i < ports; i++) {
- 		INIT_WORK(&dm[i]->work, mlx4_ib_tunnels_update_work);
- 		dm[i]->port = first_port + i + 1;
- 		dm[i]->slave = slave;
- 		dm[i]->do_init = do_init;
- 		dm[i]->dev = ibdev;
--		spin_lock_irqsave(&ibdev->sriov.going_down_lock, flags);
--		if (!ibdev->sriov.is_going_down)
-+	}
-+	/* initialize or tear down tunnel QPs for the slave */
-+	spin_lock_irqsave(&ibdev->sriov.going_down_lock, flags);
-+	if (!ibdev->sriov.is_going_down) {
-+		for (i = 0; i < ports; i++)
- 			queue_work(ibdev->sriov.demux[i].ud_wq, &dm[i]->work);
--		else
--			kfree(dm[i]);
- 		spin_unlock_irqrestore(&ibdev->sriov.going_down_lock, flags);
-+	} else {
-+		spin_unlock_irqrestore(&ibdev->sriov.going_down_lock, flags);
-+		for (i = 0; i < ports; i++)
-+			kfree(dm[i]);
- 	}
- out:
- 	kfree(dm);
--- 
-2.4.3
+>> pull request tomorrow.
+>=20
+> I hope Jack will be able to look on that -- I took a look -- seems fine=
+=2E
+> However, please (please) break it to two patches: one that fixes the
+> leak and one that does the small optimization. Recently I came into a
+> conclusion that each time we are violating the kernel practice of
+> makingsure a patch has **one** logical change, we either add a bug or
+> fix a bug in an unnoticed way, so...again, pull based on what tree/bran=
+ch?
 
+It's split.  The tree will be out (probably) later today.
+
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--Q61k8VqqU6SfhEiDDmxja866w3gkHMTm7
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJVnoTjAAoJELgmozMOVy/dkOcP/iAFaYvL83qvJ/AT07zIjH3E
+1wuCxFb8Dwgk3yOIdvC/yZA9nC9BuuV2iQr7hTClgbn1dQJSH6SlfSt5MqApw8wZ
+RpZa/QRXJEHu4HMecqujiullXzFCOJT0er1x6ridAfsAhUfqYQIu5J3yqOqVEpZR
+1nhXmPttU58amLVi7FivxsI1T98abBbhLaoOZ+voLdDjT/SGw63efZhm/MzGVcUq
+JPehk96ZeOBsdwCLC+5fXc2F33Uci2qh8IwWKyFNgBYNppbVoWqqSHK//699nDcT
+JYO0g0+0dyBecadB3ebpXbE0zh21XF1DzsAMfM34VnfjvlLrCKqe2KkCKBX5jx8M
+0f7DYrBiMo0noSBrv5Bg2p1HyyyyzhjMsggiWmoeo4ZPkIeJNomWJnjQdeJaKJCN
+6j/tmWX2+J6V6RDkB7XDmaKAXpyakJ/GdV26zTqofjvycG98hlLbgm2LRcnSoS19
+gBuXYptfxyjze2mk8FbYjClWSjjFzS2XT0ujkfkOe3CYsz0JiwRqGV4/ScKbWlfz
+rRS4HEE7YzPqOYuu7BmdC+JRonFrN2PwWy+iwT/VX1L/h/Zpv4Dz40nSWm6F6BXL
+yRhbqOzGRw2D3euHM4HU4SOv2Q+lr2f2G8DeJyQIo3uxjfJjxUXpvM3lDYcusv6m
+G8gx053Xpy7uW3aXUVwY
+=5r4E
+-----END PGP SIGNATURE-----
+
+--Q61k8VqqU6SfhEiDDmxja866w3gkHMTm7--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
