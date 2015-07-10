@@ -1,107 +1,63 @@
-From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH v1 5/5] svcrdma: Boost NFS READ/WRITE payload size maximum
-Date: Fri, 10 Jul 2015 12:05:06 -0400
-Message-ID: <20150710160506.GE31121@fieldses.org>
-References: <20150709204230.8481.45457.stgit@klimt.1015granger.net>
- <20150709204546.8481.65857.stgit@klimt.1015granger.net>
- <20150710141814.GA31121@fieldses.org>
- <11D08769-F6EB-4696-8910-8B207B20CC10@oracle.com>
- <20150710155424.GD31121@fieldses.org>
- <24367FE9-7C2B-4B2D-A48A-90329D92296E@oracle.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+Date: Fri, 10 Jul 2015 10:11:08 -0600
+Message-ID: <20150710161108.GA19042@obsidianresearch.com>
+References: <20150707161751.GA623@obsidianresearch.com>
+ <559BFE03.4020709@dev.mellanox.co.il>
+ <20150707213628.GA5661@obsidianresearch.com>
+ <559CD174.4040901@dev.mellanox.co.il>
+ <20150708190842.GB11740@obsidianresearch.com>
+ <20150708203205.GA21847@infradead.org>
+ <20150709000337.GE16812@obsidianresearch.com>
+ <559EF332.7060103@redhat.com>
+ <20150709225306.GA30741@obsidianresearch.com>
+ <559FC710.1050307@talpey.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <24367FE9-7C2B-4B2D-A48A-90329D92296E-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <559FC710.1050307-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jul 10, 2015 at 11:59:20AM -0400, Chuck Lever wrote:
->=20
-> On Jul 10, 2015, at 11:54 AM, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> =
-wrote:
->=20
-> > On Fri, Jul 10, 2015 at 10:59:48AM -0400, Chuck Lever wrote:
-> >>=20
-> >> On Jul 10, 2015, at 10:18 AM, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org wrote:
-> >>=20
-> >>> On Thu, Jul 09, 2015 at 04:45:47PM -0400, Chuck Lever wrote:
-> >>>> Increased to 1 megabyte.
-> >>>=20
-> >>> Why not more or less?
-> >>>=20
-> >>> Why do we even have this constant, why shouldn't we just use
-> >>> RPCSVC_MAXPAYLOAD?
-> >>=20
-> >> The payload size maximum for RDMA is based on RPCRDMA_MAX_SVC_SEGS=
-=2E
-> >> We could reverse the relationship and make RPCRDMA_MAX_SVC_SEGS
-> >> based on RPCSVC_MAXPAYLOAD divided by the platform=E2=80=99s page =
-size.
-> >=20
-> > But there'd be no reason to do that, because we're not using
-> > RPCRDMA_MAX_SVC_SEGS anywhere.  Should we be?
->=20
-> Let me try using RPCSVC_MAXPAYLOAD. That is based on RPCSVC_MAXPAGES,
-> which is actually used in svc_rdma_*.c
+On Fri, Jul 10, 2015 at 09:22:24AM -0400, Tom Talpey wrote:
+> and it is enabled only when the RDMA Read is active.
 
-OK, thanks, that sounds like that would make more sense.
+??? How is that done? ib_get_dma_mr is defined to return a remote
+usable rkey that is valid from when it it returns until the MR is
+destroyed. NFS creates one mr early on, it does not seem to make one
+per RDMA READ?
 
---b.
+For the proposed iSER patch the problem is very acute, iser makes a
+single PD and phys MR at boot time for each device. This means there
+is a single machine wide unchanging rkey that allows remote physical
+memory access. An attacker only has to repeatedly open QPs to iSER and
+guess rkey values until they find it. Add in likely non-crypto
+randomness for rkeys, and I bet it isn't even that hard to do.
 
->=20
->=20
-> > --b.
-> >=20
-> >>=20
-> >>=20
-> >>> --b.
-> >>>=20
-> >>>>=20
-> >>>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> >>>> ---
-> >>>>=20
-> >>>> include/linux/sunrpc/svc_rdma.h |    2 +-
-> >>>> 1 files changed, 1 insertions(+), 1 deletions(-)
-> >>>>=20
-> >>>> diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sun=
-rpc/svc_rdma.h
-> >>>> index 13af61b..1bca6dd 100644
-> >>>> --- a/include/linux/sunrpc/svc_rdma.h
-> >>>> +++ b/include/linux/sunrpc/svc_rdma.h
-> >>>> @@ -172,7 +172,7 @@ struct svcxprt_rdma {
-> >>>> #define RDMAXPRT_SQ_PENDING	2
-> >>>> #define RDMAXPRT_CONN_PENDING	3
-> >>>>=20
-> >>>> -#define RPCRDMA_MAX_SVC_SEGS	(64)	/* server max scatter/gather =
-*/
-> >>>> +#define RPCRDMA_MAX_SVC_SEGS	(256)	/* server max scatter/gather=
- */
-> >>>> #if RPCSVC_MAXPAYLOAD < (RPCRDMA_MAX_SVC_SEGS << PAGE_SHIFT)
-> >>>> #define RPCRDMA_MAXPAYLOAD	RPCSVC_MAXPAYLOAD
-> >>>> #else
-> >>>>=20
-> >>>> --
-> >>>> To unsubscribe from this list: send the line "unsubscribe linux-=
-nfs" in
-> >>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >>>> More majordomo info at  http://vger.kernel.org/majordomo-info.ht=
-ml
-> >>=20
-> >> --
-> >> Chuck Lever
-> >>=20
-> >>=20
->=20
-> --
-> Chuck Lever
->=20
->=20
+So this seems to be a catastrophic security failing.
+
+> > From there, it is a logical wish: If Steve is going to FRMR'ize iSER
+> >to be acceptable security wise, I'd rather see that work done on in a
+> >general way. Hence the API discussion.
+> 
+> Well, it's important to realize that NFS already does the Right Thing.
+> So it isn't actually an urgent issue. There is time to discuss.
+
+It depends on what is going on with iWarp iSER. If the iWarp community
+thinks it should go ahead insecurely then fine, put a giant warning in
+dmesg and go ahead, otherwise iWarp needs to address this difference
+with a proper generic API, which appears, must wrapper
+ib_post_send. Harder job :\
+
+I'm sorry Steve for leading you down the wrong path with these flags,
+I did not fully realize exactly what the iWarp difference was at the
+start :(
+
+Jason
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
