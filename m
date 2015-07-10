@@ -1,93 +1,103 @@
-From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 02/12] xprtrdma: Raise maximum payload size to one
- megabyte
-Date: Fri, 10 Jul 2015 15:41:29 -0400
-Message-ID: <55A01FE9.8000309@Netapp.com>
-References: <20150709203242.26247.4848.stgit@manet.1015granger.net>
- <20150709204159.26247.44592.stgit@manet.1015granger.net>
- <55A01B56.2020107@Netapp.com>
- <F9717330-F362-477B-915D-D6AAE7B5DDDB@oracle.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+Date: Fri, 10 Jul 2015 13:54:20 -0600
+Message-ID: <20150710195420.GA31500@obsidianresearch.com>
+References: <559CD174.4040901@dev.mellanox.co.il>
+ <20150708190842.GB11740@obsidianresearch.com>
+ <20150708203205.GA21847@infradead.org>
+ <20150709000337.GE16812@obsidianresearch.com>
+ <559EF332.7060103@redhat.com>
+ <20150709225306.GA30741@obsidianresearch.com>
+ <559FC710.1050307@talpey.com>
+ <20150710161108.GA19042@obsidianresearch.com>
+ <55A00754.4010009@redhat.com>
+ <55A01225.9000000@talpey.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <F9717330-F362-477B-915D-D6AAE7B5DDDB-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <55A01225.9000000-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/10/2015 03:33 PM, Chuck Lever wrote:
->=20
-> On Jul 10, 2015, at 3:21 PM, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgRhl2p70BpVqQ@public.gmane.org=
-m> wrote:
->=20
->> Hi Chuck,
->>
->> On 07/09/2015 04:41 PM, Chuck Lever wrote:
->>> The point of larger rsize and wsize is to reduce the per-byte cost
->>> of memory registration and deregistration. Modern HCAs can typicall=
-y
->>> handle a megabyte or more with a single registration operation.
->>>
->>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>> ---
->>> net/sunrpc/xprtrdma/xprt_rdma.h |    3 +--
->>> 1 file changed, 1 insertion(+), 2 deletions(-)
->>>
->>> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/=
-xprt_rdma.h
->>> index f49dd8b..abee472 100644
->>> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
->>> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
->>> @@ -165,8 +165,7 @@ rdmab_to_msg(struct rpcrdma_regbuf *rb)
->>>  * struct rpcrdma_buffer. N is the max number of outstanding reques=
-ts.
->>>  */
->>>
->>> -/* temporary static scatter/gather max */
->>> -#define RPCRDMA_MAX_DATA_SEGS	(64)	/* max scatter/gather */
->>> +#define RPCRDMA_MAX_DATA_SEGS	((1 * 1024 * 1024) / PAGE_SIZE)
->>                                         ^^^
->> What is the significance of the 1 here?
->=20
-> This echoes the definition of RPCSVC_MAXPAYLOAD.
->=20
-> =E2=80=9C1=E2=80=9D documents =E2=80=9Cone=E2=80=9D megabyte, I assum=
-e.
+On Fri, Jul 10, 2015 at 02:42:45PM -0400, Tom Talpey wrote:
 
-Makes sense.  Thanks!
+> >>For the proposed iSER patch the problem is very acute, iser makes a
+> >>single PD and phys MR at boot time for each device. This means there
+> >>is a single machine wide unchanging rkey that allows remote physical
+> >>memory access. An attacker only has to repeatedly open QPs to iSER and
+> >>guess rkey values until they find it. Add in likely non-crypto
+> >>randomness for rkeys, and I bet it isn't even that hard to do.
+> 
+> The rkeys have a PD, wich cannot be forged, so it's not a matter of
+> attacking, but it is most definitely a system integrity risk, as I
+> mentioned earlier, a simple arithmetic offset mistake can overwrite
+> anything.
 
->=20
->=20
->> Thanks,
->> Anna
->>
->>> #define RPCRDMA_MAX_SEGS 	(RPCRDMA_MAX_DATA_SEGS + 2) /* head+tail =
-=3D 2 */
->>>
->>> struct rpcrdma_buffer;
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-nfs=
-" in
->>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
-" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
-> --
-> Chuck Lever
->=20
->=20
->=20
+Can you explain this conclusion?
 
+As far as I can see the flow is:
+
+pd = ib_alloc_pd();
+mr = ib_get_dma_mr(pd,IB_ACCESS_REMOTE_WRITE);
+qp = ib_create_qp(pd);
+
+So at that instant, the far side of 'qp' can issue a RDMA WRITE op
+with an rkey of mr->rkey. AFAIK that is what these APIs are *defined*
+to do.
+
+I don't need to forge a PD because I have control over the far
+side of a QP already attached to PD. All I need to know is the rkey
+number.
+
+So the attack is, connect to iSER, guess RKEY. If wrong, reconnect,
+try again. The PD doesn't stop it. The rkey doesn't change on every
+connect. Eventually you find it, and then you have access to all of
+physical memory.
+
+That is a security issue.
+
+> > From there, we can start to look at the bigger picture of cleanup up the
+> >default trust domain in the kernel and user space both (and soliciting
+> >feedback on that...I have a suspicion that some users will not like us
+> >tightening up security as it might interfere with their usage in their
+> >sequestered clusters).
+> 
+> All excellent points. It's not worse, and it adds important transport
+> support.
+
+If the iWarp&iSER community is happy with this security problem then
+sure, go ahead with the iser patch.
+
+> However, it's an extremely bad idea to codify writable privileged rmr's
+> in the API as best practice. So under no circumstance should that become
+> the long term plan.
+
+Agreed. We should drop ib_get_dma_mr flags wrapper, and I propose
+this, so we don't have to relearn this lesson again.
+
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index bac3fb406a74..6ed7e0f6c162 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1126,6 +1126,12 @@ struct ib_mr *ib_get_dma_mr(struct ib_pd *pd, int mr_access_flags)
+        struct ib_mr *mr;
+        int err;
+ 
++       /* Granting remote access to the physical MR is a security hole, don't
++          do it. */
++       WARN_ON_ONCE(mr_access_flags &
++               (IB_ACCESS_REMOTE_WRITE | IB_ACCESS_REMOTE_READ |
++                IB_ACCESS_REMOTE_ATOMIC));
++
+        err = ib_check_mr_access(mr_access_flags);
+        if (err)
+                return ERR_PTR(err);
+
+Jason
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
