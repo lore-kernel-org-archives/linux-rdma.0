@@ -1,127 +1,76 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 05/12] xprtrdma: Account for RPC/RDMA header size when deciding to inline
-Date: Fri, 10 Jul 2015 16:28:56 -0400
-Message-ID: <7D23C297-3DA3-4C44-836E-3A0671CB31ED@oracle.com>
-References: <20150709203242.26247.4848.stgit@manet.1015granger.net> <20150709204227.26247.51111.stgit@manet.1015granger.net> <55A02650.1050809@Netapp.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55A02650.1050809-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 09/12] xprtrdma: Prepare rpcrdma_ep_post() for
+ RDMA_NOMSG calls
+Date: Fri, 10 Jul 2015 16:43:31 -0400
+Message-ID: <55A02E73.7000902@Netapp.com>
+References: <20150709203242.26247.4848.stgit@manet.1015granger.net>
+ <20150709204305.26247.39173.stgit@manet.1015granger.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150709204305.26247.39173.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Chuck,
 
-On Jul 10, 2015, at 4:08 PM, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>=
- wrote:
+On 07/09/2015 04:43 PM, Chuck Lever wrote:
+> Only the RPC/RDMA header is sent when making an RDMA_NOMSG call.
+> That header resides in the first element of the iovec array
+> passed to rpcrdma_ep_post().
+> 
+> Instead of special casing the iovec element with the pad, just
+> sync all the elements in the send iovec. Syncing the zero pad is
+> not strictly necessary, but the pad is rarely if ever used these
+> days, and the extra cost in that case is small.
+> 
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+> index cdf5220..9199436 100644
+> --- a/net/sunrpc/xprtrdma/verbs.c
+> +++ b/net/sunrpc/xprtrdma/verbs.c
+> @@ -1316,22 +1318,15 @@ rpcrdma_ep_post(struct rpcrdma_ia *ia,
+>  
+>  	send_wr.next = NULL;
+>  	send_wr.wr_id = RPCRDMA_IGNORE_COMPLETION;
+> -	send_wr.sg_list = req->rl_send_iov;
+> +	send_wr.sg_list = iov;
+>  	send_wr.num_sge = req->rl_niovs;
+>  	send_wr.opcode = IB_WR_SEND;
+> -	if (send_wr.num_sge == 4)	/* no need to sync any pad (constant) */
+> -		ib_dma_sync_single_for_device(ia->ri_device,
+> -					      req->rl_send_iov[3].addr,
+> -					      req->rl_send_iov[3].length,
+> -					      DMA_TO_DEVICE);
+> -	ib_dma_sync_single_for_device(ia->ri_device,
+> -				      req->rl_send_iov[1].addr,
+> -				      req->rl_send_iov[1].length,
+> -				      DMA_TO_DEVICE);
+> -	ib_dma_sync_single_for_device(ia->ri_device,
+> -				      req->rl_send_iov[0].addr,
+> -				      req->rl_send_iov[0].length,
+> -				      DMA_TO_DEVICE);
+> +
+> +	for (i = 0; i < send_wr.num_sge; i++)
+> +		ib_dma_sync_single_for_device(device, iov[i].addr,
+> +					      iov[i].length, DMA_TO_DEVICE);
 
-> Hi Chuck,
->=20
-> On 07/09/2015 04:42 PM, Chuck Lever wrote:
->> When marshaling RPC/RDMA requests, ensure the combined size of
->> RPC/RDMA header and RPC header do not exceed the inline threshold.
->> Endpoints typically reject RPC/RDMA messages that exceed the size
->> of their receive buffers.
->>=20
->> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->> ---
->> net/sunrpc/xprtrdma/rpc_rdma.c |   29 +++++++++++++++++++++++++++--
->> 1 file changed, 27 insertions(+), 2 deletions(-)
->>=20
->> diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rp=
-c_rdma.c
->> index 84ea37d..8cf9402 100644
->> --- a/net/sunrpc/xprtrdma/rpc_rdma.c
->> +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
->> @@ -71,6 +71,31 @@ static const char transfertypes[][12] =3D {
->> };
->> #endif
->>=20
->> +/* The client can send a request inline as long as the RPCRDMA head=
-er
->> + * plus the RPC call fit under the transport's inline limit. If the
->> + * combined call message size exceeds that limit, the client must u=
-se
->> + * the read chunk list for this operation.
->> + */
->> +static bool rpcrdma_args_inline(struct rpc_rqst *rqst)
->> +{
->> +	unsigned int callsize =3D RPCRDMA_HDRLEN_MIN + rqst->rq_snd_buf.le=
-n;
->> +
->> +	return callsize <=3D RPCRDMA_INLINE_WRITE_THRESHOLD(rqst);
->> +}
->> +
->> +/* The client can=92t know how large the actual reply will be. Thus=
- it
->                 ^^^^^
-> This is showing up as "can<80><99>t" in git-show, leading me to think=
- that the apostrophe was replaced with a unicode-apostrophe.  Google mi=
-ght have made the switch, but can you double check the patch on your si=
-de just in case?
+Two questions here:
+1) Is syncing order important?  The original code went 3 - 1 - 0, but now we're going 0 - 1 - 2 - 3.
+2) Is iov[2] the zero pad you mentioned in your commit message?  If not, do you know why it wasn't already syncing?
 
-=46ixed.
+Thanks,
+Anna
 
-
->=20
-> Thanks,
-> Anna
->=20
->> + * plans for the largest possible reply for that particular ULP
->> + * operation. If the maximum combined reply message size exceeds th=
-at
->> + * limit, the client must provide a write list or a reply chunk for
->> + * this request.
->> + */
->> +static bool rpcrdma_results_inline(struct rpc_rqst *rqst)
->> +{
->> +	unsigned int repsize =3D RPCRDMA_HDRLEN_MIN + rqst->rq_rcv_buf.buf=
-len;
->> +
->> +	return repsize <=3D RPCRDMA_INLINE_READ_THRESHOLD(rqst);
->> +}
->> +
->> /*
->>  * Chunk assembly from upper layer xdr_buf.
->>  *
->> @@ -418,7 +443,7 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
->> 	 * a READ, then use write chunks to separate the file data
->> 	 * into pages; otherwise use reply chunks.
->> 	 */
->> -	if (rqst->rq_rcv_buf.buflen <=3D RPCRDMA_INLINE_READ_THRESHOLD(rqs=
-t))
->> +	if (rpcrdma_results_inline(rqst))
->> 		wtype =3D rpcrdma_noch;
->> 	else if (rqst->rq_rcv_buf.page_len =3D=3D 0)
->> 		wtype =3D rpcrdma_replych;
->> @@ -441,7 +466,7 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
->> 	 * implies the op is a write.
->> 	 * TBD check NFSv4 setacl
->> 	 */
->> -	if (rqst->rq_snd_buf.len <=3D RPCRDMA_INLINE_WRITE_THRESHOLD(rqst)=
-)
->> +	if (rpcrdma_args_inline(rqst))
->> 		rtype =3D rpcrdma_noch;
->> 	else if (rqst->rq_snd_buf.page_len =3D=3D 0)
->> 		rtype =3D rpcrdma_areadch;
->>=20
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-nfs"=
- in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>=20
->=20
+> +	dprintk("RPC:       %s: posting %d s/g entries\n",
+> +		__func__, send_wr.num_sge);
+>  
+>  	if (DECR_CQCOUNT(ep) > 0)
+>  		send_wr.send_flags = 0;
 
 --
-Chuck Lever
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
