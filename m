@@ -1,146 +1,35 @@
 From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: Re: [PATCH v1 09/12] xprtrdma: Prepare rpcrdma_ep_post() for
- RDMA_NOMSG calls
-Date: Fri, 10 Jul 2015 16:59:21 +0530
-Message-ID: <CANjDDBh38PrxGgWGuKYCYcbjqY9ELrpkGqaRZ_ueKfD7FEQP8g@mail.gmail.com>
-References: <20150709203242.26247.4848.stgit@manet.1015granger.net>
-	<20150709204305.26247.39173.stgit@manet.1015granger.net>
+Subject: Re: [PATCH] IB/core: Destroy ocrdma_dev_id IDR on module exit
+Date: Fri, 10 Jul 2015 17:14:59 +0530
+Message-ID: <CANjDDBgEprbUQ59pHuMekpDbSGvdT71EmUMXsmPmeDiVGshyzA@mail.gmail.com>
+References: <1436368980-31088-1-git-send-email-jthumshirn@suse.de>
+	<559D9975.5020306@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150709204305.26247.39173.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+In-Reply-To: <559D9975.5020306-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Mitesh Ahuja <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-we need to honor the max limits of device by checking
-dev_attr.max_sge? a vendor may not support 4 sges.
+We missed to ack this patch. Thanks Dough and Johannes.
 
-On Fri, Jul 10, 2015 at 2:13 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-> Only the RPC/RDMA header is sent when making an RDMA_NOMSG call.
-> That header resides in the first element of the iovec array
-> passed to rpcrdma_ep_post().
+acked-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+
+On Thu, Jul 9, 2015 at 3:13 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> On 07/08/2015 11:23 AM, Johannes Thumshirn wrote:
+>> Destroy ocrdma_dev_id IDR on module exit, reclaiming the allocated memory.
+>>
 >
-> Instead of special casing the iovec element with the pad, just
-> sync all the elements in the send iovec. Syncing the zero pad is
-> not strictly necessary, but the pad is rarely if ever used these
-> days, and the extra cost in that case is small.
+> Thanks, applied.
 >
-> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->  net/sunrpc/xprtrdma/rpc_rdma.c  |    4 ++++
->  net/sunrpc/xprtrdma/verbs.c     |   27 +++++++++++----------------
->  net/sunrpc/xprtrdma/xprt_rdma.h |   18 ++++++++++--------
->  3 files changed, 25 insertions(+), 24 deletions(-)
->
-> diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-> index cb05233..2e721f2 100644
-> --- a/net/sunrpc/xprtrdma/rpc_rdma.c
-> +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-> @@ -575,6 +575,10 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
->         req->rl_send_iov[0].length = hdrlen;
->         req->rl_send_iov[0].lkey = rdmab_lkey(req->rl_rdmabuf);
->
-> +       req->rl_niovs = 1;
-> +       if (rtype == rpcrdma_areadch)
-> +               return 0;
-> +
->         req->rl_send_iov[1].addr = rdmab_addr(req->rl_sendbuf);
->         req->rl_send_iov[1].length = rpclen;
->         req->rl_send_iov[1].lkey = rdmab_lkey(req->rl_sendbuf);
-> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-> index cdf5220..9199436 100644
-> --- a/net/sunrpc/xprtrdma/verbs.c
-> +++ b/net/sunrpc/xprtrdma/verbs.c
-> @@ -651,7 +651,7 @@ rpcrdma_ep_create(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia,
->         if (rc)
->                 return rc;
->         ep->rep_attr.cap.max_recv_wr = cdata->max_requests;
-> -       ep->rep_attr.cap.max_send_sge = (cdata->padding ? 4 : 2);
-> +       ep->rep_attr.cap.max_send_sge = RPCRDMA_MAX_IOVS;
->         ep->rep_attr.cap.max_recv_sge = 1;
->         ep->rep_attr.cap.max_inline_data = 0;
->         ep->rep_attr.sq_sig_type = IB_SIGNAL_REQ_WR;
-> @@ -1303,9 +1303,11 @@ rpcrdma_ep_post(struct rpcrdma_ia *ia,
->                 struct rpcrdma_ep *ep,
->                 struct rpcrdma_req *req)
->  {
-> +       struct ib_device *device = ia->ri_device;
->         struct ib_send_wr send_wr, *send_wr_fail;
->         struct rpcrdma_rep *rep = req->rl_reply;
-> -       int rc;
-> +       struct ib_sge *iov = req->rl_send_iov;
-> +       int i, rc;
->
->         if (rep) {
->                 rc = rpcrdma_ep_post_recv(ia, ep, rep);
-> @@ -1316,22 +1318,15 @@ rpcrdma_ep_post(struct rpcrdma_ia *ia,
->
->         send_wr.next = NULL;
->         send_wr.wr_id = RPCRDMA_IGNORE_COMPLETION;
-> -       send_wr.sg_list = req->rl_send_iov;
-> +       send_wr.sg_list = iov;
->         send_wr.num_sge = req->rl_niovs;
->         send_wr.opcode = IB_WR_SEND;
-> -       if (send_wr.num_sge == 4)       /* no need to sync any pad (constant) */
-> -               ib_dma_sync_single_for_device(ia->ri_device,
-> -                                             req->rl_send_iov[3].addr,
-> -                                             req->rl_send_iov[3].length,
-> -                                             DMA_TO_DEVICE);
-> -       ib_dma_sync_single_for_device(ia->ri_device,
-> -                                     req->rl_send_iov[1].addr,
-> -                                     req->rl_send_iov[1].length,
-> -                                     DMA_TO_DEVICE);
-> -       ib_dma_sync_single_for_device(ia->ri_device,
-> -                                     req->rl_send_iov[0].addr,
-> -                                     req->rl_send_iov[0].length,
-> -                                     DMA_TO_DEVICE);
-> +
-> +       for (i = 0; i < send_wr.num_sge; i++)
-> +               ib_dma_sync_single_for_device(device, iov[i].addr,
-> +                                             iov[i].length, DMA_TO_DEVICE);
-> +       dprintk("RPC:       %s: posting %d s/g entries\n",
-> +               __func__, send_wr.num_sge);
->
->         if (DECR_CQCOUNT(ep) > 0)
->                 send_wr.send_flags = 0;
-> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-> index ce4e79e..90da480 100644
-> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
-> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-> @@ -256,16 +256,18 @@ struct rpcrdma_mr_seg {           /* chunk descriptors */
->         char            *mr_offset;     /* kva if no page, else offset */
->  };
->
-> +#define RPCRDMA_MAX_IOVS       (4)
-> +
->  struct rpcrdma_req {
-> -       unsigned int    rl_niovs;       /* 0, 2 or 4 */
-> -       unsigned int    rl_nchunks;     /* non-zero if chunks */
-> -       unsigned int    rl_connect_cookie;      /* retry detection */
-> -       struct rpcrdma_buffer *rl_buffer; /* home base for this structure */
-> +       unsigned int            rl_niovs;
-> +       unsigned int            rl_nchunks;
-> +       unsigned int            rl_connect_cookie;
-> +       struct rpcrdma_buffer   *rl_buffer;
->         struct rpcrdma_rep      *rl_reply;/* holder for reply buffer */
-> -       struct ib_sge   rl_send_iov[4]; /* for active requests */
-> -       struct rpcrdma_regbuf *rl_rdmabuf;
-> -       struct rpcrdma_regbuf *rl_sendbuf;
-> -       struct rpcrdma_mr_seg rl_segments[RPCRDMA_MAX_SEGS];
-> +       struct ib_sge           rl_send_iov[RPCRDMA_MAX_IOVS];
-> +       struct rpcrdma_regbuf   *rl_rdmabuf;
-> +       struct rpcrdma_regbuf   *rl_sendbuf;
-> +       struct rpcrdma_mr_seg   rl_segments[RPCRDMA_MAX_SEGS];
->  };
->
->  static inline struct rpcrdma_req *
 >
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>               GPG KeyID: 0E572FDD
+>
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
