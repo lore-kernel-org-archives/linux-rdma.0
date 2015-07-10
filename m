@@ -1,75 +1,57 @@
-From: andrew banman <abanman-sJ/iWh9BUns@public.gmane.org>
-Subject: [BUG] mellanox IB driver fails to load on large config
-Date: Fri, 10 Jul 2015 14:15:36 -0500
-Message-ID: <20150710191506.GA52396@asylum.americas.sgi.com>
+From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 02/12] xprtrdma: Raise maximum payload size to one
+ megabyte
+Date: Fri, 10 Jul 2015 15:21:58 -0400
+Message-ID: <55A01B56.2020107@Netapp.com>
+References: <20150709203242.26247.4848.stgit@manet.1015granger.net>
+ <20150709204159.26247.44592.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20150709204159.26247.44592.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-I'm seeing a large number of allocation errors originating from the Mellanox IB
-driver when booting the 4.2-rc1 kernel on a 4096cpu 32TB memory system:
+Hi Chuck,
 
-8<---
-<mlx4_ib> mlx4_ib_alloc_eqs: Can't allocate EQ 64; reverting to legacy
-<mlx4_ib> mlx4_ib_alloc_eqs: Can't allocate EQ 65; reverting to legacy
-<mlx4_ib> mlx4_ib_alloc_eqs: Can't allocate EQ 66; reverting to legacy
-<mlx4_ib> mlx4_ib_alloc_eqs: Can't allocate EQ 67; reverting to legacy
-<mlx4_ib> mlx4_ib_alloc_eqs: Can't allocate EQ 68; reverting to legacy
-<mlx4_ib> mlx4_ib_alloc_eqs: Can't allocate EQ 69; reverting to legacy
-<mlx4_ib> mlx4_ib_alloc_eqs: Can't allocate EQ 70; reverting to legacy
-<mlx4_ib> mlx4_ib_alloc_eqs: Can't allocate EQ 71; reverting to legacy
-......
-<mlx4_ib> mlx4_ib_alloc_eqs: Can't allocate EQ 123; reverting to legacy
---->8
+On 07/09/2015 04:41 PM, Chuck Lever wrote:
+> The point of larger rsize and wsize is to reduce the per-byte cost
+> of memory registration and deregistration. Modern HCAs can typically
+> handle a megabyte or more with a single registration operation.
+> 
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  net/sunrpc/xprtrdma/xprt_rdma.h |    3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+> index f49dd8b..abee472 100644
+> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
+> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+> @@ -165,8 +165,7 @@ rdmab_to_msg(struct rpcrdma_regbuf *rb)
+>   * struct rpcrdma_buffer. N is the max number of outstanding requests.
+>   */
+>  
+> -/* temporary static scatter/gather max */
+> -#define RPCRDMA_MAX_DATA_SEGS	(64)	/* max scatter/gather */
+> +#define RPCRDMA_MAX_DATA_SEGS	((1 * 1024 * 1024) / PAGE_SIZE)
+                                         ^^^
+What is the significance of the 1 here?
 
-Where the failing function is in drivers/infiniband/hw/mlx4/main.c:
+Thanks,
+Anna
 
-8<---
-2042 static void mlx4_ib_alloc_eqs(struct mlx4_dev *dev, struct mlx4_ib_dev *ibdev)
-...
-2075                         /* Set IRQ for specific name (per ring) */
-2076                         if (mlx4_assign_eq(dev, name, NULL,
-2077                                            &ibdev->eq_table[eq])) {
-2078                                 /* Use legacy (same as mlx4_en driver) */
-2079                                 pr_warn("Can't allocate EQ %d; reverting to legacy\n", eq);
-2080                                 ibdev->eq_table[eq] =
-2081                                         (eq % dev->caps.num_comp_vectors);
-2082                         }
---->8
-
-The problem doesn't appear to be fatal. At this point I am unsure if this is
-actually expected behavior, so I'm looking for some insight into the issue.
-
-At first we believed the problem to be with request_irq, but after writing in
-some debug code that mlx4_assign_eq returned -28, indicating that vec was
-never assigned:
-
-8<---
-@@ -1401,6 +1402,7 @@ int mlx4_assign_eq(struct mlx4_dev *dev, char *name, struct cpu_rmap *rmap,
-        if (vec) {
-                *vector = vec;
-        } else {
-+               pr_crit("!!! debug: mlx4_assign_eq - last err %d\n", err);
-                *vector = 0;
-                err = (i == dev->caps.comp_pool) ? -ENOSPC : err;
-        }
---->8
-
-8<---
- [ 1565.416273] !!! debug: mlx4_assign_eq - last err 0
- [ 1565.416275] <mlx4_ib> mlx4_ib_alloc_eqs: !!! debug: mlx4_assign_eq returned -28
- [ 1565.416277] <mlx4_ib> mlx4_ib_alloc_eqs: Can't allocate EQ 64; reverting to legacy
---->8
-
-
-Any help would be greatly appreciated!
-
-Andrew Banman
+>  #define RPCRDMA_MAX_SEGS 	(RPCRDMA_MAX_DATA_SEGS + 2) /* head+tail = 2 */
+>  
+>  struct rpcrdma_buffer;
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
