@@ -1,102 +1,69 @@
-From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: Re: [PATCH v1 03/12] xprtrdma: Increase default credit limit
-Date: Fri, 10 Jul 2015 20:17:13 +0530
-Message-ID: <CANjDDBgV8rFG0OifrCararytbo1ePW0wwtWU6qb4co78JhTjeQ@mail.gmail.com>
-References: <20150709203242.26247.4848.stgit@manet.1015granger.net>
-	<20150709204208.26247.52073.stgit@manet.1015granger.net>
-	<CANjDDBiMDM5VP5ev3LFfapX-5amqukH=dJdaEZVcZc9SSP2CCg@mail.gmail.com>
-	<B6E6A65D-DE61-4A95-91D7-1E8A5132F7EE@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 09/12] xprtrdma: Prepare rpcrdma_ep_post() for RDMA_NOMSG calls
+Date: Fri, 10 Jul 2015 10:53:40 -0400
+Message-ID: <F5F5CAC4-866E-4BCA-8094-908CE9ED3B4B@oracle.com>
+References: <20150709203242.26247.4848.stgit@manet.1015granger.net> <20150709204305.26247.39173.stgit@manet.1015granger.net> <CANjDDBh38PrxGgWGuKYCYcbjqY9ELrpkGqaRZ_ueKfD7FEQP8g@mail.gmail.com> <559FC17A.7060502@talpey.com> <CANjDDBipaXMO7Z5wirG127E9kQ0aHdWJ1s6ZM21th5RWLNh-4Q@mail.gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <B6E6A65D-DE61-4A95-91D7-1E8A5132F7EE-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <CANjDDBipaXMO7Z5wirG127E9kQ0aHdWJ1s6ZM21th5RWLNh-4Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Yes, we are covered here, I took reference of  4.1-rc4 and that series
-was pulled in 4.1-rc7.
 
-I will update my test-bench and re-validate the numbers.
+On Jul 10, 2015, at 10:11 AM, Devesh Sharma <devesh.sharma-1wcpHE2jlwOV7V7JEmyr7g@public.gmane.org=
+m> wrote:
 
--Regards
+> On Fri, Jul 10, 2015 at 6:28 PM, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org> wrote:
+>> On 7/10/2015 7:29 AM, Devesh Sharma wrote:
+>>>=20
+>>> we need to honor the max limits of device by checking
+>>> dev_attr.max_sge? a vendor may not support 4 sges.
+>>=20
+>>=20
+>> iWARP requires a minimum of 4 send SGEs (draft-hilland-verbs 8.1.3.2=
+)
+>>=20
+>>   An RI MUST support at least four Scatter/Gather Elements per
+>>   Scatter/Gather List when the Scatter/Gather List refers to the Dat=
+a
+>>   Source of a Send Operation Type or the Data Sink of a Receive
+>>   Operation. An RI is NOT REQUIRED to support more than one
+>>   Scatter/Gather Element per Scatter/Gather List when the
+>>   Scatter/Gather List refers to the Data Source of an RDMA Write.
+>>=20
+>> I'm not certain if IB and RoCE state a similar minimum requirement,
+>> but it seems a very bad idea to have fewer.
+>=20
+> To my knowledge IBTA Spec do not pose any such minimum requirement.
+> RoCE also do not puts any minimum requirement. I think its fine if
+> xprtrdma honors the device limits, thus covering iWARP devices becaus=
+e
+> all iWARP devices would support minimum 4.
+>=20
+> Chuck would correct me if xprtrdma do have any minimum requirements
 
-On Fri, Jul 10, 2015 at 8:03 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> w=
-rote:
->
-> On Jul 10, 2015, at 6:45 AM, Devesh Sharma <devesh.sharma@avagotech.c=
-om> wrote:
->
->> Increasing the default slot table entries will increase the MR
->> requirements per mount.
->
-> Yes, but:
->
->> Currently, with 32 as default Client ends up allocating 2178 frmrs
->> (ref: kernel 4.1-rc4) for a single mount. With 128 frmr requirement
->> for startup would be 8448.
->
-> Commit 40c6ed0c8a7f ("xprtrdma: Reduce per-transport MR allocation=E2=
-=80=9D)
-> is supposed to address this. This commit is in 4.1.
->
-> The number of MRs per credit is now 256 divided by the HCA=E2=80=99s
-> max_fast_reg_page_list_len. See frwr_op_open().
->
-> For mlx4 the number of MRs per credit is just 1, for example.
->
->
->> 8K+ MRs per mount just for start-up, I am a little doubtful about th=
-is
->> change. We can always release-note that "for better performance
->> increase the slot table entries by echo 128 >
->> /proc/sys/sunrpc/rdma_slot_table_entries"
->>
->> -Regards
->> Devesh
->>
->> On Fri, Jul 10, 2015 at 2:12 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org=
-> wrote:
->>> In preparation for similar increases on NFS/RDMA servers, bump the
->>> advertised credit limit for RPC/RDMA to 128. This allocates some
->>> extra resources, but the client will continue to allow only the
->>> number of RPCs in flight that the server requests via its advertise=
-d
->>> credit limit.
->>>
->>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>> ---
->>> include/linux/sunrpc/xprtrdma.h |    2 +-
->>> 1 file changed, 1 insertion(+), 1 deletion(-)
->>>
->>> diff --git a/include/linux/sunrpc/xprtrdma.h b/include/linux/sunrpc=
-/xprtrdma.h
->>> index b176130..b7b279b 100644
->>> --- a/include/linux/sunrpc/xprtrdma.h
->>> +++ b/include/linux/sunrpc/xprtrdma.h
->>> @@ -49,7 +49,7 @@
->>>  * a single chunk type per message is supported currently.
->>>  */
->>> #define RPCRDMA_MIN_SLOT_TABLE (2U)
->>> -#define RPCRDMA_DEF_SLOT_TABLE (32U)
->>> +#define RPCRDMA_DEF_SLOT_TABLE (128U)
->>> #define RPCRDMA_MAX_SLOT_TABLE (256U)
->>>
->>> #define RPCRDMA_DEF_INLINE  (1024)     /* default inline max */
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-rdm=
-a" in
->>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> --
-> Chuck Lever
->
->
->
+At least 2 SGEs are required for normal operation. The code in
+rpcrdma_marshal_req() sets up an iovec for the RPC/RDMA header
+and one for the RPC message itself. These are used in
+rpcrdma_ep_post() to SEND each request.
+
+=46our SGEs are needed only for RDMA_MSGP type requests, but so far
+I have never seen one of these used. I wonder if that logic can
+be removed.
+
+It is certainly possible to examine the device=92s max_sge field
+in rpcrdma_ep_create() and fail transport creation if the
+device=92s max_sge is less than RPC_MAX_IOVS.
+
+--
+Chuck Lever
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
