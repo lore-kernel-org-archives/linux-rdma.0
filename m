@@ -1,75 +1,49 @@
-From: Tom Talpey <tom@talpey.com>
-Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
-Date: Fri, 10 Jul 2015 09:22:24 -0400
-Message-ID: <559FC710.1050307@talpey.com>
-References: <559B9891.8060907@dev.mellanox.co.il> <000b01d0b8bd$f2bfcc10$d83f6430$@opengridcomputing.com> <20150707161751.GA623@obsidianresearch.com> <559BFE03.4020709@dev.mellanox.co.il> <20150707213628.GA5661@obsidianresearch.com> <559CD174.4040901@dev.mellanox.co.il> <20150708190842.GB11740@obsidianresearch.com> <20150708203205.GA21847@infradead.org> <20150709000337.GE16812@obsidianresearch.com> <559EF332.7060103@redhat.com> <20150709225306.GA30741@obsidianresearch.com>
+From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Subject: Re: [PATCH v1 09/12] xprtrdma: Prepare rpcrdma_ep_post() for
+ RDMA_NOMSG calls
+Date: Fri, 10 Jul 2015 19:41:25 +0530
+Message-ID: <CANjDDBipaXMO7Z5wirG127E9kQ0aHdWJ1s6ZM21th5RWLNh-4Q@mail.gmail.com>
+References: <20150709203242.26247.4848.stgit@manet.1015granger.net>
+	<20150709204305.26247.39173.stgit@manet.1015granger.net>
+	<CANjDDBh38PrxGgWGuKYCYcbjqY9ELrpkGqaRZ_ueKfD7FEQP8g@mail.gmail.com>
+	<559FC17A.7060502@talpey.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20150709225306.GA30741@obsidianresearch.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>
-Cc: 'Christoph Hellwig' <hch@infradead.org>, Sagi Grimberg <sagig@dev.mellanox.co.il>, Steve Wise <swise@opengridcomputing.com>, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, trond.myklebust@primarydata.com, bfields@fieldses.org, Oren Duer <oren@mellanox.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <559FC17A.7060502-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/9/2015 6:53 PM, Jason Gunthorpe wrote:
-> On Thu, Jul 09, 2015 at 06:18:26PM -0400, Doug Ledford wrote:
+On Fri, Jul 10, 2015 at 6:28 PM, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org> wrote:
+> On 7/10/2015 7:29 AM, Devesh Sharma wrote:
+>>
+>> we need to honor the max limits of device by checking
+>> dev_attr.max_sge? a vendor may not support 4 sges.
 >
->> A lot of this discussion is interesting and has gone off in an area that
->> I think is worth pursuing in the long run.  However, in the short run,
->> this patch was a minor cleanup/simplification patch.  These discussions
->> are moving into complete redesigns and rearchitecting.  Steve, I'm OK
->> with the cleanup and would prefer that it stay separate from these
->> larger issues.
 >
-> So, I was originally of the view the flags change was fine.
+> iWARP requires a minimum of 4 send SGEs (draft-hilland-verbs 8.1.3.2)
 >
-> But when I realized that it basically hides a
-> ib_get_dma_mr(IB_ACCESS_REMOTE_WRITE) behind an opaque API:
+>    An RI MUST support at least four Scatter/Gather Elements per
+>    Scatter/Gather List when the Scatter/Gather List refers to the Data
+>    Source of a Send Operation Type or the Data Sink of a Receive
+>    Operation. An RI is NOT REQUIRED to support more than one
+>    Scatter/Gather Element per Scatter/Gather List when the
+>    Scatter/Gather List refers to the Data Source of an RDMA Write.
 >
->   rdma_get_dma_mr(RDMA_MRR_READ_DEST)
->
-> I changed my mind.
+> I'm not certain if IB and RoCE state a similar minimum requirement,
+> but it seems a very bad idea to have fewer.
 
-Yes, I agree. Creating a writable privileged rmr for the RDMA Read sink
-buffer exposes all of physical memory to a simple arithmetic mistake.
-This should never be allowed in a production config.
+To my knowledge IBTA Spec do not pose any such minimum requirement.
+RoCE also do not puts any minimum requirement. I think its fine if
+xprtrdma honors the device limits, thus covering iWARP devices because
+all iWARP devices would support minimum 4.
 
-That said, for the use by the NFS/RDMA Server, the risk is significantly
-mitigated. The sink MR is never sent to the peer by the NFS upper layer,
-it is protected by the connection's PD, and it is enabled only when the
-RDMA Read is active. However, the very real risk remains. This should
-definitely not be the standard API.
+Chuck would correct me if xprtrdma do have any minimum requirements
 
-> For iWarp the above creates a rkey that can RDMA WRITE to any place in
-> system memory. If a remote guesses that rkey your system is totally
-> compromised. So it is insecure, and contrary to the advice in RFC5042.
 >
-> Seeing rdma_get_dma_mr(RDMA_MRR_READ_DEST) added all over the code
-> base terrifies me, because it is utterly wrong, and looks harmless.
->
-> The mistep, is that enabling iSER for iWarp is not just this trivial
-> change:
->
-> -	device->mr = ib_get_dma_mr(device->pd, IB_ACCESS_LOCAL_WRITE);
-> +	mr_roles = RDMA_MRR_RECV | RDMA_MRR_SEND | RDMA_MRR_WRITE_SOURCE |
-> +		   RDMA_MRR_READ_DEST;
-> +	device->mr = rdma_get_dma_mr(device->pd, mr_roles, 0);
->
-
-Yep. It's the only safe, correct solution.
-
-
- > But, it must also follow the path of NFS and use FRMR on iWarp for
- > RDMA READ lkeys. This is the real quirk of iWarp, not that the MR
- > flags are slightly different.
- >
->  From there, it is a logical wish: If Steve is going to FRMR'ize iSER
-> to be acceptable security wise, I'd rather see that work done on in a
-> general way. Hence the API discussion.
-
-Well, it's important to realize that NFS already does the Right Thing.
-So it isn't actually an urgent issue. There is time to discuss.
-
-Tom.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
