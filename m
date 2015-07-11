@@ -1,9 +1,9 @@
-From: 'Christoph Hellwig' <hch@infradead.org>
-Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
-Date: Sat, 11 Jul 2015 03:25:38 -0700
-Message-ID: <20150711102538.GB14741@infradead.org>
-References: <000b01d0b8bd$f2bfcc10$d83f6430$@opengridcomputing.com>
- <20150707161751.GA623@obsidianresearch.com>
+From: 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: kernel memory registration (was: RDMA/core:
+ Transport-independent access flags)
+Date: Sat, 11 Jul 2015 03:31:53 -0700
+Message-ID: <20150711103153.GC14741@infradead.org>
+References: <20150707161751.GA623@obsidianresearch.com>
  <559BFE03.4020709@dev.mellanox.co.il>
  <20150707213628.GA5661@obsidianresearch.com>
  <559CD174.4040901@dev.mellanox.co.il>
@@ -12,29 +12,46 @@ References: <000b01d0b8bd$f2bfcc10$d83f6430$@opengridcomputing.com>
  <20150708233604.GA20765@obsidianresearch.com>
  <559E54AB.2010905@dev.mellanox.co.il>
  <20150709170142.GA21921@obsidianresearch.com>
+ <559F8881.7070308@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <target-devel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20150709170142.GA21921@obsidianresearch.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Sagi Grimberg <sagig@dev.mellanox.co.il>, Tom Talpey <tom@talpey.com>, Steve Wise <swise@opengridcomputing.com>, 'Christoph Hellwig' <hch@infradead.org>, dledford@redhat.com, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, trond.myklebust@primarydata.com, bfields@fieldses.org, Oren Duer <oren@mellanox.com>
+In-Reply-To: <559F8881.7070308-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 09, 2015 at 11:01:42AM -0600, Jason Gunthorpe wrote:
-> To your point in another message, I'd say, as long as the new API
-> supports FRMR at full speed with no performance penalty we are
-> good. If the other variants out there take a performance hit, then I
-> think that is OK. As you say, they are on the way out, we just need to
-> make sure that ULPs continue to work with FMR with the new API so
-> legacy cards don't completely break.
+On Fri, Jul 10, 2015 at 11:55:29AM +0300, Sagi Grimberg wrote:
+> If there is one thing worse than a complicated API, it is a restrictive
+> one. I'd much rather ULPs just having a simple API for registering
+> memory.
 
-I think what we need to support for now is FRMR as the primary target,
-and FMR as a secondard.  A few in-kernel drivers support physical
-registrations, but it's always been clear that they've been a bad idea,
-and the current discussion reconfirms that again.
+Quite to the contrary.  The complex API almost asks for weird abuses
+and twists.  The too restrictive one means people that want to extend
+it need to start a discussion on how we extent the API, which improves
+the chances to come up with something sensible dramatically.
 
-So a FRMR-like API that allows to use FMRs underneath might be a good
-start.  If the imput to that API are S/G lists as in my suggestion we'll
-get indirect registration support almost for free.
+> >I expect all these calls would be function pointers, and each driver
+> >would provide a function pointer that is optimal for it's use. Eg mlx4
+> >would provide a pointer that used the S/G list, then falls back to
+> >FRMR if the S/G list is exhausted. The core code would provide a
+> >toolbox of common functions the drivers can use here.
+> 
+> Maybe it's just me, but I can't help but wander if this is facilitating
+> an atmosphere where drivers will keep finding new ways to abuse even
+> the most simple operations.
+
+I'm not too excited about moving the code in the drivers.  The RDMA
+subsystem actually has a lot more hardware drivers than ULDs, so moving
+logic into them seems like a major step backwards.  From my journeys
+into the drivers it rather seems like they are doing too much work
+already.
+
+Having a few schemes availabe in the core code that the driver can chose
+from seems like a much more sensible option.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
