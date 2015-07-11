@@ -1,51 +1,59 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: Kernel fast memory registration API proposal [RFC]
-Date: Sat, 11 Jul 2015 03:39:20 -0700
-Message-ID: <20150711103920.GE14741@infradead.org>
-References: <559F8BD1.9080308@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <559F8BD1.9080308-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+From: Steve Wise <swise@ogc.us>
+Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+Date: Sat, 11 Jul 2015 09:37:56 -0700
+Message-ID: <CCB6E837-88FF-4DBB-976D-4CF56396A1A1@ogc.us>
+References: <20150707161751.GA623@obsidianresearch.com> <559BFE03.4020709@dev.mellanox.co.il> <20150707213628.GA5661@obsidianresearch.com> <559CD174.4040901@dev.mellanox.co.il> <20150708190842.GB11740@obsidianresearch.com> <20150708203205.GA21847@infradead.org> <20150709000337.GE16812@obsidianresearch.com> <559EF332.7060103@redhat.com> <20150709225306.GA30741@obsidianresearch.com> <559FC710.1050307@talpey.com> <20150710161108.GA19042@obsidianresearch.com>
+Mime-Version: 1.0 (1.0)
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <20150710161108.GA19042@obsidianresearch.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Tom Talpey <tom@talpey.com>, Doug Ledford <dledford@redhat.com>, Christoph Hellwig <hch@infradead.org>, Sagi Grimberg <sagig@dev.mellanox.co.il>, Steve Wise <swise@opengridcomputing.com>, "sagig@mellanox.com" <sagig@mellanox.com>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, "roid@mellanox.com" <roid@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "eli@mellanox.com" <eli@mellanox.com>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>, "linux-nfs@vger.kernel.org" <linux-nfs@vger.kernel.org>, "trond.myklebust@primarydata.com" <trond.myklebust@primarydata.com>, "bfields@fieldses.org" <bfields@fieldses.org>, Oren Duer <oren@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jul 10, 2015 at 12:09:37PM +0300, Sagi Grimberg wrote:
-> And then provide helpers to populate the MR with generic kernel
-> structures such as struct scatterlist (for scsi and other ULPs),
-> struct page (for NFS) or struct bio_vec (for block ULPs later on).
 
-Please stick to struct scatterlist for now.  Future block ULPs
-will use that as well as the only way you can do a multi-page
-DMA mapping is the scatterlist.  A page is just a subset of
-an SGL, and we can map a page using a one element SGL trivial,
-as we do in lots of places.
-
->          union {
->                  ...
->                  struct {
->                          struct ib_mr    *mr;
->                          u64             iova;
->                          u32             length;
->                          int             access_flags;
->                  } fast_reg;
->                  ...
->          } wr;
->          ...
-> };
+> On Jul 10, 2015, at 9:11 AM, Jason Gunthorpe <jgunthorpe@obsidianresearch.com> wrote:
 > 
-> We can consider moving the iova and length to the population helpers.
-> Wasn't sure what is better...
+>> On Fri, Jul 10, 2015 at 09:22:24AM -0400, Tom Talpey wrote:
+>> and it is enabled only when the RDMA Read is active.
+> 
+> ??? How is that done? ib_get_dma_mr is defined to return a remote
+> usable rkey that is valid from when it it returns until the MR is
+> destroyed. NFS creates one mr early on, it does not seem to make one
+> per RDMA READ?
+> 
+> For the proposed iSER patch the problem is very acute, iser makes a
+> single PD and phys MR at boot time for each device. This means there
+> is a single machine wide unchanging rkey that allows remote physical
+> memory access. An attacker only has to repeatedly open QPs to iSER and
+> guess rkey values until they find it. Add in likely non-crypto
+> randomness for rkeys, and I bet it isn't even that hard to do.
+> 
+> So this seems to be a catastrophic security failing.
+> 
+>>> From there, it is a logical wish: If Steve is going to FRMR'ize iSER
+>>> to be acceptable security wise, I'd rather see that work done on in a
+>>> general way. Hence the API discussion.
+>> 
+>> Well, it's important to realize that NFS already does the Right Thing.
+>> So it isn't actually an urgent issue. There is time to discuss.
+> 
+> It depends on what is going on with iWarp iSER. If the iWarp community
+> thinks it should go ahead insecurely then fine, put a giant warning in
+> dmesg and go ahead, otherwise iWarp needs to address this difference
+> with a proper generic API, which appears, must wrapper
+> ib_post_send. Harder job :\
+> 
+> I'm sorry Steve for leading you down the wrong path with these flags,
+> I did not fully realize exactly what the iWarp difference was at the
+> start :(
+> 
+> Jason
 
-Move it to the population helpers.  The walk done in them is used to
-generate those values anyway, so there is no need to expose them in
-any sort of public API.  I'd also move the access_flags initialization
-to the helpers, leaving post to do just that:  post an alredy
-initialized mr structure.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+No problem.  I'll work on iSER target FRMRs and repost the iSER series.  
+
+Sagi, right now isert only uses FRMRs along with signature mrs.  I'll need to separate the two, I think.  Does that sound right?
