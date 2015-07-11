@@ -1,47 +1,25 @@
-From: Chuck Lever <chucklever-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v1 04/12] xprtrdma: Remove last ib_reg_phys_mr() call site
-Date: Sat, 11 Jul 2015 14:50:58 -0400
-Message-ID: <682604AF-955A-44F8-86F9-EB7D403CABFF@gmail.com>
-References: <20150709203242.26247.4848.stgit@manet.1015granger.net> <20150709204218.26247.67243.stgit@manet.1015granger.net> <20150711103428.GD14741@infradead.org>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2102\))
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150711103428.GD14741-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [BUG] mellanox IB driver fails to load on large config
+Date: Sat, 11 Jul 2015 23:20:19 +0300
+Message-ID: <CAJ3xEMj82OtHcs+kDG_xrQZ4+x3Eih=YSNFR4+W-AoPNA=4jTw@mail.gmail.com>
+References: <20150710191506.GA52396@asylum.americas.sgi.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150710191506.GA52396-UiYq4lDBhggTG1waqwXmH7Cf4lofQVJ7@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: andrew banman <abanman-sJ/iWh9BUns@public.gmane.org>
+Cc: Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, Jul 10, 2015 at 10:15 PM, andrew banman <abanman-sJ/iWh9BUns@public.gmane.org> wrote:
+> I'm seeing a large number of allocation errors originating from the Mellanox IB
+> driver when booting the 4.2-rc1 kernel on a 4096cpu 32TB memory system:
 
-> On Jul 11, 2015, at 6:34 AM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wr=
-ote:
->=20
-> On Thu, Jul 09, 2015 at 04:42:18PM -0400, Chuck Lever wrote:
->> All HCA providers have an ib_get_dma_mr() verb. Thus
->> rpcrdma_ia_open() will either grab the device's local_dma_key if one
->> is available, or it will call ib_get_dma_mr() which is a 100%
->> guaranteed fallback. There is never any need to use the
->> ib_reg_phys_mr() code path in rpcrdma_register_internal(), so it can
->> be removed.
->=20
-> Can you also send a follow-on to remove ib_reg_phys_mr entirely from
-> all core (=3D non-staging) code?
-
-I would prefer to run this by Doug Oucharek first, as a courtesy.
-Unless I=E2=80=99m mistaken, the Lustre client is supposed to be on its
-way into the kernel, not on its way out.
-
-Anyone have Doug=E2=80=99s e-mail address?
-
-
+Just to make sure, mlx4 works fine on this small (...) system with 4.1
+and 4.2-rc1 breaks, or 4.2-rc1 is the 1st time you're trying that
+config?
 --
-Chuck Lever
-chucklever-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
