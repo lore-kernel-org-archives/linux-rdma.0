@@ -1,53 +1,40 @@
-From: 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+From: 'Christoph Hellwig' <hch@infradead.org>
 Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
-Date: Sat, 11 Jul 2015 03:17:36 -0700
-Message-ID: <20150711101736.GA14741@infradead.org>
-References: <20150708190842.GB11740@obsidianresearch.com>
- <20150708203205.GA21847@infradead.org>
- <20150709000337.GE16812@obsidianresearch.com>
- <559EF332.7060103@redhat.com>
- <20150709225306.GA30741@obsidianresearch.com>
- <559FC710.1050307@talpey.com>
- <20150710161108.GA19042@obsidianresearch.com>
- <55A00754.4010009@redhat.com>
- <55A01225.9000000@talpey.com>
- <20150710195420.GA31500@obsidianresearch.com>
+Date: Sat, 11 Jul 2015 03:25:38 -0700
+Message-ID: <20150711102538.GB14741@infradead.org>
+References: <000b01d0b8bd$f2bfcc10$d83f6430$@opengridcomputing.com>
+ <20150707161751.GA623@obsidianresearch.com>
+ <559BFE03.4020709@dev.mellanox.co.il>
+ <20150707213628.GA5661@obsidianresearch.com>
+ <559CD174.4040901@dev.mellanox.co.il>
+ <20150708190842.GB11740@obsidianresearch.com>
+ <559D983D.6000804@talpey.com>
+ <20150708233604.GA20765@obsidianresearch.com>
+ <559E54AB.2010905@dev.mellanox.co.il>
+ <20150709170142.GA21921@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <target-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150710195420.GA31500-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20150709170142.GA21921@obsidianresearch.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Sagi Grimberg <sagig@dev.mellanox.co.il>, Tom Talpey <tom@talpey.com>, Steve Wise <swise@opengridcomputing.com>, 'Christoph Hellwig' <hch@infradead.org>, dledford@redhat.com, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, trond.myklebust@primarydata.com, bfields@fieldses.org, Oren Duer <oren@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jul 10, 2015 at 01:54:20PM -0600, Jason Gunthorpe wrote:
-> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-> index bac3fb406a74..6ed7e0f6c162 100644
-> --- a/drivers/infiniband/core/verbs.c
-> +++ b/drivers/infiniband/core/verbs.c
-> @@ -1126,6 +1126,12 @@ struct ib_mr *ib_get_dma_mr(struct ib_pd *pd, int mr_access_flags)
->         struct ib_mr *mr;
->         int err;
->  
-> +       /* Granting remote access to the physical MR is a security hole, don't
-> +          do it. */
-> +       WARN_ON_ONCE(mr_access_flags &
-> +               (IB_ACCESS_REMOTE_WRITE | IB_ACCESS_REMOTE_READ |
-> +                IB_ACCESS_REMOTE_ATOMIC));
-> +
+On Thu, Jul 09, 2015 at 11:01:42AM -0600, Jason Gunthorpe wrote:
+> To your point in another message, I'd say, as long as the new API
+> supports FRMR at full speed with no performance penalty we are
+> good. If the other variants out there take a performance hit, then I
+> think that is OK. As you say, they are on the way out, we just need to
+> make sure that ULPs continue to work with FMR with the new API so
+> legacy cards don't completely break.
 
-How about providing a system-wide IB_ACCESS_LOCAL_READ |
-IB_ACCESS_LOCAL_WRITE MR that all drivers can use and get rid of
-ib_get_dma_mr in the long run?  That would help to nicely simplify
-drivers?
+I think what we need to support for now is FRMR as the primary target,
+and FMR as a secondard.  A few in-kernel drivers support physical
+registrations, but it's always been clear that they've been a bad idea,
+and the current discussion reconfirms that again.
 
-Currently various drivers are using ib_get_dma_mr with remote flags
-unfortunately, e.g. the SRP initiator driver uses it to optimize away
-memory registrtions for single SGL entry requests.  That looks fixable
-realtively easily, but I don't understand the other consumers as good.
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So a FRMR-like API that allows to use FMRs underneath might be a good
+start.  If the imput to that API are S/G lists as in my suggestion we'll
+get indirect registration support almost for free.
