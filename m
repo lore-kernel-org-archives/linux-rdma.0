@@ -1,25 +1,42 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [BUG] mellanox IB driver fails to load on large config
-Date: Sat, 11 Jul 2015 23:20:19 +0300
-Message-ID: <CAJ3xEMj82OtHcs+kDG_xrQZ4+x3Eih=YSNFR4+W-AoPNA=4jTw@mail.gmail.com>
-References: <20150710191506.GA52396@asylum.americas.sgi.com>
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+Date: Sun, 12 Jul 2015 10:49:08 +0300
+Message-ID: <55A21BF4.7090601@dev.mellanox.co.il>
+References: <559BFE03.4020709@dev.mellanox.co.il>
+ <20150707213628.GA5661@obsidianresearch.com>
+ <559CD174.4040901@dev.mellanox.co.il> <20150708081320.GB24203@infradead.org>
+ <559CF5E8.6080000@dev.mellanox.co.il> <20150708102035.GA28421@infradead.org>
+ <559D0498.9050809@dev.mellanox.co.il>
+ <1828884A29C6694DAF28B7E6B8A82373A8FFD4C0@ORSMSX109.amr.corp.intel.com>
+ <559E34F8.4080507@dev.mellanox.co.il>
+ <2189DB0A-DD00-4818-AC17-020FCE42D39B@oracle.com>
+ <20150710193409.GA9815@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150710191506.GA52396-UiYq4lDBhggTG1waqwXmH7Cf4lofQVJ7@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: andrew banman <abanman-sJ/iWh9BUns@public.gmane.org>
-Cc: Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <20150710193409.GA9815@infradead.org>
+Sender: target-devel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@infradead.org>, Chuck Lever <chuck.lever@oracle.com>
+Cc: "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Steve Wise <swise@opengridcomputing.com>, "dledford@redhat.com" <dledford@redhat.com>, "sagig@mellanox.com" <sagig@mellanox.com>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, "roid@mellanox.com" <roid@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "eli@mellanox.com" <eli@mellanox.com>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>, Linux NFS Mailing List <linux-nfs@vger.kernel.org>, Trond Myklebust <trond.myklebust@primarydata.com>, "J. Bruce Fields" <bfields@fieldses.org>, Oren Duer <oren@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jul 10, 2015 at 10:15 PM, andrew banman <abanman-sJ/iWh9BUns@public.gmane.org> wrote:
-> I'm seeing a large number of allocation errors originating from the Mellanox IB
-> driver when booting the 4.2-rc1 kernel on a 4096cpu 32TB memory system:
+On 7/10/2015 10:34 PM, Christoph Hellwig wrote:
+> On Thu, Jul 09, 2015 at 09:52:59AM -0400, Chuck Lever wrote:
+>> There is one remaining kernel user of ib_reg_phys_mr() in 4.2: Lustre.
+>
+> It's in the staging tree, which proper in-tree code doesn't have to
+> cater for.  So as soon as sunrpc is done using the interface we can and
+> should kill it off.
+>
 
-Just to make sure, mlx4 works fine on this small (...) system with 4.1
-and 4.2-rc1 breaks, or 4.2-rc1 is the 1st time you're trying that
-config?
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I think we should probably ask the Lustre folks if they have a real use
+case for it before we remove it completely.
+
+It seems that Lustre strives to FMRs and if it is not supported it uses
+a PHYS_MR. Given FMRs has an expiration date and PHYS_MR is basically
+alloc/free of MRs in the data path (which is obviously not desirable in
+any form). Lustre will need to refresh their code to use the standard
+FRWR.
+
+Do we have Lustre folks listening on the mailing list?
