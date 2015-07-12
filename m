@@ -1,68 +1,125 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v1 07/12] xprtrdma: Don't provide a reply chunk when
- expecting a short reply
-Date: Sun, 12 Jul 2015 17:58:36 +0300
-Message-ID: <55A2809C.7020106@dev.mellanox.co.il>
-References: <20150709203242.26247.4848.stgit@manet.1015granger.net>
- <20150709204246.26247.10367.stgit@manet.1015granger.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 05/12] xprtrdma: Account for RPC/RDMA header size when deciding to inline
+Date: Sun, 12 Jul 2015 13:52:15 -0400
+Message-ID: <9A538A66-0769-4129-8BE2-F0A1230B962F@oracle.com>
+References: <20150709203242.26247.4848.stgit@manet.1015granger.net> <20150709204227.26247.51111.stgit@manet.1015granger.net> <55A27B9D.5010002@dev.mellanox.co.il>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150709204246.26247.10367.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+In-Reply-To: <55A27B9D.5010002-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/9/2015 11:42 PM, Chuck Lever wrote:
-> Currently Linux always offers a reply chunk, even for small replies
-> (unless a read or write list is needed for the RPC operation).
->
-> A comment in rpcrdma_marshal_req() reads:
->
->> Currently we try to not actually use read inline.
->> Reply chunks have the desirable property that
->> they land, packed, directly in the target buffers
->> without headers, so they require no fixup. The
->> additional RDMA Write op sends the same amount
->> of data, streams on-the-wire and adds no overhead
->> on receive. Therefore, we request a reply chunk
->> for non-writes wherever feasible and efficient.
->
-> This considers only the network bandwidth cost of sending the RPC
-> reply. For replies which are only a few dozen bytes, this is
-> typically not a good trade-off.
->
-> If the server chooses to return the reply inline:
->
->   - The client has registered and invalidated a memory region to
->     catch the reply, which is then not used
->
-> If the server chooses to use the reply chunk:
->
->   - The server sends a few bytes using a heavyweight RDMA WRITE for
->     operation. The entire RPC reply is conveyed in two RDMA
->     operations (WRITE_ONLY, SEND) instead of one.
+Hi Sagi-
 
-Pipelined WRITE+SEND operations are hardly an overhead compared to
-copying chunks of data.
 
->
-> Note that both the server and client have to prepare or copy the
-> reply data anyway to construct these replies. There's no benefit to
-> using an RDMA transfer since the host CPU has to be involved.
+On Jul 12, 2015, at 10:37 AM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> =
+wrote:
 
-I think that preparation (posting 1 or 2 WQEs) and copying
-chunks of data of say 8K-16K might be different.
+> On 7/9/2015 11:42 PM, Chuck Lever wrote:
+>> When marshaling RPC/RDMA requests, ensure the combined size of
+>> RPC/RDMA header and RPC header do not exceed the inline threshold.
+>> Endpoints typically reject RPC/RDMA messages that exceed the size
+>> of their receive buffers.
+>=20
+> Did this solve a bug? because is seems like it does.
+> Maybe it will be a good idea to describe this bug.
 
-I understand that you probably see better performance scaling. But this
-might be HW dependent. Also, this might backfire on you if your
-configuration is one-to-many. Then, data copy CPU cycles might become
-more expensive.
+There=92s no bugzilla for this, as no issue has been encountered
+in the field so far. It=92s hard to trigger and servers are
+forgiving.
 
-I don't really know what is better, but just thought I'd present
-another side to this.
+I added some text in the patch description.
+
+
+>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> ---
+>>  net/sunrpc/xprtrdma/rpc_rdma.c |   29 +++++++++++++++++++++++++++--
+>>  1 file changed, 27 insertions(+), 2 deletions(-)
+>>=20
+>> diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rp=
+c_rdma.c
+>> index 84ea37d..8cf9402 100644
+>> --- a/net/sunrpc/xprtrdma/rpc_rdma.c
+>> +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+>> @@ -71,6 +71,31 @@ static const char transfertypes[][12] =3D {
+>>  };
+>>  #endif
+>>=20
+>> +/* The client can send a request inline as long as the RPCRDMA head=
+er
+>> + * plus the RPC call fit under the transport's inline limit. If the
+>> + * combined call message size exceeds that limit, the client must u=
+se
+>> + * the read chunk list for this operation.
+>> + */
+>> +static bool rpcrdma_args_inline(struct rpc_rqst *rqst)
+>=20
+> maybe static inline?
+
+The final paragraph of Chapter 15 of Documentation/CodingStyle
+suggests =93static inline=94 is undesirable here. I think gcc makes
+the correct inlining choice here by itself.
+
+
+>> +{
+>> +	unsigned int callsize =3D RPCRDMA_HDRLEN_MIN + rqst->rq_snd_buf.le=
+n;
+>> +
+>> +	return callsize <=3D RPCRDMA_INLINE_WRITE_THRESHOLD(rqst);
+>> +}
+>> +
+>> +/* The client can=92t know how large the actual reply will be. Thus=
+ it
+>> + * plans for the largest possible reply for that particular ULP
+>> + * operation. If the maximum combined reply message size exceeds th=
+at
+>> + * limit, the client must provide a write list or a reply chunk for
+>> + * this request.
+>> + */
+>> +static bool rpcrdma_results_inline(struct rpc_rqst *rqst)
+>> +{
+>> +	unsigned int repsize =3D RPCRDMA_HDRLEN_MIN + rqst->rq_rcv_buf.buf=
+len;
+>> +
+>> +	return repsize <=3D RPCRDMA_INLINE_READ_THRESHOLD(rqst);
+>> +}
+>> +
+>>  /*
+>>   * Chunk assembly from upper layer xdr_buf.
+>>   *
+>> @@ -418,7 +443,7 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
+>>  	 * a READ, then use write chunks to separate the file data
+>>  	 * into pages; otherwise use reply chunks.
+>>  	 */
+>> -	if (rqst->rq_rcv_buf.buflen <=3D RPCRDMA_INLINE_READ_THRESHOLD(rqs=
+t))
+>> +	if (rpcrdma_results_inline(rqst))
+>>  		wtype =3D rpcrdma_noch;
+>>  	else if (rqst->rq_rcv_buf.page_len =3D=3D 0)
+>>  		wtype =3D rpcrdma_replych;
+>> @@ -441,7 +466,7 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
+>>  	 * implies the op is a write.
+>>  	 * TBD check NFSv4 setacl
+>>  	 */
+>> -	if (rqst->rq_snd_buf.len <=3D RPCRDMA_INLINE_WRITE_THRESHOLD(rqst)=
+)
+>> +	if (rpcrdma_args_inline(rqst))
+>>  		rtype =3D rpcrdma_noch;
+>>  	else if (rqst->rq_snd_buf.page_len =3D=3D 0)
+>>  		rtype =3D rpcrdma_areadch;
+>>=20
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
