@@ -1,57 +1,31 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: Kernel fast memory registration API proposal [RFC]
-Date: Sun, 12 Jul 2015 10:57:42 +0300
-Message-ID: <55A21DF6.6090909@dev.mellanox.co.il>
-References: <559F8BD1.9080308@dev.mellanox.co.il>
- <20150711103920.GE14741@infradead.org>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH v1 04/12] xprtrdma: Remove last ib_reg_phys_mr() call site
+Date: Sun, 12 Jul 2015 00:58:14 -0700
+Message-ID: <20150712075814.GA6636@infradead.org>
+References: <20150709203242.26247.4848.stgit@manet.1015granger.net>
+ <20150709204218.26247.67243.stgit@manet.1015granger.net>
+ <20150711103428.GD14741@infradead.org>
+ <682604AF-955A-44F8-86F9-EB7D403CABFF@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150711103920.GE14741-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <682604AF-955A-44F8-86F9-EB7D403CABFF-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+To: Chuck Lever <chucklever-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/11/2015 1:39 PM, Christoph Hellwig wrote:
-> On Fri, Jul 10, 2015 at 12:09:37PM +0300, Sagi Grimberg wrote:
->> And then provide helpers to populate the MR with generic kernel
->> structures such as struct scatterlist (for scsi and other ULPs),
->> struct page (for NFS) or struct bio_vec (for block ULPs later on).
->
-> Please stick to struct scatterlist for now.  Future block ULPs
-> will use that as well as the only way you can do a multi-page
-> DMA mapping is the scatterlist.
+On Sat, Jul 11, 2015 at 02:50:58PM -0400, Chuck Lever wrote:
+> I would prefer to run this by Doug Oucharek first, as a courtesy.
+> Unless I???m mistaken, the Lustre client is supposed to be on its
+> way into the kernel, not on its way out.
 
-I see.
-
-> A page is just a subset of an SGL, and we can map a page using a one element SGL trivial,
-> as we do in lots of places.
->
-
-But won't that make sunrpc rdma consumers to hold an extra scatterlist
-just for memory registration?
-
-Chuck, Would a scatterlist API make life easier for you?
-
->> We can consider moving the iova and length to the population helpers.
->> Wasn't sure what is better...
->
-> Move it to the population helpers.  The walk done in them is used to
-> generate those values anyway, so there is no need to expose them in
-> any sort of public API.
-
-Yea, makes sense.
-
->  I'd also move the access_flags initialization to the helpers,
-> leaving post to do just that:  post an alredy initialized mr structure.
-
-I can do that, but it's not really related to the sg.
-
-Say a consumer wants to register an SG for peer X and then change
-access permissions for peer Y. There is no real reason to re-init
-the mappings right?
+The only way a mess like lustre got into the kernel tree at all is
+because the rules allow ignoring the staging tree for API changes,
+otherwise kernel development wouldn't scale.  Lustre isn't really
+on the way in, it's been in the staging tree forever and has made
+zero progress towards actually being maintainable code.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
