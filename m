@@ -1,125 +1,50 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 5/5] svcrdma: Boost NFS READ/WRITE payload size maximum
-Date: Mon, 13 Jul 2015 12:40:25 -0400
-Message-ID: <DE15C9B2-1872-4C46-9E42-AFA507152A61@oracle.com>
-References: <20150709204230.8481.45457.stgit@klimt.1015granger.net> <20150709204546.8481.65857.stgit@klimt.1015granger.net> <20150710141814.GA31121@fieldses.org> <11D08769-F6EB-4696-8910-8B207B20CC10@oracle.com> <20150710155424.GD31121@fieldses.org> <24367FE9-7C2B-4B2D-A48A-90329D92296E@oracle.com> <20150710160506.GE31121@fieldses.org>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: kernel memory registration (was: RDMA/core:
+ Transport-independent access flags)
+Date: Mon, 13 Jul 2015 10:46:52 -0600
+Message-ID: <20150713164652.GC23832@obsidianresearch.com>
+References: <559BFE03.4020709@dev.mellanox.co.il>
+ <20150707213628.GA5661@obsidianresearch.com>
+ <559CD174.4040901@dev.mellanox.co.il>
+ <20150708190842.GB11740@obsidianresearch.com>
+ <559D983D.6000804@talpey.com>
+ <20150708233604.GA20765@obsidianresearch.com>
+ <559E54AB.2010905@dev.mellanox.co.il>
+ <20150709170142.GA21921@obsidianresearch.com>
+ <559F8881.7070308@dev.mellanox.co.il>
+ <20150711103153.GC14741@infradead.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150710160506.GE31121-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150711103153.GC14741-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Sat, Jul 11, 2015 at 03:31:53AM -0700, 'Christoph Hellwig' wrote:
+> I'm not too excited about moving the code in the drivers.  The RDMA
+> subsystem actually has a lot more hardware drivers than ULDs, so moving
+> logic into them seems like a major step backwards.  From my journeys
+> into the drivers it rather seems like they are doing too much work
+> already.
 
-On Jul 10, 2015, at 12:05 PM, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> wr=
-ote:
+Yes, that is true..
 
-> On Fri, Jul 10, 2015 at 11:59:20AM -0400, Chuck Lever wrote:
->>=20
->> On Jul 10, 2015, at 11:54 AM, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>=
- wrote:
->>=20
->>> On Fri, Jul 10, 2015 at 10:59:48AM -0400, Chuck Lever wrote:
->>>>=20
->>>> On Jul 10, 2015, at 10:18 AM, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org wrote:
->>>>=20
->>>>> On Thu, Jul 09, 2015 at 04:45:47PM -0400, Chuck Lever wrote:
->>>>>> Increased to 1 megabyte.
->>>>>=20
->>>>> Why not more or less?
->>>>>=20
->>>>> Why do we even have this constant, why shouldn't we just use
->>>>> RPCSVC_MAXPAYLOAD?
->>>>=20
->>>> The payload size maximum for RDMA is based on RPCRDMA_MAX_SVC_SEGS=
-=2E
->>>> We could reverse the relationship and make RPCRDMA_MAX_SVC_SEGS
->>>> based on RPCSVC_MAXPAYLOAD divided by the platform=92s page size.
->>>=20
->>> But there'd be no reason to do that, because we're not using
->>> RPCRDMA_MAX_SVC_SEGS anywhere.  Should we be?
->>=20
->> Let me try using RPCSVC_MAXPAYLOAD. That is based on RPCSVC_MAXPAGES=
-,
->> which is actually used in svc_rdma_*.c
->=20
-> OK, thanks, that sounds like that would make more sense.
+> Having a few schemes availabe in the core code that the driver can chose
+> from seems like a much more sensible option.
 
-The change to use RPCSVC_MAXPAYLOAD is clean enough, but it may
-re-expose a PPC64-x86_64 interop bug. We need to dig up some
-testing resources to see if that bug is still a problem. Stay
-tuned.
+I think that makes sense, but several of the schemes we are working
+with are effectively single-vendor schemes. Indirect MR and DIX are
+good examples of things that only one vendor implements, and are not
+standardized.
 
-Since you=92ve taken the other patches in this series, I=92ll hold
-off on reposting a v2 until I have this straightened out.
+In those cases it is hard to argue the core should provide support for
+them.
 
-
-> --b.
->=20
->>=20
->>=20
->>> --b.
->>>=20
->>>>=20
->>>>=20
->>>>> --b.
->>>>>=20
->>>>>>=20
->>>>>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>>>>> ---
->>>>>>=20
->>>>>> include/linux/sunrpc/svc_rdma.h |    2 +-
->>>>>> 1 files changed, 1 insertions(+), 1 deletions(-)
->>>>>>=20
->>>>>> diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sun=
-rpc/svc_rdma.h
->>>>>> index 13af61b..1bca6dd 100644
->>>>>> --- a/include/linux/sunrpc/svc_rdma.h
->>>>>> +++ b/include/linux/sunrpc/svc_rdma.h
->>>>>> @@ -172,7 +172,7 @@ struct svcxprt_rdma {
->>>>>> #define RDMAXPRT_SQ_PENDING	2
->>>>>> #define RDMAXPRT_CONN_PENDING	3
->>>>>>=20
->>>>>> -#define RPCRDMA_MAX_SVC_SEGS	(64)	/* server max scatter/gather =
-*/
->>>>>> +#define RPCRDMA_MAX_SVC_SEGS	(256)	/* server max scatter/gather=
- */
->>>>>> #if RPCSVC_MAXPAYLOAD < (RPCRDMA_MAX_SVC_SEGS << PAGE_SHIFT)
->>>>>> #define RPCRDMA_MAXPAYLOAD	RPCSVC_MAXPAYLOAD
->>>>>> #else
->>>>>>=20
->>>>>> --
->>>>>> To unsubscribe from this list: send the line "unsubscribe linux-=
-nfs" in
->>>>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.ht=
-ml
->>>>=20
->>>> --
->>>> Chuck Lever
->>>>=20
->>>>=20
->>=20
->> --
->> Chuck Lever
->>=20
->>=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-nfs" =
-in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Jason
 --
-Chuck Lever
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
