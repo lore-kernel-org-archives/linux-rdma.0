@@ -1,101 +1,73 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 07/12] xprtrdma: Don't provide a reply chunk when expecting a short reply
-Date: Sun, 12 Jul 2015 14:38:44 -0400
-Message-ID: <2EB8EA33-9345-4D18-8BE1-39C4EB2658E2@oracle.com>
-References: <20150709203242.26247.4848.stgit@manet.1015granger.net> <20150709204246.26247.10367.stgit@manet.1015granger.net> <55A2809C.7020106@dev.mellanox.co.il>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=windows-1252
+From: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] rds: rds_ib_device.refcount overflow
+Date: Mon, 13 Jul 2015 09:18:58 +0800
+Message-ID: <55A31202.1030408@oracle.com>
+References: <1436164511-2411-1-git-send-email-wen.gang.wang@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=gbk;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55A2809C.7020106-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1436164511-2411-1-git-send-email-wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Sagi-
+Hi Doug,
 
+How do you think about this patch?
 
-On Jul 12, 2015, at 10:58 AM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> =
-wrote:
+thanks,
+wengang
 
-> On 7/9/2015 11:42 PM, Chuck Lever wrote:
->> Currently Linux always offers a reply chunk, even for small replies
->> (unless a read or write list is needed for the RPC operation).
->>=20
->> A comment in rpcrdma_marshal_req() reads:
->>=20
->>> Currently we try to not actually use read inline.
->>> Reply chunks have the desirable property that
->>> they land, packed, directly in the target buffers
->>> without headers, so they require no fixup. The
->>> additional RDMA Write op sends the same amount
->>> of data, streams on-the-wire and adds no overhead
->>> on receive. Therefore, we request a reply chunk
->>> for non-writes wherever feasible and efficient.
->>=20
->> This considers only the network bandwidth cost of sending the RPC
->> reply. For replies which are only a few dozen bytes, this is
->> typically not a good trade-off.
->>=20
->> If the server chooses to return the reply inline:
->>=20
->>  - The client has registered and invalidated a memory region to
->>    catch the reply, which is then not used
->>=20
->> If the server chooses to use the reply chunk:
->>=20
->>  - The server sends a few bytes using a heavyweight RDMA WRITE for
->>    operation. The entire RPC reply is conveyed in two RDMA
->>    operations (WRITE_ONLY, SEND) instead of one.
->=20
-> Pipelined WRITE+SEND operations are hardly an overhead compared to
-> copying chunks of data.
->=20
->>=20
->> Note that both the server and client have to prepare or copy the
->> reply data anyway to construct these replies. There's no benefit to
->> using an RDMA transfer since the host CPU has to be involved.
->=20
-> I think that preparation (posting 1 or 2 WQEs) and copying
-> chunks of data of say 8K-16K might be different.
-
-Two points that are probably not clear from my patch description:
-
-1. This patch affects only replies (usually much) smaller than the
-   client=92s inline threshold (1KB). Anything larger will continue
-   to use RDMA transfer.
-
-2. These replies are constructed in the RPC buffer by the server,
-   and parsed in the receive buffer by the client. They are not
-   simple data copies on either endpoint.
-
-Think NFS GETATTR: the server is gathering metadata from multiple
-sources, and XDR encoding it in the reply send buffer. The data
-is not copied, it is manipulated before the SEND.
-
-The client then XDR decodes the received stream and scatters the
-decoded results into multiple in-memory data structures.
-
-Because XDR encoding/decoding is involved, there really is no
-benefit to an RDMA transfer for these replies.
-
-
-> I understand that you probably see better performance scaling. But th=
-is
-> might be HW dependent. Also, this might backfire on you if your
-> configuration is one-to-many. Then, data copy CPU cycles might become
-> more expensive.
->=20
-> I don't really know what is better, but just thought I'd present
-> another side to this.
-
-Thanks for your review!
-
---
-Chuck Lever
-
-
+=D4=DA 2015=C4=EA07=D4=C206=C8=D5 14:35, Wengang Wang =D0=B4=B5=C0:
+> Fixes: 3e0249f9c05c ("RDS/IB: add refcount tracking to struct rds_ib_=
+device")
+>
+> There lacks a dropping on rds_ib_device.refcount in case rds_ib_alloc=
+_fmr
+> failed(mr pool running out). this lead to the refcount overflow.
+>
+> A complain in line 117(see following) is seen. From vmcore:
+> s_ib_rdma_mr_pool_depleted is 2147485544 and rds_ibdev->refcount is -=
+2147475448.
+> That is the evidence the mr pool is used up. so rds_ib_alloc_fmr is v=
+ery likely
+> to return ERR_PTR(-EAGAIN).
+>
+> 115 void rds_ib_dev_put(struct rds_ib_device *rds_ibdev)
+> 116 {
+> 117         BUG_ON(atomic_read(&rds_ibdev->refcount) <=3D 0);
+> 118         if (atomic_dec_and_test(&rds_ibdev->refcount))
+> 119                 queue_work(rds_wq, &rds_ibdev->free_work);
+> 120 }
+>
+> fix is to drop refcount when rds_ib_alloc_fmr failed.
+>
+> Signed-off-by: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>   net/rds/ib_rdma.c | 4 +++-
+>   1 file changed, 3 insertions(+), 1 deletion(-)
+>
+> diff --git a/net/rds/ib_rdma.c b/net/rds/ib_rdma.c
+> index 273b8bf..657ba9f 100644
+> --- a/net/rds/ib_rdma.c
+> +++ b/net/rds/ib_rdma.c
+> @@ -759,8 +759,10 @@ void *rds_ib_get_mr(struct scatterlist *sg, unsi=
+gned long nents,
+>   	}
+>  =20
+>   	ibmr =3D rds_ib_alloc_fmr(rds_ibdev);
+> -	if (IS_ERR(ibmr))
+> +	if (IS_ERR(ibmr)) {
+> +		rds_ib_dev_put(rds_ibdev);
+>   		return ibmr;
+> +	}
+>  =20
+>   	ret =3D rds_ib_map_fmr(rds_ibdev, ibmr, sg, nents);
+>   	if (ret =3D=3D 0)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
