@@ -1,58 +1,110 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Kernel fast memory registration API proposal [RFC]
-Date: Mon, 13 Jul 2015 10:16:17 -0400
-Message-ID: <1D9C0527-E277-4C3F-A80D-C4FBAA3D82E9@oracle.com>
-References: <559F8BD1.9080308@dev.mellanox.co.il> <20150711103920.GE14741@infradead.org> <55A21DF6.6090909@dev.mellanox.co.il> <96901C8F-D916-4ECF-8DA4-C5C67FB8539E@oracle.com> <20150713064701.GB31842@infradead.org>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH v2 01/14] xprtrdma: Make xprt_setup_rdma() agnostic to
+ family of server address
+Date: Mon, 13 Jul 2015 12:29:51 -0400
+Message-ID: <20150713162951.17630.79475.stgit@manet.1015granger.net>
+References: <20150713160617.17630.97475.stgit@manet.1015granger.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150713064701.GB31842-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <20150713160617.17630.97475.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+In particular, recognize when an IPv6 connection is bound.
 
-On Jul 13, 2015, at 2:47 AM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ net/sunrpc/xprtrdma/transport.c |   28 +++++++++++-----------------
+ 1 file changed, 11 insertions(+), 17 deletions(-)
 
-> On Sun, Jul 12, 2015 at 02:15:56PM -0400, Chuck Lever wrote:
->>> Chuck, Would a scatterlist API make life easier for you?
->> 
->> No benefit for me.
->> 
->> The NFS upper layer already slices and dices I/O until it is a
->> stream of contiguous single I/O requests for the server.
->> 
->> It passes down a vector of struct page pointers which xprtrdma?s
->> memory registration logic has to walk through and convert into
->> something the provider can deal with.
->> 
->> See fmr_op_map and frwr_op_map. The loop in there becomes costly
->> as the number of pages involved in an I/O request increases.
->> 
->> I suppose an s/g list wouldn?t be much different from the current
->> arrangement. And if NFS and SunRPC are the only users that deal
->> with struct page, then there?s no code sharing benefit to
->> providing a provider API based on struct page.
-> 
-> NFS really should be using something more similar to a scatterlist,
-> as it maps pretty well to the sk_frags in the network layer as well.
-> 
-> Struct scatterlist is imprtant because it's the way the DMA mapping
-> functions takes a multi-page argument, so ayone who wants to batch
-> the S/G mapping calls needs it.
-
-An excellent topic to bring up on linux-nfs-u79uwXL29TaiAVqoAR/hOA@public.gmane.org
-
-In the meantime, I think rpcrdma.ko would have to be responsible for
-converting struct page to struct scatterlist.
-
-
---
-Chuck Lever
-
-
+diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+index 680f888..d737300 100644
+--- a/net/sunrpc/xprtrdma/transport.c
++++ b/net/sunrpc/xprtrdma/transport.c
+@@ -175,10 +175,8 @@ xprt_rdma_format_addresses6(struct rpc_xprt *xprt, struct sockaddr *sap)
+ }
+ 
+ static void
+-xprt_rdma_format_addresses(struct rpc_xprt *xprt)
++xprt_rdma_format_addresses(struct rpc_xprt *xprt, struct sockaddr *sap)
+ {
+-	struct sockaddr *sap = (struct sockaddr *)
+-					&rpcx_to_rdmad(xprt).addr;
+ 	char buf[128];
+ 
+ 	switch (sap->sa_family) {
+@@ -302,7 +300,7 @@ xprt_setup_rdma(struct xprt_create *args)
+ 	struct rpc_xprt *xprt;
+ 	struct rpcrdma_xprt *new_xprt;
+ 	struct rpcrdma_ep *new_ep;
+-	struct sockaddr_in *sin;
++	struct sockaddr *sap;
+ 	int rc;
+ 
+ 	if (args->addrlen > sizeof(xprt->addr)) {
+@@ -333,26 +331,20 @@ xprt_setup_rdma(struct xprt_create *args)
+ 	 * Set up RDMA-specific connect data.
+ 	 */
+ 
+-	/* Put server RDMA address in local cdata */
+-	memcpy(&cdata.addr, args->dstaddr, args->addrlen);
++	sap = (struct sockaddr *)&cdata.addr;
++	memcpy(sap, args->dstaddr, args->addrlen);
+ 
+ 	/* Ensure xprt->addr holds valid server TCP (not RDMA)
+ 	 * address, for any side protocols which peek at it */
+ 	xprt->prot = IPPROTO_TCP;
+ 	xprt->addrlen = args->addrlen;
+-	memcpy(&xprt->addr, &cdata.addr, xprt->addrlen);
++	memcpy(&xprt->addr, sap, xprt->addrlen);
+ 
+-	sin = (struct sockaddr_in *)&cdata.addr;
+-	if (ntohs(sin->sin_port) != 0)
++	if (rpc_get_port(sap))
+ 		xprt_set_bound(xprt);
+ 
+-	dprintk("RPC:       %s: %pI4:%u\n",
+-		__func__, &sin->sin_addr.s_addr, ntohs(sin->sin_port));
+-
+-	/* Set max requests */
+ 	cdata.max_requests = xprt->max_reqs;
+ 
+-	/* Set some length limits */
+ 	cdata.rsize = RPCRDMA_MAX_SEGS * PAGE_SIZE; /* RDMA write max */
+ 	cdata.wsize = RPCRDMA_MAX_SEGS * PAGE_SIZE; /* RDMA read max */
+ 
+@@ -375,8 +367,7 @@ xprt_setup_rdma(struct xprt_create *args)
+ 
+ 	new_xprt = rpcx_to_rdmax(xprt);
+ 
+-	rc = rpcrdma_ia_open(new_xprt, (struct sockaddr *) &cdata.addr,
+-				xprt_rdma_memreg_strategy);
++	rc = rpcrdma_ia_open(new_xprt, sap, xprt_rdma_memreg_strategy);
+ 	if (rc)
+ 		goto out1;
+ 
+@@ -409,7 +400,7 @@ xprt_setup_rdma(struct xprt_create *args)
+ 	INIT_DELAYED_WORK(&new_xprt->rx_connect_worker,
+ 			  xprt_rdma_connect_worker);
+ 
+-	xprt_rdma_format_addresses(xprt);
++	xprt_rdma_format_addresses(xprt, sap);
+ 	xprt->max_payload = new_xprt->rx_ia.ri_ops->ro_maxpages(new_xprt);
+ 	if (xprt->max_payload == 0)
+ 		goto out4;
+@@ -420,6 +411,9 @@ xprt_setup_rdma(struct xprt_create *args)
+ 	if (!try_module_get(THIS_MODULE))
+ 		goto out4;
+ 
++	dprintk("RPC:       %s: %s:%s\n", __func__,
++		xprt->address_strings[RPC_DISPLAY_ADDR],
++		xprt->address_strings[RPC_DISPLAY_PORT]);
+ 	return xprt;
+ 
+ out4:
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
