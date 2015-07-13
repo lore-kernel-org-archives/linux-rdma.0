@@ -1,100 +1,59 @@
-From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: Re: How to RoCE v2?
-Date: Mon, 13 Jul 2015 18:06:04 +0530
-Message-ID: <CANjDDBiF6yj+mZwbCX61gmjf=nE6PD96ujN8t8sV_qg_LA6Qwg@mail.gmail.com>
-References: <3CBF78CA47A0D542A0094940BB0205E762D284@AVMB1.qlogic.org>
-	<001201d0bd67$1b8a6440$529f2cc0$@soft-forge.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Kernel fast memory registration API proposal [RFC]
+Date: Mon, 13 Jul 2015 10:16:17 -0400
+Message-ID: <1D9C0527-E277-4C3F-A80D-C4FBAA3D82E9@oracle.com>
+References: <559F8BD1.9080308@dev.mellanox.co.il> <20150711103920.GE14741@infradead.org> <55A21DF6.6090909@dev.mellanox.co.il> <96901C8F-D916-4ECF-8DA4-C5C67FB8539E@oracle.com> <20150713064701.GB31842@infradead.org>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <001201d0bd67$1b8a6440$529f2cc0$@soft-forge.com>
+In-Reply-To: <20150713064701.GB31842-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rupert Dance <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>
-Cc: Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Ram,
 
-RoCE-v2 patch series is still under review, you should see updated
-patch series soon on this mailing list.
+On Jul 13, 2015, at 2:47 AM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
 
--Regards
-Devesh
+> On Sun, Jul 12, 2015 at 02:15:56PM -0400, Chuck Lever wrote:
+>>> Chuck, Would a scatterlist API make life easier for you?
+>> 
+>> No benefit for me.
+>> 
+>> The NFS upper layer already slices and dices I/O until it is a
+>> stream of contiguous single I/O requests for the server.
+>> 
+>> It passes down a vector of struct page pointers which xprtrdma?s
+>> memory registration logic has to walk through and convert into
+>> something the provider can deal with.
+>> 
+>> See fmr_op_map and frwr_op_map. The loop in there becomes costly
+>> as the number of pages involved in an I/O request increases.
+>> 
+>> I suppose an s/g list wouldn?t be much different from the current
+>> arrangement. And if NFS and SunRPC are the only users that deal
+>> with struct page, then there?s no code sharing benefit to
+>> providing a provider API based on struct page.
+> 
+> NFS really should be using something more similar to a scatterlist,
+> as it maps pretty well to the sk_frags in the network layer as well.
+> 
+> Struct scatterlist is imprtant because it's the way the DMA mapping
+> functions takes a multi-page argument, so ayone who wants to batch
+> the S/G mapping calls needs it.
 
-On Mon, Jul 13, 2015 at 5:56 PM, Rupert Dance <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org> wrote:
-> Hi Ram,
->
-> There were several issues discovered in OFED 3.18 RC3 which have been
-> resolved in the latest daily build.
->
-> https://www.openfabrics.org/downloads/OFED/ofed-3.18-daily/OFED-3.18-2015070
-> 7-2235.tgz
->
-> The issues are documented in the latest bugs in Bugzilla:
->
-> http://bugs.openfabrics.org/bugzilla/
->
-> There are also additional notes about the build procedures in the following
-> document:
->
-> https://www.openfabrics.org/downloads/WorkGroups/ewg/Build%20Process/OFED-3-
-> 18-Build%20process-v3.pdf
->
-> Finally we hope to have full support for RoCE v2 in out next major OFED
-> Build which will be based on the 4.x kernel.
->
-> Thanks
->
-> Rupert
->
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Ram Amrani
-> Sent: Monday, July 13, 2015 7:47 AM
-> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: How to RoCE v2?
->
-> Hi,
-> This is my first e-mail on this list. I have a few questions that I hope
-> you'll answer -
->
-> In the latest OFED (3.18-rc3) I don't see any RoCE v2 code, albeit it being
-> introduce in 2014. How come?
->
-> I've been unable to track patches from e-mail archives about relevant
-> e-mails such as "[PATCH 0/2] Adding support for RoCE V2 specification".
-> Where can patches be found/tracked? Is there a git repository with log?
->
-> I've also tried to build the latest OFED, in the hope that it will contain
-> the RoCE 2 code, but got errors. I followed the instructions in the web
-> (https://www.openfabrics.org/index.php/installation.html) but got errors
-> when applying patches ("./scripts/admin_rdma.sh -n -p") and also when
-> skipping it and running configure and make... are the instructions
-> up-to-date?
->
-> Thanks,
->
-> Ram
->
->
-> ________________________________
->
-> This message and any attached documents contain information from the sending
-> company or its parent company(s), subsidiaries, divisions or branch offices
-> that may be confidential. If you are not the intended recipient, you may not
-> read, copy, distribute, or use this information. If you have received this
-> transmission in error, please notify the sender immediately by reply e-mail
-> and then delete this message.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
-> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+An excellent topic to bring up on linux-nfs-u79uwXL29TaiAVqoAR/hOA@public.gmane.org
+
+In the meantime, I think rpcrdma.ko would have to be responsible for
+converting struct page to struct scatterlist.
+
+
+--
+Chuck Lever
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
