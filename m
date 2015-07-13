@@ -1,46 +1,37 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v1 08/12] IB/cma: Add net_dev and private data checks to
- RDMA CM
-Date: Mon, 13 Jul 2015 12:14:14 -0600
-Message-ID: <20150713181414.GJ23832@obsidianresearch.com>
-References: <1434976961-27424-1-git-send-email-haggaie@mellanox.com>
- <1434976961-27424-9-git-send-email-haggaie@mellanox.com>
+From: Tom Talpey <tom@talpey.com>
+Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+Date: Mon, 13 Jul 2015 15:36:44 -0400
+Message-ID: <55A4134C.2040301@talpey.com>
+References: <000b01d0b8bd$f2bfcc10$d83f6430$@opengridcomputing.com> <20150707161751.GA623@obsidianresearch.com> <559BFE03.4020709@dev.mellanox.co.il> <20150707213628.GA5661@obsidianresearch.com> <559CD174.4040901@dev.mellanox.co.il> <20150708190842.GB11740@obsidianresearch.com> <559D983D.6000804@talpey.com> <20150708233604.GA20765@obsidianresearch.com> <559E54AB.2010905@dev.mellanox.co.il> <20150709170142.GA21921@obsidianresearch.com> <20150711102538.GB14741@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1434976961-27424-9-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <20150711102538.GB14741@infradead.org>
+Sender: target-devel-owner@vger.kernel.org
+To: 'Christoph Hellwig' <hch@infradead.org>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Sagi Grimberg <sagig@dev.mellanox.co.il>, Steve Wise <swise@opengridcomputing.com>, dledford@redhat.com, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, trond.myklebust@primarydata.com, bfields@fieldses.org, Oren Duer <oren@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 22, 2015 at 03:42:37PM +0300, Haggai Eran wrote:
-> +	switch (ib_event->event) {
-> +	case IB_CM_REQ_RECEIVED:
-> +		req->device	= req_param->listen_id->device;
-> +		req->port	= req_param->port;
-> +		req->local_gid	= &req_param->primary_path->sgid;
-> +		req->service_id	= req_param->primary_path->service_id;
-> +		req->pkey	= be16_to_cpu(req_param->primary_path->pkey);
+On 7/11/2015 6:25 AM, 'Christoph Hellwig' wrote:
+> I think what we need to support for now is FRMR as the primary target,
+> and FMR as a secondar[y].
 
-I feel pretty strongly that we should be using the pkey from the work
-completion, not the pkey in the message.
+FMR is a *very* bad choice, for several reasons.
 
-The reason, if someone is using pkey like vlan, and expecting a
-container to never receive packets outside the assigned pkey, then we
-need to check each and every packet for the correct pkey before
-associating it with that container.
+1) It's not supported by very many devices, in fact it might even
+be thought to be obsolete.
 
-When doing the namespace patches you should probably also look at
-other CM GMPs than just the REQ and how the paths are setup and
-consider what to do with the pkey. I'd probably suggest that the pkey
-should be forced throughout the entire process to ensure it always
-matches the ip device - at least for containers that is the right
-thing.. I probably wouldn't turn it on for the root namespace though..
+2) It does not protect on byte boundaries, therefore it is unsafe
+to use for anything but page-sized, page-aligned RDMA operations.
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+3) It is a synchronous API, i.e. it is not work-request based and
+therefore is not very high performance.
+
+4) It sometimes is used with a "pool", which defers deregistration
+in the hopes of amortizing overhead. However, this deferral further
+increases the risk of remote access, including altering of memory
+contents after the fact.
+
+Personally, I'd recommend ib_get_phys_mr() over FMR. It at least
+doesn't suffer from issues 1, 2 and 4.
