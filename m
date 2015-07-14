@@ -1,96 +1,50 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v1 07/12] xprtrdma: Don't provide a reply chunk when
- expecting a short reply
-Date: Tue, 14 Jul 2015 12:54:39 +0300
-Message-ID: <55A4DC5F.9090403@dev.mellanox.co.il>
-References: <20150709203242.26247.4848.stgit@manet.1015granger.net>
- <20150709204246.26247.10367.stgit@manet.1015granger.net>
- <55A2809C.7020106@dev.mellanox.co.il>
- <2EB8EA33-9345-4D18-8BE1-39C4EB2658E2@oracle.com>
+From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+Date: Tue, 14 Jul 2015 08:12:34 -0400
+Message-ID: <55A4FCB2.8090909@talpey.com>
+References: <559BFE03.4020709@dev.mellanox.co.il> <20150707213628.GA5661@obsidianresearch.com> <559CD174.4040901@dev.mellanox.co.il> <20150708190842.GB11740@obsidianresearch.com> <559D983D.6000804@talpey.com> <20150708233604.GA20765@obsidianresearch.com> <559E54AB.2010905@dev.mellanox.co.il> <20150709170142.GA21921@obsidianresearch.com> <20150711102538.GB14741@infradead.org> <55A4134C.2040301@talpey.com> <20150714073756.GB7630@infradead.org> <55A4D4C6.6040907@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2EB8EA33-9345-4D18-8BE1-39C4EB2658E2-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <55A4D4C6.6040907-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/12/2015 9:38 PM, Chuck Lever wrote:
-> Hi Sagi-
->
->
-> On Jul 12, 2015, at 10:58 AM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org=
-> wrote:
->
->> On 7/9/2015 11:42 PM, Chuck Lever wrote:
->>> Currently Linux always offers a reply chunk, even for small replies
->>> (unless a read or write list is needed for the RPC operation).
+On 7/14/2015 5:22 AM, Sagi Grimberg wrote:
+> On 7/14/2015 10:37 AM, 'Christoph Hellwig' wrote:
+>> On Mon, Jul 13, 2015 at 03:36:44PM -0400, Tom Talpey wrote:
+>>> On 7/11/2015 6:25 AM, 'Christoph Hellwig' wrote:
+>>>> I think what we need to support for now is FRMR as the primary target,
+>>>> and FMR as a secondar[y].
 >>>
->>> A comment in rpcrdma_marshal_req() reads:
+>>> FMR is a *very* bad choice, for several reasons.
 >>>
->>>> Currently we try to not actually use read inline.
->>>> Reply chunks have the desirable property that
->>>> they land, packed, directly in the target buffers
->>>> without headers, so they require no fixup. The
->>>> additional RDMA Write op sends the same amount
->>>> of data, streams on-the-wire and adds no overhead
->>>> on receive. Therefore, we request a reply chunk
->>>> for non-writes wherever feasible and efficient.
->>>
->>> This considers only the network bandwidth cost of sending the RPC
->>> reply. For replies which are only a few dozen bytes, this is
->>> typically not a good trade-off.
->>>
->>> If the server chooses to return the reply inline:
->>>
->>>   - The client has registered and invalidated a memory region to
->>>     catch the reply, which is then not used
->>>
->>> If the server chooses to use the reply chunk:
->>>
->>>   - The server sends a few bytes using a heavyweight RDMA WRITE for
->>>     operation. The entire RPC reply is conveyed in two RDMA
->>>     operations (WRITE_ONLY, SEND) instead of one.
+>>> 1) It's not supported by very many devices, in fact it might even
+>>> be thought to be obsolete.
 >>
->> Pipelined WRITE+SEND operations are hardly an overhead compared to
->> copying chunks of data.
->>
->>>
->>> Note that both the server and client have to prepare or copy the
->>> reply data anyway to construct these replies. There's no benefit to
->>> using an RDMA transfer since the host CPU has to be involved.
->>
->> I think that preparation (posting 1 or 2 WQEs) and copying
->> chunks of data of say 8K-16K might be different.
+>> It's support by the Mellanox adapters,
 >
-> Two points that are probably not clear from my patch description:
->
-> 1. This patch affects only replies (usually much) smaller than the
->     client=92s inline threshold (1KB). Anything larger will continue
->     to use RDMA transfer.
->
-> 2. These replies are constructed in the RPC buffer by the server,
->     and parsed in the receive buffer by the client. They are not
->     simple data copies on either endpoint.
->
-> Think NFS GETATTR: the server is gathering metadata from multiple
-> sources, and XDR encoding it in the reply send buffer. The data
-> is not copied, it is manipulated before the SEND.
->
-> The client then XDR decodes the received stream and scatters the
-> decoded results into multiple in-memory data structures.
->
-> Because XDR encoding/decoding is involved, there really is no
-> benefit to an RDMA transfer for these replies.
+> *Older* Mellanox adapters. mlx5 (and future drivers I assume) will
+> no longer support FMRs.
 
-I see. Thanks for the clarification.
+Right, but drop the word "will". Mlx5 (the current ConnectX-4) doesn't
+support FMR. It's only supported by mlx4 and mthca drivers.
 
-Reviewed-By: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Based on looking at the consumers and the above table I think FMR
+>> are still the better fallback for devices that don't support FR,
+>
+> It's better if you want it fast.
+
+Do you guys think FMR is actually "fast"? Because it's not. Measure it.
+It might have been marginally faster than other schemes in like, 2007,
+and only when the mempool was there to leave the registrations open.
+Don't go back there.
+
+Tom.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
