@@ -1,85 +1,51 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Kernel fast memory registration API proposal [RFC]
-Date: Tue, 14 Jul 2015 09:53:40 -0600
-Message-ID: <20150714155340.GA7399@obsidianresearch.com>
-References: <559F8BD1.9080308@dev.mellanox.co.il>
- <20150713163015.GA23832@obsidianresearch.com>
- <55A4CABC.5050807@dev.mellanox.co.il>
- <20150714153347.GA11026@infradead.org>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [ANNOUNCE] OFED 3.18 release is available
+Date: Tue, 14 Jul 2015 18:59:42 +0300
+Message-ID: <55A531EE.3060003@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150714153347.GA11026-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/mailman/options/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: 'OpenFabrics EWG' <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 14, 2015 at 08:33:47AM -0700, Christoph Hellwig wrote:
-> On Tue, Jul 14, 2015 at 11:39:24AM +0300, Sagi Grimberg wrote:
-> > This is exactly what I don't want to do. I don't think that implicit
-> > posting is a good idea for reasons that I mentioned earlier:
-> > 
-> > "This is where I have a problem. Providing an API that may or may not
-> > post a work request on my QP is confusing, and I don't understand its
-> > semantics at all. Do I need to reserve slots on my QP? should I ask for
-> > a completion? If we suppress the completion will I see an error
-> > completion? What should I expect to find in the wr_id?"
-> > 
-> > We're much better off with keeping the post interface in place but
-> > have it much simpler.
-> 
-> The ULP doesn't care if it needs to reserver the slot, and it generally
-> doesn't care about the notification either unless it needs to handle an
-> error.
-> 
-> Instead of the ib_device knows if a MR needs a post it can through
-> a helper set the right reservation.
-> 
-> The completions are another mad mightmare in the RDMA stack API.  Every
-> other subsystem would just allow submitter to attach a function pointer
-> that handles the completion to the posted item.  But no, the RDMA stack
-> instead require ID allocators and gigantic boilerplate code in the
-> consumer to untangle that gigantic mess again.
-> 
-> If we sort that out first the ULD doesn't have to care about FR
-> notifications.
+Hi,
+OFED-3.18 is available at:
+https://openfabrics.org/downloads/OFED/ofed-3.18/OFED-3.18.tgz
 
-Right. We need to move away from our past. It was sort of reasonable
-when we had brand new hardware and nobody knew what ULPs would look
-like to just expose the raw HW primitives, and raw SQEs.
+To get BUILD_ID run ofed_info
 
-Now, the exercise should be a very simple code refactoring. Take the
-duplciate stuff out of Lustre/iSER/SRP/NFS and share it. You can't ask
-for a safer world to build an API from:
+Please report any issues in bugzilla
+http://bugs.openfabrics.org/bugzilla/ for OFED 3.18
 
-If all of those do posts w/ temp MR in sleepable contexts, then that
-is OK for the shared API to require sleep.
+Release notes:
+https://openfabrics.org/downloads/OFED/release_notes/OFED_3.18_release_notes
 
-If all those do FRMR setup, then post REG, then post ACT then factor
-that three step pattern.
+OFED-3.18 Main Changes from OFED 3.18-rc3
+-------------------------------------------------------------------------------
+1. Updated packages:
+   - libiwpm-1.0.2
+   - mstflint-4.0.1-1.43.g97d7275
+   - perftest-3.0-0.9.g214990b
 
-If all those do if (FMR) ... else ... then factor that pattern too.
+2. compat-rdma changes
+   - Adding backport to neigh resolve fix for RHEL 6.5 and RHEL 6.6
+   - ibscif: Fixed bring up of scif device on kernels >= 3.11
+   - openibd: Unload in-box drivers upon boot
+   - RDMA/nes: Fix for incorrect recording of the MAC address
+   - RDMA/nes: Fix for resolving the neigh
+   - RDMA/iwpm: Updated fixes for the client registration functionality
 
-Ditto for the Warp RDMA READ lkey buisness.
 
-If all those want callbacks from work completions, then factor that.
-
-It isn't even a question of API design, or what people like or don't
-like. If those 4 ULPs do the same damn stuff, then factor it.
-
-"It doesn't feel right" is not really a helpful response to an API
-factoring excercise. "ULP XYZ cannot do that because of ABC" is a much
-more productive reply.
-
-We'd still have the low level API for new ULPs to experiment with, if
-they really need.
-
-I'm really disappointed by the negative emails on this subject..
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Vladimir
