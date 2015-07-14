@@ -1,167 +1,48 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1] core: Remove the ib_reg_phys_mr() and ib_rereg_phys_mr()
- verbs
-Date: Tue, 14 Jul 2015 16:11:40 -0400
-Message-ID: <20150714200920.27121.57730.stgit@manet.1015granger.net>
+From: Alex Thorlton <athorlton-sJ/iWh9BUns@public.gmane.org>
+Subject: Re: [BUG] mellanox IB driver fails to load on large config
+Date: Tue, 14 Jul 2015 15:28:49 -0500
+Message-ID: <20150714202848.GD58053@asylum.americas.sgi.com>
+References: <20150710191506.GA52396@asylum.americas.sgi.com> <CAJ3xEMj82OtHcs+kDG_xrQZ4+x3Eih=YSNFR4+W-AoPNA=4jTw@mail.gmail.com> <20150714182234.GD17920@asylum.americas.sgi.com> <20150714184820.GB58053@asylum.americas.sgi.com> <CAJ3xEMig=GzROAea7qe0YO11DM6pc4wXyG8VB=kq5Hf5uw2ZXQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAJ3xEMig=GzROAea7qe0YO11DM6pc4wXyG8VB=kq5Hf5uw2ZXQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Alex Thorlton <athorlton-sJ/iWh9BUns@public.gmane.org>, andrew banman <abanman-sJ/iWh9BUns@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The verbs are obsolete. The ib_rereg_phys_mr() verb is not used by
-kernel ULPs, and the last ib_reg_phys_mr() call site in the kernel
-tree has now been removed.
+On Tue, Jul 14, 2015 at 11:06:26PM +0300, Or Gerlitz wrote:
+> On Tue, Jul 14, 2015 at 9:48 PM, Alex Thorlton <athorlton-sJ/iWh9BUns@public.gmane.org> wrote:
+> > On Tue, Jul 14, 2015 at 01:22:34PM -0500, andrew banman wrote:
+> >> On Sat, Jul 11, 2015 at 11:20:19PM +0300, Or Gerlitz wrote:
+> >> > On Fri, Jul 10, 2015 at 10:15 PM, andrew banman <abanman-sJ/iWh9BUns@public.gmane.org> wrote:
+> >> > > I'm seeing a large number of allocation errors originating from the Mellanox IB
+> >> > > driver when booting the 4.2-rc1 kernel on a 4096cpu 32TB memory system:
+> >> >
+> >> > Just to make sure, mlx4 works fine on this small (...) system with 4.1
+> >> > and 4.2-rc1 breaks, or 4.2-rc1 is the 1st time you're trying that
+> >> > config?
+> >>
+> >> I'll let Alex comment on that, he did some testing on that.
+> >
+> > I started seeing this on a 4.1-rc8 kernel, so it's been around for a
+> > little while.  It may have been around before 4.1-rc8, but I haven't run
+> > any kernels older than that on the big machine for some time.
+> 
+> To make sure I am correctly following, on 4.1-rc8  you also see
+> something, right?
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
-I'm still tracking down Doug's e-mail. In the meantime, let's start
-with this naive approach, which removes the core APIs but does not
-touch the providers.
+Yes, that's correct.
 
+> are these the same messages or different ones? if the latter send to us.
 
- drivers/infiniband/core/verbs.c |   67 ---------------------------------------
- include/rdma/ib_verbs.h         |   46 ---------------------------
- 2 files changed, 113 deletions(-)
+We see the same exact messages on 4.1-rc8.
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index bac3fb4..30eb245 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -1144,73 +1144,6 @@ struct ib_mr *ib_get_dma_mr(struct ib_pd *pd, int mr_access_flags)
- }
- EXPORT_SYMBOL(ib_get_dma_mr);
- 
--struct ib_mr *ib_reg_phys_mr(struct ib_pd *pd,
--			     struct ib_phys_buf *phys_buf_array,
--			     int num_phys_buf,
--			     int mr_access_flags,
--			     u64 *iova_start)
--{
--	struct ib_mr *mr;
--	int err;
--
--	err = ib_check_mr_access(mr_access_flags);
--	if (err)
--		return ERR_PTR(err);
--
--	if (!pd->device->reg_phys_mr)
--		return ERR_PTR(-ENOSYS);
--
--	mr = pd->device->reg_phys_mr(pd, phys_buf_array, num_phys_buf,
--				     mr_access_flags, iova_start);
--
--	if (!IS_ERR(mr)) {
--		mr->device  = pd->device;
--		mr->pd      = pd;
--		mr->uobject = NULL;
--		atomic_inc(&pd->usecnt);
--		atomic_set(&mr->usecnt, 0);
--	}
--
--	return mr;
--}
--EXPORT_SYMBOL(ib_reg_phys_mr);
--
--int ib_rereg_phys_mr(struct ib_mr *mr,
--		     int mr_rereg_mask,
--		     struct ib_pd *pd,
--		     struct ib_phys_buf *phys_buf_array,
--		     int num_phys_buf,
--		     int mr_access_flags,
--		     u64 *iova_start)
--{
--	struct ib_pd *old_pd;
--	int ret;
--
--	ret = ib_check_mr_access(mr_access_flags);
--	if (ret)
--		return ret;
--
--	if (!mr->device->rereg_phys_mr)
--		return -ENOSYS;
--
--	if (atomic_read(&mr->usecnt))
--		return -EBUSY;
--
--	old_pd = mr->pd;
--
--	ret = mr->device->rereg_phys_mr(mr, mr_rereg_mask, pd,
--					phys_buf_array, num_phys_buf,
--					mr_access_flags, iova_start);
--
--	if (!ret && (mr_rereg_mask & IB_MR_REREG_PD)) {
--		atomic_dec(&old_pd->usecnt);
--		atomic_inc(&pd->usecnt);
--	}
--
--	return ret;
--}
--EXPORT_SYMBOL(ib_rereg_phys_mr);
--
- int ib_query_mr(struct ib_mr *mr, struct ib_mr_attr *mr_attr)
- {
- 	return mr->device->query_mr ?
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 986fddb..6d0f5d0 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -2746,52 +2746,6 @@ static inline void ib_dma_free_coherent(struct ib_device *dev,
- }
- 
- /**
-- * ib_reg_phys_mr - Prepares a virtually addressed memory region for use
-- *   by an HCA.
-- * @pd: The protection domain associated assigned to the registered region.
-- * @phys_buf_array: Specifies a list of physical buffers to use in the
-- *   memory region.
-- * @num_phys_buf: Specifies the size of the phys_buf_array.
-- * @mr_access_flags: Specifies the memory access rights.
-- * @iova_start: The offset of the region's starting I/O virtual address.
-- */
--struct ib_mr *ib_reg_phys_mr(struct ib_pd *pd,
--			     struct ib_phys_buf *phys_buf_array,
--			     int num_phys_buf,
--			     int mr_access_flags,
--			     u64 *iova_start);
--
--/**
-- * ib_rereg_phys_mr - Modifies the attributes of an existing memory region.
-- *   Conceptually, this call performs the functions deregister memory region
-- *   followed by register physical memory region.  Where possible,
-- *   resources are reused instead of deallocated and reallocated.
-- * @mr: The memory region to modify.
-- * @mr_rereg_mask: A bit-mask used to indicate which of the following
-- *   properties of the memory region are being modified.
-- * @pd: If %IB_MR_REREG_PD is set in mr_rereg_mask, this field specifies
-- *   the new protection domain to associated with the memory region,
-- *   otherwise, this parameter is ignored.
-- * @phys_buf_array: If %IB_MR_REREG_TRANS is set in mr_rereg_mask, this
-- *   field specifies a list of physical buffers to use in the new
-- *   translation, otherwise, this parameter is ignored.
-- * @num_phys_buf: If %IB_MR_REREG_TRANS is set in mr_rereg_mask, this
-- *   field specifies the size of the phys_buf_array, otherwise, this
-- *   parameter is ignored.
-- * @mr_access_flags: If %IB_MR_REREG_ACCESS is set in mr_rereg_mask, this
-- *   field specifies the new memory access rights, otherwise, this
-- *   parameter is ignored.
-- * @iova_start: The offset of the region's starting I/O virtual address.
-- */
--int ib_rereg_phys_mr(struct ib_mr *mr,
--		     int mr_rereg_mask,
--		     struct ib_pd *pd,
--		     struct ib_phys_buf *phys_buf_array,
--		     int num_phys_buf,
--		     int mr_access_flags,
--		     u64 *iova_start);
--
--/**
-  * ib_query_mr - Retrieves information about a specific memory region.
-  * @mr: The memory region to retrieve information about.
-  * @mr_attr: The attributes of the specified memory region.
+Thanks for looking into this!
 
+- Alex
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
