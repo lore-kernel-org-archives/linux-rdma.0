@@ -1,43 +1,68 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
-Date: Tue, 14 Jul 2015 13:57:00 -0600
-Message-ID: <20150714195700.GA26927@obsidianresearch.com>
-References: <20150708203205.GA21847@infradead.org>
- <20150709000337.GE16812@obsidianresearch.com>
- <559EF332.7060103@redhat.com>
- <20150709225306.GA30741@obsidianresearch.com>
- <559FC710.1050307@talpey.com>
- <20150710161108.GA19042@obsidianresearch.com>
- <CCB6E837-88FF-4DBB-976D-4CF56396A1A1@ogc.us>
- <55A24571.60902@dev.mellanox.co.il>
- <00e201d0be6a$e49bc910$add35b30$@opengridcomputing.com>
- <20150714194512.GA25887@infradead.org>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+Date: Tue, 14 Jul 2015 14:58:23 -0500
+Message-ID: <00f901d0be6f$70c96b00$525c4100$@opengridcomputing.com>
+References: <20150708190842.GB11740@obsidianresearch.com> <20150708203205.GA21847@infradead.org> <20150709000337.GE16812@obsidianresearch.com> <559EF332.7060103@redhat.com> <20150709225306.GA30741@obsidianresearch.com> <559FC710.1050307@talpey.com> <20150710161108.GA19042@obsidianresearch.com> <CCB6E837-88FF-4DBB-976D-4CF56396A1A1@ogc.us> <55A24571.60902@dev.mellanox.co.il> <00e201d0be6a$e49bc910$add35b30$@opengridcomputing.com> <20150714194512.GA25887@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20150714194512.GA25887-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Language: en-us
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Steve Wise' <swise-/Yg/VP3ZvrM@public.gmane.org>, 'Tom Talpey' <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, 'Oren Duer' <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Steve Wise' <swise-/Yg/VP3ZvrM@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, 'Tom Talpey' <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, 'Oren Duer' <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 14, 2015 at 12:45:12PM -0700, 'Christoph Hellwig' wrote:
 
+
+> -----Original Message-----
+> From: 'Christoph Hellwig' [mailto:hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org]
+> Sent: Tuesday, July 14, 2015 2:45 PM
+> To: Steve Wise
+> Cc: 'Sagi Grimberg'; 'Steve Wise'; 'Jason Gunthorpe'; 'Tom Talpey'; 'Doug Ledford'; 'Christoph Hellwig'; sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org;
+> ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
+> nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org; bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org; 'Oren Duer'
+> Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+> 
+> On Tue, Jul 14, 2015 at 02:25:50PM -0500, Steve Wise wrote:
+> > if (device_supports_fastreg && device_supports_signature)
+> >         use FRMR
+> > else
+> >         use DMAMR
+> >
+> > Shouldn't we just recode it this way?
+> >
+> > if (device_supports_fastreg)
+> >         use FRMR
+> > else
+> >         use DMAMR
+> 
 > How does IB_DEVICE_LOCAL_DMA_LKEY (and ->local_dma_lkey) play into
 > this?  Seems like that should be the preferred option if supported.
+>
 
-Very good question.
+The local_dma_lkey can be used in any rdma sge that requires an lkey.  It is supported for kernel-mode only.  So if you're only ever
+going to use the lkey for IO, you really don't need a DMA_MR at all, unless you want to somehow partition up your work load by
+protection domain.  But I claim for lkeys, the PD doesn't really protect anything since the remote peers can't use it anyway.  
 
 > Interestingly enough various iWarp driver seem to support this option,
 > what's the story behind that?  The (to me surprising) conclusion on
 > the list was that iWarp would always need a memory regireations that
+> also allows remove writes even for lkeys, but from looking at the
+> users of IB_DEVICE_LOCAL_DMA_LKEY / local_dma_lkey that seem to
+> prefer that over creating a MR.
 
-Only for the RDMA READ lkey. All the other verbs are the same as IB,
-and should use a local access all physical MR lkey. 
+There is confusion about lkeys and rkeys with regard to iWARP.  In the iWARP verbs, there is no distinction between an lkey and
+rkey: they are the same key, called a Steering Tag or STAG.  When you create a MR, the lkey == rkey == STAG for iwarp transports.
+Somewhat related, but really a different issue, is that SGEs that are the target of a read need REMOTE_WRITE access flags on their
+STAG for iWARP. 
 
-Jason
+Clear as mud? :)
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
