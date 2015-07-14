@@ -1,32 +1,57 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Kernel fast memory registration API proposal [RFC]
-Date: Tue, 14 Jul 2015 11:09:00 -0600
-Message-ID: <20150714170859.GB19814@obsidianresearch.com>
-References: <559F8BD1.9080308@dev.mellanox.co.il>
- <20150713163015.GA23832@obsidianresearch.com>
- <55A4CABC.5050807@dev.mellanox.co.il>
- <20150714153347.GA11026@infradead.org>
- <55A534D1.6030008@dev.mellanox.co.il>
- <20150714163506.GC7399@obsidianresearch.com>
- <55A53F0B.5050009@dev.mellanox.co.il>
+Subject: Re: kernel memory registration
+Date: Tue, 14 Jul 2015 11:24:29 -0600
+Message-ID: <20150714172429.GA24403@obsidianresearch.com>
+References: <559CD174.4040901@dev.mellanox.co.il>
+ <20150708190842.GB11740@obsidianresearch.com>
+ <559D983D.6000804@talpey.com>
+ <20150708233604.GA20765@obsidianresearch.com>
+ <559E54AB.2010905@dev.mellanox.co.il>
+ <20150709170142.GA21921@obsidianresearch.com>
+ <559F8881.7070308@dev.mellanox.co.il>
+ <20150711103153.GC14741@infradead.org>
+ <20150713164652.GC23832@obsidianresearch.com>
+ <55A4C73A.7080001@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <55A53F0B.5050009-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <55A4C73A.7080001-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Cc: 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 14, 2015 at 07:55:39PM +0300, Sagi Grimberg wrote:
+On Tue, Jul 14, 2015 at 11:24:26AM +0300, Sagi Grimberg wrote:
+> 
+> >
+> >>Having a few schemes availabe in the core code that the driver can chose
+> >>from seems like a much more sensible option.
+> >
+> >I think that makes sense, but several of the schemes we are working
+> >with are effectively single-vendor schemes. Indirect MR and DIX are
+> >good examples of things that only one vendor implements, and are not
+> >standardized.
+> >
+> >In those cases it is hard to argue the core should provide support for
+> >them.
+> 
+> I'm sorry but I disagree with the statement above. T10-DIF/DIX is a
+> standard and *not* a vendor specific feature. Other storage protocols
+> (FC, SAS, NVME) fully support it. So yes, the core *needs* to support it.
 
-> But, if people think that it's better to have an API that does implicit
-> posting always without notification, and then silently consume error or
-> flush completions. I can try and look at it as well.
+Sorry, I ment the exact details of how DIX is exposed through verbs is
+only implemented by one vendor (eg IB_WR_REG_SIG_MR).
 
-Can we do FMR transparently if we bundle the post? If yes, I'd call
-that a winner..
+The core absolutely should provide an API for this, I'm not convinced
+it should be at the MR level though....
+
+> Moreover, the core stack poses memory alignment limitations for
+> registration. The RDMA stack should allow an interface that can resolve
+> these limitations if the device is capable of handling them. I'd say
+> this is something all vendors should look at.
+
+Sure would be nice..
 
 Jason
 --
