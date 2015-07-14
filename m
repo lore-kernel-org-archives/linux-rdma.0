@@ -1,61 +1,69 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
-Date: Tue, 14 Jul 2015 14:25:50 -0500
-Message-ID: <00e201d0be6a$e49bc910$add35b30$@opengridcomputing.com>
-References: <20150707161751.GA623@obsidianresearch.com> <559BFE03.4020709@dev.mellanox.co.il> <20150707213628.GA5661@obsidianresearch.com> <559CD174.4040901@dev.mellanox.co.il> <20150708190842.GB11740@obsidianresearch.com> <20150708203205.GA21847@infradead.org> <20150709000337.GE16812@obsidianresearch.com> <559EF332.7060103@redhat.com> <20150709225306.GA30741@obsidianresearch.com> <559FC710.1050307@talpey.com> <20150710161108.GA19042@obsidianresearch.com> <CCB6E837-88FF-4DBB-976D-4CF56396A1A1@ogc.us> <55A24571.60902@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55A24571.60902-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Steve Wise' <swise-/Yg/VP3ZvrM@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: 'Tom Talpey' <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, 'Oren Duer' <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Chuck Lever <chuck.lever@oracle.com>
+Subject: Re: [PATCH V5 5/5] RDMA/isert: Limit read depth based on the device max_sge_rd capability
+Date: Tue, 14 Jul 2015 15:25:44 -0400
+Message-ID: <9480BB02-EB41-49CE-A95C-C8E18A4FD261@oracle.com>
+References: <20150705174353.10042.39648.stgit@build2.ogc.int> <20150705174505.10042.28442.stgit@build2.ogc.int> <20150714082721.GA30072@infradead.org> <001201d0be43$1a240980$4e6c1c80$@opengridcomputing.com> <20150714154200.GE11026@infradead.org> <007001d0be4c$9f640ab0$de2c2010$@opengridcomputing.com> <57000A57-6E11-4949-81D4-C8735A10C671@oracle.com> <00e001d0be68$f50005c0$df001140$@opengridcomputing.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <00e001d0be68$f50005c0$df001140$@opengridcomputing.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Steve Wise <swise@opengridcomputing.com>
+Cc: Christoph Hellwig <hch@infradead.org>, Doug Ledford <dledford@redhat.com>, infinipath@intel.com, Sagi Grimberg <sagig@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, roid@mellanox.com, linux-rdma <linux-rdma@vger.kernel.org>, Eli Cohen <eli@mellanox.com>, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-> >>
-> >> I'm sorry Steve for leading you down the wrong path with these flags,
-> >> I did not fully realize exactly what the iWarp difference was at the
-> >> start :(
-> >>
-> >> Jason
-> >
-> >
-> > No problem.  I'll work on iSER target FRMRs and repost the iSER series.
-> >
-> > Sagi, right now isert only uses FRMRs along with signature mrs.  I'll need to separate the two, I think.  Does that sound right?
+On Jul 14, 2015, at 3:11 PM, Steve Wise <swise@opengridcomputing.com> wrote:
+
 > 
-> Yea.
 > 
-> Given that FRWR takes extra HW (and memory) resources, it
-> should probably be:
+>> -----Original Message-----
+>> From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-owner@vger.kernel.org] On Behalf Of Chuck Lever
+>> Sent: Tuesday, July 14, 2015 1:47 PM
+>> To: Steve Wise
+>> Cc: Christoph Hellwig; Doug Ledford; infinipath@intel.com; Sagi Grimberg; Or Gerlitz; roid@mellanox.com; linux-rdma; Eli Cohen;
+> target-
+>> devel@vger.kernel.org
+>> Subject: Re: [PATCH V5 5/5] RDMA/isert: Limit read depth based on the device max_sge_rd capability
+>> 
+>> 
+>> On Jul 14, 2015, at 11:49 AM, Steve Wise <swise@opengridcomputing.com> wrote:
+>> 
+>>> 
+>>> 
+>>>> -----Original Message-----
+>>>> From: 'Christoph Hellwig' [mailto:hch@infradead.org]
+>>>> Sent: Tuesday, July 14, 2015 10:42 AM
+>>>> To: Steve Wise
+>>>> Cc: 'Christoph Hellwig'; Chuck Lever; dledford@redhat.com; infinipath@intel.com; sagig@mellanox.com; ogerlitz@mellanox.com;
+>>>> roid@mellanox.com; linux-rdma@vger.kernel.org; eli@mellanox.com; target-devel@vger.kernel.org
+>>>> Subject: Re: [PATCH V5 5/5] RDMA/isert: Limit read depth based on the device max_sge_rd capability
+>>>> 
+>>>> On Tue, Jul 14, 2015 at 09:41:00AM -0500, Steve Wise wrote:
+>>>>>> Btw, any hance to make the NFS client use these values as well instead
+>>>>>> of the current rdma_read_max_sge() hack?
+>>>>> 
+>>>>> Chuck, can you add this to your cleanup list?
+>>>> 
+>>>> It would be useful to add this to your series so we can get rid of
+>>>> it for the next merge window instead of introducing a depenency that
+>>>> would defer it to the next merge window.
+>>> 
+>>> Ok, I will do this.
+>> 
+>> Steve, can you review v2 of the nfs-rdma-for-4.3 series I posted
+>> yesterday? Specifically:
+>> 
+>>  http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=commit;h=6abafb636e03fbb7f93a26796223833581a70190
+>> 
+>> Which changes the way xprtrdma uses max_sge.
+>> 
 > 
-> if (signature support || iwarp)
-> 	use FRMR
+> Sure, but xprtrdma doesn't issue reads, so max_sge_rd isn't needed.  The change Christoph wants is actually in svcrdma.  I will
+> change the server to use max_sge_rd instead of rdma_cap_read_multi_sge().
 
-Currently the code does:
-
-if (device_supports_fastreg && device_supports_signature)
-        use FRMR
-else
-        use DMAMR
-
-Shouldn't we just recode it this way?
-
-if (device_supports_fastreg)
-        use FRMR
-else
-        use DMAMR
-
-The benefit is that we don't have to check for iWARP protocol in the ULP.  The side effect is, I think, mlx4 will now use FRMR
-instead of DMAMR for reads/writes since it doesn't support signature handover.
-
-
+OK, glad the conflict has been avoided.
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Chuck Lever
