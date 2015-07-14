@@ -1,39 +1,53 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: Kernel fast memory registration API proposal [RFC]
-Date: Tue, 14 Jul 2015 11:50:35 +0300
-Message-ID: <55A4CD5B.9030000@dev.mellanox.co.il>
-References: <559F8BD1.9080308@dev.mellanox.co.il>
- <20150711103920.GE14741@infradead.org> <55A21DF6.6090909@dev.mellanox.co.il>
- <96901C8F-D916-4ECF-8DA4-C5C67FB8539E@oracle.com>
- <20150713064701.GB31842@infradead.org>
- <1D9C0527-E277-4C3F-A80D-C4FBAA3D82E9@oracle.com>
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+Date: Tue, 14 Jul 2015 12:05:53 +0300
+Message-ID: <55A4D0F1.7000909@dev.mellanox.co.il>
+References: <20150709000337.GE16812@obsidianresearch.com>
+ <559EF332.7060103@redhat.com> <20150709225306.GA30741@obsidianresearch.com>
+ <559FC710.1050307@talpey.com> <20150710161108.GA19042@obsidianresearch.com>
+ <55A00754.4010009@redhat.com> <55A01225.9000000@talpey.com>
+ <20150710195420.GA31500@obsidianresearch.com>
+ <20150711101736.GA14741@infradead.org>
+ <20150713165748.GE23832@obsidianresearch.com>
+ <20150714072536.GA7630@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1D9C0527-E277-4C3F-A80D-C4FBAA3D82E9-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <20150714072536.GA7630@infradead.org>
+Sender: target-devel-owner@vger.kernel.org
+To: 'Christoph Hellwig' <hch@infradead.org>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Tom Talpey <tom@talpey.com>, Doug Ledford <dledford@redhat.com>, Steve Wise <swise@opengridcomputing.com>, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, trond.myklebust@primarydata.com, bfields@fieldses.org, Oren Duer <oren@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/13/2015 5:16 PM, Chuck Lever wrote:
-
->> NFS really should be using something more similar to a scatterlist,
->> as it maps pretty well to the sk_frags in the network layer as well.
+On 7/14/2015 10:25 AM, 'Christoph Hellwig' wrote:
+> On Mon, Jul 13, 2015 at 10:57:48AM -0600, Jason Gunthorpe wrote:
+>>> Currently various drivers are using ib_get_dma_mr with remote flags
+>>> unfortunately, e.g. the SRP initiator driver uses it to optimize away
+>>> memory registrtions for single SGL entry requests.
 >>
->> Struct scatterlist is imprtant because it's the way the DMA mapping
->> functions takes a multi-page argument, so ayone who wants to batch
->> the S/G mapping calls needs it.
+>> Unconditionally? Ugh. Maybe we do need the warn_on :(
 >
-> An excellent topic to bring up on linux-nfs-u79uwXL29TaiAVqoAR/hOA@public.gmane.org
+> There is a "register_always" flag to always use real MRs, but it's
+> off by default:
 >
-> In the meantime, I think rpcrdma.ko would have to be responsible for
-> converting struct page to struct scatterlist.
+> 	if (count == 1 && !register_always) {
+> 		/*
+> 		 * The midlayer only generated a single gather/scatter
+> 		 * entry, or DMA mapping coalesced everything to a
+> 		 * single entry. So a direct descriptor along with
+> 		 * the DMA MR suffices.
+> 		 */
+> 		struct srp_direct_buf *buf = (void *) cmd->add_data;
+>
+> 		buf->va  = cpu_to_be64(ib_sg_dma_address(ibdev, scat));
+>                  buf->key = cpu_to_be32(target->rkey);
+> 		buf->len = cpu_to_be32(ib_sg_dma_len(ibdev, scat));
+>
+> 		req->nmdesc = 0;
+> 		goto map_complete;
+> 	}
 >
 
-Fine by me, so I take it that you are OK with the proposed API?
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iser has it too. I have a similar patch with a flag for iser (its
+behind a bulk of patches that are still pending though).
