@@ -1,122 +1,66 @@
-From: Anna Schumaker <schumaker.anna-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v1 10/12] xprtrdma: Fix large NFS SYMLINK calls
-Date: Tue, 14 Jul 2015 12:01:29 -0400
-Message-ID: <55A53259.8090606@gmail.com>
-References: <20150709203242.26247.4848.stgit@manet.1015granger.net>
- <20150709204315.26247.47851.stgit@manet.1015granger.net>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: Kernel fast memory registration API proposal [RFC]
+Date: Tue, 14 Jul 2015 19:12:01 +0300
+Message-ID: <55A534D1.6030008@dev.mellanox.co.il>
+References: <559F8BD1.9080308@dev.mellanox.co.il>
+ <20150713163015.GA23832@obsidianresearch.com>
+ <55A4CABC.5050807@dev.mellanox.co.il> <20150714153347.GA11026@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150709204315.26247.47851.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150714153347.GA11026-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Chuck,
+On 7/14/2015 6:33 PM, Christoph Hellwig wrote:
+> On Tue, Jul 14, 2015 at 11:39:24AM +0300, Sagi Grimberg wrote:
+>> This is exactly what I don't want to do. I don't think that implicit
+>> posting is a good idea for reasons that I mentioned earlier:
+>>
+>> "This is where I have a problem. Providing an API that may or may not
+>> post a work request on my QP is confusing, and I don't understand its
+>> semantics at all. Do I need to reserve slots on my QP? should I ask for
+>> a completion? If we suppress the completion will I see an error
+>> completion? What should I expect to find in the wr_id?"
+>>
+>> We're much better off with keeping the post interface in place but
+>> have it much simpler.
+>
+> The ULP doesn't care if it needs to reserver the slot, and it generally
+> doesn't care about the notification either unless it needs to handle an
+> error.
 
-On 07/09/2015 04:43 PM, Chuck Lever wrote:
-> Repair how rpcrdma_marshal_req() chooses which RDMA message type
-> to use for large non-WRITE operations so that it picks RDMA_NOMSG
-> in the correct situations, and sets up the marshaling logic to
-> SEND only the RPC/RDMA header.
-> 
-> Large NFSv2 SYMLINK requests now use RDMA_NOMSG calls. The Linux NFS
-> server XDR decoder for NFSv2 SYMLINK does not handle having the
-> pathname argument arrive in a separate buffer. The decoder could be
-> fixed, but this is simpler and RDMA_NOMSG can be used in a variety
-> of other situations.
-> 
-> Ensure that the Linux client continues to use "RDMA_MSG + read
-> list" when sending large NFSv3 SYMLINK requests, which is more
-> efficient than using RDMA_NOMSG.
-> 
-> Large NFSv4 CREATE(NF4LNK) requests are changed to use "RDMA_MSG +
-> read list" just like NFSv3 (see Section 5 of RFC 5667). Before,
-> these did not work at all.
-> 
-> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->  fs/nfs/nfs3xdr.c               |    1 +
->  fs/nfs/nfs4xdr.c               |    1 +
->  net/sunrpc/xprtrdma/rpc_rdma.c |   21 ++++++++++++---------
->  3 files changed, 14 insertions(+), 9 deletions(-)
+That's generally correct. But the ULP may want to suppress notifications
+of other posts as well (for example a storage initiator may want to
+suppress send completions since it needs to reserve the request context
+until it receives the status anyway - which is a receive completion). It
+needs to take what was posted and what not into account to avoid
+wrapping.
 
-It might be better to split this into separate patches for nfs and sunrpc, since Trond might want to accept the nfs changes separately.
+If I'm not mistaken iWARP requires to ask for a completion once every
+send-queue length and empirically, IB drivers requires it too. So again,
+I don't think implicit posting is a very good idea.
 
-Anna
+> The completions are another mad mightmare in the RDMA stack API.  Every
+> other subsystem would just allow submitter to attach a function pointer
+> that handles the completion to the posted item.
 
-> 
-> diff --git a/fs/nfs/nfs3xdr.c b/fs/nfs/nfs3xdr.c
-> index 9b04c2e..267126d 100644
-> --- a/fs/nfs/nfs3xdr.c
-> +++ b/fs/nfs/nfs3xdr.c
-> @@ -1103,6 +1103,7 @@ static void nfs3_xdr_enc_symlink3args(struct rpc_rqst *req,
->  {
->  	encode_diropargs3(xdr, args->fromfh, args->fromname, args->fromlen);
->  	encode_symlinkdata3(xdr, args);
-> +	xdr->buf->flags |= XDRBUF_WRITE;
->  }
->  
->  /*
-> diff --git a/fs/nfs/nfs4xdr.c b/fs/nfs/nfs4xdr.c
-> index 558cd65d..03a20ec 100644
-> --- a/fs/nfs/nfs4xdr.c
-> +++ b/fs/nfs/nfs4xdr.c
-> @@ -1155,6 +1155,7 @@ static void encode_create(struct xdr_stream *xdr, const struct nfs4_create_arg *
->  		p = reserve_space(xdr, 4);
->  		*p = cpu_to_be32(create->u.symlink.len);
->  		xdr_write_pages(xdr, create->u.symlink.pages, 0, create->u.symlink.len);
-> +		xdr->buf->flags |= XDRBUF_WRITE;
->  		break;
->  
->  	case NF4BLK: case NF4CHR:
-> diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-> index 2e721f2..64fc4b4 100644
-> --- a/net/sunrpc/xprtrdma/rpc_rdma.c
-> +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-> @@ -484,21 +484,24 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
->  	 *
->  	 * o If the total request is under the inline threshold, all ops
->  	 *   are sent as inline.
-> -	 * o Large non-write ops are sent with the entire message as a
-> -	 *   single read chunk (protocol 0-position special case).
->  	 * o Large write ops transmit data as read chunk(s), header as
->  	 *   inline.
-> +	 * o Large non-write ops are sent with the entire message as a
-> +	 *   single read chunk (protocol 0-position special case).
->  	 *
-> -	 * Note: the NFS code sending down multiple argument segments
-> -	 * implies the op is a write.
-> -	 * TBD check NFSv4 setacl
-> +	 * This assumes that the upper layer does not present a request
-> +	 * that both has a data payload, and whose non-data arguments
-> +	 * by themselves are larger than the inline threshold.
->  	 */
-> -	if (rpcrdma_args_inline(rqst))
-> +	if (rpcrdma_args_inline(rqst)) {
->  		rtype = rpcrdma_noch;
-> -	else if (rqst->rq_snd_buf.page_len == 0)
-> -		rtype = rpcrdma_areadch;
-> -	else
-> +	} else if (rqst->rq_snd_buf.flags & XDRBUF_WRITE) {
->  		rtype = rpcrdma_readch;
-> +	} else {
-> +		headerp->rm_type = htonl(RDMA_NOMSG);
-> +		rtype = rpcrdma_areadch;
-> +		rpclen = 0;
-> +	}
->  
->  	/* The following simplification is not true forever */
->  	if (rtype != rpcrdma_noch && wtype == rpcrdma_replych)
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+This is actually a good idea. And it can be easily added I think (at
+least to mlx drivers which I better). It can help removing a switch
+statement for the ULPs when handling the completions.
 
+   But no, the RDMA stack
+> instead require ID allocators and gigantic boilerplate code in the
+> consumer to untangle that gigantic mess again.
+
+I don't think the wr_id was ever intended to be an allocated tag. It's
+the ULP context, usually a pointer to a transaction structure. Even
+with passing a function pointer you need to get back your original
+context don't you?
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
