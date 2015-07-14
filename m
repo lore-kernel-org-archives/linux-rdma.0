@@ -1,66 +1,48 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v1 01/12] IB/core: pass client data to remove() callbacks
-Date: Tue, 14 Jul 2015 17:54:40 +0300
-Message-ID: <55A522B0.6050207@mellanox.com>
-References: <1434976961-27424-1-git-send-email-haggaie@mellanox.com>
- <1434976961-27424-2-git-send-email-haggaie@mellanox.com>
- <20150708202910.GA16812@obsidianresearch.com>
- <20150708213410.GA19624@obsidianresearch.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: Kernel fast memory registration API proposal [RFC]
+Date: Tue, 14 Jul 2015 08:33:47 -0700
+Message-ID: <20150714153347.GA11026@infradead.org>
+References: <559F8BD1.9080308@dev.mellanox.co.il>
+ <20150713163015.GA23832@obsidianresearch.com>
+ <55A4CABC.5050807@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150708213410.GA19624-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <55A4CABC.5050807-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 09/07/2015 00:34, Jason Gunthorpe wrote:
-> On Wed, Jul 08, 2015 at 02:29:10PM -0600, Jason Gunthorpe wrote:
->> On Mon, Jun 22, 2015 at 03:42:30PM +0300, Haggai Eran wrote:
->>> An ib_client callback that is called with the lists_rwsem locked only for
->>> read is protected from changes to the IB client lists, but not from
->>> ib_unregister_device() freeing its client data. This is because
->>> ib_unregister_device() will remove the device from the device list with
->>> lists_rwsem locked for write, but perform the rest of the cleanup,
->>> including the call to remove() without that lock.
->>
->> I was going to look at this, but, uh.. it seems mangled, doesn't
->> apply, doesn't seem fixable from here.
+On Tue, Jul 14, 2015 at 11:39:24AM +0300, Sagi Grimberg wrote:
+> This is exactly what I don't want to do. I don't think that implicit
+> posting is a good idea for reasons that I mentioned earlier:
 > 
-> Okay, I see, it sits on top of the patch from Matan's last
-> posting.. My bad.
-No problem.
+> "This is where I have a problem. Providing an API that may or may not
+> post a work request on my QP is confusing, and I don't understand its
+> semantics at all. Do I need to reserve slots on my QP? should I ask for
+> a completion? If we suppress the completion will I see an error
+> completion? What should I expect to find in the wr_id?"
+> 
+> We're much better off with keeping the post interface in place but
+> have it much simpler.
 
-> Hum... I have to say I don't really like this, changing the ordering
-> of client_data = NULL with respect to client->remove doesn't seem like
-> a great idea - and the rds changes look scary to me, at least I
-> couldn't confidently say they were OK..
-> 
-> And that isn't really the issue - this has nothing to do with
-> client_data, it is all about not having a callback running when doing
-> remove.
-> 
-> It looks like the way out of this is to have ib_get_net_dev_by_params
-> iterate over the client_data_list and use a dedicated flag in that
-> struct to indicate that client&device combination is
-> remove-in-progress.
-> 
-> This would be a bit more efficient as well, and I would suggest
-> passing the context in as an arg to the callback.
->
-> client_data_list would change a bit to become write locked first by
-> write(lists_rwsem), and then second by the spin lock, so holding
-> read(lists_rwsem) while iterating is enough locking, and you'd hold
-> lists_rwsem while kfreeing.
+The ULP doesn't care if it needs to reserver the slot, and it generally
+doesn't care about the notification either unless it needs to handle an
+error.
 
-So, I don't want to keep lists_rwsem for write while calling add() and
-remove(). This would cause the deadlock that required the lists_rwsem
-patch in the first place. I guess I can drop lists_rwsem before the
-add/remove call and take it afterwards.
+Instead of the ib_device knows if a MR needs a post it can through
+a helper set the right reservation.
 
-Haggai
+The completions are another mad mightmare in the RDMA stack API.  Every
+other subsystem would just allow submitter to attach a function pointer
+that handles the completion to the posted item.  But no, the RDMA stack
+instead require ID allocators and gigantic boilerplate code in the
+consumer to untangle that gigantic mess again.
+
+If we sort that out first the ULD doesn't have to care about FR
+notifications.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
