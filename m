@@ -1,49 +1,36 @@
-From: Chuck Lever <chuck.lever@oracle.com>
-Subject: Re: [PATCH V5 5/5] RDMA/isert: Limit read depth based on the device max_sge_rd capability
-Date: Tue, 14 Jul 2015 14:47:23 -0400
-Message-ID: <57000A57-6E11-4949-81D4-C8735A10C671@oracle.com>
-References: <20150705174353.10042.39648.stgit@build2.ogc.int> <20150705174505.10042.28442.stgit@build2.ogc.int> <20150714082721.GA30072@infradead.org> <001201d0be43$1a240980$4e6c1c80$@opengridcomputing.com> <20150714154200.GE11026@infradead.org> <007001d0be4c$9f640ab0$de2c2010$@opengridcomputing.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+From: Alex Thorlton <athorlton-sJ/iWh9BUns@public.gmane.org>
+Subject: Re: [BUG] mellanox IB driver fails to load on large config
+Date: Tue, 14 Jul 2015 13:48:20 -0500
+Message-ID: <20150714184820.GB58053@asylum.americas.sgi.com>
+References: <20150710191506.GA52396@asylum.americas.sgi.com> <CAJ3xEMj82OtHcs+kDG_xrQZ4+x3Eih=YSNFR4+W-AoPNA=4jTw@mail.gmail.com> <20150714182234.GD17920@asylum.americas.sgi.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <007001d0be4c$9f640ab0$de2c2010$@opengridcomputing.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Steve Wise <swise@opengridcomputing.com>
-Cc: Christoph Hellwig <hch@infradead.org>, Doug Ledford <dledford@redhat.com>, infinipath@intel.com, Sagi Grimberg <sagig@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, roid@mellanox.com, linux-rdma <linux-rdma@vger.kernel.org>, Eli Cohen <eli@mellanox.com>, target-devel@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150714182234.GD17920-UiYq4lDBhggTG1waqwXmH7Cf4lofQVJ7@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: andrew banman <abanman-sJ/iWh9BUns@public.gmane.org>
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, athorlton-sJ/iWh9BUns@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-On Jul 14, 2015, at 11:49 AM, Steve Wise <swise@opengridcomputing.com> wrote:
-
+On Tue, Jul 14, 2015 at 01:22:34PM -0500, andrew banman wrote:
+> On Sat, Jul 11, 2015 at 11:20:19PM +0300, Or Gerlitz wrote:
+> > On Fri, Jul 10, 2015 at 10:15 PM, andrew banman <abanman-sJ/iWh9BUns@public.gmane.org> wrote:
+> > > I'm seeing a large number of allocation errors originating from the Mellanox IB
+> > > driver when booting the 4.2-rc1 kernel on a 4096cpu 32TB memory system:
+> > 
+> > Just to make sure, mlx4 works fine on this small (...) system with 4.1
+> > and 4.2-rc1 breaks, or 4.2-rc1 is the 1st time you're trying that
+> > config?
 > 
-> 
->> -----Original Message-----
->> From: 'Christoph Hellwig' [mailto:hch@infradead.org]
->> Sent: Tuesday, July 14, 2015 10:42 AM
->> To: Steve Wise
->> Cc: 'Christoph Hellwig'; Chuck Lever; dledford@redhat.com; infinipath@intel.com; sagig@mellanox.com; ogerlitz@mellanox.com;
->> roid@mellanox.com; linux-rdma@vger.kernel.org; eli@mellanox.com; target-devel@vger.kernel.org
->> Subject: Re: [PATCH V5 5/5] RDMA/isert: Limit read depth based on the device max_sge_rd capability
->> 
->> On Tue, Jul 14, 2015 at 09:41:00AM -0500, Steve Wise wrote:
->>>> Btw, any hance to make the NFS client use these values as well instead
->>>> of the current rdma_read_max_sge() hack?
->>> 
->>> Chuck, can you add this to your cleanup list?
->> 
->> It would be useful to add this to your series so we can get rid of
->> it for the next merge window instead of introducing a depenency that
->> would defer it to the next merge window.
-> 
-> Ok, I will do this.
+> I'll let Alex comment on that, he did some testing on that.
 
-Steve, can you review v2 of the nfs-rdma-for-4.3 series I posted
-yesterday? Specifically:
+I started seeing this on a 4.1-rc8 kernel, so it's been around for a
+little while.  It may have been around before 4.1-rc8, but I haven't run
+any kernels older than that on the big machine for some time.
 
-  http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=commit;h=6abafb636e03fbb7f93a26796223833581a70190
-
-Which changes the way xprtrdma uses max_sge.
-
+- Alex
 --
-Chuck Lever
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
