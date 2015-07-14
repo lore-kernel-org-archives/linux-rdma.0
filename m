@@ -1,7 +1,7 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
 Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
-Date: Tue, 14 Jul 2015 12:10:36 +0300
-Message-ID: <55A4D20C.2000904@dev.mellanox.co.il>
+Date: Tue, 14 Jul 2015 12:22:14 +0300
+Message-ID: <55A4D4C6.6040907@dev.mellanox.co.il>
 References: <559BFE03.4020709@dev.mellanox.co.il>
  <20150707213628.GA5661@obsidianresearch.com>
  <559CD174.4040901@dev.mellanox.co.il>
@@ -10,35 +10,72 @@ References: <559BFE03.4020709@dev.mellanox.co.il>
  <559E54AB.2010905@dev.mellanox.co.il>
  <20150709170142.GA21921@obsidianresearch.com>
  <20150711102538.GB14741@infradead.org> <55A4134C.2040301@talpey.com>
- <20150713201538.GA11681@obsidianresearch.com>
+ <20150714073756.GB7630@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150713201538.GA11681-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Cc: 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <20150714073756.GB7630@infradead.org>
+Sender: target-devel-owner@vger.kernel.org
+To: 'Christoph Hellwig' <hch@infradead.org>, Tom Talpey <tom@talpey.com>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Steve Wise <swise@opengridcomputing.com>, dledford@redhat.com, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, trond.myklebust@primarydata.com, bfields@fieldses.org, Oren Duer <oren@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/13/2015 11:15 PM, Jason Gunthorpe wrote:
+On 7/14/2015 10:37 AM, 'Christoph Hellwig' wrote:
 > On Mon, Jul 13, 2015 at 03:36:44PM -0400, Tom Talpey wrote:
 >> On 7/11/2015 6:25 AM, 'Christoph Hellwig' wrote:
 >>> I think what we need to support for now is FRMR as the primary target,
 >>> and FMR as a secondar[y].
 >>
 >> FMR is a *very* bad choice, for several reasons.
+>>
+>> 1) It's not supported by very many devices, in fact it might even
+>> be thought to be obsolete.
 >
-> If an API can transparently support FMR, then I think it can also
-> transparently support ib_get_phys_mr as an alternative, they look
-> pretty similar... ?
+> It's support by the Mellanox adapters,
 
-Having an API that does FRMR/FMR/PHYS_MR is even worse from the ULP
-PoV. If you expose an API that might schedule (PHYS_MR) it limits the
-context that the caller is allowed to call in.
+*Older* Mellanox adapters. mlx5 (and future drivers I assume) will
+no longer support FMRs.
 
-I'm 100% against an registration API that *might* schedule.
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> which might be a minority of
+> the drivers, but at least in the field I've been in the aboslute
+> majority of the deployed hardware.
+>
+> It's the default in the SRP initiator and iSER initiators, and the
+> primary fallback in the NFS client if FRs aren't available.
+
+We should gradually move away from that.
+
+>
+> I don't claim to be an expert on memory registrations models, as they
+> are horribly, horrible documents (baiscally not at all in the source
+> tree), so my knowledge is from looking at and using implementations as
+> well as this useful writeup from the NFS folks:
+>
+> http://wiki.linux-nfs.org/wiki/index.php/NfsRdmaClient/MemRegModes
+>
+> Which misses or downplays an important restriction of PHYS
+> registrations: They dont allow coalescing non-contiguous memory
+> into a single maping, which makes them totally unsuitable for iSER
+> which only allows a single rkey/offset/len pair and requires
+> additional RDMA READ/WRITE roundtrips and larger S/G lists for other
+> protocols.
+
+I'm willing to add a proper memory_registration.txt under
+Documentation/infiniband/ which would capture the items that
+were brought up here.
+
+>
+> Based on looking at the consumers and the above table I think FMR
+> are still the better fallback for devices that don't support FR,
+
+It's better if you want it fast. I can't stress it enough, but IMO, the
+fallback should *not* be in the API, but rather in the ULP.
+Ideally, at some point it won't need to fall back, and we can remove
+the API.
+
+> but supporting PHYS MRs is easy enough that adding it to a common
+> layer seems easy enough if some cares enough to regularly test it.
+>
+
+Someone needs a good reason to use it.
