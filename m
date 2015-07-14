@@ -1,68 +1,39 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
-Date: Tue, 14 Jul 2015 14:58:23 -0500
-Message-ID: <00f901d0be6f$70c96b00$525c4100$@opengridcomputing.com>
-References: <20150708190842.GB11740@obsidianresearch.com> <20150708203205.GA21847@infradead.org> <20150709000337.GE16812@obsidianresearch.com> <559EF332.7060103@redhat.com> <20150709225306.GA30741@obsidianresearch.com> <559FC710.1050307@talpey.com> <20150710161108.GA19042@obsidianresearch.com> <CCB6E837-88FF-4DBB-976D-4CF56396A1A1@ogc.us> <55A24571.60902@dev.mellanox.co.il> <00e201d0be6a$e49bc910$add35b30$@opengridcomputing.com> <20150714194512.GA25887@infradead.org>
+From: Or Gerlitz <gerlitz.or@gmail.com>
+Subject: Re: [BUG] mellanox IB driver fails to load on large config
+Date: Tue, 14 Jul 2015 23:06:26 +0300
+Message-ID: <CAJ3xEMig=GzROAea7qe0YO11DM6pc4wXyG8VB=kq5Hf5uw2ZXQ@mail.gmail.com>
+References: <20150710191506.GA52396@asylum.americas.sgi.com>
+	<CAJ3xEMj82OtHcs+kDG_xrQZ4+x3Eih=YSNFR4+W-AoPNA=4jTw@mail.gmail.com>
+	<20150714182234.GD17920@asylum.americas.sgi.com>
+	<20150714184820.GB58053@asylum.americas.sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150714194512.GA25887-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Content-Language: en-us
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Steve Wise' <swise-/Yg/VP3ZvrM@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, 'Tom Talpey' <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, 'Oren Duer' <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150714184820.GB58053@asylum.americas.sgi.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alex Thorlton <athorlton@sgi.com>
+Cc: andrew banman <abanman@sgi.com>, Linux Kernel <linux-kernel@vger.kernel.org>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Or Gerlitz <ogerlitz@mellanox.com>, "David S. Miller" <davem@davemloft.net>, Roland Dreier <roland@purestorage.com>, Matan Barak <matanb@mellanox.com>, Moni Shoua <monis@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Yishai Hadas <yishaih@mellanox.com>, Eran Ben Elisha <eranbe@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-> -----Original Message-----
-> From: 'Christoph Hellwig' [mailto:hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org]
-> Sent: Tuesday, July 14, 2015 2:45 PM
-> To: Steve Wise
-> Cc: 'Sagi Grimberg'; 'Steve Wise'; 'Jason Gunthorpe'; 'Tom Talpey'; 'Doug Ledford'; 'Christoph Hellwig'; sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org;
-> ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
-> nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org; bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org; 'Oren Duer'
-> Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
-> 
-> On Tue, Jul 14, 2015 at 02:25:50PM -0500, Steve Wise wrote:
-> > if (device_supports_fastreg && device_supports_signature)
-> >         use FRMR
-> > else
-> >         use DMAMR
-> >
-> > Shouldn't we just recode it this way?
-> >
-> > if (device_supports_fastreg)
-> >         use FRMR
-> > else
-> >         use DMAMR
-> 
-> How does IB_DEVICE_LOCAL_DMA_LKEY (and ->local_dma_lkey) play into
-> this?  Seems like that should be the preferred option if supported.
+On Tue, Jul 14, 2015 at 9:48 PM, Alex Thorlton <athorlton@sgi.com> wrote:
+> On Tue, Jul 14, 2015 at 01:22:34PM -0500, andrew banman wrote:
+>> On Sat, Jul 11, 2015 at 11:20:19PM +0300, Or Gerlitz wrote:
+>> > On Fri, Jul 10, 2015 at 10:15 PM, andrew banman <abanman@sgi.com> wrote:
+>> > > I'm seeing a large number of allocation errors originating from the Mellanox IB
+>> > > driver when booting the 4.2-rc1 kernel on a 4096cpu 32TB memory system:
+>> >
+>> > Just to make sure, mlx4 works fine on this small (...) system with 4.1
+>> > and 4.2-rc1 breaks, or 4.2-rc1 is the 1st time you're trying that
+>> > config?
+>>
+>> I'll let Alex comment on that, he did some testing on that.
 >
+> I started seeing this on a 4.1-rc8 kernel, so it's been around for a
+> little while.  It may have been around before 4.1-rc8, but I haven't run
+> any kernels older than that on the big machine for some time.
 
-The local_dma_lkey can be used in any rdma sge that requires an lkey.  It is supported for kernel-mode only.  So if you're only ever
-going to use the lkey for IO, you really don't need a DMA_MR at all, unless you want to somehow partition up your work load by
-protection domain.  But I claim for lkeys, the PD doesn't really protect anything since the remote peers can't use it anyway.  
+To make sure I am correctly following, on 4.1-rc8  you also see
+something, right? are these the same messages or different ones? if
+the latter send to us.
 
-> Interestingly enough various iWarp driver seem to support this option,
-> what's the story behind that?  The (to me surprising) conclusion on
-> the list was that iWarp would always need a memory regireations that
-> also allows remove writes even for lkeys, but from looking at the
-> users of IB_DEVICE_LOCAL_DMA_LKEY / local_dma_lkey that seem to
-> prefer that over creating a MR.
-
-There is confusion about lkeys and rkeys with regard to iWARP.  In the iWARP verbs, there is no distinction between an lkey and
-rkey: they are the same key, called a Steering Tag or STAG.  When you create a MR, the lkey == rkey == STAG for iwarp transports.
-Somewhat related, but really a different issue, is that SGEs that are the target of a read need REMOTE_WRITE access flags on their
-STAG for iWARP. 
-
-Clear as mud? :)
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Or.
