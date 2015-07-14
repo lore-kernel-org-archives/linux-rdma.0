@@ -1,51 +1,122 @@
-From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [ANNOUNCE] OFED 3.18 release is available
-Date: Tue, 14 Jul 2015 18:59:42 +0300
-Message-ID: <55A531EE.3060003@dev.mellanox.co.il>
+From: Anna Schumaker <schumaker.anna-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v1 10/12] xprtrdma: Fix large NFS SYMLINK calls
+Date: Tue, 14 Jul 2015 12:01:29 -0400
+Message-ID: <55A53259.8090606@gmail.com>
+References: <20150709203242.26247.4848.stgit@manet.1015granger.net>
+ <20150709204315.26247.47851.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Unsubscribe: <http://lists.openfabrics.org/mailman/options/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-To: 'OpenFabrics EWG' <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150709204315.26247.47851.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
-OFED-3.18 is available at:
-https://openfabrics.org/downloads/OFED/ofed-3.18/OFED-3.18.tgz
+Hey Chuck,
 
-To get BUILD_ID run ofed_info
+On 07/09/2015 04:43 PM, Chuck Lever wrote:
+> Repair how rpcrdma_marshal_req() chooses which RDMA message type
+> to use for large non-WRITE operations so that it picks RDMA_NOMSG
+> in the correct situations, and sets up the marshaling logic to
+> SEND only the RPC/RDMA header.
+> 
+> Large NFSv2 SYMLINK requests now use RDMA_NOMSG calls. The Linux NFS
+> server XDR decoder for NFSv2 SYMLINK does not handle having the
+> pathname argument arrive in a separate buffer. The decoder could be
+> fixed, but this is simpler and RDMA_NOMSG can be used in a variety
+> of other situations.
+> 
+> Ensure that the Linux client continues to use "RDMA_MSG + read
+> list" when sending large NFSv3 SYMLINK requests, which is more
+> efficient than using RDMA_NOMSG.
+> 
+> Large NFSv4 CREATE(NF4LNK) requests are changed to use "RDMA_MSG +
+> read list" just like NFSv3 (see Section 5 of RFC 5667). Before,
+> these did not work at all.
+> 
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  fs/nfs/nfs3xdr.c               |    1 +
+>  fs/nfs/nfs4xdr.c               |    1 +
+>  net/sunrpc/xprtrdma/rpc_rdma.c |   21 ++++++++++++---------
+>  3 files changed, 14 insertions(+), 9 deletions(-)
 
-Please report any issues in bugzilla
-http://bugs.openfabrics.org/bugzilla/ for OFED 3.18
+It might be better to split this into separate patches for nfs and sunrpc, since Trond might want to accept the nfs changes separately.
 
-Release notes:
-https://openfabrics.org/downloads/OFED/release_notes/OFED_3.18_release_notes
+Anna
 
-OFED-3.18 Main Changes from OFED 3.18-rc3
--------------------------------------------------------------------------------
-1. Updated packages:
-   - libiwpm-1.0.2
-   - mstflint-4.0.1-1.43.g97d7275
-   - perftest-3.0-0.9.g214990b
+> 
+> diff --git a/fs/nfs/nfs3xdr.c b/fs/nfs/nfs3xdr.c
+> index 9b04c2e..267126d 100644
+> --- a/fs/nfs/nfs3xdr.c
+> +++ b/fs/nfs/nfs3xdr.c
+> @@ -1103,6 +1103,7 @@ static void nfs3_xdr_enc_symlink3args(struct rpc_rqst *req,
+>  {
+>  	encode_diropargs3(xdr, args->fromfh, args->fromname, args->fromlen);
+>  	encode_symlinkdata3(xdr, args);
+> +	xdr->buf->flags |= XDRBUF_WRITE;
+>  }
+>  
+>  /*
+> diff --git a/fs/nfs/nfs4xdr.c b/fs/nfs/nfs4xdr.c
+> index 558cd65d..03a20ec 100644
+> --- a/fs/nfs/nfs4xdr.c
+> +++ b/fs/nfs/nfs4xdr.c
+> @@ -1155,6 +1155,7 @@ static void encode_create(struct xdr_stream *xdr, const struct nfs4_create_arg *
+>  		p = reserve_space(xdr, 4);
+>  		*p = cpu_to_be32(create->u.symlink.len);
+>  		xdr_write_pages(xdr, create->u.symlink.pages, 0, create->u.symlink.len);
+> +		xdr->buf->flags |= XDRBUF_WRITE;
+>  		break;
+>  
+>  	case NF4BLK: case NF4CHR:
+> diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
+> index 2e721f2..64fc4b4 100644
+> --- a/net/sunrpc/xprtrdma/rpc_rdma.c
+> +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+> @@ -484,21 +484,24 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
+>  	 *
+>  	 * o If the total request is under the inline threshold, all ops
+>  	 *   are sent as inline.
+> -	 * o Large non-write ops are sent with the entire message as a
+> -	 *   single read chunk (protocol 0-position special case).
+>  	 * o Large write ops transmit data as read chunk(s), header as
+>  	 *   inline.
+> +	 * o Large non-write ops are sent with the entire message as a
+> +	 *   single read chunk (protocol 0-position special case).
+>  	 *
+> -	 * Note: the NFS code sending down multiple argument segments
+> -	 * implies the op is a write.
+> -	 * TBD check NFSv4 setacl
+> +	 * This assumes that the upper layer does not present a request
+> +	 * that both has a data payload, and whose non-data arguments
+> +	 * by themselves are larger than the inline threshold.
+>  	 */
+> -	if (rpcrdma_args_inline(rqst))
+> +	if (rpcrdma_args_inline(rqst)) {
+>  		rtype = rpcrdma_noch;
+> -	else if (rqst->rq_snd_buf.page_len == 0)
+> -		rtype = rpcrdma_areadch;
+> -	else
+> +	} else if (rqst->rq_snd_buf.flags & XDRBUF_WRITE) {
+>  		rtype = rpcrdma_readch;
+> +	} else {
+> +		headerp->rm_type = htonl(RDMA_NOMSG);
+> +		rtype = rpcrdma_areadch;
+> +		rpclen = 0;
+> +	}
+>  
+>  	/* The following simplification is not true forever */
+>  	if (rtype != rpcrdma_noch && wtype == rpcrdma_replych)
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-2. compat-rdma changes
-   - Adding backport to neigh resolve fix for RHEL 6.5 and RHEL 6.6
-   - ibscif: Fixed bring up of scif device on kernels >= 3.11
-   - openibd: Unload in-box drivers upon boot
-   - RDMA/nes: Fix for incorrect recording of the MAC address
-   - RDMA/nes: Fix for resolving the neigh
-   - RDMA/iwpm: Updated fixes for the client registration functionality
-
-
-Regards,
-Vladimir
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
