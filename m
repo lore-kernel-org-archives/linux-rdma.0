@@ -1,44 +1,54 @@
-From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 07/14] xprtrdma: Remove logic that constructs RDMA_MSGP
- type calls
-Date: Tue, 14 Jul 2015 15:00:51 -0400
-Message-ID: <55A55C63.50403@talpey.com>
-References: <20150713160617.17630.97475.stgit@manet.1015granger.net> <20150713163048.17630.86326.stgit@manet.1015granger.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150713163048.17630.86326.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 07/14] xprtrdma: Remove logic that constructs RDMA_MSGP type calls
+Date: Tue, 14 Jul 2015 15:01:47 -0400
+Message-ID: <ED80C587-DFC7-4E4A-95E4-3ACBEC078D86@oracle.com>
+References: <20150713160617.17630.97475.stgit@manet.1015granger.net> <20150713163048.17630.86326.stgit@manet.1015granger.net> <55A55C63.50403@talpey.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <55A55C63.50403-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/13/2015 12:30 PM, Chuck Lever wrote:
-> RDMA_MSGP type calls insert a zero pad in the middle of the RPC
-> message to align the RPC request's data payload to the server's
-> alignment preferences. A server can then "page flip" the payload
-> into place to avoid a data copy in certain circumstances. However:
->...
->
-> Clean up the marshaling code by removing the logic that constructs
-> RDMA_MSGP type calls. This also reduces the maximum send iovec size
-> from four to just two elements.
->
 
-> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-> index 8219011..0b50103 100644
-> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
-> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-...>
-> +#define RPCRDMA_MAX_IOVS	(4)
-> +
+On Jul 14, 2015, at 3:00 PM, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org> wrote:
 
-So, shouldn't this constant be "2"? The extra 2 iov's were used
-only for constructing the pad.
+> On 7/13/2015 12:30 PM, Chuck Lever wrote:
+>> RDMA_MSGP type calls insert a zero pad in the middle of the RPC
+>> message to align the RPC request's data payload to the server's
+>> alignment preferences. A server can then "page flip" the payload
+>> into place to avoid a data copy in certain circumstances. However:
+>> ...
+>> 
+>> Clean up the marshaling code by removing the logic that constructs
+>> RDMA_MSGP type calls. This also reduces the maximum send iovec size
+>> from four to just two elements.
+>> 
+> 
+>> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+>> index 8219011..0b50103 100644
+>> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
+>> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+> ...>
+>> +#define RPCRDMA_MAX_IOVS	(4)
+>> +
+> 
+> So, shouldn't this constant be "2"? The extra 2 iov's were used
+> only for constructing the pad.
+
+Yes, thanks. I folded a couple of patches together into this
+one, and forgot to update the constant.
+
+
+--
+Chuck Lever
 
 
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
