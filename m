@@ -1,53 +1,168 @@
-From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
-Date: Tue, 14 Jul 2015 15:10:56 -0500
-Message-ID: <00fe01d0be71$31792830$946b7890$@opengridcomputing.com>
-References: <20150709000337.GE16812@obsidianresearch.com> <559EF332.7060103@redhat.com> <20150709225306.GA30741@obsidianresearch.com> <559FC710.1050307@talpey.com> <20150710161108.GA19042@obsidianresearch.com> <CCB6E837-88FF-4DBB-976D-4CF56396A1A1@ogc.us> <55A24571.60902@dev.mellanox.co.il> <00e201d0be6a$e49bc910$add35b30$@opengridcomputing.com> <20150714192941.GA26292@obsidianresearch.com> <00e401d0be6b$d3952750$7abf75f0$@opengridcomputing.com> <20150714195511.GB7716@infradead.org>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v1] core: Remove the ib_reg_phys_mr() and ib_rereg_phys_mr()
+ verbs
+Date: Tue, 14 Jul 2015 16:11:40 -0400
+Message-ID: <20150714200920.27121.57730.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20150714195511.GB7716@infradead.org>
-Content-Language: en-us
-Sender: target-devel-owner@vger.kernel.org
-To: 'Christoph Hellwig' <hch@infradead.org>
-Cc: 'Jason Gunthorpe' <jgunthorpe@obsidianresearch.com>, 'Sagi Grimberg' <sagig@dev.mellanox.co.il>, 'Steve Wise' <swise@ogc.us>, 'Tom Talpey' <tom@talpey.com>, 'Doug Ledford' <dledford@redhat.com>, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, trond.myklebust@primarydata.com, bfields@fieldses.org, 'Oren Duer' <oren@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+The verbs are obsolete. The ib_rereg_phys_mr() verb is not used by
+kernel ULPs, and the last ib_reg_phys_mr() call site in the kernel
+tree has now been removed.
+
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+I'm still tracking down Doug's e-mail. In the meantime, let's start
+with this naive approach, which removes the core APIs but does not
+touch the providers.
 
 
-> -----Original Message-----
-> From: 'Christoph Hellwig' [mailto:hch@infradead.org]
-> Sent: Tuesday, July 14, 2015 2:55 PM
-> To: Steve Wise
-> Cc: 'Jason Gunthorpe'; 'Sagi Grimberg'; 'Steve Wise'; 'Tom Talpey'; 'Doug Ledford'; 'Christoph Hellwig'; sagig@mellanox.com;
-> ogerlitz@mellanox.com; roid@mellanox.com; linux-rdma@vger.kernel.org; eli@mellanox.com; target-devel@vger.kernel.org; linux-
-> nfs@vger.kernel.org; trond.myklebust@primarydata.com; bfields@fieldses.org; 'Oren Duer'
-> Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
-> 
-> On Tue, Jul 14, 2015 at 02:32:31PM -0500, Steve Wise wrote:
-> > You mean "should not", yea?
-> >
-> > Ok.  I'll check for iWARP.  But don't tell me to remove the transport-specific hacks in this series when I post it! ;)
-> 
-> Just curious if there are any holes in this little scheme to deal with
-> the lkey mess:
-> 
->  (1) make sure all drivers that currently do not set
->      IB_DEVICE_LOCAL_DMA_LKEY but which can safely use ib_get_dma_mr
->      call it underneath at device setup time, and tear it down before
->      removal.
->  (2) now ULD can check for IB_DEVICE_LOCAL_DMA_LKEY and use local_dma_lkey
->      in that case, or will have to perform a per-IO MR with LOCAL and
->      REMOTE flags if not
->  (3) remove insecure remote uses of ib_get_dma_mr from ULDs
->  (4) remove ib_get_dma_mr from the public API
-> 
+ drivers/infiniband/core/verbs.c |   67 ---------------------------------------
+ include/rdma/ib_verbs.h         |   46 ---------------------------
+ 2 files changed, 113 deletions(-)
 
-Perhaps I missed some of the discussion on all this, but what is the point of #1?
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index bac3fb4..30eb245 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1144,73 +1144,6 @@ struct ib_mr *ib_get_dma_mr(struct ib_pd *pd, int mr_access_flags)
+ }
+ EXPORT_SYMBOL(ib_get_dma_mr);
+ 
+-struct ib_mr *ib_reg_phys_mr(struct ib_pd *pd,
+-			     struct ib_phys_buf *phys_buf_array,
+-			     int num_phys_buf,
+-			     int mr_access_flags,
+-			     u64 *iova_start)
+-{
+-	struct ib_mr *mr;
+-	int err;
+-
+-	err = ib_check_mr_access(mr_access_flags);
+-	if (err)
+-		return ERR_PTR(err);
+-
+-	if (!pd->device->reg_phys_mr)
+-		return ERR_PTR(-ENOSYS);
+-
+-	mr = pd->device->reg_phys_mr(pd, phys_buf_array, num_phys_buf,
+-				     mr_access_flags, iova_start);
+-
+-	if (!IS_ERR(mr)) {
+-		mr->device  = pd->device;
+-		mr->pd      = pd;
+-		mr->uobject = NULL;
+-		atomic_inc(&pd->usecnt);
+-		atomic_set(&mr->usecnt, 0);
+-	}
+-
+-	return mr;
+-}
+-EXPORT_SYMBOL(ib_reg_phys_mr);
+-
+-int ib_rereg_phys_mr(struct ib_mr *mr,
+-		     int mr_rereg_mask,
+-		     struct ib_pd *pd,
+-		     struct ib_phys_buf *phys_buf_array,
+-		     int num_phys_buf,
+-		     int mr_access_flags,
+-		     u64 *iova_start)
+-{
+-	struct ib_pd *old_pd;
+-	int ret;
+-
+-	ret = ib_check_mr_access(mr_access_flags);
+-	if (ret)
+-		return ret;
+-
+-	if (!mr->device->rereg_phys_mr)
+-		return -ENOSYS;
+-
+-	if (atomic_read(&mr->usecnt))
+-		return -EBUSY;
+-
+-	old_pd = mr->pd;
+-
+-	ret = mr->device->rereg_phys_mr(mr, mr_rereg_mask, pd,
+-					phys_buf_array, num_phys_buf,
+-					mr_access_flags, iova_start);
+-
+-	if (!ret && (mr_rereg_mask & IB_MR_REREG_PD)) {
+-		atomic_dec(&old_pd->usecnt);
+-		atomic_inc(&pd->usecnt);
+-	}
+-
+-	return ret;
+-}
+-EXPORT_SYMBOL(ib_rereg_phys_mr);
+-
+ int ib_query_mr(struct ib_mr *mr, struct ib_mr_attr *mr_attr)
+ {
+ 	return mr->device->query_mr ?
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 986fddb..6d0f5d0 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2746,52 +2746,6 @@ static inline void ib_dma_free_coherent(struct ib_device *dev,
+ }
+ 
+ /**
+- * ib_reg_phys_mr - Prepares a virtually addressed memory region for use
+- *   by an HCA.
+- * @pd: The protection domain associated assigned to the registered region.
+- * @phys_buf_array: Specifies a list of physical buffers to use in the
+- *   memory region.
+- * @num_phys_buf: Specifies the size of the phys_buf_array.
+- * @mr_access_flags: Specifies the memory access rights.
+- * @iova_start: The offset of the region's starting I/O virtual address.
+- */
+-struct ib_mr *ib_reg_phys_mr(struct ib_pd *pd,
+-			     struct ib_phys_buf *phys_buf_array,
+-			     int num_phys_buf,
+-			     int mr_access_flags,
+-			     u64 *iova_start);
+-
+-/**
+- * ib_rereg_phys_mr - Modifies the attributes of an existing memory region.
+- *   Conceptually, this call performs the functions deregister memory region
+- *   followed by register physical memory region.  Where possible,
+- *   resources are reused instead of deallocated and reallocated.
+- * @mr: The memory region to modify.
+- * @mr_rereg_mask: A bit-mask used to indicate which of the following
+- *   properties of the memory region are being modified.
+- * @pd: If %IB_MR_REREG_PD is set in mr_rereg_mask, this field specifies
+- *   the new protection domain to associated with the memory region,
+- *   otherwise, this parameter is ignored.
+- * @phys_buf_array: If %IB_MR_REREG_TRANS is set in mr_rereg_mask, this
+- *   field specifies a list of physical buffers to use in the new
+- *   translation, otherwise, this parameter is ignored.
+- * @num_phys_buf: If %IB_MR_REREG_TRANS is set in mr_rereg_mask, this
+- *   field specifies the size of the phys_buf_array, otherwise, this
+- *   parameter is ignored.
+- * @mr_access_flags: If %IB_MR_REREG_ACCESS is set in mr_rereg_mask, this
+- *   field specifies the new memory access rights, otherwise, this
+- *   parameter is ignored.
+- * @iova_start: The offset of the region's starting I/O virtual address.
+- */
+-int ib_rereg_phys_mr(struct ib_mr *mr,
+-		     int mr_rereg_mask,
+-		     struct ib_pd *pd,
+-		     struct ib_phys_buf *phys_buf_array,
+-		     int num_phys_buf,
+-		     int mr_access_flags,
+-		     u64 *iova_start);
+-
+-/**
+  * ib_query_mr - Retrieves information about a specific memory region.
+  * @mr: The memory region to retrieve information about.
+  * @mr_attr: The attributes of the specified memory region.
 
-Are these 4 steps intended to be (bisectable) steps / commits with the goal of removing ib_get_dma_mr()?  If so I still don't get
-#1.
-
-Steve.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
