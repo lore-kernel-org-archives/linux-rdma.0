@@ -1,31 +1,104 @@
-From: 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH V5 5/5] RDMA/isert: Limit read depth based on the device
- max_sge_rd capability
-Date: Tue, 14 Jul 2015 08:42:00 -0700
-Message-ID: <20150714154200.GE11026@infradead.org>
-References: <20150705174353.10042.39648.stgit@build2.ogc.int>
- <20150705174505.10042.28442.stgit@build2.ogc.int>
- <20150714082721.GA30072@infradead.org>
- <001201d0be43$1a240980$4e6c1c80$@opengridcomputing.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [infiniband-diags PATCH 1/2] rdma-ndd: never use udev_get_sys_path()
+Date: Tue, 14 Jul 2015 11:44:12 -0400
+Message-ID: <20150714154412.GA27566@phlsvsds.ph.intel.com>
+References: <1435241522-7721-1-git-send-email-mschmidt@redhat.com> <1435241522-7721-2-git-send-email-mschmidt@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <001201d0be43$1a240980$4e6c1c80$@opengridcomputing.com>
+In-Reply-To: <1435241522-7721-2-git-send-email-mschmidt-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Michal Schmidt <mschmidt-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 14, 2015 at 09:41:00AM -0500, Steve Wise wrote:
-> > Btw, any hance to make the NFS client use these values as well instead
-> > of the current rdma_read_max_sge() hack?
+On Thu, Jun 25, 2015 at 04:12:01PM +0200, Michal Schmidt wrote:
+> The function was deprecated and later dropped by udev entirely
+> because it was pointless.
+> Quoting kernel's Documentation/sysfs-rules.txt:
+>   sysfs is always at /sys
+>   Parsing /proc/mounts is a waste of time. Other mount points are
+>   a system configuration bug you should not try to solve. [...]
 > 
-> Chuck, can you add this to your cleanup list?
+> Signed-off-by: Michal Schmidt <mschmidt-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
-It would be useful to add this to your series so we can get rid of
-it for the next merge window instead of introducing a depenency that
-would defer it to the next merge window.
+Thanks applied,
+Ira
+
+> ---
+>  configure.ac   |  1 -
+>  src/rdma-ndd.c | 19 +++++--------------
+>  2 files changed, 5 insertions(+), 15 deletions(-)
+> 
+> diff --git a/configure.ac b/configure.ac
+> index b9b7ad84ee..ece1d530a7 100644
+> --- a/configure.ac
+> +++ b/configure.ac
+> @@ -214,7 +214,6 @@ if test x$rdmandd = xyes; then
+>      AC_CHECK_HEADER(libudev.h, with_udev="yes", with_udev="no")
+>      AC_CHECK_LIB(udev, udev_monitor_ref, [], AC_MSG_ERROR(libudev is required for rdma-ndd...))
+>      AC_CONFIG_FILES([doc/man/rdma-ndd.8 etc/rdma-ndd.init])
+> -    AC_CHECK_FUNCS_ONCE(udev_get_sys_path)
+>  fi
+>  
+>  dnl Generate doc/man/*.in files if possible
+> diff --git a/src/rdma-ndd.c b/src/rdma-ndd.c
+> index 194c2cd865..d40e7567db 100644
+> --- a/src/rdma-ndd.c
+> +++ b/src/rdma-ndd.c
+> @@ -58,9 +58,7 @@ struct udev_monitor *mon;
+>  #include "ibdiag_common.h"
+>  
+>  #define SYS_HOSTNAME "/proc/sys/kernel/hostname"
+> -#define DEF_SYS_DIR "/sys"
+> -char *sys_dir = DEF_SYS_DIR;
+> -#define SYS_INFINIBAND "class/infiniband"
+> +#define SYS_INFINIBAND "/sys/class/infiniband"
+>  #define DEFAULT_RETRY_RATE 60
+>  #define DEFAULT_RETRY_COUNT 0
+>  #define DEFAULT_ND_FORMAT "%h %d"
+> @@ -122,8 +120,8 @@ static int update_node_desc(const char *device, const char *hostname, int force)
+>  	char nd_file[PATH_MAX];
+>  	FILE *f;
+>  
+> -	snprintf(nd_file, sizeof(nd_file), "%s/%s/%s/node_desc",
+> -			sys_dir, SYS_INFINIBAND, device);
+> +	snprintf(nd_file, sizeof(nd_file), SYS_INFINIBAND "/%s/node_desc",
+> +			device);
+>  	nd_file[sizeof(nd_file)-1] = '\0';
+>  
+>  	f = fopen(nd_file, "r+");
+> @@ -160,14 +158,10 @@ static int set_rdma_node_desc(const char *hostname, int force)
+>  {
+>  	DIR *class_dir;
+>  	struct dirent *dent;
+> -	char dev_dir[PATH_MAX];
+>  
+> -	snprintf(dev_dir, sizeof(dev_dir), "%s/%s", sys_dir, SYS_INFINIBAND);
+> -	dev_dir[sizeof(dev_dir)-1] = '\0';
+> -
+> -	class_dir = opendir(dev_dir);
+> +	class_dir = opendir(SYS_INFINIBAND);
+>  	if (!class_dir) {
+> -		syslog(LOG_INFO, "Failed to open %s", dev_dir);
+> +		syslog(LOG_INFO, "Failed to open " SYS_INFINIBAND);
+>  		return -ENOSYS;
+>  	}
+>  
+> @@ -261,9 +255,6 @@ static void setup_udev(void)
+>  
+>  	udev_set_log_fn(udev, udev_log_fn);
+>  	udev_set_log_priority(udev, LOG_INFO);
+> -#if HAVE_UDEV_GET_SYS_PATH
+> -	sys_dir = (char *)udev_get_sys_path(udev);
+> -#endif
+>  }
+>  
+>  static int get_udev_fd(void)
+> -- 
+> 2.4.3
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
