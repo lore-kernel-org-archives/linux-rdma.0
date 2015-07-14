@@ -1,30 +1,126 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v1 05/12] IB/cm: Share listening CM IDs
-Date: Tue, 14 Jul 2015 11:38:39 -0600
-Message-ID: <20150714173839.GA25330@obsidianresearch.com>
-References: <1434976961-27424-1-git-send-email-haggaie@mellanox.com>
- <1434976961-27424-6-git-send-email-haggaie@mellanox.com>
- <20150713174837.GH23832@obsidianresearch.com>
- <55A4CC1B.1060201@mellanox.com>
+From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Subject: Re: How to RoCE v2?
+Date: Tue, 14 Jul 2015 23:24:35 +0530
+Message-ID: <CANjDDBjEcy6hgc2O+9_T2cjURVGpAnwCcgE7HT3pquzetj84eg@mail.gmail.com>
+References: <3CBF78CA47A0D542A0094940BB0205E762D284@AVMB1.qlogic.org>
+	<001201d0bd67$1b8a6440$529f2cc0$@soft-forge.com>
+	<CANjDDBiF6yj+mZwbCX61gmjf=nE6PD96ujN8t8sV_qg_LA6Qwg@mail.gmail.com>
+	<3CBF78CA47A0D542A0094940BB0205E762D78A@AVMB1.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <55A4CC1B.1060201-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <3CBF78CA47A0D542A0094940BB0205E762D78A-yWqByQLCgs06wu3ARrlbmA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: Rupert Dance <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 14, 2015 at 11:45:15AM +0300, Haggai Eran wrote:
+Those should be avaliable on Marc
 
-> > Reviewed-By: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> Thanks.
-> Can I add it with the modifications above?
-
-Yep
-
-Jason
+On Tue, Jul 14, 2015 at 5:45 PM, Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org> wrote:
+> Thanks Robert, Rupert and Devesh.
+>
+> Where can I access the patches under review?
+>
+>
+>
+> -----Original Message-----
+> From: Devesh Sharma [mailto:devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org]
+> Sent: Monday, July 13, 2015 3:36 PM
+> To: Rupert Dance
+> Cc: Ram Amrani; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: How to RoCE v2?
+>
+> Hi Ram,
+>
+> RoCE-v2 patch series is still under review, you should see updated patch series soon on this mailing list.
+>
+> -Regards
+> Devesh
+>
+> On Mon, Jul 13, 2015 at 5:56 PM, Rupert Dance <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org> wrote:
+>> Hi Ram,
+>>
+>> There were several issues discovered in OFED 3.18 RC3 which have been
+>> resolved in the latest daily build.
+>>
+>> https://www.openfabrics.org/downloads/OFED/ofed-3.18-daily/OFED-3.18-2
+>> 015070
+>> 7-2235.tgz
+>>
+>> The issues are documented in the latest bugs in Bugzilla:
+>>
+>> http://bugs.openfabrics.org/bugzilla/
+>>
+>> There are also additional notes about the build procedures in the
+>> following
+>> document:
+>>
+>> https://www.openfabrics.org/downloads/WorkGroups/ewg/Build%20Process/O
+>> FED-3-
+>> 18-Build%20process-v3.pdf
+>>
+>> Finally we hope to have full support for RoCE v2 in out next major
+>> OFED Build which will be based on the 4.x kernel.
+>>
+>> Thanks
+>>
+>> Rupert
+>>
+>> -----Original Message-----
+>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Ram Amrani
+>> Sent: Monday, July 13, 2015 7:47 AM
+>> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> Subject: How to RoCE v2?
+>>
+>> Hi,
+>> This is my first e-mail on this list. I have a few questions that I
+>> hope you'll answer -
+>>
+>> In the latest OFED (3.18-rc3) I don't see any RoCE v2 code, albeit it
+>> being introduce in 2014. How come?
+>>
+>> I've been unable to track patches from e-mail archives about relevant
+>> e-mails such as "[PATCH 0/2] Adding support for RoCE V2 specification".
+>> Where can patches be found/tracked? Is there a git repository with log?
+>>
+>> I've also tried to build the latest OFED, in the hope that it will
+>> contain the RoCE 2 code, but got errors. I followed the instructions
+>> in the web
+>> (https://www.openfabrics.org/index.php/installation.html) but got
+>> errors when applying patches ("./scripts/admin_rdma.sh -n -p") and
+>> also when skipping it and running configure and make... are the
+>> instructions up-to-date?
+>>
+>> Thanks,
+>>
+>> Ram
+>>
+>>
+>> ________________________________
+>>
+>> This message and any attached documents contain information from the
+>> sending company or its parent company(s), subsidiaries, divisions or
+>> branch offices that may be confidential. If you are not the intended
+>> recipient, you may not read, copy, distribute, or use this
+>> information. If you have received this transmission in error, please
+>> notify the sender immediately by reply e-mail and then delete this message.
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+>> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo
+>> info at http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+>> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo
+>> info at  http://vger.kernel.org/majordomo-info.html
+>
+> ________________________________
+>
+> This message and any attached documents contain information from the sending company or its parent company(s), subsidiaries, divisions or branch offices that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
