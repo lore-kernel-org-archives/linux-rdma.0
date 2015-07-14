@@ -1,87 +1,35 @@
-From: Ram Amrani <Ram.Amrani-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: How to RoCE v2?
-Date: Tue, 14 Jul 2015 12:15:47 +0000
-Message-ID: <3CBF78CA47A0D542A0094940BB0205E762D78A@AVMB1.qlogic.org>
-References: <3CBF78CA47A0D542A0094940BB0205E762D284@AVMB1.qlogic.org>
-	<001201d0bd67$1b8a6440$529f2cc0$@soft-forge.com>
- <CANjDDBiF6yj+mZwbCX61gmjf=nE6PD96ujN8t8sV_qg_LA6Qwg@mail.gmail.com>
+From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+Date: Tue, 14 Jul 2015 08:24:51 -0400
+Message-ID: <55A4FF93.4090406@talpey.com>
+References: <559CD174.4040901@dev.mellanox.co.il> <20150708081320.GB24203@infradead.org> <559CF5E8.6080000@dev.mellanox.co.il> <20150708102035.GA28421@infradead.org> <559D0498.9050809@dev.mellanox.co.il> <1828884A29C6694DAF28B7E6B8A82373A8FFD4C0@ORSMSX109.amr.corp.intel.com> <559E34F8.4080507@dev.mellanox.co.il> <2189DB0A-DD00-4818-AC17-020FCE42D39B@oracle.com> <20150710193409.GA9815@infradead.org> <55A21BF4.7090601@dev.mellanox.co.il> <20150713165007.GD23832@obsidianresearch.com> <55A4C2FA.9060707@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CANjDDBiF6yj+mZwbCX61gmjf=nE6PD96ujN8t8sV_qg_LA6Qwg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Rupert Dance <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <55A4C2FA.9060707-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>, "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-VGhhbmtzIFJvYmVydCwgUnVwZXJ0IGFuZCBEZXZlc2guDQoNCldoZXJlIGNhbiBJIGFjY2VzcyB0
-aGUgcGF0Y2hlcyB1bmRlciByZXZpZXc/DQoNCg0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0t
-LQ0KRnJvbTogRGV2ZXNoIFNoYXJtYSBbbWFpbHRvOmRldmVzaC5zaGFybWFAYXZhZ290ZWNoLmNv
-bV0NClNlbnQ6IE1vbmRheSwgSnVseSAxMywgMjAxNSAzOjM2IFBNDQpUbzogUnVwZXJ0IERhbmNl
-DQpDYzogUmFtIEFtcmFuaTsgbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmcNClN1YmplY3Q6IFJl
-OiBIb3cgdG8gUm9DRSB2Mj8NCg0KSGkgUmFtLA0KDQpSb0NFLXYyIHBhdGNoIHNlcmllcyBpcyBz
-dGlsbCB1bmRlciByZXZpZXcsIHlvdSBzaG91bGQgc2VlIHVwZGF0ZWQgcGF0Y2ggc2VyaWVzIHNv
-b24gb24gdGhpcyBtYWlsaW5nIGxpc3QuDQoNCi1SZWdhcmRzDQpEZXZlc2gNCg0KT24gTW9uLCBK
-dWwgMTMsIDIwMTUgYXQgNTo1NiBQTSwgUnVwZXJ0IERhbmNlIDxyc2RhbmNlQHNvZnQtZm9yZ2Uu
-Y29tPiB3cm90ZToNCj4gSGkgUmFtLA0KPg0KPiBUaGVyZSB3ZXJlIHNldmVyYWwgaXNzdWVzIGRp
-c2NvdmVyZWQgaW4gT0ZFRCAzLjE4IFJDMyB3aGljaCBoYXZlIGJlZW4NCj4gcmVzb2x2ZWQgaW4g
-dGhlIGxhdGVzdCBkYWlseSBidWlsZC4NCj4NCj4gaHR0cHM6Ly93d3cub3BlbmZhYnJpY3Mub3Jn
-L2Rvd25sb2Fkcy9PRkVEL29mZWQtMy4xOC1kYWlseS9PRkVELTMuMTgtMg0KPiAwMTUwNzANCj4g
-Ny0yMjM1LnRneg0KPg0KPiBUaGUgaXNzdWVzIGFyZSBkb2N1bWVudGVkIGluIHRoZSBsYXRlc3Qg
-YnVncyBpbiBCdWd6aWxsYToNCj4NCj4gaHR0cDovL2J1Z3Mub3BlbmZhYnJpY3Mub3JnL2J1Z3pp
-bGxhLw0KPg0KPiBUaGVyZSBhcmUgYWxzbyBhZGRpdGlvbmFsIG5vdGVzIGFib3V0IHRoZSBidWls
-ZCBwcm9jZWR1cmVzIGluIHRoZQ0KPiBmb2xsb3dpbmcNCj4gZG9jdW1lbnQ6DQo+DQo+IGh0dHBz
-Oi8vd3d3Lm9wZW5mYWJyaWNzLm9yZy9kb3dubG9hZHMvV29ya0dyb3Vwcy9ld2cvQnVpbGQlMjBQ
-cm9jZXNzL08NCj4gRkVELTMtDQo+IDE4LUJ1aWxkJTIwcHJvY2Vzcy12My5wZGYNCj4NCj4gRmlu
-YWxseSB3ZSBob3BlIHRvIGhhdmUgZnVsbCBzdXBwb3J0IGZvciBSb0NFIHYyIGluIG91dCBuZXh0
-IG1ham9yDQo+IE9GRUQgQnVpbGQgd2hpY2ggd2lsbCBiZSBiYXNlZCBvbiB0aGUgNC54IGtlcm5l
-bC4NCj4NCj4gVGhhbmtzDQo+DQo+IFJ1cGVydA0KPg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2Ut
-LS0tLQ0KPiBGcm9tOiBsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZw0KPiBbbWFpbHRv
-OmxpbnV4LXJkbWEtb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgUmFtIEFtcmFu
-aQ0KPiBTZW50OiBNb25kYXksIEp1bHkgMTMsIDIwMTUgNzo0NyBBTQ0KPiBUbzogbGludXgtcmRt
-YUB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogSG93IHRvIFJvQ0UgdjI/DQo+DQo+IEhpLA0K
-PiBUaGlzIGlzIG15IGZpcnN0IGUtbWFpbCBvbiB0aGlzIGxpc3QuIEkgaGF2ZSBhIGZldyBxdWVz
-dGlvbnMgdGhhdCBJDQo+IGhvcGUgeW91J2xsIGFuc3dlciAtDQo+DQo+IEluIHRoZSBsYXRlc3Qg
-T0ZFRCAoMy4xOC1yYzMpIEkgZG9uJ3Qgc2VlIGFueSBSb0NFIHYyIGNvZGUsIGFsYmVpdCBpdA0K
-PiBiZWluZyBpbnRyb2R1Y2UgaW4gMjAxNC4gSG93IGNvbWU/DQo+DQo+IEkndmUgYmVlbiB1bmFi
-bGUgdG8gdHJhY2sgcGF0Y2hlcyBmcm9tIGUtbWFpbCBhcmNoaXZlcyBhYm91dCByZWxldmFudA0K
-PiBlLW1haWxzIHN1Y2ggYXMgIltQQVRDSCAwLzJdIEFkZGluZyBzdXBwb3J0IGZvciBSb0NFIFYy
-IHNwZWNpZmljYXRpb24iLg0KPiBXaGVyZSBjYW4gcGF0Y2hlcyBiZSBmb3VuZC90cmFja2VkPyBJ
-cyB0aGVyZSBhIGdpdCByZXBvc2l0b3J5IHdpdGggbG9nPw0KPg0KPiBJJ3ZlIGFsc28gdHJpZWQg
-dG8gYnVpbGQgdGhlIGxhdGVzdCBPRkVELCBpbiB0aGUgaG9wZSB0aGF0IGl0IHdpbGwNCj4gY29u
-dGFpbiB0aGUgUm9DRSAyIGNvZGUsIGJ1dCBnb3QgZXJyb3JzLiBJIGZvbGxvd2VkIHRoZSBpbnN0
-cnVjdGlvbnMNCj4gaW4gdGhlIHdlYg0KPiAoaHR0cHM6Ly93d3cub3BlbmZhYnJpY3Mub3JnL2lu
-ZGV4LnBocC9pbnN0YWxsYXRpb24uaHRtbCkgYnV0IGdvdA0KPiBlcnJvcnMgd2hlbiBhcHBseWlu
-ZyBwYXRjaGVzICgiLi9zY3JpcHRzL2FkbWluX3JkbWEuc2ggLW4gLXAiKSBhbmQNCj4gYWxzbyB3
-aGVuIHNraXBwaW5nIGl0IGFuZCBydW5uaW5nIGNvbmZpZ3VyZSBhbmQgbWFrZS4uLiBhcmUgdGhl
-DQo+IGluc3RydWN0aW9ucyB1cC10by1kYXRlPw0KPg0KPiBUaGFua3MsDQo+DQo+IFJhbQ0KPg0K
-Pg0KPiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXw0KPg0KPiBUaGlzIG1lc3NhZ2Ug
-YW5kIGFueSBhdHRhY2hlZCBkb2N1bWVudHMgY29udGFpbiBpbmZvcm1hdGlvbiBmcm9tIHRoZQ0K
-PiBzZW5kaW5nIGNvbXBhbnkgb3IgaXRzIHBhcmVudCBjb21wYW55KHMpLCBzdWJzaWRpYXJpZXMs
-IGRpdmlzaW9ucyBvcg0KPiBicmFuY2ggb2ZmaWNlcyB0aGF0IG1heSBiZSBjb25maWRlbnRpYWwu
-IElmIHlvdSBhcmUgbm90IHRoZSBpbnRlbmRlZA0KPiByZWNpcGllbnQsIHlvdSBtYXkgbm90IHJl
-YWQsIGNvcHksIGRpc3RyaWJ1dGUsIG9yIHVzZSB0aGlzDQo+IGluZm9ybWF0aW9uLiBJZiB5b3Ug
-aGF2ZSByZWNlaXZlZCB0aGlzIHRyYW5zbWlzc2lvbiBpbiBlcnJvciwgcGxlYXNlDQo+IG5vdGlm
-eSB0aGUgc2VuZGVyIGltbWVkaWF0ZWx5IGJ5IHJlcGx5IGUtbWFpbCBhbmQgdGhlbiBkZWxldGUg
-dGhpcyBtZXNzYWdlLg0KPiAtLQ0KPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2Vu
-ZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtcmRtYSINCj4gaW4gdGhlIGJvZHkgb2YgYSBt
-ZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcgTW9yZSBtYWpvcmRvbW8NCj4gaW5m
-byBhdCBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCj4NCj4NCj4g
-LS0NCj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vi
-c2NyaWJlIGxpbnV4LXJkbWEiDQo+IGluIHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRv
-bW9Admdlci5rZXJuZWwub3JnIE1vcmUgbWFqb3Jkb21vDQo+IGluZm8gYXQgIGh0dHA6Ly92Z2Vy
-Lmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0KDQpfX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fXw0KDQpUaGlzIG1lc3NhZ2UgYW5kIGFueSBhdHRhY2hlZCBkb2N1bWVudHMgY29u
-dGFpbiBpbmZvcm1hdGlvbiBmcm9tIHRoZSBzZW5kaW5nIGNvbXBhbnkgb3IgaXRzIHBhcmVudCBj
-b21wYW55KHMpLCBzdWJzaWRpYXJpZXMsIGRpdmlzaW9ucyBvciBicmFuY2ggb2ZmaWNlcyB0aGF0
-IG1heSBiZSBjb25maWRlbnRpYWwuIElmIHlvdSBhcmUgbm90IHRoZSBpbnRlbmRlZCByZWNpcGll
-bnQsIHlvdSBtYXkgbm90IHJlYWQsIGNvcHksIGRpc3RyaWJ1dGUsIG9yIHVzZSB0aGlzIGluZm9y
-bWF0aW9uLiBJZiB5b3UgaGF2ZSByZWNlaXZlZCB0aGlzIHRyYW5zbWlzc2lvbiBpbiBlcnJvciwg
-cGxlYXNlIG5vdGlmeSB0aGUgc2VuZGVyIGltbWVkaWF0ZWx5IGJ5IHJlcGx5IGUtbWFpbCBhbmQg
-dGhlbiBkZWxldGUgdGhpcyBtZXNzYWdlLg0K
+On 7/14/2015 4:06 AM, Sagi Grimberg wrote:
+> All protocols cares about transferring data and sending messages, so
+> it's not a good enough reason for a poor registration method choice.
+> This just emphasizes why we need to converge to a single method.
+
+In my opinion, we already have it.
+
+For local registrations, ib_reg_phys_mr()/ib_get_dma_mr(). These are not
+quite equivalent, btw.
+
+For remote registrations, ib_post_send(FRMR).
+
+Unfortunately, there exist ancient adapters in-tree that don't support
+FRMR, and some ULPs have attempted to work on them. That's why the
+situation is confusing.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
