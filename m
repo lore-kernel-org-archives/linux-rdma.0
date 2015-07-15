@@ -1,53 +1,73 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
-Date: Wed, 15 Jul 2015 13:17:46 -0600
-Message-ID: <20150715191746.GH23588@obsidianresearch.com>
-References: <20150710161108.GA19042@obsidianresearch.com>
- <CCB6E837-88FF-4DBB-976D-4CF56396A1A1@ogc.us>
- <55A24571.60902@dev.mellanox.co.il>
- <00e201d0be6a$e49bc910$add35b30$@opengridcomputing.com>
- <20150714192941.GA26292@obsidianresearch.com>
- <00e401d0be6b$d3952750$7abf75f0$@opengridcomputing.com>
- <20150714195511.GB7716@infradead.org>
- <20150714202943.GB26927@obsidianresearch.com>
- <55A61E38.20201@dev.mellanox.co.il>
- <20150715121926.GB14993@infradead.org>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: Kernel fast memory registration API proposal [RFC]
+Date: Wed, 15 Jul 2015 14:26:32 -0500
+Message-ID: <005701d0bf34$27fa8b00$77efa100$@opengridcomputing.com>
+References: <20150713163015.GA23832@obsidianresearch.com> <55A4CABC.5050807@dev.mellanox.co.il> <20150714153347.GA11026@infradead.org> <55A534D1.6030008@dev.mellanox.co.il> <20150714163506.GC7399@obsidianresearch.com> <55A53F0B.5050009@dev.mellanox.co.il> <20150714170859.GB19814@obsidianresearch.com> <55A6136A.8010204@dev.mellanox.co.il> <20150715183129.GC23588@obsidianresearch.com> <005201d0bf2f$0e5e3ed0$2b1abc70$@opengridcomputing.com> <20150715190947.GE23588@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150715121926.GB14993-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Steve Wise' <swise-/Yg/VP3ZvrM@public.gmane.org>, 'Tom Talpey' <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, 'Oren Duer' <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150715190947.GE23588-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Or Gerlitz' <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Oren Duer' <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, 'Bart Van Assche' <bvanassche-HInyCGIudOg@public.gmane.org>, 'Liran Liss' <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Tom Talpey' <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 15, 2015 at 05:19:26AM -0700, 'Christoph Hellwig' wrote:
-> On Wed, Jul 15, 2015 at 11:47:52AM +0300, Sagi Grimberg wrote:
-> > >  struct ib_pd *ib_alloc_pd(struct ib_device *device)
-> > >  {
-> > >  	struct ib_pd *pd;
-> > >+	struct ib_device_attr devattr;
-> > >+	int rc;
-> > >+
-> > >+	rc = ib_query_device(device, &devattr);
-> > >+	if (rc)
-> > >+		return ERR_PTR(rc);
-> > 
-> > Unrelated question,
-> > Can we just cache the dev_attr in ib_device already? It's pretty
-> > obvious that each consumer that opens a device will automatically
-> > query its attributes...
+
+
+> -----Original Message-----
+> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
+> Sent: Wednesday, July 15, 2015 2:10 PM
+> To: Steve Wise
+> Cc: 'Sagi Grimberg'; 'Christoph Hellwig'; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; 'Or Gerlitz'; 'Oren Duer'; 'Chuck Lever'; 'Bart Van Assche';
+'Liran
+> Liss'; 'Hefty, Sean'; 'Doug Ledford'; 'Tom Talpey'
+> Subject: Re: Kernel fast memory registration API proposal [RFC]
 > 
-> Instead of caching it I'd suggest to kill ib_device_attr and move
-> the field into struct ib_device, similar to how all major kernel
-> subsystems work.  Otherwise fully agreed.
+> > >   - ULP calls a 'rdma_post_close_rkey' helper
+> > >      * For FRWR this posts the INVALIDATE
+> >
+> > Note: Some send operations automatically invalidate an rkey (and the
+> > lkey for IB?).  This is intended to avoid having to post the
+> > invalidate WR explicitly.  Namely IB_WR_READ_WITH_INV and
+> > IB_WR_SEND_WITH_INV.
+> 
+> IB_WR_RDMA_READ_WITH_INV is only meaningful/implemented for iWarp. Can
+> you confirm what it does?
+> 
+>  wc.opcode = IB_WR_RDMA_READ_WITH_INV
+>  wc.sg_list[0].lkey = LKEY;
+>  wc.rdma.rkey = RKEY;
+> 
+> Does it locally invalidate LKEY or remotely invalidate RKEY? I'm
+> feeling pretty confident to guess it invalidates LKEY..
 
-Indeed, I think there are quite a few weird cases like this floating
-around for someone to work on :)
+Yes, it invalidates the MR associated with LKEY.
 
-Jason
+> 
+> 'rdma_post_close_rkey' wouldn't work with lkeys, hence the name :)
+> 
+> IB_WR_SEND_WITH_INV is sadly never used in the kernel. It does
+> invalidate an rkey, and would have to interact with a
+> 'rdma_post_close_rkey'.
+> 
+> A generic flow could be something like:
+> 
+>   if (rdma_post_close_rkey_wc(qp,rkey,wc,...) ..)
+>     // invalidate triggred by the peer, all done.
+>   else
+>     // Peer didn't invalidate, func queued it locally, ULP waits for the next completion, then all done.
+>   else
+>     // Error
+> 
+> Where the _wc varient checks the wc to confirm that the requested rkey
+> has been invalidated.
+> 
+> Jason
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
