@@ -1,52 +1,68 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH v1 08/12] IB/cma: Add net_dev and private data checks to
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH v1 08/12] IB/cma: Add net_dev and private data checks to
  RDMA CM
-Date: Wed, 15 Jul 2015 20:27:06 +0000
-Message-ID: <HE1PR05MB1418C82958B3CCF0D3531E5BB19A0@HE1PR05MB1418.eurprd05.prod.outlook.com>
+Date: Wed, 15 Jul 2015 15:03:42 -0600
+Message-ID: <20150715210342.GA32516@obsidianresearch.com>
 References: <1434976961-27424-1-git-send-email-haggaie@mellanox.com>
  <1434976961-27424-9-git-send-email-haggaie@mellanox.com>
- <20150713181414.GJ23832@obsidianresearch.com> <55A63CAC.60603@mellanox.com>
+ <20150713181414.GJ23832@obsidianresearch.com>
+ <55A63CAC.60603@mellanox.com>
  <20150715184934.GD23588@obsidianresearch.com>
+ <HE1PR05MB1418C82958B3CCF0D3531E5BB19A0@HE1PR05MB1418.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150715184934.GD23588-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <HE1PR05MB1418C82958B3CCF0D3531E5BB19A0-eBadYZ65MZ87O8BmmlM1zNqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
- 
-> 
-> > What is really missing here I guess is a mechanism that would
-> > enforce containers to only use certain pkeys - perhaps with
-> > something like an RDMA cgroup.  It could force containers to only
-> > use approved pkeys not only with RDMA CM, but through uverbs, and
-> > other user-space interfaces.
-> 
-> Ideally yes. Without that it just means you can't use pkey
-> meaningfully with containers..
-> 
+On Wed, Jul 15, 2015 at 08:27:06PM +0000, Liran Liss wrote:
+> If you want to restrict a container to a specific set of pkeys, use
+> cgroups.
 
-That's why partition enforcement should be separated from namespaces.
+Ideally yes, but in the absence of a cgroup the set of pkeys assigned
+to the container via ipoib is a reasonable alternate.
 
-If you want to restrict a container to a specific set of pkeys, use cgroups.
-This would apply both to CM MADs and QPs.
-- In the MAD case, CM MADs would be first matched to a namespace and rdma_id and dropped upon pkey conflict (with either the headers or the payload).
-- In the QP case, modify_qp() would fail on conflict.
-Partitioning needs to be enforced also for applications that don't use the CM at all...
+> This would apply both to CM MADs and QPs.
+> - In the MAD case, CM MADs would be first matched to a namespace and rdma_id and dropped upon pkey conflict (with either the headers or the payload).
+> - In the QP case, modify_qp() would fail on conflict.
+> Partitioning needs to be enforced also for applications that don't use the CM at all...
 
-For namespaces, it seems more natural to lookup the namespace based solely on the CM payload.
-After all, it is the payload that designates the entity that you want to establish a connection to, rather than the packet headers, which are just meant to relay the packet to the proper CM agent. (Spec-wise, it is even possible to use completely different node to open a connection on behalf of another node.)
-So, the sole role of pkeys in the context of namespaces is to locate the proper namespace; not for partition isolation.
+Yep, that is how pkey checking should work, cgroup or not.
 
-So, as a first step, let's get the namespace lookup in place.
-Next, add an rdma crgoup, which would control pkeys, as well as resource counts (you don't want one container to rob the whole system from all QPs...).
+So, you agree with me.
 
-> Jason
+I say that until we get a cgroup capability, the pkey list of the
+container is the set of IPoIB interfaces associated with it, and we
+still have to do the various checks above. The first check is relavent
+to this patchset and should be done by using the GMP's headers to
+locate the net device.
+
+> For namespaces, it seems more natural to lookup the namespace based
+> solely on the CM payload.
+
+How so? Which payload content do you use? The primary path? The
+alternate path?
+
+> After all, it is the payload that designates the entity that you
+> want to establish a connection to, rather than the packet headers,
+> which are just meant to relay the packet to the proper CM
+
+No, that isn't right. The IBA uses the GMP's destination first, then
+serviceID as the demux. Services IDs are not globally unique, they are
+scoped by the destination.
+
+The path data is just *routing* it doesn't describe at all the entity
+we want to talk to, it is only a proposal for how to flow data to it.
+
+In any event, both the GMP headers and the path data needs to be
+checked against the container's pkey list. I don't know why this is so
+contentions.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
