@@ -1,51 +1,63 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: Kernel fast memory registration API proposal [RFC]
-Date: Wed, 15 Jul 2015 02:07:10 -0700
-Message-ID: <20150715090710.GA12220@infradead.org>
-References: <559F8BD1.9080308@dev.mellanox.co.il>
- <20150715073233.GA11535@infradead.org>
- <55A61AE3.8020609@dev.mellanox.co.il>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v1 08/12] IB/cma: Add net_dev and private data checks
+ to RDMA CM
+Date: Wed, 15 Jul 2015 13:57:48 +0300
+Message-ID: <55A63CAC.60603@mellanox.com>
+References: <1434976961-27424-1-git-send-email-haggaie@mellanox.com>
+ <1434976961-27424-9-git-send-email-haggaie@mellanox.com>
+ <20150713181414.GJ23832@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <55A61AE3.8020609-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20150713181414.GJ23832-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 15, 2015 at 11:33:39AM +0300, Sagi Grimberg wrote:
-> Umm, I think this can become weird given all other primitives have
-> ib_ prefix. I'd prefer to keep that prefix to stay consistent, and have
-> an incremental change to do it for all the primitives (structs & verbs).
-
-Fine with me, we're getting into bikeshedding here anyway..
-
-> >I'd also get rid of the horrible style of using structs even for simple
-> >attributes.
+On 13/07/2015 21:14, Jason Gunthorpe wrote:
+> On Mon, Jun 22, 2015 at 03:42:37PM +0300, Haggai Eran wrote:
+>> +	switch (ib_event->event) {
+>> +	case IB_CM_REQ_RECEIVED:
+>> +		req->device	= req_param->listen_id->device;
+>> +		req->port	= req_param->port;
+>> +		req->local_gid	= &req_param->primary_path->sgid;
+>> +		req->service_id	= req_param->primary_path->service_id;
+>> +		req->pkey	= be16_to_cpu(req_param->primary_path->pkey);
 > 
-> The reason I thought an attr struct would benefit is that it can be
-> easily extended without changing every single caller (we might have
-> more attributes in the future?). Plus, it is consistent with QP and
-> CQ creation.
+> I feel pretty strongly that we should be using the pkey from the work
+> completion, not the pkey in the message.
 > 
-> If you feel strongly about it, I can change it.
+> The reason, if someone is using pkey like vlan, and expecting a
+> container to never receive packets outside the assigned pkey, then we
+> need to check each and every packet for the correct pkey before
+> associating it with that container.
 
-It's a very hard to follow API, and extending callers for new features
-is not an issue but actually a "feature" as it requires / encurages
-a review of the caller to check how the new feature fits in for them.
+The way I see it is that you have one RDMA CM agent in the system, and
+the header parameters address it. This agent allows addressing several
+namespaces, and they are de-muxed according to the parameters in the
+payload.
 
-> >To support FRMs if we care enough we'd create a purely in-memory MR
-> >in rdma_create_mr and then map it to ib_fmr_pool_map_phys with a helper
-> >that the driver can call instead of rdma_init_mr_wr.
-> >
-> 
-> Lets take it at a later stage.
+So a container never receives a packet outside of its assigned pkeys,
+but the pkey you look at (as well as the GID, and possibly the IP
+address) all come from the payload.
 
-For the API to be useful it should cover the existing users.  I think
-the FMR pool support is fairly trivial, so if you come up with he FR
-version I'll volunteer to add it.
+> When doing the namespace patches you should probably also look at
+> other CM GMPs than just the REQ and how the paths are setup and
+> consider what to do with the pkey. I'd probably suggest that the pkey
+> should be forced throughout the entire process to ensure it always
+> matches the ip device - at least for containers that is the right
+> thing.. I probably wouldn't turn it on for the root namespace though..
+
+Once a connection has been established, following GMPs use a unique ID
+to address this connection, so no more de-muxing is needed. What is
+really missing here I guess is a mechanism that would enforce containers
+to only use certain pkeys - perhaps with something like an RDMA cgroup.
+It could force containers to only use approved pkeys not only with RDMA
+CM, but through uverbs, and other user-space interfaces.
+
+Haggai
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
