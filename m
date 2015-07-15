@@ -1,66 +1,59 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: Kernel fast memory registration API proposal [RFC]
-Date: Wed, 15 Jul 2015 13:39:21 -0500
-Message-ID: <005001d0bf2d$90a3c5b0$b1eb5110$@opengridcomputing.com>
-References: <559F8BD1.9080308@dev.mellanox.co.il> <20150713163015.GA23832@obsidianresearch.com> <55A4CABC.5050807@dev.mellanox.co.il> <20150714153347.GA11026@infradead.org> <55A534D1.6030008@dev.mellanox.co.il> <20150714163506.GC7399@obsidianresearch.com> <55A53F0B.5050009@dev.mellanox.co.il> <20150714170859.GB19814@obsidianresearch.com> <55A6136A.8010204@dev.mellanox.co.il> <A9EF2F26-E737-4E80-B2E3-F8D6406F9893@oracle.com> <20150715171926.GB23588@obsidianresearch.com>
+From: Matthew Wilcox <willy@linux.intel.com>
+Subject: Re: [Ksummit-discuss] [TECH TOPIC] IRQ affinity
+Date: Wed, 15 Jul 2015 14:48:00 -0400
+Message-ID: <20150715184800.GL13681@linux.intel.com>
+References: <20150715120708.GA24534@infradead.org>
+ <alpine.DEB.2.11.1507151408570.18576@nanos>
+ <55A67F11.1030709@sandisk.com>
+ <alpine.LNX.2.00.1507151700300.15930@localhost.lm.intel.com>
+ <55A697A3.3090305@kernel.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150715171926.GB23588-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Or Gerlitz' <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Oren Duer' <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Bart Van Assche' <bvanassche-HInyCGIudOg@public.gmane.org>, 'Liran Liss' <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Tom Talpey' <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <55A697A3.3090305@kernel.dk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jens Axboe <axboe@kernel.dk>
+Cc: Keith Busch <keith.busch@intel.com>, Bart Van Assche <bart.vanassche@sandisk.com>, ksummit-discuss@lists.linuxfoundation.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, Christoph Hellwig <hch@infradead.org>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Jul 15, 2015 at 11:25:55AM -0600, Jens Axboe wrote:
+> On 07/15/2015 11:19 AM, Keith Busch wrote:
+> >On Wed, 15 Jul 2015, Bart Van Assche wrote:
+> >>* With blk-mq and scsi-mq optimal performance can only be achieved if
+> >> the relationship between MSI-X vector and NUMA node does not change
+> >> over time. This is necessary to allow a blk-mq/scsi-mq driver to
+> >> ensure that interrupts are processed on the same NUMA node as the
+> >> node on which the data structures for a communication channel have
+> >> been allocated. However, today there is no API that allows
+> >> blk-mq/scsi-mq drivers and irqbalanced to exchange information
+> >> about the relationship between MSI-X vector ranges and NUMA nodes.
+> >
+> >We could have low-level drivers provide blk-mq the controller's irq
+> >associated with a particular h/w context, and the block layer can provide
+> >the context's cpumask to irqbalance with the smp affinity hint.
+> >
+> >The nvme driver already uses the hwctx cpumask to set hints, but this
+> >doesn't seems like it should be a driver responsibility. It currently
+> >doesn't work correctly anyway with hot-cpu since blk-mq could rebalance
+> >the h/w contexts without syncing with the low-level driver.
+> >
+> >If we can add this to blk-mq, one additional case to consider is if the
+> >same interrupt vector is used with multiple h/w contexts. Blk-mq's cpu
+> >assignment needs to be aware of this to prevent sharing a vector across
+> >NUMA nodes.
+> 
+> Exactly. I may have promised to do just that at the last LSF/MM conference,
+> just haven't done it yet. The point is to share the mask, I'd ideally like
+> to take it all the way where the driver just asks for a number of vecs
+> through a nice API that takes care of all this. Lots of duplicated code in
+> drivers for this these days, and it's a mess.
 
-
-> -----Original Message-----
-> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
-> Sent: Wednesday, July 15, 2015 12:19 PM
-> To: Chuck Lever
-> Cc: Sagi Grimberg; Christoph Hellwig; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Ste=
-ve Wise; Or Gerlitz; Oren Duer; Bart Van Assche; Liran Liss; Hefty,
-> Sean; Doug Ledford; Tom Talpey
-> Subject: Re: Kernel fast memory registration API proposal [RFC]
->=20
-> On Wed, Jul 15, 2015 at 10:32:55AM -0400, Chuck Lever wrote:
->=20
-> > I would rather not build a non-deterministic delay into the
-> > unmap interface. Using a pool or having map do an implicit
-> > unmap are both solutions I=E2=80=99d rather avoid.
->=20
-> Can you explain how NFS is using FMR today? When does it unmap a FMR
-> rkey and lkey?
->=20
-> If NFS/etc currently have a hole on rkey invalidation when using FMR,
-> and that hole simply cannot reasonably be solved, I'm actually mildly=
- OK
-> with enshrining that in a new MR API..
->=20
-> So, it would seem to me, the only major addition we'd need to Sagi's
-> draft to support FMR, would be a way to catch the completion (the
-> rdma_unreg_mr) and trigger async MR recycling async in a work queue.
->=20
-> Sagi, how does cleanup of the temporary FRMR work in your draft
-> proposal? What does the ULP do upon completion?
->=20
-> [Also, just mildly curious, how do we get into an unsleepable
->  context anyhow? is the IB completion pending callback called in a
->  sleepable context?]
->=20
-
-=46rom Documentation/infiniband/core_locking.txt:
-
-  The context in which completion event and asynchronous event
-  callbacks run is not defined.  Depending on the low-level driver, it
-  may be process context, softirq context, or interrupt context.
-  Upper level protocol consumers may not sleep in a callback.
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes.  I think the fundamental problem is that our MSI-X API is so funky.
+We have this incredibly flexible scheme where each MSI-X vector could
+have its own interrupt handler, but that's not what drivers want.
+They want to say "Give me eight MSI-X vectors spread across the CPUs,
+and use this interrupt handler for all of them".  That is, instead of
+the current scheme where each MSI-X vector gets its own Linux interrupt,
+we should have one interrupt handler (of the per-cpu interrupt type),
+which shows up with N bits set in its CPU mask.
