@@ -1,59 +1,99 @@
-From: Matthew Wilcox <willy@linux.intel.com>
-Subject: Re: [Ksummit-discuss] [TECH TOPIC] IRQ affinity
-Date: Wed, 15 Jul 2015 14:48:00 -0400
-Message-ID: <20150715184800.GL13681@linux.intel.com>
-References: <20150715120708.GA24534@infradead.org>
- <alpine.DEB.2.11.1507151408570.18576@nanos>
- <55A67F11.1030709@sandisk.com>
- <alpine.LNX.2.00.1507151700300.15930@localhost.lm.intel.com>
- <55A697A3.3090305@kernel.dk>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH v1 08/12] IB/cma: Add net_dev and private data checks to
+ RDMA CM
+Date: Wed, 15 Jul 2015 12:49:34 -0600
+Message-ID: <20150715184934.GD23588@obsidianresearch.com>
+References: <1434976961-27424-1-git-send-email-haggaie@mellanox.com>
+ <1434976961-27424-9-git-send-email-haggaie@mellanox.com>
+ <20150713181414.GJ23832@obsidianresearch.com>
+ <55A63CAC.60603@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <55A697A3.3090305@kernel.dk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jens Axboe <axboe@kernel.dk>
-Cc: Keith Busch <keith.busch@intel.com>, Bart Van Assche <bart.vanassche@sandisk.com>, ksummit-discuss@lists.linuxfoundation.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, Christoph Hellwig <hch@infradead.org>, Thomas Gleixner <tglx@linutronix.de>
+In-Reply-To: <55A63CAC.60603@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: Haggai Eran <haggaie@mellanox.com>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 15, 2015 at 11:25:55AM -0600, Jens Axboe wrote:
-> On 07/15/2015 11:19 AM, Keith Busch wrote:
-> >On Wed, 15 Jul 2015, Bart Van Assche wrote:
-> >>* With blk-mq and scsi-mq optimal performance can only be achieved if
-> >> the relationship between MSI-X vector and NUMA node does not change
-> >> over time. This is necessary to allow a blk-mq/scsi-mq driver to
-> >> ensure that interrupts are processed on the same NUMA node as the
-> >> node on which the data structures for a communication channel have
-> >> been allocated. However, today there is no API that allows
-> >> blk-mq/scsi-mq drivers and irqbalanced to exchange information
-> >> about the relationship between MSI-X vector ranges and NUMA nodes.
-> >
-> >We could have low-level drivers provide blk-mq the controller's irq
-> >associated with a particular h/w context, and the block layer can provide
-> >the context's cpumask to irqbalance with the smp affinity hint.
-> >
-> >The nvme driver already uses the hwctx cpumask to set hints, but this
-> >doesn't seems like it should be a driver responsibility. It currently
-> >doesn't work correctly anyway with hot-cpu since blk-mq could rebalance
-> >the h/w contexts without syncing with the low-level driver.
-> >
-> >If we can add this to blk-mq, one additional case to consider is if the
-> >same interrupt vector is used with multiple h/w contexts. Blk-mq's cpu
-> >assignment needs to be aware of this to prevent sharing a vector across
-> >NUMA nodes.
+On Wed, Jul 15, 2015 at 01:57:48PM +0300, Haggai Eran wrote:
+> On 13/07/2015 21:14, Jason Gunthorpe wrote:
+> > On Mon, Jun 22, 2015 at 03:42:37PM +0300, Haggai Eran wrote:
+> >> +	switch (ib_event->event) {
+> >> +	case IB_CM_REQ_RECEIVED:
+> >> +		req->device	= req_param->listen_id->device;
+> >> +		req->port	= req_param->port;
+> >> +		req->local_gid	= &req_param->primary_path->sgid;
+> >> +		req->service_id	= req_param->primary_path->service_id;
+> >> +		req->pkey	= be16_to_cpu(req_param->primary_path->pkey);
+> > 
+> > I feel pretty strongly that we should be using the pkey from the work
+> > completion, not the pkey in the message.
+> > 
+> > The reason, if someone is using pkey like vlan, and expecting a
+> > container to never receive packets outside the assigned pkey, then we
+> > need to check each and every packet for the correct pkey before
+> > associating it with that container.
 > 
-> Exactly. I may have promised to do just that at the last LSF/MM conference,
-> just haven't done it yet. The point is to share the mask, I'd ideally like
-> to take it all the way where the driver just asks for a number of vecs
-> through a nice API that takes care of all this. Lots of duplicated code in
-> drivers for this these days, and it's a mess.
+> The way I see it is that you have one RDMA CM agent in the system, and
+> the header parameters address it. This agent allows addressing several
+> namespaces, and they are de-muxed according to the parameters in the
+> payload.
 
-Yes.  I think the fundamental problem is that our MSI-X API is so funky.
-We have this incredibly flexible scheme where each MSI-X vector could
-have its own interrupt handler, but that's not what drivers want.
-They want to say "Give me eight MSI-X vectors spread across the CPUs,
-and use this interrupt handler for all of them".  That is, instead of
-the current scheme where each MSI-X vector gets its own Linux interrupt,
-we should have one interrupt handler (of the per-cpu interrupt type),
-which shows up with N bits set in its CPU mask.
+That doesn't address my argument at all.
+
+A container should never, ever, process a packet on a pkey that is not
+associated with it.
+
+So, it doesn't matter one bit how you decide to demux. After the demux
+is done all three pkeys needs to be checked to be compatible with the
+container: GMP, Primary Path, Alternate Path.
+
+If any are not compatible the packet *MUST* be dropped.
+
+If you do the above check, you may as well start with the wc's pkey,
+since it reflects the logical 'netdevice' that received the packet.
+
+> So a container never receives a packet outside of its assigned pkeys,
+> but the pkey you look at (as well as the GID, and possibly the IP
+> address) all come from the payload.
+
+That isn't entirey true, at a minimum the above scheme allows an
+attacking pkey to create an unbounded number of REQs delivered to
+userspace on a victim container, without needing to be part of the
+victim's pkey.
+
+> > When doing the namespace patches you should probably also look at
+> > other CM GMPs than just the REQ and how the paths are setup and
+> > consider what to do with the pkey. I'd probably suggest that the pkey
+> > should be forced throughout the entire process to ensure it always
+> > matches the ip device - at least for containers that is the right
+> > thing.. I probably wouldn't turn it on for the root namespace though..
+> 
+> Once a connection has been established, following GMPs use a unique ID
+> to address this connection, so no more de-muxing is needed.
+
+I think there are open issues here about pkey correctness. Ie the
+unique ID is not locked to a pkey, so an attacking pkey can guess the
+unique ID and then issue GMPs that will be accepted.
+
+Once locked to a container the unique ID absolutely needs to drop all
+packets that are outside the container's pkey space. IMHO this would
+be part of the namespace patches.
+
+Basically, pkey in a container should work exactly the same as pkey on
+a HCA, packets are dropped before they ever reach the container. This
+means every single resource associated with a container much check the
+pkey of any packet targeted at that resource.
+
+> What is really missing here I guess is a mechanism that would
+> enforce containers to only use certain pkeys - perhaps with
+> something like an RDMA cgroup.  It could force containers to only
+> use approved pkeys not only with RDMA CM, but through uverbs, and
+> other user-space interfaces.
+
+Ideally yes. Without that it just means you can't use pkey
+meaningfully with containers..
+
+Jason
