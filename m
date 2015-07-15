@@ -1,69 +1,90 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v1 08/12] IB/cma: Add net_dev and private data checks to
- RDMA CM
-Date: Wed, 15 Jul 2015 15:03:42 -0600
-Message-ID: <20150715210342.GA32516@obsidianresearch.com>
-References: <1434976961-27424-1-git-send-email-haggaie@mellanox.com>
- <1434976961-27424-9-git-send-email-haggaie@mellanox.com>
- <20150713181414.GJ23832@obsidianresearch.com>
- <55A63CAC.60603@mellanox.com>
- <20150715184934.GD23588@obsidianresearch.com>
- <HE1PR05MB1418C82958B3CCF0D3531E5BB19A0@HE1PR05MB1418.eurprd05.prod.outlook.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Kernel fast memory registration API proposal [RFC]
+Date: Wed, 15 Jul 2015 17:25:11 -0400
+Message-ID: <F2C64EE9-38A5-4DEE-B60E-AD8430FE1049@oracle.com>
+References: <559F8BD1.9080308@dev.mellanox.co.il> <20150713163015.GA23832@obsidianresearch.com> <55A4CABC.5050807@dev.mellanox.co.il> <20150714153347.GA11026@infradead.org> <55A534D1.6030008@dev.mellanox.co.il> <20150714163506.GC7399@obsidianresearch.com> <55A53F0B.5050009@dev.mellanox.co.il> <20150714170859.GB19814@obsidianresearch.com> <55A6136A.8010204@dev.mellanox.co.il> <A9EF2F26-E737-4E80-B2E3-F8D6406F9893@oracle.com> <20150715171926.GB23588@obsidianresearch.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <HE1PR05MB1418C82958B3CCF0D3531E5BB19A0-eBadYZ65MZ87O8BmmlM1zNqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+In-Reply-To: <20150715171926.GB23588-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 15, 2015 at 08:27:06PM +0000, Liran Liss wrote:
-> If you want to restrict a container to a specific set of pkeys, use
-> cgroups.
 
-Ideally yes, but in the absence of a cgroup the set of pkeys assigned
-to the container via ipoib is a reasonable alternate.
+On Jul 15, 2015, at 1:19 PM, Jason Gunthorpe <jgunthorpe@obsidianresear=
+ch.com> wrote:
 
-> This would apply both to CM MADs and QPs.
-> - In the MAD case, CM MADs would be first matched to a namespace and rdma_id and dropped upon pkey conflict (with either the headers or the payload).
-> - In the QP case, modify_qp() would fail on conflict.
-> Partitioning needs to be enforced also for applications that don't use the CM at all...
+> On Wed, Jul 15, 2015 at 10:32:55AM -0400, Chuck Lever wrote:
+>=20
+>> I would rather not build a non-deterministic delay into the
+>> unmap interface. Using a pool or having map do an implicit
+>> unmap are both solutions I=92d rather avoid.
+>=20
+> Can you explain how NFS is using FMR today? When does it unmap a FMR
+> rkey and lkey?
 
-Yep, that is how pkey checking should work, cgroup or not.
+Client side:
 
-So, you agree with me.
+The content in RPC send buffers is sent with RDMA SEND using
+local_dma_lkey, or with an lkey obtained from an MR allocated via
+ib_dma_get_mr(). These are used to send RPC-over-RDMA headers
+usually along with the content of small RPC requests.
 
-I say that until we get a cgroup capability, the pkey list of the
-container is the set of IPoIB interfaces associated with it, and we
-still have to do the various checks above. The first check is relavent
-to this patchset and should be done by using the GMP's headers to
-locate the net device.
+These are left registered, essentially, during the lifetime of
+the transport, and access to them is only local.
 
-> For namespaces, it seems more natural to lookup the namespace based
-> solely on the CM payload.
+NFS READ and WRITE data payloads are mapped with ib_map_phys_mr()
+just before the RPC is sent, and those payloads are unmapped
+with ib_unmap_fmr() as soon as the client sees the server=92s RPC
+reply.
 
-How so? Which payload content do you use? The primary path? The
-alternate path?
+These memory regions require an rkey, which is sent in the RPC
+call to the server. The server performs RDMA READ or WRITE on
+these regions.
 
-> After all, it is the payload that designates the entity that you
-> want to establish a connection to, rather than the packet headers,
-> which are just meant to relay the packet to the proper CM
+I don=92t think the server ever uses FMR to register the target
+memory regions for RDMA READ and WRITE.
 
-No, that isn't right. The IBA uses the GMP's destination first, then
-serviceID as the demux. Services IDs are not globally unique, they are
-scoped by the destination.
 
-The path data is just *routing* it doesn't describe at all the entity
-we want to talk to, it is only a proposal for how to flow data to it.
+> If NFS/etc currently have a hole on rkey invalidation when using FMR,
+> and that hole simply cannot reasonably be solved, I'm actually mildly=
+ OK
+> with enshrining that in a new MR API..
+>=20
+> So, it would seem to me, the only major addition we'd need to Sagi's
+> draft to support FMR, would be a way to catch the completion (the
+> rdma_unreg_mr) and trigger async MR recycling async in a work queue.
 
-In any event, both the GMP headers and the path data needs to be
-checked against the container's pkey list. I don't know why this is so
-contentions.
+As long as it is guaranteed that the unmap is scheduled as soon
+as each RPC operation is complete, that might be tolerable, ie:
 
-Jason
+  rdma_unreg_mr_async()
+
+Where the API hands the MR to a work queue to be unmapped, and
+guarantees the MR cannot be reused until it knows it is unmapped.
+
+I=92m sure there=92s a hole in there I=92m missing.
+
+
+> Sagi, how does cleanup of the temporary FRMR work in your draft
+> proposal? What does the ULP do upon completion?
+>=20
+> [Also, just mildly curious, how do we get into an unsleepable
+> context anyhow? is the IB completion pending callback called in a
+> sleepable context?]
+>=20
+> Jason
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
