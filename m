@@ -1,65 +1,31 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [BUG] mellanox IB driver fails to load on large config
-Date: Wed, 15 Jul 2015 14:33:33 +0300
-Message-ID: <55A6450D.80300@mellanox.com>
-References: <20150710191506.GA52396@asylum.americas.sgi.com>
- <CAJ3xEMj82OtHcs+kDG_xrQZ4+x3Eih=YSNFR4+W-AoPNA=4jTw@mail.gmail.com>
- <20150714182234.GD17920@asylum.americas.sgi.com>
- <20150714184820.GB58053@asylum.americas.sgi.com>
- <CAJ3xEMig=GzROAea7qe0YO11DM6pc4wXyG8VB=kq5Hf5uw2ZXQ@mail.gmail.com>
- <20150714202848.GD58053@asylum.americas.sgi.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: [TECH TOPIC] IRQ affinity
+Date: Wed, 15 Jul 2015 05:07:08 -0700
+Message-ID: <20150715120708.GA24534@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150714202848.GD58053-UiYq4lDBhggTG1waqwXmH7Cf4lofQVJ7@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Thorlton <athorlton-sJ/iWh9BUns@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: andrew banman <abanman-sJ/iWh9BUns@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: ksummit-discuss-cunTk1MwBs98uUxBSJOaYoYkZiVZrdSR2LY78lusg7I@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Many years ago we decided to move setting of IRQ to core affnities to
+userspace with the irqbalance daemon.
 
+These days we have systems with lots of MSI-X vector, and we have
+hardware and subsystem support for per-CPU I/O queues in the block
+layer, the RDMA subsystem and probably the network stack (I'm not too
+familar with the recent developments there).  It would really help the
+out of the box performance and experience if we could allow such
+subsystems to bind interrupt vectors to the node that the queue is
+configured on.
 
-On 7/14/2015 11:28 PM, Alex Thorlton wrote:
-> On Tue, Jul 14, 2015 at 11:06:26PM +0300, Or Gerlitz wrote:
->> On Tue, Jul 14, 2015 at 9:48 PM, Alex Thorlton <athorlton-sJ/iWh9BUns@public.gmane.org> wrote:
->>> On Tue, Jul 14, 2015 at 01:22:34PM -0500, andrew banman wrote:
->>>> On Sat, Jul 11, 2015 at 11:20:19PM +0300, Or Gerlitz wrote:
->>>>> On Fri, Jul 10, 2015 at 10:15 PM, andrew banman <abanman-sJ/iWh9BUns@public.gmane.org> wrote:
->>>>>> I'm seeing a large number of allocation errors originating from the Mellanox IB
->>>>>> driver when booting the 4.2-rc1 kernel on a 4096cpu 32TB memory system:
->>>>>
->>>>> Just to make sure, mlx4 works fine on this small (...) system with 4.1
->>>>> and 4.2-rc1 breaks, or 4.2-rc1 is the 1st time you're trying that
->>>>> config?
->>>>
->>>> I'll let Alex comment on that, he did some testing on that.
->>>
->>> I started seeing this on a 4.1-rc8 kernel, so it's been around for a
->>> little while.  It may have been around before 4.1-rc8, but I haven't run
->>> any kernels older than that on the big machine for some time.
->>
->> To make sure I am correctly following, on 4.1-rc8  you also see
->> something, right?
->
-> Yes, that's correct.
->
->> are these the same messages or different ones? if the latter send to us.
->
-> We see the same exact messages on 4.1-rc8.
-
-Hi,
-
-We don't recall getting those error with 32cpu machines, but we'll try 
-to reproduce this issue.
-
-Matan
-
->
-> Thanks for looking into this!
->
-> - Alex
->
+I'd like to discuss if the rationale for moving the IRQ affinity setting
+fully to userspace are still correct in todays world any any pitfalls
+we'll have to learn from in irqbalanced and the old in-kernel affinity
+code.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
