@@ -1,72 +1,52 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: Kernel fast memory registration API proposal [RFC]
-Date: Wed, 15 Jul 2015 14:26:32 -0500
-Message-ID: <005701d0bf34$27fa8b00$77efa100$@opengridcomputing.com>
-References: <20150713163015.GA23832@obsidianresearch.com> <55A4CABC.5050807@dev.mellanox.co.il> <20150714153347.GA11026@infradead.org> <55A534D1.6030008@dev.mellanox.co.il> <20150714163506.GC7399@obsidianresearch.com> <55A53F0B.5050009@dev.mellanox.co.il> <20150714170859.GB19814@obsidianresearch.com> <55A6136A.8010204@dev.mellanox.co.il> <20150715183129.GC23588@obsidianresearch.com> <005201d0bf2f$0e5e3ed0$2b1abc70$@opengridcomputing.com> <20150715190947.GE23588@obsidianresearch.com>
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH v1 08/12] IB/cma: Add net_dev and private data checks to
+ RDMA CM
+Date: Wed, 15 Jul 2015 20:27:06 +0000
+Message-ID: <HE1PR05MB1418C82958B3CCF0D3531E5BB19A0@HE1PR05MB1418.eurprd05.prod.outlook.com>
+References: <1434976961-27424-1-git-send-email-haggaie@mellanox.com>
+ <1434976961-27424-9-git-send-email-haggaie@mellanox.com>
+ <20150713181414.GJ23832@obsidianresearch.com> <55A63CAC.60603@mellanox.com>
+ <20150715184934.GD23588@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150715190947.GE23588-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <20150715184934.GD23588-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Or Gerlitz' <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Oren Duer' <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, 'Bart Van Assche' <bvanassche-HInyCGIudOg@public.gmane.org>, 'Liran Liss' <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Tom Talpey' <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-> -----Original Message-----
 > From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
-> Sent: Wednesday, July 15, 2015 2:10 PM
-> To: Steve Wise
-> Cc: 'Sagi Grimberg'; 'Christoph Hellwig'; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; 'Or Gerlitz'; 'Oren Duer'; 'Chuck Lever'; 'Bart Van Assche';
-'Liran
-> Liss'; 'Hefty, Sean'; 'Doug Ledford'; 'Tom Talpey'
-> Subject: Re: Kernel fast memory registration API proposal [RFC]
+ 
 > 
-> > >   - ULP calls a 'rdma_post_close_rkey' helper
-> > >      * For FRWR this posts the INVALIDATE
-> >
-> > Note: Some send operations automatically invalidate an rkey (and the
-> > lkey for IB?).  This is intended to avoid having to post the
-> > invalidate WR explicitly.  Namely IB_WR_READ_WITH_INV and
-> > IB_WR_SEND_WITH_INV.
+> > What is really missing here I guess is a mechanism that would
+> > enforce containers to only use certain pkeys - perhaps with
+> > something like an RDMA cgroup.  It could force containers to only
+> > use approved pkeys not only with RDMA CM, but through uverbs, and
+> > other user-space interfaces.
 > 
-> IB_WR_RDMA_READ_WITH_INV is only meaningful/implemented for iWarp. Can
-> you confirm what it does?
+> Ideally yes. Without that it just means you can't use pkey
+> meaningfully with containers..
 > 
->  wc.opcode = IB_WR_RDMA_READ_WITH_INV
->  wc.sg_list[0].lkey = LKEY;
->  wc.rdma.rkey = RKEY;
-> 
-> Does it locally invalidate LKEY or remotely invalidate RKEY? I'm
-> feeling pretty confident to guess it invalidates LKEY..
 
-Yes, it invalidates the MR associated with LKEY.
+That's why partition enforcement should be separated from namespaces.
 
-> 
-> 'rdma_post_close_rkey' wouldn't work with lkeys, hence the name :)
-> 
-> IB_WR_SEND_WITH_INV is sadly never used in the kernel. It does
-> invalidate an rkey, and would have to interact with a
-> 'rdma_post_close_rkey'.
-> 
-> A generic flow could be something like:
-> 
->   if (rdma_post_close_rkey_wc(qp,rkey,wc,...) ..)
->     // invalidate triggred by the peer, all done.
->   else
->     // Peer didn't invalidate, func queued it locally, ULP waits for the next completion, then all done.
->   else
->     // Error
-> 
-> Where the _wc varient checks the wc to confirm that the requested rkey
-> has been invalidated.
-> 
+If you want to restrict a container to a specific set of pkeys, use cgroups.
+This would apply both to CM MADs and QPs.
+- In the MAD case, CM MADs would be first matched to a namespace and rdma_id and dropped upon pkey conflict (with either the headers or the payload).
+- In the QP case, modify_qp() would fail on conflict.
+Partitioning needs to be enforced also for applications that don't use the CM at all...
+
+For namespaces, it seems more natural to lookup the namespace based solely on the CM payload.
+After all, it is the payload that designates the entity that you want to establish a connection to, rather than the packet headers, which are just meant to relay the packet to the proper CM agent. (Spec-wise, it is even possible to use completely different node to open a connection on behalf of another node.)
+So, the sole role of pkeys in the context of namespaces is to locate the proper namespace; not for partition isolation.
+
+So, as a first step, let's get the namespace lookup in place.
+Next, add an rdma crgoup, which would control pkeys, as well as resource counts (you don't want one container to rob the whole system from all QPs...).
+
 > Jason
-
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
