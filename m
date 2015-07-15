@@ -1,102 +1,72 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Kernel fast memory registration API proposal [RFC]
-Date: Tue, 14 Jul 2015 23:05:06 -0400
-Message-ID: <55A5CDE2.4060904@redhat.com>
-References: <559F8BD1.9080308@dev.mellanox.co.il> <20150713163015.GA23832@obsidianresearch.com> <55A4CABC.5050807@dev.mellanox.co.il> <20150714153347.GA11026@infradead.org> <20150714155340.GA7399@obsidianresearch.com> <55A53CFA.7070509@dev.mellanox.co.il> <20150714170808.GA19814@obsidianresearch.com>
+From: 'Christoph Hellwig' <hch@infradead.org>
+Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
+Date: Tue, 14 Jul 2015 23:50:57 -0700
+Message-ID: <20150715065057.GA22113@infradead.org>
+References: <20150709225306.GA30741@obsidianresearch.com>
+ <559FC710.1050307@talpey.com>
+ <20150710161108.GA19042@obsidianresearch.com>
+ <CCB6E837-88FF-4DBB-976D-4CF56396A1A1@ogc.us>
+ <55A24571.60902@dev.mellanox.co.il>
+ <00e201d0be6a$e49bc910$add35b30$@opengridcomputing.com>
+ <20150714192941.GA26292@obsidianresearch.com>
+ <00e401d0be6b$d3952750$7abf75f0$@opengridcomputing.com>
+ <20150714195511.GB7716@infradead.org>
+ <20150714202943.GB26927@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="QnLHnJ7PFswNMJdfR739hmmD3sAmL0Hrl"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150714170808.GA19814-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <target-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150714202943.GB26927@obsidianresearch.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: 'Christoph Hellwig' <hch@infradead.org>, Steve Wise <swise@opengridcomputing.com>, 'Sagi Grimberg' <sagig@dev.mellanox.co.il>, 'Steve Wise' <swise@ogc.us>, 'Tom Talpey' <tom@talpey.com>, 'Doug Ledford' <dledford@redhat.com>, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, trond.myklebust@primarydata.com, bfields@fieldses.org, 'Oren Duer' <oren@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---QnLHnJ7PFswNMJdfR739hmmD3sAmL0Hrl
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On Tue, Jul 14, 2015 at 02:29:43PM -0600, Jason Gunthorpe wrote:
+> local_dma_lkey appears to be global, it works with any PD.
+> 
+> ib_get_dma_mr is tied to a PD, so it cannot replace local_dma_lkey at
+> the struct device level.
+> 
+> ib_alloc_pd is the in-kernel entry point, the UAPI calls
+> device->alloc_pd directly.. So how about the below patch as a starting
+> point?
 
-On 07/14/2015 01:08 PM, Jason Gunthorpe wrote:
-> On Tue, Jul 14, 2015 at 07:46:50PM +0300, Sagi Grimberg wrote:
->> Which drivers doesn't support FRWR that we need to do other things?
->> ipath - depracated
->=20
-> We have permission to move this to staging and then RM it, so yay!
+This looks perfect to me.  After this we can get rid of the
+ib_get_dma_mr calls outside of ib_alloc_pd, and eventuall move
+setting up ->local_dma_lkey into the HW driver and kill of
+ib_get_dma_mr, IB_DEVICE_LOCAL_DMA_LKEY and device->local_dma_lkey.
 
-Correct.
+> >  (2) now ULD can check for IB_DEVICE_LOCAL_DMA_LKEY and use local_dma_lkey
+> >      in that case, or will have to perform a per-IO MR with LOCAL and
+> >      REMOTE flags if not
+> 
+> If we do the above all ULPs simply use pd->local_dma_lkey and we drop
+> correct uses of ib_get_dma_mr completely ?
 
->> mthca - soon to be deprecated
->=20
-> This one I have a problem with. There is alot of mthca hardware out
-> there, it feels wrong to nuke it.. If we can continue to support the
-> FMR scheme it uses transparently, that would be excellent.
->=20
-> I'm not hearing a strong reason why that shouldn't be the case...
+Yes, please, although:
 
-I'm not so sure about deprecating mthca either.  There are still a
-number of people I know that like to buy cheap SDR/DDR switches on EBay
-and pair them with cheap mthca cards and have cheap 10/20GBit/s home
-networks.  We have a couple people inside Red Hat that occasionally tell
-people what to look for on EBay to do just this.
+> >  (3) remove insecure remote uses of ib_get_dma_mr from ULDs
 
->> ehca - Not sure what is going on there. they only have phys_mr
->>        anyway, which just lost its only caller in the kernel
->=20
-> I thought it supported fmr:
->=20
-> drivers/infiniband/hw/ehca/ehca_main.c: shca->ib_device.alloc_fmr      =
-     =3D ehca_alloc_fmr;
-> drivers/infiniband/hw/ehca/ehca_main.c: shca->ib_device.map_phys_fmr   =
-     =3D ehca_map_phys_fmr;
-> drivers/infiniband/hw/ehca/ehca_main.c: shca->ib_device.unmap_fmr      =
-     =3D ehca_unmap_fmr;
-> drivers/infiniband/hw/ehca/ehca_main.c: shca->ib_device.dealloc_fmr    =
-     =3D ehca_dealloc_fmr;
->=20
-> ?
->=20
-> I'm not sure what the status of ehca is, but I somehow suspect any
-> remaining users are going to be on an old vendor kernel forever..
+I kept this separate as the I suspect the "optimizations" using 
+ib_get_dma_mr with remote flags will warrant a separate discussion.
 
-Nothing of note has been done on ehca for a long time, and I wouldn't be
-surprised if there is some bit rot in this driver.  We need to speak
-with IBM, but I think it's a candidate for future removal.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+> >From 5a9799bf487d822daae5a8b8f3b197f1dda1db45 Mon Sep 17 00:00:00 2001
+> From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+> Date: Tue, 14 Jul 2015 14:27:37 -0600
+> Subject: [PATCH] IB/core: Guarantee that a local_dma_lkey is available
+> 
+> Every single ULP requires a local_dma_lkey to do anything with
+> a QP, so lets us ensure one exists for every PD created.
+> 
+> If the driver can supply a global local_dma_lkey then use that, otherwise
+> ask the driver to create a local use all physical memory MR associated
+> with the new PD.
+> 
+> Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
 
 
+Acked-by: Christoph Hellwig <hch@lst.de>
 
---QnLHnJ7PFswNMJdfR739hmmD3sAmL0Hrl
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJVpc3iAAoJELgmozMOVy/dgUoQAKNeDxNXFJGUl7oRRd5AVmMr
-bhYexuOYwJHFNOcU70ShFxI7d2x70YxQaBd37yjxVDHuVNqhgxIdj2O6ELjIibu+
-ZYhnMke25drfzY90M3CgC8zljx4P5bnmq9XjEjSMkI+vltPerd/aJj9T6S+xhmKs
-8wufubOGsOvEhf+4QvdqFQzqRC+h46+Au0/haaOZTMqptyVnvZH+5bJx6h7YPv2s
-p5e7Byo1KSL5LMRqrE8kZZRqHTYqJFq82jJTuyi1O4oAhPMK2JyPbnAbE6R2HGIU
-4a2JzZHg+OVb0ldkPfxXT9BHg39bytoz1NWrR87jHvrTgKsAOSzhwYUxQcGZcB7Y
-uFj4C1ojAmbHnuQma1jGazxv9OgYO4Kmmp02EtVPqv/Nr1epjvkEe6//ziMKtno/
-E1gYiJVtUMQZu0l41r6gTYyLLJ1D1R5NeDEc5zuvJhWeYjaE9gC6mbnOtU+peC5O
-bEYjZuycFQ588KDkDhQfr1dxHVkFOxO3hqXDIHsbtCzMqicP8REGJoju5rIcd0CT
-MxuFKTiTCAe08K6UikCKYF2uObJq7pcNbqIaDxWD9J0fLg7IHylCwAl1+Q6POR4k
-n2hOSaX+cH0DChtdDH5gtqkcTyfee2jJGyd114G0De6PgOI8CrF8JsThcdbp8IUn
-+LMZMvl+OHD0yCL76H+K
-=1ts2
------END PGP SIGNATURE-----
-
---QnLHnJ7PFswNMJdfR739hmmD3sAmL0Hrl--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+(especially together with patches removing all other callsites of
+"ib_get_dma_mr(pd, IB_ACCESS_LOCAL_WRITE)".
