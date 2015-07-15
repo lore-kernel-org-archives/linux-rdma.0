@@ -1,63 +1,65 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v1 08/12] IB/cma: Add net_dev and private data checks
- to RDMA CM
-Date: Wed, 15 Jul 2015 13:57:48 +0300
-Message-ID: <55A63CAC.60603@mellanox.com>
-References: <1434976961-27424-1-git-send-email-haggaie@mellanox.com>
- <1434976961-27424-9-git-send-email-haggaie@mellanox.com>
- <20150713181414.GJ23832@obsidianresearch.com>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [BUG] mellanox IB driver fails to load on large config
+Date: Wed, 15 Jul 2015 14:33:33 +0300
+Message-ID: <55A6450D.80300@mellanox.com>
+References: <20150710191506.GA52396@asylum.americas.sgi.com>
+ <CAJ3xEMj82OtHcs+kDG_xrQZ4+x3Eih=YSNFR4+W-AoPNA=4jTw@mail.gmail.com>
+ <20150714182234.GD17920@asylum.americas.sgi.com>
+ <20150714184820.GB58053@asylum.americas.sgi.com>
+ <CAJ3xEMig=GzROAea7qe0YO11DM6pc4wXyG8VB=kq5Hf5uw2ZXQ@mail.gmail.com>
+ <20150714202848.GD58053@asylum.americas.sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150713181414.GJ23832-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20150714202848.GD58053-UiYq4lDBhggTG1waqwXmH7Cf4lofQVJ7@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Alex Thorlton <athorlton-sJ/iWh9BUns@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: andrew banman <abanman-sJ/iWh9BUns@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 13/07/2015 21:14, Jason Gunthorpe wrote:
-> On Mon, Jun 22, 2015 at 03:42:37PM +0300, Haggai Eran wrote:
->> +	switch (ib_event->event) {
->> +	case IB_CM_REQ_RECEIVED:
->> +		req->device	= req_param->listen_id->device;
->> +		req->port	= req_param->port;
->> +		req->local_gid	= &req_param->primary_path->sgid;
->> +		req->service_id	= req_param->primary_path->service_id;
->> +		req->pkey	= be16_to_cpu(req_param->primary_path->pkey);
-> 
-> I feel pretty strongly that we should be using the pkey from the work
-> completion, not the pkey in the message.
-> 
-> The reason, if someone is using pkey like vlan, and expecting a
-> container to never receive packets outside the assigned pkey, then we
-> need to check each and every packet for the correct pkey before
-> associating it with that container.
 
-The way I see it is that you have one RDMA CM agent in the system, and
-the header parameters address it. This agent allows addressing several
-namespaces, and they are de-muxed according to the parameters in the
-payload.
 
-So a container never receives a packet outside of its assigned pkeys,
-but the pkey you look at (as well as the GID, and possibly the IP
-address) all come from the payload.
+On 7/14/2015 11:28 PM, Alex Thorlton wrote:
+> On Tue, Jul 14, 2015 at 11:06:26PM +0300, Or Gerlitz wrote:
+>> On Tue, Jul 14, 2015 at 9:48 PM, Alex Thorlton <athorlton-sJ/iWh9BUns@public.gmane.org> wrote:
+>>> On Tue, Jul 14, 2015 at 01:22:34PM -0500, andrew banman wrote:
+>>>> On Sat, Jul 11, 2015 at 11:20:19PM +0300, Or Gerlitz wrote:
+>>>>> On Fri, Jul 10, 2015 at 10:15 PM, andrew banman <abanman-sJ/iWh9BUns@public.gmane.org> wrote:
+>>>>>> I'm seeing a large number of allocation errors originating from the Mellanox IB
+>>>>>> driver when booting the 4.2-rc1 kernel on a 4096cpu 32TB memory system:
+>>>>>
+>>>>> Just to make sure, mlx4 works fine on this small (...) system with 4.1
+>>>>> and 4.2-rc1 breaks, or 4.2-rc1 is the 1st time you're trying that
+>>>>> config?
+>>>>
+>>>> I'll let Alex comment on that, he did some testing on that.
+>>>
+>>> I started seeing this on a 4.1-rc8 kernel, so it's been around for a
+>>> little while.  It may have been around before 4.1-rc8, but I haven't run
+>>> any kernels older than that on the big machine for some time.
+>>
+>> To make sure I am correctly following, on 4.1-rc8  you also see
+>> something, right?
+>
+> Yes, that's correct.
+>
+>> are these the same messages or different ones? if the latter send to us.
+>
+> We see the same exact messages on 4.1-rc8.
 
-> When doing the namespace patches you should probably also look at
-> other CM GMPs than just the REQ and how the paths are setup and
-> consider what to do with the pkey. I'd probably suggest that the pkey
-> should be forced throughout the entire process to ensure it always
-> matches the ip device - at least for containers that is the right
-> thing.. I probably wouldn't turn it on for the root namespace though..
+Hi,
 
-Once a connection has been established, following GMPs use a unique ID
-to address this connection, so no more de-muxing is needed. What is
-really missing here I guess is a mechanism that would enforce containers
-to only use certain pkeys - perhaps with something like an RDMA cgroup.
-It could force containers to only use approved pkeys not only with RDMA
-CM, but through uverbs, and other user-space interfaces.
+We don't recall getting those error with 32cpu machines, but we'll try 
+to reproduce this issue.
 
-Haggai
+Matan
+
+>
+> Thanks for looking into this!
+>
+> - Alex
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
