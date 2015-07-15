@@ -1,66 +1,65 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [Ksummit-discuss] [TECH TOPIC] IRQ affinity
-Date: Wed, 15 Jul 2015 21:24:29 +0300
-Message-ID: <55A6A55D.2040205@dev.mellanox.co.il>
-References: <20150715120708.GA24534@infradead.org>
- <alpine.DEB.2.11.1507151408570.18576@nanos> <55A67F11.1030709@sandisk.com>
- <alpine.LNX.2.00.1507151700300.15930@localhost.lm.intel.com>
- <55A697A3.3090305@kernel.dk>
+From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Subject: Re: [PATCH v2 07/14] xprtrdma: Remove logic that constructs RDMA_MSGP
+ type calls
+Date: Wed, 15 Jul 2015 23:56:15 +0530
+Message-ID: <CANjDDBgLX9pBWv5Jt6YwMFhRULWgfjSJNOvwa8L6kwkykRbnRw@mail.gmail.com>
+References: <20150713160617.17630.97475.stgit@manet.1015granger.net>
+	<20150713163048.17630.86326.stgit@manet.1015granger.net>
+	<55A55C63.50403@talpey.com>
+	<ED80C587-DFC7-4E4A-95E4-3ACBEC078D86@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55A697A3.3090305@kernel.dk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Christoph Hellwig <hch@infradead.org>, linux-rdma@vger.kernel.org, linux-nvme@lists.infradead.org, linux-kernel@vger.kernel.org, ksummit-discuss@lists.linuxfoundation.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <ED80C587-DFC7-4E4A-95E4-3ACBEC078D86-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/15/2015 8:25 PM, Jens Axboe wrote:
-> On 07/15/2015 11:19 AM, Keith Busch wrote:
->> On Wed, 15 Jul 2015, Bart Van Assche wrote:
->>> * With blk-mq and scsi-mq optimal performance can only be achieved if
->>>  the relationship between MSI-X vector and NUMA node does not change
->>>  over time. This is necessary to allow a blk-mq/scsi-mq driver to
->>>  ensure that interrupts are processed on the same NUMA node as the
->>>  node on which the data structures for a communication channel have
->>>  been allocated. However, today there is no API that allows
->>>  blk-mq/scsi-mq drivers and irqbalanced to exchange information
->>>  about the relationship between MSI-X vector ranges and NUMA nodes.
->>
->> We could have low-level drivers provide blk-mq the controller's irq
->> associated with a particular h/w context, and the block layer can provide
->> the context's cpumask to irqbalance with the smp affinity hint.
->>
->> The nvme driver already uses the hwctx cpumask to set hints, but this
->> doesn't seems like it should be a driver responsibility. It currently
->> doesn't work correctly anyway with hot-cpu since blk-mq could rebalance
->> the h/w contexts without syncing with the low-level driver.
->>
->> If we can add this to blk-mq, one additional case to consider is if the
->> same interrupt vector is used with multiple h/w contexts. Blk-mq's cpu
->> assignment needs to be aware of this to prevent sharing a vector across
->> NUMA nodes.
+with MAX_IOVS set to 2 iozone passes with ocrdma device. My testing
+includes both the series of svcrdma and xprtrdma.
+
+On Wed, Jul 15, 2015 at 12:31 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
 >
-> Exactly. I may have promised to do just that at the last LSF/MM
-> conference, just haven't done it yet. The point is to share the mask,
-> I'd ideally like to take it all the way where the driver just asks for a
-> number of vecs through a nice API that takes care of all this. Lots of
-> duplicated code in drivers for this these days, and it's a mess.
+> On Jul 14, 2015, at 3:00 PM, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org> wrote:
 >
-
-These are all good points.
-
-But I'm not sure the block layer is always the correct place to take
-care of msix vector assignments. It's probably a perfect fit for NVME
-and other storage devices, but if we take RDMA for example, block
-storage co-exists with file storage, Ethernet traffic and user-space 
-applications that do RDMA. All of which share the device MSI-X vectors.
-So in this case, the block layer would not be a suitable place to set
-IRQ affinity since each deployment might present different constraints.
-
-In any event, the irqbalance daemon is not helping here. Unfortunately
-the common practice is to just turn it off in order to get optimized
-performance.
-
-Sagi.
+>> On 7/13/2015 12:30 PM, Chuck Lever wrote:
+>>> RDMA_MSGP type calls insert a zero pad in the middle of the RPC
+>>> message to align the RPC request's data payload to the server's
+>>> alignment preferences. A server can then "page flip" the payload
+>>> into place to avoid a data copy in certain circumstances. However:
+>>> ...
+>>>
+>>> Clean up the marshaling code by removing the logic that constructs
+>>> RDMA_MSGP type calls. This also reduces the maximum send iovec size
+>>> from four to just two elements.
+>>>
+>>
+>>> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+>>> index 8219011..0b50103 100644
+>>> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
+>>> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+>> ...>
+>>> +#define RPCRDMA_MAX_IOVS    (4)
+>>> +
+>>
+>> So, shouldn't this constant be "2"? The extra 2 iov's were used
+>> only for constructing the pad.
+>
+> Yes, thanks. I folded a couple of patches together into this
+> one, and forgot to update the constant.
+>
+>
+> --
+> Chuck Lever
+>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
