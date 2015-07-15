@@ -1,72 +1,49 @@
-From: 'Christoph Hellwig' <hch@infradead.org>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
-Date: Tue, 14 Jul 2015 23:50:57 -0700
-Message-ID: <20150715065057.GA22113@infradead.org>
+Date: Wed, 15 Jul 2015 10:10:02 +0300
+Message-ID: <55A6074A.7080002@dev.mellanox.co.il>
 References: <20150709225306.GA30741@obsidianresearch.com>
- <559FC710.1050307@talpey.com>
- <20150710161108.GA19042@obsidianresearch.com>
- <CCB6E837-88FF-4DBB-976D-4CF56396A1A1@ogc.us>
- <55A24571.60902@dev.mellanox.co.il>
- <00e201d0be6a$e49bc910$add35b30$@opengridcomputing.com>
- <20150714192941.GA26292@obsidianresearch.com>
- <00e401d0be6b$d3952750$7abf75f0$@opengridcomputing.com>
- <20150714195511.GB7716@infradead.org>
- <20150714202943.GB26927@obsidianresearch.com>
+ <559FC710.1050307@talpey.com> <20150710161108.GA19042@obsidianresearch.com>
+ <55A00754.4010009@redhat.com> <55A01225.9000000@talpey.com>
+ <20150710195420.GA31500@obsidianresearch.com>
+ <20150711101736.GA14741@infradead.org>
+ <20150713165748.GE23832@obsidianresearch.com>
+ <20150714072536.GA7630@infradead.org> <55A4D0F1.7000909@dev.mellanox.co.il>
+ <20150714172655.GB24403@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <target-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150714202943.GB26927@obsidianresearch.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: 'Christoph Hellwig' <hch@infradead.org>, Steve Wise <swise@opengridcomputing.com>, 'Sagi Grimberg' <sagig@dev.mellanox.co.il>, 'Steve Wise' <swise@ogc.us>, 'Tom Talpey' <tom@talpey.com>, 'Doug Ledford' <dledford@redhat.com>, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, trond.myklebust@primarydata.com, bfields@fieldses.org, 'Oren Duer' <oren@mellanox.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150714172655.GB24403-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 14, 2015 at 02:29:43PM -0600, Jason Gunthorpe wrote:
-> local_dma_lkey appears to be global, it works with any PD.
-> 
-> ib_get_dma_mr is tied to a PD, so it cannot replace local_dma_lkey at
-> the struct device level.
-> 
-> ib_alloc_pd is the in-kernel entry point, the UAPI calls
-> device->alloc_pd directly.. So how about the below patch as a starting
-> point?
+On 7/14/2015 8:26 PM, Jason Gunthorpe wrote:
+> On Tue, Jul 14, 2015 at 12:05:53PM +0300, Sagi Grimberg wrote:
+>
+>> iser has it too. I have a similar patch with a flag for iser (its
+>> behind a bulk of patches that are still pending though).
+>
+> Do we all agree and understand that stuff like this in
+>
+> drivers/infiniband/ulp/iser/iser_verbs.c
+>
+>          device->mr = ib_get_dma_mr(device->pd, IB_ACCESS_LOCAL_WRITE |
+>                                     IB_ACCESS_REMOTE_WRITE |
+>                                     IB_ACCESS_REMOTE_READ);
+>
+> Represents a significant security risk to the machine, and must be
+> off be default?
+>
+> Can you take care of fixing this for iser?
 
-This looks perfect to me.  After this we can get rid of the
-ib_get_dma_mr calls outside of ib_alloc_pd, and eventuall move
-setting up ->local_dma_lkey into the HW driver and kill of
-ib_get_dma_mr, IB_DEVICE_LOCAL_DMA_LKEY and device->local_dma_lkey.
+I will. It is part of a patchset I have to support remote
+invalidate in iser and isert.
 
-> >  (2) now ULD can check for IB_DEVICE_LOCAL_DMA_LKEY and use local_dma_lkey
-> >      in that case, or will have to perform a per-IO MR with LOCAL and
-> >      REMOTE flags if not
-> 
-> If we do the above all ULPs simply use pd->local_dma_lkey and we drop
-> correct uses of ib_get_dma_mr completely ?
-
-Yes, please, although:
-
-> >  (3) remove insecure remote uses of ib_get_dma_mr from ULDs
-
-I kept this separate as the I suspect the "optimizations" using 
-ib_get_dma_mr with remote flags will warrant a separate discussion.
-
-> >From 5a9799bf487d822daae5a8b8f3b197f1dda1db45 Mon Sep 17 00:00:00 2001
-> From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-> Date: Tue, 14 Jul 2015 14:27:37 -0600
-> Subject: [PATCH] IB/core: Guarantee that a local_dma_lkey is available
-> 
-> Every single ULP requires a local_dma_lkey to do anything with
-> a QP, so lets us ensure one exists for every PD created.
-> 
-> If the driver can supply a global local_dma_lkey then use that, otherwise
-> ask the driver to create a local use all physical memory MR associated
-> with the new PD.
-> 
-> Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-
-
-Acked-by: Christoph Hellwig <hch@lst.de>
-
-(especially together with patches removing all other callsites of
-"ib_get_dma_mr(pd, IB_ACCESS_LOCAL_WRITE)".
+Sagi.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
