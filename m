@@ -1,99 +1,112 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH v1 08/12] IB/cma: Add net_dev and private data checks to
- RDMA CM
-Date: Wed, 15 Jul 2015 12:49:34 -0600
-Message-ID: <20150715184934.GD23588@obsidianresearch.com>
-References: <1434976961-27424-1-git-send-email-haggaie@mellanox.com>
- <1434976961-27424-9-git-send-email-haggaie@mellanox.com>
- <20150713181414.GJ23832@obsidianresearch.com>
- <55A63CAC.60603@mellanox.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: Kernel fast memory registration API proposal [RFC]
+Date: Wed, 15 Jul 2015 13:50:01 -0500
+Message-ID: <005201d0bf2f$0e5e3ed0$2b1abc70$@opengridcomputing.com>
+References: <559F8BD1.9080308@dev.mellanox.co.il> <20150713163015.GA23832@obsidianresearch.com> <55A4CABC.5050807@dev.mellanox.co.il> <20150714153347.GA11026@infradead.org> <55A534D1.6030008@dev.mellanox.co.il> <20150714163506.GC7399@obsidianresearch.com> <55A53F0B.5050009@dev.mellanox.co.il> <20150714170859.GB19814@obsidianresearch.com> <55A6136A.8010204@dev.mellanox.co.il> <20150715183129.GC23588@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <55A63CAC.60603@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: Haggai Eran <haggaie@mellanox.com>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150715183129.GC23588-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Or Gerlitz' <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Oren Duer' <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, 'Bart Van Assche' <bvanassche-HInyCGIudOg@public.gmane.org>, 'Liran Liss' <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Tom Talpey' <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 15, 2015 at 01:57:48PM +0300, Haggai Eran wrote:
-> On 13/07/2015 21:14, Jason Gunthorpe wrote:
-> > On Mon, Jun 22, 2015 at 03:42:37PM +0300, Haggai Eran wrote:
-> >> +	switch (ib_event->event) {
-> >> +	case IB_CM_REQ_RECEIVED:
-> >> +		req->device	= req_param->listen_id->device;
-> >> +		req->port	= req_param->port;
-> >> +		req->local_gid	= &req_param->primary_path->sgid;
-> >> +		req->service_id	= req_param->primary_path->service_id;
-> >> +		req->pkey	= be16_to_cpu(req_param->primary_path->pkey);
-> > 
-> > I feel pretty strongly that we should be using the pkey from the work
-> > completion, not the pkey in the message.
-> > 
-> > The reason, if someone is using pkey like vlan, and expecting a
-> > container to never receive packets outside the assigned pkey, then we
-> > need to check each and every packet for the correct pkey before
-> > associating it with that container.
+
+
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
+> Sent: Wednesday, July 15, 2015 1:31 PM
+> To: Sagi Grimberg
+> Cc: Christoph Hellwig; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Steve Wise; Or Gerlitz; Oren Duer; Chuck Lever; Bart Van Assche; Liran Liss;
+Hefty,
+> Sean; Doug Ledford; Tom Talpey
+> Subject: Re: Kernel fast memory registration API proposal [RFC]
 > 
-> The way I see it is that you have one RDMA CM agent in the system, and
-> the header parameters address it. This agent allows addressing several
-> namespaces, and they are de-muxed according to the parameters in the
-> payload.
-
-That doesn't address my argument at all.
-
-A container should never, ever, process a packet on a pkey that is not
-associated with it.
-
-So, it doesn't matter one bit how you decide to demux. After the demux
-is done all three pkeys needs to be checked to be compatible with the
-container: GMP, Primary Path, Alternate Path.
-
-If any are not compatible the packet *MUST* be dropped.
-
-If you do the above check, you may as well start with the wc's pkey,
-since it reflects the logical 'netdevice' that received the packet.
-
-> So a container never receives a packet outside of its assigned pkeys,
-> but the pkey you look at (as well as the GID, and possibly the IP
-> address) all come from the payload.
-
-That isn't entirey true, at a minimum the above scheme allows an
-attacking pkey to create an unbounded number of REQs delivered to
-userspace on a victim container, without needing to be part of the
-victim's pkey.
-
-> > When doing the namespace patches you should probably also look at
-> > other CM GMPs than just the REQ and how the paths are setup and
-> > consider what to do with the pkey. I'd probably suggest that the pkey
-> > should be forced throughout the entire process to ensure it always
-> > matches the ip device - at least for containers that is the right
-> > thing.. I probably wouldn't turn it on for the root namespace though..
+> On Wed, Jul 15, 2015 at 11:01:46AM +0300, Sagi Grimberg wrote:
+> > On 7/14/2015 8:09 PM, Jason Gunthorpe wrote:
+> > >On Tue, Jul 14, 2015 at 07:55:39PM +0300, Sagi Grimberg wrote:
+> > >
+> > >>But, if people think that it's better to have an API that does implicit
+> > >>posting always without notification, and then silently consume error or
+> > >>flush completions. I can try and look at it as well.
+> > >
+> > >Can we do FMR transparently if we bundle the post? If yes, I'd call
+> > >that a winner..
+> >
+> > Doing FMR transparently is not possible as the unmap flow is scheduling.
+> > Unlike NFS, iSER unmaps from a soft-IRQ context, SRP unmaps from
+> > hard-IRQ context. Changing the context to thread context is not
+> > acceptable. The best we can do is using FMR_POOLs transparently.
+> > Other than polluting the API and its semantics I suspect people will
+> > have other problems with it (leaving the MRs open).
 > 
-> Once a connection has been established, following GMPs use a unique ID
-> to address this connection, so no more de-muxing is needed.
+> Upon deeper thought, I think I see a fairly simple solution here.
+> 
+> 1) Really, we probably never need a FMR for the lkey side, we should
+>    just use multiple READ/WRITE ops to get a long enough SG list.
+>    Even if this is not performant on mhca/ehca.
+> 
+>    If we absolutely need FMR for SEND/RECV lkey (do we? Anyone know?),
+>    then I have some good thoughts on how to make that work transparent..
+> 
+>    However, rather than do all that, I'd probably choose to just
+>    bounce buffer the few rare SEND/RECVs that need a MR. I'm guessing
+>    the usage is 0 or near zero??
+> 
+> 2) The FMR completion flow for rkey is actually the same as the FRWR flow:
+>     - Catch the SEND that says the READ/WRITE is done
+>     - Issue an async invalidate
+>     - Catch the invalidate completion
+> 
+> So, my simple proposal is to have the core wrapper mthca/ehca's
+> poll_cq wrapper. The flow works like this:
+> 
+>   - ULP calls a 'rdma_post_close_rkey' helper
+>      * For FRWR this posts the INVALIDATE
 
-I think there are open issues here about pkey correctness. Ie the
-unique ID is not locked to a pkey, so an attacking pkey can guess the
-unique ID and then issue GMPs that will be accepted.
+Note: Some send operations automatically invalidate an rkey (and the lkey for IB?).  This is intended to avoid having to post the
+invalidate WR explicitly.  Namely IB_WR_READ_WITH_INV and IB_WR_SEND_WITH_INV.
 
-Once locked to a container the unique ID absolutely needs to drop all
-packets that are outside the container's pkey space. IMHO this would
-be part of the namespace patches.
+>      * For FMR this triggers a work queue that issues the invalidate
+>        async
+>   - ULP calls poll_cq
+>      * For FRWR no change, the driver is called directly
+>      * For FMR, the poll_cq wrapper looks at a 2nd queue
+>        filled in by the async work queue above. If it has entries they
+>        are copied out as IB_WC_LOCAL_INV before calling the driver's
+>        poll_cq.
+> 
+> This works best under the API I was talking about before, using
+> posting helpers to form the right SQEs for the hardware being used.
+> 
+> I'm not exactly clear on the recycling rules for either FRWR or FMR -
+> are they use-once-then-destroy, or can they be reused?
+> 
 
-Basically, pkey in a container should work exactly the same as pkey on
-a HCA, packets are dropped before they ever reach the container. This
-means every single resource associated with a container much check the
-pkey of any packet targeted at that resource.
+For FRWRs, the MR can be reused with the same key values, or the bottom 8b of the keys can be modified before re-registering using
+ib_update_fast_reg_key().  This allows applications to detect when using stale keys. 
 
-> What is really missing here I guess is a mechanism that would
-> enforce containers to only use certain pkeys - perhaps with
-> something like an RDMA cgroup.  It could force containers to only
-> use approved pkeys not only with RDMA CM, but through uverbs, and
-> other user-space interfaces.
+> Basically.. I think something along your idea is a good first step, it
+> unifies the driver API for the posting MR schemes.
+> 
+> The next step would be the posting helpers I've been talking about
+> that do all the complicated logic for the ULPs. Those helpers would be
+> able to hide the OP segmentation and FMR rkey using the above
+> schemes.
+> 
+> This sounds very workable? Christoph?
+> 
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Ideally yes. Without that it just means you can't use pkey
-meaningfully with containers..
-
-Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
