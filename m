@@ -1,144 +1,51 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Kernel fast memory registration API proposal [RFC]
-Date: Wed, 15 Jul 2015 10:39:09 -0400
-Message-ID: <DF38ED6E-BC74-43CB-80A7-0B0C4C14EBC2@oracle.com>
-References: <559F8BD1.9080308@dev.mellanox.co.il> <20150713163015.GA23832@obsidianresearch.com> <55A4CABC.5050807@dev.mellanox.co.il> <20150714153347.GA11026@infradead.org> <55A534D1.6030008@dev.mellanox.co.il> <20150714163506.GC7399@obsidianresearch.com> <55A53F0B.5050009@dev.mellanox.co.il> <20150714170859.GB19814@obsidianresearch.com> <55A6136A.8010204@dev.mellanox.co.il> <A9EF2F26-E737-4E80-B2E3-F8D6406F9893@oracle.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+From: Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [Ksummit-discuss] [TECH TOPIC] IRQ affinity
+Date: Wed, 15 Jul 2015 15:56:30 +0100
+Message-ID: <55A6749E.7040803@arm.com>
+References: <20150715120708.GA24534@infradead.org>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <A9EF2F26-E737-4E80-B2E3-F8D6406F9893-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20150715120708.GA24534-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "ksummit-discuss-cunTk1MwBs98uUxBSJOaYoYkZiVZrdSR2LY78lusg7I@public.gmane.org" <ksummit-discuss-cunTk1MwBs98uUxBSJOaYoYkZiVZrdSR2LY78lusg7I@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 15/07/15 13:07, Christoph Hellwig wrote:
+> Many years ago we decided to move setting of IRQ to core affnities to
+> userspace with the irqbalance daemon.
+> 
+> These days we have systems with lots of MSI-X vector, and we have
+> hardware and subsystem support for per-CPU I/O queues in the block
+> layer, the RDMA subsystem and probably the network stack (I'm not too
+> familar with the recent developments there).  It would really help the
+> out of the box performance and experience if we could allow such
+> subsystems to bind interrupt vectors to the node that the queue is
+> configured on.
+> 
+> I'd like to discuss if the rationale for moving the IRQ affinity setting
+> fully to userspace are still correct in todays world any any pitfalls
+> we'll have to learn from in irqbalanced and the old in-kernel affinity
+> code.
 
-On Jul 15, 2015, at 10:32 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrot=
-e:
+I've been pondering about having some notion of "grouping", where some
+interrupts are logically part of the same working set, and it doesn't
+make much sense to spread it among CPUs, and userspace doesn't really
+have a clue about this.
 
->=20
-> On Jul 15, 2015, at 4:01 AM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>=
- wrote:
->=20
->> On 7/14/2015 8:09 PM, Jason Gunthorpe wrote:
->>> On Tue, Jul 14, 2015 at 07:55:39PM +0300, Sagi Grimberg wrote:
->>>=20
->>>> But, if people think that it's better to have an API that does imp=
-licit
->>>> posting always without notification, and then silently consume err=
-or or
->>>> flush completions. I can try and look at it as well.
->>>=20
->>> Can we do FMR transparently if we bundle the post? If yes, I'd call
->>> that a winner..
->>=20
->> Doing FMR transparently is not possible as the unmap flow is schedul=
-ing.
->> Unlike NFS, iSER unmaps from a soft-IRQ context, SRP unmaps from
->> hard-IRQ context.
->=20
-> The context in which RPC/RDMA performs FMR unmap mustn=92t sleep.
-> RPC/RDMA is in roughly the same situation as the other initiators.
->=20
->=20
->> Changing the context to thread context is not
->> acceptable. The best we can do is using FMR_POOLs transparently.
->> Other than polluting the API and its semantics I suspect people will
->> have other problems with it (leaving the MRs open).
->=20
-> Count me in that group.
->=20
-> I would rather not build a non-deterministic delay into the
-> unmap interface. Using a pool or having map do an implicit
-> unmap are both solutions I=92d rather avoid.
->=20
-> In both situations, MRs can be left mapped indefinitely if,
-> say, the workload pauses.
->=20
->=20
->> I suggest to start with what I proposed. And in a later stage (if we
->> still think its needed) we can have a higher level API that hides th=
-e
->> post, something like:
->=20
->> rdma_reg_sg(struct ib_qp *qp,
->>           struct ib_mr *mr,
->>           struct scatterlist *sg,
->>           int sg_nents,
->>           u64 offset,
->>           u64 length,
->>           int access_flags)
->=20
-> I still wonder what =93length=94 means in the context of a scatterlis=
-t.
->=20
->=20
->> rdma_unreg_mr(struct ib_qp *qp,
->>             struct ib_mr *mr)
->=20
-> An implicit caveat to using this is that the ULP would have to
-> ensure the =93qp=94 parameter is not NULL and that the referenced
-> QP will not be destroyed during this call.
->=20
-> So these calls have to be serialized with transport connect and
-> device removal.
->=20
-> The philosophical preference would be that the API should take
-> care of this itself, but I=92m not smart enough to see how that
-> can be done.
+A related problem is that some weird HW (things like cascaded interrupt
+controllers) can only move a bunch of interrupt in one go, which isn't
+really what userspace expects to see (move one interrupt, see another 31
+moving).
 
-Well, OK, there is an obvious way to do this: QP reference counting.
+Thanks,
 
-
->> Or incorporate that with a pool API, something like:
->=20
-> FRWR does not need a pool. I=92d rather not burden this API
-> with what is essentially an FMR workaround that introduces a
-> non-deterministic exposure of the data in each MR.
->=20
->=20
->> rdma_create_fr_pool(struct ib_qp *qp,
->>                   int nmrs,
->>                   int mr_size,
->>                   int create_flags)
->>=20
->> rdma_destroy_fr_pool(struct rdma_fr_pool *pool)
->>=20
->> rdma_fr_reg_sg(struct rdma_fr_pool *pool,
->>              struct scatterlist *sg,
->>              int sg_nents,
->>              u64 offset,
->>              u64 length,
->>              int access_flags)
->>=20
->> rdma_fr_unreg_mr(struct rdma_fr_pool *pool,
->>                struct ib_mr *mr)
->>=20
->>=20
->> Note that I expect problems with both approaches, but
->> we can look into it...
->>=20
->> Sagi.
->=20
-> --
-> Chuck Lever
->=20
->=20
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+	M.
+-- 
+Jazz is not dead. It just smells funny...
 --
-Chuck Lever
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
