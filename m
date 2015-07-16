@@ -1,58 +1,78 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH v1 08/12] IB/cma: Add net_dev and private data checks to
- RDMA CM
-Date: Thu, 16 Jul 2015 12:01:55 +0000
-Message-ID: <HE1PR05MB1418FA1E41CFA446C04FC07FB1990@HE1PR05MB1418.eurprd05.prod.outlook.com>
-References: <1434976961-27424-1-git-send-email-haggaie@mellanox.com>
- <1434976961-27424-9-git-send-email-haggaie@mellanox.com>
- <20150713181414.GJ23832@obsidianresearch.com> <55A63CAC.60603@mellanox.com>
- <20150715184934.GD23588@obsidianresearch.com>
- <HE1PR05MB1418C82958B3CCF0D3531E5BB19A0@HE1PR05MB1418.eurprd05.prod.outlook.com>
- <20150715210342.GA32516@obsidianresearch.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: Kernel fast memory registration API proposal [RFC]
+Date: Thu, 16 Jul 2015 15:21:04 +0300
+Message-ID: <55A7A1B0.5000808@dev.mellanox.co.il>
+References: <559F8BD1.9080308@dev.mellanox.co.il>
+ <20150715073233.GA11535@infradead.org>
+ <20150715170750.GA23588@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150715210342.GA32516-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20150715170750.GA23588-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
+On 7/15/2015 8:07 PM, Jason Gunthorpe wrote:
+> On Wed, Jul 15, 2015 at 12:32:33AM -0700, Christoph Hellwig wrote:
+>> int rdma_create_mr(struct ib_pd *pd, enum rdma_mr_type mr,
+>> 	u32 max_pages, int flags);
+>>
+>>>    *     array from a SG list
+>>>    * @mr:          memory region
+>>>    * @sg:          sg list
+>>>    * @sg_nents:    number of elements in the sg
+>>>    *
+>>>    * Can fail if the HW is not able to register this
+>>>    * sg list. In case of failure - caller is responsible
+>>>    * to handle it (bounce-buffer, multiple registrations...)
+>>>    */
+>>> int ib_mr_set_sg(struct ib_mr *mr,
+>>>                   struct scatterlist *sg,
+>>>                   unsigned short sg_nents);
+>>
+>> Call this rdma_map_sg?
+>>
+>>>           /* register the MR */
+>>>           frwr.opcode = IB_WR_FAST_REG_MR;
+>>>           frwr.wrid = my_wrid;
+>>>           frwr.wr.fast_reg.mr = mr;
+>>>           frwr.wr.fast_reg.iova = ib_sg_dma_adress(&sg[0]);
+>>>           frwr.wr.fast_reg.length = length;
+>>>           frwr.wr.fast_reg.access_flags = my_flags;
+>>
+>> Provide a helper to hide all this behind the scenes please:
+>>
+>> void rdma_init_mr_wr(struct ib_send_wr *wr, struct rdma_mr *mr,
+>> 		u64 wr_id, int mr_access_flags);
+>>
+>> Or if we got with Jason's suggestion split "int mr_access_flags" into
+>> "bool remote, bool is_write".
+>
+> Yes please. Considering the security implications we need to be much
+> more careful API wise here. This is more of a code-as-documentation
+> issue than a functional issue.
 
-> > After all, it is the payload that designates the entity that you
-> > want to establish a connection to, rather than the packet headers,
-> > which are just meant to relay the packet to the proper CM
-> 
-> No, that isn't right. The IBA uses the GMP's destination first, then
-> serviceID as the demux. Services IDs are not globally unique, they are
-> scoped by the destination.
-> 
+I gotta say,
 
-The destination is the physical CA port and kernel CM agent, so I don't think the answer is that clear.
-Going forward along these lines:
-- Name space lookup is done based on BTH.pkey, private_data.IP, and optionally GRH.DGID (if present, for extra validation)
--- Primary and alternate paths are not considered at all
+these suggestions of bool/write or supported_ops with a convert helper
+seem (to me at least) to make things more complicated.
 
-- If P_Key enforcement is set up via cgroups:
--- For CM processing, we only check BTH.pkey
---- Upon conflict, the packet is dropped
--- The primary/alternate path pkeys are not validated by CM, but will be validated during QP modification
+Why not just set the the access_flags as they are?
+I want local use?
+set IB_ACCESS_LOCAL_WRITE
+I want a peer to read from me?
+set IB_ACCESS_REMOTE_READ
+I want a peer to write to me?
+IB_ACCESS_REMOTE_WRITE
+...
 
-Does this sound OK?
+isn't it much simpler?
 
-In any case, let's complete the namespace lookup first, and then follow up with a cgroup patchset.
-
-> The path data is just *routing* it doesn't describe at all the entity
-> we want to talk to, it is only a proposal for how to flow data to it.
-> 
-> In any event, both the GMP headers and the path data needs to be
-> checked against the container's pkey list. I don't know why this is so
-> contentions.
-> 
-> Jason
+If we want to mask out iWARP difference, we use the
+Steve's roles_to_access() helper thing...
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
