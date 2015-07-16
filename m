@@ -1,34 +1,51 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH v1 08/12] IB/cma: Add net_dev and private data checks to
- RDMA CM
-Date: Thu, 16 Jul 2015 12:22:20 -0600
-Message-ID: <20150716182220.GE3680@obsidianresearch.com>
-References: <1434976961-27424-1-git-send-email-haggaie@mellanox.com>
- <1434976961-27424-9-git-send-email-haggaie@mellanox.com>
- <20150713181414.GJ23832@obsidianresearch.com>
- <55A63CAC.60603@mellanox.com>
- <20150715184934.GD23588@obsidianresearch.com>
- <HE1PR05MB1418C82958B3CCF0D3531E5BB19A0@HE1PR05MB1418.eurprd05.prod.outlook.com>
- <20150715210342.GA32516@obsidianresearch.com>
- <HE1PR05MB1418FA1E41CFA446C04FC07FB1990@HE1PR05MB1418.eurprd05.prod.outlook.com>
+From: "Steve Wise" <swise@opengridcomputing.com>
+Subject: RE: [PATCH] infiniband:cxgb4:Make the function rdma_supported bool
+Date: Thu, 16 Jul 2015 13:40:41 -0500
+Message-ID: <003901d0bff6$eb0aadb0$c1200910$@opengridcomputing.com>
+References: <1437071644-23895-1-git-send-email-xerofoify@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <HE1PR05MB1418FA1E41CFA446C04FC07FB1990@HE1PR05MB1418.eurprd05.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-To: Liran Liss <liranl@mellanox.com>
-Cc: Haggai Eran <haggaie@mellanox.com>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1437071644-23895-1-git-send-email-xerofoify@gmail.com>
+Content-Language: en-us
+Sender: linux-kernel-owner@vger.kernel.org
+To: 'Nicholas Krause' <xerofoify@gmail.com>, swise@chelsio.com
+Cc: dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 16, 2015 at 12:01:55PM +0000, Liran Liss wrote:
+Is this change really worth the effort?
 
-> - Name space lookup is done based on BTH.pkey, private_data.IP, and
->   optionally GRH.DGID (if present, for extra validation)
 
-Just changing the pkey to BTH.pkey would be fine by me.
-
-Using GRH.DGID if available instead of the primary path hack is also
-smart, I pointed that out at the beginning..
-
-Jason
+> -----Original Message-----
+> From: Nicholas Krause [mailto:xerofoify@gmail.com]
+> Sent: Thursday, July 16, 2015 1:34 PM
+> To: swise@chelsio.com
+> Cc: dledford@redhat.com; sean.hefty@intel.com; hal.rosenstock@gmail.com; linux-rdma@vger.kernel.org; linux-kernel@vger.kernel.org
+> Subject: [PATCH] infiniband:cxgb4:Make the function rdma_supported bool
+> 
+> This makes the function rdma_supported have a return type of bool
+> due to this particular function's return statement always returning
+> either one or zero as its return value.
+> 
+> Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
+> ---
+>  drivers/infiniband/hw/cxgb4/device.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+> index 1a29739..285f6606 100644
+> --- a/drivers/infiniband/hw/cxgb4/device.c
+> +++ b/drivers/infiniband/hw/cxgb4/device.c
+> @@ -912,7 +912,7 @@ static void c4iw_remove(struct uld_ctx *ctx)
+>  	c4iw_dealloc(ctx);
+>  }
+> 
+> -static int rdma_supported(const struct cxgb4_lld_info *infop)
+> +static bool rdma_supported(const struct cxgb4_lld_info *infop)
+>  {
+>  	return infop->vr->stag.size > 0 && infop->vr->pbl.size > 0 &&
+>  	       infop->vr->rq.size > 0 && infop->vr->qp.size > 0 &&
+> --
+> 2.1.4
