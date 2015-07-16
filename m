@@ -1,51 +1,37 @@
-From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: [PATCH] infiniband:cxgb4:Make the function rdma_supported bool
-Date: Thu, 16 Jul 2015 13:40:41 -0500
-Message-ID: <003901d0bff6$eb0aadb0$c1200910$@opengridcomputing.com>
-References: <1437071644-23895-1-git-send-email-xerofoify@gmail.com>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 06/41] IB/hfi1: add char device instantiation code
+Date: Thu, 16 Jul 2015 19:23:42 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC257630C4@fmsmsx120.amr.corp.intel.com>
+References: <20150611230710.16479.62955.stgit@phlsvslse11.ph.intel.com>
+ <20150611230901.16479.18231.stgit@phlsvslse11.ph.intel.com>
+ <CAJ3xEMjRPdqWSGSwaEvyhmMQOFqaEi9ZzD5oKzmOhJyERLz4-w@mail.gmail.com>
+ <20150615173423.GA528@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FF5828@ORSMSX109.amr.corp.intel.com>
+ <20150615181348.GC1089@obsidianresearch.com>
+ <32E1700B9017364D9B60AED9960492BC2574E174@fmsmsx120.amr.corp.intel.com>
+ <32E1700B9017364D9B60AED9960492BC2575144C@fmsmsx120.amr.corp.intel.com>
+ <20150617163140.GA22242@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1437071644-23895-1-git-send-email-xerofoify@gmail.com>
-Content-Language: en-us
-Sender: linux-kernel-owner@vger.kernel.org
-To: 'Nicholas Krause' <xerofoify@gmail.com>, swise@chelsio.com
-Cc: dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150617163140.GA22242-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Is this change really worth the effort?
+> But personally, I hate seeing write() used to emulate ioctl() because 'ioctl is
+> bad'. ie if you are 'writing' a struct that contains user pointers and you
+> expect the kernel to read/write to user memory, then use ioctl. (and that is
+> the 'badness' of ioctl, so pretending it is write doesn't help anything)
+> 
 
+So you are ok with ioctl? Based on the statement above, it appears that you are.
 
-> -----Original Message-----
-> From: Nicholas Krause [mailto:xerofoify@gmail.com]
-> Sent: Thursday, July 16, 2015 1:34 PM
-> To: swise@chelsio.com
-> Cc: dledford@redhat.com; sean.hefty@intel.com; hal.rosenstock@gmail.com; linux-rdma@vger.kernel.org; linux-kernel@vger.kernel.org
-> Subject: [PATCH] infiniband:cxgb4:Make the function rdma_supported bool
-> 
-> This makes the function rdma_supported have a return type of bool
-> due to this particular function's return statement always returning
-> either one or zero as its return value.
-> 
-> Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
-> ---
->  drivers/infiniband/hw/cxgb4/device.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-> index 1a29739..285f6606 100644
-> --- a/drivers/infiniband/hw/cxgb4/device.c
-> +++ b/drivers/infiniband/hw/cxgb4/device.c
-> @@ -912,7 +912,7 @@ static void c4iw_remove(struct uld_ctx *ctx)
->  	c4iw_dealloc(ctx);
->  }
-> 
-> -static int rdma_supported(const struct cxgb4_lld_info *infop)
-> +static bool rdma_supported(const struct cxgb4_lld_info *infop)
->  {
->  	return infop->vr->stag.size > 0 && infop->vr->pbl.size > 0 &&
->  	       infop->vr->rq.size > 0 && infop->vr->qp.size > 0 &&
-> --
-> 2.1.4
+mike
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
