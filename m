@@ -1,78 +1,83 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: Kernel fast memory registration API proposal [RFC]
-Date: Thu, 16 Jul 2015 15:21:04 +0300
-Message-ID: <55A7A1B0.5000808@dev.mellanox.co.il>
-References: <559F8BD1.9080308@dev.mellanox.co.il>
- <20150715073233.GA11535@infradead.org>
- <20150715170750.GA23588@obsidianresearch.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PULL REQUEST] Please pull rdma.git
+Date: Thu, 16 Jul 2015 08:42:53 -0400
+Message-ID: <55A7A6CD.4080900@redhat.com>
+References: <55A56640.2000206@redhat.com> <CA+55aFzdE94JcGT3aF0+rp-ym6UdMCAcQD2LSCBeedv9dLRfhQ@mail.gmail.com> <20150716075542.GA9093@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="VklRfWCQBDtr18HfG9UwqFkFpbf5SawkV"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150715170750.GA23588-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20150716075542.GA9093-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/15/2015 8:07 PM, Jason Gunthorpe wrote:
-> On Wed, Jul 15, 2015 at 12:32:33AM -0700, Christoph Hellwig wrote:
->> int rdma_create_mr(struct ib_pd *pd, enum rdma_mr_type mr,
->> 	u32 max_pages, int flags);
->>
->>>    *     array from a SG list
->>>    * @mr:          memory region
->>>    * @sg:          sg list
->>>    * @sg_nents:    number of elements in the sg
->>>    *
->>>    * Can fail if the HW is not able to register this
->>>    * sg list. In case of failure - caller is responsible
->>>    * to handle it (bounce-buffer, multiple registrations...)
->>>    */
->>> int ib_mr_set_sg(struct ib_mr *mr,
->>>                   struct scatterlist *sg,
->>>                   unsigned short sg_nents);
->>
->> Call this rdma_map_sg?
->>
->>>           /* register the MR */
->>>           frwr.opcode = IB_WR_FAST_REG_MR;
->>>           frwr.wrid = my_wrid;
->>>           frwr.wr.fast_reg.mr = mr;
->>>           frwr.wr.fast_reg.iova = ib_sg_dma_adress(&sg[0]);
->>>           frwr.wr.fast_reg.length = length;
->>>           frwr.wr.fast_reg.access_flags = my_flags;
->>
->> Provide a helper to hide all this behind the scenes please:
->>
->> void rdma_init_mr_wr(struct ib_send_wr *wr, struct rdma_mr *mr,
->> 		u64 wr_id, int mr_access_flags);
->>
->> Or if we got with Jason's suggestion split "int mr_access_flags" into
->> "bool remote, bool is_write".
->
-> Yes please. Considering the security implications we need to be much
-> more careful API wise here. This is more of a code-as-documentation
-> issue than a functional issue.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--VklRfWCQBDtr18HfG9UwqFkFpbf5SawkV
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-I gotta say,
+On 07/16/2015 03:55 AM, Christoph Hellwig wrote:
+> On Wed, Jul 15, 2015 at 05:07:46PM -0700, Linus Torvalds wrote:
+>> Hmm. I've pulled this, but quite frankly, I don't think this was
+>> appropriate for post-merge-window. It's not at all obvious that that
+>> "rdma_cap_ib_switch helper" thing is a bugfix, and that goes for a few=
 
-these suggestions of bool/write or supported_ops with a convert helper
-seem (to me at least) to make things more complicated.
+>> of the other commits too. Some of them are _clearly_ not actual
+>> bug-fixes, but just random commits.
+>=20
+> rdma_cap_ib_switch isn't even a bug fix, it clearly adds (or shuffles)
+> dead code..
+>=20
 
-Why not just set the the access_flags as they are?
-I want local use?
-set IB_ACCESS_LOCAL_WRITE
-I want a peer to read from me?
-set IB_ACCESS_REMOTE_READ
-I want a peer to write to me?
-IB_ACCESS_REMOTE_WRITE
-...
+In the 4.2 merge window we added the code that mostly eliminated our
+reliance on node_type as anything of value (instead of checking
+node_type + link_layer to determine if certain features were supported,
+we added a bitmap of the features themselves and now check that bitmap).
+ Then I went on PTO for several weeks during the merge window.  While I
+was gone, the rdma_cap_ib_switch helper patch was discussed and written
+on the mailing list.  When I got back (which was just before the first
+rc), it took me a bit of time to get all of the appropriate patches
+pulled together and submitted.  I included that code because it was the
+last remnant of node_type still in use, was a use that the original
+patchset didn't address, and taking it allowed us to go from using
+node_type to not using node_type at all in one kernel version instead of
+going from using node_type, to using node_type for switches only, to not
+using node_type at all across a series of two kernels.
 
-isn't it much simpler?
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
 
-If we want to mask out iWARP difference, we use the
-Steve's roles_to_access() helper thing...
+
+
+--VklRfWCQBDtr18HfG9UwqFkFpbf5SawkV
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJVp6bNAAoJELgmozMOVy/ducsQAJis1FxZ+OPg9smcJyBR0DEW
+eOk0kTGazgGY2tFdQviBq0u293/Neh8lEa5Pws6M2czCzxjmwy+jdVs2hy5YnT4W
+HCms6odfEL+T78OfmJpD/4rG7U5TUPQDgS2JYH9lWD759OyJ3n1rfUasg9fmu77q
+tC6OxCYWaE5rj4xGP1pgrghZQXZvxN5wl40ZsHG02IWVpVjp1hphMvD6oi+1Z43Y
+KsMECFfWVVEXptWUj+j7qXfalhqDA6cpxBMysWHOrR4D/BWkGvRN98u6UXApcXI2
+eu/D7DCa8SK75NzjTSz1Rq+2H4PeNAn2nDEeVGbSAhD73fqpR/q0c2xlXQRb82vF
+R6PsiLcb6fvbygSjD1hTTNsSL14YoeAdXn5+QOq/nLrGb15cdW6N4mbS7vYbs17S
+CagpOVLnksZx7N7jISxyFSRCjKpuCTleEgOjVmr1cP/4/9ZtJrD6HnW21zP0bK1C
+stxEVuH52vmbfTsAg44T47HUZai2RD78dDUJWn5g3w3wdGHApCRzJtRHzNHZjqKW
+RsGKIqIBUbrBCKen4bJyHOcCqimwF3gSN+so588M4tWxu7G3I/OxyAOe07xM+vPi
+pO9OE/B1NB41OpfJwN0YYjbRMWpIesFJVwAg3yu6T+SpQ/JnXm0kvhulLPIEmj5c
+W+wIICbgO+YaMG9EFsqI
+=nHaB
+-----END PGP SIGNATURE-----
+
+--VklRfWCQBDtr18HfG9UwqFkFpbf5SawkV--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
