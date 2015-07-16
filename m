@@ -1,61 +1,58 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: Kernel fast memory registration API proposal [RFC]
-Date: Thu, 16 Jul 2015 11:29:56 +0300
-Message-ID: <55A76B84.30504@dev.mellanox.co.il>
-References: <20150713163015.GA23832@obsidianresearch.com>
- <55A4CABC.5050807@dev.mellanox.co.il> <20150714153347.GA11026@infradead.org>
- <55A534D1.6030008@dev.mellanox.co.il>
- <20150714163506.GC7399@obsidianresearch.com>
- <55A53F0B.5050009@dev.mellanox.co.il>
- <20150714170859.GB19814@obsidianresearch.com>
- <55A6136A.8010204@dev.mellanox.co.il>
- <A9EF2F26-E737-4E80-B2E3-F8D6406F9893@oracle.com>
- <55A754BC.6010706@dev.mellanox.co.il> <20150716080702.GD9093@infradead.org>
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH v1 08/12] IB/cma: Add net_dev and private data checks to
+ RDMA CM
+Date: Thu, 16 Jul 2015 12:01:55 +0000
+Message-ID: <HE1PR05MB1418FA1E41CFA446C04FC07FB1990@HE1PR05MB1418.eurprd05.prod.outlook.com>
+References: <1434976961-27424-1-git-send-email-haggaie@mellanox.com>
+ <1434976961-27424-9-git-send-email-haggaie@mellanox.com>
+ <20150713181414.GJ23832@obsidianresearch.com> <55A63CAC.60603@mellanox.com>
+ <20150715184934.GD23588@obsidianresearch.com>
+ <HE1PR05MB1418C82958B3CCF0D3531E5BB19A0@HE1PR05MB1418.eurprd05.prod.outlook.com>
+ <20150715210342.GA32516@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150716080702.GD9093-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <20150715210342.GA32516-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/16/2015 11:07 AM, Christoph Hellwig wrote:
-> On Thu, Jul 16, 2015 at 09:52:44AM +0300, Sagi Grimberg wrote:
->>>> I suggest to start with what I proposed. And in a later stage (if we
->>>> still think its needed) we can have a higher level API that hides the
->>>> post, something like:
->>>
->>>> rdma_reg_sg(struct ib_qp *qp,
->>>>             struct ib_mr *mr,
->>>>             struct scatterlist *sg,
->>>>             int sg_nents,
->>>>             u64 offset,
->>>>             u64 length,
->>>>             int access_flags)
->>>
->>> I still wonder what ?length? means in the context of a scatterlist.
->>
->> Would byte_count be a more explanatory name?
->
-> What do you even need it for?  The total length is implicitly stored in
-> the S/G list as the list of all elements.
->
-> What's the offset for?  To allow skipping parts of a S/G list previously
-> mapped?
->
+> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
 
-These were added when I thought of the pages helper. The memory region
-HW tables consist of physical addresses, a first byte offset, and a
-byte length to indicate when the region ends in the last page.
+> > After all, it is the payload that designates the entity that you
+> > want to establish a connection to, rather than the packet headers,
+> > which are just meant to relay the packet to the proper CM
+> 
+> No, that isn't right. The IBA uses the GMP's destination first, then
+> serviceID as the demux. Services IDs are not globally unique, they are
+> scoped by the destination.
+> 
 
-However, if we have only sg lists, I agree that the length is derived
-from the sg_list itself and the offset will be sg[0]->offset.
+The destination is the physical CA port and kernel CM agent, so I don't think the answer is that clear.
+Going forward along these lines:
+- Name space lookup is done based on BTH.pkey, private_data.IP, and optionally GRH.DGID (if present, for extra validation)
+-- Primary and alternate paths are not considered at all
 
-I can drop it, unless anyone can think of a use-case where a ULP would
-want to register a region with a different offset from sg[0]->offset
-and/or ends before the sum(sg->length).
+- If P_Key enforcement is set up via cgroups:
+-- For CM processing, we only check BTH.pkey
+--- Upon conflict, the packet is dropped
+-- The primary/alternate path pkeys are not validated by CM, but will be validated during QP modification
+
+Does this sound OK?
+
+In any case, let's complete the namespace lookup first, and then follow up with a cgroup patchset.
+
+> The path data is just *routing* it doesn't describe at all the entity
+> we want to talk to, it is only a proposal for how to flow data to it.
+> 
+> In any event, both the GMP headers and the path data needs to be
+> checked against the container's pkey list. I don't know why this is so
+> contentions.
+> 
+> Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
