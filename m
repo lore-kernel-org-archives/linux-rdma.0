@@ -1,171 +1,234 @@
-From: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Subject: Re: [Ksummit-discuss] [TECH TOPIC] IRQ affinity
-Date: Fri, 17 Jul 2015 17:51:07 +0200 (CEST)
-Message-ID: <alpine.DEB.2.11.1507171655110.18576@nanos>
-References: <20150715120708.GA24534@infradead.org> <alpine.DEB.2.11.1507151408570.18576@nanos> <55A67F11.1030709@sandisk.com> <alpine.LNX.2.00.1507151700300.15930@localhost.lm.intel.com> <55A697A3.3090305@kernel.dk> <20150715184800.GL13681@linux.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: Kernel fast memory registration API proposal [RFC]
+Date: Fri, 17 Jul 2015 11:21:41 -0600
+Message-ID: <20150717172141.GA15808@obsidianresearch.com>
+References: <55A6136A.8010204@dev.mellanox.co.il>
+ <A9EF2F26-E737-4E80-B2E3-F8D6406F9893@oracle.com>
+ <20150715171926.GB23588@obsidianresearch.com>
+ <F2C64EE9-38A5-4DEE-B60E-AD8430FE1049@oracle.com>
+ <20150715224928.GA941@obsidianresearch.com>
+ <F0518DEF-D43C-4CB6-89ED-CA3E94A4DD72@oracle.com>
+ <20150716174046.GB3680@obsidianresearch.com>
+ <F8484ABB-BED9-463F-8AEA-EB898EBDD93C@oracle.com>
+ <20150716204932.GA10638@obsidianresearch.com>
+ <62F9F5B8-0A18-4DF8-B47E-7408BFFE9904@oracle.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150715184800.GL13681-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <62F9F5B8-0A18-4DF8-B47E-7408BFFE9904-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matthew Wilcox <willy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, ksummit-discuss-cunTk1MwBs98uUxBSJOaYoYkZiVZrdSR2LY78lusg7I@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-B1;2802;0cOn Wed, 15 Jul 2015, Matthew Wilcox wrote:
-> On Wed, Jul 15, 2015 at 11:25:55AM -0600, Jens Axboe wrote:
-> > On 07/15/2015 11:19 AM, Keith Busch wrote:
-> > >On Wed, 15 Jul 2015, Bart Van Assche wrote:
-> > >>* With blk-mq and scsi-mq optimal performance can only be achieved if
-> > >> the relationship between MSI-X vector and NUMA node does not change
-> > >> over time. This is necessary to allow a blk-mq/scsi-mq driver to
-> > >> ensure that interrupts are processed on the same NUMA node as the
-> > >> node on which the data structures for a communication channel have
-> > >> been allocated. However, today there is no API that allows
-> > >> blk-mq/scsi-mq drivers and irqbalanced to exchange information
-> > >> about the relationship between MSI-X vector ranges and NUMA nodes.
-> > >
-> > >We could have low-level drivers provide blk-mq the controller's irq
-> > >associated with a particular h/w context, and the block layer can provide
-> > >the context's cpumask to irqbalance with the smp affinity hint.
-> > >
-> > >The nvme driver already uses the hwctx cpumask to set hints, but this
-> > >doesn't seems like it should be a driver responsibility. It currently
-> > >doesn't work correctly anyway with hot-cpu since blk-mq could rebalance
-> > >the h/w contexts without syncing with the low-level driver.
-> > >
-> > >If we can add this to blk-mq, one additional case to consider is if the
-> > >same interrupt vector is used with multiple h/w contexts. Blk-mq's cpu
-> > >assignment needs to be aware of this to prevent sharing a vector across
-> > >NUMA nodes.
-> > 
-> > Exactly. I may have promised to do just that at the last LSF/MM conference,
-> > just haven't done it yet. The point is to share the mask, I'd ideally like
-> > to take it all the way where the driver just asks for a number of vecs
-> > through a nice API that takes care of all this. Lots of duplicated code in
-> > drivers for this these days, and it's a mess.
-> 
-> Yes.  I think the fundamental problem is that our MSI-X API is so funky.
-> We have this incredibly flexible scheme where each MSI-X vector could
-> have its own interrupt handler, but that's not what drivers want.
-> They want to say "Give me eight MSI-X vectors spread across the CPUs,
-> and use this interrupt handler for all of them".  That is, instead of
-> the current scheme where each MSI-X vector gets its own Linux interrupt,
-> we should have one interrupt handler (of the per-cpu interrupt type),
-> which shows up with N bits set in its CPU mask.
+On Fri, Jul 17, 2015 at 11:03:45AM -0400, Chuck Lever wrote:
+>=20
+> On Jul 16, 2015, at 4:49 PM, Jason Gunthorpe <jgunthorpe@obsidianrese=
+arch.com> wrote:
+>=20
+> > On Thu, Jul 16, 2015 at 04:07:04PM -0400, Chuck Lever wrote:
+> >=20
+> >> The MRs are registered only for remote read. I don=E2=80=99t think
+> >> catastrophic harm can occur on the client in this case if the
+> >> invalidation and DMA sync comes late. In fact, I=E2=80=99m unsure =
+why
+> >> a DMA sync is even necessary as the MR is invalidated in this
+> >> case.
+> >=20
+> > For RDMA, the worst case would be some kind of information leakage =
+or
+> > machine check halt.
+> >=20
+> > For read side the DMA API should be called before posting the FRWR,=
+ no
+> > completion side issues.
+>=20
+> It is: rpcrdma_map_one() is done by .ro_map in both the RDMA READ
+> and WRITE cases.
+>=20
+> Just to confirm: you=E2=80=99re saying that for MRs that are read-acc=
+essed,
+> no matching ib_dma_unmap_{page,single}() is required ?
 
-That certainly would help, but I'm definitely not going to open a huge
-can of worms by providing a side channel for vector allocation with
-all the variants of irq remapping and whatsoever.
+Sorry, I wasn't clear, dma_map/unmap must always be paired, they should
+ideally be in the right ordering:
+ dma_map(.)
+ create MR
+ invalidate MR
+ dma_unmap()
 
-Though we certainly can do better than we do now. We recently reworked
-the whole interrupt handling of x86 to use hierarchical interrupt
-domains. This allows us to come up with a clean solution for your
-issue. The current hierarchy looks like this:
+Remember the DMA API could spin up IOMMU mappings or otherwise,
+pairing is critical, ordering is critical, and I'd have some concern
+around timeliness too..
 
-  [MSI-domain]
-	|
-	v
-  [optional REMAP-domain]
-	|
-	v
-  [Vector-domain]
+When I said no issues, I was talking about running the MR invalidate
+async with RPC processing. That should be fine.
 
-Now it's simple to add another hierarchy level:
+But the dma unmap should be done from the SCQ processing loop, after
+it is known the INVALIDATE for the ACCESS_REMOTE_READ MR is
+complete. You could perhaps suppress completion for the invalidate, as
+long as there is a scheme to track the needed invalidate (see my last
+email)
 
-  [MSI/X-Multiqueue-domain]
-	|
-	v
-  [MSI-domain]
-	|
-	v
-  [optional REMAP-domain]
-	|
-	v
-  [Vector-domain]
+A ACCES_REMOTE_WRITE MR side is basically the same, except the
+INVALIDATE should be signaled and RPC processing should resume from
+the SCQ side.
 
-The MSI/X-Multiqueue-domain would be the one which is associated to
-this class of devices. The domain would provide a single virtual
-interrupt number to the device and hide the underlying details.
+This is where you'd put a 'server trust' performance option to run
+even the write invalidate async, then the dma_unmap should be done
+when the invalidate is posted.
 
-This needs a few new interfaces at the irq core level because we
-cannot map that 1:1 to the per cpu interrupt mechanism which we have
-on ARM and other architectures.
+> Sure. It might be possible to move both the DMA unmap and the
+> invalidate into the reply handler without a lot of surgery.
+> We=E2=80=99ll see.
+>=20
+> There would be some performance cost. That=E2=80=99s unfortunate beca=
+use
+> the scenarios we=E2=80=99re guarding against are exceptionally rare.
 
-irqdomain interfaces used from PCI/MSI infrastructure code:
+NFS needs to learn to do SEND WITH INVALIDATE to mitigate the
+invalidate cost...
 
-  irq_domain_alloc_mq(....., nr_vectors, spread_scheme)
+> > Use a scheme where you supress signaling and use the SQE accounting=
+ to
+> > request a completion entry and signal around every 1/2 length of th=
+e
+> > SQ.
+>=20
+> Actually Sagi and I have found we can=E2=80=99t leave more than about=
+ 80
+> sends unsignalled, no matter how long the pre-allocated SQ is.
 
-    @nr_vectors:     The number of vectors to allocate underneath
+Hum, I'm pretty sure I've done more than that before on mlx4 and
+mthca. Certainly, I can't think of any reason (spec wise) for the
+above to be true. Sagi, do you know what this is?
 
-    @spread_scheme:  Some form of advice/hint how to spread the vectors
-    		     (nodes, cpus, ...)
+The fact you see unexplained problems like this is more likely to be a
+reflection of NFS not following the rules for running the SQ, than a
+driver bug. QP blow ups and posting failures are exactly the symptoms
+of not following the rules :)
 
-    Returns a unique virtual interrupt number which shows up in
-    /proc/irq. The virtual interrupt cannot be influenced by user space
-    affinity settings (e.g. irqbalanced)
+Once the ULP is absolutely certain, by direct accounting of consumed
+SQEs that it is not over posting, would I look for a driver/hw
+problem....
 
-    The vectors will have seperate irq numbers and irq descriptors,
-    but those should be supressed in /proc/interrupts. /proc/irq/NNN
-    should expose the information at least for debugging purposes.
+> Since most send completions are silenced, xprtrdma relies on seeing
+> the completion of a _subsequent_ WR.
 
-    One advantage of these seperate descriptors is that the associated
-    data will be cpu/node local according to the spread scheme.
+Right, since you don't care about the sends, you only need enough
+information and signalling to flow control the SQ/SCQ. But, a SEND
+that would other wise be silenced, should be signaled if it falls at
+the 1/2 mark, or is the last WR placed into a becoming full SQ. That
+minimum basic mandatory signalling is required to avoid deadlocking.
 
-  irq_domain_free_mq()
+> So, if my reply handler were to issue a LOCAL_INV WR and wait for
+> its completion, then the completion of send WRs submitted before
+> that one, even if they are silent, is guaranteed.
 
-    Counterpart to the above
+Yes, the SQ is strongly ordered.
 
-irq core interfaces used from PCI/MSI infrastructure
+> In the cases where the reply handler issues a LOCAL_INV, waiting
+> for its completion before allowing the next RPC to be sent is
+> enough to guarantee space on the SQ, I would think.
 
-  irq_move_mq_vector()
+> For FMR and smaller RPCs that don=E2=80=99t need RDMA, we=E2=80=99d p=
+robably
+> have to wait on the completion of the RDMA SEND of the RPC call
+> message.
 
-    Move a multiqueue vector to a new target (cpu, node)  
+> So, we could get away with signalling only the last send WR issued
+> for each RPC.
 
-    That might even replace the underlying irq descriptor with a newly
-    allocated one, if the vector moves across nodes.
+I think I see you thinking about how to bolt on a different implicit
+accounting scheme, again using inference about X completing meaning Y
+is available?
 
-Driver relevant interfaces:
+I'm sure that can be made to work (and I think you've got the right
+reasoning), but I strongly don't recommend it - it is complicated and
+brittle to maintain. ie Perhaps NFS had a reasonable scheme like this
+once, but the FRWR additions appear to have damanged it's basic
+unstated assumptions.
 
-  msi_alloc_mq_irqs()/msi_free_mq_irqs()
+Directly track the number of SQEs used and available, use WARN_ON
+before every post to make sure the invariant isn't violated.
 
-    PCI/MSI specific wrappers for the irqdomain interfaces
+Because NFS has a mixed scheme where only INVALIDATE is required
+synchronous, I'd optimize for free flow without requiring SEND to be
+signaled.
 
+Based on your comments, I think an accounting scheme like this makes
+sense:
+ 0. Broadly we want to have three pools for a RPC slot:
+     - Submitted to the upper layer and available for immediate use
+     - Submitted to the network and currently executing
+     - Waiting for resources to recycle
+       * A recv buffer is posted to the local RQ
+       * The far end has posted its recv buffer to its RQ
+       * The SQ/SCQ has avilable space to issue any RPC
+ 1. Each RPC slot takes a maximum of N SQE credits. Figure this
+    constant out at the start of time. I suspect it is 3 when using FRW=
+R.
+ 2. When you pass a RPC slot to the upper layer, either at the start
+    of time, or when completing recvs, decrease the SQE accounting
+    by N. ie the upper layer is now free to use that RPC slot at any
+    momement, the maximum N SQEs it could require are guaranteed
+    available and nothing can steal them.
 
-  msi_mq_move_vector(virq, vector_nr, target)
+    If N SQEs are not available then do not give the slot to the
+    upper layer.
+ 3. When the RPC is actually submitted figure out how many SQEs it
+    really needs and adjust the accounting. Ie if only 1 is needed then
+    return 2 SQE credits.
+ 4. Track SQE credits use at SCQ time using some scheme, and return
+    credit for explicitly&implicitly completed SQEs.
+ 5. Figure out the right place to inject the 3rd pool of #0. This can
+    absolutely be done by deferring advancing the recvQ until the RPC
+    recycling conditions are all met, but it would be better
+    (latency wise) to process the recv and then defer recycling the
+    empty RPC slot.
 
-    @virq: 	The virtual interrupt number
+Use signaling when necessary: at the 1/2 point, for all SQEs when free
+space is < N (deadlock avoidance) and when NFS needs to wait for a
+sync invalidate.
 
-    @vector_nr:	The vector number to move
+It sounds more complicated than it is. :)
 
-    @target:	The target cpu/node information
-    
-    PCI/MSI specific wrapper around irq_move_mq_vector()
-	
-The existing interfaces will behave as follows:
+If you have a work load with no sync-invalidates then the above still
+functions at full speed without requiring extra SEND signaling.
+sync-invalidates cause SQE credits to recycle faster and guarentees we
+won't do the deferral in #5.
 
-    request_irq()
-    free_irq()
-    disable_irq()
-    enable_irq()
+Size the SQ length to be at least something like 2*N*(the # of RPC)
+slots..
 
-    They all operate on the virtual irq number and affect all
-    associated vectors.
+I'd say the above is broadly typical for what I'd consider correct use
+of a RDMA QP.. The three flow control loops of #0 should be fairly obvi=
+ous
+and explicit in the code.
 
-Now the question is whether we need
+> > kfree/dma unmap/etc may only be done on a SEND buffer after seeing =
+a
+> > SCQE proving that buffer is done, or tearing down the QP and haltin=
+g
+> > the send side.
+>=20
+> The buffers the client uses to send an RPC call are DMA mapped once
+> when the transport is created, and a local lkey is used in the SEND
+> WR.
+>=20
+> They are re-used for the next RPCs in the pipe, but as far as I can
+> tell the client=E2=80=99s send buffer contains the RPC call data unti=
+l the
+> RPC request slot is retired (xprt_release).
 
-    en/disable_irq_mq_vector(virq, vector_nr)
+It is what I'd expect based on your past descriptions - just making
+sure you are aware :)
 
-to can shut down / reenable a particular vector, but that would be
-pretty straight forward to do, plus/minus the headache versus the
-global disable/enable mechanism which operates on the virq.
-
-Thoughts?
-
-	tglx
-
-
+Jason
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
