@@ -1,106 +1,53 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Kernel fast memory registration API proposal [RFC]
-Date: Fri, 17 Jul 2015 14:36:02 -0600
-Message-ID: <20150717203602.GA21949@obsidianresearch.com>
-References: <20150715171926.GB23588@obsidianresearch.com>
- <F2C64EE9-38A5-4DEE-B60E-AD8430FE1049@oracle.com>
- <20150715224928.GA941@obsidianresearch.com>
- <F0518DEF-D43C-4CB6-89ED-CA3E94A4DD72@oracle.com>
- <20150716174046.GB3680@obsidianresearch.com>
- <F8484ABB-BED9-463F-8AEA-EB898EBDD93C@oracle.com>
- <20150716204932.GA10638@obsidianresearch.com>
- <62F9F5B8-0A18-4DF8-B47E-7408BFFE9904@oracle.com>
- <20150717172141.GA15808@obsidianresearch.com>
- <9A70883F-9963-42D0-9F5C-EF49F822A037@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <9A70883F-9963-42D0-9F5C-EF49F822A037-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+Subject: [RESEND PATCH v2 0/2] x86/mm/pat: modify nopat requirement warning
+Date: Fri, 17 Jul 2015 14:07:23 -0700
+Message-ID: <1437167245-28273-1-git-send-email-mcgrof@do-not-panic.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: mingo@elte.hu
+Cc: bp@suse.de, andy@silverblocksystems.net, mchehab@osg.samsung.com, dledford@redhat.com, dan.j.williams@intel.com, benh@kernel.crashing.org, luto@amacapital.net, julia.lawall@lip6.fr, jkosina@suse.cz, linux-media@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@suse.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jul 17, 2015 at 03:26:04PM -0400, Chuck Lever wrote:
-> > I'd say the above is broadly typical for what I'd consider correct =
-use
-> > of a RDMA QP.. The three flow control loops of #0 should be fairly =
-obvious
-> > and explicit in the code.
->=20
-> Jason, thanks for your comments and your time.
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
 
-No problem, I hope you can work something out and keep participating
-in the various new API discussions!
+Ingo,
 
-> Some send queue accounting is already in place (see DECR_CQCOUNT).
-> I=E2=80=99m sure that can be enhanced. What may be missing is a check=
- for
-> available send queue resources before dispatching the next RPC.
+Boris is on vacation so sending this through you. This is just a resend of
+the v2 series. The issue here was the WARN() splat on built-in kernels due
+to ivtv's funky probe which will trigger even if you don't have any ivtv
+hardware. I've moved this to only trigger upon a device detection.
 
-Just some more clarity and colour: I talked about tracking SQEs, this
-is explicitly monitoring the SQ and preventing overflow, but I'm
-assuming that there is a 1:1 mapping of SQ to CQ -> ie the CQ is not
-shared.
+We also spoke about not doing any of this and and letting it silently fail
+for these drivers but since this is only for two drivers and the ipath diver
+will be removed only the ivtv driver would be left with this work around. I'd
+like to enforce the semantics for usage of arch_phys_wc_add() with ioremap_wc()
+and making an exception just for ivtv does not seem worth the gains of having
+strong semantics. After all the ioremap_wc() + arch_phys_wc_add() are in I'll
+then try to add an SmPL rule check to enforce semantics on the ioremap_wc() +
+arch_phys_wc_add() API. Hope is that maintainers can vet new code for its
+correct usage in the future with 'make coccicheck M=path' on their subsystems.
 
-In this case, the SQE limit is the smaller of the two queues and
-tracking the SQEs tracks the CQ space.
+For your reference we discussed this and I mentioned my semantics preference
+and you were OK with this [0] so just resending this series as it fell through
+the cracks as Boris is on vacation now.
 
-If the CQ is shared, then the CQ itself should also be tracked, and
-nobody can post to a related Q without CQ space. This forms a fourth
-flow control loop.
+Although the WARN() --> pr_warn() change is not techically needed for ipath,
+we make both checks consistent and less chatty. Since the ivtv change is
+splattering all v4.2 kernels that patch may be worthy for v4.2 inclusion. I
+did not peg the Cc: stable tag so leave this up to you to decide.
 
-So language wise, talk about tracking SQE (send queue entries), and
-if you have shared CQs then add a CQ count.
+Please let me know if this is OK or if there are any other oustandind issues.
 
-Implementation wise, I often use wrapping 64 bit counters to keep
-track of this stuff. Every SQE post incres the head and every SCQ reap
-incrs the tail, (head-tail) < limit is the main math.
+[0] http://lkml.kernel.org/r/20150707070306.GB9784@gmail.com
 
-This lets the counter be used as a record, and aids debugging, see
-below
+Luis R. Rodriguez (2):
+  x86/mm/pat, drivers/infiniband/ipath: replace WARN() with pr_warn()
+  x86/mm/pat, drivers/media/ivtv: move pat warn and replace WARN() with
+    pr_warn()
 
-> However, if we start signaling more aggressively when the send
-> queue is full, that means intentionally multiplying the completion
-> and interrupt rate when the workload is heaviest. That could have
-> performance scalability consequences.
+ drivers/infiniband/hw/ipath/ipath_driver.c |  6 ++++--
+ drivers/media/pci/ivtv/ivtvfb.c            | 15 +++++++++------
+ 2 files changed, 13 insertions(+), 8 deletions(-)
 
-Consider, it is also possible that the SQ is full because we
-are not signaling enough: There are many unreaped entries.
-
-There are many different schemes that are possible here.. What I
-described was something simple and easy to understand, while still
-thinking about various deadlock situations.
-
-Something like this is a more complete example:
-
-uint64_t head_sqe;
-uint64_t tail_sqe;
-uint64_t signaled_sqe;
-
-if (need_signal || =20
-    (head_sqe - signaled_sqe) >=3D sqe_limit/2 ||
-   ((head_sqe - tail_sqe) >=3D (sqe_limit - N) &&
-    (head_sqe - signaled_sqe) >=3D sqe_limit/4) &&
-    ring64_gt(signaled_sqe,tail_sqe)) {
-  wr[0].send_flags |=3D IB_SEND_SIGNALED;
-  signaled_sqe =3D head_sqe;
-}
-
-ib_post(..,1);
-
-head_sqe +=3D 1;
-assert(head_sqe - tail_sqe < sqe_limit);
-
-- Every SQE that crosses a 1/2 marker get a signal at the marker.
-- Upon going full we start signaling, unless we signaled recently,
-  and the last signal has not been reaped.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+2.3.2.209.gd67f9d5.dirty
