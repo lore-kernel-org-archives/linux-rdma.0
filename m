@@ -1,62 +1,36 @@
-From: =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 0/8] Add ODP support using HMM
-Date: Fri, 17 Jul 2015 15:00:57 -0400
-Message-ID: <1437159665-6612-1-git-send-email-jglisse@redhat.com>
+From: =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>
+Subject: [PATCH 3/8] IB/odp: export rbt_ib_umem_for_each_in_range()
+Date: Fri, 17 Jul 2015 15:01:00 -0400
+Message-ID: <1437159665-6612-4-git-send-email-jglisse@redhat.com>
+References: <1437159665-6612-1-git-send-email-jglisse@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Christophe Harle <charle-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Duncan Poole <dpoole-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Sherry Cheung <SCheung-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Subhash Gutti <sgutti-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Mark Hairgrove <mhairgrove-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Lucien Dunning <ldunning-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Cameron Buschardt <cabuschardt-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Arvind Gopalakrishnan <arvindg-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kevin E Martin <kem-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1437159665-6612-1-git-send-email-jglisse@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Christophe Harle <charle@nvidia.com>, Duncan Poole <dpoole@nvidia.com>, Sherry Cheung <SCheung@nvidia.com>, Subhash Gutti <sgutti@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, Mark Hairgrove <mhairgrove@nvidia.com>, Lucien Dunning <ldunning@nvidia.com>, Cameron Buschardt <cabuschardt@nvidia.com>, Arvind Gopalakrishnan <arvindg@nvidia.com>, Haggai Eran <haggaie@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Liran Liss <liranl@mellanox.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-This patchset implement the on demand paging feature using HMM. It
-depends on the HMM patchset v9 (previous post (1)). Long term plan
-is to replace ODP with HMM allowing to share same code infrastructure
-accross different class of devices.
+The mlx5 driver will need this function for its driver specific bit
+of ODP (on demand paging) on HMM (Heterogeneous Memory Management).
 
-HMM (Heterogeneous Memory Management) is an helper layer for device
-that want to mirror a process address space into their own mmu. Main
-target is GPU but other hardware, like network device can take also
-use HMM.
+Signed-off-by: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+---
+ drivers/infiniband/core/umem_rbtree.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Tree with the patchset:
-git://people.freedesktop.org/~glisse/linux hmm-v9 branch
-
-(1) Previous patchset posting :
-    v1 http://lwn.net/Articles/597289/
-    v2 https://lkml.org/lkml/2014/6/12/559
-    v3 https://lkml.org/lkml/2014/6/13/633
-    v4 https://lkml.org/lkml/2014/8/29/423
-    v5 https://lkml.org/lkml/2014/11/3/759
-    v6 http://lwn.net/Articles/619737/
-    v7 http://lwn.net/Articles/627316/
-    v8 https://lwn.net/Articles/645515/
-
-Cheers,
-J=C3=A9r=C3=B4me
-
-To: <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
-To: <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
-Cc: "Kevin E Martin" <kem-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>,
-Cc: "Christophe Harle" <charle-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>,
-Cc: "Duncan Poole" <dpoole-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>,
-Cc: "Sherry Cheung" <SCheung-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>,
-Cc: "Subhash Gutti" <sgutti-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>,
-Cc: "John Hubbard" <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>,
-Cc: "Mark Hairgrove" <mhairgrove-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>,
-Cc: "Lucien Dunning" <ldunning-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>,
-Cc: "Cameron Buschardt" <cabuschardt-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>,
-Cc: "Arvind Gopalakrishnan" <arvindg-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>,
-Cc: "Haggai Eran" <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
-Cc: "Or Gerlitz" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
-Cc: "Sagi Grimberg" <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "Shachar Raindel" <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
-Cc: "Liran Liss" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/core/umem_rbtree.c b/drivers/infiniband=
+/core/umem_rbtree.c
+index 727d788..f030ec0 100644
+--- a/drivers/infiniband/core/umem_rbtree.c
++++ b/drivers/infiniband/core/umem_rbtree.c
+@@ -92,3 +92,4 @@ int rbt_ib_umem_for_each_in_range(struct rb_root *roo=
+t,
+=20
+ 	return ret_val;
+ }
++EXPORT_SYMBOL(rbt_ib_umem_for_each_in_range);
+--=20
+1.9.3
