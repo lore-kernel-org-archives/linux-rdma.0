@@ -1,103 +1,179 @@
-From: =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>
-Subject: [PATCH 2/8] IB/mlx5: add a new parameter to mlx5_ib_update_mtt() for ODP with HMM.
-Date: Fri, 17 Jul 2015 15:00:59 -0400
-Message-ID: <1437159665-6612-3-git-send-email-jglisse@redhat.com>
-References: <1437159665-6612-1-git-send-email-jglisse@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Kernel fast memory registration API proposal [RFC]
+Date: Fri, 17 Jul 2015 15:26:04 -0400
+Message-ID: <9A70883F-9963-42D0-9F5C-EF49F822A037@oracle.com>
+References: <55A6136A.8010204@dev.mellanox.co.il> <A9EF2F26-E737-4E80-B2E3-F8D6406F9893@oracle.com> <20150715171926.GB23588@obsidianresearch.com> <F2C64EE9-38A5-4DEE-B60E-AD8430FE1049@oracle.com> <20150715224928.GA941@obsidianresearch.com> <F0518DEF-D43C-4CB6-89ED-CA3E94A4DD72@oracle.com> <20150716174046.GB3680@obsidianresearch.com> <F8484ABB-BED9-463F-8AEA-EB898EBDD93C@oracle.com> <20150716204932.GA10638@obsidianresearch.com> <62F9F5B8-0A18-4DF8-B47E-7408BFFE9904@oracle.com> <20150717172141.GA15808@obsidianresearch.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1437159665-6612-1-git-send-email-jglisse@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: Christophe Harle <charle@nvidia.com>, Duncan Poole <dpoole@nvidia.com>, Sherry Cheung <SCheung@nvidia.com>, Subhash Gutti <sgutti@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, Mark Hairgrove <mhairgrove@nvidia.com>, Lucien Dunning <ldunning@nvidia.com>, Cameron Buschardt <cabuschardt@nvidia.com>, Arvind Gopalakrishnan <arvindg@nvidia.com>, Haggai Eran <haggaie@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Liran Liss <liranl@mellanox.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150717172141.GA15808-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When using HMM for ODP it will be useful to pass the current mirror
-page table iterator for mlx5_ib_update_mtt() function benefit. Add
-void parameter for this.
 
-Signed-off-by: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
----
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 2 +-
- drivers/infiniband/hw/mlx5/mr.c      | 4 ++--
- drivers/infiniband/hw/mlx5/odp.c     | 8 +++++---
- 3 files changed, 8 insertions(+), 6 deletions(-)
+On Jul 17, 2015, at 1:21 PM, Jason Gunthorpe <jgunthorpe@obsidianresear=
+ch.com> wrote:
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/=
-hw/mlx5/mlx5_ib.h
-index d4dbd8e..79d1e7c 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -571,7 +571,7 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd,=
- u64 start, u64 length,
- 				  u64 virt_addr, int access_flags,
- 				  struct ib_udata *udata);
- int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 start_page_index,
--		       int npages, int zap);
-+		       int npages, int zap, void *data);
- int mlx5_ib_dereg_mr(struct ib_mr *ibmr);
- int mlx5_ib_destroy_mr(struct ib_mr *ibmr);
- struct ib_mr *mlx5_ib_create_mr(struct ib_pd *pd,
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/ml=
-x5/mr.c
-index ef63e5f..3ad371d 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -845,7 +845,7 @@ free_mr:
-=20
- #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
- int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 start_page_index, in=
-t npages,
--		       int zap)
-+		       int zap, void *data)
- {
- 	struct mlx5_ib_dev *dev =3D mr->dev;
- 	struct device *ddev =3D dev->ib_dev.dma_device;
-@@ -912,7 +912,7 @@ int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 s=
-tart_page_index, int npages,
- 		if (!zap) {
- 			__mlx5_ib_populate_pas(dev, umem, PAGE_SHIFT,
- 					       start_page_index, npages, pas,
--					       MLX5_IB_MTT_PRESENT, NULL);
-+					       MLX5_IB_MTT_PRESENT, data);
- 			/* Clear padding after the pages brought from the
- 			 * umem. */
- 			memset(pas + npages, 0, size - npages * sizeof(u64));
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/m=
-lx5/odp.c
-index aa8391e..df86d05 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -91,14 +91,15 @@ void mlx5_ib_invalidate_range(struct ib_umem *umem,=
- unsigned long start,
-=20
- 			if (in_block && umr_offset =3D=3D 0) {
- 				mlx5_ib_update_mtt(mr, blk_start_idx,
--						   idx - blk_start_idx, 1);
-+						   idx - blk_start_idx, 1,
-+						   NULL);
- 				in_block =3D 0;
- 			}
- 		}
- 	}
- 	if (in_block)
- 		mlx5_ib_update_mtt(mr, blk_start_idx, idx - blk_start_idx + 1,
--				   1);
-+				   1, NULL);
-=20
- 	/*
- 	 * We are now sure that the device will not access the
-@@ -249,7 +250,8 @@ static int pagefault_single_data_segment(struct mlx=
-5_ib_qp *qp,
- 			 * this MR, since ib_umem_odp_map_dma_pages already
- 			 * checks this.
- 			 */
--			ret =3D mlx5_ib_update_mtt(mr, start_idx, npages, 0);
-+			ret =3D mlx5_ib_update_mtt(mr, start_idx,
-+						 npages, 0, NULL);
- 		} else {
- 			ret =3D -EAGAIN;
- 		}
---=20
-1.9.3
+> On Fri, Jul 17, 2015 at 11:03:45AM -0400, Chuck Lever wrote:
+>>=20
+>> On Jul 16, 2015, at 4:49 PM, Jason Gunthorpe <jgunthorpe@obsidianres=
+earch.com> wrote:
+>>=20
+>>> Use a scheme where you supress signaling and use the SQE accounting=
+ to
+>>> request a completion entry and signal around every 1/2 length of th=
+e
+>>> SQ.
+>>=20
+>> Actually Sagi and I have found we can=92t leave more than about 80
+>> sends unsignalled, no matter how long the pre-allocated SQ is.
+>=20
+> Hum, I'm pretty sure I've done more than that before on mlx4 and
+> mthca. Certainly, I can't think of any reason (spec wise) for the
+> above to be true. Sagi, do you know what this is?
+>=20
+> The fact you see unexplained problems like this is more likely to be =
+a
+> reflection of NFS not following the rules for running the SQ, than a
+> driver bug. QP blow ups and posting failures are exactly the symptoms
+> of not following the rules :)
+>=20
+> Once the ULP is absolutely certain, by direct accounting of consumed
+> SQEs that it is not over posting, would I look for a driver/hw
+> problem....
+>=20
+>> Since most send completions are silenced, xprtrdma relies on seeing
+>> the completion of a _subsequent_ WR.
+>=20
+> Right, since you don't care about the sends, you only need enough
+> information and signalling to flow control the SQ/SCQ. But, a SEND
+> that would other wise be silenced, should be signaled if it falls at
+> the 1/2 mark, or is the last WR placed into a becoming full SQ. That
+> minimum basic mandatory signalling is required to avoid deadlocking.
+>=20
+>> So, if my reply handler were to issue a LOCAL_INV WR and wait for
+>> its completion, then the completion of send WRs submitted before
+>> that one, even if they are silent, is guaranteed.
+>=20
+> Yes, the SQ is strongly ordered.
+>=20
+>> In the cases where the reply handler issues a LOCAL_INV, waiting
+>> for its completion before allowing the next RPC to be sent is
+>> enough to guarantee space on the SQ, I would think.
+>=20
+>> For FMR and smaller RPCs that don=92t need RDMA, we=92d probably
+>> have to wait on the completion of the RDMA SEND of the RPC call
+>> message.
+>=20
+>> So, we could get away with signalling only the last send WR issued
+>> for each RPC.
+>=20
+> I think I see you thinking about how to bolt on a different implicit
+> accounting scheme, again using inference about X completing meaning Y
+> is available?
+>=20
+> I'm sure that can be made to work (and I think you've got the right
+> reasoning), but I strongly don't recommend it - it is complicated and
+> brittle to maintain. ie Perhaps NFS had a reasonable scheme like this
+> once, but the FRWR additions appear to have damanged it's basic
+> unstated assumptions.
+>=20
+> Directly track the number of SQEs used and available, use WARN_ON
+> before every post to make sure the invariant isn't violated.
+>=20
+> Because NFS has a mixed scheme where only INVALIDATE is required
+> synchronous, I'd optimize for free flow without requiring SEND to be
+> signaled.
+>=20
+> Based on your comments, I think an accounting scheme like this makes
+> sense:
+> 0. Broadly we want to have three pools for a RPC slot:
+>     - Submitted to the upper layer and available for immediate use
+>     - Submitted to the network and currently executing
+>     - Waiting for resources to recycle
+>       * A recv buffer is posted to the local RQ
+>       * The far end has posted its recv buffer to its RQ
+>       * The SQ/SCQ has avilable space to issue any RPC
+> 1. Each RPC slot takes a maximum of N SQE credits. Figure this
+>    constant out at the start of time. I suspect it is 3 when using FR=
+WR.
+> 2. When you pass a RPC slot to the upper layer, either at the start
+>    of time, or when completing recvs, decrease the SQE accounting
+>    by N. ie the upper layer is now free to use that RPC slot at any
+>    momement, the maximum N SQEs it could require are guaranteed
+>    available and nothing can steal them.
+>=20
+>    If N SQEs are not available then do not give the slot to the
+>    upper layer.
+> 3. When the RPC is actually submitted figure out how many SQEs it
+>    really needs and adjust the accounting. Ie if only 1 is needed the=
+n
+>    return 2 SQE credits.
+> 4. Track SQE credits use at SCQ time using some scheme, and return
+>    credit for explicitly&implicitly completed SQEs.
+> 5. Figure out the right place to inject the 3rd pool of #0. This can
+>    absolutely be done by deferring advancing the recvQ until the RPC
+>    recycling conditions are all met, but it would be better
+>    (latency wise) to process the recv and then defer recycling the
+>    empty RPC slot.
+>=20
+> Use signaling when necessary: at the 1/2 point, for all SQEs when fre=
+e
+> space is < N (deadlock avoidance) and when NFS needs to wait for a
+> sync invalidate.
+>=20
+> It sounds more complicated than it is. :)
+>=20
+> If you have a work load with no sync-invalidates then the above still
+> functions at full speed without requiring extra SEND signaling.
+> sync-invalidates cause SQE credits to recycle faster and guarentees w=
+e
+> won't do the deferral in #5.
+>=20
+> Size the SQ length to be at least something like 2*N*(the # of RPC)
+> slots..
+>=20
+> I'd say the above is broadly typical for what I'd consider correct us=
+e
+> of a RDMA QP.. The three flow control loops of #0 should be fairly ob=
+vious
+> and explicit in the code.
+
+Jason, thanks for your comments and your time.
+
+The send queue overflows I saw may indeed be related to the
+current design which assumes the receive completion for an RPC
+reply always implies the send queue has space for the next RPC
+operation=92s send WRs.
+
+I wonder if I introduced this problem when I split the completion
+queue.
+
+Some send queue accounting is already in place (see DECR_CQCOUNT).
+I=92m sure that can be enhanced. What may be missing is a check for
+available send queue resources before dispatching the next RPC.
+
+The three #0 pools make sense, and I can see a mapping onto the
+current RPC client design. When the send queue is full, the next
+RPC can be deferred by not calling xprt_release_rqst_cong() until
+this RPC=92s resources are free.
+
+However, if we start signaling more aggressively when the send
+queue is full, that means intentionally multiplying the completion
+and interrupt rate when the workload is heaviest. That could have
+performance scalability consequences.
+
+
+--
+Chuck Lever
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
