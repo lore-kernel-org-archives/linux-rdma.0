@@ -1,49 +1,48 @@
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Subject: [RESEND PATCH v2 1/2] x86/mm/pat, drivers/infiniband/ipath: replace WARN() with pr_warn()
-Date: Fri, 17 Jul 2015 14:07:24 -0700
-Message-ID: <1437167245-28273-2-git-send-email-mcgrof@do-not-panic.com>
-References: <1437167245-28273-1-git-send-email-mcgrof@do-not-panic.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1437167245-28273-1-git-send-email-mcgrof@do-not-panic.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: mingo@elte.hu
-Cc: bp@suse.de, andy@silverblocksystems.net, mchehab@osg.samsung.com, dledford@redhat.com, dan.j.williams@intel.com, benh@kernel.crashing.org, luto@amacapital.net, julia.lawall@lip6.fr, jkosina@suse.cz, linux-media@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@suse.com>
+From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+Subject: rdma_getaddrinfo and GUID
+Date: Sun, 19 Jul 2015 00:15:50 +0300
+Message-ID: <CACaajQsauS65K8tKwygPB03iyv87uy8s-jPn7_gihqbEU6np3Q@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
+Hello, does it possible to use rdma_getaddrinfo and specify in node port GUID?
+I'm try with fe80:0000:0000:0000:0002:c903:00ef:6651 this simple test:
+#include <stdlib.h>
+#include <stdio.h>
+#include <rdma/rdma_cma.h>
+#include <infiniband/ib.h>
 
-WARN() may confuse users, fix that. ipath_init_one() is part the
-device's probe so this would only be triggered if a corresponding
-device was found.
+int main(int argc, char **argv) {
+  struct rdma_addrinfo *hints, *info;
+  int ret = -1;
+  hints = malloc(sizeof(hints));
+  memset(hints, '\0', sizeof(hints));
+  hints->ai_flags = RAI_NUMERICHOST;
+  hints->ai_family = AF_IB;
+  //  hints->ai_port_space = RDMA_PS_IB;
+  ret = rdma_getaddrinfo(argv[1], NULL, hints, &info);
+  if (ret < 0) {
+    fprintf(stderr, "%d rdma_getaddrinfo\n", ret);
+    return ret;
+  }
+  if (info == NULL) {
+    fprintf(stderr, "%d rdma_getaddrinfo null\n", ret);
+    return -1;
+  }
+  return 0;
+}
 
-Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
----
- drivers/infiniband/hw/ipath/ipath_driver.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+But getting INET6 address
+Also noted that i don't enable IPoIB, why address not IF_IB family ?
 
-diff --git a/drivers/infiniband/hw/ipath/ipath_driver.c b/drivers/infiniband/hw/ipath/ipath_driver.c
-index 2d7e503d13cb..871dbe56216a 100644
---- a/drivers/infiniband/hw/ipath/ipath_driver.c
-+++ b/drivers/infiniband/hw/ipath/ipath_driver.c
-@@ -31,6 +31,8 @@
-  * SOFTWARE.
-  */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/sched.h>
- #include <linux/spinlock.h>
- #include <linux/idr.h>
-@@ -399,8 +401,8 @@ static int ipath_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	u32 bar0 = 0, bar1 = 0;
- 
- #ifdef CONFIG_X86_64
--	if (WARN(pat_enabled(),
--		 "ipath needs PAT disabled, boot with nopat kernel parameter\n")) {
-+	if (pat_enabled()) {
-+		pr_warn("ipath needs PAT disabled, boot with nopat kernel parameter\n");
- 		ret = -ENODEV;
- 		goto bail;
- 	}
 -- 
-2.3.2.209.gd67f9d5.dirty
+Vasiliy Tolstov,
+e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
