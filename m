@@ -1,43 +1,23 @@
 From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
-Subject: rdma_getaddrinfo and GUID
-Date: Sun, 19 Jul 2015 00:15:50 +0300
-Message-ID: <CACaajQsauS65K8tKwygPB03iyv87uy8s-jPn7_gihqbEU6np3Q@mail.gmail.com>
+Subject: Re: rdma_getaddrinfo and GUID
+Date: Sun, 19 Jul 2015 00:38:05 +0300
+Message-ID: <CACaajQvVmaEMzFAsb9yg984uixHLdy=9KQx2A-_idiv7zVWiuw@mail.gmail.com>
+References: <CACaajQsauS65K8tKwygPB03iyv87uy8s-jPn7_gihqbEU6np3Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CACaajQsauS65K8tKwygPB03iyv87uy8s-jPn7_gihqbEU6np3Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello, does it possible to use rdma_getaddrinfo and specify in node port GUID?
-I'm try with fe80:0000:0000:0000:0002:c903:00ef:6651 this simple test:
-#include <stdlib.h>
-#include <stdio.h>
-#include <rdma/rdma_cma.h>
-#include <infiniband/ib.h>
+2015-07-19 0:15 GMT+03:00 Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>:
+> But getting INET6 address
+> Also noted that i don't enable IPoIB, why address not IF_IB family ?
 
-int main(int argc, char **argv) {
-  struct rdma_addrinfo *hints, *info;
-  int ret = -1;
-  hints = malloc(sizeof(hints));
-  memset(hints, '\0', sizeof(hints));
-  hints->ai_flags = RAI_NUMERICHOST;
-  hints->ai_family = AF_IB;
-  //  hints->ai_port_space = RDMA_PS_IB;
-  ret = rdma_getaddrinfo(argv[1], NULL, hints, &info);
-  if (ret < 0) {
-    fprintf(stderr, "%d rdma_getaddrinfo\n", ret);
-    return ret;
-  }
-  if (info == NULL) {
-    fprintf(stderr, "%d rdma_getaddrinfo null\n", ret);
-    return -1;
-  }
-  return 0;
-}
 
-But getting INET6 address
-Also noted that i don't enable IPoIB, why address not IF_IB family ?
+my mistake, i miss RAI_FAMILY append to flags ai_flags
 
 -- 
 Vasiliy Tolstov,
