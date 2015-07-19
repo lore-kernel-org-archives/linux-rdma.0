@@ -1,41 +1,52 @@
 From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: Kernel fast memory registration API proposal [RFC]
-Date: Sun, 19 Jul 2015 08:45:26 +0300
-Message-ID: <55AB3976.7060202@dev.mellanox.co.il>
-References: <559F8BD1.9080308@dev.mellanox.co.il>
+Subject: Re: RFC: Immediate data support for SRP
+Date: Sun, 19 Jul 2015 19:07:16 +0300
+Message-ID: <55ABCB34.1000506@dev.mellanox.co.il>
+References: <55A7CCF1.3080201@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <559F8BD1.9080308-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <55A7CCF1.3080201-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 7/16/2015 6:25 PM, Bart Van Assche wrote:
+> Hello,
 
-> /**
->    * ib_mr_set_sg() - populate memory region buffers
->    *     array from a SG list
->    * @mr:          memory region
->    * @sg:          sg list
->    * @sg_nents:    number of elements in the sg
->    *
->    * Can fail if the HW is not able to register this
->    * sg list. In case of failure - caller is responsible
->    * to handle it (bounce-buffer, multiple registrations...)
->    */
-> int ib_mr_set_sg(struct ib_mr *mr,
->                   struct scatterlist *sg,
->                   unsigned short sg_nents);
+Hi Bart,
 
-I'm thinking now that this should have an input argument
-of block_size. Maybe in the future ULPs would want to register
-huge pages, it will be a shame to map it into PAGE_SIZE chunks...
+I agree it would definitely help as the lack of immediate data
+emphasizes the additional latency of doing rdma reads.
 
-Current users will just pass PAGE_SIZE.
+>
+> As you probably know for write requests "immediate data" means sending
+> the data in the same packet as the write command instead of sending it
+> as a separate packet. This approach improves performance and reduces
+> latency. Although support for immediate data has not been standardized,
 
-Thoughts?
+Has anyone tried to get it into the standard? It would seem beneficial
+to just add it. I wouldn't want this to be a Linux compatible only
+feature...
+
+> it is easy to add to the SRP initiator and target drivers.
+> Implementations exist in the ib_srp-backport initiator driver and the
+> SCST SRP target driver (see also
+> https://github.com/bvanassche/ib_srp-backport and
+> http://sourceforge.net/p/scst/svn/HEAD/tree/trunk/srpt/). These
+> implementations are available since considerable time, work reliably,
+> are backwards compatible and support zero-copy. Since using immediate
+> data provides a measurable performance improvement I'm wondering whether
+> it would be acceptable to add support for immediate data to the SRP
+> drivers in the Linux kernel tree (ib_srp and ib_srpt) ?
+
+Was this tested against any other array besides SCST and LIO? I know
+people are using SRP against various arrays (Oracle ZFS, RamSan TMS,
+DDN Fusion, NIMBUS, NetApp E5400A...). Their not running upstream
+kernels, but they will catch up at some point...
+
+Sagi.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
