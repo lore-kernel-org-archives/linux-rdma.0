@@ -1,50 +1,44 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re:  RFC: Immediate data support for SRP
-Date: Mon, 20 Jul 2015 18:26:53 +0300
-Message-ID: <55AD133D.2040204@mellanox.com>
-References: <55A7CCF1.3080201@sandisk.com>
- <55ABCB34.1000506@dev.mellanox.co.il>
- <CAJ3xEMiz=n_uP9TQ6YsGN+omzsN3Zrz5skDEq00+fE188z0erA@mail.gmail.com>
- <55ACC2FA.8030202@dev.mellanox.co.il>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: Kernel fast memory registration API proposal [RFC]
+Date: Mon, 20 Jul 2015 10:18:21 -0600
+Message-ID: <20150720161821.GA18336@obsidianresearch.com>
+References: <559F8BD1.9080308@dev.mellanox.co.il>
+ <55AB3976.7060202@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55ACC2FA.8030202-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <55AB3976.7060202-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/20/2015 12:44 PM, Sagi Grimberg wrote:
-> On 7/20/2015 12:43 AM, Or Gerlitz wrote:
->> On Sun, Jul 19, 2015 at 7:07 PM, Sagi Grimberg 
->> <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->>> On 7/16/2015 6:25 PM, Bart Van Assche wrote:
->>
->>> I agree it would definitely help as the lack of immediate data
->>> emphasizes the additional latency of doing rdma reads.
->>
->> Sagi, do we have black box evidence from iSER showing notable
->> (results? setup?) IO latency improvement from using immediate data vs.
->> RDMA read?
->
-> I've seen it. The LIO target has a better write performance due to 
-> ImmediateData. 
+On Sun, Jul 19, 2015 at 08:45:26AM +0300, Sagi Grimberg wrote:
+> 
+> >/**
+> >   * ib_mr_set_sg() - populate memory region buffers
+> >   *     array from a SG list
+> >   * @mr:          memory region
+> >   * @sg:          sg list
+> >   * @sg_nents:    number of elements in the sg
+> >   *
+> >   * Can fail if the HW is not able to register this
+> >   * sg list. In case of failure - caller is responsible
+> >   * to handle it (bounce-buffer, multiple registrations...)
+> >   */
+> >int ib_mr_set_sg(struct ib_mr *mr,
+> >                  struct scatterlist *sg,
+> >                  unsigned short sg_nents);
+> 
+> I'm thinking now that this should have an input argument
+> of block_size. Maybe in the future ULPs would want to register
+> huge pages, it will be a shame to map it into PAGE_SIZE chunks...
 
-Numberz, please...
+Why wouldn't it just transparently support huge pages? sg seems to
+have enough information.
 
-Also, do you see any gain with TGT too? if not, what's you thinking re 
-the LIO vs TGT difference?
-
-> I also have a patch in the pipe that optimize the this flow at the 
-> target side which improves up to 40% for 512B-8K IOs.
->
-
-So you have 140% better IOPS with immediate-data vs. non immediate 
-data?! numberz?
-
-Or.
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
