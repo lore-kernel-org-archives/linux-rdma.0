@@ -1,47 +1,88 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH v3 05/15] xprtrdma: Remove last ib_reg_phys_mr() call site
-Date: Mon, 20 Jul 2015 17:54:59 -0500
-Message-ID: <016c01d0c33f$1b082920$51187b60$@opengridcomputing.com>
-References: <20150720185624.10997.51574.stgit@manet.1015granger.net> <20150720190311.10997.12636.stgit@manet.1015granger.net> <55AD5B48.3010906@talpey.com> <20150720210544.GA9655@obsidianresearch.com> <015501d0c334$3f1c2830$bd547890$@opengridcomputing.com> <20150720221333.GA11356@obsidianresearch.com> <015e01d0c33d$82b44ce0$881ce6a0$@opengridcomputing.com> <20150720225414.GA12442@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150720225414.GA12442-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-us
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: 'Tom Talpey' <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 05/15] xprtrdma: Remove last ib_reg_phys_mr() call site
+Date: Mon, 20 Jul 2015 19:36:22 -0400
+Message-ID: <D54C793F-7420-4FC8-9BCA-32C19EC492AA@oracle.com>
+References: <20150720185624.10997.51574.stgit@manet.1015granger.net> <20150720190311.10997.12636.stgit@manet.1015granger.net> <20150720222608.GA12005@obsidianresearch.com> <73A27338-7EFC-4F54-A15E-09B9D5145242@oracle.com> <20150720224134.GA12278@obsidianresearch.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150720224134.GA12278-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
+On Jul 20, 2015, at 6:41 PM, Jason Gunthorpe <jgunthorpe@obsidianresear=
+ch.com> wrote:
 
-> -----Original Message-----
-> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
-> Sent: Monday, July 20, 2015 5:54 PM
-> To: Steve Wise
-> Cc: 'Tom Talpey'; 'Chuck Lever'; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH v3 05/15] xprtrdma: Remove last ib_reg_phys_mr() call site
-> 
-> On Mon, Jul 20, 2015 at 05:43:34PM -0500, Steve Wise wrote:
-> > > Yah, that seems much better.. With the patch set I am working on this
-> > > will mean all ULPs will fail to create a kernel PD on cxgb3 if the
-> > > above triggers. If our error handling works that should just make it
-> > > unuable from kernel space which is what we need to see..
-> 
-> > What about user PDs?  We need that to work for cxgb3.
-> 
-> Only in-kernel uses call ib_alloc_pd
-> 
-> The user flow calls ib_uverbs_alloc_pd which calls the driver
-> directly.
->
+> On Mon, Jul 20, 2015 at 06:31:11PM -0400, Chuck Lever wrote:
+>>=20
+>> On Jul 20, 2015, at 6:26 PM, Jason Gunthorpe <jgunthorpe@obsidianres=
+earch.com> wrote:
+>>=20
+>>> On Mon, Jul 20, 2015 at 03:03:11PM -0400, Chuck Lever wrote:
+>>>> +	iov->length =3D size;
+>>>> +	iov->lkey =3D ia->ri_have_dma_lkey ?
+>>>> +				ia->ri_dma_lkey : ia->ri_bind_mem->lkey;
+>>>> +	rb->rg_size =3D size;
+>>>> +	rb->rg_owner =3D NULL;
+>>>> 	return rb;
+>>>=20
+>>> There is something odd looking about this..
+>>>=20
+>>> ri_bind_mem is only setup in the RPCRDMA_ALLPHYSICAL and
+>>> RPCRDMA_MTHCAFMR cases.
+>>>=20
+>>> RPCRDMA_FRMR doesn't set it up.
+>>>=20
+>>> So this code in rpcrdma_alloc_regbuf is never called for the FRMR
+>>> case?
+>>>=20
+>>> If yes, then, how is FRMR working? There is absolutely no reason to
+>>> use FRMR to register local send buffers, just use the global all
+>>> memory lkey...
+>>>=20
+>>> If no, then that is an oops?
+>>=20
+>> I=92ve tested this code, no oops.
+>>=20
+>> FRWR always uses the DMA lkey. xprtrdma does not use FRWR if
+>> IB_DEVICE_LOCAL_DMA_LKEY is not asserted.
+>=20
+> Ah, I see. Ok.
+>=20
+> Is there a reason to link FRWR and LOCAL_DMA_LKEY together?
 
-Ok good.  Thanks!
+Tom would know.
+
+> Just use
+> the code you have for fmr with frwr to get the lkey, probably move it
+> to rpcrdma_ia_open .. Physical MR should create a 2nd MR dedicated fo=
+r
+> rkey use.
+>=20
+> That will work really well with the series I'm working on:
+>=20
+> https://github.com/jgunthorpe/linux/tree/remove-ib_get_dma_mr
+>=20
+> To just drop ib_get_dma_mr entirely.
+
+Yes, I sorted this out so it would be obvious how to deal with
+xprtrdma when the time comes. All three registration modes can
+just use pd->local_dma_lkey for the SEND/RECV buffers.
+
+PHYSICAL would still need ib_get_dma_mr() (or something equivalent)
+for MRs needing remote access, agreed.
+
+--
+Chuck Lever
+
 
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
