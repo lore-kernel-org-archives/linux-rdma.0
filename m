@@ -1,256 +1,89 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1] core: Remove the ib_reg_phys_mr() and ib_rereg_phys_mr() verbs
-Date: Mon, 20 Jul 2015 14:34:08 -0400
-Message-ID: <DCAEA434-5734-44FC-B6E7-1C143E1DECA0@redhat.com>
-References: <20150714200920.27121.57730.stgit@manet.1015granger.net> <B8226C0A-1706-4A2B-8B83-906C367D366A@oracle.com>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2098\))
-Content-Type: multipart/signed; boundary="Apple-Mail=_B3F3AE6F-B79E-4124-B4FC-C38F3AAF1431"; protocol="application/pgp-signature"; micalg=pgp-sha512
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v3 00/15] NFS/RDMA client side for Linux 4.3
+Date: Mon, 20 Jul 2015 15:02:23 -0400
+Message-ID: <20150720185624.10997.51574.stgit@manet.1015granger.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <B8226C0A-1706-4A2B-8B83-906C367D366A-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Several important client-side performance and scalability
+improvements are made in this series, proposed for the 4.3
+kernel, including:
 
---Apple-Mail=_B3F3AE6F-B79E-4124-B4FC-C38F3AAF1431
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain;
-	charset=windows-1252
+- Increase maximum RPC/RDMA credits to 128
+- Increase maximum NFS/RDMA r/wsize to one megabyte
+- Prefer inline rather than reply chunk replies
 
+And these fixes:
 
-> On Jul 20, 2015, at 2:31 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> =
-wrote:
->=20
-> Hi Doug-
->=20
-> Are you comfortable ack=92ing this one? If so, I can carry it in my
-> nfs-rdma-for-4.3 series following the patch that removes the last
-> ib_reg_phys_mr() call site.
+- Send NFSv4 WRITE compounds correctly
+- Support RDMA_NOMSG calls
+- Remove support for RDMA_MSGP calls
+- Fix large NFS symlink operations
+- Get inline threshold accounting right
 
-Yes.
+Also available in the "nfs-rdma-for-4.3" topic branch of this git repo:
 
-Acked-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
 
->=20
-> On Jul 14, 2015, at 4:11 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> =
-wrote:
->=20
->> The verbs are obsolete. The ib_rereg_phys_mr() verb is not used by
->> kernel ULPs, and the last ib_reg_phys_mr() call site in the kernel
->> tree has now been removed.
->>=20
->> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->> ---
->> I'm still tracking down Doug's e-mail. In the meantime, let's start
->> with this naive approach, which removes the core APIs but does not
->> touch the providers.
->>=20
->>=20
->> drivers/infiniband/core/verbs.c |   67 =
----------------------------------------
->> include/rdma/ib_verbs.h         |   46 ---------------------------
->> 2 files changed, 113 deletions(-)
->>=20
->> diff --git a/drivers/infiniband/core/verbs.c =
-b/drivers/infiniband/core/verbs.c
->> index bac3fb4..30eb245 100644
->> --- a/drivers/infiniband/core/verbs.c
->> +++ b/drivers/infiniband/core/verbs.c
->> @@ -1144,73 +1144,6 @@ struct ib_mr *ib_get_dma_mr(struct ib_pd *pd, =
-int mr_access_flags)
->> }
->> EXPORT_SYMBOL(ib_get_dma_mr);
->>=20
->> -struct ib_mr *ib_reg_phys_mr(struct ib_pd *pd,
->> -			     struct ib_phys_buf *phys_buf_array,
->> -			     int num_phys_buf,
->> -			     int mr_access_flags,
->> -			     u64 *iova_start)
->> -{
->> -	struct ib_mr *mr;
->> -	int err;
->> -
->> -	err =3D ib_check_mr_access(mr_access_flags);
->> -	if (err)
->> -		return ERR_PTR(err);
->> -
->> -	if (!pd->device->reg_phys_mr)
->> -		return ERR_PTR(-ENOSYS);
->> -
->> -	mr =3D pd->device->reg_phys_mr(pd, phys_buf_array, num_phys_buf,
->> -				     mr_access_flags, iova_start);
->> -
->> -	if (!IS_ERR(mr)) {
->> -		mr->device  =3D pd->device;
->> -		mr->pd      =3D pd;
->> -		mr->uobject =3D NULL;
->> -		atomic_inc(&pd->usecnt);
->> -		atomic_set(&mr->usecnt, 0);
->> -	}
->> -
->> -	return mr;
->> -}
->> -EXPORT_SYMBOL(ib_reg_phys_mr);
->> -
->> -int ib_rereg_phys_mr(struct ib_mr *mr,
->> -		     int mr_rereg_mask,
->> -		     struct ib_pd *pd,
->> -		     struct ib_phys_buf *phys_buf_array,
->> -		     int num_phys_buf,
->> -		     int mr_access_flags,
->> -		     u64 *iova_start)
->> -{
->> -	struct ib_pd *old_pd;
->> -	int ret;
->> -
->> -	ret =3D ib_check_mr_access(mr_access_flags);
->> -	if (ret)
->> -		return ret;
->> -
->> -	if (!mr->device->rereg_phys_mr)
->> -		return -ENOSYS;
->> -
->> -	if (atomic_read(&mr->usecnt))
->> -		return -EBUSY;
->> -
->> -	old_pd =3D mr->pd;
->> -
->> -	ret =3D mr->device->rereg_phys_mr(mr, mr_rereg_mask, pd,
->> -					phys_buf_array, num_phys_buf,
->> -					mr_access_flags, iova_start);
->> -
->> -	if (!ret && (mr_rereg_mask & IB_MR_REREG_PD)) {
->> -		atomic_dec(&old_pd->usecnt);
->> -		atomic_inc(&pd->usecnt);
->> -	}
->> -
->> -	return ret;
->> -}
->> -EXPORT_SYMBOL(ib_rereg_phys_mr);
->> -
->> int ib_query_mr(struct ib_mr *mr, struct ib_mr_attr *mr_attr)
->> {
->> 	return mr->device->query_mr ?
->> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
->> index 986fddb..6d0f5d0 100644
->> --- a/include/rdma/ib_verbs.h
->> +++ b/include/rdma/ib_verbs.h
->> @@ -2746,52 +2746,6 @@ static inline void ib_dma_free_coherent(struct =
-ib_device *dev,
->> }
->>=20
->> /**
->> - * ib_reg_phys_mr - Prepares a virtually addressed memory region for =
-use
->> - *   by an HCA.
->> - * @pd: The protection domain associated assigned to the registered =
-region.
->> - * @phys_buf_array: Specifies a list of physical buffers to use in =
-the
->> - *   memory region.
->> - * @num_phys_buf: Specifies the size of the phys_buf_array.
->> - * @mr_access_flags: Specifies the memory access rights.
->> - * @iova_start: The offset of the region's starting I/O virtual =
-address.
->> - */
->> -struct ib_mr *ib_reg_phys_mr(struct ib_pd *pd,
->> -			     struct ib_phys_buf *phys_buf_array,
->> -			     int num_phys_buf,
->> -			     int mr_access_flags,
->> -			     u64 *iova_start);
->> -
->> -/**
->> - * ib_rereg_phys_mr - Modifies the attributes of an existing memory =
-region.
->> - *   Conceptually, this call performs the functions deregister =
-memory region
->> - *   followed by register physical memory region.  Where possible,
->> - *   resources are reused instead of deallocated and reallocated.
->> - * @mr: The memory region to modify.
->> - * @mr_rereg_mask: A bit-mask used to indicate which of the =
-following
->> - *   properties of the memory region are being modified.
->> - * @pd: If %IB_MR_REREG_PD is set in mr_rereg_mask, this field =
-specifies
->> - *   the new protection domain to associated with the memory region,
->> - *   otherwise, this parameter is ignored.
->> - * @phys_buf_array: If %IB_MR_REREG_TRANS is set in mr_rereg_mask, =
-this
->> - *   field specifies a list of physical buffers to use in the new
->> - *   translation, otherwise, this parameter is ignored.
->> - * @num_phys_buf: If %IB_MR_REREG_TRANS is set in mr_rereg_mask, =
-this
->> - *   field specifies the size of the phys_buf_array, otherwise, this
->> - *   parameter is ignored.
->> - * @mr_access_flags: If %IB_MR_REREG_ACCESS is set in mr_rereg_mask, =
-this
->> - *   field specifies the new memory access rights, otherwise, this
->> - *   parameter is ignored.
->> - * @iova_start: The offset of the region's starting I/O virtual =
-address.
->> - */
->> -int ib_rereg_phys_mr(struct ib_mr *mr,
->> -		     int mr_rereg_mask,
->> -		     struct ib_pd *pd,
->> -		     struct ib_phys_buf *phys_buf_array,
->> -		     int num_phys_buf,
->> -		     int mr_access_flags,
->> -		     u64 *iova_start);
->> -
->> -/**
->> * ib_query_mr - Retrieves information about a specific memory region.
->> * @mr: The memory region to retrieve information about.
->> * @mr_attr: The attributes of the specified memory region.
->>=20
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" =
-in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
-> --
-> Chuck Lever
->=20
->=20
->=20
+Or for browsing:
 
-=97
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-	GPG Key ID: 0E572FDD
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfs-rdma-for-4.3
 
 
+Changes since v2:
+- Rebased on Linux v4.2-rc3
+- Corrected RPCRDMA_MAX_IOVS macro
+- Included patch to remove core ib_reg_phys_mr() API
 
 
+Changes since v1:
+- Rebased on Linux v4.2-rc2
+- PHYSICAL registration, being insecure, must now be explicitly selected
+- Further clean-ups were done because ib_reg_phys_mr() is gone
+- Support for RDMA_MSGP type calls has been removed
+- Some patch descriptions have been clarified
+
+---
+
+Chuck Lever (15):
+      xprtrdma: Make xprt_setup_rdma() agnostic to family of server address
+      xprtrdma: Raise maximum payload size to one megabyte
+      xprtrdma: Increase default credit limit
+      xprtrdma: Don't fall back to PHYSICAL memory registration
+      xprtrdma: Remove last ib_reg_phys_mr() call site
+      xprtrdma: Clean up rpcrdma_ia_open()
+      xprtrdma: Remove logic that constructs RDMA_MSGP type calls
+      xprtrdma: Account for RPC/RDMA header size when deciding to inline
+      xprtrdma: Always provide a write list when sending NFS READ
+      xprtrdma: Don't provide a reply chunk when expecting a short reply
+      xprtrdma: Fix XDR tail buffer marshalling
+      xprtrdma: Fix large NFS SYMLINK calls
+      xprtrdma: Clean up xprt_rdma_print_stats()
+      xprtrdma: Count RDMA_NOMSG type calls
+      core: Remove the ib_reg_phys_mr() and ib_rereg_phys_mr() verbs
 
 
---Apple-Mail=_B3F3AE6F-B79E-4124-B4FC-C38F3AAF1431
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename=signature.asc
-Content-Type: application/pgp-signature;
-	name=signature.asc
-Content-Description: Message signed with OpenPGP using GPGMail
+ drivers/infiniband/core/verbs.c    |   67 ------------
+ fs/nfs/nfs3xdr.c                   |    1 
+ fs/nfs/nfs4xdr.c                   |    4 +
+ include/linux/sunrpc/xprtrdma.h    |    2 
+ include/rdma/ib_verbs.h            |   46 --------
+ net/sunrpc/xprtrdma/fmr_ops.c      |   19 +++
+ net/sunrpc/xprtrdma/frwr_ops.c     |    5 +
+ net/sunrpc/xprtrdma/physical_ops.c |   25 ++++-
+ net/sunrpc/xprtrdma/rpc_rdma.c     |  197 ++++++++++++++++++------------------
+ net/sunrpc/xprtrdma/transport.c    |   77 ++++++--------
+ net/sunrpc/xprtrdma/verbs.c        |  197 +++++++++---------------------------
+ net/sunrpc/xprtrdma/xprt_rdma.h    |   27 ++---
+ 12 files changed, 252 insertions(+), 415 deletions(-)
 
------BEGIN PGP SIGNATURE-----
-Comment: GPGTools - https://gpgtools.org
-
-iQIcBAEBCgAGBQJVrT8gAAoJELgmozMOVy/dKCQP/2AOJTUhaGs+46yBHBHRjswB
-kjS/m85nCBgnykG7Z4fhlKRv6lgVeHQFYNShNX5Mxq9UaycrYqLimP7/GpLrNPgg
-8+RuVVbwHQqhe6zAqEdXqH34tKsgT0s87In6yo2nRocW4YU4DC918xavMJU1Hmxx
-1iophU3j56WnAPMHfEAIT0oKjQ0odgVrotwKPYTB+UZd/laKQ0itnsVSKOTV0y7u
-DZHfIQralTPKSl1YjNP3YIYdPy1WoLvIWqNkaOzTCP/u6McgHEZMD9j8JXnxx0a+
-IOUbsJePMN96BsZiA/n6Fa/uR2LT2KdcsfpVgEM2y44AAhDDgzdDB7a2a/AsJuMJ
-WwUfX5CLusJCFruG7NCE690HpwOnEOxwmMMWzSb6kwDMMWUzKtDedn9WxSJzi5Hl
-rzzYAsHuhnrHmNqF3PdHaD0SeUjYCBv80d4OITw8FcV+vd7lDliFsGH5GITBOpBC
-yBt8yAHyhPztanMXtToeiw4U/XR1nVBzwcobcka8H0lAbcY1QaeLUjYIM7Ckojl8
-P6qKLDrW9+ol12CxnrxaizE2ITYS9KT7gKbKULsFmNeIB2fYwGtHxktdCjC9uIkv
-68mYAMv/9lxqmvAaSyuuMOOf5Ea+G8gO9lkh6gqItbOcdJL+59FCzJsKOvsqTUhp
-suGtkn5GOCS3IKj7cU+w
-=G65K
------END PGP SIGNATURE-----
-
---Apple-Mail=_B3F3AE6F-B79E-4124-B4FC-C38F3AAF1431--
+--
+Chuck Lever
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
