@@ -1,49 +1,48 @@
-From: "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: nes_store_flash_data() bugged?
-Date: Mon, 20 Jul 2015 16:17:24 +0000
-Message-ID: <1EEBC91386407A4A8D1EBE1DD5AA52125D075775@FMSMSX114.amr.corp.intel.com>
-References: <CACVxJT9A9_U_qPxf3o_aWiOtbmtAP70PL7XLaoxLBuQbh1E9vA@mail.gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: Kernel fast memory registration API proposal [RFC]
+Date: Mon, 20 Jul 2015 10:23:40 -0600
+Message-ID: <20150720162340.GB18336@obsidianresearch.com>
+References: <559F8BD1.9080308@dev.mellanox.co.il>
+ <20150715073233.GA11535@infradead.org>
+ <20150715170750.GA23588@obsidianresearch.com>
+ <55A7A1B0.5000808@dev.mellanox.co.il>
+ <20150716180806.GC3680@obsidianresearch.com>
+ <55AB36A4.1070102@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CACVxJT9A9_U_qPxf3o_aWiOtbmtAP70PL7XLaoxLBuQbh1E9vA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <55AB36A4.1070102-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexey Dobriyan <adobriyan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgQWxleGV5LA0KDQpZb3UgYXJlIHJpZ2h0IGFuZCB0aGUgZmxhc2ggY29kZSBpcyB3aXRoIDBb
-eFhdIGFuZCBub3Qgc3RhcnRpbmcgd2l0aCB4WCBhbmQgcFswXSBjaGVja3MgYXJlIHVzZWxlc3Mg
-b24gbWFya2VkIGxpbmUuIFRoaXMgaXMgZnJvbSBlYXJseSBkZXZlbG9wbWVudCBhbmQgZGlkIG5v
-dCBnZXQgY2hhbmdlZC4NCg0KVGhhbmtzDQpGYWlzYWwNCg0KPi0tLS0tT3JpZ2luYWwgTWVzc2Fn
-ZS0tLS0tDQo+RnJvbTogQWxleGV5IERvYnJpeWFuIFttYWlsdG86YWRvYnJpeWFuQGdtYWlsLmNv
-bV0NCj5TZW50OiBGcmlkYXksIEp1bHkgMTcsIDIwMTUgNzowMiBBTQ0KPlRvOiBnc3RyZWlmZkBu
-ZXRlZmZlY3QuY29tOyBMYXRpZiwgRmFpc2FsDQo+Q2M6IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwu
-b3JnDQo+U3ViamVjdDogbmVzX3N0b3JlX2ZsYXNoX2RhdGEoKSBidWdnZWQ/DQo+DQo+SSd2ZSBi
-ZWVuIGNvbnZlcnRpbmcgbmVzLmMgZHJpdmVyIGFuZCBzdHVtYmxlZCB1cG9uIHRoZSBmb2xsb3dp
-bmcgYml0IG9mIGNvZGUNCj4oYmVsb3cpLg0KPg0KPldoYXQgZG9lcyBtYXJrZWQgbGluZSBpcyBz
-dXBwb3NlZCB0byBtZWFuPw0KPklmIGl0J3MgdXN1YWwgMFt4WF0gY2hlY2ssIHRoZW4gdGhlcmUg
-YXJlIGEgbG90IG9mIHR5cG9zLg0KPklmIGl0IGlzIG5vdCBhbmQgcFswXSBpcywgc2F5LCAneCcs
-IHRoZW4gc2ltcGxlX3N0cnRvdWwoKSB3aWxsIHJldHVybiAwIGJlY2F1c2UgJ3gnIGlzIG5vdA0K
-PnZhbGlkIHN0YXJ0IGZvciBoZXggaW50ZWdlci4NCj4NCj5DYW4gc29tZW9uZSBkZXNjcmliZSB3
-aGF0IHRoZSByZWFsIGZvcm1hdCBvZiB0aGlzIGZsYXNoIGRhdGEgaXM/DQo+DQo+ICBBbGV4ZXkN
-Cj4tLS0tLS0tLS0tLS0tLS0tLS0NCj5zdGF0aWMgc3NpemVfdCBuZXNfc3RvcmVfZmxhc2hfZGF0
-YShzdHJ1Y3QgZGV2aWNlX2RyaXZlciAqZGRwLA0KPiAgICAgICAgY29uc3QgY2hhciAqYnVmLCBz
-aXplX3QgY291bnQpDQo+ew0KPiAgICAgICAgY2hhciAqcCA9IChjaGFyICopYnVmOw0KPiAgICAg
-ICAgdTMyIHZhbDsNCj4gICAgICAgIHUzMiBpID0gMDsNCj4gICAgICAgIHN0cnVjdCBuZXNfZGV2
-aWNlICpuZXNkZXY7DQo+DQo+ICAgICAgICBpZiAocFsxXSA9PSAneCcgfHwgcFsxXSA9PSAnWCcg
-fHwgcFswXSA9PSAneCcgfHwgcFswXSA9PSAnWCcpIHsNCj4NCj5eXl5eXl5eXl5eXl5eXl5eXl5e
-Xl5eXl5eXl5eXl5eXl5eXl5eXl5eDQo+DQo+ICAgICAgICAgICAgICAgIHZhbCA9IHNpbXBsZV9z
-dHJ0b3VsKHAsICZwLCAxNik7DQo+ICAgICAgICAgICAgICAgIGxpc3RfZm9yX2VhY2hfZW50cnko
-bmVzZGV2LCAmbmVzX2Rldl9saXN0LCBsaXN0KSB7DQo+ICAgICAgICAgICAgICAgICAgICAgICAg
-aWYgKGkgPT0gZWVfZmxzaF9hZGFwdGVyKSB7DQo+ICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICBuZXNfd3JpdGUzMihuZXNkZXYtPnJlZ3MgKyBORVNfRkxBU0hfREFUQSwgdmFsKTsNCj4g
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGJyZWFrOw0KPiAgICAgICAgICAgICAgICAg
-ICAgICAgIH0NCj4gICAgICAgICAgICAgICAgICAgICAgICBpKys7DQo+ICAgICAgICAgICAgICAg
-IH0NCj4gICAgICAgIH0NCj4gICAgICAgIHJldHVybiBzdHJubGVuKGJ1ZiwgY291bnQpOw0KPn0N
-Cg==
+On Sun, Jul 19, 2015 at 08:33:24AM +0300, Sagi Grimberg wrote:
+> I was thinking that the user won't explicitly say which key it registers
+> and it will be decided from the registration itself.
+> Meaning, the registration code will do:
+
+Please don't..
+
+> if (access | (IB_ACCESS_REMOTE_READ | IB_ACCESS_REMOTE_WRITE)
+>         register rkey...
+> else
+>         register lkey...
+> 
+> Will that work with iWARP? or will this break because
+> iWARP needs REMOTE_WRITE for lkeys?
+
+Right, it will break.
+
+Access flags are only weakly related to lkey/rkey.
+
+It needs to be explicit. We have spots in the API that take lkeys and
+other spots the take rkeys - the caller must always know the intended
+use of the key it is requesting, there is no reason not to describe
+that explicitly.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
