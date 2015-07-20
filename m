@@ -1,47 +1,210 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] mlx5: Fix missing device local_dma_lkey
-Date: Mon, 20 Jul 2015 13:52:08 -0600
-Message-ID: <20150720195208.GB24162@obsidianresearch.com>
-References: <1437411276-22731-1-git-send-email-sagig@mellanox.com>
- <3095C235-676F-4A99-A27C-F2F332D9921F@oracle.com>
- <55AD2B65.4090006@mellanox.com>
+From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 05/15] xprtrdma: Remove last ib_reg_phys_mr() call site
+Date: Mon, 20 Jul 2015 13:34:16 -0700
+Message-ID: <55AD5B48.3010906@talpey.com>
+References: <20150720185624.10997.51574.stgit@manet.1015granger.net>
+ <20150720190311.10997.12636.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <55AD2B65.4090006-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150720190311.10997.12636.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jul 20, 2015 at 08:09:57PM +0300, Sagi Grimberg wrote:
-> On 7/20/2015 8:08 PM, Chuck Lever wrote:
-> >
-> >On Jul 20, 2015, at 12:54 PM, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wro=
-te:
-> >
-> >>The mlx5 driver exposes device capability IB_DEVICE_LOCAL_DMA_LKEY
-> >>but does not set the the device local_dma_lkey. This breaks
-> >>rpcrdma drivers.
-> >>
-> >>Query and set this lkey when creating the device resources.
-> >
-> >Wow. This suggests no-one has been testing NFS/RDMA with mlx5? I
-> >know I=E2=80=99m not (yet). Anyway, this makes sense.
->=20
-> That's what I was wandering about.
->=20
-> I just turned it on and it blew up... gracefully though :)
+On 7/20/2015 12:03 PM, Chuck Lever wrote:
+> All HCA providers have an ib_get_dma_mr() verb. Thus
+> rpcrdma_ia_open() will either grab the device's local_dma_key if one
+> is available, or it will call ib_get_dma_mr() which is a 100%
+> guaranteed fallback.
 
-Ugh, good thing you caught this before I sent my cleanup:
+I recall that in the past, some providers did not support mapping
+all of the machine's potential physical memory with a single dma_mr.
+If an rnic did/does not support 44-ish bits of length per region,
+for example.
 
-https://github.com/jgunthorpe/linux/tree/remove-ib_get_dma_mr
+Have you verified that all current providers do in fact support the
+necessary physical address range for this, and that the requirement
+is stated in the verbs going forward?
 
-Jason
+
+>
+> There is never any need to use the ib_reg_phys_mr() code path in
+> rpcrdma_register_internal(), so it can be removed. The remaining
+> logic in rpcrdma_{de}register_internal() is folded into
+> rpcrdma_{alloc,free}_regbuf().
+>
+> This is clean up only. No behavior change is expected.
+>
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+> Reviewed-By: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Tested-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+> ---
+>   net/sunrpc/xprtrdma/verbs.c     |  102 ++++++++-------------------------------
+>   net/sunrpc/xprtrdma/xprt_rdma.h |    1
+>   2 files changed, 21 insertions(+), 82 deletions(-)
+>
+> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+> index 1065808..da184f9 100644
+> --- a/net/sunrpc/xprtrdma/verbs.c
+> +++ b/net/sunrpc/xprtrdma/verbs.c
+> @@ -1229,75 +1229,6 @@ rpcrdma_mapping_error(struct rpcrdma_mr_seg *seg)
+>   		(unsigned long long)seg->mr_dma, seg->mr_dmalen);
+>   }
+>
+> -static int
+> -rpcrdma_register_internal(struct rpcrdma_ia *ia, void *va, int len,
+> -				struct ib_mr **mrp, struct ib_sge *iov)
+> -{
+> -	struct ib_phys_buf ipb;
+> -	struct ib_mr *mr;
+> -	int rc;
+> -
+> -	/*
+> -	 * All memory passed here was kmalloc'ed, therefore phys-contiguous.
+> -	 */
+> -	iov->addr = ib_dma_map_single(ia->ri_device,
+> -			va, len, DMA_BIDIRECTIONAL);
+> -	if (ib_dma_mapping_error(ia->ri_device, iov->addr))
+> -		return -ENOMEM;
+> -
+> -	iov->length = len;
+> -
+> -	if (ia->ri_have_dma_lkey) {
+> -		*mrp = NULL;
+> -		iov->lkey = ia->ri_dma_lkey;
+> -		return 0;
+> -	} else if (ia->ri_bind_mem != NULL) {
+> -		*mrp = NULL;
+> -		iov->lkey = ia->ri_bind_mem->lkey;
+> -		return 0;
+> -	}
+> -
+> -	ipb.addr = iov->addr;
+> -	ipb.size = iov->length;
+> -	mr = ib_reg_phys_mr(ia->ri_pd, &ipb, 1,
+> -			IB_ACCESS_LOCAL_WRITE, &iov->addr);
+> -
+> -	dprintk("RPC:       %s: phys convert: 0x%llx "
+> -			"registered 0x%llx length %d\n",
+> -			__func__, (unsigned long long)ipb.addr,
+> -			(unsigned long long)iov->addr, len);
+> -
+> -	if (IS_ERR(mr)) {
+> -		*mrp = NULL;
+> -		rc = PTR_ERR(mr);
+> -		dprintk("RPC:       %s: failed with %i\n", __func__, rc);
+> -	} else {
+> -		*mrp = mr;
+> -		iov->lkey = mr->lkey;
+> -		rc = 0;
+> -	}
+> -
+> -	return rc;
+> -}
+> -
+> -static int
+> -rpcrdma_deregister_internal(struct rpcrdma_ia *ia,
+> -				struct ib_mr *mr, struct ib_sge *iov)
+> -{
+> -	int rc;
+> -
+> -	ib_dma_unmap_single(ia->ri_device,
+> -			    iov->addr, iov->length, DMA_BIDIRECTIONAL);
+> -
+> -	if (NULL == mr)
+> -		return 0;
+> -
+> -	rc = ib_dereg_mr(mr);
+> -	if (rc)
+> -		dprintk("RPC:       %s: ib_dereg_mr failed %i\n", __func__, rc);
+> -	return rc;
+> -}
+> -
+>   /**
+>    * rpcrdma_alloc_regbuf - kmalloc and register memory for SEND/RECV buffers
+>    * @ia: controlling rpcrdma_ia
+> @@ -1317,26 +1248,30 @@ struct rpcrdma_regbuf *
+>   rpcrdma_alloc_regbuf(struct rpcrdma_ia *ia, size_t size, gfp_t flags)
+>   {
+>   	struct rpcrdma_regbuf *rb;
+> -	int rc;
+> +	struct ib_sge *iov;
+>
+> -	rc = -ENOMEM;
+>   	rb = kmalloc(sizeof(*rb) + size, flags);
+>   	if (rb == NULL)
+>   		goto out;
+>
+> -	rb->rg_size = size;
+> -	rb->rg_owner = NULL;
+> -	rc = rpcrdma_register_internal(ia, rb->rg_base, size,
+> -				       &rb->rg_mr, &rb->rg_iov);
+> -	if (rc)
+> +	iov = &rb->rg_iov;
+> +	iov->addr = ib_dma_map_single(ia->ri_device,
+> +				      (void *)rb->rg_base, size,
+> +				      DMA_BIDIRECTIONAL);
+> +	if (ib_dma_mapping_error(ia->ri_device, iov->addr))
+>   		goto out_free;
+>
+> +	iov->length = size;
+> +	iov->lkey = ia->ri_have_dma_lkey ?
+> +				ia->ri_dma_lkey : ia->ri_bind_mem->lkey;
+> +	rb->rg_size = size;
+> +	rb->rg_owner = NULL;
+>   	return rb;
+>
+>   out_free:
+>   	kfree(rb);
+>   out:
+> -	return ERR_PTR(rc);
+> +	return ERR_PTR(-ENOMEM);
+>   }
+>
+>   /**
+> @@ -1347,10 +1282,15 @@ out:
+>   void
+>   rpcrdma_free_regbuf(struct rpcrdma_ia *ia, struct rpcrdma_regbuf *rb)
+>   {
+> -	if (rb) {
+> -		rpcrdma_deregister_internal(ia, rb->rg_mr, &rb->rg_iov);
+> -		kfree(rb);
+> -	}
+> +	struct ib_sge *iov;
+> +
+> +	if (!rb)
+> +		return;
+> +
+> +	iov = &rb->rg_iov;
+> +	ib_dma_unmap_single(ia->ri_device,
+> +			    iov->addr, iov->length, DMA_BIDIRECTIONAL);
+> +	kfree(rb);
+>   }
+>
+>   /*
+> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+> index abee472..ce4e79e 100644
+> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
+> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+> @@ -119,7 +119,6 @@ struct rpcrdma_ep {
+>   struct rpcrdma_regbuf {
+>   	size_t			rg_size;
+>   	struct rpcrdma_req	*rg_owner;
+> -	struct ib_mr		*rg_mr;
+>   	struct ib_sge		rg_iov;
+>   	__be32			rg_base[0] __attribute__ ((aligned(256)));
+>   };
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
