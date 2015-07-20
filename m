@@ -1,28 +1,50 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: Kernel fast memory registration API proposal [RFC]
-Date: Mon, 20 Jul 2015 19:27:52 +0300
-Message-ID: <55AD2188.50708@dev.mellanox.co.il>
-References: <559F8BD1.9080308@dev.mellanox.co.il>
- <55AB3976.7060202@dev.mellanox.co.il>
- <20150720161821.GA18336@obsidianresearch.com>
+From: Alex Thorlton <athorlton-sJ/iWh9BUns@public.gmane.org>
+Subject: Re: [BUG] mellanox IB driver fails to load on large config
+Date: Mon, 20 Jul 2015 11:28:03 -0500
+Message-ID: <20150720162803.GL58053@asylum.americas.sgi.com>
+References: <20150710191506.GA52396@asylum.americas.sgi.com> <CAJ3xEMj82OtHcs+kDG_xrQZ4+x3Eih=YSNFR4+W-AoPNA=4jTw@mail.gmail.com> <20150714182234.GD17920@asylum.americas.sgi.com> <20150714184820.GB58053@asylum.americas.sgi.com> <CAJ3xEMig=GzROAea7qe0YO11DM6pc4wXyG8VB=kq5Hf5uw2ZXQ@mail.gmail.com> <20150714202848.GD58053@asylum.americas.sgi.com> <55A74E61.1080403@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150720161821.GA18336-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <55A74E61.1080403-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Alex Thorlton <athorlton-sJ/iWh9BUns@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, andrew banman <abanman-sJ/iWh9BUns@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->> I'm thinking now that this should have an input argument
->> of block_size. Maybe in the future ULPs would want to register
->> huge pages, it will be a shame to map it into PAGE_SIZE chunks...
+On Thu, Jul 16, 2015 at 09:25:37AM +0300, Or Gerlitz wrote:
+> On 7/14/2015 11:28 PM, Alex Thorlton wrote:
+>>
+>> We see the same exact messages on 4.1-rc8.
+>>
+>>
 >
-> Why wouldn't it just transparently support huge pages? sg seems to
-> have enough information.
+> does this solves the problem?
+>
+>
+> diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+> index ad31e47..c8ae3b9 100644
+> --- a/include/linux/mlx4/device.h
+> +++ b/include/linux/mlx4/device.h
+> @@ -45,7 +45,7 @@
+>  #include <linux/timecounter.h>
+>
+>  #define MAX_MSIX_P_PORT                17
+> -#define MAX_MSIX               64
+> +#define MAX_MSIX               1024
+>  #define MIN_MSIX_P_PORT                5
+>  #define MLX4_IS_LEGACY_EQ_MODE(dev_cap) ((dev_cap).num_comp_vectors < \
+> (dev_cap).num_ports * MIN_MSIX_P_PORT)
+> --
+>
 
-I'm not sure I know how to do that, can you explain how please?
+I've got some time on the large machine later today.  I'll give this a
+try then.
+
+Thanks, Or!
+
+- Alex
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
