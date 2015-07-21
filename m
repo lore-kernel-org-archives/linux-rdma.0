@@ -1,100 +1,58 @@
-From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 05/15] xprtrdma: Remove last ib_reg_phys_mr() call site
-Date: Mon, 20 Jul 2015 18:03:49 -0700
-Message-ID: <55AD9A75.4000100@talpey.com>
-References: <20150720185624.10997.51574.stgit@manet.1015granger.net>
- <20150720190311.10997.12636.stgit@manet.1015granger.net>
- <20150720222608.GA12005@obsidianresearch.com>
- <73A27338-7EFC-4F54-A15E-09B9D5145242@oracle.com>
- <20150720224134.GA12278@obsidianresearch.com>
- <D54C793F-7420-4FC8-9BCA-32C19EC492AA@oracle.com>
- <55AD8E1D.2010803@talpey.com>
- <1419E153-14FF-4182-9768-FC40AE92B84A@oracle.com>
+From: Alex Thorlton <athorlton-sJ/iWh9BUns@public.gmane.org>
+Subject: Re: [BUG] mellanox IB driver fails to load on large config
+Date: Mon, 20 Jul 2015 21:56:39 -0500
+Message-ID: <20150721025639.GX58053@asylum.americas.sgi.com>
+References: <20150710191506.GA52396@asylum.americas.sgi.com> <CAJ3xEMj82OtHcs+kDG_xrQZ4+x3Eih=YSNFR4+W-AoPNA=4jTw@mail.gmail.com> <20150714182234.GD17920@asylum.americas.sgi.com> <20150714184820.GB58053@asylum.americas.sgi.com> <CAJ3xEMig=GzROAea7qe0YO11DM6pc4wXyG8VB=kq5Hf5uw2ZXQ@mail.gmail.com> <20150714202848.GD58053@asylum.americas.sgi.com> <55A74E61.1080403@mellanox.com> <20150720162803.GL58053@asylum.americas.sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1419E153-14FF-4182-9768-FC40AE92B84A-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150720162803.GL58053-UiYq4lDBhggTG1waqwXmH7Cf4lofQVJ7@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Alex Thorlton <athorlton-sJ/iWh9BUns@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, andrew banman <abanman-sJ/iWh9BUns@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/20/2015 5:34 PM, Chuck Lever wrote:
->
-> On Jul 20, 2015, at 8:11 PM, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org> wrote:
->
->> On 7/20/2015 4:36 PM, Chuck Lever wrote:
->>>
->>> On Jul 20, 2015, at 6:41 PM, Jason Gunthorpe <jgunthorpe@obsidianre=
-search.com> wrote:
->>>
->>>> On Mon, Jul 20, 2015 at 06:31:11PM -0400, Chuck Lever wrote:
->>>>>
->>>>> On Jul 20, 2015, at 6:26 PM, Jason Gunthorpe <jgunthorpe@obsidian=
-research.com> wrote:
->>>>>
->>>>>> On Mon, Jul 20, 2015 at 03:03:11PM -0400, Chuck Lever wrote:
->>>>>>> +	iov->length =3D size;
->>>>>>> +	iov->lkey =3D ia->ri_have_dma_lkey ?
->>>>>>> +				ia->ri_dma_lkey : ia->ri_bind_mem->lkey;
->>>>>>> +	rb->rg_size =3D size;
->>>>>>> +	rb->rg_owner =3D NULL;
->>>>>>> 	return rb;
->>>>>>
->>>>>> There is something odd looking about this..
->>>>>>
->>>>>> ri_bind_mem is only setup in the RPCRDMA_ALLPHYSICAL and
->>>>>> RPCRDMA_MTHCAFMR cases.
->>>>>>
->>>>>> RPCRDMA_FRMR doesn't set it up.
->>>>>>
->>>>>> So this code in rpcrdma_alloc_regbuf is never called for the FRM=
-R
->>>>>> case?
->>>>>>
->>>>>> If yes, then, how is FRMR working? There is absolutely no reason=
- to
->>>>>> use FRMR to register local send buffers, just use the global all
->>>>>> memory lkey...
->>>>>>
->>>>>> If no, then that is an oops?
->>>>>
->>>>> I=92ve tested this code, no oops.
->>>>>
->>>>> FRWR always uses the DMA lkey. xprtrdma does not use FRWR if
->>>>> IB_DEVICE_LOCAL_DMA_LKEY is not asserted.
->>>>
->>>> Ah, I see. Ok.
->>>>
->>>> Is there a reason to link FRWR and LOCAL_DMA_LKEY together?
->>>
->>> Tom would know.
->>
->> Tom Talpey or Tom Tucker? I don't think I used a dma_lkey at all
->> in the original work, but there were some changes later.
->
-> The commit which adds FRWR support to xprtrdma introduced a check in
-> rpcrdma_ia_open:
->
-> +       case RPCRDMA_FRMR:
-> +               /* Requires both frmr reg and local dma lkey */
-> +               if ((devattr.device_cap_flags &
-> +                    (IB_DEVICE_MEM_MGT_EXTENSIONS|IB_DEVICE_LOCAL_DM=
-A_LKEY)) !=3D
-> +                   (IB_DEVICE_MEM_MGT_EXTENSIONS|IB_DEVICE_LOCAL_DMA=
-_LKEY)) {
->
-> This seems to be the only place the local DMA lkey requirement is
-> expressed or enforced. But yeah, the local DMA lkey doesn=92t seem
-> to be used anywhere in the FRWR-specific parts of the code.
+On Mon, Jul 20, 2015 at 11:28:03AM -0500, Alex Thorlton wrote:
+> I've got some time on the large machine later today.  I'll give this a
+> try then.
 
-I now vaguely remember someone telling me that both attributes were
-required, but a) I may have misunderstood and b) I'm sure something
-has changed. FRMR was brand new at the time.
+I ran a boot with this patch applied:
+
+diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+index 83e80ab..c84aea0 100644
+--- a/include/linux/mlx4/device.h
++++ b/include/linux/mlx4/device.h
+@@ -45,7 +45,7 @@
+ #include <linux/timecounter.h>
+
+ #define MAX_MSIX_P_PORT                17
+-#define MAX_MSIX               64
++#define MAX_MSIX               8192
+ #define MSIX_LEGACY_SZ         4
+ #define MIN_MSIX_P_PORT                5
+
+I went for a max of 8192, since I was actually booting the machine with
+6144 cores (not 4096) for this run.  It doesn't look like this fixed the
+problem.  I still saw the same errors during boot.
+
+FWIW, the module does appear to still successfully load:
+
+8<---
+# lsmod | grep mlx
+mlx4_ib               151552  0
+ib_sa                  32768  1 mlx4_ib
+ib_mad                 49152  2 ib_sa,mlx4_ib
+ib_core               102400  3 ib_sa,mlx4_ib,ib_mad
+mlx4_core             278528  1 mlx4_ib
+--->8
+
+If the module loading is good enough, and we should just ignore the
+errors, then I'm fine with that.  Just wanting to make sure that
+everything is behaving correctly.
+
+- Alex
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
