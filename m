@@ -1,103 +1,63 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH v3 05/15] xprtrdma: Remove last ib_reg_phys_mr() call site
-Date: Tue, 21 Jul 2015 09:33:44 -0500
-Message-ID: <000301d0c3c2$3f892a50$be9b7ef0$@opengridcomputing.com>
-References: <20150720185624.10997.51574.stgit@manet.1015granger.net> <20150720190311.10997.12636.stgit@manet.1015granger.net> <55AD5B48.3010906@talpey.com> <20150720210544.GA9655@obsidianresearch.com> <015101d0c331$69e31d10$3da95730$@opengridcomputing.com> <55AD7065.8040809@talpey.com> <015701d0c33d$36b53110$a41f9330$@opengridcomputing.com> <55AD8F05.6070409@talpey.com>
+From: Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 6/8] IB/mlx5/hmm: add mlx5 HMM device initialization and
+ callback v3.
+Date: Tue, 21 Jul 2015 11:14:59 -0400 (EDT)
+Message-ID: <1450090324.1616771.1437491699456.JavaMail.zimbra@redhat.com>
+References: <1437159665-6612-1-git-send-email-jglisse@redhat.com> <1437159665-6612-7-git-send-email-jglisse@redhat.com> <55AE2431.20105@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55AD8F05.6070409-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-us
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Tom Talpey' <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <55AE2431.20105-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christophe Harle <charle-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Duncan Poole <dpoole-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Sherry Cheung <SCheung-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Subhash Gutti <sgutti-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Mark Hairgrove <mhairgrove-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Lucien Dunning <ldunning-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Cameron Buschardt <cabuschardt-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Arvind Gopalakrishnan <arvindg-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+> On 17/07/2015 22:01, J=C3=A9r=C3=B4me Glisse wrote:
+> > @@ -151,10 +151,11 @@ int ib_umem_odp_get(struct ib_ucontext *conte=
+xt,
+> > struct ib_umem *umem)
+> >  		context->ib_mirror =3D ib_mirror_ref(ib_mirror);
+> >  	}
+> >  	mutex_unlock(&ib_device->hmm_mutex);
+> > -	umem->odp_data.ib_mirror =3D ib_mirror;
+> > +	umem->odp_data->ib_mirror =3D ib_mirror;
+> > =20
+> >  	down_write(&ib_mirror->umem_rwsem);
+> > -	rbt_ib_umem_insert(&umem->odp_data->interval_tree, &mirror->umem_=
+tree);
+> > +	rbt_ib_umem_insert(&umem->odp_data->interval_tree,
+> > +			   &ib_mirror->umem_tree);
+> >  	up_write(&ib_mirror->umem_rwsem);
+> > =20
+> >  	mmput(mm);
+> > @@ -163,7 +164,7 @@ int ib_umem_odp_get(struct ib_ucontext *context=
+, struct
+> > ib_umem *umem)
+> > =20
+> >  void ib_umem_odp_release(struct ib_umem *umem)
+> >  {
+> > -	struct ib_mirror *ib_mirror =3D umem->odp_data;
+> > +	struct ib_mirror *ib_mirror =3D umem->odp_data->ib_mirror;
+> > =20
+> >  	/*
+> >  	 * Ensure that no more pages are mapped in the umem.
+>=20
+> It doesn't look like this code would have compiled before this patch,
+> and as far as I can see the previous patch removed the #error line.
+> Could you make sure all of the patches build correctly? You could use
+> tools/testing/ktest for instance.
+>=20
 
+This is a rebase error. But the #error is there for a purpose the HMM
+would not work mid way so if anyone if bisecting up through that i woul=
+d
+rather error out at compilation.
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Tom Talpey
-> Sent: Monday, July 20, 2015 7:15 PM
-> To: Steve Wise; 'Jason Gunthorpe'
-> Cc: 'Chuck Lever'; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH v3 05/15] xprtrdma: Remove last ib_reg_phys_mr() call site
-> 
-> On 7/20/2015 3:41 PM, Steve Wise wrote:
-> >
-> >
-> >> -----Original Message-----
-> >> From: Tom Talpey [mailto:tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org]
-> >> Sent: Monday, July 20, 2015 5:04 PM
-> >> To: Steve Wise; 'Jason Gunthorpe'
-> >> Cc: 'Chuck Lever'; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >> Subject: Re: [PATCH v3 05/15] xprtrdma: Remove last ib_reg_phys_mr() call site
-> >>
-> >> On 7/20/2015 2:16 PM, Steve Wise wrote:
-> >>>
-> >>>
-> >>>> -----Original Message-----
-> >>>> From: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
-> >>>> Sent: Monday, July 20, 2015 4:06 PM
-> >>>> To: Tom Talpey; Steve Wise
-> >>>> Cc: Chuck Lever; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >>>> Subject: Re: [PATCH v3 05/15] xprtrdma: Remove last ib_reg_phys_mr() call site
-> >>>>
-> >>>> On Mon, Jul 20, 2015 at 01:34:16PM -0700, Tom Talpey wrote:
-> >>>>> On 7/20/2015 12:03 PM, Chuck Lever wrote:
-> >>>>>> All HCA providers have an ib_get_dma_mr() verb. Thus
-> >>>>>> rpcrdma_ia_open() will either grab the device's local_dma_key if one
-> >>>>>> is available, or it will call ib_get_dma_mr() which is a 100%
-> >>>>>> guaranteed fallback.
-> >>>>>
-> >>>>> I recall that in the past, some providers did not support mapping
-> >>>>> all of the machine's potential physical memory with a single dma_mr.
-> >>>>> If an rnic did/does not support 44-ish bits of length per region,
-> >>>>> for example.
-> >>>>
-> >>>> Looks like you are right, but the standard in kernel is to require
-> >>>> ib_get_dma_mr, if the HCA can't do that, then it cannot be used on a
-> >>>> big memory machine with kernel ULPs.
-> >>>>
-> >>>> Looking deeper, both amso1100 and cxgb3 seem limited to 32 bits of
-> >>>> physical memory, and silently break all kernel ULPs if they are used
-> >>>> on a modern machine with > 4G.
-> >>>>
-> >>>> Is that right Steve?
-> >>>>
-> >>>
-> >>> Yes.
-> >>>
-> >>>> Based on that, should we remove the cxgb3 driver as well? Or at least
-> >>>> can you fix it up to at least fail get_dma_mr if there is too much
-> >>>> ram?
-> >>>>
-> >>>
-> >>> I would like to keep cxgb3 around.  I can add code to fail if the memory is > 32b.  Do you know how I get the amount of
-> > available
-> >>> ram?
-> >>
-> >> A) are you sure it's an unsigned length, i.e. is it really 31 bits?
-> >>
-> >
-> > yes.
-> >
-> >> B) why bother to check? Are machines with <4GB interesting, and worth
-> >> supporting a special optimization?
-> >
-> > No, but cxgb3 is still interesting to user applications, and perhaps NFSRDMA using FRMRs.
-> 
-> I'm obviously not making myself clear. I am suggesting that cxgb3 fail
-> the ib_get_dma_mr() verb, regardless of installed memory.
-> 
-> I am not suggesting it fail to load, or fail other memreg requests. It
-> should work normally in all other respects.
-
-Even with its limitation, doesn't it have utility for someone using cxgb3 in an embedded 32b environment? 
-
-
+J=C3=A9r=C3=B4me
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
