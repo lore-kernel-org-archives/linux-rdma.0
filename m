@@ -1,76 +1,183 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: deprecating amso1100
-Date: Tue, 21 Jul 2015 14:48:47 -0400
-Message-ID: <1AE4059B-F6BD-48ED-A1C6-8A9024DDF217@redhat.com>
-References: <55AE93E0.9060002@opengridcomputing.com>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2098\))
-Content-Type: multipart/signed; boundary="Apple-Mail=_F4159262-1787-478F-AFC5-EFA3EB1F6DA3"; protocol="application/pgp-signature"; micalg=pgp-sha512
+From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 15/15] core: Remove the ib_reg_phys_mr() and
+ ib_rereg_phys_mr() verbs
+Date: Tue, 21 Jul 2015 16:08:04 -0400
+Message-ID: <55AEA6A4.8020204@Netapp.com>
+References: <20150720185624.10997.51574.stgit@manet.1015granger.net>
+ <20150720190446.10997.83633.stgit@manet.1015granger.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55AE93E0.9060002-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <20150720190446.10997.83633.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hey Chuck,
 
---Apple-Mail=_F4159262-1787-478F-AFC5-EFA3EB1F6DA3
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain;
-	charset=utf-8
+Just a heads up that this patch should go through the infiniband tree, and not NFS :).
 
+Thanks,
+Anna
 
-> On Jul 21, 2015, at 2:48 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> =
-wrote:
->=20
-> Hey Doug,
->=20
-> How should I submit changes to deprecate amso1100?  The HW hasn't been =
-sold since 2005, and the SW has definite bit rot.  Its time to remove =
-it...
->=20
-> Thanks,
->=20
-> Steve.
+On 07/20/2015 03:04 PM, Chuck Lever wrote:
+> The verbs are obsolete. The ib_rereg_phys_mr() verb is not used by
+> kernel ULPs, and the last ib_reg_phys_mr() call site in the kernel
+> tree has now been removed.
+> 
+> Two staging tree call sites remain in the Lustre client. The Lustre
+> team has been notified of the deprecation of reg_phys_mr.
+> 
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Acked-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> ---
+>  drivers/infiniband/core/verbs.c |   67 ---------------------------------------
+>  include/rdma/ib_verbs.h         |   46 ---------------------------
+>  2 files changed, 113 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+> index bac3fb4..30eb245 100644
+> --- a/drivers/infiniband/core/verbs.c
+> +++ b/drivers/infiniband/core/verbs.c
+> @@ -1144,73 +1144,6 @@ struct ib_mr *ib_get_dma_mr(struct ib_pd *pd, int mr_access_flags)
+>  }
+>  EXPORT_SYMBOL(ib_get_dma_mr);
+>  
+> -struct ib_mr *ib_reg_phys_mr(struct ib_pd *pd,
+> -			     struct ib_phys_buf *phys_buf_array,
+> -			     int num_phys_buf,
+> -			     int mr_access_flags,
+> -			     u64 *iova_start)
+> -{
+> -	struct ib_mr *mr;
+> -	int err;
+> -
+> -	err = ib_check_mr_access(mr_access_flags);
+> -	if (err)
+> -		return ERR_PTR(err);
+> -
+> -	if (!pd->device->reg_phys_mr)
+> -		return ERR_PTR(-ENOSYS);
+> -
+> -	mr = pd->device->reg_phys_mr(pd, phys_buf_array, num_phys_buf,
+> -				     mr_access_flags, iova_start);
+> -
+> -	if (!IS_ERR(mr)) {
+> -		mr->device  = pd->device;
+> -		mr->pd      = pd;
+> -		mr->uobject = NULL;
+> -		atomic_inc(&pd->usecnt);
+> -		atomic_set(&mr->usecnt, 0);
+> -	}
+> -
+> -	return mr;
+> -}
+> -EXPORT_SYMBOL(ib_reg_phys_mr);
+> -
+> -int ib_rereg_phys_mr(struct ib_mr *mr,
+> -		     int mr_rereg_mask,
+> -		     struct ib_pd *pd,
+> -		     struct ib_phys_buf *phys_buf_array,
+> -		     int num_phys_buf,
+> -		     int mr_access_flags,
+> -		     u64 *iova_start)
+> -{
+> -	struct ib_pd *old_pd;
+> -	int ret;
+> -
+> -	ret = ib_check_mr_access(mr_access_flags);
+> -	if (ret)
+> -		return ret;
+> -
+> -	if (!mr->device->rereg_phys_mr)
+> -		return -ENOSYS;
+> -
+> -	if (atomic_read(&mr->usecnt))
+> -		return -EBUSY;
+> -
+> -	old_pd = mr->pd;
+> -
+> -	ret = mr->device->rereg_phys_mr(mr, mr_rereg_mask, pd,
+> -					phys_buf_array, num_phys_buf,
+> -					mr_access_flags, iova_start);
+> -
+> -	if (!ret && (mr_rereg_mask & IB_MR_REREG_PD)) {
+> -		atomic_dec(&old_pd->usecnt);
+> -		atomic_inc(&pd->usecnt);
+> -	}
+> -
+> -	return ret;
+> -}
+> -EXPORT_SYMBOL(ib_rereg_phys_mr);
+> -
+>  int ib_query_mr(struct ib_mr *mr, struct ib_mr_attr *mr_attr)
+>  {
+>  	return mr->device->query_mr ?
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> index b0f898e..43c1cf0 100644
+> --- a/include/rdma/ib_verbs.h
+> +++ b/include/rdma/ib_verbs.h
+> @@ -2760,52 +2760,6 @@ static inline void ib_dma_free_coherent(struct ib_device *dev,
+>  }
+>  
+>  /**
+> - * ib_reg_phys_mr - Prepares a virtually addressed memory region for use
+> - *   by an HCA.
+> - * @pd: The protection domain associated assigned to the registered region.
+> - * @phys_buf_array: Specifies a list of physical buffers to use in the
+> - *   memory region.
+> - * @num_phys_buf: Specifies the size of the phys_buf_array.
+> - * @mr_access_flags: Specifies the memory access rights.
+> - * @iova_start: The offset of the region's starting I/O virtual address.
+> - */
+> -struct ib_mr *ib_reg_phys_mr(struct ib_pd *pd,
+> -			     struct ib_phys_buf *phys_buf_array,
+> -			     int num_phys_buf,
+> -			     int mr_access_flags,
+> -			     u64 *iova_start);
+> -
+> -/**
+> - * ib_rereg_phys_mr - Modifies the attributes of an existing memory region.
+> - *   Conceptually, this call performs the functions deregister memory region
+> - *   followed by register physical memory region.  Where possible,
+> - *   resources are reused instead of deallocated and reallocated.
+> - * @mr: The memory region to modify.
+> - * @mr_rereg_mask: A bit-mask used to indicate which of the following
+> - *   properties of the memory region are being modified.
+> - * @pd: If %IB_MR_REREG_PD is set in mr_rereg_mask, this field specifies
+> - *   the new protection domain to associated with the memory region,
+> - *   otherwise, this parameter is ignored.
+> - * @phys_buf_array: If %IB_MR_REREG_TRANS is set in mr_rereg_mask, this
+> - *   field specifies a list of physical buffers to use in the new
+> - *   translation, otherwise, this parameter is ignored.
+> - * @num_phys_buf: If %IB_MR_REREG_TRANS is set in mr_rereg_mask, this
+> - *   field specifies the size of the phys_buf_array, otherwise, this
+> - *   parameter is ignored.
+> - * @mr_access_flags: If %IB_MR_REREG_ACCESS is set in mr_rereg_mask, this
+> - *   field specifies the new memory access rights, otherwise, this
+> - *   parameter is ignored.
+> - * @iova_start: The offset of the region's starting I/O virtual address.
+> - */
+> -int ib_rereg_phys_mr(struct ib_mr *mr,
+> -		     int mr_rereg_mask,
+> -		     struct ib_pd *pd,
+> -		     struct ib_phys_buf *phys_buf_array,
+> -		     int num_phys_buf,
+> -		     int mr_access_flags,
+> -		     u64 *iova_start);
+> -
+> -/**
+>   * ib_query_mr - Retrieves information about a specific memory region.
+>   * @mr: The memory region to retrieve information about.
+>   * @mr_attr: The attributes of the specified memory region.
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Send me a git patch that uses git mv to move it to staging and we=E2=80=99=
-ll leave it there for a release or two and then remove it after that.
-
-=E2=80=94
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-	GPG Key ID: 0E572FDD
-
-
-
-
-
-
---Apple-Mail=_F4159262-1787-478F-AFC5-EFA3EB1F6DA3
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename=signature.asc
-Content-Type: application/pgp-signature;
-	name=signature.asc
-Content-Description: Message signed with OpenPGP using GPGMail
-
------BEGIN PGP SIGNATURE-----
-Comment: GPGTools - https://gpgtools.org
-
-iQIcBAEBCgAGBQJVrpQPAAoJELgmozMOVy/dyekQAJJXcFV1Lh0yQapuaQ/Hak0D
-vnZoJ/2WFIaU5FxQEe1dFe7ZIslnERbCKgcoU+L+Zdq7E/Drm+CzdM2JcGOZXlKq
-Cl1MKLBRg3bSf0fQLklzM34pk9TH6cfSU2zvwHB1u4Y5MdZY9+dWA6Rfr9MaRWw9
-qOyGlp2ceiC4IqxSMA/Zk4cZk4zeeFPgg6jRG3NCyTjo2dFP0do0BtkwGVmkj+lH
-Q1IVH0TEH37lxwFEAgu4bAZZH9ORIsaEFcj3WB3qDh36hmaC917mmOxqOWQB2zUw
-Ya4nGUdlHMf+P4MSX0TzBoiliALQUFANnJbMtvKoNmreuPBI9DX02JU4I+Wh74PR
-AMLgVdDksQiwtEj2PcWCBUNvnTCdFMRckKXxHyTioch4GoGTfqRPH5Zs9FVqnBnE
-kt6d1p7DPVeewHnow/E3xVH3XRWkAm92yFkVIMOBvsZfDWTmhepqkg0dEkyW8wyD
-HA4hkly1eiCU34H0jzRBxoH3/1v46h0unyWcPAejf0EjPLhSiHu44m11RkSYfm/o
-+Qw36nSuHcGkXjDmFPqgRmgZrl+RcyMQASse2OcUuw15vG7ct91klHDNt9OJLbD9
-4AvWLbZKIqUOxOQFN9hujnFPRLaEpESMKsL1vax/2g3w9tANBx9cvqSd3X3m3+Et
-IUx5B4SXb2ghfx8gc1oL
-=m++O
------END PGP SIGNATURE-----
-
---Apple-Mail=_F4159262-1787-478F-AFC5-EFA3EB1F6DA3--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
