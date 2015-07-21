@@ -1,77 +1,103 @@
-From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [BUG] mellanox IB driver fails to load on large config
-Date: Tue, 21 Jul 2015 17:21:19 +0300
-Message-ID: <CAAKD3BB_2E+U4O8fO=uBTOqrahbwRR_o+rPUKRi1aRfMurNRBg@mail.gmail.com>
-References: <20150710191506.GA52396@asylum.americas.sgi.com>
-	<CAJ3xEMj82OtHcs+kDG_xrQZ4+x3Eih=YSNFR4+W-AoPNA=4jTw@mail.gmail.com>
-	<20150714182234.GD17920@asylum.americas.sgi.com>
-	<20150714184820.GB58053@asylum.americas.sgi.com>
-	<CAJ3xEMig=GzROAea7qe0YO11DM6pc4wXyG8VB=kq5Hf5uw2ZXQ@mail.gmail.com>
-	<20150714202848.GD58053@asylum.americas.sgi.com>
-	<55A74E61.1080403@mellanox.com>
-	<20150720162803.GL58053@asylum.americas.sgi.com>
-	<20150721025639.GX58053@asylum.americas.sgi.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH v3 05/15] xprtrdma: Remove last ib_reg_phys_mr() call site
+Date: Tue, 21 Jul 2015 09:33:44 -0500
+Message-ID: <000301d0c3c2$3f892a50$be9b7ef0$@opengridcomputing.com>
+References: <20150720185624.10997.51574.stgit@manet.1015granger.net> <20150720190311.10997.12636.stgit@manet.1015granger.net> <55AD5B48.3010906@talpey.com> <20150720210544.GA9655@obsidianresearch.com> <015101d0c331$69e31d10$3da95730$@opengridcomputing.com> <55AD7065.8040809@talpey.com> <015701d0c33d$36b53110$a41f9330$@opengridcomputing.com> <55AD8F05.6070409@talpey.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150721025639.GX58053-UiYq4lDBhggTG1waqwXmH7Cf4lofQVJ7@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Thorlton <athorlton-sJ/iWh9BUns@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, andrew banman <abanman-sJ/iWh9BUns@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <55AD8F05.6070409-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-us
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Tom Talpey' <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 21, 2015 at 5:56 AM, Alex Thorlton <athorlton-sJ/iWh9BUns@public.gmane.org> wrote:
-> On Mon, Jul 20, 2015 at 11:28:03AM -0500, Alex Thorlton wrote:
->> I've got some time on the large machine later today.  I'll give this a
->> try then.
->
-> I ran a boot with this patch applied:
->
-> diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-> index 83e80ab..c84aea0 100644
-> --- a/include/linux/mlx4/device.h
-> +++ b/include/linux/mlx4/device.h
-> @@ -45,7 +45,7 @@
->  #include <linux/timecounter.h>
->
->  #define MAX_MSIX_P_PORT                17
-> -#define MAX_MSIX               64
-> +#define MAX_MSIX               8192
->  #define MSIX_LEGACY_SZ         4
->  #define MIN_MSIX_P_PORT                5
->
-> I went for a max of 8192, since I was actually booting the machine with
-> 6144 cores (not 4096) for this run.  It doesn't look like this fixed the
-> problem.  I still saw the same errors during boot.
->
-> FWIW, the module does appear to still successfully load:
->
-> 8<---
-> # lsmod | grep mlx
-> mlx4_ib               151552  0
-> ib_sa                  32768  1 mlx4_ib
-> ib_mad                 49152  2 ib_sa,mlx4_ib
-> ib_core               102400  3 ib_sa,mlx4_ib,ib_mad
-> mlx4_core             278528  1 mlx4_ib
-> --->8
->
-> If the module loading is good enough, and we should just ignore the
-> errors, then I'm fine with that.  Just wanting to make sure that
-> everything is behaving correctly.
 
-It shouldn't be a problem,  as all unused/erroneous EQs get "-1".
-We'll try to reproduce the problem here, it might take awhile though.
 
-Thanks for checking this,
-Matan
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Tom Talpey
+> Sent: Monday, July 20, 2015 7:15 PM
+> To: Steve Wise; 'Jason Gunthorpe'
+> Cc: 'Chuck Lever'; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: [PATCH v3 05/15] xprtrdma: Remove last ib_reg_phys_mr() call site
+> 
+> On 7/20/2015 3:41 PM, Steve Wise wrote:
+> >
+> >
+> >> -----Original Message-----
+> >> From: Tom Talpey [mailto:tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org]
+> >> Sent: Monday, July 20, 2015 5:04 PM
+> >> To: Steve Wise; 'Jason Gunthorpe'
+> >> Cc: 'Chuck Lever'; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> >> Subject: Re: [PATCH v3 05/15] xprtrdma: Remove last ib_reg_phys_mr() call site
+> >>
+> >> On 7/20/2015 2:16 PM, Steve Wise wrote:
+> >>>
+> >>>
+> >>>> -----Original Message-----
+> >>>> From: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
+> >>>> Sent: Monday, July 20, 2015 4:06 PM
+> >>>> To: Tom Talpey; Steve Wise
+> >>>> Cc: Chuck Lever; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> >>>> Subject: Re: [PATCH v3 05/15] xprtrdma: Remove last ib_reg_phys_mr() call site
+> >>>>
+> >>>> On Mon, Jul 20, 2015 at 01:34:16PM -0700, Tom Talpey wrote:
+> >>>>> On 7/20/2015 12:03 PM, Chuck Lever wrote:
+> >>>>>> All HCA providers have an ib_get_dma_mr() verb. Thus
+> >>>>>> rpcrdma_ia_open() will either grab the device's local_dma_key if one
+> >>>>>> is available, or it will call ib_get_dma_mr() which is a 100%
+> >>>>>> guaranteed fallback.
+> >>>>>
+> >>>>> I recall that in the past, some providers did not support mapping
+> >>>>> all of the machine's potential physical memory with a single dma_mr.
+> >>>>> If an rnic did/does not support 44-ish bits of length per region,
+> >>>>> for example.
+> >>>>
+> >>>> Looks like you are right, but the standard in kernel is to require
+> >>>> ib_get_dma_mr, if the HCA can't do that, then it cannot be used on a
+> >>>> big memory machine with kernel ULPs.
+> >>>>
+> >>>> Looking deeper, both amso1100 and cxgb3 seem limited to 32 bits of
+> >>>> physical memory, and silently break all kernel ULPs if they are used
+> >>>> on a modern machine with > 4G.
+> >>>>
+> >>>> Is that right Steve?
+> >>>>
+> >>>
+> >>> Yes.
+> >>>
+> >>>> Based on that, should we remove the cxgb3 driver as well? Or at least
+> >>>> can you fix it up to at least fail get_dma_mr if there is too much
+> >>>> ram?
+> >>>>
+> >>>
+> >>> I would like to keep cxgb3 around.  I can add code to fail if the memory is > 32b.  Do you know how I get the amount of
+> > available
+> >>> ram?
+> >>
+> >> A) are you sure it's an unsigned length, i.e. is it really 31 bits?
+> >>
+> >
+> > yes.
+> >
+> >> B) why bother to check? Are machines with <4GB interesting, and worth
+> >> supporting a special optimization?
+> >
+> > No, but cxgb3 is still interesting to user applications, and perhaps NFSRDMA using FRMRs.
+> 
+> I'm obviously not making myself clear. I am suggesting that cxgb3 fail
+> the ib_get_dma_mr() verb, regardless of installed memory.
+> 
+> I am not suggesting it fail to load, or fail other memreg requests. It
+> should work normally in all other respects.
 
->
-> - Alex
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Even with its limitation, doesn't it have utility for someone using cxgb3 in an embedded 32b environment? 
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
