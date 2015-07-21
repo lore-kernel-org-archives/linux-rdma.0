@@ -1,93 +1,60 @@
-From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 05/15] xprtrdma: Remove last ib_reg_phys_mr() call site
-Date: Mon, 20 Jul 2015 17:15:01 -0700
-Message-ID: <55AD8F05.6070409@talpey.com>
-References: <20150720185624.10997.51574.stgit@manet.1015granger.net>
- <20150720190311.10997.12636.stgit@manet.1015granger.net>
- <55AD5B48.3010906@talpey.com> <20150720210544.GA9655@obsidianresearch.com>
- <015101d0c331$69e31d10$3da95730$@opengridcomputing.com>
- <55AD7065.8040809@talpey.com>
- <015701d0c33d$36b53110$a41f9330$@opengridcomputing.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: RFC: Immediate data support for SRP
+Date: Mon, 20 Jul 2015 17:03:06 -0700
+Message-ID: <55AD8C3A.9070403@sandisk.com>
+References: <55A7CCF1.3080201@sandisk.com>
+ <55ABCB34.1000506@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <015701d0c33d$36b53110$a41f9330$@opengridcomputing.com>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <55ABCB34.1000506-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/20/2015 3:41 PM, Steve Wise wrote:
+On 07/19/2015 09:07 AM, Sagi Grimberg wrote:
+> On 7/16/2015 6:25 PM, Bart Van Assche wrote:
+>> As you probably know for write requests "immediate data" means sending
+>> the data in the same packet as the write command instead of sending it
+>> as a separate packet. This approach improves performance and reduces
+>> latency. Although support for immediate data has not been standardized,
 >
->
->> -----Original Message-----
->> From: Tom Talpey [mailto:tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org]
->> Sent: Monday, July 20, 2015 5:04 PM
->> To: Steve Wise; 'Jason Gunthorpe'
->> Cc: 'Chuck Lever'; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> Subject: Re: [PATCH v3 05/15] xprtrdma: Remove last ib_reg_phys_mr() call site
->>
->> On 7/20/2015 2:16 PM, Steve Wise wrote:
->>>
->>>
->>>> -----Original Message-----
->>>> From: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
->>>> Sent: Monday, July 20, 2015 4:06 PM
->>>> To: Tom Talpey; Steve Wise
->>>> Cc: Chuck Lever; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>> Subject: Re: [PATCH v3 05/15] xprtrdma: Remove last ib_reg_phys_mr() call site
->>>>
->>>> On Mon, Jul 20, 2015 at 01:34:16PM -0700, Tom Talpey wrote:
->>>>> On 7/20/2015 12:03 PM, Chuck Lever wrote:
->>>>>> All HCA providers have an ib_get_dma_mr() verb. Thus
->>>>>> rpcrdma_ia_open() will either grab the device's local_dma_key if one
->>>>>> is available, or it will call ib_get_dma_mr() which is a 100%
->>>>>> guaranteed fallback.
->>>>>
->>>>> I recall that in the past, some providers did not support mapping
->>>>> all of the machine's potential physical memory with a single dma_mr.
->>>>> If an rnic did/does not support 44-ish bits of length per region,
->>>>> for example.
->>>>
->>>> Looks like you are right, but the standard in kernel is to require
->>>> ib_get_dma_mr, if the HCA can't do that, then it cannot be used on a
->>>> big memory machine with kernel ULPs.
->>>>
->>>> Looking deeper, both amso1100 and cxgb3 seem limited to 32 bits of
->>>> physical memory, and silently break all kernel ULPs if they are used
->>>> on a modern machine with > 4G.
->>>>
->>>> Is that right Steve?
->>>>
->>>
->>> Yes.
->>>
->>>> Based on that, should we remove the cxgb3 driver as well? Or at least
->>>> can you fix it up to at least fail get_dma_mr if there is too much
->>>> ram?
->>>>
->>>
->>> I would like to keep cxgb3 around.  I can add code to fail if the memory is > 32b.  Do you know how I get the amount of
-> available
->>> ram?
->>
->> A) are you sure it's an unsigned length, i.e. is it really 31 bits?
->>
->
-> yes.
->
->> B) why bother to check? Are machines with <4GB interesting, and worth
->> supporting a special optimization?
->
-> No, but cxgb3 is still interesting to user applications, and perhaps NFSRDMA using FRMRs.
+> Has anyone tried to get it into the standard? It would seem beneficial
+> to just add it. I wouldn't want this to be a Linux compatible only
+> feature...
 
-I'm obviously not making myself clear. I am suggesting that cxgb3 fail
-the ib_get_dma_mr() verb, regardless of installed memory.
+Earlier today I have asked the SanDisk representative in the ANSI T10 
+committee for his opinion about standardizing support for immediate data 
+for the SRP protocol. I'm now waiting for his reply.
 
-I am not suggesting it fail to load, or fail other memreg requests. It
-should work normally in all other respects.
+>> it is easy to add to the SRP initiator and target drivers.
+>> Implementations exist in the ib_srp-backport initiator driver and the
+>> SCST SRP target driver (see also
+>> https://github.com/bvanassche/ib_srp-backport and
+>> http://sourceforge.net/p/scst/svn/HEAD/tree/trunk/srpt/). These
+>> implementations are available since considerable time, work reliably,
+>> are backwards compatible and support zero-copy. Since using immediate
+>> data provides a measurable performance improvement I'm wondering whether
+>> it would be acceptable to add support for immediate data to the SRP
+>> drivers in the Linux kernel tree (ib_srp and ib_srpt) ?
+>
+> Was this tested against any other array besides SCST and LIO? I know
+> people are using SRP against various arrays (Oracle ZFS, RamSan TMS,
+> DDN Fusion, NIMBUS, NetApp E5400A...). Their not running upstream
+> kernels, but they will catch up at some point...
+
+Not yet, but the existing implementation is backwards compatible. The 
+SRP initiator sets a flag in the login request to request the target 
+driver to enable immediate data (SRP_BUF_FORMAT_IMM), and only if the 
+target driver sends a login response in which the same flag is set 
+immediate data is enabled. Immediate data could only be enabled when it 
+should not be enabled if an SRP target sets other flags in its login 
+reply than those that have been standardized by the ANSI T10 committee.
+
+Bart.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
