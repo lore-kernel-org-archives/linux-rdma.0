@@ -1,236 +1,211 @@
-From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 15/15] core: Remove the ib_reg_phys_mr() and
- ib_rereg_phys_mr() verbs
-Date: Tue, 21 Jul 2015 16:18:46 -0400
-Message-ID: <55AEA926.5070200@Netapp.com>
-References: <20150720185624.10997.51574.stgit@manet.1015granger.net>
- <20150720190446.10997.83633.stgit@manet.1015granger.net>
- <55AEA6A4.8020204@Netapp.com>
- <D4DD6D9E-1660-4424-9A2A-54AE85368A7A@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <D4DD6D9E-1660-4424-9A2A-54AE85368A7A-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH] RDMA/amso1100: deprecate the amso1100 provider
+Date: Tue, 21 Jul 2015 14:28:44 -0500
+Message-ID: <20150721202621.A3989E067D@smtp.ogc.us>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/21/2015 04:16 PM, Chuck Lever wrote:
-> Hi Anna-
->=20
->=20
-> On Jul 21, 2015, at 4:08 PM, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgRhl2p70BpVqQ@public.gmane.org=
-m> wrote:
->=20
->> Hey Chuck,
->>
->> Just a heads up that this patch should go through the infiniband tre=
-e, and not NFS :).
->=20
-> The IB maintainer has ACK=E2=80=99d it, so it can go through NFS. It =
-depends
-> on changes in an earlier patch in this series.
+The HW hasn't been sold since 2005, and the SW has definite bit rot.
+Its time to remove it.  So move it to staging for a few releases and
+then remove it after that.
 
-=46air enough!  I didn't realize Doug was the IB maintainer.
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+ drivers/infiniband/Kconfig                         |    1 -
+ drivers/infiniband/hw/Makefile                     |    1 -
+ drivers/staging/Kconfig                            |    2 ++
+ drivers/staging/Makefile                           |    1 +
+ drivers/{infiniband/hw => staging}/amso1100/Kbuild |    0
+ .../{infiniband/hw => staging}/amso1100/Kconfig    |    0
+ drivers/{infiniband/hw => staging}/amso1100/c2.c   |    0
+ drivers/{infiniband/hw => staging}/amso1100/c2.h   |    0
+ .../{infiniband/hw => staging}/amso1100/c2_ae.c    |    0
+ .../{infiniband/hw => staging}/amso1100/c2_ae.h    |    0
+ .../{infiniband/hw => staging}/amso1100/c2_alloc.c |    0
+ .../{infiniband/hw => staging}/amso1100/c2_cm.c    |    0
+ .../{infiniband/hw => staging}/amso1100/c2_cq.c    |    0
+ .../{infiniband/hw => staging}/amso1100/c2_intr.c  |    0
+ .../{infiniband/hw => staging}/amso1100/c2_mm.c    |    0
+ .../{infiniband/hw => staging}/amso1100/c2_mq.c    |    0
+ .../{infiniband/hw => staging}/amso1100/c2_mq.h    |    0
+ .../{infiniband/hw => staging}/amso1100/c2_pd.c    |    0
+ .../hw => staging}/amso1100/c2_provider.c          |    0
+ .../hw => staging}/amso1100/c2_provider.h          |    0
+ .../{infiniband/hw => staging}/amso1100/c2_qp.c    |    0
+ .../{infiniband/hw => staging}/amso1100/c2_rnic.c  |    0
+ .../hw => staging}/amso1100/c2_status.h            |    0
+ .../{infiniband/hw => staging}/amso1100/c2_user.h  |    0
+ .../{infiniband/hw => staging}/amso1100/c2_vq.c    |    0
+ .../{infiniband/hw => staging}/amso1100/c2_vq.h    |    0
+ .../{infiniband/hw => staging}/amso1100/c2_wr.h    |    0
+ 27 files changed, 3 insertions(+), 2 deletions(-)
+ rename drivers/{infiniband/hw => staging}/amso1100/Kbuild (100%)
+ rename drivers/{infiniband/hw => staging}/amso1100/Kconfig (100%)
+ rename drivers/{infiniband/hw => staging}/amso1100/c2.c (100%)
+ rename drivers/{infiniband/hw => staging}/amso1100/c2.h (100%)
+ rename drivers/{infiniband/hw => staging}/amso1100/c2_ae.c (100%)
+ rename drivers/{infiniband/hw => staging}/amso1100/c2_ae.h (100%)
+ rename drivers/{infiniband/hw => staging}/amso1100/c2_alloc.c (100%)
+ rename drivers/{infiniband/hw => staging}/amso1100/c2_cm.c (100%)
+ rename drivers/{infiniband/hw => staging}/amso1100/c2_cq.c (100%)
+ rename drivers/{infiniband/hw => staging}/amso1100/c2_intr.c (100%)
+ rename drivers/{infiniband/hw => staging}/amso1100/c2_mm.c (100%)
+ rename drivers/{infiniband/hw => staging}/amso1100/c2_mq.c (100%)
+ rename drivers/{infiniband/hw => staging}/amso1100/c2_mq.h (100%)
+ rename drivers/{infiniband/hw => staging}/amso1100/c2_pd.c (100%)
+ rename drivers/{infiniband/hw => staging}/amso1100/c2_provider.c (100%)
+ rename drivers/{infiniband/hw => staging}/amso1100/c2_provider.h (100%)
+ rename drivers/{infiniband/hw => staging}/amso1100/c2_qp.c (100%)
+ rename drivers/{infiniband/hw => staging}/amso1100/c2_rnic.c (100%)
+ rename drivers/{infiniband/hw => staging}/amso1100/c2_status.h (100%)
+ rename drivers/{infiniband/hw => staging}/amso1100/c2_user.h (100%)
+ rename drivers/{infiniband/hw => staging}/amso1100/c2_vq.c (100%)
+ rename drivers/{infiniband/hw => staging}/amso1100/c2_vq.h (100%)
+ rename drivers/{infiniband/hw => staging}/amso1100/c2_wr.h (100%)
 
-Anna
->=20
->=20
->> Thanks,
->> Anna
->>
->> On 07/20/2015 03:04 PM, Chuck Lever wrote:
->>> The verbs are obsolete. The ib_rereg_phys_mr() verb is not used by
->>> kernel ULPs, and the last ib_reg_phys_mr() call site in the kernel
->>> tree has now been removed.
->>>
->>> Two staging tree call sites remain in the Lustre client. The Lustre
->>> team has been notified of the deprecation of reg_phys_mr.
->>>
->>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>> Acked-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->>> ---
->>> drivers/infiniband/core/verbs.c |   67 ----------------------------=
------------
->>> include/rdma/ib_verbs.h         |   46 ---------------------------
->>> 2 files changed, 113 deletions(-)
->>>
->>> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/c=
-ore/verbs.c
->>> index bac3fb4..30eb245 100644
->>> --- a/drivers/infiniband/core/verbs.c
->>> +++ b/drivers/infiniband/core/verbs.c
->>> @@ -1144,73 +1144,6 @@ struct ib_mr *ib_get_dma_mr(struct ib_pd *pd=
-, int mr_access_flags)
->>> }
->>> EXPORT_SYMBOL(ib_get_dma_mr);
->>>
->>> -struct ib_mr *ib_reg_phys_mr(struct ib_pd *pd,
->>> -			     struct ib_phys_buf *phys_buf_array,
->>> -			     int num_phys_buf,
->>> -			     int mr_access_flags,
->>> -			     u64 *iova_start)
->>> -{
->>> -	struct ib_mr *mr;
->>> -	int err;
->>> -
->>> -	err =3D ib_check_mr_access(mr_access_flags);
->>> -	if (err)
->>> -		return ERR_PTR(err);
->>> -
->>> -	if (!pd->device->reg_phys_mr)
->>> -		return ERR_PTR(-ENOSYS);
->>> -
->>> -	mr =3D pd->device->reg_phys_mr(pd, phys_buf_array, num_phys_buf,
->>> -				     mr_access_flags, iova_start);
->>> -
->>> -	if (!IS_ERR(mr)) {
->>> -		mr->device  =3D pd->device;
->>> -		mr->pd      =3D pd;
->>> -		mr->uobject =3D NULL;
->>> -		atomic_inc(&pd->usecnt);
->>> -		atomic_set(&mr->usecnt, 0);
->>> -	}
->>> -
->>> -	return mr;
->>> -}
->>> -EXPORT_SYMBOL(ib_reg_phys_mr);
->>> -
->>> -int ib_rereg_phys_mr(struct ib_mr *mr,
->>> -		     int mr_rereg_mask,
->>> -		     struct ib_pd *pd,
->>> -		     struct ib_phys_buf *phys_buf_array,
->>> -		     int num_phys_buf,
->>> -		     int mr_access_flags,
->>> -		     u64 *iova_start)
->>> -{
->>> -	struct ib_pd *old_pd;
->>> -	int ret;
->>> -
->>> -	ret =3D ib_check_mr_access(mr_access_flags);
->>> -	if (ret)
->>> -		return ret;
->>> -
->>> -	if (!mr->device->rereg_phys_mr)
->>> -		return -ENOSYS;
->>> -
->>> -	if (atomic_read(&mr->usecnt))
->>> -		return -EBUSY;
->>> -
->>> -	old_pd =3D mr->pd;
->>> -
->>> -	ret =3D mr->device->rereg_phys_mr(mr, mr_rereg_mask, pd,
->>> -					phys_buf_array, num_phys_buf,
->>> -					mr_access_flags, iova_start);
->>> -
->>> -	if (!ret && (mr_rereg_mask & IB_MR_REREG_PD)) {
->>> -		atomic_dec(&old_pd->usecnt);
->>> -		atomic_inc(&pd->usecnt);
->>> -	}
->>> -
->>> -	return ret;
->>> -}
->>> -EXPORT_SYMBOL(ib_rereg_phys_mr);
->>> -
->>> int ib_query_mr(struct ib_mr *mr, struct ib_mr_attr *mr_attr)
->>> {
->>> 	return mr->device->query_mr ?
->>> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
->>> index b0f898e..43c1cf0 100644
->>> --- a/include/rdma/ib_verbs.h
->>> +++ b/include/rdma/ib_verbs.h
->>> @@ -2760,52 +2760,6 @@ static inline void ib_dma_free_coherent(stru=
-ct ib_device *dev,
->>> }
->>>
->>> /**
->>> - * ib_reg_phys_mr - Prepares a virtually addressed memory region f=
-or use
->>> - *   by an HCA.
->>> - * @pd: The protection domain associated assigned to the registere=
-d region.
->>> - * @phys_buf_array: Specifies a list of physical buffers to use in=
- the
->>> - *   memory region.
->>> - * @num_phys_buf: Specifies the size of the phys_buf_array.
->>> - * @mr_access_flags: Specifies the memory access rights.
->>> - * @iova_start: The offset of the region's starting I/O virtual ad=
-dress.
->>> - */
->>> -struct ib_mr *ib_reg_phys_mr(struct ib_pd *pd,
->>> -			     struct ib_phys_buf *phys_buf_array,
->>> -			     int num_phys_buf,
->>> -			     int mr_access_flags,
->>> -			     u64 *iova_start);
->>> -
->>> -/**
->>> - * ib_rereg_phys_mr - Modifies the attributes of an existing memor=
-y region.
->>> - *   Conceptually, this call performs the functions deregister mem=
-ory region
->>> - *   followed by register physical memory region.  Where possible,
->>> - *   resources are reused instead of deallocated and reallocated.
->>> - * @mr: The memory region to modify.
->>> - * @mr_rereg_mask: A bit-mask used to indicate which of the follow=
-ing
->>> - *   properties of the memory region are being modified.
->>> - * @pd: If %IB_MR_REREG_PD is set in mr_rereg_mask, this field spe=
-cifies
->>> - *   the new protection domain to associated with the memory regio=
-n,
->>> - *   otherwise, this parameter is ignored.
->>> - * @phys_buf_array: If %IB_MR_REREG_TRANS is set in mr_rereg_mask,=
- this
->>> - *   field specifies a list of physical buffers to use in the new
->>> - *   translation, otherwise, this parameter is ignored.
->>> - * @num_phys_buf: If %IB_MR_REREG_TRANS is set in mr_rereg_mask, t=
-his
->>> - *   field specifies the size of the phys_buf_array, otherwise, th=
-is
->>> - *   parameter is ignored.
->>> - * @mr_access_flags: If %IB_MR_REREG_ACCESS is set in mr_rereg_mas=
-k, this
->>> - *   field specifies the new memory access rights, otherwise, this
->>> - *   parameter is ignored.
->>> - * @iova_start: The offset of the region's starting I/O virtual ad=
-dress.
->>> - */
->>> -int ib_rereg_phys_mr(struct ib_mr *mr,
->>> -		     int mr_rereg_mask,
->>> -		     struct ib_pd *pd,
->>> -		     struct ib_phys_buf *phys_buf_array,
->>> -		     int num_phys_buf,
->>> -		     int mr_access_flags,
->>> -		     u64 *iova_start);
->>> -
->>> -/**
->>>  * ib_query_mr - Retrieves information about a specific memory regi=
-on.
->>>  * @mr: The memory region to retrieve information about.
->>>  * @mr_attr: The attributes of the specified memory region.
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-nfs=
-" in
->>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
-" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
-> --
-> Chuck Lever
->=20
->=20
->=20
+diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
+index b899531..c3c184e 100644
+--- a/drivers/infiniband/Kconfig
++++ b/drivers/infiniband/Kconfig
+@@ -58,7 +58,6 @@ source "drivers/infiniband/hw/mthca/Kconfig"
+ source "drivers/infiniband/hw/ipath/Kconfig"
+ source "drivers/infiniband/hw/qib/Kconfig"
+ source "drivers/infiniband/hw/ehca/Kconfig"
+-source "drivers/infiniband/hw/amso1100/Kconfig"
+ source "drivers/infiniband/hw/cxgb3/Kconfig"
+ source "drivers/infiniband/hw/cxgb4/Kconfig"
+ source "drivers/infiniband/hw/mlx4/Kconfig"
+diff --git a/drivers/infiniband/hw/Makefile b/drivers/infiniband/hw/Makefile
+index e900b03..e179dfb 100644
+--- a/drivers/infiniband/hw/Makefile
++++ b/drivers/infiniband/hw/Makefile
+@@ -2,7 +2,6 @@ obj-$(CONFIG_INFINIBAND_MTHCA)		+= mthca/
+ obj-$(CONFIG_INFINIBAND_IPATH)		+= ipath/
+ obj-$(CONFIG_INFINIBAND_QIB)		+= qib/
+ obj-$(CONFIG_INFINIBAND_EHCA)		+= ehca/
+-obj-$(CONFIG_INFINIBAND_AMSO1100)	+= amso1100/
+ obj-$(CONFIG_INFINIBAND_CXGB3)		+= cxgb3/
+ obj-$(CONFIG_INFINIBAND_CXGB4)		+= cxgb4/
+ obj-$(CONFIG_MLX4_INFINIBAND)		+= mlx4/
+diff --git a/drivers/staging/Kconfig b/drivers/staging/Kconfig
+index 7f6cae5..cec20d2 100644
+--- a/drivers/staging/Kconfig
++++ b/drivers/staging/Kconfig
+@@ -112,4 +112,6 @@ source "drivers/staging/fsl-mc/Kconfig"
+ 
+ source "drivers/staging/wilc1000/Kconfig"
+ 
++source "drivers/staging/amso1100/Kconfig"
++
+ endif # STAGING
+diff --git a/drivers/staging/Makefile b/drivers/staging/Makefile
+index 347f647..4ca8633 100644
+--- a/drivers/staging/Makefile
++++ b/drivers/staging/Makefile
+@@ -48,3 +48,4 @@ obj-$(CONFIG_COMMON_CLK_XLNX_CLKWZRD)	+= clocking-wizard/
+ obj-$(CONFIG_FB_TFT)		+= fbtft/
+ obj-$(CONFIG_FSL_MC_BUS)	+= fsl-mc/
+ obj-$(CONFIG_WILC1000)		+= wilc1000/
++obj-$(CONFIG_INFINIBAND_AMSO1100) += amso1100/
+diff --git a/drivers/infiniband/hw/amso1100/Kbuild b/drivers/staging/amso1100/Kbuild
+similarity index 100%
+rename from drivers/infiniband/hw/amso1100/Kbuild
+rename to drivers/staging/amso1100/Kbuild
+diff --git a/drivers/infiniband/hw/amso1100/Kconfig b/drivers/staging/amso1100/Kconfig
+similarity index 100%
+rename from drivers/infiniband/hw/amso1100/Kconfig
+rename to drivers/staging/amso1100/Kconfig
+diff --git a/drivers/infiniband/hw/amso1100/c2.c b/drivers/staging/amso1100/c2.c
+similarity index 100%
+rename from drivers/infiniband/hw/amso1100/c2.c
+rename to drivers/staging/amso1100/c2.c
+diff --git a/drivers/infiniband/hw/amso1100/c2.h b/drivers/staging/amso1100/c2.h
+similarity index 100%
+rename from drivers/infiniband/hw/amso1100/c2.h
+rename to drivers/staging/amso1100/c2.h
+diff --git a/drivers/infiniband/hw/amso1100/c2_ae.c b/drivers/staging/amso1100/c2_ae.c
+similarity index 100%
+rename from drivers/infiniband/hw/amso1100/c2_ae.c
+rename to drivers/staging/amso1100/c2_ae.c
+diff --git a/drivers/infiniband/hw/amso1100/c2_ae.h b/drivers/staging/amso1100/c2_ae.h
+similarity index 100%
+rename from drivers/infiniband/hw/amso1100/c2_ae.h
+rename to drivers/staging/amso1100/c2_ae.h
+diff --git a/drivers/infiniband/hw/amso1100/c2_alloc.c b/drivers/staging/amso1100/c2_alloc.c
+similarity index 100%
+rename from drivers/infiniband/hw/amso1100/c2_alloc.c
+rename to drivers/staging/amso1100/c2_alloc.c
+diff --git a/drivers/infiniband/hw/amso1100/c2_cm.c b/drivers/staging/amso1100/c2_cm.c
+similarity index 100%
+rename from drivers/infiniband/hw/amso1100/c2_cm.c
+rename to drivers/staging/amso1100/c2_cm.c
+diff --git a/drivers/infiniband/hw/amso1100/c2_cq.c b/drivers/staging/amso1100/c2_cq.c
+similarity index 100%
+rename from drivers/infiniband/hw/amso1100/c2_cq.c
+rename to drivers/staging/amso1100/c2_cq.c
+diff --git a/drivers/infiniband/hw/amso1100/c2_intr.c b/drivers/staging/amso1100/c2_intr.c
+similarity index 100%
+rename from drivers/infiniband/hw/amso1100/c2_intr.c
+rename to drivers/staging/amso1100/c2_intr.c
+diff --git a/drivers/infiniband/hw/amso1100/c2_mm.c b/drivers/staging/amso1100/c2_mm.c
+similarity index 100%
+rename from drivers/infiniband/hw/amso1100/c2_mm.c
+rename to drivers/staging/amso1100/c2_mm.c
+diff --git a/drivers/infiniband/hw/amso1100/c2_mq.c b/drivers/staging/amso1100/c2_mq.c
+similarity index 100%
+rename from drivers/infiniband/hw/amso1100/c2_mq.c
+rename to drivers/staging/amso1100/c2_mq.c
+diff --git a/drivers/infiniband/hw/amso1100/c2_mq.h b/drivers/staging/amso1100/c2_mq.h
+similarity index 100%
+rename from drivers/infiniband/hw/amso1100/c2_mq.h
+rename to drivers/staging/amso1100/c2_mq.h
+diff --git a/drivers/infiniband/hw/amso1100/c2_pd.c b/drivers/staging/amso1100/c2_pd.c
+similarity index 100%
+rename from drivers/infiniband/hw/amso1100/c2_pd.c
+rename to drivers/staging/amso1100/c2_pd.c
+diff --git a/drivers/infiniband/hw/amso1100/c2_provider.c b/drivers/staging/amso1100/c2_provider.c
+similarity index 100%
+rename from drivers/infiniband/hw/amso1100/c2_provider.c
+rename to drivers/staging/amso1100/c2_provider.c
+diff --git a/drivers/infiniband/hw/amso1100/c2_provider.h b/drivers/staging/amso1100/c2_provider.h
+similarity index 100%
+rename from drivers/infiniband/hw/amso1100/c2_provider.h
+rename to drivers/staging/amso1100/c2_provider.h
+diff --git a/drivers/infiniband/hw/amso1100/c2_qp.c b/drivers/staging/amso1100/c2_qp.c
+similarity index 100%
+rename from drivers/infiniband/hw/amso1100/c2_qp.c
+rename to drivers/staging/amso1100/c2_qp.c
+diff --git a/drivers/infiniband/hw/amso1100/c2_rnic.c b/drivers/staging/amso1100/c2_rnic.c
+similarity index 100%
+rename from drivers/infiniband/hw/amso1100/c2_rnic.c
+rename to drivers/staging/amso1100/c2_rnic.c
+diff --git a/drivers/infiniband/hw/amso1100/c2_status.h b/drivers/staging/amso1100/c2_status.h
+similarity index 100%
+rename from drivers/infiniband/hw/amso1100/c2_status.h
+rename to drivers/staging/amso1100/c2_status.h
+diff --git a/drivers/infiniband/hw/amso1100/c2_user.h b/drivers/staging/amso1100/c2_user.h
+similarity index 100%
+rename from drivers/infiniband/hw/amso1100/c2_user.h
+rename to drivers/staging/amso1100/c2_user.h
+diff --git a/drivers/infiniband/hw/amso1100/c2_vq.c b/drivers/staging/amso1100/c2_vq.c
+similarity index 100%
+rename from drivers/infiniband/hw/amso1100/c2_vq.c
+rename to drivers/staging/amso1100/c2_vq.c
+diff --git a/drivers/infiniband/hw/amso1100/c2_vq.h b/drivers/staging/amso1100/c2_vq.h
+similarity index 100%
+rename from drivers/infiniband/hw/amso1100/c2_vq.h
+rename to drivers/staging/amso1100/c2_vq.h
+diff --git a/drivers/infiniband/hw/amso1100/c2_wr.h b/drivers/staging/amso1100/c2_wr.h
+similarity index 100%
+rename from drivers/infiniband/hw/amso1100/c2_wr.h
+rename to drivers/staging/amso1100/c2_wr.h
+-- 
+1.7.1
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
