@@ -1,40 +1,65 @@
-From: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: deprecating amso1100
-Date: Tue, 21 Jul 2015 20:42:19 +0000
-Message-ID: <D2F193D21ECD8C45917AD3D5B26513300C49590A@CRSMSX101.amr.corp.intel.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: deprecating amso1100
+Date: Tue, 21 Jul 2015 15:43:48 -0500
+Message-ID: <55AEAF04.1020801@opengridcomputing.com>
 References: <55AE93E0.9060002@opengridcomputing.com>
  <1AE4059B-F6BD-48ED-A1C6-8A9024DDF217@redhat.com>
+ <D2F193D21ECD8C45917AD3D5B26513300C49590A@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1AE4059B-F6BD-48ED-A1C6-8A9024DDF217-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <D2F193D21ECD8C45917AD3D5B26513300C49590A-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBsaW51eC1yZG1hLW93bmVyQHZn
-ZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LXJkbWEtDQo+IG93bmVyQHZnZXIua2VybmVsLm9y
-Z10gT24gQmVoYWxmIE9mIERvdWcgTGVkZm9yZA0KPiBTZW50OiBUdWVzZGF5LCBKdWx5IDIxLCAy
-MDE1IDI6NDkgUE0NCj4gVG86IFN0ZXZlIFdpc2UNCj4gQ2M6IGxpbnV4LXJkbWFAdmdlci5rZXJu
-ZWwub3JnDQo+IFN1YmplY3Q6IFJlOiBkZXByZWNhdGluZyBhbXNvMTEwMA0KPiANCj4gDQo+ID4g
-T24gSnVsIDIxLCAyMDE1LCBhdCAyOjQ4IFBNLCBTdGV2ZSBXaXNlIDxzd2lzZUBvcGVuZ3JpZGNv
-bXB1dGluZy5jb20+DQo+IHdyb3RlOg0KPiA+DQo+ID4gSGV5IERvdWcsDQo+ID4NCj4gPiBIb3cg
-c2hvdWxkIEkgc3VibWl0IGNoYW5nZXMgdG8gZGVwcmVjYXRlIGFtc28xMTAwPyAgVGhlIEhXIGhh
-c24ndCBiZWVuDQo+IHNvbGQgc2luY2UgMjAwNSwgYW5kIHRoZSBTVyBoYXMgZGVmaW5pdGUgYml0
-IHJvdC4gIEl0cyB0aW1lIHRvIHJlbW92ZSBpdC4uLg0KPiA+DQo+ID4gVGhhbmtzLA0KPiA+DQo+
-ID4gU3RldmUuDQo+IA0KPiBTZW5kIG1lIGEgZ2l0IHBhdGNoIHRoYXQgdXNlcyBnaXQgbXYgdG8g
-bW92ZSBpdCB0byBzdGFnaW5nIGFuZCB3ZeKAmWxsIGxlYXZlIGl0DQo+IHRoZXJlIGZvciBhIHJl
-bGVhc2Ugb3IgdHdvIGFuZCB0aGVuIHJlbW92ZSBpdCBhZnRlciB0aGF0Lg0KDQpTdGV2ZSwgImdp
-dCBmb3JtYXQtcGF0Y2ggLU0iIGRvZXMgYSBuaWNlIGpvYiBjcmVhdGluZyBhIHBhdGNoIHRoYXQg
-Y2FuIGFjdHVhbGx5IGJlIGxvb2tlZCBhdCB2aWEgZW1haWwuDQoNCmh0dHA6Ly9tYXJjLmluZm8v
-P2w9bGludXgta2VybmVsJm09MTQzNTkzNzgyMjA2NDc5Jnc9Mg0KDQpGb3IgdGhlIElwYXRoIGRy
-aXZlciBJIHdhcyBnb2luZyB0byBzZW5kIGRpcmVjdGx5IHRvIHRoZSBzdGFnaW5nIG1haW50YWlu
-ZXIvbGlzdC4gRG91Zywgc2hvdWxkIHRoYXQgY29tZSB0byB5b3UgdGhyb3VnaCBsaW51eC1yZG1h
-IGluc3RlYWQ/DQoNCi1EZW5ueQ0K
+On 7/21/2015 3:42 PM, Dalessandro, Dennis wrote:
+>> -----Original Message-----
+>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+>> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Doug Ledford
+>> Sent: Tuesday, July 21, 2015 2:49 PM
+>> To: Steve Wise
+>> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> Subject: Re: deprecating amso1100
+>>
+>>
+>>> On Jul 21, 2015, at 2:48 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+v7I7tHvgBF7@public.gmane.org=
+m>
+>> wrote:
+>>> Hey Doug,
+>>>
+>>> How should I submit changes to deprecate amso1100?  The HW hasn't b=
+een
+>> sold since 2005, and the SW has definite bit rot.  Its time to remov=
+e it...
+>>> Thanks,
+>>>
+>>> Steve.
+>> Send me a git patch that uses git mv to move it to staging and we=E2=
+=80=99ll leave it
+>> there for a release or two and then remove it after that.
+> Steve, "git format-patch -M" does a nice job creating a patch that ca=
+n actually be looked at via email.
+>
+> http://marc.info/?l=3Dlinux-kernel&m=3D143593782206479&w=3D2
+>
+> For the Ipath driver I was going to send directly to the staging main=
+tainer/list. Doug, should that come to you through linux-rdma instead?
+>
+> -Denny
+>
+
+Thanks.  Yes,  I originally sent the full patch and it didn't hit=20
+linux-rdma due to its size.  I just sent out a new patch via=20
+format-patch -M.
+
+Steve.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
