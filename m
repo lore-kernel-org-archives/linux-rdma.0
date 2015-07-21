@@ -1,60 +1,92 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: RFC: Immediate data support for SRP
-Date: Mon, 20 Jul 2015 17:03:06 -0700
-Message-ID: <55AD8C3A.9070403@sandisk.com>
-References: <55A7CCF1.3080201@sandisk.com>
- <55ABCB34.1000506@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55ABCB34.1000506-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 05/15] xprtrdma: Remove last ib_reg_phys_mr() call site
+Date: Mon, 20 Jul 2015 20:34:44 -0400
+Message-ID: <1419E153-14FF-4182-9768-FC40AE92B84A@oracle.com>
+References: <20150720185624.10997.51574.stgit@manet.1015granger.net> <20150720190311.10997.12636.stgit@manet.1015granger.net> <20150720222608.GA12005@obsidianresearch.com> <73A27338-7EFC-4F54-A15E-09B9D5145242@oracle.com> <20150720224134.GA12278@obsidianresearch.com> <D54C793F-7420-4FC8-9BCA-32C19EC492AA@oracle.com> <55AD8E1D.2010803@talpey.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <55AD8E1D.2010803-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/19/2015 09:07 AM, Sagi Grimberg wrote:
-> On 7/16/2015 6:25 PM, Bart Van Assche wrote:
->> As you probably know for write requests "immediate data" means sending
->> the data in the same packet as the write command instead of sending it
->> as a separate packet. This approach improves performance and reduces
->> latency. Although support for immediate data has not been standardized,
->
-> Has anyone tried to get it into the standard? It would seem beneficial
-> to just add it. I wouldn't want this to be a Linux compatible only
-> feature...
 
-Earlier today I have asked the SanDisk representative in the ANSI T10 
-committee for his opinion about standardizing support for immediate data 
-for the SRP protocol. I'm now waiting for his reply.
+On Jul 20, 2015, at 8:11 PM, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org> wrote:
 
->> it is easy to add to the SRP initiator and target drivers.
->> Implementations exist in the ib_srp-backport initiator driver and the
->> SCST SRP target driver (see also
->> https://github.com/bvanassche/ib_srp-backport and
->> http://sourceforge.net/p/scst/svn/HEAD/tree/trunk/srpt/). These
->> implementations are available since considerable time, work reliably,
->> are backwards compatible and support zero-copy. Since using immediate
->> data provides a measurable performance improvement I'm wondering whether
->> it would be acceptable to add support for immediate data to the SRP
->> drivers in the Linux kernel tree (ib_srp and ib_srpt) ?
->
-> Was this tested against any other array besides SCST and LIO? I know
-> people are using SRP against various arrays (Oracle ZFS, RamSan TMS,
-> DDN Fusion, NIMBUS, NetApp E5400A...). Their not running upstream
-> kernels, but they will catch up at some point...
+> On 7/20/2015 4:36 PM, Chuck Lever wrote:
+>>=20
+>> On Jul 20, 2015, at 6:41 PM, Jason Gunthorpe <jgunthorpe@obsidianres=
+earch.com> wrote:
+>>=20
+>>> On Mon, Jul 20, 2015 at 06:31:11PM -0400, Chuck Lever wrote:
+>>>>=20
+>>>> On Jul 20, 2015, at 6:26 PM, Jason Gunthorpe <jgunthorpe@obsidianr=
+esearch.com> wrote:
+>>>>=20
+>>>>> On Mon, Jul 20, 2015 at 03:03:11PM -0400, Chuck Lever wrote:
+>>>>>> +	iov->length =3D size;
+>>>>>> +	iov->lkey =3D ia->ri_have_dma_lkey ?
+>>>>>> +				ia->ri_dma_lkey : ia->ri_bind_mem->lkey;
+>>>>>> +	rb->rg_size =3D size;
+>>>>>> +	rb->rg_owner =3D NULL;
+>>>>>> 	return rb;
+>>>>>=20
+>>>>> There is something odd looking about this..
+>>>>>=20
+>>>>> ri_bind_mem is only setup in the RPCRDMA_ALLPHYSICAL and
+>>>>> RPCRDMA_MTHCAFMR cases.
+>>>>>=20
+>>>>> RPCRDMA_FRMR doesn't set it up.
+>>>>>=20
+>>>>> So this code in rpcrdma_alloc_regbuf is never called for the FRMR
+>>>>> case?
+>>>>>=20
+>>>>> If yes, then, how is FRMR working? There is absolutely no reason =
+to
+>>>>> use FRMR to register local send buffers, just use the global all
+>>>>> memory lkey...
+>>>>>=20
+>>>>> If no, then that is an oops?
+>>>>=20
+>>>> I=92ve tested this code, no oops.
+>>>>=20
+>>>> FRWR always uses the DMA lkey. xprtrdma does not use FRWR if
+>>>> IB_DEVICE_LOCAL_DMA_LKEY is not asserted.
+>>>=20
+>>> Ah, I see. Ok.
+>>>=20
+>>> Is there a reason to link FRWR and LOCAL_DMA_LKEY together?
+>>=20
+>> Tom would know.
+>=20
+> Tom Talpey or Tom Tucker? I don't think I used a dma_lkey at all
+> in the original work, but there were some changes later.
 
-Not yet, but the existing implementation is backwards compatible. The 
-SRP initiator sets a flag in the login request to request the target 
-driver to enable immediate data (SRP_BUF_FORMAT_IMM), and only if the 
-target driver sends a login response in which the same flag is set 
-immediate data is enabled. Immediate data could only be enabled when it 
-should not be enabled if an SRP target sets other flags in its login 
-reply than those that have been standardized by the ANSI T10 committee.
+The commit which adds FRWR support to xprtrdma introduced a check in
+rpcrdma_ia_open:
 
-Bart.
++       case RPCRDMA_FRMR:
++               /* Requires both frmr reg and local dma lkey */
++               if ((devattr.device_cap_flags &
++                    (IB_DEVICE_MEM_MGT_EXTENSIONS|IB_DEVICE_LOCAL_DMA_=
+LKEY)) !=3D
++                   (IB_DEVICE_MEM_MGT_EXTENSIONS|IB_DEVICE_LOCAL_DMA_L=
+KEY)) {
+
+This seems to be the only place the local DMA lkey requirement is
+expressed or enforced. But yeah, the local DMA lkey doesn=92t seem
+to be used anywhere in the FRWR-specific parts of the code.
+
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
