@@ -1,53 +1,31 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Kernel fast memory registration API proposal [RFC]
-Date: Tue, 21 Jul 2015 10:00:14 -0600
-Message-ID: <20150721160014.GA25291@obsidianresearch.com>
-References: <559F8BD1.9080308@dev.mellanox.co.il>
- <55AB3976.7060202@dev.mellanox.co.il>
- <20150720161821.GA18336@obsidianresearch.com>
- <55AD2188.50708@dev.mellanox.co.il>
- <20150720170033.GA20350@obsidianresearch.com>
- <55AD2AB4.8010209@dev.mellanox.co.il>
- <20150720195027.GA24162@obsidianresearch.com>
- <55AE2FA2.3000601@dev.mellanox.co.il>
+Subject: Re: [PATCH 6/8] IB/mlx5/hmm: add mlx5 HMM device initialization and
+ callback v3.
+Date: Tue, 21 Jul 2015 10:06:09 -0600
+Message-ID: <20150721160609.GB25291@obsidianresearch.com>
+References: <1437159665-6612-1-git-send-email-jglisse@redhat.com>
+ <1437159665-6612-7-git-send-email-jglisse@redhat.com>
+ <55AE2431.20105@mellanox.com>
+ <1450090324.1616771.1437491699456.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <55AE2FA2.3000601-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1450090324.1616771.1437491699456.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+To: Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christophe Harle <charle-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Duncan Poole <dpoole-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Sherry Cheung <SCheung-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Subhash Gutti <sgutti-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Mark Hairgrove <mhairgrove-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Lucien Dunning <ldunning-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Cameron Buschardt <cabuschardt-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Arvind Gopalakrishnan <arvindg-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 21, 2015 at 02:40:18PM +0300, Sagi Grimberg wrote:
+On Tue, Jul 21, 2015 at 11:14:59AM -0400, Jerome Glisse wrote:
+> This is a rebase error. But the #error is there for a purpose the HMM
+> would not work mid way so if anyone if bisecting up through that i would
+> rather error out at compilation.
 
-> I'd imagine that the ULP knows when it registers huge-pages.
-> OK, I can scan the scatterlist and check it.
+Add the kconfig option last not first?
 
-At some point in the stack.. Not necessarily in the IB ULP though..
-
-It is something that can be reviewed when the API is done, if it can
-be sped up by shifting stuff around..
-
-> >So it always uses 4096 on supported IB hardware and no huge page
-> >support is enabled. This seems like the wrong way to use
-> >page_size_cap...
-> >
-> >Hopefully moving SRP to your new API will fix that.
-> 
-> I have no plans in attempting the try to find the biggest aligned
-> page_size that is supported by the device.
-
-It might be worth doing if there is a single sg entry that is 'big', 
-but I don't think we have workloads like that today, someone else can
-worry about that.. I'd probably just leave a note in a comment about
-the possibility.
-
-> I'm only going to check HUGE_PAGE, and if not aligned I'll use
-> PAGE_SIZE and if that's not aligned - fail.
-
-Seems reasonable.
+Also, can you use 'if (IS_ENABLED(XXX))' as much as possible? Some of
+the existing ODP checks looked like it should use that as well..
 
 Jason
 --
