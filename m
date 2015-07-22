@@ -1,103 +1,146 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: [PATCH 09/10] ib_srpt: Remove ib_get_dma_mr calls
-Date: Wed, 22 Jul 2015 17:34:42 -0600
-Message-ID: <1437608083-22898-10-git-send-email-jgunthorpe@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: [PATCH 02/10] IB/mad: Remove ib_get_dma_mr calls
+Date: Wed, 22 Jul 2015 17:34:35 -0600
+Message-ID: <1437608083-22898-3-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1437608083-22898-1-git-send-email-jgunthorpe@obsidianresearch.com>
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1437608083-22898-1-git-send-email-jgunthorpe@obsidianresearch.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
-Cc: Amir Vadai <amirv@mellanox.com>, Andy Grover <andy.grover@oracle.com>, Bart Van Assche <bart.vanassche@sandisk.com>, Chien Yen <chien.yen@oracle.com>, Christoph Hellwig <hch@infradead.org>, Dominique Martinet <dominique.martinet@cea.fr>, Eli Cohen <eli@mellanox.com>, Eric Van Hensbergen <ericvh@gmail.com>, Ido Shamay <idos@mellanox.com>, Latchesar Ionkov <lucho@ionkov.net>, Or Gerlitz <ogerlitz@mellanox.com>, Roi Dayan <roid@mellanox.com>, Ron Minnich <rminnich@sandia.gov>, Sagi Grimberg <sagig@mellanox.com>, Simon Derr <simon.derr@bull.net>, Tom Tucker <tom@opengridcomputing.com>, Zach Brown <zach.brown@oracle.com>, rds-devel@oss.oracle.com, target-devel@vger.kernel.org, v9fs-developer@lists.sourceforge.net
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1437608083-22898-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Andy Grover <andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Chien Yen <chien.yen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Dominique Martinet <dominique.martinet-KCE40YydGKI@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eric Van Hensbergen <ericvh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ido Shamay <idos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Latchesar Ionkov <lucho-OnYtXJJ0/fesTnJN9+BGXg@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ron Minnich <rminnich-4OHPYypu0djtX7QSmKvirg@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Simon Derr <simon.derr-6ktuUTfB/bM@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Zach Brown <zach.brown-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, v9fs-developer-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 The pd now has a local_dma_lkey member which completely replaces
 ib_get_dma_mr, use it instead.
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 15 ++++-----------
- drivers/infiniband/ulp/srpt/ib_srpt.h |  1 -
- 2 files changed, 4 insertions(+), 12 deletions(-)
+ drivers/infiniband/core/mad.c      | 26 +++-----------------------
+ drivers/infiniband/core/mad_priv.h |  1 -
+ include/rdma/ib_mad.h              |  1 -
+ 3 files changed, 3 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 82897ca17f32..07da3817d92d 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -783,7 +783,7 @@ static int srpt_post_recv(struct srpt_device *sdev,
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index a4b1466c1bf6..3c5fa8dc5ba7 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -338,13 +338,6 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
+ 		goto error1;
+ 	}
  
- 	list.addr = ioctx->ioctx.dma;
- 	list.length = srp_max_req_size;
--	list.lkey = sdev->mr->lkey;
-+	list.lkey = sdev->pd->local_dma_lkey;
- 
- 	wr.next = NULL;
- 	wr.sg_list = &list;
-@@ -818,7 +818,7 @@ static int srpt_post_send(struct srpt_rdma_ch *ch,
- 
- 	list.addr = ioctx->ioctx.dma;
- 	list.length = len;
--	list.lkey = sdev->mr->lkey;
-+	list.lkey = sdev->pd->local_dma_lkey;
- 
- 	wr.next = NULL;
- 	wr.wr_id = encode_wr_id(SRPT_SEND, ioctx->ioctx.index);
-@@ -1206,7 +1206,7 @@ static int srpt_map_sg_to_ib_sge(struct srpt_rdma_ch *ch,
- 
- 		while (rsize > 0 && tsize > 0) {
- 			sge->addr = dma_addr;
--			sge->lkey = ch->sport->sdev->mr->lkey;
-+			sge->lkey = ch->sport->sdev->pd->local_dma_lkey;
- 
- 			if (rsize >= dma_len) {
- 				sge->length =
-@@ -3212,10 +3212,6 @@ static void srpt_add_one(struct ib_device *device)
- 	if (IS_ERR(sdev->pd))
- 		goto free_dev;
- 
--	sdev->mr = ib_get_dma_mr(sdev->pd, IB_ACCESS_LOCAL_WRITE);
--	if (IS_ERR(sdev->mr))
--		goto err_pd;
+-	mad_agent_priv->agent.mr = ib_get_dma_mr(port_priv->qp_info[qpn].qp->pd,
+-						 IB_ACCESS_LOCAL_WRITE);
+-	if (IS_ERR(mad_agent_priv->agent.mr)) {
+-		ret = ERR_PTR(-ENOMEM);
+-		goto error2;
+-	}
 -
- 	sdev->srq_size = min(srpt_srq_size, sdev->dev_attr.max_srq_wr);
+ 	if (mad_reg_req) {
+ 		reg_req = kmemdup(mad_reg_req, sizeof *reg_req, GFP_KERNEL);
+ 		if (!reg_req) {
+@@ -429,8 +422,6 @@ error4:
+ 	spin_unlock_irqrestore(&port_priv->reg_lock, flags);
+ 	kfree(reg_req);
+ error3:
+-	ib_dereg_mr(mad_agent_priv->agent.mr);
+-error2:
+ 	kfree(mad_agent_priv);
+ error1:
+ 	return ret;
+@@ -590,7 +581,6 @@ static void unregister_mad_agent(struct ib_mad_agent_private *mad_agent_priv)
+ 	wait_for_completion(&mad_agent_priv->comp);
  
- 	srq_attr.event_handler = srpt_srq_event;
-@@ -3227,7 +3223,7 @@ static void srpt_add_one(struct ib_device *device)
+ 	kfree(mad_agent_priv->reg_req);
+-	ib_dereg_mr(mad_agent_priv->agent.mr);
+ 	kfree(mad_agent_priv);
+ }
  
- 	sdev->srq = ib_create_srq(sdev->pd, &srq_attr);
- 	if (IS_ERR(sdev->srq))
--		goto err_mr;
-+		goto err_pd;
+@@ -1037,7 +1027,7 @@ struct ib_mad_send_buf * ib_create_send_mad(struct ib_mad_agent *mad_agent,
  
- 	pr_debug("%s: create SRQ #wr= %d max_allow=%d dev= %s\n",
- 		 __func__, sdev->srq_size, sdev->dev_attr.max_srq_wr,
-@@ -3312,8 +3308,6 @@ err_cm:
- 	ib_destroy_cm_id(sdev->cm_id);
- err_srq:
- 	ib_destroy_srq(sdev->srq);
--err_mr:
--	ib_dereg_mr(sdev->mr);
- err_pd:
- 	ib_dealloc_pd(sdev->pd);
- free_dev:
-@@ -3359,7 +3353,6 @@ static void srpt_remove_one(struct ib_device *device)
- 	srpt_release_sdev(sdev);
+ 	mad_send_wr->mad_agent_priv = mad_agent_priv;
+ 	mad_send_wr->sg_list[0].length = hdr_len;
+-	mad_send_wr->sg_list[0].lkey = mad_agent->mr->lkey;
++	mad_send_wr->sg_list[0].lkey = mad_agent->qp->pd->local_dma_lkey;
  
- 	ib_destroy_srq(sdev->srq);
--	ib_dereg_mr(sdev->mr);
- 	ib_dealloc_pd(sdev->pd);
+ 	/* OPA MADs don't have to be the full 2048 bytes */
+ 	if (opa && base_version == OPA_MGMT_BASE_VERSION &&
+@@ -1046,7 +1036,7 @@ struct ib_mad_send_buf * ib_create_send_mad(struct ib_mad_agent *mad_agent,
+ 	else
+ 		mad_send_wr->sg_list[1].length = mad_size - hdr_len;
  
- 	srpt_free_ioctx_ring((struct srpt_ioctx **)sdev->ioctx_ring, sdev,
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
-index 21f8df67522a..5faad8acd789 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.h
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
-@@ -393,7 +393,6 @@ struct srpt_port {
- struct srpt_device {
+-	mad_send_wr->sg_list[1].lkey = mad_agent->mr->lkey;
++	mad_send_wr->sg_list[1].lkey = mad_agent->qp->pd->local_dma_lkey;
+ 
+ 	mad_send_wr->send_wr.wr_id = (unsigned long) mad_send_wr;
+ 	mad_send_wr->send_wr.sg_list = mad_send_wr->sg_list;
+@@ -2884,7 +2874,7 @@ static int ib_mad_post_receive_mads(struct ib_mad_qp_info *qp_info,
+ 	struct ib_mad_queue *recv_queue = &qp_info->recv_queue;
+ 
+ 	/* Initialize common scatter list fields */
+-	sg_list.lkey = (*qp_info->port_priv->mr).lkey;
++	sg_list.lkey = qp_info->port_priv->pd->local_dma_lkey;
+ 
+ 	/* Initialize common receive WR fields */
+ 	recv_wr.next = NULL;
+@@ -3200,13 +3190,6 @@ static int ib_mad_port_open(struct ib_device *device,
+ 		goto error4;
+ 	}
+ 
+-	port_priv->mr = ib_get_dma_mr(port_priv->pd, IB_ACCESS_LOCAL_WRITE);
+-	if (IS_ERR(port_priv->mr)) {
+-		dev_err(&device->dev, "Couldn't get ib_mad DMA MR\n");
+-		ret = PTR_ERR(port_priv->mr);
+-		goto error5;
+-	}
+-
+ 	if (has_smi) {
+ 		ret = create_mad_qp(&port_priv->qp_info[0], IB_QPT_SMI);
+ 		if (ret)
+@@ -3247,8 +3230,6 @@ error8:
+ error7:
+ 	destroy_mad_qp(&port_priv->qp_info[0]);
+ error6:
+-	ib_dereg_mr(port_priv->mr);
+-error5:
+ 	ib_dealloc_pd(port_priv->pd);
+ error4:
+ 	ib_destroy_cq(port_priv->cq);
+@@ -3283,7 +3264,6 @@ static int ib_mad_port_close(struct ib_device *device, int port_num)
+ 	destroy_workqueue(port_priv->wq);
+ 	destroy_mad_qp(&port_priv->qp_info[1]);
+ 	destroy_mad_qp(&port_priv->qp_info[0]);
+-	ib_dereg_mr(port_priv->mr);
+ 	ib_dealloc_pd(port_priv->pd);
+ 	ib_destroy_cq(port_priv->cq);
+ 	cleanup_recv_queue(&port_priv->qp_info[1]);
+diff --git a/drivers/infiniband/core/mad_priv.h b/drivers/infiniband/core/mad_priv.h
+index 5be89f98928f..4a4f7aad0978 100644
+--- a/drivers/infiniband/core/mad_priv.h
++++ b/drivers/infiniband/core/mad_priv.h
+@@ -199,7 +199,6 @@ struct ib_mad_port_private {
+ 	int port_num;
+ 	struct ib_cq *cq;
+ 	struct ib_pd *pd;
+-	struct ib_mr *mr;
+ 
+ 	spinlock_t reg_lock;
+ 	struct ib_mad_mgmt_version_table version[MAX_MGMT_VERSION];
+diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
+index c8422d5a5a91..1f27023c919a 100644
+--- a/include/rdma/ib_mad.h
++++ b/include/rdma/ib_mad.h
+@@ -388,7 +388,6 @@ enum {
+ struct ib_mad_agent {
  	struct ib_device	*device;
- 	struct ib_pd		*pd;
+ 	struct ib_qp		*qp;
 -	struct ib_mr		*mr;
- 	struct ib_srq		*srq;
- 	struct ib_cm_id		*cm_id;
- 	struct ib_device_attr	dev_attr;
+ 	ib_mad_recv_handler	recv_handler;
+ 	ib_mad_send_handler	send_handler;
+ 	ib_mad_snoop_handler	snoop_handler;
 -- 
 2.1.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
