@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH WIP 35/43] qib: Support the new memory registration API
-Date: Wed, 22 Jul 2015 09:55:35 +0300
-Message-ID: <1437548143-24893-36-git-send-email-sagig@mellanox.com>
+Subject: [PATCH WIP 36/43] iser: Port to new fast registration api
+Date: Wed, 22 Jul 2015 09:55:36 +0300
+Message-ID: <1437548143-24893-37-git-send-email-sagig@mellanox.com>
 References: <1437548143-24893-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1437548143-24893-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,150 +10,142 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Just duplicated the functions to take the needed
-arguments from the private MR context. The old
-fast_reg routines will be dropped later.
-
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_keys.c  | 56 +++++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/qib/qib_mr.c    | 11 +++++++
- drivers/infiniband/hw/qib/qib_verbs.c |  6 +++-
- drivers/infiniband/hw/qib/qib_verbs.h |  5 ++++
- 4 files changed, 77 insertions(+), 1 deletion(-)
+ drivers/infiniband/ulp/iser/iscsi_iser.h  |  6 +----
+ drivers/infiniband/ulp/iser/iser_memory.c | 40 ++++++++++++-------------------
+ drivers/infiniband/ulp/iser/iser_verbs.c  | 16 +------------
+ 3 files changed, 17 insertions(+), 45 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_keys.c b/drivers/infiniband/hw/qib/qib_keys.c
-index ad843c7..557e6c2 100644
---- a/drivers/infiniband/hw/qib/qib_keys.c
-+++ b/drivers/infiniband/hw/qib/qib_keys.c
-@@ -385,3 +385,59 @@ bail:
- 	spin_unlock_irqrestore(&rkt->lock, flags);
- 	return ret;
- }
-+
-+/*
-+ * Initialize the memory region specified by the work reqeust.
-+ */
-+int qib_fastreg_mr(struct qib_qp *qp, struct ib_send_wr *wr)
-+{
-+	struct qib_lkey_table *rkt = &to_idev(qp->ibqp.device)->lk_table;
-+	struct qib_pd *pd = to_ipd(qp->ibqp.pd);
-+	struct qib_mr *mr = to_imr(wr->wr.fastreg.mr);
-+	struct qib_mregion *mrg;
-+	u32 key = wr->wr.fastreg.key;
-+	unsigned i, n, m;
-+	int ret = -EINVAL;
-+	unsigned long flags;
-+	u64 *page_list;
-+	size_t ps;
-+
-+	spin_lock_irqsave(&rkt->lock, flags);
-+	if (pd->user || key == 0)
-+		goto bail;
-+
-+	mrg = rcu_dereference_protected(
-+		rkt->table[(key >> (32 - ib_qib_lkey_table_size))],
-+		lockdep_is_held(&rkt->lock));
-+	if (unlikely(mrg == NULL || qp->ibqp.pd != mrg->pd))
-+		goto bail;
-+
-+	if (mr->npages > mrg->max_segs)
-+		goto bail;
-+
-+	ps = 1UL << PAGE_SHIFT;
-+	if (mr->ibmr.length > ps * mr->npages)
-+		goto bail;
-+
-+	mrg->user_base = mr->ibmr.iova;
-+	mrg->iova = mr->ibmr.iova;
-+	mrg->lkey = key;
-+	mrg->length = mr->ibmr.length;
-+	mrg->access_flags = mr->ibmr.access;
-+	page_list = mr->pl;
-+	m = 0;
-+	n = 0;
-+	for (i = 0; i < wr->wr.fast_reg.page_list_len; i++) {
-+		mrg->map[m]->segs[n].vaddr = (void *) page_list[i];
-+		mrg->map[m]->segs[n].length = ps;
-+		if (++n == QIB_SEGSZ) {
-+			m++;
-+			n = 0;
-+		}
-+	}
-+
-+	ret = 0;
-+bail:
-+	spin_unlock_irqrestore(&rkt->lock, flags);
-+	return ret;
-+}
-diff --git a/drivers/infiniband/hw/qib/qib_mr.c b/drivers/infiniband/hw/qib/qib_mr.c
-index a58a347..a4986f0 100644
---- a/drivers/infiniband/hw/qib/qib_mr.c
-+++ b/drivers/infiniband/hw/qib/qib_mr.c
-@@ -353,6 +353,17 @@ err:
- 	return ERR_PTR(-ENOMEM);
- }
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
+index 6c7efe6..88d0ffc 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.h
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
+@@ -413,7 +413,6 @@ struct iser_device {
+  *
+  * @mr:         memory region
+  * @fmr_pool:   pool of fmrs
+- * @frpl:       fast reg page list used by frwrs
+  * @page_vec:   fast reg page list used by fmr pool
+  * @mr_valid:   is mr valid indicator
+  */
+@@ -422,10 +421,7 @@ struct iser_reg_resources {
+ 		struct ib_mr             *mr;
+ 		struct ib_fmr_pool       *fmr_pool;
+ 	};
+-	union {
+-		struct ib_fast_reg_page_list     *frpl;
+-		struct iser_page_vec             *page_vec;
+-	};
++	struct iser_page_vec             *page_vec;
+ 	u8				  mr_valid:1;
+ };
  
-+int qib_map_mr_sg(struct ib_mr *ibmr,
-+		  struct scatterlist *sg,
-+		  unsigned short sg_nents)
-+{
-+	struct qib_mr *mr = to_imr(ibmr);
-+
-+	return ib_sg_to_pages(sg, sg_nents, mr->mr.max_segs,
-+			      mr->pl, &mr->npages,
-+			      &ibmr->length, &ibmr->iova);
-+}
-+
- struct ib_fast_reg_page_list *
- qib_alloc_fast_reg_page_list(struct ib_device *ibdev, int page_list_len)
+diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
+index d6d980b..094cf8a 100644
+--- a/drivers/infiniband/ulp/iser/iser_memory.c
++++ b/drivers/infiniband/ulp/iser/iser_memory.c
+@@ -732,19 +732,19 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
+ 			    struct iser_reg_resources *rsc,
+ 			    struct iser_mem_reg *reg)
  {
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index ef022a1..8561f90 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.c
-+++ b/drivers/infiniband/hw/qib/qib_verbs.c
-@@ -361,7 +361,10 @@ static int qib_post_one_send(struct qib_qp *qp, struct ib_send_wr *wr,
- 	 * undefined operations.
- 	 * Make sure buffer is large enough to hold the result for atomics.
- 	 */
--	if (wr->opcode == IB_WR_FAST_REG_MR) {
-+	if (wr->opcode == IB_WR_FASTREG_MR) {
-+		if (qib_fastreg_mr(qp, wr))
-+			goto bail_inval;
-+	} else if (wr->opcode == IB_WR_FAST_REG_MR) {
- 		if (qib_fast_reg_mr(qp, wr))
- 			goto bail_inval;
- 	} else if (qp->ibqp.qp_type == IB_QPT_UC) {
-@@ -2236,6 +2239,7 @@ int qib_register_ib_device(struct qib_devdata *dd)
- 	ibdev->reg_user_mr = qib_reg_user_mr;
- 	ibdev->dereg_mr = qib_dereg_mr;
- 	ibdev->alloc_mr = qib_alloc_mr;
-+	ibdev->map_mr_sg = qib_map_mr_sg;
- 	ibdev->alloc_fast_reg_page_list = qib_alloc_fast_reg_page_list;
- 	ibdev->free_fast_reg_page_list = qib_free_fast_reg_page_list;
- 	ibdev->alloc_fmr = qib_alloc_fmr;
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
-index c8062ae..c7a3af5 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.h
-+++ b/drivers/infiniband/hw/qib/qib_verbs.h
-@@ -1039,12 +1039,17 @@ struct ib_mr *qib_alloc_mr(struct ib_pd *pd,
- 			   u32 max_entries,
- 			   u32 flags);
- 
-+int qib_map_mr_sg(struct ib_mr *ibmr,
-+		  struct scatterlist *sg,
-+		  unsigned short sg_nents);
+-	struct ib_conn *ib_conn = &iser_task->iser_conn->ib_conn;
+-	struct iser_device *device = ib_conn->device;
+-	struct ib_mr *mr = rsc->mr;
+-	struct ib_fast_reg_page_list *frpl = rsc->frpl;
+ 	struct iser_tx_desc *tx_desc = &iser_task->desc;
++	struct ib_mr *mr = rsc->mr;
+ 	struct ib_send_wr *wr;
+-	int offset, size, plen;
+-
+-	plen = iser_sg_to_page_vec(mem, device->ib_device, frpl->page_list,
+-				   &offset, &size);
+-	if (plen * SIZE_4K < size) {
+-		iser_err("fast reg page_list too short to hold this SG\n");
+-		return -EINVAL;
++	int err;
++	int access = IB_ACCESS_LOCAL_WRITE  |
++		     IB_ACCESS_REMOTE_WRITE |
++		     IB_ACCESS_REMOTE_READ;
 +
- struct ib_fast_reg_page_list *qib_alloc_fast_reg_page_list(
- 				struct ib_device *ibdev, int page_list_len);
++	err = ib_map_mr_sg(mr, mem->sg, mem->size, access);
++	if (err) {
++		iser_err("failed to map sg %p with %d entries\n",
++			 mem->sg, mem->dma_nents);
++		return err;
+ 	}
  
- void qib_free_fast_reg_page_list(struct ib_fast_reg_page_list *pl);
+ 	if (!rsc->mr_valid) {
+@@ -753,24 +753,14 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
+ 	}
  
- int qib_fast_reg_mr(struct qib_qp *qp, struct ib_send_wr *wr);
-+int qib_fastreg_mr(struct qib_qp *qp, struct ib_send_wr *wr);
+ 	wr = iser_tx_next_wr(tx_desc);
+-	wr->opcode = IB_WR_FAST_REG_MR;
+-	wr->wr_id = ISER_FASTREG_LI_WRID;
+-	wr->send_flags = 0;
+-	wr->wr.fast_reg.iova_start = frpl->page_list[0] + offset;
+-	wr->wr.fast_reg.page_list = frpl;
+-	wr->wr.fast_reg.page_list_len = plen;
+-	wr->wr.fast_reg.page_shift = SHIFT_4K;
+-	wr->wr.fast_reg.length = size;
+-	wr->wr.fast_reg.rkey = mr->rkey;
+-	wr->wr.fast_reg.access_flags = (IB_ACCESS_LOCAL_WRITE  |
+-					IB_ACCESS_REMOTE_WRITE |
+-					IB_ACCESS_REMOTE_READ);
++	ib_set_fastreg_wr(mr, mr->rkey, ISER_FASTREG_LI_WRID,
++			  false, wr);
+ 	rsc->mr_valid = 0;
  
- struct ib_fmr *qib_alloc_fmr(struct ib_pd *pd, int mr_access_flags,
- 			     struct ib_fmr_attr *fmr_attr);
+ 	reg->sge.lkey = mr->lkey;
+ 	reg->rkey = mr->rkey;
+-	reg->sge.addr = frpl->page_list[0] + offset;
+-	reg->sge.length = size;
++	reg->sge.addr = mr->iova;
++	reg->sge.length = mr->length;
+ 
+ 	iser_dbg("fast reg: lkey=0x%x, rkey=0x%x, addr=0x%llx,"
+ 		 " length=0x%x\n", reg->sge.lkey, reg->rkey,
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index ecc3265..332f784 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -288,35 +288,21 @@ iser_alloc_reg_res(struct ib_device *ib_device,
+ {
+ 	int ret;
+ 
+-	res->frpl = ib_alloc_fast_reg_page_list(ib_device, size);
+-	if (IS_ERR(res->frpl)) {
+-		ret = PTR_ERR(res->frpl);
+-		iser_err("Failed to allocate ib_fast_reg_page_list err=%d\n",
+-			 ret);
+-		return PTR_ERR(res->frpl);
+-	}
+-
+ 	res->mr = ib_alloc_mr(pd, IB_MR_TYPE_FAST_REG, size, 0);
+ 	if (IS_ERR(res->mr)) {
+ 		ret = PTR_ERR(res->mr);
+ 		iser_err("Failed to allocate ib_fast_reg_mr err=%d\n", ret);
+-		goto fast_reg_mr_failure;
++		return ret;
+ 	}
+ 	res->mr_valid = 1;
+ 
+ 	return 0;
+-
+-fast_reg_mr_failure:
+-	ib_free_fast_reg_page_list(res->frpl);
+-
+-	return ret;
+ }
+ 
+ static void
+ iser_free_reg_res(struct iser_reg_resources *rsc)
+ {
+ 	ib_dereg_mr(rsc->mr);
+-	ib_free_fast_reg_page_list(rsc->frpl);
+ }
+ 
+ static int
 -- 
 1.8.4.3
 
