@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH WIP 04/43] iw_cxgb4: Support ib_alloc_mr verb
-Date: Wed, 22 Jul 2015 09:55:04 +0300
-Message-ID: <1437548143-24893-5-git-send-email-sagig@mellanox.com>
+Subject: [PATCH WIP 06/43] nes: Support ib_alloc_mr verb
+Date: Wed, 22 Jul 2015 09:55:06 +0300
+Message-ID: <1437548143-24893-7-git-send-email-sagig@mellanox.com>
 References: <1437548143-24893-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1437548143-24893-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,106 +12,100 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h |  4 +++
- drivers/infiniband/hw/cxgb4/mem.c      | 57 ++++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/cxgb4/provider.c |  1 +
- 3 files changed, 62 insertions(+)
+ drivers/infiniband/hw/nes/nes_verbs.c | 73 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 73 insertions(+)
 
-diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-index cc77844..97b2568 100644
---- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-+++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-@@ -970,6 +970,10 @@ void c4iw_free_fastreg_pbl(struct ib_fast_reg_page_list *page_list);
- struct ib_fast_reg_page_list *c4iw_alloc_fastreg_pbl(
- 					struct ib_device *device,
- 					int page_list_len);
-+struct ib_mr *c4iw_alloc_mr(struct ib_pd *pd,
-+			    enum ib_mr_type mr_type,
-+			    u32 max_entries,
-+			    u32 flags);
- struct ib_mr *c4iw_alloc_fast_reg_mr(struct ib_pd *pd, int pbl_depth);
- int c4iw_dealloc_mw(struct ib_mw *mw);
- struct ib_mw *c4iw_alloc_mw(struct ib_pd *pd, enum ib_mw_type type);
-diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
-index cff815b..7ee01ce 100644
---- a/drivers/infiniband/hw/cxgb4/mem.c
-+++ b/drivers/infiniband/hw/cxgb4/mem.c
-@@ -853,6 +853,63 @@ int c4iw_dealloc_mw(struct ib_mw *mw)
- 	return 0;
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+index fbc43e5..ac63763 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.c
++++ b/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -375,6 +375,78 @@ static int alloc_fast_reg_mr(struct nes_device *nesdev, struct nes_pd *nespd,
  }
  
-+struct ib_mr *c4iw_alloc_mr(struct ib_pd *pd,
-+			    enum ib_mr_type mr_type,
-+			    u32 max_entries,
-+			    u32 flags)
+ /*
++ * nes_alloc_mr
++ */
++static struct ib_mr *nes_alloc_mr(struct ib_pd *ibpd,
++				  enum ib_mr_type mr_type,
++				  u32 max_entries,
++				  u32 flags)
 +{
-+	struct c4iw_dev *rhp;
-+	struct c4iw_pd *php;
-+	struct c4iw_mr *mhp;
-+	u32 mmid;
-+	u32 stag = 0;
-+	int ret = 0;
++	struct nes_pd *nespd = to_nespd(ibpd);
++	struct nes_vnic *nesvnic = to_nesvnic(ibpd->device);
++	struct nes_device *nesdev = nesvnic->nesdev;
++	struct nes_adapter *nesadapter = nesdev->nesadapter;
++
++	u32 next_stag_index;
++	u8 stag_key = 0;
++	u32 driver_key = 0;
++	int err = 0;
++	u32 stag_index = 0;
++	struct nes_mr *nesmr;
++	u32 stag;
++	int ret;
++	struct ib_mr *ibmr;
 +
 +	if (mr_type != IB_MR_TYPE_FAST_REG || flags)
 +		return ERR_PTR(-EINVAL);
 +
-+	php = to_c4iw_pd(pd);
-+	rhp = php->rhp;
-+	mhp = kzalloc(sizeof(*mhp), GFP_KERNEL);
-+	if (!mhp) {
-+		ret = -ENOMEM;
-+		goto err;
++/*
++ * Note:  Set to always use a fixed length single page entry PBL.  This is to allow
++ *	 for the fast_reg_mr operation to always know the size of the PBL.
++ */
++	if (max_entries > (NES_4K_PBL_CHUNK_SIZE / sizeof(u64)))
++		return ERR_PTR(-E2BIG);
++
++	get_random_bytes(&next_stag_index, sizeof(next_stag_index));
++	stag_key = (u8)next_stag_index;
++	next_stag_index >>= 8;
++	next_stag_index %= nesadapter->max_mr;
++
++	err = nes_alloc_resource(nesadapter, nesadapter->allocated_mrs,
++				 nesadapter->max_mr, &stag_index,
++				 &next_stag_index, NES_RESOURCE_FAST_MR);
++	if (err)
++		return ERR_PTR(err);
++
++	nesmr = kzalloc(sizeof(*nesmr), GFP_KERNEL);
++	if (!nesmr) {
++		nes_free_resource(nesadapter, nesadapter->allocated_mrs, stag_index);
++		return ERR_PTR(-ENOMEM);
 +	}
 +
-+	mhp->rhp = rhp;
-+	ret = alloc_pbl(mhp, max_entries);
-+	if (ret)
-+		goto err1;
-+	mhp->attr.pbl_size = max_entries;
-+	ret = allocate_stag(&rhp->rdev, &stag, php->pdid,
-+				 mhp->attr.pbl_size, mhp->attr.pbl_addr);
-+	if (ret)
-+		goto err2;
-+	mhp->attr.pdid = php->pdid;
-+	mhp->attr.type = FW_RI_STAG_NSMR;
-+	mhp->attr.stag = stag;
-+	mhp->attr.state = 1;
-+	mmid = (stag) >> 8;
-+	mhp->ibmr.rkey = mhp->ibmr.lkey = stag;
-+	if (insert_handle(rhp, &rhp->mmidr, mhp, mmid)) {
-+		ret = -ENOMEM;
-+		goto err3;
-+	}
++	stag = stag_index << 8;
++	stag |= driver_key;
++	stag += (u32)stag_key;
 +
-+	PDBG("%s mmid 0x%x mhp %p stag 0x%x\n", __func__, mmid, mhp, stag);
-+	return &(mhp->ibmr);
-+err3:
-+	dereg_mem(&rhp->rdev, stag, mhp->attr.pbl_size,
-+		       mhp->attr.pbl_addr);
-+err2:
-+	c4iw_pblpool_free(&mhp->rhp->rdev, mhp->attr.pbl_addr,
-+			      mhp->attr.pbl_size << 3);
-+err1:
-+	kfree(mhp);
-+err:
-+	return ERR_PTR(ret);
++	nes_debug(NES_DBG_MR, "Allocating STag 0x%08X index = 0x%08X\n",
++		  stag, stag_index);
++
++	ret = alloc_fast_reg_mr(nesdev, nespd, stag, max_entries);
++
++	if (ret == 0) {
++		nesmr->ibmr.rkey = stag;
++		nesmr->ibmr.lkey = stag;
++		nesmr->mode = IWNES_MEMREG_TYPE_FMEM;
++		ibmr = &nesmr->ibmr;
++	} else {
++		kfree(nesmr);
++		nes_free_resource(nesadapter, nesadapter->allocated_mrs, stag_index);
++		ibmr = ERR_PTR(-ENOMEM);
++	}
++	return ibmr;
 +}
 +
- struct ib_mr *c4iw_alloc_fast_reg_mr(struct ib_pd *pd, int pbl_depth)
- {
- 	struct c4iw_dev *rhp;
-diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
-index 6eee3d3..2885aba 100644
---- a/drivers/infiniband/hw/cxgb4/provider.c
-+++ b/drivers/infiniband/hw/cxgb4/provider.c
-@@ -556,6 +556,7 @@ int c4iw_register_device(struct c4iw_dev *dev)
- 	dev->ibdev.alloc_mw = c4iw_alloc_mw;
- 	dev->ibdev.bind_mw = c4iw_bind_mw;
- 	dev->ibdev.dealloc_mw = c4iw_dealloc_mw;
-+	dev->ibdev.alloc_mr = c4iw_alloc_mr;
- 	dev->ibdev.alloc_fast_reg_mr = c4iw_alloc_fast_reg_mr;
- 	dev->ibdev.alloc_fast_reg_page_list = c4iw_alloc_fastreg_pbl;
- 	dev->ibdev.free_fast_reg_page_list = c4iw_free_fastreg_pbl;
++/*
+  * nes_alloc_fast_reg_mr
+  */
+ static struct ib_mr *nes_alloc_fast_reg_mr(struct ib_pd *ibpd, int max_page_list_len)
+@@ -3929,6 +4001,7 @@ struct nes_ib_device *nes_init_ofa_device(struct net_device *netdev)
+ 	nesibdev->ibdev.dealloc_mw = nes_dealloc_mw;
+ 	nesibdev->ibdev.bind_mw = nes_bind_mw;
+ 
++	nesibdev->ibdev.alloc_mr = nes_alloc_mr;
+ 	nesibdev->ibdev.alloc_fast_reg_mr = nes_alloc_fast_reg_mr;
+ 	nesibdev->ibdev.alloc_fast_reg_page_list = nes_alloc_fast_reg_page_list;
+ 	nesibdev->ibdev.free_fast_reg_page_list = nes_free_fast_reg_page_list;
 -- 
 1.8.4.3
 
