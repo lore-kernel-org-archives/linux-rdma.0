@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH WIP 02/43] IB/mlx4: Support ib_alloc_mr verb
-Date: Wed, 22 Jul 2015 09:55:02 +0300
-Message-ID: <1437548143-24893-3-git-send-email-sagig@mellanox.com>
+Subject: [PATCH WIP 03/43] ocrdma: Support ib_alloc_mr verb
+Date: Wed, 22 Jul 2015 09:55:03 +0300
+Message-ID: <1437548143-24893-4-git-send-email-sagig@mellanox.com>
 References: <1437548143-24893-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1437548143-24893-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,87 +12,96 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c    |  1 +
- drivers/infiniband/hw/mlx4/mlx4_ib.h |  4 ++++
- drivers/infiniband/hw/mlx4/mr.c      | 38 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 43 insertions(+)
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c  |  1 +
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 47 +++++++++++++++++++++++++++++
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.h |  4 +++
+ 3 files changed, 52 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index a6f44ee..54671c7 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -2298,6 +2298,7 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 	ibdev->ib_dev.rereg_user_mr	= mlx4_ib_rereg_user_mr;
- 	ibdev->ib_dev.dereg_mr		= mlx4_ib_dereg_mr;
- 	ibdev->ib_dev.alloc_fast_reg_mr = mlx4_ib_alloc_fast_reg_mr;
-+	ibdev->ib_dev.alloc_mr		= mlx4_ib_alloc_mr;
- 	ibdev->ib_dev.alloc_fast_reg_page_list = mlx4_ib_alloc_fast_reg_page_list;
- 	ibdev->ib_dev.free_fast_reg_page_list  = mlx4_ib_free_fast_reg_page_list;
- 	ibdev->ib_dev.attach_mcast	= mlx4_ib_mcg_attach;
-diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-index 334387f..c8b5679 100644
---- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
-+++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -680,6 +680,10 @@ struct ib_mw *mlx4_ib_alloc_mw(struct ib_pd *pd, enum ib_mw_type type);
- int mlx4_ib_bind_mw(struct ib_qp *qp, struct ib_mw *mw,
- 		    struct ib_mw_bind *mw_bind);
- int mlx4_ib_dealloc_mw(struct ib_mw *mw);
-+struct ib_mr *mlx4_ib_alloc_mr(struct ib_pd *pd,
-+			       enum ib_mr_type mr_type,
-+			       u32 max_entries,
-+			       u32 flags);
- struct ib_mr *mlx4_ib_alloc_fast_reg_mr(struct ib_pd *pd,
- 					int max_page_list_len);
- struct ib_fast_reg_page_list *mlx4_ib_alloc_fast_reg_page_list(struct ib_device *ibdev,
-diff --git a/drivers/infiniband/hw/mlx4/mr.c b/drivers/infiniband/hw/mlx4/mr.c
-index e0d2717..3cba374 100644
---- a/drivers/infiniband/hw/mlx4/mr.c
-+++ b/drivers/infiniband/hw/mlx4/mr.c
-@@ -350,6 +350,44 @@ int mlx4_ib_dealloc_mw(struct ib_mw *ibmw)
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+index 8a1398b..d7ebe04 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+@@ -294,6 +294,7 @@ static int ocrdma_register_device(struct ocrdma_dev *dev)
+ 	dev->ibdev.dereg_mr = ocrdma_dereg_mr;
+ 	dev->ibdev.reg_user_mr = ocrdma_reg_user_mr;
+ 
++	dev->ibdev.alloc_mr = ocrdma_alloc_mr;
+ 	dev->ibdev.alloc_fast_reg_mr = ocrdma_alloc_frmr;
+ 	dev->ibdev.alloc_fast_reg_page_list = ocrdma_alloc_frmr_page_list;
+ 	dev->ibdev.free_fast_reg_page_list = ocrdma_free_frmr_page_list;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index 5bb61eb..3487780 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -2983,6 +2983,53 @@ int ocrdma_arm_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags cq_flags)
  	return 0;
  }
  
-+struct ib_mr *mlx4_ib_alloc_mr(struct ib_pd *pd,
-+			       enum ib_mr_type mr_type,
-+			       u32 max_entries,
-+			       u32 flags)
++struct ib_mr *ocrdma_alloc_mr(struct ib_pd *ibpd,
++			      enum ib_mr_type mr_type,
++			      u32 max_entries,
++			      u32 flags)
 +{
-+	struct mlx4_ib_dev *dev = to_mdev(pd->device);
-+	struct mlx4_ib_mr *mr;
-+	int err;
++	int status;
++	struct ocrdma_mr *mr;
++	struct ocrdma_pd *pd = get_ocrdma_pd(ibpd);
++	struct ocrdma_dev *dev = get_ocrdma_dev(ibpd->device);
 +
 +	if (mr_type != IB_MR_TYPE_FAST_REG || flags)
 +		return ERR_PTR(-EINVAL);
 +
-+	mr = kmalloc(sizeof *mr, GFP_KERNEL);
++	if (max_entries > dev->attr.max_pages_per_frmr)
++		return ERR_PTR(-EINVAL);
++
++	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
 +	if (!mr)
 +		return ERR_PTR(-ENOMEM);
 +
-+	err = mlx4_mr_alloc(dev->dev, to_mpd(pd)->pdn, 0, 0, 0,
-+			    max_entries, 0, &mr->mmr);
-+	if (err)
-+		goto err_free;
-+
-+	err = mlx4_mr_enable(dev->dev, &mr->mmr);
-+	if (err)
-+		goto err_mr;
-+
-+	mr->ibmr.rkey = mr->ibmr.lkey = mr->mmr.key;
-+	mr->umem = NULL;
-+
++	status = ocrdma_get_pbl_info(dev, mr, max_entries);
++	if (status)
++		goto pbl_err;
++	mr->hwmr.fr_mr = 1;
++	mr->hwmr.remote_rd = 0;
++	mr->hwmr.remote_wr = 0;
++	mr->hwmr.local_rd = 0;
++	mr->hwmr.local_wr = 0;
++	mr->hwmr.mw_bind = 0;
++	status = ocrdma_build_pbl_tbl(dev, &mr->hwmr);
++	if (status)
++		goto pbl_err;
++	status = ocrdma_reg_mr(dev, &mr->hwmr, pd->id, 0);
++	if (status)
++		goto mbx_err;
++	mr->ibmr.rkey = mr->hwmr.lkey;
++	mr->ibmr.lkey = mr->hwmr.lkey;
++	dev->stag_arr[(mr->hwmr.lkey >> 8) & (OCRDMA_MAX_STAG - 1)] =
++		(unsigned long) mr;
 +	return &mr->ibmr;
-+
-+err_mr:
-+	(void) mlx4_mr_free(dev->dev, &mr->mmr);
-+
-+err_free:
++mbx_err:
++	ocrdma_free_mr_pbl_tbl(dev, &mr->hwmr);
++pbl_err:
 +	kfree(mr);
-+	return ERR_PTR(err);
++	return ERR_PTR(-ENOMEM);
 +}
 +
- struct ib_mr *mlx4_ib_alloc_fast_reg_mr(struct ib_pd *pd,
- 					int max_page_list_len)
+ struct ib_mr *ocrdma_alloc_frmr(struct ib_pd *ibpd, int max_page_list_len)
  {
+ 	int status;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
+index b15c608..eebcda2 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
+@@ -96,6 +96,10 @@ struct ib_mr *ocrdma_reg_kernel_mr(struct ib_pd *,
+ 				   int num_phys_buf, int acc, u64 *iova_start);
+ struct ib_mr *ocrdma_reg_user_mr(struct ib_pd *, u64 start, u64 length,
+ 				 u64 virt, int acc, struct ib_udata *);
++struct ib_mr *ocrdma_alloc_mr(struct ib_pd *pd,
++			      enum ib_mr_type mr_type,
++			      u32 max_entries,
++			      u32 flags);
+ struct ib_mr *ocrdma_alloc_frmr(struct ib_pd *pd, int max_page_list_len);
+ struct ib_fast_reg_page_list *ocrdma_alloc_frmr_page_list(struct ib_device
+ 							*ibdev,
 -- 
 1.8.4.3
 
