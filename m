@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH WIP 18/43] cxgb4: Drop c4iw_alloc_fast_reg_mr
-Date: Wed, 22 Jul 2015 09:55:18 +0300
-Message-ID: <1437548143-24893-19-git-send-email-sagig@mellanox.com>
+Subject: [PATCH WIP 40/43] mlx5: Allocate private context for arbitrary scatterlist registration
+Date: Wed, 22 Jul 2015 09:55:40 +0300
+Message-ID: <1437548143-24893-41-git-send-email-sagig@mellanox.com>
 References: <1437548143-24893-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1437548143-24893-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,97 +12,158 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h |  1 -
- drivers/infiniband/hw/cxgb4/mem.c      | 51 ----------------------------------
- drivers/infiniband/hw/cxgb4/provider.c |  1 -
- 3 files changed, 53 deletions(-)
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  6 ++-
+ drivers/infiniband/hw/mlx5/mr.c      | 71 ++++++++++++++++++++++++++++++------
+ 2 files changed, 64 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-index 97b2568..886be9c 100644
---- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-+++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-@@ -974,7 +974,6 @@ struct ib_mr *c4iw_alloc_mr(struct ib_pd *pd,
- 			    enum ib_mr_type mr_type,
- 			    u32 max_entries,
- 			    u32 flags);
--struct ib_mr *c4iw_alloc_fast_reg_mr(struct ib_pd *pd, int pbl_depth);
- int c4iw_dealloc_mw(struct ib_mw *mw);
- struct ib_mw *c4iw_alloc_mw(struct ib_pd *pd, enum ib_mw_type type);
- struct ib_mr *c4iw_reg_user_mr(struct ib_pd *pd, u64 start,
-diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
-index 7ee01ce..5ecf4aa 100644
---- a/drivers/infiniband/hw/cxgb4/mem.c
-+++ b/drivers/infiniband/hw/cxgb4/mem.c
-@@ -910,57 +910,6 @@ err:
- 	return ERR_PTR(ret);
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 7017a1a..fb3ac22 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -315,11 +315,15 @@ enum mlx5_ib_mtt_access_flags {
+ 
+ struct mlx5_ib_mr {
+ 	struct ib_mr		ibmr;
+-	u64		        *pl;
++	union {
++		__be64			*pl;
++		struct mlx5_klm		*klms;
++	};
+ 	__be64			*mpl;
+ 	dma_addr_t		pl_map;
+ 	int			ndescs;
+ 	int			max_descs;
++	int			access_mode;
+ 	struct mlx5_core_mr	mmr;
+ 	struct ib_umem	       *umem;
+ 	struct mlx5_shared_mr_info	*smr_info;
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index 7a030a2..45209c7 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -1168,6 +1168,40 @@ error:
  }
  
--struct ib_mr *c4iw_alloc_fast_reg_mr(struct ib_pd *pd, int pbl_depth)
--{
--	struct c4iw_dev *rhp;
--	struct c4iw_pd *php;
--	struct c4iw_mr *mhp;
--	u32 mmid;
--	u32 stag = 0;
--	int ret = 0;
--
--	php = to_c4iw_pd(pd);
--	rhp = php->rhp;
--	mhp = kzalloc(sizeof(*mhp), GFP_KERNEL);
--	if (!mhp) {
--		ret = -ENOMEM;
--		goto err;
--	}
--
--	mhp->rhp = rhp;
--	ret = alloc_pbl(mhp, pbl_depth);
--	if (ret)
--		goto err1;
--	mhp->attr.pbl_size = pbl_depth;
--	ret = allocate_stag(&rhp->rdev, &stag, php->pdid,
--				 mhp->attr.pbl_size, mhp->attr.pbl_addr);
--	if (ret)
--		goto err2;
--	mhp->attr.pdid = php->pdid;
--	mhp->attr.type = FW_RI_STAG_NSMR;
--	mhp->attr.stag = stag;
--	mhp->attr.state = 1;
--	mmid = (stag) >> 8;
--	mhp->ibmr.rkey = mhp->ibmr.lkey = stag;
--	if (insert_handle(rhp, &rhp->mmidr, mhp, mmid)) {
--		ret = -ENOMEM;
--		goto err3;
--	}
--
--	PDBG("%s mmid 0x%x mhp %p stag 0x%x\n", __func__, mmid, mhp, stag);
--	return &(mhp->ibmr);
--err3:
--	dereg_mem(&rhp->rdev, stag, mhp->attr.pbl_size,
--		       mhp->attr.pbl_addr);
--err2:
--	c4iw_pblpool_free(&mhp->rhp->rdev, mhp->attr.pbl_addr,
--			      mhp->attr.pbl_size << 3);
--err1:
--	kfree(mhp);
--err:
--	return ERR_PTR(ret);
--}
--
- struct ib_fast_reg_page_list *c4iw_alloc_fastreg_pbl(struct ib_device *device,
- 						     int page_list_len)
+ static int
++mlx5_alloc_klm_list(struct ib_device *device,
++		    struct mlx5_ib_mr *mr, int ndescs)
++{
++	int size = sizeof(struct mlx5_klm) * ndescs;
++
++	size += max_t(int, MLX5_UMR_ALIGN - ARCH_KMALLOC_MINALIGN, 0);
++	mr->klms = kzalloc(size, GFP_KERNEL);
++	if (!mr->klms)
++		return -ENOMEM;
++
++	mr->pl_map = dma_map_single(device->dma_device, mr->klms,
++				    size, DMA_TO_DEVICE);
++	if (dma_mapping_error(device->dma_device, mr->pl_map))
++		goto err;
++
++	return 0;
++err:
++	kfree(mr->klms);
++
++	return -ENOMEM;
++}
++
++static void
++mlx5_free_klm_list(struct mlx5_ib_mr *mr)
++{
++	struct ib_device *device = mr->ibmr.device;
++	int size = mr->max_descs * sizeof(struct mlx5_klm);
++
++	kfree(mr->klms);
++	dma_unmap_single(device->dma_device, mr->pl_map, size, DMA_TO_DEVICE);
++	mr->klms = NULL;
++}
++
++static int
+ mlx5_alloc_page_list(struct ib_device *device,
+ 		     struct mlx5_ib_mr *mr, int ndescs)
  {
-diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
-index 2885aba..7746113 100644
---- a/drivers/infiniband/hw/cxgb4/provider.c
-+++ b/drivers/infiniband/hw/cxgb4/provider.c
-@@ -557,7 +557,6 @@ int c4iw_register_device(struct c4iw_dev *dev)
- 	dev->ibdev.bind_mw = c4iw_bind_mw;
- 	dev->ibdev.dealloc_mw = c4iw_dealloc_mw;
- 	dev->ibdev.alloc_mr = c4iw_alloc_mr;
--	dev->ibdev.alloc_fast_reg_mr = c4iw_alloc_fast_reg_mr;
- 	dev->ibdev.alloc_fast_reg_page_list = c4iw_alloc_fastreg_pbl;
- 	dev->ibdev.free_fast_reg_page_list = c4iw_free_fastreg_pbl;
- 	dev->ibdev.attach_mcast = c4iw_multicast_attach;
+@@ -1222,7 +1256,10 @@ static int clean_mr(struct mlx5_ib_mr *mr)
+ 		mr->sig = NULL;
+ 	}
+ 
+-	mlx5_free_page_list(mr);
++	if (mr->access_mode == MLX5_ACCESS_MODE_MTT)
++		mlx5_free_page_list(mr);
++	else
++		mlx5_free_klm_list(mr);
+ 
+ 	if (!umred) {
+ 		err = destroy_mkey(dev, mr);
+@@ -1293,10 +1330,10 @@ struct ib_mr *mlx5_ib_alloc_mr(struct ib_pd *pd,
+ 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
+ 	struct mlx5_create_mkey_mbox_in *in;
+ 	struct mlx5_ib_mr *mr;
+-	int access_mode, err;
+-	int ndescs = roundup(max_entries, 4);
++	int ndescs = ALIGN(max_entries, 4);
++	int err;
+ 
+-	if (flags)
++	if (flags & ~IB_MR_MAP_ARB_SG)
+ 		return ERR_PTR(-EINVAL);
+ 
+ 	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
+@@ -1315,13 +1352,20 @@ struct ib_mr *mlx5_ib_alloc_mr(struct ib_pd *pd,
+ 	in->seg.flags_pd = cpu_to_be32(to_mpd(pd)->pdn);
+ 
+ 	if (mr_type == IB_MR_TYPE_FAST_REG) {
+-		access_mode = MLX5_ACCESS_MODE_MTT;
+-		in->seg.log2_page_size = PAGE_SHIFT;
++		if (flags & IB_MR_MAP_ARB_SG) {
++			mr->access_mode = MLX5_ACCESS_MODE_KLM;
+ 
+-		err = mlx5_alloc_page_list(pd->device, mr, ndescs);
+-		if (err)
+-			goto err_free_in;
++			err = mlx5_alloc_klm_list(pd->device, mr, ndescs);
++			if (err)
++				goto err_free_in;
++		} else {
++			mr->access_mode = MLX5_ACCESS_MODE_MTT;
++			in->seg.log2_page_size = PAGE_SHIFT;
+ 
++			err = mlx5_alloc_page_list(pd->device, mr, ndescs);
++			if (err)
++				goto err_free_in;
++		}
+ 		mr->max_descs = ndescs;
+ 	} else if (mr_type == IB_MR_TYPE_SIGNATURE) {
+ 		u32 psv_index[2];
+@@ -1341,7 +1385,7 @@ struct ib_mr *mlx5_ib_alloc_mr(struct ib_pd *pd,
+ 		if (err)
+ 			goto err_free_sig;
+ 
+-		access_mode = MLX5_ACCESS_MODE_KLM;
++		mr->access_mode = MLX5_ACCESS_MODE_KLM;
+ 		mr->sig->psv_memory.psv_idx = psv_index[0];
+ 		mr->sig->psv_wire.psv_idx = psv_index[1];
+ 
+@@ -1355,7 +1399,7 @@ struct ib_mr *mlx5_ib_alloc_mr(struct ib_pd *pd,
+ 		goto err_free_in;
+ 	}
+ 
+-	in->seg.flags = MLX5_PERM_UMR_EN | access_mode;
++	in->seg.flags = MLX5_PERM_UMR_EN | mr->access_mode;
+ 	err = mlx5_core_create_mkey(dev->mdev, &mr->mmr, in, sizeof(*in),
+ 				    NULL, NULL, NULL);
+ 	if (err)
+@@ -1379,7 +1423,10 @@ err_destroy_psv:
+ 			mlx5_ib_warn(dev, "failed to destroy wire psv %d\n",
+ 				     mr->sig->psv_wire.psv_idx);
+ 	}
+-	mlx5_free_page_list(mr);
++	if (mr->access_mode == MLX5_ACCESS_MODE_MTT)
++		mlx5_free_page_list(mr);
++	else
++		mlx5_free_klm_list(mr);
+ err_free_sig:
+ 	kfree(mr->sig);
+ err_free_in:
 -- 
 1.8.4.3
 
