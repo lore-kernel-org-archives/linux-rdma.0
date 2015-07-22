@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH 03/10] IB/ipoib: Remove ib_get_dma_mr calls
-Date: Wed, 22 Jul 2015 17:34:36 -0600
-Message-ID: <1437608083-22898-4-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH 07/10] iser-target: Remove ib_get_dma_mr calls
+Date: Wed, 22 Jul 2015 17:34:40 -0600
+Message-ID: <1437608083-22898-8-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1437608083-22898-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1437608083-22898-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
@@ -15,98 +15,149 @@ ib_get_dma_mr, use it instead.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib.h       |  1 -
- drivers/infiniband/ulp/ipoib/ipoib_cm.c    |  2 +-
- drivers/infiniband/ulp/ipoib/ipoib_verbs.c | 18 +++---------------
- 3 files changed, 4 insertions(+), 17 deletions(-)
+ drivers/infiniband/ulp/isert/ib_isert.c | 33 +++++++++++----------------------
+ drivers/infiniband/ulp/isert/ib_isert.h |  1 -
+ 2 files changed, 11 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index bd94b0a6e9e5..731e540a37df 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -342,7 +342,6 @@ struct ipoib_dev_priv {
- 	u16		  pkey;
- 	u16		  pkey_index;
- 	struct ib_pd	 *pd;
--	struct ib_mr	 *mr;
- 	struct ib_cq	 *recv_cq;
- 	struct ib_cq	 *send_cq;
- 	struct ib_qp	 *qp;
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-index cf32a778e7d0..d1c217403c6d 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -332,7 +332,7 @@ static void ipoib_cm_init_rx_wr(struct net_device *dev,
- 	int i;
- 
- 	for (i = 0; i < priv->cm.num_frags; ++i)
--		sge[i].lkey = priv->mr->lkey;
-+		sge[i].lkey = priv->pd->local_dma_lkey;
- 
- 	sge[0].length = IPOIB_CM_HEAD_SIZE;
- 	for (i = 1; i < priv->cm.num_frags; ++i)
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-index 851c8219d501..8c451983d8a5 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-@@ -152,12 +152,6 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
- 		return -ENODEV;
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index 771700963127..00d75d977131 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -235,7 +235,7 @@ isert_alloc_rx_descriptors(struct isert_conn *isert_conn)
+ 		rx_sg = &rx_desc->rx_sg;
+ 		rx_sg->addr = rx_desc->dma_addr;
+ 		rx_sg->length = ISER_RX_PAYLOAD_SIZE;
+-		rx_sg->lkey = device->mr->lkey;
++		rx_sg->lkey = device->pd->local_dma_lkey;
  	}
  
--	priv->mr = ib_get_dma_mr(priv->pd, IB_ACCESS_LOCAL_WRITE);
--	if (IS_ERR(priv->mr)) {
--		printk(KERN_WARNING "%s: ib_get_dma_mr failed\n", ca->name);
--		goto out_free_pd;
+ 	isert_conn->rx_desc_head = 0;
+@@ -385,22 +385,12 @@ isert_create_device_ib_res(struct isert_device *device)
+ 		goto out_cq;
+ 	}
+ 
+-	device->mr = ib_get_dma_mr(device->pd, IB_ACCESS_LOCAL_WRITE);
+-	if (IS_ERR(device->mr)) {
+-		ret = PTR_ERR(device->mr);
+-		isert_err("failed to create dma mr, device %p, ret=%d\n",
+-			  device, ret);
+-		goto out_mr;
 -	}
 -
- 	/*
- 	 * the various IPoIB tasks assume they will never race against
- 	 * themselves, so always use a single thread workqueue
-@@ -165,7 +159,7 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
- 	priv->wq = create_singlethread_workqueue("ipoib_wq");
- 	if (!priv->wq) {
- 		printk(KERN_WARNING "ipoib: failed to allocate device WQ\n");
--		goto out_free_mr;
-+		goto out_free_pd;
+ 	/* Check signature cap */
+ 	device->pi_capable = dev_attr->device_cap_flags &
+ 			     IB_DEVICE_SIGNATURE_HANDOVER ? true : false;
+ 
+ 	return 0;
+ 
+-out_mr:
+-	ib_dealloc_pd(device->pd);
+ out_cq:
+ 	isert_free_comps(device);
+ 	return ret;
+@@ -411,7 +401,6 @@ isert_free_device_ib_res(struct isert_device *device)
+ {
+ 	isert_info("device %p\n", device);
+ 
+-	ib_dereg_mr(device->mr);
+ 	ib_dealloc_pd(device->pd);
+ 	isert_free_comps(device);
+ }
+@@ -1086,8 +1075,8 @@ isert_create_send_desc(struct isert_conn *isert_conn,
+ 	tx_desc->num_sge = 1;
+ 	tx_desc->isert_cmd = isert_cmd;
+ 
+-	if (tx_desc->tx_sg[0].lkey != device->mr->lkey) {
+-		tx_desc->tx_sg[0].lkey = device->mr->lkey;
++	if (tx_desc->tx_sg[0].lkey != device->pd->local_dma_lkey) {
++		tx_desc->tx_sg[0].lkey = device->pd->local_dma_lkey;
+ 		isert_dbg("tx_desc %p lkey mismatch, fixing\n", tx_desc);
+ 	}
+ }
+@@ -1110,7 +1099,7 @@ isert_init_tx_hdrs(struct isert_conn *isert_conn,
+ 	tx_desc->dma_addr = dma_addr;
+ 	tx_desc->tx_sg[0].addr	= tx_desc->dma_addr;
+ 	tx_desc->tx_sg[0].length = ISER_HEADERS_LEN;
+-	tx_desc->tx_sg[0].lkey = device->mr->lkey;
++	tx_desc->tx_sg[0].lkey = device->pd->local_dma_lkey;
+ 
+ 	isert_dbg("Setup tx_sg[0].addr: 0x%llx length: %u lkey: 0x%x\n",
+ 		  tx_desc->tx_sg[0].addr, tx_desc->tx_sg[0].length,
+@@ -1143,7 +1132,7 @@ isert_rdma_post_recvl(struct isert_conn *isert_conn)
+ 	memset(&sge, 0, sizeof(struct ib_sge));
+ 	sge.addr = isert_conn->login_req_dma;
+ 	sge.length = ISER_RX_LOGIN_SIZE;
+-	sge.lkey = isert_conn->device->mr->lkey;
++	sge.lkey = isert_conn->device->pd->local_dma_lkey;
+ 
+ 	isert_dbg("Setup sge: addr: %llx length: %d 0x%08x\n",
+ 		sge.addr, sge.length, sge.lkey);
+@@ -1193,7 +1182,7 @@ isert_put_login_tx(struct iscsi_conn *conn, struct iscsi_login *login,
+ 
+ 		tx_dsg->addr	= isert_conn->login_rsp_dma;
+ 		tx_dsg->length	= length;
+-		tx_dsg->lkey	= isert_conn->device->mr->lkey;
++		tx_dsg->lkey	= isert_conn->device->pd->local_dma_lkey;
+ 		tx_desc->num_sge = 2;
+ 	}
+ 	if (!login->login_failed) {
+@@ -2210,7 +2199,7 @@ isert_put_response(struct iscsi_conn *conn, struct iscsi_cmd *cmd)
+ 		isert_cmd->pdu_buf_len = pdu_len;
+ 		tx_dsg->addr	= isert_cmd->pdu_buf_dma;
+ 		tx_dsg->length	= pdu_len;
+-		tx_dsg->lkey	= device->mr->lkey;
++		tx_dsg->lkey	= device->pd->local_dma_lkey;
+ 		isert_cmd->tx_desc.num_sge = 2;
  	}
  
- 	size = ipoib_recvq_size + 1;
-@@ -225,13 +219,13 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
- 	priv->dev->dev_addr[3] = (priv->qp->qp_num      ) & 0xff;
+@@ -2338,7 +2327,7 @@ isert_put_reject(struct iscsi_cmd *cmd, struct iscsi_conn *conn)
+ 	isert_cmd->pdu_buf_len = ISCSI_HDR_LEN;
+ 	tx_dsg->addr	= isert_cmd->pdu_buf_dma;
+ 	tx_dsg->length	= ISCSI_HDR_LEN;
+-	tx_dsg->lkey	= device->mr->lkey;
++	tx_dsg->lkey	= device->pd->local_dma_lkey;
+ 	isert_cmd->tx_desc.num_sge = 2;
  
- 	for (i = 0; i < MAX_SKB_FRAGS + 1; ++i)
--		priv->tx_sge[i].lkey = priv->mr->lkey;
-+		priv->tx_sge[i].lkey = priv->pd->local_dma_lkey;
- 
- 	priv->tx_wr.opcode	= IB_WR_SEND;
- 	priv->tx_wr.sg_list	= priv->tx_sge;
- 	priv->tx_wr.send_flags	= IB_SEND_SIGNALED;
- 
--	priv->rx_sge[0].lkey = priv->mr->lkey;
-+	priv->rx_sge[0].lkey = priv->pd->local_dma_lkey;
- 
- 	priv->rx_sge[0].length = IPOIB_UD_BUF_SIZE(priv->max_ib_mtu);
- 	priv->rx_wr.num_sge = 1;
-@@ -254,9 +248,6 @@ out_free_wq:
- 	destroy_workqueue(priv->wq);
- 	priv->wq = NULL;
- 
--out_free_mr:
--	ib_dereg_mr(priv->mr);
--
- out_free_pd:
- 	ib_dealloc_pd(priv->pd);
- 
-@@ -289,9 +280,6 @@ void ipoib_transport_dev_cleanup(struct net_device *dev)
- 		priv->wq = NULL;
+ 	isert_init_send_wr(isert_conn, isert_cmd, send_wr);
+@@ -2379,7 +2368,7 @@ isert_put_text_rsp(struct iscsi_cmd *cmd, struct iscsi_conn *conn)
+ 		isert_cmd->pdu_buf_len = txt_rsp_len;
+ 		tx_dsg->addr	= isert_cmd->pdu_buf_dma;
+ 		tx_dsg->length	= txt_rsp_len;
+-		tx_dsg->lkey	= device->mr->lkey;
++		tx_dsg->lkey	= device->pd->local_dma_lkey;
+ 		isert_cmd->tx_desc.num_sge = 2;
  	}
+ 	isert_init_send_wr(isert_conn, isert_cmd, send_wr);
+@@ -2420,7 +2409,7 @@ isert_build_rdma_wr(struct isert_conn *isert_conn, struct isert_cmd *isert_cmd,
+ 		ib_sge->addr = ib_sg_dma_address(ib_dev, tmp_sg) + page_off;
+ 		ib_sge->length = min_t(u32, data_left,
+ 				ib_sg_dma_len(ib_dev, tmp_sg) - page_off);
+-		ib_sge->lkey = device->mr->lkey;
++		ib_sge->lkey = device->pd->local_dma_lkey;
  
--	if (ib_dereg_mr(priv->mr))
--		ipoib_warn(priv, "ib_dereg_mr failed\n");
--
- 	if (ib_dealloc_pd(priv->pd))
- 		ipoib_warn(priv, "ib_dealloc_pd failed\n");
+ 		isert_dbg("RDMA ib_sge: addr: 0x%llx  length: %u lkey: %x\n",
+ 			  ib_sge->addr, ib_sge->length, ib_sge->lkey);
+@@ -2594,7 +2583,7 @@ isert_fast_reg_mr(struct isert_conn *isert_conn,
+ 	u32 page_off;
  
+ 	if (mem->dma_nents == 1) {
+-		sge->lkey = device->mr->lkey;
++		sge->lkey = device->pd->local_dma_lkey;
+ 		sge->addr = ib_sg_dma_address(ib_dev, &mem->sg[0]);
+ 		sge->length = ib_sg_dma_len(ib_dev, &mem->sg[0]);
+ 		isert_dbg("sge: addr: 0x%llx  length: %u lkey: %x\n",
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.h b/drivers/infiniband/ulp/isert/ib_isert.h
+index 9ec23a786c02..6a04ba3c0f72 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.h
++++ b/drivers/infiniband/ulp/isert/ib_isert.h
+@@ -209,7 +209,6 @@ struct isert_device {
+ 	int			refcount;
+ 	struct ib_device	*ib_device;
+ 	struct ib_pd		*pd;
+-	struct ib_mr		*mr;
+ 	struct isert_comp	*comps;
+ 	int                     comps_used;
+ 	struct list_head	dev_node;
 -- 
 2.1.4
 
