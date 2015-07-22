@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH WIP 16/43] qib: Drop qib_alloc_fast_reg_mr
-Date: Wed, 22 Jul 2015 09:55:16 +0300
-Message-ID: <1437548143-24893-17-git-send-email-sagig@mellanox.com>
+Subject: [PATCH WIP 11/43] xprtrdma, svcrdma: Convert to ib_alloc_mr
+Date: Wed, 22 Jul 2015 09:55:11 +0300
+Message-ID: <1437548143-24893-12-git-send-email-sagig@mellanox.com>
 References: <1437548143-24893-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1437548143-24893-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,63 +12,53 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_mr.c    | 17 -----------------
- drivers/infiniband/hw/qib/qib_verbs.c |  1 -
- drivers/infiniband/hw/qib/qib_verbs.h |  2 --
- 3 files changed, 20 deletions(-)
+ net/sunrpc/xprtrdma/frwr_ops.c           | 6 +++---
+ net/sunrpc/xprtrdma/svc_rdma_transport.c | 2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_mr.c b/drivers/infiniband/hw/qib/qib_mr.c
-index 1522255..2a4afea 100644
---- a/drivers/infiniband/hw/qib/qib_mr.c
-+++ b/drivers/infiniband/hw/qib/qib_mr.c
-@@ -344,23 +344,6 @@ struct ib_mr *qib_alloc_mr(struct ib_pd *pd,
- 	return &mr->ibmr;
- }
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index 63f282e..517efed 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -117,7 +117,7 @@ __frwr_recovery_worker(struct work_struct *work)
+ 	if (ib_dereg_mr(r->r.frmr.fr_mr))
+ 		goto out_fail;
  
--/*
-- * Allocate a memory region usable with the
-- * IB_WR_FAST_REG_MR send work request.
-- *
-- * Return the memory region on success, otherwise return an errno.
-- */
--struct ib_mr *qib_alloc_fast_reg_mr(struct ib_pd *pd, int max_page_list_len)
--{
--	struct qib_mr *mr;
--
--	mr = alloc_mr(max_page_list_len, pd);
--	if (IS_ERR(mr))
--		return (struct ib_mr *)mr;
--
--	return &mr->ibmr;
--}
--
- struct ib_fast_reg_page_list *
- qib_alloc_fast_reg_page_list(struct ib_device *ibdev, int page_list_len)
- {
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index 323666b..ef022a1 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.c
-+++ b/drivers/infiniband/hw/qib/qib_verbs.c
-@@ -2236,7 +2236,6 @@ int qib_register_ib_device(struct qib_devdata *dd)
- 	ibdev->reg_user_mr = qib_reg_user_mr;
- 	ibdev->dereg_mr = qib_dereg_mr;
- 	ibdev->alloc_mr = qib_alloc_mr;
--	ibdev->alloc_fast_reg_mr = qib_alloc_fast_reg_mr;
- 	ibdev->alloc_fast_reg_page_list = qib_alloc_fast_reg_page_list;
- 	ibdev->free_fast_reg_page_list = qib_free_fast_reg_page_list;
- 	ibdev->alloc_fmr = qib_alloc_fmr;
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
-index 034510c..8fbd995 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.h
-+++ b/drivers/infiniband/hw/qib/qib_verbs.h
-@@ -1037,8 +1037,6 @@ struct ib_mr *qib_alloc_mr(struct ib_pd *pd,
- 			   u32 max_entries,
- 			   u32 flags);
+-	r->r.frmr.fr_mr = ib_alloc_fast_reg_mr(pd, depth);
++	r->r.frmr.fr_mr = ib_alloc_mr(pd, IB_MR_TYPE_FAST_REG, depth, 0);
+ 	if (IS_ERR(r->r.frmr.fr_mr))
+ 		goto out_fail;
  
--struct ib_mr *qib_alloc_fast_reg_mr(struct ib_pd *pd, int max_page_list_len);
--
- struct ib_fast_reg_page_list *qib_alloc_fast_reg_page_list(
- 				struct ib_device *ibdev, int page_list_len);
+@@ -148,7 +148,7 @@ __frwr_init(struct rpcrdma_mw *r, struct ib_pd *pd, struct ib_device *device,
+ 	struct rpcrdma_frmr *f = &r->r.frmr;
+ 	int rc;
+ 
+-	f->fr_mr = ib_alloc_fast_reg_mr(pd, depth);
++	f->fr_mr = ib_alloc_mr(pd, IB_MR_TYPE_FAST_REG, depth, 0);
+ 	if (IS_ERR(f->fr_mr))
+ 		goto out_mr_err;
+ 	f->fr_pgl = ib_alloc_fast_reg_page_list(device, depth);
+@@ -158,7 +158,7 @@ __frwr_init(struct rpcrdma_mw *r, struct ib_pd *pd, struct ib_device *device,
+ 
+ out_mr_err:
+ 	rc = PTR_ERR(f->fr_mr);
+-	dprintk("RPC:       %s: ib_alloc_fast_reg_mr status %i\n",
++	dprintk("RPC:       %s: ib_alloc_mr status %i\n",
+ 		__func__, rc);
+ 	return rc;
+ 
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index 6b36279..fd933d9 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -738,7 +738,7 @@ static struct svc_rdma_fastreg_mr *rdma_alloc_frmr(struct svcxprt_rdma *xprt)
+ 	if (!frmr)
+ 		goto err;
+ 
+-	mr = ib_alloc_fast_reg_mr(xprt->sc_pd, RPCSVC_MAXPAGES);
++	mr = ib_alloc_mr(xprt->sc_pd, IB_MR_TYPE_FAST_REG, RPCSVC_MAXPAGES, 0);
+ 	if (IS_ERR(mr))
+ 		goto err_free_frmr;
  
 -- 
 1.8.4.3
