@@ -1,76 +1,64 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH v3 05/15] xprtrdma: Remove last ib_reg_phys_mr() call site
-Date: Wed, 22 Jul 2015 08:58:04 -0500
-Message-ID: <000001d0c486$6e2c8ea0$4a85abe0$@opengridcomputing.com>
-References: <20150720185624.10997.51574.stgit@manet.1015granger.net> <20150720190311.10997.12636.stgit@manet.1015granger.net> <55AD5B48.3010906@talpey.com> <20150720210544.GA9655@obsidianresearch.com> <015101d0c331$69e31d10$3da95730$@opengridcomputing.com> <55AD7065.8040809@talpey.com> <015701d0c33d$36b53110$a41f9330$@opengridcomputing.com> <20150720224244.GB12278@obsidianresearch.com> <55AECA92.3040105@opengridcomputing.com> <20150721225433.GA25724@obsidianresearch.com>
+From: =?UTF-8?q?Ana=20Guerrero=20L=C3=B3pez?= <ana-kLLpUjk7vcnYtjvyW6yDsg@public.gmane.org>
+Subject: [infiniband-diags PATCH] rdma-ndd: fix compiler warnings.
+Date: Wed, 22 Jul 2015 16:14:03 +0200
+Message-ID: <1437574443-12850-1-git-send-email-ana@ekaia.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150721225433.GA25724-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-us
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: 'Tom Talpey' <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: =?UTF-8?q?Ana=20Guerrero=20L=C3=B3pez?= <ana-kLLpUjk7vcnYtjvyW6yDsg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+This patch fixes -Wformat-security warnings, that in Debian (and Ubuntu=
+)
+are enabled by default:
 
+src/rdma-ndd.c: In function 'update_node_desc':
+src/rdma-ndd.c:149:3: error: format not a string literal and no format =
+arguments [-Werror=3Dformat-security]
+   fprintf(f, new_nd);
+   ^
+src/rdma-ndd.c: In function 'udev_log_fn':
+src/rdma-ndd.c:247:2: error: format not a string literal and no format =
+arguments [-Werror=3Dformat-security]
+  syslog(LOG_ERR, msg);
 
-> -----Original Message-----
-> From: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
-> Sent: Tuesday, July 21, 2015 5:55 PM
-> To: Steve Wise
-> Cc: 'Tom Talpey'; 'Chuck Lever'; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH v3 05/15] xprtrdma: Remove last ib_reg_phys_mr() call site
-> 
-> On Tue, Jul 21, 2015 at 05:41:22PM -0500, Steve Wise wrote:
-> > On 7/20/2015 5:42 PM, Jason Gunthorpe wrote:
-> > >On Mon, Jul 20, 2015 at 05:41:27PM -0500, Steve Wise wrote:
-> > >>>B) why bother to check? Are machines with <4GB interesting, and worth
-> > >>>supporting a special optimization?
-> > >>No, but cxgb3 is still interesting to user applications, and perhaps NFSRDMA using FRMRs.
-> > >Doesn't look like the NFS client will work. It requires an all
-> > >physical memory lkey for SEND and RECV buffers..
-> > >
-> > >Jason
-> >
-> > Looks like cxgb3 supports LOCAL_DMA_LKEY and MEM_MGT_EXTENSIONS so dma mrs
-> > aren't required for NFSRDMA:
-> >
-> > t4:~/linux-2.6/drivers/infiniband/hw/cxgb3 # grep IB_DEVICE_ iwch_provider.c
-> >         strlcpy(dev->ibdev.name, "cxgb3_%d", IB_DEVICE_NAME_MAX);
-> >         dev->device_cap_flags = IB_DEVICE_LOCAL_DMA_LKEY |
-> >                                 IB_DEVICE_MEM_WINDOW |
-> >                                 IB_DEVICE_MEM_MGT_EXTENSIONS;
-> 
-> Neat. Is the dma_mask set properly (I don't see any set at all)?
-> 
+Signed-off-by: Ana Guerrero L=C3=B3pez <ana-kLLpUjk7vcnYtjvyW6yDsg@public.gmane.org>
+---
+ src/rdma-ndd.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-iw_cxgb3 isn't a PCI driver.  It sits on top of cxgb3 which is the pci device driver and calls pci_set_dma_mask().
-
-> > So cxgb3 can still support NFSRDMA and user verbs w/o get_dma_mr(). I'll
-> > submit a patch soon to only support get_dma_mr() if unsigned long is 4
-> > bytes...
-> 
-> So, NFS and RDS seem to be the only iWarp compatible ULPs?
-> 
-> NFS has worked, and will continue to work with the global lkey.
-> 
-> RDS looks like it relies on an insecure all physical rkey, so it won't
-> work until that is fixed.
-> 
-> So, I'd just use sizeof(physaddr_t) > 4 as the test. The only people
-> that could be impacted are RDS users using distro kernels on machines
-> with less than 4G of ram. I somehow doubt there are any of those...
-> 
-> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/src/rdma-ndd.c b/src/rdma-ndd.c
+index d40e756..94eb3d7 100644
+--- a/src/rdma-ndd.c
++++ b/src/rdma-ndd.c
+@@ -145,7 +145,7 @@ static int update_node_desc(const char *device, con=
+st char *hostname, int force)
+ 		syslog(LOG_INFO, "%s: change (%s) -> (%s)\n",
+ 			device, nd, new_nd);
+ 		rewind(f);
+-		fprintf(f, new_nd);
++		fprintf(f, "%s", new_nd);
+ 	}
+=20
+ 	rc =3D 0;
+@@ -242,7 +242,7 @@ static void udev_log_fn(struct udev *ud, int priori=
+ty, const char *file, int lin
+ 			file, line, fn);
+ 	if (off < MSG_MAX-1)
+ 		vsnprintf(msg+off, MSG_MAX-off, format, args);
+-	syslog(LOG_ERR, msg);
++	syslog(LOG_ERR, "%s", msg);
+ }
+=20
+ static void setup_udev(void)
+--=20
+2.1.4
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
