@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH WIP 22/43] mlx4: Allocate a private page list in ib_alloc_mr
-Date: Wed, 22 Jul 2015 09:55:22 +0300
-Message-ID: <1437548143-24893-23-git-send-email-sagig@mellanox.com>
+Subject: [PATCH WIP 21/43] mlx5: Allocate a private page list in ib_alloc_mr
+Date: Wed, 22 Jul 2015 09:55:21 +0300
+Message-ID: <1437548143-24893-22-git-send-email-sagig@mellanox.com>
 References: <1437548143-24893-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1437548143-24893-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,42 +12,41 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/mlx4_ib.h |  5 ++++
- drivers/infiniband/hw/mlx4/mr.c      | 52 +++++++++++++++++++++++++++++++++---
- 2 files changed, 54 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  5 ++++
+ drivers/infiniband/hw/mlx5/mr.c      | 45 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 50 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-index 9220faf..a9a4a7f 100644
---- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
-+++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -120,6 +120,11 @@ struct mlx4_ib_mr {
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index c2916f1..df5e959 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -315,6 +315,11 @@ enum mlx5_ib_mtt_access_flags {
+ 
+ struct mlx5_ib_mr {
  	struct ib_mr		ibmr;
- 	struct mlx4_mr		mmr;
- 	struct ib_umem	       *umem;
 +	u64		        *pl;
 +	__be64			*mpl;
 +	dma_addr_t		pl_map;
-+	u32			npages;
-+	u32			max_pages;
- };
- 
- struct mlx4_ib_mw {
-diff --git a/drivers/infiniband/hw/mlx4/mr.c b/drivers/infiniband/hw/mlx4/mr.c
-index 121ee7f..01e16bc 100644
---- a/drivers/infiniband/hw/mlx4/mr.c
-+++ b/drivers/infiniband/hw/mlx4/mr.c
-@@ -271,11 +271,50 @@ release_mpt_entry:
++	int			ndescs;
++	int			max_descs;
+ 	struct mlx5_core_mr	mmr;
+ 	struct ib_umem	       *umem;
+ 	struct mlx5_shared_mr_info	*smr_info;
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index c8de302..1075065 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -1167,6 +1167,42 @@ error:
  	return err;
  }
  
 +static int
-+mlx4_alloc_page_list(struct ib_device *device,
-+		     struct mlx4_ib_mr *mr,
-+		      int max_entries)
++mlx5_alloc_page_list(struct ib_device *device,
++		     struct mlx5_ib_mr *mr, int ndescs)
 +{
-+	int size = max_entries * sizeof (u64);
++	int size = ndescs * sizeof(u64);
 +
-+	mr->pl = kcalloc(max_entries, sizeof(u64), GFP_KERNEL);
++	mr->pl = kcalloc(ndescs, sizeof(u64), GFP_KERNEL);
 +	if (!mr->pl)
 +		return -ENOMEM;
 +
@@ -64,10 +63,10 @@ index 121ee7f..01e16bc 100644
 +}
 +
 +static void
-+mlx4_free_page_list(struct mlx4_ib_mr *mr)
++mlx5_free_page_list(struct mlx5_ib_mr *mr)
 +{
 +	struct ib_device *device = mr->ibmr.device;
-+	int size = mr->max_pages * sizeof(u64);
++	int size = mr->max_descs * sizeof(u64);
 +
 +	kfree(mr->pl);
 +	if (mr->mpl)
@@ -77,45 +76,39 @@ index 121ee7f..01e16bc 100644
 +	mr->mpl = NULL;
 +}
 +
- int mlx4_ib_dereg_mr(struct ib_mr *ibmr)
+ static int clean_mr(struct mlx5_ib_mr *mr)
  {
- 	struct mlx4_ib_mr *mr = to_mmr(ibmr);
- 	int ret;
+ 	struct mlx5_ib_dev *dev = to_mdev(mr->ibmr.device);
+@@ -1186,6 +1222,8 @@ static int clean_mr(struct mlx5_ib_mr *mr)
+ 		mr->sig = NULL;
+ 	}
  
-+	mlx4_free_page_list(mr);
++	mlx5_free_page_list(mr);
 +
- 	ret = mlx4_mr_free(to_mdev(ibmr->device)->dev, &mr->mmr);
- 	if (ret)
- 		return ret;
-@@ -371,18 +410,25 @@ struct ib_mr *mlx4_ib_alloc_mr(struct ib_pd *pd,
- 	if (err)
- 		goto err_free;
- 
-+	err = mlx4_alloc_page_list(pd->device, mr, max_entries);
-+	if (err)
-+		goto err_free_mr;
+ 	if (!umred) {
+ 		err = destroy_mkey(dev, mr);
+ 		if (err) {
+@@ -1279,6 +1317,12 @@ struct ib_mr *mlx5_ib_alloc_mr(struct ib_pd *pd,
+ 	if (mr_type == IB_MR_TYPE_FAST_REG) {
+ 		access_mode = MLX5_ACCESS_MODE_MTT;
+ 		in->seg.log2_page_size = PAGE_SHIFT;
 +
-+	mr->max_pages = max_entries;
++		err = mlx5_alloc_page_list(pd->device, mr, ndescs);
++		if (err)
++			goto err_free_in;
 +
- 	err = mlx4_mr_enable(dev->dev, &mr->mmr);
- 	if (err)
--		goto err_mr;
-+		goto err_free_pl;
++		mr->max_descs = ndescs;
+ 	} else if (mr_type == IB_MR_TYPE_SIGNATURE) {
+ 		u32 psv_index[2];
  
- 	mr->ibmr.rkey = mr->ibmr.lkey = mr->mmr.key;
- 	mr->umem = NULL;
- 
- 	return &mr->ibmr;
- 
--err_mr:
-+err_free_pl:
-+	mlx4_free_page_list(mr);
-+err_free_mr:
- 	(void) mlx4_mr_free(dev->dev, &mr->mmr);
--
- err_free:
- 	kfree(mr);
- 	return ERR_PTR(err);
+@@ -1335,6 +1379,7 @@ err_destroy_psv:
+ 			mlx5_ib_warn(dev, "failed to destroy wire psv %d\n",
+ 				     mr->sig->psv_wire.psv_idx);
+ 	}
++	mlx5_free_page_list(mr);
+ err_free_sig:
+ 	kfree(mr->sig);
+ err_free_in:
 -- 
 1.8.4.3
 
