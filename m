@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH WIP 05/43] cxgb3: Support ib_alloc_mr verb
-Date: Wed, 22 Jul 2015 09:55:05 +0300
-Message-ID: <1437548143-24893-6-git-send-email-sagig@mellanox.com>
+Subject: [PATCH WIP 07/43] qib: Support ib_alloc_mr verb
+Date: Wed, 22 Jul 2015 09:55:07 +0300
+Message-ID: <1437548143-24893-8-git-send-email-sagig@mellanox.com>
 References: <1437548143-24893-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1437548143-24893-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,80 +12,73 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb3/iwch_provider.c | 53 +++++++++++++++++++++++++++++
- 1 file changed, 53 insertions(+)
+ drivers/infiniband/hw/qib/qib_mr.c    | 23 +++++++++++++++++++++++
+ drivers/infiniband/hw/qib/qib_verbs.c |  1 +
+ drivers/infiniband/hw/qib/qib_verbs.h |  5 +++++
+ 3 files changed, 29 insertions(+)
 
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-index b1b7323..d0e9e2d 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -796,6 +796,58 @@ static int iwch_dealloc_mw(struct ib_mw *mw)
- 	return 0;
- }
- 
-+static struct ib_mr *iwch_alloc_mr(struct ib_pd *pd,
-+				   enum ib_mr_type mr_type,
-+				   u32 max_entries,
-+				   u32 flags)
+diff --git a/drivers/infiniband/hw/qib/qib_mr.c b/drivers/infiniband/hw/qib/qib_mr.c
+index c4473db..1522255 100644
+--- a/drivers/infiniband/hw/qib/qib_mr.c
++++ b/drivers/infiniband/hw/qib/qib_mr.c
+@@ -327,6 +327,29 @@ out:
+  *
+  * Return the memory region on success, otherwise return an errno.
+  */
++struct ib_mr *qib_alloc_mr(struct ib_pd *pd,
++			   enum ib_mr_type mr_type,
++			   u32 max_entries,
++			   u32 flags)
 +{
-+	struct iwch_dev *rhp;
-+	struct iwch_pd *php;
-+	struct iwch_mr *mhp;
-+	u32 mmid;
-+	u32 stag = 0;
-+	int ret = 0;
++	struct qib_mr *mr;
 +
 +	if (mr_type != IB_MR_TYPE_FAST_REG || flags)
 +		return ERR_PTR(-EINVAL);
 +
-+	php = to_iwch_pd(pd);
-+	rhp = php->rhp;
-+	mhp = kzalloc(sizeof(*mhp), GFP_KERNEL);
-+	if (!mhp)
-+		goto err;
++	mr = alloc_mr(max_entries, pd);
++	if (IS_ERR(mr))
++		return (struct ib_mr *)mr;
 +
-+	mhp->rhp = rhp;
-+	ret = iwch_alloc_pbl(mhp, max_entries);
-+	if (ret)
-+		goto err1;
-+	mhp->attr.pbl_size = max_entries;
-+	ret = cxio_allocate_stag(&rhp->rdev, &stag, php->pdid,
-+				 mhp->attr.pbl_size, mhp->attr.pbl_addr);
-+	if (ret)
-+		goto err2;
-+	mhp->attr.pdid = php->pdid;
-+	mhp->attr.type = TPT_NON_SHARED_MR;
-+	mhp->attr.stag = stag;
-+	mhp->attr.state = 1;
-+	mmid = (stag) >> 8;
-+	mhp->ibmr.rkey = mhp->ibmr.lkey = stag;
-+	if (insert_handle(rhp, &rhp->mmidr, mhp, mmid))
-+		goto err3;
-+
-+	PDBG("%s mmid 0x%x mhp %p stag 0x%x\n", __func__, mmid, mhp, stag);
-+	return &(mhp->ibmr);
-+err3:
-+	cxio_dereg_mem(&rhp->rdev, stag, mhp->attr.pbl_size,
-+		       mhp->attr.pbl_addr);
-+err2:
-+	iwch_free_pbl(mhp);
-+err1:
-+	kfree(mhp);
-+err:
-+	return ERR_PTR(ret);
++	return &mr->ibmr;
 +}
 +
- static struct ib_mr *iwch_alloc_fast_reg_mr(struct ib_pd *pd, int pbl_depth)
++/*
++ * Allocate a memory region usable with the
++ * IB_WR_FAST_REG_MR send work request.
++ *
++ * Return the memory region on success, otherwise return an errno.
++ */
+ struct ib_mr *qib_alloc_fast_reg_mr(struct ib_pd *pd, int max_page_list_len)
  {
- 	struct iwch_dev *rhp;
-@@ -1439,6 +1491,7 @@ int iwch_register_device(struct iwch_dev *dev)
- 	dev->ibdev.alloc_mw = iwch_alloc_mw;
- 	dev->ibdev.bind_mw = iwch_bind_mw;
- 	dev->ibdev.dealloc_mw = iwch_dealloc_mw;
-+	dev->ibdev.alloc_mr = iwch_alloc_mr;
- 	dev->ibdev.alloc_fast_reg_mr = iwch_alloc_fast_reg_mr;
- 	dev->ibdev.alloc_fast_reg_page_list = iwch_alloc_fastreg_pbl;
- 	dev->ibdev.free_fast_reg_page_list = iwch_free_fastreg_pbl;
+ 	struct qib_mr *mr;
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
+index a05d1a3..323666b 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.c
++++ b/drivers/infiniband/hw/qib/qib_verbs.c
+@@ -2235,6 +2235,7 @@ int qib_register_ib_device(struct qib_devdata *dd)
+ 	ibdev->reg_phys_mr = qib_reg_phys_mr;
+ 	ibdev->reg_user_mr = qib_reg_user_mr;
+ 	ibdev->dereg_mr = qib_dereg_mr;
++	ibdev->alloc_mr = qib_alloc_mr;
+ 	ibdev->alloc_fast_reg_mr = qib_alloc_fast_reg_mr;
+ 	ibdev->alloc_fast_reg_page_list = qib_alloc_fast_reg_page_list;
+ 	ibdev->free_fast_reg_page_list = qib_free_fast_reg_page_list;
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
+index 1635572..034510c 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.h
++++ b/drivers/infiniband/hw/qib/qib_verbs.h
+@@ -1032,6 +1032,11 @@ struct ib_mr *qib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 
+ int qib_dereg_mr(struct ib_mr *ibmr);
+ 
++struct ib_mr *qib_alloc_mr(struct ib_pd *pd,
++			   enum ib_mr_type mr_type,
++			   u32 max_entries,
++			   u32 flags);
++
+ struct ib_mr *qib_alloc_fast_reg_mr(struct ib_pd *pd, int max_page_list_len);
+ 
+ struct ib_fast_reg_page_list *qib_alloc_fast_reg_page_list(
 -- 
 1.8.4.3
 
