@@ -1,43 +1,115 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH 08/10] IB/srp: Use pd->local_dma_lkey
-Date: Wed, 22 Jul 2015 17:34:41 -0600
-Message-ID: <1437608083-22898-9-git-send-email-jgunthorpe@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: [PATCH 05/10] IB/mlx5: Remove ib_get_dma_mr calls
+Date: Wed, 22 Jul 2015 17:34:38 -0600
+Message-ID: <1437608083-22898-6-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1437608083-22898-1-git-send-email-jgunthorpe@obsidianresearch.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1437608083-22898-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Andy Grover <andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Chien Yen <chien.yen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Dominique Martinet <dominique.martinet-KCE40YydGKI@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eric Van Hensbergen <ericvh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ido Shamay <idos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Latchesar Ionkov <lucho-OnYtXJJ0/fesTnJN9+BGXg@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ron Minnich <rminnich-4OHPYypu0djtX7QSmKvirg@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Simon Derr <simon.derr-6ktuUTfB/bM@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Zach Brown <zach.brown-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, v9fs-developer-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1437608083-22898-1-git-send-email-jgunthorpe@obsidianresearch.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
+Cc: Amir Vadai <amirv@mellanox.com>, Andy Grover <andy.grover@oracle.com>, Bart Van Assche <bart.vanassche@sandisk.com>, Chien Yen <chien.yen@oracle.com>, Christoph Hellwig <hch@infradead.org>, Dominique Martinet <dominique.martinet@cea.fr>, Eli Cohen <eli@mellanox.com>, Eric Van Hensbergen <ericvh@gmail.com>, Ido Shamay <idos@mellanox.com>, Latchesar Ionkov <lucho@ionkov.net>, Or Gerlitz <ogerlitz@mellanox.com>, Roi Dayan <roid@mellanox.com>, Ron Minnich <rminnich@sandia.gov>, Sagi Grimberg <sagig@mellanox.com>, Simon Derr <simon.derr@bull.net>, Tom Tucker <tom@opengridcomputing.com>, Zach Brown <zach.brown@oracle.com>, rds-devel@oss.oracle.com, target-devel@vger.kernel.org, v9fs-developer@lists.sourceforge.net
 List-Id: linux-rdma@vger.kernel.org
 
-Replace all leys with  pd->local_dma_lkey. This driver does not support
-iWarp, so this is safe.
+The pd now has a local_dma_lkey member which completely replaces
+ib_get_dma_mr, use it instead.
 
-The insecure use of ib_get_dma_mr is thus isolated to an rkey, and will
-have to be fixed separately.
-
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/main.c    | 13 -------------
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 -
+ drivers/infiniband/hw/mlx5/mr.c      |  5 ++---
+ 3 files changed, 2 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 267dc4f75502..fb9fed0fac28 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -3149,7 +3149,7 @@ static ssize_t srp_create_target(struct device *dev,
- 	target->io_class	= SRP_REV16A_IB_IO_CLASS;
- 	target->scsi_host	= target_host;
- 	target->srp_host	= host;
--	target->lkey		= host->srp_dev->mr->lkey;
-+	target->lkey		= host->srp_dev->pd->local_dma_lkey;
- 	target->rkey		= host->srp_dev->mr->rkey;
- 	target->cmd_sg_cnt	= cmd_sg_entries;
- 	target->sg_tablesize	= indirect_sg_entries ? : cmd_sg_entries;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 085c24b4b603..72ab0bdb415a 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1121,7 +1121,6 @@ static void destroy_umrc_res(struct mlx5_ib_dev *dev)
+ 
+ 	mlx5_ib_destroy_qp(dev->umrc.qp);
+ 	ib_destroy_cq(dev->umrc.cq);
+-	ib_dereg_mr(dev->umrc.mr);
+ 	ib_dealloc_pd(dev->umrc.pd);
+ }
+ 
+@@ -1136,7 +1135,6 @@ static int create_umr_res(struct mlx5_ib_dev *dev)
+ 	struct ib_pd *pd;
+ 	struct ib_cq *cq;
+ 	struct ib_qp *qp;
+-	struct ib_mr *mr;
+ 	struct ib_cq_init_attr cq_attr = {};
+ 	int ret;
+ 
+@@ -1154,13 +1152,6 @@ static int create_umr_res(struct mlx5_ib_dev *dev)
+ 		goto error_0;
+ 	}
+ 
+-	mr = ib_get_dma_mr(pd,  IB_ACCESS_LOCAL_WRITE);
+-	if (IS_ERR(mr)) {
+-		mlx5_ib_dbg(dev, "Couldn't create DMA MR for sync UMR QP\n");
+-		ret = PTR_ERR(mr);
+-		goto error_1;
+-	}
+-
+ 	cq_attr.cqe = 128;
+ 	cq = ib_create_cq(&dev->ib_dev, mlx5_umr_cq_handler, NULL, NULL,
+ 			  &cq_attr);
+@@ -1218,7 +1209,6 @@ static int create_umr_res(struct mlx5_ib_dev *dev)
+ 
+ 	dev->umrc.qp = qp;
+ 	dev->umrc.cq = cq;
+-	dev->umrc.mr = mr;
+ 	dev->umrc.pd = pd;
+ 
+ 	sema_init(&dev->umrc.sem, MAX_UMR_WR);
+@@ -1240,9 +1230,6 @@ error_3:
+ 	ib_destroy_cq(cq);
+ 
+ error_2:
+-	ib_dereg_mr(mr);
+-
+-error_1:
+ 	ib_dealloc_pd(pd);
+ 
+ error_0:
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 7cae09836481..446d80427773 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -349,7 +349,6 @@ struct umr_common {
+ 	struct ib_pd	*pd;
+ 	struct ib_cq	*cq;
+ 	struct ib_qp	*qp;
+-	struct ib_mr	*mr;
+ 	/* control access to UMR QP
+ 	 */
+ 	struct semaphore	sem;
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index bc9a0de897cb..4c92ca8a4181 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -690,12 +690,11 @@ static void prep_umr_reg_wqe(struct ib_pd *pd, struct ib_send_wr *wr,
+ 			     int access_flags)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
+-	struct ib_mr *mr = dev->umrc.mr;
+ 	struct mlx5_umr_wr *umrwr = (struct mlx5_umr_wr *)&wr->wr.fast_reg;
+ 
+ 	sg->addr = dma;
+ 	sg->length = ALIGN(sizeof(u64) * n, 64);
+-	sg->lkey = mr->lkey;
++	sg->lkey = dev->umrc.pd->local_dma_lkey;
+ 
+ 	wr->next = NULL;
+ 	wr->send_flags = 0;
+@@ -926,7 +925,7 @@ int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 start_page_index, int npages,
+ 		sg.addr = dma;
+ 		sg.length = ALIGN(npages * sizeof(u64),
+ 				MLX5_UMR_MTT_ALIGNMENT);
+-		sg.lkey = dev->umrc.mr->lkey;
++		sg.lkey = dev->umrc.pd->local_dma_lkey;
+ 
+ 		wr.send_flags = MLX5_IB_SEND_UMR_FAIL_IF_FREE |
+ 				MLX5_IB_SEND_UMR_UPDATE_MTT;
 -- 
 2.1.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
