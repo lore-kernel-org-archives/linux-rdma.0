@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH WIP 09/43] iser-target: Convert to ib_alloc_mr
-Date: Wed, 22 Jul 2015 09:55:09 +0300
-Message-ID: <1437548143-24893-10-git-send-email-sagig@mellanox.com>
+Subject: [PATCH WIP 10/43] IB/srp: Convert to ib_alloc_mr
+Date: Wed, 22 Jul 2015 09:55:10 +0300
+Message-ID: <1437548143-24893-11-git-send-email-sagig@mellanox.com>
 References: <1437548143-24893-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1437548143-24893-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,33 +12,23 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/isert/ib_isert.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index f0b7c9b..94395ce 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -526,7 +526,8 @@ isert_create_pi_ctx(struct fast_reg_descriptor *desc,
- 		goto err_pi_ctx;
- 	}
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 1218738..7747587 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -378,7 +378,8 @@ static struct srp_fr_pool *srp_create_fr_pool(struct ib_device *device,
+ 	INIT_LIST_HEAD(&pool->free_list);
  
--	pi_ctx->prot_mr = ib_alloc_fast_reg_mr(pd, ISCSI_ISER_SG_TABLESIZE);
-+	pi_ctx->prot_mr = ib_alloc_mr(pd, IB_MR_TYPE_FAST_REG,
-+				      ISCSI_ISER_SG_TABLESIZE, 0);
- 	if (IS_ERR(pi_ctx->prot_mr)) {
- 		isert_err("Failed to allocate prot frmr err=%ld\n",
- 			  PTR_ERR(pi_ctx->prot_mr));
-@@ -573,7 +574,8 @@ isert_create_fr_desc(struct ib_device *ib_device, struct ib_pd *pd,
- 		return PTR_ERR(fr_desc->data_frpl);
- 	}
- 
--	fr_desc->data_mr = ib_alloc_fast_reg_mr(pd, ISCSI_ISER_SG_TABLESIZE);
-+	fr_desc->data_mr = ib_alloc_mr(pd, IB_MR_TYPE_FAST_REG,
-+				       ISCSI_ISER_SG_TABLESIZE, 0);
- 	if (IS_ERR(fr_desc->data_mr)) {
- 		isert_err("Failed to allocate data frmr err=%ld\n",
- 			  PTR_ERR(fr_desc->data_mr));
+ 	for (i = 0, d = &pool->desc[0]; i < pool->size; i++, d++) {
+-		mr = ib_alloc_fast_reg_mr(pd, max_page_list_len);
++		mr = ib_alloc_mr(pd, IB_MR_TYPE_FAST_REG,
++				 max_page_list_len, 0);
+ 		if (IS_ERR(mr)) {
+ 			ret = PTR_ERR(mr);
+ 			goto destroy_pool;
 -- 
 1.8.4.3
 
