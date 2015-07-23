@@ -1,32 +1,27 @@
-From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
-Subject: Re: rdma_getaddrinfo and GUID
-Date: Thu, 23 Jul 2015 09:01:22 +0300
-Message-ID: <CACaajQuvUO4LRym2Mt+dt1XeK6L-bjHVPE5v6Cj3oJdVoQQwuQ@mail.gmail.com>
-References: <CACaajQsauS65K8tKwygPB03iyv87uy8s-jPn7_gihqbEU6np3Q@mail.gmail.com>
- <1828884A29C6694DAF28B7E6B8A82373A9002987@ORSMSX109.amr.corp.intel.com>
+From: Dominique Martinet <dominique.martinet@cea.fr>
+Subject: Re: [PATCH 10/10] net/9p: Remove ib_get_dma_mr calls
+Date: Thu, 23 Jul 2015 09:46:45 +0200
+Message-ID: <20150723074645.GA10415@u-michard>
+References: <1437608083-22898-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1437608083-22898-11-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A9002987-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Return-path: <target-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1437608083-22898-11-git-send-email-jgunthorpe@obsidianresearch.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Amir Vadai <amirv@mellanox.com>, Andy Grover <andy.grover@oracle.com>, Bart Van Assche <bart.vanassche@sandisk.com>, Chien Yen <chien.yen@oracle.com>, Christoph Hellwig <hch@infradead.org>, Eli Cohen <eli@mellanox.com>, Eric Van Hensbergen <ericvh@gmail.com>, Ido Shamay <idos@mellanox.com>, Latchesar Ionkov <lucho@ionkov.net>, Or Gerlitz <ogerlitz@mellanox.com>, Roi Dayan <roid@mellanox.com>, Ron Minnich <rminnich@sandia.gov>, Sagi Grimberg <sagig@mellanox.com>, Simon Derr <simon.derr@bull.net>, Tom Tucker <tom@opengridcomputing.com>, Zach Brown <zach.brown@oracle.com>, rds-devel@oss.oracle.com, target-devel@vger.kernel.org, v9fs-developer@lists.sourceforge.net
 List-Id: linux-rdma@vger.kernel.org
 
-2015-07-23 7:29 GMT+03:00 Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>:
->> Hello, does it possible to use rdma_getaddrinfo and specify in node port
->> GUID?
->
-> The current code does not support this.
+Jason Gunthorpe wrote on Wed, Jul 22, 2015 at 05:34:43PM -0600:
+> The pd now has a local_dma_lkey member which completely replaces
+> ib_get_dma_mr, use it instead.
+> 
+> Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
 
-
-Why rdma_getaddrinfo does not return error? Why it returns success and
-result contains port guid?
+9P part looks good and tested OK (only applied 01 and 10 of the serie),
+thanks for the Cc.
 
 -- 
-Vasiliy Tolstov,
-e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Dominique
