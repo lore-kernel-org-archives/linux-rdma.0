@@ -1,35 +1,32 @@
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: Re: [PATCH 00/10] IB: Replace safe uses for ib_get_dma_mr with
- pd->local_dma_lkey
-Date: Thu, 23 Jul 2015 06:47:26 -0700
-Message-ID: <55B0F06E.8000603@sandisk.com>
-References: <1437608083-22898-1-git-send-email-jgunthorpe@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH WIP 28/43] IB/core: Introduce new fast registration API
+Date: Thu, 23 Jul 2015 10:03:39 -0600
+Message-ID: <20150723160339.GA25174@obsidianresearch.com>
+References: <1437548143-24893-1-git-send-email-sagig@mellanox.com>
+ <1437548143-24893-29-git-send-email-sagig@mellanox.com>
+ <20150722165012.GC6443@infradead.org>
+ <20150722174401.GG26909@obsidianresearch.com>
+ <20150723091955.GA32592@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1437608083-22898-1-git-send-email-jgunthorpe@obsidianresearch.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
-Cc: Amir Vadai <amirv@mellanox.com>, Andy Grover <andy.grover@oracle.com>, Chien Yen <chien.yen@oracle.com>, Christoph Hellwig <hch@infradead.org>, Dominique Martinet <dominique.martinet@cea.fr>, Eli Cohen <eli@mellanox.com>, Eric Van Hensbergen <ericvh@gmail.com>, Ido Shamay <idos@mellanox.com>, Latchesar Ionkov <lucho@ionkov.net>, Or Gerlitz <ogerlitz@mellanox.com>, Roi Dayan <roid@mellanox.com>, Ron Minnich <rminnich@sandia.gov>, Sagi Grimberg <sagig@mellanox.com>, Simon Derr <simon.derr@bull.net>, Tom Tucker <tom@opengridcomputing.com>, Zach Brown <zach.brown@oracle.com>, rds-devel@oss.oracle.com, target-devel@vger.kernel.org, v9fs-developer@lists.sourceforge.net
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150723091955.GA32592-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/22/15 16:34, Jason Gunthorpe wrote:
-> The remaining users of ib_get_dma_mr are all unsafe:
- >   [ ... ]
->   drivers/infiniband/ulp/srp/ib_srp.c:
-> 	srp_dev->mr = ib_get_dma_mr(srp_dev->pd,
-> 				    IB_ACCESS_LOCAL_WRITE |
-> 				    IB_ACCESS_REMOTE_READ |
-> 				    IB_ACCESS_REMOTE_WRITE);
+On Thu, Jul 23, 2015 at 02:19:55AM -0700, Christoph Hellwig wrote:
+> Although I wonder if we really need to differentiate between rkey and
+> leky in this ib_map_mr_sg function, or if we should do it when
+> allocating the mr, i.e. in ib_alloc_mr.
 
-Hello Jason,
+The allocation is agnostic to the usage, the map is what solidifies
+things into a certain use, effectively based on the access flags..
 
-This statement might need some clarification. Are you aware that this 
-memory region is only used if the kernel module parameter 
-register_always is zero ?
-
-I will try to find some time to test the SRP changes in this series but 
-I'm not sure yet when I will be able to do that.
-
-Bart.
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
