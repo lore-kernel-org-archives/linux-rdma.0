@@ -1,63 +1,75 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
-Date: Thu, 23 Jul 2015 14:03:10 -0500
-Message-ID: <009e01d0c57a$37d5b9e0$a7812da0$@opengridcomputing.com>
-References: <20150708190842.GB11740@obsidianresearch.com> <20150708203205.GA21847@infradead.org> <20150709000337.GE16812@obsidianresearch.com> <559EF332.7060103@redhat.com> <20150709225306.GA30741@obsidianresearch.com> <559FC710.1050307@talpey.com> <20150710161108.GA19042@obsidianresearch.com> <CCB6E837-88FF-4DBB-976D-4CF56396A1A1@ogc.us> <55A24571.60902@dev.mellanox.co.il> <00e201d0be6a$e49bc910$add35b30$@opengridcomputing.com> <20150714194512.GA25887@infradead.org> <00f901d0be6f$70c96b00$525c4100$@opengridcomputing.com> <1828884A29C6694DAF28B7E6B8A82373A901C9A5@ORSMSX109.amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH for-next V6 05/10] IB/core: Add RoCE GID table management
+Date: Thu, 23 Jul 2015 13:05:08 -0600
+Message-ID: <20150723190508.GA31577@obsidianresearch.com>
+References: <1435150766-6803-1-git-send-email-matanb@mellanox.com>
+ <1435150766-6803-6-git-send-email-matanb@mellanox.com>
+ <20150717190245.GA20632@obsidianresearch.com>
+ <CAAKD3BA2Qgw87uXiS-M9gO1-jXPfQncyWzscMuusMABPRRzA8w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A901C9A5-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <CAAKD3BA2Qgw87uXiS-M9gO1-jXPfQncyWzscMuusMABPRRzA8w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Steve Wise' <swise-/Yg/VP3ZvrM@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, 'Tom Talpey' <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, 'Oren Duer' <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-> -----Original Message-----
-> From: Hefty, Sean [mailto:sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
-> Sent: Thursday, July 23, 2015 1:53 PM
-> To: Steve Wise; 'Christoph Hellwig'
-> Cc: 'Sagi Grimberg'; 'Steve Wise'; 'Jason Gunthorpe'; 'Tom Talpey'; 'Doug Ledford'; sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org;
-> roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org; bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org; 'Oren Duer'
-> Subject: RE: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
-> 
-> > There is confusion about lkeys and rkeys with regard to iWARP.  In the
-> > iWARP verbs, there is no distinction between an lkey and
-> > rkey: they are the same key, called a Steering Tag or STAG.  When you
-> > create a MR, the lkey == rkey == STAG for iwarp transports.
-> > Somewhat related, but really a different issue, is that SGEs that are the
-> > target of a read need REMOTE_WRITE access flags on their
-> > STAG for iWARP.
+On Tue, Jul 21, 2015 at 11:42:29AM +0300, Matan Barak wrote:
+> On Fri, Jul 17, 2015 at 10:02 PM, Jason Gunthorpe
+> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> > On Wed, Jun 24, 2015 at 03:59:21PM +0300, Matan Barak wrote:
+> >> +
+> >> +     /* in rdma_cap_roce_gid_table, this funciton should be protected by a
+> >> +      * sleep-able lock.
+> >> +      */
+> >> +     write_lock(&table->data_vec[ix].lock);
 > >
-> > Clear as mud? :)
+> > I'm having a hard time understanding this comment
+> >
 > 
-> This may be a nit, but IMO, the use of the term 'rkey' versus 'stag' matters.  They convey different ways of finding a data
-buffer.  For
-> example, do you locate a buffer using the stag, then verify that the offset + length fits into the target buffer?  
+> The same function is used for both RoCE and IB. Since RoCE unlocks the
+> rwlock, calls the vendor's callback and
+> locks it again. If two write_gid(s) are executed simultaneously,  you
+> need to protect them from writing to the
+> same entry. The vendor's callback might sleep so we require a sleep-able lock.
 
-Yes.  HW always uses the stag to locate a record that contains the stag state (valid or invalid), the access flags, the 8b key, the
-va_base, length, PBL describing the host pages, etc.  HW validates all that before using the buffer.  NOTE: An stag of 0 is the
-special local-dma-lkey which HW treats differently: If the stag is 0, then the address in the SGE is the bus/dma address itself and
-no lookup of a MR/PBL/etc is needed.   Stag 0 can ONLY be used by kernel users and MUST never be accepted/used from an ingress
-packet and MUST never be emitted on the wire in a READ or WRITE.
+You might want to retouch that comment a bit..
 
-> Or do you locate the buffer
-> by address, then verify that the key matches?
+> >> +int ib_cache_gid_add(struct ib_device *ib_dev, u8 port,
+> >> +                  union ib_gid *gid, struct ib_gid_attr *attr)
+> >> +{
+> >> +     struct ib_gid_table **ports_table =
+> >> +             READ_ONCE(ib_dev->cache.gid_cache);
+> >> +     /* all table reads depend on ports_table, no need for smp_rmb() */
+> >> +     if (!ports_table)
+> >> +             return -EOPNOTSUPP;
+> >
+> > This common pattern does look genuinely odd...
+> >
+> > The gid_cache is part of the common API, it really shouldn't be kfree'd
+> > while held struct ib_devices are around. The kfree for all the cache.c
+> > stuff should probably be called from ib_device_release, not from the
+> > client release.
+> >
+> > That is actually something the current code does that is possibly
+> > wrong. It is trivially fixed by moving all the kfrees to
+> > ib_device_release.
+> >
 > 
+> But cache as a whole is implemented as a client (cache_client).
+> Isn't it a bit odd to free a client in ib_device_release?
 
-This is never done.
+The cache is part of the core code, it exports core APIs that need to
+continue working as long as a ib_device object exists.
 
-> Consider if we allow an app to specify the rkey/stag, or reference the buffer using an offset, rather than a virtual address.
-> 
-> This seems to be part of the difference between an lkey and an rkey.
+It abuses the client stuff to hook registration, that doesn't make it
+'wholly implemented as a client'
 
+It is not odd for core code to free its memory in ib_device_release.
 
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
