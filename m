@@ -1,40 +1,201 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH WIP 01/43] IB: Modify ib_create_mr API
-Date: Thu, 23 Jul 2015 13:08:55 -0600
-Message-ID: <20150723190855.GB31577@obsidianresearch.com>
-References: <1437548143-24893-1-git-send-email-sagig@mellanox.com>
- <1437548143-24893-2-git-send-email-sagig@mellanox.com>
- <20150722163405.GA26909@obsidianresearch.com>
- <20150722164421.GA6443@infradead.org>
- <55AFCBAF.2000504@dev.mellanox.co.il>
- <20150722190555.GB4527@obsidianresearch.com>
- <55B0BCFC.6040602@dev.mellanox.co.il>
+From: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v8 4/4] IB/sa: Route SA pathrecord query through netlink
+Date: Thu, 23 Jul 2015 19:26:32 +0000
+Message-ID: <3F128C9216C9B84BB6ED23EF16290AFB0CB55290@CRSMSX101.amr.corp.intel.com>
+References: <1436463268-32365-1-git-send-email-kaike.wan@intel.com>
+ <1436463268-32365-5-git-send-email-kaike.wan@intel.com>
+ <20150722210918.GB20815@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <55B0BCFC.6040602-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20150722210918.GB20815-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 23, 2015 at 01:07:56PM +0300, Sagi Grimberg wrote:
-> On 7/22/2015 10:05 PM, Jason Gunthorpe wrote:
-> The reason I named max_entries is because might might not be pages but
-> real SG elements. It stands for maximum registration entries.
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
+> Sent: Wednesday, July 22, 2015 5:09 PM
+> To: Wan, Kaike
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Fleck, John; Weiny, Ira
+> Subject: Re: [PATCH v8 4/4] IB/sa: Route SA pathrecord query through netlink
 > 
-> Do you have a better name?
+> On Thu, Jul 09, 2015 at 01:34:28PM -0400, kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> > From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> >
+> > This patch routes a SA pathrecord query to netlink first and processes
+> > the response appropriately. If a failure is returned, the request will
+> > be sent through IB. The decision whether to route the request to
+> > netlink first is determined by the presence of a listener for the
+> > local service netlink multicast group. If the user-space local service
+> > netlink multicast group listener is not present, the request will be
+> > sent through IB, just like what is currently being done.
+> 
+> So, I tested it again, and the UAPI looks pretty reasonable now.
+> 
+> The netlink validation still needs to be fixed.
+> 
+> > There is where we might have a problem: nla_parse() allows only one
+> > entry for each attribute type in the returned array tb[]. If we have
+> > multiple (say 6) pathrecords returned, each having different flags
+> > (for different path use), a later one will replace an earlier one in
+> > tb[].
+> 
+> The parse is OK, continue to use the for loop, nla_parse does more than just
+> extract into tb, it validates all the sizes are correct, ignore tb.
+> 
+> My testing shows it seems to get into some kind of fast repeating query loop:
+> 
+> [ 4904.969188] Return answer 0
+> [ 4904.969483] Return answer 0
+> [ 4904.969703] Return answer 0
+> [ 4904.969824] Return answer 0
+> [ 4904.969943] Return answer 0
+> [ 4904.970058] Return answer 0
+> [ 4904.970175] Return answer 0
+> [ 4904.970289] Return answer 0
+> 
+> diff --git a/drivers/infiniband/core/sa_query.c
+> b/drivers/infiniband/core/sa_query.c
+> index 63ea36d05072..e6b0181e7076 100644
+> --- a/drivers/infiniband/core/sa_query.c
+> +++ b/drivers/infiniband/core/sa_query.c
+> @@ -640,6 +640,8 @@ static void ib_nl_process_good_resolve_rsp(struct
+> ib_sa_query *query,
+>                                 }
+>                         }
+>                 }
+> +
+> +               printk("Return answer %u\n",status);
+>                 query->callback(query, status, mad);
+>         }
+> 
+> You'll have to figure that out. I'm just doing ping X while running a responder
+> on the netlink socket, v7 didn't do this, IIRC.
 
-I wouldn't try and be both..
+I did not see such a repeated query loop. With a modified version of your debugging code:
 
-Use 'max_num_sg' and document that no aggregate scatterlist with
-length larger than 'max_num_sg*PAGE_SIZE' or with more entries than
-max_num_sg can be submitted?
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -653,6 +653,7 @@ static void ib_nl_process_good_resolve_rsp(struct ib_sa_query *query,
+                                }
+                        }
+                }
++               printk("Request %u returns answer %u\n", nlh->nlmsg_seq);
+                query->callback(query, status, mad);
+        }
 
-Maybe document with ARB_SG that it is not length limited?
 
-Jason
+I ran rping a few times and never saw such a behavior:
+
+[root@phifs011 ~]# rping -c -C 1 -a 10.228.216.26
+Request 2 returns answer 0
+client DISCONNECT EVENT...
+[root@phifs011 ~]# rping -c -C 1 -a 10.228.216.26
+Request 3 returns answer 0
+client DISCONNECT EVENT...
+[root@phifs011 ~]# rping -c -C 1 -a 10.228.216.26
+Request 4 returns answer 0
+client DISCONNECT EVENT...
+[root@phifs011 ~]# rping -c -C 1 -a 10.228.216.26
+Request 5 returns answer 0
+client DISCONNECT EVENT...
+[root@phifs011 ~]#  
+
+The nl sequence increased sequentially. What's the difference?
+
+In my debugging patch, I have also other print statements and I have never seen such a loop at all.
+
+
+> 
+> I think it has something to do with the timer as the first request works fine,
+> then a pause, then a storm.
+> 
+> Actually, looks like nothing removes nl queries from the timeout loop when
+> they successfully complete. (ie this series doesn't even have a hope of
+> working properly)
+
+That is incorrect. The first thing in ib_nl_handle_resolve_resp is to find the request and remove it from the ib_nl_rquest_list. the timeout routine will remove the entries that have timed out from the nl request list.
+
+> 
+> Please actually test this patch completely and thoroughly before sending
+> another version. 
+
+Generally, I tested the patches (along with a debugging patch) with rping, ping, SRP, and another performance path (no debugging patch). I also tested another ibacm patch for setting timeout. When making major changes,  I also ran tests for timeout and error response cases.
+
+
+>I'm broadly happy with this, so get your whole team to look
+> it over agin.
+> 
+> > +	if (query->callback) {
+> > +		head = (const struct nlattr *) nlmsg_data(nlh);
+> > +		len = nlmsg_len(nlh);
+> > +		switch (query->path_use) {
+> > +		case LS_RESOLVE_PATH_USE_UNIDIRECTIONAL:
+> > +			mask = IB_PATH_PRIMARY | IB_PATH_OUTBOUND;
+> > +			break;
+> > +
+> > +		case LS_RESOLVE_PATH_USE_ALL:
+> > +		case LS_RESOLVE_PATH_USE_GMP:
+> > +		default:
+> > +			mask = IB_PATH_PRIMARY | IB_PATH_GMP |
+> > +				IB_PATH_BIDIRECTIONAL;
+> > +			break;
+> > +		}
+> > +		nla_for_each_attr(curr, head, len, rem) {
+> > +			if (curr->nla_type == LS_NLA_TYPE_PATH_RECORD) {
+> > +				rec = nla_data(curr);
+> > +				/*
+> > +				 * Get the first one. In the future, we may
+> > +				 * need to get up to 6 pathrecords.
+> > +				 */
+> > +				if (rec->flags & mask) {
+> 
+> (rec_>flags & mask) == mask
+> 
+> All requested bits must be set, not just any requested bit.
+> 
+> A IB_PATH_PRIMARY | IB_PATH_OUTBOUND result does not satisfy the
+> requirement for LS_RESOLVE_PATH_USE_GMP.
+> 
+> The goal is to local the one path of many that satisfies the requirement.
+> Future kernels will direct 6 path answers
+
+Got it.
+
+> 
+> > +static int ib_nl_handle_set_timeout(struct sk_buff *skb,
+> > +				    struct netlink_callback *cb)
+> > +{
+> > +	const struct nlmsghdr *nlh = (struct nlmsghdr *)cb->nlh;
+> > +	int timeout, delta, abs_delta;
+> > +	const struct nlattr *attr;
+> > +	unsigned long flags;
+> > +	struct ib_sa_query *query;
+> > +	long delay = 0;
+> > +	struct nlattr *tb[LS_NLA_TYPE_MAX + 1];
+> > +	int ret;
+> > +
+> > +	ret = nla_parse(tb, LS_NLA_TYPE_MAX, nlmsg_data(nlh),
+> nlmsg_len(nlh),
+> > +			NULL);
+> > +	attr = (const struct nlattr *)tb[LS_NLA_TYPE_TIMEOUT];
+> > +	if (ret || !attr || nla_len(attr) != sizeof(u32))
+> > +		goto settimeout_out;
+> 
+> This probably doesn't need the nested attribute, but I'm indifferent.
+
+It's not a nested attribute, only a U32 attribute data. I will use a policy to validate the entire response (for pathrecord also).
+
+> 
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
+> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
+> http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
