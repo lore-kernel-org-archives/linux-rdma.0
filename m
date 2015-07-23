@@ -1,113 +1,117 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH WIP 37/43] xprtrdma: Port to new memory registration API
-Date: Thu, 23 Jul 2015 13:42:21 +0300
-Message-ID: <55B0C50D.7030805@dev.mellanox.co.il>
-References: <1437548143-24893-1-git-send-email-sagig@mellanox.com>
- <1437548143-24893-38-git-send-email-sagig@mellanox.com>
- <795F4F28-D92F-46A1-8DA3-2B1B19A17AA3@oracle.com>
- <55AFB9A7.4030103@dev.mellanox.co.il>
- <5114D0F0-7C66-4889-85D8-E7297009AF23@oracle.com>
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: [PATCH 01/10] IB/core: Guarantee that a local_dma_lkey is
+ available
+Date: Thu, 23 Jul 2015 13:47:02 +0300
+Message-ID: <55B0C626.4070707@dev.mellanox.co.il>
+References: <1437608083-22898-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1437608083-22898-2-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5114D0F0-7C66-4889-85D8-E7297009AF23-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1437608083-22898-2-git-send-email-jgunthorpe@obsidianresearch.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
+Cc: Amir Vadai <amirv@mellanox.com>, Andy Grover <andy.grover@oracle.com>, Bart Van Assche <bart.vanassche@sandisk.com>, Chien Yen <chien.yen@oracle.com>, Christoph Hellwig <hch@infradead.org>, Dominique Martinet <dominique.martinet@cea.fr>, Eli Cohen <eli@mellanox.com>, Eric Van Hensbergen <ericvh@gmail.com>, Ido Shamay <idos@mellanox.com>, Latchesar Ionkov <lucho@ionkov.net>, Or Gerlitz <ogerlitz@mellanox.com>, Roi Dayan <roid@mellanox.com>, Ron Minnich <rminnich@sandia.gov>, Sagi Grimberg <sagig@mellanox.com>, Simon Derr <simon.derr@bull.net>, Tom Tucker <tom@opengridcomputing.com>, Zach Brown <zach.brown@oracle.com>, rds-devel@oss.oracle.com, target-devel@vger.kernel.org, v9fs-developer@lists.sourceforge.net
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/22/2015 7:04 PM, Chuck Lever wrote:
+On 7/23/2015 2:34 AM, Jason Gunthorpe wrote:
+> Every single ULP requires a local_dma_lkey to do anything with
+> a QP, so let us ensure one exists for every PD created.
 >
-> On Jul 22, 2015, at 11:41 AM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org=
-> wrote:
+> If the driver can supply a global local_dma_lkey then use that, otherwise
+> ask the driver to create a local use all physical memory MR associated
+> with the new PD.
 >
->>
->>>> +	for (i =3D 0; i < nsegs;) {
->>>> +		sg_set_page(&frmr->sg[i], seg->mr_page,
->>>> +			    seg->mr_len, offset_in_page(seg->mr_offset));
->>>
->>> Cautionary note: here we=92re dealing with both the =93contiguous
->>> set of pages=94 case and the =93small region of bytes in a single p=
-age=94
->>> case. See rpcrdma_convert_iovs(): sometimes RPC send or receive
->>> buffers can be registered (RDMA_NOMSG).
->>
->> I noticed that (I think). I think this is handled correctly.
->> What exactly is the caution note here?
+> Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+> Reviewed-by: Sagi Grimberg <sagig@dev.mellanox.co.il>
+> Acked-by: Christoph Hellwig <hch@infradead.org>
+> ---
+>   drivers/infiniband/core/verbs.c | 40 +++++++++++++++++++++++++++++++++++-----
+>   include/rdma/ib_verbs.h         |  2 ++
+>   2 files changed, 37 insertions(+), 5 deletions(-)
 >
-> Well the sg is turned into a page list below your API. Just
-> want to make sure that we have tested your xprtrdma alterations
-> with all the ULP possibilities. When you are further along I
-> can pull this and run my functional tests.
+> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+> index bac3fb406a74..1ddf06314f36 100644
+> --- a/drivers/infiniband/core/verbs.c
+> +++ b/drivers/infiniband/core/verbs.c
+> @@ -213,24 +213,54 @@ EXPORT_SYMBOL(rdma_port_get_link_layer);
 >
+>   /* Protection domains */
 >
->>>> 	mr =3D frmr->fr_mr;
->>>> +	access =3D writing ? IB_ACCESS_REMOTE_WRITE | IB_ACCESS_LOCAL_WR=
-ITE :
->>>> +			   IB_ACCESS_REMOTE_READ;
->>>> +	rc =3D ib_map_mr_sg(mr, frmr->sg, frmr->sg_nents, access);
->>>
->>> I like this (and the matching ib_dma_unmap_sg). But why wouldn=92t
->>> this function be called ib_dma_map_sg() ? The name ib_map_mr_sg()
->>> had me thinking for a moment that this API actually posted the
->>> FASTREG WR, but I see that it doesn=92t.
->>
->> Umm, ib_dma_map_sg is already taken :)
->>
->> This is what I came up with, it maps the SG elements to the MR
->> private context.
->>
->> I'd like to keep the post API for now. It will be possible to
->> to add a wrapper function that would do:
->> - dma_map_sg
->> - ib_map_mr_sg
->> - init fastreg send_wr
->> - post_send (maybe)
->
-> Where xprtrdma might improve is by setting up all the FASTREG
-> WRs for one RPC with a single chain and post_send. We could do
-> that with your INDIR_MR concept, for example.
+> +/* Return a pd for in-kernel use that has a local_dma_lkey which provides
+> +   local access to all physical memory. */
 
-BTW, it would be great if you can play with it a little bit. I'm more
-confident with the iSER part... I added two small fixes when I tested
-with mlx4. It seems to work...
+Why not kdoc style? we need to move the ib_verbs.h kdocs here anyway.
+Might be a good chance to do that for ib_alloc_pd().
+
+>   struct ib_pd *ib_alloc_pd(struct ib_device *device)
+>   {
+>   	struct ib_pd *pd;
+> +	struct ib_device_attr devattr;
+> +	int rc;
+> +
+> +	rc = ib_query_device(device, &devattr);
+> +	if (rc)
+> +		return ERR_PTR(rc);
+>
+>   	pd = device->alloc_pd(device, NULL, NULL);
+> +	if (IS_ERR(pd))
+> +		return pd;
+> +
+> +	pd->device = device;
+> +	pd->uobject = NULL;
+> +	pd->local_mr = NULL;
+> +	atomic_set(&pd->usecnt, 0);
+> +
+> +	if (devattr.device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)
+> +		pd->local_dma_lkey = device->local_dma_lkey;
+> +	else {
+> +		struct ib_mr *mr;
+> +
+> +		mr = ib_get_dma_mr(pd, IB_ACCESS_LOCAL_WRITE);
+> +		if (IS_ERR(mr)) {
+> +			ib_dealloc_pd(pd);
+> +			return (struct ib_pd *)mr;
+> +		}
+>
+> -	if (!IS_ERR(pd)) {
+> -		pd->device  = device;
+> -		pd->uobject = NULL;
+> -		atomic_set(&pd->usecnt, 0);
+> +		pd->local_mr = mr;
+> +		pd->local_dma_lkey = pd->local_mr->lkey;
+>   	}
+> -
+>   	return pd;
+>   }
+> +
+>   EXPORT_SYMBOL(ib_alloc_pd);
+
+You have an extra newline here.
 
 >
+>   int ib_dealloc_pd(struct ib_pd *pd)
+>   {
+> +	if (pd->local_mr) {
+> +		if (ib_dereg_mr(pd->local_mr))
+> +			return -EBUSY;
+> +		pd->local_mr = NULL;
+> +	}
+> +
+>   	if (atomic_read(&pd->usecnt))
+>   		return -EBUSY;
 >
->>>> -	while (seg1->mr_nsegs--)
->>>> -		rpcrdma_unmap_one(ia->ri_device, seg++);
->>>> +	ib_dma_unmap_sg(ia->ri_device, frmr->sg, frmr->sg_nents, seg1->m=
-r_dir);
->>>
->>> ->mr_dir was previously set by rpcrdma_map_one(), which you=92ve re=
-placed
->>> with ib_map_mr_sg(). So maybe frwr_op_map() needs to save =93direct=
-ion=94
->>> in the rpcrdma_frmr.
->>
->> Yep, that's correct, if I had turned on dma mapping debug it would s=
-hout
->> at me here...
->>
->> Note, I added in the git repo a patch to allow arbitrary sg lists in
->> frwr_op_map() which would allow you to skip the holes check... seems=
- to
->> work with mlx5...
->>
->> I did noticed the mlx4 gives a protection error with after the conve=
-rsion... I'll look into that...
->
-> Should also get Steve and Devesh to try this with their adapters.
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> index 986fddb08579..cfda95d7b067 100644
+> --- a/include/rdma/ib_verbs.h
+> +++ b/include/rdma/ib_verbs.h
+> @@ -1255,6 +1255,8 @@ struct ib_pd {
+>   	struct ib_device       *device;
+>   	struct ib_uobject      *uobject;
+>   	atomic_t          	usecnt; /* count all resources */
+> +	struct ib_mr	       *local_mr;
+> +	u32			local_dma_lkey;
 
-Ah, yes please. I've only compiled tested drivers other than mlx4, mlx5
-which means there is a 99.9% (probably 100%) that it doesn't work.
-
-It would be great to get help on porting the rest of the ULPs as well,
-but that can wait until we converge on the API...
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Maybe its better to place the local_dma_lkey in the first cacheline as
+it is normally accessed in the hot path?
