@@ -1,44 +1,41 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
-Date: Thu, 23 Jul 2015 18:53:19 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A901C9A5@ORSMSX109.amr.corp.intel.com>
-References: <20150708190842.GB11740@obsidianresearch.com>
- <20150708203205.GA21847@infradead.org>
- <20150709000337.GE16812@obsidianresearch.com> <559EF332.7060103@redhat.com>
- <20150709225306.GA30741@obsidianresearch.com> <559FC710.1050307@talpey.com>
- <20150710161108.GA19042@obsidianresearch.com>
- <CCB6E837-88FF-4DBB-976D-4CF56396A1A1@ogc.us>
- <55A24571.60902@dev.mellanox.co.il>
- <00e201d0be6a$e49bc910$add35b30$@opengridcomputing.com>
- <20150714194512.GA25887@infradead.org>
- <00f901d0be6f$70c96b00$525c4100$@opengridcomputing.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH WIP 38/43] iser-target: Port to new memory registration
+ API
+Date: Thu, 23 Jul 2015 12:53:34 -0600
+Message-ID: <20150723185334.GB31346@obsidianresearch.com>
+References: <1437548143-24893-1-git-send-email-sagig@mellanox.com>
+ <1437548143-24893-39-git-send-email-sagig@mellanox.com>
+ <20150722170413.GE6443@infradead.org>
+ <55AFD3DC.8070508@dev.mellanox.co.il>
+ <20150722175755.GH26909@obsidianresearch.com>
+ <55B0C18B.4080901@dev.mellanox.co.il>
+ <20150723163124.GD25174@obsidianresearch.com>
+ <55B11D84.102@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <00f901d0be6f$70c96b00$525c4100$@opengridcomputing.com>
-Content-Language: en-US
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Steve Wise' <swise-/Yg/VP3ZvrM@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, 'Tom Talpey' <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org" <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>, "bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, 'Oren Duer' <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <55B11D84.102-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> There is confusion about lkeys and rkeys with regard to iWARP.  In the
-> iWARP verbs, there is no distinction between an lkey and
-> rkey: they are the same key, called a Steering Tag or STAG.  When you
-> create a MR, the lkey == rkey == STAG for iwarp transports.
-> Somewhat related, but really a different issue, is that SGEs that are the
-> target of a read need REMOTE_WRITE access flags on their
-> STAG for iWARP.
-> 
-> Clear as mud? :)
+On Thu, Jul 23, 2015 at 07:59:48PM +0300, Sagi Grimberg wrote:
+> I don't mean to be negative about your ideas, I just don't think that
+> doing all the work in the drivers is going to get us to a better place.
 
-This may be a nit, but IMO, the use of the term 'rkey' versus 'stag' matters.  They convey different ways of finding a data buffer.  For example, do you locate a buffer using the stag, then verify that the offset + length fits into the target buffer?  Or do you locate the buffer by address, then verify that the key matches?
+No worries, I'm hoping someone can put the peices together and figure
+out how to code share all the duplication we seem to have in the ULPs.
 
-Consider if we allow an app to specify the rkey/stag, or reference the buffer using an offset, rather than a virtual address.
+The more I've look at them, the more it seems like they get basic
+things wrong, like SQE accouting in NFS, dma flush ordering in NFS,
+rkey security in SRP/iSER..
 
-This seems to be part of the difference between an lkey and an rkey. 
+Sharing code means we can fix those problems for good.
+
+Jason
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
