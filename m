@@ -1,39 +1,35 @@
 From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH WIP 00/43] New fast registration API
-Date: Thu, 23 Jul 2015 02:28:57 -0700
-Message-ID: <20150723092857.GE32592@infradead.org>
+Subject: Re: [PATCH WIP 01/43] IB: Modify ib_create_mr API
+Date: Thu, 23 Jul 2015 02:30:46 -0700
+Message-ID: <20150723093046.GF32592@infradead.org>
 References: <1437548143-24893-1-git-send-email-sagig@mellanox.com>
- <20150722171023.GA18934@infradead.org>
- <55AFD608.401@dev.mellanox.co.il>
+ <1437548143-24893-2-git-send-email-sagig@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A82373A9001357@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <55AFD608.401-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A9001357-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 22, 2015 at 08:42:32PM +0300, Sagi Grimberg wrote:
-> We can do that, but I'd prefer not to pollute the API just for this
-> single use case. What we can do, is add a pool API that would take care
-> of that. But even then we might end up with different strategies as not
-> all ULPs can use it the same way (protocol constraints)...
+On Thu, Jul 23, 2015 at 12:57:34AM +0000, Hefty, Sean wrote:
+> > +enum ib_mr_type {
+> > +	IB_MR_TYPE_FAST_REG,
+> > +	IB_MR_TYPE_SIGNATURE,
 > 
-> Today SRP has this logic that registers multiple SG aligned partials.
-> We can just have it pass a partial SG list to what we have today instead
-> of building the page vectors...
-> 
-> Or if we can come up with something that will keep the API trivial, we
-> can take care of that too.
+> If we're going to go through the trouble of changing everything, I vote
+> for dropping the word 'fast'. It's a marketing term.  It's goofy.  And
+> the IB spec is goofy for using it.
 
+Yes.  Especially as the infrastructure will be usable to support FMR
+on legacy adapters as well except that instead of the ib_post_send it'll
+need a call to the FMR code at the very end.
 
-Supporting an array or list of MRs seems pretty easy.  If you ignore the
-weird fallback to physical DMA case when a MR fails case the SRP memory
-registration code isn't significanly more complex than that in iSER for
-example.  And I think NFS needs the same support as well, as it allows
-using additional MRs when detecting a gap.
+While we're at it  wonder if we should consolidate the type and the
+flags field as well, as the split between the two is a little confusing.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
