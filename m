@@ -1,33 +1,32 @@
 From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH WIP 28/43] IB/core: Introduce new fast registration API
-Date: Thu, 23 Jul 2015 02:19:55 -0700
-Message-ID: <20150723091955.GA32592@infradead.org>
-References: <1437548143-24893-1-git-send-email-sagig@mellanox.com>
- <1437548143-24893-29-git-send-email-sagig@mellanox.com>
- <20150722165012.GC6443@infradead.org>
- <20150722174401.GG26909@obsidianresearch.com>
+Subject: Re: [PATCH WIP 38/43] iser-target: Port to new memory registration
+ API
+Date: Thu, 23 Jul 2015 02:22:48 -0700
+Message-ID: <20150723092248.GB32592@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20150722174401.GG26909-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 22, 2015 at 11:44:01AM -0600, Jason Gunthorpe wrote:
-> I was hoping we'd move the DMA flush and translate into here and make
-> it mandatory. Is there any reason not to do that?
+> If you want to micro optimize then just zero the few items that are
+> defined to be accessed for fastreg, no need to zero the whole
+> structure. Infact, you may have already done that, so just drop the
+> memset entirely.
 
-That would be a reason for passing in a direction, but it would also
-up the question on what form we pass that access flag in.  The
-old-school RDMA local/remote read/write flags, or a enum_dma_direction
-and either a bool or separate functions for lkey/rkey.
+Oh, indeed.
 
-Although I wonder if we really need to differentiate between rkey and
-leky in this ib_map_mr_sg function, or if we should do it when
-allocating the mr, i.e. in ib_alloc_mr.
+> If you want to optimize this path, then Sean is right, move the post
+> into the driver and stop pretending that ib_post_send is a performance
+> API.
+> 
+> ib_post_fastreg_wr would be a function that needs 3 register passed
+> arguments and does a simple copy to the driver's actual sendq
+
+Now that sounds even better.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
