@@ -1,51 +1,30 @@
-From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: [PATCH v1 2/2] RDMA/ocrdma: update ocrdma module license srting
-Date: Fri, 24 Jul 2015 05:04:00 +0530
-Message-ID: <1437694440-25039-3-git-send-email-devesh.sharma@avagotech.com>
-References: <1437694440-25039-1-git-send-email-devesh.sharma@avagotech.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: rdma_getaddrinfo and GUID
+Date: Thu, 23 Jul 2015 18:30:33 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A901B918@ORSMSX109.amr.corp.intel.com>
+References: <CACaajQsauS65K8tKwygPB03iyv87uy8s-jPn7_gihqbEU6np3Q@mail.gmail.com>
+ <1828884A29C6694DAF28B7E6B8A82373A9002987@ORSMSX109.amr.corp.intel.com>
+ <CACaajQuvUO4LRym2Mt+dt1XeK6L-bjHVPE5v6Cj3oJdVoQQwuQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1437694440-25039-1-git-send-email-devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+In-Reply-To: <CACaajQuvUO4LRym2Mt+dt1XeK6L-bjHVPE5v6Cj3oJdVoQQwuQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Duan Jiong <duanj.fnst-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Jes Sorensen <Jes.Sorensen-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sasha Levin <levinsasha928-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Prarit Bhargava <prarit-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>, Li RongQing <roy.qing.li-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Devendra Naga <devendra.aaru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-replace module_license from "GPL" to "Dual BSD/GPL"
-
-Cc: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Duan Jiong <duanj.fnst-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Jes Sorensen <Jes.Sorensen-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Sasha Levin <levinsasha928-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Prarit Bhargava <prarit-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Cc: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
-Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>
-Cc: Li RongQing <roy.qing.li-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Devendra Naga <devendra.aaru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
----
- drivers/infiniband/hw/ocrdma/ocrdma_main.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-index 6ded95a..b119a34 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-@@ -61,7 +61,7 @@
- MODULE_VERSION(OCRDMA_ROCE_DRV_VERSION);
- MODULE_DESCRIPTION(OCRDMA_ROCE_DRV_DESC " " OCRDMA_ROCE_DRV_VERSION);
- MODULE_AUTHOR("Emulex Corporation");
--MODULE_LICENSE("GPL");
-+MODULE_LICENSE("Dual BSD/GPL");
- 
- static LIST_HEAD(ocrdma_dev_list);
- static DEFINE_SPINLOCK(ocrdma_devlist_lock);
--- 
-1.7.1
-
+PiA+PiBIZWxsbywgZG9lcyBpdCBwb3NzaWJsZSB0byB1c2UgcmRtYV9nZXRhZGRyaW5mbyBhbmQg
+c3BlY2lmeSBpbiBub2RlDQo+IHBvcnQNCj4gPj4gR1VJRD8NCj4gPg0KPiA+IFRoZSBjdXJyZW50
+IGNvZGUgZG9lcyBub3Qgc3VwcG9ydCB0aGlzLg0KPiANCj4gDQo+IFdoeSByZG1hX2dldGFkZHJp
+bmZvIGRvZXMgbm90IHJldHVybiBlcnJvcj8gV2h5IGl0IHJldHVybnMgc3VjY2VzcyBhbmQNCj4g
+cmVzdWx0IGNvbnRhaW5zIHBvcnQgZ3VpZD8NCg0KSSBkb24ndCB0aGluayBJJ20gZm9sbG93aW5n
+IHlvdXIgcXVlc3Rpb25zIG9uIGhvdyByZG1hX2dldGFkZHJpbmZvIGlzIGJlaW5nIGNhbGxlZC4g
+IEFyZSB5b3UgcmVmZXJyaW5nIHRvIGEgR1VJRCAoNjQtYml0IHZhbHVlKSBvciBhIEdJRCAoMTI4
+LWJpdCB2YWx1ZSk/ICBIb3cgYXJlIHlvdSBjYWxsaW5nIHJkbWFfZ2V0YWRkcmluZm8gd2l0aCB0
+aGlzIHZhbHVlPw0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
