@@ -1,44 +1,52 @@
 From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH WIP 40/43] mlx5: Allocate private context for arbitrary
- scatterlist registration
-Date: Thu, 23 Jul 2015 13:28:18 +0300
-Message-ID: <55B0C1C2.2060606@dev.mellanox.co.il>
+Subject: Re: [PATCH WIP 00/43] New fast registration API
+Date: Thu, 23 Jul 2015 13:34:22 +0300
+Message-ID: <55B0C32E.8090303@dev.mellanox.co.il>
 References: <1437548143-24893-1-git-send-email-sagig@mellanox.com>
- <1437548143-24893-41-git-send-email-sagig@mellanox.com>
- <20150722173048.GF26909@obsidianresearch.com>
- <20150723092532.GC32592@infradead.org>
+ <20150722171023.GA18934@infradead.org> <55AFD608.401@dev.mellanox.co.il>
+ <20150723092857.GE32592@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150723092532.GC32592-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <20150723092857.GE32592-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/23/2015 12:25 PM, Christoph Hellwig wrote:
-> On Wed, Jul 22, 2015 at 11:30:48AM -0600, Jason Gunthorpe wrote:
->> On Wed, Jul 22, 2015 at 09:55:40AM +0300, Sagi Grimberg wrote:
->>> +	size += max_t(int, MLX5_UMR_ALIGN - ARCH_KMALLOC_MINALIGN, 0);
->>> +	mr->klms = kzalloc(size, GFP_KERNEL);
->>> +	if (!mr->klms)
->>> +		return -ENOMEM;
->>> +
->>> +	mr->pl_map = dma_map_single(device->dma_device, mr->klms,
->>> +				    size, DMA_TO_DEVICE);
+On 7/23/2015 12:28 PM, Christoph Hellwig wrote:
+> On Wed, Jul 22, 2015 at 08:42:32PM +0300, Sagi Grimberg wrote:
+>> We can do that, but I'd prefer not to pollute the API just for this
+>> single use case. What we can do, is add a pool API that would take care
+>> of that. But even then we might end up with different strategies as not
+>> all ULPs can use it the same way (protocol constraints)...
 >>
->> This is a misuse of the DMA API, you must call dma_map_single after
->> the memory is set by the CPU, not before.
+>> Today SRP has this logic that registers multiple SG aligned partials.
+>> We can just have it pass a partial SG list to what we have today instead
+>> of building the page vectors...
 >>
->> The fast reg varient is using coherent allocations, which is OK..
+>> Or if we can come up with something that will keep the API trivial, we
+>> can take care of that too.
 >
-> It's fine as long as you dma_sync_*_for_{cpu,device} in the right
-> places, which is what a lot of drivers do for longer held allocations.
+>
+> Supporting an array or list of MRs seems pretty easy.
 
-OK. I'll fix that.
+I'm missing the simplicity here...
 
-Thanks.
+> If you ignore the
+> weird fallback to physical DMA case when a MR fails case the SRP memory
+> registration code isn't significanly more complex than that in iSER for
+> example.  And I think NFS needs the same support as well, as it allows
+> using additional MRs when detecting a gap.
+>
+
+This kinda changing the semantics a bit. With this we need to return a
+value of how many MRs used to register. It will also make it a bit
+sloppy as the actual mapping is driven from the drivers (which use their
+internal buffers).
+
+Don't you think that a separate pool API is better for addressing this?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
