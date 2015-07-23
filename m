@@ -1,62 +1,44 @@
 From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH WIP 38/43] iser-target: Port to new memory registration
- API
-Date: Thu, 23 Jul 2015 13:27:23 +0300
-Message-ID: <55B0C18B.4080901@dev.mellanox.co.il>
+Subject: Re: [PATCH WIP 40/43] mlx5: Allocate private context for arbitrary
+ scatterlist registration
+Date: Thu, 23 Jul 2015 13:28:18 +0300
+Message-ID: <55B0C1C2.2060606@dev.mellanox.co.il>
 References: <1437548143-24893-1-git-send-email-sagig@mellanox.com>
- <1437548143-24893-39-git-send-email-sagig@mellanox.com>
- <20150722170413.GE6443@infradead.org> <55AFD3DC.8070508@dev.mellanox.co.il>
- <20150722175755.GH26909@obsidianresearch.com>
+ <1437548143-24893-41-git-send-email-sagig@mellanox.com>
+ <20150722173048.GF26909@obsidianresearch.com>
+ <20150723092532.GC32592@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150722175755.GH26909-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20150723092532.GC32592-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/22/2015 8:57 PM, Jason Gunthorpe wrote:
-> On Wed, Jul 22, 2015 at 08:33:16PM +0300, Sagi Grimberg wrote:
->>>>   	memset(&fr_wr, 0, sizeof(fr_wr));
->>>> +	ib_set_fastreg_wr(mr, mr->lkey, ISER_FASTREG_LI_WRID,
->>>> +			  false, &fr_wr);
->>>
->>> Shouldn't ib_set_fastreg_wr take care of this memset?  Also it seems
->>> instead of the singalled flag to it we might just set that or
->>> other flags later if we really want to.
+On 7/23/2015 12:25 PM, Christoph Hellwig wrote:
+> On Wed, Jul 22, 2015 at 11:30:48AM -0600, Jason Gunthorpe wrote:
+>> On Wed, Jul 22, 2015 at 09:55:40AM +0300, Sagi Grimberg wrote:
+>>> +	size += max_t(int, MLX5_UMR_ALIGN - ARCH_KMALLOC_MINALIGN, 0);
+>>> +	mr->klms = kzalloc(size, GFP_KERNEL);
+>>> +	if (!mr->klms)
+>>> +		return -ENOMEM;
+>>> +
+>>> +	mr->pl_map = dma_map_single(device->dma_device, mr->klms,
+>>> +				    size, DMA_TO_DEVICE);
+>>
+>> This is a misuse of the DMA API, you must call dma_map_single after
+>> the memory is set by the CPU, not before.
+>>
+>> The fast reg varient is using coherent allocations, which is OK..
 >
-> Seems reasonable.
->
-> If you want to micro optimize then just zero the few items that are
-> defined to be accessed for fastreg, no need to zero the whole
-> structure. Infact, you may have already done that, so just drop the
-> memset entirely.
+> It's fine as long as you dma_sync_*_for_{cpu,device} in the right
+> places, which is what a lot of drivers do for longer held allocations.
 
-I will.
+OK. I'll fix that.
 
->
->> The reason I didn't put it in was that ib_send_wr is not a small struct
->> (92 bytes IIRC). So I'm a bit reluctant to add an unconditional memset.
->> Maybe it's better that the callers can carefully set it to save some
->> cycles?
->
-> If you want to optimize this path, then Sean is right, move the post
-> into the driver and stop pretending that ib_post_send is a performance
-> API.
->
-> ib_post_fastreg_wr would be a function that needs 3 register passed
-> arguments and does a simple copy to the driver's actual sendq
-
-That will require to take the SQ lock and write a doorbell for each
-registration and post you want to do. I'm confident that constructing
-a post chain with a single sq lock acquire and a single doorbell will
-be much much better even with conditional jumps and memsets.
-
-svcrdma, isert (and iser - not upstream yet) are doing it. I think that
-others should do it too. My tests shows that this makes a difference in
-small IO workloads.
+Thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
