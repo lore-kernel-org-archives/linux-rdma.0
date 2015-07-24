@@ -1,100 +1,47 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Potential lost receive WCs (was "[PATCH WIP 38/43]")
-Date: Fri, 24 Jul 2015 16:26:00 -0400
-Message-ID: <7824831C-3CC5-49C4-9E0B-58129D0E7FFF@oracle.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: Potential lost receive WCs (was "[PATCH WIP 38/43]")
+Date: Fri, 24 Jul 2015 14:46:04 -0600
+Message-ID: <20150724204604.GA28244@obsidianresearch.com>
+References: <7824831C-3CC5-49C4-9E0B-58129D0E7FFF@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <7824831C-3CC5-49C4-9E0B-58129D0E7FFF-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, Jul 24, 2015 at 04:26:00PM -0400, Chuck Lever wrote:
+> Basically RPC work flow stopped because an RPC reply never
+> arrived.
 
->>>> During some other testing I found that when a completion upcall
->>>> returns to the provider leaving CQEs still on the completion queue=
-,
->>>> there is a non-zero probability that a completion will be lost.
->>>=20
->>> What does lost mean?
->>=20
->> Lost means a WC in the CQ is skipped by ib_poll_cq().
->>=20
->> In other words, I expected that during the next upcall,
->> ib_poll_cq() would return WCs that were not processed, starting
->> with the last one on the CQ when my upcall handler returned.
->=20
-> Yes, this is what it should do. I wouldn't expect a timely upcall, bu=
-t
-> none should be lost.
->=20
->> I found this by intentionally having the completion handler
->> process only one or two WCs and then return.
->>=20
->>> The CQ is edge triggered, so if you don't drain it you might not ge=
-t
->>> another timely CQ callback (which is bad), but CQEs themselves shou=
-ld
->>> not be lost.
->>=20
->> I=92m not sure I fully understand this problem, it might
->> even be my misuderstanding about ib_poll_cq(). But forcing
->> the completion upcall handler to completely drain the CQ
->> during each upcall prevents the issue.
->=20
-> CQs should never be lost.
->=20
-> The idea that you can completely drain the CQ during the upcall is
-> inherently racey, so this cannot be the answer to whatever the proble=
-m
-> is..
+Oh, that is what I expect to see.. Remebmer the cq upcall is edge
+triggered, so if you leave stuff in the cq then you don't get another
+upcall until another CQE is added. If adding another CQE is somehow
+contingent on the CQE left behind then the scheme deadlocks.
 
-Hrm, ok. Completely draining the CQ is how the upcall handler
-worked before commit 8301a2c047cc.
+The CQE is not lost because calling ib_poll_cq from outside the upcall
+will return it.
 
+To confirm lost you need to see ib_poll_cq return no results and
+confirm an expected CQE is missing.
 
-> Is there any chance this is still an artifact of the lazy SQE flow
-> control? The RDMA buffer SQE recycling is solved by the sync
-> invalidate, but workloads that don't use RDMA buffers (ie SEND only)
-> will still run without proper flow control=85
+The driver is expected to avoid racing with the upcall and guarentee
+new CQEs will trigger no matter how many CQEs are consumed by the ULP.
 
-I can=92t see how it can be related to the send queue these days.
-The CQ is split. The behavior I observed was in the receive
-completion path. All RECVs are signaled, and there are a fixed
-and limited number of reply buffers that match the number of
-RPC/RDMA credits.
+So, as Steve said, if the ULP leaves CQEs behind then it must do
+something to guarantee that ib_poll_cq is eventually called to collect
+them, or not care about forward progress on the CQ.
 
-Basically RPC work flow stopped because an RPC reply never
-arrived.
+Does that make sense and explain what you saw?
 
-The send queue accounting problem would cause the client to
-stop sending RPC requests before we hit our credit limit.
+If yes, I recommend revising the commit and comment language. CQEs are
+not lost, only the upcall isn't happening.
 
-
-> If you are totally certain a CQ was dropped from ib_poll_cq, and that
-> the SQ is not overflowing by strict accounting, then I'd say driver
-> problem, but the odds of having an undetected driver problem like tha=
-t
-> at this point seem somehow small=85
-
-Under normal circumstances, most ULPs are prepared to deal with a
-large number of WCs per upcall. IMO the issue would be difficult to
-hit unless you have rigged the upcall handler to force the problem
-to occur (poll once with a small ib_wc array size and then return
-from the upcall handler).
-
-I will have some time to experiment next week. Thanks for confirming
-my understanding of ib_poll_cq().
-
-
+Jason
 --
-Chuck Lever
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
