@@ -1,44 +1,32 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH V3 1/5] RDMA/core: Transport-independent access flags
-Date: Thu, 23 Jul 2015 22:46:45 -0600
-Message-ID: <20150724044645.GA17482@obsidianresearch.com>
-References: <CCB6E837-88FF-4DBB-976D-4CF56396A1A1@ogc.us>
- <55A24571.60902@dev.mellanox.co.il>
- <00e201d0be6a$e49bc910$add35b30$@opengridcomputing.com>
- <20150714194512.GA25887@infradead.org>
- <00f901d0be6f$70c96b00$525c4100$@opengridcomputing.com>
- <1828884A29C6694DAF28B7E6B8A82373A901C9A5@ORSMSX109.amr.corp.intel.com>
- <009e01d0c57a$37d5b9e0$a7812da0$@opengridcomputing.com>
- <1828884A29C6694DAF28B7E6B8A82373A901DB80@ORSMSX109.amr.corp.intel.com>
- <20150723235310.GA20537@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373A901DBA9@ORSMSX109.amr.corp.intel.com>
+From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+Subject: Re: rdma_getaddrinfo and GUID
+Date: Fri, 24 Jul 2015 11:08:07 +0300
+Message-ID: <CACaajQv+GwDAk2AeY2SdYwkdGTXVzeEcU5H4QLStRjJL_OxOcA@mail.gmail.com>
+References: <CACaajQsauS65K8tKwygPB03iyv87uy8s-jPn7_gihqbEU6np3Q@mail.gmail.com>
+ <1828884A29C6694DAF28B7E6B8A82373A9002987@ORSMSX109.amr.corp.intel.com>
+ <CACaajQuvUO4LRym2Mt+dt1XeK6L-bjHVPE5v6Cj3oJdVoQQwuQ@mail.gmail.com>
+ <1828884A29C6694DAF28B7E6B8A82373A901B918@ORSMSX109.amr.corp.intel.com>
+ <CACaajQvfkb=roMub_uzpVZiTPKwF-XY_wqA35AaAAmN3EqZbOg@mail.gmail.com> <1828884A29C6694DAF28B7E6B8A82373A901CA3B@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <target-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A901DBA9@ORSMSX109.amr.corp.intel.com>
-Sender: target-devel-owner@vger.kernel.org
-To: "Hefty, Sean" <sean.hefty@intel.com>
-Cc: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, Steve Wise <swise@opengridcomputing.com>, 'Christoph Hellwig' <hch@infradead.org>, 'Sagi Grimberg' <sagig@dev.mellanox.co.il>, 'Steve Wise' <swise@ogc.us>, 'Tom Talpey' <tom@talpey.com>, 'Doug Ledford' <dledford@redhat.com>, "sagig@mellanox.com" <sagig@mellanox.com>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, "roid@mellanox.com" <roid@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "eli@mellanox.com" <eli@mellanox.com>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>, "linux-nfs@vger.kernel.org" <linux-nfs@vger.kernel.org>, "trond.myklebust@primarydata.com" <trond.myklebust@primarydata.com>, "bfields@fieldses.org" <bfields@fieldses.org>, 'Oren Duer' <oren@mellanox.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A901CA3B-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jul 24, 2015 at 12:18:41AM +0000, Hefty, Sean wrote:
-> > The lkey is possibly useful if someone wants to do single op transfers
-> > larger than the S/G limit of the SQE. I haven't noticed any ULPs doing
-> > that..
-> 
-> That changes how the buffer is identified, which gets back to my
-> question of are we identifying local buffers by address or through
-> some sort of iova/tag/descriptor/mr/whatever.  Do we have this right
-> in the API?
+2015-07-23 22:46 GMT+03:00 Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>:
+> Ah, yes, the rdma_cm supports GIDs.  It does not support GUIDs.  Though it's usually trivial to convert a GUID into a GID.
 
-After Sagi's work, and my patchset, all ULPs will talk about local
-buffers in only two ways:
- - struct ib_sge w/ local_dma_lkey
- - struct scatterlist with memory registration to a simple ib_sge.
-   (only done for iWarp RDMA READ? Maybe iSER DIX as well?)
 
-Efforts to unify them have not been successful for fairly reasonable
-reasons :)
+in guid you mean node guid ? So using node guied bring something like
+multipath (in case of able to via node guid get port guids)
 
-Jason
+-- 
+Vasiliy Tolstov,
+e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
