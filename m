@@ -1,78 +1,98 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH WIP 38/43] iser-target: Port to new memory registration
- API
-Date: Fri, 24 Jul 2015 14:24:45 -0600
-Message-ID: <20150724202445.GA28033@obsidianresearch.com>
-References: <20150722175755.GH26909@obsidianresearch.com>
- <55B0C18B.4080901@dev.mellanox.co.il>
- <20150723163124.GD25174@obsidianresearch.com>
- <55B11D84.102@dev.mellanox.co.il>
- <20150723185334.GB31346@obsidianresearch.com>
- <DE0226A1-A7FC-4618-91F1-FE34347C252A@oracle.com>
- <20150724162657.GA21473@obsidianresearch.com>
- <903CDFB5-04FE-47B6-B044-E960E8A8BC4C@oracle.com>
- <20150724191003.GA26225@obsidianresearch.com>
- <A1A0BF6E-992A-4B34-8D24-EA8AA8D6983B@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Potential lost receive WCs (was "[PATCH WIP 38/43]")
+Date: Fri, 24 Jul 2015 16:26:00 -0400
+Message-ID: <7824831C-3CC5-49C4-9E0B-58129D0E7FFF@oracle.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <A1A0BF6E-992A-4B34-8D24-EA8AA8D6983B-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jul 24, 2015 at 03:59:06PM -0400, Chuck Lever wrote:
-> And RPC-over-RDMA version 1 does not have any way to signal that
-> the server has invalidated the MRs. Such signaling would be a
-> pre-requisite to allow the Linux NFS/RDMA client to interoperate
-> with non-Linux NFS/RDMA servers that do not have such support.
 
-You can implement client support immediately, nothing special is
-required.
+>>>> During some other testing I found that when a completion upcall
+>>>> returns to the provider leaving CQEs still on the completion queue=
+,
+>>>> there is a non-zero probability that a completion will be lost.
+>>>=20
+>>> What does lost mean?
+>>=20
+>> Lost means a WC in the CQ is skipped by ib_poll_cq().
+>>=20
+>> In other words, I expected that during the next upcall,
+>> ib_poll_cq() would return WCs that were not processed, starting
+>> with the last one on the CQ when my upcall handler returned.
+>=20
+> Yes, this is what it should do. I wouldn't expect a timely upcall, bu=
+t
+> none should be lost.
+>=20
+>> I found this by intentionally having the completion handler
+>> process only one or two WCs and then return.
+>>=20
+>>> The CQ is edge triggered, so if you don't drain it you might not ge=
+t
+>>> another timely CQ callback (which is bad), but CQEs themselves shou=
+ld
+>>> not be lost.
+>>=20
+>> I=92m not sure I fully understand this problem, it might
+>> even be my misuderstanding about ib_poll_cq(). But forcing
+>> the completion upcall handler to completely drain the CQ
+>> during each upcall prevents the issue.
+>=20
+> CQs should never be lost.
+>=20
+> The idea that you can completely drain the CQ during the upcall is
+> inherently racey, so this cannot be the answer to whatever the proble=
+m
+> is..
 
-When processing a SEND WC check ex.invalidate_rkey and
-IB_WC_WITH_INVALIDATE. If that rkey matches the MR associated with
-that RPC slot then skip the invalidate.
+Hrm, ok. Completely draining the CQ is how the upcall handler
+worked before commit 8301a2c047cc.
 
-No protocol negotiation is required at that point.
 
-I am unclear what happens sever side if the server starts issuing
-SEND_WITH_INVALIDATE to a client that doesn't expect it. The net
-result is a MR would be invalidated twice. I don't know if this is OK
-or not.
+> Is there any chance this is still an artifact of the lazy SQE flow
+> control? The RDMA buffer SQE recycling is solved by the sync
+> invalidate, but workloads that don't use RDMA buffers (ie SEND only)
+> will still run without proper flow control=85
 
-If it is OK, then the server can probably just start using it as
-well without negotiation.
+I can=92t see how it can be related to the send queue these days.
+The CQ is split. The behavior I observed was in the receive
+completion path. All RECVs are signaled, and there are a fixed
+and limited number of reply buffers that match the number of
+RPC/RDMA credits.
 
-Otherwise the client has to signal the server it supports it once at
-connection setup.
+Basically RPC work flow stopped because an RPC reply never
+arrived.
 
-> For FRWR, you could post LINV from the receive completion upcall
-> handler, and handle the rest of the invalidation from the send
-> completion upcall, then poke the RPC reply handler.
+The send queue accounting problem would cause the client to
+stop sending RPC requests before we hit our credit limit.
 
-Yes
 
-> But this wouldn=E2=80=99t work at all for FMR, whose unmap verb is
-> synchronous, would it?
+> If you are totally certain a CQ was dropped from ib_poll_cq, and that
+> the SQ is not overflowing by strict accounting, then I'd say driver
+> problem, but the odds of having an undetected driver problem like tha=
+t
+> at this point seem somehow small=85
 
-It could run the FMR unmap in a thread/workqueue/tasklet and then
-complete the RPC side from that context. Same basic idea, using your
-taslket not the driver's sendq context.
+Under normal circumstances, most ULPs are prepared to deal with a
+large number of WCs per upcall. IMO the issue would be difficult to
+hit unless you have rigged the upcall handler to force the problem
+to occur (poll once with a small ib_wc array size and then return
+from the upcall handler).
 
-> I=E2=80=99m not sure we=E2=80=99d buy more than a few microseconds he=
-re, and
-> the receive upcall is single-threaded.
+I will have some time to experiment next week. Thanks for confirming
+my understanding of ib_poll_cq().
 
-Not sure on how that matches your performance goals, just remarking
-that lauching the invalidate in the recv upcall and completing
-processing from the sendq upcall is the very best performance you can
-expect from this API.
 
-Jason
+--
+Chuck Lever
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
