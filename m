@@ -1,7 +1,7 @@
 From: Steve Wise <swise@opengridcomputing.com>
-Subject: [PATCH V6 8/9] isert: Use local_dma_lkey whenever possible.
-Date: Fri, 24 Jul 2015 11:18:59 -0500
-Message-ID: <20150724161859.25617.17286.stgit@build2.ogc.int>
+Subject: [PATCH V6 7/9] isert: Use the device's max fastreg page list depth
+Date: Fri, 24 Jul 2015 11:18:54 -0500
+Message-ID: <20150724161853.25617.11096.stgit@build2.ogc.int>
 References: <20150724161331.25617.8475.stgit@build2.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,181 +13,90 @@ To: dledford@redhat.com
 Cc: infinipath@intel.com, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, bfields@fieldses.org
 List-Id: linux-rdma@vger.kernel.org
 
-No need to allocate a dma_mr if the device provides a local_dma_lkey.
+Use the device's max_fast_reg_page_list_len attr to size the SQ
+and FRMR pool.
 
 Signed-off-by: Steve Wise <swise@opengridcomputing.com>
 ---
 
- drivers/infiniband/ulp/isert/ib_isert.c |   47 ++++++++++++++++++-------------
+ drivers/infiniband/ulp/isert/ib_isert.c |   28 ++++++++++++++++++++++++----
  drivers/infiniband/ulp/isert/ib_isert.h |    1 +
- 2 files changed, 28 insertions(+), 20 deletions(-)
+ 2 files changed, 25 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index 8ae9208..47bb790 100644
+index dcd3c55..8ae9208 100644
 --- a/drivers/infiniband/ulp/isert/ib_isert.c
 +++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -249,7 +249,7 @@ isert_alloc_rx_descriptors(struct isert_conn *isert_conn)
- 		rx_sg = &rx_desc->rx_sg;
- 		rx_sg->addr = rx_desc->dma_addr;
- 		rx_sg->length = ISER_RX_PAYLOAD_SIZE;
--		rx_sg->lkey = device->mr->lkey;
-+		rx_sg->lkey = device->local_dma_lkey;
- 	}
- 
- 	isert_conn->rx_desc_head = 0;
-@@ -375,8 +375,9 @@ isert_create_device_ib_res(struct isert_device *device)
- 	if (ret)
- 		return ret;
- 
--	/* asign function handlers */
-+	/* assign function handlers */
- 	if (dev_attr->device_cap_flags & IB_DEVICE_MEM_MGT_EXTENSIONS &&
-+	    dev_attr->device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY &&
- 	    dev_attr->device_cap_flags & IB_DEVICE_SIGNATURE_HANDOVER) {
- 		device->use_fastreg = 1;
- 		device->reg_rdma_mem = isert_reg_frmr_pi;
-@@ -399,12 +400,17 @@ isert_create_device_ib_res(struct isert_device *device)
- 		goto out_cq;
- 	}
- 
--	device->mr = ib_get_dma_mr(device->pd, IB_ACCESS_LOCAL_WRITE);
--	if (IS_ERR(device->mr)) {
--		ret = PTR_ERR(device->mr);
--		isert_err("failed to create dma mr, device %p, ret=%d\n",
--			  device, ret);
--		goto out_mr;
-+	if (device->use_fastreg)
-+		device->local_dma_lkey = device->ib_device->local_dma_lkey;
-+	else {
-+		device->mr = ib_get_dma_mr(device->pd, IB_ACCESS_LOCAL_WRITE);
-+		if (IS_ERR(device->mr)) {
-+			ret = PTR_ERR(device->mr);
-+			isert_err("failed to create dma mr, device %p, ret=%d\n",
-+				  device, ret);
-+			goto out_mr;
-+		}
-+		device->local_dma_lkey = device->mr->lkey;
- 	}
- 
- 	/* Check signature cap */
-@@ -425,7 +431,8 @@ isert_free_device_ib_res(struct isert_device *device)
- {
- 	isert_info("device %p\n", device);
- 
--	ib_dereg_mr(device->mr);
-+	if (!device->use_fastreg)
-+		ib_dereg_mr(device->mr);
- 	ib_dealloc_pd(device->pd);
- 	isert_free_comps(device);
+@@ -141,6 +141,14 @@ isert_comp_put(struct isert_comp *comp)
+ 	mutex_unlock(&device_list_mutex);
  }
-@@ -1108,8 +1115,8 @@ isert_create_send_desc(struct isert_conn *isert_conn,
- 	tx_desc->num_sge = 1;
- 	tx_desc->isert_cmd = isert_cmd;
  
--	if (tx_desc->tx_sg[0].lkey != device->mr->lkey) {
--		tx_desc->tx_sg[0].lkey = device->mr->lkey;
-+	if (tx_desc->tx_sg[0].lkey != device->local_dma_lkey) {
-+		tx_desc->tx_sg[0].lkey = device->local_dma_lkey;
- 		isert_dbg("tx_desc %p lkey mismatch, fixing\n", tx_desc);
- 	}
- }
-@@ -1132,7 +1139,7 @@ isert_init_tx_hdrs(struct isert_conn *isert_conn,
- 	tx_desc->dma_addr = dma_addr;
- 	tx_desc->tx_sg[0].addr	= tx_desc->dma_addr;
- 	tx_desc->tx_sg[0].length = ISER_HEADERS_LEN;
--	tx_desc->tx_sg[0].lkey = device->mr->lkey;
-+	tx_desc->tx_sg[0].lkey = device->local_dma_lkey;
++static int isert_max_send_wrs(struct isert_conn *isert_conn)
++{
++	if (isert_conn->max_frpl_len >= ISCSI_ISER_SG_TABLESIZE)
++		return ISERT_QP_MAX_REQ_DTOS;
++	return ISERT_QP_MAX_REQ_DTOS *
++	       DIV_ROUND_UP(ISCSI_ISER_SG_TABLESIZE, isert_conn->max_frpl_len);
++}
++
+ static struct ib_qp *
+ isert_create_qp(struct isert_conn *isert_conn,
+ 		struct isert_comp *comp,
+@@ -155,8 +163,6 @@ isert_create_qp(struct isert_conn *isert_conn,
+ 	attr.qp_context = isert_conn;
+ 	attr.send_cq = comp->cq;
+ 	attr.recv_cq = comp->cq;
+-	attr.cap.max_send_wr = ISERT_QP_MAX_REQ_DTOS;
+-	attr.cap.max_recv_wr = ISERT_QP_MAX_RECV_DTOS + 1;
+ 	/*
+ 	 * FIXME: Use devattr.max_sge - 2 for max_send_sge as
+ 	 * work-around for RDMA_READs with ConnectX-2.
+@@ -168,7 +174,13 @@ isert_create_qp(struct isert_conn *isert_conn,
+ 	isert_conn->max_write_sge = attr.cap.max_send_sge;
+ 	isert_conn->max_read_sge = min_t(u32, device->dev_attr.max_sge_rd,
+ 					 attr.cap.max_send_sge);
++	isert_conn->max_frpl_len = device->dev_attr.max_fast_reg_page_list_len;
++	isert_info("max_write_sge %d max_read_sge %d max_frpl_len %d\n",
++		   isert_conn->max_write_sge, isert_conn->max_read_sge,
++		   isert_conn->max_frpl_len);
  
- 	isert_dbg("Setup tx_sg[0].addr: 0x%llx length: %u lkey: 0x%x\n",
- 		  tx_desc->tx_sg[0].addr, tx_desc->tx_sg[0].length,
-@@ -1165,7 +1172,7 @@ isert_rdma_post_recvl(struct isert_conn *isert_conn)
- 	memset(&sge, 0, sizeof(struct ib_sge));
- 	sge.addr = isert_conn->login_req_dma;
- 	sge.length = ISER_RX_LOGIN_SIZE;
--	sge.lkey = isert_conn->device->mr->lkey;
-+	sge.lkey = isert_conn->device->local_dma_lkey;
++	attr.cap.max_send_wr = isert_max_send_wrs(isert_conn);
++	attr.cap.max_recv_wr = ISERT_QP_MAX_RECV_DTOS + 1;
+ 	attr.cap.max_recv_sge = 1;
+ 	attr.sq_sig_type = IB_SIGNAL_REQ_WR;
+ 	attr.qp_type = IB_QPT_RC;
+@@ -606,12 +618,20 @@ isert_conn_create_fastreg_pool(struct isert_conn *isert_conn)
+ 	struct se_session *se_sess = isert_conn->conn->sess->se_sess;
+ 	struct se_node_acl *se_nacl = se_sess->se_node_acl;
+ 	int i, ret, tag_num;
++
+ 	/*
+ 	 * Setup the number of FRMRs based upon the number of tags
+-	 * available to session in iscsi_target_locate_portal().
++	 * available to session in iscsi_target_locate_portal(),
++	 * whether pi is supported, and how many FRMRs are needed to
++	 * map the largest possible IO given the rdma device limits.
+ 	 */
+ 	tag_num = max_t(u32, ISCSIT_MIN_TAGS, se_nacl->queue_depth);
+-	tag_num = (tag_num * 2) + ISCSIT_EXTRA_TAGS;
++	if (isert_conn->pi_support)
++		tag_num *= 2;
++	if (isert_conn->max_frpl_len < ISCSI_ISER_SG_TABLESIZE)
++		tag_num *= DIV_ROUND_UP(ISCSI_ISER_SG_TABLESIZE,
++				       isert_conn->max_frpl_len);
++	tag_num += ISCSIT_EXTRA_TAGS;
  
- 	isert_dbg("Setup sge: addr: %llx length: %d 0x%08x\n",
- 		sge.addr, sge.length, sge.lkey);
-@@ -1215,7 +1222,7 @@ isert_put_login_tx(struct iscsi_conn *conn, struct iscsi_login *login,
- 
- 		tx_dsg->addr	= isert_conn->login_rsp_dma;
- 		tx_dsg->length	= length;
--		tx_dsg->lkey	= isert_conn->device->mr->lkey;
-+		tx_dsg->lkey	= isert_conn->device->local_dma_lkey;
- 		tx_desc->num_sge = 2;
- 	}
- 	if (!login->login_failed) {
-@@ -1734,6 +1741,7 @@ isert_unmap_lkey(struct isert_cmd *isert_cmd, struct isert_conn *isert_conn)
- 
- 	if (wr->send_wr) {
- 		isert_dbg("Cmd %p free send_wr\n", isert_cmd);
-+		wr->send_wr_num = 0;
- 		kfree(wr->send_wr);
- 		wr->send_wr = NULL;
- 	}
-@@ -1967,7 +1975,6 @@ isert_completion_rdma_read(struct iser_tx_desc *tx_desc,
- 	iscsit_stop_dataout_timer(cmd);
- 	device->unreg_rdma_mem(isert_cmd, isert_conn);
- 	cmd->write_data_done = wr->data.len;
--	wr->send_wr_num = 0;
- 
- 	isert_dbg("Cmd: %p RDMA_READ comp calling execute_cmd\n", isert_cmd);
- 	spin_lock_bh(&cmd->istate_lock);
-@@ -2232,7 +2239,7 @@ isert_put_response(struct iscsi_conn *conn, struct iscsi_cmd *cmd)
- 		isert_cmd->pdu_buf_len = pdu_len;
- 		tx_dsg->addr	= isert_cmd->pdu_buf_dma;
- 		tx_dsg->length	= pdu_len;
--		tx_dsg->lkey	= device->mr->lkey;
-+		tx_dsg->lkey	= device->local_dma_lkey;
- 		isert_cmd->tx_desc.num_sge = 2;
- 	}
- 
-@@ -2360,7 +2367,7 @@ isert_put_reject(struct iscsi_cmd *cmd, struct iscsi_conn *conn)
- 	isert_cmd->pdu_buf_len = ISCSI_HDR_LEN;
- 	tx_dsg->addr	= isert_cmd->pdu_buf_dma;
- 	tx_dsg->length	= ISCSI_HDR_LEN;
--	tx_dsg->lkey	= device->mr->lkey;
-+	tx_dsg->lkey	= device->local_dma_lkey;
- 	isert_cmd->tx_desc.num_sge = 2;
- 
- 	isert_init_send_wr(isert_conn, isert_cmd, send_wr);
-@@ -2401,7 +2408,7 @@ isert_put_text_rsp(struct iscsi_cmd *cmd, struct iscsi_conn *conn)
- 		isert_cmd->pdu_buf_len = txt_rsp_len;
- 		tx_dsg->addr	= isert_cmd->pdu_buf_dma;
- 		tx_dsg->length	= txt_rsp_len;
--		tx_dsg->lkey	= device->mr->lkey;
-+		tx_dsg->lkey	= device->local_dma_lkey;
- 		isert_cmd->tx_desc.num_sge = 2;
- 	}
- 	isert_init_send_wr(isert_conn, isert_cmd, send_wr);
-@@ -2442,7 +2449,7 @@ isert_build_rdma_wr(struct isert_conn *isert_conn, struct isert_cmd *isert_cmd,
- 		ib_sge->addr = ib_sg_dma_address(ib_dev, tmp_sg) + page_off;
- 		ib_sge->length = min_t(u32, data_left,
- 				ib_sg_dma_len(ib_dev, tmp_sg) - page_off);
--		ib_sge->lkey = device->mr->lkey;
-+		ib_sge->lkey = device->local_dma_lkey;
- 
- 		isert_dbg("RDMA ib_sge: addr: 0x%llx  length: %u lkey: %x\n",
- 			  ib_sge->addr, ib_sge->length, ib_sge->lkey);
-@@ -2622,7 +2629,7 @@ isert_fast_reg_mr(struct isert_conn *isert_conn,
- 	u32 page_off;
- 
- 	if (mem->dma_nents == 1) {
--		sge->lkey = device->mr->lkey;
-+		sge->lkey = device->local_dma_lkey;
- 		sge->addr = ib_sg_dma_address(ib_dev, &mem->sg[0]);
- 		sge->length = ib_sg_dma_len(ib_dev, &mem->sg[0]);
- 		isert_dbg("sge: addr: 0x%llx  length: %u lkey: %x\n",
+ 	isert_conn->fr_pool_size = 0;
+ 	for (i = 0; i < tag_num; i++) {
 diff --git a/drivers/infiniband/ulp/isert/ib_isert.h b/drivers/infiniband/ulp/isert/ib_isert.h
-index 11cd662..25a0946 100644
+index 29fde27..11cd662 100644
 --- a/drivers/infiniband/ulp/isert/ib_isert.h
 +++ b/drivers/infiniband/ulp/isert/ib_isert.h
-@@ -212,6 +212,7 @@ struct isert_device {
- 	struct ib_device	*ib_device;
- 	struct ib_pd		*pd;
- 	struct ib_mr		*mr;
-+	u32			local_dma_lkey;
- 	struct isert_comp	*comps;
- 	int                     comps_used;
- 	struct list_head	dev_node;
+@@ -154,6 +154,7 @@ struct isert_conn {
+ 	bool			pi_support;
+ 	u32			max_write_sge;
+ 	u32			max_read_sge;
++	u32			max_frpl_len;
+ 	char			*login_buf;
+ 	char			*login_req_buf;
+ 	char			*login_rsp_buf;
