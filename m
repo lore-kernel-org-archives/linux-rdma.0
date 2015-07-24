@@ -1,296 +1,100 @@
-From: Steve Wise <swise@opengridcomputing.com>
-Subject: [PATCH V6 9/9] isert: Support iWARP transports using FRMRs
-Date: Fri, 24 Jul 2015 11:19:05 -0500
-Message-ID: <20150724161904.25617.85015.stgit@build2.ogc.int>
-References: <20150724161331.25617.8475.stgit@build2.ogc.int>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH WIP 38/43] iser-target: Port to new memory registration
+ API
+Date: Fri, 24 Jul 2015 10:26:57 -0600
+Message-ID: <20150724162657.GA21473@obsidianresearch.com>
+References: <1437548143-24893-1-git-send-email-sagig@mellanox.com>
+ <1437548143-24893-39-git-send-email-sagig@mellanox.com>
+ <20150722170413.GE6443@infradead.org>
+ <55AFD3DC.8070508@dev.mellanox.co.il>
+ <20150722175755.GH26909@obsidianresearch.com>
+ <55B0C18B.4080901@dev.mellanox.co.il>
+ <20150723163124.GD25174@obsidianresearch.com>
+ <55B11D84.102@dev.mellanox.co.il>
+ <20150723185334.GB31346@obsidianresearch.com>
+ <DE0226A1-A7FC-4618-91F1-FE34347C252A@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20150724161331.25617.8475.stgit@build2.ogc.int>
-Sender: target-devel-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: infinipath@intel.com, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, bfields@fieldses.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <DE0226A1-A7FC-4618-91F1-FE34347C252A-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add new register and unregister functions to be used with devices that
-support FRMRs, provide a local dma lkey, yet do not support DIF/PI.
+On Fri, Jul 24, 2015 at 10:36:07AM -0400, Chuck Lever wrote:
 
-isert_reg_frmr() only needs to use FRMRs for RDMA READ since RDMA WRITE
-can be handled entirely with the local dma lkey.  So for RDMA READ,
-it calls isert_reg_read_frmr().  Otherwise is uses the lkey map service
-isert_map_lkey() for RDMA WRITEs.
+> Unfinished, but operational:
+>=20
+> http://git.linux-nfs.org/?p=3Dcel/cel-2.6.git;a=3Dshortlog;h=3Drefs/h=
+eads/nfs-rdma-future
 
-isert_reg_read_frmr() will create a linked list of WR triplets of the
-form: INV->FRWR->READ.  The number of these triplets is dependent on
-the devices fast reg page list length limit.
+Nice..
 
-Signed-off-by: Steve Wise <swise@opengridcomputing.com>
----
+Can you spend some time and reflect on how some of this could be
+lowered into the core code? The FMR and FRWR side have many
+similarities now..
 
- drivers/infiniband/ulp/isert/ib_isert.c |  224 ++++++++++++++++++++++++++++++-
- 1 files changed, 218 insertions(+), 6 deletions(-)
+> FRWR is seeing a 10-15% throughput reduction with 8-thread dbench,
+> but a 5% improvement with 16-thread fio IOPS. 4K and 8K direct
+> read and write are negatively impacted.
 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index 47bb790..34b3151 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -57,6 +57,11 @@ isert_unreg_frmr_pi(struct isert_cmd *isert_cmd, struct isert_conn *isert_conn);
- static int
- isert_reg_frmr_pi(struct iscsi_conn *conn, struct iscsi_cmd *cmd,
- 		  struct isert_rdma_wr *wr);
-+static void
-+isert_unreg_frmr(struct isert_cmd *isert_cmd, struct isert_conn *isert_conn);
-+static int
-+isert_reg_frmr(struct iscsi_conn *conn, struct iscsi_cmd *cmd,
-+	       struct isert_rdma_wr *wr);
- static int
- isert_put_response(struct iscsi_conn *conn, struct iscsi_cmd *cmd);
- static int
-@@ -368,6 +373,7 @@ static int
- isert_create_device_ib_res(struct isert_device *device)
- {
- 	struct ib_device_attr *dev_attr;
-+	int cap_flags;
- 	int ret;
- 
- 	dev_attr = &device->dev_attr;
-@@ -376,12 +382,18 @@ isert_create_device_ib_res(struct isert_device *device)
- 		return ret;
- 
- 	/* assign function handlers */
--	if (dev_attr->device_cap_flags & IB_DEVICE_MEM_MGT_EXTENSIONS &&
--	    dev_attr->device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY &&
--	    dev_attr->device_cap_flags & IB_DEVICE_SIGNATURE_HANDOVER) {
--		device->use_fastreg = 1;
--		device->reg_rdma_mem = isert_reg_frmr_pi;
--		device->unreg_rdma_mem = isert_unreg_frmr_pi;
-+	cap_flags = dev_attr->device_cap_flags;
-+	if (cap_flags & IB_DEVICE_MEM_MGT_EXTENSIONS &&
-+	    cap_flags & IB_DEVICE_LOCAL_DMA_LKEY) {
-+		if (cap_flags & IB_DEVICE_SIGNATURE_HANDOVER) {
-+			device->use_fastreg = 1;
-+			device->reg_rdma_mem = isert_reg_frmr_pi;
-+			device->unreg_rdma_mem = isert_unreg_frmr_pi;
-+		} else {
-+			device->use_fastreg = 1;
-+			device->reg_rdma_mem = isert_reg_frmr;
-+			device->unreg_rdma_mem = isert_unreg_frmr;
-+		}
- 	} else {
- 		device->use_fastreg = 0;
- 		device->reg_rdma_mem = isert_map_lkey;
-@@ -1782,6 +1794,50 @@ isert_unreg_frmr_pi(struct isert_cmd *isert_cmd, struct isert_conn *isert_conn)
- }
- 
- static void
-+isert_unreg_frmr(struct isert_cmd *isert_cmd, struct isert_conn *isert_conn)
-+{
-+	struct isert_rdma_wr *wr = &isert_cmd->rdma_wr;
-+
-+	if (wr->data.sg) {
-+		isert_dbg("Cmd %p unmap_sg op\n", isert_cmd);
-+		isert_unmap_data_buf(isert_conn, &wr->data);
-+	}
-+
-+	if (wr->send_wr) {
-+		int i;
-+
-+		isert_dbg("Cmd %p free send_wr wr_num %d\n", isert_cmd,
-+			  wr->send_wr_num);
-+		if (wr->iser_ib_op == ISER_IB_RDMA_READ) {
-+			spin_lock_bh(&isert_conn->pool_lock);
-+			for (i = 0; i < wr->send_wr_num; i += 3) {
-+				struct ib_send_wr *fr_wr;
-+				struct fast_reg_descriptor *fr_desc;
-+
-+				fr_wr = &wr->send_wr[i + 1];
-+				fr_desc = (struct fast_reg_descriptor *)
-+					  (uintptr_t) fr_wr->wr_id;
-+				isert_dbg("Cmd %p free fr_desc %p\n", isert_cmd,
-+					  fr_desc);
-+				list_add_tail(&fr_desc->list,
-+					      &isert_conn->fr_pool);
-+			}
-+			spin_unlock_bh(&isert_conn->pool_lock);
-+		}
-+		isert_dbg("Cmd %p free wr->send_wr\n", isert_cmd);
-+		kfree(wr->send_wr);
-+		wr->send_wr = NULL;
-+		wr->send_wr_num = 0;
-+	}
-+
-+	if (wr->ib_sge) {
-+		isert_dbg("Cmd %p free ib_sge\n", isert_cmd);
-+		kfree(wr->ib_sge);
-+		wr->ib_sge = NULL;
-+	}
-+}
-+
-+static void
- isert_put_cmd(struct isert_cmd *isert_cmd, bool comp_err)
- {
- 	struct iscsi_cmd *cmd = isert_cmd->iscsi_cmd;
-@@ -2958,6 +3014,162 @@ unmap_cmd:
- 	return ret;
- }
- 
-+static void
-+isert_build_inv_fr_wrs(struct isert_conn *isert_conn,
-+		       struct isert_cmd *isert_cmd, struct ib_sge *ib_sge,
-+		       struct ib_send_wr *inv_wr, u32 data_len, u32 offset)
-+{
-+	struct iscsi_cmd *cmd = isert_cmd->iscsi_cmd;
-+	struct scatterlist *sg_start;
-+	struct isert_device *device = isert_conn->device;
-+	struct ib_device *ib_dev = device->ib_device;
-+	struct ib_fast_reg_page_list *frpl;
-+	struct fast_reg_descriptor *fr_desc;
-+	struct ib_send_wr *fr_wr;
-+	u32 sg_off, page_off;
-+	int sg_nents;
-+	int frpl_len;
-+	unsigned long flags;
-+
-+	sg_off = offset / PAGE_SIZE;
-+	sg_start = &cmd->se_cmd.t_data_sg[sg_off];
-+	sg_nents = min(cmd->se_cmd.t_data_nents - sg_off,
-+		   isert_conn->max_frpl_len);
-+	page_off = offset % PAGE_SIZE;
-+
-+	spin_lock_irqsave(&isert_conn->pool_lock, flags);
-+	fr_desc = list_first_entry(&isert_conn->fr_pool,
-+				   struct fast_reg_descriptor, list);
-+	list_del(&fr_desc->list);
-+	spin_unlock_irqrestore(&isert_conn->pool_lock, flags);
-+	fr_desc->ind &= ~ISERT_DATA_KEY_VALID;
-+
-+	/* Build the INV WR */
-+	isert_inv_rkey(inv_wr, fr_desc->data_mr);
-+
-+	/* Build the FR WR */
-+	frpl = fr_desc->data_frpl;
-+	frpl_len = isert_map_fr_pagelist(ib_dev, sg_start, sg_nents,
-+					     &frpl->page_list[0]);
-+	fr_wr = inv_wr + 1;
-+	memset(fr_wr, 0, sizeof(fr_wr));
-+	fr_wr->wr_id = (uintptr_t)fr_desc;
-+	fr_wr->opcode = IB_WR_FAST_REG_MR;
-+	fr_wr->wr.fast_reg.iova_start = frpl->page_list[0] + page_off;
-+	fr_wr->wr.fast_reg.page_list = frpl;
-+	fr_wr->wr.fast_reg.page_list_len = frpl_len;
-+	fr_wr->wr.fast_reg.page_shift = PAGE_SHIFT;
-+	fr_wr->wr.fast_reg.length = data_len;
-+	fr_wr->wr.fast_reg.rkey = fr_desc->data_mr->rkey;
-+	fr_wr->wr.fast_reg.access_flags = IB_ACCESS_REMOTE_WRITE |
-+					  IB_ACCESS_LOCAL_WRITE;
-+
-+	ib_sge->addr = frpl->page_list[0] + page_off;
-+	ib_sge->length = data_len;
-+	ib_sge->lkey = fr_desc->data_mr->rkey;
-+
-+	/* Link up the wrs: inv->fr->read */
-+	inv_wr->next = fr_wr;
-+	fr_wr->next = fr_wr + 1;
-+}
-+
-+static int
-+isert_reg_read_frmr(struct iscsi_conn *conn, struct iscsi_cmd *cmd,
-+		    struct isert_rdma_wr *wr)
-+{
-+	struct se_cmd *se_cmd = &cmd->se_cmd;
-+	struct isert_cmd *isert_cmd = iscsit_priv_cmd(cmd);
-+	struct isert_conn *isert_conn = conn->context;
-+	struct isert_data_buf *data = &wr->data;
-+	struct ib_send_wr *send_wr = NULL;
-+	struct ib_sge *ib_sge;
-+	u32 offset, data_len, data_left, rdma_max_len, va_offset = 0;
-+	int ret = 0, i;
-+	u32 num_frwrs;
-+
-+	isert_cmd->tx_desc.isert_cmd = isert_cmd;
-+
-+	offset = cmd->write_data_done;
-+	ret = isert_map_data_buf(isert_conn, isert_cmd, se_cmd->t_data_sg,
-+				 se_cmd->t_data_nents, se_cmd->data_length,
-+				 offset, wr->iser_ib_op, &wr->data);
-+	if (ret)
-+		return ret;
-+
-+	data_left = data->len;
-+	offset = data->offset;
-+	num_frwrs = DIV_ROUND_UP(data->nents, isert_conn->max_frpl_len);
-+
-+	ib_sge = kcalloc(num_frwrs, sizeof(struct ib_sge), GFP_KERNEL);
-+	if (!ib_sge) {
-+		ret = -ENOMEM;
-+		goto unmap_cmd;
-+	}
-+	wr->ib_sge = ib_sge;
-+
-+	/* always do INV + FR + READ for now */
-+	wr->send_wr_num = 3 * num_frwrs;
-+	wr->send_wr = kcalloc(wr->send_wr_num, sizeof(struct ib_send_wr),
-+			      GFP_KERNEL);
-+	if (!wr->send_wr) {
-+		ret = -ENOMEM;
-+		goto unmap_cmd;
-+	}
-+	isert_info("num_frwrs %d send_wr_num %d\n", num_frwrs, wr->send_wr_num);
-+
-+	wr->isert_cmd = isert_cmd;
-+	rdma_max_len = isert_conn->max_frpl_len * PAGE_SIZE;
-+
-+	for (i = 0; i < wr->send_wr_num; i += 3) {
-+
-+		/*
-+		 * i = INV, i+1 = FR, i+2 = READ
-+		 */
-+		send_wr = &isert_cmd->rdma_wr.send_wr[i+2];
-+		data_len = min(data_left, rdma_max_len);
-+		isert_build_inv_fr_wrs(isert_conn, isert_cmd, ib_sge,
-+				       send_wr - 2, data_len, offset);
-+		send_wr->opcode = IB_WR_RDMA_READ;
-+		send_wr->wr.rdma.remote_addr = isert_cmd->write_va + va_offset;
-+		send_wr->wr.rdma.rkey = isert_cmd->write_stag;
-+		send_wr->sg_list = ib_sge;
-+		send_wr->num_sge = 1;
-+		if (i + 3 == wr->send_wr_num) {
-+			send_wr->wr_id = (uintptr_t)&isert_cmd->tx_desc;
-+			send_wr->send_flags = IB_SEND_SIGNALED;
-+		} else {
-+			send_wr->next = send_wr + 1;
-+		}
-+
-+		ib_sge++;
-+		offset += data_len;
-+		va_offset += data_len;
-+		data_left -= data_len;
-+	}
-+	isert_info("send_wr->send_flags 0x%x\n", send_wr->send_flags);
-+
-+	return 0;
-+unmap_cmd:
-+	isert_unmap_data_buf(isert_conn, data);
-+
-+	return ret;
-+}
-+
-+static int
-+isert_reg_frmr(struct iscsi_conn *conn, struct iscsi_cmd *cmd,
-+	       struct isert_rdma_wr *wr)
-+{
-+
-+	/*
-+	 * Use the local dma lkey for Writes since it only requires local
-+	 * access flags.  For reads, build up inv+fr+read
-+	 * wr chains as needed.
-+	 */
-+	if (wr->iser_ib_op == ISER_IB_RDMA_WRITE)
-+		return isert_map_lkey(conn, cmd, wr);
-+	return isert_reg_read_frmr(conn, cmd, wr);
-+}
-+
- static int
- isert_put_datain(struct iscsi_conn *conn, struct iscsi_cmd *cmd)
- {
+I'm not surprised since invalidate is sync. I belive you need to
+incorporate SEND WITH INVALIDATE to substantially recover this
+overhead.
+
+It would be neat if the RQ could continue to advance while waiting for
+the invalidate.. That looks almost doable..
+
+> I converted the RPC reply handler tasklet to a work queue context
+> to allow sleeping. A new .ro_unmap_sync method is invoked after
+> the RPC/RDMA header is parsed but before xprt_complete_rqst()
+> wakes up the waiting RPC.
+
+=2E. so the issue is the RPC must be substantially parsed to learn whic=
+h
+MR it is associated with to schedule the invalidate?=20
+
+> This is actually much more efficient than the current logic,
+> which serially does an ib_unmap_fmr() for each MR the RPC owns.
+> So FMR overall performs better with this change.
+
+Interesting..
+
+> Because the next RPC cannot awaken until the last send completes,
+> send queue accounting is based on RPC/RDMA credit flow control.
+
+So for FRWR the sync invalidate effectively guarentees all SQEs
+related to this RPC are flushed. That seems reasonable, if the number
+of SQEs and CQEs are properly sized in relation to the RPC slot count
+it should be workable..
+
+How does FMR and PHYS synchronize?
+
+> I=E2=80=99m sure there are some details here that still need to be
+> addressed, but this fixes the big problem with FRWR send queue
+> accounting, which was that LOCAL_INV WRs would continue to
+> consume SQEs while another RPC was allowed to start.
+
+Did you test without that artificial limit you mentioned before?
+
+I'm also wondering about this:
+
+> During some other testing I found that when a completion upcall
+> returns to the provider leaving CQEs still on the completion queue,
+> there is a non-zero probability that a completion will be lost.
+
+What does lost mean?
+
+The CQ is edge triggered, so if you don't drain it you might not get
+another timely CQ callback (which is bad), but CQEs themselves should
+not be lost.
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
