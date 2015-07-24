@@ -1,114 +1,120 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH V6 4/9] svcrdma: Use max_sge_rd for destination read depths
-Date: Fri, 24 Jul 2015 13:51:34 -0500
-Message-ID: <00d301d0c641$c2fcb6a0$48f623e0$@opengridcomputing.com>
-References: <20150724161331.25617.8475.stgit@build2.ogc.int> <20150724161837.25617.48584.stgit@build2.ogc.int>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH WIP 38/43] iser-target: Port to new memory registration
+ API
+Date: Fri, 24 Jul 2015 13:10:03 -0600
+Message-ID: <20150724191003.GA26225@obsidianresearch.com>
+References: <20150722170413.GE6443@infradead.org>
+ <55AFD3DC.8070508@dev.mellanox.co.il>
+ <20150722175755.GH26909@obsidianresearch.com>
+ <55B0C18B.4080901@dev.mellanox.co.il>
+ <20150723163124.GD25174@obsidianresearch.com>
+ <55B11D84.102@dev.mellanox.co.il>
+ <20150723185334.GB31346@obsidianresearch.com>
+ <DE0226A1-A7FC-4618-91F1-FE34347C252A@oracle.com>
+ <20150724162657.GA21473@obsidianresearch.com>
+ <903CDFB5-04FE-47B6-B044-E960E8A8BC4C@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150724161837.25617.48584.stgit-PBeJgSbIpn97NCTnQtmixQ@public.gmane.org>
-Content-Language: en-us
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <903CDFB5-04FE-47B6-B044-E960E8A8BC4C-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, Jul 24, 2015 at 01:46:05PM -0400, Chuck Lever wrote:
+> > I'm not surprised since invalidate is sync. I belive you need to
+> > incorporate SEND WITH INVALIDATE to substantially recover this
+> > overhead.
+>=20
+> I tried to find another kernel ULP using SEND WITH INVALIDATE, but
+> I didn=E2=80=99t see one. I assume you mean the NFS server would use =
+this
+> WR when replying, to knock down the RPC=E2=80=99s client MRs remotely=
+?
 
+Yes. I think the issue with it not being used in the kernel is mainly
+to do with lack of standardization. The verb cannot be used unless
+both sides negotiate it and perhaps the older RDMA protocols have not
+been revised to include that.
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Steve Wise
-> Sent: Friday, July 24, 2015 11:19 AM
-> To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-> Cc: infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org; sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
-> Subject: [PATCH V6 4/9] svcrdma: Use max_sge_rd for destination read depths
-> 
-> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> ---
-> 
->  include/linux/sunrpc/svc_rdma.h          |    1 +
->  net/sunrpc/xprtrdma/svc_rdma_recvfrom.c  |   12 +-----------
->  net/sunrpc/xprtrdma/svc_rdma_transport.c |    4 ++++
->  3 files changed, 6 insertions(+), 11 deletions(-)
-> 
-> diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
-> index cb94ee4..83211bc 100644
-> --- a/include/linux/sunrpc/svc_rdma.h
-> +++ b/include/linux/sunrpc/svc_rdma.h
-> @@ -132,6 +132,7 @@ struct svcxprt_rdma {
->  	struct list_head     sc_accept_q;	/* Conn. waiting accept */
->  	int		     sc_ord;		/* RDMA read limit */
->  	int                  sc_max_sge;
-> +	int                  sc_max_sge_rd;	/* max sge for read target */
-> 
->  	int                  sc_sq_depth;	/* Depth of SQ */
->  	atomic_t             sc_sq_count;	/* Number of SQ WR on queue */
-> diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-> index 2e1348b..cb51742 100644
-> --- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-> +++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-> @@ -115,15 +115,6 @@ static void rdma_build_arg_xdr(struct svc_rqst *rqstp,
->  	rqstp->rq_arg.tail[0].iov_len = 0;
->  }
-> 
-> -static int rdma_read_max_sge(struct svcxprt_rdma *xprt, int sge_count)
-> -{
-> -	if (!rdma_cap_read_multi_sge(xprt->sc_cm_id->device,
-> -				     xprt->sc_cm_id->port_num))
-> -		return 1;
-> -	else
-> -		return min_t(int, sge_count, xprt->sc_max_sge);
-> -}
-> -
->  /* Issue an RDMA_READ using the local lkey to map the data sink */
->  int rdma_read_chunk_lcl(struct svcxprt_rdma *xprt,
->  			struct svc_rqst *rqstp,
-> @@ -144,8 +135,7 @@ int rdma_read_chunk_lcl(struct svcxprt_rdma *xprt,
-> 
->  	ctxt->direction = DMA_FROM_DEVICE;
->  	ctxt->read_hdr = head;
-> -	pages_needed =
-> -		min_t(int, pages_needed, rdma_read_max_sge(xprt, pages_needed));
-> +	pages_needed = min_t(int, pages_needed, xprt->sc_max_sge_rd);
->  	read = min_t(int, pages_needed << PAGE_SHIFT, rs_length);
-> 
->  	for (pno = 0; pno < pages_needed; pno++) {
-> diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-> index 6b36279..fdc850f 100644
-> --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
-> +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-> @@ -872,6 +872,8 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
->  	 * capabilities of this particular device */
->  	newxprt->sc_max_sge = min((size_t)devattr.max_sge,
->  				  (size_t)RPCSVC_MAXPAGES);
-> +	newxprt->sc_max_sge_rd = min_t(size_t, devattr.max_sge_rd,
-> +				       RPCSVC_MAXPAGES);
->  	newxprt->sc_max_requests = min((size_t)devattr.max_qp_wr,
->  				   (size_t)svcrdma_max_requests);
->  	newxprt->sc_sq_depth = RPCRDMA_SQ_DEPTH_MULT * newxprt->sc_max_requests;
-> @@ -1046,6 +1048,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
->  		"    remote_ip       : %pI4\n"
->  		"    remote_port     : %d\n"
->  		"    max_sge         : %d\n"
-> +		"    max_sge_rd      : %d\n"
->  		"    sq_depth        : %d\n"
->  		"    max_requests    : %d\n"
->  		"    ord             : %d\n",
-> @@ -1059,6 +1062,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
->  		ntohs(((struct sockaddr_in *)&newxprt->sc_cm_id->
->  		       route.addr.dst_addr)->sin_port),
->  		newxprt->sc_max_sge,
-> +		newxprt->sc_max_sge_rd,
->  		newxprt->sc_sq_depth,
->  		newxprt->sc_max_requests,
->  		newxprt->sc_ord);
-> 
+=46or simple testing purposes it shouldn't be too hard to force it to
+get an idea if it is worth perusing. On the RECV work completion check
+if the right rkey was invalidated and skip the invalidation
+step. Presumably the HCA does all this internally very quickly..
+=20
+> I may not have understood your comment.
 
-With the above patch change, we have no more users of the recently created rdma_cap_read_multi_sge().  Should I add a patch to remove it?
+Okay, I didn't looke closely at the entire series together..
 
+> Only the RPC/RDMA header has to be parsed, but yes. The needed
+> parsing is handled in rpcrdma_reply_handler right before the
+> .ro_unmap_unsync call.
+
+Right, okay, if this could be done in the rq callback itself rather
+than bounce to a wq and immediately turn around the needed invalidate
+posts you'd get back a little more overhead by reducing the time to
+turn it around... Then bounce to the wq to complete from the SQ
+callback ?
+
+> > Did you test without that artificial limit you mentioned before?
+>=20
+> Yes. No problems now, the limit is removed in the last patch
+> in that series.
+
+Okay, so that was just overflowing the sq due to not accounting..
+
+> >> During some other testing I found that when a completion upcall
+> >> returns to the provider leaving CQEs still on the completion queue=
+,
+> >> there is a non-zero probability that a completion will be lost.
+> >=20
+> > What does lost mean?
+>=20
+> Lost means a WC in the CQ is skipped by ib_poll_cq().
+>=20
+> In other words, I expected that during the next upcall,
+> ib_poll_cq() would return WCs that were not processed, starting
+> with the last one on the CQ when my upcall handler returned.
+
+Yes, this is what it should do. I wouldn't expect a timely upcall, but
+none should be lost.
+
+> I found this by intentionally having the completion handler
+> process only one or two WCs and then return.
+>=20
+> > The CQ is edge triggered, so if you don't drain it you might not ge=
+t
+> > another timely CQ callback (which is bad), but CQEs themselves shou=
+ld
+> > not be lost.
+>=20
+> I=E2=80=99m not sure I fully understand this problem, it might
+> even be my misuderstanding about ib_poll_cq(). But forcing
+> the completion upcall handler to completely drain the CQ
+> during each upcall prevents the issue.
+
+CQs should never be lost.
+
+The idea that you can completely drain the CQ during the upcall is
+inherently racey, so this cannot be the answer to whatever the problem
+is..
+
+Is there any chance this is still an artifact of the lazy SQE flow
+control? The RDMA buffer SQE recycling is solved by the sync
+invalidate, but workloads that don't use RDMA buffers (ie SEND only)
+will still run without proper flow control...
+
+If you are totally certain a CQ was dropped from ib_poll_cq, and that
+the SQ is not overflowing by strict accounting, then I'd say driver
+problem, but the odds of having an undetected driver problem like that
+at this point seem somehow small...
+
+Jason
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
