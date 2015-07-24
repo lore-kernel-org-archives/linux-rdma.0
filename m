@@ -1,75 +1,72 @@
-From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: [PATCH V6 9/9] isert: Support iWARP transports using FRMRs
-Date: Fri, 24 Jul 2015 14:57:45 -0500
-Message-ID: <00db01d0c64b$01f40300$05dc0900$@opengridcomputing.com>
-References: <20150724161331.25617.8475.stgit@build2.ogc.int> <20150724161904.25617.85015.stgit@build2.ogc.int> <20150724165721.GC25480@obsidianresearch.com> <00ce01d0c641$493ea300$dbbbe900$@opengridcomputing.com> <20150724192411.GC26225@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20150724192411.GC26225@obsidianresearch.com>
-Content-Language: en-us
-Sender: target-devel-owner@vger.kernel.org
-To: 'Jason Gunthorpe' <jgunthorpe@obsidianresearch.com>
-Cc: dledford@redhat.com, infinipath@intel.com, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, bfields@fieldses.org
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH WIP 38/43] iser-target: Port to new memory registration API
+Date: Fri, 24 Jul 2015 15:59:06 -0400
+Message-ID: <A1A0BF6E-992A-4B34-8D24-EA8AA8D6983B@oracle.com>
+References: <20150722170413.GE6443@infradead.org> <55AFD3DC.8070508@dev.mellanox.co.il> <20150722175755.GH26909@obsidianresearch.com> <55B0C18B.4080901@dev.mellanox.co.il> <20150723163124.GD25174@obsidianresearch.com> <55B11D84.102@dev.mellanox.co.il> <20150723185334.GB31346@obsidianresearch.com> <DE0226A1-A7FC-4618-91F1-FE34347C252A@oracle.com> <20150724162657.GA21473@obsidianresearch.com> <903CDFB5-04FE-47B6-B044-E960E8A8BC4C@oracle.com> <20150724191003.GA26225@obsidianresearch.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150724191003.GA26225-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
+On Jul 24, 2015, at 3:10 PM, Jason Gunthorpe <jgunthorpe@obsidianresear=
+ch.com> wrote:
 
-> -----Original Message-----
-> From: Jason Gunthorpe [mailto:jgunthorpe@obsidianresearch.com]
-> Sent: Friday, July 24, 2015 2:24 PM
-> To: Steve Wise
-> Cc: dledford@redhat.com; infinipath@intel.com; sagig@mellanox.com; ogerlitz@mellanox.com; roid@mellanox.com; linux-
-> rdma@vger.kernel.org; eli@mellanox.com; target-devel@vger.kernel.org; linux-nfs@vger.kernel.org; bfields@fieldses.org
-> Subject: Re: [PATCH V6 9/9] isert: Support iWARP transports using FRMRs
-> 
-> On Fri, Jul 24, 2015 at 01:48:09PM -0500, Steve Wise wrote:
-> > > The use of FRWR for RDMA READ should be iWarp specific, IB shouldn't
-> > > pay that overhead. I am expecting to see a cap_rdma_read_rkey or
-> > > something in here ?
-> >
-> > Ok.  But cap_rdma_read_rkey() doesn't really describe the
-> > requirement.  The requirement is rkey + REMOTE_WRITE.  So it is more
-> > like rdma_cap_read_requires_remote_write() which is ugly and too
-> > long (but descriptive)...
-> 
-> I don't care much what name you pick, just jam something like this in
-> the description
-> 
->  If set then RDMA_READ must be performed by mapping the local
->  buffers through a rkey MR with ACCESS_REMOTE_WRITE enabled.
->  The rkey of this MR should be passed in as the sg_lists's lkey for
->  IB_WR_RDMA_READ_WITH_INV.
-> 
->  FRWR should be used to register the buffer in the send queue,
->  and the read should be issued using IB_WR_RDMA_READ_WITH_INV (xx
->  can we just implicitly rely on this? Are there any iWarp cards that
->  support FRWR but not WITH_INV?)
->
+> On Fri, Jul 24, 2015 at 01:46:05PM -0400, Chuck Lever wrote:
+>>> I'm not surprised since invalidate is sync. I belive you need to
+>>> incorporate SEND WITH INVALIDATE to substantially recover this
+>>> overhead.
+>>=20
+>> I tried to find another kernel ULP using SEND WITH INVALIDATE, but
+>> I didn=92t see one. I assume you mean the NFS server would use this
+>> WR when replying, to knock down the RPC=92s client MRs remotely?
+>=20
+> Yes. I think the issue with it not being used in the kernel is mainly
+> to do with lack of standardization. The verb cannot be used unless
+> both sides negotiate it and perhaps the older RDMA protocols have not
+> been revised to include that.
 
-No.  And iWARP devices must support READ_WITH_INV from my reading of the iWARP verbs spec.  
+And RPC-over-RDMA version 1 does not have any way to signal that
+the server has invalidated the MRs. Such signaling would be a
+pre-requisite to allow the Linux NFS/RDMA client to interoperate
+with non-Linux NFS/RDMA servers that do not have such support.
 
-I will add all these comments and make use of READ_WITH_INV.
 
->  Finally, only a single SGE can be used with RDMA_READ, all scattering
->  must be accomplished with the MR.
-> 
-> This quite dramatically changes what is an allowed scatter for the
-> transfer, IB can support arbitary unaligned S/G lists, while this is
-> now forced into gapless page aligned elements.
-> 
-> Your patch takes care of this? And only impacts IB?
+>> Only the RPC/RDMA header has to be parsed, but yes. The needed
+>> parsing is handled in rpcrdma_reply_handler right before the
+>> .ro_unmap_unsync call.
+>=20
+> Right, okay, if this could be done in the rq callback itself rather
+> than bounce to a wq and immediately turn around the needed invalidate
+> posts you'd get back a little more overhead by reducing the time to
+> turn it around... Then bounce to the wq to complete from the SQ
+> callback ?
 
-Did you mean "only impacts iWARP?"  
+=46or FRWR, you could post LINV from the receive completion upcall
+handler, and handle the rest of the invalidation from the send
+completion upcall, then poke the RPC reply handler.
 
-Yes the patch takes care of sg->fr page list packing. And it uses the existing isert_map_fr_pagelist() to pack the sg into the
-fastreg page list.  This same routine is used by the IB FRMR/PI reg/unreg routines as well.
+But this wouldn=92t work at all for FMR, whose unmap verb is
+synchronous, would it?
 
-None of this impacts isert over IB, assuming the suggested change above to only use the new reg/unreg functions for devices that
-need the iwarp style of read. IE IB devices will either use the existing FRMR/PI methods if they support FRMR/LOCAL_DMA_LKEY/PI
-(mlx5) or they will use the existing DMA_MR methods (all the rest of the IB devices).  IW devices will get my new reg/unreg
-methods...
+I=92m not sure we=92d buy more than a few microseconds here, and
+the receive upcall is single-threaded.
 
-Steve.
+I=92ll move the =93lost WC=94 discussion to another thread.
+
+
+--
+Chuck Lever
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
