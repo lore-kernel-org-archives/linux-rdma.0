@@ -1,55 +1,45 @@
-From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: [PATCH V6 1/9] RDMA/iser: Limit sg tablesize and max_sectors to device fastreg max depth
-Date: Fri, 24 Jul 2015 13:40:17 -0500
-Message-ID: <00ca01d0c640$2f813d70$8e83b850$@opengridcomputing.com>
-References: <20150724161331.25617.8475.stgit@build2.ogc.int> <20150724161820.25617.63886.stgit@build2.ogc.int> <20150724164123.GA25480@obsidianresearch.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH V6 8/9] isert: Use local_dma_lkey whenever possible.
+Date: Fri, 24 Jul 2015 13:41:32 -0500
+Message-ID: <00cc01d0c640$5c4c3850$14e4a8f0$@opengridcomputing.com>
+References: <20150724161331.25617.8475.stgit@build2.ogc.int> <20150724161859.25617.17286.stgit@build2.ogc.int> <20150724164909.GB25480@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20150724164123.GA25480@obsidianresearch.com>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150724164909.GB25480-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-us
-Sender: target-devel-owner@vger.kernel.org
-To: 'Jason Gunthorpe' <jgunthorpe@obsidianresearch.com>
-Cc: dledford@redhat.com, infinipath@intel.com, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, bfields@fieldses.org
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
 
 > -----Original Message-----
-> From: Jason Gunthorpe [mailto:jgunthorpe@obsidianresearch.com]
-> Sent: Friday, July 24, 2015 11:41 AM
+> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
+> Sent: Friday, July 24, 2015 11:49 AM
 > To: Steve Wise
-> Cc: dledford@redhat.com; infinipath@intel.com; sagig@mellanox.com; ogerlitz@mellanox.com; roid@mellanox.com; linux-
-> rdma@vger.kernel.org; eli@mellanox.com; target-devel@vger.kernel.org; linux-nfs@vger.kernel.org; bfields@fieldses.org
-> Subject: Re: [PATCH V6 1/9] RDMA/iser: Limit sg tablesize and max_sectors to device fastreg max depth
+> Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org; sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; linux-
+> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+> Subject: Re: [PATCH V6 8/9] isert: Use local_dma_lkey whenever possible.
 > 
-> On Fri, Jul 24, 2015 at 11:18:21AM -0500, Steve Wise wrote:
-> > Currently the sg tablesize, which dictates fast register page list
-> > depth to use, does not take into account the limits of the rdma device.
-> > So adjust it once we discover the device fastreg max depth limit.  Also
-> > adjust the max_sectors based on the resulting sg tablesize.
+> On Fri, Jul 24, 2015 at 11:18:59AM -0500, Steve Wise wrote:
+> > No need to allocate a dma_mr if the device provides a local_dma_lkey.
 > 
-> Huh. How does this relate to the max_page_list_len argument:
+> It is probably safe to put your series on top of mine, which
+> incorporates this patch already.
 > 
->  struct ib_mr *ib_alloc_fast_reg_mr(struct ib_pd *pd, int max_page_list_len)
+> https://github.com/jgunthorpe/linux/commits/remove-ib_get_dma_mr
 > 
-> Shouldn't max_fast_reg_page_list_len be checked during the above?
-> 
-> Ie does this still make sense:
-> 
-> drivers/infiniband/ulp/iser/iser_verbs.c:       desc->data_mr = ib_alloc_fast_reg_mr(pd, ISCSI_ISER_SG_TABLESIZE + 1);
-> 
-> ?
-> 
-> The only ULP that checks this is SRP, so basically, all our ULPs are
-> probably quietly broken? cxgb3 has a limit of 10 (!?!?!!)
-> 
+> Jason
 
-Yea seems like some drivers need to enforce this in ib_alloc_fast_reg_mr() as well as ib_alloc_fast_reg_page_list(), and ULPs need
-to not exceed the device max.
+I will rebase on this. 
 
-I will fix iser to limit the mr and page_list allocation based on the device max.
+ 
 
-Steve.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
