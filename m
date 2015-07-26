@@ -1,7 +1,7 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 11/13] IB/cma: Use found net_dev for passive connections
-Date: Sun, 26 Jul 2015 18:33:50 +0300
-Message-ID: <1437924832-18327-12-git-send-email-haggaie@mellanox.com>
+Subject: [PATCH v2 13/13] IB/cm: Remove compare_data checks
+Date: Sun, 26 Jul 2015 18:33:52 +0300
+Message-ID: <1437924832-18327-14-git-send-email-haggaie@mellanox.com>
 References: <1437924832-18327-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1437924832-18327-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,186 +10,337 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When receiving a new connection in cma_req_handler, we actually already
-know the net_dev that is used for the connection's creation. Instead of
-calling cma_translate_addr to resolve the new connection id's source
-address, just use the net_dev that was found.
+Now that there are no ib_cm clients using the compare_data feature for
+matching IB CM requests' private data, remove the compare_data parameter of
+ib_cm_listen and remove the code implementing the feature.
 
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c | 74 +++++++++++++++++++++++++++----------------
- 1 file changed, 47 insertions(+), 27 deletions(-)
+ drivers/infiniband/core/cm.c            | 109 ++++++--------------------------
+ drivers/infiniband/core/ucm.c           |   3 +-
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c |   2 +-
+ drivers/infiniband/ulp/srpt/ib_srpt.c   |   2 +-
+ include/rdma/ib_cm.h                    |  14 +---
+ 5 files changed, 23 insertions(+), 107 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 42f412fde064..1c43b58a8eb2 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -1273,33 +1273,31 @@ static struct rdma_id_private *cma_find_listener(
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index a05c17b336aa..73803a55edd6 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -222,7 +222,6 @@ struct cm_id_private {
+ 	/* todo: use alternate port on send failure */
+ 	struct cm_av av;
+ 	struct cm_av alt_av;
+-	struct ib_cm_compare_data *compare_data;
+ 
+ 	void *private_data;
+ 	__be64 tid;
+@@ -443,40 +442,6 @@ static struct cm_id_private * cm_acquire_id(__be32 local_id, __be32 remote_id)
+ 	return cm_id_priv;
  }
  
- static struct rdma_id_private *cma_id_from_event(struct ib_cm_id *cm_id,
--						 struct ib_cm_event *ib_event)
-+						 struct ib_cm_event *ib_event,
-+						 struct net_device **net_dev)
- {
- 	struct cma_req_info req;
- 	struct rdma_bind_list *bind_list;
- 	struct rdma_id_private *id_priv;
--	struct net_device *net_dev;
- 	int err;
- 
- 	err = cma_save_req_info(ib_event, &req);
- 	if (err)
- 		return ERR_PTR(err);
- 
--	net_dev = cma_get_net_dev(ib_event, &req);
--	if (IS_ERR(net_dev)) {
--		if (PTR_ERR(net_dev) == -EAFNOSUPPORT) {
-+	*net_dev = cma_get_net_dev(ib_event, &req);
-+	if (IS_ERR(*net_dev)) {
-+		if (PTR_ERR(*net_dev) == -EAFNOSUPPORT) {
- 			/* Assuming the protocol is AF_IB */
--			net_dev = NULL;
-+			*net_dev = NULL;
- 		} else {
--			return ERR_PTR(PTR_ERR(net_dev));
-+			return ERR_PTR(PTR_ERR(*net_dev));
- 		}
- 	}
- 
- 	bind_list = cma_ps_find(rdma_ps_from_service_id(req.service_id),
- 				cma_port_from_service_id(req.service_id));
--	id_priv = cma_find_listener(bind_list, cm_id, ib_event, &req, net_dev);
+-static void cm_mask_copy(u32 *dst, const u32 *src, const u32 *mask)
+-{
+-	int i;
 -
--	dev_put(net_dev);
-+	id_priv = cma_find_listener(bind_list, cm_id, ib_event, &req, *net_dev);
+-	for (i = 0; i < IB_CM_COMPARE_SIZE; i++)
+-		dst[i] = src[i] & mask[i];
+-}
+-
+-static int cm_compare_data(struct ib_cm_compare_data *src_data,
+-			   struct ib_cm_compare_data *dst_data)
+-{
+-	u32 src[IB_CM_COMPARE_SIZE];
+-	u32 dst[IB_CM_COMPARE_SIZE];
+-
+-	if (!src_data || !dst_data)
+-		return 0;
+-
+-	cm_mask_copy(src, src_data->data, dst_data->mask);
+-	cm_mask_copy(dst, dst_data->data, src_data->mask);
+-	return memcmp(src, dst, sizeof(src));
+-}
+-
+-static int cm_compare_private_data(u32 *private_data,
+-				   struct ib_cm_compare_data *dst_data)
+-{
+-	u32 src[IB_CM_COMPARE_SIZE];
+-
+-	if (!dst_data)
+-		return 0;
+-
+-	cm_mask_copy(src, private_data, dst_data->mask);
+-	return memcmp(src, dst_data->data, sizeof(src));
+-}
+-
+ /*
+  * Trivial helpers to strip endian annotation and compare; the
+  * endianness doesn't actually matter since we just need a stable
+@@ -509,18 +474,14 @@ static struct cm_id_private * cm_insert_listen(struct cm_id_private *cm_id_priv)
+ 	struct cm_id_private *cur_cm_id_priv;
+ 	__be64 service_id = cm_id_priv->id.service_id;
+ 	__be64 service_mask = cm_id_priv->id.service_mask;
+-	int data_cmp;
  
- 	return id_priv;
- }
-@@ -1549,7 +1547,8 @@ out:
- }
+ 	while (*link) {
+ 		parent = *link;
+ 		cur_cm_id_priv = rb_entry(parent, struct cm_id_private,
+ 					  service_node);
+-		data_cmp = cm_compare_data(cm_id_priv->compare_data,
+-					   cur_cm_id_priv->compare_data);
+ 		if ((cur_cm_id_priv->id.service_mask & service_id) ==
+ 		    (service_mask & cur_cm_id_priv->id.service_id) &&
+-		    (cm_id_priv->id.device == cur_cm_id_priv->id.device) &&
+-		    !data_cmp)
++		    (cm_id_priv->id.device == cur_cm_id_priv->id.device))
+ 			return cur_cm_id_priv;
  
- static struct rdma_id_private *cma_new_conn_id(struct rdma_cm_id *listen_id,
--					       struct ib_cm_event *ib_event)
-+					       struct ib_cm_event *ib_event,
-+					       struct net_device *net_dev)
- {
- 	struct rdma_id_private *id_priv;
- 	struct rdma_cm_id *id;
-@@ -1581,14 +1580,15 @@ static struct rdma_id_private *cma_new_conn_id(struct rdma_cm_id *listen_id,
- 	if (rt->num_paths == 2)
- 		rt->path_rec[1] = *ib_event->param.req_rcvd.alternate_path;
- 
--	if (cma_any_addr(cma_src_addr(id_priv))) {
--		rt->addr.dev_addr.dev_type = ARPHRD_INFINIBAND;
--		rdma_addr_set_sgid(&rt->addr.dev_addr, &rt->path_rec[0].sgid);
--		ib_addr_set_pkey(&rt->addr.dev_addr, be16_to_cpu(rt->path_rec[0].pkey));
--	} else {
--		ret = cma_translate_addr(cma_src_addr(id_priv), &rt->addr.dev_addr);
-+	if (net_dev) {
-+		ret = rdma_copy_addr(&rt->addr.dev_addr, net_dev, NULL);
- 		if (ret)
- 			goto err;
-+	} else {
-+		/* An AF_IB connection */
-+		WARN_ON_ONCE(ss_family != AF_IB);
-+
-+		cma_translate_ib((struct sockaddr_ib *)cma_src_addr(id_priv), &rt->addr.dev_addr);
+ 		if (cm_id_priv->id.device < cur_cm_id_priv->id.device)
+@@ -531,8 +492,6 @@ static struct cm_id_private * cm_insert_listen(struct cm_id_private *cm_id_priv)
+ 			link = &(*link)->rb_left;
+ 		else if (be64_gt(service_id, cur_cm_id_priv->id.service_id))
+ 			link = &(*link)->rb_right;
+-		else if (data_cmp < 0)
+-			link = &(*link)->rb_left;
+ 		else
+ 			link = &(*link)->rb_right;
  	}
- 	rdma_addr_set_dgid(&rt->addr.dev_addr, &rt->path_rec[0].dgid);
- 
-@@ -1601,7 +1601,8 @@ err:
+@@ -542,20 +501,16 @@ static struct cm_id_private * cm_insert_listen(struct cm_id_private *cm_id_priv)
  }
  
- static struct rdma_id_private *cma_new_udp_id(struct rdma_cm_id *listen_id,
--					      struct ib_cm_event *ib_event)
-+					      struct ib_cm_event *ib_event,
-+					      struct net_device *net_dev)
+ static struct cm_id_private * cm_find_listen(struct ib_device *device,
+-					     __be64 service_id,
+-					     u32 *private_data)
++					     __be64 service_id)
  {
- 	struct rdma_id_private *id_priv;
- 	struct rdma_cm_id *id;
-@@ -1620,10 +1621,17 @@ static struct rdma_id_private *cma_new_udp_id(struct rdma_cm_id *listen_id,
- 			      ib_event->param.sidr_req_rcvd.service_id))
- 		goto err;
+ 	struct rb_node *node = cm.listen_service_table.rb_node;
+ 	struct cm_id_private *cm_id_priv;
+-	int data_cmp;
  
--	if (!cma_any_addr((struct sockaddr *) &id->route.addr.src_addr)) {
--		ret = cma_translate_addr(cma_src_addr(id_priv), &id->route.addr.dev_addr);
-+	if (net_dev) {
-+		ret = rdma_copy_addr(&id->route.addr.dev_addr, net_dev, NULL);
- 		if (ret)
- 			goto err;
-+	} else {
-+		/* An AF_IB connection */
-+		WARN_ON_ONCE(ss_family != AF_IB);
-+
-+		if (!cma_any_addr(cma_src_addr(id_priv)))
-+			cma_translate_ib((struct sockaddr_ib *)cma_src_addr(id_priv),
-+					 &id->route.addr.dev_addr);
+ 	while (node) {
+ 		cm_id_priv = rb_entry(node, struct cm_id_private, service_node);
+-		data_cmp = cm_compare_private_data(private_data,
+-						   cm_id_priv->compare_data);
+ 		if ((cm_id_priv->id.service_mask & service_id) ==
+ 		     cm_id_priv->id.service_id &&
+-		    (cm_id_priv->id.device == device) && !data_cmp)
++		    (cm_id_priv->id.device == device))
+ 			return cm_id_priv;
+ 
+ 		if (device < cm_id_priv->id.device)
+@@ -566,8 +521,6 @@ static struct cm_id_private * cm_find_listen(struct ib_device *device,
+ 			node = node->rb_left;
+ 		else if (be64_gt(service_id, cm_id_priv->id.service_id))
+ 			node = node->rb_right;
+-		else if (data_cmp < 0)
+-			node = node->rb_left;
+ 		else
+ 			node = node->rb_right;
  	}
- 
- 	id_priv->state = RDMA_CM_CONNECT;
-@@ -1661,28 +1669,33 @@ static int cma_req_handler(struct ib_cm_id *cm_id, struct ib_cm_event *ib_event)
+@@ -939,7 +892,6 @@ retest:
+ 	wait_for_completion(&cm_id_priv->comp);
+ 	while ((work = cm_dequeue_work(cm_id_priv)) != NULL)
+ 		cm_free_work(work);
+-	kfree(cm_id_priv->compare_data);
+ 	kfree(cm_id_priv->private_data);
+ 	kfree(cm_id_priv);
+ }
+@@ -962,20 +914,11 @@ EXPORT_SYMBOL(ib_destroy_cm_id);
+  *   range of service IDs.  If set to 0, the service ID is matched
+  *   exactly.  This parameter is ignored if %service_id is set to
+  *   IB_CM_ASSIGN_SERVICE_ID.
+- * @compare_data: This parameter is optional.  It specifies data that must
+- *   appear in the private data of a connection request for the specified
+- *   listen request.
+- * @lock: If set, lock the cm.lock spin-lock when adding the id to the
+- *   listener tree. When false, the caller must already hold the spin-lock,
+- *   and compare_data must be NULL.
+  */
+ static int __ib_cm_listen(struct ib_cm_id *cm_id, __be64 service_id,
+-			  __be64 service_mask,
+-			  struct ib_cm_compare_data *compare_data,
+-			  bool lock)
++			  __be64 service_mask)
  {
- 	struct rdma_id_private *listen_id, *conn_id;
- 	struct rdma_cm_event event;
-+	struct net_device *net_dev;
- 	int offset, ret;
+ 	struct cm_id_private *cm_id_priv, *cur_cm_id_priv;
+-	unsigned long flags = 0;
+ 	int ret = 0;
  
--	listen_id = cma_id_from_event(cm_id, ib_event);
-+	listen_id = cma_id_from_event(cm_id, ib_event, &net_dev);
- 	if (IS_ERR(listen_id))
- 		return PTR_ERR(listen_id);
+ 	service_mask = service_mask ? service_mask : ~cpu_to_be64(0);
+@@ -988,22 +931,9 @@ static int __ib_cm_listen(struct ib_cm_id *cm_id, __be64 service_id,
+ 	if (cm_id->state != IB_CM_IDLE)
+ 		return -EINVAL;
  
--	if (!cma_check_req_qp_type(&listen_id->id, ib_event))
--		return -EINVAL;
-+	if (!cma_check_req_qp_type(&listen_id->id, ib_event)) {
-+		ret = -EINVAL;
-+		goto net_dev_put;
-+	}
- 
--	if (cma_disable_callback(listen_id, RDMA_CM_LISTEN))
--		return -ECONNABORTED;
-+	if (cma_disable_callback(listen_id, RDMA_CM_LISTEN)) {
-+		ret = -ECONNABORTED;
-+		goto net_dev_put;
-+	}
- 
- 	memset(&event, 0, sizeof event);
- 	offset = cma_user_data_offset(listen_id);
- 	event.event = RDMA_CM_EVENT_CONNECT_REQUEST;
- 	if (ib_event->event == IB_CM_SIDR_REQ_RECEIVED) {
--		conn_id = cma_new_udp_id(&listen_id->id, ib_event);
-+		conn_id = cma_new_udp_id(&listen_id->id, ib_event, net_dev);
- 		event.param.ud.private_data = ib_event->private_data + offset;
- 		event.param.ud.private_data_len =
- 				IB_CM_SIDR_REQ_PRIVATE_DATA_SIZE - offset;
- 	} else {
--		conn_id = cma_new_conn_id(&listen_id->id, ib_event);
-+		conn_id = cma_new_conn_id(&listen_id->id, ib_event, net_dev);
- 		cma_set_req_event_data(&event, &ib_event->param.req_rcvd,
- 				       ib_event->private_data, offset);
+-	if (compare_data) {
+-		cm_id_priv->compare_data = kzalloc(sizeof *compare_data,
+-						   GFP_KERNEL);
+-		if (!cm_id_priv->compare_data)
+-			return -ENOMEM;
+-		cm_mask_copy(cm_id_priv->compare_data->data,
+-			     compare_data->data, compare_data->mask);
+-		memcpy(cm_id_priv->compare_data->mask, compare_data->mask,
+-		       sizeof(compare_data->mask));
+-	}
+-
+ 	cm_id->state = IB_CM_LISTEN;
+-	if (lock)
+-		spin_lock_irqsave(&cm.lock, flags);
+-
+ 	++cm_id_priv->listen_sharecount;
++
+ 	if (service_id == IB_CM_ASSIGN_SERVICE_ID) {
+ 		cm_id->service_id = cpu_to_be64(cm.listen_service_id++);
+ 		cm_id->service_mask = ~cpu_to_be64(0);
+@@ -1016,22 +946,21 @@ static int __ib_cm_listen(struct ib_cm_id *cm_id, __be64 service_id,
+ 	if (cur_cm_id_priv) {
+ 		cm_id->state = IB_CM_IDLE;
+ 		--cm_id_priv->listen_sharecount;
+-		kfree(cm_id_priv->compare_data);
+-		cm_id_priv->compare_data = NULL;
+ 		ret = -EBUSY;
  	}
-@@ -1720,6 +1733,8 @@ static int cma_req_handler(struct ib_cm_id *cm_id, struct ib_cm_event *ib_event)
- 	mutex_unlock(&conn_id->handler_mutex);
- 	mutex_unlock(&listen_id->handler_mutex);
- 	cma_deref_id(conn_id);
-+	if (net_dev)
-+		dev_put(net_dev);
- 	return 0;
- 
- err3:
-@@ -1733,6 +1748,11 @@ err1:
- 	mutex_unlock(&listen_id->handler_mutex);
- 	if (conn_id)
- 		rdma_destroy_id(&conn_id->id);
-+
-+net_dev_put:
-+	if (net_dev)
-+		dev_put(net_dev);
-+
+-
+-	if (lock)
+-		spin_unlock_irqrestore(&cm.lock, flags);
+-
  	return ret;
  }
  
+-int ib_cm_listen(struct ib_cm_id *cm_id, __be64 service_id, __be64 service_mask,
+-		 struct ib_cm_compare_data *compare_data)
++int ib_cm_listen(struct ib_cm_id *cm_id, __be64 service_id, __be64 service_mask)
+ {
+-	return __ib_cm_listen(cm_id, service_id, service_mask, compare_data,
+-			      true);
++	unsigned long flags;
++	int ret;
++
++	spin_lock_irqsave(&cm.lock, flags);
++	ret = __ib_cm_listen(cm_id, service_id, service_mask);
++	spin_unlock_irqrestore(&cm.lock, flags);
++
++	return ret;
+ }
+ EXPORT_SYMBOL(ib_cm_listen);
+ 
+@@ -1075,7 +1004,7 @@ struct ib_cm_id *ib_cm_insert_listen(struct ib_device *device,
+ 		goto new_id;
+ 
+ 	/* Find an existing ID */
+-	cm_id_priv = cm_find_listen(device, service_id, NULL);
++	cm_id_priv = cm_find_listen(device, service_id);
+ 	if (cm_id_priv) {
+ 		if (cm_id->cm_handler != cm_handler || cm_id->context) {
+ 			/* Sharing an ib_cm_id with different handlers is not
+@@ -1094,7 +1023,7 @@ struct ib_cm_id *ib_cm_insert_listen(struct ib_device *device,
+ 
+ new_id:
+ 	/* Use newly created ID */
+-	err = __ib_cm_listen(cm_id, service_id, service_mask, NULL, false);
++	err = __ib_cm_listen(cm_id, service_id, service_mask);
+ 
+ 	spin_unlock_irqrestore(&cm.lock, flags);
+ 
+@@ -1619,8 +1548,7 @@ static struct cm_id_private * cm_match_req(struct cm_work *work,
+ 
+ 	/* Find matching listen request. */
+ 	listen_cm_id_priv = cm_find_listen(cm_id_priv->id.device,
+-					   req_msg->service_id,
+-					   req_msg->private_data);
++					   req_msg->service_id);
+ 	if (!listen_cm_id_priv) {
+ 		cm_cleanup_timewait(cm_id_priv->timewait_info);
+ 		spin_unlock_irq(&cm.lock);
+@@ -3168,8 +3096,7 @@ static int cm_sidr_req_handler(struct cm_work *work)
+ 	}
+ 	cm_id_priv->id.state = IB_CM_SIDR_REQ_RCVD;
+ 	cur_cm_id_priv = cm_find_listen(cm_id->device,
+-					sidr_req_msg->service_id,
+-					sidr_req_msg->private_data);
++					sidr_req_msg->service_id);
+ 	if (!cur_cm_id_priv) {
+ 		spin_unlock_irq(&cm.lock);
+ 		cm_reject_sidr_req(cm_id_priv, IB_SIDR_UNSUPPORTED);
+diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
+index 8cde48b96f19..6b4e8a008bc0 100644
+--- a/drivers/infiniband/core/ucm.c
++++ b/drivers/infiniband/core/ucm.c
+@@ -658,8 +658,7 @@ static ssize_t ib_ucm_listen(struct ib_ucm_file *file,
+ 	if (result)
+ 		goto out;
+ 
+-	result = ib_cm_listen(ctx->cm_id, cmd.service_id, cmd.service_mask,
+-			      NULL);
++	result = ib_cm_listen(ctx->cm_id, cmd.service_id, cmd.service_mask);
+ out:
+ 	ib_ucm_ctx_put(ctx);
+ 	return result;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+index ee39be6ccfb0..9d321575d90e 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+@@ -848,7 +848,7 @@ int ipoib_cm_dev_open(struct net_device *dev)
+ 	}
+ 
+ 	ret = ib_cm_listen(priv->cm.id, cpu_to_be64(IPOIB_CM_IETF_ID | priv->qp->qp_num),
+-			   0, NULL);
++			   0);
+ 	if (ret) {
+ 		printk(KERN_WARNING "%s: failed to listen on ID 0x%llx\n", priv->ca->name,
+ 		       IPOIB_CM_IETF_ID | priv->qp->qp_num);
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 4c59ceb40fff..3ab015b0236d 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -3250,7 +3250,7 @@ static void srpt_add_one(struct ib_device *device)
+ 	 * in the system as service_id; therefore, the target_id will change
+ 	 * if this HCA is gone bad and replaced by different HCA
+ 	 */
+-	if (ib_cm_listen(sdev->cm_id, cpu_to_be64(srpt_service_guid), 0, NULL))
++	if (ib_cm_listen(sdev->cm_id, cpu_to_be64(srpt_service_guid), 0))
+ 		goto err_cm;
+ 
+ 	INIT_IB_EVENT_HANDLER(&sdev->event_handler, sdev->device,
+diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
+index 5b54cf77862e..17aca8e94093 100644
+--- a/include/rdma/ib_cm.h
++++ b/include/rdma/ib_cm.h
+@@ -105,8 +105,6 @@ enum ib_cm_data_size {
+ 	IB_CM_SIDR_REQ_PRIVATE_DATA_SIZE = 216,
+ 	IB_CM_SIDR_REP_PRIVATE_DATA_SIZE = 136,
+ 	IB_CM_SIDR_REP_INFO_LENGTH	 = 72,
+-	/* compare done u32 at a time */
+-	IB_CM_COMPARE_SIZE		 = (64 / sizeof(u32))
+ };
+ 
+ struct ib_cm_id;
+@@ -344,11 +342,6 @@ void ib_destroy_cm_id(struct ib_cm_id *cm_id);
+ #define IB_SDP_SERVICE_ID	cpu_to_be64(0x0000000000010000ULL)
+ #define IB_SDP_SERVICE_ID_MASK	cpu_to_be64(0xFFFFFFFFFFFF0000ULL)
+ 
+-struct ib_cm_compare_data {
+-	u32  data[IB_CM_COMPARE_SIZE];
+-	u32  mask[IB_CM_COMPARE_SIZE];
+-};
+-
+ /**
+  * ib_cm_listen - Initiates listening on the specified service ID for
+  *   connection and service ID resolution requests.
+@@ -361,12 +354,9 @@ struct ib_cm_compare_data {
+  *   range of service IDs.  If set to 0, the service ID is matched
+  *   exactly.  This parameter is ignored if %service_id is set to
+  *   IB_CM_ASSIGN_SERVICE_ID.
+- * @compare_data: This parameter is optional.  It specifies data that must
+- *   appear in the private data of a connection request for the specified
+- *   listen request.
+  */
+-int ib_cm_listen(struct ib_cm_id *cm_id, __be64 service_id, __be64 service_mask,
+-		 struct ib_cm_compare_data *compare_data);
++int ib_cm_listen(struct ib_cm_id *cm_id, __be64 service_id,
++		 __be64 service_mask);
+ 
+ struct ib_cm_id *ib_cm_insert_listen(struct ib_device *device,
+ 				     ib_cm_handler cm_handler,
 -- 
 1.7.11.2
 
