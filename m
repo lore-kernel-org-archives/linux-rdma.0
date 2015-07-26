@@ -1,32 +1,35 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [PATCH V6 4/9] svcrdma: Use max_sge_rd for destination read
- depths
-Date: Sun, 26 Jul 2015 12:58:59 +0300
-Message-ID: <55B4AF63.3040108@dev.mellanox.co.il>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH V6 6/9] isert: Rename IO functions to more descriptive
+ names
+Date: Sun, 26 Jul 2015 13:08:16 +0300
+Message-ID: <55B4B190.7070305@dev.mellanox.co.il>
 References: <20150724161331.25617.8475.stgit@build2.ogc.int>
- <20150724161837.25617.48584.stgit@build2.ogc.int>
- <00d301d0c641$c2fcb6a0$48f623e0$@opengridcomputing.com>
+ <20150724161848.25617.26092.stgit@build2.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <00d301d0c641$c2fcb6a0$48f623e0$@opengridcomputing.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Steve Wise <swise@opengridcomputing.com>, dledford@redhat.com
-Cc: infinipath@intel.com, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, bfields@fieldses.org
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150724161848.25617.26092.stgit-PBeJgSbIpn97NCTnQtmixQ@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 7/24/2015 7:18 PM, Steve Wise wrote:
+> This is in preparation for adding new FRMR-only IO handlers
+> for devices that support FRMR and not PI.
 
->> @@ -1059,6 +1062,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
->>   		ntohs(((struct sockaddr_in *)&newxprt->sc_cm_id->
->>   		       route.addr.dst_addr)->sin_port),
->>   		newxprt->sc_max_sge,
->> +		newxprt->sc_max_sge_rd,
->>   		newxprt->sc_sq_depth,
->>   		newxprt->sc_max_requests,
->>   		newxprt->sc_ord);
->>
->
-> With the above patch change, we have no more users of the recently created rdma_cap_read_multi_sge().  Should I add a patch to remove it?
+Steve,
 
-Yes please.
+I've given this some thought and I think we should avoid splitting
+logic from PI and iWARP. The reason (other than code duplication) is
+that currently the iser target support only up to 1MB IOs. I have some
+code (not done yet) to support larger IOs by using multiple
+registrations  per IO (with or without PI).
+With a little tweaking I think we can get iwarp to fit in too...
+
+So, do you mind if I take a crack at it?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
