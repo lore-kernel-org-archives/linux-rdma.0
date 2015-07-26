@@ -1,218 +1,98 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 07/13] IB/cma: Helper functions to access port space IDRs
-Date: Sun, 26 Jul 2015 18:33:46 +0300
-Message-ID: <1437924832-18327-8-git-send-email-haggaie@mellanox.com>
+Subject: [PATCH v2 08/13] IB/cm: Expose BTH P_Key in CM and SIDR request events
+Date: Sun, 26 Jul 2015 18:33:47 +0300
+Message-ID: <1437924832-18327-9-git-send-email-haggaie@mellanox.com>
 References: <1437924832-18327-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1437924832-18327-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add helper functions to access the IDRs by port-space and port number.
+The rdma_cm module will later use the P_Key from the BTH to de-mux
+requests.
 
-Pass around the port-space enum in cma.c instead of using pointers to
-port-space IDRs.
+See discussion at:
+  http://www.spinics.net/lists/netdev/msg336067.html
 
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c | 81 ++++++++++++++++++++++++++++++++-----------
- 1 file changed, 60 insertions(+), 21 deletions(-)
+ drivers/infiniband/core/cm.c | 20 ++++++++++++++++++++
+ include/rdma/ib_cm.h         |  6 ++++++
+ 2 files changed, 26 insertions(+)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index cf5c48b0b7d5..f2d799209412 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -113,6 +113,22 @@ static DEFINE_IDR(udp_ps);
- static DEFINE_IDR(ipoib_ps);
- static DEFINE_IDR(ib_ps);
- 
-+static struct idr *cma_idr(enum rdma_port_space ps)
-+{
-+	switch (ps) {
-+	case RDMA_PS_TCP:
-+		return &tcp_ps;
-+	case RDMA_PS_UDP:
-+		return &udp_ps;
-+	case RDMA_PS_IPOIB:
-+		return &ipoib_ps;
-+	case RDMA_PS_IB:
-+		return &ib_ps;
-+	default:
-+		return NULL;
-+	}
-+}
-+
- struct cma_device {
- 	struct list_head	list;
- 	struct ib_device	*device;
-@@ -122,11 +138,33 @@ struct cma_device {
- };
- 
- struct rdma_bind_list {
--	struct idr		*ps;
-+	enum rdma_port_space	ps;
- 	struct hlist_head	owners;
- 	unsigned short		port;
- };
- 
-+static int cma_ps_alloc(enum rdma_port_space ps,
-+			struct rdma_bind_list *bind_list, int snum)
-+{
-+	struct idr *idr = cma_idr(ps);
-+
-+	return idr_alloc(idr, bind_list, snum, snum + 1, GFP_KERNEL);
-+}
-+
-+static struct rdma_bind_list *cma_ps_find(enum rdma_port_space ps, int snum)
-+{
-+	struct idr *idr = cma_idr(ps);
-+
-+	return idr_find(idr, snum);
-+}
-+
-+static void cma_ps_remove(enum rdma_port_space ps, int snum)
-+{
-+	struct idr *idr = cma_idr(ps);
-+
-+	idr_remove(idr, snum);
-+}
-+
- enum {
- 	CMA_OPTION_AFONLY,
- };
-@@ -1069,7 +1107,7 @@ static void cma_release_port(struct rdma_id_private *id_priv)
- 	mutex_lock(&lock);
- 	hlist_del(&id_priv->node);
- 	if (hlist_empty(&bind_list->owners)) {
--		idr_remove(bind_list->ps, bind_list->port);
-+		cma_ps_remove(bind_list->ps, bind_list->port);
- 		kfree(bind_list);
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index bcad4cf8404e..a05c17b336aa 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -1408,6 +1408,24 @@ static void cm_format_paths_from_req(struct cm_req_msg *req_msg,
  	}
- 	mutex_unlock(&lock);
-@@ -2365,8 +2403,8 @@ static void cma_bind_port(struct rdma_bind_list *bind_list,
- 	hlist_add_head(&id_priv->node, &bind_list->owners);
  }
  
--static int cma_alloc_port(struct idr *ps, struct rdma_id_private *id_priv,
--			  unsigned short snum)
-+static int cma_alloc_port(enum rdma_port_space ps,
-+			  struct rdma_id_private *id_priv, unsigned short snum)
- {
- 	struct rdma_bind_list *bind_list;
- 	int ret;
-@@ -2375,7 +2413,7 @@ static int cma_alloc_port(struct idr *ps, struct rdma_id_private *id_priv,
- 	if (!bind_list)
- 		return -ENOMEM;
- 
--	ret = idr_alloc(ps, bind_list, snum, snum + 1, GFP_KERNEL);
-+	ret = cma_ps_alloc(ps, bind_list, snum);
- 	if (ret < 0)
- 		goto err;
- 
-@@ -2388,7 +2426,8 @@ err:
- 	return ret == -ENOSPC ? -EADDRNOTAVAIL : ret;
- }
- 
--static int cma_alloc_any_port(struct idr *ps, struct rdma_id_private *id_priv)
-+static int cma_alloc_any_port(enum rdma_port_space ps,
-+			      struct rdma_id_private *id_priv)
- {
- 	static unsigned int last_used_port;
- 	int low, high, remaining;
-@@ -2399,7 +2438,7 @@ static int cma_alloc_any_port(struct idr *ps, struct rdma_id_private *id_priv)
- 	rover = prandom_u32() % remaining + low;
- retry:
- 	if (last_used_port != rover &&
--	    !idr_find(ps, (unsigned short) rover)) {
-+	    !cma_ps_find(ps, (unsigned short)rover)) {
- 		int ret = cma_alloc_port(ps, id_priv, rover);
- 		/*
- 		 * Remember previously used port number in order to avoid
-@@ -2454,7 +2493,8 @@ static int cma_check_port(struct rdma_bind_list *bind_list,
- 	return 0;
- }
- 
--static int cma_use_port(struct idr *ps, struct rdma_id_private *id_priv)
-+static int cma_use_port(enum rdma_port_space ps,
-+			struct rdma_id_private *id_priv)
- {
- 	struct rdma_bind_list *bind_list;
- 	unsigned short snum;
-@@ -2464,7 +2504,7 @@ static int cma_use_port(struct idr *ps, struct rdma_id_private *id_priv)
- 	if (snum < PROT_SOCK && !capable(CAP_NET_BIND_SERVICE))
- 		return -EACCES;
- 
--	bind_list = idr_find(ps, snum);
-+	bind_list = cma_ps_find(ps, snum);
- 	if (!bind_list) {
- 		ret = cma_alloc_port(ps, id_priv, snum);
- 	} else {
-@@ -2487,25 +2527,24 @@ static int cma_bind_listen(struct rdma_id_private *id_priv)
- 	return ret;
- }
- 
--static struct idr *cma_select_inet_ps(struct rdma_id_private *id_priv)
-+static enum rdma_port_space cma_select_inet_ps(
-+		struct rdma_id_private *id_priv)
- {
- 	switch (id_priv->id.ps) {
- 	case RDMA_PS_TCP:
--		return &tcp_ps;
- 	case RDMA_PS_UDP:
--		return &udp_ps;
- 	case RDMA_PS_IPOIB:
--		return &ipoib_ps;
- 	case RDMA_PS_IB:
--		return &ib_ps;
-+		return id_priv->id.ps;
- 	default:
--		return NULL;
++static u16 cm_get_bth_pkey(struct cm_work *work)
++{
++	struct ib_device *ib_dev = work->port->cm_dev->ib_device;
++	u8 port_num = work->port->port_num;
++	u16 pkey_index = work->mad_recv_wc->wc->pkey_index;
++	u16 pkey;
++	int ret;
 +
++	ret = ib_get_cached_pkey(ib_dev, port_num, pkey_index, &pkey);
++	if (ret) {
++		dev_warn_ratelimited(&ib_dev->dev, "ib_cm: Couldn't retrieve pkey for incoming request (port %d, pkey index %d). %d\n",
++				     port_num, pkey_index, ret);
 +		return 0;
- 	}
++	}
++
++	return pkey;
++}
++
+ static void cm_format_req_event(struct cm_work *work,
+ 				struct cm_id_private *cm_id_priv,
+ 				struct ib_cm_id *listen_id)
+@@ -1418,6 +1436,7 @@ static void cm_format_req_event(struct cm_work *work,
+ 	req_msg = (struct cm_req_msg *)work->mad_recv_wc->recv_buf.mad;
+ 	param = &work->cm_event.param.req_rcvd;
+ 	param->listen_id = listen_id;
++	param->bth_pkey = cm_get_bth_pkey(work);
+ 	param->port = cm_id_priv->av.port->port_num;
+ 	param->primary_path = &work->path[0];
+ 	if (req_msg->alt_local_lid)
+@@ -3109,6 +3128,7 @@ static void cm_format_sidr_req_event(struct cm_work *work,
+ 	param->pkey = __be16_to_cpu(sidr_req_msg->pkey);
+ 	param->listen_id = listen_id;
+ 	param->service_id = sidr_req_msg->service_id;
++	param->bth_pkey = cm_get_bth_pkey(work);
+ 	param->port = work->port->port_num;
+ 	work->cm_event.private_data = &sidr_req_msg->private_data;
  }
+diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
+index f7fd22f10bae..5b54cf77862e 100644
+--- a/include/rdma/ib_cm.h
++++ b/include/rdma/ib_cm.h
+@@ -113,6 +113,10 @@ struct ib_cm_id;
  
--static struct idr *cma_select_ib_ps(struct rdma_id_private *id_priv)
-+static enum rdma_port_space cma_select_ib_ps(struct rdma_id_private *id_priv)
- {
--	struct idr *ps = NULL;
-+	enum rdma_port_space ps = 0;
- 	struct sockaddr_ib *sib;
- 	u64 sid_ps, mask, sid;
+ struct ib_cm_req_event_param {
+ 	struct ib_cm_id		*listen_id;
++
++	/* P_Key that was used by the GMP's BTH header */
++	u16			bth_pkey;
++
+ 	u8			port;
  
-@@ -2515,15 +2554,15 @@ static struct idr *cma_select_ib_ps(struct rdma_id_private *id_priv)
- 
- 	if ((id_priv->id.ps == RDMA_PS_IB) && (sid == (RDMA_IB_IP_PS_IB & mask))) {
- 		sid_ps = RDMA_IB_IP_PS_IB;
--		ps = &ib_ps;
-+		ps = RDMA_PS_IB;
- 	} else if (((id_priv->id.ps == RDMA_PS_IB) || (id_priv->id.ps == RDMA_PS_TCP)) &&
- 		   (sid == (RDMA_IB_IP_PS_TCP & mask))) {
- 		sid_ps = RDMA_IB_IP_PS_TCP;
--		ps = &tcp_ps;
-+		ps = RDMA_PS_TCP;
- 	} else if (((id_priv->id.ps == RDMA_PS_IB) || (id_priv->id.ps == RDMA_PS_UDP)) &&
- 		   (sid == (RDMA_IB_IP_PS_UDP & mask))) {
- 		sid_ps = RDMA_IB_IP_PS_UDP;
--		ps = &udp_ps;
-+		ps = RDMA_PS_UDP;
- 	}
- 
- 	if (ps) {
-@@ -2536,7 +2575,7 @@ static struct idr *cma_select_ib_ps(struct rdma_id_private *id_priv)
- 
- static int cma_get_port(struct rdma_id_private *id_priv)
- {
--	struct idr *ps;
-+	enum rdma_port_space ps;
- 	int ret;
- 
- 	if (cma_family(id_priv) != AF_IB)
+ 	struct ib_sa_path_rec	*primary_path;
+@@ -224,6 +228,8 @@ struct ib_cm_apr_event_param {
+ struct ib_cm_sidr_req_event_param {
+ 	struct ib_cm_id		*listen_id;
+ 	__be64			service_id;
++	/* P_Key that was used by the GMP's BTH header */
++	u16			bth_pkey;
+ 	u8			port;
+ 	u16			pkey;
+ };
 -- 
 1.7.11.2
 
