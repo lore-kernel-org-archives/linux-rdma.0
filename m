@@ -1,282 +1,73 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH v3 06/15] xprtrdma: Clean up rpcrdma_ia_open()
-Date: Sun, 26 Jul 2015 09:53:37 -0700
-Message-ID: <20150726165337.GC9273@infradead.org>
-References: <20150720185624.10997.51574.stgit@manet.1015granger.net>
- <20150720190320.10997.40165.stgit@manet.1015granger.net>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH V6 6/9] isert: Rename IO functions to more descriptive
+ names
+Date: Sun, 26 Jul 2015 12:32:54 -0500
+Message-ID: <55B519C6.2030205@opengridcomputing.com>
+References: <20150724161331.25617.8475.stgit@build2.ogc.int>
+ <20150724161848.25617.26092.stgit@build2.ogc.int>
+ <55B4B190.7070305@dev.mellanox.co.il> <20150726104328.GB18944@infradead.org>
+ <55B4BDE3.8040801@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150720190320.10997.40165.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <55B4BDE3.8040801-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Jason has patches that provide a local_dma_lkey in the PD that is always
-available.  Do you need this clean up for the next merge window?  If not
-it might be worth to postponed it to avoid merge conflicts, specially
-as I assume the NFS changes will go in through Trond.
+On 7/26/2015 6:00 AM, Sagi Grimberg wrote:
+> On 7/26/2015 1:43 PM, Christoph Hellwig wrote:
+>> On Sun, Jul 26, 2015 at 01:08:16PM +0300, Sagi Grimberg wrote:
+>>> I've given this some thought and I think we should avoid splitting
+>>> logic from PI and iWARP. The reason (other than code duplication) is
+>>> that currently the iser target support only up to 1MB IOs. I have some
+>>> code (not done yet) to support larger IOs by using multiple
+>>> registrations  per IO (with or without PI).
+>>
+>> Just curious: How is this going to work with iSER only having a single
+>> rkey/offset/len field?
+>>
+>
+> Good question,
+>
+> On the wire iser sends a single rkey, but the target is allowed to
+> transfer the data however it wants to.
+>
+> Say that the local target HCA supports only 32 pages (128K bytes for 4K
+> pages) registration and the initiator sent:
+> rkey=0x1234
+> address=0xffffaaaa
+> length=512K
+>
+> The target would allocate a 512K buffer and:
+> register offset 0-128K to lkey=0x1
+> register offset 128K-256K to lkey=0x2
+> register offset 256K-384K to lkey=0x3
+> register offset 384K-512K to lkey=0x4
+>
+> then constructs sg_list as:
+> sg_list[0] = {addr=buf, length=128K, lkey=0x1}
+> sg_list[1] = {addr=buf+128K, length=128K, lkey=0x2}
+> sg_list[2] = {addr=buf+256K, length=128K, lkey=0x3}
+> sg_list[3] = {addr=buf+384K, length=128K, lkey=0x4}
+>
+> Then set rdma_read wr with:
+> rdma_r_wr.sg_list=&sg_list
+> rdma_r_wr.rdma.addr=0xffffaaaa
+> rdma_r_wr.rdma.rkey=0x1234
+>
+> post_send(rdma_r_wr);
+>
+> Ideally, the post contains a chain of all 4 registrations and the
+> rdma_read (and an opportunistic good scsi response).
 
-On Mon, Jul 20, 2015 at 03:03:20PM -0400, Chuck Lever wrote:
-> Untangle the end of rpcrdma_ia_open() by moving DMA MR set-up, which
-> is different for each registration method, to the .ro_open functions.
-> 
-> This is refactoring only. No behavior change is expected.
-> 
-> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Tested-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-> ---
->  net/sunrpc/xprtrdma/fmr_ops.c      |   19 +++++++++++
->  net/sunrpc/xprtrdma/frwr_ops.c     |    5 +++
->  net/sunrpc/xprtrdma/physical_ops.c |   25 ++++++++++++++-
->  net/sunrpc/xprtrdma/verbs.c        |   60 +++++++++++-------------------------
->  net/sunrpc/xprtrdma/xprt_rdma.h    |    3 +-
->  5 files changed, 67 insertions(+), 45 deletions(-)
-> 
-> diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
-> index f1e8daf..cb25c89 100644
-> --- a/net/sunrpc/xprtrdma/fmr_ops.c
-> +++ b/net/sunrpc/xprtrdma/fmr_ops.c
-> @@ -39,6 +39,25 @@ static int
->  fmr_op_open(struct rpcrdma_ia *ia, struct rpcrdma_ep *ep,
->  	    struct rpcrdma_create_data_internal *cdata)
->  {
-> +	struct ib_device_attr *devattr = &ia->ri_devattr;
-> +	struct ib_mr *mr;
-> +
-> +	/* Obtain an lkey to use for the regbufs, which are
-> +	 * protected from remote access.
-> +	 */
-> +	if (devattr->device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY) {
-> +		ia->ri_dma_lkey = ia->ri_device->local_dma_lkey;
-> +	} else {
-> +		mr = ib_get_dma_mr(ia->ri_pd, IB_ACCESS_LOCAL_WRITE);
-> +		if (IS_ERR(mr)) {
-> +			pr_err("%s: ib_get_dma_mr for failed with %lX\n",
-> +			       __func__, PTR_ERR(mr));
-> +			return -ENOMEM;
-> +		}
-> +		ia->ri_dma_lkey = ia->ri_dma_mr->lkey;
-> +		ia->ri_dma_mr = mr;
-> +	}
-> +
->  	return 0;
->  }
->  
-> diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
-> index 04ea914..63f282e 100644
-> --- a/net/sunrpc/xprtrdma/frwr_ops.c
-> +++ b/net/sunrpc/xprtrdma/frwr_ops.c
-> @@ -189,6 +189,11 @@ frwr_op_open(struct rpcrdma_ia *ia, struct rpcrdma_ep *ep,
->  	struct ib_device_attr *devattr = &ia->ri_devattr;
->  	int depth, delta;
->  
-> +	/* Obtain an lkey to use for the regbufs, which are
-> +	 * protected from remote access.
-> +	 */
-> +	ia->ri_dma_lkey = ia->ri_device->local_dma_lkey;
-> +
->  	ia->ri_max_frmr_depth =
->  			min_t(unsigned int, RPCRDMA_MAX_DATA_SEGS,
->  			      devattr->max_fast_reg_page_list_len);
-> diff --git a/net/sunrpc/xprtrdma/physical_ops.c b/net/sunrpc/xprtrdma/physical_ops.c
-> index 41985d0..72cf8b1 100644
-> --- a/net/sunrpc/xprtrdma/physical_ops.c
-> +++ b/net/sunrpc/xprtrdma/physical_ops.c
-> @@ -23,6 +23,29 @@ static int
->  physical_op_open(struct rpcrdma_ia *ia, struct rpcrdma_ep *ep,
->  		 struct rpcrdma_create_data_internal *cdata)
->  {
-> +	struct ib_device_attr *devattr = &ia->ri_devattr;
-> +	struct ib_mr *mr;
-> +
-> +	/* Obtain an rkey to use for RPC data payloads.
-> +	 */
-> +	mr = ib_get_dma_mr(ia->ri_pd,
-> +			   IB_ACCESS_LOCAL_WRITE |
-> +			   IB_ACCESS_REMOTE_WRITE |
-> +			   IB_ACCESS_REMOTE_READ);
-> +	if (IS_ERR(mr)) {
-> +		pr_err("%s: ib_get_dma_mr for failed with %lX\n",
-> +		       __func__, PTR_ERR(mr));
-> +		return -ENOMEM;
-> +	}
-> +	ia->ri_dma_mr = mr;
-> +
-> +	/* Obtain an lkey to use for regbufs.
-> +	 */
-> +	if (devattr->device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)
-> +		ia->ri_dma_lkey = ia->ri_device->local_dma_lkey;
-> +	else
-> +		ia->ri_dma_lkey = ia->ri_dma_mr->lkey;
-> +
->  	return 0;
->  }
->  
-> @@ -51,7 +74,7 @@ physical_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
->  	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
->  
->  	rpcrdma_map_one(ia->ri_device, seg, rpcrdma_data_dir(writing));
-> -	seg->mr_rkey = ia->ri_bind_mem->rkey;
-> +	seg->mr_rkey = ia->ri_dma_mr->rkey;
->  	seg->mr_base = seg->mr_dma;
->  	seg->mr_nsegs = 1;
->  	return 1;
-> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-> index da184f9..8516d98 100644
-> --- a/net/sunrpc/xprtrdma/verbs.c
-> +++ b/net/sunrpc/xprtrdma/verbs.c
-> @@ -493,9 +493,11 @@ rpcrdma_clean_cq(struct ib_cq *cq)
->  int
->  rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr, int memreg)
->  {
-> -	int rc, mem_priv;
->  	struct rpcrdma_ia *ia = &xprt->rx_ia;
->  	struct ib_device_attr *devattr = &ia->ri_devattr;
-> +	int rc;
-> +
-> +	ia->ri_dma_mr = NULL;
->  
->  	ia->ri_id = rpcrdma_create_id(xprt, ia, addr);
->  	if (IS_ERR(ia->ri_id)) {
-> @@ -519,11 +521,6 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr, int memreg)
->  		goto out3;
->  	}
->  
-> -	if (devattr->device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY) {
-> -		ia->ri_have_dma_lkey = 1;
-> -		ia->ri_dma_lkey = ia->ri_device->local_dma_lkey;
-> -	}
-> -
->  	if (memreg == RPCRDMA_FRMR) {
->  		/* Requires both frmr reg and local dma lkey */
->  		if (((devattr->device_cap_flags &
-> @@ -543,38 +540,15 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr, int memreg)
->  		}
->  	}
->  
-> -	/*
-> -	 * Optionally obtain an underlying physical identity mapping in
-> -	 * order to do a memory window-based bind. This base registration
-> -	 * is protected from remote access - that is enabled only by binding
-> -	 * for the specific bytes targeted during each RPC operation, and
-> -	 * revoked after the corresponding completion similar to a storage
-> -	 * adapter.
-> -	 */
->  	switch (memreg) {
->  	case RPCRDMA_FRMR:
->  		ia->ri_ops = &rpcrdma_frwr_memreg_ops;
->  		break;
->  	case RPCRDMA_ALLPHYSICAL:
->  		ia->ri_ops = &rpcrdma_physical_memreg_ops;
-> -		mem_priv = IB_ACCESS_LOCAL_WRITE |
-> -				IB_ACCESS_REMOTE_WRITE |
-> -				IB_ACCESS_REMOTE_READ;
-> -		goto register_setup;
-> +		break;
->  	case RPCRDMA_MTHCAFMR:
->  		ia->ri_ops = &rpcrdma_fmr_memreg_ops;
-> -		if (ia->ri_have_dma_lkey)
-> -			break;
-> -		mem_priv = IB_ACCESS_LOCAL_WRITE;
-> -	register_setup:
-> -		ia->ri_bind_mem = ib_get_dma_mr(ia->ri_pd, mem_priv);
-> -		if (IS_ERR(ia->ri_bind_mem)) {
-> -			printk(KERN_ALERT "%s: ib_get_dma_mr for "
-> -				"phys register failed with %lX\n",
-> -				__func__, PTR_ERR(ia->ri_bind_mem));
-> -			rc = -ENOMEM;
-> -			goto out3;
-> -		}
->  		break;
->  	default:
->  		printk(KERN_ERR "RPC: Unsupported memory "
-> @@ -606,15 +580,7 @@ out1:
->  void
->  rpcrdma_ia_close(struct rpcrdma_ia *ia)
->  {
-> -	int rc;
-> -
->  	dprintk("RPC:       %s: entering\n", __func__);
-> -	if (ia->ri_bind_mem != NULL) {
-> -		rc = ib_dereg_mr(ia->ri_bind_mem);
-> -		dprintk("RPC:       %s: ib_dereg_mr returned %i\n",
-> -			__func__, rc);
-> -	}
-> -
->  	if (ia->ri_id != NULL && !IS_ERR(ia->ri_id)) {
->  		if (ia->ri_id->qp)
->  			rdma_destroy_qp(ia->ri_id);
-> @@ -661,8 +627,10 @@ rpcrdma_ep_create(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia,
->  	if (cdata->padding) {
->  		ep->rep_padbuf = rpcrdma_alloc_regbuf(ia, cdata->padding,
->  						      GFP_KERNEL);
-> -		if (IS_ERR(ep->rep_padbuf))
-> -			return PTR_ERR(ep->rep_padbuf);
-> +		if (IS_ERR(ep->rep_padbuf)) {
-> +			rc = PTR_ERR(ep->rep_padbuf);
-> +			goto out0;
-> +		}
->  	} else
->  		ep->rep_padbuf = NULL;
->  
-> @@ -749,6 +717,9 @@ out2:
->  			__func__, err);
->  out1:
->  	rpcrdma_free_regbuf(ia, ep->rep_padbuf);
-> +out0:
-> +	if (ia->ri_dma_mr)
-> +		ib_dereg_mr(ia->ri_dma_mr);
->  	return rc;
->  }
->  
-> @@ -788,6 +759,12 @@ rpcrdma_ep_destroy(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
->  	if (rc)
->  		dprintk("RPC:       %s: ib_destroy_cq returned %i\n",
->  			__func__, rc);
-> +
-> +	if (ia->ri_dma_mr) {
-> +		rc = ib_dereg_mr(ia->ri_dma_mr);
-> +		dprintk("RPC:       %s: ib_dereg_mr returned %i\n",
-> +			__func__, rc);
-> +	}
->  }
->  
->  /*
-> @@ -1262,8 +1239,7 @@ rpcrdma_alloc_regbuf(struct rpcrdma_ia *ia, size_t size, gfp_t flags)
->  		goto out_free;
->  
->  	iov->length = size;
-> -	iov->lkey = ia->ri_have_dma_lkey ?
-> -				ia->ri_dma_lkey : ia->ri_bind_mem->lkey;
-> +	iov->lkey = ia->ri_dma_lkey;
->  	rb->rg_size = size;
->  	rb->rg_owner = NULL;
->  	return rb;
-> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-> index ce4e79e..8219011 100644
-> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
-> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-> @@ -65,9 +65,8 @@ struct rpcrdma_ia {
->  	struct ib_device	*ri_device;
->  	struct rdma_cm_id 	*ri_id;
->  	struct ib_pd		*ri_pd;
-> -	struct ib_mr		*ri_bind_mem;
-> +	struct ib_mr		*ri_dma_mr;
->  	u32			ri_dma_lkey;
-> -	int			ri_have_dma_lkey;
->  	struct completion	ri_done;
->  	int			ri_async_rc;
->  	unsigned int		ri_max_frmr_depth;
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
----end quoted text---
+Just to be clear: This example is for IB only, correct?  IW would 
+require rkeys with REMOTE_WRITE and 4 read wrs.  And you're ignoring 
+invalidation wrs (or read-with-inv) in the example...
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
