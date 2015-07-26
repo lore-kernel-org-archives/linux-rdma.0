@@ -1,30 +1,42 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [PATCH 00/10] IB: Replace safe uses for ib_get_dma_mr with
- pd->local_dma_lkey
-Date: Sun, 26 Jul 2015 11:45:29 +0300
-Message-ID: <55B49E29.3070707@dev.mellanox.co.il>
-References: <1437608083-22898-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <55B0F06E.8000603@sandisk.com> <20150723183044.GA1868@obsidianresearch.com>
- <55B13583.5010208@sandisk.com> <20150723184725.GB30303@obsidianresearch.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH WIP 01/43] IB: Modify ib_create_mr API
+Date: Sun, 26 Jul 2015 11:51:36 +0300
+Message-ID: <55B49F98.1070204@dev.mellanox.co.il>
+References: <1437548143-24893-1-git-send-email-sagig@mellanox.com>
+ <1437548143-24893-2-git-send-email-sagig@mellanox.com>
+ <20150722163405.GA26909@obsidianresearch.com>
+ <20150722164421.GA6443@infradead.org> <55AFCBAF.2000504@dev.mellanox.co.il>
+ <20150722190555.GB4527@obsidianresearch.com>
+ <55B0BCFC.6040602@dev.mellanox.co.il>
+ <20150723190855.GB31577@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20150723184725.GB30303@obsidianresearch.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Amir Vadai <amirv@mellanox.com>, Chien Yen <chien.yen@oracle.com>, Christoph Hellwig <hch@infradead.org>, Dominique Martinet <dominique.martinet@cea.fr>, Eli Cohen <eli@mellanox.com>, Eric Van Hensbergen <ericvh@gmail.com>, Ido Shamay <idos@mellanox.com>, Latchesar Ionkov <lucho@ionkov.net>, Or Gerlitz <ogerlitz@mellanox.com>, Roi Dayan <roid@mellanox.com>, Ron Minnich <rminnich@sandia.gov>, Sagi Grimberg <sagig@mellanox.com>, Simon Derr <simon.derr@bull.net>, Tom Tucker <tom@opengridcomputing.com>, "rds-devel@oss.oracle.com" <rds-devel@oss.oracle.com>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150723190855.GB31577-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
->> If we want security by default then I propose not only to change the default
->> value of register_always from false into true but also to change the default
->> value of prefer_fr from false into true such that fast registration becomes
->> the default instead of FMR.
+On 7/23/2015 10:08 PM, Jason Gunthorpe wrote:
+> On Thu, Jul 23, 2015 at 01:07:56PM +0300, Sagi Grimberg wrote:
+>> On 7/22/2015 10:05 PM, Jason Gunthorpe wrote:
+>> The reason I named max_entries is because might might not be pages but
+>> real SG elements. It stands for maximum registration entries.
+>>
+>> Do you have a better name?
 >
-> Yes, I was frowning at that stuff too.. We are trying to get rid of
-> FMR, so nothing should prefer it over FRWR...
+> I wouldn't try and be both..
 >
-> Sagi, perhaps that belongs in your MR unification series?
+> Use 'max_num_sg' and document that no aggregate scatterlist with
+> length larger than 'max_num_sg*PAGE_SIZE' or with more entries than
+> max_num_sg can be submitted?
+>
+> Maybe document with ARB_SG that it is not length limited?
 
-I don't see how this fits in.
+OK, I can do that.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
