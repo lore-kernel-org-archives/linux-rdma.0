@@ -1,168 +1,153 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 00/13] Demux IB CM requests in the rdma_cm module
-Date: Sun, 26 Jul 2015 18:33:39 +0300
-Message-ID: <1437924832-18327-1-git-send-email-haggaie@mellanox.com>
+Subject: [PATCH v2 02/13] IB/core: Find the network device matching connection parameters
+Date: Sun, 26 Jul 2015 18:33:41 +0300
+Message-ID: <1437924832-18327-3-git-send-email-haggaie@mellanox.com>
+References: <1437924832-18327-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1437924832-18327-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks everyone for the review comments. I've updated the patch set
-accordingly. The changes are listed below. In addition to the changes discussed
-on the list I've made sure AF_IB continues to work by retrieving parameters
-from the listener ID when an AF_IB request is detected.
+From: Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Changes from v1:
-- Patch 1: mark ib_client_data as going down instead of removing all client
-  contexts during de-registration.
-- Patch 2:
-  * move kdoc to the function definition
-  * do not call get_net_dev_by_params() on devices/clients that are going
-    down
-  * pass client data directly to the callback
-- Patch 3:
-  * pass client data directly to callback
-  * fix a lockdep warning in ipoib_match_gid_pkey_addr()
-  * remove a debugging print left over
-  * set a rate limit to the duplicated IP address warning
-- Patch 5:
-  * change atomic_dec(&id->refcount) to cm_deref_id()
-  * always update listen_sharecount under the cm.lock spinlock
-- Patch 6: handle AF_IB requests by getting parameters from the listener
-- Patch 8: new patch to expose BTH P_Key from ib_cm to rdma_cm
-- Patch 9:
-  * get P_Key used for de-mux from the BTH
-  * use -EAFNOSUPPORT in cma_save_ip_info to designate a possible AF_IB
-    connection request
-  * pass a NULL netdev for AF_IB requests
-- Patch 11: handle AF_IB connections by filling connection information from
-  the listener id instead of from the net_dev
-- Patch 12: fix mention of the old ib_cm_id_create_and_listen function in
-  the changelog entry.
+In the case of IPoIB, and maybe in other cases, the network device is
+managed by an upper-layer protocol (ULP). In order to expose this
+network device to other users of the IB device, let ULPs implement
+a callback that returns network device according to connection parameters.
 
-Changes from v0:
-- Added a patch to prevent a race between ib_unregister_device() and
-  ib_get_net_dev_by_params().
-- Removed the patch that exported a UD GMP packet's GID from the GRH, and
-  related code.
-- Patch 3:
-  * Add _rcu suffix to ipoib_is_dev_match_addr().
-  * Add helper function to get the master netdev for bonding support.
-  * Scan for matching net devices in two phases: first without looking at
-  * the IP address, and then looking at the IP address only when the first
-    phase did not find a unique net device.
-- Patch 5:
-  * Do not init listen_sharecount = 1 for non-listening ib_cm_ids.
-  * Remove code that sets a CM ID's state to IB_CM_IDLE right before
-    destruction.
-  * Rename ib_cm_id_create_and_listen() to ib_cm_insert_listen().
-  * Do not increase reference counts when failing to add a shared CM ID due
-    to having a different handler callback.
-- Patch 9: Clean IPv4 net_dev validation function.
-- Added patch 10: new patch to use the found net_dev in IB/cma for
-  eliminating unneeded calls to cma_translate_addr.
-- Patch 12: Remove the lock argument to __ib_cm_listen().
+The IB device and port, together with the P_Key and the GID should
+be enough to uniquely identify the ULP net device. However, in current
+kernels there can be multiple IPoIB interfaces created with the same GID.
+Furthermore, such configuration may be desireable to support ipvlan-like
+configurations for RDMA CM with IPoIB.  To resolve the device in these
+cases the code will also take the IP address as an additional input.
 
-The rdma_cm module relies today on the ib_cm module to demux incoming
-requests based on their service ID and IP address. The ib_cm module is the
-wrong place to perform this task, as it can also be used with services that
-do not adhere to the RDMA IP CM service as defined in the IBA
-specifications. It is forced to use an opaque private data struct and mask
-to compare incoming requests against.
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/device.c | 46 ++++++++++++++++++++++++++++++++++++++++
+ include/rdma/ib_verbs.h          | 27 +++++++++++++++++++++++
+ 2 files changed, 73 insertions(+)
 
-This series moves that demux task responsibility to the rdma_cm module. The
-rdma_cm module can look into the private data attached to a CM request,
-containing the IP addresses related to the request. It uses the details of
-the request to find the net device associated with the request, and use
-that net device to find the correct listening rdma_cm_id.
-
-The series applies against Doug's for-v4.2 tree with the patch adding a
-rwsem to IB core [2] applied.
-
-The series is structured as follows:
-Patch 1 prevents a possible race between ib_client.remove() callbacks from
-ib_unregister_device(), and ib_client callbacks that rely on the
-lists_rwsem locked for read, such as ib_get_net_dev_by_params(). Both
-callbacks may call ib_get_client_data(), and the patch makes sure that the
-remove callback doesn't free the client data while it is being used by the
-other callback.
-
-Patches 2-3 add the ability to lookup a network device according to the IB
-device, port, P_Key, GID and IP address. They find the matching IPoIB
-interfaces, and return a matching net_device if one exists.
-
-Patches 4-5 make necessary changes in ib_cm to allow RDMA CM get the
-information it needs out of CM and SIDR requests, and share a single
-ib_cm_id with multiple RDMA CM listeners.
-
-Patches 6-7 do some preliminary refactoring to the rdma_cm module. They
-allow extracting information out of incoming requests instead of retrieving
-them from a listening CM ID, and add helper functions to access the port
-space IDRs.
-
-Finally, patches 8-12 change rdma_cm to demultiplex requests on its own, and
-patch 13 cleans up the now unneeded code in ib_cm to compare against the
-private data.
-
-This series contains a subset of the RDMA CM namespaces patches [1]. The
-changes from v4 of the relevant patches are:
-- Patch 1
-  * in addition to the IB device, port, P_Key and IP address, pass
-    also the GID, to make future IPoIB devices with alias GIDs to unique.
-  * return the matching net_device instead of a network namespace.
-- Patch 2: use IS_ENABLED(CONFIG_IPV6) without ifdefs.
-- Patch 5:
-  * rename sharecount -> listen_sharecount.
-  * use a regular int instead of atomic for the share count, protected by
-    the cm.lock spinlock.
-  * change id destruction and shared listener creation to prevent the case
-    where an id is found but it is under destruction.
-
-[1] [PATCH v4 for-next 00/12] Add network namespace support in the RDMA-CM
-    http://www.spinics.net/lists/linux-rdma/msg25244.html
-[2] [PATCH for-next V5 02/12] IB/core: Add rwsem to allow reading device list or client list
-    http://www.spinics.net/lists/linux-rdma/msg25931.html
-
-Guy Shapiro (1):
-  IB/ipoib: Return IPoIB devices matching connection parameters
-
-Haggai Eran (11):
-  IB/core: lock client data with lists_rwsem
-  IB/cm: Expose service ID in request events
-  IB/cm: Share listening CM IDs
-  IB/cma: Refactor RDMA IP CM private-data parsing code
-  IB/cma: Helper functions to access port space IDRs
-  IB/cm: Expose BTH P_Key in CM and SIDR request events
-  IB/cma: Add net_dev and private data checks to RDMA CM
-  IB/cma: Validate routing of incoming requests
-  IB/cma: Use found net_dev for passive connections
-  IB/cma: Share ib_cm_ids between rdma_cm_ids
-  IB/cm: Remove compare_data checks
-
-Yotam Kenneth (1):
-  IB/core: Find the network device matching connection parameters
-
- drivers/infiniband/core/cache.c           |   2 +-
- drivers/infiniband/core/cm.c              | 219 ++++++----
- drivers/infiniband/core/cma.c             | 641 ++++++++++++++++++++++--------
- drivers/infiniband/core/device.c          |  99 ++++-
- drivers/infiniband/core/mad.c             |   2 +-
- drivers/infiniband/core/multicast.c       |   7 +-
- drivers/infiniband/core/sa_query.c        |   6 +-
- drivers/infiniband/core/ucm.c             |   9 +-
- drivers/infiniband/core/user_mad.c        |   6 +-
- drivers/infiniband/core/uverbs_main.c     |   6 +-
- drivers/infiniband/ulp/ipoib/ipoib_cm.c   |   2 +-
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 236 ++++++++++-
- drivers/infiniband/ulp/srp/ib_srp.c       |   6 +-
- drivers/infiniband/ulp/srpt/ib_srpt.c     |   7 +-
- include/rdma/ib_cm.h                      |  25 +-
- include/rdma/ib_verbs.h                   |  33 +-
- net/rds/ib.c                              |   5 +-
- net/rds/iw.c                              |   5 +-
- 18 files changed, 1013 insertions(+), 303 deletions(-)
-
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 623d8e191ced..124597732fe7 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -38,6 +38,7 @@
+ #include <linux/slab.h>
+ #include <linux/init.h>
+ #include <linux/mutex.h>
++#include <linux/netdevice.h>
+ #include <rdma/rdma_netlink.h>
+ 
+ #include "core_priv.h"
+@@ -781,6 +782,51 @@ int ib_find_pkey(struct ib_device *device,
+ }
+ EXPORT_SYMBOL(ib_find_pkey);
+ 
++/**
++ * ib_get_net_dev_by_params() - Return the appropriate net_dev
++ * for a received CM request
++ * @dev:	An RDMA device on which the request has been received.
++ * @port:	Port number on the RDMA device.
++ * @pkey:	The Pkey the request came on.
++ * @gid:	A GID that the net_dev uses to communicate.
++ * @addr:	Contains the IP address that the request specified as its
++ *		destination.
++ */
++struct net_device *ib_get_net_dev_by_params(struct ib_device *dev,
++					    u8 port,
++					    u16 pkey,
++					    const union ib_gid *gid,
++					    const struct sockaddr *addr)
++{
++	struct net_device *net_dev = NULL;
++	struct ib_client_data *context;
++
++	if (!rdma_protocol_ib(dev, port))
++		return NULL;
++
++	down_read(&lists_rwsem);
++
++	list_for_each_entry(context, &dev->client_data_list, list) {
++		struct ib_client *client = context->client;
++
++		if (context->going_down)
++			continue;
++
++		if (client->get_net_dev_by_params) {
++			net_dev = client->get_net_dev_by_params(dev, port, pkey,
++								gid, addr,
++								context->data);
++			if (net_dev)
++				break;
++		}
++	}
++
++	up_read(&lists_rwsem);
++
++	return net_dev;
++}
++EXPORT_SYMBOL(ib_get_net_dev_by_params);
++
+ static int __init ib_core_init(void)
+ {
+ 	int ret;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 5b83e0c10d55..b04d2b4d1792 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -48,6 +48,7 @@
+ #include <linux/rwsem.h>
+ #include <linux/scatterlist.h>
+ #include <linux/workqueue.h>
++#include <linux/socket.h>
+ #include <uapi/linux/if_ether.h>
+ 
+ #include <linux/atomic.h>
+@@ -1765,6 +1766,28 @@ struct ib_client {
+ 	void (*add)   (struct ib_device *);
+ 	void (*remove)(struct ib_device *, void *client_data);
+ 
++	/* Returns the net_dev belonging to this ib_client and matching the
++	 * given parameters.
++	 * @dev:	 An RDMA device that the net_dev use for communication.
++	 * @port:	 A physical port number on the RDMA device.
++	 * @pkey:	 P_Key that the net_dev uses if applicable.
++	 * @gid:	 A GID that the net_dev uses to communicate.
++	 * @addr:	 An IP address the net_dev is configured with.
++	 * @client_data: The device's client data set by ib_set_client_data().
++	 *
++	 * An ib_client that implements a net_dev on top of RDMA devices
++	 * (such as IP over IB) should implement this callback, allowing the
++	 * rdma_cm module to find the right net_dev for a given request.
++	 *
++	 * The caller is responsible for calling dev_put on the returned
++	 * netdev. */
++	struct net_device *(*get_net_dev_by_params)(
++			struct ib_device *dev,
++			u8 port,
++			u16 pkey,
++			const union ib_gid *gid,
++			const struct sockaddr *addr,
++			void *client_data);
+ 	struct list_head list;
+ };
+ 
+@@ -3042,4 +3065,8 @@ static inline int ib_check_mr_access(int flags)
+ int ib_check_mr_status(struct ib_mr *mr, u32 check_mask,
+ 		       struct ib_mr_status *mr_status);
+ 
++struct net_device *ib_get_net_dev_by_params(struct ib_device *dev, u8 port,
++					    u16 pkey, const union ib_gid *gid,
++					    const struct sockaddr *addr);
++
+ #endif /* IB_VERBS_H */
 -- 
 1.7.11.2
 
