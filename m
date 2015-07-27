@@ -1,69 +1,142 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH WIP 38/43] iser-target: Port to new memory registration
- API
-Date: Mon, 27 Jul 2015 11:25:10 -0600
-Message-ID: <20150727172510.GD18348@obsidianresearch.com>
-References: <55AFD3DC.8070508@dev.mellanox.co.il>
- <20150722175755.GH26909@obsidianresearch.com>
- <55B0C18B.4080901@dev.mellanox.co.il>
- <20150723163124.GD25174@obsidianresearch.com>
- <55B11D84.102@dev.mellanox.co.il>
- <20150723185334.GB31346@obsidianresearch.com>
- <DE0226A1-A7FC-4618-91F1-FE34347C252A@oracle.com>
- <20150724162657.GA21473@obsidianresearch.com>
- <903CDFB5-04FE-47B6-B044-E960E8A8BC4C@oracle.com>
- <8A2BC019-1DC0-4531-9659-3181EE9A4B43@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Subject: [PATCH] xprtrdma: take vendor driver refcount at client
+Date: Tue, 28 Jul 2015 04:31:26 +0530
+Message-ID: <1438038086-20522-1-git-send-email-devesh.sharma@avagotech.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <8A2BC019-1DC0-4531-9659-3181EE9A4B43-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jul 27, 2015 at 11:57:46AM -0400, Chuck Lever wrote:
-> IMO ib_unmap_fmr is a very different animal from LOCAL_INV WR.
+Thanks Chuck Lever for the valuable feedback and suggestions.
 
-Sure, but how many of these properties does NFS actually care about,
-now that it is running the API properly?
+This is a rework of the following patch sent almost a year back:
+http://www.mail-archive.com/linux-rdma%40vger.kernel.org/msg20730.html
 
-> ib_unmap_fmr is synchronous, provides no ordering guarantees with
-> send queue operations, and does not depend on a connected QP to
-> be available. You could emulate asynchronicity with a work queue
-> but that still does not provide SQ ordering. There are few if any
-> failure modes for ib_unmap_fmr.
+In presence of active mount if someone tries to rmmod vendor-driver, the
+command remains stuck forever waiting for destruction of all rdma-cm-id.
+in worst case client can crash during shutdown with active mounts.
 
-I'm having a hard time seeing how SQ ordering is important when the
-API is used properly. Once you explicitly order the DMA unmap after
-the invalidate completion you no longer need implicit SQ ordering
+The existing code assumes that ia->ri_id->device cannot change during
+the lifetime of a transport. Lifting that assumption is a long chain
+of work, and is in plan.
 
-Is there a way to combine SQ implicit ordering and the Linux DMA API
-together correctly?
+The community decided that preventing the hang right now is more
+important than waiting for architectural changes.
 
-> flight, the LINV flushes. MRs can be left in a state where the
-> MR's rkey is not in sync with the HW, in which case a
-> synchronous operation may be required to recover the MR.
+Signed-off-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+---
+ net/sunrpc/xprtrdma/verbs.c |   31 +++++++++++++++++++++++--------
+ 1 files changed, 23 insertions(+), 8 deletions(-)
 
-The error handling seems like a trivial difference, a
-ib_recover_failed_qp_mr(mr); sort of call could resync everything
-after a QP blows up..
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index 891c4ed..d16f599 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -52,6 +52,7 @@
+ #include <linux/prefetch.h>
+ #include <linux/sunrpc/addr.h>
+ #include <asm/bitops.h>
++#include <linux/module.h> /* try_module_get()/module_put() */
+ 
+ #include "xprt_rdma.h"
+ 
+@@ -414,6 +415,14 @@ connected:
+ 	return 0;
+ }
+ 
++static void rpcrdma_destroy_id(struct rdma_cm_id *id)
++{
++	if (id) {
++		module_put(id->device->owner);
++		rdma_destroy_id(id);
++	}
++}
++
+ static struct rdma_cm_id *
+ rpcrdma_create_id(struct rpcrdma_xprt *xprt,
+ 			struct rpcrdma_ia *ia, struct sockaddr *addr)
+@@ -440,6 +449,11 @@ rpcrdma_create_id(struct rpcrdma_xprt *xprt,
+ 	}
+ 	wait_for_completion_interruptible_timeout(&ia->ri_done,
+ 				msecs_to_jiffies(RDMA_RESOLVE_TIMEOUT) + 1);
++	if (!ia->ri_async_rc && !try_module_get(id->device->owner)) {
++		dprintk("RPC:       %s: Failed to get device module\n",
++			__func__);
++		ia->ri_async_rc = -ENODEV;
++	}
+ 	rc = ia->ri_async_rc;
+ 	if (rc)
+ 		goto out;
+@@ -449,16 +463,17 @@ rpcrdma_create_id(struct rpcrdma_xprt *xprt,
+ 	if (rc) {
+ 		dprintk("RPC:       %s: rdma_resolve_route() failed %i\n",
+ 			__func__, rc);
+-		goto out;
++		goto put;
+ 	}
+ 	wait_for_completion_interruptible_timeout(&ia->ri_done,
+ 				msecs_to_jiffies(RDMA_RESOLVE_TIMEOUT) + 1);
+ 	rc = ia->ri_async_rc;
+ 	if (rc)
+-		goto out;
++		goto put;
+ 
+ 	return id;
+-
++put:
++	module_put(id->device->owner);
+ out:
+ 	rdma_destroy_id(id);
+ 	return ERR_PTR(rc);
+@@ -592,7 +607,7 @@ out3:
+ 	ib_dealloc_pd(ia->ri_pd);
+ 	ia->ri_pd = NULL;
+ out2:
+-	rdma_destroy_id(ia->ri_id);
++	rpcrdma_destroy_id(ia->ri_id);
+ 	ia->ri_id = NULL;
+ out1:
+ 	return rc;
+@@ -618,7 +633,7 @@ rpcrdma_ia_close(struct rpcrdma_ia *ia)
+ 	if (ia->ri_id != NULL && !IS_ERR(ia->ri_id)) {
+ 		if (ia->ri_id->qp)
+ 			rdma_destroy_qp(ia->ri_id);
+-		rdma_destroy_id(ia->ri_id);
++		rpcrdma_destroy_id(ia->ri_id);
+ 		ia->ri_id = NULL;
+ 	}
+ 
+@@ -825,7 +840,7 @@ retry:
+ 		if (ia->ri_device != id->device) {
+ 			printk("RPC:       %s: can't reconnect on "
+ 				"different device!\n", __func__);
+-			rdma_destroy_id(id);
++			rpcrdma_destroy_id(id);
+ 			rc = -ENETUNREACH;
+ 			goto out;
+ 		}
+@@ -834,7 +849,7 @@ retry:
+ 		if (rc) {
+ 			dprintk("RPC:       %s: rdma_create_qp failed %i\n",
+ 				__func__, rc);
+-			rdma_destroy_id(id);
++			rpcrdma_destroy_id(id);
+ 			rc = -ENETUNREACH;
+ 			goto out;
+ 		}
+@@ -845,7 +860,7 @@ retry:
+ 		write_unlock(&ia->ri_qplock);
+ 
+ 		rdma_destroy_qp(old);
+-		rdma_destroy_id(old);
++		rpcrdma_destroy_id(old);
+ 	} else {
+ 		dprintk("RPC:       %s: connecting...\n", __func__);
+ 		rc = rdma_create_qp(ia->ri_id, ia->ri_pd, &ep->rep_attr);
+-- 
+1.7.1
 
-> The complexion of MR invalidation could be vastly different in
-> a few years: handled entirely by the target-side, and only
-> verified by the initiator. Verification doesn't need to sleep,
-> and the slow path (the target failed to invalidate) can be
-> deferred.
-
-The initiator still needs to have the ability to issue the invalidate
-if the target doesn't do it, so all the code still exists..
-
-Even ignoring those issues, should we be talking about putting FMR
-under the new ib_alloc_mr and ib_map_mr interfaces? Would that help
-much even if the post and unmap flows are totally different?
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
