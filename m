@@ -1,75 +1,67 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH WIP 28/43] IB/core: Introduce new fast registration API
-Date: Mon, 27 Jul 2015 11:14:41 -0600
-Message-ID: <20150727171441.GC18348@obsidianresearch.com>
-References: <1437548143-24893-1-git-send-email-sagig@mellanox.com>
- <1437548143-24893-29-git-send-email-sagig@mellanox.com>
- <20150722180203.GI26909@obsidianresearch.com>
- <55B0BFA4.4060509@dev.mellanox.co.il>
- <20150723161436.GC25174@obsidianresearch.com>
- <55B11A92.9040406@dev.mellanox.co.il>
- <20150723185126.GA31346@obsidianresearch.com>
- <55B4AC26.20405@dev.mellanox.co.il>
+Subject: Re: [PATCH WIP 38/43] iser-target: Port to new memory registration
+ API
+Date: Mon, 27 Jul 2015 11:25:10 -0600
+Message-ID: <20150727172510.GD18348@obsidianresearch.com>
+References: <55AFD3DC.8070508@dev.mellanox.co.il>
+ <20150722175755.GH26909@obsidianresearch.com>
+ <55B0C18B.4080901@dev.mellanox.co.il>
+ <20150723163124.GD25174@obsidianresearch.com>
+ <55B11D84.102@dev.mellanox.co.il>
+ <20150723185334.GB31346@obsidianresearch.com>
+ <DE0226A1-A7FC-4618-91F1-FE34347C252A@oracle.com>
+ <20150724162657.GA21473@obsidianresearch.com>
+ <903CDFB5-04FE-47B6-B044-E960E8A8BC4C@oracle.com>
+ <8A2BC019-1DC0-4531-9659-3181EE9A4B43@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <55B4AC26.20405-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <8A2BC019-1DC0-4531-9659-3181EE9A4B43-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jul 26, 2015 at 12:45:10PM +0300, Sagi Grimberg wrote:
-> On 7/23/2015 9:51 PM, Jason Gunthorpe wrote:
-> >On Thu, Jul 23, 2015 at 07:47:14PM +0300, Sagi Grimberg wrote:
-> >
-> >>>>>So we force ULPs to think about what they are doing properly, and we
-> >>>>>get a chance to actually force lkey to be local use only for IB.
-> >>>>
-> >>>>The lkey/rkey decision is passed in the fastreg post_send().
-> >>>
-> >>>That is too late to check the access flags.
-> >>
-> >>Why? the access permissions are kept in the mr context?
-> >
-> >Sure, one could do if (key == mr->lkey) .. check lkey flags in the
-> >post, but that seems silly considering we want the post inlined..
-> 
-> Why should we check the lkey/rkey access flags in the post?
+On Mon, Jul 27, 2015 at 11:57:46AM -0400, Chuck Lever wrote:
+> IMO ib_unmap_fmr is a very different animal from LOCAL_INV WR.
 
-Eh? It was your idea..
+Sure, but how many of these properties does NFS actually care about,
+now that it is running the API properly?
 
-I just want to check the access flags and force lkey's to not have
-ACCESS_REMOTE set without complaining loudly.
+> ib_unmap_fmr is synchronous, provides no ordering guarantees with
+> send queue operations, and does not depend on a connected QP to
+> be available. You could emulate asynchronicity with a work queue
+> but that still does not provide SQ ordering. There are few if any
+> failure modes for ib_unmap_fmr.
 
-To do that you need to know if the mr is a lkey/rkey, and you need to
-know the flags.
+I'm having a hard time seeing how SQ ordering is important when the
+API is used properly. Once you explicitly order the DMA unmap after
+the invalidate completion you no longer need implicit SQ ordering
 
-> >>I can move it to the post interface if it makes more sense.
-> >>the access is kind of out of place in the mapping routine anyway...
-> >
-> >All the dma routines have an access equivalent during map, I don't
-> >think it is out of place..
-> >
-> >To my mind, the map is the point where the MR should crystallize into
-> >an rkey or lkey MR, not at the post.
-> 
-> I'm not sure I understand why the lkey/rkey should be set at the map
-> routine. To me, it seems more natural to map_mr_sg and then either
-> register the lkey or the rkey.
+Is there a way to combine SQ implicit ordering and the Linux DMA API
+together correctly?
 
-We need to check the access flags to put a stop to this remote access
-lkey security problem. That means we need to label every MR as a lkey
-or rkey MR.
+> flight, the LINV flushes. MRs can be left in a state where the
+> MR's rkey is not in sync with the HW, in which case a
+> synchronous operation may be required to recover the MR.
 
-No more MR's can be both nonsense.
+The error handling seems like a trivial difference, a
+ib_recover_failed_qp_mr(mr); sort of call could resync everything
+after a QP blows up..
 
-Pick a place to do that and enforce that IB cannot have remote access
-LKEYs.
+> The complexion of MR invalidation could be vastly different in
+> a few years: handled entirely by the target-side, and only
+> verified by the initiator. Verification doesn't need to sleep,
+> and the slow path (the target failed to invalidate) can be
+> deferred.
 
-My vote is to do that work in map, because I don't think it make any
-sense in post (post should not fail)
+The initiator still needs to have the ability to issue the invalidate
+if the target doesn't do it, so all the code still exists..
+
+Even ignoring those issues, should we be talking about putting FMR
+under the new ib_alloc_mr and ib_map_mr interfaces? Would that help
+much even if the post and unmap flows are totally different?
 
 Jason
 --
