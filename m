@@ -1,60 +1,46 @@
-From: "J.L. Burr" <jlburr-vna1KIf7WgpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 00/10] IB: Replace safe uses for ib_get_dma_mr with pd->local_dma_lkey
-Date: Tue, 28 Jul 2015 16:58:29 -0400
-Message-ID: <mp8qgu$nt0$1@ger.gmane.org>
-References: <1437608083-22898-1-git-send-email-jgunthorpe@obsidianresearch.com> <mp85i7$6hc$1@ger.gmane.org> <20150728182356.GA1712@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 00/10] IB: Replace safe uses for ib_get_dma_mr with
+ pd->local_dma_lkey
+Date: Tue, 28 Jul 2015 16:10:50 -0600
+Message-ID: <20150728221050.GA1279@obsidianresearch.com>
+References: <1437608083-22898-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <mp85i7$6hc$1@ger.gmane.org>
+ <20150728182356.GA1712@obsidianresearch.com>
+ <mp8qgu$nt0$1@ger.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <mp8qgu$nt0$1@ger.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "J.L. Burr" <jlburr-vna1KIf7WgpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-"Jason Gunthorpe" 
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote in 
-message news:20150728182356.GA1712-ePGOBjL8dl3ta4EC/59zMK2raWmgRF17@public.gmane.org
+On Tue, Jul 28, 2015 at 04:58:29PM -0400, J.L. Burr wrote:
 
-> On Tue, Jul 28, 2015 at 11:01:12AM -0400, J.L. Burr wrote:
->
->> We use ib_get_dma_mr with IB_ACCESS_REMOTE_* flags in an embedded
->> device environment (in a custom out-of-tree device driver).  Not to
->> allow remote access to CPU memory but to allow remote access to PCIe
->> device memory (the IB card makes peer accesses directly to other
->> PCIe devices).
->
-> Why can't you create a proper MR that only exposes the PCI device's
-> BAR?
+> Is there some way now (in upstream kernels) to create a MR with an 
+> arbitrary (and large) physical address range?  That would be great!  I 
+> didn't see a way to do that when I started on this journey (about 4 
+> years ago).
 
-On the embedded side, the QPs and MRs are all in kernel space.  That's 
-because the PCIe device BARs are huge (2**39 is the typical size, but it 
-can be as large as 2**47).  This is much too large to map into the 
-embedded processor's address space.
+The FRWR API can do this, but it depends on each card if it can manage
+the page list table or not.
 
-In an earlier implementation, I modified ib_reg_phys_mr so that it would 
-return a no-translation MR and could also specify the physical address 
-range I wanted it to define.  But I haven't used that in a long time. 
-Plus you guys are removing ib_reg_phys_mr anyway! :-)
+You'd need to check page_size_cap and max_map_per_fmr for your card to
+see.
 
-My current scheme, with ib_get_dma_mr, results in a MR which maps the 
-entire 64-bit physical space (which isn't ideal; would indeed be better 
-if the MR was limited to a single PCIe device BAR space) but does have 
-the advantage (to me) of not requiring any modifications to Linux, the 
-kernel IB stack, or IB hardware drivers.
+Basically use an array of the largest page size your adaptor will
+support.
 
-I'm admittedly (way) out of date.  Our embedded system is running CentOS 
-6.6 so the kernel level (2.6.32) is ancient by upstream standards.
+Eg mlx5 supports any page size above 4k, so you can do any PCI BAR
+with a single FRWR page table entry.
 
-Is there some way now (in upstream kernels) to create a MR with an 
-arbitrary (and large) physical address range?  That would be great!  I 
-didn't see a way to do that when I started on this journey (about 4 
-years ago).
+mlx4 seems to top out at 2G pages (which may just be the driver being
+silly) so you'd need 64k page entries, no idea if it can do that or
+not..
 
-Thanks.
-
-John
-
-
-
-
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
