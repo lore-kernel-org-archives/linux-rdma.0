@@ -1,45 +1,50 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v2 02/13] IB/core: Find the network device matching
- connection parameters
-Date: Tue, 28 Jul 2015 11:16:08 +0300
-Message-ID: <55B73A48.7020103@mellanox.com>
+Subject: Re: [PATCH v2 05/13] IB/cm: Share listening CM IDs
+Date: Tue, 28 Jul 2015 11:25:42 +0300
+Message-ID: <55B73C86.30608@mellanox.com>
 References: <1437924832-18327-1-git-send-email-haggaie@mellanox.com>
- <1437924832-18327-3-git-send-email-haggaie@mellanox.com>
- <20150727174522.GF18348@obsidianresearch.com>
+ <1437924832-18327-6-git-send-email-haggaie@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A82373A901F86B@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150727174522.GF18348-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A901F86B-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 27/07/2015 20:45, Jason Gunthorpe wrote:
-> On Sun, Jul 26, 2015 at 06:33:41PM +0300, Haggai Eran wrote:
->> From: Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>
->> In the case of IPoIB, and maybe in other cases, the network device is
->> managed by an upper-layer protocol (ULP). In order to expose this
->> network device to other users of the IB device, let ULPs implement
->> a callback that returns network device according to connection parameters.
->>
->> The IB device and port, together with the P_Key and the GID should
->> be enough to uniquely identify the ULP net device. However, in current
->> kernels there can be multiple IPoIB interfaces created with the same GID.
->> Furthermore, such configuration may be desireable to support ipvlan-like
->> configurations for RDMA CM with IPoIB.  To resolve the device in these
->> cases the code will also take the IP address as an additional input.
-> 
-> I already sent this, but again:
-> 
-> Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+On 27/07/2015 22:04, Hefty, Sean wrote:
+>> +struct ib_cm_id *ib_cm_insert_listen(struct ib_device *device,
+>> > +				     ib_cm_handler cm_handler,
+>> > +				     __be64 service_id, __be64 service_mask)
+>> > +{
+>> > +	struct cm_id_private *cm_id_priv;
+>> > +	struct ib_cm_id *cm_id;
+>> > +	unsigned long flags;
+>> > +	int err = 0;
+>> > +
+>> > +	/* Create an ID in advance, since the creation may sleep */
+>> > +	cm_id = ib_create_cm_id(device, cm_handler, NULL);
+>> > +	if (IS_ERR(cm_id))
+>> > +		return cm_id;
+>> > +
+>> > +	spin_lock_irqsave(&cm.lock, flags);
+>> > +
+>> > +	if (service_id == IB_CM_ASSIGN_SERVICE_ID)
+>> > +		goto new_id;
+>> > +
+>> > +	/* Find an existing ID */
+>> > +	cm_id_priv = cm_find_listen(device, service_id, NULL);
+>> > +	if (cm_id_priv) {
+> The service_mask is being ignored through this code path.
 
-Thanks. I only removed it because the patch had some changes related to
-the locking scheme, and I wasn't sure you would approve them.
+Thanks.
 
-Thanks anyway,
+I think it would be better just to remove the service_mask parameter
+from this function, right? rdma_cm makes no use of the service mask.
+
 Haggai
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
