@@ -1,54 +1,56 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-4.2] iw_cxgb4: gracefully handle unknown CQE status
- errors
-Date: Tue, 28 Jul 2015 11:23:22 -0400
-Message-ID: <55B79E6A.9040608@redhat.com>
-References: <1437986294-6697-1-git-send-email-hariprasad@chelsio.com>
+Subject: Re: [PATCH for-4.2] iw_cxgb4: set the default MPA version to 2
+Date: Tue, 28 Jul 2015 11:23:50 -0400
+Message-ID: <55B79E86.4080207@redhat.com>
+References: <1437986332-6746-1-git-send-email-hariprasad@chelsio.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="1FUQ9KdOklggEfAxUxEBGc4vdAQIAHi7m"
+ boundary="eHg6qFn6FKsT5hXvfuHlrvKGgs4HOn8ba"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1437986294-6697-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1437986332-6746-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---1FUQ9KdOklggEfAxUxEBGc4vdAQIAHi7m
+--eHg6qFn6FKsT5hXvfuHlrvKGgs4HOn8ba
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
 On 07/27/2015 04:38 AM, Hariprasad Shenai wrote:
-> c4iw_poll_cq_on() shouldn't fail the poll operation just because
-> the CQE status is unknown.  Rather, it should map this to the
-> "fatal error" status and log the anomaly.
+> This enables ORD/IRD negotiation and its about time to enable it by
+> default
 >=20
 > Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 > Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 > ---
->  drivers/infiniband/hw/cxgb4/cq.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/infiniband/hw/cxgb4/cm.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 >=20
-> diff --git a/drivers/infiniband/hw/cxgb4/cq.c b/drivers/infiniband/hw/c=
-xgb4/cq.c
-> index c7aab48..92d5183 100644
-> --- a/drivers/infiniband/hw/cxgb4/cq.c
-> +++ b/drivers/infiniband/hw/cxgb4/cq.c
-> @@ -814,7 +814,7 @@ static int c4iw_poll_cq_one(struct c4iw_cq *chp, st=
-ruct ib_wc *wc)
->  			printk(KERN_ERR MOD
->  			       "Unexpected cqe_status 0x%x for QPID=3D0x%0x\n",
->  			       CQE_STATUS(&cqe), CQE_QPID(&cqe));
-> -			ret =3D -EINVAL;
-> +			wc->status =3D IB_WC_FATAL_ERR;
->  		}
->  	}
->  out:
+> diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/c=
+xgb4/cm.c
+> index 3ad8dc7..75144d9 100644
+> --- a/drivers/infiniband/hw/cxgb4/cm.c
+> +++ b/drivers/infiniband/hw/cxgb4/cm.c
+> @@ -115,11 +115,11 @@ module_param(ep_timeout_secs, int, 0644);
+>  MODULE_PARM_DESC(ep_timeout_secs, "CM Endpoint operation timeout "
+>  				   "in seconds (default=3D60)");
+> =20
+> -static int mpa_rev =3D 1;
+> +static int mpa_rev =3D 2;
+>  module_param(mpa_rev, int, 0644);
+>  MODULE_PARM_DESC(mpa_rev, "MPA Revision, 0 supports amso1100, "
+>  		"1 is RFC0544 spec compliant, 2 is IETF MPA Peer Connect Draft"
+> -		" compliant (default=3D1)");
+> +		" compliant (default=3D2)");
+> =20
+>  static int markers_enabled;
+>  module_param(markers_enabled, int, 0644);
 >=20
 
-Accepted for 4.2-rc.
+Accepted.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -56,7 +58,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---1FUQ9KdOklggEfAxUxEBGc4vdAQIAHi7m
+--eHg6qFn6FKsT5hXvfuHlrvKGgs4HOn8ba
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -65,22 +67,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJVt55qAAoJELgmozMOVy/dsuIP/RMyFkMc25ooojWBOa8s/058
-JTi9fwKhnI970ojo1Bamzl8Le3cfgj2D+3Q0QmRUNQ6F1g4XP2+QmDmnMcRPPfBB
-WQYakH8sggejgkZe54P2r3Yj6P67qW7nDkrKAYccz/y9yVnVcYp0tduguSiOTx0O
-YmVnzqXnKUqXR/rw+laiEgQhfBSf5BmBx19kM3gENr2Tg091q19yB3nP/Le53Rv6
-cjOzb0F55zMrh5K4nZb+BcGCsB3Q2dyOZPdmo/Oaz46D3Syk3qlXcR8cLGAWnU7A
-I3P8fvSxmkjXspbHp0l/bQQNB2XDymxc0SnsAy/4c2QCYY/kUUOIAoTmR2E5I2zP
-qegnMKKIcgy9+1XzuZhXKe8qiX+OCIzhESTyDTBWgjLgkxDspbv+Gs09kS7n5aRr
-Z9riegW4tDfJhZBg72Y6zsPpYSvqCK0wknaP2F8Af6sg7Sd1SC4kZjDqImoU5F/9
-1ZuFmAyZT3gDiID12MBQKAUxclwV90K6/hoGxZ5m+3vVwLINvecYcRFrIWYWu80p
-AAfI08ShJjaki9QjIXE3fvMJ/ySYHZdauPtky5CEFvNldBEsDRulhM+TR0trswNo
-5aC8N2dPo5i7NW6myFj6qb7WJgLEayGvAYoREueccXnVJxPVO4d4mRFDkYaRbzTi
-SH//8a3xh2rCRL/Ut+EV
-=kvQW
+iQIcBAEBCAAGBQJVt56GAAoJELgmozMOVy/dFgUP/R7rLRg+YSWXcOd6GZ3BhEKE
++Lh18pz/afTlOMxph4DHEwV2cC8RKkvGc6/dfWp3+h8349AwIXP9CF78y1mweVp0
+BN0z9F7NxtSKvpfggGnTN2FURqNIsw/EbNE/yWPH1lcrj+S5L0LoCuoCERDbKEQq
+7xv8wljcYTO4QE0ZKPCv7emMHT2FzNgFcNKy0t27BGwKpZTwZKKejEZWSkdLSvqp
+MpZlCkOPdClvZb/oCDS7n35JiLy+uRJ35d/dDVU9HcmPHQhoDg4aWdj0ik/fAaId
+TA+TvcLxultylMTx15INGXq3zGgYHMYkKTDwymSSS0+roUSM8jhDjlNUJTxE342a
+Sdc6NLK9mZsJfnD0y597SAZjaSTjWsAZqd7Ardb+9VCuUHZlkDebNYza7Sp+D/8+
+5WeSJgQAw9Vzfa0EkothJIVskfcTqHuUooTIU1sZHDKhRbo31Q/2z6TbAtKfw3eu
+UjIj0t874GTDe4UydDyADydZLciHiy/fLwZFO7oVaoSECP/A+4uBQA7+cEzGohgc
+0Qf3IVZXDFMWsf+4NX6nrOrIrCQdM9xN++Lzwau5FbYhjutA6bgC+liMwAivhVxy
+K1iFJ8lp56KXSKg1nz4xzBmAOaODFOfm86KCqKs8x4r6ev3NuYaO0bwnwnWb4ePl
+LIUU5gsQlag9ls+XDkEd
+=0GkB
 -----END PGP SIGNATURE-----
 
---1FUQ9KdOklggEfAxUxEBGc4vdAQIAHi7m--
+--eHg6qFn6FKsT5hXvfuHlrvKGgs4HOn8ba--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
