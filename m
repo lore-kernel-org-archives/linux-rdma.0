@@ -1,82 +1,67 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PULL REQUEST] Please pull rdma.git
-Date: Tue, 28 Jul 2015 10:37:08 -0400
-Message-ID: <55B79394.1090305@redhat.com>
+Subject: Re: [PATCH RESEND 0/4] Use max_sge_rd device capability
+Date: Tue, 28 Jul 2015 10:45:38 -0400
+Message-ID: <55B79592.4060500@redhat.com>
+References: <20150727230906.10102.88491.stgit@build2.ogc.int>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="WTaXfaK0KDREMmmXkCRMDftaANfknliGg"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Torvalds, Linus" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+ boundary="1h2fcggdQ57rEnQrj8AREXTivX9LGG8Bc"
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150727230906.10102.88491.stgit-PBeJgSbIpn97NCTnQtmixQ@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---WTaXfaK0KDREMmmXkCRMDftaANfknliGg
+--1h2fcggdQ57rEnQrj8AREXTivX9LGG8Bc
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-The following changes since commit d8b2ba7c5928173fe1c12bd2545f5ed85d1c3c=
-7a:
+On 07/27/2015 07:09 PM, Steve Wise wrote:
+> Resending because I forgot to cc linux-rdma :(
+>=20
+> Some devices were not setting this capability, so fix those devices,
+> and svcrdma to use max_sge_rd.  Also remove rdma_cap_read_multi_sge()
+> since it isn't needed.
+>=20
+> These patches were originally part of:
+>=20
+> http://www.spinics.net/lists/linux-rdma/msg27436.html
+>=20
+> They really aren't part of iSER/iWARP at all, so I've split=20
+> them out. =20
+>=20
+> Bruce: This hits svcrdma, but I suggest they get merged via Doug's tree=
 
-  IB/core: Destroy ocrdma_dev_id IDR on module exit (2015-07-14 13:20:16
--0400)
+> to avoid any merge problems.
+>=20
+> ---
+>=20
+> Sagi Grimberg (1):
+>       mlx4, mlx5, mthca: Expose max_sge_rd correctly
+>=20
+> Steve Wise (3):
+>       RDMA/Core: remove rdma_cap_read_multi_sge() helper
+>       svcrdma: Use max_sge_rd for destination read depths
+>       ipath,qib: Expose max_sge_rd correctly
+>=20
+>=20
+>  drivers/infiniband/hw/ipath/ipath_verbs.c    |    1 +
+>  drivers/infiniband/hw/mlx4/main.c            |    1 +
+>  drivers/infiniband/hw/mlx5/main.c            |    1 +
+>  drivers/infiniband/hw/mthca/mthca_provider.c |    1 +
+>  drivers/infiniband/hw/qib/qib_verbs.c        |    1 +
+>  include/linux/sunrpc/svc_rdma.h              |    1 +
+>  include/rdma/ib_verbs.h                      |   28 ------------------=
+--------
+>  net/sunrpc/xprtrdma/svc_rdma_recvfrom.c      |   12 +----------
+>  net/sunrpc/xprtrdma/svc_rdma_transport.c     |    4 ++++
+>  9 files changed, 11 insertions(+), 39 deletions(-)
+>=20
 
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
-tags/for-linus
-
-for you to fetch changes up to b8f5595eb96c9fce1c907d13e89581e5061edf2e:
-
-  RDMA/ocrdma: update ocrdma module license string (2015-07-24 11:34:41
--0400)
-
-----------------------------------------------------------------
-Changes for 4.2-rc
-
-- Two minor bug fixes
-- Relicense ocrdma driver to dual license, GPL or BSD
-
-----------------------------------------------------------------
-Devesh Sharma (2):
-      RDMA/ocrdma: update ocrdma license to dual-license
-      RDMA/ocrdma: update ocrdma module license string
-
-Jason Gunthorpe (1):
-      IB/ipoib: Fix CONFIG_INFINIBAND_IPOIB_CM
-
-Steve Wise (1):
-      RDMA/cxgb3: fail get_dma_mr on 64 bit arches
-
- drivers/infiniband/hw/cxgb3/iwch_provider.c |  4 +++
- drivers/infiniband/hw/ocrdma/ocrdma.h       | 53
-+++++++++++++++++----------
- drivers/infiniband/hw/ocrdma/ocrdma_abi.h   | 53
-+++++++++++++++++----------
- drivers/infiniband/hw/ocrdma/ocrdma_ah.c    | 53
-+++++++++++++++++----------
- drivers/infiniband/hw/ocrdma/ocrdma_ah.h    | 53
-+++++++++++++++++----------
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c    | 53
-+++++++++++++++++----------
- drivers/infiniband/hw/ocrdma/ocrdma_hw.h    | 53
-+++++++++++++++++----------
- drivers/infiniband/hw/ocrdma/ocrdma_main.c  | 55
-++++++++++++++++++-----------
- drivers/infiniband/hw/ocrdma/ocrdma_sli.h   | 53
-+++++++++++++++++----------
- drivers/infiniband/hw/ocrdma/ocrdma_stats.c | 53
-+++++++++++++++++----------
- drivers/infiniband/hw/ocrdma/ocrdma_stats.h | 53
-+++++++++++++++++----------
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 53
-+++++++++++++++++----------
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.h | 53
-+++++++++++++++++----------
- drivers/infiniband/ulp/ipoib/ipoib_verbs.c  |  3 +-
- 14 files changed, 415 insertions(+), 230 deletions(-)
-
+Thanks Steve, I'm picking this up for my for-next work today.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -84,7 +69,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---WTaXfaK0KDREMmmXkCRMDftaANfknliGg
+--1h2fcggdQ57rEnQrj8AREXTivX9LGG8Bc
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -93,23 +78,23 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJVt5OUAAoJELgmozMOVy/dEuMQALNYiK/1qlOIvUvnpGoQuyK+
-xnZWMrsQ7XQsW6zfiog/+qo7DGMyHmDmJodUprTqg9QoFZlFWaFDqGGWbVFiABhd
-/Qs8XrM12n25D4j3k8wyptoCC0HKDxZYnbIQRqYY4L5efiUgVjEKjJ7MvfYlmNkB
-b/up50rEelO5HGRIZnV3L4sGxHS0pS16thWEV1dbosw0XYBHubOL7BuAUUWAyymV
-+J7+NIIFpiL8VlnGeRi5DkRYfnB3JvgSCH5RO64wlV2qtf/sYwB/acSHdftpeu64
-j6Mptk4+SgVTsT09+9KLs2wN0I8eSb9egVGmcd/Yk7WArARr68oVxWngJMT5xx2P
-REJf1GlD+t6jX+v+vXe5u6Un+W9IAK7m2IOq+IJPW4gcv8oyC4h+MP9Al2MMlVis
-qGSWNl8hXHBnFAMmMo29ClR51bc335+6umaewoAFCokJ1lvMooGGkUGsaCRgYwHf
-0eS0vk/4xAdmQvtkudQVetbX4/SKEBTjP2qHZBs89gsx81r2Xkpbv3KM64ZK9TJ8
-Vw8m2rfCmKJ76izrlf+M8jrGhF7VkI0rznSAJUunAFs2MX5Yqyz5qQH6J7DZvLks
-XN75NThudCy2WLgLVIQClHptSUdGmW0i5AL7pKzs3ynQnGSZpQ3Gl2IRq+QxDmlY
-4bp79E/jXWIc3QuvKh1I
-=62VW
+iQIcBAEBCAAGBQJVt5WSAAoJELgmozMOVy/d3M4QAJlyKEgLcH75mPPdgS2/nUG+
+eko3zcZBHFLKjtxiXa5TVj6dlbU/UbngOeCzWE3ajJ5vMkOFfu78QtX8pEvWVI5D
+wFHnc9+NoZdri7FkKhRADeXTihoN02bff/8MA8YfdpgoxIB/C70Pokbv8YHewhWU
+KZDDpiVt2vAcd29NX6HD1dOghwM9V+3RrmV8Q5pkPHVHEYAv8PkX4cTvBTPM9HQp
+1hsVmn/QtmcSq9jmlG4xZQFWD95QUQ7na6SS8AAa4DRGBgT3EJ9MB2Vv9Y8PZ452
+Tz0KOSDkaeL2vzjVatTvWZkfN89gDn/4dUlhG030tQkoW1Gb4ubKrm6+vh9subnZ
+hM3QwlmprOTzRnzV4IAZOl1yR1p4J5qZQSp04GB7/3xvdB+LGHY0JFNblM2Hrtg2
+c8NAG/bieSbNM0ykW919t4bHlYMPqC3B/GxJgwcbxihQ/KBR7/AMy7n8qTGFMQxe
+yQkEkJzRgZkJTbBN64JVOeQ7CrSeYC4de3aMx1ntflvYPNB9F5XDk6jlfLQzeU+H
+PcI6Mc6cCF/F1ko+RmudznlSby7tvWYmOK/Zi53T0VP9i0FUDQSGgXNI+BlR2V01
+Xd7rWevf3HmGo/e3n5lg9LSoiDlT9KFmafmoQU967CPrJzHOPUyhB7X2dWRj+VsA
+HekDGasdM5HGZQFuqRFD
+=Om0i
 -----END PGP SIGNATURE-----
 
---WTaXfaK0KDREMmmXkCRMDftaANfknliGg--
+--1h2fcggdQ57rEnQrj8AREXTivX9LGG8Bc--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
