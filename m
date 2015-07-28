@@ -1,154 +1,60 @@
-From: james harvey <jamespharvey20-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Bug: Discover more than 1 iSER gives -- isert: isert_handle_wc: wr...
- status {9,1} vend_err {8a,d7) -- & -- conn error (1011)
-Date: Tue, 28 Jul 2015 02:25:22 +0000
-Message-ID: <CA+X5Wn7GmZ9fYbm14YAr59rnCwD-eDoz+xVxsu3F0YK1o4dsew@mail.gmail.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: How to disconnect a SRP (SCSI RDMA Protocol) drive after
+ unmounting
+Date: Mon, 27 Jul 2015 21:00:53 -0700
+Message-ID: <55B6FE75.6030204@sandisk.com>
+References: <CA+X5Wn5dH2iz0SJVFQfjfD-Z5dfnGY+x9_c7krUw8_NFQy-w9g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CA+X5Wn5dH2iz0SJVFQfjfD-Z5dfnGY+x9_c7krUw8_NFQy-w9g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: james harvey <jamespharvey20-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Two up to date arch systems.  Kernel 4.1.2 (Arch -2).
+On 07/27/15 18:15, james harvey wrote:
+> I  have an InfiniBand network working with SRP sharing.
+>
+> On the target system, I am running targetcli (the -fb free branch
+> version) and OpenFabric's srptools.
+>
+> On the initiator system, I am running OpenFabric's srptools.
+>
+> After I've gotten srp on the initiator to link a SRP target as a local
+> drive, mounted it, done whatever I wanted to with it, and unmounted
+> it... How do I make it go away as a local drive? i.e. If I wanted it
+> to not be accessible, if I want another machine to use it via SRP,
+> etc, or if I need to reboot the target system and want everything
+> clean beforehand. (I can run sync on the initiator, but I'd prefer a
+> way to disconnect it.)
+>
+> Stopping srptools.service has no effect. In fact, I can still mount
+> and use the drive without it running. It seems to run as a daemon to
+> connect to new targets, but doesn't seem necessary to be running after
+> they're connected.
+>
+> I've looked at ibsrpdm and srp_daemon themselves, and see no such functionality.
+>
+> I've also tried commenting the entry in srp_daemon.conf, so it
+> defaults to disallowing the connection, and restarting srptools.
+>
+> I see there's srp_remove_target, srp_disconnect_target, and
+> scsi_remove_host functions, but I'm not sure what program (if any)
+> exposes them to the cli.
 
-2 Mellanox MT25418 [ConnectX VPI PCIe 2.0 2.5GT/s - IB DDR / 10GigE]
-(rev a0) running mlx4_core driver v2.2-1 (Feb, 2014.)  Both on most
-recent firmware for PSID MT_04A0110002, FW Version 2.9.1000.  Systems
-directly connected, no switches.  InfiniBand otherwise works great,
-through VERY extensive testing.
+Hello James,
 
-Running OpenFabrics most recent releases of everything (release
-versions, not git versions.)
+This might be what you are looking for:
 
-Open-iscsi 2.0_873-6.
+echo 1 > /sys/class/srp_remote_ports/${port}/delete
 
-targetcli-fb 2.1.fb41-1, python-rtslib-fb 2.1.fb57-1, and
-python-configshell-fb 1.1.fb18-1.
+The above command deletes all SCSI devices that are associated with a 
+particular SRP port. It is important to sync and umount these devices 
+before running the above command because all I/O requests that are 
+submitted after that command has been run will fail.
 
-
-
-I can't discover more than 1 iSER device working at a time.  Using
-IPoIB lets me discover as many as I want.
-
-At the very end is a workaround - not a fix.
-
-
-I start with 3 disks working through iSCSI over IPoIB, with
-targetcli's (-fb version) ls looking like:
-
-o- / ..................................................................... [...]
-  o- backstores .......................................................... [...]
-  | o- block .............................................. [Storage Objects: 3]
-  | | o- sda4 ........................ [/dev/sda4 (4.4TiB) write-thru activated]
-  | | o- sdb4 ........................ [/dev/sdb4 (4.4TiB) write-thru activated]
-  | | o- sdc4 ........................ [/dev/sdc4 (4.4TiB) write-thru activated]
-  | o- fileio ............................................. [Storage Objects: 0]
-  | o- pscsi .............................................. [Storage Objects: 0]
-  | o- ramdisk ............................................ [Storage Objects: 0]
-  | o- user ............................................... [Storage Objects: 0]
-  o- iscsi ........................................................ [Targets: 3]
-  | o- iqn.2003-01.org.linux-iscsi.terra.x8664:sn.2549ae938766 ....... [TPGs: 1]
-  | | o- tpg1 ........................................... [no-gen-acls, no-auth]
-  | |   o- acls ...................................................... [ACLs: 1]
-  | |   | o- iqn.2005-03.org.open-iscsi:c04e8f17af18 .......... [Mapped LUNs: 1]
-  | |   |   o- mapped_lun0 .............................. [lun0 block/sda4 (rw)]
-  | |   o- luns ...................................................... [LUNs: 1]
-  | |   | o- lun0 ..................................... [block/sda4 (/dev/sda4)]
-  | |   o- portals ................................................ [Portals: 1]
-  | |     o- 0.0.0.0:3260 ................................................. [OK]
-  | o- iqn.2003-01.org.linux-iscsi.terra.x8664:sn.8518b92b052d ....... [TPGs: 1]
-  | | o- tpg1 ........................................... [no-gen-acls, no-auth]
-  | |   o- acls ...................................................... [ACLs: 1]
-  | |   | o- iqn.2005-03.org.open-iscsi:c04e8f17af18 .......... [Mapped LUNs: 1]
-  | |   |   o- mapped_lun0 .............................. [lun0 block/sdb4 (rw)]
-  | |   o- luns ...................................................... [LUNs: 1]
-  | |   | o- lun0 ..................................... [block/sdb4 (/dev/sdb4)]
-  | |   o- portals ................................................ [Portals: 1]
-  | |     o- 0.0.0.0:3260 ................................................. [OK]
-  | o- iqn.2003-01.org.linux-iscsi.terra.x8664:sn.d4603198ba50 ....... [TPGs: 1]
-  |   o- tpg1 ........................................... [no-gen-acls, no-auth]
-  |     o- acls ...................................................... [ACLs: 1]
-  |     | o- iqn.2005-03.org.open-iscsi:c04e8f17af18 .......... [Mapped LUNs: 1]
-  |     |   o- mapped_lun0 .............................. [lun0 block/sdc4 (rw)]
-  |     o- luns ...................................................... [LUNs: 1]
-  |     | o- lun0 ..................................... [block/sdc4 (/dev/sdc4)]
-  |     o- portals ................................................ [Portals: 1]
-  |       o- 0.0.0.0:3260 ................................................. [OK]
-  o- loopback ..................................................... [Targets: 0]
-  o- sbp .......................................................... [Targets: 0]
-  o- srpt ......................................................... [Targets: 0]
-  o- vhost ........................................................ [Targets: 0]
-
-
-On the initiator system, I clear everything.  Log out via iscsiadm -m
-node -U all.  Disconnect via iscsiadm -m discovery -t sendtargets -p
-IP -o delete.
-
-On the target system, i go into each of the
-iscsi/iqn/tpg1/portals/0.0.0.0:3260 directories and run "enable_iser
-true".  Each time it says "iSER enable now: True".  / saveconfig and
-exit.
-
-target-cli now changes to:
-  | |     o- 0.0.0.0:3260 ............................................... [iser]
-...
-  | |     o- 0.0.0.0:3260 ............................................... [iser]
-...
-  |       o- 0.0.0.0:3260 ............................................... [iser]
-
-On the initiator system, I discover via iscsiadm -m discovery -t
-sendtargets -p IP -I iser, and it says:
-
-iscsiadm: recv's end state machine bug?
-iscsiadm: Could not perform SendTargets discovery: iSCSI PDU timed out
-
-The target's dmesg added:
-
-[80296.332049] isert: isert_handle_wc: wr id ffff8800a78f1c18 status 9
-vend_err 8a
-
-The initiator's dmesg added:
-
-[10868.076407] scsi host25: iSCSI Initiator over iSER
-[10868.078969] iser: iser_handle_wc: wr id ffff8807f7ee4000 status 1 vend_err d7
-[10868.078982]  connection7:0: detected conn error (1011)
-
-
-Now, on the target machine, if I run "enable_iser false" on two of the
-iqn's portals, saveconfig, and exit... Then run iscsiadm -m discovery
--t sendtargets -p IP -I iser, it gives:
-
-192.168.2.1:3260,1 iqn.2003-01.org.linux-iscsi.terra.x8664:sn.2549ae938766
-
-Target's dmesg has nothing new, initiator's has:
-
-[11067.116617] scsi host27: iSCSI Initiator over iSER
-
-On the initiator, I can log into the node, mount it, and use it just
-fine.  I can even discover and log into the other two nodes, using
-iSCSI over IPoIB rather than iSER for those 2, and use all 3.
-
-But, I can't get more than 1 iSER to discover at a time.
-
-... Not sure if this is a kernel issue, a Mellanox issue, an
-OpenFabrics issue, an open-iscsi issue, or a targetcli (-fb version)
-issue.
-
-
-
-I found the only difference in open-iscsi's node configuration files
-is iface.iscsi_ifacename = iser, and iface.transport_name = iser.
-(Rather than default and tcp.)  And, the files are called iser rather
-than default.
-
-If I discover the targets with the targets having enable_iser false,
-then stop the initiator's open-iscsi.service, update all the node
-config files to iser, rename them to iser, change all the targets to
-enable_iser true, and start the initiator's open-iscsi.service, it
-works.  (I can log in at that point, mount them, whatever.)
-
-So, the issue is in discovery, not logging in or using.
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
