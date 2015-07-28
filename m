@@ -1,32 +1,18 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 00/10] IB: Replace safe uses for ib_get_dma_mr with
- pd->local_dma_lkey
-Date: Tue, 28 Jul 2015 12:23:56 -0600
-Message-ID: <20150728182356.GA1712@obsidianresearch.com>
-References: <1437608083-22898-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <mp85i7$6hc$1@ger.gmane.org>
+From: FREELOTTO-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, PROMO-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: RE::
+Date: Tue, 28 Jul 2015 19:54:00 +0100
+Message-ID: <093070da-5118-4fbd-b78e-c789c2ff1692@FSU-EXCH-NWR01.fsu.edu>
+Reply-To: <lotto-po8By6iikGC8qtKVGud/9w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <mp85i7$6hc$1@ger.gmane.org>
+Content-Description: Mail message body
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "J.L. Burr" <jlburr-vna1KIf7WgpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Recipients-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 28, 2015 at 11:01:12AM -0400, J.L. Burr wrote:
- 
-> We use ib_get_dma_mr with IB_ACCESS_REMOTE_* flags in an embedded
-> device environment (in a custom out-of-tree device driver).  Not to
-> allow remote access to CPU memory but to allow remote access to PCIe
-> device memory (the IB card makes peer accesses directly to other
-> PCIe devices).
-
-Why can't you create a proper MR that only exposes the PCI device's
-BAR?
-
-Jason
+YOU WON 2,000,000.00 USD IN UK LOTTO
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
