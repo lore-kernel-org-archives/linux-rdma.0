@@ -1,61 +1,70 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: How to disconnect a SRP (SCSI RDMA Protocol) drive after
- unmounting
-Date: Mon, 27 Jul 2015 21:00:53 -0700
-Message-ID: <55B6FE75.6030204@sandisk.com>
-References: <CA+X5Wn5dH2iz0SJVFQfjfD-Z5dfnGY+x9_c7krUw8_NFQy-w9g@mail.gmail.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH RESEND 0/4] Use max_sge_rd device capability
+Date: Tue, 28 Jul 2015 01:44:46 -0400
+Message-ID: <20150728054446.GA1987@phlsvsds.ph.intel.com>
+References: <20150727230906.10102.88491.stgit@build2.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CA+X5Wn5dH2iz0SJVFQfjfD-Z5dfnGY+x9_c7krUw8_NFQy-w9g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: james harvey <jamespharvey20-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150727230906.10102.88491.stgit-PBeJgSbIpn97NCTnQtmixQ@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/27/15 18:15, james harvey wrote:
-> I  have an InfiniBand network working with SRP sharing.
->
-> On the target system, I am running targetcli (the -fb free branch
-> version) and OpenFabric's srptools.
->
-> On the initiator system, I am running OpenFabric's srptools.
->
-> After I've gotten srp on the initiator to link a SRP target as a local
-> drive, mounted it, done whatever I wanted to with it, and unmounted
-> it... How do I make it go away as a local drive? i.e. If I wanted it
-> to not be accessible, if I want another machine to use it via SRP,
-> etc, or if I need to reboot the target system and want everything
-> clean beforehand. (I can run sync on the initiator, but I'd prefer a
-> way to disconnect it.)
->
-> Stopping srptools.service has no effect. In fact, I can still mount
-> and use the drive without it running. It seems to run as a daemon to
-> connect to new targets, but doesn't seem necessary to be running after
-> they're connected.
->
-> I've looked at ibsrpdm and srp_daemon themselves, and see no such functionality.
->
-> I've also tried commenting the entry in srp_daemon.conf, so it
-> defaults to disallowing the connection, and restarting srptools.
->
-> I see there's srp_remove_target, srp_disconnect_target, and
-> scsi_remove_host functions, but I'm not sure what program (if any)
-> exposes them to the cli.
+On Mon, Jul 27, 2015 at 06:09:55PM -0500, Steve Wise wrote:
+> Resending because I forgot to cc linux-rdma :(
+> 
+> Some devices were not setting this capability, so fix those devices,
+> and svcrdma to use max_sge_rd.  Also remove rdma_cap_read_multi_sge()
+> since it isn't needed.
+> 
+> These patches were originally part of:
+> 
+> http://www.spinics.net/lists/linux-rdma/msg27436.html
+> 
+> They really aren't part of iSER/iWARP at all, so I've split 
+> them out.  
+> 
+> Bruce: This hits svcrdma, but I suggest they get merged via Doug's tree
+> to avoid any merge problems.
 
-Hello James,
+Looks good to me.  Thanks for cleaning this cap helper up.
 
-This might be what you are looking for:
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-echo 1 > /sys/class/srp_remote_ports/${port}/delete
-
-The above command deletes all SCSI devices that are associated with a 
-particular SRP port. It is important to sync and umount these devices 
-before running the above command because all I/O requests that are 
-submitted after that command has been run will fail.
-
-Bart.
+> 
+> ---
+> 
+> Sagi Grimberg (1):
+>       mlx4, mlx5, mthca: Expose max_sge_rd correctly
+> 
+> Steve Wise (3):
+>       RDMA/Core: remove rdma_cap_read_multi_sge() helper
+>       svcrdma: Use max_sge_rd for destination read depths
+>       ipath,qib: Expose max_sge_rd correctly
+> 
+> 
+>  drivers/infiniband/hw/ipath/ipath_verbs.c    |    1 +
+>  drivers/infiniband/hw/mlx4/main.c            |    1 +
+>  drivers/infiniband/hw/mlx5/main.c            |    1 +
+>  drivers/infiniband/hw/mthca/mthca_provider.c |    1 +
+>  drivers/infiniband/hw/qib/qib_verbs.c        |    1 +
+>  include/linux/sunrpc/svc_rdma.h              |    1 +
+>  include/rdma/ib_verbs.h                      |   28 --------------------------
+>  net/sunrpc/xprtrdma/svc_rdma_recvfrom.c      |   12 +----------
+>  net/sunrpc/xprtrdma/svc_rdma_transport.c     |    4 ++++
+>  9 files changed, 11 insertions(+), 39 deletions(-)
+> 
+> -- 
+> 
+> Steve
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
