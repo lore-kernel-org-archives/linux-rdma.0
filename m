@@ -1,63 +1,26 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: re: net/mlx5e: Allocate DMA coherent memory on reader NUMA node
-Date: Tue, 28 Jul 2015 19:59:35 +0300
-Message-ID: <20150728165934.GC21317@mwanda>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v2 05/13] IB/cm: Share listening CM IDs
+Date: Tue, 28 Jul 2015 17:05:13 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A901FE5D@ORSMSX109.amr.corp.intel.com>
+References: <1437924832-18327-1-git-send-email-haggaie@mellanox.com>
+ <1437924832-18327-6-git-send-email-haggaie@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A82373A901F86B@ORSMSX109.amr.corp.intel.com>
+ <55B73C86.30608@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <55B73C86.30608-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-[ You didn't introduce this, you just renamed the function so now it
-  shows up as a new warning.  - dan ]
+> I think it would be better just to remove the service_mask parameter
+> from this function, right? rdma_cm makes no use of the service mask.
 
-
-Hello Saeed Mahameed,
-
-The patch 311c7c71c9bb: "net/mlx5e: Allocate DMA coherent memory on
-reader NUMA node" from Jul 23, 2015, leads to the following static
-checker warning:
-
-	drivers/net/ethernet/mellanox/mlx5/core/alloc.c:156 mlx5_db_alloc_node()
-	warn: missing error code here? 'mlx5_alloc_db_from_pgdir()' failed. 'ret' = '0'
-
-drivers/net/ethernet/mellanox/mlx5/core/alloc.c
-   147  int mlx5_db_alloc_node(struct mlx5_core_dev *dev, struct mlx5_db *db, int node)
-   148  {
-   149          struct mlx5_db_pgdir *pgdir;
-   150          int ret = 0;
-   151  
-   152          mutex_lock(&dev->priv.pgdir_mutex);
-   153  
-   154          list_for_each_entry(pgdir, &dev->priv.pgdir_list, list)
-   155                  if (!mlx5_alloc_db_from_pgdir(pgdir, db))
-   156                          goto out;
-
-There should probably be a "ret = -ENOMEM;" here.
-
-   157  
-   158          pgdir = mlx5_alloc_db_pgdir(dev, node);
-   159          if (!pgdir) {
-   160                  ret = -ENOMEM;
-   161                  goto out;
-   162          }
-   163  
-   164          list_add(&pgdir->list, &dev->priv.pgdir_list);
-   165  
-   166          /* This should never fail -- we just allocated an empty page: */
-   167          WARN_ON(mlx5_alloc_db_from_pgdir(pgdir, db));
-   168  
-   169  out:
-   170          mutex_unlock(&dev->priv.pgdir_mutex);
-   171  
-   172          return ret;
-   173  }
-
-regards,
-dan carpenter
+If it is not being used, then, yes, I would remove it.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
