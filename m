@@ -1,73 +1,55 @@
-From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH RESEND 0/4] Use max_sge_rd device capability
-Date: Tue, 28 Jul 2015 09:42:23 -0400
-Message-ID: <20150728134223.GC20951@fieldses.org>
-References: <20150727230906.10102.88491.stgit@build2.ogc.int>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH] RDMA/iser: Limit sgs to the device fastreg depth
+Date: Tue, 28 Jul 2015 09:13:52 -0500
+Message-ID: <20150728141152.13342.45907.stgit@build2.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150727230906.10102.88491.stgit-PBeJgSbIpn97NCTnQtmixQ@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jul 27, 2015 at 06:09:55PM -0500, Steve Wise wrote:
-> Resending because I forgot to cc linux-rdma :(
-> 
-> Some devices were not setting this capability, so fix those devices,
-> and svcrdma to use max_sge_rd.  Also remove rdma_cap_read_multi_sge()
-> since it isn't needed.
-> 
-> These patches were originally part of:
-> 
-> http://www.spinics.net/lists/linux-rdma/msg27436.html
-> 
-> They really aren't part of iSER/iWARP at all, so I've split 
-> them out.  
-> 
-> Bruce: This hits svcrdma, but I suggest they get merged via Doug's tree
-> to avoid any merge problems.
+Currently the sg tablesize, which dictates fast register page list
+depth to use, does not take into account the limits of the rdma device.
+So adjust it once we discover the device fastreg max depth limit.  Also
+adjust the max_sectors based on the resulting sg tablesize.
 
-Sounds fine.  I've got some changes to those files in my for-next as
-well, but they don't appear to conflict.
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+Note: This patch was originally part of
+http://www.spinics.net/lists/linux-rdma/msg27436.html. The isert work
+will be a separate series, so I'm submitting this one to go ahead and
+get it merged.
+---
 
-Feel free to add my
 
-	Acked-by: J. Bruce Fields <bfields-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ drivers/infiniband/ulp/iser/iscsi_iser.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-to patch 3/4 if it helps.
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
+index 6a594aa..de8730d 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.c
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
+@@ -640,6 +640,15 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
+ 						   SHOST_DIX_GUARD_CRC);
+ 		}
+ 
++		/*
++		 * Limit the sg_tablesize and max_sectors based on the device
++		 * max fastreg page list length.
++		 */
++		shost->sg_tablesize = min_t(unsigned short, shost->sg_tablesize,
++			ib_conn->device->dev_attr.max_fast_reg_page_list_len);
++		shost->max_sectors = min_t(unsigned int,
++			1024, (shost->sg_tablesize * PAGE_SIZE) >> 9);
++
+ 		if (iscsi_host_add(shost,
+ 				   ib_conn->device->ib_device->dma_device)) {
+ 			mutex_unlock(&iser_conn->state_mutex);
 
---b.
-
-> 
-> ---
-> 
-> Sagi Grimberg (1):
->       mlx4, mlx5, mthca: Expose max_sge_rd correctly
-> 
-> Steve Wise (3):
->       RDMA/Core: remove rdma_cap_read_multi_sge() helper
->       svcrdma: Use max_sge_rd for destination read depths
->       ipath,qib: Expose max_sge_rd correctly
-> 
-> 
->  drivers/infiniband/hw/ipath/ipath_verbs.c    |    1 +
->  drivers/infiniband/hw/mlx4/main.c            |    1 +
->  drivers/infiniband/hw/mlx5/main.c            |    1 +
->  drivers/infiniband/hw/mthca/mthca_provider.c |    1 +
->  drivers/infiniband/hw/qib/qib_verbs.c        |    1 +
->  include/linux/sunrpc/svc_rdma.h              |    1 +
->  include/rdma/ib_verbs.h                      |   28 --------------------------
->  net/sunrpc/xprtrdma/svc_rdma_recvfrom.c      |   12 +----------
->  net/sunrpc/xprtrdma/svc_rdma_transport.c     |    4 ++++
->  9 files changed, 11 insertions(+), 39 deletions(-)
-> 
-> -- 
-> 
-> Steve
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
