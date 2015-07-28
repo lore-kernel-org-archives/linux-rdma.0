@@ -1,64 +1,54 @@
-From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: Re: [PATCH] xprtrdma: take vendor driver refcount at client
-Date: Tue, 28 Jul 2015 20:26:25 +0530
-Message-ID: <CANjDDBi13GyU+_mpGH0n=8A1yfvC5mMPkn3NsczqzXsqG6fMCw@mail.gmail.com>
-References: <1438038086-20522-1-git-send-email-devesh.sharma@avagotech.com>
-	<55B74162.4070501@dev.mellanox.co.il>
-	<398DFDF2-AE70-463B-AF2D-FD7CB72DD35E@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: "J.L. Burr" <jlburr-vna1KIf7WgpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 00/10] IB: Replace safe uses for ib_get_dma_mr with pd->local_dma_lkey
+Date: Tue, 28 Jul 2015 11:01:12 -0400
+Message-ID: <mp85i7$6hc$1@ger.gmane.org>
+References: <1437608083-22898-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <398DFDF2-AE70-463B-AF2D-FD7CB72DD35E-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 28, 2015 at 7:43 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
->
-> On Jul 28, 2015, at 4:46 AM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->
->> On 7/28/2015 2:01 AM, Devesh Sharma wrote:
->>> Thanks Chuck Lever for the valuable feedback and suggestions.
->>>
->>> This is a rework of the following patch sent almost a year back:
->>> http://www.mail-archive.com/linux-rdma%40vger.kernel.org/msg20730.html
->>>
->>> In presence of active mount if someone tries to rmmod vendor-driver, the
->>> command remains stuck forever waiting for destruction of all rdma-cm-id.
->>> in worst case client can crash during shutdown with active mounts.
->>
->> Ouch, taking a reference on the module preventing it from unloading is
->> not very well behaved (putting it nicely). That's also breaking the
->> layering of ULPs <-> core <-> provider scheme.
->>
->> Why not just cleanup everything upon DEVICE_REMOVAL?
->
-> xprtrdma does not support DEVICE_REMOVAL yet. That's why we are
-> taking this temporary approach.
->
->
->>> The existing code assumes that ia->ri_id->device cannot change during
->>> the lifetime of a transport. Lifting that assumption is a long chain
->>> of work, and is in plan.
->>>
->>> The community decided that preventing the hang right now is more
->>> important than waiting for architectural changes.
->>
->> Well, if you are putting a bandage here - the code should be documented
->> with a proper FIXME.
->
-> That's a good suggestion.
+"Jason Gunthorpe" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote in message 
+news:1437608083-22898-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMK2raWmgRF17@public.gmane.org
 
-I will put this appropriatly in my next post.
+> This series moves dealing with the safe all physical mr:
+>
+>  ib_get_dma_mr(pd,IB_ACCESS_LOCAL_WRITE);
+>
+> Into ib_alloc_pd, and in the process makes the global local_dma_lkey functionality
+> broadly enabled for all ULPs.
 
+> The remaining users of ib_get_dma_mr are all unsafe:
+
+[snip]
+
+> Calling ib_get_dma_mr with IB_ACCESS_REMOTE_* flags is considered to be a
+> serious security problem and should not be done without the user directly
+> opting in to an off-by-default scheme. The call allows the peer on the QP
+> unrestricted access to local physical memory if they can guess the rkey value.
 >
->
-> --
-> Chuck Lever
->
->
->
+> A future series will cause the kernel to be tainted by the above call sites to
+> promote migrating away from this.
+
+[snip]
+
+We use ib_get_dma_mr with IB_ACCESS_REMOTE_* flags in an embedded device environment (in a custom out-of-tree device driver).  Not 
+to allow remote access to CPU memory but to allow remote access to PCIe device memory (the IB card makes peer accesses directly to 
+other PCIe devices).
+
+I understand the concerns about safety with ib_get_dma_mr but want to be sure there will be a way to "opt-in", as you describe 
+above.  I can live with the tainting.
+
+How is the opt-in done?  Is that via a kernel parameter?  Or via a module parameter on one of the IB core modules?  Some other way?
+
+I'm trying to avoid having to run a modified kernel for our environment, so hope this is not a kernel compile option!
+
+Thanks.
+
+John Burr 
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
