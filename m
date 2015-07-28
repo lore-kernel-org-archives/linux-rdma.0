@@ -1,54 +1,67 @@
-From: "J.L. Burr" <jlburr-vna1KIf7WgpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 00/10] IB: Replace safe uses for ib_get_dma_mr with pd->local_dma_lkey
-Date: Tue, 28 Jul 2015 11:01:12 -0400
-Message-ID: <mp85i7$6hc$1@ger.gmane.org>
-References: <1437608083-22898-1-git-send-email-jgunthorpe@obsidianresearch.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] mlx5: Fix missing device local_dma_lkey
+Date: Tue, 28 Jul 2015 11:09:56 -0400
+Message-ID: <55B79B44.20109@redhat.com>
+References: <1437411276-22731-1-git-send-email-sagig@mellanox.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="rDRun7QTL6eOg2jTwnEqDhB4uQiFodhbf"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1437411276-22731-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-"Jason Gunthorpe" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote in message 
-news:1437608083-22898-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMK2raWmgRF17@public.gmane.org
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--rDRun7QTL6eOg2jTwnEqDhB4uQiFodhbf
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-> This series moves dealing with the safe all physical mr:
->
->  ib_get_dma_mr(pd,IB_ACCESS_LOCAL_WRITE);
->
-> Into ib_alloc_pd, and in the process makes the global local_dma_lkey functionality
-> broadly enabled for all ULPs.
+On 07/20/2015 12:54 PM, Sagi Grimberg wrote:
+> The mlx5 driver exposes device capability IB_DEVICE_LOCAL_DMA_LKEY
+> but does not set the the device local_dma_lkey. This breaks
+> rpcrdma drivers.
+>=20
+> Query and set this lkey when creating the device resources.
+>=20
+> Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-> The remaining users of ib_get_dma_mr are all unsafe:
+Thanks, I've picked this up for 4.3.
 
-[snip]
 
-> Calling ib_get_dma_mr with IB_ACCESS_REMOTE_* flags is considered to be a
-> serious security problem and should not be done without the user directly
-> opting in to an off-by-default scheme. The call allows the peer on the QP
-> unrestricted access to local physical memory if they can guess the rkey value.
->
-> A future series will cause the kernel to be tainted by the above call sites to
-> promote migrating away from this.
-
-[snip]
-
-We use ib_get_dma_mr with IB_ACCESS_REMOTE_* flags in an embedded device environment (in a custom out-of-tree device driver).  Not 
-to allow remote access to CPU memory but to allow remote access to PCIe device memory (the IB card makes peer accesses directly to 
-other PCIe devices).
-
-I understand the concerns about safety with ib_get_dma_mr but want to be sure there will be a way to "opt-in", as you describe 
-above.  I can live with the tainting.
-
-How is the opt-in done?  Is that via a kernel parameter?  Or via a module parameter on one of the IB core modules?  Some other way?
-
-I'm trying to avoid having to run a modified kernel for our environment, so hope this is not a kernel compile option!
-
-Thanks.
-
-John Burr 
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
 
 
 
+--rDRun7QTL6eOg2jTwnEqDhB4uQiFodhbf
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJVt5tEAAoJELgmozMOVy/d1L4QAJuji2menJDgs333Wxa1Kprs
+ZLTmYLKDqkhM5Kw3C187dzNgbQYW5bi7VBmwqNMHXut7LtzVEGwblsfbNe4MFudL
+A6a4o3VRz3zT1rbjtS4nVn/ZUvoRcDbOV4H2Sm4Rdb/QIP/Wm1YQD1BZaiZGovRe
+0EeXSsUkKSJWvx7TjIcyVlwiCrHmtzjoz9FRTquQ1Gc52jXqQLa7vmlJ4LMkdhnw
+H+FcHgzwH1Q1R6gPmSq8lSr360QzuQ2JENOKgzI9VQBB98PggSa2IkT1Mpf57IxN
+1sR6/d38Vq+WnXod1K6NfIFlKSGGnTUVC4yeG5ezVgvRTd/nYVCzXyPP773K4Ooo
+fOYzwekbkBdrXiO23vYtUmdjFwF246gGieLIroF4m+0mgaSq/OQNlQDt1U9vYsVV
+GmZdlMOB/xr7QhHGW6xVdNMfLj020jTdQiWS4VdeukxeINPsPZXygIVWn4ZCPDe7
+sTVevvr5/8QK29uoH7FgOSjZVKyO5h5Koa03C++kr8J2TkSqTNRd9udIbIDe8iZI
+9RgWR1FxNr0Pl4KSDuYzPqhZL9X6d7HKAIRSCGUu9c9Ut8HfaCdzawcS3M6O63O9
+W4luxFlncF/3Ec1g8EaTRTgILWOOaJHc4NzRXY6WPaBg4HQIA/+N6bKBmMyD/UV8
+ME5DclO/dbFe1gK+JTTQ
+=XTzq
+-----END PGP SIGNATURE-----
+
+--rDRun7QTL6eOg2jTwnEqDhB4uQiFodhbf--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
