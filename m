@@ -1,27 +1,42 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH RESEND 0/4] Use max_sge_rd device capability
-Date: Mon, 27 Jul 2015 17:17:33 -0600
-Message-ID: <20150727231733.GA17975@obsidianresearch.com>
-References: <20150727230906.10102.88491.stgit@build2.ogc.int>
+From: james harvey <jamespharvey20-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: How to disconnect a SRP (SCSI RDMA Protocol) drive after unmounting
+Date: Tue, 28 Jul 2015 01:15:58 +0000
+Message-ID: <CA+X5Wn5dH2iz0SJVFQfjfD-Z5dfnGY+x9_c7krUw8_NFQy-w9g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150727230906.10102.88491.stgit-PBeJgSbIpn97NCTnQtmixQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jul 27, 2015 at 06:09:55PM -0500, Steve Wise wrote:
-> Resending because I forgot to cc linux-rdma :(
+I  have an InfiniBand network working with SRP sharing.
 
-All looks sane to me:
+On the target system, I am running targetcli (the -fb free branch
+version) and OpenFabric's srptools.
 
-Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+On the initiator system, I am running OpenFabric's srptools.
 
-Thanks,
-Jason
+After I've gotten srp on the initiator to link a SRP target as a local
+drive, mounted it, done whatever I wanted to with it, and unmounted
+it... How do I make it go away as a local drive? i.e. If I wanted it
+to not be accessible, if I want another machine to use it via SRP,
+etc, or if I need to reboot the target system and want everything
+clean beforehand. (I can run sync on the initiator, but I'd prefer a
+way to disconnect it.)
+
+Stopping srptools.service has no effect. In fact, I can still mount
+and use the drive without it running. It seems to run as a daemon to
+connect to new targets, but doesn't seem necessary to be running after
+they're connected.
+
+I've looked at ibsrpdm and srp_daemon themselves, and see no such functionality.
+
+I've also tried commenting the entry in srp_daemon.conf, so it
+defaults to disallowing the connection, and restarting srptools.
+
+I see there's srp_remove_target, srp_disconnect_target, and
+scsi_remove_host functions, but I'm not sure what program (if any)
+exposes them to the cli.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
