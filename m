@@ -1,56 +1,44 @@
 From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: Bug: Discover more than 1 iSER gives -- isert: isert_handle_wc:
- wr... status {9,1} vend_err {8a,d7) -- & -- conn error (1011)
-Date: Tue, 28 Jul 2015 11:38:00 +0300
-Message-ID: <55B73F68.9090902@dev.mellanox.co.il>
-References: <CA+X5Wn7GmZ9fYbm14YAr59rnCwD-eDoz+xVxsu3F0YK1o4dsew@mail.gmail.com>
+Subject: Re: [PATCH] xprtrdma: take vendor driver refcount at client
+Date: Tue, 28 Jul 2015 11:46:26 +0300
+Message-ID: <55B74162.4070501@dev.mellanox.co.il>
+References: <1438038086-20522-1-git-send-email-devesh.sharma@avagotech.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CA+X5Wn7GmZ9fYbm14YAr59rnCwD-eDoz+xVxsu3F0YK1o4dsew-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1438038086-20522-1-git-send-email-devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: james harvey <jamespharvey20-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/28/2015 5:25 AM, james harvey wrote:
-> Two up to date arch systems.  Kernel 4.1.2 (Arch -2).
+On 7/28/2015 2:01 AM, Devesh Sharma wrote:
+> Thanks Chuck Lever for the valuable feedback and suggestions.
 >
-> 2 Mellanox MT25418 [ConnectX VPI PCIe 2.0 2.5GT/s - IB DDR / 10GigE]
-> (rev a0) running mlx4_core driver v2.2-1 (Feb, 2014.)  Both on most
-> recent firmware for PSID MT_04A0110002, FW Version 2.9.1000.  Systems
-> directly connected, no switches.  InfiniBand otherwise works great,
-> through VERY extensive testing.
+> This is a rework of the following patch sent almost a year back:
+> http://www.mail-archive.com/linux-rdma%40vger.kernel.org/msg20730.html
 >
-> Running OpenFabrics most recent releases of everything (release
-> versions, not git versions.)
->
-> Open-iscsi 2.0_873-6.
->
-> targetcli-fb 2.1.fb41-1, python-rtslib-fb 2.1.fb57-1, and
-> python-configshell-fb 1.1.fb18-1.
->
->
->
-> I can't discover more than 1 iSER device working at a time.  Using
-> IPoIB lets me discover as many as I want.
+> In presence of active mount if someone tries to rmmod vendor-driver, the
+> command remains stuck forever waiting for destruction of all rdma-cm-id.
+> in worst case client can crash during shutdown with active mounts.
 
-Hi James,
+Ouch, taking a reference on the module preventing it from unloading is
+not very well behaved (putting it nicely). That's also breaking the
+layering of ULPs <-> core <-> provider scheme.
 
-This is compatibility issue with open-iscsi user-space tools.
-Since kernel 3.13 iser is capable of doing discovery over RDMA, but that
-required a user-space tools adjustment that is missing in your
-open-iscsi.
+Why not just cleanup everything upon DEVICE_REMOVAL?
 
-Are you using the open-iscsi package provided with your distro? (which 
-is)? Given that you are using an upgraded kernel, in this case, you need
-to upgrade your open-iscsi as well.
+>
+> The existing code assumes that ia->ri_id->device cannot change during
+> the lifetime of a transport. Lifting that assumption is a long chain
+> of work, and is in plan.
+>
+> The community decided that preventing the hang right now is more
+> important than waiting for architectural changes.
 
-I think it would be best to just use the upstream version:
-git-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org:mikechristie/open-iscsi.git
-
-Cheers,
-Sagi.
+Well, if you are putting a bandage here - the code should be documented
+with a proper FIXME.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
