@@ -1,114 +1,112 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v3 12/13] IB/cma: Share ib_cm_ids between rdma_cm_ids
-Date: Wed, 29 Jul 2015 14:06:30 +0300
-Message-ID: <1438167991-17211-13-git-send-email-haggaie@mellanox.com>
-References: <1438167991-17211-1-git-send-email-haggaie@mellanox.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: deprecating amso1100
+Date: Wed, 29 Jul 2015 10:28:29 -0400
+Message-ID: <55B8E30D.5090205@redhat.com>
+References: <55AE93E0.9060002@opengridcomputing.com>
+ <1AE4059B-F6BD-48ED-A1C6-8A9024DDF217@redhat.com>
+ <D2F193D21ECD8C45917AD3D5B26513300C49590A@CRSMSX101.amr.corp.intel.com>
+ <0F66BC31-60A1-4513-B858-17A75BFD42DA@redhat.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="xgCMBJ9VUcP4tIacGmjdbNT03X5x2RMlg"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1438167991-17211-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <0F66BC31-60A1-4513-B858-17A75BFD42DA-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Use ib_cm_insert_listen to create listening IB CM IDs or share existing
-ones if needed. When given a request on a specific CM ID, the code now
-matches the request to the RDMA CM ID based on the request parameters, so
-it no longer needs to rely on the ib_cm's private data matching
-capabilities.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--xgCMBJ9VUcP4tIacGmjdbNT03X5x2RMlg
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/cma.c | 59 +++----------------------------------------
- 1 file changed, 4 insertions(+), 55 deletions(-)
+On 07/21/2015 04:45 PM, Doug Ledford wrote:
+>=20
+>> On Jul 21, 2015, at 4:42 PM, Dalessandro, Dennis <dennis.dalessandro@i=
+ntel.com> wrote:
+>>
+>>> -----Original Message-----
+>>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+>>> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Doug Ledford
+>>> Sent: Tuesday, July 21, 2015 2:49 PM
+>>> To: Steve Wise
+>>> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>> Subject: Re: deprecating amso1100
+>>>
+>>>
+>>>> On Jul 21, 2015, at 2:48 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org=
+>
+>>> wrote:
+>>>>
+>>>> Hey Doug,
+>>>>
+>>>> How should I submit changes to deprecate amso1100?  The HW hasn't be=
+en
+>>> sold since 2005, and the SW has definite bit rot.  Its time to remove=
+ it...
+>>>>
+>>>> Thanks,
+>>>>
+>>>> Steve.
+>>>
+>>> Send me a git patch that uses git mv to move it to staging and we=C3=A2=
+=C2=80=C2=99ll leave it
+>>> there for a release or two and then remove it after that.
+>>
+>> Steve, "git format-patch -M" does a nice job creating a patch that can=
+ actually be looked at via email.
+>>
+>> http://marc.info/?l=3Dlinux-kernel&m=3D143593782206479&w=3D2
+>>
+>> For the Ipath driver I was going to send directly to the staging maint=
+ainer/list. Doug, should that come to you through linux-rdma instead?
+>=20
+> I sent an email to Greg K-H to ask that question.  It doesn=E2=80=99t m=
+atter to me.  If you want, send the email to this list and if I get a res=
+ponse from GKH that he wants to take it, I=E2=80=99ll just point him to i=
+t once he lands.
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 6c4b40b00882..66f0927d2285 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -1769,42 +1769,6 @@ __be64 rdma_get_service_id(struct rdma_cm_id *id, struct sockaddr *addr)
- }
- EXPORT_SYMBOL(rdma_get_service_id);
- 
--static void cma_set_compare_data(enum rdma_port_space ps, struct sockaddr *addr,
--				 struct ib_cm_compare_data *compare)
--{
--	struct cma_hdr *cma_data, *cma_mask;
--	__be32 ip4_addr;
--	struct in6_addr ip6_addr;
--
--	memset(compare, 0, sizeof *compare);
--	cma_data = (void *) compare->data;
--	cma_mask = (void *) compare->mask;
--
--	switch (addr->sa_family) {
--	case AF_INET:
--		ip4_addr = ((struct sockaddr_in *) addr)->sin_addr.s_addr;
--		cma_set_ip_ver(cma_data, 4);
--		cma_set_ip_ver(cma_mask, 0xF);
--		if (!cma_any_addr(addr)) {
--			cma_data->dst_addr.ip4.addr = ip4_addr;
--			cma_mask->dst_addr.ip4.addr = htonl(~0);
--		}
--		break;
--	case AF_INET6:
--		ip6_addr = ((struct sockaddr_in6 *) addr)->sin6_addr;
--		cma_set_ip_ver(cma_data, 6);
--		cma_set_ip_ver(cma_mask, 0xF);
--		if (!cma_any_addr(addr)) {
--			cma_data->dst_addr.ip6 = ip6_addr;
--			memset(&cma_mask->dst_addr.ip6, 0xFF,
--			       sizeof cma_mask->dst_addr.ip6);
--		}
--		break;
--	default:
--		break;
--	}
--}
--
- static int cma_iw_handler(struct iw_cm_id *iw_id, struct iw_cm_event *iw_event)
- {
- 	struct rdma_id_private *id_priv = iw_id->context;
-@@ -1958,33 +1922,18 @@ out:
- 
- static int cma_ib_listen(struct rdma_id_private *id_priv)
- {
--	struct ib_cm_compare_data compare_data;
- 	struct sockaddr *addr;
- 	struct ib_cm_id	*id;
- 	__be64 svc_id;
--	int ret;
- 
--	id = ib_create_cm_id(id_priv->id.device, cma_req_handler, id_priv);
-+	addr = cma_src_addr(id_priv);
-+	svc_id = rdma_get_service_id(&id_priv->id, addr);
-+	id = ib_cm_insert_listen(id_priv->id.device, cma_req_handler, svc_id);
- 	if (IS_ERR(id))
- 		return PTR_ERR(id);
--
- 	id_priv->cm_id.ib = id;
- 
--	addr = cma_src_addr(id_priv);
--	svc_id = rdma_get_service_id(&id_priv->id, addr);
--	if (cma_any_addr(addr) && !id_priv->afonly)
--		ret = ib_cm_listen(id_priv->cm_id.ib, svc_id, 0, NULL);
--	else {
--		cma_set_compare_data(id_priv->id.ps, addr, &compare_data);
--		ret = ib_cm_listen(id_priv->cm_id.ib, svc_id, 0, &compare_data);
--	}
--
--	if (ret) {
--		ib_destroy_cm_id(id_priv->cm_id.ib);
--		id_priv->cm_id.ib = NULL;
--	}
--
--	return ret;
-+	return 0;
- }
- 
- static int cma_iw_listen(struct rdma_id_private *id_priv, int backlog)
--- 
-1.7.11.2
+I'll be sending these through to Linus (as agreed with Greg).  However,
+the patches need a TODO file added to the driver directory when it is
+placed in the staging tree (that's a mandatory requirement of being in
+that tree).  In this case, the TODO would just be to remove the driver
+as some point in time.  That point it pretty arbitrary, but I would
+suggest removing the driver in the 4.6 merge window.
 
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--xgCMBJ9VUcP4tIacGmjdbNT03X5x2RMlg
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJVuOMNAAoJELgmozMOVy/dGq0QAIPgLh7a6ObKrryO+AkLjiM0
+rIds7LF66Y3KiUwib0URA0730tqzUjT6KbdQTi+mOltyAxKKH48hm4l6Qu0N8qJ5
+QmxILSZxYf6mnfJ3C6dlBo1+ERJirPv563fhdld/Z51QaPB+2LFu3zQ+gxIYGoWh
+9OCv3iHaGgq+AWzzenIrOXO4tqgUr00S9dxdJ3cMDuiB7FNQIgNAKkYU5+71BqcR
+gqPkckwACz3E9fQuGla+TL8Xlsdo2tAyRkpdrMuzE/oof6chwGwRLnKi5I8YWpC3
+GPiPUGVnECWovzlflZbTzI1GoUeTw7sGajqzJ4yXkXp0/4CBLFPZ+t0bdoSQ/q8E
+aGYoaOAjm0heX2zGsb2iH+lsNxQZh2r80wdzCOPmWn0jUFcuBpTMy2QfjCZBS3t5
+BqnpygiHYavRsLriqYTDlxGyhDBrLvPjVa8xnGWN8k9ec4xeuzjdQUDvbXAN+IMj
+/1PmtEv07uOJtbNkJhJXLGdUJMq0ZOzOXLXQ5L5y966au/VdosVXbbGNAMX9IKYW
+uP6JR+H1DkYHBuZauInFCAkSKu+3zbKzJrk8WGngZgefC2uXHOpuqeA76prJpr0j
+BhiQkGWyUam+0g65yMe3UpHOz7j/4xoSbzPtR/7ZNe6d47qK7aRwJK5LEXoFwNAS
+0SSIE91QhFVvd33lNgd2
+=vPGu
+-----END PGP SIGNATURE-----
+
+--xgCMBJ9VUcP4tIacGmjdbNT03X5x2RMlg--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
