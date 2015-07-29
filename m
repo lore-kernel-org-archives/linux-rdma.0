@@ -1,290 +1,218 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v3 03/13] IB/ipoib: Return IPoIB devices matching connection parameters
-Date: Wed, 29 Jul 2015 14:06:21 +0300
-Message-ID: <1438167991-17211-4-git-send-email-haggaie@mellanox.com>
+Subject: [PATCH v3 07/13] IB/cma: Helper functions to access port space IDRs
+Date: Wed, 29 Jul 2015 14:06:25 +0300
+Message-ID: <1438167991-17211-8-git-send-email-haggaie@mellanox.com>
 References: <1438167991-17211-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1438167991-17211-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Add helper functions to access the IDRs by port-space and port number.
 
-Implement the get_net_device_by_port_pkey_ip callback that returns network
-device to ib_core according to connection parameters. Check the ipoib
-device and iterate over all child devices to look for a match.
+Pass around the port-space enum in cma.c instead of using pointers to
+port-space IDRs.
 
-For each IPoIB device we iterate through all upper devices when searching
-for a matching IP, in order to support bonding.
-
-Signed-off-by: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 229 +++++++++++++++++++++++++++++-
- 1 file changed, 228 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/cma.c | 81 ++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 60 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index cca1a0c91ec4..36536ce5a3e2 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -48,6 +48,9 @@
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index cf5c48b0b7d5..f2d799209412 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -113,6 +113,22 @@ static DEFINE_IDR(udp_ps);
+ static DEFINE_IDR(ipoib_ps);
+ static DEFINE_IDR(ib_ps);
  
- #include <linux/jhash.h>
- #include <net/arp.h>
-+#include <net/addrconf.h>
-+#include <linux/inetdevice.h>
-+#include <rdma/ib_cache.h>
- 
- #define DRV_VERSION "1.0.0"
- 
-@@ -91,11 +94,16 @@ struct ib_sa_client ipoib_sa_client;
- static void ipoib_add_one(struct ib_device *device);
- static void ipoib_remove_one(struct ib_device *device, void *client_data);
- static void ipoib_neigh_reclaim(struct rcu_head *rp);
-+static struct net_device *ipoib_get_net_dev_by_params(
-+		struct ib_device *dev, u8 port, u16 pkey,
-+		const union ib_gid *gid, const struct sockaddr *addr,
-+		void *client_data);
- 
- static struct ib_client ipoib_client = {
- 	.name   = "ipoib",
- 	.add    = ipoib_add_one,
--	.remove = ipoib_remove_one
-+	.remove = ipoib_remove_one,
-+	.get_net_dev_by_params = ipoib_get_net_dev_by_params,
++static struct idr *cma_idr(enum rdma_port_space ps)
++{
++	switch (ps) {
++	case RDMA_PS_TCP:
++		return &tcp_ps;
++	case RDMA_PS_UDP:
++		return &udp_ps;
++	case RDMA_PS_IPOIB:
++		return &ipoib_ps;
++	case RDMA_PS_IB:
++		return &ib_ps;
++	default:
++		return NULL;
++	}
++}
++
+ struct cma_device {
+ 	struct list_head	list;
+ 	struct ib_device	*device;
+@@ -122,11 +138,33 @@ struct cma_device {
  };
  
- int ipoib_open(struct net_device *dev)
-@@ -222,6 +230,225 @@ static int ipoib_change_mtu(struct net_device *dev, int new_mtu)
+ struct rdma_bind_list {
+-	struct idr		*ps;
++	enum rdma_port_space	ps;
+ 	struct hlist_head	owners;
+ 	unsigned short		port;
+ };
+ 
++static int cma_ps_alloc(enum rdma_port_space ps,
++			struct rdma_bind_list *bind_list, int snum)
++{
++	struct idr *idr = cma_idr(ps);
++
++	return idr_alloc(idr, bind_list, snum, snum + 1, GFP_KERNEL);
++}
++
++static struct rdma_bind_list *cma_ps_find(enum rdma_port_space ps, int snum)
++{
++	struct idr *idr = cma_idr(ps);
++
++	return idr_find(idr, snum);
++}
++
++static void cma_ps_remove(enum rdma_port_space ps, int snum)
++{
++	struct idr *idr = cma_idr(ps);
++
++	idr_remove(idr, snum);
++}
++
+ enum {
+ 	CMA_OPTION_AFONLY,
+ };
+@@ -1069,7 +1107,7 @@ static void cma_release_port(struct rdma_id_private *id_priv)
+ 	mutex_lock(&lock);
+ 	hlist_del(&id_priv->node);
+ 	if (hlist_empty(&bind_list->owners)) {
+-		idr_remove(bind_list->ps, bind_list->port);
++		cma_ps_remove(bind_list->ps, bind_list->port);
+ 		kfree(bind_list);
+ 	}
+ 	mutex_unlock(&lock);
+@@ -2365,8 +2403,8 @@ static void cma_bind_port(struct rdma_bind_list *bind_list,
+ 	hlist_add_head(&id_priv->node, &bind_list->owners);
+ }
+ 
+-static int cma_alloc_port(struct idr *ps, struct rdma_id_private *id_priv,
+-			  unsigned short snum)
++static int cma_alloc_port(enum rdma_port_space ps,
++			  struct rdma_id_private *id_priv, unsigned short snum)
+ {
+ 	struct rdma_bind_list *bind_list;
+ 	int ret;
+@@ -2375,7 +2413,7 @@ static int cma_alloc_port(struct idr *ps, struct rdma_id_private *id_priv,
+ 	if (!bind_list)
+ 		return -ENOMEM;
+ 
+-	ret = idr_alloc(ps, bind_list, snum, snum + 1, GFP_KERNEL);
++	ret = cma_ps_alloc(ps, bind_list, snum);
+ 	if (ret < 0)
+ 		goto err;
+ 
+@@ -2388,7 +2426,8 @@ err:
+ 	return ret == -ENOSPC ? -EADDRNOTAVAIL : ret;
+ }
+ 
+-static int cma_alloc_any_port(struct idr *ps, struct rdma_id_private *id_priv)
++static int cma_alloc_any_port(enum rdma_port_space ps,
++			      struct rdma_id_private *id_priv)
+ {
+ 	static unsigned int last_used_port;
+ 	int low, high, remaining;
+@@ -2399,7 +2438,7 @@ static int cma_alloc_any_port(struct idr *ps, struct rdma_id_private *id_priv)
+ 	rover = prandom_u32() % remaining + low;
+ retry:
+ 	if (last_used_port != rover &&
+-	    !idr_find(ps, (unsigned short) rover)) {
++	    !cma_ps_find(ps, (unsigned short)rover)) {
+ 		int ret = cma_alloc_port(ps, id_priv, rover);
+ 		/*
+ 		 * Remember previously used port number in order to avoid
+@@ -2454,7 +2493,8 @@ static int cma_check_port(struct rdma_bind_list *bind_list,
  	return 0;
  }
  
-+/* Called with an RCU read lock taken */
-+static bool ipoib_is_dev_match_addr_rcu(const struct sockaddr *addr,
-+					struct net_device *dev)
-+{
-+	struct net *net = dev_net(dev);
-+	struct in_device *in_dev;
-+	struct sockaddr_in *addr_in = (struct sockaddr_in *)addr;
-+	struct sockaddr_in6 *addr_in6 = (struct sockaddr_in6 *)addr;
-+	__be32 ret_addr;
-+
-+	switch (addr->sa_family) {
-+	case AF_INET:
-+		in_dev = in_dev_get(dev);
-+		if (!in_dev)
-+			return false;
-+
-+		ret_addr = inet_confirm_addr(net, in_dev, 0,
-+					     addr_in->sin_addr.s_addr,
-+					     RT_SCOPE_HOST);
-+		in_dev_put(in_dev);
-+		if (ret_addr)
-+			return true;
-+
-+		break;
-+	case AF_INET6:
-+		if (IS_ENABLED(CONFIG_IPV6) &&
-+		    ipv6_chk_addr(net, &addr_in6->sin6_addr, dev, 1))
-+			return true;
-+
-+		break;
-+	}
-+	return false;
-+}
-+
-+/**
-+ * Find the master net_device on top of the given net_device.
-+ * @dev: base IPoIB net_device
-+ *
-+ * Returns the master net_device with a reference held, or the same net_device
-+ * if no master exists.
-+ */
-+static struct net_device *ipoib_get_master_net_dev(struct net_device *dev)
-+{
-+	struct net_device *master;
-+
-+	rcu_read_lock();
-+	master = netdev_master_upper_dev_get_rcu(dev);
-+	if (master)
-+		dev_hold(master);
-+	rcu_read_unlock();
-+
-+	if (master)
-+		return master;
-+
-+	dev_hold(dev);
-+	return dev;
-+}
-+
-+/**
-+ * Find a net_device matching the given address, which is an upper device of
-+ * the given net_device.
-+ * @addr: IP address to look for.
-+ * @dev: base IPoIB net_device
-+ *
-+ * If found, returns the net_device with a reference held. Otherwise return
-+ * NULL.
-+ */
-+static struct net_device *ipoib_get_net_dev_match_addr(
-+		const struct sockaddr *addr, struct net_device *dev)
-+{
-+	struct net_device *upper,
-+			  *result = NULL;
-+	struct list_head *iter;
-+
-+	rcu_read_lock();
-+	if (ipoib_is_dev_match_addr_rcu(addr, dev)) {
-+		dev_hold(dev);
-+		result = dev;
-+		goto out;
-+	}
-+
-+	netdev_for_each_all_upper_dev_rcu(dev, upper, iter) {
-+		if (ipoib_is_dev_match_addr_rcu(addr, upper)) {
-+			dev_hold(upper);
-+			result = upper;
-+			break;
-+		}
-+	}
-+out:
-+	rcu_read_unlock();
-+	return result;
-+}
-+
-+/* returns the number of IPoIB netdevs on top a given ipoib device matching a
-+ * pkey_index and address, if one exists.
-+ *
-+ * @found_net_dev: contains a matching net_device if the return value >= 1,
-+ * with a reference held. */
-+static int ipoib_match_gid_pkey_addr(struct ipoib_dev_priv *priv,
-+				     const union ib_gid *gid,
-+				     u16 pkey_index,
-+				     const struct sockaddr *addr,
-+				     int nesting,
-+				     struct net_device **found_net_dev)
-+{
-+	struct ipoib_dev_priv *child_priv;
-+	struct net_device *net_dev = NULL;
-+	int matches = 0;
-+
-+	if (priv->pkey_index == pkey_index &&
-+	    (!gid || !memcmp(gid, &priv->local_gid, sizeof(*gid)))) {
-+		if (!addr) {
-+			net_dev = ipoib_get_master_net_dev(priv->dev);
-+		} else {
-+			/* Verify the net_device matches the IP address, as
-+			 * IPoIB child devices currently share a GID. */
-+			net_dev = ipoib_get_net_dev_match_addr(addr, priv->dev);
-+		}
-+		if (net_dev) {
-+			if (!*found_net_dev)
-+				*found_net_dev = net_dev;
-+			else
-+				dev_put(net_dev);
-+			++matches;
-+		}
-+	}
-+
-+	/* Check child interfaces */
-+	down_read_nested(&priv->vlan_rwsem, nesting);
-+	list_for_each_entry(child_priv, &priv->child_intfs, list) {
-+		matches += ipoib_match_gid_pkey_addr(child_priv, gid,
-+						    pkey_index, addr,
-+						    nesting + 1,
-+						    found_net_dev);
-+		if (matches > 1)
-+			break;
-+	}
-+	up_read(&priv->vlan_rwsem);
-+
-+	return matches;
-+}
-+
-+/* Returns the number of matching net_devs found (between 0 and 2). Also
-+ * return the matching net_device in the @net_dev parameter, holding a
-+ * reference to the net_device, if the number of matches >= 1 */
-+static int __ipoib_get_net_dev_by_params(struct list_head *dev_list, u8 port,
-+					 u16 pkey_index,
-+					 const union ib_gid *gid,
-+					 const struct sockaddr *addr,
-+					 struct net_device **net_dev)
-+{
-+	struct ipoib_dev_priv *priv;
-+	int matches = 0;
-+
-+	*net_dev = NULL;
-+
-+	list_for_each_entry(priv, dev_list, list) {
-+		if (priv->port != port)
-+			continue;
-+
-+		matches += ipoib_match_gid_pkey_addr(priv, gid, pkey_index,
-+						     addr, 0, net_dev);
-+		if (matches > 1)
-+			break;
-+	}
-+
-+	return matches;
-+}
-+
-+static struct net_device *ipoib_get_net_dev_by_params(
-+		struct ib_device *dev, u8 port, u16 pkey,
-+		const union ib_gid *gid, const struct sockaddr *addr,
-+		void *client_data)
-+{
-+	struct net_device *net_dev;
-+	struct list_head *dev_list = client_data;
-+	u16 pkey_index;
-+	int matches;
-+	int ret;
-+
-+	if (!rdma_protocol_ib(dev, port))
-+		return NULL;
-+
-+	ret = ib_find_cached_pkey(dev, port, pkey, &pkey_index);
-+	if (ret)
-+		return NULL;
-+
-+	if (!dev_list)
-+		return NULL;
-+
-+	/* See if we can find a unique device matching the L2 parameters */
-+	matches = __ipoib_get_net_dev_by_params(dev_list, port, pkey_index,
-+						gid, NULL, &net_dev);
-+
-+	switch (matches) {
-+	case 0:
-+		return NULL;
-+	case 1:
-+		return net_dev;
-+	}
-+
-+	dev_put(net_dev);
-+
-+	/* Couldn't find a unique device with L2 parameters only. Use L3
-+	 * address to uniquely match the net device */
-+	matches = __ipoib_get_net_dev_by_params(dev_list, port, pkey_index,
-+						gid, addr, &net_dev);
-+	switch (matches) {
-+	case 0:
-+		return NULL;
-+	default:
-+		dev_warn_ratelimited(&dev->dev,
-+				     "duplicate IP address detected\n");
-+		/* Fall through */
-+	case 1:
-+		return net_dev;
-+	}
-+}
-+
- int ipoib_set_mode(struct net_device *dev, const char *buf)
+-static int cma_use_port(struct idr *ps, struct rdma_id_private *id_priv)
++static int cma_use_port(enum rdma_port_space ps,
++			struct rdma_id_private *id_priv)
  {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+ 	struct rdma_bind_list *bind_list;
+ 	unsigned short snum;
+@@ -2464,7 +2504,7 @@ static int cma_use_port(struct idr *ps, struct rdma_id_private *id_priv)
+ 	if (snum < PROT_SOCK && !capable(CAP_NET_BIND_SERVICE))
+ 		return -EACCES;
+ 
+-	bind_list = idr_find(ps, snum);
++	bind_list = cma_ps_find(ps, snum);
+ 	if (!bind_list) {
+ 		ret = cma_alloc_port(ps, id_priv, snum);
+ 	} else {
+@@ -2487,25 +2527,24 @@ static int cma_bind_listen(struct rdma_id_private *id_priv)
+ 	return ret;
+ }
+ 
+-static struct idr *cma_select_inet_ps(struct rdma_id_private *id_priv)
++static enum rdma_port_space cma_select_inet_ps(
++		struct rdma_id_private *id_priv)
+ {
+ 	switch (id_priv->id.ps) {
+ 	case RDMA_PS_TCP:
+-		return &tcp_ps;
+ 	case RDMA_PS_UDP:
+-		return &udp_ps;
+ 	case RDMA_PS_IPOIB:
+-		return &ipoib_ps;
+ 	case RDMA_PS_IB:
+-		return &ib_ps;
++		return id_priv->id.ps;
+ 	default:
+-		return NULL;
++
++		return 0;
+ 	}
+ }
+ 
+-static struct idr *cma_select_ib_ps(struct rdma_id_private *id_priv)
++static enum rdma_port_space cma_select_ib_ps(struct rdma_id_private *id_priv)
+ {
+-	struct idr *ps = NULL;
++	enum rdma_port_space ps = 0;
+ 	struct sockaddr_ib *sib;
+ 	u64 sid_ps, mask, sid;
+ 
+@@ -2515,15 +2554,15 @@ static struct idr *cma_select_ib_ps(struct rdma_id_private *id_priv)
+ 
+ 	if ((id_priv->id.ps == RDMA_PS_IB) && (sid == (RDMA_IB_IP_PS_IB & mask))) {
+ 		sid_ps = RDMA_IB_IP_PS_IB;
+-		ps = &ib_ps;
++		ps = RDMA_PS_IB;
+ 	} else if (((id_priv->id.ps == RDMA_PS_IB) || (id_priv->id.ps == RDMA_PS_TCP)) &&
+ 		   (sid == (RDMA_IB_IP_PS_TCP & mask))) {
+ 		sid_ps = RDMA_IB_IP_PS_TCP;
+-		ps = &tcp_ps;
++		ps = RDMA_PS_TCP;
+ 	} else if (((id_priv->id.ps == RDMA_PS_IB) || (id_priv->id.ps == RDMA_PS_UDP)) &&
+ 		   (sid == (RDMA_IB_IP_PS_UDP & mask))) {
+ 		sid_ps = RDMA_IB_IP_PS_UDP;
+-		ps = &udp_ps;
++		ps = RDMA_PS_UDP;
+ 	}
+ 
+ 	if (ps) {
+@@ -2536,7 +2575,7 @@ static struct idr *cma_select_ib_ps(struct rdma_id_private *id_priv)
+ 
+ static int cma_get_port(struct rdma_id_private *id_priv)
+ {
+-	struct idr *ps;
++	enum rdma_port_space ps;
+ 	int ret;
+ 
+ 	if (cma_family(id_priv) != AF_IB)
 -- 
 1.7.11.2
 
