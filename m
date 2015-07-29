@@ -1,100 +1,87 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: deprecating amso1100
-Date: Wed, 29 Jul 2015 10:34:50 -0400
-Message-ID: <55B8E48A.5080608@redhat.com>
-References: <55AE93E0.9060002@opengridcomputing.com>
- <1AE4059B-F6BD-48ED-A1C6-8A9024DDF217@redhat.com>
- <D2F193D21ECD8C45917AD3D5B26513300C49590A@CRSMSX101.amr.corp.intel.com>
- <0F66BC31-60A1-4513-B858-17A75BFD42DA@redhat.com>
- <55B8E30D.5090205@redhat.com>
- <017301d0ca0b$423decf0$c6b9c6d0$@opengridcomputing.com>
+Subject: Re: [PATCH] rds: rds_ib_device.refcount overflow
+Date: Wed, 29 Jul 2015 10:36:34 -0400
+Message-ID: <55B8E4F2.2060700@redhat.com>
+References: <1436164511-2411-1-git-send-email-wen.gang.wang@oracle.com>
+ <55A31202.1030408@oracle.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="vGtTsnXJTdMHxdh6V4EBL9uD64SgrL1Lj"
+ boundary="MSlL25bTGvjVVv4lb2L6wjF7wXMgvfgvH"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <017301d0ca0b$423decf0$c6b9c6d0$@opengridcomputing.com>
+In-Reply-To: <55A31202.1030408-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Dennis Dalessandro' <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---vGtTsnXJTdMHxdh6V4EBL9uD64SgrL1Lj
-Content-Type: text/plain; charset=utf-8
+--MSlL25bTGvjVVv4lb2L6wjF7wXMgvfgvH
+Content-Type: text/plain; charset=gbk
 Content-Transfer-Encoding: quoted-printable
 
-On 07/29/2015 10:31 AM, Steve Wise wrote:
+On 07/12/2015 09:18 PM, Wengang Wang wrote:
+> Hi Doug,
 >=20
+> How do you think about this patch?
+
+Sorry, I picked this up already.  I must have missed sending out the
+acknowledgment on this one.
+
+> thanks,
+> wengang
 >=20
->> -----Original Message-----
->> From: Doug Ledford [mailto:dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org]
->> Sent: Wednesday, July 29, 2015 9:28 AM
->> To: Dennis Dalessandro
->> Cc: Steve Wise; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> Subject: Re: deprecating amso1100
+> =D4=DA 2015=C4=EA07=D4=C206=C8=D5 14:35, Wengang Wang =D0=B4=B5=C0:
+>> Fixes: 3e0249f9c05c ("RDS/IB: add refcount tracking to struct
+>> rds_ib_device")
 >>
->> On 07/21/2015 04:45 PM, Doug Ledford wrote:
->>>
->>>> On Jul 21, 2015, at 4:42 PM, Dalessandro, Dennis <dennis.dalessandro=
-@intel.com> wrote:
->>>>
->>>>> -----Original Message-----
->>>>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
->>>>> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Doug Ledford
->>>>> Sent: Tuesday, July 21, 2015 2:49 PM
->>>>> To: Steve Wise
->>>>> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>>> Subject: Re: deprecating amso1100
->>>>>
->>>>>
->>>>>> On Jul 21, 2015, at 2:48 PM, Steve Wise <swise@opengridcomputing.c=
-om>
->>>>> wrote:
->>>>>>
->>>>>> Hey Doug,
->>>>>>
->>>>>> How should I submit changes to deprecate amso1100?  The HW hasn't =
-been
->>>>> sold since 2005, and the SW has definite bit rot.  Its time to remo=
-ve it...
->>>>>>
->>>>>> Thanks,
->>>>>>
->>>>>> Steve.
->>>>>
->>>>> Send me a git patch that uses git mv to move it to staging and we=C3=
-=A2=E2=82=AC=E2=84=A2ll leave it
->>>>> there for a release or two and then remove it after that.
->>>>
->>>> Steve, "git format-patch -M" does a nice job creating a patch that c=
-an actually be looked at via email.
->>>>
->>>> http://marc.info/?l=3Dlinux-kernel&m=3D143593782206479&w=3D2
->>>>
->>>> For the Ipath driver I was going to send directly to the staging mai=
-ntainer/list. Doug, should that come to you through linux-rdma
->> instead?
->>>
->>> I sent an email to Greg K-H to ask that question.  It doesn=E2=80=99t=
- matter to me.  If you want, send the email to this list and if I get a r=
-esponse
->> from GKH that he wants to take it, I=E2=80=99ll just point him to it o=
-nce he lands.
+>> There lacks a dropping on rds_ib_device.refcount in case rds_ib_alloc_=
+fmr
+>> failed(mr pool running out). this lead to the refcount overflow.
 >>
->> I'll be sending these through to Linus (as agreed with Greg).  However=
-,
->> the patches need a TODO file added to the driver directory when it is
->> placed in the staging tree (that's a mandatory requirement of being in=
-
->> that tree).  In this case, the TODO would just be to remove the driver=
-
->> as some point in time.  That point it pretty arbitrary, but I would
->> suggest removing the driver in the 4.6 merge window.
+>> A complain in line 117(see following) is seen. From vmcore:
+>> s_ib_rdma_mr_pool_depleted is 2147485544 and rds_ibdev->refcount is
+>> -2147475448.
+>> That is the evidence the mr pool is used up. so rds_ib_alloc_fmr is
+>> very likely
+>> to return ERR_PTR(-EAGAIN).
+>>
+>> 115 void rds_ib_dev_put(struct rds_ib_device *rds_ibdev)
+>> 116 {
+>> 117         BUG_ON(atomic_read(&rds_ibdev->refcount) <=3D 0);
+>> 118         if (atomic_dec_and_test(&rds_ibdev->refcount))
+>> 119                 queue_work(rds_wq, &rds_ibdev->free_work);
+>> 120 }
+>>
+>> fix is to drop refcount when rds_ib_alloc_fmr failed.
+>>
+>> Signed-off-by: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> ---
+>>   net/rds/ib_rdma.c | 4 +++-
+>>   1 file changed, 3 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/net/rds/ib_rdma.c b/net/rds/ib_rdma.c
+>> index 273b8bf..657ba9f 100644
+>> --- a/net/rds/ib_rdma.c
+>> +++ b/net/rds/ib_rdma.c
+>> @@ -759,8 +759,10 @@ void *rds_ib_get_mr(struct scatterlist *sg,
+>> unsigned long nents,
+>>       }
+>>         ibmr =3D rds_ib_alloc_fmr(rds_ibdev);
+>> -    if (IS_ERR(ibmr))
+>> +    if (IS_ERR(ibmr)) {
+>> +        rds_ib_dev_put(rds_ibdev);
+>>           return ibmr;
+>> +    }
+>>         ret =3D rds_ib_map_fmr(rds_ibdev, ibmr, sg, nents);
+>>       if (ret =3D=3D 0)
 >=20
-> Sure.  Will you create this file or do you want a patch from me?
-
-If you don't mind, resubmit please.
+> --=20
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
 --=20
@@ -103,7 +90,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---vGtTsnXJTdMHxdh6V4EBL9uD64SgrL1Lj
+--MSlL25bTGvjVVv4lb2L6wjF7wXMgvfgvH
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -112,22 +99,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJVuOSKAAoJELgmozMOVy/dQoMQAIV77wN3Pe1RPoSr/J2X/k1m
-bZ/8HkFXbIuexVFlk8QXjwM7wnUf+StO5bdG800LNooqnDkyM42wJ67/eqvhq+vO
-S30E4q5Wmn+m0BT46t6w3uNW0WPnfcs3TUkTl5w1N6aoZf/x7zC+5zfvnf0y+WfA
-imuwaQEsefMumC/9tDuoOuaLovEzub7liO3LYw6fPGCCfF0Akxej3jAGADhGijd9
-GZfTyxQ3EuxWMt25NB/Nds/GVBRQAnbq5wEU0t+SjJ9flnu9gmO3gjNs3QeNawIQ
-0EYJ6Hxo6b6Z+BayT4iKrT/lQcSyIA68w+RxH6P2IdEV4B/7vQ6xp5e8X6ggdSDm
-NHdtWRzuBIg20XBHAu/biwRwOmv0IhEK8KcCKxFOMKuIvzExAm4SeUR9wIVrWG58
-F7K9Szxk7+HE+eiSkdyrXbVru66UAt9d17oxE5yM36pkPtk/B5fhdjrc/lZAq0yw
-ASb7w2rRi8YS/cqI0AxTwkEGmfEDKYbdRD3EVh2c978UFaaSxvnuzzT9DO3k1R93
-t9VrZc6ig3IfdP40ju5kHK6mpdjeAjOkmSXeKf12zeArcp2oR/+hg/UwjRWRAtOr
-dx3+4W6O7g1D0pbDYkpwhlk7m8cyOSGsTtt89IhbL+yD/lbgg+6niZobzaIT9Q+H
-HQcaZTlBb5I7OVfLEyxB
-=pulx
+iQIcBAEBCAAGBQJVuOTyAAoJELgmozMOVy/dU9AQAJ5Ocx5hvHFYcm3g3k9VFk9u
+9v/hZ+6TLpdf0E/M6PeOZTkuWpG2KmLViFc05XtSK8fWXD4UbdsiFsSCbcmZz63a
+vlv3tOaN5g7kBsp8wrah0lGpivz4a2cqKgc8E+v+BJG/izaqrxogYiz7/cmUijQi
+l6AxGgO8TkLT/N7r5p/b7lHBq71/QK05pIruUVqC5q4LfEedX8EoxXj28xWmicdY
+d4Nksg+pZZN1FL8163qMxxK5Hjv5L5NuGUZT5genD/kv87hwCbhXCiINSx9wzTwM
+9qgYUZlkr9iwOTcBPPI9SA2AqOpxs40ph5pDRqHVT1gFuZ/uJ9rf++s4EOQoOTjH
+C2/pGe+edXW3YPl3nm1CyPqKUzSdlVBkO60spKrmk4GdNdyYaT1fJE+gX9VY1d/f
+l3o75evnc+11zB1BL9+I6jayRfNnzowivEEoTeQv8oO3pHlJns91iEGjd5MHj+1B
+U0BgnZuUWVrgBPiXR+h6/Q3RU421fqtYaJZNgHnSROhIxiO4NKTV4Xsa+OzpbG6m
+OUSs9smGXXj/3x1Dt1jNgD9jqTdwOW+dXXrF5XNLj7aH30/fXkldvX5/4wucxpro
+zc6JMFDe8XS8AnJNvJy2pWYtgdBZNND0lxCvdigBFQeq09PWqsOe02tpj+YkT+Bn
+P8BqVOJa4GUkAbaQUu0W
+=yxUK
 -----END PGP SIGNATURE-----
 
---vGtTsnXJTdMHxdh6V4EBL9uD64SgrL1Lj--
+--MSlL25bTGvjVVv4lb2L6wjF7wXMgvfgvH--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
