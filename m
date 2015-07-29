@@ -1,151 +1,153 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v3 10/13] IB/cma: Validate routing of incoming requests
-Date: Wed, 29 Jul 2015 14:06:28 +0300
-Message-ID: <1438167991-17211-11-git-send-email-haggaie@mellanox.com>
+Subject: [PATCH v3 02/13] IB/core: Find the network device matching connection parameters
+Date: Wed, 29 Jul 2015 14:06:20 +0300
+Message-ID: <1438167991-17211-3-git-send-email-haggaie@mellanox.com>
 References: <1438167991-17211-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1438167991-17211-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Pass incoming request parameters through the relevant IPv4/IPv6 routing
-tables and make sure the network stack is configured to handle such
-requests.
+From: Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
+In the case of IPoIB, and maybe in other cases, the network device is
+managed by an upper-layer protocol (ULP). In order to expose this
+network device to other users of the IB device, let ULPs implement
+a callback that returns network device according to connection parameters.
+
+The IB device and port, together with the P_Key and the GID should
+be enough to uniquely identify the ULP net device. However, in current
+kernels there can be multiple IPoIB interfaces created with the same GID.
+Furthermore, such configuration may be desireable to support ipvlan-like
+configurations for RDMA CM with IPoIB.  To resolve the device in these
+cases the code will also take the IP address as an additional input.
+
+Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c | 95 +++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 92 insertions(+), 3 deletions(-)
+ drivers/infiniband/core/device.c | 46 ++++++++++++++++++++++++++++++++++++++++
+ include/rdma/ib_verbs.h          | 27 +++++++++++++++++++++++
+ 2 files changed, 73 insertions(+)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 011aa7310dd3..f272b3d1799d 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -46,6 +46,8 @@
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 623d8e191ced..124597732fe7 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -38,6 +38,7 @@
+ #include <linux/slab.h>
+ #include <linux/init.h>
+ #include <linux/mutex.h>
++#include <linux/netdevice.h>
+ #include <rdma/rdma_netlink.h>
  
- #include <net/tcp.h>
- #include <net/ipv6.h>
-+#include <net/ip_fib.h>
-+#include <net/ip6_route.h>
- 
- #include <rdma/rdma_cm.h>
- #include <rdma/rdma_cm_ib.h>
-@@ -1081,16 +1083,98 @@ static int cma_save_req_info(const struct ib_cm_event *ib_event,
- 	return 0;
+ #include "core_priv.h"
+@@ -781,6 +782,51 @@ int ib_find_pkey(struct ib_device *device,
  }
+ EXPORT_SYMBOL(ib_find_pkey);
  
-+static bool validate_ipv4_net_dev(struct net_device *net_dev,
-+				  const struct sockaddr_in *dst_addr,
-+				  const struct sockaddr_in *src_addr)
++/**
++ * ib_get_net_dev_by_params() - Return the appropriate net_dev
++ * for a received CM request
++ * @dev:	An RDMA device on which the request has been received.
++ * @port:	Port number on the RDMA device.
++ * @pkey:	The Pkey the request came on.
++ * @gid:	A GID that the net_dev uses to communicate.
++ * @addr:	Contains the IP address that the request specified as its
++ *		destination.
++ */
++struct net_device *ib_get_net_dev_by_params(struct ib_device *dev,
++					    u8 port,
++					    u16 pkey,
++					    const union ib_gid *gid,
++					    const struct sockaddr *addr)
 +{
-+	__be32 daddr = dst_addr->sin_addr.s_addr,
-+	       saddr = src_addr->sin_addr.s_addr;
-+	struct fib_result res;
-+	struct flowi4 fl4;
-+	int err;
-+	bool ret;
++	struct net_device *net_dev = NULL;
++	struct ib_client_data *context;
 +
-+	if (ipv4_is_multicast(saddr) || ipv4_is_lbcast(saddr) ||
-+	    ipv4_is_lbcast(daddr) || ipv4_is_zeronet(saddr) ||
-+	    ipv4_is_zeronet(daddr) || ipv4_is_loopback(daddr) ||
-+	    ipv4_is_loopback(saddr))
-+		return false;
++	if (!rdma_protocol_ib(dev, port))
++		return NULL;
 +
-+	memset(&fl4, 0, sizeof(fl4));
-+	fl4.flowi4_iif = net_dev->ifindex;
-+	fl4.daddr = daddr;
-+	fl4.saddr = saddr;
++	down_read(&lists_rwsem);
 +
-+	rcu_read_lock();
-+	err = fib_lookup(dev_net(net_dev), &fl4, &res, 0);
-+	if (err)
-+		return false;
++	list_for_each_entry(context, &dev->client_data_list, list) {
++		struct ib_client *client = context->client;
 +
-+	ret = FIB_RES_DEV(res) == net_dev;
-+	rcu_read_unlock();
++		if (context->going_down)
++			continue;
 +
-+	return ret;
-+}
-+
-+static bool validate_ipv6_net_dev(struct net_device *net_dev,
-+				  const struct sockaddr_in6 *dst_addr,
-+				  const struct sockaddr_in6 *src_addr)
-+{
-+#if IS_ENABLED(CONFIG_IPV6)
-+	const int strict = ipv6_addr_type(&dst_addr->sin6_addr) &
-+			   IPV6_ADDR_LINKLOCAL;
-+	struct rt6_info *rt = rt6_lookup(dev_net(net_dev), &dst_addr->sin6_addr,
-+					 &src_addr->sin6_addr, net_dev->ifindex,
-+					 strict);
-+	bool ret;
-+
-+	if (!rt)
-+		return false;
-+
-+	ret = rt->rt6i_idev->dev == net_dev;
-+	ip6_rt_put(rt);
-+
-+	return ret;
-+#else
-+	return false;
-+#endif
-+}
-+
-+static bool validate_net_dev(struct net_device *net_dev,
-+			     const struct sockaddr *daddr,
-+			     const struct sockaddr *saddr)
-+{
-+	const struct sockaddr_in *daddr4 = (const struct sockaddr_in *)daddr;
-+	const struct sockaddr_in *saddr4 = (const struct sockaddr_in *)saddr;
-+	const struct sockaddr_in6 *daddr6 = (const struct sockaddr_in6 *)daddr;
-+	const struct sockaddr_in6 *saddr6 = (const struct sockaddr_in6 *)saddr;
-+
-+	switch (daddr->sa_family) {
-+	case AF_INET:
-+		return saddr->sa_family == AF_INET &&
-+		       validate_ipv4_net_dev(net_dev, daddr4, saddr4);
-+
-+	case AF_INET6:
-+		return saddr->sa_family == AF_INET6 &&
-+		       validate_ipv6_net_dev(net_dev, daddr6, saddr6);
-+
-+	default:
-+		return false;
++		if (client->get_net_dev_by_params) {
++			net_dev = client->get_net_dev_by_params(dev, port, pkey,
++								gid, addr,
++								context->data);
++			if (net_dev)
++				break;
++		}
 +	}
-+}
 +
- static struct net_device *cma_get_net_dev(struct ib_cm_event *ib_event,
- 					  const struct cma_req_info *req)
++	up_read(&lists_rwsem);
++
++	return net_dev;
++}
++EXPORT_SYMBOL(ib_get_net_dev_by_params);
++
+ static int __init ib_core_init(void)
  {
--	struct sockaddr_storage listen_addr_storage;
--	struct sockaddr *listen_addr = (struct sockaddr *)&listen_addr_storage;
-+	struct sockaddr_storage listen_addr_storage, src_addr_storage;
-+	struct sockaddr *listen_addr = (struct sockaddr *)&listen_addr_storage,
-+			*src_addr = (struct sockaddr *)&src_addr_storage;
- 	struct net_device *net_dev;
- 	const union ib_gid *gid = req->has_gid ? &req->local_gid : NULL;
- 	int err;
+ 	int ret;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 5b83e0c10d55..b04d2b4d1792 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -48,6 +48,7 @@
+ #include <linux/rwsem.h>
+ #include <linux/scatterlist.h>
+ #include <linux/workqueue.h>
++#include <linux/socket.h>
+ #include <uapi/linux/if_ether.h>
  
--	err = cma_save_ip_info(listen_addr, NULL, ib_event, req->service_id);
-+	err = cma_save_ip_info(listen_addr, src_addr, ib_event,
-+			       req->service_id);
- 	if (err)
- 		return ERR_PTR(err);
+ #include <linux/atomic.h>
+@@ -1765,6 +1766,28 @@ struct ib_client {
+ 	void (*add)   (struct ib_device *);
+ 	void (*remove)(struct ib_device *, void *client_data);
  
-@@ -1099,6 +1183,11 @@ static struct net_device *cma_get_net_dev(struct ib_cm_event *ib_event,
- 	if (!net_dev)
- 		return ERR_PTR(-ENODEV);
++	/* Returns the net_dev belonging to this ib_client and matching the
++	 * given parameters.
++	 * @dev:	 An RDMA device that the net_dev use for communication.
++	 * @port:	 A physical port number on the RDMA device.
++	 * @pkey:	 P_Key that the net_dev uses if applicable.
++	 * @gid:	 A GID that the net_dev uses to communicate.
++	 * @addr:	 An IP address the net_dev is configured with.
++	 * @client_data: The device's client data set by ib_set_client_data().
++	 *
++	 * An ib_client that implements a net_dev on top of RDMA devices
++	 * (such as IP over IB) should implement this callback, allowing the
++	 * rdma_cm module to find the right net_dev for a given request.
++	 *
++	 * The caller is responsible for calling dev_put on the returned
++	 * netdev. */
++	struct net_device *(*get_net_dev_by_params)(
++			struct ib_device *dev,
++			u8 port,
++			u16 pkey,
++			const union ib_gid *gid,
++			const struct sockaddr *addr,
++			void *client_data);
+ 	struct list_head list;
+ };
  
-+	if (!validate_net_dev(net_dev, listen_addr, src_addr)) {
-+		dev_put(net_dev);
-+		return ERR_PTR(-EHOSTUNREACH);
-+	}
+@@ -3042,4 +3065,8 @@ static inline int ib_check_mr_access(int flags)
+ int ib_check_mr_status(struct ib_mr *mr, u32 check_mask,
+ 		       struct ib_mr_status *mr_status);
+ 
++struct net_device *ib_get_net_dev_by_params(struct ib_device *dev, u8 port,
++					    u16 pkey, const union ib_gid *gid,
++					    const struct sockaddr *addr);
 +
- 	return net_dev;
- }
- 
+ #endif /* IB_VERBS_H */
 -- 
 1.7.11.2
 
