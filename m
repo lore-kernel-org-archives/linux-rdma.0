@@ -1,7 +1,7 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v3 04/13] IB/cm: Expose service ID in request events
-Date: Wed, 29 Jul 2015 14:06:22 +0300
-Message-ID: <1438167991-17211-5-git-send-email-haggaie@mellanox.com>
+Subject: [PATCH v3 10/13] IB/cma: Validate routing of incoming requests
+Date: Wed, 29 Jul 2015 14:06:28 +0300
+Message-ID: <1438167991-17211-11-git-send-email-haggaie@mellanox.com>
 References: <1438167991-17211-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1438167991-17211-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,57 +10,142 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Expose the service ID on an incoming CM or SIDR request to the event
-handler. This will allow the RDMA CM module to de-multiplex connection
-requests based on the information encoded in the service ID.
+Pass incoming request parameters through the relevant IPv4/IPv6 routing
+tables and make sure the network stack is configured to handle such
+requests.
 
-Acked-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/cm.c | 3 +++
- include/rdma/ib_cm.h         | 1 +
- 2 files changed, 4 insertions(+)
+ drivers/infiniband/core/cma.c | 95 +++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 92 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 82d5c4362aa8..93e9e2f34fc6 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -1268,6 +1268,7 @@ static void cm_format_paths_from_req(struct cm_req_msg *req_msg,
- 	primary_path->packet_life_time =
- 		cm_req_get_primary_local_ack_timeout(req_msg);
- 	primary_path->packet_life_time -= (primary_path->packet_life_time > 0);
-+	primary_path->service_id = req_msg->service_id;
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 011aa7310dd3..f272b3d1799d 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -46,6 +46,8 @@
  
- 	if (req_msg->alt_local_lid) {
- 		memset(alt_path, 0, sizeof *alt_path);
-@@ -1289,6 +1290,7 @@ static void cm_format_paths_from_req(struct cm_req_msg *req_msg,
- 		alt_path->packet_life_time =
- 			cm_req_get_alt_local_ack_timeout(req_msg);
- 		alt_path->packet_life_time -= (alt_path->packet_life_time > 0);
-+		alt_path->service_id = req_msg->service_id;
- 	}
+ #include <net/tcp.h>
+ #include <net/ipv6.h>
++#include <net/ip_fib.h>
++#include <net/ip6_route.h>
+ 
+ #include <rdma/rdma_cm.h>
+ #include <rdma/rdma_cm_ib.h>
+@@ -1081,16 +1083,98 @@ static int cma_save_req_info(const struct ib_cm_event *ib_event,
+ 	return 0;
  }
  
-@@ -2992,6 +2994,7 @@ static void cm_format_sidr_req_event(struct cm_work *work,
- 	param = &work->cm_event.param.sidr_req_rcvd;
- 	param->pkey = __be16_to_cpu(sidr_req_msg->pkey);
- 	param->listen_id = listen_id;
-+	param->service_id = sidr_req_msg->service_id;
- 	param->port = work->port->port_num;
- 	work->cm_event.private_data = &sidr_req_msg->private_data;
- }
-diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
-index 39ed2d2fbd51..1b567bbc3ad4 100644
---- a/include/rdma/ib_cm.h
-+++ b/include/rdma/ib_cm.h
-@@ -223,6 +223,7 @@ struct ib_cm_apr_event_param {
++static bool validate_ipv4_net_dev(struct net_device *net_dev,
++				  const struct sockaddr_in *dst_addr,
++				  const struct sockaddr_in *src_addr)
++{
++	__be32 daddr = dst_addr->sin_addr.s_addr,
++	       saddr = src_addr->sin_addr.s_addr;
++	struct fib_result res;
++	struct flowi4 fl4;
++	int err;
++	bool ret;
++
++	if (ipv4_is_multicast(saddr) || ipv4_is_lbcast(saddr) ||
++	    ipv4_is_lbcast(daddr) || ipv4_is_zeronet(saddr) ||
++	    ipv4_is_zeronet(daddr) || ipv4_is_loopback(daddr) ||
++	    ipv4_is_loopback(saddr))
++		return false;
++
++	memset(&fl4, 0, sizeof(fl4));
++	fl4.flowi4_iif = net_dev->ifindex;
++	fl4.daddr = daddr;
++	fl4.saddr = saddr;
++
++	rcu_read_lock();
++	err = fib_lookup(dev_net(net_dev), &fl4, &res, 0);
++	if (err)
++		return false;
++
++	ret = FIB_RES_DEV(res) == net_dev;
++	rcu_read_unlock();
++
++	return ret;
++}
++
++static bool validate_ipv6_net_dev(struct net_device *net_dev,
++				  const struct sockaddr_in6 *dst_addr,
++				  const struct sockaddr_in6 *src_addr)
++{
++#if IS_ENABLED(CONFIG_IPV6)
++	const int strict = ipv6_addr_type(&dst_addr->sin6_addr) &
++			   IPV6_ADDR_LINKLOCAL;
++	struct rt6_info *rt = rt6_lookup(dev_net(net_dev), &dst_addr->sin6_addr,
++					 &src_addr->sin6_addr, net_dev->ifindex,
++					 strict);
++	bool ret;
++
++	if (!rt)
++		return false;
++
++	ret = rt->rt6i_idev->dev == net_dev;
++	ip6_rt_put(rt);
++
++	return ret;
++#else
++	return false;
++#endif
++}
++
++static bool validate_net_dev(struct net_device *net_dev,
++			     const struct sockaddr *daddr,
++			     const struct sockaddr *saddr)
++{
++	const struct sockaddr_in *daddr4 = (const struct sockaddr_in *)daddr;
++	const struct sockaddr_in *saddr4 = (const struct sockaddr_in *)saddr;
++	const struct sockaddr_in6 *daddr6 = (const struct sockaddr_in6 *)daddr;
++	const struct sockaddr_in6 *saddr6 = (const struct sockaddr_in6 *)saddr;
++
++	switch (daddr->sa_family) {
++	case AF_INET:
++		return saddr->sa_family == AF_INET &&
++		       validate_ipv4_net_dev(net_dev, daddr4, saddr4);
++
++	case AF_INET6:
++		return saddr->sa_family == AF_INET6 &&
++		       validate_ipv6_net_dev(net_dev, daddr6, saddr6);
++
++	default:
++		return false;
++	}
++}
++
+ static struct net_device *cma_get_net_dev(struct ib_cm_event *ib_event,
+ 					  const struct cma_req_info *req)
+ {
+-	struct sockaddr_storage listen_addr_storage;
+-	struct sockaddr *listen_addr = (struct sockaddr *)&listen_addr_storage;
++	struct sockaddr_storage listen_addr_storage, src_addr_storage;
++	struct sockaddr *listen_addr = (struct sockaddr *)&listen_addr_storage,
++			*src_addr = (struct sockaddr *)&src_addr_storage;
+ 	struct net_device *net_dev;
+ 	const union ib_gid *gid = req->has_gid ? &req->local_gid : NULL;
+ 	int err;
  
- struct ib_cm_sidr_req_event_param {
- 	struct ib_cm_id		*listen_id;
-+	__be64			service_id;
- 	u8			port;
- 	u16			pkey;
- };
+-	err = cma_save_ip_info(listen_addr, NULL, ib_event, req->service_id);
++	err = cma_save_ip_info(listen_addr, src_addr, ib_event,
++			       req->service_id);
+ 	if (err)
+ 		return ERR_PTR(err);
+ 
+@@ -1099,6 +1183,11 @@ static struct net_device *cma_get_net_dev(struct ib_cm_event *ib_event,
+ 	if (!net_dev)
+ 		return ERR_PTR(-ENODEV);
+ 
++	if (!validate_net_dev(net_dev, listen_addr, src_addr)) {
++		dev_put(net_dev);
++		return ERR_PTR(-EHOSTUNREACH);
++	}
++
+ 	return net_dev;
+ }
+ 
 -- 
 1.7.11.2
 
