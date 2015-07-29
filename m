@@ -1,11 +1,11 @@
 From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: [PATCH v1] xprtrdma: take vendor driver refcount at client
-Date: Wed, 29 Jul 2015 18:11:01 +0530
-Message-ID: <1438173661-12497-1-git-send-email-devesh.sharma@avagotech.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: [PATCH v1 RESEND] xprtrdma: take vendor driver refcount at client
+Date: Wed, 29 Jul 2015 18:19:34 +0530
+Message-ID: <1438174174-12915-1-git-send-email-devesh.sharma@avagotech.com>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Cc: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 Thanks Chuck Lever for the valuable feedback and suggestions.
@@ -25,11 +25,11 @@ for DEVICE_REMOVAL event is a long chain of work, and is in plan.
 The community decided that preventing the hang right now is more
 important than waiting for architectural changes.
 
-Thus, this patch intorduces a temorary workaround to acquire module
+Thus, this patch introduces a temporary workaround to acquire module
 reference count during the mount of a nfs-rdma mount point.
 
-CC:chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
-CC:linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Signed-off-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 Reviewed-by: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
@@ -152,6 +152,6 @@ index 891c4ed..d59d638 100644
 1.7.1
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
