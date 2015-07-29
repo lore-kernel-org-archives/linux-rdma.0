@@ -1,7 +1,7 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v3 05/13] IB/cm: Share listening CM IDs
-Date: Wed, 29 Jul 2015 14:06:23 +0300
-Message-ID: <1438167991-17211-6-git-send-email-haggaie@mellanox.com>
+Subject: [PATCH v3 12/13] IB/cma: Share ib_cm_ids between rdma_cm_ids
+Date: Wed, 29 Jul 2015 14:06:30 +0300
+Message-ID: <1438167991-17211-13-git-send-email-haggaie@mellanox.com>
 References: <1438167991-17211-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1438167991-17211-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,219 +10,102 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Enabling network namespaces for RDMA CM will allow processes on different
-namespaces to listen on the same port. In order to leave namespace support
-out of the CM layer, this requires that multiple RDMA CM IDs will be able
-to share a single CM ID.
+Use ib_cm_insert_listen to create listening IB CM IDs or share existing
+ones if needed. When given a request on a specific CM ID, the code now
+matches the request to the RDMA CM ID based on the request parameters, so
+it no longer needs to rely on the ib_cm's private data matching
+capabilities.
 
-This patch adds infrastructure to retrieve an existing listening ib_cm_id,
-based on its device and service ID, or create a new one if one does not
-already exist. It also adds a reference count for such instances
-(cm_id_private.listen_sharecount), and prevents cm_destroy_id from
-destroying a CM if it is still shared. See the relevant discussion [1].
-
-[1] Re: [PATCH v3 for-next 05/13] IB/cm: Reference count ib_cm_ids
-    http://www.spinics.net/lists/netdev/msg328860.html
-
-Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/cm.c | 122 ++++++++++++++++++++++++++++++++++++++++---
- include/rdma/ib_cm.h         |   4 ++
- 2 files changed, 120 insertions(+), 6 deletions(-)
+ drivers/infiniband/core/cma.c | 59 +++----------------------------------------
+ 1 file changed, 4 insertions(+), 55 deletions(-)
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 93e9e2f34fc6..fa3d3e755127 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -213,6 +213,9 @@ struct cm_id_private {
- 	spinlock_t lock;	/* Do not acquire inside cm.lock */
- 	struct completion comp;
- 	atomic_t refcount;
-+	/* Number of clients sharing this ib_cm_id. Only valid for listeners.
-+	 * Protected by the cm.lock spinlock. */
-+	int listen_sharecount;
- 
- 	struct ib_mad_send_buf *msg;
- 	struct cm_timewait_info *timewait_info;
-@@ -859,9 +862,15 @@ retest:
- 	spin_lock_irq(&cm_id_priv->lock);
- 	switch (cm_id->state) {
- 	case IB_CM_LISTEN:
--		cm_id->state = IB_CM_IDLE;
- 		spin_unlock_irq(&cm_id_priv->lock);
-+
- 		spin_lock_irq(&cm.lock);
-+		if (--cm_id_priv->listen_sharecount > 0) {
-+			/* The id is still shared. */
-+			cm_deref_id(cm_id_priv);
-+			spin_unlock_irq(&cm.lock);
-+			return;
-+		}
- 		rb_erase(&cm_id_priv->service_node, &cm.listen_service_table);
- 		spin_unlock_irq(&cm.lock);
- 		break;
-@@ -941,11 +950,32 @@ void ib_destroy_cm_id(struct ib_cm_id *cm_id)
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 6c4b40b00882..66f0927d2285 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -1769,42 +1769,6 @@ __be64 rdma_get_service_id(struct rdma_cm_id *id, struct sockaddr *addr)
  }
- EXPORT_SYMBOL(ib_destroy_cm_id);
+ EXPORT_SYMBOL(rdma_get_service_id);
  
--int ib_cm_listen(struct ib_cm_id *cm_id, __be64 service_id, __be64 service_mask,
--		 struct ib_cm_compare_data *compare_data)
-+/**
-+ * __ib_cm_listen - Initiates listening on the specified service ID for
-+ *   connection and service ID resolution requests.
-+ * @cm_id: Connection identifier associated with the listen request.
-+ * @service_id: Service identifier matched against incoming connection
-+ *   and service ID resolution requests.  The service ID should be specified
-+ *   network-byte order.  If set to IB_CM_ASSIGN_SERVICE_ID, the CM will
-+ *   assign a service ID to the caller.
-+ * @service_mask: Mask applied to service ID used to listen across a
-+ *   range of service IDs.  If set to 0, the service ID is matched
-+ *   exactly.  This parameter is ignored if %service_id is set to
-+ *   IB_CM_ASSIGN_SERVICE_ID.
-+ * @compare_data: This parameter is optional.  It specifies data that must
-+ *   appear in the private data of a connection request for the specified
-+ *   listen request.
-+ * @lock: If set, lock the cm.lock spin-lock when adding the id to the
-+ *   listener tree. When false, the caller must already hold the spin-lock,
-+ *   and compare_data must be NULL.
-+ */
-+static int __ib_cm_listen(struct ib_cm_id *cm_id, __be64 service_id,
-+			  __be64 service_mask,
-+			  struct ib_cm_compare_data *compare_data,
-+			  bool lock)
+-static void cma_set_compare_data(enum rdma_port_space ps, struct sockaddr *addr,
+-				 struct ib_cm_compare_data *compare)
+-{
+-	struct cma_hdr *cma_data, *cma_mask;
+-	__be32 ip4_addr;
+-	struct in6_addr ip6_addr;
+-
+-	memset(compare, 0, sizeof *compare);
+-	cma_data = (void *) compare->data;
+-	cma_mask = (void *) compare->mask;
+-
+-	switch (addr->sa_family) {
+-	case AF_INET:
+-		ip4_addr = ((struct sockaddr_in *) addr)->sin_addr.s_addr;
+-		cma_set_ip_ver(cma_data, 4);
+-		cma_set_ip_ver(cma_mask, 0xF);
+-		if (!cma_any_addr(addr)) {
+-			cma_data->dst_addr.ip4.addr = ip4_addr;
+-			cma_mask->dst_addr.ip4.addr = htonl(~0);
+-		}
+-		break;
+-	case AF_INET6:
+-		ip6_addr = ((struct sockaddr_in6 *) addr)->sin6_addr;
+-		cma_set_ip_ver(cma_data, 6);
+-		cma_set_ip_ver(cma_mask, 0xF);
+-		if (!cma_any_addr(addr)) {
+-			cma_data->dst_addr.ip6 = ip6_addr;
+-			memset(&cma_mask->dst_addr.ip6, 0xFF,
+-			       sizeof cma_mask->dst_addr.ip6);
+-		}
+-		break;
+-	default:
+-		break;
+-	}
+-}
+-
+ static int cma_iw_handler(struct iw_cm_id *iw_id, struct iw_cm_event *iw_event)
  {
- 	struct cm_id_private *cm_id_priv, *cur_cm_id_priv;
--	unsigned long flags;
-+	unsigned long flags = 0;
- 	int ret = 0;
+ 	struct rdma_id_private *id_priv = iw_id->context;
+@@ -1958,33 +1922,18 @@ out:
  
- 	service_mask = service_mask ? service_mask : ~cpu_to_be64(0);
-@@ -970,8 +1000,10 @@ int ib_cm_listen(struct ib_cm_id *cm_id, __be64 service_id, __be64 service_mask,
- 	}
+ static int cma_ib_listen(struct rdma_id_private *id_priv)
+ {
+-	struct ib_cm_compare_data compare_data;
+ 	struct sockaddr *addr;
+ 	struct ib_cm_id	*id;
+ 	__be64 svc_id;
+-	int ret;
  
- 	cm_id->state = IB_CM_LISTEN;
-+	if (lock)
-+		spin_lock_irqsave(&cm.lock, flags);
+-	id = ib_create_cm_id(id_priv->id.device, cma_req_handler, id_priv);
++	addr = cma_src_addr(id_priv);
++	svc_id = rdma_get_service_id(&id_priv->id, addr);
++	id = ib_cm_insert_listen(id_priv->id.device, cma_req_handler, svc_id);
+ 	if (IS_ERR(id))
+ 		return PTR_ERR(id);
+-
+ 	id_priv->cm_id.ib = id;
  
--	spin_lock_irqsave(&cm.lock, flags);
-+	++cm_id_priv->listen_sharecount;
- 	if (service_id == IB_CM_ASSIGN_SERVICE_ID) {
- 		cm_id->service_id = cpu_to_be64(cm.listen_service_id++);
- 		cm_id->service_mask = ~cpu_to_be64(0);
-@@ -980,18 +1012,96 @@ int ib_cm_listen(struct ib_cm_id *cm_id, __be64 service_id, __be64 service_mask,
- 		cm_id->service_mask = service_mask;
- 	}
- 	cur_cm_id_priv = cm_insert_listen(cm_id_priv);
--	spin_unlock_irqrestore(&cm.lock, flags);
- 
- 	if (cur_cm_id_priv) {
- 		cm_id->state = IB_CM_IDLE;
-+		--cm_id_priv->listen_sharecount;
- 		kfree(cm_id_priv->compare_data);
- 		cm_id_priv->compare_data = NULL;
- 		ret = -EBUSY;
- 	}
-+
-+	if (lock)
-+		spin_unlock_irqrestore(&cm.lock, flags);
-+
- 	return ret;
+-	addr = cma_src_addr(id_priv);
+-	svc_id = rdma_get_service_id(&id_priv->id, addr);
+-	if (cma_any_addr(addr) && !id_priv->afonly)
+-		ret = ib_cm_listen(id_priv->cm_id.ib, svc_id, 0, NULL);
+-	else {
+-		cma_set_compare_data(id_priv->id.ps, addr, &compare_data);
+-		ret = ib_cm_listen(id_priv->cm_id.ib, svc_id, 0, &compare_data);
+-	}
+-
+-	if (ret) {
+-		ib_destroy_cm_id(id_priv->cm_id.ib);
+-		id_priv->cm_id.ib = NULL;
+-	}
+-
+-	return ret;
++	return 0;
  }
-+
-+int ib_cm_listen(struct ib_cm_id *cm_id, __be64 service_id, __be64 service_mask,
-+		 struct ib_cm_compare_data *compare_data)
-+{
-+	return __ib_cm_listen(cm_id, service_id, service_mask, compare_data,
-+			      true);
-+}
- EXPORT_SYMBOL(ib_cm_listen);
  
-+/**
-+ * Create a new listening ib_cm_id and listen on the given service ID.
-+ *
-+ * If there's an existing ID listening on that same device and service ID,
-+ * return it.
-+ *
-+ * @device: Device associated with the cm_id.  All related communication will
-+ * be associated with the specified device.
-+ * @cm_handler: Callback invoked to notify the user of CM events.
-+ * @service_id: Service identifier matched against incoming connection
-+ *   and service ID resolution requests.  The service ID should be specified
-+ *   network-byte order.  If set to IB_CM_ASSIGN_SERVICE_ID, the CM will
-+ *   assign a service ID to the caller.
-+ *
-+ * Callers should call ib_destroy_cm_id when done with the listener ID.
-+ */
-+struct ib_cm_id *ib_cm_insert_listen(struct ib_device *device,
-+				     ib_cm_handler cm_handler,
-+				     __be64 service_id)
-+{
-+	struct cm_id_private *cm_id_priv;
-+	struct ib_cm_id *cm_id;
-+	unsigned long flags;
-+	int err = 0;
-+
-+	/* Create an ID in advance, since the creation may sleep */
-+	cm_id = ib_create_cm_id(device, cm_handler, NULL);
-+	if (IS_ERR(cm_id))
-+		return cm_id;
-+
-+	spin_lock_irqsave(&cm.lock, flags);
-+
-+	if (service_id == IB_CM_ASSIGN_SERVICE_ID)
-+		goto new_id;
-+
-+	/* Find an existing ID */
-+	cm_id_priv = cm_find_listen(device, service_id, NULL);
-+	if (cm_id_priv) {
-+		if (cm_id->cm_handler != cm_handler || cm_id->context) {
-+			/* Sharing an ib_cm_id with different handlers is not
-+			 * supported */
-+			spin_unlock_irqrestore(&cm.lock, flags);
-+			return ERR_PTR(-EINVAL);
-+		}
-+		atomic_inc(&cm_id_priv->refcount);
-+		++cm_id_priv->listen_sharecount;
-+		spin_unlock_irqrestore(&cm.lock, flags);
-+
-+		ib_destroy_cm_id(cm_id);
-+		cm_id = &cm_id_priv->id;
-+		return cm_id;
-+	}
-+
-+new_id:
-+	/* Use newly created ID */
-+	err = __ib_cm_listen(cm_id, service_id, 0, NULL, false);
-+
-+	spin_unlock_irqrestore(&cm.lock, flags);
-+
-+	if (err) {
-+		ib_destroy_cm_id(cm_id);
-+		return ERR_PTR(err);
-+	}
-+	return cm_id;
-+}
-+EXPORT_SYMBOL(ib_cm_insert_listen);
-+
- static __be64 cm_form_tid(struct cm_id_private *cm_id_priv,
- 			  enum cm_msg_sequence msg_seq)
- {
-diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
-index 1b567bbc3ad4..9cc496e1f2ad 100644
---- a/include/rdma/ib_cm.h
-+++ b/include/rdma/ib_cm.h
-@@ -362,6 +362,10 @@ struct ib_cm_compare_data {
- int ib_cm_listen(struct ib_cm_id *cm_id, __be64 service_id, __be64 service_mask,
- 		 struct ib_cm_compare_data *compare_data);
- 
-+struct ib_cm_id *ib_cm_insert_listen(struct ib_device *device,
-+				     ib_cm_handler cm_handler,
-+				     __be64 service_id);
-+
- struct ib_cm_req_param {
- 	struct ib_sa_path_rec	*primary_path;
- 	struct ib_sa_path_rec	*alternate_path;
+ static int cma_iw_listen(struct rdma_id_private *id_priv, int backlog)
 -- 
 1.7.11.2
 
