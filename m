@@ -1,63 +1,76 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH REPOST libibverbs] Add IP and TCP/UDP TX checksum offload
- support
-Date: Wed, 29 Jul 2015 12:32:04 -0400
-Message-ID: <55B90004.3070900@redhat.com>
-References: <1434276784-15909-1-git-send-email-ogerlitz@mellanox.com>
- <alpine.DEB.2.11.1506181021160.13957@east.gentwo.org>
- <alpine.DEB.2.11.1507011015400.20250@east.gentwo.org>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH 00/10] IB: Replace safe uses for ib_get_dma_mr with
+ pd->local_dma_lkey
+Date: Wed, 29 Jul 2015 12:39:43 -0400
+Message-ID: <55B901CF.6020801@redhat.com>
+References: <1437608083-22898-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <55B0F06E.8000603@sandisk.com> <20150723183044.GA1868@obsidianresearch.com>
+ <55B13583.5010208@sandisk.com> <20150723184725.GB30303@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="s2lDaVueafunu2cLt9JDAhMvBhBaBA7G6"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.11.1507011015400.20250-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+ boundary="WPaXpmmSRSWlAPEgvHQTIvaCol9sG3BrV"
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <20150723184725.GB30303@obsidianresearch.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Amir Vadai <amirv@mellanox.com>, Chien Yen <chien.yen@oracle.com>, Christoph Hellwig <hch@infradead.org>, Dominique Martinet <dominique.martinet@cea.fr>, Eli Cohen <eli@mellanox.com>, Eric Van Hensbergen <ericvh@gmail.com>, Ido Shamay <idos@mellanox.com>, Latchesar Ionkov <lucho@ionkov.net>, Or Gerlitz <ogerlitz@mellanox.com>, Roi Dayan <roid@mellanox.com>, Ron Minnich <rminnich@sandia.gov>, Sagi Grimberg <sagig@mellanox.com>, Simon Derr <simon.derr@bull.net>, Tom Tucker <tom@opengridcomputing.com>, "rds-devel@oss.oracle.com" <rds-devel@oss.oracle.com>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---s2lDaVueafunu2cLt9JDAhMvBhBaBA7G6
+--WPaXpmmSRSWlAPEgvHQTIvaCol9sG3BrV
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 07/01/2015 11:17 AM, Christoph Lameter wrote:
-> Is there any release schedule and/or upstream repo where I can see chan=
-ges
-> for libibverbs and libmlx4?
+On 07/23/2015 02:47 PM, Jason Gunthorpe wrote:
+> On Thu, Jul 23, 2015 at 11:42:11AM -0700, Bart Van Assche wrote:
+>>> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband=
+/ulp/srp/ib_srp.c
+>>> index fb9fed0fac28..a1e3818d0791 100644
+>>> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
+>>> @@ -69,7 +69,7 @@ static unsigned int cmd_sg_entries;
+>>>  static unsigned int indirect_sg_entries;
+>>>  static bool allow_ext_sg;
+>>>  static bool prefer_fr;
+>>> -static bool register_always;
+>>> +static bool register_always =3D true;
+>>
+>> If we want security by default then I propose not only to change the d=
+efault
+>> value of register_always from false into true but also to change the d=
+efault
+>> value of prefer_fr from false into true such that fast registration be=
+comes
+>> the default instead of FMR.
 >=20
+> Yes, I was frowning at that stuff too.. We are trying to get rid of
+> FMR, so nothing should prefer it over FRWR...
+>=20
+> Sagi, perhaps that belongs in your MR unification series?
+>=20
+>>> +	if (register_always)
+>>> +		mr_flags |=3D IB_ACCESS_REMOTE_READ | IB_ACCESS_REMOTE_WRITE;
+>>
+>> Hmm ... did you perhaps intend if (!register_always) instead ?
+>=20
+> I did, thank you. For your testing convenience, the updated version is
+> on github now:
+>=20
+> https://github.com/jgunthorpe/linux/commits/remove-ib_get_dma_mr
 
-I'm working on libibverbs right now.  The upstream git repo has not
-changed, it's the same as it always was.
+Hi Jason,
 
-Or, Jason asked for some (IMO very much needed) documentation on this
-feature via man page additions.  For instance, the changelog calls out
-that this is only used for TCP/UDP packets over IB UD QPs or Eth Raw
-QPs.  Well, IB UD QPs sending IP packets is IPoIB, which is generally a
-kernel protocol.  So, when it comes to user space, is this realistically
-a Raw Eth QP only thing?
-
-Also, the man page entry calls out what I would classify as hardware
-limitations in the general IB verbs man page.  I would think it would
-more appropriately call out that the support is hardware dependent and
-then provide some means for the hardware to specify what types of IP
-CSUM offloads it supports.  For instance, although there's been talk of
-making connected mode IPoIB go faster by dropping the TCP checksum and
-relying on the RC EC code instead and just ignoring the TCP checksum.
-Another alternative would be to add TCP checksum support to your
-firmware for connected mode QPs, so it's possible that in the future the
-types of IP CSUM support could grow.  This patchset doesn't allow for
-that or for distinguishing between hardware that has new or old firmware.=
-
+If you think this is nearing a stable enough state for 4.3, please go
+ahead and repost.  I'm trying to pull together all of the 4.3 material
+and I already have the mlx5 fix you referenced.
 
 --=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Doug Ledford <dledford@redhat.com>
               GPG KeyID: 0E572FDD
 
 
 
---s2lDaVueafunu2cLt9JDAhMvBhBaBA7G6
+--WPaXpmmSRSWlAPEgvHQTIvaCol9sG3BrV
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -66,23 +79,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJVuQAEAAoJELgmozMOVy/dvbUP/ROlR3dG7CEy6UVqSqmSb0QG
-ylEbq4tre7M2F7Qn6dJDjYfk8DkHZyYazrJorLftxRljFWFCqHmqjqy+dYsGZ4QW
-ojzRkSOupS5t7hgT1ZEjnToE6biOPJrANuYkAbACA+sGrJ2FZwSwCmcxBSnXsJ3f
-CNOKWecMO6ewmwK8TiV1KqU6D4fE0nRkDuHrSr7Guz9eIimaxvZJ04qal7Jmplk+
-i4M86zne7CyMVr88YZR3lzEwdiWrxxVSw2qyk9EJWU0CCfg0+4uk9fso1isjpl50
-lAdE0oYnHl5oTD7YFBztDPywz2D/ObixGXiaduH9eld+n9dCFf64ccYzMUa60/gx
-3DDU4CufFb2880ht188Ia4DQhc94BIlUmlrZpQQ9IvnjRA916nZhoL6KH9ighbZd
-VKhx8IVXlMCgJeGk3zFChPym43qzJCbQ9Fr9mX/1K/7RqDvWjSnhN9s9kIdgq+Yx
-9HQExSv78WRaKvGqfbdD5rg/0qFu7pw8aNkCnWuzN5eAonJ4V+8uA9dXGoZcEe17
-cpfFKrP+mGCniHX4wRQibq6z/eoADKVZnU6e8esLon/34WsZ9AtjhZiU7EH9fauq
-H2civqf7FXaq4eKI5nldMUZ530w88s+ZBWX+oKuVkH9j+5MI37RGk0ayygz6W6qu
-MCxxsJRAuhxnXB9uI5c0
-=tfbm
+iQIcBAEBCAAGBQJVuQHPAAoJELgmozMOVy/dMRQP/Rpot4WfUFeVX7ZbKPO0/a/2
+fVp6lxuHw6nRyEY/hR4700pku5GXDAye3Xbf1sUDPozIHaezEMTmrgh6RizPp9Iy
+lpER2dEGO/uRn0NIt8m87ILa0/9f0bmUT8O14bkaWwhFK7B4hYVjPkb44wMh0mpY
+eDBxLsHXJvSZljRLQ9VPJleNbt5ZyFiGMJwb1U+Wva7V8AWNBKnmINImxI/OzV6w
+6E6BYThYNCehW9JWp5InlVm1hTY0z7HWjv2MecjV6iSO5wYmeG/gZmsFjhNgoRhe
+GhvrTyjxuUAQF2g+jYNFJsvH5DnFtYTR/q/jkPuYQ2VKyH5IOC10QGSaZaP6BMDE
+Y8HSWDzdq4ACsLnNr0sUASofckNixoo0Rh65DXt0aLu9ccTuLCYvSTaLsMsajtu+
+gH6u7M9EqHZkv2vhPboCxiGkNz4KLhgZmCeMlNHit67nnX9FWC1PDbiG3x8S/fe9
+wXcTUOAOTEObxk75sliMvGpatpVxt9eOJAncNeAmPgF5Eey7WJ4CXxx71ZoDOzt1
+ognLD3bT6ZUPZzMMc7t7jloTGJbSBJ9uYkIsCyXzN6kiKZERECjhk8lrGaXSZ/Gw
+6/OBmyQcwAGcztq4HgJGOnyfxwE4sLE+BaVIFMggkOePn4k0U98IaCaY84ifIg8a
+6nDM+z2Kkf5XMSuU/nAL
+=FZSn
 -----END PGP SIGNATURE-----
 
---s2lDaVueafunu2cLt9JDAhMvBhBaBA7G6--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--WPaXpmmSRSWlAPEgvHQTIvaCol9sG3BrV--
