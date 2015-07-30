@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v4 40/50] IB/hfi1: add sysfs routines and documentation
-Date: Thu, 30 Jul 2015 15:21:09 -0400
-Message-ID: <20150730192109.25256.56498.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH v4 39/50] IB/hfi1: add SRQ handling
+Date: Thu, 30 Jul 2015 15:21:04 -0400
+Message-ID: <20150730192104.25256.79730.stgit@phlsvslse11.ph.intel.com>
 References: <20150730191631.25256.95511.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -37,47 +37,16 @@ Signed-off-by: Sanath Kumar <sanath.s.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.
 Signed-off-by: Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Vlad Danushevsky <vladimir.danusevsky-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- Documentation/infiniband/sysfs.txt |   22 +
- drivers/infiniband/hw/hfi1/sysfs.c |  761 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 783 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi1/sysfs.c
+ drivers/infiniband/hw/hfi1/srq.c |  397 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 397 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi1/srq.c
 
-diff --git a/Documentation/infiniband/sysfs.txt b/Documentation/infiniband/sysfs.txt
-index ddd519b..23d1b6d 100644
---- a/Documentation/infiniband/sysfs.txt
-+++ b/Documentation/infiniband/sysfs.txt
-@@ -64,3 +64,25 @@ MTHCA
-     fw_ver   - Firmware version
-     hca_type - HCA type: "MT23108", "MT25208 (MT23108 compat mode)",
-                or "MT25208"
-+
-+HFI1
-+
-+  The hfi1 driver also creates these additional files:
-+
-+   hw_rev - hardware revision
-+   board_id - manufacturing board id
-+   version - driver version
-+   tempsense - thermal sense information
-+   serial - board serial number
-+   nfreectxts - number of free user contexts
-+   nctxts - number of allowed contexts (PSM2)
-+   localbus_info - PCIe info
-+   chip_reset - diagnostic (root only)
-+   boardversion - board version
-+   ports/1/
-+          CMgtA/
-+               cc_settings_bin - CCA tables used by PSM2
-+               cc_table_bin
-+          sc2v/ - 32 files (0 - 31) used to translate sl->vl
-+          sl2sc/ - 32 files (0 - 31) used to translate sl->sc
-+          vl2mtu/ - 16 (0 - 15) files used to determine MTU for vl
-diff --git a/drivers/infiniband/hw/hfi1/sysfs.c b/drivers/infiniband/hw/hfi1/sysfs.c
+diff --git a/drivers/infiniband/hw/hfi1/srq.c b/drivers/infiniband/hw/hfi1/srq.c
 new file mode 100644
-index 0000000..b10e857
+index 0000000..67786d4
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/sysfs.c
-@@ -0,0 +1,761 @@
++++ b/drivers/infiniband/hw/hfi1/srq.c
+@@ -0,0 +1,397 @@
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -127,717 +96,353 @@ index 0000000..b10e857
 + * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + */
-+#include <linux/ctype.h>
 +
-+#include "hfi.h"
-+#include "mad.h"
-+#include "trace.h"
++#include <linux/err.h>
++#include <linux/slab.h>
++#include <linux/vmalloc.h>
 +
++#include "verbs.h"
 +
-+/*
-+ * Start of per-port congestion control structures and support code
++/**
++ * hfi1_post_srq_receive - post a receive on a shared receive queue
++ * @ibsrq: the SRQ to post the receive on
++ * @wr: the list of work requests to post
++ * @bad_wr: A pointer to the first WR to cause a problem is put here
++ *
++ * This may be called from interrupt context.
 + */
-+
-+/*
-+ * Congestion control table size followed by table entries
-+ */
-+static ssize_t read_cc_table_bin(struct file *filp, struct kobject *kobj,
-+		struct bin_attribute *bin_attr,
-+		char *buf, loff_t pos, size_t count)
++int hfi1_post_srq_receive(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
++			  struct ib_recv_wr **bad_wr)
 +{
-+	int ret;
-+	struct hfi1_pportdata *ppd =
-+		container_of(kobj, struct hfi1_pportdata, pport_cc_kobj);
-+	struct cc_state *cc_state;
-+
-+	ret = ppd->total_cct_entry * sizeof(struct ib_cc_table_entry_shadow)
-+		 + sizeof(__be16);
-+
-+	if (pos > ret)
-+		return -EINVAL;
-+
-+	if (count > ret - pos)
-+		count = ret - pos;
-+
-+	if (!count)
-+		return count;
-+
-+	rcu_read_lock();
-+	cc_state = get_cc_state(ppd);
-+	if (cc_state == NULL) {
-+		rcu_read_unlock();
-+		return -EINVAL;
-+	}
-+	memcpy(buf, &cc_state->cct, count);
-+	rcu_read_unlock();
-+
-+	return count;
-+}
-+
-+static void port_release(struct kobject *kobj)
-+{
-+	/* nothing to do since memory is freed by hfi1_free_devdata() */
-+}
-+
-+static struct kobj_type port_cc_ktype = {
-+	.release = port_release,
-+};
-+
-+static struct bin_attribute cc_table_bin_attr = {
-+	.attr = {.name = "cc_table_bin", .mode = 0444},
-+	.read = read_cc_table_bin,
-+	.size = PAGE_SIZE,
-+};
-+
-+/*
-+ * Congestion settings: port control, control map and an array of 16
-+ * entries for the congestion entries - increase, timer, event log
-+ * trigger threshold and the minimum injection rate delay.
-+ */
-+static ssize_t read_cc_setting_bin(struct file *filp, struct kobject *kobj,
-+		struct bin_attribute *bin_attr,
-+		char *buf, loff_t pos, size_t count)
-+{
-+	int ret;
-+	struct hfi1_pportdata *ppd =
-+		container_of(kobj, struct hfi1_pportdata, pport_cc_kobj);
-+	struct cc_state *cc_state;
-+
-+	ret = sizeof(struct opa_congestion_setting_attr_shadow);
-+
-+	if (pos > ret)
-+		return -EINVAL;
-+	if (count > ret - pos)
-+		count = ret - pos;
-+
-+	if (!count)
-+		return count;
-+
-+	rcu_read_lock();
-+	cc_state = get_cc_state(ppd);
-+	if (cc_state == NULL) {
-+		rcu_read_unlock();
-+		return -EINVAL;
-+	}
-+	memcpy(buf, &cc_state->cong_setting, count);
-+	rcu_read_unlock();
-+
-+	return count;
-+}
-+
-+static struct bin_attribute cc_setting_bin_attr = {
-+	.attr = {.name = "cc_settings_bin", .mode = 0444},
-+	.read = read_cc_setting_bin,
-+	.size = PAGE_SIZE,
-+};
-+
-+/* Start sc2vl */
-+#define HFI1_SC2VL_ATTR(N)				    \
-+	static struct hfi1_sc2vl_attr hfi1_sc2vl_attr_##N = { \
-+		.attr = { .name = __stringify(N), .mode = 0444 }, \
-+		.sc = N \
-+	}
-+
-+struct hfi1_sc2vl_attr {
-+	struct attribute attr;
-+	int sc;
-+};
-+
-+HFI1_SC2VL_ATTR(0);
-+HFI1_SC2VL_ATTR(1);
-+HFI1_SC2VL_ATTR(2);
-+HFI1_SC2VL_ATTR(3);
-+HFI1_SC2VL_ATTR(4);
-+HFI1_SC2VL_ATTR(5);
-+HFI1_SC2VL_ATTR(6);
-+HFI1_SC2VL_ATTR(7);
-+HFI1_SC2VL_ATTR(8);
-+HFI1_SC2VL_ATTR(9);
-+HFI1_SC2VL_ATTR(10);
-+HFI1_SC2VL_ATTR(11);
-+HFI1_SC2VL_ATTR(12);
-+HFI1_SC2VL_ATTR(13);
-+HFI1_SC2VL_ATTR(14);
-+HFI1_SC2VL_ATTR(15);
-+HFI1_SC2VL_ATTR(16);
-+HFI1_SC2VL_ATTR(17);
-+HFI1_SC2VL_ATTR(18);
-+HFI1_SC2VL_ATTR(19);
-+HFI1_SC2VL_ATTR(20);
-+HFI1_SC2VL_ATTR(21);
-+HFI1_SC2VL_ATTR(22);
-+HFI1_SC2VL_ATTR(23);
-+HFI1_SC2VL_ATTR(24);
-+HFI1_SC2VL_ATTR(25);
-+HFI1_SC2VL_ATTR(26);
-+HFI1_SC2VL_ATTR(27);
-+HFI1_SC2VL_ATTR(28);
-+HFI1_SC2VL_ATTR(29);
-+HFI1_SC2VL_ATTR(30);
-+HFI1_SC2VL_ATTR(31);
-+
-+
-+static struct attribute *sc2vl_default_attributes[] = {
-+	&hfi1_sc2vl_attr_0.attr,
-+	&hfi1_sc2vl_attr_1.attr,
-+	&hfi1_sc2vl_attr_2.attr,
-+	&hfi1_sc2vl_attr_3.attr,
-+	&hfi1_sc2vl_attr_4.attr,
-+	&hfi1_sc2vl_attr_5.attr,
-+	&hfi1_sc2vl_attr_6.attr,
-+	&hfi1_sc2vl_attr_7.attr,
-+	&hfi1_sc2vl_attr_8.attr,
-+	&hfi1_sc2vl_attr_9.attr,
-+	&hfi1_sc2vl_attr_10.attr,
-+	&hfi1_sc2vl_attr_11.attr,
-+	&hfi1_sc2vl_attr_12.attr,
-+	&hfi1_sc2vl_attr_13.attr,
-+	&hfi1_sc2vl_attr_14.attr,
-+	&hfi1_sc2vl_attr_15.attr,
-+	&hfi1_sc2vl_attr_16.attr,
-+	&hfi1_sc2vl_attr_17.attr,
-+	&hfi1_sc2vl_attr_18.attr,
-+	&hfi1_sc2vl_attr_19.attr,
-+	&hfi1_sc2vl_attr_20.attr,
-+	&hfi1_sc2vl_attr_21.attr,
-+	&hfi1_sc2vl_attr_22.attr,
-+	&hfi1_sc2vl_attr_23.attr,
-+	&hfi1_sc2vl_attr_24.attr,
-+	&hfi1_sc2vl_attr_25.attr,
-+	&hfi1_sc2vl_attr_26.attr,
-+	&hfi1_sc2vl_attr_27.attr,
-+	&hfi1_sc2vl_attr_28.attr,
-+	&hfi1_sc2vl_attr_29.attr,
-+	&hfi1_sc2vl_attr_30.attr,
-+	&hfi1_sc2vl_attr_31.attr,
-+	NULL
-+};
-+
-+static ssize_t sc2vl_attr_show(struct kobject *kobj, struct attribute *attr,
-+			       char *buf)
-+{
-+	struct hfi1_sc2vl_attr *sattr =
-+		container_of(attr, struct hfi1_sc2vl_attr, attr);
-+	struct hfi1_pportdata *ppd =
-+		container_of(kobj, struct hfi1_pportdata, sc2vl_kobj);
-+	struct hfi1_devdata *dd = ppd->dd;
-+
-+	return sprintf(buf, "%u\n", *((u8 *)dd->sc2vl + sattr->sc));
-+}
-+
-+static const struct sysfs_ops hfi1_sc2vl_ops = {
-+	.show = sc2vl_attr_show,
-+};
-+
-+static struct kobj_type hfi1_sc2vl_ktype = {
-+	.release = port_release,
-+	.sysfs_ops = &hfi1_sc2vl_ops,
-+	.default_attrs = sc2vl_default_attributes
-+};
-+
-+/* End sc2vl */
-+
-+/* Start sl2sc */
-+#define HFI1_SL2SC_ATTR(N)				    \
-+	static struct hfi1_sl2sc_attr hfi1_sl2sc_attr_##N = {	  \
-+		.attr = { .name = __stringify(N), .mode = 0444 }, \
-+		.sl = N						  \
-+	}
-+
-+struct hfi1_sl2sc_attr {
-+	struct attribute attr;
-+	int sl;
-+};
-+
-+HFI1_SL2SC_ATTR(0);
-+HFI1_SL2SC_ATTR(1);
-+HFI1_SL2SC_ATTR(2);
-+HFI1_SL2SC_ATTR(3);
-+HFI1_SL2SC_ATTR(4);
-+HFI1_SL2SC_ATTR(5);
-+HFI1_SL2SC_ATTR(6);
-+HFI1_SL2SC_ATTR(7);
-+HFI1_SL2SC_ATTR(8);
-+HFI1_SL2SC_ATTR(9);
-+HFI1_SL2SC_ATTR(10);
-+HFI1_SL2SC_ATTR(11);
-+HFI1_SL2SC_ATTR(12);
-+HFI1_SL2SC_ATTR(13);
-+HFI1_SL2SC_ATTR(14);
-+HFI1_SL2SC_ATTR(15);
-+HFI1_SL2SC_ATTR(16);
-+HFI1_SL2SC_ATTR(17);
-+HFI1_SL2SC_ATTR(18);
-+HFI1_SL2SC_ATTR(19);
-+HFI1_SL2SC_ATTR(20);
-+HFI1_SL2SC_ATTR(21);
-+HFI1_SL2SC_ATTR(22);
-+HFI1_SL2SC_ATTR(23);
-+HFI1_SL2SC_ATTR(24);
-+HFI1_SL2SC_ATTR(25);
-+HFI1_SL2SC_ATTR(26);
-+HFI1_SL2SC_ATTR(27);
-+HFI1_SL2SC_ATTR(28);
-+HFI1_SL2SC_ATTR(29);
-+HFI1_SL2SC_ATTR(30);
-+HFI1_SL2SC_ATTR(31);
-+
-+
-+static struct attribute *sl2sc_default_attributes[] = {
-+	&hfi1_sl2sc_attr_0.attr,
-+	&hfi1_sl2sc_attr_1.attr,
-+	&hfi1_sl2sc_attr_2.attr,
-+	&hfi1_sl2sc_attr_3.attr,
-+	&hfi1_sl2sc_attr_4.attr,
-+	&hfi1_sl2sc_attr_5.attr,
-+	&hfi1_sl2sc_attr_6.attr,
-+	&hfi1_sl2sc_attr_7.attr,
-+	&hfi1_sl2sc_attr_8.attr,
-+	&hfi1_sl2sc_attr_9.attr,
-+	&hfi1_sl2sc_attr_10.attr,
-+	&hfi1_sl2sc_attr_11.attr,
-+	&hfi1_sl2sc_attr_12.attr,
-+	&hfi1_sl2sc_attr_13.attr,
-+	&hfi1_sl2sc_attr_14.attr,
-+	&hfi1_sl2sc_attr_15.attr,
-+	&hfi1_sl2sc_attr_16.attr,
-+	&hfi1_sl2sc_attr_17.attr,
-+	&hfi1_sl2sc_attr_18.attr,
-+	&hfi1_sl2sc_attr_19.attr,
-+	&hfi1_sl2sc_attr_20.attr,
-+	&hfi1_sl2sc_attr_21.attr,
-+	&hfi1_sl2sc_attr_22.attr,
-+	&hfi1_sl2sc_attr_23.attr,
-+	&hfi1_sl2sc_attr_24.attr,
-+	&hfi1_sl2sc_attr_25.attr,
-+	&hfi1_sl2sc_attr_26.attr,
-+	&hfi1_sl2sc_attr_27.attr,
-+	&hfi1_sl2sc_attr_28.attr,
-+	&hfi1_sl2sc_attr_29.attr,
-+	&hfi1_sl2sc_attr_30.attr,
-+	&hfi1_sl2sc_attr_31.attr,
-+	NULL
-+};
-+
-+static ssize_t sl2sc_attr_show(struct kobject *kobj, struct attribute *attr,
-+			       char *buf)
-+{
-+	struct hfi1_sl2sc_attr *sattr =
-+		container_of(attr, struct hfi1_sl2sc_attr, attr);
-+	struct hfi1_pportdata *ppd =
-+		container_of(kobj, struct hfi1_pportdata, sl2sc_kobj);
-+	struct hfi1_ibport *ibp = &ppd->ibport_data;
-+
-+	return sprintf(buf, "%u\n", ibp->sl_to_sc[sattr->sl]);
-+}
-+
-+static const struct sysfs_ops hfi1_sl2sc_ops = {
-+	.show = sl2sc_attr_show,
-+};
-+
-+static struct kobj_type hfi1_sl2sc_ktype = {
-+	.release = port_release,
-+	.sysfs_ops = &hfi1_sl2sc_ops,
-+	.default_attrs = sl2sc_default_attributes
-+};
-+
-+/* End sl2sc */
-+
-+/* Start vl2mtu */
-+
-+#define HFI1_VL2MTU_ATTR(N) \
-+	static struct hfi1_vl2mtu_attr hfi1_vl2mtu_attr_##N = { \
-+		.attr = { .name = __stringify(N), .mode = 0444 }, \
-+		.vl = N						  \
-+	}
-+
-+struct hfi1_vl2mtu_attr {
-+	struct attribute attr;
-+	int vl;
-+};
-+
-+HFI1_VL2MTU_ATTR(0);
-+HFI1_VL2MTU_ATTR(1);
-+HFI1_VL2MTU_ATTR(2);
-+HFI1_VL2MTU_ATTR(3);
-+HFI1_VL2MTU_ATTR(4);
-+HFI1_VL2MTU_ATTR(5);
-+HFI1_VL2MTU_ATTR(6);
-+HFI1_VL2MTU_ATTR(7);
-+HFI1_VL2MTU_ATTR(8);
-+HFI1_VL2MTU_ATTR(9);
-+HFI1_VL2MTU_ATTR(10);
-+HFI1_VL2MTU_ATTR(11);
-+HFI1_VL2MTU_ATTR(12);
-+HFI1_VL2MTU_ATTR(13);
-+HFI1_VL2MTU_ATTR(14);
-+HFI1_VL2MTU_ATTR(15);
-+
-+static struct attribute *vl2mtu_default_attributes[] = {
-+	&hfi1_vl2mtu_attr_0.attr,
-+	&hfi1_vl2mtu_attr_1.attr,
-+	&hfi1_vl2mtu_attr_2.attr,
-+	&hfi1_vl2mtu_attr_3.attr,
-+	&hfi1_vl2mtu_attr_4.attr,
-+	&hfi1_vl2mtu_attr_5.attr,
-+	&hfi1_vl2mtu_attr_6.attr,
-+	&hfi1_vl2mtu_attr_7.attr,
-+	&hfi1_vl2mtu_attr_8.attr,
-+	&hfi1_vl2mtu_attr_9.attr,
-+	&hfi1_vl2mtu_attr_10.attr,
-+	&hfi1_vl2mtu_attr_11.attr,
-+	&hfi1_vl2mtu_attr_12.attr,
-+	&hfi1_vl2mtu_attr_13.attr,
-+	&hfi1_vl2mtu_attr_14.attr,
-+	&hfi1_vl2mtu_attr_15.attr,
-+	NULL
-+};
-+
-+static ssize_t vl2mtu_attr_show(struct kobject *kobj, struct attribute *attr,
-+				char *buf)
-+{
-+	struct hfi1_vl2mtu_attr *vlattr =
-+		container_of(attr, struct hfi1_vl2mtu_attr, attr);
-+	struct hfi1_pportdata *ppd =
-+		container_of(kobj, struct hfi1_pportdata, vl2mtu_kobj);
-+	struct hfi1_devdata *dd = ppd->dd;
-+
-+	return sprintf(buf, "%u\n", dd->vld[vlattr->vl].mtu);
-+}
-+
-+static const struct sysfs_ops hfi1_vl2mtu_ops = {
-+	.show = vl2mtu_attr_show,
-+};
-+
-+static struct kobj_type hfi1_vl2mtu_ktype = {
-+	.release = port_release,
-+	.sysfs_ops = &hfi1_vl2mtu_ops,
-+	.default_attrs = vl2mtu_default_attributes
-+};
-+
-+
-+/* end of per-port file structures and support code */
-+
-+/*
-+ * Start of per-unit (or driver, in some cases, but replicated
-+ * per unit) functions (these get a device *)
-+ */
-+static ssize_t show_rev(struct device *device, struct device_attribute *attr,
-+			char *buf)
-+{
-+	struct hfi1_ibdev *dev =
-+		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+
-+	return sprintf(buf, "%x\n", dd_from_dev(dev)->minrev);
-+}
-+
-+static ssize_t show_hfi(struct device *device, struct device_attribute *attr,
-+			char *buf)
-+{
-+	struct hfi1_ibdev *dev =
-+		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+	struct hfi1_devdata *dd = dd_from_dev(dev);
++	struct hfi1_srq *srq = to_isrq(ibsrq);
++	struct hfi1_rwq *wq;
++	unsigned long flags;
 +	int ret;
 +
-+	if (!dd->boardname)
-+		ret = -EINVAL;
-+	else
-+		ret = scnprintf(buf, PAGE_SIZE, "%s\n", dd->boardname);
++	for (; wr; wr = wr->next) {
++		struct hfi1_rwqe *wqe;
++		u32 next;
++		int i;
++
++		if ((unsigned) wr->num_sge > srq->rq.max_sge) {
++			*bad_wr = wr;
++			ret = -EINVAL;
++			goto bail;
++		}
++
++		spin_lock_irqsave(&srq->rq.lock, flags);
++		wq = srq->rq.wq;
++		next = wq->head + 1;
++		if (next >= srq->rq.size)
++			next = 0;
++		if (next == wq->tail) {
++			spin_unlock_irqrestore(&srq->rq.lock, flags);
++			*bad_wr = wr;
++			ret = -ENOMEM;
++			goto bail;
++		}
++
++		wqe = get_rwqe_ptr(&srq->rq, wq->head);
++		wqe->wr_id = wr->wr_id;
++		wqe->num_sge = wr->num_sge;
++		for (i = 0; i < wr->num_sge; i++)
++			wqe->sg_list[i] = wr->sg_list[i];
++		/* Make sure queue entry is written before the head index. */
++		smp_wmb();
++		wq->head = next;
++		spin_unlock_irqrestore(&srq->rq.lock, flags);
++	}
++	ret = 0;
++
++bail:
 +	return ret;
 +}
 +
-+static ssize_t show_version(struct device *device,
-+			    struct device_attribute *attr, char *buf)
++/**
++ * hfi1_create_srq - create a shared receive queue
++ * @ibpd: the protection domain of the SRQ to create
++ * @srq_init_attr: the attributes of the SRQ
++ * @udata: data from libibverbs when creating a user SRQ
++ */
++struct ib_srq *hfi1_create_srq(struct ib_pd *ibpd,
++			       struct ib_srq_init_attr *srq_init_attr,
++			       struct ib_udata *udata)
 +{
-+	/* The string printed here is already newline-terminated. */
-+	return scnprintf(buf, PAGE_SIZE, "%s", (char *)ib_hfi1_version);
-+}
++	struct hfi1_ibdev *dev = to_idev(ibpd->device);
++	struct hfi1_srq *srq;
++	u32 sz;
++	struct ib_srq *ret;
 +
-+static ssize_t show_boardversion(struct device *device,
-+				 struct device_attribute *attr, char *buf)
-+{
-+	struct hfi1_ibdev *dev =
-+		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+	struct hfi1_devdata *dd = dd_from_dev(dev);
++	if (srq_init_attr->srq_type != IB_SRQT_BASIC) {
++		ret = ERR_PTR(-ENOSYS);
++		goto done;
++	}
 +
-+	/* The string printed here is already newline-terminated. */
-+	return scnprintf(buf, PAGE_SIZE, "%s", dd->boardversion);
-+}
++	if (srq_init_attr->attr.max_sge == 0 ||
++	    srq_init_attr->attr.max_sge > hfi1_max_srq_sges ||
++	    srq_init_attr->attr.max_wr == 0 ||
++	    srq_init_attr->attr.max_wr > hfi1_max_srq_wrs) {
++		ret = ERR_PTR(-EINVAL);
++		goto done;
++	}
 +
-+
-+static ssize_t show_localbus_info(struct device *device,
-+				  struct device_attribute *attr, char *buf)
-+{
-+	struct hfi1_ibdev *dev =
-+		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+	struct hfi1_devdata *dd = dd_from_dev(dev);
-+
-+	return scnprintf(buf, PAGE_SIZE, "%s\n", dd->lbus_info);
-+}
-+
-+
-+static ssize_t show_nctxts(struct device *device,
-+			   struct device_attribute *attr, char *buf)
-+{
-+	struct hfi1_ibdev *dev =
-+		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+	struct hfi1_devdata *dd = dd_from_dev(dev);
++	srq = kmalloc(sizeof(*srq), GFP_KERNEL);
++	if (!srq) {
++		ret = ERR_PTR(-ENOMEM);
++		goto done;
++	}
 +
 +	/*
-+	 * Return the smaller of send and receive contexts.
-+	 * Normally, user level applications would require both a send
-+	 * and a receive context, so returning the smaller of the two counts
-+	 * give a more accurate picture of total contexts available.
++	 * Need to use vmalloc() if we want to support large #s of entries.
 +	 */
-+	return scnprintf(buf, PAGE_SIZE, "%u\n",
-+			 min(dd->num_rcv_contexts - dd->first_user_ctxt,
-+			     (u32)dd->sc_sizes[SC_USER].count));
-+}
-+
-+static ssize_t show_nfreectxts(struct device *device,
-+			   struct device_attribute *attr, char *buf)
-+{
-+	struct hfi1_ibdev *dev =
-+		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+	struct hfi1_devdata *dd = dd_from_dev(dev);
-+
-+	/* Return the number of free user ports (contexts) available. */
-+	return scnprintf(buf, PAGE_SIZE, "%u\n", dd->freectxts);
-+}
-+
-+static ssize_t show_serial(struct device *device,
-+			   struct device_attribute *attr, char *buf)
-+{
-+	struct hfi1_ibdev *dev =
-+		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+	struct hfi1_devdata *dd = dd_from_dev(dev);
-+
-+	return scnprintf(buf, PAGE_SIZE, "%s", dd->serial);
-+
-+}
-+
-+static ssize_t store_chip_reset(struct device *device,
-+				struct device_attribute *attr, const char *buf,
-+				size_t count)
-+{
-+	struct hfi1_ibdev *dev =
-+		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+	struct hfi1_devdata *dd = dd_from_dev(dev);
-+	int ret;
-+
-+	if (count < 5 || memcmp(buf, "reset", 5) || !dd->diag_client) {
-+		ret = -EINVAL;
-+		goto bail;
++	srq->rq.size = srq_init_attr->attr.max_wr + 1;
++	srq->rq.max_sge = srq_init_attr->attr.max_sge;
++	sz = sizeof(struct ib_sge) * srq->rq.max_sge +
++		sizeof(struct hfi1_rwqe);
++	srq->rq.wq = vmalloc_user(sizeof(struct hfi1_rwq) + srq->rq.size * sz);
++	if (!srq->rq.wq) {
++		ret = ERR_PTR(-ENOMEM);
++		goto bail_srq;
 +	}
 +
-+	ret = hfi1_reset_device(dd->unit);
-+bail:
-+	return ret < 0 ? ret : count;
-+}
++	/*
++	 * Return the address of the RWQ as the offset to mmap.
++	 * See hfi1_mmap() for details.
++	 */
++	if (udata && udata->outlen >= sizeof(__u64)) {
++		int err;
++		u32 s = sizeof(struct hfi1_rwq) + srq->rq.size * sz;
 +
-+/*
-+ * Convert the reported temperature from an integer (reported in
-+ * units of 0.25C) to a floating point number.
-+ */
-+#define temp2str(temp, buf, size, idx)					\
-+	scnprintf((buf) + (idx), (size) - (idx), "%u.%02u ",		\
-+			      ((temp) >> 2), ((temp) & 0x3) * 25)
++		srq->ip =
++		    hfi1_create_mmap_info(dev, s, ibpd->uobject->context,
++					  srq->rq.wq);
++		if (!srq->ip) {
++			ret = ERR_PTR(-ENOMEM);
++			goto bail_wq;
++		}
 +
-+/*
-+ * Dump tempsense values, in decimal, to ease shell-scripts.
-+ */
-+static ssize_t show_tempsense(struct device *device,
-+			      struct device_attribute *attr, char *buf)
-+{
-+	struct hfi1_ibdev *dev =
-+		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+	struct hfi1_devdata *dd = dd_from_dev(dev);
-+	struct hfi1_temp temp;
-+	int ret = -ENXIO;
++		err = ib_copy_to_udata(udata, &srq->ip->offset,
++				       sizeof(srq->ip->offset));
++		if (err) {
++			ret = ERR_PTR(err);
++			goto bail_ip;
++		}
++	} else
++		srq->ip = NULL;
 +
-+	ret = hfi1_tempsense_rd(dd, &temp);
-+	if (!ret) {
-+		int idx = 0;
++	/*
++	 * ib_create_srq() will initialize srq->ibsrq.
++	 */
++	spin_lock_init(&srq->rq.lock);
++	srq->rq.wq->head = 0;
++	srq->rq.wq->tail = 0;
++	srq->limit = srq_init_attr->attr.srq_limit;
 +
-+		idx += temp2str(temp.curr, buf, PAGE_SIZE, idx);
-+		idx += temp2str(temp.lo_lim, buf, PAGE_SIZE, idx);
-+		idx += temp2str(temp.hi_lim, buf, PAGE_SIZE, idx);
-+		idx += temp2str(temp.crit_lim, buf, PAGE_SIZE, idx);
-+		idx += scnprintf(buf + idx, PAGE_SIZE - idx,
-+				"%u %u %u\n", temp.triggers & 0x1,
-+				temp.triggers & 0x2, temp.triggers & 0x4);
-+		ret = idx;
++	spin_lock(&dev->n_srqs_lock);
++	if (dev->n_srqs_allocated == hfi1_max_srqs) {
++		spin_unlock(&dev->n_srqs_lock);
++		ret = ERR_PTR(-ENOMEM);
++		goto bail_ip;
 +	}
++
++	dev->n_srqs_allocated++;
++	spin_unlock(&dev->n_srqs_lock);
++
++	if (srq->ip) {
++		spin_lock_irq(&dev->pending_lock);
++		list_add(&srq->ip->pending_mmaps, &dev->pending_mmaps);
++		spin_unlock_irq(&dev->pending_lock);
++	}
++
++	ret = &srq->ibsrq;
++	goto done;
++
++bail_ip:
++	kfree(srq->ip);
++bail_wq:
++	vfree(srq->rq.wq);
++bail_srq:
++	kfree(srq);
++done:
 +	return ret;
 +}
 +
-+/*
-+ * end of per-unit (or driver, in some cases, but replicated
-+ * per unit) functions
++/**
++ * hfi1_modify_srq - modify a shared receive queue
++ * @ibsrq: the SRQ to modify
++ * @attr: the new attributes of the SRQ
++ * @attr_mask: indicates which attributes to modify
++ * @udata: user data for libibverbs.so
 + */
-+
-+/* start of per-unit file structures and support code */
-+static DEVICE_ATTR(hw_rev, S_IRUGO, show_rev, NULL);
-+static DEVICE_ATTR(board_id, S_IRUGO, show_hfi, NULL);
-+static DEVICE_ATTR(version, S_IRUGO, show_version, NULL);
-+static DEVICE_ATTR(nctxts, S_IRUGO, show_nctxts, NULL);
-+static DEVICE_ATTR(nfreectxts, S_IRUGO, show_nfreectxts, NULL);
-+static DEVICE_ATTR(serial, S_IRUGO, show_serial, NULL);
-+static DEVICE_ATTR(boardversion, S_IRUGO, show_boardversion, NULL);
-+static DEVICE_ATTR(tempsense, S_IRUGO, show_tempsense, NULL);
-+static DEVICE_ATTR(localbus_info, S_IRUGO, show_localbus_info, NULL);
-+static DEVICE_ATTR(chip_reset, S_IWUSR, NULL, store_chip_reset);
-+
-+static struct device_attribute *hfi1_attributes[] = {
-+	&dev_attr_hw_rev,
-+	&dev_attr_board_id,
-+	&dev_attr_version,
-+	&dev_attr_nctxts,
-+	&dev_attr_nfreectxts,
-+	&dev_attr_serial,
-+	&dev_attr_boardversion,
-+	&dev_attr_tempsense,
-+	&dev_attr_localbus_info,
-+	&dev_attr_chip_reset,
-+};
-+
-+int hfi1_create_port_files(struct ib_device *ibdev, u8 port_num,
-+			   struct kobject *kobj)
++int hfi1_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
++		    enum ib_srq_attr_mask attr_mask,
++		    struct ib_udata *udata)
 +{
-+	struct hfi1_pportdata *ppd;
-+	struct hfi1_devdata *dd = dd_from_ibdev(ibdev);
-+	int ret;
++	struct hfi1_srq *srq = to_isrq(ibsrq);
++	struct hfi1_rwq *wq;
++	int ret = 0;
 +
-+	if (!port_num || port_num > dd->num_pports) {
-+		dd_dev_err(dd,
-+			"Skipping infiniband class with invalid port %u\n",
-+			port_num);
-+		return -ENODEV;
-+	}
-+	ppd = &dd->pport[port_num - 1];
++	if (attr_mask & IB_SRQ_MAX_WR) {
++		struct hfi1_rwq *owq;
++		struct hfi1_rwqe *p;
++		u32 sz, size, n, head, tail;
 +
-+	ret = kobject_init_and_add(&ppd->sc2vl_kobj, &hfi1_sc2vl_ktype, kobj,
-+				   "sc2vl");
-+	if (ret) {
-+		dd_dev_err(dd,
-+			   "Skipping sc2vl sysfs info, (err %d) port %u\n",
-+			   ret, port_num);
-+		goto bail;
-+	}
-+	kobject_uevent(&ppd->sc2vl_kobj, KOBJ_ADD);
-+
-+	ret = kobject_init_and_add(&ppd->sl2sc_kobj, &hfi1_sl2sc_ktype, kobj,
-+				   "sl2sc");
-+	if (ret) {
-+		dd_dev_err(dd,
-+			   "Skipping sl2sc sysfs info, (err %d) port %u\n",
-+			   ret, port_num);
-+		goto bail_sc2vl;
-+	}
-+	kobject_uevent(&ppd->sl2sc_kobj, KOBJ_ADD);
-+
-+	ret = kobject_init_and_add(&ppd->vl2mtu_kobj, &hfi1_vl2mtu_ktype, kobj,
-+				   "vl2mtu");
-+	if (ret) {
-+		dd_dev_err(dd,
-+			   "Skipping vl2mtu sysfs info, (err %d) port %u\n",
-+			   ret, port_num);
-+		goto bail_sl2sc;
-+	}
-+	kobject_uevent(&ppd->vl2mtu_kobj, KOBJ_ADD);
-+
-+
-+	ret = kobject_init_and_add(&ppd->pport_cc_kobj, &port_cc_ktype,
-+				   kobj, "CCMgtA");
-+	if (ret) {
-+		dd_dev_err(dd,
-+		 "Skipping Congestion Control sysfs info, (err %d) port %u\n",
-+		 ret, port_num);
-+		goto bail_vl2mtu;
-+	}
-+
-+	kobject_uevent(&ppd->pport_cc_kobj, KOBJ_ADD);
-+
-+	ret = sysfs_create_bin_file(&ppd->pport_cc_kobj,
-+				&cc_setting_bin_attr);
-+	if (ret) {
-+		dd_dev_err(dd,
-+		 "Skipping Congestion Control setting sysfs info, (err %d) port %u\n",
-+		 ret, port_num);
-+		goto bail_cc;
-+	}
-+
-+	ret = sysfs_create_bin_file(&ppd->pport_cc_kobj,
-+				&cc_table_bin_attr);
-+	if (ret) {
-+		dd_dev_err(dd,
-+		 "Skipping Congestion Control table sysfs info, (err %d) port %u\n",
-+		 ret, port_num);
-+		goto bail_cc_entry_bin;
-+	}
-+
-+	dd_dev_info(dd,
-+		"IB%u: Congestion Control Agent enabled for port %d\n",
-+		dd->unit, port_num);
-+
-+	return 0;
-+
-+bail_cc_entry_bin:
-+	sysfs_remove_bin_file(&ppd->pport_cc_kobj,
-+			      &cc_setting_bin_attr);
-+bail_cc:
-+	kobject_put(&ppd->pport_cc_kobj);
-+bail_vl2mtu:
-+	kobject_put(&ppd->vl2mtu_kobj);
-+bail_sl2sc:
-+	kobject_put(&ppd->sl2sc_kobj);
-+bail_sc2vl:
-+	kobject_put(&ppd->sc2vl_kobj);
-+bail:
-+	return ret;
-+}
-+
-+/*
-+ * Register and create our files in /sys/class/infiniband.
-+ */
-+int hfi1_verbs_register_sysfs(struct hfi1_devdata *dd)
-+{
-+	struct ib_device *dev = &dd->verbs_dev.ibdev;
-+	int i, ret;
-+
-+	for (i = 0; i < ARRAY_SIZE(hfi1_attributes); ++i) {
-+		ret = device_create_file(&dev->dev, hfi1_attributes[i]);
-+		if (ret)
++		/* Check that the requested sizes are below the limits. */
++		if ((attr->max_wr > hfi1_max_srq_wrs) ||
++		    ((attr_mask & IB_SRQ_LIMIT) ?
++		     attr->srq_limit : srq->limit) > attr->max_wr) {
++			ret = -EINVAL;
 +			goto bail;
-+	}
++		}
 +
-+	return 0;
++		sz = sizeof(struct hfi1_rwqe) +
++			srq->rq.max_sge * sizeof(struct ib_sge);
++		size = attr->max_wr + 1;
++		wq = vmalloc_user(sizeof(struct hfi1_rwq) + size * sz);
++		if (!wq) {
++			ret = -ENOMEM;
++			goto bail;
++		}
++
++		/* Check that we can write the offset to mmap. */
++		if (udata && udata->inlen >= sizeof(__u64)) {
++			__u64 offset_addr;
++			__u64 offset = 0;
++
++			ret = ib_copy_from_udata(&offset_addr, udata,
++						 sizeof(offset_addr));
++			if (ret)
++				goto bail_free;
++			udata->outbuf =
++				(void __user *) (unsigned long) offset_addr;
++			ret = ib_copy_to_udata(udata, &offset,
++					       sizeof(offset));
++			if (ret)
++				goto bail_free;
++		}
++
++		spin_lock_irq(&srq->rq.lock);
++		/*
++		 * validate head and tail pointer values and compute
++		 * the number of remaining WQEs.
++		 */
++		owq = srq->rq.wq;
++		head = owq->head;
++		tail = owq->tail;
++		if (head >= srq->rq.size || tail >= srq->rq.size) {
++			ret = -EINVAL;
++			goto bail_unlock;
++		}
++		n = head;
++		if (n < tail)
++			n += srq->rq.size - tail;
++		else
++			n -= tail;
++		if (size <= n) {
++			ret = -EINVAL;
++			goto bail_unlock;
++		}
++		n = 0;
++		p = wq->wq;
++		while (tail != head) {
++			struct hfi1_rwqe *wqe;
++			int i;
++
++			wqe = get_rwqe_ptr(&srq->rq, tail);
++			p->wr_id = wqe->wr_id;
++			p->num_sge = wqe->num_sge;
++			for (i = 0; i < wqe->num_sge; i++)
++				p->sg_list[i] = wqe->sg_list[i];
++			n++;
++			p = (struct hfi1_rwqe *)((char *)p + sz);
++			if (++tail >= srq->rq.size)
++				tail = 0;
++		}
++		srq->rq.wq = wq;
++		srq->rq.size = size;
++		wq->head = n;
++		wq->tail = 0;
++		if (attr_mask & IB_SRQ_LIMIT)
++			srq->limit = attr->srq_limit;
++		spin_unlock_irq(&srq->rq.lock);
++
++		vfree(owq);
++
++		if (srq->ip) {
++			struct hfi1_mmap_info *ip = srq->ip;
++			struct hfi1_ibdev *dev = to_idev(srq->ibsrq.device);
++			u32 s = sizeof(struct hfi1_rwq) + size * sz;
++
++			hfi1_update_mmap_info(dev, ip, s, wq);
++
++			/*
++			 * Return the offset to mmap.
++			 * See hfi1_mmap() for details.
++			 */
++			if (udata && udata->inlen >= sizeof(__u64)) {
++				ret = ib_copy_to_udata(udata, &ip->offset,
++						       sizeof(ip->offset));
++				if (ret)
++					goto bail;
++			}
++
++			/*
++			 * Put user mapping info onto the pending list
++			 * unless it already is on the list.
++			 */
++			spin_lock_irq(&dev->pending_lock);
++			if (list_empty(&ip->pending_mmaps))
++				list_add(&ip->pending_mmaps,
++					 &dev->pending_mmaps);
++			spin_unlock_irq(&dev->pending_lock);
++		}
++	} else if (attr_mask & IB_SRQ_LIMIT) {
++		spin_lock_irq(&srq->rq.lock);
++		if (attr->srq_limit >= srq->rq.size)
++			ret = -EINVAL;
++		else
++			srq->limit = attr->srq_limit;
++		spin_unlock_irq(&srq->rq.lock);
++	}
++	goto bail;
++
++bail_unlock:
++	spin_unlock_irq(&srq->rq.lock);
++bail_free:
++	vfree(wq);
 +bail:
-+	for (i = 0; i < ARRAY_SIZE(hfi1_attributes); ++i)
-+		device_remove_file(&dev->dev, hfi1_attributes[i]);
 +	return ret;
 +}
 +
-+/*
-+ * Unregister and remove our files in /sys/class/infiniband.
-+ */
-+void hfi1_verbs_unregister_sysfs(struct hfi1_devdata *dd)
++int hfi1_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr)
 +{
-+	struct hfi1_pportdata *ppd;
-+	int i;
++	struct hfi1_srq *srq = to_isrq(ibsrq);
 +
-+	for (i = 0; i < dd->num_pports; i++) {
-+		ppd = &dd->pport[i];
++	attr->max_wr = srq->rq.size - 1;
++	attr->max_sge = srq->rq.max_sge;
++	attr->srq_limit = srq->limit;
++	return 0;
++}
 +
-+		sysfs_remove_bin_file(&ppd->pport_cc_kobj,
-+				      &cc_setting_bin_attr);
-+		sysfs_remove_bin_file(&ppd->pport_cc_kobj,
-+				      &cc_table_bin_attr);
-+		kobject_put(&ppd->pport_cc_kobj);
-+		kobject_put(&ppd->vl2mtu_kobj);
-+		kobject_put(&ppd->sl2sc_kobj);
-+		kobject_put(&ppd->sc2vl_kobj);
-+	}
++/**
++ * hfi1_destroy_srq - destroy a shared receive queue
++ * @ibsrq: the SRQ to destroy
++ */
++int hfi1_destroy_srq(struct ib_srq *ibsrq)
++{
++	struct hfi1_srq *srq = to_isrq(ibsrq);
++	struct hfi1_ibdev *dev = to_idev(ibsrq->device);
++
++	spin_lock(&dev->n_srqs_lock);
++	dev->n_srqs_allocated--;
++	spin_unlock(&dev->n_srqs_lock);
++	if (srq->ip)
++		kref_put(&srq->ip->ref, hfi1_release_mmap_info);
++	else
++		vfree(srq->rq.wq);
++	kfree(srq);
++
++	return 0;
 +}
 
 --
