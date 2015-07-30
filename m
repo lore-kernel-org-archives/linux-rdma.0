@@ -1,105 +1,87 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-4.3 08/15] mlx5: Drop mlx5_ib_alloc_fast_reg_mr
-Date: Thu, 30 Jul 2015 10:32:41 +0300
-Message-ID: <1438241568-3685-9-git-send-email-sagig@mellanox.com>
+From: Sagi Grimberg <sagig@mellanox.com>
+Subject: [PATCH for-4.3 11/15] iw_cxgb4: Support ib_alloc_mr verb
+Date: Thu, 30 Jul 2015 10:32:44 +0300
+Message-ID: <1438241568-3685-12-git-send-email-sagig@mellanox.com>
 References: <1438241568-3685-1-git-send-email-sagig@mellanox.com>
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1438241568-3685-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1438241568-3685-1-git-send-email-sagig@mellanox.com>
+Sender: target-devel-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org, linux-nfs@vger.kernel.org, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/main.c    |  1 -
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  2 --
- drivers/infiniband/hw/mlx5/mr.c      | 44 ------------------------------------
- 3 files changed, 47 deletions(-)
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h |  4 +++-
+ drivers/infiniband/hw/cxgb4/mem.c      | 12 +++++++++---
+ drivers/infiniband/hw/cxgb4/provider.c |  2 +-
+ 3 files changed, 13 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 2c2a461..41d6911 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1490,7 +1490,6 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 	dev->ib_dev.detach_mcast	= mlx5_ib_mcg_detach;
- 	dev->ib_dev.process_mad		= mlx5_ib_process_mad;
- 	dev->ib_dev.alloc_mr		= mlx5_ib_alloc_mr;
--	dev->ib_dev.alloc_fast_reg_mr	= mlx5_ib_alloc_fast_reg_mr;
- 	dev->ib_dev.alloc_fast_reg_page_list = mlx5_ib_alloc_fast_reg_page_list;
- 	dev->ib_dev.free_fast_reg_page_list  = mlx5_ib_free_fast_reg_page_list;
- 	dev->ib_dev.check_mr_status	= mlx5_ib_check_mr_status;
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 3030abe..a5fa0b9 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -575,8 +575,6 @@ int mlx5_ib_dereg_mr(struct ib_mr *ibmr);
- struct ib_mr *mlx5_ib_alloc_mr(struct ib_pd *pd,
- 			       enum ib_mr_type mr_type,
- 			       u32 max_num_sg);
--struct ib_mr *mlx5_ib_alloc_fast_reg_mr(struct ib_pd *pd,
--					int max_page_list_len);
- struct ib_fast_reg_page_list *mlx5_ib_alloc_fast_reg_page_list(struct ib_device *ibdev,
- 							       int page_list_len);
- void mlx5_ib_free_fast_reg_page_list(struct ib_fast_reg_page_list *page_list);
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index b0b68bb..09e6ae6 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -1339,50 +1339,6 @@ err_free:
- 	return ERR_PTR(err);
+diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+index cc77844..c7bb38c 100644
+--- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
++++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+@@ -970,7 +970,9 @@ void c4iw_free_fastreg_pbl(struct ib_fast_reg_page_list *page_list);
+ struct ib_fast_reg_page_list *c4iw_alloc_fastreg_pbl(
+ 					struct ib_device *device,
+ 					int page_list_len);
+-struct ib_mr *c4iw_alloc_fast_reg_mr(struct ib_pd *pd, int pbl_depth);
++struct ib_mr *c4iw_alloc_mr(struct ib_pd *pd,
++			    enum ib_mr_type mr_type,
++			    u32 max_num_sg);
+ int c4iw_dealloc_mw(struct ib_mw *mw);
+ struct ib_mw *c4iw_alloc_mw(struct ib_pd *pd, enum ib_mw_type type);
+ struct ib_mr *c4iw_reg_user_mr(struct ib_pd *pd, u64 start,
+diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
+index cff815b..026b91e 100644
+--- a/drivers/infiniband/hw/cxgb4/mem.c
++++ b/drivers/infiniband/hw/cxgb4/mem.c
+@@ -853,7 +853,9 @@ int c4iw_dealloc_mw(struct ib_mw *mw)
+ 	return 0;
  }
  
--struct ib_mr *mlx5_ib_alloc_fast_reg_mr(struct ib_pd *pd,
--					int max_page_list_len)
--{
--	struct mlx5_ib_dev *dev = to_mdev(pd->device);
--	struct mlx5_create_mkey_mbox_in *in;
--	struct mlx5_ib_mr *mr;
--	int err;
--
--	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
--	if (!mr)
--		return ERR_PTR(-ENOMEM);
--
--	in = kzalloc(sizeof(*in), GFP_KERNEL);
--	if (!in) {
--		err = -ENOMEM;
--		goto err_free;
--	}
--
--	in->seg.status = MLX5_MKEY_STATUS_FREE;
--	in->seg.xlt_oct_size = cpu_to_be32((max_page_list_len + 1) / 2);
--	in->seg.qpn_mkey7_0 = cpu_to_be32(0xffffff << 8);
--	in->seg.flags = MLX5_PERM_UMR_EN | MLX5_ACCESS_MODE_MTT;
--	in->seg.flags_pd = cpu_to_be32(to_mpd(pd)->pdn);
--	/*
--	 * TBD not needed - issue 197292 */
--	in->seg.log2_page_size = PAGE_SHIFT;
--
--	err = mlx5_core_create_mkey(dev->mdev, &mr->mmr, in, sizeof(*in), NULL,
--				    NULL, NULL);
--	kfree(in);
--	if (err)
--		goto err_free;
--
--	mr->ibmr.lkey = mr->mmr.key;
--	mr->ibmr.rkey = mr->mmr.key;
--	mr->umem = NULL;
--
--	return &mr->ibmr;
--
--err_free:
--	kfree(mr);
--	return ERR_PTR(err);
--}
--
- struct ib_fast_reg_page_list *mlx5_ib_alloc_fast_reg_page_list(struct ib_device *ibdev,
- 							       int page_list_len)
+-struct ib_mr *c4iw_alloc_fast_reg_mr(struct ib_pd *pd, int pbl_depth)
++struct ib_mr *c4iw_alloc_mr(struct ib_pd *pd,
++			    enum ib_mr_type mr_type,
++			    u32 max_num_sg)
  {
+ 	struct c4iw_dev *rhp;
+ 	struct c4iw_pd *php;
+@@ -862,6 +864,10 @@ struct ib_mr *c4iw_alloc_fast_reg_mr(struct ib_pd *pd, int pbl_depth)
+ 	u32 stag = 0;
+ 	int ret = 0;
+ 
++	if (mr_type != IB_MR_TYPE_MEM_REG ||
++	    max_num_sg > t4_max_fr_depth(use_dsgl))
++		return ERR_PTR(-EINVAL);
++
+ 	php = to_c4iw_pd(pd);
+ 	rhp = php->rhp;
+ 	mhp = kzalloc(sizeof(*mhp), GFP_KERNEL);
+@@ -871,10 +877,10 @@ struct ib_mr *c4iw_alloc_fast_reg_mr(struct ib_pd *pd, int pbl_depth)
+ 	}
+ 
+ 	mhp->rhp = rhp;
+-	ret = alloc_pbl(mhp, pbl_depth);
++	ret = alloc_pbl(mhp, max_num_sg);
+ 	if (ret)
+ 		goto err1;
+-	mhp->attr.pbl_size = pbl_depth;
++	mhp->attr.pbl_size = max_num_sg;
+ 	ret = allocate_stag(&rhp->rdev, &stag, php->pdid,
+ 				 mhp->attr.pbl_size, mhp->attr.pbl_addr);
+ 	if (ret)
+diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
+index 6eee3d3..7746113 100644
+--- a/drivers/infiniband/hw/cxgb4/provider.c
++++ b/drivers/infiniband/hw/cxgb4/provider.c
+@@ -556,7 +556,7 @@ int c4iw_register_device(struct c4iw_dev *dev)
+ 	dev->ibdev.alloc_mw = c4iw_alloc_mw;
+ 	dev->ibdev.bind_mw = c4iw_bind_mw;
+ 	dev->ibdev.dealloc_mw = c4iw_dealloc_mw;
+-	dev->ibdev.alloc_fast_reg_mr = c4iw_alloc_fast_reg_mr;
++	dev->ibdev.alloc_mr = c4iw_alloc_mr;
+ 	dev->ibdev.alloc_fast_reg_page_list = c4iw_alloc_fastreg_pbl;
+ 	dev->ibdev.free_fast_reg_page_list = c4iw_free_fastreg_pbl;
+ 	dev->ibdev.attach_mcast = c4iw_multicast_attach;
 -- 
 1.8.4.3
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
