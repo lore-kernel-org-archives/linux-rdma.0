@@ -1,197 +1,181 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v4 12/14] IB/cma: Use found net_dev for passive connections
-Date: Thu, 30 Jul 2015 17:50:24 +0300
-Message-ID: <1438267826-32155-13-git-send-email-haggaie@mellanox.com>
-References: <1438267826-32155-1-git-send-email-haggaie@mellanox.com>
+Subject: [PATCH v4 00/14] Demux IB CM requests in the rdma_cm module
+Date: Thu, 30 Jul 2015 17:50:12 +0300
+Message-ID: <1438267826-32155-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1438267826-32155-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When receiving a new connection in cma_req_handler, we actually already
-know the net_dev that is used for the connection's creation. Instead of
-calling cma_translate_addr to resolve the new connection id's source
-address, just use the net_dev that was found.
+I'm sending the patchset again with the rwsem patch and rebased over Doug's
+to-be-rebased/for-4.3 tree.
 
-Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/cma.c | 76 ++++++++++++++++++++++++++++---------------
- 1 file changed, 49 insertions(+), 27 deletions(-)
+Regards,
+Haggai
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index f272b3d1799d..c1cd47eab149 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -1277,33 +1277,31 @@ static struct rdma_id_private *cma_find_listener(
- }
- 
- static struct rdma_id_private *cma_id_from_event(struct ib_cm_id *cm_id,
--						 struct ib_cm_event *ib_event)
-+						 struct ib_cm_event *ib_event,
-+						 struct net_device **net_dev)
- {
- 	struct cma_req_info req;
- 	struct rdma_bind_list *bind_list;
- 	struct rdma_id_private *id_priv;
--	struct net_device *net_dev;
- 	int err;
- 
- 	err = cma_save_req_info(ib_event, &req);
- 	if (err)
- 		return ERR_PTR(err);
- 
--	net_dev = cma_get_net_dev(ib_event, &req);
--	if (IS_ERR(net_dev)) {
--		if (PTR_ERR(net_dev) == -EAFNOSUPPORT) {
-+	*net_dev = cma_get_net_dev(ib_event, &req);
-+	if (IS_ERR(*net_dev)) {
-+		if (PTR_ERR(*net_dev) == -EAFNOSUPPORT) {
- 			/* Assuming the protocol is AF_IB */
--			net_dev = NULL;
-+			*net_dev = NULL;
- 		} else {
--			return ERR_PTR(PTR_ERR(net_dev));
-+			return ERR_PTR(PTR_ERR(*net_dev));
- 		}
- 	}
- 
- 	bind_list = cma_ps_find(rdma_ps_from_service_id(req.service_id),
- 				cma_port_from_service_id(req.service_id));
--	id_priv = cma_find_listener(bind_list, cm_id, ib_event, &req, net_dev);
--
--	dev_put(net_dev);
-+	id_priv = cma_find_listener(bind_list, cm_id, ib_event, &req, *net_dev);
- 
- 	return id_priv;
- }
-@@ -1553,7 +1551,8 @@ out:
- }
- 
- static struct rdma_id_private *cma_new_conn_id(struct rdma_cm_id *listen_id,
--					       struct ib_cm_event *ib_event)
-+					       struct ib_cm_event *ib_event,
-+					       struct net_device *net_dev)
- {
- 	struct rdma_id_private *id_priv;
- 	struct rdma_cm_id *id;
-@@ -1585,14 +1584,16 @@ static struct rdma_id_private *cma_new_conn_id(struct rdma_cm_id *listen_id,
- 	if (rt->num_paths == 2)
- 		rt->path_rec[1] = *ib_event->param.req_rcvd.alternate_path;
- 
--	if (cma_any_addr(cma_src_addr(id_priv))) {
--		rt->addr.dev_addr.dev_type = ARPHRD_INFINIBAND;
--		rdma_addr_set_sgid(&rt->addr.dev_addr, &rt->path_rec[0].sgid);
--		ib_addr_set_pkey(&rt->addr.dev_addr, be16_to_cpu(rt->path_rec[0].pkey));
--	} else {
--		ret = cma_translate_addr(cma_src_addr(id_priv), &rt->addr.dev_addr);
-+	if (net_dev) {
-+		ret = rdma_copy_addr(&rt->addr.dev_addr, net_dev, NULL);
- 		if (ret)
- 			goto err;
-+	} else {
-+		/* An AF_IB connection */
-+		WARN_ON_ONCE(ss_family != AF_IB);
-+
-+		cma_translate_ib((struct sockaddr_ib *)cma_src_addr(id_priv),
-+				 &rt->addr.dev_addr);
- 	}
- 	rdma_addr_set_dgid(&rt->addr.dev_addr, &rt->path_rec[0].dgid);
- 
-@@ -1605,7 +1606,8 @@ err:
- }
- 
- static struct rdma_id_private *cma_new_udp_id(struct rdma_cm_id *listen_id,
--					      struct ib_cm_event *ib_event)
-+					      struct ib_cm_event *ib_event,
-+					      struct net_device *net_dev)
- {
- 	struct rdma_id_private *id_priv;
- 	struct rdma_cm_id *id;
-@@ -1624,10 +1626,18 @@ static struct rdma_id_private *cma_new_udp_id(struct rdma_cm_id *listen_id,
- 			      ib_event->param.sidr_req_rcvd.service_id))
- 		goto err;
- 
--	if (!cma_any_addr((struct sockaddr *) &id->route.addr.src_addr)) {
--		ret = cma_translate_addr(cma_src_addr(id_priv), &id->route.addr.dev_addr);
-+	if (net_dev) {
-+		ret = rdma_copy_addr(&id->route.addr.dev_addr, net_dev, NULL);
- 		if (ret)
- 			goto err;
-+	} else {
-+		/* An AF_IB connection */
-+		WARN_ON_ONCE(ss_family != AF_IB);
-+
-+		if (!cma_any_addr(cma_src_addr(id_priv)))
-+			cma_translate_ib((struct sockaddr_ib *)
-+						cma_src_addr(id_priv),
-+					 &id->route.addr.dev_addr);
- 	}
- 
- 	id_priv->state = RDMA_CM_CONNECT;
-@@ -1665,28 +1675,33 @@ static int cma_req_handler(struct ib_cm_id *cm_id, struct ib_cm_event *ib_event)
- {
- 	struct rdma_id_private *listen_id, *conn_id;
- 	struct rdma_cm_event event;
-+	struct net_device *net_dev;
- 	int offset, ret;
- 
--	listen_id = cma_id_from_event(cm_id, ib_event);
-+	listen_id = cma_id_from_event(cm_id, ib_event, &net_dev);
- 	if (IS_ERR(listen_id))
- 		return PTR_ERR(listen_id);
- 
--	if (!cma_check_req_qp_type(&listen_id->id, ib_event))
--		return -EINVAL;
-+	if (!cma_check_req_qp_type(&listen_id->id, ib_event)) {
-+		ret = -EINVAL;
-+		goto net_dev_put;
-+	}
- 
--	if (cma_disable_callback(listen_id, RDMA_CM_LISTEN))
--		return -ECONNABORTED;
-+	if (cma_disable_callback(listen_id, RDMA_CM_LISTEN)) {
-+		ret = -ECONNABORTED;
-+		goto net_dev_put;
-+	}
- 
- 	memset(&event, 0, sizeof event);
- 	offset = cma_user_data_offset(listen_id);
- 	event.event = RDMA_CM_EVENT_CONNECT_REQUEST;
- 	if (ib_event->event == IB_CM_SIDR_REQ_RECEIVED) {
--		conn_id = cma_new_udp_id(&listen_id->id, ib_event);
-+		conn_id = cma_new_udp_id(&listen_id->id, ib_event, net_dev);
- 		event.param.ud.private_data = ib_event->private_data + offset;
- 		event.param.ud.private_data_len =
- 				IB_CM_SIDR_REQ_PRIVATE_DATA_SIZE - offset;
- 	} else {
--		conn_id = cma_new_conn_id(&listen_id->id, ib_event);
-+		conn_id = cma_new_conn_id(&listen_id->id, ib_event, net_dev);
- 		cma_set_req_event_data(&event, &ib_event->param.req_rcvd,
- 				       ib_event->private_data, offset);
- 	}
-@@ -1724,6 +1739,8 @@ static int cma_req_handler(struct ib_cm_id *cm_id, struct ib_cm_event *ib_event)
- 	mutex_unlock(&conn_id->handler_mutex);
- 	mutex_unlock(&listen_id->handler_mutex);
- 	cma_deref_id(conn_id);
-+	if (net_dev)
-+		dev_put(net_dev);
- 	return 0;
- 
- err3:
-@@ -1737,6 +1754,11 @@ err1:
- 	mutex_unlock(&listen_id->handler_mutex);
- 	if (conn_id)
- 		rdma_destroy_id(&conn_id->id);
-+
-+net_dev_put:
-+	if (net_dev)
-+		dev_put(net_dev);
-+
- 	return ret;
- }
- 
+Changes from v3:
+- rebase over github.com/dledford/linux to-be-rebased/for-4.3
+- add rwsem patch
+
+Changes from v2:
+- added missing reviewed-bys
+- Patch 5: remove service_mask as a parameter from ib_cm_insert_listen()
+- Patch 9:
+  * move cma_req_info struct near other structs
+  * put GID by value in the struct
+
+Changes from v1:
+- Patch 1: mark ib_client_data as going down instead of removing all client
+  contexts during de-registration.
+- Patch 2:
+  * move kdoc to the function definition
+  * do not call get_net_dev_by_params() on devices/clients that are going
+    down
+  * pass client data directly to the callback
+- Patch 3:
+  * pass client data directly to callback
+  * fix a lockdep warning in ipoib_match_gid_pkey_addr()
+  * remove a debugging print left over
+  * set a rate limit to the duplicated IP address warning
+- Patch 5:
+  * change atomic_dec(&id->refcount) to cm_deref_id()
+  * always update listen_sharecount under the cm.lock spinlock
+- Patch 6: handle AF_IB requests by getting parameters from the listener
+- Patch 8: new patch to expose BTH P_Key from ib_cm to rdma_cm
+- Patch 9:
+  * get P_Key used for de-mux from the BTH
+  * use -EAFNOSUPPORT in cma_save_ip_info to designate a possible AF_IB
+    connection request
+  * pass a NULL netdev for AF_IB requests
+- Patch 11: handle AF_IB connections by filling connection information from
+  the listener id instead of from the net_dev
+- Patch 12: fix mention of the old ib_cm_id_create_and_listen function in
+  the changelog entry.
+
+Changes from v0:
+- Added a patch to prevent a race between ib_unregister_device() and
+  ib_get_net_dev_by_params().
+- Removed the patch that exported a UD GMP packet's GID from the GRH, and
+  related code.
+- Patch 3:
+  * Add _rcu suffix to ipoib_is_dev_match_addr().
+  * Add helper function to get the master netdev for bonding support.
+  * Scan for matching net devices in two phases: first without looking at
+  * the IP address, and then looking at the IP address only when the first
+    phase did not find a unique net device.
+- Patch 5:
+  * Do not init listen_sharecount = 1 for non-listening ib_cm_ids.
+  * Remove code that sets a CM ID's state to IB_CM_IDLE right before
+    destruction.
+  * Rename ib_cm_id_create_and_listen() to ib_cm_insert_listen().
+  * Do not increase reference counts when failing to add a shared CM ID due
+    to having a different handler callback.
+- Patch 9: Clean IPv4 net_dev validation function.
+- Added patch 10: new patch to use the found net_dev in IB/cma for
+  eliminating unneeded calls to cma_translate_addr.
+- Patch 12: Remove the lock argument to __ib_cm_listen().
+
+The rdma_cm module relies today on the ib_cm module to demux incoming
+requests based on their service ID and IP address. The ib_cm module is the
+wrong place to perform this task, as it can also be used with services that
+do not adhere to the RDMA IP CM service as defined in the IBA
+specifications. It is forced to use an opaque private data struct and mask
+to compare incoming requests against.
+
+This series moves that demux task responsibility to the rdma_cm module. The
+rdma_cm module can look into the private data attached to a CM request,
+containing the IP addresses related to the request. It uses the details of
+the request to find the net device associated with the request, and use
+that net device to find the correct listening rdma_cm_id.
+
+The series applies against Doug's for-v4.2 tree with the patch adding a
+rwsem to IB core [2] applied.
+
+The series is structured as follows:
+Patch 1 prevents a possible race between ib_client.remove() callbacks from
+ib_unregister_device(), and ib_client callbacks that rely on the
+lists_rwsem locked for read, such as ib_get_net_dev_by_params(). Both
+callbacks may call ib_get_client_data(), and the patch makes sure that the
+remove callback doesn't free the client data while it is being used by the
+other callback.
+
+Patches 2-3 add the ability to lookup a network device according to the IB
+device, port, P_Key, GID and IP address. They find the matching IPoIB
+interfaces, and return a matching net_device if one exists.
+
+Patches 4-5 make necessary changes in ib_cm to allow RDMA CM get the
+information it needs out of CM and SIDR requests, and share a single
+ib_cm_id with multiple RDMA CM listeners.
+
+Patches 6-7 do some preliminary refactoring to the rdma_cm module. They
+allow extracting information out of incoming requests instead of retrieving
+them from a listening CM ID, and add helper functions to access the port
+space IDRs.
+
+Finally, patches 8-12 change rdma_cm to demultiplex requests on its own, and
+patch 13 cleans up the now unneeded code in ib_cm to compare against the
+private data.
+
+This series contains a subset of the RDMA CM namespaces patches [1]. The
+changes from v4 of the relevant patches are:
+- Patch 1
+  * in addition to the IB device, port, P_Key and IP address, pass
+    also the GID, to make future IPoIB devices with alias GIDs to unique.
+  * return the matching net_device instead of a network namespace.
+- Patch 2: use IS_ENABLED(CONFIG_IPV6) without ifdefs.
+- Patch 5:
+  * rename sharecount -> listen_sharecount.
+  * use a regular int instead of atomic for the share count, protected by
+    the cm.lock spinlock.
+  * change id destruction and shared listener creation to prevent the case
+    where an id is found but it is under destruction.
+
+[1] [PATCH v4 for-next 00/12] Add network namespace support in the RDMA-CM
+    http://www.spinics.net/lists/linux-rdma/msg25244.html
+[2] [PATCH for-next V5 02/12] IB/core: Add rwsem to allow reading device list or client list
+    http://www.spinics.net/lists/linux-rdma/msg25931.html
+
+Guy Shapiro (1):
+  IB/ipoib: Return IPoIB devices matching connection parameters
+
+Haggai Eran (12):
+  IB/core: Add rwsem to allow reading device list or client list
+  IB/core: lock client data with lists_rwsem
+  IB/cm: Expose service ID in request events
+  IB/cm: Share listening CM IDs
+  IB/cma: Refactor RDMA IP CM private-data parsing code
+  IB/cma: Helper functions to access port space IDRs
+  IB/cm: Expose BTH P_Key in CM and SIDR request events
+  IB/cma: Add net_dev and private data checks to RDMA CM
+  IB/cma: Validate routing of incoming requests
+  IB/cma: Use found net_dev for passive connections
+  IB/cma: Share ib_cm_ids between rdma_cm_ids
+  IB/cm: Remove compare_data checks
+
+Yotam Kenneth (1):
+  IB/core: Find the network device matching connection parameters
+
+ drivers/infiniband/core/cache.c           |   2 +-
+ drivers/infiniband/core/cm.c              | 215 ++++++----
+ drivers/infiniband/core/cma.c             | 646 ++++++++++++++++++++++--------
+ drivers/infiniband/core/device.c          | 134 ++++++-
+ drivers/infiniband/core/mad.c             |   2 +-
+ drivers/infiniband/core/multicast.c       |   7 +-
+ drivers/infiniband/core/sa_query.c        |   6 +-
+ drivers/infiniband/core/ucm.c             |   9 +-
+ drivers/infiniband/core/user_mad.c        |   6 +-
+ drivers/infiniband/core/uverbs_main.c     |   6 +-
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c   |   2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 236 ++++++++++-
+ drivers/infiniband/ulp/srp/ib_srp.c       |   6 +-
+ drivers/infiniband/ulp/srpt/ib_srpt.c     |   7 +-
+ include/rdma/ib_cm.h                      |  25 +-
+ include/rdma/ib_verbs.h                   |  33 +-
+ net/rds/ib.c                              |   5 +-
+ net/rds/iw.c                              |   5 +-
+ 18 files changed, 1040 insertions(+), 312 deletions(-)
+
 -- 
 1.7.11.2
 
