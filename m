@@ -1,153 +1,98 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v4 03/14] IB/core: Find the network device matching connection parameters
-Date: Thu, 30 Jul 2015 17:50:15 +0300
-Message-ID: <1438267826-32155-4-git-send-email-haggaie@mellanox.com>
+Subject: [PATCH v4 09/14] IB/cm: Expose BTH P_Key in CM and SIDR request events
+Date: Thu, 30 Jul 2015 17:50:21 +0300
+Message-ID: <1438267826-32155-10-git-send-email-haggaie@mellanox.com>
 References: <1438267826-32155-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1438267826-32155-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+The rdma_cm module will later use the P_Key from the BTH to de-mux
+requests.
 
-In the case of IPoIB, and maybe in other cases, the network device is
-managed by an upper-layer protocol (ULP). In order to expose this
-network device to other users of the IB device, let ULPs implement
-a callback that returns network device according to connection parameters.
+See discussion at:
+  http://www.spinics.net/lists/netdev/msg336067.html
 
-The IB device and port, together with the P_Key and the GID should
-be enough to uniquely identify the ULP net device. However, in current
-kernels there can be multiple IPoIB interfaces created with the same GID.
-Furthermore, such configuration may be desireable to support ipvlan-like
-configurations for RDMA CM with IPoIB.  To resolve the device in these
-cases the code will also take the IP address as an additional input.
-
-Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/device.c | 46 ++++++++++++++++++++++++++++++++++++++++
- include/rdma/ib_verbs.h          | 27 +++++++++++++++++++++++
- 2 files changed, 73 insertions(+)
+ drivers/infiniband/core/cm.c | 20 ++++++++++++++++++++
+ include/rdma/ib_cm.h         |  6 ++++++
+ 2 files changed, 26 insertions(+)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 623d8e191ced..124597732fe7 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -38,6 +38,7 @@
- #include <linux/slab.h>
- #include <linux/init.h>
- #include <linux/mutex.h>
-+#include <linux/netdevice.h>
- #include <rdma/rdma_netlink.h>
- 
- #include "core_priv.h"
-@@ -781,6 +782,51 @@ int ib_find_pkey(struct ib_device *device,
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index fa3d3e755127..d2b2c83f0076 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -1404,6 +1404,24 @@ static void cm_format_paths_from_req(struct cm_req_msg *req_msg,
+ 	}
  }
- EXPORT_SYMBOL(ib_find_pkey);
  
-+/**
-+ * ib_get_net_dev_by_params() - Return the appropriate net_dev
-+ * for a received CM request
-+ * @dev:	An RDMA device on which the request has been received.
-+ * @port:	Port number on the RDMA device.
-+ * @pkey:	The Pkey the request came on.
-+ * @gid:	A GID that the net_dev uses to communicate.
-+ * @addr:	Contains the IP address that the request specified as its
-+ *		destination.
-+ */
-+struct net_device *ib_get_net_dev_by_params(struct ib_device *dev,
-+					    u8 port,
-+					    u16 pkey,
-+					    const union ib_gid *gid,
-+					    const struct sockaddr *addr)
++static u16 cm_get_bth_pkey(struct cm_work *work)
 +{
-+	struct net_device *net_dev = NULL;
-+	struct ib_client_data *context;
++	struct ib_device *ib_dev = work->port->cm_dev->ib_device;
++	u8 port_num = work->port->port_num;
++	u16 pkey_index = work->mad_recv_wc->wc->pkey_index;
++	u16 pkey;
++	int ret;
 +
-+	if (!rdma_protocol_ib(dev, port))
-+		return NULL;
-+
-+	down_read(&lists_rwsem);
-+
-+	list_for_each_entry(context, &dev->client_data_list, list) {
-+		struct ib_client *client = context->client;
-+
-+		if (context->going_down)
-+			continue;
-+
-+		if (client->get_net_dev_by_params) {
-+			net_dev = client->get_net_dev_by_params(dev, port, pkey,
-+								gid, addr,
-+								context->data);
-+			if (net_dev)
-+				break;
-+		}
++	ret = ib_get_cached_pkey(ib_dev, port_num, pkey_index, &pkey);
++	if (ret) {
++		dev_warn_ratelimited(&ib_dev->dev, "ib_cm: Couldn't retrieve pkey for incoming request (port %d, pkey index %d). %d\n",
++				     port_num, pkey_index, ret);
++		return 0;
 +	}
 +
-+	up_read(&lists_rwsem);
-+
-+	return net_dev;
++	return pkey;
 +}
-+EXPORT_SYMBOL(ib_get_net_dev_by_params);
 +
- static int __init ib_core_init(void)
- {
- 	int ret;
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index aaa5d2217ab5..5c68f8c1c31a 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -48,6 +48,7 @@
- #include <linux/rwsem.h>
- #include <linux/scatterlist.h>
- #include <linux/workqueue.h>
-+#include <linux/socket.h>
- #include <uapi/linux/if_ether.h>
+ static void cm_format_req_event(struct cm_work *work,
+ 				struct cm_id_private *cm_id_priv,
+ 				struct ib_cm_id *listen_id)
+@@ -1414,6 +1432,7 @@ static void cm_format_req_event(struct cm_work *work,
+ 	req_msg = (struct cm_req_msg *)work->mad_recv_wc->recv_buf.mad;
+ 	param = &work->cm_event.param.req_rcvd;
+ 	param->listen_id = listen_id;
++	param->bth_pkey = cm_get_bth_pkey(work);
+ 	param->port = cm_id_priv->av.port->port_num;
+ 	param->primary_path = &work->path[0];
+ 	if (req_msg->alt_local_lid)
+@@ -3105,6 +3124,7 @@ static void cm_format_sidr_req_event(struct cm_work *work,
+ 	param->pkey = __be16_to_cpu(sidr_req_msg->pkey);
+ 	param->listen_id = listen_id;
+ 	param->service_id = sidr_req_msg->service_id;
++	param->bth_pkey = cm_get_bth_pkey(work);
+ 	param->port = work->port->port_num;
+ 	work->cm_event.private_data = &sidr_req_msg->private_data;
+ }
+diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
+index 9cc496e1f2ad..e3f48632e237 100644
+--- a/include/rdma/ib_cm.h
++++ b/include/rdma/ib_cm.h
+@@ -113,6 +113,10 @@ struct ib_cm_id;
  
- #include <linux/atomic.h>
-@@ -1766,6 +1767,28 @@ struct ib_client {
- 	void (*add)   (struct ib_device *);
- 	void (*remove)(struct ib_device *, void *client_data);
+ struct ib_cm_req_event_param {
+ 	struct ib_cm_id		*listen_id;
++
++	/* P_Key that was used by the GMP's BTH header */
++	u16			bth_pkey;
++
+ 	u8			port;
  
-+	/* Returns the net_dev belonging to this ib_client and matching the
-+	 * given parameters.
-+	 * @dev:	 An RDMA device that the net_dev use for communication.
-+	 * @port:	 A physical port number on the RDMA device.
-+	 * @pkey:	 P_Key that the net_dev uses if applicable.
-+	 * @gid:	 A GID that the net_dev uses to communicate.
-+	 * @addr:	 An IP address the net_dev is configured with.
-+	 * @client_data: The device's client data set by ib_set_client_data().
-+	 *
-+	 * An ib_client that implements a net_dev on top of RDMA devices
-+	 * (such as IP over IB) should implement this callback, allowing the
-+	 * rdma_cm module to find the right net_dev for a given request.
-+	 *
-+	 * The caller is responsible for calling dev_put on the returned
-+	 * netdev. */
-+	struct net_device *(*get_net_dev_by_params)(
-+			struct ib_device *dev,
-+			u8 port,
-+			u16 pkey,
-+			const union ib_gid *gid,
-+			const struct sockaddr *addr,
-+			void *client_data);
- 	struct list_head list;
+ 	struct ib_sa_path_rec	*primary_path;
+@@ -224,6 +228,8 @@ struct ib_cm_apr_event_param {
+ struct ib_cm_sidr_req_event_param {
+ 	struct ib_cm_id		*listen_id;
+ 	__be64			service_id;
++	/* P_Key that was used by the GMP's BTH header */
++	u16			bth_pkey;
+ 	u8			port;
+ 	u16			pkey;
  };
- 
-@@ -3015,4 +3038,8 @@ static inline int ib_check_mr_access(int flags)
- int ib_check_mr_status(struct ib_mr *mr, u32 check_mask,
- 		       struct ib_mr_status *mr_status);
- 
-+struct net_device *ib_get_net_dev_by_params(struct ib_device *dev, u8 port,
-+					    u16 pkey, const union ib_gid *gid,
-+					    const struct sockaddr *addr);
-+
- #endif /* IB_VERBS_H */
 -- 
 1.7.11.2
 
