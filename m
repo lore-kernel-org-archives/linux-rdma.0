@@ -1,284 +1,294 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH for-4.3 02/15] IB: Modify ib_create_mr API
-Date: Thu, 30 Jul 2015 09:50:59 -0500
-Message-ID: <55BA39D3.2030009@opengridcomputing.com>
-References: <1438241568-3685-1-git-send-email-sagig@mellanox.com>
- <1438241568-3685-3-git-send-email-sagig@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1438241568-3685-3-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v4 04/14] IB/ipoib: Return IPoIB devices matching connection parameters
+Date: Thu, 30 Jul 2015 17:50:16 +0300
+Message-ID: <1438267826-32155-5-git-send-email-haggaie@mellanox.com>
+References: <1438267826-32155-1-git-send-email-haggaie@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1438267826-32155-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/30/2015 2:32 AM, Sagi Grimberg wrote:
-> Use ib_alloc_mr with specific parameters.
-> Change the existing callers.
->
-> Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->   drivers/infiniband/core/verbs.c          | 31 ++++++++++++++++++++------
->   drivers/infiniband/hw/mlx5/main.c        |  2 +-
->   drivers/infiniband/hw/mlx5/mlx5_ib.h     |  5 +++--
->   drivers/infiniband/hw/mlx5/mr.c          | 17 ++++++++++-----
->   drivers/infiniband/ulp/iser/iser_verbs.c |  6 ++----
->   drivers/infiniband/ulp/isert/ib_isert.c  |  6 +-----
->   include/rdma/ib_verbs.h                  | 37 +++++++++++++-------------------
->   7 files changed, 58 insertions(+), 46 deletions(-)
->
-> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-> index 003bb62..2ac599b 100644
-> --- a/drivers/infiniband/core/verbs.c
-> +++ b/drivers/infiniband/core/verbs.c
-> @@ -1272,15 +1272,32 @@ int ib_dereg_mr(struct ib_mr *mr)
->   }
->   EXPORT_SYMBOL(ib_dereg_mr);
->   
-> -struct ib_mr *ib_create_mr(struct ib_pd *pd,
-> -			   struct ib_mr_init_attr *mr_init_attr)
-> +/**
-> + * ib_alloc_mr() - Allocates a memory region
-> + * @pd:            protection domain associated with the region
-> + * @mr_type:       memory region type
-> + * @max_num_sg:    maximum sg entries available for registration.
-> + *
-> + * Notes:
-> + * Memory registeration page/sg lists must not exceed max_num_sg.
-> + * For mr_type IB_MR_TYPE_MEM_REG, the total length cannot exceed
-> + * max_num_sg * used_page_size.
-> + *
+From: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Nit:  the above sounds like used_page_size is a variable.  Something 
-like this might work?
+Implement the get_net_device_by_port_pkey_ip callback that returns network
+device to ib_core according to connection parameters. Check the ipoib
+device and iterate over all child devices to look for a match.
 
-"max_num_sg * the page size used for this sg list."
+For each IPoIB device we iterate through all upper devices when searching
+for a matching IP, in order to support bonding.
 
+Signed-off-by: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 229 +++++++++++++++++++++++++++++-
+ 1 file changed, 228 insertions(+), 1 deletion(-)
 
-> + */
-> +struct ib_mr *ib_alloc_mr(struct ib_pd *pd,
-> +			  enum ib_mr_type mr_type,
-> +			  u32 max_num_sg)
->   {
->   	struct ib_mr *mr;
->   
-> -	if (!pd->device->create_mr)
-> -		return ERR_PTR(-ENOSYS);
-> -
-> -	mr = pd->device->create_mr(pd, mr_init_attr);
-> +	if (pd->device->alloc_mr) {
-> +		mr = pd->device->alloc_mr(pd, mr_type, max_num_sg);
-> +	} else {
-> +		if (mr_type != IB_MR_TYPE_MEM_REG ||
-> +		    !pd->device->alloc_fast_reg_mr)
-> +			return ERR_PTR(-ENOSYS);
-> +		mr = pd->device->alloc_fast_reg_mr(pd, max_num_sg);
-> +	}
->   
->   	if (!IS_ERR(mr)) {
->   		mr->device  = pd->device;
-> @@ -1292,7 +1309,7 @@ struct ib_mr *ib_create_mr(struct ib_pd *pd,
->   
->   	return mr;
->   }
-> -EXPORT_SYMBOL(ib_create_mr);
-> +EXPORT_SYMBOL(ib_alloc_mr);
->   
->   struct ib_mr *ib_alloc_fast_reg_mr(struct ib_pd *pd, int max_page_list_len)
->   {
-> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-> index 46d1383..2c2a461 100644
-> --- a/drivers/infiniband/hw/mlx5/main.c
-> +++ b/drivers/infiniband/hw/mlx5/main.c
-> @@ -1489,7 +1489,7 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
->   	dev->ib_dev.attach_mcast	= mlx5_ib_mcg_attach;
->   	dev->ib_dev.detach_mcast	= mlx5_ib_mcg_detach;
->   	dev->ib_dev.process_mad		= mlx5_ib_process_mad;
-> -	dev->ib_dev.create_mr		= mlx5_ib_create_mr;
-> +	dev->ib_dev.alloc_mr		= mlx5_ib_alloc_mr;
->   	dev->ib_dev.alloc_fast_reg_mr	= mlx5_ib_alloc_fast_reg_mr;
->   	dev->ib_dev.alloc_fast_reg_page_list = mlx5_ib_alloc_fast_reg_page_list;
->   	dev->ib_dev.free_fast_reg_page_list  = mlx5_ib_free_fast_reg_page_list;
-> diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-> index 537f42e..3030abe 100644
-> --- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-> +++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-> @@ -572,8 +572,9 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
->   int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 start_page_index,
->   		       int npages, int zap);
->   int mlx5_ib_dereg_mr(struct ib_mr *ibmr);
-> -struct ib_mr *mlx5_ib_create_mr(struct ib_pd *pd,
-> -				struct ib_mr_init_attr *mr_init_attr);
-> +struct ib_mr *mlx5_ib_alloc_mr(struct ib_pd *pd,
-> +			       enum ib_mr_type mr_type,
-> +			       u32 max_num_sg);
->   struct ib_mr *mlx5_ib_alloc_fast_reg_mr(struct ib_pd *pd,
->   					int max_page_list_len);
->   struct ib_fast_reg_page_list *mlx5_ib_alloc_fast_reg_page_list(struct ib_device *ibdev,
-> diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-> index 03cf74e..b0b68bb 100644
-> --- a/drivers/infiniband/hw/mlx5/mr.c
-> +++ b/drivers/infiniband/hw/mlx5/mr.c
-> @@ -1246,14 +1246,15 @@ int mlx5_ib_dereg_mr(struct ib_mr *ibmr)
->   	return 0;
->   }
->   
-> -struct ib_mr *mlx5_ib_create_mr(struct ib_pd *pd,
-> -				struct ib_mr_init_attr *mr_init_attr)
-> +struct ib_mr *mlx5_ib_alloc_mr(struct ib_pd *pd,
-> +			       enum ib_mr_type mr_type,
-> +			       u32 max_num_sg)
->   {
->   	struct mlx5_ib_dev *dev = to_mdev(pd->device);
->   	struct mlx5_create_mkey_mbox_in *in;
->   	struct mlx5_ib_mr *mr;
->   	int access_mode, err;
-> -	int ndescs = roundup(mr_init_attr->max_reg_descriptors, 4);
-> +	int ndescs = roundup(max_num_sg, 4);
->   
->   	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
->   	if (!mr)
-> @@ -1269,9 +1270,11 @@ struct ib_mr *mlx5_ib_create_mr(struct ib_pd *pd,
->   	in->seg.xlt_oct_size = cpu_to_be32(ndescs);
->   	in->seg.qpn_mkey7_0 = cpu_to_be32(0xffffff << 8);
->   	in->seg.flags_pd = cpu_to_be32(to_mpd(pd)->pdn);
-> -	access_mode = MLX5_ACCESS_MODE_MTT;
->   
-> -	if (mr_init_attr->flags & IB_MR_SIGNATURE_EN) {
-> +	if (mr_type == IB_MR_TYPE_MEM_REG) {
-> +		access_mode = MLX5_ACCESS_MODE_MTT;
-> +		in->seg.log2_page_size = PAGE_SHIFT;
-> +	} else if (mr_type == IB_MR_TYPE_SIGNATURE) {
->   		u32 psv_index[2];
->   
->   		in->seg.flags_pd = cpu_to_be32(be32_to_cpu(in->seg.flags_pd) |
-> @@ -1297,6 +1300,10 @@ struct ib_mr *mlx5_ib_create_mr(struct ib_pd *pd,
->   		mr->sig->sig_err_exists = false;
->   		/* Next UMR, Arm SIGERR */
->   		++mr->sig->sigerr_count;
-> +	} else {
-> +		mlx5_ib_warn(dev, "Invalid mr type %d\n", mr_type);
-> +		err = -EINVAL;
-> +		goto err_free_in;
->   	}
->   
->   	in->seg.flags = MLX5_PERM_UMR_EN | access_mode;
-> diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-> index 255321c..9bef5a7 100644
-> --- a/drivers/infiniband/ulp/iser/iser_verbs.c
-> +++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-> @@ -284,9 +284,7 @@ iser_alloc_pi_ctx(struct ib_device *ib_device, struct ib_pd *pd,
->   		  struct fast_reg_descriptor *desc)
->   {
->   	struct iser_pi_context *pi_ctx = NULL;
-> -	struct ib_mr_init_attr mr_init_attr = {.max_reg_descriptors = 2,
-> -					       .flags = IB_MR_SIGNATURE_EN};
-> -	int ret = 0;
-> +	int ret;
->   
->   	desc->pi_ctx = kzalloc(sizeof(*desc->pi_ctx), GFP_KERNEL);
->   	if (!desc->pi_ctx)
-> @@ -309,7 +307,7 @@ iser_alloc_pi_ctx(struct ib_device *ib_device, struct ib_pd *pd,
->   	}
->   	desc->reg_indicators |= ISER_PROT_KEY_VALID;
->   
-> -	pi_ctx->sig_mr = ib_create_mr(pd, &mr_init_attr);
-> +	pi_ctx->sig_mr = ib_alloc_mr(pd, IB_MR_TYPE_SIGNATURE, 2);
->   	if (IS_ERR(pi_ctx->sig_mr)) {
->   		ret = PTR_ERR(pi_ctx->sig_mr);
->   		goto sig_mr_failure;
-> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-> index 559e6be..23a793a 100644
-> --- a/drivers/infiniband/ulp/isert/ib_isert.c
-> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
-> @@ -497,7 +497,6 @@ isert_create_pi_ctx(struct fast_reg_descriptor *desc,
->   		    struct ib_device *device,
->   		    struct ib_pd *pd)
->   {
-> -	struct ib_mr_init_attr mr_init_attr;
->   	struct pi_context *pi_ctx;
->   	int ret;
->   
-> @@ -525,10 +524,7 @@ isert_create_pi_ctx(struct fast_reg_descriptor *desc,
->   	}
->   	desc->ind |= ISERT_PROT_KEY_VALID;
->   
-> -	memset(&mr_init_attr, 0, sizeof(mr_init_attr));
-> -	mr_init_attr.max_reg_descriptors = 2;
-> -	mr_init_attr.flags |= IB_MR_SIGNATURE_EN;
-> -	pi_ctx->sig_mr = ib_create_mr(pd, &mr_init_attr);
-> +	pi_ctx->sig_mr = ib_alloc_mr(pd, IB_MR_TYPE_SIGNATURE, 2);
->   	if (IS_ERR(pi_ctx->sig_mr)) {
->   		isert_err("Failed to allocate signature enabled mr err=%ld\n",
->   			  PTR_ERR(pi_ctx->sig_mr));
-> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index a534ee5..110044d 100644
-> --- a/include/rdma/ib_verbs.h
-> +++ b/include/rdma/ib_verbs.h
-> @@ -556,20 +556,18 @@ __attribute_const__ int ib_rate_to_mult(enum ib_rate rate);
->    */
->   __attribute_const__ int ib_rate_to_mbps(enum ib_rate rate);
->   
-> -enum ib_mr_create_flags {
-> -	IB_MR_SIGNATURE_EN = 1,
-> -};
->   
->   /**
-> - * ib_mr_init_attr - Memory region init attributes passed to routine
-> - *     ib_create_mr.
-> - * @max_reg_descriptors: max number of registration descriptors that
-> - *     may be used with registration work requests.
-> - * @flags: MR creation flags bit mask.
-> + * enum ib_mr_type - memory region type
-> + * @IB_MR_TYPE_MEM_REG:       memory region that is used for
-> + *                            normal registration
-> + * @IB_MR_TYPE_SIGNATURE:     memory region that is used for
-> + *                            signature operations (data-integrity
-> + *                            capable regions)
->    */
-> -struct ib_mr_init_attr {
-> -	int	    max_reg_descriptors;
-> -	u32	    flags;
-> +enum ib_mr_type {
-> +	IB_MR_TYPE_MEM_REG,
-> +	IB_MR_TYPE_SIGNATURE,
->   };
->   
->   /**
-> @@ -1670,8 +1668,9 @@ struct ib_device {
->   	int                        (*query_mr)(struct ib_mr *mr,
->   					       struct ib_mr_attr *mr_attr);
->   	int                        (*dereg_mr)(struct ib_mr *mr);
-> -	struct ib_mr *		   (*create_mr)(struct ib_pd *pd,
-> -						struct ib_mr_init_attr *mr_init_attr);
-> +	struct ib_mr *		   (*alloc_mr)(struct ib_pd *pd,
-> +					       enum ib_mr_type mr_type,
-> +					       u32 max_num_sg);
->   	struct ib_mr *		   (*alloc_fast_reg_mr)(struct ib_pd *pd,
->   					       int max_page_list_len);
->   	struct ib_fast_reg_page_list * (*alloc_fast_reg_page_list)(struct ib_device *device,
-> @@ -2815,15 +2814,9 @@ int ib_query_mr(struct ib_mr *mr, struct ib_mr_attr *mr_attr);
->    */
->   int ib_dereg_mr(struct ib_mr *mr);
->   
-> -
-> -/**
-> - * ib_create_mr - Allocates a memory region that may be used for
-> - *     signature handover operations.
-> - * @pd: The protection domain associated with the region.
-> - * @mr_init_attr: memory region init attributes.
-> - */
-> -struct ib_mr *ib_create_mr(struct ib_pd *pd,
-> -			   struct ib_mr_init_attr *mr_init_attr);
-> +struct ib_mr *ib_alloc_mr(struct ib_pd *pd,
-> +			  enum ib_mr_type mr_type,
-> +			  u32 max_num_sg);
->   
->   /**
->    * ib_alloc_fast_reg_mr - Allocates memory region usable with the
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index cca1a0c91ec4..36536ce5a3e2 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -48,6 +48,9 @@
+ 
+ #include <linux/jhash.h>
+ #include <net/arp.h>
++#include <net/addrconf.h>
++#include <linux/inetdevice.h>
++#include <rdma/ib_cache.h>
+ 
+ #define DRV_VERSION "1.0.0"
+ 
+@@ -91,11 +94,16 @@ struct ib_sa_client ipoib_sa_client;
+ static void ipoib_add_one(struct ib_device *device);
+ static void ipoib_remove_one(struct ib_device *device, void *client_data);
+ static void ipoib_neigh_reclaim(struct rcu_head *rp);
++static struct net_device *ipoib_get_net_dev_by_params(
++		struct ib_device *dev, u8 port, u16 pkey,
++		const union ib_gid *gid, const struct sockaddr *addr,
++		void *client_data);
+ 
+ static struct ib_client ipoib_client = {
+ 	.name   = "ipoib",
+ 	.add    = ipoib_add_one,
+-	.remove = ipoib_remove_one
++	.remove = ipoib_remove_one,
++	.get_net_dev_by_params = ipoib_get_net_dev_by_params,
+ };
+ 
+ int ipoib_open(struct net_device *dev)
+@@ -222,6 +230,225 @@ static int ipoib_change_mtu(struct net_device *dev, int new_mtu)
+ 	return 0;
+ }
+ 
++/* Called with an RCU read lock taken */
++static bool ipoib_is_dev_match_addr_rcu(const struct sockaddr *addr,
++					struct net_device *dev)
++{
++	struct net *net = dev_net(dev);
++	struct in_device *in_dev;
++	struct sockaddr_in *addr_in = (struct sockaddr_in *)addr;
++	struct sockaddr_in6 *addr_in6 = (struct sockaddr_in6 *)addr;
++	__be32 ret_addr;
++
++	switch (addr->sa_family) {
++	case AF_INET:
++		in_dev = in_dev_get(dev);
++		if (!in_dev)
++			return false;
++
++		ret_addr = inet_confirm_addr(net, in_dev, 0,
++					     addr_in->sin_addr.s_addr,
++					     RT_SCOPE_HOST);
++		in_dev_put(in_dev);
++		if (ret_addr)
++			return true;
++
++		break;
++	case AF_INET6:
++		if (IS_ENABLED(CONFIG_IPV6) &&
++		    ipv6_chk_addr(net, &addr_in6->sin6_addr, dev, 1))
++			return true;
++
++		break;
++	}
++	return false;
++}
++
++/**
++ * Find the master net_device on top of the given net_device.
++ * @dev: base IPoIB net_device
++ *
++ * Returns the master net_device with a reference held, or the same net_device
++ * if no master exists.
++ */
++static struct net_device *ipoib_get_master_net_dev(struct net_device *dev)
++{
++	struct net_device *master;
++
++	rcu_read_lock();
++	master = netdev_master_upper_dev_get_rcu(dev);
++	if (master)
++		dev_hold(master);
++	rcu_read_unlock();
++
++	if (master)
++		return master;
++
++	dev_hold(dev);
++	return dev;
++}
++
++/**
++ * Find a net_device matching the given address, which is an upper device of
++ * the given net_device.
++ * @addr: IP address to look for.
++ * @dev: base IPoIB net_device
++ *
++ * If found, returns the net_device with a reference held. Otherwise return
++ * NULL.
++ */
++static struct net_device *ipoib_get_net_dev_match_addr(
++		const struct sockaddr *addr, struct net_device *dev)
++{
++	struct net_device *upper,
++			  *result = NULL;
++	struct list_head *iter;
++
++	rcu_read_lock();
++	if (ipoib_is_dev_match_addr_rcu(addr, dev)) {
++		dev_hold(dev);
++		result = dev;
++		goto out;
++	}
++
++	netdev_for_each_all_upper_dev_rcu(dev, upper, iter) {
++		if (ipoib_is_dev_match_addr_rcu(addr, upper)) {
++			dev_hold(upper);
++			result = upper;
++			break;
++		}
++	}
++out:
++	rcu_read_unlock();
++	return result;
++}
++
++/* returns the number of IPoIB netdevs on top a given ipoib device matching a
++ * pkey_index and address, if one exists.
++ *
++ * @found_net_dev: contains a matching net_device if the return value >= 1,
++ * with a reference held. */
++static int ipoib_match_gid_pkey_addr(struct ipoib_dev_priv *priv,
++				     const union ib_gid *gid,
++				     u16 pkey_index,
++				     const struct sockaddr *addr,
++				     int nesting,
++				     struct net_device **found_net_dev)
++{
++	struct ipoib_dev_priv *child_priv;
++	struct net_device *net_dev = NULL;
++	int matches = 0;
++
++	if (priv->pkey_index == pkey_index &&
++	    (!gid || !memcmp(gid, &priv->local_gid, sizeof(*gid)))) {
++		if (!addr) {
++			net_dev = ipoib_get_master_net_dev(priv->dev);
++		} else {
++			/* Verify the net_device matches the IP address, as
++			 * IPoIB child devices currently share a GID. */
++			net_dev = ipoib_get_net_dev_match_addr(addr, priv->dev);
++		}
++		if (net_dev) {
++			if (!*found_net_dev)
++				*found_net_dev = net_dev;
++			else
++				dev_put(net_dev);
++			++matches;
++		}
++	}
++
++	/* Check child interfaces */
++	down_read_nested(&priv->vlan_rwsem, nesting);
++	list_for_each_entry(child_priv, &priv->child_intfs, list) {
++		matches += ipoib_match_gid_pkey_addr(child_priv, gid,
++						    pkey_index, addr,
++						    nesting + 1,
++						    found_net_dev);
++		if (matches > 1)
++			break;
++	}
++	up_read(&priv->vlan_rwsem);
++
++	return matches;
++}
++
++/* Returns the number of matching net_devs found (between 0 and 2). Also
++ * return the matching net_device in the @net_dev parameter, holding a
++ * reference to the net_device, if the number of matches >= 1 */
++static int __ipoib_get_net_dev_by_params(struct list_head *dev_list, u8 port,
++					 u16 pkey_index,
++					 const union ib_gid *gid,
++					 const struct sockaddr *addr,
++					 struct net_device **net_dev)
++{
++	struct ipoib_dev_priv *priv;
++	int matches = 0;
++
++	*net_dev = NULL;
++
++	list_for_each_entry(priv, dev_list, list) {
++		if (priv->port != port)
++			continue;
++
++		matches += ipoib_match_gid_pkey_addr(priv, gid, pkey_index,
++						     addr, 0, net_dev);
++		if (matches > 1)
++			break;
++	}
++
++	return matches;
++}
++
++static struct net_device *ipoib_get_net_dev_by_params(
++		struct ib_device *dev, u8 port, u16 pkey,
++		const union ib_gid *gid, const struct sockaddr *addr,
++		void *client_data)
++{
++	struct net_device *net_dev;
++	struct list_head *dev_list = client_data;
++	u16 pkey_index;
++	int matches;
++	int ret;
++
++	if (!rdma_protocol_ib(dev, port))
++		return NULL;
++
++	ret = ib_find_cached_pkey(dev, port, pkey, &pkey_index);
++	if (ret)
++		return NULL;
++
++	if (!dev_list)
++		return NULL;
++
++	/* See if we can find a unique device matching the L2 parameters */
++	matches = __ipoib_get_net_dev_by_params(dev_list, port, pkey_index,
++						gid, NULL, &net_dev);
++
++	switch (matches) {
++	case 0:
++		return NULL;
++	case 1:
++		return net_dev;
++	}
++
++	dev_put(net_dev);
++
++	/* Couldn't find a unique device with L2 parameters only. Use L3
++	 * address to uniquely match the net device */
++	matches = __ipoib_get_net_dev_by_params(dev_list, port, pkey_index,
++						gid, addr, &net_dev);
++	switch (matches) {
++	case 0:
++		return NULL;
++	default:
++		dev_warn_ratelimited(&dev->dev,
++				     "duplicate IP address detected\n");
++		/* Fall through */
++	case 1:
++		return net_dev;
++	}
++}
++
+ int ipoib_set_mode(struct net_device *dev, const char *buf)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+-- 
+1.7.11.2
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
