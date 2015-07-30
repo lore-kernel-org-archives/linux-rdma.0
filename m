@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v4 21/50] IB/hfi1: add interrupt hooks
-Date: Thu, 30 Jul 2015 15:19:21 -0400
-Message-ID: <20150730191921.25256.69528.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH v4 23/50] IB/hfi1: add rkey/lkey validation
+Date: Thu, 30 Jul 2015 15:19:37 -0400
+Message-ID: <20150730191936.25256.9022.stgit@phlsvslse11.ph.intel.com>
 References: <20150730191631.25256.95511.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -37,16 +37,16 @@ Signed-off-by: Sanath Kumar <sanath.s.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.
 Signed-off-by: Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Vlad Danushevsky <vladimir.danusevsky-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/intr.c |  207 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 207 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi1/intr.c
+ drivers/infiniband/hw/hfi1/keys.c |  411 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 411 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi1/keys.c
 
-diff --git a/drivers/infiniband/hw/hfi1/intr.c b/drivers/infiniband/hw/hfi1/intr.c
+diff --git a/drivers/infiniband/hw/hfi1/keys.c b/drivers/infiniband/hw/hfi1/keys.c
 new file mode 100644
-index 0000000..426582b
+index 0000000..f6eff17
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/intr.c
-@@ -0,0 +1,207 @@
++++ b/drivers/infiniband/hw/hfi1/keys.c
+@@ -0,0 +1,411 @@
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -97,162 +97,366 @@ index 0000000..426582b
 + *
 + */
 +
-+#include <linux/pci.h>
-+#include <linux/delay.h>
-+
 +#include "hfi.h"
-+#include "common.h"
-+#include "sdma.h"
 +
 +/**
-+ * format_hwmsg - format a single hwerror message
-+ * @msg message buffer
-+ * @msgl length of message buffer
-+ * @hwmsg message to add to message buffer
++ * hfi1_alloc_lkey - allocate an lkey
++ * @mr: memory region that this lkey protects
++ * @dma_region: 0->normal key, 1->restricted DMA key
++ *
++ * Returns 0 if successful, otherwise returns -errno.
++ *
++ * Increments mr reference count as required.
++ *
++ * Sets the lkey field mr for non-dma regions.
++ *
 + */
-+static void format_hwmsg(char *msg, size_t msgl, const char *hwmsg)
++
++int hfi1_alloc_lkey(struct hfi1_mregion *mr, int dma_region)
 +{
-+	strlcat(msg, "[", msgl);
-+	strlcat(msg, hwmsg, msgl);
-+	strlcat(msg, "]", msgl);
++	unsigned long flags;
++	u32 r;
++	u32 n;
++	int ret = 0;
++	struct hfi1_ibdev *dev = to_idev(mr->pd->device);
++	struct hfi1_lkey_table *rkt = &dev->lk_table;
++
++	hfi1_get_mr(mr);
++	spin_lock_irqsave(&rkt->lock, flags);
++
++	/* special case for dma_mr lkey == 0 */
++	if (dma_region) {
++		struct hfi1_mregion *tmr;
++
++		tmr = rcu_access_pointer(dev->dma_mr);
++		if (!tmr) {
++			rcu_assign_pointer(dev->dma_mr, mr);
++			mr->lkey_published = 1;
++		} else {
++			hfi1_put_mr(mr);
++		}
++		goto success;
++	}
++
++	/* Find the next available LKEY */
++	r = rkt->next;
++	n = r;
++	for (;;) {
++		if (!rcu_access_pointer(rkt->table[r]))
++			break;
++		r = (r + 1) & (rkt->max - 1);
++		if (r == n)
++			goto bail;
++	}
++	rkt->next = (r + 1) & (rkt->max - 1);
++	/*
++	 * Make sure lkey is never zero which is reserved to indicate an
++	 * unrestricted LKEY.
++	 */
++	rkt->gen++;
++	/*
++	 * bits are capped in verbs.c to ensure enough bits for
++	 * generation number
++	 */
++	mr->lkey = (r << (32 - hfi1_lkey_table_size)) |
++		((((1 << (24 - hfi1_lkey_table_size)) - 1) & rkt->gen)
++		 << 8);
++	if (mr->lkey == 0) {
++		mr->lkey |= 1 << 8;
++		rkt->gen++;
++	}
++	rcu_assign_pointer(rkt->table[r], mr);
++	mr->lkey_published = 1;
++success:
++	spin_unlock_irqrestore(&rkt->lock, flags);
++out:
++	return ret;
++bail:
++	hfi1_put_mr(mr);
++	spin_unlock_irqrestore(&rkt->lock, flags);
++	ret = -ENOMEM;
++	goto out;
 +}
 +
 +/**
-+ * hfi1_format_hwerrors - format hardware error messages for display
-+ * @hwerrs hardware errors bit vector
-+ * @hwerrmsgs hardware error descriptions
-+ * @nhwerrmsgs number of hwerrmsgs
-+ * @msg message buffer
-+ * @msgl message buffer length
++ * hfi1_free_lkey - free an lkey
++ * @mr: mr to free from tables
 + */
-+void hfi1_format_hwerrors(u64 hwerrs, const struct hfi1_hwerror_msgs *hwerrmsgs,
-+			  size_t nhwerrmsgs, char *msg, size_t msgl)
++void hfi1_free_lkey(struct hfi1_mregion *mr)
 +{
-+	int i;
++	unsigned long flags;
++	u32 lkey = mr->lkey;
++	u32 r;
++	struct hfi1_ibdev *dev = to_idev(mr->pd->device);
++	struct hfi1_lkey_table *rkt = &dev->lk_table;
++	int freed = 0;
 +
-+	for (i = 0; i < nhwerrmsgs; i++)
-+		if (hwerrs & hwerrmsgs[i].mask)
-+			format_hwmsg(msg, msgl, hwerrmsgs[i].msg);
++	spin_lock_irqsave(&rkt->lock, flags);
++	if (!mr->lkey_published)
++		goto out;
++	if (lkey == 0)
++		RCU_INIT_POINTER(dev->dma_mr, NULL);
++	else {
++		r = lkey >> (32 - hfi1_lkey_table_size);
++		RCU_INIT_POINTER(rkt->table[r], NULL);
++	}
++	mr->lkey_published = 0;
++	freed++;
++out:
++	spin_unlock_irqrestore(&rkt->lock, flags);
++	if (freed) {
++		synchronize_rcu();
++		hfi1_put_mr(mr);
++	}
 +}
 +
-+static void signal_ib_event(struct hfi1_pportdata *ppd, enum ib_event_type ev)
++/**
++ * hfi1_lkey_ok - check IB SGE for validity and initialize
++ * @rkt: table containing lkey to check SGE against
++ * @pd: protection domain
++ * @isge: outgoing internal SGE
++ * @sge: SGE to check
++ * @acc: access flags
++ *
++ * Return 1 if valid and successful, otherwise returns 0.
++ *
++ * increments the reference count upon success
++ *
++ * Check the IB SGE for validity and initialize our internal version
++ * of it.
++ */
++int hfi1_lkey_ok(struct hfi1_lkey_table *rkt, struct hfi1_pd *pd,
++		 struct hfi1_sge *isge, struct ib_sge *sge, int acc)
 +{
-+	struct ib_event event;
-+	struct hfi1_devdata *dd = ppd->dd;
++	struct hfi1_mregion *mr;
++	unsigned n, m;
++	size_t off;
 +
 +	/*
-+	 * Only call ib_dispatch_event() if the IB device has been
-+	 * registered.  HFI1_INITED is set iff the driver has successfully
-+	 * registered with the IB core.
++	 * We use LKEY == zero for kernel virtual addresses
++	 * (see hfi1_get_dma_mr and dma.c).
 +	 */
-+	if (!(dd->flags & HFI1_INITTED))
-+		return;
-+	event.device = &dd->verbs_dev.ibdev;
-+	event.element.port_num = ppd->port;
-+	event.event = ev;
-+	ib_dispatch_event(&event);
-+}
++	rcu_read_lock();
++	if (sge->lkey == 0) {
++		struct hfi1_ibdev *dev = to_idev(pd->ibpd.device);
 +
-+/*
-+ * Handle a linkup or link down notification.
-+ * This is called outside an interrupt.
-+ */
-+void handle_linkup_change(struct hfi1_devdata *dd, u32 linkup)
-+{
-+	struct hfi1_pportdata *ppd = &dd->pport[0];
-+	enum ib_event_type ev;
++		if (pd->user)
++			goto bail;
++		mr = rcu_dereference(dev->dma_mr);
++		if (!mr)
++			goto bail;
++		atomic_inc(&mr->refcount);
++		rcu_read_unlock();
 +
-+	if (!(ppd->linkup ^ !!linkup))
-+		return;	/* no change, nothing to do */
++		isge->mr = mr;
++		isge->vaddr = (void *) sge->addr;
++		isge->length = sge->length;
++		isge->sge_length = sge->length;
++		isge->m = 0;
++		isge->n = 0;
++		goto ok;
++	}
++	mr = rcu_dereference(
++		rkt->table[(sge->lkey >> (32 - hfi1_lkey_table_size))]);
++	if (unlikely(!mr || mr->lkey != sge->lkey || mr->pd != &pd->ibpd))
++		goto bail;
 +
-+	if (linkup) {
++	off = sge->addr - mr->user_base;
++	if (unlikely(sge->addr < mr->user_base ||
++		     off + sge->length > mr->length ||
++		     (mr->access_flags & acc) != acc))
++		goto bail;
++	atomic_inc(&mr->refcount);
++	rcu_read_unlock();
++
++	off += mr->offset;
++	if (mr->page_shift) {
 +		/*
-+		 * Quick linkup and all link up on the simulator does not
-+		 * trigger or implement:
-+		 *	- VerifyCap interrupt
-+		 *	- VerifyCap frames
-+		 * But rather moves directly to LinkUp.
-+		 *
-+		 * Do the work of the VerifyCap interrupt handler,
-+		 * handle_verify_cap(), but do not try moving the state to
-+		 * LinkUp as we are already there.
-+		 *
-+		 * NOTE: This uses this device's vAU, vCU, and vl15_init for
-+		 * the remote values.  Both sides must be using the values.
-+		 */
-+		if (quick_linkup
-+			    || dd->icode == ICODE_FUNCTIONAL_SIMULATOR) {
-+			set_up_vl15(dd, dd->vau, dd->vl15_init);
-+			assign_remote_cm_au_table(dd, dd->vcu);
-+			ppd->neighbor_guid =
-+				read_csr(dd,
-+					DC_DC8051_STS_REMOTE_GUID);
-+			ppd->neighbor_type =
-+				read_csr(dd, DC_DC8051_STS_REMOTE_NODE_TYPE) &
-+					DC_DC8051_STS_REMOTE_NODE_TYPE_VAL_MASK;
-+			ppd->neighbor_port_number =
-+				read_csr(dd, DC_DC8051_STS_REMOTE_PORT_NO) &
-+					DC_DC8051_STS_REMOTE_PORT_NO_VAL_SMASK;
-+			dd_dev_info(dd,
-+				"Neighbor GUID: %llx Neighbor type %d\n",
-+				ppd->neighbor_guid,
-+				ppd->neighbor_type);
-+		}
++		page sizes are uniform power of 2 so no loop is necessary
++		entries_spanned_by_off is the number of times the loop below
++		would have executed.
++		*/
++		size_t entries_spanned_by_off;
 +
-+		/* physical link went up */
-+		ppd->linkup = 1;
-+		ppd->offline_disabled_reason = OPA_LINKDOWN_REASON_NONE;
-+
-+		/* link widths are not available until the link is fully up */
-+		get_linkup_link_widths(ppd);
-+
++		entries_spanned_by_off = off >> mr->page_shift;
++		off -= (entries_spanned_by_off << mr->page_shift);
++		m = entries_spanned_by_off / HFI1_SEGSZ;
++		n = entries_spanned_by_off % HFI1_SEGSZ;
 +	} else {
-+		/* physical link went down */
-+		ppd->linkup = 0;
++		m = 0;
++		n = 0;
++		while (off >= mr->map[m]->segs[n].length) {
++			off -= mr->map[m]->segs[n].length;
++			n++;
++			if (n >= HFI1_SEGSZ) {
++				m++;
++				n = 0;
++			}
++		}
++	}
++	isge->mr = mr;
++	isge->vaddr = mr->map[m]->segs[n].vaddr + off;
++	isge->length = mr->map[m]->segs[n].length - off;
++	isge->sge_length = sge->length;
++	isge->m = m;
++	isge->n = n;
++ok:
++	return 1;
++bail:
++	rcu_read_unlock();
++	return 0;
++}
 +
-+		/* clear HW details of the previous connection */
-+		reset_link_credits(dd);
++/**
++ * hfi1_rkey_ok - check the IB virtual address, length, and RKEY
++ * @qp: qp for validation
++ * @sge: SGE state
++ * @len: length of data
++ * @vaddr: virtual address to place data
++ * @rkey: rkey to check
++ * @acc: access flags
++ *
++ * Return 1 if successful, otherwise 0.
++ *
++ * increments the reference count upon success
++ */
++int hfi1_rkey_ok(struct hfi1_qp *qp, struct hfi1_sge *sge,
++		 u32 len, u64 vaddr, u32 rkey, int acc)
++{
++	struct hfi1_lkey_table *rkt = &to_idev(qp->ibqp.device)->lk_table;
++	struct hfi1_mregion *mr;
++	unsigned n, m;
++	size_t off;
 +
-+		/* freeze after a link down to guarantee a clean egress */
-+		start_freeze_handling(ppd, FREEZE_SELF|FREEZE_LINK_DOWN);
++	/*
++	 * We use RKEY == zero for kernel virtual addresses
++	 * (see hfi1_get_dma_mr and dma.c).
++	 */
++	rcu_read_lock();
++	if (rkey == 0) {
++		struct hfi1_pd *pd = to_ipd(qp->ibqp.pd);
++		struct hfi1_ibdev *dev = to_idev(pd->ibpd.device);
 +
-+		ev = IB_EVENT_PORT_ERR;
++		if (pd->user)
++			goto bail;
++		mr = rcu_dereference(dev->dma_mr);
++		if (!mr)
++			goto bail;
++		atomic_inc(&mr->refcount);
++		rcu_read_unlock();
 +
-+		hfi1_set_uevent_bits(ppd, _HFI1_EVENT_LINKDOWN_BIT);
-+
-+		/* if we are down, the neighbor is down */
-+		ppd->neighbor_normal = 0;
-+
-+		/* notify IB of the link change */
-+		signal_ib_event(ppd, ev);
++		sge->mr = mr;
++		sge->vaddr = (void *) vaddr;
++		sge->length = len;
++		sge->sge_length = len;
++		sge->m = 0;
++		sge->n = 0;
++		goto ok;
 +	}
 +
++	mr = rcu_dereference(
++		rkt->table[(rkey >> (32 - hfi1_lkey_table_size))]);
++	if (unlikely(!mr || mr->lkey != rkey || qp->ibqp.pd != mr->pd))
++		goto bail;
 +
++	off = vaddr - mr->iova;
++	if (unlikely(vaddr < mr->iova || off + len > mr->length ||
++		     (mr->access_flags & acc) == 0))
++		goto bail;
++	atomic_inc(&mr->refcount);
++	rcu_read_unlock();
++
++	off += mr->offset;
++	if (mr->page_shift) {
++		/*
++		page sizes are uniform power of 2 so no loop is necessary
++		entries_spanned_by_off is the number of times the loop below
++		would have executed.
++		*/
++		size_t entries_spanned_by_off;
++
++		entries_spanned_by_off = off >> mr->page_shift;
++		off -= (entries_spanned_by_off << mr->page_shift);
++		m = entries_spanned_by_off / HFI1_SEGSZ;
++		n = entries_spanned_by_off % HFI1_SEGSZ;
++	} else {
++		m = 0;
++		n = 0;
++		while (off >= mr->map[m]->segs[n].length) {
++			off -= mr->map[m]->segs[n].length;
++			n++;
++			if (n >= HFI1_SEGSZ) {
++				m++;
++				n = 0;
++			}
++		}
++	}
++	sge->mr = mr;
++	sge->vaddr = mr->map[m]->segs[n].vaddr + off;
++	sge->length = mr->map[m]->segs[n].length - off;
++	sge->sge_length = len;
++	sge->m = m;
++	sge->n = n;
++ok:
++	return 1;
++bail:
++	rcu_read_unlock();
++	return 0;
 +}
 +
 +/*
-+ * Handle receive or urgent interrupts for user contexts.  This means a user
-+ * process was waiting for a packet to arrive, and didn't want to poll.
++ * Initialize the memory region specified by the work request.
 + */
-+void handle_user_interrupt(struct hfi1_ctxtdata *rcd)
++int hfi1_fast_reg_mr(struct hfi1_qp *qp, struct ib_send_wr *wr)
 +{
-+	struct hfi1_devdata *dd = rcd->dd;
++	struct hfi1_lkey_table *rkt = &to_idev(qp->ibqp.device)->lk_table;
++	struct hfi1_pd *pd = to_ipd(qp->ibqp.pd);
++	struct hfi1_mregion *mr;
++	u32 rkey = wr->wr.fast_reg.rkey;
++	unsigned i, n, m;
++	int ret = -EINVAL;
 +	unsigned long flags;
++	u64 *page_list;
++	size_t ps;
 +
-+	spin_lock_irqsave(&dd->uctxt_lock, flags);
-+	if (!rcd->cnt)
-+		goto done;
++	spin_lock_irqsave(&rkt->lock, flags);
++	if (pd->user || rkey == 0)
++		goto bail;
 +
-+	if (test_and_clear_bit(HFI1_CTXT_WAITING_RCV, &rcd->event_flags)) {
-+		wake_up_interruptible(&rcd->wait);
-+		hfi1_rcvctrl(dd, HFI1_RCVCTRL_INTRAVAIL_DIS, rcd->ctxt);
-+	} else if (test_and_clear_bit(HFI1_CTXT_WAITING_URG,
-+							&rcd->event_flags)) {
-+		rcd->urgent++;
-+		wake_up_interruptible(&rcd->wait);
++	mr = rcu_dereference_protected(
++		rkt->table[(rkey >> (32 - hfi1_lkey_table_size))],
++		lockdep_is_held(&rkt->lock));
++	if (unlikely(mr == NULL || qp->ibqp.pd != mr->pd))
++		goto bail;
++
++	if (wr->wr.fast_reg.page_list_len > mr->max_segs)
++		goto bail;
++
++	ps = 1UL << wr->wr.fast_reg.page_shift;
++	if (wr->wr.fast_reg.length > ps * wr->wr.fast_reg.page_list_len)
++		goto bail;
++
++	mr->user_base = wr->wr.fast_reg.iova_start;
++	mr->iova = wr->wr.fast_reg.iova_start;
++	mr->lkey = rkey;
++	mr->length = wr->wr.fast_reg.length;
++	mr->access_flags = wr->wr.fast_reg.access_flags;
++	page_list = wr->wr.fast_reg.page_list->page_list;
++	m = 0;
++	n = 0;
++	for (i = 0; i < wr->wr.fast_reg.page_list_len; i++) {
++		mr->map[m]->segs[n].vaddr = (void *) page_list[i];
++		mr->map[m]->segs[n].length = ps;
++		if (++n == HFI1_SEGSZ) {
++			m++;
++			n = 0;
++		}
 +	}
-+done:
-+	spin_unlock_irqrestore(&dd->uctxt_lock, flags);
++
++	ret = 0;
++bail:
++	spin_unlock_irqrestore(&rkt->lock, flags);
++	return ret;
 +}
 
 --
