@@ -1,141 +1,130 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: [PATCH v2 02/12] IB/mad: Remove ib_get_dma_mr calls
-Date: Thu, 30 Jul 2015 17:22:16 -0600
-Message-ID: <1438298547-21404-3-git-send-email-jgunthorpe@obsidianresearch.com>
-References: <1438298547-21404-1-git-send-email-jgunthorpe@obsidianresearch.com>
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1438298547-21404-1-git-send-email-jgunthorpe@obsidianresearch.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
-Cc: Amir Vadai <amirv@mellanox.com>, Bart Van Assche <bart.vanassche@sandisk.com>, Chien Yen <chien.yen@oracle.com>, Christoph Hellwig <hch@infradead.org>, Dominique Martinet <dominique.martinet@cea.fr>, Eli Cohen <eli@mellanox.com>, Eric Van Hensbergen <ericvh@gmail.com>, Ido Shamay <idos@mellanox.com>, Latchesar Ionkov <lucho@ionkov.net>, Or Gerlitz <ogerlitz@mellanox.com>, Roi Dayan <roid@mellanox.com>, Ron Minnich <rminnich@sandia.gov>, Sagi Grimberg <sagig@mellanox.com>, Simon Derr <simon.derr@bull.net>, Tom Tucker <tom@opengridcomputing.com>, rds-devel@oss.oracle.com, target-devel@vger.kernel.org, v9fs-developer@lists.sourceforge.net
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: [PATCH v2 00/12] IB: Replace safe uses for ib_get_dma_mr with pd->local_dma_lkey
+Date: Thu, 30 Jul 2015 17:22:14 -0600
+Message-ID: <1438298547-21404-1-git-send-email-jgunthorpe@obsidianresearch.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Chien Yen <chien.yen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Dominique Martinet <dominique.martinet-KCE40YydGKI@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eric Van Hensbergen <ericvh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ido Shamay <idos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Latchesar Ionkov <lucho-OnYtXJJ0/fesTnJN9+BGXg@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ron Minnich <rminnich-4OHPYypu0djtX7QSmKvirg@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Simon Derr <simon.derr-6ktuUTfB/bM@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, v9fs-developer-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The pd now has a local_dma_lkey member which completely replaces
-ib_get_dma_mr, use it instead.
+This series moves dealing with the safe all physical mr:
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
----
- drivers/infiniband/core/mad.c      | 26 +++-----------------------
- drivers/infiniband/core/mad_priv.h |  1 -
- include/rdma/ib_mad.h              |  1 -
- 3 files changed, 3 insertions(+), 25 deletions(-)
+  ib_get_dma_mr(pd,IB_ACCESS_LOCAL_WRITE);
 
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 786fc51bf04b..7c728a2d1d56 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -338,13 +338,6 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
- 		goto error1;
- 	}
- 
--	mad_agent_priv->agent.mr = ib_get_dma_mr(port_priv->qp_info[qpn].qp->pd,
--						 IB_ACCESS_LOCAL_WRITE);
--	if (IS_ERR(mad_agent_priv->agent.mr)) {
--		ret = ERR_PTR(-ENOMEM);
--		goto error2;
--	}
--
- 	if (mad_reg_req) {
- 		reg_req = kmemdup(mad_reg_req, sizeof *reg_req, GFP_KERNEL);
- 		if (!reg_req) {
-@@ -429,8 +422,6 @@ error4:
- 	spin_unlock_irqrestore(&port_priv->reg_lock, flags);
- 	kfree(reg_req);
- error3:
--	ib_dereg_mr(mad_agent_priv->agent.mr);
--error2:
- 	kfree(mad_agent_priv);
- error1:
- 	return ret;
-@@ -590,7 +581,6 @@ static void unregister_mad_agent(struct ib_mad_agent_private *mad_agent_priv)
- 	wait_for_completion(&mad_agent_priv->comp);
- 
- 	kfree(mad_agent_priv->reg_req);
--	ib_dereg_mr(mad_agent_priv->agent.mr);
- 	kfree(mad_agent_priv);
- }
- 
-@@ -1038,7 +1028,7 @@ struct ib_mad_send_buf * ib_create_send_mad(struct ib_mad_agent *mad_agent,
- 
- 	mad_send_wr->mad_agent_priv = mad_agent_priv;
- 	mad_send_wr->sg_list[0].length = hdr_len;
--	mad_send_wr->sg_list[0].lkey = mad_agent->mr->lkey;
-+	mad_send_wr->sg_list[0].lkey = mad_agent->qp->pd->local_dma_lkey;
- 
- 	/* OPA MADs don't have to be the full 2048 bytes */
- 	if (opa && base_version == OPA_MGMT_BASE_VERSION &&
-@@ -1047,7 +1037,7 @@ struct ib_mad_send_buf * ib_create_send_mad(struct ib_mad_agent *mad_agent,
- 	else
- 		mad_send_wr->sg_list[1].length = mad_size - hdr_len;
- 
--	mad_send_wr->sg_list[1].lkey = mad_agent->mr->lkey;
-+	mad_send_wr->sg_list[1].lkey = mad_agent->qp->pd->local_dma_lkey;
- 
- 	mad_send_wr->send_wr.wr_id = (unsigned long) mad_send_wr;
- 	mad_send_wr->send_wr.sg_list = mad_send_wr->sg_list;
-@@ -2885,7 +2875,7 @@ static int ib_mad_post_receive_mads(struct ib_mad_qp_info *qp_info,
- 	struct ib_mad_queue *recv_queue = &qp_info->recv_queue;
- 
- 	/* Initialize common scatter list fields */
--	sg_list.lkey = (*qp_info->port_priv->mr).lkey;
-+	sg_list.lkey = qp_info->port_priv->pd->local_dma_lkey;
- 
- 	/* Initialize common receive WR fields */
- 	recv_wr.next = NULL;
-@@ -3201,13 +3191,6 @@ static int ib_mad_port_open(struct ib_device *device,
- 		goto error4;
- 	}
- 
--	port_priv->mr = ib_get_dma_mr(port_priv->pd, IB_ACCESS_LOCAL_WRITE);
--	if (IS_ERR(port_priv->mr)) {
--		dev_err(&device->dev, "Couldn't get ib_mad DMA MR\n");
--		ret = PTR_ERR(port_priv->mr);
--		goto error5;
--	}
--
- 	if (has_smi) {
- 		ret = create_mad_qp(&port_priv->qp_info[0], IB_QPT_SMI);
- 		if (ret)
-@@ -3248,8 +3231,6 @@ error8:
- error7:
- 	destroy_mad_qp(&port_priv->qp_info[0]);
- error6:
--	ib_dereg_mr(port_priv->mr);
--error5:
- 	ib_dealloc_pd(port_priv->pd);
- error4:
- 	ib_destroy_cq(port_priv->cq);
-@@ -3284,7 +3265,6 @@ static int ib_mad_port_close(struct ib_device *device, int port_num)
- 	destroy_workqueue(port_priv->wq);
- 	destroy_mad_qp(&port_priv->qp_info[1]);
- 	destroy_mad_qp(&port_priv->qp_info[0]);
--	ib_dereg_mr(port_priv->mr);
- 	ib_dealloc_pd(port_priv->pd);
- 	ib_destroy_cq(port_priv->cq);
- 	cleanup_recv_queue(&port_priv->qp_info[1]);
-diff --git a/drivers/infiniband/core/mad_priv.h b/drivers/infiniband/core/mad_priv.h
-index 5be89f98928f..4a4f7aad0978 100644
---- a/drivers/infiniband/core/mad_priv.h
-+++ b/drivers/infiniband/core/mad_priv.h
-@@ -199,7 +199,6 @@ struct ib_mad_port_private {
- 	int port_num;
- 	struct ib_cq *cq;
- 	struct ib_pd *pd;
--	struct ib_mr *mr;
- 
- 	spinlock_t reg_lock;
- 	struct ib_mad_mgmt_version_table version[MAX_MGMT_VERSION];
-diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
-index c8422d5a5a91..1f27023c919a 100644
---- a/include/rdma/ib_mad.h
-+++ b/include/rdma/ib_mad.h
-@@ -388,7 +388,6 @@ enum {
- struct ib_mad_agent {
- 	struct ib_device	*device;
- 	struct ib_qp		*qp;
--	struct ib_mr		*mr;
- 	ib_mad_recv_handler	recv_handler;
- 	ib_mad_send_handler	send_handler;
- 	ib_mad_snoop_handler	snoop_handler;
+Into ib_alloc_pd, and in the process makes the global local_dma_lkey functionality
+broadly enabled for all ULPs.
+
+The remaining users of ib_get_dma_mr are all unsafe:
+ drivers/infiniband/ulp/iser/iser_verbs.c:
+	device->mr = ib_get_dma_mr(device->pd, IB_ACCESS_LOCAL_WRITE |
+				   IB_ACCESS_REMOTE_WRITE |
+				   IB_ACCESS_REMOTE_READ);
+
+ drivers/infiniband/ulp/srp/ib_srp.c:
+	srp_dev->mr = ib_get_dma_mr(srp_dev->pd,
+				    IB_ACCESS_LOCAL_WRITE |
+				    IB_ACCESS_REMOTE_READ |
+				    IB_ACCESS_REMOTE_WRITE);
+
+ drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd.c:
+	int acflags = IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_WRITE;
+		mr = ib_get_dma_mr(hdev->ibh_pd, acflags);
+
+ net/rds/iw.c:
+		rds_iwdev->mr = ib_get_dma_mr(rds_iwdev->pd,
+					IB_ACCESS_REMOTE_READ |
+					IB_ACCESS_REMOTE_WRITE |
+					IB_ACCESS_LOCAL_WRITE);
+
+ net/sunrpc/xprtrdma/svc_rdma_transport.c:
+		if (rdma_protocol_iwarp(newxprt->sc_cm_id->device,
+					newxprt->sc_cm_id->port_num) &&
+		    !(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG))
+			dma_mr_acc |= IB_ACCESS_REMOTE_WRITE;
+		newxprt->sc_phys_mr =
+			ib_get_dma_mr(newxprt->sc_pd, dma_mr_acc);
+
+ net/sunrpc/xprtrdma/verbs.c:
+	case RPCRDMA_ALLPHYSICAL:
+		ia->ri_ops = &rpcrdma_physical_memreg_ops;
+		mem_priv = IB_ACCESS_LOCAL_WRITE |
+				IB_ACCESS_REMOTE_WRITE |
+				IB_ACCESS_REMOTE_READ;
+		ia->ri_bind_mem = ib_get_dma_mr(ia->ri_pd, mem_priv);
+
+Calling ib_get_dma_mr with IB_ACCESS_REMOTE_* flags is considered to be a
+serious security problem and should not be done without the user directly
+opting in to an off-by-default scheme. The call allows the peer on the QP
+unrestricted access to local physical memory if they can guess the rkey value.
+
+A future series will cause the kernel to be tainted by the above call sites to
+promote migrating away from this.
+
+To Migrate:
+ * If ib_get_dma_mr was being used to get an lkey then use
+   local_dma_lkey instead (I belive this series gets all of those cases).
+
+   If the lkey is being used for RDMA_READ, and iWarp support is required then
+   iWarp must be detected and FRMR must be used to create a limited temporary
+   MR just for the RDMA_READ. (eg NFS, RDS)
+
+ * If ib_get_dma_mr was being used to get an rkey then use FRMR to cerate
+   limited temporary MR's (eg SRP, iSER, etc)
+
+All patches are compile tested. I've done basic testing up to and including
+the IPoIB patch, the rest required specialized setups I don't have access to,
+but are fairly straightforward.
+
+Jason Gunthorpe (12):
+  IB/core: Guarantee that a local_dma_lkey is available
+  IB/mad: Remove ib_get_dma_mr calls
+  IB/ipoib: Remove ib_get_dma_mr calls
+  IB/mlx4: Remove ib_get_dma_mr calls
+  IB/mlx5: Remove ib_get_dma_mr calls
+  IB/iser: Use pd->local_dma_lkey
+  iser-target: Remove ib_get_dma_mr calls
+  IB/srp: Use pd->local_dma_lkey
+  IB/srp: Do not create an all physical insecure rkey by default
+  ib_srpt: Remove ib_get_dma_mr calls
+  net/9p: Remove ib_get_dma_mr calls
+  rds/ib: Remove ib_get_dma_mr calls
+
+ drivers/infiniband/core/mad.c                | 26 ++-------------
+ drivers/infiniband/core/mad_priv.h           |  1 -
+ drivers/infiniband/core/verbs.c              | 47 +++++++++++++++++++++++++---
+ drivers/infiniband/hw/mlx4/mad.c             | 23 +++-----------
+ drivers/infiniband/hw/mlx4/mlx4_ib.h         |  1 -
+ drivers/infiniband/hw/mlx5/main.c            | 13 --------
+ drivers/infiniband/hw/mlx5/mlx5_ib.h         |  1 -
+ drivers/infiniband/hw/mlx5/mr.c              |  5 ++-
+ drivers/infiniband/ulp/ipoib/ipoib.h         |  1 -
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c      |  2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_verbs.c   | 18 ++---------
+ drivers/infiniband/ulp/iser/iscsi_iser.c     |  2 +-
+ drivers/infiniband/ulp/iser/iser_initiator.c |  8 ++---
+ drivers/infiniband/ulp/iser/iser_memory.c    |  2 +-
+ drivers/infiniband/ulp/iser/iser_verbs.c     |  2 +-
+ drivers/infiniband/ulp/isert/ib_isert.c      | 33 +++++++------------
+ drivers/infiniband/ulp/isert/ib_isert.h      |  1 -
+ drivers/infiniband/ulp/srp/ib_srp.c          | 33 ++++++++++++-------
+ drivers/infiniband/ulp/srp/ib_srp.h          |  2 +-
+ drivers/infiniband/ulp/srpt/ib_srpt.c        | 15 +++------
+ drivers/infiniband/ulp/srpt/ib_srpt.h        |  1 -
+ include/rdma/ib_mad.h                        |  1 -
+ include/rdma/ib_verbs.h                      |  9 ++----
+ net/9p/trans_rdma.c                          | 26 ++-------------
+ net/rds/ib.c                                 |  8 -----
+ net/rds/ib.h                                 |  2 --
+ net/rds/ib_cm.c                              |  4 +--
+ net/rds/ib_recv.c                            |  6 ++--
+ net/rds/ib_send.c                            |  8 ++---
+ 29 files changed, 112 insertions(+), 189 deletions(-)
+
 -- 
 2.1.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
