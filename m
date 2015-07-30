@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v4 31/50] IB/hfi1: add pio handling
-Date: Thu, 30 Jul 2015 15:20:20 -0400
-Message-ID: <20150730192020.25256.85401.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH v4 34/50] IB/hfi1: add qsfp handling
+Date: Thu, 30 Jul 2015 15:20:36 -0400
+Message-ID: <20150730192036.25256.98765.stgit@phlsvslse11.ph.intel.com>
 References: <20150730191631.25256.95511.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -37,20 +37,18 @@ Signed-off-by: Sanath Kumar <sanath.s.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.
 Signed-off-by: Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Vlad Danushevsky <vladimir.danusevsky-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/pio.c      | 1771 +++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/hfi1/pio.h      |  224 ++++
- drivers/infiniband/hw/hfi1/pio_copy.c |  858 ++++++++++++++++
- 3 files changed, 2853 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi1/pio.c
- create mode 100644 drivers/infiniband/hw/hfi1/pio.h
- create mode 100644 drivers/infiniband/hw/hfi1/pio_copy.c
+ drivers/infiniband/hw/hfi1/qsfp.c |  546 +++++++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/hfi1/qsfp.h |  222 +++++++++++++++
+ 2 files changed, 768 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi1/qsfp.c
+ create mode 100644 drivers/infiniband/hw/hfi1/qsfp.h
 
-diff --git a/drivers/infiniband/hw/hfi1/pio.c b/drivers/infiniband/hw/hfi1/pio.c
+diff --git a/drivers/infiniband/hw/hfi1/qsfp.c b/drivers/infiniband/hw/hfi1/qsfp.c
 new file mode 100644
-index 0000000..9991814
+index 0000000..3138936
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/pio.c
-@@ -0,0 +1,1771 @@
++++ b/drivers/infiniband/hw/hfi1/qsfp.c
+@@ -0,0 +1,546 @@
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -102,1734 +100,507 @@ index 0000000..9991814
 + */
 +
 +#include <linux/delay.h>
++#include <linux/pci.h>
++#include <linux/vmalloc.h>
++
 +#include "hfi.h"
-+#include "qp.h"
-+#include "trace.h"
-+
-+#define SC_CTXT_PACKET_EGRESS_TIMEOUT 350 /* in chip cycles */
-+
-+#define SC(name) SEND_CTXT_##name
-+/*
-+ * Send Context functions
-+ */
-+static void sc_wait_for_packet_egress(struct send_context *sc, int pause);
++#include "twsi.h"
 +
 +/*
-+ * Set the CM reset bit and wait for it to clear.  Use the provided
-+ * sendctrl register.  This routine has no locking.
++ * QSFP support for hfi driver, using "Two Wire Serial Interface" driver
++ * in twsi.c
 + */
-+void __cm_reset(struct hfi1_devdata *dd, u64 sendctrl)
-+{
-+	write_csr(dd, SEND_CTRL, sendctrl | SEND_CTRL_CM_RESET_SMASK);
-+	while (1) {
-+		udelay(1);
-+		sendctrl = read_csr(dd, SEND_CTRL);
-+		if ((sendctrl & SEND_CTRL_CM_RESET_SMASK) == 0)
-+			break;
-+	}
-+}
-+
-+/* defined in header release 48 and higher */
-+#ifndef SEND_CTRL_UNSUPPORTED_VL_SHIFT
-+#define SEND_CTRL_UNSUPPORTED_VL_SHIFT 3
-+#define SEND_CTRL_UNSUPPORTED_VL_MASK 0xffull
-+#define SEND_CTRL_UNSUPPORTED_VL_SMASK (SEND_CTRL_UNSUPPORTED_VL_MASK \
-+		<< SEND_CTRL_UNSUPPORTED_VL_SHIFT)
-+#endif
-+
-+/* global control of PIO send */
-+void pio_send_control(struct hfi1_devdata *dd, int op)
-+{
-+	u64 reg, mask;
-+	unsigned long flags;
-+	int write = 1;	/* write sendctrl back */
-+	int flush = 0;	/* re-read sendctrl to make sure it is flushed */
-+
-+	spin_lock_irqsave(&dd->sendctrl_lock, flags);
-+
-+	reg = read_csr(dd, SEND_CTRL);
-+	switch (op) {
-+	case PSC_GLOBAL_ENABLE:
-+		reg |= SEND_CTRL_SEND_ENABLE_SMASK;
-+	/* Fall through */
-+	case PSC_DATA_VL_ENABLE:
-+		/* Disallow sending on VLs not enabled */
-+		mask = (((~0ull)<<num_vls) & SEND_CTRL_UNSUPPORTED_VL_MASK)<<
-+				SEND_CTRL_UNSUPPORTED_VL_SHIFT;
-+		reg = (reg & ~SEND_CTRL_UNSUPPORTED_VL_SMASK) | mask;
-+		break;
-+	case PSC_GLOBAL_DISABLE:
-+		reg &= ~SEND_CTRL_SEND_ENABLE_SMASK;
-+		break;
-+	case PSC_GLOBAL_VLARB_ENABLE:
-+		reg |= SEND_CTRL_VL_ARBITER_ENABLE_SMASK;
-+		break;
-+	case PSC_GLOBAL_VLARB_DISABLE:
-+		reg &= ~SEND_CTRL_VL_ARBITER_ENABLE_SMASK;
-+		break;
-+	case PSC_CM_RESET:
-+		__cm_reset(dd, reg);
-+		write = 0; /* CSR already written (and flushed) */
-+		break;
-+	case PSC_DATA_VL_DISABLE:
-+		reg |= SEND_CTRL_UNSUPPORTED_VL_SMASK;
-+		flush = 1;
-+		break;
-+	default:
-+		dd_dev_err(dd, "%s: invalid control %d\n", __func__, op);
-+		break;
-+	}
-+
-+	if (write) {
-+		write_csr(dd, SEND_CTRL, reg);
-+		if (flush)
-+			(void) read_csr(dd, SEND_CTRL); /* flush write */
-+	}
-+
-+	spin_unlock_irqrestore(&dd->sendctrl_lock, flags);
-+}
-+
-+/* number of send context memory pools */
-+#define NUM_SC_POOLS 2
-+
-+/* Send Context Size (SCS) wildcards */
-+#define SCS_POOL_0 -1
-+#define SCS_POOL_1 -2
-+/* Send Context Count (SCC) wildcards */
-+#define SCC_PER_VL -1
-+#define SCC_PER_CPU  -2
-+
-+#define SCC_PER_KRCVQ  -3
-+#define SCC_ACK_CREDITS  32
-+
-+#define PIO_WAIT_BATCH_SIZE 5
-+
-+/* default send context sizes */
-+static struct sc_config_sizes sc_config_sizes[SC_MAX] = {
-+	[SC_KERNEL] = { .size  = SCS_POOL_0,	/* even divide, pool 0 */
-+			.count = SCC_PER_VL },/* one per NUMA */
-+	[SC_ACK]    = { .size  = SCC_ACK_CREDITS,
-+			.count = SCC_PER_KRCVQ },
-+	[SC_USER]   = { .size  = SCS_POOL_0,	/* even divide, pool 0 */
-+			.count = SCC_PER_CPU },	/* one per CPU */
-+
-+};
-+
-+/* send context memory pool configuration */
-+struct mem_pool_config {
-+	int centipercent;	/* % of memory, in 100ths of 1% */
-+	int absolute_blocks;	/* absolute block count */
-+};
-+
-+/* default memory pool configuration: 100% in pool 0 */
-+static struct mem_pool_config sc_mem_pool_config[NUM_SC_POOLS] = {
-+	/* centi%, abs blocks */
-+	{  10000,     -1 },		/* pool 0 */
-+	{      0,     -1 },		/* pool 1 */
-+};
-+
-+/* memory pool information, used when calculating final sizes */
-+struct mem_pool_info {
-+	int centipercent;	/* 100th of 1% of memory to use, -1 if blocks
-+				   already set */
-+	int count;		/* count of contexts in the pool */
-+	int blocks;		/* block size of the pool */
-+	int size;		/* context size, in blocks */
-+};
++#define I2C_MAX_RETRY 4
 +
 +/*
-+ * Convert a pool wildcard to a valid pool index.  The wildcards
-+ * start at -1 and increase negatively.  Map them as:
-+ *	-1 => 0
-+ *	-2 => 1
-+ *	etc.
-+ *
-+ * Return -1 on non-wildcard input, otherwise convert to a pool number.
++ * Unlocked i2c write.  Must hold dd->qsfp_i2c_mutex.
 + */
-+static int wildcard_to_pool(int wc)
++static int __i2c_write(struct hfi1_pportdata *ppd, u32 target, int i2c_addr,
++		       int offset, void *bp, int len)
 +{
-+	if (wc >= 0)
-+		return -1;	/* non-wildcard */
-+	return -wc - 1;
++	struct hfi1_devdata *dd = ppd->dd;
++	int ret, cnt;
++	u8 *buff = bp;
++
++	/* Make sure TWSI bus is in sane state. */
++	ret = hfi1_twsi_reset(dd, target);
++	if (ret) {
++		hfi1_dev_porterr(dd, ppd->port,
++				 "I2C interface Reset for write failed\n");
++		return -EIO;
++	}
++
++	cnt = 0;
++	while (cnt < len) {
++		int wlen = len - cnt;
++
++		ret = hfi1_twsi_blk_wr(dd, target, i2c_addr, offset,
++				       buff + cnt, wlen);
++		if (ret) {
++			/* hfi1_twsi_blk_wr() 1 for error, else 0 */
++			return -EIO;
++		}
++		offset += wlen;
++		cnt += wlen;
++	}
++
++	/* Must wait min 20us between qsfp i2c transactions */
++	udelay(20);
++
++	return cnt;
 +}
 +
-+static const char *sc_type_names[SC_MAX] = {
-+	"kernel",
-+	"ack",
-+	"user"
-+};
-+
-+static const char *sc_type_name(int index)
++int i2c_write(struct hfi1_pportdata *ppd, u32 target, int i2c_addr, int offset,
++	      void *bp, int len)
 +{
-+	if (index < 0 || index >= SC_MAX)
-+		return "unknown";
-+	return sc_type_names[index];
++	struct hfi1_devdata *dd = ppd->dd;
++	int ret;
++
++	ret = mutex_lock_interruptible(&dd->qsfp_i2c_mutex);
++	if (!ret) {
++		ret = __i2c_write(ppd, target, i2c_addr, offset, bp, len);
++		mutex_unlock(&dd->qsfp_i2c_mutex);
++	}
++
++	return ret;
 +}
 +
 +/*
-+ * Read the send context memory pool configuration and send context
-+ * size configuration.  Replace any wildcards and come up with final
-+ * counts and sizes for the send context types.
++ * Unlocked i2c read.  Must hold dd->qsfp_i2c_mutex.
 + */
-+int init_sc_pools_and_sizes(struct hfi1_devdata *dd)
++static int __i2c_read(struct hfi1_pportdata *ppd, u32 target, int i2c_addr,
++		      int offset, void *bp, int len)
 +{
-+	struct mem_pool_info mem_pool_info[NUM_SC_POOLS] = { { 0 } };
-+	int total_blocks = (dd->chip_pio_mem_size / PIO_BLOCK_SIZE) - 1;
-+	int total_contexts = 0;
-+	int fixed_blocks;
-+	int pool_blocks;
-+	int used_blocks;
-+	int cp_total;		/* centipercent total */
-+	int ab_total;		/* absolute block total */
-+	int extra;
-+	int i;
++	struct hfi1_devdata *dd = ppd->dd;
++	int ret, cnt, pass = 0;
++	int stuck = 0;
++	u8 *buff = bp;
 +
-+	/*
-+	 * Step 0:
-+	 *	- copy the centipercents/absolute sizes from the pool config
-+	 *	- sanity check these values
-+	 *	- add up centipercents, then later check for full value
-+	 *	- add up absolute blocks, then later check for over-commit
-+	 */
-+	cp_total = 0;
-+	ab_total = 0;
-+	for (i = 0; i < NUM_SC_POOLS; i++) {
-+		int cp = sc_mem_pool_config[i].centipercent;
-+		int ab = sc_mem_pool_config[i].absolute_blocks;
++	/* Make sure TWSI bus is in sane state. */
++	ret = hfi1_twsi_reset(dd, target);
++	if (ret) {
++		hfi1_dev_porterr(dd, ppd->port,
++				 "I2C interface Reset for read failed\n");
++		ret = -EIO;
++		stuck = 1;
++		goto exit;
++	}
 +
-+		/*
-+		 * A negative value is "unused" or "invalid".  Both *can*
-+		 * be valid, but centipercent wins, so check that first
-+		 */
-+		if (cp >= 0) {			/* centipercent valid */
-+			cp_total += cp;
-+		} else if (ab >= 0) {		/* absolute blocks valid */
-+			ab_total += ab;
-+		} else {			/* neither valid */
-+			dd_dev_err(
-+				dd,
-+				"Send context memory pool %d: both the block count and centipercent are invalid\n",
-+				i);
-+			return -EINVAL;
++	cnt = 0;
++	while (cnt < len) {
++		int rlen = len - cnt;
++
++		ret = hfi1_twsi_blk_rd(dd, target, i2c_addr, offset,
++				       buff + cnt, rlen);
++		/* Some QSFP's fail first try. Retry as experiment */
++		if (ret && cnt == 0 && ++pass < I2C_MAX_RETRY)
++			continue;
++		if (ret) {
++			/* hfi1_twsi_blk_rd() 1 for error, else 0 */
++			ret = -EIO;
++			goto exit;
 +		}
-+
-+		mem_pool_info[i].centipercent = cp;
-+		mem_pool_info[i].blocks = ab;
++		offset += rlen;
++		cnt += rlen;
 +	}
 +
-+	/* do not use both % and absolute blocks for different pools */
-+	if (cp_total != 0 && ab_total != 0) {
-+		dd_dev_err(
-+			dd,
-+			"All send context memory pools must be described as either centipercent or blocks, no mixing between pools\n");
-+		return -EINVAL;
-+	}
++	ret = cnt;
 +
-+	/* if any percentages are present, they must add up to 100% x 100 */
-+	if (cp_total != 0 && cp_total != 10000) {
-+		dd_dev_err(
-+			dd,
-+			"Send context memory pool centipercent is %d, expecting 10000\n",
-+			cp_total);
-+		return -EINVAL;
-+	}
++exit:
++	if (stuck)
++		dd_dev_err(dd, "I2C interface bus stuck non-idle\n");
 +
-+	/* the absolute pool total cannot be more than the mem total */
-+	if (ab_total > total_blocks) {
-+		dd_dev_err(
-+			dd,
-+			"Send context memory pool absolute block count %d is larger than the memory size %d\n",
-+			ab_total, total_blocks);
-+		return -EINVAL;
-+	}
++	if (pass >= I2C_MAX_RETRY && ret)
++		hfi1_dev_porterr(dd, ppd->port,
++				 "I2C failed even retrying\n");
++	else if (pass)
++		hfi1_dev_porterr(dd, ppd->port, "I2C retries: %d\n", pass);
 +
-+	/*
-+	 * Step 2:
-+	 *	- copy from the context size config
-+	 *	- replace context type wildcard counts with real values
-+	 *	- add up non-memory pool block sizes
-+	 *	- add up memory pool user counts
-+	 */
-+	fixed_blocks = 0;
-+	for (i = 0; i < SC_MAX; i++) {
-+		int count = sc_config_sizes[i].count;
-+		int size = sc_config_sizes[i].size;
-+		int pool;
++	/* Must wait min 20us between qsfp i2c transactions */
++	udelay(20);
 +
-+		/*
-+		 * Sanity check count: Either a positive value or
-+		 * one of the expected wildcards is valid.  The positive
-+		 * value is checked later when we compare against total
-+		 * memory available.
-+		 */
-+		if (i == SC_ACK) {
-+			count = dd->n_krcv_queues;
-+		} else if (i == SC_KERNEL) {
-+			count = num_vls + 1 /* VL15 */;
-+		} else if (count == SCC_PER_CPU) {
-+			count = dd->num_rcv_contexts - dd->n_krcv_queues;
-+		} else if (count < 0) {
-+			dd_dev_err(
-+				dd,
-+				"%s send context invalid count wildcard %d\n",
-+				sc_type_name(i), count);
-+			return -EINVAL;
-+		}
-+		if (total_contexts + count > dd->chip_send_contexts)
-+			count = dd->chip_send_contexts - total_contexts;
-+
-+		total_contexts += count;
-+
-+		/*
-+		 * Sanity check pool: The conversion will return a pool
-+		 * number or -1 if a fixed (non-negative) value.  The fixed
-+		 * value is checked later when we compare against
-+		 * total memory available.
-+		 */
-+		pool = wildcard_to_pool(size);
-+		if (pool == -1) {			/* non-wildcard */
-+			fixed_blocks += size * count;
-+		} else if (pool < NUM_SC_POOLS) {	/* valid wildcard */
-+			mem_pool_info[pool].count += count;
-+		} else {				/* invalid wildcard */
-+			dd_dev_err(
-+				dd,
-+				"%s send context invalid pool wildcard %d\n",
-+				sc_type_name(i), size);
-+			return -EINVAL;
-+		}
-+
-+		dd->sc_sizes[i].count = count;
-+		dd->sc_sizes[i].size = size;
-+	}
-+	if (fixed_blocks > total_blocks) {
-+		dd_dev_err(
-+			dd,
-+			"Send context fixed block count, %u, larger than total block count %u\n",
-+			fixed_blocks, total_blocks);
-+		return -EINVAL;
-+	}
-+
-+	/* step 3: calculate the blocks in the pools, and pool context sizes */
-+	pool_blocks = total_blocks - fixed_blocks;
-+	if (ab_total > pool_blocks) {
-+		dd_dev_err(
-+			dd,
-+			"Send context fixed pool sizes, %u, larger than pool block count %u\n",
-+			ab_total, pool_blocks);
-+		return -EINVAL;
-+	}
-+	/* subtract off the fixed pool blocks */
-+	pool_blocks -= ab_total;
-+
-+	for (i = 0; i < NUM_SC_POOLS; i++) {
-+		struct mem_pool_info *pi = &mem_pool_info[i];
-+
-+		/* % beats absolute blocks */
-+		if (pi->centipercent >= 0)
-+			pi->blocks = (pool_blocks * pi->centipercent) / 10000;
-+
-+		if (pi->blocks == 0 && pi->count != 0) {
-+			dd_dev_err(
-+				dd,
-+				"Send context memory pool %d has %u contexts, but no blocks\n",
-+				i, pi->count);
-+			return -EINVAL;
-+		}
-+		if (pi->count == 0) {
-+			/* warn about wasted blocks */
-+			if (pi->blocks != 0)
-+				dd_dev_err(
-+					dd,
-+					"Send context memory pool %d has %u blocks, but zero contexts\n",
-+					i, pi->blocks);
-+			pi->size = 0;
-+		} else {
-+			pi->size = pi->blocks / pi->count;
-+		}
-+	}
-+
-+	/* step 4: fill in the context type sizes from the pool sizes */
-+	used_blocks = 0;
-+	for (i = 0; i < SC_MAX; i++) {
-+		if (dd->sc_sizes[i].size < 0) {
-+			unsigned pool = wildcard_to_pool(dd->sc_sizes[i].size);
-+
-+			WARN_ON_ONCE(pool >= NUM_SC_POOLS);
-+			dd->sc_sizes[i].size = mem_pool_info[pool].size;
-+		}
-+		/* make sure we are not larger than what is allowed by the HW */
-+#define PIO_MAX_BLOCKS 1024
-+		if (dd->sc_sizes[i].size > PIO_MAX_BLOCKS)
-+			dd->sc_sizes[i].size = PIO_MAX_BLOCKS;
-+
-+		/* calculate our total usage */
-+		used_blocks += dd->sc_sizes[i].size * dd->sc_sizes[i].count;
-+	}
-+	extra = total_blocks - used_blocks;
-+	if (extra != 0)
-+		dd_dev_info(dd, "unused send context blocks: %d\n", extra);
-+
-+	return total_contexts;
++	return ret;
 +}
 +
-+int init_send_contexts(struct hfi1_devdata *dd)
++int i2c_read(struct hfi1_pportdata *ppd, u32 target, int i2c_addr, int offset,
++	     void *bp, int len)
 +{
-+	u16 base;
-+	int ret, i, j, context;
++	struct hfi1_devdata *dd = ppd->dd;
++	int ret;
 +
-+	ret = init_credit_return(dd);
++	ret = mutex_lock_interruptible(&dd->qsfp_i2c_mutex);
++	if (!ret) {
++		ret = __i2c_read(ppd, target, i2c_addr, offset, bp, len);
++		mutex_unlock(&dd->qsfp_i2c_mutex);
++	}
++
++	return ret;
++}
++
++int qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
++	       int len)
++{
++	int count = 0;
++	int offset;
++	int nwrite;
++	int ret;
++	u8 page;
++
++	ret = mutex_lock_interruptible(&ppd->dd->qsfp_i2c_mutex);
 +	if (ret)
 +		return ret;
 +
-+	dd->hw_to_sw = kmalloc_array(TXE_NUM_CONTEXTS, sizeof(u8),
-+					GFP_KERNEL);
-+	dd->send_contexts = kcalloc(dd->num_send_contexts,
-+					sizeof(struct send_context_info),
-+					GFP_KERNEL);
-+	if (!dd->send_contexts || !dd->hw_to_sw) {
-+		dd_dev_err(dd, "Unable to allocate send context arrays\n");
-+		kfree(dd->hw_to_sw);
-+		kfree(dd->send_contexts);
-+		free_credit_return(dd);
-+		return -ENOMEM;
++	while (count < len) {
++		/*
++		 * Set the qsfp page based on a zero-based addresss
++		 * and a page size of QSFP_PAGESIZE bytes.
++		 */
++		page = (u8)(addr / QSFP_PAGESIZE);
++
++		ret = __i2c_write(ppd, target, QSFP_DEV,
++					QSFP_PAGE_SELECT_BYTE_OFFS, &page, 1);
++		if (ret != 1) {
++			hfi1_dev_porterr(
++			ppd->dd,
++			ppd->port,
++			"can't write QSFP_PAGE_SELECT_BYTE: %d\n", ret);
++			ret = -EIO;
++			break;
++		}
++
++		/* truncate write to end of page if crossing page boundary */
++		offset = addr % QSFP_PAGESIZE;
++		nwrite = len - count;
++		if ((offset + nwrite) > QSFP_PAGESIZE)
++			nwrite = QSFP_PAGESIZE - offset;
++
++		ret = __i2c_write(ppd, target, QSFP_DEV, offset, bp + count,
++					nwrite);
++		if (ret <= 0)	/* stop on error or nothing read */
++			break;
++
++		count += ret;
++		addr += ret;
 +	}
 +
-+	/* hardware context map starts with invalid send context indices */
-+	for (i = 0; i < TXE_NUM_CONTEXTS; i++)
-+		dd->hw_to_sw[i] = INVALID_SCI;
++	mutex_unlock(&ppd->dd->qsfp_i2c_mutex);
 +
-+	/*
-+	 * All send contexts have their credit sizes.  Allocate credits
-+	 * for each context one after another from the global space.
-+	 */
-+	context = 0;
-+	base = 1;
-+	for (i = 0; i < SC_MAX; i++) {
-+		struct sc_config_sizes *scs = &dd->sc_sizes[i];
++	if (ret < 0)
++		return ret;
++	return count;
++}
 +
-+		for (j = 0; j < scs->count; j++) {
-+			struct send_context_info *sci =
-+						&dd->send_contexts[context];
-+			sci->type = i;
-+			sci->base = base;
-+			sci->credits = scs->size;
++int qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
++	      int len)
++{
++	int count = 0;
++	int offset;
++	int nread;
++	int ret;
++	u8 page;
 +
-+			context++;
-+			base += scs->size;
++	ret = mutex_lock_interruptible(&ppd->dd->qsfp_i2c_mutex);
++	if (ret)
++		return ret;
++
++	while (count < len) {
++		/*
++		 * Set the qsfp page based on a zero-based address
++		 * and a page size of QSFP_PAGESIZE bytes.
++		 */
++		page = (u8)(addr / QSFP_PAGESIZE);
++		ret = __i2c_write(ppd, target, QSFP_DEV,
++					QSFP_PAGE_SELECT_BYTE_OFFS, &page, 1);
++		if (ret != 1) {
++			hfi1_dev_porterr(
++			ppd->dd,
++			ppd->port,
++			"can't write QSFP_PAGE_SELECT_BYTE: %d\n", ret);
++			ret = -EIO;
++			break;
++		}
++
++		/* truncate read to end of page if crossing page boundary */
++		offset = addr % QSFP_PAGESIZE;
++		nread = len - count;
++		if ((offset + nread) > QSFP_PAGESIZE)
++			nread = QSFP_PAGESIZE - offset;
++
++		ret = __i2c_read(ppd, target, QSFP_DEV, offset, bp + count,
++					nread);
++		if (ret <= 0)	/* stop on error or nothing read */
++			break;
++
++		count += ret;
++		addr += ret;
++	}
++
++	mutex_unlock(&ppd->dd->qsfp_i2c_mutex);
++
++	if (ret < 0)
++		return ret;
++	return count;
++}
++
++/*
++ * This function caches the QSFP memory range in 128 byte chunks.
++ * As an example, the next byte after address 255 is byte 128 from
++ * upper page 01H (if existing) rather than byte 0 from lower page 00H.
++ */
++int refresh_qsfp_cache(struct hfi1_pportdata *ppd, struct qsfp_data *cp)
++{
++	u32 target = ppd->dd->hfi1_id;
++	int ret;
++	unsigned long flags;
++	u8 *cache = &cp->cache[0];
++
++	/* ensure sane contents on invalid reads, for cable swaps */
++	memset(cache, 0, (QSFP_MAX_NUM_PAGES*128));
++	dd_dev_info(ppd->dd, "%s: called\n", __func__);
++	if (!qsfp_mod_present(ppd)) {
++		ret = -ENODEV;
++		goto bail;
++	}
++
++	ret = qsfp_read(ppd, target, 0, cache, 256);
++	if (ret != 256) {
++		dd_dev_info(ppd->dd,
++			"%s: Read of pages 00H failed, expected 256, got %d\n",
++			__func__, ret);
++		goto bail;
++	}
++
++	if (cache[0] != 0x0C && cache[0] != 0x0D)
++		goto bail;
++
++	/* Is paging enabled? */
++	if (!(cache[2] & 4)) {
++
++		/* Paging enabled, page 03 required */
++		if ((cache[195] & 0xC0) == 0xC0) {
++			/* all */
++			ret = qsfp_read(ppd, target, 384, cache + 256, 128);
++			if (ret <= 0 || ret != 128) {
++				dd_dev_info(ppd->dd, "%s: failed\n", __func__);
++				goto bail;
++			}
++			ret = qsfp_read(ppd, target, 640, cache + 384, 128);
++			if (ret <= 0 || ret != 128) {
++				dd_dev_info(ppd->dd, "%s: failed\n", __func__);
++				goto bail;
++			}
++			ret = qsfp_read(ppd, target, 896, cache + 512, 128);
++			if (ret <= 0 || ret != 128) {
++				dd_dev_info(ppd->dd, "%s: failed\n", __func__);
++				goto bail;
++			}
++		} else if ((cache[195] & 0x80) == 0x80) {
++			/* only page 2 and 3 */
++			ret = qsfp_read(ppd, target, 640, cache + 384, 128);
++			if (ret <= 0 || ret != 128) {
++				dd_dev_info(ppd->dd, "%s: failed\n", __func__);
++				goto bail;
++			}
++			ret = qsfp_read(ppd, target, 896, cache + 512, 128);
++			if (ret <= 0 || ret != 128) {
++				dd_dev_info(ppd->dd, "%s: failed\n", __func__);
++				goto bail;
++			}
++		} else if ((cache[195] & 0x40) == 0x40) {
++			/* only page 1 and 3 */
++			ret = qsfp_read(ppd, target, 384, cache + 256, 128);
++			if (ret <= 0 || ret != 128) {
++				dd_dev_info(ppd->dd, "%s: failed\n", __func__);
++				goto bail;
++			}
++			ret = qsfp_read(ppd, target, 896, cache + 512, 128);
++			if (ret <= 0 || ret != 128) {
++				dd_dev_info(ppd->dd, "%s: failed\n", __func__);
++				goto bail;
++			}
++		} else {
++			/* only page 3 */
++			ret = qsfp_read(ppd, target, 896, cache + 512, 128);
++			if (ret <= 0 || ret != 128) {
++				dd_dev_info(ppd->dd, "%s: failed\n", __func__);
++				goto bail;
++			}
 +		}
 +	}
++
++	spin_lock_irqsave(&ppd->qsfp_info.qsfp_lock, flags);
++	ppd->qsfp_info.cache_valid = 1;
++	ppd->qsfp_info.cache_refresh_required = 0;
++	spin_unlock_irqrestore(&ppd->qsfp_info.qsfp_lock, flags);
 +
 +	return 0;
++
++bail:
++	memset(cache, 0, (QSFP_MAX_NUM_PAGES*128));
++	return ret;
++}
++
++const char * const hfi1_qsfp_devtech[16] = {
++	"850nm VCSEL", "1310nm VCSEL", "1550nm VCSEL", "1310nm FP",
++	"1310nm DFB", "1550nm DFB", "1310nm EML", "1550nm EML",
++	"Cu Misc", "1490nm DFB", "Cu NoEq", "Cu Eq",
++	"Undef", "Cu Active BothEq", "Cu FarEq", "Cu NearEq"
++};
++
++#define QSFP_DUMP_CHUNK 16 /* Holds longest string */
++#define QSFP_DEFAULT_HDR_CNT 224
++
++static const char *pwr_codes = "1.5W2.0W2.5W3.5W";
++
++int qsfp_mod_present(struct hfi1_pportdata *ppd)
++{
++	if (HFI1_CAP_IS_KSET(QSFP_ENABLED)) {
++		struct hfi1_devdata *dd = ppd->dd;
++		u64 reg;
++
++		reg = read_csr(dd,
++			dd->hfi1_id ? ASIC_QSFP2_IN : ASIC_QSFP1_IN);
++		return !(reg & QSFP_HFI0_MODPRST_N);
++	}
++	/* always return cable present */
++	return 1;
 +}
 +
 +/*
-+ * Allocate a software index and hardware context of the given type.
++ * This function maps QSFP memory addresses in 128 byte chunks in the following
++ * fashion per the CableInfo SMA query definition in the IBA 1.3 spec/OPA Gen 1
++ * spec
++ * For addr 000-127, lower page 00h
++ * For addr 128-255, upper page 00h
++ * For addr 256-383, upper page 01h
++ * For addr 384-511, upper page 02h
++ * For addr 512-639, upper page 03h
 + *
-+ * Must be called with dd->sc_lock held.
++ * For addresses beyond this range, it returns the invalid range of data buffer
++ * set to 0.
++ * For upper pages that are optional, if they are not valid, returns the
++ * particular range of bytes in the data buffer set to 0.
 + */
-+static int sc_hw_alloc(struct hfi1_devdata *dd, int type, u32 *sw_index,
-+		       u32 *hw_context)
++int get_cable_info(struct hfi1_devdata *dd, u32 port_num, u32 addr, u32 len,
++		   u8 *data)
 +{
-+	struct send_context_info *sci;
-+	u32 index;
-+	u32 context;
-+
-+	for (index = 0, sci = &dd->send_contexts[0];
-+			index < dd->num_send_contexts; index++, sci++) {
-+		if (sci->type == type && sci->allocated == 0) {
-+			sci->allocated = 1;
-+			/* use a 1:1 mapping, but make them non-equal */
-+			context = dd->chip_send_contexts - index - 1;
-+			dd->hw_to_sw[context] = index;
-+			*sw_index = index;
-+			*hw_context = context;
-+			return 0; /* success */
-+		}
-+	}
-+	dd_dev_err(dd, "Unable to locate a free type %d send context\n", type);
-+	return -ENOSPC;
-+}
-+
-+/*
-+ * Free the send context given by its software index.
-+ *
-+ * Must be called with dd->sc_lock held.
-+ */
-+static void sc_hw_free(struct hfi1_devdata *dd, u32 sw_index, u32 hw_context)
-+{
-+	struct send_context_info *sci;
-+
-+	sci = &dd->send_contexts[sw_index];
-+	if (!sci->allocated) {
-+		dd_dev_err(dd, "%s: sw_index %u not allocated? hw_context %u\n",
-+			__func__, sw_index, hw_context);
-+	}
-+	sci->allocated = 0;
-+	dd->hw_to_sw[hw_context] = INVALID_SCI;
-+}
-+
-+/* return the base context of a context in a group */
-+static inline u32 group_context(u32 context, u32 group)
-+{
-+	return (context >> group) << group;
-+}
-+
-+/* return the size of a group */
-+static inline u32 group_size(u32 group)
-+{
-+	return 1 << group;
-+}
-+
-+/*
-+ * Obtain the credit return addresses, kernel virtual and physical, for the
-+ * given sc.
-+ *
-+ * To understand this routine:
-+ * o va and pa are arrays of struct credit_return.  One for each physical
-+ *   send context, per NUMA.
-+ * o Each send context always looks in its relative location in a struct
-+ *   credit_return for its credit return.
-+ * o Each send context in a group must have its return address CSR programmed
-+ *   with the same value.  Use the address of the first send context in the
-+ *   group.
-+ */
-+static void cr_group_addresses(struct send_context *sc, dma_addr_t *pa)
-+{
-+	u32 gc = group_context(sc->hw_context, sc->group);
-+	u32 index = sc->hw_context & 0x7;
-+
-+	sc->hw_free = &sc->dd->cr_base[sc->node].va[gc].cr[index];
-+	*pa = (unsigned long)
-+	       &((struct credit_return *)sc->dd->cr_base[sc->node].pa)[gc];
-+}
-+
-+/*
-+ * Work queue function triggered in error interrupt routine for
-+ * kernel contexts.
-+ */
-+static void sc_halted(struct work_struct *work)
-+{
-+	struct send_context *sc;
-+
-+	sc = container_of(work, struct send_context, halt_work);
-+	sc_restart(sc);
-+}
-+
-+/*
-+ * Calculate PIO block threshold for this send context using the given MTU.
-+ * Trigger a return when one MTU plus optional header of credits remain.
-+ *
-+ * Parameter mtu is in bytes.
-+ * Parameter hdrqentsize is in DWORDs.
-+ *
-+ * Return value is what to write into the CSR: trigger return when
-+ * unreturned credits pass this count.
-+ */
-+u32 sc_mtu_to_threshold(struct send_context *sc, u32 mtu, u32 hdrqentsize)
-+{
-+	u32 release_credits;
-+	u32 threshold;
-+
-+	/* add in the header size, then divide by the PIO block size */
-+	mtu += hdrqentsize << 2;
-+	release_credits = DIV_ROUND_UP(mtu, PIO_BLOCK_SIZE);
-+
-+	/* check against this context's credits */
-+	if (sc->credits <= release_credits)
-+		threshold = 1;
-+	else
-+		threshold = sc->credits - release_credits;
-+
-+	return threshold;
-+}
-+
-+/*
-+ * Calculate credit threshold in terms of percent of the allocated credits.
-+ * Trigger when unreturned credits equal or exceed the percentage of the whole.
-+ *
-+ * Return value is what to write into the CSR: trigger return when
-+ * unreturned credits pass this count.
-+ */
-+static u32 sc_percent_to_threshold(struct send_context *sc, u32 percent)
-+{
-+	return (sc->credits * percent) / 100;
-+}
-+
-+/*
-+ * Set the credit return threshold.
-+ */
-+void sc_set_cr_threshold(struct send_context *sc, u32 new_threshold)
-+{
-+	unsigned long flags;
-+	u32 old_threshold;
-+	int force_return = 0;
-+
-+	spin_lock_irqsave(&sc->credit_ctrl_lock, flags);
-+
-+	old_threshold = (sc->credit_ctrl >>
-+				SC(CREDIT_CTRL_THRESHOLD_SHIFT))
-+			 & SC(CREDIT_CTRL_THRESHOLD_MASK);
-+
-+	if (new_threshold != old_threshold) {
-+		sc->credit_ctrl =
-+			(sc->credit_ctrl
-+				& ~SC(CREDIT_CTRL_THRESHOLD_SMASK))
-+			| ((new_threshold
-+				& SC(CREDIT_CTRL_THRESHOLD_MASK))
-+			   << SC(CREDIT_CTRL_THRESHOLD_SHIFT));
-+		write_kctxt_csr(sc->dd, sc->hw_context,
-+			SC(CREDIT_CTRL), sc->credit_ctrl);
-+
-+		/* force a credit return on change to avoid a possible stall */
-+		force_return = 1;
-+	}
-+
-+	spin_unlock_irqrestore(&sc->credit_ctrl_lock, flags);
-+
-+	if (force_return)
-+		sc_return_credits(sc);
-+}
-+
-+/*
-+ * set_pio_integrity
-+ *
-+ * Set the CHECK_ENABLE register for the send context 'sc'.
-+ */
-+void set_pio_integrity(struct send_context *sc)
-+{
-+	struct hfi1_devdata *dd = sc->dd;
-+	u64 reg = 0;
-+	u32 hw_context = sc->hw_context;
-+	int type = sc->type;
-+
-+	/*
-+	 * No integrity checks if HFI1_CAP_NO_INTEGRITY is set, or if
-+	 * we're snooping.
-+	 */
-+	if (likely(!HFI1_CAP_IS_KSET(NO_INTEGRITY)) &&
-+	    dd->hfi1_snoop.mode_flag != HFI1_PORT_SNOOP_MODE)
-+		reg = hfi1_pkt_default_send_ctxt_mask(dd, type);
-+
-+	write_kctxt_csr(dd, hw_context, SC(CHECK_ENABLE), reg);
-+}
-+
-+/*
-+ * Allocate a NUMA relative send context structure of the given type along
-+ * with a HW context.
-+ */
-+struct send_context *sc_alloc(struct hfi1_devdata *dd, int type,
-+			      uint hdrqentsize, int numa)
-+{
-+	struct send_context_info *sci;
-+	struct send_context *sc;
-+	dma_addr_t pa;
-+	unsigned long flags;
-+	u64 reg;
-+	u32 thresh;
-+	u32 sw_index;
-+	u32 hw_context;
-+	int ret;
-+	u8 opval, opmask;
-+
-+	/* do not allocate while frozen */
-+	if (dd->flags & HFI1_FROZEN)
-+		return NULL;
-+
-+	sc = kzalloc_node(sizeof(struct send_context), GFP_KERNEL, numa);
-+	if (!sc) {
-+		dd_dev_err(dd, "Cannot allocate send context structure\n");
-+		return NULL;
-+	}
-+
-+	spin_lock_irqsave(&dd->sc_lock, flags);
-+	ret = sc_hw_alloc(dd, type, &sw_index, &hw_context);
-+	if (ret) {
-+		spin_unlock_irqrestore(&dd->sc_lock, flags);
-+		kfree(sc);
-+		return NULL;
-+	}
-+
-+	sci = &dd->send_contexts[sw_index];
-+	sci->sc = sc;
-+
-+	sc->dd = dd;
-+	sc->node = numa;
-+	sc->type = type;
-+	spin_lock_init(&sc->alloc_lock);
-+	spin_lock_init(&sc->release_lock);
-+	spin_lock_init(&sc->credit_ctrl_lock);
-+	INIT_LIST_HEAD(&sc->piowait);
-+	INIT_WORK(&sc->halt_work, sc_halted);
-+	atomic_set(&sc->buffers_allocated, 0);
-+	init_waitqueue_head(&sc->halt_wait);
-+
-+	/* grouping is always single context for now */
-+	sc->group = 0;
-+
-+	sc->sw_index = sw_index;
-+	sc->hw_context = hw_context;
-+	cr_group_addresses(sc, &pa);
-+	sc->credits = sci->credits;
-+
-+/* PIO Send Memory Address details */
-+#define PIO_ADDR_CONTEXT_MASK 0xfful
-+#define PIO_ADDR_CONTEXT_SHIFT 16
-+	sc->base_addr = dd->piobase + ((hw_context & PIO_ADDR_CONTEXT_MASK)
-+					<< PIO_ADDR_CONTEXT_SHIFT);
-+
-+	/* set base and credits */
-+	reg = ((sci->credits & SC(CTRL_CTXT_DEPTH_MASK))
-+					<< SC(CTRL_CTXT_DEPTH_SHIFT))
-+		| ((sci->base & SC(CTRL_CTXT_BASE_MASK))
-+					<< SC(CTRL_CTXT_BASE_SHIFT));
-+	write_kctxt_csr(dd, hw_context, SC(CTRL), reg);
-+
-+	set_pio_integrity(sc);
-+
-+	/* unmask all errors */
-+	write_kctxt_csr(dd, hw_context, SC(ERR_MASK), (u64)-1);
-+
-+	/* set the default partition key */
-+	write_kctxt_csr(dd, hw_context, SC(CHECK_PARTITION_KEY),
-+		(DEFAULT_PKEY &
-+			SC(CHECK_PARTITION_KEY_VALUE_MASK))
-+		    << SC(CHECK_PARTITION_KEY_VALUE_SHIFT));
-+
-+	/* per context type checks */
-+	if (type == SC_USER) {
-+		opval = USER_OPCODE_CHECK_VAL;
-+		opmask = USER_OPCODE_CHECK_MASK;
-+	} else {
-+		opval = OPCODE_CHECK_VAL_DISABLED;
-+		opmask = OPCODE_CHECK_MASK_DISABLED;
-+	}
-+
-+	/* set the send context check opcode mask and value */
-+	write_kctxt_csr(dd, hw_context, SC(CHECK_OPCODE),
-+		((u64)opmask << SC(CHECK_OPCODE_MASK_SHIFT)) |
-+		((u64)opval << SC(CHECK_OPCODE_VALUE_SHIFT)));
-+
-+	/* set up credit return */
-+	reg = pa & SC(CREDIT_RETURN_ADDR_ADDRESS_SMASK);
-+	write_kctxt_csr(dd, hw_context, SC(CREDIT_RETURN_ADDR), reg);
-+
-+	/*
-+	 * Calculate the initial credit return threshold.
-+	 *
-+	 * For Ack contexts, set a threshold for half the credits.
-+	 * For User contexts use the given percentage.  This has been
-+	 * sanitized on driver start-up.
-+	 * For Kernel contexts, use the default MTU plus a header.
-+	 */
-+	if (type == SC_ACK) {
-+		thresh = sc_percent_to_threshold(sc, 50);
-+	} else if (type == SC_USER) {
-+		thresh = sc_percent_to_threshold(sc,
-+				user_credit_return_threshold);
-+	} else { /* kernel */
-+		thresh = sc_mtu_to_threshold(sc, hfi1_max_mtu, hdrqentsize);
-+	}
-+	reg = thresh << SC(CREDIT_CTRL_THRESHOLD_SHIFT);
-+	/* add in early return */
-+	if (type == SC_USER && HFI1_CAP_IS_USET(EARLY_CREDIT_RETURN))
-+		reg |= SC(CREDIT_CTRL_EARLY_RETURN_SMASK);
-+	else if (HFI1_CAP_IS_KSET(EARLY_CREDIT_RETURN)) /* kernel, ack */
-+		reg |= SC(CREDIT_CTRL_EARLY_RETURN_SMASK);
-+
-+	/* set up write-through credit_ctrl */
-+	sc->credit_ctrl = reg;
-+	write_kctxt_csr(dd, hw_context, SC(CREDIT_CTRL), reg);
-+
-+	/* User send contexts should not allow sending on VL15 */
-+	if (type == SC_USER) {
-+		reg = 1ULL << 15;
-+		write_kctxt_csr(dd, hw_context, SC(CHECK_VL), reg);
-+	}
-+
-+	spin_unlock_irqrestore(&dd->sc_lock, flags);
-+
-+	/*
-+	 * Allocate shadow ring to track outstanding PIO buffers _after_
-+	 * unlocking.  We don't know the size until the lock is held and
-+	 * we can't allocate while the lock is held.  No one is using
-+	 * the context yet, so allocate it now.
-+	 *
-+	 * User contexts do not get a shadow ring.
-+	 */
-+	if (type != SC_USER) {
-+		/*
-+		 * Size the shadow ring 1 larger than the number of credits
-+		 * so head == tail can mean empty.
-+		 */
-+		sc->sr_size = sci->credits + 1;
-+		sc->sr = kzalloc_node(sizeof(union pio_shadow_ring) *
-+				sc->sr_size, GFP_KERNEL, numa);
-+		if (!sc->sr) {
-+			dd_dev_err(dd,
-+				"Cannot allocate send context shadow ring structure\n");
-+			sc_free(sc);
-+			return NULL;
-+		}
-+	}
-+
-+	dd_dev_info(dd,
-+		"Send context %u(%u) %s group %u credits %u credit_ctrl 0x%llx threshold %u\n",
-+		sw_index,
-+		hw_context,
-+		sc_type_name(type),
-+		sc->group,
-+		sc->credits,
-+		sc->credit_ctrl,
-+		thresh);
-+
-+	return sc;
-+}
-+
-+/* free a per-NUMA send context structure */
-+void sc_free(struct send_context *sc)
-+{
-+	struct hfi1_devdata *dd;
-+	unsigned long flags;
-+	u32 sw_index;
-+	u32 hw_context;
-+
-+	if (!sc)
-+		return;
-+
-+	sc->flags |= SCF_IN_FREE;	/* ensure no restarts */
-+	dd = sc->dd;
-+	if (!list_empty(&sc->piowait))
-+		dd_dev_err(dd, "piowait list not empty!\n");
-+	sw_index = sc->sw_index;
-+	hw_context = sc->hw_context;
-+	sc_disable(sc);	/* make sure the HW is disabled */
-+	flush_work(&sc->halt_work);
-+
-+	spin_lock_irqsave(&dd->sc_lock, flags);
-+	dd->send_contexts[sw_index].sc = NULL;
-+
-+	/* clear/disable all registers set in sc_alloc */
-+	write_kctxt_csr(dd, hw_context, SC(CTRL), 0);
-+	write_kctxt_csr(dd, hw_context, SC(CHECK_ENABLE), 0);
-+	write_kctxt_csr(dd, hw_context, SC(ERR_MASK), 0);
-+	write_kctxt_csr(dd, hw_context, SC(CHECK_PARTITION_KEY), 0);
-+	write_kctxt_csr(dd, hw_context, SC(CHECK_OPCODE), 0);
-+	write_kctxt_csr(dd, hw_context, SC(CREDIT_RETURN_ADDR), 0);
-+	write_kctxt_csr(dd, hw_context, SC(CREDIT_CTRL), 0);
-+
-+	/* release the index and context for re-use */
-+	sc_hw_free(dd, sw_index, hw_context);
-+	spin_unlock_irqrestore(&dd->sc_lock, flags);
-+
-+	kfree(sc->sr);
-+	kfree(sc);
-+}
-+
-+/* disable the context */
-+void sc_disable(struct send_context *sc)
-+{
-+	u64 reg;
-+	unsigned long flags;
-+	struct pio_buf *pbuf;
-+
-+	if (!sc)
-+		return;
-+
-+	/* do all steps, even if already disabled */
-+	spin_lock_irqsave(&sc->alloc_lock, flags);
-+	reg = read_kctxt_csr(sc->dd, sc->hw_context, SC(CTRL));
-+	reg &= ~SC(CTRL_CTXT_ENABLE_SMASK);
-+	sc->flags &= ~SCF_ENABLED;
-+	sc_wait_for_packet_egress(sc, 1);
-+	write_kctxt_csr(sc->dd, sc->hw_context, SC(CTRL), reg);
-+	spin_unlock_irqrestore(&sc->alloc_lock, flags);
-+
-+	/*
-+	 * Flush any waiters.  Once the context is disabled,
-+	 * credit return interrupts are stopped (although there
-+	 * could be one in-process when the context is disabled).
-+	 * Wait one microsecond for any lingering interrupts, then
-+	 * proceed with the flush.
-+	 */
-+	udelay(1);
-+	spin_lock_irqsave(&sc->release_lock, flags);
-+	if (sc->sr) {	/* this context has a shadow ring */
-+		while (sc->sr_tail != sc->sr_head) {
-+			pbuf = &sc->sr[sc->sr_tail].pbuf;
-+			if (pbuf->cb)
-+				(*pbuf->cb)(pbuf->arg, PRC_SC_DISABLE);
-+			sc->sr_tail++;
-+			if (sc->sr_tail >= sc->sr_size)
-+				sc->sr_tail = 0;
-+		}
-+	}
-+	spin_unlock_irqrestore(&sc->release_lock, flags);
-+}
-+
-+/* return SendEgressCtxtStatus.PacketOccupancy */
-+#define packet_occupancy(r) \
-+	(((r) & SEND_EGRESS_CTXT_STATUS_CTXT_EGRESS_PACKET_OCCUPANCY_SMASK)\
-+	>> SEND_EGRESS_CTXT_STATUS_CTXT_EGRESS_PACKET_OCCUPANCY_SHIFT)
-+
-+/* is egress halted on the context? */
-+#define egress_halted(r) \
-+	((r) & SEND_EGRESS_CTXT_STATUS_CTXT_EGRESS_HALT_STATUS_SMASK)
-+
-+/* wait for packet egress, optionally pause for credit return  */
-+static void sc_wait_for_packet_egress(struct send_context *sc, int pause)
-+{
-+	struct hfi1_devdata *dd = sc->dd;
-+	u64 reg;
-+	u32 loop = 0;
-+
-+	while (1) {
-+		reg = read_csr(dd, sc->hw_context * 8 +
-+			       SEND_EGRESS_CTXT_STATUS);
-+		/* done if egress is stopped */
-+		if (egress_halted(reg))
-+			break;
-+		reg = packet_occupancy(reg);
-+		if (reg == 0)
-+			break;
-+		if (loop > 100) {
-+			dd_dev_err(dd,
-+				"%s: context %u(%u) timeout waiting for packets to egress, remaining count %u\n",
-+				__func__, sc->sw_index,
-+				sc->hw_context, (u32)reg);
-+			break;
-+		}
-+		loop++;
-+		udelay(1);
-+	}
-+
-+	if (pause)
-+		/* Add additional delay to ensure chip returns all credits */
-+		pause_for_credit_return(dd);
-+}
-+
-+void sc_wait(struct hfi1_devdata *dd)
-+{
-+	int i;
-+
-+	for (i = 0; i < dd->num_send_contexts; i++) {
-+		struct send_context *sc = dd->send_contexts[i].sc;
-+
-+		if (!sc)
-+			continue;
-+		sc_wait_for_packet_egress(sc, 0);
-+	}
-+}
-+
-+/*
-+ * Restart a context after it has been halted due to error.
-+ *
-+ * If the first step fails - wait for the halt to be asserted, return early.
-+ * Otherwise complain about timeouts but keep going.
-+ *
-+ * It is expected that allocations (enabled flag bit) have been shut off
-+ * already (only applies to kernel contexts).
-+ */
-+int sc_restart(struct send_context *sc)
-+{
-+	struct hfi1_devdata *dd = sc->dd;
-+	u64 reg;
-+	u32 loop;
-+	int count;
-+
-+	/* bounce off if not halted, or being free'd */
-+	if (!(sc->flags & SCF_HALTED) || (sc->flags & SCF_IN_FREE))
-+		return -EINVAL;
-+
-+	dd_dev_info(dd, "restarting send context %u(%u)\n", sc->sw_index,
-+		sc->hw_context);
-+
-+	/*
-+	 * Step 1: Wait for the context to actually halt.
-+	 *
-+	 * The error interrupt is asynchronous to actually setting halt
-+	 * on the context.
-+	 */
-+	loop = 0;
-+	while (1) {
-+		reg = read_kctxt_csr(dd, sc->hw_context, SC(STATUS));
-+		if (reg & SC(STATUS_CTXT_HALTED_SMASK))
-+			break;
-+		if (loop > 100) {
-+			dd_dev_err(dd, "%s: context %u(%u) not halting, skipping\n",
-+				__func__, sc->sw_index, sc->hw_context);
-+			return -ETIME;
-+		}
-+		loop++;
-+		udelay(1);
-+	}
-+
-+	/*
-+	 * Step 2: Ensure no users are still trying to write to PIO.
-+	 *
-+	 * For kernel contexts, we have already turned off buffer allocation.
-+	 * Now wait for the buffer count to go to zero.
-+	 *
-+	 * For user contexts, the user handling code has cut off write access
-+	 * to the context's PIO pages before calling this routine and will
-+	 * restore write access after this routine returns.
-+	 */
-+	if (sc->type != SC_USER) {
-+		/* kernel context */
-+		loop = 0;
-+		while (1) {
-+			count = atomic_read(&sc->buffers_allocated);
-+			if (count == 0)
-+				break;
-+			if (loop > 100) {
-+				dd_dev_err(dd,
-+					"%s: context %u(%u) timeout waiting for PIO buffers to zero, remaining %d\n",
-+					__func__, sc->sw_index,
-+					sc->hw_context, count);
-+			}
-+			loop++;
-+			udelay(1);
-+		}
-+	}
-+
-+	/*
-+	 * Step 3: Wait for all packets to egress.
-+	 * This is done while disabling the send context
-+	 *
-+	 * Step 4: Disable the context
-+	 *
-+	 * This is a superset of the halt.  After the disable, the
-+	 * errors can be cleared.
-+	 */
-+	sc_disable(sc);
-+
-+	/*
-+	 * Step 5: Enable the context
-+	 *
-+	 * This enable will clear the halted flag and per-send context
-+	 * error flags.
-+	 */
-+	return sc_enable(sc);
-+}
-+
-+/*
-+ * PIO freeze processing.  To be called after the TXE block is fully frozen.
-+ * Go through all frozen send contexts and disable them.  The contexts are
-+ * already stopped by the freeze.
-+ */
-+void pio_freeze(struct hfi1_devdata *dd)
-+{
-+	struct send_context *sc;
-+	int i;
-+
-+	for (i = 0; i < dd->num_send_contexts; i++) {
-+		sc = dd->send_contexts[i].sc;
-+		/*
-+		 * Don't disable unallocated, unfrozen, or user send contexts.
-+		 * User send contexts will be disabled when the process
-+		 * calls into the driver to reset its context.
-+		 */
-+		if (!sc || !(sc->flags & SCF_FROZEN) || sc->type == SC_USER)
-+			continue;
-+
-+		/* only need to disable, the context is already stopped */
-+		sc_disable(sc);
-+	}
-+}
-+
-+/*
-+ * Unfreeze PIO for kernel send contexts.  The precondition for calling this
-+ * is that all PIO send contexts have been disabled and the SPC freeze has
-+ * been cleared.  Now perform the last step and re-enable each kernel context.
-+ * User (PSM) processing will occur when PSM calls into the kernel to
-+ * acknowledge the freeze.
-+ */
-+void pio_kernel_unfreeze(struct hfi1_devdata *dd)
-+{
-+	struct send_context *sc;
-+	int i;
-+
-+	for (i = 0; i < dd->num_send_contexts; i++) {
-+		sc = dd->send_contexts[i].sc;
-+		if (!sc || !(sc->flags & SCF_FROZEN) || sc->type == SC_USER)
-+			continue;
-+
-+		sc_enable(sc);	/* will clear the sc frozen flag */
-+	}
-+}
-+
-+/*
-+ * Wait for the SendPioInitCtxt.PioInitInProgress bit to clear.
-+ * Returns:
-+ *	-ETIMEDOUT - if we wait too long
-+ *	-EIO	   - if there was an error
-+ */
-+static int pio_init_wait_progress(struct hfi1_devdata *dd)
-+{
-+	u64 reg;
-+	int max, count = 0;
-+
-+	/* max is the longest possible HW init time / delay */
-+	max = (dd->icode == ICODE_FPGA_EMULATION) ? 120 : 5;
-+	while (1) {
-+		reg = read_csr(dd, SEND_PIO_INIT_CTXT);
-+		if (!(reg & SEND_PIO_INIT_CTXT_PIO_INIT_IN_PROGRESS_SMASK))
-+			break;
-+		if (count >= max)
-+			return -ETIMEDOUT;
-+		udelay(5);
-+		count++;
-+	}
-+
-+	return reg & SEND_PIO_INIT_CTXT_PIO_INIT_ERR_SMASK ? -EIO : 0;
-+}
-+
-+/*
-+ * Reset all of the send contexts to their power-on state.  Used
-+ * only during manual init - no lock against sc_enable needed.
-+ */
-+void pio_reset_all(struct hfi1_devdata *dd)
-+{
-+	int ret;
-+
-+	/* make sure the init engine is not busy */
-+	ret = pio_init_wait_progress(dd);
-+	/* ignore any timeout */
-+	if (ret == -EIO) {
-+		/* clear the error */
-+		write_csr(dd, SEND_PIO_ERR_CLEAR,
-+			SEND_PIO_ERR_CLEAR_PIO_INIT_SM_IN_ERR_SMASK);
-+	}
-+
-+	/* reset init all */
-+	write_csr(dd, SEND_PIO_INIT_CTXT,
-+			SEND_PIO_INIT_CTXT_PIO_ALL_CTXT_INIT_SMASK);
-+	udelay(2);
-+	ret = pio_init_wait_progress(dd);
-+	if (ret < 0) {
-+		dd_dev_err(dd,
-+			"PIO send context init %s while initializing all PIO blocks\n",
-+			ret == -ETIMEDOUT ? "is stuck" : "had an error");
-+	}
-+}
-+
-+/* enable the context */
-+int sc_enable(struct send_context *sc)
-+{
-+	u64 sc_ctrl, reg, pio;
-+	struct hfi1_devdata *dd;
-+	unsigned long flags;
++	struct hfi1_pportdata *ppd;
++	u32 excess_len = 0;
 +	int ret = 0;
 +
-+	if (!sc)
-+		return -EINVAL;
-+	dd = sc->dd;
-+
-+	/*
-+	 * Obtain the allocator lock to guard against any allocation
-+	 * attempts (which should not happen prior to context being
-+	 * enabled). On the release/disable side we don't need to
-+	 * worry about locking since the releaser will not do anything
-+	 * if the context accounting values have not changed.
-+	 */
-+	spin_lock_irqsave(&sc->alloc_lock, flags);
-+	sc_ctrl = read_kctxt_csr(dd, sc->hw_context, SC(CTRL));
-+	if ((sc_ctrl & SC(CTRL_CTXT_ENABLE_SMASK)))
-+		goto unlock; /* already enabled */
-+
-+	/* IMPORTANT: only clear free and fill if transitioning 0 -> 1 */
-+
-+	*sc->hw_free = 0;
-+	sc->free = 0;
-+	sc->alloc_free = 0;
-+	sc->fill = 0;
-+	sc->sr_head = 0;
-+	sc->sr_tail = 0;
-+	sc->flags = 0;
-+	atomic_set(&sc->buffers_allocated, 0);
-+
-+	/*
-+	 * Clear all per-context errors.  Some of these will be set when
-+	 * we are re-enabling after a context halt.  Now that the context
-+	 * is disabled, the halt will not clear until after the PIO init
-+	 * engine runs below.
-+	 */
-+	reg = read_kctxt_csr(dd, sc->hw_context, SC(ERR_STATUS));
-+	if (reg)
-+		write_kctxt_csr(dd, sc->hw_context, SC(ERR_CLEAR),
-+			reg);
-+
-+	/*
-+	 * The HW PIO initialization engine can handle only one init
-+	 * request at a time. Serialize access to each device's engine.
-+	 */
-+	spin_lock(&dd->sc_init_lock);
-+	/*
-+	 * Since access to this code block is serialized and
-+	 * each access waits for the initialization to complete
-+	 * before releasing the lock, the PIO initialization engine
-+	 * should not be in use, so we don't have to wait for the
-+	 * InProgress bit to go down.
-+	 */
-+	pio = ((sc->hw_context & SEND_PIO_INIT_CTXT_PIO_CTXT_NUM_MASK) <<
-+	       SEND_PIO_INIT_CTXT_PIO_CTXT_NUM_SHIFT) |
-+		SEND_PIO_INIT_CTXT_PIO_SINGLE_CTXT_INIT_SMASK;
-+	write_csr(dd, SEND_PIO_INIT_CTXT, pio);
-+	/*
-+	 * Wait until the engine is done.  Give the chip the required time
-+	 * so, hopefully, we read the register just once.
-+	 */
-+	udelay(2);
-+	ret = pio_init_wait_progress(dd);
-+	spin_unlock(&dd->sc_init_lock);
-+	if (ret) {
-+		dd_dev_err(dd,
-+			   "sctxt%u(%u): Context not enabled due to init failure %d\n",
-+			   sc->sw_index, sc->hw_context, ret);
-+		goto unlock;
++	if (port_num > dd->num_pports || port_num < 1) {
++		dd_dev_info(dd, "%s: Invalid port number %d\n",
++				__func__, port_num);
++		ret = -EINVAL;
++		goto set_zeroes;
 +	}
 +
-+	/*
-+	 * All is well. Enable the context.
-+	 */
-+	sc_ctrl |= SC(CTRL_CTXT_ENABLE_SMASK);
-+	write_kctxt_csr(dd, sc->hw_context, SC(CTRL), sc_ctrl);
-+	/*
-+	 * Read SendCtxtCtrl to force the write out and prevent a timing
-+	 * hazard where a PIO write may reach the context before the enable.
-+	 */
-+	read_kctxt_csr(dd, sc->hw_context, SC(CTRL));
-+	sc->flags |= SCF_ENABLED;
-+
-+unlock:
-+	spin_unlock_irqrestore(&sc->alloc_lock, flags);
-+
-+	return ret;
-+}
-+
-+/* force a credit return on the context */
-+void sc_return_credits(struct send_context *sc)
-+{
-+	if (!sc)
-+		return;
-+
-+	/* a 0->1 transition schedules a credit return */
-+	write_kctxt_csr(sc->dd, sc->hw_context, SC(CREDIT_FORCE),
-+		SC(CREDIT_FORCE_FORCE_RETURN_SMASK));
-+	/*
-+	 * Ensure that the write is flushed and the credit return is
-+	 * scheduled. We care more about the 0 -> 1 transition.
-+	 */
-+	read_kctxt_csr(sc->dd, sc->hw_context, SC(CREDIT_FORCE));
-+	/* set back to 0 for next time */
-+	write_kctxt_csr(sc->dd, sc->hw_context, SC(CREDIT_FORCE), 0);
-+}
-+
-+/* allow all in-flight packets to drain on the context */
-+void sc_flush(struct send_context *sc)
-+{
-+	if (!sc)
-+		return;
-+
-+	sc_wait_for_packet_egress(sc, 1);
-+}
-+
-+/* drop all packets on the context, no waiting until they are sent */
-+void sc_drop(struct send_context *sc)
-+{
-+	if (!sc)
-+		return;
-+
-+	dd_dev_info(sc->dd, "%s: context %u(%u) - not implemented\n",
-+			__func__, sc->sw_index, sc->hw_context);
-+}
-+
-+/*
-+ * Start the software reaction to a context halt or SPC freeze:
-+ *	- mark the context as halted or frozen
-+ *	- stop buffer allocations
-+ *
-+ * Called from the error interrupt.  Other work is deferred until
-+ * out of the interrupt.
-+ */
-+void sc_stop(struct send_context *sc, int flag)
-+{
-+	unsigned long flags;
-+
-+	/* mark the context */
-+	sc->flags |= flag;
-+
-+	/* stop buffer allocations */
-+	spin_lock_irqsave(&sc->alloc_lock, flags);
-+	sc->flags &= ~SCF_ENABLED;
-+	spin_unlock_irqrestore(&sc->alloc_lock, flags);
-+	wake_up(&sc->halt_wait);
-+}
-+
-+#define BLOCK_DWORDS (PIO_BLOCK_SIZE/sizeof(u32))
-+#define dwords_to_blocks(x) DIV_ROUND_UP(x, BLOCK_DWORDS)
-+
-+/*
-+ * The send context buffer "allocator".
-+ *
-+ * @sc: the PIO send context we are allocating from
-+ * @len: length of whole packet - including PBC - in dwords
-+ * @cb: optional callback to call when the buffer is finished sending
-+ * @arg: argument for cb
-+ *
-+ * Return a pointer to a PIO buffer if successful, NULL if not enough room.
-+ */
-+struct pio_buf *sc_buffer_alloc(struct send_context *sc, u32 dw_len,
-+				pio_release_cb cb, void *arg)
-+{
-+	struct pio_buf *pbuf = NULL;
-+	unsigned long flags;
-+	unsigned long avail;
-+	unsigned long blocks = dwords_to_blocks(dw_len);
-+	unsigned long start_fill;
-+	int trycount = 0;
-+	u32 head, next;
-+
-+	spin_lock_irqsave(&sc->alloc_lock, flags);
-+	if (!(sc->flags & SCF_ENABLED)) {
-+		spin_unlock_irqrestore(&sc->alloc_lock, flags);
-+		goto done;
++	ppd = dd->pport + (port_num - 1);
++	if (!qsfp_mod_present(ppd)) {
++		ret = -ENODEV;
++		goto set_zeroes;
 +	}
 +
-+retry:
-+	avail = (unsigned long)sc->credits - (sc->fill - sc->alloc_free);
-+	if (blocks > avail) {
-+		/* not enough room */
-+		if (unlikely(trycount))	{ /* already tried to get more room */
-+			spin_unlock_irqrestore(&sc->alloc_lock, flags);
-+			goto done;
-+		}
-+		/* copy from receiver cache line and recalculate */
-+		sc->alloc_free = ACCESS_ONCE(sc->free);
-+		avail =
-+			(unsigned long)sc->credits -
-+			(sc->fill - sc->alloc_free);
-+		if (blocks > avail) {
-+			/* still no room, actively update */
-+			spin_unlock_irqrestore(&sc->alloc_lock, flags);
-+			sc_release_update(sc);
-+			spin_lock_irqsave(&sc->alloc_lock, flags);
-+			sc->alloc_free = ACCESS_ONCE(sc->free);
-+			trycount++;
-+			goto retry;
-+		}
++	if (!ppd->qsfp_info.cache_valid) {
++		ret = -EINVAL;
++		goto set_zeroes;
 +	}
 +
-+	/* there is enough room */
-+
-+	atomic_inc(&sc->buffers_allocated);
-+
-+	/* read this once */
-+	head = sc->sr_head;
-+
-+	/* "allocate" the buffer */
-+	start_fill = sc->fill;
-+	sc->fill += blocks;
-+
-+	/*
-+	 * Fill the parts that the releaser looks at before moving the head.
-+	 * The only necessary piece is the sent_at field.  The credits
-+	 * we have just allocated cannot have been returned yet, so the
-+	 * cb and arg will not be looked at for a "while".  Put them
-+	 * on this side of the memory barrier anyway.
-+	 */
-+	pbuf = &sc->sr[head].pbuf;
-+	pbuf->sent_at = sc->fill;
-+	pbuf->cb = cb;
-+	pbuf->arg = arg;
-+	pbuf->sc = sc;	/* could be filled in at sc->sr init time */
-+	/* make sure this is in memory before updating the head */
-+
-+	/* calculate next head index, do not store */
-+	next = head + 1;
-+	if (next >= sc->sr_size)
-+		next = 0;
-+	/* update the head - must be last! - the releaser can look at fields
-+	   in pbuf once we move the head */
-+	smp_wmb();
-+	sc->sr_head = next;
-+	spin_unlock_irqrestore(&sc->alloc_lock, flags);
-+
-+	/* finish filling in the buffer outside the lock */
-+	pbuf->start = sc->base_addr + ((start_fill % sc->credits)
-+							* PIO_BLOCK_SIZE);
-+	pbuf->size = sc->credits * PIO_BLOCK_SIZE;
-+	pbuf->end = sc->base_addr + pbuf->size;
-+	pbuf->block_count = blocks;
-+	pbuf->qw_written = 0;
-+	pbuf->carry_bytes = 0;
-+	pbuf->carry.val64 = 0;
-+done:
-+	return pbuf;
-+}
-+
-+/*
-+ * There are at least two entities that can turn on credit return
-+ * interrupts and they can overlap.  Avoid problems by implementing
-+ * a count scheme that is enforced by a lock.  The lock is needed because
-+ * the count and CSR write must be paired.
-+ */
-+
-+/*
-+ * Start credit return interrupts.  This is managed by a count.  If already
-+ * on, just increment the count.
-+ */
-+void sc_add_credit_return_intr(struct send_context *sc)
-+{
-+	unsigned long flags;
-+
-+	/* lock must surround both the count change and the CSR update */
-+	spin_lock_irqsave(&sc->credit_ctrl_lock, flags);
-+	if (sc->credit_intr_count == 0) {
-+		sc->credit_ctrl |= SC(CREDIT_CTRL_CREDIT_INTR_SMASK);
-+		write_kctxt_csr(sc->dd, sc->hw_context,
-+			SC(CREDIT_CTRL), sc->credit_ctrl);
++	if (addr >= (QSFP_MAX_NUM_PAGES * 128)) {
++		ret = -ERANGE;
++		goto set_zeroes;
 +	}
-+	sc->credit_intr_count++;
-+	spin_unlock_irqrestore(&sc->credit_ctrl_lock, flags);
-+}
 +
-+/*
-+ * Stop credit return interrupts.  This is managed by a count.  Decrement the
-+ * count, if the last user, then turn the credit interrupts off.
-+ */
-+void sc_del_credit_return_intr(struct send_context *sc)
-+{
-+	unsigned long flags;
-+
-+	WARN_ON(sc->credit_intr_count == 0);
-+
-+	/* lock must surround both the count change and the CSR update */
-+	spin_lock_irqsave(&sc->credit_ctrl_lock, flags);
-+	sc->credit_intr_count--;
-+	if (sc->credit_intr_count == 0) {
-+		sc->credit_ctrl &= ~SC(CREDIT_CTRL_CREDIT_INTR_SMASK);
-+		write_kctxt_csr(sc->dd, sc->hw_context,
-+			SC(CREDIT_CTRL), sc->credit_ctrl);
++	if ((addr + len) > (QSFP_MAX_NUM_PAGES * 128)) {
++		excess_len = (addr + len) - (QSFP_MAX_NUM_PAGES * 128);
++		memcpy(data, &ppd->qsfp_info.cache[addr], (len - excess_len));
++		data += (len - excess_len);
++		goto set_zeroes;
 +	}
-+	spin_unlock_irqrestore(&sc->credit_ctrl_lock, flags);
-+}
 +
-+/*
-+ * The caller must be careful when calling this.  All needint calls
-+ * must be paired with !needint.
-+ */
-+void hfi1_sc_wantpiobuf_intr(struct send_context *sc, u32 needint)
-+{
-+	if (needint)
-+		sc_add_credit_return_intr(sc);
-+	else
-+		sc_del_credit_return_intr(sc);
-+	trace_hfi1_wantpiointr(sc, needint, sc->credit_ctrl);
-+	if (needint) {
-+		mmiowb();
-+		sc_return_credits(sc);
-+	}
-+}
-+
-+/**
-+ * sc_piobufavail - callback when a PIO buffer is available
-+ * @sc: the send context
-+ *
-+ * This is called from the interrupt handler when a PIO buffer is
-+ * available after hfi1_verbs_send() returned an error that no buffers were
-+ * available. Disable the interrupt if there are no more QPs waiting.
-+ */
-+static void sc_piobufavail(struct send_context *sc)
-+{
-+	struct hfi1_devdata *dd = sc->dd;
-+	struct hfi1_ibdev *dev = &dd->verbs_dev;
-+	struct list_head *list;
-+	struct hfi1_qp *qps[PIO_WAIT_BATCH_SIZE];
-+	struct hfi1_qp *qp;
-+	unsigned long flags;
-+	unsigned i, n = 0;
-+
-+	if (dd->send_contexts[sc->sw_index].type != SC_KERNEL)
-+		return;
-+	list = &sc->piowait;
-+	/*
-+	 * Note: checking that the piowait list is empty and clearing
-+	 * the buffer available interrupt needs to be atomic or we
-+	 * could end up with QPs on the wait list with the interrupt
-+	 * disabled.
-+	 */
-+	write_seqlock_irqsave(&dev->iowait_lock, flags);
-+	while (!list_empty(list)) {
-+		struct iowait *wait;
-+
-+		if (n == ARRAY_SIZE(qps))
-+			goto full;
-+		wait = list_first_entry(list, struct iowait, list);
-+		qp = container_of(wait, struct hfi1_qp, s_iowait);
-+		list_del_init(&qp->s_iowait.list);
-+		/* refcount held until actual wake up */
-+		qps[n++] = qp;
-+	}
-+	/*
-+	 * Counting: only call wantpiobuf_intr() if there were waiters and they
-+	 * are now all gone.
-+	 */
-+	if (n)
-+		hfi1_sc_wantpiobuf_intr(sc, 0);
-+full:
-+	write_sequnlock_irqrestore(&dev->iowait_lock, flags);
-+
-+	for (i = 0; i < n; i++)
-+		hfi1_qp_wakeup(qps[i], HFI1_S_WAIT_PIO);
-+}
-+
-+/* translate a send credit update to a bit code of reasons */
-+static inline int fill_code(u64 hw_free)
-+{
-+	int code = 0;
-+
-+	if (hw_free & CR_STATUS_SMASK)
-+		code |= PRC_STATUS_ERR;
-+	if (hw_free & CR_CREDIT_RETURN_DUE_TO_PBC_SMASK)
-+		code |= PRC_PBC;
-+	if (hw_free & CR_CREDIT_RETURN_DUE_TO_THRESHOLD_SMASK)
-+		code |= PRC_THRESHOLD;
-+	if (hw_free & CR_CREDIT_RETURN_DUE_TO_ERR_SMASK)
-+		code |= PRC_FILL_ERR;
-+	if (hw_free & CR_CREDIT_RETURN_DUE_TO_FORCE_SMASK)
-+		code |= PRC_SC_DISABLE;
-+	return code;
-+}
-+
-+/* use the jiffies compare to get the wrap right */
-+#define sent_before(a, b) time_before(a, b)	/* a < b */
-+
-+/*
-+ * The send context buffer "releaser".
-+ */
-+void sc_release_update(struct send_context *sc)
-+{
-+	struct pio_buf *pbuf;
-+	u64 hw_free;
-+	u32 head, tail;
-+	unsigned long old_free;
-+	unsigned long extra;
-+	unsigned long flags;
-+	int code;
-+
-+	if (!sc)
-+		return;
-+
-+	spin_lock_irqsave(&sc->release_lock, flags);
-+	/* update free */
-+	hw_free = le64_to_cpu(*sc->hw_free);		/* volatile read */
-+	old_free = sc->free;
-+	extra = (((hw_free & CR_COUNTER_SMASK) >> CR_COUNTER_SHIFT)
-+			- (old_free & CR_COUNTER_MASK))
-+				& CR_COUNTER_MASK;
-+	sc->free = old_free + extra;
-+	trace_hfi1_piofree(sc, extra);
-+
-+	/* call sent buffer callbacks */
-+	code = -1;				/* code not yet set */
-+	head = ACCESS_ONCE(sc->sr_head);	/* snapshot the head */
-+	tail = sc->sr_tail;
-+	while (head != tail) {
-+		pbuf = &sc->sr[tail].pbuf;
-+
-+		if (sent_before(sc->free, pbuf->sent_at)) {
-+			/* not sent yet */
-+			break;
-+		}
-+		if (pbuf->cb) {
-+			if (code < 0) /* fill in code on first user */
-+				code = fill_code(hw_free);
-+			(*pbuf->cb)(pbuf->arg, code);
-+		}
-+
-+		tail++;
-+		if (tail >= sc->sr_size)
-+			tail = 0;
-+	}
-+	/* update tail, in case we moved it */
-+	sc->sr_tail = tail;
-+	spin_unlock_irqrestore(&sc->release_lock, flags);
-+	sc_piobufavail(sc);
-+}
-+
-+/*
-+ * Send context group releaser.  Argument is the send context that caused
-+ * the interrupt.  Called from the send context interrupt handler.
-+ *
-+ * Call release on all contexts in the group.
-+ *
-+ * This routine takes the sc_lock without an irqsave because it is only
-+ * called from an interrupt handler.  Adjust if that changes.
-+ */
-+void sc_group_release_update(struct hfi1_devdata *dd, u32 hw_context)
-+{
-+	struct send_context *sc;
-+	u32 sw_index;
-+	u32 gc, gc_end;
-+
-+	spin_lock(&dd->sc_lock);
-+	sw_index = dd->hw_to_sw[hw_context];
-+	if (unlikely(sw_index >= dd->num_send_contexts)) {
-+		dd_dev_err(dd, "%s: invalid hw (%u) to sw (%u) mapping\n",
-+			__func__, hw_context, sw_index);
-+		goto done;
-+	}
-+	sc = dd->send_contexts[sw_index].sc;
-+	if (unlikely(!sc))
-+		goto done;
-+
-+	gc = group_context(hw_context, sc->group);
-+	gc_end = gc + group_size(sc->group);
-+	for (; gc < gc_end; gc++) {
-+		sw_index = dd->hw_to_sw[gc];
-+		if (unlikely(sw_index >= dd->num_send_contexts)) {
-+			dd_dev_err(dd,
-+				"%s: invalid hw (%u) to sw (%u) mapping\n",
-+				__func__, hw_context, sw_index);
-+			continue;
-+		}
-+		sc_release_update(dd->send_contexts[sw_index].sc);
-+	}
-+done:
-+	spin_unlock(&dd->sc_lock);
-+}
-+
-+int init_pervl_scs(struct hfi1_devdata *dd)
-+{
-+	int i;
-+	u64 mask, all_vl_mask = (u64) 0x80ff; /* VLs 0-7, 15 */
-+	u32 ctxt;
-+
-+	dd->vld[15].sc = sc_alloc(dd, SC_KERNEL,
-+				  dd->rcd[0]->rcvhdrqentsize, dd->node);
-+	if (!dd->vld[15].sc)
-+		goto nomem;
-+	hfi1_init_ctxt(dd->vld[15].sc);
-+	dd->vld[15].mtu = enum_to_mtu(OPA_MTU_2048);
-+	for (i = 0; i < num_vls; i++) {
-+		/*
-+		 * Since this function does not deal with a specific
-+		 * receive context but we need the RcvHdrQ entry size,
-+		 * use the size from rcd[0]. It is guaranteed to be
-+		 * valid at this point and will remain the same for all
-+		 * receive contexts.
-+		 */
-+		dd->vld[i].sc = sc_alloc(dd, SC_KERNEL,
-+					 dd->rcd[0]->rcvhdrqentsize, dd->node);
-+		if (!dd->vld[i].sc)
-+			goto nomem;
-+
-+		hfi1_init_ctxt(dd->vld[i].sc);
-+
-+		/* non VL15 start with the max MTU */
-+		dd->vld[i].mtu = hfi1_max_mtu;
-+	}
-+	sc_enable(dd->vld[15].sc);
-+	ctxt = dd->vld[15].sc->hw_context;
-+	mask = all_vl_mask & ~(1LL << 15);
-+	write_kctxt_csr(dd, ctxt, SC(CHECK_VL), mask);
-+	dd_dev_info(dd,
-+		    "Using send context %u(%u) for VL15\n",
-+		    dd->vld[15].sc->sw_index, ctxt);
-+	for (i = 0; i < num_vls; i++) {
-+		sc_enable(dd->vld[i].sc);
-+		ctxt = dd->vld[i].sc->hw_context;
-+		mask = all_vl_mask & ~(1LL << i);
-+		write_kctxt_csr(dd, ctxt, SC(CHECK_VL), mask);
-+	}
++	memcpy(data, &ppd->qsfp_info.cache[addr], len);
 +	return 0;
-+nomem:
-+	sc_free(dd->vld[15].sc);
-+	for (i = 0; i < num_vls; i++)
-+		sc_free(dd->vld[i].sc);
-+	return -ENOMEM;
-+}
 +
-+int init_credit_return(struct hfi1_devdata *dd)
-+{
-+	int ret;
-+	int num_numa;
-+	int i;
-+
-+	num_numa = num_online_nodes();
-+	/* enforce the expectation that the numas are compact */
-+	for (i = 0; i < num_numa; i++) {
-+		if (!node_online(i)) {
-+			dd_dev_err(dd, "NUMA nodes are not compact\n");
-+			ret = -EINVAL;
-+			goto done;
-+		}
-+	}
-+
-+	dd->cr_base = kcalloc(
-+		num_numa,
-+		sizeof(struct credit_return_base),
-+		GFP_KERNEL);
-+	if (!dd->cr_base) {
-+		dd_dev_err(dd, "Unable to allocate credit return base\n");
-+		ret = -ENOMEM;
-+		goto done;
-+	}
-+	for (i = 0; i < num_numa; i++) {
-+		int bytes = TXE_NUM_CONTEXTS * sizeof(struct credit_return);
-+
-+		set_dev_node(&dd->pcidev->dev, i);
-+		dd->cr_base[i].va = dma_zalloc_coherent(
-+					&dd->pcidev->dev,
-+					bytes,
-+					&dd->cr_base[i].pa,
-+					GFP_KERNEL);
-+		if (dd->cr_base[i].va == NULL) {
-+			set_dev_node(&dd->pcidev->dev, dd->node);
-+			dd_dev_err(dd,
-+				"Unable to allocate credit return DMA range for NUMA %d\n",
-+				i);
-+			ret = -ENOMEM;
-+			goto done;
-+		}
-+	}
-+	set_dev_node(&dd->pcidev->dev, dd->node);
-+
-+	ret = 0;
-+done:
++set_zeroes:
++	memset(data, 0, excess_len);
 +	return ret;
 +}
 +
-+void free_credit_return(struct hfi1_devdata *dd)
++int qsfp_dump(struct hfi1_pportdata *ppd, char *buf, int len)
 +{
-+	int num_numa;
-+	int i;
++	u8 *cache = &ppd->qsfp_info.cache[0];
++	u8 bin_buff[QSFP_DUMP_CHUNK];
++	char lenstr[6];
++	int sofar, ret;
++	int bidx = 0;
++	u8 *atten = &cache[QSFP_ATTEN_OFFS];
++	u8 *vendor_oui = &cache[QSFP_VOUI_OFFS];
 +
-+	if (!dd->cr_base)
-+		return;
++	sofar = 0;
++	lenstr[0] = ' ';
++	lenstr[1] = '\0';
 +
-+	num_numa = num_online_nodes();
-+	for (i = 0; i < num_numa; i++) {
-+		if (dd->cr_base[i].va) {
-+			dma_free_coherent(&dd->pcidev->dev,
-+				TXE_NUM_CONTEXTS
-+					* sizeof(struct credit_return),
-+				dd->cr_base[i].va,
-+				dd->cr_base[i].pa);
++	if (ppd->qsfp_info.cache_valid) {
++
++		if (QSFP_IS_CU(cache[QSFP_MOD_TECH_OFFS]))
++			sprintf(lenstr, "%dM ", cache[QSFP_MOD_LEN_OFFS]);
++
++		sofar += scnprintf(buf + sofar, len - sofar, "PWR:%.3sW\n",
++				pwr_codes +
++				(QSFP_PWR(cache[QSFP_MOD_PWR_OFFS]) * 4));
++
++		sofar += scnprintf(buf + sofar, len - sofar, "TECH:%s%s\n",
++				lenstr,
++			hfi1_qsfp_devtech[(cache[QSFP_MOD_TECH_OFFS]) >> 4]);
++
++		sofar += scnprintf(buf + sofar, len - sofar, "Vendor:%.*s\n",
++				   QSFP_VEND_LEN, &cache[QSFP_VEND_OFFS]);
++
++		sofar += scnprintf(buf + sofar, len - sofar, "OUI:%06X\n",
++				   QSFP_OUI(vendor_oui));
++
++		sofar += scnprintf(buf + sofar, len - sofar, "Part#:%.*s\n",
++				   QSFP_PN_LEN, &cache[QSFP_PN_OFFS]);
++
++		sofar += scnprintf(buf + sofar, len - sofar, "Rev:%.*s\n",
++				   QSFP_REV_LEN, &cache[QSFP_REV_OFFS]);
++
++		if (QSFP_IS_CU(cache[QSFP_MOD_TECH_OFFS]))
++			sofar += scnprintf(buf + sofar, len - sofar,
++				"Atten:%d, %d\n",
++				QSFP_ATTEN_SDR(atten),
++				QSFP_ATTEN_DDR(atten));
++
++		sofar += scnprintf(buf + sofar, len - sofar, "Serial:%.*s\n",
++				   QSFP_SN_LEN, &cache[QSFP_SN_OFFS]);
++
++		sofar += scnprintf(buf + sofar, len - sofar, "Date:%.*s\n",
++				   QSFP_DATE_LEN, &cache[QSFP_DATE_OFFS]);
++
++		sofar += scnprintf(buf + sofar, len - sofar, "Lot:%.*s\n",
++				   QSFP_LOT_LEN, &cache[QSFP_LOT_OFFS]);
++
++		while (bidx < QSFP_DEFAULT_HDR_CNT) {
++			int iidx;
++
++			memcpy(bin_buff, &cache[bidx], QSFP_DUMP_CHUNK);
++			for (iidx = 0; iidx < QSFP_DUMP_CHUNK; ++iidx) {
++				sofar += scnprintf(buf + sofar, len-sofar,
++					" %02X", bin_buff[iidx]);
++			}
++			sofar += scnprintf(buf + sofar, len - sofar, "\n");
++			bidx += QSFP_DUMP_CHUNK;
 +		}
 +	}
-+	kfree(dd->cr_base);
-+	dd->cr_base = NULL;
++	ret = sofar;
++	return ret;
 +}
-diff --git a/drivers/infiniband/hw/hfi1/pio.h b/drivers/infiniband/hw/hfi1/pio.h
+diff --git a/drivers/infiniband/hw/hfi1/qsfp.h b/drivers/infiniband/hw/hfi1/qsfp.h
 new file mode 100644
-index 0000000..0bb885c
+index 0000000..d30c2a6
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/pio.h
-@@ -0,0 +1,224 @@
-+#ifndef _PIO_H
-+#define _PIO_H
++++ b/drivers/infiniband/hw/hfi1/qsfp.h
+@@ -0,0 +1,222 @@
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -1879,1043 +650,179 @@ index 0000000..0bb885c
 + * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + */
++/* QSFP support common definitions, for hfi driver */
 +
++#define QSFP_DEV 0xA0
++#define QSFP_PWR_LAG_MSEC 2000
++#define QSFP_MODPRS_LAG_MSEC 20
++/* 128 byte pages, per SFF 8636 rev 2.4 */
++#define QSFP_MAX_NUM_PAGES	5
 +
-+/* send context types */
-+#define SC_KERNEL 0
-+#define SC_ACK    1
-+#define SC_USER   2
-+#define SC_MAX    3
++/*
++ * Below are masks for QSFP pins.  Pins are the same for HFI0 and HFI1.
++ * _N means asserted low
++ */
++#define QSFP_HFI0_I2CCLK    (1 << 0)
++#define QSFP_HFI0_I2CDAT    (1 << 1)
++#define QSFP_HFI0_RESET_N   (1 << 2)
++#define QSFP_HFI0_INT_N	    (1 << 3)
++#define QSFP_HFI0_MODPRST_N (1 << 4)
 +
-+/* invalid send context index */
-+#define INVALID_SCI 0xff
++/* QSFP is paged at 256 bytes */
++#define QSFP_PAGESIZE 256
 +
-+/* PIO buffer release callback function */
-+typedef void (*pio_release_cb)(void *arg, int code);
++/* Defined fields that Intel requires of qualified cables */
++/* Byte 0 is Identifier, not checked */
++/* Byte 1 is reserved "status MSB" */
++/* Byte 2 is "status LSB" We only care that D2 "Flat Mem" is set. */
++/*
++ * Rest of first 128 not used, although 127 is reserved for page select
++ * if module is not "Flat memory".
++ */
++#define QSFP_PAGE_SELECT_BYTE_OFFS 127
++/* Byte 128 is Identifier: must be 0x0c for QSFP, or 0x0d for QSFP+ */
++#define QSFP_MOD_ID_OFFS 128
++/*
++ * Byte 129 is "Extended Identifier". We only care about D7,D6: Power class
++ *  0:1.5W, 1:2.0W, 2:2.5W, 3:3.5W
++ */
++#define QSFP_MOD_PWR_OFFS 129
++/* Byte 130 is Connector type. Not Intel req'd */
++/* Bytes 131..138 are Transceiver types, bit maps for various tech, none IB */
++/* Byte 139 is encoding. code 0x01 is 8b10b. Not Intel req'd */
++/* byte 140 is nominal bit-rate, in units of 100Mbits/sec Not Intel req'd */
++/* Byte 141 is Extended Rate Select. Not Intel req'd */
++/* Bytes 142..145 are lengths for various fiber types. Not Intel req'd */
++/* Byte 146 is length for Copper. Units of 1 meter */
++#define QSFP_MOD_LEN_OFFS 146
++/*
++ * Byte 147 is Device technology. D0..3 not Intel req'd
++ * D4..7 select from 15 choices, translated by table:
++ */
++#define QSFP_MOD_TECH_OFFS 147
++extern const char *const hfi1_qsfp_devtech[16];
++/* Active Equalization includes fiber, copper full EQ, and copper near Eq */
++#define QSFP_IS_ACTIVE(tech) ((0xA2FF >> ((tech) >> 4)) & 1)
++/* Active Equalization includes fiber, copper full EQ, and copper far Eq */
++#define QSFP_IS_ACTIVE_FAR(tech) ((0x32FF >> ((tech) >> 4)) & 1)
++/* Attenuation should be valid for copper other than full/near Eq */
++#define QSFP_HAS_ATTEN(tech) ((0x4D00 >> ((tech) >> 4)) & 1)
++/* Length is only valid if technology is "copper" */
++#define QSFP_IS_CU(tech) ((0xED00 >> ((tech) >> 4)) & 1)
++#define QSFP_TECH_1490 9
 +
-+/* PIO release codes - in bits, as there could more than one that apply */
-+#define PRC_OK		0	/* no known error */
-+#define PRC_STATUS_ERR	0x01	/* credit return due to status error */
-+#define PRC_PBC		0x02	/* credit return due to PBC */
-+#define PRC_THRESHOLD	0x04	/* credit return due to threshold */
-+#define PRC_FILL_ERR	0x08	/* credit return due fill error */
-+#define PRC_FORCE	0x10	/* credit return due credit force */
-+#define PRC_SC_DISABLE	0x20	/* clean-up after a context disable */
++#define QSFP_OUI(oui) (((unsigned)oui[0] << 16) | ((unsigned)oui[1] << 8) | \
++			oui[2])
++#define QSFP_OUI_AMPHENOL 0x415048
++#define QSFP_OUI_FINISAR  0x009065
++#define QSFP_OUI_GORE     0x002177
 +
-+/* byte helper */
-+union mix {
-+	u64 val64;
-+	u32 val32[2];
-+	u8  val8[8];
++/* Bytes 148..163 are Vendor Name, Left-justified Blank-filled */
++#define QSFP_VEND_OFFS 148
++#define QSFP_VEND_LEN 16
++/* Byte 164 is IB Extended transceiver codes Bits D0..3 are SDR,DDR,QDR,EDR */
++#define QSFP_IBXCV_OFFS 164
++/* Bytes 165..167 are Vendor OUI number */
++#define QSFP_VOUI_OFFS 165
++#define QSFP_VOUI_LEN 3
++/* Bytes 168..183 are Vendor Part Number, string */
++#define QSFP_PN_OFFS 168
++#define QSFP_PN_LEN 16
++/* Bytes 184,185 are Vendor Rev. Left Justified, Blank-filled */
++#define QSFP_REV_OFFS 184
++#define QSFP_REV_LEN 2
++/*
++ * Bytes 186,187 are Wavelength, if Optical. Not Intel req'd
++ *  If copper, they are attenuation in dB:
++ * Byte 186 is at 2.5Gb/sec (SDR), Byte 187 at 5.0Gb/sec (DDR)
++ */
++#define QSFP_ATTEN_OFFS 186
++#define QSFP_ATTEN_LEN 2
++/* Bytes 188,189 are Wavelength tolerance, not Intel req'd */
++/* Byte 190 is Max Case Temp. Not Intel req'd */
++/* Byte 191 is LSB of sum of bytes 128..190. Not Intel req'd */
++#define QSFP_CC_OFFS 191
++/* Bytes 192..195 are Options implemented in qsfp. Not Intel req'd */
++/* Bytes 196..211 are Serial Number, String */
++#define QSFP_SN_OFFS 196
++#define QSFP_SN_LEN 16
++/* Bytes 212..219 are date-code YYMMDD (MM==1 for Jan) */
++#define QSFP_DATE_OFFS 212
++#define QSFP_DATE_LEN 6
++/* Bytes 218,219 are optional lot-code, string */
++#define QSFP_LOT_OFFS 218
++#define QSFP_LOT_LEN 2
++/* Bytes 220, 221 indicate monitoring options, Not Intel req'd */
++/* Byte 223 is LSB of sum of bytes 192..222 */
++#define QSFP_CC_EXT_OFFS 223
++
++/*
++ * Interrupt flag masks
++ */
++#define QSFP_DATA_NOT_READY		0x01
++
++#define QSFP_HIGH_TEMP_ALARM		0x80
++#define QSFP_LOW_TEMP_ALARM		0x40
++#define QSFP_HIGH_TEMP_WARNING		0x20
++#define QSFP_LOW_TEMP_WARNING		0x10
++
++#define QSFP_HIGH_VCC_ALARM		0x80
++#define QSFP_LOW_VCC_ALARM		0x40
++#define QSFP_HIGH_VCC_WARNING		0x20
++#define QSFP_LOW_VCC_WARNING		0x10
++
++#define QSFP_HIGH_POWER_ALARM		0x88
++#define QSFP_LOW_POWER_ALARM		0x44
++#define QSFP_HIGH_POWER_WARNING		0x22
++#define QSFP_LOW_POWER_WARNING		0x11
++
++#define QSFP_HIGH_BIAS_ALARM		0x88
++#define QSFP_LOW_BIAS_ALARM		0x44
++#define QSFP_HIGH_BIAS_WARNING		0x22
++#define QSFP_LOW_BIAS_WARNING		0x11
++
++/*
++ * struct qsfp_data encapsulates state of QSFP device for one port.
++ * it will be part of port-specific data if a board supports QSFP.
++ *
++ * Since multiple board-types use QSFP, and their pport_data structs
++ * differ (in the chip-specific section), we need a pointer to its head.
++ *
++ * Avoiding premature optimization, we will have one work_struct per port,
++ * and let the qsfp_lock arbitrate access to common resources.
++ *
++ */
++
++#define QSFP_PWR(pbyte) (((pbyte) >> 6) & 3)
++#define QSFP_ATTEN_SDR(attenarray) (attenarray[0])
++#define QSFP_ATTEN_DDR(attenarray) (attenarray[1])
++
++struct qsfp_data {
++	/* Helps to find our way */
++	struct hfi1_pportdata *ppd;
++	struct work_struct qsfp_work;
++	u8 cache[QSFP_MAX_NUM_PAGES*128];
++	spinlock_t qsfp_lock;
++	u8 check_interrupt_flags;
++	u8 qsfp_interrupt_functional;
++	u8 cache_valid;
++	u8 cache_refresh_required;
 +};
 +
-+/* an allocated PIO buffer */
-+struct pio_buf {
-+	struct send_context *sc;/* back pointer to owning send context */
-+	pio_release_cb cb;	/* called when the buffer is released */
-+	void *arg;		/* argument for cb */
-+	void __iomem *start;	/* buffer start address */
-+	void __iomem *end;	/* context end address */
-+	unsigned long size;	/* context size, in bytes */
-+	unsigned long sent_at;	/* buffer is sent when <= free */
-+	u32 block_count;	/* size of buffer, in blocks */
-+	u32 qw_written;		/* QW written so far */
-+	u32 carry_bytes;	/* number of valid bytes in carry */
-+	union mix carry;	/* pending unwritten bytes */
-+};
-+
-+/* cache line aligned pio buffer array */
-+union pio_shadow_ring {
-+	struct pio_buf pbuf;
-+	u64 unused[16];		/* cache line spacer */
-+} ____cacheline_aligned;
-+
-+/* per-NUMA send context */
-+struct send_context {
-+	/* read-only after init */
-+	struct hfi1_devdata *dd;		/* device */
-+	void __iomem *base_addr;	/* start of PIO memory */
-+	union pio_shadow_ring *sr;	/* shadow ring */
-+	volatile __le64 *hw_free;	/* HW free counter */
-+	struct work_struct halt_work;	/* halted context work queue entry */
-+	unsigned long flags;		/* flags */
-+	int node;			/* context home node */
-+	int type;			/* context type */
-+	u32 sw_index;			/* software index number */
-+	u32 hw_context;			/* hardware context number */
-+	u32 credits;			/* number of blocks in context */
-+	u32 sr_size;			/* size of the shadow ring */
-+	u32 group;			/* credit return group */
-+	/* allocator fields */
-+	spinlock_t alloc_lock ____cacheline_aligned_in_smp;
-+	unsigned long fill;		/* official alloc count */
-+	unsigned long alloc_free;	/* copy of free (less cache thrash) */
-+	u32 sr_head;			/* shadow ring head */
-+	/* releaser fields */
-+	spinlock_t release_lock ____cacheline_aligned_in_smp;
-+	unsigned long free;		/* official free count */
-+	u32 sr_tail;			/* shadow ring tail */
-+	/* list for PIO waiters */
-+	struct list_head piowait  ____cacheline_aligned_in_smp;
-+	spinlock_t credit_ctrl_lock ____cacheline_aligned_in_smp;
-+	u64 credit_ctrl;		/* cache for credit control */
-+	u32 credit_intr_count;		/* count of credit intr users */
-+	atomic_t buffers_allocated;	/* count of buffers allocated */
-+	wait_queue_head_t halt_wait;    /* wait until kernel sees interrupt */
-+};
-+
-+/* send context flags */
-+#define SCF_ENABLED 0x01
-+#define SCF_IN_FREE 0x02
-+#define SCF_HALTED  0x04
-+#define SCF_FROZEN  0x08
-+
-+struct send_context_info {
-+	struct send_context *sc;	/* allocated working context */
-+	u16 allocated;			/* has this been allocated? */
-+	u16 type;			/* context type */
-+	u16 base;			/* base in PIO array */
-+	u16 credits;			/* size in PIO array */
-+};
-+
-+/* DMA credit return, index is always (context & 0x7) */
-+struct credit_return {
-+	volatile __le64 cr[8];
-+};
-+
-+/* NUMA indexed credit return array */
-+struct credit_return_base {
-+	struct credit_return *va;
-+	dma_addr_t pa;
-+};
-+
-+/* send context configuration sizes (one per type) */
-+struct sc_config_sizes {
-+	short int size;
-+	short int count;
-+};
-+
-+/* send context functions */
-+int init_credit_return(struct hfi1_devdata *dd);
-+void free_credit_return(struct hfi1_devdata *dd);
-+int init_sc_pools_and_sizes(struct hfi1_devdata *dd);
-+int init_send_contexts(struct hfi1_devdata *dd);
-+int init_credit_return(struct hfi1_devdata *dd);
-+int init_pervl_scs(struct hfi1_devdata *dd);
-+struct send_context *sc_alloc(struct hfi1_devdata *dd, int type,
-+			      uint hdrqentsize, int numa);
-+void sc_free(struct send_context *sc);
-+int sc_enable(struct send_context *sc);
-+void sc_disable(struct send_context *sc);
-+int sc_restart(struct send_context *sc);
-+void sc_return_credits(struct send_context *sc);
-+void sc_flush(struct send_context *sc);
-+void sc_drop(struct send_context *sc);
-+void sc_stop(struct send_context *sc, int bit);
-+struct pio_buf *sc_buffer_alloc(struct send_context *sc, u32 dw_len,
-+			pio_release_cb cb, void *arg);
-+void sc_release_update(struct send_context *sc);
-+void sc_return_credits(struct send_context *sc);
-+void sc_group_release_update(struct hfi1_devdata *dd, u32 hw_context);
-+void sc_add_credit_return_intr(struct send_context *sc);
-+void sc_del_credit_return_intr(struct send_context *sc);
-+void sc_set_cr_threshold(struct send_context *sc, u32 new_threshold);
-+u32 sc_mtu_to_threshold(struct send_context *sc, u32 mtu, u32 hdrqentsize);
-+void hfi1_sc_wantpiobuf_intr(struct send_context *sc, u32 needint);
-+void sc_wait(struct hfi1_devdata *dd);
-+void set_pio_integrity(struct send_context *sc);
-+
-+/* support functions */
-+void pio_reset_all(struct hfi1_devdata *dd);
-+void pio_freeze(struct hfi1_devdata *dd);
-+void pio_kernel_unfreeze(struct hfi1_devdata *dd);
-+
-+/* global PIO send control operations */
-+#define PSC_GLOBAL_ENABLE 0
-+#define PSC_GLOBAL_DISABLE 1
-+#define PSC_GLOBAL_VLARB_ENABLE 2
-+#define PSC_GLOBAL_VLARB_DISABLE 3
-+#define PSC_CM_RESET 4
-+#define PSC_DATA_VL_ENABLE 5
-+#define PSC_DATA_VL_DISABLE 6
-+
-+void __cm_reset(struct hfi1_devdata *dd, u64 sendctrl);
-+void pio_send_control(struct hfi1_devdata *dd, int op);
-+
-+
-+/* PIO copy routines */
-+void pio_copy(struct hfi1_devdata *dd, struct pio_buf *pbuf, u64 pbc,
-+	      const void *from, size_t count);
-+void seg_pio_copy_start(struct pio_buf *pbuf, u64 pbc,
-+					const void *from, size_t nbytes);
-+void seg_pio_copy_mid(struct pio_buf *pbuf, const void *from, size_t nbytes);
-+void seg_pio_copy_end(struct pio_buf *pbuf);
-+
-+#endif /* _PIO_H */
-diff --git a/drivers/infiniband/hw/hfi1/pio_copy.c b/drivers/infiniband/hw/hfi1/pio_copy.c
-new file mode 100644
-index 0000000..8972bbc
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/pio_copy.c
-@@ -0,0 +1,858 @@
-+/*
-+ *
-+ * This file is provided under a dual BSD/GPLv2 license.  When using or
-+ * redistributing this file, you may do so under either license.
-+ *
-+ * GPL LICENSE SUMMARY
-+ *
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * BSD LICENSE
-+ *
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ *  - Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *  - Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *  - Neither the name of Intel Corporation nor the names of its
-+ *    contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ */
-+
-+#include "hfi.h"
-+
-+/* additive distance between non-SOP and SOP space */
-+#define SOP_DISTANCE (TXE_PIO_SIZE / 2)
-+#define PIO_BLOCK_MASK (PIO_BLOCK_SIZE-1)
-+/* number of QUADWORDs in a block */
-+#define PIO_BLOCK_QWS (PIO_BLOCK_SIZE/sizeof(u64))
-+
-+/**
-+ * pio_copy - copy data block to MMIO space
-+ * @pbuf: a number of blocks allocated within a PIO send context
-+ * @pbc: PBC to send
-+ * @from: source, must be 8 byte aligned
-+ * @count: number of DWORD (32-bit) quantities to copy from source
-+ *
-+ * Copy data from source to PIO Send Buffer memory, 8 bytes at a time.
-+ * Must always write full BLOCK_SIZE bytes blocks.  The first block must
-+ * be written to the corresponding SOP=1 address.
-+ *
-+ * Known:
-+ * o pbuf->start always starts on a block boundary
-+ * o pbuf can wrap only at a block boundary
-+ */
-+void pio_copy(struct hfi1_devdata *dd, struct pio_buf *pbuf, u64 pbc,
-+	      const void *from, size_t count)
-+{
-+	void __iomem *dest = pbuf->start + SOP_DISTANCE;
-+	void __iomem *send = dest + PIO_BLOCK_SIZE;
-+	void __iomem *dend;			/* 8-byte data end */
-+
-+	/* write the PBC */
-+	writeq(pbc, dest);
-+	dest += sizeof(u64);
-+
-+	/* calculate where the QWORD data ends - in SOP=1 space */
-+	dend = dest + ((count>>1) * sizeof(u64));
-+
-+	if (dend < send) {
-+		/* all QWORD data is within the SOP block, does *not*
-+		   reach the end of the SOP block */
-+
-+		while (dest < dend) {
-+			writeq(*(u64 *)from, dest);
-+			from += sizeof(u64);
-+			dest += sizeof(u64);
-+		}
-+		/*
-+		 * No boundary checks are needed here:
-+		 * 0. We're not on the SOP block boundary
-+		 * 1. The possible DWORD dangle will still be within
-+		 *    the SOP block
-+		 * 2. We cannot wrap except on a block boundary.
-+		 */
-+	} else {
-+		/* QWORD data extends _to_ or beyond the SOP block */
-+
-+		/* write 8-byte SOP chunk data */
-+		while (dest < send) {
-+			writeq(*(u64 *)from, dest);
-+			from += sizeof(u64);
-+			dest += sizeof(u64);
-+		}
-+		/* drop out of the SOP range */
-+		dest -= SOP_DISTANCE;
-+		dend -= SOP_DISTANCE;
-+
-+		/*
-+		 * If the wrap comes before or matches the data end,
-+		 * copy until until the wrap, then wrap.
-+		 *
-+		 * If the data ends at the end of the SOP above and
-+		 * the buffer wraps, then pbuf->end == dend == dest
-+		 * and nothing will get written, but we will wrap in
-+		 * case there is a dangling DWORD.
-+		 */
-+		if (pbuf->end <= dend) {
-+			while (dest < pbuf->end) {
-+				writeq(*(u64 *)from, dest);
-+				from += sizeof(u64);
-+				dest += sizeof(u64);
-+			}
-+
-+			dest -= pbuf->size;
-+			dend -= pbuf->size;
-+		}
-+
-+		/* write 8-byte non-SOP, non-wrap chunk data */
-+		while (dest < dend) {
-+			writeq(*(u64 *)from, dest);
-+			from += sizeof(u64);
-+			dest += sizeof(u64);
-+		}
-+	}
-+	/* at this point we have wrapped if we are going to wrap */
-+
-+	/* write dangling u32, if any */
-+	if (count & 1) {
-+		union mix val;
-+
-+		val.val64 = 0;
-+		val.val32[0] = *(u32 *)from;
-+		writeq(val.val64, dest);
-+		dest += sizeof(u64);
-+	}
-+	/* fill in rest of block, no need to check pbuf->end
-+	   as we only wrap on a block boundary */
-+	while (((unsigned long)dest & PIO_BLOCK_MASK) != 0) {
-+		writeq(0, dest);
-+		dest += sizeof(u64);
-+	}
-+
-+	/* finished with this buffer */
-+	atomic_dec(&pbuf->sc->buffers_allocated);
-+}
-+
-+/* USE_SHIFTS is faster in user-space tests on a Xeon X5570 @ 2.93GHz */
-+#define USE_SHIFTS 1
-+#ifdef USE_SHIFTS
-+/*
-+ * Handle carry bytes using shifts and masks.
-+ *
-+ * NOTE: the value the unused portion of carry is expected to always be zero.
-+ */
-+
-+/*
-+ * "zero" shift - bit shift used to zero out upper bytes.  Input is
-+ * the count of LSB bytes to preserve.
-+ */
-+#define zshift(x) (8 * (8-(x)))
-+
-+/*
-+ * "merge" shift - bit shift used to merge with carry bytes.  Input is
-+ * the LSB byte count to move beyond.
-+ */
-+#define mshift(x) (8 * (x))
-+
-+/*
-+ * Read nbytes bytes from "from" and return them in the LSB bytes
-+ * of pbuf->carry.  Other bytes are zeroed.  Any previous value
-+ * pbuf->carry is lost.
-+ *
-+ * NOTES:
-+ * o do not read from from if nbytes is zero
-+ * o from may _not_ be u64 aligned
-+ * o nbytes must not span a QW boundary
-+ */
-+static inline void read_low_bytes(struct pio_buf *pbuf, const void *from,
-+							unsigned int nbytes)
-+{
-+	unsigned long off;
-+
-+	if (nbytes == 0) {
-+		pbuf->carry.val64 = 0;
-+	} else {
-+		/* align our pointer */
-+		off = (unsigned long)from & 0x7;
-+		from = (void *)((unsigned long)from & ~0x7l);
-+		pbuf->carry.val64 = ((*(u64 *)from)
-+				<< zshift(nbytes + off))/* zero upper bytes */
-+				>> zshift(nbytes);	/* place at bottom */
-+	}
-+	pbuf->carry_bytes = nbytes;
-+}
-+
-+/*
-+ * Read nbytes bytes from "from" and put them at the next significant bytes
-+ * of pbuf->carry.  Unused bytes are zeroed.  It is expected that the extra
-+ * read does not overfill carry.
-+ *
-+ * NOTES:
-+ * o from may _not_ be u64 aligned
-+ * o nbytes may span a QW boundary
-+ */
-+static inline void read_extra_bytes(struct pio_buf *pbuf,
-+					const void *from, unsigned int nbytes)
-+{
-+	unsigned long off = (unsigned long)from & 0x7;
-+	unsigned int room, xbytes;
-+
-+	/* align our pointer */
-+	from = (void *)((unsigned long)from & ~0x7l);
-+
-+	/* check count first - don't read anything if count is zero */
-+	while (nbytes) {
-+		/* find the number of bytes in this u64 */
-+		room = 8 - off;	/* this u64 has room for this many bytes */
-+		xbytes = nbytes > room ? room : nbytes;
-+
-+		/*
-+		 * shift down to zero lower bytes, shift up to zero upper
-+		 * bytes, shift back down to move into place
-+		 */
-+		pbuf->carry.val64 |= (((*(u64 *)from)
-+					>> mshift(off))
-+					<< zshift(xbytes))
-+					>> zshift(xbytes+pbuf->carry_bytes);
-+		off = 0;
-+		pbuf->carry_bytes += xbytes;
-+		nbytes -= xbytes;
-+		from += sizeof(u64);
-+	}
-+}
-+
-+/*
-+ * Zero extra bytes from the end of pbuf->carry.
-+ *
-+ * NOTES:
-+ * o zbytes <= old_bytes
-+ */
-+static inline void zero_extra_bytes(struct pio_buf *pbuf, unsigned int zbytes)
-+{
-+	unsigned int remaining;
-+
-+	if (zbytes == 0)	/* nothing to do */
-+		return;
-+
-+	remaining = pbuf->carry_bytes - zbytes;	/* remaining bytes */
-+
-+	/* NOTE: zshift only guaranteed to work if remaining != 0 */
-+	if (remaining)
-+		pbuf->carry.val64 = (pbuf->carry.val64 << zshift(remaining))
-+					>> zshift(remaining);
-+	else
-+		pbuf->carry.val64 = 0;
-+	pbuf->carry_bytes = remaining;
-+}
-+
-+/*
-+ * Write a quad word using parts of pbuf->carry and the next 8 bytes of src.
-+ * Put the unused part of the next 8 bytes of src into the LSB bytes of
-+ * pbuf->carry with the upper bytes zeroed..
-+ *
-+ * NOTES:
-+ * o result must keep unused bytes zeroed
-+ * o src must be u64 aligned
-+ */
-+static inline void merge_write8(
-+	struct pio_buf *pbuf,
-+	void __iomem *dest,
-+	const void *src)
-+{
-+	u64 new, temp;
-+
-+	new = *(u64 *)src;
-+	temp = pbuf->carry.val64 | (new << mshift(pbuf->carry_bytes));
-+	writeq(temp, dest);
-+	pbuf->carry.val64 = new >> zshift(pbuf->carry_bytes);
-+}
-+
-+/*
-+ * Write a quad word using all bytes of carry.
-+ */
-+static inline void carry8_write8(union mix carry, void __iomem *dest)
-+{
-+	writeq(carry.val64, dest);
-+}
-+
-+/*
-+ * Write a quad word using all the valid bytes of carry.  If carry
-+ * has zero valid bytes, nothing is written.
-+ * Returns 0 on nothing written, non-zero on quad word written.
-+ */
-+static inline int carry_write8(struct pio_buf *pbuf, void __iomem *dest)
-+{
-+	if (pbuf->carry_bytes) {
-+		/* unused bytes are always kept zeroed, so just write */
-+		writeq(pbuf->carry.val64, dest);
-+		return 1;
-+	}
-+
-+	return 0;
-+}
-+
-+#else /* USE_SHIFTS */
-+/*
-+ * Handle carry bytes using byte copies.
-+ *
-+ * NOTE: the value the unused portion of carry is left uninitialized.
-+ */
-+
-+/*
-+ * Jump copy - no-loop copy for < 8 bytes.
-+ */
-+static inline void jcopy(u8 *dest, const u8 *src, u32 n)
-+{
-+	switch (n) {
-+	case 7:
-+		*dest++ = *src++;
-+	case 6:
-+		*dest++ = *src++;
-+	case 5:
-+		*dest++ = *src++;
-+	case 4:
-+		*dest++ = *src++;
-+	case 3:
-+		*dest++ = *src++;
-+	case 2:
-+		*dest++ = *src++;
-+	case 1:
-+		*dest++ = *src++;
-+	}
-+}
-+
-+/*
-+ * Read nbytes from "from" and and place them in the low bytes
-+ * of pbuf->carry.  Other bytes are left as-is.  Any previous
-+ * value in pbuf->carry is lost.
-+ *
-+ * NOTES:
-+ * o do not read from from if nbytes is zero
-+ * o from may _not_ be u64 aligned.
-+ */
-+static inline void read_low_bytes(struct pio_buf *pbuf, const void *from,
-+							unsigned int nbytes)
-+{
-+	jcopy(&pbuf->carry.val8[0], from, nbytes);
-+	pbuf->carry_bytes = nbytes;
-+}
-+
-+/*
-+ * Read nbytes bytes from "from" and put them at the end of pbuf->carry.
-+ * It is expected that the extra read does not overfill carry.
-+ *
-+ * NOTES:
-+ * o from may _not_ be u64 aligned
-+ * o nbytes may span a QW boundary
-+ */
-+static inline void read_extra_bytes(struct pio_buf *pbuf,
-+					const void *from, unsigned int nbytes)
-+{
-+	jcopy(&pbuf->carry.val8[pbuf->carry_bytes], from, nbytes);
-+	pbuf->carry_bytes += nbytes;
-+}
-+
-+/*
-+ * Zero extra bytes from the end of pbuf->carry.
-+ *
-+ * We do not care about the value of unused bytes in carry, so just
-+ * reduce the byte count.
-+ *
-+ * NOTES:
-+ * o zbytes <= old_bytes
-+ */
-+static inline void zero_extra_bytes(struct pio_buf *pbuf, unsigned int zbytes)
-+{
-+	pbuf->carry_bytes -= zbytes;
-+}
-+
-+/*
-+ * Write a quad word using parts of pbuf->carry and the next 8 bytes of src.
-+ * Put the unused part of the next 8 bytes of src into the low bytes of
-+ * pbuf->carry.
-+ */
-+static inline void merge_write8(
-+	struct pio_buf *pbuf,
-+	void *dest,
-+	const void *src)
-+{
-+	u32 remainder = 8 - pbuf->carry_bytes;
-+
-+	jcopy(&pbuf->carry.val8[pbuf->carry_bytes], src, remainder);
-+	writeq(pbuf->carry.val64, dest);
-+	jcopy(&pbuf->carry.val8[0], src+remainder, pbuf->carry_bytes);
-+}
-+
-+/*
-+ * Write a quad word using all bytes of carry.
-+ */
-+static inline void carry8_write8(union mix carry, void *dest)
-+{
-+	writeq(carry.val64, dest);
-+}
-+
-+/*
-+ * Write a quad word using all the valid bytes of carry.  If carry
-+ * has zero valid bytes, nothing is written.
-+ * Returns 0 on nothing written, non-zero on quad word written.
-+ */
-+static inline int carry_write8(struct pio_buf *pbuf, void *dest)
-+{
-+	if (pbuf->carry_bytes) {
-+		u64 zero = 0;
-+
-+		jcopy(&pbuf->carry.val8[pbuf->carry_bytes], (u8 *)&zero,
-+						8 - pbuf->carry_bytes);
-+		writeq(pbuf->carry.val64, dest);
-+		return 1;
-+	}
-+
-+	return 0;
-+}
-+#endif /* USE_SHIFTS */
-+
-+/*
-+ * Segmented PIO Copy - start
-+ *
-+ * Start a PIO copy.
-+ *
-+ * @pbuf: destination buffer
-+ * @pbc: the PBC for the PIO buffer
-+ * @from: data source, QWORD aligned
-+ * @nbytes: bytes to copy
-+ */
-+void seg_pio_copy_start(struct pio_buf *pbuf, u64 pbc,
-+				const void *from, size_t nbytes)
-+{
-+	void __iomem *dest = pbuf->start + SOP_DISTANCE;
-+	void __iomem *send = dest + PIO_BLOCK_SIZE;
-+	void __iomem *dend;			/* 8-byte data end */
-+
-+	writeq(pbc, dest);
-+	dest += sizeof(u64);
-+
-+	/* calculate where the QWORD data ends - in SOP=1 space */
-+	dend = dest + ((nbytes>>3) * sizeof(u64));
-+
-+	if (dend < send) {
-+		/* all QWORD data is within the SOP block, does *not*
-+		   reach the end of the SOP block */
-+
-+		while (dest < dend) {
-+			writeq(*(u64 *)from, dest);
-+			from += sizeof(u64);
-+			dest += sizeof(u64);
-+		}
-+		/*
-+		 * No boundary checks are needed here:
-+		 * 0. We're not on the SOP block boundary
-+		 * 1. The possible DWORD dangle will still be within
-+		 *    the SOP block
-+		 * 2. We cannot wrap except on a block boundary.
-+		 */
-+	} else {
-+		/* QWORD data extends _to_ or beyond the SOP block */
-+
-+		/* write 8-byte SOP chunk data */
-+		while (dest < send) {
-+			writeq(*(u64 *)from, dest);
-+			from += sizeof(u64);
-+			dest += sizeof(u64);
-+		}
-+		/* drop out of the SOP range */
-+		dest -= SOP_DISTANCE;
-+		dend -= SOP_DISTANCE;
-+
-+		/*
-+		 * If the wrap comes before or matches the data end,
-+		 * copy until until the wrap, then wrap.
-+		 *
-+		 * If the data ends at the end of the SOP above and
-+		 * the buffer wraps, then pbuf->end == dend == dest
-+		 * and nothing will get written, but we will wrap in
-+		 * case there is a dangling DWORD.
-+		 */
-+		if (pbuf->end <= dend) {
-+			while (dest < pbuf->end) {
-+				writeq(*(u64 *)from, dest);
-+				from += sizeof(u64);
-+				dest += sizeof(u64);
-+			}
-+
-+			dest -= pbuf->size;
-+			dend -= pbuf->size;
-+		}
-+
-+		/* write 8-byte non-SOP, non-wrap chunk data */
-+		while (dest < dend) {
-+			writeq(*(u64 *)from, dest);
-+			from += sizeof(u64);
-+			dest += sizeof(u64);
-+		}
-+	}
-+	/* at this point we have wrapped if we are going to wrap */
-+
-+	/* ...but it doesn't matter as we're done writing */
-+
-+	/* save dangling bytes, if any */
-+	read_low_bytes(pbuf, from, nbytes & 0x7);
-+
-+	pbuf->qw_written = 1 /*PBC*/ + (nbytes >> 3);
-+}
-+
-+/*
-+ * Mid copy helper, "mixed case" - source is 64-bit aligned but carry
-+ * bytes are non-zero.
-+ *
-+ * Whole u64s must be written to the chip, so bytes must be manually merged.
-+ *
-+ * @pbuf: destination buffer
-+ * @from: data source, is QWORD aligned.
-+ * @nbytes: bytes to copy
-+ *
-+ * Must handle nbytes < 8.
-+ */
-+static void mid_copy_mix(struct pio_buf *pbuf, const void *from, size_t nbytes)
-+{
-+	void __iomem *dest = pbuf->start + (pbuf->qw_written * sizeof(u64));
-+	void __iomem *dend;			/* 8-byte data end */
-+	unsigned long qw_to_write = (pbuf->carry_bytes + nbytes) >> 3;
-+	unsigned long bytes_left = (pbuf->carry_bytes + nbytes) & 0x7;
-+
-+	/* calculate 8-byte data end */
-+	dend = dest + (qw_to_write * sizeof(u64));
-+
-+	if (pbuf->qw_written < PIO_BLOCK_QWS) {
-+		/*
-+		 * Still within SOP block.  We don't need to check for
-+		 * wrap because we are still in the first block and
-+		 * can only wrap on block boundaries.
-+		 */
-+		void __iomem *send;		/* SOP end */
-+		void __iomem *xend;
-+
-+		/* calculate the end of data or end of block, whichever
-+		   comes first */
-+		send = pbuf->start + PIO_BLOCK_SIZE;
-+		xend = send < dend ? send : dend;
-+
-+		/* shift up to SOP=1 space */
-+		dest += SOP_DISTANCE;
-+		xend += SOP_DISTANCE;
-+
-+		/* write 8-byte chunk data */
-+		while (dest < xend) {
-+			merge_write8(pbuf, dest, from);
-+			from += sizeof(u64);
-+			dest += sizeof(u64);
-+		}
-+
-+		/* shift down to SOP=0 space */
-+		dest -= SOP_DISTANCE;
-+	}
-+	/*
-+	 * At this point dest could be (either, both, or neither):
-+	 * - at dend
-+	 * - at the wrap
-+	 */
-+
-+	/*
-+	 * If the wrap comes before or matches the data end,
-+	 * copy until until the wrap, then wrap.
-+	 *
-+	 * If dest is at the wrap, we will fall into the if,
-+	 * not do the loop, when wrap.
-+	 *
-+	 * If the data ends at the end of the SOP above and
-+	 * the buffer wraps, then pbuf->end == dend == dest
-+	 * and nothing will get written.
-+	 */
-+	if (pbuf->end <= dend) {
-+		while (dest < pbuf->end) {
-+			merge_write8(pbuf, dest, from);
-+			from += sizeof(u64);
-+			dest += sizeof(u64);
-+		}
-+
-+		dest -= pbuf->size;
-+		dend -= pbuf->size;
-+	}
-+
-+	/* write 8-byte non-SOP, non-wrap chunk data */
-+	while (dest < dend) {
-+		merge_write8(pbuf, dest, from);
-+		from += sizeof(u64);
-+		dest += sizeof(u64);
-+	}
-+
-+	/* adjust carry */
-+	if (pbuf->carry_bytes < bytes_left) {
-+		/* need to read more */
-+		read_extra_bytes(pbuf, from, bytes_left - pbuf->carry_bytes);
-+	} else {
-+		/* remove invalid bytes */
-+		zero_extra_bytes(pbuf, pbuf->carry_bytes - bytes_left);
-+	}
-+
-+	pbuf->qw_written += qw_to_write;
-+}
-+
-+/*
-+ * Mid copy helper, "straight case" - source pointer is 64-bit aligned
-+ * with no carry bytes.
-+ *
-+ * @pbuf: destination buffer
-+ * @from: data source, is QWORD aligned
-+ * @nbytes: bytes to copy
-+ *
-+ * Must handle nbytes < 8.
-+ */
-+static void mid_copy_straight(struct pio_buf *pbuf,
-+						const void *from, size_t nbytes)
-+{
-+	void __iomem *dest = pbuf->start + (pbuf->qw_written * sizeof(u64));
-+	void __iomem *dend;			/* 8-byte data end */
-+
-+	/* calculate 8-byte data end */
-+	dend = dest + ((nbytes>>3) * sizeof(u64));
-+
-+	if (pbuf->qw_written < PIO_BLOCK_QWS) {
-+		/*
-+		 * Still within SOP block.  We don't need to check for
-+		 * wrap because we are still in the first block and
-+		 * can only wrap on block boundaries.
-+		 */
-+		void __iomem *send;		/* SOP end */
-+		void __iomem *xend;
-+
-+		/* calculate the end of data or end of block, whichever
-+		   comes first */
-+		send = pbuf->start + PIO_BLOCK_SIZE;
-+		xend = send < dend ? send : dend;
-+
-+		/* shift up to SOP=1 space */
-+		dest += SOP_DISTANCE;
-+		xend += SOP_DISTANCE;
-+
-+		/* write 8-byte chunk data */
-+		while (dest < xend) {
-+			writeq(*(u64 *)from, dest);
-+			from += sizeof(u64);
-+			dest += sizeof(u64);
-+		}
-+
-+		/* shift down to SOP=0 space */
-+		dest -= SOP_DISTANCE;
-+	}
-+	/*
-+	 * At this point dest could be (either, both, or neither):
-+	 * - at dend
-+	 * - at the wrap
-+	 */
-+
-+	/*
-+	 * If the wrap comes before or matches the data end,
-+	 * copy until until the wrap, then wrap.
-+	 *
-+	 * If dest is at the wrap, we will fall into the if,
-+	 * not do the loop, when wrap.
-+	 *
-+	 * If the data ends at the end of the SOP above and
-+	 * the buffer wraps, then pbuf->end == dend == dest
-+	 * and nothing will get written.
-+	 */
-+	if (pbuf->end <= dend) {
-+		while (dest < pbuf->end) {
-+			writeq(*(u64 *)from, dest);
-+			from += sizeof(u64);
-+			dest += sizeof(u64);
-+		}
-+
-+		dest -= pbuf->size;
-+		dend -= pbuf->size;
-+	}
-+
-+	/* write 8-byte non-SOP, non-wrap chunk data */
-+	while (dest < dend) {
-+		writeq(*(u64 *)from, dest);
-+		from += sizeof(u64);
-+		dest += sizeof(u64);
-+	}
-+
-+	/* we know carry_bytes was zero on entry to this routine */
-+	read_low_bytes(pbuf, from, nbytes & 0x7);
-+
-+	pbuf->qw_written += nbytes>>3;
-+}
-+
-+/*
-+ * Segmented PIO Copy - middle
-+ *
-+ * Must handle any aligned tail and any aligned source with any byte count.
-+ *
-+ * @pbuf: a number of blocks allocated within a PIO send context
-+ * @from: data source
-+ * @nbytes: number of bytes to copy
-+ */
-+void seg_pio_copy_mid(struct pio_buf *pbuf, const void *from, size_t nbytes)
-+{
-+	unsigned long from_align = (unsigned long)from & 0x7;
-+
-+	if (pbuf->carry_bytes + nbytes < 8) {
-+		/* not enough bytes to fill a QW */
-+		read_extra_bytes(pbuf, from, nbytes);
-+		return;
-+	}
-+
-+	if (from_align) {
-+		/* misaligned source pointer - align it */
-+		unsigned long to_align;
-+
-+		/* bytes to read to align "from" */
-+		to_align = 8 - from_align;
-+
-+		/*
-+		 * In the advance-to-alignment logic below, we do not need
-+		 * to check if we are using more than nbytes.  This is because
-+		 * if we are here, we already know that carry+nbytes will
-+		 * fill at least one QW.
-+		 */
-+		if (pbuf->carry_bytes + to_align < 8) {
-+			/* not enough align bytes to fill a QW */
-+			read_extra_bytes(pbuf, from, to_align);
-+			from += to_align;
-+			nbytes -= to_align;
-+		} else {
-+			/* bytes to fill carry */
-+			unsigned long to_fill = 8 - pbuf->carry_bytes;
-+			/* bytes left over to be read */
-+			unsigned long extra = to_align - to_fill;
-+			void __iomem *dest;
-+
-+			/* fill carry... */
-+			read_extra_bytes(pbuf, from, to_fill);
-+			from += to_fill;
-+			nbytes -= to_fill;
-+
-+			/* ...now write carry */
-+			dest = pbuf->start + (pbuf->qw_written * sizeof(u64));
-+
-+			/*
-+			 * The two checks immediately below cannot both be
-+			 * true, hence the else.  If we have wrapped, we
-+			 * cannot still be within the first block.
-+			 * Conversely, if we are still in the first block, we
-+			 * cannot have wrapped.  We do the wrap check first
-+			 * as that is more likely.
-+			 */
-+			/* adjust if we've wrapped */
-+			if (dest >= pbuf->end)
-+				dest -= pbuf->size;
-+			/* jump to SOP range if within the first block */
-+			else if (pbuf->qw_written < PIO_BLOCK_QWS)
-+				dest += SOP_DISTANCE;
-+
-+			carry8_write8(pbuf->carry, dest);
-+			pbuf->qw_written++;
-+
-+			/* read any extra bytes to do final alignment */
-+			/* this will overwrite anything in pbuf->carry */
-+			read_low_bytes(pbuf, from, extra);
-+			from += extra;
-+			nbytes -= extra;
-+		}
-+
-+		/* at this point, from is QW aligned */
-+	}
-+
-+	if (pbuf->carry_bytes)
-+		mid_copy_mix(pbuf, from, nbytes);
-+	else
-+		mid_copy_straight(pbuf, from, nbytes);
-+}
-+
-+/*
-+ * Segmented PIO Copy - end
-+ *
-+ * Write any remainder (in pbuf->carry) and finish writing the whole block.
-+ *
-+ * @pbuf: a number of blocks allocated within a PIO send context
-+ */
-+void seg_pio_copy_end(struct pio_buf *pbuf)
-+{
-+	void __iomem *dest = pbuf->start + (pbuf->qw_written * sizeof(u64));
-+
-+	/*
-+	 * The two checks immediately below cannot both be true, hence the
-+	 * else.  If we have wrapped, we cannot still be within the first
-+	 * block.  Conversely, if we are still in the first block, we
-+	 * cannot have wrapped.  We do the wrap check first as that is
-+	 * more likely.
-+	 */
-+	/* adjust if we have wrapped */
-+	if (dest >= pbuf->end)
-+		dest -= pbuf->size;
-+	/* jump to the SOP range if within the first block */
-+	else if (pbuf->qw_written < PIO_BLOCK_QWS)
-+		dest += SOP_DISTANCE;
-+
-+	/* write final bytes, if any */
-+	if (carry_write8(pbuf, dest)) {
-+		dest += sizeof(u64);
-+		/*
-+		 * NOTE: We do not need to recalculate whether dest needs
-+		 * SOP_DISTANCE or not.
-+		 *
-+		 * If we are in the first block and the dangle write
-+		 * keeps us in the same block, dest will need
-+		 * to retain SOP_DISTANCE in the loop below.
-+		 *
-+		 * If we are in the first block and the dangle write pushes
-+		 * us to the next block, then loop below will not run
-+		 * and dest is not used.  Hence we do not need to update
-+		 * it.
-+		 *
-+		 * If we are past the first block, then SOP_DISTANCE
-+		 * was never added, so there is nothing to do.
-+		 */
-+	}
-+
-+	/* fill in rest of block */
-+	while (((unsigned long)dest & PIO_BLOCK_MASK) != 0) {
-+		writeq(0, dest);
-+		dest += sizeof(u64);
-+	}
-+
-+	/* finished with this buffer */
-+	atomic_dec(&pbuf->sc->buffers_allocated);
-+}
++int refresh_qsfp_cache(struct hfi1_pportdata *ppd,
++		       struct qsfp_data *cp);
++int qsfp_mod_present(struct hfi1_pportdata *ppd);
++int get_cable_info(struct hfi1_devdata *dd, u32 port_num, u32 addr,
++		   u32 len, u8 *data);
++
++int i2c_write(struct hfi1_pportdata *ppd, u32 target, int i2c_addr,
++	      int offset, void *bp, int len);
++int i2c_read(struct hfi1_pportdata *ppd, u32 target, int i2c_addr,
++	     int offset, void *bp, int len);
++int qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
++	       int len);
++int qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
++	      int len);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
