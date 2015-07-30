@@ -1,70 +1,29 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v4 05/14] IB/cm: Expose service ID in request events
-Date: Thu, 30 Jul 2015 17:50:17 +0300
-Message-ID: <1438267826-32155-6-git-send-email-haggaie@mellanox.com>
-References: <1438267826-32155-1-git-send-email-haggaie@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1438267826-32155-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+From: Steve Wise <swise@opengridcomputing.com>
+Subject: Re: [PATCH for-4.3 00/15] Modify MR allocation API
+Date: Thu, 30 Jul 2015 09:56:42 -0500
+Message-ID: <55BA3B2A.9010403@opengridcomputing.com>
+References: <1438241568-3685-1-git-send-email-sagig@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1438241568-3685-1-git-send-email-sagig@mellanox.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Sagi Grimberg <sagig@mellanox.com>, linux-rdma@vger.kernel.org, linux-nfs@vger.kernel.org, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Expose the service ID on an incoming CM or SIDR request to the event
-handler. This will allow the RDMA CM module to de-multiplex connection
-requests based on the information encoded in the service ID.
+On 7/30/2015 2:32 AM, Sagi Grimberg wrote:
+> This patch set is detached from my WIP for modifying our
+> fast registration kernel API. I incorporated some comments
+> from Jason and Christoph. The current set is a drop-in replacement
+> of ib_alloc_fast_reg_mr to ib_alloc_mr which receives a memory
+> region type (whcih can be IB_MR_TYPE_MEM_REG for normal memory
+> registration, IB_MR_TYPE_SIGNATURE for a data-integrity capable
+> memory region and future arbitrary SG support capable memory
+> region).
+>
+>
 
-Acked-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/cm.c | 3 +++
- include/rdma/ib_cm.h         | 1 +
- 2 files changed, 4 insertions(+)
+Series looks good.
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 82d5c4362aa8..93e9e2f34fc6 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -1268,6 +1268,7 @@ static void cm_format_paths_from_req(struct cm_req_msg *req_msg,
- 	primary_path->packet_life_time =
- 		cm_req_get_primary_local_ack_timeout(req_msg);
- 	primary_path->packet_life_time -= (primary_path->packet_life_time > 0);
-+	primary_path->service_id = req_msg->service_id;
- 
- 	if (req_msg->alt_local_lid) {
- 		memset(alt_path, 0, sizeof *alt_path);
-@@ -1289,6 +1290,7 @@ static void cm_format_paths_from_req(struct cm_req_msg *req_msg,
- 		alt_path->packet_life_time =
- 			cm_req_get_alt_local_ack_timeout(req_msg);
- 		alt_path->packet_life_time -= (alt_path->packet_life_time > 0);
-+		alt_path->service_id = req_msg->service_id;
- 	}
- }
- 
-@@ -2992,6 +2994,7 @@ static void cm_format_sidr_req_event(struct cm_work *work,
- 	param = &work->cm_event.param.sidr_req_rcvd;
- 	param->pkey = __be16_to_cpu(sidr_req_msg->pkey);
- 	param->listen_id = listen_id;
-+	param->service_id = sidr_req_msg->service_id;
- 	param->port = work->port->port_num;
- 	work->cm_event.private_data = &sidr_req_msg->private_data;
- }
-diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
-index 39ed2d2fbd51..1b567bbc3ad4 100644
---- a/include/rdma/ib_cm.h
-+++ b/include/rdma/ib_cm.h
-@@ -223,6 +223,7 @@ struct ib_cm_apr_event_param {
- 
- struct ib_cm_sidr_req_event_param {
- 	struct ib_cm_id		*listen_id;
-+	__be64			service_id;
- 	u8			port;
- 	u16			pkey;
- };
--- 
-1.7.11.2
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Reviewed-by: Steve Wise <swise@opengridcomputing.com>
