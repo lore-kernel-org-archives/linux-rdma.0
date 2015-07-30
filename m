@@ -1,253 +1,146 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v4 10/14] IB/cma: Add net_dev and private data checks to RDMA CM
-Date: Thu, 30 Jul 2015 17:50:22 +0300
-Message-ID: <1438267826-32155-11-git-send-email-haggaie@mellanox.com>
+Subject: [PATCH v4 01/14] IB/core: Add rwsem to allow reading device list or client list
+Date: Thu, 30 Jul 2015 17:50:13 +0300
+Message-ID: <1438267826-32155-2-git-send-email-haggaie@mellanox.com>
 References: <1438267826-32155-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1438267826-32155-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Instead of relying on a the ib_cm module to check an incoming CM request's
-private data header, add these checks to the RDMA CM module. This allows a
-following patch to to clean up the ib_cm interface and remove the code that
-looks into the private headers. It will also allow supporting namespaces in
-RDMA CM by making these checks namespace aware later on.
+Currently the RDMA subsystem's device list and client list are protected by
+a single mutex. This prevents adding user-facing APIs that iterate these
+lists, since using them may cause a deadlock. The patch attempts to solve
+this problem by adding a read-write semaphore to protect the lists. Readers
+now don't need the mutex, and are safe just by read-locking the semaphore.
 
+The ib_register_device, ib_register_client, ib_unregister_device, and
+ib_unregister_client functions are modified to lock the semaphore for write
+during their respective list modification. Also, in order to make sure
+client callbacks are called only between add() and remove() calls, the code
+is changed to only add items to the lists after the add() calls and remove
+from the lists before the remove() calls.
+
+This patch attempts to solve a similar need [1] that was seen in the RoCE
+v2 patch series.
+
+[1] http://www.spinics.net/lists/linux-rdma/msg24733.html
+
+Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c | 188 +++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 185 insertions(+), 3 deletions(-)
+ drivers/infiniband/core/device.c | 39 ++++++++++++++++++++++++++++-----------
+ 1 file changed, 28 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index f2d799209412..011aa7310dd3 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -263,6 +263,15 @@ struct cma_hdr {
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 9567756ca4f9..f08d438205ed 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -55,17 +55,24 @@ struct ib_client_data {
+ struct workqueue_struct *ib_wq;
+ EXPORT_SYMBOL_GPL(ib_wq);
  
- #define CMA_VERSION 0x00
++/* The device_list and client_list contain devices and clients after their
++ * registration has completed, and the devices and clients are removed
++ * during unregistration. */
+ static LIST_HEAD(device_list);
+ static LIST_HEAD(client_list);
  
-+struct cma_req_info {
-+	struct ib_device *device;
-+	int port;
-+	union ib_gid local_gid;
-+	__be64 service_id;
-+	u16 pkey;
-+	bool has_gid:1;
-+};
+ /*
+- * device_mutex protects access to both device_list and client_list.
+- * There's no real point to using multiple locks or something fancier
+- * like an rwsem: we always access both lists, and we're always
+- * modifying one list or the other list.  In any case this is not a
+- * hot path so there's no point in trying to optimize.
++ * device_mutex and lists_rwsem protect access to both device_list and
++ * client_list.  device_mutex protects writer access by device and client
++ * registration / de-registration.  lists_rwsem protects reader access to
++ * these lists.  Iterators of these lists must lock it for read, while updates
++ * to the lists must be done with a write lock. A special case is when the
++ * device_mutex is locked. In this case locking the lists for read access is
++ * not necessary as the device_mutex implies it.
+  */
+ static DEFINE_MUTEX(device_mutex);
++static DECLARE_RWSEM(lists_rwsem);
 +
- static int cma_comp(struct rdma_id_private *id_priv, enum rdma_cm_state comp)
- {
- 	unsigned long flags;
-@@ -300,7 +309,7 @@ static enum rdma_cm_state cma_exch(struct rdma_id_private *id_priv,
- 	return old;
- }
  
--static inline u8 cma_get_ip_ver(struct cma_hdr *hdr)
-+static inline u8 cma_get_ip_ver(const struct cma_hdr *hdr)
+ static int ib_device_check_mandatory(struct ib_device *device)
  {
- 	return hdr->ip_version >> 4;
- }
-@@ -1016,7 +1025,7 @@ static int cma_save_ip_info(struct sockaddr *src_addr,
- 		cma_save_ip6_info(src_addr, dst_addr, hdr, port);
- 		break;
- 	default:
--		return -EINVAL;
-+		return -EAFNOSUPPORT;
+@@ -305,8 +312,6 @@ int ib_register_device(struct ib_device *device,
+ 		goto out;
  	}
  
+-	list_add_tail(&device->core_list, &device_list);
+-
+ 	device->reg_state = IB_DEV_REGISTERED;
+ 
+ 	{
+@@ -317,6 +322,10 @@ int ib_register_device(struct ib_device *device,
+ 				client->add(device);
+ 	}
+ 
++	down_write(&lists_rwsem);
++	list_add_tail(&device->core_list, &device_list);
++	up_write(&lists_rwsem);
++
+  out:
+ 	mutex_unlock(&device_mutex);
+ 	return ret;
+@@ -337,12 +346,14 @@ void ib_unregister_device(struct ib_device *device)
+ 
+ 	mutex_lock(&device_mutex);
+ 
++	down_write(&lists_rwsem);
++	list_del(&device->core_list);
++	up_write(&lists_rwsem);
++
+ 	list_for_each_entry_reverse(client, &client_list, list)
+ 		if (client->remove)
+ 			client->remove(device);
+ 
+-	list_del(&device->core_list);
+-
+ 	mutex_unlock(&device_mutex);
+ 
+ 	ib_device_unregister_sysfs(device);
+@@ -375,11 +386,14 @@ int ib_register_client(struct ib_client *client)
+ 
+ 	mutex_lock(&device_mutex);
+ 
+-	list_add_tail(&client->list, &client_list);
+ 	list_for_each_entry(device, &device_list, core_list)
+ 		if (client->add && !add_client_context(device, client))
+ 			client->add(device);
+ 
++	down_write(&lists_rwsem);
++	list_add_tail(&client->list, &client_list);
++	up_write(&lists_rwsem);
++
+ 	mutex_unlock(&device_mutex);
+ 
  	return 0;
-@@ -1040,6 +1049,176 @@ static int cma_save_net_info(struct sockaddr *src_addr,
- 	return cma_save_ip_info(src_addr, dst_addr, ib_event, service_id);
+@@ -402,6 +416,10 @@ void ib_unregister_client(struct ib_client *client)
+ 
+ 	mutex_lock(&device_mutex);
+ 
++	down_write(&lists_rwsem);
++	list_del(&client->list);
++	up_write(&lists_rwsem);
++
+ 	list_for_each_entry(device, &device_list, core_list) {
+ 		if (client->remove)
+ 			client->remove(device);
+@@ -414,7 +432,6 @@ void ib_unregister_client(struct ib_client *client)
+ 			}
+ 		spin_unlock_irqrestore(&device->client_data_lock, flags);
+ 	}
+-	list_del(&client->list);
+ 
+ 	mutex_unlock(&device_mutex);
  }
- 
-+static int cma_save_req_info(const struct ib_cm_event *ib_event,
-+			     struct cma_req_info *req)
-+{
-+	const struct ib_cm_req_event_param *req_param =
-+		&ib_event->param.req_rcvd;
-+	const struct ib_cm_sidr_req_event_param *sidr_param =
-+		&ib_event->param.sidr_req_rcvd;
-+
-+	switch (ib_event->event) {
-+	case IB_CM_REQ_RECEIVED:
-+		req->device	= req_param->listen_id->device;
-+		req->port	= req_param->port;
-+		memcpy(&req->local_gid, &req_param->primary_path->sgid,
-+		       sizeof(req->local_gid));
-+		req->has_gid	= true;
-+		req->service_id	= req_param->primary_path->service_id;
-+		req->pkey	= req_param->bth_pkey;
-+		break;
-+	case IB_CM_SIDR_REQ_RECEIVED:
-+		req->device	= sidr_param->listen_id->device;
-+		req->port	= sidr_param->port;
-+		req->has_gid	= false;
-+		req->service_id	= sidr_param->service_id;
-+		req->pkey	= sidr_param->bth_pkey;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static struct net_device *cma_get_net_dev(struct ib_cm_event *ib_event,
-+					  const struct cma_req_info *req)
-+{
-+	struct sockaddr_storage listen_addr_storage;
-+	struct sockaddr *listen_addr = (struct sockaddr *)&listen_addr_storage;
-+	struct net_device *net_dev;
-+	const union ib_gid *gid = req->has_gid ? &req->local_gid : NULL;
-+	int err;
-+
-+	err = cma_save_ip_info(listen_addr, NULL, ib_event, req->service_id);
-+	if (err)
-+		return ERR_PTR(err);
-+
-+	net_dev = ib_get_net_dev_by_params(req->device, req->port, req->pkey,
-+					   gid, listen_addr);
-+	if (!net_dev)
-+		return ERR_PTR(-ENODEV);
-+
-+	return net_dev;
-+}
-+
-+static enum rdma_port_space rdma_ps_from_service_id(__be64 service_id)
-+{
-+	return (be64_to_cpu(service_id) >> 16) & 0xffff;
-+}
-+
-+static bool cma_match_private_data(struct rdma_id_private *id_priv,
-+				   const struct cma_hdr *hdr)
-+{
-+	struct sockaddr *addr = cma_src_addr(id_priv);
-+	__be32 ip4_addr;
-+	struct in6_addr ip6_addr;
-+
-+	if (cma_any_addr(addr) && !id_priv->afonly)
-+		return true;
-+
-+	switch (addr->sa_family) {
-+	case AF_INET:
-+		ip4_addr = ((struct sockaddr_in *)addr)->sin_addr.s_addr;
-+		if (cma_get_ip_ver(hdr) != 4)
-+			return false;
-+		if (!cma_any_addr(addr) &&
-+		    hdr->dst_addr.ip4.addr != ip4_addr)
-+			return false;
-+		break;
-+	case AF_INET6:
-+		ip6_addr = ((struct sockaddr_in6 *)addr)->sin6_addr;
-+		if (cma_get_ip_ver(hdr) != 6)
-+			return false;
-+		if (!cma_any_addr(addr) &&
-+		    memcmp(&hdr->dst_addr.ip6, &ip6_addr, sizeof(ip6_addr)))
-+			return false;
-+		break;
-+	case AF_IB:
-+		return true;
-+	default:
-+		return false;
-+	}
-+
-+	return true;
-+}
-+
-+static bool cma_match_net_dev(const struct rdma_id_private *id_priv,
-+			      const struct net_device *net_dev)
-+{
-+	const struct rdma_addr *addr = &id_priv->id.route.addr;
-+
-+	if (!net_dev)
-+		/* This request is an AF_IB request */
-+		return addr->src_addr.ss_family == AF_IB;
-+
-+	return !addr->dev_addr.bound_dev_if ||
-+	       (net_eq(dev_net(net_dev), &init_net) &&
-+		addr->dev_addr.bound_dev_if == net_dev->ifindex);
-+}
-+
-+static struct rdma_id_private *cma_find_listener(
-+		const struct rdma_bind_list *bind_list,
-+		const struct ib_cm_id *cm_id,
-+		const struct ib_cm_event *ib_event,
-+		const struct cma_req_info *req,
-+		const struct net_device *net_dev)
-+{
-+	struct rdma_id_private *id_priv, *id_priv_dev;
-+
-+	if (!bind_list)
-+		return ERR_PTR(-EINVAL);
-+
-+	hlist_for_each_entry(id_priv, &bind_list->owners, node) {
-+		if (cma_match_private_data(id_priv, ib_event->private_data)) {
-+			if (id_priv->id.device == cm_id->device &&
-+			    cma_match_net_dev(id_priv, net_dev))
-+				return id_priv;
-+			list_for_each_entry(id_priv_dev,
-+					    &id_priv->listen_list,
-+					    listen_list) {
-+				if (id_priv_dev->id.device == cm_id->device &&
-+				    cma_match_net_dev(id_priv_dev, net_dev))
-+					return id_priv_dev;
-+			}
-+		}
-+	}
-+
-+	return ERR_PTR(-EINVAL);
-+}
-+
-+static struct rdma_id_private *cma_id_from_event(struct ib_cm_id *cm_id,
-+						 struct ib_cm_event *ib_event)
-+{
-+	struct cma_req_info req;
-+	struct rdma_bind_list *bind_list;
-+	struct rdma_id_private *id_priv;
-+	struct net_device *net_dev;
-+	int err;
-+
-+	err = cma_save_req_info(ib_event, &req);
-+	if (err)
-+		return ERR_PTR(err);
-+
-+	net_dev = cma_get_net_dev(ib_event, &req);
-+	if (IS_ERR(net_dev)) {
-+		if (PTR_ERR(net_dev) == -EAFNOSUPPORT) {
-+			/* Assuming the protocol is AF_IB */
-+			net_dev = NULL;
-+		} else {
-+			return ERR_PTR(PTR_ERR(net_dev));
-+		}
-+	}
-+
-+	bind_list = cma_ps_find(rdma_ps_from_service_id(req.service_id),
-+				cma_port_from_service_id(req.service_id));
-+	id_priv = cma_find_listener(bind_list, cm_id, ib_event, &req, net_dev);
-+
-+	dev_put(net_dev);
-+
-+	return id_priv;
-+}
-+
- static inline int cma_user_data_offset(struct rdma_id_private *id_priv)
- {
- 	return cma_family(id_priv) == AF_IB ? 0 : sizeof(struct cma_hdr);
-@@ -1399,7 +1578,10 @@ static int cma_req_handler(struct ib_cm_id *cm_id, struct ib_cm_event *ib_event)
- 	struct rdma_cm_event event;
- 	int offset, ret;
- 
--	listen_id = cm_id->context;
-+	listen_id = cma_id_from_event(cm_id, ib_event);
-+	if (IS_ERR(listen_id))
-+		return PTR_ERR(listen_id);
-+
- 	if (!cma_check_req_qp_type(&listen_id->id, ib_event))
- 		return -EINVAL;
- 
 -- 
 1.7.11.2
 
