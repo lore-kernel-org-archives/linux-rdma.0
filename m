@@ -1,104 +1,168 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: [PATCH v2 10/12] ib_srpt: Remove ib_get_dma_mr calls
-Date: Thu, 30 Jul 2015 17:22:24 -0600
-Message-ID: <1438298547-21404-11-git-send-email-jgunthorpe@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: [PATCH v2 12/12] rds/ib: Remove ib_get_dma_mr calls
+Date: Thu, 30 Jul 2015 17:22:26 -0600
+Message-ID: <1438298547-21404-13-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1438298547-21404-1-git-send-email-jgunthorpe@obsidianresearch.com>
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1438298547-21404-1-git-send-email-jgunthorpe@obsidianresearch.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
-Cc: Amir Vadai <amirv@mellanox.com>, Bart Van Assche <bart.vanassche@sandisk.com>, Chien Yen <chien.yen@oracle.com>, Christoph Hellwig <hch@infradead.org>, Dominique Martinet <dominique.martinet@cea.fr>, Eli Cohen <eli@mellanox.com>, Eric Van Hensbergen <ericvh@gmail.com>, Ido Shamay <idos@mellanox.com>, Latchesar Ionkov <lucho@ionkov.net>, Or Gerlitz <ogerlitz@mellanox.com>, Roi Dayan <roid@mellanox.com>, Ron Minnich <rminnich@sandia.gov>, Sagi Grimberg <sagig@mellanox.com>, Simon Derr <simon.derr@bull.net>, Tom Tucker <tom@opengridcomputing.com>, rds-devel@oss.oracle.com, target-devel@vger.kernel.org, v9fs-developer@lists.sourceforge.net
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1438298547-21404-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Chien Yen <chien.yen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Dominique Martinet <dominique.martinet-KCE40YydGKI@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eric Van Hensbergen <ericvh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ido Shamay <idos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Latchesar Ionkov <lucho-OnYtXJJ0/fesTnJN9+BGXg@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ron Minnich <rminnich-4OHPYypu0djtX7QSmKvirg@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Simon Derr <simon.derr-6ktuUTfB/bM@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, v9fs-developer-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 The pd now has a local_dma_lkey member which completely replaces
 ib_get_dma_mr, use it instead.
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Reviewed-by: Sagi Grimberg <sagig@mellanox.com>
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 15 ++++-----------
- drivers/infiniband/ulp/srpt/ib_srpt.h |  1 -
- 2 files changed, 4 insertions(+), 12 deletions(-)
+ net/rds/ib.c      | 8 --------
+ net/rds/ib.h      | 2 --
+ net/rds/ib_cm.c   | 4 +---
+ net/rds/ib_recv.c | 6 +++---
+ net/rds/ib_send.c | 8 ++++----
+ 5 files changed, 8 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 60ff0a2390e5..20adb96ba0b2 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -783,7 +783,7 @@ static int srpt_post_recv(struct srpt_device *sdev,
+diff --git a/net/rds/ib.c b/net/rds/ib.c
+index ba2dffeff608..56c570131667 100644
+--- a/net/rds/ib.c
++++ b/net/rds/ib.c
+@@ -99,8 +99,6 @@ static void rds_ib_dev_free(struct work_struct *work)
  
- 	list.addr = ioctx->ioctx.dma;
- 	list.length = srp_max_req_size;
--	list.lkey = sdev->mr->lkey;
-+	list.lkey = sdev->pd->local_dma_lkey;
+ 	if (rds_ibdev->mr_pool)
+ 		rds_ib_destroy_mr_pool(rds_ibdev->mr_pool);
+-	if (rds_ibdev->mr)
+-		ib_dereg_mr(rds_ibdev->mr);
+ 	if (rds_ibdev->pd)
+ 		ib_dealloc_pd(rds_ibdev->pd);
  
- 	wr.next = NULL;
- 	wr.sg_list = &list;
-@@ -818,7 +818,7 @@ static int srpt_post_send(struct srpt_rdma_ch *ch,
+@@ -164,12 +162,6 @@ static void rds_ib_add_one(struct ib_device *device)
+ 		goto put_dev;
+ 	}
  
- 	list.addr = ioctx->ioctx.dma;
- 	list.length = len;
--	list.lkey = sdev->mr->lkey;
-+	list.lkey = sdev->pd->local_dma_lkey;
- 
- 	wr.next = NULL;
- 	wr.wr_id = encode_wr_id(SRPT_SEND, ioctx->ioctx.index);
-@@ -1206,7 +1206,7 @@ static int srpt_map_sg_to_ib_sge(struct srpt_rdma_ch *ch,
- 
- 		while (rsize > 0 && tsize > 0) {
- 			sge->addr = dma_addr;
--			sge->lkey = ch->sport->sdev->mr->lkey;
-+			sge->lkey = ch->sport->sdev->pd->local_dma_lkey;
- 
- 			if (rsize >= dma_len) {
- 				sge->length =
-@@ -3211,10 +3211,6 @@ static void srpt_add_one(struct ib_device *device)
- 	if (IS_ERR(sdev->pd))
- 		goto free_dev;
- 
--	sdev->mr = ib_get_dma_mr(sdev->pd, IB_ACCESS_LOCAL_WRITE);
--	if (IS_ERR(sdev->mr))
--		goto err_pd;
+-	rds_ibdev->mr = ib_get_dma_mr(rds_ibdev->pd, IB_ACCESS_LOCAL_WRITE);
+-	if (IS_ERR(rds_ibdev->mr)) {
+-		rds_ibdev->mr = NULL;
+-		goto put_dev;
+-	}
 -
- 	sdev->srq_size = min(srpt_srq_size, sdev->dev_attr.max_srq_wr);
+ 	rds_ibdev->mr_pool = rds_ib_create_mr_pool(rds_ibdev);
+ 	if (IS_ERR(rds_ibdev->mr_pool)) {
+ 		rds_ibdev->mr_pool = NULL;
+diff --git a/net/rds/ib.h b/net/rds/ib.h
+index 86d88ec5d556..36f7d808ffaa 100644
+--- a/net/rds/ib.h
++++ b/net/rds/ib.h
+@@ -100,7 +100,6 @@ struct rds_ib_connection {
+ 	/* alphabet soup, IBTA style */
+ 	struct rdma_cm_id	*i_cm_id;
+ 	struct ib_pd		*i_pd;
+-	struct ib_mr		*i_mr;
+ 	struct ib_cq		*i_send_cq;
+ 	struct ib_cq		*i_recv_cq;
  
- 	srq_attr.event_handler = srpt_srq_event;
-@@ -3226,7 +3222,7 @@ static void srpt_add_one(struct ib_device *device)
- 
- 	sdev->srq = ib_create_srq(sdev->pd, &srq_attr);
- 	if (IS_ERR(sdev->srq))
--		goto err_mr;
-+		goto err_pd;
- 
- 	pr_debug("%s: create SRQ #wr= %d max_allow=%d dev= %s\n",
- 		 __func__, sdev->srq_size, sdev->dev_attr.max_srq_wr,
-@@ -3311,8 +3307,6 @@ err_cm:
- 	ib_destroy_cm_id(sdev->cm_id);
- err_srq:
- 	ib_destroy_srq(sdev->srq);
--err_mr:
--	ib_dereg_mr(sdev->mr);
- err_pd:
- 	ib_dealloc_pd(sdev->pd);
- free_dev:
-@@ -3358,7 +3352,6 @@ static void srpt_remove_one(struct ib_device *device)
- 	srpt_release_sdev(sdev);
- 
- 	ib_destroy_srq(sdev->srq);
--	ib_dereg_mr(sdev->mr);
- 	ib_dealloc_pd(sdev->pd);
- 
- 	srpt_free_ioctx_ring((struct srpt_ioctx **)sdev->ioctx_ring, sdev,
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
-index 21f8df67522a..5faad8acd789 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.h
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
-@@ -393,7 +393,6 @@ struct srpt_port {
- struct srpt_device {
- 	struct ib_device	*device;
+@@ -173,7 +172,6 @@ struct rds_ib_device {
+ 	struct list_head	conn_list;
+ 	struct ib_device	*dev;
  	struct ib_pd		*pd;
 -	struct ib_mr		*mr;
- 	struct ib_srq		*srq;
- 	struct ib_cm_id		*cm_id;
- 	struct ib_device_attr	dev_attr;
+ 	struct rds_ib_mr_pool	*mr_pool;
+ 	unsigned int		fmr_max_remaps;
+ 	unsigned int		max_fmrs;
+diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
+index 0da2a45b33bd..a75e8832bc23 100644
+--- a/net/rds/ib_cm.c
++++ b/net/rds/ib_cm.c
+@@ -269,7 +269,6 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
+ 
+ 	/* Protection domain and memory range */
+ 	ic->i_pd = rds_ibdev->pd;
+-	ic->i_mr = rds_ibdev->mr;
+ 
+ 	cq_attr.cqe = ic->i_send_ring.w_nr + 1;
+ 	ic->i_send_cq = ib_create_cq(dev, rds_ib_send_cq_comp_handler,
+@@ -375,7 +374,7 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
+ 
+ 	rds_ib_recv_init_ack(ic);
+ 
+-	rdsdebug("conn %p pd %p mr %p cq %p %p\n", conn, ic->i_pd, ic->i_mr,
++	rdsdebug("conn %p pd %p cq %p %p\n", conn, ic->i_pd,
+ 		 ic->i_send_cq, ic->i_recv_cq);
+ 
+ out:
+@@ -678,7 +677,6 @@ void rds_ib_conn_shutdown(struct rds_connection *conn)
+ 
+ 		ic->i_cm_id = NULL;
+ 		ic->i_pd = NULL;
+-		ic->i_mr = NULL;
+ 		ic->i_send_cq = NULL;
+ 		ic->i_recv_cq = NULL;
+ 		ic->i_send_hdrs = NULL;
+diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c
+index cac5b4506ee3..0ceb4c60d2a3 100644
+--- a/net/rds/ib_recv.c
++++ b/net/rds/ib_recv.c
+@@ -62,12 +62,12 @@ void rds_ib_recv_init_ring(struct rds_ib_connection *ic)
+ 		sge = &recv->r_sge[0];
+ 		sge->addr = ic->i_recv_hdrs_dma + (i * sizeof(struct rds_header));
+ 		sge->length = sizeof(struct rds_header);
+-		sge->lkey = ic->i_mr->lkey;
++		sge->lkey = ic->i_pd->local_dma_lkey;
+ 
+ 		sge = &recv->r_sge[1];
+ 		sge->addr = 0;
+ 		sge->length = RDS_FRAG_SIZE;
+-		sge->lkey = ic->i_mr->lkey;
++		sge->lkey = ic->i_pd->local_dma_lkey;
+ 	}
+ }
+ 
+@@ -520,7 +520,7 @@ void rds_ib_recv_init_ack(struct rds_ib_connection *ic)
+ 
+ 	sge->addr = ic->i_ack_dma;
+ 	sge->length = sizeof(struct rds_header);
+-	sge->lkey = ic->i_mr->lkey;
++	sge->lkey = ic->i_pd->local_dma_lkey;
+ 
+ 	wr->sg_list = sge;
+ 	wr->num_sge = 1;
+diff --git a/net/rds/ib_send.c b/net/rds/ib_send.c
+index 5d0a704fa039..f6c829d43373 100644
+--- a/net/rds/ib_send.c
++++ b/net/rds/ib_send.c
+@@ -202,9 +202,9 @@ void rds_ib_send_init_ring(struct rds_ib_connection *ic)
+ 		sge = &send->s_sge[0];
+ 		sge->addr = ic->i_send_hdrs_dma + (i * sizeof(struct rds_header));
+ 		sge->length = sizeof(struct rds_header);
+-		sge->lkey = ic->i_mr->lkey;
++		sge->lkey = ic->i_pd->local_dma_lkey;
+ 
+-		send->s_sge[1].lkey = ic->i_mr->lkey;
++		send->s_sge[1].lkey = ic->i_pd->local_dma_lkey;
+ 	}
+ }
+ 
+@@ -813,7 +813,7 @@ int rds_ib_xmit_atomic(struct rds_connection *conn, struct rm_atomic_op *op)
+ 	/* Convert our struct scatterlist to struct ib_sge */
+ 	send->s_sge[0].addr = ib_sg_dma_address(ic->i_cm_id->device, op->op_sg);
+ 	send->s_sge[0].length = ib_sg_dma_len(ic->i_cm_id->device, op->op_sg);
+-	send->s_sge[0].lkey = ic->i_mr->lkey;
++	send->s_sge[0].lkey = ic->i_pd->local_dma_lkey;
+ 
+ 	rdsdebug("rva %Lx rpa %Lx len %u\n", op->op_remote_addr,
+ 		 send->s_sge[0].addr, send->s_sge[0].length);
+@@ -927,7 +927,7 @@ int rds_ib_xmit_rdma(struct rds_connection *conn, struct rm_rdma_op *op)
+ 			send->s_sge[j].addr =
+ 				 ib_sg_dma_address(ic->i_cm_id->device, scat);
+ 			send->s_sge[j].length = len;
+-			send->s_sge[j].lkey = ic->i_mr->lkey;
++			send->s_sge[j].lkey = ic->i_pd->local_dma_lkey;
+ 
+ 			sent += len;
+ 			rdsdebug("ic %p sent %d remote_addr %llu\n", ic, sent, remote_addr);
 -- 
 2.1.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
