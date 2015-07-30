@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: [PATCH v2 11/12] net/9p: Remove ib_get_dma_mr calls
-Date: Thu, 30 Jul 2015 17:22:25 -0600
-Message-ID: <1438298547-21404-12-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH v2 10/12] ib_srpt: Remove ib_get_dma_mr calls
+Date: Thu, 30 Jul 2015 17:22:24 -0600
+Message-ID: <1438298547-21404-11-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1438298547-21404-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <target-devel-owner@vger.kernel.org>
 In-Reply-To: <1438298547-21404-1-git-send-email-jgunthorpe@obsidianresearch.com>
@@ -14,89 +14,91 @@ The pd now has a local_dma_lkey member which completely replaces
 ib_get_dma_mr, use it instead.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Tested-by: Dominique Martinet <dominique.martinet@cea.fr>
+Reviewed-by: Sagi Grimberg <sagig@mellanox.com>
 ---
- net/9p/trans_rdma.c | 26 ++------------------------
- 1 file changed, 2 insertions(+), 24 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 15 ++++-----------
+ drivers/infiniband/ulp/srpt/ib_srpt.h |  1 -
+ 2 files changed, 4 insertions(+), 12 deletions(-)
 
-diff --git a/net/9p/trans_rdma.c b/net/9p/trans_rdma.c
-index 37a78d20c0f6..ba1210253f5e 100644
---- a/net/9p/trans_rdma.c
-+++ b/net/9p/trans_rdma.c
-@@ -94,8 +94,6 @@ struct p9_trans_rdma {
- 	struct ib_pd *pd;
- 	struct ib_qp *qp;
- 	struct ib_cq *cq;
--	struct ib_mr *dma_mr;
--	u32 lkey;
- 	long timeout;
- 	int sq_depth;
- 	struct semaphore sq_sem;
-@@ -382,9 +380,6 @@ static void rdma_destroy_trans(struct p9_trans_rdma *rdma)
- 	if (!rdma)
- 		return;
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 60ff0a2390e5..20adb96ba0b2 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -783,7 +783,7 @@ static int srpt_post_recv(struct srpt_device *sdev,
  
--	if (rdma->dma_mr && !IS_ERR(rdma->dma_mr))
--		ib_dereg_mr(rdma->dma_mr);
--
- 	if (rdma->qp && !IS_ERR(rdma->qp))
- 		ib_destroy_qp(rdma->qp);
- 
-@@ -415,7 +410,7 @@ post_recv(struct p9_client *client, struct p9_rdma_context *c)
- 
- 	sge.addr = c->busa;
- 	sge.length = client->msize;
--	sge.lkey = rdma->lkey;
-+	sge.lkey = rdma->pd->local_dma_lkey;
+ 	list.addr = ioctx->ioctx.dma;
+ 	list.length = srp_max_req_size;
+-	list.lkey = sdev->mr->lkey;
++	list.lkey = sdev->pd->local_dma_lkey;
  
  	wr.next = NULL;
- 	c->wc_op = IB_WC_RECV;
-@@ -506,7 +501,7 @@ dont_need_post_recv:
+ 	wr.sg_list = &list;
+@@ -818,7 +818,7 @@ static int srpt_post_send(struct srpt_rdma_ch *ch,
  
- 	sge.addr = c->busa;
- 	sge.length = c->req->tc->size;
--	sge.lkey = rdma->lkey;
-+	sge.lkey = rdma->pd->local_dma_lkey;
+ 	list.addr = ioctx->ioctx.dma;
+ 	list.length = len;
+-	list.lkey = sdev->mr->lkey;
++	list.lkey = sdev->pd->local_dma_lkey;
  
  	wr.next = NULL;
- 	c->wc_op = IB_WC_SEND;
-@@ -647,7 +642,6 @@ rdma_create_trans(struct p9_client *client, const char *addr, char *args)
- 	struct p9_trans_rdma *rdma;
- 	struct rdma_conn_param conn_param;
- 	struct ib_qp_init_attr qp_attr;
--	struct ib_device_attr devattr;
- 	struct ib_cq_init_attr cq_attr = {};
+ 	wr.wr_id = encode_wr_id(SRPT_SEND, ioctx->ioctx.index);
+@@ -1206,7 +1206,7 @@ static int srpt_map_sg_to_ib_sge(struct srpt_rdma_ch *ch,
  
- 	/* Parse the transport specific mount options */
-@@ -700,11 +694,6 @@ rdma_create_trans(struct p9_client *client, const char *addr, char *args)
- 	if (err || (rdma->state != P9_RDMA_ROUTE_RESOLVED))
- 		goto error;
+ 		while (rsize > 0 && tsize > 0) {
+ 			sge->addr = dma_addr;
+-			sge->lkey = ch->sport->sdev->mr->lkey;
++			sge->lkey = ch->sport->sdev->pd->local_dma_lkey;
  
--	/* Query the device attributes */
--	err = ib_query_device(rdma->cm_id->device, &devattr);
--	if (err)
--		goto error;
+ 			if (rsize >= dma_len) {
+ 				sge->length =
+@@ -3211,10 +3211,6 @@ static void srpt_add_one(struct ib_device *device)
+ 	if (IS_ERR(sdev->pd))
+ 		goto free_dev;
+ 
+-	sdev->mr = ib_get_dma_mr(sdev->pd, IB_ACCESS_LOCAL_WRITE);
+-	if (IS_ERR(sdev->mr))
+-		goto err_pd;
 -
- 	/* Create the Completion Queue */
- 	cq_attr.cqe = opts.sq_depth + opts.rq_depth + 1;
- 	rdma->cq = ib_create_cq(rdma->cm_id->device, cq_comp_handler,
-@@ -719,17 +708,6 @@ rdma_create_trans(struct p9_client *client, const char *addr, char *args)
- 	if (IS_ERR(rdma->pd))
- 		goto error;
+ 	sdev->srq_size = min(srpt_srq_size, sdev->dev_attr.max_srq_wr);
  
--	/* Cache the DMA lkey in the transport */
--	rdma->dma_mr = NULL;
--	if (devattr.device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)
--		rdma->lkey = rdma->cm_id->device->local_dma_lkey;
--	else {
--		rdma->dma_mr = ib_get_dma_mr(rdma->pd, IB_ACCESS_LOCAL_WRITE);
--		if (IS_ERR(rdma->dma_mr))
--			goto error;
--		rdma->lkey = rdma->dma_mr->lkey;
--	}
--
- 	/* Create the Queue Pair */
- 	memset(&qp_attr, 0, sizeof qp_attr);
- 	qp_attr.event_handler = qp_event_handler;
+ 	srq_attr.event_handler = srpt_srq_event;
+@@ -3226,7 +3222,7 @@ static void srpt_add_one(struct ib_device *device)
+ 
+ 	sdev->srq = ib_create_srq(sdev->pd, &srq_attr);
+ 	if (IS_ERR(sdev->srq))
+-		goto err_mr;
++		goto err_pd;
+ 
+ 	pr_debug("%s: create SRQ #wr= %d max_allow=%d dev= %s\n",
+ 		 __func__, sdev->srq_size, sdev->dev_attr.max_srq_wr,
+@@ -3311,8 +3307,6 @@ err_cm:
+ 	ib_destroy_cm_id(sdev->cm_id);
+ err_srq:
+ 	ib_destroy_srq(sdev->srq);
+-err_mr:
+-	ib_dereg_mr(sdev->mr);
+ err_pd:
+ 	ib_dealloc_pd(sdev->pd);
+ free_dev:
+@@ -3358,7 +3352,6 @@ static void srpt_remove_one(struct ib_device *device)
+ 	srpt_release_sdev(sdev);
+ 
+ 	ib_destroy_srq(sdev->srq);
+-	ib_dereg_mr(sdev->mr);
+ 	ib_dealloc_pd(sdev->pd);
+ 
+ 	srpt_free_ioctx_ring((struct srpt_ioctx **)sdev->ioctx_ring, sdev,
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
+index 21f8df67522a..5faad8acd789 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.h
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
+@@ -393,7 +393,6 @@ struct srpt_port {
+ struct srpt_device {
+ 	struct ib_device	*device;
+ 	struct ib_pd		*pd;
+-	struct ib_mr		*mr;
+ 	struct ib_srq		*srq;
+ 	struct ib_cm_id		*cm_id;
+ 	struct ib_device_attr	dev_attr;
 -- 
 2.1.4
