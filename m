@@ -1,118 +1,116 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: [PATCH v2 09/12] IB/srp: Do not create an all physical insecure rkey by default
-Date: Thu, 30 Jul 2015 17:22:23 -0600
-Message-ID: <1438298547-21404-10-git-send-email-jgunthorpe@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: [PATCH v2 03/12] IB/ipoib: Remove ib_get_dma_mr calls
+Date: Thu, 30 Jul 2015 17:22:17 -0600
+Message-ID: <1438298547-21404-4-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1438298547-21404-1-git-send-email-jgunthorpe@obsidianresearch.com>
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1438298547-21404-1-git-send-email-jgunthorpe@obsidianresearch.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
-Cc: Amir Vadai <amirv@mellanox.com>, Bart Van Assche <bart.vanassche@sandisk.com>, Chien Yen <chien.yen@oracle.com>, Christoph Hellwig <hch@infradead.org>, Dominique Martinet <dominique.martinet@cea.fr>, Eli Cohen <eli@mellanox.com>, Eric Van Hensbergen <ericvh@gmail.com>, Ido Shamay <idos@mellanox.com>, Latchesar Ionkov <lucho@ionkov.net>, Or Gerlitz <ogerlitz@mellanox.com>, Roi Dayan <roid@mellanox.com>, Ron Minnich <rminnich@sandia.gov>, Sagi Grimberg <sagig@mellanox.com>, Simon Derr <simon.derr@bull.net>, Tom Tucker <tom@opengridcomputing.com>, rds-devel@oss.oracle.com, target-devel@vger.kernel.org, v9fs-developer@lists.sourceforge.net
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1438298547-21404-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Chien Yen <chien.yen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Dominique Martinet <dominique.martinet-KCE40YydGKI@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eric Van Hensbergen <ericvh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ido Shamay <idos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Latchesar Ionkov <lucho-OnYtXJJ0/fesTnJN9+BGXg@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ron Minnich <rminnich-4OHPYypu0djtX7QSmKvirg@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Simon Derr <simon.derr-6ktuUTfB/bM@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, v9fs-developer-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The ULP only needs this if the insecure register_always performance
-optimization is enabled, or if FRWR/FMR is not supported in the driver.
+The pd now has a local_dma_lkey member which completely replaces
+ib_get_dma_mr, use it instead.
 
-Do not create an all physical MR unless it is needed to support either of
-those modes. Default register_always to true so the out of the box
-configuration does not create an insecure all physical MR.
-
-Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 31 +++++++++++++++++++++----------
- drivers/infiniband/ulp/srp/ib_srp.h |  2 +-
- 2 files changed, 22 insertions(+), 11 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib.h       |  1 -
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c    |  2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_verbs.c | 18 +++---------------
+ 3 files changed, 4 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 19a1356f8b2a..a8003079c232 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -69,7 +69,7 @@ static unsigned int cmd_sg_entries;
- static unsigned int indirect_sg_entries;
- static bool allow_ext_sg;
- static bool prefer_fr;
--static bool register_always;
-+static bool register_always = true;
- static int topspin_workarounds = 1;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index 79859c4d43c9..ca2873698d75 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -342,7 +342,6 @@ struct ipoib_dev_priv {
+ 	u16		  pkey;
+ 	u16		  pkey_index;
+ 	struct ib_pd	 *pd;
+-	struct ib_mr	 *mr;
+ 	struct ib_cq	 *recv_cq;
+ 	struct ib_cq	 *send_cq;
+ 	struct ib_qp	 *qp;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+index ee39be6ccfb0..206227bb385f 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+@@ -332,7 +332,7 @@ static void ipoib_cm_init_rx_wr(struct net_device *dev,
+ 	int i;
  
- module_param(srp_sg_tablesize, uint, 0444);
-@@ -3147,7 +3147,8 @@ static ssize_t srp_create_target(struct device *dev,
- 	target->scsi_host	= target_host;
- 	target->srp_host	= host;
- 	target->lkey		= host->srp_dev->pd->local_dma_lkey;
--	target->rkey		= host->srp_dev->mr->rkey;
-+	if (host->srp_dev->rkey_mr)
-+		target->rkey		= host->srp_dev->rkey_mr->rkey;
- 	target->cmd_sg_cnt	= cmd_sg_entries;
- 	target->sg_tablesize	= indirect_sg_entries ? : cmd_sg_entries;
- 	target->allow_ext_sg	= allow_ext_sg;
-@@ -3378,6 +3379,7 @@ static void srp_add_one(struct ib_device *device)
- 	struct srp_host *host;
- 	int mr_page_shift, p;
- 	u64 max_pages_per_mr;
-+	unsigned int mr_flags = 0;
+ 	for (i = 0; i < priv->cm.num_frags; ++i)
+-		sge[i].lkey = priv->mr->lkey;
++		sge[i].lkey = priv->pd->local_dma_lkey;
  
- 	dev_attr = kmalloc(sizeof *dev_attr, GFP_KERNEL);
- 	if (!dev_attr)
-@@ -3396,8 +3398,11 @@ static void srp_add_one(struct ib_device *device)
- 			    device->map_phys_fmr && device->unmap_fmr);
- 	srp_dev->has_fr = (dev_attr->device_cap_flags &
- 			   IB_DEVICE_MEM_MGT_EXTENSIONS);
--	if (!srp_dev->has_fmr && !srp_dev->has_fr)
-+	if (!srp_dev->has_fmr && !srp_dev->has_fr) {
- 		dev_warn(&device->dev, "neither FMR nor FR is supported\n");
-+		/* Fall back to using an insecure all physical rkey */
-+		mr_flags |= IB_ACCESS_REMOTE_READ | IB_ACCESS_REMOTE_WRITE;
-+	}
- 
- 	srp_dev->use_fast_reg = (srp_dev->has_fr &&
- 				 (!srp_dev->has_fmr || prefer_fr));
-@@ -3433,12 +3438,17 @@ static void srp_add_one(struct ib_device *device)
- 	if (IS_ERR(srp_dev->pd))
- 		goto free_dev;
- 
--	srp_dev->mr = ib_get_dma_mr(srp_dev->pd,
--				    IB_ACCESS_LOCAL_WRITE |
--				    IB_ACCESS_REMOTE_READ |
--				    IB_ACCESS_REMOTE_WRITE);
--	if (IS_ERR(srp_dev->mr))
--		goto err_pd;
-+	if (!register_always)
-+		mr_flags |= IB_ACCESS_REMOTE_READ | IB_ACCESS_REMOTE_WRITE;
-+
-+	if (mr_flags) {
-+		srp_dev->rkey_mr = ib_get_dma_mr(
-+		    srp_dev->pd, IB_ACCESS_LOCAL_WRITE | mr_flags);
-+		if (IS_ERR(srp_dev->rkey_mr))
-+			goto err_pd;
-+	} else
-+		srp_dev->rkey_mr = NULL;
-+
- 
- 	for (p = rdma_start_port(device); p <= rdma_end_port(device); ++p) {
- 		host = srp_add_port(srp_dev, p);
-@@ -3495,7 +3505,8 @@ static void srp_remove_one(struct ib_device *device)
- 		kfree(host);
+ 	sge[0].length = IPOIB_CM_HEAD_SIZE;
+ 	for (i = 1; i < priv->cm.num_frags; ++i)
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
+index 9e6ee82a8fd7..3423256d3500 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
+@@ -152,12 +152,6 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
+ 		return -ENODEV;
  	}
  
--	ib_dereg_mr(srp_dev->mr);
-+	if (srp_dev->rkey_mr)
-+		ib_dereg_mr(srp_dev->rkey_mr);
- 	ib_dealloc_pd(srp_dev->pd);
+-	priv->mr = ib_get_dma_mr(priv->pd, IB_ACCESS_LOCAL_WRITE);
+-	if (IS_ERR(priv->mr)) {
+-		printk(KERN_WARNING "%s: ib_get_dma_mr failed\n", ca->name);
+-		goto out_free_pd;
+-	}
+-
+ 	/*
+ 	 * the various IPoIB tasks assume they will never race against
+ 	 * themselves, so always use a single thread workqueue
+@@ -165,7 +159,7 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
+ 	priv->wq = create_singlethread_workqueue("ipoib_wq");
+ 	if (!priv->wq) {
+ 		printk(KERN_WARNING "ipoib: failed to allocate device WQ\n");
+-		goto out_free_mr;
++		goto out_free_pd;
+ 	}
  
- 	kfree(srp_dev);
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
-index 17ee3f80ba55..8b241f17f8b8 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.h
-+++ b/drivers/infiniband/ulp/srp/ib_srp.h
-@@ -95,7 +95,7 @@ struct srp_device {
- 	struct list_head	dev_list;
- 	struct ib_device       *dev;
- 	struct ib_pd	       *pd;
--	struct ib_mr	       *mr;
-+	struct ib_mr	       *rkey_mr;
- 	u64			mr_page_mask;
- 	int			mr_page_size;
- 	int			mr_max_size;
+ 	size = ipoib_recvq_size + 1;
+@@ -224,13 +218,13 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
+ 	priv->dev->dev_addr[3] = (priv->qp->qp_num      ) & 0xff;
+ 
+ 	for (i = 0; i < MAX_SKB_FRAGS + 1; ++i)
+-		priv->tx_sge[i].lkey = priv->mr->lkey;
++		priv->tx_sge[i].lkey = priv->pd->local_dma_lkey;
+ 
+ 	priv->tx_wr.opcode	= IB_WR_SEND;
+ 	priv->tx_wr.sg_list	= priv->tx_sge;
+ 	priv->tx_wr.send_flags	= IB_SEND_SIGNALED;
+ 
+-	priv->rx_sge[0].lkey = priv->mr->lkey;
++	priv->rx_sge[0].lkey = priv->pd->local_dma_lkey;
+ 
+ 	priv->rx_sge[0].length = IPOIB_UD_BUF_SIZE(priv->max_ib_mtu);
+ 	priv->rx_wr.num_sge = 1;
+@@ -253,9 +247,6 @@ out_free_wq:
+ 	destroy_workqueue(priv->wq);
+ 	priv->wq = NULL;
+ 
+-out_free_mr:
+-	ib_dereg_mr(priv->mr);
+-
+ out_free_pd:
+ 	ib_dealloc_pd(priv->pd);
+ 
+@@ -288,9 +279,6 @@ void ipoib_transport_dev_cleanup(struct net_device *dev)
+ 		priv->wq = NULL;
+ 	}
+ 
+-	if (ib_dereg_mr(priv->mr))
+-		ipoib_warn(priv, "ib_dereg_mr failed\n");
+-
+ 	if (ib_dealloc_pd(priv->pd))
+ 		ipoib_warn(priv, "ib_dealloc_pd failed\n");
+ 
 -- 
 2.1.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
