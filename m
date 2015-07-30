@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: [PATCH v2 04/12] IB/mlx4: Remove ib_get_dma_mr calls
-Date: Thu, 30 Jul 2015 17:22:18 -0600
-Message-ID: <1438298547-21404-5-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH v2 09/12] IB/srp: Do not create an all physical insecure rkey by default
+Date: Thu, 30 Jul 2015 17:22:23 -0600
+Message-ID: <1438298547-21404-10-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1438298547-21404-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <target-devel-owner@vger.kernel.org>
 In-Reply-To: <1438298547-21404-1-git-send-email-jgunthorpe@obsidianresearch.com>
@@ -10,107 +10,109 @@ To: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
 Cc: Amir Vadai <amirv@mellanox.com>, Bart Van Assche <bart.vanassche@sandisk.com>, Chien Yen <chien.yen@oracle.com>, Christoph Hellwig <hch@infradead.org>, Dominique Martinet <dominique.martinet@cea.fr>, Eli Cohen <eli@mellanox.com>, Eric Van Hensbergen <ericvh@gmail.com>, Ido Shamay <idos@mellanox.com>, Latchesar Ionkov <lucho@ionkov.net>, Or Gerlitz <ogerlitz@mellanox.com>, Roi Dayan <roid@mellanox.com>, Ron Minnich <rminnich@sandia.gov>, Sagi Grimberg <sagig@mellanox.com>, Simon Derr <simon.derr@bull.net>, Tom Tucker <tom@opengridcomputing.com>, rds-devel@oss.oracle.com, target-devel@vger.kernel.org, v9fs-developer@lists.sourceforge.net
 List-Id: linux-rdma@vger.kernel.org
 
-The pd now has a local_dma_lkey member which completely replaces
-ib_get_dma_mr, use it instead.
+The ULP only needs this if the insecure register_always performance
+optimization is enabled, or if FRWR/FMR is not supported in the driver.
+
+Do not create an all physical MR unless it is needed to support either of
+those modes. Default register_always to true so the out of the box
+configuration does not create an insecure all physical MR.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
 ---
- drivers/infiniband/hw/mlx4/mad.c     | 23 ++++-------------------
- drivers/infiniband/hw/mlx4/mlx4_ib.h |  1 -
- 2 files changed, 4 insertions(+), 20 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 31 +++++++++++++++++++++----------
+ drivers/infiniband/ulp/srp/ib_srp.h |  2 +-
+ 2 files changed, 22 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index 68b3dfa922bf..1cd75ff02251 100644
---- a/drivers/infiniband/hw/mlx4/mad.c
-+++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -580,7 +580,7 @@ int mlx4_ib_send_to_slave(struct mlx4_ib_dev *dev, int slave, u8 port,
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 19a1356f8b2a..a8003079c232 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -69,7 +69,7 @@ static unsigned int cmd_sg_entries;
+ static unsigned int indirect_sg_entries;
+ static bool allow_ext_sg;
+ static bool prefer_fr;
+-static bool register_always;
++static bool register_always = true;
+ static int topspin_workarounds = 1;
  
- 	list.addr = tun_qp->tx_ring[tun_tx_ix].buf.map;
- 	list.length = sizeof (struct mlx4_rcv_tunnel_mad);
--	list.lkey = tun_ctx->mr->lkey;
-+	list.lkey = tun_ctx->pd->local_dma_lkey;
+ module_param(srp_sg_tablesize, uint, 0444);
+@@ -3147,7 +3147,8 @@ static ssize_t srp_create_target(struct device *dev,
+ 	target->scsi_host	= target_host;
+ 	target->srp_host	= host;
+ 	target->lkey		= host->srp_dev->pd->local_dma_lkey;
+-	target->rkey		= host->srp_dev->mr->rkey;
++	if (host->srp_dev->rkey_mr)
++		target->rkey		= host->srp_dev->rkey_mr->rkey;
+ 	target->cmd_sg_cnt	= cmd_sg_entries;
+ 	target->sg_tablesize	= indirect_sg_entries ? : cmd_sg_entries;
+ 	target->allow_ext_sg	= allow_ext_sg;
+@@ -3378,6 +3379,7 @@ static void srp_add_one(struct ib_device *device)
+ 	struct srp_host *host;
+ 	int mr_page_shift, p;
+ 	u64 max_pages_per_mr;
++	unsigned int mr_flags = 0;
  
- 	wr.wr.ud.ah = ah;
- 	wr.wr.ud.port_num = port;
-@@ -1133,7 +1133,7 @@ static int mlx4_ib_post_pv_qp_buf(struct mlx4_ib_demux_pv_ctx *ctx,
+ 	dev_attr = kmalloc(sizeof *dev_attr, GFP_KERNEL);
+ 	if (!dev_attr)
+@@ -3396,8 +3398,11 @@ static void srp_add_one(struct ib_device *device)
+ 			    device->map_phys_fmr && device->unmap_fmr);
+ 	srp_dev->has_fr = (dev_attr->device_cap_flags &
+ 			   IB_DEVICE_MEM_MGT_EXTENSIONS);
+-	if (!srp_dev->has_fmr && !srp_dev->has_fr)
++	if (!srp_dev->has_fmr && !srp_dev->has_fr) {
+ 		dev_warn(&device->dev, "neither FMR nor FR is supported\n");
++		/* Fall back to using an insecure all physical rkey */
++		mr_flags |= IB_ACCESS_REMOTE_READ | IB_ACCESS_REMOTE_WRITE;
++	}
  
- 	sg_list.addr = tun_qp->ring[index].map;
- 	sg_list.length = size;
--	sg_list.lkey = ctx->mr->lkey;
-+	sg_list.lkey = ctx->pd->local_dma_lkey;
+ 	srp_dev->use_fast_reg = (srp_dev->has_fr &&
+ 				 (!srp_dev->has_fmr || prefer_fr));
+@@ -3433,12 +3438,17 @@ static void srp_add_one(struct ib_device *device)
+ 	if (IS_ERR(srp_dev->pd))
+ 		goto free_dev;
  
- 	recv_wr.next = NULL;
- 	recv_wr.sg_list = &sg_list;
-@@ -1244,7 +1244,7 @@ int mlx4_ib_send_to_wire(struct mlx4_ib_dev *dev, int slave, u8 port,
- 
- 	list.addr = sqp->tx_ring[wire_tx_ix].buf.map;
- 	list.length = sizeof (struct mlx4_mad_snd_buf);
--	list.lkey = sqp_ctx->mr->lkey;
-+	list.lkey = sqp_ctx->pd->local_dma_lkey;
- 
- 	wr.wr.ud.ah = ah;
- 	wr.wr.ud.port_num = port;
-@@ -1827,19 +1827,12 @@ static int create_pv_resources(struct ib_device *ibdev, int slave, int port,
- 		goto err_cq;
- 	}
- 
--	ctx->mr = ib_get_dma_mr(ctx->pd, IB_ACCESS_LOCAL_WRITE);
--	if (IS_ERR(ctx->mr)) {
--		ret = PTR_ERR(ctx->mr);
--		pr_err("Couldn't get tunnel DMA MR (%d)\n", ret);
+-	srp_dev->mr = ib_get_dma_mr(srp_dev->pd,
+-				    IB_ACCESS_LOCAL_WRITE |
+-				    IB_ACCESS_REMOTE_READ |
+-				    IB_ACCESS_REMOTE_WRITE);
+-	if (IS_ERR(srp_dev->mr))
 -		goto err_pd;
--	}
--
- 	if (ctx->has_smi) {
- 		ret = create_pv_sqp(ctx, IB_QPT_SMI, create_tun);
- 		if (ret) {
- 			pr_err("Couldn't create %s QP0 (%d)\n",
- 			       create_tun ? "tunnel for" : "",  ret);
--			goto err_mr;
++	if (!register_always)
++		mr_flags |= IB_ACCESS_REMOTE_READ | IB_ACCESS_REMOTE_WRITE;
++
++	if (mr_flags) {
++		srp_dev->rkey_mr = ib_get_dma_mr(
++		    srp_dev->pd, IB_ACCESS_LOCAL_WRITE | mr_flags);
++		if (IS_ERR(srp_dev->rkey_mr))
 +			goto err_pd;
- 		}
++	} else
++		srp_dev->rkey_mr = NULL;
++
+ 
+ 	for (p = rdma_start_port(device); p <= rdma_end_port(device); ++p) {
+ 		host = srp_add_port(srp_dev, p);
+@@ -3495,7 +3505,8 @@ static void srp_remove_one(struct ib_device *device)
+ 		kfree(host);
  	}
  
-@@ -1876,10 +1869,6 @@ err_qp0:
- 		ib_destroy_qp(ctx->qp[0].qp);
- 	ctx->qp[0].qp = NULL;
+-	ib_dereg_mr(srp_dev->mr);
++	if (srp_dev->rkey_mr)
++		ib_dereg_mr(srp_dev->rkey_mr);
+ 	ib_dealloc_pd(srp_dev->pd);
  
--err_mr:
--	ib_dereg_mr(ctx->mr);
--	ctx->mr = NULL;
--
- err_pd:
- 	ib_dealloc_pd(ctx->pd);
- 	ctx->pd = NULL;
-@@ -1916,8 +1905,6 @@ static void destroy_pv_resources(struct mlx4_ib_dev *dev, int slave, int port,
- 		ib_destroy_qp(ctx->qp[1].qp);
- 		ctx->qp[1].qp = NULL;
- 		mlx4_ib_free_pv_qp_bufs(ctx, IB_QPT_GSI, 1);
--		ib_dereg_mr(ctx->mr);
--		ctx->mr = NULL;
- 		ib_dealloc_pd(ctx->pd);
- 		ctx->pd = NULL;
- 		ib_destroy_cq(ctx->cq);
-@@ -2050,8 +2037,6 @@ static void mlx4_ib_free_sqp_ctx(struct mlx4_ib_demux_pv_ctx *sqp_ctx)
- 		ib_destroy_qp(sqp_ctx->qp[1].qp);
- 		sqp_ctx->qp[1].qp = NULL;
- 		mlx4_ib_free_pv_qp_bufs(sqp_ctx, IB_QPT_GSI, 0);
--		ib_dereg_mr(sqp_ctx->mr);
--		sqp_ctx->mr = NULL;
- 		ib_dealloc_pd(sqp_ctx->pd);
- 		sqp_ctx->pd = NULL;
- 		ib_destroy_cq(sqp_ctx->cq);
-diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-index 334387f63358..9066fc2406cc 100644
---- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
-+++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -415,7 +415,6 @@ struct mlx4_ib_demux_pv_ctx {
- 	struct ib_device *ib_dev;
- 	struct ib_cq *cq;
- 	struct ib_pd *pd;
--	struct ib_mr *mr;
- 	struct work_struct work;
- 	struct workqueue_struct *wq;
- 	struct mlx4_ib_demux_pv_qp qp[2];
+ 	kfree(srp_dev);
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
+index 17ee3f80ba55..8b241f17f8b8 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.h
++++ b/drivers/infiniband/ulp/srp/ib_srp.h
+@@ -95,7 +95,7 @@ struct srp_device {
+ 	struct list_head	dev_list;
+ 	struct ib_device       *dev;
+ 	struct ib_pd	       *pd;
+-	struct ib_mr	       *mr;
++	struct ib_mr	       *rkey_mr;
+ 	u64			mr_page_mask;
+ 	int			mr_page_size;
+ 	int			mr_max_size;
 -- 
 2.1.4
