@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v4 20/50] IB/hfi1: add module init hooks
-Date: Thu, 30 Jul 2015 15:19:15 -0400
-Message-ID: <20150730191915.25256.51892.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH v4 18/50] IB/hfi1: add firmware hooks
+Date: Thu, 30 Jul 2015 15:19:04 -0400
+Message-ID: <20150730191904.25256.45899.stgit@phlsvslse11.ph.intel.com>
 References: <20150730191631.25256.95511.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -37,16 +37,16 @@ Signed-off-by: Sanath Kumar <sanath.s.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.
 Signed-off-by: Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Vlad Danushevsky <vladimir.danusevsky-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/init.c | 1722 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 1722 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi1/init.c
+ drivers/infiniband/hw/hfi1/firmware.c | 1620 +++++++++++++++++++++++++++++++++
+ 1 file changed, 1620 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi1/firmware.c
 
-diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
+diff --git a/drivers/infiniband/hw/hfi1/firmware.c b/drivers/infiniband/hw/hfi1/firmware.c
 new file mode 100644
-index 0000000..a877eda
+index 0000000..5c2f2ed
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -0,0 +1,1722 @@
++++ b/drivers/infiniband/hw/hfi1/firmware.c
+@@ -0,0 +1,1620 @@
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -97,1677 +97,1575 @@ index 0000000..a877eda
 + *
 + */
 +
-+#include <linux/pci.h>
-+#include <linux/netdevice.h>
-+#include <linux/vmalloc.h>
-+#include <linux/delay.h>
-+#include <linux/idr.h>
++#include <linux/firmware.h>
++#include <linux/mutex.h>
 +#include <linux/module.h>
-+#include <linux/printk.h>
-+#include <linux/hrtimer.h>
++#include <linux/delay.h>
++#include <linux/crc32.h>
 +
 +#include "hfi.h"
-+#include "device.h"
-+#include "common.h"
-+#include "mad.h"
-+#include "sdma.h"
-+#include "debugfs.h"
-+#include "verbs.h"
-+
-+#undef pr_fmt
-+#define pr_fmt(fmt) DRIVER_NAME ": " fmt
++#include "trace.h"
 +
 +/*
-+ * min buffers we want to have per context, after driver
++ * Make it easy to toggle firmware file name and if it gets loaded by
++ * editing the following. This may be something we do while in development
++ * but not necessarily something a user would ever need to use.
 + */
-+#define HFI1_MIN_USER_CTXT_BUFCNT 7
++#define DEFAULT_FW_8051_NAME_FPGA "hfi_dc8051.bin"
++#define DEFAULT_FW_8051_NAME_ASIC "hfi1_dc8051.fw"
++#define DEFAULT_FW_FABRIC_NAME "hfi1_fabric.fw"
++#define DEFAULT_FW_SBUS_NAME "hfi1_sbus.fw"
++#define DEFAULT_FW_PCIE_NAME "hfi1_pcie.fw"
++#define DEFAULT_PLATFORM_CONFIG_NAME "hfi1_platform.dat"
 +
-+#define HFI1_MIN_HDRQ_EGRBUF_CNT 2
-+#define HFI1_MIN_EAGER_BUFFER_SIZE (4 * 1024) /* 4KB */
-+#define HFI1_MAX_EAGER_BUFFER_SIZE (256 * 1024) /* 256KB */
++static uint fw_8051_load = 1;
++static uint fw_fabric_serdes_load = 1;
++static uint fw_pcie_serdes_load = 1;
++static uint fw_sbus_load = 1;
++static uint platform_config_load = 1;
++
++/* Firmware file names get set in hfi1_firmware_init() based on the above */
++static char *fw_8051_name;
++static char *fw_fabric_serdes_name;
++static char *fw_sbus_name;
++static char *fw_pcie_serdes_name;
++static char *platform_config_name;
++
++#define SBUS_MAX_POLL_COUNT 100
++#define SBUS_COUNTER(reg, name) \
++	(((reg) >> ASIC_STS_SBUS_COUNTERS_##name##_CNT_SHIFT) & \
++	 ASIC_STS_SBUS_COUNTERS_##name##_CNT_MASK)
 +
 +/*
-+ * Number of user receive contexts we are configured to use (to allow for more
-+ * pio buffers per ctxt, etc.)  Zero means use one user context per CPU.
++ * Firmware security header.
 + */
-+uint num_rcv_contexts;
-+module_param_named(num_rcv_contexts, num_rcv_contexts, uint, S_IRUGO);
-+MODULE_PARM_DESC(
-+	num_rcv_contexts, "Set max number of user receive contexts to use");
++struct css_header {
++	u32 module_type;
++	u32 header_len;
++	u32 header_version;
++	u32 module_id;
++	u32 module_vendor;
++	u32 date;		/* BCD yyyymmdd */
++	u32 size;		/* in DWORDs */
++	u32 key_size;		/* in DWORDs */
++	u32 modulus_size;	/* in DWORDs */
++	u32 exponent_size;	/* in DWORDs */
++	u32 reserved[22];
++};
++/* expected field values */
++#define CSS_MODULE_TYPE	   0x00000006
++#define CSS_HEADER_LEN	   0x000000a1
++#define CSS_HEADER_VERSION 0x00010000
++#define CSS_MODULE_VENDOR  0x00008086
 +
-+u8 krcvqs[RXE_NUM_DATA_VL];
-+int krcvqsset;
-+module_param_array(krcvqs, byte, &krcvqsset, S_IRUGO);
-+MODULE_PARM_DESC(krcvqs, "Array of the number of kernel receive queues by VL");
++#define KEY_SIZE      256
++#define MU_SIZE		8
++#define EXPONENT_SIZE	4
 +
-+/* computed based on above array */
-+unsigned n_krcvqs;
++/* the file itself */
++struct firmware_file {
++	struct css_header css_header;
++	u8 modulus[KEY_SIZE];
++	u8 exponent[EXPONENT_SIZE];
++	u8 signature[KEY_SIZE];
++	u8 firmware[];
++};
 +
-+static unsigned hfi1_rcvarr_split = 25;
-+module_param_named(rcvarr_split, hfi1_rcvarr_split, uint, S_IRUGO);
-+MODULE_PARM_DESC(rcvarr_split, "Percent of context's RcvArray entries used for Eager buffers");
++struct augmented_firmware_file {
++	struct css_header css_header;
++	u8 modulus[KEY_SIZE];
++	u8 exponent[EXPONENT_SIZE];
++	u8 signature[KEY_SIZE];
++	u8 r2[KEY_SIZE];
++	u8 mu[MU_SIZE];
++	u8 firmware[];
++};
 +
-+static uint eager_buffer_size = (2 << 20); /* 2MB */
-+module_param(eager_buffer_size, uint, S_IRUGO);
-+MODULE_PARM_DESC(eager_buffer_size, "Size of the eager buffers, default: 2MB");
++/* augmented file size difference */
++#define AUGMENT_SIZE (sizeof(struct augmented_firmware_file) - \
++						sizeof(struct firmware_file))
 +
-+static uint rcvhdrcnt = 2048; /* 2x the max eager buffer count */
-+module_param_named(rcvhdrcnt, rcvhdrcnt, uint, S_IRUGO);
-+MODULE_PARM_DESC(rcvhdrcnt, "Receive header queue count (default 2048)");
++struct firmware_details {
++	/* Linux core piece */
++	const struct firmware *fw;
 +
-+static uint hfi1_hdrq_entsize = 32;
-+module_param_named(hdrq_entsize, hfi1_hdrq_entsize, uint, S_IRUGO);
-+MODULE_PARM_DESC(hdrq_entsize, "Size of header queue entries: 2 - 8B, 16 - 64B (default), 32 - 128B");
-+
-+unsigned int user_credit_return_threshold = 33;	/* default is 33% */
-+module_param(user_credit_return_threshold, uint, S_IRUGO);
-+MODULE_PARM_DESC(user_credit_return_theshold, "Credit return threshold for user send contexts, return when unreturned credits passes this many blocks (in percent of allocated blocks, 0 is off)");
-+
-+static inline u64 encode_rcv_header_entry_size(u16);
-+
-+static struct idr hfi1_unit_table;
-+u32 hfi1_cpulist_count;
-+unsigned long *hfi1_cpulist;
++	struct css_header *css_header;
++	u8 *firmware_ptr;		/* pointer to binary data */
++	u32 firmware_len;		/* length in bytes */
++	u8 *modulus;			/* pointer to the modulus */
++	u8 *exponent;			/* pointer to the exponent */
++	u8 *signature;			/* pointer to the signature */
++	u8 *r2;				/* pointer to r2 */
++	u8 *mu;				/* pointer to mu */
++	struct augmented_firmware_file dummy_header;
++};
 +
 +/*
-+ * Common code for creating the receive context array.
++ * The mutex protects fw_state, fw_err, and all of the firmware_details
++ * variables.
 + */
-+int hfi1_create_ctxts(struct hfi1_devdata *dd)
++static DEFINE_MUTEX(fw_mutex);
++enum fw_state {
++	FW_EMPTY,
++	FW_ACQUIRED,
++	FW_ERR
++};
++static enum fw_state fw_state = FW_EMPTY;
++static int fw_err;
++static struct firmware_details fw_8051;
++static struct firmware_details fw_fabric;
++static struct firmware_details fw_pcie;
++static struct firmware_details fw_sbus;
++static const struct firmware *platform_config;
++
++/* flags for turn_off_spicos() */
++#define SPICO_SBUS   0x1
++#define SPICO_FABRIC 0x2
++#define ENABLE_SPICO_SMASK 0x1
++
++/* security block commands */
++#define RSA_CMD_INIT  0x1
++#define RSA_CMD_START 0x2
++
++/* security block status */
++#define RSA_STATUS_IDLE   0x0
++#define RSA_STATUS_ACTIVE 0x1
++#define RSA_STATUS_DONE   0x2
++#define RSA_STATUS_FAILED 0x3
++
++/* RSA engine timeout, in ms */
++#define RSA_ENGINE_TIMEOUT 100 /* ms */
++
++/* hardware mutex timeout, in ms */
++#define HM_TIMEOUT 4000 /* 4 s */
++
++/* 8051 memory access timeout, in us */
++#define DC8051_ACCESS_TIMEOUT 100 /* us */
++
++/* the number of fabric SerDes on the SBus */
++#define NUM_FABRIC_SERDES 4
++
++/* SBus fabric SerDes addresses, one set per HFI */
++static const u8 fabric_serdes_addrs[2][NUM_FABRIC_SERDES] = {
++	{ 0x01, 0x02, 0x03, 0x04 },
++	{ 0x28, 0x29, 0x2a, 0x2b }
++};
++
++/* SBus PCIe SerDes addresses, one set per HFI */
++static const u8 pcie_serdes_addrs[2][NUM_PCIE_SERDES] = {
++	{ 0x08, 0x0a, 0x0c, 0x0e, 0x10, 0x12, 0x14, 0x16,
++	  0x18, 0x1a, 0x1c, 0x1e, 0x20, 0x22, 0x24, 0x26 },
++	{ 0x2f, 0x31, 0x33, 0x35, 0x37, 0x39, 0x3b, 0x3d,
++	  0x3f, 0x41, 0x43, 0x45, 0x47, 0x49, 0x4b, 0x4d }
++};
++
++/* SBus PCIe PCS addresses, one set per HFI */
++const u8 pcie_pcs_addrs[2][NUM_PCIE_SERDES] = {
++	{ 0x09, 0x0b, 0x0d, 0x0f, 0x11, 0x13, 0x15, 0x17,
++	  0x19, 0x1b, 0x1d, 0x1f, 0x21, 0x23, 0x25, 0x27 },
++	{ 0x30, 0x32, 0x34, 0x36, 0x38, 0x3a, 0x3c, 0x3e,
++	  0x40, 0x42, 0x44, 0x46, 0x48, 0x4a, 0x4c, 0x4e }
++};
++
++/* SBus fabric SerDes broadcast addresses, one per HFI */
++static const u8 fabric_serdes_broadcast[2] = { 0xe4, 0xe5 };
++static const u8 all_fabric_serdes_broadcast = 0xe1;
++
++/* SBus PCIe SerDes broadcast addresses, one per HFI */
++const u8 pcie_serdes_broadcast[2] = { 0xe2, 0xe3 };
++static const u8 all_pcie_serdes_broadcast = 0xe0;
++
++/* forwards */
++static void dispose_one_firmware(struct firmware_details *fdet);
++
++/*
++ * Read a single 64-bit value from 8051 data memory.
++ *
++ * Expects:
++ * o caller to have already set up data read, no auto increment
++ * o caller to turn off read enable when finished
++ *
++ * The address argument is a byte offset.  Bits 0:2 in the address are
++ * ignored - i.e. the hardware will always do aligned 8-byte reads as if
++ * the lower bits are zero.
++ *
++ * Return 0 on success, -ENXIO on a read error (timeout).
++ */
++static int __read_8051_data(struct hfi1_devdata *dd, u32 addr, u64 *result)
 +{
-+	unsigned i;
-+	int ret;
-+	int local_node_id = pcibus_to_node(dd->pcidev->bus);
++	u64 reg;
++	int count;
 +
-+	if (local_node_id < 0)
-+		local_node_id = numa_node_id();
-+	dd->assigned_node_id = local_node_id;
++	/* start the read at the given address */
++	reg = ((addr & DC_DC8051_CFG_RAM_ACCESS_CTRL_ADDRESS_MASK)
++			<< DC_DC8051_CFG_RAM_ACCESS_CTRL_ADDRESS_SHIFT)
++		| DC_DC8051_CFG_RAM_ACCESS_CTRL_READ_ENA_SMASK;
++	write_csr(dd, DC_DC8051_CFG_RAM_ACCESS_CTRL, reg);
 +
-+	dd->rcd = kcalloc(dd->num_rcv_contexts, sizeof(*dd->rcd), GFP_KERNEL);
-+	if (!dd->rcd) {
-+		dd_dev_err(dd,
-+			"Unable to allocate receive context array, failing\n");
-+		goto nomem;
++	/* wait until ACCESS_COMPLETED is set */
++	count = 0;
++	while ((read_csr(dd, DC_DC8051_CFG_RAM_ACCESS_STATUS)
++		    & DC_DC8051_CFG_RAM_ACCESS_STATUS_ACCESS_COMPLETED_SMASK)
++		    == 0) {
++		count++;
++		if (count > DC8051_ACCESS_TIMEOUT) {
++			dd_dev_err(dd, "timeout reading 8051 data\n");
++			return -ENXIO;
++		}
++		ndelay(10);
 +	}
 +
-+	/* create one or more kernel contexts */
-+	for (i = 0; i < dd->first_user_ctxt; ++i) {
-+		struct hfi1_pportdata *ppd;
-+		struct hfi1_ctxtdata *rcd;
-+
-+		ppd = dd->pport + (i % dd->num_pports);
-+		rcd = hfi1_create_ctxtdata(ppd, i);
-+		if (!rcd) {
-+			dd_dev_err(dd,
-+				"Unable to allocate kernel receive context, failing\n");
-+			goto nomem;
-+		}
-+		/*
-+		 * Set up the kernel context flags here and now because they
-+		 * use default values for all receive side memories.  User
-+		 * contexts will be handled as they are created.
-+		 */
-+		rcd->flags = HFI1_CAP_KGET(MULTI_PKT_EGR) |
-+			HFI1_CAP_KGET(NODROP_RHQ_FULL) |
-+			HFI1_CAP_KGET(NODROP_EGR_FULL) |
-+			HFI1_CAP_KGET(DMA_RTAIL);
-+		rcd->seq_cnt = 1;
-+
-+		rcd->sc = sc_alloc(dd, SC_ACK, rcd->rcvhdrqentsize, dd->node);
-+		if (!rcd->sc) {
-+			dd_dev_err(dd,
-+				"Unable to allocate kernel send context, failing\n");
-+			dd->rcd[rcd->ctxt] = NULL;
-+			hfi1_free_ctxtdata(dd, rcd);
-+			goto nomem;
-+		}
-+
-+		ret = hfi1_init_ctxt(rcd->sc);
-+		if (ret < 0) {
-+			dd_dev_err(dd,
-+				   "Failed to setup kernel receive context, failing\n");
-+			sc_free(rcd->sc);
-+			dd->rcd[rcd->ctxt] = NULL;
-+			hfi1_free_ctxtdata(dd, rcd);
-+			ret = -EFAULT;
-+			goto bail;
-+		}
-+	}
++	/* gather the data */
++	*result = read_csr(dd, DC_DC8051_CFG_RAM_ACCESS_RD_DATA);
 +
 +	return 0;
-+nomem:
-+	ret = -ENOMEM;
-+bail:
-+	kfree(dd->rcd);
-+	dd->rcd = NULL;
++}
++
++/*
++ * Read 8051 data starting at addr, for len bytes.  Will read in 8-byte chunks.
++ * Return 0 on success, -errno on error.
++ */
++int read_8051_data(struct hfi1_devdata *dd, u32 addr, u32 len, u64 *result)
++{
++	unsigned long flags;
++	u32 done;
++	int ret = 0;
++
++	spin_lock_irqsave(&dd->dc8051_memlock, flags);
++
++	/* data read set-up, no auto-increment */
++	write_csr(dd, DC_DC8051_CFG_RAM_ACCESS_SETUP, 0);
++
++	for (done = 0; done < len; addr += 8, done += 8, result++) {
++		ret = __read_8051_data(dd, addr, result);
++		if (ret)
++			break;
++	}
++
++	/* turn off read enable */
++	write_csr(dd, DC_DC8051_CFG_RAM_ACCESS_CTRL, 0);
++
++	spin_unlock_irqrestore(&dd->dc8051_memlock, flags);
++
 +	return ret;
 +}
 +
 +/*
-+ * Common code for user and kernel context setup.
++ * Write data or code to the 8051 code or data RAM.
 + */
-+struct hfi1_ctxtdata *hfi1_create_ctxtdata(struct hfi1_pportdata *ppd, u32 ctxt)
++static int write_8051(struct hfi1_devdata *dd, int code, u32 start,
++		      const u8 *data, u32 len)
 +{
-+	struct hfi1_devdata *dd = ppd->dd;
-+	struct hfi1_ctxtdata *rcd;
-+	unsigned kctxt_ngroups = 0;
-+	u32 base;
++	u64 reg;
++	u32 offset;
++	int aligned, count;
 +
-+	if (dd->rcv_entries.nctxt_extra >
-+	    dd->num_rcv_contexts - dd->first_user_ctxt)
-+		kctxt_ngroups = (dd->rcv_entries.nctxt_extra -
-+				 (dd->num_rcv_contexts - dd->first_user_ctxt));
-+	rcd = kzalloc(sizeof(*rcd), GFP_KERNEL);
-+	if (rcd) {
-+		u32 rcvtids, max_entries;
++	/* check alignment */
++	aligned = ((unsigned long)data & 0x7) == 0;
 +
-+		dd_dev_info(dd, "%s: setting up context %u\n", __func__, ctxt);
++	/* write set-up */
++	reg = (code ? DC_DC8051_CFG_RAM_ACCESS_SETUP_RAM_SEL_SMASK : 0ull)
++		| DC_DC8051_CFG_RAM_ACCESS_SETUP_AUTO_INCR_ADDR_SMASK;
++	write_csr(dd, DC_DC8051_CFG_RAM_ACCESS_SETUP, reg);
 +
-+		INIT_LIST_HEAD(&rcd->qp_wait_list);
-+		rcd->ppd = ppd;
-+		rcd->dd = dd;
-+		rcd->cnt = 1;
-+		rcd->ctxt = ctxt;
-+		dd->rcd[ctxt] = rcd;
-+		rcd->numa_id = numa_node_id();
-+		rcd->rcv_array_groups = dd->rcv_entries.ngroups;
++	reg = ((start & DC_DC8051_CFG_RAM_ACCESS_CTRL_ADDRESS_MASK)
++			<< DC_DC8051_CFG_RAM_ACCESS_CTRL_ADDRESS_SHIFT)
++		| DC_DC8051_CFG_RAM_ACCESS_CTRL_WRITE_ENA_SMASK;
++	write_csr(dd, DC_DC8051_CFG_RAM_ACCESS_CTRL, reg);
 +
-+		spin_lock_init(&rcd->exp_lock);
++	/* write */
++	for (offset = 0; offset < len; offset += 8) {
++		int bytes = len - offset;
 +
-+		/*
-+		 * Calculate the context's RcvArray entry starting point.
-+		 * We do this here because we have to take into account all
-+		 * the RcvArray entries that previous context would have
-+		 * taken and we have to account for any extra groups
-+		 * assigned to the kernel or user contexts.
-+		 */
-+		if (ctxt < dd->first_user_ctxt) {
-+			if (ctxt < kctxt_ngroups) {
-+				base = ctxt * (dd->rcv_entries.ngroups + 1);
-+				rcd->rcv_array_groups++;
-+			} else
-+				base = kctxt_ngroups +
-+					(ctxt * dd->rcv_entries.ngroups);
++		if (bytes < 8) {
++			reg = 0;
++			memcpy(&reg, &data[offset], bytes);
++		} else if (aligned) {
++			reg = *(u64 *)&data[offset];
 +		} else {
-+			u16 ct = ctxt - dd->first_user_ctxt;
-+
-+			base = ((dd->n_krcv_queues * dd->rcv_entries.ngroups) +
-+				kctxt_ngroups);
-+			if (ct < dd->rcv_entries.nctxt_extra) {
-+				base += ct * (dd->rcv_entries.ngroups + 1);
-+				rcd->rcv_array_groups++;
-+			} else
-+				base += dd->rcv_entries.nctxt_extra +
-+					(ct * dd->rcv_entries.ngroups);
++			memcpy(&reg, &data[offset], 8);
 +		}
-+		rcd->eager_base = base * dd->rcv_entries.group_size;
++		write_csr(dd, DC_DC8051_CFG_RAM_ACCESS_WR_DATA, reg);
 +
-+		/* Validate and initialize Rcv Hdr Q variables */
-+		if (rcvhdrcnt % HDRQ_INCREMENT) {
-+			dd_dev_err(dd,
-+				   "ctxt%u: header queue count %d must be divisible by %d\n",
-+				   rcd->ctxt, rcvhdrcnt, HDRQ_INCREMENT);
-+			goto bail;
-+		}
-+		rcd->rcvhdrq_cnt = rcvhdrcnt;
-+		rcd->rcvhdrqentsize = hfi1_hdrq_entsize;
-+		/*
-+		 * Simple Eager buffer allocation: we have already pre-allocated
-+		 * the number of RcvArray entry groups. Each ctxtdata structure
-+		 * holds the number of groups for that context.
-+		 *
-+		 * To follow CSR requirements and maintain cacheline alignment,
-+		 * make sure all sizes and bases are multiples of group_size.
-+		 *
-+		 * The expected entry count is what is left after assigning
-+		 * eager.
-+		 */
-+		max_entries = rcd->rcv_array_groups *
-+			dd->rcv_entries.group_size;
-+		rcvtids = ((max_entries * hfi1_rcvarr_split) / 100);
-+		rcd->egrbufs.count = round_down(rcvtids,
-+						dd->rcv_entries.group_size);
-+		if (rcd->egrbufs.count > MAX_EAGER_ENTRIES) {
-+			dd_dev_err(dd, "ctxt%u: requested too many RcvArray entries.\n",
-+				   rcd->ctxt);
-+			rcd->egrbufs.count = MAX_EAGER_ENTRIES;
-+		}
-+		dd_dev_info(dd, "ctxt%u: max Eager buffer RcvArray entries: %u\n",
-+			    rcd->ctxt, rcd->egrbufs.count);
-+
-+		/*
-+		 * Allocate array that will hold the eager buffer accounting
-+		 * data.
-+		 * This will allocate the maximum possible buffer count based
-+		 * on the value of the RcvArray split parameter.
-+		 * The resulting value will be rounded down to the closest
-+		 * multiple of dd->rcv_entries.group_size.
-+		 */
-+		rcd->egrbufs.buffers = kzalloc(sizeof(*rcd->egrbufs.buffers) *
-+					       rcd->egrbufs.count, GFP_KERNEL);
-+		if (!rcd->egrbufs.buffers)
-+			goto bail;
-+		rcd->egrbufs.rcvtids = kzalloc(sizeof(*rcd->egrbufs.rcvtids) *
-+					       rcd->egrbufs.count, GFP_KERNEL);
-+		if (!rcd->egrbufs.rcvtids)
-+			goto bail;
-+		rcd->egrbufs.size = eager_buffer_size;
-+		/*
-+		 * The size of the buffers programmed into the RcvArray
-+		 * entries needs to be big enough to handle the highest
-+		 * MTU supported.
-+		 */
-+		if (rcd->egrbufs.size < hfi1_max_mtu) {
-+			rcd->egrbufs.size = __roundup_pow_of_two(hfi1_max_mtu);
-+			dd_dev_info(dd,
-+				    "ctxt%u: eager bufs size too small. Adjusting to %zu\n",
-+				    rcd->ctxt, rcd->egrbufs.size);
-+		}
-+		rcd->egrbufs.rcvtid_size = HFI1_MAX_EAGER_BUFFER_SIZE;
-+
-+		if (ctxt < dd->first_user_ctxt) { /* N/A for PSM contexts */
-+			rcd->opstats = kzalloc(sizeof(*rcd->opstats),
-+				GFP_KERNEL);
-+			if (!rcd->opstats) {
-+				dd_dev_err(dd,
-+					   "ctxt%u: Unable to allocate per ctxt stats buffer\n",
-+					   rcd->ctxt);
-+				goto bail;
++		/* wait until ACCESS_COMPLETED is set */
++		count = 0;
++		while ((read_csr(dd, DC_DC8051_CFG_RAM_ACCESS_STATUS)
++		    & DC_DC8051_CFG_RAM_ACCESS_STATUS_ACCESS_COMPLETED_SMASK)
++		    == 0) {
++			count++;
++			if (count > DC8051_ACCESS_TIMEOUT) {
++				dd_dev_err(dd, "timeout writing 8051 data\n");
++				return -ENXIO;
 +			}
++			udelay(1);
 +		}
 +	}
-+	return rcd;
-+bail:
-+	kfree(rcd->opstats);
-+	kfree(rcd->egrbufs.rcvtids);
-+	kfree(rcd->egrbufs.buffers);
-+	kfree(rcd);
-+	return NULL;
-+}
 +
-+/*
-+ * Convert a receive header entry size that to the encoding used in the CSR.
-+ *
-+ * Return a zero if the given size is invalid.
-+ */
-+static inline u64 encode_rcv_header_entry_size(u16 size)
-+{
-+	/* there are only 3 valid receive header entry sizes */
-+	if (size == 2)
-+		return 1;
-+	if (size == 16)
-+		return 2;
-+	else if (size == 32)
-+		return 4;
-+	return 0; /* invalid */
-+}
-+
-+/*
-+ * Select the largest ccti value over all SLs to determine the intra-
-+ * packet gap for the link.
-+ *
-+ * called with cca_timer_lock held (to protect access to cca_timer
-+ * array), and rcu_read_lock() (to protect access to cc_state).
-+ */
-+void set_link_ipg(struct hfi1_pportdata *ppd)
-+{
-+	struct hfi1_devdata *dd = ppd->dd;
-+	struct cc_state *cc_state;
-+	int i;
-+	u16 cce, ccti_limit, max_ccti = 0;
-+	u16 shift, mult;
-+	u64 src;
-+	u32 current_egress_rate; /* Mbits /sec */
-+	u32 max_pkt_time;
-+	/*
-+	 * max_pkt_time is the maximum packet egress time in units
-+	 * of the fabric clock period 1/(805 MHz).
-+	 */
-+
-+	cc_state = get_cc_state(ppd);
-+
-+	if (cc_state == NULL)
-+		/*
-+		 * This should _never_ happen - rcu_read_lock() is held,
-+		 * and set_link_ipg() should not be called if cc_state
-+		 * is NULL.
-+		 */
-+		return;
-+
-+	for (i = 0; i < OPA_MAX_SLS; i++) {
-+		u16 ccti = ppd->cca_timer[i].ccti;
-+
-+		if (ccti > max_ccti)
-+			max_ccti = ccti;
-+	}
-+
-+	ccti_limit = cc_state->cct.ccti_limit;
-+	if (max_ccti > ccti_limit)
-+		max_ccti = ccti_limit;
-+
-+	cce = cc_state->cct.entries[max_ccti].entry;
-+	shift = (cce & 0xc000) >> 14;
-+	mult = (cce & 0x3fff);
-+
-+	current_egress_rate = active_egress_rate(ppd);
-+
-+	max_pkt_time = egress_cycles(ppd->ibmaxlen, current_egress_rate);
-+
-+	src = (max_pkt_time >> shift) * mult;
-+
-+	src &= SEND_STATIC_RATE_CONTROL_CSR_SRC_RELOAD_SMASK;
-+	src <<= SEND_STATIC_RATE_CONTROL_CSR_SRC_RELOAD_SHIFT;
-+
-+	write_csr(dd, SEND_STATIC_RATE_CONTROL, src);
-+}
-+
-+static enum hrtimer_restart cca_timer_fn(struct hrtimer *t)
-+{
-+	struct cca_timer *cca_timer;
-+	struct hfi1_pportdata *ppd;
-+	int sl;
-+	u16 ccti, ccti_timer, ccti_min;
-+	struct cc_state *cc_state;
-+
-+	cca_timer = container_of(t, struct cca_timer, hrtimer);
-+	ppd = cca_timer->ppd;
-+	sl = cca_timer->sl;
-+
-+	rcu_read_lock();
-+
-+	cc_state = get_cc_state(ppd);
-+
-+	if (cc_state == NULL) {
-+		rcu_read_unlock();
-+		return HRTIMER_NORESTART;
-+	}
-+
-+	/*
-+	 * 1) decrement ccti for SL
-+	 * 2) calculate IPG for link (set_link_ipg())
-+	 * 3) restart timer, unless ccti is at min value
-+	 */
-+
-+	ccti_min = cc_state->cong_setting.entries[sl].ccti_min;
-+	ccti_timer = cc_state->cong_setting.entries[sl].ccti_timer;
-+
-+	spin_lock(&ppd->cca_timer_lock);
-+
-+	ccti = cca_timer->ccti;
-+
-+	if (ccti > ccti_min) {
-+		cca_timer->ccti--;
-+		set_link_ipg(ppd);
-+	}
-+
-+	spin_unlock(&ppd->cca_timer_lock);
-+
-+	rcu_read_unlock();
-+
-+	if (ccti > ccti_min) {
-+		unsigned long nsec = 1024 * ccti_timer;
-+		/* ccti_timer is in units of 1.024 usec */
-+		hrtimer_forward_now(t, ns_to_ktime(nsec));
-+		return HRTIMER_RESTART;
-+	}
-+	return HRTIMER_NORESTART;
-+}
-+
-+/*
-+ * Common code for initializing the physical port structure.
-+ */
-+void hfi1_init_pportdata(struct pci_dev *pdev, struct hfi1_pportdata *ppd,
-+			 struct hfi1_devdata *dd, u8 hw_pidx, u8 port)
-+{
-+	int i, size;
-+	uint default_pkey_idx;
-+
-+	ppd->dd = dd;
-+	ppd->hw_pidx = hw_pidx;
-+	ppd->port = port; /* IB port number, not index */
-+
-+	default_pkey_idx = 1;
-+
-+	ppd->pkeys[default_pkey_idx] = DEFAULT_P_KEY;
-+	if (loopback) {
-+		hfi1_early_err(&pdev->dev,
-+			       "Faking data partition 0x8001 in idx %u\n",
-+			       !default_pkey_idx);
-+		ppd->pkeys[!default_pkey_idx] = 0x8001;
-+	}
-+
-+	INIT_WORK(&ppd->link_vc_work, handle_verify_cap);
-+	INIT_WORK(&ppd->link_up_work, handle_link_up);
-+	INIT_WORK(&ppd->link_down_work, handle_link_down);
-+	INIT_WORK(&ppd->freeze_work, handle_freeze);
-+	INIT_WORK(&ppd->link_downgrade_work, handle_link_downgrade);
-+	INIT_WORK(&ppd->sma_message_work, handle_sma_message);
-+	INIT_WORK(&ppd->link_bounce_work, handle_link_bounce);
-+	mutex_init(&ppd->hls_lock);
-+	spin_lock_init(&ppd->sdma_alllock);
-+	spin_lock_init(&ppd->qsfp_info.qsfp_lock);
-+
-+	ppd->sm_trap_qp = 0x0;
-+	ppd->sa_qp = 0x1;
-+
-+	ppd->hfi1_wq = NULL;
-+
-+	spin_lock_init(&ppd->cca_timer_lock);
-+
-+	for (i = 0; i < OPA_MAX_SLS; i++) {
-+		hrtimer_init(&ppd->cca_timer[i].hrtimer, CLOCK_MONOTONIC,
-+			     HRTIMER_MODE_REL);
-+		ppd->cca_timer[i].ppd = ppd;
-+		ppd->cca_timer[i].sl = i;
-+		ppd->cca_timer[i].ccti = 0;
-+		ppd->cca_timer[i].hrtimer.function = cca_timer_fn;
-+	}
-+
-+	ppd->cc_max_table_entries = IB_CC_TABLE_CAP_DEFAULT;
-+
-+	spin_lock_init(&ppd->cc_state_lock);
-+	spin_lock_init(&ppd->cc_log_lock);
-+	size = sizeof(struct cc_state);
-+	RCU_INIT_POINTER(ppd->cc_state, kzalloc(size, GFP_KERNEL));
-+	if (!rcu_dereference(ppd->cc_state))
-+		goto bail;
-+	return;
-+
-+bail:
-+
-+	hfi1_early_err(&pdev->dev,
-+		       "Congestion Control Agent disabled for port %d\n", port);
-+}
-+
-+/*
-+ * Do initialization for device that is only needed on
-+ * first detect, not on resets.
-+ */
-+static int loadtime_init(struct hfi1_devdata *dd)
-+{
-+	return 0;
-+}
-+
-+/**
-+ * init_after_reset - re-initialize after a reset
-+ * @dd: the hfi1_ib device
-+ *
-+ * sanity check at least some of the values after reset, and
-+ * ensure no receive or transmit (explicitly, in case reset
-+ * failed
-+ */
-+static int init_after_reset(struct hfi1_devdata *dd)
-+{
-+	int i;
-+
-+	/*
-+	 * Ensure chip does no sends or receives, tail updates, or
-+	 * pioavail updates while we re-initialize.  This is mostly
-+	 * for the driver data structures, not chip registers.
-+	 */
-+	for (i = 0; i < dd->num_rcv_contexts; i++)
-+		hfi1_rcvctrl(dd, HFI1_RCVCTRL_CTXT_DIS |
-+				  HFI1_RCVCTRL_INTRAVAIL_DIS |
-+				  HFI1_RCVCTRL_TAILUPD_DIS, i);
-+	pio_send_control(dd, PSC_GLOBAL_DISABLE);
-+	for (i = 0; i < dd->num_send_contexts; i++)
-+		sc_disable(dd->send_contexts[i].sc);
++	/* turn off write access, auto increment (also sets to data access) */
++	write_csr(dd, DC_DC8051_CFG_RAM_ACCESS_CTRL, 0);
++	write_csr(dd, DC_DC8051_CFG_RAM_ACCESS_SETUP, 0);
 +
 +	return 0;
 +}
 +
-+static void enable_chip(struct hfi1_devdata *dd)
++/* return 0 if values match, non-zero and complain otherwise */
++static int invalid_header(struct hfi1_devdata *dd, const char *what,
++			  u32 actual, u32 expected)
 +{
-+	u32 rcvmask;
-+	u32 i;
++	if (actual == expected)
++		return 0;
 +
-+	/* enable PIO send */
-+	pio_send_control(dd, PSC_GLOBAL_ENABLE);
-+
-+	/*
-+	 * Enable kernel ctxts' receive and receive interrupt.
-+	 * Other ctxts done as user opens and initializes them.
-+	 */
-+	rcvmask = HFI1_RCVCTRL_CTXT_ENB | HFI1_RCVCTRL_INTRAVAIL_ENB;
-+	for (i = 0; i < dd->first_user_ctxt; ++i) {
-+		rcvmask |= HFI1_CAP_KGET_MASK(dd->rcd[i]->flags, DMA_RTAIL) ?
-+			HFI1_RCVCTRL_TAILUPD_ENB : HFI1_RCVCTRL_TAILUPD_DIS;
-+		if (!HFI1_CAP_KGET_MASK(dd->rcd[i]->flags, MULTI_PKT_EGR))
-+			rcvmask |= HFI1_RCVCTRL_ONE_PKT_EGR_ENB;
-+		if (HFI1_CAP_KGET_MASK(dd->rcd[i]->flags, NODROP_RHQ_FULL))
-+			rcvmask |= HFI1_RCVCTRL_NO_RHQ_DROP_ENB;
-+		if (HFI1_CAP_KGET_MASK(dd->rcd[i]->flags, NODROP_EGR_FULL))
-+			rcvmask |= HFI1_RCVCTRL_NO_EGR_DROP_ENB;
-+		hfi1_rcvctrl(dd, rcvmask, i);
-+		sc_enable(dd->rcd[i]->sc);
-+	}
++	dd_dev_err(dd,
++		"invalid firmware header field %s: expected 0x%x, actual 0x%x\n",
++		what, expected, actual);
++	return 1;
 +}
 +
-+/**
-+ * create_workqueues - create per port workqueues
-+ * @dd: the hfi1_ib device
++/*
++ * Verify that the static fields in the CSS header match.
 + */
-+static int create_workqueues(struct hfi1_devdata *dd)
++static int verify_css_header(struct hfi1_devdata *dd, struct css_header *css)
 +{
-+	int pidx;
-+	struct hfi1_pportdata *ppd;
-+
-+	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+		ppd = dd->pport + pidx;
-+		if (!ppd->hfi1_wq) {
-+			char wq_name[8]; /* 3 + 2 + 1 + 1 + 1 */
-+
-+			snprintf(wq_name, sizeof(wq_name), "hfi%d_%d",
-+				 dd->unit, pidx);
-+			ppd->hfi1_wq =
-+				create_singlethread_workqueue(wq_name);
-+			if (!ppd->hfi1_wq)
-+				goto wq_error;
-+		}
++	/* verify CSS header fields (most sizes are in DW, so add /4) */
++	if (invalid_header(dd, "module_type", css->module_type, CSS_MODULE_TYPE)
++			|| invalid_header(dd, "header_len", css->header_len,
++					(sizeof(struct firmware_file)/4))
++			|| invalid_header(dd, "header_version",
++					css->header_version, CSS_HEADER_VERSION)
++			|| invalid_header(dd, "module_vendor",
++					css->module_vendor, CSS_MODULE_VENDOR)
++			|| invalid_header(dd, "key_size",
++					css->key_size, KEY_SIZE/4)
++			|| invalid_header(dd, "modulus_size",
++					css->modulus_size, KEY_SIZE/4)
++			|| invalid_header(dd, "exponent_size",
++					css->exponent_size, EXPONENT_SIZE/4)) {
++		return -EINVAL;
 +	}
 +	return 0;
-+wq_error:
-+	pr_err("create_singlethread_workqueue failed for port %d\n",
-+		pidx + 1);
-+	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+		ppd = dd->pport + pidx;
-+		if (ppd->hfi1_wq) {
-+			destroy_workqueue(ppd->hfi1_wq);
-+			ppd->hfi1_wq = NULL;
-+		}
-+	}
-+	return -ENOMEM;
 +}
 +
-+/**
-+ * hfi1_init - do the actual initialization sequence on the chip
-+ * @dd: the hfi1_ib device
-+ * @reinit: re-initializing, so don't allocate new memory
-+ *
-+ * Do the actual initialization sequence on the chip.  This is done
-+ * both from the init routine called from the PCI infrastructure, and
-+ * when we reset the chip, or detect that it was reset internally,
-+ * or it's administratively re-enabled.
-+ *
-+ * Memory allocation here and in called routines is only done in
-+ * the first case (reinit == 0).  We have to be careful, because even
-+ * without memory allocation, we need to re-write all the chip registers
-+ * TIDs, etc. after the reset or enable has completed.
++/*
++ * Make sure there are at least some bytes after the prefix.
 + */
-+int hfi1_init(struct hfi1_devdata *dd, int reinit)
++static int payload_check(struct hfi1_devdata *dd, const char *name,
++			 long file_size, long prefix_size)
 +{
-+	int ret = 0, pidx, lastfail = 0;
-+	unsigned i, len;
-+	struct hfi1_ctxtdata *rcd;
-+	struct hfi1_pportdata *ppd;
-+
-+	/* Set up recv low level handlers */
-+	dd->normal_rhf_rcv_functions[RHF_RCV_TYPE_EXPECTED] =
-+						kdeth_process_expected;
-+	dd->normal_rhf_rcv_functions[RHF_RCV_TYPE_EAGER] =
-+						kdeth_process_eager;
-+	dd->normal_rhf_rcv_functions[RHF_RCV_TYPE_IB] = process_receive_ib;
-+	dd->normal_rhf_rcv_functions[RHF_RCV_TYPE_ERROR] =
-+						process_receive_error;
-+	dd->normal_rhf_rcv_functions[RHF_RCV_TYPE_BYPASS] =
-+						process_receive_bypass;
-+	dd->normal_rhf_rcv_functions[RHF_RCV_TYPE_INVALID5] =
-+						process_receive_invalid;
-+	dd->normal_rhf_rcv_functions[RHF_RCV_TYPE_INVALID6] =
-+						process_receive_invalid;
-+	dd->normal_rhf_rcv_functions[RHF_RCV_TYPE_INVALID7] =
-+						process_receive_invalid;
-+	dd->rhf_rcv_function_map = dd->normal_rhf_rcv_functions;
-+
-+	/* Set up send low level handlers */
-+	dd->process_pio_send = hfi1_verbs_send_pio;
-+	dd->process_dma_send = hfi1_verbs_send_dma;
-+	dd->pio_inline_send = pio_copy;
-+
-+	if (is_a0(dd)) {
-+		atomic_set(&dd->drop_packet, DROP_PACKET_ON);
-+		dd->do_drop = 1;
-+	} else {
-+		atomic_set(&dd->drop_packet, DROP_PACKET_OFF);
-+		dd->do_drop = 0;
++	/* make sure we have some payload */
++	if (prefix_size >= file_size) {
++		dd_dev_err(dd,
++			"firmware \"%s\", size %ld, must be larger than %ld bytes\n",
++			name, file_size, prefix_size);
++		return -EINVAL;
 +	}
 +
-+	/* make sure the link is not "up" */
-+	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+		ppd = dd->pport + pidx;
-+		ppd->linkup = 0;
++	return 0;
++}
++
++/*
++ * Request the firmware from the system.  Extract the pieces and fill in
++ * fdet.  If successful, the caller will need to call dispose_one_firmware().
++ * Returns 0 on success, -ERRNO on error.
++ */
++static int obtain_one_firmware(struct hfi1_devdata *dd, const char *name,
++			       struct firmware_details *fdet)
++{
++	struct css_header *css;
++	int ret;
++
++	memset(fdet, 0, sizeof(*fdet));
++
++	ret = request_firmware(&fdet->fw, name, &dd->pcidev->dev);
++	if (ret) {
++		dd_dev_err(dd, "cannot load firmware \"%s\", err %d\n",
++			name, ret);
++		return ret;
 +	}
 +
-+	if (reinit)
-+		ret = init_after_reset(dd);
-+	else
-+		ret = loadtime_init(dd);
-+	if (ret)
++	/* verify the firmware */
++	if (fdet->fw->size < sizeof(struct css_header)) {
++		dd_dev_err(dd, "firmware \"%s\" is too small\n", name);
++		ret = -EINVAL;
 +		goto done;
-+
-+	/* dd->rcd can be NULL if early initialization failed */
-+	for (i = 0; dd->rcd && i < dd->first_user_ctxt; ++i) {
-+		/*
-+		 * Set up the (kernel) rcvhdr queue and egr TIDs.  If doing
-+		 * re-init, the simplest way to handle this is to free
-+		 * existing, and re-allocate.
-+		 * Need to re-create rest of ctxt 0 ctxtdata as well.
-+		 */
-+		rcd = dd->rcd[i];
-+		if (!rcd)
-+			continue;
-+
-+		rcd->do_interrupt = &handle_receive_interrupt;
-+
-+		lastfail = hfi1_create_rcvhdrq(dd, rcd);
-+		if (!lastfail)
-+			lastfail = hfi1_setup_eagerbufs(rcd);
-+		if (lastfail)
-+			dd_dev_err(dd,
-+				"failed to allocate kernel ctxt's rcvhdrq and/or egr bufs\n");
 +	}
-+	if (lastfail)
-+		ret = lastfail;
++	css = (struct css_header *)fdet->fw->data;
 +
-+	/* Allocate enough memory for user event notification. */
-+	len = ALIGN(dd->chip_rcv_contexts * HFI1_MAX_SHARED_CTXTS *
-+		    sizeof(*dd->events), PAGE_SIZE);
-+	dd->events = vmalloc_user(len);
-+	if (!dd->events)
-+		dd_dev_err(dd, "Failed to allocate user events page\n");
++	hfi1_cdbg(FIRMWARE, "Firmware %s details:", name);
++	hfi1_cdbg(FIRMWARE, "file size: 0x%lx bytes", fdet->fw->size);
++	hfi1_cdbg(FIRMWARE, "CSS structure:");
++	hfi1_cdbg(FIRMWARE, "  module_type    0x%x", css->module_type);
++	hfi1_cdbg(FIRMWARE, "  header_len     0x%03x (0x%03x bytes)",
++		  css->header_len, 4 * css->header_len);
++	hfi1_cdbg(FIRMWARE, "  header_version 0x%x", css->header_version);
++	hfi1_cdbg(FIRMWARE, "  module_id      0x%x", css->module_id);
++	hfi1_cdbg(FIRMWARE, "  module_vendor  0x%x", css->module_vendor);
++	hfi1_cdbg(FIRMWARE, "  date           0x%x", css->date);
++	hfi1_cdbg(FIRMWARE, "  size           0x%03x (0x%03x bytes)",
++		  css->size, 4 * css->size);
++	hfi1_cdbg(FIRMWARE, "  key_size       0x%03x (0x%03x bytes)",
++		  css->key_size, 4 * css->key_size);
++	hfi1_cdbg(FIRMWARE, "  modulus_size   0x%03x (0x%03x bytes)",
++		  css->modulus_size, 4 * css->modulus_size);
++	hfi1_cdbg(FIRMWARE, "  exponent_size  0x%03x (0x%03x bytes)",
++		  css->exponent_size, 4 * css->exponent_size);
++	hfi1_cdbg(FIRMWARE, "firmware size: 0x%lx bytes",
++		  fdet->fw->size - sizeof(struct firmware_file));
++
 +	/*
-+	 * Allocate a page for device and port status.
-+	 * Page will be shared amongst all user processes.
++	 * If the file does not have a valid CSS header, fail.
++	 * Otherwise, check the CSS size field for an expected size.
++	 * The augmented file has r2 and mu inserted after the header
++	 * was generated, so there will be a known difference between
++	 * the CSS header size and the actual file size.  Use this
++	 * difference to identify an augmented file.
++	 *
++	 * Note: css->size is in DWORDs, multiply by 4 to get bytes.
 +	 */
-+	dd->status = vmalloc_user(PAGE_SIZE);
-+	if (!dd->status)
-+		dd_dev_err(dd, "Failed to allocate dev status page\n");
-+	else
-+		dd->freezelen = PAGE_SIZE - (sizeof(*dd->status) -
-+					     sizeof(dd->status->freezemsg));
-+	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+		ppd = dd->pport + pidx;
-+		if (dd->status)
-+			/* Currently, we only have one port */
-+			ppd->statusp = &dd->status->port;
++	ret = verify_css_header(dd, css);
++	if (ret) {
++		dd_dev_info(dd, "Invalid CSS header for \"%s\"\n", name);
++	} else if ((css->size*4) == fdet->fw->size) {
++		/* non-augmented firmware file */
++		struct firmware_file *ff = (struct firmware_file *)
++							fdet->fw->data;
 +
-+		set_mtu(ppd);
-+	}
-+
-+	/* enable chip even if we have an error, so we can debug cause */
-+	enable_chip(dd);
-+
-+	ret = hfi1_cq_init(dd);
-+done:
-+	/*
-+	 * Set status even if port serdes is not initialized
-+	 * so that diags will work.
-+	 */
-+	if (dd->status)
-+		dd->status->dev |= HFI1_STATUS_CHIP_PRESENT |
-+			HFI1_STATUS_INITTED;
-+	if (!ret) {
-+		/* enable all interrupts from the chip */
-+		set_intr_state(dd, 1);
-+
-+		/* chip is OK for user apps; mark it as initialized */
-+		for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+			ppd = dd->pport + pidx;
-+
-+			/* initialize the qsfp if it exists
-+			 * Requires interrupts to be enabled so we are notified
-+			 * when the QSFP completes reset, and has
-+			 * to be done before bringing up the SERDES
-+			 */
-+			init_qsfp(ppd);
-+
-+			/* start the serdes - must be after interrupts are
-+			   enabled so we are notified when the link goes up */
-+			lastfail = bringup_serdes(ppd);
-+			if (lastfail)
-+				dd_dev_info(dd,
-+					"Failed to bring up port %u\n",
-+					ppd->port);
-+
++		/* make sure there are bytes in the payload */
++		ret = payload_check(dd, name, fdet->fw->size,
++						sizeof(struct firmware_file));
++		if (ret == 0) {
++			fdet->css_header = css;
++			fdet->modulus = ff->modulus;
++			fdet->exponent = ff->exponent;
++			fdet->signature = ff->signature;
++			fdet->r2 = fdet->dummy_header.r2; /* use dummy space */
++			fdet->mu = fdet->dummy_header.mu; /* use dummy space */
++			fdet->firmware_ptr = ff->firmware;
++			fdet->firmware_len = fdet->fw->size -
++						sizeof(struct firmware_file);
 +			/*
-+			 * Set status even if port serdes is not initialized
-+			 * so that diags will work.
++			 * Header does not include r2 and mu - generate here.
++			 * For now, fail.
 +			 */
-+			if (ppd->statusp)
-+				*ppd->statusp |= HFI1_STATUS_CHIP_PRESENT |
-+							HFI1_STATUS_INITTED;
-+			if (!ppd->link_speed_enabled)
-+				continue;
++			dd_dev_err(dd, "driver is unable to validate firmware without r2 and mu (not in firmware file)\n");
++			ret = -EINVAL;
 +		}
++	} else if ((css->size*4) + AUGMENT_SIZE == fdet->fw->size) {
++		/* augmented firmware file */
++		struct augmented_firmware_file *aff =
++			(struct augmented_firmware_file *)fdet->fw->data;
++
++		/* make sure there are bytes in the payload */
++		ret = payload_check(dd, name, fdet->fw->size,
++					sizeof(struct augmented_firmware_file));
++		if (ret == 0) {
++			fdet->css_header = css;
++			fdet->modulus = aff->modulus;
++			fdet->exponent = aff->exponent;
++			fdet->signature = aff->signature;
++			fdet->r2 = aff->r2;
++			fdet->mu = aff->mu;
++			fdet->firmware_ptr = aff->firmware;
++			fdet->firmware_len = fdet->fw->size -
++					sizeof(struct augmented_firmware_file);
++		}
++	} else {
++		/* css->size check failed */
++		dd_dev_err(dd,
++			"invalid firmware header field size: expected 0x%lx or 0x%lx, actual 0x%x\n",
++			fdet->fw->size/4, (fdet->fw->size - AUGMENT_SIZE)/4,
++			css->size);
++
++		ret = -EINVAL;
 +	}
 +
-+	/* if ret is non-zero, we probably should do some cleanup here... */
++done:
++	/* if returning an error, clean up after ourselves */
++	if (ret)
++		dispose_one_firmware(fdet);
 +	return ret;
 +}
 +
-+static inline struct hfi1_devdata *__hfi1_lookup(int unit)
++static void dispose_one_firmware(struct firmware_details *fdet)
 +{
-+	return idr_find(&hfi1_unit_table, unit);
-+}
-+
-+struct hfi1_devdata *hfi1_lookup(int unit)
-+{
-+	struct hfi1_devdata *dd;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&hfi1_devs_lock, flags);
-+	dd = __hfi1_lookup(unit);
-+	spin_unlock_irqrestore(&hfi1_devs_lock, flags);
-+
-+	return dd;
++	release_firmware(fdet->fw);
++	fdet->fw = NULL;
 +}
 +
 +/*
-+ * Stop the timers during unit shutdown, or after an error late
-+ * in initialization.
++ * Called by all HFIs when loading their firmware - i.e. device probe time.
++ * The first one will do the actual firmware load.  Use a mutex to resolve
++ * any possible race condition.
++ *
++ * The call to this routine cannot be moved to driver load because the kernel
++ * call request_firmware() requires a device which is only available after
++ * the first device probe.
 + */
-+static void stop_timers(struct hfi1_devdata *dd)
++static int obtain_firmware(struct hfi1_devdata *dd)
 +{
-+	struct hfi1_pportdata *ppd;
-+	int pidx;
++	int err = 0;
 +
-+	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+		ppd = dd->pport + pidx;
-+		if (ppd->led_override_timer.data) {
-+			del_timer_sync(&ppd->led_override_timer);
-+			atomic_set(&ppd->led_override_timer_active, 0);
++	mutex_lock(&fw_mutex);
++	if (fw_state == FW_ACQUIRED) {
++		goto done;	/* already acquired */
++	} else if (fw_state == FW_ERR) {
++		err = fw_err;
++		goto done;	/* already tried and failed */
++	}
++
++	if (fw_8051_load) {
++		err = obtain_one_firmware(dd, fw_8051_name, &fw_8051);
++		if (err)
++			goto done;
++	}
++
++	if (fw_fabric_serdes_load) {
++		err = obtain_one_firmware(dd, fw_fabric_serdes_name,
++			&fw_fabric);
++		if (err)
++			goto done;
++	}
++
++	if (fw_sbus_load) {
++		err = obtain_one_firmware(dd, fw_sbus_name, &fw_sbus);
++		if (err)
++			goto done;
++	}
++
++	if (fw_pcie_serdes_load) {
++		err = obtain_one_firmware(dd, fw_pcie_serdes_name, &fw_pcie);
++		if (err)
++			goto done;
++	}
++
++	if (platform_config_load) {
++		platform_config = NULL;
++		err = request_firmware(&platform_config, platform_config_name,
++						&dd->pcidev->dev);
++		if (err) {
++			err = 0;
++			platform_config = NULL;
++		}
++	}
++
++	/* success */
++	fw_state = FW_ACQUIRED;
++
++done:
++	if (err) {
++		fw_err = err;
++		fw_state = FW_ERR;
++	}
++	mutex_unlock(&fw_mutex);
++
++	return err;
++}
++
++/*
++ * Called when the driver unloads.  The timing is asymmetric with its
++ * counterpart, obtain_firmware().  If called at device remove time,
++ * then it is conceivable that another device could probe while the
++ * firmware is being disposed.  The mutexes can be moved to do that
++ * safely, but then the firmware would be requested from the OS multiple
++ * times.
++ *
++ * No mutex is needed as the driver is unloading and there cannot be any
++ * other callers.
++ */
++void dispose_firmware(void)
++{
++	dispose_one_firmware(&fw_8051);
++	dispose_one_firmware(&fw_fabric);
++	dispose_one_firmware(&fw_pcie);
++	dispose_one_firmware(&fw_sbus);
++
++	release_firmware(platform_config);
++	platform_config = NULL;
++
++	/* retain the error state, otherwise revert to empty */
++	if (fw_state != FW_ERR)
++		fw_state = FW_EMPTY;
++}
++
++/*
++ * Write a block of data to a given array CSR.  All calls will be in
++ * multiples of 8 bytes.
++ */
++static void write_rsa_data(struct hfi1_devdata *dd, int what,
++			   const u8 *data, int nbytes)
++{
++	int qw_size = nbytes/8;
++	int i;
++
++	if (((unsigned long)data & 0x7) == 0) {
++		/* aligned */
++		u64 *ptr = (u64 *)data;
++
++		for (i = 0; i < qw_size; i++, ptr++)
++			write_csr(dd, what + (8*i), *ptr);
++	} else {
++		/* not aligned */
++		for (i = 0; i < qw_size; i++, data += 8) {
++			u64 value;
++
++			memcpy(&value, data, 8);
++			write_csr(dd, what + (8*i), value);
 +		}
 +	}
 +}
 +
-+/**
-+ * shutdown_device - shut down a device
-+ * @dd: the hfi1_ib device
-+ *
-+ * This is called to make the device quiet when we are about to
-+ * unload the driver, and also when the device is administratively
-+ * disabled.   It does not free any data structures.
-+ * Everything it does has to be setup again by hfi1_init(dd, 1)
++/*
++ * Write a block of data to a given CSR as a stream of writes.  All calls will
++ * be in multiples of 8 bytes.
 + */
-+static void shutdown_device(struct hfi1_devdata *dd)
++static void write_streamed_rsa_data(struct hfi1_devdata *dd, int what,
++				    const u8 *data, int nbytes)
 +{
-+	struct hfi1_pportdata *ppd;
-+	unsigned pidx;
-+	int i;
++	u64 *ptr = (u64 *)data;
++	int qw_size = nbytes/8;
 +
-+	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+		ppd = dd->pport + pidx;
++	for (; qw_size > 0; qw_size--, ptr++)
++		write_csr(dd, what, *ptr);
++}
 +
-+		ppd->linkup = 0;
-+		if (ppd->statusp)
-+			*ppd->statusp &= ~(HFI1_STATUS_IB_CONF |
-+					   HFI1_STATUS_IB_READY);
++/*
++ * Download the signature and start the RSA mechanism.  Wait for
++ * RSA_ENGINE_TIMEOUT before giving up.
++ */
++static int run_rsa(struct hfi1_devdata *dd, const char *who,
++		   const u8 *signature)
++{
++	unsigned long timeout;
++	u64 reg;
++	u32 status;
++	int ret = 0;
++
++	/* write the signature */
++	write_rsa_data(dd, MISC_CFG_RSA_SIGNATURE, signature, KEY_SIZE);
++
++	/* initialize RSA */
++	write_csr(dd, MISC_CFG_RSA_CMD, RSA_CMD_INIT);
++
++	/*
++	 * Make sure the engine is idle and insert a delay between the two
++	 * writes to MISC_CFG_RSA_CMD.
++	 */
++	status = (read_csr(dd, MISC_CFG_FW_CTRL)
++			   & MISC_CFG_FW_CTRL_RSA_STATUS_SMASK)
++			     >> MISC_CFG_FW_CTRL_RSA_STATUS_SHIFT;
++	if (status != RSA_STATUS_IDLE) {
++		dd_dev_err(dd, "%s security engine not idle - giving up\n",
++			who);
++		return -EBUSY;
 +	}
-+	dd->flags &= ~HFI1_INITTED;
 +
-+	/* mask interrupts, but not errors */
-+	set_intr_state(dd, 0);
++	/* start RSA */
++	write_csr(dd, MISC_CFG_RSA_CMD, RSA_CMD_START);
 +
-+	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+		ppd = dd->pport + pidx;
-+		for (i = 0; i < dd->num_rcv_contexts; i++)
-+			hfi1_rcvctrl(dd, HFI1_RCVCTRL_TAILUPD_DIS |
-+					  HFI1_RCVCTRL_CTXT_DIS |
-+					  HFI1_RCVCTRL_INTRAVAIL_DIS |
-+					  HFI1_RCVCTRL_PKEY_DIS |
-+					  HFI1_RCVCTRL_ONE_PKT_EGR_DIS, i);
-+		/*
-+		 * Gracefully stop all sends allowing any in progress to
-+		 * trickle out first.
-+		 */
-+		for (i = 0; i < dd->num_send_contexts; i++)
-+			sc_flush(dd->send_contexts[i].sc);
++	/*
++	 * Look for the result.
++	 *
++	 * The RSA engine is hooked up to two MISC errors.  The driver
++	 * masks these errors as they do not respond to the standard
++	 * error "clear down" mechanism.  Look for these errors here and
++	 * clear them when possible.  This routine will exit with the
++	 * errors of the current run still set.
++	 *
++	 * MISC_FW_AUTH_FAILED_ERR
++	 *	Firmware authorization failed.  This can be cleared by
++	 *	re-initializing the RSA engine, then clearing the status bit.
++	 *	Do not re-init the RSA angine immediately after a successful
++	 *	run - this will reset the current authorization.
++	 *
++	 * MISC_KEY_MISMATCH_ERR
++	 *	Key does not match.  The only way to clear this is to load
++	 *	a matching key then clear the status bit.  If this error
++	 *	is raised, it will persist outside of this routine until a
++	 *	matching key is loaded.
++	 */
++	timeout = msecs_to_jiffies(RSA_ENGINE_TIMEOUT) + jiffies;
++	while (1) {
++		status = (read_csr(dd, MISC_CFG_FW_CTRL)
++			   & MISC_CFG_FW_CTRL_RSA_STATUS_SMASK)
++			     >> MISC_CFG_FW_CTRL_RSA_STATUS_SHIFT;
++
++		if (status == RSA_STATUS_IDLE) {
++			/* should not happen */
++			dd_dev_err(dd, "%s firmware security bad idle state\n",
++				who);
++			ret = -EINVAL;
++			break;
++		} else if (status == RSA_STATUS_DONE) {
++			/* finished successfully */
++			break;
++		} else if (status == RSA_STATUS_FAILED) {
++			/* finished unsuccessfully */
++			ret = -EINVAL;
++			break;
++		}
++		/* else still active */
++
++		if (time_after(jiffies, timeout)) {
++			/*
++			 * Timed out while active.  We can't reset the engine
++			 * if it is stuck active, but run through the
++			 * error code to see what error bits are set.
++			 */
++			dd_dev_err(dd, "%s firmware security time out\n", who);
++			ret = -ETIMEDOUT;
++			break;
++		}
++
++		msleep(20);
 +	}
 +
 +	/*
-+	 * Enough for anything that's going to trickle out to have actually
-+	 * done so.
++	 * Arrive here on success or failure.  Clear all RSA engine
++	 * errors.  All current errors will stick - the RSA logic is keeping
++	 * error high.  All previous errors will clear - the RSA logic
++	 * is not keeping the error high.
 +	 */
-+	udelay(20);
-+
-+	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+		ppd = dd->pport + pidx;
-+
-+		/* disable all contexts */
-+		for (i = 0; i < dd->num_send_contexts; i++)
-+			sc_disable(dd->send_contexts[i].sc);
-+		/* disable the send device */
-+		pio_send_control(dd, PSC_GLOBAL_DISABLE);
-+
-+		/*
-+		 * Clear SerdesEnable.
-+		 * We can't count on interrupts since we are stopping.
-+		 */
-+		hfi1_quiet_serdes(ppd);
-+
-+		if (ppd->hfi1_wq) {
-+			destroy_workqueue(ppd->hfi1_wq);
-+			ppd->hfi1_wq = NULL;
-+		}
++	write_csr(dd, MISC_ERR_CLEAR,
++			MISC_ERR_STATUS_MISC_FW_AUTH_FAILED_ERR_SMASK
++			| MISC_ERR_STATUS_MISC_KEY_MISMATCH_ERR_SMASK);
++	/*
++	 * All that is left are the current errors.  Print failure details,
++	 * if any.
++	 */
++	reg = read_csr(dd, MISC_ERR_STATUS);
++	if (ret) {
++		if (reg & MISC_ERR_STATUS_MISC_FW_AUTH_FAILED_ERR_SMASK)
++			dd_dev_err(dd, "%s firmware authorization failed\n",
++				who);
++		if (reg & MISC_ERR_STATUS_MISC_KEY_MISMATCH_ERR_SMASK)
++			dd_dev_err(dd, "%s firmware key mismatch\n", who);
 +	}
-+	sdma_exit(dd);
++
++	return ret;
 +}
 +
-+/**
-+ * hfi1_free_ctxtdata - free a context's allocated data
-+ * @dd: the hfi1_ib device
-+ * @rcd: the ctxtdata structure
-+ *
-+ * free up any allocated data for a context
-+ * This should not touch anything that would affect a simultaneous
-+ * re-allocation of context data, because it is called after hfi1_mutex
-+ * is released (and can be called from reinit as well).
-+ * It should never change any chip state, or global driver state.
-+ */
-+void hfi1_free_ctxtdata(struct hfi1_devdata *dd, struct hfi1_ctxtdata *rcd)
++static void load_security_variables(struct hfi1_devdata *dd,
++				    struct firmware_details *fdet)
 +{
-+	unsigned e;
++	/* Security variables a.  Write the modulus */
++	write_rsa_data(dd, MISC_CFG_RSA_MODULUS, fdet->modulus, KEY_SIZE);
++	/* Security variables b.  Write the r2 */
++	write_rsa_data(dd, MISC_CFG_RSA_R2, fdet->r2, KEY_SIZE);
++	/* Security variables c.  Write the mu */
++	write_rsa_data(dd, MISC_CFG_RSA_MU, fdet->mu, MU_SIZE);
++	/* Security variables d.  Write the header */
++	write_streamed_rsa_data(dd, MISC_CFG_SHA_PRELOAD,
++			(u8 *)fdet->css_header, sizeof(struct css_header));
++}
 +
-+	if (!rcd)
++/* return the 8051 firmware state */
++static inline u32 get_firmware_state(struct hfi1_devdata *dd)
++{
++	u64 reg = read_csr(dd, DC_DC8051_STS_CUR_STATE);
++
++	return (reg >> DC_DC8051_STS_CUR_STATE_FIRMWARE_SHIFT)
++				& DC_DC8051_STS_CUR_STATE_FIRMWARE_MASK;
++}
++
++/*
++ * Wait until the firmware is up and ready to take host requests.
++ * Return 0 on success, -ETIMEDOUT on timeout.
++ */
++int wait_fm_ready(struct hfi1_devdata *dd, u32 mstimeout)
++{
++	unsigned long timeout;
++
++	/* in the simulator, the fake 8051 is always ready */
++	if (dd->icode == ICODE_FUNCTIONAL_SIMULATOR)
++		return 0;
++
++	timeout = msecs_to_jiffies(mstimeout) + jiffies;
++	while (1) {
++		if (get_firmware_state(dd) == 0xa0)	/* ready */
++			return 0;
++		if (time_after(jiffies, timeout))	/* timed out */
++			return -ETIMEDOUT;
++		usleep_range(1950, 2050); /* sleep 2ms-ish */
++	}
++}
++
++/*
++ * Load the 8051 firmware.
++ */
++static int load_8051_firmware(struct hfi1_devdata *dd,
++			      struct firmware_details *fdet)
++{
++	u64 reg;
++	int ret;
++	u8 ver_a, ver_b;
++
++	/*
++	 * DC Reset sequence
++	 * Load DC 8051 firmware
++	 */
++	/*
++	 * DC reset step 1: Reset DC8051
++	 */
++	reg = DC_DC8051_CFG_RST_M8051W_SMASK
++		| DC_DC8051_CFG_RST_CRAM_SMASK
++		| DC_DC8051_CFG_RST_DRAM_SMASK
++		| DC_DC8051_CFG_RST_IRAM_SMASK
++		| DC_DC8051_CFG_RST_SFR_SMASK;
++	write_csr(dd, DC_DC8051_CFG_RST, reg);
++
++	/*
++	 * DC reset step 2 (optional): Load 8051 data memory with link
++	 * configuration
++	 */
++
++	/*
++	 * DC reset step 3: Load DC8051 firmware
++	 */
++	/* release all but the core reset */
++	reg = DC_DC8051_CFG_RST_M8051W_SMASK;
++	write_csr(dd, DC_DC8051_CFG_RST, reg);
++
++	/* Firmware load step 1 */
++	load_security_variables(dd, fdet);
++
++	/*
++	 * Firmware load step 2.  Clear MISC_CFG_FW_CTRL.FW_8051_LOADED
++	 */
++	write_csr(dd, MISC_CFG_FW_CTRL, 0);
++
++	/* Firmware load steps 3-5 */
++	ret = write_8051(dd, 1/*code*/, 0, fdet->firmware_ptr,
++							fdet->firmware_len);
++	if (ret)
++		return ret;
++
++	/*
++	 * DC reset step 4. Host starts the DC8051 firmware
++	 */
++	/*
++	 * Firmware load step 6.  Set MISC_CFG_FW_CTRL.FW_8051_LOADED
++	 */
++	write_csr(dd, MISC_CFG_FW_CTRL, MISC_CFG_FW_CTRL_FW_8051_LOADED_SMASK);
++
++	/* Firmware load steps 7-10 */
++	ret = run_rsa(dd, "8051", fdet->signature);
++	if (ret)
++		return ret;
++
++	/* clear all reset bits, releasing the 8051 */
++	write_csr(dd, DC_DC8051_CFG_RST, 0ull);
++
++	/*
++	 * DC reset step 5. Wait for firmware to be ready to accept host
++	 * requests.
++	 */
++	ret = wait_fm_ready(dd, TIMEOUT_8051_START);
++	if (ret) { /* timed out */
++		dd_dev_err(dd, "8051 start timeout, current state 0x%x\n",
++			get_firmware_state(dd));
++		return -ETIMEDOUT;
++	}
++
++	read_misc_status(dd, &ver_a, &ver_b);
++	dd_dev_info(dd, "8051 firmware version %d.%d\n",
++		(int)ver_b, (int)ver_a);
++	dd->dc8051_ver = dc8051_ver(ver_b, ver_a);
++
++	return 0;
++}
++
++/* SBus Master broadcast address */
++#define SBUS_MASTER_BROADCAST 0xfd
++
++/*
++ * Write the SBus request register
++ *
++ * No need for masking - the arguments are sized exactly.
++ */
++void sbus_request(struct hfi1_devdata *dd,
++		  u8 receiver_addr, u8 data_addr, u8 command, u32 data_in)
++{
++	write_csr(dd, ASIC_CFG_SBUS_REQUEST,
++		((u64)data_in << ASIC_CFG_SBUS_REQUEST_DATA_IN_SHIFT)
++		| ((u64)command << ASIC_CFG_SBUS_REQUEST_COMMAND_SHIFT)
++		| ((u64)data_addr << ASIC_CFG_SBUS_REQUEST_DATA_ADDR_SHIFT)
++		| ((u64)receiver_addr
++			<< ASIC_CFG_SBUS_REQUEST_RECEIVER_ADDR_SHIFT));
++}
++
++/*
++ * Turn off the SBus and fabric serdes spicos.
++ *
++ * + Must be called with Sbus fast mode turned on.
++ * + Must be called after fabric serdes broadcast is set up.
++ * + Must be called before the 8051 is loaded - assumes 8051 is not loaded
++ *   when using MISC_CFG_FW_CTRL.
++ */
++static void turn_off_spicos(struct hfi1_devdata *dd, int flags)
++{
++	/* only needed on A0 */
++	if (!is_a0(dd))
 +		return;
 +
-+	if (rcd->rcvhdrq) {
-+		dma_free_coherent(&dd->pcidev->dev, rcd->rcvhdrq_size,
-+				  rcd->rcvhdrq, rcd->rcvhdrq_phys);
-+		rcd->rcvhdrq = NULL;
-+		if (rcd->rcvhdrtail_kvaddr) {
-+			dma_free_coherent(&dd->pcidev->dev, PAGE_SIZE,
-+					  (void *)rcd->rcvhdrtail_kvaddr,
-+					  rcd->rcvhdrqtailaddr_phys);
-+			rcd->rcvhdrtail_kvaddr = NULL;
++	dd_dev_info(dd, "Turning off spicos:%s%s\n",
++		flags & SPICO_SBUS ? " SBus" : "",
++		flags & SPICO_FABRIC ? " fabric" : "");
++
++	write_csr(dd, MISC_CFG_FW_CTRL, ENABLE_SPICO_SMASK);
++	/* disable SBus spico */
++	if (flags & SPICO_SBUS)
++		sbus_request(dd, SBUS_MASTER_BROADCAST, 0x01,
++			WRITE_SBUS_RECEIVER, 0x00000040);
++
++	/* disable the fabric serdes spicos */
++	if (flags & SPICO_FABRIC)
++		sbus_request(dd, fabric_serdes_broadcast[dd->hfi1_id],
++			     0x07, WRITE_SBUS_RECEIVER, 0x00000000);
++	write_csr(dd, MISC_CFG_FW_CTRL, 0);
++}
++
++/*
++ *  Reset all of the fabric serdes for our HFI.
++ */
++void fabric_serdes_reset(struct hfi1_devdata *dd)
++{
++	u8 ra;
++
++	if (dd->icode != ICODE_RTL_SILICON) /* only for RTL */
++		return;
++
++	ra = fabric_serdes_broadcast[dd->hfi1_id];
++
++	acquire_hw_mutex(dd);
++	set_sbus_fast_mode(dd);
++	/* place SerDes in reset and disable SPICO */
++	sbus_request(dd, ra, 0x07, WRITE_SBUS_RECEIVER, 0x00000011);
++	/* wait 100 refclk cycles @ 156.25MHz => 640ns */
++	udelay(1);
++	/* remove SerDes reset */
++	sbus_request(dd, ra, 0x07, WRITE_SBUS_RECEIVER, 0x00000010);
++	/* turn SPICO enable on */
++	sbus_request(dd, ra, 0x07, WRITE_SBUS_RECEIVER, 0x00000002);
++	clear_sbus_fast_mode(dd);
++	release_hw_mutex(dd);
++}
++
++/* Access to the SBus in this routine should probably be serialized */
++int sbus_request_slow(struct hfi1_devdata *dd,
++		      u8 receiver_addr, u8 data_addr, u8 command, u32 data_in)
++{
++	u64 reg, count = 0;
++
++	sbus_request(dd, receiver_addr, data_addr, command, data_in);
++	write_csr(dd, ASIC_CFG_SBUS_EXECUTE,
++		  ASIC_CFG_SBUS_EXECUTE_EXECUTE_SMASK);
++	/* Wait for both DONE and RCV_DATA_VALID to go high */
++	reg = read_csr(dd, ASIC_STS_SBUS_RESULT);
++	while (!((reg & ASIC_STS_SBUS_RESULT_DONE_SMASK) &&
++		 (reg & ASIC_STS_SBUS_RESULT_RCV_DATA_VALID_SMASK))) {
++		if (count++ >= SBUS_MAX_POLL_COUNT) {
++			u64 counts = read_csr(dd, ASIC_STS_SBUS_COUNTERS);
++			/*
++			 * If the loop has timed out, we are OK if DONE bit
++			 * is set and RCV_DATA_VALID and EXECUTE counters
++			 * are the same. If not, we cannot proceed.
++			 */
++			if ((reg & ASIC_STS_SBUS_RESULT_DONE_SMASK) &&
++			    (SBUS_COUNTER(counts, RCV_DATA_VALID) ==
++			     SBUS_COUNTER(counts, EXECUTE)))
++				break;
++			return -ETIMEDOUT;
 +		}
++		udelay(1);
++		reg = read_csr(dd, ASIC_STS_SBUS_RESULT);
 +	}
-+
-+	/* all the RcvArray entries should have been cleared by now */
-+	kfree(rcd->egrbufs.rcvtids);
-+
-+	for (e = 0; e < rcd->egrbufs.alloced; e++) {
-+		if (rcd->egrbufs.buffers[e].phys)
-+			dma_free_coherent(&dd->pcidev->dev,
-+					  rcd->egrbufs.buffers[e].len,
-+					  rcd->egrbufs.buffers[e].addr,
-+					  rcd->egrbufs.buffers[e].phys);
++	count = 0;
++	write_csr(dd, ASIC_CFG_SBUS_EXECUTE, 0);
++	/* Wait for DONE to clear after EXECUTE is cleared */
++	reg = read_csr(dd, ASIC_STS_SBUS_RESULT);
++	while (reg & ASIC_STS_SBUS_RESULT_DONE_SMASK) {
++		if (count++ >= SBUS_MAX_POLL_COUNT)
++			return -ETIME;
++		udelay(1);
++		reg = read_csr(dd, ASIC_STS_SBUS_RESULT);
 +	}
-+	kfree(rcd->egrbufs.buffers);
-+
-+	sc_free(rcd->sc);
-+	vfree(rcd->physshadow);
-+	vfree(rcd->tid_pg_list);
-+	vfree(rcd->user_event_mask);
-+	vfree(rcd->subctxt_uregbase);
-+	vfree(rcd->subctxt_rcvegrbuf);
-+	vfree(rcd->subctxt_rcvhdr_base);
-+	kfree(rcd->tidusemap);
-+	kfree(rcd->opstats);
-+	kfree(rcd);
++	return 0;
 +}
 +
-+void hfi1_free_devdata(struct hfi1_devdata *dd)
++static int load_fabric_serdes_firmware(struct hfi1_devdata *dd,
++				       struct firmware_details *fdet)
 +{
-+	unsigned long flags;
++	int i, err;
++	const u8 ra = fabric_serdes_broadcast[dd->hfi1_id]; /* receiver addr */
 +
-+	spin_lock_irqsave(&hfi1_devs_lock, flags);
-+	idr_remove(&hfi1_unit_table, dd->unit);
-+	list_del(&dd->list);
-+	spin_unlock_irqrestore(&hfi1_devs_lock, flags);
-+	hfi1_dbg_ibdev_exit(&dd->verbs_dev);
-+	rcu_barrier(); /* wait for rcu callbacks to complete */
-+	free_percpu(dd->int_counter);
-+	free_percpu(dd->rcv_limit);
-+	ib_dealloc_device(&dd->verbs_dev.ibdev);
++	dd_dev_info(dd, "Downloading fabric firmware\n");
++
++	/* step 1: load security variables */
++	load_security_variables(dd, fdet);
++	/* step 2: place SerDes in reset and disable SPICO */
++	sbus_request(dd, ra, 0x07, WRITE_SBUS_RECEIVER, 0x00000011);
++	/* wait 100 refclk cycles @ 156.25MHz => 640ns */
++	udelay(1);
++	/* step 3:  remove SerDes reset */
++	sbus_request(dd, ra, 0x07, WRITE_SBUS_RECEIVER, 0x00000010);
++	/* step 4: assert IMEM override */
++	sbus_request(dd, ra, 0x00, WRITE_SBUS_RECEIVER, 0x40000000);
++	/* step 5: download SerDes machine code */
++	for (i = 0; i < fdet->firmware_len; i += 4) {
++		sbus_request(dd, ra, 0x0a, WRITE_SBUS_RECEIVER,
++					*(u32 *)&fdet->firmware_ptr[i]);
++	}
++	/* step 6: IMEM override off */
++	sbus_request(dd, ra, 0x00, WRITE_SBUS_RECEIVER, 0x00000000);
++	/* step 7: turn ECC on */
++	sbus_request(dd, ra, 0x0b, WRITE_SBUS_RECEIVER, 0x000c0000);
++
++	/* steps 8-11: run the RSA engine */
++	err = run_rsa(dd, "fabric serdes", fdet->signature);
++	if (err)
++		return err;
++
++	/* step 12: turn SPICO enable on */
++	sbus_request(dd, ra, 0x07, WRITE_SBUS_RECEIVER, 0x00000002);
++	/* step 13: enable core hardware interrupts */
++	sbus_request(dd, ra, 0x08, WRITE_SBUS_RECEIVER, 0x00000000);
++
++	return 0;
 +}
 +
-+/*
-+ * Allocate our primary per-unit data structure.  Must be done via verbs
-+ * allocator, because the verbs cleanup process both does cleanup and
-+ * free of the data structure.
-+ * "extra" is for chip-specific data.
-+ *
-+ * Use the idr mechanism to get a unit number for this unit.
-+ */
-+struct hfi1_devdata *hfi1_alloc_devdata(struct pci_dev *pdev, size_t extra)
++static int load_sbus_firmware(struct hfi1_devdata *dd,
++			      struct firmware_details *fdet)
 +{
-+	unsigned long flags;
-+	struct hfi1_devdata *dd;
-+	int ret;
++	int i, err;
++	const u8 ra = SBUS_MASTER_BROADCAST; /* receiver address */
 +
-+	dd = (struct hfi1_devdata *)ib_alloc_device(sizeof(*dd) + extra);
-+	if (!dd)
-+		return ERR_PTR(-ENOMEM);
-+	/* extra is * number of ports */
-+	dd->num_pports = extra / sizeof(struct hfi1_pportdata);
-+	dd->pport = (struct hfi1_pportdata *)(dd + 1);
++	dd_dev_info(dd, "Downloading SBus firmware\n");
 +
-+	INIT_LIST_HEAD(&dd->list);
-+	dd->node = dev_to_node(&pdev->dev);
-+	if (dd->node < 0)
-+		dd->node = 0;
-+	idr_preload(GFP_KERNEL);
-+	spin_lock_irqsave(&hfi1_devs_lock, flags);
-+
-+	ret = idr_alloc(&hfi1_unit_table, dd, 0, 0, GFP_NOWAIT);
-+	if (ret >= 0) {
-+		dd->unit = ret;
-+		list_add(&dd->list, &hfi1_dev_list);
++	/* step 1: load security variables */
++	load_security_variables(dd, fdet);
++	/* step 2: place SPICO into reset and enable off */
++	sbus_request(dd, ra, 0x01, WRITE_SBUS_RECEIVER, 0x000000c0);
++	/* step 3: remove reset, enable off, IMEM_CNTRL_EN on */
++	sbus_request(dd, ra, 0x01, WRITE_SBUS_RECEIVER, 0x00000240);
++	/* step 4: set starting IMEM address for burst download */
++	sbus_request(dd, ra, 0x03, WRITE_SBUS_RECEIVER, 0x80000000);
++	/* step 5: download the SBus Master machine code */
++	for (i = 0; i < fdet->firmware_len; i += 4) {
++		sbus_request(dd, ra, 0x14, WRITE_SBUS_RECEIVER,
++					*(u32 *)&fdet->firmware_ptr[i]);
 +	}
++	/* step 6: set IMEM_CNTL_EN off */
++	sbus_request(dd, ra, 0x01, WRITE_SBUS_RECEIVER, 0x00000040);
++	/* step 7: turn ECC on */
++	sbus_request(dd, ra, 0x16, WRITE_SBUS_RECEIVER, 0x000c0000);
 +
-+	spin_unlock_irqrestore(&hfi1_devs_lock, flags);
-+	idr_preload_end();
++	/* steps 8-11: run the RSA engine */
++	err = run_rsa(dd, "SBus", fdet->signature);
++	if (err)
++		return err;
 +
-+	if (ret < 0) {
-+		hfi1_early_err(&pdev->dev,
-+			       "Could not allocate unit ID: error %d\n", -ret);
-+		goto bail;
-+	}
-+	/*
-+	 * Initialize all locks for the device. This needs to be as early as
-+	 * possible so locks are usable.
-+	 */
-+	spin_lock_init(&dd->sc_lock);
-+	spin_lock_init(&dd->sendctrl_lock);
-+	spin_lock_init(&dd->rcvctrl_lock);
-+	spin_lock_init(&dd->uctxt_lock);
-+	spin_lock_init(&dd->hfi1_diag_trans_lock);
-+	spin_lock_init(&dd->sc_init_lock);
-+	spin_lock_init(&dd->dc8051_lock);
-+	spin_lock_init(&dd->dc8051_memlock);
-+	mutex_init(&dd->qsfp_i2c_mutex);
-+	seqlock_init(&dd->sc2vl_lock);
-+	spin_lock_init(&dd->sde_map_lock);
-+	init_waitqueue_head(&dd->event_queue);
++	/* step 12: set SPICO_ENABLE on */
++	sbus_request(dd, ra, 0x01, WRITE_SBUS_RECEIVER, 0x00000140);
 +
-+	dd->int_counter = alloc_percpu(u64);
-+	if (!dd->int_counter) {
-+		ret = -ENOMEM;
-+		hfi1_early_err(&pdev->dev,
-+			       "Could not allocate per-cpu int_counter\n");
-+		goto bail;
-+	}
-+
-+	dd->rcv_limit = alloc_percpu(u64);
-+	if (!dd->rcv_limit) {
-+		ret = -ENOMEM;
-+		hfi1_early_err(&pdev->dev,
-+			       "Could not allocate per-cpu rcv_limit\n");
-+		goto bail;
-+	}
-+
-+	if (!hfi1_cpulist_count) {
-+		u32 count = num_online_cpus();
-+
-+		hfi1_cpulist = kzalloc(BITS_TO_LONGS(count) *
-+				      sizeof(long), GFP_KERNEL);
-+		if (hfi1_cpulist)
-+			hfi1_cpulist_count = count;
-+		else
-+			hfi1_early_err(
-+			&pdev->dev,
-+			"Could not alloc cpulist info, cpu affinity might be wrong\n");
-+	}
-+	hfi1_dbg_ibdev_init(&dd->verbs_dev);
-+	return dd;
-+
-+bail:
-+	if (!list_empty(&dd->list))
-+		list_del_init(&dd->list);
-+	ib_dealloc_device(&dd->verbs_dev.ibdev);
-+	return ERR_PTR(ret);
++	return 0;
 +}
 +
-+/*
-+ * Called from freeze mode handlers, and from PCI error
-+ * reporting code.  Should be paranoid about state of
-+ * system and data structures.
-+ */
-+void hfi1_disable_after_error(struct hfi1_devdata *dd)
-+{
-+	if (dd->flags & HFI1_INITTED) {
-+		u32 pidx;
-+
-+		dd->flags &= ~HFI1_INITTED;
-+		if (dd->pport)
-+			for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+				struct hfi1_pportdata *ppd;
-+
-+				ppd = dd->pport + pidx;
-+				if (dd->flags & HFI1_PRESENT)
-+					set_link_state(ppd, HLS_DN_DISABLE);
-+
-+				if (ppd->statusp)
-+					*ppd->statusp &= ~HFI1_STATUS_IB_READY;
-+			}
-+	}
-+
-+	/*
-+	 * Mark as having had an error for driver, and also
-+	 * for /sys and status word mapped to user programs.
-+	 * This marks unit as not usable, until reset.
-+	 */
-+	if (dd->status)
-+		dd->status->dev |= HFI1_STATUS_HWERROR;
-+}
-+
-+static void remove_one(struct pci_dev *);
-+static int init_one(struct pci_dev *, const struct pci_device_id *);
-+
-+#define DRIVER_LOAD_MSG "Intel " DRIVER_NAME " loaded: "
-+#define PFX DRIVER_NAME ": "
-+
-+static const struct pci_device_id hfi1_pci_tbl[] = {
-+	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL0) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL1) },
-+	{ 0, }
-+};
-+
-+MODULE_DEVICE_TABLE(pci, hfi1_pci_tbl);
-+
-+static struct pci_driver hfi1_pci_driver = {
-+	.name = DRIVER_NAME,
-+	.probe = init_one,
-+	.remove = remove_one,
-+	.id_table = hfi1_pci_tbl,
-+	.err_handler = &hfi1_pci_err_handler,
-+};
-+
-+static void __init compute_krcvqs(void)
++static int load_pcie_serdes_firmware(struct hfi1_devdata *dd,
++				     struct firmware_details *fdet)
 +{
 +	int i;
++	const u8 ra = SBUS_MASTER_BROADCAST; /* receiver address */
 +
-+	for (i = 0; i < krcvqsset; i++)
-+		n_krcvqs += krcvqs[i];
++	dd_dev_info(dd, "Downloading PCIe firmware\n");
++
++	/* step 1: load security variables */
++	load_security_variables(dd, fdet);
++	/* step 2: assert single step (halts the SBus Master spico) */
++	sbus_request(dd, ra, 0x05, WRITE_SBUS_RECEIVER, 0x00000001);
++	/* step 3: enable XDMEM access */
++	sbus_request(dd, ra, 0x01, WRITE_SBUS_RECEIVER, 0x00000d40);
++	/* step 4: load firmware into SBus Master XDMEM */
++	/* NOTE: the dmem address, write_en, and wdata are all pre-packed,
++	   we only need to pick up the bytes and write them */
++	for (i = 0; i < fdet->firmware_len; i += 4) {
++		sbus_request(dd, ra, 0x04, WRITE_SBUS_RECEIVER,
++					*(u32 *)&fdet->firmware_ptr[i]);
++	}
++	/* step 5: disable XDMEM access */
++	sbus_request(dd, ra, 0x01, WRITE_SBUS_RECEIVER, 0x00000140);
++	/* step 6: allow SBus Spico to run */
++	sbus_request(dd, ra, 0x05, WRITE_SBUS_RECEIVER, 0x00000000);
++
++	/* steps 7-11: run RSA, if it succeeds, firmware is available to
++	   be swapped */
++	return run_rsa(dd, "PCIe serdes", fdet->signature);
 +}
 +
 +/*
-+ * Do all the generic driver unit- and chip-independent memory
-+ * allocation and initialization.
++ * Set the given broadcast values on the given list of devices.
 + */
-+static int __init hfi1_mod_init(void)
++static void set_serdes_broadcast(struct hfi1_devdata *dd, u8 bg1, u8 bg2,
++				 const u8 *addrs, int count)
++{
++	while (--count >= 0) {
++		/*
++		 * Set BROADCAST_GROUP_1 and BROADCAST_GROUP_2, leave
++		 * defaults for everything else.  Do not read-modify-write,
++		 * per instruction from the manufacturer.
++		 *
++		 * Register 0xfd:
++		 *	bits    what
++		 *	-----	---------------------------------
++		 *	  0	IGNORE_BROADCAST  (default 0)
++		 *	11:4	BROADCAST_GROUP_1 (default 0xff)
++		 *	23:16	BROADCAST_GROUP_2 (default 0xff)
++		 */
++		sbus_request(dd, addrs[count], 0xfd, WRITE_SBUS_RECEIVER,
++				(u32)bg1 << 4 | (u32)bg2 << 16);
++	}
++}
++
++int acquire_hw_mutex(struct hfi1_devdata *dd)
++{
++	unsigned long timeout;
++	int try = 0;
++	u8 mask = 1 << dd->hfi1_id;
++	u8 user;
++
++retry:
++	timeout = msecs_to_jiffies(HM_TIMEOUT) + jiffies;
++	while (1) {
++		write_csr(dd, ASIC_CFG_MUTEX, mask);
++		user = (u8)read_csr(dd, ASIC_CFG_MUTEX);
++		if (user == mask)
++			return 0; /* success */
++		if (time_after(jiffies, timeout))
++			break; /* timed out */
++		msleep(20);
++	}
++
++	/* timed out */
++	dd_dev_err(dd,
++		"Unable to acquire hardware mutex, mutex mask %u, my mask %u (%s)\n",
++		(u32)user, (u32)mask, (try == 0) ? "retrying" : "giving up");
++
++	if (try == 0) {
++		/* break mutex and retry */
++		write_csr(dd, ASIC_CFG_MUTEX, 0);
++		try++;
++		goto retry;
++	}
++
++	return -EBUSY;
++}
++
++void release_hw_mutex(struct hfi1_devdata *dd)
++{
++	write_csr(dd, ASIC_CFG_MUTEX, 0);
++}
++
++void set_sbus_fast_mode(struct hfi1_devdata *dd)
++{
++	write_csr(dd, ASIC_CFG_SBUS_EXECUTE,
++				ASIC_CFG_SBUS_EXECUTE_FAST_MODE_SMASK);
++}
++
++void clear_sbus_fast_mode(struct hfi1_devdata *dd)
++{
++	u64 reg, count = 0;
++
++	reg = read_csr(dd, ASIC_STS_SBUS_COUNTERS);
++	while (SBUS_COUNTER(reg, EXECUTE) !=
++	       SBUS_COUNTER(reg, RCV_DATA_VALID)) {
++		if (count++ >= SBUS_MAX_POLL_COUNT)
++			break;
++		udelay(1);
++		reg = read_csr(dd, ASIC_STS_SBUS_COUNTERS);
++	}
++	write_csr(dd, ASIC_CFG_SBUS_EXECUTE, 0);
++}
++
++int load_firmware(struct hfi1_devdata *dd)
 +{
 +	int ret;
 +
-+	ret = dev_init();
-+	if (ret)
-+		goto bail;
++	if (fw_sbus_load || fw_fabric_serdes_load) {
++		ret = acquire_hw_mutex(dd);
++		if (ret)
++			return ret;
 +
-+	/* validate max MTU before any devices start */
-+	if (!valid_opa_max_mtu(hfi1_max_mtu)) {
-+		pr_err("Invalid max_mtu 0x%x, using 0x%x instead\n",
-+		       hfi1_max_mtu, HFI1_DEFAULT_MAX_MTU);
-+		hfi1_max_mtu = HFI1_DEFAULT_MAX_MTU;
-+	}
-+	/* valid CUs run from 1-128 in powers of 2 */
-+	if (hfi1_cu > 128 || !is_power_of_2(hfi1_cu))
-+		hfi1_cu = 1;
-+	/* valid credit return threshold is 0-100, variable is unsigned */
-+	if (user_credit_return_threshold > 100)
-+		user_credit_return_threshold = 100;
++		set_sbus_fast_mode(dd);
 +
-+	compute_krcvqs();
-+	/* sanitize receive interrupt count, time must wait until after
-+	   the hardware type is known */
-+	if (rcv_intr_count > RCV_HDR_HEAD_COUNTER_MASK)
-+		rcv_intr_count = RCV_HDR_HEAD_COUNTER_MASK;
-+	/* reject invalid combinations */
-+	if (rcv_intr_count == 0 && rcv_intr_timeout == 0) {
-+		pr_err("Invalid mode: both receive interrupt count and available timeout are zero - setting interrupt count to 1\n");
-+		rcv_intr_count = 1;
-+	}
-+	if (rcv_intr_count > 1 && rcv_intr_timeout == 0) {
 +		/*
-+		 * Avoid indefinite packet delivery by requiring a timeout
-+		 * if count is > 1.
++		 * The SBus contains part of the fabric firmware and so must
++		 * also be downloaded.
 +		 */
-+		pr_err("Invalid mode: receive interrupt count greater than 1 and available timeout is zero - setting available timeout to 1\n");
-+		rcv_intr_timeout = 1;
-+	}
-+	if (rcv_intr_dynamic && !(rcv_intr_count > 1 && rcv_intr_timeout > 0)) {
-+		/*
-+		 * The dynamic algorithm expects a non-zero timeout
-+		 * and a count > 1.
-+		 */
-+		pr_err("Invalid mode: dynamic receive interrupt mitigation with invalid count and timeout - turning dynamic off\n");
-+		rcv_intr_dynamic = 0;
-+	}
-+
-+	/* sanitize link CRC options */
-+	link_crc_mask &= SUPPORTED_CRCS;
-+
-+	/*
-+	 * These must be called before the driver is registered with
-+	 * the PCI subsystem.
-+	 */
-+	idr_init(&hfi1_unit_table);
-+
-+	hfi1_dbg_init();
-+	ret = pci_register_driver(&hfi1_pci_driver);
-+	if (ret < 0) {
-+		pr_err("Unable to register driver: error %d\n", -ret);
-+		goto bail_dev;
-+	}
-+	goto bail; /* all OK */
-+
-+bail_dev:
-+	hfi1_dbg_exit();
-+	idr_destroy(&hfi1_unit_table);
-+	dev_cleanup();
-+bail:
-+	return ret;
-+}
-+
-+module_init(hfi1_mod_init);
-+
-+/*
-+ * Do the non-unit driver cleanup, memory free, etc. at unload.
-+ */
-+static void __exit hfi1_mod_cleanup(void)
-+{
-+	pci_unregister_driver(&hfi1_pci_driver);
-+	hfi1_dbg_exit();
-+	hfi1_cpulist_count = 0;
-+	kfree(hfi1_cpulist);
-+
-+	idr_destroy(&hfi1_unit_table);
-+	dispose_firmware();	/* asymmetric with obtain_firmware() */
-+	dev_cleanup();
-+}
-+
-+module_exit(hfi1_mod_cleanup);
-+
-+/* this can only be called after a successful initialization */
-+static void cleanup_device_data(struct hfi1_devdata *dd)
-+{
-+	int ctxt;
-+	int pidx;
-+	struct hfi1_ctxtdata **tmp;
-+	unsigned long flags;
-+
-+	/* users can't do anything more with chip */
-+	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+		struct hfi1_pportdata *ppd = &dd->pport[pidx];
-+		struct cc_state *cc_state;
-+		int i;
-+
-+		if (ppd->statusp)
-+			*ppd->statusp &= ~HFI1_STATUS_CHIP_PRESENT;
-+
-+		for (i = 0; i < OPA_MAX_SLS; i++)
-+			hrtimer_cancel(&ppd->cca_timer[i].hrtimer);
-+
-+		spin_lock(&ppd->cc_state_lock);
-+		cc_state = get_cc_state(ppd);
-+		rcu_assign_pointer(ppd->cc_state, NULL);
-+		spin_unlock(&ppd->cc_state_lock);
-+
-+		if (cc_state)
-+			call_rcu(&cc_state->rcu, cc_state_reclaim);
-+	}
-+
-+	free_credit_return(dd);
-+
-+	/*
-+	 * Free any resources still in use (usually just kernel contexts)
-+	 * at unload; we do for ctxtcnt, because that's what we allocate.
-+	 * We acquire lock to be really paranoid that rcd isn't being
-+	 * accessed from some interrupt-related code (that should not happen,
-+	 * but best to be sure).
-+	 */
-+	spin_lock_irqsave(&dd->uctxt_lock, flags);
-+	tmp = dd->rcd;
-+	dd->rcd = NULL;
-+	spin_unlock_irqrestore(&dd->uctxt_lock, flags);
-+	for (ctxt = 0; tmp && ctxt < dd->num_rcv_contexts; ctxt++) {
-+		struct hfi1_ctxtdata *rcd = tmp[ctxt];
-+
-+		tmp[ctxt] = NULL; /* debugging paranoia */
-+		if (rcd) {
-+			hfi1_clear_tids(rcd);
-+			hfi1_free_ctxtdata(dd, rcd);
++		if (fw_sbus_load) {
++			turn_off_spicos(dd, SPICO_SBUS);
++			ret = load_sbus_firmware(dd, &fw_sbus);
++			if (ret)
++				goto clear;
 +		}
++
++		if (fw_fabric_serdes_load) {
++			set_serdes_broadcast(dd, all_fabric_serdes_broadcast,
++					fabric_serdes_broadcast[dd->hfi1_id],
++					fabric_serdes_addrs[dd->hfi1_id],
++					NUM_FABRIC_SERDES);
++			turn_off_spicos(dd, SPICO_FABRIC);
++			ret = load_fabric_serdes_firmware(dd, &fw_fabric);
++		}
++
++clear:
++		clear_sbus_fast_mode(dd);
++		release_hw_mutex(dd);
++		if (ret)
++			return ret;
 +	}
-+	kfree(tmp);
-+	/* must follow rcv context free - need to remove rcv's hooks */
-+	for (ctxt = 0; ctxt < dd->num_send_contexts; ctxt++)
-+		sc_free(dd->send_contexts[ctxt].sc);
-+	dd->num_send_contexts = 0;
-+	kfree(dd->send_contexts);
-+	dd->send_contexts = NULL;
-+	kfree(dd->boardname);
-+	vfree(dd->events);
-+	vfree(dd->status);
-+	hfi1_cq_exit(dd);
++
++	if (fw_8051_load) {
++		ret = load_8051_firmware(dd, &fw_8051);
++		if (ret)
++			return ret;
++	}
++
++	return 0;
 +}
 +
-+/*
-+ * Clean up on unit shutdown, or error during unit load after
-+ * successful initialization.
-+ */
-+static void postinit_cleanup(struct hfi1_devdata *dd)
++int hfi1_firmware_init(struct hfi1_devdata *dd)
 +{
-+	hfi1_start_cleanup(dd);
++	/* only RTL can use these */
++	if (dd->icode != ICODE_RTL_SILICON) {
++		fw_fabric_serdes_load = 0;
++		fw_pcie_serdes_load = 0;
++		fw_sbus_load = 0;
++	}
 +
-+	hfi1_pcie_ddcleanup(dd);
-+	hfi1_pcie_cleanup(dd->pcidev);
++	/* no 8051 or QSFP on simulator */
++	if (dd->icode == ICODE_FUNCTIONAL_SIMULATOR) {
++		fw_8051_load = 0;
++		platform_config_load = 0;
++	}
 +
-+	cleanup_device_data(dd);
++	if (!fw_8051_name) {
++		if (dd->icode == ICODE_RTL_SILICON)
++			fw_8051_name = DEFAULT_FW_8051_NAME_ASIC;
++		else
++			fw_8051_name = DEFAULT_FW_8051_NAME_FPGA;
++	}
++	if (!fw_fabric_serdes_name)
++		fw_fabric_serdes_name = DEFAULT_FW_FABRIC_NAME;
++	if (!fw_sbus_name)
++		fw_sbus_name = DEFAULT_FW_SBUS_NAME;
++	if (!fw_pcie_serdes_name)
++		fw_pcie_serdes_name = DEFAULT_FW_PCIE_NAME;
++	if (!platform_config_name)
++		platform_config_name = DEFAULT_PLATFORM_CONFIG_NAME;
 +
-+	hfi1_free_devdata(dd);
++	return obtain_firmware(dd);
 +}
 +
-+static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
++int parse_platform_config(struct hfi1_devdata *dd)
 +{
-+	int ret = 0, j, pidx, initfail;
-+	struct hfi1_devdata *dd = NULL;
++	struct platform_config_cache *pcfgcache = &dd->pcfg_cache;
++	u32 *ptr = NULL;
++	u32 header1 = 0, header2 = 0, magic_num = 0, crc = 0;
++	u32 record_idx = 0, table_type = 0, table_length_dwords = 0;
 +
-+	/* First, lock the non-writable module parameters */
-+	HFI1_CAP_LOCK();
-+
-+	/* Validate some global module parameters */
-+	if (rcvhdrcnt <= HFI1_MIN_HDRQ_EGRBUF_CNT) {
-+		hfi1_early_err(&pdev->dev, "Header queue  count too small\n");
-+		ret = -EINVAL;
++	if (platform_config == NULL) {
++		dd_dev_info(dd, "%s: Missing config file\n", __func__);
 +		goto bail;
 +	}
-+	/* use the encoding function as a sanitization check */
-+	if (!encode_rcv_header_entry_size(hfi1_hdrq_entsize)) {
-+		hfi1_early_err(&pdev->dev, "Invalid HdrQ Entry size %u\n",
-+			       hfi1_hdrq_entsize);
-+		goto bail;
-+	}
++	ptr = (u32 *)platform_config->data;
 +
-+	/* The receive eager buffer size must be set before the receive
-+	 * contexts are created.
-+	 *
-+	 * Set the eager buffer size.  Validate that it falls in a range
-+	 * allowed by the hardware - all powers of 2 between the min and
-+	 * max.  The maximum valid MTU is within the eager buffer range
-+	 * so we do not need to cap the max_mtu by an eager buffer size
-+	 * setting.
-+	 */
-+	if (eager_buffer_size) {
-+		if (!is_power_of_2(eager_buffer_size))
-+			eager_buffer_size =
-+				roundup_pow_of_two(eager_buffer_size);
-+		eager_buffer_size =
-+			clamp_val(eager_buffer_size,
-+				  MIN_EAGER_BUFFER * 8,
-+				  MAX_EAGER_BUFFER_TOTAL);
-+		hfi1_early_info(&pdev->dev, "Eager buffer size %u\n",
-+				eager_buffer_size);
-+	} else {
-+		hfi1_early_err(&pdev->dev, "Invalid Eager buffer size of 0\n");
-+		ret = -EINVAL;
++	magic_num = *ptr;
++	ptr++;
++	if (magic_num != PLATFORM_CONFIG_MAGIC_NUM) {
++		dd_dev_info(dd, "%s: Bad config file\n", __func__);
 +		goto bail;
 +	}
 +
-+	/* restrict value of hfi1_rcvarr_split */
-+	hfi1_rcvarr_split = clamp_val(hfi1_rcvarr_split, 0, 100);
++	while (ptr < (u32 *)(platform_config->data + platform_config->size)) {
++		header1 = *ptr;
++		header2 = *(ptr + 1);
++		if (header1 != ~header2) {
++			dd_dev_info(dd, "%s: Failed validation at offset %ld\n",
++				__func__, (ptr - (u32 *)platform_config->data));
++			goto bail;
++		}
 +
-+	ret = hfi1_pcie_init(pdev, ent);
-+	if (ret)
-+		goto bail;
++		record_idx = *ptr &
++			((1 << PLATFORM_CONFIG_HEADER_RECORD_IDX_LEN_BITS) - 1);
 +
-+	/*
-+	 * Do device-specific initialization, function table setup, dd
-+	 * allocation, etc.
-+	 */
-+	switch (ent->device) {
-+	case PCI_DEVICE_ID_INTEL0:
-+	case PCI_DEVICE_ID_INTEL1:
-+		dd = hfi1_init_dd(pdev, ent);
++		table_length_dwords = (*ptr >>
++				PLATFORM_CONFIG_HEADER_TABLE_LENGTH_SHIFT) &
++		      ((1 << PLATFORM_CONFIG_HEADER_TABLE_LENGTH_LEN_BITS) - 1);
++
++		table_type = (*ptr >> PLATFORM_CONFIG_HEADER_TABLE_TYPE_SHIFT) &
++			((1 << PLATFORM_CONFIG_HEADER_TABLE_TYPE_LEN_BITS) - 1);
++
++		/* Done with this set of headers */
++		ptr += 2;
++
++		if (record_idx) {
++			/* data table */
++			switch (table_type) {
++			case PLATFORM_CONFIG_SYSTEM_TABLE:
++				pcfgcache->config_tables[table_type].num_table =
++									1;
++				break;
++			case PLATFORM_CONFIG_PORT_TABLE:
++				pcfgcache->config_tables[table_type].num_table =
++									2;
++				break;
++			case PLATFORM_CONFIG_RX_PRESET_TABLE:
++				/* fall through */
++			case PLATFORM_CONFIG_TX_PRESET_TABLE:
++				/* fall through */
++			case PLATFORM_CONFIG_QSFP_ATTEN_TABLE:
++				/* fall through */
++			case PLATFORM_CONFIG_VARIABLE_SETTINGS_TABLE:
++				pcfgcache->config_tables[table_type].num_table =
++							table_length_dwords;
++				break;
++			default:
++				dd_dev_info(dd,
++				      "%s: Unknown data table %d, offset %ld\n",
++					__func__, table_type,
++				       (ptr - (u32 *)platform_config->data));
++				goto bail; /* We don't trust this file now */
++			}
++			pcfgcache->config_tables[table_type].table = ptr;
++		} else {
++			/* metadata table */
++			switch (table_type) {
++			case PLATFORM_CONFIG_SYSTEM_TABLE:
++				/* fall through */
++			case PLATFORM_CONFIG_PORT_TABLE:
++				/* fall through */
++			case PLATFORM_CONFIG_RX_PRESET_TABLE:
++				/* fall through */
++			case PLATFORM_CONFIG_TX_PRESET_TABLE:
++				/* fall through */
++			case PLATFORM_CONFIG_QSFP_ATTEN_TABLE:
++				/* fall through */
++			case PLATFORM_CONFIG_VARIABLE_SETTINGS_TABLE:
++				break;
++			default:
++				dd_dev_info(dd,
++				  "%s: Unknown metadata table %d, offset %ld\n",
++				  __func__, table_type,
++				  (ptr - (u32 *)platform_config->data));
++				goto bail; /* We don't trust this file now */
++			}
++			pcfgcache->config_tables[table_type].table_metadata =
++									ptr;
++		}
++
++		/* Calculate and check table crc */
++		crc = crc32_le(~(u32)0, (unsigned char const *)ptr,
++				(table_length_dwords * 4));
++		crc ^= ~(u32)0;
++
++		/* Jump the table */
++		ptr += table_length_dwords;
++		if (crc != *ptr) {
++			dd_dev_info(dd, "%s: Failed CRC check at offset %ld\n",
++				__func__, (ptr - (u32 *)platform_config->data));
++			goto bail;
++		}
++		/* Jump the CRC DWORD */
++		ptr++;
++	}
++
++	pcfgcache->cache_valid = 1;
++	return 0;
++bail:
++	memset(pcfgcache, 0, sizeof(struct platform_config_cache));
++	return -EINVAL;
++}
++
++static int get_platform_fw_field_metadata(struct hfi1_devdata *dd, int table,
++		int field, u32 *field_len_bits, u32 *field_start_bits)
++{
++	struct platform_config_cache *pcfgcache = &dd->pcfg_cache;
++	u32 *src_ptr = NULL;
++
++	if (!pcfgcache->cache_valid)
++		return -EINVAL;
++
++	switch (table) {
++	case PLATFORM_CONFIG_SYSTEM_TABLE:
++		/* fall through */
++	case PLATFORM_CONFIG_PORT_TABLE:
++		/* fall through */
++	case PLATFORM_CONFIG_RX_PRESET_TABLE:
++		/* fall through */
++	case PLATFORM_CONFIG_TX_PRESET_TABLE:
++		/* fall through */
++	case PLATFORM_CONFIG_QSFP_ATTEN_TABLE:
++		/* fall through */
++	case PLATFORM_CONFIG_VARIABLE_SETTINGS_TABLE:
++		if (field && field < platform_config_table_limits[table])
++			src_ptr =
++			pcfgcache->config_tables[table].table_metadata + field;
 +		break;
 +	default:
-+		hfi1_early_err(&pdev->dev,
-+			       "Failing on unknown Intel deviceid 0x%x\n",
-+			       ent->device);
-+		ret = -ENODEV;
++		dd_dev_info(dd, "%s: Unknown table\n", __func__);
++		break;
 +	}
 +
-+	if (IS_ERR(dd))
-+		ret = PTR_ERR(dd);
-+	if (ret)
-+		goto clean_bail; /* error already printed */
++	if (!src_ptr)
++		return -EINVAL;
 +
-+	ret = create_workqueues(dd);
-+	if (ret)
-+		goto clean_bail;
++	if (field_start_bits)
++		*field_start_bits = *src_ptr &
++		      ((1 << METADATA_TABLE_FIELD_START_LEN_BITS) - 1);
 +
-+	/* do the generic initialization */
-+	initfail = hfi1_init(dd, 0);
-+
-+	ret = hfi1_register_ib_device(dd);
-+
-+	/*
-+	 * Now ready for use.  this should be cleared whenever we
-+	 * detect a reset, or initiate one.  If earlier failure,
-+	 * we still create devices, so diags, etc. can be used
-+	 * to determine cause of problem.
-+	 */
-+	if (!initfail && !ret)
-+		dd->flags |= HFI1_INITTED;
-+
-+	j = hfi1_device_create(dd);
-+	if (j)
-+		dd_dev_err(dd, "Failed to create /dev devices: %d\n", -j);
-+
-+	if (initfail || ret) {
-+		stop_timers(dd);
-+		flush_workqueue(ib_wq);
-+		for (pidx = 0; pidx < dd->num_pports; ++pidx)
-+			hfi1_quiet_serdes(dd->pport + pidx);
-+		if (!j)
-+			hfi1_device_remove(dd);
-+		if (!ret)
-+			hfi1_unregister_ib_device(dd);
-+		postinit_cleanup(dd);
-+		if (initfail)
-+			ret = initfail;
-+		goto bail;	/* everything already cleaned */
-+	}
-+
-+	sdma_start(dd);
++	if (field_len_bits)
++		*field_len_bits = (*src_ptr >> METADATA_TABLE_FIELD_LEN_SHIFT)
++		       & ((1 << METADATA_TABLE_FIELD_LEN_LEN_BITS) - 1);
 +
 +	return 0;
-+
-+clean_bail:
-+	hfi1_pcie_cleanup(pdev);
-+bail:
-+	return ret;
 +}
 +
-+static void remove_one(struct pci_dev *pdev)
-+{
-+	struct hfi1_devdata *dd = pci_get_drvdata(pdev);
-+
-+	/* unregister from IB core */
-+	hfi1_unregister_ib_device(dd);
-+
-+	/*
-+	 * Disable the IB link, disable interrupts on the device,
-+	 * clear dma engines, etc.
-+	 */
-+	shutdown_device(dd);
-+
-+	stop_timers(dd);
-+
-+	/* wait until all of our (qsfp) queue_work() calls complete */
-+	flush_workqueue(ib_wq);
-+
-+	hfi1_device_remove(dd);
-+
-+	postinit_cleanup(dd);
-+}
-+
-+/**
-+ * hfi1_create_rcvhdrq - create a receive header queue
-+ * @dd: the hfi1_ib device
-+ * @rcd: the context data
++/* This is the central interface to getting data out of the platform config
++ * file. It depends on parse_platform_config() having populated the
++ * platform_config_cache in hfi1_devdata, and checks the cache_valid member to
++ * validate the sanity of the cache.
 + *
-+ * This must be contiguous memory (from an i/o perspective), and must be
-+ * DMA'able (which means for some systems, it will go through an IOMMU,
-+ * or be forced into a low address range).
++ * The non-obvious parameters:
++ * @table_index: Acts as a look up key into which instance of the tables the
++ * relevant field is fetched from.
++ *
++ * This applies to the data tables that have multiple instances. The port table
++ * is an exception to this rule as each HFI only has one port and thus the
++ * relevant table can be distinguished by hfi_id.
++ *
++ * @data: pointer to memory that will be populated with the field requested.
++ * @len: length of memory pointed by @data in bytes.
 + */
-+int hfi1_create_rcvhdrq(struct hfi1_devdata *dd, struct hfi1_ctxtdata *rcd)
++int get_platform_config_field(struct hfi1_devdata *dd,
++			enum platform_config_table_type_encoding table_type,
++			int table_index, int field_index, u32 *data, u32 len)
 +{
-+	unsigned amt;
-+	u64 reg;
++	int ret = 0, wlen = 0, seek = 0;
++	u32 field_len_bits = 0, field_start_bits = 0, *src_ptr = NULL;
++	struct platform_config_cache *pcfgcache = &dd->pcfg_cache;
 +
-+	if (!rcd->rcvhdrq) {
-+		dma_addr_t phys_hdrqtail;
-+		gfp_t gfp_flags;
++	if (data)
++		memset(data, 0, len);
++	else
++		return -EINVAL;
 +
-+		/*
-+		 * rcvhdrqentsize is in DWs, so we have to convert to bytes
-+		 * (* sizeof(u32)).
-+		 */
-+		amt = ALIGN(rcd->rcvhdrq_cnt * rcd->rcvhdrqentsize *
-+			    sizeof(u32), PAGE_SIZE);
++	ret = get_platform_fw_field_metadata(dd, table_type, field_index,
++					&field_len_bits, &field_start_bits);
++	if (ret)
++		return -EINVAL;
 +
-+		gfp_flags = (rcd->ctxt >= dd->first_user_ctxt) ?
-+			GFP_USER : GFP_KERNEL;
-+		rcd->rcvhdrq = dma_zalloc_coherent(
-+			&dd->pcidev->dev, amt, &rcd->rcvhdrq_phys,
-+			gfp_flags | __GFP_COMP);
++	/* Convert length to bits */
++	len *= 8;
 +
-+		if (!rcd->rcvhdrq) {
-+			dd_dev_err(dd,
-+				"attempt to allocate %d bytes for ctxt %u rcvhdrq failed\n",
-+				amt, rcd->ctxt);
-+			goto bail;
++	/* Our metadata function checked cache_valid and field_index for us */
++	switch (table_type) {
++	case PLATFORM_CONFIG_SYSTEM_TABLE:
++		src_ptr = pcfgcache->config_tables[table_type].table;
++
++		if (field_index != SYSTEM_TABLE_QSFP_POWER_CLASS_MAX) {
++			if (len < field_len_bits)
++				return -EINVAL;
++
++			seek = field_start_bits/8;
++			wlen = field_len_bits/8;
++
++			src_ptr = (u32 *)((u8 *)src_ptr + seek);
++
++			/* We expect the field to be byte aligned and whole byte
++			 * lengths if we are here */
++			memcpy(data, src_ptr, wlen);
++			return 0;
 +		}
++		break;
++	case PLATFORM_CONFIG_PORT_TABLE:
++		/* Port table is 4 DWORDS in META_VERSION 0 */
++		src_ptr = dd->hfi1_id ?
++			pcfgcache->config_tables[table_type].table + 4 :
++			pcfgcache->config_tables[table_type].table;
++		break;
++	case PLATFORM_CONFIG_RX_PRESET_TABLE:
++		/* fall through */
++	case PLATFORM_CONFIG_TX_PRESET_TABLE:
++		/* fall through */
++	case PLATFORM_CONFIG_QSFP_ATTEN_TABLE:
++		/* fall through */
++	case PLATFORM_CONFIG_VARIABLE_SETTINGS_TABLE:
++		src_ptr = pcfgcache->config_tables[table_type].table;
 +
-+		/* Event mask is per device now and is in hfi1_devdata */
-+		/*if (rcd->ctxt >= dd->first_user_ctxt) {
-+			rcd->user_event_mask = vmalloc_user(PAGE_SIZE);
-+			if (!rcd->user_event_mask)
-+				goto bail_free_hdrq;
-+				}*/
-+
-+		if (HFI1_CAP_KGET_MASK(rcd->flags, DMA_RTAIL)) {
-+			rcd->rcvhdrtail_kvaddr = dma_zalloc_coherent(
-+				&dd->pcidev->dev, PAGE_SIZE, &phys_hdrqtail,
-+				gfp_flags);
-+			if (!rcd->rcvhdrtail_kvaddr)
-+				goto bail_free;
-+			rcd->rcvhdrqtailaddr_phys = phys_hdrqtail;
-+		}
-+
-+		rcd->rcvhdrq_size = amt;
++		if (table_index <
++			pcfgcache->config_tables[table_type].num_table)
++			src_ptr += table_index;
++		else
++			src_ptr = NULL;
++		break;
++	default:
++		dd_dev_info(dd, "%s: Unknown table\n", __func__);
++		break;
 +	}
-+	/*
-+	 * These values are per-context:
-+	 *	RcvHdrCnt
-+	 *	RcvHdrEntSize
-+	 *	RcvHdrSize
-+	 */
-+	reg = ((u64)(rcd->rcvhdrq_cnt >> HDRQ_SIZE_SHIFT)
-+			& RCV_HDR_CNT_CNT_MASK)
-+		<< RCV_HDR_CNT_CNT_SHIFT;
-+	write_kctxt_csr(dd, rcd->ctxt, RCV_HDR_CNT, reg);
-+	reg = (encode_rcv_header_entry_size(rcd->rcvhdrqentsize)
-+			& RCV_HDR_ENT_SIZE_ENT_SIZE_MASK)
-+		<< RCV_HDR_ENT_SIZE_ENT_SIZE_SHIFT;
-+	write_kctxt_csr(dd, rcd->ctxt, RCV_HDR_ENT_SIZE, reg);
-+	reg = (dd->rcvhdrsize & RCV_HDR_SIZE_HDR_SIZE_MASK)
-+		<< RCV_HDR_SIZE_HDR_SIZE_SHIFT;
-+	write_kctxt_csr(dd, rcd->ctxt, RCV_HDR_SIZE, reg);
-+	return 0;
 +
-+bail_free:
-+	dd_dev_err(dd,
-+		"attempt to allocate 1 page for ctxt %u rcvhdrqtailaddr failed\n",
-+		rcd->ctxt);
-+	vfree(rcd->user_event_mask);
-+	rcd->user_event_mask = NULL;
-+	dma_free_coherent(&dd->pcidev->dev, amt, rcd->rcvhdrq,
-+			  rcd->rcvhdrq_phys);
-+	rcd->rcvhdrq = NULL;
-+bail:
-+	return -ENOMEM;
++	if (!src_ptr || len < field_len_bits)
++		return -EINVAL;
++
++	src_ptr += (field_start_bits/32);
++	*data = (*src_ptr >> (field_start_bits % 32)) &
++			((1 << field_len_bits) - 1);
++
++	return 0;
 +}
 +
-+/**
-+ * allocate eager buffers, both kernel and user contexts.
-+ * @rcd: the context we are setting up.
++/*
++ * Download the firmware needed for the Gen3 PCIe SerDes.  An update
++ * to the SBus firmware is needed before updating the PCIe firmware.
 + *
-+ * Allocate the eager TID buffers and program them into hip.
-+ * They are no longer completely contiguous, we do multiple allocation
-+ * calls.  Otherwise we get the OOM code involved, by asking for too
-+ * much per call, with disastrous results on some kernels.
++ * Note: caller must be holding the HW mutex.
 + */
-+int hfi1_setup_eagerbufs(struct hfi1_ctxtdata *rcd)
++int load_pcie_firmware(struct hfi1_devdata *dd)
 +{
-+	struct hfi1_devdata *dd = rcd->dd;
-+	u32 max_entries, egrtop, alloced_bytes = 0, idx = 0;
-+	gfp_t gfp_flags;
-+	u16 order;
 +	int ret = 0;
-+	u16 round_mtu = roundup_pow_of_two(hfi1_max_mtu);
 +
-+	/*
-+	 * GFP_USER, but without GFP_FS, so buffer cache can be
-+	 * coalesced (we hope); otherwise, even at order 4,
-+	 * heavy filesystem activity makes these fail, and we can
-+	 * use compound pages.
-+	 */
-+	gfp_flags = __GFP_WAIT | __GFP_IO | __GFP_COMP;
++	/* both firmware loads below use the SBus */
++	set_sbus_fast_mode(dd);
 +
-+	/*
-+	 * The minimum size of the eager buffers is a groups of MTU-sized
-+	 * buffers.
-+	 * The global eager_buffer_size parameter is checked against the
-+	 * theoretical lower limit of the value. Here, we check against the
-+	 * MTU.
-+	 */
-+	if (rcd->egrbufs.size < (round_mtu * dd->rcv_entries.group_size))
-+		rcd->egrbufs.size = round_mtu * dd->rcv_entries.group_size;
-+	/*
-+	 * If using one-pkt-per-egr-buffer, lower the eager buffer
-+	 * size to the max MTU (page-aligned).
-+	 */
-+	if (!HFI1_CAP_KGET_MASK(rcd->flags, MULTI_PKT_EGR))
-+		rcd->egrbufs.rcvtid_size = round_mtu;
-+
-+	/*
-+	 * Eager buffers sizes of 1MB or less require smaller TID sizes
-+	 * to satisfy the "multiple of 8 RcvArray entries" requirement.
-+	 */
-+	if (rcd->egrbufs.size <= (1 << 20))
-+		rcd->egrbufs.rcvtid_size = max((unsigned long)round_mtu,
-+			rounddown_pow_of_two(rcd->egrbufs.size / 8));
-+
-+	while (alloced_bytes < rcd->egrbufs.size &&
-+	       rcd->egrbufs.alloced < rcd->egrbufs.count) {
-+		rcd->egrbufs.buffers[idx].addr =
-+			dma_zalloc_coherent(&dd->pcidev->dev,
-+					    rcd->egrbufs.rcvtid_size,
-+					    &rcd->egrbufs.buffers[idx].phys,
-+					    gfp_flags);
-+		if (rcd->egrbufs.buffers[idx].addr) {
-+			rcd->egrbufs.buffers[idx].len =
-+				rcd->egrbufs.rcvtid_size;
-+			rcd->egrbufs.rcvtids[rcd->egrbufs.alloced].addr =
-+				rcd->egrbufs.buffers[idx].addr;
-+			rcd->egrbufs.rcvtids[rcd->egrbufs.alloced].phys =
-+				rcd->egrbufs.buffers[idx].phys;
-+			rcd->egrbufs.alloced++;
-+			alloced_bytes += rcd->egrbufs.rcvtid_size;
-+			idx++;
-+		} else {
-+			u32 new_size, i, j;
-+			u64 offset = 0;
-+
-+			/*
-+			 * Fail the eager buffer allocation if:
-+			 *   - we are already using the lowest acceptable size
-+			 *   - we are using one-pkt-per-egr-buffer (this implies
-+			 *     that we are accepting only one size)
-+			 */
-+			if (rcd->egrbufs.rcvtid_size == round_mtu ||
-+			    !HFI1_CAP_KGET_MASK(rcd->flags, MULTI_PKT_EGR)) {
-+				dd_dev_err(dd, "ctxt%u: Failed to allocate eager buffers\n",
-+					rcd->ctxt);
-+				goto bail_rcvegrbuf_phys;
-+			}
-+
-+			new_size = rcd->egrbufs.rcvtid_size / 2;
-+
-+			/*
-+			 * If the first attempt to allocate memory failed, don't
-+			 * fail everything but continue with the next lower
-+			 * size.
-+			 */
-+			if (idx == 0) {
-+				rcd->egrbufs.rcvtid_size = new_size;
-+				continue;
-+			}
-+
-+			/*
-+			 * Re-partition already allocated buffers to a smaller
-+			 * size.
-+			 */
-+			rcd->egrbufs.alloced = 0;
-+			for (i = 0, j = 0, offset = 0; j < idx; i++) {
-+				if (i >= rcd->egrbufs.count)
-+					break;
-+				rcd->egrbufs.rcvtids[i].phys =
-+					rcd->egrbufs.buffers[j].phys + offset;
-+				rcd->egrbufs.rcvtids[i].addr =
-+					rcd->egrbufs.buffers[j].addr + offset;
-+				rcd->egrbufs.alloced++;
-+				if ((rcd->egrbufs.buffers[j].phys + offset +
-+				     new_size) ==
-+				    (rcd->egrbufs.buffers[j].phys +
-+				     rcd->egrbufs.buffers[j].len)) {
-+					j++;
-+					offset = 0;
-+				} else
-+					offset += new_size;
-+			}
-+			rcd->egrbufs.rcvtid_size = new_size;
-+		}
-+	}
-+	rcd->egrbufs.numbufs = idx;
-+	rcd->egrbufs.size = alloced_bytes;
-+
-+	dd_dev_info(dd, "ctxt%u: Alloced %u rcv tid entries @ %uKB, total %zuKB\n",
-+		rcd->ctxt, rcd->egrbufs.alloced, rcd->egrbufs.rcvtid_size,
-+		rcd->egrbufs.size);
-+
-+	/*
-+	 * Set the contexts rcv array head update threshold to the closest
-+	 * power of 2 (so we can use a mask instead of modulo) below half
-+	 * the allocated entries.
-+	 */
-+	rcd->egrbufs.threshold =
-+		rounddown_pow_of_two(rcd->egrbufs.alloced / 2);
-+	/*
-+	 * Compute the expected RcvArray entry base. This is done after
-+	 * allocating the eager buffers in order to maximize the
-+	 * expected RcvArray entries for the context.
-+	 */
-+	max_entries = rcd->rcv_array_groups * dd->rcv_entries.group_size;
-+	egrtop = roundup(rcd->egrbufs.alloced, dd->rcv_entries.group_size);
-+	rcd->expected_count = max_entries - egrtop;
-+	if (rcd->expected_count > MAX_TID_PAIR_ENTRIES * 2)
-+		rcd->expected_count = MAX_TID_PAIR_ENTRIES * 2;
-+
-+	rcd->expected_base = rcd->eager_base + egrtop;
-+	dd_dev_info(dd, "ctxt%u: eager:%u, exp:%u, egrbase:%u, expbase:%u\n",
-+		    rcd->ctxt, rcd->egrbufs.alloced, rcd->expected_count,
-+		    rcd->eager_base, rcd->expected_base);
-+
-+	if (!hfi1_rcvbuf_validate(rcd->egrbufs.rcvtid_size, PT_EAGER, &order)) {
-+		dd_dev_err(dd, "ctxt%u: current Eager buffer size is invalid %u\n",
-+			   rcd->ctxt, rcd->egrbufs.rcvtid_size);
-+		ret = -EINVAL;
-+		goto bail;
++	if (fw_sbus_load) {
++		turn_off_spicos(dd, SPICO_SBUS);
++		ret = load_sbus_firmware(dd, &fw_sbus);
++		if (ret)
++			goto done;
 +	}
 +
-+	for (idx = 0; idx < rcd->egrbufs.alloced; idx++) {
-+		hfi1_put_tid(dd, rcd->eager_base + idx, PT_EAGER,
-+			      rcd->egrbufs.rcvtids[idx].phys, order);
-+		cond_resched();
++	if (fw_pcie_serdes_load) {
++		dd_dev_info(dd, "Setting PCIe SerDes broadcast\n");
++		set_serdes_broadcast(dd, all_pcie_serdes_broadcast,
++					pcie_serdes_broadcast[dd->hfi1_id],
++					pcie_serdes_addrs[dd->hfi1_id],
++					NUM_PCIE_SERDES);
++		ret = load_pcie_serdes_firmware(dd, &fw_pcie);
++		if (ret)
++			goto done;
 +	}
-+	goto bail;
 +
-+bail_rcvegrbuf_phys:
-+	for (idx = 0; idx < rcd->egrbufs.alloced &&
-+		     rcd->egrbufs.buffers[idx].addr;
-+	     idx++) {
-+		dma_free_coherent(&dd->pcidev->dev,
-+				  rcd->egrbufs.buffers[idx].len,
-+				  rcd->egrbufs.buffers[idx].addr,
-+				  rcd->egrbufs.buffers[idx].phys);
-+		rcd->egrbufs.buffers[idx].addr = NULL;
-+		rcd->egrbufs.buffers[idx].phys = 0;
-+		rcd->egrbufs.buffers[idx].len = 0;
-+	}
-+bail:
++done:
++	clear_sbus_fast_mode(dd);
++
 +	return ret;
++}
++
++/*
++ * Read the GUID from the hardware, store it in dd.
++ */
++void read_guid(struct hfi1_devdata *dd)
++{
++	dd->base_guid = read_csr(dd, DC_DC8051_CFG_LOCAL_GUID);
++	dd_dev_info(dd, "GUID %llx",
++		(unsigned long long)dd->base_guid);
 +}
 
 --
