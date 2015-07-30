@@ -1,83 +1,116 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 0/4] few mlx4 IB driver fixes for 4.3
-Date: Thu, 30 Jul 2015 11:18:45 -0400
-Message-ID: <55BA4055.6060403@redhat.com>
-References: <1438266864-3584-1-git-send-email-ogerlitz@mellanox.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/ipoib: CSUM support in connected mode
+Date: Thu, 30 Jul 2015 18:20:50 +0300
+Message-ID: <20150730152049.GA29102@yuval-lab>
+References: <1438256764-9077-1-git-send-email-yuval.shaia@oracle.com>
+ <1438264693.9344.19.camel@opteya.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="PQ6KKPcLb8IQeiOOjaKGee5s5P864Aa8l"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1438266864-3584-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1438264693.9344.19.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---PQ6KKPcLb8IQeiOOjaKGee5s5P864Aa8l
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
-
-On 07/30/2015 10:34 AM, Or Gerlitz wrote:
-> Hi Doug,
+On Thu, Jul 30, 2015 at 03:58:13PM +0200, Yann Droneaud wrote:
+> Hi,
 >=20
-> Some fixes included, none of them accounts for regression introduced in=
- 4.2-rc1,
-> so all can go to 4.3 -- genetated them again 4.2-rc4
+> Le jeudi 30 juillet 2015 =E0 04:46 -0700, Yuval Shaia a =E9crit :
+> > This enhancement suggest the usage of IB CRC instead of CSUM in IPo=
+IB=20
+> > CM. IPoIB CM uses RC (Reliable Connection) which guarantees the=20
+> > corruption free delivery of the packet.
+> >=20
+> > InfiniBand uses 32b CRC which provides stronger data integrity=20
+> > protection compare to 16b IP Checksum.
 >=20
-> Or.
+> InfiniBand 32b CRC <=3D> Ethernet 32b CRC, it's link layer, layer 2.
 >=20
-> Jack Morgenstein (3):
->   IB/mlx4: Fix potential deadlock when sending mad to wire
->   IB/mlx4: Deprecate mcast group warning message to debug because of fl=
-ooding
->   IB/mlx4: In sysfs under RoCE, do not allow changing the paravirtualiz=
-ation mapping for pkeys
+> IPv4 checksum is at another level, it's internet layer, layer 3.
 >=20
-> Noa Osherovich (1):
->   IB/mlx4: Use correct SL on AH query under RoCE
+> >  So, there is no added value that IP/TCP Checksum provides in the I=
+B=20
+> > world.
+> >=20
 >=20
->  drivers/infiniband/hw/mlx4/ah.c    |  6 +++++-
->  drivers/infiniband/hw/mlx4/mcg.c   | 15 ++++++++++-----
->  drivers/infiniband/hw/mlx4/sysfs.c |  5 ++++-
->  3 files changed, 19 insertions(+), 7 deletions(-)
+> Sure, IPv4 checksum is a thing of the past: checksum was dropped from
+> IP header in IPv6: it assumes the lower layer, such as Ethernet,
+> provides the required integrety check.
 >=20
-
-These all looked fine to me.  Picked up for 4.3.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---PQ6KKPcLb8IQeiOOjaKGee5s5P864Aa8l
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJVukBVAAoJELgmozMOVy/dx0kQAJXSigBXPZdUN6xIGcM+kF0P
-0pbvRLCzchfo36Ws8Gdss1S/vD7iS0JcIpOCXttf2H2x8hYTHZ70LOMIO9Gphb9/
-c9HKvULS6+xAZyp6y19ahkKNHhTMnHYi9LBlR1zJ7ce5nCFowWbqgyjnVJo4Vv2U
-Pdfm0xBUHe2eyIiuQbiePW5DMyd6qKdZwRTAuwSYP8cz5HeIrBGkxqdFrIEgpU7R
-+Mxf9r1bb9Wlht++nrVWjkbRuTwmAPjfot5RMSzUSNyC+QpHGs53c17VwNA24m5k
-2SeB+1WeIpozqMDqO5QtdyY1QQBgf2ofJahq5UsIqr9KwE12EGmizKhFBG6uRP4j
-z85E+Gvdo7o6kFmm2ntZm4HXOhZ9x7/xCRQlvAlDuDoh2Mt2tAGj3v5JprEZ/5eY
-rsX1xiR3eSZdcKGPAyv2A9gKDDZEDrS20ApaqPlNXO9e73MM9xSWKRrnWjl+Jkva
-574ep1U7oVlXoC48JJxTLUwiy7Ig2OHtPuCfzeZFFnne189iIj55aJ5+KciY4apM
-+uNf0frlptEs5Gk7Y/r0ofhMvyPdTVus7tAPPAJyRWp4LtciomHHKY6U0ceW/Ebj
-mvx55UAqVwGew11/o8ea0gzdExlDlqLgSYiPv2/B94AT146Lrdklnusj4fdNaQWM
-KK7fYakr8w8rfQwG9+mQ
-=Inc7
------END PGP SIGNATURE-----
-
---PQ6KKPcLb8IQeiOOjaKGee5s5P864Aa8l--
+> I think not checking the IPv4 checksum should be a choice, carefully
+> thought, for inside a fabric, as I understand your proposal, packet
+> with invalid checksum will be allowed to go in/out of the fabric.
+Yes, this is why it is controlled by module parameter.
+Maybe a better choice would be to default it to 0.
+>=20
+> It sound like it's a departure from the behavior one can expect from =
+an
+> IPv4 network stack.
+It should be considered as network-fine-tuning parameter so if admin kn=
+ows his fabric he can use it.
+>=20
+> > The proposal is to tell network stack that IPoIB-CM supports IP=20
+> > Checksum offload. This enables the kernel to save the time of=20
+> > checksum calculation of IPoIB CM packets. Network sends the IP pack=
+et=20
+> > without adding the IP Checksum to the header. On the receive side,=20
+> > IPoIB driver again tells the network stack that IP Checksum is good=
+=20
+> > for the incoming packets and network stack avoids the IP Checksum=20
+> > calculations.
+> >=20
+> > During connection establishment the driver determine if peer suppor=
+ts
+> > IB CRC as checksum. This is done so driver will be able to calculat=
+e
+> > checksum before transmiting the packet in case the peer does not=20
+> > support this feature.
+> >=20
+>=20
+> Two questions:
+Three :)
+>=20
+> - What will see tool such as wireshark/tcpdump when sniffing checksum
+Zero or what ever the networking layer puts in csum when H/W supports C=
+SUM-offloading.
+Please note that with this patch driver still supports backward computa=
+bility (per connection).
+This means that for connections with peer which does not support this f=
+unctionality you expect to see this value filled with checksum.
+> -less IPv4 packets sent/received on IPoIB interface ?
+No
+>=20
+> - What might happen if such checksum-less IPv4 packet is later routed=
+ to a different IPv4 network ?
+As noted above, for network that is opened to outside world this featur=
+e should be blocked.
+In general i would say that if a layer 2 terminator device (e.x router)=
+ exist in the fabric - this feature can't be used and must be blocked.
+With this limitation it still worth use it because of the reason of inc=
+reasing throughput
+>=20
+> > With this enhancement throughput is increased by 60%.
+> >=20
+>=20
+> > Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>=20
+> Regards.
+>=20
+> --=20
+> Yann Droneaud
+> OPTEYA
+>=20
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
