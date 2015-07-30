@@ -1,53 +1,73 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v4 00/50] Add OPA gen1 driver
-Date: Thu, 30 Jul 2015 17:52:38 -0400
-Message-ID: <20150730215237.GA16736@phlsvsds.ph.intel.com>
-References: <20150730191631.25256.95511.stgit@phlsvslse11.ph.intel.com> <alpine.DEB.2.11.1507301535340.6551@east.gentwo.org>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v4 17/50] IB/hfi1: add PSM driver control/data path
+Date: Thu, 30 Jul 2015 22:00:18 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC2577809D@fmsmsx120.amr.corp.intel.com>
+References: <20150730191631.25256.95511.stgit@phlsvslse11.ph.intel.com>
+ <20150730191859.25256.28987.stgit@phlsvslse11.ph.intel.com>
+ <20150730194041.GA28754@obsidianresearch.com>
+ <32E1700B9017364D9B60AED9960492BC25777DA0@fmsmsx120.amr.corp.intel.com>
+ <55BA9A38.2030401@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.11.1507301535340.6551-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
+In-Reply-To: <55BA9A38.2030401-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 30, 2015 at 03:37:24PM -0500, Christoph Lameter wrote:
-> On Thu, 30 Jul 2015, Mike Marciniszyn wrote:
->=20
-> > As a verbs driver the device functions as an InfiniBand device and
-> > supports the standard features of the IBTA specification v1.3 with
-> > the exceptions noted below.
->=20
-> Hmmm... So OPA networks and IB networks (Truescale?) will be able to
-> interoperate?
+> On 07/30/2015 04:01 PM, Marciniszyn, Mike wrote:
+> >>
+> >> I thought you were getting rid of this?
+> >>
+> >> Jason
+> >
+> > Doug wanted the v4 submitted as we currently have it.
+> 
+> To be accurate, I said "If you want a chance at making 4.3, I need a v4".  I
+> didn't comment on whether or not any specific review comments were
+> addressed.
+> 
+> > Doug?
+> 
+> I have no problem with this code.  That Al finds the user space ABI for this
+> driver to be bizarre is neither here nor there to me.  Sure, this file does not
+> exhibit normal file API behavior.  Who cares?  It's not a normal file in *any*
+> sense of the word.  For example, the normal write routine will never, ever
+> accept just plain data.  It's always in the form of a command.  If you don't
+> have the right magic decoder ring, you will get nothing but errors when
+> trying to do something with this file.
+>  Much like /dev/infiniband/uverbs? files, it is a command interface, not a
+> raw data interface.  I actually think the fact that you guys use write for a
+> single command and writev/write_iter for a command queue is an elegant
+> solution to your particular needs.  The only reason Al threw a hissy over it is
+> because it tripped him up when he went to do the conversion from writev to
+> write_iter.  That's understandable.  So, some clear documentation so
+> someone like Al doesn't have to go reading through sources and try to figure
+> out what you are doing would be the generally nice thing to do for other
+> kernel generalists that might come poking around this way.  Or, another
+> option would be to drop the write function altogether and just make all
+> commands come through writev/write_iter and if you only have one
+> command, you only send one element.  Regardless, those things can be
+> cleaned up in follow on patches, please do not resubmit this set for that.
+> 
 
-No, you can't plug an IB device into an OPA switch or a HFI into an IB =
-switch.
+Jason,
 
-The comment "As a verbs driver" means that we present the standard verb=
-s
-software interface to the core kernel and userspace.  This was to aid i=
-n review
-of the patch series and how it interacts with the rest of the infiniban=
-d
-subtree.
+I did ask you in http://marc.info/?l=linux-rdma&m=143707462806767&w=2 if you thought ioctl was ok.
 
-"Intel=E2=80=99s host software strategy is to utilize the existing Open=
-=46abrics Alliance
-interfaces, thus ensuring that today=E2=80=99s application software wri=
-tten to those
-interfaces run with Intel OPA with no code changes required."
+Hearing nothing, we left the interface as it was.
 
-	-- https://www-ssl.intel.com/content/www/us/en/high-performance-comput=
-ing-fabrics/omni-path-fabric-software-components.html
+I suspect (I lack the early history) that the ioctl BKL might have forced both uverbs and PSM to go this route.
 
-Ira
+Doug,
 
+Where would be the appropriate location to document?  In the source itself?  Somewhere else?
+
+Mike
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
