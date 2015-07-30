@@ -1,135 +1,102 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH v2 01/12] IB/core: Guarantee that a local_dma_lkey is available
-Date: Thu, 30 Jul 2015 17:22:15 -0600
-Message-ID: <1438298547-21404-2-git-send-email-jgunthorpe@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: [PATCH v2 06/12] IB/iser: Use pd->local_dma_lkey
+Date: Thu, 30 Jul 2015 17:22:20 -0600
+Message-ID: <1438298547-21404-7-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1438298547-21404-1-git-send-email-jgunthorpe@obsidianresearch.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1438298547-21404-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Chien Yen <chien.yen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Dominique Martinet <dominique.martinet-KCE40YydGKI@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eric Van Hensbergen <ericvh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ido Shamay <idos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Latchesar Ionkov <lucho-OnYtXJJ0/fesTnJN9+BGXg@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ron Minnich <rminnich-4OHPYypu0djtX7QSmKvirg@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Simon Derr <simon.derr-6ktuUTfB/bM@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, v9fs-developer-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1438298547-21404-1-git-send-email-jgunthorpe@obsidianresearch.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
+Cc: Amir Vadai <amirv@mellanox.com>, Bart Van Assche <bart.vanassche@sandisk.com>, Chien Yen <chien.yen@oracle.com>, Christoph Hellwig <hch@infradead.org>, Dominique Martinet <dominique.martinet@cea.fr>, Eli Cohen <eli@mellanox.com>, Eric Van Hensbergen <ericvh@gmail.com>, Ido Shamay <idos@mellanox.com>, Latchesar Ionkov <lucho@ionkov.net>, Or Gerlitz <ogerlitz@mellanox.com>, Roi Dayan <roid@mellanox.com>, Ron Minnich <rminnich@sandia.gov>, Sagi Grimberg <sagig@mellanox.com>, Simon Derr <simon.derr@bull.net>, Tom Tucker <tom@opengridcomputing.com>, rds-devel@oss.oracle.com, target-devel@vger.kernel.org, v9fs-developer@lists.sourceforge.net
 List-Id: linux-rdma@vger.kernel.org
 
-Every single ULP requires a local_dma_lkey to do anything with
-a QP, so let us ensure one exists for every PD created.
+Replace all leys with  pd->local_dma_lkey. This driver does not support
+iWarp, so this is safe.
 
-If the driver can supply a global local_dma_lkey then use that, otherwise
-ask the driver to create a local use all physical memory MR associated
-with the new PD.
+The insecure use of ib_get_dma_mr is thus isolated to an rkey, and this
+looks trivially fixed by forcing the use of registration in a future
+patch.
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Reviewed-by: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Acked-by: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Reviewed-by: Sagi Grimberg <sagig@mellanox.com>
 ---
- drivers/infiniband/core/verbs.c | 47 ++++++++++++++++++++++++++++++++++++-----
- include/rdma/ib_verbs.h         |  9 ++------
- 2 files changed, 44 insertions(+), 12 deletions(-)
+ drivers/infiniband/ulp/iser/iscsi_iser.c     | 2 +-
+ drivers/infiniband/ulp/iser/iser_initiator.c | 8 ++++----
+ drivers/infiniband/ulp/iser/iser_memory.c    | 2 +-
+ drivers/infiniband/ulp/iser/iser_verbs.c     | 2 +-
+ 4 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index bac3fb406a74..bb561c8e51ad 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -213,24 +213,61 @@ EXPORT_SYMBOL(rdma_port_get_link_layer);
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
+index 6a594aac2290..f44c6b879329 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.c
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
+@@ -204,7 +204,7 @@ iser_initialize_task_headers(struct iscsi_task *task,
+ 	tx_desc->dma_addr = dma_addr;
+ 	tx_desc->tx_sg[0].addr   = tx_desc->dma_addr;
+ 	tx_desc->tx_sg[0].length = ISER_HEADERS_LEN;
+-	tx_desc->tx_sg[0].lkey   = device->mr->lkey;
++	tx_desc->tx_sg[0].lkey   = device->pd->local_dma_lkey;
  
- /* Protection domains */
+ 	iser_task->iser_conn = iser_conn;
+ out:
+diff --git a/drivers/infiniband/ulp/iser/iser_initiator.c b/drivers/infiniband/ulp/iser/iser_initiator.c
+index 3e2118e8ed87..2d02f042c69a 100644
+--- a/drivers/infiniband/ulp/iser/iser_initiator.c
++++ b/drivers/infiniband/ulp/iser/iser_initiator.c
+@@ -173,8 +173,8 @@ static void iser_create_send_desc(struct iser_conn	*iser_conn,
  
-+/**
-+ * ib_alloc_pd - Allocates an unused protection domain.
-+ * @device: The device on which to allocate the protection domain.
-+ *
-+ * A protection domain object provides an association between QPs, shared
-+ * receive queues, address handles, memory regions, and memory windows.
-+ *
-+ * Every PD has a local_dma_lkey which can be used as the lkey value for local
-+ * memory operations.
-+ */
- struct ib_pd *ib_alloc_pd(struct ib_device *device)
- {
- 	struct ib_pd *pd;
-+	struct ib_device_attr devattr;
-+	int rc;
-+
-+	rc = ib_query_device(device, &devattr);
-+	if (rc)
-+		return ERR_PTR(rc);
+ 	tx_desc->num_sge = 1;
  
- 	pd = device->alloc_pd(device, NULL, NULL);
-+	if (IS_ERR(pd))
-+		return pd;
-+
-+	pd->device = device;
-+	pd->uobject = NULL;
-+	pd->local_mr = NULL;
-+	atomic_set(&pd->usecnt, 0);
-+
-+	if (devattr.device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)
-+		pd->local_dma_lkey = device->local_dma_lkey;
-+	else {
-+		struct ib_mr *mr;
-+
-+		mr = ib_get_dma_mr(pd, IB_ACCESS_LOCAL_WRITE);
-+		if (IS_ERR(mr)) {
-+			ib_dealloc_pd(pd);
-+			return (struct ib_pd *)mr;
-+		}
- 
--	if (!IS_ERR(pd)) {
--		pd->device  = device;
--		pd->uobject = NULL;
--		atomic_set(&pd->usecnt, 0);
-+		pd->local_mr = mr;
-+		pd->local_dma_lkey = pd->local_mr->lkey;
+-	if (tx_desc->tx_sg[0].lkey != device->mr->lkey) {
+-		tx_desc->tx_sg[0].lkey = device->mr->lkey;
++	if (tx_desc->tx_sg[0].lkey != device->pd->local_dma_lkey) {
++		tx_desc->tx_sg[0].lkey = device->pd->local_dma_lkey;
+ 		iser_dbg("sdesc %p lkey mismatch, fixing\n", tx_desc);
  	}
--
- 	return pd;
  }
- EXPORT_SYMBOL(ib_alloc_pd);
+@@ -291,7 +291,7 @@ int iser_alloc_rx_descriptors(struct iser_conn *iser_conn,
+ 		rx_sg = &rx_desc->rx_sg;
+ 		rx_sg->addr   = rx_desc->dma_addr;
+ 		rx_sg->length = ISER_RX_PAYLOAD_SIZE;
+-		rx_sg->lkey   = device->mr->lkey;
++		rx_sg->lkey   = device->pd->local_dma_lkey;
+ 	}
  
- int ib_dealloc_pd(struct ib_pd *pd)
+ 	iser_conn->rx_desc_head = 0;
+@@ -543,7 +543,7 @@ int iser_send_control(struct iscsi_conn *conn,
+ 
+ 		tx_dsg->addr    = iser_conn->login_req_dma;
+ 		tx_dsg->length  = task->data_count;
+-		tx_dsg->lkey    = device->mr->lkey;
++		tx_dsg->lkey    = device->pd->local_dma_lkey;
+ 		mdesc->num_sge = 2;
+ 	}
+ 
+diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
+index f0cdc961eb11..3129a42150ff 100644
+--- a/drivers/infiniband/ulp/iser/iser_memory.c
++++ b/drivers/infiniband/ulp/iser/iser_memory.c
+@@ -393,7 +393,7 @@ iser_reg_dma(struct iser_device *device, struct iser_data_buf *mem,
  {
-+	if (pd->local_mr) {
-+		if (ib_dereg_mr(pd->local_mr))
-+			return -EBUSY;
-+		pd->local_mr = NULL;
-+	}
-+
- 	if (atomic_read(&pd->usecnt))
- 		return -EBUSY;
+ 	struct scatterlist *sg = mem->sg;
  
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index b0f898e3b2e7..eaec3081fb87 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1252,9 +1252,11 @@ struct ib_udata {
- };
+-	reg->sge.lkey = device->mr->lkey;
++	reg->sge.lkey = device->pd->local_dma_lkey;
+ 	reg->rkey = device->mr->rkey;
+ 	reg->sge.addr = ib_sg_dma_address(device->ib_device, &sg[0]);
+ 	reg->sge.length = ib_sg_dma_len(device->ib_device, &sg[0]);
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index 5c9f565ea0e8..52268356c79e 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -1017,7 +1017,7 @@ int iser_post_recvl(struct iser_conn *iser_conn)
  
- struct ib_pd {
-+	u32			local_dma_lkey;
- 	struct ib_device       *device;
- 	struct ib_uobject      *uobject;
- 	atomic_t          	usecnt; /* count all resources */
-+	struct ib_mr	       *local_mr;
- };
+ 	sge.addr   = iser_conn->login_resp_dma;
+ 	sge.length = ISER_RX_LOGIN_SIZE;
+-	sge.lkey   = ib_conn->device->mr->lkey;
++	sge.lkey   = ib_conn->device->pd->local_dma_lkey;
  
- struct ib_xrcd {
-@@ -2135,13 +2137,6 @@ int ib_find_gid(struct ib_device *device, union ib_gid *gid,
- int ib_find_pkey(struct ib_device *device,
- 		 u8 port_num, u16 pkey, u16 *index);
- 
--/**
-- * ib_alloc_pd - Allocates an unused protection domain.
-- * @device: The device on which to allocate the protection domain.
-- *
-- * A protection domain object provides an association between QPs, shared
-- * receive queues, address handles, memory regions, and memory windows.
-- */
- struct ib_pd *ib_alloc_pd(struct ib_device *device);
- 
- /**
+ 	rx_wr.wr_id   = (uintptr_t)iser_conn->login_resp_buf;
+ 	rx_wr.sg_list = &sge;
 -- 
 2.1.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
