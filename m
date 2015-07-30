@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 3/4] IB/mlx4: In sysfs under RoCE, do not allow changing the paravirtualization mapping for pkeys
-Date: Thu, 30 Jul 2015 17:34:23 +0300
-Message-ID: <1438266864-3584-4-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next 2/4] IB/mlx4: Deprecate mcast group warning message to debug because of flooding
+Date: Thu, 30 Jul 2015 17:34:22 +0300
+Message-ID: <1438266864-3584-3-git-send-email-ogerlitz@mellanox.com>
 References: <1438266864-3584-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1438266864-3584-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,44 +12,42 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-The pkey mapping for RoCE must remain the default mapping:
-VFs:
-  virtual index 0 = mapped to real index 0 (0xFFFF)
-  All others indices: mapped to a real pkey index containing an
-                      invalid pkey.
-PF:
-  virtual index i = real index i.
+The mcg "too many pending requests" warning message fills the log
+when OpenSM is downed. Deprecate the warning to be debug output.
 
-Fixes: c1e7e466120b ('IB/mlx4: Add iov directory in sysfs under the ib device')
+
 Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/sysfs.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx4/mcg.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/sysfs.c b/drivers/infiniband/hw/mlx4/sysfs.c
-index 6797108..69fb5ba 100644
---- a/drivers/infiniband/hw/mlx4/sysfs.c
-+++ b/drivers/infiniband/hw/mlx4/sysfs.c
-@@ -640,6 +640,8 @@ static int add_port(struct mlx4_ib_dev *dev, int port_num, int slave)
- 	struct mlx4_port *p;
- 	int i;
- 	int ret;
-+	int is_eth = rdma_port_get_link_layer(&dev->ib_dev, port_num) ==
-+			IB_LINK_LAYER_ETHERNET;
+diff --git a/drivers/infiniband/hw/mlx4/mcg.c b/drivers/infiniband/hw/mlx4/mcg.c
+index a0559a8..2d5bccd 100644
+--- a/drivers/infiniband/hw/mlx4/mcg.c
++++ b/drivers/infiniband/hw/mlx4/mcg.c
+@@ -51,6 +51,10 @@
+ 	pr_warn("%s-%d: %16s (port %d): WARNING: " format, __func__, __LINE__,\
+ 	(group)->name, group->demux->port, ## arg)
  
- 	p = kzalloc(sizeof *p, GFP_KERNEL);
- 	if (!p)
-@@ -657,7 +659,8 @@ static int add_port(struct mlx4_ib_dev *dev, int port_num, int slave)
++#define mcg_debug_group(group, format, arg...) \
++	pr_debug("%s-%d: %16s (port %d): WARNING: " format, __func__, __LINE__,\
++		 (group)->name, (group)->demux->port, ## arg)
++
+ #define mcg_error_group(group, format, arg...) \
+ 	pr_err("  %16s: " format, (group)->name, ## arg)
  
- 	p->pkey_group.name  = "pkey_idx";
- 	p->pkey_group.attrs =
--		alloc_group_attrs(show_port_pkey, store_port_pkey,
-+		alloc_group_attrs(show_port_pkey,
-+				  is_eth ? NULL : store_port_pkey,
- 				  dev->dev->caps.pkey_table_len[port_num]);
- 	if (!p->pkey_group.attrs) {
- 		ret = -ENOMEM;
+@@ -962,8 +966,8 @@ int mlx4_ib_mcg_multiplex_handler(struct ib_device *ibdev, int port,
+ 		mutex_lock(&group->lock);
+ 		if (group->func[slave].num_pend_reqs > MAX_PEND_REQS_PER_FUNC) {
+ 			mutex_unlock(&group->lock);
+-			mcg_warn_group(group, "Port %d, Func %d has too many pending requests (%d), dropping\n",
+-				       port, slave, MAX_PEND_REQS_PER_FUNC);
++			mcg_debug_group(group, "Port %d, Func %d has too many pending requests (%d), dropping\n",
++					port, slave, MAX_PEND_REQS_PER_FUNC);
+ 			release_group(group, 0);
+ 			kfree(req);
+ 			return -ENOMEM;
 -- 
 2.3.7
 
