@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 02/22] IB/iser: Change minor assignments and logging prints
-Date: Thu, 30 Jul 2015 11:06:15 +0300
-Message-ID: <1438243595-32288-3-git-send-email-sagig@mellanox.com>
+Subject: [PATCH 08/22] IB/iser: Remove an unneeded print for unaligned memory
+Date: Thu, 30 Jul 2015 11:06:21 +0300
+Message-ID: <1438243595-32288-9-git-send-email-sagig@mellanox.com>
 References: <1438243595-32288-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1438243595-32288-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,50 +10,79 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+We can do it in iser_aligned_data_len instead and
+it will save us an argument that is passed to
+fall_to_counce_buf just for the print.
+
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.c | 11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ drivers/infiniband/ulp/iser/iser_memory.c | 20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
-index c7cea25..7420062 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.c
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-@@ -847,10 +847,9 @@ failure:
- static int
- iscsi_iser_ep_poll(struct iscsi_endpoint *ep, int timeout_ms)
- {
--	struct iser_conn *iser_conn;
-+	struct iser_conn *iser_conn = ep->dd_data;
- 	int rc;
- 
--	iser_conn = ep->dd_data;
- 	rc = wait_for_completion_interruptible_timeout(&iser_conn->up_completion,
- 						       msecs_to_jiffies(timeout_ms));
- 	/* if conn establishment failed, return error code to iscsi */
-@@ -862,7 +861,7 @@ iscsi_iser_ep_poll(struct iscsi_endpoint *ep, int timeout_ms)
- 		mutex_unlock(&iser_conn->state_mutex);
+diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
+index 3129a42..56dd53b 100644
+--- a/drivers/infiniband/ulp/iser/iser_memory.c
++++ b/drivers/infiniband/ulp/iser/iser_memory.c
+@@ -330,8 +330,11 @@ static int iser_data_buf_aligned_len(struct iser_data_buf *data,
+ 			break;
  	}
+ 	ret_len = (next_sg) ? i : i+1;
+-	iser_dbg("Found %d aligned entries out of %d in sg:0x%p\n",
+-		 ret_len, data->dma_nents, data);
++
++	if (unlikely(ret_len != data->dma_nents))
++		iser_warn("rdma alignment violation (%d/%d aligned)\n",
++			  ret_len, data->dma_nents);
++
+ 	return ret_len;
+ }
  
--	iser_info("ib conn %p rc = %d\n", iser_conn, rc);
-+	iser_info("iser conn %p rc = %d\n", iser_conn, rc);
+@@ -407,15 +410,12 @@ iser_reg_dma(struct iser_device *device, struct iser_data_buf *mem,
  
- 	if (rc > 0)
- 		return 1; /* success, this is the equivalent of POLLOUT */
-@@ -884,11 +883,9 @@ iscsi_iser_ep_poll(struct iscsi_endpoint *ep, int timeout_ms)
- static void
- iscsi_iser_ep_disconnect(struct iscsi_endpoint *ep)
+ static int fall_to_bounce_buf(struct iscsi_iser_task *iser_task,
+ 			      struct iser_data_buf *mem,
+-			      enum iser_data_dir cmd_dir,
+-			      int aligned_len)
++			      enum iser_data_dir cmd_dir)
  {
--	struct iser_conn *iser_conn;
-+	struct iser_conn *iser_conn = ep->dd_data;
+ 	struct iscsi_conn *iscsi_conn = iser_task->iser_conn->iscsi_conn;
+ 	struct iser_device *device = iser_task->iser_conn->ib_conn.device;
  
--	iser_conn = ep->dd_data;
--	iser_info("ep %p iser conn %p state %d\n",
--		  ep, iser_conn, iser_conn->state);
-+	iser_info("ep %p iser conn %p\n", ep, iser_conn);
+ 	iscsi_conn->fmr_unalign_cnt++;
+-	iser_warn("rdma alignment violation (%d/%d aligned) or FMR not supported\n",
+-		  aligned_len, mem->size);
  
- 	mutex_lock(&iser_conn->state_mutex);
- 	iser_conn_terminate(iser_conn);
+ 	if (iser_debug_level > 0)
+ 		iser_data_buf_dump(mem, device->ib_device);
+@@ -537,8 +537,7 @@ int iser_reg_rdma_mem_fmr(struct iscsi_iser_task *iser_task,
+ 
+ 	aligned_len = iser_data_buf_aligned_len(mem, ibdev);
+ 	if (aligned_len != mem->dma_nents) {
+-		err = fall_to_bounce_buf(iser_task, mem,
+-					 cmd_dir, aligned_len);
++		err = fall_to_bounce_buf(iser_task, mem, cmd_dir);
+ 		if (err) {
+ 			iser_err("failed to allocate bounce buffer\n");
+ 			return err;
+@@ -800,8 +799,7 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
+ 
+ 	aligned_len = iser_data_buf_aligned_len(mem, ibdev);
+ 	if (aligned_len != mem->dma_nents) {
+-		err = fall_to_bounce_buf(iser_task, mem,
+-					 cmd_dir, aligned_len);
++		err = fall_to_bounce_buf(iser_task, mem, cmd_dir);
+ 		if (err) {
+ 			iser_err("failed to allocate bounce buffer\n");
+ 			return err;
+@@ -828,7 +826,7 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
+ 			aligned_len = iser_data_buf_aligned_len(mem, ibdev);
+ 			if (aligned_len != mem->dma_nents) {
+ 				err = fall_to_bounce_buf(iser_task, mem,
+-							 cmd_dir, aligned_len);
++							 cmd_dir);
+ 				if (err) {
+ 					iser_err("failed to allocate bounce buffer\n");
+ 					return err;
 -- 
 1.8.4.3
 
