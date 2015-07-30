@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v4 50/50] IB/core: Add opa driver to kbuild
-Date: Thu, 30 Jul 2015 15:22:08 -0400
-Message-ID: <20150730192208.25256.22110.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH v4 45/50] IB/hfi1: add low level page locking
+Date: Thu, 30 Jul 2015 15:21:36 -0400
+Message-ID: <20150730192136.25256.99001.stgit@phlsvslse11.ph.intel.com>
 References: <20150730191631.25256.95511.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,38 +13,196 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
+Signed-off-by: Andrew Friedley <andrew.friedley-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Arthur Kepner <arthur.kepner-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Brendan Cunningham <brendan.cunningham-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Brian Welty <brian.welty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Caz Yokoyama <caz.yokoyama-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jim Snow <jim.m.snow-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: John Gregor <john.a.gregor-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Kevin Pine <kevin.pine-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Kyle Liddell <kyle.liddell-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ravi Krishnaswamy <ravi.krishnaswamy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sadanand Warrier <sadanand.warrier-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sanath Kumar <sanath.s.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Vlad Danushevsky <vladimir.danusevsky-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/Kconfig     |    1 +
- drivers/infiniband/hw/Makefile |    1 +
- 2 files changed, 2 insertions(+)
+ drivers/infiniband/hw/hfi1/user_pages.c |  156 +++++++++++++++++++++++++++++++
+ 1 file changed, 156 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi1/user_pages.c
 
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index da4c697..f84eecd 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -56,6 +56,7 @@ config INFINIBAND_ADDR_TRANS
- 
- source "drivers/infiniband/hw/mthca/Kconfig"
- source "drivers/infiniband/hw/qib/Kconfig"
-+source "drivers/infiniband/hw/hfi1/Kconfig"
- source "drivers/infiniband/hw/ehca/Kconfig"
- source "drivers/infiniband/hw/cxgb3/Kconfig"
- source "drivers/infiniband/hw/cxgb4/Kconfig"
-diff --git a/drivers/infiniband/hw/Makefile b/drivers/infiniband/hw/Makefile
-index 1bdb999..52f3788 100644
---- a/drivers/infiniband/hw/Makefile
-+++ b/drivers/infiniband/hw/Makefile
-@@ -1,5 +1,6 @@
- obj-$(CONFIG_INFINIBAND_MTHCA)		+= mthca/
- obj-$(CONFIG_INFINIBAND_QIB)		+= qib/
-+obj-$(CONFIG_INFINIBAND_HFI1)		+= hfi1/
- obj-$(CONFIG_INFINIBAND_EHCA)		+= ehca/
- obj-$(CONFIG_INFINIBAND_CXGB3)		+= cxgb3/
- obj-$(CONFIG_INFINIBAND_CXGB4)		+= cxgb4/
+diff --git a/drivers/infiniband/hw/hfi1/user_pages.c b/drivers/infiniband/hw/hfi1/user_pages.c
+new file mode 100644
+index 0000000..9071afb
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi1/user_pages.c
+@@ -0,0 +1,156 @@
++/*
++ *
++ * This file is provided under a dual BSD/GPLv2 license.  When using or
++ * redistributing this file, you may do so under either license.
++ *
++ * GPL LICENSE SUMMARY
++ *
++ * Copyright(c) 2015 Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * BSD LICENSE
++ *
++ * Copyright(c) 2015 Intel Corporation.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ *  - Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ *  - Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *  - Neither the name of Intel Corporation nor the names of its
++ *    contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ */
++
++#include <linux/mm.h>
++#include <linux/device.h>
++
++#include "hfi.h"
++
++static void __hfi1_release_user_pages(struct page **p, size_t num_pages,
++				      int dirty)
++{
++	size_t i;
++
++	for (i = 0; i < num_pages; i++) {
++		if (dirty)
++			set_page_dirty_lock(p[i]);
++		put_page(p[i]);
++	}
++}
++
++/*
++ * Call with current->mm->mmap_sem held.
++ */
++static int __hfi1_get_user_pages(unsigned long start_page, size_t num_pages,
++				 struct page **p)
++{
++	unsigned long lock_limit;
++	size_t got;
++	int ret;
++
++	lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
++
++	if (num_pages > lock_limit && !capable(CAP_IPC_LOCK)) {
++		ret = -ENOMEM;
++		goto bail;
++	}
++
++	for (got = 0; got < num_pages; got += ret) {
++		ret = get_user_pages(current, current->mm,
++				     start_page + got * PAGE_SIZE,
++				     num_pages - got, 1, 1,
++				     p + got, NULL);
++		if (ret < 0)
++			goto bail_release;
++	}
++
++	current->mm->pinned_vm += num_pages;
++
++	ret = 0;
++	goto bail;
++
++bail_release:
++	__hfi1_release_user_pages(p, got, 0);
++bail:
++	return ret;
++}
++
++/**
++ * hfi1_map_page - a safety wrapper around pci_map_page()
++ *
++ */
++dma_addr_t hfi1_map_page(struct pci_dev *hwdev, struct page *page,
++			 unsigned long offset, size_t size, int direction)
++{
++	dma_addr_t phys;
++
++	phys = pci_map_page(hwdev, page, offset, size, direction);
++
++	return phys;
++}
++
++/**
++ * hfi1_get_user_pages - lock user pages into memory
++ * @start_page: the start page
++ * @num_pages: the number of pages
++ * @p: the output page structures
++ *
++ * This function takes a given start page (page aligned user virtual
++ * address) and pins it and the following specified number of pages.  For
++ * now, num_pages is always 1, but that will probably change at some point
++ * (because caller is doing expected sends on a single virtually contiguous
++ * buffer, so we can do all pages at once).
++ */
++int hfi1_get_user_pages(unsigned long start_page, size_t num_pages,
++			struct page **p)
++{
++	int ret;
++
++	down_write(&current->mm->mmap_sem);
++
++	ret = __hfi1_get_user_pages(start_page, num_pages, p);
++
++	up_write(&current->mm->mmap_sem);
++
++	return ret;
++}
++
++void hfi1_release_user_pages(struct page **p, size_t num_pages)
++{
++	if (current->mm) /* during close after signal, mm can be NULL */
++		down_write(&current->mm->mmap_sem);
++
++	__hfi1_release_user_pages(p, num_pages, 1);
++
++	if (current->mm) {
++		current->mm->pinned_vm -= num_pages;
++		up_write(&current->mm->mmap_sem);
++	}
++}
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
