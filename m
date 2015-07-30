@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v4 17/50] IB/hfi1: add PSM driver control/data path
-Date: Thu, 30 Jul 2015 15:18:59 -0400
-Message-ID: <20150730191859.25256.28987.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH v4 19/50] IB/hfi1: add general hfi header file
+Date: Thu, 30 Jul 2015 15:19:10 -0400
+Message-ID: <20150730191910.25256.95811.stgit@phlsvslse11.ph.intel.com>
 References: <20150730191631.25256.95511.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -37,16 +37,18 @@ Signed-off-by: Sanath Kumar <sanath.s.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.
 Signed-off-by: Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Vlad Danushevsky <vladimir.danusevsky-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/file_ops.c | 2140 +++++++++++++++++++++++++++++++++
- 1 file changed, 2140 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi1/file_ops.c
+ drivers/infiniband/hw/hfi1/hfi.h | 1821 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 1821 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi1/hfi.h
 
-diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
+diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
 new file mode 100644
-index 0000000..4698617
+index 0000000..8ca171b
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/file_ops.c
-@@ -0,0 +1,2140 @@
++++ b/drivers/infiniband/hw/hfi1/hfi.h
+@@ -0,0 +1,1821 @@
++#ifndef _HFI1_KERNEL_H
++#define _HFI1_KERNEL_H
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -96,2097 +98,1776 @@ index 0000000..4698617
 + * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + */
++
++#include <linux/interrupt.h>
 +#include <linux/pci.h>
-+#include <linux/poll.h>
-+#include <linux/cdev.h>
-+#include <linux/swap.h>
-+#include <linux/vmalloc.h>
-+#include <linux/highmem.h>
++#include <linux/dma-mapping.h>
++#include <linux/mutex.h>
++#include <linux/list.h>
++#include <linux/scatterlist.h>
++#include <linux/slab.h>
 +#include <linux/io.h>
-+#include <linux/jiffies.h>
-+#include <asm/pgtable.h>
++#include <linux/fs.h>
++#include <linux/completion.h>
++#include <linux/kref.h>
++#include <linux/sched.h>
++#include <linux/cdev.h>
 +#include <linux/delay.h>
-+#include <linux/export.h>
-+#include <linux/module.h>
-+#include <linux/cred.h>
-+#include <linux/uio.h>
++#include <linux/kthread.h>
 +
-+#include "hfi.h"
-+#include "pio.h"
-+#include "device.h"
++#include "chip_registers.h"
 +#include "common.h"
-+#include "trace.h"
-+#include "user_sdma.h"
-+#include "eprom.h"
++#include "verbs.h"
++#include "pio.h"
++#include "chip.h"
++#include "mad.h"
++#include "qsfp.h"
++#include "platform_config.h"
 +
-+#undef pr_fmt
-+#define pr_fmt(fmt) DRIVER_NAME ": " fmt
++/* bumped 1 from s/w major version of TrueScale */
++#define HFI1_CHIP_VERS_MAJ 3U
 +
-+#define SEND_CTXT_HALT_TIMEOUT 1000 /* msecs */
++/* don't care about this except printing */
++#define HFI1_CHIP_VERS_MIN 0U
 +
-+/*
-+ * File operation functions
-+ */
-+static int hfi1_file_open(struct inode *, struct file *);
-+static int hfi1_file_close(struct inode *, struct file *);
-+static ssize_t hfi1_file_write(struct file *, const char __user *,
-+			       size_t, loff_t *);
-+static ssize_t hfi1_write_iter(struct kiocb *, struct iov_iter *);
-+static unsigned int hfi1_poll(struct file *, struct poll_table_struct *);
-+static int hfi1_file_mmap(struct file *, struct vm_area_struct *);
++/* The Organization Unique Identifier (Mfg code), and its position in GUID */
++#define HFI1_OUI 0x001175
++#define HFI1_OUI_LSB 40
 +
-+static u64 kvirt_to_phys(void *);
-+static int assign_ctxt(struct file *, struct hfi1_user_info *);
-+static int init_subctxts(struct hfi1_ctxtdata *, const struct hfi1_user_info *);
-+static int user_init(struct file *);
-+static int get_ctxt_info(struct file *, void __user *, __u32);
-+static int get_base_info(struct file *, void __user *, __u32);
-+static int setup_ctxt(struct file *);
-+static int setup_subctxt(struct hfi1_ctxtdata *);
-+static int get_user_context(struct file *, struct hfi1_user_info *,
-+			    int, unsigned);
-+static int find_shared_ctxt(struct file *, const struct hfi1_user_info *);
-+static int allocate_ctxt(struct file *, struct hfi1_devdata *,
-+			 struct hfi1_user_info *);
-+static unsigned int poll_urgent(struct file *, struct poll_table_struct *);
-+static unsigned int poll_next(struct file *, struct poll_table_struct *);
-+static int user_event_ack(struct hfi1_ctxtdata *, int, unsigned long);
-+static int set_ctxt_pkey(struct hfi1_ctxtdata *, unsigned, u16);
-+static int manage_rcvq(struct hfi1_ctxtdata *, unsigned, int);
-+static int vma_fault(struct vm_area_struct *, struct vm_fault *);
-+static int exp_tid_setup(struct file *, struct hfi1_tid_info *);
-+static int exp_tid_free(struct file *, struct hfi1_tid_info *);
-+static void unlock_exp_tids(struct hfi1_ctxtdata *);
++#define DROP_PACKET_OFF		0
++#define DROP_PACKET_ON		1
 +
-+static const struct file_operations hfi1_file_ops = {
-+	.owner = THIS_MODULE,
-+	.write = hfi1_file_write,
-+	.write_iter = hfi1_write_iter,
-+	.open = hfi1_file_open,
-+	.release = hfi1_file_close,
-+	.poll = hfi1_poll,
-+	.mmap = hfi1_file_mmap,
-+	.llseek = noop_llseek,
-+};
-+
-+static struct vm_operations_struct vm_ops = {
-+	.fault = vma_fault,
-+};
++extern unsigned long hfi1_cap_mask;
++#define HFI1_CAP_KGET_MASK(mask, cap) ((mask) & HFI1_CAP_##cap)
++#define HFI1_CAP_UGET_MASK(mask, cap) \
++	(((mask) >> HFI1_CAP_USER_SHIFT) & HFI1_CAP_##cap)
++#define HFI1_CAP_KGET(cap) (HFI1_CAP_KGET_MASK(hfi1_cap_mask, cap))
++#define HFI1_CAP_UGET(cap) (HFI1_CAP_UGET_MASK(hfi1_cap_mask, cap))
++#define HFI1_CAP_IS_KSET(cap) (!!HFI1_CAP_KGET(cap))
++#define HFI1_CAP_IS_USET(cap) (!!HFI1_CAP_UGET(cap))
++#define HFI1_MISC_GET() ((hfi1_cap_mask >> HFI1_CAP_MISC_SHIFT) & \
++			HFI1_CAP_MISC_MASK)
 +
 +/*
-+ * Types of memories mapped into user processes' space
++ * per driver stats, either not device nor port-specific, or
++ * summed over all of the devices and ports.
++ * They are described by name via ipathfs filesystem, so layout
++ * and number of elements can change without breaking compatibility.
++ * If members are added or deleted hfi1_statnames[] in debugfs.c must
++ * change to match.
 + */
-+enum mmap_types {
-+	PIO_BUFS = 1,
-+	PIO_BUFS_SOP,
-+	PIO_CRED,
-+	RCV_HDRQ,
-+	RCV_EGRBUF,
-+	UREGS,
-+	EVENTS,
-+	STATUS,
-+	RTAIL,
-+	SUBCTXT_UREGS,
-+	SUBCTXT_RCV_HDRQ,
-+	SUBCTXT_EGRBUF,
-+	SDMA_COMP
++struct hfi1_ib_stats {
++	__u64 sps_ints; /* number of interrupts handled */
++	__u64 sps_errints; /* number of error interrupts */
++	__u64 sps_txerrs; /* tx-related packet errors */
++	__u64 sps_rcverrs; /* non-crc rcv packet errors */
++	__u64 sps_hwerrs; /* hardware errors reported (parity, etc.) */
++	__u64 sps_nopiobufs; /* no pio bufs avail from kernel */
++	__u64 sps_ctxts; /* number of contexts currently open */
++	__u64 sps_lenerrs; /* number of kernel packets where RHF != LRH len */
++	__u64 sps_buffull;
++	__u64 sps_hdrfull;
 +};
 +
++extern struct hfi1_ib_stats hfi1_stats;
++extern const struct pci_error_handlers hfi1_pci_err_handler;
++
 +/*
-+ * Masks and offsets defining the mmap tokens
++ * First-cut criterion for "device is active" is
++ * two thousand dwords combined Tx, Rx traffic per
++ * 5-second interval. SMA packets are 64 dwords,
++ * and occur "a few per second", presumably each way.
 + */
-+#define HFI1_MMAP_OFFSET_MASK   0xfffULL
-+#define HFI1_MMAP_OFFSET_SHIFT  0
-+#define HFI1_MMAP_SUBCTXT_MASK  0xfULL
-+#define HFI1_MMAP_SUBCTXT_SHIFT 12
-+#define HFI1_MMAP_CTXT_MASK     0xffULL
-+#define HFI1_MMAP_CTXT_SHIFT    16
-+#define HFI1_MMAP_TYPE_MASK     0xfULL
-+#define HFI1_MMAP_TYPE_SHIFT    24
-+#define HFI1_MMAP_MAGIC_MASK    0xffffffffULL
-+#define HFI1_MMAP_MAGIC_SHIFT   32
++#define HFI1_TRAFFIC_ACTIVE_THRESHOLD (2000)
 +
-+#define HFI1_MMAP_MAGIC         0xdabbad00
++/*
++ * Below contains all data related to a single context (formerly called port).
++ */
 +
-+#define HFI1_MMAP_TOKEN_SET(field, val)	\
-+	(((val) & HFI1_MMAP_##field##_MASK) << HFI1_MMAP_##field##_SHIFT)
-+#define HFI1_MMAP_TOKEN_GET(field, token) \
-+	(((token) >> HFI1_MMAP_##field##_SHIFT) & HFI1_MMAP_##field##_MASK)
-+#define HFI1_MMAP_TOKEN(type, ctxt, subctxt, addr)   \
-+	(HFI1_MMAP_TOKEN_SET(MAGIC, HFI1_MMAP_MAGIC) | \
-+	HFI1_MMAP_TOKEN_SET(TYPE, type) | \
-+	HFI1_MMAP_TOKEN_SET(CTXT, ctxt) | \
-+	HFI1_MMAP_TOKEN_SET(SUBCTXT, subctxt) | \
-+	HFI1_MMAP_TOKEN_SET(OFFSET, ((unsigned long)addr & ~PAGE_MASK)))
++#ifdef CONFIG_DEBUG_FS
++struct hfi1_opcode_stats_perctx;
++#endif
 +
-+#define EXP_TID_SET(field, value)			\
-+	(((value) & EXP_TID_TID##field##_MASK) <<	\
-+	 EXP_TID_TID##field##_SHIFT)
-+#define EXP_TID_CLEAR(tid, field) {					\
-+		(tid) &= ~(EXP_TID_TID##field##_MASK <<			\
-+			   EXP_TID_TID##field##_SHIFT);			\
-+			}
-+#define EXP_TID_RESET(tid, field, value) do {				\
-+		EXP_TID_CLEAR(tid, field);				\
-+		(tid) |= EXP_TID_SET(field, value);			\
-+	} while (0)
++/*
++ * struct ps_state keeps state associated with RX queue "prescanning"
++ * (prescanning for FECNs, and BECNs), if prescanning is in use.
++ */
++struct ps_state {
++	u32 ps_head;
++	int initialized;
++};
 +
-+#define dbg(fmt, ...)				\
-+	pr_info(fmt, ##__VA_ARGS__)
++struct ctxt_eager_bufs {
++	ssize_t size;            /* total size of eager buffers */
++	u32 count;               /* size of buffers array */
++	u32 numbufs;             /* number of buffers allocated */
++	u32 alloced;             /* number of rcvarray entries used */
++	u32 rcvtid_size;         /* size of each eager rcv tid */
++	u32 threshold;           /* head update threshold */
++	struct eager_buffer {
++		void *addr;
++		dma_addr_t phys;
++		ssize_t len;
++	} *buffers;
++	struct {
++		void *addr;
++		dma_addr_t phys;
++	} *rcvtids;
++};
 +
++struct hfi1_ctxtdata {
++	/* shadow the ctxt's RcvCtrl register */
++	u64 rcvctrl;
++	/* rcvhdrq base, needs mmap before useful */
++	void *rcvhdrq;
++	/* kernel virtual address where hdrqtail is updated */
++	volatile __le64 *rcvhdrtail_kvaddr;
++	/*
++	 * Shared page for kernel to signal user processes that send buffers
++	 * need disarming.  The process should call HFI1_CMD_DISARM_BUFS
++	 * or HFI1_CMD_ACK_EVENT with IPATH_EVENT_DISARM_BUFS set.
++	 */
++	unsigned long *user_event_mask;
++	/* when waiting for rcv or pioavail */
++	wait_queue_head_t wait;
++	/* rcvhdrq size (for freeing) */
++	size_t rcvhdrq_size;
++	/* number of rcvhdrq entries */
++	u16 rcvhdrq_cnt;
++	/* size of each of the rcvhdrq entries */
++	u16 rcvhdrqentsize;
++	/* mmap of hdrq, must fit in 44 bits */
++	dma_addr_t rcvhdrq_phys;
++	dma_addr_t rcvhdrqtailaddr_phys;
++	struct ctxt_eager_bufs egrbufs;
++	/* this receive context's assigned PIO ACK send context */
++	struct send_context *sc;
 +
-+static inline int is_valid_mmap(u64 token)
-+{
-+	return (HFI1_MMAP_TOKEN_GET(MAGIC, token) == HFI1_MMAP_MAGIC);
-+}
++	/* dynamic receive available interrupt timeout */
++	u32 rcvavail_timeout;
++	/*
++	 * number of opens (including slave sub-contexts) on this instance
++	 * (ignoring forks, dup, etc. for now)
++	 */
++	int cnt;
++	/*
++	 * how much space to leave at start of eager TID entries for
++	 * protocol use, on each TID
++	 */
++	/* instead of calculating it */
++	unsigned ctxt;
++	/* non-zero if ctxt is being shared. */
++	u16 subctxt_cnt;
++	/* non-zero if ctxt is being shared. */
++	u16 subctxt_id;
++	u8 uuid[16];
++	/* job key */
++	u16 jkey;
++	/* number of RcvArray groups for this context. */
++	u32 rcv_array_groups;
++	/* index of first eager TID entry. */
++	u32 eager_base;
++	/* number of expected TID entries */
++	u32 expected_count;
++	/* index of first expected TID entry. */
++	u32 expected_base;
++	/* cursor into the exp group sets */
++	atomic_t tidcursor;
++	/* number of exp TID groups assigned to the ctxt */
++	u16 numtidgroups;
++	/* size of exp TID group fields in tidusemap */
++	u16 tidmapcnt;
++	/* exp TID group usage bitfield array */
++	unsigned long *tidusemap;
++	/* pinned pages for exp sends, allocated at open */
++	struct page **tid_pg_list;
++	/* dma handles for exp tid pages */
++	dma_addr_t *physshadow;
++	/* lock protecting all Expected TID data */
++	spinlock_t exp_lock;
++	/* number of pio bufs for this ctxt (all procs, if shared) */
++	u32 piocnt;
++	/* first pio buffer for this ctxt */
++	u32 pio_base;
++	/* chip offset of PIO buffers for this ctxt */
++	u32 piobufs;
++	/* per-context configuration flags */
++	u16 flags;
++	/* per-context event flags for fileops/intr communication */
++	unsigned long event_flags;
++	/* WAIT_RCV that timed out, no interrupt */
++	u32 rcvwait_to;
++	/* WAIT_PIO that timed out, no interrupt */
++	u32 piowait_to;
++	/* WAIT_RCV already happened, no wait */
++	u32 rcvnowait;
++	/* WAIT_PIO already happened, no wait */
++	u32 pionowait;
++	/* total number of polled urgent packets */
++	u32 urgent;
++	/* saved total number of polled urgent packets for poll edge trigger */
++	u32 urgent_poll;
++	/* pid of process using this ctxt */
++	pid_t pid;
++	pid_t subpid[HFI1_MAX_SHARED_CTXTS];
++	/* same size as task_struct .comm[], command that opened context */
++	char comm[16];
++	/* so file ops can get at unit */
++	struct hfi1_devdata *dd;
++	/* so functions that need physical port can get it easily */
++	struct hfi1_pportdata *ppd;
++	/* A page of memory for rcvhdrhead, rcvegrhead, rcvegrtail * N */
++	void *subctxt_uregbase;
++	/* An array of pages for the eager receive buffers * N */
++	void *subctxt_rcvegrbuf;
++	/* An array of pages for the eager header queue entries * N */
++	void *subctxt_rcvhdr_base;
++	/* The version of the library which opened this ctxt */
++	u32 userversion;
++	/* Bitmask of active slaves */
++	u32 active_slaves;
++	/* Type of packets or conditions we want to poll for */
++	u16 poll_type;
++	/* receive packet sequence counter */
++	u8 seq_cnt;
++	u8 redirect_seq_cnt;
++	/* ctxt rcvhdrq head offset */
++	u32 head;
++	u32 pkt_count;
++	/* QPs waiting for context processing */
++	struct list_head qp_wait_list;
++	/* interrupt handling */
++	u64 imask;	/* clear interrupt mask */
++	int ireg;	/* clear interrupt register */
++	unsigned numa_id; /* numa node of this context */
++	/* verbs stats per CTX */
++	struct hfi1_opcode_stats_perctx *opstats;
++	/*
++	 * This is the kernel thread that will keep making
++	 * progress on the user sdma requests behind the scenes.
++	 * There is one per context (shared contexts use the master's).
++	 */
++	struct task_struct *progress;
++	struct list_head sdma_queues;
++	spinlock_t sdma_qlock;
 +
-+static int hfi1_file_open(struct inode *inode, struct file *fp)
-+{
-+	/* The real work is performed later in assign_ctxt() */
-+	fp->private_data = kzalloc(sizeof(struct hfi1_filedata), GFP_KERNEL);
-+	if (fp->private_data) /* no cpu affinity by default */
-+		((struct hfi1_filedata *)fp->private_data)->rec_cpu_num = -1;
-+	return fp->private_data ? 0 : -ENOMEM;
-+}
-+
-+static ssize_t hfi1_file_write(struct file *fp, const char __user *data,
-+			       size_t count, loff_t *offset)
-+{
-+	const struct hfi1_cmd __user *ucmd;
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+	struct hfi1_cmd cmd;
-+	struct hfi1_user_info uinfo;
-+	struct hfi1_tid_info tinfo;
-+	ssize_t consumed = 0, copy = 0, ret = 0;
-+	void *dest = NULL;
-+	__u64 user_val = 0;
-+	int uctxt_required = 1;
-+	int must_be_root = 0;
-+
-+	if (count < sizeof(cmd)) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	ucmd = (const struct hfi1_cmd __user *)data;
-+	if (copy_from_user(&cmd, ucmd, sizeof(cmd))) {
-+		ret = -EFAULT;
-+		goto bail;
-+	}
-+
-+	consumed = sizeof(cmd);
-+
-+	switch (cmd.type) {
-+	case HFI1_CMD_ASSIGN_CTXT:
-+		uctxt_required = 0;	/* assigned user context not required */
-+		copy = sizeof(uinfo);
-+		dest = &uinfo;
-+		break;
-+	case HFI1_CMD_SDMA_STATUS_UPD:
-+	case HFI1_CMD_CREDIT_UPD:
-+		copy = 0;
-+		break;
-+	case HFI1_CMD_TID_UPDATE:
-+	case HFI1_CMD_TID_FREE:
-+		copy = sizeof(tinfo);
-+		dest = &tinfo;
-+		break;
-+	case HFI1_CMD_USER_INFO:
-+	case HFI1_CMD_RECV_CTRL:
-+	case HFI1_CMD_POLL_TYPE:
-+	case HFI1_CMD_ACK_EVENT:
-+	case HFI1_CMD_CTXT_INFO:
-+	case HFI1_CMD_SET_PKEY:
-+	case HFI1_CMD_CTXT_RESET:
-+		copy = 0;
-+		user_val = cmd.addr;
-+		break;
-+	case HFI1_CMD_EP_INFO:
-+	case HFI1_CMD_EP_ERASE_CHIP:
-+	case HFI1_CMD_EP_ERASE_P0:
-+	case HFI1_CMD_EP_ERASE_P1:
-+	case HFI1_CMD_EP_READ_P0:
-+	case HFI1_CMD_EP_READ_P1:
-+	case HFI1_CMD_EP_WRITE_P0:
-+	case HFI1_CMD_EP_WRITE_P1:
-+		uctxt_required = 0;	/* assigned user context not required */
-+		must_be_root = 1;	/* validate user */
-+		copy = 0;
-+		break;
-+	default:
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	/* If the command comes with user data, copy it. */
-+	if (copy) {
-+		if (copy_from_user(dest, (void __user *)cmd.addr, copy)) {
-+			ret = -EFAULT;
-+			goto bail;
-+		}
-+		consumed += copy;
-+	}
++#ifdef CONFIG_PRESCAN_RXQ
++	struct ps_state ps_state;
++#endif /* CONFIG_PRESCAN_RXQ */
 +
 +	/*
-+	 * Make sure there is a uctxt when needed.
++	 * The interrupt handler for a particular receive context can vary
++	 * throughout it's lifetime. This is not a lock protected data member so
++	 * it must be updated atomically and the prev and new value must always
++	 * be valid. Worst case is we process an extra interrupt and up to 64
++	 * packets with the wrong interrupt handler.
 +	 */
-+	if (uctxt_required && !uctxt) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
++	void (*do_interrupt)(struct hfi1_ctxtdata *rcd);
++};
 +
-+	/* only root can do these operations */
-+	if (must_be_root && !capable(CAP_SYS_ADMIN)) {
-+		ret = -EPERM;
-+		goto bail;
-+	}
++/*
++ * Represents a single packet at a high level. Put commonly computed things in
++ * here so we do not have to keep doing them over and over. The rule of thumb is
++ * if something is used one time to derive some value, store that something in
++ * here. If it is used multiple times, then store the result of that derivation
++ * in here.
++ */
++struct hfi1_packet {
++	void *ebuf;
++	void *hdr;
++	struct hfi1_ctxtdata *rcd;
++	__le32 *rhf_addr;
++	struct hfi1_qp *qp;
++	struct hfi1_other_headers *ohdr;
++	u64 rhf;
++	u32 maxcnt;
++	u32 rhqoff;
++	u32 hdrqtail;
++	int numpkt;
++	u16 tlen;
++	u16 hlen;
++	s16 etail;
++	u16 rsize;
++	u8 updegr;
++	u8 rcv_flags;
++	u8 etype;
++};
 +
-+	switch (cmd.type) {
-+	case HFI1_CMD_ASSIGN_CTXT:
-+		ret = assign_ctxt(fp, &uinfo);
-+		if (ret < 0)
-+			goto bail;
-+		ret = setup_ctxt(fp);
-+		if (ret)
-+			goto bail;
-+		ret = user_init(fp);
-+		break;
-+	case HFI1_CMD_CTXT_INFO:
-+		ret = get_ctxt_info(fp, (void __user *)(unsigned long)
-+				    user_val, cmd.len);
-+		break;
-+	case HFI1_CMD_USER_INFO:
-+		ret = get_base_info(fp, (void __user *)(unsigned long)
-+				    user_val, cmd.len);
-+		break;
-+	case HFI1_CMD_SDMA_STATUS_UPD:
-+		break;
-+	case HFI1_CMD_CREDIT_UPD:
-+		if (uctxt && uctxt->sc)
-+			sc_return_credits(uctxt->sc);
-+		break;
-+	case HFI1_CMD_TID_UPDATE:
-+		ret = exp_tid_setup(fp, &tinfo);
-+		if (!ret) {
-+			unsigned long addr;
-+			/*
-+			 * Copy the number of tidlist entries we used
-+			 * and the length of the buffer we registered.
-+			 * These fields are adjacent in the structure so
-+			 * we can copy them at the same time.
-+			 */
-+			addr = (unsigned long)cmd.addr +
-+				offsetof(struct hfi1_tid_info, tidcnt);
-+			if (copy_to_user((void __user *)addr, &tinfo.tidcnt,
-+					 sizeof(tinfo.tidcnt) +
-+					 sizeof(tinfo.length)))
-+				ret = -EFAULT;
-+		}
-+		break;
-+	case HFI1_CMD_TID_FREE:
-+		ret = exp_tid_free(fp, &tinfo);
-+		break;
-+	case HFI1_CMD_RECV_CTRL:
-+		ret = manage_rcvq(uctxt, subctxt_fp(fp), (int)user_val);
-+		break;
-+	case HFI1_CMD_POLL_TYPE:
-+		uctxt->poll_type = (typeof(uctxt->poll_type))user_val;
-+		break;
-+	case HFI1_CMD_ACK_EVENT:
-+		ret = user_event_ack(uctxt, subctxt_fp(fp), user_val);
-+		break;
-+	case HFI1_CMD_SET_PKEY:
-+		if (HFI1_CAP_IS_USET(PKEY_CHECK))
-+			ret = set_ctxt_pkey(uctxt, subctxt_fp(fp), user_val);
-+		else
-+			ret = -EPERM;
-+		break;
-+	case HFI1_CMD_CTXT_RESET: {
-+		struct send_context *sc;
-+		struct hfi1_devdata *dd;
-+
-+		if (!uctxt || !uctxt->dd || !uctxt->sc) {
-+			ret = -EINVAL;
-+			break;
-+		}
-+		/*
-+		 * There is no protection here. User level has to
-+		 * guarantee that no one will be writing to the send
-+		 * context while it is being re-initialized.
-+		 * If user level breaks that guarantee, it will break
-+		 * it's own context and no one else's.
-+		 */
-+		dd = uctxt->dd;
-+		sc = uctxt->sc;
-+		/*
-+		 * Wait until the interrupt handler has marked the
-+		 * context as halted or frozen. Report error if we time
-+		 * out.
-+		 */
-+		wait_event_interruptible_timeout(
-+			sc->halt_wait, (sc->flags & SCF_HALTED),
-+			msecs_to_jiffies(SEND_CTXT_HALT_TIMEOUT));
-+		if (!(sc->flags & SCF_HALTED)) {
-+			ret = -ENOLCK;
-+			break;
-+		}
-+		/*
-+		 * If the send context was halted due to a Freeze,
-+		 * wait until the device has been "unfrozen" before
-+		 * resetting the context.
-+		 */
-+		if (sc->flags & SCF_FROZEN) {
-+			wait_event_interruptible_timeout(
-+				dd->event_queue,
-+				!(ACCESS_ONCE(dd->flags) & HFI1_FROZEN),
-+				msecs_to_jiffies(SEND_CTXT_HALT_TIMEOUT));
-+			if (dd->flags & HFI1_FROZEN) {
-+				ret = -ENOLCK;
-+				break;
-+			}
-+			if (dd->flags & HFI1_FORCED_FREEZE) {
-+				/* Don't allow context reset if we are into
-+				 * forced freeze */
-+				ret = -ENODEV;
-+				break;
-+			}
-+			sc_disable(sc);
-+			ret = sc_enable(sc);
-+			hfi1_rcvctrl(dd, HFI1_RCVCTRL_CTXT_ENB,
-+				     uctxt->ctxt);
-+		} else
-+			ret = sc_restart(sc);
-+		if (!ret)
-+			sc_return_credits(sc);
-+		break;
-+	}
-+	case HFI1_CMD_EP_INFO:
-+	case HFI1_CMD_EP_ERASE_CHIP:
-+	case HFI1_CMD_EP_ERASE_P0:
-+	case HFI1_CMD_EP_ERASE_P1:
-+	case HFI1_CMD_EP_READ_P0:
-+	case HFI1_CMD_EP_READ_P1:
-+	case HFI1_CMD_EP_WRITE_P0:
-+	case HFI1_CMD_EP_WRITE_P1:
-+		ret = handle_eprom_command(&cmd);
-+		break;
-+	}
-+
-+	if (ret >= 0)
-+		ret = consumed;
-+bail:
-+	return ret;
++static inline bool has_sc4_bit(struct hfi1_packet *p)
++{
++	return !!rhf_dc_info(p->rhf);
 +}
 +
-+static ssize_t hfi1_write_iter(struct kiocb *kiocb, struct iov_iter *from)
++/*
++ * Private data for snoop/capture support.
++ */
++struct hfi1_snoop_data {
++	int mode_flag;
++	struct cdev cdev;
++	struct device *class_dev;
++	spinlock_t snoop_lock;
++	struct list_head queue;
++	wait_queue_head_t waitq;
++	void *filter_value;
++	int (*filter_callback)(void *hdr, void *data, void *value);
++	u64 dcc_cfg; /* saved value of DCC Cfg register */
++};
++
++/* snoop mode_flag values */
++#define HFI1_PORT_SNOOP_MODE     1U
++#define HFI1_PORT_CAPTURE_MODE   2U
++
++struct hfi1_sge_state;
++
++/*
++ * Get/Set IB link-level config parameters for f_get/set_ib_cfg()
++ * Mostly for MADs that set or query link parameters, also ipath
++ * config interfaces
++ */
++#define HFI1_IB_CFG_LIDLMC 0 /* LID (LS16b) and Mask (MS16b) */
++#define HFI1_IB_CFG_LWID_DG_ENB 1 /* allowed Link-width downgrade */
++#define HFI1_IB_CFG_LWID_ENB 2 /* allowed Link-width */
++#define HFI1_IB_CFG_LWID 3 /* currently active Link-width */
++#define HFI1_IB_CFG_SPD_ENB 4 /* allowed Link speeds */
++#define HFI1_IB_CFG_SPD 5 /* current Link spd */
++#define HFI1_IB_CFG_RXPOL_ENB 6 /* Auto-RX-polarity enable */
++#define HFI1_IB_CFG_LREV_ENB 7 /* Auto-Lane-reversal enable */
++#define HFI1_IB_CFG_LINKLATENCY 8 /* Link Latency (IB1.2 only) */
++#define HFI1_IB_CFG_HRTBT 9 /* IB heartbeat off/enable/auto; DDR/QDR only */
++#define HFI1_IB_CFG_OP_VLS 10 /* operational VLs */
++#define HFI1_IB_CFG_VL_HIGH_CAP 11 /* num of VL high priority weights */
++#define HFI1_IB_CFG_VL_LOW_CAP 12 /* num of VL low priority weights */
++#define HFI1_IB_CFG_OVERRUN_THRESH 13 /* IB overrun threshold */
++#define HFI1_IB_CFG_PHYERR_THRESH 14 /* IB PHY error threshold */
++#define HFI1_IB_CFG_LINKDEFAULT 15 /* IB link default (sleep/poll) */
++#define HFI1_IB_CFG_PKEYS 16 /* update partition keys */
++#define HFI1_IB_CFG_MTU 17 /* update MTU in IBC */
++#define HFI1_IB_CFG_VL_HIGH_LIMIT 19
++#define HFI1_IB_CFG_PMA_TICKS 20 /* PMA sample tick resolution */
++#define HFI1_IB_CFG_PORT 21 /* switch port we are connected to */
++
++/*
++ * HFI or Host Link States
++ *
++ * These describe the states the driver thinks the logical and physical
++ * states are in.  Used as an argument to set_link_state().  Implemented
++ * as bits for easy multi-state checking.  The actual state can only be
++ * one.
++ */
++#define __HLS_UP_INIT_BP	0
++#define __HLS_UP_ARMED_BP	1
++#define __HLS_UP_ACTIVE_BP	2
++#define __HLS_DN_DOWNDEF_BP	3	/* link down default */
++#define __HLS_DN_POLL_BP	4
++#define __HLS_DN_DISABLE_BP	5
++#define __HLS_DN_OFFLINE_BP	6
++#define __HLS_VERIFY_CAP_BP	7
++#define __HLS_GOING_UP_BP	8
++#define __HLS_GOING_OFFLINE_BP  9
++#define __HLS_LINK_COOLDOWN_BP 10
++
++#define HLS_UP_INIT	  (1 << __HLS_UP_INIT_BP)
++#define HLS_UP_ARMED	  (1 << __HLS_UP_ARMED_BP)
++#define HLS_UP_ACTIVE	  (1 << __HLS_UP_ACTIVE_BP)
++#define HLS_DN_DOWNDEF	  (1 << __HLS_DN_DOWNDEF_BP) /* link down default */
++#define HLS_DN_POLL	  (1 << __HLS_DN_POLL_BP)
++#define HLS_DN_DISABLE	  (1 << __HLS_DN_DISABLE_BP)
++#define HLS_DN_OFFLINE	  (1 << __HLS_DN_OFFLINE_BP)
++#define HLS_VERIFY_CAP	  (1 << __HLS_VERIFY_CAP_BP)
++#define HLS_GOING_UP	  (1 << __HLS_GOING_UP_BP)
++#define HLS_GOING_OFFLINE (1 << __HLS_GOING_OFFLINE_BP)
++#define HLS_LINK_COOLDOWN (1 << __HLS_LINK_COOLDOWN_BP)
++
++#define HLS_UP (HLS_UP_INIT | HLS_UP_ARMED | HLS_UP_ACTIVE)
++
++/* use this MTU size if none other is given */
++#define HFI1_DEFAULT_ACTIVE_MTU 8192
++/* use this MTU size as the default maximum */
++#define HFI1_DEFAULT_MAX_MTU 8192
++/* default partition key */
++#define DEFAULT_PKEY 0xffff
++
++/*
++ * Possible fabric manager config parameters for fm_{get,set}_table()
++ */
++#define FM_TBL_VL_HIGH_ARB		1 /* Get/set VL high prio weights */
++#define FM_TBL_VL_LOW_ARB		2 /* Get/set VL low prio weights */
++#define FM_TBL_BUFFER_CONTROL		3 /* Get/set Buffer Control */
++#define FM_TBL_SC2VLNT			4 /* Get/set SC->VLnt */
++#define FM_TBL_VL_PREEMPT_ELEMS		5 /* Get (no set) VL preempt elems */
++#define FM_TBL_VL_PREEMPT_MATRIX	6 /* Get (no set) VL preempt matrix */
++
++/*
++ * Possible "operations" for f_rcvctrl(ppd, op, ctxt)
++ * these are bits so they can be combined, e.g.
++ * HFI1_RCVCTRL_INTRAVAIL_ENB | HFI1_RCVCTRL_CTXT_ENB
++ */
++#define HFI1_RCVCTRL_TAILUPD_ENB 0x01
++#define HFI1_RCVCTRL_TAILUPD_DIS 0x02
++#define HFI1_RCVCTRL_CTXT_ENB 0x04
++#define HFI1_RCVCTRL_CTXT_DIS 0x08
++#define HFI1_RCVCTRL_INTRAVAIL_ENB 0x10
++#define HFI1_RCVCTRL_INTRAVAIL_DIS 0x20
++#define HFI1_RCVCTRL_PKEY_ENB 0x40  /* Note, default is enabled */
++#define HFI1_RCVCTRL_PKEY_DIS 0x80
++#define HFI1_RCVCTRL_TIDFLOW_ENB 0x0400
++#define HFI1_RCVCTRL_TIDFLOW_DIS 0x0800
++#define HFI1_RCVCTRL_ONE_PKT_EGR_ENB 0x1000
++#define HFI1_RCVCTRL_ONE_PKT_EGR_DIS 0x2000
++#define HFI1_RCVCTRL_NO_RHQ_DROP_ENB 0x4000
++#define HFI1_RCVCTRL_NO_RHQ_DROP_DIS 0x8000
++#define HFI1_RCVCTRL_NO_EGR_DROP_ENB 0x10000
++#define HFI1_RCVCTRL_NO_EGR_DROP_DIS 0x20000
++
++/* partition enforcement flags */
++#define HFI1_PART_ENFORCE_IN	0x1
++#define HFI1_PART_ENFORCE_OUT	0x2
++
++/* how often we check for synthetic counter wrap around */
++#define SYNTH_CNT_TIME 2
++
++/* Counter flags */
++#define CNTR_NORMAL		0x0 /* Normal counters, just read register */
++#define CNTR_SYNTH		0x1 /* Synthetic counters, saturate at all 1s */
++#define CNTR_DISABLED		0x2 /* Disable this counter */
++#define CNTR_32BIT		0x4 /* Simulate 64 bits for this counter */
++#define CNTR_VL			0x8 /* Per VL counter */
++#define CNTR_INVALID_VL		-1  /* Specifies invalid VL */
++#define CNTR_MODE_W		0x0
++#define CNTR_MODE_R		0x1
++
++/* VLs Supported/Operational */
++#define HFI1_MIN_VLS_SUPPORTED 1
++#define HFI1_MAX_VLS_SUPPORTED 8
++
++static inline void incr_cntr64(u64 *cntr)
 +{
-+	struct hfi1_user_sdma_pkt_q *pq;
++	if (*cntr < (u64)-1LL)
++		(*cntr)++;
++}
++
++static inline void incr_cntr32(u32 *cntr)
++{
++	if (*cntr < (u32)-1LL)
++		(*cntr)++;
++}
++
++#define MAX_NAME_SIZE 64
++struct hfi1_msix_entry {
++	struct msix_entry msix;
++	void *arg;
++	char name[MAX_NAME_SIZE];
++	cpumask_var_t mask;
++};
++
++/* per-SL CCA information */
++struct cca_timer {
++	struct hrtimer hrtimer;
++	struct hfi1_pportdata *ppd; /* read-only */
++	int sl; /* read-only */
++	u16 ccti; /* read/write - current value of CCTI */
++};
++
++struct link_down_reason {
++	/*
++	 * SMA-facing value.  Should be set from .latest when
++	 * HLS_UP_* -> HLS_DN_* transition actually occurs.
++	 */
++	u8 sma;
++	u8 latest;
++};
++
++enum {
++	LO_PRIO_TABLE,
++	HI_PRIO_TABLE,
++	MAX_PRIO_TABLE
++};
++
++struct vl_arb_cache {
++	spinlock_t lock;
++	struct ib_vl_weight_elem table[VL_ARB_TABLE_SIZE];
++};
++
++/*
++ * The structure below encapsulates data relevant to a physical IB Port.
++ * Current chips support only one such port, but the separation
++ * clarifies things a bit. Note that to conform to IB conventions,
++ * port-numbers are one-based. The first or only port is port1.
++ */
++struct hfi1_pportdata {
++	struct hfi1_ibport ibport_data;
++
++	struct hfi1_devdata *dd;
++	struct kobject pport_cc_kobj;
++	struct kobject sc2vl_kobj;
++	struct kobject sl2sc_kobj;
++	struct kobject vl2mtu_kobj;
++
++	/* QSFP support */
++	struct qsfp_data qsfp_info;
++
++	/* GUID for this interface, in host order */
++	u64 guid;
++	/* GUID for peer interface, in host order */
++	u64 neighbor_guid;
++
++	/* up or down physical link state */
++	u32 linkup;
++
++	/*
++	 * this address is mapped read-only into user processes so they can
++	 * get status cheaply, whenever they want.  One qword of status per port
++	 */
++	u64 *statusp;
++
++	/* SendDMA related entries */
++
++	struct workqueue_struct *hfi1_wq;
++
++	/* move out of interrupt context */
++	struct work_struct link_vc_work;
++	struct work_struct link_up_work;
++	struct work_struct link_down_work;
++	struct work_struct sma_message_work;
++	struct work_struct freeze_work;
++	struct work_struct link_downgrade_work;
++	struct work_struct link_bounce_work;
++	/* host link state variables */
++	struct mutex hls_lock;
++	u32 host_link_state;
++
++	spinlock_t            sdma_alllock ____cacheline_aligned_in_smp;
++
++	u32 lstate;	/* logical link state */
++
++	/* these are the "32 bit" regs */
++
++	u32 ibmtu; /* The MTU programmed for this unit */
++	/*
++	 * Current max size IB packet (in bytes) including IB headers, that
++	 * we can send. Changes when ibmtu changes.
++	 */
++	u32 ibmaxlen;
++	u32 current_egress_rate; /* units [10^6 bits/sec] */
++	/* LID programmed for this instance */
++	u16 lid;
++	/* list of pkeys programmed; 0 if not set */
++	u16 pkeys[MAX_PKEY_VALUES];
++	u16 link_width_supported;
++	u16 link_width_downgrade_supported;
++	u16 link_speed_supported;
++	u16 link_width_enabled;
++	u16 link_width_downgrade_enabled;
++	u16 link_speed_enabled;
++	u16 link_width_active;
++	u16 link_width_downgrade_tx_active;
++	u16 link_width_downgrade_rx_active;
++	u16 link_speed_active;
++	u8 vls_supported;
++	u8 vls_operational;
++	/* LID mask control */
++	u8 lmc;
++	/* Rx Polarity inversion (compensate for ~tx on partner) */
++	u8 rx_pol_inv;
++
++	u8 hw_pidx;     /* physical port index */
++	u8 port;        /* IB port number and index into dd->pports - 1 */
++	/* type of neighbor node */
++	u8 neighbor_type;
++	u8 neighbor_normal;
++	u8 neighbor_fm_security; /* 1 if firmware checking is disabled */
++	u8 neighbor_port_number;
++	u8 is_sm_config_started;
++	u8 offline_disabled_reason;
++	u8 is_active_optimize_enabled;
++	u8 driver_link_ready;	/* driver ready for active link */
++	u8 link_enabled;	/* link enabled? */
++	u8 linkinit_reason;
++	u8 local_tx_rate;	/* rate given to 8051 firmware */
++
++	/* placeholders for IB MAD packet settings */
++	u8 overrun_threshold;
++	u8 phy_error_threshold;
++
++	/* used to override LED behavior */
++	u8 led_override;  /* Substituted for normal value, if non-zero */
++	u16 led_override_timeoff; /* delta to next timer event */
++	u8 led_override_vals[2]; /* Alternates per blink-frame */
++	u8 led_override_phase; /* Just counts, LSB picks from vals[] */
++	atomic_t led_override_timer_active;
++	/* Used to flash LEDs in override mode */
++	struct timer_list led_override_timer;
++	u32 sm_trap_qp;
++	u32 sa_qp;
++
++	/*
++	 * cca_timer_lock protects access to the per-SL cca_timer
++	 * structures (specifically the ccti member).
++	 */
++	spinlock_t cca_timer_lock ____cacheline_aligned_in_smp;
++	struct cca_timer cca_timer[OPA_MAX_SLS];
++
++	/* List of congestion control table entries */
++	struct ib_cc_table_entry_shadow ccti_entries[CC_TABLE_SHADOW_MAX];
++
++	/* congestion entries, each entry corresponding to a SL */
++	struct opa_congestion_setting_entry_shadow
++		congestion_entries[OPA_MAX_SLS];
++
++	/*
++	 * cc_state_lock protects (write) access to the per-port
++	 * struct cc_state.
++	 */
++	spinlock_t cc_state_lock ____cacheline_aligned_in_smp;
++
++	struct cc_state __rcu *cc_state;
++
++	/* Total number of congestion control table entries */
++	u16 total_cct_entry;
++
++	/* Bit map identifying service level */
++	u32 cc_sl_control_map;
++
++	/* CA's max number of 64 entry units in the congestion control table */
++	u8 cc_max_table_entries;
++
++	/* begin congestion log related entries
++	 * cc_log_lock protects all congestion log related data */
++	spinlock_t cc_log_lock ____cacheline_aligned_in_smp;
++	u8 threshold_cong_event_map[OPA_MAX_SLS/8];
++	u16 threshold_event_counter;
++	struct opa_hfi1_cong_log_event_internal cc_events[OPA_CONG_LOG_ELEMS];
++	int cc_log_idx; /* index for logging events */
++	int cc_mad_idx; /* index for reporting events */
++	/* end congestion log related entries */
++
++	struct vl_arb_cache vl_arb_cache[MAX_PRIO_TABLE];
++
++	/* port relative counter buffer */
++	u64 *cntrs;
++	/* port relative synthetic counter buffer */
++	u64 *scntrs;
++	/* we synthesize port_xmit_discards from several egress errors */
++	u64 port_xmit_discards;
++	u64 port_xmit_constraint_errors;
++	u64 port_rcv_constraint_errors;
++	/* count of 'link_err' interrupts from DC */
++	u64 link_downed;
++	/* number of times link retrained successfully */
++	u64 link_up;
++	/* port_ltp_crc_mode is returned in 'portinfo' MADs */
++	u16 port_ltp_crc_mode;
++	/* port_crc_mode_enabled is the crc we support */
++	u8 port_crc_mode_enabled;
++	/* mgmt_allowed is also returned in 'portinfo' MADs */
++	u8 mgmt_allowed;
++	u8 part_enforce; /* partition enforcement flags */
++	struct link_down_reason local_link_down_reason;
++	struct link_down_reason neigh_link_down_reason;
++	/* Value to be sent to link peer on LinkDown .*/
++	u8 remote_link_down_reason;
++	/* Error events that will cause a port bounce. */
++	u32 port_error_action;
++};
++
++typedef int (*rhf_rcv_function_ptr)(struct hfi1_packet *packet);
++
++typedef void (*opcode_handler)(struct hfi1_packet *packet);
++
++/* return values for the RHF receive functions */
++#define RHF_RCV_CONTINUE  0	/* keep going */
++#define RHF_RCV_DONE	  1	/* stop, this packet processed */
++#define RHF_RCV_REPROCESS 2	/* stop. retain this packet */
++
++struct rcv_array_data {
++	u8 group_size;
++	u16 ngroups;
++	u16 nctxt_extra;
++};
++
++struct per_vl_data {
++	u16 mtu;
++	struct send_context *sc;
++};
++
++/* 16 to directly index */
++#define PER_VL_SEND_CONTEXTS 16
++
++struct err_info_rcvport {
++	u8 status_and_code;
++	u64 packet_flit1;
++	u64 packet_flit2;
++};
++
++struct err_info_constraint {
++	u8 status;
++	u16 pkey;
++	u32 slid;
++};
++
++struct hfi1_temp {
++	unsigned int curr;       /* current temperature */
++	unsigned int lo_lim;     /* low temperature limit */
++	unsigned int hi_lim;     /* high temperature limit */
++	unsigned int crit_lim;   /* critical temperature limit */
++	u8 triggers;      /* temperature triggers */
++};
++
++/* device data struct now contains only "general per-device" info.
++ * fields related to a physical IB port are in a hfi1_pportdata struct.
++ */
++struct sdma_engine;
++struct sdma_vl_map;
++
++#define BOARD_VERS_MAX 96 /* how long the version string can be */
++#define SERIAL_MAX 16 /* length of the serial number */
++
++struct hfi1_devdata {
++	struct hfi1_ibdev verbs_dev;     /* must be first */
++	struct list_head list;
++	/* pointers to related structs for this device */
++	/* pci access data structure */
++	struct pci_dev *pcidev;
++	struct cdev user_cdev;
++	struct cdev diag_cdev;
++	struct cdev ui_cdev;
++	struct device *user_device;
++	struct device *diag_device;
++	struct device *ui_device;
++
++	/* mem-mapped pointer to base of chip regs */
++	u8 __iomem *kregbase;
++	/* end of mem-mapped chip space excluding sendbuf and user regs */
++	u8 __iomem *kregend;
++	/* physical address of chip for io_remap, etc. */
++	resource_size_t physaddr;
++	/* receive context data */
++	struct hfi1_ctxtdata **rcd;
++	/* send context data */
++	struct send_context_info *send_contexts;
++	/* map hardware send contexts to software index */
++	u8 *hw_to_sw;
++	/* spinlock for allocating and releasing send context resources */
++	spinlock_t sc_lock;
++	/* Per VL data. Enough for all VLs but not all elements are set/used. */
++	struct per_vl_data vld[PER_VL_SEND_CONTEXTS];
++	/* seqlock for sc2vl */
++	seqlock_t sc2vl_lock;
++	u64 sc2vl[4];
++	/* Send Context initialization lock. */
++	spinlock_t sc_init_lock;
++
++	/* fields common to all SDMA engines */
++
++	/* default flags to last descriptor */
++	u64 default_desc1;
++	volatile __le64                    *sdma_heads_dma; /* DMA'ed by chip */
++	dma_addr_t                          sdma_heads_phys;
++	void                               *sdma_pad_dma; /* DMA'ed by chip */
++	dma_addr_t                          sdma_pad_phys;
++	/* for deallocation */
++	size_t                              sdma_heads_size;
++	/* number from the chip */
++	u32                                 chip_sdma_engines;
++	/* num used */
++	u32                                 num_sdma;
++	/* lock for sdma_map */
++	spinlock_t                          sde_map_lock;
++	/* array of engines sized by num_sdma */
++	struct sdma_engine                 *per_sdma;
++	/* array of vl maps */
++	struct sdma_vl_map __rcu           *sdma_map;
++	/* SPC freeze waitqueue and variable */
++	wait_queue_head_t		  sdma_unfreeze_wq;
++	atomic_t			  sdma_unfreeze_count;
++
++
++	/* hfi1_pportdata, points to array of (physical) port-specific
++	 * data structs, indexed by pidx (0..n-1)
++	 */
++	struct hfi1_pportdata *pport;
++
++	/* mem-mapped pointer to base of PIO buffers */
++	void __iomem *piobase;
++	/*
++	 * write-combining mem-mapped pointer to base of RcvArray
++	 * memory.
++	 */
++	void __iomem *rcvarray_wc;
++	/*
++	 * credit return base - a per-NUMA range of DMA address that
++	 * the chip will use to update the per-context free counter
++	 */
++	struct credit_return_base *cr_base;
++
++	/* send context numbers and sizes for each type */
++	struct sc_config_sizes sc_sizes[SC_MAX];
++
++	u32 lcb_access_count;		/* count of LCB users */
++
++	char *boardname; /* human readable board info */
++
++	/* device (not port) flags, basically device capabilities */
++	u32 flags;
++
++	/* reset value */
++	u64 z_int_counter;
++	u64 z_rcv_limit;
++	/* percpu int_counter */
++	u64 __percpu *int_counter;
++	u64 __percpu *rcv_limit;
++
++	/* number of receive contexts in use by the driver */
++	u32 num_rcv_contexts;
++	/* number of pio send contexts in use by the driver */
++	u32 num_send_contexts;
++	/*
++	 * number of ctxts available for PSM open
++	 */
++	u32 freectxts;
++	/* base receive interrupt timeout, in CSR units */
++	u32 rcv_intr_timeout_csr;
++
++	u64 __iomem *egrtidbase;
++	spinlock_t sendctrl_lock; /* protect changes to SendCtrl */
++	spinlock_t rcvctrl_lock; /* protect changes to RcvCtrl */
++	/* around rcd and (user ctxts) ctxt_cnt use (intr vs free) */
++	spinlock_t uctxt_lock; /* rcd and user context changes */
++	/* exclusive access to 8051 */
++	spinlock_t dc8051_lock;
++	/* exclusive access to 8051 memory */
++	spinlock_t dc8051_memlock;
++	int dc8051_timed_out;	/* remember if the 8051 timed out */
++	/*
++	 * A page that will hold event notification bitmaps for all
++	 * contexts. This page will be mapped into all processes.
++	 */
++	unsigned long *events;
++	/*
++	 * per unit status, see also portdata statusp
++	 * mapped read-only into user processes so they can get unit and
++	 * IB link status cheaply
++	 */
++	struct hfi1_status *status;
++	u32 freezelen; /* max length of freezemsg */
++
++	/* revision register shadow */
++	u64 revision;
++	/* Base GUID for device (network order) */
++	u64 base_guid;
++
++	/* these are the "32 bit" regs */
++
++	/* value we put in kr_rcvhdrsize */
++	u32 rcvhdrsize;
++	/* number of receive contexts the chip supports */
++	u32 chip_rcv_contexts;
++	/* number of receive array entries */
++	u32 chip_rcv_array_count;
++	/* number of PIO send contexts the chip supports */
++	u32 chip_send_contexts;
++	/* number of bytes in the PIO memory buffer */
++	u32 chip_pio_mem_size;
++	/* number of bytes in the SDMA memory buffer */
++	u32 chip_sdma_mem_size;
++
++	/* size of each rcvegrbuffer */
++	u32 rcvegrbufsize;
++	/* log2 of above */
++	u16 rcvegrbufsize_shift;
++	/* both sides of the PCIe link are gen3 capable */
++	u8 link_gen3_capable;
++	/* localbus width (1, 2,4,8,16,32) from config space  */
++	u32 lbus_width;
++	/* localbus speed in MHz */
++	u32 lbus_speed;
++	int unit; /* unit # of this chip */
++	int node; /* home node of this chip */
++
++	/* save these PCI fields to restore after a reset */
++	u32 pcibar0;
++	u32 pcibar1;
++	u32 pci_rom;
++	u16 pci_command;
++	u16 pcie_devctl;
++	u16 pcie_lnkctl;
++	u16 pcie_devctl2;
++	u32 pci_msix0;
++	u32 pci_lnkctl3;
++	u32 pci_tph2;
++
++	/*
++	 * ASCII serial number, from flash, large enough for original
++	 * all digit strings, and longer serial number format
++	 */
++	u8 serial[SERIAL_MAX];
++	/* human readable board version */
++	u8 boardversion[BOARD_VERS_MAX];
++	u8 lbus_info[32]; /* human readable localbus info */
++	/* chip major rev, from CceRevision */
++	u8 majrev;
++	/* chip minor rev, from CceRevision */
++	u8 minrev;
++	/* hardware ID */
++	u8 hfi1_id;
++	/* implementation code */
++	u8 icode;
++	/* default link down value (poll/sleep) */
++	u8 link_default;
++	/* vAU of this device */
++	u8 vau;
++	/* vCU of this device */
++	u8 vcu;
++	/* link credits of this device */
++	u16 link_credits;
++	/* initial vl15 credits to use */
++	u16 vl15_init;
++
++	/* Misc small ints */
++	/* Number of physical ports available */
++	u8 num_pports;
++	/* Lowest context number which can be used by user processes */
++	u8 first_user_ctxt;
++	u8 n_krcv_queues;
++	u8 qos_shift;
++	u8 qpn_mask;
++
++	u16 rhf_offset; /* offset of RHF within receive header entry */
++	u16 irev;	/* implementation revision */
++	u16 dc8051_ver; /* 8051 firmware version */
++
++	struct platform_config_cache pcfg_cache;
++	/* control high-level access to qsfp */
++	struct mutex qsfp_i2c_mutex;
++
++	struct diag_client *diag_client;
++	spinlock_t hfi1_diag_trans_lock; /* protect diag observer ops */
++
++	u8 psxmitwait_supported;
++	/* cycle length of PS* counters in HW (in picoseconds) */
++	u16 psxmitwait_check_rate;
++	/* high volume overflow errors deferred to tasklet */
++	struct tasklet_struct error_tasklet;
++	/* per device cq worker */
++	struct kthread_worker *worker;
++
++	/* MSI-X information */
++	struct hfi1_msix_entry *msix_entries;
++	u32 num_msix_entries;
++
++	/* INTx information */
++	u32 requested_intx_irq;		/* did we request one? */
++	char intx_name[MAX_NAME_SIZE];	/* INTx name */
++
++	/* general interrupt: mask of handled interrupts */
++	u64 gi_mask[CCE_NUM_INT_CSRS];
++
++	struct rcv_array_data rcv_entries;
++
++	/*
++	 * 64 bit synthetic counters
++	 */
++	struct timer_list synth_stats_timer;
++
++	/*
++	 * device counters
++	 */
++	char *cntrnames;
++	size_t cntrnameslen;
++	size_t ndevcntrs;
++	u64 *cntrs;
++	u64 *scntrs;
++
++	/*
++	 * remembered values for synthetic counters
++	 */
++	u64 last_tx;
++	u64 last_rx;
++
++	/*
++	 * per-port counters
++	 */
++	size_t nportcntrs;
++	char *portcntrnames;
++	size_t portcntrnameslen;
++
++	struct hfi1_snoop_data hfi1_snoop;
++
++	struct err_info_rcvport err_info_rcvport;
++	struct err_info_constraint err_info_rcv_constraint;
++	struct err_info_constraint err_info_xmit_constraint;
++	u8 err_info_uncorrectable;
++	u8 err_info_fmconfig;
++
++	atomic_t drop_packet;
++	u8 do_drop;
++
++	/* receive interrupt functions */
++	rhf_rcv_function_ptr *rhf_rcv_function_map;
++	rhf_rcv_function_ptr normal_rhf_rcv_functions[8];
++
++	/*
++	 * Handlers for outgoing data so that snoop/capture does not
++	 * have to have its hooks in the send path
++	 */
++	int (*process_pio_send)(struct hfi1_qp *qp, struct ahg_ib_header *ibhdr,
++				u32 hdrwords, struct hfi1_sge_state *ss,
++				u32 len, u32 plen, u32 dwords, u64 pbc);
++	int (*process_dma_send)(struct hfi1_qp *qp, struct ahg_ib_header *ibhdr,
++				u32 hdrwords, struct hfi1_sge_state *ss,
++				u32 len, u32 plen, u32 dwords, u64 pbc);
++	void (*pio_inline_send)(struct hfi1_devdata *dd, struct pio_buf *pbuf,
++				u64 pbc, const void *from, size_t count);
++
++	/* OUI comes from the HW. Used everywhere as 3 separate bytes. */
++	u8 oui1;
++	u8 oui2;
++	u8 oui3;
++	/* Timer and counter used to detect RcvBufOvflCnt changes */
++	struct timer_list rcverr_timer;
++	u32 rcv_ovfl_cnt;
++
++	int assigned_node_id;
++	wait_queue_head_t event_queue;
++
++	/* Save the enabled LCB error bits */
++	u64 lcb_err_en;
++	u8 dc_shutdown;
++};
++
++/* 8051 firmware version helper */
++#define dc8051_ver(a, b) ((a) << 8 | (b))
++
++/* f_put_tid types */
++#define PT_EXPECTED 0
++#define PT_EAGER    1
++#define PT_INVALID  2
++
++/* Private data for file operations */
++struct hfi1_filedata {
++	struct hfi1_ctxtdata *uctxt;
++	unsigned subctxt;
 +	struct hfi1_user_sdma_comp_q *cq;
-+	int ret = 0, done = 0, reqs = 0;
-+	unsigned long dim = from->nr_segs;
++	struct hfi1_user_sdma_pkt_q *pq;
++	/* for cpu affinity; -1 if none */
++	int rec_cpu_num;
++};
 +
-+	if (!user_sdma_comp_fp(kiocb->ki_filp) ||
-+	    !user_sdma_pkt_fp(kiocb->ki_filp)) {
-+		ret = -EIO;
-+		goto done;
-+	}
++extern struct list_head hfi1_dev_list;
++extern spinlock_t hfi1_devs_lock;
++struct hfi1_devdata *hfi1_lookup(int unit);
++extern u32 hfi1_cpulist_count;
++extern unsigned long *hfi1_cpulist;
 +
-+	if (!iter_is_iovec(from) || !dim) {
-+		ret = -EINVAL;
-+		goto done;
-+	}
++extern unsigned int snoop_drop_send;
++extern unsigned int snoop_force_capture;
++int hfi1_init(struct hfi1_devdata *, int);
++int hfi1_count_units(int *npresentp, int *nupp);
++int hfi1_count_active_units(void);
 +
-+	hfi1_cdbg(SDMA, "SDMA request from %u:%u (%lu)",
-+		  ctxt_fp(kiocb->ki_filp)->ctxt, subctxt_fp(kiocb->ki_filp),
-+		  dim);
-+	pq = user_sdma_pkt_fp(kiocb->ki_filp);
-+	cq = user_sdma_comp_fp(kiocb->ki_filp);
++int hfi1_diag_add(struct hfi1_devdata *);
++void hfi1_diag_remove(struct hfi1_devdata *);
++void handle_linkup_change(struct hfi1_devdata *dd, u32 linkup);
 +
-+	if (atomic_read(&pq->n_reqs) == pq->n_max_reqs) {
-+		ret = -ENOSPC;
-+		goto done;
-+	}
++void handle_user_interrupt(struct hfi1_ctxtdata *rcd);
 +
-+	while (dim) {
-+		unsigned long count = 0;
++int hfi1_create_rcvhdrq(struct hfi1_devdata *, struct hfi1_ctxtdata *);
++int hfi1_setup_eagerbufs(struct hfi1_ctxtdata *);
++int hfi1_create_ctxts(struct hfi1_devdata *dd);
++struct hfi1_ctxtdata *hfi1_create_ctxtdata(struct hfi1_pportdata *, u32);
++void hfi1_init_pportdata(struct pci_dev *, struct hfi1_pportdata *,
++			 struct hfi1_devdata *, u8, u8);
++void hfi1_free_ctxtdata(struct hfi1_devdata *, struct hfi1_ctxtdata *);
 +
-+		ret = hfi1_user_sdma_process_request(
-+			kiocb->ki_filp,	(struct iovec *)(from->iov + done),
-+			dim, &count);
-+		if (ret)
-+			goto done;
-+		dim -= count;
-+		done += count;
-+		reqs++;
-+	}
-+done:
-+	return ret ? ret : reqs;
++void handle_receive_interrupt(struct hfi1_ctxtdata *);
++void handle_receive_interrupt_nodma_rtail(struct hfi1_ctxtdata *rcd);
++void handle_receive_interrupt_dma_rtail(struct hfi1_ctxtdata *rcd);
++int hfi1_reset_device(int);
++
++/* return the driver's idea of the logical OPA port state */
++static inline u32 driver_lstate(struct hfi1_pportdata *ppd)
++{
++	return ppd->lstate; /* use the cached value */
 +}
 +
-+static int hfi1_file_mmap(struct file *fp, struct vm_area_struct *vma)
++static inline u16 generate_jkey(kuid_t uid)
 +{
-+	struct hfi1_ctxtdata *uctxt;
-+	struct hfi1_devdata *dd;
-+	unsigned long flags, pfn;
-+	u64 token = vma->vm_pgoff << PAGE_SHIFT,
-+		memaddr = 0;
-+	u8 subctxt, mapio = 0, vmf = 0, type;
-+	ssize_t memlen = 0;
-+	int ret = 0;
-+	u16 ctxt;
++	return from_kuid(current_user_ns(), uid) & 0xffff;
++}
 +
-+	uctxt = ctxt_fp(fp);
-+	if (!is_valid_mmap(token) || !uctxt ||
-+	    !(vma->vm_flags & VM_SHARED)) {
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+	dd = uctxt->dd;
-+	ctxt = HFI1_MMAP_TOKEN_GET(CTXT, token);
-+	subctxt = HFI1_MMAP_TOKEN_GET(SUBCTXT, token);
-+	type = HFI1_MMAP_TOKEN_GET(TYPE, token);
-+	if (ctxt != uctxt->ctxt || subctxt != subctxt_fp(fp)) {
-+		ret = -EINVAL;
-+		goto done;
-+	}
++/*
++ * active_egress_rate
++ *
++ * returns the active egress rate in units of [10^6 bits/sec]
++ */
++static inline u32 active_egress_rate(struct hfi1_pportdata *ppd)
++{
++	u16 link_speed = ppd->link_speed_active;
++	u16 link_width = ppd->link_width_active;
++	u32 egress_rate;
 +
-+	flags = vma->vm_flags;
++	if (link_speed == OPA_LINK_SPEED_25G)
++		egress_rate = 25000;
++	else /* assume OPA_LINK_SPEED_12_5G */
++		egress_rate = 12500;
 +
-+	switch (type) {
-+	case PIO_BUFS:
-+	case PIO_BUFS_SOP:
-+		memaddr = ((dd->physaddr + TXE_PIO_SEND) +
-+				/* chip pio base */
-+			   (uctxt->sc->hw_context * (1 << 16))) +
-+				/* 64K PIO space / ctxt */
-+			(type == PIO_BUFS_SOP ?
-+				(TXE_PIO_SIZE / 2) : 0); /* sop? */
-+		/*
-+		 * Map only the amount allocated to the context, not the
-+		 * entire available context's PIO space.
-+		 */
-+		memlen = ALIGN(uctxt->sc->credits * PIO_BLOCK_SIZE,
-+			       PAGE_SIZE);
-+		flags &= ~VM_MAYREAD;
-+		flags |= VM_DONTCOPY | VM_DONTEXPAND;
-+		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
-+		mapio = 1;
++	switch (link_width) {
++	case OPA_LINK_WIDTH_4X:
++		egress_rate *= 4;
 +		break;
-+	case PIO_CRED:
-+		if (flags & VM_WRITE) {
-+			ret = -EPERM;
-+			goto done;
-+		}
-+		/*
-+		 * The credit return location for this context could be on the
-+		 * second or third page allocated for credit returns (if number
-+		 * of enabled contexts > 64 and 128 respectively).
-+		 */
-+		memaddr = dd->cr_base[uctxt->numa_id].pa +
-+			(((u64)uctxt->sc->hw_free -
-+			  (u64)dd->cr_base[uctxt->numa_id].va) & PAGE_MASK);
-+		memlen = PAGE_SIZE;
-+		flags &= ~VM_MAYWRITE;
-+		flags |= VM_DONTCOPY | VM_DONTEXPAND;
-+		/*
-+		 * The driver has already allocated memory for credit
-+		 * returns and programmed it into the chip. Has that
-+		 * memory been flagged as non-cached?
-+		 */
-+		/* vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot); */
-+		mapio = 1;
++	case OPA_LINK_WIDTH_3X:
++		egress_rate *= 3;
 +		break;
-+	case RCV_HDRQ:
-+		memaddr = uctxt->rcvhdrq_phys;
-+		memlen = uctxt->rcvhdrq_size;
++	case OPA_LINK_WIDTH_2X:
++		egress_rate *= 2;
 +		break;
-+	case RCV_EGRBUF: {
-+		unsigned long addr;
-+		int i;
-+		/*
-+		 * The RcvEgr buffer need to be handled differently
-+		 * as multiple non-contiguous pages need to be mapped
-+		 * into the user process.
-+		 */
-+		memlen = uctxt->egrbufs.size;
-+		if ((vma->vm_end - vma->vm_start) != memlen) {
-+			dd_dev_err(dd, "Eager buffer map size invalid (%lu != %lu)\n",
-+				   (vma->vm_end - vma->vm_start), memlen);
-+			ret = -EINVAL;
-+			goto done;
-+		}
-+		if (vma->vm_flags & VM_WRITE) {
-+			ret = -EPERM;
-+			goto done;
-+		}
-+		vma->vm_flags &= ~VM_MAYWRITE;
-+		addr = vma->vm_start;
-+		for (i = 0 ; i < uctxt->egrbufs.numbufs; i++) {
-+			ret = remap_pfn_range(
-+				vma, addr,
-+				uctxt->egrbufs.buffers[i].phys >> PAGE_SHIFT,
-+				uctxt->egrbufs.buffers[i].len,
-+				vma->vm_page_prot);
-+			if (ret < 0)
-+				goto done;
-+			addr += uctxt->egrbufs.buffers[i].len;
-+		}
-+		ret = 0;
-+		goto done;
-+	}
-+	case UREGS:
-+		/*
-+		 * Map only the page that contains this context's user
-+		 * registers.
-+		 */
-+		memaddr = (unsigned long)
-+			(dd->physaddr + RXE_PER_CONTEXT_USER)
-+			+ (uctxt->ctxt * RXE_PER_CONTEXT_SIZE);
-+		/*
-+		 * TidFlow table is on the same page as the rest of the
-+		 * user registers.
-+		 */
-+		memlen = PAGE_SIZE;
-+		flags |= VM_DONTCOPY | VM_DONTEXPAND;
-+		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-+		mapio = 1;
-+		break;
-+	case EVENTS:
-+		/*
-+		 * Use the page where this context's flags are. User level
-+		 * knows where it's own bitmap is within the page.
-+		 */
-+		memaddr = ((unsigned long)dd->events +
-+			   ((uctxt->ctxt - dd->first_user_ctxt) *
-+			    HFI1_MAX_SHARED_CTXTS)) & PAGE_MASK;
-+		memlen = PAGE_SIZE;
-+		/*
-+		 * v3.7 removes VM_RESERVED but the effect is kept by
-+		 * using VM_IO.
-+		 */
-+		flags |= VM_IO | VM_DONTEXPAND;
-+		vmf = 1;
-+		break;
-+	case STATUS:
-+		memaddr = kvirt_to_phys((void *)dd->status);
-+		memlen = PAGE_SIZE;
-+		flags |= VM_IO | VM_DONTEXPAND;
-+		break;
-+	case RTAIL:
-+		if (!HFI1_CAP_IS_USET(DMA_RTAIL)) {
-+			/*
-+			 * If the memory allocation failed, the context alloc
-+			 * also would have failed, so we would never get here
-+			 */
-+			ret = -EINVAL;
-+			goto done;
-+		}
-+		if (flags & VM_WRITE) {
-+			ret = -EPERM;
-+			goto done;
-+		}
-+		memaddr = uctxt->rcvhdrqtailaddr_phys;
-+		memlen = PAGE_SIZE;
-+		flags &= ~VM_MAYWRITE;
-+		break;
-+	case SUBCTXT_UREGS:
-+		memaddr = (u64)uctxt->subctxt_uregbase;
-+		memlen = PAGE_SIZE;
-+		flags |= VM_IO | VM_DONTEXPAND;
-+		vmf = 1;
-+		break;
-+	case SUBCTXT_RCV_HDRQ:
-+		memaddr = (u64)uctxt->subctxt_rcvhdr_base;
-+		memlen = uctxt->rcvhdrq_size * uctxt->subctxt_cnt;
-+		flags |= VM_IO | VM_DONTEXPAND;
-+		vmf = 1;
-+		break;
-+	case SUBCTXT_EGRBUF:
-+		memaddr = (u64)uctxt->subctxt_rcvegrbuf;
-+		memlen = uctxt->egrbufs.size * uctxt->subctxt_cnt;
-+		flags |= VM_IO | VM_DONTEXPAND;
-+		flags &= ~VM_MAYWRITE;
-+		vmf = 1;
-+		break;
-+	case SDMA_COMP: {
-+		struct hfi1_user_sdma_comp_q *cq;
-+
-+		if (!user_sdma_comp_fp(fp)) {
-+			ret = -EFAULT;
-+			goto done;
-+		}
-+		cq = user_sdma_comp_fp(fp);
-+		memaddr = (u64)cq->comps;
-+		memlen = ALIGN(sizeof(*cq->comps) * cq->nentries, PAGE_SIZE);
-+		flags |= VM_IO | VM_DONTEXPAND;
-+		vmf = 1;
-+		break;
-+	}
 +	default:
-+		ret = -EINVAL;
++		/* assume IB_WIDTH_1X */
 +		break;
 +	}
 +
-+	if ((vma->vm_end - vma->vm_start) != memlen) {
-+		hfi1_cdbg(PROC, "%u:%u Memory size mismatch %lu:%lu",
-+			  uctxt->ctxt, subctxt_fp(fp),
-+			  (vma->vm_end - vma->vm_start), memlen);
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
-+	vma->vm_flags = flags;
-+	dd_dev_info(dd,
-+		    "%s: %u:%u type:%u io/vf:%d/%d, addr:0x%llx, len:%lu(%lu), flags:0x%lx\n",
-+		    __func__, ctxt, subctxt, type, mapio, vmf, memaddr, memlen,
-+		    vma->vm_end - vma->vm_start, vma->vm_flags);
-+	pfn = (unsigned long)(memaddr >> PAGE_SHIFT);
-+	if (vmf) {
-+		vma->vm_pgoff = pfn;
-+		vma->vm_ops = &vm_ops;
-+		ret = 0;
-+	} else if (mapio) {
-+		ret = io_remap_pfn_range(vma, vma->vm_start, pfn, memlen,
-+					 vma->vm_page_prot);
-+	} else {
-+		ret = remap_pfn_range(vma, vma->vm_start, pfn, memlen,
-+				      vma->vm_page_prot);
-+	}
-+done:
-+	return ret;
++	return egress_rate;
 +}
 +
 +/*
-+ * Local (non-chip) user memory is not mapped right away but as it is
-+ * accessed by the user-level code.
++ * egress_cycles
++ *
++ * Returns the number of 'fabric clock cycles' to egress a packet
++ * of length 'len' bytes, at 'rate' Mbit/s. Since the fabric clock
++ * rate is (approximately) 805 MHz, the units of the returned value
++ * are (1/805 MHz).
 + */
-+static int vma_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
++static inline u32 egress_cycles(u32 len, u32 rate)
 +{
-+	struct page *page;
-+
-+	page = vmalloc_to_page((void *)(vmf->pgoff << PAGE_SHIFT));
-+	if (!page)
-+		return VM_FAULT_SIGBUS;
-+
-+	get_page(page);
-+	vmf->page = page;
-+
-+	return 0;
-+}
-+
-+static unsigned int hfi1_poll(struct file *fp, struct poll_table_struct *pt)
-+{
-+	struct hfi1_ctxtdata *uctxt;
-+	unsigned pollflag;
-+
-+	uctxt = ctxt_fp(fp);
-+	if (!uctxt)
-+		pollflag = POLLERR;
-+	else if (uctxt->poll_type == HFI1_POLL_TYPE_URGENT)
-+		pollflag = poll_urgent(fp, pt);
-+	else  if (uctxt->poll_type == HFI1_POLL_TYPE_ANYRCV)
-+		pollflag = poll_next(fp, pt);
-+	else /* invalid */
-+		pollflag = POLLERR;
-+
-+	return pollflag;
-+}
-+
-+static int hfi1_file_close(struct inode *inode, struct file *fp)
-+{
-+	struct hfi1_filedata *fdata = fp->private_data;
-+	struct hfi1_ctxtdata *uctxt = fdata->uctxt;
-+	struct hfi1_devdata *dd;
-+	unsigned long flags, *ev;
-+
-+	fp->private_data = NULL;
-+
-+	if (!uctxt)
-+		goto done;
-+
-+	hfi1_cdbg(PROC, "freeing ctxt %u:%u", uctxt->ctxt, fdata->subctxt);
-+	dd = uctxt->dd;
-+	mutex_lock(&hfi1_mutex);
-+
-+	flush_wc();
-+	/* drain user sdma queue */
-+	if (fdata->pq)
-+		hfi1_user_sdma_free_queues(fdata);
++	u32 cycles;
 +
 +	/*
-+	 * Clear any left over, unhandled events so the next process that
-+	 * gets this context doesn't get confused.
++	 * cycles is:
++	 *
++	 *          (length) [bits] / (rate) [bits/sec]
++	 *  ---------------------------------------------------
++	 *  fabric_clock_period == 1 /(805 * 10^6) [cycles/sec]
 +	 */
-+	ev = dd->events + ((uctxt->ctxt - dd->first_user_ctxt) *
-+			   HFI1_MAX_SHARED_CTXTS) + fdata->subctxt;
-+	*ev = 0;
 +
-+	if (--uctxt->cnt) {
-+		uctxt->active_slaves &= ~(1 << fdata->subctxt);
-+		uctxt->subpid[fdata->subctxt] = 0;
-+		mutex_unlock(&hfi1_mutex);
-+		goto done;
-+	}
++	cycles = len * 8; /* bits */
++	cycles *= 805;
++	cycles /= rate;
 +
-+	spin_lock_irqsave(&dd->uctxt_lock, flags);
-+	/*
-+	 * Disable receive context and interrupt available, reset all
-+	 * RcvCtxtCtrl bits to default values.
-+	 */
-+	hfi1_rcvctrl(dd, HFI1_RCVCTRL_CTXT_DIS |
-+		     HFI1_RCVCTRL_TIDFLOW_DIS |
-+		     HFI1_RCVCTRL_INTRAVAIL_DIS |
-+		     HFI1_RCVCTRL_ONE_PKT_EGR_DIS |
-+		     HFI1_RCVCTRL_NO_RHQ_DROP_DIS |
-+		     HFI1_RCVCTRL_NO_EGR_DROP_DIS, uctxt->ctxt);
-+	/* Clear the context's J_KEY */
-+	hfi1_clear_ctxt_jkey(dd, uctxt->ctxt);
-+	/*
-+	 * Reset context integrity checks to default.
-+	 * (writes to CSRs probably belong in chip.c)
-+	 */
-+	write_kctxt_csr(dd, uctxt->sc->hw_context, SEND_CTXT_CHECK_ENABLE,
-+			hfi1_pkt_default_send_ctxt_mask(dd, uctxt->sc->type));
-+	sc_disable(uctxt->sc);
-+	uctxt->pid = 0;
-+	spin_unlock_irqrestore(&dd->uctxt_lock, flags);
-+
-+	dd->rcd[uctxt->ctxt] = NULL;
-+	uctxt->rcvwait_to = 0;
-+	uctxt->piowait_to = 0;
-+	uctxt->rcvnowait = 0;
-+	uctxt->pionowait = 0;
-+	uctxt->event_flags = 0;
-+
-+	hfi1_clear_tids(uctxt);
-+	hfi1_clear_ctxt_pkey(dd, uctxt->ctxt);
-+
-+	if (uctxt->tid_pg_list)
-+		unlock_exp_tids(uctxt);
-+
-+	hfi1_stats.sps_ctxts--;
-+	dd->freectxts++;
-+	mutex_unlock(&hfi1_mutex);
-+	hfi1_free_ctxtdata(dd, uctxt);
-+done:
-+	kfree(fdata);
-+	return 0;
++	return cycles;
 +}
 +
-+/*
-+ * Convert kernel *virtual* addresses to physical addresses.
-+ * This is used to vmalloc'ed addresses.
-+ */
-+static u64 kvirt_to_phys(void *addr)
++void set_link_ipg(struct hfi1_pportdata *ppd);
++void process_becn(struct hfi1_pportdata *ppd, u8 sl,  u16 rlid, u32 lqpn,
++		  u32 rqpn, u8 svc_type);
++void return_cnp(struct hfi1_ibport *ibp, struct hfi1_qp *qp, u32 remote_qpn,
++		u32 pkey, u32 slid, u32 dlid, u8 sc5,
++		const struct ib_grh *old_grh);
++
++#define PACKET_EGRESS_TIMEOUT 350
++static inline void pause_for_credit_return(struct hfi1_devdata *dd)
 +{
-+	struct page *page;
-+	u64 paddr = 0;
++	/* Pause at least 1us, to ensure chip returns all credits */
++	u32 usec = cclock_to_ns(dd, PACKET_EGRESS_TIMEOUT) / 1000;
 +
-+	page = vmalloc_to_page(addr);
-+	if (page)
-+		paddr = page_to_pfn(page) << PAGE_SHIFT;
-+
-+	return paddr;
-+}
-+
-+static int assign_ctxt(struct file *fp, struct hfi1_user_info *uinfo)
-+{
-+	int i_minor, ret = 0;
-+	unsigned swmajor, swminor, alg = HFI1_ALG_ACROSS;
-+
-+	swmajor = uinfo->userversion >> 16;
-+	if (swmajor != HFI1_USER_SWMAJOR) {
-+		ret = -ENODEV;
-+		goto done;
-+	}
-+
-+	swminor = uinfo->userversion & 0xffff;
-+
-+	if (uinfo->hfi1_alg < HFI1_ALG_COUNT)
-+		alg = uinfo->hfi1_alg;
-+
-+	mutex_lock(&hfi1_mutex);
-+	/* First, lets check if we need to setup a shared context? */
-+	if (uinfo->subctxt_cnt)
-+		ret = find_shared_ctxt(fp, uinfo);
-+
-+	/*
-+	 * We execute the following block if we couldn't find a
-+	 * shared context or if context sharing is not required.
-+	 */
-+	if (!ret) {
-+		i_minor = iminor(file_inode(fp)) - HFI1_USER_MINOR_BASE;
-+		ret = get_user_context(fp, uinfo, i_minor - 1, alg);
-+	}
-+	mutex_unlock(&hfi1_mutex);
-+done:
-+	return ret;
-+}
-+
-+static int get_user_context(struct file *fp, struct hfi1_user_info *uinfo,
-+			    int devno, unsigned alg)
-+{
-+	struct hfi1_devdata *dd = NULL;
-+	int ret = 0, devmax, npresent, nup, dev;
-+
-+	devmax = hfi1_count_units(&npresent, &nup);
-+	if (!npresent) {
-+		ret = -ENXIO;
-+		goto done;
-+	}
-+	if (!nup) {
-+		ret = -ENETDOWN;
-+		goto done;
-+	}
-+	if (devno >= 0) {
-+		dd = hfi1_lookup(devno);
-+		if (!dd)
-+			ret = -ENODEV;
-+		else if (!dd->freectxts)
-+			ret = -EBUSY;
-+	} else {
-+		struct hfi1_devdata *pdd;
-+
-+		if (alg == HFI1_ALG_ACROSS) {
-+			unsigned free = 0U;
-+
-+			for (dev = 0; dev < devmax; dev++) {
-+				pdd = hfi1_lookup(dev);
-+				if (pdd && pdd->freectxts &&
-+				    pdd->freectxts > free) {
-+					dd = pdd;
-+					free = pdd->freectxts;
-+				}
-+			}
-+		} else {
-+			for (dev = 0; dev < devmax; dev++) {
-+				pdd = hfi1_lookup(dev);
-+				if (pdd && pdd->freectxts) {
-+					dd = pdd;
-+					break;
-+				}
-+			}
-+		}
-+		if (!dd)
-+			ret = -EBUSY;
-+	}
-+done:
-+	return ret ? ret : allocate_ctxt(fp, dd, uinfo);
-+}
-+
-+static int find_shared_ctxt(struct file *fp,
-+			    const struct hfi1_user_info *uinfo)
-+{
-+	int devmax, ndev, i;
-+	int ret = 0;
-+
-+	devmax = hfi1_count_units(NULL, NULL);
-+
-+	for (ndev = 0; ndev < devmax; ndev++) {
-+		struct hfi1_devdata *dd = hfi1_lookup(ndev);
-+
-+		/* device portion of usable() */
-+		if (!(dd && (dd->flags & HFI1_PRESENT) && dd->kregbase))
-+			continue;
-+		for (i = dd->first_user_ctxt; i < dd->num_rcv_contexts; i++) {
-+			struct hfi1_ctxtdata *uctxt = dd->rcd[i];
-+
-+			/* Skip ctxts which are not yet open */
-+			if (!uctxt || !uctxt->cnt)
-+				continue;
-+			/* Skip ctxt if it doesn't match the requested one */
-+			if (memcmp(uctxt->uuid, uinfo->uuid,
-+				   sizeof(uctxt->uuid)) ||
-+			    uctxt->subctxt_id != uinfo->subctxt_id ||
-+			    uctxt->subctxt_cnt != uinfo->subctxt_cnt)
-+				continue;
-+
-+			/* Verify the sharing process matches the master */
-+			if (uctxt->userversion != uinfo->userversion ||
-+			    uctxt->cnt >= uctxt->subctxt_cnt) {
-+				ret = -EINVAL;
-+				goto done;
-+			}
-+			ctxt_fp(fp) = uctxt;
-+			subctxt_fp(fp) = uctxt->cnt++;
-+			uctxt->subpid[subctxt_fp(fp)] = current->pid;
-+			uctxt->active_slaves |= 1 << subctxt_fp(fp);
-+			ret = 1;
-+			goto done;
-+		}
-+	}
-+
-+done:
-+	return ret;
-+}
-+
-+static int allocate_ctxt(struct file *fp, struct hfi1_devdata *dd,
-+			 struct hfi1_user_info *uinfo)
-+{
-+	struct hfi1_ctxtdata *uctxt;
-+	unsigned ctxt;
-+	int ret;
-+
-+	if (dd->flags & HFI1_FROZEN) {
-+		/*
-+		 * Pick an error that is unique from all other errors
-+		 * that are returned so the user process knows that
-+		 * it tried to allocate while the SPC was frozen.  It
-+		 * it should be able to retry with success in a short
-+		 * while.
-+		 */
-+		return -EIO;
-+	}
-+
-+	for (ctxt = dd->first_user_ctxt; ctxt < dd->num_rcv_contexts; ctxt++)
-+		if (!dd->rcd[ctxt])
-+			break;
-+
-+	if (ctxt == dd->num_rcv_contexts)
-+		return -EBUSY;
-+
-+	uctxt = hfi1_create_ctxtdata(dd->pport, ctxt);
-+	if (!uctxt) {
-+		dd_dev_err(dd,
-+			   "Unable to allocate ctxtdata memory, failing open\n");
-+		return -ENOMEM;
-+	}
-+	/*
-+	 * Allocate and enable a PIO send context.
-+	 */
-+	uctxt->sc = sc_alloc(dd, SC_USER, uctxt->rcvhdrqentsize,
-+			     uctxt->numa_id);
-+	if (!uctxt->sc)
-+		return -ENOMEM;
-+
-+	dbg("allocated send context %u(%u)\n", uctxt->sc->sw_index,
-+		uctxt->sc->hw_context);
-+	ret = sc_enable(uctxt->sc);
-+	if (ret)
-+		return ret;
-+	/*
-+	 * Setup shared context resources if the user-level has requested
-+	 * shared contexts and this is the 'master' process.
-+	 * This has to be done here so the rest of the sub-contexts find the
-+	 * proper master.
-+	 */
-+	if (uinfo->subctxt_cnt && !subctxt_fp(fp)) {
-+		ret = init_subctxts(uctxt, uinfo);
-+		/*
-+		 * On error, we don't need to disable and de-allocate the
-+		 * send context because it will be done during file close
-+		 */
-+		if (ret)
-+			return ret;
-+	}
-+	uctxt->userversion = uinfo->userversion;
-+	uctxt->pid = current->pid;
-+	uctxt->flags = HFI1_CAP_UGET(MASK);
-+	init_waitqueue_head(&uctxt->wait);
-+	strlcpy(uctxt->comm, current->comm, sizeof(uctxt->comm));
-+	memcpy(uctxt->uuid, uinfo->uuid, sizeof(uctxt->uuid));
-+	uctxt->jkey = generate_jkey(current_uid());
-+	INIT_LIST_HEAD(&uctxt->sdma_queues);
-+	spin_lock_init(&uctxt->sdma_qlock);
-+	hfi1_stats.sps_ctxts++;
-+	dd->freectxts--;
-+	ctxt_fp(fp) = uctxt;
-+
-+	return 0;
-+}
-+
-+static int init_subctxts(struct hfi1_ctxtdata *uctxt,
-+			 const struct hfi1_user_info *uinfo)
-+{
-+	int ret = 0;
-+	unsigned num_subctxts;
-+
-+	num_subctxts = uinfo->subctxt_cnt;
-+	if (num_subctxts > HFI1_MAX_SHARED_CTXTS) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	uctxt->subctxt_cnt = uinfo->subctxt_cnt;
-+	uctxt->subctxt_id = uinfo->subctxt_id;
-+	uctxt->active_slaves = 1;
-+	uctxt->redirect_seq_cnt = 1;
-+	set_bit(HFI1_CTXT_MASTER_UNINIT, &uctxt->event_flags);
-+bail:
-+	return ret;
-+}
-+
-+static int setup_subctxt(struct hfi1_ctxtdata *uctxt)
-+{
-+	int ret = 0;
-+	unsigned num_subctxts = uctxt->subctxt_cnt;
-+
-+	uctxt->subctxt_uregbase = vmalloc_user(PAGE_SIZE);
-+	if (!uctxt->subctxt_uregbase) {
-+		ret = -ENOMEM;
-+		goto bail;
-+	}
-+	/* We can take the size of the RcvHdr Queue from the master */
-+	uctxt->subctxt_rcvhdr_base = vmalloc_user(uctxt->rcvhdrq_size *
-+						  num_subctxts);
-+	if (!uctxt->subctxt_rcvhdr_base) {
-+		ret = -ENOMEM;
-+		goto bail_ureg;
-+	}
-+
-+	uctxt->subctxt_rcvegrbuf = vmalloc_user(uctxt->egrbufs.size *
-+						num_subctxts);
-+	if (!uctxt->subctxt_rcvegrbuf) {
-+		ret = -ENOMEM;
-+		goto bail_rhdr;
-+	}
-+	goto bail;
-+bail_rhdr:
-+	vfree(uctxt->subctxt_rcvhdr_base);
-+bail_ureg:
-+	vfree(uctxt->subctxt_uregbase);
-+	uctxt->subctxt_uregbase = NULL;
-+bail:
-+	return ret;
-+}
-+
-+static int user_init(struct file *fp)
-+{
-+	int ret;
-+	unsigned int rcvctrl_ops = 0;
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+
-+	/* make sure that the context has already been setup */
-+	if (!test_bit(HFI1_CTXT_SETUP_DONE, &uctxt->event_flags)) {
-+		ret = -EFAULT;
-+		goto done;
-+	}
-+
-+	/*
-+	 * Subctxts don't need to initialize anything since master
-+	 * has done it.
-+	 */
-+	if (subctxt_fp(fp)) {
-+		ret = wait_event_interruptible(uctxt->wait,
-+			!test_bit(HFI1_CTXT_MASTER_UNINIT,
-+			&uctxt->event_flags));
-+		goto done;
-+	}
-+
-+	/* initialize poll variables... */
-+	uctxt->urgent = 0;
-+	uctxt->urgent_poll = 0;
-+
-+	/*
-+	 * Now enable the ctxt for receive.
-+	 * For chips that are set to DMA the tail register to memory
-+	 * when they change (and when the update bit transitions from
-+	 * 0 to 1.  So for those chips, we turn it off and then back on.
-+	 * This will (very briefly) affect any other open ctxts, but the
-+	 * duration is very short, and therefore isn't an issue.  We
-+	 * explicitly set the in-memory tail copy to 0 beforehand, so we
-+	 * don't have to wait to be sure the DMA update has happened
-+	 * (chip resets head/tail to 0 on transition to enable).
-+	 */
-+	if (uctxt->rcvhdrtail_kvaddr)
-+		clear_rcvhdrtail(uctxt);
-+
-+	/* Setup J_KEY before enabling the context */
-+	hfi1_set_ctxt_jkey(uctxt->dd, uctxt->ctxt, uctxt->jkey);
-+
-+	rcvctrl_ops = HFI1_RCVCTRL_CTXT_ENB;
-+	if (HFI1_CAP_KGET_MASK(uctxt->flags, HDRSUPP))
-+		rcvctrl_ops |= HFI1_RCVCTRL_TIDFLOW_ENB;
-+	/*
-+	 * Ignore the bit in the flags for now until proper
-+	 * support for multiple packet per rcv array entry is
-+	 * added.
-+	 */
-+	if (!HFI1_CAP_KGET_MASK(uctxt->flags, MULTI_PKT_EGR))
-+		rcvctrl_ops |= HFI1_RCVCTRL_ONE_PKT_EGR_ENB;
-+	if (HFI1_CAP_KGET_MASK(uctxt->flags, NODROP_EGR_FULL))
-+		rcvctrl_ops |= HFI1_RCVCTRL_NO_EGR_DROP_ENB;
-+	if (HFI1_CAP_KGET_MASK(uctxt->flags, NODROP_RHQ_FULL))
-+		rcvctrl_ops |= HFI1_RCVCTRL_NO_RHQ_DROP_ENB;
-+	if (HFI1_CAP_KGET_MASK(uctxt->flags, DMA_RTAIL))
-+		rcvctrl_ops |= HFI1_RCVCTRL_TAILUPD_ENB;
-+	hfi1_rcvctrl(uctxt->dd, rcvctrl_ops, uctxt->ctxt);
-+
-+	/* Notify any waiting slaves */
-+	if (uctxt->subctxt_cnt) {
-+		clear_bit(HFI1_CTXT_MASTER_UNINIT, &uctxt->event_flags);
-+		wake_up(&uctxt->wait);
-+	}
-+	ret = 0;
-+
-+done:
-+	return ret;
-+}
-+
-+static int get_ctxt_info(struct file *fp, void __user *ubase, __u32 len)
-+{
-+	struct hfi1_ctxt_info cinfo;
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+	struct hfi1_filedata *fd = fp->private_data;
-+	int ret = 0;
-+
-+	ret = hfi1_get_base_kinfo(uctxt, &cinfo);
-+	if (ret < 0)
-+		goto done;
-+	cinfo.num_active = hfi1_count_active_units();
-+	cinfo.unit = uctxt->dd->unit;
-+	cinfo.ctxt = uctxt->ctxt;
-+	cinfo.subctxt = subctxt_fp(fp);
-+	cinfo.rcvtids = roundup(uctxt->egrbufs.alloced,
-+				uctxt->dd->rcv_entries.group_size) +
-+		uctxt->expected_count;
-+	cinfo.credits = uctxt->sc->credits;
-+	cinfo.numa_node = uctxt->numa_id;
-+	cinfo.rec_cpu = fd->rec_cpu_num;
-+	cinfo.send_ctxt = uctxt->sc->hw_context;
-+
-+	cinfo.egrtids = uctxt->egrbufs.alloced;
-+	cinfo.rcvhdrq_cnt = uctxt->rcvhdrq_cnt;
-+	cinfo.rcvhdrq_entsize = uctxt->rcvhdrqentsize << 2;
-+	cinfo.sdma_ring_size = user_sdma_comp_fp(fp)->nentries;
-+	cinfo.rcvegr_size = uctxt->egrbufs.rcvtid_size;
-+
-+	trace_hfi1_ctxt_info(uctxt->dd, uctxt->ctxt, subctxt_fp(fp), cinfo);
-+	if (copy_to_user(ubase, &cinfo, sizeof(cinfo)))
-+		ret = -EFAULT;
-+done:
-+	return ret;
-+}
-+
-+static int setup_ctxt(struct file *fp)
-+{
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	int ret = 0;
-+
-+	/*
-+	 * Context should be set up only once (including allocation and
-+	 * programming of eager buffers. This is done if context sharing
-+	 * is not requested or by the master process.
-+	 */
-+	if (!uctxt->subctxt_cnt || !subctxt_fp(fp)) {
-+		ret = hfi1_init_ctxt(uctxt->sc);
-+		if (ret)
-+			goto done;
-+
-+		/* Now allocate the RcvHdr queue and eager buffers. */
-+		ret = hfi1_create_rcvhdrq(dd, uctxt);
-+		if (ret)
-+			goto done;
-+		ret = hfi1_setup_eagerbufs(uctxt);
-+		if (ret)
-+			goto done;
-+		if (uctxt->subctxt_cnt && !subctxt_fp(fp)) {
-+			ret = setup_subctxt(uctxt);
-+			if (ret)
-+				goto done;
-+		}
-+		/* Setup Expected Rcv memories */
-+		uctxt->tid_pg_list = vzalloc(uctxt->expected_count *
-+					     sizeof(struct page **));
-+		if (!uctxt->tid_pg_list) {
-+			ret = -ENOMEM;
-+			goto done;
-+		}
-+		uctxt->physshadow = vzalloc(uctxt->expected_count *
-+					    sizeof(*uctxt->physshadow));
-+		if (!uctxt->physshadow) {
-+			ret = -ENOMEM;
-+			goto done;
-+		}
-+		/* allocate expected TID map and initialize the cursor */
-+		atomic_set(&uctxt->tidcursor, 0);
-+		uctxt->numtidgroups = uctxt->expected_count /
-+			dd->rcv_entries.group_size;
-+		uctxt->tidmapcnt = uctxt->numtidgroups / BITS_PER_LONG +
-+			!!(uctxt->numtidgroups % BITS_PER_LONG);
-+		uctxt->tidusemap = kzalloc_node(uctxt->tidmapcnt *
-+						sizeof(*uctxt->tidusemap),
-+						GFP_KERNEL, uctxt->numa_id);
-+		if (!uctxt->tidusemap) {
-+			ret = -ENOMEM;
-+			goto done;
-+		}
-+		/*
-+		 * In case that the number of groups is not a multiple of
-+		 * 64 (the number of groups in a tidusemap element), mark
-+		 * the extra ones as used. This will effectively make them
-+		 * permanently used and should never be assigned. Otherwise,
-+		 * the code which checks how many free groups we have will
-+		 * get completely confused about the state of the bits.
-+		 */
-+		if (uctxt->numtidgroups % BITS_PER_LONG)
-+			uctxt->tidusemap[uctxt->tidmapcnt - 1] =
-+				~((1ULL << (uctxt->numtidgroups %
-+					    BITS_PER_LONG)) - 1);
-+		trace_hfi1_exp_tid_map(uctxt->ctxt, subctxt_fp(fp), 0,
-+				       uctxt->tidusemap, uctxt->tidmapcnt);
-+	}
-+	ret = hfi1_user_sdma_alloc_queues(uctxt, fp);
-+	if (ret)
-+		goto done;
-+
-+	set_bit(HFI1_CTXT_SETUP_DONE, &uctxt->event_flags);
-+done:
-+	return ret;
-+}
-+
-+static int get_base_info(struct file *fp, void __user *ubase, __u32 len)
-+{
-+	struct hfi1_base_info binfo;
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	ssize_t sz;
-+	unsigned offset;
-+	int ret = 0;
-+
-+	trace_hfi1_uctxtdata(uctxt->dd, uctxt);
-+
-+	memset(&binfo, 0, sizeof(binfo));
-+	binfo.hw_version = dd->revision;
-+	binfo.sw_version = HFI1_KERN_SWVERSION;
-+	binfo.bthqp = kdeth_qp;
-+	binfo.jkey = uctxt->jkey;
-+	/*
-+	 * If more than 64 contexts are enabled the allocated credit
-+	 * return will span two or three contiguous pages. Since we only
-+	 * map the page containing the context's credit return address,
-+	 * we need to calculate the offset in the proper page.
-+	 */
-+	offset = ((u64)uctxt->sc->hw_free -
-+		  (u64)dd->cr_base[uctxt->numa_id].va) % PAGE_SIZE;
-+	binfo.sc_credits_addr = HFI1_MMAP_TOKEN(PIO_CRED, uctxt->ctxt,
-+					       subctxt_fp(fp), offset);
-+	binfo.pio_bufbase = HFI1_MMAP_TOKEN(PIO_BUFS, uctxt->ctxt,
-+					    subctxt_fp(fp),
-+					    uctxt->sc->base_addr);
-+	binfo.pio_bufbase_sop = HFI1_MMAP_TOKEN(PIO_BUFS_SOP,
-+						uctxt->ctxt,
-+						subctxt_fp(fp),
-+						uctxt->sc->base_addr);
-+	binfo.rcvhdr_bufbase = HFI1_MMAP_TOKEN(RCV_HDRQ, uctxt->ctxt,
-+					       subctxt_fp(fp),
-+					       uctxt->rcvhdrq);
-+	binfo.rcvegr_bufbase = HFI1_MMAP_TOKEN(RCV_EGRBUF, uctxt->ctxt,
-+					       subctxt_fp(fp),
-+					       uctxt->egrbufs.rcvtids[0].phys);
-+	binfo.sdma_comp_bufbase = HFI1_MMAP_TOKEN(SDMA_COMP, uctxt->ctxt,
-+						 subctxt_fp(fp), 0);
-+	/*
-+	 * user regs are at
-+	 * (RXE_PER_CONTEXT_USER + (ctxt * RXE_PER_CONTEXT_SIZE))
-+	 */
-+	binfo.user_regbase = HFI1_MMAP_TOKEN(UREGS, uctxt->ctxt,
-+					    subctxt_fp(fp), 0);
-+	offset = ((((uctxt->ctxt - dd->first_user_ctxt) *
-+		    HFI1_MAX_SHARED_CTXTS) + subctxt_fp(fp)) *
-+		  sizeof(*dd->events)) & ~PAGE_MASK;
-+	binfo.events_bufbase = HFI1_MMAP_TOKEN(EVENTS, uctxt->ctxt,
-+					      subctxt_fp(fp),
-+					      offset);
-+	binfo.status_bufbase = HFI1_MMAP_TOKEN(STATUS, uctxt->ctxt,
-+					      subctxt_fp(fp),
-+					      dd->status);
-+	if (HFI1_CAP_IS_USET(DMA_RTAIL))
-+		binfo.rcvhdrtail_base = HFI1_MMAP_TOKEN(RTAIL, uctxt->ctxt,
-+						       subctxt_fp(fp), 0);
-+	if (uctxt->subctxt_cnt) {
-+		binfo.subctxt_uregbase = HFI1_MMAP_TOKEN(SUBCTXT_UREGS,
-+							uctxt->ctxt,
-+							subctxt_fp(fp), 0);
-+		binfo.subctxt_rcvhdrbuf = HFI1_MMAP_TOKEN(SUBCTXT_RCV_HDRQ,
-+							 uctxt->ctxt,
-+							 subctxt_fp(fp), 0);
-+		binfo.subctxt_rcvegrbuf = HFI1_MMAP_TOKEN(SUBCTXT_EGRBUF,
-+							 uctxt->ctxt,
-+							 subctxt_fp(fp), 0);
-+	}
-+	sz = (len < sizeof(binfo)) ? len : sizeof(binfo);
-+	if (copy_to_user(ubase, &binfo, sz))
-+		ret = -EFAULT;
-+	return ret;
-+}
-+
-+static unsigned int poll_urgent(struct file *fp,
-+				struct poll_table_struct *pt)
-+{
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	unsigned pollflag;
-+
-+	poll_wait(fp, &uctxt->wait, pt);
-+
-+	spin_lock_irq(&dd->uctxt_lock);
-+	if (uctxt->urgent != uctxt->urgent_poll) {
-+		pollflag = POLLIN | POLLRDNORM;
-+		uctxt->urgent_poll = uctxt->urgent;
-+	} else {
-+		pollflag = 0;
-+		set_bit(HFI1_CTXT_WAITING_URG, &uctxt->event_flags);
-+	}
-+	spin_unlock_irq(&dd->uctxt_lock);
-+
-+	return pollflag;
-+}
-+
-+static unsigned int poll_next(struct file *fp,
-+			      struct poll_table_struct *pt)
-+{
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	unsigned pollflag;
-+
-+	poll_wait(fp, &uctxt->wait, pt);
-+
-+	spin_lock_irq(&dd->uctxt_lock);
-+	if (hdrqempty(uctxt)) {
-+		set_bit(HFI1_CTXT_WAITING_RCV, &uctxt->event_flags);
-+		hfi1_rcvctrl(dd, HFI1_RCVCTRL_INTRAVAIL_ENB, uctxt->ctxt);
-+		pollflag = 0;
-+	} else
-+		pollflag = POLLIN | POLLRDNORM;
-+	spin_unlock_irq(&dd->uctxt_lock);
-+
-+	return pollflag;
-+}
-+
-+/*
-+ * Find all user contexts in use, and set the specified bit in their
-+ * event mask.
-+ * See also find_ctxt() for a similar use, that is specific to send buffers.
-+ */
-+int hfi1_set_uevent_bits(struct hfi1_pportdata *ppd, const int evtbit)
-+{
-+	struct hfi1_ctxtdata *uctxt;
-+	struct hfi1_devdata *dd = ppd->dd;
-+	unsigned ctxt;
-+	int ret = 0;
-+	unsigned long flags;
-+
-+	if (!dd->events) {
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
-+	spin_lock_irqsave(&dd->uctxt_lock, flags);
-+	for (ctxt = dd->first_user_ctxt; ctxt < dd->num_rcv_contexts;
-+	     ctxt++) {
-+		uctxt = dd->rcd[ctxt];
-+		if (uctxt) {
-+			unsigned long *evs = dd->events +
-+				(uctxt->ctxt - dd->first_user_ctxt) *
-+				HFI1_MAX_SHARED_CTXTS;
-+			int i;
-+			/*
-+			 * subctxt_cnt is 0 if not shared, so do base
-+			 * separately, first, then remaining subctxt, if any
-+			 */
-+			set_bit(evtbit, evs);
-+			for (i = 1; i < uctxt->subctxt_cnt; i++)
-+				set_bit(evtbit, evs + i);
-+		}
-+	}
-+	spin_unlock_irqrestore(&dd->uctxt_lock, flags);
-+done:
-+	return ret;
++	udelay(usec ? usec : 1);
 +}
 +
 +/**
-+ * manage_rcvq - manage a context's receive queue
-+ * @uctxt: the context
-+ * @subctxt: the sub-context
-+ * @start_stop: action to carry out
-+ *
-+ * start_stop == 0 disables receive on the context, for use in queue
-+ * overflow conditions.  start_stop==1 re-enables, to be used to
-+ * re-init the software copy of the head register
++ * sc_to_vlt() reverse lookup sc to vl
++ * @dd - devdata
++ * @sc5 - 5 bit sc
 + */
-+static int manage_rcvq(struct hfi1_ctxtdata *uctxt, unsigned subctxt,
-+		       int start_stop)
++static inline u8 sc_to_vlt(struct hfi1_devdata *dd, u8 sc5)
 +{
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	unsigned int rcvctrl_op;
++	unsigned seq;
++	u8 rval;
 +
-+	if (subctxt)
-+		goto bail;
-+	/* atomically clear receive enable ctxt. */
-+	if (start_stop) {
++	if (sc5 >= OPA_MAX_SCS)
++		return (u8)(0xff);
++
++	do {
++		seq = read_seqbegin(&dd->sc2vl_lock);
++		rval = *(((u8 *)dd->sc2vl) + sc5);
++	} while (read_seqretry(&dd->sc2vl_lock, seq));
++
++	return rval;
++}
++
++#define PKEY_MEMBER_MASK 0x8000
++#define PKEY_LOW_15_MASK 0x7fff
++
++/*
++ * ingress_pkey_matches_entry - return 1 if the pkey matches ent (ent
++ * being an entry from the ingress partition key table), return 0
++ * otherwise. Use the matching criteria for ingress partition keys
++ * specified in the OPAv1 spec., section 9.10.14.
++ */
++static inline int ingress_pkey_matches_entry(u16 pkey, u16 ent)
++{
++	u16 mkey = pkey & PKEY_LOW_15_MASK;
++	u16 ment = ent & PKEY_LOW_15_MASK;
++
++	if (mkey == ment) {
 +		/*
-+		 * On enable, force in-memory copy of the tail register to
-+		 * 0, so that protocol code doesn't have to worry about
-+		 * whether or not the chip has yet updated the in-memory
-+		 * copy or not on return from the system call. The chip
-+		 * always resets it's tail register back to 0 on a
-+		 * transition from disabled to enabled.
++		 * If pkey[15] is clear (limited partition member),
++		 * is bit 15 in the corresponding table element
++		 * clear (limited member)?
 +		 */
-+		if (uctxt->rcvhdrtail_kvaddr)
-+			clear_rcvhdrtail(uctxt);
-+		rcvctrl_op = HFI1_RCVCTRL_CTXT_ENB;
-+	} else
-+		rcvctrl_op = HFI1_RCVCTRL_CTXT_DIS;
-+	hfi1_rcvctrl(dd, rcvctrl_op, uctxt->ctxt);
-+	/* always; new head should be equal to new tail; see above */
-+bail:
++		if (!(pkey & PKEY_MEMBER_MASK))
++			return !!(ent & PKEY_MEMBER_MASK);
++		return 1;
++	}
 +	return 0;
 +}
 +
 +/*
-+ * clear the event notifier events for this context.
-+ * User process then performs actions appropriate to bit having been
-+ * set, if desired, and checks again in future.
++ * ingress_pkey_table_search - search the entire pkey table for
++ * an entry which matches 'pkey'. return 0 if a match is found,
++ * and 1 otherwise.
 + */
-+static int user_event_ack(struct hfi1_ctxtdata *uctxt, int subctxt,
-+			  unsigned long events)
++static int ingress_pkey_table_search(struct hfi1_pportdata *ppd, u16 pkey)
 +{
 +	int i;
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	unsigned long *evs;
 +
-+	if (!dd->events)
-+		return 0;
-+
-+	evs = dd->events + ((uctxt->ctxt - dd->first_user_ctxt) *
-+			    HFI1_MAX_SHARED_CTXTS) + subctxt;
-+
-+	for (i = 0; i <= _HFI1_MAX_EVENT_BIT; i++) {
-+		if (!test_bit(i, &events))
-+			continue;
-+		clear_bit(i, evs);
++	for (i = 0; i < MAX_PKEY_VALUES; i++) {
++		if (ingress_pkey_matches_entry(pkey, ppd->pkeys[i]))
++			return 0;
 +	}
-+	return 0;
++	return 1;
 +}
 +
-+#define num_user_pages(vaddr, len)					\
-+	(1 + (((((unsigned long)(vaddr) +				\
-+		 (unsigned long)(len) - 1) & PAGE_MASK) -		\
-+	       ((unsigned long)vaddr & PAGE_MASK)) >> PAGE_SHIFT))
++/*
++ * ingress_pkey_table_fail - record a failure of ingress pkey validation,
++ * i.e., increment port_rcv_constraint_errors for the port, and record
++ * the 'error info' for this failure.
++ */
++static void ingress_pkey_table_fail(struct hfi1_pportdata *ppd, u16 pkey,
++				    u16 slid)
++{
++	struct hfi1_devdata *dd = ppd->dd;
 +
-+/**
-+ * tzcnt - count the number of trailing zeros in a 64bit value
-+ * @value: the value to be examined
++	incr_cntr64(&ppd->port_rcv_constraint_errors);
++	if (!(dd->err_info_rcv_constraint.status & OPA_EI_STATUS_SMASK)) {
++		dd->err_info_rcv_constraint.status |= OPA_EI_STATUS_SMASK;
++		dd->err_info_rcv_constraint.slid = slid;
++		dd->err_info_rcv_constraint.pkey = pkey;
++	}
++}
++
++/*
++ * ingress_pkey_check - Return 0 if the ingress pkey is valid, return 1
++ * otherwise. Use the criteria in the OPAv1 spec, section 9.10.14. idx
++ * is a hint as to the best place in the partition key table to begin
++ * searching. This function should not be called on the data path because
++ * of performance reasons. On datapath pkey check is expected to be done
++ * by HW and rcv_pkey_check function should be called instead.
++ */
++static inline int ingress_pkey_check(struct hfi1_pportdata *ppd, u16 pkey,
++				     u8 sc5, u8 idx, u16 slid)
++{
++	if (!(ppd->part_enforce & HFI1_PART_ENFORCE_IN))
++		return 0;
++
++	/* If SC15, pkey[0:14] must be 0x7fff */
++	if ((sc5 == 0xf) && ((pkey & PKEY_LOW_15_MASK) != PKEY_LOW_15_MASK))
++		goto bad;
++
++	/* Is the pkey = 0x0, or 0x8000? */
++	if ((pkey & PKEY_LOW_15_MASK) == 0)
++		goto bad;
++
++	/* The most likely matching pkey has index 'idx' */
++	if (ingress_pkey_matches_entry(pkey, ppd->pkeys[idx]))
++		return 0;
++
++	/* no match - try the whole table */
++	if (!ingress_pkey_table_search(ppd, pkey))
++		return 0;
++
++bad:
++	ingress_pkey_table_fail(ppd, pkey, slid);
++	return 1;
++}
++
++/*
++ * rcv_pkey_check - Return 0 if the ingress pkey is valid, return 1
++ * otherwise. It only ensures pkey is vlid for QP0. This function
++ * should be called on the data path instead of ingress_pkey_check
++ * as on data path, pkey check is done by HW (except for QP0).
++ */
++static inline int rcv_pkey_check(struct hfi1_pportdata *ppd, u16 pkey,
++				 u8 sc5, u16 slid)
++{
++	if (!(ppd->part_enforce & HFI1_PART_ENFORCE_IN))
++		return 0;
++
++	/* If SC15, pkey[0:14] must be 0x7fff */
++	if ((sc5 == 0xf) && ((pkey & PKEY_LOW_15_MASK) != PKEY_LOW_15_MASK))
++		goto bad;
++
++	return 0;
++bad:
++	ingress_pkey_table_fail(ppd, pkey, slid);
++	return 1;
++}
++
++/* MTU handling */
++
++/* MTU enumeration, 256-4k match IB */
++#define OPA_MTU_0     0
++#define OPA_MTU_256   1
++#define OPA_MTU_512   2
++#define OPA_MTU_1024  3
++#define OPA_MTU_2048  4
++#define OPA_MTU_4096  5
++
++u32 lrh_max_header_bytes(struct hfi1_devdata *dd);
++int mtu_to_enum(u32 mtu, int default_if_bad);
++u16 enum_to_mtu(int);
++static inline int valid_ib_mtu(unsigned int mtu)
++{
++	return mtu == 256 || mtu == 512 ||
++		mtu == 1024 || mtu == 2048 ||
++		mtu == 4096;
++}
++static inline int valid_opa_max_mtu(unsigned int mtu)
++{
++	return mtu >= 2048 &&
++		(valid_ib_mtu(mtu) || mtu == 8192 || mtu == 10240);
++}
++
++int set_mtu(struct hfi1_pportdata *);
++
++int hfi1_set_lid(struct hfi1_pportdata *, u32, u8);
++void hfi1_disable_after_error(struct hfi1_devdata *);
++int hfi1_set_uevent_bits(struct hfi1_pportdata *, const int);
++int hfi1_rcvbuf_validate(u32, u8, u16 *);
++
++int fm_get_table(struct hfi1_pportdata *, int, void *);
++int fm_set_table(struct hfi1_pportdata *, int, void *);
++
++void set_up_vl15(struct hfi1_devdata *dd, u8 vau, u16 vl15buf);
++void reset_link_credits(struct hfi1_devdata *dd);
++void assign_remote_cm_au_table(struct hfi1_devdata *dd, u8 vcu);
++
++int snoop_recv_handler(struct hfi1_packet *packet);
++int snoop_send_dma_handler(struct hfi1_qp *qp, struct ahg_ib_header *ibhdr,
++			   u32 hdrwords, struct hfi1_sge_state *ss, u32 len,
++			   u32 plen, u32 dwords, u64 pbc);
++int snoop_send_pio_handler(struct hfi1_qp *qp, struct ahg_ib_header *ibhdr,
++			   u32 hdrwords, struct hfi1_sge_state *ss, u32 len,
++			   u32 plen, u32 dwords, u64 pbc);
++void snoop_inline_pio_send(struct hfi1_devdata *dd, struct pio_buf *pbuf,
++			   u64 pbc, const void *from, size_t count);
++
++/* for use in system calls, where we want to know device type, etc. */
++#define ctxt_fp(fp) \
++	(((struct hfi1_filedata *)(fp)->private_data)->uctxt)
++#define subctxt_fp(fp) \
++	(((struct hfi1_filedata *)(fp)->private_data)->subctxt)
++#define tidcursor_fp(fp) \
++	(((struct hfi1_filedata *)(fp)->private_data)->tidcursor)
++#define user_sdma_pkt_fp(fp) \
++	(((struct hfi1_filedata *)(fp)->private_data)->pq)
++#define user_sdma_comp_fp(fp) \
++	(((struct hfi1_filedata *)(fp)->private_data)->cq)
++
++static inline struct hfi1_devdata *dd_from_ppd(struct hfi1_pportdata *ppd)
++{
++	return ppd->dd;
++}
++
++static inline struct hfi1_devdata *dd_from_dev(struct hfi1_ibdev *dev)
++{
++	return container_of(dev, struct hfi1_devdata, verbs_dev);
++}
++
++static inline struct hfi1_devdata *dd_from_ibdev(struct ib_device *ibdev)
++{
++	return dd_from_dev(to_idev(ibdev));
++}
++
++static inline struct hfi1_pportdata *ppd_from_ibp(struct hfi1_ibport *ibp)
++{
++	return container_of(ibp, struct hfi1_pportdata, ibport_data);
++}
++
++static inline struct hfi1_ibport *to_iport(struct ib_device *ibdev, u8 port)
++{
++	struct hfi1_devdata *dd = dd_from_ibdev(ibdev);
++	unsigned pidx = port - 1; /* IB number port from 1, hdw from 0 */
++
++	WARN_ON(pidx >= dd->num_pports);
++	return &dd->pport[pidx].ibport_data;
++}
++
++/*
++ * Return the indexed PKEY from the port PKEY table.
++ */
++static inline u16 hfi1_get_pkey(struct hfi1_ibport *ibp, unsigned index)
++{
++	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
++	u16 ret;
++
++	if (index >= ARRAY_SIZE(ppd->pkeys))
++		ret = 0;
++	else
++		ret = ppd->pkeys[index];
++
++	return ret;
++}
++
++/*
++ * Readers of cc_state must call get_cc_state() under rcu_read_lock().
++ * Writers of cc_state must call get_cc_state() under cc_state_lock.
++ */
++static inline struct cc_state *get_cc_state(struct hfi1_pportdata *ppd)
++{
++	return rcu_dereference(ppd->cc_state);
++}
++
++/*
++ * values for dd->flags (_device_ related flags)
++ */
++#define HFI1_INITTED           0x1    /* chip and driver up and initted */
++#define HFI1_PRESENT           0x2    /* chip accesses can be done */
++#define HFI1_FROZEN            0x4    /* chip in SPC freeze */
++#define HFI1_HAS_SDMA_TIMEOUT  0x8
++#define HFI1_HAS_SEND_DMA      0x10   /* Supports Send DMA */
++#define HFI1_FORCED_FREEZE     0x80   /* driver forced freeze mode */
++#define HFI1_DO_INIT_ASIC      0x100  /* This device will init the ASIC */
++
++/* IB dword length mask in PBC (lower 11 bits); same for all chips */
++#define HFI1_PBC_LENGTH_MASK                     ((1 << 11) - 1)
++
++
++/* ctxt_flag bit offsets */
++		/* context has been setup */
++#define HFI1_CTXT_SETUP_DONE 1
++		/* waiting for a packet to arrive */
++#define HFI1_CTXT_WAITING_RCV   2
++		/* master has not finished initializing */
++#define HFI1_CTXT_MASTER_UNINIT 4
++		/* waiting for an urgent packet to arrive */
++#define HFI1_CTXT_WAITING_URG 5
++
++/* free up any allocated data at closes */
++struct hfi1_devdata *hfi1_init_dd(struct pci_dev *,
++				  const struct pci_device_id *);
++void hfi1_free_devdata(struct hfi1_devdata *);
++void cc_state_reclaim(struct rcu_head *rcu);
++struct hfi1_devdata *hfi1_alloc_devdata(struct pci_dev *pdev, size_t extra);
++
++/*
++ * Set LED override, only the two LSBs have "public" meaning, but
++ * any non-zero value substitutes them for the Link and LinkTrain
++ * LED states.
++ */
++#define HFI1_LED_PHYS 1 /* Physical (linktraining) GREEN LED */
++#define HFI1_LED_LOG 2  /* Logical (link) YELLOW LED */
++void hfi1_set_led_override(struct hfi1_pportdata *ppd, unsigned int val);
++
++#define HFI1_CREDIT_RETURN_RATE (100)
++
++/*
++ * The number of words for the KDETH protocol field.  If this is
++ * larger then the actual field used, then part of the payload
++ * will be in the header.
 + *
-+ * Returns the number of trailing least significant zeros in the
-+ * the input value. If the value is zero, return the number of
-+ * bits of the value.
++ * Optimally, we want this sized so that a typical case will
++ * use full cache lines.  The typical local KDETH header would
++ * be:
++ *
++ *	Bytes	Field
++ *	  8	LRH
++ *	 12	BHT
++ *	 ??	KDETH
++ *	  8	RHF
++ *	---
++ *	 28 + KDETH
++ *
++ * For a 64-byte cache line, KDETH would need to be 36 bytes or 9 DWORDS
 + */
-+static inline u8 tzcnt(u64 value)
++#define DEFAULT_RCVHDRSIZE 9
++
++/*
++ * Maximal header byte count:
++ *
++ *	Bytes	Field
++ *	  8	LRH
++ *	 40	GRH (optional)
++ *	 12	BTH
++ *	 ??	KDETH
++ *	  8	RHF
++ *	---
++ *	 68 + KDETH
++ *
++ * We also want to maintain a cache line alignment to assist DMA'ing
++ * of the header bytes.  Round up to a good size.
++ */
++#define DEFAULT_RCVHDR_ENTSIZE 32
++
++int hfi1_get_user_pages(unsigned long, size_t, struct page **);
++void hfi1_release_user_pages(struct page **, size_t);
++
++static inline void clear_rcvhdrtail(const struct hfi1_ctxtdata *rcd)
 +{
-+	return value ? __builtin_ctzl(value) : sizeof(value) * 8;
++	*((u64 *) rcd->rcvhdrtail_kvaddr) = 0ULL;
 +}
 +
-+static inline unsigned num_free_groups(unsigned long map, u16 *start)
++static inline u32 get_rcvhdrtail(const struct hfi1_ctxtdata *rcd)
 +{
-+	unsigned free;
-+	u16 bitidx = *start;
-+
-+	if (bitidx >= BITS_PER_LONG)
-+		return 0;
-+	/* "Turn off" any bits set before our bit index */
-+	map &= ~((1ULL << bitidx) - 1);
-+	free = tzcnt(map) - bitidx;
-+	while (!free && bitidx < BITS_PER_LONG) {
-+		/* Zero out the last set bit so we look at the rest */
-+		map &= ~(1ULL << bitidx);
-+		/*
-+		 * Account for the previously checked bits and advance
-+		 * the bit index. We don't have to check for bitidx
-+		 * getting bigger than BITS_PER_LONG here as it would
-+		 * mean extra instructions that we don't need. If it
-+		 * did happen, it would push free to a negative value
-+		 * which will break the loop.
-+		 */
-+		free = tzcnt(map) - ++bitidx;
-+	}
-+	*start = bitidx;
-+	return free;
-+}
-+
-+static int exp_tid_setup(struct file *fp, struct hfi1_tid_info *tinfo)
-+{
-+	int ret = 0;
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	unsigned tid, mapped = 0, npages, ngroups, exp_groups,
-+		tidpairs = uctxt->expected_count / 2;
-+	struct page **pages;
-+	unsigned long vaddr, tidmap[uctxt->tidmapcnt];
-+	dma_addr_t *phys;
-+	u32 tidlist[tidpairs], pairidx = 0, tidcursor;
-+	u16 useidx, idx, bitidx, tidcnt = 0;
-+
-+	vaddr = tinfo->vaddr;
-+
-+	if (vaddr & ~PAGE_MASK) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	npages = num_user_pages(vaddr, tinfo->length);
-+	if (!npages) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+	if (!access_ok(VERIFY_WRITE, (void __user *)vaddr,
-+		       npages * PAGE_SIZE)) {
-+		dd_dev_err(dd, "Fail vaddr %p, %u pages, !access_ok\n",
-+			   (void *)vaddr, npages);
-+		ret = -EFAULT;
-+		goto bail;
-+	}
-+
-+	memset(tidmap, 0, sizeof(tidmap[0]) * uctxt->tidmapcnt);
-+	memset(tidlist, 0, sizeof(tidlist[0]) * tidpairs);
-+
-+	exp_groups = uctxt->expected_count / dd->rcv_entries.group_size;
-+	/* which group set do we look at first? */
-+	tidcursor = atomic_read(&uctxt->tidcursor);
-+	useidx = (tidcursor >> 16) & 0xffff;
-+	bitidx = tidcursor & 0xffff;
-+
 +	/*
-+	 * Keep going until we've mapped all pages or we've exhausted all
-+	 * RcvArray entries.
-+	 * This iterates over the number of tidmaps + 1
-+	 * (idx <= uctxt->tidmapcnt) so we check the bitmap which we
-+	 * started from one more time for any free bits before the
-+	 * starting point bit.
++	 * volatile because it's a DMA target from the chip, routine is
++	 * inlined, and don't want register caching or reordering.
 +	 */
-+	for (mapped = 0, idx = 0;
-+	     mapped < npages && idx <= uctxt->tidmapcnt;) {
-+		u64 i, offset = 0;
-+		unsigned free, pinned, pmapped = 0, bits_used;
-+		u16 grp;
-+
-+		/*
-+		 * "Reserve" the needed group bits under lock so other
-+		 * processes can't step in the middle of it. Once
-+		 * reserved, we don't need the lock anymore since we
-+		 * are guaranteed the groups.
-+		 */
-+		spin_lock(&uctxt->exp_lock);
-+		if (uctxt->tidusemap[useidx] == -1ULL ||
-+		    bitidx >= BITS_PER_LONG) {
-+			/* no free groups in the set, use the next */
-+			useidx = (useidx + 1) % uctxt->tidmapcnt;
-+			idx++;
-+			bitidx = 0;
-+			spin_unlock(&uctxt->exp_lock);
-+			continue;
-+		}
-+		ngroups = ((npages - mapped) / dd->rcv_entries.group_size) +
-+			!!((npages - mapped) % dd->rcv_entries.group_size);
-+
-+		/*
-+		 * If we've gotten here, the current set of groups does have
-+		 * one or more free groups.
-+		 */
-+		free = num_free_groups(uctxt->tidusemap[useidx], &bitidx);
-+		if (!free) {
-+			/*
-+			 * Despite the check above, free could still come back
-+			 * as 0 because we don't check the entire bitmap but
-+			 * we start from bitidx.
-+			 */
-+			spin_unlock(&uctxt->exp_lock);
-+			continue;
-+		}
-+		bits_used = min(free, ngroups);
-+		tidmap[useidx] |= ((1ULL << bits_used) - 1) << bitidx;
-+		uctxt->tidusemap[useidx] |= tidmap[useidx];
-+		spin_unlock(&uctxt->exp_lock);
-+
-+		/*
-+		 * At this point, we know where in the map we have free bits.
-+		 * properly offset into the various "shadow" arrays and compute
-+		 * the RcvArray entry index.
-+		 */
-+		offset = ((useidx * BITS_PER_LONG) + bitidx) *
-+			dd->rcv_entries.group_size;
-+		pages = uctxt->tid_pg_list + offset;
-+		phys = uctxt->physshadow + offset;
-+		tid = uctxt->expected_base + offset;
-+
-+		/* Calculate how many pages we can pin based on free bits */
-+		pinned = min((bits_used * dd->rcv_entries.group_size),
-+			     (npages - mapped));
-+		/*
-+		 * Now that we know how many free RcvArray entries we have,
-+		 * we can pin that many user pages.
-+		 */
-+		ret = hfi1_get_user_pages(vaddr + (mapped * PAGE_SIZE),
-+					  pinned, pages);
-+		if (ret) {
-+			/*
-+			 * We can't continue because the pages array won't be
-+			 * initialized. This should never happen,
-+			 * unless perhaps the user has mpin'ed the pages
-+			 * themselves.
-+			 */
-+			dd_dev_info(dd,
-+				    "Failed to lock addr %p, %u pages: errno %d\n",
-+				    (void *) vaddr, pinned, -ret);
-+			/*
-+			 * Let go of the bits that we reserved since we are not
-+			 * going to use them.
-+			 */
-+			spin_lock(&uctxt->exp_lock);
-+			uctxt->tidusemap[useidx] &=
-+				~(((1ULL << bits_used) - 1) << bitidx);
-+			spin_unlock(&uctxt->exp_lock);
-+			goto done;
-+		}
-+		/*
-+		 * How many groups do we need based on how many pages we have
-+		 * pinned?
-+		 */
-+		ngroups = (pinned / dd->rcv_entries.group_size) +
-+			!!(pinned % dd->rcv_entries.group_size);
-+		/*
-+		 * Keep programming RcvArray entries for all the <ngroups> free
-+		 * groups.
-+		 */
-+		for (i = 0, grp = 0; grp < ngroups; i++, grp++) {
-+			unsigned j;
-+			u32 pair_size = 0, tidsize;
-+			/*
-+			 * This inner loop will program an entire group or the
-+			 * array of pinned pages (which ever limit is hit
-+			 * first).
-+			 */
-+			for (j = 0; j < dd->rcv_entries.group_size &&
-+				     pmapped < pinned; j++, pmapped++, tid++) {
-+				tidsize = PAGE_SIZE;
-+				phys[pmapped] = hfi1_map_page(dd->pcidev,
-+						   pages[pmapped], 0,
-+						   tidsize, PCI_DMA_FROMDEVICE);
-+				trace_hfi1_exp_rcv_set(uctxt->ctxt,
-+						       subctxt_fp(fp),
-+						       tid, vaddr,
-+						       phys[pmapped],
-+						       pages[pmapped]);
-+				/*
-+				 * Each RcvArray entry is programmed with one
-+				 * page * worth of memory. This will handle
-+				 * the 8K MTU as well as anything smaller
-+				 * due to the fact that both entries in the
-+				 * RcvTidPair are programmed with a page.
-+				 * PSM currently does not handle anything
-+				 * bigger than 8K MTU, so should we even worry
-+				 * about 10K here?
-+				 */
-+				hfi1_put_tid(dd, tid, PT_EXPECTED,
-+					     phys[pmapped],
-+					     ilog2(tidsize >> PAGE_SHIFT) + 1);
-+				pair_size += tidsize >> PAGE_SHIFT;
-+				EXP_TID_RESET(tidlist[pairidx], LEN, pair_size);
-+				if (!(tid % 2)) {
-+					tidlist[pairidx] |=
-+					   EXP_TID_SET(IDX,
-+						(tid - uctxt->expected_base)
-+						       / 2);
-+					tidlist[pairidx] |=
-+						EXP_TID_SET(CTRL, 1);
-+					tidcnt++;
-+				} else {
-+					tidlist[pairidx] |=
-+						EXP_TID_SET(CTRL, 2);
-+					pair_size = 0;
-+					pairidx++;
-+				}
-+			}
-+			/*
-+			 * We've programmed the entire group (or as much of the
-+			 * group as we'll use. Now, it's time to push it out...
-+			 */
-+			flush_wc();
-+		}
-+		mapped += pinned;
-+		atomic_set(&uctxt->tidcursor,
-+			   (((useidx & 0xffffff) << 16) |
-+			    ((bitidx + bits_used) & 0xffffff)));
-+	}
-+	trace_hfi1_exp_tid_map(uctxt->ctxt, subctxt_fp(fp), 0, uctxt->tidusemap,
-+			       uctxt->tidmapcnt);
-+
-+done:
-+	/* If we've mapped anything, copy relevant info to user */
-+	if (mapped) {
-+		if (copy_to_user((void __user *)(unsigned long)tinfo->tidlist,
-+				 tidlist, sizeof(tidlist[0]) * tidcnt)) {
-+			ret = -EFAULT;
-+			goto done;
-+		}
-+		/* copy TID info to user */
-+		if (copy_to_user((void __user *)(unsigned long)tinfo->tidmap,
-+				 tidmap, sizeof(tidmap[0]) * uctxt->tidmapcnt))
-+			ret = -EFAULT;
-+	}
-+bail:
-+	/*
-+	 * Calculate mapped length. New Exp TID protocol does not "unwind" and
-+	 * report an error if it can't map the entire buffer. It just reports
-+	 * the length that was mapped.
-+	 */
-+	tinfo->length = mapped * PAGE_SIZE;
-+	tinfo->tidcnt = tidcnt;
-+	return ret;
++	return (u32) le64_to_cpu(*rcd->rcvhdrtail_kvaddr);
 +}
 +
-+static int exp_tid_free(struct file *fp, struct hfi1_tid_info *tinfo)
++/*
++ * sysfs interface.
++ */
++
++extern const char ib_hfi1_version[];
++
++int hfi1_device_create(struct hfi1_devdata *);
++void hfi1_device_remove(struct hfi1_devdata *);
++
++int hfi1_create_port_files(struct ib_device *ibdev, u8 port_num,
++			   struct kobject *kobj);
++int hfi1_verbs_register_sysfs(struct hfi1_devdata *);
++void hfi1_verbs_unregister_sysfs(struct hfi1_devdata *);
++/* Hook for sysfs read of QSFP */
++int qsfp_dump(struct hfi1_pportdata *ppd, char *buf, int len);
++
++int hfi1_pcie_init(struct pci_dev *, const struct pci_device_id *);
++void hfi1_pcie_cleanup(struct pci_dev *);
++int hfi1_pcie_ddinit(struct hfi1_devdata *, struct pci_dev *,
++		     const struct pci_device_id *);
++void hfi1_pcie_ddcleanup(struct hfi1_devdata *);
++void hfi1_pcie_flr(struct hfi1_devdata *);
++int pcie_speeds(struct hfi1_devdata *);
++void request_msix(struct hfi1_devdata *, u32 *, struct hfi1_msix_entry *);
++void hfi1_enable_intx(struct pci_dev *);
++void hfi1_nomsix(struct hfi1_devdata *);
++void restore_pci_variables(struct hfi1_devdata *dd);
++int do_pcie_gen3_transition(struct hfi1_devdata *dd);
++int parse_platform_config(struct hfi1_devdata *dd);
++int get_platform_config_field(struct hfi1_devdata *dd,
++			enum platform_config_table_type_encoding table_type,
++			int table_index, int field_index, u32 *data, u32 len);
++
++dma_addr_t hfi1_map_page(struct pci_dev *, struct page *, unsigned long,
++			 size_t, int);
++const char *get_unit_name(int unit);
++
++/*
++ * Flush write combining store buffers (if present) and perform a write
++ * barrier.
++ */
++static inline void flush_wc(void)
 +{
-+	struct hfi1_ctxtdata *uctxt = ctxt_fp(fp);
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	unsigned long tidmap[uctxt->tidmapcnt];
-+	struct page **pages;
-+	dma_addr_t *phys;
-+	u16 idx, bitidx, tid;
-+	int ret = 0;
-+
-+	if (copy_from_user(&tidmap, (void __user *)(unsigned long)
-+			   tinfo->tidmap,
-+			   sizeof(tidmap[0]) * uctxt->tidmapcnt)) {
-+		ret = -EFAULT;
-+		goto done;
-+	}
-+	for (idx = 0; idx < uctxt->tidmapcnt; idx++) {
-+		unsigned long map;
-+
-+		bitidx = 0;
-+		if (!tidmap[idx])
-+			continue;
-+		map = tidmap[idx];
-+		while ((bitidx = tzcnt(map)) < BITS_PER_LONG) {
-+			int i, pcount = 0;
-+			struct page *pshadow[dd->rcv_entries.group_size];
-+			unsigned offset = ((idx * BITS_PER_LONG) + bitidx) *
-+				dd->rcv_entries.group_size;
-+
-+			pages = uctxt->tid_pg_list + offset;
-+			phys = uctxt->physshadow + offset;
-+			tid = uctxt->expected_base + offset;
-+			for (i = 0; i < dd->rcv_entries.group_size;
-+			     i++, tid++) {
-+				if (pages[i]) {
-+					hfi1_put_tid(dd, tid, PT_INVALID,
-+						      0, 0);
-+					trace_hfi1_exp_rcv_free(uctxt->ctxt,
-+								subctxt_fp(fp),
-+								tid, phys[i],
-+								pages[i]);
-+					pci_unmap_page(dd->pcidev, phys[i],
-+					      PAGE_SIZE, PCI_DMA_FROMDEVICE);
-+					pshadow[pcount] = pages[i];
-+					pages[i] = NULL;
-+					pcount++;
-+					phys[i] = 0;
-+				}
-+			}
-+			flush_wc();
-+			hfi1_release_user_pages(pshadow, pcount);
-+			clear_bit(bitidx, &uctxt->tidusemap[idx]);
-+			map &= ~(1ULL<<bitidx);
-+		}
-+	}
-+	trace_hfi1_exp_tid_map(uctxt->ctxt, subctxt_fp(fp), 1, uctxt->tidusemap,
-+			       uctxt->tidmapcnt);
-+done:
-+	return ret;
++	asm volatile("sfence" : : : "memory");
 +}
 +
-+static void unlock_exp_tids(struct hfi1_ctxtdata *uctxt)
++void handle_eflags(struct hfi1_packet *packet);
++int process_receive_ib(struct hfi1_packet *packet);
++int process_receive_bypass(struct hfi1_packet *packet);
++int process_receive_error(struct hfi1_packet *packet);
++int kdeth_process_expected(struct hfi1_packet *packet);
++int kdeth_process_eager(struct hfi1_packet *packet);
++int process_receive_invalid(struct hfi1_packet *packet);
++
++extern rhf_rcv_function_ptr snoop_rhf_rcv_functions[8];
++
++void update_sge(struct hfi1_sge_state *ss, u32 length);
++
++/* global module parameter variables */
++extern unsigned int hfi1_max_mtu;
++extern unsigned int hfi1_cu;
++extern unsigned int user_credit_return_threshold;
++extern uint num_rcv_contexts;
++extern unsigned n_krcvqs;
++extern u8 krcvqs[];
++extern int krcvqsset;
++extern uint kdeth_qp;
++extern uint loopback;
++extern uint quick_linkup;
++extern uint rcv_intr_timeout;
++extern uint rcv_intr_count;
++extern uint rcv_intr_dynamic;
++extern ushort link_crc_mask;
++
++extern struct mutex hfi1_mutex;
++
++/* Number of seconds before our card status check...  */
++#define STATUS_TIMEOUT 60
++
++#define DRIVER_NAME		"hfi1"
++#define HFI1_USER_MINOR_BASE     0
++#define HFI1_TRACE_MINOR         127
++#define HFI1_DIAGPKT_MINOR       128
++#define HFI1_DIAG_MINOR_BASE     129
++#define HFI1_SNOOP_CAPTURE_BASE  200
++#define HFI1_NMINORS             255
++
++#define PCI_VENDOR_ID_INTEL 0x8086
++#define PCI_DEVICE_ID_INTEL0 0x24f0
++#define PCI_DEVICE_ID_INTEL1 0x24f1
++
++#define HFI1_PKT_USER_SC_INTEGRITY					    \
++	(SEND_CTXT_CHECK_ENABLE_DISALLOW_NON_KDETH_PACKETS_SMASK	    \
++	| SEND_CTXT_CHECK_ENABLE_DISALLOW_BYPASS_SMASK		    \
++	| SEND_CTXT_CHECK_ENABLE_DISALLOW_GRH_SMASK)
++
++#define HFI1_PKT_KERNEL_SC_INTEGRITY					    \
++	(SEND_CTXT_CHECK_ENABLE_DISALLOW_KDETH_PACKETS_SMASK)
++
++static inline u64 hfi1_pkt_default_send_ctxt_mask(struct hfi1_devdata *dd,
++						  u16 ctxt_type)
 +{
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	unsigned tid;
++	u64 base_sc_integrity =
++	SEND_CTXT_CHECK_ENABLE_DISALLOW_BYPASS_BAD_PKT_LEN_SMASK
++	| SEND_CTXT_CHECK_ENABLE_DISALLOW_PBC_STATIC_RATE_CONTROL_SMASK
++	| SEND_CTXT_CHECK_ENABLE_DISALLOW_TOO_LONG_BYPASS_PACKETS_SMASK
++	| SEND_CTXT_CHECK_ENABLE_DISALLOW_TOO_LONG_IB_PACKETS_SMASK
++	| SEND_CTXT_CHECK_ENABLE_DISALLOW_BAD_PKT_LEN_SMASK
++	| SEND_CTXT_CHECK_ENABLE_DISALLOW_PBC_TEST_SMASK
++	| SEND_CTXT_CHECK_ENABLE_DISALLOW_TOO_SMALL_BYPASS_PACKETS_SMASK
++	| SEND_CTXT_CHECK_ENABLE_DISALLOW_TOO_SMALL_IB_PACKETS_SMASK
++	| SEND_CTXT_CHECK_ENABLE_DISALLOW_RAW_IPV6_SMASK
++	| SEND_CTXT_CHECK_ENABLE_DISALLOW_RAW_SMASK
++	| SEND_CTXT_CHECK_ENABLE_CHECK_BYPASS_VL_MAPPING_SMASK
++	| SEND_CTXT_CHECK_ENABLE_CHECK_VL_MAPPING_SMASK
++	| SEND_CTXT_CHECK_ENABLE_CHECK_OPCODE_SMASK
++	| SEND_CTXT_CHECK_ENABLE_CHECK_SLID_SMASK
++	| SEND_CTXT_CHECK_ENABLE_CHECK_JOB_KEY_SMASK
++	| SEND_CTXT_CHECK_ENABLE_CHECK_VL_SMASK
++	| SEND_CTXT_CHECK_ENABLE_CHECK_ENABLE_SMASK;
 +
-+	dd_dev_info(dd, "ctxt %u unlocking any locked expTID pages\n",
-+		    uctxt->ctxt);
-+	for (tid = 0; tid < uctxt->expected_count; tid++) {
-+		struct page *p = uctxt->tid_pg_list[tid];
-+		dma_addr_t phys;
++	if (ctxt_type == SC_USER)
++		base_sc_integrity |= HFI1_PKT_USER_SC_INTEGRITY;
++	else
++		base_sc_integrity |= HFI1_PKT_KERNEL_SC_INTEGRITY;
 +
-+		if (!p)
-+			continue;
-+
-+		phys = uctxt->physshadow[tid];
-+		uctxt->physshadow[tid] = 0;
-+		uctxt->tid_pg_list[tid] = NULL;
-+		pci_unmap_page(dd->pcidev, phys, PAGE_SIZE, PCI_DMA_FROMDEVICE);
-+		hfi1_release_user_pages(&p, 1);
-+	}
++	if (is_a0(dd))
++		/* turn off send-side job key checks - A0 erratum */
++		return base_sc_integrity &
++		       ~SEND_CTXT_CHECK_ENABLE_CHECK_JOB_KEY_SMASK;
++	return base_sc_integrity;
 +}
 +
-+static int set_ctxt_pkey(struct hfi1_ctxtdata *uctxt, unsigned subctxt,
-+			 u16 pkey)
++static inline u64 hfi1_pkt_base_sdma_integrity(struct hfi1_devdata *dd)
 +{
-+	int ret = -ENOENT, i, intable = 0;
-+	struct hfi1_pportdata *ppd = uctxt->ppd;
-+	struct hfi1_devdata *dd = uctxt->dd;
++	u64 base_sdma_integrity =
++	SEND_DMA_CHECK_ENABLE_DISALLOW_BYPASS_BAD_PKT_LEN_SMASK
++	| SEND_DMA_CHECK_ENABLE_DISALLOW_PBC_STATIC_RATE_CONTROL_SMASK
++	| SEND_DMA_CHECK_ENABLE_DISALLOW_TOO_LONG_BYPASS_PACKETS_SMASK
++	| SEND_DMA_CHECK_ENABLE_DISALLOW_TOO_LONG_IB_PACKETS_SMASK
++	| SEND_DMA_CHECK_ENABLE_DISALLOW_BAD_PKT_LEN_SMASK
++	| SEND_DMA_CHECK_ENABLE_DISALLOW_TOO_SMALL_BYPASS_PACKETS_SMASK
++	| SEND_DMA_CHECK_ENABLE_DISALLOW_TOO_SMALL_IB_PACKETS_SMASK
++	| SEND_DMA_CHECK_ENABLE_DISALLOW_RAW_IPV6_SMASK
++	| SEND_DMA_CHECK_ENABLE_DISALLOW_RAW_SMASK
++	| SEND_DMA_CHECK_ENABLE_CHECK_BYPASS_VL_MAPPING_SMASK
++	| SEND_DMA_CHECK_ENABLE_CHECK_VL_MAPPING_SMASK
++	| SEND_DMA_CHECK_ENABLE_CHECK_OPCODE_SMASK
++	| SEND_DMA_CHECK_ENABLE_CHECK_SLID_SMASK
++	| SEND_DMA_CHECK_ENABLE_CHECK_JOB_KEY_SMASK
++	| SEND_DMA_CHECK_ENABLE_CHECK_VL_SMASK
++	| SEND_DMA_CHECK_ENABLE_CHECK_ENABLE_SMASK;
 +
-+	if (pkey == LIM_MGMT_P_KEY || pkey == FULL_MGMT_P_KEY) {
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
-+	for (i = 0; i < ARRAY_SIZE(ppd->pkeys); i++)
-+		if (pkey == ppd->pkeys[i]) {
-+			intable = 1;
-+			break;
-+		}
-+
-+	if (intable)
-+		ret = hfi1_set_ctxt_pkey(dd, uctxt->ctxt, pkey);
-+done:
-+	return ret;
++	if (is_a0(dd))
++		/* turn off send-side job key checks - A0 erratum */
++		return base_sdma_integrity &
++		       ~SEND_DMA_CHECK_ENABLE_CHECK_JOB_KEY_SMASK;
++	return base_sdma_integrity;
 +}
 +
-+static int ui_open(struct inode *inode, struct file *filp)
-+{
-+	struct hfi1_devdata *dd;
++/*
++ * hfi1_early_err is used (only!) to print early errors before devdata is
++ * allocated, or when dd->pcidev may not be valid, and at the tail end of
++ * cleanup when devdata may have been freed, etc.  hfi1_dev_porterr is
++ * the same as dd_dev_err, but is used when the message really needs
++ * the IB port# to be definitive as to what's happening..
++ */
++#define hfi1_early_err(dev, fmt, ...) \
++	dev_err(dev, fmt, ##__VA_ARGS__)
 +
-+	dd = container_of(inode->i_cdev, struct hfi1_devdata, ui_cdev);
-+	filp->private_data = dd; /* for other methods */
-+	return 0;
-+}
++#define hfi1_early_info(dev, fmt, ...) \
++	dev_info(dev, fmt, ##__VA_ARGS__)
 +
-+static int ui_release(struct inode *inode, struct file *filp)
-+{
-+	/* nothing to do */
-+	return 0;
-+}
++#define dd_dev_emerg(dd, fmt, ...) \
++	dev_emerg(&(dd)->pcidev->dev, "%s: " fmt, \
++		  get_unit_name((dd)->unit), ##__VA_ARGS__)
++#define dd_dev_err(dd, fmt, ...) \
++	dev_err(&(dd)->pcidev->dev, "%s: " fmt, \
++			get_unit_name((dd)->unit), ##__VA_ARGS__)
++#define dd_dev_warn(dd, fmt, ...) \
++	dev_warn(&(dd)->pcidev->dev, "%s: " fmt, \
++			get_unit_name((dd)->unit), ##__VA_ARGS__)
 +
-+static loff_t ui_lseek(struct file *filp, loff_t offset, int whence)
-+{
-+	struct hfi1_devdata *dd = filp->private_data;
++#define dd_dev_warn_ratelimited(dd, fmt, ...) \
++	dev_warn_ratelimited(&(dd)->pcidev->dev, "%s: " fmt, \
++			get_unit_name((dd)->unit), ##__VA_ARGS__)
 +
-+	switch (whence) {
-+	case SEEK_SET:
-+		break;
-+	case SEEK_CUR:
-+		offset += filp->f_pos;
-+		break;
-+	case SEEK_END:
-+		offset = ((dd->kregend - dd->kregbase) + DC8051_DATA_MEM_SIZE) -
-+			offset;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
++#define dd_dev_info(dd, fmt, ...) \
++	dev_info(&(dd)->pcidev->dev, "%s: " fmt, \
++			get_unit_name((dd)->unit), ##__VA_ARGS__)
 +
-+	if (offset < 0)
-+		return -EINVAL;
++#define hfi1_dev_porterr(dd, port, fmt, ...) \
++	dev_err(&(dd)->pcidev->dev, "%s: IB%u:%u " fmt, \
++			get_unit_name((dd)->unit), (dd)->unit, (port), \
++			##__VA_ARGS__)
 +
-+	if (offset >= (dd->kregend - dd->kregbase) + DC8051_DATA_MEM_SIZE)
-+		return -EINVAL;
-+
-+	filp->f_pos = offset;
-+
-+	return filp->f_pos;
-+}
-+
-+
-+/* NOTE: assumes unsigned long is 8 bytes */
-+static ssize_t ui_read(struct file *filp, char __user *buf, size_t count,
-+			loff_t *f_pos)
-+{
-+	struct hfi1_devdata *dd = filp->private_data;
-+	void __iomem *base = dd->kregbase;
-+	unsigned long total, csr_off,
-+		barlen = (dd->kregend - dd->kregbase);
-+	u64 data;
-+
-+	/* only read 8 byte quantities */
-+	if ((count % 8) != 0)
-+		return -EINVAL;
-+	/* offset must be 8-byte aligned */
-+	if ((*f_pos % 8) != 0)
-+		return -EINVAL;
-+	/* destination buffer must be 8-byte aligned */
-+	if ((unsigned long)buf % 8 != 0)
-+		return -EINVAL;
-+	/* must be in range */
-+	if (*f_pos + count > (barlen + DC8051_DATA_MEM_SIZE))
-+		return -EINVAL;
-+	/* only set the base if we are not starting past the BAR */
-+	if (*f_pos < barlen)
-+		base += *f_pos;
-+	csr_off = *f_pos;
-+	for (total = 0; total < count; total += 8, csr_off += 8) {
-+		/* accessing LCB CSRs requires more checks */
-+		if (is_lcb_offset(csr_off)) {
-+			if (read_lcb_csr(dd, csr_off, (u64 *)&data))
-+				break; /* failed */
-+		}
-+		/*
-+		 * Cannot read ASIC GPIO/QSFP* clear and force CSRs without a
-+		 * false parity error.  Avoid the whole issue by not reading
-+		 * them.  These registers are defined as having a read value
-+		 * of 0.
-+		 */
-+		else if (csr_off == ASIC_GPIO_CLEAR
-+				|| csr_off == ASIC_GPIO_FORCE
-+				|| csr_off == ASIC_QSFP1_CLEAR
-+				|| csr_off == ASIC_QSFP1_FORCE
-+				|| csr_off == ASIC_QSFP2_CLEAR
-+				|| csr_off == ASIC_QSFP2_FORCE)
-+			data = 0;
-+		else if (csr_off >= barlen) {
-+			/*
-+			 * read_8051_data can read more than just 8 bytes at
-+			 * a time. However, folding this into the loop and
-+			 * handling the reads in 8 byte increments allows us
-+			 * to smoothly transition from chip memory to 8051
-+			 * memory.
-+			 */
-+			if (read_8051_data(dd,
-+					   (u32)(csr_off - barlen),
-+					   sizeof(data), &data))
-+				break; /* failed */
-+		} else
-+			data = readq(base + total);
-+		if (put_user(data, (unsigned long __user *)(buf + total)))
-+			break;
-+	}
-+	*f_pos += total;
-+	return total;
-+}
-+
-+/* NOTE: assumes unsigned long is 8 bytes */
-+static ssize_t ui_write(struct file *filp, const char __user *buf,
-+			size_t count, loff_t *f_pos)
-+{
-+	struct hfi1_devdata *dd = filp->private_data;
-+	void __iomem *base;
-+	unsigned long total, data, csr_off;
-+	int in_lcb;
-+
-+	/* only write 8 byte quantities */
-+	if ((count % 8) != 0)
-+		return -EINVAL;
-+	/* offset must be 8-byte aligned */
-+	if ((*f_pos % 8) != 0)
-+		return -EINVAL;
-+	/* source buffer must be 8-byte aligned */
-+	if ((unsigned long)buf % 8 != 0)
-+		return -EINVAL;
-+	/* must be in range */
-+	if (*f_pos + count > dd->kregend - dd->kregbase)
-+		return -EINVAL;
-+
-+	base = (void __iomem *)dd->kregbase + *f_pos;
-+	csr_off = *f_pos;
-+	in_lcb = 0;
-+	for (total = 0; total < count; total += 8, csr_off += 8) {
-+		if (get_user(data, (unsigned long __user *)(buf + total)))
-+			break;
-+		/* accessing LCB CSRs requires a special procedure */
-+		if (is_lcb_offset(csr_off)) {
-+			if (!in_lcb) {
-+				int ret = acquire_lcb_access(dd, 1);
-+
-+				if (ret)
-+					break;
-+				in_lcb = 1;
-+			}
-+		} else {
-+			if (in_lcb) {
-+				release_lcb_access(dd, 1);
-+				in_lcb = 0;
-+			}
-+		}
-+		writeq(data, base + total);
-+	}
-+	if (in_lcb)
-+		release_lcb_access(dd, 1);
-+	*f_pos += total;
-+	return total;
-+}
-+
-+static const struct file_operations ui_file_ops = {
-+	.owner = THIS_MODULE,
-+	.llseek = ui_lseek,
-+	.read = ui_read,
-+	.write = ui_write,
-+	.open = ui_open,
-+	.release = ui_release,
++/*
++ * this is used for formatting hw error messages...
++ */
++struct hfi1_hwerror_msgs {
++	u64 mask;
++	const char *msg;
++	size_t sz;
 +};
-+#define UI_OFFSET 192	/* device minor offset for UI devices */
-+static int create_ui = 1;
 +
-+static struct cdev wildcard_cdev;
-+static struct device *wildcard_device;
++/* in intr.c... */
++void hfi1_format_hwerrors(u64 hwerrs,
++			  const struct hfi1_hwerror_msgs *hwerrmsgs,
++			  size_t nhwerrmsgs, char *msg, size_t lmsg);
 +
-+static atomic_t user_count = ATOMIC_INIT(0);
++#define USER_OPCODE_CHECK_VAL 0xC0
++#define USER_OPCODE_CHECK_MASK 0xC0
++#define OPCODE_CHECK_VAL_DISABLED 0x0
++#define OPCODE_CHECK_MASK_DISABLED 0x0
 +
-+static void user_remove(struct hfi1_devdata *dd)
++static inline void hfi1_reset_cpu_counters(struct hfi1_devdata *dd)
 +{
-+	if (atomic_dec_return(&user_count) == 0)
-+		hfi1_cdev_cleanup(&wildcard_cdev, &wildcard_device);
++	struct hfi1_pportdata *ppd;
++	int i;
 +
-+	hfi1_cdev_cleanup(&dd->user_cdev, &dd->user_device);
-+	hfi1_cdev_cleanup(&dd->ui_cdev, &dd->ui_device);
-+}
++	dd->z_int_counter = get_all_cpu_total(dd->int_counter);
++	dd->z_rcv_limit = get_all_cpu_total(dd->rcv_limit);
 +
-+static int user_add(struct hfi1_devdata *dd)
-+{
-+	char name[10];
-+	int ret;
-+
-+	if (atomic_inc_return(&user_count) == 1) {
-+		ret = hfi1_cdev_init(0, class_name(), &hfi1_file_ops,
-+				     &wildcard_cdev, &wildcard_device);
-+		if (ret)
-+			goto done;
++	ppd = (struct hfi1_pportdata *)(dd + 1);
++	for (i = 0; i < dd->num_pports; i++, ppd++) {
++		ppd->ibport_data.z_rc_acks =
++			get_all_cpu_total(ppd->ibport_data.rc_acks);
++		ppd->ibport_data.z_rc_qacks =
++			get_all_cpu_total(ppd->ibport_data.rc_qacks);
 +	}
-+
-+	snprintf(name, sizeof(name), "%s_%d", class_name(), dd->unit);
-+	ret = hfi1_cdev_init(dd->unit + 1, name, &hfi1_file_ops,
-+			     &dd->user_cdev, &dd->user_device);
-+	if (ret)
-+		goto done;
-+
-+	if (create_ui) {
-+		snprintf(name, sizeof(name),
-+			 "%s_ui%d", class_name(), dd->unit);
-+		ret = hfi1_cdev_init(dd->unit + UI_OFFSET, name, &ui_file_ops,
-+				     &dd->ui_cdev, &dd->ui_device);
-+		if (ret)
-+			goto done;
-+	}
-+
-+	return 0;
-+done:
-+	user_remove(dd);
-+	return ret;
 +}
 +
-+/*
-+ * Create per-unit files in /dev
-+ */
-+int hfi1_device_create(struct hfi1_devdata *dd)
++/* Control LED state */
++static inline void setextled(struct hfi1_devdata *dd, u32 on)
 +{
-+	int r, ret;
-+
-+	r = user_add(dd);
-+	ret = hfi1_diag_add(dd);
-+	if (r && !ret)
-+		ret = r;
-+	return ret;
++	if (on)
++		write_csr(dd, DCC_CFG_LED_CNTRL, 0x1F);
++	else
++		write_csr(dd, DCC_CFG_LED_CNTRL, 0x10);
 +}
 +
-+/*
-+ * Remove per-unit files in /dev
-+ * void, core kernel returns no errors for this stuff
-+ */
-+void hfi1_device_remove(struct hfi1_devdata *dd)
-+{
-+	user_remove(dd);
-+	hfi1_diag_remove(dd);
-+}
++int hfi1_tempsense_rd(struct hfi1_devdata *dd, struct hfi1_temp *temp);
++
++#endif                          /* _HFI1_KERNEL_H */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
