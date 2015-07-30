@@ -1,238 +1,308 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 20/22] IB/iser: Support up to 8MB data transfer in a single command
-Date: Thu, 30 Jul 2015 11:06:33 +0300
-Message-ID: <1438243595-32288-21-git-send-email-sagig@mellanox.com>
+Subject: [PATCH 15/22] IB/iser: Maintain connection fmr_pool under a single registration descriptor
+Date: Thu, 30 Jul 2015 11:06:28 +0300
+Message-ID: <1438243595-32288-16-git-send-email-sagig@mellanox.com>
 References: <1438243595-32288-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1438243595-32288-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Adir Lev <adirl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-iser support up to 512KB data transfer in a single scsi
-command. In order to support up to 8MB, iser needs to pre-allocate
-larger memory regions and larger page vectors.
+From: Adir Lev <adirl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Given that a few target implementations don't support data transfers
-of more than 512KB by default and the fact that larger IO sizes require
-more resources, we introduce a module parameter to determine the
-maximum number of 512B sectors in a single scsi command.
-Users that are interested in larger transfers can change this value given
-that the target supports larger transfers.
+This will allow us to unify the memory registration code path between
+the various methods which vary by the device capabilities. This change
+will make it easier and less intrusive to remove fmr_pools from the
+code when we'd want to.
 
-IO operations that consists of N pages will need a page vector
-of size N+1 in case the first SG element contains an offset. Given
-that some devices allocates memory regions in powers of 2, this
-means that allocating a region with N+1 pages, will result in
-region resources allocation of the next power of 2. Since we don't
-want that to happen, in case we are in the limit of IO size supported
-and the first SG element has an offset, we align the SG list using a
-bounce buffer (which is OK given that this is not likely to happen a lot).
+The reason we use a single descriptor is to avoid taking a
+redundant spinlock when working with FMRs.
+
+We also change the signature of iser_reg_page_vec to make it match
+iser_fast_reg_mr (and the future indirect registration method).
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Adir Lev <adirl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.c     | 19 ++++++++-----------
- drivers/infiniband/ulp/iser/iscsi_iser.h     | 14 ++++++++++++--
- drivers/infiniband/ulp/iser/iser_initiator.c |  2 +-
- drivers/infiniband/ulp/iser/iser_memory.c    | 14 ++++++++++++--
- drivers/infiniband/ulp/iser/iser_verbs.c     | 27 +++++++++++++++++++++++++++
- 5 files changed, 60 insertions(+), 16 deletions(-)
+ drivers/infiniband/ulp/iser/iscsi_iser.h  | 38 +++++++++------------
+ drivers/infiniband/ulp/iser/iser_memory.c | 28 +++++++++-------
+ drivers/infiniband/ulp/iser/iser_verbs.c  | 56 ++++++++++++++++++++-----------
+ 3 files changed, 68 insertions(+), 54 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
-index e3cea61..9eeefc8 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.c
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-@@ -93,6 +93,10 @@ static unsigned int iscsi_max_lun = 512;
- module_param_named(max_lun, iscsi_max_lun, uint, S_IRUGO);
- MODULE_PARM_DESC(max_lun, "Max LUNs to allow per session (default:512");
- 
-+unsigned int iser_max_sectors = ISER_DEF_MAX_SECTORS;
-+module_param_named(max_sectors, iser_max_sectors, uint, S_IRUGO | S_IWUSR);
-+MODULE_PARM_DESC(max_sectors, "Max number of sectors in a single scsi command (default:1024");
-+
- bool iser_pi_enable = false;
- module_param_named(pi_enable, iser_pi_enable, bool, S_IRUGO);
- MODULE_PARM_DESC(pi_enable, "Enable T10-PI offload support (default:disabled)");
-@@ -625,6 +629,8 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
- 	if (ep) {
- 		iser_conn = ep->dd_data;
- 		max_cmds = iser_conn->max_cmds;
-+		shost->sg_tablesize = iser_conn->scsi_sg_tablesize;
-+		shost->max_sectors = iser_conn->scsi_max_sectors;
- 
- 		mutex_lock(&iser_conn->state_mutex);
- 		if (iser_conn->state != ISER_CONN_UP) {
-@@ -643,15 +649,6 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
- 						   SHOST_DIX_GUARD_CRC);
- 		}
- 
--		/*
--		 * Limit the sg_tablesize and max_sectors based on the device
--		 * max fastreg page list length.
--		 */
--		shost->sg_tablesize = min_t(unsigned short, shost->sg_tablesize,
--			ib_conn->device->dev_attr.max_fast_reg_page_list_len);
--		shost->max_sectors = min_t(unsigned int,
--			1024, (shost->sg_tablesize * PAGE_SIZE) >> 9);
--
- 		if (iscsi_host_add(shost,
- 				   ib_conn->device->ib_device->dma_device)) {
- 			mutex_unlock(&iser_conn->state_mutex);
-@@ -966,8 +963,8 @@ static struct scsi_host_template iscsi_iser_sht = {
- 	.name                   = "iSCSI Initiator over iSER",
- 	.queuecommand           = iscsi_queuecommand,
- 	.change_queue_depth	= scsi_change_queue_depth,
--	.sg_tablesize           = ISCSI_ISER_SG_TABLESIZE,
--	.max_sectors		= 1024,
-+	.sg_tablesize           = ISCSI_ISER_DEF_SG_TABLESIZE,
-+	.max_sectors            = ISER_DEF_MAX_SECTORS,
- 	.cmd_per_lun            = ISER_DEF_CMD_PER_LUN,
- 	.eh_abort_handler       = iscsi_eh_abort,
- 	.eh_device_reset_handler= iscsi_eh_device_reset,
 diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
-index e9ebe0b..8a32e20 100644
+index 1fc4c23..a8c8177 100644
 --- a/drivers/infiniband/ulp/iser/iscsi_iser.h
 +++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
-@@ -98,8 +98,13 @@
- #define SHIFT_4K	12
- #define SIZE_4K	(1ULL << SHIFT_4K)
- #define MASK_4K	(~(SIZE_4K-1))
--					/* support up to 512KB in one RDMA */
--#define ISCSI_ISER_SG_TABLESIZE         (0x80000 >> SHIFT_4K)
-+
-+/* Default support is 512KB I/O size */
-+#define ISER_DEF_MAX_SECTORS		1024
-+#define ISCSI_ISER_DEF_SG_TABLESIZE	((ISER_DEF_MAX_SECTORS * 512) >> SHIFT_4K)
-+/* Maximum support is 8MB I/O size */
-+#define ISCSI_ISER_MAX_SG_TABLESIZE	(16384 * 512 >> SHIFT_4K)
-+
- #define ISER_DEF_XMIT_CMDS_DEFAULT		512
- #if ISCSI_DEF_XMIT_CMDS_MAX > ISER_DEF_XMIT_CMDS_DEFAULT
- 	#define ISER_DEF_XMIT_CMDS_MAX		ISCSI_DEF_XMIT_CMDS_MAX
-@@ -504,6 +509,8 @@ struct ib_conn {
-  * @rx_desc_head:     head of rx_descs cyclic buffer
-  * @rx_descs:         rx buffers array (cyclic buffer)
-  * @num_rx_descs:     number of rx descriptors
-+ * @scsi_sg_tablesize: scsi host sg_tablesize
-+ * @scsi_max_sectors: scsi host max sectors
+@@ -380,12 +380,20 @@ struct iser_device {
+  * struct iser_reg_resources - Fast registration recources
+  *
+  * @mr:         memory region
+- * @frpl:       fast reg page list
++ * @fmr_pool:   pool of fmrs
++ * @frpl:       fast reg page list used by frwrs
++ * @page_vec:   fast reg page list used by fmr pool
+  * @mr_valid:   is mr valid indicator
   */
- struct iser_conn {
- 	struct ib_conn		     ib_conn;
-@@ -528,6 +535,8 @@ struct iser_conn {
- 	unsigned int 		     rx_desc_head;
- 	struct iser_rx_desc	     *rx_descs;
- 	u32                          num_rx_descs;
-+	unsigned short               scsi_sg_tablesize;
-+	unsigned int                 scsi_max_sectors;
+ struct iser_reg_resources {
+-	struct ib_mr			 *mr;
+-	struct ib_fast_reg_page_list     *frpl;
++	union {
++		struct ib_mr             *mr;
++		struct ib_fmr_pool       *fmr_pool;
++	};
++	union {
++		struct ib_fast_reg_page_list     *frpl;
++		struct iser_page_vec             *page_vec;
++	};
+ 	u8				  mr_valid:1;
+ };
+ 
+@@ -420,28 +428,14 @@ struct iser_fr_desc {
+ /**
+  * struct iser_fr_pool: connection fast registration pool
+  *
++ * @list:                list of fastreg descriptors
+  * @lock:                protects fmr/fastreg pool
+- * @union.fmr:
+- *     @pool:            FMR pool for fast registrations
+- *     @page_vec:        fast reg page list to hold mapped commands pages
+- *                       used for registration
+- * @union.fastreg:
+- *     @pool:            Fast registration descriptors pool for fast
+- *                       registrations
+- *     @pool_size:       Size of pool
++ * @size:                size of the pool
+  */
+ struct iser_fr_pool {
+-	spinlock_t		     lock;
+-	union {
+-		struct {
+-			struct ib_fmr_pool              *pool;
+-			struct iser_page_vec            *page_vec;
+-		} fmr;
+-		struct {
+-			struct list_head	 pool;
+-			int			 pool_size;
+-		} fastreg;
+-	};
++	struct list_head        list;
++	spinlock_t              lock;
++	int                     size;
  };
  
  /**
-@@ -583,6 +592,7 @@ extern struct iser_global ig;
- extern int iser_debug_level;
- extern bool iser_pi_enable;
- extern int iser_pi_guard;
-+extern unsigned int iser_max_sectors;
- 
- int iser_assign_reg_ops(struct iser_device *device);
- 
-diff --git a/drivers/infiniband/ulp/iser/iser_initiator.c b/drivers/infiniband/ulp/iser/iser_initiator.c
-index 268a3d6..d511879 100644
---- a/drivers/infiniband/ulp/iser/iser_initiator.c
-+++ b/drivers/infiniband/ulp/iser/iser_initiator.c
-@@ -259,7 +259,7 @@ int iser_alloc_rx_descriptors(struct iser_conn *iser_conn,
- 	iser_conn->min_posted_rx = iser_conn->qp_max_recv_dtos >> 2;
- 
- 	if (device->reg_ops->alloc_reg_res(ib_conn, session->scsi_cmds_max,
--					   ISCSI_ISER_SG_TABLESIZE + 1))
-+					   iser_conn->scsi_sg_tablesize))
- 		goto create_rdma_reg_res_failed;
- 
- 	if (iser_alloc_login_buf(iser_conn))
 diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index 5e807ba..cbf6152 100644
+index 65c035d..d0c01e1 100644
 --- a/drivers/infiniband/ulp/iser/iser_memory.c
 +++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -363,7 +363,8 @@ static int iser_sg_to_page_vec(struct iser_data_buf *data,
-  * consecutive SG elements are actually fragments of the same physcial page.
-  */
- static int iser_data_buf_aligned_len(struct iser_data_buf *data,
--				      struct ib_device *ibdev)
-+				     struct ib_device *ibdev,
-+				     unsigned sg_tablesize)
- {
- 	struct scatterlist *sg, *sgl, *next_sg = NULL;
- 	u64 start_addr, end_addr;
-@@ -375,6 +376,14 @@ static int iser_data_buf_aligned_len(struct iser_data_buf *data,
- 	sgl = data->sg;
- 	start_addr  = ib_sg_dma_address(ibdev, sgl);
+@@ -189,7 +189,7 @@ iser_reg_desc_get(struct ib_conn *ib_conn)
+ 	unsigned long flags;
  
-+	if (unlikely(sgl[0].offset &&
-+		     data->data_len >= sg_tablesize * PAGE_SIZE)) {
-+		iser_dbg("can't register length %lx with offset %x "
-+			 "fall to bounce buffer\n", data->data_len,
-+			 sgl[0].offset);
-+		return 0;
-+	}
-+
- 	for_each_sg(sgl, sg, data->dma_nents, i) {
- 		if (start_check && !IS_4K_ALIGNED(start_addr))
- 			break;
-@@ -790,7 +799,8 @@ iser_handle_unaligned_buf(struct iscsi_iser_task *task,
- 	struct iser_device *device = iser_conn->ib_conn.device;
- 	int err, aligned_len;
+ 	spin_lock_irqsave(&fr_pool->lock, flags);
+-	desc = list_first_entry(&fr_pool->fastreg.pool,
++	desc = list_first_entry(&fr_pool->list,
+ 				struct iser_fr_desc, list);
+ 	list_del(&desc->list);
+ 	spin_unlock_irqrestore(&fr_pool->lock, flags);
+@@ -205,7 +205,7 @@ iser_reg_desc_put(struct ib_conn *ib_conn,
+ 	unsigned long flags;
  
--	aligned_len = iser_data_buf_aligned_len(mem, device->ib_device);
-+	aligned_len = iser_data_buf_aligned_len(mem, device->ib_device,
-+						iser_conn->scsi_sg_tablesize);
- 	if (aligned_len != mem->dma_nents) {
- 		err = fall_to_bounce_buf(task, mem, dir);
- 		if (err)
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index fa778ba..f69cee7 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -756,6 +756,31 @@ static void iser_connect_error(struct rdma_cm_id *cma_id)
- 	iser_conn->state = ISER_CONN_TERMINATING;
+ 	spin_lock_irqsave(&fr_pool->lock, flags);
+-	list_add(&desc->list, &fr_pool->fastreg.pool);
++	list_add(&desc->list, &fr_pool->list);
+ 	spin_unlock_irqrestore(&fr_pool->lock, flags);
  }
  
-+static void
-+iser_calc_scsi_params(struct iser_conn *iser_conn,
-+		      unsigned int max_sectors)
-+{
-+	struct iser_device *device = iser_conn->ib_conn.device;
-+	unsigned short sg_tablesize, sup_sg_tablesize;
-+
-+	sg_tablesize = DIV_ROUND_UP(max_sectors * 512, SIZE_4K);
-+	sup_sg_tablesize = min_t(unsigned, ISCSI_ISER_MAX_SG_TABLESIZE,
-+				 device->dev_attr.max_fast_reg_page_list_len);
-+
-+	if (sg_tablesize > sup_sg_tablesize) {
-+		sg_tablesize = sup_sg_tablesize;
-+		iser_conn->scsi_max_sectors = sg_tablesize * SIZE_4K / 512;
-+	} else {
-+		iser_conn->scsi_max_sectors = max_sectors;
-+	}
-+
-+	iser_conn->scsi_sg_tablesize = sg_tablesize;
-+
-+	iser_dbg("iser_conn %p, sg_tablesize %u, max_sectors %u\n",
-+		 iser_conn, iser_conn->scsi_sg_tablesize,
-+		 iser_conn->scsi_max_sectors);
-+}
-+
- /**
-  * Called with state mutex held
-  **/
-@@ -794,6 +819,8 @@ static void iser_addr_handler(struct rdma_cm_id *cma_id)
- 		}
+@@ -478,12 +478,13 @@ static int fall_to_bounce_buf(struct iscsi_iser_task *iser_task,
+ static
+ int iser_reg_page_vec(struct iscsi_iser_task *iser_task,
+ 		      struct iser_data_buf *mem,
+-		      struct iser_page_vec *page_vec,
++		      struct iser_reg_resources *rsc,
+ 		      struct iser_mem_reg *mem_reg)
+ {
+ 	struct ib_conn *ib_conn = &iser_task->iser_conn->ib_conn;
+-	struct iser_fr_pool *fr_pool = &ib_conn->fr_pool;
+ 	struct iser_device *device = ib_conn->device;
++	struct iser_page_vec *page_vec = rsc->page_vec;
++	struct ib_fmr_pool *fmr_pool = rsc->fmr_pool;
+ 	struct ib_pool_fmr *fmr;
+ 	int ret, plen;
+ 
+@@ -499,7 +500,7 @@ int iser_reg_page_vec(struct iscsi_iser_task *iser_task,
+ 		return -EINVAL;
  	}
  
-+	iser_calc_scsi_params(iser_conn, iser_max_sectors);
+-	fmr  = ib_fmr_pool_map_phys(fr_pool->fmr.pool,
++	fmr  = ib_fmr_pool_map_phys(fmr_pool,
+ 				    page_vec->pages,
+ 				    page_vec->length,
+ 				    page_vec->pages[0]);
+@@ -587,20 +588,23 @@ int iser_reg_rdma_mem_fmr(struct iscsi_iser_task *iser_task,
+ 	if (mem->dma_nents == 1) {
+ 		return iser_reg_dma(device, mem, mem_reg);
+ 	} else { /* use FMR for multiple dma entries */
+-		err = iser_reg_page_vec(iser_task, mem,
+-					fr_pool->fmr.page_vec, mem_reg);
++		struct iser_fr_desc *desc;
 +
- 	ret = rdma_resolve_route(cma_id, 1000);
- 	if (ret) {
- 		iser_err("resolve route failed: %d\n", ret);
++		desc = list_first_entry(&fr_pool->list,
++					struct iser_fr_desc, list);
++		err = iser_reg_page_vec(iser_task, mem, &desc->rsc, mem_reg);
+ 		if (err && err != -EAGAIN) {
+ 			iser_data_buf_dump(mem, ibdev);
+ 			iser_err("mem->dma_nents = %d (dlength = 0x%x)\n",
+ 				 mem->dma_nents,
+ 				 ntoh24(iser_task->desc.iscsi_header.dlength));
+ 			iser_err("page_vec: data_size = 0x%x, length = %d, offset = 0x%x\n",
+-				 fr_pool->fmr.page_vec->data_size,
+-				 fr_pool->fmr.page_vec->length,
+-				 fr_pool->fmr.page_vec->offset);
+-			for (i = 0; i < fr_pool->fmr.page_vec->length; i++)
++				 desc->rsc.page_vec->data_size,
++				 desc->rsc.page_vec->length,
++				 desc->rsc.page_vec->offset);
++			for (i = 0; i < desc->rsc.page_vec->length; i++)
+ 				iser_err("page_vec[%d] = 0x%llx\n", i,
+-					 (unsigned long long)fr_pool->fmr.page_vec->pages[i]);
++					 (unsigned long long)desc->rsc.page_vec->pages[i]);
+ 		}
+ 		if (err)
+ 			return err;
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index d50477c..6b464e6 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -204,17 +204,25 @@ int iser_alloc_fmr_pool(struct ib_conn *ib_conn, unsigned cmds_max)
+ 	struct iser_device *device = ib_conn->device;
+ 	struct iser_fr_pool *fr_pool = &ib_conn->fr_pool;
+ 	struct iser_page_vec *page_vec;
++	struct iser_fr_desc *desc;
+ 	struct ib_fmr_pool *fmr_pool;
+ 	struct ib_fmr_pool_param params;
+-	int ret = -ENOMEM;
++	int ret;
+ 
++	INIT_LIST_HEAD(&fr_pool->list);
+ 	spin_lock_init(&fr_pool->lock);
+ 
++	desc = kzalloc(sizeof(*desc), GFP_KERNEL);
++	if (!desc)
++		return -ENOMEM;
++
+ 	page_vec = kmalloc(sizeof(*page_vec) +
+ 			   (sizeof(u64) * (ISCSI_ISER_SG_TABLESIZE + 1)),
+ 			   GFP_KERNEL);
+-	if (!page_vec)
+-		return ret;
++	if (!page_vec) {
++		ret = -ENOMEM;
++		goto err_frpl;
++	}
+ 
+ 	page_vec->pages = (u64 *)(page_vec + 1);
+ 
+@@ -236,16 +244,20 @@ int iser_alloc_fmr_pool(struct ib_conn *ib_conn, unsigned cmds_max)
+ 	if (IS_ERR(fmr_pool)) {
+ 		ret = PTR_ERR(fmr_pool);
+ 		iser_err("FMR allocation failed, err %d\n", ret);
+-		goto err;
++		goto err_fmr;
+ 	}
+ 
+-	fr_pool->fmr.page_vec = page_vec;
+-	fr_pool->fmr.pool = fmr_pool;
++	desc->rsc.page_vec = page_vec;
++	desc->rsc.fmr_pool = fmr_pool;
++	list_add(&desc->list, &fr_pool->list);
+ 
+ 	return 0;
+ 
+-err:
++err_fmr:
+ 	kfree(page_vec);
++err_frpl:
++	kfree(desc);
++
+ 	return ret;
+ }
+ 
+@@ -255,14 +267,18 @@ err:
+ void iser_free_fmr_pool(struct ib_conn *ib_conn)
+ {
+ 	struct iser_fr_pool *fr_pool = &ib_conn->fr_pool;
++	struct iser_fr_desc *desc;
++
++	desc = list_first_entry(&fr_pool->list,
++				struct iser_fr_desc, list);
++	list_del(&desc->list);
+ 
+ 	iser_info("freeing conn %p fmr pool %p\n",
+-		  ib_conn, fr_pool->fmr.pool);
++		  ib_conn, desc->rsc.fmr_pool);
+ 
+-	ib_destroy_fmr_pool(fr_pool->fmr.pool);
+-	fr_pool->fmr.pool = NULL;
+-	kfree(fr_pool->fmr.page_vec);
+-	fr_pool->fmr.page_vec = NULL;
++	ib_destroy_fmr_pool(desc->rsc.fmr_pool);
++	kfree(desc->rsc.page_vec);
++	kfree(desc);
+ }
+ 
+ static int
+@@ -392,9 +408,9 @@ int iser_alloc_fastreg_pool(struct ib_conn *ib_conn, unsigned cmds_max)
+ 	struct iser_fr_desc *desc;
+ 	int i, ret;
+ 
+-	INIT_LIST_HEAD(&fr_pool->fastreg.pool);
++	INIT_LIST_HEAD(&fr_pool->list);
+ 	spin_lock_init(&fr_pool->lock);
+-	fr_pool->fastreg.pool_size = 0;
++	fr_pool->size = 0;
+ 	for (i = 0; i < cmds_max; i++) {
+ 		desc = iser_create_fastreg_desc(device->ib_device, device->pd,
+ 						ib_conn->pi_support);
+@@ -403,8 +419,8 @@ int iser_alloc_fastreg_pool(struct ib_conn *ib_conn, unsigned cmds_max)
+ 			goto err;
+ 		}
+ 
+-		list_add_tail(&desc->list, &fr_pool->fastreg.pool);
+-		fr_pool->fastreg.pool_size++;
++		list_add_tail(&desc->list, &fr_pool->list);
++		fr_pool->size++;
+ 	}
+ 
+ 	return 0;
+@@ -423,12 +439,12 @@ void iser_free_fastreg_pool(struct ib_conn *ib_conn)
+ 	struct iser_fr_desc *desc, *tmp;
+ 	int i = 0;
+ 
+-	if (list_empty(&fr_pool->fastreg.pool))
++	if (list_empty(&fr_pool->list))
+ 		return;
+ 
+ 	iser_info("freeing conn %p fr pool\n", ib_conn);
+ 
+-	list_for_each_entry_safe(desc, tmp, &fr_pool->fastreg.pool, list) {
++	list_for_each_entry_safe(desc, tmp, &fr_pool->list, list) {
+ 		list_del(&desc->list);
+ 		iser_free_reg_res(&desc->rsc);
+ 		if (desc->pi_ctx)
+@@ -437,9 +453,9 @@ void iser_free_fastreg_pool(struct ib_conn *ib_conn)
+ 		++i;
+ 	}
+ 
+-	if (i < fr_pool->fastreg.pool_size)
++	if (i < fr_pool->size)
+ 		iser_warn("pool still has %d regions registered\n",
+-			  fr_pool->fastreg.pool_size - i);
++			  fr_pool->size - i);
+ }
+ 
+ /**
 -- 
 1.8.4.3
 
