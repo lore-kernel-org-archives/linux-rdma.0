@@ -1,93 +1,157 @@
-From: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] rds: rds_ib_device.refcount overflow
-Date: Thu, 30 Jul 2015 13:35:09 +0800
-Message-ID: <55B9B78D.5000807@oracle.com>
-References: <1436164511-2411-1-git-send-email-wen.gang.wang@oracle.com> <55A31202.1030408@oracle.com> <55B8E4F2.2060700@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55B8E4F2.2060700-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Subject: [PATCH v2] xprtrdma: take HCA driver refcount at client
+Date: Thu, 30 Jul 2015 16:30:18 +0530
+Message-ID: <1438254018-2816-1-git-send-email-devesh.sharma@avagotech.com>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Doug,
+Thanks Chuck Lever for the valuable feedback and suggestions.
 
-No problem. I found the patch picked up.
+This is a rework of the following patch sent almost a year back:
+http://www.mail-archive.com/linux-rdma%40vger.kernel.org/msg20730.html
 
-thanks,
-wengang
+In presence of active mount if someone tries to rmmod vendor-driver, the
+command remains stuck forever waiting for destruction of all rdma-cm-id.
+in worst case client can crash during shutdown with active mounts.
 
-=E5=9C=A8 2015=E5=B9=B407=E6=9C=8829=E6=97=A5 22:36, Doug Ledford =E5=86=
-=99=E9=81=93:
-> On 07/12/2015 09:18 PM, Wengang Wang wrote:
->> Hi Doug,
->>
->> How do you think about this patch?
-> Sorry, I picked this up already.  I must have missed sending out the
-> acknowledgment on this one.
->
->> thanks,
->> wengang
->>
->> =E5=9C=A8 2015=E5=B9=B407=E6=9C=8806=E6=97=A5 14:35, Wengang Wang =E5=
-=86=99=E9=81=93:
->>> Fixes: 3e0249f9c05c ("RDS/IB: add refcount tracking to struct
->>> rds_ib_device")
->>>
->>> There lacks a dropping on rds_ib_device.refcount in case rds_ib_all=
-oc_fmr
->>> failed(mr pool running out). this lead to the refcount overflow.
->>>
->>> A complain in line 117(see following) is seen. From vmcore:
->>> s_ib_rdma_mr_pool_depleted is 2147485544 and rds_ibdev->refcount is
->>> -2147475448.
->>> That is the evidence the mr pool is used up. so rds_ib_alloc_fmr is
->>> very likely
->>> to return ERR_PTR(-EAGAIN).
->>>
->>> 115 void rds_ib_dev_put(struct rds_ib_device *rds_ibdev)
->>> 116 {
->>> 117         BUG_ON(atomic_read(&rds_ibdev->refcount) <=3D 0);
->>> 118         if (atomic_dec_and_test(&rds_ibdev->refcount))
->>> 119                 queue_work(rds_wq, &rds_ibdev->free_work);
->>> 120 }
->>>
->>> fix is to drop refcount when rds_ib_alloc_fmr failed.
->>>
->>> Signed-off-by: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>> Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>> ---
->>>    net/rds/ib_rdma.c | 4 +++-
->>>    1 file changed, 3 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/net/rds/ib_rdma.c b/net/rds/ib_rdma.c
->>> index 273b8bf..657ba9f 100644
->>> --- a/net/rds/ib_rdma.c
->>> +++ b/net/rds/ib_rdma.c
->>> @@ -759,8 +759,10 @@ void *rds_ib_get_mr(struct scatterlist *sg,
->>> unsigned long nents,
->>>        }
->>>          ibmr =3D rds_ib_alloc_fmr(rds_ibdev);
->>> -    if (IS_ERR(ibmr))
->>> +    if (IS_ERR(ibmr)) {
->>> +        rds_ib_dev_put(rds_ibdev);
->>>            return ibmr;
->>> +    }
->>>          ret =3D rds_ib_map_fmr(rds_ibdev, ibmr, sg, nents);
->>>        if (ret =3D=3D 0)
->> --=20
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
-" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+The existing code assumes that ia->ri_id->device cannot change during
+the lifetime of a transport. xprtrdma do not have support for
+DEVICE_REMOVAL event either. Lifting that assumption and adding support
+for DEVICE_REMOVAL event is a long chain of work, and is in plan.
+
+The community decided that preventing the hang right now is more
+important than waiting for architectural changes.
+
+Thus, this patch introduces a temporary workaround to acquire HCA driver
+module reference count during the mount of a nfs-rdma mount point.
+
+Cc: chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Signed-off-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Reviewed-by: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+---
+ net/sunrpc/xprtrdma/verbs.c |   38 ++++++++++++++++++++++++++++++--------
+ 1 files changed, 30 insertions(+), 8 deletions(-)
+
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index 891c4ed..1c3c420 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -52,6 +52,7 @@
+ #include <linux/prefetch.h>
+ #include <linux/sunrpc/addr.h>
+ #include <asm/bitops.h>
++#include <linux/module.h> /* try_module_get()/module_put() */
+ 
+ #include "xprt_rdma.h"
+ 
+@@ -414,6 +415,14 @@ connected:
+ 	return 0;
+ }
+ 
++static void rpcrdma_destroy_id(struct rdma_cm_id *id)
++{
++	if (id) {
++		module_put(id->device->owner);
++		rdma_destroy_id(id);
++	}
++}
++
+ static struct rdma_cm_id *
+ rpcrdma_create_id(struct rpcrdma_xprt *xprt,
+ 			struct rpcrdma_ia *ia, struct sockaddr *addr)
+@@ -440,6 +449,18 @@ rpcrdma_create_id(struct rpcrdma_xprt *xprt,
+ 	}
+ 	wait_for_completion_interruptible_timeout(&ia->ri_done,
+ 				msecs_to_jiffies(RDMA_RESOLVE_TIMEOUT) + 1);
++
++	/* FIXME: We hate to break the notion of ULP<-->Core<-->Provider
++	 * by calling try_module_get() on HCA driver. This is to prevent a
++	 * system hang or a possible crash during reboot with active nfs-rdma
++	 * mount. We will keep this workaround until xprtrdma comes back with a
++	 * massive architectural changes to have proper fix.
++	 */
++	if (!ia->ri_async_rc && !try_module_get(id->device->owner)) {
++		dprintk("RPC:       %s: Failed to get device module\n",
++			__func__);
++		ia->ri_async_rc = -ENODEV;
++	}
+ 	rc = ia->ri_async_rc;
+ 	if (rc)
+ 		goto out;
+@@ -449,16 +470,17 @@ rpcrdma_create_id(struct rpcrdma_xprt *xprt,
+ 	if (rc) {
+ 		dprintk("RPC:       %s: rdma_resolve_route() failed %i\n",
+ 			__func__, rc);
+-		goto out;
++		goto put;
+ 	}
+ 	wait_for_completion_interruptible_timeout(&ia->ri_done,
+ 				msecs_to_jiffies(RDMA_RESOLVE_TIMEOUT) + 1);
+ 	rc = ia->ri_async_rc;
+ 	if (rc)
+-		goto out;
++		goto put;
+ 
+ 	return id;
+-
++put:
++	module_put(id->device->owner);
+ out:
+ 	rdma_destroy_id(id);
+ 	return ERR_PTR(rc);
+@@ -592,7 +614,7 @@ out3:
+ 	ib_dealloc_pd(ia->ri_pd);
+ 	ia->ri_pd = NULL;
+ out2:
+-	rdma_destroy_id(ia->ri_id);
++	rpcrdma_destroy_id(ia->ri_id);
+ 	ia->ri_id = NULL;
+ out1:
+ 	return rc;
+@@ -618,7 +640,7 @@ rpcrdma_ia_close(struct rpcrdma_ia *ia)
+ 	if (ia->ri_id != NULL && !IS_ERR(ia->ri_id)) {
+ 		if (ia->ri_id->qp)
+ 			rdma_destroy_qp(ia->ri_id);
+-		rdma_destroy_id(ia->ri_id);
++		rpcrdma_destroy_id(ia->ri_id);
+ 		ia->ri_id = NULL;
+ 	}
+ 
+@@ -825,7 +847,7 @@ retry:
+ 		if (ia->ri_device != id->device) {
+ 			printk("RPC:       %s: can't reconnect on "
+ 				"different device!\n", __func__);
+-			rdma_destroy_id(id);
++			rpcrdma_destroy_id(id);
+ 			rc = -ENETUNREACH;
+ 			goto out;
+ 		}
+@@ -834,7 +856,7 @@ retry:
+ 		if (rc) {
+ 			dprintk("RPC:       %s: rdma_create_qp failed %i\n",
+ 				__func__, rc);
+-			rdma_destroy_id(id);
++			rpcrdma_destroy_id(id);
+ 			rc = -ENETUNREACH;
+ 			goto out;
+ 		}
+@@ -845,7 +867,7 @@ retry:
+ 		write_unlock(&ia->ri_qplock);
+ 
+ 		rdma_destroy_qp(old);
+-		rdma_destroy_id(old);
++		rpcrdma_destroy_id(old);
+ 	} else {
+ 		dprintk("RPC:       %s: connecting...\n", __func__);
+ 		rc = rdma_create_qp(ia->ri_id, ia->ri_pd, &ep->rep_attr);
+-- 
+1.7.1
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
