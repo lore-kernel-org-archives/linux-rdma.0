@@ -1,80 +1,67 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 06/22] IB/iser: Fix possible bogus DMA unmapping
-Date: Thu, 30 Jul 2015 11:06:19 +0300
-Message-ID: <1438243595-32288-7-git-send-email-sagig@mellanox.com>
-References: <1438243595-32288-1-git-send-email-sagig@mellanox.com>
+Subject: [PATCH 00/22] iser patches for 4.3
+Date: Thu, 30 Jul 2015 11:06:13 +0300
+Message-ID: <1438243595-32288-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1438243595-32288-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-If iser_initialize_task_headers() routine failed before
-dma mapping, we should not attempt to unmap in cleanup_task().
+This set is a resend that includes some extra patches that
+piled up in the meantime.
 
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/iser/iscsi_iser.c | 12 ++++++++----
- drivers/infiniband/ulp/iser/iscsi_iser.h |  2 ++
- 2 files changed, 10 insertions(+), 4 deletions(-)
+I still have some patches in the pipe (including initiator/target
+support for remote invalidate) but I'm targeting those to 4.4
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
-index 92b1020..e3cea61 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.c
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-@@ -200,6 +200,7 @@ iser_initialize_task_headers(struct iscsi_task *task,
- 		goto out;
- 	}
- 
-+	tx_desc->mapped = true;
- 	tx_desc->dma_addr = dma_addr;
- 	tx_desc->tx_sg[0].addr   = tx_desc->dma_addr;
- 	tx_desc->tx_sg[0].length = ISER_HEADERS_LEN;
-@@ -359,16 +360,19 @@ iscsi_iser_task_xmit(struct iscsi_task *task)
- static void iscsi_iser_cleanup_task(struct iscsi_task *task)
- {
- 	struct iscsi_iser_task *iser_task = task->dd_data;
--	struct iser_tx_desc    *tx_desc   = &iser_task->desc;
--	struct iser_conn       *iser_conn	  = task->conn->dd_data;
-+	struct iser_tx_desc *tx_desc = &iser_task->desc;
-+	struct iser_conn *iser_conn = task->conn->dd_data;
- 	struct iser_device *device = iser_conn->ib_conn.device;
- 
- 	/* DEVICE_REMOVAL event might have already released the device */
- 	if (!device)
- 		return;
- 
--	ib_dma_unmap_single(device->ib_device,
--		tx_desc->dma_addr, ISER_HEADERS_LEN, DMA_TO_DEVICE);
-+	if (likely(tx_desc->mapped)) {
-+		ib_dma_unmap_single(device->ib_device, tx_desc->dma_addr,
-+				    ISER_HEADERS_LEN, DMA_TO_DEVICE);
-+		tx_desc->mapped = false;
-+	}
- 
- 	/* mgmt tasks do not need special cleanup */
- 	if (!task->sc)
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
-index 262ba1f..d2b6caf 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.h
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
-@@ -270,6 +270,7 @@ enum iser_desc_type {
-  *                 sg[1] optionally points to either of immediate data
-  *                 unsolicited data-out or control
-  * @num_sge:       number sges used on this TX task
-+ * @mapped:        Is the task header mapped
-  */
- struct iser_tx_desc {
- 	struct iser_hdr              iser_header;
-@@ -278,6 +279,7 @@ struct iser_tx_desc {
- 	u64		             dma_addr;
- 	struct ib_sge		     tx_sg[2];
- 	int                          num_sge;
-+	bool			     mapped;
- };
- 
- #define ISER_RX_PAD_SIZE	(256 - (ISER_RX_PAYLOAD_SIZE + \
+This patch set includes:
+- Small fixes for bugs encountered in testing
+- Small fixes detected by static checkers
+- Memory registration code path rework (consolidate to
+  a single code path that branches only at the actual registration
+  FRWR vs. FMR). This reduces code duplication that exists in current code.
+- Larger IO transfer size support (up to 8MB at the moment) depending on
+  the device capabilities.
+- Optimize Io path by chaining send work requests and posting them
+  only once.
+
+Adir Lev (1):
+  IB/iser: Maintain connection fmr_pool under a single registration
+    descriptor
+
+Jenny Falkovich (1):
+  IB/iser: Change some module parameters to be RO
+
+Sagi Grimberg (20):
+  IB/iser: Change minor assignments and logging prints
+  IB/iser: Remove '.' from log message
+  IB/iser: Fix missing return status check in iser_send_data_out
+  IB/iser: Get rid of un-maintained counters
+  IB/iser: Fix possible bogus DMA unmapping
+  IB/iser: Remove a redundant always-false condition
+  IB/iser: Remove an unneeded print for unaligned memory
+  IB/iser: Introduce struct iser_reg_resources
+  IB/iser: Rename struct fast_reg_descriptor -> iser_fr_desc
+  IB/iser: Remove dead code in fmr_pool alloc/free
+  IB/iser: Introduce iser_reg_ops
+  IB/iser: Move fastreg descriptor allocation to
+    iser_create_fastreg_desc
+  IB/iser: Introduce iser registration pool struct
+  IB/iser: Rename iser_reg_page_vec to iser_fast_reg_fmr
+  IB/iser: Make reg_desc_get a per device routine
+  IB/iser: Unify fast memory registration flows
+  IB/iser: Pass registration pool a size parameter
+  IB/iser: Support up to 8MB data transfer in a single command
+  IB/iser: Add debug prints to the various memory registration methods
+  IB/iser: Chain all iser transaction send work requests
+
+ drivers/infiniband/ulp/iser/iscsi_iser.c     |  89 +++--
+ drivers/infiniband/ulp/iser/iscsi_iser.h     | 206 ++++++++----
+ drivers/infiniband/ulp/iser/iser_initiator.c |  34 +-
+ drivers/infiniband/ulp/iser/iser_memory.c    | 480 +++++++++++++++------------
+ drivers/infiniband/ulp/iser/iser_verbs.c     | 328 ++++++++++--------
+ 5 files changed, 645 insertions(+), 492 deletions(-)
+
 -- 
 1.8.4.3
 
