@@ -1,7 +1,7 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v4 08/14] IB/cma: Helper functions to access port space IDRs
-Date: Thu, 30 Jul 2015 17:50:20 +0300
-Message-ID: <1438267826-32155-9-git-send-email-haggaie@mellanox.com>
+Subject: [PATCH v4 03/14] IB/core: Find the network device matching connection parameters
+Date: Thu, 30 Jul 2015 17:50:15 +0300
+Message-ID: <1438267826-32155-4-git-send-email-haggaie@mellanox.com>
 References: <1438267826-32155-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1438267826-32155-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,209 +10,144 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add helper functions to access the IDRs by port-space and port number.
+From: Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Pass around the port-space enum in cma.c instead of using pointers to
-port-space IDRs.
+In the case of IPoIB, and maybe in other cases, the network device is
+managed by an upper-layer protocol (ULP). In order to expose this
+network device to other users of the IB device, let ULPs implement
+a callback that returns network device according to connection parameters.
 
+The IB device and port, together with the P_Key and the GID should
+be enough to uniquely identify the ULP net device. However, in current
+kernels there can be multiple IPoIB interfaces created with the same GID.
+Furthermore, such configuration may be desireable to support ipvlan-like
+configurations for RDMA CM with IPoIB.  To resolve the device in these
+cases the code will also take the IP address as an additional input.
+
+Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c | 81 ++++++++++++++++++++++++++++++++-----------
- 1 file changed, 60 insertions(+), 21 deletions(-)
+ drivers/infiniband/core/device.c | 46 ++++++++++++++++++++++++++++++++++++++++
+ include/rdma/ib_verbs.h          | 27 +++++++++++++++++++++++
+ 2 files changed, 73 insertions(+)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index cf5c48b0b7d5..f2d799209412 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -113,6 +113,22 @@ static DEFINE_IDR(udp_ps);
- static DEFINE_IDR(ipoib_ps);
- static DEFINE_IDR(ib_ps);
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 623d8e191ced..124597732fe7 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -38,6 +38,7 @@
+ #include <linux/slab.h>
+ #include <linux/init.h>
+ #include <linux/mutex.h>
++#include <linux/netdevice.h>
+ #include <rdma/rdma_netlink.h>
  
-+static struct idr *cma_idr(enum rdma_port_space ps)
+ #include "core_priv.h"
+@@ -781,6 +782,51 @@ int ib_find_pkey(struct ib_device *device,
+ }
+ EXPORT_SYMBOL(ib_find_pkey);
+ 
++/**
++ * ib_get_net_dev_by_params() - Return the appropriate net_dev
++ * for a received CM request
++ * @dev:	An RDMA device on which the request has been received.
++ * @port:	Port number on the RDMA device.
++ * @pkey:	The Pkey the request came on.
++ * @gid:	A GID that the net_dev uses to communicate.
++ * @addr:	Contains the IP address that the request specified as its
++ *		destination.
++ */
++struct net_device *ib_get_net_dev_by_params(struct ib_device *dev,
++					    u8 port,
++					    u16 pkey,
++					    const union ib_gid *gid,
++					    const struct sockaddr *addr)
 +{
-+	switch (ps) {
-+	case RDMA_PS_TCP:
-+		return &tcp_ps;
-+	case RDMA_PS_UDP:
-+		return &udp_ps;
-+	case RDMA_PS_IPOIB:
-+		return &ipoib_ps;
-+	case RDMA_PS_IB:
-+		return &ib_ps;
-+	default:
++	struct net_device *net_dev = NULL;
++	struct ib_client_data *context;
++
++	if (!rdma_protocol_ib(dev, port))
 +		return NULL;
++
++	down_read(&lists_rwsem);
++
++	list_for_each_entry(context, &dev->client_data_list, list) {
++		struct ib_client *client = context->client;
++
++		if (context->going_down)
++			continue;
++
++		if (client->get_net_dev_by_params) {
++			net_dev = client->get_net_dev_by_params(dev, port, pkey,
++								gid, addr,
++								context->data);
++			if (net_dev)
++				break;
++		}
 +	}
++
++	up_read(&lists_rwsem);
++
++	return net_dev;
 +}
++EXPORT_SYMBOL(ib_get_net_dev_by_params);
 +
- struct cma_device {
- 	struct list_head	list;
- 	struct ib_device	*device;
-@@ -122,11 +138,33 @@ struct cma_device {
- };
- 
- struct rdma_bind_list {
--	struct idr		*ps;
-+	enum rdma_port_space	ps;
- 	struct hlist_head	owners;
- 	unsigned short		port;
- };
- 
-+static int cma_ps_alloc(enum rdma_port_space ps,
-+			struct rdma_bind_list *bind_list, int snum)
-+{
-+	struct idr *idr = cma_idr(ps);
-+
-+	return idr_alloc(idr, bind_list, snum, snum + 1, GFP_KERNEL);
-+}
-+
-+static struct rdma_bind_list *cma_ps_find(enum rdma_port_space ps, int snum)
-+{
-+	struct idr *idr = cma_idr(ps);
-+
-+	return idr_find(idr, snum);
-+}
-+
-+static void cma_ps_remove(enum rdma_port_space ps, int snum)
-+{
-+	struct idr *idr = cma_idr(ps);
-+
-+	idr_remove(idr, snum);
-+}
-+
- enum {
- 	CMA_OPTION_AFONLY,
- };
-@@ -1069,7 +1107,7 @@ static void cma_release_port(struct rdma_id_private *id_priv)
- 	mutex_lock(&lock);
- 	hlist_del(&id_priv->node);
- 	if (hlist_empty(&bind_list->owners)) {
--		idr_remove(bind_list->ps, bind_list->port);
-+		cma_ps_remove(bind_list->ps, bind_list->port);
- 		kfree(bind_list);
- 	}
- 	mutex_unlock(&lock);
-@@ -2365,8 +2403,8 @@ static void cma_bind_port(struct rdma_bind_list *bind_list,
- 	hlist_add_head(&id_priv->node, &bind_list->owners);
- }
- 
--static int cma_alloc_port(struct idr *ps, struct rdma_id_private *id_priv,
--			  unsigned short snum)
-+static int cma_alloc_port(enum rdma_port_space ps,
-+			  struct rdma_id_private *id_priv, unsigned short snum)
+ static int __init ib_core_init(void)
  {
- 	struct rdma_bind_list *bind_list;
  	int ret;
-@@ -2375,7 +2413,7 @@ static int cma_alloc_port(struct idr *ps, struct rdma_id_private *id_priv,
- 	if (!bind_list)
- 		return -ENOMEM;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index aaa5d2217ab5..5c68f8c1c31a 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -48,6 +48,7 @@
+ #include <linux/rwsem.h>
+ #include <linux/scatterlist.h>
+ #include <linux/workqueue.h>
++#include <linux/socket.h>
+ #include <uapi/linux/if_ether.h>
  
--	ret = idr_alloc(ps, bind_list, snum, snum + 1, GFP_KERNEL);
-+	ret = cma_ps_alloc(ps, bind_list, snum);
- 	if (ret < 0)
- 		goto err;
+ #include <linux/atomic.h>
+@@ -1766,6 +1767,28 @@ struct ib_client {
+ 	void (*add)   (struct ib_device *);
+ 	void (*remove)(struct ib_device *, void *client_data);
  
-@@ -2388,7 +2426,8 @@ err:
- 	return ret == -ENOSPC ? -EADDRNOTAVAIL : ret;
- }
++	/* Returns the net_dev belonging to this ib_client and matching the
++	 * given parameters.
++	 * @dev:	 An RDMA device that the net_dev use for communication.
++	 * @port:	 A physical port number on the RDMA device.
++	 * @pkey:	 P_Key that the net_dev uses if applicable.
++	 * @gid:	 A GID that the net_dev uses to communicate.
++	 * @addr:	 An IP address the net_dev is configured with.
++	 * @client_data: The device's client data set by ib_set_client_data().
++	 *
++	 * An ib_client that implements a net_dev on top of RDMA devices
++	 * (such as IP over IB) should implement this callback, allowing the
++	 * rdma_cm module to find the right net_dev for a given request.
++	 *
++	 * The caller is responsible for calling dev_put on the returned
++	 * netdev. */
++	struct net_device *(*get_net_dev_by_params)(
++			struct ib_device *dev,
++			u8 port,
++			u16 pkey,
++			const union ib_gid *gid,
++			const struct sockaddr *addr,
++			void *client_data);
+ 	struct list_head list;
+ };
  
--static int cma_alloc_any_port(struct idr *ps, struct rdma_id_private *id_priv)
-+static int cma_alloc_any_port(enum rdma_port_space ps,
-+			      struct rdma_id_private *id_priv)
- {
- 	static unsigned int last_used_port;
- 	int low, high, remaining;
-@@ -2399,7 +2438,7 @@ static int cma_alloc_any_port(struct idr *ps, struct rdma_id_private *id_priv)
- 	rover = prandom_u32() % remaining + low;
- retry:
- 	if (last_used_port != rover &&
--	    !idr_find(ps, (unsigned short) rover)) {
-+	    !cma_ps_find(ps, (unsigned short)rover)) {
- 		int ret = cma_alloc_port(ps, id_priv, rover);
- 		/*
- 		 * Remember previously used port number in order to avoid
-@@ -2454,7 +2493,8 @@ static int cma_check_port(struct rdma_bind_list *bind_list,
- 	return 0;
- }
+@@ -3015,4 +3038,8 @@ static inline int ib_check_mr_access(int flags)
+ int ib_check_mr_status(struct ib_mr *mr, u32 check_mask,
+ 		       struct ib_mr_status *mr_status);
  
--static int cma_use_port(struct idr *ps, struct rdma_id_private *id_priv)
-+static int cma_use_port(enum rdma_port_space ps,
-+			struct rdma_id_private *id_priv)
- {
- 	struct rdma_bind_list *bind_list;
- 	unsigned short snum;
-@@ -2464,7 +2504,7 @@ static int cma_use_port(struct idr *ps, struct rdma_id_private *id_priv)
- 	if (snum < PROT_SOCK && !capable(CAP_NET_BIND_SERVICE))
- 		return -EACCES;
- 
--	bind_list = idr_find(ps, snum);
-+	bind_list = cma_ps_find(ps, snum);
- 	if (!bind_list) {
- 		ret = cma_alloc_port(ps, id_priv, snum);
- 	} else {
-@@ -2487,25 +2527,24 @@ static int cma_bind_listen(struct rdma_id_private *id_priv)
- 	return ret;
- }
- 
--static struct idr *cma_select_inet_ps(struct rdma_id_private *id_priv)
-+static enum rdma_port_space cma_select_inet_ps(
-+		struct rdma_id_private *id_priv)
- {
- 	switch (id_priv->id.ps) {
- 	case RDMA_PS_TCP:
--		return &tcp_ps;
- 	case RDMA_PS_UDP:
--		return &udp_ps;
- 	case RDMA_PS_IPOIB:
--		return &ipoib_ps;
- 	case RDMA_PS_IB:
--		return &ib_ps;
-+		return id_priv->id.ps;
- 	default:
--		return NULL;
++struct net_device *ib_get_net_dev_by_params(struct ib_device *dev, u8 port,
++					    u16 pkey, const union ib_gid *gid,
++					    const struct sockaddr *addr);
 +
-+		return 0;
- 	}
- }
- 
--static struct idr *cma_select_ib_ps(struct rdma_id_private *id_priv)
-+static enum rdma_port_space cma_select_ib_ps(struct rdma_id_private *id_priv)
- {
--	struct idr *ps = NULL;
-+	enum rdma_port_space ps = 0;
- 	struct sockaddr_ib *sib;
- 	u64 sid_ps, mask, sid;
- 
-@@ -2515,15 +2554,15 @@ static struct idr *cma_select_ib_ps(struct rdma_id_private *id_priv)
- 
- 	if ((id_priv->id.ps == RDMA_PS_IB) && (sid == (RDMA_IB_IP_PS_IB & mask))) {
- 		sid_ps = RDMA_IB_IP_PS_IB;
--		ps = &ib_ps;
-+		ps = RDMA_PS_IB;
- 	} else if (((id_priv->id.ps == RDMA_PS_IB) || (id_priv->id.ps == RDMA_PS_TCP)) &&
- 		   (sid == (RDMA_IB_IP_PS_TCP & mask))) {
- 		sid_ps = RDMA_IB_IP_PS_TCP;
--		ps = &tcp_ps;
-+		ps = RDMA_PS_TCP;
- 	} else if (((id_priv->id.ps == RDMA_PS_IB) || (id_priv->id.ps == RDMA_PS_UDP)) &&
- 		   (sid == (RDMA_IB_IP_PS_UDP & mask))) {
- 		sid_ps = RDMA_IB_IP_PS_UDP;
--		ps = &udp_ps;
-+		ps = RDMA_PS_UDP;
- 	}
- 
- 	if (ps) {
-@@ -2536,7 +2575,7 @@ static struct idr *cma_select_ib_ps(struct rdma_id_private *id_priv)
- 
- static int cma_get_port(struct rdma_id_private *id_priv)
- {
--	struct idr *ps;
-+	enum rdma_port_space ps;
- 	int ret;
- 
- 	if (cma_family(id_priv) != AF_IB)
+ #endif /* IB_VERBS_H */
 -- 
 1.7.11.2
 
