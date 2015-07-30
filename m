@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 21/22] IB/iser: Add debug prints to the various memory registration methods
-Date: Thu, 30 Jul 2015 11:06:34 +0300
-Message-ID: <1438243595-32288-22-git-send-email-sagig@mellanox.com>
+Subject: [PATCH 16/22] IB/iser: Rename iser_reg_page_vec to iser_fast_reg_fmr
+Date: Thu, 30 Jul 2015 11:06:29 +0300
+Message-ID: <1438243595-32288-17-git-send-email-sagig@mellanox.com>
 References: <1438243595-32288-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1438243595-32288-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,51 +10,59 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Easier to debug when we have the registration details.
+Also, change a name of a local variable.
 
 This patch does not change any functionality.
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Adir Lev <adirl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iser_memory.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ drivers/infiniband/ulp/iser/iser_memory.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index cbf6152..750f03f 100644
+index d0c01e1..11bba5a 100644
 --- a/drivers/infiniband/ulp/iser/iser_memory.c
 +++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -554,6 +554,10 @@ int iser_fast_reg_fmr(struct iscsi_iser_task *iser_task,
- 	reg->sge.length = page_vec->data_size;
- 	reg->mem_h = fmr;
+@@ -476,10 +476,10 @@ static int fall_to_bounce_buf(struct iscsi_iser_task *iser_task,
+  * returns: 0 on success, errno code on failure
+  */
+ static
+-int iser_reg_page_vec(struct iscsi_iser_task *iser_task,
++int iser_fast_reg_fmr(struct iscsi_iser_task *iser_task,
+ 		      struct iser_data_buf *mem,
+ 		      struct iser_reg_resources *rsc,
+-		      struct iser_mem_reg *mem_reg)
++		      struct iser_mem_reg *reg)
+ {
+ 	struct ib_conn *ib_conn = &iser_task->iser_conn->ib_conn;
+ 	struct iser_device *device = ib_conn->device;
+@@ -510,11 +510,11 @@ int iser_reg_page_vec(struct iscsi_iser_task *iser_task,
+ 		return ret;
+ 	}
  
-+	iser_dbg("fmr reg: lkey=0x%x, rkey=0x%x, addr=0x%llx,"
-+		 " length=0x%x\n", reg->sge.lkey, reg->rkey,
-+		 reg->sge.addr, reg->sge.length);
-+
+-	mem_reg->sge.lkey = fmr->fmr->lkey;
+-	mem_reg->rkey = fmr->fmr->rkey;
+-	mem_reg->sge.addr = page_vec->pages[0] + page_vec->offset;
+-	mem_reg->sge.length = page_vec->data_size;
+-	mem_reg->mem_h = fmr;
++	reg->sge.lkey = fmr->fmr->lkey;
++	reg->rkey = fmr->fmr->rkey;
++	reg->sge.addr = page_vec->pages[0] + page_vec->offset;
++	reg->sge.length = page_vec->data_size;
++	reg->mem_h = fmr;
+ 
  	return 0;
  }
+@@ -592,7 +592,7 @@ int iser_reg_rdma_mem_fmr(struct iscsi_iser_task *iser_task,
  
-@@ -724,7 +728,7 @@ iser_reg_sig_mr(struct iscsi_iser_task *iser_task,
- 	sig_reg->sge.addr = 0;
- 	sig_reg->sge.length = scsi_transfer_length(iser_task->sc);
- 
--	iser_dbg("sig_sge: lkey: 0x%x, rkey: 0x%x, addr: 0x%llx, length: %u\n",
-+	iser_dbg("sig reg: lkey: 0x%x, rkey: 0x%x, addr: 0x%llx, length: %u\n",
- 		 sig_reg->sge.lkey, sig_reg->rkey, sig_reg->sge.addr,
- 		 sig_reg->sge.length);
- err:
-@@ -787,6 +791,10 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
- 	reg->sge.addr = frpl->page_list[0] + offset;
- 	reg->sge.length = size;
- 
-+	iser_dbg("fast reg: lkey=0x%x, rkey=0x%x, addr=0x%llx,"
-+		 " length=0x%x\n", reg->sge.lkey, reg->rkey,
-+		 reg->sge.addr, reg->sge.length);
-+
- 	return ret;
- }
- 
+ 		desc = list_first_entry(&fr_pool->list,
+ 					struct iser_fr_desc, list);
+-		err = iser_reg_page_vec(iser_task, mem, &desc->rsc, mem_reg);
++		err = iser_fast_reg_fmr(iser_task, mem, &desc->rsc, mem_reg);
+ 		if (err && err != -EAGAIN) {
+ 			iser_data_buf_dump(mem, ibdev);
+ 			iser_err("mem->dma_nents = %d (dlength = 0x%x)\n",
 -- 
 1.8.4.3
 
