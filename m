@@ -1,33 +1,49 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v4 01/50] IB: Add CNP opcode enumeration.
-Date: Thu, 30 Jul 2015 20:43:09 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC25777E49@fmsmsx120.amr.corp.intel.com>
-References: <20150730191631.25256.95511.stgit@phlsvslse11.ph.intel.com>
- <20150730191732.25256.85207.stgit@phlsvslse11.ph.intel.com>
- <alpine.DEB.2.11.1507301530490.6551@east.gentwo.org>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/ipoib: CSUM support in connected mode
+Date: Thu, 30 Jul 2015 23:46:36 +0300
+Message-ID: <20150730204635.GC3487@yuval-lab>
+References: <1438256764-9077-1-git-send-email-yuval.shaia@oracle.com>
+ <1438264693.9344.19.camel@opteya.com>
+ <20150730152049.GA29102@yuval-lab>
+ <55BA47F0.5080504@redhat.com>
+ <20150730171538.GA25282@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.11.1507301530490.6551-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20150730171538.GA25282-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> That is obvious and useless. Patches should have a meaningful description
-> and justify the changes.
+On Thu, Jul 30, 2015 at 11:15:38AM -0600, Jason Gunthorpe wrote:
+> On Thu, Jul 30, 2015 at 11:51:12AM -0400, Doug Ledford wrote:
 > 
-
-The driver uses the CNP opcode for congestion control.
-
-> Why do you add the CNP opcode and what in the world does it do? CNP is
-> what? And why do the other enum values not work for you?
-
-The driver supports congestion control in software vs. outboard firmware, so the opcode should be available in the appropriate kernel include file.
-
-Mike
+> > In its current state, I have my doubts about this patch.  However, it
+> > seems to me that this should be relatively easy to fix in such a way
+> > that you get 90%+ of the performance benefit, and can turn it on by
+> > default, and we don't cause any problems.
+> 
+> The best way to implement this is to leverage all the checksum
+> offload work people did for virtualization.
+> 
+> Forward the checksum offload status through the RC connection and
+> recover it on the other side.
+The current approach is to utilize IPoIB's private-data to exchange this
+information.
+> 
+> Then the far side stack will know it is dealing with a partial
+> checksum packet and will properly regenerate the checksum if it
+> re-transmits.
+> 
+> ie doing it this way doesn't totally break the netstack :)
+> 
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
