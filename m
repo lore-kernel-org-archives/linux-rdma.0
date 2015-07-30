@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V7 04/10] IB/core: Add rwsem to allow reading device list or client list
-Date: Thu, 30 Jul 2015 18:33:25 +0300
-Message-ID: <1438270411-17648-5-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next V7 07/10] net/mlx4: Postpone the registration of net_device
+Date: Thu, 30 Jul 2015 18:33:28 +0300
+Message-ID: <1438270411-17648-8-git-send-email-matanb@mellanox.com>
 References: <1438270411-17648-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1438270411-17648-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,135 +10,112 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Currently the RDMA subsystem's device list and client list are
-protected by a single mutex. This prevents adding user-facing APIs
-that iterate these lists, since using them may cause a deadlock.
-The patch attempts to solve this problem by adding a read-write
-semaphore to protect the lists. Readers now don't need the mutex,
-and are safe just by read-locking the semaphore.
+The mlx4 network driver was registered in the context of the 'add'
+function of the core driver (called when HW should be registered).
+This makes the netdev event NETDEV_REGISTER to be sent in a context
+where the answer to get_protocol_dev() callback returns NULL. This may
+be confusing to listeners of netdev events.
+This patch is a preparation to the patch that implements the
+get_netdev() callback in the IB/mlx4 driver.
 
-The ib_register_device, ib_register_client, ib_unregister_device, and
-ib_unregister_client functions are modified to lock the semaphore for
-write during their respective list modification. Also, in order to
-make sure client callbacks are called only between add() and remove()
-calls, the code is changed to only add items to the lists after the
-add() calls and remove from the lists before the remove() calls.
-
-Reviewed-By: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/device.c | 39 ++++++++++++++++++++++++++++-----------
- 1 file changed, 28 insertions(+), 11 deletions(-)
+ drivers/net/ethernet/mellanox/mlx4/en_main.c | 36 ++++++++++++++++------------
+ drivers/net/ethernet/mellanox/mlx4/intf.c    |  3 +++
+ include/linux/mlx4/driver.h                  |  1 +
+ 3 files changed, 25 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 9567756..f08d438 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -55,17 +55,24 @@ struct ib_client_data {
- struct workqueue_struct *ib_wq;
- EXPORT_SYMBOL_GPL(ib_wq);
- 
-+/* The device_list and client_list contain devices and clients after their
-+ * registration has completed, and the devices and clients are removed
-+ * during unregistration. */
- static LIST_HEAD(device_list);
- static LIST_HEAD(client_list);
- 
- /*
-- * device_mutex protects access to both device_list and client_list.
-- * There's no real point to using multiple locks or something fancier
-- * like an rwsem: we always access both lists, and we're always
-- * modifying one list or the other list.  In any case this is not a
-- * hot path so there's no point in trying to optimize.
-+ * device_mutex and lists_rwsem protect access to both device_list and
-+ * client_list.  device_mutex protects writer access by device and client
-+ * registration / de-registration.  lists_rwsem protects reader access to
-+ * these lists.  Iterators of these lists must lock it for read, while updates
-+ * to the lists must be done with a write lock. A special case is when the
-+ * device_mutex is locked. In this case locking the lists for read access is
-+ * not necessary as the device_mutex implies it.
-  */
- static DEFINE_MUTEX(device_mutex);
-+static DECLARE_RWSEM(lists_rwsem);
-+
- 
- static int ib_device_check_mandatory(struct ib_device *device)
- {
-@@ -305,8 +312,6 @@ int ib_register_device(struct ib_device *device,
- 		goto out;
- 	}
- 
--	list_add_tail(&device->core_list, &device_list);
--
- 	device->reg_state = IB_DEV_REGISTERED;
- 
- 	{
-@@ -317,6 +322,10 @@ int ib_register_device(struct ib_device *device,
- 				client->add(device);
- 	}
- 
-+	down_write(&lists_rwsem);
-+	list_add_tail(&device->core_list, &device_list);
-+	up_write(&lists_rwsem);
-+
-  out:
- 	mutex_unlock(&device_mutex);
- 	return ret;
-@@ -337,12 +346,14 @@ void ib_unregister_device(struct ib_device *device)
- 
- 	mutex_lock(&device_mutex);
- 
-+	down_write(&lists_rwsem);
-+	list_del(&device->core_list);
-+	up_write(&lists_rwsem);
-+
- 	list_for_each_entry_reverse(client, &client_list, list)
- 		if (client->remove)
- 			client->remove(device);
- 
--	list_del(&device->core_list);
--
- 	mutex_unlock(&device_mutex);
- 
- 	ib_device_unregister_sysfs(device);
-@@ -375,11 +386,14 @@ int ib_register_client(struct ib_client *client)
- 
- 	mutex_lock(&device_mutex);
- 
--	list_add_tail(&client->list, &client_list);
- 	list_for_each_entry(device, &device_list, core_list)
- 		if (client->add && !add_client_context(device, client))
- 			client->add(device);
- 
-+	down_write(&lists_rwsem);
-+	list_add_tail(&client->list, &client_list);
-+	up_write(&lists_rwsem);
-+
- 	mutex_unlock(&device_mutex);
- 
- 	return 0;
-@@ -402,6 +416,10 @@ void ib_unregister_client(struct ib_client *client)
- 
- 	mutex_lock(&device_mutex);
- 
-+	down_write(&lists_rwsem);
-+	list_del(&client->list);
-+	up_write(&lists_rwsem);
-+
- 	list_for_each_entry(device, &device_list, core_list) {
- 		if (client->remove)
- 			client->remove(device);
-@@ -414,7 +432,6 @@ void ib_unregister_client(struct ib_client *client)
- 			}
- 		spin_unlock_irqrestore(&device->client_data_lock, flags);
- 	}
--	list_del(&client->list);
- 
- 	mutex_unlock(&device_mutex);
+diff --git a/drivers/net/ethernet/mellanox/mlx4/en_main.c b/drivers/net/ethernet/mellanox/mlx4/en_main.c
+index 913b716..a946e4b 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/en_main.c
+@@ -224,6 +224,26 @@ static void mlx4_en_remove(struct mlx4_dev *dev, void *endev_ptr)
+ 	kfree(mdev);
  }
+ 
++static void mlx4_en_activate(struct mlx4_dev *dev, void *ctx)
++{
++	int i;
++	struct mlx4_en_dev *mdev = ctx;
++
++	/* Create a netdev for each port */
++	mlx4_foreach_port(i, dev, MLX4_PORT_TYPE_ETH) {
++		mlx4_info(mdev, "Activating port:%d\n", i);
++		if (mlx4_en_init_netdev(mdev, i, &mdev->profile.prof[i]))
++			mdev->pndev[i] = NULL;
++	}
++
++	/* register notifier */
++	mdev->nb.notifier_call = mlx4_en_netdev_event;
++	if (register_netdevice_notifier(&mdev->nb)) {
++		mdev->nb.notifier_call = NULL;
++		mlx4_err(mdev, "Failed to create notifier\n");
++	}
++}
++
+ static void *mlx4_en_add(struct mlx4_dev *dev)
+ {
+ 	struct mlx4_en_dev *mdev;
+@@ -297,21 +317,6 @@ static void *mlx4_en_add(struct mlx4_dev *dev)
+ 	mutex_init(&mdev->state_lock);
+ 	mdev->device_up = true;
+ 
+-	/* Setup ports */
+-
+-	/* Create a netdev for each port */
+-	mlx4_foreach_port(i, dev, MLX4_PORT_TYPE_ETH) {
+-		mlx4_info(mdev, "Activating port:%d\n", i);
+-		if (mlx4_en_init_netdev(mdev, i, &mdev->profile.prof[i]))
+-			mdev->pndev[i] = NULL;
+-	}
+-	/* register notifier */
+-	mdev->nb.notifier_call = mlx4_en_netdev_event;
+-	if (register_netdevice_notifier(&mdev->nb)) {
+-		mdev->nb.notifier_call = NULL;
+-		mlx4_err(mdev, "Failed to create notifier\n");
+-	}
+-
+ 	return mdev;
+ 
+ err_mr:
+@@ -335,6 +340,7 @@ static struct mlx4_interface mlx4_en_interface = {
+ 	.event		= mlx4_en_event,
+ 	.get_dev	= mlx4_en_get_netdev,
+ 	.protocol	= MLX4_PROT_ETH,
++	.activate	= mlx4_en_activate,
+ };
+ 
+ static void mlx4_en_verify_params(void)
+diff --git a/drivers/net/ethernet/mellanox/mlx4/intf.c b/drivers/net/ethernet/mellanox/mlx4/intf.c
+index 0d80aed..0472941 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/intf.c
++++ b/drivers/net/ethernet/mellanox/mlx4/intf.c
+@@ -63,8 +63,11 @@ static void mlx4_add_device(struct mlx4_interface *intf, struct mlx4_priv *priv)
+ 		spin_lock_irq(&priv->ctx_lock);
+ 		list_add_tail(&dev_ctx->list, &priv->ctx_list);
+ 		spin_unlock_irq(&priv->ctx_lock);
++		if (intf->activate)
++			intf->activate(&priv->dev, dev_ctx->context);
+ 	} else
+ 		kfree(dev_ctx);
++
+ }
+ 
+ static void mlx4_remove_device(struct mlx4_interface *intf, struct mlx4_priv *priv)
+diff --git a/include/linux/mlx4/driver.h b/include/linux/mlx4/driver.h
+index 9553a73..5a06d96 100644
+--- a/include/linux/mlx4/driver.h
++++ b/include/linux/mlx4/driver.h
+@@ -59,6 +59,7 @@ struct mlx4_interface {
+ 	void			(*event) (struct mlx4_dev *dev, void *context,
+ 					  enum mlx4_dev_event event, unsigned long param);
+ 	void *			(*get_dev)(struct mlx4_dev *dev, void *context, u8 port);
++	void			(*activate)(struct mlx4_dev *dev, void *context);
+ 	struct list_head	list;
+ 	enum mlx4_protocol	protocol;
+ 	int			flags;
 -- 
 2.1.0
 
