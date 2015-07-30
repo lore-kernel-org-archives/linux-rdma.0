@@ -1,45 +1,54 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: [PATCH 12/22] IB/iser: Introduce iser_reg_ops
-Date: Thu, 30 Jul 2015 11:25:26 -0600
-Message-ID: <20150730172526.GC25282@obsidianresearch.com>
+Date: Thu, 30 Jul 2015 11:32:49 -0600
+Message-ID: <20150730173249.GD25282@obsidianresearch.com>
 References: <1438243595-32288-1-git-send-email-sagig@mellanox.com>
  <1438243595-32288-13-git-send-email-sagig@mellanox.com>
- <55BA3D51.8050003@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <55BA3D51.8050003-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <1438243595-32288-13-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 30, 2015 at 10:05:53AM -0500, Steve Wise wrote:
-> >+int iser_assign_reg_ops(struct iser_device *device)
-> >+{
-> >+	struct ib_device_attr *dev_attr = &device->dev_attr;
-> >+
-> >+	/* Assign function handles  - based on FMR support */
-> >+	if (device->ib_device->alloc_fmr && device->ib_device->dealloc_fmr &&
-> >+	    device->ib_device->map_phys_fmr && device->ib_device->unmap_fmr) {
-> >+		iser_info("FMR supported, using FMR for registration\n");
-> >+		device->reg_ops = &fmr_ops;
-> >+	} else
-> >+	if (dev_attr->device_cap_flags & IB_DEVICE_MEM_MGT_EXTENSIONS) {
-> >+		iser_info("FastReg supported, using FastReg for registration\n");
-> >+		device->reg_ops = &fastreg_ops;
-> >+	} else {
-> >+		iser_err("IB device does not support FMRs nor FastRegs, can't register memory\n");
-> >+		return -1;
-> >+	}
-> >+
-> 
-> Perhaps no device supports both FMR and FRMR, but the above code would
-> choose FMR over FRMR.  Shouldn't it be the other way around?
+On Thu, Jul 30, 2015 at 11:06:25AM +0300, Sagi Grimberg wrote:
 
-Agree. We should always prefer FRMR. Many of the IB drivers support
-both..
+>  /**
+> + * struct iser_device - Memory registration operations
+> + *     per-device registration schemes
+> + *
+> + * @alloc_reg_res:     Allocate registration resources
+> + * @free_reg_res:      Free registration resources
+> + * @reg_rdma_mem:      Register memory buffers
+> + * @unreg_rdma_mem:    Un-register memory buffers
+> + */
+> +struct iser_reg_ops {
+> +	int            (*alloc_reg_res)(struct ib_conn *ib_conn,
+> +					unsigned cmds_max);
+> +	void           (*free_reg_res)(struct ib_conn *ib_conn);
+> +	int            (*reg_rdma_mem)(struct iscsi_iser_task *iser_task,
+> +				       enum iser_data_dir cmd_dir);
+> +	void           (*unreg_rdma_mem)(struct iscsi_iser_task *iser_task,
+> +					 enum iser_data_dir cmd_dir);
+> +};
+
+It sucks we need every ULP to have function pointer swap outs just to
+support MRs.. NFS has the same...
+>  
+>  	if (iser_task->dir[ISER_DIR_IN]) {
+> -		device->iser_unreg_rdma_mem(iser_task, ISER_DIR_IN);
+> +		device->reg_ops->unreg_rdma_mem(iser_task, ISER_DIR_IN);
+>  		if (is_rdma_data_aligned)
+>  			iser_dma_unmap_task_data(iser_task,
+>  						 &iser_task->data[ISER_DIR_IN],
+
+Is this the same wrong ordering that NFS had?
+
+DMA unmap (and CPU access) for ACCESS_REMOTE_WRITE rkeys should happen
+after invalidate completes, not before.
 
 Jason
 --
