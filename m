@@ -1,7 +1,7 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v4 06/14] IB/cm: Share listening CM IDs
-Date: Thu, 30 Jul 2015 17:50:18 +0300
-Message-ID: <1438267826-32155-7-git-send-email-haggaie@mellanox.com>
+Subject: [PATCH v4 02/14] IB/core: lock client data with lists_rwsem
+Date: Thu, 30 Jul 2015 17:50:14 +0300
+Message-ID: <1438267826-32155-3-git-send-email-haggaie@mellanox.com>
 References: <1438267826-32155-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1438267826-32155-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,219 +10,513 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Enabling network namespaces for RDMA CM will allow processes on different
-namespaces to listen on the same port. In order to leave namespace support
-out of the CM layer, this requires that multiple RDMA CM IDs will be able
-to share a single CM ID.
+An ib_client callback that is called with the lists_rwsem locked only for
+read is protected from changes to the IB client lists, but not from
+ib_unregister_device() freeing its client data. This is because
+ib_unregister_device() will remove the device from the device list with
+lists_rwsem locked for write, but perform the rest of the cleanup,
+including the call to remove() without that lock.
 
-This patch adds infrastructure to retrieve an existing listening ib_cm_id,
-based on its device and service ID, or create a new one if one does not
-already exist. It also adds a reference count for such instances
-(cm_id_private.listen_sharecount), and prevents cm_destroy_id from
-destroying a CM if it is still shared. See the relevant discussion [1].
+Mark client data that is undergoing de-registration with a new going_down
+flag in the client data context. Lock the client data list with lists_rwsem
+for write in addition to using the spinlock, so that functions calling the
+callback would be able to lock only lists_rwsem for read and let callbacks
+sleep.
 
-[1] Re: [PATCH v3 for-next 05/13] IB/cm: Reference count ib_cm_ids
-    http://www.spinics.net/lists/netdev/msg328860.html
+Since ib_unregister_client() now marks the client data context, no need for
+remove() to search the context again, so pass the client data directly to
+remove() callbacks.
 
 Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/cm.c | 122 ++++++++++++++++++++++++++++++++++++++++---
- include/rdma/ib_cm.h         |   4 ++
- 2 files changed, 120 insertions(+), 6 deletions(-)
+ drivers/infiniband/core/cache.c           |  2 +-
+ drivers/infiniband/core/cm.c              |  7 ++--
+ drivers/infiniband/core/cma.c             |  7 ++--
+ drivers/infiniband/core/device.c          | 53 +++++++++++++++++++++++++------
+ drivers/infiniband/core/mad.c             |  2 +-
+ drivers/infiniband/core/multicast.c       |  7 ++--
+ drivers/infiniband/core/sa_query.c        |  6 ++--
+ drivers/infiniband/core/ucm.c             |  6 ++--
+ drivers/infiniband/core/user_mad.c        |  6 ++--
+ drivers/infiniband/core/uverbs_main.c     |  6 ++--
+ drivers/infiniband/ulp/ipoib/ipoib_main.c |  7 ++--
+ drivers/infiniband/ulp/srp/ib_srp.c       |  6 ++--
+ drivers/infiniband/ulp/srpt/ib_srpt.c     |  5 ++-
+ include/rdma/ib_verbs.h                   |  4 ++-
+ net/rds/ib.c                              |  5 ++-
+ net/rds/iw.c                              |  5 ++-
+ 16 files changed, 82 insertions(+), 52 deletions(-)
 
+diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
+index 871da832d016..c93af66cc091 100644
+--- a/drivers/infiniband/core/cache.c
++++ b/drivers/infiniband/core/cache.c
+@@ -394,7 +394,7 @@ err:
+ 	kfree(device->cache.lmc_cache);
+ }
+ 
+-static void ib_cache_cleanup_one(struct ib_device *device)
++static void ib_cache_cleanup_one(struct ib_device *device, void *client_data)
+ {
+ 	int p;
+ 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 93e9e2f34fc6..fa3d3e755127 100644
+index 3a972ebf3c0d..82d5c4362aa8 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -213,6 +213,9 @@ struct cm_id_private {
- 	spinlock_t lock;	/* Do not acquire inside cm.lock */
- 	struct completion comp;
- 	atomic_t refcount;
-+	/* Number of clients sharing this ib_cm_id. Only valid for listeners.
-+	 * Protected by the cm.lock spinlock. */
-+	int listen_sharecount;
+@@ -58,7 +58,7 @@ MODULE_DESCRIPTION("InfiniBand CM");
+ MODULE_LICENSE("Dual BSD/GPL");
  
- 	struct ib_mad_send_buf *msg;
- 	struct cm_timewait_info *timewait_info;
-@@ -859,9 +862,15 @@ retest:
- 	spin_lock_irq(&cm_id_priv->lock);
- 	switch (cm_id->state) {
- 	case IB_CM_LISTEN:
--		cm_id->state = IB_CM_IDLE;
- 		spin_unlock_irq(&cm_id_priv->lock);
-+
- 		spin_lock_irq(&cm.lock);
-+		if (--cm_id_priv->listen_sharecount > 0) {
-+			/* The id is still shared. */
-+			cm_deref_id(cm_id_priv);
-+			spin_unlock_irq(&cm.lock);
-+			return;
-+		}
- 		rb_erase(&cm_id_priv->service_node, &cm.listen_service_table);
- 		spin_unlock_irq(&cm.lock);
- 		break;
-@@ -941,11 +950,32 @@ void ib_destroy_cm_id(struct ib_cm_id *cm_id)
+ static void cm_add_one(struct ib_device *device);
+-static void cm_remove_one(struct ib_device *device);
++static void cm_remove_one(struct ib_device *device, void *client_data);
+ 
+ static struct ib_client cm_client = {
+ 	.name   = "cm",
+@@ -3886,9 +3886,9 @@ free:
+ 	kfree(cm_dev);
  }
- EXPORT_SYMBOL(ib_destroy_cm_id);
  
--int ib_cm_listen(struct ib_cm_id *cm_id, __be64 service_id, __be64 service_mask,
--		 struct ib_cm_compare_data *compare_data)
-+/**
-+ * __ib_cm_listen - Initiates listening on the specified service ID for
-+ *   connection and service ID resolution requests.
-+ * @cm_id: Connection identifier associated with the listen request.
-+ * @service_id: Service identifier matched against incoming connection
-+ *   and service ID resolution requests.  The service ID should be specified
-+ *   network-byte order.  If set to IB_CM_ASSIGN_SERVICE_ID, the CM will
-+ *   assign a service ID to the caller.
-+ * @service_mask: Mask applied to service ID used to listen across a
-+ *   range of service IDs.  If set to 0, the service ID is matched
-+ *   exactly.  This parameter is ignored if %service_id is set to
-+ *   IB_CM_ASSIGN_SERVICE_ID.
-+ * @compare_data: This parameter is optional.  It specifies data that must
-+ *   appear in the private data of a connection request for the specified
-+ *   listen request.
-+ * @lock: If set, lock the cm.lock spin-lock when adding the id to the
-+ *   listener tree. When false, the caller must already hold the spin-lock,
-+ *   and compare_data must be NULL.
-+ */
-+static int __ib_cm_listen(struct ib_cm_id *cm_id, __be64 service_id,
-+			  __be64 service_mask,
-+			  struct ib_cm_compare_data *compare_data,
-+			  bool lock)
+-static void cm_remove_one(struct ib_device *ib_device)
++static void cm_remove_one(struct ib_device *ib_device, void *client_data)
  {
- 	struct cm_id_private *cm_id_priv, *cur_cm_id_priv;
--	unsigned long flags;
-+	unsigned long flags = 0;
- 	int ret = 0;
+-	struct cm_device *cm_dev;
++	struct cm_device *cm_dev = client_data;
+ 	struct cm_port *port;
+ 	struct ib_port_modify port_modify = {
+ 		.clr_port_cap_mask = IB_PORT_CM_SUP
+@@ -3896,7 +3896,6 @@ static void cm_remove_one(struct ib_device *ib_device)
+ 	unsigned long flags;
+ 	int i;
  
- 	service_mask = service_mask ? service_mask : ~cpu_to_be64(0);
-@@ -970,8 +1000,10 @@ int ib_cm_listen(struct ib_cm_id *cm_id, __be64 service_id, __be64 service_mask,
- 	}
+-	cm_dev = ib_get_client_data(ib_device, &cm_client);
+ 	if (!cm_dev)
+ 		return;
  
- 	cm_id->state = IB_CM_LISTEN;
-+	if (lock)
-+		spin_lock_irqsave(&cm.lock, flags);
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 143ded2bbe7c..6b6cdfa5d231 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -94,7 +94,7 @@ const char *rdma_event_msg(enum rdma_cm_event_type event)
+ EXPORT_SYMBOL(rdma_event_msg);
  
--	spin_lock_irqsave(&cm.lock, flags);
-+	++cm_id_priv->listen_sharecount;
- 	if (service_id == IB_CM_ASSIGN_SERVICE_ID) {
- 		cm_id->service_id = cpu_to_be64(cm.listen_service_id++);
- 		cm_id->service_mask = ~cpu_to_be64(0);
-@@ -980,18 +1012,96 @@ int ib_cm_listen(struct ib_cm_id *cm_id, __be64 service_id, __be64 service_mask,
- 		cm_id->service_mask = service_mask;
- 	}
- 	cur_cm_id_priv = cm_insert_listen(cm_id_priv);
--	spin_unlock_irqrestore(&cm.lock, flags);
+ static void cma_add_one(struct ib_device *device);
+-static void cma_remove_one(struct ib_device *device);
++static void cma_remove_one(struct ib_device *device, void *client_data);
  
- 	if (cur_cm_id_priv) {
- 		cm_id->state = IB_CM_IDLE;
-+		--cm_id_priv->listen_sharecount;
- 		kfree(cm_id_priv->compare_data);
- 		cm_id_priv->compare_data = NULL;
- 		ret = -EBUSY;
- 	}
-+
-+	if (lock)
-+		spin_unlock_irqrestore(&cm.lock, flags);
-+
- 	return ret;
+ static struct ib_client cma_client = {
+ 	.name   = "cma",
+@@ -3551,11 +3551,10 @@ static void cma_process_remove(struct cma_device *cma_dev)
+ 	wait_for_completion(&cma_dev->comp);
  }
-+
-+int ib_cm_listen(struct ib_cm_id *cm_id, __be64 service_id, __be64 service_mask,
-+		 struct ib_cm_compare_data *compare_data)
-+{
-+	return __ib_cm_listen(cm_id, service_id, service_mask, compare_data,
-+			      true);
-+}
- EXPORT_SYMBOL(ib_cm_listen);
  
-+/**
-+ * Create a new listening ib_cm_id and listen on the given service ID.
-+ *
-+ * If there's an existing ID listening on that same device and service ID,
-+ * return it.
-+ *
-+ * @device: Device associated with the cm_id.  All related communication will
-+ * be associated with the specified device.
-+ * @cm_handler: Callback invoked to notify the user of CM events.
-+ * @service_id: Service identifier matched against incoming connection
-+ *   and service ID resolution requests.  The service ID should be specified
-+ *   network-byte order.  If set to IB_CM_ASSIGN_SERVICE_ID, the CM will
-+ *   assign a service ID to the caller.
-+ *
-+ * Callers should call ib_destroy_cm_id when done with the listener ID.
-+ */
-+struct ib_cm_id *ib_cm_insert_listen(struct ib_device *device,
-+				     ib_cm_handler cm_handler,
-+				     __be64 service_id)
-+{
-+	struct cm_id_private *cm_id_priv;
-+	struct ib_cm_id *cm_id;
-+	unsigned long flags;
-+	int err = 0;
-+
-+	/* Create an ID in advance, since the creation may sleep */
-+	cm_id = ib_create_cm_id(device, cm_handler, NULL);
-+	if (IS_ERR(cm_id))
-+		return cm_id;
-+
-+	spin_lock_irqsave(&cm.lock, flags);
-+
-+	if (service_id == IB_CM_ASSIGN_SERVICE_ID)
-+		goto new_id;
-+
-+	/* Find an existing ID */
-+	cm_id_priv = cm_find_listen(device, service_id, NULL);
-+	if (cm_id_priv) {
-+		if (cm_id->cm_handler != cm_handler || cm_id->context) {
-+			/* Sharing an ib_cm_id with different handlers is not
-+			 * supported */
-+			spin_unlock_irqrestore(&cm.lock, flags);
-+			return ERR_PTR(-EINVAL);
-+		}
-+		atomic_inc(&cm_id_priv->refcount);
-+		++cm_id_priv->listen_sharecount;
-+		spin_unlock_irqrestore(&cm.lock, flags);
-+
-+		ib_destroy_cm_id(cm_id);
-+		cm_id = &cm_id_priv->id;
-+		return cm_id;
-+	}
-+
-+new_id:
-+	/* Use newly created ID */
-+	err = __ib_cm_listen(cm_id, service_id, 0, NULL, false);
-+
-+	spin_unlock_irqrestore(&cm.lock, flags);
-+
-+	if (err) {
-+		ib_destroy_cm_id(cm_id);
-+		return ERR_PTR(err);
-+	}
-+	return cm_id;
-+}
-+EXPORT_SYMBOL(ib_cm_insert_listen);
-+
- static __be64 cm_form_tid(struct cm_id_private *cm_id_priv,
- 			  enum cm_msg_sequence msg_seq)
+-static void cma_remove_one(struct ib_device *device)
++static void cma_remove_one(struct ib_device *device, void *client_data)
  {
-diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
-index 1b567bbc3ad4..9cc496e1f2ad 100644
---- a/include/rdma/ib_cm.h
-+++ b/include/rdma/ib_cm.h
-@@ -362,6 +362,10 @@ struct ib_cm_compare_data {
- int ib_cm_listen(struct ib_cm_id *cm_id, __be64 service_id, __be64 service_mask,
- 		 struct ib_cm_compare_data *compare_data);
+-	struct cma_device *cma_dev;
++	struct cma_device *cma_dev = client_data;
  
-+struct ib_cm_id *ib_cm_insert_listen(struct ib_device *device,
-+				     ib_cm_handler cm_handler,
-+				     __be64 service_id);
+-	cma_dev = ib_get_client_data(device, &cma_client);
+ 	if (!cma_dev)
+ 		return;
+ 
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index f08d438205ed..623d8e191ced 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -50,6 +50,9 @@ struct ib_client_data {
+ 	struct list_head  list;
+ 	struct ib_client *client;
+ 	void *            data;
++	/* The device or client is going down. Do not call client or device
++	 * callbacks other than remove(). */
++	bool		  going_down;
+ };
+ 
+ struct workqueue_struct *ib_wq;
+@@ -69,6 +72,8 @@ static LIST_HEAD(client_list);
+  * to the lists must be done with a write lock. A special case is when the
+  * device_mutex is locked. In this case locking the lists for read access is
+  * not necessary as the device_mutex implies it.
++ *
++ * lists_rwsem also protects access to the client data list.
+  */
+ static DEFINE_MUTEX(device_mutex);
+ static DECLARE_RWSEM(lists_rwsem);
+@@ -210,10 +215,13 @@ static int add_client_context(struct ib_device *device, struct ib_client *client
+ 
+ 	context->client = client;
+ 	context->data   = NULL;
++	context->going_down = false;
+ 
++	down_write(&lists_rwsem);
+ 	spin_lock_irqsave(&device->client_data_lock, flags);
+ 	list_add(&context->list, &device->client_data_list);
+ 	spin_unlock_irqrestore(&device->client_data_lock, flags);
++	up_write(&lists_rwsem);
+ 
+ 	return 0;
+ }
+@@ -340,7 +348,6 @@ EXPORT_SYMBOL(ib_register_device);
+  */
+ void ib_unregister_device(struct ib_device *device)
+ {
+-	struct ib_client *client;
+ 	struct ib_client_data *context, *tmp;
+ 	unsigned long flags;
+ 
+@@ -348,20 +355,29 @@ void ib_unregister_device(struct ib_device *device)
+ 
+ 	down_write(&lists_rwsem);
+ 	list_del(&device->core_list);
+-	up_write(&lists_rwsem);
++	spin_lock_irqsave(&device->client_data_lock, flags);
++	list_for_each_entry_safe(context, tmp, &device->client_data_list, list)
++		context->going_down = true;
++	spin_unlock_irqrestore(&device->client_data_lock, flags);
++	downgrade_write(&lists_rwsem);
+ 
+-	list_for_each_entry_reverse(client, &client_list, list)
+-		if (client->remove)
+-			client->remove(device);
++	list_for_each_entry_safe(context, tmp, &device->client_data_list,
++				 list) {
++		if (context->client->remove)
++			context->client->remove(device, context->data);
++	}
++	up_read(&lists_rwsem);
+ 
+ 	mutex_unlock(&device_mutex);
+ 
+ 	ib_device_unregister_sysfs(device);
+ 
++	down_write(&lists_rwsem);
+ 	spin_lock_irqsave(&device->client_data_lock, flags);
+ 	list_for_each_entry_safe(context, tmp, &device->client_data_list, list)
+ 		kfree(context);
+ 	spin_unlock_irqrestore(&device->client_data_lock, flags);
++	up_write(&lists_rwsem);
+ 
+ 	device->reg_state = IB_DEV_UNREGISTERED;
+ }
+@@ -421,16 +437,35 @@ void ib_unregister_client(struct ib_client *client)
+ 	up_write(&lists_rwsem);
+ 
+ 	list_for_each_entry(device, &device_list, core_list) {
+-		if (client->remove)
+-			client->remove(device);
++		struct ib_client_data *found_context = NULL;
+ 
++		down_write(&lists_rwsem);
+ 		spin_lock_irqsave(&device->client_data_lock, flags);
+ 		list_for_each_entry_safe(context, tmp, &device->client_data_list, list)
+ 			if (context->client == client) {
+-				list_del(&context->list);
+-				kfree(context);
++				context->going_down = true;
++				found_context = context;
++				break;
+ 			}
+ 		spin_unlock_irqrestore(&device->client_data_lock, flags);
++		up_write(&lists_rwsem);
 +
- struct ib_cm_req_param {
- 	struct ib_sa_path_rec	*primary_path;
- 	struct ib_sa_path_rec	*alternate_path;
++		if (client->remove)
++			client->remove(device, found_context ?
++					       found_context->data : NULL);
++
++		if (!found_context) {
++			pr_warn("No client context found for %s/%s\n",
++				device->name, client->name);
++			continue;
++		}
++
++		down_write(&lists_rwsem);
++		spin_lock_irqsave(&device->client_data_lock, flags);
++		list_del(&found_context->list);
++		kfree(found_context);
++		spin_unlock_irqrestore(&device->client_data_lock, flags);
++		up_write(&lists_rwsem);
+ 	}
+ 
+ 	mutex_unlock(&device_mutex);
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 786fc51bf04b..66b4b3eb8f67 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -3335,7 +3335,7 @@ error:
+ 	}
+ }
+ 
+-static void ib_mad_remove_device(struct ib_device *device)
++static void ib_mad_remove_device(struct ib_device *device, void *client_data)
+ {
+ 	int i;
+ 
+diff --git a/drivers/infiniband/core/multicast.c b/drivers/infiniband/core/multicast.c
+index 2cb865c7ce7a..d38d8b2b2979 100644
+--- a/drivers/infiniband/core/multicast.c
++++ b/drivers/infiniband/core/multicast.c
+@@ -43,7 +43,7 @@
+ #include "sa.h"
+ 
+ static void mcast_add_one(struct ib_device *device);
+-static void mcast_remove_one(struct ib_device *device);
++static void mcast_remove_one(struct ib_device *device, void *client_data);
+ 
+ static struct ib_client mcast_client = {
+ 	.name   = "ib_multicast",
+@@ -840,13 +840,12 @@ static void mcast_add_one(struct ib_device *device)
+ 	ib_register_event_handler(&dev->event_handler);
+ }
+ 
+-static void mcast_remove_one(struct ib_device *device)
++static void mcast_remove_one(struct ib_device *device, void *client_data)
+ {
+-	struct mcast_device *dev;
++	struct mcast_device *dev = client_data;
+ 	struct mcast_port *port;
+ 	int i;
+ 
+-	dev = ib_get_client_data(device, &mcast_client);
+ 	if (!dev)
+ 		return;
+ 
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index 9ded4f49bf3f..70ceec4df02a 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -130,7 +130,7 @@ static struct workqueue_struct *ib_nl_wq;
+ static struct delayed_work ib_nl_timed_work;
+ 
+ static void ib_sa_add_one(struct ib_device *device);
+-static void ib_sa_remove_one(struct ib_device *device);
++static void ib_sa_remove_one(struct ib_device *device, void *client_data);
+ 
+ static struct ib_client sa_client = {
+ 	.name   = "sa",
+@@ -1660,9 +1660,9 @@ free:
+ 	return;
+ }
+ 
+-static void ib_sa_remove_one(struct ib_device *device)
++static void ib_sa_remove_one(struct ib_device *device, void *client_data)
+ {
+-	struct ib_sa_device *sa_dev = ib_get_client_data(device, &sa_client);
++	struct ib_sa_device *sa_dev = client_data;
+ 	int i;
+ 
+ 	if (!sa_dev)
+diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
+index 009481073644..8cde48b96f19 100644
+--- a/drivers/infiniband/core/ucm.c
++++ b/drivers/infiniband/core/ucm.c
+@@ -109,7 +109,7 @@ enum {
+ #define IB_UCM_BASE_DEV MKDEV(IB_UCM_MAJOR, IB_UCM_BASE_MINOR)
+ 
+ static void ib_ucm_add_one(struct ib_device *device);
+-static void ib_ucm_remove_one(struct ib_device *device);
++static void ib_ucm_remove_one(struct ib_device *device, void *client_data);
+ 
+ static struct ib_client ucm_client = {
+ 	.name   = "ucm",
+@@ -1310,9 +1310,9 @@ err:
+ 	return;
+ }
+ 
+-static void ib_ucm_remove_one(struct ib_device *device)
++static void ib_ucm_remove_one(struct ib_device *device, void *client_data)
+ {
+-	struct ib_ucm_device *ucm_dev = ib_get_client_data(device, &ucm_client);
++	struct ib_ucm_device *ucm_dev = client_data;
+ 
+ 	if (!ucm_dev)
+ 		return;
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index 35567fffaa4e..57f281f8d686 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -133,7 +133,7 @@ static DEFINE_SPINLOCK(port_lock);
+ static DECLARE_BITMAP(dev_map, IB_UMAD_MAX_PORTS);
+ 
+ static void ib_umad_add_one(struct ib_device *device);
+-static void ib_umad_remove_one(struct ib_device *device);
++static void ib_umad_remove_one(struct ib_device *device, void *client_data);
+ 
+ static void ib_umad_release_dev(struct kobject *kobj)
+ {
+@@ -1322,9 +1322,9 @@ free:
+ 	kobject_put(&umad_dev->kobj);
+ }
+ 
+-static void ib_umad_remove_one(struct ib_device *device)
++static void ib_umad_remove_one(struct ib_device *device, void *client_data)
+ {
+-	struct ib_umad_device *umad_dev = ib_get_client_data(device, &umad_client);
++	struct ib_umad_device *umad_dev = client_data;
+ 	int i;
+ 
+ 	if (!umad_dev)
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index d7a2c30fabbf..05e3e9b7db7b 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -130,7 +130,7 @@ static int (*uverbs_ex_cmd_table[])(struct ib_uverbs_file *file,
+ };
+ 
+ static void ib_uverbs_add_one(struct ib_device *device);
+-static void ib_uverbs_remove_one(struct ib_device *device);
++static void ib_uverbs_remove_one(struct ib_device *device, void *client_data);
+ 
+ static void ib_uverbs_comp_dev(struct kref *ref)
+ {
+@@ -1208,9 +1208,9 @@ static void ib_uverbs_free_hw_resources(struct ib_uverbs_device *uverbs_dev,
+ 	mutex_unlock(&uverbs_dev->lists_mutex);
+ }
+ 
+-static void ib_uverbs_remove_one(struct ib_device *device)
++static void ib_uverbs_remove_one(struct ib_device *device, void *client_data)
+ {
+-	struct ib_uverbs_device *uverbs_dev = ib_get_client_data(device, &uverbs_client);
++	struct ib_uverbs_device *uverbs_dev = client_data;
+ 	int wait_clients = 1;
+ 
+ 	if (!uverbs_dev)
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index b2943c84a5dd..cca1a0c91ec4 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -89,7 +89,7 @@ struct workqueue_struct *ipoib_workqueue;
+ struct ib_sa_client ipoib_sa_client;
+ 
+ static void ipoib_add_one(struct ib_device *device);
+-static void ipoib_remove_one(struct ib_device *device);
++static void ipoib_remove_one(struct ib_device *device, void *client_data);
+ static void ipoib_neigh_reclaim(struct rcu_head *rp);
+ 
+ static struct ib_client ipoib_client = {
+@@ -1715,12 +1715,11 @@ static void ipoib_add_one(struct ib_device *device)
+ 	ib_set_client_data(device, &ipoib_client, dev_list);
+ }
+ 
+-static void ipoib_remove_one(struct ib_device *device)
++static void ipoib_remove_one(struct ib_device *device, void *client_data)
+ {
+ 	struct ipoib_dev_priv *priv, *tmp;
+-	struct list_head *dev_list;
++	struct list_head *dev_list = client_data;
+ 
+-	dev_list = ib_get_client_data(device, &ipoib_client);
+ 	if (!dev_list)
+ 		return;
+ 
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 31a20b462266..7755df444cfd 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -131,7 +131,7 @@ MODULE_PARM_DESC(ch_count,
+ 		 "Number of RDMA channels to use for communication with an SRP target. Using more than one channel improves performance if the HCA supports multiple completion vectors. The default value is the minimum of four times the number of online CPU sockets and the number of completion vectors supported by the HCA.");
+ 
+ static void srp_add_one(struct ib_device *device);
+-static void srp_remove_one(struct ib_device *device);
++static void srp_remove_one(struct ib_device *device, void *client_data);
+ static void srp_recv_completion(struct ib_cq *cq, void *ch_ptr);
+ static void srp_send_completion(struct ib_cq *cq, void *ch_ptr);
+ static int srp_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event);
+@@ -3460,13 +3460,13 @@ free_attr:
+ 	kfree(dev_attr);
+ }
+ 
+-static void srp_remove_one(struct ib_device *device)
++static void srp_remove_one(struct ib_device *device, void *client_data)
+ {
+ 	struct srp_device *srp_dev;
+ 	struct srp_host *host, *tmp_host;
+ 	struct srp_target_port *target;
+ 
+-	srp_dev = ib_get_client_data(device, &srp_client);
++	srp_dev = client_data;
+ 	if (!srp_dev)
+ 		return;
+ 
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 60ff0a2390e5..4c59ceb40fff 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -3326,12 +3326,11 @@ err:
+ /**
+  * srpt_remove_one() - InfiniBand device removal callback function.
+  */
+-static void srpt_remove_one(struct ib_device *device)
++static void srpt_remove_one(struct ib_device *device, void *client_data)
+ {
+-	struct srpt_device *sdev;
++	struct srpt_device *sdev = client_data;
+ 	int i;
+ 
+-	sdev = ib_get_client_data(device, &srpt_client);
+ 	if (!sdev) {
+ 		pr_info("%s(%s): nothing to do.\n", __func__, device->name);
+ 		return;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 080a976cafa0..aaa5d2217ab5 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1550,6 +1550,8 @@ struct ib_device {
+ 
+ 	spinlock_t                    client_data_lock;
+ 	struct list_head              core_list;
++	/* Access to the client_data_list is protected by the client_data_lock
++	 * spinlock and the lists_rwsem read-write semaphore */
+ 	struct list_head              client_data_list;
+ 
+ 	struct ib_cache               cache;
+@@ -1762,7 +1764,7 @@ struct ib_device {
+ struct ib_client {
+ 	char  *name;
+ 	void (*add)   (struct ib_device *);
+-	void (*remove)(struct ib_device *);
++	void (*remove)(struct ib_device *, void *client_data);
+ 
+ 	struct list_head list;
+ };
+diff --git a/net/rds/ib.c b/net/rds/ib.c
+index ba2dffeff608..348ac37c1161 100644
+--- a/net/rds/ib.c
++++ b/net/rds/ib.c
+@@ -230,11 +230,10 @@ struct rds_ib_device *rds_ib_get_client_data(struct ib_device *device)
+  *
+  * This can be called at any time and can be racing with any other RDS path.
+  */
+-static void rds_ib_remove_one(struct ib_device *device)
++static void rds_ib_remove_one(struct ib_device *device, void *client_data)
+ {
+-	struct rds_ib_device *rds_ibdev;
++	struct rds_ib_device *rds_ibdev = client_data;
+ 
+-	rds_ibdev = ib_get_client_data(device, &rds_ib_client);
+ 	if (!rds_ibdev)
+ 		return;
+ 
+diff --git a/net/rds/iw.c b/net/rds/iw.c
+index 589935661d66..7cc2f32a0cb3 100644
+--- a/net/rds/iw.c
++++ b/net/rds/iw.c
+@@ -125,12 +125,11 @@ free_attr:
+ 	kfree(dev_attr);
+ }
+ 
+-static void rds_iw_remove_one(struct ib_device *device)
++static void rds_iw_remove_one(struct ib_device *device, void *client_data)
+ {
+-	struct rds_iw_device *rds_iwdev;
++	struct rds_iw_device *rds_iwdev = client_data;
+ 	struct rds_iw_cm_id *i_cm_id, *next;
+ 
+-	rds_iwdev = ib_get_client_data(device, &rds_iw_client);
+ 	if (!rds_iwdev)
+ 		return;
+ 
 -- 
 1.7.11.2
 
