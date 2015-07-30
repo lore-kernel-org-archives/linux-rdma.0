@@ -1,64 +1,39 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] IB/ipoib: CSUM support in connected mode
-Date: Thu, 30 Jul 2015 15:00:18 -0600
-Message-ID: <20150730210018.GA32451@obsidianresearch.com>
-References: <1438256764-9077-1-git-send-email-yuval.shaia@oracle.com>
- <1438264693.9344.19.camel@opteya.com>
- <20150730152049.GA29102@yuval-lab>
- <55BA47F0.5080504@redhat.com>
- <20150730171538.GA25282@obsidianresearch.com>
- <20150730204635.GC3487@yuval-lab>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v4 01/50] IB: Add CNP opcode enumeration.
+Date: Thu, 30 Jul 2015 21:13:14 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC25778018@fmsmsx120.amr.corp.intel.com>
+References: <20150730191631.25256.95511.stgit@phlsvslse11.ph.intel.com>
+ <20150730191732.25256.85207.stgit@phlsvslse11.ph.intel.com>
+ <alpine.DEB.2.11.1507301530490.6551@east.gentwo.org>
+ <32E1700B9017364D9B60AED9960492BC25777E49@fmsmsx120.amr.corp.intel.com>
+ <alpine.DEB.2.11.1507301554450.6808@east.gentwo.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150730204635.GC3487@yuval-lab>
+In-Reply-To: <alpine.DEB.2.11.1507301554450.6808-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 30, 2015 at 11:46:36PM +0300, Yuval Shaia wrote:
-> On Thu, Jul 30, 2015 at 11:15:38AM -0600, Jason Gunthorpe wrote:
-> > On Thu, Jul 30, 2015 at 11:51:12AM -0400, Doug Ledford wrote:
-> > 
-> > > In its current state, I have my doubts about this patch.  However, it
-> > > seems to me that this should be relatively easy to fix in such a way
-> > > that you get 90%+ of the performance benefit, and can turn it on by
-> > > default, and we don't cause any problems.
-> > 
-> > The best way to implement this is to leverage all the checksum
-> > offload work people did for virtualization.
-> > 
-> > Forward the checksum offload status through the RC connection and
-> > recover it on the other side.
-> The current approach is to utilize IPoIB's private-data to exchange this
-> information.
+> > > That is obvious and useless. Patches should have a meaningful
+> > > description and justify the changes.
+> > >
+> >
+> > The driver uses the CNP opcode for congestion control.
+> 
+> And that requires a new transport protocol???
+> 
 
-You need private-data exchange to negotiate the feature.
+The opcode is 0x80, which appears in the protocol part of the 8 bit opcode.  That is what is specified in A3.10.2 of the 1.3 spec.
 
-The feature should be a per-packet csum status header.
+That also happens to land in the upper bits of the opcode. 
 
-When sending a skb that is already fully csumed the receiver sets
-CHECKSUM_UNNECESSARY.
+Would this fit better with a  IB_OPCODE_CNP_TRANS (0x80) with a single opcode of IB_OPCODE_CNP_OP 0x00, combined with the IB_OPCODE macro to produce IB_OPCODE_CNP?
 
-When sending a skb that has CHECKSUM_PARTIAL then the
-receiver needs to call skb_partial_csum_set.
-
-Look at how something like VIRTIO_NET_HDR_F_NEEDS_CSUM works and copy
-that scheme.
-
-DO NOT EVER set CHECKSUM_UNNECESSARY on packets that do not have valid
-csums - that breaks the net stack.
-
-Yes, you need to add a header to all packets to support this scheme,
-that is what the private-data negotiation is for.
-
-While you are at it, I'd make room for something like
-VIRTIO_NET_HDR_GSO_* in the RC protocol too. Implementing GSO
-forwarding is probably another big performance win.
-
-Jason
+Mike
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
