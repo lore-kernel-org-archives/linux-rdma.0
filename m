@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: [PATCH v2 05/12] IB/mlx5: Remove ib_get_dma_mr calls
-Date: Thu, 30 Jul 2015 17:22:19 -0600
-Message-ID: <1438298547-21404-6-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH v2 07/12] iser-target: Remove ib_get_dma_mr calls
+Date: Thu, 30 Jul 2015 17:22:21 -0600
+Message-ID: <1438298547-21404-8-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1438298547-21404-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <target-devel-owner@vger.kernel.org>
 In-Reply-To: <1438298547-21404-1-git-send-email-jgunthorpe@obsidianresearch.com>
@@ -14,102 +14,150 @@ The pd now has a local_dma_lkey member which completely replaces
 ib_get_dma_mr, use it instead.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Reviewed-by: Sagi Grimberg <sagig@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/main.c    | 13 -------------
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 -
- drivers/infiniband/hw/mlx5/mr.c      |  5 ++---
- 3 files changed, 2 insertions(+), 17 deletions(-)
+ drivers/infiniband/ulp/isert/ib_isert.c | 33 +++++++++++----------------------
+ drivers/infiniband/ulp/isert/ib_isert.h |  1 -
+ 2 files changed, 11 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 085c24b4b603..72ab0bdb415a 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1121,7 +1121,6 @@ static void destroy_umrc_res(struct mlx5_ib_dev *dev)
- 
- 	mlx5_ib_destroy_qp(dev->umrc.qp);
- 	ib_destroy_cq(dev->umrc.cq);
--	ib_dereg_mr(dev->umrc.mr);
- 	ib_dealloc_pd(dev->umrc.pd);
- }
- 
-@@ -1136,7 +1135,6 @@ static int create_umr_res(struct mlx5_ib_dev *dev)
- 	struct ib_pd *pd;
- 	struct ib_cq *cq;
- 	struct ib_qp *qp;
--	struct ib_mr *mr;
- 	struct ib_cq_init_attr cq_attr = {};
- 	int ret;
- 
-@@ -1154,13 +1152,6 @@ static int create_umr_res(struct mlx5_ib_dev *dev)
- 		goto error_0;
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index 771700963127..00d75d977131 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -235,7 +235,7 @@ isert_alloc_rx_descriptors(struct isert_conn *isert_conn)
+ 		rx_sg = &rx_desc->rx_sg;
+ 		rx_sg->addr = rx_desc->dma_addr;
+ 		rx_sg->length = ISER_RX_PAYLOAD_SIZE;
+-		rx_sg->lkey = device->mr->lkey;
++		rx_sg->lkey = device->pd->local_dma_lkey;
  	}
  
--	mr = ib_get_dma_mr(pd,  IB_ACCESS_LOCAL_WRITE);
--	if (IS_ERR(mr)) {
--		mlx5_ib_dbg(dev, "Couldn't create DMA MR for sync UMR QP\n");
--		ret = PTR_ERR(mr);
--		goto error_1;
+ 	isert_conn->rx_desc_head = 0;
+@@ -385,22 +385,12 @@ isert_create_device_ib_res(struct isert_device *device)
+ 		goto out_cq;
+ 	}
+ 
+-	device->mr = ib_get_dma_mr(device->pd, IB_ACCESS_LOCAL_WRITE);
+-	if (IS_ERR(device->mr)) {
+-		ret = PTR_ERR(device->mr);
+-		isert_err("failed to create dma mr, device %p, ret=%d\n",
+-			  device, ret);
+-		goto out_mr;
 -	}
 -
- 	cq_attr.cqe = 128;
- 	cq = ib_create_cq(&dev->ib_dev, mlx5_umr_cq_handler, NULL, NULL,
- 			  &cq_attr);
-@@ -1218,7 +1209,6 @@ static int create_umr_res(struct mlx5_ib_dev *dev)
+ 	/* Check signature cap */
+ 	device->pi_capable = dev_attr->device_cap_flags &
+ 			     IB_DEVICE_SIGNATURE_HANDOVER ? true : false;
  
- 	dev->umrc.qp = qp;
- 	dev->umrc.cq = cq;
--	dev->umrc.mr = mr;
- 	dev->umrc.pd = pd;
+ 	return 0;
  
- 	sema_init(&dev->umrc.sem, MAX_UMR_WR);
-@@ -1240,9 +1230,6 @@ error_3:
- 	ib_destroy_cq(cq);
- 
- error_2:
--	ib_dereg_mr(mr);
--
--error_1:
- 	ib_dealloc_pd(pd);
- 
- error_0:
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 7cae09836481..446d80427773 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -349,7 +349,6 @@ struct umr_common {
- 	struct ib_pd	*pd;
- 	struct ib_cq	*cq;
- 	struct ib_qp	*qp;
--	struct ib_mr	*mr;
- 	/* control access to UMR QP
- 	 */
- 	struct semaphore	sem;
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index bc9a0de897cb..4c92ca8a4181 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -690,12 +690,11 @@ static void prep_umr_reg_wqe(struct ib_pd *pd, struct ib_send_wr *wr,
- 			     int access_flags)
+-out_mr:
+-	ib_dealloc_pd(device->pd);
+ out_cq:
+ 	isert_free_comps(device);
+ 	return ret;
+@@ -411,7 +401,6 @@ isert_free_device_ib_res(struct isert_device *device)
  {
- 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
--	struct ib_mr *mr = dev->umrc.mr;
- 	struct mlx5_umr_wr *umrwr = (struct mlx5_umr_wr *)&wr->wr.fast_reg;
+ 	isert_info("device %p\n", device);
  
- 	sg->addr = dma;
- 	sg->length = ALIGN(sizeof(u64) * n, 64);
--	sg->lkey = mr->lkey;
-+	sg->lkey = dev->umrc.pd->local_dma_lkey;
+-	ib_dereg_mr(device->mr);
+ 	ib_dealloc_pd(device->pd);
+ 	isert_free_comps(device);
+ }
+@@ -1086,8 +1075,8 @@ isert_create_send_desc(struct isert_conn *isert_conn,
+ 	tx_desc->num_sge = 1;
+ 	tx_desc->isert_cmd = isert_cmd;
  
- 	wr->next = NULL;
- 	wr->send_flags = 0;
-@@ -926,7 +925,7 @@ int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 start_page_index, int npages,
- 		sg.addr = dma;
- 		sg.length = ALIGN(npages * sizeof(u64),
- 				MLX5_UMR_MTT_ALIGNMENT);
--		sg.lkey = dev->umrc.mr->lkey;
-+		sg.lkey = dev->umrc.pd->local_dma_lkey;
+-	if (tx_desc->tx_sg[0].lkey != device->mr->lkey) {
+-		tx_desc->tx_sg[0].lkey = device->mr->lkey;
++	if (tx_desc->tx_sg[0].lkey != device->pd->local_dma_lkey) {
++		tx_desc->tx_sg[0].lkey = device->pd->local_dma_lkey;
+ 		isert_dbg("tx_desc %p lkey mismatch, fixing\n", tx_desc);
+ 	}
+ }
+@@ -1110,7 +1099,7 @@ isert_init_tx_hdrs(struct isert_conn *isert_conn,
+ 	tx_desc->dma_addr = dma_addr;
+ 	tx_desc->tx_sg[0].addr	= tx_desc->dma_addr;
+ 	tx_desc->tx_sg[0].length = ISER_HEADERS_LEN;
+-	tx_desc->tx_sg[0].lkey = device->mr->lkey;
++	tx_desc->tx_sg[0].lkey = device->pd->local_dma_lkey;
  
- 		wr.send_flags = MLX5_IB_SEND_UMR_FAIL_IF_FREE |
- 				MLX5_IB_SEND_UMR_UPDATE_MTT;
+ 	isert_dbg("Setup tx_sg[0].addr: 0x%llx length: %u lkey: 0x%x\n",
+ 		  tx_desc->tx_sg[0].addr, tx_desc->tx_sg[0].length,
+@@ -1143,7 +1132,7 @@ isert_rdma_post_recvl(struct isert_conn *isert_conn)
+ 	memset(&sge, 0, sizeof(struct ib_sge));
+ 	sge.addr = isert_conn->login_req_dma;
+ 	sge.length = ISER_RX_LOGIN_SIZE;
+-	sge.lkey = isert_conn->device->mr->lkey;
++	sge.lkey = isert_conn->device->pd->local_dma_lkey;
+ 
+ 	isert_dbg("Setup sge: addr: %llx length: %d 0x%08x\n",
+ 		sge.addr, sge.length, sge.lkey);
+@@ -1193,7 +1182,7 @@ isert_put_login_tx(struct iscsi_conn *conn, struct iscsi_login *login,
+ 
+ 		tx_dsg->addr	= isert_conn->login_rsp_dma;
+ 		tx_dsg->length	= length;
+-		tx_dsg->lkey	= isert_conn->device->mr->lkey;
++		tx_dsg->lkey	= isert_conn->device->pd->local_dma_lkey;
+ 		tx_desc->num_sge = 2;
+ 	}
+ 	if (!login->login_failed) {
+@@ -2210,7 +2199,7 @@ isert_put_response(struct iscsi_conn *conn, struct iscsi_cmd *cmd)
+ 		isert_cmd->pdu_buf_len = pdu_len;
+ 		tx_dsg->addr	= isert_cmd->pdu_buf_dma;
+ 		tx_dsg->length	= pdu_len;
+-		tx_dsg->lkey	= device->mr->lkey;
++		tx_dsg->lkey	= device->pd->local_dma_lkey;
+ 		isert_cmd->tx_desc.num_sge = 2;
+ 	}
+ 
+@@ -2338,7 +2327,7 @@ isert_put_reject(struct iscsi_cmd *cmd, struct iscsi_conn *conn)
+ 	isert_cmd->pdu_buf_len = ISCSI_HDR_LEN;
+ 	tx_dsg->addr	= isert_cmd->pdu_buf_dma;
+ 	tx_dsg->length	= ISCSI_HDR_LEN;
+-	tx_dsg->lkey	= device->mr->lkey;
++	tx_dsg->lkey	= device->pd->local_dma_lkey;
+ 	isert_cmd->tx_desc.num_sge = 2;
+ 
+ 	isert_init_send_wr(isert_conn, isert_cmd, send_wr);
+@@ -2379,7 +2368,7 @@ isert_put_text_rsp(struct iscsi_cmd *cmd, struct iscsi_conn *conn)
+ 		isert_cmd->pdu_buf_len = txt_rsp_len;
+ 		tx_dsg->addr	= isert_cmd->pdu_buf_dma;
+ 		tx_dsg->length	= txt_rsp_len;
+-		tx_dsg->lkey	= device->mr->lkey;
++		tx_dsg->lkey	= device->pd->local_dma_lkey;
+ 		isert_cmd->tx_desc.num_sge = 2;
+ 	}
+ 	isert_init_send_wr(isert_conn, isert_cmd, send_wr);
+@@ -2420,7 +2409,7 @@ isert_build_rdma_wr(struct isert_conn *isert_conn, struct isert_cmd *isert_cmd,
+ 		ib_sge->addr = ib_sg_dma_address(ib_dev, tmp_sg) + page_off;
+ 		ib_sge->length = min_t(u32, data_left,
+ 				ib_sg_dma_len(ib_dev, tmp_sg) - page_off);
+-		ib_sge->lkey = device->mr->lkey;
++		ib_sge->lkey = device->pd->local_dma_lkey;
+ 
+ 		isert_dbg("RDMA ib_sge: addr: 0x%llx  length: %u lkey: %x\n",
+ 			  ib_sge->addr, ib_sge->length, ib_sge->lkey);
+@@ -2594,7 +2583,7 @@ isert_fast_reg_mr(struct isert_conn *isert_conn,
+ 	u32 page_off;
+ 
+ 	if (mem->dma_nents == 1) {
+-		sge->lkey = device->mr->lkey;
++		sge->lkey = device->pd->local_dma_lkey;
+ 		sge->addr = ib_sg_dma_address(ib_dev, &mem->sg[0]);
+ 		sge->length = ib_sg_dma_len(ib_dev, &mem->sg[0]);
+ 		isert_dbg("sge: addr: 0x%llx  length: %u lkey: %x\n",
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.h b/drivers/infiniband/ulp/isert/ib_isert.h
+index 9ec23a786c02..6a04ba3c0f72 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.h
++++ b/drivers/infiniband/ulp/isert/ib_isert.h
+@@ -209,7 +209,6 @@ struct isert_device {
+ 	int			refcount;
+ 	struct ib_device	*ib_device;
+ 	struct ib_pd		*pd;
+-	struct ib_mr		*mr;
+ 	struct isert_comp	*comps;
+ 	int                     comps_used;
+ 	struct list_head	dev_node;
 -- 
 2.1.4
