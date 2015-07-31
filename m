@@ -1,48 +1,30 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH for-next V7 00/10] Move RoCE GID management to IB/Core
-Date: Fri, 31 Jul 2015 16:01:02 -0600
-Message-ID: <20150731220102.GA31209@obsidianresearch.com>
-References: <1438270411-17648-1-git-send-email-matanb@mellanox.com>
- <CAJ3xEMh9z=LG7dW0nBP8Zdrbf0SkZ_GCxjCoowWXuw2dueN+xg@mail.gmail.com>
- <55BB6F10.5030408@redhat.com>
- <20150731163201.GA6027@obsidianresearch.com>
- <55BBB353.7020806@redhat.com>
- <CAJ3xEMiP57qf58B=VHRazs50RC5r-7OsUPb=GV1kBQ6vu6Tqjw@mail.gmail.com>
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: Re: [PATCH v2 00/12] IB: Replace safe uses for ib_get_dma_mr with
+ pd->local_dma_lkey
+Date: Fri, 31 Jul 2015 15:20:40 -0700
+Message-ID: <55BBF4B8.2050700@sandisk.com>
+References: <1438298547-21404-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAJ3xEMiP57qf58B=VHRazs50RC5r-7OsUPb=GV1kBQ6vu6Tqjw@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Or Gerlitz <gerlitz.or@gmail.com>
-Cc: Doug Ledford <dledford@redhat.com>, Matan Barak <matanb@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Sean Hefty <sean.hefty@intel.com>, Somnath Kotur <Somnath.Kotur@avagotech.com>, Moni Shoua <monis@mellanox.com>, "talal@mellanox.com" <talal@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Linux Netdev List <netdev@vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1438298547-21404-1-git-send-email-jgunthorpe@obsidianresearch.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
+Cc: Amir Vadai <amirv@mellanox.com>, Bart Van Assche <bart.vanassche@sandisk.com>, Chien Yen <chien.yen@oracle.com>, Christoph Hellwig <hch@infradead.org>, Dominique Martinet <dominique.martinet@cea.fr>, Eli Cohen <eli@mellanox.com>, Eric Van Hensbergen <ericvh@gmail.com>, Ido Shamay <idos@mellanox.com>, Latchesar Ionkov <lucho@ionkov.net>, Or Gerlitz <ogerlitz@mellanox.com>, Roi Dayan <roid@mellanox.com>, Ron Minnich <rminnich@sandia.gov>, Sagi Grimberg <sagig@mellanox.com>, Simon Derr <simon.derr@bull.net>, Tom Tucker <tom@opengridcomputing.com>, rds-devel@oss.oracle.com, target-devel@vger.kernel.org, v9fs-developer@lists.sourceforge.net
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Aug 01, 2015 at 12:24:23AM +0300, Or Gerlitz wrote:
+On 07/30/2015 04:22 PM, Jason Gunthorpe wrote:
+> All patches are compile tested. I've done basic testing up to and including
+> the IPoIB patch, the rest required specialized setups I don't have access to,
+> but are fairly straightforward.
 
-> addressed in incremental patch, as Doug suggested. Jason, it's wrong
-> to send developers again and again to fix things which were 
-> perfect in Vn-1 but also not being covered by reviewers on Vn-1, at
-> some point the reviewer can't load new comments which gate the
+Hello Jason,
 
-I don't even know what you are talking about Or.
+SRP login fails with this patch series applied on top of Linux kernel 
+v4.2-rc4. At the target side the following message appears every time 
+the SRP initiator tries to log in: "ib_srpt: RDMA t 5 for idx 0 failed 
+with status 10" (10=remote access error). That causes the initiator to 
+receive a flush error (5).
 
-v6 had some small problems in the logic and v7 introduces a fairly
-serious flaw while trying to fix them. IMHO, you are better to merge
-v6 than v7, at least v6's problems are less likely to be serious.
-
-IMHO, it took until around v5/v6 before this series was even worth
-taking a detailed look at. I'm certainly not willing to waste my time
-doing detailed reviews on other elements when basic things like
-locking and refcounting are screwed up.
-
-I think you are really off side with the idea that a review has to see
-every problem in Vn or ignore it in Vn+1. That is obviously
-unworkable.
-
-> acceptance but rather be willing for things to be fixed incrementally.
-
-That is the same argument you used for the timestamp _ex UAPI mess,
-last cycle, where are the incremental fixes for that?
-
-Jason
+Bart.
