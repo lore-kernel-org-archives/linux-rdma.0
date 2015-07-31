@@ -1,72 +1,50 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-4.3 14/15] qib: Support ib_alloc_mr verb
-Date: Fri, 31 Jul 2015 08:52:50 -0400
-Message-ID: <55BB6FA2.3070205@redhat.com>
-References: <1438241568-3685-1-git-send-email-sagig@mellanox.com>
- <1438241568-3685-15-git-send-email-sagig@mellanox.com>
- <32E1700B9017364D9B60AED9960492BC257782EE@fmsmsx120.amr.corp.intel.com>
+From: Coprodex <contact-LvOedQG9Hdpg9hUCZPvPmw@public.gmane.org>
+Subject: PROPOSITION D'EMPLOI
+Date: Fri, 31 Jul 2015 15:11:57 +0200
+Message-ID: <H6ANCNN-DX2M-JERS-REOR-HRSZ6XNYJ8OR@coprodex.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="0gmfdd7capbxLGl6TSvrVdvPMIDv1oLko"
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <32E1700B9017364D9B60AED9960492BC257782EE-RjuIdWtd+YbTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=iso-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "ens.fr," <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---0gmfdd7capbxLGl6TSvrVdvPMIDv1oLko
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+Bonjour ,
+Veuillez nous excuser pour toute genes succeptible que nous pourrions v=
+ous causer.
+Nous tenons tout simplement a vous informer que notre entreprise=A0COPR=
+ODEX=A0recrute des agents magasiniers et gestionnaires de stocks =E0 do=
+micile (c'est- =E0 -dire=A0: Recevoir, reconditionner puis r=E9exp=E9di=
+er les paquets obtenus avec les colis re=E7us =E0 votre domicile). Nous=
+ soulignons que cette offre est ouverte =E0 tous : =E9tudiant, travaill=
+eur, sans emploi.=A0=A0Les horaires sont de 9 h a 14 h, du Lundi au Sam=
+edi pour un salaire minimal de 1200 euro mensuel. Alors vous pouvez con=
+sid=E9rer ce salaire comme un compl=E9ment de revenus, pour les travail=
+leurs car vous n'=EAtes pas oblig=E9 d'abandonner votre activit=E9 actu=
+elle.
+Veuillez nous contacter le plus rapidement possible  si vous =EAtes int=
+=E9ress=E9s.
+Dans l'attente de vous lire, veuillez recevoir nos salutations les plus=
+ sinc=E8res.
+Cordialement.
+Monsieur Marc DE LA GRANDIERE.
+Email:=A0HYPERLINK "mailto:contact-LvOedQG9Hdpg9hUCZPvPmw@public.gmane.org" \t "_blank"contact@cop=
+rodex.org
 
-On 07/31/2015 07:41 AM, Marciniszyn, Mike wrote:
->> Subject: [PATCH for-4.3 14/15] qib: Support ib_alloc_mr verb
->>
->=20
-> Doug,
->=20
-> Have you staged this anywhere?
->=20
-> Mike
->=20
-
-Yes.  In my github repo this is present on the mr-cleanup and
-to-be-rebased/for-4.3 branches.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+tel:=A00789649320 /0975184015
 
 
 
---0gmfdd7capbxLGl6TSvrVdvPMIDv1oLko
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJVu2+iAAoJELgmozMOVy/dO4cP/ijs6+8x2oJi+e1FkFc1x9Mo
-86VektPjuNUNryUgRR8VY9HB6wsI28Jaw1g5WlFShOBPV+QbjEIuN5PGzAhE/vFs
-vwLkujiOx3hUmoWg3YkolIkEZZijxXaVsL7WhAmk9CXh8IQzRbQ8msJbFsDxzrXZ
-q9b77yXqNZvJgM7j2XoQYJCaw7UfsPQcAIdy/mPEN8gRnbxByTMiZhZHwHQxa7h5
-I8Zii8kVUBA6FQBtR947Tqkp+n5A6BGIjvbDiWDZftgv8N2Pdze2tZ2ye3phuqls
-438R6ZONey4PBGAawd0QLRFdF4bVsrnoXHqrb5QxCgBgeFhmQ/Oo4ykjArAM/Jpu
-KyD795xgJ5BGcIjaku/YkTWOwcvAy8rNijKHwl1tPd6Rwj2P0et1IySsMC53Olz1
-Nqj1coNfXUeCDWrHR4Wkt3RFFXs33KQEPZnxZZgdHkRXGNwO6CM+9IKY3UfP3Fms
-swQKSWVj5es1Qfrioj56QBuagnKhwk+pG3ER9TmjOnZOCVxKW9gLCbmd2L6+IjGn
-heBwNpMSogXzFxgb31b+jxYOU+7LEKzAYgwkBIQWxW48ce4VxgfjfszkjUJxofcE
-tOXMWO1gNW6TIeWqKCYQN2WZs/VKegW0AsnmSIIkrqhQU2HdUOJVs03SDn1MJznM
-7jEWkVkU6nRWMcQ00PvH
-=ebd2
------END PGP SIGNATURE-----
+---
+This email has been checked for viruses by Avast antivirus software.
+https://www.avast.com/antivirus
 
---0gmfdd7capbxLGl6TSvrVdvPMIDv1oLko--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
