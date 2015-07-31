@@ -1,63 +1,55 @@
-From: Al Viro <viro-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
-Subject: Re: [PATCH v4 17/50] IB/hfi1: add PSM driver control/data path
-Date: Fri, 31 Jul 2015 09:22:33 +0100
-Message-ID: <20150731082207.GT17109@ZenIV.linux.org.uk>
-References: <20150730191631.25256.95511.stgit@phlsvslse11.ph.intel.com>
- <20150730191859.25256.28987.stgit@phlsvslse11.ph.intel.com>
- <20150730194041.GA28754@obsidianresearch.com>
- <32E1700B9017364D9B60AED9960492BC25777DA0@fmsmsx120.amr.corp.intel.com>
- <55BA9A38.2030401@redhat.com>
- <20150731073158.GA2485@infradead.org>
+From: Or Gerlitz <gerlitz.or@gmail.com>
+Subject: Re: [PATCH for-next V7 00/10] Move RoCE GID management to IB/Core
+Date: Fri, 31 Jul 2015 12:40:14 +0300
+Message-ID: <CAJ3xEMh9z=LG7dW0nBP8Zdrbf0SkZ_GCxjCoowWXuw2dueN+xg@mail.gmail.com>
+References: <1438270411-17648-1-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150731073158.GA2485-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1438270411-17648-1-git-send-email-matanb@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: Matan Barak <matanb@mellanox.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Sean Hefty <sean.hefty@intel.com>, Somnath Kotur <Somnath.Kotur@avagotech.com>, Moni Shoua <monis@mellanox.com>, "talal@mellanox.com" <talal@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Linux Netdev List <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jul 31, 2015 at 12:31:58AM -0700, Christoph Hellwig wrote:
-> On Thu, Jul 30, 2015 at 05:42:16PM -0400, Doug Ledford wrote:
-> > I have no problem with this code.  That Al finds the user space ABI for
-> > this driver to be bizarre is neither here nor there to me.  Sure, this
-> > file does not exhibit normal file API behavior.  Who cares?
-> 
-> Everyone who cares about filesystem semantics does.
-> 
-> A NACK from me for a this features, and b) for trying to sneak it in
-> after a negative comment without cc to -fsdevel and Al.
+On Thu, Jul 30, 2015 at 6:33 PM, Matan Barak <matanb@mellanox.com> wrote:
 
-FWIW, the lack of comments appears to have tripped Doug, judging by his
-"another option would be to drop the write function altogether and just make
-all commands come through writev/write_iter and if you only have one command,
-you only send one element".
+[...]
 
-The thing is, ipath and qib (and AFAICS this one as well) have write(2) and
-writev(2) take different and completely unrelated sets of commands.  On
-the same file.  IOW, the effects of
-	writev(fd, &(struct iovec){buf, len}, 1)
-and
-	write(fd, buf, len)
-are not even remotely similar.  _That_ is the gratuitous weirdness I'd been
-unhappy with.  And yes, it is gratuitous - it's trivial to have separate files
-for separate command sets.
+> Changes from V6:
+> (1) Addressed Jason's comments:
+>         (a) Cache is no longer a client but part of IB infrastructure
+>         (b) No need for READ_ONCE and flush_workqueue when tearing down
+>             the cache
 
-If you drop ->write() in there, you certainly lose the weirdness - along with
-one of those command sets.  Sure, having individual iovecs correspond to
-separate datagrams is fine; tons of drivers are like that.  qib and ipath
-are unique, though, in having *two* command sets overloaded on the same file,
-with write() vs. writev() acting as selector (BTW, single-element AIO
-going like writev(), not like write()).
+Doug
 
-PS: I'm back after several weeks of being sick (recipe for fun: start with
-40C in shade, get completely soaked in serious rain, then have half an hour
-cab ride, with AC set to ~15C) and while I'd managed to get the mailbox
-down to relatively sane size, I might have easily deleted more than I should
-have.  If there had been anything important sent my way and I don't reply to 
-it by Saturday, please resend.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So... are we ready to go with V7 upstream?
+
+Or.
+
+
+> Changes from V5:
+> (1) Incoporate the changes to cache.c so we use the same infrastructure
+>     to manage both IB and RoCE (per Doug's request)
+> (2) Replace the locking mechanism in the IB core GID cache from seqcount +
+>     rcu to rwlock (addressing comments from Jason)
+> (3) get_netdev returns a helded (dev_hold) device
+> (4) Squashed the RocE GID table, RoCE GID management and default GID handling
+>     code into one patch (per Doug's request).
+> (5) Change modify_gid to add_gid and del_gid.
+> (6) set the netdev related changes into three dedicated patches and make
+>     them be 1st in the series.
+>
+> Changes from V4:
+> (1) Remove any API changes.
+> (2) Fixed a bug regarding bonding upper devices.
+> (3) Rebased ontop of Doug's k.o/for-4.2.
+>
+> Changes from V3:
+> (1) Remove RoCE V2 functionality (it will be sent at later patchset).
+> (2) Instead of removing qp_attr_mask flags, reserve them.
+> (3) Remove the kref from IB devices in favor of rwsem.
+> (4) Change the name of roce_gid_cache to roce_gid_table.
+> (5) Fix a race when roce_gid_table is free'd while getting events.
+> (6) Remove the roce_gid_cache active/inactive flag/API.
