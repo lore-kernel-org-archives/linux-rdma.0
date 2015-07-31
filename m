@@ -1,35 +1,49 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next V7 00/10] Move RoCE GID management to IB/Core
-Date: Fri, 31 Jul 2015 10:32:01 -0600
-Message-ID: <20150731163201.GA6027@obsidianresearch.com>
-References: <1438270411-17648-1-git-send-email-matanb@mellanox.com>
- <CAJ3xEMh9z=LG7dW0nBP8Zdrbf0SkZ_GCxjCoowWXuw2dueN+xg@mail.gmail.com>
- <55BB6F10.5030408@redhat.com>
+Subject: Re: [PATCH v4 40/50] IB/hfi1: add sysfs routines and documentation
+Date: Fri, 31 Jul 2015 10:53:59 -0600
+Message-ID: <20150731165359.GB6027@obsidianresearch.com>
+References: <20150730191631.25256.95511.stgit@phlsvslse11.ph.intel.com>
+ <20150730192109.25256.56498.stgit@phlsvslse11.ph.intel.com>
+ <alpine.DEB.2.11.1507301541170.6551@east.gentwo.org>
+ <32E1700B9017364D9B60AED9960492BC25778486@fmsmsx120.amr.corp.intel.com>
+ <alpine.DEB.2.11.1507310957320.12455@east.gentwo.org>
+ <32E1700B9017364D9B60AED9960492BC257784F5@fmsmsx120.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <55BB6F10.5030408-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <32E1700B9017364D9B60AED9960492BC257784F5-RjuIdWtd+YbTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Debbage, Mark" <mark.debbage-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jul 31, 2015 at 08:50:24AM -0400, Doug Ledford wrote:
-
-> > So... are we ready to go with V7 upstream?
+On Fri, Jul 31, 2015 at 03:32:07PM +0000, Marciniszyn, Mike wrote:
+> > > > > > +HFI1
+> > > > > > +
+> > > > > > +  The hfi1 driver also creates these additional files:
+> > > > > > +
+> > > > > > +   hw_rev - hardware revision
+> > > >=20
+> > > > I'm checking on this to see if it is indeed a duplicate.
+> > > >=20
+> > >
+> > > Our hardware architect has indicated there is not PCIe equivalent for
+> > > this = case.
+> > 
+> > Please get someone knowledgeable at Intel to look at this. There is a (rev 04)
+> > when using lspci on my nic here. This seems to be the hardware revision.
 > 
-> Yes.  I've already pulled it in.
+> I'm not sure what else to say other that the source for the sysfs
+> file display is not from the PCI_REVISION_ID.
 
-You are taking the netdev stuff without an ack from netdev??
+I think the lesson here is if you follow the PCI standards, and put
+this kind of information in the config block (VPD, rev header, etc),
+where it belongs, then you don't need to create questionable sysfs
+files in your driver to get at the 2nd source..
 
-I've been too busy too look at v7, but a quick check of the 'move the
-cache into core code stuff' looks wrong to
-me. ib_unregister_event_handler and flush_workqueue should not/can not be
-called from a kref free'r.
-
-Looking at your for-rebase branch.. please make sure you get all the
-attributions this cycle :|
+If that wasn't done, the HW can't be changed, we are stuck with
+wonky sysfs files.. Try and get it right next time <shrug>
 
 Jason
 --
