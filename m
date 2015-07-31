@@ -1,44 +1,62 @@
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: [PATCH 3/3] IB/srp: Bump driver version and release date
-Date: Fri, 31 Jul 2015 14:13:52 -0700
-Message-ID: <55BBE510.4010003@sandisk.com>
-References: <55BBE4A2.5090505@sandisk.com>
+From: Or Gerlitz <gerlitz.or@gmail.com>
+Subject: Re: [PATCH for-next V7 00/10] Move RoCE GID management to IB/Core
+Date: Sat, 1 Aug 2015 00:24:23 +0300
+Message-ID: <CAJ3xEMiP57qf58B=VHRazs50RC5r-7OsUPb=GV1kBQ6vu6Tqjw@mail.gmail.com>
+References: <1438270411-17648-1-git-send-email-matanb@mellanox.com>
+	<CAJ3xEMh9z=LG7dW0nBP8Zdrbf0SkZ_GCxjCoowWXuw2dueN+xg@mail.gmail.com>
+	<55BB6F10.5030408@redhat.com>
+	<20150731163201.GA6027@obsidianresearch.com>
+	<55BBB353.7020806@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <55BBE4A2.5090505@sandisk.com>
-Sender: linux-scsi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <55BBB353.7020806@redhat.com>
+Sender: netdev-owner@vger.kernel.org
 To: Doug Ledford <dledford@redhat.com>
-Cc: Sagi Grimberg <sagig@mellanox.com>, Sebastian Parschauer <sebastian.riemer@profitbricks.com>, Christoph Hellwig <hch@lst.de>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Matan Barak <matanb@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Sean Hefty <sean.hefty@intel.com>, Somnath Kotur <Somnath.Kotur@avagotech.com>, Moni Shoua <monis@mellanox.com>, "talal@mellanox.com" <talal@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Linux Netdev List <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Since version 1.0 e.g. scsi-mq has been added. Since this is
-a significant change, bump the driver version and release date.
+On Fri, Jul 31, 2015 at 8:41 PM, Doug Ledford <dledford@redhat.com> wrote:
+> On 07/31/2015 12:32 PM, Jason Gunthorpe wrote:
+>> On Fri, Jul 31, 2015 at 08:50:24AM -0400, Doug Ledford wrote:
 
-Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: Sagi Grimberg <sagig@mellanox.com>
-Cc: Sebastian Parschauer <sebastian.riemer@profitbricks.com>
-Cc: Christoph Hellwig <hch@lst.de>
----
- drivers/infiniband/ulp/srp/ib_srp.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+>>>> So... are we ready to go with V7 upstream?
+>>> Yes.  I've already pulled it in.
+>> You are taking the netdev stuff without an ack from netdev??
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index ab18665..e67e6039 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -55,8 +55,8 @@
- 
- #define DRV_NAME	"ib_srp"
- #define PFX		DRV_NAME ": "
--#define DRV_VERSION	"1.0"
--#define DRV_RELDATE	"July 1, 2013"
-+#define DRV_VERSION	"2.0"
-+#define DRV_RELDATE	"July 26, 2015"
- 
- MODULE_AUTHOR("Roland Dreier");
- MODULE_DESCRIPTION("InfiniBand SCSI RDMA Protocol initiator");
--- 
-2.1.4
+> I've pulled it in, yes.  Dave Miller/netdev needs to ack it still.  I
+> really doubt they will object to the 1st or 3rd patch, but they might
+> have comments on the second.  Since they weren't copied on the original
+> submission, I'll be pinging them separately.  Dave may prefer if they go
+> through his tree, and that's fine, but I still need them in my tree as
+> of now for testing purposes.
 
+Doug, netdev are copied since V6 which was posed on June 24, pretty
+much enough time for anyone there to comment if needed. So the
+remaining thing to take care of is ask Dave if he's OK that these
+patches will go upstream through your tree or his.
+
+>> I've been too busy too look at v7, but a quick check of the 'move the
+>> cache into core code stuff' looks wrong to
+>> me. ib_unregister_event_handler and flush_workqueue should not/can not be
+>> called from a kref free'r.
+
+> Please be more specific here.  What are you objecting to?  Are you
+> objecting to a flush_workqueue from a release() context?  Because I
+> don't see anything in the kref documentation or the kref implementation
+> that prevents or prohibits this.  Or are you referring to the fact that
+> they aren't unregistering their event handler until well after the
+> parent device is unregistered?  That's obviously wrong, but it's also
+> easy to fix (the obvious fix is that they should be calling
+> ib_cache_cleanup_one from the top of ib_unregister_device versus waiting
+> for a kref put).
+
+Yes, the cover letter states the v6 --> v7 changes and if this is new
+complaint, then indeed @ this point it would be fair to have it
+addressed in incremental patch, as Doug suggested. Jason, it's wrong
+to send developers again and again to fix things which were not
+perfect in Vn-1 but also not being covered by reviewers on Vn-1, at
+some point the reviewer can't load new comments which gate the
+acceptance but rather be willing for things to be fixed incrementally.
+
+Or.
