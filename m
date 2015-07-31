@@ -1,24 +1,41 @@
 From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: [PATCH 0/3] IB/srp patches for Linux kernel v4.3
-Date: Fri, 31 Jul 2015 14:12:02 -0700
-Message-ID: <55BBE4A2.5090505@sandisk.com>
+Subject: [PATCH 1/3] IB/srp: Constify a function argument
+Date: Fri, 31 Jul 2015 14:12:48 -0700
+Message-ID: <55BBE4D0.4040405@sandisk.com>
+References: <55BBE4A2.5090505@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <55BBE4A2.5090505@sandisk.com>
 Sender: linux-scsi-owner@vger.kernel.org
 To: Doug Ledford <dledford@redhat.com>
 Cc: Sagi Grimberg <sagig@mellanox.com>, Sebastian Parschauer <sebastian.riemer@profitbricks.com>, Christoph Hellwig <hch@lst.de>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Doug,
+This patch does not change any functionality.
 
-Please apply the following three patches at your earliest convenience:
+Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Sagi Grimberg <sagig@mellanox.com>
+Cc: Sebastian Parschauer <sebastian.riemer@profitbricks.com>
+Cc: Christoph Hellwig <hch@lst.de>
+---
+ drivers/infiniband/ulp/srp/ib_srp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-0001-IB-srp-Constify-a-function-argument.patch
-0002-IB-srp-Handle-partial-connection-success-correctly.patch
-0003-IB-srp-Bump-driver-version-and-release-date.patch
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 31a20b4..61dadac 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -2171,7 +2171,7 @@ static uint32_t srp_compute_rq_tmo(struct ib_qp_attr *qp_attr, int attr_mask)
+ }
+ 
+ static void srp_cm_rep_handler(struct ib_cm_id *cm_id,
+-			       struct srp_login_rsp *lrsp,
++			       const struct srp_login_rsp *lrsp,
+ 			       struct srp_rdma_ch *ch)
+ {
+ 	struct srp_target_port *target = ch->target;
+-- 
+2.1.4
 
-Thanks,
-
-Bart.
