@@ -1,48 +1,58 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 00/12] IB: Replace safe uses for ib_get_dma_mr with
- pd->local_dma_lkey
-Date: Sat, 1 Aug 2015 16:05:29 -0400
-Message-ID: <55BD2689.3080602@redhat.com>
-References: <1438298547-21404-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <55BBF4B8.2050700@sandisk.com> <20150731223153.GA1518@obsidianresearch.com>
- <55BBFF03.7000505@sandisk.com> <20150731231430.GA1955@obsidianresearch.com>
+Subject: Re: [PATCH v4 17/50] IB/hfi1: add PSM driver control/data path
+Date: Sat, 1 Aug 2015 16:18:31 -0400
+Message-ID: <55BD2997.6000203@redhat.com>
+References: <20150730191631.25256.95511.stgit@phlsvslse11.ph.intel.com>
+ <20150730191859.25256.28987.stgit@phlsvslse11.ph.intel.com>
+ <20150730194041.GA28754@obsidianresearch.com>
+ <32E1700B9017364D9B60AED9960492BC25777DA0@fmsmsx120.amr.corp.intel.com>
+ <55BA9A38.2030401@redhat.com> <20150731073158.GA2485@infradead.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="rxbvFjKs2QQKK5Sp1trskudfVo54kN87A"
+ boundary="Eq1LjLe8tOQv7OQoG2FCi2Ae7c9NhTfdx"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150731231430.GA1955-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20150731073158.GA2485-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chien Yen <chien.yen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Dominique Martinet <dominique.martinet-KCE40YydGKI@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eric Van Hensbergen <ericvh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ido Shamay <idos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Latchesar Ionkov <lucho-OnYtXJJ0/fesTnJN9+BGXg@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ron Minnich <rminnich-4OHPYypu0djtX7QSmKvirg@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Simon Derr <simon.derr-6ktuUTfB/bM@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---rxbvFjKs2QQKK5Sp1trskudfVo54kN87A
+--Eq1LjLe8tOQv7OQoG2FCi2Ae7c9NhTfdx
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 07/31/2015 07:14 PM, Jason Gunthorpe wrote:
-> On Fri, Jul 31, 2015 at 04:04:35PM -0700, Bart Van Assche wrote:
-> =20
->> With only patches 1/12 and 8/12 applied my test passes.
->=20
-> Thanks Bart!
->=20
-> If you like, I can try and work on #9 (no promises :(), but I think
-> I'll need some way to test it here.
->=20
-> Do you by chance have a straightforward recipe to setup SRP and SRPT
-> on two Linux's for this simple purpose?
->=20
-> Doug, just drop #9 'IB/srp: Do not create an all physical insecure
-> rkey by default' please, thanks.
+On 07/31/2015 03:31 AM, Christoph Hellwig wrote:
+> On Thu, Jul 30, 2015 at 05:42:16PM -0400, Doug Ledford wrote:
+>> I have no problem with this code.  That Al finds the user space ABI fo=
+r
+>> this driver to be bizarre is neither here nor there to me.  Sure, this=
 
-I've pulled in the series for 4.3.  I've included patch #9, but that's
-on the understanding that if it can't be fixed before the initial pull
-request, I'll drop it at that time.  I have the resources to test this,
-so I can work on it, and that factors into my path forward here.
+>> file does not exhibit normal file API behavior.  Who cares?
+>=20
+> Everyone who cares about filesystem semantics does.
 
+If this were a filesystem and this were its file semantics, that would
+be all kinds of screwed up.  But this is a private character special devi=
+ce.
+
+> A NACK from me for a this features,
+
+If you have a legitimate technical reason to NACK this feature, make
+your case.  I've publicly stated, in response to Al no less, that I
+don't see justification for making a team re-engineer a working, private
+interface because a disinterested third party finds it "weird".  If you
+provide no valid technical justification for your NACK, I'm going to
+disregard it.
+
+> and b) for trying to sneak it in
+> after a negative comment without cc to -fsdevel and Al.
+
+Not that I was trying to "sneak it in", but that's neither here nor
+there, you Cc:ed Al for me, and we already had our discussion (unless Al
+wishes to come back and say more, he so far has allowed me to have the
+last word).
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -50,7 +60,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---rxbvFjKs2QQKK5Sp1trskudfVo54kN87A
+--Eq1LjLe8tOQv7OQoG2FCi2Ae7c9NhTfdx
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -59,22 +69,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJVvSaJAAoJELgmozMOVy/dF6UQAMASRvd0p3uN88k1jlU1Oarj
-spJzLhLG9Y7tUfvA4c4kd8Wb5Lw7nF2TxkMtURj2D9j8soVPbnZy31huC39gigfg
-uPvKRiINZVnYf3gMOQzfHlK762Yt+DsgwZW5989zek+dZBu2rySv/dm0+df5QbuU
-Mg/VhZGNmGcUxjNaByN8WtPWBVS/kVIULBLUbsyLTVq07CzY4TR8Tedyhqr38MHM
-R5nGAy3VSwzzqo4ms7XVjfz1cOClei3Dq7DNDBMZW5Lha4Nu7QnSYw5fiHTQY1Io
-aTOh51ZmTosk+i+fl//hDoHR+brGXbNI6/6XQbKDBIsNHX1TnXTrr9S/22DRQ9vz
-QavH4nfk91Mq/M0ALNDVq2/W0jV0Bhs33QOv/QcQGEBG14K1gM4XUOfjSjqUl1/R
-aesGudkJfZnH8Mi+B9byZ2UnO0QJLhT4sqtr2ygplARQq1Z7PKZC2viGNjM77Ln0
-p2W0VYzfZmn46PyDsqurKsRADqRxw+NZRmqoMybfMs5U0r0xyusSjRGdo7XB2YNA
-4OUrBwhUlNT7kWaceO8cAGRajAF2xbhjmckVdKVGMxDdQ2dxPQbh4sszqq/rCjMz
-fL2bnI0QUYd7DkbqbIUaBpxx50CJwM5z3kQgnT/spSfq0ky1NjJr0A4LHLPKObca
-BWcefiGx0DKW5Y8WzBma
-=BMRE
+iQIcBAEBCAAGBQJVvSmXAAoJELgmozMOVy/dgD0QAKLNWWgZI1pLRjxNe9LJwkOd
+wRCNq83wnAQ2gX+tT9YTY6F+Vf1eX9ICwoZ+H6EUUIgqVUenBNs7UfmpPR2qUV7h
+55D1K6pmQkRvp7lJBSKNopaMf+d9s2TdfCF+pv4hCK+9OXCcdw1H5QCMntRHjwKC
+uKSkbuXqsXrex3QPWpzExCnMc9q4bdYdIK7pigDHf3aVmMgA89bu2RaxQAr3mvHY
+quxoxEIMCX+Mbb5XCuwKa9we5bJmJwRPwJw0nB4j/P9nsQBLBa3977pQWDtsY9S/
+uiy3OuvDoekbeDMt9xDGJBfYlMgldchkWGVf33SCRkMxivipsap/Z9FmyWRPGRog
+8PHgozxwTT+bb8gui08hfSSh3aaJBWxSKgtItmumh/xLLYbDFyB6ra6iLzCFsYpc
+sVAn37pbMKQdgkgzGA8pA/noI598QDLz72NzpnxxoJbZz4zmSx3nY84AmmepKd9q
+LOS9UV9szzTf2mI1opMv5Tn8LFpbYoZSLkKpkAXIbQ6MxTgT2Xm2tywDDZG3datt
+U7Q/DtLyzpxjuRKEFJYcXQBHGX/O4hdvkvdl+oocBJRGSqGonaaSM2yfQ5JioLqn
+xNZ33wpI4UiA7/VhIy5hAde226rsT/ZL+8jI0cVtdC2d8TFO17bDrfMkUsfzne9C
+tvySarHAYvQtIdV+CW1d
+=2OOV
 -----END PGP SIGNATURE-----
 
---rxbvFjKs2QQKK5Sp1trskudfVo54kN87A--
+--Eq1LjLe8tOQv7OQoG2FCi2Ae7c9NhTfdx--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
