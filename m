@@ -1,8 +1,8 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v4 09/16] xprtrdma: Always provide a write list when sending
- NFS READ
-Date: Mon, 03 Aug 2015 13:03:58 -0400
-Message-ID: <20150803170358.9115.81548.stgit@manet.1015granger.net>
+Subject: [PATCH v4 10/16] xprtrdma: Don't provide a reply chunk when
+ expecting a short reply
+Date: Mon, 03 Aug 2015 13:04:08 -0400
+Message-ID: <20150803170408.9115.58172.stgit@manet.1015granger.net>
 References: <20150803165807.9115.23842.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,59 +13,56 @@ Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The client has been setting up a reply chunk for NFS READs that are
-smaller than the inline threshold. This is not efficient: both the
-server and client CPUs have to copy the reply's data payload into
-and out of the memory region that is then transferred via RDMA.
+Currently Linux always offers a reply chunk, even when the reply
+can be sent inline (ie. is smaller than 1KB).
 
-Using the write list, the data payload is moved by the device and no
-extra data copying is necessary.
+On the client, registering a memory region can be expensive. A
+server may choose not to use the reply chunk, wasting the cost of
+the registration.
+
+This is a change only for RPC replies smaller than 1KB which the
+server constructs in the RPC reply send buffer. Because the elements
+of the reply must be XDR encoded, a copy-free data transfer has no
+benefit in this case.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Reviewed-By: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Tested-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/rpc_rdma.c |   21 ++++-----------------
- 1 file changed, 4 insertions(+), 17 deletions(-)
+ net/sunrpc/xprtrdma/rpc_rdma.c |   13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
 diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index 950b654..e7cf976 100644
+index e7cf976..62150ae 100644
 --- a/net/sunrpc/xprtrdma/rpc_rdma.c
 +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -418,28 +418,15 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
- 	/*
- 	 * Chunks needed for results?
+@@ -420,7 +420,7 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
  	 *
-+	 * o Read ops return data as write chunk(s), header as inline.
+ 	 * o Read ops return data as write chunk(s), header as inline.
  	 * o If the expected result is under the inline threshold, all ops
- 	 *   return as inline (but see later).
+-	 *   return as inline (but see later).
++	 *   return as inline.
  	 * o Large non-read ops return as a single reply chunk.
--	 * o Large read ops return data as write chunk(s), header as inline.
--	 *
--	 * Note: the NFS code sending down multiple result segments implies
--	 * the op is one of read, readdir[plus], readlink or NFSv4 getacl.
--	 */
--
--	/*
--	 * This code can handle read chunks, write chunks OR reply
--	 * chunks -- only one type. If the request is too big to fit
--	 * inline, then we will choose read chunks. If the request is
--	 * a READ, then use write chunks to separate the file data
--	 * into pages; otherwise use reply chunks.
  	 */
--	if (rpcrdma_results_inline(rqst))
--		wtype = rpcrdma_noch;
--	else if (rqst->rq_rcv_buf.page_len == 0)
--		wtype = rpcrdma_replych;
--	else if (rqst->rq_rcv_buf.flags & XDRBUF_READ)
-+	if (rqst->rq_rcv_buf.flags & XDRBUF_READ)
- 		wtype = rpcrdma_writech;
-+	else if (rpcrdma_results_inline(rqst))
-+		wtype = rpcrdma_noch;
- 	else
- 		wtype = rpcrdma_replych;
+ 	if (rqst->rq_rcv_buf.flags & XDRBUF_READ)
+@@ -476,17 +476,6 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
+ 		headerp->rm_body.rm_nochunks.rm_empty[2] = xdr_zero;
+ 		/* new length after pullup */
+ 		rpclen = rqst->rq_svec[0].iov_len;
+-		/* Currently we try to not actually use read inline.
+-		 * Reply chunks have the desirable property that
+-		 * they land, packed, directly in the target buffers
+-		 * without headers, so they require no fixup. The
+-		 * additional RDMA Write op sends the same amount
+-		 * of data, streams on-the-wire and adds no overhead
+-		 * on receive. Therefore, we request a reply chunk
+-		 * for non-writes wherever feasible and efficient.
+-		 */
+-		if (wtype == rpcrdma_noch)
+-			wtype = rpcrdma_replych;
+ 	}
  
+ 	if (rtype != rpcrdma_noch) {
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
