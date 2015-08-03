@@ -1,72 +1,54 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V1 3/3] IB/core: Fix possible deadlock in write_gid
-Date: Mon,  3 Aug 2015 16:09:02 +0300
-Message-ID: <1438607342-11964-4-git-send-email-matanb@mellanox.com>
-References: <1438607342-11964-1-git-send-email-matanb@mellanox.com>
+From: "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>
+Subject: Re: [PATCH 20/22] IB/iser: Support up to 8MB data transfer in a
+ single command
+Date: Mon, 3 Aug 2015 13:57:27 +0000
+Message-ID: <25F51949-82B5-4BA8-8472-6056BC43C747@ornl.gov>
+References: <1438243595-32288-1-git-send-email-sagig@mellanox.com>
+ <1438243595-32288-21-git-send-email-sagig@mellanox.com>
+ <55BA3EF6.6080800@opengridcomputing.com>
+ <55BDCE4D.5080601@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1438607342-11964-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <55BDCE4D.5080601-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
+Content-ID: <5F88362B095AF6488BC663FBCFA45BC1-1Heg1YXhbW8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Fixing the possible deadlock in write_gid:
-write_gid -> write_lock()
-<interrupt>
-	find_gid -> read_lock_irqsave()
-		    ** DEAD LOCK **LOCK
+On Aug 2, 2015, at 4:01 AM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 
-Fixing it by changing the write_lock to write_lock_irqsave.
+>>> +static void
+>>> +iser_calc_scsi_params(struct iser_conn *iser_conn,
+>>> +              unsigned int max_sectors)
+>>> +{
+>>> +    struct iser_device *device = iser_conn->ib_conn.device;
+>>> +    unsigned short sg_tablesize, sup_sg_tablesize;
+>>> +
+>>> +    sg_tablesize = DIV_ROUND_UP(max_sectors * 512, SIZE_4K);
+>>> +    sup_sg_tablesize = min_t(unsigned, ISCSI_ISER_MAX_SG_TABLESIZE,
+>>> +                 device->dev_attr.max_fast_reg_page_list_len);
+>>> +
+>>> +    if (sg_tablesize > sup_sg_tablesize) {
+>>> +        sg_tablesize = sup_sg_tablesize;
+>>> +        iser_conn->scsi_max_sectors = sg_tablesize * SIZE_4K / 512;
+>>> +    } else {
+>>> +        iser_conn->scsi_max_sectors = max_sectors;
+>>> +    }
+>>> +
+>> 
+>> Why SIZE_4K and not PAGE_SIZE?
+> 
+> Yes, I'll change that to PAGE_SIZE.
+> 
+> Thanks.
 
-Squash-into: 'IB/core: Add RoCE GID table management'
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/cache.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+Would non-4KB pages (e.g. PPC 64KB) be an issue? Would this work between hosts with different page sizes?
 
-diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-index 58a44bd..d7fdcb7 100644
---- a/drivers/infiniband/core/cache.c
-+++ b/drivers/infiniband/core/cache.c
-@@ -121,15 +121,16 @@ static int write_gid(struct ib_device *ib_dev, u8 port,
- {
- 	int ret = 0;
- 	struct net_device *old_net_dev;
-+	unsigned long flags;
- 
- 	/* in rdma_cap_roce_gid_table, this funciton should be protected by a
- 	 * sleep-able lock.
- 	 */
--	write_lock(&table->data_vec[ix].lock);
-+	write_lock_irqsave(&table->data_vec[ix].lock, flags);
- 
- 	if (rdma_cap_roce_gid_table(ib_dev, port)) {
- 		table->data_vec[ix].props |= GID_TABLE_ENTRY_INVALID;
--		write_unlock(&table->data_vec[ix].lock);
-+		write_unlock_irqrestore(&table->data_vec[ix].lock, flags);
- 		/* GID_TABLE_WRITE_ACTION_MODIFY currently isn't supported by
- 		 * RoCE providers and thus only updates the cache.
- 		 */
-@@ -139,7 +140,7 @@ static int write_gid(struct ib_device *ib_dev, u8 port,
- 		else if (action == GID_TABLE_WRITE_ACTION_DEL)
- 			ret = ib_dev->del_gid(ib_dev, port, ix,
- 					      &table->data_vec[ix].context);
--		write_lock(&table->data_vec[ix].lock);
-+		write_lock_irqsave(&table->data_vec[ix].lock, flags);
- 	}
- 
- 	old_net_dev = table->data_vec[ix].attr.ndev;
-@@ -161,7 +162,7 @@ static int write_gid(struct ib_device *ib_dev, u8 port,
- 
- 	table->data_vec[ix].props &= ~GID_TABLE_ENTRY_INVALID;
- 
--	write_unlock(&table->data_vec[ix].lock);
-+	write_unlock_irqrestore(&table->data_vec[ix].lock, flags);
- 
- 	if (!ret && rdma_cap_roce_gid_table(ib_dev, port)) {
- 		struct ib_event event;
--- 
-2.1.0
+Scott
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
