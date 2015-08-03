@@ -1,90 +1,185 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH] IB/mlx4: Fix memory leaks related to updating GIDs
-Date: Mon, 3 Aug 2015 10:04:17 -0700
-Message-ID: <55BF9F11.6050708@sandisk.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v4 16/16] xprtrdma: take HCA driver refcount at client
+Date: Mon, 3 Aug 2015 13:07:33 -0400
+Message-ID: <C441D0D2-CA30-48FA-9675-9E360B169879@oracle.com>
+References: <20150803165807.9115.23842.stgit@manet.1015granger.net> <20150803170504.9115.48166.stgit@manet.1015granger.net>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150803170504.9115.48166.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Fix the memory leaks in update_gids_task() and reset_gids_task().
-kmemleak reported one of these leaks as follows:
 
-unreferenced object 0xffff88044576d668 (size 4096):
-  comm "softirq", pid 0, jiffies 4294942043 (age 976.560s)
-  hex dump (first 32 bytes):
-    00 02 00 00 00 00 00 00 70 d6 76 45 04 88 ff ff  ........p.vE....
-    70 d6 76 45 04 88 ff ff 60 d6 2d a0 ff ff ff ff  p.vE....`.-.....
-  backtrace:
-    [<ffffffff814f2f1e>] kmemleak_alloc+0x4e/0xb0
-    [<ffffffff811b0678>] kmem_cache_alloc_trace+0xc8/0x2d0
-    [<ffffffffa02e061e>] reset_gid_table+0x2e/0xe0 [mlx4_ib]
-    [<ffffffffa02e1c59>] mlx4_ib_netdev_event+0x449/0x450 [mlx4_ib]
-    [<ffffffff814011ca>] register_netdevice_notifier+0x8a/0x1c0
-    [<ffffffffa02e173b>] mlx4_ib_add+0x106b/0x1140 [mlx4_ib]
-    [<ffffffffa00dc3d1>] mlx4_add_device+0x41/0xa0 [mlx4_core]
-    [<ffffffffa00dc4bc>] mlx4_register_interface+0x8c/0xf0 [mlx4_core]
-    [<ffffffffa02fc056>] ext4_has_free_clusters+0x6/0x170 [ext4]
-    [<ffffffff8100211d>] do_one_initcall+0xad/0x1e0
-    [<ffffffff814f7238>] do_init_module+0x61/0x1ec
-    [<ffffffff810f95f2>] load_module+0x1d42/0x26b0
-    [<ffffffff810fa150>] SyS_finit_module+0x80/0xb0
-    [<ffffffff81502332>] entry_SYSCALL_64_fastpath+0x16/0x7a
-    [<ffffffffffffffff>] 0xffffffffffffffff
+On Aug 3, 2015, at 1:05 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
 
-Fixes: fa417f7b520e ("IB/mlx4: Add support for IBoE")
-Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org # v2.6.37
----
- drivers/infiniband/hw/mlx4/main.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+> From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+> 
+> This is a rework of the following patch sent almost a year back:
+> http://www.mail-archive.com/linux-rdma%40vger.kernel.org/msg20730.html
+> 
+> In presence of active mount if someone tries to rmmod vendor-driver, the
+> command remains stuck forever waiting for destruction of all rdma-cm-id.
+> in worst case client can crash during shutdown with active mounts.
+> 
+> The existing code assumes that ia->ri_id->device cannot change during
+> the lifetime of a transport. xprtrdma do not have support for
+> DEVICE_REMOVAL event either. Lifting that assumption and adding support
+> for DEVICE_REMOVAL event is a long chain of work, and is in plan.
+> 
+> The community decided that preventing the hang right now is more
+> important than waiting for architectural changes.
+> 
+> Thus, this patch introduces a temporary workaround to acquire HCA driver
+> module reference count during the mount of a nfs-rdma mount point.
+> 
+> Signed-off-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+> ---
+> net/sunrpc/xprtrdma/verbs.c |   41 +++++++++++++++++++++++++++++++++--------
+> 1 file changed, 33 insertions(+), 8 deletions(-)
+> 
+> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+> index b4d4f63..b98fb3b 100644
+> --- a/net/sunrpc/xprtrdma/verbs.c
+> +++ b/net/sunrpc/xprtrdma/verbs.c
+> @@ -52,6 +52,7 @@
+> #include <linux/prefetch.h>
+> #include <linux/sunrpc/addr.h>
+> #include <asm/bitops.h>
+> +#include <linux/module.h> /* try_module_get()/module_put() */
+> 
+> #include "xprt_rdma.h"
+> 
+> @@ -414,6 +415,16 @@ connected:
+> 	return 0;
+> }
+> 
+> +static void rpcrdma_destroy_id(struct rdma_cm_id *id)
+> +{
+> +	if (id) {
+> +		pr_warn("%s: releasing provider for id %p\n",
+> +			__func__, id);
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 8d88760..d79346e 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -1572,12 +1572,12 @@ static void update_gids_task(struct work_struct *work)
- 	int is_bonded = mlx4_is_bonded(dev);
- 
- 	if (!gw->dev->ib_active)
--		return;
-+		goto free;
- 
- 	mailbox = mlx4_alloc_cmd_mailbox(dev);
- 	if (IS_ERR(mailbox)) {
- 		pr_warn("update gid table failed %ld\n", PTR_ERR(mailbox));
--		return;
-+		goto free;
- 	}
- 
- 	gids = mailbox->buf;
-@@ -1595,6 +1595,8 @@ static void update_gids_task(struct work_struct *work)
- 					       IB_EVENT_GID_CHANGE);
- 
- 	mlx4_free_cmd_mailbox(dev, mailbox);
-+
-+free:
- 	kfree(gw);
- }
- 
-@@ -1608,7 +1610,7 @@ static void reset_gids_task(struct work_struct *work)
- 	struct mlx4_dev	*dev = gw->dev->dev;
- 
- 	if (!gw->dev->ib_active)
--		return;
-+		goto free;
- 
- 	mailbox = mlx4_alloc_cmd_mailbox(dev);
- 	if (IS_ERR(mailbox)) {
--- 
-2.1.4
+Oops, that pr_warn() was added for testing. I've removed this
+in the git repo.
+
+
+> +		module_put(id->device->owner);
+> +		rdma_destroy_id(id);
+> +	}
+> +}
+> +
+> static struct rdma_cm_id *
+> rpcrdma_create_id(struct rpcrdma_xprt *xprt,
+> 			struct rpcrdma_ia *ia, struct sockaddr *addr)
+> @@ -440,25 +451,39 @@ rpcrdma_create_id(struct rpcrdma_xprt *xprt,
+> 	}
+> 	wait_for_completion_interruptible_timeout(&ia->ri_done,
+> 				msecs_to_jiffies(RDMA_RESOLVE_TIMEOUT) + 1);
+> +
+> +	/* FIXME:
+> +	 * Until xprtrdma supports DEVICE_REMOVAL, the provider must
+> +	 * be pinned while there are active NFS/RDMA mounts to prevent
+> +	 * hangs and crashes at umount time.
+> +	 */
+> +	if (!ia->ri_async_rc && !try_module_get(id->device->owner)) {
+> +		dprintk("RPC:       %s: Failed to get device module\n",
+> +			__func__);
+> +		ia->ri_async_rc = -ENODEV;
+> +	}
+> 	rc = ia->ri_async_rc;
+> 	if (rc)
+> 		goto out;
+> 
+> +	pr_warn("%s: pinning provider for id %p\n", __func__, id);
+
+Ditto.
+
+
+> +
+> 	ia->ri_async_rc = -ETIMEDOUT;
+> 	rc = rdma_resolve_route(id, RDMA_RESOLVE_TIMEOUT);
+> 	if (rc) {
+> 		dprintk("RPC:       %s: rdma_resolve_route() failed %i\n",
+> 			__func__, rc);
+> -		goto out;
+> +		goto put;
+> 	}
+> 	wait_for_completion_interruptible_timeout(&ia->ri_done,
+> 				msecs_to_jiffies(RDMA_RESOLVE_TIMEOUT) + 1);
+> 	rc = ia->ri_async_rc;
+> 	if (rc)
+> -		goto out;
+> +		goto put;
+> 
+> 	return id;
+> -
+> +put:
+> +	module_put(id->device->owner);
+> out:
+> 	rdma_destroy_id(id);
+> 	return ERR_PTR(rc);
+> @@ -566,7 +591,7 @@ out3:
+> 	ib_dealloc_pd(ia->ri_pd);
+> 	ia->ri_pd = NULL;
+> out2:
+> -	rdma_destroy_id(ia->ri_id);
+> +	rpcrdma_destroy_id(ia->ri_id);
+> 	ia->ri_id = NULL;
+> out1:
+> 	return rc;
+> @@ -584,7 +609,7 @@ rpcrdma_ia_close(struct rpcrdma_ia *ia)
+> 	if (ia->ri_id != NULL && !IS_ERR(ia->ri_id)) {
+> 		if (ia->ri_id->qp)
+> 			rdma_destroy_qp(ia->ri_id);
+> -		rdma_destroy_id(ia->ri_id);
+> +		rpcrdma_destroy_id(ia->ri_id);
+> 		ia->ri_id = NULL;
+> 	}
+> 
+> @@ -794,7 +819,7 @@ retry:
+> 		if (ia->ri_device != id->device) {
+> 			printk("RPC:       %s: can't reconnect on "
+> 				"different device!\n", __func__);
+> -			rdma_destroy_id(id);
+> +			rpcrdma_destroy_id(id);
+> 			rc = -ENETUNREACH;
+> 			goto out;
+> 		}
+> @@ -803,7 +828,7 @@ retry:
+> 		if (rc) {
+> 			dprintk("RPC:       %s: rdma_create_qp failed %i\n",
+> 				__func__, rc);
+> -			rdma_destroy_id(id);
+> +			rpcrdma_destroy_id(id);
+> 			rc = -ENETUNREACH;
+> 			goto out;
+> 		}
+> @@ -814,7 +839,7 @@ retry:
+> 		write_unlock(&ia->ri_qplock);
+> 
+> 		rdma_destroy_qp(old);
+> -		rdma_destroy_id(old);
+> +		rpcrdma_destroy_id(old);
+> 	} else {
+> 		dprintk("RPC:       %s: connecting...\n", __func__);
+> 		rc = rdma_create_qp(ia->ri_id, ia->ri_pd, &ep->rep_attr);
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
