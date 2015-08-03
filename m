@@ -1,99 +1,114 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v4 00/16] NFS/RDMA client side for Linux 4.3
-Date: Mon, 03 Aug 2015 13:02:31 -0400
-Message-ID: <20150803165807.9115.23842.stgit@manet.1015granger.net>
+Subject: [PATCH v4 01/16] xprtrdma: Make xprt_setup_rdma() agnostic to
+ family of server address
+Date: Mon, 03 Aug 2015 13:02:41 -0400
+Message-ID: <20150803170241.9115.82484.stgit@manet.1015granger.net>
+References: <20150803165807.9115.23842.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150803165807.9115.23842.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Several important client-side performance and scalability
-improvements are made in this series, proposed for the 4.3
-kernel, including:
+In particular, recognize when an IPv6 connection is bound.
 
-- Increase maximum RPC/RDMA credits to 128
-- Increase maximum NFS/RDMA r/wsize to one megabyte
-- Prefer inline rather than reply chunk replies
-
-And these fixes:
-
-- Send NFSv4 WRITE compounds correctly
-- Support RDMA_NOMSG calls
-- Remove support for RDMA_MSGP calls
-- Fix large NFS symlink operations
-- Get inline threshold accounting right
-
-Also available in the "nfs-rdma-for-4.3" topic branch of this git repo:
-
-git://git.linux-nfs.org/projects/cel/cel-2.6.git
-
-Or for browsing:
-
-http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfs-rdma-for-4.3
-
-
-Changes since v3:
-- Rebased on Linux v4.2-rc5
-- Added v2 of Devesh's reboot crash fix
-- Clarified description of NFSv4 WRITE fix
-
-
-Changes since v2:
-- Rebased on Linux v4.2-rc3
-- Corrected RPCRDMA_MAX_IOVS macro
-- Included patch to remove core ib_reg_phys_mr() API
-
-
-Changes since v1:
-- Rebased on Linux v4.2-rc2
-- PHYSICAL registration, being insecure, must now be explicitly selected
-- Further clean-ups were done because ib_reg_phys_mr() is gone
-- Support for RDMA_MSGP type calls has been removed
-- Some patch descriptions have been clarified
-
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Tested-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
+ net/sunrpc/xprtrdma/transport.c |   28 +++++++++++-----------------
+ 1 file changed, 11 insertions(+), 17 deletions(-)
 
-Chuck Lever (15):
-      xprtrdma: Make xprt_setup_rdma() agnostic to family of server address
-      xprtrdma: Raise maximum payload size to one megabyte
-      xprtrdma: Increase default credit limit
-      xprtrdma: Don't fall back to PHYSICAL memory registration
-      xprtrdma: Remove last ib_reg_phys_mr() call site
-      xprtrdma: Clean up rpcrdma_ia_open()
-      xprtrdma: Remove logic that constructs RDMA_MSGP type calls
-      xprtrdma: Account for RPC/RDMA header size when deciding to inline
-      xprtrdma: Always provide a write list when sending NFS READ
-      xprtrdma: Don't provide a reply chunk when expecting a short reply
-      xprtrdma: Fix XDR tail buffer marshalling
-      xprtrdma: Fix large NFS SYMLINK calls
-      xprtrdma: Clean up xprt_rdma_print_stats()
-      xprtrdma: Count RDMA_NOMSG type calls
-      core: Remove the ib_reg_phys_mr() and ib_rereg_phys_mr() verbs
-
-Devesh Sharma (1):
-      xprtrdma: take HCA driver refcount at client
-
-
- drivers/infiniband/core/verbs.c    |   67 ----------
- fs/nfs/nfs3xdr.c                   |    1 
- fs/nfs/nfs4xdr.c                   |    4 -
- include/linux/sunrpc/xprtrdma.h    |    2 
- include/rdma/ib_verbs.h            |   46 -------
- net/sunrpc/xprtrdma/fmr_ops.c      |   19 +++
- net/sunrpc/xprtrdma/frwr_ops.c     |    5 +
- net/sunrpc/xprtrdma/physical_ops.c |   25 ++++
- net/sunrpc/xprtrdma/rpc_rdma.c     |  197 +++++++++++++++---------------
- net/sunrpc/xprtrdma/transport.c    |   77 +++++-------
- net/sunrpc/xprtrdma/verbs.c        |  238 +++++++++++++-----------------------
- net/sunrpc/xprtrdma/xprt_rdma.h    |   27 ++--
- 12 files changed, 285 insertions(+), 423 deletions(-)
+diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+index 680f888..d737300 100644
+--- a/net/sunrpc/xprtrdma/transport.c
++++ b/net/sunrpc/xprtrdma/transport.c
+@@ -175,10 +175,8 @@ xprt_rdma_format_addresses6(struct rpc_xprt *xprt, struct sockaddr *sap)
+ }
+ 
+ static void
+-xprt_rdma_format_addresses(struct rpc_xprt *xprt)
++xprt_rdma_format_addresses(struct rpc_xprt *xprt, struct sockaddr *sap)
+ {
+-	struct sockaddr *sap = (struct sockaddr *)
+-					&rpcx_to_rdmad(xprt).addr;
+ 	char buf[128];
+ 
+ 	switch (sap->sa_family) {
+@@ -302,7 +300,7 @@ xprt_setup_rdma(struct xprt_create *args)
+ 	struct rpc_xprt *xprt;
+ 	struct rpcrdma_xprt *new_xprt;
+ 	struct rpcrdma_ep *new_ep;
+-	struct sockaddr_in *sin;
++	struct sockaddr *sap;
+ 	int rc;
+ 
+ 	if (args->addrlen > sizeof(xprt->addr)) {
+@@ -333,26 +331,20 @@ xprt_setup_rdma(struct xprt_create *args)
+ 	 * Set up RDMA-specific connect data.
+ 	 */
+ 
+-	/* Put server RDMA address in local cdata */
+-	memcpy(&cdata.addr, args->dstaddr, args->addrlen);
++	sap = (struct sockaddr *)&cdata.addr;
++	memcpy(sap, args->dstaddr, args->addrlen);
+ 
+ 	/* Ensure xprt->addr holds valid server TCP (not RDMA)
+ 	 * address, for any side protocols which peek at it */
+ 	xprt->prot = IPPROTO_TCP;
+ 	xprt->addrlen = args->addrlen;
+-	memcpy(&xprt->addr, &cdata.addr, xprt->addrlen);
++	memcpy(&xprt->addr, sap, xprt->addrlen);
+ 
+-	sin = (struct sockaddr_in *)&cdata.addr;
+-	if (ntohs(sin->sin_port) != 0)
++	if (rpc_get_port(sap))
+ 		xprt_set_bound(xprt);
+ 
+-	dprintk("RPC:       %s: %pI4:%u\n",
+-		__func__, &sin->sin_addr.s_addr, ntohs(sin->sin_port));
+-
+-	/* Set max requests */
+ 	cdata.max_requests = xprt->max_reqs;
+ 
+-	/* Set some length limits */
+ 	cdata.rsize = RPCRDMA_MAX_SEGS * PAGE_SIZE; /* RDMA write max */
+ 	cdata.wsize = RPCRDMA_MAX_SEGS * PAGE_SIZE; /* RDMA read max */
+ 
+@@ -375,8 +367,7 @@ xprt_setup_rdma(struct xprt_create *args)
+ 
+ 	new_xprt = rpcx_to_rdmax(xprt);
+ 
+-	rc = rpcrdma_ia_open(new_xprt, (struct sockaddr *) &cdata.addr,
+-				xprt_rdma_memreg_strategy);
++	rc = rpcrdma_ia_open(new_xprt, sap, xprt_rdma_memreg_strategy);
+ 	if (rc)
+ 		goto out1;
+ 
+@@ -409,7 +400,7 @@ xprt_setup_rdma(struct xprt_create *args)
+ 	INIT_DELAYED_WORK(&new_xprt->rx_connect_worker,
+ 			  xprt_rdma_connect_worker);
+ 
+-	xprt_rdma_format_addresses(xprt);
++	xprt_rdma_format_addresses(xprt, sap);
+ 	xprt->max_payload = new_xprt->rx_ia.ri_ops->ro_maxpages(new_xprt);
+ 	if (xprt->max_payload == 0)
+ 		goto out4;
+@@ -420,6 +411,9 @@ xprt_setup_rdma(struct xprt_create *args)
+ 	if (!try_module_get(THIS_MODULE))
+ 		goto out4;
+ 
++	dprintk("RPC:       %s: %s:%s\n", __func__,
++		xprt->address_strings[RPC_DISPLAY_ADDR],
++		xprt->address_strings[RPC_DISPLAY_PORT]);
+ 	return xprt;
+ 
+ out4:
 
 --
-Chuck Lever
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
