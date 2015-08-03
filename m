@@ -1,59 +1,40 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH v2 00/12] IB: Replace safe uses for ib_get_dma_mr with
- pd->local_dma_lkey
-Date: Mon, 3 Aug 2015 08:24:20 -0700
-Message-ID: <20150803152420.GA24193@infradead.org>
-References: <1438298547-21404-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <55BBF4B8.2050700@sandisk.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH v4 17/50] IB/hfi1: add PSM driver control/data path
+Date: Mon, 3 Aug 2015 08:27:20 -0700
+Message-ID: <20150803152720.GA4171@infradead.org>
+References: <20150730191631.25256.95511.stgit@phlsvslse11.ph.intel.com>
+ <20150730191859.25256.28987.stgit@phlsvslse11.ph.intel.com>
+ <20150730194041.GA28754@obsidianresearch.com>
+ <32E1700B9017364D9B60AED9960492BC25777DA0@fmsmsx120.amr.corp.intel.com>
+ <55BA9A38.2030401@redhat.com>
+ <20150731073158.GA2485@infradead.org>
+ <55BD2997.6000203@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <target-devel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <55BBF4B8.2050700@sandisk.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Amir Vadai <amirv@mellanox.com>, Chien Yen <chien.yen@oracle.com>, Christoph Hellwig <hch@infradead.org>, Dominique Martinet <dominique.martinet@cea.fr>, Eli Cohen <eli@mellanox.com>, Eric Van Hensbergen <ericvh@gmail.com>, Ido Shamay <idos@mellanox.com>, Latchesar Ionkov <lucho@ionkov.net>, Or Gerlitz <ogerlitz@mellanox.com>, Roi Dayan <roid@mellanox.com>, Ron Minnich <rminnich@sandia.gov>, Sagi Grimberg <sagig@mellanox.com>, Simon Derr <simon.derr@bull.net>, Tom Tucker <tom@opengridcomputing.com>, rds-devel@oss.oracle.com, target-devel@vger.kernel.org, v9fs-developer@lists.sourceforge.net
+In-Reply-To: <55BD2997.6000203-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jul 31, 2015 at 03:20:40PM -0700, Bart Van Assche wrote:
-> On 07/30/2015 04:22 PM, Jason Gunthorpe wrote:
-> >All patches are compile tested. I've done basic testing up to and including
-> >the IPoIB patch, the rest required specialized setups I don't have access to,
-> >but are fairly straightforward.
-> 
-> Hello Jason,
-> 
-> SRP login fails with this patch series applied on top of Linux kernel
-> v4.2-rc4. At the target side the following message appears every time the
-> SRP initiator tries to log in: "ib_srpt: RDMA t 5 for idx 0 failed with
-> status 10" (10=remote access error). That causes the initiator to receive a
-> flush error (5).
+On Sat, Aug 01, 2015 at 04:18:31PM -0400, Doug Ledford wrote:
+> If you have a legitimate technical reason to NACK this feature, make
+> your case.  I've publicly stated, in response to Al no less, that I
+> don't see justification for making a team re-engineer a working, private
+> interface because a disinterested third party finds it "weird".  If you
+> provide no valid technical justification for your NACK, I'm going to
+> disregard it.
 
-Could this be caused because srp_map_sg_entry falls back to the phys
-mapping for unaligned large requests in line 1389 in Dougs tree:
+It's breaking the semantics that write("foo", len) is the same as writev
+of a single vector using writev.  We had to add a workaround for the
+few broken places doing this which we'd like to remove in the long term.
 
-	if ((!dev->use_fast_reg && dma_addr & ~dev->mr_page_mask) ||
-	    dma_len > dev->mr_max_size) {
-		ret = srp_finish_mapping(state, ch);
-		if (ret)
-			return ret;
-
-		srp_map_desc(state, dma_addr, dma_len, target->rkey);
-		srp_map_update_start(state, NULL, 0, 0);
-		return 0;
-	}
-
-Bart, do you know what hardware this workaround is for?
-
-Also the SRP driver still falls back to phys registrations if the
-better MR methods fail, something that will stop working with
-Jasons patch.  It's something that looks a little questionable
-and which other ULDs don't do either, so it would be good time
-to review this practice.
-
-Additionally the SRP_DATA_DESC_INDIRECT case always uses the global
-rkey, so whenever we hits this things are going to break.
-
-Jason, I suspect it might be a good idea to rename the rkey field
-to something like global_rkey, and make sure it's guarded by a proper
-conditional shared by all users.
+Note that private driver interface really doesn't matter here.
+Everything using file operations does go through the VFS so it does have
+major implication on the semantics for all the kernel.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
