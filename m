@@ -1,48 +1,172 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/hfi1: Add Infiniband dependency to Kconfig
-Date: Tue, 04 Aug 2015 12:16:52 -0400
-Message-ID: <20150804161652.24483.80145.stgit@phlsvslse11.ph.intel.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [RFC] split struct ib_send_wr
+Date: Tue, 4 Aug 2015 09:29:24 -0700
+Message-ID: <20150804162924.GA4867@infradead.org>
+References: <20150804143447.GA22172@infradead.org>
+ <1828884A29C6694DAF28B7E6B8A82373A902272C@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A902272C-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Tue, Aug 04, 2015 at 04:07:42PM +0000, Hefty, Sean wrote:
+> This looks like a reasonable start.  It may help with feedback if you
+> could just post the changes to ib_verbs.h.
 
-The hfi1 driver depends on the infiniband core stack.
-Building a kernel without the infiniband core but with the
-hfi1 driver causes undefined reference errors to the ib_* functions.
+Not sure it's all that useful, but here we go:
 
-Reported by 0-day build:
-https://lists.01.org/pipermail/kbuild-all/2015-August/011216.html
 
-This is a temporary patch and is only needed while the hfi1 driver is
-in staging. Remove when moving driver back to drivers/infiniband.
-
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/staging/hfi1/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/staging/hfi1/Kconfig b/drivers/staging/hfi1/Kconfig
-index 87a385a..78bc89e 100644
---- a/drivers/staging/hfi1/Kconfig
-+++ b/drivers/staging/hfi1/Kconfig
-@@ -1,6 +1,6 @@
- config INFINIBAND_HFI1
- 	tristate "Intel OPA Gen1 support"
--	depends on X86_64
-+	depends on X86_64 && INFINIBAND
- 	default m
- 	---help---
- 	This is a low-level driver for Intel OPA Gen1 adapter.
-
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 0940051..666b571 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1100,55 +1100,96 @@ struct ib_send_wr {
+ 		__be32		imm_data;
+ 		u32		invalidate_rkey;
+ 	} ex;
+-	union {
+-		struct {
+-			u64	remote_addr;
+-			u32	rkey;
+-		} rdma;
+-		struct {
+-			u64	remote_addr;
+-			u64	compare_add;
+-			u64	swap;
+-			u64	compare_add_mask;
+-			u64	swap_mask;
+-			u32	rkey;
+-		} atomic;
+-		struct {
+-			struct ib_ah *ah;
+-			void   *header;
+-			int     hlen;
+-			int     mss;
+-			u32	remote_qpn;
+-			u32	remote_qkey;
+-			u16	pkey_index; /* valid for GSI only */
+-			u8	port_num;   /* valid for DR SMPs on switch only */
+-		} ud;
+-		struct {
+-			u64				iova_start;
+-			struct ib_fast_reg_page_list   *page_list;
+-			unsigned int			page_shift;
+-			unsigned int			page_list_len;
+-			u32				length;
+-			int				access_flags;
+-			u32				rkey;
+-		} fast_reg;
+-		struct {
+-			struct ib_mw            *mw;
+-			/* The new rkey for the memory window. */
+-			u32                      rkey;
+-			struct ib_mw_bind_info   bind_info;
+-		} bind_mw;
+-		struct {
+-			struct ib_sig_attrs    *sig_attrs;
+-			struct ib_mr	       *sig_mr;
+-			int			access_flags;
+-			struct ib_sge	       *prot;
+-		} sig_handover;
+-	} wr;
+ 	u32			xrc_remote_srq_num;	/* XRC TGT QPs only */
+ };
+ 
++struct ib_rdma_wr {
++	struct ib_send_wr	wr;
++	u64			remote_addr;
++	u32			rkey;
++};
++
++static inline struct ib_rdma_wr *rdma_wr(struct ib_send_wr *wr)
++{
++	return container_of(wr, struct ib_rdma_wr, wr);
++}
++
++struct ib_atomic_wr {
++	struct ib_send_wr	wr;
++	u64			remote_addr;
++	u64			compare_add;
++	u64			swap;
++	u64			compare_add_mask;
++	u64			swap_mask;
++	u32			rkey;
++};
++
++static inline struct ib_atomic_wr *atomic_wr(struct ib_send_wr *wr)
++{
++	return container_of(wr, struct ib_atomic_wr, wr);
++}
++
++struct ib_ud_wr {
++	struct ib_send_wr	wr;
++	struct ib_ah		*ah;
++	void			*header;
++	int			hlen;
++	int			mss;
++	u32			remote_qpn;
++	u32			remote_qkey;
++	u16			pkey_index; /* valid for GSI only */
++	u8			port_num;   /* valid for DR SMPs on switch only */
++};
++
++static inline struct ib_ud_wr *ud_wr(struct ib_send_wr *wr)
++{
++	return container_of(wr, struct ib_ud_wr, wr);
++}
++
++struct ib_fast_reg_wr {
++	struct ib_send_wr	wr;
++	u64			iova_start;
++	struct ib_fast_reg_page_list *page_list;
++	unsigned int		page_shift;
++	unsigned int		page_list_len;
++	u32			length;
++	int			access_flags;
++	u32			rkey;
++};
++
++static inline struct ib_fast_reg_wr *fast_reg_wr(struct ib_send_wr *wr)
++{
++	return container_of(wr, struct ib_fast_reg_wr, wr);
++}
++
++struct ib_bind_mw_wr {
++	struct ib_send_wr	wr;
++	struct ib_mw		*mw;
++	/* The new rkey for the memory window. */
++	u32			rkey;
++	struct ib_mw_bind_info	bind_info;
++};
++
++static inline struct ib_bind_mw_wr *bind_mw_wr(struct ib_send_wr *wr)
++{
++	return container_of(wr, struct ib_bind_mw_wr, wr);
++}
++
++struct ib_sig_handover_wr {
++	struct ib_send_wr	wr;
++	struct ib_sig_attrs    *sig_attrs;
++	struct ib_mr	       *sig_mr;
++	int			access_flags;
++	struct ib_sge	       *prot;
++};
++
++static inline struct ib_sig_handover_wr *sig_handover_wr(struct ib_send_wr *wr)
++{
++	return container_of(wr, struct ib_sig_handover_wr, wr);
++}
++
+ struct ib_recv_wr {
++	struct ib_send_wr	wr;
+ 	struct ib_recv_wr      *next;
+ 	u64			wr_id;
+ 	struct ib_sge	       *sg_list;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
