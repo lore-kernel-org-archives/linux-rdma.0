@@ -1,49 +1,33 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next V1 2/3] IB/core: RoCE GID management separate
- cleanup and release
-Date: Tue, 4 Aug 2015 10:46:50 -0600
-Message-ID: <20150804164650.GA3858@obsidianresearch.com>
-References: <1438607342-11964-1-git-send-email-matanb@mellanox.com>
- <1438607342-11964-3-git-send-email-matanb@mellanox.com>
- <20150804031038.GA27627@obsidianresearch.com>
- <CAAKD3BBESq61-UJJvqm=ni5vrtu8yuNJvC57mWwCpehQSd1k4A@mail.gmail.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] IB/core, cma: Make __attribute_const__ declarations
+ sparse-friendly
+Date: Tue, 4 Aug 2015 19:54:59 +0300
+Message-ID: <55C0EE63.3030504@dev.mellanox.co.il>
+References: <55BF9E80.3030306@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAAKD3BBESq61-UJJvqm=ni5vrtu8yuNJvC57mWwCpehQSd1k4A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <55BF9E80.3030306-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 04, 2015 at 03:09:39PM +0300, Matan Barak wrote:
-> Correct, I'll change this comment to:
->     The release function is called after the device was put.
->     This is in order to avoid use-after-free errors if the vendor
->     driver's teardown code uses IB cache.
+On 8/3/2015 8:01 PM, Bart Van Assche wrote:
+> Move the __attribute_const__ declarations such that sparse understands
+> that these apply to the function itself and not to the return type.
+> This avoids that sparse reports error messages like the following:
+>
+> drivers/infiniband/core/verbs.c:73:12: error: symbol 'ib_event_msg' redeclared with different type (originally declared at include/rdma/ib_verbs.h:470) - different modifiers
+>
+> Fixes: 2b1b5b601230 ("IB/core, cma: Nice log-friendly string helpers")
+> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-.. the vendor driver uses IB cache from async contexts ..
+Thanks Bart.
 
-> >> +     ib_cache_cleanup_one(device);
-> >>       ib_device_unregister_sysfs(device);
-> >
-> > I didn't check closely, but I suspect the above order should be
-> > swapped, and the matching swap in register. sysfs can legitimately
-> > call into core code, but vice-versa shouldn't happen...
-> >
-> 
-> I didn't understand this comment. The cleanup code calls del_gid
-> which tells the vendor to delete this GID (and dev_put the
-> ndevs). The kref-put (which is called when the device is
-> unregistered) frees the memory. If we switch the order, we would
-> have use-after-free scenario.
-
-I don't understand your comment either.
-
-What code path from ib_cache will go into ib_sysfs?
-
-Jason
+Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
