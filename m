@@ -1,113 +1,210 @@
-From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH for-next V1 2/3] IB/core: RoCE GID management separate
- cleanup and release
-Date: Tue, 4 Aug 2015 15:09:39 +0300
-Message-ID: <CAAKD3BBESq61-UJJvqm=ni5vrtu8yuNJvC57mWwCpehQSd1k4A@mail.gmail.com>
-References: <1438607342-11964-1-git-send-email-matanb@mellanox.com>
-	<1438607342-11964-3-git-send-email-matanb@mellanox.com>
-	<20150804031038.GA27627@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-next V7 2/6] IB/uverbs: Fix race between ib_uverbs_open and remove_one
+Date: Tue,  4 Aug 2015 17:03:24 +0300
+Message-ID: <1438697008-26209-3-git-send-email-yishaih@mellanox.com>
+References: <1438697008-26209-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150804031038.GA27627-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1438697008-26209-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 4, 2015 at 6:10 AM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Mon, Aug 03, 2015 at 04:09:01PM +0300, Matan Barak wrote:
->
->> The release function is called after the device was put.
->> Although vendor drivers aren't expected to use IB cache in their
->> removal process, we postpone freeing the cache in order to avoid
->> possible use-after-free errors.
->
-> It isn't so much that they are not expected, it is that they may not
-> have a choice. A driver cannot tear down things like tasklets and work
-> queues until after removal finishes, and any of those async things
-> could call into the core. That is why a driver audit would be so hard..
->
+Fixes: 2a72f212263701b927559f6850446421d5906c41 ("IB/uverbs: Remove dev_table")
 
-Correct, I'll change this comment to:
-    The release function is called after the device was put.
-    This is in order to avoid use-after-free errors if the vendor
-    driver's teardown code uses IB cache.
+Before this commit there was a device look-up table that was protected
+by a spin_lock used by ib_uverbs_open and by ib_uverbs_remove_one. When
+it was dropped and container_of was used instead, it enabled the race
+with remove_one as dev might be freed just after:
+dev = container_of(inode->i_cdev, struct ib_uverbs_device, cdev) but
+before the kref_get.
 
+In addition, this buggy patch added some dead code as
+container_of(x,y,z) can never be NULL and so dev can never be NULL.
+As a result the comment above ib_uverbs_open saying "the open method
+will either immediately run -ENXIO" is wrong as it can never happen.
 
->> @@ -902,9 +925,7 @@ int ib_cache_setup_one(struct ib_device *device)
->>                                         (rdma_end_port(device) -
->>                                          rdma_start_port(device) + 1),
->>                                         GFP_KERNEL);
->> -     err = gid_table_setup_one(device);
->> -
->> -     if (!device->cache.pkey_cache || !device->cache.gid_cache ||
->> +     if (!device->cache.pkey_cache ||
->>           !device->cache.lmc_cache) {
->>               printk(KERN_WARNING "Couldn't allocate cache "
->>                      "for %s\n", device->name);
->> @@ -912,6 +933,10 @@ int ib_cache_setup_one(struct ib_device *device)
->>               goto err;
->>       }
->>
->> +     err = gid_table_setup_one(device);
->> +     if (err)
->> +             goto err;
->> +
->>       for (p = 0; p <= rdma_end_port(device) - rdma_start_port(device); ++p) {
->>               device->cache.pkey_cache[p] = NULL;
->>               ib_cache_update(device, p + rdma_start_port(device));
->> @@ -929,29 +954,46 @@ err_cache:
->>       for (p = 0; p <= rdma_end_port(device) - rdma_start_port(device); ++p)
->>               kfree(device->cache.pkey_cache[p]);
->>
->> +     gid_table_cleanup_one(device);
->> +     gid_table_release_one(device);
->>  err:
->>       kfree(device->cache.pkey_cache);
->> -     gid_table_cleanup_one(device);
->>       kfree(device->cache.lmc_cache);
->
-> This still seems to double kfree on error..
->
-> Pick a scheme and use it consistently, either rely on release to be
-> called on error via kref-put, or kfree and null, for all the kfress in
-> release_one.
->
+The solution follows Jason Gunthorpe suggestion from below URL:
+https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg25692.html
 
-I'll switch to kref-put cleanup. That means:
-gid_table_setup_one - should only call cleanup and not release in error-flow
-ib_cache_setup_one - shouldn't free any allocated memory/release the GID cache
-          but just cleanup the GID cache.
-ib_cache_release_one - should check if the pkey_cache is NULL before freeing it.
+cdev will hold a kref on the parent (the containing structure,
+ib_uverbs_device) and only when that kref is released it is
+guaranteed that open will never be called again.
 
+In addition, fixes the active count scheme to use an atomic
+not a kref to prevent WARN_ON as pointed by above comment
+from Jason.
 
->> +     ib_cache_cleanup_one(device);
->>       ib_device_unregister_sysfs(device);
->
-> I didn't check closely, but I suspect the above order should be
-> swapped, and the matching swap in register. sysfs can legitimately
-> call into core code, but vice-versa shouldn't happen...
->
+Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/uverbs.h      |    3 +-
+ drivers/infiniband/core/uverbs_main.c |   43 +++++++++++++++++++++++----------
+ 2 files changed, 32 insertions(+), 14 deletions(-)
 
-I didn't understand this comment. The cleanup code calls del_gid which tells the
-vendor to delete this GID (and dev_put the ndevs). The kref-put (which
-is called when
-the device is unregistered) frees the memory. If we switch the order,
-we would have
-use-after-free scenario.
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index 60e6e3d..92ec765 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -85,7 +85,7 @@
+  */
+ 
+ struct ib_uverbs_device {
+-	struct kref				ref;
++	atomic_t				refcount;
+ 	int					num_comp_vectors;
+ 	struct completion			comp;
+ 	struct device			       *dev;
+@@ -94,6 +94,7 @@ struct ib_uverbs_device {
+ 	struct cdev			        cdev;
+ 	struct rb_root				xrcd_tree;
+ 	struct mutex				xrcd_tree_mutex;
++	struct kobject				kobj;
+ };
+ 
+ struct ib_uverbs_event_file {
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index c238eba..9f39978 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -130,14 +130,18 @@ static int (*uverbs_ex_cmd_table[])(struct ib_uverbs_file *file,
+ static void ib_uverbs_add_one(struct ib_device *device);
+ static void ib_uverbs_remove_one(struct ib_device *device);
+ 
+-static void ib_uverbs_release_dev(struct kref *ref)
++static void ib_uverbs_release_dev(struct kobject *kobj)
+ {
+ 	struct ib_uverbs_device *dev =
+-		container_of(ref, struct ib_uverbs_device, ref);
++		container_of(kobj, struct ib_uverbs_device, kobj);
+ 
+-	complete(&dev->comp);
++	kfree(dev);
+ }
+ 
++static struct kobj_type ib_uverbs_dev_ktype = {
++	.release = ib_uverbs_release_dev,
++};
++
+ static void ib_uverbs_release_event_file(struct kref *ref)
+ {
+ 	struct ib_uverbs_event_file *file =
+@@ -303,13 +307,19 @@ static int ib_uverbs_cleanup_ucontext(struct ib_uverbs_file *file,
+ 	return context->device->dealloc_ucontext(context);
+ }
+ 
++static void ib_uverbs_comp_dev(struct ib_uverbs_device *dev)
++{
++	complete(&dev->comp);
++}
++
+ static void ib_uverbs_release_file(struct kref *ref)
+ {
+ 	struct ib_uverbs_file *file =
+ 		container_of(ref, struct ib_uverbs_file, ref);
+ 
+ 	module_put(file->device->ib_dev->owner);
+-	kref_put(&file->device->ref, ib_uverbs_release_dev);
++	if (atomic_dec_and_test(&file->device->refcount))
++		ib_uverbs_comp_dev(file->device);
+ 
+ 	kfree(file);
+ }
+@@ -775,9 +785,7 @@ static int ib_uverbs_open(struct inode *inode, struct file *filp)
+ 	int ret;
+ 
+ 	dev = container_of(inode->i_cdev, struct ib_uverbs_device, cdev);
+-	if (dev)
+-		kref_get(&dev->ref);
+-	else
++	if (!atomic_inc_not_zero(&dev->refcount))
+ 		return -ENXIO;
+ 
+ 	if (!try_module_get(dev->ib_dev->owner)) {
+@@ -798,6 +806,7 @@ static int ib_uverbs_open(struct inode *inode, struct file *filp)
+ 	mutex_init(&file->mutex);
+ 
+ 	filp->private_data = file;
++	kobject_get(&dev->kobj);
+ 
+ 	return nonseekable_open(inode, filp);
+ 
+@@ -805,13 +814,16 @@ err_module:
+ 	module_put(dev->ib_dev->owner);
+ 
+ err:
+-	kref_put(&dev->ref, ib_uverbs_release_dev);
++	if (atomic_dec_and_test(&dev->refcount))
++		ib_uverbs_comp_dev(dev);
++
+ 	return ret;
+ }
+ 
+ static int ib_uverbs_close(struct inode *inode, struct file *filp)
+ {
+ 	struct ib_uverbs_file *file = filp->private_data;
++	struct ib_uverbs_device *dev = file->device;
+ 
+ 	ib_uverbs_cleanup_ucontext(file, file->ucontext);
+ 
+@@ -819,6 +831,7 @@ static int ib_uverbs_close(struct inode *inode, struct file *filp)
+ 		kref_put(&file->async_file->ref, ib_uverbs_release_event_file);
+ 
+ 	kref_put(&file->ref, ib_uverbs_release_file);
++	kobject_put(&dev->kobj);
+ 
+ 	return 0;
+ }
+@@ -914,10 +927,11 @@ static void ib_uverbs_add_one(struct ib_device *device)
+ 	if (!uverbs_dev)
+ 		return;
+ 
+-	kref_init(&uverbs_dev->ref);
++	atomic_set(&uverbs_dev->refcount, 1);
+ 	init_completion(&uverbs_dev->comp);
+ 	uverbs_dev->xrcd_tree = RB_ROOT;
+ 	mutex_init(&uverbs_dev->xrcd_tree_mutex);
++	kobject_init(&uverbs_dev->kobj, &ib_uverbs_dev_ktype);
+ 
+ 	spin_lock(&map_lock);
+ 	devnum = find_first_zero_bit(dev_map, IB_UVERBS_MAX_DEVICES);
+@@ -944,6 +958,7 @@ static void ib_uverbs_add_one(struct ib_device *device)
+ 	cdev_init(&uverbs_dev->cdev, NULL);
+ 	uverbs_dev->cdev.owner = THIS_MODULE;
+ 	uverbs_dev->cdev.ops = device->mmap ? &uverbs_mmap_fops : &uverbs_fops;
++	uverbs_dev->cdev.kobj.parent = &uverbs_dev->kobj;
+ 	kobject_set_name(&uverbs_dev->cdev.kobj, "uverbs%d", uverbs_dev->devnum);
+ 	if (cdev_add(&uverbs_dev->cdev, base, 1))
+ 		goto err_cdev;
+@@ -974,9 +989,10 @@ err_cdev:
+ 		clear_bit(devnum, overflow_map);
+ 
+ err:
+-	kref_put(&uverbs_dev->ref, ib_uverbs_release_dev);
++	if (atomic_dec_and_test(&uverbs_dev->refcount))
++		ib_uverbs_comp_dev(uverbs_dev);
+ 	wait_for_completion(&uverbs_dev->comp);
+-	kfree(uverbs_dev);
++	kobject_put(&uverbs_dev->kobj);
+ 	return;
+ }
+ 
+@@ -996,9 +1012,10 @@ static void ib_uverbs_remove_one(struct ib_device *device)
+ 	else
+ 		clear_bit(uverbs_dev->devnum - IB_UVERBS_MAX_DEVICES, overflow_map);
+ 
+-	kref_put(&uverbs_dev->ref, ib_uverbs_release_dev);
++	if (atomic_dec_and_test(&uverbs_dev->refcount))
++		ib_uverbs_comp_dev(uverbs_dev);
+ 	wait_for_completion(&uverbs_dev->comp);
+-	kfree(uverbs_dev);
++	kobject_put(&uverbs_dev->kobj);
+ }
+ 
+ static char *uverbs_devnode(struct device *dev, umode_t *mode)
+-- 
+1.7.1
 
-> Jason
-
-Thanks for looking at this patch.
-
-Matan
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
