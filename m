@@ -1,57 +1,49 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH, RFC] rdma: split struct ib_send_wr
-Date: Tue, 4 Aug 2015 20:44:26 +0300
-Message-ID: <55C0F9FA.6060105@dev.mellanox.co.il>
-References: <1438672609-12599-1-git-send-email-hch@lst.de>
- <55C0F108.4090003@dev.mellanox.co.il> <20150804172328.GA22468@lst.de>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH V6 6/9] isert: Rename IO functions to more descriptive names
+Date: Tue, 4 Aug 2015 12:44:40 -0500
+Message-ID: <008a01d0cedd$3d382b90$b7a882b0$@opengridcomputing.com>
+References: <20150724161331.25617.8475.stgit@build2.ogc.int> <20150724161848.25617.26092.stgit@build2.ogc.int> <55B4B190.7070305@dev.mellanox.co.il> <55B5404F.5040404@opengridcomputing.com> <000001d0ce23$27048810$750d9830$@opengridcomputing.com> <55C0F5B7.4040100@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150804172328.GA22468-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <55C0F5B7.4040100-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/4/2015 8:23 PM, Christoph Hellwig wrote:
-> On Tue, Aug 04, 2015 at 08:06:16PM +0300, Sagi Grimberg wrote:
->> Question though, a ULP may want to keep a couple of WRs around instead
->> of having each allocated in the stack and handled one by one. We need
->> to provide it with a hint of what is the size it needs.
->
-> Note that with the drastic shrink of the struct size the typical case
-> of needing a fast_reg + one send or a few rdma wr should be just fine
-> on stack now.  Even more so with your registration cleanups which
-> will drastically shrink the size of the fast reg mrs again.
 
-I do agree that the size on the stack is less of an issue now. What
-still can matter is handling each wr one by one vs. doing a collective
-post.
 
+> -----Original Message-----
+> From: Sagi Grimberg [mailto:sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org]
+> Sent: Tuesday, August 04, 2015 12:26 PM
+> To: Steve Wise; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+> Cc: infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org; sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+> Subject: Re: [PATCH V6 6/9] isert: Rename IO functions to more descriptive names
+> 
+> > Hey Sagi, how is this coming along?  How can I help?
+> >
+> 
+> Hi Steve,
+> 
+> This is taking longer than I expected, the changes needed seem
+> pretty extensive throughout the IO path. I don't think it will be ready
+> for 4.3
 >
->> I just posted a patch to do that in iser
->> (http://www.spinics.net/lists/linux-rdma/msg27632.html).
->
-> That's actually part of the reason why I didn't manage to convert iser
-> as it seems so convoluted..
 
-I can understand that. In the last patches I tried to simplify the flow
-(I noticed that these aren't in your tree correct?). There always room
-for cleanups... I'm trying to have a gradual progress towards getting it
-to be simpler.
+Perhaps then we should go with my version that adds iwarp-only FRMR IO handlers for 4.3.  Then they can be phased out as the rework matures.  Thoughts?
+ 
+> I'll try to send you soon a preliminary version to play with.
+> Acceptable?
 
->
->> So if I would want to preallocate an array of work requests, what is the
->> size of the space I'd need?
->> is it some form of max(sizeof(struct ib_send_wr),
->>                         sizeof(struct ib_fastreg_wr),
->>                         sizeof(struct sig_handover), ..)?
->
-> Preferably you'd preallocate them in a type safe manner, if you really
-> need to overlay them do it as a proper union.
+I can test the iwarp parts once you think the code is ready to try.
 
-Perhaps...
+Steve.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
