@@ -1,49 +1,32 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH V6 6/9] isert: Rename IO functions to more descriptive names
-Date: Tue, 4 Aug 2015 12:44:40 -0500
-Message-ID: <008a01d0cedd$3d382b90$b7a882b0$@opengridcomputing.com>
-References: <20150724161331.25617.8475.stgit@build2.ogc.int> <20150724161848.25617.26092.stgit@build2.ogc.int> <55B4B190.7070305@dev.mellanox.co.il> <55B5404F.5040404@opengridcomputing.com> <000001d0ce23$27048810$750d9830$@opengridcomputing.com> <55C0F5B7.4040100@dev.mellanox.co.il>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: Re: [PATCH, RFC] rdma: split struct ib_send_wr
+Date: Tue, 4 Aug 2015 19:47:20 +0200
+Message-ID: <20150804174720.GA22895@lst.de>
+References: <1438672609-12599-1-git-send-email-hch@lst.de> <55C0F108.4090003@dev.mellanox.co.il> <20150804172328.GA22468@lst.de> <55C0F9FA.6060105@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55C0F5B7.4040100-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <55C0F9FA.6060105-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Aug 04, 2015 at 08:44:26PM +0300, Sagi Grimberg wrote:
+> I do agree that the size on the stack is less of an issue now. What
+> still can matter is handling each wr one by one vs. doing a collective
+> post.
 
+But if structured correctly you can still do that with on-stack WRs.
 
-> -----Original Message-----
-> From: Sagi Grimberg [mailto:sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org]
-> Sent: Tuesday, August 04, 2015 12:26 PM
-> To: Steve Wise; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-> Cc: infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org; sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
-> Subject: Re: [PATCH V6 6/9] isert: Rename IO functions to more descriptive names
-> 
-> > Hey Sagi, how is this coming along?  How can I help?
-> >
-> 
-> Hi Steve,
-> 
-> This is taking longer than I expected, the changes needed seem
-> pretty extensive throughout the IO path. I don't think it will be ready
-> for 4.3
->
+> I can understand that. In the last patches I tried to simplify the flow
+> (I noticed that these aren't in your tree correct?). There always room
+> for cleanups... I'm trying to have a gradual progress towards getting it
+> to be simpler.
 
-Perhaps then we should go with my version that adds iwarp-only FRMR IO handlers for 4.3.  Then they can be phased out as the rework matures.  Thoughts?
- 
-> I'll try to send you soon a preliminary version to play with.
-> Acceptable?
-
-I can test the iwarp parts once you think the code is ready to try.
-
-Steve.
-
+I used Doug's to be rebased for 4.3 tree from yesterday or so.  So
+whatever he merged is in.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
