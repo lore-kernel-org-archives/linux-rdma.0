@@ -1,47 +1,43 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH] RDMA/amso1100: deprecate the amso1100 provider
-Date: Tue, 4 Aug 2015 12:12:38 -0500
-Message-ID: <008501d0ced8$c3ee5a60$4bcb0f20$@opengridcomputing.com>
-References: <20150729144646.C1FF1E0B55@smtp.ogc.us> <55B8ED2B.1020206@redhat.com> <32E1700B9017364D9B60AED9960492BC2577970C@fmsmsx120.amr.corp.intel.com>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: Re: [PATCH, RFC] rdma: split struct ib_send_wr
+Date: Tue, 4 Aug 2015 19:23:28 +0200
+Message-ID: <20150804172328.GA22468@lst.de>
+References: <1438672609-12599-1-git-send-email-hch@lst.de> <55C0F108.4090003@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <32E1700B9017364D9B60AED9960492BC2577970C-RjuIdWtd+YbTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <55C0F108.4090003-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "'Marciniszyn, Mike'" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Aug 04, 2015 at 08:06:16PM +0300, Sagi Grimberg wrote:
+> Question though, a ULP may want to keep a couple of WRs around instead
+> of having each allocated in the stack and handled one by one. We need
+> to provide it with a hint of what is the size it needs.
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Marciniszyn, Mike
-> Sent: Tuesday, August 04, 2015 11:33 AM
-> To: Doug Ledford; Steve Wise
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
-> Subject: RE: [PATCH] RDMA/amso1100: deprecate the amso1100 provider
-> 
-> > Subject: Re: [PATCH] RDMA/amso1100: deprecate the amso1100 provider
-> >
-> > On 07/29/2015 10:44 AM, Steve Wise wrote:
-> > > The HW hasn't been sold since 2005, and the SW has definite bit rot.
-> > > Its time to remove it.  So move it to staging for a few releases and
-> > > then remove it after that.
-> > >
-> > > Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> >
-> > Thanks, applied.
-> >
-> 
-> This might run into the same issue as in https://lists.01.org/pipermail/kbuild-all/2015-August/011216.html.
->
+Note that with the drastic shrink of the struct size the typical case
+of needing a fast_reg + one send or a few rdma wr should be just fine
+on stack now.  Even more so with your registration cleanups which
+will drastically shrink the size of the fast reg mrs again.
 
-Hey Mike, what is the issue exactly?
+> I just posted a patch to do that in iser 
+> (http://www.spinics.net/lists/linux-rdma/msg27632.html).
 
+That's actually part of the reason why I didn't manage to convert iser
+as it seems so convoluted..
 
+> So if I would want to preallocate an array of work requests, what is the
+> size of the space I'd need?
+> is it some form of max(sizeof(struct ib_send_wr),
+>                        sizeof(struct ib_fastreg_wr),
+>                        sizeof(struct sig_handover), ..)?
 
+Preferably you'd preallocate them in a type safe manner, if you really
+need to overlay them do it as a proper union.  For example the rds
+code is doing that although it only preallocates on per work item.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
