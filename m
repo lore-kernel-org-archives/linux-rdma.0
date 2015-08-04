@@ -1,50 +1,156 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next V7 6/6] IB/ucma: HW Device hot-removal support
-Date: Tue, 4 Aug 2015 16:09:03 -0600
-Message-ID: <20150804220903.GE10934@obsidianresearch.com>
-References: <1438697008-26209-1-git-send-email-yishaih@mellanox.com>
- <1438697008-26209-7-git-send-email-yishaih@mellanox.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: [PATCH v3 01/12] IB/core: Guarantee that a local_dma_lkey is
+ available
+Date: Tue, 4 Aug 2015 16:21:30 -0600
+Message-ID: <20150804222130.GB21509@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <target-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1438697008-26209-7-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Sender: target-devel-owner@vger.kernel.org
+To: Haggai Eran <haggaie@mellanox.com>, Doug Ledford <dledford@redhat.com>
+Cc: linux-rdma@vger.kernel.org, Amir Vadai <amirv@mellanox.com>, Bart Van Assche <bart.vanassche@sandisk.com>, Chien Yen <chien.yen@oracle.com>, Christoph Hellwig <hch@infradead.org>, Dominique Martinet <dominique.martinet@cea.fr>, Eli Cohen <eli@mellanox.com>, Eric Van Hensbergen <ericvh@gmail.com>, Ido Shamay <idos@mellanox.com>, Latchesar Ionkov <lucho@ionkov.net>, Or Gerlitz <ogerlitz@mellanox.com>, Roi Dayan <roid@mellanox.com>, Ron Minnich <rminnich@sandia.gov>, Sagi Grimberg <sagig@mellanox.com>, Simon Derr <simon.derr@bull.net>, Tom Tucker <tom@opengridcomputing.com>, rds-devel@oss.oracle.com, target-devel@vger.kernel.org, v9fs-developer@lists.sourceforge.net
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 04, 2015 at 05:03:28PM +0300, Yishai Hadas wrote:
-> Currently, IB/cma remove_one flow blocks until all user descriptor managed by
-> IB/ucma are released. This prevents hot-removal of IB devices. This patch
-> allows IB/cma to remove devices regardless of user space activity. Upon getting
-> the RDMA_CM_EVENT_DEVICE_REMOVAL event we close all the underlying HW resources
-> for the given ucontext. The ucontext itself is still alive till its explicit
-> destroying by its creator.
-> 
-> Running applications at that time will have some zombie device, further
-> operations may fail.
+Every single ULP requires a local_dma_lkey to do anything with
+a QP, so let us ensure one exists for every PD created.
 
-I've never made it far enough to look at this patch before... It is
-Sean's stuff so he is best qualified to comment on it. The rest of the
-series is OK now Sean.
+If the driver can supply a global local_dma_lkey then use that, otherwise
+ask the driver to create a local use all physical memory MR associated
+with the new PD.
 
-> +static void ucma_close_id(struct work_struct *work)
-> +{
-> +	struct ucma_context *ctx =  container_of(work, struct ucma_context, close_work);
-> +
-> +	/* Fence to ensure that ctx->closing was seen by all
-> +	 * ucma_get_ctx running
-> +	 */
-> +	mutex_lock(&mut);
-> +	mutex_unlock(&mut);
+Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Reviewed-by: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Acked-by: Christoph Hellwig <hch@infradead.org>
+Reviewed-by: Steve Wise <swise@opengridcomputing.com>
+---
+ drivers/infiniband/core/uverbs_cmd.c |  1 +
+ drivers/infiniband/core/verbs.c      | 47 ++++++++++++++++++++++++++++++++----
+ include/rdma/ib_verbs.h              |  9 ++-----
+ 3 files changed, 45 insertions(+), 12 deletions(-)
 
-Uh, no. That isn't how to use mutex's.
+This has the extra null assignment in uverbs that Haggai discovered. No changes
+to other patches in the series.
 
-I don't really see any consistent locking scheme for closing..
+I also wrote a cleanup patch for ib_dealloc_pd:
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ https://github.com/jgunthorpe/linux/commit/7ea87a7f394c2113cc2232edfe785089eb0aea32
+
+I'll post it when I've tested it a bit..
+
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index bbb02ffe87df..258485ee46b2 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -562,6 +562,7 @@ ssize_t ib_uverbs_alloc_pd(struct ib_uverbs_file *file,
+ 
+ 	pd->device  = file->device->ib_dev;
+ 	pd->uobject = uobj;
++	pd->local_mr = NULL;
+ 	atomic_set(&pd->usecnt, 0);
+ 
+ 	uobj->object = pd;
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index bac3fb406a74..e9d72a28a9a5 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -213,18 +213,49 @@ EXPORT_SYMBOL(rdma_port_get_link_layer);
+ 
+ /* Protection domains */
+ 
++/**
++ * ib_alloc_pd - Allocates an unused protection domain.
++ * @device: The device on which to allocate the protection domain.
++ *
++ * A protection domain object provides an association between QPs, shared
++ * receive queues, address handles, memory regions, and memory windows.
++ *
++ * Every PD has a local_dma_lkey which can be used as the lkey value for local
++ * memory operations.
++ */
+ struct ib_pd *ib_alloc_pd(struct ib_device *device)
+ {
+ 	struct ib_pd *pd;
++	struct ib_device_attr devattr;
++	int rc;
++
++	rc = ib_query_device(device, &devattr);
++	if (rc)
++		return ERR_PTR(rc);
+ 
+ 	pd = device->alloc_pd(device, NULL, NULL);
++	if (IS_ERR(pd))
++		return pd;
++
++	pd->device = device;
++	pd->uobject = NULL;
++	pd->local_mr = NULL;
++	atomic_set(&pd->usecnt, 0);
++
++	if (devattr.device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)
++		pd->local_dma_lkey = device->local_dma_lkey;
++	else {
++		struct ib_mr *mr;
++
++		mr = ib_get_dma_mr(pd, IB_ACCESS_LOCAL_WRITE);
++		if (IS_ERR(mr)) {
++			ib_dealloc_pd(pd);
++			return (struct ib_pd *)mr;
++		}
+ 
+-	if (!IS_ERR(pd)) {
+-		pd->device  = device;
+-		pd->uobject = NULL;
+-		atomic_set(&pd->usecnt, 0);
++		pd->local_mr = mr;
++		pd->local_dma_lkey = pd->local_mr->lkey;
+ 	}
+-
+ 	return pd;
+ }
+ EXPORT_SYMBOL(ib_alloc_pd);
+@@ -234,6 +265,12 @@ int ib_dealloc_pd(struct ib_pd *pd)
+ 	if (atomic_read(&pd->usecnt))
+ 		return -EBUSY;
+ 
++	if (pd->local_mr) {
++		if (ib_dereg_mr(pd->local_mr))
++			return -EBUSY;
++		pd->local_mr = NULL;
++	}
++
+ 	return pd->device->dealloc_pd(pd);
+ }
+ EXPORT_SYMBOL(ib_dealloc_pd);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index b0f898e3b2e7..eaec3081fb87 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1252,9 +1252,11 @@ struct ib_udata {
+ };
+ 
+ struct ib_pd {
++	u32			local_dma_lkey;
+ 	struct ib_device       *device;
+ 	struct ib_uobject      *uobject;
+ 	atomic_t          	usecnt; /* count all resources */
++	struct ib_mr	       *local_mr;
+ };
+ 
+ struct ib_xrcd {
+@@ -2135,13 +2137,6 @@ int ib_find_gid(struct ib_device *device, union ib_gid *gid,
+ int ib_find_pkey(struct ib_device *device,
+ 		 u8 port_num, u16 pkey, u16 *index);
+ 
+-/**
+- * ib_alloc_pd - Allocates an unused protection domain.
+- * @device: The device on which to allocate the protection domain.
+- *
+- * A protection domain object provides an association between QPs, shared
+- * receive queues, address handles, memory regions, and memory windows.
+- */
+ struct ib_pd *ib_alloc_pd(struct ib_device *device);
+ 
+ /**
+-- 
+1.9.1
