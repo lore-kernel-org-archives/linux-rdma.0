@@ -1,46 +1,47 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next V7 4/6] IB/uverbs: Enable device removal when
- there are active user space applications
-Date: Tue, 4 Aug 2015 15:48:47 -0600
-Message-ID: <20150804214847.GD10934@obsidianresearch.com>
+Subject: Re: [PATCH for-next V7 6/6] IB/ucma: HW Device hot-removal support
+Date: Tue, 4 Aug 2015 16:09:03 -0600
+Message-ID: <20150804220903.GE10934@obsidianresearch.com>
 References: <1438697008-26209-1-git-send-email-yishaih@mellanox.com>
- <1438697008-26209-5-git-send-email-yishaih@mellanox.com>
+ <1438697008-26209-7-git-send-email-yishaih@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1438697008-26209-5-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1438697008-26209-7-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 04, 2015 at 05:03:26PM +0300, Yishai Hadas wrote:
-> Enables the uverbs_remove_one to succeed despite the fact that there are
-> running IB applications working with the given ib device.  This
-> functionality enables a HW device to be unbind/reset despite the fact that
-> there are running user space applications using it.
+On Tue, Aug 04, 2015 at 05:03:28PM +0300, Yishai Hadas wrote:
+> Currently, IB/cma remove_one flow blocks until all user descriptor managed by
+> IB/ucma are released. This prevents hot-removal of IB devices. This patch
+> allows IB/cma to remove devices regardless of user space activity. Upon getting
+> the RDMA_CM_EVENT_DEVICE_REMOVAL event we close all the underlying HW resources
+> for the given ucontext. The ucontext itself is still alive till its explicit
+> destroying by its creator.
 > 
-> It exposes a new IB kernel API named 'disassociate_ucontext' which lets
-> a driver detaching its HW resources from a given user context without
-> crashing/terminating the application. In case a driver implemented the
-> above API and registered with ib_uverb there will be no dependency between its
-> device to its uverbs_device. Upon calling remove_one of ib_uverbs the call
-> should return after disassociating the open HW resources without waiting to
-> clients disconnecting. In case driver didn't implement this API there will be no
-> change to current behaviour and uverbs_remove_one will return only when last
-> client has disconnected and reference count on uverbs device became 0.
-> 
-> In case the lower driver device was removed any application will
-> continue working over some zombie HCA, further calls will ended with an
-> immediate error.
+> Running applications at that time will have some zombie device, further
+> operations may fail.
 
-Looks OK now..
+I've never made it far enough to look at this patch before... It is
+Sean's stuff so he is best qualified to comment on it. The rest of the
+series is OK now Sean.
 
-Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> +static void ucma_close_id(struct work_struct *work)
+> +{
+> +	struct ucma_context *ctx =  container_of(work, struct ucma_context, close_work);
+> +
+> +	/* Fence to ensure that ctx->closing was seen by all
+> +	 * ucma_get_ctx running
+> +	 */
+> +	mutex_lock(&mut);
+> +	mutex_unlock(&mut);
 
-I think I provided reviews for 1-4 now, you forgot the copy them
-forward from v6 to help Doug.
+Uh, no. That isn't how to use mutex's.
+
+I don't really see any consistent locking scheme for closing..
 
 Jason
 --
