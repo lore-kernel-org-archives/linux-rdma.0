@@ -1,46 +1,78 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next V7 6/6] IB/ucma: HW Device hot-removal support
-Date: Tue, 4 Aug 2015 18:23:38 -0600
-Message-ID: <20150805002338.GB22959@obsidianresearch.com>
-References: <1438697008-26209-1-git-send-email-yishaih@mellanox.com>
- <1438697008-26209-7-git-send-email-yishaih@mellanox.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v8 2/4] IB/core: Add rdma netlink helper functions
+Date: Tue, 4 Aug 2015 20:48:31 -0400
+Message-ID: <20150805004830.GA23589@phlsvsds.ph.intel.com>
+References: <1436463268-32365-1-git-send-email-kaike.wan@intel.com> <1436463268-32365-3-git-send-email-kaike.wan@intel.com> <20150804031534.GA28707@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1438697008-26209-7-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20150804031534.GA28707-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 04, 2015 at 05:03:28PM +0300, Yishai Hadas wrote:
-> Currently, IB/cma remove_one flow blocks until all user descriptor managed by
-> IB/ucma are released. This prevents hot-removal of IB devices. This patch
-> allows IB/cma to remove devices regardless of user space activity. Upon getting
-> the RDMA_CM_EVENT_DEVICE_REMOVAL event we close all the underlying HW resources
-> for the given ucontext. The ucontext itself is still alive till its explicit
-> destroying by its creator.
+On Mon, Aug 03, 2015 at 09:15:34PM -0600, Jason Gunthorpe wrote:
+> On Thu, Jul 09, 2015 at 01:34:26PM -0400, kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> > From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > 
+> > This patch adds a function to check if listeners for a netlink multicast
+> > group are present. It also adds a function to receive netlink response
+> > messages.
+> > 
+> > Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Signed-off-by: John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> >  drivers/infiniband/core/netlink.c |   55 +++++++++++++++++++++++++++++++++++++
+> >  include/rdma/rdma_netlink.h       |    7 +++++
+> >  2 files changed, 62 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
+> > index 23dd5a5..d47df93 100644
+> > +++ b/drivers/infiniband/core/netlink.c
+> > @@ -49,6 +49,14 @@ static DEFINE_MUTEX(ibnl_mutex);
+> >  static struct sock *nls;
+> >  static LIST_HEAD(client_list);
+> >  
+> > +int ibnl_chk_listeners(unsigned int group)
+> > +{
+> > +	if (netlink_has_listeners(nls, group) == 0)
+> > +		return -1;
+> > +	return 0;
+> > +}
+> > +EXPORT_SYMBOL(ibnl_chk_listeners);
+> 
+> I was thinking about this today, and, where is the security?
+> 
+> What prevents a non-root user from making the above true and/or worse?
 
-Implementation aside,
+We are using Netlink multicast.  I believe that netlink_bind only allows root
+to bind to multicast.
 
-This changes the policy of the ucma from
- Tell user space and expect it to synchronously clean up
-To
- Tell user space we already nuked the RDMA device asynchronously
+static int netlink_bind(struct socket *sock, struct sockaddr *addr,
+                        int addr_len)
+{
 
-Do we even want to do that unconditionally?
+...
+        /* Only superuser is allowed to listen multicasts */
+        if (groups) {
+                if (!netlink_allowed(sock, NL_CFG_F_NONROOT_RECV))
+                        return -EPERM;
+                err = netlink_realloc_groups(sk);
+                if (err)
+                        return err;
+        }
+...
 
-Shouldn't the kernel at least give userspace some time to respond to
-the event before nuking the world?
 
-I'm now also wondering if we have some ordering issues on
-removal. Will uverbs continue to work while ucma is active?
+That said I have not tested the ability to change the timeout settings if one
+were to bind without multicast and send a message.
 
-It looks like at least we can rmmod ib_uverbs and stuff goes really
-sideways for poor apps. That is probably a corner case though..
+I'll see if I can get some time to test this as Kaike is out on vacation.
 
-Jason
+Ira
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
