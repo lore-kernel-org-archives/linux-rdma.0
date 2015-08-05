@@ -1,53 +1,60 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next V7 6/6] IB/ucma: HW Device hot-removal support
-Date: Wed, 5 Aug 2015 12:21:17 -0600
-Message-ID: <20150805182117.GA15583@obsidianresearch.com>
-References: <1438697008-26209-1-git-send-email-yishaih@mellanox.com>
- <1438697008-26209-7-git-send-email-yishaih@mellanox.com>
- <20150804220903.GE10934@obsidianresearch.com>
- <55C22739.5060808@dev.mellanox.co.il>
+Subject: Re: [PATCH v2 00/12] IB: Replace safe uses for ib_get_dma_mr with
+ pd->local_dma_lkey
+Date: Wed, 5 Aug 2015 13:51:22 -0600
+Message-ID: <20150805195122.GA31595@obsidianresearch.com>
+References: <1438298547-21404-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <55BBF4B8.2050700@sandisk.com>
+ <20150803152420.GA24193@infradead.org>
+ <55BFB40F.8000500@sandisk.com>
+ <20150804180933.GB5038@obsidianresearch.com>
+ <1438756876.5698.2.camel@haswell.thedillows.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <55C22739.5060808-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1438756876.5698.2.camel-a7a0dvSY7KqLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Aug 05, 2015 at 06:09:45PM +0300, Yishai Hadas wrote:
-> >>+static void ucma_close_id(struct work_struct *work)
-> >>+{
-> >>+	struct ucma_context *ctx =  container_of(work, struct ucma_context, close_work);
-> >>+
-> >>+	/* Fence to ensure that ctx->closing was seen by all
-> >>+	 * ucma_get_ctx running
-> >>+	 */
-> >>+	mutex_lock(&mut);
-> >>+	mutex_unlock(&mut);
-> >
-> >Uh, no. That isn't how to use mutex's.
+On Tue, Aug 04, 2015 at 11:41:16PM -0700, David Dillow wrote:
+> On Tue, 2015-08-04 at 12:09 -0600, Jason Gunthorpe wrote:
+> > On Mon, Aug 03, 2015 at 11:33:51AM -0700, Bart Van Assche wrote:
+> > > >Bart, do you know what hardware this workaround is for?
+> > > 
+> > > I hope the HW vendors can comment on this. Sorry but I'm not sure which HCA
+> > > models and/or firmware versions do not support FMR mapping with a non-zero
+> > > offset.
+> > 
+> > Perhaps David can remember why he added this:
+> > 
+> > commit 8f26c9ff9cd0317ad867bce972f69e0c6c2cbe3c
 > 
-> That locking scheme is used in some other places in the kernel when a
-> barrier/fence is needed, see below some examples of that usage and my
-> comment around the usage.
+> It's originally from commit 559ce8f150d7d031c79c4d79173860f1bdfe3ce4,
+> and the list's attempts at code archaeology failed us: 
+> http://article.gmane.org/gmane.linux.drivers.rdma/7149
 
-'I saw it used someplace else' isn't much of an argument.. Maybe those
-places are sane, this isn't so much..
+Okay.. So over time we went from a clear target specific bug described
+9 years ago in 559ce through chinese whispers to a general unspecific
+fear of non-zero offset FMR?
 
-> If you still don't agree we can go ahead and merge the first 5 patches that
-> doesn't depend on that last patch and handle/discuss this patch later.
+But nobody has described FMR failure in this way in the past 9 years
+with any specificity?
 
-I have no real problem with that, it would be nice to have an answer
-to the uverbs vs ucma removal ordering question and the basic issue of
-if we even want to do this so async before merging the driver patch
-that enables it..
+My random guesses would be broken mthca firmware at the start of the
+FMR feature (long since fixed) or a wonky target that is now 10 years
+obsolete..
 
-> The first 4 you already review and acked the fifth is in mlx4_ib and has no
-> comments to fix so far - some months in the list.
+If it was an HCA bug, I strongly have to think it is fixed now. We use
+FMR all over the place and SRP is the only area I've noticed this
+restriction..
 
-Personally, I'm not looking much at drivers..
+If it is a target bug, then FRWR should trigger it as wel, so we are
+already about to revert that workaround.
+
+I'm inclined to drop this entirely.. What do you think Bart?
 
 Jason
 --
