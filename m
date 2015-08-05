@@ -1,42 +1,89 @@
-From: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
-Subject: Re: [PATCH v2 00/12] IB: Replace safe uses for ib_get_dma_mr with
- pd->local_dma_lkey
-Date: Tue, 04 Aug 2015 23:41:16 -0700
-Message-ID: <1438756876.5698.2.camel@haswell.thedillows.org>
-References: <1438298547-21404-1-git-send-email-jgunthorpe@obsidianresearch.com>
-	 <55BBF4B8.2050700@sandisk.com> <20150803152420.GA24193@infradead.org>
-	 <55BFB40F.8000500@sandisk.com> <20150804180933.GB5038@obsidianresearch.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH for-next V7 6/6] IB/ucma: HW Device hot-removal support
+Date: Wed, 05 Aug 2015 18:09:45 +0300
+Message-ID: <55C22739.5060808@dev.mellanox.co.il>
+References: <1438697008-26209-1-git-send-email-yishaih@mellanox.com> <1438697008-26209-7-git-send-email-yishaih@mellanox.com> <20150804220903.GE10934@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150804180933.GB5038-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20150804220903.GE10934-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2015-08-04 at 12:09 -0600, Jason Gunthorpe wrote:
-> On Mon, Aug 03, 2015 at 11:33:51AM -0700, Bart Van Assche wrote:
-> > >Bart, do you know what hardware this workaround is for?
-> > 
-> > I hope the HW vendors can comment on this. Sorry but I'm not sure which HCA
-> > models and/or firmware versions do not support FMR mapping with a non-zero
-> > offset.
-> 
-> Perhaps David can remember why he added this:
-> 
-> commit 8f26c9ff9cd0317ad867bce972f69e0c6c2cbe3c
+On 8/5/2015 1:09 AM, Jason Gunthorpe wrote:
+> On Tue, Aug 04, 2015 at 05:03:28PM +0300, Yishai Hadas wrote:
+>> Currently, IB/cma remove_one flow blocks until all user descriptor managed by
+>> IB/ucma are released. This prevents hot-removal of IB devices. This patch
+>> allows IB/cma to remove devices regardless of user space activity. Upon getting
+>> the RDMA_CM_EVENT_DEVICE_REMOVAL event we close all the underlying HW resources
+>> for the given ucontext. The ucontext itself is still alive till its explicit
+>> destroying by its creator.
+>>
+>> Running applications at that time will have some zombie device, further
+>> operations may fail.
+>
+> I've never made it far enough to look at this patch before... It is
+> Sean's stuff so he is best qualified to comment on it. The rest of the
+> series is OK now Sean.
+>
+>> +static void ucma_close_id(struct work_struct *work)
+>> +{
+>> +	struct ucma_context *ctx =  container_of(work, struct ucma_context, close_work);
+>> +
+>> +	/* Fence to ensure that ctx->closing was seen by all
+>> +	 * ucma_get_ctx running
+>> +	 */
+>> +	mutex_lock(&mut);
+>> +	mutex_unlock(&mut);
+>
+> Uh, no. That isn't how to use mutex's.
 
-It's originally from commit 559ce8f150d7d031c79c4d79173860f1bdfe3ce4,
-and the list's attempts at code archaeology failed us: 
-http://article.gmane.org/gmane.linux.drivers.rdma/7149
+That locking scheme is used in some other places in the kernel when a 
+barrier/fence is needed, see below some examples of that usage and my 
+comment around the usage.
 
-> The way it is phrased makes it seem like a target bug, not a HCA bug?
+One of (see below in cma.c) was added by Sean Hefty as part of commit ID 
+a396d43a in rdma_destroy_id, it's part of same kernel subsystem and uses 
+same concept as of above code.
 
-Yes, the original commit is explicit about it being a target issue.
-Since it mentioned the boogeyman words "data corruption", I kept the
-work around in the FMR work. 
+I believe that we can go ahead and merge this patch as part of the series.
+
+If you still don't agree we can go ahead and merge the first 5 patches 
+that doesn't depend on that last patch and handle/discuss this patch later.
+
+The first 4 you already review and acked the fifth is in mlx4_ib and has 
+no comments to fix so far - some months in the list.
+
+
+Some examples of that usage:
+------------------------------
+http://lxr.free-electrons.com/source/kernel/audit.c#L532
+         /* wait for parent to finish and send an ACK */
+532         mutex_lock(&audit_cmd_mutex);
+533         mutex_unlock(&audit_cmd_mutex);
+
+http://lxr.free-electrons.com/source/fs/configfs/dir.c#L1386
+1386                         /* Wait until the racing operation 
+terminates */
+1387                         mutex_lock(wait_mutex);
+1388                         mutex_unlock(wait_mutex);
+
+http://lxr.free-electrons.com/source/drivers/infiniband/core/cma.c#L1053
+1050          /* Wait for any active callback to finish.  New callbacks 
+will find
+1051          * the id_priv state set to destroying and abort.
+1052          */
+1053         mutex_lock(&id_priv->handler_mutex);
+1054         mutex_unlock(&id_priv->handler_mutex);
+
+http://lxr.free-electrons.com/source/drivers/staging/lustre/lustre/ptlrpc/sec_gc.c#L96
+  96         /* barrier */
+  97         mutex_lock(&sec_gc_mutex);
+  98         mutex_unlock(&sec_gc_mutex);
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
