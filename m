@@ -1,78 +1,36 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: [PATCH v8 2/4] IB/core: Add rdma netlink helper functions
-Date: Tue, 4 Aug 2015 20:48:31 -0400
-Message-ID: <20150805004830.GA23589@phlsvsds.ph.intel.com>
-References: <1436463268-32365-1-git-send-email-kaike.wan@intel.com> <1436463268-32365-3-git-send-email-kaike.wan@intel.com> <20150804031534.GA28707@obsidianresearch.com>
+Date: Tue, 4 Aug 2015 18:52:23 -0600
+Message-ID: <20150805005223.GA28789@obsidianresearch.com>
+References: <1436463268-32365-1-git-send-email-kaike.wan@intel.com>
+ <1436463268-32365-3-git-send-email-kaike.wan@intel.com>
+ <20150804031534.GA28707@obsidianresearch.com>
+ <20150805004830.GA23589@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20150804031534.GA28707-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20150805004830.GA23589-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Aug 03, 2015 at 09:15:34PM -0600, Jason Gunthorpe wrote:
-> On Thu, Jul 09, 2015 at 01:34:26PM -0400, kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> > From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > 
-> > This patch adds a function to check if listeners for a netlink multicast
-> > group are present. It also adds a function to receive netlink response
-> > messages.
-> > 
-> > Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Signed-off-by: John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> >  drivers/infiniband/core/netlink.c |   55 +++++++++++++++++++++++++++++++++++++
-> >  include/rdma/rdma_netlink.h       |    7 +++++
-> >  2 files changed, 62 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-> > index 23dd5a5..d47df93 100644
-> > +++ b/drivers/infiniband/core/netlink.c
-> > @@ -49,6 +49,14 @@ static DEFINE_MUTEX(ibnl_mutex);
-> >  static struct sock *nls;
-> >  static LIST_HEAD(client_list);
-> >  
-> > +int ibnl_chk_listeners(unsigned int group)
-> > +{
-> > +	if (netlink_has_listeners(nls, group) == 0)
-> > +		return -1;
-> > +	return 0;
-> > +}
-> > +EXPORT_SYMBOL(ibnl_chk_listeners);
-> 
-> I was thinking about this today, and, where is the security?
-> 
-> What prevents a non-root user from making the above true and/or worse?
+On Tue, Aug 04, 2015 at 08:48:31PM -0400, ira.weiny wrote:
+> We are using Netlink multicast.  I believe that netlink_bind only allows root
+> to bind to multicast.
 
-We are using Netlink multicast.  I believe that netlink_bind only allows root
-to bind to multicast.
+That is a good start...
 
-static int netlink_bind(struct socket *sock, struct sockaddr *addr,
-                        int addr_len)
-{
+> That said I have not tested the ability to change the timeout settings if one
+> were to bind without multicast and send a message.
 
-...
-        /* Only superuser is allowed to listen multicasts */
-        if (groups) {
-                if (!netlink_allowed(sock, NL_CFG_F_NONROOT_RECV))
-                        return -EPERM;
-                err = netlink_realloc_groups(sk);
-                if (err)
-                        return err;
-        }
-...
+I rather expect that needs fixing..
 
+And I bet sequence numbers are sufficiently predictable that the path
+reply should be restricted to root as well.
 
-That said I have not tested the ability to change the timeout settings if one
-were to bind without multicast and send a message.
-
-I'll see if I can get some time to test this as Kaike is out on vacation.
-
-Ira
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
