@@ -1,43 +1,72 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH V6 6/9] isert: Rename IO functions to more descriptive names
-Date: Wed, 5 Aug 2015 16:23:27 -0500
-Message-ID: <00b001d0cfc4$f83a14c0$e8ae3e40$@opengridcomputing.com>
-References: <20150724161331.25617.8475.stgit@build2.ogc.int> <20150724161848.25617.26092.stgit@build2.ogc.int> <55B4B190.7070305@dev.mellanox.co.il> <55B5404F.5040404@opengridcomputing.com> <000001d0ce23$27048810$750d9830$@opengridcomputing.com> <55C0F5B7.4040100@dev.mellanox.co.il>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2 00/12] IB: Replace safe uses for ib_get_dma_mr with
+ pd->local_dma_lkey
+Date: Wed, 5 Aug 2015 14:45:48 -0700
+Message-ID: <55C2840C.5050301@sandisk.com>
+References: <1438298547-21404-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <55BBF4B8.2050700@sandisk.com> <20150803152420.GA24193@infradead.org>
+ <55BFB40F.8000500@sandisk.com> <20150804180933.GB5038@obsidianresearch.com>
+ <1438756876.5698.2.camel@haswell.thedillows.org>
+ <20150805195122.GA31595@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: 
-Content-Language: en-us
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150805195122.GA31595-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 08/05/2015 12:51 PM, Jason Gunthorpe wrote:
+> On Tue, Aug 04, 2015 at 11:41:16PM -0700, David Dillow wrote:
+>> On Tue, 2015-08-04 at 12:09 -0600, Jason Gunthorpe wrote:
+>>> On Mon, Aug 03, 2015 at 11:33:51AM -0700, Bart Van Assche wrote:
+>>>>> Bart, do you know what hardware this workaround is for?
+>>>>
+>>>> I hope the HW vendors can comment on this. Sorry but I'm not sure which HCA
+>>>> models and/or firmware versions do not support FMR mapping with a non-zero
+>>>> offset.
+>>>
+>>> Perhaps David can remember why he added this:
+>>>
+>>> commit 8f26c9ff9cd0317ad867bce972f69e0c6c2cbe3c
+>>
+>> It's originally from commit 559ce8f150d7d031c79c4d79173860f1bdfe3ce4,
+>> and the list's attempts at code archaeology failed us:
+>> http://article.gmane.org/gmane.linux.drivers.rdma/7149
+>
+> Okay.. So over time we went from a clear target specific bug described
+> 9 years ago in 559ce through chinese whispers to a general unspecific
+> fear of non-zero offset FMR?
+>
+> But nobody has described FMR failure in this way in the past 9 years
+> with any specificity?
+>
+> My random guesses would be broken mthca firmware at the start of the
+> FMR feature (long since fixed) or a wonky target that is now 10 years
+> obsolete..
+>
+> If it was an HCA bug, I strongly have to think it is fixed now. We use
+> FMR all over the place and SRP is the only area I've noticed this
+> restriction..
+>
+> If it is a target bug, then FRWR should trigger it as wel, so we are
+> already about to revert that workaround.
+>
+> I'm inclined to drop this entirely.. What do you think Bart?
 
-> >
-> > > Hey Sagi, how is this coming along?  How can I help?
-> > >
-> >
-> > Hi Steve,
-> >
-> > This is taking longer than I expected, the changes needed seem
-> > pretty extensive throughout the IO path. I don't think it will be ready
-> > for 4.3
-> >
-> 
-> Perhaps then we should go with my version that adds iwarp-only FRMR IO handlers for 4.3.  Then they can be phased out as the rework
-> matures.  Thoughts?
-> 
+Even today I see memory corruption at the initiator side with FMR and 
+not with FR if I leave out the alignment check. Since this only occurs 
+with FMR and not with FR that excludes the target side as a possible 
+cause. I will have a closer look at the srp_map_finish_fmr() function. 
+Always passing 0 as the second argument of srp_map_desc() in 
+srp_map_finish_fmr() is probably wrong. Before 2011 that second argument 
+was the page offset of the first sg-list entry.
 
-Shall I send out the series again for merging into 4.3?
-
-Thanks,
-
-Steve.
+Bart.
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
