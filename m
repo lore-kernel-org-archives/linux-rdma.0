@@ -1,36 +1,43 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v8 2/4] IB/core: Add rdma netlink helper functions
-Date: Tue, 4 Aug 2015 18:52:23 -0600
-Message-ID: <20150805005223.GA28789@obsidianresearch.com>
-References: <1436463268-32365-1-git-send-email-kaike.wan@intel.com>
- <1436463268-32365-3-git-send-email-kaike.wan@intel.com>
- <20150804031534.GA28707@obsidianresearch.com>
- <20150805004830.GA23589@phlsvsds.ph.intel.com>
+From: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+Subject: Re: [PATCH v2 00/12] IB: Replace safe uses for ib_get_dma_mr with
+ pd->local_dma_lkey
+Date: Tue, 04 Aug 2015 23:41:16 -0700
+Message-ID: <1438756876.5698.2.camel@haswell.thedillows.org>
+References: <1438298547-21404-1-git-send-email-jgunthorpe@obsidianresearch.com>
+	 <55BBF4B8.2050700@sandisk.com> <20150803152420.GA24193@infradead.org>
+	 <55BFB40F.8000500@sandisk.com> <20150804180933.GB5038@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150805004830.GA23589-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <20150804180933.GB5038-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 04, 2015 at 08:48:31PM -0400, ira.weiny wrote:
-> We are using Netlink multicast.  I believe that netlink_bind only allows root
-> to bind to multicast.
+On Tue, 2015-08-04 at 12:09 -0600, Jason Gunthorpe wrote:
+> On Mon, Aug 03, 2015 at 11:33:51AM -0700, Bart Van Assche wrote:
+> > >Bart, do you know what hardware this workaround is for?
+> > 
+> > I hope the HW vendors can comment on this. Sorry but I'm not sure which HCA
+> > models and/or firmware versions do not support FMR mapping with a non-zero
+> > offset.
+> 
+> Perhaps David can remember why he added this:
+> 
+> commit 8f26c9ff9cd0317ad867bce972f69e0c6c2cbe3c
 
-That is a good start...
+It's originally from commit 559ce8f150d7d031c79c4d79173860f1bdfe3ce4,
+and the list's attempts at code archaeology failed us: 
+http://article.gmane.org/gmane.linux.drivers.rdma/7149
 
-> That said I have not tested the ability to change the timeout settings if one
-> were to bind without multicast and send a message.
+> The way it is phrased makes it seem like a target bug, not a HCA bug?
 
-I rather expect that needs fixing..
+Yes, the original commit is explicit about it being a target issue.
+Since it mentioned the boogeyman words "data corruption", I kept the
+work around in the FMR work. 
 
-And I bet sequence numbers are sufficiently predictable that the path
-reply should be restricted to root as well.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
