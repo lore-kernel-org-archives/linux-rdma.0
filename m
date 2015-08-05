@@ -1,250 +1,43 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Make ib_dealloc_pd return void
-Date: Wed, 5 Aug 2015 17:08:15 -0400
-Message-ID: <98E5B148-B3A5-4D88-B5E4-305EA46E6D3C@oracle.com>
-References: <20150805203431.GB30271@obsidianresearch.com> <C771535C-C9AD-4AC1-81BF-2A4122D5EDAE@oracle.com> <55C2795C.7060700@Netapp.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55C2795C.7060700-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chien Yen <chien.yen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH V6 6/9] isert: Rename IO functions to more descriptive names
+Date: Wed, 5 Aug 2015 16:23:27 -0500
+Message-ID: <00b001d0cfc4$f83a14c0$e8ae3e40$@opengridcomputing.com>
+References: <20150724161331.25617.8475.stgit@build2.ogc.int> <20150724161848.25617.26092.stgit@build2.ogc.int> <55B4B190.7070305@dev.mellanox.co.il> <55B5404F.5040404@opengridcomputing.com> <000001d0ce23$27048810$750d9830$@opengridcomputing.com> <55C0F5B7.4040100@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: 
+Content-Language: en-us
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-On Aug 5, 2015, at 5:00 PM, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org> wrote:
-
-> On 08/05/2015 04:50 PM, Chuck Lever wrote:
->> 
->> On Aug 5, 2015, at 4:34 PM, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
->> 
->>> The majority of callers never check the return value, and even if they
->>> did, they can't do anything about a failure.
->>> 
->>> All possible failure cases represent a bug in the caller, so just
->>> WARN_ON inside the function instead.
->>> 
->>> This fixes a few random errors:
->>> net/rd/iw.c infinite loops while it fails. (racing with EBUSY?)
->>> 
->>> This also lays the ground work to get rid of error return from the
->>> drivers. Most drivers do not error, the few that do are broken since
->>> it cannot be handled.
->>> 
->>> Since uverbs can legitimately make use of EBUSY, open code the
->>> check.
->>> 
->>> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
->>> ---
->>> drivers/infiniband/core/uverbs_cmd.c       | 22 ++++++++++++++++------
->>> drivers/infiniband/core/verbs.c            | 26 ++++++++++++++++++++------
->>> drivers/infiniband/ulp/ipoib/ipoib_verbs.c |  4 +---
->>> drivers/infiniband/ulp/iser/iser_verbs.c   |  2 +-
->>> include/rdma/ib_verbs.h                    |  6 +-----
->>> net/rds/iw.c                               |  5 +----
->>> net/sunrpc/xprtrdma/verbs.c                |  2 +-
->>> 7 files changed, 41 insertions(+), 26 deletions(-)
->>> 
->>> Doug, this applies after the local_dma_lkey cleanup series.
->>> 
->>> Lightly tested with ipoib/uverbs/umad on mlx4.
->>> 
->>> This patch will expose buggy ULPs, I would not be too surprised to see
->>> a report of the WARN_ON triggering...
->>> 
->>> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
->>> index 258485ee46b2..4c98696e3626 100644
->>> --- a/drivers/infiniband/core/uverbs_cmd.c
->>> +++ b/drivers/infiniband/core/uverbs_cmd.c
->>> @@ -606,6 +606,7 @@ ssize_t ib_uverbs_dealloc_pd(struct ib_uverbs_file *file,
->>> {
->>> 	struct ib_uverbs_dealloc_pd cmd;
->>> 	struct ib_uobject          *uobj;
->>> +	struct ib_pd		   *pd;
->>> 	int                         ret;
->>> 
->>> 	if (copy_from_user(&cmd, buf, sizeof cmd))
->>> @@ -614,15 +615,20 @@ ssize_t ib_uverbs_dealloc_pd(struct ib_uverbs_file *file,
->>> 	uobj = idr_write_uobj(&ib_uverbs_pd_idr, cmd.pd_handle, file->ucontext);
->>> 	if (!uobj)
->>> 		return -EINVAL;
->>> +	pd = uobj->object;
->>> 
->>> -	ret = ib_dealloc_pd(uobj->object);
->>> -	if (!ret)
->>> -		uobj->live = 0;
->>> -
->>> -	put_uobj_write(uobj);
->>> +	if (atomic_read(&pd->usecnt)) {
->>> +		ret = -EBUSY;
->>> +		goto err_put;
->>> +	}
->>> 
->>> +	ret = pd->device->dealloc_pd(uobj->object);
->>> +	WARN_ONCE(ret, "Infiniband HW driver failed dealloc_pd");
->>> 	if (ret)
->>> -		return ret;
->>> +		goto err_put;
->>> +
->>> +	uobj->live = 0;
->>> +	put_uobj_write(uobj);
->>> 
->>> 	idr_remove_uobj(&ib_uverbs_pd_idr, uobj);
->>> 
->>> @@ -633,6 +639,10 @@ ssize_t ib_uverbs_dealloc_pd(struct ib_uverbs_file *file,
->>> 	put_uobj(uobj);
->>> 
->>> 	return in_len;
->>> +
->>> +err_put:
->>> +	put_uobj_write(uobj);
->>> +	return ret;
->>> }
->>> 
->>> struct xrcd_table_entry {
->>> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
->>> index bb561c8e51ad..b13f7a9240b5 100644
->>> --- a/drivers/infiniband/core/verbs.c
->>> +++ b/drivers/infiniband/core/verbs.c
->>> @@ -260,18 +260,32 @@ struct ib_pd *ib_alloc_pd(struct ib_device *device)
->>> }
->>> EXPORT_SYMBOL(ib_alloc_pd);
->>> 
->>> -int ib_dealloc_pd(struct ib_pd *pd)
->>> +/**
->>> + * ib_dealloc_pd - Deallocates a protection domain.
->>> + * @pd: The protection domain to deallocate.
->>> + *
->>> + * It is an error to call this function while any resources in the pd still
->>> + * exist.  The caller is responsible to synchronously destroy them and
->>> + * guarantee no new allocations will happen.
->>> + */
->>> +void ib_dealloc_pd(struct ib_pd *pd)
->>> {
->>> +	int ret;
->>> +
->>> 	if (pd->local_mr) {
->>> -		if (ib_dereg_mr(pd->local_mr))
->>> -			return -EBUSY;
->>> +		ret = ib_dereg_mr(pd->local_mr);
->>> +		WARN_ON(ret);
->>> 		pd->local_mr = NULL;
->>> 	}
->>> 
->>> -	if (atomic_read(&pd->usecnt))
->>> -		return -EBUSY;
->>> +	/* uverbs manipulates usecnt with proper locking, while the kabi
->>> +	   requires the caller to guarantee we can't race here. */
->>> +	WARN_ON(atomic_read(&pd->usecnt));
->>> 
->>> -	return pd->device->dealloc_pd(pd);
->>> +	/* Making delalloc_pd a void return is a WIP, no driver should return
->>> +	   an error here. */
->>> +	ret = pd->device->dealloc_pd(pd);
->>> +	WARN_ONCE(ret, "Infiniband HW driver failed dealloc_pd");
->>> }
->>> EXPORT_SYMBOL(ib_dealloc_pd);
->>> 
->>> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
->>> index 8c451983d8a5..78845b6e8b81 100644
->>> --- a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
->>> +++ b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
->>> @@ -280,9 +280,7 @@ void ipoib_transport_dev_cleanup(struct net_device *dev)
->>> 		priv->wq = NULL;
->>> 	}
->>> 
->>> -	if (ib_dealloc_pd(priv->pd))
->>> -		ipoib_warn(priv, "ib_dealloc_pd failed\n");
->>> -
->>> +	ib_dealloc_pd(priv->pd);
->>> }
->>> 
->>> void ipoib_event(struct ib_event_handler *handler,
->>> diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
->>> index 52268356c79e..6e984e4b553b 100644
->>> --- a/drivers/infiniband/ulp/iser/iser_verbs.c
->>> +++ b/drivers/infiniband/ulp/iser/iser_verbs.c
->>> @@ -201,7 +201,7 @@ static void iser_free_device_ib_res(struct iser_device *device)
->>> 
->>> 	(void)ib_unregister_event_handler(&device->event_handler);
->>> 	(void)ib_dereg_mr(device->mr);
->>> -	(void)ib_dealloc_pd(device->pd);
->>> +	ib_dealloc_pd(device->pd);
->>> 
->>> 	kfree(device->comps);
->>> 	device->comps = NULL;
->>> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
->>> index eaec3081fb87..4aaab4fe459c 100644
->>> --- a/include/rdma/ib_verbs.h
->>> +++ b/include/rdma/ib_verbs.h
->>> @@ -2139,11 +2139,7 @@ int ib_find_pkey(struct ib_device *device,
->>> 
->>> struct ib_pd *ib_alloc_pd(struct ib_device *device);
->>> 
->>> -/**
->>> - * ib_dealloc_pd - Deallocates a protection domain.
->>> - * @pd: The protection domain to deallocate.
->>> - */
->>> -int ib_dealloc_pd(struct ib_pd *pd);
->>> +void ib_dealloc_pd(struct ib_pd *pd);
->>> 
->>> /**
->>> * ib_create_ah - Creates an address handle for the given address vector.
->>> diff --git a/net/rds/iw.c b/net/rds/iw.c
->>> index 589935661d66..5f228e00ad09 100644
->>> --- a/net/rds/iw.c
->>> +++ b/net/rds/iw.c
->>> @@ -149,10 +149,7 @@ static void rds_iw_remove_one(struct ib_device *device)
->>> 	if (rds_iwdev->mr)
->>> 		ib_dereg_mr(rds_iwdev->mr);
->>> 
->>> -	while (ib_dealloc_pd(rds_iwdev->pd)) {
->>> -		rdsdebug("Failed to dealloc pd %p\n", rds_iwdev->pd);
->>> -		msleep(1);
->>> -	}
->>> +	ib_dealloc_pd(rds_iwdev->pd);
->>> 
->>> 	list_del(&rds_iwdev->list);
->>> 	kfree(rds_iwdev);
->>> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
->>> index 891c4ede2c20..afd504375a9a 100644
->>> --- a/net/sunrpc/xprtrdma/verbs.c
->>> +++ b/net/sunrpc/xprtrdma/verbs.c
->>> @@ -624,7 +624,7 @@ rpcrdma_ia_close(struct rpcrdma_ia *ia)
->>> 
->>> 	/* If the pd is still busy, xprtrdma missed freeing a resource */
->>> 	if (ia->ri_pd && !IS_ERR(ia->ri_pd))
->>> -		WARN_ON(ib_dealloc_pd(ia->ri_pd));
->>> +		ib_dealloc_pd(ia->ri_pd);
->>> }
->>> 
->>> /*
->> 
->> Reviewed-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->> 
->> Does this hunk or the xprtrdma changes in the local DMA lkey
->> series need an Acked-by: from Anna?
+> >
+> > > Hey Sagi, how is this coming along?  How can I help?
+> > >
+> >
+> > Hi Steve,
+> >
+> > This is taking longer than I expected, the changes needed seem
+> > pretty extensive throughout the IO path. I don't think it will be ready
+> > for 4.3
+> >
 > 
-> If it's a client side change, then yeah it'll need an Acked-by from me.  I'm not sure if I've seen the DMA lkey changes yet, can somebody point me to them?
+> Perhaps then we should go with my version that adds iwarp-only FRMR IO handlers for 4.3.  Then they can be phased out as the rework
+> matures.  Thoughts?
 > 
-> This hunk looks fine to me:
-> 
-> 	Acked-by: Anna Schumaker <Anna.Schumaker-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
 
-sigh. Time for me to stop working today.
+Shall I send out the series again for merging into 4.3?
 
-Jason's local DMA lkey patches don't touch xprtrdma. Whose
-did? Was it Sagi's s/g list patches? I'd just like to see
-the i's dotted and so on.
+Thanks,
+
+Steve.
 
 --
-Chuck Lever
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
