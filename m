@@ -1,46 +1,50 @@
-From: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 0/2] IB/{core,mlx4_ib}: RX/TX checksum offload
-Date: Wed,  5 Aug 2015 18:34:25 +0300
-Message-ID: <1438788867-18332-1-git-send-email-amirv@mellanox.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH for-next V7 6/6] IB/ucma: HW Device hot-removal support
+Date: Wed, 05 Aug 2015 18:51:53 +0300
+Message-ID: <55C23119.9040804@dev.mellanox.co.il>
+References: <1438697008-26209-1-git-send-email-yishaih@mellanox.com> <1438697008-26209-7-git-send-email-yishaih@mellanox.com> <20150805002338.GB22959@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150805002338.GB22959-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eric Dube <edube-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
+On 8/5/2015 3:23 AM, Jason Gunthorpe wrote:
+> On Tue, Aug 04, 2015 at 05:03:28PM +0300, Yishai Hadas wrote:
+>> Currently, IB/cma remove_one flow blocks until all user descriptor managed by
+>> IB/ucma are released. This prevents hot-removal of IB devices. This patch
+>> allows IB/cma to remove devices regardless of user space activity. Upon getting
+>> the RDMA_CM_EVENT_DEVICE_REMOVAL event we close all the underlying HW resources
+>> for the given ucontext. The ucontext itself is still alive till its explicit
+>> destroying by its creator.
+>
+> Implementation aside,
+>
+> This changes the policy of the ucma from
+>   Tell user space and expect it to synchronously clean up
+> To
+>   Tell user space we already nuked the RDMA device asynchronously
+>
+> Do we even want to do that unconditionally?
 
-This small patchset introduces a new member "csum_cap" inside ib_device_attr.
-It is used to report RX/TX checksum offload capabilities of the device.
-Having a new field enables reporting more specific capabilities than
-the single bit IB_DEVICE_IP_CSUM.
+Yes, the kernel should not depend on userspace applications to approve 
+when it has some fatal error or device is removed/unbinded.
 
-This will be used by a revised version of the IP checksum patches [1], that
-will be sent later on.
+>
+> Shouldn't the kernel at least give userspace some time to respond to
+> the event before nuking the world?
 
-The patchset was applied and tested over branch to-be-rebased/for-4.3, commit
-153b730 ("Merge branch 'hfi1-v4' into to-be-rebased/for-4.3")
-
-[1] - libibverbs: https://patchwork.kernel.org/patch/6604211/
-      libmlx4: https://patchwork.kernel.org/patch/6604221/
-
-Thanks,
-Amir
-
-Amir Vadai (1):
-  IB/mlx4_ib: Add support for RX/TX checksum offload capabilities report
-
-Bodong Wang (1):
-  IB/core: Add support for RX/TX checksum offload capabilities report
-
- drivers/infiniband/core/uverbs_cmd.c | 6 ++++++
- drivers/infiniband/hw/mlx4/main.c    | 6 ++++++
- include/rdma/ib_verbs.h              | 8 ++++++++
- include/uapi/rdma/ib_user_verbs.h    | 2 ++
- 4 files changed, 22 insertions(+)
-
--- 
-2.4.3.413.ga5fe668
+No, the kernel activity is asynchronous to user-space, has higher 
+priority and should not wait for. The kernel raises up an event 
+(RDMA_CM_EVENT_DEVICE_REMOVAL) let userspace to know that the device was 
+removed and continue.
+Application that handles events (as expected to do ..) should get it and 
+take relevant action items. Further application calls will result in an 
+error but application will stay alive.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
