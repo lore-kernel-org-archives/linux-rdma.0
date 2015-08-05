@@ -1,71 +1,57 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 00/12] IB: Replace safe uses for ib_get_dma_mr with
- pd->local_dma_lkey
-Date: Wed, 5 Aug 2015 14:45:48 -0700
-Message-ID: <55C2840C.5050301@sandisk.com>
-References: <1438298547-21404-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <55BBF4B8.2050700@sandisk.com> <20150803152420.GA24193@infradead.org>
- <55BFB40F.8000500@sandisk.com> <20150804180933.GB5038@obsidianresearch.com>
- <1438756876.5698.2.camel@haswell.thedillows.org>
- <20150805195122.GA31595@obsidianresearch.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next 1/2] IB/core: Add support for RX/TX checksum
+ offload capabilities report
+Date: Thu, 6 Aug 2015 01:16:17 +0300
+Message-ID: <CAJ3xEMgFCx3Xaan2WYL53HRnhdvnoDsS2TriYbENQizpnV31dw@mail.gmail.com>
+References: <1438788867-18332-1-git-send-email-amirv@mellanox.com>
+	<1438788867-18332-2-git-send-email-amirv@mellanox.com>
+	<20150805171634.GA12274@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150805195122.GA31595-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20150805171634.GA12274-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eric Dube <edube-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 08/05/2015 12:51 PM, Jason Gunthorpe wrote:
-> On Tue, Aug 04, 2015 at 11:41:16PM -0700, David Dillow wrote:
->> On Tue, 2015-08-04 at 12:09 -0600, Jason Gunthorpe wrote:
->>> On Mon, Aug 03, 2015 at 11:33:51AM -0700, Bart Van Assche wrote:
->>>>> Bart, do you know what hardware this workaround is for?
->>>>
->>>> I hope the HW vendors can comment on this. Sorry but I'm not sure which HCA
->>>> models and/or firmware versions do not support FMR mapping with a non-zero
->>>> offset.
->>>
->>> Perhaps David can remember why he added this:
->>>
->>> commit 8f26c9ff9cd0317ad867bce972f69e0c6c2cbe3c
->>
->> It's originally from commit 559ce8f150d7d031c79c4d79173860f1bdfe3ce4,
->> and the list's attempts at code archaeology failed us:
->> http://article.gmane.org/gmane.linux.drivers.rdma/7149
+On Wed, Aug 5, 2015 at 8:16 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Wed, Aug 05, 2015 at 06:34:26PM +0300, Amir Vadai wrote:
+>>  struct ib_uverbs_ex_query_device {
+>>       __u32 comp_mask;
+>> +     __u32 csum_caps;
+>>       __u32 reserved;
+>>  };
 >
-> Okay.. So over time we went from a clear target specific bug described
-> 9 years ago in 559ce through chinese whispers to a general unspecific
-> fear of non-zero offset FMR?
+> Uh no.
 >
-> But nobody has described FMR failure in this way in the past 9 years
-> with any specificity?
+>> @@ -221,6 +222,7 @@ struct ib_uverbs_odp_caps {
+>>  struct ib_uverbs_ex_query_device_resp {
+>>       struct ib_uverbs_query_device_resp base;
+>>       __u32 comp_mask;
+>> +     __u32 csum_caps;
+>>       __u32 response_length;
+>>       struct ib_uverbs_odp_caps odp_caps;
+>>       __u64 timestamp_mask;
 >
-> My random guesses would be broken mthca firmware at the start of the
-> FMR feature (long since fixed) or a wonky target that is now 10 years
-> obsolete..
+> Also totally wrong.
 >
-> If it was an HCA bug, I strongly have to think it is fixed now. We use
-> FMR all over the place and SRP is the only area I've noticed this
-> restriction..
->
-> If it is a target bug, then FRWR should trigger it as wel, so we are
-> already about to revert that workaround.
->
-> I'm inclined to drop this entirely.. What do you think Bart?
+> Or, WTF? why is something so screwed up like this being sent to the list?
+> NAK
 
-Even today I see memory corruption at the initiator side with FMR and 
-not with FR if I leave out the alignment check. Since this only occurs 
-with FMR and not with FR that excludes the target side as a possible 
-cause. I will have a closer look at the srp_map_finish_fmr() function. 
-Always passing 0 as the second argument of srp_map_desc() in 
-srp_map_finish_fmr() is probably wrong. Before 2011 that second argument 
-was the page offset of the first sg-list entry.
 
-Bart.
+Jason,
 
+So -- shit happens, I am trying to figure out if an internal review
+has been done, b/c we do have some folks who terribly master the
+extended uverbs framework, right...? if this is wrong it's good that
+you rejected the patch and even put it in WTF response, but again, I
+see that the author is someone new to the upstream rdma stack and we
+should encourage more people to participate... so you sent him back
+home to do HW, let's see what this will yield.
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
