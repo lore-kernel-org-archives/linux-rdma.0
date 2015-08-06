@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v1 17/22] IB/iser: Make reg_desc_get a per device routine
-Date: Thu,  6 Aug 2015 18:33:01 +0300
-Message-ID: <1438875186-4310-18-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v1 13/22] IB/iser: Move fastreg descriptor allocation to iser_create_fastreg_desc
+Date: Thu,  6 Aug 2015 18:32:57 +0300
+Message-ID: <1438875186-4310-14-git-send-email-sagig@mellanox.com>
 References: <1438875186-4310-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1438875186-4310-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,175 +10,89 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-As for fmrs we will hold a single registration descriptor
-as no need for multiple like in the frwr mode (descriptor
-for each task). This change helps unifying the duplicate
-registration code paths.
+Don't have the caller allocate the structure and worry about
+freeing it in case the routine failed.
+
+This patch does not change any functionality.
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Adir Lev <adirl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.h  | 16 ++++++++++---
- drivers/infiniband/ulp/iser/iser_memory.c | 38 +++++++++++++++++++++++--------
- 2 files changed, 41 insertions(+), 13 deletions(-)
+ drivers/infiniband/ulp/iser/iser_verbs.c | 38 ++++++++++++++------------------
+ 1 file changed, 17 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
-index a8c8177..611abaa 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.h
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
-@@ -333,6 +333,8 @@ struct iser_comp {
-  * @free_reg_res:      Free registration resources
-  * @reg_rdma_mem:      Register memory buffers
-  * @unreg_rdma_mem:    Un-register memory buffers
-+ * @reg_desc_get:      Get a registration descriptor for pool
-+ * @reg_desc_put:      Get a registration descriptor to pool
-  */
- struct iser_reg_ops {
- 	int            (*alloc_reg_res)(struct ib_conn *ib_conn,
-@@ -342,6 +344,9 @@ struct iser_reg_ops {
- 				       enum iser_data_dir cmd_dir);
- 	void           (*unreg_rdma_mem)(struct iscsi_iser_task *iser_task,
- 					 enum iser_data_dir cmd_dir);
-+	struct iser_fr_desc * (*reg_desc_get)(struct ib_conn *ib_conn);
-+	void           (*reg_desc_put)(struct ib_conn *ib_conn,
-+				       struct iser_fr_desc *desc);
- };
- 
- /**
-@@ -657,8 +662,13 @@ void iser_free_fastreg_pool(struct ib_conn *ib_conn);
- u8 iser_check_task_pi_status(struct iscsi_iser_task *iser_task,
- 			     enum iser_data_dir cmd_dir, sector_t *sector);
- struct iser_fr_desc *
--iser_reg_desc_get(struct ib_conn *ib_conn);
-+iser_reg_desc_get_fr(struct ib_conn *ib_conn);
- void
--iser_reg_desc_put(struct ib_conn *ib_conn,
--		  struct iser_fr_desc *desc);
-+iser_reg_desc_put_fr(struct ib_conn *ib_conn,
-+		     struct iser_fr_desc *desc);
-+struct iser_fr_desc *
-+iser_reg_desc_get_fmr(struct ib_conn *ib_conn);
-+void
-+iser_reg_desc_put_fmr(struct ib_conn *ib_conn,
-+		      struct iser_fr_desc *desc);
- #endif
-diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index 11bba5a..4e687ee 100644
---- a/drivers/infiniband/ulp/iser/iser_memory.c
-+++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -44,6 +44,8 @@ static struct iser_reg_ops fastreg_ops = {
- 	.free_reg_res	= iser_free_fastreg_pool,
- 	.reg_rdma_mem	= iser_reg_rdma_mem_fastreg,
- 	.unreg_rdma_mem	= iser_unreg_mem_fastreg,
-+	.reg_desc_get	= iser_reg_desc_get_fr,
-+	.reg_desc_put	= iser_reg_desc_put_fr,
- };
- 
- static struct iser_reg_ops fmr_ops = {
-@@ -51,6 +53,8 @@ static struct iser_reg_ops fmr_ops = {
- 	.free_reg_res	= iser_free_fmr_pool,
- 	.reg_rdma_mem	= iser_reg_rdma_mem_fmr,
- 	.unreg_rdma_mem	= iser_unreg_mem_fmr,
-+	.reg_desc_get	= iser_reg_desc_get_fmr,
-+	.reg_desc_put	= iser_reg_desc_put_fmr,
- };
- 
- int iser_assign_reg_ops(struct iser_device *device)
-@@ -182,7 +186,7 @@ iser_copy_to_bounce(struct iser_data_buf *data)
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index ca0aba3..5f3af96 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -341,17 +341,20 @@ iser_free_pi_ctx(struct iser_pi_context *pi_ctx)
+ 	kfree(pi_ctx);
  }
  
- struct iser_fr_desc *
--iser_reg_desc_get(struct ib_conn *ib_conn)
-+iser_reg_desc_get_fr(struct ib_conn *ib_conn)
+-static int
++static struct iser_fr_desc *
+ iser_create_fastreg_desc(struct ib_device *ib_device, struct ib_pd *pd,
+-			 bool pi_enable, struct iser_fr_desc *desc)
++			 bool pi_enable)
  {
- 	struct iser_fr_pool *fr_pool = &ib_conn->fr_pool;
- 	struct iser_fr_desc *desc;
-@@ -198,8 +202,8 @@ iser_reg_desc_get(struct ib_conn *ib_conn)
- }
++	struct iser_fr_desc *desc;
+ 	int ret;
  
- void
--iser_reg_desc_put(struct ib_conn *ib_conn,
--		  struct iser_fr_desc *desc)
-+iser_reg_desc_put_fr(struct ib_conn *ib_conn,
-+		     struct iser_fr_desc *desc)
- {
- 	struct iser_fr_pool *fr_pool = &ib_conn->fr_pool;
- 	unsigned long flags;
-@@ -209,6 +213,21 @@ iser_reg_desc_put(struct ib_conn *ib_conn,
- 	spin_unlock_irqrestore(&fr_pool->lock, flags);
- }
- 
-+struct iser_fr_desc *
-+iser_reg_desc_get_fmr(struct ib_conn *ib_conn)
-+{
-+	struct iser_fr_pool *fr_pool = &ib_conn->fr_pool;
++	desc = kzalloc(sizeof(*desc), GFP_KERNEL);
++	if (!desc)
++		return ERR_PTR(-ENOMEM);
 +
-+	return list_first_entry(&fr_pool->list,
-+				struct iser_fr_desc, list);
-+}
-+
-+void
-+iser_reg_desc_put_fmr(struct ib_conn *ib_conn,
-+		      struct iser_fr_desc *desc)
-+{
-+}
-+
- /**
-  * iser_start_rdma_unaligned_sg
-  */
-@@ -544,13 +563,14 @@ void iser_unreg_mem_fmr(struct iscsi_iser_task *iser_task,
- void iser_unreg_mem_fastreg(struct iscsi_iser_task *iser_task,
- 			    enum iser_data_dir cmd_dir)
- {
-+	struct iser_device *device = iser_task->iser_conn->ib_conn.device;
- 	struct iser_mem_reg *reg = &iser_task->rdma_reg[cmd_dir];
+ 	ret = iser_alloc_reg_res(ib_device, pd, &desc->rsc);
+-	if (ret) {
+-		iser_err("failed to allocate reg_resources\n");
+-		return ret;
+-	}
++	if (ret)
++		goto reg_res_alloc_failure;
  
- 	if (!reg->mem_h)
- 		return;
- 
--	iser_reg_desc_put(&iser_task->iser_conn->ib_conn,
--			  reg->mem_h);
-+	device->reg_ops->reg_desc_put(&iser_task->iser_conn->ib_conn,
-+				     reg->mem_h);
- 	reg->mem_h = NULL;
- }
- 
-@@ -564,7 +584,6 @@ int iser_reg_rdma_mem_fmr(struct iscsi_iser_task *iser_task,
- 			  enum iser_data_dir cmd_dir)
- {
- 	struct ib_conn *ib_conn = &iser_task->iser_conn->ib_conn;
--	struct iser_fr_pool *fr_pool = &ib_conn->fr_pool;
- 	struct iser_device   *device = ib_conn->device;
- 	struct ib_device     *ibdev = device->ib_device;
- 	struct iser_data_buf *mem = &iser_task->data[cmd_dir];
-@@ -590,8 +609,7 @@ int iser_reg_rdma_mem_fmr(struct iscsi_iser_task *iser_task,
- 	} else { /* use FMR for multiple dma entries */
- 		struct iser_fr_desc *desc;
- 
--		desc = list_first_entry(&fr_pool->list,
--					struct iser_fr_desc, list);
-+		desc = device->reg_ops->reg_desc_get(ib_conn);
- 		err = iser_fast_reg_fmr(iser_task, mem, &desc->rsc, mem_reg);
- 		if (err && err != -EAGAIN) {
- 			iser_data_buf_dump(mem, ibdev);
-@@ -844,7 +862,7 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
- 
- 	if (mem->dma_nents != 1 ||
- 	    scsi_get_prot_op(iser_task->sc) != SCSI_PROT_NORMAL) {
--		desc = iser_reg_desc_get(ib_conn);
-+		desc = device->reg_ops->reg_desc_get(ib_conn);
- 		mem_reg->mem_h = desc;
+ 	if (pi_enable) {
+ 		ret = iser_alloc_pi_ctx(ib_device, pd, desc);
+@@ -359,12 +362,14 @@ iser_create_fastreg_desc(struct ib_device *ib_device, struct ib_pd *pd,
+ 			goto pi_ctx_alloc_failure;
  	}
  
-@@ -887,7 +905,7 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
- 	return 0;
- err_reg:
- 	if (desc)
--		iser_reg_desc_put(ib_conn, desc);
-+		device->reg_ops->reg_desc_put(ib_conn, desc);
+-	return 0;
++	return desc;
  
- 	return err;
+ pi_ctx_alloc_failure:
+ 	iser_free_reg_res(&desc->rsc);
++reg_res_alloc_failure:
++	kfree(desc);
+ 
+-	return ret;
++	return ERR_PTR(ret);
  }
+ 
+ /**
+@@ -381,19 +386,10 @@ int iser_alloc_fastreg_pool(struct ib_conn *ib_conn, unsigned cmds_max)
+ 	INIT_LIST_HEAD(&ib_conn->fastreg.pool);
+ 	ib_conn->fastreg.pool_size = 0;
+ 	for (i = 0; i < cmds_max; i++) {
+-		desc = kzalloc(sizeof(*desc), GFP_KERNEL);
+-		if (!desc) {
+-			iser_err("Failed to allocate a new fast_reg descriptor\n");
+-			ret = -ENOMEM;
+-			goto err;
+-		}
+-
+-		ret = iser_create_fastreg_desc(device->ib_device, device->pd,
+-					       ib_conn->pi_support, desc);
+-		if (ret) {
+-			iser_err("Failed to create fastreg descriptor err=%d\n",
+-				 ret);
+-			kfree(desc);
++		desc = iser_create_fastreg_desc(device->ib_device, device->pd,
++						ib_conn->pi_support);
++		if (IS_ERR(desc)) {
++			ret = PTR_ERR(desc);
+ 			goto err;
+ 		}
+ 
 -- 
 1.8.4.3
 
