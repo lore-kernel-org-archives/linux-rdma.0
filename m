@@ -1,38 +1,54 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 00/12] IB: Replace safe uses for ib_get_dma_mr with
- pd->local_dma_lkey
-Date: Thu, 6 Aug 2015 08:09:29 -0700
-Message-ID: <55C378A9.3080309@sandisk.com>
-References: <55BBF4B8.2050700@sandisk.com>
- <20150803152420.GA24193@infradead.org> <55BFB40F.8000500@sandisk.com>
- <20150804180933.GB5038@obsidianresearch.com>
- <1438756876.5698.2.camel@haswell.thedillows.org>
- <20150805195122.GA31595@obsidianresearch.com> <55C2840C.5050301@sandisk.com>
- <55C2912A.50709@sandisk.com> <20150806001006.GD2483@obsidianresearch.com>
- <55C2A7FE.7020904@sandisk.com> <20150806043642.GA14153@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v1 05/22] IB/iser: Get rid of un-maintained counters
+Date: Thu,  6 Aug 2015 18:32:49 +0300
+Message-ID: <1438875186-4310-6-git-send-email-sagig@mellanox.com>
+References: <1438875186-4310-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150806043642.GA14153-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1438875186-4310-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 08/05/2015 09:36 PM, Jason Gunthorpe wrote:
-> On Wed, Aug 05, 2015 at 05:19:10PM -0700, Bart Van Assche wrote:
->> A few experimental and untested patches are available for review at
->> https://github.com/bvanassche/linux/tree/srp-initiator-for-next-experimental.
->
-> I'll leave this is in your hands then..
+We don't update those anywhere in the code and they
+seem pretty useless (no one seem to care about those).
 
-Is there perhaps a tree available somewhere with the latest version of 
-your patch series ?
+qp_tx_queue_full: We never should get this
+fmr_map_not_avail: We can never get to this
+eh_abort_cnt: We don't monitor aborts
 
-Thanks,
+Go ahead and remove them.
 
-Bart.
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/ulp/iser/iscsi_iser.c | 12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
+index 859d9d9..92b1020 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.c
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
+@@ -750,15 +750,9 @@ iscsi_iser_conn_get_stats(struct iscsi_cls_conn *cls_conn, struct iscsi_stats *s
+ 	stats->r2t_pdus = conn->r2t_pdus_cnt; /* always 0 */
+ 	stats->tmfcmd_pdus = conn->tmfcmd_pdus_cnt;
+ 	stats->tmfrsp_pdus = conn->tmfrsp_pdus_cnt;
+-	stats->custom_length = 4;
+-	strcpy(stats->custom[0].desc, "qp_tx_queue_full");
+-	stats->custom[0].value = 0; /* TB iser_conn->qp_tx_queue_full; */
+-	strcpy(stats->custom[1].desc, "fmr_map_not_avail");
+-	stats->custom[1].value = 0; /* TB iser_conn->fmr_map_not_avail */;
+-	strcpy(stats->custom[2].desc, "eh_abort_cnt");
+-	stats->custom[2].value = conn->eh_abort_cnt;
+-	strcpy(stats->custom[3].desc, "fmr_unalign_cnt");
+-	stats->custom[3].value = conn->fmr_unalign_cnt;
++	stats->custom_length = 1;
++	strcpy(stats->custom[0].desc, "fmr_unalign_cnt");
++	stats->custom[0].value = conn->fmr_unalign_cnt;
+ }
+ 
+ static int iscsi_iser_get_ep_param(struct iscsi_endpoint *ep,
+-- 
+1.8.4.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
