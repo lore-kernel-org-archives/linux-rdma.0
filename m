@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v1 11/22] IB/iser: Remove dead code in fmr_pool alloc/free
-Date: Thu,  6 Aug 2015 18:32:55 +0300
-Message-ID: <1438875186-4310-12-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v1 02/22] IB/iser: Change minor assignments and logging prints
+Date: Thu,  6 Aug 2015 18:32:46 +0300
+Message-ID: <1438875186-4310-3-git-send-email-sagig@mellanox.com>
 References: <1438875186-4310-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1438875186-4310-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,66 +10,50 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-In the past the we always tried to allocate an fmr_pool
-and if it failed on ENOSYS (not supported) then we continued
-with dma mr. This is not the case anymore and if we tried to
-allocate an fmr_pool then it is supported and we expect to succeed.
-
-Also, the check if fmr_pool is allocated when free is called is
-redundant as well as we are guaranteed it exists.
-
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iser_verbs.c | 26 ++++++++++----------------
- 1 file changed, 10 insertions(+), 16 deletions(-)
+ drivers/infiniband/ulp/iser/iscsi_iser.c | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index f7828e3..2a0cb42 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -244,22 +244,18 @@ int iser_create_fmr_pool(struct ib_conn *ib_conn, unsigned cmds_max)
- 				    IB_ACCESS_REMOTE_READ);
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
+index c7cea25..7420062 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.c
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
+@@ -847,10 +847,9 @@ failure:
+ static int
+ iscsi_iser_ep_poll(struct iscsi_endpoint *ep, int timeout_ms)
+ {
+-	struct iser_conn *iser_conn;
++	struct iser_conn *iser_conn = ep->dd_data;
+ 	int rc;
  
- 	ib_conn->fmr.pool = ib_create_fmr_pool(device->pd, &params);
--	if (!IS_ERR(ib_conn->fmr.pool))
--		return 0;
-+	if (IS_ERR(ib_conn->fmr.pool)) {
-+		ret = PTR_ERR(ib_conn->fmr.pool);
-+		iser_err("FMR allocation failed, err %d\n", ret);
-+		goto err;
-+	}
-+
-+	return 0;
+-	iser_conn = ep->dd_data;
+ 	rc = wait_for_completion_interruptible_timeout(&iser_conn->up_completion,
+ 						       msecs_to_jiffies(timeout_ms));
+ 	/* if conn establishment failed, return error code to iscsi */
+@@ -862,7 +861,7 @@ iscsi_iser_ep_poll(struct iscsi_endpoint *ep, int timeout_ms)
+ 		mutex_unlock(&iser_conn->state_mutex);
+ 	}
  
--	/* no FMR => no need for page_vec */
-+err:
- 	kfree(ib_conn->fmr.page_vec);
- 	ib_conn->fmr.page_vec = NULL;
--
--	ret = PTR_ERR(ib_conn->fmr.pool);
--	ib_conn->fmr.pool = NULL;
--	if (ret != -ENOSYS) {
--		iser_err("FMR allocation failed, err %d\n", ret);
--		return ret;
--	} else {
--		iser_warn("FMRs are not supported, using unaligned mode\n");
--		return 0;
--	}
-+	return ret;
- }
+-	iser_info("ib conn %p rc = %d\n", iser_conn, rc);
++	iser_info("iser conn %p rc = %d\n", iser_conn, rc);
  
- /**
-@@ -270,9 +266,7 @@ void iser_free_fmr_pool(struct ib_conn *ib_conn)
- 	iser_info("freeing conn %p fmr pool %p\n",
- 		  ib_conn, ib_conn->fmr.pool);
+ 	if (rc > 0)
+ 		return 1; /* success, this is the equivalent of POLLOUT */
+@@ -884,11 +883,9 @@ iscsi_iser_ep_poll(struct iscsi_endpoint *ep, int timeout_ms)
+ static void
+ iscsi_iser_ep_disconnect(struct iscsi_endpoint *ep)
+ {
+-	struct iser_conn *iser_conn;
++	struct iser_conn *iser_conn = ep->dd_data;
  
--	if (ib_conn->fmr.pool != NULL)
--		ib_destroy_fmr_pool(ib_conn->fmr.pool);
--
-+	ib_destroy_fmr_pool(ib_conn->fmr.pool);
- 	ib_conn->fmr.pool = NULL;
+-	iser_conn = ep->dd_data;
+-	iser_info("ep %p iser conn %p state %d\n",
+-		  ep, iser_conn, iser_conn->state);
++	iser_info("ep %p iser conn %p\n", ep, iser_conn);
  
- 	kfree(ib_conn->fmr.page_vec);
+ 	mutex_lock(&iser_conn->state_mutex);
+ 	iser_conn_terminate(iser_conn);
 -- 
 1.8.4.3
 
