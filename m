@@ -1,75 +1,88 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v1 00/22] iser patches for 4.3
-Date: Thu,  6 Aug 2015 18:32:44 +0300
-Message-ID: <1438875186-4310-1-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v1 08/22] IB/iser: Remove an unneeded print for unaligned memory
+Date: Thu,  6 Aug 2015 18:32:52 +0300
+Message-ID: <1438875186-4310-9-git-send-email-sagig@mellanox.com>
+References: <1438875186-4310-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1438875186-4310-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This set is a resend that includes some extra patches that
-piled up in the meantime.
+We can do it in iser_aligned_data_len instead and
+it will save us an argument that is passed to
+fall_to_counce_buf just for the print.
 
-I still have some patches in the pipe (including initiator/target
-support for remote invalidate) but I'm targeting those to 4.4
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/ulp/iser/iser_memory.c | 20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
-I postponed the comment from Steve on using system PAGE_SIZE
-in patch 20 until I have access to a relevant arch to test on.
-
-This patch set includes:
-- Small fixes for bugs encountered in testing
-- Small fixes detected by static checkers
-- Memory registration code path rework (consolidate to
-  a single code path that branches only at the actual registration
-  FRWR vs. FMR). This reduces code duplication that exists in current code.
-- Larger IO transfer size support (up to 8MB at the moment) depending on
-  the device capabilities.
-- Optimize Io path by chaining send work requests and posting them
-  only once.
-
-Changes from v0:
-- Added Fixes: tags to patches 4,6
-- Modified change logs for patche 20,22 to add some more details
-  (comments from Or)
-
-Adir Lev (1):
-  IB/iser: Maintain connection fmr_pool under a single registration
-    descriptor
-
-Jenny Falkovich (1):
-  IB/iser: Change some module parameters to be RO
-
-Sagi Grimberg (20):
-  IB/iser: Change minor assignments and logging prints
-  IB/iser: Remove '.' from log message
-  IB/iser: Fix missing return status check in iser_send_data_out
-  IB/iser: Get rid of un-maintained counters
-  IB/iser: Fix possible bogus DMA unmapping
-  IB/iser: Remove a redundant always-false condition
-  IB/iser: Remove an unneeded print for unaligned memory
-  IB/iser: Introduce struct iser_reg_resources
-  IB/iser: Rename struct fast_reg_descriptor -> iser_fr_desc
-  IB/iser: Remove dead code in fmr_pool alloc/free
-  IB/iser: Introduce iser_reg_ops
-  IB/iser: Move fastreg descriptor allocation to
-    iser_create_fastreg_desc
-  IB/iser: Introduce iser registration pool struct
-  IB/iser: Rename iser_reg_page_vec to iser_fast_reg_fmr
-  IB/iser: Make reg_desc_get a per device routine
-  IB/iser: Unify fast memory registration flows
-  IB/iser: Pass registration pool a size parameter
-  IB/iser: Support up to 8MB data transfer in a single command
-  IB/iser: Add debug prints to the various memory registration methods
-  IB/iser: Chain all iser transaction send work requests
-
- drivers/infiniband/ulp/iser/iscsi_iser.c     |  89 +++--
- drivers/infiniband/ulp/iser/iscsi_iser.h     | 206 ++++++++----
- drivers/infiniband/ulp/iser/iser_initiator.c |  34 +-
- drivers/infiniband/ulp/iser/iser_memory.c    | 480 +++++++++++++++------------
- drivers/infiniband/ulp/iser/iser_verbs.c     | 328 ++++++++++--------
- 5 files changed, 645 insertions(+), 492 deletions(-)
-
+diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
+index 3129a42..56dd53b 100644
+--- a/drivers/infiniband/ulp/iser/iser_memory.c
++++ b/drivers/infiniband/ulp/iser/iser_memory.c
+@@ -330,8 +330,11 @@ static int iser_data_buf_aligned_len(struct iser_data_buf *data,
+ 			break;
+ 	}
+ 	ret_len = (next_sg) ? i : i+1;
+-	iser_dbg("Found %d aligned entries out of %d in sg:0x%p\n",
+-		 ret_len, data->dma_nents, data);
++
++	if (unlikely(ret_len != data->dma_nents))
++		iser_warn("rdma alignment violation (%d/%d aligned)\n",
++			  ret_len, data->dma_nents);
++
+ 	return ret_len;
+ }
+ 
+@@ -407,15 +410,12 @@ iser_reg_dma(struct iser_device *device, struct iser_data_buf *mem,
+ 
+ static int fall_to_bounce_buf(struct iscsi_iser_task *iser_task,
+ 			      struct iser_data_buf *mem,
+-			      enum iser_data_dir cmd_dir,
+-			      int aligned_len)
++			      enum iser_data_dir cmd_dir)
+ {
+ 	struct iscsi_conn *iscsi_conn = iser_task->iser_conn->iscsi_conn;
+ 	struct iser_device *device = iser_task->iser_conn->ib_conn.device;
+ 
+ 	iscsi_conn->fmr_unalign_cnt++;
+-	iser_warn("rdma alignment violation (%d/%d aligned) or FMR not supported\n",
+-		  aligned_len, mem->size);
+ 
+ 	if (iser_debug_level > 0)
+ 		iser_data_buf_dump(mem, device->ib_device);
+@@ -537,8 +537,7 @@ int iser_reg_rdma_mem_fmr(struct iscsi_iser_task *iser_task,
+ 
+ 	aligned_len = iser_data_buf_aligned_len(mem, ibdev);
+ 	if (aligned_len != mem->dma_nents) {
+-		err = fall_to_bounce_buf(iser_task, mem,
+-					 cmd_dir, aligned_len);
++		err = fall_to_bounce_buf(iser_task, mem, cmd_dir);
+ 		if (err) {
+ 			iser_err("failed to allocate bounce buffer\n");
+ 			return err;
+@@ -800,8 +799,7 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
+ 
+ 	aligned_len = iser_data_buf_aligned_len(mem, ibdev);
+ 	if (aligned_len != mem->dma_nents) {
+-		err = fall_to_bounce_buf(iser_task, mem,
+-					 cmd_dir, aligned_len);
++		err = fall_to_bounce_buf(iser_task, mem, cmd_dir);
+ 		if (err) {
+ 			iser_err("failed to allocate bounce buffer\n");
+ 			return err;
+@@ -828,7 +826,7 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
+ 			aligned_len = iser_data_buf_aligned_len(mem, ibdev);
+ 			if (aligned_len != mem->dma_nents) {
+ 				err = fall_to_bounce_buf(iser_task, mem,
+-							 cmd_dir, aligned_len);
++							 cmd_dir);
+ 				if (err) {
+ 					iser_err("failed to allocate bounce buffer\n");
+ 					return err;
 -- 
 1.8.4.3
 
