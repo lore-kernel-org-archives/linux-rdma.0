@@ -1,80 +1,81 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v1 01/22] IB/iser: Change some module parameters to be RO
-Date: Thu,  6 Aug 2015 18:32:45 +0300
-Message-ID: <1438875186-4310-2-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v1 06/22] IB/iser: Fix possible bogus DMA unmapping
+Date: Thu,  6 Aug 2015 18:32:50 +0300
+Message-ID: <1438875186-4310-7-git-send-email-sagig@mellanox.com>
 References: <1438875186-4310-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1438875186-4310-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jenny Falkovich <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jenny Falkovich <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+If iser_initialize_task_headers() routine failed before
+dma mapping, we should not attempt to unmap in cleanup_task().
 
-While we're at it, use permission defines instead
-of octal values and rearrange a little bit.
-
-Signed-off-by: Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Fixes: 7414dde0a6c3a958e (IB/iser: Fix race between iser connection ...)
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.c | 31 +++++++++++++++----------------
- 1 file changed, 15 insertions(+), 16 deletions(-)
+ drivers/infiniband/ulp/iser/iscsi_iser.c | 12 ++++++++----
+ drivers/infiniband/ulp/iser/iscsi_iser.h |  2 ++
+ 2 files changed, 10 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
-index c969fc1..c7cea25 100644
+index 92b1020..e3cea61 100644
 --- a/drivers/infiniband/ulp/iser/iscsi_iser.c
 +++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-@@ -74,34 +74,33 @@
+@@ -200,6 +200,7 @@ iser_initialize_task_headers(struct iscsi_task *task,
+ 		goto out;
+ 	}
  
- #include "iscsi_iser.h"
++	tx_desc->mapped = true;
+ 	tx_desc->dma_addr = dma_addr;
+ 	tx_desc->tx_sg[0].addr   = tx_desc->dma_addr;
+ 	tx_desc->tx_sg[0].length = ISER_HEADERS_LEN;
+@@ -359,16 +360,19 @@ iscsi_iser_task_xmit(struct iscsi_task *task)
+ static void iscsi_iser_cleanup_task(struct iscsi_task *task)
+ {
+ 	struct iscsi_iser_task *iser_task = task->dd_data;
+-	struct iser_tx_desc    *tx_desc   = &iser_task->desc;
+-	struct iser_conn       *iser_conn	  = task->conn->dd_data;
++	struct iser_tx_desc *tx_desc = &iser_task->desc;
++	struct iser_conn *iser_conn = task->conn->dd_data;
+ 	struct iser_device *device = iser_conn->ib_conn.device;
  
-+MODULE_DESCRIPTION("iSER (iSCSI Extensions for RDMA) Datamover");
-+MODULE_LICENSE("Dual BSD/GPL");
-+MODULE_AUTHOR("Alex Nezhinsky, Dan Bar Dov, Or Gerlitz");
-+MODULE_VERSION(DRV_VER);
-+
- static struct scsi_host_template iscsi_iser_sht;
- static struct iscsi_transport iscsi_iser_transport;
- static struct scsi_transport_template *iscsi_iser_scsi_transport;
-+static struct workqueue_struct *release_wq;
-+struct iser_global ig;
-+
-+int iser_debug_level = 0;
-+module_param_named(debug_level, iser_debug_level, int, S_IRUGO | S_IWUSR);
-+MODULE_PARM_DESC(debug_level, "Enable debug tracing if > 0 (default:disabled)");
+ 	/* DEVICE_REMOVAL event might have already released the device */
+ 	if (!device)
+ 		return;
  
- static unsigned int iscsi_max_lun = 512;
- module_param_named(max_lun, iscsi_max_lun, uint, S_IRUGO);
-+MODULE_PARM_DESC(max_lun, "Max LUNs to allow per session (default:512");
+-	ib_dma_unmap_single(device->ib_device,
+-		tx_desc->dma_addr, ISER_HEADERS_LEN, DMA_TO_DEVICE);
++	if (likely(tx_desc->mapped)) {
++		ib_dma_unmap_single(device->ib_device, tx_desc->dma_addr,
++				    ISER_HEADERS_LEN, DMA_TO_DEVICE);
++		tx_desc->mapped = false;
++	}
  
--int iser_debug_level = 0;
- bool iser_pi_enable = false;
--int iser_pi_guard = 1;
--
--MODULE_DESCRIPTION("iSER (iSCSI Extensions for RDMA) Datamover");
--MODULE_LICENSE("Dual BSD/GPL");
--MODULE_AUTHOR("Alex Nezhinsky, Dan Bar Dov, Or Gerlitz");
--MODULE_VERSION(DRV_VER);
--
--module_param_named(debug_level, iser_debug_level, int, 0644);
--MODULE_PARM_DESC(debug_level, "Enable debug tracing if > 0 (default:disabled)");
--
--module_param_named(pi_enable, iser_pi_enable, bool, 0644);
-+module_param_named(pi_enable, iser_pi_enable, bool, S_IRUGO);
- MODULE_PARM_DESC(pi_enable, "Enable T10-PI offload support (default:disabled)");
+ 	/* mgmt tasks do not need special cleanup */
+ 	if (!task->sc)
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
+index 262ba1f..d2b6caf 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.h
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
+@@ -270,6 +270,7 @@ enum iser_desc_type {
+  *                 sg[1] optionally points to either of immediate data
+  *                 unsolicited data-out or control
+  * @num_sge:       number sges used on this TX task
++ * @mapped:        Is the task header mapped
+  */
+ struct iser_tx_desc {
+ 	struct iser_hdr              iser_header;
+@@ -278,6 +279,7 @@ struct iser_tx_desc {
+ 	u64		             dma_addr;
+ 	struct ib_sge		     tx_sg[2];
+ 	int                          num_sge;
++	bool			     mapped;
+ };
  
--module_param_named(pi_guard, iser_pi_guard, int, 0644);
-+int iser_pi_guard;
-+module_param_named(pi_guard, iser_pi_guard, int, S_IRUGO);
- MODULE_PARM_DESC(pi_guard, "T10-PI guard_type [deprecated]");
- 
--static struct workqueue_struct *release_wq;
--struct iser_global ig;
--
- /*
-  * iscsi_iser_recv() - Process a successfull recv completion
-  * @conn:         iscsi connection
+ #define ISER_RX_PAD_SIZE	(256 - (ISER_RX_PAYLOAD_SIZE + \
 -- 
 1.8.4.3
 
