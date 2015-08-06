@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v1 12/22] IB/iser: Introduce iser_reg_ops
-Date: Thu,  6 Aug 2015 18:32:56 +0300
-Message-ID: <1438875186-4310-13-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v1 20/22] IB/iser: Support up to 8MB data transfer in a single command
+Date: Thu,  6 Aug 2015 18:33:04 +0300
+Message-ID: <1438875186-4310-21-git-send-email-sagig@mellanox.com>
 References: <1438875186-4310-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1438875186-4310-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,273 +10,234 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Move all the per-device function pointers to an easy
-extensible iser_reg_ops structure that contains all
-the iser registration operations.
+iser support up to 512KB data transfer in a single scsi command.
+This means that larger IOs will split to different request. While
+iser can easily saturate FDR/EDR wires, some arrays are fine tuned
+for 1MB (or larger) IO sizes, hence add an option to support larger
+transfers (up to 8MB) if the device allows it.
+
+Given that a few target implementations don't support data transfers
+of more than 512KB by default and the fact that larger IO sizes require
+more resources, we introduce a module parameter to determine the
+maximum number of 512B sectors in a single scsi command.
+Users that are interested in larger transfers can change this value given
+that the target supports larger transfers.
+
+At the moment, iser works in 4K pages granularity, In a later stage
+we will get it to work with system page size instead.
+
+IO operations that consists of N pages will need a page vector
+of size N+1 in case the first SG element contains an offset. Given
+that some devices allocates memory regions in powers of 2, this
+means that allocating a region with N+1 pages, will result in
+region resources allocation of the next power of 2. Since we don't
+want that to happen, in case we are in the limit of IO size supported
+and the first SG element has an offset, we align the SG list using a
+bounce buffer (which is OK given that this is not likely to happen a lot).
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.h     | 39 ++++++++++++++++++----------
- drivers/infiniband/ulp/iser/iser_initiator.c | 16 ++++++------
- drivers/infiniband/ulp/iser/iser_memory.c    | 35 +++++++++++++++++++++++++
- drivers/infiniband/ulp/iser/iser_verbs.c     | 30 +++++----------------
- 4 files changed, 75 insertions(+), 45 deletions(-)
+ drivers/infiniband/ulp/iser/iscsi_iser.c     | 19 ++++++++-----------
+ drivers/infiniband/ulp/iser/iscsi_iser.h     | 14 ++++++++++++--
+ drivers/infiniband/ulp/iser/iser_initiator.c |  2 +-
+ drivers/infiniband/ulp/iser/iser_memory.c    | 14 ++++++++++++--
+ drivers/infiniband/ulp/iser/iser_verbs.c     | 27 +++++++++++++++++++++++++++
+ 5 files changed, 60 insertions(+), 16 deletions(-)
 
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
+index e3cea61..9eeefc8 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.c
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
+@@ -93,6 +93,10 @@ static unsigned int iscsi_max_lun = 512;
+ module_param_named(max_lun, iscsi_max_lun, uint, S_IRUGO);
+ MODULE_PARM_DESC(max_lun, "Max LUNs to allow per session (default:512");
+ 
++unsigned int iser_max_sectors = ISER_DEF_MAX_SECTORS;
++module_param_named(max_sectors, iser_max_sectors, uint, S_IRUGO | S_IWUSR);
++MODULE_PARM_DESC(max_sectors, "Max number of sectors in a single scsi command (default:1024");
++
+ bool iser_pi_enable = false;
+ module_param_named(pi_enable, iser_pi_enable, bool, S_IRUGO);
+ MODULE_PARM_DESC(pi_enable, "Enable T10-PI offload support (default:disabled)");
+@@ -625,6 +629,8 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
+ 	if (ep) {
+ 		iser_conn = ep->dd_data;
+ 		max_cmds = iser_conn->max_cmds;
++		shost->sg_tablesize = iser_conn->scsi_sg_tablesize;
++		shost->max_sectors = iser_conn->scsi_max_sectors;
+ 
+ 		mutex_lock(&iser_conn->state_mutex);
+ 		if (iser_conn->state != ISER_CONN_UP) {
+@@ -643,15 +649,6 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
+ 						   SHOST_DIX_GUARD_CRC);
+ 		}
+ 
+-		/*
+-		 * Limit the sg_tablesize and max_sectors based on the device
+-		 * max fastreg page list length.
+-		 */
+-		shost->sg_tablesize = min_t(unsigned short, shost->sg_tablesize,
+-			ib_conn->device->dev_attr.max_fast_reg_page_list_len);
+-		shost->max_sectors = min_t(unsigned int,
+-			1024, (shost->sg_tablesize * PAGE_SIZE) >> 9);
+-
+ 		if (iscsi_host_add(shost,
+ 				   ib_conn->device->ib_device->dma_device)) {
+ 			mutex_unlock(&iser_conn->state_mutex);
+@@ -966,8 +963,8 @@ static struct scsi_host_template iscsi_iser_sht = {
+ 	.name                   = "iSCSI Initiator over iSER",
+ 	.queuecommand           = iscsi_queuecommand,
+ 	.change_queue_depth	= scsi_change_queue_depth,
+-	.sg_tablesize           = ISCSI_ISER_SG_TABLESIZE,
+-	.max_sectors		= 1024,
++	.sg_tablesize           = ISCSI_ISER_DEF_SG_TABLESIZE,
++	.max_sectors            = ISER_DEF_MAX_SECTORS,
+ 	.cmd_per_lun            = ISER_DEF_CMD_PER_LUN,
+ 	.eh_abort_handler       = iscsi_eh_abort,
+ 	.eh_device_reset_handler= iscsi_eh_device_reset,
 diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
-index 70bf6e7..9ce090c 100644
+index e9ebe0b..0bdd7e7 100644
 --- a/drivers/infiniband/ulp/iser/iscsi_iser.h
 +++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
-@@ -326,6 +326,25 @@ struct iser_comp {
+@@ -98,8 +98,13 @@
+ #define SHIFT_4K	12
+ #define SIZE_4K	(1ULL << SHIFT_4K)
+ #define MASK_4K	(~(SIZE_4K-1))
+-					/* support up to 512KB in one RDMA */
+-#define ISCSI_ISER_SG_TABLESIZE         (0x80000 >> SHIFT_4K)
++
++/* Default support is 512KB I/O size */
++#define ISER_DEF_MAX_SECTORS		1024
++#define ISCSI_ISER_DEF_SG_TABLESIZE	((ISER_DEF_MAX_SECTORS * 512) >> SHIFT_4K)
++/* Maximum support is 8MB I/O size */
++#define ISCSI_ISER_MAX_SG_TABLESIZE	((16384 * 512) >> SHIFT_4K)
++
+ #define ISER_DEF_XMIT_CMDS_DEFAULT		512
+ #if ISCSI_DEF_XMIT_CMDS_MAX > ISER_DEF_XMIT_CMDS_DEFAULT
+ 	#define ISER_DEF_XMIT_CMDS_MAX		ISCSI_DEF_XMIT_CMDS_MAX
+@@ -504,6 +509,8 @@ struct ib_conn {
+  * @rx_desc_head:     head of rx_descs cyclic buffer
+  * @rx_descs:         rx buffers array (cyclic buffer)
+  * @num_rx_descs:     number of rx descriptors
++ * @scsi_sg_tablesize: scsi host sg_tablesize
++ * @scsi_max_sectors: scsi host max sectors
+  */
+ struct iser_conn {
+ 	struct ib_conn		     ib_conn;
+@@ -528,6 +535,8 @@ struct iser_conn {
+ 	unsigned int 		     rx_desc_head;
+ 	struct iser_rx_desc	     *rx_descs;
+ 	u32                          num_rx_descs;
++	unsigned short               scsi_sg_tablesize;
++	unsigned int                 scsi_max_sectors;
  };
  
  /**
-+ * struct iser_device - Memory registration operations
-+ *     per-device registration schemes
-+ *
-+ * @alloc_reg_res:     Allocate registration resources
-+ * @free_reg_res:      Free registration resources
-+ * @reg_rdma_mem:      Register memory buffers
-+ * @unreg_rdma_mem:    Un-register memory buffers
-+ */
-+struct iser_reg_ops {
-+	int            (*alloc_reg_res)(struct ib_conn *ib_conn,
-+					unsigned cmds_max);
-+	void           (*free_reg_res)(struct ib_conn *ib_conn);
-+	int            (*reg_rdma_mem)(struct iscsi_iser_task *iser_task,
-+				       enum iser_data_dir cmd_dir);
-+	void           (*unreg_rdma_mem)(struct iscsi_iser_task *iser_task,
-+					 enum iser_data_dir cmd_dir);
-+};
-+
-+/**
-  * struct iser_device - iSER device handle
-  *
-  * @ib_device:     RDMA device
-@@ -338,11 +357,7 @@ struct iser_comp {
-  * @comps_used:    Number of completion contexts used, Min between online
-  *                 cpus and device max completion vectors
-  * @comps:         Dinamically allocated array of completion handlers
-- * Memory registration pool Function pointers (FMR or Fastreg):
-- *     @iser_alloc_rdma_reg_res: Allocation of memory regions pool
-- *     @iser_free_rdma_reg_res:  Free of memory regions pool
-- *     @iser_reg_rdma_mem:       Memory registration routine
-- *     @iser_unreg_rdma_mem:     Memory deregistration routine
-+ * @reg_ops:       Registration ops
-  */
- struct iser_device {
- 	struct ib_device             *ib_device;
-@@ -354,13 +369,7 @@ struct iser_device {
- 	int                          refcount;
- 	int			     comps_used;
- 	struct iser_comp	     *comps;
--	int                          (*iser_alloc_rdma_reg_res)(struct ib_conn *ib_conn,
--								unsigned cmds_max);
--	void                         (*iser_free_rdma_reg_res)(struct ib_conn *ib_conn);
--	int                          (*iser_reg_rdma_mem)(struct iscsi_iser_task *iser_task,
--							  enum iser_data_dir cmd_dir);
--	void                         (*iser_unreg_rdma_mem)(struct iscsi_iser_task *iser_task,
--							    enum iser_data_dir cmd_dir);
-+	struct iser_reg_ops          *reg_ops;
- };
- 
- #define ISER_CHECK_GUARD	0xc0
-@@ -563,6 +572,8 @@ extern int iser_debug_level;
+@@ -583,6 +592,7 @@ extern struct iser_global ig;
+ extern int iser_debug_level;
  extern bool iser_pi_enable;
  extern int iser_pi_guard;
++extern unsigned int iser_max_sectors;
  
-+int iser_assign_reg_ops(struct iser_device *device);
-+
- int iser_send_control(struct iscsi_conn *conn,
- 		      struct iscsi_task *task);
+ int iser_assign_reg_ops(struct iser_device *device);
  
-@@ -636,9 +647,9 @@ int  iser_initialize_task_headers(struct iscsi_task *task,
- 			struct iser_tx_desc *tx_desc);
- int iser_alloc_rx_descriptors(struct iser_conn *iser_conn,
- 			      struct iscsi_session *session);
--int iser_create_fmr_pool(struct ib_conn *ib_conn, unsigned cmds_max);
-+int iser_alloc_fmr_pool(struct ib_conn *ib_conn, unsigned cmds_max);
- void iser_free_fmr_pool(struct ib_conn *ib_conn);
--int iser_create_fastreg_pool(struct ib_conn *ib_conn, unsigned cmds_max);
-+int iser_alloc_fastreg_pool(struct ib_conn *ib_conn, unsigned cmds_max);
- void iser_free_fastreg_pool(struct ib_conn *ib_conn);
- u8 iser_check_task_pi_status(struct iscsi_iser_task *iser_task,
- 			     enum iser_data_dir cmd_dir, sector_t *sector);
 diff --git a/drivers/infiniband/ulp/iser/iser_initiator.c b/drivers/infiniband/ulp/iser/iser_initiator.c
-index 42d6f42..88d8a89 100644
+index 268a3d6..d511879 100644
 --- a/drivers/infiniband/ulp/iser/iser_initiator.c
 +++ b/drivers/infiniband/ulp/iser/iser_initiator.c
-@@ -73,7 +73,7 @@ static int iser_prepare_read_cmd(struct iscsi_task *task)
- 			return err;
- 	}
- 
--	err = device->iser_reg_rdma_mem(iser_task, ISER_DIR_IN);
-+	err = device->reg_ops->reg_rdma_mem(iser_task, ISER_DIR_IN);
- 	if (err) {
- 		iser_err("Failed to set up Data-IN RDMA\n");
- 		return err;
-@@ -128,7 +128,7 @@ iser_prepare_write_cmd(struct iscsi_task *task,
- 			return err;
- 	}
- 
--	err = device->iser_reg_rdma_mem(iser_task, ISER_DIR_OUT);
-+	err = device->reg_ops->reg_rdma_mem(iser_task, ISER_DIR_OUT);
- 	if (err != 0) {
- 		iser_err("Failed to register write cmd RDMA mem\n");
- 		return err;
-@@ -260,7 +260,7 @@ int iser_alloc_rx_descriptors(struct iser_conn *iser_conn,
- 	iser_conn->qp_max_recv_dtos_mask = session->cmds_max - 1; /* cmds_max is 2^N */
+@@ -259,7 +259,7 @@ int iser_alloc_rx_descriptors(struct iser_conn *iser_conn,
  	iser_conn->min_posted_rx = iser_conn->qp_max_recv_dtos >> 2;
  
--	if (device->iser_alloc_rdma_reg_res(ib_conn, session->scsi_cmds_max))
-+	if (device->reg_ops->alloc_reg_res(ib_conn, session->scsi_cmds_max))
+ 	if (device->reg_ops->alloc_reg_res(ib_conn, session->scsi_cmds_max,
+-					   ISCSI_ISER_SG_TABLESIZE + 1))
++					   iser_conn->scsi_sg_tablesize))
  		goto create_rdma_reg_res_failed;
  
  	if (iser_alloc_login_buf(iser_conn))
-@@ -301,7 +301,7 @@ rx_desc_dma_map_failed:
- rx_desc_alloc_fail:
- 	iser_free_login_buf(iser_conn);
- alloc_login_buf_fail:
--	device->iser_free_rdma_reg_res(ib_conn);
-+	device->reg_ops->free_reg_res(ib_conn);
- create_rdma_reg_res_failed:
- 	iser_err("failed allocating rx descriptors / data buffers\n");
- 	return -ENOMEM;
-@@ -314,8 +314,8 @@ void iser_free_rx_descriptors(struct iser_conn *iser_conn)
- 	struct ib_conn *ib_conn = &iser_conn->ib_conn;
- 	struct iser_device *device = ib_conn->device;
- 
--	if (device->iser_free_rdma_reg_res)
--		device->iser_free_rdma_reg_res(ib_conn);
-+	if (device->reg_ops->free_reg_res)
-+		device->reg_ops->free_reg_res(ib_conn);
- 
- 	rx_desc = iser_conn->rx_descs;
- 	for (i = 0; i < iser_conn->qp_max_recv_dtos; i++, rx_desc++)
-@@ -699,7 +699,7 @@ void iser_task_rdma_finalize(struct iscsi_iser_task *iser_task)
- 	}
- 
- 	if (iser_task->dir[ISER_DIR_IN]) {
--		device->iser_unreg_rdma_mem(iser_task, ISER_DIR_IN);
-+		device->reg_ops->unreg_rdma_mem(iser_task, ISER_DIR_IN);
- 		if (is_rdma_data_aligned)
- 			iser_dma_unmap_task_data(iser_task,
- 						 &iser_task->data[ISER_DIR_IN],
-@@ -711,7 +711,7 @@ void iser_task_rdma_finalize(struct iscsi_iser_task *iser_task)
- 	}
- 
- 	if (iser_task->dir[ISER_DIR_OUT]) {
--		device->iser_unreg_rdma_mem(iser_task, ISER_DIR_OUT);
-+		device->reg_ops->unreg_rdma_mem(iser_task, ISER_DIR_OUT);
- 		if (is_rdma_data_aligned)
- 			iser_dma_unmap_task_data(iser_task,
- 						 &iser_task->data[ISER_DIR_OUT],
 diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index 4209d73..ff3ec53 100644
+index 5e807ba..cbf6152 100644
 --- a/drivers/infiniband/ulp/iser/iser_memory.c
 +++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -39,6 +39,41 @@
+@@ -363,7 +363,8 @@ static int iser_sg_to_page_vec(struct iser_data_buf *data,
+  * consecutive SG elements are actually fragments of the same physcial page.
+  */
+ static int iser_data_buf_aligned_len(struct iser_data_buf *data,
+-				      struct ib_device *ibdev)
++				     struct ib_device *ibdev,
++				     unsigned sg_tablesize)
+ {
+ 	struct scatterlist *sg, *sgl, *next_sg = NULL;
+ 	u64 start_addr, end_addr;
+@@ -375,6 +376,14 @@ static int iser_data_buf_aligned_len(struct iser_data_buf *data,
+ 	sgl = data->sg;
+ 	start_addr  = ib_sg_dma_address(ibdev, sgl);
  
- #include "iscsi_iser.h"
- 
-+static struct iser_reg_ops fastreg_ops = {
-+	.alloc_reg_res	= iser_alloc_fastreg_pool,
-+	.free_reg_res	= iser_free_fastreg_pool,
-+	.reg_rdma_mem	= iser_reg_rdma_mem_fastreg,
-+	.unreg_rdma_mem	= iser_unreg_mem_fastreg,
-+};
-+
-+static struct iser_reg_ops fmr_ops = {
-+	.alloc_reg_res	= iser_alloc_fmr_pool,
-+	.free_reg_res	= iser_free_fmr_pool,
-+	.reg_rdma_mem	= iser_reg_rdma_mem_fmr,
-+	.unreg_rdma_mem	= iser_unreg_mem_fmr,
-+};
-+
-+int iser_assign_reg_ops(struct iser_device *device)
-+{
-+	struct ib_device_attr *dev_attr = &device->dev_attr;
-+
-+	/* Assign function handles  - based on FMR support */
-+	if (device->ib_device->alloc_fmr && device->ib_device->dealloc_fmr &&
-+	    device->ib_device->map_phys_fmr && device->ib_device->unmap_fmr) {
-+		iser_info("FMR supported, using FMR for registration\n");
-+		device->reg_ops = &fmr_ops;
-+	} else
-+	if (dev_attr->device_cap_flags & IB_DEVICE_MEM_MGT_EXTENSIONS) {
-+		iser_info("FastReg supported, using FastReg for registration\n");
-+		device->reg_ops = &fastreg_ops;
-+	} else {
-+		iser_err("IB device does not support FMRs nor FastRegs, can't register memory\n");
-+		return -1;
++	if (unlikely(sgl[0].offset &&
++		     data->data_len >= sg_tablesize * PAGE_SIZE)) {
++		iser_dbg("can't register length %lx with offset %x "
++			 "fall to bounce buffer\n", data->data_len,
++			 sgl[0].offset);
++		return 0;
 +	}
 +
-+	return 0;
-+}
-+
- static void
- iser_free_bounce_sg(struct iser_data_buf *data)
- {
+ 	for_each_sg(sgl, sg, data->dma_nents, i) {
+ 		if (start_check && !IS_4K_ALIGNED(start_addr))
+ 			break;
+@@ -790,7 +799,8 @@ iser_handle_unaligned_buf(struct iscsi_iser_task *task,
+ 	struct iser_device *device = iser_conn->ib_conn.device;
+ 	int err, aligned_len;
+ 
+-	aligned_len = iser_data_buf_aligned_len(mem, device->ib_device);
++	aligned_len = iser_data_buf_aligned_len(mem, device->ib_device,
++						iser_conn->scsi_sg_tablesize);
+ 	if (aligned_len != mem->dma_nents) {
+ 		err = fall_to_bounce_buf(task, mem, dir);
+ 		if (err)
 diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index 2a0cb42..ca0aba3 100644
+index fa778ba..f69cee7 100644
 --- a/drivers/infiniband/ulp/iser/iser_verbs.c
 +++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -87,25 +87,9 @@ static int iser_create_device_ib_res(struct iser_device *device)
- 		return ret;
+@@ -756,6 +756,31 @@ static void iser_connect_error(struct rdma_cm_id *cma_id)
+ 	iser_conn->state = ISER_CONN_TERMINATING;
+ }
+ 
++static void
++iser_calc_scsi_params(struct iser_conn *iser_conn,
++		      unsigned int max_sectors)
++{
++	struct iser_device *device = iser_conn->ib_conn.device;
++	unsigned short sg_tablesize, sup_sg_tablesize;
++
++	sg_tablesize = DIV_ROUND_UP(max_sectors * 512, SIZE_4K);
++	sup_sg_tablesize = min_t(unsigned, ISCSI_ISER_MAX_SG_TABLESIZE,
++				 device->dev_attr.max_fast_reg_page_list_len);
++
++	if (sg_tablesize > sup_sg_tablesize) {
++		sg_tablesize = sup_sg_tablesize;
++		iser_conn->scsi_max_sectors = sg_tablesize * SIZE_4K / 512;
++	} else {
++		iser_conn->scsi_max_sectors = max_sectors;
++	}
++
++	iser_conn->scsi_sg_tablesize = sg_tablesize;
++
++	iser_dbg("iser_conn %p, sg_tablesize %u, max_sectors %u\n",
++		 iser_conn, iser_conn->scsi_sg_tablesize,
++		 iser_conn->scsi_max_sectors);
++}
++
+ /**
+  * Called with state mutex held
+  **/
+@@ -794,6 +819,8 @@ static void iser_addr_handler(struct rdma_cm_id *cma_id)
+ 		}
  	}
  
--	/* Assign function handles  - based on FMR support */
--	if (device->ib_device->alloc_fmr && device->ib_device->dealloc_fmr &&
--	    device->ib_device->map_phys_fmr && device->ib_device->unmap_fmr) {
--		iser_info("FMR supported, using FMR for registration\n");
--		device->iser_alloc_rdma_reg_res = iser_create_fmr_pool;
--		device->iser_free_rdma_reg_res = iser_free_fmr_pool;
--		device->iser_reg_rdma_mem = iser_reg_rdma_mem_fmr;
--		device->iser_unreg_rdma_mem = iser_unreg_mem_fmr;
--	} else
--	if (dev_attr->device_cap_flags & IB_DEVICE_MEM_MGT_EXTENSIONS) {
--		iser_info("FastReg supported, using FastReg for registration\n");
--		device->iser_alloc_rdma_reg_res = iser_create_fastreg_pool;
--		device->iser_free_rdma_reg_res = iser_free_fastreg_pool;
--		device->iser_reg_rdma_mem = iser_reg_rdma_mem_fastreg;
--		device->iser_unreg_rdma_mem = iser_unreg_mem_fastreg;
--	} else {
--		iser_err("IB device does not support FMRs nor FastRegs, can't register memory\n");
--		return -1;
--	}
-+	ret = iser_assign_reg_ops(device);
-+	if (ret)
-+		return ret;
- 
- 	device->comps_used = min_t(int, num_online_cpus(),
- 				 device->ib_device->num_comp_vectors);
-@@ -211,11 +195,11 @@ static void iser_free_device_ib_res(struct iser_device *device)
- }
- 
- /**
-- * iser_create_fmr_pool - Creates FMR pool and page_vector
-+ * iser_alloc_fmr_pool - Creates FMR pool and page_vector
-  *
-  * returns 0 on success, or errno code on failure
-  */
--int iser_create_fmr_pool(struct ib_conn *ib_conn, unsigned cmds_max)
-+int iser_alloc_fmr_pool(struct ib_conn *ib_conn, unsigned cmds_max)
- {
- 	struct iser_device *device = ib_conn->device;
- 	struct ib_fmr_pool_param params;
-@@ -384,11 +368,11 @@ pi_ctx_alloc_failure:
- }
- 
- /**
-- * iser_create_fastreg_pool - Creates pool of fast_reg descriptors
-+ * iser_alloc_fastreg_pool - Creates pool of fast_reg descriptors
-  * for fast registration work requests.
-  * returns 0 on success, or errno code on failure
-  */
--int iser_create_fastreg_pool(struct ib_conn *ib_conn, unsigned cmds_max)
-+int iser_alloc_fastreg_pool(struct ib_conn *ib_conn, unsigned cmds_max)
- {
- 	struct iser_device *device = ib_conn->device;
- 	struct iser_fr_desc *desc;
++	iser_calc_scsi_params(iser_conn, iser_max_sectors);
++
+ 	ret = rdma_resolve_route(cma_id, 1000);
+ 	if (ret) {
+ 		iser_err("resolve route failed: %d\n", ret);
 -- 
 1.8.4.3
 
