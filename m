@@ -1,148 +1,75 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v1 10/22] IB/iser: Rename struct fast_reg_descriptor -> iser_fr_desc
-Date: Thu,  6 Aug 2015 18:32:54 +0300
-Message-ID: <1438875186-4310-11-git-send-email-sagig@mellanox.com>
-References: <1438875186-4310-1-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v1 00/22] iser patches for 4.3
+Date: Thu,  6 Aug 2015 18:32:44 +0300
+Message-ID: <1438875186-4310-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1438875186-4310-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Avoid struct names without iser_ prefix.
+This set is a resend that includes some extra patches that
+piled up in the meantime.
 
-This patch does not change any functionality.
+I still have some patches in the pipe (including initiator/target
+support for remote invalidate) but I'm targeting those to 4.4
 
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/iser/iscsi_iser.h  |  8 ++++----
- drivers/infiniband/ulp/iser/iser_memory.c | 10 +++++-----
- drivers/infiniband/ulp/iser/iser_verbs.c  | 10 +++++-----
- 3 files changed, 14 insertions(+), 14 deletions(-)
+I postponed the comment from Steve on using system PAGE_SIZE
+in patch 20 until I have access to a relevant arch to test on.
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
-index 9cdfdbd..70bf6e7 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.h
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
-@@ -396,13 +396,13 @@ struct iser_pi_context {
- };
- 
- /**
-- * struct fast_reg_descriptor - Fast registration descriptor
-+ * struct iser_fr_desc - Fast registration descriptor
-  *
-  * @list:           entry in connection fastreg pool
-  * @rsc:            data buffer registration resources
-  * @pi_ctx:         protection information context
-  */
--struct fast_reg_descriptor {
-+struct iser_fr_desc {
- 	struct list_head		  list;
- 	struct iser_reg_resources	  rsc;
- 	struct iser_pi_context		 *pi_ctx;
-@@ -642,9 +642,9 @@ int iser_create_fastreg_pool(struct ib_conn *ib_conn, unsigned cmds_max);
- void iser_free_fastreg_pool(struct ib_conn *ib_conn);
- u8 iser_check_task_pi_status(struct iscsi_iser_task *iser_task,
- 			     enum iser_data_dir cmd_dir, sector_t *sector);
--struct fast_reg_descriptor *
-+struct iser_fr_desc *
- iser_reg_desc_get(struct ib_conn *ib_conn);
- void
- iser_reg_desc_put(struct ib_conn *ib_conn,
--		  struct fast_reg_descriptor *desc);
-+		  struct iser_fr_desc *desc);
- #endif
-diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index e6516bc..4209d73 100644
---- a/drivers/infiniband/ulp/iser/iser_memory.c
-+++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -146,15 +146,15 @@ iser_copy_to_bounce(struct iser_data_buf *data)
- 	iser_copy_bounce(data, true);
- }
- 
--struct fast_reg_descriptor *
-+struct iser_fr_desc *
- iser_reg_desc_get(struct ib_conn *ib_conn)
- {
--	struct fast_reg_descriptor *desc;
-+	struct iser_fr_desc *desc;
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&ib_conn->lock, flags);
- 	desc = list_first_entry(&ib_conn->fastreg.pool,
--				struct fast_reg_descriptor, list);
-+				struct iser_fr_desc, list);
- 	list_del(&desc->list);
- 	spin_unlock_irqrestore(&ib_conn->lock, flags);
- 
-@@ -163,7 +163,7 @@ iser_reg_desc_get(struct ib_conn *ib_conn)
- 
- void
- iser_reg_desc_put(struct ib_conn *ib_conn,
--		  struct fast_reg_descriptor *desc)
-+		  struct iser_fr_desc *desc)
- {
- 	unsigned long flags;
- 
-@@ -787,7 +787,7 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
- 	struct ib_device *ibdev = device->ib_device;
- 	struct iser_data_buf *mem = &iser_task->data[cmd_dir];
- 	struct iser_mem_reg *mem_reg = &iser_task->rdma_reg[cmd_dir];
--	struct fast_reg_descriptor *desc = NULL;
-+	struct iser_fr_desc *desc = NULL;
- 	int err, aligned_len;
- 
- 	aligned_len = iser_data_buf_aligned_len(mem, ibdev);
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index 46b8875..f7828e3 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -320,7 +320,7 @@ iser_free_reg_res(struct iser_reg_resources *rsc)
- 
- static int
- iser_alloc_pi_ctx(struct ib_device *ib_device, struct ib_pd *pd,
--		  struct fast_reg_descriptor *desc)
-+		  struct iser_fr_desc *desc)
- {
- 	struct iser_pi_context *pi_ctx = NULL;
- 	int ret;
-@@ -365,7 +365,7 @@ iser_free_pi_ctx(struct iser_pi_context *pi_ctx)
- 
- static int
- iser_create_fastreg_desc(struct ib_device *ib_device, struct ib_pd *pd,
--			 bool pi_enable, struct fast_reg_descriptor *desc)
-+			 bool pi_enable, struct iser_fr_desc *desc)
- {
- 	int ret;
- 
-@@ -397,7 +397,7 @@ pi_ctx_alloc_failure:
- int iser_create_fastreg_pool(struct ib_conn *ib_conn, unsigned cmds_max)
- {
- 	struct iser_device *device = ib_conn->device;
--	struct fast_reg_descriptor *desc;
-+	struct iser_fr_desc *desc;
- 	int i, ret;
- 
- 	INIT_LIST_HEAD(&ib_conn->fastreg.pool);
-@@ -435,7 +435,7 @@ err:
-  */
- void iser_free_fastreg_pool(struct ib_conn *ib_conn)
- {
--	struct fast_reg_descriptor *desc, *tmp;
-+	struct iser_fr_desc *desc, *tmp;
- 	int i = 0;
- 
- 	if (list_empty(&ib_conn->fastreg.pool))
-@@ -1252,7 +1252,7 @@ u8 iser_check_task_pi_status(struct iscsi_iser_task *iser_task,
- 			     enum iser_data_dir cmd_dir, sector_t *sector)
- {
- 	struct iser_mem_reg *reg = &iser_task->rdma_reg[cmd_dir];
--	struct fast_reg_descriptor *desc = reg->mem_h;
-+	struct iser_fr_desc *desc = reg->mem_h;
- 	unsigned long sector_size = iser_task->sc->device->sector_size;
- 	struct ib_mr_status mr_status;
- 	int ret;
+This patch set includes:
+- Small fixes for bugs encountered in testing
+- Small fixes detected by static checkers
+- Memory registration code path rework (consolidate to
+  a single code path that branches only at the actual registration
+  FRWR vs. FMR). This reduces code duplication that exists in current code.
+- Larger IO transfer size support (up to 8MB at the moment) depending on
+  the device capabilities.
+- Optimize Io path by chaining send work requests and posting them
+  only once.
+
+Changes from v0:
+- Added Fixes: tags to patches 4,6
+- Modified change logs for patche 20,22 to add some more details
+  (comments from Or)
+
+Adir Lev (1):
+  IB/iser: Maintain connection fmr_pool under a single registration
+    descriptor
+
+Jenny Falkovich (1):
+  IB/iser: Change some module parameters to be RO
+
+Sagi Grimberg (20):
+  IB/iser: Change minor assignments and logging prints
+  IB/iser: Remove '.' from log message
+  IB/iser: Fix missing return status check in iser_send_data_out
+  IB/iser: Get rid of un-maintained counters
+  IB/iser: Fix possible bogus DMA unmapping
+  IB/iser: Remove a redundant always-false condition
+  IB/iser: Remove an unneeded print for unaligned memory
+  IB/iser: Introduce struct iser_reg_resources
+  IB/iser: Rename struct fast_reg_descriptor -> iser_fr_desc
+  IB/iser: Remove dead code in fmr_pool alloc/free
+  IB/iser: Introduce iser_reg_ops
+  IB/iser: Move fastreg descriptor allocation to
+    iser_create_fastreg_desc
+  IB/iser: Introduce iser registration pool struct
+  IB/iser: Rename iser_reg_page_vec to iser_fast_reg_fmr
+  IB/iser: Make reg_desc_get a per device routine
+  IB/iser: Unify fast memory registration flows
+  IB/iser: Pass registration pool a size parameter
+  IB/iser: Support up to 8MB data transfer in a single command
+  IB/iser: Add debug prints to the various memory registration methods
+  IB/iser: Chain all iser transaction send work requests
+
+ drivers/infiniband/ulp/iser/iscsi_iser.c     |  89 +++--
+ drivers/infiniband/ulp/iser/iscsi_iser.h     | 206 ++++++++----
+ drivers/infiniband/ulp/iser/iser_initiator.c |  34 +-
+ drivers/infiniband/ulp/iser/iser_memory.c    | 480 +++++++++++++++------------
+ drivers/infiniband/ulp/iser/iser_verbs.c     | 328 ++++++++++--------
+ 5 files changed, 645 insertions(+), 492 deletions(-)
+
 -- 
 1.8.4.3
 
