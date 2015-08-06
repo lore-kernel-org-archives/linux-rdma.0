@@ -1,40 +1,49 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [RFC] split struct ib_send_wr
-Date: Thu, 6 Aug 2015 02:47:12 -0700
-Message-ID: <20150806094712.GA21574@infradead.org>
-References: <20150804143447.GA22172@infradead.org>
- <20150806044008.GB14153@obsidianresearch.com>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next 1/2] IB/core: Add support for RX/TX checksum
+ offload capabilities report
+Date: Thu, 6 Aug 2015 11:00:45 +0000
+Message-ID: <HE1PR05MB1355B04E4B418A48DB5137B0C1740@HE1PR05MB1355.eurprd05.prod.outlook.com>
+References: <1438788867-18332-1-git-send-email-amirv@mellanox.com>
+ <1438788867-18332-2-git-send-email-amirv@mellanox.com>,<20150805171634.GA12274@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150806044008.GB14153-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20150805171634.GA12274-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eric Dube <edube-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Aug 05, 2015 at 10:40:08PM -0600, Jason Gunthorpe wrote:
-> Any numbers on the struct size reduction?
+On Wednesday, August 5, 2015 8:16 PM, Jason Gunthorpe jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Wed, Aug 05, 2015 at 06:34:26PM +0300, Amir Vadai wrote:
+>>  struct ib_uverbs_ex_query_device {
+>>       __u32 comp_mask;
+>> +     __u32 csum_caps;
+>>       __u32 reserved;
+>>  };
+> 
+> Uh no.
+This is the struct of the command, not the response. There is no need to extend it. The command is designed to always return as much information as possible, so the user space code doesn't need to pass anything for it to work.
 
-sizeof(struct ib_send_wr) (old): 96
+Even if you did want to extend it, you would need to replace the reserved word. The structs in this header file must be made in such way that they have the same size on 32-bit systems and on 64-bit systems (see the comment at the beginning of the header file). This is why the reserved word is there. 
 
-sizeof(struct ib_send_wr): 48
-sizeof(struct ib_rdma_wr): 64
-sizeof(struct ib_atomic_wr): 96
-sizeof(struct ib_ud_wr): 88
-sizeof(struct ib_fast_reg_wr): 88
-sizeof(struct ib_bind_mw_wr): 96
-sizeof(struct ib_sig_handover_wr): 80
+> 
+>> @@ -221,6 +222,7 @@ struct ib_uverbs_odp_caps {
+>>  struct ib_uverbs_ex_query_device_resp {
+>>       struct ib_uverbs_query_device_resp base;
+>>       __u32 comp_mask;
+>> +     __u32 csum_caps;
+>>       __u32 response_length;
+>>       struct ib_uverbs_odp_caps odp_caps;
+>>       __u64 timestamp_mask;
+> 
+> Also totally wrong.
 
-sizeof(struct ib_fastreg_wr) (Sagi): 64
+The response struct must maintain backward compatibility. You cannot change the order of the existing fields. The only valid way of extending it is at the end. Here too, you must make sure that the struct has the same size on 32-bit systems, so you would need to add a 32-bit reserved word at the end.
 
-So the commonly used send and rdma WRs are drastically redueces.  FR
-currently doesn't look much better, but the replacement WR for it in
-Sagi's series will be in a simila ballpark.
-
-Note that we can remove an additional 4 bytes from each of them by
-removing the unused xrc_remote_srq_num value from struct ib_send_wr.
+Haggai
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
