@@ -1,90 +1,60 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V1 00/10] Add RoCE GID cache usage in verbs/cma
-Date: Fri,  7 Aug 2015 16:00:53 +0300
-Message-ID: <1438952463-23707-1-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next V1 04/10] IB/cm: cm_init_av_by_path should find a GID by its netdevice
+Date: Fri,  7 Aug 2015 16:00:57 +0300
+Message-ID: <1438952463-23707-5-git-send-email-matanb@mellanox.com>
+References: <1438952463-23707-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1438952463-23707-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
+Previously, the CM has searched the cache for any sgid_index whose
+GID matches the path's GID. Since the path record stores the net
+device, the CM should now search only for GIDs which originated from
+this net device.
 
-This purpose of this series is to add usage of the GID cache to
-the CMA and IB stack. Instead of passing Ethernet L2 attributes
-via QP attributes, we could just use the GID cache that's already
-points to a ndev and thus to all required L2 attributes.
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/cm.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-The first five patches query the GID table to find only GIDs which
-are related to the bounded net-device of the specific used port. This
-extra information is carried via ib_sa_path_rec (extending it to
-include the namespace and ifindex). Querying the ndev and port
-is achieved by adding a gid_attr argument to ib_query_gid, add a
-ndev argument to ib_find_cached_gid and add a new
-ib_find_cached_gid_by_port. This usage of the GID table replaces
-the usage of QP attributes.
-
-The sixth patch adds an ib_cache_gid_find_by_filter function.
-This allows the user to query the cache by a specific filter.
-ib_cache_gid_find_by_filter is used by the seventh patch. Instead
-of storing the smac and vid on the AH, we could just resolve
-them from the net-device which the sgid index is assigned to.
-This change means that instead of resolving all L2 attributes,
-the server, we get the dgid and vlan and searches the GID cache
-in order to find a matching GID index.
-
-The last three patches removed unused fields and attributes.
-
-This series depends on "Move RoCE GID management to IB/Core" series.
-
-Matan
-
-Matan Barak (10):
-  IB/core: Add netdev and gid attributes paramteres to cache
-  IB/core: Expose and rename ib_find_cached_gid_by_port cache API
-  IB/core: Add netdev to path record
-  IB/cm: cm_init_av_by_path should find a GID by its netdevice
-  IB/cma: cma_validate_port should verify the port and netdevice
-  IB/cache: Add ib_find_gid_by_filter cache API
-  IB/core: Use GID table in AH creation and dmac resolution
-  IB/cm: Remove the usage of smac and vid of qp_attr and cm_av
-  IB/core: Remove smac and vlan id from qp_attr and ah_attr
-  IB/core: Remove smac and vlan id from path record
-
- drivers/infiniband/core/addr.c                 |   3 +-
- drivers/infiniband/core/cache.c                | 112 +++++++++++++++--
- drivers/infiniband/core/cm.c                   |  40 ++-----
- drivers/infiniband/core/cma.c                  |  42 ++++---
- drivers/infiniband/core/core_priv.h            |   9 +-
- drivers/infiniband/core/device.c               |  19 ++-
- drivers/infiniband/core/mad.c                  |   2 +-
- drivers/infiniband/core/multicast.c            |   3 +-
- drivers/infiniband/core/sa_query.c             |  19 +--
- drivers/infiniband/core/sysfs.c                |   2 +-
- drivers/infiniband/core/ucma.c                 |   1 -
- drivers/infiniband/core/uverbs_cmd.c           |   3 +-
- drivers/infiniband/core/uverbs_marshall.c      |   4 +-
- drivers/infiniband/core/verbs.c                | 159 +++++++++++++++----------
- drivers/infiniband/hw/mlx4/ah.c                |  17 ++-
- drivers/infiniband/hw/mlx4/mad.c               |  12 +-
- drivers/infiniband/hw/mlx4/main.c              |   4 +-
- drivers/infiniband/hw/mlx4/mcg.c               |   2 +-
- drivers/infiniband/hw/mlx4/mlx4_ib.h           |   2 +-
- drivers/infiniband/hw/mlx4/qp.c                |  52 ++++++--
- drivers/infiniband/hw/mthca/mthca_av.c         |   2 +-
- drivers/infiniband/hw/ocrdma/ocrdma_ah.c       |  22 ++--
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c       |  30 +++--
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c    |   2 +-
- drivers/infiniband/ulp/ipoib/ipoib_main.c      |   2 +-
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c |   2 +-
- drivers/infiniband/ulp/srp/ib_srp.c            |   2 +-
- drivers/infiniband/ulp/srpt/ib_srpt.c          |   3 +-
- include/rdma/ib_addr.h                         |   2 +-
- include/rdma/ib_cache.h                        |  40 ++++++-
- include/rdma/ib_sa.h                           |  12 +-
- include/rdma/ib_verbs.h                        |  18 ++-
- 32 files changed, 422 insertions(+), 222 deletions(-)
-
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 5fdbc55..6fc2de1 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -359,17 +359,21 @@ static int cm_init_av_by_path(struct ib_sa_path_rec *path, struct cm_av *av)
+ 	unsigned long flags;
+ 	int ret;
+ 	u8 p;
++	struct net_device *ndev = ib_get_ndev_from_path(path);
+ 
+ 	read_lock_irqsave(&cm.device_lock, flags);
+ 	list_for_each_entry(cm_dev, &cm.device_list, list) {
+ 		if (!ib_find_cached_gid(cm_dev->ib_device, &path->sgid,
+-					NULL, &p, NULL)) {
++					ndev, &p, NULL)) {
+ 			port = cm_dev->port[p-1];
+ 			break;
+ 		}
+ 	}
+ 	read_unlock_irqrestore(&cm.device_lock, flags);
+ 
++	if (ndev)
++		dev_put(ndev);
++
+ 	if (!port)
+ 		return -EINVAL;
+ 
+@@ -382,7 +386,6 @@ static int cm_init_av_by_path(struct ib_sa_path_rec *path, struct cm_av *av)
+ 	ib_init_ah_from_path(cm_dev->ib_device, port->port_num, path,
+ 			     &av->ah_attr);
+ 	av->timeout = path->packet_life_time + 1;
+-	memcpy(av->smac, path->smac, sizeof(av->smac));
+ 
+ 	av->valid = 1;
+ 	return 0;
 -- 
 2.1.0
 
