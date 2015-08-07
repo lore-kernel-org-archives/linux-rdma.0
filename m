@@ -1,97 +1,102 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V1 05/10] IB/cma: cma_validate_port should verify the port and netdevice
-Date: Fri,  7 Aug 2015 16:00:58 +0300
-Message-ID: <1438952463-23707-6-git-send-email-matanb@mellanox.com>
-References: <1438952463-23707-1-git-send-email-matanb@mellanox.com>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] IB/hfi1: Remove some sysfs files
+Date: Fri, 07 Aug 2015 09:36:10 -0400
+Message-ID: <20150807133610.12421.73468.stgit@phlsvslse11.ph.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1438952463-23707-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Previously, cma_validate_port searched for GIDs in IB cache and then
-tried to verify the found port. This could fail when there are
-identical GIDs on both ports. In addition, netdevice should be taken
-into account when searching the GID table.
-Fixing cma_validate_port to search only the relevant port's cache
-and netdevice.
+From: Sadanand Warrier <sadanand.warrier-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Removed "version" and "localbus_info" files from
+the sysfs directory.
+
+Change-Id: I128b2e4ceb9440fed9b73a822dd39c44df17e5a5
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sadanand Warrier <sadanand.warrier-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c | 26 ++++++++++++++++++--------
- 1 file changed, 18 insertions(+), 8 deletions(-)
+ drivers/staging/hfi1/TODO    |    1 -
+ drivers/staging/hfi1/sysfs.c |   22 ----------------------
+ 2 files changed, 23 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 131f658..bbd3d53 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -378,10 +378,11 @@ static int cma_translate_addr(struct sockaddr *addr, struct rdma_dev_addr *dev_a
- }
+diff --git a/drivers/staging/hfi1/TODO b/drivers/staging/hfi1/TODO
+index 2529149..dc2f56a 100644
+--- a/drivers/staging/hfi1/TODO
++++ b/drivers/staging/hfi1/TODO
+@@ -1,6 +1,5 @@
+ July, 2015
  
- static inline int cma_validate_port(struct ib_device *device, u8 port,
--				      union ib_gid *gid, int dev_type)
-+				      union ib_gid *gid, int dev_type,
-+				      int bound_if_index)
- {
--	u8 found_port;
- 	int ret = -ENODEV;
-+	struct net_device *ndev = NULL;
- 
- 	if ((dev_type == ARPHRD_INFINIBAND) && !rdma_protocol_ib(device, port))
- 		return ret;
-@@ -389,9 +390,13 @@ static inline int cma_validate_port(struct ib_device *device, u8 port,
- 	if ((dev_type != ARPHRD_INFINIBAND) && rdma_protocol_ib(device, port))
- 		return ret;
- 
--	ret = ib_find_cached_gid(device, gid, NULL, &found_port, NULL);
--	if (port != found_port)
--		return -ENODEV;
-+	if (dev_type == ARPHRD_ETHER)
-+		ndev = dev_get_by_index(&init_net, bound_if_index);
-+
-+	ret = ib_find_cached_gid_by_port(device, gid, port, ndev, NULL);
-+
-+	if (ndev)
-+		dev_put(ndev);
- 
+-- Remove unneeded file entries in sysfs
+ - Remove software processing of IB protocol and place in library for use
+   by qib, ipath (if still present), hfi1, and eventually soft-roce
+ - Clean up comments in code around CNP opcode
+diff --git a/drivers/staging/hfi1/sysfs.c b/drivers/staging/hfi1/sysfs.c
+index b10e857..b78c728 100644
+--- a/drivers/staging/hfi1/sysfs.c
++++ b/drivers/staging/hfi1/sysfs.c
+@@ -466,13 +466,6 @@ static ssize_t show_hfi(struct device *device, struct device_attribute *attr,
  	return ret;
  }
-@@ -423,7 +428,8 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv,
- 		       &iboe_gid : &gid;
  
- 		ret = cma_validate_port(cma_dev->device, port, gidp,
--					dev_addr->dev_type);
-+					dev_addr->dev_type,
-+					dev_addr->bound_dev_if);
- 		if (!ret) {
- 			id_priv->id.port_num = port;
- 			goto out;
-@@ -441,7 +447,8 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv,
- 			       &iboe_gid : &gid;
+-static ssize_t show_version(struct device *device,
+-			    struct device_attribute *attr, char *buf)
+-{
+-	/* The string printed here is already newline-terminated. */
+-	return scnprintf(buf, PAGE_SIZE, "%s", (char *)ib_hfi1_version);
+-}
+-
+ static ssize_t show_boardversion(struct device *device,
+ 				 struct device_attribute *attr, char *buf)
+ {
+@@ -485,17 +478,6 @@ static ssize_t show_boardversion(struct device *device,
+ }
  
- 			ret = cma_validate_port(cma_dev->device, port, gidp,
--						dev_addr->dev_type);
-+						dev_addr->dev_type,
-+						dev_addr->bound_dev_if);
- 			if (!ret) {
- 				id_priv->id.port_num = port;
- 				goto out;
-@@ -1946,8 +1953,11 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
  
- 	route->num_paths = 1;
+-static ssize_t show_localbus_info(struct device *device,
+-				  struct device_attribute *attr, char *buf)
+-{
+-	struct hfi1_ibdev *dev =
+-		container_of(device, struct hfi1_ibdev, ibdev.dev);
+-	struct hfi1_devdata *dd = dd_from_dev(dev);
+-
+-	return scnprintf(buf, PAGE_SIZE, "%s\n", dd->lbus_info);
+-}
+-
+-
+ static ssize_t show_nctxts(struct device *device,
+ 			   struct device_attribute *attr, char *buf)
+ {
+@@ -599,25 +581,21 @@ static ssize_t show_tempsense(struct device *device,
+ /* start of per-unit file structures and support code */
+ static DEVICE_ATTR(hw_rev, S_IRUGO, show_rev, NULL);
+ static DEVICE_ATTR(board_id, S_IRUGO, show_hfi, NULL);
+-static DEVICE_ATTR(version, S_IRUGO, show_version, NULL);
+ static DEVICE_ATTR(nctxts, S_IRUGO, show_nctxts, NULL);
+ static DEVICE_ATTR(nfreectxts, S_IRUGO, show_nfreectxts, NULL);
+ static DEVICE_ATTR(serial, S_IRUGO, show_serial, NULL);
+ static DEVICE_ATTR(boardversion, S_IRUGO, show_boardversion, NULL);
+ static DEVICE_ATTR(tempsense, S_IRUGO, show_tempsense, NULL);
+-static DEVICE_ATTR(localbus_info, S_IRUGO, show_localbus_info, NULL);
+ static DEVICE_ATTR(chip_reset, S_IWUSR, NULL, store_chip_reset);
  
--	if (addr->dev_addr.bound_dev_if)
-+	if (addr->dev_addr.bound_dev_if) {
- 		ndev = dev_get_by_index(&init_net, addr->dev_addr.bound_dev_if);
-+		route->path_rec->net = &init_net;
-+		route->path_rec->ifindex = addr->dev_addr.bound_dev_if;
-+	}
- 	if (!ndev) {
- 		ret = -ENODEV;
- 		goto err2;
--- 
-2.1.0
+ static struct device_attribute *hfi1_attributes[] = {
+ 	&dev_attr_hw_rev,
+ 	&dev_attr_board_id,
+-	&dev_attr_version,
+ 	&dev_attr_nctxts,
+ 	&dev_attr_nfreectxts,
+ 	&dev_attr_serial,
+ 	&dev_attr_boardversion,
+ 	&dev_attr_tempsense,
+-	&dev_attr_localbus_info,
+ 	&dev_attr_chip_reset,
+ };
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
