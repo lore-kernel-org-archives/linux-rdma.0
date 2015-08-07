@@ -1,37 +1,32 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Subject: Re: [RFC] split struct ib_send_wr
-Date: Fri, 7 Aug 2015 10:17:18 -0400
-Message-ID: <72E34077-7332-4F7D-8498-E67E7192CD2A@oracle.com>
-References: <20150804143447.GA22172@infradead.org> <20150806162438.GA27608@infradead.org> <55C393A0.6000002@opengridcomputing.com> <20150806173143.GA25497@infradead.org> <003601d0d06f$93107160$b9315420$@opengridcomputing.com> <0B199DE1-B76A-44BD-91BC-E4285E439C70@oracle.com> <20150807063637.GE31458@infradead.org>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Date: Fri, 7 Aug 2015 07:19:29 -0700
+Message-ID: <20150807141929.GA12442@infradead.org>
+References: <20150804143447.GA22172@infradead.org>
+ <20150806162438.GA27608@infradead.org>
+ <55C393A0.6000002@opengridcomputing.com>
+ <20150806173143.GA25497@infradead.org>
+ <003601d0d06f$93107160$b9315420$@opengridcomputing.com>
+ <0B199DE1-B76A-44BD-91BC-E4285E439C70@oracle.com>
+ <20150807063637.GE31458@infradead.org>
+ <72E34077-7332-4F7D-8498-E67E7192CD2A@oracle.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150807063637.GE31458-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <72E34077-7332-4F7D-8498-E67E7192CD2A-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, Aug 07, 2015 at 10:17:18AM -0400, Chuck Lever wrote:
+> If bot barking doesn't bother anyone, then I'll keep the removal patch.
+> For some such a complaint might be grounds for rejecting the patch.
 
-On Aug 7, 2015, at 2:36 AM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
-
-> On Thu, Aug 06, 2015 at 01:58:45PM -0400, Chuck Lever wrote:
->> Wondering if this means we'll have to drop ib_reg_phys_mr()
->> removal until Lustre gets around to removing their call sites
->> from the staging tree.
-> 
-> Why?  Just because the buildbot catches it?
-
-If bot barking doesn't bother anyone, then I'll keep the removal patch.
-For some such a complaint might be grounds for rejecting the patch.
-
-
---
-Chuck Lever
-
-
-
+If it's (a) in tree proper and (b) not one of the rare false positives I
+would consider it a reason for rejection as well.  But this is the
+staging tree we're talking about.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
