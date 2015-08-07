@@ -1,37 +1,66 @@
-From: 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH for-4.3 11/15] iw_cxgb4: Support ib_alloc_mr verb
-Date: Fri, 7 Aug 2015 09:31:54 -0700
-Message-ID: <20150807163154.GA1590@infradead.org>
-References: <1438241568-3685-1-git-send-email-sagig@mellanox.com>
- <1438241568-3685-12-git-send-email-sagig@mellanox.com>
- <003301d0d122$a1e46ee0$e5ad4ca0$@opengridcomputing.com>
- <20150807151318.GA13777@infradead.org>
- <003a01d0d12c$e84b4e80$b8e1eb80$@opengridcomputing.com>
- <20150807162615.GA16851@infradead.org>
- <003c01d0d12e$31a879d0$94f96d70$@opengridcomputing.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <003c01d0d12e$31a879d0$94f96d70$@opengridcomputing.com>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, 'Sagi Grimberg' <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH] svcrdma: limit FRMR page list lengths to device max
+Date: Fri, 7 Aug 2015 11:11:20 -0500
+Message-ID: <20150807163539.EFDEFE0ACC@smtp.ogc.us>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Aug 07, 2015 at 11:29:12AM -0500, Steve Wise wrote:
-> I misspoke.  I had the order reversed. The order is such that we can add my new NFS patch after:
-> 
-> e20684a xprtrdma, svcrdma: Convert to ib_alloc_mr
-> 
-> and before these:
-> 
-> af78181 cxgb3: Support ib_alloc_mr verb
-> b7e06cd iw_cxgb4: Support ib_alloc_mr verb
+Svcrdma was incorrectly allocating fastreg MRs and page lists using
+RPCSVC_MAXPAGES, which can exceed the device capabilities.  So limit
+the depth to the minimum of RPCSVC_MAXPAGES and xprt->sc_frmr_pg_list_len.
 
-In general it would be preferable to have it before the ib_alloc_mr
-conversion, but if it causes more work I doubt it's really worth it.
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+Doug, this patch needs to be added after this commit:
+
+e20684a xprtrdma, svcrdma: Convert to ib_alloc_mr
+
+and before these commits:
+
+af78181 cxgb3: Support ib_alloc_mr verb
+b7e06cd iw_cxgb4: Support ib_alloc_mr verb
+
+This will avoid a bisect window where NFSRDMA over cxgb4 is broken.
+
+Bruce, please ACK if this commit looks good, and also if you're ok with
+this flowing through Doug's rdma tree due to the dependencies.
+---
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index 8752a2d..11d5133 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -733,17 +733,19 @@ static struct svc_rdma_fastreg_mr *rdma_alloc_frmr(struct svcxprt_rdma *xprt)
+ 	struct ib_mr *mr;
+ 	struct ib_fast_reg_page_list *pl;
+ 	struct svc_rdma_fastreg_mr *frmr;
++	u32 num_sg;
+ 
+ 	frmr = kmalloc(sizeof(*frmr), GFP_KERNEL);
+ 	if (!frmr)
+ 		goto err;
+ 
+-	mr = ib_alloc_mr(xprt->sc_pd, IB_MR_TYPE_MEM_REG, RPCSVC_MAXPAGES);
++	num_sg = min_t(u32, RPCSVC_MAXPAGES, xprt->sc_frmr_pg_list_len);
++	mr = ib_alloc_mr(xprt->sc_pd, IB_MR_TYPE_MEM_REG, num_sg);
+ 	if (IS_ERR(mr))
+ 		goto err_free_frmr;
+ 
+ 	pl = ib_alloc_fast_reg_page_list(xprt->sc_cm_id->device,
+-					 RPCSVC_MAXPAGES);
++					 num_sg);
+ 	if (IS_ERR(pl))
+ 		goto err_free_mr;
+ 
+-- 
+1.7.1
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
