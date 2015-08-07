@@ -1,111 +1,90 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V1 03/10] IB/core: Add netdev to path record
-Date: Fri,  7 Aug 2015 16:00:56 +0300
-Message-ID: <1438952463-23707-4-git-send-email-matanb@mellanox.com>
-References: <1438952463-23707-1-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next V1 00/10] Add RoCE GID cache usage in verbs/cma
+Date: Fri,  7 Aug 2015 16:00:53 +0300
+Message-ID: <1438952463-23707-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1438952463-23707-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In order to find the sgid_index, one could just query the IB cache
-with the correct GID and netdevice. Therefore, instead of storing
-the L2 attributes directly in the path, we only store the
-ifindex and net and use them later to get the sgid_index.
-The vlan_id and smac L2 attributes are removed in a later patch.
+Hi Doug,
 
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/sa_query.c        | 13 +++++++++++--
- drivers/infiniband/core/uverbs_marshall.c |  2 ++
- include/rdma/ib_sa.h                      | 10 ++++++++++
- 3 files changed, 23 insertions(+), 2 deletions(-)
+This purpose of this series is to add usage of the GID cache to
+the CMA and IB stack. Instead of passing Ethernet L2 attributes
+via QP attributes, we could just use the GID cache that's already
+points to a ndev and thus to all required L2 attributes.
 
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index 2e46e38..4c9102b 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -971,18 +971,25 @@ int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
- 	force_grh = rdma_cap_eth_ah(device, port_num);
- 
- 	if (rec->hop_limit > 1 || force_grh) {
-+		struct net_device *ndev = ib_get_ndev_from_path(rec);
-+
- 		ah_attr->ah_flags = IB_AH_GRH;
- 		ah_attr->grh.dgid = rec->dgid;
- 
--		ret = ib_find_cached_gid(device, &rec->sgid, NULL, &port_num,
-+		ret = ib_find_cached_gid(device, &rec->sgid, ndev, &port_num,
- 					 &gid_index);
--		if (ret)
-+		if (ret) {
-+			if (ndev)
-+				dev_put(ndev);
- 			return ret;
-+		}
- 
- 		ah_attr->grh.sgid_index    = gid_index;
- 		ah_attr->grh.flow_label    = be32_to_cpu(rec->flow_label);
- 		ah_attr->grh.hop_limit     = rec->hop_limit;
- 		ah_attr->grh.traffic_class = rec->traffic_class;
-+		if (ndev)
-+			dev_put(ndev);
- 	}
- 	if (force_grh) {
- 		memcpy(ah_attr->dmac, rec->dmac, ETH_ALEN);
-@@ -1115,6 +1122,8 @@ static void ib_sa_path_rec_callback(struct ib_sa_query *sa_query,
- 		ib_unpack(path_rec_table, ARRAY_SIZE(path_rec_table),
- 			  mad->data, &rec);
- 		rec.vlan_id = 0xffff;
-+		rec.net = NULL;
-+		rec.ifindex = 0;
- 		memset(rec.dmac, 0, ETH_ALEN);
- 		memset(rec.smac, 0, ETH_ALEN);
- 		query->callback(status, &rec, query->context);
-diff --git a/drivers/infiniband/core/uverbs_marshall.c b/drivers/infiniband/core/uverbs_marshall.c
-index abd9724..484698c 100644
---- a/drivers/infiniband/core/uverbs_marshall.c
-+++ b/drivers/infiniband/core/uverbs_marshall.c
-@@ -144,5 +144,7 @@ void ib_copy_path_rec_from_user(struct ib_sa_path_rec *dst,
- 	memset(dst->smac, 0, sizeof(dst->smac));
- 	memset(dst->dmac, 0, sizeof(dst->dmac));
- 	dst->vlan_id = 0xffff;
-+	dst->net = NULL;
-+	dst->ifindex = 0;
- }
- EXPORT_SYMBOL(ib_copy_path_rec_from_user);
-diff --git a/include/rdma/ib_sa.h b/include/rdma/ib_sa.h
-index 7e071a6..406ecf1 100644
---- a/include/rdma/ib_sa.h
-+++ b/include/rdma/ib_sa.h
-@@ -39,6 +39,7 @@
- #include <linux/compiler.h>
- 
- #include <linux/atomic.h>
-+#include <linux/netdevice.h>
- 
- #include <rdma/ib_verbs.h>
- #include <rdma/ib_mad.h>
-@@ -157,8 +158,17 @@ struct ib_sa_path_rec {
- 	u8           smac[ETH_ALEN];
- 	u8           dmac[ETH_ALEN];
- 	u16	     vlan_id;
-+	/* ignored in IB */
-+	int	     ifindex;
-+	/* ignored in IB */
-+	struct net  *net;
- };
- 
-+static inline struct net_device *ib_get_ndev_from_path(struct ib_sa_path_rec *rec)
-+{
-+	return rec->net ? dev_get_by_index(rec->net, rec->ifindex) : NULL;
-+}
-+
- #define IB_SA_MCMEMBER_REC_MGID				IB_SA_COMP_MASK( 0)
- #define IB_SA_MCMEMBER_REC_PORT_GID			IB_SA_COMP_MASK( 1)
- #define IB_SA_MCMEMBER_REC_QKEY				IB_SA_COMP_MASK( 2)
+The first five patches query the GID table to find only GIDs which
+are related to the bounded net-device of the specific used port. This
+extra information is carried via ib_sa_path_rec (extending it to
+include the namespace and ifindex). Querying the ndev and port
+is achieved by adding a gid_attr argument to ib_query_gid, add a
+ndev argument to ib_find_cached_gid and add a new
+ib_find_cached_gid_by_port. This usage of the GID table replaces
+the usage of QP attributes.
+
+The sixth patch adds an ib_cache_gid_find_by_filter function.
+This allows the user to query the cache by a specific filter.
+ib_cache_gid_find_by_filter is used by the seventh patch. Instead
+of storing the smac and vid on the AH, we could just resolve
+them from the net-device which the sgid index is assigned to.
+This change means that instead of resolving all L2 attributes,
+the server, we get the dgid and vlan and searches the GID cache
+in order to find a matching GID index.
+
+The last three patches removed unused fields and attributes.
+
+This series depends on "Move RoCE GID management to IB/Core" series.
+
+Matan
+
+Matan Barak (10):
+  IB/core: Add netdev and gid attributes paramteres to cache
+  IB/core: Expose and rename ib_find_cached_gid_by_port cache API
+  IB/core: Add netdev to path record
+  IB/cm: cm_init_av_by_path should find a GID by its netdevice
+  IB/cma: cma_validate_port should verify the port and netdevice
+  IB/cache: Add ib_find_gid_by_filter cache API
+  IB/core: Use GID table in AH creation and dmac resolution
+  IB/cm: Remove the usage of smac and vid of qp_attr and cm_av
+  IB/core: Remove smac and vlan id from qp_attr and ah_attr
+  IB/core: Remove smac and vlan id from path record
+
+ drivers/infiniband/core/addr.c                 |   3 +-
+ drivers/infiniband/core/cache.c                | 112 +++++++++++++++--
+ drivers/infiniband/core/cm.c                   |  40 ++-----
+ drivers/infiniband/core/cma.c                  |  42 ++++---
+ drivers/infiniband/core/core_priv.h            |   9 +-
+ drivers/infiniband/core/device.c               |  19 ++-
+ drivers/infiniband/core/mad.c                  |   2 +-
+ drivers/infiniband/core/multicast.c            |   3 +-
+ drivers/infiniband/core/sa_query.c             |  19 +--
+ drivers/infiniband/core/sysfs.c                |   2 +-
+ drivers/infiniband/core/ucma.c                 |   1 -
+ drivers/infiniband/core/uverbs_cmd.c           |   3 +-
+ drivers/infiniband/core/uverbs_marshall.c      |   4 +-
+ drivers/infiniband/core/verbs.c                | 159 +++++++++++++++----------
+ drivers/infiniband/hw/mlx4/ah.c                |  17 ++-
+ drivers/infiniband/hw/mlx4/mad.c               |  12 +-
+ drivers/infiniband/hw/mlx4/main.c              |   4 +-
+ drivers/infiniband/hw/mlx4/mcg.c               |   2 +-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h           |   2 +-
+ drivers/infiniband/hw/mlx4/qp.c                |  52 ++++++--
+ drivers/infiniband/hw/mthca/mthca_av.c         |   2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.c       |  22 ++--
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c       |  30 +++--
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c    |   2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_main.c      |   2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c |   2 +-
+ drivers/infiniband/ulp/srp/ib_srp.c            |   2 +-
+ drivers/infiniband/ulp/srpt/ib_srpt.c          |   3 +-
+ include/rdma/ib_addr.h                         |   2 +-
+ include/rdma/ib_cache.h                        |  40 ++++++-
+ include/rdma/ib_sa.h                           |  12 +-
+ include/rdma/ib_verbs.h                        |  18 ++-
+ 32 files changed, 422 insertions(+), 222 deletions(-)
+
 -- 
 2.1.0
 
