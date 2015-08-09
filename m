@@ -1,49 +1,37 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] IB/mlx4: Fix possible incorrect cq completions flushing in internal error state
-Date: Sun,  9 Aug 2015 11:16:27 +0300
-Message-ID: <1439108187-12785-1-git-send-email-sagig@mellanox.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] IB/hfi1: Remove some sysfs files
+Date: Sun, 9 Aug 2015 12:40:16 +0300
+Message-ID: <CAJ3xEMiz-d3nst2D8Q_Fs9hG++-XDj6G9FbsmFcxd5bEeXteSg@mail.gmail.com>
+References: <20150807133610.12421.73468.stgit@phlsvslse11.ph.intel.com>
+	<alpine.DEB.2.11.1508070948510.14626@east.gentwo.org>
+	<32E1700B9017364D9B60AED9960492BC2577B0B5@fmsmsx120.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <32E1700B9017364D9B60AED9960492BC2577B0B5-RjuIdWtd+YbTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ariel Nahum <arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ariel Nahum <arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Fri, Aug 7, 2015 at 7:43 PM, Marciniszyn, Mike
+<mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 
-When handling a device internal error, the driver is responsible to
-drain the completion queue with flush errors.
+>> Could you get some experienced engineers to look at the driver internally to
+>> Intel before publishing? There are numerous other drivers in the kernel by
+>> Intel that do the right thing.
 
-In case a completion queue was assigned to multiple send queues, the
-driver iterates over the send queues and generates flush errors of
-inflight wqes. The driver must correctly pass the wc array with an
-offset as a result of the previous send queue iteration. Not doing so
-will overwrite previously set completions and return a wrong number
-of polled completions which includes ones which were not correctly set.
+> I will try to get a review from internal engineers.
 
-Fixes: 35f05dabf95a (IB/mlx4: Reset flow support for IB kernel ULPs)
-Signed-off-by: Ariel Nahum <arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/cq.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+In the latest posted you made a note on 125 changes done as of
+internal review but didn't spare
+a word on the nature/content of these changes. There's no way to
+realize from your V4 cover letter if these
+changes made things better and in what direction.
 
-diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
-index 36eb3d0..2f42595 100644
---- a/drivers/infiniband/hw/mlx4/cq.c
-+++ b/drivers/infiniband/hw/mlx4/cq.c
-@@ -638,7 +638,7 @@ static void mlx4_ib_poll_sw_comp(struct mlx4_ib_cq *cq, int num_entries,
- 	 * simulated FLUSH_ERR completions
- 	 */
- 	list_for_each_entry(qp, &cq->send_qp_list, cq_send_list) {
--		mlx4_ib_qp_sw_comp(qp, num_entries, wc, npolled, 1);
-+		mlx4_ib_qp_sw_comp(qp, num_entries, wc + *npolled, npolled, 1);
- 		if (*npolled >= num_entries)
- 			goto out;
- 	}
--- 
-1.7.1
-
+I checked and none of the 24 authors of the OPA driver is among the
+222 over-git-history committers
+of all drivers under drivers/net/ethernet/intel
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
