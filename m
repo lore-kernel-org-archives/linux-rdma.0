@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 5/8] IB/srp: Remove use_mr argument from srp_map_sg_entry()
-Date: Mon, 10 Aug 2015 17:08:18 -0700
-Message-ID: <55C93CF2.8080005@sandisk.com>
+Subject: [PATCH 7/8] IB/srp: Register the indirect data buffer descriptor
+Date: Mon, 10 Aug 2015 17:09:05 -0700
+Message-ID: <55C93D21.1090102@sandisk.com>
 References: <55BBF4B8.2050700@sandisk.com>
  <20150803152420.GA24193@infradead.org> <55BFB40F.8000500@sandisk.com>
  <20150804180933.GB5038@obsidianresearch.com>
@@ -20,88 +20,124 @@ To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.or
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Move the srp_map_desc() call from inside srp_map_sg_entry() to
-srp_map_sg() such that the use_mr argument can be removed from
-srp_map_sg_entry().
+Instead of always using the global rkey for the indirect data
+buffer descriptor, register that descriptor with the HCA if
+the kernel module parameter register_always has been set to Y.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 36 +++++++++++++++---------------------
- 1 file changed, 15 insertions(+), 21 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 57 +++++++++++++++++++++++++++++++++++--
+ drivers/infiniband/ulp/srp/ib_srp.h |  4 +++
+ 2 files changed, 58 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 660a4a4..b8fc35b 100644
+index 1029fd2..2a16ab4 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1260,6 +1260,8 @@ static void srp_map_desc(struct srp_map_state *state, dma_addr_t dma_addr,
- {
- 	struct srp_direct_buf *desc = state->desc;
+@@ -1453,18 +1453,58 @@ out:
+ 	return ret;
+ }
  
-+	WARN_ON_ONCE(!dma_len);
++/*
++ * Register the indirect data buffer descriptor with the HCA.
++ *
++ * Note: since the indirect data buffer descriptor has been allocated with
++ * kmalloc() it is guaranteed that this buffer is a physically contiguous
++ * memory buffer.
++ */
++static int srp_map_idb(struct srp_rdma_ch *ch, struct srp_request *req,
++		       void **next_mr, void **end_mr, u32 idb_len,
++		       __be32 *idb_rkey)
++{
++	struct srp_target_port *target = ch->target;
++	struct srp_device *dev = target->srp_host->srp_dev;
++	struct srp_map_state state;
++	struct srp_direct_buf idb_desc;
++	u64 idb_pages[1];
++	int ret;
 +
- 	desc->va = cpu_to_be64(dma_addr);
- 	desc->key = cpu_to_be32(rkey);
- 	desc->len = cpu_to_be32(dma_len);
-@@ -1366,29 +1368,17 @@ static int srp_finish_mapping(struct srp_map_state *state,
- 
- static int srp_map_sg_entry(struct srp_map_state *state,
- 			    struct srp_rdma_ch *ch,
--			    struct scatterlist *sg, int sg_index,
--			    bool use_mr)
-+			    struct scatterlist *sg, int sg_index)
++	memset(&state, 0, sizeof(state));
++	memset(&idb_desc, 0, sizeof(idb_desc));
++	state.gen.next = next_mr;
++	state.gen.end = end_mr;
++	state.desc = &idb_desc;
++	state.pages = idb_pages;
++	state.pages[0] = (req->indirect_dma_addr &
++			  dev->mr_page_mask);
++	state.npages = 1;
++	state.base_dma_addr = req->indirect_dma_addr;
++	state.dma_len = idb_len;
++	ret = srp_finish_mapping(&state, ch);
++	if (ret < 0)
++		goto out;
++
++	*idb_rkey = idb_desc.key;
++
++out:
++	return ret;
++}
++
+ static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_rdma_ch *ch,
+ 			struct srp_request *req)
  {
  	struct srp_target_port *target = ch->target;
- 	struct srp_device *dev = target->srp_host->srp_dev;
- 	struct ib_device *ibdev = dev->dev;
- 	dma_addr_t dma_addr = ib_sg_dma_address(ibdev, sg);
- 	unsigned int dma_len = ib_sg_dma_len(ibdev, sg);
--	unsigned int len;
-+	unsigned int len = 0;
- 	int ret;
+ 	struct scatterlist *scat;
+ 	struct srp_cmd *cmd = req->cmd->buf;
+-	int len, nents, count;
++	int len, nents, count, ret;
+ 	struct srp_device *dev;
+ 	struct ib_device *ibdev;
+ 	struct srp_map_state state;
+ 	struct srp_indirect_buf *indirect_hdr;
+-	u32 table_len;
++	u32 idb_len, table_len;
++	__be32 idb_rkey;
+ 	u8 fmt;
  
--	if (!dma_len)
--		return 0;
--
--	if (!use_mr) {
--		/*
--		 * Once we're in direct map mode for a request, we don't
--		 * go back to FMR or FR mode, so no need to update anything
--		 * other than the descriptor.
--		 */
--		srp_map_desc(state, dma_addr, dma_len, target->rkey);
--		return 0;
--	}
-+	WARN_ON_ONCE(!dma_len);
+ 	if (!scsi_sglist(scmnd) || scmnd->sc_data_direction == DMA_NONE)
+@@ -1546,6 +1586,7 @@ static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_rdma_ch *ch,
  
- 	while (dma_len) {
- 		unsigned offset = dma_addr & ~dev->mr_page_mask;
-@@ -1441,16 +1431,20 @@ static int srp_map_sg(struct srp_map_state *state, struct srp_rdma_ch *ch,
- 		use_mr = !!ch->fmr_pool;
- 	}
+ 	count = min(state.ndesc, target->cmd_sg_cnt);
+ 	table_len = state.ndesc * sizeof (struct srp_direct_buf);
++	idb_len = sizeof(struct srp_indirect_buf) + table_len;
  
--	for_each_sg(scat, sg, count, i) {
--		ret = srp_map_sg_entry(state, ch, sg, i, use_mr);
--		if (ret)
--			goto out;
--	}
--
- 	if (use_mr) {
-+		for_each_sg(scat, sg, count, i) {
-+			ret = srp_map_sg_entry(state, ch, sg, i);
-+			if (ret)
-+				goto out;
-+		}
- 		ret = srp_finish_mapping(state, ch);
- 		if (ret)
- 			goto out;
+ 	fmt = SRP_DATA_DESC_INDIRECT;
+ 	len = sizeof(struct srp_cmd) + sizeof (struct srp_indirect_buf);
+@@ -1554,8 +1595,18 @@ static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_rdma_ch *ch,
+ 	memcpy(indirect_hdr->desc_list, req->indirect_desc,
+ 	       count * sizeof (struct srp_direct_buf));
+ 
++	if (register_always && (dev->use_fast_reg || dev->use_fmr)) {
++		ret = srp_map_idb(ch, req, state.gen.next, state.gen.end,
++				  idb_len, &idb_rkey);
++		if (ret < 0)
++			return ret;
++		req->nmdesc++;
 +	} else {
-+		for_each_sg(scat, sg, count, i) {
-+			srp_map_desc(state, ib_sg_dma_address(dev->dev, sg),
-+				     ib_sg_dma_len(dev->dev, sg), target->rkey);
-+		}
- 	}
++		idb_rkey = target->rkey;
++	}
++
+ 	indirect_hdr->table_desc.va = cpu_to_be64(req->indirect_dma_addr);
+-	indirect_hdr->table_desc.key = cpu_to_be32(target->rkey);
++	indirect_hdr->table_desc.key = idb_rkey;
+ 	indirect_hdr->table_desc.len = cpu_to_be32(table_len);
+ 	indirect_hdr->len = cpu_to_be32(state.total_len);
  
- 	req->nmdesc = state->nmdesc;
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
+index 60a33c1..255b0e5 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.h
++++ b/drivers/infiniband/ulp/srp/ib_srp.h
+@@ -288,6 +288,10 @@ struct srp_map_state {
+ 			struct srp_fr_desc **next;
+ 			struct srp_fr_desc **end;
+ 		} fr;
++		struct {
++			void		   **next;
++			void		   **end;
++		} gen;
+ 	};
+ 	struct srp_direct_buf  *desc;
+ 	u64		       *pages;
 -- 
 2.1.4
 
