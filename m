@@ -1,121 +1,58 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] IB/srp: Fix possible use-after-free
-Date: Tue, 11 Aug 2015 08:58:57 -0700
-Message-ID: <55CA1BC1.3060609@sandisk.com>
-References: <1439216574-25936-1-git-send-email-sagig@mellanox.com>
- <55C8BB38.1060808@sandisk.com> <55CA09E5.2070208@dev.mellanox.co.il>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] IB/sa: Restrict SA Netlink to admin users
+Date: Tue, 11 Aug 2015 12:26:37 -0400
+Message-ID: <20150811162636.GA31742@phlsvsds.ph.intel.com>
+References: <1438895310-6087-1-git-send-email-ira.weiny@intel.com> <55C8407C.6060103@mellanox.com> <20150810215829.GA12260@phlsvsds.ph.intel.com> <20150811053810.GA13314@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55CA09E5.2070208-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150811053810.GA13314-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 08/11/2015 07:42 AM, Sagi Grimberg wrote:
-> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c
-> b/drivers/infiniband/ulp/srp/ib_srp.c
-> index 3a1514c..b220856 100644
-> --- a/drivers/infiniband/ulp/srp/ib_srp.c
-> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-> @@ -546,6 +546,17 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
->           if (ret)
->                   goto err_qp;
+On Mon, Aug 10, 2015 at 11:38:10PM -0600, Jason Gunthorpe wrote:
+> On Mon, Aug 10, 2015 at 05:58:30PM -0400, ira.weiny wrote:
 > 
-> +       if (ch->qp)
-> +               srp_destroy_qp(ch);
-> +       if (ch->recv_cq)
-> +               ib_destroy_cq(ch->recv_cq);
-> +       if (ch->send_cq)
-> +               ib_destroy_cq(ch->send_cq);
-> +
-> +       ch->qp = qp;
-> +       ch->recv_cq = recv_cq;
-> +       ch->send_cq = send_cq;
-> +
->           if (dev->use_fast_reg && dev->has_fr) {
->                   fr_pool = srp_alloc_fr_pool(target);
->                   if (IS_ERR(fr_pool)) {
-> @@ -570,17 +581,6 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
->                   ch->fmr_pool = fmr_pool;
->           }
+> > Furthermore, the check in netlink_bind also uses the socket namespace to
+> > restrict the use of multicast.  This plus my checks should allow an admin to
+> > place the SA proxy (ibacm in our test cases) in an alternate network namespace
+> > if they so desire.  But this is independent to the namespace which may be used
+> > for data applications.
 > 
-> -       if (ch->qp)
-> -               srp_destroy_qp(ch);
-> -       if (ch->recv_cq)
-> -               ib_destroy_cq(ch->recv_cq);
-> -
-> -       ch->qp = qp;
-> -       ch->recv_cq = recv_cq;
-> -       ch->send_cq = send_cq;
-> -
->           kfree(init_attr);
->           return 0;
+> I think Haggai is on to something, there is certainly a problem here,
+> that netlink_bind will let a namespace subscribe is a certainly a
+> problem for what Haggai is working on.
+
+Ok, After thinking about this more I agree.  Haggai has a point about the arp
+tables.  Like I said I'm not a namespace expert.
+
 > 
-> Sorry for the mixup. Does this patch make more sense?
+> For now, I think, only root (or CAP_ whatever) in the init namespace
+> should have access to this feature. Not sure how to check that.
 
-On second thought ... with your patch, if the "goto err_qp" branch in
-srp_create_ch_ib() is taken upon return ch->qp, ch->recv_cq and
-ch->send_cq will be dangling pointers. That will have bad consequences
-in the subsequent srp_free_ch_ib() call. How about replacing the above
-patch with the (untested) patch below ?
+For these 2 checks it is easy to change to netlink_capable instead of
+netlink_net_capable.
 
-Thanks,
+> 
+> Even allowing a namespace to subscribe is problematic because it will
+> cause timeouts to hit.. Not sure what to do about that..
 
-Bart.
 
-[PATCH] IB/srp: Avoid that a completion during reconnect causes a crash
+Ok, I look into how to deal with the netlink_bind.  I _think_ this may require
+the RDMA netlink to provide a custom bind call.  :-(
 
-Untested.
----
- drivers/infiniband/ulp/srp/ib_srp.c | 16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+> 
+> Also, why the incremental patch? The original isn't ready for mainline
+> without the message validation stuff..
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 2968b7b..1f9ed68 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -554,9 +554,6 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
- 				     "FR pool allocation failed (%d)\n", ret);
- 			goto err_qp;
- 		}
--		if (ch->fr_pool)
--			srp_destroy_fr_pool(ch->fr_pool);
--		ch->fr_pool = fr_pool;
- 	} else if (!dev->use_fast_reg && dev->has_fmr) {
- 		fmr_pool = srp_alloc_fmr_pool(target);
- 		if (IS_ERR(fmr_pool)) {
-@@ -565,9 +562,6 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
- 				     "FMR pool allocation failed (%d)\n", ret);
- 			goto err_qp;
- 		}
--		if (ch->fmr_pool)
--			ib_destroy_fmr_pool(ch->fmr_pool);
--		ch->fmr_pool = fmr_pool;
- 	}
- 
- 	if (ch->qp)
-@@ -577,6 +571,16 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
- 	if (ch->send_cq)
- 		ib_destroy_cq(ch->send_cq);
- 
-+	if (dev->use_fast_reg && dev->has_fr) {
-+		if (ch->fr_pool)
-+			srp_destroy_fr_pool(ch->fr_pool);
-+		ch->fr_pool = fr_pool;
-+	} else if (!dev->use_fast_reg && dev->has_fmr) {
-+		if (ch->fmr_pool)
-+			ib_destroy_fmr_pool(ch->fmr_pool);
-+		ch->fmr_pool = fmr_pool;
-+	}
-+
- 	ch->qp = qp;
- 	ch->recv_cq = recv_cq;
- 	ch->send_cq = send_cq;
--- 
-2.1.4
+Mainly because Kaike was on vacation and I was not sure what Doug would prefer.
+Kaike and I have discussed a couple of changes he had queued up so we will need
+a v9 so we will merge this into his next v9 submission.
 
+Ira
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
