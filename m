@@ -1,11 +1,11 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Subject: Re: [PATCH] IB/srp: Fix possible use-after-free
-Date: Tue, 11 Aug 2015 08:17:36 -0700
-Message-ID: <55CA1210.90207@sandisk.com>
+Date: Tue, 11 Aug 2015 08:58:57 -0700
+Message-ID: <55CA1BC1.3060609@sandisk.com>
 References: <1439216574-25936-1-git-send-email-sagig@mellanox.com>
  <55C8BB38.1060808@sandisk.com> <55CA09E5.2070208@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <55CA09E5.2070208-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
@@ -14,35 +14,108 @@ To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Sag
 List-Id: linux-rdma@vger.kernel.org
 
 On 08/11/2015 07:42 AM, Sagi Grimberg wrote:
-> [PATCH] IB/srp: Fix possible protection fault
->
-> srp_destroy_qp is designed to indicate we are safe to continue with
-> freeing the channel resources by modifying the qp error state,
-> posting a dummy wr on the queue-pair and waiting for it to flush.
-> This also holds for the channel registration pool as we are unmapping
-> the memory region when handling a scsi response. Destroying the
-> channel registration pool before we make sure we processed all the
-> inflight IO might introduce a use-after-free of the registration pool.
->
-> This use-after-free is demonstrated in the stack trace below where
-> srp is trying to unmap a used FMR after the fmr_pool was already destroyed.
- >
-> Reported-by: Eliott Kespi <eliottk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-Please consider Cc-ing "stable" for this patch. Anyway,
-
-Reviewed-by: Bart Van Assche <bvanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-
+> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c
+> b/drivers/infiniband/ulp/srp/ib_srp.c
+> index 3a1514c..b220856 100644
+> --- a/drivers/infiniband/ulp/srp/ib_srp.c
+> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
+> @@ -546,6 +546,17 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
+>           if (ret)
+>                   goto err_qp;
+> 
+> +       if (ch->qp)
+> +               srp_destroy_qp(ch);
+> +       if (ch->recv_cq)
+> +               ib_destroy_cq(ch->recv_cq);
+> +       if (ch->send_cq)
+> +               ib_destroy_cq(ch->send_cq);
+> +
+> +       ch->qp = qp;
+> +       ch->recv_cq = recv_cq;
+> +       ch->send_cq = send_cq;
+> +
+>           if (dev->use_fast_reg && dev->has_fr) {
+>                   fr_pool = srp_alloc_fr_pool(target);
+>                   if (IS_ERR(fr_pool)) {
+> @@ -570,17 +581,6 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
+>                   ch->fmr_pool = fmr_pool;
+>           }
+> 
+> -       if (ch->qp)
+> -               srp_destroy_qp(ch);
+> -       if (ch->recv_cq)
+> -               ib_destroy_cq(ch->recv_cq);
+> -
+> -       ch->qp = qp;
+> -       ch->recv_cq = recv_cq;
+> -       ch->send_cq = send_cq;
+> -
+>           kfree(init_attr);
+>           return 0;
+> 
 > Sorry for the mixup. Does this patch make more sense?
 
-Thank you for the quick respin. By posting this second patch quickly you 
-saved me considerable time. I was going to verify whether any upstream 
-patches were missing from the distro kernel that was used in your tests 
-but this second description makes it clear that scsi_remove_host() was 
-not involved in this crash.
+On second thought ... with your patch, if the "goto err_qp" branch in
+srp_create_ch_ib() is taken upon return ch->qp, ch->recv_cq and
+ch->send_cq will be dangling pointers. That will have bad consequences
+in the subsequent srp_free_ch_ib() call. How about replacing the above
+patch with the (untested) patch below ?
+
+Thanks,
 
 Bart.
+
+[PATCH] IB/srp: Avoid that a completion during reconnect causes a crash
+
+Untested.
+---
+ drivers/infiniband/ulp/srp/ib_srp.c | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 2968b7b..1f9ed68 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -554,9 +554,6 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
+ 				     "FR pool allocation failed (%d)\n", ret);
+ 			goto err_qp;
+ 		}
+-		if (ch->fr_pool)
+-			srp_destroy_fr_pool(ch->fr_pool);
+-		ch->fr_pool = fr_pool;
+ 	} else if (!dev->use_fast_reg && dev->has_fmr) {
+ 		fmr_pool = srp_alloc_fmr_pool(target);
+ 		if (IS_ERR(fmr_pool)) {
+@@ -565,9 +562,6 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
+ 				     "FMR pool allocation failed (%d)\n", ret);
+ 			goto err_qp;
+ 		}
+-		if (ch->fmr_pool)
+-			ib_destroy_fmr_pool(ch->fmr_pool);
+-		ch->fmr_pool = fmr_pool;
+ 	}
+ 
+ 	if (ch->qp)
+@@ -577,6 +571,16 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
+ 	if (ch->send_cq)
+ 		ib_destroy_cq(ch->send_cq);
+ 
++	if (dev->use_fast_reg && dev->has_fr) {
++		if (ch->fr_pool)
++			srp_destroy_fr_pool(ch->fr_pool);
++		ch->fr_pool = fr_pool;
++	} else if (!dev->use_fast_reg && dev->has_fmr) {
++		if (ch->fmr_pool)
++			ib_destroy_fmr_pool(ch->fmr_pool);
++		ch->fmr_pool = fmr_pool;
++	}
++
+ 	ch->qp = qp;
+ 	ch->recv_cq = recv_cq;
+ 	ch->send_cq = send_cq;
+-- 
+2.1.4
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
