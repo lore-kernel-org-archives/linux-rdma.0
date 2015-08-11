@@ -1,41 +1,50 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [RFC] split struct ib_send_wr
-Date: Mon, 10 Aug 2015 16:44:29 -0700
-Message-ID: <55C9375D.4030909@sandisk.com>
-References: <20150804143447.GA22172@infradead.org>
- <20150806162438.GA27608@infradead.org>
+Subject: [PATCH 0/9] IB/srp: Do not create an all physical insecure rkey by
+ default
+Date: Mon, 10 Aug 2015 17:05:53 -0700
+Message-ID: <55C93C61.9010508@sandisk.com>
+References: <55BBF4B8.2050700@sandisk.com>
+ <20150803152420.GA24193@infradead.org> <55BFB40F.8000500@sandisk.com>
+ <20150804180933.GB5038@obsidianresearch.com>
+ <1438756876.5698.2.camel@haswell.thedillows.org>
+ <20150805195122.GA31595@obsidianresearch.com> <55C2840C.5050301@sandisk.com>
+ <55C2912A.50709@sandisk.com> <20150806001006.GD2483@obsidianresearch.com>
+ <55C2A7FE.7020904@sandisk.com> <20150806043642.GA14153@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150806162438.GA27608-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <20150806043642.GA14153-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 08/06/2015 09:24 AM, Christoph Hellwig wrote:
-> I've pushed out a new version.  Updates:
+On 08/05/2015 09:36 PM, Jason Gunthorpe wrote:
+> On Wed, Aug 05, 2015 at 05:19:10PM -0700, Bart Van Assche wrote:
 >
->   - the ib_recv_wr change Bart notices has been fixed.
->   - iser and isert have been converted
->   - the handling of the embedded WR in the qib software queue entry
->     has been fixed.
+>> A few experimental and untested patches are available for review at
+>> https://github.com/bvanassche/linux/tree/srp-initiator-for-next-experimental.
 >
-> Which means we're basically done now and the patch could use
-> broader testing.
->
-> The full patch will be too much for the list again, so here is the
-> git commit:
->
-> http://git.infradead.org/users/hch/scsi.git/commitdiff/a0027ed00fc3ae2686d8a843a724b50597115a71
->
-> ib_vers.h diff below:
- > [ ... ]
+> I'll leave this is in your hands then..
 
-For the SRP initiator and target changes:
+In case anyone would like to see what I am working on, I will post the 
+patches I am currently testing in reply to this e-mail. The names of 
+these patches are as follows:
 
-Reviewed-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+0001-IB-srp-Re-enable-FMR-for-non-page-aligned-buffers.patch
+0002-IB-srp-Use-multiple-registrations-for-large-memory-r.patch
+0003-IB-srp-Add-memory-descriptor-array-pointer-range-che.patch
+0004-IB-srp-Remove-the-memory-registration-backtracking-c.patch
+0005-IB-srp-Remove-use_mr-argument-from-srp_map_sg_entry.patch
+0006-IB-srp-Introduce-srp_device.use_fmr.patch
+0007-IB-srp-Register-the-indirect-data-buffer-descriptor.patch
+0008-IB-srp-Create-an-insecure-all-physical-rkey-only-if-.patch
+
+These patches are also available at 
+https://github.com/bvanassche/linux/tree/srp-initiator-for-next.
+
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
