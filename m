@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 7/8] IB/srp: Register the indirect data buffer descriptor
-Date: Mon, 10 Aug 2015 17:09:05 -0700
-Message-ID: <55C93D21.1090102@sandisk.com>
+Subject: [PATCH 6/8] IB/srp: Introduce srp_device.use_fmr
+Date: Mon, 10 Aug 2015 17:08:44 -0700
+Message-ID: <55C93D0C.7060000@sandisk.com>
 References: <55BBF4B8.2050700@sandisk.com>
  <20150803152420.GA24193@infradead.org> <55BFB40F.8000500@sandisk.com>
  <20150804180933.GB5038@obsidianresearch.com>
@@ -20,124 +20,123 @@ To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.or
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Instead of always using the global rkey for the indirect data
-buffer descriptor, register that descriptor with the HCA if
-the kernel module parameter register_always has been set to Y.
+Introduce the variable srp_device.use_fmr. Leave out the dev->has_fr /
+dev->has_fmr and ch->fr_pool / ch->fmr_pool checks since these are
+redundant. This patch does not change any functionality but makes the
+source code easier to read.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 57 +++++++++++++++++++++++++++++++++++--
- drivers/infiniband/ulp/srp/ib_srp.h |  4 +++
- 2 files changed, 58 insertions(+), 3 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 22 +++++++++++-----------
+ drivers/infiniband/ulp/srp/ib_srp.h |  1 +
+ 2 files changed, 12 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 1029fd2..2a16ab4 100644
+index b8fc35b..1029fd2 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1453,18 +1453,58 @@ out:
- 	return ret;
- }
+@@ -546,7 +546,7 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
+ 	if (ret)
+ 		goto err_qp;
  
-+/*
-+ * Register the indirect data buffer descriptor with the HCA.
-+ *
-+ * Note: since the indirect data buffer descriptor has been allocated with
-+ * kmalloc() it is guaranteed that this buffer is a physically contiguous
-+ * memory buffer.
-+ */
-+static int srp_map_idb(struct srp_rdma_ch *ch, struct srp_request *req,
-+		       void **next_mr, void **end_mr, u32 idb_len,
-+		       __be32 *idb_rkey)
-+{
-+	struct srp_target_port *target = ch->target;
-+	struct srp_device *dev = target->srp_host->srp_dev;
-+	struct srp_map_state state;
-+	struct srp_direct_buf idb_desc;
-+	u64 idb_pages[1];
-+	int ret;
-+
-+	memset(&state, 0, sizeof(state));
-+	memset(&idb_desc, 0, sizeof(idb_desc));
-+	state.gen.next = next_mr;
-+	state.gen.end = end_mr;
-+	state.desc = &idb_desc;
-+	state.pages = idb_pages;
-+	state.pages[0] = (req->indirect_dma_addr &
-+			  dev->mr_page_mask);
-+	state.npages = 1;
-+	state.base_dma_addr = req->indirect_dma_addr;
-+	state.dma_len = idb_len;
-+	ret = srp_finish_mapping(&state, ch);
-+	if (ret < 0)
-+		goto out;
-+
-+	*idb_rkey = idb_desc.key;
-+
-+out:
-+	return ret;
-+}
-+
- static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_rdma_ch *ch,
- 			struct srp_request *req)
+-	if (dev->use_fast_reg && dev->has_fr) {
++	if (dev->use_fast_reg) {
+ 		fr_pool = srp_alloc_fr_pool(target);
+ 		if (IS_ERR(fr_pool)) {
+ 			ret = PTR_ERR(fr_pool);
+@@ -557,7 +557,7 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
+ 		if (ch->fr_pool)
+ 			srp_destroy_fr_pool(ch->fr_pool);
+ 		ch->fr_pool = fr_pool;
+-	} else if (!dev->use_fast_reg && dev->has_fmr) {
++	} else if (dev->use_fmr) {
+ 		fmr_pool = srp_alloc_fmr_pool(target);
+ 		if (IS_ERR(fmr_pool)) {
+ 			ret = PTR_ERR(fmr_pool);
+@@ -623,7 +623,7 @@ static void srp_free_ch_ib(struct srp_target_port *target,
+ 	if (dev->use_fast_reg) {
+ 		if (ch->fr_pool)
+ 			srp_destroy_fr_pool(ch->fr_pool);
+-	} else {
++	} else if (dev->use_fmr) {
+ 		if (ch->fmr_pool)
+ 			ib_destroy_fmr_pool(ch->fmr_pool);
+ 	}
+@@ -1085,7 +1085,7 @@ static void srp_unmap_data(struct scsi_cmnd *scmnd,
+ 		if (req->nmdesc)
+ 			srp_fr_pool_put(ch->fr_pool, req->fr_list,
+ 					req->nmdesc);
+-	} else {
++	} else if (dev->use_fmr) {
+ 		struct ib_pool_fmr **pfmr;
+ 
+ 		for (i = req->nmdesc, pfmr = req->fmr_list; i > 0; i--, pfmr++)
+@@ -1345,8 +1345,11 @@ static int srp_finish_mapping(struct srp_map_state *state,
+ 			      struct srp_rdma_ch *ch)
  {
  	struct srp_target_port *target = ch->target;
- 	struct scatterlist *scat;
- 	struct srp_cmd *cmd = req->cmd->buf;
--	int len, nents, count;
-+	int len, nents, count, ret;
- 	struct srp_device *dev;
- 	struct ib_device *ibdev;
- 	struct srp_map_state state;
- 	struct srp_indirect_buf *indirect_hdr;
--	u32 table_len;
-+	u32 idb_len, table_len;
-+	__be32 idb_rkey;
- 	u8 fmt;
++	struct srp_device *dev = target->srp_host->srp_dev;
+ 	int ret = 0;
  
- 	if (!scsi_sglist(scmnd) || scmnd->sc_data_direction == DMA_NONE)
-@@ -1546,6 +1586,7 @@ static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_rdma_ch *ch,
- 
- 	count = min(state.ndesc, target->cmd_sg_cnt);
- 	table_len = state.ndesc * sizeof (struct srp_direct_buf);
-+	idb_len = sizeof(struct srp_indirect_buf) + table_len;
- 
- 	fmt = SRP_DATA_DESC_INDIRECT;
- 	len = sizeof(struct srp_cmd) + sizeof (struct srp_indirect_buf);
-@@ -1554,8 +1595,18 @@ static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_rdma_ch *ch,
- 	memcpy(indirect_hdr->desc_list, req->indirect_desc,
- 	       count * sizeof (struct srp_direct_buf));
- 
-+	if (register_always && (dev->use_fast_reg || dev->use_fmr)) {
-+		ret = srp_map_idb(ch, req, state.gen.next, state.gen.end,
-+				  idb_len, &idb_rkey);
-+		if (ret < 0)
-+			return ret;
-+		req->nmdesc++;
-+	} else {
-+		idb_rkey = target->rkey;
-+	}
++	WARN_ON_ONCE(!dev->use_fast_reg && !dev->use_fmr);
 +
- 	indirect_hdr->table_desc.va = cpu_to_be64(req->indirect_dma_addr);
--	indirect_hdr->table_desc.key = cpu_to_be32(target->rkey);
-+	indirect_hdr->table_desc.key = idb_rkey;
- 	indirect_hdr->table_desc.len = cpu_to_be32(table_len);
- 	indirect_hdr->len = cpu_to_be32(state.total_len);
+ 	if (state->npages == 0)
+ 		return 0;
  
+@@ -1354,8 +1357,7 @@ static int srp_finish_mapping(struct srp_map_state *state,
+ 		srp_map_desc(state, state->base_dma_addr, state->dma_len,
+ 			     target->rkey);
+ 	else
+-		ret = target->srp_host->srp_dev->use_fast_reg ?
+-			srp_map_finish_fr(state, ch) :
++		ret = dev->use_fast_reg ? srp_map_finish_fr(state, ch) :
+ 			srp_map_finish_fmr(state, ch);
+ 
+ 	if (ret == 0) {
+@@ -1417,21 +1419,18 @@ static int srp_map_sg(struct srp_map_state *state, struct srp_rdma_ch *ch,
+ 	struct srp_device *dev = target->srp_host->srp_dev;
+ 	struct scatterlist *sg;
+ 	int i, ret;
+-	bool use_mr;
+ 
+ 	state->desc	= req->indirect_desc;
+ 	state->pages	= req->map_page;
+ 	if (dev->use_fast_reg) {
+ 		state->fr.next = req->fr_list;
+ 		state->fr.end = req->fr_list + target->cmd_sg_cnt;
+-		use_mr = !!ch->fr_pool;
+-	} else {
++	} else if (dev->use_fmr) {
+ 		state->fmr.next = req->fmr_list;
+ 		state->fmr.end = req->fmr_list + target->cmd_sg_cnt;
+-		use_mr = !!ch->fmr_pool;
+ 	}
+ 
+-	if (use_mr) {
++	if (dev->use_fast_reg || dev->use_fmr) {
+ 		for_each_sg(scat, sg, count, i) {
+ 			ret = srp_map_sg_entry(state, ch, sg, i);
+ 			if (ret)
+@@ -3355,6 +3354,7 @@ static void srp_add_one(struct ib_device *device)
+ 
+ 	srp_dev->use_fast_reg = (srp_dev->has_fr &&
+ 				 (!srp_dev->has_fmr || prefer_fr));
++	srp_dev->use_fmr = !srp_dev->use_fast_reg && srp_dev->has_fmr;
+ 
+ 	/*
+ 	 * Use the smallest page size supported by the HCA, down to a
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
-index 60a33c1..255b0e5 100644
+index 1e42418..60a33c1 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.h
 +++ b/drivers/infiniband/ulp/srp/ib_srp.h
-@@ -288,6 +288,10 @@ struct srp_map_state {
- 			struct srp_fr_desc **next;
- 			struct srp_fr_desc **end;
- 		} fr;
-+		struct {
-+			void		   **next;
-+			void		   **end;
-+		} gen;
- 	};
- 	struct srp_direct_buf  *desc;
- 	u64		       *pages;
+@@ -102,6 +102,7 @@ struct srp_device {
+ 	int			max_pages_per_mr;
+ 	bool			has_fmr;
+ 	bool			has_fr;
++	bool			use_fmr;
+ 	bool			use_fast_reg;
+ };
+ 
 -- 
 2.1.4
 
