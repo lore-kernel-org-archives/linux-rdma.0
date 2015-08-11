@@ -1,89 +1,42 @@
-From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH V2] IB/sa: Restrict SA Netlink to admin users
-Date: Mon, 10 Aug 2015 22:46:55 -0400
-Message-ID: <1439261215-28078-1-git-send-email-ira.weiny@intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] IB/sa: Restrict SA Netlink to admin users
+Date: Mon, 10 Aug 2015 23:38:10 -0600
+Message-ID: <20150811053810.GA13314@obsidianresearch.com>
+References: <1438895310-6087-1-git-send-email-ira.weiny@intel.com>
+ <55C8407C.6060103@mellanox.com>
+ <20150810215829.GA12260@phlsvsds.ph.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150810215829.GA12260-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Mon, Aug 10, 2015 at 05:58:30PM -0400, ira.weiny wrote:
 
-The recently added SA Netlink service requires admin privileges to receive
-kernel requests.  This is only partially sufficient to protect the kernel from
-malicious users.  This patch fixes two issues.
+> Furthermore, the check in netlink_bind also uses the socket namespace to
+> restrict the use of multicast.  This plus my checks should allow an admin to
+> place the SA proxy (ibacm in our test cases) in an alternate network namespace
+> if they so desire.  But this is independent to the namespace which may be used
+> for data applications.
 
-	1) Path responses from user space could be spoofed if the sequence
-	   number was properly guessed.
-	2) The set timeout request message could be issued by any user.
+I think Haggai is on to something, there is certainly a problem here,
+that netlink_bind will let a namespace subscribe is a certainly a
+problem for what Haggai is working on.
 
-Ignore these messages if not submitted by an admin user.
+For now, I think, only root (or CAP_ whatever) in the init namespace
+should have access to this feature. Not sure how to check that.
 
-Fixes: 6619209af36c ("IB/sa: Route SA pathrecord query through netlink")
-Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Even allowing a namespace to subscribe is problematic because it will
+cause timeouts to hit.. Not sure what to do about that..
 
----
-Changes from V1:
-	Use netlink_net_capable rather than ns_capable
+Also, why the incremental patch? The original isn't ready for mainline
+without the message validation stuff..
 
-Doug let me know if you would prefer that I get Kaike to squash this into the
-original patch.
-
- drivers/infiniband/core/sa_query.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
-
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index 70ceec4df02a..6778644a6957 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -699,6 +699,12 @@ static int ib_nl_handle_set_timeout(struct sk_buff *skb,
- 	struct nlattr *tb[LS_NLA_TYPE_MAX + 1];
- 	int ret;
- 
-+	if (!netlink_net_capable(skb, CAP_NET_ADMIN)) {
-+		pr_warn_ratelimited("SA netlink: invalid perm for set timeout: `%s'.\n",
-+				    current->comm);
-+		return -EPERM;
-+	}
-+
- 	ret = nla_parse(tb, LS_NLA_TYPE_MAX, nlmsg_data(nlh), nlmsg_len(nlh),
- 			NULL);
- 	attr = (const struct nlattr *)tb[LS_NLA_TYPE_TIMEOUT];
-@@ -706,6 +712,9 @@ static int ib_nl_handle_set_timeout(struct sk_buff *skb,
- 		goto settimeout_out;
- 
- 	timeout = *(int *) nla_data(attr);
-+
-+	pr_info("SA netlink: timeout: %d\n", timeout);
-+
- 	if (timeout < IB_SA_LOCAL_SVC_TIMEOUT_MIN)
- 		timeout = IB_SA_LOCAL_SVC_TIMEOUT_MIN;
- 	if (timeout > IB_SA_LOCAL_SVC_TIMEOUT_MAX)
-@@ -754,6 +763,12 @@ static int ib_nl_handle_resolve_resp(struct sk_buff *skb,
- 	int found = 0;
- 	int ret;
- 
-+	if (!netlink_net_capable(skb, CAP_NET_ADMIN)) {
-+		pr_warn_ratelimited("SA netlink: invalid perm for response: `%s'.\n",
-+				    current->comm);
-+		return -EPERM;
-+	}
-+
- 	spin_lock_irqsave(&ib_nl_request_lock, flags);
- 	list_for_each_entry(query, &ib_nl_request_list, list) {
- 		/*
-@@ -770,6 +785,7 @@ static int ib_nl_handle_resolve_resp(struct sk_buff *skb,
- 
- 	if (!found) {
- 		spin_unlock_irqrestore(&ib_nl_request_lock, flags);
-+		pr_err_ratelimited("SA netlink: got unmatched response\n");
- 		goto resp_out;
- 	}
- 
--- 
-1.8.2
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
