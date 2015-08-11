@@ -1,47 +1,39 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/sa: Restrict SA Netlink to admin users
-Date: Tue, 11 Aug 2015 12:27:14 -0400
-Message-ID: <20150811162713.GB31742@phlsvsds.ph.intel.com>
-References: <1438895310-6087-1-git-send-email-ira.weiny@intel.com> <55C8407C.6060103@mellanox.com> <20150810215829.GA12260@phlsvsds.ph.intel.com> <20150811053810.GA13314@obsidianresearch.com> <3F128C9216C9B84BB6ED23EF16290AFB18540085@CRSMSX102.amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH for-next V7 6/6] IB/ucma: HW Device hot-removal support
+Date: Tue, 11 Aug 2015 10:35:04 -0600
+Message-ID: <20150811163504.GA3062@obsidianresearch.com>
+References: <1438697008-26209-1-git-send-email-yishaih@mellanox.com>
+ <1438697008-26209-7-git-send-email-yishaih@mellanox.com>
+ <20150804220903.GE10934@obsidianresearch.com>
+ <55C22739.5060808@dev.mellanox.co.il>
+ <20150805182117.GA15583@obsidianresearch.com>
+ <HE1PR05MB1418EA195D579C09EB1FB746B1740@HE1PR05MB1418.eurprd05.prod.outlook.com>
+ <20150811054852.GC13314@obsidianresearch.com>
+ <HE1PR05MB1418DE9D40F9B2B20FD1AC3BB17F0@HE1PR05MB1418.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <3F128C9216C9B84BB6ED23EF16290AFB18540085-8k97q/ur5Z1cIJlls4ac1rfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <HE1PR05MB1418DE9D40F9B2B20FD1AC3BB17F0-eBadYZ65MZ87O8BmmlM1zNqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 11, 2015 at 05:27:17AM -0600, Wan, Kaike wrote:
-> > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
-> > Sent: Tuesday, August 11, 2015 1:38 AM
-> > To: Weiny, Ira
-> > Cc: Haggai Eran; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Subject: Re: [PATCH] IB/sa: Restrict SA Netlink to admin users
-> > 
-> > On Mon, Aug 10, 2015 at 05:58:30PM -0400, ira.weiny wrote:
-> > 
-> > > Furthermore, the check in netlink_bind also uses the socket namespace
-> > > to restrict the use of multicast.  This plus my checks should allow an
-> > > admin to place the SA proxy (ibacm in our test cases) in an alternate
-> > > network namespace if they so desire.  But this is independent to the
-> > > namespace which may be used for data applications.
-> > 
-> > I think Haggai is on to something, there is certainly a problem here, that
-> > netlink_bind will let a namespace subscribe is a certainly a problem for what
-> > Haggai is working on.
-> > 
-> > For now, I think, only root (or CAP_ whatever) in the init namespace should
-> > have access to this feature. Not sure how to check that.
-> 
-> netlink_capable(skb, CAP_NET_ADMIN) will do the trick.
- 
-For these calls yes.  For the bind call I think we need to investigate more.
+On Tue, Aug 11, 2015 at 12:47:03PM +0000, Liran Liss wrote:
 
-Ira
+> > Still needs to have the locking fixed..
+>
+> As pointed out
+> (https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg27023.html),
+> this "barrier" scheme is used in several places including in the
+> RDMA stack.  If there is no functional issue with the code, we can
+> discuss how to address this scheme systematically later.
 
+That's not an argument. closing has nonsensical locking, the ugly
+empty mutex is part of that same mess.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
