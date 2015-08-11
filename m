@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 6/8] IB/srp: Introduce srp_device.use_fmr
-Date: Mon, 10 Aug 2015 17:08:44 -0700
-Message-ID: <55C93D0C.7060000@sandisk.com>
+Subject: [PATCH 1/8] IB/srp: Re-enable FMR for non-page aligned buffers
+Date: Mon, 10 Aug 2015 17:06:29 -0700
+Message-ID: <55C93C85.6090003@sandisk.com>
 References: <55BBF4B8.2050700@sandisk.com>
  <20150803152420.GA24193@infradead.org> <55BFB40F.8000500@sandisk.com>
  <20150804180933.GB5038@obsidianresearch.com>
@@ -20,123 +20,57 @@ To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.or
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Introduce the variable srp_device.use_fmr. Leave out the dev->has_fr /
-dev->has_fmr and ch->fr_pool / ch->fmr_pool checks since these are
-redundant. This patch does not change any functionality but makes the
-source code easier to read.
+During a discussion in 2011 nobody recalled why FMR was not used for
+non-page aligned buffers (see also
+http://thread.gmane.org/gmane.linux.drivers.rdma/7149). Re-enable FMR
+for such buffers. For the reason why the srp_map_fmr() function needs
+to be modified, see also patch "IB/srp: rework mapping engine to use
+multiple FMR entries" (commit ID 8f26c9ff9cd0; January 2011).
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 22 +++++++++++-----------
- drivers/infiniband/ulp/srp/ib_srp.h |  1 +
- 2 files changed, 12 insertions(+), 11 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index b8fc35b..1029fd2 100644
+index 2968b7b..887e8ca 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -546,7 +546,7 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
- 	if (ret)
- 		goto err_qp;
- 
--	if (dev->use_fast_reg && dev->has_fr) {
-+	if (dev->use_fast_reg) {
- 		fr_pool = srp_alloc_fr_pool(target);
- 		if (IS_ERR(fr_pool)) {
- 			ret = PTR_ERR(fr_pool);
-@@ -557,7 +557,7 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
- 		if (ch->fr_pool)
- 			srp_destroy_fr_pool(ch->fr_pool);
- 		ch->fr_pool = fr_pool;
--	} else if (!dev->use_fast_reg && dev->has_fmr) {
-+	} else if (dev->use_fmr) {
- 		fmr_pool = srp_alloc_fmr_pool(target);
- 		if (IS_ERR(fmr_pool)) {
- 			ret = PTR_ERR(fmr_pool);
-@@ -623,7 +623,7 @@ static void srp_free_ch_ib(struct srp_target_port *target,
- 	if (dev->use_fast_reg) {
- 		if (ch->fr_pool)
- 			srp_destroy_fr_pool(ch->fr_pool);
--	} else {
-+	} else if (dev->use_fmr) {
- 		if (ch->fmr_pool)
- 			ib_destroy_fmr_pool(ch->fmr_pool);
- 	}
-@@ -1085,7 +1085,7 @@ static void srp_unmap_data(struct scsi_cmnd *scmnd,
- 		if (req->nmdesc)
- 			srp_fr_pool_put(ch->fr_pool, req->fr_list,
- 					req->nmdesc);
--	} else {
-+	} else if (dev->use_fmr) {
- 		struct ib_pool_fmr **pfmr;
- 
- 		for (i = req->nmdesc, pfmr = req->fmr_list; i > 0; i--, pfmr++)
-@@ -1345,8 +1345,11 @@ static int srp_finish_mapping(struct srp_map_state *state,
+@@ -1272,6 +1272,8 @@ static void srp_map_desc(struct srp_map_state *state, dma_addr_t dma_addr,
+ static int srp_map_finish_fmr(struct srp_map_state *state,
  			      struct srp_rdma_ch *ch)
  {
- 	struct srp_target_port *target = ch->target;
++	struct srp_target_port *target = ch->target;
 +	struct srp_device *dev = target->srp_host->srp_dev;
- 	int ret = 0;
+ 	struct ib_pool_fmr *fmr;
+ 	u64 io_addr = 0;
  
-+	WARN_ON_ONCE(!dev->use_fast_reg && !dev->use_fmr);
-+
- 	if (state->npages == 0)
+@@ -1283,7 +1285,8 @@ static int srp_map_finish_fmr(struct srp_map_state *state,
+ 	*state->next_fmr++ = fmr;
+ 	state->nmdesc++;
+ 
+-	srp_map_desc(state, 0, state->dma_len, fmr->fmr->rkey);
++	srp_map_desc(state, state->base_dma_addr & ~dev->mr_page_mask,
++		     state->dma_len, fmr->fmr->rkey);
+ 
+ 	return 0;
+ }
+@@ -1390,14 +1393,7 @@ static int srp_map_sg_entry(struct srp_map_state *state,
  		return 0;
- 
-@@ -1354,8 +1357,7 @@ static int srp_finish_mapping(struct srp_map_state *state,
- 		srp_map_desc(state, state->base_dma_addr, state->dma_len,
- 			     target->rkey);
- 	else
--		ret = target->srp_host->srp_dev->use_fast_reg ?
--			srp_map_finish_fr(state, ch) :
-+		ret = dev->use_fast_reg ? srp_map_finish_fr(state, ch) :
- 			srp_map_finish_fmr(state, ch);
- 
- 	if (ret == 0) {
-@@ -1417,21 +1419,18 @@ static int srp_map_sg(struct srp_map_state *state, struct srp_rdma_ch *ch,
- 	struct srp_device *dev = target->srp_host->srp_dev;
- 	struct scatterlist *sg;
- 	int i, ret;
--	bool use_mr;
- 
- 	state->desc	= req->indirect_desc;
- 	state->pages	= req->map_page;
- 	if (dev->use_fast_reg) {
- 		state->fr.next = req->fr_list;
- 		state->fr.end = req->fr_list + target->cmd_sg_cnt;
--		use_mr = !!ch->fr_pool;
--	} else {
-+	} else if (dev->use_fmr) {
- 		state->fmr.next = req->fmr_list;
- 		state->fmr.end = req->fmr_list + target->cmd_sg_cnt;
--		use_mr = !!ch->fmr_pool;
  	}
  
--	if (use_mr) {
-+	if (dev->use_fast_reg || dev->use_fmr) {
- 		for_each_sg(scat, sg, count, i) {
- 			ret = srp_map_sg_entry(state, ch, sg, i);
- 			if (ret)
-@@ -3355,6 +3354,7 @@ static void srp_add_one(struct ib_device *device)
- 
- 	srp_dev->use_fast_reg = (srp_dev->has_fr &&
- 				 (!srp_dev->has_fmr || prefer_fr));
-+	srp_dev->use_fmr = !srp_dev->use_fast_reg && srp_dev->has_fmr;
- 
- 	/*
- 	 * Use the smallest page size supported by the HCA, down to a
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
-index 1e42418..60a33c1 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.h
-+++ b/drivers/infiniband/ulp/srp/ib_srp.h
-@@ -102,6 +102,7 @@ struct srp_device {
- 	int			max_pages_per_mr;
- 	bool			has_fmr;
- 	bool			has_fr;
-+	bool			use_fmr;
- 	bool			use_fast_reg;
- };
- 
+-	/*
+-	 * Since not all RDMA HW drivers support non-zero page offsets for
+-	 * FMR, if we start at an offset into a page, don't merge into the
+-	 * current FMR mapping. Finish it out, and use the kernel's MR for
+-	 * this sg entry.
+-	 */
+-	if ((!dev->use_fast_reg && dma_addr & ~dev->mr_page_mask) ||
+-	    dma_len > dev->mr_max_size) {
++	if (dma_len > dev->mr_max_size) {
+ 		ret = srp_finish_mapping(state, ch);
+ 		if (ret)
+ 			return ret;
 -- 
 2.1.4
 
