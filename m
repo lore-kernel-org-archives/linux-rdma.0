@@ -1,8 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 3/8] IB/srp: Add memory descriptor array pointer range
- checking
-Date: Mon, 10 Aug 2015 17:07:27 -0700
-Message-ID: <55C93CBF.1060606@sandisk.com>
+Subject: [PATCH 4/8] IB/srp: Remove the memory registration backtracking code
+Date: Mon, 10 Aug 2015 17:07:46 -0700
+Message-ID: <55C93CD2.8050704@sandisk.com>
 References: <55BBF4B8.2050700@sandisk.com>
  <20150803152420.GA24193@infradead.org> <55BFB40F.8000500@sandisk.com>
  <20150804180933.GB5038@obsidianresearch.com>
@@ -21,93 +20,156 @@ To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.or
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Although most paths through which a request is submitted check
-block layer parameters like the max_segments limit, these are
-not checked when an SG_IO or direct I/O request is submitted.
-Hence add a range check for the memory descriptor array pointer.
+Mapping a discontiguous sg-list requires multiple memory regions
+and hence can exhaust the memory region pool. The SRP initiator
+already handles this by temporarily reducing the queue depth. This
+means that it is safe to remove the memory registration backtracking
+code. This patch has been tested with direct I/O sizes up to 256 MB.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 16 ++++++++++++----
- drivers/infiniband/ulp/srp/ib_srp.h | 10 ++++++++--
- 2 files changed, 20 insertions(+), 6 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 62 ++++++++-----------------------------
+ drivers/infiniband/ulp/srp/ib_srp.h |  6 ----
+ 2 files changed, 13 insertions(+), 55 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index b6b9a55..f9fa220 100644
+index f9fa220..660a4a4 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1277,12 +1277,15 @@ static int srp_map_finish_fmr(struct srp_map_state *state,
- 	struct ib_pool_fmr *fmr;
- 	u64 io_addr = 0;
+@@ -1364,15 +1364,6 @@ static int srp_finish_mapping(struct srp_map_state *state,
+ 	return ret;
+ }
  
-+	if (state->fmr.next >= state->fmr.end)
-+		return -ENOMEM;
-+
- 	fmr = ib_fmr_pool_map_phys(ch->fmr_pool, state->pages,
- 				   state->npages, io_addr);
- 	if (IS_ERR(fmr))
- 		return PTR_ERR(fmr);
- 
--	*state->next_fmr++ = fmr;
-+	*state->fmr.next++ = fmr;
- 	state->nmdesc++;
- 
- 	srp_map_desc(state, state->base_dma_addr & ~dev->mr_page_mask,
-@@ -1301,6 +1304,9 @@ static int srp_map_finish_fr(struct srp_map_state *state,
- 	struct srp_fr_desc *desc;
- 	u32 rkey;
- 
-+	if (state->fr.next >= state->fr.end)
-+		return -ENOMEM;
-+
- 	desc = srp_fr_pool_get(ch->fr_pool);
- 	if (!desc)
- 		return -ENOMEM;
-@@ -1324,7 +1330,7 @@ static int srp_map_finish_fr(struct srp_map_state *state,
- 				       IB_ACCESS_REMOTE_WRITE);
- 	wr.wr.fast_reg.rkey = desc->mr->lkey;
- 
--	*state->next_fr++ = desc;
-+	*state->fr.next++ = desc;
- 	state->nmdesc++;
- 
- 	srp_map_desc(state, state->base_dma_addr, state->dma_len,
-@@ -1450,10 +1456,12 @@ static int srp_map_sg(struct srp_map_state *state, struct srp_rdma_ch *ch,
- 	state->desc	= req->indirect_desc;
- 	state->pages	= req->map_page;
- 	if (dev->use_fast_reg) {
--		state->next_fr = req->fr_list;
-+		state->fr.next = req->fr_list;
-+		state->fr.end = req->fr_list + target->cmd_sg_cnt;
- 		use_mr = !!ch->fr_pool;
- 	} else {
--		state->next_fmr = req->fmr_list;
-+		state->fmr.next = req->fmr_list;
-+		state->fmr.end = req->fmr_list + target->cmd_sg_cnt;
- 		use_mr = !!ch->fmr_pool;
+-static void srp_map_update_start(struct srp_map_state *state,
+-				 struct scatterlist *sg, int sg_index,
+-				 dma_addr_t dma_addr)
+-{
+-	state->unmapped_sg = sg;
+-	state->unmapped_index = sg_index;
+-	state->unmapped_addr = dma_addr;
+-}
+-
+ static int srp_map_sg_entry(struct srp_map_state *state,
+ 			    struct srp_rdma_ch *ch,
+ 			    struct scatterlist *sg, int sg_index,
+@@ -1399,23 +1390,12 @@ static int srp_map_sg_entry(struct srp_map_state *state,
+ 		return 0;
  	}
  
+-	/*
+-	 * If this is the first sg that will be mapped via FMR or via FR, save
+-	 * our position. We need to know the first unmapped entry, its index,
+-	 * and the first unmapped address within that entry to be able to
+-	 * restart mapping after an error.
+-	 */
+-	if (!state->unmapped_sg)
+-		srp_map_update_start(state, sg, sg_index, dma_addr);
+-
+ 	while (dma_len) {
+ 		unsigned offset = dma_addr & ~dev->mr_page_mask;
+ 		if (state->npages == dev->max_pages_per_mr || offset != 0) {
+ 			ret = srp_finish_mapping(state, ch);
+ 			if (ret)
+ 				return ret;
+-
+-			srp_map_update_start(state, sg, sg_index, dma_addr);
+ 		}
+ 
+ 		len = min_t(unsigned int, dma_len, dev->mr_page_size - offset);
+@@ -1434,11 +1414,8 @@ static int srp_map_sg_entry(struct srp_map_state *state,
+ 	 * boundaries.
+ 	 */
+ 	ret = 0;
+-	if (len != dev->mr_page_size) {
++	if (len != dev->mr_page_size)
+ 		ret = srp_finish_mapping(state, ch);
+-		if (!ret)
+-			srp_map_update_start(state, NULL, 0, 0);
+-	}
+ 	return ret;
+ }
+ 
+@@ -1448,9 +1425,8 @@ static int srp_map_sg(struct srp_map_state *state, struct srp_rdma_ch *ch,
+ {
+ 	struct srp_target_port *target = ch->target;
+ 	struct srp_device *dev = target->srp_host->srp_dev;
+-	struct ib_device *ibdev = dev->dev;
+ 	struct scatterlist *sg;
+-	int i;
++	int i, ret;
+ 	bool use_mr;
+ 
+ 	state->desc	= req->indirect_desc;
+@@ -1466,34 +1442,22 @@ static int srp_map_sg(struct srp_map_state *state, struct srp_rdma_ch *ch,
+ 	}
+ 
+ 	for_each_sg(scat, sg, count, i) {
+-		if (srp_map_sg_entry(state, ch, sg, i, use_mr)) {
+-			/*
+-			 * Memory registration failed, so backtrack to the
+-			 * first unmapped entry and continue on without using
+-			 * memory registration.
+-			 */
+-			dma_addr_t dma_addr;
+-			unsigned int dma_len;
+-
+-backtrack:
+-			sg = state->unmapped_sg;
+-			i = state->unmapped_index;
+-
+-			dma_addr = ib_sg_dma_address(ibdev, sg);
+-			dma_len = ib_sg_dma_len(ibdev, sg);
+-			dma_len -= (state->unmapped_addr - dma_addr);
+-			dma_addr = state->unmapped_addr;
+-			use_mr = false;
+-			srp_map_desc(state, dma_addr, dma_len, target->rkey);
+-		}
++		ret = srp_map_sg_entry(state, ch, sg, i, use_mr);
++		if (ret)
++			goto out;
+ 	}
+ 
+-	if (use_mr && srp_finish_mapping(state, ch))
+-		goto backtrack;
++	if (use_mr) {
++		ret = srp_finish_mapping(state, ch);
++		if (ret)
++			goto out;
++	}
+ 
+ 	req->nmdesc = state->nmdesc;
++	ret = 0;
+ 
+-	return 0;
++out:
++	return ret;
+ }
+ 
+ static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_rdma_ch *ch,
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
-index 17ee3f8..2ab73bc 100644
+index 2ab73bc..1e42418 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.h
 +++ b/drivers/infiniband/ulp/srp/ib_srp.h
-@@ -282,8 +282,14 @@ struct srp_fr_pool {
+@@ -276,9 +276,6 @@ struct srp_fr_pool {
+  * @npages:	    Number of page addresses in the pages[] array.
+  * @nmdesc:	    Number of FMR or FR memory descriptors used for mapping.
+  * @ndesc:	    Number of SRP buffer descriptors that have been filled in.
+- * @unmapped_sg:    First element of the sg-list that is mapped via FMR or FR.
+- * @unmapped_index: Index of the first element mapped via FMR or FR.
+- * @unmapped_addr:  DMA address of the first element mapped via FMR or FR.
   */
  struct srp_map_state {
  	union {
--		struct ib_pool_fmr **next_fmr;
--		struct srp_fr_desc **next_fr;
-+		struct {
-+			struct ib_pool_fmr **next;
-+			struct ib_pool_fmr **end;
-+		} fmr;
-+		struct {
-+			struct srp_fr_desc **next;
-+			struct srp_fr_desc **end;
-+		} fr;
- 	};
- 	struct srp_direct_buf  *desc;
- 	u64		       *pages;
+@@ -299,9 +296,6 @@ struct srp_map_state {
+ 	unsigned int		npages;
+ 	unsigned int		nmdesc;
+ 	unsigned int		ndesc;
+-	struct scatterlist     *unmapped_sg;
+-	int			unmapped_index;
+-	dma_addr_t		unmapped_addr;
+ };
+ 
+ #endif /* IB_SRP_H */
 -- 
 2.1.4
 
