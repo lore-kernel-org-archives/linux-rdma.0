@@ -1,65 +1,122 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH for-next V7 6/6] IB/ucma: HW Device hot-removal support
-Date: Tue, 11 Aug 2015 12:47:03 +0000
-Message-ID: <HE1PR05MB1418DE9D40F9B2B20FD1AC3BB17F0@HE1PR05MB1418.eurprd05.prod.outlook.com>
-References: <1438697008-26209-1-git-send-email-yishaih@mellanox.com>
- <1438697008-26209-7-git-send-email-yishaih@mellanox.com>
- <20150804220903.GE10934@obsidianresearch.com>
- <55C22739.5060808@dev.mellanox.co.il>
- <20150805182117.GA15583@obsidianresearch.com>
- <HE1PR05MB1418EA195D579C09EB1FB746B1740@HE1PR05MB1418.eurprd05.prod.outlook.com>
- <20150811054852.GC13314@obsidianresearch.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] IB/srp: Fix possible use-after-free
+Date: Tue, 11 Aug 2015 17:42:45 +0300
+Message-ID: <55CA09E5.2070208@dev.mellanox.co.il>
+References: <1439216574-25936-1-git-send-email-sagig@mellanox.com>
+ <55C8BB38.1060808@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150811054852.GC13314-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <55C8BB38.1060808-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
-> 
-> It does if you want a planned 'gental' removal to be possible..
-> 
 
-There could be a lot of design options for a 'gentle' removal, such as first sending a 'prepare' event, and only then doing the flow proposed here.
-I do not want to address this now.
+> With which kernel version has this been observed ? scsi_remove_host()
+> waits until all outstanding requests have finished. srp_free_ch_ib() is
+> called either before a SCSI host is registered with the SCSI core or
+> after scsi_remove_host() has finished. So I don't see how the above call
+> trace could be triggered with a recent kernel ?
 
-> > When you do a surprise removal, you disconnect the application from
-> > both ucma and uverbs device references.  In this state, the only
-> > thing that the application can do is close all handles.  It doesn't
-> > matter if you succeed closing a resource on a device that is still
-> > accessible, or "close" an already destroyed resource...
-> 
-> Hurm. That makese sense, but that isn't entirely what this patch set
-> does - it is rough when facing the user, but the kernel side is
-> actually quite gental.. Ie the RDMA CM still sends GMPs on this
-> shutdown path.. Looks like the various storage ULP shutdowns are
-> pretty gental too.
-> 
+Bart,
 
-Right.
-Kernel removal is always gentle, because kernel ULPs are trusted to close within a finite time.
+I think I confused in the patch I sent out.
+The patch I sent was designed to address a theoretical race when
+deleting a target during live IO.
 
-> As an example, I think it is important, if you
-> want to hot-unplug a storage controller the admin expects a clean
-> storage shutdown. I think in-kernel storage drivers do that
-> already. IB shouldn't really be much different.
-> 
+This specific use-after-free occurred in a reconnect flow where
+scsi_remove_host() is not invoked (assuming that dev_loss_tmo was
+not invoked).
 
-If a storage stack has user-space components, then our future 'gentle' closing will take care of that.
+The below patch should address the same race in the reconnect flow:
 
-> > Anyway, let's get this patch-set done.
-> 
-> Still needs to have the locking fixed..
+[PATCH] IB/srp: Fix possible protection fault
 
-As pointed out (https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg27023.html), this "barrier" scheme is used in several places including in the RDMA stack.
-If there is no functional issue with the code, we can discuss how to address this scheme systematically later.
+srp_destroy_qp is designed to indicate we are safe to continue with
+freeing the channel resources by modifying the qp error state,
+posting a dummy wr on the queue-pair and waiting for it to flush.
+This also holds for the channel registration pool as we are unmapping
+the memory region when handling a scsi response. Destroying the
+channel registration pool before we make sure we processed all the
+inflight IO might introduce a use-after-free of the registration pool.
 
---Liran
+This use-after-free is demonstrated in the stack trace below where
+srp is trying to unmap a used FMR after the fmr_pool was already destroyed.
+
+general protection fault: 0000 [#1] SMP
+RIP: 0010:[<ffffffff8151121b>]  [<ffffffff8151121b>] 
+_raw_spin_lock_irqsave+0x1b/0x50
+Call Trace:
+  [<ffffffffa055d88a>] ib_fmr_pool_unmap+0x1a/0xb0 [ib_core]
+  [<ffffffffa06c00ed>] srp_unmap_data.isra.28+0x17d/0x250 [ib_srp]
+  [<ffffffffa06c01eb>] srp_free_req+0x2b/0x60 [ib_srp]
+  [<ffffffffa06c0c94>] srp_recv_completion+0x174/0x580 [ib_srp]
+  [<ffffffffa04580fe>] mlx4_eq_int+0x4de/0xe50 [mlx4_core]
+  [<ffffffffa0458b00>] mlx4_msi_x_interrupt+0x10/0x20 [mlx4_core]
+  [<ffffffff810abc45>] handle_irq_event_percpu+0x35/0x1b0
+  [<ffffffff810abdf2>] handle_irq_event+0x32/0x50
+  [<ffffffff810ae5cf>] handle_edge_irq+0x6f/0x120
+  [<ffffffff8100455a>] handle_irq+0x1a/0x30
+  [<ffffffff8151b475>] do_IRQ+0x45/0xb0
+  [<ffffffff8151162d>] common_interrupt+0x6d/0x6d
+  [<ffffffff813e4d2f>] cpuidle_enter_state+0x4f/0xc0
+  [<ffffffff813e4e6c>] cpuidle_idle_call+0xcc/0x210
+  [<ffffffff8100b9ea>] arch_cpu_idle+0xa/0x30
+  [<ffffffff810ab1e1>] cpu_startup_entry+0xe1/0x270
+  [<ffffffff81030b3a>] start_secondary+0x21a/0x2c0
+
+Reported-by: Eliott Kespi <eliottk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+  drivers/infiniband/ulp/srp/ib_srp.c |   22 +++++++++++-----------
+  1 files changed, 11 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c 
+b/drivers/infiniband/ulp/srp/ib_srp.c
+index 3a1514c..b220856 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -546,6 +546,17 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
+         if (ret)
+                 goto err_qp;
+
++       if (ch->qp)
++               srp_destroy_qp(ch);
++       if (ch->recv_cq)
++               ib_destroy_cq(ch->recv_cq);
++       if (ch->send_cq)
++               ib_destroy_cq(ch->send_cq);
++
++       ch->qp = qp;
++       ch->recv_cq = recv_cq;
++       ch->send_cq = send_cq;
++
+         if (dev->use_fast_reg && dev->has_fr) {
+                 fr_pool = srp_alloc_fr_pool(target);
+                 if (IS_ERR(fr_pool)) {
+@@ -570,17 +581,6 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
+                 ch->fmr_pool = fmr_pool;
+         }
+
+-       if (ch->qp)
+-               srp_destroy_qp(ch);
+-       if (ch->recv_cq)
+-               ib_destroy_cq(ch->recv_cq);
+-
+-       ch->qp = qp;
+-       ch->recv_cq = recv_cq;
+-       ch->send_cq = send_cq;
+-
+         kfree(init_attr);
+         return 0;
+
+--
+
+Sorry for the mixup. Does this patch make more sense?
+
+Sagi.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
