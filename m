@@ -1,45 +1,81 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [GIT PULL] pull request: linux-firmware: Add Intel OPA hfi1
- firmware
-Date: Tue, 11 Aug 2015 17:35:53 -0600
-Message-ID: <20150811233553.GA3553@obsidianresearch.com>
-References: <20150811213205.GA28613@phlsvsds.ph.intel.com>
- <20150811222557.GA6293@obsidianresearch.com>
- <9010F06FA27E5745AF23866A8C9A2B3D2E9B136C@FMSMSX106.amr.corp.intel.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] IB/srp: Fix possible use-after-free
+Date: Wed, 12 Aug 2015 09:31:57 +0300
+Message-ID: <55CAE85D.7010602@dev.mellanox.co.il>
+References: <1439216574-25936-1-git-send-email-sagig@mellanox.com>
+ <55C8BB38.1060808@sandisk.com> <55CA09E5.2070208@dev.mellanox.co.il>
+ <55CA1BC1.3060609@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <9010F06FA27E5745AF23866A8C9A2B3D2E9B136C-AtyAts71sc9ZtRGVdHMbwrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <55CA1BC1.3060609-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Vogel, Steve" <steve.vogel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-firmware-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <linux-firmware-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Sowa, David" <david.sowa-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 11, 2015 at 10:47:03PM +0000, Vogel, Steve wrote:
-> The license terms allow anyone to distribute (but not sell) the firmware but
-> only for use on Intel products. 
 
-Redistribution alone may be enough to be included in linux-firmware
+> On second thought ... with your patch, if the "goto err_qp" branch in
+> srp_create_ch_ib() is taken upon return ch->qp, ch->recv_cq and
+> ch->send_cq will be dangling pointers. That will have bad consequences
+> in the subsequent srp_free_ch_ib() call. How about replacing the above
+> patch with the (untested) patch below ?
+>
+> Thanks,
+>
+> Bart.
+>
+> [PATCH] IB/srp: Avoid that a completion during reconnect causes a crash
+>
+> Untested.
+> ---
+>   drivers/infiniband/ulp/srp/ib_srp.c | 16 ++++++++++------
+>   1 file changed, 10 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+> index 2968b7b..1f9ed68 100644
+> --- a/drivers/infiniband/ulp/srp/ib_srp.c
+> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
+> @@ -554,9 +554,6 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
+>   				     "FR pool allocation failed (%d)\n", ret);
+>   			goto err_qp;
+>   		}
+> -		if (ch->fr_pool)
+> -			srp_destroy_fr_pool(ch->fr_pool);
+> -		ch->fr_pool = fr_pool;
+>   	} else if (!dev->use_fast_reg && dev->has_fmr) {
+>   		fmr_pool = srp_alloc_fmr_pool(target);
+>   		if (IS_ERR(fmr_pool)) {
+> @@ -565,9 +562,6 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
+>   				     "FMR pool allocation failed (%d)\n", ret);
+>   			goto err_qp;
+>   		}
+> -		if (ch->fmr_pool)
+> -			ib_destroy_fmr_pool(ch->fmr_pool);
+> -		ch->fmr_pool = fmr_pool;
+>   	}
+>
+>   	if (ch->qp)
+> @@ -577,6 +571,16 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
+>   	if (ch->send_cq)
+>   		ib_destroy_cq(ch->send_cq);
+>
+> +	if (dev->use_fast_reg && dev->has_fr) {
+> +		if (ch->fr_pool)
+> +			srp_destroy_fr_pool(ch->fr_pool);
+> +		ch->fr_pool = fr_pool;
+> +	} else if (!dev->use_fast_reg && dev->has_fmr) {
+> +		if (ch->fmr_pool)
+> +			ib_destroy_fmr_pool(ch->fmr_pool);
+> +		ch->fmr_pool = fmr_pool;
+> +	}
+> +
+>   	ch->qp = qp;
+>   	ch->recv_cq = recv_cq;
+>   	ch->send_cq = send_cq;
+>
 
-However, most of the additional terms (and there are lots of them)
-this imposes beyond the usual likely make it impossible to include in a
-distro, so pragmatically, there is no reason to push for inclusion in
-linux-firmware.
-
-This is going to be a hard road for you guys. Falling in line with
-every other Intel firmware blob's (i915, ibt, iwlwifi, SST2) license
-would be much easier on you and the distros.
-
-Frankly, I think the onus is on you to get statements from the
-licensing teams at Fedora, Debian, RH and SuSE on if they can include
-work under this license or not.
-
-I suspect Fedora and Debian will both say they can't, just based on
-their public policies and the additional restrictions in this
-license.. But hey, I'm not a licensing lawyer..
-
-Jason
+Looks better, I'll resubmit.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
