@@ -1,81 +1,58 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] IB/srp: Fix possible use-after-free
-Date: Wed, 12 Aug 2015 09:31:57 +0300
-Message-ID: <55CAE85D.7010602@dev.mellanox.co.il>
-References: <1439216574-25936-1-git-send-email-sagig@mellanox.com>
- <55C8BB38.1060808@sandisk.com> <55CA09E5.2070208@dev.mellanox.co.il>
- <55CA1BC1.3060609@sandisk.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: re: IB/mlx5: Support IB_WR_REG_SIG_MR
+Date: Wed, 12 Aug 2015 13:36:59 +0300
+Message-ID: <20150812103659.GA22571@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55CA1BC1.3060609-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hello Sagi Grimberg,
 
-> On second thought ... with your patch, if the "goto err_qp" branch in
-> srp_create_ch_ib() is taken upon return ch->qp, ch->recv_cq and
-> ch->send_cq will be dangling pointers. That will have bad consequences
-> in the subsequent srp_free_ch_ib() call. How about replacing the above
-> patch with the (untested) patch below ?
->
-> Thanks,
->
-> Bart.
->
-> [PATCH] IB/srp: Avoid that a completion during reconnect causes a crash
->
-> Untested.
-> ---
->   drivers/infiniband/ulp/srp/ib_srp.c | 16 ++++++++++------
->   1 file changed, 10 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-> index 2968b7b..1f9ed68 100644
-> --- a/drivers/infiniband/ulp/srp/ib_srp.c
-> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-> @@ -554,9 +554,6 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
->   				     "FR pool allocation failed (%d)\n", ret);
->   			goto err_qp;
->   		}
-> -		if (ch->fr_pool)
-> -			srp_destroy_fr_pool(ch->fr_pool);
-> -		ch->fr_pool = fr_pool;
->   	} else if (!dev->use_fast_reg && dev->has_fmr) {
->   		fmr_pool = srp_alloc_fmr_pool(target);
->   		if (IS_ERR(fmr_pool)) {
-> @@ -565,9 +562,6 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
->   				     "FMR pool allocation failed (%d)\n", ret);
->   			goto err_qp;
->   		}
-> -		if (ch->fmr_pool)
-> -			ib_destroy_fmr_pool(ch->fmr_pool);
-> -		ch->fmr_pool = fmr_pool;
->   	}
->
->   	if (ch->qp)
-> @@ -577,6 +571,16 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
->   	if (ch->send_cq)
->   		ib_destroy_cq(ch->send_cq);
->
-> +	if (dev->use_fast_reg && dev->has_fr) {
-> +		if (ch->fr_pool)
-> +			srp_destroy_fr_pool(ch->fr_pool);
-> +		ch->fr_pool = fr_pool;
-> +	} else if (!dev->use_fast_reg && dev->has_fmr) {
-> +		if (ch->fmr_pool)
-> +			ib_destroy_fmr_pool(ch->fmr_pool);
-> +		ch->fmr_pool = fmr_pool;
-> +	}
-> +
->   	ch->qp = qp;
->   	ch->recv_cq = recv_cq;
->   	ch->send_cq = send_cq;
->
+The patch e6631814fb3a: "IB/mlx5: Support IB_WR_REG_SIG_MR" from Feb
+23, 2014, leads to the following static checker warning:
 
-Looks better, I'll resubmit.
+	drivers/infiniband/ulp/ipoib/ipoib_cm.c:764 ipoib_cm_send()
+	warn: 'rc' can be either negative or positive
+
+drivers/infiniband/hw/mlx5/qp.c
+  2417  static int set_psv_wr(struct ib_sig_domain *domain,
+  2418                        u32 psv_idx, void **seg, int *size)
+  2419  {
+  2420          struct mlx5_seg_set_psv *psv_seg = *seg;
+  2421  
+  2422          memset(psv_seg, 0, sizeof(*psv_seg));
+  2423          psv_seg->psv_num = cpu_to_be32(psv_idx);
+  2424          switch (domain->sig_type) {
+  2425          case IB_SIG_TYPE_NONE:
+  2426                  break;
+  2427          case IB_SIG_TYPE_T10_DIF:
+  2428                  psv_seg->transient_sig = cpu_to_be32(domain->sig.dif.bg << 16 |
+  2429                                                       domain->sig.dif.app_tag);
+  2430                  psv_seg->ref_tag = cpu_to_be32(domain->sig.dif.ref_tag);
+  2431                  break;
+  2432          default:
+  2433                  pr_err("Bad signature type given.\n");
+  2434                  return 1;
+
+Probably we should return -EINVAL here?  It actually really upsets the
+static checker because all the callers expect negative error codes and
+there are lot of callers.
+
+  2435          }
+  2436  
+  2437          *seg += sizeof(*psv_seg);
+  2438          *size += sizeof(*psv_seg) / 16;
+  2439  
+  2440          return 0;
+  2441  }
+
+regards,
+dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
