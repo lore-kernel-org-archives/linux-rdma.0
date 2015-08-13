@@ -1,404 +1,368 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 5/9] IB/core: Add rdma_network_type to wc
-Date: Thu, 13 Aug 2015 19:03:10 +0300
-Message-ID: <1439481794-27998-6-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next 8/9] IB/core: Initialize UD header structure with IP and UDP headers
+Date: Thu, 13 Aug 2015 19:03:13 +0300
+Message-ID: <1439481794-27998-9-git-send-email-matanb@mellanox.com>
 References: <1439481794-27998-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1439481794-27998-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Providers should tell IB core the wc's network type.
-This is used in order to search for the proper GID in the
-GID table. When using HCAs that can't provide this info,
-IB core tries to deep examine the packet and extract
-the GID type by itself.
+ib_ud_header_init() is used to format InfiniBand headers
+in a buffer up to (but not with) BTH. For RoCE UDP ENCAP it is
+required that this function would be able to build also IP and UDP
+headers.
 
-We choose sgid_index and type from all the matching entries in
-RDMA-CM based on hint from the IP stack and we set hop_limit for
-the IP packet based on above hint from IP stack.
-
+Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>
 ---
- drivers/infiniband/core/addr.c  |  14 +++++
- drivers/infiniband/core/cma.c   |  11 +++-
- drivers/infiniband/core/verbs.c | 123 ++++++++++++++++++++++++++++++++++++++--
- include/rdma/ib_addr.h          |   1 +
- include/rdma/ib_verbs.h         |  44 ++++++++++++++
- 5 files changed, 187 insertions(+), 6 deletions(-)
+ drivers/infiniband/core/ud_header.c    | 155 ++++++++++++++++++++++++++++++---
+ drivers/infiniband/hw/mlx4/qp.c        |   7 +-
+ drivers/infiniband/hw/mthca/mthca_qp.c |   2 +-
+ include/rdma/ib_pack.h                 |  45 ++++++++--
+ 4 files changed, 188 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-index d3c42b3..3e1f93c 100644
---- a/drivers/infiniband/core/addr.c
-+++ b/drivers/infiniband/core/addr.c
-@@ -257,6 +257,12 @@ static int addr4_resolve(struct sockaddr_in *src_in,
- 		goto put;
- 	}
+diff --git a/drivers/infiniband/core/ud_header.c b/drivers/infiniband/core/ud_header.c
+index 72feee6..96697e7 100644
+--- a/drivers/infiniband/core/ud_header.c
++++ b/drivers/infiniband/core/ud_header.c
+@@ -35,6 +35,7 @@
+ #include <linux/string.h>
+ #include <linux/export.h>
+ #include <linux/if_ether.h>
++#include <linux/ip.h>
  
-+	/* If there's a gateway, we're definitely in RoCE v2 (as RoCE v1 isn't
-+	 * routable) and we could set the network type accordingly.
-+	 */
-+	if (rt->rt_uses_gateway)
-+		addr->network = RDMA_NETWORK_IPV4;
-+
- 	ret = dst_fetch_ha(&rt->dst, addr, &fl4.daddr);
- put:
- 	ip_rt_put(rt);
-@@ -271,6 +277,7 @@ static int addr6_resolve(struct sockaddr_in6 *src_in,
- {
- 	struct flowi6 fl6;
- 	struct dst_entry *dst;
-+	struct rt6_info *rt;
- 	int ret;
+ #include <rdma/ib_pack.h>
  
- 	memset(&fl6, 0, sizeof fl6);
-@@ -282,6 +289,7 @@ static int addr6_resolve(struct sockaddr_in6 *src_in,
- 	if ((ret = dst->error))
- 		goto put;
- 
-+	rt = (struct rt6_info *)dst;
- 	if (ipv6_addr_any(&fl6.saddr)) {
- 		ret = ipv6_dev_get_saddr(&init_net, ip6_dst_idev(dst)->dev,
- 					 &fl6.daddr, 0, &fl6.saddr);
-@@ -305,6 +313,12 @@ static int addr6_resolve(struct sockaddr_in6 *src_in,
- 		goto put;
- 	}
- 
-+	/* If there's a gateway, we're definitely in RoCE v2 (as RoCE v1 isn't
-+	 * routable) and we could set the network type accordingly.
-+	 */
-+	if (rt->rt6i_flags & RTF_GATEWAY)
-+		addr->network = RDMA_NETWORK_IPV6;
-+
- 	ret = dst_fetch_ha(dst, addr, &fl6.daddr);
- put:
- 	dst_release(dst);
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index f78b8dd..99e9e3e 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -1929,6 +1929,7 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
- {
- 	struct rdma_route *route = &id_priv->id.route;
- 	struct rdma_addr *addr = &route->addr;
-+	enum ib_gid_type network_gid_type;
- 	struct cma_work *work;
- 	int ret;
- 	struct net_device *ndev = NULL;
-@@ -1967,7 +1968,15 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
- 	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.dst_addr,
- 		    &route->path_rec->dgid);
- 
--	route->path_rec->hop_limit = 1;
-+	/* Use the hint from IP Stack to select GID Type */
-+	network_gid_type = ib_network_to_gid_type(addr->dev_addr.network);
-+	if (addr->dev_addr.network != RDMA_NETWORK_IB) {
-+		route->path_rec->gid_type = network_gid_type;
-+		/* TODO: get the hoplimit from the inet/inet6 device */
-+		route->path_rec->hop_limit = IPV6_DEFAULT_HOPLIMIT;
-+	} else {
-+		route->path_rec->hop_limit = 1;
-+	}
- 	route->path_rec->reversible = 1;
- 	route->path_rec->pkey = cpu_to_be16(0xffff);
- 	route->path_rec->mtu_selector = IB_SA_EQ;
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 62a3d01..1d1cab3 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -260,8 +260,61 @@ struct ib_ah *ib_create_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr)
- }
- EXPORT_SYMBOL(ib_create_ah);
- 
-+static int ib_get_header_version(const union rdma_network_hdr *hdr)
-+{
-+	const struct iphdr *ip4h = (struct iphdr *)&hdr->roce4grh;
-+	struct iphdr ip4h_checked;
-+	const struct ipv6hdr *ip6h = (struct ipv6hdr *)&hdr->ibgrh;
-+
-+	/* If it's IPv6, the version must be 6, otherwise, the first
-+	 * 20 bytes (before the IPv4 header) are garbled.
-+	 */
-+	if (ip6h->version != 6)
-+		return (ip4h->version == 4) ? 4 : 0;
-+	/* version may be 6 or 4 because the first 20 bytes could be garbled */
-+
-+	/* RoCE v2 requires no options, thus header length
-+	   must be 5 words
-+	*/
-+	if (ip4h->ihl != 5)
-+		return 6;
-+
-+	/* Verify checksum.
-+	   We can't write on scattered buffers so we need to copy to
-+	   temp buffer.
-+	 */
-+	memcpy(&ip4h_checked, ip4h, sizeof(ip4h_checked));
-+	ip4h_checked.check = 0;
-+	ip4h_checked.check = ip_fast_csum((u8 *)&ip4h_checked, 5);
-+	/* if IPv4 header checksum is OK, believe it */
-+	if (ip4h->check == ip4h_checked.check)
-+		return 4;
-+	return 6;
-+}
-+
-+static enum rdma_network_type ib_get_net_type_by_grh(struct ib_device *device,
-+						     u8 port_num,
-+						     const struct ib_grh *grh)
-+{
-+	int grh_version;
-+
-+	if (rdma_protocol_ib(device, port_num))
-+		return RDMA_NETWORK_IB;
-+
-+	grh_version = ib_get_header_version((union rdma_network_hdr *)grh);
-+
-+	if (grh_version == 4)
-+		return RDMA_NETWORK_IPV4;
-+
-+	if (grh->next_hdr == IPPROTO_UDP)
-+		return RDMA_NETWORK_IPV6;
-+
-+	return RDMA_NETWORK_ROCE_V1;
-+}
-+
- struct find_gid_index_context {
- 	u16 vlan_id;
-+	enum ib_gid_type gid_type;
+@@ -116,6 +117,72 @@ static const struct ib_field vlan_table[]  = {
+ 	  .size_bits    = 16 }
  };
  
- static bool find_gid_index(const union ib_gid *gid,
-@@ -271,6 +324,9 @@ static bool find_gid_index(const union ib_gid *gid,
- 	struct find_gid_index_context *ctx =
- 		(struct find_gid_index_context *)context;
- 
-+	if (ctx->gid_type != gid_attr->gid_type)
-+		return false;
++static const struct ib_field ip4_table[]  = {
++	{ STRUCT_FIELD(ip4, ver),
++	  .offset_words = 0,
++	  .offset_bits  = 0,
++	  .size_bits    = 4 },
++	{ STRUCT_FIELD(ip4, hdr_len),
++	  .offset_words = 0,
++	  .offset_bits  = 4,
++	  .size_bits    = 4 },
++	{ STRUCT_FIELD(ip4, tos),
++	  .offset_words = 0,
++	  .offset_bits  = 8,
++	  .size_bits    = 8 },
++	{ STRUCT_FIELD(ip4, tot_len),
++	  .offset_words = 0,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(ip4, id),
++	  .offset_words = 1,
++	  .offset_bits  = 0,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(ip4, frag_off),
++	  .offset_words = 1,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(ip4, ttl),
++	  .offset_words = 2,
++	  .offset_bits  = 0,
++	  .size_bits    = 8 },
++	{ STRUCT_FIELD(ip4, protocol),
++	  .offset_words = 2,
++	  .offset_bits  = 8,
++	  .size_bits    = 8 },
++	{ STRUCT_FIELD(ip4, check),
++	  .offset_words = 2,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(ip4, saddr),
++	  .offset_words = 3,
++	  .offset_bits  = 0,
++	  .size_bits    = 32 },
++	{ STRUCT_FIELD(ip4, daddr),
++	  .offset_words = 4,
++	  .offset_bits  = 0,
++	  .size_bits    = 32 }
++};
 +
- 	if ((!!(ctx->vlan_id != 0xffff) == !is_vlan_dev(gid_attr->ndev)) ||
- 	    (is_vlan_dev(gid_attr->ndev) &&
- 	     vlan_dev_vlan_id(gid_attr->ndev) != ctx->vlan_id))
-@@ -281,14 +337,49 @@ static bool find_gid_index(const union ib_gid *gid,
- 
- static int get_sgid_index_from_eth(struct ib_device *device, u8 port_num,
- 				   u16 vlan_id, const union ib_gid *sgid,
-+				   enum ib_gid_type gid_type,
- 				   u16 *gid_index)
- {
--	struct find_gid_index_context context = {.vlan_id = vlan_id};
-+	struct find_gid_index_context context = {.vlan_id = vlan_id,
-+						 .gid_type = gid_type};
- 
- 	return ib_find_gid_by_filter(device, sgid, port_num, find_gid_index,
- 				     &context, gid_index);
- }
- 
-+static int get_gids_from_rdma_hdr(union rdma_network_hdr *hdr,
-+				  enum rdma_network_type net_type,
-+				  union ib_gid *sgid, union ib_gid *dgid)
-+{
-+	struct sockaddr_in  src_in;
-+	struct sockaddr_in  dst_in;
-+	__be32 src_saddr, dst_saddr;
++static const struct ib_field udp_table[]  = {
++	{ STRUCT_FIELD(udp, sport),
++	  .offset_words = 0,
++	  .offset_bits  = 0,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(udp, dport),
++	  .offset_words = 0,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(udp, length),
++	  .offset_words = 1,
++	  .offset_bits  = 0,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(udp, csum),
++	  .offset_words = 1,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 }
++};
 +
-+	if (!sgid || !dgid)
-+		return -EINVAL;
-+
-+	if (net_type == RDMA_NETWORK_IPV4) {
-+		memcpy(&src_in.sin_addr.s_addr,
-+		       &hdr->roce4grh.saddr, 4);
-+		memcpy(&dst_in.sin_addr.s_addr,
-+		       &hdr->roce4grh.daddr, 4);
-+		src_saddr = src_in.sin_addr.s_addr;
-+		dst_saddr = dst_in.sin_addr.s_addr;
-+		ipv6_addr_set_v4mapped(src_saddr,
-+				       (struct in6_addr *)sgid);
-+		ipv6_addr_set_v4mapped(dst_saddr,
-+				       (struct in6_addr *)dgid);
-+		return 0;
-+	} else if (net_type == RDMA_NETWORK_IPV6 ||
-+		   net_type == RDMA_NETWORK_IB) {
-+		*dgid = hdr->ibgrh.dgid;
-+		*sgid = hdr->ibgrh.sgid;
-+		return 0;
-+	} else {
-+		return -EINVAL;
-+	}
-+}
-+
- int ib_init_ah_from_wc(struct ib_device *device, u8 port_num,
- 		       const struct ib_wc *wc, const struct ib_grh *grh,
- 		       struct ib_ah_attr *ah_attr)
-@@ -296,9 +387,25 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num,
- 	u32 flow_class;
- 	u16 gid_index;
- 	int ret;
-+	enum rdma_network_type net_type = RDMA_NETWORK_IB;
-+	enum ib_gid_type gid_type = IB_GID_TYPE_IB;
-+	union ib_gid dgid;
-+	union ib_gid sgid;
- 
- 	memset(ah_attr, 0, sizeof *ah_attr);
- 	if (rdma_cap_eth_ah(device, port_num)) {
-+		if (wc->wc_flags & IB_WC_WITH_NETWORK_HDR_TYPE)
-+			net_type = wc->network_hdr_type;
-+		else
-+			net_type = ib_get_net_type_by_grh(device, port_num, grh);
-+		gid_type = ib_network_to_gid_type(net_type);
-+	}
-+	ret = get_gids_from_rdma_hdr((union rdma_network_hdr *)grh, net_type,
-+				     &sgid, &dgid);
-+	if (ret)
-+		return ret;
-+
-+	if (rdma_protocol_roce(device, port_num)) {
- 		u16 vlan_id = wc->wc_flags & IB_WC_WITH_VLAN ?
- 				wc->vlan_id : 0xffff;
- 
-@@ -307,7 +414,7 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num,
- 
- 		if (!(wc->wc_flags & IB_WC_WITH_SMAC) ||
- 		    !(wc->wc_flags & IB_WC_WITH_VLAN)) {
--			ret = rdma_addr_find_dmac_by_grh(&grh->dgid, &grh->sgid,
-+			ret = rdma_addr_find_dmac_by_grh(&dgid, &sgid,
- 							 ah_attr->dmac,
- 							 wc->wc_flags & IB_WC_WITH_VLAN ?
- 							 NULL : &vlan_id,
-@@ -317,7 +424,7 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num,
- 		}
- 
- 		ret = get_sgid_index_from_eth(device, port_num, vlan_id,
--					      &grh->dgid, &gid_index);
-+					      &dgid, gid_type, &gid_index);
- 		if (ret)
- 			return ret;
- 
-@@ -332,10 +439,10 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num,
- 
- 	if (wc->wc_flags & IB_WC_GRH) {
- 		ah_attr->ah_flags = IB_AH_GRH;
--		ah_attr->grh.dgid = grh->sgid;
-+		ah_attr->grh.dgid = sgid;
- 
- 		if (!rdma_cap_eth_ah(device, port_num)) {
--			ret = ib_find_cached_gid_by_port(device, &grh->dgid,
-+			ret = ib_find_cached_gid_by_port(device, &dgid,
- 							 IB_GID_TYPE_IB,
- 							 port_num, NULL,
- 							 &gid_index);
-@@ -975,6 +1082,12 @@ int ib_resolve_eth_dmac(struct ib_qp *qp,
- 					ret = -ENXIO;
- 				goto out;
- 			}
-+			if (sgid_attr.gid_type == IB_GID_TYPE_ROCE_UDP_ENCAP)
-+				/* TODO: get the hoplimit from the inet/inet6
-+				 * device
-+				 */
-+				qp_attr->ah_attr.grh.hop_limit =
-+							IPV6_DEFAULT_HOPLIMIT;
- 
- 			ifindex = sgid_attr.ndev->ifindex;
- 
-diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
-index 17e4a8b..81e19d9 100644
---- a/include/rdma/ib_addr.h
-+++ b/include/rdma/ib_addr.h
-@@ -71,6 +71,7 @@ struct rdma_dev_addr {
- 	unsigned short dev_type;
- 	int bound_dev_if;
- 	enum rdma_transport_type transport;
-+	enum rdma_network_type network;
+ static const struct ib_field grh_table[]  = {
+ 	{ STRUCT_FIELD(grh, ip_version),
+ 	  .offset_words = 0,
+@@ -213,26 +280,57 @@ static const struct ib_field deth_table[] = {
+ 	  .size_bits    = 24 }
  };
  
++__be16 ib_ud_ip4_csum(struct ib_ud_header *header)
++{
++	struct iphdr iph;
++
++	iph.ihl		= 5;
++	iph.version	= 4;
++	iph.tos		= header->ip4.tos;
++	iph.tot_len	= header->ip4.tot_len;
++	iph.id		= header->ip4.id;
++	iph.frag_off	= header->ip4.frag_off;
++	iph.ttl		= header->ip4.ttl;
++	iph.protocol	= header->ip4.protocol;
++	iph.check	= 0;
++	iph.saddr	= header->ip4.saddr;
++	iph.daddr	= header->ip4.daddr;
++
++	return ip_fast_csum((u8 *)&iph, iph.ihl);
++}
++EXPORT_SYMBOL(ib_ud_ip4_csum);
++
  /**
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index dd06be8..a049fa8 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -49,6 +49,8 @@
- #include <linux/scatterlist.h>
- #include <linux/workqueue.h>
- #include <uapi/linux/if_ether.h>
-+#include <net/ipv6.h>
-+#include <net/ip.h>
+  * ib_ud_header_init - Initialize UD header structure
+  * @payload_bytes:Length of packet payload
+  * @lrh_present: specify if LRH is present
+  * @eth_present: specify if Eth header is present
+  * @vlan_present: packet is tagged vlan
+- * @grh_present:GRH flag (if non-zero, GRH will be included)
++ * @grh_present: GRH flag (if non-zero, GRH will be included)
++ * @ip_version: if non-zero, IP header, V4 or V6, will be included
++ * @udp_present :if non-zero, UDP header will be included
+  * @immediate_present: specify if immediate data is present
+  * @header:Structure to initialize
+  */
+-void ib_ud_header_init(int     		    payload_bytes,
+-		       int		    lrh_present,
+-		       int		    eth_present,
+-		       int		    vlan_present,
+-		       int    		    grh_present,
+-		       int		    immediate_present,
+-		       struct ib_ud_header *header)
++int ib_ud_header_init(int     payload_bytes,
++		      int    lrh_present,
++		      int    eth_present,
++		      int    vlan_present,
++		      int    grh_present,
++		      int    ip_version,
++		      int    udp_present,
++		      int    immediate_present,
++		      struct ib_ud_header *header)
+ {
++	grh_present = grh_present && !ip_version;
+ 	memset(header, 0, sizeof *header);
  
- #include <linux/atomic.h>
- #include <linux/mmu_notifier.h>
-@@ -106,6 +108,35 @@ enum rdma_protocol_type {
- __attribute_const__ enum rdma_transport_type
- rdma_node_get_transport(enum rdma_node_type node_type);
++	/*
++	 * UDP header without IP header doesn't make sense
++	 */
++	if (udp_present && ip_version != 4 && ip_version != 6)
++		return -EINVAL;
++
+ 	if (lrh_present) {
+ 		u16 packet_length;
  
-+enum rdma_network_type {
-+	RDMA_NETWORK_IB,
-+	RDMA_NETWORK_ROCE_V1 = RDMA_NETWORK_IB,
-+	RDMA_NETWORK_IPV4,
-+	RDMA_NETWORK_IPV6
+@@ -252,7 +350,7 @@ void ib_ud_header_init(int     		    payload_bytes,
+ 	if (vlan_present)
+ 		header->eth.type = cpu_to_be16(ETH_P_8021Q);
+ 
+-	if (grh_present) {
++	if (ip_version == 6 || grh_present) {
+ 		header->grh.ip_version      = 6;
+ 		header->grh.payload_length  =
+ 			cpu_to_be16((IB_BTH_BYTES     +
+@@ -260,8 +358,30 @@ void ib_ud_header_init(int     		    payload_bytes,
+ 				     payload_bytes    +
+ 				     4                + /* ICRC     */
+ 				     3) & ~3);          /* round up */
+-		header->grh.next_header     = 0x1b;
++		header->grh.next_header     = udp_present ? IPPROTO_UDP : 0x1b;
++	}
++
++	if (ip_version == 4) {
++		int udp_bytes = udp_present ? IB_UDP_BYTES : 0;
++
++		header->ip4.ver = 4; /* version 4 */
++		header->ip4.hdr_len = 5; /* 5 words */
++		header->ip4.tot_len =
++			cpu_to_be16(IB_IP4_BYTES   +
++				     udp_bytes     +
++				     IB_BTH_BYTES  +
++				     IB_DETH_BYTES +
++				     payload_bytes +
++				     4);     /* ICRC     */
++		header->ip4.protocol = IPPROTO_UDP;
+ 	}
++	if (udp_present && ip_version)
++		header->udp.length =
++			cpu_to_be16(IB_UDP_BYTES   +
++				     IB_BTH_BYTES  +
++				     IB_DETH_BYTES +
++				     payload_bytes +
++				     4);     /* ICRC     */
+ 
+ 	if (immediate_present)
+ 		header->bth.opcode           = IB_OPCODE_UD_SEND_ONLY_WITH_IMMEDIATE;
+@@ -273,8 +393,11 @@ void ib_ud_header_init(int     		    payload_bytes,
+ 	header->lrh_present = lrh_present;
+ 	header->eth_present = eth_present;
+ 	header->vlan_present = vlan_present;
+-	header->grh_present = grh_present;
++	header->grh_present = grh_present || (ip_version == 6);
++	header->ipv4_present = ip_version == 4;
++	header->udp_present = udp_present;
+ 	header->immediate_present = immediate_present;
++	return 0;
+ }
+ EXPORT_SYMBOL(ib_ud_header_init);
+ 
+@@ -311,6 +434,16 @@ int ib_ud_header_pack(struct ib_ud_header *header,
+ 			&header->grh, buf + len);
+ 		len += IB_GRH_BYTES;
+ 	}
++	if (header->ipv4_present) {
++		ib_pack(ip4_table, ARRAY_SIZE(ip4_table),
++			&header->ip4, buf + len);
++		len += IB_IP4_BYTES;
++	}
++	if (header->udp_present) {
++		ib_pack(udp_table, ARRAY_SIZE(udp_table),
++			&header->udp, buf + len);
++		len += IB_UDP_BYTES;
++	}
+ 
+ 	ib_pack(bth_table, ARRAY_SIZE(bth_table),
+ 		&header->bth, buf + len);
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 71a4176..e8737ff 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -2089,7 +2089,7 @@ static int build_sriov_qp0_header(struct mlx4_ib_sqp *sqp,
+ 	if (sqp->qp.mlx4_ib_qp_type == MLX4_IB_QPT_PROXY_SMI_OWNER)
+ 		send_size += sizeof (struct mlx4_ib_tunnel_header);
+ 
+-	ib_ud_header_init(send_size, 1, 0, 0, 0, 0, &sqp->ud_header);
++	ib_ud_header_init(send_size, 1, 0, 0, 0, 0, 0, 0, &sqp->ud_header);
+ 
+ 	if (sqp->qp.mlx4_ib_qp_type == MLX4_IB_QPT_PROXY_SMI_OWNER) {
+ 		sqp->ud_header.lrh.service_level =
+@@ -2235,7 +2235,10 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
+ 			is_vlan = 1;
+ 		}
+ 	}
+-	ib_ud_header_init(send_size, !is_eth, is_eth, is_vlan, is_grh, 0, &sqp->ud_header);
++	err = ib_ud_header_init(send_size, !is_eth, is_eth, is_vlan, is_grh,
++				0, 0, 0, &sqp->ud_header);
++	if (err)
++		return err;
+ 
+ 	if (!is_eth) {
+ 		sqp->ud_header.lrh.service_level =
+diff --git a/drivers/infiniband/hw/mthca/mthca_qp.c b/drivers/infiniband/hw/mthca/mthca_qp.c
+index e354b2f..22a04fd 100644
+--- a/drivers/infiniband/hw/mthca/mthca_qp.c
++++ b/drivers/infiniband/hw/mthca/mthca_qp.c
+@@ -1485,7 +1485,7 @@ static int build_mlx_header(struct mthca_dev *dev, struct mthca_sqp *sqp,
+ 	u16 pkey;
+ 
+ 	ib_ud_header_init(256, /* assume a MAD */ 1, 0, 0,
+-			  mthca_ah_grh_present(to_mah(wr->wr.ud.ah)), 0,
++			  mthca_ah_grh_present(to_mah(wr->wr.ud.ah)), 0, 0, 0,
+ 			  &sqp->ud_header);
+ 
+ 	err = mthca_read_ah(dev, to_mah(wr->wr.ud.ah), &sqp->ud_header);
+diff --git a/include/rdma/ib_pack.h b/include/rdma/ib_pack.h
+index b1f7592..91b96f6 100644
+--- a/include/rdma/ib_pack.h
++++ b/include/rdma/ib_pack.h
+@@ -41,6 +41,8 @@ enum {
+ 	IB_ETH_BYTES  = 14,
+ 	IB_VLAN_BYTES = 4,
+ 	IB_GRH_BYTES  = 40,
++	IB_IP4_BYTES  = 20,
++	IB_UDP_BYTES  = 8,
+ 	IB_BTH_BYTES  = 12,
+ 	IB_DETH_BYTES = 8
+ };
+@@ -221,6 +223,27 @@ struct ib_unpacked_eth {
+ 	__be16	type;
+ };
+ 
++struct ib_unpacked_ip4 {
++	u8	ver;
++	u8	hdr_len;
++	u8	tos;
++	__be16	tot_len;
++	__be16	id;
++	__be16	frag_off;
++	u8	ttl;
++	u8	protocol;
++	__be16	check;
++	__be32	saddr;
++	__be32	daddr;
 +};
 +
-+static inline enum ib_gid_type ib_network_to_gid_type(enum rdma_network_type network_type)
-+{
-+	if (network_type == RDMA_NETWORK_IPV4 ||
-+	    network_type == RDMA_NETWORK_IPV6)
-+		return IB_GID_TYPE_ROCE_UDP_ENCAP;
-+
-+	/* IB_GID_TYPE_IB same as RDMA_NETWORK_ROCE_V1 */
-+	return IB_GID_TYPE_IB;
-+}
-+
-+static inline enum rdma_network_type ib_gid_to_network_type(enum ib_gid_type gid_type,
-+							    union ib_gid *gid)
-+{
-+	if (gid_type == IB_GID_TYPE_IB)
-+		return RDMA_NETWORK_IB;
-+
-+	if (ipv6_addr_v4mapped((struct in6_addr *)gid))
-+		return RDMA_NETWORK_IPV4;
-+	else
-+		return RDMA_NETWORK_IPV6;
-+}
-+
- enum rdma_link_layer {
- 	IB_LINK_LAYER_UNSPECIFIED,
- 	IB_LINK_LAYER_INFINIBAND,
-@@ -532,6 +563,17 @@ struct ib_grh {
- 	union ib_gid	dgid;
- };
- 
-+union rdma_network_hdr {
-+	struct ib_grh ibgrh;
-+	struct {
-+		/* The IB spec states that if it's IPv4, the header
-+		 * is located in the last 20 bytes of the header.
-+		 */
-+		u8		reserved[20];
-+		struct iphdr	roce4grh;
-+	};
++struct ib_unpacked_udp {
++	__be16	sport;
++	__be16	dport;
++	__be16	length;
++	__be16	csum;
 +};
 +
- enum {
- 	IB_MULTICAST_QPN = 0xffffff
- };
-@@ -770,6 +812,7 @@ enum ib_wc_flags {
- 	IB_WC_IP_CSUM_OK	= (1<<3),
- 	IB_WC_WITH_SMAC		= (1<<4),
- 	IB_WC_WITH_VLAN		= (1<<5),
-+	IB_WC_WITH_NETWORK_HDR_TYPE	= (1<<6),
- };
+ struct ib_unpacked_vlan {
+ 	__be16  tag;
+ 	__be16  type;
+@@ -235,6 +258,10 @@ struct ib_ud_header {
+ 	struct ib_unpacked_vlan vlan;
+ 	int			grh_present;
+ 	struct ib_unpacked_grh	grh;
++	int			ipv4_present;
++	struct ib_unpacked_ip4	ip4;
++	int			udp_present;
++	struct ib_unpacked_udp	udp;
+ 	struct ib_unpacked_bth	bth;
+ 	struct ib_unpacked_deth deth;
+ 	int			immediate_present;
+@@ -251,13 +278,17 @@ void ib_unpack(const struct ib_field        *desc,
+ 	       void                         *buf,
+ 	       void                         *structure);
  
- struct ib_wc {
-@@ -792,6 +835,7 @@ struct ib_wc {
- 	u8			port_num;	/* valid only for DR SMPs on switches */
- 	u8			smac[ETH_ALEN];
- 	u16			vlan_id;
-+	u8			network_hdr_type;
- };
+-void ib_ud_header_init(int		    payload_bytes,
+-		       int		    lrh_present,
+-		       int		    eth_present,
+-		       int		    vlan_present,
+-		       int		    grh_present,
+-		       int		    immediate_present,
+-		       struct ib_ud_header *header);
++__be16 ib_ud_ip4_csum(struct ib_ud_header *header);
++
++int ib_ud_header_init(int		    payload_bytes,
++		      int		    lrh_present,
++		      int		    eth_present,
++		      int		    vlan_present,
++		      int		    grh_present,
++		      int		    ip_version,
++		      int		    udp_present,
++		      int		    immediate_present,
++		      struct ib_ud_header *header);
  
- enum ib_cq_notify_flags {
+ int ib_ud_header_pack(struct ib_ud_header *header,
+ 		      void                *buf);
 -- 
 2.1.0
 
