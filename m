@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V8 2/6] IB/uverbs: Fix race between ib_uverbs_open and remove_one
-Date: Thu, 13 Aug 2015 18:32:03 +0300
-Message-ID: <1439479927-8751-3-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH for-next V8 5/6] IB/mlx4_ib: Disassociate support
+Date: Thu, 13 Aug 2015 18:32:06 +0300
+Message-ID: <1439479927-8751-6-git-send-email-yishaih@mellanox.com>
 References: <1439479927-8751-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1439479927-8751-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,199 +10,243 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Fixes: 2a72f212263701b927559f6850446421d5906c41 ("IB/uverbs: Remove dev_table")
-
-Before this commit there was a device look-up table that was protected
-by a spin_lock used by ib_uverbs_open and by ib_uverbs_remove_one. When
-it was dropped and container_of was used instead, it enabled the race
-with remove_one as dev might be freed just after:
-dev = container_of(inode->i_cdev, struct ib_uverbs_device, cdev) but
-before the kref_get.
-
-In addition, this buggy patch added some dead code as
-container_of(x,y,z) can never be NULL and so dev can never be NULL.
-As a result the comment above ib_uverbs_open saying "the open method
-will either immediately run -ENXIO" is wrong as it can never happen.
-
-The solution follows Jason Gunthorpe suggestion from below URL:
-https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg25692.html
-
-cdev will hold a kref on the parent (the containing structure,
-ib_uverbs_device) and only when that kref is released it is
-guaranteed that open will never be called again.
-
-In addition, fixes the active count scheme to use an atomic
-not a kref to prevent WARN_ON as pointed by above comment
-from Jason.
+Implements the IB core disassociate_ucontext API. The driver detaches the HW
+resources for a given user context to prevent a dependency between application
+termination and device disconnecting. This is done by managing the VMAs that
+were mapped to the HW bars such as door bell and blueflame. When need to detach
+remap them to an arbitrary kernel page returned by the zap API.
 
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Signed-off-by: Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs.h      |    3 +-
- drivers/infiniband/core/uverbs_main.c |   43 +++++++++++++++++++++++----------
- 2 files changed, 32 insertions(+), 14 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c    |  139 +++++++++++++++++++++++++++++++++-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h |   13 +++
+ 2 files changed, 150 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index 60e6e3d..92ec765 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -85,7 +85,7 @@
-  */
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 8be6db8..3097a27 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -692,7 +692,7 @@ static struct ib_ucontext *mlx4_ib_alloc_ucontext(struct ib_device *ibdev,
+ 		resp.cqe_size	      = dev->dev->caps.cqe_size;
+ 	}
  
- struct ib_uverbs_device {
--	struct kref				ref;
-+	atomic_t				refcount;
- 	int					num_comp_vectors;
- 	struct completion			comp;
- 	struct device			       *dev;
-@@ -94,6 +94,7 @@ struct ib_uverbs_device {
- 	struct cdev			        cdev;
- 	struct rb_root				xrcd_tree;
- 	struct mutex				xrcd_tree_mutex;
-+	struct kobject				kobj;
- };
+-	context = kmalloc(sizeof *context, GFP_KERNEL);
++	context = kzalloc(sizeof(*context), GFP_KERNEL);
+ 	if (!context)
+ 		return ERR_PTR(-ENOMEM);
  
- struct ib_uverbs_event_file {
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index c238eba..9f39978 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -130,14 +130,18 @@ static int (*uverbs_ex_cmd_table[])(struct ib_uverbs_file *file,
- static void ib_uverbs_add_one(struct ib_device *device);
- static void ib_uverbs_remove_one(struct ib_device *device);
- 
--static void ib_uverbs_release_dev(struct kref *ref)
-+static void ib_uverbs_release_dev(struct kobject *kobj)
- {
- 	struct ib_uverbs_device *dev =
--		container_of(ref, struct ib_uverbs_device, ref);
-+		container_of(kobj, struct ib_uverbs_device, kobj);
- 
--	complete(&dev->comp);
-+	kfree(dev);
- }
- 
-+static struct kobj_type ib_uverbs_dev_ktype = {
-+	.release = ib_uverbs_release_dev,
-+};
-+
- static void ib_uverbs_release_event_file(struct kref *ref)
- {
- 	struct ib_uverbs_event_file *file =
-@@ -303,13 +307,19 @@ static int ib_uverbs_cleanup_ucontext(struct ib_uverbs_file *file,
- 	return context->device->dealloc_ucontext(context);
- }
- 
-+static void ib_uverbs_comp_dev(struct ib_uverbs_device *dev)
-+{
-+	complete(&dev->comp);
-+}
-+
- static void ib_uverbs_release_file(struct kref *ref)
- {
- 	struct ib_uverbs_file *file =
- 		container_of(ref, struct ib_uverbs_file, ref);
- 
- 	module_put(file->device->ib_dev->owner);
--	kref_put(&file->device->ref, ib_uverbs_release_dev);
-+	if (atomic_dec_and_test(&file->device->refcount))
-+		ib_uverbs_comp_dev(file->device);
- 
- 	kfree(file);
- }
-@@ -775,9 +785,7 @@ static int ib_uverbs_open(struct inode *inode, struct file *filp)
- 	int ret;
- 
- 	dev = container_of(inode->i_cdev, struct ib_uverbs_device, cdev);
--	if (dev)
--		kref_get(&dev->ref);
--	else
-+	if (!atomic_inc_not_zero(&dev->refcount))
- 		return -ENXIO;
- 
- 	if (!try_module_get(dev->ib_dev->owner)) {
-@@ -798,6 +806,7 @@ static int ib_uverbs_open(struct inode *inode, struct file *filp)
- 	mutex_init(&file->mutex);
- 
- 	filp->private_data = file;
-+	kobject_get(&dev->kobj);
- 
- 	return nonseekable_open(inode, filp);
- 
-@@ -805,13 +814,16 @@ err_module:
- 	module_put(dev->ib_dev->owner);
- 
- err:
--	kref_put(&dev->ref, ib_uverbs_release_dev);
-+	if (atomic_dec_and_test(&dev->refcount))
-+		ib_uverbs_comp_dev(dev);
-+
- 	return ret;
- }
- 
- static int ib_uverbs_close(struct inode *inode, struct file *filp)
- {
- 	struct ib_uverbs_file *file = filp->private_data;
-+	struct ib_uverbs_device *dev = file->device;
- 
- 	ib_uverbs_cleanup_ucontext(file, file->ucontext);
- 
-@@ -819,6 +831,7 @@ static int ib_uverbs_close(struct inode *inode, struct file *filp)
- 		kref_put(&file->async_file->ref, ib_uverbs_release_event_file);
- 
- 	kref_put(&file->ref, ib_uverbs_release_file);
-+	kobject_put(&dev->kobj);
- 
+@@ -729,21 +729,143 @@ static int mlx4_ib_dealloc_ucontext(struct ib_ucontext *ibcontext)
  	return 0;
  }
-@@ -914,10 +927,11 @@ static void ib_uverbs_add_one(struct ib_device *device)
- 	if (!uverbs_dev)
- 		return;
  
--	kref_init(&uverbs_dev->ref);
-+	atomic_set(&uverbs_dev->refcount, 1);
- 	init_completion(&uverbs_dev->comp);
- 	uverbs_dev->xrcd_tree = RB_ROOT;
- 	mutex_init(&uverbs_dev->xrcd_tree_mutex);
-+	kobject_init(&uverbs_dev->kobj, &ib_uverbs_dev_ktype);
++static void  mlx4_ib_vma_open(struct vm_area_struct *area)
++{
++	/* vma_open is called when a new VMA is created on top of our VMA.
++	 * This is done through either mremap flow or split_vma (usually due
++	 * to mlock, madvise, munmap, etc.). We do not support a clone of the
++	 * vma, as this VMA is strongly hardware related. Therefore we set the
++	 * vm_ops of the newly created/cloned VMA to NULL, to prevent it from
++	 * calling us again and trying to do incorrect actions. We assume that
++	 * the original vma size is exactly a single page that there will be no
++	 * "splitting" operations on.
++	 */
++	area->vm_ops = NULL;
++}
++
++static void  mlx4_ib_vma_close(struct vm_area_struct *area)
++{
++	struct mlx4_ib_vma_private_data *mlx4_ib_vma_priv_data;
++
++	/* It's guaranteed that all VMAs opened on a FD are closed before the
++	 * file itself is closed, therefore no sync is needed with the regular
++	 * closing flow. (e.g. mlx4_ib_dealloc_ucontext) However need a sync
++	 * with accessing the vma as part of mlx4_ib_disassociate_ucontext.
++	 * The close operation is usually called under mm->mmap_sem except when
++	 * process is exiting.  The exiting case is handled explicitly as part
++	 * of mlx4_ib_disassociate_ucontext.
++	 */
++	mlx4_ib_vma_priv_data = (struct mlx4_ib_vma_private_data *)
++				area->vm_private_data;
++
++	/* set the vma context pointer to null in the mlx4_ib driver's private
++	 * data to protect against a race condition in mlx4_ib_dissassociate_ucontext().
++	 */
++	mlx4_ib_vma_priv_data->vma = NULL;
++}
++
++static const struct vm_operations_struct mlx4_ib_vm_ops = {
++	.open = mlx4_ib_vma_open,
++	.close = mlx4_ib_vma_close
++};
++
++static void mlx4_ib_disassociate_ucontext(struct ib_ucontext *ibcontext)
++{
++	int i;
++	int ret = 0;
++	struct vm_area_struct *vma;
++	struct mlx4_ib_ucontext *context = to_mucontext(ibcontext);
++	struct task_struct *owning_process  = NULL;
++	struct mm_struct   *owning_mm       = NULL;
++
++	owning_process = get_pid_task(ibcontext->tgid, PIDTYPE_PID);
++	if (!owning_process)
++		return;
++
++	owning_mm = get_task_mm(owning_process);
++	if (!owning_mm) {
++		pr_info("no mm, disassociate ucontext is pending task termination\n");
++		while (1) {
++			/* make sure that task is dead before returning, it may
++			 * prevent a rare case of module down in parallel to a
++			 * call to mlx4_ib_vma_close.
++			 */
++			put_task_struct(owning_process);
++			msleep(1);
++			owning_process = get_pid_task(ibcontext->tgid,
++						      PIDTYPE_PID);
++			if (!owning_process ||
++			    owning_process->state == TASK_DEAD) {
++				pr_info("disassociate ucontext done, task was terminated\n");
++				/* in case task was dead need to release the task struct */
++				if (owning_process)
++					put_task_struct(owning_process);
++				return;
++			}
++		}
++	}
++
++	/* need to protect from a race on closing the vma as part of
++	 * mlx4_ib_vma_close().
++	 */
++	down_read(&owning_mm->mmap_sem);
++	for (i = 0; i < HW_BAR_COUNT; i++) {
++		vma = context->hw_bar_info[i].vma;
++		if (!vma)
++			continue;
++
++		ret = zap_vma_ptes(context->hw_bar_info[i].vma,
++				   context->hw_bar_info[i].vma->vm_start,
++				   PAGE_SIZE);
++		if (ret) {
++			pr_err("Error: zap_vma_ptes failed for index=%d, ret=%d\n", i, ret);
++			BUG_ON(1);
++		}
++
++		/* context going to be destroyed, should not access ops any more */
++		context->hw_bar_info[i].vma->vm_ops = NULL;
++	}
++
++	up_read(&owning_mm->mmap_sem);
++	mmput(owning_mm);
++	put_task_struct(owning_process);
++}
++
++static void mlx4_ib_set_vma_data(struct vm_area_struct *vma,
++				 struct mlx4_ib_vma_private_data *vma_private_data)
++{
++	vma_private_data->vma = vma;
++	vma->vm_private_data = vma_private_data;
++	vma->vm_ops =  &mlx4_ib_vm_ops;
++}
++
+ static int mlx4_ib_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
+ {
+ 	struct mlx4_ib_dev *dev = to_mdev(context->device);
++	struct mlx4_ib_ucontext *mucontext = to_mucontext(context);
  
- 	spin_lock(&map_lock);
- 	devnum = find_first_zero_bit(dev_map, IB_UVERBS_MAX_DEVICES);
-@@ -944,6 +958,7 @@ static void ib_uverbs_add_one(struct ib_device *device)
- 	cdev_init(&uverbs_dev->cdev, NULL);
- 	uverbs_dev->cdev.owner = THIS_MODULE;
- 	uverbs_dev->cdev.ops = device->mmap ? &uverbs_mmap_fops : &uverbs_fops;
-+	uverbs_dev->cdev.kobj.parent = &uverbs_dev->kobj;
- 	kobject_set_name(&uverbs_dev->cdev.kobj, "uverbs%d", uverbs_dev->devnum);
- 	if (cdev_add(&uverbs_dev->cdev, base, 1))
- 		goto err_cdev;
-@@ -974,9 +989,10 @@ err_cdev:
- 		clear_bit(devnum, overflow_map);
+ 	if (vma->vm_end - vma->vm_start != PAGE_SIZE)
+ 		return -EINVAL;
  
- err:
--	kref_put(&uverbs_dev->ref, ib_uverbs_release_dev);
-+	if (atomic_dec_and_test(&uverbs_dev->refcount))
-+		ib_uverbs_comp_dev(uverbs_dev);
- 	wait_for_completion(&uverbs_dev->comp);
--	kfree(uverbs_dev);
-+	kobject_put(&uverbs_dev->kobj);
- 	return;
- }
+ 	if (vma->vm_pgoff == 0) {
++		/* We prevent double mmaping on same context */
++		if (mucontext->hw_bar_info[HW_BAR_DB].vma)
++			return -EINVAL;
++
+ 		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
  
-@@ -996,9 +1012,10 @@ static void ib_uverbs_remove_one(struct ib_device *device)
- 	else
- 		clear_bit(uverbs_dev->devnum - IB_UVERBS_MAX_DEVICES, overflow_map);
+ 		if (io_remap_pfn_range(vma, vma->vm_start,
+ 				       to_mucontext(context)->uar.pfn,
+ 				       PAGE_SIZE, vma->vm_page_prot))
+ 			return -EAGAIN;
++
++		mlx4_ib_set_vma_data(vma, &mucontext->hw_bar_info[HW_BAR_DB]);
++
+ 	} else if (vma->vm_pgoff == 1 && dev->dev->caps.bf_reg_size != 0) {
++		/* We prevent double mmaping on same context */
++		if (mucontext->hw_bar_info[HW_BAR_BF].vma)
++			return -EINVAL;
++
+ 		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
  
--	kref_put(&uverbs_dev->ref, ib_uverbs_release_dev);
-+	if (atomic_dec_and_test(&uverbs_dev->refcount))
-+		ib_uverbs_comp_dev(uverbs_dev);
- 	wait_for_completion(&uverbs_dev->comp);
--	kfree(uverbs_dev);
-+	kobject_put(&uverbs_dev->kobj);
- }
+ 		if (io_remap_pfn_range(vma, vma->vm_start,
+@@ -751,9 +873,18 @@ static int mlx4_ib_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
+ 				       dev->dev->caps.num_uars,
+ 				       PAGE_SIZE, vma->vm_page_prot))
+ 			return -EAGAIN;
++
++		mlx4_ib_set_vma_data(vma, &mucontext->hw_bar_info[HW_BAR_BF]);
++
+ 	} else if (vma->vm_pgoff == 3) {
+ 		struct mlx4_clock_params params;
+-		int ret = mlx4_get_internal_clock_params(dev->dev, &params);
++		int ret;
++
++		/* We prevent double mmaping on same context */
++		if (mucontext->hw_bar_info[HW_BAR_CLOCK].vma)
++			return -EINVAL;
++
++		ret = mlx4_get_internal_clock_params(dev->dev, &params);
  
- static char *uverbs_devnode(struct device *dev, umode_t *mode)
+ 		if (ret)
+ 			return ret;
+@@ -766,6 +897,9 @@ static int mlx4_ib_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
+ 				       >> PAGE_SHIFT,
+ 				       PAGE_SIZE, vma->vm_page_prot))
+ 			return -EAGAIN;
++
++		mlx4_ib_set_vma_data(vma,
++				     &mucontext->hw_bar_info[HW_BAR_CLOCK]);
+ 	} else {
+ 		return -EINVAL;
+ 	}
+@@ -2300,6 +2434,7 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 	ibdev->ib_dev.detach_mcast	= mlx4_ib_mcg_detach;
+ 	ibdev->ib_dev.process_mad	= mlx4_ib_process_mad;
+ 	ibdev->ib_dev.get_port_immutable = mlx4_port_immutable;
++	ibdev->ib_dev.disassociate_ucontext = mlx4_ib_disassociate_ucontext;
+ 
+ 	if (!mlx4_is_slave(ibdev->dev)) {
+ 		ibdev->ib_dev.alloc_fmr		= mlx4_ib_fmr_alloc;
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index 334387f..4eb7a85 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -70,11 +70,24 @@ extern int mlx4_ib_sm_guid_assign;
+ 
+ #define MLX4_IB_UC_STEER_QPN_ALIGN 1
+ #define MLX4_IB_UC_MAX_NUM_QPS     256
++
++enum hw_bar_type {
++	HW_BAR_BF,
++	HW_BAR_DB,
++	HW_BAR_CLOCK,
++	HW_BAR_COUNT
++};
++
++struct mlx4_ib_vma_private_data {
++	struct vm_area_struct *vma;
++};
++
+ struct mlx4_ib_ucontext {
+ 	struct ib_ucontext	ibucontext;
+ 	struct mlx4_uar		uar;
+ 	struct list_head	db_page_list;
+ 	struct mutex		db_page_mutex;
++	struct mlx4_ib_vma_private_data hw_bar_info[HW_BAR_COUNT];
+ };
+ 
+ struct mlx4_ib_pd {
 -- 
 1.7.1
 
