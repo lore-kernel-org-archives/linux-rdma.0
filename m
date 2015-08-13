@@ -1,89 +1,39 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [RFC] split struct ib_send_wr
-Date: Thu, 13 Aug 2015 09:07:14 -0400
-Message-ID: <55CC9682.1020203@redhat.com>
-References: <20150806162438.GA27608@infradead.org>
- <55C393A0.6000002@opengridcomputing.com>
- <20150806173143.GA25497@infradead.org>
- <003601d0d06f$93107160$b9315420$@opengridcomputing.com>
- <0B199DE1-B76A-44BD-91BC-E4285E439C70@oracle.com>
- <20150807063637.GE31458@infradead.org>
- <72E34077-7332-4F7D-8498-E67E7192CD2A@oracle.com>
- <20150807141929.GA12442@infradead.org> <55CBF6C1.8010803@redhat.com>
- <79BCB01F-AD69-4BEB-8F03-F5A52701211E@oracle.com>
- <20150813055450.GA19344@infradead.org>
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: [PATCH V6 6/9] isert: Rename IO functions to more descriptive
+ names
+Date: Thu, 13 Aug 2015 16:09:00 +0300
+Message-ID: <55CC96EC.4020008@dev.mellanox.co.il>
+References: <20150724161331.25617.8475.stgit@build2.ogc.int>
+ <20150724161848.25617.26092.stgit@build2.ogc.int>
+ <55B4B190.7070305@dev.mellanox.co.il>
+ <55B5404F.5040404@opengridcomputing.com>
+ <000001d0ce23$27048810$750d9830$@opengridcomputing.com>
+ <55C0F5B7.4040100@dev.mellanox.co.il>
+ <00b001d0cfc4$f83a14c0$e8ae3e40$@opengridcomputing.com>
+ <55C37F43.6080106@dev.mellanox.co.il>
+ <005801d0d54c$6e1dc560$4a595020$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="hW5w0a2HxUaql839Ra4709ahpDxfOsEen"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150813055450.GA19344-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <005801d0d54c$6e1dc560$4a595020$@opengridcomputing.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Steve Wise <swise@opengridcomputing.com>, dledford@redhat.com
+Cc: infinipath@intel.com, sagig@mellanox.com, ogerlitz@mellanox.com, roid@mellanox.com, linux-rdma@vger.kernel.org, eli@mellanox.com, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, bfields@fieldses.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---hW5w0a2HxUaql839Ra4709ahpDxfOsEen
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+>
+> Nic is silent...
+>
+> Sagi, do you have an ETA on when you can have the recode ready for detailed review and test? If we can't make linux-4.3, can we be early in staging it for linux-4.4?
 
-On 08/13/2015 01:54 AM, Christoph Hellwig wrote:
-> On Wed, Aug 12, 2015 at 07:24:44PM -0700, Chuck Lever wrote:
->> That makes sense, but you already Acked the change that breaks Lustre,=
+Hi Steve,
 
->> and it's going in through the NFS tree. Are you changing that to a NAK=
-?
+I have something, but its not remotely close to be submission ready.
+This ended up being a rewrite of the registration path which is pretty
+convoluted at the moment. My aim is mostly simplifying it in a way that
+iWARP support would be (almost) straight-forward...
 
-No.  Lustre fits in my "languishing in the staging tree" category.
+I can send you my WIP to test.
 
-> It seems like Doug was mostly concened about to be removed drivers.
-> I defintively refuse to fix Lustre for anything I tough because it's
-> such a giant mess with uses just about every major subsystem in
-> an incorrect way.
->=20
-> Doug:  was your mail a request to fix up the two de-staged drivers?
-> I'm happy to do that if you're fine with the patch in general.  amso110=
-0
-> should be trivial anyway, while ipath is a mess, just like the new inte=
-l
-> driver with the third copy of the soft ib stack.
-
-Correct.
-
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---hW5w0a2HxUaql839Ra4709ahpDxfOsEen
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJVzJaCAAoJELgmozMOVy/dX68QAJI/hgP0oc7BC+PVbEx5kskq
-iMWdMlW0fkD28IUXANZYeExSr07IgrDezKgSx4E3BJaNoq+GYIbJaTeLBXfLYsk6
-kTtn/HfFwEkhgT7m9v6TtPO6lQtayl1jyinSn6dmkKm3OGUzWi4QiL4SLDzckrBe
-Aj9XlxCJ+6zlZsb3bxQqi/7GI3CKrMY5HAx8w6SKjP/DZBns22nhgTHu+cVvxIqq
-JSXUWsmByfeZ5c0kwJJDCtMj9wHpHkNMWX4l798BM6bKyegGKxd2EC49pSS64Rmz
-H3eQd2mNE8tQiJj9unxa85niq7IBeKIQlms9tPoV2BYFxI6SOvd594R0VrFo8FD5
-yWEkeD7Gx4y/EUc8A8AEXfqFLcQuU9ZfOC9rYSPU6XwXfO799hAjMsvcOaLsiVAn
-817DGdiiJPmgjTd31Bw5Kp6jo/HcDCqMyIBaBTeEo4OHpuQ+VOEND5Ds8He4PFO0
-6xkCeaP5ZMhYOuFcKJOx0jJDiMixLr6czOJAeRY02/ozQPPogwQ88BeK+ABHN3HN
-/6FZJ190NanM7svLtccgeqNZzHz5IK15atwoiyu1ib7VSTEay3iRtOnKQgOG6dI/
-9ky3tqRxgCvYHzXrEEDzH3fTxudDNyYwwsMS3Bd/WlhPw14x9OY/zVtQHZTwRhNR
-vsVB9a95+5rv4mCMT9pH
-=hEtY
------END PGP SIGNATURE-----
-
---hW5w0a2HxUaql839Ra4709ahpDxfOsEen--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sagi.
