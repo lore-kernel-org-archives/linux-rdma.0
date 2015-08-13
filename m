@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 4/9] IB/core: Add ROCE_UDP_ENCAP (RoCE V2) type
-Date: Thu, 13 Aug 2015 19:03:09 +0300
-Message-ID: <1439481794-27998-5-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next 2/9] IB/cm: Use the source GID index type
+Date: Thu, 13 Aug 2015 19:03:07 +0300
+Message-ID: <1439481794-27998-3-git-send-email-matanb@mellanox.com>
 References: <1439481794-27998-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1439481794-27998-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,105 +10,90 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Adding RoCE v2 GID type and port type. Vendors
-which support this type will get their GID table
-populated with RoCE v2 GIDs automatically.
+Previosuly, cm and cma modules supported only IB and RoCE v1 GID type.
+In order to support multiple GID types, the gid_type is passed to
+cm_init_av_by_path and stored in the path record.
+
+The rdma cm client would use a default GID type that will be saved in
+rdma_id_private.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/cache.c         |  1 +
- drivers/infiniband/core/roce_gid_mgmt.c |  3 ++-
- include/rdma/ib_verbs.h                 | 23 +++++++++++++++++++++--
- 3 files changed, 24 insertions(+), 3 deletions(-)
+ drivers/infiniband/core/cm.c  | 25 ++++++++++++++++++++-----
+ drivers/infiniband/core/cma.c |  2 ++
+ 2 files changed, 22 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-index 513a1ef..ddd0406 100644
---- a/drivers/infiniband/core/cache.c
-+++ b/drivers/infiniband/core/cache.c
-@@ -115,6 +115,7 @@ struct ib_gid_table {
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 0c15488..ba81025 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -362,7 +362,7 @@ static int cm_init_av_by_path(struct ib_sa_path_rec *path, struct cm_av *av)
+ 	read_lock_irqsave(&cm.device_lock, flags);
+ 	list_for_each_entry(cm_dev, &cm.device_list, list) {
+ 		if (!ib_find_cached_gid(cm_dev->ib_device, &path->sgid,
+-					IB_GID_TYPE_IB, ndev, &p, NULL)) {
++					path->gid_type, ndev, &p, NULL)) {
+ 			port = cm_dev->port[p-1];
+ 			break;
+ 		}
+@@ -1536,6 +1536,8 @@ static int cm_req_handler(struct cm_work *work)
+ 	struct ib_cm_id *cm_id;
+ 	struct cm_id_private *cm_id_priv, *listen_cm_id_priv;
+ 	struct cm_req_msg *req_msg;
++	union ib_gid gid;
++	struct ib_gid_attr gid_attr;
+ 	int ret;
  
- static const char * const gid_type_str[] = {
- 	[IB_GID_TYPE_IB]	= "IB/RoCE v1",
-+	[IB_GID_TYPE_ROCE_UDP_ENCAP]	= "RoCE v2",
+ 	req_msg = (struct cm_req_msg *)work->mad_recv_wc->recv_buf.mad;
+@@ -1575,11 +1577,24 @@ static int cm_req_handler(struct cm_work *work)
+ 	cm_format_paths_from_req(req_msg, &work->path[0], &work->path[1]);
+ 
+ 	memcpy(work->path[0].dmac, cm_id_priv->av.ah_attr.dmac, ETH_ALEN);
+-	ret = cm_init_av_by_path(&work->path[0], &cm_id_priv->av);
++	ret = ib_get_cached_gid(work->port->cm_dev->ib_device,
++				work->port->port_num,
++				cm_id_priv->av.ah_attr.grh.sgid_index,
++				&gid, &gid_attr);
++	if (!ret) {
++		if (gid_attr.ndev)
++			dev_put(gid_attr.ndev);
++		work->path[0].gid_type = gid_attr.gid_type;
++		ret = cm_init_av_by_path(&work->path[0], &cm_id_priv->av);
++	}
+ 	if (ret) {
+-		ib_get_cached_gid(work->port->cm_dev->ib_device,
+-				  work->port->port_num, 0, &work->path[0].sgid,
+-				  NULL);
++		int err = ib_get_cached_gid(work->port->cm_dev->ib_device,
++					    work->port->port_num, 0,
++					    &work->path[0].sgid,
++					    &gid_attr);
++		if (!err && gid_attr.ndev)
++			dev_put(gid_attr.ndev);
++		work->path[0].gid_type = gid_attr.gid_type;
+ 		ib_send_cm_rej(cm_id, IB_CM_REJ_INVALID_GID,
+ 			       &work->path[0].sgid, sizeof work->path[0].sgid,
+ 			       NULL, 0);
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index dfb92bf..f78b8dd 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -174,6 +174,7 @@ struct rdma_id_private {
+ 	u8			tos;
+ 	u8			reuseaddr;
+ 	u8			afonly;
++	enum ib_gid_type	gid_type;
  };
  
- const char *ib_cache_gid_type_str(enum ib_gid_type gid_type)
-diff --git a/drivers/infiniband/core/roce_gid_mgmt.c b/drivers/infiniband/core/roce_gid_mgmt.c
-index 7dec6f2..46b52b9 100644
---- a/drivers/infiniband/core/roce_gid_mgmt.c
-+++ b/drivers/infiniband/core/roce_gid_mgmt.c
-@@ -71,7 +71,8 @@ static const struct {
- 	bool (*is_supported)(const struct ib_device *device, u8 port_num);
- 	enum ib_gid_type gid_type;
- } PORT_CAP_TO_GID_TYPE[] = {
--	{rdma_protocol_roce,   IB_GID_TYPE_ROCE},
-+	{rdma_protocol_roce_eth_encap, IB_GID_TYPE_ROCE},
-+	{rdma_protocol_roce_udp_encap, IB_GID_TYPE_ROCE_UDP_ENCAP},
- };
- 
- #define CAP_TO_GID_TABLE_SIZE	ARRAY_SIZE(PORT_CAP_TO_GID_TYPE)
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index a85926d..dd06be8 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -70,6 +70,7 @@ enum ib_gid_type {
- 	/* If link layer is Ethernet, this is RoCE V1 */
- 	IB_GID_TYPE_IB        = 0,
- 	IB_GID_TYPE_ROCE      = 0,
-+	IB_GID_TYPE_ROCE_UDP_ENCAP = 1,
- 	IB_GID_TYPE_SIZE
- };
- 
-@@ -398,6 +399,7 @@ union rdma_protocol_stats {
- #define RDMA_CORE_CAP_PROT_IB           0x00100000
- #define RDMA_CORE_CAP_PROT_ROCE         0x00200000
- #define RDMA_CORE_CAP_PROT_IWARP        0x00400000
-+#define RDMA_CORE_CAP_PROT_ROCE_UDP_ENCAP 0x00800000
- 
- #define RDMA_CORE_PORT_IBA_IB          (RDMA_CORE_CAP_PROT_IB  \
- 					| RDMA_CORE_CAP_IB_MAD \
-@@ -410,6 +412,12 @@ union rdma_protocol_stats {
- 					| RDMA_CORE_CAP_IB_CM   \
- 					| RDMA_CORE_CAP_AF_IB   \
- 					| RDMA_CORE_CAP_ETH_AH)
-+#define RDMA_CORE_PORT_IBA_ROCE_UDP_ENCAP			\
-+					(RDMA_CORE_CAP_PROT_ROCE_UDP_ENCAP \
-+					| RDMA_CORE_CAP_IB_MAD  \
-+					| RDMA_CORE_CAP_IB_CM   \
-+					| RDMA_CORE_CAP_AF_IB   \
-+					| RDMA_CORE_CAP_ETH_AH)
- #define RDMA_CORE_PORT_IWARP           (RDMA_CORE_CAP_PROT_IWARP \
- 					| RDMA_CORE_CAP_IW_CM)
- #define RDMA_CORE_PORT_INTEL_OPA       (RDMA_CORE_PORT_IBA_IB  \
-@@ -1919,6 +1927,17 @@ static inline bool rdma_protocol_ib(const struct ib_device *device, u8 port_num)
- 
- static inline bool rdma_protocol_roce(const struct ib_device *device, u8 port_num)
- {
-+	return device->port_immutable[port_num].core_cap_flags &
-+		(RDMA_CORE_CAP_PROT_ROCE | RDMA_CORE_CAP_PROT_ROCE_UDP_ENCAP);
-+}
-+
-+static inline bool rdma_protocol_roce_udp_encap(const struct ib_device *device, u8 port_num)
-+{
-+	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_ROCE_UDP_ENCAP;
-+}
-+
-+static inline bool rdma_protocol_roce_eth_encap(const struct ib_device *device, u8 port_num)
-+{
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_ROCE;
- }
- 
-@@ -1929,8 +1948,8 @@ static inline bool rdma_protocol_iwarp(const struct ib_device *device, u8 port_n
- 
- static inline bool rdma_ib_or_roce(const struct ib_device *device, u8 port_num)
- {
--	return device->port_immutable[port_num].core_cap_flags &
--		(RDMA_CORE_CAP_PROT_IB | RDMA_CORE_CAP_PROT_ROCE);
-+	return rdma_protocol_ib(device, port_num) ||
-+		rdma_protocol_roce(device, port_num);
- }
- 
- /**
+ struct cma_multicast {
+@@ -1952,6 +1953,7 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
+ 		ndev = dev_get_by_index(&init_net, addr->dev_addr.bound_dev_if);
+ 		route->path_rec->net = &init_net;
+ 		route->path_rec->ifindex = addr->dev_addr.bound_dev_if;
++		route->path_rec->gid_type = id_priv->gid_type;
+ 	}
+ 	if (!ndev) {
+ 		ret = -ENODEV;
 -- 
 2.1.0
 
