@@ -1,72 +1,67 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [ANNOUNCE] dapl-2.1.6-1 release
-Date: Thu, 13 Aug 2015 18:22:05 +0000
-Message-ID: <54347E5A035A054EAE9D05927FB467F980A5059A@ORSMSX101.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.openfabrics.org/mailman/options/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-To: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Spencer Baugh <sbaugh@catern.com>
+Subject: [PATCH] RDMA/cma: fix IPv6 address resolution
+Date: Thu, 13 Aug 2015 12:19:10 -0700
+Message-ID: <1439493550-5958-1-git-send-email-sbaugh@catern.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Spencer Baugh <sbaugh@catern.com>, "open list:INFINIBAND SUBSYSTEM" <linux-rdma@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+Cc: Joern Engel <joern@purestorage.com>, Spencer Baugh <Spencer.baugh@purestorage.com>
 List-Id: linux-rdma@vger.kernel.org
 
-New release for uDAPL (2.1.6) is available at http://downloads.openfabrics.org/dapl/
+Resolving a link-local IPv6 address with an unspecified source address
+was broken by commit 5462eddd7a, which prevented the IPv6 stack from
+learning the scope id of the link-local IPv6 address, causing random
+failures as the IP stack chose a random link to resolve the address on.
 
-Vlad, please pull into OFED 3.18-1 
+This commit 5462eddd7a made us bail out of cma_check_linklocal early if
+the address passed in was not an IPv6 link-local address. On the address
+resolution path, the address passed in is the source address; if the
+source address is the unspecified address, which is not link-local, we
+will bail out early.
 
-	md5sum: dce3ef7c943807d35bcb26dae72b1d88 dapl-2.1.6.tar.gz
+This is mostly correct, but if the destination address is a link-local
+address, then we will be following a link-local route, and we'll need to
+tell the IPv6 stack what the scope id of the destination address is.
+This used to be done by last line of cma_check_linklocal, which is
+skipped when bailing out early:
 
-For v2.1 package install RPM packages as follow:
+	dev_addr->bound_dev_if = sin6->sin6_scope_id;
 
-	dapl-2.1.6-1
-	dapl-utils-2.1.6-1
-	dapl-devel-2.1.6-1
-	dapl-debuginfo-2.1.6-1
+(In cma_bind_addr, the sin6_scope_id of the source address is set to the
+sin6_scope_id of the destination address, so this is correct)
+This line is required in turn for the following line, L279 of
+addr6_resolve, to actually inform the IPv6 stack of the scope id:
 
-Release notes: http://downloads.openfabrics.org/dapl/documentation/uDAPL_release_notes.txt
+      fl6.flowi6_oif = addr->bound_dev_if;
 
-Summary:
+Since we can only know we are in this failure case when we have access
+to both the source IPv6 address and destination IPv6 address, we have to
+deal with this further up the stack. So detect this failure case in
+cma_bind_addr, and set bound_dev_if to the destination address scope id
+to correct it.
 
-Release 2.1.6
-ucm: add cluster size environments to adjust CM timers
-mpxyd: proxy_in data transfers can improperly start before RTU received
-mcm: forward open/query for MFO devices in query only mode
-mpxyd: byte swap incorrect on WRC wr_len
-dtest: remove ERR message from flush QP function
-dapltest: Quit command with "-n port" number will core dump
-config: update dat.conf for MFO qib devices, 2 adapters/ports
-mpxyd: add MFO support on proxy side
-mcm: add MFO proxy commands, device, and CM support
-mcm: add MFO support to openib_common code base
-mcm: add full offload (MFO) mode to provider to support qib on MIC
-dtest: pre-allocated buffer too small for RMR, DTO ops timeout
-mpxyd: fix buffer initialization when no-inline support is active
-mpxyd: reduce log level on qp_flush to CM level
-mcm: intra-node proxy missing LID setup on rejects
-mcm: add intra-node support via ibscif device and mcm provider
-mcm: provide MIC address info with proxy device open
-mcm: add device info to non-debug log
-common: add DAPL_DTO_TYPE_EXTENSION_IMM for rdma_write_imm DTO type checking
-mpxyd: fix up some of the PI logging
-dtest: modify rdma_write_with_msg to support uni-direction streaming
-mcm,mpxyd: fix dreq processing to defer QP flush when proxy WRs still pending
-mpxyd: update byte_len and comp_cnt for PO to remote HST communications
-mcm: bug fixes for non-inline devices
-mcm: return CM_rej with CM_req_in errors
-mpxyd,mcm: RDMA write with immed data not signaled on request side
-mcm: add WC opcode and wc_flags in debug log message
-mpxyd: set options bug fix for mcm_ib_inline
+Signed-off-by: Spencer Baugh <sbaugh@catern.com>
+---
+ drivers/infiniband/core/cma.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-Release commit:  http://git.openfabrics.org/?p=~ardavis/dapl.git;a=commit;h=91febc42f0070b2b9eaa81c0c113c6ff7ab8ea60
-
-Regards, Arlin
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 6a6b60a..3b71154 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -2188,8 +2188,11 @@ static int cma_bind_addr(struct rdma_cm_id *id, struct sockaddr *src_addr,
+ 		src_addr = (struct sockaddr *) &id->route.addr.src_addr;
+ 		src_addr->sa_family = dst_addr->sa_family;
+ 		if (dst_addr->sa_family == AF_INET6) {
+-			((struct sockaddr_in6 *) src_addr)->sin6_scope_id =
+-				((struct sockaddr_in6 *) dst_addr)->sin6_scope_id;
++			struct sockaddr_in6 *src_addr6 = (struct sockaddr_in6 *) src_addr;
++			struct sockaddr_in6 *dst_addr6 = (struct sockaddr_in6 *) dst_addr;
++			src_addr6->sin6_scope_id = dst_addr6->sin6_scope_id;
++			if (ipv6_addr_type(&dst_addr6->sin6_addr) & IPV6_ADDR_LINKLOCAL)
++				id->route.addr.dev_addr.bound_dev_if = dst_addr6->sin6_scope_id;
+ 		} else if (dst_addr->sa_family == AF_IB) {
+ 			((struct sockaddr_ib *) src_addr)->sib_pkey =
+ 				((struct sockaddr_ib *) dst_addr)->sib_pkey;
+-- 
+2.5.0.rc3
