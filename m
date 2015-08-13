@@ -1,93 +1,98 @@
-From: =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>
-Subject: [RFC PATCH 1/8 v2] IB/mlx5: add a new parameter to __mlx_ib_populated_pas for ODP with HMM.
-Date: Thu, 13 Aug 2015 15:20:46 -0400
-Message-ID: <1439493653-1191-2-git-send-email-jglisse@redhat.com>
+From: =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [RFC PATCH 8/8 v2] IB/mlx5/hmm: enable ODP using HMM v2.
+Date: Thu, 13 Aug 2015 15:20:53 -0400
+Message-ID: <1439493653-1191-9-git-send-email-jglisse@redhat.com>
 References: <1439493653-1191-1-git-send-email-jglisse@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1439493653-1191-1-git-send-email-jglisse@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: Christophe Harle <charle@nvidia.com>, Duncan Poole <dpoole@nvidia.com>, Sherry Cheung <SCheung@nvidia.com>, Subhash Gutti <sgutti@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, Mark Hairgrove <mhairgrove@nvidia.com>, Lucien Dunning <ldunning@nvidia.com>, Cameron Buschardt <cabuschardt@nvidia.com>, Arvind Gopalakrishnan <arvindg@nvidia.com>, Haggai Eran <haggaie@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Liran Liss <liranl@mellanox.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1439493653-1191-1-git-send-email-jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Christophe Harle <charle-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Duncan Poole <dpoole-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Sherry Cheung <SCheung-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Subhash Gutti <sgutti-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Mark Hairgrove <mhairgrove-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Lucien Dunning <ldunning-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Cameron Buschardt <cabuschardt-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Arvind Gopalakrishnan <arvindg-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When using HMM for ODP it will be useful to pass the current mirror
-page table iterator for __mlx_ib_populated_pas() function benefit. Add
-void parameter for this.
+All pieces are in place for ODP (on demand paging) to work using HMM.
+Add kernel option and final code to enable it.
 
-Signed-off-by: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+Changed since v1:
+  - Added kernel option in this last patch of the serie.
+
+Signed-off-by: J=C3=A9r=C3=B4me Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/mem.c     | 8 +++++---
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 2 +-
- drivers/infiniband/hw/mlx5/mr.c      | 2 +-
- 3 files changed, 7 insertions(+), 5 deletions(-)
+ drivers/infiniband/Kconfig           | 10 ++++++++++
+ drivers/infiniband/core/uverbs_cmd.c |  3 ---
+ drivers/infiniband/hw/mlx5/main.c    |  4 ++++
+ 3 files changed, 14 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mem.c b/drivers/infiniband/hw/m=
-lx5/mem.c
-index 40df2cc..df56b7d 100644
---- a/drivers/infiniband/hw/mlx5/mem.c
-+++ b/drivers/infiniband/hw/mlx5/mem.c
-@@ -145,11 +145,13 @@ static u64 umem_dma_to_mtt(dma_addr_t umem_dma)
-  * num_pages - total number of pages to fill
-  * pas - bus addresses array to fill
-  * access_flags - access flags to set on all present pages.
--		  use enum mlx5_ib_mtt_access_flags for this.
-+ *                use enum mlx5_ib_mtt_access_flags for this.
-+ * data - intended for odp with hmm, it should point to current mirror=
- page
-+ *        table iterator.
-  */
- void __mlx5_ib_populate_pas(struct mlx5_ib_dev *dev, struct ib_umem *u=
-mem,
- 			    int page_shift, size_t offset, size_t num_pages,
--			    __be64 *pas, int access_flags)
-+			    __be64 *pas, int access_flags, void *data)
- {
- 	unsigned long umem_page_shift =3D ilog2(umem->page_size);
- 	int shift =3D page_shift - umem_page_shift;
-@@ -201,7 +203,7 @@ void mlx5_ib_populate_pas(struct mlx5_ib_dev *dev, =
-struct ib_umem *umem,
- {
- 	return __mlx5_ib_populate_pas(dev, umem, page_shift, 0,
- 				      ib_umem_num_pages(umem), pas,
--				      access_flags);
-+				      access_flags, NULL);
- }
- int mlx5_ib_get_buf_offset(u64 addr, int page_shift, u32 *offset)
- {
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/=
-hw/mlx5/mlx5_ib.h
-index 7cae098..d4dbd8e 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -622,7 +622,7 @@ void mlx5_ib_cont_pages(struct ib_umem *umem, u64 a=
-ddr, int *count, int *shift,
- 			int *ncont, int *order);
- void __mlx5_ib_populate_pas(struct mlx5_ib_dev *dev, struct ib_umem *u=
-mem,
- 			    int page_shift, size_t offset, size_t num_pages,
--			    __be64 *pas, int access_flags);
-+			    __be64 *pas, int access_flags, void *data);
- void mlx5_ib_populate_pas(struct mlx5_ib_dev *dev, struct ib_umem *ume=
-m,
- 			  int page_shift, __be64 *pas, int access_flags);
- void mlx5_ib_copy_pas(u64 *old, u64 *new, int step, int num);
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/ml=
-x5/mr.c
-index bc9a0de..ef63e5f 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -912,7 +912,7 @@ int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 s=
-tart_page_index, int npages,
- 		if (!zap) {
- 			__mlx5_ib_populate_pas(dev, umem, PAGE_SHIFT,
- 					       start_page_index, npages, pas,
--					       MLX5_IB_MTT_PRESENT);
-+					       MLX5_IB_MTT_PRESENT, NULL);
- 			/* Clear padding after the pages brought from the
- 			 * umem. */
- 			memset(pas + npages, 0, size - npages * sizeof(u64));
+diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
+index b899531..764f524 100644
+--- a/drivers/infiniband/Kconfig
++++ b/drivers/infiniband/Kconfig
+@@ -49,6 +49,16 @@ config INFINIBAND_ON_DEMAND_PAGING
+ 	  memory regions without pinning their pages, fetching the
+ 	  pages on demand instead.
+=20
++config INFINIBAND_ON_DEMAND_PAGING_HMM
++	bool "InfiniBand on-demand paging support using HMM."
++	depends on HMM
++	depends on INFINIBAND_ON_DEMAND_PAGING
++	default n
++	---help---
++	  Use HMM (heterogeneous memory management) kernel API for
++	  on demand paging. No userspace difference, this is just
++	  an alternative implementation of the feature.
++
+ config INFINIBAND_ADDR_TRANS
+ 	bool
+ 	depends on INFINIBAND
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/=
+core/uverbs_cmd.c
+index 1db6a17..c3e14a8 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -3445,8 +3445,6 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_fi=
+le *file,
+ 		goto end;
+=20
+ #if IS_ENABLED(CONFIG_INFINIBAND_ON_DEMAND_PAGING)
+-#if IS_ENABLED(CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM)
+-#else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
+ 	resp.odp_caps.general_caps =3D attr.odp_caps.general_caps;
+ 	resp.odp_caps.per_transport_caps.rc_odp_caps =3D
+ 		attr.odp_caps.per_transport_caps.rc_odp_caps;
+@@ -3455,7 +3453,6 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_fi=
+le *file,
+ 	resp.odp_caps.per_transport_caps.ud_odp_caps =3D
+ 		attr.odp_caps.per_transport_caps.ud_odp_caps;
+ 	resp.odp_caps.reserved =3D 0;
+-#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
+ #else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
+ 	memset(&resp.odp_caps, 0, sizeof(resp.odp_caps));
+ #endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/=
+mlx5/main.c
+index 32ed2f1..c340c3a 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -295,6 +295,10 @@ static int mlx5_ib_query_device(struct ib_device *=
+ibdev,
+=20
+ #if IS_ENABLED(CONFIG_INFINIBAND_ON_DEMAND_PAGING)
+ #if IS_ENABLED(CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM)
++	if (MLX5_CAP_GEN(mdev, pg) && ibdev->hmm_ready) {
++		props->device_cap_flags |=3D IB_DEVICE_ON_DEMAND_PAGING;
++		props->odp_caps =3D dev->odp_caps;
++	}
+ #else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
+ 	if (MLX5_CAP_GEN(mdev, pg))
+ 		props->device_cap_flags |=3D IB_DEVICE_ON_DEMAND_PAGING;
 --=20
 1.9.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
