@@ -1,233 +1,303 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 9/9] IB/cma: Join and leave multicast groups with IGMP
-Date: Thu, 13 Aug 2015 19:03:14 +0300
-Message-ID: <1439481794-27998-10-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next 3/9] IB/core: Add gid attributes to sysfs
+Date: Thu, 13 Aug 2015 19:03:08 +0300
+Message-ID: <1439481794-27998-4-git-send-email-matanb@mellanox.com>
 References: <1439481794-27998-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1439481794-27998-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+This patch set adds attributes of net device and gid type to each GID
+in the GID table. Users that use verbs directly need to specify
+the GID index. Since the same GID could have different types or
+associated net devices, users should have the ability to query the
+associated GID attributes. Adding these attributes to sysfs.
 
-Since RoCEv2 is a protocol over IP header it is required to send IGMP
-join and leave requests to the network when joining and leaving
-multicast groups.
-
-Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c       | 96 +++++++++++++++++++++++++++++++++----
- drivers/infiniband/core/multicast.c | 20 +++++++-
- include/rdma/ib_sa.h                |  3 ++
- 3 files changed, 107 insertions(+), 12 deletions(-)
+ drivers/infiniband/core/sysfs.c | 184 +++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 182 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index e4f4d23..35976d5 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -38,6 +38,7 @@
- #include <linux/in6.h>
- #include <linux/mutex.h>
- #include <linux/random.h>
-+#include <linux/igmp.h>
- #include <linux/idr.h>
- #include <linux/inetdevice.h>
+diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+index b1f37d4..4d5d87a 100644
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -37,12 +37,22 @@
  #include <linux/slab.h>
-@@ -250,6 +251,7 @@ struct cma_multicast {
- 	void			*context;
- 	struct sockaddr_storage	addr;
- 	struct kref		mcref;
-+	bool			igmp_joined;
+ #include <linux/stat.h>
+ #include <linux/string.h>
++#include <linux/netdevice.h>
+ 
+ #include <rdma/ib_mad.h>
+ 
++struct ib_port;
++
++struct gid_attr_group {
++	struct ib_port		*port;
++	struct kobject		kobj;
++	struct attribute_group	ndev;
++	struct attribute_group	type;
++};
+ struct ib_port {
+ 	struct kobject         kobj;
+ 	struct ib_device      *ibdev;
++	struct gid_attr_group *gid_attr_group;
+ 	struct attribute_group gid_group;
+ 	struct attribute_group pkey_group;
+ 	u8                     port_num;
+@@ -84,6 +94,24 @@ static const struct sysfs_ops port_sysfs_ops = {
+ 	.show = port_attr_show
  };
  
- struct cma_work {
-@@ -337,6 +339,26 @@ static inline void cma_set_ip_ver(struct cma_hdr *hdr, u8 ip_ver)
- 	hdr->ip_version = (ip_ver << 4) | (hdr->ip_version & 0xF);
- }
- 
-+static int cma_igmp_send(struct net_device *ndev, union ib_gid *mgid, bool join)
++static ssize_t gid_attr_show(struct kobject *kobj,
++			     struct attribute *attr, char *buf)
 +{
-+	struct in_device *in_dev = NULL;
++	struct port_attribute *port_attr =
++		container_of(attr, struct port_attribute, attr);
++	struct ib_port *p = container_of(kobj, struct gid_attr_group,
++					 kobj)->port;
 +
-+	if (ndev) {
-+		rtnl_lock();
-+		in_dev = __in_dev_get_rtnl(ndev);
-+		if (in_dev) {
-+			if (join)
-+				ip_mc_inc_group(in_dev,
-+						*(__be32 *)(mgid->raw + 12));
-+			else
-+				ip_mc_dec_group(in_dev,
-+						*(__be32 *)(mgid->raw + 12));
-+		}
-+		rtnl_unlock();
-+	}
-+	return (in_dev) ? 0 : -ENODEV;
++	if (!port_attr->show)
++		return -EIO;
++
++	return port_attr->show(p, port_attr, buf);
 +}
 +
- static void cma_attach_to_dev(struct rdma_id_private *id_priv,
- 			      struct cma_device *cma_dev)
++static const struct sysfs_ops gid_attr_sysfs_ops = {
++	.show = gid_attr_show
++};
++
+ static ssize_t state_show(struct ib_port *p, struct port_attribute *unused,
+ 			  char *buf)
  {
-@@ -1137,8 +1159,24 @@ static void cma_leave_mc_groups(struct rdma_id_private *id_priv)
- 				      id_priv->id.port_num)) {
- 			ib_sa_free_multicast(mc->multicast.ib);
- 			kfree(mc);
--		} else
-+		} else {
-+			if (mc->igmp_joined) {
-+				struct rdma_dev_addr *dev_addr =
-+					&id_priv->id.route.addr.dev_addr;
-+				struct net_device *ndev = NULL;
-+
-+				if (dev_addr->bound_dev_if)
-+					ndev = dev_get_by_index(&init_net,
-+								dev_addr->bound_dev_if);
-+				if (ndev) {
-+					cma_igmp_send(ndev,
-+						      &mc->multicast.ib->rec.mgid,
-+						      false);
-+					dev_put(ndev);
-+				}
-+			}
- 			kref_put(&mc->mcref, release_mc);
-+		}
- 	}
- }
- 
-@@ -3379,7 +3417,7 @@ static int cma_iboe_join_multicast(struct rdma_id_private *id_priv,
- {
- 	struct iboe_mcast_work *work;
- 	struct rdma_dev_addr *dev_addr = &id_priv->id.route.addr.dev_addr;
--	int err;
-+	int err = 0;
- 	struct sockaddr *addr = (struct sockaddr *)&mc->addr;
- 	struct net_device *ndev = NULL;
- 
-@@ -3411,13 +3449,35 @@ static int cma_iboe_join_multicast(struct rdma_id_private *id_priv,
- 	mc->multicast.ib->rec.rate = iboe_get_rate(ndev);
- 	mc->multicast.ib->rec.hop_limit = 1;
- 	mc->multicast.ib->rec.mtu = iboe_get_mtu(ndev->mtu);
-+	mc->multicast.ib->rec.ifindex = dev_addr->bound_dev_if;
-+	mc->multicast.ib->rec.net = &init_net;
-+	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.src_addr,
-+		    &mc->multicast.ib->rec.port_gid);
-+
-+	mc->multicast.ib->rec.gid_type =
-+		id_priv->cma_dev->default_gid_type[id_priv->id.port_num -
-+		rdma_start_port(id_priv->cma_dev->device)];
-+	if (addr->sa_family == AF_INET) {
-+		if (mc->multicast.ib->rec.gid_type == IB_GID_TYPE_ROCE_UDP_ENCAP)
-+			err = cma_igmp_send(ndev, &mc->multicast.ib->rec.mgid,
-+					    true);
-+		if (!err) {
-+			mc->igmp_joined = true;
-+			mc->multicast.ib->rec.hop_limit = IPV6_DEFAULT_HOPLIMIT;
-+		}
-+	} else {
-+		if (mc->multicast.ib->rec.gid_type == IB_GID_TYPE_ROCE_UDP_ENCAP)
-+			err = -ENOTSUPP;
-+		else
-+			mc->multicast.ib->rec.gid_type = IB_GID_TYPE_IB;
-+	}
- 	dev_put(ndev);
--	if (!mc->multicast.ib->rec.mtu) {
--		err = -EINVAL;
-+	if (err || !mc->multicast.ib->rec.mtu) {
-+		if (!err)
-+			err = -EINVAL;
- 		goto out2;
- 	}
--	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.src_addr,
--		    &mc->multicast.ib->rec.port_gid);
-+
- 	work->id = id_priv;
- 	work->mc = mc;
- 	INIT_WORK(&work->work, iboe_mcast_work_handler);
-@@ -3452,7 +3512,7 @@ int rdma_join_multicast(struct rdma_cm_id *id, struct sockaddr *addr,
- 	memcpy(&mc->addr, addr, rdma_addr_size(addr));
- 	mc->context = context;
- 	mc->id_priv = id_priv;
--
-+	mc->igmp_joined = false;
- 	spin_lock(&id_priv->lock);
- 	list_add(&mc->list, &id_priv->mc_list);
- 	spin_unlock(&id_priv->lock);
-@@ -3497,9 +3557,25 @@ void rdma_leave_multicast(struct rdma_cm_id *id, struct sockaddr *addr)
- 			if (rdma_cap_ib_mcast(id->device, id->port_num)) {
- 				ib_sa_free_multicast(mc->multicast.ib);
- 				kfree(mc);
--			} else if (rdma_protocol_roce(id->device, id->port_num))
--				kref_put(&mc->mcref, release_mc);
--
-+			} else if (rdma_protocol_roce(id->device, id->port_num)) {
-+					if (mc->igmp_joined) {
-+						struct rdma_dev_addr *dev_addr =
-+							&id->route.addr.dev_addr;
-+						struct net_device *ndev = NULL;
-+
-+						if (dev_addr->bound_dev_if)
-+							ndev = dev_get_by_index(&init_net,
-+										dev_addr->bound_dev_if);
-+						if (ndev) {
-+							cma_igmp_send(ndev,
-+								      &mc->multicast.ib->rec.mgid,
-+								      false);
-+							dev_put(ndev);
-+						}
-+						mc->igmp_joined = false;
-+					}
-+					kref_put(&mc->mcref, release_mc);
-+				}
- 			return;
- 		}
- 	}
-diff --git a/drivers/infiniband/core/multicast.c b/drivers/infiniband/core/multicast.c
-index 6c3cad9..d8e3b72 100644
---- a/drivers/infiniband/core/multicast.c
-+++ b/drivers/infiniband/core/multicast.c
-@@ -729,8 +729,24 @@ int ib_init_ah_from_mcmember(struct ib_device *device, u8 port_num,
- 	u16 gid_index;
- 	u8 p;
- 
--	ret = ib_find_cached_gid(device, &rec->port_gid, IB_GID_TYPE_IB,
--				 NULL, &p, &gid_index);
-+	if (rdma_protocol_roce(device, port_num)) {
-+		struct net_device *ndev = rec->net ?
-+			dev_get_by_index(rec->net, rec->ifindex) : NULL;
-+
-+		ret = ib_find_cached_gid_by_port(device, &rec->port_gid,
-+						 rec->gid_type, port_num,
-+						 ndev,
-+						 &gid_index);
-+		if (ndev)
-+			dev_put(ndev);
-+	} else if (rdma_protocol_ib(device, port_num)) {
-+		ret = ib_find_cached_gid(device, &rec->port_gid,
-+					 IB_GID_TYPE_IB, NULL, &p,
-+					 &gid_index);
-+	} else {
-+		ret = -EINVAL;
-+	}
-+
- 	if (ret)
- 		return ret;
- 
-diff --git a/include/rdma/ib_sa.h b/include/rdma/ib_sa.h
-index 0a40ed2..5bea0e8 100644
---- a/include/rdma/ib_sa.h
-+++ b/include/rdma/ib_sa.h
-@@ -206,6 +206,9 @@ struct ib_sa_mcmember_rec {
- 	u8           scope;
- 	u8           join_state;
- 	int          proxy_join;
-+	int	     ifindex;
-+	struct net  *net;
-+	enum ib_gid_type gid_type;
+@@ -281,6 +309,46 @@ static struct attribute *port_default_attrs[] = {
+ 	NULL
  };
  
- /* Service Record Component Mask Sec 15.2.5.14 Ver 1.1	*/
++static size_t print_ndev(struct ib_gid_attr *gid_attr, char *buf)
++{
++	if (!gid_attr->ndev)
++		return -EINVAL;
++
++	return sprintf(buf, "%s\n", gid_attr->ndev->name);
++}
++
++static size_t print_gid_type(struct ib_gid_attr *gid_attr, char *buf)
++{
++	return sprintf(buf, "%s\n", ib_cache_gid_type_str(gid_attr->gid_type));
++}
++
++static ssize_t _show_port_gid_attr(struct ib_port *p,
++				   struct port_attribute *attr,
++				   char *buf,
++				   size_t (*print)(struct ib_gid_attr *gid_attr,
++						   char *buf))
++{
++	struct port_table_attribute *tab_attr =
++		container_of(attr, struct port_table_attribute, attr);
++	union ib_gid gid;
++	struct ib_gid_attr gid_attr = {};
++	ssize_t ret;
++	va_list args;
++
++	ret = ib_query_gid(p->ibdev, p->port_num, tab_attr->index, &gid,
++			   &gid_attr);
++	if (ret)
++		goto err;
++
++	ret = print(&gid_attr, buf);
++
++err:
++	if (gid_attr.ndev)
++		dev_put(gid_attr.ndev);
++	va_end(args);
++	return ret;
++}
++
+ static ssize_t show_port_gid(struct ib_port *p, struct port_attribute *attr,
+ 			     char *buf)
+ {
+@@ -296,6 +364,19 @@ static ssize_t show_port_gid(struct ib_port *p, struct port_attribute *attr,
+ 	return sprintf(buf, "%pI6\n", gid.raw);
+ }
+ 
++static ssize_t show_port_gid_attr_ndev(struct ib_port *p,
++				       struct port_attribute *attr, char *buf)
++{
++	return _show_port_gid_attr(p, attr, buf, print_ndev);
++}
++
++static ssize_t show_port_gid_attr_gid_type(struct ib_port *p,
++					   struct port_attribute *attr,
++					   char *buf)
++{
++	return _show_port_gid_attr(p, attr, buf, print_gid_type);
++}
++
+ static ssize_t show_port_pkey(struct ib_port *p, struct port_attribute *attr,
+ 			      char *buf)
+ {
+@@ -451,12 +532,41 @@ static void ib_port_release(struct kobject *kobj)
+ 	kfree(p);
+ }
+ 
++static void ib_port_gid_attr_release(struct kobject *kobj)
++{
++	struct gid_attr_group *g = container_of(kobj, struct gid_attr_group,
++						kobj);
++	struct attribute *a;
++	int i;
++
++	if (g->ndev.attrs) {
++		for (i = 0; (a = g->ndev.attrs[i]); ++i)
++			kfree(a);
++
++		kfree(g->ndev.attrs);
++	}
++
++	if (g->type.attrs) {
++		for (i = 0; (a = g->type.attrs[i]); ++i)
++			kfree(a);
++
++		kfree(g->type.attrs);
++	}
++
++	kfree(g);
++}
++
+ static struct kobj_type port_type = {
+ 	.release       = ib_port_release,
+ 	.sysfs_ops     = &port_sysfs_ops,
+ 	.default_attrs = port_default_attrs
+ };
+ 
++static struct kobj_type gid_attr_type = {
++	.sysfs_ops      = &gid_attr_sysfs_ops,
++	.release        = ib_port_gid_attr_release
++};
++
+ static struct attribute **
+ alloc_group_attrs(ssize_t (*show)(struct ib_port *,
+ 				  struct port_attribute *, char *buf),
+@@ -528,9 +638,23 @@ static int add_port(struct ib_device *device, int port_num,
+ 		return ret;
+ 	}
+ 
++	p->gid_attr_group = kzalloc(sizeof(*p->gid_attr_group), GFP_KERNEL);
++	if (!p->gid_attr_group) {
++		ret = -ENOMEM;
++		goto err_put;
++	}
++
++	p->gid_attr_group->port = p;
++	ret = kobject_init_and_add(&p->gid_attr_group->kobj, &gid_attr_type,
++				   &p->kobj, "gid_attrs");
++	if (ret) {
++		kfree(p->gid_attr_group);
++		goto err_put;
++	}
++
+ 	ret = sysfs_create_group(&p->kobj, &pma_group);
+ 	if (ret)
+-		goto err_put;
++		goto err_put_gid_attrs;
+ 
+ 	p->gid_group.name  = "gids";
+ 	p->gid_group.attrs = alloc_group_attrs(show_port_gid, attr.gid_tbl_len);
+@@ -543,12 +667,38 @@ static int add_port(struct ib_device *device, int port_num,
+ 	if (ret)
+ 		goto err_free_gid;
+ 
++	p->gid_attr_group->ndev.name = "ndevs";
++	p->gid_attr_group->ndev.attrs = alloc_group_attrs(show_port_gid_attr_ndev,
++							  attr.gid_tbl_len);
++	if (!p->gid_attr_group->ndev.attrs) {
++		ret = -ENOMEM;
++		goto err_remove_gid;
++	}
++
++	ret = sysfs_create_group(&p->gid_attr_group->kobj,
++				 &p->gid_attr_group->ndev);
++	if (ret)
++		goto err_free_gid_ndev;
++
++	p->gid_attr_group->type.name = "types";
++	p->gid_attr_group->type.attrs = alloc_group_attrs(show_port_gid_attr_gid_type,
++							  attr.gid_tbl_len);
++	if (!p->gid_attr_group->type.attrs) {
++		ret = -ENOMEM;
++		goto err_remove_gid_ndev;
++	}
++
++	ret = sysfs_create_group(&p->gid_attr_group->kobj,
++				 &p->gid_attr_group->type);
++	if (ret)
++		goto err_free_gid_type;
++
+ 	p->pkey_group.name  = "pkeys";
+ 	p->pkey_group.attrs = alloc_group_attrs(show_port_pkey,
+ 						attr.pkey_tbl_len);
+ 	if (!p->pkey_group.attrs) {
+ 		ret = -ENOMEM;
+-		goto err_remove_gid;
++		goto err_remove_gid_type;
+ 	}
+ 
+ 	ret = sysfs_create_group(&p->kobj, &p->pkey_group);
+@@ -576,6 +726,28 @@ err_free_pkey:
+ 	kfree(p->pkey_group.attrs);
+ 	p->pkey_group.attrs = NULL;
+ 
++err_remove_gid_type:
++	sysfs_remove_group(&p->gid_attr_group->kobj,
++			   &p->gid_attr_group->type);
++
++err_free_gid_type:
++	for (i = 0; i < attr.gid_tbl_len; ++i)
++		kfree(p->gid_attr_group->type.attrs[i]);
++
++	kfree(p->gid_attr_group->type.attrs);
++	p->gid_attr_group->type.attrs = NULL;
++
++err_remove_gid_ndev:
++	sysfs_remove_group(&p->gid_attr_group->kobj,
++			   &p->gid_attr_group->ndev);
++
++err_free_gid_ndev:
++	for (i = 0; i < attr.gid_tbl_len; ++i)
++		kfree(p->gid_attr_group->ndev.attrs[i]);
++
++	kfree(p->gid_attr_group->ndev.attrs);
++	p->gid_attr_group->ndev.attrs = NULL;
++
+ err_remove_gid:
+ 	sysfs_remove_group(&p->kobj, &p->gid_group);
+ 
+@@ -589,6 +761,9 @@ err_free_gid:
+ err_remove_pma:
+ 	sysfs_remove_group(&p->kobj, &pma_group);
+ 
++err_put_gid_attrs:
++	kobject_put(&p->gid_attr_group->kobj);
++
+ err_put:
+ 	kobject_put(&p->kobj);
+ 	return ret;
+@@ -803,6 +978,11 @@ static void free_port_list_attributes(struct ib_device *device)
+ 		sysfs_remove_group(p, &pma_group);
+ 		sysfs_remove_group(p, &port->pkey_group);
+ 		sysfs_remove_group(p, &port->gid_group);
++		sysfs_remove_group(&port->gid_attr_group->kobj,
++				   &port->gid_attr_group->ndev);
++		sysfs_remove_group(&port->gid_attr_group->kobj,
++				   &port->gid_attr_group->type);
++		kobject_put(&port->gid_attr_group->kobj);
+ 		kobject_put(p);
+ 	}
+ 
 -- 
 2.1.0
 
