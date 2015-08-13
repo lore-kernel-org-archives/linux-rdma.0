@@ -1,103 +1,154 @@
-From: =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>
-Subject: [RFC PATCH 2/8 v2] IB/mlx5: add a new parameter to mlx5_ib_update_mtt() for ODP with HMM.
-Date: Thu, 13 Aug 2015 15:20:47 -0400
-Message-ID: <1439493653-1191-3-git-send-email-jglisse@redhat.com>
-References: <1439493653-1191-1-git-send-email-jglisse@redhat.com>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2] IB/hfi1: Remove inline from trace functions
+Date: Thu, 13 Aug 2015 16:05:24 -0400
+Message-ID: <20150813200524.28650.91753.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1439493653-1191-1-git-send-email-jglisse@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: Christophe Harle <charle@nvidia.com>, Duncan Poole <dpoole@nvidia.com>, Sherry Cheung <SCheung@nvidia.com>, Subhash Gutti <sgutti@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, Mark Hairgrove <mhairgrove@nvidia.com>, Lucien Dunning <ldunning@nvidia.com>, Cameron Buschardt <cabuschardt@nvidia.com>, Arvind Gopalakrishnan <arvindg@nvidia.com>, Haggai Eran <haggaie@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Liran Liss <liranl@mellanox.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When using HMM for ODP it will be useful to pass the current mirror
-page table iterator for mlx5_ib_update_mtt() function benefit. Add
-void parameter for this.
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Signed-off-by: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+Inline in trace functions causes the following build error when
+CONFIG_OPTIMIZE_INLINING is not defined in the kernel config:
+error: function can never be inlined because it uses
+variable argument lists
+
+Reported by 0-day build:
+https://lists.01.org/pipermail/kbuild-all/2015-August/011215.html
+
+This patch converts to a non-inline version of the hfi1 trace functions
+
+Reviewed-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 2 +-
- drivers/infiniband/hw/mlx5/mr.c      | 4 ++--
- drivers/infiniband/hw/mlx5/odp.c     | 8 +++++---
- 3 files changed, 8 insertions(+), 6 deletions(-)
+ drivers/staging/hfi1/trace.c |   15 ++++++++++-
+ drivers/staging/hfi1/trace.h |   56 +++++++++++++++++-------------------------
+ 2 files changed, 35 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/=
-hw/mlx5/mlx5_ib.h
-index d4dbd8e..79d1e7c 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -571,7 +571,7 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd,=
- u64 start, u64 length,
- 				  u64 virt_addr, int access_flags,
- 				  struct ib_udata *udata);
- int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 start_page_index,
--		       int npages, int zap);
-+		       int npages, int zap, void *data);
- int mlx5_ib_dereg_mr(struct ib_mr *ibmr);
- int mlx5_ib_destroy_mr(struct ib_mr *ibmr);
- struct ib_mr *mlx5_ib_create_mr(struct ib_pd *pd,
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/ml=
-x5/mr.c
-index ef63e5f..3ad371d 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -845,7 +845,7 @@ free_mr:
-=20
- #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
- int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 start_page_index, in=
-t npages,
--		       int zap)
-+		       int zap, void *data)
- {
- 	struct mlx5_ib_dev *dev =3D mr->dev;
- 	struct device *ddev =3D dev->ib_dev.dma_device;
-@@ -912,7 +912,7 @@ int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 s=
-tart_page_index, int npages,
- 		if (!zap) {
- 			__mlx5_ib_populate_pas(dev, umem, PAGE_SHIFT,
- 					       start_page_index, npages, pas,
--					       MLX5_IB_MTT_PRESENT, NULL);
-+					       MLX5_IB_MTT_PRESENT, data);
- 			/* Clear padding after the pages brought from the
- 			 * umem. */
- 			memset(pas + npages, 0, size - npages * sizeof(u64));
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/m=
-lx5/odp.c
-index aa8391e..df86d05 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -91,14 +91,15 @@ void mlx5_ib_invalidate_range(struct ib_umem *umem,=
- unsigned long start,
-=20
- 			if (in_block && umr_offset =3D=3D 0) {
- 				mlx5_ib_update_mtt(mr, blk_start_idx,
--						   idx - blk_start_idx, 1);
-+						   idx - blk_start_idx, 1,
-+						   NULL);
- 				in_block =3D 0;
- 			}
- 		}
- 	}
- 	if (in_block)
- 		mlx5_ib_update_mtt(mr, blk_start_idx, idx - blk_start_idx + 1,
--				   1);
-+				   1, NULL);
-=20
- 	/*
- 	 * We are now sure that the device will not access the
-@@ -249,7 +250,8 @@ static int pagefault_single_data_segment(struct mlx=
-5_ib_qp *qp,
- 			 * this MR, since ib_umem_odp_map_dma_pages already
- 			 * checks this.
- 			 */
--			ret =3D mlx5_ib_update_mtt(mr, start_idx, npages, 0);
-+			ret =3D mlx5_ib_update_mtt(mr, start_idx,
-+						 npages, 0, NULL);
- 		} else {
- 			ret =3D -EAGAIN;
- 		}
---=20
-1.9.3
+diff --git a/drivers/staging/hfi1/trace.c b/drivers/staging/hfi1/trace.c
+index afbb212..ea95591 100644
+--- a/drivers/staging/hfi1/trace.c
++++ b/drivers/staging/hfi1/trace.c
+@@ -48,7 +48,6 @@
+  *
+  */
+ #define CREATE_TRACE_POINTS
+-#define HFI1_TRACE_DO_NOT_CREATE_INLINES
+ #include "trace.h"
+ 
+ u8 ibhdr_exhdr_len(struct hfi1_ib_header *hdr)
+@@ -208,4 +207,16 @@ const char *print_u64_array(
+ 	return ret;
+ }
+ 
+-#undef HFI1_TRACE_DO_NOT_CREATE_INLINES
++__hfi1_trace_fn(PKT);
++__hfi1_trace_fn(PROC);
++__hfi1_trace_fn(SDMA);
++__hfi1_trace_fn(LINKVERB);
++__hfi1_trace_fn(DEBUG);
++__hfi1_trace_fn(SNOOP);
++__hfi1_trace_fn(CNTR);
++__hfi1_trace_fn(PIO);
++__hfi1_trace_fn(DC8051);
++__hfi1_trace_fn(FIRMWARE);
++__hfi1_trace_fn(RCVCTRL);
++__hfi1_trace_fn(TID);
++
+diff --git a/drivers/staging/hfi1/trace.h b/drivers/staging/hfi1/trace.h
+index 5c34606..d7851c0 100644
+--- a/drivers/staging/hfi1/trace.h
++++ b/drivers/staging/hfi1/trace.h
+@@ -1339,22 +1339,17 @@ DECLARE_EVENT_CLASS(hfi1_trace_template,
+ 
+ /*
+  * It may be nice to macroize the __hfi1_trace but the va_* stuff requires an
+- * actual function to work and can not be in a macro. Also the fmt can not be a
+- * constant char * because we need to be able to manipulate the \n if it is
+- * present.
++ * actual function to work and can not be in a macro.
+  */
+-#define __hfi1_trace_event(lvl) \
++#define __hfi1_trace_def(lvl) \
++void __hfi1_trace_##lvl(const char *funct, char *fmt, ...);		\
++									\
+ DEFINE_EVENT(hfi1_trace_template, hfi1_ ##lvl,				\
+ 	TP_PROTO(const char *function, struct va_format *vaf),		\
+ 	TP_ARGS(function, vaf))
+ 
+-#ifdef HFI1_TRACE_DO_NOT_CREATE_INLINES
+-#define __hfi1_trace_fn(fn) __hfi1_trace_event(fn)
+-#else
+-#define __hfi1_trace_fn(fn) \
+-__hfi1_trace_event(fn); \
+-__printf(2, 3) \
+-static inline void __hfi1_trace_##fn(const char *func, char *fmt, ...)	\
++#define __hfi1_trace_fn(lvl) \
++void __hfi1_trace_##lvl(const char *func, char *fmt, ...)		\
+ {									\
+ 	struct va_format vaf = {					\
+ 		.fmt = fmt,						\
+@@ -1363,36 +1358,29 @@ static inline void __hfi1_trace_##fn(const char *func, char *fmt, ...)	\
+ 									\
+ 	va_start(args, fmt);						\
+ 	vaf.va = &args;							\
+-	trace_hfi1_ ##fn(func, &vaf);					\
++	trace_hfi1_ ##lvl(func, &vaf);					\
+ 	va_end(args);							\
+ 	return;								\
+ }
+-#endif
+ 
+ /*
+- * To create a new trace level simply define it as below. This will create all
+- * the hooks for calling hfi1_cdbg(LVL, fmt, ...); as well as take care of all
++ * To create a new trace level simply define it below and as a __hfi1_trace_fn
++ * in trace.c. This will create all the hooks for calling
++ * hfi1_cdbg(LVL, fmt, ...); as well as take care of all
+  * the debugfs stuff.
+  */
+-__hfi1_trace_fn(RVPKT);
+-__hfi1_trace_fn(INIT);
+-__hfi1_trace_fn(VERB);
+-__hfi1_trace_fn(PKT);
+-__hfi1_trace_fn(PROC);
+-__hfi1_trace_fn(MM);
+-__hfi1_trace_fn(ERRPKT);
+-__hfi1_trace_fn(SDMA);
+-__hfi1_trace_fn(VPKT);
+-__hfi1_trace_fn(LINKVERB);
+-__hfi1_trace_fn(VERBOSE);
+-__hfi1_trace_fn(DEBUG);
+-__hfi1_trace_fn(SNOOP);
+-__hfi1_trace_fn(CNTR);
+-__hfi1_trace_fn(PIO);
+-__hfi1_trace_fn(DC8051);
+-__hfi1_trace_fn(FIRMWARE);
+-__hfi1_trace_fn(RCVCTRL);
+-__hfi1_trace_fn(TID);
++__hfi1_trace_def(PKT);
++__hfi1_trace_def(PROC);
++__hfi1_trace_def(SDMA);
++__hfi1_trace_def(LINKVERB);
++__hfi1_trace_def(DEBUG);
++__hfi1_trace_def(SNOOP);
++__hfi1_trace_def(CNTR);
++__hfi1_trace_def(PIO);
++__hfi1_trace_def(DC8051);
++__hfi1_trace_def(FIRMWARE);
++__hfi1_trace_def(RCVCTRL);
++__hfi1_trace_def(TID);
+ 
+ #define hfi1_cdbg(which, fmt, ...) \
+ 	__hfi1_trace_##which(__func__, fmt, ##__VA_ARGS__)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
