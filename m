@@ -1,49 +1,39 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC PATCH 4/8 v2] IB/odp/hmm: prepare for HMM code path.
-Date: Thu, 13 Aug 2015 14:13:35 -0600
-Message-ID: <20150813201335.GA22581@obsidianresearch.com>
-References: <1439493653-1191-1-git-send-email-jglisse@redhat.com>
- <1439493653-1191-5-git-send-email-jglisse@redhat.com>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] IB/hfi1: Remove inline from trace functions
+Date: Thu, 13 Aug 2015 20:16:12 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC25786778@ORSMSX160.amr.corp.intel.com>
+References: <20150813140614.4969.99821.stgit@phlsvslse11.ph.intel.com>
+ <20150813165831.GA13535@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1439493653-1191-5-git-send-email-jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20150813165831.GA13535-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christophe Harle <charle-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Duncan Poole <dpoole-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Sherry Cheung <SCheung-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Subhash Gutti <sgutti-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Mark Hairgrove <mhairgrove-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Lucien Dunning <ldunning-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Cameron Buschardt <cabuschardt-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Arvind Gopalakrishnan <arvindg-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Aug 13, 2015 at 03:20:49PM -0400, J=E9r=F4me Glisse wrote:
- =20
-> +#if IS_ENABLED(CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM)
-> +#else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
+> > From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> >
+> > inline in trace functions causes the following build error when
+> > CONFIG_OPTIMIZE_INLINING is not defined in the kernel config:
+> > error: function can never be inlined because it uses variable argument
+> > lists
+> 
+> There are all manner of tracing things in the kernel. Does this driver really
+> need a custom designed one?
+> 
 
-Yuk, what is wrong with
+All of our trace infrastructure is built out of events/tracepoints, so we are not inventing anything new here.
 
- #if !IS_ENABLED(...)
+The fast patch traces are built out of tracepoints.
 
-?
+The *_cdbg() ones are intended for slow path code and compared to the native trace points are easier to new trace capabilities.
 
-> -#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
-> +#if IS_ENABLED(CONFIG_INFINIBAND_ON_DEMAND_PAGING)
-> +#if IS_ENABLED(CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM)
-> +#else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
-
-Double yuk
-
- #if !(IS_ENABLED(..) && IS_ENABLED(..))
-
-?
-
-And the #ifdefs suck, as many as possible should be normal if
-statements, and one should think carefully if we really need to remove
-fields from structures..
-
-Jason
+Mike
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
