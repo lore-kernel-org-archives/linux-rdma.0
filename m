@@ -1,40 +1,36 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/hfi1: Add Infiniband dependency to Kconfig
-Date: Fri, 14 Aug 2015 16:56:21 -0400
-Message-ID: <55CE55F5.1050804@redhat.com>
-References: <20150804161652.24483.80145.stgit@phlsvslse11.ph.intel.com>
+Subject: Re: [PATCH] RDMA/ipath: Do not build ipath driver without infiniband
+ subsystem
+Date: Fri, 14 Aug 2015 16:56:45 -0400
+Message-ID: <55CE560D.8070206@redhat.com>
+References: <1438705021-20337-1-git-send-email-dennis.dalessandro@intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="5lD0Od3V7docTfKRdifaDlSiTwRkH3Mar"
+ boundary="j9nDkmgnMdLIQtTjDglKmK3OSTK9iW4e5"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150804161652.24483.80145.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+In-Reply-To: <1438705021-20337-1-git-send-email-dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---5lD0Od3V7docTfKRdifaDlSiTwRkH3Mar
-Content-Type: text/plain; charset=utf-8
+--j9nDkmgnMdLIQtTjDglKmK3OSTK9iW4e5
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 08/04/2015 12:16 PM, Mike Marciniszyn wrote:
-> From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On 08/04/2015 12:17 PM, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 >=20
-> The hfi1 driver depends on the infiniband core stack.
-> Building a kernel without the infiniband core but with the
-> hfi1 driver causes undefined reference errors to the ib_* functions.
+> Moving the ipath driver to staging now requires a guard on the INFINIBA=
+ND
+> subsytem in order to prevent the driver from being built without infini=
+band
+> enabled. This will lead to a broken build.
 >=20
-> Reported by 0-day build:
-> https://lists.01.org/pipermail/kbuild-all/2015-August/011216.html
->=20
-> This is a temporary patch and is only needed while the hfi1 driver is
-> in staging. Remove when moving driver back to drivers/infiniband.
->=20
-> Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
 Picked up, thanks.
 
@@ -45,7 +41,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---5lD0Od3V7docTfKRdifaDlSiTwRkH3Mar
+--j9nDkmgnMdLIQtTjDglKmK3OSTK9iW4e5
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -54,22 +50,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJVzlX1AAoJELgmozMOVy/dXeYP/2Dt2/gaWXeqWDIMflzZgG4I
-dr+m4chs6O++dE63VL2ry0IX8pNJw1XQG8XUQ51yEtTYM2mnVrdwq5vdgTOfzNvh
-pEEkwc4T9xG25HREuviibOgN/+UgOBsRJ/b/x2xDha09LdtERD5SFUoeBFcGgUEZ
-hNSncJMlQwE2I2CzBoNkdcnL+Eliv4Pqmp68W5AjEPTbL3t/jtGCTaQfCYmz8uwB
-eKuOeFWqiFYqhHNPMpRYQeLQb2tq8qajWDQYOB8AVnQsiXTluHGH2giHdzEAe+Ij
-hgVvUWjx2V9ghBRPby9PTEKK6SJadG92lhrchbJx/lgOuEsXdM4LHrcU0CTs7ibJ
-Aa9FZCCpuvE8QpFZN9+hv6apbYKhjlfwLlAep4VaOW3bKgv346mfc1XExwfMnbiv
-PhnUmcBgZ8fOfgAT6bKCCraUibWq5SMuahUs68JoaCf/R4n8baTP4eLAmRqFpU2B
-4VYnV+onmcBqhbFC2yq+klGSNQUQu7S7EhZYcxq7WCXyFoaB7juopCAjeu+ZhSGn
-NLU5TnggHMyHPOA+qjbRoDE/rwfZufXL0teKG2ZCAet4i+X0TSivLrrGGTkCxxZg
-6S+oE1MJbbpfD1dDuFJzotvBsX1urAJqQCIcy3Co2978V3oBJYhZOj67XBANwAnu
-c6abinLTg2l0S/sHQFUo
-=pWKU
+iQIcBAEBCAAGBQJVzlYNAAoJELgmozMOVy/dqbkP/3Wnn2YN+p9rndXd+nqyFyFP
+TLHAn0rqWqk13dTGqItyatEnBRjXbhAaHBU2zNza3Z53qVwsB2xZsfXxpwRJWMRC
+JT3XNwyga0SOjL7YXPptS7NweYZx9KoJDPdSG3/w7X3qbJOVxLRaJk76eX+hynqh
+YWclsFK7ejQdGrfhYbEnZWUAtvzLlH4g0VHOo+uBHrqEYFf9u7c8fjO6u5z8pT/O
+R8xXjebs6/4HwLBSGMMBd8SaFvGMdlzL8RrNkYgkEj3Dj0LK0ExMkGDxqObkcr2d
+4fD7zfTWwDyx4c/ymm9ZNcFkm80/rNMY0c7wkr7bF2iiC2M2s8MIIj9nIYjs/DeV
+ZLHLnWVabHxCUzJyVvZFEkAUrxHnM2oeTJKM2Un/YV2UQ8Adf4OX2DbkePdau8wx
+NdAl6JxjCTMUxwXmoejVRgctsNbYi8JUdnuVSO8aDIrja1ZZUBYoFIx6OSsQ1fMR
+XrkxifFwWi/4C0wRhp6BGhNJcc7zNem7POB49vVxTve2j/xY9NOppoS7+AYUqyxU
+mzRSOxGtUuy1r9uMtwjFXQ4/AM413h7mupumt0DsceFkVPVYrk+509/WhCCIAkDc
+0N2lEPavqvfv6ooOV6PDL5nKzjUDsr5YYpfVm3mtheQdCDEtzB51OExgGxCcdbLJ
+f5q3fm6OG17PsE/oNu4j
+=QWyb
 -----END PGP SIGNATURE-----
 
---5lD0Od3V7docTfKRdifaDlSiTwRkH3Mar--
+--j9nDkmgnMdLIQtTjDglKmK3OSTK9iW4e5--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
