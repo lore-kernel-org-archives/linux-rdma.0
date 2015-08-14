@@ -1,36 +1,31 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] RDMA/ipath: Do not build ipath driver without infiniband
+Subject: Re: [PATCH] RDMA/amso1100: Do not build amso1100 without infiniband
  subsystem
-Date: Fri, 14 Aug 2015 16:56:45 -0400
-Message-ID: <55CE560D.8070206@redhat.com>
-References: <1438705021-20337-1-git-send-email-dennis.dalessandro@intel.com>
+Date: Fri, 14 Aug 2015 16:57:07 -0400
+Message-ID: <55CE5623.7000609@redhat.com>
+References: <20150804180632.30555.59059.stgit@build2.ogc.int>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="j9nDkmgnMdLIQtTjDglKmK3OSTK9iW4e5"
+ boundary="hWRsFAv9jt3aFp9omGkcS8XhphdiaJB0U"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1438705021-20337-1-git-send-email-dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20150804180632.30555.59059.stgit-PBeJgSbIpn97NCTnQtmixQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---j9nDkmgnMdLIQtTjDglKmK3OSTK9iW4e5
-Content-Type: text/plain; charset=windows-1252
+--hWRsFAv9jt3aFp9omGkcS8XhphdiaJB0U
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 08/04/2015 12:17 PM, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On 08/04/2015 02:06 PM, Steve Wise wrote:
+> Moving the amso1100 driver to staging now requires a guard on the
+> INFINIBAND subsytem in order to prevent the driver from being built
+> without infiniband enabled. This will lead to a broken build.
 >=20
-> Moving the ipath driver to staging now requires a guard on the INFINIBA=
-ND
-> subsytem in order to prevent the driver from being built without infini=
-band
-> enabled. This will lead to a broken build.
->=20
-> Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
 Picked up, thanks.
 
@@ -41,7 +36,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---j9nDkmgnMdLIQtTjDglKmK3OSTK9iW4e5
+--hWRsFAv9jt3aFp9omGkcS8XhphdiaJB0U
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -50,22 +45,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJVzlYNAAoJELgmozMOVy/dqbkP/3Wnn2YN+p9rndXd+nqyFyFP
-TLHAn0rqWqk13dTGqItyatEnBRjXbhAaHBU2zNza3Z53qVwsB2xZsfXxpwRJWMRC
-JT3XNwyga0SOjL7YXPptS7NweYZx9KoJDPdSG3/w7X3qbJOVxLRaJk76eX+hynqh
-YWclsFK7ejQdGrfhYbEnZWUAtvzLlH4g0VHOo+uBHrqEYFf9u7c8fjO6u5z8pT/O
-R8xXjebs6/4HwLBSGMMBd8SaFvGMdlzL8RrNkYgkEj3Dj0LK0ExMkGDxqObkcr2d
-4fD7zfTWwDyx4c/ymm9ZNcFkm80/rNMY0c7wkr7bF2iiC2M2s8MIIj9nIYjs/DeV
-ZLHLnWVabHxCUzJyVvZFEkAUrxHnM2oeTJKM2Un/YV2UQ8Adf4OX2DbkePdau8wx
-NdAl6JxjCTMUxwXmoejVRgctsNbYi8JUdnuVSO8aDIrja1ZZUBYoFIx6OSsQ1fMR
-XrkxifFwWi/4C0wRhp6BGhNJcc7zNem7POB49vVxTve2j/xY9NOppoS7+AYUqyxU
-mzRSOxGtUuy1r9uMtwjFXQ4/AM413h7mupumt0DsceFkVPVYrk+509/WhCCIAkDc
-0N2lEPavqvfv6ooOV6PDL5nKzjUDsr5YYpfVm3mtheQdCDEtzB51OExgGxCcdbLJ
-f5q3fm6OG17PsE/oNu4j
-=QWyb
+iQIcBAEBCAAGBQJVzlYjAAoJELgmozMOVy/d9DQP/2vCXMD/tAKAP9x9z0o9sxA3
+MuKDdSGj1vrlDJyA2BIf7Ed0/SB/2FkXyMpMN122yKTlUstuFDjJd2lQH5snojJr
+lAF3wClHkvRFLluaiJW1+79r5f0QToH8qJRmQs24hmlvetoMqik8/D2XX4L51lBY
+tbh0UZZ+2zhHx9/Hpot0D86tQpGItAnHPxJ1zM2J0Xf1wHpXok3A09XZ8wMQpdJo
+0yiX/g0gpUKGhEF4rw3uoksjZT4d14eIARyUBJs7zgEMV9KZfper1PbsTkTkWxbX
+blQZj7w1gT+xzneiNfFPtEnLRjG82G0nGM5R99yHLOjkdi7RM5mER8FcXbljoCUn
+UdacMHU/CN8jynFG0GB4KyMOMSXgpl92JCFIOss8bSWonUjThcN8whjZy5x08+lH
+yi/HltIs3syuRGdaCdTDmMuCQzWzit/nMp5DlMlFa6j2rgGPqfpvMIUkFrfLoiVs
+R6r8kvXYYnXmuI4JsNL8heoAKfvWcIPnNfJiyP0N+lNz2fWzBLzOTxiBE4OBm3YK
+vVXDKtd+A+LnhrzF/he9W8Z+gxdq8wvI4aNBGfGUlOtj8CK+XCpXkXEb5kDpiJmU
+TCqGhEHIYNBSK7zhrzKK956TNiAzE5d59SPEBR0wMSPgl5m7Mw1OtL/kQ3uu36Cp
+sFHI3txIbdFJ7w4jkgs6
+=M6oK
 -----END PGP SIGNATURE-----
 
---j9nDkmgnMdLIQtTjDglKmK3OSTK9iW4e5--
+--hWRsFAv9jt3aFp9omGkcS8XhphdiaJB0U--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
