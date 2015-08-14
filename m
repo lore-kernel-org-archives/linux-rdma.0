@@ -1,56 +1,42 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx4: Fix memory leaks related to updating GIDs
-Date: Fri, 14 Aug 2015 16:36:37 -0400
-Message-ID: <55CE5155.7050406@redhat.com>
-References: <55BF9F11.6050708@sandisk.com>
+Subject: Re: [PATCH] IB/hfi1: Add Infiniband dependency to Kconfig
+Date: Fri, 14 Aug 2015 16:56:21 -0400
+Message-ID: <55CE55F5.1050804@redhat.com>
+References: <20150804161652.24483.80145.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="MNsUV81WXpGjt3eIxF4BGO6Vcv6kx9eUn"
+ boundary="5lD0Od3V7docTfKRdifaDlSiTwRkH3Mar"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55BF9F11.6050708-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20150804161652.24483.80145.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---MNsUV81WXpGjt3eIxF4BGO6Vcv6kx9eUn
+--5lD0Od3V7docTfKRdifaDlSiTwRkH3Mar
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 08/03/2015 01:04 PM, Bart Van Assche wrote:
-> Fix the memory leaks in update_gids_task() and reset_gids_task().
-> kmemleak reported one of these leaks as follows:
+On 08/04/2015 12:16 PM, Mike Marciniszyn wrote:
+> From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 >=20
-> unreferenced object 0xffff88044576d668 (size 4096):
->   comm "softirq", pid 0, jiffies 4294942043 (age 976.560s)
->   hex dump (first 32 bytes):
->     00 02 00 00 00 00 00 00 70 d6 76 45 04 88 ff ff  ........p.vE....
->     70 d6 76 45 04 88 ff ff 60 d6 2d a0 ff ff ff ff  p.vE....`.-.....
->   backtrace:
->     [<ffffffff814f2f1e>] kmemleak_alloc+0x4e/0xb0
->     [<ffffffff811b0678>] kmem_cache_alloc_trace+0xc8/0x2d0
->     [<ffffffffa02e061e>] reset_gid_table+0x2e/0xe0 [mlx4_ib]
->     [<ffffffffa02e1c59>] mlx4_ib_netdev_event+0x449/0x450 [mlx4_ib]
->     [<ffffffff814011ca>] register_netdevice_notifier+0x8a/0x1c0
->     [<ffffffffa02e173b>] mlx4_ib_add+0x106b/0x1140 [mlx4_ib]
->     [<ffffffffa00dc3d1>] mlx4_add_device+0x41/0xa0 [mlx4_core]
->     [<ffffffffa00dc4bc>] mlx4_register_interface+0x8c/0xf0 [mlx4_core]
->     [<ffffffffa02fc056>] ext4_has_free_clusters+0x6/0x170 [ext4]
->     [<ffffffff8100211d>] do_one_initcall+0xad/0x1e0
->     [<ffffffff814f7238>] do_init_module+0x61/0x1ec
->     [<ffffffff810f95f2>] load_module+0x1d42/0x26b0
->     [<ffffffff810fa150>] SyS_finit_module+0x80/0xb0
->     [<ffffffff81502332>] entry_SYSCALL_64_fastpath+0x16/0x7a
->     [<ffffffffffffffff>] 0xffffffffffffffff
+> The hfi1 driver depends on the infiniband core stack.
+> Building a kernel without the infiniband core but with the
+> hfi1 driver causes undefined reference errors to the ib_* functions.
 >=20
-> Fixes: fa417f7b520e ("IB/mlx4: Add support for IBoE")
-> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> Cc: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-> Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org # v2.6.37
+> Reported by 0-day build:
+> https://lists.01.org/pipermail/kbuild-all/2015-August/011216.html
+>=20
+> This is a temporary patch and is only needed while the hfi1 driver is
+> in staging. Remove when moving driver back to drivers/infiniband.
+>=20
+> Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Thanks, I've picked this up.
+Picked up, thanks.
 
 
 --=20
@@ -59,7 +45,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---MNsUV81WXpGjt3eIxF4BGO6Vcv6kx9eUn
+--5lD0Od3V7docTfKRdifaDlSiTwRkH3Mar
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -68,22 +54,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJVzlFVAAoJELgmozMOVy/dpugP/i2ROyM6WWEarNIXxV+PtvFS
-Fq53mQwaFMKeytqXgZXUXGxwhHhqesimAHBi2Guzkqah4QRQ/mw8Jh+Zg+9y6IyR
-WUAbBTONkMhXHswR4379faMKbuI2JjmZiArZH3Wco7xTxWFIq10Tkc6MgPUg+59U
-uGAAqm4SyR9FMEcZPt/Sv20GajtqpQ6kBWo1vIm2QqHVJCF82fz4bHFFY/RTRskr
-75KcUZk8APKzJq2rVSf+XyaH2Q8ni0sZ35LUDhHypSyHZIdmRqh4fx/ervsYKrYF
-RH20RAy8kepzZL7d+rvEmgFpznxRnig1cvOslZrGtE/zHTkAP0yuo0owGkhKt2eK
-I+Hgg2VB2rkpK45p8hok6ljdt8+IDkiUPKDR/NKXM5chVSBp4YYZ6kmSZwwJoGxI
-XTGec7sUgqfErtg1A21SXVd0tiReHfImfyxEGG4DNUfETsOYceyAZ7KROmEP2urn
-MDeDSYB3bLXH02ywR9nuUkJpWcduD4eShdkvoWCvn1+pf4xswHKgcK9G5s21Bw4N
-phKLFSODzE1k6PMYsKWtmCpFxmjd8axRKLII5iDeMFP92Yx3Jju8csUjdPtOaNDc
-Bq3cZhTaAf0PVKqDalzvt1YO9f8LGoxNttillk7Yuiarstu42yTD8OHdVI6CfkSe
-d6o3WZgpVrNDL1Wq/Tfk
-=IgDQ
+iQIcBAEBCAAGBQJVzlX1AAoJELgmozMOVy/dXeYP/2Dt2/gaWXeqWDIMflzZgG4I
+dr+m4chs6O++dE63VL2ry0IX8pNJw1XQG8XUQ51yEtTYM2mnVrdwq5vdgTOfzNvh
+pEEkwc4T9xG25HREuviibOgN/+UgOBsRJ/b/x2xDha09LdtERD5SFUoeBFcGgUEZ
+hNSncJMlQwE2I2CzBoNkdcnL+Eliv4Pqmp68W5AjEPTbL3t/jtGCTaQfCYmz8uwB
+eKuOeFWqiFYqhHNPMpRYQeLQb2tq8qajWDQYOB8AVnQsiXTluHGH2giHdzEAe+Ij
+hgVvUWjx2V9ghBRPby9PTEKK6SJadG92lhrchbJx/lgOuEsXdM4LHrcU0CTs7ibJ
+Aa9FZCCpuvE8QpFZN9+hv6apbYKhjlfwLlAep4VaOW3bKgv346mfc1XExwfMnbiv
+PhnUmcBgZ8fOfgAT6bKCCraUibWq5SMuahUs68JoaCf/R4n8baTP4eLAmRqFpU2B
+4VYnV+onmcBqhbFC2yq+klGSNQUQu7S7EhZYcxq7WCXyFoaB7juopCAjeu+ZhSGn
+NLU5TnggHMyHPOA+qjbRoDE/rwfZufXL0teKG2ZCAet4i+X0TSivLrrGGTkCxxZg
+6S+oE1MJbbpfD1dDuFJzotvBsX1urAJqQCIcy3Co2978V3oBJYhZOj67XBANwAnu
+c6abinLTg2l0S/sHQFUo
+=pWKU
 -----END PGP SIGNATURE-----
 
---MNsUV81WXpGjt3eIxF4BGO6Vcv6kx9eUn--
+--5lD0Od3V7docTfKRdifaDlSiTwRkH3Mar--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
