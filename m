@@ -1,70 +1,29 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 00/12] IB: Replace safe uses for ib_get_dma_mr with
- pd->local_dma_lkey
-Date: Fri, 14 Aug 2015 09:20:36 -0700
-Message-ID: <55CE1554.60001@sandisk.com>
-References: <1438298547-21404-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <55BBF4B8.2050700@sandisk.com> <20150731223153.GA1518@obsidianresearch.com>
- <55BBFF03.7000505@sandisk.com> <20150731231430.GA1955@obsidianresearch.com>
- <55BD2689.3080602@redhat.com> <55CA600B.1050706@sandisk.com>
- <55CDEEFA.4010803@redhat.com>
+From: <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Subject: =?utf-8?B?0JrQu9C40LXQvdGC0YHQutC40LUg0LHQsNC30Ysg0KLQtdC7ICs3OTEzMzkxMzgzNyBFbWFpbDogbm9uZW4yMnBwQGdtYWlsLmNvbSDQo9C30L3QsNC50YLQtSDQv9C+0LTRgNC+0LHQvdC10LUhISE=?=
+Date: Sat, 15 Aug 2015 01:41:12 +1000
+Message-ID: <c27446e329534343903c8216c887ee47@DC3-EXCH-02.seymourwhyte.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=windows-1251
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55CDEEFA.4010803-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 08/14/2015 06:36 AM, Doug Ledford wrote:
-> On 08/11/2015 04:50 PM, Bart Van Assche wrote:
->> On 08/01/2015 01:05 PM, Doug Ledford wrote:
->>> On 07/31/2015 07:14 PM, Jason Gunthorpe wrote:
->>>> On Fri, Jul 31, 2015 at 04:04:35PM -0700, Bart Van Assche wrote:
->>>>
->>>>> With only patches 1/12 and 8/12 applied my test passes.
->>>>
->>>> Thanks Bart!
->>>>
->>>> If you like, I can try and work on #9 (no promises :(), but I think
->>>> I'll need some way to test it here.
->>>>
->>>> Do you by chance have a straightforward recipe to setup SRP and SRPT
->>>> on two Linux's for this simple purpose?
->>>>
->>>> Doug, just drop #9 'IB/srp: Do not create an all physical insecure
->>>> rkey by default' please, thanks.
->>>
->>> I've pulled in the series for 4.3.  I've included patch #9, but that's
->>> on the understanding that if it can't be fixed before the initial pull
->>> request, I'll drop it at that time.  I have the resources to test this,
->>> so I can work on it, and that factors into my path forward here.
->>
->> Hi Doug,
->>
->> Do you feel comfortable enough to queue the nine patches that replace
->> Jason's patch #9 for kernel v4.3 (see also
->> http://thread.gmane.org/gmane.linux.drivers.rdma/28153/focus=28419) or
->> would you rather prefer to take out patch #9 and queue these nine
->> patches for kernel v4.4 ? Please advise.
->
-> I was planning on queueing up the 9 replacement patches.
-
-Hello Doug,
-
-I hope that someone who has access to a DDN system has the time to test 
-this patch series against a DDN array. The memory key that is associated 
-with the indirect data buffer descriptor is never used by the upstream 
-SRP target driver (ib_srpt) but is used by DDN arrays to transfer the 
-indirect data buffer descriptor. DDN arrays support indirect data 
-buffers that are larger than what fits in the SRP_CMD information unit 
-but the upstream SRP target driver not.
-
-Bart.
-
+=D1=EE=E1=E5=F0=E5=EC =E4=EB=FF =C2=E0=F1 =EF=EE =E8=ED=F2=E5=F0=ED=E5=F2=
+ =E1=E0=E7=F3 =E4=E0=ED=ED=FB=F5=20
+=EF=EE=F2=E5=ED=F6=E8=E0=EB=FC=ED=FB=F5 =EA=EB=E8=E5=ED=F2=EE=E2 =E4=EB=
+=FF =C2=E0=F8=E5=E3=EE =C1=E8=E7=ED=E5=F1=E0!
+=CF=EE =E1=E0=E7=E5 =EC=EE=E6=ED=EE =E7=E2=EE=ED=E8=F2=FC =EF=E8=F1=E0=F2=
+=FC =F1=EB=E0=F2=FC =F4=E0=EA=F1=FB =E8 email,=20
+=E2=E5=F1=F2=E8 =EB=FE=E1=FB=E5 =EF=F0=FF=EC=FB=E5 =E0=EA=F2=E8=E2=ED=FB=
+=E5 =EF=F0=EE=E4=E0=E6=E8 =C2=E0=F8=E8=F5 =F2=EE=E2=E0=F0=EE=E2 =E8 =F3=
+=F1=EB=F3=E3!
+=D3=E7=ED=E0=E9=F2=E5 =EF=EE=E4=F0=EE=E1=ED=E5=E5 =EF=EE=20
+=D2=E5=EB +79133913837
+Email: nonen22pp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
