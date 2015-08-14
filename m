@@ -1,39 +1,40 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next V1 3/3] IB/core: Fix possible deadlock in
- write_gid
-Date: Fri, 14 Aug 2015 17:16:40 -0400
-Message-ID: <55CE5AB8.9010301@redhat.com>
-References: <1438607342-11964-1-git-send-email-matanb@mellanox.com>
- <1438607342-11964-4-git-send-email-matanb@mellanox.com>
+Subject: Re: [PATCH] IB/srp: Stop the scsi_eh_<n> and scsi_tmf_<n> threads if
+ login fails
+Date: Fri, 14 Aug 2015 17:29:21 -0400
+Message-ID: <55CE5DB1.6040805@redhat.com>
+References: <55CE2CE5.40103@sandisk.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="W7njktigSMXrgX7JcuTxB4e6cPJ575H6O"
+ boundary="3q134Ttk3TGk4cPrvcjRG1Uhpx7mlADqv"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1438607342-11964-4-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <55CE2CE5.40103-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Konstantin Krotov <kkv-IRcc4E3C6l4@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---W7njktigSMXrgX7JcuTxB4e6cPJ575H6O
-Content-Type: text/plain; charset=windows-1252
+--3q134Ttk3TGk4cPrvcjRG1Uhpx7mlADqv
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 08/03/2015 09:09 AM, Matan Barak wrote:
-> Fixing the possible deadlock in write_gid:
-> write_gid -> write_lock()
-> <interrupt>
-> 	find_gid -> read_lock_irqsave()
-> 		    ** DEAD LOCK **LOCK
+On 08/14/2015 02:01 PM, Bart Van Assche wrote:
+> scsi_host_alloc() not only allocates memory for a SCSI host but also
+> creates the scsi_eh_<n> kernel thread and the scsi_tmf_<n> workqueue.
+> Stop these threads if login fails by calling scsi_host_put().
 >=20
-> Fixing it by changing the write_lock to write_lock_irqsave.
->=20
-> Squash-into: 'IB/core: Add RoCE GID table management'
-> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reported-by: Konstantin Krotov <kkv-IRcc4E3C6l4@public.gmane.org>
+> Fixes: fb49c8bbaae7 ("Remove an extraneous scsi_host_put() from an erro=
+r path")
+> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> #v3.19
 
-Squashed as requested.
+
+Thanks, added to the srp branch.
 
 
 --=20
@@ -42,7 +43,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---W7njktigSMXrgX7JcuTxB4e6cPJ575H6O
+--3q134Ttk3TGk4cPrvcjRG1Uhpx7mlADqv
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -51,22 +52,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJVzlq4AAoJELgmozMOVy/dQCYP/1FUAm1GLyWfUmdSgcXpdRaw
-ucnVY+chNZ3dckgpHQwdR3OW5i5Lb7w1T889hKi1xp2J3tl9EqPkbwqmy/RWdM86
-4xx8NfibLDWznJwNsJE6+qA5UCfGd4GVzcS4cPZvq3O1ppNU+j/UBMf0+TVKGE7R
-ocq60Uwe8VH3x5Wn8YUdjGttOvzGXM0Xw91qN4OyHGISBPk5T/iA14BWBww+CIBc
-Ckiqrxq0d+SvczjSuck4bGy92ss74DKBySPvplVm9Y7JaVLYTuDaoAcrlDAp6t9o
-nNcI0TYZWtzRpTLNbLRR82YiyUy0cWduAXDbU+rUNs289+toalMSbTWUqBsX/W/2
-R+w6UxS2rvJqXuBOAI+jP6ZcTcIGHLF6HFugR8Ml0SrOKCNntMJrk83NCwCeL4ny
-x4dRXNj7pOwCFofY9yJzxr1roEt1/O2KKmSup7a6bjE4NcOhRpJBL77XbdMo5oy2
-SALyPGoaLkLtTyTWAGkrLYzgZeQ8i255nul5yPQyFDYQb+ZkG7f45Z2D0dW0gEBY
-rOhUOAtyAwSjgosW2NwCi8/j7ntSIQNkqCN9UARhIr88GIFQ+GaDUayhmctz+5Gc
-8OTNf6l70nfpnH4KQ3A7WtL6DxTjw/q8n8/yQxsFdbNuAS2h6MVB0JM7UNYWYkmE
-Dsq+6YdyLuQ9ngJa+i0n
-=BuRm
+iQIcBAEBCAAGBQJVzl2xAAoJELgmozMOVy/d57kQAIRFnT76wpq1VzIvQyutvhS+
+rARHAFgwO78Izl+4y6JZeXAw//RlAPAaFvwaEnsVWKzPkawpOrkVVaFfPMTUgpTg
+2dCIWEhv8ib6v2AhmjjZo/EW3Rke8knzaHmtsfTAszlXtuB1dXniJ+8j9AGYPR+A
+VL5oJWcdVDwU6vESquAv4HROLAWyBNZzyFuD+bRYoqzNOi5WjyGnL2xjwvbN+4jY
+pbCPgNLHdNOhaYxlAYwVqdTNgBKa+clUC13geUxdikb/hpLRFco9aVIMyXv8yWgW
+GXc+QJhU0ibZRcrKjKyesezHdIVxQ8C0uXaG/nC8bvsRCHkiayYDjWwCrLZuN9qu
+ymtkj/3CyVex81pvebo5y8Tg3VoK371EHJATIYuSFhUuBL8H+R6x3kjLFXt6ljT4
+Gd2WoximBUrHyAfz3twCy9ZD8N7t4obJCBJGHPw+Dojyc+mRv8q3UyHx46Gat61w
+hOsnJfyvSkQIS9LvIMuv8I8Rd33mLKiqXdoJFueNSIJuD6eyrJOP/s31m1KP7+4h
+BFDyPJoFhf7rml1U8rdRIAR6cwz51l4ZsgK+T1xqupGTWMMRZ6jP/WxNu+40Fhgw
+2uuMLJY5wBKvItwHIZXt0vBhjzEuIopr2nOeOGG5aZ721NnMFHlnqNoq68JSDb7/
+vuw3c0lOeA33+zg1oRNK
+=7dmR
 -----END PGP SIGNATURE-----
 
---W7njktigSMXrgX7JcuTxB4e6cPJ575H6O--
+--3q134Ttk3TGk4cPrvcjRG1Uhpx7mlADqv--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
