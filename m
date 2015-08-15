@@ -1,57 +1,78 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [GIT PULL] pull request: linux-firmware: Add Intel OPA hfi1 firmware
-Date: Fri, 14 Aug 2015 18:23:22 -0400
-Message-ID: <20150814222321.GB12943@phlsvsds.ph.intel.com>
-References: <20150811213205.GA28613@phlsvsds.ph.intel.com> <20150811222557.GA6293@obsidianresearch.com> <9010F06FA27E5745AF23866A8C9A2B3D2E9B136C@FMSMSX106.amr.corp.intel.com> <20150811233553.GA3553@obsidianresearch.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH v3 01/12] IB/core: Guarantee that a local_dma_lkey is
+ available
+Date: Fri, 14 Aug 2015 20:54:55 -0400
+Message-ID: <55CE8DDF.4020403@redhat.com>
+References: <20150804222130.GB21509@obsidianresearch.com>
+ <20150804233520.GA22313@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150811233553.GA3553-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "Vogel, Steve" <steve.vogel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-firmware-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <linux-firmware-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Sowa, David" <david.sowa-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="q8Pobh5g9qNbkJCIuSuPsSjip20kSxjvn"
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <20150804233520.GA22313@phlsvsds.ph.intel.com>
+Sender: target-devel-owner@vger.kernel.org
+To: "ira.weiny" <ira.weiny@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Haggai Eran <haggaie@mellanox.com>, linux-rdma@vger.kernel.org, Amir Vadai <amirv@mellanox.com>, Bart Van Assche <bart.vanassche@sandisk.com>, Chien Yen <chien.yen@oracle.com>, Christoph Hellwig <hch@infradead.org>, Dominique Martinet <dominique.martinet@cea.fr>, Eli Cohen <eli@mellanox.com>, Eric Van Hensbergen <ericvh@gmail.com>, Ido Shamay <idos@mellanox.com>, Latchesar Ionkov <lucho@ionkov.net>, Or Gerlitz <ogerlitz@mellanox.com>, Roi Dayan <roid@mellanox.com>, Ron Minnich <rminnich@sandia.gov>, Sagi Grimberg <sagig@mellanox.com>, Simon Derr <simon.derr@bull.net>, Tom Tucker <tom@opengridcomputing.com>, rds-devel@oss.oracle.com, target-devel@vger.kernel.org, v9fs-developer@lists.sourceforge.net
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 11, 2015 at 05:35:53PM -0600, Jason Gunthorpe wrote:
-> On Tue, Aug 11, 2015 at 10:47:03PM +0000, Vogel, Steve wrote:
-> > The license terms allow anyone to distribute (but not sell) the firmware but
-> > only for use on Intel products. 
-> 
-> Redistribution alone may be enough to be included in linux-firmware
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--q8Pobh5g9qNbkJCIuSuPsSjip20kSxjvn
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-I believe redistribution is sufficient as our legal team is well aware that
-this was to be released to linux-firmware and the distros.
+On 08/04/2015 07:35 PM, ira.weiny wrote:
+> On Tue, Aug 04, 2015 at 04:21:30PM -0600, Jason Gunthorpe wrote:
+>> Every single ULP requires a local_dma_lkey to do anything with
+>> a QP, so let us ensure one exists for every PD created.
+>>
+>> If the driver can supply a global local_dma_lkey then use that, otherw=
+ise
+>> ask the driver to create a local use all physical memory MR associated=
 
-I submitted with the license which was approved by our legal team after having
-been assured it allowed for redistribution by linux-firmware and the distros.
+>> with the new PD.
+>>
+>> Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+>> Reviewed-by: Sagi Grimberg <sagig@dev.mellanox.co.il>
+>> Acked-by: Christoph Hellwig <hch@infradead.org>
+>> Reviewed-by: Steve Wise <swise@opengridcomputing.com>
+>=20
+> I hit this bug as well.
+>=20
+> Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+> Tested-by: Ira Weiny <ira.weiny@intel.com>
 
-> 
-> However, most of the additional terms (and there are lots of them)
-> this imposes beyond the usual likely make it impossible to include in a
-> distro, so pragmatically, there is no reason to push for inclusion in
-> linux-firmware.
-> 
-> This is going to be a hard road for you guys. Falling in line with
-> every other Intel firmware blob's (i915, ibt, iwlwifi, SST2) license
-> would be much easier on you and the distros.
+I've pulled the v2 of this patch and replaced it with this one.  Thanks.
 
-We are working with Legal to come up with a license which is more in line with
-what already exists in linux-firmware.
 
-Ira
+--=20
+Doug Ledford <dledford@redhat.com>
+              GPG KeyID: 0E572FDD
 
-> 
-> Frankly, I think the onus is on you to get statements from the
-> licensing teams at Fedora, Debian, RH and SuSE on if they can include
-> work under this license or not.
-> 
-> I suspect Fedora and Debian will both say they can't, just based on
-> their public policies and the additional restrictions in this
-> license.. But hey, I'm not a licensing lawyer..
-> 
-> Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+--q8Pobh5g9qNbkJCIuSuPsSjip20kSxjvn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJVzo3fAAoJELgmozMOVy/dL04P/2X8fz3aoXATk8Foq/1qemYu
+qAT6yGt0JR6KpIKhyT0H7XMZ2Ps13tgxTJdauFd8jQfzCYZTqUxbL6CLiFM3eL4t
+cF7qjwCM+thfzR/GE4b7Tu/PvyeThPdwWppKjdKTGSJ6wk8B/dWbRA1/+j+CGMXa
+hhTTil7QtA1YGU/rsOgnkysyuqpu77rnaRkn+Fa5vCDP6QrKoINAcQW2lOnejObS
+D4Bp9Co91IvrVHgrizsUoFaMljYAbdmzK/E0gKgJcAmXBysyJGQjqacA3Rl5Dp5M
+ZqEdL0Uh7lSdZcYpNd9IIU0w2E0+rM0P+cUYRgLnyF4UstYM9iRYs+xlbD6FOnAd
+QDmUT7X9Wb2MOKiEaocRbhtBbbHqkirqBYla8jEcMHUC0vHHfRsLb+xQ0Ws4xGGq
+MMw44VH8EXrH8Qfi4QVnbFKchTFn2tRaAK9KRuIVqvkBXnUI2ERIB++e6rLYmS8q
+x96tSIQFyZBQb64AGV6Ek6KvkU7W6u4EFJLxdfgEm+EuPZhoTP9e4HYhuiPfzqQL
+i/wd9UB947QPee765xwKKHqR2reIH1N+gNqP2IAruXw3kQWBS8cOWhBA4R5KQeUn
+x4rT/iVEMvSmW8yZRqzXX3s8qEiydPLY5TV0usPSzt6U9GKRdg5BowABg6gjs+Ti
+fldqvo4p/0sBlHL1rayf
+=VZfw
+-----END PGP SIGNATURE-----
+
+--q8Pobh5g9qNbkJCIuSuPsSjip20kSxjvn--
