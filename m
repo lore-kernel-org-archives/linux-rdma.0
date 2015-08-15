@@ -1,57 +1,51 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH v3 01/12] IB/core: Guarantee that a local_dma_lkey is
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v4 01/12] IB/core: Guarantee that a local_dma_lkey is
  available
-Date: Fri, 14 Aug 2015 20:54:55 -0400
-Message-ID: <55CE8DDF.4020403@redhat.com>
-References: <20150804222130.GB21509@obsidianresearch.com>
- <20150804233520.GA22313@phlsvsds.ph.intel.com>
+Date: Fri, 14 Aug 2015 20:58:02 -0400
+Message-ID: <55CE8E9A.9020504@redhat.com>
+References: <20150805201445.GA30271@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="q8Pobh5g9qNbkJCIuSuPsSjip20kSxjvn"
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20150804233520.GA22313@phlsvsds.ph.intel.com>
-Sender: target-devel-owner@vger.kernel.org
-To: "ira.weiny" <ira.weiny@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Haggai Eran <haggaie@mellanox.com>, linux-rdma@vger.kernel.org, Amir Vadai <amirv@mellanox.com>, Bart Van Assche <bart.vanassche@sandisk.com>, Chien Yen <chien.yen@oracle.com>, Christoph Hellwig <hch@infradead.org>, Dominique Martinet <dominique.martinet@cea.fr>, Eli Cohen <eli@mellanox.com>, Eric Van Hensbergen <ericvh@gmail.com>, Ido Shamay <idos@mellanox.com>, Latchesar Ionkov <lucho@ionkov.net>, Or Gerlitz <ogerlitz@mellanox.com>, Roi Dayan <roid@mellanox.com>, Ron Minnich <rminnich@sandia.gov>, Sagi Grimberg <sagig@mellanox.com>, Simon Derr <simon.derr@bull.net>, Tom Tucker <tom@opengridcomputing.com>, rds-devel@oss.oracle.com, target-devel@vger.kernel.org, v9fs-developer@lists.sourceforge.net
+ boundary="6qqcpTMIPfeTmXINxhnMEqaVkmvbBUQtX"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150805201445.GA30271-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Chien Yen <chien.yen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Dominique Martinet <dominique.martinet-KCE40YydGKI@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eric Van Hensbergen <ericvh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ido Shamay <idos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Latchesar Ionkov <lucho-OnYtXJJ0/fesTnJN9+BGXg@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ron Minnich <rminnich-4OHPYypu0djtX7QSmKvirg@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Simon Derr <simon.derr-6ktuUTfB/bM@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, v9fs-developer-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---q8Pobh5g9qNbkJCIuSuPsSjip20kSxjvn
+--6qqcpTMIPfeTmXINxhnMEqaVkmvbBUQtX
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 08/04/2015 07:35 PM, ira.weiny wrote:
-> On Tue, Aug 04, 2015 at 04:21:30PM -0600, Jason Gunthorpe wrote:
->> Every single ULP requires a local_dma_lkey to do anything with
->> a QP, so let us ensure one exists for every PD created.
->>
->> If the driver can supply a global local_dma_lkey then use that, otherw=
-ise
->> ask the driver to create a local use all physical memory MR associated=
-
->> with the new PD.
->>
->> Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
->> Reviewed-by: Sagi Grimberg <sagig@dev.mellanox.co.il>
->> Acked-by: Christoph Hellwig <hch@infradead.org>
->> Reviewed-by: Steve Wise <swise@opengridcomputing.com>
+On 08/05/2015 04:14 PM, Jason Gunthorpe wrote:
+> Every single ULP requires a local_dma_lkey to do anything with
+> a QP, so let us ensure one exists for every PD created.
 >=20
-> I hit this bug as well.
+> If the driver can supply a global local_dma_lkey then use that, otherwi=
+se
+> ask the driver to create a local use all physical memory MR associated
+> with the new PD.
 >=20
-> Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-> Tested-by: Ira Weiny <ira.weiny@intel.com>
+> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> Reviewed-by: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+> Acked-by: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+> Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Tested-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-I've pulled the v2 of this patch and replaced it with this one.  Thanks.
+=2E..and then I switched it up for this one ;-)
 
 
 --=20
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
 
 
---q8Pobh5g9qNbkJCIuSuPsSjip20kSxjvn
+--6qqcpTMIPfeTmXINxhnMEqaVkmvbBUQtX
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -60,19 +54,23 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJVzo3fAAoJELgmozMOVy/dL04P/2X8fz3aoXATk8Foq/1qemYu
-qAT6yGt0JR6KpIKhyT0H7XMZ2Ps13tgxTJdauFd8jQfzCYZTqUxbL6CLiFM3eL4t
-cF7qjwCM+thfzR/GE4b7Tu/PvyeThPdwWppKjdKTGSJ6wk8B/dWbRA1/+j+CGMXa
-hhTTil7QtA1YGU/rsOgnkysyuqpu77rnaRkn+Fa5vCDP6QrKoINAcQW2lOnejObS
-D4Bp9Co91IvrVHgrizsUoFaMljYAbdmzK/E0gKgJcAmXBysyJGQjqacA3Rl5Dp5M
-ZqEdL0Uh7lSdZcYpNd9IIU0w2E0+rM0P+cUYRgLnyF4UstYM9iRYs+xlbD6FOnAd
-QDmUT7X9Wb2MOKiEaocRbhtBbbHqkirqBYla8jEcMHUC0vHHfRsLb+xQ0Ws4xGGq
-MMw44VH8EXrH8Qfi4QVnbFKchTFn2tRaAK9KRuIVqvkBXnUI2ERIB++e6rLYmS8q
-x96tSIQFyZBQb64AGV6Ek6KvkU7W6u4EFJLxdfgEm+EuPZhoTP9e4HYhuiPfzqQL
-i/wd9UB947QPee765xwKKHqR2reIH1N+gNqP2IAruXw3kQWBS8cOWhBA4R5KQeUn
-x4rT/iVEMvSmW8yZRqzXX3s8qEiydPLY5TV0usPSzt6U9GKRdg5BowABg6gjs+Ti
-fldqvo4p/0sBlHL1rayf
-=VZfw
+iQIcBAEBCAAGBQJVzo6aAAoJELgmozMOVy/d4zQP/A+Ua9d6ItcCS8AX8m9uUUN/
+73QW+owRPldxMTQIlpsZImn+ZYmXeYfvcpOZNEOV0Yo9AUwk0fMMUHSro8m2H0nU
+/MipeHqt7lC+9Vu42E+lQ84ZfhISYXel75cmcI2WXOzJT8bI/vYIthQSzRQh5pV9
+u3UPj70mOKJls74vugqoXtIhWG26FYsoYsoJehl1s08wVCErDbf1bILS7cVmd3o1
+YsU4w7Lf5BGgWKs2sr4cP1cFYLuQwLe4jIJ0XdI1spZxsyhdQaIADmJmOf98EnL6
+XoHymPUQu5cbpM6uZNsR2j/iEmWFL3HwrgtuSQmYsE/IfnYHNilcriouLJMjD5Q0
+Pn4/LcDMKzT4DOIR3gCVDipxAqTYWgk2OoHB44ZJa6KXEVFx1saF1Jly+s968A1M
+QkInOj3Itm5vCGU6X758XmbTl2lmFUXOxqEdK7rxJS4WSQnsErc6tmqbydjnkzIu
+mi7ol0o5RlD70dQKoGpChdy+A3iuun5ulYpW3uqucE5g2le1EmYXeTnk5hxVwCcI
+Q1BcS9W+gXwKvu6z6k9tkpRnDPpWv022U1VsWtqMS0PPqFtKvRJBf5XnebbHWrWj
+uNFAHPZYfB6Z23f50R6uZ2oiHCBgHbM8VpVYK7q4aLsY07fq8ombbljzSmlA/eDD
+3p0BuFv16QkCJh/958RY
+=RRXz
 -----END PGP SIGNATURE-----
 
---q8Pobh5g9qNbkJCIuSuPsSjip20kSxjvn--
+--6qqcpTMIPfeTmXINxhnMEqaVkmvbBUQtX--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
