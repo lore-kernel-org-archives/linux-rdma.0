@@ -1,45 +1,43 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx4: Fix possible incorrect cq completions flushing
- in internal error state
-Date: Fri, 14 Aug 2015 21:41:56 -0400
-Message-ID: <55CE98E4.2020408@redhat.com>
-References: <1439108187-12785-1-git-send-email-sagig@mellanox.com>
+Subject: Re: [PATCH v2] IB/hfi1: Remove inline from trace functions
+Date: Fri, 14 Aug 2015 22:00:44 -0400
+Message-ID: <55CE9D4C.9060808@redhat.com>
+References: <20150813200524.28650.91753.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="TbqeM7Apj7Dq1TgvtOlnuIO5KIVSIkK0w"
+ boundary="Fwv8bwBDgJIDPSqGerw9wIAsB42jbDsbb"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1439108187-12785-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20150813200524.28650.91753.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ariel Nahum <arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---TbqeM7Apj7Dq1TgvtOlnuIO5KIVSIkK0w
-Content-Type: text/plain; charset=windows-1252
+--Fwv8bwBDgJIDPSqGerw9wIAsB42jbDsbb
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 08/09/2015 04:16 AM, Sagi Grimberg wrote:
-> From: Ariel Nahum <arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 08/13/2015 04:05 PM, Mike Marciniszyn wrote:
+> From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 >=20
-> When handling a device internal error, the driver is responsible to
-> drain the completion queue with flush errors.
+> Inline in trace functions causes the following build error when
+> CONFIG_OPTIMIZE_INLINING is not defined in the kernel config:
+> error: function can never be inlined because it uses
+> variable argument lists
 >=20
-> In case a completion queue was assigned to multiple send queues, the
-> driver iterates over the send queues and generates flush errors of
-> inflight wqes. The driver must correctly pass the wc array with an
-> offset as a result of the previous send queue iteration. Not doing so
-> will overwrite previously set completions and return a wrong number
-> of polled completions which includes ones which were not correctly set.=
+> Reported by 0-day build:
+> https://lists.01.org/pipermail/kbuild-all/2015-August/011215.html
+>=20
+> This patch converts to a non-inline version of the hfi1 trace functions=
 
 >=20
-> Fixes: 35f05dabf95a (IB/mlx4: Reset flow support for IB kernel ULPs)
-> Signed-off-by: Ariel Nahum <arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Applied, thanks.
+This has been added to the hfi1 branch.
 
 
 --=20
@@ -48,7 +46,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---TbqeM7Apj7Dq1TgvtOlnuIO5KIVSIkK0w
+--Fwv8bwBDgJIDPSqGerw9wIAsB42jbDsbb
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -57,22 +55,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJVzpjkAAoJELgmozMOVy/drWIP/2HMXr94Sv1Jz8PhtHtiU4Xp
-WW26rEy+t5V61jJJHVRm7bqudHF3b00Tde0uolaBUYxLiLGzo/zmZ2aPe3nR+Ab4
-Ug9rMW9JvTiBBl1vq1dZLJ0upvliOT3QRSWngdOJHF9hR2nK4s1m+4CcVtIGy/RK
-DfYxK7IFvCUArO8D7pXp83sHkfavMSORcpaTV8G9aUxXI6UyBWLg6neIzcTgUToa
-oycywknIFrCIR2gZvYZuvv3AkYfs2yvsoJUKI8wp8JGxL9Www3rQ/525agTl81/b
-PhtcSIeMUpQlANQtwi8DeRlckx9PMRsqEp0Xq0hajuNUIeoZ5dmATKEfisdXSauh
-EmYx4wJGzlzYQTmZgxLyEDkATPtdpre3wP/cTd9hRWBaM7D4SvmEX8W4AMt8Y+Vq
-jQXivuHnAsByKN5Amh0dN8xL+k8JQxnVw7c0zLlQkrBk+84F4IrJ5GAgBnJKF/cT
-SBeWZ+8RoaFiTW3XvlJJofKsT5yK/ewVsuJFmfeuYdg79ydWAibzdNgIAGNREB3f
-2AJRJ7ZCE+q8OxhF54GeQuIwJnlTMaW1JVC16KMOdOXhAJTO3xkgiG95HsEQ5TSt
-mjq1yMbFUDyKwNjn9enFZk7C4N7yhLF3Nas53Y6+wMc7ncckTJOAxoDuQYnyfmz0
-J0cjLg2JOn16IT1j3aLH
-=wNAY
+iQIcBAEBCAAGBQJVzp1MAAoJELgmozMOVy/de1cP/2+ynhK4unmnwuKyaHxTtsiW
+sqtkwPBTvBGXvwTLrQY4Icx3zVgQf3nANoAhqhQ1vrlfPtAWlcQCdr4159dacTe1
+3v2Hu3JApy3uTSIPXdW4b3N7o/QyZBi7J+dqK+J7ql+BUMgmVqbmU4G4XVa8raHw
+Oy7Zb6SY4NJtX0fb8D0zDp+IT3ccEB+QT419SjBtce9Y9htMO/VHwTsrdUqs7J6x
+X+zc7akiNWQH/qs7Io1GYY5W5Q4XmbL2yjEmjC+ugsBaM0BbrayPf/COkGZ1qFH3
+BjuaoccqrfHzr1NBO9glUaZxDtPiTQo3XjiYPs1zaMbGWnbJcrFAyqkOkCoRPVsj
+xo1tytUYwVvaaSkivAVfeg1DGhgB5zLLxeszfjNj60Z8VFmjBou5/AshKEhKMwZt
+rt2MiXNKJ58gEnRRp0tetnZu44PvDCCFh/kCvrQIcYRJJBOsKFHvPmITUmOZI4t+
+rtpcyggLJBwntoQTgIU2U7RDZ+pg/b/7ytgf06Scbjnxz8k908SZ4f5JKCvmT2gh
+kkS+iOdiRNKkRFrVtyZk8xw7w2NRh2qjDi2elNhflAVkdUcH1UGF2UVioK9HFoLL
+e1UYt9yai9dQVLXBvzDTCRFbGiPLU5SvxoRecC6KRdKHnX0jrfuzi/c5NsfcV97e
+gnqRmg3VQDO1CvbxW/zr
+=4OZq
 -----END PGP SIGNATURE-----
 
---TbqeM7Apj7Dq1TgvtOlnuIO5KIVSIkK0w--
+--Fwv8bwBDgJIDPSqGerw9wIAsB42jbDsbb--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
