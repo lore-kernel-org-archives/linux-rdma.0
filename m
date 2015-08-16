@@ -1,61 +1,138 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 7/8] IB/srp: Register the indirect data buffer descriptor
-Date: Sun, 16 Aug 2015 09:56:34 -0700
-Message-ID: <55D0C0C2.8020908@sandisk.com>
-References: <55BBF4B8.2050700@sandisk.com>
- <20150803152420.GA24193@infradead.org> <55BFB40F.8000500@sandisk.com>
- <20150804180933.GB5038@obsidianresearch.com>
- <1438756876.5698.2.camel@haswell.thedillows.org>
- <20150805195122.GA31595@obsidianresearch.com> <55C2840C.5050301@sandisk.com>
- <55C2912A.50709@sandisk.com> <20150806001006.GD2483@obsidianresearch.com>
- <55C2A7FE.7020904@sandisk.com> <20150806043642.GA14153@obsidianresearch.com>
- <55C93C61.9010508@sandisk.com> <55C93D21.1090102@sandisk.com>
- <55D06F56.4060005@dev.mellanox.co.il>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next 4/7] net/mlx4_en: Implement mcast loopback
+ prevention for ETH qps
+Date: Sun, 16 Aug 2015 22:19:47 +0300
+Message-ID: <20150816191946.GA3222@yuval-lab>
+References: <1439741133-30145-1-git-send-email-eranbe@mellanox.com>
+ <1439741133-30145-5-git-send-email-eranbe@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55D06F56.4060005-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1439741133-30145-5-git-send-email-eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 08/16/15 04:09, Sagi Grimberg wrote:
-> On 8/11/2015 3:09 AM, Bart Van Assche wrote:
->> +/*
->> + * Register the indirect data buffer descriptor with the HCA.
->> + *
->> + * Note: since the indirect data buffer descriptor has been allocated with
->> + * kmalloc() it is guaranteed that this buffer is a physically contiguous
->> + * memory buffer.
->> + */
->
-> kdoc style?
-
-If I have to repost this patch series I will convert this comment into 
-kernel-doc style.
-
->> diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
->> index 60a33c1..255b0e5 100644
->> --- a/drivers/infiniband/ulp/srp/ib_srp.h
->> +++ b/drivers/infiniband/ulp/srp/ib_srp.h
->> @@ -288,6 +288,10 @@ struct srp_map_state {
->>    			struct srp_fr_desc **next;
->>    			struct srp_fr_desc **end;
->>    		} fr;
->> +		struct {
->> +			void		   **next;
->> +			void		   **end;
->> +		} gen;
->
-> What does 'gen' stands for?
-
-In this context "gen" stands for "generic". This patch introduces some 
-code that needs to access the "next" and "end" pointers and that is used 
-both for FMR and FR.
-
-Bart.
+On Sun, Aug 16, 2015 at 07:05:30PM +0300, Eran Ben Elisha wrote:
+> From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> Set the mcast loopback prevention bit in the QPC for ETH MLX QPs (not
+> RSS QPs), when the firmware supports this feature. In addition, all rx
+> ring QPs need to be updated in order not to enforce loopback checks.
+> This prevents getting packets we sent both from the network stack and
+> the HCA. Loopback prevention is done by comparing the counter indices of
+> the sent and receiving QPs. If they're equal, packets aren't
+> loopback-ed.
+> 
+> Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/net/ethernet/mellanox/mlx4/en_main.c      | 22 ++++++++++++++++++++
+>  drivers/net/ethernet/mellanox/mlx4/en_resources.c | 25 +++++++++++++++++++++++
+>  drivers/net/ethernet/mellanox/mlx4/mlx4_en.h      |  3 ++-
+>  3 files changed, 49 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/en_main.c b/drivers/net/ethernet/mellanox/mlx4/en_main.c
+> index a946e4b..70e381a 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/en_main.c
+> +++ b/drivers/net/ethernet/mellanox/mlx4/en_main.c
+> @@ -123,6 +123,28 @@ void mlx4_en_update_loopback_state(struct net_device *dev,
+>  	 */
+>  	if (mlx4_is_mfunc(priv->mdev->dev) || priv->validate_loopback)
+>  		priv->flags |= MLX4_EN_FLAG_ENABLE_HW_LOOPBACK;
+> +
+> +	mutex_lock(&priv->mdev->state_lock);
+> +	if (priv->mdev->dev->caps.flags2 &
+> +	    MLX4_DEV_CAP_FLAG2_UPDATE_QP_SRC_CHECK_LB &&
+> +	    priv->rss_map.indir_qp.qpn) {
+> +		int i;
+> +		int err = 0;
+> +
+> +		for (i = 0; i < priv->rx_ring_num; i++) {
+> +			int ret;
+> +
+> +			ret = mlx4_en_change_mcast_lb(priv,
+> +						      &priv->rss_map.qps[i],
+> +						      !!(features &
+> +							 NETIF_F_LOOPBACK));
+If "feature" is not changing inside the loop can we take it out just for
+the code to look more readable?
+> +			if (!err)
+> +				err = ret;
+> +		}
+> +		if (err)
+> +			mlx4_warn(priv->mdev, "failed to change mcast loopback\n");
+> +	}
+> +	mutex_unlock(&priv->mdev->state_lock);
+>  }
+>  
+>  static int mlx4_en_get_profile(struct mlx4_en_dev *mdev)
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/en_resources.c b/drivers/net/ethernet/mellanox/mlx4/en_resources.c
+> index e482fa1b..12aab5a 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/en_resources.c
+> +++ b/drivers/net/ethernet/mellanox/mlx4/en_resources.c
+> @@ -69,6 +69,15 @@ void mlx4_en_fill_qp_context(struct mlx4_en_priv *priv, int size, int stride,
+>  	context->pri_path.counter_index = priv->counter_index;
+>  	context->cqn_send = cpu_to_be32(cqn);
+>  	context->cqn_recv = cpu_to_be32(cqn);
+> +	if (!rss &&
+> +	    (mdev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_LB_SRC_CHK) &&
+> +	    context->pri_path.counter_index !=
+> +			    MLX4_SINK_COUNTER_INDEX(mdev->dev)) {
+> +		/* disable multicast loopback to qp with same counter */
+> +		if (!(dev->features & NETIF_F_LOOPBACK))
+> +			context->pri_path.fl |= MLX4_FL_ETH_SRC_CHECK_MC_LB;
+> +		context->pri_path.control |= MLX4_CTRL_ETH_SRC_CHECK_IF_COUNTER;
+> +	}
+>  	context->db_rec_addr = cpu_to_be64(priv->res.db.dma << 2);
+>  	if (!(dev->features & NETIF_F_HW_VLAN_CTAG_RX))
+>  		context->param3 |= cpu_to_be32(1 << 30);
+> @@ -80,6 +89,22 @@ void mlx4_en_fill_qp_context(struct mlx4_en_priv *priv, int size, int stride,
+>  	}
+>  }
+>  
+> +int mlx4_en_change_mcast_lb(struct mlx4_en_priv *priv, struct mlx4_qp *qp,
+> +			    int loopback)
+> +{
+> +	int ret;
+> +	struct mlx4_update_qp_params qp_params;
+> +
+> +	memset(&qp_params, 0, sizeof(qp_params));
+> +	if (!loopback)
+> +		qp_params.flags = MLX4_UPDATE_QP_PARAMS_FLAGS_ETH_CHECK_MC_LB;
+> +
+> +	ret = mlx4_update_qp(priv->mdev->dev, qp->qpn,
+> +			     MLX4_UPDATE_QP_ETH_SRC_CHECK_MC_LB,
+> +			     &qp_params);
+> +
+> +	return ret;
+> +}
+>  
+>  int mlx4_en_map_buffer(struct mlx4_buf *buf)
+>  {
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
+> index 666d166..7db86d4 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
+> +++ b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
+> @@ -797,7 +797,8 @@ void mlx4_en_fill_qp_context(struct mlx4_en_priv *priv, int size, int stride,
+>  void mlx4_en_sqp_event(struct mlx4_qp *qp, enum mlx4_event event);
+>  int mlx4_en_map_buffer(struct mlx4_buf *buf);
+>  void mlx4_en_unmap_buffer(struct mlx4_buf *buf);
+> -
+> +int mlx4_en_change_mcast_lb(struct mlx4_en_priv *priv, struct mlx4_qp *qp,
+> +			    int loopback);
+>  void mlx4_en_calc_rx_buf(struct net_device *dev);
+>  int mlx4_en_config_rss_steer(struct mlx4_en_priv *priv);
+>  void mlx4_en_release_rss_steer(struct mlx4_en_priv *priv);
+> -- 
+> 1.8.3.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
