@@ -1,98 +1,178 @@
 From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libibverbs] Add support for TX/RX checksum offload
-Date: Mon, 17 Aug 2015 18:50:18 +0300
-Message-ID: <1439826618-3015-1-git-send-email-bodong@mellanox.com>
+Subject: [PATCH libmlx4] Add support for TX/RX checksum offload
+Date: Mon, 17 Aug 2015 18:53:20 +0300
+Message-ID: <1439826800-6804-1-git-send-email-bodong@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Add a device capability flag IBV_DEVICE_IP_CSUM to denote IPv4 checksum
-offload support. Devices should set this flag if they support
-insertion/verification of IPv4, TCP and UDP checksums on
-outgoing/incoming IPv4 packets sent over IB UD or ETH RAW PACKET QPs.
+RX checksum verification status is reported through wc_flag when polling
+CQ. When IBV_WC_IP_CSUM_OK is set, that means both IPv4 header checksum and
+TCP/UDP checksum are OK.
 
-Flags IBV_SEND_IP_CSUM and IBV_WC_IP_CSUM_OK are added for utilizing this
-capability for send and receive separately.
+TX checksum offload will be enabled for TCP/UDP over IPv4 if user sets
+send_flag IBV_SEND_IP_CSUM.
 
-Change-Id: Ie02d708dcbef07ca0d2eac1b156f12aafdba6a97
-Signed-off-by: Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+A new field, qp_cap_cache, is added to mlx4_qp in order to 'cache'
+the device capabilities to minimize perfromance hit on poll_one
+function. The capabilities are set during mlx4_modify_qp for RAW ETH
+and UD QPs.
+
 Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/infiniband/verbs.h | 11 +++++++++--
- man/ibv_poll_cq.3          |  3 +++
- man/ibv_post_send.3        |  4 ++++
- 3 files changed, 16 insertions(+), 2 deletions(-)
+ src/cq.c    |  8 ++++++++
+ src/mlx4.h  | 16 +++++++++++++++-
+ src/qp.c    | 11 ++++++++++-
+ src/verbs.c | 12 ++++++++++++
+ src/wqe.h   |  5 +++++
+ 5 files changed, 50 insertions(+), 2 deletions(-)
 
-diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index 28e1586..6ae7e6e 100644
---- a/include/infiniband/verbs.h
-+++ b/include/infiniband/verbs.h
-@@ -115,6 +115,7 @@ enum ibv_device_cap_flags {
- 	IBV_DEVICE_RC_RNR_NAK_GEN	= 1 << 12,
- 	IBV_DEVICE_SRQ_RESIZE		= 1 << 13,
- 	IBV_DEVICE_N_NOTIFY_CQ		= 1 << 14,
-+	IBV_DEVICE_IP_CSUM		= 1 << 18,
- 	IBV_DEVICE_XRC			= 1 << 20,
- 	IBV_DEVICE_MANAGED_FLOW_STEERING = 1 << 29
+diff --git a/src/cq.c b/src/cq.c
+index 8b27795..186b960 100644
+--- a/src/cq.c
++++ b/src/cq.c
+@@ -329,6 +329,14 @@ static int mlx4_poll_one(struct mlx4_cq *cq,
+ 			wc->sl	   = ntohs(cqe->sl_vid) >> 13;
+ 		else
+ 			wc->sl	   = ntohs(cqe->sl_vid) >> 12;
++
++		if ((*cur_qp) && ((*cur_qp)->qp_cap_cache & MLX4_RX_CSUM_IPV4)) {
++			uint32_t status = ntohl(cqe->status);
++			wc->wc_flags |= ((status & MLX4_CQE_STATUS_IPV4_CSUM_OK) ==
++					 MLX4_CQE_STATUS_IPV4_CSUM_OK) <<
++					IBV_WC_IP_CSUM_OK_SHIFT;
++		}
++
+ 	}
+ 
+ 	return CQ_OK;
+diff --git a/src/mlx4.h b/src/mlx4.h
+index d71450f..ec7c58d 100644
+--- a/src/mlx4.h
++++ b/src/mlx4.h
+@@ -257,6 +257,7 @@ struct mlx4_qp {
+ 	struct mlx4_wq			rq;
+ 
+ 	uint8_t				link_layer;
++	uint8_t				qp_cap_cache;
  };
-@@ -314,9 +315,14 @@ enum ibv_wc_opcode {
- 	IBV_WC_RECV_RDMA_WITH_IMM
+ 
+ struct mlx4_av {
+@@ -279,6 +280,19 @@ struct mlx4_ah {
+ 	uint8_t				mac[6];
  };
  
 +enum {
-+	IBV_WC_IP_CSUM_OK_SHIFT	= 2
++	MLX4_RX_CSUM_IPV4 = (1 <<  0),
 +};
 +
- enum ibv_wc_flags {
- 	IBV_WC_GRH		= 1 << 0,
--	IBV_WC_WITH_IMM		= 1 << 1
-+	IBV_WC_WITH_IMM		= 1 << 1,
-+	IBV_WC_IP_CSUM_OK	= 1 << IBV_WC_IP_CSUM_OK_SHIFT
++enum mlx4_cqe_status {
++	MLX4_CQE_STATUS_TCP_UDP_CSUM_OK	= (1 <<  2),
++	MLX4_CQE_STATUS_IPV4_PKT	= (1 << 22),
++	MLX4_CQE_STATUS_IP_HDR_CSUM_OK	= (1 << 28),
++	MLX4_CQE_STATUS_IPV4_CSUM_OK	= MLX4_CQE_STATUS_IPV4_PKT |
++					MLX4_CQE_STATUS_IP_HDR_CSUM_OK |
++					MLX4_CQE_STATUS_TCP_UDP_CSUM_OK
++};
++
+ struct mlx4_cqe {
+ 	uint32_t	vlan_my_qpn;
+ 	uint32_t	immed_rss_invalid;
+@@ -286,7 +300,7 @@ struct mlx4_cqe {
+ 	uint8_t		sl_vid;
+ 	uint8_t		reserved1;
+ 	uint16_t	rlid;
+-	uint32_t	reserved2;
++	uint32_t	status;
+ 	uint32_t	byte_cnt;
+ 	uint16_t	wqe_index;
+ 	uint16_t	checksum;
+diff --git a/src/qp.c b/src/qp.c
+index 721bed4..eb4c488 100644
+--- a/src/qp.c
++++ b/src/qp.c
+@@ -200,6 +200,7 @@ int mlx4_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 	int ret = 0;
+ 	int size;
+ 	int i;
++	int is_csum;
+ 
+ 	pthread_spin_lock(&qp->sq.lock);
+ 
+@@ -286,15 +287,23 @@ int mlx4_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 			break;
+ 
+ 		case IBV_QPT_UD:
++			is_csum = !!(wr->send_flags & IBV_SEND_IP_CSUM);
+ 			set_datagram_seg(wqe, wr);
+ 			wqe  += sizeof (struct mlx4_wqe_datagram_seg);
+ 			size += sizeof (struct mlx4_wqe_datagram_seg) / 16;
++
++			ctrl->srcrb_flags |=
++				htonl((is_csum << MLX4_WQE_CTRL_IP_HDR_CSUM_SHIFT) |
++				      (is_csum << MLX4_WQE_CTRL_TCP_UDP_CSUM_SHIFT));
+ 			break;
+ 
+ 		case IBV_QPT_RAW_PACKET:
++			is_csum = !!(wr->send_flags & IBV_SEND_IP_CSUM);
+ 			/* For raw eth, the MLX4_WQE_CTRL_SOLICIT flag is used
+ 			 * to indicate that no icrc should be calculated */
+-			ctrl->srcrb_flags |= htonl(MLX4_WQE_CTRL_SOLICIT);
++			ctrl->srcrb_flags |= htonl(MLX4_WQE_CTRL_SOLICIT |
++				(is_csum << MLX4_WQE_CTRL_IP_HDR_CSUM_SHIFT) |
++				(is_csum << MLX4_WQE_CTRL_TCP_UDP_CSUM_SHIFT));
+ 			break;
+ 
+ 		default:
+diff --git a/src/verbs.c b/src/verbs.c
+index 623d576..3fbbbf9 100644
+--- a/src/verbs.c
++++ b/src/verbs.c
+@@ -606,14 +606,26 @@ int mlx4_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+ 	struct ibv_modify_qp cmd;
+ 	struct ibv_port_attr port_attr;
+ 	struct mlx4_qp *mqp = to_mqp(qp);
++	struct ibv_device_attr device_attr;
+ 	int ret;
+ 
++	memset(&device_attr, 0, sizeof(device_attr));
+ 	if (attr_mask & IBV_QP_PORT) {
+ 		ret = ibv_query_port(qp->context, attr->port_num,
+ 				     &port_attr);
+ 		if (ret)
+ 			return ret;
+ 		mqp->link_layer = port_attr.link_layer;
++
++		if ((qp->qp_type == IBV_QPT_UD) || (qp->qp_type == IBV_QPT_RAW_PACKET))
++		{
++			ret = ibv_query_device(qp->context, &device_attr);
++			if (ret)
++				return ret;
++
++			if (device_attr.device_cap_flags & IBV_DEVICE_IP_CSUM)
++				mqp->qp_cap_cache |= MLX4_RX_CSUM_IPV4;
++		}
+ 	}
+ 
+ 	if (qp->state == IBV_QPS_RESET &&
+diff --git a/src/wqe.h b/src/wqe.h
+index bbd22ba..1a98559 100644
+--- a/src/wqe.h
++++ b/src/wqe.h
+@@ -44,6 +44,11 @@ enum {
  };
  
- struct ibv_wc {
-@@ -653,7 +659,8 @@ enum ibv_send_flags {
- 	IBV_SEND_FENCE		= 1 << 0,
- 	IBV_SEND_SIGNALED	= 1 << 1,
- 	IBV_SEND_SOLICITED	= 1 << 2,
--	IBV_SEND_INLINE		= 1 << 3
-+	IBV_SEND_INLINE		= 1 << 3,
-+	IBV_SEND_IP_CSUM	= 1 << 4
+ enum {
++	MLX4_WQE_CTRL_IP_HDR_CSUM_SHIFT	 = 4,
++	MLX4_WQE_CTRL_TCP_UDP_CSUM_SHIFT = 5
++};
++
++enum {
+ 	MLX4_INLINE_SEG		= 1 << 31,
+ 	MLX4_INLINE_ALIGN	= 64,
  };
- 
- struct ibv_sge {
-diff --git a/man/ibv_poll_cq.3 b/man/ibv_poll_cq.3
-index 57c6daa..539940d 100644
---- a/man/ibv_poll_cq.3
-+++ b/man/ibv_poll_cq.3
-@@ -50,6 +50,9 @@ It is either 0 or the bitwise OR of one or more of the following flags:
- .B IBV_WC_GRH \fR      GRH is present (valid only for UD QPs)
- .TP
- .B IBV_WC_WITH_IMM \fR Immediate data value is valid
-+.TP
-+.B IBV_WC_IP_CSUM_OK \fR TCP/UDP checksum over IPv4 and IPv4 header checksum are verified.
-+This feature is supported only when \fBIBV_DEVICE_IP_CSUM\fR flag is set in the device capability flags.
- .PP
- Not all
- .I wc
-diff --git a/man/ibv_post_send.3 b/man/ibv_post_send.3
-index 33fbb50..3b07bcb 100644
---- a/man/ibv_post_send.3
-+++ b/man/ibv_post_send.3
-@@ -98,6 +98,10 @@ The attribute send_flags describes the properties of the \s-1WR\s0. It is either
- .TP
- .B IBV_SEND_INLINE \fR Send data in given gather list as inline data
- in a send WQE.  Valid only for Send and RDMA Write.  The L_Key will not be checked.
-++.TP
-++.B IBV_SEND_IP_CSUM \fR Offload the IPv4 and TCP/UDP checksum calculation.
-++Valid only for QPs with Transport Service Type \fBIBV_QPT_UD\fR or \fBIBV_QPT_RAW_PACKET\fR.
-++This feature supported only when \fBIBV_DEVICE_IP_CSUM\fR the flag is set in the device capability flags.
- .SH "RETURN VALUE"
- .B ibv_post_send()
- returns 0 on success, or the value of errno on failure (which indicates the failure reason).
 -- 
 1.8.3.1
 
