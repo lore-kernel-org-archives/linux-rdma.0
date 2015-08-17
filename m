@@ -1,91 +1,76 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PULL REQUEST] please pull rdma.git
-Date: Mon, 17 Aug 2015 15:00:49 -0700
-Message-ID: <0C315E78-9CB7-41C9-AD1F-26C191C36C8C@redhat.com>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
-Content-Type: multipart/signed; boundary="Apple-Mail=_F12BB28C-CBC3-4E54-B99A-2AE9365FEC35"; protocol="application/pgp-signature"; micalg=pgp-sha512
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: "Jiang, Dave" <dave.jiang@intel.com>
+Subject: Re: [PATCH 2/3] QIB: Removing usage of pcie_set_mps()
+Date: Mon, 17 Aug 2015 22:50:11 +0000
+Message-ID: <1439851811.3253.18.camel@intel.com>
+References: <1438208335-19457-1-git-send-email-keith.busch@intel.com>
+	 <1438208335-19457-3-git-send-email-keith.busch@intel.com>
+	 <20150817223039.GK26431@google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20150817223039.GK26431@google.com>
+Content-Language: en-US
+Content-ID: <006AE9D72E92C1479B59978805B7A478@intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Busch, Keith" <keith.busch@intel.com>, "bhelgaas@google.com" <bhelgaas@google.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, infinipath <infinipath@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-
---Apple-Mail=_F12BB28C-CBC3-4E54-B99A-2AE9365FEC35
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain;
-	charset=utf-8
-
-Hi Linus,
-
-I have a single bug fix for you to pull:
-
-The following changes since commit =
-b8f5595eb96c9fce1c907d13e89581e5061edf2e:
-
-  RDMA/ocrdma: update ocrdma module license string (2015-07-24 11:34:41 =
--0400)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git =
-tags/for-linus
-
-for you to fetch changes up to 3661df179bfbd1bb21cf2c782d3c5c084ebe3cf4:
-
-  iw_cxgb4: gracefully handle unknown CQE status errors (2015-07-28 =
-11:24:51 -0400)
-
-----------------------------------------------------------------
-Changes for 4.2-rc
-
-- Bugfix in iw_cxgb4
-
-----------------------------------------------------------------
-Hariprasad S (1):
-      iw_cxgb4: gracefully handle unknown CQE status errors
-
- drivers/infiniband/hw/cxgb4/cq.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-
-=E2=80=94
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-	GPG Key ID: 0E572FDD
-
-
-
-
-
-
---Apple-Mail=_F12BB28C-CBC3-4E54-B99A-2AE9365FEC35
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename=signature.asc
-Content-Type: application/pgp-signature;
-	name=signature.asc
-Content-Description: Message signed with OpenPGP using GPGMail
-
------BEGIN PGP SIGNATURE-----
-Comment: GPGTools - https://gpgtools.org
-
-iQIcBAEBCgAGBQJV0lmSAAoJELgmozMOVy/dOB8P/AooC1BiXrxllKcYKa5KRsbo
-ii5qKLUlXDZpD8DxeER51k+fP3vJWlgBe8m807bWdG2aZPgJHj+1aHg+5mASuJyZ
-axu87/JRQ4yGAu1CcYeISERFYpAA3YCrl59D05DiXAgHREezRiNetvJhzI+D+kMe
-gSGJZ3u+ncblhqg9mbSPyNG/gHledb0J8a+sGIOGSDIqpDQx8aCEt7ADer0S4EpU
-pBi6HDRdZvdZwmTHbpkplcervWV4q8IWWHfnIijurUEiO/0bVOVrFD07RbjfamD6
-R++3fue22RtN4j/3hh9AHczvCElLRy1c83kBSEDyJAb5oFvyfgbQMx1ELRv/y19m
-htTyikqW0lTrGNufJz9eGtETLJPTlnAc+t6u5lj8k62T0h6IZB/31Rm5+WgD9QwG
-TIgBAEtofjLt/19WH2VQVfTqOWFvBALARg32ulvkDDA/Y/H6osvpNnjgCBq2WD7R
-ptwJcVvmyV2KaDflbMWZiq03MFef/nMQjNu1bgj+TmiHcxSEYW+cLi1zYHWyDIbF
-du/1aGpbkpdVq6dnnGNtRoTZw+8qEVhaU2BlXKYXTJcA2Azaz6apapl6Td3ahE6Z
-C/MM4ZBo2q5WteX2IwlVnRQdSkyuTSXMt11sV7G23n65gElZUYtDVjHYpzMcRf9S
-d7ItJlklBcs8ecRnFSUR
-=EwLS
------END PGP SIGNATURE-----
-
---Apple-Mail=_F12BB28C-CBC3-4E54-B99A-2AE9365FEC35--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gTW9uLCAyMDE1LTA4LTE3IGF0IDE3OjMwIC0wNTAwLCBCam9ybiBIZWxnYWFzIHdyb3RlOg0K
+PiBbK2NjIE1pa2UsIGxpbnV4LXJkbWFdDQo+IA0KPiBPbiBXZWQsIEp1bCAyOSwgMjAxNSBhdCAw
+NDoxODo1NFBNIC0wNjAwLCBLZWl0aCBCdXNjaCB3cm90ZToNCj4gPiBGcm9tOiBEYXZlIEppYW5n
+IDxkYXZlLmppYW5nQGludGVsLmNvbT4NCj4gPiANCj4gPiBUaGlzIGlzIGluIHBlcnBlcmF0aW9u
+IG9mIHVuLWV4cG9ydGluZyB0aGUgcGNpZV9zZXRfbXBzKCkgZnVuY3Rpb24NCj4gPiBzeW1ib2wu
+IEEgZHJpdmVyIHNob3VsZCBub3QgYmUgY2hhbmdpbmcgdGhlIE1QUyBhcyB0aGF0IGlzIHRoZQ0K
+PiA+IHJlc3BvbnNpYmlsaXR5IG9mIHRoZSBQQ0kgc3Vic3lzdGVtLg0KPiANCj4gUGxlYXNlIGV4
+cGxhaW4gdGhlIGltcGxpY2F0aW9ucyBvZiByZW1vdmluZyB0aGlzIGNvZGUuICBEb2VzIHRoaXMg
+DQo+IGFmZmVjdA0KPiBwZXJmb3JtYW5jZSBvZiB0aGUgZGV2aWNlPyAgSWYgc28sIGhvdyBkbyB3
+ZSBnZXQgdGhhdCBwZXJmb3JtYW5jZSANCj4gYmFjaz8NCg0KSG9uZXN0bHkgSSBkb24ndCBrbm93
+LiBCdXQgYXQgdGhlIHNhbWUgdGltZSBJIHRoaW5rIHRoZSBkcml2ZXINCnNob3VsZG4ndCBiZSB0
+b3VjaGluZyB0aGUgTVBTIGF0IGFsbC4gU2hvdWxkbid0IHRoYXQgYmUgbGVmdCB0byB0aGUNClBD
+SWUgc3Vic3lzdGVtIGFuZCByZWx5IG9uIHRoZSBQQ0llIHN1YnN5c3RlbSB0byBzZXQgdGhpcyB0
+byBhIHNhbmUNCnZhbHVlPyANCg0KPiANCj4gSSBhbHNvIGNjJ2QgdGhlIFFJQiBtYWludGFpbmVy
+cyBmb3IgeW91Og0KPiANCj4gICBRSUIgRFJJVkVSDQo+ICAgTTogICAgICBNaWtlIE1hcmNpbmlz
+enluIDxpbmZpbmlwYXRoQGludGVsLmNvbT4NCj4gICBMOiAgICAgIGxpbnV4LXJkbWFAdmdlci5r
+ZXJuZWwub3JnDQo+ICAgRjogICAgICBkcml2ZXJzL2luZmluaWJhbmQvaHcvcWliLw0KPiANCj4g
+PiBTaWduZWQtb2ZmLWJ5OiBEYXZlIEppYW5nIDxkYXZlLmppYW5nQGludGVsLmNvbT4NCj4gPiAt
+LS0NCj4gPiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L3FpYi9xaWJfcGNpZS5jIHwgICAyNyArLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tDQo+ID4gLS0tLS0NCj4gPiAgMSBmaWxlIGNoYW5nZWQsIDEgaW5z
+ZXJ0aW9uKCspLCAyNiBkZWxldGlvbnMoLSkNCj4gPiANCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVy
+cy9pbmZpbmliYW5kL2h3L3FpYi9xaWJfcGNpZS5jIA0KPiA+IGIvZHJpdmVycy9pbmZpbmliYW5k
+L2h3L3FpYi9xaWJfcGNpZS5jDQo+ID4gaW5kZXggNDc1OGEzOC4uYjhhMmRjZCAxMDA2NDQNCj4g
+PiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl9wY2llLmMNCj4gPiArKysgYi9k
+cml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl9wY2llLmMNCj4gPiBAQCAtNTU3LDEyICs1NTcs
+MTEgQEAgc3RhdGljIHZvaWQgcWliX3R1bmVfcGNpZV9jb2FsZXNjZShzdHJ1Y3QgDQo+ID4gcWli
+X2RldmRhdGEgKmRkKQ0KPiA+ICAgKi8NCj4gPiAgc3RhdGljIGludCBxaWJfcGNpZV9jYXBzOw0K
+PiA+ICBtb2R1bGVfcGFyYW1fbmFtZWQocGNpZV9jYXBzLCBxaWJfcGNpZV9jYXBzLCBpbnQsIFNf
+SVJVR08pOw0KPiA+IC1NT0RVTEVfUEFSTV9ERVNDKHBjaWVfY2FwcywgIk1heCBQQ0llIHR1bmlu
+ZzogUGF5bG9hZCAoMC4uMyksIA0KPiA+IFJlYWRSZXEgKDQuLjcpIik7DQo+ID4gK01PRFVMRV9Q
+QVJNX0RFU0MocGNpZV9jYXBzLCAiTWF4IFBDSWUgdHVuaW5nOiBSZWFkUmVxICg0Li43KSIpOw0K
+PiA+ICANCj4gPiAgc3RhdGljIHZvaWQgcWliX3R1bmVfcGNpZV9jYXBzKHN0cnVjdCBxaWJfZGV2
+ZGF0YSAqZGQpDQo+ID4gIHsNCj4gPiAgCXN0cnVjdCBwY2lfZGV2ICpwYXJlbnQ7DQo+ID4gLQl1
+MTYgcmNfbXBzcywgcmNfbXBzLCBlcF9tcHNzLCBlcF9tcHM7DQo+ID4gIAl1MTYgcmNfbXJycywg
+ZXBfbXJycywgbWF4X21ycnM7DQo+ID4gIA0KPiA+ICAJLyogRmluZCBvdXQgc3VwcG9ydGVkIGFu
+ZCBjb25maWd1cmVkIHZhbHVlcyBmb3IgcGFyZW50IA0KPiA+IChyb290KSAqLw0KPiA+IEBAIC01
+NzUsMzAgKzU3NCw2IEBAIHN0YXRpYyB2b2lkIHFpYl90dW5lX3BjaWVfY2FwcyhzdHJ1Y3QgDQo+
+ID4gcWliX2RldmRhdGEgKmRkKQ0KPiA+ICAJaWYgKCFwY2lfaXNfcGNpZShwYXJlbnQpIHx8ICFw
+Y2lfaXNfcGNpZShkZC0+cGNpZGV2KSkNCj4gPiAgCQlyZXR1cm47DQo+ID4gIA0KPiA+IC0JcmNf
+bXBzcyA9IHBhcmVudC0+cGNpZV9tcHNzOw0KPiA+IC0JcmNfbXBzID0gZmZzKHBjaWVfZ2V0X21w
+cyhwYXJlbnQpKSAtIDg7DQo+ID4gLQkvKiBGaW5kIG91dCBzdXBwb3J0ZWQgYW5kIGNvbmZpZ3Vy
+ZWQgdmFsdWVzIGZvciBlbmRwb2ludCANCj4gPiAodXMpICovDQo+ID4gLQllcF9tcHNzID0gZGQt
+PnBjaWRldi0+cGNpZV9tcHNzOw0KPiA+IC0JZXBfbXBzID0gZmZzKHBjaWVfZ2V0X21wcyhkZC0+
+cGNpZGV2KSkgLSA4Ow0KPiA+IC0NCj4gPiAtCS8qIEZpbmQgbWF4IHBheWxvYWQgc3VwcG9ydGVk
+IGJ5IHJvb3QsIGVuZHBvaW50ICovDQo+ID4gLQlpZiAocmNfbXBzcyA+IGVwX21wc3MpDQo+ID4g
+LQkJcmNfbXBzcyA9IGVwX21wc3M7DQo+ID4gLQ0KPiA+IC0JLyogSWYgU3VwcG9ydGVkIGdyZWF0
+ZXIgdGhhbiBsaW1pdCBpbiBtb2R1bGUgcGFyYW0sIGxpbWl0IA0KPiA+IGl0ICovDQo+ID4gLQlp
+ZiAocmNfbXBzcyA+IChxaWJfcGNpZV9jYXBzICYgNykpDQo+ID4gLQkJcmNfbXBzcyA9IHFpYl9w
+Y2llX2NhcHMgJiA3Ow0KPiA+IC0JLyogSWYgbGVzcyB0aGFuIChhbGxvd2VkLCBzdXBwb3J0ZWQp
+LCBidW1wIHJvb3QgcGF5bG9hZCAqLw0KPiA+IC0JaWYgKHJjX21wc3MgPiByY19tcHMpIHsNCj4g
+PiAtCQlyY19tcHMgPSByY19tcHNzOw0KPiA+IC0JCXBjaWVfc2V0X21wcyhwYXJlbnQsIDEyOCA8
+PCByY19tcHMpOw0KPiA+IC0JfQ0KPiA+IC0JLyogSWYgbGVzcyB0aGFuIChhbGxvd2VkLCBzdXBw
+b3J0ZWQpLCBidW1wIGVuZHBvaW50IA0KPiA+IHBheWxvYWQgKi8NCj4gPiAtCWlmIChyY19tcHNz
+ID4gZXBfbXBzKSB7DQo+ID4gLQkJZXBfbXBzID0gcmNfbXBzczsNCj4gPiAtCQlwY2llX3NldF9t
+cHMoZGQtPnBjaWRldiwgMTI4IDw8IGVwX21wcyk7DQo+ID4gLQl9DQo+ID4gLQ0KPiA+ICAJLyoN
+Cj4gPiAgCSAqIE5vdyB0aGUgUmVhZCBSZXF1ZXN0IHNpemUuDQo+ID4gIAkgKiBObyBmaWVsZCBm
+b3IgbWF4IHN1cHBvcnRlZCwgYnV0IFBDSWUgc3BlYyBsaW1pdHMgaXQgdG8gDQo+ID4gNDA5Niw=
