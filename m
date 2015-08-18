@@ -1,43 +1,31 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next V8 6/6] IB/ucma: HW Device hot-removal support
-Date: Tue, 18 Aug 2015 11:50:47 -0600
-Message-ID: <20150818175047.GA21113@obsidianresearch.com>
-References: <1439479927-8751-1-git-send-email-yishaih@mellanox.com>
- <1439479927-8751-7-git-send-email-yishaih@mellanox.com>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] staging: hfi1: Kconfig: remove 'CONFIG_' prefix
+Date: Tue, 18 Aug 2015 19:46:39 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC2579AEB6@fmsmsx120.amr.corp.intel.com>
+References: <1439812290-28059-1-git-send-email-valentinrothberg@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1439479927-8751-7-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1439812290-28059-1-git-send-email-valentinrothberg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Valentin Rothberg <valentinrothberg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Aug 13, 2015 at 06:32:07PM +0300, Yishai Hadas wrote:
-> @@ -501,10 +586,24 @@ static ssize_t ucma_destroy_id(struct ucma_file *file, const char __user *inbuf,
-> +	if (!ctx->closing) {
-> +		mutex_unlock(&mut);
-> +		ucma_put_ctx(ctx);
-> +		wait_for_completion(&ctx->comp);
-> +		rdma_destroy_id(ctx->cm_id);
+> Subject: [PATCH] staging: hfi1: Kconfig: remove 'CONFIG_' prefix
+> 
+> Remove the 'CONFIG_' prefix of the Kconfig options PRESCAN_RXQ and
+> SDMA_VERBOSITY in Kconfig.  Such prefix in Kconfig requires a double
+> 'CONFIG_CONFIG_' prefix in Make and CPP syntax.
+> 
 
-Suggest nulling cm_id after it is destroyed in all places, this code
-is very complicated, I'd rather see a nice clean risk of
-null-pointer-deref than an undetected use-after free if it gets messed
-up.
+Doug,  can you pull this one in?
 
-> +	list_for_each_entry(con_req_eve, &ctx->file->event_list, list) {
-> +		if (con_req_eve->cm_id == cm_id &&
-> +		    con_req_eve->resp.event == RDMA_CM_EVENT_CONNECT_REQUEST) {
-> +			list_del(&con_req_eve->list);
+There is a Kconfig checker that caught this one!
 
-Isn't the list_for_each_safe version needed if list_del/kfree is called
-within the body?
-
-The locking looks much saner now, thanks Haggaie.
-
-Jason
+Mike
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
