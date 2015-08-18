@@ -1,44 +1,39 @@
-From: eran ben elisha <eranlinuxmellanox-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 2/7] IB/core: Allow setting create flags in QP
- init attribute
-Date: Tue, 18 Aug 2015 13:45:22 +0300
-Message-ID: <CAKHjkjmZh61vD+mm6DSNTwVmZ+j7k=xmjNkiMT0RJg9TqGS2cw@mail.gmail.com>
-References: <1439741133-30145-1-git-send-email-eranbe@mellanox.com>
-	<1439741133-30145-3-git-send-email-eranbe@mellanox.com>
-	<20150817164740.GA2350@obsidianresearch.com>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] MAINTAINERS: Add maintainer section for hfi1
+Date: Tue, 18 Aug 2015 10:06:09 -0400
+Message-ID: <20150818140609.3571.87830.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150817164740.GA2350-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+To: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Aug 17, 2015 at 7:47 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Sun, Aug 16, 2015 at 07:05:28PM +0300, Eran Ben Elisha wrote:
->
->> -     if (attr.create_flags) {
->> +     if (attr.create_flags & ~IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK) {
->>               ret = -EINVAL;
->>               goto err_put;
->
-> Shouldn't EINVAL still happen if the driver doesn't support this
-> feature?
->
-> Jason
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ 0 files changed
 
-I expect the same behavior as if ib_create_qp was called with
-IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK in the create_flags.
-This is not a new flag, and driver should fail the command if not supported.
+diff --git a/MAINTAINERS b/MAINTAINERS
+index b3c1a56..45953e9 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -9892,6 +9892,13 @@ M:	Arnaud Patard <arnaud.patard-dQbF7i+pzddAfugRpC6u6w@public.gmane.org>
+ S:	Odd Fixes
+ F:	drivers/staging/xgifb/
+ 
++HFI1 DRIVER
++M:	Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
++L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
++L:	devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
++S:	Supported
++F:	drivers/staging/hfi1
++
+ STARFIRE/DURALAN NETWORK DRIVER
+ M:	Ion Badulescu <ionut-Rv4seVrz/scdnm+yROfE0A@public.gmane.org>
+ S:	Odd Fixes
 
-Eran.
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
