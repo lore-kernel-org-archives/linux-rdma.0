@@ -1,120 +1,150 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] MAINTAINERS: Add maintainer section for hfi1
-Date: Tue, 18 Aug 2015 10:03:04 -0700
-Message-ID: <6F6F215F-5DB0-4080-B38A-0CD76420FD57@redhat.com>
-References: <20150818140609.3571.87830.stgit@phlsvslse11.ph.intel.com>
- <20150818154403.GB3049@kroah.com>
- <32E1700B9017364D9B60AED9960492BC257996DC@fmsmsx120.amr.corp.intel.com>
- <20150818161407.GA4291@kroah.com>
- <32E1700B9017364D9B60AED9960492BC2579977D@fmsmsx120.amr.corp.intel.com>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
-Content-Type: multipart/mixed; boundary="===============3224950127448554553=="
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <32E1700B9017364D9B60AED9960492BC2579977D@fmsmsx120.amr.corp.intel.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
-Cc: "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+From: Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH] Kconfig: add temporary PCI dependency
+Date: Tue, 18 Aug 2015 10:08:04 -0700
+Message-ID: <55D36674.60501@infradead.org>
+References: <20150818141542.4127.90517.stgit@phlsvslse11.ph.intel.com>
+ <20150818161102.GA4040@kroah.com>
+ <32E1700B9017364D9B60AED9960492BC25799762@fmsmsx120.amr.corp.intel.com>
+ <20150818165026.GA25138@kroah.com>
+ <9D026CCE-9F4F-4F87-BA05-AAD6C2C6A417@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <9D026CCE-9F4F-4F87-BA05-AAD6C2C6A417-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Cc: "devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org" <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---===============3224950127448554553==
-Content-Type: multipart/signed; boundary="Apple-Mail=_477BB110-8A1C-4324-98B6-6B16E2063408"; protocol="application/pgp-signature"; micalg=pgp-sha512
-
-
---Apple-Mail=_477BB110-8A1C-4324-98B6-6B16E2063408
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain;
-	charset=utf-8
-
-
-> On Aug 18, 2015, at 9:33 AM, Marciniszyn, Mike =
-<mike.marciniszyn@intel.com> wrote:
+On 08/18/15 10:00, Doug Ledford wrote:
 >=20
->> Subject: Re: [PATCH] MAINTAINERS: Add maintainer section for hfi1
->>=20
->> On Tue, Aug 18, 2015 at 04:04:15PM +0000, Marciniszyn, Mike wrote:
->>>>> +HFI1 DRIVER
->>>>> +M:	Mike Marciniszyn <infinipath@intel.com>
->>>>> +L:	linux-rdma@vger.kernel.org
->>>>> +L:	devel@driverdev.osuosl.org
->>>>> +S:	Supported
->>>>> +F:	drivers/staging/hfi1
->>>>=20
->>>> Why do this for a driver that is being deleted?
->>>>=20
->>>=20
->>> You are thinking of ipath.   This is a new driver.
->>=20
->> Really?  Why is a new driver not in my tree?  Why is in staging at =
-all?
->>=20
+>> On Aug 18, 2015, at 9:50 AM, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org> wrote:
+>>
+>> On Tue, Aug 18, 2015 at 04:29:50PM +0000, Marciniszyn, Mike wrote:
+>>>> Subject: Re: [PATCH] Kconfig: add temporary PCI dependency
+>>>>
+>>>> On Tue, Aug 18, 2015 at 10:15:42AM -0400, Mike Marciniszyn wrote:
+>>>>> The move from infiniband to staging requires a temporary PCI
+>>>>> dependency to fix 0-day build issues.  The
+>>>>> drivers/infiniband/hw/Kconfig gratuitously added it for all drive=
+rs.
+>>>>>
+>>>>> Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>>>>> ---
+>>>>> drivers/staging/hfi1/Kconfig |    2 +-
+>>>>> 1 file changed, 1 insertion(+), 1 deletion(-)
+>>>>
+>>>> Why are these drivers not in drivers/staging/infiniband/ ?  Why do=
+ they all
+>>>> need their own drivers/staging/ directory?
+>>>>
+>>>
+>>> Greg, what is the path name convention for adding a driver to stagi=
+ng
+>>> when its eventual destination is part of a subsystem?  Perhaps it
+>>> should be drivers/staging/hw/hfi1?
+>>
+>> As I have no idea what this driver is, or what it is for,
 >=20
-> It is in linux-next, I guess by way of a pull request from Doug.
-
-Actually, I haven=E2=80=99t sent any pull requests for this yet.  My =
-github repo is in 0day testing, but my k.o repo is the one in linux-next =
-testing and I haven=E2=80=99t pushed this to k.o as of yet.
-
-> Doug, can you respond to why staging and get this patch into your =
-repo?
-
-I can certainly add this to the hfi1 branch in my tree.  I answered why =
-I put this in staging in my previous email.
-
-=E2=80=94
-Doug Ledford <dledford@redhat.com>
-	GPG Key ID: 0E572FDD
+> It=92s a driver for Intel=92s newest RDMA capable fabric interface.  =
+It=92s not InfiniBand, but Intel=92s answer to InfiniBand and will even=
+tually live in the drivers/infiniband/hw tree with the other RDMA capab=
+le device drivers.
 
 
+Apparently it also needs to depend on INFINIBAND:
+
+(from today's linux-next)
+
+
+drivers/built-in.o: In function `ipath_remove_one':
+ipath_driver.c:(.text+0x7591cb): undefined reference to `ib_wq'
+drivers/built-in.o: In function `handle_e_ibstatuschanged.isra.10':
+ipath_intr.c:(.text+0x768e13): undefined reference to `ib_dispatch_even=
+t'
+ipath_intr.c:(.text+0x768ee7): undefined reference to `ib_dispatch_even=
+t'
+ipath_intr.c:(.text+0x768f4b): undefined reference to `ib_dispatch_even=
+t'
+drivers/built-in.o: In function `signal_ib_event':
+(.text+0x76af44): undefined reference to `ib_dispatch_event'
+drivers/built-in.o: In function `ipath_process_mad':
+(.text+0x76e684): undefined reference to `ib_dispatch_event'
+drivers/built-in.o:(.text+0x76ee0b): more undefined references to `ib_d=
+ispatch_event' follow
+drivers/built-in.o: In function `ipath_modify_qp':
+(.text+0x770bb1): undefined reference to `ib_modify_qp_is_ok'
+drivers/built-in.o: In function `ipath_release_user_pages_on_close':
+(.text+0x782900): undefined reference to `ib_wq'
+drivers/built-in.o: In function `ipath_register_ib_device':
+(.text+0x788fcf): undefined reference to `ib_alloc_device'
+drivers/built-in.o: In function `ipath_register_ib_device':
+(.text+0x789063): undefined reference to `ib_dealloc_device'
+drivers/built-in.o: In function `ipath_register_ib_device':
+(.text+0x78971d): undefined reference to `ib_register_device'
+drivers/built-in.o: In function `ipath_register_ib_device':
+(.text+0x789921): undefined reference to `ib_unregister_device'
+drivers/built-in.o: In function `ipath_unregister_ib_device':
+(.text+0x7899b2): undefined reference to `ib_unregister_device'
+drivers/built-in.o: In function `ipath_unregister_ib_device':
+(.text+0x789cc7): undefined reference to `ib_dealloc_device'
+drivers/built-in.o: In function `set_link_state':
+(.text+0x79aca2): undefined reference to `ib_dispatch_event'
+drivers/built-in.o: In function `hfi1_free_devdata':
+(.text+0x7b2a54): undefined reference to `ib_dealloc_device'
+drivers/built-in.o: In function `remove_one':
+init.c:(.text+0x7b2ec0): undefined reference to `ib_wq'
+drivers/built-in.o: In function `hfi1_alloc_devdata':
+(.text+0x7b2f20): undefined reference to `ib_alloc_device'
+drivers/built-in.o: In function `hfi1_alloc_devdata':
+(.text+0x7b307b): undefined reference to `ib_dealloc_device'
+drivers/built-in.o: In function `init_one':
+init.c:(.text+0x7b49af): undefined reference to `ib_wq'
+drivers/built-in.o: In function `handle_linkup_change':
+(.text+0x7b4da1): undefined reference to `ib_dispatch_event'
+drivers/built-in.o: In function `send_handler':
+mad.c:(.text+0x7b5f3d): undefined reference to `ib_free_send_mad'
+drivers/built-in.o: In function `send_trap.constprop.29':
+mad.c:(.text+0x7b76ab): undefined reference to `ib_create_send_mad'
+mad.c:(.text+0x7b77d0): undefined reference to `ib_free_send_mad'
+mad.c:(.text+0x7b77fe): undefined reference to `ib_post_send_mad'
+drivers/built-in.o: In function `subn_set_opa_sma':
+mad.c:(.text+0x7bad4f): undefined reference to `ib_dispatch_event'
+mad.c:(.text+0x7baf72): undefined reference to `ib_dispatch_event'
+mad.c:(.text+0x7bc016): undefined reference to `ib_dispatch_event'
+mad.c:(.text+0x7bc062): undefined reference to `ib_dispatch_event'
+drivers/built-in.o: In function `hfi1_create_agents':
+(.text+0x7beb07): undefined reference to `ib_register_mad_agent'
+drivers/built-in.o: In function `hfi1_create_agents':
+(.text+0x7beb9d): undefined reference to `ib_unregister_mad_agent'
+drivers/built-in.o: In function `hfi1_free_agents':
+(.text+0x7bec6a): undefined reference to `ib_unregister_mad_agent'
+drivers/built-in.o: In function `hfi1_free_agents':
+(.text+0x7bec71): undefined reference to `ib_destroy_ah'
+drivers/built-in.o: In function `hfi1_modify_qp':
+(.text+0x7c7446): undefined reference to `ib_modify_qp_is_ok'
+drivers/built-in.o: In function `hfi1_modify_qp':
+(.text+0x7c7c47): undefined reference to `ib_rate_to_mbps'
+drivers/built-in.o: In function `hfi1_make_ud_req':
+(.text+0x7e9311): undefined reference to `ib_rate_to_mbps'
+drivers/built-in.o: In function `hfi1_check_ah':
+(.text+0x7f3e55): undefined reference to `ib_rate_to_mbps'
+drivers/built-in.o: In function `hfi1_create_qp0_ah':
+(.text+0x7f43d4): undefined reference to `ib_create_ah'
+drivers/built-in.o: In function `hfi1_register_ib_device':
+(.text+0x7f4bbe): undefined reference to `ib_register_device'
+drivers/built-in.o: In function `hfi1_register_ib_device':
+(.text+0x7f4d0e): undefined reference to `ib_unregister_device'
+drivers/built-in.o: In function `hfi1_unregister_ib_device':
+(.text+0x7f4d4e): undefined reference to `ib_unregister_device'
 
 
 
-
---Apple-Mail=_477BB110-8A1C-4324-98B6-6B16E2063408
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename=signature.asc
-Content-Type: application/pgp-signature;
-	name=signature.asc
-Content-Description: Message signed with OpenPGP using GPGMail
-
------BEGIN PGP SIGNATURE-----
-Comment: GPGTools - https://gpgtools.org
-
-iQIcBAEBCgAGBQJV02VIAAoJELgmozMOVy/dpZQP/iQapBi/lCwHJW/D711eCzRq
-+HbnbxidyHLayn2KQ9DYypnnPBUvVX6ypl1kLkf60iS3isTB3YwaN891gWFfU/ID
-W7+gtNg6Wyf5ifPodVAB7ATVxoi3MaSKQ/+jPZUGq795636N03O6fSVMXr6AWZdu
-hIVT1oZwvPAMB/Ie71dsLAsIEuN/B5ZmdMgBXrhkIaRNqs+OMC/iqFusHsDyTtLc
-0OvDhhmkyiN8/KVQWoTcvIyq1UjvcWw7l+nGjUdMsmJpN3Pz0cujEPyrUulv8qEu
-8VCfF7SjK2mV+z4yUI76t3Blw5hviGAdWOFfD5hb4uFYeh7svlLmU32f2RbQVnc2
-R6Z4zpDJaxsyFmdkfL8dRV3N4ZL3MudVzpJKXWrJCbYYGe29S6k7PHudhU/hKgVu
-IXZLchY6kMRzKs72wE6X47RTNMVfY+zSGeLqefCZv/tqYUlWCa4xTfEQTYbz8+LW
-CoTHsCdZSrQlCYLCjsKWBUxejmbYP0ZM+Otu16SZ9JJAroEQWkQPb4pt1z72H2zz
-Ch6P+pYc8NdIx9slQaZzsvZc7OWZxDG945u5goaKq3XnllCKM0AT0RgOVpBh17Y7
-QF43/sPUMqYvNauNF8CIKLWbNFTYAD3gbFP13yS00njrCtHG8WCzO7lKNNHlLm22
-p5nRKe8A+u8itQMi/9MS
-=rRwX
------END PGP SIGNATURE-----
-
---Apple-Mail=_477BB110-8A1C-4324-98B6-6B16E2063408--
-
---===============3224950127448554553==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-devel mailing list
-devel@linuxdriverproject.org
-http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel
-
---===============3224950127448554553==--
+--=20
+~Randy
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
