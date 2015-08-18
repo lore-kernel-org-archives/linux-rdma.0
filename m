@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] MAINTAINERS: Add maintainer section for hfi1
-Date: Tue, 18 Aug 2015 10:06:09 -0400
-Message-ID: <20150818140609.3571.87830.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH] Kconfig: add temporary PCI dependency
+Date: Tue, 18 Aug 2015 10:15:42 -0400
+Message-ID: <20150818141542.4127.90517.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -11,28 +11,27 @@ To: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+The move from infiniband to staging requires a temporary
+PCI dependency to fix 0-day build issues.  The
+drivers/infiniband/hw/Kconfig gratuitously added it for all drivers.
+
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- 0 files changed
+ drivers/staging/hfi1/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index b3c1a56..45953e9 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -9892,6 +9892,13 @@ M:	Arnaud Patard <arnaud.patard-dQbF7i+pzddAfugRpC6u6w@public.gmane.org>
- S:	Odd Fixes
- F:	drivers/staging/xgifb/
- 
-+HFI1 DRIVER
-+M:	Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-+L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+L:	devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
-+S:	Supported
-+F:	drivers/staging/hfi1
-+
- STARFIRE/DURALAN NETWORK DRIVER
- M:	Ion Badulescu <ionut-Rv4seVrz/scdnm+yROfE0A@public.gmane.org>
- S:	Odd Fixes
+diff --git a/drivers/staging/hfi1/Kconfig b/drivers/staging/hfi1/Kconfig
+index 78bc89e..8a079ba 100644
+--- a/drivers/staging/hfi1/Kconfig
++++ b/drivers/staging/hfi1/Kconfig
+@@ -1,6 +1,6 @@
+ config INFINIBAND_HFI1
+ 	tristate "Intel OPA Gen1 support"
+-	depends on X86_64 && INFINIBAND
++	depends on X86_64 && INFINIBAND && PCI
+ 	default m
+ 	---help---
+ 	This is a low-level driver for Intel OPA Gen1 adapter.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
