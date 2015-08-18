@@ -1,76 +1,112 @@
-From: "Jiang, Dave" <dave.jiang@intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
 Subject: Re: [PATCH 2/3] QIB: Removing usage of pcie_set_mps()
-Date: Mon, 17 Aug 2015 22:50:11 +0000
-Message-ID: <1439851811.3253.18.camel@intel.com>
+Date: Mon, 17 Aug 2015 19:06:10 -0500
+Message-ID: <CAErSpo7GEbAtkXr-VgifNtdcaDUCOkeFMcdzDXvdC-QH2qT7=w@mail.gmail.com>
 References: <1438208335-19457-1-git-send-email-keith.busch@intel.com>
-	 <1438208335-19457-3-git-send-email-keith.busch@intel.com>
-	 <20150817223039.GK26431@google.com>
+ <1438208335-19457-3-git-send-email-keith.busch@intel.com> <20150817223039.GK26431@google.com>
+ <1439851811.3253.18.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20150817223039.GK26431@google.com>
-Content-Language: en-US
-Content-ID: <006AE9D72E92C1479B59978805B7A478@intel.com>
+In-Reply-To: <1439851811.3253.18.camel@intel.com>
 Sender: linux-pci-owner@vger.kernel.org
-To: "Busch, Keith" <keith.busch@intel.com>, "bhelgaas@google.com" <bhelgaas@google.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, infinipath <infinipath@intel.com>
+To: "Jiang, Dave" <dave.jiang@intel.com>
+Cc: "Busch, Keith" <keith.busch@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, infinipath <infinipath@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCAyMDE1LTA4LTE3IGF0IDE3OjMwIC0wNTAwLCBCam9ybiBIZWxnYWFzIHdyb3RlOg0K
-PiBbK2NjIE1pa2UsIGxpbnV4LXJkbWFdDQo+IA0KPiBPbiBXZWQsIEp1bCAyOSwgMjAxNSBhdCAw
-NDoxODo1NFBNIC0wNjAwLCBLZWl0aCBCdXNjaCB3cm90ZToNCj4gPiBGcm9tOiBEYXZlIEppYW5n
-IDxkYXZlLmppYW5nQGludGVsLmNvbT4NCj4gPiANCj4gPiBUaGlzIGlzIGluIHBlcnBlcmF0aW9u
-IG9mIHVuLWV4cG9ydGluZyB0aGUgcGNpZV9zZXRfbXBzKCkgZnVuY3Rpb24NCj4gPiBzeW1ib2wu
-IEEgZHJpdmVyIHNob3VsZCBub3QgYmUgY2hhbmdpbmcgdGhlIE1QUyBhcyB0aGF0IGlzIHRoZQ0K
-PiA+IHJlc3BvbnNpYmlsaXR5IG9mIHRoZSBQQ0kgc3Vic3lzdGVtLg0KPiANCj4gUGxlYXNlIGV4
-cGxhaW4gdGhlIGltcGxpY2F0aW9ucyBvZiByZW1vdmluZyB0aGlzIGNvZGUuICBEb2VzIHRoaXMg
-DQo+IGFmZmVjdA0KPiBwZXJmb3JtYW5jZSBvZiB0aGUgZGV2aWNlPyAgSWYgc28sIGhvdyBkbyB3
-ZSBnZXQgdGhhdCBwZXJmb3JtYW5jZSANCj4gYmFjaz8NCg0KSG9uZXN0bHkgSSBkb24ndCBrbm93
-LiBCdXQgYXQgdGhlIHNhbWUgdGltZSBJIHRoaW5rIHRoZSBkcml2ZXINCnNob3VsZG4ndCBiZSB0
-b3VjaGluZyB0aGUgTVBTIGF0IGFsbC4gU2hvdWxkbid0IHRoYXQgYmUgbGVmdCB0byB0aGUNClBD
-SWUgc3Vic3lzdGVtIGFuZCByZWx5IG9uIHRoZSBQQ0llIHN1YnN5c3RlbSB0byBzZXQgdGhpcyB0
-byBhIHNhbmUNCnZhbHVlPyANCg0KPiANCj4gSSBhbHNvIGNjJ2QgdGhlIFFJQiBtYWludGFpbmVy
-cyBmb3IgeW91Og0KPiANCj4gICBRSUIgRFJJVkVSDQo+ICAgTTogICAgICBNaWtlIE1hcmNpbmlz
-enluIDxpbmZpbmlwYXRoQGludGVsLmNvbT4NCj4gICBMOiAgICAgIGxpbnV4LXJkbWFAdmdlci5r
-ZXJuZWwub3JnDQo+ICAgRjogICAgICBkcml2ZXJzL2luZmluaWJhbmQvaHcvcWliLw0KPiANCj4g
-PiBTaWduZWQtb2ZmLWJ5OiBEYXZlIEppYW5nIDxkYXZlLmppYW5nQGludGVsLmNvbT4NCj4gPiAt
-LS0NCj4gPiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L3FpYi9xaWJfcGNpZS5jIHwgICAyNyArLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tDQo+ID4gLS0tLS0NCj4gPiAgMSBmaWxlIGNoYW5nZWQsIDEgaW5z
-ZXJ0aW9uKCspLCAyNiBkZWxldGlvbnMoLSkNCj4gPiANCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVy
-cy9pbmZpbmliYW5kL2h3L3FpYi9xaWJfcGNpZS5jIA0KPiA+IGIvZHJpdmVycy9pbmZpbmliYW5k
-L2h3L3FpYi9xaWJfcGNpZS5jDQo+ID4gaW5kZXggNDc1OGEzOC4uYjhhMmRjZCAxMDA2NDQNCj4g
-PiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl9wY2llLmMNCj4gPiArKysgYi9k
-cml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl9wY2llLmMNCj4gPiBAQCAtNTU3LDEyICs1NTcs
-MTEgQEAgc3RhdGljIHZvaWQgcWliX3R1bmVfcGNpZV9jb2FsZXNjZShzdHJ1Y3QgDQo+ID4gcWli
-X2RldmRhdGEgKmRkKQ0KPiA+ICAgKi8NCj4gPiAgc3RhdGljIGludCBxaWJfcGNpZV9jYXBzOw0K
-PiA+ICBtb2R1bGVfcGFyYW1fbmFtZWQocGNpZV9jYXBzLCBxaWJfcGNpZV9jYXBzLCBpbnQsIFNf
-SVJVR08pOw0KPiA+IC1NT0RVTEVfUEFSTV9ERVNDKHBjaWVfY2FwcywgIk1heCBQQ0llIHR1bmlu
-ZzogUGF5bG9hZCAoMC4uMyksIA0KPiA+IFJlYWRSZXEgKDQuLjcpIik7DQo+ID4gK01PRFVMRV9Q
-QVJNX0RFU0MocGNpZV9jYXBzLCAiTWF4IFBDSWUgdHVuaW5nOiBSZWFkUmVxICg0Li43KSIpOw0K
-PiA+ICANCj4gPiAgc3RhdGljIHZvaWQgcWliX3R1bmVfcGNpZV9jYXBzKHN0cnVjdCBxaWJfZGV2
-ZGF0YSAqZGQpDQo+ID4gIHsNCj4gPiAgCXN0cnVjdCBwY2lfZGV2ICpwYXJlbnQ7DQo+ID4gLQl1
-MTYgcmNfbXBzcywgcmNfbXBzLCBlcF9tcHNzLCBlcF9tcHM7DQo+ID4gIAl1MTYgcmNfbXJycywg
-ZXBfbXJycywgbWF4X21ycnM7DQo+ID4gIA0KPiA+ICAJLyogRmluZCBvdXQgc3VwcG9ydGVkIGFu
-ZCBjb25maWd1cmVkIHZhbHVlcyBmb3IgcGFyZW50IA0KPiA+IChyb290KSAqLw0KPiA+IEBAIC01
-NzUsMzAgKzU3NCw2IEBAIHN0YXRpYyB2b2lkIHFpYl90dW5lX3BjaWVfY2FwcyhzdHJ1Y3QgDQo+
-ID4gcWliX2RldmRhdGEgKmRkKQ0KPiA+ICAJaWYgKCFwY2lfaXNfcGNpZShwYXJlbnQpIHx8ICFw
-Y2lfaXNfcGNpZShkZC0+cGNpZGV2KSkNCj4gPiAgCQlyZXR1cm47DQo+ID4gIA0KPiA+IC0JcmNf
-bXBzcyA9IHBhcmVudC0+cGNpZV9tcHNzOw0KPiA+IC0JcmNfbXBzID0gZmZzKHBjaWVfZ2V0X21w
-cyhwYXJlbnQpKSAtIDg7DQo+ID4gLQkvKiBGaW5kIG91dCBzdXBwb3J0ZWQgYW5kIGNvbmZpZ3Vy
-ZWQgdmFsdWVzIGZvciBlbmRwb2ludCANCj4gPiAodXMpICovDQo+ID4gLQllcF9tcHNzID0gZGQt
-PnBjaWRldi0+cGNpZV9tcHNzOw0KPiA+IC0JZXBfbXBzID0gZmZzKHBjaWVfZ2V0X21wcyhkZC0+
-cGNpZGV2KSkgLSA4Ow0KPiA+IC0NCj4gPiAtCS8qIEZpbmQgbWF4IHBheWxvYWQgc3VwcG9ydGVk
-IGJ5IHJvb3QsIGVuZHBvaW50ICovDQo+ID4gLQlpZiAocmNfbXBzcyA+IGVwX21wc3MpDQo+ID4g
-LQkJcmNfbXBzcyA9IGVwX21wc3M7DQo+ID4gLQ0KPiA+IC0JLyogSWYgU3VwcG9ydGVkIGdyZWF0
-ZXIgdGhhbiBsaW1pdCBpbiBtb2R1bGUgcGFyYW0sIGxpbWl0IA0KPiA+IGl0ICovDQo+ID4gLQlp
-ZiAocmNfbXBzcyA+IChxaWJfcGNpZV9jYXBzICYgNykpDQo+ID4gLQkJcmNfbXBzcyA9IHFpYl9w
-Y2llX2NhcHMgJiA3Ow0KPiA+IC0JLyogSWYgbGVzcyB0aGFuIChhbGxvd2VkLCBzdXBwb3J0ZWQp
-LCBidW1wIHJvb3QgcGF5bG9hZCAqLw0KPiA+IC0JaWYgKHJjX21wc3MgPiByY19tcHMpIHsNCj4g
-PiAtCQlyY19tcHMgPSByY19tcHNzOw0KPiA+IC0JCXBjaWVfc2V0X21wcyhwYXJlbnQsIDEyOCA8
-PCByY19tcHMpOw0KPiA+IC0JfQ0KPiA+IC0JLyogSWYgbGVzcyB0aGFuIChhbGxvd2VkLCBzdXBw
-b3J0ZWQpLCBidW1wIGVuZHBvaW50IA0KPiA+IHBheWxvYWQgKi8NCj4gPiAtCWlmIChyY19tcHNz
-ID4gZXBfbXBzKSB7DQo+ID4gLQkJZXBfbXBzID0gcmNfbXBzczsNCj4gPiAtCQlwY2llX3NldF9t
-cHMoZGQtPnBjaWRldiwgMTI4IDw8IGVwX21wcyk7DQo+ID4gLQl9DQo+ID4gLQ0KPiA+ICAJLyoN
-Cj4gPiAgCSAqIE5vdyB0aGUgUmVhZCBSZXF1ZXN0IHNpemUuDQo+ID4gIAkgKiBObyBmaWVsZCBm
-b3IgbWF4IHN1cHBvcnRlZCwgYnV0IFBDSWUgc3BlYyBsaW1pdHMgaXQgdG8gDQo+ID4gNDA5Niw=
+On Mon, Aug 17, 2015 at 5:50 PM, Jiang, Dave <dave.jiang@intel.com> wrote:
+> On Mon, 2015-08-17 at 17:30 -0500, Bjorn Helgaas wrote:
+>> [+cc Mike, linux-rdma]
+>>
+>> On Wed, Jul 29, 2015 at 04:18:54PM -0600, Keith Busch wrote:
+>> > From: Dave Jiang <dave.jiang@intel.com>
+>> >
+>> > This is in perperation of un-exporting the pcie_set_mps() function
+>> > symbol. A driver should not be changing the MPS as that is the
+>> > responsibility of the PCI subsystem.
+>>
+>> Please explain the implications of removing this code.  Does this
+>> affect
+>> performance of the device?  If so, how do we get that performance
+>> back?
+>
+> Honestly I don't know. But at the same time I think the driver
+> shouldn't be touching the MPS at all. Shouldn't that be left to the
+> PCIe subsystem and rely on the PCIe subsystem to set this to a sane
+> value?
+
+Yes, I think in principle the PCI core should own this, but I also
+don't want to introduce a performance regression, so I think we need
+to understand whether there's a problem, and if there is, fix it.
+
+>> I also cc'd the QIB maintainers for you:
+>>
+>>   QIB DRIVER
+>>   M:      Mike Marciniszyn <infinipath@intel.com>
+>>   L:      linux-rdma@vger.kernel.org
+>>   F:      drivers/infiniband/hw/qib/
+>>
+>> > Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+>> > ---
+>> >  drivers/infiniband/hw/qib/qib_pcie.c |   27 +---------------------
+>> > -----
+>> >  1 file changed, 1 insertion(+), 26 deletions(-)
+>> >
+>> > diff --git a/drivers/infiniband/hw/qib/qib_pcie.c
+>> > b/drivers/infiniband/hw/qib/qib_pcie.c
+>> > index 4758a38..b8a2dcd 100644
+>> > --- a/drivers/infiniband/hw/qib/qib_pcie.c
+>> > +++ b/drivers/infiniband/hw/qib/qib_pcie.c
+>> > @@ -557,12 +557,11 @@ static void qib_tune_pcie_coalesce(struct
+>> > qib_devdata *dd)
+>> >   */
+>> >  static int qib_pcie_caps;
+>> >  module_param_named(pcie_caps, qib_pcie_caps, int, S_IRUGO);
+>> > -MODULE_PARM_DESC(pcie_caps, "Max PCIe tuning: Payload (0..3),
+>> > ReadReq (4..7)");
+>> > +MODULE_PARM_DESC(pcie_caps, "Max PCIe tuning: ReadReq (4..7)");
+>> >
+>> >  static void qib_tune_pcie_caps(struct qib_devdata *dd)
+>> >  {
+>> >     struct pci_dev *parent;
+>> > -   u16 rc_mpss, rc_mps, ep_mpss, ep_mps;
+>> >     u16 rc_mrrs, ep_mrrs, max_mrrs;
+>> >
+>> >     /* Find out supported and configured values for parent
+>> > (root) */
+>> > @@ -575,30 +574,6 @@ static void qib_tune_pcie_caps(struct
+>> > qib_devdata *dd)
+>> >     if (!pci_is_pcie(parent) || !pci_is_pcie(dd->pcidev))
+>> >             return;
+>> >
+>> > -   rc_mpss = parent->pcie_mpss;
+>> > -   rc_mps = ffs(pcie_get_mps(parent)) - 8;
+>> > -   /* Find out supported and configured values for endpoint
+>> > (us) */
+>> > -   ep_mpss = dd->pcidev->pcie_mpss;
+>> > -   ep_mps = ffs(pcie_get_mps(dd->pcidev)) - 8;
+>> > -
+>> > -   /* Find max payload supported by root, endpoint */
+>> > -   if (rc_mpss > ep_mpss)
+>> > -           rc_mpss = ep_mpss;
+>> > -
+>> > -   /* If Supported greater than limit in module param, limit
+>> > it */
+>> > -   if (rc_mpss > (qib_pcie_caps & 7))
+>> > -           rc_mpss = qib_pcie_caps & 7;
+>> > -   /* If less than (allowed, supported), bump root payload */
+>> > -   if (rc_mpss > rc_mps) {
+>> > -           rc_mps = rc_mpss;
+>> > -           pcie_set_mps(parent, 128 << rc_mps);
+>> > -   }
+>> > -   /* If less than (allowed, supported), bump endpoint
+>> > payload */
+>> > -   if (rc_mpss > ep_mps) {
+>> > -           ep_mps = rc_mpss;
+>> > -           pcie_set_mps(dd->pcidev, 128 << ep_mps);
+>> > -   }
+>> > -
+>> >     /*
+>> >      * Now the Read Request size.
+>> >      * No field for max supported, but PCIe spec limits it to
+>> > 4096,
