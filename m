@@ -1,44 +1,38 @@
-From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] MAINTAINERS: Add maintainer section for hfi1
-Date: Tue, 18 Aug 2015 08:44:03 -0700
-Message-ID: <20150818154403.GB3049@kroah.com>
+From: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
+Subject: RE: [PATCH] MAINTAINERS: Add maintainer section for hfi1
+Date: Tue, 18 Aug 2015 16:04:15 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC257996DC@fmsmsx120.amr.corp.intel.com>
 References: <20150818140609.3571.87830.stgit@phlsvslse11.ph.intel.com>
+ <20150818154403.GB3049@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150818140609.3571.87830.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <20150818154403.GB3049@kroah.com>
+Content-Language: en-US
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Greg KH <greg@kroah.com>
+Cc: "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 18, 2015 at 10:06:09AM -0400, Mike Marciniszyn wrote:
-> Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  0 files changed
+> > +HFI1 DRIVER
+> > +M:	Mike Marciniszyn <infinipath@intel.com>
+> > +L:	linux-rdma@vger.kernel.org
+> > +L:	devel@driverdev.osuosl.org
+> > +S:	Supported
+> > +F:	drivers/staging/hfi1
 > 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index b3c1a56..45953e9 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -9892,6 +9892,13 @@ M:	Arnaud Patard <arnaud.patard-dQbF7i+pzddAfugRpC6u6w@public.gmane.org>
->  S:	Odd Fixes
->  F:	drivers/staging/xgifb/
->  
-> +HFI1 DRIVER
-> +M:	Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> +L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> +L:	devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
-> +S:	Supported
-> +F:	drivers/staging/hfi1
+> Why do this for a driver that is being deleted?
+> 
 
-Why do this for a driver that is being deleted?
+You are thinking of ipath.   This is a new driver.
 
-thanks,
-
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Mike
