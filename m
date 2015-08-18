@@ -1,38 +1,38 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
-Subject: RE: [PATCH] MAINTAINERS: Add maintainer section for hfi1
-Date: Tue, 18 Aug 2015 16:04:15 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC257996DC@fmsmsx120.amr.corp.intel.com>
-References: <20150818140609.3571.87830.stgit@phlsvslse11.ph.intel.com>
- <20150818154403.GB3049@kroah.com>
+From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] Kconfig: add temporary PCI dependency
+Date: Tue, 18 Aug 2015 09:11:02 -0700
+Message-ID: <20150818161102.GA4040@kroah.com>
+References: <20150818141542.4127.90517.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <20150818154403.GB3049@kroah.com>
-Content-Language: en-US
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Greg KH <greg@kroah.com>
-Cc: "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150818141542.4127.90517.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> > +HFI1 DRIVER
-> > +M:	Mike Marciniszyn <infinipath@intel.com>
-> > +L:	linux-rdma@vger.kernel.org
-> > +L:	devel@driverdev.osuosl.org
-> > +S:	Supported
-> > +F:	drivers/staging/hfi1
+On Tue, Aug 18, 2015 at 10:15:42AM -0400, Mike Marciniszyn wrote:
+> The move from infiniband to staging requires a temporary
+> PCI dependency to fix 0-day build issues.  The
+> drivers/infiniband/hw/Kconfig gratuitously added it for all drivers.
 > 
-> Why do this for a driver that is being deleted?
-> 
+> Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/staging/hfi1/Kconfig |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-You are thinking of ipath.   This is a new driver.
+Why are these drivers not in drivers/staging/infiniband/ ?  Why do they
+all need their own drivers/staging/ directory?
 
-Mike
+Anyway, either way, I can't take this patch as it's only in the rdma
+trees at the moment, not in mine.
+
+thanks,
+
+greg k-h
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
