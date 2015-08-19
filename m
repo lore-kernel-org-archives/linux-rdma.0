@@ -1,71 +1,75 @@
-From: Greg KH <greg@kroah.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH] Kconfig: add temporary PCI dependency
-Date: Tue, 18 Aug 2015 21:10:06 -0700
-Message-ID: <20150819041006.GA9794@kroah.com>
-References: <20150818141542.4127.90517.stgit@phlsvslse11.ph.intel.com>
- <20150818161102.GA4040@kroah.com>
- <32E1700B9017364D9B60AED9960492BC25799762@fmsmsx120.amr.corp.intel.com>
- <20150818165026.GA25138@kroah.com>
- <9D026CCE-9F4F-4F87-BA05-AAD6C2C6A417@redhat.com>
- <20150818231150.GB32269@kroah.com>
- <08B07723-39A2-416E-92F9-E939B21EBBCA@redhat.com>
- <20150819024904.GA4151@kroah.com>
- <2EAAE0A5-3B1C-4846-B5A2-50026A91011F@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-Content-Disposition: inline
-In-Reply-To: <2EAAE0A5-3B1C-4846-B5A2-50026A91011F@redhat.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Doug Ledford <dledford@redhat.com>
-Cc: "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Marciniszyn,
- Mike" <mike.marciniszyn@intel.com>
+Date: Tue, 18 Aug 2015 21:39:51 -0700
+Message-ID: <3B208E8E-DEB5-4A98-841F-90AB8949B6C3@redhat.com>
+References: <20150818141542.4127.90517.stgit@phlsvslse11.ph.intel.com> <20150818161102.GA4040@kroah.com> <32E1700B9017364D9B60AED9960492BC25799762@fmsmsx120.amr.corp.intel.com> <20150818165026.GA25138@kroah.com> <9D026CCE-9F4F-4F87-BA05-AAD6C2C6A417@redhat.com> <20150818231150.GB32269@kroah.com> <08B07723-39A2-416E-92F9-E939B21EBBCA@redhat.com> <20150819024904.GA4151@kroah.com> <2EAAE0A5-3B1C-4846-B5A2-50026A91011F@redhat.com> <20150819041006.GA9794@kroah.com>
+Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
+Content-Type: multipart/signed; boundary="Apple-Mail=_C16B43EA-5B40-49CC-A7AF-21094CA0F694"; protocol="application/pgp-signature"; micalg=pgp-sha512
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150819041006.GA9794-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Cc: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org" <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCBBdWcgMTgsIDIwMTUgYXQgMDg6MTE6MjZQTSAtMDcwMCwgRG91ZyBMZWRmb3JkIHdy
-b3RlOgo+IAo+ID4gT24gQXVnIDE4LCAyMDE1LCBhdCA3OjQ5IFBNLCBHcmVnIEtIIDxncmVnQGty
-b2FoLmNvbT4gd3JvdGU6Cj4gPiAKPiA+IE9uIFR1ZSwgQXVnIDE4LCAyMDE1IGF0IDA2OjI0OjQw
-UE0gLTA3MDAsIERvdWcgTGVkZm9yZCB3cm90ZToKPiA+PiAKPiA+PiAKPiA+Pj4gQXJlCj4gPj4+
-IHlvdSBnb2luZyB0byBiZSByZXNwb25zaWJsZSBmb3IgYWxsIG9mIHRoZSBwYXRjaGVzIHNlbnQg
-dG8gaXQgYW5kIHlvdQo+ID4+PiBqdXN0IHdhbnQgbWUgdG8gaWdub3JlIHRoZW0sIG9yIHdpbGwg
-eW91IHNlbmQgcGF0Y2hlcyB0byBtZSBmb3IgbWUgdG8KPiA+Pj4gYXBwbHk/Cj4gPj4gCj4gPj4g
-SSBleHBlY3QgdGhlIHBhdGNoIGxvYWQgdG8gYmUgc2lnbmlmaWNhbnQgZHVlIHRvIHRoZSByZXF1
-aXJlZCBUT0RPCj4gPj4gaXRlbSBvZiBtYWtpbmcgaXQgdXNlIGEgdHJhbnNmZXIgZW5naW5lIGxp
-YnJhcnkuICBJIHdvdWxkbuKAmXQgd2FudCB0bwo+ID4+IHNpZ24geW91IHVwIGZvciB0aGF0IGxv
-YWQuICBJZiB5b3UgYXJlIE9LIHdpdGggbWUgcHJvY2Vzc2luZyB0aGUKPiA+PiBwYXRjaGVzLCB0
-aGVuIEnigJltIGhhcHB5IHRvIGRvIHNvLiAgSWYgeW91IHdvdWxkIHByZWZlciB0aGUgb3RoZXIg
-d2F5Cj4gPj4gYXJvdW5kLCB0aGVuIEnigJlsbCBkZWZlciB0byB5b3VyIHdpc2hlcy4KPiA+IAo+
-ID4gV2hhdCBpcyAic2lnbmlmaWNhbnQiPyAgSSdtIGtpbmQgb2YgdXNlZCB0byBoYW5kbGluZyBh
-IGxvdCBvZiBwYXRjaGVzIDopCj4gCj4gSSBoYXZlIG5vIGRvdWJ0IG9mIHRoYXQuCj4gCj4gPiBI
-b3cgYXJlIHlvdSBnb2luZyB0byBoYW5kbGUgYWxsIG9mIHRoZSBjb2Rpbmcgc3R5bGUgZml4dXBz
-IHRoYXQgd2lsbCBlbmQKPiA+IHVwIGNvbWluZyBpbiBmcm9tIHBlb3BsZT8gIFdhbnQgbWUgdG8g
-anVzdCBsZXQgeW91IGhhbmRsZSBhbGwgb2YgdGhlbSBhcwo+ID4gd2VsbD8gIElmIHNvLCBwbGVh
-c2UgcmVtb3ZlIG1lIGZyb20gdGhlIE1BSU5UQUlORVJTIGVudHJ5IGZvciB0aGlzCj4gPiBzdWJk
-aXJlY3Rvcnkgc28gdGhhdCBJLCBhbmQgdGhlIGRyaXZlcmRldmVsIG1haWxpbmcgbGlzdCBkbyBu
-b3QgZ2V0IHRoZQo+ID4gZW1haWxzLgo+ID4gCj4gPiBPdGhlcndpc2UsIGZlZWwgZnJlZSB0byBq
-dXN0IHNlbmQgbWUgcGF0Y2hlcywgSSBjYW4gZWFzaWx5IGhhbmRsZSB0aGVtLgo+IAo+IEdpdmVu
-IHRoZSBhbW91bnQgb2Ygc3R1ZmYgSSBoYXZlIG9uIHRoZSByYWRhciBmb3IgZ29pbmcgdGhyb3Vn
-aCB0aGUKPiBzdGFnaW5nIHRyZWUgKHR3byBkZXByZWNhdGVkIGRyaXZlcnMgdG8gYmUgcmVtb3Zl
-ZCBlbnRpcmVseSwgcGxhbiBpcwo+IG1vdmUgdG8gc3RhZ2luZyBpbiA0LjMsIGRlbGV0ZSBmcm9t
-IHRyZWUgaW4gNC42LCB0aGlzIGRyaXZlciBhbmQgb25lCj4gb3RoZXIgYXMtb2YteWV0LXRvLWJl
-LXN1Ym1pdHRlZCBkcml2ZXIgdG8gYmUgYWRkZWQgdG8gdHJlZSwgYm90aAo+IGRyaXZlcnMgaGF2
-ZSB0aGUgc2FtZSBtYWpvciBUT0RPIGl0ZW0sIHdoaWNoIGlzIHRvIGJlIGNvbnZlcnRlZCB0byB1
-c2UKPiBhIGxpYnJhcnkgZm9yIHRoZWlyIHRyYW5zZmVyIGVuZ2luZSwgd2hpY2ggYWxzbyByZXF1
-aXJlcyB3cml0aW5nIHNhaWQKPiBsaWJyYXJ5KSwgSeKAmW0gd29uZGVyaW5nIGlmIGl0IGlzbuKA
-mXQgd29ydGh3aGlsZSB0byBjcmVhdGUgYQo+IHN0YWdpbmcvaW5maW5pYmFuZCBkaXJlY3Rvcnks
-IHJlbW92ZSB5b3VyIG5hbWUgYW5kIGRyaXZlcmRldmVsIGZyb20KPiB0aGUgbWFpbnRhaW5lciBl
-bnRyeSBmb3IgdGhlIGRpcmVjdG9yeSBhbmQgcmVkaXJlY3QgaXQgdG8gbGludXgtcmRtYSwKPiBh
-bmQgZGVsZXRlIGl0IHdoZW4gdGhpcyB3b3JrIGhhcyBwYXNzZWQuCgpUaGF0IHNvdW5kcyBsaWtl
-IGEgZ29vZCBwbGFuIHRvIG1lLgoKdGhhbmtzLAoKZ3JlZyBrLWgKX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZGV2ZWwgbWFpbGluZyBsaXN0CmRldmVsQGxp
-bnV4ZHJpdmVycHJvamVjdC5vcmcKaHR0cDovL2RyaXZlcmRldi5saW51eGRyaXZlcnByb2plY3Qu
-b3JnL21haWxtYW4vbGlzdGluZm8vZHJpdmVyZGV2LWRldmVsCg==
+
+--Apple-Mail=_C16B43EA-5B40-49CC-A7AF-21094CA0F694
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset=utf-8
+
+
+> On Aug 18, 2015, at 9:10 PM, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org> wrote:
+>=20
+>>=20
+>> a library for their transfer engine, which also requires writing said
+>> library), I=E2=80=99m wondering if it isn=E2=80=99t worthwhile to =
+create a
+>> staging/infiniband directory, remove your name and driverdevel from
+>> the maintainer entry for the directory and redirect it to linux-rdma,
+>> and delete it when this work has passed.
+>=20
+> That sounds like a good plan to me.
+
+I=E2=80=99ll rebase my tree and fix it up.
+
+=E2=80=94
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+	GPG Key ID: 0E572FDD
+
+
+
+
+
+
+--Apple-Mail=_C16B43EA-5B40-49CC-A7AF-21094CA0F694
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename=signature.asc
+Content-Type: application/pgp-signature;
+	name=signature.asc
+Content-Description: Message signed with OpenPGP using GPGMail
+
+-----BEGIN PGP SIGNATURE-----
+Comment: GPGTools - https://gpgtools.org
+
+iQIcBAEBCgAGBQJV1AiXAAoJELgmozMOVy/dZ7wP+wTsAwyW/L1b+VmBAtiQXyIq
+vU5W+2sr3Ube1Eg2N5ufh159mF7Zy+iWZ1Ox/+S3wYs3TScvaMJlV/UFd+AyLjGf
+bywp+LHQYJx7XOfeTcz7telH8pmjGgydidpPtr2NPudXwpAIPtLPOiM33/jsopeM
+XONVMMS/f4MU0r2FYDGSY5HzXxtFV7JayNKSCiF+48Y9z8Cs4vCRvej8bHJHjXaS
+mZtvy2wKlF7PSnekgckhNgvQ7jt4zWUsHruveWjLU37GJ7XP5D4bFwEghXO+TQ1l
+bbe4OAyxOWDPjqetp4cSPbKN2B9mijX+mUNce922yqz/XxBM8FvC5FV2MzTreQYR
+LVqHCESWyDjah/2QVHcL94yReqhWj9MPemmvo0cQ4p6QWXnOUa9p6U7iIDYTuI0u
+FUzgbOnhXOPszn0R558aFBdiEoUsi1/m31gJkqZW1yh57VbRtsiNoDjJrzAu1jQn
+sdlhKc31BvklIFIRDBmpLUh6idcyEO/gh7lFLlu0nLmqkgg2+ypGvlNNCihVRMyV
+/Bjr+PTV6Wst0yQYUg3wfo5Jyngs/8WTyYrIa9qerddXl3mpCI3iBHvy9bRE+82h
+b1L6psPTy0rRV7zfFlUHp1WBZ33jP4OthQ6XKae/bkUQix1AORW5bcxjPKP6A1bK
+cSDimN2tH6Yr/YCYHWUF
+=sHvl
+-----END PGP SIGNATURE-----
+
+--Apple-Mail=_C16B43EA-5B40-49CC-A7AF-21094CA0F694--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
