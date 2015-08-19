@@ -1,40 +1,39 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH WIP 28/43] IB/core: Introduce new fast registration API
-Date: Wed, 19 Aug 2015 19:09:18 +0300
-Message-ID: <55D4AA2E.7090204@dev.mellanox.co.il>
-References: <1437548143-24893-1-git-send-email-sagig@mellanox.com>
- <1437548143-24893-29-git-send-email-sagig@mellanox.com>
- <20150722165012.GC6443@infradead.org>
- <20150722174401.GG26909@obsidianresearch.com>
- <55B0BEB4.9080702@dev.mellanox.co.il>
- <20150723175535.GE25174@obsidianresearch.com>
- <55D46EE8.4060701@dev.mellanox.co.il> <20150819125253.GB24746@infradead.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: shrink struct ib_send_wr
+Date: Wed, 19 Aug 2015 18:37:31 +0200
+Message-ID: <1440002254-795-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150819125253.GB24746-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+This series shrinks the WR size by splitting out the different WR
+types.
 
->
-> Keep it out for now.
+Patch number two is too large for the mailinglist, so if you didn't
+get it grab it here:
 
-Ok, I was also thinking on moving the access flags
-to the work request again. It doesn't make much sense there
-unless I go with what Jason suggested with ib_map_mr_[lkey|rkey]
-to protect against remote access for lkeys in IB which to me, sounds
-redundant at this point given that ULPs will set the access according
-to iWARP anyway.
+	http://git.infradead.org/users/hch/rdma.git/commitdiff/30e522ee6c1d7adb614d7308f09fbfd71c6d3e07
 
-I'd prefer to get this right with a different helper like Steve
-suggested:
-int rdma_access_flags(int mr_roles);
+or the full git tree at:
 
-This way we don't need to protect against it.
+	git://git.infradead.org/users/hch/rdma.git wr-cleanup
+
+Changes since the version sent around a couple of times:
+
+ - new patch 1 which rejects invalid opcodes.  Patch 2 was doing
+   this implicitly except for UD QPs, but I think we should a)
+   do this explicitly and b) ensure this goes into 4.2 and -stable
+   as I can see quite a lot of harm from submitting such malformed
+   operations
+ - patch 2 now covers all drivers including those in staging to
+   side step any sort of discussions on the staging tree.
+ - patch 2 now explicitly replaces the weird overloading in the mlx5
+   driver with an explicit embedding of struct ib_send_wr, similar
+   to what we do for all other MRs.
+ - new patch to drop another unused send_wr field.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
