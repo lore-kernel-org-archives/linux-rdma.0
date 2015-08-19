@@ -1,74 +1,65 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] Kconfig: add temporary PCI dependency
-Date: Tue, 18 Aug 2015 21:39:51 -0700
-Message-ID: <3B208E8E-DEB5-4A98-841F-90AB8949B6C3@redhat.com>
-References: <20150818141542.4127.90517.stgit@phlsvslse11.ph.intel.com> <20150818161102.GA4040@kroah.com> <32E1700B9017364D9B60AED9960492BC25799762@fmsmsx120.amr.corp.intel.com> <20150818165026.GA25138@kroah.com> <9D026CCE-9F4F-4F87-BA05-AAD6C2C6A417@redhat.com> <20150818231150.GB32269@kroah.com> <08B07723-39A2-416E-92F9-E939B21EBBCA@redhat.com> <20150819024904.GA4151@kroah.com> <2EAAE0A5-3B1C-4846-B5A2-50026A91011F@redhat.com> <20150819041006.GA9794@kroah.com>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
-Content-Type: multipart/signed; boundary="Apple-Mail=_C16B43EA-5B40-49CC-A7AF-21094CA0F694"; protocol="application/pgp-signature"; micalg=pgp-sha512
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH WIP 28/43] IB/core: Introduce new fast registration API
+Date: Wed, 19 Aug 2015 14:56:24 +0300
+Message-ID: <55D46EE8.4060701@dev.mellanox.co.il>
+References: <1437548143-24893-1-git-send-email-sagig@mellanox.com>
+ <1437548143-24893-29-git-send-email-sagig@mellanox.com>
+ <20150722165012.GC6443@infradead.org>
+ <20150722174401.GG26909@obsidianresearch.com>
+ <55B0BEB4.9080702@dev.mellanox.co.il>
+ <20150723175535.GE25174@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150819041006.GA9794-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20150723175535.GE25174-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Cc: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org" <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 7/23/2015 8:55 PM, Jason Gunthorpe wrote:
+> On Thu, Jul 23, 2015 at 01:15:16PM +0300, Sagi Grimberg wrote:
+>>> I was hoping we'd move the DMA flush and translate into here and make
+>>> it mandatory. Is there any reason not to do that?
+>>
+>> The reason I didn't added it in was so the ULPs can make sure they meet
+>> the restrictions of ib_map_mr_sg(). Allow SRP to iterate on his
+>> SG list set partials and iSER to detect gaps (they need to dma map
+>> for that).
+>
+> The ULP can always get the sg list's virtual address to check for
+> gaps. Page aligned gaps are always OK.
 
---Apple-Mail=_C16B43EA-5B40-49CC-A7AF-21094CA0F694
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain;
-	charset=utf-8
+So I had a go with moving the DMA mapping into ib_map_mr_sg() and
+it turns out mapping somewhat poorly if the ULP _may_ register memory
+or just send sg_lists (like storage targets over IB/iWARP). So the ULP
+will sometimes use the DMA mapping and sometimes it won't... feels
+kinda off to me...
 
+it's much saner to do:
+1. dma_map_sg
+2. register / send-sg-list
+3. unregister (if needed)
+4. dma_unmap_sg
 
-> On Aug 18, 2015, at 9:10 PM, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org> wrote:
->=20
->>=20
->> a library for their transfer engine, which also requires writing said
->> library), I=E2=80=99m wondering if it isn=E2=80=99t worthwhile to =
-create a
->> staging/infiniband directory, remove your name and driverdevel from
->> the maintainer entry for the directory and redirect it to linux-rdma,
->> and delete it when this work has passed.
->=20
-> That sounds like a good plan to me.
+then:
+1. if register - call ib_map_mr_sg (which calls dma_map_sg)
+    else do dma_map_sg
+2. if registered - call ib_dma_unmap_sg (which calles dma_unmap_sg)
+    else do dma_unmap_sg
 
-I=E2=80=99ll rebase my tree and fix it up.
+this kinda forces ULP to completely separate these code paths with
+with very little sharing.
 
-=E2=80=94
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-	GPG Key ID: 0E572FDD
+Also, at the moment, when ULPs are doing either FRWR or FMRs
+its a pain to get a non-intrusive conversion.
 
+I'm thinking we should keep dma_map_sg out of ib_map_mr_sg, and leave
+it to the ULP like it does today (at least in the first stage...)
 
+Thoughts?
 
-
-
-
---Apple-Mail=_C16B43EA-5B40-49CC-A7AF-21094CA0F694
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename=signature.asc
-Content-Type: application/pgp-signature;
-	name=signature.asc
-Content-Description: Message signed with OpenPGP using GPGMail
-
------BEGIN PGP SIGNATURE-----
-Comment: GPGTools - https://gpgtools.org
-
-iQIcBAEBCgAGBQJV1AiXAAoJELgmozMOVy/dZ7wP+wTsAwyW/L1b+VmBAtiQXyIq
-vU5W+2sr3Ube1Eg2N5ufh159mF7Zy+iWZ1Ox/+S3wYs3TScvaMJlV/UFd+AyLjGf
-bywp+LHQYJx7XOfeTcz7telH8pmjGgydidpPtr2NPudXwpAIPtLPOiM33/jsopeM
-XONVMMS/f4MU0r2FYDGSY5HzXxtFV7JayNKSCiF+48Y9z8Cs4vCRvej8bHJHjXaS
-mZtvy2wKlF7PSnekgckhNgvQ7jt4zWUsHruveWjLU37GJ7XP5D4bFwEghXO+TQ1l
-bbe4OAyxOWDPjqetp4cSPbKN2B9mijX+mUNce922yqz/XxBM8FvC5FV2MzTreQYR
-LVqHCESWyDjah/2QVHcL94yReqhWj9MPemmvo0cQ4p6QWXnOUa9p6U7iIDYTuI0u
-FUzgbOnhXOPszn0R558aFBdiEoUsi1/m31gJkqZW1yh57VbRtsiNoDjJrzAu1jQn
-sdlhKc31BvklIFIRDBmpLUh6idcyEO/gh7lFLlu0nLmqkgg2+ypGvlNNCihVRMyV
-/Bjr+PTV6Wst0yQYUg3wfo5Jyngs/8WTyYrIa9qerddXl3mpCI3iBHvy9bRE+82h
-b1L6psPTy0rRV7zfFlUHp1WBZ33jP4OthQ6XKae/bkUQix1AORW5bcxjPKP6A1bK
-cSDimN2tH6Yr/YCYHWUF
-=sHvl
------END PGP SIGNATURE-----
-
---Apple-Mail=_C16B43EA-5B40-49CC-A7AF-21094CA0F694--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
