@@ -1,109 +1,71 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: Greg KH <greg@kroah.com>
 Subject: Re: [PATCH] Kconfig: add temporary PCI dependency
-Date: Tue, 18 Aug 2015 20:11:26 -0700
-Message-ID: <2EAAE0A5-3B1C-4846-B5A2-50026A91011F@redhat.com>
-References: <20150818141542.4127.90517.stgit@phlsvslse11.ph.intel.com> <20150818161102.GA4040@kroah.com> <32E1700B9017364D9B60AED9960492BC25799762@fmsmsx120.amr.corp.intel.com> <20150818165026.GA25138@kroah.com> <9D026CCE-9F4F-4F87-BA05-AAD6C2C6A417@redhat.com> <20150818231150.GB32269@kroah.com> <08B07723-39A2-416E-92F9-E939B21EBBCA@redhat.com> <20150819024904.GA4151@kroah.com>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
-Content-Type: multipart/signed; boundary="Apple-Mail=_9232E0A5-E9A7-44EE-8AD1-3ED604C8F695"; protocol="application/pgp-signature"; micalg=pgp-sha512
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150819024904.GA4151-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Cc: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org" <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Date: Tue, 18 Aug 2015 21:10:06 -0700
+Message-ID: <20150819041006.GA9794@kroah.com>
+References: <20150818141542.4127.90517.stgit@phlsvslse11.ph.intel.com>
+ <20150818161102.GA4040@kroah.com>
+ <32E1700B9017364D9B60AED9960492BC25799762@fmsmsx120.amr.corp.intel.com>
+ <20150818165026.GA25138@kroah.com>
+ <9D026CCE-9F4F-4F87-BA05-AAD6C2C6A417@redhat.com>
+ <20150818231150.GB32269@kroah.com>
+ <08B07723-39A2-416E-92F9-E939B21EBBCA@redhat.com>
+ <20150819024904.GA4151@kroah.com>
+ <2EAAE0A5-3B1C-4846-B5A2-50026A91011F@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+Content-Disposition: inline
+In-Reply-To: <2EAAE0A5-3B1C-4846-B5A2-50026A91011F@redhat.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Doug Ledford <dledford@redhat.com>
+Cc: "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Marciniszyn,
+ Mike" <mike.marciniszyn@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-
---Apple-Mail=_9232E0A5-E9A7-44EE-8AD1-3ED604C8F695
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain;
-	charset=utf-8
-
-
-> On Aug 18, 2015, at 7:49 PM, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org> wrote:
->=20
-> On Tue, Aug 18, 2015 at 06:24:40PM -0700, Doug Ledford wrote:
->>=20
->>=20
->>> Are
->>> you going to be responsible for all of the patches sent to it and =
-you
->>> just want me to ignore them, or will you send patches to me for me =
-to
->>> apply?
->>=20
->> I expect the patch load to be significant due to the required TODO
->> item of making it use a transfer engine library.  I wouldn=E2=80=99t =
-want to
->> sign you up for that load.  If you are OK with me processing the
->> patches, then I=E2=80=99m happy to do so.  If you would prefer the =
-other way
->> around, then I=E2=80=99ll defer to your wishes.
->=20
-> What is "significant"?  I'm kind of used to handling a lot of patches =
-:)
-
-I have no doubt of that.
-
-> How are you going to handle all of the coding style fixups that will =
-end
-> up coming in from people?  Want me to just let you handle all of them =
-as
-> well?  If so, please remove me from the MAINTAINERS entry for this
-> subdirectory so that I, and the driverdevel mailing list do not get =
-the
-> emails.
->=20
-> Otherwise, feel free to just send me patches, I can easily handle =
-them.
-
-Given the amount of stuff I have on the radar for going through the =
-staging tree (two deprecated drivers to be removed entirely, plan is =
-move to staging in 4.3, delete from tree in 4.6, this driver and one =
-other as-of-yet-to-be-submitted driver to be added to tree, both drivers =
-have the same major TODO item, which is to be converted to use a library =
-for their transfer engine, which also requires writing said library), =
-I=E2=80=99m wondering if it isn=E2=80=99t worthwhile to create a =
-staging/infiniband directory, remove your name and driverdevel from the =
-maintainer entry for the directory and redirect it to linux-rdma, and =
-delete it when this work has passed.
-
-=E2=80=94
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-	GPG Key ID: 0E572FDD
-
-
-
-
-
-
---Apple-Mail=_9232E0A5-E9A7-44EE-8AD1-3ED604C8F695
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename=signature.asc
-Content-Type: application/pgp-signature;
-	name=signature.asc
-Content-Description: Message signed with OpenPGP using GPGMail
-
------BEGIN PGP SIGNATURE-----
-Comment: GPGTools - https://gpgtools.org
-
-iQIcBAEBCgAGBQJV0/PfAAoJELgmozMOVy/deAEP/jMTzwwegKlwlOmNpOjLs/m+
-LIWaBF0tz0jqF7b9CXG05aII8h4ZAmMiAoUUOvuecloVJgdqo4sKyKbIVkqGbSDa
-3b92AgSnYTkRWiX2D1cUKO74OFHFS0dnlNHFjy3NiLQXqTvtAS8mYjjfJGUWu+ld
-f4oQg8hPKwPchLcuqgRgyVMBN9UQhFELAz0pYiAM0AZwUYnjZpTzowYl2twhFo8I
-TC+vn9X+f58uOlRsFGU+lEXNYHiFkhcnastCy5ZL9CrOG4QyO0FK2voNempmG3MM
-L67YXn9uOX8u7KC9yslJlUoXqkoSX0OUYKnQSGrRra9xoDlm8vcvQdX7yVDE7hEJ
-eLmrKoWjwYW0rrp/fSiVKlnBATFqdLWpDhTy/x/nK89doJm+aDgMZ0pMenaRpAgb
-3tljg5S/XpdCGIFTQw6UuKQyDUCAk2VRzcufrKIFtfMqDj8PUfHW2MOU04GJWfWe
-dOmGjYzEFTmWBJfo2eqS6OPvxIG+hkgZ3zWjpzZWSmmQp5qJ3KlHZJPddrFjYtY+
-Qa55qBUuNI7X+WHDVkBaDw418VJiph0Qb3aajj0cv3DN/d76c+8WV5ARmm/dN9vD
-9nc4+kC3yHApG15kQdEJ7bUcHWXLkOWWuR34G82o9bVvk7z6CReqwY3VxnJiMxh+
-FSRRIp2tCHGxZjqAAOuA
-=TWzO
------END PGP SIGNATURE-----
-
---Apple-Mail=_9232E0A5-E9A7-44EE-8AD1-3ED604C8F695--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gVHVlLCBBdWcgMTgsIDIwMTUgYXQgMDg6MTE6MjZQTSAtMDcwMCwgRG91ZyBMZWRmb3JkIHdy
+b3RlOgo+IAo+ID4gT24gQXVnIDE4LCAyMDE1LCBhdCA3OjQ5IFBNLCBHcmVnIEtIIDxncmVnQGty
+b2FoLmNvbT4gd3JvdGU6Cj4gPiAKPiA+IE9uIFR1ZSwgQXVnIDE4LCAyMDE1IGF0IDA2OjI0OjQw
+UE0gLTA3MDAsIERvdWcgTGVkZm9yZCB3cm90ZToKPiA+PiAKPiA+PiAKPiA+Pj4gQXJlCj4gPj4+
+IHlvdSBnb2luZyB0byBiZSByZXNwb25zaWJsZSBmb3IgYWxsIG9mIHRoZSBwYXRjaGVzIHNlbnQg
+dG8gaXQgYW5kIHlvdQo+ID4+PiBqdXN0IHdhbnQgbWUgdG8gaWdub3JlIHRoZW0sIG9yIHdpbGwg
+eW91IHNlbmQgcGF0Y2hlcyB0byBtZSBmb3IgbWUgdG8KPiA+Pj4gYXBwbHk/Cj4gPj4gCj4gPj4g
+SSBleHBlY3QgdGhlIHBhdGNoIGxvYWQgdG8gYmUgc2lnbmlmaWNhbnQgZHVlIHRvIHRoZSByZXF1
+aXJlZCBUT0RPCj4gPj4gaXRlbSBvZiBtYWtpbmcgaXQgdXNlIGEgdHJhbnNmZXIgZW5naW5lIGxp
+YnJhcnkuICBJIHdvdWxkbuKAmXQgd2FudCB0bwo+ID4+IHNpZ24geW91IHVwIGZvciB0aGF0IGxv
+YWQuICBJZiB5b3UgYXJlIE9LIHdpdGggbWUgcHJvY2Vzc2luZyB0aGUKPiA+PiBwYXRjaGVzLCB0
+aGVuIEnigJltIGhhcHB5IHRvIGRvIHNvLiAgSWYgeW91IHdvdWxkIHByZWZlciB0aGUgb3RoZXIg
+d2F5Cj4gPj4gYXJvdW5kLCB0aGVuIEnigJlsbCBkZWZlciB0byB5b3VyIHdpc2hlcy4KPiA+IAo+
+ID4gV2hhdCBpcyAic2lnbmlmaWNhbnQiPyAgSSdtIGtpbmQgb2YgdXNlZCB0byBoYW5kbGluZyBh
+IGxvdCBvZiBwYXRjaGVzIDopCj4gCj4gSSBoYXZlIG5vIGRvdWJ0IG9mIHRoYXQuCj4gCj4gPiBI
+b3cgYXJlIHlvdSBnb2luZyB0byBoYW5kbGUgYWxsIG9mIHRoZSBjb2Rpbmcgc3R5bGUgZml4dXBz
+IHRoYXQgd2lsbCBlbmQKPiA+IHVwIGNvbWluZyBpbiBmcm9tIHBlb3BsZT8gIFdhbnQgbWUgdG8g
+anVzdCBsZXQgeW91IGhhbmRsZSBhbGwgb2YgdGhlbSBhcwo+ID4gd2VsbD8gIElmIHNvLCBwbGVh
+c2UgcmVtb3ZlIG1lIGZyb20gdGhlIE1BSU5UQUlORVJTIGVudHJ5IGZvciB0aGlzCj4gPiBzdWJk
+aXJlY3Rvcnkgc28gdGhhdCBJLCBhbmQgdGhlIGRyaXZlcmRldmVsIG1haWxpbmcgbGlzdCBkbyBu
+b3QgZ2V0IHRoZQo+ID4gZW1haWxzLgo+ID4gCj4gPiBPdGhlcndpc2UsIGZlZWwgZnJlZSB0byBq
+dXN0IHNlbmQgbWUgcGF0Y2hlcywgSSBjYW4gZWFzaWx5IGhhbmRsZSB0aGVtLgo+IAo+IEdpdmVu
+IHRoZSBhbW91bnQgb2Ygc3R1ZmYgSSBoYXZlIG9uIHRoZSByYWRhciBmb3IgZ29pbmcgdGhyb3Vn
+aCB0aGUKPiBzdGFnaW5nIHRyZWUgKHR3byBkZXByZWNhdGVkIGRyaXZlcnMgdG8gYmUgcmVtb3Zl
+ZCBlbnRpcmVseSwgcGxhbiBpcwo+IG1vdmUgdG8gc3RhZ2luZyBpbiA0LjMsIGRlbGV0ZSBmcm9t
+IHRyZWUgaW4gNC42LCB0aGlzIGRyaXZlciBhbmQgb25lCj4gb3RoZXIgYXMtb2YteWV0LXRvLWJl
+LXN1Ym1pdHRlZCBkcml2ZXIgdG8gYmUgYWRkZWQgdG8gdHJlZSwgYm90aAo+IGRyaXZlcnMgaGF2
+ZSB0aGUgc2FtZSBtYWpvciBUT0RPIGl0ZW0sIHdoaWNoIGlzIHRvIGJlIGNvbnZlcnRlZCB0byB1
+c2UKPiBhIGxpYnJhcnkgZm9yIHRoZWlyIHRyYW5zZmVyIGVuZ2luZSwgd2hpY2ggYWxzbyByZXF1
+aXJlcyB3cml0aW5nIHNhaWQKPiBsaWJyYXJ5KSwgSeKAmW0gd29uZGVyaW5nIGlmIGl0IGlzbuKA
+mXQgd29ydGh3aGlsZSB0byBjcmVhdGUgYQo+IHN0YWdpbmcvaW5maW5pYmFuZCBkaXJlY3Rvcnks
+IHJlbW92ZSB5b3VyIG5hbWUgYW5kIGRyaXZlcmRldmVsIGZyb20KPiB0aGUgbWFpbnRhaW5lciBl
+bnRyeSBmb3IgdGhlIGRpcmVjdG9yeSBhbmQgcmVkaXJlY3QgaXQgdG8gbGludXgtcmRtYSwKPiBh
+bmQgZGVsZXRlIGl0IHdoZW4gdGhpcyB3b3JrIGhhcyBwYXNzZWQuCgpUaGF0IHNvdW5kcyBsaWtl
+IGEgZ29vZCBwbGFuIHRvIG1lLgoKdGhhbmtzLAoKZ3JlZyBrLWgKX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZGV2ZWwgbWFpbGluZyBsaXN0CmRldmVsQGxp
+bnV4ZHJpdmVycHJvamVjdC5vcmcKaHR0cDovL2RyaXZlcmRldi5saW51eGRyaXZlcnByb2plY3Qu
+b3JnL21haWxtYW4vbGlzdGluZm8vZHJpdmVyZGV2LWRldmVsCg==
