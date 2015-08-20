@@ -1,7 +1,7 @@
 From: Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 03/10] net/mlx5_core: Break down the vport mac address query function
-Date: Thu, 20 Aug 2015 19:46:22 +0300
-Message-ID: <1440089189-3361-4-git-send-email-achiad@mellanox.com>
+Subject: [PATCH for-next 01/10] IB/mlx5: Support IB device's callback for getting the link layer
+Date: Thu, 20 Aug 2015 19:46:20 +0300
+Message-ID: <1440089189-3361-2-git-send-email-achiad@mellanox.com>
 References: <1440089189-3361-1-git-send-email-achiad@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1440089189-3361-1-git-send-email-achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,70 +10,85 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVS1Z/+hSey0Gg@public.gmane.org>, Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Introduce a new function called mlx5_query_nic_vport_context().
-This function gets all the NIC vport attributes from the device.
-
-The MAC address is just one of the NIC vport attributes, so
-mlx5_query_nic_vport_mac_address() is now just a wrapper function
-above mlx5_query_nic_vport_context().
-
-More NIC vport attributes will be used in following commits.
+Make the existing mlx5_ib_port_link_layer() signature match
+the ib device callback signature (add port_num parameter).
+Refactor it to use a sub function so that the link layer could
+be queried also before the ibdev is created.
 
 Signed-off-by: Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/vport.c | 27 ++++++++++++++++---------
- 1 file changed, 17 insertions(+), 10 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c | 25 +++++++++++++++++++------
+ 1 file changed, 19 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/vport.c b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-index b94177e..54ab63b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-@@ -57,12 +57,25 @@ u8 mlx5_query_vport_state(struct mlx5_core_dev *mdev, u8 opmod)
- }
- EXPORT_SYMBOL(mlx5_query_vport_state);
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 085c24b..8540e00 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -64,11 +64,9 @@ static char mlx5_version[] =
+ 	DRIVER_VERSION " (" DRIVER_RELDATE ")\n";
  
-+static int mlx5_query_nic_vport_context(struct mlx5_core_dev *mdev, u32 *out,
-+					int outlen)
+ static enum rdma_link_layer
+-mlx5_ib_port_link_layer(struct ib_device *device)
++mlx5_port_type_cap_to_rdma_ll(int port_type_cap)
+ {
+-	struct mlx5_ib_dev *dev = to_mdev(device);
+-
+-	switch (MLX5_CAP_GEN(dev->mdev, port_type)) {
++	switch (port_type_cap) {
+ 	case MLX5_CAP_PORT_TYPE_IB:
+ 		return IB_LINK_LAYER_INFINIBAND;
+ 	case MLX5_CAP_PORT_TYPE_ETH:
+@@ -78,6 +76,15 @@ mlx5_ib_port_link_layer(struct ib_device *device)
+ 	}
+ }
+ 
++static enum rdma_link_layer
++mlx5_ib_port_link_layer(struct ib_device *device, u8 port_num)
 +{
-+	u32 in[MLX5_ST_SZ_DW(query_nic_vport_context_in)];
++	struct mlx5_ib_dev *dev = to_mdev(device);
++	int port_type_cap = MLX5_CAP_GEN(dev->mdev, port_type);
 +
-+	memset(in, 0, sizeof(in));
-+
-+	MLX5_SET(query_nic_vport_context_in, in, opcode,
-+		 MLX5_CMD_OP_QUERY_NIC_VPORT_CONTEXT);
-+
-+	return mlx5_cmd_exec_check_status(mdev, in, sizeof(in), out, outlen);
++	return mlx5_port_type_cap_to_rdma_ll(port_type_cap);
 +}
 +
- void mlx5_query_nic_vport_mac_address(struct mlx5_core_dev *mdev, u8 *addr)
+ static int mlx5_use_mad_ifc(struct mlx5_ib_dev *dev)
  {
--	u32  in[MLX5_ST_SZ_DW(query_nic_vport_context_in)];
- 	u32 *out;
- 	int outlen = MLX5_ST_SZ_BYTES(query_nic_vport_context_out);
- 	u8 *out_addr;
-+	int err;
+ 	return !dev->mdev->issi;
+@@ -94,7 +101,7 @@ static int mlx5_get_vport_access_method(struct ib_device *ibdev)
+ 	if (mlx5_use_mad_ifc(to_mdev(ibdev)))
+ 		return MLX5_VPORT_ACCESS_METHOD_MAD;
  
- 	out = mlx5_vzalloc(outlen);
- 	if (!out)
-@@ -71,15 +84,9 @@ void mlx5_query_nic_vport_mac_address(struct mlx5_core_dev *mdev, u8 *addr)
- 	out_addr = MLX5_ADDR_OF(query_nic_vport_context_out, out,
- 				nic_vport_context.permanent_address);
+-	if (mlx5_ib_port_link_layer(ibdev) ==
++	if (mlx5_ib_port_link_layer(ibdev, 1) ==
+ 	    IB_LINK_LAYER_ETHERNET)
+ 		return MLX5_VPORT_ACCESS_METHOD_NIC;
  
--	memset(in, 0, sizeof(in));
--
--	MLX5_SET(query_nic_vport_context_in, in, opcode,
--		 MLX5_CMD_OP_QUERY_NIC_VPORT_CONTEXT);
--
--	memset(out, 0, outlen);
--	mlx5_cmd_exec_check_status(mdev, in, sizeof(in), out, outlen);
--
--	ether_addr_copy(addr, &out_addr[2]);
-+	err = mlx5_query_nic_vport_context(mdev, out, outlen);
-+	if (!err)
-+		ether_addr_copy(addr, &out_addr[2]);
+@@ -1394,11 +1401,16 @@ static int mlx5_port_immutable(struct ib_device *ibdev, u8 port_num,
+ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ {
+ 	struct mlx5_ib_dev *dev;
++	enum rdma_link_layer ll;
++	int port_type_cap;
+ 	int err;
+ 	int i;
  
- 	kvfree(out);
- }
++	port_type_cap = MLX5_CAP_GEN(mdev, port_type);
++	ll = mlx5_port_type_cap_to_rdma_ll(port_type_cap);
++
+ 	/* don't create IB instance over Eth ports, no RoCE yet! */
+-	if (MLX5_CAP_GEN(mdev, port_type) == MLX5_CAP_PORT_TYPE_ETH)
++	if (ll == IB_LINK_LAYER_ETHERNET)
+ 		return NULL;
+ 
+ 	printk_once(KERN_INFO "%s", mlx5_version);
+@@ -1458,6 +1470,7 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 
+ 	dev->ib_dev.query_device	= mlx5_ib_query_device;
+ 	dev->ib_dev.query_port		= mlx5_ib_query_port;
++	dev->ib_dev.get_link_layer	= mlx5_ib_port_link_layer;
+ 	dev->ib_dev.query_gid		= mlx5_ib_query_gid;
+ 	dev->ib_dev.query_pkey		= mlx5_ib_query_pkey;
+ 	dev->ib_dev.modify_device	= mlx5_ib_modify_device;
 -- 
 1.8.3.1
 
