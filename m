@@ -1,7 +1,7 @@
 From: Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 06/10] IB/mlx5: Extend query_device/port to support RoCE
-Date: Thu, 20 Aug 2015 19:46:25 +0300
-Message-ID: <1440089189-3361-7-git-send-email-achiad@mellanox.com>
+Subject: [PATCH for-next 08/10] IB/mlx5: Support IB device's callbacks for adding/deleting GIDs
+Date: Thu, 20 Aug 2015 19:46:27 +0300
+Message-ID: <1440089189-3361-9-git-send-email-achiad@mellanox.com>
 References: <1440089189-3361-1-git-send-email-achiad@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1440089189-3361-1-git-send-email-achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,156 +10,153 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVS1Z/+hSey0Gg@public.gmane.org>, Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Using the vport access functions to retrieve the Ethernet
-specific information and return this information in
-ib_query_device and ib_query_port.
+These callbacks write into the mlx5 RoCE address table.
+Upon del_gid we write a zero'd GID.
 
 Signed-off-by: Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 75 +++++++++++++++++++++++++++++++++++----
- include/linux/mlx5/driver.h       |  7 ----
- 2 files changed, 69 insertions(+), 13 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c | 89 +++++++++++++++++++++++++++++++++++++++
+ include/linux/mlx5/device.h       | 20 +++++++++
+ 2 files changed, 109 insertions(+)
 
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 5a176d7..612dc3a 100644
+index 612dc3a..975e332 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -40,6 +40,7 @@
- #include <linux/io-mapping.h>
- #include <linux/sched.h>
- #include <rdma/ib_user_verbs.h>
-+#include <rdma/ib_addr.h>
- #include <linux/mlx5/vport.h>
- #include <rdma/ib_smi.h>
- #include <rdma/ib_umem.h>
-@@ -120,6 +121,50 @@ static struct net_device *mlx5_ib_get_netdev(struct ib_device *device,
- 	return ndev;
+@@ -165,6 +165,93 @@ static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
+ 	return 0;
  }
  
-+static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
-+				struct ib_port_attr *props)
++static void ib_gid_to_mlx5_roce_addr(const union ib_gid *gid,
++				     const struct ib_gid_attr *attr,
++				     void *mlx5_addr)
 +{
-+	struct mlx5_ib_dev *dev = to_mdev(device);
-+	struct net_device *ndev;
-+	enum ib_mtu ndev_ib_mtu;
++#define MLX5_SET_RA(p, f, v) MLX5_SET(roce_addr_layout, p, f, v)
++	char *mlx5_addr_l3_addr	= MLX5_ADDR_OF(roce_addr_layout, mlx5_addr,
++					       source_l3_address);
++	void *mlx5_addr_mac	= MLX5_ADDR_OF(roce_addr_layout, mlx5_addr,
++					       source_mac_47_32);
 +
-+	memset(props, 0, sizeof(*props));
++	if (!gid)
++		return;
 +
-+	props->port_cap_flags  |= IB_PORT_CM_SUP;
-+	props->port_cap_flags  |= IB_PORT_IP_BASED_GIDS;
++	ether_addr_copy(mlx5_addr_mac, attr->ndev->dev_addr);
 +
-+	props->gid_tbl_len      = MLX5_CAP_ROCE(dev->mdev,
-+						roce_address_table_size);
-+	props->max_mtu          = IB_MTU_4096;
-+	props->max_msg_sz       = 1 << MLX5_CAP_GEN(dev->mdev, log_max_msg);
-+	props->pkey_tbl_len     = 1;
-+	props->state            = IB_PORT_DOWN;
-+	props->phys_state       = 3;
-+
-+	mlx5_query_nic_vport_qkey_viol_cntr(dev->mdev,
-+					    (u16 *)&props->qkey_viol_cntr);
-+
-+	ndev = mlx5_ib_get_netdev(device, port_num);
-+	if (!ndev)
-+		return 0;
-+
-+	if (netif_running(ndev) && netif_carrier_ok(ndev)) {
-+		props->state      = IB_PORT_ACTIVE;
-+		props->phys_state = 5;
++	if (is_vlan_dev(attr->ndev)) {
++		MLX5_SET_RA(mlx5_addr, vlan_valid, 1);
++		MLX5_SET_RA(mlx5_addr, vlan_id, vlan_dev_vlan_id(attr->ndev));
 +	}
 +
-+	ndev_ib_mtu = iboe_get_mtu(ndev->mtu);
++	switch (attr->gid_type) {
++	case IB_GID_TYPE_IB:
++		MLX5_SET_RA(mlx5_addr, roce_version, MLX5_ROCE_VERSION_1);
++		break;
++	case IB_GID_TYPE_ROCE_UDP_ENCAP:
++		MLX5_SET_RA(mlx5_addr, roce_version, MLX5_ROCE_VERSION_2);
++		break;
 +
-+	dev_put(ndev);
++	default:
++		WARN_ON(true);
++	}
 +
-+	props->active_mtu	= min(props->max_mtu, ndev_ib_mtu);
++	if (attr->gid_type != IB_GID_TYPE_IB) {
++		if (ipv6_addr_v4mapped((void *)gid))
++			MLX5_SET_RA(mlx5_addr, roce_l3_type,
++				    MLX5_ROCE_L3_TYPE_IPV4);
++		else
++			MLX5_SET_RA(mlx5_addr, roce_l3_type,
++				    MLX5_ROCE_L3_TYPE_IPV6);
++	}
 +
-+	props->active_width	= IB_WIDTH_4X;  /* TODO */
-+	props->active_speed	= IB_SPEED_QDR; /* TODO */
++	if ((attr->gid_type == IB_GID_TYPE_IB) ||
++	    !ipv6_addr_v4mapped((void *)gid))
++		memcpy(mlx5_addr_l3_addr, gid, sizeof(*gid));
++	else
++		memcpy(&mlx5_addr_l3_addr[12], &gid->raw[12], 4);
++}
 +
-+	return 0;
++static int set_roce_addr(struct ib_device *device, u8 port_num,
++			 unsigned int index,
++			 const union ib_gid *gid,
++			 const struct ib_gid_attr *attr)
++{
++	struct mlx5_ib_dev *dev	= to_mdev(device);
++	u32  in[MLX5_ST_SZ_DW(set_roce_address_in)];
++	u32 out[MLX5_ST_SZ_DW(set_roce_address_out)];
++	void *in_addr = MLX5_ADDR_OF(set_roce_address_in, in, roce_address);
++	enum rdma_link_layer ll = mlx5_ib_port_link_layer(device, port_num);
++
++	if (ll != IB_LINK_LAYER_ETHERNET)
++		return -EINVAL;
++
++	memset(in, 0, sizeof(in));
++
++	ib_gid_to_mlx5_roce_addr(gid, attr, in_addr);
++
++	MLX5_SET(set_roce_address_in, in, roce_address_index, index);
++	MLX5_SET(set_roce_address_in, in, opcode, MLX5_CMD_OP_SET_ROCE_ADDRESS);
++
++	memset(out, 0, sizeof(out));
++	return mlx5_cmd_exec(dev->mdev, in, sizeof(in), out, sizeof(out));
++}
++
++static int mlx5_ib_add_gid(struct ib_device *device, u8 port_num,
++			   unsigned int index, const union ib_gid *gid,
++			   const struct ib_gid_attr *attr,
++			   __always_unused void **context)
++{
++	return set_roce_addr(device, port_num, index, gid, attr);
++}
++
++static int mlx5_ib_del_gid(struct ib_device *device, u8 port_num,
++			   unsigned int index, __always_unused void **context)
++{
++	return set_roce_addr(device, port_num, index, NULL, NULL);
 +}
 +
  static int mlx5_use_mad_ifc(struct mlx5_ib_dev *dev)
  {
  	return !dev->mdev->issi;
-@@ -158,13 +203,21 @@ static int mlx5_query_system_image_guid(struct ib_device *ibdev,
+@@ -1584,6 +1671,8 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 	if (ll == IB_LINK_LAYER_ETHERNET)
+ 		dev->ib_dev.get_netdev	= mlx5_ib_get_netdev;
+ 	dev->ib_dev.query_gid		= mlx5_ib_query_gid;
++	dev->ib_dev.add_gid		= mlx5_ib_add_gid;
++	dev->ib_dev.del_gid		= mlx5_ib_del_gid;
+ 	dev->ib_dev.query_pkey		= mlx5_ib_query_pkey;
+ 	dev->ib_dev.modify_device	= mlx5_ib_modify_device;
+ 	dev->ib_dev.modify_port		= mlx5_ib_modify_port;
+diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
+index 2777794..90406b4 100644
+--- a/include/linux/mlx5/device.h
++++ b/include/linux/mlx5/device.h
+@@ -279,6 +279,26 @@ enum {
+ };
  
- 	case MLX5_VPORT_ACCESS_METHOD_HCA:
- 		err = mlx5_query_hca_vport_system_image_guid(mdev, &tmp);
--		if (!err)
--			*sys_image_guid = cpu_to_be64(tmp);
--		return err;
-+		break;
+ enum {
++	MLX5_ROCE_VERSION_1		= 0,
++	MLX5_ROCE_VERSION_2		= 2,
++};
 +
-+	case MLX5_VPORT_ACCESS_METHOD_NIC:
-+		err = mlx5_query_nic_vport_system_image_guid(mdev, &tmp);
-+		break;
- 
- 	default:
- 		return -EINVAL;
- 	}
++enum {
++	MLX5_ROCE_VERSION_1_CAP		= 1 << MLX5_ROCE_VERSION_1,
++	MLX5_ROCE_VERSION_2_CAP		= 1 << MLX5_ROCE_VERSION_2,
++};
 +
-+	if (!err)
-+		*sys_image_guid = cpu_to_be64(tmp);
++enum {
++	MLX5_ROCE_L3_TYPE_IPV4		= 0,
++	MLX5_ROCE_L3_TYPE_IPV6		= 1,
++};
 +
-+	return err;
++enum {
++	MLX5_ROCE_L3_TYPE_IPV4_CAP	= 1 << 1,
++	MLX5_ROCE_L3_TYPE_IPV6_CAP	= 1 << 2,
++};
 +
- }
- 
- static int mlx5_query_max_pkeys(struct ib_device *ibdev,
-@@ -218,13 +271,20 @@ static int mlx5_query_node_guid(struct mlx5_ib_dev *dev,
- 
- 	case MLX5_VPORT_ACCESS_METHOD_HCA:
- 		err = mlx5_query_hca_vport_node_guid(dev->mdev, &tmp);
--		if (!err)
--			*node_guid = cpu_to_be64(tmp);
--		return err;
-+		break;
-+
-+	case MLX5_VPORT_ACCESS_METHOD_NIC:
-+		err = mlx5_query_nic_vport_node_guid(dev->mdev, &tmp);
-+		break;
- 
- 	default:
- 		return -EINVAL;
- 	}
-+
-+	if (!err)
-+		*node_guid = cpu_to_be64(tmp);
-+
-+	return err;
- }
- 
- struct mlx5_reg_node_desc {
-@@ -521,6 +581,9 @@ int mlx5_ib_query_port(struct ib_device *ibdev, u8 port,
- 	case MLX5_VPORT_ACCESS_METHOD_HCA:
- 		return mlx5_query_hca_port(ibdev, port, props);
- 
-+	case MLX5_VPORT_ACCESS_METHOD_NIC:
-+		return mlx5_query_port_roce(ibdev, port, props);
-+
- 	default:
- 		return -EINVAL;
- 	}
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 5722d88..74e833d 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -600,13 +600,6 @@ extern struct workqueue_struct *mlx5_core_wq;
- 	.struct_offset_bytes = offsetof(struct ib_unpacked_ ## header, field),      \
- 	.struct_size_bytes   = sizeof((struct ib_unpacked_ ## header *)0)->field
- 
--struct ib_field {
--	size_t struct_offset_bytes;
--	size_t struct_size_bytes;
--	int    offset_bits;
--	int    size_bits;
--};
--
- static inline struct mlx5_core_dev *pci2mlx5_core_dev(struct pci_dev *pdev)
- {
- 	return pci_get_drvdata(pdev);
++enum {
+ 	MLX5_OPCODE_NOP			= 0x00,
+ 	MLX5_OPCODE_SEND_INVAL		= 0x01,
+ 	MLX5_OPCODE_RDMA_WRITE		= 0x08,
 -- 
 1.8.3.1
 
