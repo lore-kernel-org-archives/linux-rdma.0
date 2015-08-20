@@ -1,62 +1,72 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH WIP 28/43] IB/core: Introduce new fast registration API
-Date: Thu, 20 Aug 2015 13:05:59 +0300
-Message-ID: <55D5A687.90102@dev.mellanox.co.il>
-References: <1437548143-24893-1-git-send-email-sagig@mellanox.com>
- <1437548143-24893-29-git-send-email-sagig@mellanox.com>
- <20150722165012.GC6443@infradead.org>
- <20150722174401.GG26909@obsidianresearch.com>
- <55B0BEB4.9080702@dev.mellanox.co.il>
- <20150723175535.GE25174@obsidianresearch.com>
- <55D46EE8.4060701@dev.mellanox.co.il>
- <20150819173751.GB22646@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v1 for-next 0/7] Add support for multicast loopback prevention to mlx4
+Date: Thu, 20 Aug 2015 17:34:28 +0300
+Message-ID: <1440081275-15864-1-git-send-email-eranbe@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150819173751.GB22646-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->> 1. if register - call ib_map_mr_sg (which calls dma_map_sg)
->>     else do dma_map_sg
->> 2. if registered - call ib_dma_unmap_sg (which calles dma_unmap_sg)
->>     else do dma_unmap_sg
->
->  From what I've seen in the ULPs the flow control is generally such
-> that the MR is 'consumed' even if it isn't used by a send.
+Hi Doug,
 
-Not really. if registration is not needed, an MR is not consumed. In
-fact, in svcrdma the IB code path never uses those, and the iWARP code
-path always use those for RDMA_READs and not RDMA_WRITEs. Also, isert
-use those only when signature is enabled and registration is required.
+This patch-set adds a new  implementation for multicast loopback prevention for
+mlx4 driver.  The current implementation is very limited, especially if link
+layer is Ethernet. The new implementation is based on HW feature of dropping
+incoming multicast packets if the sender QP counter index is equal to the
+receiver counter index.
 
->
-> So lkey usage is simply split into things that absolutely don't need a
-> MR, and things that maybe do. The maybe side can go ahead and always
-> consume the MR resource, but optimize the implementation to a SG list
-> to avoid a performance hit.
->
-> Then the whole API becomes symmetric. The ULP says, 'here is a
-> scatterlist list and a lkey MR, make me a ib_sg list' and the core
-> either packes it as is into the sg, or it spins up the MR and packs
-> that.
+Patch 0001 extends ib_uverbs_create_qp in order to allow receiving the
+multicast loopback flag at create flags.
+Patch 0002 adds an infrastructure for the counters' loopback prevention in the
+mlx4_core.
+Patch 0003 modifies mlx4_en QPs to use the new loopback prevention mode.
+Patches 0004-0006 implements this feature for mlx4_ib driver.
+Patch 0007 allows setting IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK in create_flag
+field both from uverbs and ib_create_qp.
 
-Always consuming an MR resource is an extra lock acquire given these
-are always kept in a pool structure.
+Changes from v0:
+  Move loopback assignment outside the for loop according to Yuval's comment
+  rebase over to-be-rebased/for-4.3 
 
->> I'm thinking we should keep dma_map_sg out of ib_map_mr_sg, and leave
->> it to the ULP like it does today (at least in the first stage...)
->
-> I'm fine with first stage, but we still really do need to figure how
-> how to get better code sharing in our API here..
->
-> Maybe we can do the rkey side right away until we can figure out how
-> to harmonize the rkey sg/mr usage?
 
-I'm fine with that. I agree we still need to do better.
+Thanks,
+Eran.
+
+Eran Ben Elisha (5):
+  IB/core: Extend ib_uverbs_create_qp
+  IB/core: Allow setting create flags in QP init attribute
+  IB/mlx4: Add IB counters table
+  IB/mlx4: Add counter based implementation for QP multicast loopback
+    block
+  IB/mlx4: Add support for blocking multicast loopback QP creation user
+    flag
+
+Maor Gottlieb (2):
+  net/mlx4_core: Add support for filtering multicast loopback
+  net/mlx4_en: Implement mcast loopback prevention for ETH qps
+
+ drivers/infiniband/core/uverbs.h                   |   1 +
+ drivers/infiniband/core/uverbs_cmd.c               | 259 +++++++++++++++------
+ drivers/infiniband/core/uverbs_main.c              |   1 +
+ drivers/infiniband/hw/mlx4/mad.c                   |  25 +-
+ drivers/infiniband/hw/mlx4/main.c                  |  66 ++++--
+ drivers/infiniband/hw/mlx4/mlx4_ib.h               |  10 +-
+ drivers/infiniband/hw/mlx4/qp.c                    |  88 ++++++-
+ drivers/net/ethernet/mellanox/mlx4/en_main.c       |  22 ++
+ drivers/net/ethernet/mellanox/mlx4/en_resources.c  |  25 ++
+ drivers/net/ethernet/mellanox/mlx4/fw.c            |   6 +
+ drivers/net/ethernet/mellanox/mlx4/mlx4_en.h       |   3 +-
+ drivers/net/ethernet/mellanox/mlx4/qp.c            |  19 +-
+ .../net/ethernet/mellanox/mlx4/resource_tracker.c  |  30 ++-
+ include/linux/mlx4/device.h                        |   2 +
+ include/linux/mlx4/qp.h                            |  24 +-
+ include/uapi/rdma/ib_user_verbs.h                  |  26 +++
+ 16 files changed, 498 insertions(+), 109 deletions(-)
+
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
