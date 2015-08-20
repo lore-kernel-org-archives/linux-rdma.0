@@ -1,26 +1,23 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: shrink struct ib_send_wr
-Date: Thu, 20 Aug 2015 12:01:13 +0300
-Message-ID: <55D59759.5090502@dev.mellanox.co.il>
-References: <1440002254-795-1-git-send-email-hch@lst.de>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH 1/3] IB/uverbs: reject invalid or unknown opcodes
+Date: Thu, 20 Aug 2015 11:22:55 +0200
+Message-ID: <20150820092255.GA25447@lst.de>
+References: <1440002254-795-1-git-send-email-hch@lst.de> <1440002254-795-2-git-send-email-hch@lst.de> <20150819174614.GC22646@obsidianresearch.com> <1828884A29C6694DAF28B7E6B8A82373A9027CDA@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1440002254-795-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A9027CDA@ORSMSX109.amr.corp.intel.com>
+Sender: stable-owner@vger.kernel.org
+To: "Hefty, Sean" <sean.hefty@intel.com>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Christoph Hellwig <hch@lst.de>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Eli Cohen <eli@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
->   - patch 2 now explicitly replaces the weird overloading in the mlx5
->     driver with an explicit embedding of struct ib_send_wr, similar
->     to what we do for all other MRs.
+On Wed, Aug 19, 2015 at 07:50:23PM +0000, Hefty, Sean wrote:
+> > AFAIK, this path is rarely (never?) actually used. I think all the
+> > drivers we have can post directly from userspace.
+> 
+> I didn't think the ipath or qib drivers post from userspace.
 
-This is on the user-space memory registration path.
-
-Haggai, can you grab it for a Tested-by tag?
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Makes sense with their software IB stack.  Guess the idea to get rid
+of this path is dead, would have been too nice..
