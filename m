@@ -1,7 +1,7 @@
 From: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v1 for-next 6/7] IB/mlx4: Add counter based implementation for QP multicast loopback block
-Date: Thu, 20 Aug 2015 17:34:34 +0300
-Message-ID: <1440081275-15864-7-git-send-email-eranbe@mellanox.com>
+Subject: [PATCH v1 for-next 5/7] IB/mlx4: Add IB counters table
+Date: Thu, 20 Aug 2015 17:34:33 +0300
+Message-ID: <1440081275-15864-6-git-send-email-eranbe@mellanox.com>
 References: <1440081275-15864-1-git-send-email-eranbe@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1440081275-15864-1-git-send-email-eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,156 +10,231 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Current implementation for MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK is not
-supported when link layer is Ethernet.
-
-This patch will add counter based implementation for multicast loopback
-prevention. HW can drop multicast loopback packets if sender QP counter
-index is equal to receiver QP counter index. If qp flag
-MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK is set and link layer is Ethernet,
-create a new counter and attach it to the QP so it will continue
-receiving multicast loopback traffic but it's own.
-
-The decision if to create a new counter is being made at the qp
-modification to RTR after the QP's port is set. When QP is destroyed or
-moved back to reset state, delete the counter.
+This is an infrastructure step for allocating and attaching more than
+one counter to QPs on the same port. Allocate a counters table and
+manage the insertion and removals of the counters in load and unload of
+mlx4 IB.
 
 Signed-off-by: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/mlx4_ib.h |  1 +
- drivers/infiniband/hw/mlx4/qp.c      | 67 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 68 insertions(+)
+ drivers/infiniband/hw/mlx4/mad.c     | 25 ++++++++++----
+ drivers/infiniband/hw/mlx4/main.c    | 63 ++++++++++++++++++++++++++++--------
+ drivers/infiniband/hw/mlx4/mlx4_ib.h |  9 +++++-
+ drivers/infiniband/hw/mlx4/qp.c      |  8 +++--
+ 4 files changed, 81 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-index 4056dc1..086416a 100644
---- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
-+++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -320,6 +320,7 @@ struct mlx4_ib_qp {
- 	struct list_head	qps_list;
- 	struct list_head	cq_recv_list;
- 	struct list_head	cq_send_list;
-+	struct counter_index	*counter_index;
- };
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index 1cd75ff..68f2567 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -824,18 +824,29 @@ static int iboe_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+ {
+ 	struct mlx4_counter counter_stats;
+ 	struct mlx4_ib_dev *dev = to_mdev(ibdev);
+-	int err;
++	struct counter_index *tmp_counter;
++	int err = IB_MAD_RESULT_FAILURE, stats_avail = 0;
  
- struct mlx4_ib_srq {
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 382913e..2871949 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -617,6 +617,18 @@ static int qp0_enabled_vf(struct mlx4_dev *dev, int qpn)
+ 	if (in_mad->mad_hdr.mgmt_class != IB_MGMT_CLASS_PERF_MGMT)
+ 		return -EINVAL;
+ 
+ 	memset(&counter_stats, 0, sizeof(counter_stats));
+-	err = mlx4_get_counter_stats(dev->dev,
+-				     dev->counters[port_num - 1].index,
+-				     &counter_stats, 0);
+-	if (err)
+-		err = IB_MAD_RESULT_FAILURE;
+-	else {
++	mutex_lock(&dev->counters_table[port_num - 1].mutex);
++	list_for_each_entry(tmp_counter,
++			    &dev->counters_table[port_num - 1].counters_list,
++			    list) {
++		err = mlx4_get_counter_stats(dev->dev,
++					     tmp_counter->index,
++					     &counter_stats, 0);
++		if (err) {
++			err = IB_MAD_RESULT_FAILURE;
++			stats_avail = 0;
++			break;
++		}
++		stats_avail = 1;
++	}
++	mutex_unlock(&dev->counters_table[port_num - 1].mutex);
++	if (stats_avail) {
+ 		memset(out_mad->data, 0, sizeof out_mad->data);
+ 		switch (counter_stats.counter_mode & 0xf) {
+ 		case 0:
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index efecdf0..26a96b8 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -1247,6 +1247,22 @@ static int add_gid_entry(struct ib_qp *ibqp, union ib_gid *gid)
  	return 0;
  }
  
-+static void mlx4_ib_free_qp_counter(struct mlx4_ib_dev *dev,
-+				    struct mlx4_ib_qp *qp)
++static void mlx4_ib_delete_counters_table(struct mlx4_ib_dev *ibdev,
++					  struct mlx4_ib_counters *ctr_table)
 +{
-+	mutex_lock(&dev->counters_table[qp->port - 1].mutex);
-+	mlx4_counter_free(dev->dev, qp->counter_index->index);
-+	list_del(&qp->counter_index->list);
-+	mutex_unlock(&dev->counters_table[qp->port - 1].mutex);
++	struct counter_index *counter, *tmp_count;
 +
-+	kfree(qp->counter_index);
-+	qp->counter_index = NULL;
++	mutex_lock(&ctr_table->mutex);
++	list_for_each_entry_safe(counter, tmp_count, &ctr_table->counters_list,
++				 list) {
++		if (counter->allocated)
++			mlx4_counter_free(ibdev->dev, counter->index);
++		list_del(&counter->list);
++		kfree(counter);
++	}
++	mutex_unlock(&ctr_table->mutex);
 +}
 +
- static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
- 			    struct ib_qp_init_attr *init_attr,
- 			    struct ib_udata *udata, int sqpn, struct mlx4_ib_qp **caller_qp,
-@@ -1189,6 +1201,9 @@ int mlx4_ib_destroy_qp(struct ib_qp *qp)
- 		mutex_unlock(&dev->qp1_proxy_lock[mqp->port - 1]);
- 	}
+ int mlx4_ib_add_mc(struct mlx4_ib_dev *mdev, struct mlx4_ib_qp *mqp,
+ 		   union ib_gid *gid)
+ {
+@@ -2131,6 +2147,7 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 	int num_req_counters;
+ 	int allocated;
+ 	u32 counter_index;
++	struct counter_index *new_counter_index = NULL;
  
-+	if (mqp->counter_index)
-+		mlx4_ib_free_qp_counter(dev, mqp);
-+
- 	pd = get_pd(mqp);
- 	destroy_qp_common(dev, mqp, !!pd->ibpd.uobject);
+ 	pr_info_once("%s", mlx4_ib_version);
  
-@@ -1447,6 +1462,40 @@ static int handle_eth_ud_smac_index(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *
- 	return 0;
- }
+@@ -2302,6 +2319,11 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 	if (init_node_data(ibdev))
+ 		goto err_map;
  
-+static int create_qp_lb_counter(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp)
-+{
-+	struct counter_index *new_counter_index;
-+	int err;
-+	u32 tmp_idx;
-+
-+	if (rdma_port_get_link_layer(&dev->ib_dev, qp->port) !=
-+	    IB_LINK_LAYER_ETHERNET ||
-+	    !(qp->flags & MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK) ||
-+	    !(dev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_LB_SRC_CHK))
-+		return 0;
-+
-+	err = mlx4_counter_alloc(dev->dev, &tmp_idx);
-+	if (err)
-+		return err;
-+
-+	new_counter_index = kmalloc(sizeof(*new_counter_index), GFP_KERNEL);
-+	if (!new_counter_index) {
-+		mlx4_counter_free(dev->dev, tmp_idx);
-+		return -ENOMEM;
++	for (i = 0; i < ibdev->num_ports; ++i) {
++		mutex_init(&ibdev->counters_table[i].mutex);
++		INIT_LIST_HEAD(&ibdev->counters_table[i].counters_list);
 +	}
 +
-+	new_counter_index->index = tmp_idx;
-+	new_counter_index->allocated = 1;
-+	qp->counter_index = new_counter_index;
-+
-+	mutex_lock(&dev->counters_table[qp->port - 1].mutex);
-+	list_add_tail(&new_counter_index->list,
-+		      &dev->counters_table[qp->port - 1].counters_list);
-+	mutex_unlock(&dev->counters_table[qp->port - 1].mutex);
-+
-+	return 0;
-+}
-+
- static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
- 			       const struct ib_qp_attr *attr, int attr_mask,
- 			       enum ib_qp_state cur_state, enum ib_qp_state new_state)
-@@ -1520,6 +1569,9 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
- 		context->sq_size_stride = ilog2(qp->sq.wqe_cnt) << 3;
- 	context->sq_size_stride |= qp->sq.wqe_shift - 4;
+ 	num_req_counters = mlx4_is_bonded(dev) ? 1 : ibdev->num_ports;
+ 	for (i = 0; i < num_req_counters; ++i) {
+ 		mutex_init(&ibdev->qp1_proxy_lock[i]);
+@@ -2320,15 +2342,34 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 			counter_index = mlx4_get_default_counter_index(dev,
+ 								       i + 1);
+ 		}
+-		ibdev->counters[i].index = counter_index;
+-		ibdev->counters[i].allocated = allocated;
++		new_counter_index = kmalloc(sizeof(*new_counter_index),
++					    GFP_KERNEL);
++		if (!new_counter_index) {
++			if (allocated)
++				mlx4_counter_free(ibdev->dev, counter_index);
++			goto err_counter;
++		}
++		new_counter_index->index = counter_index;
++		new_counter_index->allocated = allocated;
++		list_add_tail(&new_counter_index->list,
++			      &ibdev->counters_table[i].counters_list);
++		ibdev->counters_table[i].default_counter = counter_index;
+ 		pr_info("counter index %d for port %d allocated %d\n",
+ 			counter_index, i + 1, allocated);
+ 	}
+ 	if (mlx4_is_bonded(dev))
+ 		for (i = 1; i < ibdev->num_ports ; ++i) {
+-			ibdev->counters[i].index = ibdev->counters[0].index;
+-			ibdev->counters[i].allocated = 0;
++			new_counter_index =
++					kmalloc(sizeof(struct counter_index),
++						GFP_KERNEL);
++			if (!new_counter_index)
++				goto err_counter;
++			new_counter_index->index = counter_index;
++			new_counter_index->allocated = 0;
++			list_add_tail(&new_counter_index->list,
++				      &ibdev->counters_table[i].counters_list);
++			ibdev->counters_table[i].default_counter =
++								counter_index;
+ 		}
  
-+	if (new_state == IB_QPS_RESET && qp->counter_index)
-+		mlx4_ib_free_qp_counter(dev, qp);
+ 	mlx4_foreach_port(i, dev, MLX4_PORT_TYPE_IB)
+@@ -2437,12 +2478,9 @@ err_steer_qp_release:
+ 		mlx4_qp_release_range(dev, ibdev->steer_qpn_base,
+ 				      ibdev->steer_qpn_count);
+ err_counter:
+-	for (i = 0; i < ibdev->num_ports; ++i) {
+-		if (ibdev->counters[i].index != -1 &&
+-		    ibdev->counters[i].allocated)
+-			mlx4_counter_free(ibdev->dev,
+-					  ibdev->counters[i].index);
+-	}
++	for (i = 0; i < ibdev->num_ports; ++i)
++		mlx4_ib_delete_counters_table(ibdev, &ibdev->counters_table[i]);
 +
- 	if (cur_state == IB_QPS_RESET && new_state == IB_QPS_INIT) {
- 		context->sq_size_stride |= !!qp->sq_no_prefetch << 7;
- 		context->xrcd = cpu_to_be32((u32) qp->xrcdn);
-@@ -1544,11 +1596,24 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+ err_map:
+ 	iounmap(ibdev->uar_map);
+ 
+@@ -2546,9 +2584,8 @@ static void mlx4_ib_remove(struct mlx4_dev *dev, void *ibdev_ptr)
+ 
+ 	iounmap(ibdev->uar_map);
+ 	for (p = 0; p < ibdev->num_ports; ++p)
+-		if (ibdev->counters[p].index != -1 &&
+-		    ibdev->counters[p].allocated)
+-			mlx4_counter_free(ibdev->dev, ibdev->counters[p].index);
++		mlx4_ib_delete_counters_table(ibdev, &ibdev->counters_table[p]);
++
+ 	mlx4_foreach_port(p, dev, MLX4_PORT_TYPE_IB)
+ 		mlx4_CLOSE_PORT(dev, p);
+ 
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index 1e7b23b..4056dc1 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -528,10 +528,17 @@ struct mlx4_ib_iov_port {
+ };
+ 
+ struct counter_index {
++	struct  list_head       list;
+ 	u32		index;
+ 	u8		allocated;
+ };
+ 
++struct mlx4_ib_counters {
++	struct list_head        counters_list;
++	struct mutex            mutex; /* mutex for accessing counters list */
++	u32			default_counter;
++};
++
+ struct mlx4_ib_dev {
+ 	struct ib_device	ib_dev;
+ 	struct mlx4_dev	       *dev;
+@@ -550,7 +557,7 @@ struct mlx4_ib_dev {
+ 	struct mutex		cap_mask_mutex;
+ 	bool			ib_active;
+ 	struct mlx4_ib_iboe	iboe;
+-	struct counter_index    counters[MLX4_MAX_PORTS];
++	struct mlx4_ib_counters counters_table[MLX4_MAX_PORTS];
+ 	int		       *eq_table;
+ 	struct kobject	       *iov_parent;
+ 	struct kobject	       *ports_parent;
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 4ad9be3..382913e 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -1460,6 +1460,7 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+ 	int sqd_event;
+ 	int steer_qp = 0;
+ 	int err = -EINVAL;
++	int counter_index;
+ 
+ 	/* APM is not supported under RoCE */
+ 	if (attr_mask & IB_QP_ALT_PATH &&
+@@ -1543,9 +1544,10 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
  	}
  
  	if (cur_state == IB_QPS_INIT && new_state == IB_QPS_RTR) {
-+		err = create_qp_lb_counter(dev, qp);
-+		if (err)
-+			goto out;
-+
- 		counter_index =
- 			dev->counters_table[qp->port - 1].default_counter;
-+		if (qp->counter_index)
-+			counter_index = qp->counter_index->index;
-+
- 		if (counter_index != -1) {
- 			context->pri_path.counter_index = counter_index;
+-		if (dev->counters[qp->port - 1].index != -1) {
+-			context->pri_path.counter_index =
+-					dev->counters[qp->port - 1].index;
++		counter_index =
++			dev->counters_table[qp->port - 1].default_counter;
++		if (counter_index != -1) {
++			context->pri_path.counter_index = counter_index;
  			optpar |= MLX4_QP_OPTPAR_COUNTER_INDEX;
-+			if (qp->counter_index) {
-+				context->pri_path.fl |=
-+					MLX4_FL_ETH_SRC_CHECK_MC_LB;
-+				context->pri_path.vlan_control |=
-+					MLX4_CTRL_ETH_SRC_CHECK_IF_COUNTER;
-+			}
  		} else
  			context->pri_path.counter_index =
- 				MLX4_SINK_COUNTER_INDEX(dev->dev);
-@@ -1850,6 +1915,8 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
- 		}
- 	}
- out:
-+	if (err && qp->counter_index)
-+		mlx4_ib_free_qp_counter(dev, qp);
- 	if (err && steer_qp)
- 		mlx4_ib_steer_qp_reg(dev, qp, 0);
- 	kfree(context);
 -- 
 1.8.3.1
 
