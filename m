@@ -1,7 +1,7 @@
 From: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v1 for-next 4/7] net/mlx4_en: Implement mcast loopback prevention for ETH qps
-Date: Thu, 20 Aug 2015 17:34:32 +0300
-Message-ID: <1440081275-15864-5-git-send-email-eranbe@mellanox.com>
+Subject: [PATCH v1 for-next 3/7] net/mlx4_core: Add support for filtering multicast loopback
+Date: Thu, 20 Aug 2015 17:34:31 +0300
+Message-ID: <1440081275-15864-4-git-send-email-eranbe@mellanox.com>
 References: <1440081275-15864-1-git-send-email-eranbe@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1440081275-15864-1-git-send-email-eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,112 +12,241 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Set the mcast loopback prevention bit in the QPC for ETH MLX QPs (not
-RSS QPs), when the firmware supports this feature. In addition, all rx
-ring QPs need to be updated in order not to enforce loopback checks.
-This prevents getting packets we sent both from the network stack and
-the HCA. Loopback prevention is done by comparing the counter indices of
-the sent and receiving QPs. If they're equal, packets aren't
-loopback-ed.
+Update device capabilities regarding HW filtering multicast loopback support.
+
+Add MLX4_UPDATE_QP_ETH_SRC_CHECK_MC_LB attribute to mlx4_update_qp to
+enable changing QP context to support filtering incoming multicast
+loopback traffic according the sender's counter index.
+
+Set the corresponding bits in QP context to force the loopback source
+checks if attribute is given and HW supports it.
 
 Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx4/en_main.c      | 22 ++++++++++++++++++++
- drivers/net/ethernet/mellanox/mlx4/en_resources.c | 25 +++++++++++++++++++++++
- drivers/net/ethernet/mellanox/mlx4/mlx4_en.h      |  3 ++-
- 3 files changed, 49 insertions(+), 1 deletion(-)
+ drivers/net/ethernet/mellanox/mlx4/fw.c            |  6 +++++
+ drivers/net/ethernet/mellanox/mlx4/qp.c            | 19 +++++++++++++-
+ .../net/ethernet/mellanox/mlx4/resource_tracker.c  | 30 +++++++++++++++++-----
+ include/linux/mlx4/device.h                        |  2 ++
+ include/linux/mlx4/qp.h                            | 24 +++++++++++++----
+ 5 files changed, 68 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/en_main.c b/drivers/net/ethernet/mellanox/mlx4/en_main.c
-index a946e4b..005f910 100644
---- a/drivers/net/ethernet/mellanox/mlx4/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/en_main.c
-@@ -123,6 +123,28 @@ void mlx4_en_update_loopback_state(struct net_device *dev,
- 	 */
- 	if (mlx4_is_mfunc(priv->mdev->dev) || priv->validate_loopback)
- 		priv->flags |= MLX4_EN_FLAG_ENABLE_HW_LOOPBACK;
-+
-+	mutex_lock(&priv->mdev->state_lock);
-+	if (priv->mdev->dev->caps.flags2 &
-+	    MLX4_DEV_CAP_FLAG2_UPDATE_QP_SRC_CHECK_LB &&
-+	    priv->rss_map.indir_qp.qpn) {
-+		int i;
-+		int err = 0;
-+		int loopback = !!(features & NETIF_F_LOOPBACK);
-+
-+		for (i = 0; i < priv->rx_ring_num; i++) {
-+			int ret;
-+
-+			ret = mlx4_en_change_mcast_lb(priv,
-+						      &priv->rss_map.qps[i],
-+						      loopback);
-+			if (!err)
-+				err = ret;
-+		}
-+		if (err)
-+			mlx4_warn(priv->mdev, "failed to change mcast loopback\n");
-+	}
-+	mutex_unlock(&priv->mdev->state_lock);
- }
+diff --git a/drivers/net/ethernet/mellanox/mlx4/fw.c b/drivers/net/ethernet/mellanox/mlx4/fw.c
+index e30bf57..5218e1e 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/fw.c
++++ b/drivers/net/ethernet/mellanox/mlx4/fw.c
+@@ -154,6 +154,8 @@ static void dump_dev_cap_flags2(struct mlx4_dev *dev, u64 flags)
+ 		[26] = "Port ETS Scheduler support",
+ 		[27] = "Port beacon support",
+ 		[28] = "RX-ALL support",
++		[31] = "Modifying loopback source checks using UPDATE_QP support",
++		[32] = "Loopback source checks support",
+ 	};
+ 	int i;
  
- static int mlx4_en_get_profile(struct mlx4_en_dev *mdev)
-diff --git a/drivers/net/ethernet/mellanox/mlx4/en_resources.c b/drivers/net/ethernet/mellanox/mlx4/en_resources.c
-index e482fa1b..12aab5a 100644
---- a/drivers/net/ethernet/mellanox/mlx4/en_resources.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/en_resources.c
-@@ -69,6 +69,15 @@ void mlx4_en_fill_qp_context(struct mlx4_en_priv *priv, int size, int stride,
- 	context->pri_path.counter_index = priv->counter_index;
- 	context->cqn_send = cpu_to_be32(cqn);
- 	context->cqn_recv = cpu_to_be32(cqn);
-+	if (!rss &&
-+	    (mdev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_LB_SRC_CHK) &&
-+	    context->pri_path.counter_index !=
-+			    MLX4_SINK_COUNTER_INDEX(mdev->dev)) {
-+		/* disable multicast loopback to qp with same counter */
-+		if (!(dev->features & NETIF_F_LOOPBACK))
-+			context->pri_path.fl |= MLX4_FL_ETH_SRC_CHECK_MC_LB;
-+		context->pri_path.control |= MLX4_CTRL_ETH_SRC_CHECK_IF_COUNTER;
-+	}
- 	context->db_rec_addr = cpu_to_be64(priv->res.db.dma << 2);
- 	if (!(dev->features & NETIF_F_HW_VLAN_CTAG_RX))
- 		context->param3 |= cpu_to_be32(1 << 30);
-@@ -80,6 +89,22 @@ void mlx4_en_fill_qp_context(struct mlx4_en_priv *priv, int size, int stride,
+@@ -946,6 +948,10 @@ int mlx4_QUERY_DEV_CAP(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap)
+ 	MLX4_GET(field32, outbox, QUERY_DEV_CAP_EXT_2_FLAGS_OFFSET);
+ 	if (field32 & (1 << 16))
+ 		dev_cap->flags2 |= MLX4_DEV_CAP_FLAG2_UPDATE_QP;
++	if (field32 & (1 << 18))
++		dev_cap->flags2 |= MLX4_DEV_CAP_FLAG2_UPDATE_QP_SRC_CHECK_LB;
++	if (field32 & (1 << 19))
++		dev_cap->flags2 |= MLX4_DEV_CAP_FLAG2_LB_SRC_CHK;
+ 	if (field32 & (1 << 26))
+ 		dev_cap->flags2 |= MLX4_DEV_CAP_FLAG2_VLAN_CONTROL;
+ 	if (field32 & (1 << 20))
+diff --git a/drivers/net/ethernet/mellanox/mlx4/qp.c b/drivers/net/ethernet/mellanox/mlx4/qp.c
+index 2026863..b162495 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/qp.c
++++ b/drivers/net/ethernet/mellanox/mlx4/qp.c
+@@ -436,6 +436,23 @@ int mlx4_update_qp(struct mlx4_dev *dev, u32 qpn,
+ 		cmd->qp_context.pri_path.grh_mylmc = params->smac_index;
  	}
+ 
++	if (attr & MLX4_UPDATE_QP_ETH_SRC_CHECK_MC_LB) {
++		if (!(dev->caps.flags2
++		      & MLX4_DEV_CAP_FLAG2_UPDATE_QP_SRC_CHECK_LB)) {
++			mlx4_warn(dev,
++				  "Trying to set src check LB, but it isn't supported\n");
++			err = -ENOTSUPP;
++			goto out;
++		}
++		pri_addr_path_mask |=
++			1ULL << MLX4_UPD_QP_PATH_MASK_ETH_SRC_CHECK_MC_LB;
++		if (params->flags &
++		    MLX4_UPDATE_QP_PARAMS_FLAGS_ETH_CHECK_MC_LB) {
++			cmd->qp_context.pri_path.fl |=
++				MLX4_FL_ETH_SRC_CHECK_MC_LB;
++		}
++	}
++
+ 	if (attr & MLX4_UPDATE_QP_VSD) {
+ 		qp_mask |= 1ULL << MLX4_UPD_QP_MASK_VSD;
+ 		if (params->flags & MLX4_UPDATE_QP_PARAMS_FLAGS_VSD_ENABLE)
+@@ -458,7 +475,7 @@ int mlx4_update_qp(struct mlx4_dev *dev, u32 qpn,
+ 	err = mlx4_cmd(dev, mailbox->dma, qpn & 0xffffff, 0,
+ 		       MLX4_CMD_UPDATE_QP, MLX4_CMD_TIME_CLASS_A,
+ 		       MLX4_CMD_NATIVE);
+-
++out:
+ 	mlx4_free_cmd_mailbox(dev, mailbox);
+ 	return err;
+ }
+diff --git a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
+index 731423c..502f335 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
++++ b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
+@@ -770,9 +770,12 @@ static int update_vport_qp_param(struct mlx4_dev *dev,
+ 			}
+ 		}
+ 
++		/* preserve IF_COUNTER flag */
++		qpc->pri_path.vlan_control &=
++			MLX4_CTRL_ETH_SRC_CHECK_IF_COUNTER;
+ 		if (vp_oper->state.link_state == IFLA_VF_LINK_STATE_DISABLE &&
+ 		    dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_UPDATE_QP) {
+-			qpc->pri_path.vlan_control =
++			qpc->pri_path.vlan_control |=
+ 				MLX4_VLAN_CTRL_ETH_TX_BLOCK_TAGGED |
+ 				MLX4_VLAN_CTRL_ETH_TX_BLOCK_PRIO_TAGGED |
+ 				MLX4_VLAN_CTRL_ETH_TX_BLOCK_UNTAGGED |
+@@ -780,12 +783,12 @@ static int update_vport_qp_param(struct mlx4_dev *dev,
+ 				MLX4_VLAN_CTRL_ETH_RX_BLOCK_UNTAGGED |
+ 				MLX4_VLAN_CTRL_ETH_RX_BLOCK_TAGGED;
+ 		} else if (0 != vp_oper->state.default_vlan) {
+-			qpc->pri_path.vlan_control =
++			qpc->pri_path.vlan_control |=
+ 				MLX4_VLAN_CTRL_ETH_TX_BLOCK_TAGGED |
+ 				MLX4_VLAN_CTRL_ETH_RX_BLOCK_PRIO_TAGGED |
+ 				MLX4_VLAN_CTRL_ETH_RX_BLOCK_UNTAGGED;
+ 		} else { /* priority tagged */
+-			qpc->pri_path.vlan_control =
++			qpc->pri_path.vlan_control |=
+ 				MLX4_VLAN_CTRL_ETH_TX_BLOCK_TAGGED |
+ 				MLX4_VLAN_CTRL_ETH_RX_BLOCK_TAGGED;
+ 		}
+@@ -3762,9 +3765,6 @@ int mlx4_INIT2RTR_QP_wrapper(struct mlx4_dev *dev, int slave,
+ 	update_gid(dev, inbox, (u8)slave);
+ 	adjust_proxy_tun_qkey(dev, vhcr, qpc);
+ 	orig_sched_queue = qpc->pri_path.sched_queue;
+-	err = update_vport_qp_param(dev, inbox, slave, qpn);
+-	if (err)
+-		return err;
+ 
+ 	err = get_res(dev, slave, qpn, RES_QP, &qp);
+ 	if (err)
+@@ -3774,6 +3774,10 @@ int mlx4_INIT2RTR_QP_wrapper(struct mlx4_dev *dev, int slave,
+ 		goto out;
+ 	}
+ 
++	err = update_vport_qp_param(dev, inbox, slave, qpn);
++	if (err)
++		goto out;
++
+ 	err = mlx4_DMA_wrapper(dev, slave, vhcr, inbox, outbox, cmd);
+ out:
+ 	/* if no error, save sched queue value passed in by VF. This is
+@@ -4208,7 +4212,9 @@ static int add_eth_header(struct mlx4_dev *dev, int slave,
+ 
  }
  
-+int mlx4_en_change_mcast_lb(struct mlx4_en_priv *priv, struct mlx4_qp *qp,
-+			    int loopback)
-+{
-+	int ret;
-+	struct mlx4_update_qp_params qp_params;
-+
-+	memset(&qp_params, 0, sizeof(qp_params));
-+	if (!loopback)
-+		qp_params.flags = MLX4_UPDATE_QP_PARAMS_FLAGS_ETH_CHECK_MC_LB;
-+
-+	ret = mlx4_update_qp(priv->mdev->dev, qp->qpn,
-+			     MLX4_UPDATE_QP_ETH_SRC_CHECK_MC_LB,
-+			     &qp_params);
-+
-+	return ret;
-+}
+-#define MLX4_UPD_QP_PATH_MASK_SUPPORTED (1ULL << MLX4_UPD_QP_PATH_MASK_MAC_INDEX)
++#define MLX4_UPD_QP_PATH_MASK_SUPPORTED      (                                \
++	1ULL << MLX4_UPD_QP_PATH_MASK_MAC_INDEX                     |\
++	1ULL << MLX4_UPD_QP_PATH_MASK_ETH_SRC_CHECK_MC_LB)
+ int mlx4_UPDATE_QP_wrapper(struct mlx4_dev *dev, int slave,
+ 			   struct mlx4_vhcr *vhcr,
+ 			   struct mlx4_cmd_mailbox *inbox,
+@@ -4231,6 +4237,16 @@ int mlx4_UPDATE_QP_wrapper(struct mlx4_dev *dev, int slave,
+ 	    (pri_addr_path_mask & ~MLX4_UPD_QP_PATH_MASK_SUPPORTED))
+ 		return -EPERM;
  
- int mlx4_en_map_buffer(struct mlx4_buf *buf)
- {
-diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
-index 666d166..7db86d4 100644
---- a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
-+++ b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
-@@ -797,7 +797,8 @@ void mlx4_en_fill_qp_context(struct mlx4_en_priv *priv, int size, int stride,
- void mlx4_en_sqp_event(struct mlx4_qp *qp, enum mlx4_event event);
- int mlx4_en_map_buffer(struct mlx4_buf *buf);
- void mlx4_en_unmap_buffer(struct mlx4_buf *buf);
--
-+int mlx4_en_change_mcast_lb(struct mlx4_en_priv *priv, struct mlx4_qp *qp,
-+			    int loopback);
- void mlx4_en_calc_rx_buf(struct net_device *dev);
- int mlx4_en_config_rss_steer(struct mlx4_en_priv *priv);
- void mlx4_en_release_rss_steer(struct mlx4_en_priv *priv);
++	if ((pri_addr_path_mask &
++	     (1ULL << MLX4_UPD_QP_PATH_MASK_ETH_SRC_CHECK_MC_LB)) &&
++		!(dev->caps.flags2 &
++		  MLX4_DEV_CAP_FLAG2_UPDATE_QP_SRC_CHECK_LB)) {
++			mlx4_warn(dev,
++				  "Src check LB for slave %d isn't supported\n",
++				   slave);
++		return -ENOTSUPP;
++	}
++
+ 	/* Just change the smac for the QP */
+ 	err = get_res(dev, slave, qpn, RES_QP, &rqp);
+ 	if (err) {
+diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+index 5c7687a..3b9602f 100644
+--- a/include/linux/mlx4/device.h
++++ b/include/linux/mlx4/device.h
+@@ -212,6 +212,8 @@ enum {
+ 	MLX4_DEV_CAP_FLAG2_ETS_CFG		= 1LL <<  26,
+ 	MLX4_DEV_CAP_FLAG2_PORT_BEACON		= 1LL <<  27,
+ 	MLX4_DEV_CAP_FLAG2_IGNORE_FCS		= 1LL <<  28,
++	MLX4_DEV_CAP_FLAG2_UPDATE_QP_SRC_CHECK_LB = 1ULL << 31,
++	MLX4_DEV_CAP_FLAG2_LB_SRC_CHK           = 1ULL << 32,
+ };
+ 
+ enum {
+diff --git a/include/linux/mlx4/qp.h b/include/linux/mlx4/qp.h
+index 6fed539..62175c2 100644
+--- a/include/linux/mlx4/qp.h
++++ b/include/linux/mlx4/qp.h
+@@ -135,7 +135,10 @@ struct mlx4_rss_context {
+ 
+ struct mlx4_qp_path {
+ 	u8			fl;
+-	u8			vlan_control;
++	union {
++		u8			vlan_control;
++		u8			control;
++	};
+ 	u8			disable_pkey_check;
+ 	u8			pkey_index;
+ 	u8			counter_index;
+@@ -156,9 +159,16 @@ struct mlx4_qp_path {
+ };
+ 
+ enum { /* fl */
+-	MLX4_FL_CV      = 1 << 6,
+-	MLX4_FL_ETH_HIDE_CQE_VLAN       = 1 << 2
++	MLX4_FL_CV	= 1 << 6,
++	MLX4_FL_ETH_HIDE_CQE_VLAN	= 1 << 2,
++	MLX4_FL_ETH_SRC_CHECK_MC_LB	= 1 << 1,
++	MLX4_FL_ETH_SRC_CHECK_UC_LB	= 1 << 0,
+ };
++
++enum { /* control */
++	MLX4_CTRL_ETH_SRC_CHECK_IF_COUNTER	= 1 << 7,
++};
++
+ enum { /* vlan_control */
+ 	MLX4_VLAN_CTRL_ETH_TX_BLOCK_TAGGED	= 1 << 6,
+ 	MLX4_VLAN_CTRL_ETH_TX_BLOCK_PRIO_TAGGED	= 1 << 5, /* 802.1p priority tag */
+@@ -254,6 +264,8 @@ enum {
+ 	MLX4_UPD_QP_PATH_MASK_SCHED_QUEUE		= 14 + 32,
+ 	MLX4_UPD_QP_PATH_MASK_IF_COUNTER_INDEX		= 15 + 32,
+ 	MLX4_UPD_QP_PATH_MASK_FVL_RX			= 16 + 32,
++	MLX4_UPD_QP_PATH_MASK_ETH_SRC_CHECK_UC_LB	= 18 + 32,
++	MLX4_UPD_QP_PATH_MASK_ETH_SRC_CHECK_MC_LB	= 19 + 32,
+ };
+ 
+ enum { /* param3 */
+@@ -435,11 +447,13 @@ enum mlx4_update_qp_attr {
+ 	MLX4_UPDATE_QP_VSD		= 1 << 1,
+ 	MLX4_UPDATE_QP_RATE_LIMIT	= 1 << 2,
+ 	MLX4_UPDATE_QP_QOS_VPORT	= 1 << 3,
+-	MLX4_UPDATE_QP_SUPPORTED_ATTRS	= (1 << 4) - 1
++	MLX4_UPDATE_QP_ETH_SRC_CHECK_MC_LB      = 1 << 4,
++	MLX4_UPDATE_QP_SUPPORTED_ATTRS	= (1 << 5) - 1
+ };
+ 
+ enum mlx4_update_qp_params_flags {
+-	MLX4_UPDATE_QP_PARAMS_FLAGS_VSD_ENABLE		= 1 << 0,
++	MLX4_UPDATE_QP_PARAMS_FLAGS_ETH_CHECK_MC_LB     = 1 << 0,
++	MLX4_UPDATE_QP_PARAMS_FLAGS_VSD_ENABLE		= 1 << 1,
+ };
+ 
+ struct mlx4_update_qp_params {
 -- 
 1.8.3.1
 
