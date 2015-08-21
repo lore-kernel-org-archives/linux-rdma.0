@@ -1,47 +1,61 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH 1/3] IB/uverbs: reject invalid or unknown opcodes
-Date: Thu, 20 Aug 2015 17:30:33 -0500
-Message-ID: <55D65509.40908@opengridcomputing.com>
-References: <1440002254-795-1-git-send-email-hch@lst.de>
- <1440002254-795-2-git-send-email-hch@lst.de>
- <20150819174614.GC22646@obsidianresearch.com> <20150819174802.GA13875@lst.de>
- <20150819175425.GE22646@obsidianresearch.com>
- <55D594B3.7090807@dev.mellanox.co.il>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH WIP 28/43] IB/core: Introduce new fast registration API
+Date: Thu, 20 Aug 2015 23:34:58 -0700
+Message-ID: <20150821063458.GA875@infradead.org>
+References: <1437548143-24893-1-git-send-email-sagig@mellanox.com>
+ <1437548143-24893-29-git-send-email-sagig@mellanox.com>
+ <20150722165012.GC6443@infradead.org>
+ <20150722174401.GG26909@obsidianresearch.com>
+ <55B0BEB4.9080702@dev.mellanox.co.il>
+ <20150723175535.GE25174@obsidianresearch.com>
+ <55D46EE8.4060701@dev.mellanox.co.il>
+ <20150819173751.GB22646@obsidianresearch.com>
+ <55D5A687.90102@dev.mellanox.co.il>
+ <20150820190413.GB29567@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55D594B3.7090807-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150820190413.GB29567-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/20/2015 3:49 AM, Sagi Grimberg wrote:
-> On 8/19/2015 8:54 PM, Jason Gunthorpe wrote:
->> On Wed, Aug 19, 2015 at 07:48:02PM +0200, Christoph Hellwig wrote:
->>> On Wed, Aug 19, 2015 at 11:46:14AM -0600, Jason Gunthorpe wrote:
->>>> Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
->>>>
->>>> AFAIK, this path is rarely (never?) actually used. I think all the
->>>> drivers we have can post directly from userspace.
->>>
->>> Oh, interesting.  Is there any chance to deprecate it?  Not having
->>> to care for the uvers command would really help with some of the
->>> upcoming changes I have in my mind.
->>
->> Hmm, we'd need a survey of the userspace side to see if it is rarely
->> or never...
->>
->> And we'd have to talk to the soft XXX guys to see if they plan to use
->> it..
->
-> Checked in librxe (user-space softroce). Looks like posts are going via
-> this path...
+On Thu, Aug 20, 2015 at 01:04:13PM -0600, Jason Gunthorpe wrote:
+> Trying to decouple the sub resources, ie by separately pooling the
+> MR/SQE/etc, is just unnecessary complexity, IMHO.. NFS client already
+> had serioues bugs in this area.
+> 
+> So, I turn to the idea that every ULP should work as the above, which
+> means when it gets to working on a 'slot' that implies there is an
+> actual struct ib_mr resource guaranteed available. This is why I
+> suggested using the 'struct ib_mr' to guide the SG construction even if
+> the actual HW MR isn't going to be used. The struct ib_mr is tied to
+> the slot, so using it has no cost.
 
-Ditto for the soft iWARP stack, which is still out-of-linux.
+How is this going to work for drivers that might consumer multiple
+MRs per request like SRP or similar upcoming block drivers?  Unless
+you want to allocate a potentially large number of MRs for each
+request that scheme doesn't work.
 
+> This forces the ULP to deal with many of the issues. Having a slot
+> means guarenteed minimum avaiable MR,SQE,CQE resources. That
+> guarenteed minimum avoids the messy API struggle in my prior writings.
+> 
+> .. and maybe the above is even thinking too small, to Christoph's
+> earlier musings, I wonder if a slot based middle API could hijack the
+> entire SCQ processing and have a per-slot callback scheme
+> instead. That kind of intervention is exactly what we'd need to
+> trivially hide the FMR difference.
 
+FYI, I have working early patches to do per-WR completion callback,
+I'll post them after I get them into a slightly better shape.
+
+As for your grand schemes:  I like some of the idea there, but we
+need to get there gradually.  I'd much prefer to finish Sagi's simple
+scheme, get my completion work in, add abstractions for RDMA READ and
+WRITE scatterlist mapping and build things up slowly.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
