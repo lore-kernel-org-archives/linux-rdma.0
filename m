@@ -1,47 +1,43 @@
-From: Jeff Becker <Jeffrey.C.Becker-NSQ8wuThN14@public.gmane.org>
-Subject: [PATCH] staging/hfi1: replace indent spaces with tabs
-Date: Fri, 21 Aug 2015 12:26:22 -0700
-Message-ID: <1440185182-56772-1-git-send-email-Jeffrey.C.Becker@nasa.gov>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH v9 0/4] Sending kernel pathrecord query to user cache
+ server
+Date: Fri, 21 Aug 2015 17:07:34 -0600
+Message-ID: <20150821230734.GA16951@obsidianresearch.com>
+References: <1439556729-27876-1-git-send-email-kaike.wan@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1439556729-27876-1-git-send-email-kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Running checkpatch.pl on mad.c produces several 
-"ERROR: code indent should use tabs where possible" messages.
-This patch fixes these.
+On Fri, Aug 14, 2015 at 08:52:05AM -0400, kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
 
-Signed-off-by: Jeff Becker <Jeffrey.C.Becker-NSQ8wuThN14@public.gmane.org>
+> Some tests with namespace have been performed:
+> 1. An unprivileged user cannot bind to the RDMA_NL_GROUP_LS multicast
+>    group;
+> 2. An unprivileged user cannot create a new network namespace. However,
+>    it can create a new user namespace together with a new network
+>    namespace by using clone() with CLONE_NEWUSER | CLONE_NEWNET flags;
+> 3. In the user and network namespaces created by an unprivileged user,
+>    the user can be mapped into root and thus be able to bind to the
+>    RDMA_NL_GROUP_LS multicast group. However, it can neither send 
+>    requests to the kernel RDMA netlink code nor receive requests from
+>    it. This is because kernel RDMA netlink code associates itself with
+>    the init_net network namespace, which in turn associates itself with
+>    init_user_ns namespace. 
 
----
- drivers/staging/hfi1/mad.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+Haggie, how does this coverage match your expectations with your
+namespace series?
 
-diff --git a/drivers/staging/hfi1/mad.c b/drivers/staging/hfi1/mad.c
-index 0a18fee..37269eb 100644
---- a/drivers/staging/hfi1/mad.c
-+++ b/drivers/staging/hfi1/mad.c
-@@ -4075,11 +4075,11 @@ bail:
- }
- 
- static int hfi1_process_opa_mad(struct ib_device *ibdev, int mad_flags,
--			        u8 port, const struct ib_wc *in_wc,
--			        const struct ib_grh *in_grh,
--			        const struct opa_mad *in_mad,
--			        struct opa_mad *out_mad, size_t *out_mad_size,
--			        u16 *out_mad_pkey_index)
-+				u8 port, const struct ib_wc *in_wc,
-+				const struct ib_grh *in_grh,
-+				const struct opa_mad *in_mad,
-+				struct opa_mad *out_mad, size_t *out_mad_size,
-+				u16 *out_mad_pkey_index)
- {
- 	int ret;
- 	int pkey_idx;
--- 
-2.4.5
+Kaike, how does #3 work? If I create a user namespace and try to bind
+it succeeds to userspace but ibnl_chk_listeners still returns false in
+the kernel?
 
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
