@@ -1,20 +1,39 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH 1/3] IB/uverbs: reject invalid or unknown opcodes
-Date: Sat, 22 Aug 2015 10:25:16 +0200
-Message-ID: <20150822082516.GC1857@lst.de>
-References: <1440002254-795-1-git-send-email-hch@lst.de> <HE1PR05MB13557ADB8FA73865B659C6D0C1640@HE1PR05MB1355.eurprd05.prod.outlook.com>
+From: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
+Subject: RE: [PATCH] drivers:staging:hfi1: Fix coding style issues
+Date: Sat, 22 Aug 2015 09:23:47 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC2579D97E@fmsmsx120.amr.corp.intel.com>
+References: <1440165659-2379-1-git-send-email-lysanovsergey@gmail.com>
+ <4AF12E8016D2BF46BCDFCE8FAA77A3580A2A0B55@FMSMSX103.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <HE1PR05MB13557ADB8FA73865B659C6D0C1640@HE1PR05MB1355.eurprd05.prod.outlook.com>
-Sender: stable-owner@vger.kernel.org
-To: Haggai Eran <haggaie@mellanox.com>
-Cc: Sagi Grimberg <sagig@dev.mellanox.co.il>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Eli Cohen <eli@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <4AF12E8016D2BF46BCDFCE8FAA77A3580A2A0B55@FMSMSX103.amr.corp.intel.com>
+Content-Language: en-US
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: "lysanovsergey@gmail.com" <lysanovsergey@gmail.com>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, Doug Ledford <dledford@redhat.com>, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Aug 22, 2015 at 06:38:47AM +0000, Haggai Eran wrote:
-> It looks like the default case in the non-UD branch is currently used to handle plain IB_WR_SEND operations, so the patch would cause these to return an error.
+> Subject: [PATCH] drivers:staging:hfi1: Fix coding style issues
+> 
+> From: Sergey Lysanov <lysanovsergey@gmail.com>
+> 
+> This patch fixes the following issues reported by checkpatch.pl:
+> - code indent should use tabs where possible
+> 
+> Signed-off-by: Sergey Lysanov <lysanovsergey@gmail.com>
+> ---
+Doug,
 
-Indeed.  It's handled fine in patch 2 which splits up the case, but
-will be incorrectly rejected with just this patch applied.
+Can you stage this with your github series?
+
+Acked-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
