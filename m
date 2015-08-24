@@ -1,99 +1,68 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v1] IB/srp: Fix possible protection fault
-Date: Mon, 24 Aug 2015 19:04:51 +0300
-Message-ID: <1440432291-29221-1-git-send-email-sagig@mellanox.com>
+From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next 00/10] Add RoCE support to the mlx5 driver
+Date: Mon, 24 Aug 2015 16:40:50 -0400
+Message-ID: <55DB8152.6080402@talpey.com>
+References: <1440089189-3361-1-git-send-email-achiad@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1440089189-3361-1-git-send-email-achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+To: Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVS1Z/+hSey0Gg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-srp_destroy_qp is designed to indicate we are safe to continue with
-freeing the channel resources by modifying the qp error state,
-posting a dummy wr on the queue-pair and waiting for it to flush.
-This also holds for the channel registration pool as we are unmapping
-the memory region when handling a scsi response. Destroying the
-channel registration pool before we make sure we processed all the
-inflight IO might introduce a use-after-free of the registration pool.
+On 8/20/2015 12:46 PM, Achiad Shochat wrote:
+> Hi Doug,
+>
+> This patchset adds RoCE V1 and RoCE V2 support to the mlx5 device
+> driver.
 
-This use-after-free is demonstrated in the stack trace below where
-srp is trying to unmap a used FMR after the fmr_pool was already destroyed.
+Question - assuming I read them correctly, these patches add the
+RoCE v1 and RoCE v2 support on a per-port basis. That is, a port
+can be either IB, RoCE v1 or RoCE v2, but not a combination.
 
-general protection fault: 0000 [#1] SMP
-RIP: 0010:[<ffffffff8151121b>]  [<ffffffff8151121b>] _raw_spin_lock_irqsave+0x1b/0x50
-Call Trace:
- [<ffffffffa055d88a>] ib_fmr_pool_unmap+0x1a/0xb0 [ib_core]
- [<ffffffffa06c00ed>] srp_unmap_data.isra.28+0x17d/0x250 [ib_srp]
- [<ffffffffa06c01eb>] srp_free_req+0x2b/0x60 [ib_srp]
- [<ffffffffa06c0c94>] srp_recv_completion+0x174/0x580 [ib_srp]
- [<ffffffffa04580fe>] mlx4_eq_int+0x4de/0xe50 [mlx4_core]
- [<ffffffffa0458b00>] mlx4_msi_x_interrupt+0x10/0x20 [mlx4_core]
- [<ffffffff810abc45>] handle_irq_event_percpu+0x35/0x1b0
- [<ffffffff810abdf2>] handle_irq_event+0x32/0x50
- [<ffffffff810ae5cf>] handle_edge_irq+0x6f/0x120
- [<ffffffff8100455a>] handle_irq+0x1a/0x30
- [<ffffffff8151b475>] do_IRQ+0x45/0xb0
- [<ffffffff8151162d>] common_interrupt+0x6d/0x6d
- [<ffffffff813e4d2f>] cpuidle_enter_state+0x4f/0xc0
- [<ffffffff813e4e6c>] cpuidle_idle_call+0xcc/0x210
- [<ffffffff8100b9ea>] arch_cpu_idle+0xa/0x30
- [<ffffffff810ab1e1>] cpu_startup_entry+0xe1/0x270
- [<ffffffff81030b3a>] start_secondary+0x21a/0x2c0
+Has any thought been put toward supporting these protocols on a
+per-QP basis, i.e. the caller of rdma_connect() can specify the
+desired protocol? Or to have some sort of discovery?
 
-Reported-by: Eliott Kespi <eliottk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
----
-Changes from v0:
-- Fixed error flow from comments from Bart
-- Rebased on top of SRP patches for 4.3
+I know that there may be implementation restrictions on today's
+devices, but it's my personal belief that future devices will
+support multiple protocols (perhaps beyond the three above), and
+laying the groundwork for this today will be important.
 
- drivers/infiniband/ulp/srp/ib_srp.c |   16 ++++++++++------
- 1 files changed, 10 insertions(+), 6 deletions(-)
+Tom.
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index cbbd247..95d1059 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -554,9 +554,6 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
- 				     "FR pool allocation failed (%d)\n", ret);
- 			goto err_qp;
- 		}
--		if (ch->fr_pool)
--			srp_destroy_fr_pool(ch->fr_pool);
--		ch->fr_pool = fr_pool;
- 	} else if (dev->use_fmr) {
- 		fmr_pool = srp_alloc_fmr_pool(target);
- 		if (IS_ERR(fmr_pool)) {
-@@ -565,9 +562,6 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
- 				     "FMR pool allocation failed (%d)\n", ret);
- 			goto err_qp;
- 		}
--		if (ch->fmr_pool)
--			ib_destroy_fmr_pool(ch->fmr_pool);
--		ch->fmr_pool = fmr_pool;
- 	}
- 
- 	if (ch->qp)
-@@ -581,6 +575,16 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
- 	ch->recv_cq = recv_cq;
- 	ch->send_cq = send_cq;
- 
-+	if (dev->use_fast_reg) {
-+		if (ch->fr_pool)
-+			srp_destroy_fr_pool(ch->fr_pool);
-+		ch->fr_pool = fr_pool;
-+	} else if (dev->use_fmr) {
-+		if (ch->fmr_pool)
-+			ib_destroy_fmr_pool(ch->fmr_pool);
-+		ch->fmr_pool = fmr_pool;
-+	}
-+
- 	kfree(init_attr);
- 	return 0;
- 
--- 
-1.7.1
+>
+> This patchset was applied and tested over patchset "Add RoCE v2
+> support" which was sent to the mailing list by Matan Barak.
+>
+> Achiad Shochat (10):
+>    IB/mlx5: Support IB device's callback for getting the link layer
+>    IB/mlx5: Support IB device's callback for getting its netdev
+>    net/mlx5_core: Break down the vport mac address query function
+>    net/mlx5_core: Introduce access functions to enable/disable RoCE
+>    net/mlx5_core: Introduce access functions to query vport RoCE fields
+>    IB/mlx5: Extend query_device/port to support RoCE
+>    IB/mlx5: Set network_hdr_type upon RoCE responder completion
+>    IB/mlx5: Support IB device's callbacks for adding/deleting GIDs
+>    IB/mlx5: Add RoCE fields to Address Vector
+>    IB/mlx5: Support RoCE
+>
+>   drivers/infiniband/hw/mlx5/ah.c                 |  32 ++-
+>   drivers/infiniband/hw/mlx5/cq.c                 |  17 ++
+>   drivers/infiniband/hw/mlx5/main.c               | 318 ++++++++++++++++++++++--
+>   drivers/infiniband/hw/mlx5/mlx5_ib.h            |  15 +-
+>   drivers/infiniband/hw/mlx5/qp.c                 |  42 +++-
+>   drivers/net/ethernet/mellanox/mlx5/core/vport.c | 139 ++++++++++-
+>   include/linux/mlx5/device.h                     |  26 ++
+>   include/linux/mlx5/driver.h                     |   7 -
+>   include/linux/mlx5/mlx5_ifc.h                   |  10 +-
+>   include/linux/mlx5/qp.h                         |  21 +-
+>   include/linux/mlx5/vport.h                      |   8 +
+>   11 files changed, 578 insertions(+), 57 deletions(-)
+>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
