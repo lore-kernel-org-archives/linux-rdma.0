@@ -1,148 +1,74 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 1/2] IB/ipoib: Clean up send-only multicast joins
-Date: Tue, 25 Aug 2015 08:58:34 -0400
-Message-ID: <55DC667A.30208@dev.mellanox.co.il>
-References: <1440200053-18890-1-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH 2/2] IB/ipoib: Suppress warning for send only join failures
+Date: Tue, 25 Aug 2015 08:59:13 -0400
+Message-ID: <55DC66A1.9040207@dev.mellanox.co.il>
+References: <1440200053-18890-1-git-send-email-jgunthorpe@obsidianresearch.com> <1440200053-18890-2-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1440200053-18890-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1440200053-18890-2-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 On 8/21/2015 7:34 PM, Jason Gunthorpe wrote:
-> Even though we don't expect the group to be created by the SM we
-> sill need to provide all the parameters to force the SM to validate
-> they are correct.
-
-Out of curiosity, has it been observed that there was inconsistency in
-these additional IPoIB parameters between broadcast and non broadcast
-groups on client side or is this just to be defensive to make sure this
-does not occur ?
-
--- Hal
-
+> We expect send only joins to fail, it just means there are no listeners
+> for the group. The correct thing to do is silently drop the packet
+> at source.
+> 
+> Eg avahi will full join 224.0.0.251 which causes a send only IGMP packet
+> to 224.0.0.22, and then a warning level kmessage like this:
+> 
+>  ib0: sendonly multicast join failed for ff12:401b:ffff:0000:0000:0000:0000:0016, status -22
+> 
+> If there is no IP router listening to IGMP.
 > 
 > Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 > ---
->  drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 47 +++++++++++++++++---------
->  1 file changed, 31 insertions(+), 16 deletions(-)
+>  drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 12 ++++++++++--
+>  1 file changed, 10 insertions(+), 2 deletions(-)
 > 
 > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> index 0d23e0568deb..c0e702c577d5 100644
+> index c0e702c577d5..2d43ec542b63 100644
 > --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
 > +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> @@ -448,8 +448,8 @@ out_locked:
->  	return status;
->  }
->  
-> -static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast,
-> -			     int create)
-> +/* priv->lock must be held when calling */
-> +static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
->  {
->  	struct ipoib_dev_priv *priv = netdev_priv(dev);
->  	struct ib_sa_multicast *multicast;
-> @@ -471,7 +471,14 @@ static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast,
->  		IB_SA_MCMEMBER_REC_PKEY		|
->  		IB_SA_MCMEMBER_REC_JOIN_STATE;
->  
-> -	if (create) {
-> +	if (mcast != priv->broadcast) {
-> +		/*
-> +		 * RFC 4391:
-> +		 *  The MGID MUST use the same P_Key, Q_Key, SL, MTU,
-> +		 *  and HopLimit as those used in the broadcast-GID.  The rest
-> +		 *  of attributes SHOULD follow the values used in the
-> +		 *  broadcast-GID as well.
-> +		 */
->  		comp_mask |=
->  			IB_SA_MCMEMBER_REC_QKEY			|
->  			IB_SA_MCMEMBER_REC_MTU_SELECTOR		|
-> @@ -492,19 +499,35 @@ static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast,
->  		rec.sl		  = priv->broadcast->mcmember.sl;
->  		rec.flow_label	  = priv->broadcast->mcmember.flow_label;
->  		rec.hop_limit	  = priv->broadcast->mcmember.hop_limit;
+> @@ -393,8 +393,13 @@ static int ipoib_mcast_join_complete(int status,
+>  			goto out_locked;
+>  		}
+>  	} else {
+> -		if (mcast->logcount++ < 20) {
+> -			if (status == -ETIMEDOUT || status == -EAGAIN) {
+> +		bool silent_fail =
+> +		    test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags) &&
+> +		    status == -EINVAL;
+
+Aren't there other reasons that send only join might have EINVAL
+indicated ? Maybe it's better to be overly silent rather than overly
+verbose as to not spam the log but it seems like it would make debug of
+such cases harder.
+
 > +
-> +		/*
-> +		 * Historically Linux IPoIB has never properly supported SEND
-> +		 * ONLY join. It emulated it by not providing all the required
-> +		 * attributes, which is enough to prevent group creation and
-> +		 * detect if there are full members or not. A major problem
-> +		 * with supporting SEND ONLY is detecting when the group is
-> +		 * auto-destroyed as IPoIB will cache the MLID..
-> +		 */
-> +#if 1
-> +		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags))
-> +			comp_mask &= ~IB_SA_MCMEMBER_REC_TRAFFIC_CLASS;
-> +#else
-> +		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags))
-> +			rec.join_state = 4;
-> +#endif
->  	}
+> +		if (mcast->logcount < 20) {
+> +			if (status == -ETIMEDOUT || status == -EAGAIN ||
+> +			    silent_fail) {
+>  				ipoib_dbg_mcast(priv, "%smulticast join failed for %pI6, status %d\n",
+>  						test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags) ? "sendonly " : "",
+>  						mcast->mcmember.mgid.raw, status);
+
+ipoib_dbg_mcast logging is conditionalized on CONFIG_INFINIBAND_IPOIB_DEBUG
+
+> @@ -403,6 +408,9 @@ static int ipoib_mcast_join_complete(int status,
+>  						test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags) ? "sendonly " : "",
+>  					   mcast->mcmember.mgid.raw, status);
+>  			}
+> +
+> +			if (!silent_fail)
+> +				mcast->logcount++;
+>  		}
 >  
-> +	spin_unlock_irq(&priv->lock);
->  	multicast = ib_sa_join_multicast(&ipoib_sa_client, priv->ca, priv->port,
->  					 &rec, comp_mask, GFP_KERNEL,
->  					 ipoib_mcast_join_complete, mcast);
-> +	spin_lock_irq(&priv->lock);
->  	if (IS_ERR(multicast)) {
->  		ret = PTR_ERR(multicast);
->  		ipoib_warn(priv, "ib_sa_join_multicast failed, status %d\n", ret);
-> -		spin_lock_irq(&priv->lock);
->  		/* Requeue this join task with a backoff delay */
->  		__ipoib_mcast_schedule_join_thread(priv, mcast, 1);
->  		clear_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
-> -		spin_unlock_irq(&priv->lock);
->  		complete(&mcast->done);
->  	}
->  }
-> @@ -517,7 +540,6 @@ void ipoib_mcast_join_task(struct work_struct *work)
->  	struct ib_port_attr port_attr;
->  	unsigned long delay_until = 0;
->  	struct ipoib_mcast *mcast = NULL;
-> -	int create = 1;
->  
->  	if (!test_bit(IPOIB_FLAG_OPER_UP, &priv->flags))
->  		return;
-> @@ -566,7 +588,6 @@ void ipoib_mcast_join_task(struct work_struct *work)
->  		if (IS_ERR_OR_NULL(priv->broadcast->mc) &&
->  		    !test_bit(IPOIB_MCAST_FLAG_BUSY, &priv->broadcast->flags)) {
->  			mcast = priv->broadcast;
-> -			create = 0;
->  			if (mcast->backoff > 1 &&
->  			    time_before(jiffies, mcast->delay_until)) {
->  				delay_until = mcast->delay_until;
-> @@ -590,13 +611,7 @@ void ipoib_mcast_join_task(struct work_struct *work)
->  				/* Found the next unjoined group */
->  				init_completion(&mcast->done);
->  				set_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
-> -				if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags))
-> -					create = 0;
-> -				else
-> -					create = 1;
-> -				spin_unlock_irq(&priv->lock);
-> -				ipoib_mcast_join(dev, mcast, create);
-> -				spin_lock_irq(&priv->lock);
-> +				ipoib_mcast_join(dev, mcast);
->  			} else if (!delay_until ||
->  				 time_before(mcast->delay_until, delay_until))
->  				delay_until = mcast->delay_until;
-> @@ -616,9 +631,9 @@ out:
->  		init_completion(&mcast->done);
->  		set_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
->  	}
-> -	spin_unlock_irq(&priv->lock);
->  	if (mcast)
-> -		ipoib_mcast_join(dev, mcast, create);
-> +		ipoib_mcast_join(dev, mcast);
-> +	spin_unlock_irq(&priv->lock);
->  }
->  
->  int ipoib_mcast_start_thread(struct net_device *dev)
+>  		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags) &&
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
