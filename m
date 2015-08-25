@@ -1,60 +1,148 @@
-From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 00/10] Add RoCE support to the mlx5 driver
-Date: Tue, 25 Aug 2015 08:32:00 -0400
-Message-ID: <55DC6040.5080907@talpey.com>
-References: <1440089189-3361-1-git-send-email-achiad@mellanox.com>
- <55DB8152.6080402@talpey.com> <55DC28C2.4020705@mellanox.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 1/2] IB/ipoib: Clean up send-only multicast joins
+Date: Tue, 25 Aug 2015 08:58:34 -0400
+Message-ID: <55DC667A.30208@dev.mellanox.co.il>
+References: <1440200053-18890-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55DC28C2.4020705-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1440200053-18890-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVS1Z/+hSey0Gg@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/25/2015 4:35 AM, Achiad Shochat wrote:
-> On 8/24/2015 11:40 PM, Tom Talpey wrote:
->> On 8/20/2015 12:46 PM, Achiad Shochat wrote:
->>> Hi Doug,
->>>
->>> This patchset adds RoCE V1 and RoCE V2 support to the mlx5 device
->>> driver.
->>
->> Question - assuming I read them correctly, these patches add the
->> RoCE v1 and RoCE v2 support on a per-port basis. That is, a port
->> can be either IB, RoCE v1 or RoCE v2, but not a combination.
->>
->> Has any thought been put toward supporting these protocols on a
->> per-QP basis, i.e. the caller of rdma_connect() can specify the
->> desired protocol? Or to have some sort of discovery?
->>
->> I know that there may be implementation restrictions on today's
->> devices, but it's my personal belief that future devices will
->> support multiple protocols (perhaps beyond the three above), and
->> laying the groundwork for this today will be important.
->>
->> Tom.
->>
+On 8/21/2015 7:34 PM, Jason Gunthorpe wrote:
+> Even though we don't expect the group to be created by the SM we
+> sill need to provide all the parameters to force the SM to validate
+> they are correct.
 
->
-> RoCE v1 and RoCE v2 are supported on a per-GID basis, not sure what got
-> you to understand it is per-port.
+Out of curiosity, has it been observed that there was inconsistency in
+these additional IPoIB parameters between broadcast and non broadcast
+groups on client side or is this just to be defensive to make sure this
+does not occur ?
 
-Because the protocol capabilities were being marked at the ib_device
-level. Ok, it's good that the protocol is per-endpoint.
+-- Hal
 
-But I don't understand how it will work per-GID. What if the target
-node is RoCEv2 and on another subnet? How will it discover the remote's
-capability and establish the right protocol? How does the initiator
-select the protocol, if there is a choice?
-
-Another way of asking this question is, why is all this stuff in the
-driver, at the bottom of the stack? I think it should be in the
-rdmacm layer.
-
-Tom.
+> 
+> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> ---
+>  drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 47 +++++++++++++++++---------
+>  1 file changed, 31 insertions(+), 16 deletions(-)
+> 
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> index 0d23e0568deb..c0e702c577d5 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> @@ -448,8 +448,8 @@ out_locked:
+>  	return status;
+>  }
+>  
+> -static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast,
+> -			     int create)
+> +/* priv->lock must be held when calling */
+> +static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
+>  {
+>  	struct ipoib_dev_priv *priv = netdev_priv(dev);
+>  	struct ib_sa_multicast *multicast;
+> @@ -471,7 +471,14 @@ static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast,
+>  		IB_SA_MCMEMBER_REC_PKEY		|
+>  		IB_SA_MCMEMBER_REC_JOIN_STATE;
+>  
+> -	if (create) {
+> +	if (mcast != priv->broadcast) {
+> +		/*
+> +		 * RFC 4391:
+> +		 *  The MGID MUST use the same P_Key, Q_Key, SL, MTU,
+> +		 *  and HopLimit as those used in the broadcast-GID.  The rest
+> +		 *  of attributes SHOULD follow the values used in the
+> +		 *  broadcast-GID as well.
+> +		 */
+>  		comp_mask |=
+>  			IB_SA_MCMEMBER_REC_QKEY			|
+>  			IB_SA_MCMEMBER_REC_MTU_SELECTOR		|
+> @@ -492,19 +499,35 @@ static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast,
+>  		rec.sl		  = priv->broadcast->mcmember.sl;
+>  		rec.flow_label	  = priv->broadcast->mcmember.flow_label;
+>  		rec.hop_limit	  = priv->broadcast->mcmember.hop_limit;
+> +
+> +		/*
+> +		 * Historically Linux IPoIB has never properly supported SEND
+> +		 * ONLY join. It emulated it by not providing all the required
+> +		 * attributes, which is enough to prevent group creation and
+> +		 * detect if there are full members or not. A major problem
+> +		 * with supporting SEND ONLY is detecting when the group is
+> +		 * auto-destroyed as IPoIB will cache the MLID..
+> +		 */
+> +#if 1
+> +		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags))
+> +			comp_mask &= ~IB_SA_MCMEMBER_REC_TRAFFIC_CLASS;
+> +#else
+> +		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags))
+> +			rec.join_state = 4;
+> +#endif
+>  	}
+>  
+> +	spin_unlock_irq(&priv->lock);
+>  	multicast = ib_sa_join_multicast(&ipoib_sa_client, priv->ca, priv->port,
+>  					 &rec, comp_mask, GFP_KERNEL,
+>  					 ipoib_mcast_join_complete, mcast);
+> +	spin_lock_irq(&priv->lock);
+>  	if (IS_ERR(multicast)) {
+>  		ret = PTR_ERR(multicast);
+>  		ipoib_warn(priv, "ib_sa_join_multicast failed, status %d\n", ret);
+> -		spin_lock_irq(&priv->lock);
+>  		/* Requeue this join task with a backoff delay */
+>  		__ipoib_mcast_schedule_join_thread(priv, mcast, 1);
+>  		clear_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
+> -		spin_unlock_irq(&priv->lock);
+>  		complete(&mcast->done);
+>  	}
+>  }
+> @@ -517,7 +540,6 @@ void ipoib_mcast_join_task(struct work_struct *work)
+>  	struct ib_port_attr port_attr;
+>  	unsigned long delay_until = 0;
+>  	struct ipoib_mcast *mcast = NULL;
+> -	int create = 1;
+>  
+>  	if (!test_bit(IPOIB_FLAG_OPER_UP, &priv->flags))
+>  		return;
+> @@ -566,7 +588,6 @@ void ipoib_mcast_join_task(struct work_struct *work)
+>  		if (IS_ERR_OR_NULL(priv->broadcast->mc) &&
+>  		    !test_bit(IPOIB_MCAST_FLAG_BUSY, &priv->broadcast->flags)) {
+>  			mcast = priv->broadcast;
+> -			create = 0;
+>  			if (mcast->backoff > 1 &&
+>  			    time_before(jiffies, mcast->delay_until)) {
+>  				delay_until = mcast->delay_until;
+> @@ -590,13 +611,7 @@ void ipoib_mcast_join_task(struct work_struct *work)
+>  				/* Found the next unjoined group */
+>  				init_completion(&mcast->done);
+>  				set_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
+> -				if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags))
+> -					create = 0;
+> -				else
+> -					create = 1;
+> -				spin_unlock_irq(&priv->lock);
+> -				ipoib_mcast_join(dev, mcast, create);
+> -				spin_lock_irq(&priv->lock);
+> +				ipoib_mcast_join(dev, mcast);
+>  			} else if (!delay_until ||
+>  				 time_before(mcast->delay_until, delay_until))
+>  				delay_until = mcast->delay_until;
+> @@ -616,9 +631,9 @@ out:
+>  		init_completion(&mcast->done);
+>  		set_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
+>  	}
+> -	spin_unlock_irq(&priv->lock);
+>  	if (mcast)
+> -		ipoib_mcast_join(dev, mcast, create);
+> +		ipoib_mcast_join(dev, mcast);
+> +	spin_unlock_irq(&priv->lock);
+>  }
+>  
+>  int ipoib_mcast_start_thread(struct net_device *dev)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
