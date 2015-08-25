@@ -1,74 +1,73 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 2/2] IB/ipoib: Suppress warning for send only join failures
-Date: Tue, 25 Aug 2015 08:59:13 -0400
-Message-ID: <55DC66A1.9040207@dev.mellanox.co.il>
-References: <1440200053-18890-1-git-send-email-jgunthorpe@obsidianresearch.com> <1440200053-18890-2-git-send-email-jgunthorpe@obsidianresearch.com>
+From: Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next 00/10] Add RoCE support to the mlx5 driver
+Date: Tue, 25 Aug 2015 16:06:34 +0300
+Message-ID: <55DC685A.8060402@mellanox.com>
+References: <1440089189-3361-1-git-send-email-achiad@mellanox.com>
+ <55DB8152.6080402@talpey.com> <55DC28C2.4020705@mellanox.com>
+ <55DC6040.5080907@talpey.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1440200053-18890-2-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <55DC6040.5080907-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVS1Z/+hSey0Gg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/21/2015 7:34 PM, Jason Gunthorpe wrote:
-> We expect send only joins to fail, it just means there are no listeners
-> for the group. The correct thing to do is silently drop the packet
-> at source.
-> 
-> Eg avahi will full join 224.0.0.251 which causes a send only IGMP packet
-> to 224.0.0.22, and then a warning level kmessage like this:
-> 
->  ib0: sendonly multicast join failed for ff12:401b:ffff:0000:0000:0000:0000:0016, status -22
-> 
-> If there is no IP router listening to IGMP.
-> 
-> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> ---
->  drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 12 ++++++++++--
->  1 file changed, 10 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> index c0e702c577d5..2d43ec542b63 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> @@ -393,8 +393,13 @@ static int ipoib_mcast_join_complete(int status,
->  			goto out_locked;
->  		}
->  	} else {
-> -		if (mcast->logcount++ < 20) {
-> -			if (status == -ETIMEDOUT || status == -EAGAIN) {
-> +		bool silent_fail =
-> +		    test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags) &&
-> +		    status == -EINVAL;
+On 8/25/2015 3:32 PM, Tom Talpey wrote:
+> On 8/25/2015 4:35 AM, Achiad Shochat wrote:
+>> On 8/24/2015 11:40 PM, Tom Talpey wrote:
+>>> On 8/20/2015 12:46 PM, Achiad Shochat wrote:
+>>>> Hi Doug,
+>>>>
+>>>> This patchset adds RoCE V1 and RoCE V2 support to the mlx5 device
+>>>> driver.
+>>>
+>>> Question - assuming I read them correctly, these patches add the
+>>> RoCE v1 and RoCE v2 support on a per-port basis. That is, a port
+>>> can be either IB, RoCE v1 or RoCE v2, but not a combination.
+>>>
+>>> Has any thought been put toward supporting these protocols on a
+>>> per-QP basis, i.e. the caller of rdma_connect() can specify the
+>>> desired protocol? Or to have some sort of discovery?
+>>>
+>>> I know that there may be implementation restrictions on today's
+>>> devices, but it's my personal belief that future devices will
+>>> support multiple protocols (perhaps beyond the three above), and
+>>> laying the groundwork for this today will be important.
+>>>
+>>> Tom.
+>>>
+>
+>>
+>> RoCE v1 and RoCE v2 are supported on a per-GID basis, not sure what got
+>> you to understand it is per-port.
+>
+> Because the protocol capabilities were being marked at the ib_device
+> level. Ok, it's good that the protocol is per-endpoint.
+>
+> But I don't understand how it will work per-GID. What if the target
+> node is RoCEv2 and on another subnet? How will it discover the remote's
+> capability and establish the right protocol? How does the initiator
+> select the protocol, if there is a choice?
+>
+> Another way of asking this question is, why is all this stuff in the
+> driver, at the bottom of the stack? I think it should be in the
+> rdmacm layer.
+>
+> Tom.
+>
 
-Aren't there other reasons that send only join might have EINVAL
-indicated ? Maybe it's better to be overly silent rather than overly
-verbose as to not spam the log but it seems like it would make debug of
-such cases harder.
+Selection of the RoCE version to be used per connection and discovering 
+the RoCE versions supported by the target is up to the application.
 
-> +
-> +		if (mcast->logcount < 20) {
-> +			if (status == -ETIMEDOUT || status == -EAGAIN ||
-> +			    silent_fail) {
->  				ipoib_dbg_mcast(priv, "%smulticast join failed for %pI6, status %d\n",
->  						test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags) ? "sendonly " : "",
->  						mcast->mcmember.mgid.raw, status);
+It is not done by the driver of course, neither by the kernel stack.
 
-ipoib_dbg_mcast logging is conditionalized on CONFIG_INFINIBAND_IPOIB_DEBUG
+The driver only exposes add/del_gid callbacks, used by the ib_core to 
+configure the device GID table entries (including RoCE version per 
+entry) based on netdev IPs configured in the system.
 
-> @@ -403,6 +408,9 @@ static int ipoib_mcast_join_complete(int status,
->  						test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags) ? "sendonly " : "",
->  					   mcast->mcmember.mgid.raw, status);
->  			}
-> +
-> +			if (!silent_fail)
-> +				mcast->logcount++;
->  		}
->  
->  		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags) &&
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
