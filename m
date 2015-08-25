@@ -1,69 +1,56 @@
-From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 00/10] Add RoCE support to the mlx5 driver
-Date: Mon, 24 Aug 2015 16:40:50 -0400
-Message-ID: <55DB8152.6080402@talpey.com>
-References: <1440089189-3361-1-git-send-email-achiad@mellanox.com>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v9 0/4] Sending kernel pathrecord query to user cache
+ server
+Date: Tue, 25 Aug 2015 09:34:20 +0300
+Message-ID: <55DC0C6C.1080406@mellanox.com>
+References: <1439556729-27876-1-git-send-email-kaike.wan@intel.com>
+ <20150821230734.GA16951@obsidianresearch.com>
+ <3F128C9216C9B84BB6ED23EF16290AFB18548AF0@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1440089189-3361-1-git-send-email-achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <3F128C9216C9B84BB6ED23EF16290AFB18548AF0-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVS1Z/+hSey0Gg@public.gmane.org>
+To: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/20/2015 12:46 PM, Achiad Shochat wrote:
-> Hi Doug,
->
-> This patchset adds RoCE V1 and RoCE V2 support to the mlx5 device
-> driver.
+On 24/08/2015 17:32, Wan, Kaike wrote:
+>> On Fri, Aug 14, 2015 at 08:52:05AM -0400, kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+>> > 
+>>> > > Some tests with namespace have been performed:
+>>> > > 1. An unprivileged user cannot bind to the RDMA_NL_GROUP_LS multicast
+>>> > >    group;
+>>> > > 2. An unprivileged user cannot create a new network namespace. However,
+>>> > >    it can create a new user namespace together with a new network
+>>> > >    namespace by using clone() with CLONE_NEWUSER | CLONE_NEWNET
+>> > flags;
+>>> > > 3. In the user and network namespaces created by an unprivileged user,
+>>> > >    the user can be mapped into root and thus be able to bind to the
+>>> > >    RDMA_NL_GROUP_LS multicast group. However, it can neither send
+>>> > >    requests to the kernel RDMA netlink code nor receive requests from
+>>> > >    it. This is because kernel RDMA netlink code associates itself with
+>>> > >    the init_net network namespace, which in turn associates itself with
+>>> > >    init_user_ns namespace.
+>> > 
+>> > Haggie, how does this coverage match your expectations with your
+>> > namespace series?
+>> > 
+>> > Kaike, how does #3 work? 
+> I created a test app that used clone() with CLONE_NEWUSER | CLONE_NEWNET to create child process (modeled after the user_namespace man page example: http://man7.org/linux/man-pages/man7/user_namespaces.7.html). Once the child process was mapped to root (uid 0),   it created the netlink socket and bound to the RDMA_NL_GROUP_LS and waited to receive requests from the kernel.
+> 
+> If I create a user namespace and try to bind it
+>> > succeeds to userspace but ibnl_chk_listeners still returns false in the kernel?
+> ibnl_chk_listeners() actually returned 0 (success), indicating that there were listeners. However, ibnl_multicast() failed. From the code of netlink_has_listeners(), it is apparently that the check has nothing to do with namespace (that's why it succeeded).
 
-Question - assuming I read them correctly, these patches add the
-RoCE v1 and RoCE v2 support on a per-port basis. That is, a port
-can be either IB, RoCE v1 or RoCE v2, but not a combination.
+It looks like the ibnl socket (nls) is created with the &init_net 
+network namespace, and netlink won't send multicasts to sockets on 
+other namespaces (see [1]).
 
-Has any thought been put toward supporting these protocols on a
-per-QP basis, i.e. the caller of rdma_connect() can specify the
-desired protocol? Or to have some sort of discovery?
+Haggai
 
-I know that there may be implementation restrictions on today's
-devices, but it's my personal belief that future devices will
-support multiple protocols (perhaps beyond the three above), and
-laying the groundwork for this today will be important.
-
-Tom.
-
->
-> This patchset was applied and tested over patchset "Add RoCE v2
-> support" which was sent to the mailing list by Matan Barak.
->
-> Achiad Shochat (10):
->    IB/mlx5: Support IB device's callback for getting the link layer
->    IB/mlx5: Support IB device's callback for getting its netdev
->    net/mlx5_core: Break down the vport mac address query function
->    net/mlx5_core: Introduce access functions to enable/disable RoCE
->    net/mlx5_core: Introduce access functions to query vport RoCE fields
->    IB/mlx5: Extend query_device/port to support RoCE
->    IB/mlx5: Set network_hdr_type upon RoCE responder completion
->    IB/mlx5: Support IB device's callbacks for adding/deleting GIDs
->    IB/mlx5: Add RoCE fields to Address Vector
->    IB/mlx5: Support RoCE
->
->   drivers/infiniband/hw/mlx5/ah.c                 |  32 ++-
->   drivers/infiniband/hw/mlx5/cq.c                 |  17 ++
->   drivers/infiniband/hw/mlx5/main.c               | 318 ++++++++++++++++++++++--
->   drivers/infiniband/hw/mlx5/mlx5_ib.h            |  15 +-
->   drivers/infiniband/hw/mlx5/qp.c                 |  42 +++-
->   drivers/net/ethernet/mellanox/mlx5/core/vport.c | 139 ++++++++++-
->   include/linux/mlx5/device.h                     |  26 ++
->   include/linux/mlx5/driver.h                     |   7 -
->   include/linux/mlx5/mlx5_ifc.h                   |  10 +-
->   include/linux/mlx5/qp.h                         |  21 +-
->   include/linux/mlx5/vport.h                      |   8 +
->   11 files changed, 578 insertions(+), 57 deletions(-)
->
-
+[1] http://lxr.free-electrons.com/source/net/netlink/af_netlink.c?v=4.1#L1935
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
