@@ -1,46 +1,45 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: shrink struct ib_send_wr V3
-Date: Wed, 26 Aug 2015 11:00:36 +0200
-Message-ID: <1440579639-10684-1-git-send-email-hch@lst.de>
+From: eran ben elisha <eranlinuxmellanox-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v1 for-next 0/7] Add support for multicast loopback
+ prevention to mlx4
+Date: Wed, 26 Aug 2015 12:12:15 +0300
+Message-ID: <CAKHjkjnk9sFfr3KhNGBD_LzXUbDdb7_=vF2A3Z5+ousFShfxJw@mail.gmail.com>
+References: <1440081275-15864-1-git-send-email-eranbe@mellanox.com>
+	<alpine.DEB.2.11.1508251143430.16801@east.gentwo.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.11.1508251143430.16801-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This series shrinks the WR size by splitting out the different WR
-types.
+On Tue, Aug 25, 2015 at 7:44 PM, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org> wrote:
+> On Thu, 20 Aug 2015, Eran Ben Elisha wrote:
+>
+>> This patch-set adds a new  implementation for multicast loopback prevention for
+>> mlx4 driver.  The current implementation is very limited, especially if link
+>> layer is Ethernet. The new implementation is based on HW feature of dropping
+>> incoming multicast packets if the sender QP counter index is equal to the
+>> receiver counter index.
+>
+> Do you have this in a git tree somewhere for testing?
 
-Patch number two is too large for the mailinglist, so if you didn't
-get it grab it here:
+Yes,
+please pull from https://github.com/eranbenelisha/linux branch
+rebased-for-4.3/lb_prev
 
-	http://git.infradead.org/users/hch/rdma.git/commitdiff/2b63f958de7bd630aba85caf65986831d4372869
+If you with to get the user space as well for testing, please use:
+https://github.com/eranbenelisha/libibverbs branch for-linux-rdma-lb_prev
+https://github.com/eranbenelisha/libmlx4 branch for-linux-rdma-lb_prev
 
-or the full git tree at:
+Eran.
 
-	git://git.infradead.org/users/hch/rdma.git wr-cleanup
-
-Changes since V2:
-
- - fixed patch one to accept SEND - note that this was alredy fixed by
-   patch 2
- - added a CC: stable for patch 1
- - added additional review tags
-
-Changes since the version sent around a couple of times:
-
- - new patch 1 which rejects invalid opcodes.  Patch 2 was doing
-   this implicitly except for UD QPs, but I think we should a)
-   do this explicitly and b) ensure this goes into 4.2 and -stable
-   as I can see quite a lot of harm from submitting such malformed
-   operations
- - patch 2 now covers all drivers including those in staging to
-   side step any sort of discussions on the staging tree.
- - patch 2 now explicitly replaces the weird overloading in the mlx5
-   driver with an explicit embedding of struct ib_send_wr, similar
-   to what we do for all other MRs.
- - new patch to drop another unused send_wr field.
-
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
