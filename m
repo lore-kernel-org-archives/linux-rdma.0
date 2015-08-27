@@ -1,42 +1,21 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 0/3] libibverbs: On-demand paging support
-Date: Thu, 27 Aug 2015 18:22:32 +0300
-Message-ID: <1440688955-7709-1-git-send-email-haggaie@mellanox.com>
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next V3 1/8] IB/core: Change provider's API of
+ create_cq to be extendible
+Date: Thu, 27 Aug 2015 12:11:21 -0500 (CDT)
+Message-ID: <alpine.DEB.2.11.1508271210160.1413@east.gentwo.org>
+References: <1434029727-6062-1-git-send-email-ogerlitz@mellanox.com> <1434029727-6062-2-git-send-email-ogerlitz@mellanox.com> <20150611175555.GB20142@obsidianresearch.com> <CAJ3xEMgA0UorV3ERz_M7-H0Z4c6tmK2e_k84c6VExhzjQJ+9LQ@mail.gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAJ3xEMgA0UorV3ERz_M7-H0Z4c6tmK2e_k84c6VExhzjQJ+9LQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This series adds userspace support for on-demand paging. The first patch adds
-support for the new extended query device verb. Patch 2 adds the capability and
-interface bits related to on-demand paging, and patch 3 adds example code to
-the rc_pingpong program to use on-demand paging.
+Ok we tested this patchset with Matans timestamp-v2 branches from his repo
+on github and the timestamps now work fine.
 
-Eli Cohen (1):
-  Add support for extended query device capabilities
-
-Haggai Eran (1):
-  Add on-demand paging support
-
-Majd Dibbiny (1):
-  libibverbs/examples: Support odp in rc_pingpong
-
- Makefile.am                   |   3 +-
- examples/devinfo.c            |  67 ++++++++++++++++++++--
- examples/rc_pingpong.c        |  31 +++++++++-
- include/infiniband/driver.h   |   9 +++
- include/infiniband/kern-abi.h |  36 +++++++++++-
- include/infiniband/verbs.h    |  53 ++++++++++++++++-
- man/ibv_query_device_ex.3     |  70 +++++++++++++++++++++++
- man/ibv_reg_mr.3              |   2 +
- src/cmd.c                     | 129 +++++++++++++++++++++++++++++-------------
- src/libibverbs.map            |   2 +
- 10 files changed, 352 insertions(+), 50 deletions(-)
- create mode 100644 man/ibv_query_device_ex.3
-
--- 
-1.7.11.2
+Can we please get the user space library bits into libibverbs and libmlx4?
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
