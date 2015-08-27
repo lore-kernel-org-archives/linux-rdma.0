@@ -1,21 +1,39 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next V3 7/8] IB/mlx4: Add mmap call to map the hardware
- clock
-Date: Thu, 27 Aug 2015 12:11:59 -0500 (CDT)
-Message-ID: <alpine.DEB.2.11.1508271211340.1413@east.gentwo.org>
-References: <1434029727-6062-1-git-send-email-ogerlitz@mellanox.com> <1434029727-6062-8-git-send-email-ogerlitz@mellanox.com>
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 1/2] IB/ipoib: Clean up send-only multicast joins
+Date: Thu, 27 Aug 2015 17:33:22 -0600
+Message-ID: <20150827233322.GA29724@obsidianresearch.com>
+References: <1440200053-18890-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <55DCAACD.3000307@redhat.com>
+ <20150825182233.GA20744@obsidianresearch.com>
+ <55DCB56F.5000001@redhat.com>
+ <20150825194945.GA22335@obsidianresearch.com>
+ <55DDC12E.6030705@redhat.com>
+ <20150826161829.GA27407@obsidianresearch.com>
+ <55DDECA3.4010207@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1434029727-6062-8-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <55DDECA3.4010207-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Could you please post an updates patch that reflects the current state in
-Matan's tree?
+On Wed, Aug 26, 2015 at 12:43:15PM -0400, Doug Ledford wrote:
 
+> That still takes us back to the fact that the locking changes are
+> unneeded.  I'm not opposed to them, but as you mentioned in your first
+> email, they should go with the changes that require them, and none of
+> the changes in the first patch require them.  Which means that if we
+> want to keep them, it might be worth splitting them out and giving them
+> their own patch with an explanation of why they are a benefit (lightly
+> contended code, saves a release/reacquire on the failure path).
 
+Lets just drop them, the cost for restructing was an added empty lock
+grab on a non-error path.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
