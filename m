@@ -1,116 +1,81 @@
 From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: shrink struct ib_send_wr V3
-Date: Sun, 30 Aug 2015 20:26:20 +0300
-Message-ID: <55E33CBC.3090000@dev.mellanox.co.il>
-References: <1440579639-10684-1-git-send-email-hch@lst.de>
- <55E321D7.7000209@dev.mellanox.co.il>
+Subject: Re: [PATCH v4 09/14] IB/cm: Expose BTH P_Key in CM and SIDR request
+ events
+Date: Sun, 30 Aug 2015 21:23:01 +0300
+Message-ID: <55E34A05.8040205@dev.mellanox.co.il>
+References: <1438267826-32155-1-git-send-email-haggaie@mellanox.com>
+ <1438267826-32155-10-git-send-email-haggaie@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55E321D7.7000209-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1438267826-32155-10-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/30/2015 6:31 PM, Sagi Grimberg wrote:
->>   - patch 2 now explicitly replaces the weird overloading in the mlx5
->>     driver with an explicit embedding of struct ib_send_wr, similar
->>     to what we do for all other MRs.
+On 7/30/2015 5:50 PM, Haggai Eran wrote:
+> The rdma_cm module will later use the P_Key from the BTH to de-mux
+> requests.
 >
-> That's nice,
->
-> There is one non-trivial spot that was missed in mlx5_ib_post_send
-> though:
->
-> diff --git a/drivers/infiniband/hw/mlx5/qp.c
-> b/drivers/infiniband/hw/mlx5/qp.c
-> index 7ddfb74..35a18d6 100644
-> --- a/drivers/infiniband/hw/mlx5/qp.c
-> +++ b/drivers/infiniband/hw/mlx5/qp.c
-> @@ -2802,7 +2802,7 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct
-> ib_send_wr *wr,
->                                  goto out;
->                          }
->                          qp->sq.wr_data[idx] = MLX5_IB_WR_UMR;
-> -                       ctrl->imm = cpu_to_be32(fast_reg_wr(wr)->rkey);
-> +                       ctrl->imm = cpu_to_be32(umr_wr(wr)->mkey);
->                          set_reg_umr_segment(seg, wr);
->                          seg += sizeof(struct mlx5_wqe_umr_ctrl_seg);
->                          size += sizeof(struct mlx5_wqe_umr_ctrl_seg) / 16;
->
-> Care to fold this in?
->
+> See discussion at:
+>    http://www.spinics.net/lists/netdev/msg336067.html
 
-There is another problem I'm seeing in this patch. in reg_umr the
-local variable is a type ib_send_wr which is passed to
-prep_umr_reg_wqe() which casts it to mlx5_umr_wr (container_of). It
-should have probably been mlx5_umr_wr to begin with...
+I've been hitting errors with srp target with this series applied.
 
-I think this needs to be folded in as well:
-diff --git a/drivers/infiniband/hw/mlx5/mr.c 
-b/drivers/infiniband/hw/mlx5/mr.c
-index 9fac2c1..6f8f3d8 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -752,7 +752,8 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, 
-struct ib_umem *umem,
-         struct device *ddev = dev->ib_dev.dma_device;
-         struct umr_common *umrc = &dev->umrc;
-         struct mlx5_ib_umr_context umr_context;
--       struct ib_send_wr wr, *bad;
-+       struct mlx5_umr_wr umrwr;
-+       struct ib_send_wr *bad;
-         struct mlx5_ib_mr *mr;
-         struct ib_sge sg;
-         int size;
-@@ -798,14 +799,14 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd 
-*pd, struct ib_umem *umem,
-                 goto free_pas;
-         }
+Not sure if this series exposes a bug in ib_srpt or breaks it at
+this point, so I just thought I'd send it out at the meantime...
 
--       memset(&wr, 0, sizeof(wr));
--       wr.wr_id = (u64)(unsigned long)&umr_context;
--       prep_umr_reg_wqe(pd, &wr, &sg, dma, npages, mr->mmr.key, page_shift,
--                        virt_addr, len, access_flags);
-+       memset(&umrwr, 0, sizeof(umrwr));
-+       umrwr.wr.wr_id = (u64)(unsigned long)&umr_context;
-+       prep_umr_reg_wqe(pd, &umrwr.wr, &sg, dma, npages, mr->mmr.key,
-+                        page_shift, virt_addr, len, access_flags);
+Looks like for some reason cm_get_bth_pkey got pkey_index of 0xffff
+instead of 0 (working on the default pkey 0xffff at entry 0).
 
-         mlx5_ib_init_umr_context(&umr_context);
-         down(&umrc->sem);
--       err = ib_post_send(umrc->qp, &wr, &bad);
-+       err = ib_post_send(umrc->qp, &umrwr.wr, &bad);
-         if (err) {
-                 mlx5_ib_warn(dev, "post send failed, err %d\n", err);
-                 goto unmap_dma;
-@@ -1134,16 +1135,17 @@ static int unreg_umr(struct mlx5_ib_dev *dev, 
-struct mlx5_ib_mr *mr)
-  {
-         struct umr_common *umrc = &dev->umrc;
-         struct mlx5_ib_umr_context umr_context;
--       struct ib_send_wr wr, *bad;
-+       struct mlx5_umr_wr umrwr;
-+       struct ib_send_wr *bad;
-         int err;
+I have modified the srp initiator, but I doubt that my changes are
+related at the moment as well as I didn't modify the channel
+establishment at all.
 
--       memset(&wr, 0, sizeof(wr));
--       wr.wr_id = (u64)(unsigned long)&umr_context;
--       prep_umr_unreg_wqe(dev, &wr, mr->mmr.key);
-+       memset(&umrwr, 0, sizeof(umrwr));
-+       umrwr.wr.wr_id = (u64)(unsigned long)&umr_context;
-+       prep_umr_unreg_wqe(dev, &umrwr.wr, mr->mmr.key);
+log:
+infiniband mlx5_0: ib_cm: Couldn't retrieve pkey for incoming request 
+(port 1, pkey index 65535). -22
+ib_srpt Received SRP_LOGIN_REQ with i_port_id 0x0:0x2c90300ed0960, 
+t_port_id 0x2c90300ed0950:0x2c90300ed0950 and it_iu_len 260 on port 1 
+(guid=0xfe80000000000000:0x2c90300ed0950)
+ib_srpt Session : kernel thread ib_srpt_compl (PID 8584) started
+infiniband mlx5_0: ib_cm: Couldn't retrieve pkey for incoming request 
+(port 1, pkey index 65535). -22
+ib_srpt Received SRP_LOGIN_REQ with i_port_id 0x0:0x2c90300ed0960, 
+t_port_id 0x2c90300ed0950:0x2c90300ed0950 and it_iu_len 260 on port 1 
+(guid=0xfe80000000000000:0x2c90300ed0950)
+ib_srpt Session : kernel thread ib_srpt_compl (PID 8585) started
+mlx5_0:dump_cqe:238:(pid 8584): dump error cqe
+00000000 00000000 00000000 00000000
+00000000 00000000 00000000 00000000
+0000002b 00000000 00000000 00000000
+00000000 94003004 0000002c 0000b8e0
+ib_srpt receiving failed for idx 0 with status 4
+0000:04:00.0:poll_health:151:(pid 0): device's health compromised
+assert_var[0] 0x00000094
+assert_var[1] 0x00000000
+assert_var[2] 0x00000000
+assert_var[3] 0x00000000
+assert_var[4] 0x00000000
+assert_exit_ptr 0x0061d35c
+assert_callra 0x0067a5f4
+fw_ver 0xa0641900
+hw_id 0x000001ff
+irisc_index 2
+synd 0x1: firmware internal error
+ext_sync 0x0000
+0000:04:00.0:health_care:76:(pid 7943): handling bad device here
+ib_srpt Received DREQ and sent DREP for session 
+0x00000000000000000002c90300ed0960.
+ib_srpt Received DREQ and sent DREP for session 
+0x00000000000000000002c90300ed0960.
+ib_srpt Received IB TimeWait exit for cm_id ffff88046d1fb200.
+ib_srpt Received IB TimeWait exit for cm_id ffff880454ffa000.
+ib_srpt Session 0x00000000000000000002c90300ed0960: kernel thread 
+ib_srpt_compl (PID 8585) stopped
 
-         mlx5_ib_init_umr_context(&umr_context);
-         down(&umrc->sem);
--       err = ib_post_send(umrc->qp, &wr, &bad);
-+       err = ib_post_send(umrc->qp, &umrwr.wr, &bad);
-         if (err) {
-                 up(&umrc->sem);
-                 mlx5_ib_dbg(dev, "err %d\n", err);
---
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
