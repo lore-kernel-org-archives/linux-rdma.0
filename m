@@ -1,54 +1,47 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/cma: Fix net_dev reference leak with failed requests
-Date: Sat, 29 Aug 2015 23:12:50 -0700
-Message-ID: <CAJ3xEMhtnzHu23wnpsHex5_xt3MV=z3ERoX6T5d=RoTVdOVrpw@mail.gmail.com>
-References: <1440680115-9164-1-git-send-email-haggaie@mellanox.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: shrink struct ib_send_wr V3
+Date: Sun, 30 Aug 2015 18:31:35 +0300
+Message-ID: <55E321D7.7000209@dev.mellanox.co.il>
+References: <1440579639-10684-1-git-send-email-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1440680115-9164-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1440579639-10684-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Aug 27, 2015 at 5:55 AM, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> When no matching listening ID is found for a given request, the net_dev
-> that was used to find the request isn't released.
->
-> Fixes: 20c36836ecad ("IB/cma: Use found net_dev for passive connections")
+>   - patch 2 now explicitly replaces the weird overloading in the mlx5
+>     driver with an explicit embedding of struct ib_send_wr, similar
+>     to what we do for all other MRs.
 
-same here, Doug, if this ID isn't the one that is actually going to
-show off in Linus tree, please either squash this there prior to
-getting the bits upstream or hold off till we have  a proper ID
+That's nice,
 
-> Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/core/cma.c | 4 ++++
->  1 file changed, 4 insertions(+)
->
-> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-> index 9b306d7b5c27..b1ab13f3e182 100644
-> --- a/drivers/infiniband/core/cma.c
-> +++ b/drivers/infiniband/core/cma.c
-> @@ -1302,6 +1302,10 @@ static struct rdma_id_private *cma_id_from_event(struct ib_cm_id *cm_id,
->         bind_list = cma_ps_find(rdma_ps_from_service_id(req.service_id),
->                                 cma_port_from_service_id(req.service_id));
->         id_priv = cma_find_listener(bind_list, cm_id, ib_event, &req, *net_dev);
-> +       if (IS_ERR(id_priv)) {
-> +               dev_put(*net_dev);
-> +               *net_dev = NULL;
-> +       }
->
->         return id_priv;
->  }
-> --
-> 1.7.11.2
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+There is one non-trivial spot that was missed in mlx5_ib_post_send
+though:
+
+diff --git a/drivers/infiniband/hw/mlx5/qp.c 
+b/drivers/infiniband/hw/mlx5/qp.c
+index 7ddfb74..35a18d6 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -2802,7 +2802,7 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct 
+ib_send_wr *wr,
+                                 goto out;
+                         }
+                         qp->sq.wr_data[idx] = MLX5_IB_WR_UMR;
+-                       ctrl->imm = cpu_to_be32(fast_reg_wr(wr)->rkey);
++                       ctrl->imm = cpu_to_be32(umr_wr(wr)->mkey);
+                         set_reg_umr_segment(seg, wr);
+                         seg += sizeof(struct mlx5_wqe_umr_ctrl_seg);
+                         size += sizeof(struct mlx5_wqe_umr_ctrl_seg) / 16;
+
+Care to fold this in?
+
+Cheers,
+Sagi.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
