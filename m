@@ -1,45 +1,55 @@
-From: Or Gerlitz <gerlitz.or@gmail.com>
-Subject: Re: [patch] IB/core: missing curly braces in ib_find_gid()
-Date: Sat, 29 Aug 2015 21:59:15 -0700
-Message-ID: <CAJ3xEMgSQHvATJjydeLQbvOXSuS1LNwvf7hs-tvmP77_EJ12BQ@mail.gmail.com>
-References: <20150818092210.GE3965@mwanda>
-	<20150829011040.GA2713@phlsvsds.ph.intel.com>
-	<55E12EEB.9070207@redhat.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] IB/cma: Fix net_dev reference leak with failed requests
+Date: Sat, 29 Aug 2015 23:12:50 -0700
+Message-ID: <CAJ3xEMhtnzHu23wnpsHex5_xt3MV=z3ERoX6T5d=RoTVdOVrpw@mail.gmail.com>
+References: <1440680115-9164-1-git-send-email-haggaie@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <55E12EEB.9070207@redhat.com>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>
-Cc: "ira.weiny" <ira.weiny@intel.com>, Dan Carpenter <dan.carpenter@oracle.com>, Matan Barak <matanb@mellanox.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Haggai Eran <haggaie@mellanox.com>, Michael Wang <yun.wang@profitbricks.com>, Yotam Kenneth <yotamke@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1440680115-9164-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Aug 28, 2015 at 9:02 PM, Doug Ledford <dledford@redhat.com> wrote:
-> On 08/28/2015 09:10 PM, ira.weiny wrote:
->> On Tue, Aug 18, 2015 at 12:22:10PM +0300, Dan Carpenter wrote:
->>> Smatch says that, based on the indenting, we should probably add curly
->>> braces here.
->>>
->>> Fixes: 230145ff8124 ('IB/core: Add RoCE GID table management')
->>> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
->>>
->>
->> Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+On Thu, Aug 27, 2015 at 5:55 AM, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> When no matching listening ID is found for a given request, the net_dev
+> that was used to find the request isn't released.
 >
-> I've picked this patch up (earlier today), so I missed your reviewed-by:
-> tag.  Added.
+> Fixes: 20c36836ecad ("IB/cma: Use found net_dev for passive connections")
 
-wait, Doug, when the offending patch goes upstream, their commit ID
-will not be the one
-denoted here, right? I would suggest that you either hold off with
-this fix till the other patch
-goes upstream in 4,3-rc1 and you have a proper ID or squash it there
-now. BTW - the way
-net-next is organized/managed, pre-linus-tree commit ID remain the
-same also after they land there,
-so in that respect and other linux-rdma maintenance related aspects we
-discussed during LPC  - it
-would be good if you can talk to Dave and see how he gets things going
-for net-next
+same here, Doug, if this ID isn't the one that is actually going to
+show off in Linus tree, please either squash this there prior to
+getting the bits upstream or hold off till we have  a proper ID
 
-Or
+> Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/core/cma.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+>
+> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+> index 9b306d7b5c27..b1ab13f3e182 100644
+> --- a/drivers/infiniband/core/cma.c
+> +++ b/drivers/infiniband/core/cma.c
+> @@ -1302,6 +1302,10 @@ static struct rdma_id_private *cma_id_from_event(struct ib_cm_id *cm_id,
+>         bind_list = cma_ps_find(rdma_ps_from_service_id(req.service_id),
+>                                 cma_port_from_service_id(req.service_id));
+>         id_priv = cma_find_listener(bind_list, cm_id, ib_event, &req, *net_dev);
+> +       if (IS_ERR(id_priv)) {
+> +               dev_put(*net_dev);
+> +               *net_dev = NULL;
+> +       }
+>
+>         return id_priv;
+>  }
+> --
+> 1.7.11.2
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
