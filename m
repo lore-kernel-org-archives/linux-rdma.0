@@ -1,83 +1,49 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [patch] IB/core: missing curly braces in ib_find_gid()
-Date: Sun, 30 Aug 2015 18:24:20 -0400
-Message-ID: <55E38294.7040404@redhat.com>
-References: <20150818092210.GE3965@mwanda>
- <20150829011040.GA2713@phlsvsds.ph.intel.com> <55E12EEB.9070207@redhat.com>
- <CAJ3xEMgSQHvATJjydeLQbvOXSuS1LNwvf7hs-tvmP77_EJ12BQ@mail.gmail.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/cma: Fix net_dev reference leak with failed requests
+Date: Sun, 30 Aug 2015 18:25:19 -0400
+Message-ID: <55E382CF.9040506@redhat.com>
+References: <1440680115-9164-1-git-send-email-haggaie@mellanox.com>
+ <CAJ3xEMhtnzHu23wnpsHex5_xt3MV=z3ERoX6T5d=RoTVdOVrpw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="J2tUfkxEbdRqawpk728p4NJl9NucAEB7w"
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <CAJ3xEMgSQHvATJjydeLQbvOXSuS1LNwvf7hs-tvmP77_EJ12BQ@mail.gmail.com>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Or Gerlitz <gerlitz.or@gmail.com>
-Cc: "ira.weiny" <ira.weiny@intel.com>, Dan Carpenter <dan.carpenter@oracle.com>, Matan Barak <matanb@mellanox.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Haggai Eran <haggaie@mellanox.com>, Michael Wang <yun.wang@profitbricks.com>, Yotam Kenneth <yotamke@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, kernel-janitors@vger.kernel.org
+ boundary="UaAFDNtk2g82rL5nep2WghBKeVX4ieRKG"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAJ3xEMhtnzHu23wnpsHex5_xt3MV=z3ERoX6T5d=RoTVdOVrpw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---J2tUfkxEbdRqawpk728p4NJl9NucAEB7w
+--UaAFDNtk2g82rL5nep2WghBKeVX4ieRKG
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 08/30/2015 12:59 AM, Or Gerlitz wrote:
-> On Fri, Aug 28, 2015 at 9:02 PM, Doug Ledford <dledford@redhat.com> wro=
+On 08/30/2015 02:12 AM, Or Gerlitz wrote:
+> On Thu, Aug 27, 2015 at 5:55 AM, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wro=
 te:
->> On 08/28/2015 09:10 PM, ira.weiny wrote:
->>> On Tue, Aug 18, 2015 at 12:22:10PM +0300, Dan Carpenter wrote:
->>>> Smatch says that, based on the indenting, we should probably add cur=
-ly
->>>> braces here.
->>>>
->>>> Fixes: 230145ff8124 ('IB/core: Add RoCE GID table management')
->>>> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
->>>>
->>>
->>> Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+>> When no matching listening ID is found for a given request, the net_de=
+v
+>> that was used to find the request isn't released.
 >>
->> I've picked this patch up (earlier today), so I missed your reviewed-b=
-y:
->> tag.  Added.
+>> Fixes: 20c36836ecad ("IB/cma: Use found net_dev for passive connection=
+s")
 >=20
-> wait, Doug, when the offending patch goes upstream, their commit ID
-> will not be the one
-> denoted here, right?
+> same here, Doug,
 
-Fair point...
+Same as the last email, I have the commit ID now, and I fixed up the
+commit message.
 
-> I would suggest that you either hold off with
-> this fix till the other patch
-> goes upstream in 4,3-rc1 and you have a proper ID
 
-I have a proper ID now.  Since I've put together my final k.o/for-4.3
-branch, the ID is fixed.
-
-> or squash it there
-> now.
-
-This patch is from someone different than the patch it fixes, so it
-wouldn't be right to squash it into their patch.  I fixed up the Fixes:
-line instead.
-
-> BTW - the way
-> net-next is organized/managed, pre-linus-tree commit ID remain the
-> same also after they land there,
-> so in that respect and other linux-rdma maintenance related aspects we
-> discussed during LPC  - it
-> would be good if you can talk to Dave and see how he gets things going
-> for net-next
-
-I'm going to be doing things differently for 4.4.  We'll see if that
-resolves the issues you are unhappy about.
 
 --=20
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
 
 
---J2tUfkxEbdRqawpk728p4NJl9NucAEB7w
+--UaAFDNtk2g82rL5nep2WghBKeVX4ieRKG
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -86,19 +52,23 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJV44KUAAoJELgmozMOVy/dCYIP/2UJVKeCM9Vc9v3bXLR6sG8h
-NjMoVKc73YKck67kG8BI90LqLDNFskCI5z265VUPnV9YbVcIY8XEKizgCVm0tb6g
-qQpystITB//gn+1Cv0+HQpwET+c6xvYzAFa2drWuodvxiSSRp/69UMPrD7yGLxMM
-wOl997vWS6TqJ6P7k0Szaz9edofsAVbZNZkWR/OKrTTgVGwSywzvliY/2uDqh1qf
-DBpeS8TjQg/5tIDJScyq2DqQynhlj0EluiQDvFZE3r2fo8F4FBnDNp6Jc2KSRNSO
-ERf9ssglRQGOcDP2v5mslYP1ncgR5DjAmApCQbvVpmE9L5zEPuaHklvIStPym+bg
-IS63BAmgjpUvmj4zAFCSthO6mV81G406sRsUlm1lZi76WXrpPQj3xNHi8toWYZzD
-aFn4vgUTQDmsZwZkWCgF4TixWaZ+3aFkf5bdycmr+niiAi9wjN+45IbH2fgobiwb
-4HR1gDPaelyXVNUdjrfBxkXhYNaxS/YWHX0KkNPecQ9GIakMAOWiq2v98MniIpSl
-iNz5tpTDpsDI4TiK3xaA6iSMv9D44j7mQcvbVfXK/grfW+r4QJER6TseNf25yBz0
-SZS1VcnroCAHhiy2UfP36HZiU0tFhr2/w9OR1pDz6AYojEBn/E/t/FltTf4fpmxi
-0ADe+dYjg7OziTjfjpej
-=utxA
+iQIcBAEBCAAGBQJV44LPAAoJELgmozMOVy/dDV4P/35WzmKXG6ZrCT4JwNKzU81A
+3FyCGBp3e6Yy+7cnkYulneb60+G4S0hiVqO1eVIVIMhzXAEqvIjSlCgwvovXmtbY
+WKJUhC5mJgJhePUmjpFBE7KisR3sYMLwGC7+sybe6jAnsBZMQX7ms1iUA1ZGYRnp
+b+8VoLZsEXUXo5VuSbUEbslGOGxV8U4389NT8WBIlcDqb334Za5wuPTKAvQPXV7n
+Mg/4uTwS3iE9h5XVj/biV1VYAgbGjoqZda/HfezXtX/nFfPsIeyOy+RdWZlpbiY8
+wEFkVIaLG5GWOcxvcXcCdZnLK2zfzWSdwpRHhPDZmDzD1sm9ZR4qpXyc/u6n9I6O
+VW9Lt+6IzZfjxlQENm7sGlet0eiNm0IdAfuuLIxVUrcJ2JrSO0NmT2npk3cVcl32
+fs1vHccAgD0b/C/N0y3+/KZhDyXcehO1LYWOmTxaeNhfFAT/bYW2CnUhj/hHFKbB
+eU1m1VlT5Y495MkQC7JFt0s4VMWby00nyO/C+BD5sHXrnyZum2fM153eXHjrxamh
+lWN+sF9gu4pLVEvBksIE96ciGTbjEB+tgEisEalsazVHGqFdj/zDr0mEwrq/Gi0f
+/m2eNhzN+uFY9wpNA3JnMDq7DiBGf5BPkqMM2047UMWSrptB7GYd+2lDKwmmhHkD
+HQ/cDrnxW3UvGX14ZDJh
+=R/wD
 -----END PGP SIGNATURE-----
 
---J2tUfkxEbdRqawpk728p4NJl9NucAEB7w--
+--UaAFDNtk2g82rL5nep2WghBKeVX4ieRKG--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
