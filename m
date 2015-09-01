@@ -1,66 +1,46 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/cma: Fix net_dev reference leak with failed requests
-Date: Mon, 31 Aug 2015 20:23:23 -0400
-Message-ID: <55E4EFFB.6060001@redhat.com>
-References: <1440680115-9164-1-git-send-email-haggaie@mellanox.com>
- <CAJ3xEMhtnzHu23wnpsHex5_xt3MV=z3ERoX6T5d=RoTVdOVrpw@mail.gmail.com>
- <55E382CF.9040506@redhat.com>
- <2807E5FD2F6FDA4886F6618EAC48510E1CB7D78D@CRSMSX101.amr.corp.intel.com>
+Subject: Re: shrink struct ib_send_wr V3
+Date: Mon, 31 Aug 2015 20:24:13 -0400
+Message-ID: <55E4F02D.4080701@redhat.com>
+References: <1440579639-10684-1-git-send-email-hch@lst.de>
+ <55E321D7.7000209@dev.mellanox.co.il> <20150831161116.GA24494@lst.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="IwTWHbcoeBoLnjPtoRjsUktDatPSaTRxd"
+ boundary="fuGkbUptwuKg7Po54Tbj00rAs4K6SPkUI"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E1CB7D78D-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20150831161116.GA24494-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---IwTWHbcoeBoLnjPtoRjsUktDatPSaTRxd
-Content-Type: text/plain; charset=utf-8
+--fuGkbUptwuKg7Po54Tbj00rAs4K6SPkUI
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 08/31/2015 11:20 AM, Weiny, Ira wrote:
+On 08/31/2015 12:11 PM, Christoph Hellwig wrote:
+> On Sun, Aug 30, 2015 at 06:31:35PM +0300, Sagi Grimberg wrote:
+>>>   - patch 2 now explicitly replaces the weird overloading in the mlx5=
+
+>>>     driver with an explicit embedding of struct ib_send_wr, similar
+>>>     to what we do for all other MRs.
 >>
->> On 08/30/2015 02:12 AM, Or Gerlitz wrote:
->>> On Thu, Aug 27, 2015 at 5:55 AM, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> wrote:
->>>> When no matching listening ID is found for a given request, the
->>>> net_dev that was used to find the request isn't released.
->>>>
->>>> Fixes: 20c36836ecad ("IB/cma: Use found net_dev for passive
->>>> connections")
->>>
->>> same here, Doug,
+>> That's nice,
 >>
->> Same as the last email, I have the commit ID now, and I fixed up the c=
-ommit
->> message.
->>
+>> There is one non-trivial spot that was missed in mlx5_ib_post_send
+>> though:
 >=20
-> Doug I'm working on the clean up Hal suggested to the ib_mad.h file whi=
-ch was updated in your to-be-rebased-4.3 branch via this patch.
+> Oh, that was a weird abuse of the old casts.
 >=20
-> Fixes: abde0260e47b ("IB/core: Add header definitions")
+> I've foled both your fixes and force pushed to the wr-cleanup branch.
 >=20
-> It looks like this is the patch destined for 4.3 on this branch k.o/for=
--4.3?
->=20
-> Fixes: d4ab347005fb ("IB/core: Add core header changes needed for OPA")=
+> I do not plan to resend the series until the merge window for 4.4
+> is open.  Doug, any chance you could pick up the first patch in the
+> series for 4.3-rc?  It's marked for stable as well.
 
-
-Correct.  I squashed the first two patches (which both touched core
-files) down to just one.
-
-> I personally did not mind the rebasing except for this issue.
->=20
-> Let me know which branch I should base these changes off of.
-
-Base if off of the k.o/for-4.3.  That's where it will go.  I'll just end
-up applying this to the top of the stack.
-
+Yes, I can do that.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -68,7 +48,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---IwTWHbcoeBoLnjPtoRjsUktDatPSaTRxd
+--fuGkbUptwuKg7Po54Tbj00rAs4K6SPkUI
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -77,22 +57,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJV5O/7AAoJELgmozMOVy/dxWgQAI6w9UU0wMzjLlFGy8fQg1uo
-1dyFjdzei1mTsktHs2pOyRwyBoUgzNFx/q1QugAfhDfmx7DzIoI82NtrZBPcEO7J
-uH4V9TJ2/98nmP4OOnvRjwfjHw+LNrpAa3ZadOGOTzM4sVZuhu5W1KVHW0TIWfSn
-67X1bSVBP63Xvuaf6Q4vposj0LJhfw0n+nUonWItlo8vmQvpMGDBy7oFW51H/8U6
-PJDjpgwcUBByV36cwn8byNG32xHzx3FcSkQ82XgF0giJZtPDqGoEL5L+Cp6Fr+55
-/lyni3FB828UARY0KoPIHHjO47StSXWRp0CI6mLWgXcRPkoLbFr6ISj7rIUP7ddz
-n6n7f7JpJ+1i5mDEdTEHt6qsh0kBYvifX5x5MWJfnjy4AfjQHnkukLPDrzp0Mmcd
-f8UP04tXRH+ssV0iUckD51ykzpY17OBQ6L9a3E068FrDN6iPw3k80ZylawEXiXMm
-d4HnfCZC34k0OR/ESXXC7iRLfwqvtMU0Tvzd+oPo8iKZ5l91lXxlbLhyOTktsMQF
-rPszC8Ubkefyj9SgzFiekFgAC2fRj2ugHTCHEt3OiGgvNZqvRUGvbOfzt7LSqQot
-LdQDpWm64vkV833QbtZIJi2ExUtIbNKO+y5fMtgvyDhQoKW4z2AzJYsznoIz1OZ2
-PnU/6eWqtoP+YR51vMt0
-=qClX
+iQIcBAEBCAAGBQJV5PAtAAoJELgmozMOVy/dSesP/RtgMWw3h8SvuhxYGvJlKwGy
+v5yLfCyp+kRxIki4WVCj52zhs5QAsuP2HROcP7MJGhoiGRXfZk84eBeL+WWQxItK
+ZpYBDtC04YcrwQtc1dDN8JuZPXeC5IpZpYA0R2Cnf31PnIQFGMxrB08sAVHw0G7Q
+d+fnq6aJT9y2FMyGk/c7KqpOSfrHLEg5CnBR8crIphiBENLwB+ciEAiA42me5mkS
+0RYC7H5d/PiFpgVEHDQpd5Ac2Cu2ciWG9Ba3LrUMuakKN1b8/1F/e4yPMfo9WC2N
+lv6zvAfbCa94iShoBha9j0dhLpWTwMantnLdqywqucw7s+XnRCvBAMUMvx2xIvZa
+CxCEg4g3OBQjYB0BMUjCnSJGJB2M/s5Zpw/0+1vxaPguMUob98F+Vkn2sBaEmXhg
+t2p02cLZW1mLyR4a8Delkid+Fm0reyaeMVwYPOc+s5dE3Sgt8PyW8dvtf39WuoZR
+0ZbyMhhReIalC1YDeMuSVy55ifncYFDHobjqTBIjpiSYDFszdVtCQJdxmugnvP77
+IiPVduv79IPFshXCkg2vWR+Lxb1xA4NO7PMH3A8U0zQV9NpqPNewQauHpCFilKsq
+oJAo8RZmwmu9Tgxeoi6Yvkvj4bidT0EiT1IDEzyGFizIk4hHY3KgybuHbapWib+9
+8eM+EAFUiubmkDyWVjEC
+=dYZn
 -----END PGP SIGNATURE-----
 
---IwTWHbcoeBoLnjPtoRjsUktDatPSaTRxd--
+--fuGkbUptwuKg7Po54Tbj00rAs4K6SPkUI--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
