@@ -1,78 +1,49 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: shrink struct ib_send_wr V3
-Date: Mon, 31 Aug 2015 20:24:13 -0400
-Message-ID: <55E4F02D.4080701@redhat.com>
-References: <1440579639-10684-1-git-send-email-hch@lst.de>
- <55E321D7.7000209@dev.mellanox.co.il> <20150831161116.GA24494@lst.de>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: mlx4 problems with 4.2-rc8
+Date: Tue, 1 Sep 2015 09:40:44 +0300
+Message-ID: <CAJ3xEMh-EXsoWsMhSf2ho_U_tz5tCUz2iWK+YZ3d76j5B7HJxg@mail.gmail.com>
+References: <55E142DC.8060205@redhat.com>
+	<CAJ3xEMj5By11L3qbSKxcEiMarB6CeyeERMnuK_vvH11VLLFypw@mail.gmail.com>
+	<55E385DB.2@redhat.com>
+	<55E3FDAB.10706@mellanox.com>
+	<55E45058.1070105@redhat.com>
+	<CAJ3xEMjp+3Y0y2d-K-zi9SnBSshN_C5x5KLY3oCpD_XriDCsWw@mail.gmail.com>
+	<55E4D1A1.3060608@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="fuGkbUptwuKg7Po54Tbj00rAs4K6SPkUI"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150831161116.GA24494-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <55E4D1A1.3060608-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---fuGkbUptwuKg7Po54Tbj00rAs4K6SPkUI
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
-
-On 08/31/2015 12:11 PM, Christoph Hellwig wrote:
-> On Sun, Aug 30, 2015 at 06:31:35PM +0300, Sagi Grimberg wrote:
->>>   - patch 2 now explicitly replaces the weird overloading in the mlx5=
-
->>>     driver with an explicit embedding of struct ib_send_wr, similar
->>>     to what we do for all other MRs.
+On Tue, Sep 1, 2015 at 1:13 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> On 08/31/2015 04:21 PM, Or Gerlitz wrote:
+>> On Mon, Aug 31, 2015 at 4:02 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+>>> On 08/31/2015 03:09 AM, Matan Barak wrote:
 >>
->> That's nice,
+>>>> Actually, it looks like the dump stack we've got before [1] was fixed.
+>>>> This happens when the mlx4 driver is used in setups where number of
+>>>> cores >= 32.
 >>
->> There is one non-trivial spot that was missed in mlx5_ib_post_send
->> though:
->=20
-> Oh, that was a weird abuse of the old casts.
->=20
-> I've foled both your fixes and force pushed to the wr-cleanup branch.
->=20
-> I do not plan to resend the series until the merge window for 4.4
-> is open.  Doug, any chance you could pick up the first patch in the
-> series for 4.3-rc?  It's marked for stable as well.
+>>>> Doug, is that the case?
+>>
+>>> Indeed, 48 cores on this machine.
+>>
+>> so do we have bingo here? the patch is in the net-next tree (and we
+>> can't put it in 4.2 only through -stable since 4.2 is released by
+>> now), does it solves the problem?
+>
+> Yes, it solved the problem.  I pulled the patch into my testing branch
+> to confirm.
 
-Yes, I can do that.
+Good. Something is still strange w.r.t your environment... you said that
+when you  were submitting the 4.2-rc changes this machine worked, however
+the problematic code in mlx4_enable_msi_x existed there by the time you
+made that testing, Matan  - agree?
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---fuGkbUptwuKg7Po54Tbj00rAs4K6SPkUI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJV5PAtAAoJELgmozMOVy/dSesP/RtgMWw3h8SvuhxYGvJlKwGy
-v5yLfCyp+kRxIki4WVCj52zhs5QAsuP2HROcP7MJGhoiGRXfZk84eBeL+WWQxItK
-ZpYBDtC04YcrwQtc1dDN8JuZPXeC5IpZpYA0R2Cnf31PnIQFGMxrB08sAVHw0G7Q
-d+fnq6aJT9y2FMyGk/c7KqpOSfrHLEg5CnBR8crIphiBENLwB+ciEAiA42me5mkS
-0RYC7H5d/PiFpgVEHDQpd5Ac2Cu2ciWG9Ba3LrUMuakKN1b8/1F/e4yPMfo9WC2N
-lv6zvAfbCa94iShoBha9j0dhLpWTwMantnLdqywqucw7s+XnRCvBAMUMvx2xIvZa
-CxCEg4g3OBQjYB0BMUjCnSJGJB2M/s5Zpw/0+1vxaPguMUob98F+Vkn2sBaEmXhg
-t2p02cLZW1mLyR4a8Delkid+Fm0reyaeMVwYPOc+s5dE3Sgt8PyW8dvtf39WuoZR
-0ZbyMhhReIalC1YDeMuSVy55ifncYFDHobjqTBIjpiSYDFszdVtCQJdxmugnvP77
-IiPVduv79IPFshXCkg2vWR+Lxb1xA4NO7PMH3A8U0zQV9NpqPNewQauHpCFilKsq
-oJAo8RZmwmu9Tgxeoi6Yvkvj4bidT0EiT1IDEzyGFizIk4hHY3KgybuHbapWib+9
-8eM+EAFUiubmkDyWVjEC
-=dYZn
------END PGP SIGNATURE-----
-
---fuGkbUptwuKg7Po54Tbj00rAs4K6SPkUI--
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
