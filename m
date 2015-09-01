@@ -1,11 +1,13 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: [PATCH] IB/mlx5: avoid destroying a NULL mr in reg_user_mr error flow
-Date: Tue,  1 Sep 2015 09:41:11 +0300
-Message-ID: <1441089671-3390-1-git-send-email-haggaie@mellanox.com>
+Date: Tue,  1 Sep 2015 09:56:56 +0300
+Message-ID: <1441090616-20640-1-git-send-email-haggaie@mellanox.com>
+References: <1441089671-3390-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1441089671-3390-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 The mlx5_ib_reg_user_mr() function will attempt to call clean_mr() in
@@ -16,10 +18,12 @@ Remove the clean_mr() call and the incorrect comment above it.
 
 Fixes: b4cfe447d47b ("IB/mlx5: Implement on demand paging by adding
 support for MMU notifiers")
-
 Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
+A quick resend without spaces between the Fixes: line and the rest of the
+signatures, per Or Gerlitz's request.
+
  drivers/infiniband/hw/mlx5/mr.c | 12 ------------
  1 file changed, 12 deletions(-)
 
