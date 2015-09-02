@@ -1,34 +1,51 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [GIT PULL] pull request v2: linux-firmware: Add Intel OPA hfi1
- firmware
-Date: Wed, 2 Sep 2015 22:15:15 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E1CB7F73A@CRSMSX101.amr.corp.intel.com>
-References: <20150824152844.GA3066@phlsvsds.ph.intel.com>
- <55E75DF3.4090202@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH 1/2] IB/core: Remove unnecessary defines from ib_mad.h
+Date: Wed,  2 Sep 2015 18:45:54 -0400
+Message-ID: <1441233955-31743-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55E75DF3.4090202-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-firmware-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <linux-firmware-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Sowa, David" <david.sowa-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Vogel, Steve" <steve.vogel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> On 08/24/2015 11:28 AM, ira.weiny wrote:
-> > git://github.com/weiny2/linux-firmware.git  master-hfi1-firmware-v2
-> 
-> Should this go through me or though the linux-firmware tree?
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-I don't know.  My apologizes for being ignorant in this case.
+Remove the unused IB_NOTICE_REPRESS_* defines.
 
-I was thinking that as the rdma kernel maintainer you would have access to merge it into the Linux-firmware tree.  The README in the Linux-firmware project only says to email linux-firmware-DgEjT+Ai2yi4UlQgPVntAg@public.gmane.org  I have not heard from anyone on that list.
+When the hfi1 driver was added these definitions were moved from the qib driver
+to ib_mad.h.  They should have been removed instead.
 
-Does anyone on Linux-firmware have any objections to merging my branch?
+Fixes: d4ab347005fb ("IB/core: Add core header changes needed for OPA")
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ include/rdma/ib_mad.h | 12 ------------
+ 1 file changed, 12 deletions(-)
 
-Ira
+diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
+index c206205bbf98..7f2cf855a0b6 100644
+--- a/include/rdma/ib_mad.h
++++ b/include/rdma/ib_mad.h
+@@ -157,18 +157,6 @@
+ #define IB_NOTICE_TRAP_BAD_QKEY		cpu_to_be16(258)
+ 
+ /*
+- * Repress trap/notice flags
+- */
+-#define IB_NOTICE_REPRESS_LLI_THRESH	(1 << 0)
+-#define IB_NOTICE_REPRESS_EBO_THRESH	(1 << 1)
+-#define IB_NOTICE_REPRESS_FLOW_UPDATE	(1 << 2)
+-#define IB_NOTICE_REPRESS_CAP_MASK_CHG	(1 << 3)
+-#define IB_NOTICE_REPRESS_SYS_GUID_CHG	(1 << 4)
+-#define IB_NOTICE_REPRESS_BAD_MKEY	(1 << 5)
+-#define IB_NOTICE_REPRESS_BAD_PKEY	(1 << 6)
+-#define IB_NOTICE_REPRESS_BAD_QKEY	(1 << 7)
+-
+-/*
+  * Generic trap/notice other local changes flags (trap 144).
+  */
+ #define IB_NOTICE_TRAP_LSE_CHG		0x04	/* Link Speed Enable changed */
+-- 
+1.8.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
