@@ -1,97 +1,61 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v1] mlx5: Fix incorrect wc pkey_index assignment for GSI messages
-Date: Wed,  2 Sep 2015 22:23:04 +0300
-Message-ID: <1441221784-21734-1-git-send-email-sagig@mellanox.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [GIT PULL] pull request v2: linux-firmware: Add Intel OPA hfi1
+ firmware
+Date: Wed, 2 Sep 2015 16:37:07 -0400
+Message-ID: <55E75DF3.4090202@redhat.com>
+References: <20150824152844.GA3066@phlsvsds.ph.intel.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="U3NfWqdH74oOK8skoAi7XPlTrUTit1xAm"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150824152844.GA3066-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-firmware-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, David Sowa <david.sowa-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Vogel <steve.vogel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Since patch series "Demux IB CM requests in the rdma_cm module" the
-P_Key index is taken from the work completion rather than the message
-itself.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--U3NfWqdH74oOK8skoAi7XPlTrUTit1xAm
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-The HCA provides us with the message P_Key. In order to provide the
-P_Key index, we need to look it up. Given that this is relevant only
-for GSI messages (session establishments) which is less performance critical,
-micro-optimize against the GSI (is_qp1) branch.
+On 08/24/2015 11:28 AM, ira.weiny wrote:
+> git://github.com/weiny2/linux-firmware.git  master-hfi1-firmware-v2
 
-Fixes: 4c21b5bcef73 ("IB/cma: Add net_dev and private data checks to
-RDMA CM")
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-Changes from v0:
-- Added Fixes tag
+Should this go through me or though the linux-firmware tree?
 
- drivers/infiniband/hw/mlx5/cq.c      |   10 +++++++++-
- drivers/infiniband/hw/mlx5/mlx5_ib.h |    5 +++++
- drivers/infiniband/hw/mlx5/qp.c      |    5 -----
- 3 files changed, 14 insertions(+), 6 deletions(-)
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
 
-diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index 640c54e..3dfd287 100644
---- a/drivers/infiniband/hw/mlx5/cq.c
-+++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -33,6 +33,7 @@
- #include <linux/kref.h>
- #include <rdma/ib_umem.h>
- #include <rdma/ib_user_verbs.h>
-+#include <rdma/ib_cache.h>
- #include "mlx5_ib.h"
- #include "user.h"
- 
-@@ -227,7 +228,14 @@ static void handle_responder(struct ib_wc *wc, struct mlx5_cqe64 *cqe,
- 	wc->dlid_path_bits = cqe->ml_path;
- 	g = (be32_to_cpu(cqe->flags_rqpn) >> 28) & 3;
- 	wc->wc_flags |= g ? IB_WC_GRH : 0;
--	wc->pkey_index     = be32_to_cpu(cqe->imm_inval_pkey) & 0xffff;
-+	if (unlikely(is_qp1(qp->ibqp.qp_type))) {
-+		u16 pkey = be32_to_cpu(cqe->imm_inval_pkey) & 0xffff;
-+
-+		ib_find_cached_pkey(&dev->ib_dev, qp->port, pkey,
-+				    &wc->pkey_index);
-+	} else {
-+		wc->pkey_index = 0;
-+	}
- }
- 
- static void dump_cqe(struct mlx5_ib_dev *dev, struct mlx5_err_cqe *cqe)
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index fc987fe..a4ef6a7 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -656,6 +656,11 @@ static inline u8 convert_access(int acc)
- 	       MLX5_PERM_LOCAL_READ;
- }
- 
-+static inline int is_qp1(enum ib_qp_type qp_type)
-+{
-+	return qp_type == IB_QPT_GSI;
-+}
-+
- #define MLX5_MAX_UMR_SHIFT 16
- #define MLX5_MAX_UMR_PAGES (1 << MLX5_MAX_UMR_SHIFT)
- 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 9380d2d..8c51ea3 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -76,11 +76,6 @@ static int is_qp0(enum ib_qp_type qp_type)
- 	return qp_type == IB_QPT_SMI;
- }
- 
--static int is_qp1(enum ib_qp_type qp_type)
--{
--	return qp_type == IB_QPT_GSI;
--}
--
- static int is_sqp(enum ib_qp_type qp_type)
- {
- 	return is_qp0(qp_type) || is_qp1(qp_type);
--- 
-1.7.1
 
+
+--U3NfWqdH74oOK8skoAi7XPlTrUTit1xAm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJV513zAAoJELgmozMOVy/dgAoQALZPVpRQ4ajCQ5k/xFzirJtN
+35o4awdP0jezEkISHWQFyvWEkdnMnrfwocT24NHoaN4j/BFE1pj5C71qmmkQVQnS
+cGOxkIvV8AKbRKG6Qr84+/MdDgglRHc58fgRdQl1cHBQrbU/P5QrWxs3cBOholWN
+KxeqvCIPxRuQ7V3u6Zp+kM2Edf63/Y8BnlG08Ftyj1dy2811ErI52C1wxs8oJnX5
+fQ07h9the4874rMiPPxzDBOWu4z5drO7SatFyY0VfA+nA5N9Kybuitv6LB1rvHf8
+salemiQEaAawH+v5DnhaZCukqmnN/dCyF3Bhwr0dllulVmuinuzPwWbShj87yBNR
+5oA4fXLzQNR/pNlggBXuTHODFC4E8IsDOk5ePssFeJAU4AQ+jyTlOVmTIlPn+2O8
+V+4Fd+5GxRPpeltdHMMpbQY2+fPcHhHqdfPZjnTBVmbp04tPnPhkn3OgXUkU1aUp
+sw9nZlPl8jw7A1y7l7xxtX0sOo49Tz6xmaufp0E7oEHBXE7F17UchCehCTwUmkvt
+L3WUbaLvX8VzEjf+0ZwKXbYNFZujBZrszQlzhw/4il71H1VlSZPMnXZHy0cRUZyu
+xG5IG5mIj6koe+aDPZbmewtIOPy8CWizySpiwXqyBdhGj01A/melPVDCwKUGGn8W
+tkGCgUWFd6QbqoqU1mNV
+=A5bu
+-----END PGP SIGNATURE-----
+
+--U3NfWqdH74oOK8skoAi7XPlTrUTit1xAm--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
