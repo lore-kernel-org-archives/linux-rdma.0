@@ -1,181 +1,106 @@
-From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH v2] xprtrdma: take HCA driver refcount at client
-Date: Thu, 3 Sep 2015 16:24:49 -0400
-Message-ID: <55E8AC91.2050208@Netapp.com>
+Date: Thu, 3 Sep 2015 16:25:28 -0400
+Message-ID: <55E8ACB8.8080809@redhat.com>
 References: <1438254018-2816-1-git-send-email-devesh.sharma@avagotech.com>
- <55E8A98D.5060903@redhat.com>
+ <55E8A98D.5060903@redhat.com> <55E8AC91.2050208@Netapp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55E8A98D.5060903-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="wvmEDFlIs4eUTRM1mPCGk7HmRnf2p6MKF"
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <55E8AC91.2050208-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--wvmEDFlIs4eUTRM1mPCGk7HmRnf2p6MKF
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-On 09/03/2015 04:11 PM, Doug Ledford wrote:
-> On 07/30/2015 07:00 AM, Devesh Sharma wrote:
->> Thanks Chuck Lever for the valuable feedback and suggestions.
->>
->> This is a rework of the following patch sent almost a year back:
->> http://www.mail-archive.com/linux-rdma%40vger.kernel.org/msg20730.html
->>
->> In presence of active mount if someone tries to rmmod vendor-driver, the
->> command remains stuck forever waiting for destruction of all rdma-cm-id.
->> in worst case client can crash during shutdown with active mounts.
->>
->> The existing code assumes that ia->ri_id->device cannot change during
->> the lifetime of a transport. xprtrdma do not have support for
->> DEVICE_REMOVAL event either. Lifting that assumption and adding support
->> for DEVICE_REMOVAL event is a long chain of work, and is in plan.
->>
->> The community decided that preventing the hang right now is more
->> important than waiting for architectural changes.
->>
->> Thus, this patch introduces a temporary workaround to acquire HCA driver
->> module reference count during the mount of a nfs-rdma mount point.
->>
->> Cc: chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
->> Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> Signed-off-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
->> Reviewed-by: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-> 
-> Chuck, was this given final approval, and if so, who's tree is it
-> expected to go through?  Just trying to make sure I don't need to do
-> anything here as I don't see a rejection in my linux-rdma folder, but I
-> also didn't see it in the initial 4.3 nfs merge.
+On 09/03/2015 04:24 PM, Anna Schumaker wrote:
+> Hi Doug,
+>=20
+> On 09/03/2015 04:11 PM, Doug Ledford wrote:
+>> On 07/30/2015 07:00 AM, Devesh Sharma wrote:
+>>> Thanks Chuck Lever for the valuable feedback and suggestions.
+>>>
+>>> This is a rework of the following patch sent almost a year back:
+>>> http://www.mail-archive.com/linux-rdma%40vger.kernel.org/msg20730.htm=
+l
+>>>
+>>> In presence of active mount if someone tries to rmmod vendor-driver, =
+the
+>>> command remains stuck forever waiting for destruction of all rdma-cm-=
+id.
+>>> in worst case client can crash during shutdown with active mounts.
+>>>
+>>> The existing code assumes that ia->ri_id->device cannot change during=
 
-This was approved and went through my tree to Trond.  I don't think he's sent out the v4.3 pull request yet, but hopefully it won't be too much longer!
-
-Thanks,
-Anna
-
-
-> 
->> ---
->>  net/sunrpc/xprtrdma/verbs.c |   38 ++++++++++++++++++++++++++++++--------
->>  1 files changed, 30 insertions(+), 8 deletions(-)
+>>> the lifetime of a transport. xprtrdma do not have support for
+>>> DEVICE_REMOVAL event either. Lifting that assumption and adding suppo=
+rt
+>>> for DEVICE_REMOVAL event is a long chain of work, and is in plan.
+>>>
+>>> The community decided that preventing the hang right now is more
+>>> important than waiting for architectural changes.
+>>>
+>>> Thus, this patch introduces a temporary workaround to acquire HCA dri=
+ver
+>>> module reference count during the mount of a nfs-rdma mount point.
+>>>
+>>> Cc: chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+>>> Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>> Signed-off-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+>>> Reviewed-by: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 >>
->> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
->> index 891c4ed..1c3c420 100644
->> --- a/net/sunrpc/xprtrdma/verbs.c
->> +++ b/net/sunrpc/xprtrdma/verbs.c
->> @@ -52,6 +52,7 @@
->>  #include <linux/prefetch.h>
->>  #include <linux/sunrpc/addr.h>
->>  #include <asm/bitops.h>
->> +#include <linux/module.h> /* try_module_get()/module_put() */
->>  
->>  #include "xprt_rdma.h"
->>  
->> @@ -414,6 +415,14 @@ connected:
->>  	return 0;
->>  }
->>  
->> +static void rpcrdma_destroy_id(struct rdma_cm_id *id)
->> +{
->> +	if (id) {
->> +		module_put(id->device->owner);
->> +		rdma_destroy_id(id);
->> +	}
->> +}
->> +
->>  static struct rdma_cm_id *
->>  rpcrdma_create_id(struct rpcrdma_xprt *xprt,
->>  			struct rpcrdma_ia *ia, struct sockaddr *addr)
->> @@ -440,6 +449,18 @@ rpcrdma_create_id(struct rpcrdma_xprt *xprt,
->>  	}
->>  	wait_for_completion_interruptible_timeout(&ia->ri_done,
->>  				msecs_to_jiffies(RDMA_RESOLVE_TIMEOUT) + 1);
->> +
->> +	/* FIXME: We hate to break the notion of ULP<-->Core<-->Provider
->> +	 * by calling try_module_get() on HCA driver. This is to prevent a
->> +	 * system hang or a possible crash during reboot with active nfs-rdma
->> +	 * mount. We will keep this workaround until xprtrdma comes back with a
->> +	 * massive architectural changes to have proper fix.
->> +	 */
->> +	if (!ia->ri_async_rc && !try_module_get(id->device->owner)) {
->> +		dprintk("RPC:       %s: Failed to get device module\n",
->> +			__func__);
->> +		ia->ri_async_rc = -ENODEV;
->> +	}
->>  	rc = ia->ri_async_rc;
->>  	if (rc)
->>  		goto out;
->> @@ -449,16 +470,17 @@ rpcrdma_create_id(struct rpcrdma_xprt *xprt,
->>  	if (rc) {
->>  		dprintk("RPC:       %s: rdma_resolve_route() failed %i\n",
->>  			__func__, rc);
->> -		goto out;
->> +		goto put;
->>  	}
->>  	wait_for_completion_interruptible_timeout(&ia->ri_done,
->>  				msecs_to_jiffies(RDMA_RESOLVE_TIMEOUT) + 1);
->>  	rc = ia->ri_async_rc;
->>  	if (rc)
->> -		goto out;
->> +		goto put;
->>  
->>  	return id;
->> -
->> +put:
->> +	module_put(id->device->owner);
->>  out:
->>  	rdma_destroy_id(id);
->>  	return ERR_PTR(rc);
->> @@ -592,7 +614,7 @@ out3:
->>  	ib_dealloc_pd(ia->ri_pd);
->>  	ia->ri_pd = NULL;
->>  out2:
->> -	rdma_destroy_id(ia->ri_id);
->> +	rpcrdma_destroy_id(ia->ri_id);
->>  	ia->ri_id = NULL;
->>  out1:
->>  	return rc;
->> @@ -618,7 +640,7 @@ rpcrdma_ia_close(struct rpcrdma_ia *ia)
->>  	if (ia->ri_id != NULL && !IS_ERR(ia->ri_id)) {
->>  		if (ia->ri_id->qp)
->>  			rdma_destroy_qp(ia->ri_id);
->> -		rdma_destroy_id(ia->ri_id);
->> +		rpcrdma_destroy_id(ia->ri_id);
->>  		ia->ri_id = NULL;
->>  	}
->>  
->> @@ -825,7 +847,7 @@ retry:
->>  		if (ia->ri_device != id->device) {
->>  			printk("RPC:       %s: can't reconnect on "
->>  				"different device!\n", __func__);
->> -			rdma_destroy_id(id);
->> +			rpcrdma_destroy_id(id);
->>  			rc = -ENETUNREACH;
->>  			goto out;
->>  		}
->> @@ -834,7 +856,7 @@ retry:
->>  		if (rc) {
->>  			dprintk("RPC:       %s: rdma_create_qp failed %i\n",
->>  				__func__, rc);
->> -			rdma_destroy_id(id);
->> +			rpcrdma_destroy_id(id);
->>  			rc = -ENETUNREACH;
->>  			goto out;
->>  		}
->> @@ -845,7 +867,7 @@ retry:
->>  		write_unlock(&ia->ri_qplock);
->>  
->>  		rdma_destroy_qp(old);
->> -		rdma_destroy_id(old);
->> +		rpcrdma_destroy_id(old);
->>  	} else {
->>  		dprintk("RPC:       %s: connecting...\n", __func__);
->>  		rc = rdma_create_qp(ia->ri_id, ia->ri_pd, &ep->rep_attr);
->>
-> 
-> 
+>> Chuck, was this given final approval, and if so, who's tree is it
+>> expected to go through?  Just trying to make sure I don't need to do
+>> anything here as I don't see a rejection in my linux-rdma folder, but =
+I
+>> also didn't see it in the initial 4.3 nfs merge.
+>=20
+> This was approved and went through my tree to Trond.  I don't think he'=
+s sent out the v4.3 pull request yet, but hopefully it won't be too much =
+longer!
 
+Perfect, thanks!
+
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--wvmEDFlIs4eUTRM1mPCGk7HmRnf2p6MKF
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJV6Ky4AAoJELgmozMOVy/d5bQP/0wcqrjgarVfQD8R46LYd9KS
+bLA/aQq2v+vvwstJnTdeqbz5ZRPDPQhLNfDUOceN+mfWLiLsDQ8X4dzdql87Tdm/
+TWw7AefLUld7cSZY5q4psOEUZ6LR4/KvC0GZ6TUEa3NsFMjuzl7v83BUB+iREz3B
+QWjEnireK1CZZU6ZYc6CMxM8FL4na7wmyK5vS7DML+Y3ceD6r9LOl47vFCHlUfcU
+P4kxdBOHZiwRi6ICiUQE/vpbtMCJsa8EblRsIFORTbTWgppUR3DSCEnkGhnPz4R6
+gvMBKzaR0/u3uP59vQZAoBmMCyWUcVqkG7YtYuOsax5XAzI75o+Jx4VdflUtb/DG
+WpxO//cInPTfflO5RxMPbaSnRtydKmvGUoQNb2ENUXXh0N83p1a3rn4U86jg4vUq
+8PMVrlOSOAiyun7Qvz5DVGRNH50b1srWJ1emxIL9wiK+uRwxCwVsBzfVvTCHqhVv
+khdh7Px9xbF+qwDK/fgcQEiIEivKqNkLjnW3U/inz+pqAjEK+yqbi3DyYM6vDauN
+wjJRO9gsmWA1e3VnnKixrHvU1QTDocZM5fl0j5K5QNSi4xP6rL83uj5M+EWcSH9S
+NDNzlCCqRVbJPQrWdNp8HjiCL979CcDCt0/sqkmO0hwhAJxcjCeu3Bnc8Ogn4C1N
+9Fdsl6LQhnZvYAVrADev
+=IL6P
+-----END PGP SIGNATURE-----
+
+--wvmEDFlIs4eUTRM1mPCGk7HmRnf2p6MKF--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
