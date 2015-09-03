@@ -1,192 +1,84 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 2/2] IB/core: Move SM class defines from ib_mad.h to ib_smi.h
-Date: Thu, 03 Sep 2015 13:40:47 -0400
-Message-ID: <55E8861F.2080004@dev.mellanox.co.il>
-References: <1441233955-31743-1-git-send-email-ira.weiny@intel.com> <1441233955-31743-2-git-send-email-ira.weiny@intel.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] MAINTAINERS: Add maintainer section for hfi1
+Date: Thu, 3 Sep 2015 13:40:56 -0400
+Message-ID: <55E88628.6060909@redhat.com>
+References: <20150818140609.3571.87830.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="lCgfjtwKfGHtEAHPUMRh2xKRqWsXCeqIT"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1441233955-31743-2-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20150818140609.3571.87830.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/2/2015 6:45 PM, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
-> When the hfi1 driver was added these definitions were moved from the qib driver
-> to ib_mad.h to be used by both qib and hfi1.  They should have been moved to
-> ib_smi.h instead.
-> 
-> Fixes: d4ab347005fb ("IB/core: Add core header changes needed for OPA")
-> Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--lCgfjtwKfGHtEAHPUMRh2xKRqWsXCeqIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 08/18/2015 10:06 AM, Mike Marciniszyn wrote:
+> Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-A couple of comment nits below.
+This was squashed into the rest of the hfi1 driver patchset.
 
 > ---
->  drivers/infiniband/hw/qib/qib_ruc.c |  1 +
->  include/rdma/ib_mad.h               | 45 -----------------------------------
->  include/rdma/ib_smi.h               | 47 +++++++++++++++++++++++++++++++++++++
->  3 files changed, 48 insertions(+), 45 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/qib/qib_ruc.c b/drivers/infiniband/hw/qib/qib_ruc.c
-> index f42bd0f47577..22e356ca8058 100644
-> --- a/drivers/infiniband/hw/qib/qib_ruc.c
-> +++ b/drivers/infiniband/hw/qib/qib_ruc.c
-> @@ -32,6 +32,7 @@
->   */
->  
->  #include <linux/spinlock.h>
-> +#include <rdma/ib_smi.h>
->  
->  #include "qib.h"
->  #include "qib_mad.h"
-> diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
-> index 7f2cf855a0b6..188df91d5851 100644
-> --- a/include/rdma/ib_mad.h
-> +++ b/include/rdma/ib_mad.h
-> @@ -144,31 +144,6 @@
->  #define IB_NOTICE_PROD_ROUTER		cpu_to_be16(3)
->  #define IB_NOTICE_PROD_CLASS_MGR	cpu_to_be16(4)
->  
-> -/*
-> - * Generic trap/notice numbers
-> - */
-> -#define IB_NOTICE_TRAP_LLI_THRESH	cpu_to_be16(129)
-> -#define IB_NOTICE_TRAP_EBO_THRESH	cpu_to_be16(130)
-> -#define IB_NOTICE_TRAP_FLOW_UPDATE	cpu_to_be16(131)
-> -#define IB_NOTICE_TRAP_CAP_MASK_CHG	cpu_to_be16(144)
-> -#define IB_NOTICE_TRAP_SYS_GUID_CHG	cpu_to_be16(145)
-> -#define IB_NOTICE_TRAP_BAD_MKEY		cpu_to_be16(256)
-> -#define IB_NOTICE_TRAP_BAD_PKEY		cpu_to_be16(257)
-> -#define IB_NOTICE_TRAP_BAD_QKEY		cpu_to_be16(258)
-> -
-> -/*
-> - * Generic trap/notice other local changes flags (trap 144).
-> - */
-> -#define IB_NOTICE_TRAP_LSE_CHG		0x04	/* Link Speed Enable changed */
-> -#define IB_NOTICE_TRAP_LWE_CHG		0x02	/* Link Width Enable changed */
-> -#define IB_NOTICE_TRAP_NODE_DESC_CHG	0x01
-> -
-> -/*
-> - * Generic trap/notice M_Key volation flags in dr_trunc_hop (trap 256).
-> - */
-> -#define IB_NOTICE_TRAP_DR_NOTICE	0x80
-> -#define IB_NOTICE_TRAP_DR_TRUNC		0x40
-> -
->  enum {
->  	IB_MGMT_MAD_HDR = 24,
->  	IB_MGMT_MAD_DATA = 232,
-> @@ -282,21 +257,6 @@ struct ib_class_port_info {
->  	__be32			trap_qkey;
->  };
->  
-> -struct ib_node_info {
-> -	u8 base_version;
-> -	u8 class_version;
-> -	u8 node_type;
-> -	u8 num_ports;
-> -	__be64 sys_guid;
-> -	__be64 node_guid;
-> -	__be64 port_guid;
-> -	__be16 partition_cap;
-> -	__be16 device_id;
-> -	__be32 revision;
-> -	u8 local_port_num;
-> -	u8 vendor_id[3];
-> -} __packed;
-> -
->  struct ib_mad_notice_attr {
->  	u8 generic_type;
->  	u8 prod_type_msb;
-> @@ -361,11 +321,6 @@ struct ib_mad_notice_attr {
->  	} details;
->  };
->  
-> -struct ib_vl_weight_elem {
-> -	u8      vl;     /* VL is low 5 bits, upper 3 bits reserved */
-> -	u8      weight;
-> -};
-> -
->  /**
->   * ib_mad_send_buf - MAD data buffer and work request for sends.
->   * @next: A pointer used to chain together MADs for posting.
-> diff --git a/include/rdma/ib_smi.h b/include/rdma/ib_smi.h
-> index 98b9086d769a..a39eecca7bec 100644
-> --- a/include/rdma/ib_smi.h
-> +++ b/include/rdma/ib_smi.h
-> @@ -119,10 +119,57 @@ struct ib_port_info {
->  	u8 link_roundtrip_latency[3];
->  };
->  
-> +struct ib_node_info {
-> +	u8 base_version;
-> +	u8 class_version;
-> +	u8 node_type;
-> +	u8 num_ports;
-> +	__be64 sys_guid;
-> +	__be64 node_guid;
-> +	__be64 port_guid;
-> +	__be16 partition_cap;
-> +	__be16 device_id;
-> +	__be32 revision;
-> +	u8 local_port_num;
-> +	u8 vendor_id[3];
-> +} __packed;
+>  0 files changed
+>=20
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index b3c1a56..45953e9 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -9892,6 +9892,13 @@ M:	Arnaud Patard <arnaud.patard-dQbF7i+pzddAfugRpC6u6w@public.gmane.org>
+>  S:	Odd Fixes
+>  F:	drivers/staging/xgifb/
+> =20
+> +HFI1 DRIVER
+> +M:	Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> +L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> +L:	devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
+> +S:	Supported
+> +F:	drivers/staging/hfi1
 > +
-> +struct ib_vl_weight_elem {
-> +	u8      vl;     /* IB: VL is low 4 bits, upper 4 bits reserved */
-> +                        /* OPA: VL is low 5 bits, upper 3 bits reserved */
-> +	u8      weight;
-> +};
-> +
->  static inline u8
->  ib_get_smp_direction(struct ib_smp *smp)
->  {
->  	return ((smp->status & IB_SMP_DIRECTION) == IB_SMP_DIRECTION);
->  }
->  
-> +/*
-> + * SMI Trap/Notice numbers
+>  STARFIRE/DURALAN NETWORK DRIVER
+>  M:	Ion Badulescu <ionut-Rv4seVrz/scdnm+yROfE0A@public.gmane.org>
+>  S:	Odd Fixes
+>=20
 
-Nit: SM class Trap/Notice numbers rather than SMI.
 
-> + */
-> +#define IB_NOTICE_TRAP_LLI_THRESH	cpu_to_be16(129)
-> +#define IB_NOTICE_TRAP_EBO_THRESH	cpu_to_be16(130)
-> +#define IB_NOTICE_TRAP_FLOW_UPDATE	cpu_to_be16(131)
-> +#define IB_NOTICE_TRAP_CAP_MASK_CHG	cpu_to_be16(144)
-> +#define IB_NOTICE_TRAP_SYS_GUID_CHG	cpu_to_be16(145)
-> +#define IB_NOTICE_TRAP_BAD_MKEY		cpu_to_be16(256)
-> +#define IB_NOTICE_TRAP_BAD_PKEY		cpu_to_be16(257)
-> +#define IB_NOTICE_TRAP_BAD_QKEY		cpu_to_be16(258)
-> +
-> +/*
-> + * Generic trap/notice other local changes flags (trap 144).
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
 
-Nit: SM class rather than Generic
 
-> + */
-> +#define IB_NOTICE_TRAP_LSE_CHG		0x04	/* Link Speed Enable changed */
-> +#define IB_NOTICE_TRAP_LWE_CHG		0x02	/* Link Width Enable changed */
-> +#define IB_NOTICE_TRAP_NODE_DESC_CHG	0x01
-> +
-> +/*
-> + * Generic trap/notice M_Key volation flags in dr_trunc_hop (trap 256).
 
-Nits: SM class rather than Generic. typo: volation -> violation
+--lCgfjtwKfGHtEAHPUMRh2xKRqWsXCeqIT
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-> + */
-> +#define IB_NOTICE_TRAP_DR_NOTICE	0x80
-> +#define IB_NOTICE_TRAP_DR_TRUNC		0x40
-> +
-> +
->  #endif /* IB_SMI_H */
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
+iQIcBAEBCAAGBQJV6IYoAAoJELgmozMOVy/dmo8P/3Ga3/JLxgmF/HftVtKGxqBp
+ybtpHyaEFCbiVOs8WFT5zImtzqqz0DIhD2aeXpcSRU4/FgNVJI/jgSgA/EH3f/N5
+pV88UqfSElPp7A/8B7a5lszK1/WvuJnUviqZSnZvg2/uAuGamKYGu33jF3/QX4V/
+590+oVhdeH8JgfSZtqA4kFdg559re1fr6Z+O1g15+8uY3lMDHz3KvZa9Tij/FZUE
+2tjs19TCq/RN6XkkW9nX4brcijnzGYhH1Suf2OqcczHStNxxfelEOXwaArNgbn6i
+VDLl2E4v12AgO1UrhHYERlRIgQvOJFuXLpNbIgZ6twJQAjyAZYEOMQvlU3eWq0Ff
+IcROO3OnxqaxdDbA4ynkwZ4Cu2QZKbuvgXa7C00g5kTIBO4dUJjpad6uq643mQUs
+8V0ejeSbSa5l6iGi6oeqA6mCU6IQTUD/vwEwJ/J0j1SMqh5CwNdYuz/LJ0+hd4jt
+QO0UX1aPtvLva6jNOpYROU6ZwfTLEgRjiukyTdQPSWZDnFKCWfKqNMXMVZseQTt8
+PkDyc6V+S7zXE6S/MYUPvQR+veN99eDllVhLJBfprVD7Jixtp3MxN17X+JQvCmV0
+Zu4z/cBxcU9HRPIM7a0j4Q3U4Ls+uFgZz5Vrcz/jZA3RPtqaBmhdupywc7pLfFSN
+tfxq/gyRDT+ft4DLC697
+=PQJE
+-----END PGP SIGNATURE-----
+
+--lCgfjtwKfGHtEAHPUMRh2xKRqWsXCeqIT--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
