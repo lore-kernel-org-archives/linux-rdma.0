@@ -1,106 +1,42 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2] xprtrdma: take HCA driver refcount at client
-Date: Thu, 3 Sep 2015 16:25:28 -0400
-Message-ID: <55E8ACB8.8080809@redhat.com>
-References: <1438254018-2816-1-git-send-email-devesh.sharma@avagotech.com>
- <55E8A98D.5060903@redhat.com> <55E8AC91.2050208@Netapp.com>
+From: Kyle McMartin <kyle-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [GIT PULL] pull request v2: linux-firmware: Add Intel OPA hfi1
+ firmware
+Date: Thu, 3 Sep 2015 16:26:38 -0400
+Message-ID: <20150903202638.GA6016@merlin.infradead.org>
+References: <20150824152844.GA3066@phlsvsds.ph.intel.com>
+ <55E75DF3.4090202@redhat.com>
+ <2807E5FD2F6FDA4886F6618EAC48510E1CB7F73A@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="wvmEDFlIs4eUTRM1mPCGk7HmRnf2p6MKF"
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55E8AC91.2050208-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E1CB7F73A-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Sowa, David" <david.sowa-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Vogel, Steve" <steve.vogel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---wvmEDFlIs4eUTRM1mPCGk7HmRnf2p6MKF
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+On Wed, Sep 02, 2015 at 10:15:15PM +0000, Weiny, Ira wrote:
+> > 
+> > On 08/24/2015 11:28 AM, ira.weiny wrote:
+> > > git://github.com/weiny2/linux-firmware.git  master-hfi1-firmware-v2
+> > 
+> > Should this go through me or though the linux-firmware tree?
+> 
+> I don't know.  My apologizes for being ignorant in this case.
+> 
+> I was thinking that as the rdma kernel maintainer you would have access to merge it into the Linux-firmware tree.  The README in the Linux-firmware project only says to email linux-firmware-DgEjT+Ai2yi4UlQgPVntAg@public.gmane.org  I have not heard from anyone on that list.
+> 
+> Does anyone on Linux-firmware have any objections to merging my branch?
 
-On 09/03/2015 04:24 PM, Anna Schumaker wrote:
-> Hi Doug,
->=20
-> On 09/03/2015 04:11 PM, Doug Ledford wrote:
->> On 07/30/2015 07:00 AM, Devesh Sharma wrote:
->>> Thanks Chuck Lever for the valuable feedback and suggestions.
->>>
->>> This is a rework of the following patch sent almost a year back:
->>> http://www.mail-archive.com/linux-rdma%40vger.kernel.org/msg20730.htm=
-l
->>>
->>> In presence of active mount if someone tries to rmmod vendor-driver, =
-the
->>> command remains stuck forever waiting for destruction of all rdma-cm-=
-id.
->>> in worst case client can crash during shutdown with active mounts.
->>>
->>> The existing code assumes that ia->ri_id->device cannot change during=
+No objections, I've just been on vacation most of August. Let me look over
+the license text and then I'll be right with you.
 
->>> the lifetime of a transport. xprtrdma do not have support for
->>> DEVICE_REMOVAL event either. Lifting that assumption and adding suppo=
-rt
->>> for DEVICE_REMOVAL event is a long chain of work, and is in plan.
->>>
->>> The community decided that preventing the hang right now is more
->>> important than waiting for architectural changes.
->>>
->>> Thus, this patch introduces a temporary workaround to acquire HCA dri=
-ver
->>> module reference count during the mount of a nfs-rdma mount point.
->>>
->>> Cc: chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
->>> Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> Signed-off-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
->>> Reviewed-by: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
->>
->> Chuck, was this given final approval, and if so, who's tree is it
->> expected to go through?  Just trying to make sure I don't need to do
->> anything here as I don't see a rejection in my linux-rdma folder, but =
-I
->> also didn't see it in the initial 4.3 nfs merge.
->=20
-> This was approved and went through my tree to Trond.  I don't think he'=
-s sent out the v4.3 pull request yet, but hopefully it won't be too much =
-longer!
+(linux-firmware@ isn't a list because of vger rules about attachment
+ size and such, it just goes to dwmw2, ben hutchings and myself.)
 
-Perfect, thanks!
-
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---wvmEDFlIs4eUTRM1mPCGk7HmRnf2p6MKF
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJV6Ky4AAoJELgmozMOVy/d5bQP/0wcqrjgarVfQD8R46LYd9KS
-bLA/aQq2v+vvwstJnTdeqbz5ZRPDPQhLNfDUOceN+mfWLiLsDQ8X4dzdql87Tdm/
-TWw7AefLUld7cSZY5q4psOEUZ6LR4/KvC0GZ6TUEa3NsFMjuzl7v83BUB+iREz3B
-QWjEnireK1CZZU6ZYc6CMxM8FL4na7wmyK5vS7DML+Y3ceD6r9LOl47vFCHlUfcU
-P4kxdBOHZiwRi6ICiUQE/vpbtMCJsa8EblRsIFORTbTWgppUR3DSCEnkGhnPz4R6
-gvMBKzaR0/u3uP59vQZAoBmMCyWUcVqkG7YtYuOsax5XAzI75o+Jx4VdflUtb/DG
-WpxO//cInPTfflO5RxMPbaSnRtydKmvGUoQNb2ENUXXh0N83p1a3rn4U86jg4vUq
-8PMVrlOSOAiyun7Qvz5DVGRNH50b1srWJ1emxIL9wiK+uRwxCwVsBzfVvTCHqhVv
-khdh7Px9xbF+qwDK/fgcQEiIEivKqNkLjnW3U/inz+pqAjEK+yqbi3DyYM6vDauN
-wjJRO9gsmWA1e3VnnKixrHvU1QTDocZM5fl0j5K5QNSi4xP6rL83uj5M+EWcSH9S
-NDNzlCCqRVbJPQrWdNp8HjiCL979CcDCt0/sqkmO0hwhAJxcjCeu3Bnc8Ogn4C1N
-9Fdsl6LQhnZvYAVrADev
-=IL6P
------END PGP SIGNATURE-----
-
---wvmEDFlIs4eUTRM1mPCGk7HmRnf2p6MKF--
+cheers, --Kyle
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
