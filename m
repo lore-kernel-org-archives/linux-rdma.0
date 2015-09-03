@@ -1,57 +1,84 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 2/3] Add on-demand paging support
-Date: Thu, 3 Sep 2015 09:46:35 +0300
-Message-ID: <55E7ECCB.209@mellanox.com>
-References: <1440688955-7709-1-git-send-email-haggaie@mellanox.com>
- <1440688955-7709-3-git-send-email-haggaie@mellanox.com>
- <55E74B5B.90805@dev.mellanox.co.il>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [GIT PULL] pull request v2: linux-firmware: Add Intel OPA hfi1
+ firmware
+Date: Thu, 3 Sep 2015 08:37:11 -0400
+Message-ID: <55E83EF7.5020906@redhat.com>
+References: <20150824152844.GA3066@phlsvsds.ph.intel.com>
+ <55E75DF3.4090202@redhat.com>
+ <2807E5FD2F6FDA4886F6618EAC48510E1CB7F73A@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="hRgd13LFk9AqcXKUo9Vwn9I7hGSt7PM3s"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55E74B5B.90805-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E1CB7F73A-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-firmware-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <linux-firmware-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Sowa, David" <david.sowa-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Vogel, Steve" <steve.vogel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/09/2015 22:17, Sagi Grimberg wrote:
-> On 8/27/2015 6:22 PM, Haggai Eran wrote:
->> On-demand paging feature allows registering memory regions without
->> pinning
->> their pages. Unfortunately the feature doesn't work together will all
->> transports and all operations. This patch adds the ability to report
->> on-demand
->> paging capabilities through the ibv_query_device_ex.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--hRgd13LFk9AqcXKUo9Vwn9I7hGSt7PM3s
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
+
+On 09/02/2015 06:15 PM, Weiny, Ira wrote:
 >>
->> The patch also add the IBV_ACCESS_ON_DEMAND access flag to allow
->> registration
->> of on-demand paging enabled memory regions.
+>> On 08/24/2015 11:28 AM, ira.weiny wrote:
+>>> git://github.com/weiny2/linux-firmware.git  master-hfi1-firmware-v2
 >>
->> Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> ---
-> 
-> Looks good,
-> 
-> Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> I have a patch to add ODP support to TGT user-space target.
-> The performance gain is a clear cut.
-> 
-> Doug, can we get this in?
+>> Should this go through me or though the linux-firmware tree?
+>=20
+> I don't know.  My apologizes for being ignorant in this case.
+>=20
+> I was thinking that as the rdma kernel maintainer you would have access=
+ to merge it into the Linux-firmware tree.  The README in the Linux-firmw=
+are project only says to email linux-firmware-DgEjT+Ai2yi4UlQgPVntAg@public.gmane.org  I have not hea=
+rd from anyone on that list.
+>=20
+> Does anyone on Linux-firmware have any objections to merging my branch?=
 
-I received some comments from Moshe Lazer about the first patch in this
-series that I should fix. Mainly, the ibv_query_device_ex() verb as it
-was defined by the patch doesn't receive an extensible input struct
-(only an output struct), and doesn't receive the length of the output
-struct.
 
-I'll fix these comments and send a v1.
+I had to pull your changes to figure out exactly what you were doing.
+You could have been submitting the firmware to the kernel proper (there
+is a firmware directory after all, but I think it's mainly intended for
+firmware for which we have source and which can be rebuilt, but my
+information on that may be out of date), but this is for the
+linux-firmware tree.  I have no git access to that repo, so it's not
+something I can commit.  I'm not sure who takes care of that.
 
-Haggai
 
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--hRgd13LFk9AqcXKUo9Vwn9I7hGSt7PM3s
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJV6D73AAoJELgmozMOVy/dD/YQAKS7TqppIsF3fC3d8rODB8l3
+CG9SkuhTyYGIwWyrQ6kqSLOtzDruRu7ZBy6xRAjo4T2l5H1otNLcAYdtKeFqWhAA
+dTF9Q1UW5Zwcz/Pm4hkD7290+Ar/XbVYWuG98B4INc+rPT4IQZ35fYALlqjp7S1/
+OfQWlw9pTT4R470UIZXDH3nnFmHBz6IM5eOVm0v4jc1t244Wgd6DiXsp8Idchjdf
+srDoiw2sMupQKsKf+ZIUpj0FTWZpz1Uaj+zWRR/5C70XmkA2F/BeKhpFb6ZS+pQd
+F1/jIaZ4muMPWS/xqcpTh2bDl8nZZYPXGU0keDOPXuzbZFGYKAX9x8QXvUtKWtSO
+doe8uKlzluVcenR+I4eGcd5Z3rWc+cIbRmKBmVL6E3JFRgLrfZiUPQlQmfxmIGlK
+tdO69JcrQJzsz/EEVInA3JSlmk5++ilvHoEiHHvL8ExTNXsej6Op7ayJD7RQ0KMx
+q587eizD7b8S7CCXJB5RSpUYvleKq7woic6ah5OnJsZJXhiC2m1KdBAq7faCSAKl
+1I/z5jp+vH/q9CSJ88d+lARHOIEW84I0uQkgU+ycjH/IH//ZX3O/zd5P6maBFMar
+W9CFMWDAnXQp7MTLIzGcggxC/95QBC/Rk4FDQVVjuG00hfhP3iOM3oqVcKUSkTEz
+7tjKjS3H6mAKzQPAaJwR
+=PJS8
+-----END PGP SIGNATURE-----
+
+--hRgd13LFk9AqcXKUo9Vwn9I7hGSt7PM3s--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
