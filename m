@@ -1,41 +1,57 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next 0/2] IB/{core,mlx4_ib}: RX/TX checksum offload
-Date: Thu, 3 Sep 2015 09:22:55 +0300
-Message-ID: <55E7E73F.7000905@mellanox.com>
-References: <1438788867-18332-1-git-send-email-amirv@mellanox.com>
- <alpine.DEB.2.11.1509020930430.12270@east.gentwo.org>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 2/3] Add on-demand paging support
+Date: Thu, 3 Sep 2015 09:46:35 +0300
+Message-ID: <55E7ECCB.209@mellanox.com>
+References: <1440688955-7709-1-git-send-email-haggaie@mellanox.com>
+ <1440688955-7709-3-git-send-email-haggaie@mellanox.com>
+ <55E74B5B.90805@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.11.1509020930430.12270-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
+In-Reply-To: <55E74B5B.90805-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eric Dube <edube-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/2/2015 5:32 PM, Christoph Lameter wrote:
-> On Wed, 5 Aug 2015, Amir Vadai wrote:
->
->> This will be used by a revised version of the IP checksum patches [1], that
->> will be sent later on.
-> Ok when can we get the full set for testing? Seems that the libibverbs and
-> libmlx4 portions are missing?
+On 02/09/2015 22:17, Sagi Grimberg wrote:
+> On 8/27/2015 6:22 PM, Haggai Eran wrote:
+>> On-demand paging feature allows registering memory regions without
+>> pinning
+>> their pages. Unfortunately the feature doesn't work together will all
+>> transports and all operations. This patch adds the ability to report
+>> on-demand
+>> paging capabilities through the ibv_query_device_ex.
+>>
+>> The patch also add the IBV_ACCESS_ON_DEMAND access flag to allow
+>> registration
+>> of on-demand paging enabled memory regions.
+>>
+>> Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> ---
+> 
+> Looks good,
+> 
+> Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> I have a patch to add ODP support to TGT user-space target.
+> The performance gain is a clear cut.
+> 
+> Doug, can we get this in?
 
-not accurate.
+I received some comments from Moshe Lazer about the first patch in this
+series that I should fix. Mainly, the ibv_query_device_ex() verb as it
+was defined by the patch doesn't receive an extensible input struct
+(only an output struct), and doesn't receive the length of the output
+struct.
 
-After this post, we have posted patched to libibverbs/libmlx4 on Aug 
-17th, that require no kernel changes.
+I'll fix these comments and send a v1.
 
-Please test these ones and skip this post for now and let us know how's 
-going with them:
+Haggai
 
-https://patchwork.kernel.org/patch/7025581/
-https://patchwork.kernel.org/patch/7025611/
-
-I copied the author,
-
-Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
