@@ -1,59 +1,57 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] staging/hfi1: replace indent spaces with tabs
-Date: Thu, 3 Sep 2015 13:43:09 -0400
-Message-ID: <55E886AD.5090607@redhat.com>
-References: <1440185182-56772-1-git-send-email-Jeffrey.C.Becker@nasa.gov>
+Subject: Re: [PATCH] IB/cma: Fix net_dev reference leak with failed requests
+Date: Thu, 3 Sep 2015 13:56:24 -0400
+Message-ID: <55E889C8.8080803@redhat.com>
+References: <1440680115-9164-1-git-send-email-haggaie@mellanox.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="wK9ofX8hCv5joAUVvu2AI0x2nX82X1TqS"
+ boundary="DvNvPfOURGf6G0NilpEAs5vCLAwOUAauO"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1440185182-56772-1-git-send-email-Jeffrey.C.Becker-NSQ8wuThN14@public.gmane.org>
+In-Reply-To: <1440680115-9164-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jeff Becker <Jeffrey.C.Becker-NSQ8wuThN14@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---wK9ofX8hCv5joAUVvu2AI0x2nX82X1TqS
+--DvNvPfOURGf6G0NilpEAs5vCLAwOUAauO
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 08/21/2015 03:26 PM, Jeff Becker wrote:
-> Running checkpatch.pl on mad.c produces several=20
-> "ERROR: code indent should use tabs where possible" messages.
-> This patch fixes these.
->=20
-> Signed-off-by: Jeff Becker <Jeffrey.C.Becker-NSQ8wuThN14@public.gmane.org>
+On 08/27/2015 08:55 AM, Haggai Eran wrote:
+> When no matching listening ID is found for a given request, the net_dev=
 
-Thanks, applied.
+> that was used to find the request isn't released.
+>=20
+> Fixes: 20c36836ecad ("IB/cma: Use found net_dev for passive connections=
+")
+> Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+Applied, thanks!
 
 > ---
->  drivers/staging/hfi1/mad.c | 10 +++++-----
->  1 file changed, 5 insertions(+), 5 deletions(-)
+>  drivers/infiniband/core/cma.c | 4 ++++
+>  1 file changed, 4 insertions(+)
 >=20
-> diff --git a/drivers/staging/hfi1/mad.c b/drivers/staging/hfi1/mad.c
-> index 0a18fee..37269eb 100644
-> --- a/drivers/staging/hfi1/mad.c
-> +++ b/drivers/staging/hfi1/mad.c
-> @@ -4075,11 +4075,11 @@ bail:
->  }
+> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cm=
+a.c
+> index 9b306d7b5c27..b1ab13f3e182 100644
+> --- a/drivers/infiniband/core/cma.c
+> +++ b/drivers/infiniband/core/cma.c
+> @@ -1302,6 +1302,10 @@ static struct rdma_id_private *cma_id_from_event=
+(struct ib_cm_id *cm_id,
+>  	bind_list =3D cma_ps_find(rdma_ps_from_service_id(req.service_id),
+>  				cma_port_from_service_id(req.service_id));
+>  	id_priv =3D cma_find_listener(bind_list, cm_id, ib_event, &req, *net_=
+dev);
+> +	if (IS_ERR(id_priv)) {
+> +		dev_put(*net_dev);
+> +		*net_dev =3D NULL;
+> +	}
 > =20
->  static int hfi1_process_opa_mad(struct ib_device *ibdev, int mad_flags=
-,
-> -			        u8 port, const struct ib_wc *in_wc,
-> -			        const struct ib_grh *in_grh,
-> -			        const struct opa_mad *in_mad,
-> -			        struct opa_mad *out_mad, size_t *out_mad_size,
-> -			        u16 *out_mad_pkey_index)
-> +				u8 port, const struct ib_wc *in_wc,
-> +				const struct ib_grh *in_grh,
-> +				const struct opa_mad *in_mad,
-> +				struct opa_mad *out_mad, size_t *out_mad_size,
-> +				u16 *out_mad_pkey_index)
->  {
->  	int ret;
->  	int pkey_idx;
+>  	return id_priv;
+>  }
 >=20
 
 
@@ -63,7 +61,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---wK9ofX8hCv5joAUVvu2AI0x2nX82X1TqS
+--DvNvPfOURGf6G0NilpEAs5vCLAwOUAauO
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -72,22 +70,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJV6IatAAoJELgmozMOVy/dZcwP/1yYh4Up1G/do9/yN34f6CBC
-lyM/EOXoMsNofaZinY0a/J5hUDCNG6pdjZIgpHaspkbfMG7ioieN5OLDDdzjWg/K
-EcJ8y2MGBVTC0tMQhFGOykHDBqcKQ2Xhtz76LEmkVEc3ca77gMFIoAbLOYmJFY0W
-5tAtkhV53V3nsS8igRATQdgJeTJ+hIZjoRUsLEyOvvXkpcKqCNSrXMimRfRkuTNi
-6ZKGwbE/TVRlJQZNGHRxk1Z/4IuY35G+WzQTPyliWcQaySK19JOMHvU5YjrQ1wLE
-o7SYcPfEBqIHc6NA0pD+FEHMXUBGyFeqACshyJXfSkphC+apJ1l1hAELKDJV9EEJ
-G6WMTi3FB1uhjzRroQqK6dKJSRNtXBJz1HTHb+H5UvxGFaPE1JMQwgUIHSbSRXbG
-N/5WRAgofTNdegV8eSCFoZ+tc0ZR9gIhFvygEG4tUYGMnBgkP4V/7Fug1CPXhKFN
-x6Lu5OtT0RUXDOvstp3u94bn1KY9bCgOQ+DP5jVDIJdu7cr7CaOo5araAB+zvf/p
-24v/2JKyfm1xSpz1Jtkg/yc+sajMPxGHdxBC9btEk/qZGPjrgtARHjoAdf2TPpNt
-wDFvgqVqO8QlF6mJy2deT8A/lYH3E5D6oJaBs/mubVy+lA3HInN2E/g4jyqcdVfI
-gywAdrB3KPjwdAlHfTOW
-=wfVO
+iQIcBAEBCAAGBQJV6InIAAoJELgmozMOVy/dEqQQAJVsZbA7Qa/dzlE0TFvydUro
+cmIys2X8HlN29nTHOSNY/MAeVhlBeSZ89O8kKd1WuF7sCch5gL84Y1JF//GA6AKf
+h7HuxS73RNDmHEBGk5MjgZv2qqOcV9Z7o8rzgK6yu0ZGaxCkFP+DwkbL1D7jTU2s
+ws4nQZjrDJJZ3EB/NOIc+Iq7po2ENzthlVPBk88h/SS/yYT0bXig1iXRYpBKH8nJ
+mvgPh4EM+OstAHc78I5gmwtDsfZ5WG+W/iAWM2NsXpP8twm5faKiLx1QVVR2fs/K
+B+Ygu4VSJwsNH4dq7V02P7v1uGSoRjdPC5Gk9GMiMseY/1ek1fNm062gC45/xEsa
+Mi5W8ZCLKck7BIa4jEKd3AJ8ii85ZxcCZPlJAn3itFODD+072G1mq/onC52crYNj
+KeOTkfD/515hMknynAIgLTE4QKfOIxB0nYR8CYIbTAFlio9teyGHA2ebLqOYcHfV
+XbP4KyxiB2ROq3ZxN02jBH6JrOiJ6Hw3Qgbd1Fg4h+MdCpUo54UK4DxKCorblw6b
+zlEuF7F4ZtA1jtHe0UjStodSgAuAU/Cfn+s78m6c6o4y268XJw2OFUgk1Ru/LRax
+A2vkny0glNdn6shzKaq4iv9wbXQvA2c5X+crfYIb4aeXz58zvIF4kAeIB6R0CPkO
+5qsdPIQIqJz1fRKBBwFN
+=ReSH
 -----END PGP SIGNATURE-----
 
---wK9ofX8hCv5joAUVvu2AI0x2nX82X1TqS--
+--DvNvPfOURGf6G0NilpEAs5vCLAwOUAauO--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
