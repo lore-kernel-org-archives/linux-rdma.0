@@ -1,52 +1,42 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: shrink struct ib_send_wr V3
-Date: Thu, 3 Sep 2015 14:33:41 -0400
-Message-ID: <55E89285.6080505@redhat.com>
-References: <1440579639-10684-1-git-send-email-hch@lst.de>
- <55E321D7.7000209@dev.mellanox.co.il> <20150831161116.GA24494@lst.de>
- <55E4F02D.4080701@redhat.com>
+Subject: Re: [PATCH] IB/mlx5: avoid destroying a NULL mr in reg_user_mr error
+ flow
+Date: Thu, 3 Sep 2015 14:43:31 -0400
+Message-ID: <55E894D3.70600@redhat.com>
+References: <1441089671-3390-1-git-send-email-haggaie@mellanox.com>
+ <1441090616-20640-1-git-send-email-haggaie@mellanox.com>
+ <55E55C7A.2090602@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="i4Irg64AbUDPsGmR931VRgf5oCJsrPJ7d"
+ boundary="ogdpKOgc3olMMO50Brnsou7V8fIC9wHBS"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55E4F02D.4080701-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <55E55C7A.2090602-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---i4Irg64AbUDPsGmR931VRgf5oCJsrPJ7d
+--ogdpKOgc3olMMO50Brnsou7V8fIC9wHBS
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 08/31/2015 08:24 PM, Doug Ledford wrote:
-> On 08/31/2015 12:11 PM, Christoph Hellwig wrote:
->> On Sun, Aug 30, 2015 at 06:31:35PM +0300, Sagi Grimberg wrote:
->>>>   - patch 2 now explicitly replaces the weird overloading in the mlx=
-5
->>>>     driver with an explicit embedding of struct ib_send_wr, similar
->>>>     to what we do for all other MRs.
->>>
->>> That's nice,
->>>
->>> There is one non-trivial spot that was missed in mlx5_ib_post_send
->>> though:
+On 09/01/2015 04:06 AM, Sagi Grimberg wrote:
+> On 9/1/2015 9:56 AM, Haggai Eran wrote:
+>> The mlx5_ib_reg_user_mr() function will attempt to call clean_mr() in
+>> its error flow even though there is never a case where the error flow
+>> occurs with a valid MR pointer to destroy.
 >>
->> Oh, that was a weird abuse of the old casts.
+>> Remove the clean_mr() call and the incorrect comment above it.
 >>
->> I've foled both your fixes and force pushed to the wr-cleanup branch.
->>
->> I do not plan to resend the series until the merge window for 4.4
->> is open.  Doug, any chance you could pick up the first patch in the
->> series for 4.3-rc?  It's marked for stable as well.
->=20
-> Yes, I can do that.
->=20
+>> Fixes: b4cfe447d47b ("IB/mlx5: Implement on demand paging by adding
+>> support for MMU notifiers")
+>> Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-I've applied 1 of 3.  For the remaining two, I plan to pull them into a
-test kernel and run some internal tests before committing.  Just FYI.
+Thanks, applied.
+
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -54,7 +44,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---i4Irg64AbUDPsGmR931VRgf5oCJsrPJ7d
+--ogdpKOgc3olMMO50Brnsou7V8fIC9wHBS
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -63,22 +53,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJV6JKFAAoJELgmozMOVy/dGZUQAMT25hykQXqJcfO9f4MrYVMV
-Ghjw9cs17GEC8wUsxcbMsUw7nnRF3oAzRULhG0FajVD6NyfGMPqbPC+dZlfAANWN
-KfazEihCIVDBUZav0A6vtTUrh834tJS2MQYD7mJ5qN1Mt0dqKtC99hzB1tmAu7zc
-TczJ3znLHrIHj+Oc2UdBgbNY/4i53EnrwlZrYqEV1vh272qZqz7q1JIkg/1Pz+5o
-uoi87Km6UrQ0GGURYux5rCSZD2mQZMBQcIMWzHSBBaTSlbztVdOcvZkYxWOf/FGg
-3d4lBwkSi1bK9MAq8ZPVuqTDBMAEZDRM2nyqN16F5vT1GXN4zxvmKlgjJb3JPl+b
-H/33s6PR4u1Em99xB9HYnxZsZf/UosLTz2+bw/q/rOs0+Ih35ksCjkAu+4A06/oJ
-nt0K7tIxp002SibF3L9GXH5vVe5dSWoahJoA5NNMM7vO7Owykqid7zlIopKPd3eN
-gX/qLb9bJcoGbI475XlTnNzPZ5+haWAGWsm68GWUHbRQ/8GBH9jshEX2K7IQ3L6E
-3T1LKNoXzKam/G9+fgcysBGLV1pNQjCIJlcIJ/pCBe+BGV0lb6mwoKVy3YGGxMzZ
-v/VlEItmjWkDwdn258CpoykUGH1j4eDGGdsi5YlkVas/3DAWPxMBra9d5gGeSTCs
-oH8ueJnHkWT0Q3RFbV6D
-=nBgR
+iQIcBAEBCAAGBQJV6JTTAAoJELgmozMOVy/dcGQQALISfWFYU89fZCyZWTDAE1q+
+i3cjB6rkuQgFSQlV7CtkDoPIQDUZs6C6fbFqsGlWe6URJeZ2XI4m/rHsYrLCjY3w
+SHCenCNC7FMWMbhmHt8YSBXQKQhW5ZKPB6dhVsXJS3M9/dmKQrTv/70prXuyamYN
+brDBLw0vgERvFDQN9hHXhfIWMhcHMeA1i0DspztwDLl/xTQKxl3MzuQMl6MMwwsg
+ULwExXemUo4i4i0zAAXDDE+Xti6jLlZ1xjanPxgI0EwZu1kEIinUdJ0o7jDMoNpj
+mTlsTMjAlw7bcXZstJYv+aie35oTp0Ay51vZHP715YIXXuNoTA33zAzPdkV9oLFp
+kwWFWal8E2Vhpx/gCOrGSSSMm6elahNzxoOfwyJjRV+fLw4atZZJ9dhZFps3chtZ
+CmkU1kYjm6Jl1IAwQfKdlJ6ywhlaw3CKgoeS12JnDAW+3z7308rt/4XNmwd/1r1J
+N0MWXc+EHX4FpRpU2iQPjMDwGcJMW5/zsst3KMo2Qlc0ZFkdVuB+EVf7RWZyUwIA
+HFoCcAuk1ypi3OJDmTZKiyBXYvs9PL/tpUhtovmivbQVn5p84MFlVpAyA2fF6IRV
+QZUeScFfEmlBeZt6Bu2yAMed9oowOu1fhEG5rWAB1VjlVYpsTbKSR+FOxI8X6OAU
+VptaAavN5CaVZk/pjzcG
+=GsC/
 -----END PGP SIGNATURE-----
 
---i4Irg64AbUDPsGmR931VRgf5oCJsrPJ7d--
+--ogdpKOgc3olMMO50Brnsou7V8fIC9wHBS--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
