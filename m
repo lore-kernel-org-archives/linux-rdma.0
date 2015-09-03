@@ -1,95 +1,180 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] RDMA/cma: fix IPv6 address resolution
-Date: Thu, 3 Sep 2015 16:03:39 -0400
-Message-ID: <55E8A79B.8070201@redhat.com>
-References: <1439493550-5958-1-git-send-email-sbaugh@catern.com>
+Subject: Re: [PATCH v2] xprtrdma: take HCA driver refcount at client
+Date: Thu, 3 Sep 2015 16:11:57 -0400
+Message-ID: <55E8A98D.5060903@redhat.com>
+References: <1438254018-2816-1-git-send-email-devesh.sharma@avagotech.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="nigXu8Tg9rqeMCbsnQsMwCXTc6O7NKlKb"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1439493550-5958-1-git-send-email-sbaugh-n2IX9UM++eDQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Spencer Baugh <sbaugh-n2IX9UM++eDQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "open list:INFINIBAND SUBSYSTEM" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, open list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Joern Engel <joern-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Spencer Baugh <Spencer.baugh-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+ boundary="D8uehQBap84PGb1eLFTRrAdpkCQpR64lA"
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1438254018-2816-1-git-send-email-devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---nigXu8Tg9rqeMCbsnQsMwCXTc6O7NKlKb
+--D8uehQBap84PGb1eLFTRrAdpkCQpR64lA
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 08/13/2015 03:19 PM, Spencer Baugh wrote:
-> Resolving a link-local IPv6 address with an unspecified source address
-> was broken by commit 5462eddd7a, which prevented the IPv6 stack from
-> learning the scope id of the link-local IPv6 address, causing random
-> failures as the IP stack chose a random link to resolve the address on.=
-
+On 07/30/2015 07:00 AM, Devesh Sharma wrote:
+> Thanks Chuck Lever for the valuable feedback and suggestions.
 >=20
-> This commit 5462eddd7a made us bail out of cma_check_linklocal early if=
-
-> the address passed in was not an IPv6 link-local address. On the addres=
-s
-> resolution path, the address passed in is the source address; if the
-> source address is the unspecified address, which is not link-local, we
-> will bail out early.
+> This is a rework of the following patch sent almost a year back:
+> http://www.mail-archive.com/linux-rdma%40vger.kernel.org/msg20730.html
 >=20
-> This is mostly correct, but if the destination address is a link-local
-> address, then we will be following a link-local route, and we'll need t=
-o
-> tell the IPv6 stack what the scope id of the destination address is.
-> This used to be done by last line of cma_check_linklocal, which is
-> skipped when bailing out early:
->=20
-> 	dev_addr->bound_dev_if =3D sin6->sin6_scope_id;
->=20
-> (In cma_bind_addr, the sin6_scope_id of the source address is set to th=
+> In presence of active mount if someone tries to rmmod vendor-driver, th=
 e
-> sin6_scope_id of the destination address, so this is correct)
-> This line is required in turn for the following line, L279 of
-> addr6_resolve, to actually inform the IPv6 stack of the scope id:
+> command remains stuck forever waiting for destruction of all rdma-cm-id=
+=2E
+> in worst case client can crash during shutdown with active mounts.
 >=20
->       fl6.flowi6_oif =3D addr->bound_dev_if;
->=20
-> Since we can only know we are in this failure case when we have access
-> to both the source IPv6 address and destination IPv6 address, we have t=
-o
-> deal with this further up the stack. So detect this failure case in
-> cma_bind_addr, and set bound_dev_if to the destination address scope id=
+> The existing code assumes that ia->ri_id->device cannot change during
+> the lifetime of a transport. xprtrdma do not have support for
+> DEVICE_REMOVAL event either. Lifting that assumption and adding support=
 
-> to correct it.
+> for DEVICE_REMOVAL event is a long chain of work, and is in plan.
 >=20
-> Signed-off-by: Spencer Baugh <sbaugh-n2IX9UM++eDQT0dZR+AlfA@public.gmane.org>
+> The community decided that preventing the hang right now is more
+> important than waiting for architectural changes.
+>=20
+> Thus, this patch introduces a temporary workaround to acquire HCA drive=
+r
+> module reference count during the mount of a nfs-rdma mount point.
+>=20
+> Cc: chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+> Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Signed-off-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+> Reviewed-by: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+
+Chuck, was this given final approval, and if so, who's tree is it
+expected to go through?  Just trying to make sure I don't need to do
+anything here as I don't see a rejection in my linux-rdma folder, but I
+also didn't see it in the initial 4.3 nfs merge.
+
 > ---
->  drivers/infiniband/core/cma.c | 7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
+>  net/sunrpc/xprtrdma/verbs.c |   38 ++++++++++++++++++++++++++++++-----=
+---
+>  1 files changed, 30 insertions(+), 8 deletions(-)
 >=20
-> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cm=
-a.c
-> index 6a6b60a..3b71154 100644
-> --- a/drivers/infiniband/core/cma.c
-> +++ b/drivers/infiniband/core/cma.c
-> @@ -2188,8 +2188,11 @@ static int cma_bind_addr(struct rdma_cm_id *id, =
-struct sockaddr *src_addr,
->  		src_addr =3D (struct sockaddr *) &id->route.addr.src_addr;
->  		src_addr->sa_family =3D dst_addr->sa_family;
->  		if (dst_addr->sa_family =3D=3D AF_INET6) {
-> -			((struct sockaddr_in6 *) src_addr)->sin6_scope_id =3D
-> -				((struct sockaddr_in6 *) dst_addr)->sin6_scope_id;
-> +			struct sockaddr_in6 *src_addr6 =3D (struct sockaddr_in6 *) src_addr=
-;
-> +			struct sockaddr_in6 *dst_addr6 =3D (struct sockaddr_in6 *) dst_addr=
-;
-> +			src_addr6->sin6_scope_id =3D dst_addr6->sin6_scope_id;
-> +			if (ipv6_addr_type(&dst_addr6->sin6_addr) & IPV6_ADDR_LINKLOCAL)
-> +				id->route.addr.dev_addr.bound_dev_if =3D dst_addr6->sin6_scope_id;=
+> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+> index 891c4ed..1c3c420 100644
+> --- a/net/sunrpc/xprtrdma/verbs.c
+> +++ b/net/sunrpc/xprtrdma/verbs.c
+> @@ -52,6 +52,7 @@
+>  #include <linux/prefetch.h>
+>  #include <linux/sunrpc/addr.h>
+>  #include <asm/bitops.h>
+> +#include <linux/module.h> /* try_module_get()/module_put() */
+> =20
+>  #include "xprt_rdma.h"
+> =20
+> @@ -414,6 +415,14 @@ connected:
+>  	return 0;
+>  }
+> =20
+> +static void rpcrdma_destroy_id(struct rdma_cm_id *id)
+> +{
+> +	if (id) {
+> +		module_put(id->device->owner);
+> +		rdma_destroy_id(id);
+> +	}
+> +}
+> +
+>  static struct rdma_cm_id *
+>  rpcrdma_create_id(struct rpcrdma_xprt *xprt,
+>  			struct rpcrdma_ia *ia, struct sockaddr *addr)
+> @@ -440,6 +449,18 @@ rpcrdma_create_id(struct rpcrdma_xprt *xprt,
+>  	}
+>  	wait_for_completion_interruptible_timeout(&ia->ri_done,
+>  				msecs_to_jiffies(RDMA_RESOLVE_TIMEOUT) + 1);
+> +
+> +	/* FIXME: We hate to break the notion of ULP<-->Core<-->Provider
+> +	 * by calling try_module_get() on HCA driver. This is to prevent a
+> +	 * system hang or a possible crash during reboot with active nfs-rdma=
 
->  		} else if (dst_addr->sa_family =3D=3D AF_IB) {
->  			((struct sockaddr_ib *) src_addr)->sib_pkey =3D
->  				((struct sockaddr_ib *) dst_addr)->sib_pkey;
+> +	 * mount. We will keep this workaround until xprtrdma comes back with=
+ a
+> +	 * massive architectural changes to have proper fix.
+> +	 */
+> +	if (!ia->ri_async_rc && !try_module_get(id->device->owner)) {
+> +		dprintk("RPC:       %s: Failed to get device module\n",
+> +			__func__);
+> +		ia->ri_async_rc =3D -ENODEV;
+> +	}
+>  	rc =3D ia->ri_async_rc;
+>  	if (rc)
+>  		goto out;
+> @@ -449,16 +470,17 @@ rpcrdma_create_id(struct rpcrdma_xprt *xprt,
+>  	if (rc) {
+>  		dprintk("RPC:       %s: rdma_resolve_route() failed %i\n",
+>  			__func__, rc);
+> -		goto out;
+> +		goto put;
+>  	}
+>  	wait_for_completion_interruptible_timeout(&ia->ri_done,
+>  				msecs_to_jiffies(RDMA_RESOLVE_TIMEOUT) + 1);
+>  	rc =3D ia->ri_async_rc;
+>  	if (rc)
+> -		goto out;
+> +		goto put;
+> =20
+>  	return id;
+> -
+> +put:
+> +	module_put(id->device->owner);
+>  out:
+>  	rdma_destroy_id(id);
+>  	return ERR_PTR(rc);
+> @@ -592,7 +614,7 @@ out3:
+>  	ib_dealloc_pd(ia->ri_pd);
+>  	ia->ri_pd =3D NULL;
+>  out2:
+> -	rdma_destroy_id(ia->ri_id);
+> +	rpcrdma_destroy_id(ia->ri_id);
+>  	ia->ri_id =3D NULL;
+>  out1:
+>  	return rc;
+> @@ -618,7 +640,7 @@ rpcrdma_ia_close(struct rpcrdma_ia *ia)
+>  	if (ia->ri_id !=3D NULL && !IS_ERR(ia->ri_id)) {
+>  		if (ia->ri_id->qp)
+>  			rdma_destroy_qp(ia->ri_id);
+> -		rdma_destroy_id(ia->ri_id);
+> +		rpcrdma_destroy_id(ia->ri_id);
+>  		ia->ri_id =3D NULL;
+>  	}
+> =20
+> @@ -825,7 +847,7 @@ retry:
+>  		if (ia->ri_device !=3D id->device) {
+>  			printk("RPC:       %s: can't reconnect on "
+>  				"different device!\n", __func__);
+> -			rdma_destroy_id(id);
+> +			rpcrdma_destroy_id(id);
+>  			rc =3D -ENETUNREACH;
+>  			goto out;
+>  		}
+> @@ -834,7 +856,7 @@ retry:
+>  		if (rc) {
+>  			dprintk("RPC:       %s: rdma_create_qp failed %i\n",
+>  				__func__, rc);
+> -			rdma_destroy_id(id);
+> +			rpcrdma_destroy_id(id);
+>  			rc =3D -ENETUNREACH;
+>  			goto out;
+>  		}
+> @@ -845,7 +867,7 @@ retry:
+>  		write_unlock(&ia->ri_qplock);
+> =20
+>  		rdma_destroy_qp(old);
+> -		rdma_destroy_id(old);
+> +		rpcrdma_destroy_id(old);
+>  	} else {
+>  		dprintk("RPC:       %s: connecting...\n", __func__);
+>  		rc =3D rdma_create_qp(ia->ri_id, ia->ri_pd, &ep->rep_attr);
 >=20
 
-Thanks, applied.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -97,7 +182,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---nigXu8Tg9rqeMCbsnQsMwCXTc6O7NKlKb
+--D8uehQBap84PGb1eLFTRrAdpkCQpR64lA
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -106,23 +191,23 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJV6KebAAoJELgmozMOVy/diSgQALF4kuOTUOuHw2deSzvwVV2M
-AovZuKSApqfJXWyZqqCDZHUPpH+msn0Hqnrm3qJDNDKF3kuVVDCR/ulKNVbZ/uNh
-6wcTq7DGUBFu4wm5nXi/XM1hOP6tF9gkNjoV69PiYcFmxz+iOd8ESC2GYNsoqSJD
-A5Uwoi4EsXpWiG44s0N/4fePk0pHHqqhz+06C64ZF9ujO4O5fVPw+oKw+apsR+g5
-tnpttrZL3NWVo2bLIM/QnY3n50qOMjjK3pBXt5YRg0VhEcvGJBnrcSkWCNRdFOXH
-hJ7w3bQELuMTwJCO0Iy07/ecSYC9/cm7zaDB/TJCLDfcZGU4LrghdY44oT+jNu4e
-r4SOuwI1l6kYn7r2HaOKnFixjQDJowvFQQk821DcM+9R45fcgohDQIANKhABeAUF
-ydMROuUDr0WIotGUQkwH6jZQLL9MGdzUy1bmMekBfXFhHdxMdKeDS1XcnTD62WXp
-giXoNw+tFvMm8NX5HTCLweXMOHcQCDPaFRRuKjjmAZwdexcbU9HJL6d0Es5+ypd2
-ZPhYILnkIv/ZwM9CvbqW+VleQ1H7+T37UZOuQEAA4xkHqHGbuzDgOmUnG0d47Wtz
-iAFfNNJfoV2d4rzrXpQDhUrLxo1LUYz7YuGi4Bl9PJxL+UpamUZKzFHoa3AGgwpI
-hlyJiCzbyWOOM2RaD/aU
-=ZG0D
+iQIcBAEBCAAGBQJV6KmNAAoJELgmozMOVy/d2mkP/2Wb7q2dpRQOObrNKaPzXhnC
+RLWgXsfQKZtbBLCeAE3wD/ebtFsOSVCx1aLaS5xpJLkFibuQKPEdmTsj7wirAjrM
+D8LqFETWmmwxbNjFcfO4mxZ3mKfVrNqBFXPKnePc7L0X05Jmu9DU+Y+mrp6FmESg
+2eXganIa5zyBcF/FHb0SRkU4oLPDWbFvhrPm4HPh8xUVEPqU+w94WdC3HpivDTq7
+tMDGELbxk7mg8QpE4eFeYhXlW+HEcCzTu2UkmmZUCvo8q72JORmgpfHQhmD/6pyT
+NhlWiXMz/ydzRAOXzIe+rqY9uTZ6V94VWcGWUz1gnJgLCGeDj6WlzExaXGGcBVa0
+CJj24GW20u/Sxw8lBN3hk6PeS7XT8r+S2xcMty8HNmK3X0WGXcmTCHPtzwGxo3Ib
+Ove9U+xv5YsZlvSL9ljAm2IyBTXnZmt7oPTb3Hqr1eRgiTMM+QJjJmM5cwYlwx43
+Sp1y8X8l0LpVoQLRuq4e7ho7jOuxa+qr8j54woPleGDOXzURkNEknwCgZdzbSC3w
++0eKBXCx1Mv6DpcRSNkbThI8lZ1Rjpe8YxsgULdDXSNqer9mdrN2bgnm5sqHmgmg
+xQp9d2Ea7jph1yIreleQBOOKcABJtHxwijBGRfI6w3I9W4z7BOrtrGnBYsjp0lGw
+VVhwSojfuK7e3I0ryAG8
+=mk7c
 -----END PGP SIGNATURE-----
 
---nigXu8Tg9rqeMCbsnQsMwCXTc6O7NKlKb--
+--D8uehQBap84PGb1eLFTRrAdpkCQpR64lA--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
