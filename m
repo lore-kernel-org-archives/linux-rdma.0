@@ -1,67 +1,68 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/cma: Fix net_dev reference leak with failed requests
-Date: Thu, 3 Sep 2015 13:56:24 -0400
-Message-ID: <55E889C8.8080803@redhat.com>
-References: <1440680115-9164-1-git-send-email-haggaie@mellanox.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH] infiniband:cxgb4:Fix if statement check in the function
+ pick_local_ip6adddrs
+Date: Thu, 3 Sep 2015 14:05:47 -0400
+Message-ID: <55E88BFB.8070609@redhat.com>
+References: <1440644459-13595-1-git-send-email-xerofoify@gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="DvNvPfOURGf6G0NilpEAs5vCLAwOUAauO"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1440680115-9164-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+ boundary="UUpTqWxauJ45BtA69Bph33jVaGSM3Wr7l"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1440644459-13595-1-git-send-email-xerofoify@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nicholas Krause <xerofoify@gmail.com>, swise@chelsio.com
+Cc: sean.hefty@intel.com, hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---DvNvPfOURGf6G0NilpEAs5vCLAwOUAauO
+--UUpTqWxauJ45BtA69Bph33jVaGSM3Wr7l
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 08/27/2015 08:55 AM, Haggai Eran wrote:
-> When no matching listening ID is found for a given request, the net_dev=
-
-> that was used to find the request isn't released.
+On 08/26/2015 11:00 PM, Nicholas Krause wrote:
+> This fixes a if statement checking the return value of the function
+> get_lladdr for success in the function pick_local_ip6addrs to instead
+> of directly checking the return value of this call check the opposite
+> as get_lladdr returns zero for success which would incorrectly make
+> this if statement block  not execute with the current if statement
+> check.
 >=20
-> Fixes: 20c36836ecad ("IB/cma: Use found net_dev for passive connections=
-")
-> Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
 
-Applied, thanks!
+Thanks, applied.
 
 > ---
->  drivers/infiniband/core/cma.c | 4 ++++
->  1 file changed, 4 insertions(+)
+>  drivers/infiniband/hw/cxgb4/cm.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >=20
-> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cm=
-a.c
-> index 9b306d7b5c27..b1ab13f3e182 100644
-> --- a/drivers/infiniband/core/cma.c
-> +++ b/drivers/infiniband/core/cma.c
-> @@ -1302,6 +1302,10 @@ static struct rdma_id_private *cma_id_from_event=
-(struct ib_cm_id *cm_id,
->  	bind_list =3D cma_ps_find(rdma_ps_from_service_id(req.service_id),
->  				cma_port_from_service_id(req.service_id));
->  	id_priv =3D cma_find_listener(bind_list, cm_id, ib_event, &req, *net_=
-dev);
-> +	if (IS_ERR(id_priv)) {
-> +		dev_put(*net_dev);
-> +		*net_dev =3D NULL;
-> +	}
+> diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/c=
+xgb4/cm.c
+> index 3ad8dc7..b85b94b 100644
+> --- a/drivers/infiniband/hw/cxgb4/cm.c
+> +++ b/drivers/infiniband/hw/cxgb4/cm.c
+> @@ -2976,7 +2976,7 @@ static int pick_local_ip6addrs(struct c4iw_dev *d=
+ev, struct iw_cm_id *cm_id)
+>  	struct sockaddr_in6 *la6 =3D (struct sockaddr_in6 *)&cm_id->local_add=
+r;
+>  	struct sockaddr_in6 *ra6 =3D (struct sockaddr_in6 *)&cm_id->remote_ad=
+dr;
 > =20
->  	return id_priv;
->  }
+> -	if (get_lladdr(dev->rdev.lldi.ports[0], &addr, IFA_F_TENTATIVE)) {
+> +	if (!get_lladdr(dev->rdev.lldi.ports[0], &addr, IFA_F_TENTATIVE)) {
+>  		memcpy(la6->sin6_addr.s6_addr, &addr, 16);
+>  		memcpy(ra6->sin6_addr.s6_addr, &addr, 16);
+>  		return 0;
 >=20
 
 
 --=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Doug Ledford <dledford@redhat.com>
               GPG KeyID: 0E572FDD
 
 
 
---DvNvPfOURGf6G0NilpEAs5vCLAwOUAauO
+--UUpTqWxauJ45BtA69Bph33jVaGSM3Wr7l
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -70,23 +71,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJV6InIAAoJELgmozMOVy/dEqQQAJVsZbA7Qa/dzlE0TFvydUro
-cmIys2X8HlN29nTHOSNY/MAeVhlBeSZ89O8kKd1WuF7sCch5gL84Y1JF//GA6AKf
-h7HuxS73RNDmHEBGk5MjgZv2qqOcV9Z7o8rzgK6yu0ZGaxCkFP+DwkbL1D7jTU2s
-ws4nQZjrDJJZ3EB/NOIc+Iq7po2ENzthlVPBk88h/SS/yYT0bXig1iXRYpBKH8nJ
-mvgPh4EM+OstAHc78I5gmwtDsfZ5WG+W/iAWM2NsXpP8twm5faKiLx1QVVR2fs/K
-B+Ygu4VSJwsNH4dq7V02P7v1uGSoRjdPC5Gk9GMiMseY/1ek1fNm062gC45/xEsa
-Mi5W8ZCLKck7BIa4jEKd3AJ8ii85ZxcCZPlJAn3itFODD+072G1mq/onC52crYNj
-KeOTkfD/515hMknynAIgLTE4QKfOIxB0nYR8CYIbTAFlio9teyGHA2ebLqOYcHfV
-XbP4KyxiB2ROq3ZxN02jBH6JrOiJ6Hw3Qgbd1Fg4h+MdCpUo54UK4DxKCorblw6b
-zlEuF7F4ZtA1jtHe0UjStodSgAuAU/Cfn+s78m6c6o4y268XJw2OFUgk1Ru/LRax
-A2vkny0glNdn6shzKaq4iv9wbXQvA2c5X+crfYIb4aeXz58zvIF4kAeIB6R0CPkO
-5qsdPIQIqJz1fRKBBwFN
-=ReSH
+iQIcBAEBCAAGBQJV6Iv7AAoJELgmozMOVy/deREP/3j6Dol5qo5ULMoYHYW4zTjH
+Og7uO4yA3VHFb6iU06m89AZGZl4sVgYDY6hWa2K/M74gqj+p4mUIn9RmMPOkfHYJ
+nhtTNfJAJg6Bt5KffS8MlWu8dii5R5zjbE9pMCzEaagMjZWAhlgCnLiIAQEKhPv7
+L8Ku/yeTepAhSWCTHsWDBOd7sk1PhYZGNaFGe1J/KZUj1EpYcSAowfrQBWaXkzPl
+68PpUp04TgjZ6WZGo2jo7PFyH7D3thn4BtqkSo1fL1biPediWLA1z1tYjyJiQbt6
+iJYbWVC12hOoXcmPIyQrBxuJZNGSfnM/FRwDfqRwWiMmi2vcf+6wir0EIoqfg/Wy
+9sY3UyL6RI8WU3l1nVTLTwsHmy61JLM1QlqCud709jdTuGb9dlLMHHcHtLmcHqtU
+Jstt3X9Gz5KctZSAK4DaX4iiuliVGct2s3Kf9By6FG3MlPphFo1m/46t59GIaRPn
+hBqEIAchYVb04fy1cw8Zg1wYgT9siZzAg3255GpIDwHgW9RTpPSSbBy+PDqBRsZw
+iVZngxzVcr7T26PllOycKsMq3b4+jXwqAghV4MkZHnKYFFQ/MmGs4buYMEMuoAPp
+x6BXUyCA3N35MpfynliZzvOCRS7UgwkqCJ2feMfrmoYQMzbiVZ4o2crwu5U97nlp
+lZqHqrIlDsB3f9aJlGel
+=uD+v
 -----END PGP SIGNATURE-----
 
---DvNvPfOURGf6G0NilpEAs5vCLAwOUAauO--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--UUpTqWxauJ45BtA69Bph33jVaGSM3Wr7l--
