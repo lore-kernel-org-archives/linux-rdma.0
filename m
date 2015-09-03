@@ -1,116 +1,85 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1] mlx5: Fix incorrect wc pkey_index assignment for GSI
- messages
-Date: Thu, 3 Sep 2015 15:18:57 -0400
-Message-ID: <55E89D21.8060303@redhat.com>
-References: <1441221784-21734-1-git-send-email-sagig@mellanox.com>
+Subject: Re: [PATCH] IB/hfi1: Add CSRs for CONFIG_SDMA_VERBOSITY
+Date: Thu, 3 Sep 2015 15:29:05 -0400
+Message-ID: <55E89F81.7000904@redhat.com>
+References: <20150902144324.29183.67166.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="vtp5XtUdklrhS5FfLwVE9pwqCaHELOG7o"
+ boundary="Isgnau9hW3ACC1Cx0Ie3nvCILWc7HOlmx"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1441221784-21734-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20150902144324.29183.67166.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---vtp5XtUdklrhS5FfLwVE9pwqCaHELOG7o
-Content-Type: text/plain; charset=windows-1252
+--Isgnau9hW3ACC1Cx0Ie3nvCILWc7HOlmx
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 09/02/2015 03:23 PM, Sagi Grimberg wrote:
-> Since patch series "Demux IB CM requests in the rdma_cm module" the
-> P_Key index is taken from the work completion rather than the message
-> itself.
+On 09/02/2015 10:43 AM, Mike Marciniszyn wrote:
+> From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 >=20
-> The HCA provides us with the message P_Key. In order to provide the
-> P_Key index, we need to look it up. Given that this is relevant only
-> for GSI messages (session establishments) which is less performance cri=
-tical,
-> micro-optimize against the GSI (is_qp1) branch.
+> 3 CSRs needed by the CONFIG_SDMA_VERBOSITY code were removed during
+> the CSR clean up. Adding these CSRs back to resolve 0-day build failure=
+:
+> https://lists.01.org/pipermail/kbuild-all/2015-August/011919.html
 >=20
-> Fixes: 4c21b5bcef73 ("IB/cma: Add net_dev and private data checks to
-> RDMA CM")
-> Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Thanks, applied!
+Thanks, applied.
 
 > ---
-> Changes from v0:
-> - Added Fixes tag
+>  drivers/staging/rdma/hfi1/chip_registers.h |    3 +++
+>  drivers/staging/rdma/hfi1/sdma.c           |    4 ++--
+>  2 files changed, 5 insertions(+), 2 deletions(-)
 >=20
->  drivers/infiniband/hw/mlx5/cq.c      |   10 +++++++++-
->  drivers/infiniband/hw/mlx5/mlx5_ib.h |    5 +++++
->  drivers/infiniband/hw/mlx5/qp.c      |    5 -----
->  3 files changed, 14 insertions(+), 6 deletions(-)
+> diff --git a/drivers/staging/rdma/hfi1/chip_registers.h b/drivers/stagi=
+ng/rdma/hfi1/chip_registers.h
+> index 6521030..bf45de2 100644
+> --- a/drivers/staging/rdma/hfi1/chip_registers.h
+> +++ b/drivers/staging/rdma/hfi1/chip_registers.h
+> @@ -1285,5 +1285,8 @@
+>  #define PCIE_CFG_REG_PL106_GEN3_EQ_PSET_REQ_VEC_SHIFT 8
+>  #define PCIE_CFG_REG_PL106_GEN3_EQ_EVAL2MS_DISABLE_SMASK 0x20ull
+>  #define PCIE_CFG_REG_PL106_GEN3_EQ_PHASE23_EXIT_MODE_SMASK 0x10ull
+> +#define CCE_INT_BLOCKED (CCE + 0x000000110C00)
+> +#define SEND_DMA_IDLE_CNT (TXE + 0x000000200040)
+> +#define SEND_DMA_DESC_FETCHED_CNT (TXE + 0x000000200058)
+> =20
+>  #endif          /* DEF_CHIP_REG */
+> diff --git a/drivers/staging/rdma/hfi1/sdma.c b/drivers/staging/rdma/hf=
+i1/sdma.c
+> index 37bd767..a8c903c 100644
+> --- a/drivers/staging/rdma/hfi1/sdma.c
+> +++ b/drivers/staging/rdma/hfi1/sdma.c
+> @@ -1769,7 +1769,7 @@ void sdma_dumpstate(struct sdma_engine *sde)
+>  	sdma_dumpstate_helper(SD(ENG_ERR_MASK));
+> =20
+>  	for (i =3D 0; i < CCE_NUM_INT_CSRS; ++i) {
+> -		sdma_dumpstate_helper2(CCE_INT_STATUS));
+> +		sdma_dumpstate_helper2(CCE_INT_STATUS);
+>  		sdma_dumpstate_helper2(CCE_INT_MASK);
+>  		sdma_dumpstate_helper2(CCE_INT_BLOCKED);
+>  	}
+> @@ -1777,7 +1777,7 @@ void sdma_dumpstate(struct sdma_engine *sde)
+>  	sdma_dumpstate_helper(SD(TAIL));
+>  	sdma_dumpstate_helper(SD(HEAD));
+>  	sdma_dumpstate_helper(SD(PRIORITY_THLD));
+> -	sdma_dumpstate_helper(SD(IDLE_CNT);
+> +	sdma_dumpstate_helper(SD(IDLE_CNT));
+>  	sdma_dumpstate_helper(SD(RELOAD_CNT));
+>  	sdma_dumpstate_helper(SD(DESC_CNT));
+>  	sdma_dumpstate_helper(SD(DESC_FETCHED_CNT));
 >=20
-> diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/ml=
-x5/cq.c
-> index 640c54e..3dfd287 100644
-> --- a/drivers/infiniband/hw/mlx5/cq.c
-> +++ b/drivers/infiniband/hw/mlx5/cq.c
-> @@ -33,6 +33,7 @@
->  #include <linux/kref.h>
->  #include <rdma/ib_umem.h>
->  #include <rdma/ib_user_verbs.h>
-> +#include <rdma/ib_cache.h>
->  #include "mlx5_ib.h"
->  #include "user.h"
-> =20
-> @@ -227,7 +228,14 @@ static void handle_responder(struct ib_wc *wc, str=
-uct mlx5_cqe64 *cqe,
->  	wc->dlid_path_bits =3D cqe->ml_path;
->  	g =3D (be32_to_cpu(cqe->flags_rqpn) >> 28) & 3;
->  	wc->wc_flags |=3D g ? IB_WC_GRH : 0;
-> -	wc->pkey_index     =3D be32_to_cpu(cqe->imm_inval_pkey) & 0xffff;
-> +	if (unlikely(is_qp1(qp->ibqp.qp_type))) {
-> +		u16 pkey =3D be32_to_cpu(cqe->imm_inval_pkey) & 0xffff;
-> +
-> +		ib_find_cached_pkey(&dev->ib_dev, qp->port, pkey,
-> +				    &wc->pkey_index);
-> +	} else {
-> +		wc->pkey_index =3D 0;
-> +	}
->  }
-> =20
->  static void dump_cqe(struct mlx5_ib_dev *dev, struct mlx5_err_cqe *cqe=
-)
-> diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/=
-hw/mlx5/mlx5_ib.h
-> index fc987fe..a4ef6a7 100644
-> --- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-> +++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-> @@ -656,6 +656,11 @@ static inline u8 convert_access(int acc)
->  	       MLX5_PERM_LOCAL_READ;
->  }
-> =20
-> +static inline int is_qp1(enum ib_qp_type qp_type)
-> +{
-> +	return qp_type =3D=3D IB_QPT_GSI;
-> +}
-> +
->  #define MLX5_MAX_UMR_SHIFT 16
->  #define MLX5_MAX_UMR_PAGES (1 << MLX5_MAX_UMR_SHIFT)
-> =20
-> diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/ml=
-x5/qp.c
-> index 9380d2d..8c51ea3 100644
-> --- a/drivers/infiniband/hw/mlx5/qp.c
-> +++ b/drivers/infiniband/hw/mlx5/qp.c
-> @@ -76,11 +76,6 @@ static int is_qp0(enum ib_qp_type qp_type)
->  	return qp_type =3D=3D IB_QPT_SMI;
->  }
-> =20
-> -static int is_qp1(enum ib_qp_type qp_type)
-> -{
-> -	return qp_type =3D=3D IB_QPT_GSI;
-> -}
-> -
->  static int is_sqp(enum ib_qp_type qp_type)
->  {
->  	return is_qp0(qp_type) || is_qp1(qp_type);
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >=20
 
 
@@ -120,7 +89,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---vtp5XtUdklrhS5FfLwVE9pwqCaHELOG7o
+--Isgnau9hW3ACC1Cx0Ie3nvCILWc7HOlmx
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -129,22 +98,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJV6J0hAAoJELgmozMOVy/dSGIP/jRJyXuD90GkzGPCsHsKzQwW
-8opuAAj4IkopnG79+nxgyh+SgPVOe6w03UyFXAEUZKg2GvVq/McK4o3U8slv3o4T
-SL59VxYOC7pSY3xSx38voTNgQncoeaR1Z1clkOl4UPf64bKaPiDKFCic9SCK4jcM
-nQUJ5BUpi08AqpKwa0lnLNZYFZnDNYcpz4GHJ/OC5B47cRS0eQG6iT2S7WsonIWG
-p5X7/ut5jXGc1WVE9WbM2Y4DPTkl9aVeinOO0FWgR1rzS+6GHAtl282NUpZrmGkJ
-pSjnYTnMipoeMdwZe9woswnXdcMz+HjWwZXa62CkeBu11Emf0hLP5d/byhNRRnHn
-1tXNWeT9wk7YHTAnUL0QYexla/YvO94yNvhdSJJ7uempboPkUHUks6PFcJ/ULsOS
-qI70Okb7MuNNVyzRkQz4/C/D0qY3+0l562ffTLhDxAYa+9bBuJ/BKjX6ejpO0xya
-Qlst6Phpej/ThlTEjBpFlps/U6kclDoWx2J8jG6mpwB0IHWAtUp77hNKgFNFnm4b
-YxjGpRYbtbE3PLncTe3b59MxgjzW1S7M5q/yeWm9WIQ3HEDkidRF7d5GfLbuO7uP
-QhbF9ZP4XJJJejgQuI0JeObWFTz087lgk6z58gWwMOeLhNXdWtQ43xp8pBiH9IAt
-TJEwY+0/7fsc/vkW/eMB
-=OJW4
+iQIcBAEBCAAGBQJV6J+BAAoJELgmozMOVy/d7RMQAMRUXIoc5/ur3Q2XknmDPpFh
+BaWbfdTMNafKa57D1/GymoGOp3ZbH6JCnCEd1bg0ciDxUIJ6AaVn2PaF78q0HUrV
+iPjYtxxzT7+p1p2AINPYp+5C999L/R2wlf8SoNd2mN3+ymLT/i6OmT1YWgA44ad+
+BKEyS7Z9ha3HKwpKilzmSz9JEzeBl9RJBEbPy2Tj8r3eEuuajxQdYdmx0kLKs9Uq
+245bmyKGp50P2T1puo5Q7IZ22Xbv3exyIs6HKSekA4N21YR52wHirkewccQSeZZX
+iJyPN05Oqf7vIlV7/pi/+Iubxytf/9fbeEhnWG4oHunF4k7KqspSTGaADtsOVTyU
++t7NT2RTHhufYDUQNA9XOuwcKxHuTxFW+kH9JeRTqkjLV3tHJ9DxnXz4+TeYMAU4
+G2T67eMKcxgFXNAJMHM68Xccx4DCPXvUVxJBYWtELNtugjsKXS3TGYddcbLo4T3D
+S1mcozGpey0e7EaGAG7DtBPUMt7ZnLgwXiTeEizCBkCJUmxmxGNWoyu/9dsSxLNf
+Zj1CkPDx2fOk1b0fcdAYk8UxqzTWfpBBzWEIOYP9XSJHVsn9N24RbiBqsTlUFxGH
+dYZILL+owfqUGey8/isaFfkdXIk3YLJ81O2NWN+Zzqo4Bu9++zo9kF7kVzLYgqC7
+F6UugAMSIvVVZ7F39Ke1
+=yc8B
 -----END PGP SIGNATURE-----
 
---vtp5XtUdklrhS5FfLwVE9pwqCaHELOG7o--
+--Isgnau9hW3ACC1Cx0Ie3nvCILWc7HOlmx--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
