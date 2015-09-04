@@ -1,64 +1,120 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v1 0/3] libibverbs: On-demand paging support
-Date: Fri, 4 Sep 2015 14:42:44 -0600
-Message-ID: <20150904204244.GA20758@obsidianresearch.com>
-References: <1441292199-8371-1-git-send-email-haggaie@mellanox.com>
- <55E9FDA9.3090709@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH libibverbs] Fix create/destroy flow API
+Date: Fri,  4 Sep 2015 17:17:38 -0400
+Message-ID: <9665e46a71940f2721b30fdb4aaa0853161babc9.1441401379.git.dledford@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <55E9FDA9.3090709-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Sep 04, 2015 at 04:23:05PM -0400, Doug Ledford wrote:
-> On 09/03/2015 10:56 AM, Haggai Eran wrote:
-> > This series adds userspace support for on-demand paging. The first patch adds
-> > support for the new extended query device verb. Patch 2 adds the capability and
-> > interface bits related to on-demand paging, and patch 3 adds example code to
-> > the rc_pingpong program to use on-demand paging.
-> 
-> I've reviewed this series and I'm OK with it.  However, it's currently
-> blocked.  We need to fix the API mess that was created when the
-> create/destroy flow verbs were added.  I've gone back through the code,
-> and I'm pretty sure I know what Jason's objection to the create/destroy
-> flow implementation was.  In particular, we weren't supposed to have this:
-> 
->  struct verbs_context {
->         /*  "grows up" - new fields go here */
-> +       int (*drv_ibv_destroy_flow) (struct ibv_flow *flow);
-> +       int (*lib_ibv_destroy_flow) (struct ibv_flow *flow);
-> +       struct ibv_flow * (*drv_ibv_create_flow) (struct ibv_qp *qp,
-> +                                                 struct ibv_flow_attr
-> +                                                 *flow_attr);
-> +       struct ibv_flow * (*lib_ibv_create_flow) (struct ibv_qp *qp,
-> +                                                 struct ibv_flow_attr
-> +                                                 *flow_attr);
-> 
-> There was only supposed to be ibv_create_flow and ibv_destroy_flow, not
-> this silly separate drv/lib versions that just amount to wasted space
-> and confusion.
-> 
-> Our choices are: 1) Leave this in place but don't do any more extensions
-> this way, knowing full well that this is wrong but preserving ABI or
+When adding this API, there had been consensus that having separate
+lib_* and drv_* function pointers in the extended context struct
+was not needed and should not be done.  However, that snuck in anyway.
+This backs that out and takes us back to a single pointer for each
+function, but does so in a way as to preserve both back and forward
+compatibility.
 
-We should drop the code so people don't copy it.
+Fixes: 389de6a6ef4e (Add receive flow steering support)
+Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ include/infiniband/verbs.h | 25 +++++++++++--------------
+ src/device.c               | 22 +++++++++++++---------
+ 2 files changed, 24 insertions(+), 23 deletions(-)
+---
 
-Replace the one that isn't used with a 'void * __compat_foo_Bar' and
-if necessary have the common setup in ibverbs copy a non-null
-__compat_ into lib_.
+This change will preserve binary ABI but will (intentionally) break
+source API.  Mellanox should release an updated libmlx4 once the
+libibverbs release with this patch in it goes live.
 
-This will compile-break drivers using the wrong scheme, the driver
-should be changed.
+diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
+index 28e1586b0c96..6100f5200b7a 100644
+--- a/include/infiniband/verbs.h
++++ b/include/infiniband/verbs.h
+@@ -977,14 +977,11 @@ enum verbs_context_mask {
+ 
+ struct verbs_context {
+ 	/*  "grows up" - new fields go here */
+-	int (*drv_ibv_destroy_flow) (struct ibv_flow *flow);
+-	int (*lib_ibv_destroy_flow) (struct ibv_flow *flow);
+-	struct ibv_flow * (*drv_ibv_create_flow) (struct ibv_qp *qp,
+-						  struct ibv_flow_attr
+-						  *flow_attr);
+-	struct ibv_flow * (*lib_ibv_create_flow) (struct ibv_qp *qp,
+-						  struct ibv_flow_attr
+-						  *flow_attr);
++	int (*ibv_destroy_flow) (struct ibv_flow *flow);
++	void (*ABI_placeholder2) (void); /* DO NOT COPY THIS GARBAGE */
++	struct ibv_flow * (*ibv_create_flow) (struct ibv_qp *qp,
++					      struct ibv_flow_attr *flow_attr);
++	void (*ABI_placeholder1) (void); /* DO NOT COPY THIS GARBAGE */
+ 	struct ibv_qp *(*open_qp)(struct ibv_context *context,
+ 			struct ibv_qp_open_attr *attr);
+ 	struct ibv_qp *(*create_qp_ex)(struct ibv_context *context,
+@@ -1137,20 +1134,20 @@ static inline struct ibv_flow *ibv_create_flow(struct ibv_qp *qp,
+ 					       struct ibv_flow_attr *flow)
+ {
+ 	struct verbs_context *vctx = verbs_get_ctx_op(qp->context,
+-						      lib_ibv_create_flow);
+-	if (!vctx || !vctx->lib_ibv_create_flow)
++						      ibv_create_flow);
++	if (!vctx || !vctx->ibv_create_flow)
+ 		return NULL;
+ 
+-	return vctx->lib_ibv_create_flow(qp, flow);
++	return vctx->ibv_create_flow(qp, flow);
+ }
+ 
+ static inline int ibv_destroy_flow(struct ibv_flow *flow_id)
+ {
+ 	struct verbs_context *vctx = verbs_get_ctx_op(flow_id->context,
+-						      lib_ibv_destroy_flow);
+-	if (!vctx || !vctx->lib_ibv_destroy_flow)
++						      ibv_destroy_flow);
++	if (!vctx || !vctx->ibv_destroy_flow)
+ 		return -ENOSYS;
+-	return vctx->lib_ibv_destroy_flow(flow_id);
++	return vctx->ibv_destroy_flow(flow_id);
+ }
+ 
+ /**
+diff --git a/src/device.c b/src/device.c
+index 9642eadba8d0..c6cfa950ca9a 100644
+--- a/src/device.c
++++ b/src/device.c
+@@ -163,16 +163,20 @@ struct ibv_context *__ibv_open_device(struct ibv_device *device)
+ 		ret = verbs_device->init_context(verbs_device, context, cmd_fd);
+ 		if (ret)
+ 			goto verbs_err;
+-
+-		/* initialize *all* library ops to either lib calls or
+-		 * directly to provider calls.
+-		 * context_ex->lib_new_func1 = __verbs_new_func1;
+-		 * context_ex->lib_new_func2 = __verbs_new_func2;
++		/*
++		 * In order to maintain backward/forward binary compatibility
++		 * with libmlx4-1.0.6, which has the original version of the
++		 * flow steering patches, we need to set the two
++		 * ABI_compat_placeholder entries to match the driver
++		 * set flow entries.  This is because, in the specific instance
++		 * of using libmlx4-1.0.6 with the fixed version of
++		 * libibvberbs, the ibv_create_flow inline function already
++		 * compiled into libmlx4-1.0.6 will be loooking in the
++		 * ABI_placeholder spots for the function pointer to the
++		 * create and destroy flow verbs.
+ 		 */
+-		 context_ex->lib_ibv_create_flow =
+-			 context_ex->drv_ibv_create_flow;
+-		 context_ex->lib_ibv_destroy_flow =
+-			 context_ex->drv_ibv_destroy_flow;
++		context_ex->ABI_placeholder1 = (void (*)(void)) context_ex->ibv_create_flow;
++		context_ex->ABI_placeholder2 = (void (*)(void)) context_ex->ibv_destroy_flow;
+ 	}
+ 
+ 	context->device = device;
+-- 
+2.4.3
 
-Using a new driver with a old verbs means only the flow API doesn't
-work, old driver with new verbs is stil OK. Drop a dependency in the
-mlx4 package. Safe breakage in an obscure scenario..
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
