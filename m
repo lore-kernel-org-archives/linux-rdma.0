@@ -1,44 +1,41 @@
-From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH for-next 5/5] iw_cxgb4: set the default MPA version to 2
-Date: Tue,  8 Sep 2015 09:57:01 +0530
-Message-ID: <1441686421-5899-6-git-send-email-hariprasad@chelsio.com>
-References: <1441686421-5899-1-git-send-email-hariprasad@chelsio.com>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 3/7] devcg: Added infrastructure for rdma device cgroup.
+Date: Tue, 8 Sep 2015 08:31:35 +0300
+Message-ID: <55EE72B7.1060304@mellanox.com>
+References: <1441658303-18081-1-git-send-email-pandit.parav@gmail.com>
+ <1441658303-18081-4-git-send-email-pandit.parav@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1441686421-5899-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1441658303-18081-4-git-send-email-pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: corbet-T1hC0tSOHrs@public.gmane.org, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This enables ORD/IRD negotiation and its about time to enable it by
-default
+On 07/09/2015 23:38, Parav Pandit wrote:
+> diff --git a/include/linux/device_cgroup.h b/include/linux/device_cgroup.h
+> index 8b64221..cdbdd60 100644
+> --- a/include/linux/device_cgroup.h
+> +++ b/include/linux/device_cgroup.h
+> @@ -1,6 +1,57 @@
+> +#ifndef _DEVICE_CGROUP
+> +#define _DEVICE_CGROUP
+> +
+>  #include <linux/fs.h>
+> +#include <linux/cgroup.h>
+> +#include <linux/device_rdma_cgroup.h>
 
-Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
----
- drivers/infiniband/hw/cxgb4/cm.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+You cannot add this include line before adding the device_rdma_cgroup.h
+(added in patch 5). You should reorder the patches so that after each
+patch the kernel builds correctly.
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 0e2741b..79d6855 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -115,11 +115,11 @@ module_param(ep_timeout_secs, int, 0644);
- MODULE_PARM_DESC(ep_timeout_secs, "CM Endpoint operation timeout "
- 				   "in seconds (default=60)");
- 
--static int mpa_rev = 1;
-+static int mpa_rev = 2;
- module_param(mpa_rev, int, 0644);
- MODULE_PARM_DESC(mpa_rev, "MPA Revision, 0 supports amso1100, "
- 		"1 is RFC0544 spec compliant, 2 is IETF MPA Peer Connect Draft"
--		" compliant (default=1)");
-+		" compliant (default=2)");
- 
- static int markers_enabled;
- module_param(markers_enabled, int, 0644);
--- 
-2.3.4
+I also noticed in patch 2 you add device_rdma_cgroup.o to the Makefile
+before it was added to the kernel.
 
+Regards,
+Haggai
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
