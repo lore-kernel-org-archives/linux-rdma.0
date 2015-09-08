@@ -1,38 +1,42 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: RDMA/CM and multiple QPs
-Date: Tue, 8 Sep 2015 06:14:07 -0700
-Message-ID: <20150908131407.GB5316@infradead.org>
-References: <20150906064550.GA30683@infradead.org>
- <55EED54B.7090608@dev.mellanox.co.il>
+From: Haggai Eran <haggaie@mellanox.com>
+Subject: Re: [PATCH 6/7] devcg: Added support to use RDMA device cgroup.
+Date: Tue, 8 Sep 2015 16:40:40 +0300
+Message-ID: <55EEE558.4060300@mellanox.com>
+References: <1441658303-18081-1-git-send-email-pandit.parav@gmail.com>
+ <1441658303-18081-7-git-send-email-pandit.parav@gmail.com>
+ <55EE9EE2.3060804@mellanox.com>
+ <CAG53R5UC-xPn85ogcjS0WdNiyHxTJ_sJb-xFV9nc2ma_-wjtcg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <55EED54B.7090608-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <CAG53R5UC-xPn85ogcjS0WdNiyHxTJ_sJb-xFV9nc2ma_-wjtcg@mail.gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Parav Pandit <pandit.parav@gmail.com>
+Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, tj@kernel.org, lizefan@huawei.com, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, raindel@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Sep 08, 2015 at 03:32:11PM +0300, Sagi Grimberg wrote:
-> The CM is responsible of establishing an RDMA channel. What you are
-> referring to is a concept of a session. I'm not entirely sure how we can
-> fit a model where the CM establishes a multi-channel session as the
-> CM request contains a (single) source QPN. So there is a 1-1
-> relationship between a cm_id and a queue-pair. The device handle depends
-> on the address resolution to the end-node.
+On 08/09/2015 13:22, Parav Pandit wrote:
+> On Tue, Sep 8, 2015 at 2:10 PM, Haggai Eran <haggaie@mellanox.com> wrote:
+>> On 07/09/2015 23:38, Parav Pandit wrote:
+>>> +static void init_ucontext_lists(struct ib_ucontext *ucontext)
+>>> +{
+>>> +     INIT_LIST_HEAD(&ucontext->pd_list);
+>>> +     INIT_LIST_HEAD(&ucontext->mr_list);
+>>> +     INIT_LIST_HEAD(&ucontext->mw_list);
+>>> +     INIT_LIST_HEAD(&ucontext->cq_list);
+>>> +     INIT_LIST_HEAD(&ucontext->qp_list);
+>>> +     INIT_LIST_HEAD(&ucontext->srq_list);
+>>> +     INIT_LIST_HEAD(&ucontext->ah_list);
+>>> +     INIT_LIST_HEAD(&ucontext->xrcd_list);
+>>> +     INIT_LIST_HEAD(&ucontext->rule_list);
+>>> +}
+>>
+>> I don't see how this change is related to the patch.
 > 
-> I assume we can think of some form of an rdma_session which will manage
-> multiple cm_id's (that belongs to a single address resolution), call
-> the ULP to allocate their corresponding queue-pairs and send a connect
-> request for each one. Such an rdma_session can verify the same ib_device
-> handle on all the cm_id's. But I'm not sure how such a concept would
-> impact on aspects such as event handling etc...
+> Its not but code which I added makes this function to grow longer, so
+> to keep it to same readability level, I did the cleanup.
+> May be I can send separate patch for cleanup?
 
-What I'm more interested in is a way to tell the CM that I only
-want routes that are using this ib_device that I got from the first
-lookup as all others are useless for me.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sounds good to me.
+
