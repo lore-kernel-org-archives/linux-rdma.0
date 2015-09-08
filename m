@@ -1,112 +1,54 @@
-From: Parav Pandit <pandit.parav@gmail.com>
-Subject: Re: [PATCH 5/7] devcg: device cgroup's extension for RDMA resource.
-Date: Tue, 8 Sep 2015 19:43:04 +0530
-Message-ID: <CAG53R5WXcy3-eCeki-ywhLg3thfqdQ_+dpgp+0K14u0bXwEk5A@mail.gmail.com>
-References: <1441658303-18081-1-git-send-email-pandit.parav@gmail.com>
-	<1441658303-18081-6-git-send-email-pandit.parav@gmail.com>
-	<55EE9AE0.5030508@mellanox.com>
-	<CAG53R5V9ydty2--amXFFDiDd01gGYE0Oh5jV0OhysQmfhWHDPQ@mail.gmail.com>
-	<55EEE793.9020105@mellanox.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: RDMA/CM and multiple QPs
+Date: Tue, 8 Sep 2015 08:07:42 -0700
+Message-ID: <55EEF9BE.2010002@sandisk.com>
+References: <20150906064550.GA30683@infradead.org>
+ <CAG53R5VZDZKiuR-jLybS1PhrT9K4GG6xTr8bOG-L0VaQgqEXSA@mail.gmail.com>
+ <20150906075024.GA7845@infradead.org> <55EC5879.202@sandisk.com>
+ <55EEE936.3060702@talpey.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <55EEE793.9020105@mellanox.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Haggai Eran <haggaie@mellanox.com>
-Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, tj@kernel.org, lizefan@huawei.com, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, raindel@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <55EEE936.3060702-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Sep 8, 2015 at 7:20 PM, Haggai Eran <haggaie@mellanox.com> wrote:
-> On 08/09/2015 13:18, Parav Pandit wrote:
->>> >
->>>> >> + * RDMA resource limits are hierarchical, so the highest configured limit of
->>>> >> + * the hierarchy is enforced. Allowing resource limit configuration to default
->>>> >> + * cgroup allows fair share to kernel space ULPs as well.
->>> > In what way is the highest configured limit of the hierarchy enforced? I
->>> > would expect all the limits along the hierarchy to be enforced.
->>> >
->> In  hierarchy, of say 3 cgroups, the smallest limit of the cgroup is applied.
+On 09/08/2015 06:57 AM, Tom Talpey wrote:
+> On 9/6/2015 11:15 AM, Bart Van Assche wrote:
+>> On 09/06/15 00:50, Christoph Hellwig wrote:
+>>> Note that the SRP driver already in tree is a good example for this,
+>>> although it doesn't use RDMA/CM and thus already operates on a
+>>> per-ib_device level.
 >>
->> Lets take example to clarify.
->> Say cg_A, cg_B, cg_C
->> Role              name                           limit
->> Parent           cg_A                           100
->> Child_level1  cg_B (child of cg_A)    20
->> Child_level2: cg_C (child of cg_B)    50
+>> The challenges with regard to adding RDMA/CM support to the SRP
+>> initiator and target drivers are:
+>> - IANA has not yet assigned a port number to the SRP protocol (see e.g.
 >>
->> If the process allocating rdma resource belongs to cg_C, limit lowest
->> limit in the hierarchy is applied during charge() stage.
->> If cg_A limit happens to be 10, since 10 is lowest, its limit would be
->> applicable as you expected.
+>> http://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml).
 >
-> Looking at the code, the usage in every level is charged. This is what I
-> would expect. I just think the comment is a bit misleading.
+> IANA doesn't do this automatically. Has anyone made the request?
 >
->>>> +int devcgroup_rdma_get_max_resource(struct seq_file *sf, void *v)
->>>> +{
->>>> +     struct dev_cgroup *dev_cg = css_to_devcgroup(seq_css(sf));
->>>> +     int type = seq_cft(sf)->private;
->>>> +     u32 usage;
->>>> +
->>>> +     if (dev_cg->rdma.tracker[type].limit == DEVCG_RDMA_MAX_RESOURCES) {
->>>> +             seq_printf(sf, "%s\n", DEVCG_RDMA_MAX_RESOURCE_STR);
->>> I'm not sure hiding the actual number is good, especially in the
->>> show_usage case.
->>
->> This is similar to following other controller same as newly added PID
->> subsystem in showing max limit.
->
-> Okay.
->
->>>> +void devcgroup_rdma_uncharge_resource(struct ib_ucontext *ucontext,
->>>> +                                   enum devcgroup_rdma_rt type, int num)
->>>> +{
->>>> +     struct dev_cgroup *dev_cg, *p;
->>>> +     struct task_struct *ctx_task;
->>>> +
->>>> +     if (!num)
->>>> +             return;
->>>> +
->>>> +     /* get cgroup of ib_ucontext it belong to, to uncharge
->>>> +      * so that when its called from any worker tasks or any
->>>> +      * other tasks to which this resource doesn't belong to,
->>>> +      * it can be uncharged correctly.
->>>> +      */
->>>> +     if (ucontext)
->>>> +             ctx_task = get_pid_task(ucontext->tgid, PIDTYPE_PID);
->>>> +     else
->>>> +             ctx_task = current;
->>>> +     dev_cg = task_devcgroup(ctx_task);
->>>> +
->>>> +     spin_lock(&ctx_task->rdma_res_counter->lock);
->>> Don't you need an rcu read lock and rcu_dereference to access
->>> rdma_res_counter?
->>
->> I believe, its not required because when uncharge() is happening, it
->> can happen only from 3 contexts.
->> (a) from the caller task context, who has made allocation call, so no
->> synchronizing needed.
->> (b) from the dealloc resource context, again this is from the same
->> task context which allocated, it so this is single threaded, no need
->> to syncronize.
-> I don't think it is true. You can access uverbs from multiple threads.
-Yes, thats right. Though I design counter structure allocation on per
-task basis for individual thread access, I totally missed out ucontext
-sharing among threads. I replied in other thread to make counters
-during charge, uncharge to atomic to cover that case.
-Therefore I need rcu lock and deference as well.
+> You might want to think through why it needs a dedicated port number
+> though. iSER reuses the iSCSI port, by negotiating RDMA during login.
 
-> What may help your case here I think is the fact that only when the last
-> ucontext is released you can change the rdma_res_counter field, and
-> ucontext release takes the ib_uverbs_file->mutex.
->
-> Still, I think it would be best to use rcu_dereference(), if only for
-> documentation and sparse.
+iSER is an iSCSI transport and that is why iSER reuses the iSCSI port 
+number. SRP is a SCSI transport protocol by itself and that is why a new 
+port number is needed for the SRP protocol.
 
-yes.
+>> - The login request (struct srp_login_req) is too large for the RDMA/CM.
+>>     A format for the login parameters for the RDMA/CM has not yet been
+>>     standardized.
+>
+> Are you suggesting that RDMA/CM perform the login? That seems
+> like a layering issue.
 
->
->> (c) from the fput() context when process is terminated abruptly or as
->> part of differed cleanup, when this is happening there cannot be
->> allocator task anyway.
->
+Sorry but I don't see why this would be a layering issue.
+
+Bart.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
