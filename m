@@ -1,40 +1,45 @@
 From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH for-next 0/5] set MPA revision to 2 and misc. fixes for iw_cxgb4
-Date: Tue,  8 Sep 2015 09:56:56 +0530
-Message-ID: <1441686421-5899-1-git-send-email-hariprasad@chelsio.com>
+Subject: [PATCH for-next 2/5] iw_cxgb4: pass the ord/ird in connect reply events
+Date: Tue,  8 Sep 2015 09:56:58 +0530
+Message-ID: <1441686421-5899-3-git-send-email-hariprasad@chelsio.com>
+References: <1441686421-5899-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1441686421-5899-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+This allows client ULPs to get the negotiated ord/ird which is useful
+to avoid stalling the SQ due to exceeding the ORD.
 
-This patch series adds the following.
-Detect errors while creating listening servers, pass ird/ord info in
-connect reply events, fix misuse of ord for ird calculation and for the
-ESTABLISHED event we should have the peer's ord/ird so swap the values in
-the event before the upcall. Set default MPA version to 2.
+Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/infiniband/hw/cxgb4/cm.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-This patch series has been created against Doug's linux tree and includes
-patches on iw_cxgb4 driver.
-
-We have included all the maintainers of respective drivers. Kindly review
-the change and let us know in case of any review comments.
-
-Thanks
-
-
-Hariprasad Shenai (5):
-  iw_cxgb4: detect fatal errors while creating listening filters
-  iw_cxgb4: pass the ord/ird in connect reply events
-  iw_cxgb4: fix misuse of ep->ord for minimum ird calculation
-  iw_cxgb4: reverse the ord/ird in the ESTABLISHED upcall
-  iw_cxgb4: set the default MPA version to 2
-
- drivers/infiniband/hw/cxgb4/cm.c | 18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
-
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index 42087c9..a26d293 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -1169,6 +1169,8 @@ static void connect_reply_upcall(struct c4iw_ep *ep, int status)
+ 	if ((status == 0) || (status == -ECONNREFUSED)) {
+ 		if (!ep->tried_with_mpa_v1) {
+ 			/* this means MPA_v2 is used */
++			event.ord = ep->ird;
++			event.ird = ep->ord;
+ 			event.private_data_len = ep->plen -
+ 				sizeof(struct mpa_v2_conn_params);
+ 			event.private_data = ep->mpa_pkt +
+@@ -1176,6 +1178,8 @@ static void connect_reply_upcall(struct c4iw_ep *ep, int status)
+ 				sizeof(struct mpa_v2_conn_params);
+ 		} else {
+ 			/* this means MPA_v1 is used */
++			event.ord = cur_max_read_depth(ep->com.dev);
++			event.ird = cur_max_read_depth(ep->com.dev);
+ 			event.private_data_len = ep->plen;
+ 			event.private_data = ep->mpa_pkt +
+ 				sizeof(struct mpa_message);
 -- 
 2.3.4
 
