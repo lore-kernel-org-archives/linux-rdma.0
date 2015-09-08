@@ -1,102 +1,60 @@
-From: Haggai Eran <haggaie@mellanox.com>
-Subject: Re: [PATCH 5/7] devcg: device cgroup's extension for RDMA resource.
-Date: Tue, 8 Sep 2015 16:50:11 +0300
-Message-ID: <55EEE793.9020105@mellanox.com>
-References: <1441658303-18081-1-git-send-email-pandit.parav@gmail.com>
- <1441658303-18081-6-git-send-email-pandit.parav@gmail.com>
- <55EE9AE0.5030508@mellanox.com>
- <CAG53R5V9ydty2--amXFFDiDd01gGYE0Oh5jV0OhysQmfhWHDPQ@mail.gmail.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH for-next 0/5] set MPA revision to 2 and misc. fixes for iw_cxgb4
+Date: Tue, 8 Sep 2015 08:51:35 -0500
+Message-ID: <000f01d0ea3d$7a9d53e0$6fd7fba0$@opengridcomputing.com>
+References: <1441686421-5899-1-git-send-email-hariprasad@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <CAG53R5V9ydty2--amXFFDiDd01gGYE0Oh5jV0OhysQmfhWHDPQ@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Parav Pandit <pandit.parav@gmail.com>
-Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, tj@kernel.org, lizefan@huawei.com, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, raindel@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1441686421-5899-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Hariprasad Shenai' <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 08/09/2015 13:18, Parav Pandit wrote:
->> >
->>> >> + * RDMA resource limits are hierarchical, so the highest configured limit of
->>> >> + * the hierarchy is enforced. Allowing resource limit configuration to default
->>> >> + * cgroup allows fair share to kernel space ULPs as well.
->> > In what way is the highest configured limit of the hierarchy enforced? I
->> > would expect all the limits along the hierarchy to be enforced.
->> >
-> In  hierarchy, of say 3 cgroups, the smallest limit of the cgroup is applied.
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+
+> -----Original Message-----
+> From: Hariprasad Shenai [mailto:hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org]
+> Sent: Monday, September 07, 2015 11:27 PM
+> To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org; Hariprasad Shenai
+> Subject: [PATCH for-next 0/5] set MPA revision to 2 and misc. fixes for iw_cxgb4
 > 
-> Lets take example to clarify.
-> Say cg_A, cg_B, cg_C
-> Role              name                           limit
-> Parent           cg_A                           100
-> Child_level1  cg_B (child of cg_A)    20
-> Child_level2: cg_C (child of cg_B)    50
+> Hi,
 > 
-> If the process allocating rdma resource belongs to cg_C, limit lowest
-> limit in the hierarchy is applied during charge() stage.
-> If cg_A limit happens to be 10, since 10 is lowest, its limit would be
-> applicable as you expected.
-
-Looking at the code, the usage in every level is charged. This is what I
-would expect. I just think the comment is a bit misleading.
-
->>> +int devcgroup_rdma_get_max_resource(struct seq_file *sf, void *v)
->>> +{
->>> +     struct dev_cgroup *dev_cg = css_to_devcgroup(seq_css(sf));
->>> +     int type = seq_cft(sf)->private;
->>> +     u32 usage;
->>> +
->>> +     if (dev_cg->rdma.tracker[type].limit == DEVCG_RDMA_MAX_RESOURCES) {
->>> +             seq_printf(sf, "%s\n", DEVCG_RDMA_MAX_RESOURCE_STR);
->> I'm not sure hiding the actual number is good, especially in the
->> show_usage case.
+> This patch series adds the following.
+> Detect errors while creating listening servers, pass ird/ord info in
+> connect reply events, fix misuse of ord for ird calculation and for the
+> ESTABLISHED event we should have the peer's ord/ird so swap the values in
+> the event before the upcall. Set default MPA version to 2.
 > 
-> This is similar to following other controller same as newly added PID
-> subsystem in showing max limit.
-
-Okay.
-
->>> +void devcgroup_rdma_uncharge_resource(struct ib_ucontext *ucontext,
->>> +                                   enum devcgroup_rdma_rt type, int num)
->>> +{
->>> +     struct dev_cgroup *dev_cg, *p;
->>> +     struct task_struct *ctx_task;
->>> +
->>> +     if (!num)
->>> +             return;
->>> +
->>> +     /* get cgroup of ib_ucontext it belong to, to uncharge
->>> +      * so that when its called from any worker tasks or any
->>> +      * other tasks to which this resource doesn't belong to,
->>> +      * it can be uncharged correctly.
->>> +      */
->>> +     if (ucontext)
->>> +             ctx_task = get_pid_task(ucontext->tgid, PIDTYPE_PID);
->>> +     else
->>> +             ctx_task = current;
->>> +     dev_cg = task_devcgroup(ctx_task);
->>> +
->>> +     spin_lock(&ctx_task->rdma_res_counter->lock);
->> Don't you need an rcu read lock and rcu_dereference to access
->> rdma_res_counter?
+> This patch series has been created against Doug's linux tree and includes
+> patches on iw_cxgb4 driver.
 > 
-> I believe, its not required because when uncharge() is happening, it
-> can happen only from 3 contexts.
-> (a) from the caller task context, who has made allocation call, so no
-> synchronizing needed.
-> (b) from the dealloc resource context, again this is from the same
-> task context which allocated, it so this is single threaded, no need
-> to syncronize.
-I don't think it is true. You can access uverbs from multiple threads.
-What may help your case here I think is the fact that only when the last
-ucontext is released you can change the rdma_res_counter field, and
-ucontext release takes the ib_uverbs_file->mutex.
+> We have included all the maintainers of respective drivers. Kindly review
+> the change and let us know in case of any review comments.
+> 
+> Thanks
+> 
+> 
+> Hariprasad Shenai (5):
+>   iw_cxgb4: detect fatal errors while creating listening filters
+>   iw_cxgb4: pass the ord/ird in connect reply events
+>   iw_cxgb4: fix misuse of ep->ord for minimum ird calculation
+>   iw_cxgb4: reverse the ord/ird in the ESTABLISHED upcall
+>   iw_cxgb4: set the default MPA version to 2
+> 
+>  drivers/infiniband/hw/cxgb4/cm.c | 18 +++++++++++++-----
+>  1 file changed, 13 insertions(+), 5 deletions(-)
+> 
+> --
+> 2.3.4
 
-Still, I think it would be best to use rcu_dereference(), if only for
-documentation and sparse.
-
-> (c) from the fput() context when process is terminated abruptly or as
-> part of differed cleanup, when this is happening there cannot be
-> allocator task anyway.
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
