@@ -1,58 +1,55 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH for-next 0/5] set MPA revision to 2 and misc. fixes for iw_cxgb4
-Date: Tue, 8 Sep 2015 08:51:35 -0500
-Message-ID: <000f01d0ea3d$7a9d53e0$6fd7fba0$@opengridcomputing.com>
-References: <1441686421-5899-1-git-send-email-hariprasad@chelsio.com>
+From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Subject: Re: RDMA/CM and multiple QPs
+Date: Tue, 8 Sep 2015 09:57:10 -0400
+Message-ID: <55EEE936.3060702@talpey.com>
+References: <20150906064550.GA30683@infradead.org>
+ <CAG53R5VZDZKiuR-jLybS1PhrT9K4GG6xTr8bOG-L0VaQgqEXSA@mail.gmail.com>
+ <20150906075024.GA7845@infradead.org> <55EC5879.202@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1441686421-5899-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <55EC5879.202-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Hariprasad Shenai' <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+On 9/6/2015 11:15 AM, Bart Van Assche wrote:
+> On 09/06/15 00:50, Christoph Hellwig wrote:
+>> Note that the SRP driver already in tree is a good example for this,
+>> although it doesn't use RDMA/CM and thus already operates on a
+>> per-ib_device level.
+>
+> The challenges with regard to adding RDMA/CM support to the SRP
+> initiator and target drivers are:
+> - IANA has not yet assigned a port number to the SRP protocol (see e.g.
+>
+> http://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml).
+>
 
-> -----Original Message-----
-> From: Hariprasad Shenai [mailto:hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org]
-> Sent: Monday, September 07, 2015 11:27 PM
-> To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org; Hariprasad Shenai
-> Subject: [PATCH for-next 0/5] set MPA revision to 2 and misc. fixes for iw_cxgb4
-> 
-> Hi,
-> 
-> This patch series adds the following.
-> Detect errors while creating listening servers, pass ird/ord info in
-> connect reply events, fix misuse of ord for ird calculation and for the
-> ESTABLISHED event we should have the peer's ord/ird so swap the values in
-> the event before the upcall. Set default MPA version to 2.
-> 
-> This patch series has been created against Doug's linux tree and includes
-> patches on iw_cxgb4 driver.
-> 
-> We have included all the maintainers of respective drivers. Kindly review
-> the change and let us know in case of any review comments.
-> 
-> Thanks
-> 
-> 
-> Hariprasad Shenai (5):
->   iw_cxgb4: detect fatal errors while creating listening filters
->   iw_cxgb4: pass the ord/ird in connect reply events
->   iw_cxgb4: fix misuse of ep->ord for minimum ird calculation
->   iw_cxgb4: reverse the ord/ird in the ESTABLISHED upcall
->   iw_cxgb4: set the default MPA version to 2
-> 
->  drivers/infiniband/hw/cxgb4/cm.c | 18 +++++++++++++-----
->  1 file changed, 13 insertions(+), 5 deletions(-)
-> 
+IANA doesn't do this automatically. Has anyone made the request?
+
+You might want to think through why it needs a dedicated port number
+though. iSER reuses the iSCSI port, by negotiating RDMA during login.
+
+> - The login request (struct srp_login_req) is too large for the RDMA/CM.
+>    A format for the login parameters for the RDMA/CM has not yet been
+>    standardized.
+
+Are you suggesting that RDMA/CM perform the login? That seems
+like a layering issue.
+
+Tom.
+
+>
+> Bart.
 > --
-> 2.3.4
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
