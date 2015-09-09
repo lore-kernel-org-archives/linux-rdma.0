@@ -1,162 +1,71 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH libibverbs] Add support for TX/RX checksum offload
-Date: Wed, 9 Sep 2015 11:20:14 -0400
-Message-ID: <55F04E2E.5050100@redhat.com>
-References: <1439826618-3015-1-git-send-email-bodong@mellanox.com>
- <55EA2C3D.2080904@redhat.com>
- <CAJ3xEMheigQt29mmb50PKHsXfx8pXMex+3bgJeobF0JBAjHsNQ@mail.gmail.com>
+From: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Subject: Re: [PULL REQUEST] Please pull rdma.git
+Date: Wed, 9 Sep 2015 08:44:05 -0700
+Message-ID: <CA+55aFxJovuBGpg04YM0AvrzL_TPDoHebkP21R7tO3=QMQUUXQ@mail.gmail.com>
+References: <1441729478-19375-1-git-send-email-dledford@redhat.com>
+	<CA+55aFzi+hhHuNcHjne_yYO+Dt4Gdkzs-U5y3fAJ8BDYWw4y=Q@mail.gmail.com>
+	<CA+55aFyeLEab0qjNV1+V-mX2ZhExs1z5VtdusgpDnMeNBg-d6Q@mail.gmail.com>
+	<55EFA2BF.7060006@redhat.com>
+	<CA+55aFwg+QCM=xaoK4ic+4AymqCYrF4Ny8WO9iY2hHFBLNT3VQ@mail.gmail.com>
+	<55F02006.5020504@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="euQGuD7J1Ltm24Nn3Xi47Hnh6xftfIwxW"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMheigQt29mmb50PKHsXfx8pXMex+3bgJeobF0JBAjHsNQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <55F02006.5020504-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Jiri Pirko <jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---euQGuD7J1Ltm24Nn3Xi47Hnh6xftfIwxW
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+On Wed, Sep 9, 2015 at 5:03 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+>
+> Me telling Matan to Cc: netdev on patches related to their subsystem:
+> http://marc.info/?l=linux-rdma&m=143398479529819&w=4
+>
+> Above was v5 of the patchset.  Both the v6 and v7 of the patchset had
+> netdev Cc:ed on the cover letter and at least the first three patches.
 
-On 09/05/2015 03:59 PM, Or Gerlitz wrote:
-> On Sat, Sep 5, 2015 at 2:41 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrot=
-e:
->> On 08/17/2015 11:50 AM, Bodong Wang wrote:
->>> Add a device capability flag IBV_DEVICE_IP_CSUM to denote IPv4 checks=
-um
->>> offload support. Devices should set this flag if they support
->>> insertion/verification of IPv4, TCP and UDP checksums on
->>> outgoing/incoming IPv4 packets sent over IB UD or ETH RAW PACKET QPs.=
+Ok, good. That's the kind of information I was missing.
 
->>
->> Correct me if I'm wrong, but the only reason this is only supported on=
+> Here's the v7 cover and the first three patches in the netdev archives:
+> http://marc.info/?l=linux-netdev&m=143827052913936&w=4
 
->> UD and RAW ETH QPs is a matter of current firmware.  There's no reason=
+.. and this is the one I will effectively have to revert because of
+the conflict.
 
->> it couldn't be supported on RC, right?
->=20
-> Doug,
->=20
-> The context here is the ability of the user-space RDMA verbs
-> infrastructure to serve as the baseline for implementing user-space
-> TCP/IP offloads engines.
+> Here Jason Gunthorpe is asking me if I was going to take netdev stuff
+> without an ack from netdev in the netdev archives:
+> http://marc.info/?l=linux-netdev&m=143836033706501&w=4
+>
+> And here is my response to Jason, again, in the netdev archives:
+> http://marc.info/?l=linux-netdev&m=143836450808174&w=4
 
-Fine.
+Good. So this was all done right, it just wasn't visible in the commit history.
 
-> Such engines would be production worthy in
-> open-systems environments mostly when they are inter-operable which
-> whatever stack runs on the other end
+> See above.  This was done.
 
-OK.
+Ok. I've merged it in my tree now, it's just waiting for the usual compile-test.
 
-> --> they must not put any
-> additional bits on the wire
+Note that a correct merge (which looking at it, Stephen didn't
+actually do after all) also involves getting rid of the "struct
+netdev_changeupper_info" type that _isn't_ actually getting filled at
+all, and converting your one user of it in
+drivers/infiniband/core/roce_gid_mgmt.c to what the networking layer
+actually does.
 
-Maybe.  For base level interop, sure, but for enhanced service in a
-homogeneous environment, not necessarily true.
+> I see perfectly well Linus.  I am not new to engineering.  You have
+> stated several times that I'm missing the point, or do I see your point,
+> please understand mine: I *did* the things you are assuming I didn't do.
 
-> --> RC isn't an option
+Yes, I see them, thanks for the links.
 
-Not following here Or.  The IPoIB connected mode packet is 4 byte IPoIB
-Header followed by whatever header the TCP stack put on the packet
-(likely either IPv4 or IPv6).  The same ipoib_hard_header function is
-used for both CM and UD connections, the same ipoib_start_xmit() is used
-for both CM and UD connections, and we just hand off to the appropriate
-send routine when we have our neighbor lookup complete.  Why would you
-need new bits on the wire to do a checksum on an RC send and not for a
-UD send?
+It would have helped if the commit logs had had a record of this
+somehow (ie a "Cc: netdev" etc so that I could tell during the merge
+that this was actually something the networking people knew about).
 
->, so for IPoIB we
-> just need an IPoIB UD QP in user space, and for Ethernet RAW PACKET
-> QP. This device capability is there  ~10y for IB UD and we just
-> naturally extend it to Eth RAW. If/when a vendor comes up with
-> supporting csum for RC, we can add another dev cap and say the well
-> established API applies on them too, with just a slight modification
-> to man pages and such, makes sense?
+That would have avoided a lot of my angst. Sorry,
 
-So if we ever support RC, then any actual users of this API will have
-hardcoded which types of QPs are supported into their apps and they will
-*all* have to go modify their source code to re-hardcode the types into
-their app and recompile.
-
-Alternatively, we write a reasonable API.  One where the types of QPs
-are not set in stone, we tell users to query the API to determine if any
-given QP supports IP CSUM offloads, and then if we add more QP types in
-the future, the apps just automatically work even on the different QP
-types (assuming they used those QP types at all) because it was written
-to an API that allowed for it.
-
-Face it Or, the API in this patchset is crap.  I totally get why you are
-fighting for it so hard.  You already spelled it out: "This device
-capability is there  ~10y for IB UD and we just naturally extend it to
-Eth RAW".  I can read between the lines.  You have users of the API,
-probably some internal and some external, and if I go demanding a proper
-API, all of these people have to recode their apps to the new API, and
-you'd like to avoid that if possible.  However, if I don't, and then RC
-support is added, then they have to recode their apps anyway.  Wouldn't
-it be best to just do it right and get it over with?
-
-So, here's the API I'm proposing:
-
-- Add ibv_query_qp_ex
-- In new ibv_query_qp_ex struct, extend the ibv_qp_caps struct to add a
-flags element
-- Define a flag for IP_CSUM_SUPPORTED
-- Define IP_CSUM flag for send operations
-- Define the API so that IP_CSUM is ignored on all sends if the QP
-doesn't support IP_CSUM and only checked on QPs that support it.  This
-way other QP types don't suffer a penalty on send to check this and
-return EINVAL if its set
-- Define the return flags in the wc struct so we can signal that a CSUM
-was performed and succeeded
-
-A user app would then basically follow this flow:
-
-ibv_create_qp()
-ibv_query_qp()
-  check for IP CSUM and cache result
-ibv_post_send()
-  set IP_CSUM if QP supports it
-
-ibv_poll_cq()
-  if qp supports IP_CSUM, check CSUM result in wc
-
-That's what I would like to see for these changes.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---euQGuD7J1Ltm24Nn3Xi47Hnh6xftfIwxW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJV8E4uAAoJELgmozMOVy/dbYQP/jzJyUH/mCB4gEgTsdwWvd31
-iycNYD6CKxsCZO7/EOn08b7/ruGtRrI+bDtS9+ls+j7unDuUFnayrHlZeFioHqon
-X9BkQRmdXPp9CYlkqe6GrZaSCQ71Bmlw3mGPq+Ht6NnKOaVZBLjHN3lIy5yqh3P7
-R/ZGVCM3sGmSrA93MiJIJkGTYaV4izzpUIhaD2TiQdMOf4ZGy7g0SomRwPIrI8ek
-6XeO0kEpLgOqiwkyvPCllyuII6FhpX0UI8wDVEFcgWeN3oswfR35xgWpQXd/bQzL
-nQelRacQ+mUGuEDTYSgc+YTonLq3cPkIviXeseUR41sHlVBtrteNJbvQe47rms/S
-j5A8ppENfsFisUPXvFlPxd41FI1k1ZB5PUC/T2kdPUfXrTa2wmpwwXmhQt4Ozqcq
-pg79cHtPcNvqYJK7JYcvWBGPRBJTZX2yiDQLZ/j+Dyuc0u66uaCO7WUh5ynZhoTz
-PKoW946BPtgZsA8VMqmVMpfT7cOKsSOIoDMgQetQVZj/eLA25Ggxcd2oUhB4VgM5
-+NbH+nJYHEHZvtHY4CkefeJwglK5y9eIgOozKvxY8CakoqhOHf1OmvoZemcMtegn
-C1J2EJJbm/agT3/2aGQBJNYuIulu7PGmHTDu8ABdD/U3Tom41BNnOpskqquMjf4I
-ArhfceJV0vSOt6chm3oA
-=W5df
------END PGP SIGNATURE-----
-
---euQGuD7J1Ltm24Nn3Xi47Hnh6xftfIwxW--
+                     Linus
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
