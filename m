@@ -1,54 +1,63 @@
 From: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 Subject: Re: [PULL REQUEST] Please pull rdma.git
-Date: Tue, 8 Sep 2015 17:21:27 -0700
-Message-ID: <CA+55aFzi+hhHuNcHjne_yYO+Dt4Gdkzs-U5y3fAJ8BDYWw4y=Q@mail.gmail.com>
+Date: Tue, 8 Sep 2015 17:35:14 -0700
+Message-ID: <CA+55aFyeLEab0qjNV1+V-mX2ZhExs1z5VtdusgpDnMeNBg-d6Q@mail.gmail.com>
 References: <1441729478-19375-1-git-send-email-dledford@redhat.com>
+	<CA+55aFzi+hhHuNcHjne_yYO+Dt4Gdkzs-U5y3fAJ8BDYWw4y=Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1441729478-19375-1-git-send-email-dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <CA+55aFzi+hhHuNcHjne_yYO+Dt4Gdkzs-U5y3fAJ8BDYWw4y=Q@mail.gmail.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Jiri Pirko <jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Sep 8, 2015 at 9:24 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+On Tue, Sep 8, 2015 at 5:21 PM, Linus Torvalds
+<torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org> wrote:
 >
-> Matan Barak (5):
->       net: Add info for NETDEV_CHANGEUPPER event
+> This needs a good explanation, because for now this pull request is dead to me.
 
-Why the hell is this coming in through the infiniband tree? Especially
-with the networking tree having done the same thing differently?
+Just to clarify: it's really the combination of:
 
-I see that Stephen Rothwell reported this almost two weeks ago, and
-informed you.
+ (a) you were told about this
 
-The commit you send me, though, has been rebased since then, BUT IT
-STILL EXISTS.
+ (b) you rebased your commit series after it
 
-The commit is wrong, and you knew about it. So tell me, why the hell
-should I pull this shit?
+ (c) you didn't fix it and never even mentioned the issue
 
-Oh, yes, I can fix it in the merge. This is not a "I can't resolve
-this pull request" email. Resolving it in favor of the existing
-networking infrastructure is easy.
+that makes me just go "I want to have absolutely nothing to do with
+this disaster area of a pull request".
 
-This is a "why should I even bother?" email.
+The conflict itself? Big deal. Conflicts happen. But that patch
+shouldn't have gone through your tree in the first place, and it damn
+well should have had an ack from David or something if it did.
 
-The two different commits have very similar logic, somewhat similar
-names, but the details are different. Both were written by somebody
-with a "mellanox.com" address.
+And the *same* company sent two different patches for the same thing
+to two different submaintainers?  WTF guys?
 
-One huge glaring difference is that one of them went through the
-networking maintainer, which matters a great deal since this is a
-networking notifier.
+Kernel development isn't a sport where you throw shit on the wall to
+see what sticks.
 
-I did the pull, did most of the resolve, but then decided that I don't
-even want to merge this considering how questionable it was.
+This could have been done correctly. You could have cc'd David, and
+you could also have just said "sorry, there's a conflict due to me
+taking a different version of a patch that also went through the
+networking tree". Or you could have tried to synchronize to begin
+with, and just used the same version of the patch from day one. Or if
+you had to rebase your patch series (why was that done, anyway?) you
+could just have fixed it to do what the networking tree already did.
 
-This needs a good explanation, because for now this pull request is dead to me.
+So this could have been done so much better in many ways. But none of
+that happened.
 
-                 Linus
+Cross-subsystem conflicts do happen, and patches that cross said
+subsystems aren't evil per se. I have lost count of how many conflicts
+I've resolved in just this merge window. I do it all the time. But
+this one made me just go "Eww".
+
+The rebase and the complete lack of communication here just makes me angry.
+
+                   Linus
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
