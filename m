@@ -1,46 +1,36 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH infiniband-diags] saquery.c: Fix saquery -D option
-Date: Thu, 10 Sep 2015 09:09:57 -0400
-Message-ID: <55F18125.2090406@dev.mellanox.co.il>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: RDMA/CM and multiple QPs
+Date: Thu, 10 Sep 2015 06:29:27 -0700
+Message-ID: <20150910132927.GA6440@infradead.org>
+References: <20150906064550.GA30683@infradead.org>
+ <55EED54B.7090608@dev.mellanox.co.il>
+ <20150908131407.GB5316@infradead.org>
+ <55F15269.2060200@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <55F15269.2060200-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Date: Wed, 9 Sep 2015 14:29:38 +0300
+On Thu, Sep 10, 2015 at 12:50:33PM +0300, Sagi Grimberg wrote:
+> >What I'm more interested in is a way to tell the CM that I only
+> >want routes that are using this ib_device that I got from the first
+> >lookup as all others are useless for me.
+> >
+> 
+> I'm not sure I understand what you are aiming for? if you connect to
+> a single address multiple times you will get the same device because
+> it is the same route right?
 
--D and -list saquery options are operational only
-when -N option is explicitly invoked (default option)
+In testing I do get the same all the time, but I don't see anything that
+gurantees that in code or documentation.
 
-This patch allows using -D or --list options when no other option is
-invoked.
-
-Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- src/saquery.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/src/saquery.c b/src/saquery.c
-index 4343e33..db863f2 100644
---- a/src/saquery.c
-+++ b/src/saquery.c
-@@ -1591,6 +1591,7 @@ static int process_opt(void *context, int ch, char *optarg)
- 		break;
- 	case 'D':
- 		node_print_desc = ALL_DESC;
-+		command = SAQUERY_CMD_NODE_RECORD;
- 		break;
- 	case 'c':
- 		command = SAQUERY_CMD_CLASS_PORT_INFO;
--- 
-1.7.8.2
-
+Think about the case where the routing changes between the calls, or
+we're using multipath TCP for example.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
