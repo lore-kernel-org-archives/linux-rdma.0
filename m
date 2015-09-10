@@ -1,108 +1,182 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 0/3] libibverbs: On-demand paging support
-Date: Thu, 10 Sep 2015 12:53:05 -0400
-Message-ID: <55F1B571.7020808@redhat.com>
-References: <1441292199-8371-1-git-send-email-haggaie@mellanox.com>
- <55EA2CA7.8000702@redhat.com> <55F19F09.7000407@mellanox.com>
+From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 0/7] devcg: device cgroup extension for rdma resource
+Date: Thu, 10 Sep 2015 23:16:49 +0530
+Message-ID: <CAG53R5XyfQxrA+FUKFaZi7ZBhSz-SW6eGkGUZpdo6hUTBkAO-g@mail.gmail.com>
+References: <1441658303-18081-1-git-send-email-pandit.parav@gmail.com>
+	<20150908152340.GA13749@mtj.duckdns.org>
+	<CAG53R5VnYJ9+VEKtbnFO1HntSp=O=ZGiknucbQ-QLuEk_UP44w@mail.gmail.com>
+	<20150910164946.GH8114@mtj.duckdns.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="NewAHV8kqOmra7cQQCBlVJiqLEBSN05IK"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55F19F09.7000407-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20150910164946.GH8114-qYNAdHglDFBN0TnZuCh8vA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---NewAHV8kqOmra7cQQCBlVJiqLEBSN05IK
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On Thu, Sep 10, 2015 at 10:19 PM, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> Hello, Parav.
+>
+> On Wed, Sep 09, 2015 at 09:27:40AM +0530, Parav Pandit wrote:
+>> This is one old white paper, but most of the reasoning still holds true on RDMA.
+>> http://h10032.www1.hp.com/ctg/Manual/c00257031.pdf
+>
+> Just read it.  Much appreciated.
+>
+> ...
+>> These resources include are-  QP (queue pair) to transfer data, CQ
+>> (Completion queue) to indicate completion of data transfer operation,
+>> MR (memory region) to represent user application memory as source or
+>> destination for data transfer.
+>> Common resources are QP, SRQ (shared received queue), CQ, MR, AH
+>> (Address handle), FLOW, PD (protection domain), user context etc.
+>
+> It's kinda bothering that all these are disparate resources.
 
-On 09/10/2015 11:17 AM, Or Gerlitz wrote:
-> On 9/5/2015 2:43 AM, Doug Ledford wrote:
->> On 09/03/2015 10:56 AM, Haggai Eran wrote:
->>> This series adds userspace support for on-demand paging. The first
->>> patch adds
->>> support for the new extended query device verb. Patch 2 adds the
->>> capability and
->>> interface bits related to on-demand paging, and patch 3 adds example
->>> code to
->>> the rc_pingpong program to use on-demand paging.
->>>
->>>
->>> Eli Cohen (1):
->>>    Add support for extended query device capabilities
->>>
->>> Haggai Eran (1):
->>>    Add on-demand paging support
->>>
->>> Majd Dibbiny (1):
->>>    libibverbs/examples: Support odp in rc_pingpong
->> Hi Haggai,
+Actually not. They are linked resources. Every QP needs associated one
+or two CQ, one PD.
+Every QP will use few MRs for data transfer.
+Here is the good programming guide of the RDMA APIs exposed to the
+user space application.
+
+http://www.mellanox.com/related-docs/prod_software/RDMA_Aware_Programming_user_manual.pdf
+So first version of the cgroups patch will address the control
+operation for section 3.4.
+
+
+> I suppose that each restriction comes from the underlying hardware and
+> there's no accepted higher level abstraction for these things?
+>
+There is higher level abstraction which is through the verbs layer
+currently which does actually expose the hardware resource but in
+vendor agnostic way.
+There are many vendors who support these verbs layer, some of them
+which I know are Mellanox, Intel, Chelsio, Avago/Emulex whose drivers
+which support these verbs are in <drivers/infiniband/hw/> kernel tree.
+
+There is higher level APIs above the verb layer, such as MPI,
+libfabric, rsocket, rds, pgas, dapl which uses underlying verbs layer.
+They all rely on the hardware resource. All of these higher level
+abstraction is accepted and well used by certain application class. It
+would be long discussion to go over them here.
+
+
+>> >> This patch-set allows limiting rdma resources to set of processes.
+>> >> It extend device cgroup controller for limiting rdma device limits.
+>> >
+>> > I don't think this belongs to devcg.  If these make sense as a set of
+>> > resources to be controlled via cgroup, the right way prolly would be a
+>> > separate controller.
+>> >
 >>
->> Series applied, thanks.
->=20
-> Doug, in order to address your comments on the checksum offload
-> submission, we'd like to leverage on these patches, e.g to enhance the
-> extended query device - so WHERE is your tree containing these patches
-> that you applied?
->=20
-> I don't see it in your kernel.org tree [1]
+>> In past there has been similar comment to have dedicated cgroup
+>> controller for RDMA instead of merging with device cgroup.
+>> I am ok with both the approach, however I prefer to utilize device
+>> controller instead of spinning of new controller for new devices
+>> category.
+>> I anticipate more such need would arise and for new device category,
+>> it might not be worth to have new cgroup controller.
+>> RapidIO though very less popular and upcoming PCIe are on horizon to
+>> offer similar benefits as that of RDMA and in future having one
+>> controller for each of them again would not be right approach.
+>>
+>> I certainly seek your and others inputs in this email thread here whether
+>> (a) to continue to extend device cgroup (which support character,
+>> block devices white list) and now RDMA devices
+>> or
+>> (b) to spin of new controller, if so what are the compelling reasons
+>> that it can provide compare to extension.
+>
+> I'm doubtful that these things are gonna be mainstream w/o building up
+> higher level abstractions on top and if we ever get there we won't be
+> talking about MR or CQ or whatever.
 
-Because I didn't push it yet.  I can push it now....
+Some of the higher level examples I gave above will adapt to resource
+allocation failure. Some are actually adaptive to few resource
+allocation failure, they do query resources. But its not completely
+there yet. Once we have this notion of limited resource in place,
+abstraction layer would adapt to relatively smaller value of such
+resource.
+These higher level abstraction is mainstream. Its shipped at least in
+Redhat Enterprise Linux.
 
-Push complete.
+> Also, whatever next-gen is
+> unlikely to have enough commonalities when the proposed resource knobs
+> are this low level,
 
-> and I didn't find a git hub
-> libibverbs clone that belong to you
->=20
-> It's very tired-ing that every now and then we are looking across
-> multiple trees to find out where accepted patches are, really - can you=
+I agree that resource won't be common in next-gen other transport
+whenever they arrive.
+But with my existing background working on some of those transport,
+they appear similar in nature and it might seek similar knobs.
 
-> reduce the suffer here?
->=20
->=20
->=20
-> Or.
->=20
-> [1] http://git.kernel.org/cgit/libs/infiniband/libibverbs.git/
->=20
->=20
+> so let's please keep it separate, so that if/when
+> this goes out of fashion for one reason or another, the controller can
+> silently wither away too.
+>
+>> Current scope of the patch is limited to RDMA resources as first
+>> patch, but for fact I am sure that there are more functionality in
+>> pipe to support via this cgroup by me and others.
+>> So keeping atleast these two aspects in mind, I need input on
+>> direction of dedicated controller or new one.
+>>
+>> In future, I anticipate that we might have sub directory to device
+>> cgroup for individual device class to control.
+>> such as,
+>> <sys/fs/cgroup/devices/
+>>      /char
+>>      /block
+>>      /rdma
+>>      /pcie
+>>      /child_cgroup..1..N
+>> Each controllers cgroup access files would remain within their own
+>> scope. We are not there yet from base infrastructure but something to
+>> be done as it matures and users start using it.
+>
+> I don't think that jives with the rest of cgroup and what generic
+> block or pcie attributes are directly exposed to applications and need
+> to be hierarchically controlled via cgroup?
+>
+I do agree that currently cgroup doesn't have notion of sub cgroup or
+above hierarchy today.
+so until than I was considering to implement it under devices cgroup
+as generic place without the hierarchy shown above.
+Therefore current interface is at device cgroup level.
 
+If you are suggesting to have rdma cgroup as separate entity for near
+future, its fine with me.
+Later on when next-gen arrives we might have scope to make rdma cgroup
+as more generic one. But than it might look like what I described
+above.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+In past I have discussions with Liran Liss from Mellanox as well on
+this topic and we also agreed to have such cgroup controller.
+He has recent presentation at Linux foundation event indicating to
+have cgroup for RDMA.
+Below is the link to it.
+http://events.linuxfoundation.org/sites/events/files/slides/containing_rdma_final.pdf
+Slides 1 to 7 and slide 13 will give you more insight to it.
+Liran and I had similar presentation to RDMA audience with less slides
+in RDMA openfabrics summit in March 2015.
 
+I am ok to create separate cgroup for rdma, if community thinks that way.
+My preference would be still use device cgroup for above extensions
+unless there are fundamental issues that I am missing.
+I would let you make the call.
+Rdma and other is just another type of device with different
+characteristics than character or block, so one device cgroup with sub
+functionalities can allow setting knobs.
+Every device category will have their own set of knobs for resources,
+ACL, limits, policy.
+And I think cgroup is certainly better control point than sysfs or
+spinning of new control infrastructure for this.
+That said, I would like to hear your and communities view on how they
+would like to see this shaping up.
 
-
---NewAHV8kqOmra7cQQCBlVJiqLEBSN05IK
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJV8bVxAAoJELgmozMOVy/dxCsQAJBqBc3o80I9XuKrPU7Y24uF
-lgT6bibsxtBOioYpOt2aKzOdIjzLI12QBbeEnXNKS+RVQGLIQTd9rOW/bzQdQoJ2
-hdMjXhe3IfuJWgfAmcubT+L8J1lqvS0044t4Uc1xj9/eVOjLWIyKi3eEjBbGAFke
-Vk25U8BMpjSXxPHN3FjWhmdyDzMVqkb6P26Hsh1LL9C8sF7kaZi+oihNLGe2ETPr
-Rhp3m9fcsNrFKF/7yjVnWtojqhFvFYnWgQ0OnpCBPSkHqPo14gEnI5P5E/R24Lbc
-tm+PUqr4hQJ3zktgtaS0v3eMbtGUq0Xv/IC3u/8syOGR7KhYgyrZfjtGBdaPknQF
-sGaSm1LWG0IbYYtSeFLZZoYGMAo1Gm8QTE+ms258Xf1dBFeVux6bWveu0aVcJed2
-mXOuQ70VmffeJU3I4pgk5H8q1N0F8lvxKlGOfVlIvYf0gglAKm2NZ7QzG3AEanEZ
-nCoo26hzU4MHopTE2blgV98RZ9yt3y1Hlj8/nrT6+yObdwvMo+hkPdEwLFj+3V0J
-EnikZ/TRTquOWhBBrIeKlHx0oNKQyNQwdfx3ZEpfsZFyCmMwk7rLsPQUk5XNO369
-0yCjcce8j+SMiNNxRUhYEBvzSk4z1DKe6tbIuMqXMCb9m1NCpRErzSMPWaQA3nL8
-Lkn7H9GUlMCKhwGhq9DD
-=CBqf
------END PGP SIGNATURE-----
-
---NewAHV8kqOmra7cQQCBlVJiqLEBSN05IK--
+> Thanks.
+>
+> --
+> tejun
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
