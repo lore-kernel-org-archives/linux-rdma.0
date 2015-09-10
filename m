@@ -1,54 +1,98 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PULL REQUEST] Please pull rdma.git
-Date: Thu, 10 Sep 2015 19:35:19 +0300
-Message-ID: <55F1B147.405@mellanox.com>
-References: <1441729478-19375-1-git-send-email-dledford@redhat.com>
- <CA+55aFzi+hhHuNcHjne_yYO+Dt4Gdkzs-U5y3fAJ8BDYWw4y=Q@mail.gmail.com>
- <CA+55aFyeLEab0qjNV1+V-mX2ZhExs1z5VtdusgpDnMeNBg-d6Q@mail.gmail.com>
- <55EFA2BF.7060006@redhat.com>
- <CA+55aFwg+QCM=xaoK4ic+4AymqCYrF4Ny8WO9iY2hHFBLNT3VQ@mail.gmail.com>
- <55F02006.5020504@redhat.com>
- <CA+55aFxJovuBGpg04YM0AvrzL_TPDoHebkP21R7tO3=QMQUUXQ@mail.gmail.com>
- <CA+55aFwCwT-K_Qw3aQBXt_HbQX6v4d4EXHb3dJVCkD3kg83gzw@mail.gmail.com>
- <55F05A2F.9090005@redhat.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH 0/7] devcg: device cgroup extension for rdma resource
+Date: Thu, 10 Sep 2015 12:49:46 -0400
+Message-ID: <20150910164946.GH8114@mtj.duckdns.org>
+References: <1441658303-18081-1-git-send-email-pandit.parav@gmail.com>
+ <20150908152340.GA13749@mtj.duckdns.org>
+ <CAG53R5VnYJ9+VEKtbnFO1HntSp=O=ZGiknucbQ-QLuEk_UP44w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55F05A2F.9090005-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Jiri Pirko <jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAG53R5VnYJ9+VEKtbnFO1HntSp=O=ZGiknucbQ-QLuEk_UP44w@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Parav Pandit <pandit.parav@gmail.com>
+Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, lizefan@huawei.com, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Haggai Eran <haggaie@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, raindel@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hello, Parav.
 
+On Wed, Sep 09, 2015 at 09:27:40AM +0530, Parav Pandit wrote:
+> This is one old white paper, but most of the reasoning still holds true on RDMA.
+> http://h10032.www1.hp.com/ctg/Manual/c00257031.pdf
 
-On 9/9/2015 7:11 PM, Doug Ledford wrote:
-> On 09/09/2015 12:10 PM, Linus Torvalds wrote:
->> On Wed, Sep 9, 2015 at 8:44 AM, Linus Torvalds
->> <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org> wrote:
->>>
->>> Ok. I've merged it in my tree now, it's just waiting for the usual compile-test.
->>
->> Compile-test finished, and pushed out.
->>
->> Can somebody check that my conversion of roce_gid_mgmt.c actually
->> _works_ though? It compiles, but that's all I'm testing.
+Just read it.  Much appreciated.
+
+...
+> These resources include are-  QP (queue pair) to transfer data, CQ
+> (Completion queue) to indicate completion of data transfer operation,
+> MR (memory region) to represent user application memory as source or
+> destination for data transfer.
+> Common resources are QP, SRQ (shared received queue), CQ, MR, AH
+> (Address handle), FLOW, PD (protection domain), user context etc.
+
+It's kinda bothering that all these are disparate resources.  I
+suppose that each restriction comes from the underlying hardware and
+there's no accepted higher level abstraction for these things?
+
+> >> This patch-set allows limiting rdma resources to set of processes.
+> >> It extend device cgroup controller for limiting rdma device limits.
+> >
+> > I don't think this belongs to devcg.  If these make sense as a set of
+> > resources to be controlled via cgroup, the right way prolly would be a
+> > separate controller.
+> >
+> 
+> In past there has been similar comment to have dedicated cgroup
+> controller for RDMA instead of merging with device cgroup.
+> I am ok with both the approach, however I prefer to utilize device
+> controller instead of spinning of new controller for new devices
+> category.
+> I anticipate more such need would arise and for new device category,
+> it might not be worth to have new cgroup controller.
+> RapidIO though very less popular and upcoming PCIe are on horizon to
+> offer similar benefits as that of RDMA and in future having one
+> controller for each of them again would not be right approach.
 >
-> Sure.  Thanks!
->
->
+> I certainly seek your and others inputs in this email thread here whether
+> (a) to continue to extend device cgroup (which support character,
+> block devices white list) and now RDMA devices
+> or
+> (b) to spin of new controller, if so what are the compelling reasons
+> that it can provide compare to extension.
 
-I currently don't have a bonded setup available.
-I have tested the tree by setting up an active-backup bond device,
-selecting each slave as an active slave and made sure the bond's GID
-was applied on the correct port.
-Afterwards, I've made sure that when using the bond's IP device, RoCE 
-traffic was successfully sent and received (on the active port).
-I think it verifies the conflicting parts of roce_gid_mgmt pretty well.
+I'm doubtful that these things are gonna be mainstream w/o building up
+higher level abstractions on top and if we ever get there we won't be
+talking about MR or CQ or whatever.  Also, whatever next-gen is
+unlikely to have enough commonalities when the proposed resource knobs
+are this low level, so let's please keep it separate, so that if/when
+this goes out of fashion for one reason or another, the controller can
+silently wither away too.
 
-I'm adding Moni, whom I believe have such a bonded setup.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Current scope of the patch is limited to RDMA resources as first
+> patch, but for fact I am sure that there are more functionality in
+> pipe to support via this cgroup by me and others.
+> So keeping atleast these two aspects in mind, I need input on
+> direction of dedicated controller or new one.
+> 
+> In future, I anticipate that we might have sub directory to device
+> cgroup for individual device class to control.
+> such as,
+> <sys/fs/cgroup/devices/
+>      /char
+>      /block
+>      /rdma
+>      /pcie
+>      /child_cgroup..1..N
+> Each controllers cgroup access files would remain within their own
+> scope. We are not there yet from base infrastructure but something to
+> be done as it matures and users start using it.
+
+I don't think that jives with the rest of cgroup and what generic
+block or pcie attributes are directly exposed to applications and need
+to be hierarchically controlled via cgroup?
+
+Thanks.
+
+-- 
+tejun
