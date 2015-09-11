@@ -1,97 +1,170 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-4.3] IB/ipoib: add module option for auto-creating mcast groups
-Date: Thu, 10 Sep 2015 21:21:05 -0400
-Message-ID: <980e8b0a82042d7e5801e02bf16fe72a0bde6759.1441934465.git.dledford@redhat.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: Parav Pandit <pandit.parav@gmail.com>
+Subject: Re: [PATCH 0/7] devcg: device cgroup extension for rdma resource
+Date: Fri, 11 Sep 2015 09:09:58 +0530
+Message-ID: <CAG53R5WtuPA=J_GYPzNTAKbjB1r0K90qhXEDxLNf7vxYyxgrKA@mail.gmail.com>
+References: <1441658303-18081-1-git-send-email-pandit.parav@gmail.com>
+	<20150908152340.GA13749@mtj.duckdns.org>
+	<CAG53R5VnYJ9+VEKtbnFO1HntSp=O=ZGiknucbQ-QLuEk_UP44w@mail.gmail.com>
+	<20150910164946.GH8114@mtj.duckdns.org>
+	<CAG53R5XyfQxrA+FUKFaZi7ZBhSz-SW6eGkGUZpdo6hUTBkAO-g@mail.gmail.com>
+	<20150910202210.GL8114@mtj.duckdns.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20150910202210.GL8114@mtj.duckdns.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, lizefan@huawei.com, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Haggai Eran <haggaie@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, raindel@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-During the recent rework of the mcast handling in ipoib, the join
-task for regular and send-only joins were merged.  In the old code,
-the comments indicated that the ipoib driver didn't send enough
-information to auto-create IB multicast groups when the join was a
-send-only join.  The reality is that the comments said we didn't, but
-we actually did.  Since we merged the two join tasks, we now follow
-the comments and don't auto-create IB multicast groups for an ipoib
-send-only multicast join.  This has been reported to cause problems
-in certain environments that rely on this behavior.  Specifically,
-if you have an IB <-> Ethernet gateway then there is a fundamental
-mismatch between the methodologies used on the two fabrics.  On
-Ethernet, an app need not subscribe to a multicast group, merely
-listen.  As such, the Ethernet side of the gateway has no way of
-knowing if there are listeners.  If we don't create groups for sends
-in this case, and the listeners are only on the Ethernet side of
-the gateway, the listeners will not get any of the packets sent
-on the IB side of the gateway.  There are instances of installations
-with 100's (maybe 1000's) of multicast groups where static creation
-of all the groups is not practical that rely upon the send-only
-joins creating the IB multicast group in order to function, so to
-preserve these existing installations, add a module option to the
-ipoib module to restore the previous behavior.
+On Fri, Sep 11, 2015 at 1:52 AM, Tejun Heo <tj@kernel.org> wrote:
+> Hello, Parav.
+>
+> On Thu, Sep 10, 2015 at 11:16:49PM +0530, Parav Pandit wrote:
+>> >> These resources include are-  QP (queue pair) to transfer data, CQ
+>> >> (Completion queue) to indicate completion of data transfer operation,
+>> >> MR (memory region) to represent user application memory as source or
+>> >> destination for data transfer.
+>> >> Common resources are QP, SRQ (shared received queue), CQ, MR, AH
+>> >> (Address handle), FLOW, PD (protection domain), user context etc.
+>> >
+>> > It's kinda bothering that all these are disparate resources.
+>>
+>> Actually not. They are linked resources. Every QP needs associated one
+>> or two CQ, one PD.
+>> Every QP will use few MRs for data transfer.
+>
+> So, if that's the case, let's please implement something higher level.
+> The goal is providing reasonable isolation or protection.  If that can
+> be achieved at a higher level of abstraction, please do that.
+>
+>> Here is the good programming guide of the RDMA APIs exposed to the
+>> user space application.
+>>
+>> http://www.mellanox.com/related-docs/prod_software/RDMA_Aware_Programming_user_manual.pdf
+>> So first version of the cgroups patch will address the control
+>> operation for section 3.4.
+>>
+>> > I suppose that each restriction comes from the underlying hardware and
+>> > there's no accepted higher level abstraction for these things?
+>>
+>> There is higher level abstraction which is through the verbs layer
+>> currently which does actually expose the hardware resource but in
+>> vendor agnostic way.
+>> There are many vendors who support these verbs layer, some of them
+>> which I know are Mellanox, Intel, Chelsio, Avago/Emulex whose drivers
+>> which support these verbs are in <drivers/infiniband/hw/> kernel tree.
+>>
+>> There is higher level APIs above the verb layer, such as MPI,
+>> libfabric, rsocket, rds, pgas, dapl which uses underlying verbs layer.
+>> They all rely on the hardware resource. All of these higher level
+>> abstraction is accepted and well used by certain application class. It
+>> would be long discussion to go over them here.
+>
+> Well, the programming interface that userland builds on top doesn't
+> matter too much here but if there is a common resource abstraction
+> which can be made in terms of constructs that consumers of the
+> facility would care about, that likely is a better choice than
+> exposing whatever hardware exposes.
+>
 
-Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 32 +++++++++++++++++++++++++-
- 1 file changed, 31 insertions(+), 1 deletion(-)
+Tejun,
+The fact is that user level application uses hardware resources.
+Verbs layer is software abstraction for it. Drivers are hiding how
+they implement this QP or CQ or whatever hardware resource they
+project via API layer.
+For all of the userland on top of verb layer I mentioned above, the
+common resource abstraction is these resources AH, QP, CQ, MR etc.
+Hardware (and driver) might have different view of this resource in
+their real implementation.
+For example, verb layer can say that it has 100 QPs, but hardware
+might actually have 20 QPs that driver decide how to efficiently use
+it.
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index 09a1748f9d13..2d95b8ae379b 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -47,6 +47,11 @@
- 
- #include "ipoib.h"
- 
-+static bool __read_mostly mcast_auto_create;
-+
-+module_param(mcast_auto_create, bool, 0644);
-+MODULE_PARM_DESC(mcast_auto_create, "Should multicast sends auto-create the IB multicast group? (Default: false)");
-+
- #ifdef CONFIG_INFINIBAND_IPOIB_DEBUG
- static int mcast_debug_level;
- 
-@@ -514,9 +519,34 @@ static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
- 		 * detect if there are full members or not. A major problem
- 		 * with supporting SEND ONLY is detecting when the group is
- 		 * auto-destroyed as IPoIB will cache the MLID..
-+		 *
-+		 * An additional problem is that if we auto-create the IB
-+		 * mcast group in response to a send-only action, then we
-+		 * will be the creating entity, but we will not have any
-+		 * mechanism by which we will track when we should leave
-+		 * the group ourselves.  We will occasionally leave and
-+		 * re-join the group when these events occur:
-+		 *
-+		 * 1) ifdown/ifup
-+		 * 2) a regular mcast join/leave happens and we run
-+		 *    ipoib_mcast_restart_task
-+		 * 3) a REREGISTER event comes in from the SM
-+		 * 4) any other event that might cause a mcast flush
-+		 *
-+		 * However, these events are not deterministic and we can
-+		 * leave unused groups subscribed for long periods of time.
-+		 * In addition, since the core IB layer does not yet support
-+		 * send-only IB joins, we have to do a regular join and then
-+		 * simply never attach a QP to listen to the incoming data.
-+		 * This means that phantom, wasted data will end up coming
-+		 * across our inbound physical link only to be thrown away
-+		 * by the multicast dispatch mechanism on the card or in
-+		 * the kernel driver.  For these reasons, we default to not
-+		 * auto creating groups for send-only multicast operations.
- 		 */
- #if 1
--		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags))
-+		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags) &&
-+		    !mcast_auto_create)
- 			comp_mask &= ~IB_SA_MCMEMBER_REC_TRAFFIC_CLASS;
- #else
- 		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags))
--- 
-2.4.3
+>> > I'm doubtful that these things are gonna be mainstream w/o building up
+>> > higher level abstractions on top and if we ever get there we won't be
+>> > talking about MR or CQ or whatever.
+>>
+>> Some of the higher level examples I gave above will adapt to resource
+>> allocation failure. Some are actually adaptive to few resource
+>> allocation failure, they do query resources. But its not completely
+>> there yet. Once we have this notion of limited resource in place,
+>> abstraction layer would adapt to relatively smaller value of such
+>> resource.
+>>
+>> These higher level abstraction is mainstream. Its shipped at least in
+>> Redhat Enterprise Linux.
+>
+> Again, I was talking more about resource abstraction - e.g. something
+> along the line of "I want N command buffers".
+>
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes. We are still talking of resource abstraction here.
+RDMA and IBTA defines these resources. On top of these resources
+various frameworks are build.
+so for example,
+User land is tuning environment deploying for MPI application,
+it would configure:
+10 processes from the PID controller,
+10 CPUs in cpuset controller,
+1 PD, 20 CQ, 10 QP, 100 MRs in rdma controller,
+
+say user land is tuning environment for deploying rsocket application
+for 100 connections,
+it would configure, 100 PD, 100 QP, 200 MR.
+When verb layer see failure with it, they will adapt to live with what
+they have at lower performance.
+
+Since every higher level which I mentioned in different in the way, it
+uses RDMA resources, we cannot generalize it as "N command buffers".
+That generalization in my mind is the - rdma resources - central common entity.
+
+>> > Also, whatever next-gen is
+>> > unlikely to have enough commonalities when the proposed resource knobs
+>> > are this low level,
+>>
+>> I agree that resource won't be common in next-gen other transport
+>> whenever they arrive.
+>> But with my existing background working on some of those transport,
+>> they appear similar in nature and it might seek similar knobs.
+>
+> I don't know.  What's proposed in this thread seems way too low level
+> to be useful anywhere else.  Also, what if there are multiple devices?
+> Is that a problem to worry about?
+>
+o.k. It doesn't have to be useful anywhere else. If it suffice the
+need of RDMA applications, its fine for near future.
+This patch allows limiting resources across multiple devices.
+As we go along the path, and if requirement come up to have knob on
+per device basis, thats something we can extend in future.
+
+>
+>> I would let you make the call.
+>> Rdma and other is just another type of device with different
+>> characteristics than character or block, so one device cgroup with sub
+>> functionalities can allow setting knobs.
+>> Every device category will have their own set of knobs for resources,
+>> ACL, limits, policy.
+>
+> I'm kinda doubtful we're gonna have too many of these.  Hardware
+> details being exposed to userland this directly isn't common.
+>
+
+Its common in RDMA applications. Again they may not be real hardware
+resource, its just API layer which defines those RDMA constructs.
+
+>> And I think cgroup is certainly better control point than sysfs or
+>> spinning of new control infrastructure for this.
+>> That said, I would like to hear your and communities view on how they
+>> would like to see this shaping up.
+>
+> I'd say keep it simple and do the minimum. :)
+>
+o.k. In that case new rdma cgroup controller which does rdma resource
+accounting is possibly the most simplest form?
+Make sense?
+
+> Thanks.
+>
+> --
+> tejun
