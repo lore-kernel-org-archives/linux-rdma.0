@@ -1,88 +1,54 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-4.3] IB/ipoib: add module option for auto-creating
- mcast groups
-Date: Fri, 11 Sep 2015 12:39:31 -0600
-Message-ID: <20150911183931.GB546@obsidianresearch.com>
-References: <980e8b0a82042d7e5801e02bf16fe72a0bde6759.1441934465.git.dledford@redhat.com>
+From: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 0/7] devcg: device cgroup extension for rdma resource
+Date: Fri, 11 Sep 2015 15:05:34 -0400
+Message-ID: <20150911190534.GT8114@mtj.duckdns.org>
+References: <20150908152340.GA13749@mtj.duckdns.org>
+ <CAG53R5VnYJ9+VEKtbnFO1HntSp=O=ZGiknucbQ-QLuEk_UP44w@mail.gmail.com>
+ <20150910164946.GH8114@mtj.duckdns.org>
+ <CAG53R5XyfQxrA+FUKFaZi7ZBhSz-SW6eGkGUZpdo6hUTBkAO-g@mail.gmail.com>
+ <20150910202210.GL8114@mtj.duckdns.org>
+ <CAG53R5WtuPA=J_GYPzNTAKbjB1r0K90qhXEDxLNf7vxYyxgrKA@mail.gmail.com>
+ <20150911040413.GA18850@htj.duckdns.org>
+ <55F25781.20308@redhat.com>
+ <20150911145213.GQ8114@mtj.duckdns.org>
+ <CAG53R5X5o8hJX1VJ00j5Bxuaps3FGCPNss4ey-07Dq+XP8xoBg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <980e8b0a82042d7e5801e02bf16fe72a0bde6759.1441934465.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <CAG53R5X5o8hJX1VJ00j5Bxuaps3FGCPNss4ey-07Dq+XP8xoBg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 10, 2015 at 09:21:05PM -0400, Doug Ledford wrote:
-> During the recent rework of the mcast handling in ipoib, the join
-> task for regular and send-only joins were merged.  In the old code,
-> the comments indicated that the ipoib driver didn't send enough
-> information to auto-create IB multicast groups when the join was a
-> send-only join.  The reality is that the comments said we didn't, but
-> we actually did.  Since we merged the two join tasks, we now follow
-> the comments and don't auto-create IB multicast groups for an ipoib
-> send-only multicast join.  This has been reported to cause problems
-> in certain environments that rely on this behavior.  Specifically,
-> if you have an IB <-> Ethernet gateway then there is a fundamental
-> mismatch between the methodologies used on the two fabrics.  On
-> Ethernet, an app need not subscribe to a multicast group, merely
-> listen.
+Hello, Parav.
 
-This should probably be clarified. On all IP networks IGMP/MLD is used
-to advertise listeners.
+On Fri, Sep 11, 2015 at 10:17:42PM +0530, Parav Pandit wrote:
+> IO controller and applications are mature in nature.
+> When IO controller throttles the IO, applications are pretty mature
+> where if IO takes longer to complete, there is possibly almost no way
+> to cancel the system call or rather application might not want to
+> cancel the IO at least the non asynchronous one.
 
-A IB/Eth gateway is a router, and IP routers are expected to process
-IGMP - so the gateway certainly can (and maybe must) be copying
-groups declared with IGMP from the eth side into listeners on IB MGIDs
+I was more talking about the fact that they allow resources to be
+consumed when they aren't contended.
 
-We may also be making a mistake in IPoIB - if the send side MGID join
-fails, the send should probably go to the broadcast, and the join
-retried from time to time. This would at least let the gateway
-optimize a bit more by only creating groups in active use.
+> So application just notice lower performance than throttled way.
+> Its really not possible at RDMA level with RDMA resource to hold up
+> resource creation call for longer time, because reusing existing
+> resource with failed status can likely to give better performance.
+> As Doug explained in his example, many RDMA resources as its been used
+> by applications are relatively long lived. So holding ups resource
+> creation while its taken by other process will certainly will look bad
+> on application performance front compare to returning failure and
+> reusing existing one once its available or once new one is available.
 
-That would emulate the ethernet philosophy of degrade to broadcast.
+I'm not really sold on the idea that this can be used to implement
+performance based resource distribution.  I'll write more about that
+on the other subthread.
 
-TBH, fixing broken gateway devices by sending to broadcast appeals to
-me more than making a module option..
+Thanks.
 
-> on the IB side of the gateway.  There are instances of installations
-> with 100's (maybe 1000's) of multicast groups where static creation
-> of all the groups is not practical that rely upon the send-only
-
-With my last patch the SM now has enough information to auto-create
-the wonky send-only join attempts, if wanted to. It just needs to fill
-in tclass, so it certainly is possible to address this long term
-without a kernel patch.
-
-> joins creating the IB multicast group in order to function, so to
-> preserve these existing installations, add a module option to the
-> ipoib module to restore the previous behavior.
-
-.. but an option to restore behavior of an older kernel version makes
-sense - did we really have a kernel that completely converted a
-send-only join to full join&create?
-
-> +		 * An additional problem is that if we auto-create the IB
-> +		 * mcast group in response to a send-only action, then we
-> +		 * will be the creating entity, but we will not have any
-> +		 * mechanism by which we will track when we should leave
-> +		 * the group ourselves.  We will occasionally leave and
-> +		 * re-join the group when these events occur:
-
-I would drop the langauge of creating-entity, that isn't something
-from the IBA.
-
-The uncontrolled lifetime of the join is not related to creating or
-not.
-
-> +		 * 2) a regular mcast join/leave happens and we run
-> +		 *    ipoib_mcast_restart_task
-
-Really? All send only mgids are discarded at that point? Ugly.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+tejun
