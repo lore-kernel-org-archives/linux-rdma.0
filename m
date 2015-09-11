@@ -1,68 +1,84 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH 0/7] devcg: device cgroup extension for rdma resource
-Date: Fri, 11 Sep 2015 11:03:02 -0400
-Message-ID: <20150911150302.GR8114@mtj.duckdns.org>
-References: <1441658303-18081-1-git-send-email-pandit.parav@gmail.com>
- <20150908152340.GA13749@mtj.duckdns.org>
- <CAG53R5VnYJ9+VEKtbnFO1HntSp=O=ZGiknucbQ-QLuEk_UP44w@mail.gmail.com>
- <20150910164946.GH8114@mtj.duckdns.org>
- <CAG53R5XyfQxrA+FUKFaZi7ZBhSz-SW6eGkGUZpdo6hUTBkAO-g@mail.gmail.com>
- <20150910202210.GL8114@mtj.duckdns.org>
- <CAG53R5WtuPA=J_GYPzNTAKbjB1r0K90qhXEDxLNf7vxYyxgrKA@mail.gmail.com>
- <20150911040413.GA18850@htj.duckdns.org>
- <CAG53R5WW8QRHmopva260BPgvfH3xeq16d2ChGTcEtBwFbhNdfw@mail.gmail.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: ehca driver status?
+Date: Fri, 11 Sep 2015 11:44:06 -0400
+Message-ID: <55F2F6C6.8060002@redhat.com>
+References: <20150826134648.GA21814@infradead.org>
+ <20150911105513.4bbf9e9e@worktp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAG53R5WW8QRHmopva260BPgvfH3xeq16d2ChGTcEtBwFbhNdfw@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Parav Pandit <pandit.parav@gmail.com>
-Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, lizefan@huawei.com, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Haggai Eran <haggaie@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, raindel@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="BPNac9OKHLgdh60hjareWbVMCOC1383Rp"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150911105513.4bbf9e9e@worktp>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alexander Schmidt <alexs-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stefan.roscher-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello, Parav.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--BPNac9OKHLgdh60hjareWbVMCOC1383Rp
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, Sep 11, 2015 at 10:13:59AM +0530, Parav Pandit wrote:
-> > My uneducated suspicion is that the abstraction is just not developed
-> > enough.  It should be possible to virtualize these resources through,
-> > most likely, time-sharing to the level where userland simply says "I
-> > want this chunk transferred there" and OS schedules the transfer
-> > prioritizing competing requests.
-> 
-> Tejun,
-> That is such a perfect abstraction to have at OS level, but not sure
-> how much close it can be to bare metal RDMA it can be.
-> I have started discussion on that front as well as part of other
-> thread, but its certainly long way to go.
-> Most want to enjoy the performance benefit of the bare metal
-> interfaces it provides.
+On 09/11/2015 04:55 AM, Alexander Schmidt wrote:
+> On Wed, 26 Aug 2015 06:46:48 -0700
+> Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
+>=20
+>> Hi Hoang-Nam, hi Christoph, hi Alexander,
+>>
+>> do you know what the current state of the eHCA driver and hardware is?=
 
-Yeah, sure, I'm not trying to say that rdma needs or should do that.
+>>
+>> The driver hasn't seen any targeted updats since 2010, so we wonder if=
 
-> Such abstraction that you mentioned, exists, the only difference is
-> instead of its OS as central entity, its the higher level libraries,
-> drivers and hw together does it today for the applications.
+>> it's still alive?  It's one of the few drivers not supporting FRWRs,
+>> and it's also really odd in that it has its own dma_map_ops
+>> implementation that seems to pass virtual addresses to the hardware
+>> (or probably rather firmware), getting in the way of at least two
+>> currently pending cleanups.
+>>
+>=20
+> Hi again,
+>=20
+> we are okay with removing the driver from the tree, let me know if
+> there is anything we should do to help.
 
-But more that having resource control in the OS and actual arbitration
-higher up in the stack isn't likely to lead to an effective resource
-distribution scheme.
+I'll get it moved over to staging ASAP so it can be on the same schedule
+as the other two drivers we are deprecating.  Thanks!
 
-> > You kinda have to decide that upfront cuz it gets baked into the
-> > interface.
-> 
-> Well, all the interfaces are not yet defined. Except the test and
 
-I meant the cgroup interface.
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
 
-> benchmark utilities, real world applications wouldn't really bother
-> much about which device are they are going through.
 
-Weights can work fine across multiple devices.  Hard limits don't.  It
-just doesn't make any sense.  Unless you can exclude multiple device
-scenarios, you'll have to implement per-device limits.
 
-Thanks.
+--BPNac9OKHLgdh60hjareWbVMCOC1383Rp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
--- 
-tejun
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJV8vbGAAoJELgmozMOVy/dj0sQAI6kMvIxvXNlvcqcARAcdi6v
+Td8KcqS+M7Tsl3uYUXLo6+uk/q8HzNyNy26sAnq28+S5ZAeawX6OHYqsMtEKosw9
+vffM44wae0hbbTYB2xwqXPWIHS5+0JEjJor7qcSrtxje+n+eSM6FkGmBdG4FRtKD
+8Q57k0yngLsNZu0Pte7w9IC+hvadChVXLOeKD0A31XO/qESL2/5P//s2IRODEca5
+58EV4IRh5PvaqT7HQcOxn+H924uyhKyWTEN3nI0SI7MUOdEqk3jncYQvas17vEXM
+2m+4PtGv/iZiDmJImbST4Fh1MuaeXGOLnogADbgEqrxhanoD/Jl+eEohbG6yKRwh
+aBprHVcJz95tsVm7PgO/c2wxGZAih5pxubFyaKC+7hYznFxTA73koSFpLXx5R0cy
+glUWjTPRBXF36zmJ5uY2NABc2WJpTpi43PYjNovPVQvdlknFPTbdvwZGFU/YgaY+
+N6LUfzbnx0vuE5tLzKio4LLWIRtjxHRpmhkugoweTBRvAciaOLId+5fMzi0aXKcV
+P/tClbu1Leu8dpcJ4MwJwatBKG60NHzlYV28gvQX2wUWu/8wD7u+hamGYEQfLwNR
+lYn5g8cXjfjEWDgAUgcIt3ok12FUm5esXkBvgX4lnjNdzpJd/Izwa0Ny/vsWG5Ty
+4wsQb6X6UXMkelLKi1PB
+=dE1K
+-----END PGP SIGNATURE-----
+
+--BPNac9OKHLgdh60hjareWbVMCOC1383Rp--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
