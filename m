@@ -1,169 +1,106 @@
-From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
 Subject: Re: [PATCH 0/7] devcg: device cgroup extension for rdma resource
-Date: Tue, 15 Sep 2015 00:24:41 +0530
-Message-ID: <CAG53R5XHTv-o+pGHdw+hGgtv4N3ZkH0WTs6o_W3zK_6jAnVsNA@mail.gmail.com>
-References: <CAG53R5XyfQxrA+FUKFaZi7ZBhSz-SW6eGkGUZpdo6hUTBkAO-g@mail.gmail.com>
-	<20150910202210.GL8114@mtj.duckdns.org>
-	<CAG53R5WtuPA=J_GYPzNTAKbjB1r0K90qhXEDxLNf7vxYyxgrKA@mail.gmail.com>
-	<20150911040413.GA18850@htj.duckdns.org>
-	<55F25781.20308@redhat.com>
-	<20150911145213.GQ8114@mtj.duckdns.org>
-	<1828884A29C6694DAF28B7E6B8A82373A903A586@ORSMSX109.amr.corp.intel.com>
-	<20150911194311.GA18755@obsidianresearch.com>
-	<1828884A29C6694DAF28B7E6B8A82373A903A5DB@ORSMSX109.amr.corp.intel.com>
-	<CAG53R5XsMwnLK7L4q1mQx3_wEJNv1qthOr5TsX0o43kRWaiWrg@mail.gmail.com>
-	<20150914172832.GA21652@obsidianresearch.com>
+Date: Mon, 14 Sep 2015 14:18:40 -0600
+Message-ID: <20150914201840.GA8764@obsidianresearch.com>
+References: <CAG53R5WtuPA=J_GYPzNTAKbjB1r0K90qhXEDxLNf7vxYyxgrKA@mail.gmail.com>
+ <20150911040413.GA18850@htj.duckdns.org>
+ <55F25781.20308@redhat.com>
+ <20150911145213.GQ8114@mtj.duckdns.org>
+ <1828884A29C6694DAF28B7E6B8A82373A903A586@ORSMSX109.amr.corp.intel.com>
+ <20150911194311.GA18755@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373A903A5DB@ORSMSX109.amr.corp.intel.com>
+ <CAG53R5XsMwnLK7L4q1mQx3_wEJNv1qthOr5TsX0o43kRWaiWrg@mail.gmail.com>
+ <20150914172832.GA21652@obsidianresearch.com>
+ <CAG53R5XHTv-o+pGHdw+hGgtv4N3ZkH0WTs6o_W3zK_6jAnVsNA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150914172832.GA21652-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, "james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org" <serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAG53R5XHTv-o+pGHdw+hGgtv4N3ZkH0WTs6o_W3zK_6jAnVsNA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Parav Pandit <pandit.parav@gmail.com>
+Cc: "Hefty, Sean" <sean.hefty@intel.com>, Tejun Heo <tj@kernel.org>, Doug Ledford <dledford@redhat.com>, "cgroups@vger.kernel.org" <cgroups@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "lizefan@huawei.com" <lizefan@huawei.com>, Johannes Weiner <hannes@cmpxchg.org>, Jonathan Corbet <corbet@lwn.net>, "james.l.morris@oracle.com" <james.l.morris@oracle.com>, "serge@hallyn.com" <serge@hallyn.com>, Haggai Eran <haggaie@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, "raindel@mellanox.com" <raindel@mellanox.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 14, 2015 at 10:58 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Mon, Sep 14, 2015 at 04:39:33PM +0530, Parav Pandit wrote:
->
->> 1. How does the % of resource, is different than absolute number? With
->> rest of the cgroups systems we define absolute number at most places
->> to my knowledge.
->
-> There isn't really much choice if the abstraction is a bundle of all
-> resources. You can't use an absolute number unless every possible
-> hardware limited resource is defined, which doesn't seem smart to me
-> either.
+On Tue, Sep 15, 2015 at 12:24:41AM +0530, Parav Pandit wrote:
+> On Mon, Sep 14, 2015 at 10:58 PM, Jason Gunthorpe
+> <jgunthorpe@obsidianresearch.com> wrote:
+> > On Mon, Sep 14, 2015 at 04:39:33PM +0530, Parav Pandit wrote:
+> >
+> >> 1. How does the % of resource, is different than absolute number? With
+> >> rest of the cgroups systems we define absolute number at most places
+> >> to my knowledge.
+> >
+> > There isn't really much choice if the abstraction is a bundle of all
+> > resources. You can't use an absolute number unless every possible
+> > hardware limited resource is defined, which doesn't seem smart to me
+> > either.
+> 
+> Absolute number of percentage is representation for a given property.
+> That property needs definition. Isn't it?
+> How do we say that "Some undefined" resource you give certain amount,
+> which user doesn't know about what to administer, or configure.
+> It has to be quantifiable entity.
 
-Absolute number of percentage is representation for a given property.
-That property needs definition. Isn't it?
-How do we say that "Some undefined" resource you give certain amount,
-which user doesn't know about what to administer, or configure.
-It has to be quantifiable entity.
+Each vendor can quantify exactly what HW resources their
+implementation has and how the above limit impacts their card. There
+will be many variations, and IIRC, some vendors have resource pools
+not directly related to the standard PD/QP/MR/CQ/AH verbs resources.
 
-It is not abstract enough, and doesn't match our universe of
-> hardware very well.
->
-Why does the user need to know the actual hardware resource limits or
-define hardware based resource.
+> > It is not abstract enough, and doesn't match our universe of
+> > hardware very well.
 
-RDMA verbs is the abstraction point.
-We could well define
-(a) how many number of RDMA connections are allowed instead of QP, or CQ or AH.
-(b) how many data transfer buffers to use.
+> Why does the user need to know the actual hardware resource limits or
+> define hardware based resource.
 
-The fact is we have so many mid layers, which uses these resources
-differently, above abstraction does not fit the bill.
-But we know the mid layers how they operate, and how they use the RDMA
-resource keeping.
-So if we deploy MPI application for given cluster of container, we can
-accurately configure the RDMA resource, isn't it?
+Because actual hardware resources *ARE* the limit. We cannot abstract
+it away. The hardware/driver has real, fixed, immutable limits. No API
+abstraction can possibly change that.
 
-Another example would be, if we don't want only 50% resources to be
-given to all containers and rest 50% to kernel consumers such as NFS,
-all containers can reside in single rdma cgroup limited to given
-limits.
+The limits are such there *IS NO* API boundary that can bundle them
+into something simpler. There will always be apps that require wildly
+different ratios of the basic verbs resources (PD/QP/CQ/AH/MR)
 
+Either we control each and every vendor's limited resource directly
+(which is where you started), or we just roll them up into a 'all
+resource' bundle and control them indirectly. There just isn't a
+mythical third 'better API' choice with the hardware we have today.
 
->> 2. bytes of  kernel memory for RDMA structures
->> One QP of one vendor might consume X bytes and other Y bytes. How does
->> the application knows how much memory to give.
->
-> I don't see this distinction being useful at such a fine granularity
-> where the control side needs to distinguish between 1 and 2 QPs.
->
-> The majority use for control groups has been along with containers to
-> prevent a container for exhausting resources in a way that impacts
-> another.
->
-Right. Thats the intention.
+> (a) how many number of RDMA connections are allowed instead of QP, or CQ or AH.
+> (b) how many data transfer buffers to use.
 
-> In that use model limiting each container to N MB of kernel memory
-> makes it straightforward to reason about resource exhaustion in a
-> multi-tennant environment. We have other controllers that do this,
-> just more indirectly (ie limiting the number of inotifies, or the
-> number of fds indirectly cap kernel memory consumption)
->
-> ie Presumably some fairly small limitation like 10MB is enough for
-> most non-MPI jobs.
+None of that accurately reflects what the real HW limits actually are.
 
-Container application always write a simple for loop code to take away
-majority of QP with 10MB limit.
->
->> Application doing 100 QP allocation, still within limit of memory of
->> cgroup leaves other applications without any QP.
->
-> No, if the HW has a fixed QP pool then it would hit #1 above. Both are
-> active at once. For example you'd say a container cannot use more than
-> 10% of the device's hardware resources, or more than 10MB of kernel
-> memory.
->
-Right. we need to define this resource pool, right?
-Why it cannot be verbs abstraction?
-How many resources are really used to implement verb layer in reality
-is left to hardware vendor
-Abstract pool just added confusion instead of clarity.
+> > ie Presumably some fairly small limitation like 10MB is enough for
+> > most non-MPI jobs.
+> 
+> Container application always write a simple for loop code to take away
+> majority of QP with 10MB limit.
 
-Imagine instead of tcp_bytes or kmem bytes, its "some memory
-resource", how would someone debug/tune a system with abstract knobs?
+No, the HW and kmem limits must work together, the HW limit would
+prevent exhaustion outside the container.
 
-> If on an mlx card, you probably hit the 10% of QP resources first. If
-> on an qib card there is no HW QP pool (well, almost, QPNs are always
-> limited), so you'd hit the memory limit instead.
->
-> In either case, we don't want to see a container able to exhaust
-> either all of kernel memory or all of the HW resources to deny other
-> containers.
->
-> If you have a non-container use case in mind I'd be curious to hear
-> it..
+> Imagine instead of tcp_bytes or kmem bytes, its "some memory
+> resource", how would someone debug/tune a system with abstract knobs?
 
-Container is the prime case. Additionally equally prime case of non
-container use case.
-Today, application can take up all the resource being first class
-citizan, and NFS mount will fail.
-So without container also we should be able to restrict resources to
-user mode app.
+Well, we have the memcg controller that does track kmem. The subsystem
+specific kmem limit is to force fair sharing of the limited kmem
+resource within the overall memcg limit.
 
+They are complementary.
 
->
->> I don't see a point of memory footprint based scheme, as memory limits
->> are well addressed by more smarter memory controller anyway.
->
-> I don't thing #1 is controlled but another controller. This is long
-> lived kernel-side memory allocations to support RDMA resource
-> allocation - we certainly have nothing in the rdma layer that is
-> tracking this stuff.
->
-Some drivers performs mmap() of kernel memory to user space, some
-drivers does user space page allocation and maps to device.
-Putting or tracking all those is just so intrusive changes spreading
-down the vendor drivers or ib layer which may not be right way to
-track.
-Memory allocation tracking I believe should be left to memcg.
+A fictional rdma_kmem and tcp_kmem would serve very similar purposes.
 
+> > UAPI wise, nobdy has to care if the limit is actually # of QPs or
+> > something else.
 
->> If the hardware vendor defines the resource pool without saying its
->> resource QP or MR, how would actually management/control point can
->> decide what should be controlled to what limit?
->
-> In the kernel each HW driver has to be involved to declare what it's
-> hardware resource limits are.
->
-> In user space, it is just a simple limiter knob to prevent resource
-> exhaustion.
->
-> UAPI wise, nobdy has to care if the limit is actually # of QPs or
-> something else.
->
+> If we dont care about resource, we cannot tune or limit it. number of
+> MRs used by MPI vs rsocket vs accelio is way different.
 
-If we dont care about resource, we cannot tune or limit it. number of
-MRs used by MPI vs rsocket vs accelio is way different.
+So? I don't think it is really important to have an exact, precise,
+limit. The HW pools are pretty big, unless you plan to run tens of
+thousands of containers eacg with tiny RDMA limits, it is fine to talk
+in broader terms (ie 10% of all HW limited resource) which is totally
+adaquate to hard-prevent run away or exhaustion scenarios.
 
-
-
-> Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jason
