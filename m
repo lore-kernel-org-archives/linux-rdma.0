@@ -1,42 +1,29 @@
 From: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
-Subject: RE: [PATCH 11/39] hfi1: drop null test before destroy functions
-Date: Tue, 15 Sep 2015 13:56:18 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC257C173D@fmsmsx120.amr.corp.intel.com>
-References: <1442146532-9100-1-git-send-email-Julia.Lawall@lip6.fr>
- <1442146532-9100-12-git-send-email-Julia.Lawall@lip6.fr>
+Subject: RE: [patch] IB/hfi1: fix copy_to/from_user() error handling
+Date: Tue, 15 Sep 2015 14:01:15 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC257C176C@fmsmsx120.amr.corp.intel.com>
+References: <20150915103525.GA20813@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <1442146532-9100-12-git-send-email-Julia.Lawall@lip6.fr>
+Content-Transfer-Encoding: 8BIT
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <20150915103525.GA20813@mwanda>
 Content-Language: en-US
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Julia Lawall <Julia.Lawall@lip6.fr>, infinipath <infinipath@intel.com>
-Cc: "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Doug Ledford <dledford@redhat.com>, "Hefty, Sean" <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Doug Ledford <dledford@redhat.com>, "Hefty, Sean" <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Subject: [PATCH 11/39] hfi1: drop null test before destroy functions
+> Subject: [patch] IB/hfi1: fix copy_to/from_user() error handling
 > 
-> Remove unneeded NULL test.
+> copy_to/from_user() returns the number of bytes which we were not able to
+> copy.  It doesn't return an error code.
 > 
-> The semantic patch that makes this change is as follows:
-> (http://coccinelle.lip6.fr/)
+> Also a couple places had a printk() on error and I removed that because
+> people can take advantage of it to fill /var/log/messages with spam.
 > 
-> // <smpl>
-> @@ expression x; @@
-> -if (x != NULL)
->   \(kmem_cache_destroy\|mempool_destroy\|dma_pool_destroy\)(x);
-> // </smpl>
-> 
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> ---
 
 Thanks for the patch!
 
