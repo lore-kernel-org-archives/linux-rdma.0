@@ -1,234 +1,258 @@
 From: Bodong Wang <wbd2905-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/1] Add support for TX/RX checksum offload
-Date: Wed, 16 Sep 2015 18:59:51 +0300
-Message-ID: <111bfe6983bbc80a5e48d71f59b45a0d1b6766b4.1442413267.git.bodong@mellanox.com>
+Subject: [PATCH 2/2] Add support for TX/RX checksum offload
+Date: Wed, 16 Sep 2015 19:01:54 +0300
+Message-ID: <baad6cd44704515b20c6725692ff924a39890faf.1442412742.git.bodong@mellanox.com>
+References: <dcad1dc2e480fefaf359c96f8bdf2fa87ee983fa.1442412742.git.bodong@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <dcad1dc2e480fefaf359c96f8bdf2fa87ee983fa.1442412742.git.bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <dcad1dc2e480fefaf359c96f8bdf2fa87ee983fa.1442412742.git.bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+References: <dcad1dc2e480fefaf359c96f8bdf2fa87ee983fa.1442412742.git.bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Add a device capability field csum_cap to denote IPv4 checksum offload
-support. Devices should configure this field if they support
-insertion/verification of IPv4, TCP and UDP checksums on outgoing/incoming
-IPv4 packets according link layer and QP types.
+RX checksum verification status is reported through wc_flag when polling CQ if
+device supports checksum offload. When IBV_WC_IP_CSUM_OK is set, that means
+both IPv4 header checksum and TCP/UDP checksum are OK.
 
-Flags IBV_SEND_IP_CSUM and IBV_WC_IP_CSUM_OK are added for utilizing this
-capability for send and receive separately.
+TX checksum offload will be enabled for TCP/UDP over IPv4 if user sets
+send_flag IBV_SEND_IP_CSUM and device supports checksum offload.
+
+A new field: qp_cap_cache, is added to mlx4_qp in order to 'cache' the device
+capabilities to minimize performance hit on poll_one and post_send function.
+The capabilities are set inside mlx4_modify_qp. Post_send will return error
+if device doesn't support checksum but user sets flag IBV_SEND_IP_CSUM.
 
 Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- examples/devinfo.c            | 33 +++++++++++++++++++++++++++++++++
- include/infiniband/kern-abi.h |  7 +++++++
- include/infiniband/verbs.h    | 22 ++++++++++++++++++++--
- man/ibv_poll_cq.3             |  5 +++++
- man/ibv_post_send.3           |  4 ++++
- src/cmd.c                     | 13 +++++++++++++
- 6 files changed, 82 insertions(+), 2 deletions(-)
+ src/cq.c    |  6 ++++++
+ src/mlx4.c  |  1 +
+ src/mlx4.h  | 23 ++++++++++++++++++++++-
+ src/qp.c    | 19 +++++++++++++++++++
+ src/verbs.c | 54 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ src/wqe.h   |  8 +++++---
+ 6 files changed, 107 insertions(+), 4 deletions(-)
 
-diff --git a/examples/devinfo.c b/examples/devinfo.c
-index a8de982..46d4614 100644
---- a/examples/devinfo.c
-+++ b/examples/devinfo.c
-@@ -253,6 +253,38 @@ void print_odp_caps(const struct ibv_odp_caps *caps)
- 	print_odp_trans_caps(caps->per_transport_caps.ud_odp_caps);
- }
- 
-+void print_csum_caps(const struct ibv_csum_cap_per_link *caps)
-+{
-+	uint32_t unknown_csum_caps = ~(IBV_CSUM_SUPPORT_RAW |
-+				       IBV_CSUM_SUPPORT_UD);
+diff --git a/src/cq.c b/src/cq.c
+index 8b27795..32c9070 100644
+--- a/src/cq.c
++++ b/src/cq.c
+@@ -329,6 +329,12 @@ static int mlx4_poll_one(struct mlx4_cq *cq,
+ 			wc->sl	   = ntohs(cqe->sl_vid) >> 13;
+ 		else
+ 			wc->sl	   = ntohs(cqe->sl_vid) >> 12;
 +
-+	printf("\teth_csum_cap:\n");
-+	if (!caps->eth_csum_cap) {
-+		printf("\t\t\t\t\tNO_SUPPORT\n");
-+	} else {
-+		if (caps->eth_csum_cap & IBV_CSUM_SUPPORT_RAW)
-+			printf("\t\t\t\t\tRAW_QP_SUPPORT\n");
-+		if (caps->eth_csum_cap & IBV_CSUM_SUPPORT_UD)
-+			printf("\t\t\t\t\tUD_QP_SUPPORT\n");
-+		if (caps->eth_csum_cap & unknown_csum_caps)
-+			printf("\t\t\t\t\tUnknown flags: 0x%" PRIX32 "\n",
-+			       caps->eth_csum_cap & unknown_csum_caps);
-+	}
-+
-+	printf("\tib_csum_cap:\n");
-+	if (!caps->ib_csum_cap) {
-+		printf("\t\t\t\t\tNO_SUPPORT\n");
-+	} else {
-+		if (caps->ib_csum_cap & IBV_CSUM_SUPPORT_RAW)
-+			printf("\t\t\t\t\tRAW_QP_SUPPORT\n");
-+		if (caps->ib_csum_cap & IBV_CSUM_SUPPORT_UD)
-+			printf("\t\t\t\t\tUD_QP_SUPPORT\n");
-+		if (caps->ib_csum_cap & unknown_csum_caps)
-+			printf("\t\t\t\t\tUnknown flags: 0x%" PRIX32 "\n",
-+			       caps->ib_csum_cap & unknown_csum_caps);
-+	}
-+}
-+
- static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
- {
- 	struct ibv_context *ctx;
-@@ -339,6 +371,7 @@ static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
- 		printf("\tlocal_ca_ack_delay:\t\t%d\n", device_attr.orig_attr.local_ca_ack_delay);
- 
- 		print_odp_caps(&device_attr.odp_caps);
-+		print_csum_caps(&device_attr.csum_cap);
++		if ((*cur_qp) && ((*cur_qp)->qp_cap_cache & MLX4_RX_CSUM_VALID)) {
++			wc->wc_flags |= ((cqe->status & htonl(MLX4_CQE_STATUS_IPV4_CSUM_OK)) ==
++					 htonl(MLX4_CQE_STATUS_IPV4_CSUM_OK)) <<
++					IBV_WC_IP_CSUM_OK_SHIFT;
++		}
  	}
  
- 	for (port = 1; port <= device_attr.orig_attr.phys_port_cnt; ++port) {
-diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
-index 800c5ab..51d4fb0 100644
---- a/include/infiniband/kern-abi.h
-+++ b/include/infiniband/kern-abi.h
-@@ -262,11 +262,18 @@ struct ibv_odp_caps_resp {
- 	__u32 reserved;
+ 	return CQ_OK;
+diff --git a/src/mlx4.c b/src/mlx4.c
+index 9fe8c6a..427a3a8 100644
+--- a/src/mlx4.c
++++ b/src/mlx4.c
+@@ -205,6 +205,7 @@ static int mlx4_init_context(struct verbs_device *v_device,
+ 	verbs_set_ctx_op(verbs_ctx, open_qp, mlx4_open_qp);
+ 	verbs_set_ctx_op(verbs_ctx, ibv_create_flow, ibv_cmd_create_flow);
+ 	verbs_set_ctx_op(verbs_ctx, ibv_destroy_flow, ibv_cmd_destroy_flow);
++	verbs_set_ctx_op(verbs_ctx, query_device_ex, mlx4_query_device_ex);
+ 
+ 	return 0;
+ 
+diff --git a/src/mlx4.h b/src/mlx4.h
+index d71450f..7e229d7 100644
+--- a/src/mlx4.h
++++ b/src/mlx4.h
+@@ -257,6 +257,7 @@ struct mlx4_qp {
+ 	struct mlx4_wq			rq;
+ 
+ 	uint8_t				link_layer;
++	uint32_t			qp_cap_cache;
  };
  
-+struct ibv_csum_cap_per_link_resp {
-+	__u32 eth_csum_cap;
-+	__u32 ib_csum_cap;
-+};
-+
- struct ibv_query_device_resp_ex {
- 	struct ibv_query_device_resp base;
- 	__u32 comp_mask;
- 	__u32 response_length;
- 	struct ibv_odp_caps_resp odp_caps;
-+	__u64 reserved0[2];
-+	struct ibv_csum_cap_per_link_resp csum_cap;
- };
- 
- struct ibv_query_port {
-diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index 1ff5265..134359f 100644
---- a/include/infiniband/verbs.h
-+++ b/include/infiniband/verbs.h
-@@ -196,10 +196,16 @@ enum ibv_odp_general_caps {
- 	IBV_ODP_SUPPORT = 1 << 0,
- };
- 
-+struct ibv_csum_cap_per_link {
-+	uint32_t eth_csum_cap;
-+	uint32_t ib_csum_cap;
-+};
-+
- struct ibv_device_attr_ex {
- 	struct ibv_device_attr	orig_attr;
- 	uint32_t		comp_mask;
- 	struct ibv_odp_caps	odp_caps;
-+	struct ibv_csum_cap_per_link csum_cap;
- };
- 
- enum ibv_mtu {
-@@ -348,9 +354,14 @@ enum ibv_wc_opcode {
- 	IBV_WC_RECV_RDMA_WITH_IMM
+ struct mlx4_av {
+@@ -279,6 +280,22 @@ struct mlx4_ah {
+ 	uint8_t				mac[6];
  };
  
 +enum {
-+	IBV_WC_IP_CSUM_OK_SHIFT	= 2
++	MLX4_CSUM_SUPPORT_UD_OVER_IB	= (1 <<  0),
++	MLX4_CSUM_SUPPORT_RAW_OVER_ETH	= (1 <<  1),
++	/* Only report rx checksum when the validation is valid */
++	MLX4_RX_CSUM_VALID		= (1 <<  16),
 +};
 +
- enum ibv_wc_flags {
- 	IBV_WC_GRH		= 1 << 0,
--	IBV_WC_WITH_IMM		= 1 << 1
-+	IBV_WC_WITH_IMM		= 1 << 1,
-+	IBV_WC_IP_CSUM_OK	= 1 << IBV_WC_IP_CSUM_OK_SHIFT
- };
- 
- struct ibv_wc {
-@@ -646,6 +657,11 @@ enum ibv_mig_state {
- 	IBV_MIG_ARMED
- };
- 
-+enum ibv_csum_cap_flags {
-+	IBV_CSUM_SUPPORT_UD	= 1 << IBV_QPT_UD,
-+	IBV_CSUM_SUPPORT_RAW	= 1 << IBV_QPT_RAW_PACKET,
++enum mlx4_cqe_status {
++	MLX4_CQE_STATUS_TCP_UDP_CSUM_OK	= (1 <<  2),
++	MLX4_CQE_STATUS_IPV4_PKT	= (1 << 22),
++	MLX4_CQE_STATUS_IP_HDR_CSUM_OK	= (1 << 28),
++	MLX4_CQE_STATUS_IPV4_CSUM_OK	= MLX4_CQE_STATUS_IPV4_PKT |
++					MLX4_CQE_STATUS_IP_HDR_CSUM_OK |
++					MLX4_CQE_STATUS_TCP_UDP_CSUM_OK
 +};
 +
- struct ibv_qp_attr {
- 	enum ibv_qp_state	qp_state;
- 	enum ibv_qp_state	cur_qp_state;
-@@ -688,7 +704,8 @@ enum ibv_send_flags {
- 	IBV_SEND_FENCE		= 1 << 0,
- 	IBV_SEND_SIGNALED	= 1 << 1,
- 	IBV_SEND_SOLICITED	= 1 << 2,
--	IBV_SEND_INLINE		= 1 << 3
-+	IBV_SEND_INLINE		= 1 << 3,
-+	IBV_SEND_IP_CSUM	= 1 << 4
- };
+ struct mlx4_cqe {
+ 	uint32_t	vlan_my_qpn;
+ 	uint32_t	immed_rss_invalid;
+@@ -286,7 +303,7 @@ struct mlx4_cqe {
+ 	uint8_t		sl_vid;
+ 	uint8_t		reserved1;
+ 	uint16_t	rlid;
+-	uint32_t	reserved2;
++	uint32_t	status;
+ 	uint32_t	byte_cnt;
+ 	uint16_t	wqe_index;
+ 	uint16_t	checksum;
+@@ -352,6 +369,10 @@ void mlx4_free_db(struct mlx4_context *context, enum mlx4_db_type type, uint32_t
  
- struct ibv_sge {
-@@ -1459,6 +1476,7 @@ ibv_query_device_ex(struct ibv_context *context,
- legacy:
- 	memset(attr, 0, sizeof(*attr));
- 	ret = ibv_query_device(context, &attr->orig_attr);
-+
- 	return ret;
- }
+ int mlx4_query_device(struct ibv_context *context,
+ 		       struct ibv_device_attr *attr);
++int mlx4_query_device_ex(struct ibv_context *context,
++			 const struct ibv_query_device_ex_input *input,
++			 struct ibv_device_attr_ex *attr,
++			 size_t attr_size);
+ int mlx4_query_port(struct ibv_context *context, uint8_t port,
+ 		     struct ibv_port_attr *attr);
  
-diff --git a/man/ibv_poll_cq.3 b/man/ibv_poll_cq.3
-index 57c6daa..ba5d2ef 100644
---- a/man/ibv_poll_cq.3
-+++ b/man/ibv_poll_cq.3
-@@ -50,6 +50,11 @@ It is either 0 or the bitwise OR of one or more of the following flags:
- .B IBV_WC_GRH \fR      GRH is present (valid only for UD QPs)
- .TP
- .B IBV_WC_WITH_IMM \fR Immediate data value is valid
-+.TP
-+.B IBV_WC_IP_CSUM_OK \fR TCP/UDP checksum over IPv4 and IPv4 header checksum are
-+verified.
-+This feature is supported only when \fBcsum_cap\fR in device_attr indicates
-+current QP under current link layer is supported.
- .PP
- Not all
- .I wc
-diff --git a/man/ibv_post_send.3 b/man/ibv_post_send.3
-index 33fbb50..00afd66 100644
---- a/man/ibv_post_send.3
-+++ b/man/ibv_post_send.3
-@@ -98,6 +98,10 @@ The attribute send_flags describes the properties of the \s-1WR\s0. It is either
- .TP
- .B IBV_SEND_INLINE \fR Send data in given gather list as inline data
- in a send WQE.  Valid only for Send and RDMA Write.  The L_Key will not be checked.
-+.TP
-+.B IBV_SEND_IP_CSUM \fR Offload the IPv4 and TCP/UDP checksum calculation.
-+This feature is supported only when \fBcsum_cap\fR in device_attr indicates
-+current QP under current link layer is supported.
- .SH "RETURN VALUE"
- .B ibv_post_send()
- returns 0 on success, or the value of errno on failure (which indicates the failure reason).
-diff --git a/src/cmd.c b/src/cmd.c
-index e1914e9..17fc386 100644
---- a/src/cmd.c
-+++ b/src/cmd.c
-@@ -160,6 +160,7 @@ int ibv_cmd_query_device_ex(struct ibv_context *context,
- 	IBV_INIT_CMD_RESP_EX_V(cmd, cmd_core_size, cmd_size,
- 			       QUERY_DEVICE_EX, resp, resp_core_size,
- 			       resp_size);
+diff --git a/src/qp.c b/src/qp.c
+index 721bed4..057490b 100644
+--- a/src/qp.c
++++ b/src/qp.c
+@@ -289,12 +289,31 @@ int mlx4_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 			set_datagram_seg(wqe, wr);
+ 			wqe  += sizeof (struct mlx4_wqe_datagram_seg);
+ 			size += sizeof (struct mlx4_wqe_datagram_seg) / 16;
 +
- 	cmd->comp_mask = 0;
- 	cmd->reserved = 0;
- 	memset(attr->orig_attr.fw_ver, 0, sizeof(attr->orig_attr.fw_ver));
-@@ -189,6 +190,18 @@ int ibv_cmd_query_device_ex(struct ibv_context *context,
- 		}
- 	}
++			if (wr->send_flags & IBV_SEND_IP_CSUM) {
++				if (!(qp->qp_cap_cache & MLX4_CSUM_SUPPORT_UD_OVER_IB)) {
++					ret = EINVAL;
++					*bad_wr = wr;
++					goto out;
++				}
++				ctrl->srcrb_flags |= htonl(MLX4_WQE_CTRL_IP_HDR_CSUM |
++							   MLX4_WQE_CTRL_TCP_UDP_CSUM);
++			}
+ 			break;
  
-+	if (attr_size >= offsetof(struct ibv_device_attr_ex, csum_cap) +
-+	    sizeof(attr->csum_cap)) {
-+		if (resp->response_length >=
-+		    offsetof(struct ibv_query_device_resp_ex, csum_cap) +
-+		    sizeof(resp->csum_cap)) {
-+			attr->csum_cap.eth_csum_cap = resp->csum_cap.eth_csum_cap;
-+			attr->csum_cap.ib_csum_cap = resp->csum_cap.ib_csum_cap;
-+		} else {
-+			memset(&attr->csum_cap, 0, sizeof(attr->csum_cap));
-+		}
-+	}
-+
+ 		case IBV_QPT_RAW_PACKET:
+ 			/* For raw eth, the MLX4_WQE_CTRL_SOLICIT flag is used
+ 			 * to indicate that no icrc should be calculated */
+ 			ctrl->srcrb_flags |= htonl(MLX4_WQE_CTRL_SOLICIT);
++			if (wr->send_flags & IBV_SEND_IP_CSUM) {
++				if (!(qp->qp_cap_cache & MLX4_CSUM_SUPPORT_RAW_OVER_ETH)) {
++					ret = EINVAL;
++					*bad_wr = wr;
++					goto out;
++				}
++				ctrl->srcrb_flags |= htonl(MLX4_WQE_CTRL_IP_HDR_CSUM |
++							   MLX4_WQE_CTRL_TCP_UDP_CSUM);
++			}
+ 			break;
+ 
+ 		default:
+diff --git a/src/verbs.c b/src/verbs.c
+index 623d576..18ee786 100644
+--- a/src/verbs.c
++++ b/src/verbs.c
+@@ -66,6 +66,34 @@ int mlx4_query_device(struct ibv_context *context, struct ibv_device_attr *attr)
  	return 0;
  }
  
++int mlx4_query_device_ex(struct ibv_context *context,
++			 const struct ibv_query_device_ex_input *input,
++			 struct ibv_device_attr_ex *attr,
++			 size_t attr_size)
++{
++	struct ibv_query_device_ex cmd;
++	struct ibv_query_device_resp_ex resp;
++	uint64_t raw_fw_ver;
++	unsigned major, minor, sub_minor;
++	int ret;
++
++	ret = ibv_cmd_query_device_ex(context, input, attr, attr_size,
++				      &raw_fw_ver,
++				      &cmd, sizeof(cmd), sizeof(cmd),
++				      &resp, sizeof(resp), sizeof(resp));
++	if (ret)
++		return ret;
++
++	major	= (raw_fw_ver >> 32) & 0xffff;
++	minor	= (raw_fw_ver >> 16) & 0xffff;
++	sub_minor = raw_fw_ver & 0xffff;
++
++	snprintf(attr->orig_attr.fw_ver, sizeof attr->orig_attr.fw_ver,
++		 "%d.%d.%03d", major, minor, sub_minor);
++
++	return 0;
++}
++
+ int mlx4_query_port(struct ibv_context *context, uint8_t port,
+ 		     struct ibv_port_attr *attr)
+ {
+@@ -606,14 +634,40 @@ int mlx4_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+ 	struct ibv_modify_qp cmd;
+ 	struct ibv_port_attr port_attr;
+ 	struct mlx4_qp *mqp = to_mqp(qp);
++	struct ibv_device_attr_ex device_attr;
++	struct ibv_query_device_ex_input input;
+ 	int ret;
+ 
++	memset(&device_attr, 0, sizeof(device_attr));
++	memset(&input, 0, sizeof(input));
+ 	if (attr_mask & IBV_QP_PORT) {
+ 		ret = ibv_query_port(qp->context, attr->port_num,
+ 				     &port_attr);
+ 		if (ret)
+ 			return ret;
+ 		mqp->link_layer = port_attr.link_layer;
++
++		ret = ibv_query_device_ex(qp->context, &input, &device_attr);
++		if (ret)
++			return ret;
++
++		switch(qp->qp_type) {
++		case IBV_QPT_UD:
++			if ((mqp->link_layer == IBV_LINK_LAYER_INFINIBAND) &&
++			    (device_attr.csum_cap.ib_csum_cap & IBV_CSUM_SUPPORT_UD))
++				mqp->qp_cap_cache |= MLX4_CSUM_SUPPORT_UD_OVER_IB |
++						MLX4_RX_CSUM_VALID;
++			break;
++		case IBV_QPT_RAW_PACKET:
++			if ((mqp->link_layer == IBV_LINK_LAYER_ETHERNET) &&
++			    (device_attr.csum_cap.eth_csum_cap & IBV_CSUM_SUPPORT_RAW))
++				mqp->qp_cap_cache |= MLX4_CSUM_SUPPORT_RAW_OVER_ETH |
++						MLX4_RX_CSUM_VALID;
++			break;
++		default:
++			break;
++		}
++
+ 	}
+ 
+ 	if (qp->state == IBV_QPS_RESET &&
+diff --git a/src/wqe.h b/src/wqe.h
+index bbd22ba..bbfd7df 100644
+--- a/src/wqe.h
++++ b/src/wqe.h
+@@ -38,9 +38,11 @@ enum {
+ };
+ 
+ enum {
+-	MLX4_WQE_CTRL_FENCE	= 1 << 6,
+-	MLX4_WQE_CTRL_CQ_UPDATE	= 3 << 2,
+-	MLX4_WQE_CTRL_SOLICIT	= 1 << 1,
++	MLX4_WQE_CTRL_FENCE		= 1 << 6,
++	MLX4_WQE_CTRL_CQ_UPDATE		= 3 << 2,
++	MLX4_WQE_CTRL_SOLICIT		= 1 << 1,
++	MLX4_WQE_CTRL_IP_HDR_CSUM	= 1 << 4,
++	MLX4_WQE_CTRL_TCP_UDP_CSUM	= 1 << 5,
+ };
+ 
+ enum {
 -- 
 1.8.3.1
 
