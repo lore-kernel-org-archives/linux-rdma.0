@@ -1,201 +1,57 @@
-From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next 25/32] IB/rxe: Dummy DMA callbacks for RXE device
-Date: Wed, 16 Sep 2015 16:42:59 +0300
-Message-ID: <1442410986-28232-26-git-send-email-kamalh@mellanox.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-next 32/32] IB/rxe: TODO file while in staging
+Date: Wed, 16 Sep 2015 16:58:01 +0300
+Message-ID: <55F97569.7060900@dev.mellanox.co.il>
 References: <1442410986-28232-1-git-send-email-kamalh@mellanox.com>
+ <1442410986-28232-33-git-send-email-kamalh@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1442410986-28232-1-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1442410986-28232-33-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Dummy DMA processing for RXE device.
+On 9/16/2015 4:43 PM, Kamal Heib wrote:
+> From: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>
+> Things todo in order to get out of staging subtree.
+>
+> Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>   drivers/staging/rxe/TODO | 15 +++++++++++++++
+>   1 file changed, 15 insertions(+)
+>   create mode 100644 drivers/staging/rxe/TODO
+>
+> diff --git a/drivers/staging/rxe/TODO b/drivers/staging/rxe/TODO
+> new file mode 100644
+> index 0000000..a621b27
+> --- /dev/null
+> +++ b/drivers/staging/rxe/TODO
+> @@ -0,0 +1,15 @@
+> +Aug, 2015
+> +
+> +- Remove software processing of IB protocol and place in library for use
+> +  by qib, ipath (if still present), hfi1, and soft-roce
+> +- Do not use tasklet in completion flow
+> +- Need to free resources if user space didn't.
+> +- Share structures from ib_user_verbs.h instead of copying in ib_rxe.h
+> +- Move IBA header types and methods from rxe_hdr.h into IB core
+> +- Cleanup members of rxe_pkt_info that already exists in packet header
+> +- Refactor post_send_one function to get better performance.
+> +- Refactor rxe_mem struct to be clear what is type of memory that it's holding.
+> +- Use single reference count from the pool to the device, instead of having a single
+> +  reference on the device kept by each element in the pool.
+> +- Calculate ICRC for incoming packets.
+> +- Use hash table to hold net_info instead of fixed size array used now.
+>
 
-
-Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/staging/rxe/rxe_dma.c | 166 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 166 insertions(+)
- create mode 100644 drivers/staging/rxe/rxe_dma.c
-
-diff --git a/drivers/staging/rxe/rxe_dma.c b/drivers/staging/rxe/rxe_dma.c
-new file mode 100644
-index 0000000..265b03d
---- /dev/null
-+++ b/drivers/staging/rxe/rxe_dma.c
-@@ -0,0 +1,166 @@
-+/*
-+ * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
-+ * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *	- Redistributions of source code must retain the above
-+ *	  copyright notice, this list of conditions and the following
-+ *	  disclaimer.
-+ *
-+ *	- Redistributions in binary form must reproduce the above
-+ *	  copyright notice, this list of conditions and the following
-+ *	  disclaimer in the documentation and/or other materials
-+ *	  provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include "rxe.h"
-+#include "rxe_loc.h"
-+
-+#define DMA_BAD_ADDER ((u64)0)
-+
-+static int rxe_mapping_error(struct ib_device *dev, u64 dma_addr)
-+{
-+	return dma_addr == DMA_BAD_ADDER;
-+}
-+
-+static u64 rxe_dma_map_single(struct ib_device *dev,
-+			      void *cpu_addr, size_t size,
-+			      enum dma_data_direction direction)
-+{
-+	WARN_ON(!valid_dma_direction(direction));
-+	return (u64)cpu_addr;
-+}
-+
-+static void rxe_dma_unmap_single(struct ib_device *dev,
-+				 u64 addr, size_t size,
-+				 enum dma_data_direction direction)
-+{
-+	WARN_ON(!valid_dma_direction(direction));
-+}
-+
-+static u64 rxe_dma_map_page(struct ib_device *dev,
-+			    struct page *page,
-+			    unsigned long offset,
-+			    size_t size, enum dma_data_direction direction)
-+{
-+	u64 addr;
-+
-+	WARN_ON(!valid_dma_direction(direction));
-+
-+	if (offset + size > PAGE_SIZE) {
-+		addr = DMA_BAD_ADDER;
-+		goto done;
-+	}
-+
-+	addr = (u64)page_address(page);
-+	if (addr)
-+		addr += offset;
-+
-+done:
-+	return addr;
-+}
-+
-+static void rxe_dma_unmap_page(struct ib_device *dev,
-+			       u64 addr, size_t size,
-+			       enum dma_data_direction direction)
-+{
-+	WARN_ON(!valid_dma_direction(direction));
-+}
-+
-+static int rxe_map_sg(struct ib_device *dev, struct scatterlist *sgl,
-+		      int nents, enum dma_data_direction direction)
-+{
-+	struct scatterlist *sg;
-+	u64 addr;
-+	int i;
-+	int ret = nents;
-+
-+	WARN_ON(!valid_dma_direction(direction));
-+
-+	for_each_sg(sgl, sg, nents, i) {
-+		addr = (u64)page_address(sg_page(sg));
-+		if (!addr) {
-+			ret = 0;
-+			break;
-+		}
-+		sg->dma_address = addr + sg->offset;
-+#ifdef CONFIG_NEED_SG_DMA_LENGTH
-+		sg->dma_length = sg->length;
-+#endif
-+	}
-+
-+	return ret;
-+}
-+
-+static void rxe_unmap_sg(struct ib_device *dev,
-+			 struct scatterlist *sg, int nents,
-+			 enum dma_data_direction direction)
-+{
-+	WARN_ON(!valid_dma_direction(direction));
-+}
-+
-+static void rxe_sync_single_for_cpu(struct ib_device *dev,
-+				    u64 addr,
-+				    size_t size, enum dma_data_direction dir)
-+{
-+}
-+
-+static void rxe_sync_single_for_device(struct ib_device *dev,
-+				       u64 addr,
-+				       size_t size, enum dma_data_direction dir)
-+{
-+}
-+
-+static void *rxe_dma_alloc_coherent(struct ib_device *dev, size_t size,
-+				    u64 *dma_handle, gfp_t flag)
-+{
-+	struct page *p;
-+	void *addr = NULL;
-+
-+	p = alloc_pages(flag, get_order(size));
-+	if (p)
-+		addr = page_address(p);
-+
-+	if (dma_handle)
-+		*dma_handle = (u64)addr;
-+
-+	return addr;
-+}
-+
-+static void rxe_dma_free_coherent(struct ib_device *dev, size_t size,
-+				  void *cpu_addr, u64 dma_handle)
-+{
-+	free_pages((unsigned long)cpu_addr, get_order(size));
-+}
-+
-+struct ib_dma_mapping_ops rxe_dma_mapping_ops = {
-+	.mapping_error		= rxe_mapping_error,
-+	.map_single		= rxe_dma_map_single,
-+	.unmap_single		= rxe_dma_unmap_single,
-+	.map_page		= rxe_dma_map_page,
-+	.unmap_page		= rxe_dma_unmap_page,
-+	.map_sg			= rxe_map_sg,
-+	.unmap_sg		= rxe_unmap_sg,
-+	.sync_single_for_cpu	= rxe_sync_single_for_cpu,
-+	.sync_single_for_device	= rxe_sync_single_for_device,
-+	.alloc_coherent		= rxe_dma_alloc_coherent,
-+	.free_coherent		= rxe_dma_free_coherent
-+};
--- 
-1.8.3.1
-
+Lets add:
+- Support work request interface memory registration (I'll look into
+that).
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
