@@ -1,45 +1,31 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-4.3] IB/ipoib: add module option for auto-creating
- mcast groups
-Date: Wed, 16 Sep 2015 11:03:23 -0600
-Message-ID: <20150916170323.GB27294@obsidianresearch.com>
-References: <980e8b0a82042d7e5801e02bf16fe72a0bde6759.1441934465.git.dledford@redhat.com>
- <alpine.DEB.2.11.1509110920540.16357@east.gentwo.org>
- <20150911182115.GA546@obsidianresearch.com>
- <55F32E7A.3020105@redhat.com>
- <alpine.DEB.2.11.1509141200020.4192@east.gentwo.org>
- <55F86255.9080508@redhat.com>
- <20150915191159.GB24173@obsidianresearch.com>
- <55F988F1.8000508@redhat.com>
- <alpine.DEB.2.11.1509161058540.22035@east.gentwo.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/3] IB/core: Add support of checksum capability reporting
+ in ib verbs
+Date: Wed, 16 Sep 2015 12:07:23 -0500 (CDT)
+Message-ID: <alpine.DEB.2.11.1509161201100.22920@east.gentwo.org>
+References: <cover.1442413048.git.bodong@mellanox.com> <490a38ab04a96f24500d647392e931c38853ba45.1442413048.git.bodong@mellanox.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.11.1509161058540.22035-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
+In-Reply-To: <490a38ab04a96f24500d647392e931c38853ba45.1442413048.git.bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Bodong Wang <wbd2905-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Sep 16, 2015 at 10:59:50AM -0500, Christoph Lameter wrote:
-> On Wed, 16 Sep 2015, Doug Ledford wrote:
-> 
-> > > Abusing it for send-side is probably the wrong
-> > > direction overall.
-> >
-> > I wouldn't "abuse" it for such, I would suggest adding a proper notion
-> > of send-only registrations.
-> 
-> That is really not necessary for IP traffic. There is no need to track
-> these since multicast can be send without subscriptions. So I guess that
-> there will not be much support on netdev for such an approach.
+On Wed, 16 Sep 2015, Bodong Wang wrote:
 
-InfiniBand is not unique here, eg, long ago proposals for IPoATM had
-the same problem. Not sure if there is any other more current networks
-that work this way..
+> A new filed csum_cap is added to both ib_query_device. It contains two members:
+> eth_csum_cap and ib_csum_cap, indicates checksum capability of Ethernet and
+> Infiniband link layer respectively for different QP types.
+>
+> Current checksum caps use the following enum members:
+> - IB_CSUM_SUPPORT_UD: device supports validation/calculation of csum for UD QP.
+> - IB_CSUM_SUPPORT_RAW: device supports validation/calculation of csum for raw QP.
 
-Jason
+A combination? Is it possible then to also support calculation without
+validation? Maybe we want to receive packets that do have invalid
+checksums.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
