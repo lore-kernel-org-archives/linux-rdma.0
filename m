@@ -1,7 +1,7 @@
 From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next 16/32] IB/rxe: Shared Receive Queue (SRQ) manipulation functions
-Date: Wed, 16 Sep 2015 16:42:50 +0300
-Message-ID: <1442410986-28232-17-git-send-email-kamalh@mellanox.com>
+Subject: [PATCH rdma-next 15/32] IB/rxe: Address vector manipulation functions
+Date: Wed, 16 Sep 2015 16:42:49 +0300
+Message-ID: <1442410986-28232-16-git-send-email-kamalh@mellanox.com>
 References: <1442410986-28232-1-git-send-email-kamalh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1442410986-28232-1-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,22 +10,22 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Functions to manipulate SRQ.
+Functions to manipulate Address Vector.
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/staging/rxe/rxe_srq.c | 195 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 195 insertions(+)
- create mode 100644 drivers/staging/rxe/rxe_srq.c
+ drivers/staging/rxe/rxe_av.c | 87 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 87 insertions(+)
+ create mode 100644 drivers/staging/rxe/rxe_av.c
 
-diff --git a/drivers/staging/rxe/rxe_srq.c b/drivers/staging/rxe/rxe_srq.c
+diff --git a/drivers/staging/rxe/rxe_av.c b/drivers/staging/rxe/rxe_av.c
 new file mode 100644
-index 0000000..1411fd2
+index 0000000..cc4b179
 --- /dev/null
-+++ b/drivers/staging/rxe/rxe_srq.c
-@@ -0,0 +1,195 @@
++++ b/drivers/staging/rxe/rxe_av.c
+@@ -0,0 +1,87 @@
 +/*
 + * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
@@ -36,18 +36,18 @@ index 0000000..1411fd2
 + * COPYING in the main directory of this source tree, or the
 + * OpenIB.org BSD license below:
 + *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
++ *	   Redistribution and use in source and binary forms, with or
++ *	   without modification, are permitted provided that the following
++ *	   conditions are met:
 + *
-+ *	- Redistributions of source code must retain the above
-+ *	  copyright notice, this list of conditions and the following
-+ *	  disclaimer.
++ *		- Redistributions of source code must retain the above
++ *		  copyright notice, this list of conditions and the following
++ *		  disclaimer.
 + *
-+ *	- Redistributions in binary form must reproduce the above
-+ *	  copyright notice, this list of conditions and the following
-+ *	  disclaimer in the documentation and/or other materials
-+ *	  provided with the distribution.
++ *		- Redistributions in binary form must reproduce the above
++ *		  copyright notice, this list of conditions and the following
++ *		  disclaimer in the documentation and/or other materials
++ *		  provided with the distribution.
 + *
 + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -61,165 +61,57 @@ index 0000000..1411fd2
 +
 +#include "rxe.h"
 +#include "rxe_loc.h"
-+#include "rxe_queue.h"
 +
-+int rxe_srq_chk_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
-+		     struct ib_srq_attr *attr, enum ib_srq_attr_mask mask)
++int rxe_av_chk_attr(struct rxe_dev *rxe, struct ib_ah_attr *attr)
 +{
-+	if (srq && srq->error) {
-+		pr_warn("srq in error state\n");
-+		goto err1;
++	struct rxe_port *port;
++
++	if (attr->port_num < 1 || attr->port_num > rxe->num_ports) {
++		pr_info("rxe: invalid port_num = %d\n", attr->port_num);
++		return -EINVAL;
 +	}
 +
-+	if (mask & IB_SRQ_MAX_WR) {
-+		if (attr->max_wr > rxe->attr.max_srq_wr) {
-+			pr_warn("max_wr(%d) > max_srq_wr(%d)\n",
-+				attr->max_wr, rxe->attr.max_srq_wr);
-+			goto err1;
++	port = &rxe->port[attr->port_num - 1];
++
++	if (attr->ah_flags & IB_AH_GRH) {
++		if (attr->grh.sgid_index > port->attr.gid_tbl_len) {
++			pr_info("rxe: invalid sgid index = %d\n",
++				attr->grh.sgid_index);
++			return -EINVAL;
 +		}
-+
-+		if (attr->max_wr <= 0) {
-+			pr_warn("max_wr(%d) <= 0\n", attr->max_wr);
-+			goto err1;
-+		}
-+
-+		if (srq && srq->limit && (attr->max_wr < srq->limit)) {
-+			pr_warn("max_wr (%d) < srq->limit (%d)\n",
-+				attr->max_wr, srq->limit);
-+			goto err1;
-+		}
-+
-+		if (attr->max_wr < RXE_MIN_SRQ_WR)
-+			attr->max_wr = RXE_MIN_SRQ_WR;
-+	}
-+
-+	if (mask & IB_SRQ_LIMIT) {
-+		if (attr->srq_limit > rxe->attr.max_srq_wr) {
-+			pr_warn("srq_limit(%d) > max_srq_wr(%d)\n",
-+				attr->srq_limit, rxe->attr.max_srq_wr);
-+			goto err1;
-+		}
-+
-+		if (srq && (attr->srq_limit > srq->rq.queue->buf->index_mask)) {
-+			pr_warn("srq_limit (%d) > cur limit(%d)\n",
-+				attr->srq_limit,
-+				 srq->rq.queue->buf->index_mask);
-+			goto err1;
-+		}
-+	}
-+
-+	if (mask == IB_SRQ_INIT_MASK) {
-+		if (attr->max_sge > rxe->attr.max_srq_sge) {
-+			pr_warn("max_sge(%d) > max_srq_sge(%d)\n",
-+				attr->max_sge, rxe->attr.max_srq_sge);
-+			goto err1;
-+		}
-+
-+		if (attr->max_sge < RXE_MIN_SRQ_SGE)
-+			attr->max_sge = RXE_MIN_SRQ_SGE;
 +	}
 +
 +	return 0;
-+
-+err1:
-+	return -EINVAL;
 +}
 +
-+int rxe_srq_from_init(struct rxe_dev *rxe, struct rxe_srq *srq,
-+		      struct ib_srq_init_attr *init,
-+		      struct ib_ucontext *context, struct ib_udata *udata)
++int rxe_av_from_attr(struct rxe_dev *rxe, u8 port_num,
++		     struct rxe_av *av, struct ib_ah_attr *attr)
 +{
-+	int err;
-+	int srq_wqe_size;
-+	struct rxe_queue *q;
-+
-+	srq->event_handler	= init->event_handler;
-+	srq->context		= init->srq_context;
-+	srq->limit		= init->attr.srq_limit;
-+	srq->srq_num		= srq->pelem.index;
-+	srq->rq.max_wr		= init->attr.max_wr;
-+	srq->rq.max_sge		= init->attr.max_sge;
-+
-+	srq_wqe_size		= rcv_wqe_size(srq->rq.max_sge);
-+
-+	spin_lock_init(&srq->rq.producer_lock);
-+	spin_lock_init(&srq->rq.consumer_lock);
-+
-+	q = rxe_queue_init(rxe, &srq->rq.max_wr,
-+			   srq_wqe_size);
-+	if (!q) {
-+		pr_warn("unable to allocate queue for srq\n");
-+		err = -ENOMEM;
-+		goto err1;
-+	}
-+
-+	srq->rq.queue = q;
-+
-+	err = do_mmap_info(rxe, udata, false, context, q->buf,
-+			   q->buf_size, &q->ip);
-+	if (err)
-+		goto err1;
-+
-+	if (udata && udata->outlen >= sizeof(struct mminfo) + sizeof(u32))
-+		return copy_to_user(udata->outbuf + sizeof(struct mminfo),
-+			&srq->srq_num, sizeof(u32));
-+	else
-+		return 0;
-+err1:
-+	return err;
++	memset(av, 0, sizeof(*av));
++	memcpy(&av->grh, &attr->grh, sizeof(attr->grh));
++	av->port_num = port_num;
++	return 0;
 +}
 +
-+int rxe_srq_from_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
-+		      struct ib_srq_attr *attr, enum ib_srq_attr_mask mask,
-+		      struct ib_udata *udata)
++int rxe_av_to_attr(struct rxe_dev *rxe, struct rxe_av *av,
++		   struct ib_ah_attr *attr)
 +{
-+	int err;
-+	struct rxe_queue *q = srq->rq.queue;
-+	struct mminfo mi = { .offset = 1, .size = 0};
++	memcpy(&attr->grh, &av->grh, sizeof(av->grh));
++	attr->port_num = av->port_num;
++	return 0;
++}
 +
-+	if (mask & IB_SRQ_MAX_WR) {
-+		/* Check that we can write the mminfo struct to user space */
-+		if (udata && udata->inlen >= sizeof(__u64)) {
-+			__u64 mi_addr;
-+
-+			/* Get address of user space mminfo struct */
-+			err = ib_copy_from_udata(&mi_addr, udata,
-+						 sizeof(mi_addr));
-+			if (err)
-+				goto err1;
-+
-+			udata->outbuf = (void __user *)(unsigned long)mi_addr;
-+			udata->outlen = sizeof(mi);
-+
-+			if (!access_ok(VERIFY_WRITE,
-+					(void __user *) udata->outbuf,
-+					udata->outlen)) {
-+				err = -EFAULT;
-+				goto err1;
-+			}
-+		}
-+
-+		err = rxe_queue_resize(q, (unsigned int *)&attr->max_wr,
-+				       rcv_wqe_size(srq->rq.max_sge),
-+				       srq->rq.queue->ip ?
-+						srq->rq.queue->ip->context :
-+						NULL,
-+				       udata, &srq->rq.producer_lock,
-+				       &srq->rq.consumer_lock);
-+		if (err)
-+			goto err2;
-+	}
-+
-+	if (mask & IB_SRQ_LIMIT)
-+		srq->limit = attr->srq_limit;
++int rxe_av_fill_ip_info(struct rxe_dev *rxe,
++			struct rxe_av *av,
++			struct ib_ah_attr *attr,
++			struct ib_gid_attr *sgid_attr,
++			union ib_gid *sgid)
++{
++	rdma_gid2ip(&av->sgid_addr._sockaddr, sgid);
++	rdma_gid2ip(&av->dgid_addr._sockaddr, &attr->grh.dgid);
++	av->network_type = ib_gid_to_network_type(sgid_attr->gid_type, sgid);
 +
 +	return 0;
-+
-+err2:
-+	rxe_queue_cleanup(q);
-+	srq->rq.queue = NULL;
-+err1:
-+	return err;
 +}
 -- 
 1.8.3.1
