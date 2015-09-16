@@ -1,34 +1,43 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [patch] IB/hfi1: info leak in get_ctxt_info()
-Date: Wed, 16 Sep 2015 09:41:50 +0300
-Message-ID: <20150916064150.GH5004@mwanda>
-References: <20150916062142.GB21542@mwanda>
- <alpine.DEB.2.02.1509160824370.2049@localhost6.localdomain6>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [patch v2] IB/hfi1: info leak in get_ctxt_info()
+Date: Wed, 16 Sep 2015 09:42:25 +0300
+Message-ID: <20150916064225.GI5004@mwanda>
+References: <alpine.DEB.2.02.1509160824370.2049@localhost6.localdomain6>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1509160824370.2049-bi+AKbBUZKagILUCTcTcHdKyNwTtLsGr@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
-Cc: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <alpine.DEB.2.02.1509160824370.2049@localhost6.localdomain6>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Mike Marciniszyn <infinipath@intel.com>
+Cc: devel@driverdev.osuosl.org, linux-rdma@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, kernel-janitors@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Sep 16, 2015 at 08:25:00AM +0200, Julia Lawall wrote:
-> On Wed, 16 Sep 2015, Dan Carpenter wrote:
-> 
-> > The cinfo struct has a hole after the last struct member so we need to
-> > zero it out.  Otherwise we don't disclose some uninitialized stack data.
-> 
-> I think the "don't" wasn't intended in the second sentence?
-> 
+The cinfo struct has a hole after the last struct member so we need to
+zero it out.  Otherwise we disclose some uninitialized stack data.
 
-Derp...  I will resend.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+v2: typo in changelog
 
-regards,
-dan carpenter
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
+index 4698617..2c43ca5 100644
+--- a/drivers/staging/rdma/hfi1/file_ops.c
++++ b/drivers/staging/rdma/hfi1/file_ops.c
+@@ -1181,6 +1181,7 @@ static int get_ctxt_info(struct file *fp, void __user *ubase, __u32 len)
+ 	struct hfi1_filedata *fd = fp->private_data;
+ 	int ret = 0;
+ 
++	memset(&cinfo, 0, sizeof(cinfo));
+ 	ret = hfi1_get_base_kinfo(uctxt, &cinfo);
+ 	if (ret < 0)
+ 		goto done;
