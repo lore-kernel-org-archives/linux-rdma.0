@@ -1,43 +1,42 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [patch v2] IB/hfi1: info leak in get_ctxt_info()
-Date: Wed, 16 Sep 2015 09:42:25 +0300
-Message-ID: <20150916064225.GI5004@mwanda>
-References: <alpine.DEB.2.02.1509160824370.2049@localhost6.localdomain6>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: re: IB/hfi1: add driver files
+Date: Wed, 16 Sep 2015 10:13:07 +0300
+Message-ID: <20150916071307.GA29995@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1509160824370.2049@localhost6.localdomain6>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Mike Marciniszyn <infinipath@intel.com>
-Cc: devel@driverdev.osuosl.org, linux-rdma@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, kernel-janitors@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The cinfo struct has a hole after the last struct member so we need to
-zero it out.  Otherwise we disclose some uninitialized stack data.
+Hello Mike Marciniszyn,
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
----
-v2: typo in changelog
+The patch 7724105686e7: "IB/hfi1: add driver files" from Jul 30,
+2015, leads to the following static checker warning:
 
-diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
-index 4698617..2c43ca5 100644
---- a/drivers/staging/rdma/hfi1/file_ops.c
-+++ b/drivers/staging/rdma/hfi1/file_ops.c
-@@ -1181,6 +1181,7 @@ static int get_ctxt_info(struct file *fp, void __user *ubase, __u32 len)
- 	struct hfi1_filedata *fd = fp->private_data;
- 	int ret = 0;
- 
-+	memset(&cinfo, 0, sizeof(cinfo));
- 	ret = hfi1_get_base_kinfo(uctxt, &cinfo);
- 	if (ret < 0)
- 		goto done;
+	drivers/staging/rdma/hfi1/user_sdma.c:1349 set_txreq_header_ahg()
+	warn: mask and shift to zero
+
+drivers/staging/rdma/hfi1/user_sdma.c
+  1347                  /* Clear KDETH.SH on last packet */
+  1348                  if (unlikely(tx->flags & USER_SDMA_TXREQ_FLAGS_LAST_PKT)) {
+  1349                          val |= cpu_to_le16(KDETH_GET(hdr->kdeth.ver_tid_offset,
+  1350                                                                  INTR) >> 16);
+
+
+KDETH_GET(hdr->kdeth.ver_tid_offset, INTR) is zero or one.  1 >> 16 is
+zero.  This line is a no-op.
+
+  1351                          val &= cpu_to_le16(~(1U << 13));
+  1352                          AHG_HEADER_SET(req->ahg, diff, 7, 16, 14, val);
+  1353                  } else
+  1354                          AHG_HEADER_SET(req->ahg, diff, 7, 16, 12, val);
+
+regards,
+dan carpenter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
