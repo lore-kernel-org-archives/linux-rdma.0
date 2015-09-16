@@ -1,45 +1,34 @@
 From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next 30/32] IB/rxe: Shared objects between user and kernel
-Date: Wed, 16 Sep 2015 16:43:04 +0300
-Message-ID: <1442410986-28232-31-git-send-email-kamalh@mellanox.com>
+Subject: [PATCH rdma-next 29/32] IB/rxe: sysfs interface to RXE
+Date: Wed, 16 Sep 2015 16:43:03 +0300
+Message-ID: <1442410986-28232-30-git-send-email-kamalh@mellanox.com>
 References: <1442410986-28232-1-git-send-email-kamalh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1442410986-28232-1-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-Objects used by the userspace to post work requests.
+sysfs interface for ib_rxe
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/uapi/rdma/Kbuild   |   1 +
- include/uapi/rdma/ib_rxe.h | 139 +++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 140 insertions(+)
- create mode 100644 include/uapi/rdma/ib_rxe.h
+ drivers/staging/rxe/rxe_sysfs.c | 168 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 168 insertions(+)
+ create mode 100644 drivers/staging/rxe/rxe_sysfs.c
 
-diff --git a/include/uapi/rdma/Kbuild b/include/uapi/rdma/Kbuild
-index 687ae33..91bc37a 100644
---- a/include/uapi/rdma/Kbuild
-+++ b/include/uapi/rdma/Kbuild
-@@ -5,3 +5,4 @@ header-y += ib_user_sa.h
- header-y += ib_user_verbs.h
- header-y += rdma_netlink.h
- header-y += rdma_user_cm.h
-+header-y += ib_rxe.h
-diff --git a/include/uapi/rdma/ib_rxe.h b/include/uapi/rdma/ib_rxe.h
+diff --git a/drivers/staging/rxe/rxe_sysfs.c b/drivers/staging/rxe/rxe_sysfs.c
 new file mode 100644
-index 0000000..fc1d9ca
+index 0000000..35bc299
 --- /dev/null
-+++ b/include/uapi/rdma/ib_rxe.h
-@@ -0,0 +1,139 @@
++++ b/drivers/staging/rxe/rxe_sysfs.c
+@@ -0,0 +1,168 @@
 +/*
 + * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
++ * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -70,113 +59,141 @@ index 0000000..fc1d9ca
 + * SOFTWARE.
 + */
 +
-+#ifndef IB_RXE_H
-+#define IB_RXE_H
++#include "rxe.h"
++#include "rxe_net.h"
 +
-+#include <linux/types.h>
++/* Copy argument and remove trailing CR. Return the new length. */
++static int sanitize_arg(const char *val, char *intf, int intf_len)
++{
++	int len;
 +
-+union rxe_gid {
-+	__u8	raw[16];
-+	struct {
-+		__be64	subnet_prefix;
-+		__be64	interface_id;
-+	} global;
-+};
++	if (!val)
++		return 0;
 +
-+struct rxe_global_route {
-+	union rxe_gid	dgid;
-+	__u32		flow_label;
-+	__u8		sgid_index;
-+	__u8		hop_limit;
-+	__u8		traffic_class;
-+};
++	/* Remove newline. */
++	for (len = 0; len < intf_len - 1 && val[len] && val[len] != '\n'; len++)
++		intf[len] = val[len];
++	intf[len] = 0;
 +
-+struct rxe_av {
-+	__u8			port_num;
-+	__u8			network_type;
-+	struct rxe_global_route	grh;
-+	union {
-+		struct sockaddr		_sockaddr;
-+		struct sockaddr_in	_sockaddr_in;
-+		struct sockaddr_in6	_sockaddr_in6;
-+	} sgid_addr, dgid_addr;
-+};
++	if (len == 0 || (val[len] != 0 && val[len] != '\n'))
++		return 0;
 +
-+struct rxe_send_wr {
-+	__u64			wr_id;
-+	__u32			num_sge;
-+	__u32			opcode;
-+	__u32			send_flags;
-+	union {
-+		__u32		imm_data;
-+		__u32		invalidate_rkey;
-+	} ex;
-+	union {
-+		struct {
-+			__u64	remote_addr;
-+			__u32	rkey;
-+		} rdma;
-+		struct {
-+			__u64	remote_addr;
-+			__u64	compare_add;
-+			__u64	swap;
-+			__u32	rkey;
-+		} atomic;
-+		struct {
-+			__u32	remote_qpn;
-+			__u32	remote_qkey;
-+			__u16	pkey_index;
-+		} ud;
-+	} wr;
-+};
++	return len;
++}
 +
-+struct rxe_sge {
-+	__u64	addr;
-+	__u32	length;
-+	__u32	lkey;
-+};
++/* Caller must hold net_info_lock */
++static void rxe_set_port_state(struct net_device *ndev)
++{
++	struct rxe_dev *rxe;
 +
-+struct mminfo {
-+	__u64			offset;
-+	__u32			size;
-+	__u32			pad;
-+};
++	rxe = net_to_rxe(ndev);
++	if (!rxe)
++		goto out;
 +
-+struct rxe_dma_info {
-+	__u32			length;
-+	__u32			resid;
-+	__u32			cur_sge;
-+	__u32			num_sge;
-+	__u32			sge_offset;
-+	union {
-+		__u8		inline_data[0];
-+		struct rxe_sge	sge[0];
-+	};
-+};
++	if (net_info[ndev->ifindex].status == IB_PORT_ACTIVE)
++		rxe_net_up(ndev);
++	else
++		rxe_net_down(ndev); /* down for unknown state */
++out:
++	return;
++}
 +
-+struct rxe_send_wqe {
-+	struct rxe_send_wr	wr;
-+	struct rxe_av		av;
-+	__u32			status;
-+	__u32			state;
-+	__u64			iova;
-+	__u32			mask;
-+	__u32			first_psn;
-+	__u32			last_psn;
-+	__u32			ack_length;
-+	__u32			ssn;
-+	__u32			has_rd_atomic;
-+	struct rxe_dma_info	dma;
-+};
++static int rxe_param_set_add(const char *val, struct kernel_param *kp)
++{
++	int i, len, err;
++	char intf[32];
 +
-+struct rxe_recv_wqe {
-+	__u64			wr_id;
-+	__u32			num_sge;
-+	__u32			padding;
-+	struct rxe_dma_info	dma;
-+};
++	len = sanitize_arg(val, intf, sizeof(intf));
++	if (!len) {
++		pr_err("rxe: add: invalid interface name\n");
++		return -EINVAL;
++	}
 +
-+#endif /* IB_RXE_H */
++	spin_lock_bh(&net_info_lock);
++	for (i = 0; i < RXE_MAX_IF_INDEX; i++) {
++		struct net_device *ndev = net_info[i].ndev;
++
++		if (ndev && (0 == strncmp(intf, ndev->name, len))) {
++			spin_unlock_bh(&net_info_lock);
++			if (net_info[i].rxe)
++				pr_info("rxe: already configured on %s\n",
++					intf);
++			else {
++				err = rxe_net_add(ndev);
++				if (!err && net_info[i].rxe) {
++					rxe_set_port_state(ndev);
++				} else {
++					pr_err("rxe: add appears to have failed for %s (index %d)\n",
++					       intf, i);
++				}
++			}
++			return 0;
++		}
++	}
++	spin_unlock_bh(&net_info_lock);
++
++	pr_warn("interface %s not found\n", intf);
++
++	return 0;
++}
++
++static void rxe_remove_all(void)
++{
++	int i;
++	struct rxe_dev *rxe;
++
++	for (i = 0; i < RXE_MAX_IF_INDEX; i++) {
++		if (net_info[i].rxe) {
++			spin_lock_bh(&net_info_lock);
++			rxe = net_info[i].rxe;
++			net_info[i].rxe = NULL;
++			spin_unlock_bh(&net_info_lock);
++
++			rxe_remove(rxe);
++		}
++	}
++}
++
++static int rxe_param_set_remove(const char *val, struct kernel_param *kp)
++{
++	int i, len;
++	char intf[32];
++	struct rxe_dev *rxe;
++
++	len = sanitize_arg(val, intf, sizeof(intf));
++	if (!len) {
++		pr_err("rxe: remove: invalid interface name\n");
++		return -EINVAL;
++	}
++
++	if (strncmp("all", intf, len) == 0) {
++		pr_info("rxe_sys: remove all");
++		rxe_remove_all();
++		return 0;
++	}
++
++	spin_lock_bh(&net_info_lock);
++	for (i = 0; i < RXE_MAX_IF_INDEX; i++) {
++		if (!net_info[i].rxe || !net_info[i].ndev)
++			continue;
++
++		if (0 == strncmp(intf, net_info[i].rxe->ib_dev.name, len)) {
++			rxe = net_info[i].rxe;
++			net_info[i].rxe = NULL;
++			spin_unlock_bh(&net_info_lock);
++
++			rxe_remove(rxe);
++			return 0;
++		}
++	}
++	spin_unlock_bh(&net_info_lock);
++	pr_warn("rxe_sys: instance %s not found\n", intf);
++
++	return 0;
++}
++
++module_param_call(add, rxe_param_set_add, NULL, NULL, 0200);
++module_param_call(remove, rxe_param_set_remove, NULL, NULL, 0200);
 -- 
 1.8.3.1
 
