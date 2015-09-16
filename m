@@ -1,51 +1,33 @@
 From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: re: IB/ipath: infiniband verbs support
-Date: Wed, 16 Sep 2015 09:30:59 +0300
-Message-ID: <20150916063059.GA23123@mwanda>
+Subject: Re: [patch] IB/hfi1: info leak in get_ctxt_info()
+Date: Wed, 16 Sep 2015 09:41:50 +0300
+Message-ID: <20150916064150.GH5004@mwanda>
+References: <20150916062142.GB21542@mwanda>
+ <alpine.DEB.2.02.1509160824370.2049@localhost6.localdomain6>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.02.1509160824370.2049-bi+AKbBUZKagILUCTcTcHdKyNwTtLsGr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bos-Hl0AACgZOF5l57MIdRCFDg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
+Cc: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Bryan O'Sullivan,
+On Wed, Sep 16, 2015 at 08:25:00AM +0200, Julia Lawall wrote:
+> On Wed, 16 Sep 2015, Dan Carpenter wrote:
+> 
+> > The cinfo struct has a hole after the last struct member so we need to
+> > zero it out.  Otherwise we don't disclose some uninitialized stack data.
+> 
+> I think the "don't" wasn't intended in the second sentence?
+> 
 
-The patch 6522108f19a9: "IB/ipath: infiniband verbs support" from Mar
-29, 2006, leads to the following static checker warning:
-
-	drivers/staging/rdma/ipath/ipath_verbs.c:2289 show_hca()
-	warn: bool is not less than zero.
-
-drivers/staging/rdma/ipath/ipath_verbs.c
-  2281  static ssize_t show_hca(struct device *device, struct device_attribute *attr,
-  2282                          char *buf)
-  2283  {
-  2284          struct ipath_ibdev *dev =
-  2285                  container_of(device, struct ipath_ibdev, ibdev.dev);
-  2286          int ret;
-  2287  
-  2288          ret = dev->dd->ipath_f_get_boardname(dev->dd, buf, 128);
-  2289          if (ret < 0)
-
-ret is either zero or one, not negative.  There is some dead code in
-ipath_ht_boardname() which indicates that it might have returned error
-codes at some point as well.
-
-This warning is from a too many false positives to publish Smatch check.
-
-  2290                  goto bail;
-  2291          strcat(buf, "\n");
-  2292          ret = strlen(buf);
-  2293  
-  2294  bail:
-  2295          return ret;
-  2296  }
+Derp...  I will resend.
 
 regards,
 dan carpenter
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
