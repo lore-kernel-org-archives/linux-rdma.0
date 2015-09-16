@@ -1,65 +1,32 @@
 From: Bodong Wang <wbd2905-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/3] IB/core: Add support of checksum capability reporting in ib verbs
-Date: Wed, 16 Sep 2015 18:56:06 +0300
-Message-ID: <490a38ab04a96f24500d647392e931c38853ba45.1442413048.git.bodong@mellanox.com>
-References: <cover.1442413048.git.bodong@mellanox.com>
+Subject: [PATCH 0/3] Enable checksum offload capability reporting
+Date: Wed, 16 Sep 2015 18:56:05 +0300
+Message-ID: <cover.1442413048.git.bodong@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1442413048.git.bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-In-Reply-To: <cover.1442413048.git.bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-References: <cover.1442413048.git.bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-A new filed csum_cap is added to both ib_query_device. It contains two members:
-eth_csum_cap and ib_csum_cap, indicates checksum capability of Ethernet and
-Infiniband link layer respectively for different QP types.
+The checksum offload capability reporting is enabled based on extended verbs.
+The capability field has sub-fields for every link layer, and depends on device
+cap, each link layer will support specific QP types. These will be reported to
+user space.
 
-Current checksum caps use the following enum members:
-- IB_CSUM_SUPPORT_UD: device supports validation/calculation of csum for UD QP.
-- IB_CSUM_SUPPORT_RAW: device supports validation/calculation of csum for raw QP.
+I'm new to uverbs extensions and looking forward for review comments on that
+aspect of the patches.
 
-Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- include/rdma/ib_verbs.h | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+Bodong Wang (3):
+  IB/core: Add support of checksum capability reporting in ib verbs
+  IB/uverbs: Add support for checksum capability reporting in user verbs
+  IB/mlx4: Report checksum offload cap when query device
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index b0f898e..94dbaee 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -183,6 +183,11 @@ struct ib_cq_init_attr {
- 	u32		flags;
- };
- 
-+struct ib_csum_cap_per_link {
-+	uint32_t  eth_csum_cap;
-+	uint32_t  ib_csum_cap;
-+};
-+
- struct ib_device_attr {
- 	u64			fw_ver;
- 	__be64			sys_image_guid;
-@@ -229,6 +234,7 @@ struct ib_device_attr {
- 	struct ib_odp_caps	odp_caps;
- 	uint64_t		timestamp_mask;
- 	uint64_t		hca_core_clock; /* in KHZ */
-+	struct ib_csum_cap_per_link csum_cap;
- };
- 
- enum ib_mtu {
-@@ -868,6 +874,10 @@ enum ib_qp_create_flags {
- 	IB_QP_CREATE_RESERVED_END		= 1 << 31,
- };
- 
-+enum ib_csum_cap_flags {
-+	IB_CSUM_SUPPORT_UD	= (1 << IB_QPT_UD),
-+	IB_CSUM_SUPPORT_RAW	= (1 << IB_QPT_RAW_PACKET),
-+};
- 
- /*
-  * Note: users may not call ib_close_qp or ib_destroy_qp from the event_handler
+ drivers/infiniband/core/uverbs_cmd.c |  7 +++++++
+ drivers/infiniband/hw/mlx4/main.c    |  3 +++
+ include/rdma/ib_verbs.h              | 10 ++++++++++
+ include/uapi/rdma/ib_user_verbs.h    |  6 ++++++
+ 4 files changed, 26 insertions(+)
+
 -- 
 1.8.3.1
 
