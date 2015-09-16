@@ -1,233 +1,126 @@
 From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next 00/32] Soft-RoCE driver
-Date: Wed, 16 Sep 2015 16:42:34 +0300
-Message-ID: <1442410986-28232-1-git-send-email-kamalh@mellanox.com>
+Subject: [PATCH rdma-next 26/32] IB/rxe: ICRC calculations
+Date: Wed, 16 Sep 2015 16:43:00 +0300
+Message-ID: <1442410986-28232-27-git-send-email-kamalh@mellanox.com>
+References: <1442410986-28232-1-git-send-email-kamalh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1442410986-28232-1-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Doug and list Hi,
+Compute ICRC for UDP/IP/BTH headers
 
-This patchset introduces Soft RoCE driver.
-
-Some background on the driver: The original Soft-RoCE driver was implemented by
-Bob Pearson from SFW. Bob started the submission process [3], but his work was
-abandoned after v2.
-Mellanox decided to pick it up and continue the submission. As part of the
-process we detected some problems with the original implementation. Mainly, we
-wanted to RoCEv2, also, there are too many locks and 
-context switches in the data path. Most of them are already removed.
-
-We've located the driver in the staging subtree. This follows a requirement
-to implement an IB transport library - Soft RoCE is in the same boat like the hfi1 
-driver. We need to define and implement a lib to prevent those code 
-duplications. 
-
-We did address the feedback provided on the original submission.
-
-Another issue is, that this code is based on RoCEv2 patchesets.
-
-So why not wait and submit it when the RoCEv2 IB core bits are upstream?
-
-The main reason we want to submit it now, and not to wait is: "Submit early".  
-We understand that 4 years after v2 is not exactly early. But we started few
-months ago to work on it, and did some heavy modifications to the code and the
-design, and we would like this work to be done under the eye of the community
-and not in house (although this work was done @ github [4]). 
-
-Soft-RoCE is sitting on top of Matan's 3 patchsets for gid cache and RoCEv2.
-The first [1] is in, the second [2] and third [5] were posted already.
-
-RXE user space (librxe) is located at github [6] with instructions how to use
-it [7]
-
-Some notes on the architecture and design:
-
-ib_rxe, implements the RDMA transport and registers with the RDMA core as a
-kernel verbs provider. It also implements the packet IO layer. ib_rxe attaches
-to the Linux netdev stack as a udp encapsulating protocol and can send and
-receive packets over any Ethernet device. It uses the RoCEv2 protocol to handle
-RDMA transport. 
-
-The modules are configured by entries in /sys. There is a configuration script
-(rxe_cfg) that simplifies the use of this interface. rxe_cfg is part of the
-rxe user space code, librxe.
-
-The use of rxe verbs in user space requires the inclusion of librxe as a device
-specific plug-in to libibverbs. librxe is packaged separately [6].
-
-Copies of the user space library and tools for 'upstream' and a clone of Doug's tree with 
-these patches applied are available at github [4]
-
-Architecture:
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-     +-----------------------------------------------------------+
-     |                          Application                      |
-     +-----------------------------------------------------------+
-                             +-----------------------------------+
-			     |             libibverbs            |
-User			     +-----------------------------------+
-			     +----------------+ +----------------+
-			     | librxe         | | HW RoCE lib    |
-			     +----------------+ +----------------+
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     +--------------+                           +------------+
-     | Sockets      |                           | RDMA ULP   |
-     +--------------+                           +------------+
-     +--------------+                  +---------------------+
-     | TCP/IP       |                  | ib_core             |
-     +--------------+                  +---------------------+
-                             +------------+ +----------------+
-Kernel			     | ib_rxe     | | HW RoCE driver |			     
-                             +------------+ +----------------+
-     +------------------------------------+
-     | NIC driver                         |
-     +------------------------------------+
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The driver components and a non asci chart of the module could be found at a
-pdf [8] presented by Bob before the original submission.
-The design is very similar, one thing that was changed, is the arbiter task
-that was removed. This reduced the number of context switches and locks during
-the data path.
-
-Currently IPv4 based sessions aren't supported, this will be addressed for V1.
-
-A TODO file is placed under the driver folder.
-
-The patchset is applied and tested over Dougs to-be-rebased/for-4.3 branch
-153b730 ("Merge branch 'hfi1-v4' into to-be-rebased/for-4.3").
-
-Thanks,
-Kamal, Liran and Amir
-
-[1] - http://www.spinics.net/lists/netdev/msg337683.html
-[2] - http://www.spinics.net/lists/linux-rdma/msg28031.html
-[3] - http://www.spinics.net/lists/linux-rdma/msg08936.html
-[4] - https://github.com/SoftRoCE
-[5] - http://www.spinics.net/lists/linux-rdma/msg28120.html
-[6] - https://github.com/SoftRoCE/librxe-dev
-[7] - https://github.com/SoftRoCE/rxe-dev/wiki/rxe-dev:-Home
-[8] - http://downloads.openfabrics.org/Media/Sonoma2010/Sonoma_2010_Wednesday_rxe.pdf
-
-Amir Vadai (3):
-  IB/core: Macro for RoCEv2 UDP port
-  IB/rxe: Shared objects between user and kernel
-  IB/rxe: TODO file while in staging
-
-Kamal Heib (29):
-  IB/core: Add SEND_LAST_INV and SEND_ONLY_INV opcodes
-  IB/rxe: IBA header types and methods
-  IB/rxe: Bit mask and lengths declaration for different opcodes
-  IB/rxe: Default rxe device and port parameters
-  IB/rxe: External interface to lower level modules
-  IB/rxe: Misc local interfaces between files in ib_rxe
-  IB/rxe: Add maintainer for rxe driver
-  IB/rxe: Work request's opcode information table
-  IB/rxe: User/kernel shared queues infrastructure
-  IB/rxe: Common user/kernel queue implementation
-  IB/rxe: Interface to ib_core
-  IB/rxe: Allocation pool for RDMA objects
-  IB/rxe: RXE tasks handling
-  IB/rxe: Address vector manipulation functions
-  IB/rxe: Shared Receive Queue (SRQ) manipulation functions
-  IB/rxe: Completion Queue (CQ) manipulation functions
-  IB/rxe: Queue Pair (QP) handling
-  IB/rxe: Memory Region (MR) handling
-  IB/rxe: Multicast implementation
-  IB/rxe: Received packets handling
-  IB/rxe: Completion handling
-  IB/rxe: QP request handling
-  IB/rxe: QP response handling
-  IB/rxe: Dummy DMA callbacks for RXE device
-  IB/rxe: ICRC calculations
-  IB/rxe: Module init hooks
-  IB/rxe: Interface to netdev stack
-  IB/rxe: sysfs interface to RXE
-  IB/rxe: Add Soft-RoCE to kbuild and makefiles
-
- MAINTAINERS                      |    9 +
- drivers/staging/Kconfig          |    2 +
- drivers/staging/Makefile         |    1 +
- drivers/staging/rxe/Kconfig      |   23 +
- drivers/staging/rxe/Makefile     |   24 +
- drivers/staging/rxe/TODO         |   15 +
- drivers/staging/rxe/rxe.c        |  434 ++++++++++++
- drivers/staging/rxe/rxe.h        |   72 ++
- drivers/staging/rxe/rxe_av.c     |   87 +++
- drivers/staging/rxe/rxe_comp.c   |  728 +++++++++++++++++++
- drivers/staging/rxe/rxe_cq.c     |  165 +++++
- drivers/staging/rxe/rxe_dma.c    |  166 +++++
- drivers/staging/rxe/rxe_hdr.h    |  950 +++++++++++++++++++++++++
- drivers/staging/rxe/rxe_icrc.c   |   96 +++
- drivers/staging/rxe/rxe_loc.h    |  291 ++++++++
- drivers/staging/rxe/rxe_mcast.c  |  190 +++++
- drivers/staging/rxe/rxe_mmap.c   |  173 +++++
- drivers/staging/rxe/rxe_mr.c     |  764 ++++++++++++++++++++
- drivers/staging/rxe/rxe_net.c    |  705 +++++++++++++++++++
- drivers/staging/rxe/rxe_net.h    |   72 ++
- drivers/staging/rxe/rxe_opcode.c |  961 +++++++++++++++++++++++++
- drivers/staging/rxe/rxe_opcode.h |  128 ++++
- drivers/staging/rxe/rxe_param.h  |  177 +++++
- drivers/staging/rxe/rxe_pool.c   |  511 ++++++++++++++
- drivers/staging/rxe/rxe_pool.h   |  161 +++++
- drivers/staging/rxe/rxe_qp.c     |  835 ++++++++++++++++++++++
- drivers/staging/rxe/rxe_queue.c  |  217 ++++++
- drivers/staging/rxe/rxe_queue.h  |  178 +++++
- drivers/staging/rxe/rxe_recv.c   |  371 ++++++++++
- drivers/staging/rxe/rxe_req.c    |  679 ++++++++++++++++++
- drivers/staging/rxe/rxe_resp.c   | 1368 ++++++++++++++++++++++++++++++++++++
- drivers/staging/rxe/rxe_srq.c    |  195 ++++++
- drivers/staging/rxe/rxe_sysfs.c  |  168 +++++
- drivers/staging/rxe/rxe_task.c   |  154 ++++
- drivers/staging/rxe/rxe_task.h   |   95 +++
- drivers/staging/rxe/rxe_verbs.c  | 1429 ++++++++++++++++++++++++++++++++++++++
- drivers/staging/rxe/rxe_verbs.h  |  496 +++++++++++++
- include/rdma/ib_pack.h           |    4 +
- include/rdma/ib_verbs.h          |    2 +
- include/uapi/rdma/Kbuild         |    1 +
- include/uapi/rdma/ib_rxe.h       |  139 ++++
- 41 files changed, 13236 insertions(+)
- create mode 100644 drivers/staging/rxe/Kconfig
- create mode 100644 drivers/staging/rxe/Makefile
- create mode 100644 drivers/staging/rxe/TODO
- create mode 100644 drivers/staging/rxe/rxe.c
- create mode 100644 drivers/staging/rxe/rxe.h
- create mode 100644 drivers/staging/rxe/rxe_av.c
- create mode 100644 drivers/staging/rxe/rxe_comp.c
- create mode 100644 drivers/staging/rxe/rxe_cq.c
- create mode 100644 drivers/staging/rxe/rxe_dma.c
- create mode 100644 drivers/staging/rxe/rxe_hdr.h
+Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/staging/rxe/rxe_icrc.c | 96 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 96 insertions(+)
  create mode 100644 drivers/staging/rxe/rxe_icrc.c
- create mode 100644 drivers/staging/rxe/rxe_loc.h
- create mode 100644 drivers/staging/rxe/rxe_mcast.c
- create mode 100644 drivers/staging/rxe/rxe_mmap.c
- create mode 100644 drivers/staging/rxe/rxe_mr.c
- create mode 100644 drivers/staging/rxe/rxe_net.c
- create mode 100644 drivers/staging/rxe/rxe_net.h
- create mode 100644 drivers/staging/rxe/rxe_opcode.c
- create mode 100644 drivers/staging/rxe/rxe_opcode.h
- create mode 100644 drivers/staging/rxe/rxe_param.h
- create mode 100644 drivers/staging/rxe/rxe_pool.c
- create mode 100644 drivers/staging/rxe/rxe_pool.h
- create mode 100644 drivers/staging/rxe/rxe_qp.c
- create mode 100644 drivers/staging/rxe/rxe_queue.c
- create mode 100644 drivers/staging/rxe/rxe_queue.h
- create mode 100644 drivers/staging/rxe/rxe_recv.c
- create mode 100644 drivers/staging/rxe/rxe_req.c
- create mode 100644 drivers/staging/rxe/rxe_resp.c
- create mode 100644 drivers/staging/rxe/rxe_srq.c
- create mode 100644 drivers/staging/rxe/rxe_sysfs.c
- create mode 100644 drivers/staging/rxe/rxe_task.c
- create mode 100644 drivers/staging/rxe/rxe_task.h
- create mode 100644 drivers/staging/rxe/rxe_verbs.c
- create mode 100644 drivers/staging/rxe/rxe_verbs.h
- create mode 100644 include/uapi/rdma/ib_rxe.h
 
+diff --git a/drivers/staging/rxe/rxe_icrc.c b/drivers/staging/rxe/rxe_icrc.c
+new file mode 100644
+index 0000000..02b73d6
+--- /dev/null
++++ b/drivers/staging/rxe/rxe_icrc.c
+@@ -0,0 +1,96 @@
++/*
++ * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
++ * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *	- Redistributions of source code must retain the above
++ *	  copyright notice, this list of conditions and the following
++ *	  disclaimer.
++ *
++ *	- Redistributions in binary form must reproduce the above
++ *	  copyright notice, this list of conditions and the following
++ *	  disclaimer in the documentation and/or other materials
++ *	  provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#include "rxe.h"
++#include "rxe_loc.h"
++
++/* Compute a partial ICRC for all the IB transport headers. */
++u32 rxe_icrc_hdr(struct rxe_pkt_info *pkt, struct sk_buff *skb)
++{
++	unsigned int bth_offset = 0;
++	struct iphdr *ip4h = NULL;
++	struct ipv6hdr *ip6h = NULL;
++	struct udphdr *udph;
++	struct rxe_bth *bth;
++	int crc;
++	int length;
++	int hdr_size = sizeof(struct udphdr) +
++		(skb->protocol == htons(ETH_P_IP) ?
++		sizeof(struct iphdr) : sizeof(struct ipv6hdr));
++	/* pseudo header buffer size is calculate using ipv6 header size since
++	 * it is bigger than ipv4
++	 */
++	u8 pshdr[sizeof(struct udphdr) +
++		sizeof(struct ipv6hdr) +
++		RXE_BTH_BYTES];
++
++	/* This seed is the result of computing a CRC with a seed of
++	 * 0xfffffff and 8 bytes of 0xff representing a masked LRH.
++	 */
++	crc = 0xdebb20e3;
++
++	if (skb->protocol == htons(ETH_P_IP)) { /* IPv4 */
++		memcpy(pshdr, ip_hdr(skb), hdr_size);
++		ip4h = (struct iphdr *)pshdr;
++		udph = (struct udphdr *)(ip4h + 1);
++
++		ip4h->ttl = 0xff;
++		ip4h->check = CSUM_MANGLED_0;
++		ip4h->tos = 0xff;
++	} else {				/* IPv6 */
++		memcpy(pshdr, ipv6_hdr(skb), hdr_size);
++		ip6h = (struct ipv6hdr *)pshdr;
++		udph = (struct udphdr *)(ip6h + 1);
++
++		memset(ip6h->flow_lbl, 0xff, sizeof(ip6h->flow_lbl));
++		ip6h->priority = 0xf;
++		ip6h->hop_limit = 0xff;
++	}
++	udph->check = CSUM_MANGLED_0;
++
++	bth_offset += hdr_size;
++
++	memcpy(&pshdr[bth_offset], pkt->hdr, RXE_BTH_BYTES);
++	bth = (struct rxe_bth *)&pshdr[bth_offset];
++
++	/* exclude bth.resv8a */
++	bth->qpn |= cpu_to_be32(~BTH_QPN_MASK);
++
++	length = hdr_size + RXE_BTH_BYTES;
++	crc = crc32_le(crc, pshdr, length);
++
++	/* And finish to compute the CRC on the remainder of the headers. */
++	crc = crc32_le(crc, pkt->hdr + RXE_BTH_BYTES,
++		       rxe_opcode[pkt->opcode].length - RXE_BTH_BYTES);
++	return crc;
++}
 -- 
 1.8.3.1
 
