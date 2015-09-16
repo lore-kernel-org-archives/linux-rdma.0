@@ -1,57 +1,69 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-next 32/32] IB/rxe: TODO file while in staging
-Date: Wed, 16 Sep 2015 16:58:01 +0300
-Message-ID: <55F97569.7060900@dev.mellanox.co.il>
-References: <1442410986-28232-1-git-send-email-kamalh@mellanox.com>
- <1442410986-28232-33-git-send-email-kamalh@mellanox.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: re: IB/cma: Fix net_dev reference leak with failed requests
+Date: Wed, 16 Sep 2015 17:10:39 +0300
+Message-ID: <20150916141039.GA7449@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1442410986-28232-33-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/16/2015 4:43 PM, Kamal Heib wrote:
-> From: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->
-> Things todo in order to get out of staging subtree.
->
-> Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->   drivers/staging/rxe/TODO | 15 +++++++++++++++
->   1 file changed, 15 insertions(+)
->   create mode 100644 drivers/staging/rxe/TODO
->
-> diff --git a/drivers/staging/rxe/TODO b/drivers/staging/rxe/TODO
-> new file mode 100644
-> index 0000000..a621b27
-> --- /dev/null
-> +++ b/drivers/staging/rxe/TODO
-> @@ -0,0 +1,15 @@
-> +Aug, 2015
-> +
-> +- Remove software processing of IB protocol and place in library for use
-> +  by qib, ipath (if still present), hfi1, and soft-roce
-> +- Do not use tasklet in completion flow
-> +- Need to free resources if user space didn't.
-> +- Share structures from ib_user_verbs.h instead of copying in ib_rxe.h
-> +- Move IBA header types and methods from rxe_hdr.h into IB core
-> +- Cleanup members of rxe_pkt_info that already exists in packet header
-> +- Refactor post_send_one function to get better performance.
-> +- Refactor rxe_mem struct to be clear what is type of memory that it's holding.
-> +- Use single reference count from the pool to the device, instead of having a single
-> +  reference on the device kept by each element in the pool.
-> +- Calculate ICRC for incoming packets.
-> +- Use hash table to hold net_info instead of fixed size array used now.
->
+Hello Haggai Eran,
 
-Lets add:
-- Support work request interface memory registration (I'll look into
-that).
+The patch be688195bd08: "IB/cma: Fix net_dev reference leak with
+failed requests" from Aug 27, 2015, leads to the following static
+checker warning:
+
+	drivers/infiniband/core/cma.c:1306 cma_id_from_event()
+	error: potential NULL dereference '*net_dev'.
+
+drivers/infiniband/core/cma.c
+  1279  static struct rdma_id_private *cma_id_from_event(struct ib_cm_id *cm_id,
+  1280                                                   struct ib_cm_event *ib_event,
+  1281                                                   struct net_device **net_dev)
+  1282  {
+  1283          struct cma_req_info req;
+  1284          struct rdma_bind_list *bind_list;
+  1285          struct rdma_id_private *id_priv;
+  1286          int err;
+  1287  
+  1288          err = cma_save_req_info(ib_event, &req);
+  1289          if (err)
+  1290                  return ERR_PTR(err);
+  1291  
+  1292          *net_dev = cma_get_net_dev(ib_event, &req);
+  1293          if (IS_ERR(*net_dev)) {
+  1294                  if (PTR_ERR(*net_dev) == -EAFNOSUPPORT) {
+  1295                          /* Assuming the protocol is AF_IB */
+  1296                          *net_dev = NULL;
+
+Set to NULL here.
+
+  1297                  } else {
+  1298                          return ERR_CAST(*net_dev);
+  1299                  }
+  1300          }
+  1301  
+  1302          bind_list = cma_ps_find(rdma_ps_from_service_id(req.service_id),
+  1303                                  cma_port_from_service_id(req.service_id));
+  1304          id_priv = cma_find_listener(bind_list, cm_id, ib_event, &req, *net_dev);
+  1305          if (IS_ERR(id_priv)) {
+  1306                  dev_put(*net_dev);
+
+Dereferenced inside function call.  This warning is from a work in
+progress Smatch check (unpublished).
+
+  1307                  *net_dev = NULL;
+  1308          }
+  1309  
+  1310          return id_priv;
+  1311  }
+
+regards,
+dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
