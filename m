@@ -1,55 +1,33 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: re: IB/hfi1: add driver files
-Date: Wed, 16 Sep 2015 10:14:42 +0300
-Message-ID: <20150916071442.GA30250@mwanda>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next V1 00/10] Add RoCE GID cache usage in verbs/cma
+Date: Wed, 16 Sep 2015 15:48:30 +0300
+Message-ID: <55F9651E.5040906@mellanox.com>
+References: <1438952463-23707-1-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1438952463-23707-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Mike Marciniszyn,
+On 8/7/2015 4:00 PM, Matan Barak wrote:
+> This purpose of this series is to add usage of the GID cache to
+> the CMA and IB stack. Instead of passing Ethernet L2 attributes
+> via QP attributes, we could just use the GID cache that's already
+> points to a ndev and thus to all required L2 attributes.
 
-The patch 7724105686e7: "IB/hfi1: add driver files" from Jul 30,
-2015, leads to the following static checker warning:
+[...]
 
-	drivers/staging/rdma/hfi1/rc.c:2399 hfi1_rc_hdrerr()
-	warn: right shift assign to zero
+Hi Doug,
 
-drivers/staging/rdma/hfi1/rc.c
-  2376  void hfi1_rc_hdrerr(
-  2377          struct hfi1_ctxtdata *rcd,
-  2378          struct hfi1_ib_header *hdr,
-  2379          u32 rcv_flags,
-  2380          struct hfi1_qp *qp)
-  2381  {
-  2382          int has_grh = rcv_flags & HFI1_HAS_GRH;
-  2383          struct hfi1_other_headers *ohdr;
-  2384          struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
-  2385          int diff;
-  2386          u8 opcode;
-  2387          u32 psn;
-  2388  
-  2389          /* Check for GRH */
-  2390          ohdr = &hdr->u.oth;
-  2391          if (has_grh)
-  2392                  ohdr = &hdr->u.l.oth;
-  2393  
-  2394          opcode = be32_to_cpu(ohdr->bth[0]);
-  2395          if (hfi1_ruc_check_hdr(ibp, hdr, has_grh, qp, opcode))
-  2396                  return;
-  2397  
-  2398          psn = be32_to_cpu(ohdr->bth[2]);
-  2399          opcode >>= 24;
-  2400  
+So 4.3-rc1 is out by now... can we start making progress on this series 
+and the RoCE V2 one?
 
-opcode should probably be a u32 instead of a u8.
 
-regards,
-dan carpenter
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
