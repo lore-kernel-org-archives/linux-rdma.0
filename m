@@ -1,7 +1,7 @@
 From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next 07/32] IB/rxe: Misc local interfaces between files in ib_rxe
-Date: Wed, 16 Sep 2015 16:42:41 +0300
-Message-ID: <1442410986-28232-8-git-send-email-kamalh@mellanox.com>
+Subject: [PATCH rdma-next 17/32] IB/rxe: Completion Queue (CQ) manipulation functions
+Date: Wed, 16 Sep 2015 16:42:51 +0300
+Message-ID: <1442410986-28232-18-git-send-email-kamalh@mellanox.com>
 References: <1442410986-28232-1-git-send-email-kamalh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1442410986-28232-1-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,20 +10,22 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Functions to manipulate CQ.
+
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/staging/rxe/rxe_loc.h | 291 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 291 insertions(+)
- create mode 100644 drivers/staging/rxe/rxe_loc.h
+ drivers/staging/rxe/rxe_cq.c | 165 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 165 insertions(+)
+ create mode 100644 drivers/staging/rxe/rxe_cq.c
 
-diff --git a/drivers/staging/rxe/rxe_loc.h b/drivers/staging/rxe/rxe_loc.h
+diff --git a/drivers/staging/rxe/rxe_cq.c b/drivers/staging/rxe/rxe_cq.c
 new file mode 100644
-index 0000000..814b51d
+index 0000000..a572e4d
 --- /dev/null
-+++ b/drivers/staging/rxe/rxe_loc.h
-@@ -0,0 +1,291 @@
++++ b/drivers/staging/rxe/rxe_cq.c
+@@ -0,0 +1,165 @@
 +/*
 + * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
@@ -34,9 +36,9 @@ index 0000000..814b51d
 + * COPYING in the main directory of this source tree, or the
 + * OpenIB.org BSD license below:
 + *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
++ *	   Redistribution and use in source and binary forms, with or
++ *	   without modification, are permitted provided that the following
++ *	   conditions are met:
 + *
 + *	- Redistributions of source code must retain the above
 + *	  copyright notice, this list of conditions and the following
@@ -57,264 +59,138 @@ index 0000000..814b51d
 + * SOFTWARE.
 + */
 +
-+#ifndef RXE_LOC_H
-+#define RXE_LOC_H
++#include "rxe.h"
++#include "rxe_loc.h"
++#include "rxe_queue.h"
 +
-+/* rxe_av.c */
-+int rxe_av_chk_attr(struct rxe_dev *rxe, struct ib_ah_attr *attr);
-+
-+int rxe_av_from_attr(struct rxe_dev *rxe, u8 port_num,
-+		     struct rxe_av *av, struct ib_ah_attr *attr);
-+
-+int rxe_av_to_attr(struct rxe_dev *rxe, struct rxe_av *av,
-+		   struct ib_ah_attr *attr);
-+
-+int rxe_av_fill_ip_info(struct rxe_dev *rxe,
-+			struct rxe_av *av,
-+			struct ib_ah_attr *attr,
-+			struct ib_gid_attr *sgid_attr,
-+			union ib_gid *sgid);
-+
-+/* rxe_cq.c */
 +int rxe_cq_chk_attr(struct rxe_dev *rxe, struct rxe_cq *cq,
-+		    int cqe, int comp_vector, struct ib_udata *udata);
++		    int cqe, int comp_vector, struct ib_udata *udata)
++{
++	int count;
++
++	if (cqe <= 0) {
++		pr_warn("cqe(%d) <= 0\n", cqe);
++		goto err1;
++	}
++
++	if (cqe > rxe->attr.max_cqe) {
++		pr_warn("cqe(%d) > max_cqe(%d)\n",
++			cqe, rxe->attr.max_cqe);
++		goto err1;
++	}
++
++	if (cq) {
++		count = queue_count(cq->queue);
++		if (cqe < count) {
++			pr_warn("cqe(%d) < current # elements in queue (%d)",
++				cqe, count);
++			goto err1;
++		}
++	}
++
++	return 0;
++
++err1:
++	return -EINVAL;
++}
++
++static void rxe_send_complete(unsigned long data)
++{
++	struct rxe_cq *cq = (struct rxe_cq *)data;
++
++	cq->ibcq.comp_handler(&cq->ibcq, cq->ibcq.cq_context);
++}
 +
 +int rxe_cq_from_init(struct rxe_dev *rxe, struct rxe_cq *cq, int cqe,
 +		     int comp_vector, struct ib_ucontext *context,
-+		     struct ib_udata *udata);
-+
-+int rxe_cq_resize_queue(struct rxe_cq *cq, int new_cqe, struct ib_udata *udata);
-+
-+int rxe_cq_post(struct rxe_cq *cq, struct rxe_cqe *cqe, int solicited);
-+
-+void rxe_cq_cleanup(void *arg);
-+
-+/* rxe_mcast.c */
-+int rxe_mcast_get_grp(struct rxe_dev *rxe, union ib_gid *mgid,
-+		      struct rxe_mc_grp **grp_p);
-+
-+int rxe_mcast_add_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
-+			   struct rxe_mc_grp *grp);
-+
-+int rxe_mcast_drop_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
-+			    union ib_gid *mgid);
-+
-+void rxe_drop_all_mcast_groups(struct rxe_qp *qp);
-+
-+void rxe_mc_cleanup(void *arg);
-+
-+/* rxe_mmap.c */
-+struct rxe_mmap_info {
-+	struct list_head	pending_mmaps;
-+	struct ib_ucontext	*context;
-+	struct kref		ref;
-+	void			*obj;
-+
-+	struct mminfo info;
-+};
-+
-+void rxe_mmap_release(struct kref *ref);
-+
-+struct rxe_mmap_info *rxe_create_mmap_info(struct rxe_dev *dev,
-+					   u32 size,
-+					   struct ib_ucontext *context,
-+					   void *obj);
-+
-+int rxe_mmap(struct ib_ucontext *context, struct vm_area_struct *vma);
-+
-+/* rxe_mr.c */
-+enum copy_direction {
-+	to_mem_obj,
-+	from_mem_obj,
-+};
-+
-+int rxe_mem_init_dma(struct rxe_dev *rxe, struct rxe_pd *pd,
-+		     int access, struct rxe_mem *mem);
-+
-+int rxe_mem_init_phys(struct rxe_dev *rxe, struct rxe_pd *pd,
-+		      int access, u64 iova, struct ib_phys_buf *buf,
-+		      int num_buf, struct rxe_mem *mem);
-+
-+int rxe_mem_init_user(struct rxe_dev *rxe, struct rxe_pd *pd, u64 start,
-+		      u64 length, u64 iova, int access, struct ib_udata *udata,
-+		      struct rxe_mem *mr);
-+
-+int rxe_mem_init_fast(struct rxe_dev *rxe, struct rxe_pd *pd,
-+		      int max_pages, struct rxe_mem *mem);
-+
-+int rxe_mem_init_mw(struct rxe_dev *rxe, struct rxe_pd *pd,
-+		    struct rxe_mem *mw);
-+
-+int rxe_mem_init_fmr(struct rxe_dev *rxe, struct rxe_pd *pd, int access,
-+		     struct ib_fmr_attr *attr, struct rxe_mem *fmr);
-+
-+int rxe_mem_copy(struct rxe_mem *mem, u64 iova, void *addr,
-+		 int length, enum copy_direction dir, u32 *crcp);
-+
-+int copy_data(struct rxe_dev *rxe, struct rxe_pd *pd, int access,
-+	      struct rxe_dma_info *dma, void *addr, int length,
-+	      enum copy_direction dir, u32 *crcp);
-+
-+void *iova_to_vaddr(struct rxe_mem *mem, u64 iova, int length);
-+
-+enum lookup_type {
-+	lookup_local,
-+	lookup_remote,
-+};
-+
-+struct rxe_mem *lookup_mem(struct rxe_pd *pd, int access, u32 key,
-+			   enum lookup_type type);
-+
-+int mem_check_range(struct rxe_mem *mem, u64 iova, size_t length);
-+
-+int rxe_mem_map_pages(struct rxe_dev *rxe, struct rxe_mem *mem,
-+		      u64 *page, int num_pages, u64 iova);
-+
-+void rxe_mem_cleanup(void *arg);
-+
-+int advance_dma_data(struct rxe_dma_info *dma, unsigned int length);
-+
-+/* rxe_qp.c */
-+int rxe_qp_chk_init(struct rxe_dev *rxe, struct ib_qp_init_attr *init);
-+
-+int rxe_qp_from_init(struct rxe_dev *rxe, struct rxe_qp *qp, struct rxe_pd *pd,
-+		     struct ib_qp_init_attr *init, struct ib_udata *udata,
-+		     struct ib_pd *ibpd);
-+
-+int rxe_qp_to_init(struct rxe_qp *qp, struct ib_qp_init_attr *init);
-+
-+int rxe_qp_chk_attr(struct rxe_dev *rxe, struct rxe_qp *qp,
-+		    struct ib_qp_attr *attr, int mask);
-+
-+int rxe_qp_from_attr(struct rxe_qp *qp, struct ib_qp_attr *attr,
-+		     int mask, struct ib_udata *udata);
-+
-+int rxe_qp_to_attr(struct rxe_qp *qp, struct ib_qp_attr *attr, int mask);
-+
-+void rxe_qp_error(struct rxe_qp *qp);
-+
-+void rxe_qp_destroy(struct rxe_qp *qp);
-+
-+void rxe_qp_cleanup(void *arg);
-+
-+static inline int qp_num(struct rxe_qp *qp)
-+{
-+	return qp->ibqp.qp_num;
-+}
-+
-+static inline enum ib_qp_type qp_type(struct rxe_qp *qp)
-+{
-+	return qp->ibqp.qp_type;
-+}
-+
-+static inline enum ib_qp_state qp_state(struct rxe_qp *qp)
-+{
-+	return qp->attr.qp_state;
-+}
-+
-+static inline int qp_mtu(struct rxe_qp *qp)
-+{
-+	if (qp->ibqp.qp_type == IB_QPT_RC || qp->ibqp.qp_type == IB_QPT_UC)
-+		return qp->attr.path_mtu;
-+	else
-+		return RXE_PORT_MAX_MTU;
-+}
-+
-+static inline int rcv_wqe_size(int max_sge)
-+{
-+	return sizeof(struct rxe_recv_wqe) +
-+		max_sge * sizeof(struct ib_sge);
-+}
-+
-+void free_rd_atomic_resource(struct rxe_qp *qp, struct resp_res *res);
-+
-+static inline void rxe_advance_resp_resource(struct rxe_qp *qp)
-+{
-+	qp->resp.res_head++;
-+	if (unlikely(qp->resp.res_head == qp->attr.max_rd_atomic))
-+		qp->resp.res_head = 0;
-+}
-+
-+void retransmit_timer(unsigned long data);
-+void rnr_nak_timer(unsigned long data);
-+
-+void dump_qp(struct rxe_qp *qp);
-+
-+/* rxe_srq.c */
-+#define IB_SRQ_INIT_MASK (~IB_SRQ_LIMIT)
-+
-+int rxe_srq_chk_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
-+		     struct ib_srq_attr *attr, enum ib_srq_attr_mask mask);
-+
-+int rxe_srq_from_init(struct rxe_dev *rxe, struct rxe_srq *srq,
-+		      struct ib_srq_init_attr *init,
-+		      struct ib_ucontext *context, struct ib_udata *udata);
-+
-+int rxe_srq_from_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
-+		      struct ib_srq_attr *attr, enum ib_srq_attr_mask mask,
-+		      struct ib_udata *udata);
-+
-+extern struct ib_dma_mapping_ops rxe_dma_mapping_ops;
-+
-+void rxe_release(struct kref *kref);
-+
-+int rxe_completer(void *arg);
-+int rxe_requester(void *arg);
-+int rxe_responder(void *arg);
-+
-+u32 rxe_icrc_hdr(struct rxe_pkt_info *pkt, struct sk_buff *skb);
-+
-+void rxe_resp_queue_pkt(struct rxe_dev *rxe,
-+			struct rxe_qp *qp, struct sk_buff *skb);
-+
-+void rxe_comp_queue_pkt(struct rxe_dev *rxe,
-+			struct rxe_qp *qp, struct sk_buff *skb);
-+
-+static inline unsigned wr_opcode_mask(int opcode, struct rxe_qp *qp)
-+{
-+	return rxe_wr_opcode_info[opcode].mask[qp->ibqp.qp_type];
-+}
-+
-+static inline int rxe_xmit_packet(struct rxe_dev *rxe, struct rxe_qp *qp,
-+				  struct rxe_pkt_info *pkt, struct sk_buff *skb)
++		     struct ib_udata *udata)
 +{
 +	int err;
-+	int is_request = pkt->mask & RXE_REQ_MASK;
 +
-+	if ((is_request && (qp->req.state != QP_STATE_READY)) ||
-+	    (!is_request && (qp->resp.state != QP_STATE_READY))) {
-+		pr_info("Packet dropped. QP is not in ready state\n");
-+		goto drop;
++	cq->queue = rxe_queue_init(rxe, &cqe,
++				   sizeof(struct rxe_cqe));
++	if (!cq->queue) {
++		pr_warn("unable to create cq\n");
++		return -ENOMEM;
 +	}
 +
-+	if (pkt->mask & RXE_LOOPBACK_MASK)
-+		err = rxe->ifc_ops->loopback(skb);
-+	else
-+		err = rxe->ifc_ops->send(rxe, pkt, skb);
-+
++	err = do_mmap_info(rxe, udata, false, context, cq->queue->buf,
++			   cq->queue->buf_size, &cq->queue->ip);
 +	if (err) {
-+		rxe->xmit_errors++;
++		kvfree(cq->queue->buf);
++		kfree(cq->queue);
 +		return err;
 +	}
 +
-+	atomic_inc(&qp->skb_out);
++	if (udata)
++		cq->is_user = 1;
 +
-+	if ((qp_type(qp) != IB_QPT_RC) &&
-+	    (pkt->mask & RXE_END_MASK)) {
-+		pkt->wqe->state = wqe_state_done;
-+		rxe_run_task(&qp->comp.task, 1);
-+	}
++	tasklet_init(&cq->comp_task, rxe_send_complete, (unsigned long)cq);
 +
-+	goto done;
++	spin_lock_init(&cq->cq_lock);
++	cq->ibcq.cqe = cqe;
++	return 0;
++}
 +
-+drop:
-+	kfree_skb(skb);
-+	err = 0;
-+done:
++int rxe_cq_resize_queue(struct rxe_cq *cq, int cqe, struct ib_udata *udata)
++{
++	int err;
++
++	err = rxe_queue_resize(cq->queue, (unsigned int *)&cqe,
++			       sizeof(struct rxe_cqe),
++			       cq->queue->ip ? cq->queue->ip->context : NULL,
++			       udata, NULL, &cq->cq_lock);
++	if (!err)
++		cq->ibcq.cqe = cqe;
++
 +	return err;
 +}
 +
-+#endif /* RXE_LOC_H */
++int rxe_cq_post(struct rxe_cq *cq, struct rxe_cqe *cqe, int solicited)
++{
++	struct ib_event ev;
++	unsigned long flags;
++
++	spin_lock_irqsave(&cq->cq_lock, flags);
++
++	if (unlikely(queue_full(cq->queue))) {
++		spin_unlock_irqrestore(&cq->cq_lock, flags);
++		if (cq->ibcq.event_handler) {
++			ev.device = cq->ibcq.device;
++			ev.element.cq = &cq->ibcq;
++			ev.event = IB_EVENT_CQ_ERR;
++			cq->ibcq.event_handler(&ev, cq->ibcq.cq_context);
++		}
++
++		return -EBUSY;
++	}
++
++	memcpy(producer_addr(cq->queue), cqe, sizeof(*cqe));
++
++	/* make sure all changes to the CQ are written before we update the
++	 * producer pointer
++	 */
++	smp_wmb();
++
++	advance_producer(cq->queue);
++	spin_unlock_irqrestore(&cq->cq_lock, flags);
++
++	if ((cq->notify == IB_CQ_NEXT_COMP) ||
++	    (cq->notify == IB_CQ_SOLICITED && solicited)) {
++		cq->notify++;
++		tasklet_schedule(&cq->comp_task);
++	}
++
++	return 0;
++}
++
++void rxe_cq_cleanup(void *arg)
++{
++	struct rxe_cq *cq = arg;
++
++	if (cq->queue)
++		rxe_queue_cleanup(cq->queue);
++}
 -- 
 1.8.3.1
 
