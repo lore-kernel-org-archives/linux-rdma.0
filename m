@@ -1,69 +1,74 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: re: IB/cma: Fix net_dev reference leak with failed requests
-Date: Wed, 16 Sep 2015 17:10:39 +0300
-Message-ID: <20150916141039.GA7449@mwanda>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next V1 00/10] Add RoCE GID cache usage in verbs/cma
+Date: Wed, 16 Sep 2015 10:53:14 -0400
+Message-ID: <55F9825A.5000408@redhat.com>
+References: <1438952463-23707-1-git-send-email-matanb@mellanox.com>
+ <55F9651E.5040906@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="HkiNXLKQe4h63Dj4LVviPr5rRkrDtJAi1"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <55F9651E.5040906-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Haggai Eran,
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--HkiNXLKQe4h63Dj4LVviPr5rRkrDtJAi1
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-The patch be688195bd08: "IB/cma: Fix net_dev reference leak with
-failed requests" from Aug 27, 2015, leads to the following static
-checker warning:
+On 09/16/2015 08:48 AM, Or Gerlitz wrote:
+> On 8/7/2015 4:00 PM, Matan Barak wrote:
+>> This purpose of this series is to add usage of the GID cache to
+>> the CMA and IB stack. Instead of passing Ethernet L2 attributes
+>> via QP attributes, we could just use the GID cache that's already
+>> points to a ndev and thus to all required L2 attributes.
+>=20
+> [...]
+>=20
+> Hi Doug,
+>=20
+> So 4.3-rc1 is out by now... can we start making progress on this series=
 
-	drivers/infiniband/core/cma.c:1306 cma_id_from_event()
-	error: potential NULL dereference '*net_dev'.
+> and the RoCE V2 one?
 
-drivers/infiniband/core/cma.c
-  1279  static struct rdma_id_private *cma_id_from_event(struct ib_cm_id *cm_id,
-  1280                                                   struct ib_cm_event *ib_event,
-  1281                                                   struct net_device **net_dev)
-  1282  {
-  1283          struct cma_req_info req;
-  1284          struct rdma_bind_list *bind_list;
-  1285          struct rdma_id_private *id_priv;
-  1286          int err;
-  1287  
-  1288          err = cma_save_req_info(ib_event, &req);
-  1289          if (err)
-  1290                  return ERR_PTR(err);
-  1291  
-  1292          *net_dev = cma_get_net_dev(ib_event, &req);
-  1293          if (IS_ERR(*net_dev)) {
-  1294                  if (PTR_ERR(*net_dev) == -EAFNOSUPPORT) {
-  1295                          /* Assuming the protocol is AF_IB */
-  1296                          *net_dev = NULL;
+Yes, here shortly.  Probably after 4.3-rc2.
 
-Set to NULL here.
 
-  1297                  } else {
-  1298                          return ERR_CAST(*net_dev);
-  1299                  }
-  1300          }
-  1301  
-  1302          bind_list = cma_ps_find(rdma_ps_from_service_id(req.service_id),
-  1303                                  cma_port_from_service_id(req.service_id));
-  1304          id_priv = cma_find_listener(bind_list, cm_id, ib_event, &req, *net_dev);
-  1305          if (IS_ERR(id_priv)) {
-  1306                  dev_put(*net_dev);
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
 
-Dereferenced inside function call.  This warning is from a work in
-progress Smatch check (unpublished).
 
-  1307                  *net_dev = NULL;
-  1308          }
-  1309  
-  1310          return id_priv;
-  1311  }
 
-regards,
-dan carpenter
+--HkiNXLKQe4h63Dj4LVviPr5rRkrDtJAi1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJV+YJaAAoJELgmozMOVy/dzuwP/jUhAMx6/fHt4fEdV2BIWvkp
+yW71wz0UdObTh+kJ29KNwDvkka6Z/mBnuXMF1G7HapCwAY2vO5nWgNEpSvNB9cWT
+Lsb8lUhFrOSBHxmcEkdolTpb/InJRMBEtz0LFcs0zpZIuQcig7S72BsRhNaekSXo
+ZLC2U+4oL63Kbjz/TR8iJLfYAlxdSTgRshhAnJz7zZdj4UCD1W2hdXPvlZuNXWTz
+JMNgBGQrUYTyLIHRiNtGNAld2Hh4V20RXuIaOsvXqxDEEooOL87q+Ex3uQeslnEO
+oMWwadTkIc7ea82qpkeKIAnidRjQCoFbbjTgk1CBi3DoqkuRn3RD3UXAnurN6myL
+FZvR0MIS/UcayKqhUvLlqsugzrvLjnjgVRAmlpUMkOoB1njV9C2QYlF/h6qbgiNu
+NM4gxIOIM5HF2Pj8hT2NZTGZlbLszDcefmpzdxDFeYBjxH2ogIrXcBro5wihGdHT
+51qgNx4d/wcW3BHkrd7YdnfAyZv6f4teP7b0Dv27Z1L/DJvmH6ZNzEc+vmyS42gv
+DuAFRaf0Dgz8X8+92HA1W+iUg3uEeYR5FBXxJlkoXjIz8XvOz+W0uEV7xRIIUXxg
+CLXYZx2Ha3szrBdT8Xtn3hb2AVmxSrgZXEtPPwzKeoVoOMKfxuEr7paMUqerVhcJ
+vK8iOo+GtjPXnF2cDSTK
+=freF
+-----END PGP SIGNATURE-----
+
+--HkiNXLKQe4h63Dj4LVviPr5rRkrDtJAi1--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
