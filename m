@@ -1,38 +1,47 @@
 From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next 01/32] IB/core: Macro for RoCEv2 UDP port
-Date: Wed, 16 Sep 2015 16:42:35 +0300
-Message-ID: <1442410986-28232-2-git-send-email-kamalh@mellanox.com>
+Subject: [PATCH rdma-next 02/32] IB/core: Add SEND_LAST_INV and SEND_ONLY_INV opcodes
+Date: Wed, 16 Sep 2015 16:42:36 +0300
+Message-ID: <1442410986-28232-3-git-send-email-kamalh@mellanox.com>
 References: <1442410986-28232-1-git-send-email-kamalh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1442410986-28232-1-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Intorduce Add SEND_LAST_INV and SEND_ONLY_INV opcodes in ib_pack.h to be
+used by RXE for RC.
 
-Adding a macro for RoCEv2 UDP destination port.
-
-Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/rdma/ib_verbs.h | 2 ++
- 1 file changed, 2 insertions(+)
+ include/rdma/ib_pack.h | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index e6b6a86..4de9dfa 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -77,6 +77,8 @@ enum ib_gid_type {
- 	IB_GID_TYPE_SIZE
- };
+diff --git a/include/rdma/ib_pack.h b/include/rdma/ib_pack.h
+index 3883fcd..12bce2e 100644
+--- a/include/rdma/ib_pack.h
++++ b/include/rdma/ib_pack.h
+@@ -102,6 +102,8 @@ enum {
+ 	IB_OPCODE_ATOMIC_ACKNOWLEDGE                = 0x12,
+ 	IB_OPCODE_COMPARE_SWAP                      = 0x13,
+ 	IB_OPCODE_FETCH_ADD                         = 0x14,
++	IB_OPCODE_SEND_LAST_INV                     = 0x16,
++	IB_OPCODE_SEND_ONLY_INV                     = 0x17,
  
-+#define ROCE_V2_UDP_DPORT      4791
-+
- struct ib_gid_attr {
- 	enum ib_gid_type	gid_type;
- 	struct net_device	*ndev;
+ 	/* real constants follow -- see comment about above IB_OPCODE()
+ 	   macro for more details */
+@@ -128,6 +130,8 @@ enum {
+ 	IB_OPCODE(RC, ATOMIC_ACKNOWLEDGE),
+ 	IB_OPCODE(RC, COMPARE_SWAP),
+ 	IB_OPCODE(RC, FETCH_ADD),
++	IB_OPCODE(RC, SEND_LAST_INV),
++	IB_OPCODE(RC, SEND_ONLY_INV),
+ 
+ 	/* UC */
+ 	IB_OPCODE(UC, SEND_FIRST),
 -- 
 1.8.3.1
 
