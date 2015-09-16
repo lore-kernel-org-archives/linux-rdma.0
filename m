@@ -1,7 +1,7 @@
 From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next 04/32] IB/rxe: Bit mask and lengths declaration for different opcodes
-Date: Wed, 16 Sep 2015 16:42:38 +0300
-Message-ID: <1442410986-28232-5-git-send-email-kamalh@mellanox.com>
+Subject: [PATCH rdma-next 07/32] IB/rxe: Misc local interfaces between files in ib_rxe
+Date: Wed, 16 Sep 2015 16:42:41 +0300
+Message-ID: <1442410986-28232-8-git-send-email-kamalh@mellanox.com>
 References: <1442410986-28232-1-git-send-email-kamalh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1442410986-28232-1-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,23 +10,20 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-header bit mask definitions and header lengths declaration of the
-rxe_opcode_info struct and rxe_wr_opcode_info struct.
-
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/staging/rxe/rxe_opcode.h | 128 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 128 insertions(+)
- create mode 100644 drivers/staging/rxe/rxe_opcode.h
+ drivers/staging/rxe/rxe_loc.h | 291 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 291 insertions(+)
+ create mode 100644 drivers/staging/rxe/rxe_loc.h
 
-diff --git a/drivers/staging/rxe/rxe_opcode.h b/drivers/staging/rxe/rxe_opcode.h
+diff --git a/drivers/staging/rxe/rxe_loc.h b/drivers/staging/rxe/rxe_loc.h
 new file mode 100644
-index 0000000..3682c16
+index 0000000..814b51d
 --- /dev/null
-+++ b/drivers/staging/rxe/rxe_opcode.h
-@@ -0,0 +1,128 @@
++++ b/drivers/staging/rxe/rxe_loc.h
+@@ -0,0 +1,291 @@
 +/*
 + * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
@@ -60,101 +57,264 @@ index 0000000..3682c16
 + * SOFTWARE.
 + */
 +
-+#ifndef RXE_OPCODE_H
-+#define RXE_OPCODE_H
++#ifndef RXE_LOC_H
++#define RXE_LOC_H
 +
-+/*
-+ * contains header bit mask definitions and header lengths
-+ * declaration of the rxe_opcode_info struct and
-+ * rxe_wr_opcode_info struct
-+ */
++/* rxe_av.c */
++int rxe_av_chk_attr(struct rxe_dev *rxe, struct ib_ah_attr *attr);
 +
-+enum rxe_wr_mask {
-+	WR_INLINE_MASK			= BIT(0),
-+	WR_ATOMIC_MASK			= BIT(1),
-+	WR_SEND_MASK			= BIT(2),
-+	WR_READ_MASK			= BIT(3),
-+	WR_WRITE_MASK			= BIT(4),
-+	WR_LOCAL_MASK			= BIT(5),
++int rxe_av_from_attr(struct rxe_dev *rxe, u8 port_num,
++		     struct rxe_av *av, struct ib_ah_attr *attr);
 +
-+	WR_READ_OR_WRITE_MASK		= WR_READ_MASK | WR_WRITE_MASK,
-+	WR_READ_WRITE_OR_SEND_MASK	= WR_READ_OR_WRITE_MASK | WR_SEND_MASK,
-+	WR_WRITE_OR_SEND_MASK		= WR_WRITE_MASK | WR_SEND_MASK,
-+	WR_ATOMIC_OR_READ_MASK		= WR_ATOMIC_MASK | WR_READ_MASK,
++int rxe_av_to_attr(struct rxe_dev *rxe, struct rxe_av *av,
++		   struct ib_ah_attr *attr);
++
++int rxe_av_fill_ip_info(struct rxe_dev *rxe,
++			struct rxe_av *av,
++			struct ib_ah_attr *attr,
++			struct ib_gid_attr *sgid_attr,
++			union ib_gid *sgid);
++
++/* rxe_cq.c */
++int rxe_cq_chk_attr(struct rxe_dev *rxe, struct rxe_cq *cq,
++		    int cqe, int comp_vector, struct ib_udata *udata);
++
++int rxe_cq_from_init(struct rxe_dev *rxe, struct rxe_cq *cq, int cqe,
++		     int comp_vector, struct ib_ucontext *context,
++		     struct ib_udata *udata);
++
++int rxe_cq_resize_queue(struct rxe_cq *cq, int new_cqe, struct ib_udata *udata);
++
++int rxe_cq_post(struct rxe_cq *cq, struct rxe_cqe *cqe, int solicited);
++
++void rxe_cq_cleanup(void *arg);
++
++/* rxe_mcast.c */
++int rxe_mcast_get_grp(struct rxe_dev *rxe, union ib_gid *mgid,
++		      struct rxe_mc_grp **grp_p);
++
++int rxe_mcast_add_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
++			   struct rxe_mc_grp *grp);
++
++int rxe_mcast_drop_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
++			    union ib_gid *mgid);
++
++void rxe_drop_all_mcast_groups(struct rxe_qp *qp);
++
++void rxe_mc_cleanup(void *arg);
++
++/* rxe_mmap.c */
++struct rxe_mmap_info {
++	struct list_head	pending_mmaps;
++	struct ib_ucontext	*context;
++	struct kref		ref;
++	void			*obj;
++
++	struct mminfo info;
 +};
 +
-+#define WR_MAX_QPT		(8)
++void rxe_mmap_release(struct kref *ref);
 +
-+struct rxe_wr_opcode_info {
-+	char			*name;
-+	enum rxe_wr_mask	mask[WR_MAX_QPT];
++struct rxe_mmap_info *rxe_create_mmap_info(struct rxe_dev *dev,
++					   u32 size,
++					   struct ib_ucontext *context,
++					   void *obj);
++
++int rxe_mmap(struct ib_ucontext *context, struct vm_area_struct *vma);
++
++/* rxe_mr.c */
++enum copy_direction {
++	to_mem_obj,
++	from_mem_obj,
 +};
 +
-+extern struct rxe_wr_opcode_info rxe_wr_opcode_info[];
++int rxe_mem_init_dma(struct rxe_dev *rxe, struct rxe_pd *pd,
++		     int access, struct rxe_mem *mem);
 +
-+enum rxe_hdr_type {
-+	RXE_LRH,
-+	RXE_GRH,
-+	RXE_BTH,
-+	RXE_RETH,
-+	RXE_AETH,
-+	RXE_ATMETH,
-+	RXE_ATMACK,
-+	RXE_IETH,
-+	RXE_RDETH,
-+	RXE_DETH,
-+	RXE_IMMDT,
-+	RXE_PAYLOAD,
-+	NUM_HDR_TYPES
++int rxe_mem_init_phys(struct rxe_dev *rxe, struct rxe_pd *pd,
++		      int access, u64 iova, struct ib_phys_buf *buf,
++		      int num_buf, struct rxe_mem *mem);
++
++int rxe_mem_init_user(struct rxe_dev *rxe, struct rxe_pd *pd, u64 start,
++		      u64 length, u64 iova, int access, struct ib_udata *udata,
++		      struct rxe_mem *mr);
++
++int rxe_mem_init_fast(struct rxe_dev *rxe, struct rxe_pd *pd,
++		      int max_pages, struct rxe_mem *mem);
++
++int rxe_mem_init_mw(struct rxe_dev *rxe, struct rxe_pd *pd,
++		    struct rxe_mem *mw);
++
++int rxe_mem_init_fmr(struct rxe_dev *rxe, struct rxe_pd *pd, int access,
++		     struct ib_fmr_attr *attr, struct rxe_mem *fmr);
++
++int rxe_mem_copy(struct rxe_mem *mem, u64 iova, void *addr,
++		 int length, enum copy_direction dir, u32 *crcp);
++
++int copy_data(struct rxe_dev *rxe, struct rxe_pd *pd, int access,
++	      struct rxe_dma_info *dma, void *addr, int length,
++	      enum copy_direction dir, u32 *crcp);
++
++void *iova_to_vaddr(struct rxe_mem *mem, u64 iova, int length);
++
++enum lookup_type {
++	lookup_local,
++	lookup_remote,
 +};
 +
-+enum rxe_hdr_mask {
-+	RXE_LRH_MASK		= BIT(RXE_LRH),
-+	RXE_GRH_MASK		= BIT(RXE_GRH),
-+	RXE_BTH_MASK		= BIT(RXE_BTH),
-+	RXE_IMMDT_MASK		= BIT(RXE_IMMDT),
-+	RXE_RETH_MASK		= BIT(RXE_RETH),
-+	RXE_AETH_MASK		= BIT(RXE_AETH),
-+	RXE_ATMETH_MASK		= BIT(RXE_ATMETH),
-+	RXE_ATMACK_MASK		= BIT(RXE_ATMACK),
-+	RXE_IETH_MASK		= BIT(RXE_IETH),
-+	RXE_RDETH_MASK		= BIT(RXE_RDETH),
-+	RXE_DETH_MASK		= BIT(RXE_DETH),
-+	RXE_PAYLOAD_MASK	= BIT(RXE_PAYLOAD),
++struct rxe_mem *lookup_mem(struct rxe_pd *pd, int access, u32 key,
++			   enum lookup_type type);
 +
-+	RXE_REQ_MASK		= BIT(NUM_HDR_TYPES + 0),
-+	RXE_ACK_MASK		= BIT(NUM_HDR_TYPES + 1),
-+	RXE_SEND_MASK		= BIT(NUM_HDR_TYPES + 2),
-+	RXE_WRITE_MASK		= BIT(NUM_HDR_TYPES + 3),
-+	RXE_READ_MASK		= BIT(NUM_HDR_TYPES + 4),
-+	RXE_ATOMIC_MASK		= BIT(NUM_HDR_TYPES + 5),
++int mem_check_range(struct rxe_mem *mem, u64 iova, size_t length);
 +
-+	RXE_RWR_MASK		= BIT(NUM_HDR_TYPES + 6),
-+	RXE_COMP_MASK		= BIT(NUM_HDR_TYPES + 7),
++int rxe_mem_map_pages(struct rxe_dev *rxe, struct rxe_mem *mem,
++		      u64 *page, int num_pages, u64 iova);
 +
-+	RXE_START_MASK		= BIT(NUM_HDR_TYPES + 8),
-+	RXE_MIDDLE_MASK		= BIT(NUM_HDR_TYPES + 9),
-+	RXE_END_MASK		= BIT(NUM_HDR_TYPES + 10),
++void rxe_mem_cleanup(void *arg);
 +
-+	RXE_LOOPBACK_MASK	= BIT(NUM_HDR_TYPES + 12),
++int advance_dma_data(struct rxe_dma_info *dma, unsigned int length);
 +
-+	RXE_READ_OR_ATOMIC	= (RXE_READ_MASK | RXE_ATOMIC_MASK),
-+	RXE_WRITE_OR_SEND	= (RXE_WRITE_MASK | RXE_SEND_MASK),
-+};
++/* rxe_qp.c */
++int rxe_qp_chk_init(struct rxe_dev *rxe, struct ib_qp_init_attr *init);
 +
-+#define OPCODE_NONE		(-1)
-+#define RXE_NUM_OPCODE		256
++int rxe_qp_from_init(struct rxe_dev *rxe, struct rxe_qp *qp, struct rxe_pd *pd,
++		     struct ib_qp_init_attr *init, struct ib_udata *udata,
++		     struct ib_pd *ibpd);
 +
-+struct rxe_opcode_info {
-+	char			*name;
-+	enum rxe_hdr_mask	mask;
-+	int			length;
-+	int			offset[NUM_HDR_TYPES];
-+};
++int rxe_qp_to_init(struct rxe_qp *qp, struct ib_qp_init_attr *init);
 +
-+extern struct rxe_opcode_info rxe_opcode[RXE_NUM_OPCODE];
++int rxe_qp_chk_attr(struct rxe_dev *rxe, struct rxe_qp *qp,
++		    struct ib_qp_attr *attr, int mask);
 +
-+#endif /* RXE_OPCODE_H */
++int rxe_qp_from_attr(struct rxe_qp *qp, struct ib_qp_attr *attr,
++		     int mask, struct ib_udata *udata);
++
++int rxe_qp_to_attr(struct rxe_qp *qp, struct ib_qp_attr *attr, int mask);
++
++void rxe_qp_error(struct rxe_qp *qp);
++
++void rxe_qp_destroy(struct rxe_qp *qp);
++
++void rxe_qp_cleanup(void *arg);
++
++static inline int qp_num(struct rxe_qp *qp)
++{
++	return qp->ibqp.qp_num;
++}
++
++static inline enum ib_qp_type qp_type(struct rxe_qp *qp)
++{
++	return qp->ibqp.qp_type;
++}
++
++static inline enum ib_qp_state qp_state(struct rxe_qp *qp)
++{
++	return qp->attr.qp_state;
++}
++
++static inline int qp_mtu(struct rxe_qp *qp)
++{
++	if (qp->ibqp.qp_type == IB_QPT_RC || qp->ibqp.qp_type == IB_QPT_UC)
++		return qp->attr.path_mtu;
++	else
++		return RXE_PORT_MAX_MTU;
++}
++
++static inline int rcv_wqe_size(int max_sge)
++{
++	return sizeof(struct rxe_recv_wqe) +
++		max_sge * sizeof(struct ib_sge);
++}
++
++void free_rd_atomic_resource(struct rxe_qp *qp, struct resp_res *res);
++
++static inline void rxe_advance_resp_resource(struct rxe_qp *qp)
++{
++	qp->resp.res_head++;
++	if (unlikely(qp->resp.res_head == qp->attr.max_rd_atomic))
++		qp->resp.res_head = 0;
++}
++
++void retransmit_timer(unsigned long data);
++void rnr_nak_timer(unsigned long data);
++
++void dump_qp(struct rxe_qp *qp);
++
++/* rxe_srq.c */
++#define IB_SRQ_INIT_MASK (~IB_SRQ_LIMIT)
++
++int rxe_srq_chk_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
++		     struct ib_srq_attr *attr, enum ib_srq_attr_mask mask);
++
++int rxe_srq_from_init(struct rxe_dev *rxe, struct rxe_srq *srq,
++		      struct ib_srq_init_attr *init,
++		      struct ib_ucontext *context, struct ib_udata *udata);
++
++int rxe_srq_from_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
++		      struct ib_srq_attr *attr, enum ib_srq_attr_mask mask,
++		      struct ib_udata *udata);
++
++extern struct ib_dma_mapping_ops rxe_dma_mapping_ops;
++
++void rxe_release(struct kref *kref);
++
++int rxe_completer(void *arg);
++int rxe_requester(void *arg);
++int rxe_responder(void *arg);
++
++u32 rxe_icrc_hdr(struct rxe_pkt_info *pkt, struct sk_buff *skb);
++
++void rxe_resp_queue_pkt(struct rxe_dev *rxe,
++			struct rxe_qp *qp, struct sk_buff *skb);
++
++void rxe_comp_queue_pkt(struct rxe_dev *rxe,
++			struct rxe_qp *qp, struct sk_buff *skb);
++
++static inline unsigned wr_opcode_mask(int opcode, struct rxe_qp *qp)
++{
++	return rxe_wr_opcode_info[opcode].mask[qp->ibqp.qp_type];
++}
++
++static inline int rxe_xmit_packet(struct rxe_dev *rxe, struct rxe_qp *qp,
++				  struct rxe_pkt_info *pkt, struct sk_buff *skb)
++{
++	int err;
++	int is_request = pkt->mask & RXE_REQ_MASK;
++
++	if ((is_request && (qp->req.state != QP_STATE_READY)) ||
++	    (!is_request && (qp->resp.state != QP_STATE_READY))) {
++		pr_info("Packet dropped. QP is not in ready state\n");
++		goto drop;
++	}
++
++	if (pkt->mask & RXE_LOOPBACK_MASK)
++		err = rxe->ifc_ops->loopback(skb);
++	else
++		err = rxe->ifc_ops->send(rxe, pkt, skb);
++
++	if (err) {
++		rxe->xmit_errors++;
++		return err;
++	}
++
++	atomic_inc(&qp->skb_out);
++
++	if ((qp_type(qp) != IB_QPT_RC) &&
++	    (pkt->mask & RXE_END_MASK)) {
++		pkt->wqe->state = wqe_state_done;
++		rxe_run_task(&qp->comp.task, 1);
++	}
++
++	goto done;
++
++drop:
++	kfree_skb(skb);
++	err = 0;
++done:
++	return err;
++}
++
++#endif /* RXE_LOC_H */
 -- 
 1.8.3.1
 
