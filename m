@@ -1,33 +1,41 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next V1 00/10] Add RoCE GID cache usage in verbs/cma
-Date: Wed, 16 Sep 2015 15:48:30 +0300
-Message-ID: <55F9651E.5040906@mellanox.com>
-References: <1438952463-23707-1-git-send-email-matanb@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH rdma-next 01/32] IB/core: Macro for RoCEv2 UDP port
+Date: Wed, 16 Sep 2015 16:42:35 +0300
+Message-ID: <1442410986-28232-2-git-send-email-kamalh@mellanox.com>
+References: <1442410986-28232-1-git-send-email-kamalh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1438952463-23707-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1442410986-28232-1-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/7/2015 4:00 PM, Matan Barak wrote:
-> This purpose of this series is to add usage of the GID cache to
-> the CMA and IB stack. Instead of passing Ethernet L2 attributes
-> via QP attributes, we could just use the GID cache that's already
-> points to a ndev and thus to all required L2 attributes.
+From: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-[...]
+Adding a macro for RoCEv2 UDP destination port.
 
-Hi Doug,
+Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ include/rdma/ib_verbs.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-So 4.3-rc1 is out by now... can we start making progress on this series 
-and the RoCE V2 one?
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index e6b6a86..4de9dfa 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -77,6 +77,8 @@ enum ib_gid_type {
+ 	IB_GID_TYPE_SIZE
+ };
+ 
++#define ROCE_V2_UDP_DPORT      4791
++
+ struct ib_gid_attr {
+ 	enum ib_gid_type	gid_type;
+ 	struct net_device	*ndev;
+-- 
+1.8.3.1
 
-
-Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
