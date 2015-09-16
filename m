@@ -1,31 +1,32 @@
 From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next 20/32] IB/rxe: Multicast implementation
-Date: Wed, 16 Sep 2015 16:42:54 +0300
-Message-ID: <1442410986-28232-21-git-send-email-kamalh@mellanox.com>
+Subject: [PATCH rdma-next 28/32] IB/rxe: Interface to netdev stack
+Date: Wed, 16 Sep 2015 16:43:02 +0300
+Message-ID: <1442410986-28232-29-git-send-email-kamalh@mellanox.com>
 References: <1442410986-28232-1-git-send-email-kamalh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1442410986-28232-1-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Multicast groups handling.
+Linux netdev related code
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/staging/rxe/rxe_mcast.c | 190 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 190 insertions(+)
- create mode 100644 drivers/staging/rxe/rxe_mcast.c
+ drivers/staging/rxe/rxe_net.c | 705 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/staging/rxe/rxe_net.h |  72 +++++
+ 2 files changed, 777 insertions(+)
+ create mode 100644 drivers/staging/rxe/rxe_net.c
+ create mode 100644 drivers/staging/rxe/rxe_net.h
 
-diff --git a/drivers/staging/rxe/rxe_mcast.c b/drivers/staging/rxe/rxe_mcast.c
+diff --git a/drivers/staging/rxe/rxe_net.c b/drivers/staging/rxe/rxe_net.c
 new file mode 100644
-index 0000000..bcf37be
+index 0000000..defcb0f
 --- /dev/null
-+++ b/drivers/staging/rxe/rxe_mcast.c
-@@ -0,0 +1,190 @@
++++ b/drivers/staging/rxe/rxe_net.c
+@@ -0,0 +1,705 @@
 +/*
 + * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
@@ -36,18 +37,18 @@ index 0000000..bcf37be
 + * COPYING in the main directory of this source tree, or the
 + * OpenIB.org BSD license below:
 + *
-+ *	   Redistribution and use in source and binary forms, with or
-+ *	   without modification, are permitted provided that the following
-+ *	   conditions are met:
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
 + *
-+ *		- Redistributions of source code must retain the above
-+ *		  copyright notice, this list of conditions and the following
-+ *		  disclaimer.
++ *	- Redistributions of source code must retain the above
++ *	  copyright notice, this list of conditions and the following
++ *	  disclaimer.
 + *
-+ *		- Redistributions in binary form must reproduce the above
-+ *		  copyright notice, this list of conditions and the following
-+ *		  disclaimer in the documentation and/or other materials
-+ *		  provided with the distribution.
++ *	- Redistributions in binary form must reproduce the above
++ *	  copyright notice, this list of conditions and the following
++ *	  disclaimer in the documentation and/or other materials
++ *	  provided with the distribution.
 + *
 + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -59,163 +60,756 @@ index 0000000..bcf37be
 + * SOFTWARE.
 + */
 +
++#include <linux/skbuff.h>
++#include <linux/if_arp.h>
++#include <linux/netdevice.h>
++#include <linux/if.h>
++#include <linux/if_vlan.h>
++#include <net/udp_tunnel.h>
++#include <net/sch_generic.h>
++#include <linux/netfilter.h>
++#include <rdma/ib_addr.h>
++
 +#include "rxe.h"
++#include "rxe_net.h"
 +#include "rxe_loc.h"
 +
-+int rxe_mcast_get_grp(struct rxe_dev *rxe, union ib_gid *mgid,
-+		      struct rxe_mc_grp **grp_p)
++/*
++ * note: this table is a replacement for a protocol specific pointer
++ * in struct net_device which exists for other ethertypes
++ * this allows us to not have to patch that data structure
++ * eventually we want to get our own when we're famous
++ */
++struct rxe_net_info net_info[RXE_MAX_IF_INDEX];
++spinlock_t net_info_lock; /* spinlock for net_info array */
++struct socket *rxe_sock;
++
++static __be64 rxe_mac_to_eui64(struct net_device *ndev)
++{
++	unsigned char *mac_addr = ndev->dev_addr;
++	__be64 eui64;
++	unsigned char *dst = (unsigned char *)&eui64;
++
++	dst[0] = mac_addr[0] ^ 2;
++	dst[1] = mac_addr[1];
++	dst[2] = mac_addr[2];
++	dst[3] = 0xff;
++	dst[4] = 0xfe;
++	dst[5] = mac_addr[3];
++	dst[6] = mac_addr[4];
++	dst[7] = mac_addr[5];
++
++	return eui64;
++}
++
++static __be64 node_guid(struct rxe_dev *rxe)
++{
++	return rxe_mac_to_eui64(rxe->ndev);
++}
++
++static __be64 port_guid(struct rxe_dev *rxe, unsigned int port_num)
++{
++	return rxe_mac_to_eui64(rxe->ndev);
++}
++
++static struct device *dma_device(struct rxe_dev *rxe)
++{
++	struct net_device *ndev;
++
++	ndev = rxe->ndev;
++
++	if (ndev->priv_flags & IFF_802_1Q_VLAN)
++		ndev = vlan_dev_real_dev(ndev);
++
++	return ndev->dev.parent;
++}
++
++static int mcast_add(struct rxe_dev *rxe, union ib_gid *mgid)
 +{
 +	int err;
-+	struct rxe_mc_grp *grp;
++	unsigned char ll_addr[ETH_ALEN];
 +
-+	if (rxe->attr.max_mcast_qp_attach == 0) {
-+		err = -EINVAL;
-+		goto err1;
++	ipv6_eth_mc_map((struct in6_addr *)mgid->raw, ll_addr);
++	err = dev_mc_add(rxe->ndev, ll_addr);
++
++	return err;
++}
++
++static int mcast_delete(struct rxe_dev *rxe, union ib_gid *mgid)
++{
++	int err;
++	unsigned char ll_addr[ETH_ALEN];
++
++	ipv6_eth_mc_map((struct in6_addr *)mgid->raw, ll_addr);
++	err = dev_mc_del(rxe->ndev, ll_addr);
++
++	return err;
++}
++
++static struct rtable *rxe_find_route4(struct in_addr *saddr,
++				      struct in_addr *daddr)
++{
++	struct rtable *rt;
++	struct flowi4 fl = { { 0 } };
++
++	memset(&fl, 0, sizeof(fl));
++	memcpy(&fl.saddr, saddr, sizeof(*saddr));
++	memcpy(&fl.daddr, daddr, sizeof(*daddr));
++	fl.flowi4_proto = IPPROTO_UDP;
++
++	rt = ip_route_output_key(&init_net, &fl);
++	if (IS_ERR(rt)) {
++		pr_err("no route to %pI4\n", &daddr->s_addr);
++		return NULL;
 +	}
 +
-+	grp = rxe_pool_get_key(&rxe->mc_grp_pool, mgid);
-+	if (grp)
-+		goto done;
++	return rt;
++}
 +
-+	grp = rxe_alloc(&rxe->mc_grp_pool);
-+	if (!grp) {
++static struct dst_entry *rxe_find_route6(struct net_device *ndev,
++					 struct in6_addr *saddr,
++					 struct in6_addr *daddr)
++{
++	struct dst_entry *ndst;
++	struct flowi6 fl6 = { { 0 } };
++
++	memset(&fl6, 0, sizeof(fl6));
++	fl6.flowi6_oif = ndev->ifindex;
++	memcpy(&fl6.saddr, saddr, sizeof(*saddr));
++	memcpy(&fl6.daddr, daddr, sizeof(*daddr));
++	fl6.flowi6_proto = IPPROTO_UDP;
++
++	if (unlikely(ipv6_stub->ipv6_dst_lookup(rxe_sock->sk, &ndst, &fl6))) {
++		pr_err("no route to %pI6\n", daddr);
++		goto put;
++	}
++
++	if (unlikely(ndst->error)) {
++		pr_err("no route to %pI6\n", daddr);
++		goto put;
++	}
++
++	return ndst;
++put:
++	dst_release(ndst);
++	return NULL;
++}
++
++static int rxe_udp_encap_recv(struct sock *sk, struct sk_buff *skb)
++{
++	struct udphdr *udph;
++	struct net_device *ndev = skb->dev;
++	struct rxe_dev *rxe = net_to_rxe(ndev);
++	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
++
++	if (!rxe)
++		goto drop;
++
++	if (skb_linearize(skb)) {
++		pr_err("skb_linearize failed\n");
++		goto drop;
++	}
++
++	udph = udp_hdr(skb);
++	pkt->rxe = rxe;
++	pkt->port_num = net_to_port(ndev);
++	pkt->hdr = (u8 *)(udph + 1);
++	pkt->mask = RXE_GRH_MASK;
++	pkt->paylen = be16_to_cpu(udph->len) - sizeof(*udph);
++
++	return rxe_rcv(skb);
++drop:
++	kfree_skb(skb);
++	return 0;
++}
++
++static struct socket *rxe_setup_udp_tunnel(struct net *net, __be16 port)
++{
++	int err;
++	struct socket *sock;
++	struct udp_port_cfg udp_cfg;
++	struct udp_tunnel_sock_cfg tnl_cfg;
++
++	memset(&udp_cfg, 0, sizeof(udp_cfg));
++
++	udp_cfg.family = AF_INET6;
++	udp_cfg.local_udp_port = port;
++
++	/* Create UDP socket */
++	err = udp_sock_create(net, &udp_cfg, &sock);
++	if (err < 0) {
++		pr_err("failed to create udp socket. err = %d\n", err);
++		return ERR_PTR(err);
++	}
++
++	tnl_cfg.sk_user_data = NULL;
++	tnl_cfg.encap_type = 1;
++	tnl_cfg.encap_rcv = rxe_udp_encap_recv;
++	tnl_cfg.encap_destroy = NULL;
++
++	/* Setup UDP tunnel */
++	setup_udp_tunnel_sock(net, sock, &tnl_cfg);
++
++	return sock;
++}
++
++static void rxe_release_udp_tunnel(struct socket *sk)
++{
++	udp_tunnel_sock_release(sk);
++}
++
++static struct rxe_av *get_av(struct rxe_pkt_info *pkt)
++{
++	if (qp_type(pkt->qp) == IB_QPT_RC || qp_type(pkt->qp) == IB_QPT_UC)
++		return &pkt->qp->pri_av;
++
++	return &pkt->wqe->av;
++}
++
++static void prepare_udp_hdr(struct sk_buff *skb, __be16 src_port,
++			    __be16 dst_port)
++{
++	struct udphdr *udph;
++
++	__skb_push(skb, sizeof(*udph));
++	skb_reset_transport_header(skb);
++	udph = udp_hdr(skb);
++
++	udph->dest = dst_port;
++	udph->source = src_port;
++	udph->len = htons(skb->len);
++	udph->check = 0;
++}
++
++static void prepare_ipv4_hdr(struct rtable *rt, struct sk_buff *skb,
++			     __be32 src, __be32 dst, __u8 proto,
++			     __u8 tos, __u8 ttl, __be16 df, bool xnet)
++{
++	struct iphdr *iph;
++
++	skb_scrub_packet(skb, xnet);
++
++	skb_clear_hash(skb);
++	skb_dst_set(skb, &rt->dst);
++	memset(IPCB(skb), 0, sizeof(*IPCB(skb)));
++
++	skb_push(skb, sizeof(struct iphdr));
++	skb_reset_network_header(skb);
++
++	iph = ip_hdr(skb);
++
++	iph->version	=	IPVERSION;
++	iph->ihl	=	sizeof(struct iphdr) >> 2;
++	iph->frag_off	=	df;
++	iph->protocol	=	proto;
++	iph->tos	=	tos;
++	iph->daddr	=	dst;
++	iph->saddr	=	src;
++	iph->ttl	=	ttl;
++	__ip_select_ident(dev_net(rt->dst.dev), iph,
++			  skb_shinfo(skb)->gso_segs ?: 1);
++	iph->tot_len = htons(skb->len);
++	ip_send_check(iph);
++}
++
++static void prepare_ipv6_hdr(struct dst_entry *dst, struct sk_buff *skb,
++			     struct in6_addr *saddr, struct in6_addr *daddr,
++			     __u8 proto, __u8 prio, __u8 ttl)
++{
++	struct ipv6hdr *ip6h;
++
++	memset(&(IPCB(skb)->opt), 0, sizeof(IPCB(skb)->opt));
++	IPCB(skb)->flags &= ~(IPSKB_XFRM_TUNNEL_SIZE | IPSKB_XFRM_TRANSFORMED
++			    | IPSKB_REROUTED);
++	skb_dst_set(skb, dst);
++
++	__skb_push(skb, sizeof(*ip6h));
++	skb_reset_network_header(skb);
++	ip6h		  = ipv6_hdr(skb);
++	ip6_flow_hdr(ip6h, prio, htonl(0));
++	ip6h->payload_len = htons(skb->len);
++	ip6h->nexthdr     = proto;
++	ip6h->hop_limit   = ttl;
++	ip6h->daddr	  = *daddr;
++	ip6h->saddr	  = *saddr;
++	ip6h->payload_len = htons(skb->len - sizeof(*ip6h));
++}
++
++static int prepare4(struct sk_buff *skb, struct rxe_av *av)
++{
++	struct rtable *rt;
++	bool xnet = false;
++	__be16 df = htons(IP_DF);
++	struct in_addr *saddr = &av->sgid_addr._sockaddr_in.sin_addr;
++	struct in_addr *daddr = &av->dgid_addr._sockaddr_in.sin_addr;
++
++	rt = rxe_find_route4(saddr, daddr);
++	if (!rt) {
++		pr_err("Host not reachable\n");
++		return -EHOSTUNREACH;
++	}
++
++	prepare_udp_hdr(skb, htons(RXE_ROCE_V2_SPORT),
++			htons(ROCE_V2_UDP_DPORT));
++
++	prepare_ipv4_hdr(rt, skb, saddr->s_addr, daddr->s_addr, IPPROTO_UDP,
++			 av->grh.traffic_class, av->grh.hop_limit, df, xnet);
++	return 0;
++}
++
++static int prepare6(struct rxe_dev *rxe, struct sk_buff *skb, struct rxe_av *av)
++{
++	struct dst_entry *dst;
++	struct in6_addr *saddr = &av->sgid_addr._sockaddr_in6.sin6_addr;
++	struct in6_addr *daddr = &av->dgid_addr._sockaddr_in6.sin6_addr;
++
++	dst = rxe_find_route6(rxe->ndev, saddr, daddr);
++	if (!dst) {
++		pr_err("Host not reachable\n");
++		return -EHOSTUNREACH;
++	}
++
++	prepare_udp_hdr(skb, htons(RXE_ROCE_V2_SPORT),
++			htons(ROCE_V2_UDP_DPORT));
++
++	prepare_ipv6_hdr(dst, skb, saddr, daddr, IPPROTO_UDP,
++			 av->grh.traffic_class,
++			 av->grh.hop_limit);
++	return 0;
++}
++
++static int prepare(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
++		   struct sk_buff *skb, u32 *crc)
++{
++	int err = 0;
++	struct rxe_av *av = get_av(pkt);
++
++	if (av->network_type == RDMA_NETWORK_IPV4)
++		err = prepare4(skb, av);
++	else if (av->network_type == RDMA_NETWORK_IPV6)
++		err = prepare6(rxe, skb, av);
++
++	*crc = rxe_icrc_hdr(pkt, skb);
++
++	return err;
++}
++
++static void rxe_skb_tx_dtor(struct sk_buff *skb)
++{
++	struct sock *sk = skb->sk;
++	struct rxe_qp *qp = sk->sk_user_data;
++	int skb_out = atomic_dec_return(&qp->skb_out);
++
++	if (unlikely(qp->need_req_skb &&
++		     skb_out < RXE_INFLIGHT_SKBS_PER_QP_LOW))
++		rxe_run_task(&qp->req.task, 1);
++}
++
++static int send(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
++		struct sk_buff *skb)
++{
++	struct sk_buff *nskb;
++	struct rxe_av *av;
++	int sent_bytes;
++	int err;
++
++	av = get_av(pkt);
++
++	nskb = skb_clone(skb, GFP_ATOMIC);
++	if (!nskb)
++		return -ENOMEM;
++
++	nskb->destructor = rxe_skb_tx_dtor;
++	nskb->sk = pkt->qp->sk->sk;
++
++	sent_bytes = nskb->len;
++	if (av->network_type == RDMA_NETWORK_IPV4) {
++		err = ip_local_out_sk(nskb->sk, nskb);
++	} else if (av->network_type == RDMA_NETWORK_IPV6) {
++		err = ip6_local_out_sk(nskb->sk, nskb);
++	} else {
++		pr_err("Unknown layer 3 protocol: %d\n", av->network_type);
++		kfree_skb(nskb);
++		return -EINVAL;
++	}
++
++	if (unlikely(net_xmit_eval(err))) {
++		pr_debug("error sending packet: %d\n", err);
++		return -EAGAIN;
++	}
++
++	kfree_skb(skb);
++
++	return 0;
++}
++
++static int loopback(struct sk_buff *skb)
++{
++	return rxe_rcv(skb);
++}
++
++static inline int addr_same(struct rxe_dev *rxe, struct rxe_av *av)
++{
++	int port_num = 1;
++
++	return rxe->port[port_num - 1].port_guid
++			== av->grh.dgid.global.interface_id;
++}
++
++static struct sk_buff *init_packet(struct rxe_dev *rxe, struct rxe_av *av,
++				   int paylen, struct rxe_pkt_info *pkt)
++{
++	unsigned int hdr_len;
++	struct sk_buff *skb;
++
++	if (av->network_type == RDMA_NETWORK_IPV4)
++		hdr_len = ETH_HLEN + sizeof(struct udphdr) +
++			sizeof(struct iphdr);
++	else
++		hdr_len = ETH_HLEN + sizeof(struct udphdr) +
++			sizeof(struct ipv6hdr);
++
++	skb = alloc_skb(paylen + hdr_len + LL_RESERVED_SPACE(rxe->ndev),
++			GFP_ATOMIC);
++	if (unlikely(!skb))
++		return NULL;
++
++	skb_reserve(skb, hdr_len + LL_RESERVED_SPACE(rxe->ndev));
++
++	skb->dev	= rxe->ndev;
++	if (av->network_type == RDMA_NETWORK_IPV4)
++		skb->protocol = htons(ETH_P_IP);
++	else
++		skb->protocol = htons(ETH_P_IPV6);
++
++	pkt->rxe	= rxe;
++	pkt->port_num	= 1;
++	pkt->hdr	= skb_put(skb, paylen);
++	pkt->mask	= RXE_GRH_MASK;
++
++	if (addr_same(rxe, av))
++		pkt->mask |= RXE_LOOPBACK_MASK;
++
++	return skb;
++}
++
++/*
++ * this is required by rxe_cfg to match rxe devices in
++ * /sys/class/infiniband up with their underlying ethernet devices
++ */
++static char *parent_name(struct rxe_dev *rxe, unsigned int port_num)
++{
++	return rxe->ndev->name;
++}
++
++static enum rdma_link_layer link_layer(struct rxe_dev *rxe,
++				       unsigned int port_num)
++{
++	return IB_LINK_LAYER_ETHERNET;
++}
++
++static struct rxe_ifc_ops ifc_ops = {
++	.node_guid	= node_guid,
++	.port_guid	= port_guid,
++	.dma_device	= dma_device,
++	.mcast_add	= mcast_add,
++	.mcast_delete	= mcast_delete,
++	.prepare	= prepare,
++	.send		= send,
++	.loopback	= loopback,
++	.init_packet	= init_packet,
++	.parent_name	= parent_name,
++	.link_layer	= link_layer,
++};
++
++/* Caller must hold net_info_lock */
++int rxe_net_add(struct net_device *ndev)
++{
++	int err;
++	struct rxe_dev *rxe;
++	unsigned port_num;
++
++	rxe = (struct rxe_dev *)ib_alloc_device(sizeof(*rxe));
++	if (!rxe) {
 +		err = -ENOMEM;
 +		goto err1;
 +	}
 +
-+	INIT_LIST_HEAD(&grp->qp_list);
-+	spin_lock_init(&grp->mcg_lock);
-+	grp->rxe = rxe;
++	/* for now we always assign port = 1 */
++	port_num = 1;
 +
-+	rxe_add_key(grp, mgid);
++	rxe->ifc_ops = &ifc_ops;
 +
-+	err = rxe->ifc_ops->mcast_add(rxe, mgid);
++	rxe->ndev = ndev;
++
++	err = rxe_add(rxe, ndev->mtu);
 +	if (err)
 +		goto err2;
 +
-+done:
-+	*grp_p = grp;
++	pr_info("rxe: added %s to %s\n",
++		rxe->ib_dev.name, ndev->name);
++
++	net_info[ndev->ifindex].rxe = rxe;
++	net_info[ndev->ifindex].port = port_num;
++	net_info[ndev->ifindex].ndev = ndev;
 +	return 0;
 +
 +err2:
-+	rxe_drop_ref(grp);
++	ib_dealloc_device(&rxe->ib_dev);
 +err1:
 +	return err;
 +}
 +
-+int rxe_mcast_add_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
-+			   struct rxe_mc_grp *grp)
++/* Caller must hold net_info_lock */
++void rxe_net_up(struct net_device *ndev)
++{
++	struct rxe_dev *rxe;
++	struct rxe_port *port;
++	u8 port_num;
++
++	if (ndev->ifindex >= RXE_MAX_IF_INDEX)
++		goto out;
++
++	net_info[ndev->ifindex].status = IB_PORT_ACTIVE;
++
++	rxe = net_to_rxe(ndev);
++	if (!rxe)
++		goto out;
++
++	port_num = net_to_port(ndev);
++	port = &rxe->port[port_num - 1];
++	port->attr.state = IB_PORT_ACTIVE;
++	port->attr.phys_state = IB_PHYS_STATE_LINK_UP;
++
++	pr_info("rxe: set %s active for %s\n",
++		rxe->ib_dev.name, ndev->name);
++out:
++	return;
++}
++
++/* Caller must hold net_info_lock */
++void rxe_net_down(struct net_device *ndev)
++{
++	struct rxe_dev *rxe;
++	struct rxe_port *port;
++	u8 port_num;
++
++	if (ndev->ifindex >= RXE_MAX_IF_INDEX)
++		goto out;
++
++	net_info[ndev->ifindex].status = IB_PORT_DOWN;
++
++	rxe = net_to_rxe(ndev);
++	if (!rxe)
++		goto out;
++
++	port_num = net_to_port(ndev);
++	port = &rxe->port[port_num - 1];
++	port->attr.state = IB_PORT_DOWN;
++	port->attr.phys_state = 3;
++
++	pr_info("rxe: set %s down for %s\n",
++		rxe->ib_dev.name, ndev->name);
++out:
++	return;
++}
++
++static int can_support_rxe(struct net_device *ndev)
++{
++	int rc = 0;
++
++	if (ndev->ifindex >= RXE_MAX_IF_INDEX) {
++		pr_debug("%s index %d: too large for rxe ndev table\n",
++			 ndev->name, ndev->ifindex);
++		goto out;
++	}
++
++	/* Let's says we support all ethX devices */
++	if (ndev->type == ARPHRD_ETHER)
++		rc = 1;
++
++out:
++	return rc;
++}
++
++static int rxe_notify(struct notifier_block *not_blk,
++		      unsigned long event,
++		      void *arg)
++{
++	struct rxe_dev *rxe;
++	struct net_device *ndev = netdev_notifier_info_to_dev(arg);
++
++	if (!can_support_rxe(ndev))
++		goto out;
++
++	spin_lock_bh(&net_info_lock);
++	switch (event) {
++	case NETDEV_REGISTER:
++		/* Keep a record of this NIC. */
++		net_info[ndev->ifindex].status = IB_PORT_DOWN;
++		net_info[ndev->ifindex].rxe = NULL;
++		net_info[ndev->ifindex].port = 1;
++		net_info[ndev->ifindex].ndev = ndev;
++		break;
++
++	case NETDEV_UNREGISTER:
++		if (net_info[ndev->ifindex].rxe) {
++			rxe = net_info[ndev->ifindex].rxe;
++			net_info[ndev->ifindex].rxe = NULL;
++			spin_unlock_bh(&net_info_lock);
++			rxe_remove(rxe);
++			spin_lock_bh(&net_info_lock);
++		}
++		net_info[ndev->ifindex].status = 0;
++		net_info[ndev->ifindex].port = 0;
++		net_info[ndev->ifindex].ndev = NULL;
++		break;
++
++	case NETDEV_UP:
++		rxe_net_up(ndev);
++		break;
++
++	case NETDEV_DOWN:
++		rxe_net_down(ndev);
++		break;
++
++	case NETDEV_CHANGEMTU:
++		rxe = net_to_rxe(ndev);
++		if (rxe) {
++			pr_info("rxe: %s changed mtu to %d\n",
++				ndev->name, ndev->mtu);
++			rxe_set_mtu(rxe, ndev->mtu, net_to_port(ndev));
++		}
++		break;
++
++	case NETDEV_REBOOT:
++	case NETDEV_CHANGE:
++	case NETDEV_GOING_DOWN:
++	case NETDEV_CHANGEADDR:
++	case NETDEV_CHANGENAME:
++	case NETDEV_FEAT_CHANGE:
++	default:
++		pr_info("rxe: ignoring netdev event = %ld for %s\n",
++			event, ndev->name);
++		break;
++	}
++	spin_unlock_bh(&net_info_lock);
++
++out:
++	return NOTIFY_OK;
++}
++
++static struct notifier_block rxe_net_notifier = {
++	.notifier_call = rxe_notify,
++};
++
++int rxe_net_init(void)
 +{
 +	int err;
-+	struct rxe_mc_elem *elem;
 +
-+	/* check to see of the qp is already a member of the group */
-+	spin_lock_bh(&qp->grp_lock);
-+	spin_lock_bh(&grp->mcg_lock);
-+	list_for_each_entry(elem, &grp->qp_list, qp_list) {
-+		if (elem->qp == qp) {
-+			err = 0;
-+			goto out;
-+		}
++	spin_lock_init(&net_info_lock);
++
++	rxe_sock = rxe_setup_udp_tunnel(&init_net, htons(ROCE_V2_UDP_DPORT));
++	if (IS_ERR(rxe_sock)) {
++		rxe_sock = NULL;
++		pr_err("rxe: Failed to create UDP tunnel\n");
++		return -1;
 +	}
 +
-+	if (grp->num_qp >= rxe->attr.max_mcast_qp_attach) {
-+		err = -ENOMEM;
-+		goto out;
++	err = register_netdevice_notifier(&rxe_net_notifier);
++	if (err) {
++		rxe_release_udp_tunnel(rxe_sock);
++		pr_err("rxe: Failed to rigister netdev notifier\n");
 +	}
 +
-+	elem = rxe_alloc(&rxe->mc_elem_pool);
-+	if (!elem) {
-+		err = -ENOMEM;
-+		goto out;
-+	}
-+
-+	/* each qp holds a ref on the grp */
-+	rxe_add_ref(grp);
-+
-+	grp->num_qp++;
-+	elem->qp = qp;
-+	elem->grp = grp;
-+
-+	list_add(&elem->qp_list, &grp->qp_list);
-+	list_add(&elem->grp_list, &qp->grp_list);
-+
-+	err = 0;
-+out:
-+	spin_unlock_bh(&grp->mcg_lock);
-+	spin_unlock_bh(&qp->grp_lock);
 +	return err;
 +}
 +
-+int rxe_mcast_drop_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
-+			    union ib_gid *mgid)
++void rxe_net_exit(void)
 +{
-+	struct rxe_mc_grp *grp;
-+	struct rxe_mc_elem *elem, *tmp;
++	if (rxe_sock)
++		rxe_release_udp_tunnel(rxe_sock);
 +
-+	grp = rxe_pool_get_key(&rxe->mc_grp_pool, mgid);
-+	if (!grp)
-+		goto err1;
++	unregister_netdevice_notifier(&rxe_net_notifier);
++}
+diff --git a/drivers/staging/rxe/rxe_net.h b/drivers/staging/rxe/rxe_net.h
+new file mode 100644
+index 0000000..e5871f0
+--- /dev/null
++++ b/drivers/staging/rxe/rxe_net.h
+@@ -0,0 +1,72 @@
++/*
++ * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
++ * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *	- Redistributions of source code must retain the above
++ *	  copyright notice, this list of conditions and the following
++ *	  disclaimer.
++ *
++ *	- Redistributions in binary form must reproduce the above
++ *	  copyright notice, this list of conditions and the following
++ *	  disclaimer in the documentation and/or other materials
++ *	  provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
 +
-+	spin_lock_bh(&qp->grp_lock);
-+	spin_lock_bh(&grp->mcg_lock);
++#ifndef RXE_NET_H
++#define RXE_NET_H
 +
-+	list_for_each_entry_safe(elem, tmp, &grp->qp_list, qp_list) {
-+		if (elem->qp == qp) {
-+			list_del(&elem->qp_list);
-+			list_del(&elem->grp_list);
-+			grp->num_qp--;
++#include <net/sock.h>
++#include <net/if_inet6.h>
++#include <linux/module.h>
 +
-+			spin_unlock_bh(&grp->mcg_lock);
-+			spin_unlock_bh(&qp->grp_lock);
-+			rxe_drop_ref(elem);
-+			rxe_drop_ref(grp);	/* ref held by QP */
-+			rxe_drop_ref(grp);	/* ref from get_key */
-+			return 0;
-+		}
-+	}
++#define RXE_MAX_IF_INDEX	(384)
 +
-+	spin_unlock_bh(&grp->mcg_lock);
-+	spin_unlock_bh(&qp->grp_lock);
-+	rxe_drop_ref(grp);			/* ref from get_key */
-+err1:
-+	return -EINVAL;
++struct rxe_net_info {
++	struct rxe_dev		*rxe;
++	u8			port;
++	struct net_device	*ndev;
++	int			status;
++};
++
++extern struct rxe_net_info net_info[RXE_MAX_IF_INDEX];
++extern spinlock_t net_info_lock;
++
++/* caller must hold net_dev_lock */
++static inline struct rxe_dev *net_to_rxe(struct net_device *ndev)
++{
++	return (ndev->ifindex >= RXE_MAX_IF_INDEX) ?
++		NULL : net_info[ndev->ifindex].rxe;
 +}
 +
-+void rxe_drop_all_mcast_groups(struct rxe_qp *qp)
++static inline u8 net_to_port(struct net_device *ndev)
 +{
-+	struct rxe_mc_grp *grp;
-+	struct rxe_mc_elem *elem;
-+
-+	while (1) {
-+		spin_lock_bh(&qp->grp_lock);
-+		if (list_empty(&qp->grp_list)) {
-+			spin_unlock_bh(&qp->grp_lock);
-+			break;
-+		}
-+		elem = list_first_entry(&qp->grp_list, struct rxe_mc_elem,
-+					grp_list);
-+		list_del(&elem->grp_list);
-+		spin_unlock_bh(&qp->grp_lock);
-+
-+		grp = elem->grp;
-+		spin_lock_bh(&grp->mcg_lock);
-+		list_del(&elem->qp_list);
-+		grp->num_qp--;
-+		spin_unlock_bh(&grp->mcg_lock);
-+		rxe_drop_ref(grp);
-+		rxe_drop_ref(elem);
-+	}
++	return net_info[ndev->ifindex].port;
 +}
 +
-+void rxe_mc_cleanup(void *arg)
-+{
-+	struct rxe_mc_grp *grp = arg;
-+	struct rxe_dev *rxe = grp->rxe;
++int rxe_net_add(struct net_device *ndev);
++void rxe_net_up(struct net_device *ndev);
++void rxe_net_down(struct net_device *ndev);
 +
-+	rxe_drop_key(grp);
-+	rxe->ifc_ops->mcast_delete(rxe, &grp->mgid);
-+}
++int rxe_net_init(void);
++void rxe_net_exit(void);
++
++#endif /* RXE_NET_H */
 -- 
 1.8.3.1
 
