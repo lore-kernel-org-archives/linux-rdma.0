@@ -1,204 +1,446 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v1 21/24] IB/qib: Remove old FRWR API
-Date: Thu, 17 Sep 2015 12:42:24 +0300
-Message-ID: <1442482947-27785-22-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v1 15/24] IB/srp: Convert to new memory registration API
+Date: Thu, 17 Sep 2015 12:42:18 +0300
+Message-ID: <1442482947-27785-16-git-send-email-sagig@mellanox.com>
 References: <1442482947-27785-1-git-send-email-sagig@mellanox.com>
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1442482947-27785-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-No ULP uses it anymore, go ahead and remove it.
+Since SRP supports both FMRs and FRWR, the new API conversion
+includes splitting the sg list mapping routines in srp_map_data to
+srp_map_sg_fr that works with the new memory registration API,
+srp_map_sg_fmr which constructs a page vector and calls
+ib_fmr_pool_map_phys, and srp_map_sg_dma which is used only
+if no FRWR nor FMR are supported (which I'm not sure is a valid
+use-case anymore).
+
+The srp protocol is able to pass to the target multiple descriptors
+for remote access, so it basically calls registers muleitple sg list
+partials the entire sg list is mapped and registered (each time maps
+a prefix of an sg list).
+
+Note that now the per request page vector is allocated only when FMR
+mode is used as it is not needed for the new registration API.
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_keys.c  | 56 -----------------------------------
- drivers/infiniband/hw/qib/qib_mr.c    | 32 +-------------------
- drivers/infiniband/hw/qib/qib_verbs.c |  8 -----
- drivers/infiniband/hw/qib/qib_verbs.h |  7 -----
- 4 files changed, 1 insertion(+), 102 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 248 +++++++++++++++++++++---------------
+ drivers/infiniband/ulp/srp/ib_srp.h |  11 +-
+ 2 files changed, 156 insertions(+), 103 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_keys.c b/drivers/infiniband/hw/qib/qib_keys.c
-index a5057efc7faf..3f61bda77e0e 100644
---- a/drivers/infiniband/hw/qib/qib_keys.c
-+++ b/drivers/infiniband/hw/qib/qib_keys.c
-@@ -338,62 +338,6 @@ bail:
- /*
-  * Initialize the memory region specified by the work reqeust.
-  */
--int qib_fast_reg_mr(struct qib_qp *qp, struct ib_send_wr *send_wr)
--{
--	struct ib_fast_reg_wr *wr = fast_reg_wr(send_wr);
--	struct qib_lkey_table *rkt = &to_idev(qp->ibqp.device)->lk_table;
--	struct qib_pd *pd = to_ipd(qp->ibqp.pd);
--	struct qib_mregion *mr;
--	u32 rkey = wr->rkey;
--	unsigned i, n, m;
--	int ret = -EINVAL;
--	unsigned long flags;
--	u64 *page_list;
--	size_t ps;
--
--	spin_lock_irqsave(&rkt->lock, flags);
--	if (pd->user || rkey == 0)
--		goto bail;
--
--	mr = rcu_dereference_protected(
--		rkt->table[(rkey >> (32 - ib_qib_lkey_table_size))],
--		lockdep_is_held(&rkt->lock));
--	if (unlikely(mr == NULL || qp->ibqp.pd != mr->pd))
--		goto bail;
--
--	if (wr->page_list_len > mr->max_segs)
--		goto bail;
--
--	ps = 1UL << wr->page_shift;
--	if (wr->length > ps * wr->page_list_len)
--		goto bail;
--
--	mr->user_base = wr->iova_start;
--	mr->iova = wr->iova_start;
--	mr->lkey = rkey;
--	mr->length = wr->length;
--	mr->access_flags = wr->access_flags;
--	page_list = wr->page_list->page_list;
--	m = 0;
--	n = 0;
--	for (i = 0; i < wr->page_list_len; i++) {
--		mr->map[m]->segs[n].vaddr = (void *) page_list[i];
--		mr->map[m]->segs[n].length = ps;
--		if (++n == QIB_SEGSZ) {
--			m++;
--			n = 0;
--		}
--	}
--
--	ret = 0;
--bail:
--	spin_unlock_irqrestore(&rkt->lock, flags);
--	return ret;
--}
--
--/*
-- * Initialize the memory region specified by the work reqeust.
-- */
- int qib_reg_mr(struct qib_qp *qp, struct ib_reg_wr *wr)
- {
- 	struct qib_lkey_table *rkt = &to_idev(qp->ibqp.device)->lk_table;
-diff --git a/drivers/infiniband/hw/qib/qib_mr.c b/drivers/infiniband/hw/qib/qib_mr.c
-index 0fa4b0de8074..73f78c0f9522 100644
---- a/drivers/infiniband/hw/qib/qib_mr.c
-+++ b/drivers/infiniband/hw/qib/qib_mr.c
-@@ -324,7 +324,7 @@ out:
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index f8b9c18da03d..35cddbb120ea 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -340,8 +340,6 @@ static void srp_destroy_fr_pool(struct srp_fr_pool *pool)
+ 		return;
  
- /*
-  * Allocate a memory region usable with the
-- * IB_WR_FAST_REG_MR send work request.
-+ * IB_WR_REG_MR send work request.
-  *
-  * Return the memory region on success, otherwise return an errno.
-  */
-@@ -375,36 +375,6 @@ int qib_map_mr_sg(struct ib_mr *ibmr,
- 	return ib_sg_to_pages(ibmr, sg, sg_nents, qib_set_page);
+ 	for (i = 0, d = &pool->desc[0]; i < pool->size; i++, d++) {
+-		if (d->frpl)
+-			ib_free_fast_reg_page_list(d->frpl);
+ 		if (d->mr)
+ 			ib_dereg_mr(d->mr);
+ 	}
+@@ -362,7 +360,6 @@ static struct srp_fr_pool *srp_create_fr_pool(struct ib_device *device,
+ 	struct srp_fr_pool *pool;
+ 	struct srp_fr_desc *d;
+ 	struct ib_mr *mr;
+-	struct ib_fast_reg_page_list *frpl;
+ 	int i, ret = -EINVAL;
+ 
+ 	if (pool_size <= 0)
+@@ -385,12 +382,6 @@ static struct srp_fr_pool *srp_create_fr_pool(struct ib_device *device,
+ 			goto destroy_pool;
+ 		}
+ 		d->mr = mr;
+-		frpl = ib_alloc_fast_reg_page_list(device, max_page_list_len);
+-		if (IS_ERR(frpl)) {
+-			ret = PTR_ERR(frpl);
+-			goto destroy_pool;
+-		}
+-		d->frpl = frpl;
+ 		list_add_tail(&d->entry, &pool->free_list);
+ 	}
+ 
+@@ -887,14 +878,16 @@ static int srp_alloc_req_data(struct srp_rdma_ch *ch)
+ 				  GFP_KERNEL);
+ 		if (!mr_list)
+ 			goto out;
+-		if (srp_dev->use_fast_reg)
++		if (srp_dev->use_fast_reg) {
+ 			req->fr_list = mr_list;
+-		else
++		} else {
+ 			req->fmr_list = mr_list;
+-		req->map_page = kmalloc(srp_dev->max_pages_per_mr *
+-					sizeof(void *), GFP_KERNEL);
+-		if (!req->map_page)
+-			goto out;
++			req->map_page = kmalloc(srp_dev->max_pages_per_mr *
++						sizeof(void *), GFP_KERNEL);
++			if (!req->map_page)
++				goto out;
++		}
++
+ 		req->indirect_desc = kmalloc(target->indirect_size, GFP_KERNEL);
+ 		if (!req->indirect_desc)
+ 			goto out;
+@@ -1283,6 +1276,15 @@ static int srp_map_finish_fmr(struct srp_map_state *state,
+ 	struct ib_pool_fmr *fmr;
+ 	u64 io_addr = 0;
+ 
++	if (state->npages == 0)
++		return 0;
++
++	if (state->npages == 1 && target->global_mr) {
++		srp_map_desc(state, state->base_dma_addr, state->dma_len,
++			     target->global_mr->rkey);
++		return 0;
++	}
++
+ 	if (WARN_ON_ONCE(state->fmr.next >= state->fmr.end))
+ 		return -ENOMEM;
+ 
+@@ -1297,6 +1299,9 @@ static int srp_map_finish_fmr(struct srp_map_state *state,
+ 	srp_map_desc(state, state->base_dma_addr & ~dev->mr_page_mask,
+ 		     state->dma_len, fmr->fmr->rkey);
+ 
++	state->npages = 0;
++	state->dma_len = 0;
++
+ 	return 0;
  }
  
--struct ib_fast_reg_page_list *
--qib_alloc_fast_reg_page_list(struct ib_device *ibdev, int page_list_len)
--{
--	unsigned size = page_list_len * sizeof(u64);
--	struct ib_fast_reg_page_list *pl;
+@@ -1306,9 +1311,17 @@ static int srp_map_finish_fr(struct srp_map_state *state,
+ 	struct srp_target_port *target = ch->target;
+ 	struct srp_device *dev = target->srp_host->srp_dev;
+ 	struct ib_send_wr *bad_wr;
+-	struct ib_fast_reg_wr wr;
++	struct ib_reg_wr wr;
+ 	struct srp_fr_desc *desc;
+ 	u32 rkey;
++	int n, err;
++
++	if (state->sg_nents == 1 && target->global_mr) {
++		srp_map_desc(state, sg_dma_address(state->sg),
++			     sg_dma_len(state->sg),
++			     target->global_mr->rkey);
++		return 1;
++	}
+ 
+ 	if (WARN_ON_ONCE(state->fr.next >= state->fr.end))
+ 		return -ENOMEM;
+@@ -1320,56 +1333,32 @@ static int srp_map_finish_fr(struct srp_map_state *state,
+ 	rkey = ib_inc_rkey(desc->mr->rkey);
+ 	ib_update_fast_reg_key(desc->mr, rkey);
+ 
+-	memcpy(desc->frpl->page_list, state->pages,
+-	       sizeof(state->pages[0]) * state->npages);
++	n = ib_map_mr_sg(desc->mr, state->sg, state->sg_nents,
++			 dev->mr_page_size);
++	if (unlikely(n < 0))
++		return n;
+ 
+-	memset(&wr, 0, sizeof(wr));
+-	wr.wr.opcode = IB_WR_FAST_REG_MR;
++	wr.wr.opcode = IB_WR_REG_MR;
+ 	wr.wr.wr_id = FAST_REG_WR_ID_MASK;
+-	wr.iova_start = state->base_dma_addr;
+-	wr.page_list = desc->frpl;
+-	wr.page_list_len = state->npages;
+-	wr.page_shift = ilog2(dev->mr_page_size);
+-	wr.length = state->dma_len;
+-	wr.access_flags = (IB_ACCESS_LOCAL_WRITE |
+-			   IB_ACCESS_REMOTE_READ |
+-			   IB_ACCESS_REMOTE_WRITE);
+-	wr.rkey = desc->mr->lkey;
++	wr.wr.num_sge = 0;
++	wr.wr.send_flags = 0;
++	wr.mr = desc->mr;
++	wr.key = desc->mr->rkey;
++	wr.access = (IB_ACCESS_LOCAL_WRITE |
++		     IB_ACCESS_REMOTE_READ |
++		     IB_ACCESS_REMOTE_WRITE);
+ 
+ 	*state->fr.next++ = desc;
+ 	state->nmdesc++;
+ 
+-	srp_map_desc(state, state->base_dma_addr, state->dma_len,
+-		     desc->mr->rkey);
 -
--	if (size > PAGE_SIZE)
--		return ERR_PTR(-EINVAL);
--
--	pl = kzalloc(sizeof(*pl), GFP_KERNEL);
--	if (!pl)
--		return ERR_PTR(-ENOMEM);
--
--	pl->page_list = kzalloc(size, GFP_KERNEL);
--	if (!pl->page_list)
--		goto err_free;
--
--	return pl;
--
--err_free:
--	kfree(pl);
--	return ERR_PTR(-ENOMEM);
+-	return ib_post_send(ch->qp, &wr.wr, &bad_wr);
 -}
 -
--void qib_free_fast_reg_page_list(struct ib_fast_reg_page_list *pl)
+-static int srp_finish_mapping(struct srp_map_state *state,
+-			      struct srp_rdma_ch *ch)
 -{
--	kfree(pl->page_list);
--	kfree(pl);
--}
+-	struct srp_target_port *target = ch->target;
+-	struct srp_device *dev = target->srp_host->srp_dev;
+-	int ret = 0;
 -
+-	WARN_ON_ONCE(!dev->use_fast_reg && !dev->use_fmr);
++	srp_map_desc(state, desc->mr->iova,
++		     desc->mr->length, desc->mr->rkey);
+ 
+-	if (state->npages == 0)
+-		return 0;
++	err = ib_post_send(ch->qp, &wr.wr, &bad_wr);
++	if (unlikely(err))
++		return err;
+ 
+-	if (state->npages == 1 && target->global_mr)
+-		srp_map_desc(state, state->base_dma_addr, state->dma_len,
+-			     target->global_mr->rkey);
+-	else
+-		ret = dev->use_fast_reg ? srp_map_finish_fr(state, ch) :
+-			srp_map_finish_fmr(state, ch);
+-
+-	if (ret == 0) {
+-		state->npages = 0;
+-		state->dma_len = 0;
+-	}
+-
+-	return ret;
++	return n;
+ }
+ 
+ static int srp_map_sg_entry(struct srp_map_state *state,
+@@ -1389,7 +1378,7 @@ static int srp_map_sg_entry(struct srp_map_state *state,
+ 	while (dma_len) {
+ 		unsigned offset = dma_addr & ~dev->mr_page_mask;
+ 		if (state->npages == dev->max_pages_per_mr || offset != 0) {
+-			ret = srp_finish_mapping(state, ch);
++			ret = srp_map_finish_fmr(state, ch);
+ 			if (ret)
+ 				return ret;
+ 		}
+@@ -1411,51 +1400,91 @@ static int srp_map_sg_entry(struct srp_map_state *state,
+ 	 */
+ 	ret = 0;
+ 	if (len != dev->mr_page_size)
+-		ret = srp_finish_mapping(state, ch);
++		ret = srp_map_finish_fmr(state, ch);
++
+ 	return ret;
+ }
+ 
+-static int srp_map_sg(struct srp_map_state *state, struct srp_rdma_ch *ch,
+-		      struct srp_request *req, struct scatterlist *scat,
+-		      int count)
++static int srp_map_sg_fmr(struct srp_map_state *state,
++			  struct srp_rdma_ch *ch,
++			  struct srp_request *req,
++			  struct scatterlist *scat,
++			  int count)
+ {
+-	struct srp_target_port *target = ch->target;
+-	struct srp_device *dev = target->srp_host->srp_dev;
+ 	struct scatterlist *sg;
+ 	int i, ret;
+ 
+-	state->desc	= req->indirect_desc;
+-	state->pages	= req->map_page;
+-	if (dev->use_fast_reg) {
+-		state->fr.next = req->fr_list;
+-		state->fr.end = req->fr_list + target->cmd_sg_cnt;
+-	} else if (dev->use_fmr) {
+-		state->fmr.next = req->fmr_list;
+-		state->fmr.end = req->fmr_list + target->cmd_sg_cnt;
+-	}
++	state->desc = req->indirect_desc;
++	state->pages = req->map_page;
++	state->fmr.next = req->fmr_list;
++	state->fmr.end = req->fmr_list + ch->target->cmd_sg_cnt;
+ 
+-	if (dev->use_fast_reg || dev->use_fmr) {
+-		for_each_sg(scat, sg, count, i) {
+-			ret = srp_map_sg_entry(state, ch, sg, i);
+-			if (ret)
+-				goto out;
+-		}
+-		ret = srp_finish_mapping(state, ch);
++	for_each_sg(scat, sg, count, i) {
++		ret = srp_map_sg_entry(state, ch, sg, i);
+ 		if (ret)
+-			goto out;
+-	} else {
+-		for_each_sg(scat, sg, count, i) {
+-			srp_map_desc(state, ib_sg_dma_address(dev->dev, sg),
+-				     ib_sg_dma_len(dev->dev, sg),
+-				     target->global_mr->rkey);
+-		}
++			return ret;
+ 	}
+ 
++	ret = srp_map_finish_fmr(state, ch);
++	if (ret)
++		return ret;
++
+ 	req->nmdesc = state->nmdesc;
+-	ret = 0;
+ 
+-out:
+-	return ret;
++	return 0;
++}
++
++static int srp_map_sg_fr(struct srp_map_state *state,
++			 struct srp_rdma_ch *ch,
++			 struct srp_request *req,
++			 struct scatterlist *scat,
++			 int count)
++{
++
++	state->desc = req->indirect_desc;
++	state->fr.next = req->fr_list;
++	state->fr.end = req->fr_list + ch->target->cmd_sg_cnt;
++	state->sg = scat;
++	state->sg_nents = scsi_sg_count(req->scmnd);
++
++	while (state->sg_nents) {
++		int i, n;
++
++		n = srp_map_finish_fr(state, ch);
++		if (unlikely(n < 0))
++			return n;
++
++		state->sg_nents -= n;
++		for (i = 0; i < n; i++)
++			state->sg = sg_next(state->sg);
++	}
++
++	req->nmdesc = state->nmdesc;
++
++	return 0;
++}
++
++static int srp_map_sg_dma(struct srp_map_state *state,
++			  struct srp_rdma_ch *ch,
++			  struct srp_request *req,
++			  struct scatterlist *scat,
++			  int count)
++{
++	struct srp_target_port *target = ch->target;
++	struct srp_device *dev = target->srp_host->srp_dev;
++	struct scatterlist *sg;
++	int i;
++
++	state->desc = req->indirect_desc;
++	for_each_sg(scat, sg, count, i) {
++		srp_map_desc(state, ib_sg_dma_address(dev->dev, sg),
++			     ib_sg_dma_len(dev->dev, sg),
++			     target->global_mr->rkey);
++	}
++
++	req->nmdesc = state->nmdesc;
++
++	return 0;
+ }
+ 
+ /*
+@@ -1474,6 +1503,7 @@ static int srp_map_idb(struct srp_rdma_ch *ch, struct srp_request *req,
+ 	struct srp_map_state state;
+ 	struct srp_direct_buf idb_desc;
+ 	u64 idb_pages[1];
++	struct scatterlist idb_sg[1];
+ 	int ret;
+ 
+ 	memset(&state, 0, sizeof(state));
+@@ -1481,19 +1511,31 @@ static int srp_map_idb(struct srp_rdma_ch *ch, struct srp_request *req,
+ 	state.gen.next = next_mr;
+ 	state.gen.end = end_mr;
+ 	state.desc = &idb_desc;
+-	state.pages = idb_pages;
+-	state.pages[0] = (req->indirect_dma_addr &
+-			  dev->mr_page_mask);
+-	state.npages = 1;
+ 	state.base_dma_addr = req->indirect_dma_addr;
+ 	state.dma_len = idb_len;
+-	ret = srp_finish_mapping(&state, ch);
+-	if (ret < 0)
+-		goto out;
++
++	if (dev->use_fast_reg) {
++		state.sg = idb_sg;
++		state.sg_nents = 1;
++		sg_set_buf(idb_sg, req->indirect_desc, idb_len);
++		idb_sg->dma_address = req->indirect_dma_addr; /* hack! */
++		ret = srp_map_finish_fr(&state, ch);
++		if (ret < 0)
++			return ret;
++	} else if (dev->use_fmr) {
++		state.pages = idb_pages;
++		state.pages[0] = (req->indirect_dma_addr &
++				  dev->mr_page_mask);
++		state.npages = 1;
++		ret = srp_map_finish_fmr(&state, ch);
++		if (ret < 0)
++			return ret;
++	} else {
++		return -EINVAL;
++	}
+ 
+ 	*idb_rkey = idb_desc.key;
+ 
+-out:
+ 	return ret;
+ }
+ 
+@@ -1563,7 +1605,13 @@ static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_rdma_ch *ch,
+ 				   target->indirect_size, DMA_TO_DEVICE);
+ 
+ 	memset(&state, 0, sizeof(state));
+-	srp_map_sg(&state, ch, req, scat, count);
++
++	if (dev->use_fast_reg)
++		srp_map_sg_fr(&state, ch, req, scat, count);
++	else if (dev->use_fmr)
++		srp_map_sg_fmr(&state, ch, req, scat, count);
++	else
++		srp_map_sg_dma(&state, ch, req, scat, count);
+ 
+ 	/* We've mapped the request, now pull as much of the indirect
+ 	 * descriptor table as we can into the command buffer. If this
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
+index 3608f2e4819c..a31a93716f3f 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.h
++++ b/drivers/infiniband/ulp/srp/ib_srp.h
+@@ -242,7 +242,6 @@ struct srp_iu {
+ struct srp_fr_desc {
+ 	struct list_head		entry;
+ 	struct ib_mr			*mr;
+-	struct ib_fast_reg_page_list	*frpl;
+ };
+ 
  /**
-  * qib_alloc_fmr - allocate a fast memory region
-  * @pd: the protection domain for this memory region
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index a1e53d7b662b..de6cb6fcda8d 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.c
-+++ b/drivers/infiniband/hw/qib/qib_verbs.c
-@@ -365,9 +365,6 @@ static int qib_post_one_send(struct qib_qp *qp, struct ib_send_wr *wr,
- 	if (wr->opcode == IB_WR_REG_MR) {
- 		if (qib_reg_mr(qp, reg_wr(wr)))
- 			goto bail_inval;
--	} else if (wr->opcode == IB_WR_FAST_REG_MR) {
--		if (qib_fast_reg_mr(qp, wr))
--			goto bail_inval;
- 	} else if (qp->ibqp.qp_type == IB_QPT_UC) {
- 		if ((unsigned) wr->opcode >= IB_WR_RDMA_READ)
- 			goto bail_inval;
-@@ -407,9 +404,6 @@ static int qib_post_one_send(struct qib_qp *qp, struct ib_send_wr *wr,
- 	else if (wr->opcode == IB_WR_REG_MR)
- 		memcpy(&wqe->reg_wr, reg_wr(wr),
- 			sizeof(wqe->reg_wr));
--	else if (wr->opcode == IB_WR_FAST_REG_MR)
--		memcpy(&wqe->fast_reg_wr, fast_reg_wr(wr),
--			sizeof(wqe->fast_reg_wr));
- 	else if (wr->opcode == IB_WR_RDMA_WRITE_WITH_IMM ||
- 		 wr->opcode == IB_WR_RDMA_WRITE ||
- 		 wr->opcode == IB_WR_RDMA_READ)
-@@ -2267,8 +2261,6 @@ int qib_register_ib_device(struct qib_devdata *dd)
- 	ibdev->dereg_mr = qib_dereg_mr;
- 	ibdev->alloc_mr = qib_alloc_mr;
- 	ibdev->map_mr_sg = qib_map_mr_sg;
--	ibdev->alloc_fast_reg_page_list = qib_alloc_fast_reg_page_list;
--	ibdev->free_fast_reg_page_list = qib_free_fast_reg_page_list;
- 	ibdev->alloc_fmr = qib_alloc_fmr;
- 	ibdev->map_phys_fmr = qib_map_phys_fmr;
- 	ibdev->unmap_fmr = qib_unmap_fmr;
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
-index dbc81c5761e3..bb11fe56ac6e 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.h
-+++ b/drivers/infiniband/hw/qib/qib_verbs.h
-@@ -344,7 +344,6 @@ struct qib_swqe {
- 		struct ib_send_wr wr;   /* don't use wr.sg_list */
- 		struct ib_ud_wr ud_wr;
- 		struct ib_reg_wr reg_wr;
--		struct ib_fast_reg_wr fast_reg_wr;
- 		struct ib_rdma_wr rdma_wr;
- 		struct ib_atomic_wr atomic_wr;
+@@ -294,11 +293,17 @@ struct srp_map_state {
+ 		} gen;
  	};
-@@ -1051,12 +1050,6 @@ int qib_map_mr_sg(struct ib_mr *ibmr,
- 		  struct scatterlist *sg,
- 		  unsigned int sg_nents);
- 
--struct ib_fast_reg_page_list *qib_alloc_fast_reg_page_list(
--				struct ib_device *ibdev, int page_list_len);
--
--void qib_free_fast_reg_page_list(struct ib_fast_reg_page_list *pl);
--
--int qib_fast_reg_mr(struct qib_qp *qp, struct ib_send_wr *wr);
- int qib_reg_mr(struct qib_qp *qp, struct ib_reg_wr *wr);
- 
- struct ib_fmr *qib_alloc_fmr(struct ib_pd *pd, int mr_access_flags,
+ 	struct srp_direct_buf  *desc;
+-	u64		       *pages;
++	union {
++		u64			*pages;
++		struct scatterlist	*sg;
++	};
+ 	dma_addr_t		base_dma_addr;
+ 	u32			dma_len;
+ 	u32			total_len;
+-	unsigned int		npages;
++	union {
++		unsigned int		npages;
++		unsigned int		sg_nents;
++	};
+ 	unsigned int		nmdesc;
+ 	unsigned int		ndesc;
+ };
 -- 
 1.8.4.3
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
