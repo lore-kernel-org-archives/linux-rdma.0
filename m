@@ -1,203 +1,160 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v1 23/24] IB/hfi1: Remove Old fast registraion API support
-Date: Thu, 17 Sep 2015 12:42:26 +0300
-Message-ID: <1442482947-27785-24-git-send-email-sagig@mellanox.com>
-References: <1442482947-27785-1-git-send-email-sagig@mellanox.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH rdma-rc 2/2] IB/ipoib: Add cleanup to sendonly multicast objects
+Date: Thu, 17 Sep 2015 13:38:03 +0300
+Message-ID: <1442486283-9699-3-git-send-email-ogerlitz@mellanox.com>
+References: <1442486283-9699-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1442482947-27785-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1442486283-9699-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-It wasn't supported before as well (post_send
-returned -EINVAL for IB_WR_FAST_REG_MR). Perhaps
-the new API adoption will be joint for all IB SW
-implementations.
+From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sendonly multicast group entries are potentially created by the driver during
+the xmit flow. Their objects remain in the driver memory, plus the related group
+existing in the SM and the fabric till the driver goes down, even if no one
+uses that multicast entry anymore.
+
+Since this is sendonly, they are also not part of the kernel decvice multicast
+list and hence invocation of the set_rx_mode ndo will not cleam them up either.
+
+Each multicast entry has at least one neigh object, hence we can clean the
+sendonly mcast object / leave the group by using the existing neigh notification
+mechanism initiated from __ipoib_reap_neigh().
+
+Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/staging/hfi1/keys.c  | 55 --------------------------------------------
- drivers/staging/hfi1/mr.c    | 32 +-------------------------
- drivers/staging/hfi1/verbs.c |  9 +-------
- drivers/staging/hfi1/verbs.h |  8 -------
- 4 files changed, 2 insertions(+), 102 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib.h           |  6 ++
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 87 ++++++++++++++++++++++++++
+ 2 files changed, 93 insertions(+)
 
-diff --git a/drivers/staging/hfi1/keys.c b/drivers/staging/hfi1/keys.c
-index 82c21b1c0263..cb4e6087dfdb 100644
---- a/drivers/staging/hfi1/keys.c
-+++ b/drivers/staging/hfi1/keys.c
-@@ -354,58 +354,3 @@ bail:
- 	rcu_read_unlock();
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index 5b719e2..7cbd7d1 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -417,6 +417,12 @@ struct ipoib_path {
+ 	int  		      valid;
+ };
+ 
++struct ipoib_free_sendonly_task {
++	struct work_struct work;
++	struct ipoib_mcast *mcast;
++	struct ipoib_dev_priv *priv;
++};
++
+ enum ipoib_neigh_state {
+ 	IPOIB_NEIGH_CREATED,
+ 	IPOIB_NEIGH_REMOVED,
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+index 09a1748..e3d035e 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+@@ -702,6 +702,91 @@ static int ipoib_mcast_leave(struct net_device *dev, struct ipoib_mcast *mcast)
  	return 0;
  }
--
--/*
-- * Initialize the memory region specified by the work request.
-- */
--int hfi1_fast_reg_mr(struct hfi1_qp *qp, struct ib_fast_reg_wr *wr)
--{
--	struct hfi1_lkey_table *rkt = &to_idev(qp->ibqp.device)->lk_table;
--	struct hfi1_pd *pd = to_ipd(qp->ibqp.pd);
--	struct hfi1_mregion *mr;
--	u32 rkey = wr->rkey;
--	unsigned i, n, m;
--	int ret = -EINVAL;
--	unsigned long flags;
--	u64 *page_list;
--	size_t ps;
--
--	spin_lock_irqsave(&rkt->lock, flags);
--	if (pd->user || rkey == 0)
--		goto bail;
--
--	mr = rcu_dereference_protected(
--		rkt->table[(rkey >> (32 - hfi1_lkey_table_size))],
--		lockdep_is_held(&rkt->lock));
--	if (unlikely(mr == NULL || qp->ibqp.pd != mr->pd))
--		goto bail;
--
--	if (wr->page_list_len > mr->max_segs)
--		goto bail;
--
--	ps = 1UL << wr->page_shift;
--	if (wr->length > ps * wr->page_list_len)
--		goto bail;
--
--	mr->user_base = wr->iova_start;
--	mr->iova = wr->iova_start;
--	mr->lkey = rkey;
--	mr->length = wr->length;
--	mr->access_flags = wr->access_flags;
--	page_list = wr->page_list->page_list;
--	m = 0;
--	n = 0;
--	for (i = 0; i < wr->page_list_len; i++) {
--		mr->map[m]->segs[n].vaddr = (void *) page_list[i];
--		mr->map[m]->segs[n].length = ps;
--		if (++n == HFI1_SEGSZ) {
--			m++;
--			n = 0;
--		}
--	}
--
--	ret = 0;
--bail:
--	spin_unlock_irqrestore(&rkt->lock, flags);
--	return ret;
--}
-diff --git a/drivers/staging/hfi1/mr.c b/drivers/staging/hfi1/mr.c
-index bd64e4f986f9..3f5623add3df 100644
---- a/drivers/staging/hfi1/mr.c
-+++ b/drivers/staging/hfi1/mr.c
-@@ -344,7 +344,7 @@ out:
  
- /*
-  * Allocate a memory region usable with the
-- * IB_WR_FAST_REG_MR send work request.
-+ * IB_WR_REG_MR send work request.
-  *
-  * Return the memory region on success, otherwise return an errno.
-  */
-@@ -364,36 +364,6 @@ struct ib_mr *hfi1_alloc_mr(struct ib_pd *pd,
- 	return &mr->ibmr;
- }
- 
--struct ib_fast_reg_page_list *
--hfi1_alloc_fast_reg_page_list(struct ib_device *ibdev, int page_list_len)
--{
--	unsigned size = page_list_len * sizeof(u64);
--	struct ib_fast_reg_page_list *pl;
--
--	if (size > PAGE_SIZE)
--		return ERR_PTR(-EINVAL);
--
--	pl = kzalloc(sizeof(*pl), GFP_KERNEL);
--	if (!pl)
--		return ERR_PTR(-ENOMEM);
--
--	pl->page_list = kzalloc(size, GFP_KERNEL);
--	if (!pl->page_list)
--		goto err_free;
--
--	return pl;
--
--err_free:
--	kfree(pl);
--	return ERR_PTR(-ENOMEM);
--}
--
--void hfi1_free_fast_reg_page_list(struct ib_fast_reg_page_list *pl)
--{
--	kfree(pl->page_list);
--	kfree(pl);
--}
--
- /**
-  * hfi1_alloc_fmr - allocate a fast memory region
-  * @pd: the protection domain for this memory region
-diff --git a/drivers/staging/hfi1/verbs.c b/drivers/staging/hfi1/verbs.c
-index 542ad803bfce..a6c9bf88a4c4 100644
---- a/drivers/staging/hfi1/verbs.c
-+++ b/drivers/staging/hfi1/verbs.c
-@@ -380,9 +380,7 @@ static int post_one_send(struct hfi1_qp *qp, struct ib_send_wr *wr)
- 	 * undefined operations.
- 	 * Make sure buffer is large enough to hold the result for atomics.
- 	 */
--	if (wr->opcode == IB_WR_FAST_REG_MR) {
--		return -EINVAL;
--	} else if (qp->ibqp.qp_type == IB_QPT_UC) {
-+	if (qp->ibqp.qp_type == IB_QPT_UC) {
- 		if ((unsigned) wr->opcode >= IB_WR_RDMA_READ)
- 			return -EINVAL;
- 	} else if (qp->ibqp.qp_type != IB_QPT_RC) {
-@@ -417,9 +415,6 @@ static int post_one_send(struct hfi1_qp *qp, struct ib_send_wr *wr)
- 	if (qp->ibqp.qp_type != IB_QPT_UC &&
- 	    qp->ibqp.qp_type != IB_QPT_RC)
- 		memcpy(&wqe->ud_wr, ud_wr(wr), sizeof(wqe->ud_wr));
--	else if (wr->opcode == IB_WR_FAST_REG_MR)
--		memcpy(&wqe->fast_reg_wr, fast_reg_wr(wr),
--			sizeof(wqe->fast_reg_wr));
- 	else if (wr->opcode == IB_WR_RDMA_WRITE_WITH_IMM ||
- 		 wr->opcode == IB_WR_RDMA_WRITE ||
- 		 wr->opcode == IB_WR_RDMA_READ)
-@@ -2063,8 +2058,6 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
- 	ibdev->reg_user_mr = hfi1_reg_user_mr;
- 	ibdev->dereg_mr = hfi1_dereg_mr;
- 	ibdev->alloc_mr = hfi1_alloc_mr;
--	ibdev->alloc_fast_reg_page_list = hfi1_alloc_fast_reg_page_list;
--	ibdev->free_fast_reg_page_list = hfi1_free_fast_reg_page_list;
- 	ibdev->alloc_fmr = hfi1_alloc_fmr;
- 	ibdev->map_phys_fmr = hfi1_map_phys_fmr;
- 	ibdev->unmap_fmr = hfi1_unmap_fmr;
-diff --git a/drivers/staging/hfi1/verbs.h b/drivers/staging/hfi1/verbs.h
-index cf5a3c956284..159ec08bfcd8 100644
---- a/drivers/staging/hfi1/verbs.h
-+++ b/drivers/staging/hfi1/verbs.h
-@@ -353,7 +353,6 @@ struct hfi1_swqe {
- 		struct ib_rdma_wr rdma_wr;
- 		struct ib_atomic_wr atomic_wr;
- 		struct ib_ud_wr ud_wr;
--		struct ib_fast_reg_wr fast_reg_wr;
- 	};
- 	u32 psn;                /* first packet sequence number */
- 	u32 lpsn;               /* last packet sequence number */
-@@ -1026,13 +1025,6 @@ struct ib_mr *hfi1_alloc_mr(struct ib_pd *pd,
- 			    enum ib_mr_type mr_type,
- 			    u32 max_entries);
- 
--struct ib_fast_reg_page_list *hfi1_alloc_fast_reg_page_list(
--				struct ib_device *ibdev, int page_list_len);
--
--void hfi1_free_fast_reg_page_list(struct ib_fast_reg_page_list *pl);
--
--int hfi1_fast_reg_mr(struct hfi1_qp *qp, struct ib_fast_reg_wr *wr);
--
- struct ib_fmr *hfi1_alloc_fmr(struct ib_pd *pd, int mr_access_flags,
- 			      struct ib_fmr_attr *fmr_attr);
- 
++/* leave / free sendonly mcast */
++static void ipoib_sendonly_free_work(struct work_struct *work)
++{
++	unsigned long flags;
++	struct ipoib_mcast *tmcast;
++	bool found = false;
++	struct ipoib_free_sendonly_task *so_work =
++		container_of(work, struct ipoib_free_sendonly_task, work);
++	struct ipoib_mcast *mcast = so_work->mcast;
++	struct ipoib_dev_priv *priv = so_work->priv;
++
++	spin_lock_irqsave(&priv->lock, flags);
++	/*
++	 * check the mcast is still in the list.
++	 * make sure we are not racing against ipoib_mcast_dev_flush
++	 */
++	list_for_each_entry(tmcast, &priv->multicast_list, list)
++		if (!memcmp(tmcast->mcmember.mgid.raw,
++			    mcast->mcmember.mgid.raw,
++			    sizeof(union ib_gid)))
++			found = true;
++
++	if (!found) {
++		pr_info("%s mcast: %pI6 already removed\n", __func__,
++			mcast->mcmember.mgid.raw);
++		spin_unlock(&priv->lock);
++		local_irq_restore(flags);
++		goto out;
++	}
++
++	/* delete from multicast_list and rb_tree */
++	rb_erase(&mcast->rb_node, &priv->multicast_tree);
++	list_del(&mcast->list);
++
++	spin_unlock_irqrestore(&priv->lock, flags);
++
++	/*
++	 * make sure the in-flight joins have finished before we attempt
++	 * to leave
++	 */
++	if (test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags))
++		wait_for_completion(&mcast->done);
++
++	ipoib_mcast_leave(mcast->dev, mcast);
++	ipoib_mcast_free(mcast);
++
++out:
++	kfree(so_work);
++}
++
++/* get notification from the neigh that connected to mcast on its state */
++static int handle_neigh_state_change(struct ipoib_dev_priv *priv,
++				     enum ipoib_neigh_state state, void *context)
++{
++	struct ipoib_mcast *mcast = context;
++
++	switch (state) {
++	case IPOIB_NEIGH_REMOVED:
++		/* In sendonly the kernel doesn't clean mcast groups, so we use
++		 * the gc mechanism of the neigh that connected to that mcast in
++		 * order to clean them
++		 */
++		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags)) {
++			struct ipoib_free_sendonly_task *sendonly_mcast_work;
++
++			sendonly_mcast_work = kzalloc(sizeof(*sendonly_mcast_work), GFP_KERNEL);
++			if (!sendonly_mcast_work)
++				return -ENOMEM;
++
++			INIT_WORK(&sendonly_mcast_work->work,
++				  ipoib_sendonly_free_work);
++			sendonly_mcast_work->mcast = mcast;
++			sendonly_mcast_work->priv = priv;
++			queue_work(priv->wq, &sendonly_mcast_work->work);
++		}
++		break;
++	default:
++		pr_info("%s doesn't handle state %d for mcast: %pI6\n",
++			__func__, state, mcast->mcmember.mgid.raw);
++		break;
++	}
++
++	return 0;
++}
++
+ void ipoib_mcast_send(struct net_device *dev, u8 *daddr, struct sk_buff *skb)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+@@ -762,6 +847,8 @@ void ipoib_mcast_send(struct net_device *dev, u8 *daddr, struct sk_buff *skb)
+ 				kref_get(&mcast->ah->ref);
+ 				neigh->ah	= mcast->ah;
+ 				list_add_tail(&neigh->list, &mcast->neigh_list);
++				neigh->state_callback = handle_neigh_state_change;
++				neigh->context = mcast;
+ 			}
+ 		}
+ 		spin_unlock_irqrestore(&priv->lock, flags);
 -- 
-1.8.4.3
+2.3.7
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
