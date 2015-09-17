@@ -1,64 +1,82 @@
-From: Sasha Levin <sasha.levin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/ucma: check workqueue allocation before usage
-Date: Thu, 17 Sep 2015 16:14:31 -0400
-Message-ID: <55FB1F27.8000604@oracle.com>
-References: <1442520259-2248-1-git-send-email-sasha.levin@oracle.com> <1828884A29C6694DAF28B7E6B8A82373A903C056@ORSMSX109.amr.corp.intel.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v1 00/18] RFC NFS/RDMA patches for merging into v4.4
+Date: Thu, 17 Sep 2015 16:44:10 -0400
+Message-ID: <20150917202829.19671.90044.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A903C056-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 09/17/2015 04:10 PM, Hefty, Sean wrote:
-> What kernel is this patch against?
+This series begins with the usual fixes, then introduces patches
+that add support for bi-directional RPC/RDMA. Bi-directional
+RPC/RDMA is a pre-requisite for NFSv4.1 on RDMA transports. It
+includes both client and server side support, though the server side
+is not as far along as I had hoped, and could be postponed to 4.5.
 
-Patch is against linux-next.
+This v1 is an initial request for review, not a "these suckers are
+ready to be merged."
+
+Also available in the "nfs-rdma-for-4.4" topic branch of this git repo:
+
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
+
+Or for browsing:
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfs-rdma-for-4.4
+
+---
+
+Chuck Lever (18):
+      xprtrdma: Enable swap-on-NFS/RDMA
+      xprtrdma: Replace global lkey with lkey local to PD
+      xprtrdma: Remove completion polling budgets
+      xprtrdma: Refactor reply handler error handling
+      xprtrdma: Replace send and receive arrays
+      SUNRPC: Abstract backchannel operations
+      xprtrdma: Pre-allocate backward rpc_rqst and send/receive buffers
+      xprtrdma: Pre-allocate Work Requests for backchannel
+      xprtrdma: Add support for sending backward direction RPC replies
+      xprtrdma: Handle incoming backward direction RPC calls
+      svcrdma: Add backward direction service for RPC/RDMA transport
+      SUNRPC: Remove the TCP-only restriction in bc_svc_process()
+      NFS: Enable client side NFSv4.1 backchannel to use other transports
+      svcrdma: Define maximum number of backchannel requests
+      svcrdma: Add svc_rdma_get_context() API that is allowed to fail
+      svcrdma: Add infrastructure to send backwards direction RPC/RDMA calls
+      svcrdma: Add infrastructure to receive backwards direction RPC/RDMA replies
+      xprtrdma: Add class for RDMA backwards direction transport
 
 
-Thanks,
-Sasha
-
->> Allocating a workqueue might fail, which wasn't checked so far and would
->> lead to NULL ptr derefs when an attempt to use it was made.
->>
->> Signed-off-by: Sasha Levin <sasha.levin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->> ---
->>  drivers/infiniband/core/ucma.c |    7 ++++++-
->>  1 file changed, 6 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/infiniband/core/ucma.c
->> b/drivers/infiniband/core/ucma.c
->> index a53fc9b..30467d1 100644
->> --- a/drivers/infiniband/core/ucma.c
->> +++ b/drivers/infiniband/core/ucma.c
->> @@ -1624,11 +1624,16 @@ static int ucma_open(struct inode *inode, struct
->> file *filp)
->>  	if (!file)
->>  		return -ENOMEM;
->>
->> +	file->close_wq = create_singlethread_workqueue("ucma_close_id");
->> +	if (!file->close_wq) {
->> +		kfree(file);
->> +		return -ENOMEM;
->> +	}
->> +
->>  	INIT_LIST_HEAD(&file->event_list);
->>  	INIT_LIST_HEAD(&file->ctx_list);
->>  	init_waitqueue_head(&file->poll_wait);
->>  	mutex_init(&file->mut);
->> -	file->close_wq = create_singlethread_workqueue("ucma_close_id");
->>
->>  	filp->private_data = file;
->>  	file->filp = filp;
->> --
->> 1.7.10.4
-> 
+ fs/nfs/callback.c                        |   33 ++-
+ include/linux/sunrpc/bc_xprt.h           |    5 
+ include/linux/sunrpc/svc_rdma.h          |   15 +
+ include/linux/sunrpc/xprt.h              |    6 
+ net/sunrpc/backchannel_rqst.c            |   24 ++
+ net/sunrpc/svc.c                         |    5 
+ net/sunrpc/xprt.c                        |    1 
+ net/sunrpc/xprtrdma/Makefile             |    1 
+ net/sunrpc/xprtrdma/backchannel.c        |  368 ++++++++++++++++++++++++++++++
+ net/sunrpc/xprtrdma/fmr_ops.c            |   19 --
+ net/sunrpc/xprtrdma/frwr_ops.c           |    5 
+ net/sunrpc/xprtrdma/physical_ops.c       |   10 -
+ net/sunrpc/xprtrdma/rpc_rdma.c           |  212 ++++++++++++++---
+ net/sunrpc/xprtrdma/svc_rdma.c           |    6 
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c  |   60 +++++
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c    |   63 +++++
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |  104 ++++++++
+ net/sunrpc/xprtrdma/transport.c          |  253 ++++++++++++++++++++-
+ net/sunrpc/xprtrdma/verbs.c              |  341 ++++++++++++++++------------
+ net/sunrpc/xprtrdma/xprt_rdma.h          |   56 ++++-
+ net/sunrpc/xprtsock.c                    |   16 +
+ 21 files changed, 1341 insertions(+), 262 deletions(-)
+ create mode 100644 net/sunrpc/xprtrdma/backchannel.c
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
