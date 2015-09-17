@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v1 08/24] IB/qib: Support the new memory registration API
-Date: Thu, 17 Sep 2015 12:42:11 +0300
-Message-ID: <1442482947-27785-9-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v1 11/24] iser-target: Port to new memory registration API
+Date: Thu, 17 Sep 2015 12:42:14 +0300
+Message-ID: <1442482947-27785-12-git-send-email-sagig@mellanox.com>
 References: <1442482947-27785-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1442482947-27785-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,214 +10,258 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Support the new memory registration API by allocating a
-private page list array in qib_mr and populate it when
-qib_map_mr_sg is invoked. Also, support IB_WR_REG_MR
-by duplicating qib_fastreg_mr just take the needed information
-from different places:
-- page_size, iova, length (ib_mr)
-- page array (qib_mr)
-- key, access flags (ib_reg_wr)
-
-The IB_WR_FAST_REG_MR handlers will be removed later when
-all the ULPs will be converted.
+Remove fastreg page list allocation as the page vector
+is now private to the provider. Instead of constructing
+the page list and fast_req work request, call ib_map_mr_sg
+and construct ib_reg_wr.
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_keys.c  | 56 +++++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/qib/qib_mr.c    | 32 ++++++++++++++++++++
- drivers/infiniband/hw/qib/qib_verbs.c |  9 +++++-
- drivers/infiniband/hw/qib/qib_verbs.h |  8 +++++
- 4 files changed, 104 insertions(+), 1 deletion(-)
+ drivers/infiniband/ulp/isert/ib_isert.c | 129 +++++++-------------------------
+ drivers/infiniband/ulp/isert/ib_isert.h |   2 -
+ 2 files changed, 27 insertions(+), 104 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_keys.c b/drivers/infiniband/hw/qib/qib_keys.c
-index eaf139a33b2e..a5057efc7faf 100644
---- a/drivers/infiniband/hw/qib/qib_keys.c
-+++ b/drivers/infiniband/hw/qib/qib_keys.c
-@@ -390,3 +390,59 @@ bail:
- 	spin_unlock_irqrestore(&rkt->lock, flags);
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index dcb29d166211..67d56c3de3dd 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -475,10 +475,8 @@ isert_conn_free_fastreg_pool(struct isert_conn *isert_conn)
+ 	list_for_each_entry_safe(fr_desc, tmp,
+ 				 &isert_conn->fr_pool, list) {
+ 		list_del(&fr_desc->list);
+-		ib_free_fast_reg_page_list(fr_desc->data_frpl);
+ 		ib_dereg_mr(fr_desc->data_mr);
+ 		if (fr_desc->pi_ctx) {
+-			ib_free_fast_reg_page_list(fr_desc->pi_ctx->prot_frpl);
+ 			ib_dereg_mr(fr_desc->pi_ctx->prot_mr);
+ 			ib_dereg_mr(fr_desc->pi_ctx->sig_mr);
+ 			kfree(fr_desc->pi_ctx);
+@@ -506,22 +504,13 @@ isert_create_pi_ctx(struct fast_reg_descriptor *desc,
+ 		return -ENOMEM;
+ 	}
+ 
+-	pi_ctx->prot_frpl = ib_alloc_fast_reg_page_list(device,
+-					    ISCSI_ISER_SG_TABLESIZE);
+-	if (IS_ERR(pi_ctx->prot_frpl)) {
+-		isert_err("Failed to allocate prot frpl err=%ld\n",
+-			  PTR_ERR(pi_ctx->prot_frpl));
+-		ret = PTR_ERR(pi_ctx->prot_frpl);
+-		goto err_pi_ctx;
+-	}
+-
+ 	pi_ctx->prot_mr = ib_alloc_mr(pd, IB_MR_TYPE_MEM_REG,
+ 				      ISCSI_ISER_SG_TABLESIZE);
+ 	if (IS_ERR(pi_ctx->prot_mr)) {
+ 		isert_err("Failed to allocate prot frmr err=%ld\n",
+ 			  PTR_ERR(pi_ctx->prot_mr));
+ 		ret = PTR_ERR(pi_ctx->prot_mr);
+-		goto err_prot_frpl;
++		goto err_pi_ctx;
+ 	}
+ 	desc->ind |= ISERT_PROT_KEY_VALID;
+ 
+@@ -541,8 +530,6 @@ isert_create_pi_ctx(struct fast_reg_descriptor *desc,
+ 
+ err_prot_mr:
+ 	ib_dereg_mr(pi_ctx->prot_mr);
+-err_prot_frpl:
+-	ib_free_fast_reg_page_list(pi_ctx->prot_frpl);
+ err_pi_ctx:
+ 	kfree(pi_ctx);
+ 
+@@ -553,34 +540,18 @@ static int
+ isert_create_fr_desc(struct ib_device *ib_device, struct ib_pd *pd,
+ 		     struct fast_reg_descriptor *fr_desc)
+ {
+-	int ret;
+-
+-	fr_desc->data_frpl = ib_alloc_fast_reg_page_list(ib_device,
+-							 ISCSI_ISER_SG_TABLESIZE);
+-	if (IS_ERR(fr_desc->data_frpl)) {
+-		isert_err("Failed to allocate data frpl err=%ld\n",
+-			  PTR_ERR(fr_desc->data_frpl));
+-		return PTR_ERR(fr_desc->data_frpl);
+-	}
+-
+ 	fr_desc->data_mr = ib_alloc_mr(pd, IB_MR_TYPE_MEM_REG,
+ 				       ISCSI_ISER_SG_TABLESIZE);
+ 	if (IS_ERR(fr_desc->data_mr)) {
+ 		isert_err("Failed to allocate data frmr err=%ld\n",
+ 			  PTR_ERR(fr_desc->data_mr));
+-		ret = PTR_ERR(fr_desc->data_mr);
+-		goto err_data_frpl;
++		return PTR_ERR(fr_desc->data_mr);
+ 	}
+ 	fr_desc->ind |= ISERT_DATA_KEY_VALID;
+ 
+ 	isert_dbg("Created fr_desc %p\n", fr_desc);
+ 
+ 	return 0;
+-
+-err_data_frpl:
+-	ib_free_fast_reg_page_list(fr_desc->data_frpl);
+-
+-	return ret;
+ }
+ 
+ static int
+@@ -2516,45 +2487,6 @@ unmap_cmd:
  	return ret;
  }
-+
-+/*
-+ * Initialize the memory region specified by the work reqeust.
-+ */
-+int qib_reg_mr(struct qib_qp *qp, struct ib_reg_wr *wr)
-+{
-+	struct qib_lkey_table *rkt = &to_idev(qp->ibqp.device)->lk_table;
-+	struct qib_pd *pd = to_ipd(qp->ibqp.pd);
-+	struct qib_mr *mr = to_imr(wr->mr);
-+	struct qib_mregion *mrg;
-+	u32 key = wr->key;
-+	unsigned i, n, m;
-+	int ret = -EINVAL;
-+	unsigned long flags;
-+	u64 *page_list;
-+	size_t ps;
-+
-+	spin_lock_irqsave(&rkt->lock, flags);
-+	if (pd->user || key == 0)
-+		goto bail;
-+
-+	mrg = rcu_dereference_protected(
-+		rkt->table[(key >> (32 - ib_qib_lkey_table_size))],
-+		lockdep_is_held(&rkt->lock));
-+	if (unlikely(mrg == NULL || qp->ibqp.pd != mrg->pd))
-+		goto bail;
-+
-+	if (mr->npages > mrg->max_segs)
-+		goto bail;
-+
-+	ps = mr->ibmr.page_size;
-+	if (mr->ibmr.length > ps * mr->npages)
-+		goto bail;
-+
-+	mrg->user_base = mr->ibmr.iova;
-+	mrg->iova = mr->ibmr.iova;
-+	mrg->lkey = key;
-+	mrg->length = mr->ibmr.length;
-+	mrg->access_flags = wr->access;
-+	page_list = mr->pages;
-+	m = 0;
-+	n = 0;
-+	for (i = 0; i < mr->npages; i++) {
-+		mrg->map[m]->segs[n].vaddr = (void *) page_list[i];
-+		mrg->map[m]->segs[n].length = ps;
-+		if (++n == QIB_SEGSZ) {
-+			m++;
-+			n = 0;
-+		}
+ 
+-static int
+-isert_map_fr_pagelist(struct ib_device *ib_dev,
+-		      struct scatterlist *sg_start, int sg_nents, u64 *fr_pl)
+-{
+-	u64 start_addr, end_addr, page, chunk_start = 0;
+-	struct scatterlist *tmp_sg;
+-	int i = 0, new_chunk, last_ent, n_pages;
+-
+-	n_pages = 0;
+-	new_chunk = 1;
+-	last_ent = sg_nents - 1;
+-	for_each_sg(sg_start, tmp_sg, sg_nents, i) {
+-		start_addr = ib_sg_dma_address(ib_dev, tmp_sg);
+-		if (new_chunk)
+-			chunk_start = start_addr;
+-		end_addr = start_addr + ib_sg_dma_len(ib_dev, tmp_sg);
+-
+-		isert_dbg("SGL[%d] dma_addr: 0x%llx len: %u\n",
+-			  i, (unsigned long long)tmp_sg->dma_address,
+-			  tmp_sg->length);
+-
+-		if ((end_addr & ~PAGE_MASK) && i < last_ent) {
+-			new_chunk = 0;
+-			continue;
+-		}
+-		new_chunk = 1;
+-
+-		page = chunk_start & PAGE_MASK;
+-		do {
+-			fr_pl[n_pages++] = page;
+-			isert_dbg("Mapped page_list[%d] page_addr: 0x%llx\n",
+-				  n_pages - 1, page);
+-			page += PAGE_SIZE;
+-		} while (page < end_addr);
+-	}
+-
+-	return n_pages;
+-}
+-
+ static inline void
+ isert_inv_rkey(struct ib_send_wr *inv_wr, struct ib_mr *mr)
+ {
+@@ -2580,11 +2512,9 @@ isert_fast_reg_mr(struct isert_conn *isert_conn,
+ 	struct isert_device *device = isert_conn->device;
+ 	struct ib_device *ib_dev = device->ib_device;
+ 	struct ib_mr *mr;
+-	struct ib_fast_reg_page_list *frpl;
+-	struct ib_fast_reg_wr fr_wr;
++	struct ib_reg_wr reg_wr;
+ 	struct ib_send_wr inv_wr, *bad_wr, *wr = NULL;
+-	int ret, pagelist_len;
+-	u32 page_off;
++	int ret, n;
+ 
+ 	if (mem->dma_nents == 1) {
+ 		sge->lkey = device->pd->local_dma_lkey;
+@@ -2595,45 +2525,40 @@ isert_fast_reg_mr(struct isert_conn *isert_conn,
+ 		return 0;
+ 	}
+ 
+-	if (ind == ISERT_DATA_KEY_VALID) {
++	if (ind == ISERT_DATA_KEY_VALID)
+ 		/* Registering data buffer */
+ 		mr = fr_desc->data_mr;
+-		frpl = fr_desc->data_frpl;
+-	} else {
++	else
+ 		/* Registering protection buffer */
+ 		mr = fr_desc->pi_ctx->prot_mr;
+-		frpl = fr_desc->pi_ctx->prot_frpl;
+-	}
+-
+-	page_off = mem->offset % PAGE_SIZE;
+-
+-	isert_dbg("Use fr_desc %p sg_nents %d offset %u\n",
+-		  fr_desc, mem->nents, mem->offset);
+-
+-	pagelist_len = isert_map_fr_pagelist(ib_dev, mem->sg, mem->nents,
+-					     &frpl->page_list[0]);
+ 
+ 	if (!(fr_desc->ind & ind)) {
+ 		isert_inv_rkey(&inv_wr, mr);
+ 		wr = &inv_wr;
+ 	}
+ 
+-	/* Prepare FASTREG WR */
+-	memset(&fr_wr, 0, sizeof(fr_wr));
+-	fr_wr.wr.wr_id = ISER_FASTREG_LI_WRID;
+-	fr_wr.wr.opcode = IB_WR_FAST_REG_MR;
+-	fr_wr.iova_start = frpl->page_list[0] + page_off;
+-	fr_wr.page_list = frpl;
+-	fr_wr.page_list_len = pagelist_len;
+-	fr_wr.page_shift = PAGE_SHIFT;
+-	fr_wr.length = mem->len;
+-	fr_wr.rkey = mr->rkey;
+-	fr_wr.access_flags = IB_ACCESS_LOCAL_WRITE;
++	n = ib_map_mr_sg(mr, mem->sg, mem->nents, PAGE_SIZE);
++	if (unlikely(n != mem->nents)) {
++		isert_err("failed to map mr sg (%d/%d)\n",
++			 n, mem->nents);
++		return n < 0 ? n : -EINVAL;
 +	}
 +
-+	ret = 0;
-+bail:
-+	spin_unlock_irqrestore(&rkt->lock, flags);
-+	return ret;
-+}
-diff --git a/drivers/infiniband/hw/qib/qib_mr.c b/drivers/infiniband/hw/qib/qib_mr.c
-index 19220dcb9a3b..0fa4b0de8074 100644
---- a/drivers/infiniband/hw/qib/qib_mr.c
-+++ b/drivers/infiniband/hw/qib/qib_mr.c
-@@ -303,6 +303,7 @@ int qib_dereg_mr(struct ib_mr *ibmr)
- 	int ret = 0;
- 	unsigned long timeout;
++	isert_dbg("Use fr_desc %p sg_nents %d offset %u\n",
++		  fr_desc, mem->nents, mem->offset);
++
++	reg_wr.wr.opcode = IB_WR_REG_MR;
++	reg_wr.wr.wr_id = ISER_FASTREG_LI_WRID;
++	reg_wr.wr.send_flags = 0;
++	reg_wr.wr.num_sge = 0;
++	reg_wr.mr = mr;
++	reg_wr.key = mr->lkey;
++	reg_wr.access = IB_ACCESS_LOCAL_WRITE;
  
-+	kfree(mr->pages);
- 	qib_free_lkey(&mr->mr);
+ 	if (!wr)
+-		wr = &fr_wr.wr;
++		wr = &reg_wr.wr;
+ 	else
+-		wr->next = &fr_wr.wr;
++		wr->next = &reg_wr.wr;
  
- 	qib_put_mr(&mr->mr); /* will set completion if last */
-@@ -340,7 +341,38 @@ struct ib_mr *qib_alloc_mr(struct ib_pd *pd,
- 	if (IS_ERR(mr))
- 		return (struct ib_mr *)mr;
+ 	ret = ib_post_send(isert_conn->qp, wr, &bad_wr);
+ 	if (ret) {
+@@ -2643,8 +2568,8 @@ isert_fast_reg_mr(struct isert_conn *isert_conn,
+ 	fr_desc->ind &= ~ind;
  
-+	mr->pages = kcalloc(max_num_sg, sizeof(u64), GFP_KERNEL);
-+	if (!mr->pages)
-+		goto err;
-+
- 	return &mr->ibmr;
-+
-+err:
-+	qib_dereg_mr(&mr->ibmr);
-+	return ERR_PTR(-ENOMEM);
-+}
-+
-+static int qib_set_page(struct ib_mr *ibmr, u64 addr)
-+{
-+	struct qib_mr *mr = to_imr(ibmr);
-+
-+	if (unlikely(mr->npages == mr->mr.max_segs))
-+		return -ENOMEM;
-+
-+	mr->pages[mr->npages++] = addr;
-+
-+	return 0;
-+}
-+
-+int qib_map_mr_sg(struct ib_mr *ibmr,
-+		  struct scatterlist *sg,
-+		  unsigned int sg_nents)
-+{
-+	struct qib_mr *mr = to_imr(ibmr);
-+
-+	mr->npages = 0;
-+
-+	return ib_sg_to_pages(ibmr, sg, sg_nents, qib_set_page);
- }
+ 	sge->lkey = mr->lkey;
+-	sge->addr = frpl->page_list[0] + page_off;
+-	sge->length = mem->len;
++	sge->addr = mr->iova;
++	sge->length = mr->length;
  
- struct ib_fast_reg_page_list *
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index a6b0b098ff30..a1e53d7b662b 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.c
-+++ b/drivers/infiniband/hw/qib/qib_verbs.c
-@@ -362,7 +362,10 @@ static int qib_post_one_send(struct qib_qp *qp, struct ib_send_wr *wr,
- 	 * undefined operations.
- 	 * Make sure buffer is large enough to hold the result for atomics.
- 	 */
--	if (wr->opcode == IB_WR_FAST_REG_MR) {
-+	if (wr->opcode == IB_WR_REG_MR) {
-+		if (qib_reg_mr(qp, reg_wr(wr)))
-+			goto bail_inval;
-+	} else if (wr->opcode == IB_WR_FAST_REG_MR) {
- 		if (qib_fast_reg_mr(qp, wr))
- 			goto bail_inval;
- 	} else if (qp->ibqp.qp_type == IB_QPT_UC) {
-@@ -401,6 +404,9 @@ static int qib_post_one_send(struct qib_qp *qp, struct ib_send_wr *wr,
- 	if (qp->ibqp.qp_type != IB_QPT_UC &&
- 	    qp->ibqp.qp_type != IB_QPT_RC)
- 		memcpy(&wqe->ud_wr, ud_wr(wr), sizeof(wqe->ud_wr));
-+	else if (wr->opcode == IB_WR_REG_MR)
-+		memcpy(&wqe->reg_wr, reg_wr(wr),
-+			sizeof(wqe->reg_wr));
- 	else if (wr->opcode == IB_WR_FAST_REG_MR)
- 		memcpy(&wqe->fast_reg_wr, fast_reg_wr(wr),
- 			sizeof(wqe->fast_reg_wr));
-@@ -2260,6 +2266,7 @@ int qib_register_ib_device(struct qib_devdata *dd)
- 	ibdev->reg_user_mr = qib_reg_user_mr;
- 	ibdev->dereg_mr = qib_dereg_mr;
- 	ibdev->alloc_mr = qib_alloc_mr;
-+	ibdev->map_mr_sg = qib_map_mr_sg;
- 	ibdev->alloc_fast_reg_page_list = qib_alloc_fast_reg_page_list;
- 	ibdev->free_fast_reg_page_list = qib_free_fast_reg_page_list;
- 	ibdev->alloc_fmr = qib_alloc_fmr;
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
-index 8aa16851a5e6..dbc81c5761e3 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.h
-+++ b/drivers/infiniband/hw/qib/qib_verbs.h
-@@ -330,6 +330,8 @@ struct qib_mr {
- 	struct ib_mr ibmr;
- 	struct ib_umem *umem;
- 	struct qib_mregion mr;  /* must be last */
-+	u64 *pages;
-+	u32 npages;
+ 	isert_dbg("sge: addr: 0x%llx  length: %u lkey: %x\n",
+ 		  sge->addr, sge->length, sge->lkey);
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.h b/drivers/infiniband/ulp/isert/ib_isert.h
+index 0a4a7861cce9..e87f9b096533 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.h
++++ b/drivers/infiniband/ulp/isert/ib_isert.h
+@@ -84,14 +84,12 @@ enum isert_indicator {
+ 
+ struct pi_context {
+ 	struct ib_mr		       *prot_mr;
+-	struct ib_fast_reg_page_list   *prot_frpl;
+ 	struct ib_mr		       *sig_mr;
  };
  
- /*
-@@ -341,6 +343,7 @@ struct qib_swqe {
- 	union {
- 		struct ib_send_wr wr;   /* don't use wr.sg_list */
- 		struct ib_ud_wr ud_wr;
-+		struct ib_reg_wr reg_wr;
- 		struct ib_fast_reg_wr fast_reg_wr;
- 		struct ib_rdma_wr rdma_wr;
- 		struct ib_atomic_wr atomic_wr;
-@@ -1044,12 +1047,17 @@ struct ib_mr *qib_alloc_mr(struct ib_pd *pd,
- 			   enum ib_mr_type mr_type,
- 			   u32 max_entries);
- 
-+int qib_map_mr_sg(struct ib_mr *ibmr,
-+		  struct scatterlist *sg,
-+		  unsigned int sg_nents);
-+
- struct ib_fast_reg_page_list *qib_alloc_fast_reg_page_list(
- 				struct ib_device *ibdev, int page_list_len);
- 
- void qib_free_fast_reg_page_list(struct ib_fast_reg_page_list *pl);
- 
- int qib_fast_reg_mr(struct qib_qp *qp, struct ib_send_wr *wr);
-+int qib_reg_mr(struct qib_qp *qp, struct ib_reg_wr *wr);
- 
- struct ib_fmr *qib_alloc_fmr(struct ib_pd *pd, int mr_access_flags,
- 			     struct ib_fmr_attr *fmr_attr);
+ struct fast_reg_descriptor {
+ 	struct list_head		list;
+ 	struct ib_mr		       *data_mr;
+-	struct ib_fast_reg_page_list   *data_frpl;
+ 	u8				ind;
+ 	struct pi_context	       *pi_ctx;
+ };
 -- 
 1.8.4.3
 
