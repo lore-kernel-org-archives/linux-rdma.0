@@ -1,82 +1,50 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-rc 1/2] IB/ipoib: Add mechanism for ipoib neigh state change notifications
-Date: Thu, 17 Sep 2015 13:38:02 +0300
-Message-ID: <1442486283-9699-2-git-send-email-ogerlitz@mellanox.com>
-References: <1442486283-9699-1-git-send-email-ogerlitz@mellanox.com>
+Subject: Re: [PATCH for-4.3] IB/ipoib: add module option for auto-creating
+ mcast groups
+Date: Thu, 17 Sep 2015 13:39:51 +0300
+Message-ID: <55FA9877.8060304@mellanox.com>
+References: <980e8b0a82042d7e5801e02bf16fe72a0bde6759.1441934465.git.dledford@redhat.com>
+ <alpine.DEB.2.11.1509110920540.16357@east.gentwo.org>
+ <20150911182115.GA546@obsidianresearch.com> <55F32E7A.3020105@redhat.com>
+ <alpine.DEB.2.11.1509141200020.4192@east.gentwo.org>
+ <55F86255.9080508@redhat.com> <20150915191159.GB24173@obsidianresearch.com>
+ <55F988F1.8000508@redhat.com>
+ <alpine.DEB.2.11.1509161058540.22035@east.gentwo.org>
+ <55F9981F.5010605@redhat.com>
+ <alpine.DEB.2.11.1509161129080.22736@east.gentwo.org>
+ <CAJ3xEMi2SEXWmmLmm2xb_X_BZJY2L3UM1UfsXjFaupHBbi=q8g@mail.gmail.com>
+ <alpine.DEB.2.11.1509161517110.24175@east.gentwo.org>
+ <CAJ3xEMjVcTYicgNmv0_eSySF_gf-S3pLVY_YCoUk44rVfpYPLw@mail.gmail.com>
+ <alpine.DEB.2.11.1509161945250.25627@east.gentwo.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1442486283-9699-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.11.1509161945250.25627-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 9/17/2015 3:48 AM, Christoph Lameter wrote:
+> On Wed, 16 Sep 2015, Or Gerlitz wrote:
+>
+>> Could you please post here a few (say 2-4) liner summary of what is
+>> still missing or done wrong in 4.3-rc1 and what is your suggestion how
+>> to resolve that.
+> With Doug's patch here the only thing that is left to be done is to
+> properly leave the multicast group. And it seems that Erez patch does just that.
 
-Add callback function to the ipoib_neigh struct in order to add the
-ability to inform the object that holds the neigh on its current state.
+sent it out now
 
-Each neigh object is kept by one and only one object (from type
-path_record or multicast object), now this object can act accordingly
-the change in the neigh state.
+> And then there are the 20 other things that I have pending with Mellanox
+> but those are different issues that do not belong here. This one is a
+> critical bug for us.
+>
 
-The callback should pay attention to the context it runs on, and should
-act/run according to that context limitation, for example on the neigh
-reap flow, the neigh calls the callback under spinlock etc.
+so 19 left?
 
-Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib.h      | 11 +++++++++++
- drivers/infiniband/ulp/ipoib/ipoib_main.c |  4 ++++
- 2 files changed, 15 insertions(+)
-
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index ca28736..5b719e2 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -417,6 +417,14 @@ struct ipoib_path {
- 	int  		      valid;
- };
- 
-+enum ipoib_neigh_state {
-+	IPOIB_NEIGH_CREATED,
-+	IPOIB_NEIGH_REMOVED,
-+};
-+
-+typedef int (*state_callback_fn)(struct ipoib_dev_priv *priv,
-+				 enum ipoib_neigh_state state, void *context);
-+
- struct ipoib_neigh {
- 	struct ipoib_ah    *ah;
- #ifdef CONFIG_INFINIBAND_IPOIB_CM
-@@ -432,6 +440,9 @@ struct ipoib_neigh {
- 	struct rcu_head     rcu;
- 	atomic_t	    refcnt;
- 	unsigned long       alive;
-+	/* add the ability to notify the objects that hold that neigh */
-+	state_callback_fn state_callback;
-+	void *context;
- };
- 
- #define IPOIB_UD_MTU(ib_mtu)		(ib_mtu - IPOIB_ENCAP_LEN)
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 36536ce..6176441 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1179,6 +1179,10 @@ static void __ipoib_reap_neigh(struct ipoib_dev_priv *priv)
- 				rcu_assign_pointer(*np,
- 						   rcu_dereference_protected(neigh->hnext,
- 									     lockdep_is_held(&priv->lock)));
-+				/* inform state if requested */
-+				if (neigh->state_callback != NULL)
-+					neigh->state_callback(priv, IPOIB_NEIGH_REMOVED, neigh->context);
-+
- 				/* remove from path/mc list */
- 				list_del(&neigh->list);
- 				call_rcu(&neigh->rcu, ipoib_neigh_reclaim);
--- 
-2.3.7
-
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
