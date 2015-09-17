@@ -1,31 +1,151 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-4.3] IB/ipoib: add module option for auto-creating
- mcast groups
-Date: Wed, 16 Sep 2015 19:48:13 -0500 (CDT)
-Message-ID: <alpine.DEB.2.11.1509161945250.25627@east.gentwo.org>
-References: <980e8b0a82042d7e5801e02bf16fe72a0bde6759.1441934465.git.dledford@redhat.com> <alpine.DEB.2.11.1509110920540.16357@east.gentwo.org> <20150911182115.GA546@obsidianresearch.com> <55F32E7A.3020105@redhat.com> <alpine.DEB.2.11.1509141200020.4192@east.gentwo.org>
- <55F86255.9080508@redhat.com> <20150915191159.GB24173@obsidianresearch.com> <55F988F1.8000508@redhat.com> <alpine.DEB.2.11.1509161058540.22035@east.gentwo.org> <55F9981F.5010605@redhat.com> <alpine.DEB.2.11.1509161129080.22736@east.gentwo.org>
- <CAJ3xEMi2SEXWmmLmm2xb_X_BZJY2L3UM1UfsXjFaupHBbi=q8g@mail.gmail.com> <alpine.DEB.2.11.1509161517110.24175@east.gentwo.org> <CAJ3xEMjVcTYicgNmv0_eSySF_gf-S3pLVY_YCoUk44rVfpYPLw@mail.gmail.com>
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v1 00/24] New fast registration API
+Date: Thu, 17 Sep 2015 12:42:03 +0300
+Message-ID: <1442482947-27785-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMjVcTYicgNmv0_eSySF_gf-S3pLVY_YCoUk44rVfpYPLw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 16 Sep 2015, Or Gerlitz wrote:
+Hi all,
 
-> Could you please post here a few (say 2-4) liner summary of what is
-> still missing or done wrong in 4.3-rc1 and what is your suggestion how
-> to resolve that.
+As discussed on the linux-rdma list, there is plenty of room for
+improvement in our memory registration APIs. We keep finding
+ULPs that are duplicating code, sometimes use wrong strategies
+and mis-use our current API.
 
-With Doug's patch here the only thing that is left to be done is to
-properly leave the multicast group. And it seems that Erez patch does just that.
+As a first step, this patch set replaces the fast registration API
+to accept a kernel common struct scatterlist and takes care of
+the page vector construction in the core layer with hooks for the
+drivers HW specific assignments. This allows to remove a common
+code duplication as it was done in each and every ULP driver.
 
-And then there are the 20 other things that I have pending with Mellanox
-but those are different issues that do not belong here. This one is a
-critical bug for us.
+The changes from v0 (WIP) are:
+- Rebased on top of 4.3-rc1 + Christoph's ib_send_wr conversion patches
+
+- Allow the ULP to pass page_size argument to ib_map_mr_sg in order
+  to have it work better in some specific workloads. This suggestion
+  came from Bart Van Assache which pointed out that some applications
+  might use page sizes significantly smaller than the system PAGE_SIZE
+  of specific architectures
+
+- Fixed some logical bugs in ib_sg_to_pages
+
+- Added a set_page function pointer for drivers to pass to ib_sg_to_pages
+  so some drivers (e.g mlx4, mlx5, nes) can avoid keeping a second page
+  vector and/or re-iterate on the page vector in order to perform HW specific
+  assignments (big/little endian conversion, extra flags)
+
+- Converted SRP initiator and RDS iwarp ULPs to the new API
+
+- Removed fast registration code from hfi1 driver (as it isn't supported
+  anyway). I assume that the correct place to get the support back would
+  be in a shared SW library (hfi1, qib, rxe).
+
+- Updated the change logs
+
+So far my tests covered:
+- ULPs:
+	* iser initiator
+	* iser target
+	* xprtrdma
+	* svcrdma
+- Drivers:
+	* mlx4
+	* mlx5
+	* Steve Wise was kind enough to run NFS client/server over cxgb4 and I
+	  have yet to receive any negative feedback from him.
+
+I don't have access to other HW devices (qib, nes) nor iwarp devices so RDS is
+compile tested only.
+
+I'm targeting this to 4.4 so I'll appreciate more feedback and a bigger testing
+coverage.
+
+The code is available at: https://github.com/sagigrimberg/linux/tree/reg_api.3
+
+Sagi Grimberg (24):
+  IB/core: Introduce new fast registration API
+  IB/mlx5: Remove dead fmr code
+  IB/mlx5: Support the new memory registration API
+  IB/mlx4: Support the new memory registration API
+  RDMA/ocrdma: Support the new memory registration API
+  RDMA/cxgb3: Support the new memory registration API
+  iw_cxgb4: Support the new memory registration API
+  IB/qib: Support the new memory registration API
+  RDMA/nes: Support the new memory registration API
+  IB/iser: Port to new fast registration API
+  iser-target: Port to new memory registration API
+  xprtrdma: Port to new memory registration API
+  svcrdma: Port to new memory registration API
+  RDS/IW: Convert to new memory registration API
+  IB/srp: Convert to new memory registration API
+  IB/mlx5: Remove old FRWR API support
+  IB/mlx4: Remove old FRWR API support
+  RDMA/ocrdma: Remove old FRWR API
+  RDMA/cxgb3: Remove old FRWR API
+  iw_cxgb4: Remove old FRWR API
+  IB/qib: Remove old FRWR API
+  RDMA/nes: Remove old FRWR API
+  IB/hfi1: Remove Old fast registraion API support
+  IB/core: Remove old fast registration API
+
+ drivers/infiniband/core/verbs.c             | 132 ++++++++++++---
+ drivers/infiniband/hw/cxgb3/iwch_cq.c       |   2 +-
+ drivers/infiniband/hw/cxgb3/iwch_provider.c |  39 +++--
+ drivers/infiniband/hw/cxgb3/iwch_provider.h |   2 +
+ drivers/infiniband/hw/cxgb3/iwch_qp.c       |  37 +++--
+ drivers/infiniband/hw/cxgb4/cq.c            |   2 +-
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h      |  25 +--
+ drivers/infiniband/hw/cxgb4/mem.c           |  61 +++----
+ drivers/infiniband/hw/cxgb4/provider.c      |   3 +-
+ drivers/infiniband/hw/cxgb4/qp.c            |  46 +++---
+ drivers/infiniband/hw/mlx4/cq.c             |   2 +-
+ drivers/infiniband/hw/mlx4/main.c           |   3 +-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h        |  22 +--
+ drivers/infiniband/hw/mlx4/mr.c             | 120 ++++++++------
+ drivers/infiniband/hw/mlx4/qp.c             |  30 ++--
+ drivers/infiniband/hw/mlx5/cq.c             |   4 +-
+ drivers/infiniband/hw/mlx5/main.c           |   3 +-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h        |  47 +-----
+ drivers/infiniband/hw/mlx5/mr.c             | 107 +++++++-----
+ drivers/infiniband/hw/mlx5/qp.c             | 140 ++++++++--------
+ drivers/infiniband/hw/nes/nes_hw.h          |   6 -
+ drivers/infiniband/hw/nes/nes_verbs.c       | 161 +++++++-----------
+ drivers/infiniband/hw/nes/nes_verbs.h       |   4 +
+ drivers/infiniband/hw/ocrdma/ocrdma.h       |   2 +
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c  |   3 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 151 ++++++++---------
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.h |   7 +-
+ drivers/infiniband/hw/qib/qib_keys.c        |  40 ++---
+ drivers/infiniband/hw/qib/qib_mr.c          |  46 +++---
+ drivers/infiniband/hw/qib/qib_verbs.c       |  13 +-
+ drivers/infiniband/hw/qib/qib_verbs.h       |  13 +-
+ drivers/infiniband/ulp/iser/iscsi_iser.h    |   8 +-
+ drivers/infiniband/ulp/iser/iser_memory.c   |  53 +++---
+ drivers/infiniband/ulp/iser/iser_verbs.c    |  16 +-
+ drivers/infiniband/ulp/isert/ib_isert.c     | 129 +++------------
+ drivers/infiniband/ulp/isert/ib_isert.h     |   2 -
+ drivers/infiniband/ulp/srp/ib_srp.c         | 248 +++++++++++++++++-----------
+ drivers/infiniband/ulp/srp/ib_srp.h         |  11 +-
+ drivers/staging/hfi1/keys.c                 |  55 ------
+ drivers/staging/hfi1/mr.c                   |  32 +---
+ drivers/staging/hfi1/verbs.c                |   9 +-
+ drivers/staging/hfi1/verbs.h                |   8 -
+ include/linux/sunrpc/svc_rdma.h             |   6 +-
+ include/rdma/ib_verbs.h                     |  70 +++-----
+ net/rds/iw.h                                |   5 +-
+ net/rds/iw_rdma.c                           | 118 +++++--------
+ net/rds/iw_send.c                           |  57 ++++---
+ net/sunrpc/xprtrdma/frwr_ops.c              | 112 +++++++------
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c     |  76 +++++----
+ net/sunrpc/xprtrdma/svc_rdma_transport.c    |  34 ++--
+ net/sunrpc/xprtrdma/xprt_rdma.h             |   3 +-
+ 51 files changed, 1067 insertions(+), 1258 deletions(-)
+
+-- 
+1.8.4.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
