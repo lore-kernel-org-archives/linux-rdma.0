@@ -1,98 +1,241 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 3/3] IB/mlx4: Report checksum offload cap when query
- device
-Date: Thu, 17 Sep 2015 22:46:00 -0400
-Message-ID: <55FB7AE8.2070304@redhat.com>
-References: <cover.1442413048.git.bodong@mellanox.com>
- <68bea4df2c89e5457aaaccf914756bc309d742a7.1442413048.git.bodong@mellanox.com>
+From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Subject: Re: [PATCH v1 03/18] xprtrdma: Remove completion polling budgets
+Date: Fri, 18 Sep 2015 12:22:04 +0530
+Message-ID: <CANjDDBgokeHEZ7jWhRKRRU4Usr655zRoYY-qUHc9jeuyjYBzpA@mail.gmail.com>
+References: <20150917202829.19671.90044.stgit@manet.1015granger.net> <20150917204435.19671.56195.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="IA57fU58RP0AgqOuBvops8ljnB6KOkkGa"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <68bea4df2c89e5457aaaccf914756bc309d742a7.1442413048.git.bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bodong Wang <wbd2905-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150917204435.19671.56195.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---IA57fU58RP0AgqOuBvops8ljnB6KOkkGa
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
-
-On 09/16/2015 11:56 AM, Bodong Wang wrote:
-> Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Fri, Sep 18, 2015 at 2:14 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+>
+> Commit 8301a2c047cc ("xprtrdma: Limit work done by completion
+> handler") was supposed to prevent xprtrdma's upcall handlers from
+> starving other softIRQ work by letting them return to the provider
+> before all CQEs have been polled.
+>
+> The logic assumes the provider will call the upcall handler again
+> immediately if the CQ is re-armed while there are still queued CQEs.
+>
+> This assumption is invalid. The IBTA spec says that after a CQ is
+> armed, the hardware must interrupt only when a new CQE is inserted.
+> xprtrdma can't rely on the provider calling again, even though some
+> providers do.
+>
+> Therefore, leaving CQEs on queue makes sense only when there is
+> another mechanism that ensures all remaining CQEs are consumed in a
+> timely fashion. xprtrdma does not have such a mechanism. If a CQE
+> remains queued, the transport can wait forever to send the next RPC.
+>
+> Finally, move the wcs array back onto the stack to ensure that the
+> poll array is always local to the CPU where the completion upcall is
+> running.
+>
+> Fixes: 8301a2c047cc ("xprtrdma: Limit work done by completion ...")
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 > ---
->  drivers/infiniband/hw/mlx4/main.c | 3 +++
->  1 file changed, 3 insertions(+)
->=20
-> diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/=
-mlx4/main.c
-> index 8be6db8..a70ca6a 100644
-> --- a/drivers/infiniband/hw/mlx4/main.c
-> +++ b/drivers/infiniband/hw/mlx4/main.c
-> @@ -217,6 +217,9 @@ static int mlx4_ib_query_device(struct ib_device *i=
-bdev,
->  		props->device_cap_flags |=3D IB_DEVICE_MANAGED_FLOW_STEERING;
->  	}
-> =20
-> +	props->csum_cap.eth_csum_cap |=3D IB_CSUM_SUPPORT_RAW;
-> +	props->csum_cap.ib_csum_cap |=3D IB_CSUM_SUPPORT_UD;
+>  net/sunrpc/xprtrdma/verbs.c     |  100 ++++++++++++++++++---------------------
+>  net/sunrpc/xprtrdma/xprt_rdma.h |    5 --
+>  2 files changed, 45 insertions(+), 60 deletions(-)
+>
+> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+> index 8a477e2..f2e3863 100644
+> --- a/net/sunrpc/xprtrdma/verbs.c
+> +++ b/net/sunrpc/xprtrdma/verbs.c
+> @@ -158,34 +158,37 @@ rpcrdma_sendcq_process_wc(struct ib_wc *wc)
+>         }
+>  }
+>
+> -static int
+> +/* The wc array is on stack: automatic memory is always CPU-local.
+> + *
+> + * The common case is a single completion is ready. By asking
+> + * for two entries, a return code of 1 means there is exactly
+> + * one completion and no more. We don't have to poll again to
+> + * know that the CQ is now empty.
+> + */
+> +static void
+>  rpcrdma_sendcq_poll(struct ib_cq *cq, struct rpcrdma_ep *ep)
+>  {
+> -       struct ib_wc *wcs;
+> -       int budget, count, rc;
+> +       struct ib_wc *pos, wcs[2];
+> +       int count, rc;
+>
+> -       budget = RPCRDMA_WC_BUDGET / RPCRDMA_POLLSIZE;
+>         do {
+> -               wcs = ep->rep_send_wcs;
+> +               pos = wcs;
+>
+> -               rc = ib_poll_cq(cq, RPCRDMA_POLLSIZE, wcs);
+> -               if (rc <= 0)
+> -                       return rc;
+> +               rc = ib_poll_cq(cq, ARRAY_SIZE(wcs), pos);
+> +               if (rc < 0)
+> +                       goto out_warn;
+>
+>                 count = rc;
+>                 while (count-- > 0)
+> -                       rpcrdma_sendcq_process_wc(wcs++);
+> -       } while (rc == RPCRDMA_POLLSIZE && --budget);
+> -       return 0;
+> +                       rpcrdma_sendcq_process_wc(pos++);
+> +       } while (rc == ARRAY_SIZE(wcs));
+
+I think I have missed something and not able to understand the reason
+for polling 2 CQEs in one poll? It is possible that in a given poll_cq
+call you end up getting on 1 completion, the other completion is
+delayed due to some reason. Would it be better to poll for 1 in every
+poll call Or
+otherwise have this
+while ( rc <= ARRAY_SIZE(wcs) && rc);
+
+> +       return;
 > +
->  	props->vendor_id	   =3D be32_to_cpup((__be32 *) (out_mad->data + 36))=
- &
->  		0xffffff;
->  	props->vendor_part_id	   =3D dev->dev->persist->pdev->device;
->=20
-
-This patch highlights something I didn't think about on the previous
-patch.  Why separate eth/ib if you have per QP flags?  The QP denotes
-the ib/eth relationship without the need to separate it into two
-different caps.  In other words, you can never have an IB qp type on eth
-because the only eth QP types we support other than RAW are all RDMA and
-not IP.  Really, there's enough spare bits in ib_device_cap_flags that
-you could do away with the new caps entirely.  Right now, we support UD
-(which we already have a flag for), we can add two flags (for RAW and
-RC) and that should cover all of the foreseeable options as that would
-allow us to extend IP CSUM support to cover connected mode and cover all
-of the current options.  I don't see us doing IP traffic in any other
-situation, so I thing that should suffice.  Bits 25 and 26 could be used
-for the two new bits.  Then you just need to extend the bits to user spac=
-e.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---IA57fU58RP0AgqOuBvops8ljnB6KOkkGa
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJV+3roAAoJELgmozMOVy/dCUIQAIxvzvCcOCQRad0nLbKnlBUB
-tPe3XIGVQyeK+s2wYIaY956XNAVP+8KIivapswoUTVaYXPxpiMdmV5kQqedRt4oo
-0eLZEo/PP36eMFG681AWK0p0POf7rr9IxsKkzXlWSCAhIRimJeL2KwacGh47oHHR
-RpXO21usR9ZeKZb3WzB37/0vgFRAFqPXexeNedztGJydldGOV/wPFoj3okZtD0Kt
-uQwG+CtbKzrk/aefCv8yW9jljp6EZ29oC6pfyMhNsesJFNNMVf23HIUCZBXEyhBj
-WJBs4tMqEL/wz/8Kj3sWh1eL7fVAyhY7a9YYBFCet+TC/CqM8Dv8PWpuyRGYIrQz
-G8IwL1yvxwjLaruh9AwAmTpTjoFTrQnaudovfOjutwXR9xXx97uM132PD+AgBtd4
-L0JsxKuTZMiFyfJO8ir0XWVjJBD2xKfdW9xSeUtWmKszM5c+9FJb4YYJrdtEN16U
-CtjCgzMzv2CpojIyxBp7QCyaWVH1w8nENPPfz/SICLIgxN1x0U+OYLUyhe2vygVJ
-pMeHpLEUiVfbnk/vg8r998hN6rjqzTGsUzGB3NuxCDeFufj2X9cx96bSd1qvXH8M
-0M/Wo7fkf4OhJ95L4N2U/mvscSUw4LDo5yL/3ZunEkiwM38mzWUyz7WZyhj8qgQ0
-3LLXiIqXWp9r7XvQJLhl
-=zIB1
------END PGP SIGNATURE-----
-
---IA57fU58RP0AgqOuBvops8ljnB6KOkkGa--
+> +out_warn:
+> +       pr_warn("RPC:       %s: ib_poll_cq() failed %i\n", __func__, rc);
+>  }
+>
+> -/*
+> - * Handle send, fast_reg_mr, and local_inv completions.
+> - *
+> - * Send events are typically suppressed and thus do not result
+> - * in an upcall. Occasionally one is signaled, however. This
+> - * prevents the provider's completion queue from wrapping and
+> - * losing a completion.
+> +/* Handle provider send completion upcalls.
+>   */
+>  static void
+>  rpcrdma_sendcq_upcall(struct ib_cq *cq, void *cq_context)
+> @@ -193,12 +196,7 @@ rpcrdma_sendcq_upcall(struct ib_cq *cq, void *cq_context)
+>         struct rpcrdma_ep *ep = (struct rpcrdma_ep *)cq_context;
+>         int rc;
+>
+> -       rc = rpcrdma_sendcq_poll(cq, ep);
+> -       if (rc) {
+> -               dprintk("RPC:       %s: ib_poll_cq failed: %i\n",
+> -                       __func__, rc);
+> -               return;
+> -       }
+> +       rpcrdma_sendcq_poll(cq, ep);
+>
+>         rc = ib_req_notify_cq(cq,
+>                         IB_CQ_NEXT_COMP | IB_CQ_REPORT_MISSED_EVENTS);
+> @@ -247,44 +245,41 @@ out_fail:
+>         goto out_schedule;
+>  }
+>
+> -static int
+> +/* The wc array is on stack: automatic memory is always CPU-local.
+> + *
+> + * struct ib_wc is 64 bytes, making the poll array potentially
+> + * large. But this is at the bottom of the call chain. Further
+> + * substantial work is done in another thread.
+> + */
+> +static void
+>  rpcrdma_recvcq_poll(struct ib_cq *cq, struct rpcrdma_ep *ep)
+>  {
+> -       struct list_head sched_list;
+> -       struct ib_wc *wcs;
+> -       int budget, count, rc;
+> +       struct ib_wc *pos, wcs[4];
+> +       LIST_HEAD(sched_list);
+> +       int count, rc;
+>
+> -       INIT_LIST_HEAD(&sched_list);
+> -       budget = RPCRDMA_WC_BUDGET / RPCRDMA_POLLSIZE;
+>         do {
+> -               wcs = ep->rep_recv_wcs;
+> +               pos = wcs;
+>
+> -               rc = ib_poll_cq(cq, RPCRDMA_POLLSIZE, wcs);
+> -               if (rc <= 0)
+> -                       goto out_schedule;
+> +               rc = ib_poll_cq(cq, ARRAY_SIZE(wcs), pos);
+> +               if (rc < 0)
+> +                       goto out_warn;
+>
+>                 count = rc;
+>                 while (count-- > 0)
+> -                       rpcrdma_recvcq_process_wc(wcs++, &sched_list);
+> -       } while (rc == RPCRDMA_POLLSIZE && --budget);
+> -       rc = 0;
+> +                       rpcrdma_recvcq_process_wc(pos++, &sched_list);
+> +       } while (rc == ARRAY_SIZE(wcs));
+>
+>  out_schedule:
+>         rpcrdma_schedule_tasklet(&sched_list);
+> -       return rc;
+> +       return;
+> +
+> +out_warn:
+> +       pr_warn("RPC:       %s: ib_poll_cq() failed %i\n", __func__, rc);
+> +       goto out_schedule;
+>  }
+>
+> -/*
+> - * Handle receive completions.
+> - *
+> - * It is reentrant but processes single events in order to maintain
+> - * ordering of receives to keep server credits.
+> - *
+> - * It is the responsibility of the scheduled tasklet to return
+> - * recv buffers to the pool. NOTE: this affects synchronization of
+> - * connection shutdown. That is, the structures required for
+> - * the completion of the reply handler must remain intact until
+> - * all memory has been reclaimed.
+> +/* Handle provider receive completion upcalls.
+>   */
+>  static void
+>  rpcrdma_recvcq_upcall(struct ib_cq *cq, void *cq_context)
+> @@ -292,12 +287,7 @@ rpcrdma_recvcq_upcall(struct ib_cq *cq, void *cq_context)
+>         struct rpcrdma_ep *ep = (struct rpcrdma_ep *)cq_context;
+>         int rc;
+>
+> -       rc = rpcrdma_recvcq_poll(cq, ep);
+> -       if (rc) {
+> -               dprintk("RPC:       %s: ib_poll_cq failed: %i\n",
+> -                       __func__, rc);
+> -               return;
+> -       }
+> +       rpcrdma_recvcq_poll(cq, ep);
+>
+>         rc = ib_req_notify_cq(cq,
+>                         IB_CQ_NEXT_COMP | IB_CQ_REPORT_MISSED_EVENTS);
+> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+> index c09414e..42c8d44 100644
+> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
+> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+> @@ -77,9 +77,6 @@ struct rpcrdma_ia {
+>   * RDMA Endpoint -- one per transport instance
+>   */
+>
+> -#define RPCRDMA_WC_BUDGET      (128)
+> -#define RPCRDMA_POLLSIZE       (16)
+> -
+>  struct rpcrdma_ep {
+>         atomic_t                rep_cqcount;
+>         int                     rep_cqinit;
+> @@ -89,8 +86,6 @@ struct rpcrdma_ep {
+>         struct rdma_conn_param  rep_remote_cma;
+>         struct sockaddr_storage rep_remote_addr;
+>         struct delayed_work     rep_connect_worker;
+> -       struct ib_wc            rep_send_wcs[RPCRDMA_POLLSIZE];
+> -       struct ib_wc            rep_recv_wcs[RPCRDMA_POLLSIZE];
+>  };
+>
+>  /*
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
