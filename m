@@ -1,44 +1,53 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [patch] IB/hfi1: fix copy_to/from_user() error handling
-Date: Fri, 18 Sep 2015 11:50:10 -0400
-Message-ID: <55FC32B2.1060004@redhat.com>
-References: <20150915103525.GA20813@mwanda>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH] IB/hfi1: fix sdma_descq_cnt parameter parsing
+Date: Fri, 18 Sep 2015 11:50:33 -0400
+Message-ID: <55FC32C9.5040101@redhat.com>
+References: <20150915141927.16196.22394.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="GUlBNGq1ArU0AWxO1xGaABlDpkL5XDXDm"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150915103525.GA20813@mwanda>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/mixed; boundary="===============2844892140882423320=="
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <20150915141927.16196.22394.stgit@phlsvslse11.ph.intel.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Cc: linux-rdma@vger.kernel.org, devel@driverdev.osuosl.org, David Binderman <dcb314@hotmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---GUlBNGq1ArU0AWxO1xGaABlDpkL5XDXDm
-Content-Type: text/plain; charset=windows-1252
+--===============2844892140882423320==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="UQw49h50MKNECKLG4adNgBr4T2rQFuwk8"
+
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--UQw49h50MKNECKLG4adNgBr4T2rQFuwk8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 09/15/2015 06:35 AM, Dan Carpenter wrote:
-> copy_to/from_user() returns the number of bytes which we were not able
-> to copy.  It doesn't return an error code.
+On 09/15/2015 10:19 AM, Mike Marciniszyn wrote:
+> The boolean tests should have been or-ed.
 >=20
-> Also a couple places had a printk() on error and I removed that because=
-
-> people can take advantage of it to fill /var/log/messages with spam.
->=20
-> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Reported-by: David Binderman <dcb314@hotmail.com>
+> Reviewed-by: Jubin John <jubin.john@intel.com>
+> Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
 
 Thanks, applied.
 
 
 --=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Doug Ledford <dledford@redhat.com>
               GPG KeyID: 0E572FDD
 
 
 
---GUlBNGq1ArU0AWxO1xGaABlDpkL5XDXDm
+--UQw49h50MKNECKLG4adNgBr4T2rQFuwk8
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -47,23 +56,32 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJV/DKyAAoJELgmozMOVy/dZi0QAIhVCPM1Ky528IpGjGN2ppZ9
-ZawlwoRaaPxpG0eJ1sfyMU3pEV6UtLRkGQjzHL4pDxb4U4NyVyBwLJVvNxeD0Exw
-qY8sV0wjYpwAVUD7j7T0U3o8eiEk15gknv/vaNTDt7Uv8kp+RDTsFJw30t/GoJPh
-2SwGpFX2CgkcYAmvVpr07fC1qL+PxJr+Q0VyJyomANt0vtv1GAt+FevOtofH6hNT
-5+9vo0y0ZLmoJ3UC11SF/v2FvAelpU/TEcfA4bfukM2Gq1TpTKEALMtasBZuJswi
-SwZpumdewVsdf2lE6rZxLUbG90AsmsgX7z3woHLwZu7YtG5vhI0NMSUiKDJhNq0p
-tUrT5IJhmcCQ8zoK8hUsc+eoTto8fWdlj+/UFq5RtIG4UQ1S/84n49dbBi6PZMLb
-ZxPvLYo6tcXLS5wXCLtxn24nk28KGhoJoccowu1baC9UwRbGZPUgHlp4lxAf98qR
-7apmpfjKRR8fR70KNzVuvO4MxGxyur0IwjGYqqU6/s9ThEYwtPc+C90y2nywbdp/
-D1bcw2nYWPKReHMmNgOl7TmNZHrI2Yn9tRyQwIFV5sHu/3tdLv24yibSti2L+vcD
-/4JHhI03hT0XKrwOf5SFyE95i3BBbtnev8FernTuA6nPm5cO9wa/P/OYHIfbmQt+
-rCa+sv3pfkhHKhNdiCZ+
-=njLT
+iQIcBAEBCAAGBQJV/DLJAAoJELgmozMOVy/dg0oP/R8G0dYMJ5zSKA7RdA6QIhdk
+KcxpJSEbKcLFEAJLbeUtFu0ixvaKxLrRoMCHQUw6snIIkh6bAfLg0l4Sq8OVIhvL
+swpAzN9Ljt5uwO8UmZ3TCoTZt6U/Z6P2MDljBgFtv6jfU/1kJ3lGUiq86+Xd0sac
+X+wfRDl7rJGLIUWs7AhMfZN1vlVvr0PritUD5dV9A9V51ndEYvjzjfm9kEOPJ+Gz
++0gtE7aYTet04GhJ1gXPDidzHnbiaJ1ETri8dySToILHfUNQbkcbgOM0vSiA+u+n
+b8KlXEeS0UWIXK0fMZE1Q2ANAzGTMhQkm2P46w213boWnLgDeTmlygmikh3sNnWA
+zkWd0Zwlv05Cce6Na8MPB43Cca0Q6V6lYDyWCqcifKYpGVYAM5KV8r/Pp2ZCoNVb
+3HZU4rLks44H5h/b5lfj07THGgs6v7JFhn+cMjubXfs8GE27zIbNVcFwqL92GgQU
+R7ZKES9Ak1OTwYONVttP1aOr7zZsUotWL7syuPxfzOK5zpTfnPRtalzKSrtbXIDX
+mD01IJhc/F0Vy70weccTY950Ml7YKD4hwYQJTqLJxfUYfnRgJMUmJ9Xej+32RB4x
+YWNPwWJaE6ZxjB+VKaD5H1EKFN89DD3Db3BcvvnWmyPhg4KXflxcCLSxKhgA9im4
+jnUZ7lfmj9SMFy/imjCW
+=ZESm
 -----END PGP SIGNATURE-----
 
---GUlBNGq1ArU0AWxO1xGaABlDpkL5XDXDm--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--UQw49h50MKNECKLG4adNgBr4T2rQFuwk8--
+
+--===============2844892140882423320==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+devel mailing list
+devel@linuxdriverproject.org
+http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel
+
+--===============2844892140882423320==--
