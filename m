@@ -1,39 +1,40 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [patch] IB/hfi1: fix a locking bug
-Date: Fri, 18 Sep 2015 11:51:29 -0400
-Message-ID: <55FC3301.80706@redhat.com>
-References: <20150916062251.GD21542@mwanda>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [patch v2] IB/hfi1: info leak in get_ctxt_info()
+Date: Fri, 18 Sep 2015 11:51:52 -0400
+Message-ID: <55FC3318.4040708@redhat.com>
+References: <20150916064225.GI5004@mwanda>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="aeRvGbh96R7uUprqpnR0rkRPLmqQweMbu"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150916062251.GD21542@mwanda>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+ boundary="xCjIimwECe6pBjLUijb26v9W5MLNgJUD9"
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <20150916064225.GI5004@mwanda>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>, Mike Marciniszyn <infinipath@intel.com>
+Cc: Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-rdma@vger.kernel.org, devel@driverdev.osuosl.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---aeRvGbh96R7uUprqpnR0rkRPLmqQweMbu
+--xCjIimwECe6pBjLUijb26v9W5MLNgJUD9
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 09/16/2015 02:22 AM, Dan Carpenter wrote:
-> mutex_trylock() returns zero on failure, not EBUSY.
+On 09/16/2015 02:42 AM, Dan Carpenter wrote:
+> The cinfo struct has a hole after the last struct member so we need to
+> zero it out.  Otherwise we disclose some uninitialized stack data.
 >=20
-> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
 Thanks, applied.
 
 
 --=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Doug Ledford <dledford@redhat.com>
               GPG KeyID: 0E572FDD
 
 
 
---aeRvGbh96R7uUprqpnR0rkRPLmqQweMbu
+--xCjIimwECe6pBjLUijb26v9W5MLNgJUD9
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -42,23 +43,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJV/DMBAAoJELgmozMOVy/dEp8P+wTDLZA46tStoUN4C1Bg1QA/
-uU0Nc9ncDUpkwWt5NiCzHBgjciePqIYgbqDyqprLaB1tH2Rz3e1hc4W8IY6JmSbC
-ecbVyfsEW9T/KKTb0FU5ykA5dW4EdUmeGpiDnCIaxk7P7cMuso1nNKZPOAevqZbQ
-F+Ow/95OxjwnY/FNkf00+db+GFA0qMP97dCzL3uZV6ItbEOjg3UQy5uGyNWj8Uz4
-Zvk9ybVmkMlTOQf1IoW0nbODmyn1URQ/ahG8ZqbCh18thh8lzS3MEjutUVidysQ2
-QwHXPwsXM9mSnds0NN8FWIscbGQ4DB6XSKXdB+JuH+3uAz/EFSbcZdemKOM2hVcE
-t5WXy8YMovkWxVvbH/g1i2Ex0eFjkTFxTiGJENgGK8mRnVDKrF+kUxt6X20f+e9N
-j8DeVuVL2fRp/XCPewlq1eT0CLIIqZVOM8bIpQOujY6g295M1B/rn7w1cUE5ZTun
-MzyVFU8szLt9ncM70uXujmqK8CVIEnzFDlaJyGY+XyW0nUPtKocm5Grgg7NTikv3
-NSv+YIVbgxIEOy1RaC2u4F/qGfjwPpzaX7+nmoW8nt16/J0J1o0i39ccKOaluqQS
-3vl59KIINfELNm7dpP/QzNLQIYKWHigJHh59p3tOL+abo2DUfgkSxtLBVeDSX3MQ
-eVeUls/8gcdl+HsnZavu
-=y8Ab
+iQIbBAEBCAAGBQJV/DMYAAoJELgmozMOVy/dN6QP93OzYKMLrQDnuS2G52XYBa3d
+U1udlxmnLp5wRQl5UjYISMeAjMLBo2Dg92VROIEa1Do7IDatfGwOaBY/jnKHFSJ9
+wMJROipcooU+00fNzjMO/1HRxDEn5fdTtLUUETDtLEQYfxYDlgUv4cxjN9SflQkZ
+xVeaRETM6pac8AYQBilF/Rp2bP3E0xnkxNHHxmW8FGKaolzVGkY+E+kPPf/It8Dc
+x65TRmEFToO5DoHOK7HiFXz+raKGZeUx8VI4aaAg88DC//LmCOg/sfw38Vvxxagf
+88AFTr/PSeir6hGe2WEaAOrt68OaIHRsecRY/3zbF+Brr5Ea+P9zn5I0zu/p0GCm
+92EoxLzXplSY3grRxtNP1ZfPfWn3TcYyb5yfNnPgbUrey7Yat0M6qNXfdrzBtSgx
+oZiHnb1aLCHLbSdMarSC0HUUxCQ9sFsX2OyVCBxTxbfp1G1++WWjShlGI9IBDaJ5
+dtCn5WayhsE0Z6+ncUnwSXeskLOt3pZ6r3PigFjYj54Mn8sXJOyqLUX6+jfG9pd6
+NlHVFtnFx6hKbdUrWn/y1G5L+DJmVSsABcEgegZSSggvYtGUd2/LJVr26yWd+m+S
+FpQw177iNcZX40go8NpPoCeIOamf0KkO5ObLaM7rFAxT0yE3cb+zRCuQXDWb3Mz1
+0XUGhUtmvGqbXBhAMAw=
+=6pHW
 -----END PGP SIGNATURE-----
 
---aeRvGbh96R7uUprqpnR0rkRPLmqQweMbu--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--xCjIimwECe6pBjLUijb26v9W5MLNgJUD9--
