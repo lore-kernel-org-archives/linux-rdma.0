@@ -1,38 +1,35 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/hfi1: fix pstateinfo from returning improperly
- byteswapped value
-Date: Fri, 18 Sep 2015 11:41:17 -0400
-Message-ID: <55FC309D.701@redhat.com>
-References: <1441776501-5881-1-git-send-email-ira.weiny@intel.com>
+Subject: Re: [patch] IB/hfi1: fix copy_to/from_user() error handling
+Date: Fri, 18 Sep 2015 11:50:10 -0400
+Message-ID: <55FC32B2.1060004@redhat.com>
+References: <20150915103525.GA20813@mwanda>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="jalRF1uLNNSrUdL1xeSJHpcjFrchkdA32"
+ boundary="GUlBNGq1ArU0AWxO1xGaABlDpkL5XDXDm"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1441776501-5881-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20150915103525.GA20813@mwanda>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, christian.gomez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, todd.rimmer-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---jalRF1uLNNSrUdL1xeSJHpcjFrchkdA32
+--GUlBNGq1ArU0AWxO1xGaABlDpkL5XDXDm
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 09/09/2015 01:28 AM, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On 09/15/2015 06:35 AM, Dan Carpenter wrote:
+> copy_to/from_user() returns the number of bytes which we were not able
+> to copy.  It doesn't return an error code.
 >=20
-> Byteswap link_width_downgrade_*_active values before sending on the wir=
-e.  In
-> addition properly define the Port State Info structure.
->=20
-> Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Reviewed-by: Christian Gomez <christian.gomez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Rimmer, Todd <todd.rimmer-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Also a couple places had a printk() on error and I removed that because=
 
-Applied, thanks.
+> people can take advantage of it to fill /var/log/messages with spam.
+>=20
+> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+
+Thanks, applied.
 
 
 --=20
@@ -41,7 +38,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---jalRF1uLNNSrUdL1xeSJHpcjFrchkdA32
+--GUlBNGq1ArU0AWxO1xGaABlDpkL5XDXDm
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -50,22 +47,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJV/DCeAAoJELgmozMOVy/d7m8P+wXSRJsJsGz5Q4E48jcmpxPf
-VVflVJiMDjAU5+J/aJEGmgr81mQ5VtLfimFMWUXpfmEz3jf8ZxJW5xavuGCgbp++
-z4tr6f3IjsO6WZeRtrIth+cixDimH5t9VmxEuivDaz+/ZzoVfdD1xc5VAVC23WB7
-fmbR5wP9QzZrDWrn9QjMHIXJURbFZ1ooRjE30o0DdZ9DmpdENVwjQ6aZqtGOxyn4
-xTkbrDjxMu6vaYLn0RqTgiJ8TM/DrouRFD27+aApdgrSCu9jecvqERFBGIuQi32o
-mL1wsMTycbefbi/zEZb+BG6FmPQvE+HSajp5pk9PVF5OOH2jceEgIi/CWtyZTk2G
-zn1EylW/6vng1uCiLEB0vbVUr3noyQXHBDBn3ds8TS5PS1d8e/XNhzIxAXhCqKyW
-qwHOX9Gy6/FB2WYt7gax1uydjh3kwQtfy/ddOQlY+3HPTLmIigWljOViUKalIyrm
-SFXNBuhqHG8BGFmsVkmTV+EHlEiUC0BztlImsjbfQFt/0NyTCQPIghaSYUkvi9p8
-Srqh4s32WfbPsfvjZ2NI+bpeJPmZ5VG4jBH+5uenNDYQHtgqnTCWmntqJMHAPY2a
-uxoAaauG5TZNBHCOXJzGAQST2+VlDLLTS48DvEfZPHQyDc1CAomVxN6CeBtNF4zQ
-nEJNsDwUmtfGjm/7THsX
-=WAYK
+iQIcBAEBCAAGBQJV/DKyAAoJELgmozMOVy/dZi0QAIhVCPM1Ky528IpGjGN2ppZ9
+ZawlwoRaaPxpG0eJ1sfyMU3pEV6UtLRkGQjzHL4pDxb4U4NyVyBwLJVvNxeD0Exw
+qY8sV0wjYpwAVUD7j7T0U3o8eiEk15gknv/vaNTDt7Uv8kp+RDTsFJw30t/GoJPh
+2SwGpFX2CgkcYAmvVpr07fC1qL+PxJr+Q0VyJyomANt0vtv1GAt+FevOtofH6hNT
+5+9vo0y0ZLmoJ3UC11SF/v2FvAelpU/TEcfA4bfukM2Gq1TpTKEALMtasBZuJswi
+SwZpumdewVsdf2lE6rZxLUbG90AsmsgX7z3woHLwZu7YtG5vhI0NMSUiKDJhNq0p
+tUrT5IJhmcCQ8zoK8hUsc+eoTto8fWdlj+/UFq5RtIG4UQ1S/84n49dbBi6PZMLb
+ZxPvLYo6tcXLS5wXCLtxn24nk28KGhoJoccowu1baC9UwRbGZPUgHlp4lxAf98qR
+7apmpfjKRR8fR70KNzVuvO4MxGxyur0IwjGYqqU6/s9ThEYwtPc+C90y2nywbdp/
+D1bcw2nYWPKReHMmNgOl7TmNZHrI2Yn9tRyQwIFV5sHu/3tdLv24yibSti2L+vcD
+/4JHhI03hT0XKrwOf5SFyE95i3BBbtnev8FernTuA6nPm5cO9wa/P/OYHIfbmQt+
+rCa+sv3pfkhHKhNdiCZ+
+=njLT
 -----END PGP SIGNATURE-----
 
---jalRF1uLNNSrUdL1xeSJHpcjFrchkdA32--
+--GUlBNGq1ArU0AWxO1xGaABlDpkL5XDXDm--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
