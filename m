@@ -1,77 +1,53 @@
-From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH] infiniband-diags: rdma-ndd: remove udev logging when not supported
-Date: Sat, 19 Sep 2015 17:52:13 -0400
-Message-ID: <1442699533-28262-1-git-send-email-ira.weiny@intel.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH infiniband-diags] saquery.c: Fix saquery -D option
+Date: Sat, 19 Sep 2015 18:32:59 -0400
+Message-ID: <20150919223258.GA28539@phlsvsds.ph.intel.com>
+References: <55F18125.2090406@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <55F18125.2090406-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Ira Weiny <iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+On Thu, Sep 10, 2015 at 09:09:57AM -0400, Hal Rosenstock wrote:
+> From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Date: Wed, 9 Sep 2015 14:29:38 +0300
+> 
+> -D and -list saquery options are operational only
+> when -N option is explicitly invoked (default option)
+> 
+> This patch allows using -D or --list options when no other option is
+> invoked.
+> 
+> Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-udev_set_log_* functions are deprecated on newer versions of libudev
-Conditionally compile out the use of these functions.
+Thanks applied,
+Ira
 
-Signed-off-by: Ira Weiny <iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
- configure.ac   | 8 ++++++++
- src/rdma-ndd.c | 4 ++++
- 2 files changed, 12 insertions(+)
-
-diff --git a/configure.ac b/configure.ac
-index 090b6ecf7683..4c9b08fcd3ad 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -215,6 +215,14 @@ AS_IF([test x$rdmandd = xyes], [
-     AC_CONFIG_FILES([doc/man/rdma-ndd.8 etc/rdma-ndd.init])
-     AC_SUBST([UDEV_CFLAGS])
-     AC_SUBST([UDEV_LIBS])
-+    if test "$with_udev" = "yes"; then
-+	PKG_CHECK_EXISTS(libudev >= 218, [with_dev_logging=no],
-+			[with_udev_logging=yes])
-+	if test "$with_udev_logging" = "yes"; then
-+		AC_DEFINE_UNQUOTED([HAVE_UDEV_LOGGING], 1,
-+				[whether libudev logging can be used])
-+	fi
-+    fi
- ])
- 
- dnl Generate doc/man/*.in files if possible
-diff --git a/src/rdma-ndd.c b/src/rdma-ndd.c
-index 94eb3d72a354..986082457a61 100644
---- a/src/rdma-ndd.c
-+++ b/src/rdma-ndd.c
-@@ -232,6 +232,7 @@ static int process_opts(void *context, int ch, char *optarg)
- 	return 0;
- }
- 
-+#if HAVE_UDEV_LOGGING
- #define MSG_MAX 2048
- static void udev_log_fn(struct udev *ud, int priority, const char *file, int line,
- 		const char *fn, const char *format, va_list args)
-@@ -244,6 +245,7 @@ static void udev_log_fn(struct udev *ud, int priority, const char *file, int lin
- 		vsnprintf(msg+off, MSG_MAX-off, format, args);
- 	syslog(LOG_ERR, "%s", msg);
- }
-+#endif
- 
- static void setup_udev(void)
- {
-@@ -253,8 +255,10 @@ static void setup_udev(void)
- 		return;
- 	}
- 
-+#if HAVE_UDEV_LOGGING
- 	udev_set_log_fn(udev, udev_log_fn);
- 	udev_set_log_priority(udev, LOG_INFO);
-+#endif
- }
- 
- static int get_udev_fd(void)
--- 
-1.8.2
-
+> ---
+>  src/saquery.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/src/saquery.c b/src/saquery.c
+> index 4343e33..db863f2 100644
+> --- a/src/saquery.c
+> +++ b/src/saquery.c
+> @@ -1591,6 +1591,7 @@ static int process_opt(void *context, int ch, char *optarg)
+>  		break;
+>  	case 'D':
+>  		node_print_desc = ALL_DESC;
+> +		command = SAQUERY_CMD_NODE_RECORD;
+>  		break;
+>  	case 'c':
+>  		command = SAQUERY_CMD_CLASS_PORT_INFO;
+> -- 
+> 1.7.8.2
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
