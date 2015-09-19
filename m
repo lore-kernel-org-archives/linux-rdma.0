@@ -1,32 +1,78 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [patch] IB/hfi1: checking for NULL instead of IS_ERR
-Date: Fri, 18 Sep 2015 20:01:53 -0700
-Message-ID: <20150919030153.GA30373@kroah.com>
-References: <20150916062220.GC21542@mwanda>
- <55FC32ED.1000404@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <55FC32ED.1000404@redhat.com>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>, Mike Marciniszyn <infinipath@intel.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, devel@driverdev.osuosl.org, kernel-janitors@vger.kernel.org
+From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH] infiniband-diags: rdma-ndd: remove udev logging when not supported
+Date: Sat, 19 Sep 2015 17:52:13 -0400
+Message-ID: <1442699533-28262-1-git-send-email-ira.weiny@intel.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Ira Weiny <iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Sep 18, 2015 at 11:51:09AM -0400, Doug Ledford wrote:
-> On 09/16/2015 02:22 AM, Dan Carpenter wrote:
-> > __get_txreq() returns an ERR_PTR() but this checks for NULL so it would
-> > oops on failure.
-> > 
-> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> 
-> Thanks, applied.
+From: Ira Weiny <iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Applied to what?  Should I just ignore these types of patches and not
-take them in my tree and you will send them on later on?  I don't
-remember what we agreed to do, sorry.
+udev_set_log_* functions are deprecated on newer versions of libudev
+Conditionally compile out the use of these functions.
 
-thanks,
+Signed-off-by: Ira Weiny <iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ configure.ac   | 8 ++++++++
+ src/rdma-ndd.c | 4 ++++
+ 2 files changed, 12 insertions(+)
 
-greg k-h
+diff --git a/configure.ac b/configure.ac
+index 090b6ecf7683..4c9b08fcd3ad 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -215,6 +215,14 @@ AS_IF([test x$rdmandd = xyes], [
+     AC_CONFIG_FILES([doc/man/rdma-ndd.8 etc/rdma-ndd.init])
+     AC_SUBST([UDEV_CFLAGS])
+     AC_SUBST([UDEV_LIBS])
++    if test "$with_udev" = "yes"; then
++	PKG_CHECK_EXISTS(libudev >= 218, [with_dev_logging=no],
++			[with_udev_logging=yes])
++	if test "$with_udev_logging" = "yes"; then
++		AC_DEFINE_UNQUOTED([HAVE_UDEV_LOGGING], 1,
++				[whether libudev logging can be used])
++	fi
++    fi
+ ])
+ 
+ dnl Generate doc/man/*.in files if possible
+diff --git a/src/rdma-ndd.c b/src/rdma-ndd.c
+index 94eb3d72a354..986082457a61 100644
+--- a/src/rdma-ndd.c
++++ b/src/rdma-ndd.c
+@@ -232,6 +232,7 @@ static int process_opts(void *context, int ch, char *optarg)
+ 	return 0;
+ }
+ 
++#if HAVE_UDEV_LOGGING
+ #define MSG_MAX 2048
+ static void udev_log_fn(struct udev *ud, int priority, const char *file, int line,
+ 		const char *fn, const char *format, va_list args)
+@@ -244,6 +245,7 @@ static void udev_log_fn(struct udev *ud, int priority, const char *file, int lin
+ 		vsnprintf(msg+off, MSG_MAX-off, format, args);
+ 	syslog(LOG_ERR, "%s", msg);
+ }
++#endif
+ 
+ static void setup_udev(void)
+ {
+@@ -253,8 +255,10 @@ static void setup_udev(void)
+ 		return;
+ 	}
+ 
++#if HAVE_UDEV_LOGGING
+ 	udev_set_log_fn(udev, udev_log_fn);
+ 	udev_set_log_priority(udev, LOG_INFO);
++#endif
+ }
+ 
+ static int get_udev_fd(void)
+-- 
+1.8.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
