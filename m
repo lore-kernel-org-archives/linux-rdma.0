@@ -1,153 +1,116 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-rc 4/4] IB/mlx5: Remove pa_lkey usages
-Date: Sun, 20 Sep 2015 12:52:47 +0300
-Message-ID: <1442742767-8755-5-git-send-email-sagig@mellanox.com>
+Subject: [PATCH rdma-rc 1/4] xprtrdma: Remove ib_get_dma_mr calls
+Date: Sun, 20 Sep 2015 12:52:44 +0300
+Message-ID: <1442742767-8755-2-git-send-email-sagig@mellanox.com>
 References: <1442742767-8755-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1442742767-8755-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-nfs <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Since mlx5 driver cannot rely on registration using the
-reserved lkey (global_dma_lkey) it used to allocate a private
-physical address lkey for each allocated pd.
-Commit 96249d70dd70 ("IB/core: Guarantee that a local_dma_lkey is
-available") just does it in the core layer so we can go ahead and
-use that.
+since commit 96249d70dd70 ("IB/core:
+Guarantee that a local_dma_lkey is available") The PD now
+has a local_dma_lkey member which completely replaces
+ib_get_dma_mr, use it instead.
+
+In FRWR memreg mode, we assumed that the device local_dma_lkey
+is available.
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-nfs <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c    | 57 ------------------------------------
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  2 --
- drivers/infiniband/hw/mlx5/qp.c      |  4 +--
- 3 files changed, 1 insertion(+), 62 deletions(-)
+ net/sunrpc/xprtrdma/fmr_ops.c      | 19 -------------------
+ net/sunrpc/xprtrdma/frwr_ops.c     |  5 -----
+ net/sunrpc/xprtrdma/physical_ops.c |  8 --------
+ net/sunrpc/xprtrdma/verbs.c        |  1 +
+ 4 files changed, 1 insertion(+), 32 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 0ab9625911a1..f1ccd40beae9 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -794,53 +794,6 @@ static int mlx5_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vm
+diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
+index cb25c89da623..f1e8dafbd507 100644
+--- a/net/sunrpc/xprtrdma/fmr_ops.c
++++ b/net/sunrpc/xprtrdma/fmr_ops.c
+@@ -39,25 +39,6 @@ static int
+ fmr_op_open(struct rpcrdma_ia *ia, struct rpcrdma_ep *ep,
+ 	    struct rpcrdma_create_data_internal *cdata)
+ {
+-	struct ib_device_attr *devattr = &ia->ri_devattr;
+-	struct ib_mr *mr;
+-
+-	/* Obtain an lkey to use for the regbufs, which are
+-	 * protected from remote access.
+-	 */
+-	if (devattr->device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY) {
+-		ia->ri_dma_lkey = ia->ri_device->local_dma_lkey;
+-	} else {
+-		mr = ib_get_dma_mr(ia->ri_pd, IB_ACCESS_LOCAL_WRITE);
+-		if (IS_ERR(mr)) {
+-			pr_err("%s: ib_get_dma_mr for failed with %lX\n",
+-			       __func__, PTR_ERR(mr));
+-			return -ENOMEM;
+-		}
+-		ia->ri_dma_lkey = ia->ri_dma_mr->lkey;
+-		ia->ri_dma_mr = mr;
+-	}
+-
  	return 0;
  }
  
--static int alloc_pa_mkey(struct mlx5_ib_dev *dev, u32 *key, u32 pdn)
--{
--	struct mlx5_create_mkey_mbox_in *in;
--	struct mlx5_mkey_seg *seg;
--	struct mlx5_core_mr mr;
--	int err;
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index d6653f5d0830..5318951b3b53 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -189,11 +189,6 @@ frwr_op_open(struct rpcrdma_ia *ia, struct rpcrdma_ep *ep,
+ 	struct ib_device_attr *devattr = &ia->ri_devattr;
+ 	int depth, delta;
+ 
+-	/* Obtain an lkey to use for the regbufs, which are
+-	 * protected from remote access.
+-	 */
+-	ia->ri_dma_lkey = ia->ri_device->local_dma_lkey;
 -
--	in = kzalloc(sizeof(*in), GFP_KERNEL);
--	if (!in)
--		return -ENOMEM;
--
--	seg = &in->seg;
--	seg->flags = MLX5_PERM_LOCAL_READ | MLX5_ACCESS_MODE_PA;
--	seg->flags_pd = cpu_to_be32(pdn | MLX5_MKEY_LEN64);
--	seg->qpn_mkey7_0 = cpu_to_be32(0xffffff << 8);
--	seg->start_addr = 0;
--
--	err = mlx5_core_create_mkey(dev->mdev, &mr, in, sizeof(*in),
--				    NULL, NULL, NULL);
--	if (err) {
--		mlx5_ib_warn(dev, "failed to create mkey, %d\n", err);
--		goto err_in;
--	}
--
--	kfree(in);
--	*key = mr.key;
--
--	return 0;
--
--err_in:
--	kfree(in);
--
--	return err;
--}
--
--static void free_pa_mkey(struct mlx5_ib_dev *dev, u32 key)
--{
--	struct mlx5_core_mr mr;
--	int err;
--
--	memset(&mr, 0, sizeof(mr));
--	mr.key = key;
--	err = mlx5_core_destroy_mkey(dev->mdev, &mr);
--	if (err)
--		mlx5_ib_warn(dev, "failed to destroy mkey 0x%x\n", key);
--}
--
- static struct ib_pd *mlx5_ib_alloc_pd(struct ib_device *ibdev,
- 				      struct ib_ucontext *context,
- 				      struct ib_udata *udata)
-@@ -866,13 +819,6 @@ static struct ib_pd *mlx5_ib_alloc_pd(struct ib_device *ibdev,
- 			kfree(pd);
- 			return ERR_PTR(-EFAULT);
- 		}
--	} else {
--		err = alloc_pa_mkey(to_mdev(ibdev), &pd->pa_lkey, pd->pdn);
--		if (err) {
--			mlx5_core_dealloc_pd(to_mdev(ibdev)->mdev, pd->pdn);
--			kfree(pd);
--			return ERR_PTR(err);
--		}
+ 	ia->ri_max_frmr_depth =
+ 			min_t(unsigned int, RPCRDMA_MAX_DATA_SEGS,
+ 			      devattr->max_fast_reg_page_list_len);
+diff --git a/net/sunrpc/xprtrdma/physical_ops.c b/net/sunrpc/xprtrdma/physical_ops.c
+index 72cf8b15bbb4..5feb63afdb03 100644
+--- a/net/sunrpc/xprtrdma/physical_ops.c
++++ b/net/sunrpc/xprtrdma/physical_ops.c
+@@ -23,7 +23,6 @@ static int
+ physical_op_open(struct rpcrdma_ia *ia, struct rpcrdma_ep *ep,
+ 		 struct rpcrdma_create_data_internal *cdata)
+ {
+-	struct ib_device_attr *devattr = &ia->ri_devattr;
+ 	struct ib_mr *mr;
+ 
+ 	/* Obtain an rkey to use for RPC data payloads.
+@@ -39,13 +38,6 @@ physical_op_open(struct rpcrdma_ia *ia, struct rpcrdma_ep *ep,
  	}
+ 	ia->ri_dma_mr = mr;
  
- 	return &pd->ibpd;
-@@ -883,9 +829,6 @@ static int mlx5_ib_dealloc_pd(struct ib_pd *pd)
- 	struct mlx5_ib_dev *mdev = to_mdev(pd->device);
- 	struct mlx5_ib_pd *mpd = to_mpd(pd);
- 
--	if (!pd->uobject)
--		free_pa_mkey(mdev, mpd->pa_lkey);
+-	/* Obtain an lkey to use for regbufs.
+-	 */
+-	if (devattr->device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)
+-		ia->ri_dma_lkey = ia->ri_device->local_dma_lkey;
+-	else
+-		ia->ri_dma_lkey = ia->ri_dma_mr->lkey;
 -
- 	mlx5_core_dealloc_pd(mdev->mdev, mpd->pdn);
- 	kfree(mpd);
- 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index a5fa0b9c7580..b0a22fea76f1 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -103,7 +103,6 @@ static inline struct mlx5_ib_ucontext *to_mucontext(struct ib_ucontext *ibuconte
- struct mlx5_ib_pd {
- 	struct ib_pd		ibpd;
- 	u32			pdn;
--	u32			pa_lkey;
- };
- 
- /* Use macros here so that don't have to duplicate
-@@ -213,7 +212,6 @@ struct mlx5_ib_qp {
- 	int			uuarn;
- 
- 	int			create_type;
--	u32			pa_lkey;
- 
- 	/* Store signature errors */
- 	bool			signature_en;
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 203c8a45e095..45722a4fa99d 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -930,8 +930,6 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 			err = create_kernel_qp(dev, init_attr, qp, &in, &inlen);
- 			if (err)
- 				mlx5_ib_dbg(dev, "err %d\n", err);
--			else
--				qp->pa_lkey = to_mpd(pd)->pa_lkey;
- 		}
- 
- 		if (err)
-@@ -2050,7 +2048,7 @@ static void set_frwr_pages(struct mlx5_wqe_data_seg *dseg,
- 		mfrpl->mapped_page_list[i] = cpu_to_be64(page_list[i] | perm);
- 	dseg->addr = cpu_to_be64(mfrpl->map);
- 	dseg->byte_count = cpu_to_be32(ALIGN(sizeof(u64) * wr->wr.fast_reg.page_list_len, 64));
--	dseg->lkey = cpu_to_be32(pd->pa_lkey);
-+	dseg->lkey = cpu_to_be32(pd->ibpd.local_dma_lkey);
+ 	return 0;
  }
  
- static __be32 send_ieth(struct ib_send_wr *wr)
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index 682996779970..4f405bcad39a 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -640,6 +640,7 @@ rpcrdma_ep_create(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia,
+ 	ep->rep_attr.qp_context = ep;
+ 	ep->rep_attr.srq = NULL;
+ 	ep->rep_attr.cap.max_send_wr = cdata->max_requests;
++	ia->ri_dma_lkey = ia->ri_pd->local_dma_lkey;
+ 	rc = ia->ri_ops->ro_open(ia, ep, cdata);
+ 	if (rc)
+ 		return rc;
 -- 
 1.8.4.3
 
