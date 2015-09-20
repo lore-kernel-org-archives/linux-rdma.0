@@ -1,45 +1,33 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [PATCH 00/15] RDS: connection scalability and performance
- improvements
-Date: Sun, 20 Sep 2015 11:37:52 +0300
-Message-ID: <55FE7060.6010205@dev.mellanox.co.il>
-References: <1442703892-26692-1-git-send-email-santosh.shilimkar@oracle.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v1 00/24] New fast registration API
+Date: Sun, 20 Sep 2015 12:36:36 +0300
+Message-ID: <55FE7E24.20300@dev.mellanox.co.il>
+References: <1442482947-27785-1-git-send-email-sagig@mellanox.com>
+ <55FDEDD5.1090105@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1442703892-26692-1-git-send-email-santosh.shilimkar@oracle.com>
-Sender: netdev-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@oracle.com>, netdev@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, davem@davemloft.net, ssantosh@kernel.org, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <55FDEDD5.1090105-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
-
-On 9/20/2015 2:04 AM, Santosh Shilimkar wrote:
-> This series addresses RDS connection bottlenecks on massive workloads and
-> improve the RDMA performance almost by 3X. RDS TCP also gets a small gain
-> of about 12%.
->
-> RDS is being used in massive systems with high scalability where several
-> hundred thousand end points and tens of thousands of local processes
-> are operating in tens of thousand sockets. Being RC(reliable connection),
-> socket bind and release happens very often and any inefficiencies in
-> bind hash look ups hurts the overall system performance. RDS bin hash-table
-> uses global spin-lock which is the biggest bottleneck. To make matter worst,
-> it uses rcu inside global lock for hash buckets.
-> This is being addressed by simply using per bucket rw lock which makes the
-> locking simple and very efficient. The hash table size is also scaled up
-> accordingly.
->
-> For RDS RDMA improvement, the completion handling is revamped so that we
-> can do batch completions. Both send and receive completion handlers are
-> split logically to achieve the same. RDS 8K messages being one of the
-> key usecase, mr pool is adapted to have the 8K mrs along with default 1M
-> mrs. And while doing this, few fixes and couple of bottlenecks seen with
-> rds_sendmsg() are addressed.
 
 Hi Santosh,
 
-I think that can get a more effective code review if you CC the
-Linux-rdma mailing list.
+> Nice to see this consolidaton happening. I too don't have access to
+> iWARP hardware for RDS test but will use this series and convert our WIP
+> IB fastreg code and see how it goes.
 
+I'm very pleased to hear about this WIP. Please feel free to share
+anything you have (code and questions/dilemmas) with the list. Also, if
+you have more suggestions on how we can do better from your PoV we'd
+love to hear about it.
+
+Cheers,
 Sagi.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
