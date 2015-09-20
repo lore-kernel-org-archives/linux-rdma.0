@@ -1,44 +1,52 @@
-From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Subject: [PATCH] staging/rdma/hfi1: do not use u8 to store a 32-bit integer
-Date: Sun, 20 Sep 2015 16:07:15 +0200
-Message-ID: <1442758035-1056-1-git-send-email-nicolas.iooss_linux@m4x.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Marciniszyn <infinipath@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-rdma@vger.kernel.org
-Cc: devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Subject: Re: [patch] IB/hfi1: checking for NULL instead of IS_ERR
+Date: Sun, 20 Sep 2015 10:26:27 -0700
+Message-ID: <20150920172627.GC27148@kroah.com>
+References: <20150916062220.GC21542@mwanda>
+ <55FC32ED.1000404@redhat.com>
+ <20150919030153.GA30373@kroah.com>
+ <2807E5FD2F6FDA4886F6618EAC48510E1CB98D06@CRSMSX101.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E1CB98D06-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org" <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-hfi1_rc_hdrerr() stores the result of be32_to_cpu() into opcode, which
-is a local variable declared as u8.  Later this variable is used in a
-24-bit logical right shift, which makes clang complains (when building
-an allmodconfig kernel with LLVMLinux patches):
+On Sat, Sep 19, 2015 at 10:49:52PM +0000, Weiny, Ira wrote:
+> > 
+> > On Fri, Sep 18, 2015 at 11:51:09AM -0400, Doug Ledford wrote:
+> > > On 09/16/2015 02:22 AM, Dan Carpenter wrote:
+> > > > __get_txreq() returns an ERR_PTR() but this checks for NULL so it
+> > > > would oops on failure.
+> > > >
+> > > > Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > >
+> > > Thanks, applied.
+> > 
+> > Applied to what?  Should I just ignore these types of patches and not take them
+> > in my tree and you will send them on later on?  I don't remember what we
+> > agreed to do, sorry.
+> 
+> My recollection was that Doug was going to handle the staging/rdma sub-tree because of the large churn he expected between the rdma subsystem and those drivers.
+> 
+> Therefore, I have been submitting my patches against staging/rdma/hfi directly to Doug and Linux-rdma.
 
-    drivers/staging/rdma/hfi1/rc.c:2399:9: warning: shift count >= width
-    of type [-Wshift-count-overflow]
-        opcode >>= 24;
-               ^   ~~
+Ok, but Doug better start syncing up with me soon, as we are about to
+start to get a ton of staging patches due to the Outreachy application
+process, and we will start to get merge errors very quickly.
 
-All of this lead to the point that opcode may have been designed to be
-a 32-bit integer instead of an 8-bit one.  Therefore make this variable
-u32.
+Doug, what's the plan for this?  Can you just forward me patches every
+so often to sync up?  Or I can take anything that is cc: me and/or the
+driverdevel mailing list.
 
-Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
----
- drivers/staging/rdma/hfi1/rc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+thanks,
 
-diff --git a/drivers/staging/rdma/hfi1/rc.c b/drivers/staging/rdma/hfi1/rc.c
-index 632dd5ba7dfd..1e9caebb0281 100644
---- a/drivers/staging/rdma/hfi1/rc.c
-+++ b/drivers/staging/rdma/hfi1/rc.c
-@@ -2383,7 +2383,7 @@ void hfi1_rc_hdrerr(
- 	struct hfi1_other_headers *ohdr;
- 	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
- 	int diff;
--	u8 opcode;
-+	u32 opcode;
- 	u32 psn;
- 
- 	/* Check for GRH */
--- 
-2.5.2
+greg k-h
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
