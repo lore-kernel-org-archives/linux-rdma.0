@@ -1,59 +1,340 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 0/7] devcg: device cgroup extension for rdma resource
-Date: Sun, 20 Sep 2015 13:35:50 +0300
-Message-ID: <55FE8C06.8010504@mellanox.com>
-References: <55F25781.20308@redhat.com>
- <20150911145213.GQ8114@mtj.duckdns.org>
- <1828884A29C6694DAF28B7E6B8A82373A903A586@ORSMSX109.amr.corp.intel.com>
- <20150911194311.GA18755@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373A903A5DB@ORSMSX109.amr.corp.intel.com>
- <CAG53R5XsMwnLK7L4q1mQx3_wEJNv1qthOr5TsX0o43kRWaiWrg@mail.gmail.com>
- <20150914172832.GA21652@obsidianresearch.com>
- <CAG53R5XHTv-o+pGHdw+hGgtv4N3ZkH0WTs6o_W3zK_6jAnVsNA@mail.gmail.com>
- <20150914201840.GA8764@obsidianresearch.com>
- <CAG53R5XY1q+AqJvgtK_Qd4Sai2kZX9vhDKD_2dNXpw4Gf=nz0A@mail.gmail.com>
- <20150915034549.GA27847@obsidianresearch.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v1 05/18] xprtrdma: Replace send and receive arrays
+Date: Sun, 20 Sep 2015 13:52:30 +0300
+Message-ID: <55FE8FEE.1010006@dev.mellanox.co.il>
+References: <20150917202829.19671.90044.stgit@manet.1015granger.net>
+ <20150917204452.19671.66113.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150915034549.GA27847-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, "james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org" <serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150917204452.19671.66113.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 15/09/2015 06:45, Jason Gunthorpe wrote:
-> No, I'm saying the resource pool is *well defined* and *fixed* by each
-> hardware.
-> 
-> The only question is how do we expose the N resource limits, the list
-> of which is totally vendor specific.
-
-I don't see why you say the limits are vendor specific. It is true that
-different RDMA devices have different implementations and capabilities,
-but they all use the expose the same set of RDMA objects with their
-limitations. Whether those limitations come from hardware limitations,
-from the driver, or just because the address space is limited, they can
-still be exhausted.
-
-> Yes, using a % scheme fixes the ratios, 1% is going to be a certain
-> number of PD's, QP's, MRs, CQ's, etc at a ratio fixed by the driver
-> configuration. That is the trade off for API simplicity.
+On 9/17/2015 11:44 PM, Chuck Lever wrote:
+> The rb_send_bufs and rb_recv_bufs arrays are used to implement a
+> pair of stacks for keeping track of free rpcrdma_req and rpcrdma_rep
+> structs. Replace those arrays with free lists.
 >
-> 
-> Yes, this results in some resources being over provisioned.
+> To allow more than 512 RPCs in-flight at once, each of these arrays
+> would be larger than a page (assuming 8-byte addresses and 4KB
+> pages). Allowing up to 64K in-flight RPCs (as TCP now does), each
+> buffer array would have to be 128 pages. That's an order-6
+> allocation. (Not that we're going there.)
+>
+> A list is easier to expand dynamically. Instead of allocating a
+> larger array of pointers and copying the existing pointers to the
+> new array, simply append more buffers to each list.
+>
+> This also makes it simpler to manage receive buffers that might
+> catch backwards-direction calls, or to post receive buffers in
+> bulk to amortize the overhead of ib_post_recv.
+>
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-I agree that such a scheme will be easy to configure, but I don't think
-it can work well in all situations. Imagine you want to let one
-container use almost all RC QPs as you want it to connect to the entire
-cluster through RC. Other containers can still use a single datagram QP
-to connect to the entire cluster, but they would require many address
-handles. If you force a fixed ratio of resources given to each container
-it would be hard to describe such a partitioning.
+Hi Chuck,
 
-I think it would be better to expose different controls for the
-different RDMA resources.
+I get the idea of this patch, but it is a bit confusing (to a
+non-educated reader).
 
-Regards,
-Haggai
+Can you explain why sometimes you call put/get_locked routines
+and sometimes you open-code them? And is it mandatory to have
+the callers lock before calling get/put? Perhaps the code would
+be simpler if the get/put routines would take care of locking
+since rb_lock looks dedicated to them.
+
+> ---
+>   net/sunrpc/xprtrdma/verbs.c     |  141 +++++++++++++++++----------------------
+>   net/sunrpc/xprtrdma/xprt_rdma.h |    9 +-
+>   2 files changed, 66 insertions(+), 84 deletions(-)
+>
+> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+> index ac1345b..8d99214 100644
+> --- a/net/sunrpc/xprtrdma/verbs.c
+> +++ b/net/sunrpc/xprtrdma/verbs.c
+> @@ -962,44 +962,18 @@ rpcrdma_buffer_create(struct rpcrdma_xprt *r_xprt)
+>   {
+>   	struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
+>   	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
+> -	struct rpcrdma_create_data_internal *cdata = &r_xprt->rx_data;
+> -	char *p;
+> -	size_t len;
+>   	int i, rc;
+>
+> -	buf->rb_max_requests = cdata->max_requests;
+> +	buf->rb_max_requests = r_xprt->rx_data.max_requests;
+>   	spin_lock_init(&buf->rb_lock);
+>
+> -	/* Need to allocate:
+> -	 *   1.  arrays for send and recv pointers
+> -	 *   2.  arrays of struct rpcrdma_req to fill in pointers
+> -	 *   3.  array of struct rpcrdma_rep for replies
+> -	 * Send/recv buffers in req/rep need to be registered
+> -	 */
+> -	len = buf->rb_max_requests *
+> -		(sizeof(struct rpcrdma_req *) + sizeof(struct rpcrdma_rep *));
+> -
+> -	p = kzalloc(len, GFP_KERNEL);
+> -	if (p == NULL) {
+> -		dprintk("RPC:       %s: req_t/rep_t/pad kzalloc(%zd) failed\n",
+> -			__func__, len);
+> -		rc = -ENOMEM;
+> -		goto out;
+> -	}
+> -	buf->rb_pool = p;	/* for freeing it later */
+> -
+> -	buf->rb_send_bufs = (struct rpcrdma_req **) p;
+> -	p = (char *) &buf->rb_send_bufs[buf->rb_max_requests];
+> -	buf->rb_recv_bufs = (struct rpcrdma_rep **) p;
+> -	p = (char *) &buf->rb_recv_bufs[buf->rb_max_requests];
+> -
+>   	rc = ia->ri_ops->ro_init(r_xprt);
+>   	if (rc)
+>   		goto out;
+>
+> +	INIT_LIST_HEAD(&buf->rb_send_bufs);
+>   	for (i = 0; i < buf->rb_max_requests; i++) {
+>   		struct rpcrdma_req *req;
+> -		struct rpcrdma_rep *rep;
+>
+>   		req = rpcrdma_create_req(r_xprt);
+>   		if (IS_ERR(req)) {
+> @@ -1008,7 +982,12 @@ rpcrdma_buffer_create(struct rpcrdma_xprt *r_xprt)
+>   			rc = PTR_ERR(req);
+>   			goto out;
+>   		}
+> -		buf->rb_send_bufs[i] = req;
+> +		list_add(&req->rl_free, &buf->rb_send_bufs);
+> +	}
+> +
+> +	INIT_LIST_HEAD(&buf->rb_recv_bufs);
+> +	for (i = 0; i < buf->rb_max_requests + 2; i++) {
+> +		struct rpcrdma_rep *rep;
+>
+>   		rep = rpcrdma_create_rep(r_xprt);
+>   		if (IS_ERR(rep)) {
+> @@ -1017,7 +996,7 @@ rpcrdma_buffer_create(struct rpcrdma_xprt *r_xprt)
+>   			rc = PTR_ERR(rep);
+>   			goto out;
+>   		}
+> -		buf->rb_recv_bufs[i] = rep;
+> +		list_add(&rep->rr_list, &buf->rb_recv_bufs);
+>   	}
+>
+>   	return 0;
+> @@ -1051,25 +1030,26 @@ void
+>   rpcrdma_buffer_destroy(struct rpcrdma_buffer *buf)
+>   {
+>   	struct rpcrdma_ia *ia = rdmab_to_ia(buf);
+> -	int i;
+>
+> -	/* clean up in reverse order from create
+> -	 *   1.  recv mr memory (mr free, then kfree)
+> -	 *   2.  send mr memory (mr free, then kfree)
+> -	 *   3.  MWs
+> -	 */
+> -	dprintk("RPC:       %s: entering\n", __func__);
+> +	while (!list_empty(&buf->rb_recv_bufs)) {
+> +		struct rpcrdma_rep *rep = list_entry(buf->rb_recv_bufs.next,
+> +						     struct rpcrdma_rep,
+> +						     rr_list);
+>
+> -	for (i = 0; i < buf->rb_max_requests; i++) {
+> -		if (buf->rb_recv_bufs)
+> -			rpcrdma_destroy_rep(ia, buf->rb_recv_bufs[i]);
+> -		if (buf->rb_send_bufs)
+> -			rpcrdma_destroy_req(ia, buf->rb_send_bufs[i]);
+> +		list_del(&rep->rr_list);
+> +		rpcrdma_destroy_rep(ia, rep);
+>   	}
+>
+> -	ia->ri_ops->ro_destroy(buf);
+> +	while (!list_empty(&buf->rb_send_bufs)) {
+> +		struct rpcrdma_req *req = list_entry(buf->rb_send_bufs.next,
+> +						     struct rpcrdma_req,
+> +						     rl_free);
+>
+> -	kfree(buf->rb_pool);
+> +		list_del(&req->rl_free);
+> +		rpcrdma_destroy_req(ia, req);
+> +	}
+> +
+> +	ia->ri_ops->ro_destroy(buf);
+>   }
+>
+>   struct rpcrdma_mw *
+> @@ -1102,24 +1082,27 @@ rpcrdma_put_mw(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mw *mw)
+>   }
+>
+>   static void
+> -rpcrdma_buffer_put_sendbuf(struct rpcrdma_req *req, struct rpcrdma_buffer *buf)
+> +rpcrdma_buffer_put_locked(struct rpcrdma_rep *rep, struct rpcrdma_buffer *buf)
+>   {
+> -	buf->rb_send_bufs[--buf->rb_send_index] = req;
+> -	req->rl_niovs = 0;
+> -	if (req->rl_reply) {
+> -		buf->rb_recv_bufs[--buf->rb_recv_index] = req->rl_reply;
+> -		req->rl_reply = NULL;
+> -	}
+> +	list_add_tail(&rep->rr_list, &buf->rb_recv_bufs);
+> +}
+> +
+> +static struct rpcrdma_rep *
+> +rpcrdma_buffer_get_locked(struct rpcrdma_buffer *buf)
+> +{
+> +	struct rpcrdma_rep *rep;
+> +
+> +	rep = list_first_entry(&buf->rb_recv_bufs,
+> +			       struct rpcrdma_rep, rr_list);
+> +	list_del(&rep->rr_list);
+> +
+> +	return rep;
+>   }
+
+There seems to be a distinction between send/recv buffers. Would it
+make sense to have a symmetric handling for both send/recv buffers?
+
+>
+>   /*
+>    * Get a set of request/reply buffers.
+>    *
+> - * Reply buffer (if needed) is attached to send buffer upon return.
+> - * Rule:
+> - *    rb_send_index and rb_recv_index MUST always be pointing to the
+> - *    *next* available buffer (non-NULL). They are incremented after
+> - *    removing buffers, and decremented *before* returning them.
+> + * Reply buffer (if available) is attached to send buffer upon return.
+>    */
+>   struct rpcrdma_req *
+>   rpcrdma_buffer_get(struct rpcrdma_buffer *buffers)
+> @@ -1129,25 +1112,22 @@ rpcrdma_buffer_get(struct rpcrdma_buffer *buffers)
+>
+>   	spin_lock_irqsave(&buffers->rb_lock, flags);
+>
+> -	if (buffers->rb_send_index == buffers->rb_max_requests) {
+> +	if (list_empty(&buffers->rb_send_bufs)) {
+>   		spin_unlock_irqrestore(&buffers->rb_lock, flags);
+> -		dprintk("RPC:       %s: out of request buffers\n", __func__);
+> -		return ((struct rpcrdma_req *)NULL);
+> -	}
+> -
+> -	req = buffers->rb_send_bufs[buffers->rb_send_index];
+> -	if (buffers->rb_send_index < buffers->rb_recv_index) {
+> -		dprintk("RPC:       %s: %d extra receives outstanding (ok)\n",
+> -			__func__,
+> -			buffers->rb_recv_index - buffers->rb_send_index);
+> -		req->rl_reply = NULL;
+> -	} else {
+> -		req->rl_reply = buffers->rb_recv_bufs[buffers->rb_recv_index];
+> -		buffers->rb_recv_bufs[buffers->rb_recv_index++] = NULL;
+> +		pr_warn("RPC:       %s: out of request buffers\n", __func__);
+> +		return NULL;
+>   	}
+> -	buffers->rb_send_bufs[buffers->rb_send_index++] = NULL;
+> +	req = list_first_entry(&buffers->rb_send_bufs,
+> +			       struct rpcrdma_req, rl_free);
+> +	list_del(&req->rl_free);
+>
+> +	req->rl_reply = NULL;
+> +	if (!list_empty(&buffers->rb_recv_bufs))
+> +		req->rl_reply = rpcrdma_buffer_get_locked(buffers);
+
+Would it make sense to check !list_empty() inside _get_locked and handle
+a possible NULL return?
+
+>   	spin_unlock_irqrestore(&buffers->rb_lock, flags);
+> +
+> +	if (!req->rl_reply)
+> +		pr_warn("RPC:       %s: out of reply buffers\n", __func__);
+>   	return req;
+>   }
+>
+> @@ -1159,17 +1139,22 @@ void
+>   rpcrdma_buffer_put(struct rpcrdma_req *req)
+>   {
+>   	struct rpcrdma_buffer *buffers = req->rl_buffer;
+> +	struct rpcrdma_rep *rep = req->rl_reply;
+>   	unsigned long flags;
+>
+> +	req->rl_niovs = 0;
+> +	req->rl_reply = NULL;
+> +
+>   	spin_lock_irqsave(&buffers->rb_lock, flags);
+> -	rpcrdma_buffer_put_sendbuf(req, buffers);
+> +	list_add_tail(&req->rl_free, &buffers->rb_send_bufs);
+> +	if (rep)
+> +		rpcrdma_buffer_put_locked(rep, buffers);
+>   	spin_unlock_irqrestore(&buffers->rb_lock, flags);
+>   }
+>
+>   /*
+>    * Recover reply buffers from pool.
+> - * This happens when recovering from error conditions.
+> - * Post-increment counter/array index.
+> + * This happens when recovering from disconnect.
+>    */
+>   void
+>   rpcrdma_recv_buffer_get(struct rpcrdma_req *req)
+> @@ -1178,10 +1163,8 @@ rpcrdma_recv_buffer_get(struct rpcrdma_req *req)
+>   	unsigned long flags;
+>
+>   	spin_lock_irqsave(&buffers->rb_lock, flags);
+> -	if (buffers->rb_recv_index < buffers->rb_max_requests) {
+> -		req->rl_reply = buffers->rb_recv_bufs[buffers->rb_recv_index];
+> -		buffers->rb_recv_bufs[buffers->rb_recv_index++] = NULL;
+> -	}
+> +	if (!list_empty(&buffers->rb_recv_bufs))
+> +		req->rl_reply = rpcrdma_buffer_get_locked(buffers);
+>   	spin_unlock_irqrestore(&buffers->rb_lock, flags);
+>   }
+>
+> @@ -1196,7 +1179,7 @@ rpcrdma_recv_buffer_put(struct rpcrdma_rep *rep)
+>   	unsigned long flags;
+>
+>   	spin_lock_irqsave(&buffers->rb_lock, flags);
+> -	buffers->rb_recv_bufs[--buffers->rb_recv_index] = rep;
+> +	rpcrdma_buffer_put_locked(rep, buffers);
+>   	spin_unlock_irqrestore(&buffers->rb_lock, flags);
+>   }
+>
+> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+> index a13508b..e6a358f 100644
+> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
+> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+> @@ -252,6 +252,7 @@ struct rpcrdma_mr_seg {		/* chunk descriptors */
+>   #define RPCRDMA_MAX_IOVS	(2)
+>
+>   struct rpcrdma_req {
+> +	struct list_head	rl_free;
+>   	unsigned int		rl_niovs;
+>   	unsigned int		rl_nchunks;
+>   	unsigned int		rl_connect_cookie;
+> @@ -285,12 +286,10 @@ struct rpcrdma_buffer {
+>   	struct list_head	rb_all;
+>   	char			*rb_pool;
+>
+> -	spinlock_t		rb_lock;	/* protect buf arrays */
+> +	spinlock_t		rb_lock;	/* protect buf lists */
+> +	struct list_head	rb_send_bufs;
+> +	struct list_head	rb_recv_bufs;
+>   	u32			rb_max_requests;
+> -	int			rb_send_index;
+> -	int			rb_recv_index;
+> -	struct rpcrdma_req	**rb_send_bufs;
+> -	struct rpcrdma_rep	**rb_recv_bufs;
+>   };
+>   #define rdmab_to_ia(b) (&container_of((b), struct rpcrdma_xprt, rx_buf)->rx_ia)
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
