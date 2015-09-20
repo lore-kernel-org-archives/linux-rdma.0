@@ -1,116 +1,139 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-rc 1/4] xprtrdma: Remove ib_get_dma_mr calls
-Date: Sun, 20 Sep 2015 12:52:44 +0300
-Message-ID: <1442742767-8755-2-git-send-email-sagig@mellanox.com>
+Subject: [PATCH rdma-rc 3/4] IB/mlx5: Remove support for IB_DEVICE_LOCAL_DMA_LKEY
+Date: Sun, 20 Sep 2015 12:52:46 +0300
+Message-ID: <1442742767-8755-4-git-send-email-sagig@mellanox.com>
 References: <1442742767-8755-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1442742767-8755-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-nfs <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-since commit 96249d70dd70 ("IB/core:
-Guarantee that a local_dma_lkey is available") The PD now
-has a local_dma_lkey member which completely replaces
-ib_get_dma_mr, use it instead.
+ConnectIB has some known issues with memory registration
+using the local_dma_lkey (SEND, RDMA, RECV seems to work ok).
+Thus don't expose support for it (and remove device->local_dma_lkey
+setting).
 
-In FRWR memreg mode, we assumed that the device local_dma_lkey
-is available.
+since commit 96249d70dd70 ("IB/core: Guarantee that a local_dma_lkey
+is available") addressed that by allocating a DMA MR with local
+permissions and converted the consumers to use the MR associated with
+the PD rather then device->local_dma_lkey.
+
+The local_dma_lkey support will be restored in CX4 depending on FW
+capability query.
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-nfs <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/fmr_ops.c      | 19 -------------------
- net/sunrpc/xprtrdma/frwr_ops.c     |  5 -----
- net/sunrpc/xprtrdma/physical_ops.c |  8 --------
- net/sunrpc/xprtrdma/verbs.c        |  1 +
- 4 files changed, 1 insertion(+), 32 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c            | 10 +---------
+ drivers/net/ethernet/mellanox/mlx5/core/fw.c | 22 ----------------------
+ include/linux/mlx5/device.h                  | 11 -----------
+ include/linux/mlx5/driver.h                  |  1 -
+ 4 files changed, 1 insertion(+), 43 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
-index cb25c89da623..f1e8dafbd507 100644
---- a/net/sunrpc/xprtrdma/fmr_ops.c
-+++ b/net/sunrpc/xprtrdma/fmr_ops.c
-@@ -39,25 +39,6 @@ static int
- fmr_op_open(struct rpcrdma_ia *ia, struct rpcrdma_ep *ep,
- 	    struct rpcrdma_create_data_internal *cdata)
- {
--	struct ib_device_attr *devattr = &ia->ri_devattr;
--	struct ib_mr *mr;
--
--	/* Obtain an lkey to use for the regbufs, which are
--	 * protected from remote access.
--	 */
--	if (devattr->device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY) {
--		ia->ri_dma_lkey = ia->ri_device->local_dma_lkey;
--	} else {
--		mr = ib_get_dma_mr(ia->ri_pd, IB_ACCESS_LOCAL_WRITE);
--		if (IS_ERR(mr)) {
--			pr_err("%s: ib_get_dma_mr for failed with %lX\n",
--			       __func__, PTR_ERR(mr));
--			return -ENOMEM;
--		}
--		ia->ri_dma_lkey = ia->ri_dma_mr->lkey;
--		ia->ri_dma_mr = mr;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 41d6911e244e..0ab9625911a1 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -245,7 +245,6 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 		props->device_cap_flags |= IB_DEVICE_BAD_QKEY_CNTR;
+ 	if (MLX5_CAP_GEN(mdev, apm))
+ 		props->device_cap_flags |= IB_DEVICE_AUTO_PATH_MIG;
+-	props->device_cap_flags |= IB_DEVICE_LOCAL_DMA_LKEY;
+ 	if (MLX5_CAP_GEN(mdev, xrc))
+ 		props->device_cap_flags |= IB_DEVICE_XRC;
+ 	props->device_cap_flags |= IB_DEVICE_MEM_MGT_EXTENSIONS;
+@@ -1245,18 +1244,10 @@ static int create_dev_resources(struct mlx5_ib_resources *devr)
+ 	struct ib_srq_init_attr attr;
+ 	struct mlx5_ib_dev *dev;
+ 	struct ib_cq_init_attr cq_attr = {.cqe = 1};
+-	u32 rsvd_lkey;
+ 	int ret = 0;
+ 
+ 	dev = container_of(devr, struct mlx5_ib_dev, devr);
+ 
+-	ret = mlx5_core_query_special_context(dev->mdev, &rsvd_lkey);
+-	if (ret) {
+-		pr_err("Failed to query special context %d\n", ret);
+-		return ret;
 -	}
+-	dev->ib_dev.local_dma_lkey = rsvd_lkey;
 -
- 	return 0;
+ 	devr->p0 = mlx5_ib_alloc_pd(&dev->ib_dev, NULL, NULL);
+ 	if (IS_ERR(devr->p0)) {
+ 		ret = PTR_ERR(devr->p0);
+@@ -1418,6 +1409,7 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 	strlcpy(dev->ib_dev.name, "mlx5_%d", IB_DEVICE_NAME_MAX);
+ 	dev->ib_dev.owner		= THIS_MODULE;
+ 	dev->ib_dev.node_type		= RDMA_NODE_IB_CA;
++	dev->ib_dev.local_dma_lkey	= 0 /* not supported for now */;
+ 	dev->num_ports		= MLX5_CAP_GEN(mdev, num_ports);
+ 	dev->ib_dev.phys_port_cnt     = dev->num_ports;
+ 	dev->ib_dev.num_comp_vectors    =
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fw.c b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
+index aa0d5ffe92d8..9335e5ae18cc 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fw.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
+@@ -200,25 +200,3 @@ int mlx5_cmd_teardown_hca(struct mlx5_core_dev *dev)
+ 
+ 	return err;
  }
- 
-diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
-index d6653f5d0830..5318951b3b53 100644
---- a/net/sunrpc/xprtrdma/frwr_ops.c
-+++ b/net/sunrpc/xprtrdma/frwr_ops.c
-@@ -189,11 +189,6 @@ frwr_op_open(struct rpcrdma_ia *ia, struct rpcrdma_ep *ep,
- 	struct ib_device_attr *devattr = &ia->ri_devattr;
- 	int depth, delta;
- 
--	/* Obtain an lkey to use for the regbufs, which are
--	 * protected from remote access.
--	 */
--	ia->ri_dma_lkey = ia->ri_device->local_dma_lkey;
 -
- 	ia->ri_max_frmr_depth =
- 			min_t(unsigned int, RPCRDMA_MAX_DATA_SEGS,
- 			      devattr->max_fast_reg_page_list_len);
-diff --git a/net/sunrpc/xprtrdma/physical_ops.c b/net/sunrpc/xprtrdma/physical_ops.c
-index 72cf8b15bbb4..5feb63afdb03 100644
---- a/net/sunrpc/xprtrdma/physical_ops.c
-+++ b/net/sunrpc/xprtrdma/physical_ops.c
-@@ -23,7 +23,6 @@ static int
- physical_op_open(struct rpcrdma_ia *ia, struct rpcrdma_ep *ep,
- 		 struct rpcrdma_create_data_internal *cdata)
- {
--	struct ib_device_attr *devattr = &ia->ri_devattr;
- 	struct ib_mr *mr;
- 
- 	/* Obtain an rkey to use for RPC data payloads.
-@@ -39,13 +38,6 @@ physical_op_open(struct rpcrdma_ia *ia, struct rpcrdma_ep *ep,
- 	}
- 	ia->ri_dma_mr = mr;
- 
--	/* Obtain an lkey to use for regbufs.
--	 */
--	if (devattr->device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)
--		ia->ri_dma_lkey = ia->ri_device->local_dma_lkey;
--	else
--		ia->ri_dma_lkey = ia->ri_dma_mr->lkey;
+-int mlx5_core_query_special_context(struct mlx5_core_dev *dev, u32 *rsvd_lkey)
+-{
+-	struct mlx5_cmd_query_special_contexts_mbox_in in;
+-	struct mlx5_cmd_query_special_contexts_mbox_out out;
+-	int err;
 -
- 	return 0;
- }
+-	memset(&in, 0, sizeof(in));
+-	memset(&out, 0, sizeof(out));
+-	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_QUERY_SPECIAL_CONTEXTS);
+-	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
+-	if (err)
+-		return err;
+-
+-	if (out.hdr.status)
+-		err = mlx5_cmd_status_to_err(&out.hdr);
+-
+-	*rsvd_lkey = be32_to_cpu(out.resd_lkey);
+-
+-	return err;
+-}
+-EXPORT_SYMBOL(mlx5_core_query_special_context);
+diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
+index 6e4169c5ad78..b943cd9e2097 100644
+--- a/include/linux/mlx5/device.h
++++ b/include/linux/mlx5/device.h
+@@ -402,17 +402,6 @@ struct mlx5_cmd_teardown_hca_mbox_out {
+ 	u8			rsvd[8];
+ };
  
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 682996779970..4f405bcad39a 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -640,6 +640,7 @@ rpcrdma_ep_create(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia,
- 	ep->rep_attr.qp_context = ep;
- 	ep->rep_attr.srq = NULL;
- 	ep->rep_attr.cap.max_send_wr = cdata->max_requests;
-+	ia->ri_dma_lkey = ia->ri_pd->local_dma_lkey;
- 	rc = ia->ri_ops->ro_open(ia, ep, cdata);
- 	if (rc)
- 		return rc;
+-struct mlx5_cmd_query_special_contexts_mbox_in {
+-	struct mlx5_inbox_hdr	hdr;
+-	u8			rsvd[8];
+-};
+-
+-struct mlx5_cmd_query_special_contexts_mbox_out {
+-	struct mlx5_outbox_hdr	hdr;
+-	__be32                  dump_fill_mkey;
+-	__be32                  resd_lkey;
+-};
+-
+ struct mlx5_cmd_layout {
+ 	u8		type;
+ 	u8		rsvd0[3];
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 1e2e48ccb3fd..5722d88c2429 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -828,7 +828,6 @@ void *mlx5_get_protocol_dev(struct mlx5_core_dev *mdev, int protocol);
+ int mlx5_register_interface(struct mlx5_interface *intf);
+ void mlx5_unregister_interface(struct mlx5_interface *intf);
+ int mlx5_core_query_vendor_id(struct mlx5_core_dev *mdev, u32 *vendor_id);
+-int mlx5_core_query_special_context(struct mlx5_core_dev *dev, u32 *rsvd_lkey);
+ 
+ struct mlx5_profile {
+ 	u64	mask;
 -- 
 1.8.4.3
 
