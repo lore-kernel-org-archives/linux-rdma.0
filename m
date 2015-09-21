@@ -1,181 +1,524 @@
 From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: Re: [PATCH v1 04/18] xprtrdma: Refactor reply handler error handling
-Date: Mon, 21 Sep 2015 14:29:44 +0530
-Message-ID: <CANjDDBi_e+coVtvLdynZ22s5bbSkfjL-9LaRyGt4p9EByOWWTg@mail.gmail.com>
-References: <20150917202829.19671.90044.stgit@manet.1015granger.net> <20150917204444.19671.60460.stgit@manet.1015granger.net>
+Subject: Re: [PATCH v1 07/18] xprtrdma: Pre-allocate backward rpc_rqst and
+ send/receive buffers
+Date: Mon, 21 Sep 2015 15:58:34 +0530
+Message-ID: <CANjDDBhZ8ve1qcs94eOyY93i_HEA0HA_tZMTwrvdDO3K5NkSrw@mail.gmail.com>
+References: <20150917202829.19671.90044.stgit@manet.1015granger.net> <20150917204508.19671.23235.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150917204444.19671.60460.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150917204508.19671.23235.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 Looks good.
 
-On Fri, Sep 18, 2015 at 2:14 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-> Clean up: The error cases in rpcrdma_reply_handler() almost never
-> execute. Ensure the compiler places them out of the hot path.
+On Fri, Sep 18, 2015 at 2:15 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> xprtrdma's backward direction send and receive buffers are the same
+> size as the forechannel's inline threshold, and must be pre-
+> registered.
 >
-> No behavior change expected.
+> The consumer has no control over which receive buffer the adapter
+> chooses to catch an incoming backwards-direction call. Any receive
+> buffer can be used for either a forward reply or a backward call.
+> Thus both types of RPC message must all be the same size.
 >
 > Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 > ---
->  net/sunrpc/xprtrdma/rpc_rdma.c  |   90 ++++++++++++++++++++++-----------------
->  net/sunrpc/xprtrdma/verbs.c     |    2 -
->  net/sunrpc/xprtrdma/xprt_rdma.h |    2 +
->  3 files changed, 54 insertions(+), 40 deletions(-)
+>  net/sunrpc/xprtrdma/Makefile      |    1
+>  net/sunrpc/xprtrdma/backchannel.c |  204 +++++++++++++++++++++++++++++++++++++
+>  net/sunrpc/xprtrdma/transport.c   |    7 +
+>  net/sunrpc/xprtrdma/verbs.c       |   92 ++++++++++++++---
+>  net/sunrpc/xprtrdma/xprt_rdma.h   |   20 ++++
+>  5 files changed, 309 insertions(+), 15 deletions(-)
+>  create mode 100644 net/sunrpc/xprtrdma/backchannel.c
 >
-> diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-> index bc8bd65..287c874 100644
-> --- a/net/sunrpc/xprtrdma/rpc_rdma.c
-> +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-> @@ -741,52 +741,27 @@ rpcrdma_reply_handler(struct rpcrdma_rep *rep)
->         unsigned long cwnd;
->         u32 credits;
->
-> -       /* Check status. If bad, signal disconnect and return rep to pool */
-> -       if (rep->rr_len == ~0U) {
-> -               rpcrdma_recv_buffer_put(rep);
-> -               if (r_xprt->rx_ep.rep_connected == 1) {
-> -                       r_xprt->rx_ep.rep_connected = -EIO;
-> -                       rpcrdma_conn_func(&r_xprt->rx_ep);
-> -               }
-> -               return;
-> -       }
-> -       if (rep->rr_len < RPCRDMA_HDRLEN_MIN) {
-> -               dprintk("RPC:       %s: short/invalid reply\n", __func__);
-> -               goto repost;
-> -       }
-> +       dprintk("RPC:       %s: incoming rep %p\n", __func__, rep);
+> diff --git a/net/sunrpc/xprtrdma/Makefile b/net/sunrpc/xprtrdma/Makefile
+> index 48913de..33f99d3 100644
+> --- a/net/sunrpc/xprtrdma/Makefile
+> +++ b/net/sunrpc/xprtrdma/Makefile
+> @@ -5,3 +5,4 @@ rpcrdma-y := transport.o rpc_rdma.o verbs.o \
+>         svc_rdma.o svc_rdma_transport.o \
+>         svc_rdma_marshal.o svc_rdma_sendto.o svc_rdma_recvfrom.o \
+>         module.o
+> +rpcrdma-$(CONFIG_SUNRPC_BACKCHANNEL) += backchannel.o
+> diff --git a/net/sunrpc/xprtrdma/backchannel.c b/net/sunrpc/xprtrdma/backchannel.c
+> new file mode 100644
+> index 0000000..c0a42ad
+> --- /dev/null
+> +++ b/net/sunrpc/xprtrdma/backchannel.c
+> @@ -0,0 +1,204 @@
+> +/*
+> + * Copyright (c) 2015 Oracle.  All rights reserved.
+> + *
+> + * Support for backward direction RPCs on RPC/RDMA.
+> + */
 > +
-> +       if (rep->rr_len == RPCRDMA_BAD_LEN)
-> +               goto out_badstatus;
-> +       if (rep->rr_len < RPCRDMA_HDRLEN_MIN)
-> +               goto out_shortreply;
+> +#include <linux/module.h>
 > +
->         headerp = rdmab_to_msg(rep->rr_rdmabuf);
-> -       if (headerp->rm_vers != rpcrdma_version) {
-> -               dprintk("RPC:       %s: invalid version %d\n",
-> -                       __func__, be32_to_cpu(headerp->rm_vers));
-> -               goto repost;
-> -       }
-> +       if (headerp->rm_vers != rpcrdma_version)
-> +               goto out_badversion;
->
->         /* Get XID and try for a match. */
->         spin_lock(&xprt->transport_lock);
->         rqst = xprt_lookup_rqst(xprt, headerp->rm_xid);
-> -       if (rqst == NULL) {
-> -               spin_unlock(&xprt->transport_lock);
-> -               dprintk("RPC:       %s: reply 0x%p failed "
-> -                       "to match any request xid 0x%08x len %d\n",
-> -                       __func__, rep, be32_to_cpu(headerp->rm_xid),
-> -                       rep->rr_len);
-> -repost:
-> -               r_xprt->rx_stats.bad_reply_count++;
-> -               if (rpcrdma_ep_post_recv(&r_xprt->rx_ia, &r_xprt->rx_ep, rep))
-> -                       rpcrdma_recv_buffer_put(rep);
-> -
-> -               return;
-> -       }
-> +       if (!rqst)
-> +               goto out_nomatch;
->
->         /* get request object */
->         req = rpcr_to_rdmar(rqst);
-> -       if (req->rl_reply) {
-> -               spin_unlock(&xprt->transport_lock);
-> -               dprintk("RPC:       %s: duplicate reply 0x%p to RPC "
-> -                       "request 0x%p: xid 0x%08x\n", __func__, rep, req,
-> -                       be32_to_cpu(headerp->rm_xid));
-> -               goto repost;
-> -       }
-> +       if (req->rl_reply)
-> +               goto out_duplicate;
->
->         dprintk("RPC:       %s: reply 0x%p completes request 0x%p\n"
->                 "                   RPC request 0x%p xid 0x%08x\n",
-> @@ -883,8 +858,45 @@ badheader:
->         if (xprt->cwnd > cwnd)
->                 xprt_release_rqst_cong(rqst->rq_task);
->
-> +       xprt_complete_rqst(rqst->rq_task, status);
-> +       spin_unlock(&xprt->transport_lock);
->         dprintk("RPC:       %s: xprt_complete_rqst(0x%p, 0x%p, %d)\n",
->                         __func__, xprt, rqst, status);
-> -       xprt_complete_rqst(rqst->rq_task, status);
-> +       return;
+> +#include "xprt_rdma.h"
 > +
-> +out_badstatus:
-> +       rpcrdma_recv_buffer_put(rep);
-> +       if (r_xprt->rx_ep.rep_connected == 1) {
-> +               r_xprt->rx_ep.rep_connected = -EIO;
-> +               rpcrdma_conn_func(&r_xprt->rx_ep);
+> +#if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
+> +# define RPCDBG_FACILITY       RPCDBG_TRANS
+> +#endif
+> +
+> +static void rpcrdma_bc_free_rqst(struct rpcrdma_xprt *r_xprt,
+> +                                struct rpc_rqst *rqst)
+> +{
+> +       struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
+> +       struct rpcrdma_req *req = rpcr_to_rdmar(rqst);
+> +
+> +       spin_lock(&buf->rb_reqslock);
+> +       list_del(&req->rl_all);
+> +       spin_unlock(&buf->rb_reqslock);
+> +
+> +       rpcrdma_destroy_req(&r_xprt->rx_ia, req);
+> +
+> +       kfree(rqst);
+> +}
+> +
+> +static int rpcrdma_bc_setup_rqst(struct rpcrdma_xprt *r_xprt,
+> +                                struct rpc_rqst *rqst)
+> +{
+> +       struct rpcrdma_ia *ia = &r_xprt->rx_ia;
+> +       struct rpcrdma_regbuf *rb;
+> +       struct rpcrdma_req *req;
+> +       struct xdr_buf *buf;
+> +       size_t size;
+> +
+> +       req = rpcrdma_create_req(r_xprt);
+> +       if (!req)
+> +               return -ENOMEM;
+> +       req->rl_backchannel = true;
+> +
+> +       size = RPCRDMA_INLINE_WRITE_THRESHOLD(rqst);
+> +       rb = rpcrdma_alloc_regbuf(ia, size, GFP_KERNEL);
+> +       if (IS_ERR(rb))
+> +               goto out_fail;
+> +       req->rl_rdmabuf = rb;
+> +
+> +       size += RPCRDMA_INLINE_READ_THRESHOLD(rqst);
+> +       rb = rpcrdma_alloc_regbuf(ia, size, GFP_KERNEL);
+> +       if (IS_ERR(rb))
+> +               goto out_fail;
+> +       rb->rg_owner = req;
+> +       req->rl_sendbuf = rb;
+> +       /* so that rpcr_to_rdmar works when receiving a request */
+> +       rqst->rq_buffer = (void *)req->rl_sendbuf->rg_base;
+> +
+> +       buf = &rqst->rq_snd_buf;
+> +       buf->head[0].iov_base = rqst->rq_buffer;
+> +       buf->head[0].iov_len = 0;
+> +       buf->tail[0].iov_base = NULL;
+> +       buf->tail[0].iov_len = 0;
+> +       buf->page_len = 0;
+> +       buf->len = 0;
+> +       buf->buflen = size;
+> +
+> +       return 0;
+> +
+> +out_fail:
+> +       rpcrdma_bc_free_rqst(r_xprt, rqst);
+> +       return -ENOMEM;
+> +}
+> +
+> +/* Allocate and add receive buffers to the rpcrdma_buffer's existing
+> + * list of rep's. These are released when the transport is destroyed. */
+> +static int rpcrdma_bc_setup_reps(struct rpcrdma_xprt *r_xprt,
+> +                                unsigned int count)
+> +{
+> +       struct rpcrdma_buffer *buffers = &r_xprt->rx_buf;
+> +       struct rpcrdma_rep *rep;
+> +       unsigned long flags;
+> +       int rc = 0;
+> +
+> +       while (count--) {
+> +               rep = rpcrdma_create_rep(r_xprt);
+> +               if (IS_ERR(rep)) {
+> +                       pr_err("RPC:       %s: reply buffer alloc failed\n",
+> +                              __func__);
+> +                       rc = PTR_ERR(rep);
+> +                       break;
+> +               }
+> +
+> +               spin_lock_irqsave(&buffers->rb_lock, flags);
+> +               list_add(&rep->rr_list, &buffers->rb_recv_bufs);
+> +               spin_unlock_irqrestore(&buffers->rb_lock, flags);
 > +       }
-> +       return;
 > +
-> +out_shortreply:
-> +       dprintk("RPC:       %s: short/invalid reply\n", __func__);
-> +       goto repost;
+> +       return rc;
+> +}
 > +
-> +out_badversion:
-> +       dprintk("RPC:       %s: invalid version %d\n",
-> +               __func__, be32_to_cpu(headerp->rm_vers));
-> +       goto repost;
+> +/**
+> + * xprt_rdma_bc_setup - Pre-allocate resources for handling backchannel requests
+> + * @xprt: transport associated with these backchannel resources
+> + * @reqs: number of concurrent incoming requests to expect
+> + *
+> + * Returns 0 on success; otherwise a negative errno
+> + */
+> +int xprt_rdma_bc_setup(struct rpc_xprt *xprt, unsigned int reqs)
+> +{
+> +       struct rpcrdma_xprt *r_xprt = rpcx_to_rdmax(xprt);
+> +       struct rpcrdma_buffer *buffer = &r_xprt->rx_buf;
+> +       struct rpc_rqst *rqst;
+> +       unsigned int i;
+> +       int rc;
 > +
-> +out_nomatch:
-> +       spin_unlock(&xprt->transport_lock);
-> +       dprintk("RPC:       %s: reply 0x%p failed "
-> +               "to match any request xid 0x%08x len %d\n",
-> +               __func__, rep, be32_to_cpu(headerp->rm_xid),
-> +               rep->rr_len);
-> +       goto repost;
+> +       /* The backchannel reply path returns each rpc_rqst to the
+> +        * bc_pa_list _after_ the reply is sent. If the server is
+> +        * faster than the client, it can send another backward
+> +        * direction request before the rpc_rqst is returned to the
+> +        * list. The client rejects the request in this case.
+> +        *
+> +        * Twice as many rpc_rqsts are prepared to ensure there is
+> +        * always an rpc_rqst available as soon as a reply is sent.
+> +        */
+> +       for (i = 0; i < (reqs << 1); i++) {
+> +               rqst = kzalloc(sizeof(*rqst), GFP_KERNEL);
+> +               if (!rqst) {
+> +                       pr_err("RPC:       %s: Failed to create bc rpc_rqst\n",
+> +                              __func__);
+> +                       goto out_free;
+> +               }
 > +
-> +out_duplicate:
->         spin_unlock(&xprt->transport_lock);
-> +       dprintk("RPC:       %s: duplicate reply 0x%p to RPC "
-> +               "request 0x%p: xid 0x%08x\n", __func__, rep, req,
-> +               be32_to_cpu(headerp->rm_xid));
+> +               rqst->rq_xprt = &r_xprt->rx_xprt;
+> +               INIT_LIST_HEAD(&rqst->rq_list);
+> +               INIT_LIST_HEAD(&rqst->rq_bc_list);
 > +
-> +repost:
-> +       r_xprt->rx_stats.bad_reply_count++;
-> +       if (rpcrdma_ep_post_recv(&r_xprt->rx_ia, &r_xprt->rx_ep, rep))
-> +               rpcrdma_recv_buffer_put(rep);
->  }
-> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-> index f2e3863..ac1345b 100644
-> --- a/net/sunrpc/xprtrdma/verbs.c
-> +++ b/net/sunrpc/xprtrdma/verbs.c
-> @@ -241,7 +241,7 @@ out_fail:
->         if (wc->status != IB_WC_WR_FLUSH_ERR)
->                 pr_err("RPC:       %s: rep %p: %s\n",
->                        __func__, rep, ib_wc_status_msg(wc->status));
-> -       rep->rr_len = ~0U;
-> +       rep->rr_len = RPCRDMA_BAD_LEN;
->         goto out_schedule;
->  }
->
-> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-> index 42c8d44..a13508b 100644
-> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
-> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-> @@ -168,6 +168,8 @@ struct rpcrdma_rep {
->         struct rpcrdma_regbuf   *rr_rdmabuf;
+> +               if (rpcrdma_bc_setup_rqst(r_xprt, rqst))
+> +                       goto out_free;
+> +
+> +               spin_lock_bh(&xprt->bc_pa_lock);
+> +               list_add(&rqst->rq_bc_pa_list, &xprt->bc_pa_list);
+> +               spin_unlock_bh(&xprt->bc_pa_lock);
+> +       }
+> +
+> +       rc = rpcrdma_bc_setup_reps(r_xprt, reqs);
+> +       if (rc)
+> +               goto out_free;
+> +
+> +       rc = rpcrdma_ep_post_extra_recv(r_xprt, reqs);
+> +       if (rc)
+> +               goto out_free;
+> +
+> +       buffer->rb_bc_srv_max_requests = reqs;
+> +       request_module("svcrdma");
+> +
+> +       return 0;
+> +
+> +out_free:
+> +       xprt_rdma_bc_destroy(xprt, reqs);
+> +
+> +       pr_err("RPC:       %s: setup backchannel transport failed\n", __func__);
+> +       return -ENOMEM;
+> +}
+> +
+> +/**
+> + * xprt_rdma_bc_destroy - Release resources for handling backchannel requests
+> + * @xprt: transport associated with these backchannel resources
+> + * @reqs: number of incoming requests to destroy; ignored
+> + */
+> +void xprt_rdma_bc_destroy(struct rpc_xprt *xprt, unsigned int reqs)
+> +{
+> +       struct rpcrdma_xprt *r_xprt = rpcx_to_rdmax(xprt);
+> +       struct rpc_rqst *rqst, *tmp;
+> +
+> +       spin_lock_bh(&xprt->bc_pa_lock);
+> +       list_for_each_entry_safe(rqst, tmp, &xprt->bc_pa_list, rq_bc_pa_list) {
+> +               list_del(&rqst->rq_bc_pa_list);
+> +               spin_unlock_bh(&xprt->bc_pa_lock);
+> +
+> +               rpcrdma_bc_free_rqst(r_xprt, rqst);
+> +
+> +               spin_lock_bh(&xprt->bc_pa_lock);
+> +       }
+> +       spin_unlock_bh(&xprt->bc_pa_lock);
+> +}
+> +
+> +/**
+> + * xprt_rdma_bc_free_rqst - Release a backchannel rqst
+> + * @rqst: request to release
+> + */
+> +void xprt_rdma_bc_free_rqst(struct rpc_rqst *rqst)
+> +{
+> +       struct rpc_xprt *xprt = rqst->rq_xprt;
+> +
+> +       smp_mb__before_atomic();
+> +       WARN_ON_ONCE(!test_bit(RPC_BC_PA_IN_USE, &rqst->rq_bc_pa_state));
+> +       clear_bit(RPC_BC_PA_IN_USE, &rqst->rq_bc_pa_state);
+> +       smp_mb__after_atomic();
+> +
+> +       spin_lock_bh(&xprt->bc_pa_lock);
+> +       list_add_tail(&rqst->rq_bc_pa_list, &xprt->bc_pa_list);
+> +       spin_unlock_bh(&xprt->bc_pa_lock);
+> +}
+> diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+> index e9e5ed7..e3871a6 100644
+> --- a/net/sunrpc/xprtrdma/transport.c
+> +++ b/net/sunrpc/xprtrdma/transport.c
+> @@ -705,7 +705,12 @@ static struct rpc_xprt_ops xprt_rdma_procs = {
+>         .print_stats            = xprt_rdma_print_stats,
+>         .enable_swap            = xprt_rdma_enable_swap,
+>         .disable_swap           = xprt_rdma_disable_swap,
+> -       .inject_disconnect      = xprt_rdma_inject_disconnect
+> +       .inject_disconnect      = xprt_rdma_inject_disconnect,
+> +#if defined(CONFIG_SUNRPC_BACKCHANNEL)
+> +       .bc_setup               = xprt_rdma_bc_setup,
+> +       .bc_free_rqst           = xprt_rdma_bc_free_rqst,
+> +       .bc_destroy             = xprt_rdma_bc_destroy,
+> +#endif
 >  };
 >
-> +#define RPCRDMA_BAD_LEN                (~0U)
+>  static struct xprt_class xprt_rdma = {
+> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+> index 8d99214..1e4a948 100644
+> --- a/net/sunrpc/xprtrdma/verbs.c
+> +++ b/net/sunrpc/xprtrdma/verbs.c
+> @@ -877,7 +877,22 @@ retry:
+>                 }
+>                 rc = ep->rep_connected;
+>         } else {
+> +               struct rpcrdma_xprt *r_xprt;
+> +               unsigned int extras;
 > +
+>                 dprintk("RPC:       %s: connected\n", __func__);
+> +
+> +               r_xprt = container_of(ia, struct rpcrdma_xprt, rx_ia);
+> +               extras = r_xprt->rx_buf.rb_bc_srv_max_requests;
+> +
+> +               if (extras) {
+> +                       rc = rpcrdma_ep_post_extra_recv(r_xprt, extras);
+> +                       if (rc)
+> +                               pr_err("%s: could not post "
+> +                                      "extra receive buffers: %i\n",
+> +                                      __func__, rc);
+> +                               rc = 0;
+> +               }
+>         }
+>
+>  out:
+> @@ -914,20 +929,25 @@ rpcrdma_ep_disconnect(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
+>         }
+>  }
+>
+> -static struct rpcrdma_req *
+> +struct rpcrdma_req *
+>  rpcrdma_create_req(struct rpcrdma_xprt *r_xprt)
+>  {
+> +       struct rpcrdma_buffer *buffer = &r_xprt->rx_buf;
+>         struct rpcrdma_req *req;
+>
+>         req = kzalloc(sizeof(*req), GFP_KERNEL);
+>         if (req == NULL)
+>                 return ERR_PTR(-ENOMEM);
+>
+> +       INIT_LIST_HEAD(&req->rl_free);
+> +       spin_lock(&buffer->rb_reqslock);
+> +       list_add(&req->rl_all, &buffer->rb_allreqs);
+> +       spin_unlock(&buffer->rb_reqslock);
+>         req->rl_buffer = &r_xprt->rx_buf;
+>         return req;
+>  }
+>
+> -static struct rpcrdma_rep *
+> +struct rpcrdma_rep *
+>  rpcrdma_create_rep(struct rpcrdma_xprt *r_xprt)
+>  {
+>         struct rpcrdma_create_data_internal *cdata = &r_xprt->rx_data;
+> @@ -965,6 +985,7 @@ rpcrdma_buffer_create(struct rpcrdma_xprt *r_xprt)
+>         int i, rc;
+>
+>         buf->rb_max_requests = r_xprt->rx_data.max_requests;
+> +       buf->rb_bc_srv_max_requests = 0;
+>         spin_lock_init(&buf->rb_lock);
+>
+>         rc = ia->ri_ops->ro_init(r_xprt);
+> @@ -972,6 +993,8 @@ rpcrdma_buffer_create(struct rpcrdma_xprt *r_xprt)
+>                 goto out;
+>
+>         INIT_LIST_HEAD(&buf->rb_send_bufs);
+> +       INIT_LIST_HEAD(&buf->rb_allreqs);
+> +       spin_lock_init(&buf->rb_reqslock);
+>         for (i = 0; i < buf->rb_max_requests; i++) {
+>                 struct rpcrdma_req *req;
+>
+> @@ -982,6 +1005,7 @@ rpcrdma_buffer_create(struct rpcrdma_xprt *r_xprt)
+>                         rc = PTR_ERR(req);
+>                         goto out;
+>                 }
+> +               req->rl_backchannel = false;
+>                 list_add(&req->rl_free, &buf->rb_send_bufs);
+>         }
+>
+> @@ -1008,19 +1032,13 @@ out:
+>  static void
+>  rpcrdma_destroy_rep(struct rpcrdma_ia *ia, struct rpcrdma_rep *rep)
+>  {
+> -       if (!rep)
+> -               return;
+> -
+>         rpcrdma_free_regbuf(ia, rep->rr_rdmabuf);
+>         kfree(rep);
+>  }
+>
+> -static void
+> +void
+>  rpcrdma_destroy_req(struct rpcrdma_ia *ia, struct rpcrdma_req *req)
+>  {
+> -       if (!req)
+> -               return;
+> -
+>         rpcrdma_free_regbuf(ia, req->rl_sendbuf);
+>         rpcrdma_free_regbuf(ia, req->rl_rdmabuf);
+>         kfree(req);
+> @@ -1040,14 +1058,20 @@ rpcrdma_buffer_destroy(struct rpcrdma_buffer *buf)
+>                 rpcrdma_destroy_rep(ia, rep);
+>         }
+>
+> -       while (!list_empty(&buf->rb_send_bufs)) {
+> -               struct rpcrdma_req *req = list_entry(buf->rb_send_bufs.next,
+> +       spin_lock(&buf->rb_reqslock);
+> +       while (!list_empty(&buf->rb_allreqs)) {
+> +               struct rpcrdma_req *req = list_entry(buf->rb_allreqs.next,
+>                                                      struct rpcrdma_req,
+> -                                                    rl_free);
+> +                                                    rl_all);
+> +
+> +               list_del(&req->rl_all);
+> +               spin_unlock(&buf->rb_reqslock);
+>
+> -               list_del(&req->rl_free);
+>                 rpcrdma_destroy_req(ia, req);
+> +
+> +               spin_lock(&buf->rb_reqslock);
+>         }
+> +       spin_unlock(&buf->rb_reqslock);
+>
+>         ia->ri_ops->ro_destroy(buf);
+>  }
+> @@ -1094,7 +1118,7 @@ rpcrdma_buffer_get_locked(struct rpcrdma_buffer *buf)
+>
+>         rep = list_first_entry(&buf->rb_recv_bufs,
+>                                struct rpcrdma_rep, rr_list);
+> -       list_del(&rep->rr_list);
+> +       list_del_init(&rep->rr_list);
+>
+>         return rep;
+>  }
+> @@ -1337,6 +1361,46 @@ rpcrdma_ep_post_recv(struct rpcrdma_ia *ia,
+>         return rc;
+>  }
+>
+> +/**
+> + * rpcrdma_bc_post_recv - Post buffers to catch incoming backchannel requests
+> + * @r_xprt: transport associated with these backchannel resources
+> + * @min_reqs: minimum number of incoming requests expected
+> + *
+> + * Returns zero if all requested buffers were posted, or a negative errno.
+> + */
+> +int
+> +rpcrdma_ep_post_extra_recv(struct rpcrdma_xprt *r_xprt, unsigned int count)
+> +{
+> +       struct rpcrdma_ia *ia = &r_xprt->rx_ia;
+> +       struct rpcrdma_ep *ep = &r_xprt->rx_ep;
+> +       struct rpcrdma_buffer *buffers = &r_xprt->rx_buf;
+> +       struct rpcrdma_rep *rep;
+> +       unsigned long flags;
+> +       int rc;
+> +
+> +       while (count--) {
+> +               rep = NULL;
+> +               spin_lock_irqsave(&buffers->rb_lock, flags);
+> +               if (!list_empty(&buffers->rb_recv_bufs))
+> +                       rep = rpcrdma_buffer_get_locked(buffers);
+> +               spin_unlock_irqrestore(&buffers->rb_lock, flags);
+> +               if (!rep) {
+> +                       pr_err("%s: no extra receive buffers\n", __func__);
+> +                       return -ENOMEM;
+> +               }
+> +
+> +               rc = rpcrdma_ep_post_recv(ia, ep, rep);
+> +               if (rc) {
+> +                       spin_lock_irqsave(&buffers->rb_lock, flags);
+> +                       rpcrdma_buffer_put_locked(rep, buffers);
+> +                       spin_unlock_irqrestore(&buffers->rb_lock, flags);
+> +                       return rc;
+> +               }
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+>  /* How many chunk list items fit within our inline buffers?
+>   */
+>  unsigned int
+> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+> index e6a358f..2ca0567 100644
+> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
+> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+> @@ -262,6 +262,9 @@ struct rpcrdma_req {
+>         struct rpcrdma_regbuf   *rl_rdmabuf;
+>         struct rpcrdma_regbuf   *rl_sendbuf;
+>         struct rpcrdma_mr_seg   rl_segments[RPCRDMA_MAX_SEGS];
+> +
+> +       struct list_head        rl_all;
+> +       bool                    rl_backchannel;
+>  };
+>
+>  static inline struct rpcrdma_req *
+> @@ -290,6 +293,10 @@ struct rpcrdma_buffer {
+>         struct list_head        rb_send_bufs;
+>         struct list_head        rb_recv_bufs;
+>         u32                     rb_max_requests;
+> +
+> +       u32                     rb_bc_srv_max_requests;
+> +       spinlock_t              rb_reqslock;    /* protect rb_allreqs */
+> +       struct list_head        rb_allreqs;
+>  };
+>  #define rdmab_to_ia(b) (&container_of((b), struct rpcrdma_xprt, rx_buf)->rx_ia)
+>
+> @@ -410,6 +417,9 @@ int rpcrdma_ep_post_recv(struct rpcrdma_ia *, struct rpcrdma_ep *,
 >  /*
->   * struct rpcrdma_mw - external memory region metadata
->   *
+>   * Buffer calls - xprtrdma/verbs.c
+>   */
+> +struct rpcrdma_req *rpcrdma_create_req(struct rpcrdma_xprt *);
+> +struct rpcrdma_rep *rpcrdma_create_rep(struct rpcrdma_xprt *);
+> +void rpcrdma_destroy_req(struct rpcrdma_ia *, struct rpcrdma_req *);
+>  int rpcrdma_buffer_create(struct rpcrdma_xprt *);
+>  void rpcrdma_buffer_destroy(struct rpcrdma_buffer *);
+>
+> @@ -426,6 +436,7 @@ void rpcrdma_free_regbuf(struct rpcrdma_ia *,
+>                          struct rpcrdma_regbuf *);
+>
+>  unsigned int rpcrdma_max_segments(struct rpcrdma_xprt *);
+> +int rpcrdma_ep_post_extra_recv(struct rpcrdma_xprt *, unsigned int);
+>
+>  int frwr_alloc_recovery_wq(void);
+>  void frwr_destroy_recovery_wq(void);
+> @@ -490,6 +501,15 @@ int rpcrdma_marshal_req(struct rpc_rqst *);
+>  int xprt_rdma_init(void);
+>  void xprt_rdma_cleanup(void);
+>
+> +/* Backchannel calls - xprtrdma/backchannel.c
+> + */
+> +#if defined(CONFIG_SUNRPC_BACKCHANNEL)
+> +int xprt_rdma_bc_setup(struct rpc_xprt *, unsigned int);
+> +int rpcrdma_bc_post_recv(struct rpcrdma_xprt *, unsigned int);
+> +void xprt_rdma_bc_free_rqst(struct rpc_rqst *);
+> +void xprt_rdma_bc_destroy(struct rpc_xprt *, unsigned int);
+> +#endif /* CONFIG_SUNRPC_BACKCHANNEL */
+> +
+>  /* Temporary NFS request map cache. Created in svc_rdma.c  */
+>  extern struct kmem_cache *svc_rdma_map_cachep;
+>  /* WR context cache. Created in svc_rdma.c  */
 >
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
