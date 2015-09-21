@@ -1,52 +1,45 @@
-From: David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 00/38] Fixes related to incorrect usage of unsigned types
-Date: Mon, 21 Sep 2015 14:42:25 +0100
-Message-ID: <17571.1442842945@warthog.procyon.org.uk>
-References: <1442842450-29769-1-git-send-email-a.hajda@samsung.com>
+From: Geliang Tang <geliangtang@163.com>
+Subject: [PATCH] IB/hfi1: class_name_user() should be static
+Date: Mon, 21 Sep 2015 22:18:14 +0800
+Message-ID: <3fc89a14df9bdee0d0eaba7031e533e4f88fc5c6.1442844831.git.geliangtang@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1442842450-29769-1-git-send-email-a.hajda-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Content-ID: <17570.1442842945.1-S6HVgzuS8uM4Awkfq6JHfwNdhmdF6hFW@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andrzej Hajda <a.hajda-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Cc: dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-cachefs-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lustre-devel-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Mike Marciniszyn <infinipath@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-rdma@vger.kernel.org, Geliang Tang <geliangtang@163.com>, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Andrzej Hajda <a.hajda-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org> wrote:
+Fixes the following sparse warning:
+  drivers/staging/rdma/hfi1/device.c:127:12:
+  warning: symbol 'class_name_user' was not declared. Should it be static?
 
-> Semantic patch finds comparisons of types:
->     unsigned < 0
->     unsigned >= 0
-> The former is always false, the latter is always true.
-> Such comparisons are useless, so theoretically they could be
-> safely removed, but their presence quite often indicates bugs.
+Signed-off-by: Geliang Tang <geliangtang@163.com>
+---
+ drivers/staging/rdma/hfi1/device.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Or someone has left them in because they don't matter and there's the
-possibility that the type being tested might be or become signed under some
-circumstances.  If the comparison is useless, I'd expect the compiler to just
-discard it - for such cases your patch is pointless.
-
-If I have, for example:
-
-	unsigned x;
-
-	if (x == 0 || x > 27)
-		give_a_range_error();
-
-I will write this as:
-
-	unsigned x;
-
-	if (x <= 0 || x > 27)
-		give_a_range_error();
-
-because it that gives a way to handle x being changed to signed at some point
-in the future for no cost.  In which case, your changing the <= to an ==
-"because the < part of the case is useless" is arguably wrong.
-
-David
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/staging/rdma/hfi1/device.c b/drivers/staging/rdma/hfi1/device.c
+index bc26a53..58472e5 100644
+--- a/drivers/staging/rdma/hfi1/device.c
++++ b/drivers/staging/rdma/hfi1/device.c
+@@ -124,7 +124,7 @@ static char *hfi1_devnode(struct device *dev, umode_t *mode)
+ }
+ 
+ static const char *hfi1_class_name_user = "hfi1_user";
+-const char *class_name_user(void)
++static const char *class_name_user(void)
+ {
+ 	return hfi1_class_name_user;
+ }
+-- 
+2.5.0
