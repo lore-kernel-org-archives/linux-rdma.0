@@ -1,76 +1,63 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 1/3] xprtrdma: disconnect and flush cqs before freeing buffers
-Date: Mon, 21 Sep 2015 12:24:23 -0500
-Message-ID: <20150921172423.9761.92399.stgit@build2.ogc.int>
+Subject: [PATCH 2/3] svcrdma: handle rdma read with a non-zero initial page
+	offset
+Date: Mon, 21 Sep 2015 12:24:29 -0500
+Message-ID: <20150921172428.9761.27838.stgit@build2.ogc.int>
+References: <20150921172423.9761.92399.stgit@build2.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150921172423.9761.92399.stgit-PBeJgSbIpn97NCTnQtmixQ@public.gmane.org>
 Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
 Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Otherwise a FRMR completion can cause a touch-after-free crash.
+The server rdma_read_chunk_lcl() and rdma_read_chunk_frmr() functions
+were not taking into account the initial page_offset when determining
+the rdma read length.  This resulted in a read who's starting address
+and length exceeded the base/bounds of the frmr.
 
-In xprt_rdma_destroy(), call rpcrdma_buffer_destroy() only after calling
-rpcrdma_ep_destroy().
+Most work loads don't tickle this bug apparently, but one test hit it
+every time: building the linux kernel on a 16 core node with 'make -j
+16 O=/mnt/0' where /mnt/0 is a ramdisk mounted via NFSRDMA.
 
-In rpcrdma_ep_destroy(), disconnect the cm_id first which should flush the
-qp, then drain the cqs, then destroy the qp, and finally destroy the cqs.
+This bug seems to only be tripped with devices having small fastreg page
+list depths.  I didn't see it with mlx4, for instance.
 
+Fixes: 0bf4828983df ('svcrdma: refactor marshalling logic')
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Tested-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
 
- net/sunrpc/xprtrdma/transport.c |    2 +-
- net/sunrpc/xprtrdma/verbs.c     |    9 ++++++---
- 2 files changed, 7 insertions(+), 4 deletions(-)
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
-index 64443eb..41e452b 100644
---- a/net/sunrpc/xprtrdma/transport.c
-+++ b/net/sunrpc/xprtrdma/transport.c
-@@ -270,8 +270,8 @@ xprt_rdma_destroy(struct rpc_xprt *xprt)
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+index cb51742..5f6ca47 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+@@ -136,7 +136,8 @@ int rdma_read_chunk_lcl(struct svcxprt_rdma *xprt,
+ 	ctxt->direction = DMA_FROM_DEVICE;
+ 	ctxt->read_hdr = head;
+ 	pages_needed = min_t(int, pages_needed, xprt->sc_max_sge_rd);
+-	read = min_t(int, pages_needed << PAGE_SHIFT, rs_length);
++	read = min_t(int, (pages_needed << PAGE_SHIFT) - *page_offset,
++		     rs_length);
  
- 	xprt_clear_connected(xprt);
+ 	for (pno = 0; pno < pages_needed; pno++) {
+ 		int len = min_t(int, rs_length, PAGE_SIZE - pg_off);
+@@ -235,7 +236,8 @@ int rdma_read_chunk_frmr(struct svcxprt_rdma *xprt,
+ 	ctxt->direction = DMA_FROM_DEVICE;
+ 	ctxt->frmr = frmr;
+ 	pages_needed = min_t(int, pages_needed, xprt->sc_frmr_pg_list_len);
+-	read = min_t(int, pages_needed << PAGE_SHIFT, rs_length);
++	read = min_t(int, (pages_needed << PAGE_SHIFT) - *page_offset,
++		     rs_length);
  
--	rpcrdma_buffer_destroy(&r_xprt->rx_buf);
- 	rpcrdma_ep_destroy(&r_xprt->rx_ep, &r_xprt->rx_ia);
-+	rpcrdma_buffer_destroy(&r_xprt->rx_buf);
- 	rpcrdma_ia_close(&r_xprt->rx_ia);
- 
- 	xprt_rdma_free_addresses(xprt);
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 6829967..01a314a 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -755,19 +755,22 @@ rpcrdma_ep_destroy(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
- 
- 	cancel_delayed_work_sync(&ep->rep_connect_worker);
- 
--	if (ia->ri_id->qp) {
-+	if (ia->ri_id->qp)
- 		rpcrdma_ep_disconnect(ep, ia);
-+
-+	rpcrdma_clean_cq(ep->rep_attr.recv_cq);
-+	rpcrdma_clean_cq(ep->rep_attr.send_cq);
-+
-+	if (ia->ri_id->qp) {
- 		rdma_destroy_qp(ia->ri_id);
- 		ia->ri_id->qp = NULL;
- 	}
- 
--	rpcrdma_clean_cq(ep->rep_attr.recv_cq);
- 	rc = ib_destroy_cq(ep->rep_attr.recv_cq);
- 	if (rc)
- 		dprintk("RPC:       %s: ib_destroy_cq returned %i\n",
- 			__func__, rc);
- 
--	rpcrdma_clean_cq(ep->rep_attr.send_cq);
- 	rc = ib_destroy_cq(ep->rep_attr.send_cq);
- 	if (rc)
- 		dprintk("RPC:       %s: ib_destroy_cq returned %i\n",
+ 	frmr->kva = page_address(rqstp->rq_arg.pages[pg_no]);
+ 	frmr->direction = DMA_FROM_DEVICE;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
