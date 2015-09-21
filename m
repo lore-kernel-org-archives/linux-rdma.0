@@ -1,42 +1,139 @@
-From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: Re: [patch] IB/hfi1: checking for NULL instead of IS_ERR
-Date: Mon, 21 Sep 2015 15:29:33 -0700
-Message-ID: <20150921222933.GA21618@kroah.com>
-References: <20150916062220.GC21542@mwanda>
- <55FC32ED.1000404@redhat.com>
- <20150919030153.GA30373@kroah.com>
- <56002564.6000100@redhat.com>
- <20150921164846.GB27380@kroah.com>
- <56003878.7080409@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <56003878.7080409-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 15/18] svcrdma: Add svc_rdma_get_context() API that is allowed to fail
+Date: Mon, 21 Sep 2015 15:34:07 -0700
+Message-ID: <958B9B71-C068-4ED2-8928-E93BCC537102@oracle.com>
+References: <20150917202829.19671.90044.stgit@manet.1015granger.net> <20150917204614.19671.61606.stgit@manet.1015granger.net> <55FEA951.8000106@dev.mellanox.co.il>
+Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <55FEA951.8000106-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 21, 2015 at 01:03:52PM -0400, Doug Ledford wrote:
-> On 09/21/2015 12:48 PM, Greg Kroah-Hartman wrote:
-> 
-> > But, that's already not happening, as is obvious by my inbox.
-> 
-> Yeah, I see that.
-> 
-> > So, how about you forward on what you have so far to me, and I'll keep
-> > these.  Otherwise you will end up with nasty merge issues very quickly
-> > as people will continue to send stuff to me.
-> 
-> As you wish.  I pulled in a number of patches related to hfi1, but I've
-> already sent the pull request to Linus and they made it as of 4.1-rc2.
-> So, just start from there and you will have all the patches I've taken.
 
-Sounds good, thanks.
+> On Sep 20, 2015, at 5:40 AM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>=
+ wrote:
+>=20
+> On 9/17/2015 11:46 PM, Chuck Lever wrote:
+>> To support backward direction calls, I'm going to add an
+>> svc_rdma_get_context() call in the client RDMA transport.
+>>=20
+>> Called from ->buf_alloc(), we can't sleep waiting for memory.
+>> So add an API that can get a server op_ctxt but won't sleep.
+>>=20
+>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> ---
+>>  include/linux/sunrpc/svc_rdma.h          |    2 ++
+>>  net/sunrpc/xprtrdma/svc_rdma_transport.c |   28 +++++++++++++++++++=
+++++-----
+>>  2 files changed, 25 insertions(+), 5 deletions(-)
+>>=20
+>> diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/=
+svc_rdma.h
+>> index 6ce7495..2500dd1 100644
+>> --- a/include/linux/sunrpc/svc_rdma.h
+>> +++ b/include/linux/sunrpc/svc_rdma.h
+>> @@ -224,6 +224,8 @@ extern void svc_rdma_send_error(struct svcxprt_r=
+dma *, struct rpcrdma_msg *,
+>>  extern int svc_rdma_post_recv(struct svcxprt_rdma *);
+>>  extern int svc_rdma_create_listen(struct svc_serv *, int, struct so=
+ckaddr *);
+>>  extern struct svc_rdma_op_ctxt *svc_rdma_get_context(struct svcxprt=
+_rdma *);
+>> +extern struct svc_rdma_op_ctxt *svc_rdma_get_context_gfp(struct svc=
+xprt_rdma *,
+>> +							 gfp_t);
+>>  extern void svc_rdma_put_context(struct svc_rdma_op_ctxt *, int);
+>>  extern void svc_rdma_unmap_dma(struct svc_rdma_op_ctxt *ctxt);
+>>  extern struct svc_rdma_req_map *svc_rdma_get_req_map(void);
+>> diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/x=
+prtrdma/svc_rdma_transport.c
+>> index 23aba30..c4083a3 100644
+>> --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
+>> +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+>> @@ -153,17 +153,35 @@ static void svc_rdma_bc_free(struct svc_xprt *=
+xprt)
+>>  }
+>>  #endif	/* CONFIG_SUNRPC_BACKCHANNEL */
+>>=20
+>> -struct svc_rdma_op_ctxt *svc_rdma_get_context(struct svcxprt_rdma *=
+xprt)
+>> +static void svc_rdma_init_context(struct svcxprt_rdma *xprt,
+>> +				  struct svc_rdma_op_ctxt *ctxt)
+>>  {
+>> -	struct svc_rdma_op_ctxt *ctxt;
+>> -
+>> -	ctxt =3D kmem_cache_alloc(svc_rdma_ctxt_cachep,
+>> -				GFP_KERNEL | __GFP_NOFAIL);
+>>  	ctxt->xprt =3D xprt;
+>>  	INIT_LIST_HEAD(&ctxt->dto_q);
+>>  	ctxt->count =3D 0;
+>>  	ctxt->frmr =3D NULL;
+>>  	atomic_inc(&xprt->sc_ctxt_used);
+>> +}
+>> +
+>> +struct svc_rdma_op_ctxt *svc_rdma_get_context_gfp(struct svcxprt_rd=
+ma *xprt,
+>> +						  gfp_t flags)
+>> +{
+>> +	struct svc_rdma_op_ctxt *ctxt;
+>> +
+>> +	ctxt =3D kmem_cache_alloc(svc_rdma_ctxt_cachep, flags);
+>> +	if (!ctxt)
+>> +		return NULL;
+>> +	svc_rdma_init_context(xprt, ctxt);
+>> +	return ctxt;
+>> +}
+>> +
+>> +struct svc_rdma_op_ctxt *svc_rdma_get_context(struct svcxprt_rdma *=
+xprt)
+>> +{
+>=20
+> Why not:
+>       return svc_rdma_get_context_gfp(xprt, GFP_KERNEL | __GFP_NOFAIL=
+);
 
-greg k-h
+The =E2=80=9Cif (!ctxt) return NULL;=E2=80=9D is unneeded if __GFP_NOFA=
+IL is
+specified.
+
+I=E2=80=99ll wait for additional comments on this one, I could go
+either way.
+
+
+> ?
+>=20
+>> +	struct svc_rdma_op_ctxt *ctxt;
+>> +
+>> +	ctxt =3D kmem_cache_alloc(svc_rdma_ctxt_cachep,
+>> +				GFP_KERNEL | __GFP_NOFAIL);
+>> +	svc_rdma_init_context(xprt, ctxt);
+>>  	return ctxt;
+>>  }
+>>=20
+>>=20
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
+" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>=20
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+=E2=80=94
+Chuck Lever
+
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
