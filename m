@@ -1,87 +1,119 @@
-From: Geliang Tang <geliangtang@163.com>
-Subject: [PATCH] staging: rdma: add a blank line after function
-Date: Mon, 21 Sep 2015 23:39:08 +0800
-Message-ID: <43f0dc92984109a1953848fa5c6546e3ffb34ad5.1442849672.git.geliangtang@163.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [patch] IB/hfi1: checking for NULL instead of IS_ERR
+Date: Mon, 21 Sep 2015 11:42:28 -0400
+Message-ID: <56002564.6000100@redhat.com>
+References: <20150916062220.GC21542@mwanda> <55FC32ED.1000404@redhat.com>
+ <20150919030153.GA30373@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mike Marciniszyn <infinipath@intel.com>, Steve Wise <swise@opengridcomputing.com>
-Cc: linux-rdma@vger.kernel.org, Geliang Tang <geliangtang@163.com>, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="qgiEDosIXATkFhLC66sqiBqxoWJSrO2Jn"
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <20150919030153.GA30373@kroah.com>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>, Mike Marciniszyn <infinipath@intel.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, devel@driverdev.osuosl.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Fixed warnings found by checkpatch.pl:
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--qgiEDosIXATkFhLC66sqiBqxoWJSrO2Jn
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Please use a blank line after function/struct/union/enum declarations
-  FILE: drivers/staging/rdma/amso1100/c2_mq.c:158:
-  FILE: drivers/staging/rdma/hfi1/file_ops.c:2069:
-  FILE: drivers/staging/rdma/hfi1/sdma.c:744:
-  FILE: drivers/staging/rdma/hfi1/verbs.c:1202:
+On 09/18/2015 11:01 PM, Greg Kroah-Hartman wrote:
+> On Fri, Sep 18, 2015 at 11:51:09AM -0400, Doug Ledford wrote:
+>> On 09/16/2015 02:22 AM, Dan Carpenter wrote:
+>>> __get_txreq() returns an ERR_PTR() but this checks for NULL so it wou=
+ld
+>>> oops on failure.
+>>>
+>>> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+>>
+>> Thanks, applied.
+>=20
+> Applied to what?  Should I just ignore these types of patches and not
+> take them in my tree and you will send them on later on?  I don't
+> remember what we agreed to do, sorry.
 
-Signed-off-by: Geliang Tang <geliangtang@163.com>
----
- drivers/staging/rdma/amso1100/c2_mq.c | 1 +
- drivers/staging/rdma/hfi1/file_ops.c  | 1 +
- drivers/staging/rdma/hfi1/sdma.c      | 1 +
- drivers/staging/rdma/hfi1/verbs.c     | 1 +
- 4 files changed, 4 insertions(+)
+My understanding was that I would handle everything in the staging/rdma
+area.  To that end, I tried to make it explicit so that people would
+know that via the following things:
 
-diff --git a/drivers/staging/rdma/amso1100/c2_mq.c b/drivers/staging/rdma/amso1100/c2_mq.c
-index 0cddc49..7827fb8 100644
---- a/drivers/staging/rdma/amso1100/c2_mq.c
-+++ b/drivers/staging/rdma/amso1100/c2_mq.c
-@@ -155,6 +155,7 @@ void c2_mq_req_init(struct c2_mq *q, u32 index, u32 q_size, u32 msg_size,
- 	q->hint_count = 0;
- 	return;
- }
-+
- void c2_mq_rep_init(struct c2_mq *q, u32 index, u32 q_size, u32 msg_size,
- 		    u8 *pool_start, u16 __iomem *peer, u32 type)
- {
-diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
-index 72d3850..9a77221 100644
---- a/drivers/staging/rdma/hfi1/file_ops.c
-+++ b/drivers/staging/rdma/hfi1/file_ops.c
-@@ -2066,6 +2066,7 @@ static const struct file_operations ui_file_ops = {
- 	.open = ui_open,
- 	.release = ui_release,
- };
-+
- #define UI_OFFSET 192	/* device minor offset for UI devices */
- static int create_ui = 1;
- 
-diff --git a/drivers/staging/rdma/hfi1/sdma.c b/drivers/staging/rdma/hfi1/sdma.c
-index aecd1a7..78d016b 100644
---- a/drivers/staging/rdma/hfi1/sdma.c
-+++ b/drivers/staging/rdma/hfi1/sdma.c
-@@ -741,6 +741,7 @@ u16 sdma_get_descq_cnt(void)
- 		return SDMA_DESCQ_CNT;
- 	return count;
- }
-+
- /**
-  * sdma_select_engine_vl() - select sdma engine
-  * @dd: devdata
-diff --git a/drivers/staging/rdma/hfi1/verbs.c b/drivers/staging/rdma/hfi1/verbs.c
-index 41bb59e..a43fccd 100644
---- a/drivers/staging/rdma/hfi1/verbs.c
-+++ b/drivers/staging/rdma/hfi1/verbs.c
-@@ -1199,6 +1199,7 @@ pio_bail:
- 	}
- 	return 0;
- }
-+
- /*
-  * egress_pkey_matches_entry - return 1 if the pkey matches ent (ent
-  * being an entry from the ingress partition key table), return 0
--- 
-2.5.0
+=46rom MAINTAINERS:
+
+INFINIBAND SUBSYSTEM
+M:      Doug Ledford <dledford@redhat.com>
+M:      Sean Hefty <sean.hefty@intel.com>
+M:      Hal Rosenstock <hal.rosenstock@gmail.com>
+L:      linux-rdma@vger.kernel.org
+W:      http://www.openfabrics.org/
+Q:      http://patchwork.kernel.org/project/linux-rdma/list/
+T:      git git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.g=
+it
+S:      Supported
+F:      Documentation/infiniband/
+F:      drivers/infiniband/
+F:      drivers/staging/rdma/
+F:      include/uapi/linux/if_infiniband.h
+F:      include/uapi/rdma/
+F:      include/rdma/
+
+
+And from drivers/staging/rdma/Kconfig:
+
+menuconfig STAGING_RDMA
+        bool "RDMA staging drivers"
+	depends on INFINIBAND
+	depends on PCI || BROKEN
+	depends on HAS_IOMEM
+	depends on NET
+	depends on INET
+        default n
+        ---help---
+          This option allows you to select a number of RDMA drivers that
+	  fall into one of two categories: deprecated drivers being held
+	  here before finally being removed or new drivers that still need
+	  some work before being moved to the normal RDMA driver area.
+
+          If you wish to work on these drivers, to help improve them, or
+          to report problems you have with them, please use the
+	  linux-rdma@vger.kernel.org mailing list.
+
+          If in doubt, say N here.
+
+I was hoping those two items would be sufficient to keep people from
+flooding devel@ and yourself personally with fixups for these items and
+instead they would send them through linux-rdma@.
+
+
+--=20
+Doug Ledford <dledford@redhat.com>
+              GPG KeyID: 0E572FDD
+
+
+
+--qgiEDosIXATkFhLC66sqiBqxoWJSrO2Jn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJWACVkAAoJELgmozMOVy/dWZgQAJD7ROh/5AxO9Zgv2vjbb6h2
+7NqbB0ZvomgvJjTpJMWPtisgy24Z/8Z+0Uqf4+L/bHlG23c8/w/T8f6sd8BtlPDL
+HVLqgZ6ha/23wIhkNHDLgz26wqDMKuIbmG2zOygFC/2dJWmX3wTRilwVwkB9de4r
+2TSM8s7Vq4GaiZRAVNGWZXwPv/Wb7fgCIGQ3GuminuLtVTV2aUtrRZR+6KKdFUeC
+FUbYZIy6TQRihSlInCdvfJ1E4hyXsK4vD0TNClWd6SVCpLsGnGZAeZmh950AGYuk
+wirKPzOlYH3RpKaKpTMInd9F2ufF7HaTzSVsL6ubIhuwkEkYHXT0TEGPohPnDdLC
+DNHOEKdoiS2Yj2SBuGguMFeFq6TeEBjVNHlSg/Vz0Zaw1UMn72z3wW3i7/JrYi0D
+p4I+XFAmGSkn2kCbmfSLokSMBlwIoy1etVkIw1WsEm5Pna1NSzdXN+OLcvznGQxI
+YLTSYSrIrr6i6SnF9MCMhehWyMIYNNtp1Lbq5A0e0rhS1sRrWXOnKJI2JUMoXNZW
+BjP6KaCBZrmJGLqb+YXKeK/eIHavvEc9UJXQkkb4tKgAco301bJ/6rvUQ/Zdyfi/
+enZGH+e6u278kTlyrNmI8sJv0Ugl3gbZSrNIyvs8uCoO1wYHDYkbZdpvx6gXhTKr
+yonUjeaQdooh6HESgyHc
+=4S05
+-----END PGP SIGNATURE-----
+
+--qgiEDosIXATkFhLC66sqiBqxoWJSrO2Jn--
