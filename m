@@ -1,46 +1,24 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 3/3] xprtrdma: don't log warnings for flushed completions
-Date: Mon, 21 Sep 2015 12:24:34 -0500
-Message-ID: <20150921172434.9761.97255.stgit@build2.ogc.int>
-References: <20150921172423.9761.92399.stgit@build2.ogc.int>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-rc v1 0/4] Remove mlx5 support for IB_DEVICE_LOCAL_DMA_LKEY
+Date: Mon, 21 Sep 2015 23:03:14 +0300
+Message-ID: <CAJ3xEMiGKTbL3YK04OFgnuOY_8N3EgM6Ay-cJyUaATQ9a7Wz5A@mail.gmail.com>
+References: <1442853674-8677-1-git-send-email-sagig@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150921172423.9761.92399.stgit-PBeJgSbIpn97NCTnQtmixQ@public.gmane.org>
+In-Reply-To: <1442853674-8677-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
-Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Unsignaled send WRs can get flushed as part of normal unmount, so don't
-log them as warnings.
+On Mon, Sep 21, 2015 at 7:41 PM, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> Changes from v0:
+> - Replace xprtrdma patch to Chuck's one
+> - Fixed typo in iser modparam description
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
-
- net/sunrpc/xprtrdma/frwr_ops.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
-
-diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
-index d6653f5..f1868ba 100644
---- a/net/sunrpc/xprtrdma/frwr_ops.c
-+++ b/net/sunrpc/xprtrdma/frwr_ops.c
-@@ -257,8 +257,11 @@ frwr_sendcompletion(struct ib_wc *wc)
- 
- 	/* WARNING: Only wr_id and status are reliable at this point */
- 	r = (struct rpcrdma_mw *)(unsigned long)wc->wr_id;
--	pr_warn("RPC:       %s: frmr %p flushed, status %s (%d)\n",
--		__func__, r, ib_wc_status_msg(wc->status), wc->status);
-+	if (wc->status == IB_WC_WR_FLUSH_ERR)
-+		dprintk("RPC:       %s: frmr %p flushed\n", __func__, r);
-+	else
-+		pr_warn("RPC:       %s: frmr %p error, status %s (%d)\n",
-+			__func__, r, ib_wc_status_msg(wc->status), wc->status);
- 	r->r.frmr.fr_state = FRMR_IS_STALE;
- }
- 
-
+The change log of patch #3 needs isn't phrased clearly, this is quick
+feedback I provided you for V0 and you didn't apply here, please do.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
