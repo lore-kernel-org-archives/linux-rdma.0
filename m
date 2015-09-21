@@ -1,46 +1,41 @@
-From: Geliang Tang <geliangtang@163.com>
-Subject: [PATCH] IB/hfi1: use kvfree() in sdma.c
-Date: Mon, 21 Sep 2015 04:43:05 -0700
-Message-ID: <9ab0afd682cc1b3919ef926aa9086eb09c9f90e9.1442864311.git.geliangtang@163.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Mike Marciniszyn <infinipath@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-rdma@vger.kernel.org, Geliang Tang <geliangtang@163.com>, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] IB/cma: Potential NULL dereference in cma_id_from_event
+Date: Mon, 21 Sep 2015 16:02:02 +0300
+Message-ID: <1442840522-12691-1-git-send-email-haggaie@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Use kvfree() instead of open-coding it.
+If the lookup of a listening ID failed for an AF_IB request, the code
+would try to call dev_put() on a NULL net_dev.
 
-Signed-off-by: Geliang Tang <geliangtang@163.com>
+Fixes: be688195bd08 ("IB/cma: Fix net_dev reference leak with failed
+requests")
+Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/sdma.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/infiniband/core/cma.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/staging/rdma/hfi1/sdma.c b/drivers/staging/rdma/hfi1/sdma.c
-index aecd1a7..9c02a3d 100644
---- a/drivers/staging/rdma/hfi1/sdma.c
-+++ b/drivers/staging/rdma/hfi1/sdma.c
-@@ -966,10 +966,7 @@ static void sdma_clean(struct hfi1_devdata *dd, size_t num_engines)
- 			sde->descq = NULL;
- 			sde->descq_phys = 0;
- 		}
--		if (is_vmalloc_addr(sde->tx_ring))
--			vfree(sde->tx_ring);
--		else
--			kfree(sde->tx_ring);
-+		kvfree(sde->tx_ring);
- 		sde->tx_ring = NULL;
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index b1ab13f3e182..b92a3c2c060b 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -1302,7 +1302,7 @@ static struct rdma_id_private *cma_id_from_event(struct ib_cm_id *cm_id,
+ 	bind_list = cma_ps_find(rdma_ps_from_service_id(req.service_id),
+ 				cma_port_from_service_id(req.service_id));
+ 	id_priv = cma_find_listener(bind_list, cm_id, ib_event, &req, *net_dev);
+-	if (IS_ERR(id_priv)) {
++	if (IS_ERR(id_priv) && *net_dev) {
+ 		dev_put(*net_dev);
+ 		*net_dev = NULL;
  	}
- 	spin_lock_irq(&dd->sde_map_lock);
 -- 
-1.9.1
+1.7.11.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
