@@ -1,73 +1,166 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [patch] IB/hfi1: checking for NULL instead of IS_ERR
-Date: Mon, 21 Sep 2015 13:03:52 -0400
-Message-ID: <56003878.7080409@redhat.com>
-References: <20150916062220.GC21542@mwanda> <55FC32ED.1000404@redhat.com>
- <20150919030153.GA30373@kroah.com> <56002564.6000100@redhat.com>
- <20150921164846.GB27380@kroah.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="4ml48uUAVjeCHMhLQSf8oj9NvbIFiq3pS"
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-rc v1 1/4] xprtrdma: Replace global lkey with lkey local to PD
+Date: Mon, 21 Sep 2015 10:03:56 -0700
+Message-ID: <4A6B165D-7603-4803-8B57-1FBDE5D921A5@oracle.com>
+References: <1442853674-8677-1-git-send-email-sagig@mellanox.com> <1442853674-8677-2-git-send-email-sagig@mellanox.com>
+Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150921164846.GB27380-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1442853674-8677-2-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---4ml48uUAVjeCHMhLQSf8oj9NvbIFiq3pS
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
 
-On 09/21/2015 12:48 PM, Greg Kroah-Hartman wrote:
+> On Sep 21, 2015, at 9:41 AM, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote=
+:
+>=20
+> From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>=20
+> The core API has changed so that devices that do not have a global
+> DMA lkey automatically create an mr, per-PD, and make that lkey
+> available. The global DMA lkey interface is going away in favor of
+> the per-PD DMA lkey.
+>=20
+> The per-PD DMA lkey is always available. Convert xprtrdma to use the
+> device's per-PD DMA lkey for regbufs, no matter which memory
+> registration scheme is in use.
+>=20
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-> But, that's already not happening, as is obvious by my inbox.
-
-Yeah, I see that.
-
-> So, how about you forward on what you have so far to me, and I'll keep
-> these.  Otherwise you will end up with nasty merge issues very quickly
-> as people will continue to send stuff to me.
-
-As you wish.  I pulled in a number of patches related to hfi1, but I've
-already sent the pull request to Linus and they made it as of 4.1-rc2.
-So, just start from there and you will have all the patches I've taken.
-
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+You=E2=80=99ll probably need an Acked-by from Anna or Trond.
 
 
+> ---
+> net/sunrpc/xprtrdma/fmr_ops.c      | 19 -------------------
+> net/sunrpc/xprtrdma/frwr_ops.c     |  5 -----
+> net/sunrpc/xprtrdma/physical_ops.c | 10 +---------
+> net/sunrpc/xprtrdma/verbs.c        |  2 +-
+> net/sunrpc/xprtrdma/xprt_rdma.h    |  1 -
+> 5 files changed, 2 insertions(+), 35 deletions(-)
+>=20
+> diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_=
+ops.c
+> index cb25c89da623..f1e8dafbd507 100644
+> --- a/net/sunrpc/xprtrdma/fmr_ops.c
+> +++ b/net/sunrpc/xprtrdma/fmr_ops.c
+> @@ -39,25 +39,6 @@ static int
+> fmr_op_open(struct rpcrdma_ia *ia, struct rpcrdma_ep *ep,
+> 	    struct rpcrdma_create_data_internal *cdata)
+> {
+> -	struct ib_device_attr *devattr =3D &ia->ri_devattr;
+> -	struct ib_mr *mr;
+> -
+> -	/* Obtain an lkey to use for the regbufs, which are
+> -	 * protected from remote access.
+> -	 */
+> -	if (devattr->device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY) {
+> -		ia->ri_dma_lkey =3D ia->ri_device->local_dma_lkey;
+> -	} else {
+> -		mr =3D ib_get_dma_mr(ia->ri_pd, IB_ACCESS_LOCAL_WRITE);
+> -		if (IS_ERR(mr)) {
+> -			pr_err("%s: ib_get_dma_mr for failed with %lX\n",
+> -			       __func__, PTR_ERR(mr));
+> -			return -ENOMEM;
+> -		}
+> -		ia->ri_dma_lkey =3D ia->ri_dma_mr->lkey;
+> -		ia->ri_dma_mr =3D mr;
+> -	}
+> -
+> 	return 0;
+> }
+>=20
+> diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frw=
+r_ops.c
+> index d6653f5d0830..5318951b3b53 100644
+> --- a/net/sunrpc/xprtrdma/frwr_ops.c
+> +++ b/net/sunrpc/xprtrdma/frwr_ops.c
+> @@ -189,11 +189,6 @@ frwr_op_open(struct rpcrdma_ia *ia, struct rpcrd=
+ma_ep *ep,
+> 	struct ib_device_attr *devattr =3D &ia->ri_devattr;
+> 	int depth, delta;
+>=20
+> -	/* Obtain an lkey to use for the regbufs, which are
+> -	 * protected from remote access.
+> -	 */
+> -	ia->ri_dma_lkey =3D ia->ri_device->local_dma_lkey;
+> -
+> 	ia->ri_max_frmr_depth =3D
+> 			min_t(unsigned int, RPCRDMA_MAX_DATA_SEGS,
+> 			      devattr->max_fast_reg_page_list_len);
+> diff --git a/net/sunrpc/xprtrdma/physical_ops.c b/net/sunrpc/xprtrdma=
+/physical_ops.c
+> index 72cf8b15bbb4..617b76f22154 100644
+> --- a/net/sunrpc/xprtrdma/physical_ops.c
+> +++ b/net/sunrpc/xprtrdma/physical_ops.c
+> @@ -23,7 +23,6 @@ static int
+> physical_op_open(struct rpcrdma_ia *ia, struct rpcrdma_ep *ep,
+> 		 struct rpcrdma_create_data_internal *cdata)
+> {
+> -	struct ib_device_attr *devattr =3D &ia->ri_devattr;
+> 	struct ib_mr *mr;
+>=20
+> 	/* Obtain an rkey to use for RPC data payloads.
+> @@ -37,15 +36,8 @@ physical_op_open(struct rpcrdma_ia *ia, struct rpc=
+rdma_ep *ep,
+> 		       __func__, PTR_ERR(mr));
+> 		return -ENOMEM;
+> 	}
+> -	ia->ri_dma_mr =3D mr;
+> -
+> -	/* Obtain an lkey to use for regbufs.
+> -	 */
+> -	if (devattr->device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)
+> -		ia->ri_dma_lkey =3D ia->ri_device->local_dma_lkey;
+> -	else
+> -		ia->ri_dma_lkey =3D ia->ri_dma_mr->lkey;
+>=20
+> +	ia->ri_dma_mr =3D mr;
+> 	return 0;
+> }
+>=20
+> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.=
+c
+> index 682996779970..eb081ad05e33 100644
+> --- a/net/sunrpc/xprtrdma/verbs.c
+> +++ b/net/sunrpc/xprtrdma/verbs.c
+> @@ -1252,7 +1252,7 @@ rpcrdma_alloc_regbuf(struct rpcrdma_ia *ia, siz=
+e_t size, gfp_t flags)
+> 		goto out_free;
+>=20
+> 	iov->length =3D size;
+> -	iov->lkey =3D ia->ri_dma_lkey;
+> +	iov->lkey =3D ia->ri_pd->local_dma_lkey;
+> 	rb->rg_size =3D size;
+> 	rb->rg_owner =3D NULL;
+> 	return rb;
+> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xp=
+rt_rdma.h
+> index d252457ff21a..df5ad4e15702 100644
+> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
+> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+> @@ -66,7 +66,6 @@ struct rpcrdma_ia {
+> 	struct rdma_cm_id 	*ri_id;
+> 	struct ib_pd		*ri_pd;
+> 	struct ib_mr		*ri_dma_mr;
+> -	u32			ri_dma_lkey;
+> 	struct completion	ri_done;
+> 	int			ri_async_rc;
+> 	unsigned int		ri_max_frmr_depth;
+> --=20
+> 1.8.4.3
+>=20
 
---4ml48uUAVjeCHMhLQSf8oj9NvbIFiq3pS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+=E2=80=94
+Chuck Lever
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWADh4AAoJELgmozMOVy/dwaEP/3EHz/g8An1nH+TNqrT7CGzz
-vxWVWrtKrfYoEF7ZOVXE6xHI+NnT/gvXylP3A9AL+/V6xN2gD1rssFgckL6XGPpC
-3ItpfJebDFTEjrx7ElElQuCJGj+vW0yoK+T4wwYKsDw0W75j7eWnVNvM49d86MUs
-TqRSmy3dUecQ/glzp9q1D2UucjS9PzB9nRgJcEQB1luKJO9qSY/zWLp5IfuULk7t
-7BFMNCwixmv8RsUJV55ovGOmLqo0PFzI1Xttzj+3+W7nCbb7Vw6p8Qz7ZYjLkFfF
-h3B0E3xY7EXSVsxmNu2+oClkPBG/GVIYKrpzgM/udonIWbgQyP/b4XZadKNe/2mx
-3tzNMDlbvvvold3nnItzYP9vlNMJjX1C5ksrMnVxFyLkkBaVWWkFLWWyhjgA9mhr
-+ESBphC4v4k326Pjuh5ZVIsHrxpTGXfdxpT3yg1HPo4zrL/ZeVL89Ib8MJ/9P3hU
-actKM+MGCPkzl/Sk/5j9mvhl/FCtjCCyFQ21v4u30DlBIEdG26Bl0nBd08cKhOwm
-FjahZLcxLHBtOfRt8ju91Dpv81TWID/toznLRbSZp/6IXu0Pa0w5HpzoCdF+SMG+
-D/3cc/huBlxGConVNIMafmt8pB8lohN9w0GSGihcmsJ66mvhmHQjTBNQsxz+sAUH
-dHKT8xZl+UhajkuMiPj9
-=IliK
------END PGP SIGNATURE-----
 
---4ml48uUAVjeCHMhLQSf8oj9NvbIFiq3pS--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
