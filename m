@@ -1,40 +1,31 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] IB/cma: Potential NULL dereference in cma_id_from_event
-Date: Mon, 21 Sep 2015 16:02:02 +0300
-Message-ID: <1442840522-12691-1-git-send-email-haggaie@mellanox.com>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] IB/hfi1: use kvfree() in sdma.c
+Date: Mon, 21 Sep 2015 13:18:33 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC257CC9F8@fmsmsx120.amr.corp.intel.com>
+References: <9ab0afd682cc1b3919ef926aa9086eb09c9f90e9.1442864311.git.geliangtang@163.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <9ab0afd682cc1b3919ef926aa9086eb09c9f90e9.1442864311.git.geliangtang-9Onoh4P/yGk@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Geliang Tang <geliangtang-9Onoh4P/yGk@public.gmane.org>, infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org" <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If the lookup of a listening ID failed for an AF_IB request, the code
-would try to call dev_put() on a NULL net_dev.
+> Subject: [PATCH] IB/hfi1: use kvfree() in sdma.c
+> 
+> Use kvfree() instead of open-coding it.
+> 
+> Signed-off-by: Geliang Tang <geliangtang-9Onoh4P/yGk@public.gmane.org>
+> ---
+>  drivers/staging/rdma/hfi1/sdma.c | 5 +----
+>  1 file changed, 1 insertion(+), 4 deletions(-)
 
-Fixes: be688195bd08 ("IB/cma: Fix net_dev reference leak with failed
-requests")
-Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/cma.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks for the patch.
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index b1ab13f3e182..b92a3c2c060b 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -1302,7 +1302,7 @@ static struct rdma_id_private *cma_id_from_event(struct ib_cm_id *cm_id,
- 	bind_list = cma_ps_find(rdma_ps_from_service_id(req.service_id),
- 				cma_port_from_service_id(req.service_id));
- 	id_priv = cma_find_listener(bind_list, cm_id, ib_event, &req, *net_dev);
--	if (IS_ERR(id_priv)) {
-+	if (IS_ERR(id_priv) && *net_dev) {
- 		dev_put(*net_dev);
- 		*net_dev = NULL;
- 	}
--- 
-1.7.11.2
-
+Acked-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
