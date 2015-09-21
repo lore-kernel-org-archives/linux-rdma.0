@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-rc v1 3/4] IB/mlx5: Remove support for IB_DEVICE_LOCAL_DMA_LKEY
-Date: Mon, 21 Sep 2015 19:41:13 +0300
-Message-ID: <1442853674-8677-4-git-send-email-sagig@mellanox.com>
+Subject: [PATCH rdma-rc v1 4/4] IB/mlx5: Remove pa_lkey usages
+Date: Mon, 21 Sep 2015 19:41:14 +0300
+Message-ID: <1442853674-8677-5-git-send-email-sagig@mellanox.com>
 References: <1442853674-8677-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1442853674-8677-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,130 +10,144 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-ConnectIB has some known issues with memory registration
-using the local_dma_lkey (SEND, RDMA, RECV seems to work ok).
-Thus don't expose support for it (and remove device->local_dma_lkey
-setting).
-
-since commit 96249d70dd70 ("IB/core: Guarantee that a local_dma_lkey
-is available") addressed that by allocating a DMA MR with local permissions
-and converted the consumers to use the MR associated with the PD rather
-then device->local_dma_lkey.
-
-The local_dma_lkey support will be restored in CX4 depending on FW
-capability query.
+Since mlx5 driver cannot rely on registration using the
+reserved lkey (global_dma_lkey) it used to allocate a private
+physical address lkey for each allocated pd.
+Commit 96249d70dd70 ("IB/core: Guarantee that a local_dma_lkey
+is available") just does it in the core layer so we can go ahead
+and use that.
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c            | 10 +---------
- drivers/net/ethernet/mellanox/mlx5/core/fw.c | 22 ----------------------
- include/linux/mlx5/device.h                  | 11 -----------
- include/linux/mlx5/driver.h                  |  1 -
- 4 files changed, 1 insertion(+), 43 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c    | 57 ------------------------------------
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  2 --
+ drivers/infiniband/hw/mlx5/qp.c      |  4 +--
+ 3 files changed, 1 insertion(+), 62 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 41d6911e244e..0ab9625911a1 100644
+index 0ab9625911a1..f1ccd40beae9 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -245,7 +245,6 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 		props->device_cap_flags |= IB_DEVICE_BAD_QKEY_CNTR;
- 	if (MLX5_CAP_GEN(mdev, apm))
- 		props->device_cap_flags |= IB_DEVICE_AUTO_PATH_MIG;
--	props->device_cap_flags |= IB_DEVICE_LOCAL_DMA_LKEY;
- 	if (MLX5_CAP_GEN(mdev, xrc))
- 		props->device_cap_flags |= IB_DEVICE_XRC;
- 	props->device_cap_flags |= IB_DEVICE_MEM_MGT_EXTENSIONS;
-@@ -1245,18 +1244,10 @@ static int create_dev_resources(struct mlx5_ib_resources *devr)
- 	struct ib_srq_init_attr attr;
- 	struct mlx5_ib_dev *dev;
- 	struct ib_cq_init_attr cq_attr = {.cqe = 1};
--	u32 rsvd_lkey;
- 	int ret = 0;
- 
- 	dev = container_of(devr, struct mlx5_ib_dev, devr);
- 
--	ret = mlx5_core_query_special_context(dev->mdev, &rsvd_lkey);
--	if (ret) {
--		pr_err("Failed to query special context %d\n", ret);
--		return ret;
--	}
--	dev->ib_dev.local_dma_lkey = rsvd_lkey;
--
- 	devr->p0 = mlx5_ib_alloc_pd(&dev->ib_dev, NULL, NULL);
- 	if (IS_ERR(devr->p0)) {
- 		ret = PTR_ERR(devr->p0);
-@@ -1418,6 +1409,7 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 	strlcpy(dev->ib_dev.name, "mlx5_%d", IB_DEVICE_NAME_MAX);
- 	dev->ib_dev.owner		= THIS_MODULE;
- 	dev->ib_dev.node_type		= RDMA_NODE_IB_CA;
-+	dev->ib_dev.local_dma_lkey	= 0 /* not supported for now */;
- 	dev->num_ports		= MLX5_CAP_GEN(mdev, num_ports);
- 	dev->ib_dev.phys_port_cnt     = dev->num_ports;
- 	dev->ib_dev.num_comp_vectors    =
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fw.c b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-index aa0d5ffe92d8..9335e5ae18cc 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-@@ -200,25 +200,3 @@ int mlx5_cmd_teardown_hca(struct mlx5_core_dev *dev)
- 
- 	return err;
+@@ -794,53 +794,6 @@ static int mlx5_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vm
+ 	return 0;
  }
--
--int mlx5_core_query_special_context(struct mlx5_core_dev *dev, u32 *rsvd_lkey)
+ 
+-static int alloc_pa_mkey(struct mlx5_ib_dev *dev, u32 *key, u32 pdn)
 -{
--	struct mlx5_cmd_query_special_contexts_mbox_in in;
--	struct mlx5_cmd_query_special_contexts_mbox_out out;
+-	struct mlx5_create_mkey_mbox_in *in;
+-	struct mlx5_mkey_seg *seg;
+-	struct mlx5_core_mr mr;
 -	int err;
 -
--	memset(&in, 0, sizeof(in));
--	memset(&out, 0, sizeof(out));
--	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_QUERY_SPECIAL_CONTEXTS);
--	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
--	if (err)
--		return err;
+-	in = kzalloc(sizeof(*in), GFP_KERNEL);
+-	if (!in)
+-		return -ENOMEM;
 -
--	if (out.hdr.status)
--		err = mlx5_cmd_status_to_err(&out.hdr);
+-	seg = &in->seg;
+-	seg->flags = MLX5_PERM_LOCAL_READ | MLX5_ACCESS_MODE_PA;
+-	seg->flags_pd = cpu_to_be32(pdn | MLX5_MKEY_LEN64);
+-	seg->qpn_mkey7_0 = cpu_to_be32(0xffffff << 8);
+-	seg->start_addr = 0;
 -
--	*rsvd_lkey = be32_to_cpu(out.resd_lkey);
+-	err = mlx5_core_create_mkey(dev->mdev, &mr, in, sizeof(*in),
+-				    NULL, NULL, NULL);
+-	if (err) {
+-		mlx5_ib_warn(dev, "failed to create mkey, %d\n", err);
+-		goto err_in;
+-	}
+-
+-	kfree(in);
+-	*key = mr.key;
+-
+-	return 0;
+-
+-err_in:
+-	kfree(in);
 -
 -	return err;
 -}
--EXPORT_SYMBOL(mlx5_core_query_special_context);
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index 6e4169c5ad78..b943cd9e2097 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -402,17 +402,6 @@ struct mlx5_cmd_teardown_hca_mbox_out {
- 	u8			rsvd[8];
+-
+-static void free_pa_mkey(struct mlx5_ib_dev *dev, u32 key)
+-{
+-	struct mlx5_core_mr mr;
+-	int err;
+-
+-	memset(&mr, 0, sizeof(mr));
+-	mr.key = key;
+-	err = mlx5_core_destroy_mkey(dev->mdev, &mr);
+-	if (err)
+-		mlx5_ib_warn(dev, "failed to destroy mkey 0x%x\n", key);
+-}
+-
+ static struct ib_pd *mlx5_ib_alloc_pd(struct ib_device *ibdev,
+ 				      struct ib_ucontext *context,
+ 				      struct ib_udata *udata)
+@@ -866,13 +819,6 @@ static struct ib_pd *mlx5_ib_alloc_pd(struct ib_device *ibdev,
+ 			kfree(pd);
+ 			return ERR_PTR(-EFAULT);
+ 		}
+-	} else {
+-		err = alloc_pa_mkey(to_mdev(ibdev), &pd->pa_lkey, pd->pdn);
+-		if (err) {
+-			mlx5_core_dealloc_pd(to_mdev(ibdev)->mdev, pd->pdn);
+-			kfree(pd);
+-			return ERR_PTR(err);
+-		}
+ 	}
+ 
+ 	return &pd->ibpd;
+@@ -883,9 +829,6 @@ static int mlx5_ib_dealloc_pd(struct ib_pd *pd)
+ 	struct mlx5_ib_dev *mdev = to_mdev(pd->device);
+ 	struct mlx5_ib_pd *mpd = to_mpd(pd);
+ 
+-	if (!pd->uobject)
+-		free_pa_mkey(mdev, mpd->pa_lkey);
+-
+ 	mlx5_core_dealloc_pd(mdev->mdev, mpd->pdn);
+ 	kfree(mpd);
+ 
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index a5fa0b9c7580..b0a22fea76f1 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -103,7 +103,6 @@ static inline struct mlx5_ib_ucontext *to_mucontext(struct ib_ucontext *ibuconte
+ struct mlx5_ib_pd {
+ 	struct ib_pd		ibpd;
+ 	u32			pdn;
+-	u32			pa_lkey;
  };
  
--struct mlx5_cmd_query_special_contexts_mbox_in {
--	struct mlx5_inbox_hdr	hdr;
--	u8			rsvd[8];
--};
--
--struct mlx5_cmd_query_special_contexts_mbox_out {
--	struct mlx5_outbox_hdr	hdr;
--	__be32                  dump_fill_mkey;
--	__be32                  resd_lkey;
--};
--
- struct mlx5_cmd_layout {
- 	u8		type;
- 	u8		rsvd0[3];
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 1e2e48ccb3fd..5722d88c2429 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -828,7 +828,6 @@ void *mlx5_get_protocol_dev(struct mlx5_core_dev *mdev, int protocol);
- int mlx5_register_interface(struct mlx5_interface *intf);
- void mlx5_unregister_interface(struct mlx5_interface *intf);
- int mlx5_core_query_vendor_id(struct mlx5_core_dev *mdev, u32 *vendor_id);
--int mlx5_core_query_special_context(struct mlx5_core_dev *dev, u32 *rsvd_lkey);
+ /* Use macros here so that don't have to duplicate
+@@ -213,7 +212,6 @@ struct mlx5_ib_qp {
+ 	int			uuarn;
  
- struct mlx5_profile {
- 	u64	mask;
+ 	int			create_type;
+-	u32			pa_lkey;
+ 
+ 	/* Store signature errors */
+ 	bool			signature_en;
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 203c8a45e095..45722a4fa99d 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -930,8 +930,6 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 			err = create_kernel_qp(dev, init_attr, qp, &in, &inlen);
+ 			if (err)
+ 				mlx5_ib_dbg(dev, "err %d\n", err);
+-			else
+-				qp->pa_lkey = to_mpd(pd)->pa_lkey;
+ 		}
+ 
+ 		if (err)
+@@ -2050,7 +2048,7 @@ static void set_frwr_pages(struct mlx5_wqe_data_seg *dseg,
+ 		mfrpl->mapped_page_list[i] = cpu_to_be64(page_list[i] | perm);
+ 	dseg->addr = cpu_to_be64(mfrpl->map);
+ 	dseg->byte_count = cpu_to_be32(ALIGN(sizeof(u64) * wr->wr.fast_reg.page_list_len, 64));
+-	dseg->lkey = cpu_to_be32(pd->pa_lkey);
++	dseg->lkey = cpu_to_be32(pd->ibpd.local_dma_lkey);
+ }
+ 
+ static __be32 send_ieth(struct ib_send_wr *wr)
 -- 
 1.8.4.3
 
