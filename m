@@ -1,80 +1,126 @@
-From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: Re: [PATCH v1 03/18] xprtrdma: Remove completion polling budgets
-Date: Tue, 22 Sep 2015 23:02:57 +0530
-Message-ID: <CANjDDBgB_T9BN7ATTWEJcJScs2JH9bGv5zikUpu_2JJaRYS-Ug@mail.gmail.com>
-References: <20150917202829.19671.90044.stgit@manet.1015granger.net>
- <20150917204435.19671.56195.stgit@manet.1015granger.net> <CANjDDBgokeHEZ7jWhRKRRU4Usr655zRoYY-qUHc9jeuyjYBzpA@mail.gmail.com>
- <A3B1A836-81AF-40E6-B551-587B7173B72D@oracle.com> <55FE8C0F.1050706@dev.mellanox.co.il>
- <CANjDDBjcRXsPFt2Bd+9oL2wTBTxpDsAvN5PZN669dhTC7xSyqw@mail.gmail.com> <0804C887-9E32-4257-96D2-6C1FBC9CB271@oracle.com>
+From: santosh shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 00/24] New fast registration API
+Date: Tue, 22 Sep 2015 11:23:29 -0700
+Message-ID: <56019CA1.5010703@oracle.com>
+References: <1442482947-27785-1-git-send-email-sagig@mellanox.com>
+ <55FDEDD5.1090105@oracle.com> <55FE7E24.20300@dev.mellanox.co.il>
+ <5600928A.7070202@oracle.com> <560100EA.8080302@mellanox.com>
+ <560109B7.8070005@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <0804C887-9E32-4257-96D2-6C1FBC9CB271-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <560109B7.8070005-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 21, 2015 at 9:15 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> w=
-rote:
->
->> On Sep 21, 2015, at 1:51 AM, Devesh Sharma <devesh.sharma@avagotech.=
-com> wrote:
->>
->> On Sun, Sep 20, 2015 at 4:05 PM, Sagi Grimberg <sagig-LDSdmyG8hGXFtvusC2JeyQ@public.gmane.org=
-o.il> wrote:
->>>>> It is possible that in a given poll_cq
->>>>> call you end up getting on 1 completion, the other completion is
->>>>> delayed due to some reason.
->>>>
->>>>
->>>> If a CQE is allowed to be delayed, how does polling
->>>> again guarantee that the consumer can retrieve it?
->>>>
->>>> What happens if a signal occurs, there is only one CQE,
->>>> but it is delayed? ib_poll_cq would return 0 in that
->>>> case, and the consumer would never call again, thinking
->>>> the CQ is empty. There's no way the consumer can know
->>>> for sure when a CQ is drained.
->>>>
->>>> If the delayed CQE happens only when there is more
->>>> than one CQE, how can polling multiple WCs ever work
->>>> reliably?
->>>>
->>>> Maybe I don't understand what is meant by delayed.
->>>>
+On 9/22/2015 12:56 AM, Sagi Grimberg wrote:
+> On 9/22/2015 10:19 AM, Sagi Grimberg wrote:
 >>>
->>> If I'm not mistaken, Devesh meant that if between ib_poll_cq (where=
- you
->>> polled the last 2 wcs) until the while statement another CQE was
->>> generated then you lost a bit of efficiency. Correct?
+>>> As mentioned earlier, I have a WIP RDS fastreg branch [3]
+>>> which is functional (at least I can RDMA messages across
+>>> nodes ;-)).
 >>
->> Yes, That's the point.
->
-> I=E2=80=99m optimizing for the common case where 1 CQE is ready
-> to be polled. How much of an efficiency loss are you
-> talking about, how often would this loss occur, and is
-> this a problem for all providers / devices?
+>> Nice!
+>>
+>>> So merging [2] and [3], I created [4] and applied
+>>> a delta change based on your other patches. I saw ib_post_send
+>>> failure with my HCA driver returning '-EINVAL'. I didn't
+>>> debug it further but at least opcode and num_sge were set
+>>> correctly so I shouldn't have seen it. So I did memset()
+>>> on reg_wr which seems to have helped to fix the ib_post_send()
+>>> failure.
+>>
+>> Yep - that was my fault. When converting the ULPs I optimized by
+>> removing the memset but I forgot to set reg_wr.wr.next = NULL when
+>> the ULP needed. This caused the driver to read a second bogus work
+>> request. Steve just reported this as well so I'll fix that in v2.
+>>
+Ahh, right. There can be chain of wr.
 
-The scenario would happen or not is difficult to predict, but its
-quite possible with any vendor based on load on PCI bus I guess.
-This may affect the latency figures though.
+>>>
+>>> But I got into remote access errors which tells me that I
+>>> have messed up setup(rkey, sge setup or access flags)
+>>
+>> One thing that pops is that in the old API the MR was registered
+>> with iova_start = 0 (which is probably what was sent to the peer),
+>> but the new API the iova is implicitly sg_dma_address(&sg[0]).
+>>
+>> The registered MR holds these attributes in:
+>> mr->rkey
+>> mr->iova
+>> mr->length
+>>
+>> These should be passed to a peer to perform rdma.
+>>
+right.
 
+> ohh, I just read the RDS 3.1 specification (for the first time..) and I
+> noticed that RDS 3.1 header extension contains only a 32bit offset
+> parameter. Why is that anyway? why not 64bit so it can be a valid mapped
+> address? Also the code doesn't use it at all and always passes 0 (which
+> is buggy if sg[0] has an offset from a page).
 >
-> Is this an issue for the current arrangement where 8 WCs
-> are polled at a time?
+> This won't work with the proposed API as the iova is 64bit (as all other
+> existing RDMA protocols use 64bit addresses).
+>
+> In any event, I'd much rather to add ib_map_mr_sg_zbva() just for RDS
+> to use instead of polluting the API with an iova argument, but I think
+> that the RDS spec can be updated to use 64bit offsets and align to all
+> other RDMA protocols (it has enough space in h_exthdr which is 128bit).
+>
+RDS assumes it's an offset and hence it has been used as 32 bit. I need
+to look through this carefully though because all the existing
+application use this header format. There is also RDMA read/write
+byte information sent as part of the header(Not in upstream code yet)
+so the space might be less. But point taken. Will look into it.
 
-Yes, its there even today.
+> I was thinking of:
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> index e7e0251..61fcab4 100644
+> --- a/include/rdma/ib_verbs.h
+> +++ b/include/rdma/ib_verbs.h
+> @@ -3033,6 +3033,21 @@ int ib_map_mr_sg(struct ib_mr *mr,
+>                   unsigned int sg_nents,
+>                   unsigned int page_size);
+>
+> +static inline int
+> +ib_map_mr_sg_zbva(struct ib_mr *mr,
+> +                 struct scatterlist *sg,
+> +                 unsigned int sg_nents,
+> +                 unsigned int page_size)
+> +{
+> +       int rc;
+> +
+> +       rc = ib_map_mr_sg(mr, sg, sg_nents, page_size);
+> +       if (likely(!rc))
+> +               mr->iova &= ((u64)page_size - 1);
+> +
+> +       return rc;
+> +}
+> +
+>   int ib_sg_to_pages(struct ib_mr *mr,
+>                     struct scatterlist *sgl,
+>                     unsigned int sg_nents,
+> --
+>
+> Thoughts?
+>
+> Santosh, can you use that one instead and let us know if
+> it resolves your issue?
+>
+Unfortunately this change still doesn't fix the issue.
 
->
->
-> =E2=80=94
-> Chuck Lever
->
->
->
+> I think you should make sure to correctly construct the
+> h_exthdr with: rds_rdma_make_cookie(mr->rkey, (32)mr->iova)
+
+Will look into it. Thanks for suggestion.
+
+Regards,
+Santosh
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
