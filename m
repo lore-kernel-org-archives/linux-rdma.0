@@ -1,58 +1,203 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v1 00/24] New fast registration API
-Date: Tue, 22 Sep 2015 10:19:06 +0300
-Message-ID: <560100EA.8080302@mellanox.com>
-References: <1442482947-27785-1-git-send-email-sagig@mellanox.com>
- <55FDEDD5.1090105@oracle.com> <55FE7E24.20300@dev.mellanox.co.il>
- <5600928A.7070202@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5600928A.7070202-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH rdma-next V1 29/32] IB/rxe: sysfs interface to RXE
+Date: Tue, 22 Sep 2015 10:31:12 +0300
+Message-ID: <1442907075-13228-30-git-send-email-kamalh@mellanox.com>
+References: <1442907075-13228-1-git-send-email-kamalh@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1442907075-13228-1-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->
-> As mentioned earlier, I have a WIP RDS fastreg branch [3]
-> which is functional (at least I can RDMA messages across
-> nodes ;-)).
+sysfs interface for ib_rxe
 
-Nice!
+Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/staging/rxe/rxe_sysfs.c | 168 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 168 insertions(+)
+ create mode 100644 drivers/staging/rxe/rxe_sysfs.c
 
-> So merging [2] and [3], I created [4] and applied
-> a delta change based on your other patches. I saw ib_post_send
-> failure with my HCA driver returning '-EINVAL'. I didn't
-> debug it further but at least opcode and num_sge were set
-> correctly so I shouldn't have seen it. So I did memset()
-> on reg_wr which seems to have helped to fix the ib_post_send()
-> failure.
+diff --git a/drivers/staging/rxe/rxe_sysfs.c b/drivers/staging/rxe/rxe_sysfs.c
+new file mode 100644
+index 0000000..35bc299
+--- /dev/null
++++ b/drivers/staging/rxe/rxe_sysfs.c
+@@ -0,0 +1,168 @@
++/*
++ * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
++ * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *	- Redistributions of source code must retain the above
++ *	  copyright notice, this list of conditions and the following
++ *	  disclaimer.
++ *
++ *	- Redistributions in binary form must reproduce the above
++ *	  copyright notice, this list of conditions and the following
++ *	  disclaimer in the documentation and/or other materials
++ *	  provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#include "rxe.h"
++#include "rxe_net.h"
++
++/* Copy argument and remove trailing CR. Return the new length. */
++static int sanitize_arg(const char *val, char *intf, int intf_len)
++{
++	int len;
++
++	if (!val)
++		return 0;
++
++	/* Remove newline. */
++	for (len = 0; len < intf_len - 1 && val[len] && val[len] != '\n'; len++)
++		intf[len] = val[len];
++	intf[len] = 0;
++
++	if (len == 0 || (val[len] != 0 && val[len] != '\n'))
++		return 0;
++
++	return len;
++}
++
++/* Caller must hold net_info_lock */
++static void rxe_set_port_state(struct net_device *ndev)
++{
++	struct rxe_dev *rxe;
++
++	rxe = net_to_rxe(ndev);
++	if (!rxe)
++		goto out;
++
++	if (net_info[ndev->ifindex].status == IB_PORT_ACTIVE)
++		rxe_net_up(ndev);
++	else
++		rxe_net_down(ndev); /* down for unknown state */
++out:
++	return;
++}
++
++static int rxe_param_set_add(const char *val, struct kernel_param *kp)
++{
++	int i, len, err;
++	char intf[32];
++
++	len = sanitize_arg(val, intf, sizeof(intf));
++	if (!len) {
++		pr_err("rxe: add: invalid interface name\n");
++		return -EINVAL;
++	}
++
++	spin_lock_bh(&net_info_lock);
++	for (i = 0; i < RXE_MAX_IF_INDEX; i++) {
++		struct net_device *ndev = net_info[i].ndev;
++
++		if (ndev && (0 == strncmp(intf, ndev->name, len))) {
++			spin_unlock_bh(&net_info_lock);
++			if (net_info[i].rxe)
++				pr_info("rxe: already configured on %s\n",
++					intf);
++			else {
++				err = rxe_net_add(ndev);
++				if (!err && net_info[i].rxe) {
++					rxe_set_port_state(ndev);
++				} else {
++					pr_err("rxe: add appears to have failed for %s (index %d)\n",
++					       intf, i);
++				}
++			}
++			return 0;
++		}
++	}
++	spin_unlock_bh(&net_info_lock);
++
++	pr_warn("interface %s not found\n", intf);
++
++	return 0;
++}
++
++static void rxe_remove_all(void)
++{
++	int i;
++	struct rxe_dev *rxe;
++
++	for (i = 0; i < RXE_MAX_IF_INDEX; i++) {
++		if (net_info[i].rxe) {
++			spin_lock_bh(&net_info_lock);
++			rxe = net_info[i].rxe;
++			net_info[i].rxe = NULL;
++			spin_unlock_bh(&net_info_lock);
++
++			rxe_remove(rxe);
++		}
++	}
++}
++
++static int rxe_param_set_remove(const char *val, struct kernel_param *kp)
++{
++	int i, len;
++	char intf[32];
++	struct rxe_dev *rxe;
++
++	len = sanitize_arg(val, intf, sizeof(intf));
++	if (!len) {
++		pr_err("rxe: remove: invalid interface name\n");
++		return -EINVAL;
++	}
++
++	if (strncmp("all", intf, len) == 0) {
++		pr_info("rxe_sys: remove all");
++		rxe_remove_all();
++		return 0;
++	}
++
++	spin_lock_bh(&net_info_lock);
++	for (i = 0; i < RXE_MAX_IF_INDEX; i++) {
++		if (!net_info[i].rxe || !net_info[i].ndev)
++			continue;
++
++		if (0 == strncmp(intf, net_info[i].rxe->ib_dev.name, len)) {
++			rxe = net_info[i].rxe;
++			net_info[i].rxe = NULL;
++			spin_unlock_bh(&net_info_lock);
++
++			rxe_remove(rxe);
++			return 0;
++		}
++	}
++	spin_unlock_bh(&net_info_lock);
++	pr_warn("rxe_sys: instance %s not found\n", intf);
++
++	return 0;
++}
++
++module_param_call(add, rxe_param_set_add, NULL, NULL, 0200);
++module_param_call(remove, rxe_param_set_remove, NULL, NULL, 0200);
+-- 
+1.8.3.1
 
-Yep - that was my fault. When converting the ULPs I optimized by 
-removing the memset but I forgot to set reg_wr.wr.next = NULL when
-the ULP needed. This caused the driver to read a second bogus work 
-request. Steve just reported this as well so I'll fix that in v2.
-
->
-> But I got into remote access errors which tells me that I
-> have messed up setup(rkey, sge setup or access flags)
-
-One thing that pops is that in the old API the MR was registered
-with iova_start = 0 (which is probably what was sent to the peer),
-but the new API the iova is implicitly sg_dma_address(&sg[0]).
-
-The registered MR holds these attributes in:
-mr->rkey
-mr->iova
-mr->length
-
-These should be passed to a peer to perform rdma.
-
-Hope this helps,
-Sagi.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
