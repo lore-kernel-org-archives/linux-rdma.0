@@ -1,7 +1,7 @@
 From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next V1 17/32] IB/rxe: Completion Queue (CQ) manipulation functions
-Date: Tue, 22 Sep 2015 10:31:00 +0300
-Message-ID: <1442907075-13228-18-git-send-email-kamalh@mellanox.com>
+Subject: [PATCH rdma-next V1 10/32] IB/rxe: User/kernel shared queues infrastructure
+Date: Tue, 22 Sep 2015 10:30:53 +0300
+Message-ID: <1442907075-13228-11-git-send-email-kamalh@mellanox.com>
 References: <1442907075-13228-1-git-send-email-kamalh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1442907075-13228-1-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,22 +10,22 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Functions to manipulate CQ.
+mmap routines
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/staging/rxe/rxe_cq.c | 165 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 165 insertions(+)
- create mode 100644 drivers/staging/rxe/rxe_cq.c
+ drivers/staging/rxe/rxe_mmap.c | 173 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 173 insertions(+)
+ create mode 100644 drivers/staging/rxe/rxe_mmap.c
 
-diff --git a/drivers/staging/rxe/rxe_cq.c b/drivers/staging/rxe/rxe_cq.c
+diff --git a/drivers/staging/rxe/rxe_mmap.c b/drivers/staging/rxe/rxe_mmap.c
 new file mode 100644
-index 0000000..a572e4d
+index 0000000..fbe3e1d
 --- /dev/null
-+++ b/drivers/staging/rxe/rxe_cq.c
-@@ -0,0 +1,165 @@
++++ b/drivers/staging/rxe/rxe_mmap.c
+@@ -0,0 +1,173 @@
 +/*
 + * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
@@ -36,9 +36,9 @@ index 0000000..a572e4d
 + * COPYING in the main directory of this source tree, or the
 + * OpenIB.org BSD license below:
 + *
-+ *	   Redistribution and use in source and binary forms, with or
-+ *	   without modification, are permitted provided that the following
-+ *	   conditions are met:
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
 + *
 + *	- Redistributions of source code must retain the above
 + *	  copyright notice, this list of conditions and the following
@@ -59,137 +59,145 @@ index 0000000..a572e4d
 + * SOFTWARE.
 + */
 +
++#include <linux/module.h>
++#include <linux/vmalloc.h>
++#include <linux/mm.h>
++#include <linux/errno.h>
++#include <asm/pgtable.h>
++
 +#include "rxe.h"
 +#include "rxe_loc.h"
 +#include "rxe_queue.h"
 +
-+int rxe_cq_chk_attr(struct rxe_dev *rxe, struct rxe_cq *cq,
-+		    int cqe, int comp_vector, struct ib_udata *udata)
++void rxe_mmap_release(struct kref *ref)
 +{
-+	int count;
++	struct rxe_mmap_info *ip = container_of(ref,
++					struct rxe_mmap_info, ref);
++	struct rxe_dev *rxe = to_rdev(ip->context->device);
 +
-+	if (cqe <= 0) {
-+		pr_warn("cqe(%d) <= 0\n", cqe);
-+		goto err1;
-+	}
++	spin_lock_bh(&rxe->pending_lock);
 +
-+	if (cqe > rxe->attr.max_cqe) {
-+		pr_warn("cqe(%d) > max_cqe(%d)\n",
-+			cqe, rxe->attr.max_cqe);
-+		goto err1;
-+	}
++	if (!list_empty(&ip->pending_mmaps))
++		list_del(&ip->pending_mmaps);
 +
-+	if (cq) {
-+		count = queue_count(cq->queue);
-+		if (cqe < count) {
-+			pr_warn("cqe(%d) < current # elements in queue (%d)",
-+				cqe, count);
-+			goto err1;
-+		}
-+	}
++	spin_unlock_bh(&rxe->pending_lock);
 +
-+	return 0;
-+
-+err1:
-+	return -EINVAL;
++	vfree(ip->obj);		/* buf */
++	kfree(ip);
 +}
 +
-+static void rxe_send_complete(unsigned long data)
++/*
++ * open and close keep track of how many times the memory region is mapped,
++ * to avoid releasing it.
++ */
++static void rxe_vma_open(struct vm_area_struct *vma)
 +{
-+	struct rxe_cq *cq = (struct rxe_cq *)data;
++	struct rxe_mmap_info *ip = vma->vm_private_data;
 +
-+	cq->ibcq.comp_handler(&cq->ibcq, cq->ibcq.cq_context);
++	kref_get(&ip->ref);
 +}
 +
-+int rxe_cq_from_init(struct rxe_dev *rxe, struct rxe_cq *cq, int cqe,
-+		     int comp_vector, struct ib_ucontext *context,
-+		     struct ib_udata *udata)
++static void rxe_vma_close(struct vm_area_struct *vma)
 +{
-+	int err;
++	struct rxe_mmap_info *ip = vma->vm_private_data;
 +
-+	cq->queue = rxe_queue_init(rxe, &cqe,
-+				   sizeof(struct rxe_cqe));
-+	if (!cq->queue) {
-+		pr_warn("unable to create cq\n");
-+		return -ENOMEM;
-+	}
-+
-+	err = do_mmap_info(rxe, udata, false, context, cq->queue->buf,
-+			   cq->queue->buf_size, &cq->queue->ip);
-+	if (err) {
-+		kvfree(cq->queue->buf);
-+		kfree(cq->queue);
-+		return err;
-+	}
-+
-+	if (udata)
-+		cq->is_user = 1;
-+
-+	tasklet_init(&cq->comp_task, rxe_send_complete, (unsigned long)cq);
-+
-+	spin_lock_init(&cq->cq_lock);
-+	cq->ibcq.cqe = cqe;
-+	return 0;
++	kref_put(&ip->ref, rxe_mmap_release);
 +}
 +
-+int rxe_cq_resize_queue(struct rxe_cq *cq, int cqe, struct ib_udata *udata)
++static struct vm_operations_struct rxe_vm_ops = {
++	.open = rxe_vma_open,
++	.close = rxe_vma_close,
++};
++
++/**
++ * rxe_mmap - create a new mmap region
++ * @context: the IB user context of the process making the mmap() call
++ * @vma: the VMA to be initialized
++ * Return zero if the mmap is OK. Otherwise, return an errno.
++ */
++int rxe_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
 +{
-+	int err;
++	struct rxe_dev *rxe = to_rdev(context->device);
++	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
++	unsigned long size = vma->vm_end - vma->vm_start;
++	struct rxe_mmap_info *ip, *pp;
++	int ret;
 +
-+	err = rxe_queue_resize(cq->queue, (unsigned int *)&cqe,
-+			       sizeof(struct rxe_cqe),
-+			       cq->queue->ip ? cq->queue->ip->context : NULL,
-+			       udata, NULL, &cq->cq_lock);
-+	if (!err)
-+		cq->ibcq.cqe = cqe;
-+
-+	return err;
-+}
-+
-+int rxe_cq_post(struct rxe_cq *cq, struct rxe_cqe *cqe, int solicited)
-+{
-+	struct ib_event ev;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&cq->cq_lock, flags);
-+
-+	if (unlikely(queue_full(cq->queue))) {
-+		spin_unlock_irqrestore(&cq->cq_lock, flags);
-+		if (cq->ibcq.event_handler) {
-+			ev.device = cq->ibcq.device;
-+			ev.element.cq = &cq->ibcq;
-+			ev.event = IB_EVENT_CQ_ERR;
-+			cq->ibcq.event_handler(&ev, cq->ibcq.cq_context);
-+		}
-+
-+		return -EBUSY;
-+	}
-+
-+	memcpy(producer_addr(cq->queue), cqe, sizeof(*cqe));
-+
-+	/* make sure all changes to the CQ are written before we update the
-+	 * producer pointer
++	/*
++	 * Search the device's list of objects waiting for a mmap call.
++	 * Normally, this list is very short since a call to create a
++	 * CQ, QP, or SRQ is soon followed by a call to mmap().
 +	 */
-+	smp_wmb();
++	spin_lock_bh(&rxe->pending_lock);
++	list_for_each_entry_safe(ip, pp, &rxe->pending_mmaps, pending_mmaps) {
++		if (context != ip->context || (__u64)offset != ip->info.offset)
++			continue;
 +
-+	advance_producer(cq->queue);
-+	spin_unlock_irqrestore(&cq->cq_lock, flags);
++		/* Don't allow a mmap larger than the object. */
++		if (size > ip->info.size) {
++			pr_err("mmap region is larger than the object!\n");
++			spin_unlock_bh(&rxe->pending_lock);
++			ret = -EINVAL;
++			goto done;
++		}
 +
-+	if ((cq->notify == IB_CQ_NEXT_COMP) ||
-+	    (cq->notify == IB_CQ_SOLICITED && solicited)) {
-+		cq->notify++;
-+		tasklet_schedule(&cq->comp_task);
++		goto found_it;
++	}
++	pr_warn("unable to find pending mmap info\n");
++	spin_unlock_bh(&rxe->pending_lock);
++	ret = -EINVAL;
++	goto done;
++
++found_it:
++	list_del_init(&ip->pending_mmaps);
++	spin_unlock_bh(&rxe->pending_lock);
++
++	ret = remap_vmalloc_range(vma, ip->obj, 0);
++	if (ret) {
++		pr_err("rxe: err %d from remap_vmalloc_range\n", ret);
++		goto done;
 +	}
 +
-+	return 0;
++	vma->vm_ops = &rxe_vm_ops;
++	vma->vm_private_data = ip;
++	rxe_vma_open(vma);
++done:
++	return ret;
 +}
 +
-+void rxe_cq_cleanup(void *arg)
++/*
++ * Allocate information for rxe_mmap
++ */
++struct rxe_mmap_info *rxe_create_mmap_info(struct rxe_dev *rxe,
++					   u32 size,
++					   struct ib_ucontext *context,
++					   void *obj)
 +{
-+	struct rxe_cq *cq = arg;
++	struct rxe_mmap_info *ip;
 +
-+	if (cq->queue)
-+		rxe_queue_cleanup(cq->queue);
++	ip = kmalloc(sizeof(*ip), GFP_KERNEL);
++	if (!ip)
++		return NULL;
++
++	size = PAGE_ALIGN(size);
++
++	spin_lock_bh(&rxe->mmap_offset_lock);
++
++	if (rxe->mmap_offset == 0)
++		rxe->mmap_offset = PAGE_SIZE;
++
++	ip->info.offset = rxe->mmap_offset;
++	rxe->mmap_offset += size;
++
++	spin_unlock_bh(&rxe->mmap_offset_lock);
++
++	INIT_LIST_HEAD(&ip->pending_mmaps);
++	ip->info.size = size;
++	ip->context = context;
++	ip->obj = obj;
++	kref_init(&ip->ref);
++
++	return ip;
 +}
 -- 
 1.8.3.1
