@@ -1,43 +1,47 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v1 15/24] IB/srp: Convert to new memory registration API
-Date: Tue, 22 Sep 2015 14:58:56 -0700
-Message-ID: <5601CF20.3040102@sandisk.com>
-References: <1442482947-27785-1-git-send-email-sagig@mellanox.com>
- <1442482947-27785-16-git-send-email-sagig@mellanox.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: message size, was Re: merge struct ib_device_attr into struct	ib_device
+Date: Tue, 22 Sep 2015 17:15:15 -0500
+Message-ID: <014101d0f584$286573d0$79305b70$@opengridcomputing.com>
+References: <1442869187-5556-1-git-send-email-hch@lst.de> <1442918846.4412.0.camel@opteya.com> <20150922203217.GA10825@lst.de> <013f01d0f57a$85b12a20$91137e60$@opengridcomputing.com> <20150922215514.GA13252@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1442482947-27785-16-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150922215514.GA13252-jcswGhMUV9g@public.gmane.org>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, postmaster-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 09/17/2015 02:42 AM, Sagi Grimberg wrote:
-> Since SRP supports both FMRs and FRWR, the new API conversion
-> includes splitting the sg list mapping routines in srp_map_data to
-> srp_map_sg_fr that works with the new memory registration API,
-> srp_map_sg_fmr which constructs a page vector and calls
-> ib_fmr_pool_map_phys, and srp_map_sg_dma which is used only
-> if no FRWR nor FMR are supported (which I'm not sure is a valid
-> use-case anymore).
->
-> The srp protocol is able to pass to the target multiple descriptors
-> for remote access, so it basically calls registers muleitple sg list
-> partials the entire sg list is mapped and registered (each time maps
-> a prefix of an sg list).
 
-This sentence is hard to comprehend, and the spelling of "multiple" 
-should be addressed.
 
-Another comment about this patch is that there are multiple changes in 
-this patch. It should be split into multiple patches, e.g. one patch 
-that converts srp_map_sg() into srp_map_sg_fmr() and srp_map_sg_fr() and 
-another patch that introduces the ib_map_mr_sg() call.
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of 'Christoph Hellwig'
+> Sent: Tuesday, September 22, 2015 4:55 PM
+> To: Steve Wise; postmaster-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: message size, was Re: merge struct ib_device_attr into struct ib_device
+> 
+> On Tue, Sep 22, 2015 at 04:06:17PM -0500, Steve Wise wrote:
+> > Can you create a series of smaller patches that will fit on the list?
+> > That would make it easier for everyone to review/comment.
+> 
+> I don't see how that is possible, as it's a flag day change.
+> 
+> But maybe we really need to bump up the message size limits for linux-rdma,
+> I'm pretty sure linux-kernel and linux-scsi handle attachments of this
+> size just fine.
 
-Bart.
+An alternative, I guess, is to have the patch broken logically into a series by: core changes, driver changes, and ulp changes.  And
+then ask Doug to squash it at merge time, as part of the cover letter.    But perhaps that isn't standard operating procedure...
+
+How do we change the message size limits?   Reviewing w/o it being inline is painful for the (many) reviewers...
+
+Steve
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
