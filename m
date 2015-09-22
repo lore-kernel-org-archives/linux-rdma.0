@@ -1,7 +1,7 @@
 From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next V1 07/32] IB/rxe: Misc local interfaces between files in ib_rxe
-Date: Tue, 22 Sep 2015 10:30:50 +0300
-Message-ID: <1442907075-13228-8-git-send-email-kamalh@mellanox.com>
+Subject: [PATCH rdma-next V1 16/32] IB/rxe: Shared Receive Queue (SRQ) manipulation functions
+Date: Tue, 22 Sep 2015 10:30:59 +0300
+Message-ID: <1442907075-13228-17-git-send-email-kamalh@mellanox.com>
 References: <1442907075-13228-1-git-send-email-kamalh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1442907075-13228-1-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,20 +10,22 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Functions to manipulate SRQ.
+
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/staging/rxe/rxe_loc.h | 291 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 291 insertions(+)
- create mode 100644 drivers/staging/rxe/rxe_loc.h
+ drivers/staging/rxe/rxe_srq.c | 195 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 195 insertions(+)
+ create mode 100644 drivers/staging/rxe/rxe_srq.c
 
-diff --git a/drivers/staging/rxe/rxe_loc.h b/drivers/staging/rxe/rxe_loc.h
+diff --git a/drivers/staging/rxe/rxe_srq.c b/drivers/staging/rxe/rxe_srq.c
 new file mode 100644
-index 0000000..814b51d
+index 0000000..1411fd2
 --- /dev/null
-+++ b/drivers/staging/rxe/rxe_loc.h
-@@ -0,0 +1,291 @@
++++ b/drivers/staging/rxe/rxe_srq.c
+@@ -0,0 +1,195 @@
 +/*
 + * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
@@ -57,264 +59,168 @@ index 0000000..814b51d
 + * SOFTWARE.
 + */
 +
-+#ifndef RXE_LOC_H
-+#define RXE_LOC_H
-+
-+/* rxe_av.c */
-+int rxe_av_chk_attr(struct rxe_dev *rxe, struct ib_ah_attr *attr);
-+
-+int rxe_av_from_attr(struct rxe_dev *rxe, u8 port_num,
-+		     struct rxe_av *av, struct ib_ah_attr *attr);
-+
-+int rxe_av_to_attr(struct rxe_dev *rxe, struct rxe_av *av,
-+		   struct ib_ah_attr *attr);
-+
-+int rxe_av_fill_ip_info(struct rxe_dev *rxe,
-+			struct rxe_av *av,
-+			struct ib_ah_attr *attr,
-+			struct ib_gid_attr *sgid_attr,
-+			union ib_gid *sgid);
-+
-+/* rxe_cq.c */
-+int rxe_cq_chk_attr(struct rxe_dev *rxe, struct rxe_cq *cq,
-+		    int cqe, int comp_vector, struct ib_udata *udata);
-+
-+int rxe_cq_from_init(struct rxe_dev *rxe, struct rxe_cq *cq, int cqe,
-+		     int comp_vector, struct ib_ucontext *context,
-+		     struct ib_udata *udata);
-+
-+int rxe_cq_resize_queue(struct rxe_cq *cq, int new_cqe, struct ib_udata *udata);
-+
-+int rxe_cq_post(struct rxe_cq *cq, struct rxe_cqe *cqe, int solicited);
-+
-+void rxe_cq_cleanup(void *arg);
-+
-+/* rxe_mcast.c */
-+int rxe_mcast_get_grp(struct rxe_dev *rxe, union ib_gid *mgid,
-+		      struct rxe_mc_grp **grp_p);
-+
-+int rxe_mcast_add_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
-+			   struct rxe_mc_grp *grp);
-+
-+int rxe_mcast_drop_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
-+			    union ib_gid *mgid);
-+
-+void rxe_drop_all_mcast_groups(struct rxe_qp *qp);
-+
-+void rxe_mc_cleanup(void *arg);
-+
-+/* rxe_mmap.c */
-+struct rxe_mmap_info {
-+	struct list_head	pending_mmaps;
-+	struct ib_ucontext	*context;
-+	struct kref		ref;
-+	void			*obj;
-+
-+	struct mminfo info;
-+};
-+
-+void rxe_mmap_release(struct kref *ref);
-+
-+struct rxe_mmap_info *rxe_create_mmap_info(struct rxe_dev *dev,
-+					   u32 size,
-+					   struct ib_ucontext *context,
-+					   void *obj);
-+
-+int rxe_mmap(struct ib_ucontext *context, struct vm_area_struct *vma);
-+
-+/* rxe_mr.c */
-+enum copy_direction {
-+	to_mem_obj,
-+	from_mem_obj,
-+};
-+
-+int rxe_mem_init_dma(struct rxe_dev *rxe, struct rxe_pd *pd,
-+		     int access, struct rxe_mem *mem);
-+
-+int rxe_mem_init_phys(struct rxe_dev *rxe, struct rxe_pd *pd,
-+		      int access, u64 iova, struct ib_phys_buf *buf,
-+		      int num_buf, struct rxe_mem *mem);
-+
-+int rxe_mem_init_user(struct rxe_dev *rxe, struct rxe_pd *pd, u64 start,
-+		      u64 length, u64 iova, int access, struct ib_udata *udata,
-+		      struct rxe_mem *mr);
-+
-+int rxe_mem_init_fast(struct rxe_dev *rxe, struct rxe_pd *pd,
-+		      int max_pages, struct rxe_mem *mem);
-+
-+int rxe_mem_init_mw(struct rxe_dev *rxe, struct rxe_pd *pd,
-+		    struct rxe_mem *mw);
-+
-+int rxe_mem_init_fmr(struct rxe_dev *rxe, struct rxe_pd *pd, int access,
-+		     struct ib_fmr_attr *attr, struct rxe_mem *fmr);
-+
-+int rxe_mem_copy(struct rxe_mem *mem, u64 iova, void *addr,
-+		 int length, enum copy_direction dir, u32 *crcp);
-+
-+int copy_data(struct rxe_dev *rxe, struct rxe_pd *pd, int access,
-+	      struct rxe_dma_info *dma, void *addr, int length,
-+	      enum copy_direction dir, u32 *crcp);
-+
-+void *iova_to_vaddr(struct rxe_mem *mem, u64 iova, int length);
-+
-+enum lookup_type {
-+	lookup_local,
-+	lookup_remote,
-+};
-+
-+struct rxe_mem *lookup_mem(struct rxe_pd *pd, int access, u32 key,
-+			   enum lookup_type type);
-+
-+int mem_check_range(struct rxe_mem *mem, u64 iova, size_t length);
-+
-+int rxe_mem_map_pages(struct rxe_dev *rxe, struct rxe_mem *mem,
-+		      u64 *page, int num_pages, u64 iova);
-+
-+void rxe_mem_cleanup(void *arg);
-+
-+int advance_dma_data(struct rxe_dma_info *dma, unsigned int length);
-+
-+/* rxe_qp.c */
-+int rxe_qp_chk_init(struct rxe_dev *rxe, struct ib_qp_init_attr *init);
-+
-+int rxe_qp_from_init(struct rxe_dev *rxe, struct rxe_qp *qp, struct rxe_pd *pd,
-+		     struct ib_qp_init_attr *init, struct ib_udata *udata,
-+		     struct ib_pd *ibpd);
-+
-+int rxe_qp_to_init(struct rxe_qp *qp, struct ib_qp_init_attr *init);
-+
-+int rxe_qp_chk_attr(struct rxe_dev *rxe, struct rxe_qp *qp,
-+		    struct ib_qp_attr *attr, int mask);
-+
-+int rxe_qp_from_attr(struct rxe_qp *qp, struct ib_qp_attr *attr,
-+		     int mask, struct ib_udata *udata);
-+
-+int rxe_qp_to_attr(struct rxe_qp *qp, struct ib_qp_attr *attr, int mask);
-+
-+void rxe_qp_error(struct rxe_qp *qp);
-+
-+void rxe_qp_destroy(struct rxe_qp *qp);
-+
-+void rxe_qp_cleanup(void *arg);
-+
-+static inline int qp_num(struct rxe_qp *qp)
-+{
-+	return qp->ibqp.qp_num;
-+}
-+
-+static inline enum ib_qp_type qp_type(struct rxe_qp *qp)
-+{
-+	return qp->ibqp.qp_type;
-+}
-+
-+static inline enum ib_qp_state qp_state(struct rxe_qp *qp)
-+{
-+	return qp->attr.qp_state;
-+}
-+
-+static inline int qp_mtu(struct rxe_qp *qp)
-+{
-+	if (qp->ibqp.qp_type == IB_QPT_RC || qp->ibqp.qp_type == IB_QPT_UC)
-+		return qp->attr.path_mtu;
-+	else
-+		return RXE_PORT_MAX_MTU;
-+}
-+
-+static inline int rcv_wqe_size(int max_sge)
-+{
-+	return sizeof(struct rxe_recv_wqe) +
-+		max_sge * sizeof(struct ib_sge);
-+}
-+
-+void free_rd_atomic_resource(struct rxe_qp *qp, struct resp_res *res);
-+
-+static inline void rxe_advance_resp_resource(struct rxe_qp *qp)
-+{
-+	qp->resp.res_head++;
-+	if (unlikely(qp->resp.res_head == qp->attr.max_rd_atomic))
-+		qp->resp.res_head = 0;
-+}
-+
-+void retransmit_timer(unsigned long data);
-+void rnr_nak_timer(unsigned long data);
-+
-+void dump_qp(struct rxe_qp *qp);
-+
-+/* rxe_srq.c */
-+#define IB_SRQ_INIT_MASK (~IB_SRQ_LIMIT)
++#include "rxe.h"
++#include "rxe_loc.h"
++#include "rxe_queue.h"
 +
 +int rxe_srq_chk_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
-+		     struct ib_srq_attr *attr, enum ib_srq_attr_mask mask);
++		     struct ib_srq_attr *attr, enum ib_srq_attr_mask mask)
++{
++	if (srq && srq->error) {
++		pr_warn("srq in error state\n");
++		goto err1;
++	}
++
++	if (mask & IB_SRQ_MAX_WR) {
++		if (attr->max_wr > rxe->attr.max_srq_wr) {
++			pr_warn("max_wr(%d) > max_srq_wr(%d)\n",
++				attr->max_wr, rxe->attr.max_srq_wr);
++			goto err1;
++		}
++
++		if (attr->max_wr <= 0) {
++			pr_warn("max_wr(%d) <= 0\n", attr->max_wr);
++			goto err1;
++		}
++
++		if (srq && srq->limit && (attr->max_wr < srq->limit)) {
++			pr_warn("max_wr (%d) < srq->limit (%d)\n",
++				attr->max_wr, srq->limit);
++			goto err1;
++		}
++
++		if (attr->max_wr < RXE_MIN_SRQ_WR)
++			attr->max_wr = RXE_MIN_SRQ_WR;
++	}
++
++	if (mask & IB_SRQ_LIMIT) {
++		if (attr->srq_limit > rxe->attr.max_srq_wr) {
++			pr_warn("srq_limit(%d) > max_srq_wr(%d)\n",
++				attr->srq_limit, rxe->attr.max_srq_wr);
++			goto err1;
++		}
++
++		if (srq && (attr->srq_limit > srq->rq.queue->buf->index_mask)) {
++			pr_warn("srq_limit (%d) > cur limit(%d)\n",
++				attr->srq_limit,
++				 srq->rq.queue->buf->index_mask);
++			goto err1;
++		}
++	}
++
++	if (mask == IB_SRQ_INIT_MASK) {
++		if (attr->max_sge > rxe->attr.max_srq_sge) {
++			pr_warn("max_sge(%d) > max_srq_sge(%d)\n",
++				attr->max_sge, rxe->attr.max_srq_sge);
++			goto err1;
++		}
++
++		if (attr->max_sge < RXE_MIN_SRQ_SGE)
++			attr->max_sge = RXE_MIN_SRQ_SGE;
++	}
++
++	return 0;
++
++err1:
++	return -EINVAL;
++}
 +
 +int rxe_srq_from_init(struct rxe_dev *rxe, struct rxe_srq *srq,
 +		      struct ib_srq_init_attr *init,
-+		      struct ib_ucontext *context, struct ib_udata *udata);
-+
-+int rxe_srq_from_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
-+		      struct ib_srq_attr *attr, enum ib_srq_attr_mask mask,
-+		      struct ib_udata *udata);
-+
-+extern struct ib_dma_mapping_ops rxe_dma_mapping_ops;
-+
-+void rxe_release(struct kref *kref);
-+
-+int rxe_completer(void *arg);
-+int rxe_requester(void *arg);
-+int rxe_responder(void *arg);
-+
-+u32 rxe_icrc_hdr(struct rxe_pkt_info *pkt, struct sk_buff *skb);
-+
-+void rxe_resp_queue_pkt(struct rxe_dev *rxe,
-+			struct rxe_qp *qp, struct sk_buff *skb);
-+
-+void rxe_comp_queue_pkt(struct rxe_dev *rxe,
-+			struct rxe_qp *qp, struct sk_buff *skb);
-+
-+static inline unsigned wr_opcode_mask(int opcode, struct rxe_qp *qp)
-+{
-+	return rxe_wr_opcode_info[opcode].mask[qp->ibqp.qp_type];
-+}
-+
-+static inline int rxe_xmit_packet(struct rxe_dev *rxe, struct rxe_qp *qp,
-+				  struct rxe_pkt_info *pkt, struct sk_buff *skb)
++		      struct ib_ucontext *context, struct ib_udata *udata)
 +{
 +	int err;
-+	int is_request = pkt->mask & RXE_REQ_MASK;
++	int srq_wqe_size;
++	struct rxe_queue *q;
 +
-+	if ((is_request && (qp->req.state != QP_STATE_READY)) ||
-+	    (!is_request && (qp->resp.state != QP_STATE_READY))) {
-+		pr_info("Packet dropped. QP is not in ready state\n");
-+		goto drop;
++	srq->event_handler	= init->event_handler;
++	srq->context		= init->srq_context;
++	srq->limit		= init->attr.srq_limit;
++	srq->srq_num		= srq->pelem.index;
++	srq->rq.max_wr		= init->attr.max_wr;
++	srq->rq.max_sge		= init->attr.max_sge;
++
++	srq_wqe_size		= rcv_wqe_size(srq->rq.max_sge);
++
++	spin_lock_init(&srq->rq.producer_lock);
++	spin_lock_init(&srq->rq.consumer_lock);
++
++	q = rxe_queue_init(rxe, &srq->rq.max_wr,
++			   srq_wqe_size);
++	if (!q) {
++		pr_warn("unable to allocate queue for srq\n");
++		err = -ENOMEM;
++		goto err1;
 +	}
 +
-+	if (pkt->mask & RXE_LOOPBACK_MASK)
-+		err = rxe->ifc_ops->loopback(skb);
++	srq->rq.queue = q;
++
++	err = do_mmap_info(rxe, udata, false, context, q->buf,
++			   q->buf_size, &q->ip);
++	if (err)
++		goto err1;
++
++	if (udata && udata->outlen >= sizeof(struct mminfo) + sizeof(u32))
++		return copy_to_user(udata->outbuf + sizeof(struct mminfo),
++			&srq->srq_num, sizeof(u32));
 +	else
-+		err = rxe->ifc_ops->send(rxe, pkt, skb);
-+
-+	if (err) {
-+		rxe->xmit_errors++;
-+		return err;
-+	}
-+
-+	atomic_inc(&qp->skb_out);
-+
-+	if ((qp_type(qp) != IB_QPT_RC) &&
-+	    (pkt->mask & RXE_END_MASK)) {
-+		pkt->wqe->state = wqe_state_done;
-+		rxe_run_task(&qp->comp.task, 1);
-+	}
-+
-+	goto done;
-+
-+drop:
-+	kfree_skb(skb);
-+	err = 0;
-+done:
++		return 0;
++err1:
 +	return err;
 +}
 +
-+#endif /* RXE_LOC_H */
++int rxe_srq_from_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
++		      struct ib_srq_attr *attr, enum ib_srq_attr_mask mask,
++		      struct ib_udata *udata)
++{
++	int err;
++	struct rxe_queue *q = srq->rq.queue;
++	struct mminfo mi = { .offset = 1, .size = 0};
++
++	if (mask & IB_SRQ_MAX_WR) {
++		/* Check that we can write the mminfo struct to user space */
++		if (udata && udata->inlen >= sizeof(__u64)) {
++			__u64 mi_addr;
++
++			/* Get address of user space mminfo struct */
++			err = ib_copy_from_udata(&mi_addr, udata,
++						 sizeof(mi_addr));
++			if (err)
++				goto err1;
++
++			udata->outbuf = (void __user *)(unsigned long)mi_addr;
++			udata->outlen = sizeof(mi);
++
++			if (!access_ok(VERIFY_WRITE,
++					(void __user *) udata->outbuf,
++					udata->outlen)) {
++				err = -EFAULT;
++				goto err1;
++			}
++		}
++
++		err = rxe_queue_resize(q, (unsigned int *)&attr->max_wr,
++				       rcv_wqe_size(srq->rq.max_sge),
++				       srq->rq.queue->ip ?
++						srq->rq.queue->ip->context :
++						NULL,
++				       udata, &srq->rq.producer_lock,
++				       &srq->rq.consumer_lock);
++		if (err)
++			goto err2;
++	}
++
++	if (mask & IB_SRQ_LIMIT)
++		srq->limit = attr->srq_limit;
++
++	return 0;
++
++err2:
++	rxe_queue_cleanup(q);
++	srq->rq.queue = NULL;
++err1:
++	return err;
++}
 -- 
 1.8.3.1
 
