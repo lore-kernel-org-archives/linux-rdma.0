@@ -1,46 +1,41 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 3/3] IB/mlx4: Report checksum offload cap when query device
-Date: Tue, 22 Sep 2015 07:45:57 +0300
-Message-ID: <CAJ3xEMhZPBXxg9w5FY5=U4FGZJ4zkhO=0vPtUkXV1v5J3Aa0+A@mail.gmail.com>
-References: <cover.1442413048.git.bodong@mellanox.com>
-	<68bea4df2c89e5457aaaccf914756bc309d742a7.1442413048.git.bodong@mellanox.com>
-	<55FB7AE8.2070304@redhat.com>
-	<CAJ3xEMg31JSPU2_gW0OGjC9rdTgDRcx=7LnuPncD6+gCE7nRMw@mail.gmail.com>
-	<56007DDF.30502@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH rdma-next V1 01/32] IB/core: Macro for RoCEv2 UDP port
+Date: Tue, 22 Sep 2015 10:30:44 +0300
+Message-ID: <1442907075-13228-2-git-send-email-kamalh@mellanox.com>
+References: <1442907075-13228-1-git-send-email-kamalh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56007DDF.30502-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1442907075-13228-1-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Bodong Wang <wbd2905-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Sep 22, 2015 at 12:59 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+From: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-> Here's the only matrix of IP checksumming that makes sense:
->
-> 1) UD over IB (because it is one of the supported IPoIB types)
-> 2) RC over IB (same as above)
-> 3) Raw ETH over Eth (because IP over Eth makes sense and is a common
-> type of packet to send on Raw Eth, but Raw Eth will never be sent on IB
-> as it isn't supported there at all)
->
-> Anything else would require adding more Raw ETH QPs elsewhere, or
-> expanding the IPoIB spec to include more connection types.
+Adding a macro for RoCEv2 UDP destination port.
 
-OK, I'm good with that, so you want two news bits of device caps and
-not the too fancy
-matrix of checksum-caps-for-qp-type-and-link-type.
+Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ include/rdma/ib_verbs.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
->> Really, there's enough spare bits in ib_device_cap_flags that
->> you could do away with the new caps entirely.
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index dd1d901..ab5a6aa 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -77,6 +77,8 @@ enum ib_gid_type {
+ 	IB_GID_TYPE_SIZE
+ };
+ 
++#define ROCE_V2_UDP_DPORT      4791
++
+ struct ib_gid_attr {
+ 	enum ib_gid_type	gid_type;
+ 	struct net_device	*ndev;
+-- 
+1.8.3.1
 
-Yes, Bodong, please go ahead and use bits 26,27 of
-include/rdma/ib_verbs.h :: enum ib_device_cap_flags
-for the two new caps Doug asked.
-
-Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
