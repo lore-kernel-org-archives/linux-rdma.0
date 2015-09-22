@@ -1,7 +1,7 @@
 From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next V1 19/32] IB/rxe: Memory Region (MR) handling
-Date: Tue, 22 Sep 2015 10:31:02 +0300
-Message-ID: <1442907075-13228-20-git-send-email-kamalh@mellanox.com>
+Subject: [PATCH rdma-next V1 18/32] IB/rxe: Queue Pair (QP) handling
+Date: Tue, 22 Sep 2015 10:31:01 +0300
+Message-ID: <1442907075-13228-19-git-send-email-kamalh@mellanox.com>
 References: <1442907075-13228-1-git-send-email-kamalh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1442907075-13228-1-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,21 +10,21 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-MR objects handling.
+Functions to manipulate QP objects.
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/staging/rxe/rxe_mr.c | 764 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 764 insertions(+)
- create mode 100644 drivers/staging/rxe/rxe_mr.c
+ drivers/staging/rxe/rxe_qp.c | 835 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 835 insertions(+)
+ create mode 100644 drivers/staging/rxe/rxe_qp.c
 
-diff --git a/drivers/staging/rxe/rxe_mr.c b/drivers/staging/rxe/rxe_mr.c
+diff --git a/drivers/staging/rxe/rxe_qp.c b/drivers/staging/rxe/rxe_qp.c
 new file mode 100644
-index 0000000..89a5c2b
+index 0000000..dcc3e2d
 --- /dev/null
-+++ b/drivers/staging/rxe/rxe_mr.c
-@@ -0,0 +1,764 @@
++++ b/drivers/staging/rxe/rxe_qp.c
+@@ -0,0 +1,835 @@
 +/*
 + * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
@@ -35,18 +35,18 @@ index 0000000..89a5c2b
 + * COPYING in the main directory of this source tree, or the
 + * OpenIB.org BSD license below:
 + *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
++ *	   Redistribution and use in source and binary forms, with or
++ *	   without modification, are permitted provided that the following
++ *	   conditions are met:
 + *
-+ *	- Redistributions of source code must retain the above
-+ *	  copyright notice, this list of conditions and the following
-+ *	  disclaimer.
++ *		- Redistributions of source code must retain the above
++ *		  copyright notice, this list of conditions and the following
++ *		  disclaimer.
 + *
-+ *	- Redistributions in binary form must reproduce the above
-+ *	  copyright notice, this list of conditions and the following
-+ *	  disclaimer in the documentation and/or other materials
-+ *	  provided with the distribution.
++ *		- Redistributions in binary form must reproduce the above
++ *		  copyright notice, this list of conditions and the following
++ *		  disclaimer in the documentation and/or other materials
++ *		  provided with the distribution.
 + *
 + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -58,736 +58,807 @@ index 0000000..89a5c2b
 + * SOFTWARE.
 + */
 +
++#include <linux/skbuff.h>
++#include <linux/delay.h>
++#include <linux/sched.h>
++
 +#include "rxe.h"
 +#include "rxe_loc.h"
++#include "rxe_queue.h"
++#include "rxe_task.h"
 +
-+/*
-+ * lfsr (linear feedback shift register) with period 255
-+ */
-+static u8 rxe_get_key(void)
++char *rxe_qp_state_name[] = {
++	[QP_STATE_RESET]	= "RESET",
++	[QP_STATE_INIT]		= "INIT",
++	[QP_STATE_READY]	= "READY",
++	[QP_STATE_DRAIN]	= "DRAIN",
++	[QP_STATE_DRAINED]	= "DRAINED",
++	[QP_STATE_ERROR]	= "ERROR",
++};
++
++static int rxe_qp_chk_cap(struct rxe_dev *rxe, struct ib_qp_cap *cap,
++			  int has_srq)
 +{
-+	static unsigned key = 1;
++	if (cap->max_send_wr > rxe->attr.max_qp_wr) {
++		pr_warn("invalid send wr = %d > %d\n",
++			cap->max_send_wr, rxe->attr.max_qp_wr);
++		goto err1;
++	}
 +
-+	key = key << 1;
++	if (cap->max_send_sge > rxe->attr.max_sge) {
++		pr_warn("invalid send sge = %d > %d\n",
++			cap->max_send_sge, rxe->attr.max_sge);
++		goto err1;
++	}
 +
-+	key |= (0 != (key & 0x100)) ^ (0 != (key & 0x10))
-+		^ (0 != (key & 0x80)) ^ (0 != (key & 0x40));
++	if (!has_srq) {
++		if (cap->max_recv_wr > rxe->attr.max_qp_wr) {
++			pr_warn("invalid recv wr = %d > %d\n",
++				cap->max_recv_wr, rxe->attr.max_qp_wr);
++			goto err1;
++		}
 +
-+	key &= 0xff;
++		if (cap->max_recv_sge > rxe->attr.max_sge) {
++			pr_warn("invalid recv sge = %d > %d\n",
++				cap->max_recv_sge, rxe->attr.max_sge);
++			goto err1;
++		}
++	}
 +
-+	return key;
++	if (cap->max_inline_data > rxe->max_inline_data) {
++		pr_warn("invalid max inline data = %d > %d\n",
++			cap->max_inline_data, rxe->max_inline_data);
++		goto err1;
++	}
++
++	return 0;
++
++err1:
++	return -EINVAL;
 +}
 +
-+int mem_check_range(struct rxe_mem *mem, u64 iova, size_t length)
++int rxe_qp_chk_init(struct rxe_dev *rxe, struct ib_qp_init_attr *init)
 +{
-+	switch (mem->type) {
-+	case RXE_MEM_TYPE_DMA:
-+		return 0;
++	struct ib_qp_cap *cap = &init->cap;
++	struct rxe_port *port;
++	int port_num = init->port_num;
 +
-+	case RXE_MEM_TYPE_MR:
-+	case RXE_MEM_TYPE_FMR:
-+		return ((iova < mem->iova) ||
-+			((iova + length) > (mem->iova + mem->length))) ?
-+			-EFAULT : 0;
++	if (!init->recv_cq || !init->send_cq) {
++		pr_warn("missing cq\n");
++		goto err1;
++	}
++
++	if (rxe_qp_chk_cap(rxe, cap, !!init->srq))
++		goto err1;
++
++	if (init->qp_type == IB_QPT_SMI || init->qp_type == IB_QPT_GSI) {
++		if (port_num < 1 || port_num > rxe->num_ports) {
++			pr_warn("invalid port = %d\n", port_num);
++			goto err1;
++		}
++
++		port = &rxe->port[port_num - 1];
++
++		if (init->qp_type == IB_QPT_SMI && port->qp_smi_index) {
++			pr_warn("SMI QP exists for port %d\n", port_num);
++			goto err1;
++		}
++
++		if (init->qp_type == IB_QPT_GSI && port->qp_gsi_index) {
++			pr_warn("GSI QP exists for port %d\n", port_num);
++			goto err1;
++		}
++	}
++
++	return 0;
++
++err1:
++	return -EINVAL;
++}
++
++static int alloc_rd_atomic_resources(struct rxe_qp *qp, unsigned int n)
++{
++	qp->resp.res_head = 0;
++	qp->resp.res_tail = 0;
++	qp->resp.resources = kcalloc(n, sizeof(struct resp_res), GFP_KERNEL);
++
++	if (!qp->resp.resources)
++		return -ENOMEM;
++
++	return 0;
++}
++
++static void free_rd_atomic_resources(struct rxe_qp *qp)
++{
++	if (qp->resp.resources) {
++		int i;
++
++		for (i = 0; i < qp->attr.max_rd_atomic; i++) {
++			struct resp_res *res = &qp->resp.resources[i];
++
++			free_rd_atomic_resource(qp, res);
++		}
++		kfree(qp->resp.resources);
++		qp->resp.resources = NULL;
++	}
++}
++
++void free_rd_atomic_resource(struct rxe_qp *qp, struct resp_res *res)
++{
++	if (res->type == RXE_ATOMIC_MASK) {
++		rxe_drop_ref(qp);
++		kfree_skb(res->atomic.skb);
++	} else if (res->type == RXE_READ_MASK) {
++		if (res->read.mr)
++			rxe_drop_ref(res->read.mr);
++	}
++	res->type = 0;
++}
++
++static void cleanup_rd_atomic_resources(struct rxe_qp *qp)
++{
++	int i;
++	struct resp_res *res;
++
++	if (qp->resp.resources) {
++		for (i = 0; i < qp->attr.max_rd_atomic; i++) {
++			res = &qp->resp.resources[i];
++			free_rd_atomic_resource(qp, res);
++		}
++	}
++}
++
++static void rxe_qp_init_misc(struct rxe_dev *rxe, struct rxe_qp *qp,
++			     struct ib_qp_init_attr *init)
++{
++	struct rxe_port *port;
++	u32 qpn;
++
++	qp->sq_sig_type		= init->sq_sig_type;
++	qp->attr.path_mtu	= 1;
++	qp->mtu			= 256;
++
++	qpn			= qp->pelem.index;
++	port			= &rxe->port[init->port_num - 1];
++
++	switch (init->qp_type) {
++	case IB_QPT_SMI:
++		qp->ibqp.qp_num		= 0;
++		port->qp_smi_index	= qpn;
++		qp->attr.port_num	= init->port_num;
++		break;
++
++	case IB_QPT_GSI:
++		qp->ibqp.qp_num		= 1;
++		port->qp_gsi_index	= qpn;
++		qp->attr.port_num	= init->port_num;
++		break;
 +
 +	default:
-+		return -EFAULT;
-+	}
-+}
-+
-+#define IB_ACCESS_REMOTE	(IB_ACCESS_REMOTE_READ		\
-+				| IB_ACCESS_REMOTE_WRITE	\
-+				| IB_ACCESS_REMOTE_ATOMIC)
-+
-+static void rxe_mem_init(int access, struct rxe_mem *mem)
-+{
-+	u32 lkey = mem->pelem.index << 8 | rxe_get_key();
-+	u32 rkey = (access & IB_ACCESS_REMOTE) ? lkey : 0;
-+
-+	if (mem->pelem.pool->type == RXE_TYPE_MR) {
-+		mem->ibmr.lkey		= lkey;
-+		mem->ibmr.rkey		= rkey;
-+	} else {
-+		mem->ibfmr.lkey		= lkey;
-+		mem->ibfmr.rkey		= rkey;
++		qp->ibqp.qp_num		= qpn;
++		break;
 +	}
 +
-+	mem->pd			= NULL;
-+	mem->umem		= NULL;
-+	mem->lkey		= lkey;
-+	mem->rkey		= rkey;
-+	mem->state		= RXE_MEM_STATE_INVALID;
-+	mem->type		= RXE_MEM_TYPE_NONE;
-+	mem->va			= 0;
-+	mem->iova		= 0;
-+	mem->length		= 0;
-+	mem->offset		= 0;
-+	mem->access		= 0;
-+	mem->page_shift		= 0;
-+	mem->page_mask		= 0;
-+	mem->map_shift		= ilog2(RXE_BUF_PER_MAP);
-+	mem->map_mask		= 0;
-+	mem->num_buf		= 0;
-+	mem->max_buf		= 0;
-+	mem->num_map		= 0;
-+	mem->map		= NULL;
++	INIT_LIST_HEAD(&qp->grp_list);
++
++	skb_queue_head_init(&qp->send_pkts);
++
++	spin_lock_init(&qp->grp_lock);
++	spin_lock_init(&qp->state_lock);
++
++	atomic_set(&qp->ssn, 0);
++	atomic_set(&qp->skb_out, 0);
 +}
 +
-+void rxe_mem_cleanup(void *arg)
++static int rxe_qp_init_req(struct rxe_dev *rxe, struct rxe_qp *qp,
++			   struct ib_qp_init_attr *init,
++			   struct ib_ucontext *context, struct ib_udata *udata)
 +{
-+	struct rxe_mem *mem = arg;
-+	int i;
-+
-+	if (mem->umem)
-+		ib_umem_release(mem->umem);
-+
-+	if (mem->map) {
-+		for (i = 0; i < mem->num_map; i++)
-+			kfree(mem->map[i]);
-+
-+		kfree(mem->map);
-+	}
-+}
-+
-+static int rxe_mem_alloc(struct rxe_dev *rxe, struct rxe_mem *mem, int num_buf)
-+{
-+	int i;
-+	int num_map;
-+	struct rxe_map **map = mem->map;
-+
-+	num_map = (num_buf + RXE_BUF_PER_MAP - 1) / RXE_BUF_PER_MAP;
-+
-+	mem->map = kmalloc_array(num_map, sizeof(*map), GFP_KERNEL);
-+	if (!mem->map)
-+		goto err1;
-+
-+	for (i = 0; i < num_map; i++) {
-+		mem->map[i] = kmalloc(sizeof(**map), GFP_KERNEL);
-+		if (!mem->map[i])
-+			goto err2;
-+	}
-+
-+	WARN_ON(!is_power_of_2(RXE_BUF_PER_MAP));
-+
-+	mem->map_shift	= ilog2(RXE_BUF_PER_MAP);
-+	mem->map_mask	= RXE_BUF_PER_MAP - 1;
-+
-+	mem->num_buf = num_buf;
-+	mem->num_map = num_map;
-+	mem->max_buf = num_map * RXE_BUF_PER_MAP;
-+
-+	return 0;
-+
-+err2:
-+	for (i--; i >= 0; i--)
-+		kfree(mem->map[i]);
-+
-+	kfree(mem->map);
-+err1:
-+	return -ENOMEM;
-+}
-+
-+int rxe_mem_init_dma(struct rxe_dev *rxe, struct rxe_pd *pd,
-+		     int access, struct rxe_mem *mem)
-+{
-+	rxe_mem_init(access, mem);
-+
-+	mem->pd			= pd;
-+	mem->access		= access;
-+	mem->state		= RXE_MEM_STATE_VALID;
-+	mem->type		= RXE_MEM_TYPE_DMA;
-+
-+	return 0;
-+}
-+
-+int rxe_mem_init_phys(struct rxe_dev *rxe, struct rxe_pd *pd, int access,
-+		      u64 iova, struct ib_phys_buf *phys_buf, int num_buf,
-+		      struct rxe_mem *mem)
-+{
-+	int i;
-+	struct rxe_map **map;
-+	struct ib_phys_buf *buf;
-+	size_t length;
 +	int err;
-+	size_t min_size = (size_t)(-1L);
-+	size_t max_size = 0;
-+	int n;
++	int wqe_size;
 +
-+	rxe_mem_init(access, mem);
++	err = sock_create_kern(&init_net, AF_INET, SOCK_DGRAM, 0, &qp->sk);
++	if (err < 0)
++		return err;
++	qp->sk->sk->sk_user_data = qp;
 +
-+	err = rxe_mem_alloc(rxe, mem, num_buf);
-+	if (err)
-+		goto err1;
++	qp->sq.max_wr		= init->cap.max_send_wr;
++	qp->sq.max_sge		= init->cap.max_send_sge;
++	qp->sq.max_inline	= init->cap.max_inline_data;
 +
-+	length			= 0;
-+	map			= mem->map;
-+	buf			= map[0]->buf;
-+	n			= 0;
++	wqe_size = max_t(int, sizeof(struct rxe_send_wqe) +
++			 qp->sq.max_sge * sizeof(struct ib_sge),
++			 sizeof(struct rxe_send_wqe) +
++			 qp->sq.max_inline);
 +
-+	for (i = 0; i < num_buf; i++) {
-+		length	+= phys_buf->size;
-+		max_size = max_t(int, max_size, phys_buf->size);
-+		min_size = min_t(int, min_size, phys_buf->size);
-+		*buf++	= *phys_buf++;
-+		n++;
++	qp->sq.queue		= rxe_queue_init(rxe,
++						 &qp->sq.max_wr,
++						 wqe_size);
++	if (!qp->sq.queue)
++		return -ENOMEM;
 +
-+		if (n == RXE_BUF_PER_MAP) {
-+			map++;
-+			buf = map[0]->buf;
-+			n = 0;
-+		}
-+	}
++	err = do_mmap_info(rxe, udata, true,
++			   context, qp->sq.queue->buf,
++			   qp->sq.queue->buf_size, &qp->sq.queue->ip);
 +
-+	if (max_size == min_size && is_power_of_2(max_size)) {
-+		mem->page_shift		= ilog2(max_size);
-+		mem->page_mask		= max_size - 1;
-+	}
-+
-+	mem->pd			= pd;
-+	mem->access		= access;
-+	mem->iova		= iova;
-+	mem->va			= iova;
-+	mem->length		= length;
-+	mem->state		= RXE_MEM_STATE_VALID;
-+	mem->type		= RXE_MEM_TYPE_MR;
-+
-+	return 0;
-+
-+err1:
-+	return err;
-+}
-+
-+int rxe_mem_init_user(struct rxe_dev *rxe, struct rxe_pd *pd, u64 start,
-+		      u64 length, u64 iova, int access, struct ib_udata *udata,
-+	struct rxe_mem *mem)
-+{
-+	int			entry;
-+	struct rxe_map		**map;
-+	struct ib_phys_buf	*buf = NULL;
-+	struct ib_umem		*umem;
-+	struct scatterlist	*sg;
-+	int			num_buf;
-+	void			*vaddr;
-+	int err;
-+
-+	umem = ib_umem_get(pd->ibpd.uobject->context, start, length, access, 0);
-+	if (IS_ERR(umem)) {
-+		pr_warn("err %d from rxe_umem_get\n",
-+			(int)PTR_ERR(umem));
-+		err = -EINVAL;
-+		goto err1;
-+	}
-+
-+	mem->umem = umem;
-+	num_buf = umem->nmap;
-+
-+	rxe_mem_init(access, mem);
-+
-+	err = rxe_mem_alloc(rxe, mem, num_buf);
 +	if (err) {
-+		pr_warn("err %d from rxe_mem_alloc\n", err);
-+		ib_umem_release(umem);
-+		goto err1;
++		kvfree(qp->sq.queue->buf);
++		kfree(qp->sq.queue);
++		return err;
 +	}
 +
-+	WARN_ON(!is_power_of_2(umem->page_size));
++	qp->req.wqe_index	= producer_index(qp->sq.queue);
++	qp->req.state		= QP_STATE_RESET;
++	qp->req.opcode		= -1;
++	qp->comp.opcode		= -1;
 +
-+	mem->page_shift		= ilog2(umem->page_size);
-+	mem->page_mask		= umem->page_size - 1;
++	spin_lock_init(&qp->sq.sq_lock);
++	skb_queue_head_init(&qp->req_pkts);
 +
-+	num_buf			= 0;
-+	map			= mem->map;
-+	if (length > 0) {
-+		buf = map[0]->buf;
++	rxe_init_task(rxe, &qp->req.task, qp,
++		      rxe_requester, "req");
++	rxe_init_task(rxe, &qp->comp.task, qp,
++		      rxe_completer, "comp");
 +
-+		for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry) {
-+			vaddr = page_address(sg_page(sg));
-+			if (!vaddr) {
-+				pr_warn("null vaddr\n");
-+				err = -ENOMEM;
-+				goto err1;
-+			}
++	init_timer(&qp->rnr_nak_timer);
++	qp->rnr_nak_timer.function = rnr_nak_timer;
++	qp->rnr_nak_timer.data = (unsigned long)qp;
 +
-+			buf->addr = (uintptr_t)vaddr;
-+			buf->size = umem->page_size;
-+			num_buf++;
-+			buf++;
++	init_timer(&qp->retrans_timer);
++	qp->retrans_timer.function = retransmit_timer;
++	qp->retrans_timer.data = (unsigned long)qp;
++	qp->qp_timeout_jiffies = 0; /* Can't be set for UD/UC in modify_qp */
 +
-+			if (num_buf >= RXE_BUF_PER_MAP) {
-+				map++;
-+				buf = map[0]->buf;
-+				num_buf = 0;
-+			}
++	return 0;
++}
++
++static int rxe_qp_init_resp(struct rxe_dev *rxe, struct rxe_qp *qp,
++			    struct ib_qp_init_attr *init,
++			    struct ib_ucontext *context, struct ib_udata *udata)
++{
++	int err;
++	int wqe_size;
++
++	if (!qp->srq) {
++		qp->rq.max_wr		= init->cap.max_recv_wr;
++		qp->rq.max_sge		= init->cap.max_recv_sge;
++
++		wqe_size = rcv_wqe_size(qp->rq.max_sge);
++
++		pr_debug("max_wr = %d, max_sge = %d, wqe_size = %d\n",
++			 qp->rq.max_wr, qp->rq.max_sge, wqe_size);
++
++		qp->rq.queue		= rxe_queue_init(rxe,
++						&qp->rq.max_wr,
++						wqe_size);
++		if (!qp->rq.queue)
++			return -ENOMEM;
++
++		err = do_mmap_info(rxe, udata, false, context,
++				   qp->rq.queue->buf,
++				   qp->rq.queue->buf_size,
++				   &qp->rq.queue->ip);
++		if (err) {
++			kvfree(qp->rq.queue->buf);
++			kfree(qp->rq.queue);
++			return err;
 +		}
 +	}
 +
-+	mem->pd			= pd;
-+	mem->umem		= umem;
-+	mem->access		= access;
-+	mem->length		= length;
-+	mem->iova		= iova;
-+	mem->va			= start;
-+	mem->offset		= ib_umem_offset(umem);
-+	mem->state		= RXE_MEM_STATE_VALID;
-+	mem->type		= RXE_MEM_TYPE_MR;
++	spin_lock_init(&qp->rq.producer_lock);
++	spin_lock_init(&qp->rq.consumer_lock);
++
++	skb_queue_head_init(&qp->resp_pkts);
++
++	rxe_init_task(rxe, &qp->resp.task, qp,
++		      rxe_responder, "resp");
++
++	qp->resp.opcode		= OPCODE_NONE;
++	qp->resp.msn		= 0;
++	qp->resp.state		= QP_STATE_RESET;
 +
 +	return 0;
-+
-+err1:
-+	return err;
 +}
 +
-+int rxe_mem_init_fast(struct rxe_dev *rxe, struct rxe_pd *pd,
-+		      int max_pages, struct rxe_mem *mem)
++/* called by the create qp verb */
++int rxe_qp_from_init(struct rxe_dev *rxe, struct rxe_qp *qp, struct rxe_pd *pd,
++		     struct ib_qp_init_attr *init, struct ib_udata *udata,
++		     struct ib_pd *ibpd)
 +{
 +	int err;
++	struct rxe_cq *rcq = to_rcq(init->recv_cq);
++	struct rxe_cq *scq = to_rcq(init->send_cq);
++	struct rxe_srq *srq = init->srq ? to_rsrq(init->srq) : NULL;
++	struct ib_ucontext *context = udata ? ibpd->uobject->context : NULL;
 +
-+	rxe_mem_init(0, mem);
++	rxe_add_ref(pd);
++	rxe_add_ref(rcq);
++	rxe_add_ref(scq);
++	if (srq)
++		rxe_add_ref(srq);
 +
-+	err = rxe_mem_alloc(rxe, mem, max_pages);
++	qp->pd			= pd;
++	qp->rcq			= rcq;
++	qp->scq			= scq;
++	qp->srq			= srq;
++
++	rxe_qp_init_misc(rxe, qp, init);
++
++	err = rxe_qp_init_req(rxe, qp, init, context, udata);
 +	if (err)
 +		goto err1;
 +
-+	mem->pd			= pd;
-+	mem->max_buf		= max_pages;
-+	mem->state		= RXE_MEM_STATE_FREE;
-+	mem->type		= RXE_MEM_TYPE_MR;
-+
-+	return 0;
-+
-+err1:
-+	return err;
-+}
-+
-+int rxe_mem_init_mw(struct rxe_dev *rxe, struct rxe_pd *pd,
-+		    struct rxe_mem *mem)
-+{
-+	rxe_mem_init(0, mem);
-+
-+	mem->pd			= pd;
-+	mem->state		= RXE_MEM_STATE_FREE;
-+	mem->type		= RXE_MEM_TYPE_MW;
-+
-+	return 0;
-+}
-+
-+int rxe_mem_init_fmr(struct rxe_dev *rxe, struct rxe_pd *pd, int access,
-+		     struct ib_fmr_attr *attr, struct rxe_mem *mem)
-+{
-+	int err;
-+
-+	if (attr->max_maps > rxe->attr.max_map_per_fmr) {
-+		pr_warn("max_mmaps = %d too big, max_map_per_fmr = %d\n",
-+			attr->max_maps, rxe->attr.max_map_per_fmr);
-+		err = -EINVAL;
-+		goto err1;
-+	}
-+
-+	rxe_mem_init(access, mem);
-+
-+	err = rxe_mem_alloc(rxe, mem, attr->max_pages);
++	err = rxe_qp_init_resp(rxe, qp, init, context, udata);
 +	if (err)
-+		goto err1;
-+
-+	mem->pd			= pd;
-+	mem->access		= access;
-+	mem->page_shift		 = attr->page_shift;
-+	mem->page_mask		= (1 << attr->page_shift) - 1;
-+	mem->max_buf		= attr->max_pages;
-+	mem->state		= RXE_MEM_STATE_FREE;
-+	mem->type		= RXE_MEM_TYPE_FMR;
-+
-+	return 0;
-+
-+err1:
-+	return err;
-+}
-+
-+static void lookup_iova(
-+	struct rxe_mem	*mem,
-+	u64			iova,
-+	int			*m_out,
-+	int			*n_out,
-+	size_t			*offset_out)
-+{
-+	size_t			offset = iova - mem->iova + mem->offset;
-+	int			map_index;
-+	int			buf_index;
-+	u64			length;
-+
-+	if (likely(mem->page_shift)) {
-+		*offset_out = offset & mem->page_mask;
-+		offset >>= mem->page_shift;
-+		*n_out = offset & mem->map_mask;
-+		*m_out = offset >> mem->map_shift;
-+	} else {
-+		map_index = 0;
-+		buf_index = 0;
-+
-+		length = mem->map[map_index]->buf[buf_index].size;
-+
-+		while (offset >= length) {
-+			offset -= length;
-+			buf_index++;
-+
-+			if (buf_index == RXE_BUF_PER_MAP) {
-+				map_index++;
-+				buf_index = 0;
-+			}
-+			length = mem->map[map_index]->buf[buf_index].size;
-+		}
-+
-+		*m_out = map_index;
-+		*n_out = buf_index;
-+		*offset_out = offset;
-+	}
-+}
-+
-+void *iova_to_vaddr(struct rxe_mem *mem, u64 iova, int length)
-+{
-+	size_t offset;
-+	int m, n;
-+	void *addr;
-+
-+	if (mem->state != RXE_MEM_STATE_VALID) {
-+		pr_warn("mem not in valid state\n");
-+		addr = NULL;
-+		goto out;
-+	}
-+
-+	if (!mem->map) {
-+		addr = (void *)(uintptr_t)iova;
-+		goto out;
-+	}
-+
-+	if (mem_check_range(mem, iova, length)) {
-+		pr_warn("range violation\n");
-+		addr = NULL;
-+		goto out;
-+	}
-+
-+	lookup_iova(mem, iova, &m, &n, &offset);
-+
-+	if (offset + length > mem->map[m]->buf[n].size) {
-+		pr_warn("crosses page boundary\n");
-+		addr = NULL;
-+		goto out;
-+	}
-+
-+	addr = (void *)(uintptr_t)mem->map[m]->buf[n].addr + offset;
-+
-+out:
-+	return addr;
-+}
-+
-+/* copy data from a range (vaddr, vaddr+length-1) to or from
-+   a mem object starting at iova. Compute incremental value of
-+   crc32 if crcp is not zero. caller must hold a reference to mem */
-+int rxe_mem_copy(struct rxe_mem *mem, u64 iova, void *addr, int length,
-+		 enum copy_direction dir, u32 *crcp)
-+{
-+	int			err;
-+	int			bytes;
-+	u8			*va;
-+	struct rxe_map		**map;
-+	struct ib_phys_buf	*buf;
-+	int			m;
-+	int			i;
-+	size_t			offset;
-+	u32			crc = crcp ? (*crcp) : 0;
-+
-+	if (mem->type == RXE_MEM_TYPE_DMA) {
-+		u8 *src, *dest;
-+
-+		src  = (dir == to_mem_obj) ?
-+			addr : ((void *)(uintptr_t)iova);
-+
-+		dest = (dir == to_mem_obj) ?
-+			((void *)(uintptr_t)iova) : addr;
-+
-+		if (crcp)
-+			*crcp = crc32_le(*crcp, src, length);
-+
-+		memcpy(dest, src, length);
-+
-+		return 0;
-+	}
-+
-+	WARN_ON(!mem->map);
-+
-+	err = mem_check_range(mem, iova, length);
-+	if (err) {
-+		err = -EFAULT;
-+		goto err1;
-+	}
-+
-+	lookup_iova(mem, iova, &m, &i, &offset);
-+
-+	map	= mem->map + m;
-+	buf	= map[0]->buf + i;
-+
-+	while (length > 0) {
-+		u8 *src, *dest;
-+
-+		va	= (u8 *)(uintptr_t)buf->addr + offset;
-+		src  = (dir == to_mem_obj) ? addr : va;
-+		dest = (dir == to_mem_obj) ? va : addr;
-+
-+		bytes	= buf->size - offset;
-+
-+		if (bytes > length)
-+			bytes = length;
-+
-+		if (crcp)
-+			crc = crc32_le(crc, src, bytes);
-+
-+		memcpy(dest, src, bytes);
-+
-+		length	-= bytes;
-+		addr	+= bytes;
-+
-+		offset	= 0;
-+		buf++;
-+		i++;
-+
-+		if (i == RXE_BUF_PER_MAP) {
-+			i = 0;
-+			map++;
-+			buf = map[0]->buf;
-+		}
-+	}
-+
-+	if (crcp)
-+		*crcp = crc;
-+
-+	return 0;
-+
-+err1:
-+	return err;
-+}
-+
-+/* copy data in or out of a wqe, i.e. sg list
-+   under the control of a dma descriptor */
-+int copy_data(
-+	struct rxe_dev		*rxe,
-+	struct rxe_pd		*pd,
-+	int			access,
-+	struct rxe_dma_info	*dma,
-+	void			*addr,
-+	int			length,
-+	enum copy_direction	dir,
-+	u32			*crcp)
-+{
-+	int			bytes;
-+	struct rxe_sge		*sge	= &dma->sge[dma->cur_sge];
-+	int			offset	= dma->sge_offset;
-+	int			resid	= dma->resid;
-+	struct rxe_mem		*mem	= NULL;
-+	u64			iova;
-+	int			err;
-+
-+	if (length == 0)
-+		return 0;
-+
-+	if (length > resid) {
-+		err = -EINVAL;
 +		goto err2;
-+	}
 +
-+	if (sge->length && (offset < sge->length)) {
-+		mem = lookup_mem(pd, access, sge->lkey, lookup_local);
-+		if (!mem) {
-+			err = -EINVAL;
-+			goto err1;
-+		}
-+	}
-+
-+	while (length > 0) {
-+		bytes = length;
-+
-+		if (offset >= sge->length) {
-+			if (mem) {
-+				rxe_drop_ref(mem);
-+				mem = NULL;
-+			}
-+			sge++;
-+			dma->cur_sge++;
-+			offset = 0;
-+
-+			if (dma->cur_sge >= dma->num_sge) {
-+				err = -ENOSPC;
-+				goto err2;
-+			}
-+
-+			if (sge->length) {
-+				mem = lookup_mem(pd, access, sge->lkey,
-+						 lookup_local);
-+				if (!mem) {
-+					err = -EINVAL;
-+					goto err1;
-+				}
-+			} else {
-+				continue;
-+			}
-+		}
-+
-+		if (bytes > sge->length - offset)
-+			bytes = sge->length - offset;
-+
-+		if (bytes > 0) {
-+			iova = sge->addr + offset;
-+
-+			err = rxe_mem_copy(mem, iova, addr, bytes, dir, crcp);
-+			if (err)
-+				goto err2;
-+
-+			offset	+= bytes;
-+			resid	-= bytes;
-+			length	-= bytes;
-+			addr	+= bytes;
-+		}
-+	}
-+
-+	dma->sge_offset = offset;
-+	dma->resid	= resid;
-+
-+	if (mem)
-+		rxe_drop_ref(mem);
++	qp->attr.qp_state = IB_QPS_RESET;
++	qp->valid = 1;
 +
 +	return 0;
 +
 +err2:
-+	if (mem)
-+		rxe_drop_ref(mem);
++	rxe_queue_cleanup(qp->sq.queue);
 +err1:
++	if (srq)
++		rxe_drop_ref(srq);
++	rxe_drop_ref(scq);
++	rxe_drop_ref(rcq);
++	rxe_drop_ref(pd);
++
 +	return err;
 +}
 +
-+int advance_dma_data(struct rxe_dma_info *dma, unsigned int length)
++/* called by the query qp verb */
++int rxe_qp_to_init(struct rxe_qp *qp, struct ib_qp_init_attr *init)
 +{
-+	struct rxe_sge		*sge	= &dma->sge[dma->cur_sge];
-+	int			offset	= dma->sge_offset;
-+	int			resid	= dma->resid;
++	init->event_handler		= qp->ibqp.event_handler;
++	init->qp_context		= qp->ibqp.qp_context;
++	init->send_cq			= qp->ibqp.send_cq;
++	init->recv_cq			= qp->ibqp.recv_cq;
++	init->srq			= qp->ibqp.srq;
 +
-+	while (length) {
-+		unsigned int bytes;
++	init->cap.max_send_wr		= qp->sq.max_wr;
++	init->cap.max_send_sge		= qp->sq.max_sge;
++	init->cap.max_inline_data	= qp->sq.max_inline;
 +
-+		if (offset >= sge->length) {
-+			sge++;
-+			dma->cur_sge++;
-+			offset = 0;
-+			if (dma->cur_sge >= dma->num_sge)
-+				return -ENOSPC;
-+		}
-+
-+		bytes = length;
-+
-+		if (bytes > sge->length - offset)
-+			bytes = sge->length - offset;
-+
-+		offset	+= bytes;
-+		resid	-= bytes;
-+		length	-= bytes;
++	if (!qp->srq) {
++		init->cap.max_recv_wr		= qp->rq.max_wr;
++		init->cap.max_recv_sge		= qp->rq.max_sge;
 +	}
 +
-+	dma->sge_offset = offset;
-+	dma->resid	= resid;
++	init->sq_sig_type		= qp->sq_sig_type;
++
++	init->qp_type			= qp->ibqp.qp_type;
++	init->port_num			= 1;
 +
 +	return 0;
 +}
 +
-+/* (1) find the mem (mr, fmr or mw) corresponding to lkey/rkey
-+ *     depending on lookup_type
-+ * (2) verify that the (qp) pd matches the mem pd
-+ * (3) verify that the mem can support the requested access
-+ * (4) verify that mem state is valid
++/* called by the modify qp verb, this routine checks all the parameters before
++ * making any changes
 + */
-+struct rxe_mem *lookup_mem(struct rxe_pd *pd, int access, u32 key,
-+			   enum lookup_type type)
++int rxe_qp_chk_attr(struct rxe_dev *rxe, struct rxe_qp *qp,
++		    struct ib_qp_attr *attr, int mask)
 +{
-+	struct rxe_mem *mem;
-+	struct rxe_dev *rxe = to_rdev(pd->ibpd.device);
-+	int index = key >> 8;
++	enum ib_qp_state cur_state = (mask & IB_QP_CUR_STATE) ?
++					attr->cur_qp_state : qp->attr.qp_state;
++	enum ib_qp_state new_state = (mask & IB_QP_STATE) ?
++					attr->qp_state : cur_state;
 +
-+	if (index >= RXE_MIN_MR_INDEX && index <= RXE_MAX_MR_INDEX) {
-+		mem = rxe_pool_get_index(&rxe->mr_pool, index);
-+		if (!mem)
-+			goto err1;
-+	} else if (index >= RXE_MIN_FMR_INDEX && index <= RXE_MAX_FMR_INDEX) {
-+		mem = rxe_pool_get_index(&rxe->fmr_pool, index);
-+		if (!mem)
-+			goto err1;
-+	} else if (index >= RXE_MIN_MW_INDEX && index <= RXE_MAX_MW_INDEX) {
-+		mem = rxe_pool_get_index(&rxe->mw_pool, index);
-+		if (!mem)
-+			goto err1;
-+	} else {
++	if (!ib_modify_qp_is_ok(cur_state, new_state, qp_type(qp), mask,
++				IB_LINK_LAYER_ETHERNET)) {
++		pr_warn("invalid mask or state for qp\n");
 +		goto err1;
 +	}
 +
-+	if ((type == lookup_local && mem->lkey != key) ||
-+	    (type == lookup_remote && mem->rkey != key))
-+		goto err2;
-+
-+	if (mem->pd != pd)
-+		goto err2;
-+
-+	if (access && !(access & mem->access))
-+		goto err2;
-+
-+	if (mem->state != RXE_MEM_STATE_VALID)
-+		goto err2;
-+
-+	return mem;
-+
-+err2:
-+	rxe_drop_ref(mem);
-+err1:
-+	return NULL;
-+}
-+
-+int rxe_mem_map_pages(struct rxe_dev *rxe, struct rxe_mem *mem,
-+		      u64 *page, int num_pages, u64 iova)
-+{
-+	int i;
-+	int num_buf;
-+	int err;
-+	struct rxe_map **map;
-+	struct ib_phys_buf *buf;
-+	int page_size;
-+
-+	if (num_pages > mem->max_buf) {
-+		err = -EINVAL;
-+		goto err1;
-+	}
-+
-+	num_buf		= 0;
-+	page_size	= 1 << mem->page_shift;
-+	map		= mem->map;
-+	buf		= map[0]->buf;
-+
-+	for (i = 0; i < num_pages; i++) {
-+		buf->addr = *page++;
-+		buf->size = page_size;
-+		buf++;
-+		num_buf++;
-+
-+		if (num_buf == RXE_BUF_PER_MAP) {
-+			map++;
-+			buf = map[0]->buf;
-+			num_buf = 0;
++	if (mask & IB_QP_STATE) {
++		if (cur_state == IB_QPS_SQD) {
++			if (qp->req.state == QP_STATE_DRAIN &&
++			    new_state != IB_QPS_ERR)
++				goto err1;
 +		}
 +	}
 +
-+	mem->iova	= iova;
-+	mem->va		= iova;
-+	mem->length	= num_pages << mem->page_shift;
-+	mem->state	= RXE_MEM_STATE_VALID;
++	if (mask & IB_QP_PORT) {
++		if (attr->port_num < 1 || attr->port_num > rxe->num_ports) {
++			pr_warn("invalid port %d\n", attr->port_num);
++			goto err1;
++		}
++	}
++
++	if (mask & IB_QP_CAP && rxe_qp_chk_cap(rxe, &attr->cap, !!qp->srq))
++		goto err1;
++
++	if (mask & IB_QP_AV && rxe_av_chk_attr(rxe, &attr->ah_attr))
++		goto err1;
++
++	if (mask & IB_QP_ALT_PATH && rxe_av_chk_attr(rxe, &attr->alt_ah_attr))
++		goto err1;
++
++	if (mask & IB_QP_PATH_MTU) {
++		struct rxe_port *port = &rxe->port[qp->attr.port_num - 1];
++		enum ib_mtu max_mtu = port->attr.max_mtu;
++		enum ib_mtu mtu = attr->path_mtu;
++
++		if (mtu > max_mtu) {
++			pr_debug("invalid mtu (%d) > (%d)\n",
++				 ib_mtu_enum_to_int(mtu),
++				 ib_mtu_enum_to_int(max_mtu));
++			goto err1;
++		}
++	}
++
++	if (mask & IB_QP_MAX_QP_RD_ATOMIC) {
++		if (attr->max_rd_atomic > rxe->attr.max_qp_rd_atom) {
++			pr_warn("invalid max_rd_atomic %d > %d\n",
++				attr->max_rd_atomic,
++				rxe->attr.max_qp_rd_atom);
++			goto err1;
++		}
++	}
++
++	if (mask & IB_QP_TIMEOUT) {
++		if (attr->timeout > 31) {
++			pr_warn("invalid QP timeout %d > 31\n",
++				attr->timeout);
++			goto err1;
++		}
++	}
 +
 +	return 0;
 +
 +err1:
-+	return err;
++	return -EINVAL;
++}
++
++/* move the qp to the reset state */
++static void rxe_qp_reset(struct rxe_qp *qp)
++{
++	/* stop tasks from running */
++	rxe_disable_task(&qp->resp.task);
++
++	/* stop request/comp */
++	if (qp_type(qp) == IB_QPT_RC)
++		rxe_disable_task(&qp->comp.task);
++	rxe_disable_task(&qp->req.task);
++
++	/* move qp to the reset state */
++	qp->req.state = QP_STATE_RESET;
++	qp->resp.state = QP_STATE_RESET;
++
++	/* let state machines reset themselves drain work and packet queues
++	 * etc.
++	 */
++	__rxe_do_task(&qp->resp.task);
++
++	if (qp->sq.queue) {
++		__rxe_do_task(&qp->comp.task);
++		__rxe_do_task(&qp->req.task);
++	}
++
++	/* cleanup attributes */
++	atomic_set(&qp->ssn, 0);
++	qp->req.opcode = -1;
++	qp->req.need_retry = 0;
++	qp->req.noack_pkts = 0;
++	qp->resp.msn = 0;
++	qp->resp.opcode = -1;
++	qp->resp.drop_msg = 0;
++	qp->resp.goto_error = 0;
++	qp->resp.sent_psn_nak = 0;
++
++	if (qp->resp.mr) {
++		rxe_drop_ref(qp->resp.mr);
++		qp->resp.mr = NULL;
++	}
++
++	cleanup_rd_atomic_resources(qp);
++
++	/* reenable tasks */
++	rxe_enable_task(&qp->resp.task);
++
++	if (qp->sq.queue) {
++		if (qp_type(qp) == IB_QPT_RC)
++			rxe_enable_task(&qp->comp.task);
++
++		rxe_enable_task(&qp->req.task);
++	}
++}
++
++/* drain the send queue */
++static void rxe_qp_drain(struct rxe_qp *qp)
++{
++	if (qp->sq.queue) {
++		if (qp->req.state != QP_STATE_DRAINED) {
++			qp->req.state = QP_STATE_DRAIN;
++			if (qp_type(qp) == IB_QPT_RC)
++				rxe_run_task(&qp->comp.task, 1);
++			else
++				__rxe_do_task(&qp->comp.task);
++			rxe_run_task(&qp->req.task, 1);
++		}
++	}
++}
++
++/* move the qp to the error state */
++void rxe_qp_error(struct rxe_qp *qp)
++{
++	qp->req.state = QP_STATE_ERROR;
++	qp->resp.state = QP_STATE_ERROR;
++
++	/* drain work and packet queues */
++	rxe_run_task(&qp->resp.task, 1);
++
++	if (qp_type(qp) == IB_QPT_RC)
++		rxe_run_task(&qp->comp.task, 1);
++	else
++		__rxe_do_task(&qp->comp.task);
++	rxe_run_task(&qp->req.task, 1);
++}
++
++/* called by the modify qp verb */
++int rxe_qp_from_attr(struct rxe_qp *qp, struct ib_qp_attr *attr, int mask,
++		     struct ib_udata *udata)
++{
++	int err;
++	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
++	union ib_gid sgid;
++	struct ib_gid_attr sgid_attr;
++
++	if (mask & IB_QP_MAX_QP_RD_ATOMIC) {
++		int max_rd_atomic = __roundup_pow_of_two(attr->max_rd_atomic);
++
++		free_rd_atomic_resources(qp);
++
++		err = alloc_rd_atomic_resources(qp, max_rd_atomic);
++		if (err)
++			return err;
++
++		qp->attr.max_rd_atomic = max_rd_atomic;
++		atomic_set(&qp->req.rd_atomic, max_rd_atomic);
++	}
++
++	if (mask & IB_QP_CUR_STATE)
++		qp->attr.cur_qp_state = attr->qp_state;
++
++	if (mask & IB_QP_EN_SQD_ASYNC_NOTIFY)
++		qp->attr.en_sqd_async_notify = attr->en_sqd_async_notify;
++
++	if (mask & IB_QP_ACCESS_FLAGS)
++		qp->attr.qp_access_flags = attr->qp_access_flags;
++
++	if (mask & IB_QP_PKEY_INDEX)
++		qp->attr.pkey_index = attr->pkey_index;
++
++	if (mask & IB_QP_PORT)
++		qp->attr.port_num = attr->port_num;
++
++	if (mask & IB_QP_QKEY)
++		qp->attr.qkey = attr->qkey;
++
++	if (mask & IB_QP_AV) {
++		rcu_read_lock();
++		ib_get_cached_gid(&rxe->ib_dev, 1,
++				  attr->ah_attr.grh.sgid_index, &sgid,
++				  &sgid_attr);
++		rcu_read_unlock();
++		rxe_av_from_attr(rxe, attr->port_num, &qp->pri_av,
++				 &attr->ah_attr);
++		rxe_av_fill_ip_info(rxe, &qp->pri_av, &attr->ah_attr,
++				    &sgid_attr, &sgid);
++	}
++
++	if (mask & IB_QP_ALT_PATH) {
++		rcu_read_lock();
++		ib_get_cached_gid(&rxe->ib_dev, 1,
++				  attr->alt_ah_attr.grh.sgid_index, &sgid,
++				  &sgid_attr);
++		rcu_read_unlock();
++
++		rxe_av_from_attr(rxe, attr->alt_port_num, &qp->alt_av,
++				 &attr->alt_ah_attr);
++		rxe_av_fill_ip_info(rxe, &qp->alt_av, &attr->alt_ah_attr,
++				    &sgid_attr, &sgid);
++		qp->attr.alt_port_num = attr->alt_port_num;
++		qp->attr.alt_pkey_index = attr->alt_pkey_index;
++		qp->attr.alt_timeout = attr->alt_timeout;
++	}
++
++	if (mask & IB_QP_PATH_MTU) {
++		qp->attr.path_mtu = attr->path_mtu;
++		qp->mtu = ib_mtu_enum_to_int(attr->path_mtu);
++	}
++
++	if (mask & IB_QP_TIMEOUT) {
++		qp->attr.timeout = attr->timeout;
++		if (attr->timeout == 0) {
++			qp->qp_timeout_jiffies = 0;
++		} else {
++			int j = usecs_to_jiffies(4ULL << attr->timeout);
++
++			qp->qp_timeout_jiffies = j ? j : 1;
++		}
++	}
++
++	if (mask & IB_QP_RETRY_CNT) {
++		qp->attr.retry_cnt = attr->retry_cnt;
++		qp->comp.retry_cnt = attr->retry_cnt;
++		pr_debug("set retry count = %d\n", attr->retry_cnt);
++	}
++
++	if (mask & IB_QP_RNR_RETRY) {
++		qp->attr.rnr_retry = attr->rnr_retry;
++		qp->comp.rnr_retry = attr->rnr_retry;
++		pr_debug("set rnr retry count = %d\n", attr->rnr_retry);
++	}
++
++	if (mask & IB_QP_RQ_PSN) {
++		qp->attr.rq_psn = (attr->rq_psn & BTH_PSN_MASK);
++		qp->resp.psn = qp->attr.rq_psn;
++		pr_debug("set resp psn = 0x%x\n", qp->resp.psn);
++	}
++
++	if (mask & IB_QP_MIN_RNR_TIMER) {
++		qp->attr.min_rnr_timer = attr->min_rnr_timer;
++		pr_debug("set min rnr timer = 0x%x\n",
++			 attr->min_rnr_timer);
++	}
++
++	if (mask & IB_QP_SQ_PSN) {
++		qp->attr.sq_psn = (attr->sq_psn & BTH_PSN_MASK);
++		qp->req.psn = qp->attr.sq_psn;
++		qp->comp.psn = qp->attr.sq_psn;
++		pr_debug("set req psn = 0x%x\n", qp->req.psn);
++	}
++
++	if (mask & IB_QP_MAX_DEST_RD_ATOMIC) {
++		qp->attr.max_dest_rd_atomic =
++			__roundup_pow_of_two(attr->max_dest_rd_atomic);
++	}
++
++	if (mask & IB_QP_PATH_MIG_STATE)
++		qp->attr.path_mig_state = attr->path_mig_state;
++
++	if (mask & IB_QP_DEST_QPN)
++		qp->attr.dest_qp_num = attr->dest_qp_num;
++
++	if (mask & IB_QP_STATE) {
++		qp->attr.qp_state = attr->qp_state;
++
++		switch (attr->qp_state) {
++		case IB_QPS_RESET:
++			pr_debug("qp state -> RESET\n");
++			rxe_qp_reset(qp);
++			break;
++
++		case IB_QPS_INIT:
++			pr_debug("qp state -> INIT\n");
++			qp->req.state = QP_STATE_INIT;
++			qp->resp.state = QP_STATE_INIT;
++			break;
++
++		case IB_QPS_RTR:
++			pr_debug("qp state -> RTR\n");
++			qp->resp.state = QP_STATE_READY;
++			break;
++
++		case IB_QPS_RTS:
++			pr_debug("qp state -> RTS\n");
++			qp->req.state = QP_STATE_READY;
++			break;
++
++		case IB_QPS_SQD:
++			pr_debug("qp state -> SQD\n");
++			rxe_qp_drain(qp);
++			break;
++
++		case IB_QPS_SQE:
++			pr_warn("qp state -> SQE !!?\n");
++			/* Not possible from modify_qp. */
++			break;
++
++		case IB_QPS_ERR:
++			pr_debug("qp state -> ERR\n");
++			rxe_qp_error(qp);
++			break;
++		}
++	}
++
++	return 0;
++}
++
++/* called by the query qp verb */
++int rxe_qp_to_attr(struct rxe_qp *qp, struct ib_qp_attr *attr, int mask)
++{
++	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
++
++	*attr = qp->attr;
++
++	attr->rq_psn				= qp->resp.psn;
++	attr->sq_psn				= qp->req.psn;
++
++	attr->cap.max_send_wr			= qp->sq.max_wr;
++	attr->cap.max_send_sge			= qp->sq.max_sge;
++	attr->cap.max_inline_data		= qp->sq.max_inline;
++
++	if (!qp->srq) {
++		attr->cap.max_recv_wr		= qp->rq.max_wr;
++		attr->cap.max_recv_sge		= qp->rq.max_sge;
++	}
++
++	rxe_av_to_attr(rxe, &qp->pri_av, &attr->ah_attr);
++	rxe_av_to_attr(rxe, &qp->alt_av, &attr->alt_ah_attr);
++
++	if (qp->req.state == QP_STATE_DRAIN) {
++		attr->sq_draining = 1;
++		/* applications that get this state
++		 * typically spin on it. yield the
++		 * processor
++		 */
++		cond_resched();
++	} else {
++		attr->sq_draining = 0;
++	}
++
++	pr_debug("attr->sq_draining = %d\n", attr->sq_draining);
++
++	return 0;
++}
++
++/* called by the destroy qp verb */
++void rxe_qp_destroy(struct rxe_qp *qp)
++{
++	qp->valid = 0;
++	qp->qp_timeout_jiffies = 0;
++	rxe_cleanup_task(&qp->resp.task);
++
++	del_timer_sync(&qp->retrans_timer);
++	del_timer_sync(&qp->rnr_nak_timer);
++
++	rxe_cleanup_task(&qp->req.task);
++	if (qp_type(qp) == IB_QPT_RC)
++		rxe_cleanup_task(&qp->comp.task);
++
++	/* flush out any receive wr's or pending requests */
++	__rxe_do_task(&qp->req.task);
++	if (qp->sq.queue) {
++		__rxe_do_task(&qp->comp.task);
++		__rxe_do_task(&qp->req.task);
++	}
++}
++
++/* called when the last reference to the qp is dropped */
++void rxe_qp_cleanup(void *arg)
++{
++	struct rxe_qp *qp = arg;
++
++	rxe_drop_all_mcast_groups(qp);
++
++	if (qp->sq.queue)
++		rxe_queue_cleanup(qp->sq.queue);
++
++	if (qp->srq)
++		rxe_drop_ref(qp->srq);
++
++	if (qp->rq.queue)
++		rxe_queue_cleanup(qp->rq.queue);
++
++	if (qp->scq)
++		rxe_drop_ref(qp->scq);
++	if (qp->rcq)
++		rxe_drop_ref(qp->rcq);
++	if (qp->pd)
++		rxe_drop_ref(qp->pd);
++
++	if (qp->resp.mr) {
++		rxe_drop_ref(qp->resp.mr);
++		qp->resp.mr = NULL;
++	}
++
++	free_rd_atomic_resources(qp);
++
++	kernel_sock_shutdown(qp->sk, SHUT_RDWR);
 +}
 -- 
 1.8.3.1
