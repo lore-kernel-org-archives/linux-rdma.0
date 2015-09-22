@@ -1,110 +1,60 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v1 00/24] New fast registration API
-Date: Tue, 22 Sep 2015 10:56:39 +0300
-Message-ID: <560109B7.8070005@mellanox.com>
-References: <1442482947-27785-1-git-send-email-sagig@mellanox.com>
- <55FDEDD5.1090105@oracle.com> <55FE7E24.20300@dev.mellanox.co.il>
- <5600928A.7070202@oracle.com> <560100EA.8080302@mellanox.com>
+From: Andrzej Hajda <a.hajda@samsung.com>
+Subject: Re: [PATCH 00/38] Fixes related to incorrect usage of
+	unsigned types
+Date: Tue, 22 Sep 2015 11:13:29 +0200
+Message-ID: <56011BB9.5030004@samsung.com>
+References: <1442842450-29769-1-git-send-email-a.hajda@samsung.com>
+ <17571.1442842945@warthog.procyon.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <560100EA.8080302-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-reply-to: <17571.1442842945@warthog.procyon.org.uk>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: David Howells <dhowells@redhat.com>
+Cc: linux-mips@linux-mips.org, linux-fbdev@vger.kernel.org, linux-sh@vger.kernel.org, brcm80211-dev-list@broadcom.com, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, linux-clk@vger.kernel.org, linux-leds@vger.kernel.org, Marek Szyprowski <m.szyprowski@samsung.com>, devel@driverdev.osuosl.org, linux-rdma@vger.kernel.org, linux-cachefs@redhat.com, linux-serial@vger.kernel.org, linux-input@vger.kernel.org, linux-media@vger.kernel.org, dev@openvswitch.org, rtc-linux@googlegroups.com, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, intel-gfx@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Andrzej Hajda <a.hajda@samsung.com>, linux-api@vger.kernel.org, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, netdev@vger.kernel.org, lustre-devel@lists.lustre.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/22/2015 10:19 AM, Sagi Grimberg wrote:
->>
->> As mentioned earlier, I have a WIP RDS fastreg branch [3]
->> which is functional (at least I can RDMA messages across
->> nodes ;-)).
->
-> Nice!
->
->> So merging [2] and [3], I created [4] and applied
->> a delta change based on your other patches. I saw ib_post_send
->> failure with my HCA driver returning '-EINVAL'. I didn't
->> debug it further but at least opcode and num_sge were set
->> correctly so I shouldn't have seen it. So I did memset()
->> on reg_wr which seems to have helped to fix the ib_post_send()
->> failure.
->
-> Yep - that was my fault. When converting the ULPs I optimized by
-> removing the memset but I forgot to set reg_wr.wr.next = NULL when
-> the ULP needed. This caused the driver to read a second bogus work
-> request. Steve just reported this as well so I'll fix that in v2.
->
->>
->> But I got into remote access errors which tells me that I
->> have messed up setup(rkey, sge setup or access flags)
->
-> One thing that pops is that in the old API the MR was registered
-> with iova_start = 0 (which is probably what was sent to the peer),
-> but the new API the iova is implicitly sg_dma_address(&sg[0]).
->
-> The registered MR holds these attributes in:
-> mr->rkey
-> mr->iova
-> mr->length
->
-> These should be passed to a peer to perform rdma.
->
-> Hope this helps,
-> Sagi.
-
-ohh, I just read the RDS 3.1 specification (for the first time..) and I
-noticed that RDS 3.1 header extension contains only a 32bit offset
-parameter. Why is that anyway? why not 64bit so it can be a valid mapped
-address? Also the code doesn't use it at all and always passes 0 (which
-is buggy if sg[0] has an offset from a page).
-
-This won't work with the proposed API as the iova is 64bit (as all other
-existing RDMA protocols use 64bit addresses).
-
-In any event, I'd much rather to add ib_map_mr_sg_zbva() just for RDS
-to use instead of polluting the API with an iova argument, but I think
-that the RDS spec can be updated to use 64bit offsets and align to all
-other RDMA protocols (it has enough space in h_exthdr which is 128bit).
-
-I was thinking of:
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index e7e0251..61fcab4 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -3033,6 +3033,21 @@ int ib_map_mr_sg(struct ib_mr *mr,
-                  unsigned int sg_nents,
-                  unsigned int page_size);
-
-+static inline int
-+ib_map_mr_sg_zbva(struct ib_mr *mr,
-+                 struct scatterlist *sg,
-+                 unsigned int sg_nents,
-+                 unsigned int page_size)
-+{
-+       int rc;
-+
-+       rc = ib_map_mr_sg(mr, sg, sg_nents, page_size);
-+       if (likely(!rc))
-+               mr->iova &= ((u64)page_size - 1);
-+
-+       return rc;
-+}
-+
-  int ib_sg_to_pages(struct ib_mr *mr,
-                    struct scatterlist *sgl,
-                    unsigned int sg_nents,
---
-
-Thoughts?
-
-Santosh, can you use that one instead and let us know if
-it resolves your issue?
-
-I think you should make sure to correctly construct the
-h_exthdr with: rds_rdma_make_cookie(mr->rkey, (32)mr->iova)
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gMDkvMjEvMjAxNSAwMzo0MiBQTSwgRGF2aWQgSG93ZWxscyB3cm90ZToKPiBBbmRyemVqIEhh
+amRhIDxhLmhhamRhLVN6ZTNPM1VVMjJKQkRnaks3eTdUVVFAcHVibGljLmdtYW5lLm9yZz4gd3Jv
+dGU6Cj4gCj4+IFNlbWFudGljIHBhdGNoIGZpbmRzIGNvbXBhcmlzb25zIG9mIHR5cGVzOgo+PiAg
+ICAgdW5zaWduZWQgPCAwCj4+ICAgICB1bnNpZ25lZCA+PSAwCj4+IFRoZSBmb3JtZXIgaXMgYWx3
+YXlzIGZhbHNlLCB0aGUgbGF0dGVyIGlzIGFsd2F5cyB0cnVlLgo+PiBTdWNoIGNvbXBhcmlzb25z
+IGFyZSB1c2VsZXNzLCBzbyB0aGVvcmV0aWNhbGx5IHRoZXkgY291bGQgYmUKPj4gc2FmZWx5IHJl
+bW92ZWQsIGJ1dCB0aGVpciBwcmVzZW5jZSBxdWl0ZSBvZnRlbiBpbmRpY2F0ZXMgYnVncy4KPiAK
+PiBPciBzb21lb25lIGhhcyBsZWZ0IHRoZW0gaW4gYmVjYXVzZSB0aGV5IGRvbid0IG1hdHRlciBh
+bmQgdGhlcmUncyB0aGUKPiBwb3NzaWJpbGl0eSB0aGF0IHRoZSB0eXBlIGJlaW5nIHRlc3RlZCBt
+aWdodCBiZSBvciBiZWNvbWUgc2lnbmVkIHVuZGVyIHNvbWUKPiBjaXJjdW1zdGFuY2VzLiAgSWYg
+dGhlIGNvbXBhcmlzb24gaXMgdXNlbGVzcywgSSdkIGV4cGVjdCB0aGUgY29tcGlsZXIgdG8ganVz
+dAo+IGRpc2NhcmQgaXQgLSBmb3Igc3VjaCBjYXNlcyB5b3VyIHBhdGNoIGlzIHBvaW50bGVzcy4K
+PiAKPiBJZiBJIGhhdmUsIGZvciBleGFtcGxlOgo+IAo+IAl1bnNpZ25lZCB4Owo+IAo+IAlpZiAo
+eCA9PSAwIHx8IHggPiAyNykKPiAJCWdpdmVfYV9yYW5nZV9lcnJvcigpOwo+IAo+IEkgd2lsbCB3
+cml0ZSB0aGlzIGFzOgo+IAo+IAl1bnNpZ25lZCB4Owo+IAo+IAlpZiAoeCA8PSAwIHx8IHggPiAy
+NykKPiAJCWdpdmVfYV9yYW5nZV9lcnJvcigpOwo+IAo+IGJlY2F1c2UgaXQgdGhhdCBnaXZlcyBh
+IHdheSB0byBoYW5kbGUgeCBiZWluZyBjaGFuZ2VkIHRvIHNpZ25lZCBhdCBzb21lIHBvaW50Cj4g
+aW4gdGhlIGZ1dHVyZSBmb3Igbm8gY29zdC4gIEluIHdoaWNoIGNhc2UsIHlvdXIgY2hhbmdpbmcg
+dGhlIDw9IHRvIGFuID09Cj4gImJlY2F1c2UgdGhlIDwgcGFydCBvZiB0aGUgY2FzZSBpcyB1c2Vs
+ZXNzIiBpcyBhcmd1YWJseSB3cm9uZy4KClRoaXMgaXMgd2h5IEkgaGF2ZSBub3QgY2hlY2tlZCBm
+b3Igc3VjaCBjYXNlcyAtIEkgaGF2ZSBza2lwcGVkIGNoZWNrcyBvZiB0eXBlCgl1bnNpZ25lZCA8
+PSAwCmV4YWN0bHkgZm9yIHRoZSByZWFzb25zIGFib3ZlLgoKSG93ZXZlciBJIGhhdmUgbGVmdCB0
+d28gb3RoZXIgY2hlY2tzIGFzIHRoZXkgc2VlbXMgdG8gbWUgbW9yZSBzdXNwaWNpb3VzIC0gdGhl
+eQphcmUgYWx3YXlzIHRydWUgb3IgZmFsc2UuIEJ1dCBhcyBEbWl0cnkgYW5kIEFuZHJldyBwb2lu
+dGVkIG91dCBMaW51cyBoYXZlIHF1aXRlCnN0cm9uZyBvcGluaW9uIGFnYWluc3QgcmVtb3Zpbmcg
+cmFuZ2UgY2hlY2tzIGluIHN1Y2ggY2FzZXMgYXMgaGUgZmluZHMgaXQKY2xlYXJlci4gSSB0aGlu
+ayBpdCBhcHBsaWVzIHRvIHBhdGNoZXMgMjktMzYuIEkgYW0gbm90IHN1cmUgYWJvdXQgcGF0Y2hl
+cyAyNi0yOCwzNy4KClJlZ2FyZHMKQW5kcnplagoKPiAKPiBEYXZpZAo+IC0tCj4gVG8gdW5zdWJz
+Y3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LXdp
+cmVsZXNzIiBpbgo+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW8tdTc5dXdYTDI5
+VFk3Nloyck01bUhYQUBwdWJsaWMuZ21hbmUub3JnCj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAg
+aHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sCj4gCgpfX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBs
+aXN0CkludGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cDovL2xpc3RzLmZyZWVkZXNr
+dG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeAo=
