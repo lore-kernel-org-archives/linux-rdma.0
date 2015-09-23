@@ -1,48 +1,55 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [v1 0/2] libmlx4: Add support for checksum offload
-Date: Wed, 23 Sep 2015 12:17:25 -0400
-Message-ID: <5602D095.8050702@redhat.com>
-References: <1442953326-105006-1-git-send-email-bodong@mellanox.com>
+Subject: libibverbs-1.2.0-rc1 release
+Date: Wed, 23 Sep 2015 13:02:57 -0400
+Message-ID: <5602DB41.5070700@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="BdOW5gHas3G4ffbJi85h2OOp2TsxB8umB"
+ boundary="sgW6j4lTaGfbmiIeeVBqPD982uADbdftr"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1442953326-105006-1-git-send-email-bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: wbd2905-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---BdOW5gHas3G4ffbJi85h2OOp2TsxB8umB
-Content-Type: text/plain; charset=windows-1252
+--sgW6j4lTaGfbmiIeeVBqPD982uADbdftr
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 09/22/2015 04:22 PM, wbd2905-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org wrote:
-> From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->=20
-> Changes from v1:
->  * Update patches to use the device_cap_flags to get the checksum offlo=
-ad caps
->   =20
-> Bodong Wang (2):
->   libmlx4: Update ibv_create_flow/ibv_destroy_flow according to change
->     of libibverbs
->   libmlx4: Add support for TX/RX checksum offload
->=20
->  src/cq.c    |  6 ++++++
->  src/mlx4.c  |  4 ++--
->  src/mlx4.h  | 19 ++++++++++++++++++-
->  src/qp.c    | 19 +++++++++++++++++++
->  src/verbs.c | 24 ++++++++++++++++++++++++
->  src/wqe.h   |  8 +++++---
->  6 files changed, 74 insertions(+), 6 deletions(-)
->=20
+I have done a pre-release of the upcoming libibverbs-1.2.0 release.  The
+code has been pushed to the official git repo and also an -rc1 tarball
+uploaded to the https://ww.openfabrics.org/downloads/verbs download
+area.  From the tag message:
 
-For the series:
+tag libibverbs-1.2.0-rc1
+Tagger: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Date:   Wed Sep 23 12:47:04 2015 -0400
 
-Reviewed-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Ininitial roundup of 1.2.0 release items
+
+- Add support for RoCE
+- Add support for On Demand Paging
+- No longer assume that no driver for a verbs device should be considered=
+
+  an error condition (usnic devices in particular are moving to libfabric=
+
+  drivers only, so we will emit a useless warning/error in the presence
+  of usnic enabled machines)
+- Harden some of the argument processing in example programs
+- Add support for s390x
+- Fix the broken create/destroy flow API
+- First release under new management (hence the decision to update to
+  version 1.2.0 instead of 1.1.9)
+
+In particular, as this release fixes the create/destroy flow API, there
+is a need for an updated libmlx4 sources in order to compile against the
+fixed API (binary compatibility was maintained, but source compatibility
+was not, so you will need the new libmlx4 to compile against the new
+libibverbs).  Yishai, please post an updated libmlx4 head of repo and
+preferably also a source tarball for libmlx4 when it's ready.
+Preferably it would include an embedded check for the proper flow API in
+your configure scripts.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -50,7 +57,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---BdOW5gHas3G4ffbJi85h2OOp2TsxB8umB
+--sgW6j4lTaGfbmiIeeVBqPD982uADbdftr
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -59,22 +66,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWAtCVAAoJELgmozMOVy/dPz4P/A8wkPuOxjT6beu5lWf9h0/W
-nBR51v/ipvmWpZjYULfS71yJtFBl9+0T/0fJL6B3Sid17VAML2A1X2BQ2HYA2hun
-J08hJ1SRRpaSZggWCOu1O+Xa6m0jivdM0YJMmcCndiZx4mffKlS2IBHtXUz+OeeV
-nsX3f+Xf7SWrxjHjVT+/od01L50kXF8ubiRu0vgEriiKazDje5dG831iGGgFBSAP
-biiS9ADaXgvfOrzXqSQIFxbOwgp85ELLbj2eQPmUt4mRjJNVptzOx4S1GgMuXI6z
-0cBXurnLzVY+FDF+XXaUk0qST1X5K/DjI6Tre9WTziJrDzQ5/eE25tkqL5VzgiSi
-lCdhW2ONFeqi4wglP6PtWKPjpMux7zojfHcOID6+iqCnFFixacm6VZJQmITvCk/w
-T+D2NOLp66P4pnljiBQubYqJIEw6mr46TF09jDe3t/yT42pLGtWVtGnxHPZtUXMl
-BSqa5xqch8mfpYObqIn58AuU7V/2PlLN5I4J4un2F/A9DS+xvlRo8AHLwKbczzkm
-eM/qGKMJI4m/wsLzVIBX5fyyH2hcAKDYbteZsawdVy8ER5NFJZIwrj9ETXYgnQec
-Y8JtzmTVLqtRvKLgvX4rKmfCKS4ZHKJcHA1vvwvcN0+17uWXsNPgASfP7HykhKRJ
-IFaTtr03xkUFQo+BsDzu
-=gyEe
+iQIcBAEBCAAGBQJWAttBAAoJELgmozMOVy/dJesP/AuJNPfAyIjwYT1cK2od5Hws
+pltuHCYHbTra7oM6H8qOTJh+/MjaPNidZjTek9WeGRHs0nXMEFAVtI/QhhZyXk5P
+0I8Yw1id2NTr2QrkbIsNskGEWsMOZ3O6yLaJgQa9G0ugiMh21UZ0qFTcE2sNZlK2
+VOLmUnAUSC6n7U00zL10izBE6wFj+2WTCyTFb4kwu2f8gLYU+0yi9/tQ2oLQSOtO
+MLtbgZna8aFv2QlX/vmlJYsicr2CxAuSrldITq1o3FHz7NfhDd7Axaphx+/HHZjy
+mCXsEIqud2PvN/+kCrbwvIx+7xDItzb0T6IVY9mv6kqQHSNauu0AvvbA2gozmKoq
+yE6cznB6UaG/m5A7zdWxS0oSl5OrsW2S2piJaXziwGlJkk5eLTCtCYPDFrxvGAZ7
+LvbJfuhTcO526kzzGOgb1cdH/S7SJPg+FOo3iuMGz1UeowfihGNXSdYsLiQ3pdnB
+XWcQ7oiU1ZSN8NP1zwgk63g/Qznntd8LZlYxXgoY0lhwkEhL82Azqhpkb27ubCMo
+Y0wKpUV5di2IH4x6d16gAjc3PfBVdy63t2nDWe16WVCis1n1PK7J2sIPhNkf4QvD
+EaonvKQeahutYoUfqR112oWgb0IEMmsazijbW+ANgjcL8dnzCLS6A8L1WxZvm5Yg
+fgN7pbVyAnj07pQgPEXU
+=kPoz
 -----END PGP SIGNATURE-----
 
---BdOW5gHas3G4ffbJi85h2OOp2TsxB8umB--
+--sgW6j4lTaGfbmiIeeVBqPD982uADbdftr--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
