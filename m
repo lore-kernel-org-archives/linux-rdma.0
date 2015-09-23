@@ -1,47 +1,43 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: message size, was Re: merge struct ib_device_attr into struct
- ib_device
-Date: Wed, 23 Sep 2015 10:26:38 +0200
-Message-ID: <1442996798.4412.4.camel@opteya.com>
-References: <1442869187-5556-1-git-send-email-hch@lst.de>
-	 <1442918846.4412.0.camel@opteya.com> <20150922203217.GA10825@lst.de>
-	 <013f01d0f57a$85b12a20$91137e60$@opengridcomputing.com>
-	 <20150922215514.GA13252@lst.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150922215514.GA13252-jcswGhMUV9g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Hariprasad Shenai <hariprasad@chelsio.com>
+Subject: [PATCH for-next 0/2]  RDMA/cxgb4: Add iWARP support for T6 adapter
+Date: Wed, 23 Sep 2015 17:19:25 +0530
+Message-ID: <1443008967-8942-1-git-send-email-hariprasad@chelsio.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org, netdev@vger.kernel.org
+Cc: dledford@redhat.com, davem@davemloft.net, swise@opengridcomputing.com, leedom@chelsio.com, nirranjan@chelsio.com, Hariprasad Shenai <hariprasad@chelsio.com>
 List-Id: linux-rdma@vger.kernel.org
 
 Hi,
 
-Le mardi 22 septembre 2015 =C3=A0 23:55 +0200, 'Christoph Hellwig' a =C3=
-=A9crit :
-> On Tue, Sep 22, 2015 at 04:06:17PM -0500, Steve Wise wrote:
-> > Can you create a series of smaller patches that will fit on the
-> > list?
-> > That would make it easier for everyone to review/comment.=20
->=20
-> I don't see how that is possible, as it's a flag day change.
->=20
+PATCH 1/2 adds changes like new register, structure and functions in cxgb4
+driver for iw_cxgb4 driver, and PATCH 2/2 adds iw_cxgb4 specific code to
+support T6 adapter.
 
-Perhaps you could change ib_query_device() to use the ib_device_attr
-from struct ib_device so that ulp doesn't have to be modified at the
-same time the drivers. Then further patches can update the users of
-ib_query_device(), one at a time. And the last patch would remove
-ib_query_device().
+This patch series has been created against Doug's linux tree and includes
+patches on cxgb4 and iw_cxgb4 driver.
 
-Regards.
+We have included all the maintainers of respective drivers. Kindly review
+the change and let us know in case of any review comments.
 
---=20
-Yann Droneaud
+Thanks
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hariprasad Shenai (2):
+  cxgb4: T6 adapter lld support for iw_cxgb4 driver
+  iw_cxgb4: Adds support for T6 adapter
+
+ drivers/infiniband/hw/cxgb4/cm.c                  | 317 +++++++++++++---------
+ drivers/infiniband/hw/cxgb4/device.c              |  10 +-
+ drivers/infiniband/hw/cxgb4/provider.c            |   2 +-
+ drivers/infiniband/hw/cxgb4/qp.c                  |  16 +-
+ drivers/infiniband/hw/cxgb4/t4.h                  |   5 +-
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4.h        |  41 +--
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c   |  22 ++
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_uld.h    |   2 +
+ drivers/net/ethernet/chelsio/cxgb4/t4_chip_type.h |  85 ++++++
+ drivers/net/ethernet/chelsio/cxgb4/t4_msg.h       |  48 ++++
+ 10 files changed, 362 insertions(+), 186 deletions(-)
+ create mode 100644 drivers/net/ethernet/chelsio/cxgb4/t4_chip_type.h
+
+-- 
+2.3.4
