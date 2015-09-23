@@ -1,41 +1,48 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [v1] libibverbs: Add support for checksum offload
-Date: Wed, 23 Sep 2015 12:16:34 -0400
-Message-ID: <5602D062.1010706@redhat.com>
-References: <1442953221-104830-1-git-send-email-bodong@mellanox.com>
+Subject: Re: [v1 0/2] libmlx4: Add support for checksum offload
+Date: Wed, 23 Sep 2015 12:17:25 -0400
+Message-ID: <5602D095.8050702@redhat.com>
+References: <1442953326-105006-1-git-send-email-bodong@mellanox.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="BxSftlhFXUxx4AVgAwml29BVwIlNq8Btk"
+ boundary="BdOW5gHas3G4ffbJi85h2OOp2TsxB8umB"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1442953221-104830-1-git-send-email-bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1442953326-105006-1-git-send-email-bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: wbd2905-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+To: wbd2905-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---BxSftlhFXUxx4AVgAwml29BVwIlNq8Btk
+--BdOW5gHas3G4ffbJi85h2OOp2TsxB8umB
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 09/22/2015 04:20 PM, wbd2905-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org wrote:
+On 09/22/2015 04:22 PM, wbd2905-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org wrote:
 > From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >=20
 > Changes from v1:
->  * Use the CSUM caps from device_cap_flags rather than defining new fil=
-eds
+>  * Update patches to use the device_cap_flags to get the checksum offlo=
+ad caps
+>   =20
+> Bodong Wang (2):
+>   libmlx4: Update ibv_create_flow/ibv_destroy_flow according to change
+>     of libibverbs
+>   libmlx4: Add support for TX/RX checksum offload
 >=20
-> Bodong Wang (1):
->   libibverbs: Report checksum offload capabilities
->=20
->  include/infiniband/verbs.h | 14 ++++++++++++--
->  man/ibv_poll_cq.3          |  5 +++++
->  man/ibv_post_send.3        |  4 ++++
->  3 files changed, 21 insertions(+), 2 deletions(-)
+>  src/cq.c    |  6 ++++++
+>  src/mlx4.c  |  4 ++--
+>  src/mlx4.h  | 19 ++++++++++++++++++-
+>  src/qp.c    | 19 +++++++++++++++++++
+>  src/verbs.c | 24 ++++++++++++++++++++++++
+>  src/wqe.h   |  8 +++++---
+>  6 files changed, 74 insertions(+), 6 deletions(-)
 >=20
 
-Thanks, applied.
+For the series:
+
+Reviewed-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -43,7 +50,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---BxSftlhFXUxx4AVgAwml29BVwIlNq8Btk
+--BdOW5gHas3G4ffbJi85h2OOp2TsxB8umB
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -52,22 +59,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWAtBiAAoJELgmozMOVy/dsEwQAJr1QiwLLosYSJIMdRBwbngi
-zqtdBY4Zns5ILvA6kO84RjqHlac/mZn8kccWfGbJYXjYRML9hTuHnQY5Fb7FNe9J
-f0ZJOckQAeolGjyL4d45Jk/jIJ6gKRYtUBdMnDG7EI4Yd2A7QROHdgXX7DLKz2Dj
-gWQCu3hLIw+RJi762F2VlcOYXQrWdv3CR4gAVZYs/b9jqGMIuqbWmnDsNhTXZWfL
-Q2OiRDpglPYwfkojFfyaacpT1O2ttbkKkpaUTwYWSjON2ZsJI5YPpEf/1gbEXzH5
-wL+mEmjhK3qzK1Jg93fbkyYK59ZGqCqZBcsLo77bjnKS83kXJ06t8ClHaVEVBDew
-77p73i77PsAKAznCeYcIO6KqW6kD82V09cDJYWSy+TTXi0nBVRJOIWIAxpj0hsQo
-5FxrgC/xgbN0i3jIMwzGgYC1ZwL7Mq+6wYyV+obErv9x3ZmSx1zA8IhtSusSqASH
-tGUJQLHs3lCE1EbRzlG0+VaFQ1Yioj3XxwptyMo6YeEd72Oc8GYLmNOK+efDtgSe
-SzJBN9C6HbP+3ejFfxvMVFqCKl+Kyi582CNFqoh0E1IkqoMAW5YEZVSpV8bmmUxh
-vI018GlgvpWFLYqdzfJrEGRbRfuY8vzkBxhyJcaF+/mIcHXEKULBTa9hVgatmiy4
-pkxTtTANq42jlvQkxgwG
-=g5yX
+iQIcBAEBCAAGBQJWAtCVAAoJELgmozMOVy/dPz4P/A8wkPuOxjT6beu5lWf9h0/W
+nBR51v/ipvmWpZjYULfS71yJtFBl9+0T/0fJL6B3Sid17VAML2A1X2BQ2HYA2hun
+J08hJ1SRRpaSZggWCOu1O+Xa6m0jivdM0YJMmcCndiZx4mffKlS2IBHtXUz+OeeV
+nsX3f+Xf7SWrxjHjVT+/od01L50kXF8ubiRu0vgEriiKazDje5dG831iGGgFBSAP
+biiS9ADaXgvfOrzXqSQIFxbOwgp85ELLbj2eQPmUt4mRjJNVptzOx4S1GgMuXI6z
+0cBXurnLzVY+FDF+XXaUk0qST1X5K/DjI6Tre9WTziJrDzQ5/eE25tkqL5VzgiSi
+lCdhW2ONFeqi4wglP6PtWKPjpMux7zojfHcOID6+iqCnFFixacm6VZJQmITvCk/w
+T+D2NOLp66P4pnljiBQubYqJIEw6mr46TF09jDe3t/yT42pLGtWVtGnxHPZtUXMl
+BSqa5xqch8mfpYObqIn58AuU7V/2PlLN5I4J4un2F/A9DS+xvlRo8AHLwKbczzkm
+eM/qGKMJI4m/wsLzVIBX5fyyH2hcAKDYbteZsawdVy8ER5NFJZIwrj9ETXYgnQec
+Y8JtzmTVLqtRvKLgvX4rKmfCKS4ZHKJcHA1vvwvcN0+17uWXsNPgASfP7HykhKRJ
+IFaTtr03xkUFQo+BsDzu
+=gyEe
 -----END PGP SIGNATURE-----
 
---BxSftlhFXUxx4AVgAwml29BVwIlNq8Btk--
+--BdOW5gHas3G4ffbJi85h2OOp2TsxB8umB--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
