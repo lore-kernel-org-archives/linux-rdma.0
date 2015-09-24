@@ -1,26 +1,35 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v1 00/24] New fast registration API
-Date: Thu, 24 Sep 2015 10:40:19 +0300
-Message-ID: <5603A8E3.6020007@dev.mellanox.co.il>
-References: <1442482947-27785-1-git-send-email-sagig@mellanox.com>
- <5601C698.4000509@sandisk.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] IB/mlx4: Use vmalloc for WR buffers when needed
+Date: Thu, 24 Sep 2015 11:07:02 +0300
+Message-ID: <5603AF26.9040403@mellanox.com>
+References: <1443077547-12246-1-git-send-email-wen.gang.wang@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5601C698.4000509-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1443077547-12246-1-git-send-email-wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+To: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/23/2015 12:22 AM, Bart Van Assche wrote:
-> On 09/17/2015 02:42 AM, Sagi Grimberg wrote:
->>    came from Bart Van Assache which pointed out that some applications
->
-> Most people appreciate it if their name is spelled correctly :-)
+On 9/24/2015 9:52 AM, Wengang Wang wrote:
+>   	} else {
+> -		kfree(qp->sq.wrid);
+> -		kfree(qp->rq.wrid);
+> +		if (is_vmalloc_addr(qp->sq.wrid))
+> +			vfree(qp->sq.wrid);
+> +		else
+> +			kfree(qp->sq.wrid);
+> +
+> +		if (is_vmalloc_addr(qp->rq.wrid))
+> +			vfree(qp->rq.wrid);
+> +		else
+> +			kfree(qp->rq.wrid);
+>   	}
 
-Sorry about that :)
+NO
+
+just call kvfree, see commit 914efb0 "mlx4: don't duplicate kvfree()"
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
