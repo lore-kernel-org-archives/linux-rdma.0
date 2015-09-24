@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-rc v2 2/4] IB/iser: Add module parameter for always register memory
-Date: Thu, 24 Sep 2015 10:34:22 +0300
-Message-ID: <1443080064-28760-3-git-send-email-sagig@mellanox.com>
+Subject: [PATCH rdma-rc v2 4/4] IB/mlx5: Remove pa_lkey usages
+Date: Thu, 24 Sep 2015 10:34:24 +0300
+Message-ID: <1443080064-28760-5-git-send-email-sagig@mellanox.com>
 References: <1443080064-28760-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1443080064-28760-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,170 +10,144 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This module parameter forces memory registration even for
-a continuous memory region. It is true by default as sending
-an all-physical rkey with remote permissions might be insecure.
+Since mlx5 driver cannot rely on registration using the
+reserved lkey (global_dma_lkey) it used to allocate a private
+physical address lkey for each allocated pd.
+Commit 96249d70dd70 ("IB/core: Guarantee that a local_dma_lkey
+is available") just does it in the core layer so we can go ahead
+and use that.
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.c  |  5 +++++
- drivers/infiniband/ulp/iser/iscsi_iser.h  |  1 +
- drivers/infiniband/ulp/iser/iser_memory.c | 18 ++++++++++++------
- drivers/infiniband/ulp/iser/iser_verbs.c  | 21 +++++++++++++--------
- 4 files changed, 31 insertions(+), 14 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c    | 57 ------------------------------------
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  2 --
+ drivers/infiniband/hw/mlx5/qp.c      |  4 +--
+ 3 files changed, 1 insertion(+), 62 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
-index 1ace5d83a4d7..f58ff96b6cbb 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.c
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-@@ -97,6 +97,11 @@ unsigned int iser_max_sectors = ISER_DEF_MAX_SECTORS;
- module_param_named(max_sectors, iser_max_sectors, uint, S_IRUGO | S_IWUSR);
- MODULE_PARM_DESC(max_sectors, "Max number of sectors in a single scsi command (default:1024");
- 
-+bool iser_always_reg = true;
-+module_param_named(always_register, iser_always_reg, bool, S_IRUGO);
-+MODULE_PARM_DESC(always_register,
-+		 "Always register memory, even for continuous memory regions (default:true)");
-+
- bool iser_pi_enable = false;
- module_param_named(pi_enable, iser_pi_enable, bool, S_IRUGO);
- MODULE_PARM_DESC(pi_enable, "Enable T10-PI offload support (default:disabled)");
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
-index 86f6583485ef..a5edd6ede692 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.h
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
-@@ -611,6 +611,7 @@ extern int iser_debug_level;
- extern bool iser_pi_enable;
- extern int iser_pi_guard;
- extern unsigned int iser_max_sectors;
-+extern bool iser_always_reg;
- 
- int iser_assign_reg_ops(struct iser_device *device);
- 
-diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index 2493cc748db8..4c46d67d37a1 100644
---- a/drivers/infiniband/ulp/iser/iser_memory.c
-+++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -803,11 +803,12 @@ static int
- iser_reg_prot_sg(struct iscsi_iser_task *task,
- 		 struct iser_data_buf *mem,
- 		 struct iser_fr_desc *desc,
-+		 bool use_dma_key,
- 		 struct iser_mem_reg *reg)
- {
- 	struct iser_device *device = task->iser_conn->ib_conn.device;
- 
--	if (mem->dma_nents == 1)
-+	if (use_dma_key)
- 		return iser_reg_dma(device, mem, reg);
- 
- 	return device->reg_ops->reg_mem(task, mem, &desc->pi_ctx->rsc, reg);
-@@ -817,11 +818,12 @@ static int
- iser_reg_data_sg(struct iscsi_iser_task *task,
- 		 struct iser_data_buf *mem,
- 		 struct iser_fr_desc *desc,
-+		 bool use_dma_key,
- 		 struct iser_mem_reg *reg)
- {
- 	struct iser_device *device = task->iser_conn->ib_conn.device;
- 
--	if (mem->dma_nents == 1)
-+	if (use_dma_key)
- 		return iser_reg_dma(device, mem, reg);
- 
- 	return device->reg_ops->reg_mem(task, mem, &desc->rsc, reg);
-@@ -836,14 +838,17 @@ int iser_reg_rdma_mem(struct iscsi_iser_task *task,
- 	struct iser_mem_reg *reg = &task->rdma_reg[dir];
- 	struct iser_mem_reg *data_reg;
- 	struct iser_fr_desc *desc = NULL;
-+	bool use_dma_key;
- 	int err;
- 
- 	err = iser_handle_unaligned_buf(task, mem, dir);
- 	if (unlikely(err))
- 		return err;
- 
--	if (mem->dma_nents != 1 ||
--	    scsi_get_prot_op(task->sc) != SCSI_PROT_NORMAL) {
-+	use_dma_key = (mem->dma_nents == 1 && !iser_always_reg &&
-+		       scsi_get_prot_op(task->sc) == SCSI_PROT_NORMAL);
-+
-+	if (!use_dma_key) {
- 		desc = device->reg_ops->reg_desc_get(ib_conn);
- 		reg->mem_h = desc;
- 	}
-@@ -853,7 +858,7 @@ int iser_reg_rdma_mem(struct iscsi_iser_task *task,
- 	else
- 		data_reg = &task->desc.data_reg;
- 
--	err = iser_reg_data_sg(task, mem, desc, data_reg);
-+	err = iser_reg_data_sg(task, mem, desc, use_dma_key, data_reg);
- 	if (unlikely(err))
- 		goto err_reg;
- 
-@@ -866,7 +871,8 @@ int iser_reg_rdma_mem(struct iscsi_iser_task *task,
- 			if (unlikely(err))
- 				goto err_reg;
- 
--			err = iser_reg_prot_sg(task, mem, desc, prot_reg);
-+			err = iser_reg_prot_sg(task, mem, desc,
-+					       use_dma_key, prot_reg);
- 			if (unlikely(err))
- 				goto err_reg;
- 		}
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index ae70cc1463ac..85132d867bc8 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -133,11 +133,15 @@ static int iser_create_device_ib_res(struct iser_device *device)
- 			     (unsigned long)comp);
- 	}
- 
--	device->mr = ib_get_dma_mr(device->pd, IB_ACCESS_LOCAL_WRITE |
--				   IB_ACCESS_REMOTE_WRITE |
--				   IB_ACCESS_REMOTE_READ);
--	if (IS_ERR(device->mr))
--		goto dma_mr_err;
-+	if (!iser_always_reg) {
-+		int access = IB_ACCESS_LOCAL_WRITE |
-+			     IB_ACCESS_REMOTE_WRITE |
-+			     IB_ACCESS_REMOTE_READ;
-+
-+		device->mr = ib_get_dma_mr(device->pd, access);
-+		if (IS_ERR(device->mr))
-+			goto dma_mr_err;
-+	}
- 
- 	INIT_IB_EVENT_HANDLER(&device->event_handler, device->ib_device,
- 				iser_event_handler);
-@@ -147,7 +151,8 @@ static int iser_create_device_ib_res(struct iser_device *device)
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 0ab9625911a1..f1ccd40beae9 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -794,53 +794,6 @@ static int mlx5_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vm
  	return 0;
+ }
  
- handler_err:
--	ib_dereg_mr(device->mr);
-+	if (device->mr)
-+		ib_dereg_mr(device->mr);
- dma_mr_err:
- 	for (i = 0; i < device->comps_used; i++)
- 		tasklet_kill(&device->comps[i].tasklet);
-@@ -173,7 +178,6 @@ comps_err:
- static void iser_free_device_ib_res(struct iser_device *device)
- {
- 	int i;
--	BUG_ON(device->mr == NULL);
- 
- 	for (i = 0; i < device->comps_used; i++) {
- 		struct iser_comp *comp = &device->comps[i];
-@@ -184,7 +188,8 @@ static void iser_free_device_ib_res(struct iser_device *device)
+-static int alloc_pa_mkey(struct mlx5_ib_dev *dev, u32 *key, u32 pdn)
+-{
+-	struct mlx5_create_mkey_mbox_in *in;
+-	struct mlx5_mkey_seg *seg;
+-	struct mlx5_core_mr mr;
+-	int err;
+-
+-	in = kzalloc(sizeof(*in), GFP_KERNEL);
+-	if (!in)
+-		return -ENOMEM;
+-
+-	seg = &in->seg;
+-	seg->flags = MLX5_PERM_LOCAL_READ | MLX5_ACCESS_MODE_PA;
+-	seg->flags_pd = cpu_to_be32(pdn | MLX5_MKEY_LEN64);
+-	seg->qpn_mkey7_0 = cpu_to_be32(0xffffff << 8);
+-	seg->start_addr = 0;
+-
+-	err = mlx5_core_create_mkey(dev->mdev, &mr, in, sizeof(*in),
+-				    NULL, NULL, NULL);
+-	if (err) {
+-		mlx5_ib_warn(dev, "failed to create mkey, %d\n", err);
+-		goto err_in;
+-	}
+-
+-	kfree(in);
+-	*key = mr.key;
+-
+-	return 0;
+-
+-err_in:
+-	kfree(in);
+-
+-	return err;
+-}
+-
+-static void free_pa_mkey(struct mlx5_ib_dev *dev, u32 key)
+-{
+-	struct mlx5_core_mr mr;
+-	int err;
+-
+-	memset(&mr, 0, sizeof(mr));
+-	mr.key = key;
+-	err = mlx5_core_destroy_mkey(dev->mdev, &mr);
+-	if (err)
+-		mlx5_ib_warn(dev, "failed to destroy mkey 0x%x\n", key);
+-}
+-
+ static struct ib_pd *mlx5_ib_alloc_pd(struct ib_device *ibdev,
+ 				      struct ib_ucontext *context,
+ 				      struct ib_udata *udata)
+@@ -866,13 +819,6 @@ static struct ib_pd *mlx5_ib_alloc_pd(struct ib_device *ibdev,
+ 			kfree(pd);
+ 			return ERR_PTR(-EFAULT);
+ 		}
+-	} else {
+-		err = alloc_pa_mkey(to_mdev(ibdev), &pd->pa_lkey, pd->pdn);
+-		if (err) {
+-			mlx5_core_dealloc_pd(to_mdev(ibdev)->mdev, pd->pdn);
+-			kfree(pd);
+-			return ERR_PTR(err);
+-		}
  	}
  
- 	(void)ib_unregister_event_handler(&device->event_handler);
--	(void)ib_dereg_mr(device->mr);
-+	if (device->mr)
-+		(void)ib_dereg_mr(device->mr);
- 	ib_dealloc_pd(device->pd);
+ 	return &pd->ibpd;
+@@ -883,9 +829,6 @@ static int mlx5_ib_dealloc_pd(struct ib_pd *pd)
+ 	struct mlx5_ib_dev *mdev = to_mdev(pd->device);
+ 	struct mlx5_ib_pd *mpd = to_mpd(pd);
  
- 	kfree(device->comps);
+-	if (!pd->uobject)
+-		free_pa_mkey(mdev, mpd->pa_lkey);
+-
+ 	mlx5_core_dealloc_pd(mdev->mdev, mpd->pdn);
+ 	kfree(mpd);
+ 
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index a5fa0b9c7580..b0a22fea76f1 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -103,7 +103,6 @@ static inline struct mlx5_ib_ucontext *to_mucontext(struct ib_ucontext *ibuconte
+ struct mlx5_ib_pd {
+ 	struct ib_pd		ibpd;
+ 	u32			pdn;
+-	u32			pa_lkey;
+ };
+ 
+ /* Use macros here so that don't have to duplicate
+@@ -213,7 +212,6 @@ struct mlx5_ib_qp {
+ 	int			uuarn;
+ 
+ 	int			create_type;
+-	u32			pa_lkey;
+ 
+ 	/* Store signature errors */
+ 	bool			signature_en;
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 203c8a45e095..45722a4fa99d 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -930,8 +930,6 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 			err = create_kernel_qp(dev, init_attr, qp, &in, &inlen);
+ 			if (err)
+ 				mlx5_ib_dbg(dev, "err %d\n", err);
+-			else
+-				qp->pa_lkey = to_mpd(pd)->pa_lkey;
+ 		}
+ 
+ 		if (err)
+@@ -2050,7 +2048,7 @@ static void set_frwr_pages(struct mlx5_wqe_data_seg *dseg,
+ 		mfrpl->mapped_page_list[i] = cpu_to_be64(page_list[i] | perm);
+ 	dseg->addr = cpu_to_be64(mfrpl->map);
+ 	dseg->byte_count = cpu_to_be32(ALIGN(sizeof(u64) * wr->wr.fast_reg.page_list_len, 64));
+-	dseg->lkey = cpu_to_be32(pd->pa_lkey);
++	dseg->lkey = cpu_to_be32(pd->ibpd.local_dma_lkey);
+ }
+ 
+ static __be32 send_ieth(struct ib_send_wr *wr)
 -- 
 1.8.4.3
 
