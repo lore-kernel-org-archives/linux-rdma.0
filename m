@@ -1,228 +1,174 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 08/26] IB/qib: Support the new memory registration API
-Date: Thu, 24 Sep 2015 20:35:00 +0300
-Message-ID: <1443116118-10730-9-git-send-email-sagig@mellanox.com>
-References: <1443116118-10730-1-git-send-email-sagig@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1443116118-10730-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: [PATCH v2 00/26] New fast registration API
+Date: Thu, 24 Sep 2015 20:34:52 +0300
+Message-ID: <1443116118-10730-1-git-send-email-sagig@mellanox.com>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Support the new memory registration API by allocating a
-private page list array in qib_mr and populate it when
-qib_map_mr_sg is invoked. Also, support IB_WR_REG_MR
-by duplicating qib_fastreg_mr just take the needed information
-from different places:
-- page_size, iova, length (ib_mr)
-- page array (qib_mr)
-- key, access flags (ib_reg_wr)
+Hi all,
 
-The IB_WR_FAST_REG_MR handlers will be removed later when
-all the ULPs will be converted.
+As discussed on the linux-rdma list, there is plenty of room for
+improvement in our memory registration APIs. We keep finding
+ULPs that are duplicating code, sometimes use wrong strategies
+and mis-use our current API.
 
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Acked-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib_keys.c  | 56 +++++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/qib/qib_mr.c    | 32 ++++++++++++++++++++
- drivers/infiniband/hw/qib/qib_verbs.c |  9 +++++-
- drivers/infiniband/hw/qib/qib_verbs.h |  8 +++++
- 4 files changed, 104 insertions(+), 1 deletion(-)
+As a first step, this patch set replaces the fast registration API
+to accept a kernel common struct scatterlist and takes care of
+the page vector construction in the core layer with hooks for the
+drivers HW specific assignments. This allows to remove a common
+code duplication as it was done in each and every ULP driver.
 
-diff --git a/drivers/infiniband/hw/qib/qib_keys.c b/drivers/infiniband/hw/qib/qib_keys.c
-index eaf139a33b2e..95b8b9110fc6 100644
---- a/drivers/infiniband/hw/qib/qib_keys.c
-+++ b/drivers/infiniband/hw/qib/qib_keys.c
-@@ -390,3 +390,59 @@ bail:
- 	spin_unlock_irqrestore(&rkt->lock, flags);
- 	return ret;
- }
-+
-+/*
-+ * Initialize the memory region specified by the work request.
-+ */
-+int qib_reg_mr(struct qib_qp *qp, struct ib_reg_wr *wr)
-+{
-+	struct qib_lkey_table *rkt = &to_idev(qp->ibqp.device)->lk_table;
-+	struct qib_pd *pd = to_ipd(qp->ibqp.pd);
-+	struct qib_mr *mr = to_imr(wr->mr);
-+	struct qib_mregion *mrg;
-+	u32 key = wr->key;
-+	unsigned i, n, m;
-+	int ret = -EINVAL;
-+	unsigned long flags;
-+	u64 *page_list;
-+	size_t ps;
-+
-+	spin_lock_irqsave(&rkt->lock, flags);
-+	if (pd->user || key == 0)
-+		goto bail;
-+
-+	mrg = rcu_dereference_protected(
-+		rkt->table[(key >> (32 - ib_qib_lkey_table_size))],
-+		lockdep_is_held(&rkt->lock));
-+	if (unlikely(mrg == NULL || qp->ibqp.pd != mrg->pd))
-+		goto bail;
-+
-+	if (mr->npages > mrg->max_segs)
-+		goto bail;
-+
-+	ps = mr->ibmr.page_size;
-+	if (mr->ibmr.length > ps * mr->npages)
-+		goto bail;
-+
-+	mrg->user_base = mr->ibmr.iova;
-+	mrg->iova = mr->ibmr.iova;
-+	mrg->lkey = key;
-+	mrg->length = mr->ibmr.length;
-+	mrg->access_flags = wr->access;
-+	page_list = mr->pages;
-+	m = 0;
-+	n = 0;
-+	for (i = 0; i < mr->npages; i++) {
-+		mrg->map[m]->segs[n].vaddr = (void *) page_list[i];
-+		mrg->map[m]->segs[n].length = ps;
-+		if (++n == QIB_SEGSZ) {
-+			m++;
-+			n = 0;
-+		}
-+	}
-+
-+	ret = 0;
-+bail:
-+	spin_unlock_irqrestore(&rkt->lock, flags);
-+	return ret;
-+}
-diff --git a/drivers/infiniband/hw/qib/qib_mr.c b/drivers/infiniband/hw/qib/qib_mr.c
-index 19220dcb9a3b..0fa4b0de8074 100644
---- a/drivers/infiniband/hw/qib/qib_mr.c
-+++ b/drivers/infiniband/hw/qib/qib_mr.c
-@@ -303,6 +303,7 @@ int qib_dereg_mr(struct ib_mr *ibmr)
- 	int ret = 0;
- 	unsigned long timeout;
- 
-+	kfree(mr->pages);
- 	qib_free_lkey(&mr->mr);
- 
- 	qib_put_mr(&mr->mr); /* will set completion if last */
-@@ -340,7 +341,38 @@ struct ib_mr *qib_alloc_mr(struct ib_pd *pd,
- 	if (IS_ERR(mr))
- 		return (struct ib_mr *)mr;
- 
-+	mr->pages = kcalloc(max_num_sg, sizeof(u64), GFP_KERNEL);
-+	if (!mr->pages)
-+		goto err;
-+
- 	return &mr->ibmr;
-+
-+err:
-+	qib_dereg_mr(&mr->ibmr);
-+	return ERR_PTR(-ENOMEM);
-+}
-+
-+static int qib_set_page(struct ib_mr *ibmr, u64 addr)
-+{
-+	struct qib_mr *mr = to_imr(ibmr);
-+
-+	if (unlikely(mr->npages == mr->mr.max_segs))
-+		return -ENOMEM;
-+
-+	mr->pages[mr->npages++] = addr;
-+
-+	return 0;
-+}
-+
-+int qib_map_mr_sg(struct ib_mr *ibmr,
-+		  struct scatterlist *sg,
-+		  unsigned int sg_nents)
-+{
-+	struct qib_mr *mr = to_imr(ibmr);
-+
-+	mr->npages = 0;
-+
-+	return ib_sg_to_pages(ibmr, sg, sg_nents, qib_set_page);
- }
- 
- struct ib_fast_reg_page_list *
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index a6b0b098ff30..a1e53d7b662b 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.c
-+++ b/drivers/infiniband/hw/qib/qib_verbs.c
-@@ -362,7 +362,10 @@ static int qib_post_one_send(struct qib_qp *qp, struct ib_send_wr *wr,
- 	 * undefined operations.
- 	 * Make sure buffer is large enough to hold the result for atomics.
- 	 */
--	if (wr->opcode == IB_WR_FAST_REG_MR) {
-+	if (wr->opcode == IB_WR_REG_MR) {
-+		if (qib_reg_mr(qp, reg_wr(wr)))
-+			goto bail_inval;
-+	} else if (wr->opcode == IB_WR_FAST_REG_MR) {
- 		if (qib_fast_reg_mr(qp, wr))
- 			goto bail_inval;
- 	} else if (qp->ibqp.qp_type == IB_QPT_UC) {
-@@ -401,6 +404,9 @@ static int qib_post_one_send(struct qib_qp *qp, struct ib_send_wr *wr,
- 	if (qp->ibqp.qp_type != IB_QPT_UC &&
- 	    qp->ibqp.qp_type != IB_QPT_RC)
- 		memcpy(&wqe->ud_wr, ud_wr(wr), sizeof(wqe->ud_wr));
-+	else if (wr->opcode == IB_WR_REG_MR)
-+		memcpy(&wqe->reg_wr, reg_wr(wr),
-+			sizeof(wqe->reg_wr));
- 	else if (wr->opcode == IB_WR_FAST_REG_MR)
- 		memcpy(&wqe->fast_reg_wr, fast_reg_wr(wr),
- 			sizeof(wqe->fast_reg_wr));
-@@ -2260,6 +2266,7 @@ int qib_register_ib_device(struct qib_devdata *dd)
- 	ibdev->reg_user_mr = qib_reg_user_mr;
- 	ibdev->dereg_mr = qib_dereg_mr;
- 	ibdev->alloc_mr = qib_alloc_mr;
-+	ibdev->map_mr_sg = qib_map_mr_sg;
- 	ibdev->alloc_fast_reg_page_list = qib_alloc_fast_reg_page_list;
- 	ibdev->free_fast_reg_page_list = qib_free_fast_reg_page_list;
- 	ibdev->alloc_fmr = qib_alloc_fmr;
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
-index 8aa16851a5e6..dbc81c5761e3 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.h
-+++ b/drivers/infiniband/hw/qib/qib_verbs.h
-@@ -330,6 +330,8 @@ struct qib_mr {
- 	struct ib_mr ibmr;
- 	struct ib_umem *umem;
- 	struct qib_mregion mr;  /* must be last */
-+	u64 *pages;
-+	u32 npages;
- };
- 
- /*
-@@ -341,6 +343,7 @@ struct qib_swqe {
- 	union {
- 		struct ib_send_wr wr;   /* don't use wr.sg_list */
- 		struct ib_ud_wr ud_wr;
-+		struct ib_reg_wr reg_wr;
- 		struct ib_fast_reg_wr fast_reg_wr;
- 		struct ib_rdma_wr rdma_wr;
- 		struct ib_atomic_wr atomic_wr;
-@@ -1044,12 +1047,17 @@ struct ib_mr *qib_alloc_mr(struct ib_pd *pd,
- 			   enum ib_mr_type mr_type,
- 			   u32 max_entries);
- 
-+int qib_map_mr_sg(struct ib_mr *ibmr,
-+		  struct scatterlist *sg,
-+		  unsigned int sg_nents);
-+
- struct ib_fast_reg_page_list *qib_alloc_fast_reg_page_list(
- 				struct ib_device *ibdev, int page_list_len);
- 
- void qib_free_fast_reg_page_list(struct ib_fast_reg_page_list *pl);
- 
- int qib_fast_reg_mr(struct qib_qp *qp, struct ib_send_wr *wr);
-+int qib_reg_mr(struct qib_qp *qp, struct ib_reg_wr *wr);
- 
- struct ib_fmr *qib_alloc_fmr(struct ib_pd *pd, int mr_access_flags,
- 			     struct ib_fmr_attr *fmr_attr);
+Changes from v1:
+- Add ib_map_mr_sg_zbva() for RDS which uses it (preferred it over
+  polluting the API).
+
+- Replaced coherent allocations in mlx4, mlx5 with DMA streaming
+  APIs (Bart)
+
+- Changed ib_map_mr_sg description (Bart)
+
+- Split SRP driver patches (Bart)
+
+- Added missing wr->next = NULL from various ULPs (Steve, Santosh)
+
+- Fixed 0-day testing errors in nes driver, xprtrdma and svcrdma
+
+- Fixed checkpatch issues
+
+Changes from v0:
+- Rebased on top of 4.3-rc1 + Christoph's ib_send_wr conversion patches
+
+- Allow the ULP to pass page_size argument to ib_map_mr_sg in order
+  to have it work better in some specific workloads. This suggestion
+  came from Bart Van Assche which pointed out that some applications
+  might use page sizes significantly smaller than the system PAGE_SIZE
+  of specific architectures
+
+- Fixed some logical bugs in ib_sg_to_pages
+
+- Added a set_page function pointer for drivers to pass to ib_sg_to_pages
+  so some drivers (e.g mlx4, mlx5, nes) can avoid keeping a second page
+  vector and/or re-iterate on the page vector in order to perform HW specific
+  assignments (big/little endian conversion, extra flags)
+
+- Converted SRP initiator and RDS iwarp ULPs to the new API
+
+- Removed fast registration code from hfi1 driver (as it isn't supported
+  anyway). I assume that the correct place to get the support back would
+  be in a shared SW library (hfi1, qib, rxe).
+
+- Updated the change logs
+
+So far my tests covered:
+- ULPs:
+	* iser initiator
+	* iser target
+	* xprtrdma
+	* svcrdma
+- Drivers:
+	* mlx4
+	* mlx5
+	* Steve Wise was kind enough to run NFS client/server over cxgb4 and
+	  reported good results.
+	* Santosh reports that RDS IB conversion is functional and working
+	  with ib_map_mr_sg_zbva
+
+I don't have access to other HW devices (qib, nes) nor iwarp devices so RDS is
+compile tested only. Santosh reports
+
+I'm targeting this to 4.4 so I'll appreciate more feedback and a bigger testing
+coverage.
+
+The code is available at: https://github.com/sagigrimberg/linux/tree/reg_api.4
+
+Sagi Grimberg (26):
+  IB/core: Introduce new fast registration API
+  IB/mlx5: Remove dead fmr code
+  IB/mlx5: Support the new memory registration API
+  IB/mlx4: Support the new memory registration API
+  RDMA/ocrdma: Support the new memory registration API
+  RDMA/cxgb3: Support the new memory registration API
+  iw_cxgb4: Support the new memory registration API
+  IB/qib: Support the new memory registration API
+  RDMA/nes: Support the new memory registration API
+  IB/iser: Port to new fast registration API
+  iser-target: Port to new memory registration API
+  xprtrdma: Port to new memory registration API
+  svcrdma: Port to new memory registration API
+  RDS/IW: Convert to new memory registration API
+  IB/srp: Split srp_map_sg
+  IB/srp: Convert to new registration API
+  IB/srp: Dont allocate a page vector when using fast_reg
+  IB/mlx5: Remove old FRWR API support
+  IB/mlx4: Remove old FRWR API support
+  RDMA/ocrdma: Remove old FRWR API
+  RDMA/cxgb3: Remove old FRWR API
+  iw_cxgb4: Remove old FRWR API
+  IB/qib: Remove old FRWR API
+  RDMA/nes: Remove old FRWR API
+  IB/hfi1: Remove Old fast registraion API support
+  IB/core: Remove old fast registration API
+
+ drivers/infiniband/core/verbs.c             | 132 +++++++++++---
+ drivers/infiniband/hw/cxgb3/iwch_cq.c       |   2 +-
+ drivers/infiniband/hw/cxgb3/iwch_provider.c |  39 +++--
+ drivers/infiniband/hw/cxgb3/iwch_provider.h |   2 +
+ drivers/infiniband/hw/cxgb3/iwch_qp.c       |  37 ++--
+ drivers/infiniband/hw/cxgb4/cq.c            |   2 +-
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h      |  25 +--
+ drivers/infiniband/hw/cxgb4/mem.c           |  61 +++----
+ drivers/infiniband/hw/cxgb4/provider.c      |   3 +-
+ drivers/infiniband/hw/cxgb4/qp.c            |  47 +++--
+ drivers/infiniband/hw/mlx4/cq.c             |   2 +-
+ drivers/infiniband/hw/mlx4/main.c           |   3 +-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h        |  22 +--
+ drivers/infiniband/hw/mlx4/mr.c             | 143 ++++++++++------
+ drivers/infiniband/hw/mlx4/qp.c             |  34 ++--
+ drivers/infiniband/hw/mlx5/cq.c             |   4 +-
+ drivers/infiniband/hw/mlx5/main.c           |   3 +-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h        |  47 +----
+ drivers/infiniband/hw/mlx5/mr.c             | 129 +++++++++-----
+ drivers/infiniband/hw/mlx5/qp.c             | 140 +++++++--------
+ drivers/infiniband/hw/nes/nes_hw.h          |   6 -
+ drivers/infiniband/hw/nes/nes_verbs.c       | 163 +++++++-----------
+ drivers/infiniband/hw/nes/nes_verbs.h       |   4 +
+ drivers/infiniband/hw/ocrdma/ocrdma.h       |   2 +
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c  |   3 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 154 ++++++++---------
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.h |   7 +-
+ drivers/infiniband/hw/qib/qib_keys.c        |  42 ++---
+ drivers/infiniband/hw/qib/qib_mr.c          |  46 ++---
+ drivers/infiniband/hw/qib/qib_verbs.c       |  13 +-
+ drivers/infiniband/hw/qib/qib_verbs.h       |  13 +-
+ drivers/infiniband/ulp/iser/iscsi_iser.h    |   8 +-
+ drivers/infiniband/ulp/iser/iser_memory.c   |  54 +++---
+ drivers/infiniband/ulp/iser/iser_verbs.c    |  16 +-
+ drivers/infiniband/ulp/isert/ib_isert.c     | 130 +++-----------
+ drivers/infiniband/ulp/isert/ib_isert.h     |   2 -
+ drivers/infiniband/ulp/srp/ib_srp.c         | 255 ++++++++++++++++------------
+ drivers/infiniband/ulp/srp/ib_srp.h         |  11 +-
+ drivers/staging/hfi1/keys.c                 |  55 ------
+ drivers/staging/hfi1/mr.c                   |  32 +---
+ drivers/staging/hfi1/verbs.c                |   9 +-
+ drivers/staging/hfi1/verbs.h                |   8 -
+ include/linux/sunrpc/svc_rdma.h             |   6 +-
+ include/rdma/ib_verbs.h                     |  86 +++++-----
+ net/rds/iw.h                                |   5 +-
+ net/rds/iw_rdma.c                           | 128 +++++---------
+ net/rds/iw_send.c                           |  57 +++----
+ net/sunrpc/xprtrdma/frwr_ops.c              | 113 +++++++-----
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c     |  76 +++++----
+ net/sunrpc/xprtrdma/svc_rdma_transport.c    |  34 ++--
+ net/sunrpc/xprtrdma/xprt_rdma.h             |   3 +-
+ 51 files changed, 1143 insertions(+), 1275 deletions(-)
+
 -- 
 1.8.4.3
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
