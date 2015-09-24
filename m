@@ -1,11 +1,11 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: [PATCH v2 03/26] IB/mlx5: Support the new memory registration API
-Date: Thu, 24 Sep 2015 20:34:31 +0300
-Message-ID: <1443116094-7969-4-git-send-email-sagig@mellanox.com>
-References: <1443116094-7969-1-git-send-email-sagig@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1443116094-7969-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Date: Thu, 24 Sep 2015 20:34:55 +0300
+Message-ID: <1443116118-10730-4-git-send-email-sagig@mellanox.com>
+References: <1443116118-10730-1-git-send-email-sagig@mellanox.com>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1443116118-10730-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
@@ -340,6 +340,6 @@ index dcd8d58f95e1..61d3aa9a6ca9 100644
 1.8.4.3
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
