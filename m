@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 16/26] IB/srp: Convert to new registration API
-Date: Thu, 24 Sep 2015 20:35:08 +0300
-Message-ID: <1443116118-10730-17-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v2 09/26] RDMA/nes: Support the new memory registration API
+Date: Thu, 24 Sep 2015 20:35:01 +0300
+Message-ID: <1443116118-10730-10-git-send-email-sagig@mellanox.com>
 References: <1443116118-10730-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1443116118-10730-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,295 +10,198 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Instead of constructing a page list, call ib_map_mr_sg
-and post a new ib_reg_wr. srp_map_finish_fr now returns
-the number of sg elements registered.
+Support the new memory registration API by allocating a
+private page list array in nes_mr and populate it when
+nes_map_mr_sg is invoked. Also, support IB_WR_REG_MR
+by duplicating IB_WR_FAST_REG_MR handling and take the
+needed information from different places:
+- page_size, iova, length (ib_mr)
+- page array (nes_mr)
+- key, access flags (ib_reg_wr)
 
-Remove srp_finish_mapping since no one is calling it.
+The IB_WR_FAST_REG_MR handlers will be removed later when
+all the ULPs will be converted.
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Acked-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 135 +++++++++++++++++-------------------
- drivers/infiniband/ulp/srp/ib_srp.h |  11 ++-
- 2 files changed, 71 insertions(+), 75 deletions(-)
+ drivers/infiniband/hw/nes/nes_verbs.c | 117 +++++++++++++++++++++++++++++++++-
+ drivers/infiniband/hw/nes/nes_verbs.h |   4 ++
+ 2 files changed, 120 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 74748d1075fc..8b3cbf9b6f40 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -340,8 +340,6 @@ static void srp_destroy_fr_pool(struct srp_fr_pool *pool)
- 		return;
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+index f71b37b75f82..f5b0cc972403 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.c
++++ b/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -51,6 +51,7 @@ atomic_t qps_created;
+ atomic_t sw_qps_destroyed;
  
- 	for (i = 0, d = &pool->desc[0]; i < pool->size; i++, d++) {
--		if (d->frpl)
--			ib_free_fast_reg_page_list(d->frpl);
- 		if (d->mr)
- 			ib_dereg_mr(d->mr);
- 	}
-@@ -362,7 +360,6 @@ static struct srp_fr_pool *srp_create_fr_pool(struct ib_device *device,
- 	struct srp_fr_pool *pool;
- 	struct srp_fr_desc *d;
- 	struct ib_mr *mr;
--	struct ib_fast_reg_page_list *frpl;
- 	int i, ret = -EINVAL;
- 
- 	if (pool_size <= 0)
-@@ -385,12 +382,6 @@ static struct srp_fr_pool *srp_create_fr_pool(struct ib_device *device,
- 			goto destroy_pool;
- 		}
- 		d->mr = mr;
--		frpl = ib_alloc_fast_reg_page_list(device, max_page_list_len);
--		if (IS_ERR(frpl)) {
--			ret = PTR_ERR(frpl);
--			goto destroy_pool;
--		}
--		d->frpl = frpl;
- 		list_add_tail(&d->entry, &pool->free_list);
- 	}
- 
-@@ -1320,24 +1311,24 @@ static int srp_map_finish_fr(struct srp_map_state *state,
- 	struct srp_target_port *target = ch->target;
- 	struct srp_device *dev = target->srp_host->srp_dev;
- 	struct ib_send_wr *bad_wr;
--	struct ib_fast_reg_wr wr;
-+	struct ib_reg_wr wr;
- 	struct srp_fr_desc *desc;
- 	u32 rkey;
--	int err;
--
-+	int n, err;
- 
- 	if (WARN_ON_ONCE(state->fr.next >= state->fr.end))
- 		return -ENOMEM;
- 
- 	WARN_ON_ONCE(!dev->use_fast_reg);
- 
--	if (state->npages == 0)
-+	if (state->sg_nents == 0)
- 		return 0;
- 
--	if (state->npages == 1 && target->global_mr) {
--		srp_map_desc(state, state->base_dma_addr, state->dma_len,
-+	if (state->sg_nents == 1 && target->global_mr) {
-+		srp_map_desc(state, sg_dma_address(state->sg),
-+			     sg_dma_len(state->sg),
- 			     target->global_mr->rkey);
--		return 0;
-+		return 1;
- 	}
- 
- 	desc = srp_fr_pool_get(ch->fr_pool);
-@@ -1347,46 +1338,33 @@ static int srp_map_finish_fr(struct srp_map_state *state,
- 	rkey = ib_inc_rkey(desc->mr->rkey);
- 	ib_update_fast_reg_key(desc->mr, rkey);
- 
--	memcpy(desc->frpl->page_list, state->pages,
--	       sizeof(state->pages[0]) * state->npages);
-+	n = ib_map_mr_sg(desc->mr, state->sg, state->sg_nents,
-+			 dev->mr_page_size);
-+	if (unlikely(n < 0))
-+		return n;
- 
--	memset(&wr, 0, sizeof(wr));
--	wr.wr.opcode = IB_WR_FAST_REG_MR;
-+	wr.wr.next = NULL;
-+	wr.wr.opcode = IB_WR_REG_MR;
- 	wr.wr.wr_id = FAST_REG_WR_ID_MASK;
--	wr.iova_start = state->base_dma_addr;
--	wr.page_list = desc->frpl;
--	wr.page_list_len = state->npages;
--	wr.page_shift = ilog2(dev->mr_page_size);
--	wr.length = state->dma_len;
--	wr.access_flags = (IB_ACCESS_LOCAL_WRITE |
--			   IB_ACCESS_REMOTE_READ |
--			   IB_ACCESS_REMOTE_WRITE);
--	wr.rkey = desc->mr->lkey;
-+	wr.wr.num_sge = 0;
-+	wr.wr.send_flags = 0;
-+	wr.mr = desc->mr;
-+	wr.key = desc->mr->rkey;
-+	wr.access = (IB_ACCESS_LOCAL_WRITE |
-+		     IB_ACCESS_REMOTE_READ |
-+		     IB_ACCESS_REMOTE_WRITE);
- 
- 	*state->fr.next++ = desc;
- 	state->nmdesc++;
- 
--	srp_map_desc(state, state->base_dma_addr, state->dma_len,
--		     desc->mr->rkey);
-+	srp_map_desc(state, desc->mr->iova,
-+		     desc->mr->length, desc->mr->rkey);
- 
- 	err = ib_post_send(ch->qp, &wr.wr, &bad_wr);
--	if (err)
-+	if (unlikely(err))
- 		return err;
- 
--	state->npages = 0;
--	state->dma_len = 0;
--
--	return 0;
--}
--
--static int srp_finish_mapping(struct srp_map_state *state,
--			      struct srp_rdma_ch *ch)
--{
--	struct srp_target_port *target = ch->target;
--	struct srp_device *dev = target->srp_host->srp_dev;
--
--	return dev->use_fast_reg ? srp_map_finish_fr(state, ch) :
--				   srp_map_finish_fmr(state, ch);
-+	return n;
- }
- 
- static int srp_map_sg_entry(struct srp_map_state *state,
-@@ -1406,7 +1384,7 @@ static int srp_map_sg_entry(struct srp_map_state *state,
- 	while (dma_len) {
- 		unsigned offset = dma_addr & ~dev->mr_page_mask;
- 		if (state->npages == dev->max_pages_per_mr || offset != 0) {
--			ret = srp_finish_mapping(state, ch);
-+			ret = srp_map_finish_fmr(state, ch);
- 			if (ret)
- 				return ret;
- 		}
-@@ -1428,7 +1406,7 @@ static int srp_map_sg_entry(struct srp_map_state *state,
- 	 */
- 	ret = 0;
- 	if (len != dev->mr_page_size)
--		ret = srp_finish_mapping(state, ch);
-+		ret = srp_map_finish_fmr(state, ch);
- 	return ret;
- }
- 
-@@ -1450,7 +1428,7 @@ static int srp_map_sg_fmr(struct srp_map_state *state, struct srp_rdma_ch *ch,
- 			return ret;
- 	}
- 
--	ret = srp_finish_mapping(state, ch);
-+	ret = srp_map_finish_fmr(state, ch);
- 	if (ret)
- 		return ret;
- 
-@@ -1463,23 +1441,23 @@ static int srp_map_sg_fr(struct srp_map_state *state, struct srp_rdma_ch *ch,
- 			 struct srp_request *req, struct scatterlist *scat,
- 			 int count)
- {
--	struct scatterlist *sg;
--	int i, ret;
--
- 	state->desc = req->indirect_desc;
--	state->pages = req->map_page;
--	state->fmr.next = req->fmr_list;
--	state->fmr.end = req->fmr_list + ch->target->cmd_sg_cnt;
-+	state->fr.next = req->fr_list;
-+	state->fr.end = req->fr_list + ch->target->cmd_sg_cnt;
-+	state->sg = scat;
-+	state->sg_nents = scsi_sg_count(req->scmnd);
- 
--	for_each_sg(scat, sg, count, i) {
--		ret = srp_map_sg_entry(state, ch, sg, i);
--		if (ret)
--			return ret;
--	}
-+	while (state->sg_nents) {
-+		int i, n;
- 
--	ret = srp_finish_mapping(state, ch);
--	if (ret)
--		return ret;
-+		n = srp_map_finish_fr(state, ch);
-+		if (unlikely(n < 0))
-+			return n;
-+
-+		state->sg_nents -= n;
-+		for (i = 0; i < n; i++)
-+			state->sg = sg_next(state->sg);
-+	}
- 
- 	req->nmdesc = state->nmdesc;
- 
-@@ -1523,6 +1501,7 @@ static int srp_map_idb(struct srp_rdma_ch *ch, struct srp_request *req,
- 	struct srp_map_state state;
- 	struct srp_direct_buf idb_desc;
- 	u64 idb_pages[1];
-+	struct scatterlist idb_sg[1];
- 	int ret;
- 
- 	memset(&state, 0, sizeof(state));
-@@ -1530,20 +1509,32 @@ static int srp_map_idb(struct srp_rdma_ch *ch, struct srp_request *req,
- 	state.gen.next = next_mr;
- 	state.gen.end = end_mr;
- 	state.desc = &idb_desc;
--	state.pages = idb_pages;
--	state.pages[0] = (req->indirect_dma_addr &
--			  dev->mr_page_mask);
--	state.npages = 1;
- 	state.base_dma_addr = req->indirect_dma_addr;
- 	state.dma_len = idb_len;
--	ret = srp_finish_mapping(&state, ch);
--	if (ret < 0)
--		goto out;
-+
-+	if (dev->use_fast_reg) {
-+		state.sg = idb_sg;
-+		state.sg_nents = 1;
-+		sg_set_buf(idb_sg, req->indirect_desc, idb_len);
-+		idb_sg->dma_address = req->indirect_dma_addr; /* hack! */
-+		ret = srp_map_finish_fr(&state, ch);
-+		if (ret < 0)
-+			return ret;
-+	} else if (dev->use_fmr) {
-+		state.pages = idb_pages;
-+		state.pages[0] = (req->indirect_dma_addr &
-+				  dev->mr_page_mask);
-+		state.npages = 1;
-+		ret = srp_map_finish_fmr(&state, ch);
-+		if (ret < 0)
-+			return ret;
-+	} else {
-+		return -EINVAL;
-+	}
- 
- 	*idb_rkey = idb_desc.key;
- 
--out:
--	return ret;
-+	return 0;
- }
- 
- static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_rdma_ch *ch,
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
-index 3608f2e4819c..a31a93716f3f 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.h
-+++ b/drivers/infiniband/ulp/srp/ib_srp.h
-@@ -242,7 +242,6 @@ struct srp_iu {
- struct srp_fr_desc {
- 	struct list_head		entry;
- 	struct ib_mr			*mr;
--	struct ib_fast_reg_page_list	*frpl;
- };
+ static void nes_unregister_ofa_device(struct nes_ib_device *nesibdev);
++static int nes_dereg_mr(struct ib_mr *ib_mr);
  
  /**
-@@ -294,11 +293,17 @@ struct srp_map_state {
- 		} gen;
- 	};
- 	struct srp_direct_buf  *desc;
--	u64		       *pages;
-+	union {
-+		u64			*pages;
-+		struct scatterlist	*sg;
-+	};
- 	dma_addr_t		base_dma_addr;
- 	u32			dma_len;
- 	u32			total_len;
--	unsigned int		npages;
-+	union {
-+		unsigned int		npages;
-+		unsigned int		sg_nents;
-+	};
- 	unsigned int		nmdesc;
- 	unsigned int		ndesc;
+  * nes_alloc_mw
+@@ -443,9 +444,46 @@ static struct ib_mr *nes_alloc_mr(struct ib_pd *ibpd,
+ 	} else {
+ 		kfree(nesmr);
+ 		nes_free_resource(nesadapter, nesadapter->allocated_mrs, stag_index);
+-		ibmr = ERR_PTR(-ENOMEM);
++		return ERR_PTR(-ENOMEM);
+ 	}
++
++	nesmr->pages = pci_alloc_consistent(nesdev->pcidev,
++					    max_num_sg * sizeof(u64),
++					    &nesmr->paddr);
++	if (!nesmr->paddr)
++		goto err;
++
++	nesmr->max_pages = max_num_sg;
++
+ 	return ibmr;
++
++err:
++	nes_dereg_mr(ibmr);
++
++	return ERR_PTR(-ENOMEM);
++}
++
++static int nes_set_page(struct ib_mr *ibmr, u64 addr)
++{
++	struct nes_mr *nesmr = to_nesmr(ibmr);
++
++	if (unlikely(nesmr->npages == nesmr->max_pages))
++		return -ENOMEM;
++
++	nesmr->pages[nesmr->npages++] = cpu_to_le64(addr);
++
++	return 0;
++}
++
++static int nes_map_mr_sg(struct ib_mr *ibmr,
++			 struct scatterlist *sg,
++			 unsigned int sg_nents)
++{
++	struct nes_mr *nesmr = to_nesmr(ibmr);
++
++	nesmr->npages = 0;
++
++	return ib_sg_to_pages(ibmr, sg, sg_nents, nes_set_page);
+ }
+ 
+ /*
+@@ -2683,6 +2721,13 @@ static int nes_dereg_mr(struct ib_mr *ib_mr)
+ 	u16 major_code;
+ 	u16 minor_code;
+ 
++
++	if (nesmr->pages)
++		pci_free_consistent(nesdev->pcidev,
++				    nesmr->max_pages * sizeof(u64),
++				    nesmr->pages,
++				    nesmr->paddr);
++
+ 	if (nesmr->region) {
+ 		ib_umem_release(nesmr->region);
+ 	}
+@@ -3513,6 +3558,75 @@ static int nes_post_send(struct ib_qp *ibqp, struct ib_send_wr *ib_wr,
+ 				  wqe_misc);
+ 			break;
+ 		}
++		case IB_WR_REG_MR:
++		{
++			struct nes_mr *mr = to_nesmr(reg_wr(ib_wr)->mr);
++			int page_shift = ilog2(reg_wr(ib_wr)->mr->page_size);
++			int flags = reg_wr(ib_wr)->access;
++
++			if (mr->npages > (NES_4K_PBL_CHUNK_SIZE / sizeof(u64))) {
++				nes_debug(NES_DBG_IW_TX, "SQ_FMR: bad page_list_len\n");
++				err = -EINVAL;
++				break;
++			}
++			wqe_misc = NES_IWARP_SQ_OP_FAST_REG;
++			set_wqe_64bit_value(wqe->wqe_words,
++					    NES_IWARP_SQ_FMR_WQE_VA_FBO_LOW_IDX,
++					    mr->ibmr.iova);
++			set_wqe_32bit_value(wqe->wqe_words,
++					    NES_IWARP_SQ_FMR_WQE_LENGTH_LOW_IDX,
++					    mr->ibmr.length);
++			set_wqe_32bit_value(wqe->wqe_words,
++					    NES_IWARP_SQ_FMR_WQE_LENGTH_HIGH_IDX, 0);
++			set_wqe_32bit_value(wqe->wqe_words,
++					    NES_IWARP_SQ_FMR_WQE_MR_STAG_IDX,
++					    reg_wr(ib_wr)->key);
++
++			if (page_shift == 12) {
++				wqe_misc |= NES_IWARP_SQ_FMR_WQE_PAGE_SIZE_4K;
++			} else if (page_shift == 21) {
++				wqe_misc |= NES_IWARP_SQ_FMR_WQE_PAGE_SIZE_2M;
++			} else {
++				nes_debug(NES_DBG_IW_TX, "Invalid page shift,"
++					  " ib_wr=%u, max=1\n", ib_wr->num_sge);
++				err = -EINVAL;
++				break;
++			}
++
++			/* Set access_flags */
++			wqe_misc |= NES_IWARP_SQ_FMR_WQE_RIGHTS_ENABLE_LOCAL_READ;
++			if (flags & IB_ACCESS_LOCAL_WRITE)
++				wqe_misc |= NES_IWARP_SQ_FMR_WQE_RIGHTS_ENABLE_LOCAL_WRITE;
++
++			if (flags & IB_ACCESS_REMOTE_WRITE)
++				wqe_misc |= NES_IWARP_SQ_FMR_WQE_RIGHTS_ENABLE_REMOTE_WRITE;
++
++			if (flags & IB_ACCESS_REMOTE_READ)
++				wqe_misc |= NES_IWARP_SQ_FMR_WQE_RIGHTS_ENABLE_REMOTE_READ;
++
++			if (flags & IB_ACCESS_MW_BIND)
++				wqe_misc |= NES_IWARP_SQ_FMR_WQE_RIGHTS_ENABLE_WINDOW_BIND;
++
++			/* Fill in PBL info: */
++			set_wqe_64bit_value(wqe->wqe_words,
++					    NES_IWARP_SQ_FMR_WQE_PBL_ADDR_LOW_IDX,
++					    mr->paddr);
++
++			set_wqe_32bit_value(wqe->wqe_words,
++					    NES_IWARP_SQ_FMR_WQE_PBL_LENGTH_IDX,
++					    mr->npages * 8);
++
++			nes_debug(NES_DBG_IW_TX, "SQ_REG_MR: iova_start: %llx, "
++				  "length: %d, rkey: %0x, pgl_paddr: %llx, "
++				  "page_list_len: %u, wqe_misc: %x\n",
++				  (unsigned long long) mr->ibmr.iova,
++				  mr->ibmr.length,
++				  reg_wr(ib_wr)->key,
++				  (unsigned long long) mr->paddr,
++				  mr->npages,
++				  wqe_misc);
++			break;
++		}
+ 		default:
+ 			/* error */
+ 			err = -EINVAL;
+@@ -3940,6 +4054,7 @@ struct nes_ib_device *nes_init_ofa_device(struct net_device *netdev)
+ 	nesibdev->ibdev.bind_mw = nes_bind_mw;
+ 
+ 	nesibdev->ibdev.alloc_mr = nes_alloc_mr;
++	nesibdev->ibdev.map_mr_sg = nes_map_mr_sg;
+ 	nesibdev->ibdev.alloc_fast_reg_page_list = nes_alloc_fast_reg_page_list;
+ 	nesibdev->ibdev.free_fast_reg_page_list = nes_free_fast_reg_page_list;
+ 
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.h b/drivers/infiniband/hw/nes/nes_verbs.h
+index 309b31c31ae1..a204b677af22 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.h
++++ b/drivers/infiniband/hw/nes/nes_verbs.h
+@@ -79,6 +79,10 @@ struct nes_mr {
+ 	u16               pbls_used;
+ 	u8                mode;
+ 	u8                pbl_4k;
++	__le64            *pages;
++	dma_addr_t        paddr;
++	u32               max_pages;
++	u32		  npages;
  };
+ 
+ struct nes_hw_pb {
 -- 
 1.8.4.3
 
