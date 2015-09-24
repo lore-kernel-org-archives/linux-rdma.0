@@ -1,106 +1,49 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] Expire sendonly joins (was Re: [PATCH rdma-rc 0/2] Add
- mechanism for ipoib neigh state change notifications)
-Date: Thu, 24 Sep 2015 12:00:05 -0500 (CDT)
-Message-ID: <alpine.DEB.2.20.1509241158420.21198@east.gentwo.org>
-References: <1442486283-9699-1-git-send-email-ogerlitz@mellanox.com> <alpine.DEB.2.11.1509170940270.2052@east.gentwo.org> <CAJ3xEMg-h+J=cr2ddWvYUGU=MOBk4Aw-KtkeJutATH0Y17dnjg@mail.gmail.com>
-Content-Type: text/plain; charset=US-ASCII
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] IB: merge struct ib_device_attr into struct ib_device
+Date: Thu, 24 Sep 2015 17:07:43 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E1CB9D2B5@CRSMSX101.amr.corp.intel.com>
+References: <1443023567-13259-1-git-send-email-hch@lst.de>
+ <1443023567-13259-2-git-send-email-hch@lst.de>
+ <8BE4B1B3-54CD-46D1-9BBD-9149F6219468@oracle.com>
+ <20150923184106.GA7759@lst.de> <56038CFD.8030908@mellanox.com>
+ <56039CB1.2090706@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMg-h+J=cr2ddWvYUGU=MOBk4Aw-KtkeJutATH0Y17dnjg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <56039CB1.2090706-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Ok here is the fixed up and tested V2 of the patch. Can this go in with
-Doug's  patch?
-
-
-
-Subject: ipoib: Expire sendonly multicast joins on neighbor expiration V2
-
-Add mcast_leave functionality to __ipoib_reap_neighbor.
-
-Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-
-Index: linux/drivers/infiniband/ulp/ipoib/ipoib_main.c
-===================================================================
---- linux.orig/drivers/infiniband/ulp/ipoib/ipoib_main.c	2015-09-23 09:51:19.259274231 -0500
-+++ linux/drivers/infiniband/ulp/ipoib/ipoib_main.c	2015-09-23 09:59:59.803289023 -0500
-@@ -1149,6 +1149,9 @@
- 	unsigned long dt;
- 	unsigned long flags;
- 	int i;
-+	LIST_HEAD(remove_list);
-+	struct ipoib_mcast *mcast, *tmcast;
-+	struct net_device *dev = priv->dev;
-
- 	if (test_bit(IPOIB_STOP_NEIGH_GC, &priv->flags))
- 		return;
-@@ -1176,6 +1179,19 @@
- 							  lockdep_is_held(&priv->lock))) != NULL) {
- 			/* was the neigh idle for two GC periods */
- 			if (time_after(neigh_obsolete, neigh->alive)) {
-+				u8 *mgid = neigh->daddr + 4;
-+
-+				/* Is this multicast ? */
-+				if (*mgid == 0xff) {
-+					mcast = __ipoib_mcast_find(dev, mgid);
-+
-+					if (mcast && test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags)) {
-+						list_del(&mcast->list);
-+						rb_erase(&mcast->rb_node, &priv->multicast_tree);
-+						list_add_tail(&mcast->list, &remove_list);
-+					}
-+				}
-+
- 				rcu_assign_pointer(*np,
- 						   rcu_dereference_protected(neigh->hnext,
- 									     lockdep_is_held(&priv->lock)));
-@@ -1191,6 +1207,8 @@
-
- out_unlock:
- 	spin_unlock_irqrestore(&priv->lock, flags);
-+	list_for_each_entry_safe(mcast, tmcast, &remove_list, list)
-+		ipoib_mcast_leave(dev, mcast);
- }
-
- static void ipoib_reap_neigh(struct work_struct *work)
-Index: linux/drivers/infiniband/ulp/ipoib/ipoib.h
-===================================================================
---- linux.orig/drivers/infiniband/ulp/ipoib/ipoib.h	2015-09-23 09:51:19.259274231 -0500
-+++ linux/drivers/infiniband/ulp/ipoib/ipoib.h	2015-09-23 09:51:19.255274231 -0500
-@@ -548,6 +548,8 @@
-
- int ipoib_mcast_attach(struct net_device *dev, u16 mlid,
- 		       union ib_gid *mgid, int set_qkey);
-+int ipoib_mcast_leave(struct net_device *dev, struct ipoib_mcast *mcast);
-+struct ipoib_mcast *__ipoib_mcast_find(struct net_device *dev, void *mgid);
-
- int ipoib_init_qp(struct net_device *dev);
- int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca);
-Index: linux/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-===================================================================
---- linux.orig/drivers/infiniband/ulp/ipoib/ipoib_multicast.c	2015-09-23 09:51:19.259274231 -0500
-+++ linux/drivers/infiniband/ulp/ipoib/ipoib_multicast.c	2015-09-23 09:51:19.255274231 -0500
-@@ -158,7 +158,7 @@
- 	return mcast;
- }
-
--static struct ipoib_mcast *__ipoib_mcast_find(struct net_device *dev, void *mgid)
-+struct ipoib_mcast *__ipoib_mcast_find(struct net_device *dev, void *mgid)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 	struct rb_node *n = priv->multicast_tree.rb_node;
-@@ -705,7 +705,7 @@
- 	return 0;
- }
-
--static int ipoib_mcast_leave(struct net_device *dev, struct ipoib_mcast *mcast)
-+int ipoib_mcast_leave(struct net_device *dev, struct ipoib_mcast *mcast)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 	int ret = 0;
+PiANCj4gPiBDaHJpc3RvcGgsDQo+ID4NCj4gPiBXZSBoYWQgYSBzbWFsbGVyIHZvbHVtZSBtb3Zl
+IHRvIGNhY2hlIHRoZSBkZXZpY2UgYXR0cmlidXRlcyBvbiB0aGUgSUINCj4gPiBkZXZpY2Ugc3Ry
+dWN0dXJlLCBhbmQgSSBqdXN0IHJlYWxpemVkIGl0IHdhcyBkcm9wcGVkIG9uIHRoZSBmbG9vci4N
+Cj4gPiBJcmEsIHRoYXQgd2FzIGEgcmV2aWV3ZXIgY29tbWVudCB5b3UgZ290IHdoZW4gd29ya2Vk
+IG9uIE9QQSBhbmQgSQ0KPiA+IG1pc3NlZCB0aGUgZmFjdCBpdCBkaWRuJ3QgcmVhY2ggdG8gYWNj
+ZXB0YW5jZQ0KPiA+IGh0dHA6Ly9tYXJjLmluZm8vP3Q9MTQyMzA5MzEwNjAwMDA2JnI9MSZ3PTIN
+Cj4gPiBJIHZvdGUgZm9yIDFzdCBhbmQgbW9zdCBkb2luZyB0aGlzIGFuZCB0YWtpbmcgdGhpbmdz
+IGZyb20gdGhlcmUuDQo+IA0KPiBUaGF0J3MgYWxzbyB3b3JrYWJsZS4NCj4gDQo+IEJ1dCBJcmEn
+cyBwYXRjaCBpcyBtaXNzaW5nIGliX3F1ZXJ5X2RldmljZSBjb252ZXJzaW9uIHRvIHNpbXBseSB0
+YWtlIHRoZSBjYWNoZWQNCj4gZGV2aWNlIGF0dHJpYnV0ZXMuDQo+IA0KPiBJJ20gZmluZSB3aXRo
+IGVpdGhlciB3YXkgdG8gZ28uDQoNCk15IHBhdGNoIGV2ZW50dWFsbHkgYmVjYW1lIHRoZSBnZXRf
+cG9ydF9pbW11dGFibGUgY2FsbCBiZWNhdXNlIHRoZSBPUEEgTUFEIGZsYWcgd2FzIGdvaW5nIHRv
+IGJlIGJhc2VkIHBlciBwb3J0IHJhdGhlciB0aGFuIHBlciBkZXZpY2UuICBUaGlzIGZpdCBuaWNl
+bHkgd2hpY2ggb3RoZXIgZGV2aWNlcyB3aGljaCByZXF1aXJlZCBkaWZmZXJlbnQgY29yZSBzdXBw
+b3J0IGJhc2VkIG9uIHRoZSBwb3J0IHJhdGhlciB0aGFuIHRoZSBkZXZpY2UuICBGb3IgcG9ydCBh
+dHRyaWJ1dGVzIHRoZXJlIGFyZSB2YWx1ZXMgd2hpY2ggY2FuIGNoYW5nZSBhbmQgc29tZSB3aGlj
+aCBjYW4gbm90LiAgVGh1cyB0aGUgYWRkaXRpb24gb2YgYSBzZXQgb2YgaW1tdXRhYmxlIHZhbHVl
+cyB3aGljaCB0aGUgY29yZSBsYXllciBjb3VsZCBzYWZlbHkgc3RvcmUgaW4gdGhlIGRldmljZSBz
+dHJ1Y3R1cmUuICBJIGNvdWxkIHNlZSBhIHNpbWlsYXIgcGF0Y2ggdG8gQ2hyaXN0b3BocyB0byBy
+ZW1vdmUgZ2V0X3BvcnRfaW1tdXRhYmxlLiAgQXQgdGhlIHRpbWUgSSB3YXMganVzdCBmb2xsb3dp
+bmcgdGhlIGRlc2lnbiBwYXR0ZXJuIGZvciB0aGUgcmVzdCBvZiB0aGUgaW5mcmFzdHJ1Y3R1cmUu
+ICBIb3dldmVyLCBmb3IgcXVlcnlfcG9ydCB0aGVyZSBhcmUgdmFsdWVzIHdoaWNoIG1heSBjaGFu
+Z2Ugc28gd2UgbmVlZCB0byBrZWVwIHRoYXQgY2FsbC4NCg0KSW4gbXkgcXVpY2sgcmV2aWV3IG9m
+IHRoZSBkZXZpY2UgYXR0cmlidXRlcyBJIGRvbid0IHNlZSBhbnl0aGluZyB3aGljaCBjYW4gY2hh
+bmdlIGFmdGVyIHRoZSBkZXZpY2UgaXMgbG9hZGVkIGJ5IHRoZSBjb3JlLiAgU28gaXQgc2VlbXMg
+Q2hyaXN0b3BoIHBhdGNoIHdpbGwgd29yay4NCg0KSXJhDQoNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
