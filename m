@@ -1,43 +1,36 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH RFC 0/3] Arbitrary SG list registration support
-Date: Thu, 24 Sep 2015 20:41:18 +0300
-Message-ID: <1443116481-14533-1-git-send-email-sagig@mellanox.com>
+From: "santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 14/26] RDS/IW: Convert to new memory registration API
+Date: Thu, 24 Sep 2015 10:43:11 -0700
+Message-ID: <5604362F.6020009@oracle.com>
+References: <1443116118-10730-1-git-send-email-sagig@mellanox.com>
+ <1443116118-10730-15-git-send-email-sagig@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1443116118-10730-15-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds arbitrary SG list memory registration support
-which is pending on the device capability.
-
-Now that the core is able to handle sg lists, the addition of
-this support is pretty straight-forward and with minimal changes
-to the core and ULP conversion.
-
-Just add another MR creation type which is capable of handling
-SG lists with gaps (pending on the device capability).
-
-The code is available at:
-https://github.com/sagigrimberg/linux/tree/arb_sg.1
-
-Sagi Grimberg (3):
-  IB/core: Add arbitrary sg_list support
-  mlx5: Add arbitrary sg list support
-  iser: Accept arbitrary sg lists mapping if the device supports it
-
- drivers/infiniband/core/verbs.c          |  2 ++
- drivers/infiniband/hw/mlx5/main.c        |  4 +++
- drivers/infiniband/hw/mlx5/mlx5_ib.h     |  1 +
- drivers/infiniband/hw/mlx5/mr.c          | 50 ++++++++++++++++++++++++++++----
- drivers/infiniband/hw/mlx5/qp.c          | 15 ++++++++--
- drivers/infiniband/ulp/iser/iscsi_iser.c | 11 ++++++-
- drivers/infiniband/ulp/iser/iser_verbs.c | 22 +++++++++-----
- include/rdma/ib_verbs.h                  | 10 +++++++
- 8 files changed, 98 insertions(+), 17 deletions(-)
-
--- 
-1.8.4.3
-
+On 9/24/15 10:35 AM, Sagi Grimberg wrote:
+> Get rid of fast_reg page list and its construction.
+> Instead, just pass the RDS sg list to ib_map_mr_sg
+> and post the new ib_reg_wr.
+>
+> This is done both for server IW RDMA_READ registration
+> and the client remote key registration.
+>
+> Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Acked-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+> ---
+>   net/rds/iw.h      |   5 +--
+>   net/rds/iw_rdma.c | 128 +++++++++++++++++++-----------------------------------
+>   net/rds/iw_send.c |  57 ++++++++++++------------
+>   3 files changed, 75 insertions(+), 115 deletions(-)
+>
+Acked-by: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
