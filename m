@@ -1,43 +1,53 @@
-From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH] staging/rdma: Kconfig change STAGING_RDMA to be tristate.
-Date: Thu, 24 Sep 2015 14:43:45 -0400
-Message-ID: <1443120225-22163-1-git-send-email-ira.weiny@intel.com>
+From: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/mlx4: Use vmalloc for WR buffers when needed
+Date: Fri, 25 Sep 2015 08:51:22 +0800
+Message-ID: <56049A8A.6040101@oracle.com>
+References: <1443091747-13881-1-git-send-email-wen.gang.wang@oracle.com>
+ <CAJ3xEMgN4_gk4_hVXOW2GhcfnXxgPnm=Lrc7JwkxBAeKv4KRAQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAJ3xEMgN4_gk4_hVXOW2GhcfnXxgPnm=Lrc7JwkxBAeKv4KRAQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Hi Or,
 
-STAGING_RDMA was failing to build when INFINIBAND was set to 'm' and
-STAGING_RDMA was set to 'y'.
+=E5=9C=A8 2015=E5=B9=B409=E6=9C=8824=E6=97=A5 19:57, Or Gerlitz =E5=86=99=
+=E9=81=93:
+> On Thu, Sep 24, 2015 at 1:49 PM, Wengang Wang <wen.gang.wang@oracle.c=
+om> wrote:
+>> @@ -786,8 +787,14 @@ static int create_qp_common(struct mlx4_ib_dev =
+*dev, struct ib_pd *pd,
+>>                  if (err)
+>>                          goto err_mtt;
+>>
+>> -               qp->sq.wrid  =3D kmalloc(qp->sq.wqe_cnt * sizeof (u6=
+4), gfp);
+>> -               qp->rq.wrid  =3D kmalloc(qp->rq.wqe_cnt * sizeof (u6=
+4), gfp);
+>> +               qp->sq.wrid =3D kmalloc(qp->sq.wqe_cnt * sizeof(u64)=
+, gfp);
+>> +               if (!qp->sq.wrid)
+>> +                       qp->sq.wrid =3D __vmalloc(qp->sq.wqe_cnt * s=
+izeof(u64),
+>> +                                               gfp, PAGE_KERNEL);
+> On other spots of mlx4, we're using vmalloc and not __vmalloc, any
+> pros/cons for going that way too here?
 
-Making this a tristate properly inherits the 'm' from the INFINIBAND setting.
+vmalloc is just using GFP_KERNEL | __GFP_HIGHMEM, we can't pass in the=20
+flag gfp with it.  We should respect orginal code which needs to pass=20
+the flag.
 
-Reviewed-by: Dalessandro, Dennis <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: John, Jubin <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/staging/rdma/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/staging/rdma/Kconfig b/drivers/staging/rdma/Kconfig
-index d7f6235..ba87650 100644
---- a/drivers/staging/rdma/Kconfig
-+++ b/drivers/staging/rdma/Kconfig
-@@ -1,5 +1,5 @@
- menuconfig STAGING_RDMA
--        bool "RDMA staging drivers"
-+        tristate "RDMA staging drivers"
- 	depends on INFINIBAND
- 	depends on PCI || BROKEN
- 	depends on HAS_IOMEM
--- 
-1.7.1
+thanks,
+wengang
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
