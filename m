@@ -1,44 +1,44 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] Expire sendonly joins (was Re: [PATCH rdma-rc 0/2] Add
- mechanism for ipoib neigh state change notifications)
-Date: Sat, 26 Sep 2015 20:35:05 +0300
-Message-ID: <CAJ3xEMj9kGaM6s+AqBQ_-ZTB_+cgDk3kefhq_O0V3PM120O9yQ@mail.gmail.com>
-References: <1442486283-9699-1-git-send-email-ogerlitz@mellanox.com>
-	<alpine.DEB.2.11.1509170940270.2052@east.gentwo.org>
-	<CAJ3xEMg-h+J=cr2ddWvYUGU=MOBk4Aw-KtkeJutATH0Y17dnjg@mail.gmail.com>
-	<alpine.DEB.2.20.1509241158420.21198@east.gentwo.org>
-	<CAJ3xEMg2qQ3CXrfTrg=gUX2tQRuPnpxA-8PC98GzoF5iz=j5PQ@mail.gmail.com>
-	<alpine.DEB.2.20.1509251140200.31792@east.gentwo.org>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v2 15/26] IB/srp: Split srp_map_sg
+Date: Sun, 27 Sep 2015 10:03:55 +0300
+Message-ID: <560794DB.1050200@dev.mellanox.co.il>
+References: <1443116118-10730-1-git-send-email-sagig@mellanox.com>
+ <1443116118-10730-16-git-send-email-sagig@mellanox.com>
+ <56057320.4010905@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.20.1509251140200.31792-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
+In-Reply-To: <56057320.4010905-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Sep 25, 2015 at 7:41 PM, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org> wrote:
+On 9/25/2015 7:15 PM, Bart Van Assche wrote:
+> On 09/24/2015 10:35 AM, Sagi Grimberg wrote:
+>> This is a perparation patch for the new registration API
+>              ^ preparation ?
 
-> Yes the patch introduces a new callback and creates workqueues that
+Fixed, thanks.
 
-It's possible that this was done for a reason, so
+>> +    WARN_ON_ONCE(!dev->use_fmr);
+>> +
+>> +    if (state->npages == 0)
+>> +        return 0;
+>> +
+>> +    if (state->npages == 1 && target->global_mr) {
+>> +        srp_map_desc(state, state->base_dma_addr, state->dma_len,
+>> +                 target->global_mr->rkey);
+>> +        return 0;
+>> +    }
+>> +
+>
+> The above is not correct. The npages and dma_len variables have to be
+> reset before returning. How about changing the "return 0" statement into
+> "goto reset_state" and adding a "reset_state" label ?
 
-> recheck conditions etc etc.
-> Makes it difficult to review and potentially creates new race conditions.
-
-maybe, and maybe avoid other race conditions
-
-> I'd rather have a straightforward solution.
-
-> And yes this went through testing here and we want to run this as
-> part of our prod kernels.
-
-sounds good, so taking into account that Erez is away till Oct 6th, we
-can probably pick your patch and later, if Erez proves us that there's
-deep problem there, revert it and take his.
-
-Or.
+Done, thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
