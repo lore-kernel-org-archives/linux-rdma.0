@@ -1,37 +1,47 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: libmlx4 and libmlx5 git trees? Who is handling those?
-Date: Mon, 28 Sep 2015 20:50:41 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A904D43C@ORSMSX109.amr.corp.intel.com>
-References: <alpine.DEB.2.20.1509281036520.30603@east.gentwo.org>
- <56096033.8040000@redhat.com> <20150928171724.GF12415@obsidianresearch.com>
- <alpine.DEB.2.20.1509281220580.31260@east.gentwo.org>
- <9C6B67F36DCAFC479B1CF6A967258A8C7D250932@ORSMSX110.amr.corp.intel.com>
- <20150928173208.GA8083@infradead.org>
- <20150928174215.GB1623@obsidianresearch.com>
- <9C6B67F36DCAFC479B1CF6A967258A8C7D25098A@ORSMSX110.amr.corp.intel.com>
- <20150928190024.GB8358@obsidianresearch.com> <5609A19A.806@redhat.com>
- <1828884A29C6694DAF28B7E6B8A82373A904D40B@ORSMSX109.amr.corp.intel.com>
- <9C6B67F36DCAFC479B1CF6A967258A8C7D250AFC@ORSMSX110.amr.corp.intel.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v1 01/24] IB/core: Introduce new fast registration API
+Date: Mon, 28 Sep 2015 13:57:52 -0700
+Message-ID: <5609A9D0.8030607@sandisk.com>
+References: <1442482947-27785-1-git-send-email-sagig@mellanox.com>
+ <1442482947-27785-2-git-send-email-sagig@mellanox.com>
+ <5601C65F.8060403@sandisk.com> <5603A841.70509@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <9C6B67F36DCAFC479B1CF6A967258A8C7D250AFC-8oqHQFITsIHTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <5603A841.70509-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> >The issue is that basically no one tests the releases of the packages.
-> 
-> We assume that the maintainer of the package tests it before they release
-> it :)
+On 09/24/2015 12:37 AM, Sagi Grimberg wrote:
+> On 9/23/2015 12:21 AM, Bart Van Assche wrote:
+>> On 09/17/2015 02:42 AM, Sagi Grimberg wrote:
+>>> +            } else if (last_page_off + dma_len < mr->page_size) {
+>>> +                /* chunk this fragment with the last */
+>>> +                last_end_dma_addr += dma_len;
+>>> +                last_page_off += dma_len;
+>>> +                mr->length += dma_len;
+>>> +                continue;
+>>
+>> Shouldn't this code update last_page_addr ?
+>
+> Actually I think it doesn't since it is only relevant for the else
+> statement where we are passing the page_size boundary.
 
-No one has access to that many pieces of hardware and system configurations.  The "community" can't dump the responsibility for testing onto a single person.
+Hello Sagi,
 
-OFA has always had the problem of testing long after the fact -- months, if not years, after changes are merged upstream (kernel or user space).
+Suppose that the following sg-list is passed to this function as { 
+offset, length } pairs and that this list has not been coalesced by the 
+DMA mapping code: [ { 0, page_size / 4 }, { page_size / 4, page_size / 4 
+}, { 2 * page_size / 4, page_size / 2 } ]. I think the algorithm in 
+patch 01/24 will map the above sample sg-list onto two pages. Shouldn't 
+that sg-list be mapped onto one page instead ?
 
+Thanks,
+
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
