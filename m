@@ -1,47 +1,49 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v1 01/24] IB/core: Introduce new fast registration API
-Date: Mon, 28 Sep 2015 13:57:52 -0700
-Message-ID: <5609A9D0.8030607@sandisk.com>
-References: <1442482947-27785-1-git-send-email-sagig@mellanox.com>
- <1442482947-27785-2-git-send-email-sagig@mellanox.com>
- <5601C65F.8060403@sandisk.com> <5603A841.70509@dev.mellanox.co.il>
+From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH 2/3] svcrdma: handle rdma read with a non-zero initial
+ page offset
+Date: Mon, 28 Sep 2015 17:04:59 -0400
+Message-ID: <20150928210459.GC3190@fieldses.org>
+References: <20150921172423.9761.92399.stgit@build2.ogc.int>
+ <20150921172428.9761.27838.stgit@build2.ogc.int>
+ <56094F3D.2030002@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5603A841.70509-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <56094F3D.2030002-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 09/24/2015 12:37 AM, Sagi Grimberg wrote:
-> On 9/23/2015 12:21 AM, Bart Van Assche wrote:
->> On 09/17/2015 02:42 AM, Sagi Grimberg wrote:
->>> +            } else if (last_page_off + dma_len < mr->page_size) {
->>> +                /* chunk this fragment with the last */
->>> +                last_end_dma_addr += dma_len;
->>> +                last_page_off += dma_len;
->>> +                mr->length += dma_len;
->>> +                continue;
->>
->> Shouldn't this code update last_page_addr ?
->
-> Actually I think it doesn't since it is only relevant for the else
-> statement where we are passing the page_size boundary.
+On Mon, Sep 28, 2015 at 09:31:25AM -0500, Steve Wise wrote:
+> On 9/21/2015 12:24 PM, Steve Wise wrote:
+> >The server rdma_read_chunk_lcl() and rdma_read_chunk_frmr() functions
+> >were not taking into account the initial page_offset when determining
+> >the rdma read length.  This resulted in a read who's starting address
+> >and length exceeded the base/bounds of the frmr.
+> >
+> >Most work loads don't tickle this bug apparently, but one test hit it
+> >every time: building the linux kernel on a 16 core node with 'make -j
+> >16 O=/mnt/0' where /mnt/0 is a ramdisk mounted via NFSRDMA.
+> >
+> >This bug seems to only be tripped with devices having small fastreg page
+> >list depths.  I didn't see it with mlx4, for instance.
+> >
+> >Fixes: 0bf4828983df ('svcrdma: refactor marshalling logic')
+> >Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> >Tested-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> >---
+> >
+> >
+> 
+> Hey Bruce, can this make 4.3-rc?  Also, what do you think about
+> pushing it to stable?
 
-Hello Sagi,
+It looks like a reasonable candidate for stable.  Apologies, somehow I
+missed it when you posted it--would you mind resending?
 
-Suppose that the following sg-list is passed to this function as { 
-offset, length } pairs and that this list has not been coalesced by the 
-DMA mapping code: [ { 0, page_size / 4 }, { page_size / 4, page_size / 4 
-}, { 2 * page_size / 4, page_size / 2 } ]. I think the algorithm in 
-patch 01/24 will map the above sample sg-list onto two pages. Shouldn't 
-that sg-list be mapped onto one page instead ?
-
-Thanks,
-
-Bart.
+--b.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
