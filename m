@@ -1,34 +1,34 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: libmlx4 and libmlx5 git trees? Who is handling those?
-Date: Mon, 28 Sep 2015 10:53:53 -0500 (CDT)
-Message-ID: <alpine.DEB.2.20.1509281052030.30710@east.gentwo.org>
-References: <alpine.DEB.2.20.1509281036520.30603@east.gentwo.org> <56096033.8040000@redhat.com>
-Content-Type: text/plain; charset=US-ASCII
+From: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: libmlx4 and libmlx5 git trees? Who is handling those?
+Date: Mon, 28 Sep 2015 16:52:38 +0000
+Message-ID: <9C6B67F36DCAFC479B1CF6A967258A8C7D2508AA@ORSMSX110.amr.corp.intel.com>
+References: <alpine.DEB.2.20.1509281036520.30603@east.gentwo.org>
+ <56096033.8040000@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <56096033.8040000-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 28 Sep 2015, Doug Ledford wrote:
+Doug Ledford wrote:
+>git://git.openfabrics.org/~yishaih/libmlx4.git
 
-> On 09/28/2015 11:42 AM, Christoph Lameter wrote:
-> > Where are these trees and who is maintaining them? I see that there is a
-> > libibverbs on kernel.org that is updated by Doug.
-> >
-> > There are some mlx4/5 trees around but those have no recent commits. There
-> > is a libmlx4 on kernel.org as well but the last merge there was by Roland
-> > in May 2014.
-> >
->
-> git://git.openfabrics.org/~yishaih/libmlx4.git
+>git://git.openfabrics.org/~eli/libmlx5.git
 
-Ahhh... There is active development here.
+The OFA maintainers list contains this for the maintainers of these trees. 
 
-> git://git.openfabrics.org/~eli/libmlx5.git
+ibmlx4 (upstream): Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+http://www.openfabrics.org/downloads/mlx4
+git://git.openfabrics.org/~yishaih/libmlx4.git
 
-More than 6 months of no activity.
+libmlx5:  Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+http://www.openfabrics.org/downloads/mlx5
+git://git.openfabrics.org/~eli/libmlx5.git
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
