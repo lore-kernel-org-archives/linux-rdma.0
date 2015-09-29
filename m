@@ -1,31 +1,42 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v1 01/24] IB/core: Introduce new fast registration API
-Date: Tue, 29 Sep 2015 09:47:59 +0300
-Message-ID: <560A341F.7030108@mellanox.com>
-References: <1442482947-27785-1-git-send-email-sagig@mellanox.com>
- <1442482947-27785-2-git-send-email-sagig@mellanox.com>
- <5601C65F.8060403@sandisk.com> <5603A841.70509@dev.mellanox.co.il>
- <5609A9D0.8030607@sandisk.com> <20150929055907.GA29758@infradead.org>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: shrink struct ib_send_wr V4
+Date: Tue, 29 Sep 2015 11:58:33 +0300
+Message-ID: <560A52B9.50109@mellanox.com>
+References: <1442157215-22341-1-git-send-email-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150929055907.GA29758-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <1442157215-22341-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Shouldn't higher layers take care of this?  Trying to implement the same
-> coalescing algorithm at various layers isn't very optimal, although we
-> need to decide and document which one is responsible.
+On 13/09/2015 18:13, Christoph Hellwig wrote:
+> This series shrinks the WR size by splitting out the different WR
+> types.
+> 
+> Patch number one is too large for the mailinglist, so if you didn't
+> get it grab it here:
+> 
+> 	http://git.infradead.org/users/hch/rdma.git/commitdiff_plain/c752d80937ff2d71f25ae7fcdd1a151054fb2ceb
+> 
+> or the full git tree at:
+> 
+> 	git://git.infradead.org/users/hch/rdma.git wr-cleanup
+> 
 
-The block layer can take care of it, but I'm not sure about NFS/RDS at
-the moment (IIRC Steve specifically asked if this API would take care
-of chunking contig sg elements) so I'd rather keep it in until we are
-absolutely sure we don't need it.
+Hi,
 
-I can add a documentation statement for it.
+I've tested the current wr-cleanup branch with a Connect-IB device to
+make sure the changes to the mlx5-internal UMR work requests are fine
+(at least when invoked from user space). To test I also had to add
+Sagi's patches to remove the reserved lkey, but with those patches it works.
+
+Regards,
+Haggai
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
