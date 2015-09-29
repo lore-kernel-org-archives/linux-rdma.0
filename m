@@ -1,96 +1,119 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 04/38] IB/ehca: fix handling idr_alloc result
-Date: Tue, 29 Sep 2015 14:23:36 -0400
-Message-ID: <560AD728.30506@redhat.com>
-References: <1442842450-29769-1-git-send-email-a.hajda@samsung.com>
- <1442842450-29769-5-git-send-email-a.hajda@samsung.com>
+Subject: Re: [PATCH v1 for-next 0/7] Add support for multicast loopback
+ prevention to mlx4
+Date: Tue, 29 Sep 2015 14:24:26 -0400
+Message-ID: <560AD75A.7080700@redhat.com>
+References: <1440081275-15864-1-git-send-email-eranbe@mellanox.com>
+ <CAKHjkjnQNqeLu+irEg97a1hcKp_ziXsDOFaTRwcaPpZAX_fMng@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="JBs2Ge0CWoHPRDSCeghDptU31Wur4jqh1"
+ boundary="2BLd5t2M5sDkPl8DHgEbAmGUbaaMxFJRd"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1442842450-29769-5-git-send-email-a.hajda-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <CAKHjkjnQNqeLu+irEg97a1hcKp_ziXsDOFaTRwcaPpZAX_fMng-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andrzej Hajda <a.hajda-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Marek Szyprowski <m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
+To: eran ben elisha <eranlinuxmellanox-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---JBs2Ge0CWoHPRDSCeghDptU31Wur4jqh1
-Content-Type: text/plain; charset=windows-1252
+--2BLd5t2M5sDkPl8DHgEbAmGUbaaMxFJRd
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 09/21/2015 09:33 AM, Andrzej Hajda wrote:
-> The function can return negative value.
->=20
-> The problem has been detected using proposed semantic patch
-> scripts/coccinelle/tests/unsigned_lesser_than_zero.cocci [1].
->=20
-> [1]: http://permalink.gmane.org/gmane.linux.kernel/2038576
->=20
-> Signed-off-by: Andrzej Hajda <a.hajda-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+On 09/21/2015 10:24 AM, eran ben elisha wrote:
+> On Thu, Aug 20, 2015 at 5:34 PM, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> =
+wrote:
+>> Hi Doug,
+>>
+>> This patch-set adds a new  implementation for multicast loopback preve=
+ntion for
+>> mlx4 driver.  The current implementation is very limited, especially i=
+f link
+>> layer is Ethernet. The new implementation is based on HW feature of dr=
+opping
+>> incoming multicast packets if the sender QP counter index is equal to =
+the
+>> receiver counter index.
+>>
+>> Patch 0001 extends ib_uverbs_create_qp in order to allow receiving the=
 
-Patch looks fine to me.
-
-Acked-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-
-> ---
->  drivers/staging/rdma/ehca/ehca_cq.c | 13 +++++++------
->  1 file changed, 7 insertions(+), 6 deletions(-)
+>> multicast loopback flag at create flags.
+>> Patch 0002 adds an infrastructure for the counters' loopback preventio=
+n in the
+>> mlx4_core.
+>> Patch 0003 modifies mlx4_en QPs to use the new loopback prevention mod=
+e.
+>> Patches 0004-0006 implements this feature for mlx4_ib driver.
+>> Patch 0007 allows setting IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK in cre=
+ate_flag
+>> field both from uverbs and ib_create_qp.
+>>
+>> Changes from v0:
+>>   Move loopback assignment outside the for loop according to Yuval's c=
+omment
+>>   rebase over to-be-rebased/for-4.3
+>>
+>>
+>> Thanks,
+>> Eran.
+>>
+>> Eran Ben Elisha (5):
+>>   IB/core: Extend ib_uverbs_create_qp
+>>   IB/core: Allow setting create flags in QP init attribute
+>>   IB/mlx4: Add IB counters table
+>>   IB/mlx4: Add counter based implementation for QP multicast loopback
+>>     block
+>>   IB/mlx4: Add support for blocking multicast loopback QP creation use=
+r
+>>     flag
+>>
+>> Maor Gottlieb (2):
+>>   net/mlx4_core: Add support for filtering multicast loopback
+>>   net/mlx4_en: Implement mcast loopback prevention for ETH qps
 >=20
-> diff --git a/drivers/staging/rdma/ehca/ehca_cq.c b/drivers/staging/rdma=
-/ehca/ehca_cq.c
-> index 9b68b17..ea1b5c1 100644
-> --- a/drivers/staging/rdma/ehca/ehca_cq.c
-> +++ b/drivers/staging/rdma/ehca/ehca_cq.c
-> @@ -130,7 +130,7 @@ struct ib_cq *ehca_create_cq(struct ib_device *devi=
-ce,
->  	void *vpage;
->  	u32 counter;
->  	u64 rpage, cqx_fec, h_ret;
-> -	int ipz_rc, i;
-> +	int rc, i;
->  	unsigned long flags;
-> =20
->  	if (attr->flags)
-> @@ -170,16 +170,17 @@ struct ib_cq *ehca_create_cq(struct ib_device *de=
-vice,
-> =20
->  	idr_preload(GFP_KERNEL);
->  	write_lock_irqsave(&ehca_cq_idr_lock, flags);
-> -	my_cq->token =3D idr_alloc(&ehca_cq_idr, my_cq, 0, 0x2000000, GFP_NOW=
-AIT);
-> +	rc =3D idr_alloc(&ehca_cq_idr, my_cq, 0, 0x2000000, GFP_NOWAIT);
->  	write_unlock_irqrestore(&ehca_cq_idr_lock, flags);
->  	idr_preload_end();
-> =20
-> -	if (my_cq->token < 0) {
-> +	if (rc < 0) {
->  		cq =3D ERR_PTR(-ENOMEM);
->  		ehca_err(device, "Can't allocate new idr entry. device=3D%p",
->  			 device);
->  		goto create_cq_exit1;
->  	}
-> +	my_cq->token =3D rc;
-> =20
->  	/*
->  	 * CQs maximum depth is 4GB-64, but we need additional 20 as buffer
-> @@ -195,11 +196,11 @@ struct ib_cq *ehca_create_cq(struct ib_device *de=
-vice,
->  		goto create_cq_exit2;
->  	}
-> =20
-> -	ipz_rc =3D ipz_queue_ctor(NULL, &my_cq->ipz_queue, param.act_pages,
-> +	rc =3D ipz_queue_ctor(NULL, &my_cq->ipz_queue, param.act_pages,
->  				EHCA_PAGESIZE, sizeof(struct ehca_cqe), 0, 0);
-> -	if (!ipz_rc) {
-> +	if (!rc) {
->  		ehca_err(device, "ipz_queue_ctor() failed ipz_rc=3D%i device=3D%p",
-> -			 ipz_rc, device);
-> +			 rc, device);
->  		cq =3D ERR_PTR(-EINVAL);
->  		goto create_cq_exit3;
->  	}
+> Hi Doug,
+> This version sits in the mailing list for a month with no comment.
+> It has been tested by Christoph Lameter.
+> When do you plan to take it into your tree?
+
+I'm getting ready to tackle the for-next backlog.
+
+> Eran.
+>=20
+>>
+>>  drivers/infiniband/core/uverbs.h                   |   1 +
+>>  drivers/infiniband/core/uverbs_cmd.c               | 259 ++++++++++++=
++++------
+>>  drivers/infiniband/core/uverbs_main.c              |   1 +
+>>  drivers/infiniband/hw/mlx4/mad.c                   |  25 +-
+>>  drivers/infiniband/hw/mlx4/main.c                  |  66 ++++--
+>>  drivers/infiniband/hw/mlx4/mlx4_ib.h               |  10 +-
+>>  drivers/infiniband/hw/mlx4/qp.c                    |  88 ++++++-
+>>  drivers/net/ethernet/mellanox/mlx4/en_main.c       |  22 ++
+>>  drivers/net/ethernet/mellanox/mlx4/en_resources.c  |  25 ++
+>>  drivers/net/ethernet/mellanox/mlx4/fw.c            |   6 +
+>>  drivers/net/ethernet/mellanox/mlx4/mlx4_en.h       |   3 +-
+>>  drivers/net/ethernet/mellanox/mlx4/qp.c            |  19 +-
+>>  .../net/ethernet/mellanox/mlx4/resource_tracker.c  |  30 ++-
+>>  include/linux/mlx4/device.h                        |   2 +
+>>  include/linux/mlx4/qp.h                            |  24 +-
+>>  include/uapi/rdma/ib_user_verbs.h                  |  26 +++
+>>  16 files changed, 498 insertions(+), 109 deletions(-)
+>>
+>> --
+>> 1.8.3.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" =
+in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >=20
 
 
@@ -100,7 +123,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---JBs2Ge0CWoHPRDSCeghDptU31Wur4jqh1
+--2BLd5t2M5sDkPl8DHgEbAmGUbaaMxFJRd
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -109,22 +132,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWCtcoAAoJELgmozMOVy/d/xkP/RSJADRmp6WMjMLQCTeKbV+P
-5MZF8Hlbg/CbnRS5mSrAH/42rmJE8fEX/2u+bnGmtfuRy8L8KDdnLolomyDCxVYq
-genZj/DJyyP98WguBAJR7N1BgUyHWaaNN3JOswgcLLR+NCP7nk39B8mHU1paeKtv
-GiqOfI3PXJwm+TL1OljkO2xYdfyXjIjyTlNJivox+Ha0h7LWUMZNm/mxEkUFAtvw
-EJJ6zB4I9VcycAIyw5wDiSQhxHfNiRMn8zn9kz3MokWstA5SOLIUBy7z8LvSts9q
-2jHP5qnUqYKmWqnfA0Z3qPYZnQGbP3fvxgbTTHZFH+ldAj99VP5ul0adbVCM9UmP
-Zd8DjkqGrOtsjQ8M2G/oe8EhwnLdUlwmX+awX6B5uF5lK14rulOuhcygq2pay55Y
-Q2x0cNPCyG1IfQo9V8tb9Q2hfQBsVy1wEEIpciZ1ePBnrH2iVzJn1lvLaaP3MtXW
-25awUFSLSccjTHxvkEZtNLpPb5m+nhjYZ8yviGbyWcTCmj+g3HT0xz++KmWFLHcS
-wpr/Oi0WzJuZICN8RlOQEBSqVvwCa4wpt+z4BZDrqzzB+mgrirtNnwuy7cBn3M/M
-4N8vwbbxNigPhHixetf+1YT4Ltk0Xq1zwtb1GEZUm92uALTczYOx2SA/yKQjU29K
-lb4WSg03HLKOW234BMqD
-=V40Q
+iQIcBAEBCAAGBQJWCtdaAAoJELgmozMOVy/d1oIP/RZqmeeLB6BR9OFD5pDe+/Yw
+QPgcxcT86kbkwqmOfLVbOaa0HHPJGj7dJ0P2d7yNGhu4nklz0g0poc3//2DJaFRq
+OquHZx6D8JaNLoI/6SxG28Q7azbWk3EZTfSVQQUrtAny9ci7IsWWyCbtSQ4pF+GB
+Ez2/jhPdAfidMH8ThekS2e7JgrVnye/wAfdJJ827UNPlL43kw5Vf8vtR6rceMugZ
++Afgh6pQqHjkFwRonBUs/BrEfi/C7J15M7yIpkb3dwbL9831xkUVmNw9S1pDjX0f
+kycQd6SyyVOFcKssf0H01+YruAzStpOXcOlvcSzU9DHAMYrMmoeM6rnUggzH16GD
+YMbNJhGOGlhinK0GSNUHUR9v5b62qNLX4l/+0kbciP2rmVVgmS2qefdmPQWygg6T
+KYuL40jELInv0DKm+lDY8xgeI1reR3oYCrEYkhoFkJTh0D7Iyf0f6ccMj5wz82aM
+qhwds2NkQAVP7PpCVTDlda2nBRrFE5uLkM2TShLWN7itLyMsEr35XmAvNXVZUUk2
+WqvG58dJ15551sRnAjuYg7JxpYx77XCYX2bVcMtYo62oT1l0agcZUr/IGuLkLvyV
+yJOvyTGtUiHx8821FT+cTqHsk3Qdx9VC/Nnf87Qdf1yz8NRrd+quCYXmUCUOomdt
+yGHwou57MCDlAjozDSlo
+=e4aG
 -----END PGP SIGNATURE-----
 
---JBs2Ge0CWoHPRDSCeghDptU31Wur4jqh1--
+--2BLd5t2M5sDkPl8DHgEbAmGUbaaMxFJRd--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
