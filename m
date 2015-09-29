@@ -1,44 +1,51 @@
-From: Bharat Potnuri <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH] dapl: Fix segfault while freeing qp
-Date: Tue, 29 Sep 2015 17:59:34 +0530
-Message-ID: <1443529774-26431-1-git-send-email-bharat@chelsio.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Create a common verbs transport library
+Date: Tue, 29 Sep 2015 08:56:49 -0400
+Message-ID: <20150929125648.GA3433@phlsvsds.ph.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Bharat Potnuri <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-In function dapls_ib_qp_free(), pointers qp and cm_ptr->cm_id->qp are
-pointing to the same qp structure, initialized in function
-dapls_ib_qp_alloc(). The memory pointed by these pointers are freed
-twice in function dapls_ib_qp_free(), using rdma_destroy_qp() for the
-case _OPENIB_CMA defined and then further using ibv_destroy_qp(),
-causing a segmentation fault while freeing the qp. Therefore assigned
-NULL value to qp to avoid freeing illegal memory.
+Hi All,
 
-Fixes: 7ff4f840bf11 ("common: add CM-EP linking to support mutiple CM's
-and proper protection during destruction")
+One of the conditions to move the hfi1 driver from staging into the normal
+drivers/infiniband/hw directory is to handle the code duplication in our
+verbs layer. This is going to be done by creating a new kmod which we will
+call rdmavt, for RDMA verbs transport. This will eventually live in the
+existing drivers/infiniband tree in a new sw directory:
+drivers/infiniband/sw/vt. This new directory can serve as a home for soft
+roce when its ready as well.
 
-Signed-off-by: Bharat Potnuri <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
----
- dapl/openib_common/qp.c | 1 +
- 1 file changed, 1 insertion(+)
+The verbs library will start out life in drivers/staging/rdma/vt alongside
+hfi1. We (Intel) will push incremental patches to keep the community
+apprised of the development and allow for early and more continuous
+feedback. Once complete the plan would be to move out of staging along with
+hfi1.
 
-diff --git a/dapl/openib_common/qp.c b/dapl/openib_common/qp.c
-index 527fc1d4c46b..01f91ca2bd83 100644
---- a/dapl/openib_common/qp.c
-+++ b/dapl/openib_common/qp.c
-@@ -397,6 +397,7 @@ DAT_RETURN dapls_ib_qp_free(IN DAPL_IA * ia_ptr, IN DAPL_EP * ep_ptr)
- #ifdef _OPENIB_CMA_
- 		rdma_destroy_qp(cm_ptr->cm_id);
- 		cm_ptr->cm_id->qp = NULL;
-+		qp = NULL;
- #endif
- 
- #ifdef _OPENIB_MCM_
--- 
-2.5.3
+The current verbs support in the IB core should not need to be modified,
+rdmavt is just another verbs provider. Drivers will not use rdmavt directly.
+Rather, rdmavt will use the drivers to abstract away the hardware
+differences. Here is a diagram of what this will look like.
 
+   +-------+
+   |Ib Core|
+   +-------+
+       +
+       |
++------v--------+
+|Verbs Transport|
++-+----------+--+
+  |          |
+  |          |
++-v--+     +-v--+
+|qib |     |hfi1|
++----+     +----+
+
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
