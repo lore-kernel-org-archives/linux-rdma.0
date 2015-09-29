@@ -1,76 +1,60 @@
-From: "'J. Bruce Fields'" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH 2/3] svcrdma: handle rdma read with a non-zero initial
- page offset
-Date: Tue, 29 Sep 2015 11:40:46 -0400
-Message-ID: <20150929154046.GE3190@fieldses.org>
-References: <20150921172423.9761.92399.stgit@build2.ogc.int>
- <20150921172428.9761.27838.stgit@build2.ogc.int>
- <56094F3D.2030002@opengridcomputing.com>
- <20150928210459.GC3190@fieldses.org>
- <009001d0fa37$8871a980$9954fc80$@opengridcomputing.com>
+From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] dapl: Fix segfault while freeing qp
+Date: Tue, 29 Sep 2015 15:56:42 +0000
+Message-ID: <54347E5A035A054EAE9D05927FB467F980A6C8CF@ORSMSX101.amr.corp.intel.com>
+References: <1443529774-26431-1-git-send-email-bharat@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <009001d0fa37$8871a980$9954fc80$@opengridcomputing.com>
+In-Reply-To: <1443529774-26431-1-git-send-email-bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bharat Potnuri <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org" <nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 28, 2015 at 04:49:21PM -0500, Steve Wise wrote:
-> 
-> 
-> > -----Original Message-----
-> > From: J. Bruce Fields [mailto:bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org]
-> > Sent: Monday, September 28, 2015 4:05 PM
-> > To: Steve Wise
-> > Cc: trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Subject: Re: [PATCH 2/3] svcrdma: handle rdma read with a non-zero initial page offset
-> > 
-> > On Mon, Sep 28, 2015 at 09:31:25AM -0500, Steve Wise wrote:
-> > > On 9/21/2015 12:24 PM, Steve Wise wrote:
-> > > >The server rdma_read_chunk_lcl() and rdma_read_chunk_frmr() functions
-> > > >were not taking into account the initial page_offset when determining
-> > > >the rdma read length.  This resulted in a read who's starting address
-> > > >and length exceeded the base/bounds of the frmr.
-> > > >
-> > > >Most work loads don't tickle this bug apparently, but one test hit it
-> > > >every time: building the linux kernel on a 16 core node with 'make -j
-> > > >16 O=/mnt/0' where /mnt/0 is a ramdisk mounted via NFSRDMA.
-> > > >
-> > > >This bug seems to only be tripped with devices having small fastreg page
-> > > >list depths.  I didn't see it with mlx4, for instance.
-> > > >
-> > > >Fixes: 0bf4828983df ('svcrdma: refactor marshalling logic')
-> > > >Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> > > >Tested-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > > >---
-> > > >
-> > > >
-> > >
-> > > Hey Bruce, can this make 4.3-rc?  Also, what do you think about
-> > > pushing it to stable?
-> > 
-> > It looks like a reasonable candidate for stable.  Apologies, somehow I
-> > missed it when you posted it--would you mind resending?
-> > 
-> > --b.
-> 
-> resent this one patch.
-> 
-> What is your process for pushing to stable?
+Thanks, applied.
 
-Currently my standard regression tests don't seem to be passing on
-recent 4.3; once I figure that out, I'll push out a branch with your
-patch (and any others required) to
+> -----Original Message-----
+> From: Bharat Potnuri [mailto:bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org]
+> Sent: Tuesday, September 29, 2015 5:30 AM
+> To: Davis, Arlin R
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org;
+> nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org; Bharat Potnuri
+> Subject: [PATCH] dapl: Fix segfault while freeing qp
+> 
+> In function dapls_ib_qp_free(), pointers qp and cm_ptr->cm_id->qp are
+> pointing to the same qp structure, initialized in function dapls_ib_qp_alloc().
+> The memory pointed by these pointers are freed twice in function
+> dapls_ib_qp_free(), using rdma_destroy_qp() for the case _OPENIB_CMA
+> defined and then further using ibv_destroy_qp(), causing a segmentation fault
+> while freeing the qp. Therefore assigned NULL value to qp to avoid freeing
+> illegal memory.
+> 
+> Fixes: 7ff4f840bf11 ("common: add CM-EP linking to support mutiple CM's and
+> proper protection during destruction")
+> 
+> Signed-off-by: Bharat Potnuri <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+> ---
+>  dapl/openib_common/qp.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/dapl/openib_common/qp.c b/dapl/openib_common/qp.c index
+> 527fc1d4c46b..01f91ca2bd83 100644
+> --- a/dapl/openib_common/qp.c
+> +++ b/dapl/openib_common/qp.c
+> @@ -397,6 +397,7 @@ DAT_RETURN dapls_ib_qp_free(IN DAPL_IA * ia_ptr,
+> IN DAPL_EP * ep_ptr)  #ifdef _OPENIB_CMA_
+>  		rdma_destroy_qp(cm_ptr->cm_id);
+>  		cm_ptr->cm_id->qp = NULL;
+> +		qp = NULL;
+>  #endif
+> 
+>  #ifdef _OPENIB_MCM_
+> --
+> 2.5.3
 
-	git://linux-nfs.org/~bfields for-4.3
-
-and then send a pull request to Linus.  Should be by the end of the
-week.
-
---b.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
