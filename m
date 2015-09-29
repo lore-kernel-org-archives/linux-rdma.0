@@ -1,52 +1,160 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Create a common verbs transport library
-Date: Tue, 29 Sep 2015 08:56:49 -0400
-Message-ID: <20150929125648.GA3433@phlsvsds.ph.intel.com>
+From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Subject: [PATCH 3.10] IB/qib: Change lkey table allocation to support more
+ MRs
+Date: Tue, 29 Sep 2015 10:43:49 -0400
+Message-ID: <20150929144349.26504.9395.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: stable@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi All,
+Ported from commit d6f1c17e162b2a11e708f28fa93f2f79c164b442 upstream.
 
-One of the conditions to move the hfi1 driver from staging into the normal
-drivers/infiniband/hw directory is to handle the code duplication in our
-verbs layer. This is going to be done by creating a new kmod which we will
-call rdmavt, for RDMA verbs transport. This will eventually live in the
-existing drivers/infiniband tree in a new sw directory:
-drivers/infiniband/sw/vt. This new directory can serve as a home for soft
-roce when its ready as well.
+The lkey table is allocated with with a get_user_pages() with an
+order based on a number of index bits from a module parameter.
 
-The verbs library will start out life in drivers/staging/rdma/vt alongside
-hfi1. We (Intel) will push incremental patches to keep the community
-apprised of the development and allow for early and more continuous
-feedback. Once complete the plan would be to move out of staging along with
-hfi1.
+The underlying kernel code cannot allocate that many contiguous pages.
 
-The current verbs support in the IB core should not need to be modified,
-rdmavt is just another verbs provider. Drivers will not use rdmavt directly.
-Rather, rdmavt will use the drivers to abstract away the hardware
-differences. Here is a diagram of what this will look like.
+There is no reason the underlying memory needs to be physically
+contiguous.
 
-   +-------+
-   |Ib Core|
-   +-------+
-       +
-       |
-+------v--------+
-|Verbs Transport|
-+-+----------+--+
-  |          |
-  |          |
-+-v--+     +-v--+
-|qib |     |hfi1|
-+----+     +----+
+This patch:
+- switches the allocation/deallocation to vmalloc/vfree
+- caps the number of bits to 23 to insure at least 1 generation bit
+  o this matches the module parameter description
 
--Denny
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Cc: stable@vger.kernel.org # 3.10
+Reviewed-by: Vinit Agnihotri <vinit.abhay.agnihotri@intel.com>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Signed-off-by: Doug Ledford <dledford@redhat.com>
+---
+ drivers/infiniband/hw/qib/qib.h       |   27 +++++++++++----------------
+ drivers/infiniband/hw/qib/qib_keys.c  |    4 ++++
+ drivers/infiniband/hw/qib/qib_verbs.c |   14 ++++++++++----
+ drivers/infiniband/hw/qib/qib_verbs.h |    2 ++
+ 4 files changed, 27 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
+index d1b30c6..86c686a 100644
+--- a/drivers/infiniband/hw/qib/qib.h
++++ b/drivers/infiniband/hw/qib/qib.h
+@@ -1467,27 +1467,22 @@ extern struct mutex qib_mutex;
+  * first to avoid possible serial port delays from printk.
+  */
+ #define qib_early_err(dev, fmt, ...) \
+-	do { \
+-		dev_err(dev, fmt, ##__VA_ARGS__); \
+-	} while (0)
++	dev_err(dev, fmt, ##__VA_ARGS__)
+ 
+ #define qib_dev_err(dd, fmt, ...) \
+-	do { \
+-		dev_err(&(dd)->pcidev->dev, "%s: " fmt, \
+-			qib_get_unit_name((dd)->unit), ##__VA_ARGS__); \
+-	} while (0)
++	dev_err(&(dd)->pcidev->dev, "%s: " fmt, \
++		qib_get_unit_name((dd)->unit), ##__VA_ARGS__)
+ 
+-#define qib_dev_porterr(dd, port, fmt, ...) \
+-	do { \
+-		dev_err(&(dd)->pcidev->dev, "%s: IB%u:%u " fmt, \
+-			qib_get_unit_name((dd)->unit), (dd)->unit, (port), \
+-			##__VA_ARGS__); \
+-	} while (0)
++#define qib_dev_warn(dd, fmt, ...) \
++	dev_warn(&(dd)->pcidev->dev, "%s: " fmt, \
++		qib_get_unit_name((dd)->unit), ##__VA_ARGS__)
+ 
++#define qib_dev_porterr(dd, port, fmt, ...) \
++	dev_err(&(dd)->pcidev->dev, "%s: IB%u:%u " fmt, \
++		qib_get_unit_name((dd)->unit), (dd)->unit, (port), \
++		##__VA_ARGS__) 
+ #define qib_devinfo(pcidev, fmt, ...) \
+-	do { \
+-		dev_info(&(pcidev)->dev, fmt, ##__VA_ARGS__); \
+-	} while (0)
++	dev_info(&(pcidev)->dev, fmt, ##__VA_ARGS__)
+ 
+ /*
+  * this is used for formatting hw error messages...
+diff --git a/drivers/infiniband/hw/qib/qib_keys.c b/drivers/infiniband/hw/qib/qib_keys.c
+index 3b9afcc..eabe547 100644
+--- a/drivers/infiniband/hw/qib/qib_keys.c
++++ b/drivers/infiniband/hw/qib/qib_keys.c
+@@ -86,6 +86,10 @@ int qib_alloc_lkey(struct qib_mregion *mr, int dma_region)
+ 	 * unrestricted LKEY.
+ 	 */
+ 	rkt->gen++;
++	/*
++	 * bits are capped in qib_verbs.c to insure enough bits
++	 * for generation number
++	 */
+ 	mr->lkey = (r << (32 - ib_qib_lkey_table_size)) |
+ 		((((1 << (24 - ib_qib_lkey_table_size)) - 1) & rkt->gen)
+ 		 << 8);
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
+index 904c384..6c809bf 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.c
++++ b/drivers/infiniband/hw/qib/qib_verbs.c
+@@ -40,6 +40,7 @@
+ #include <linux/rculist.h>
+ #include <linux/mm.h>
+ #include <linux/random.h>
++#include <linux/vmalloc.h>
+ 
+ #include "qib.h"
+ #include "qib_common.h"
+@@ -2084,10 +2085,16 @@ int qib_register_ib_device(struct qib_devdata *dd)
+ 	 * the LKEY).  The remaining bits act as a generation number or tag.
+ 	 */
+ 	spin_lock_init(&dev->lk_table.lock);
++	/* insure generation is at least 4 bits see keys.c */
++	if (ib_qib_lkey_table_size > MAX_LKEY_TABLE_BITS) {
++		qib_dev_warn(dd, "lkey bits %u too large, reduced to %u\n",
++			ib_qib_lkey_table_size, MAX_LKEY_TABLE_BITS);
++		ib_qib_lkey_table_size = MAX_LKEY_TABLE_BITS;
++	}
+ 	dev->lk_table.max = 1 << ib_qib_lkey_table_size;
+ 	lk_tab_size = dev->lk_table.max * sizeof(*dev->lk_table.table);
+ 	dev->lk_table.table = (struct qib_mregion __rcu **)
+-		__get_free_pages(GFP_KERNEL, get_order(lk_tab_size));
++		vmalloc(lk_tab_size);
+ 	if (dev->lk_table.table == NULL) {
+ 		ret = -ENOMEM;
+ 		goto err_lk;
+@@ -2260,7 +2267,7 @@ err_tx:
+ 					sizeof(struct qib_pio_header),
+ 				  dev->pio_hdrs, dev->pio_hdrs_phys);
+ err_hdrs:
+-	free_pages((unsigned long) dev->lk_table.table, get_order(lk_tab_size));
++	vfree(dev->lk_table.table);
+ err_lk:
+ 	kfree(dev->qp_table);
+ err_qpt:
+@@ -2314,8 +2321,7 @@ void qib_unregister_ib_device(struct qib_devdata *dd)
+ 					sizeof(struct qib_pio_header),
+ 				  dev->pio_hdrs, dev->pio_hdrs_phys);
+ 	lk_tab_size = dev->lk_table.max * sizeof(*dev->lk_table.table);
+-	free_pages((unsigned long) dev->lk_table.table,
+-		   get_order(lk_tab_size));
++	vfree(dev->lk_table.table);
+ 	kfree(dev->qp_table);
+ }
+ 
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
+index aff8b2c..e4f9fff 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.h
++++ b/drivers/infiniband/hw/qib/qib_verbs.h
+@@ -645,6 +645,8 @@ struct qib_qpn_table {
+ 	struct qpn_map map[QPNMAP_ENTRIES];
+ };
+ 
++#define MAX_LKEY_TABLE_BITS 23
++
+ struct qib_lkey_table {
+ 	spinlock_t lock; /* protect changes in this struct */
+ 	u32 next;               /* next unused index (speeds search) */
