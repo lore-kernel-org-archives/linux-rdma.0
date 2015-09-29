@@ -1,86 +1,98 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PULL REQUEST] Please pull rdma.git
-Date: Tue, 29 Sep 2015 14:04:15 -0400
-Message-ID: <560AD29F.8060708@redhat.com>
+Subject: Re: [PATCH 04/38] IB/ehca: fix handling idr_alloc result
+Date: Tue, 29 Sep 2015 14:23:36 -0400
+Message-ID: <560AD728.30506@redhat.com>
+References: <1442842450-29769-1-git-send-email-a.hajda@samsung.com>
+ <1442842450-29769-5-git-send-email-a.hajda@samsung.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="cbRj4xO0LVOWTOsSxIXqiXc3629uuaW0C"
+ boundary="JBs2Ge0CWoHPRDSCeghDptU31Wur4jqh1"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1442842450-29769-5-git-send-email-a.hajda-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Torvalds, Linus" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Andrzej Hajda <a.hajda-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Marek Szyprowski <m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---cbRj4xO0LVOWTOsSxIXqiXc3629uuaW0C
-Content-Type: text/plain; charset=utf-8
+--JBs2Ge0CWoHPRDSCeghDptU31Wur4jqh1
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-Hi Linus,
+On 09/21/2015 09:33 AM, Andrzej Hajda wrote:
+> The function can return negative value.
+>=20
+> The problem has been detected using proposed semantic patch
+> scripts/coccinelle/tests/unsigned_lesser_than_zero.cocci [1].
+>=20
+> [1]: http://permalink.gmane.org/gmane.linux.kernel/2038576
+>=20
+> Signed-off-by: Andrzej Hajda <a.hajda-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 
-I have a few -rc fixes for you.  One fix in particular, for the NFSoRDMA
-code, relied upon changes that went in during the 4.3 merge window to
-apply cleanly, but also relied on a group of related commits in this
-set, making it need to come through my tree.  So I merged up to 4.3-rc2,
-and this is what's in my tree beyond that:
+Patch looks fine to me.
 
-The following changes since commit 310b7cec8ea32dcd4e9978423717ce78dd89d4=
-5d:
+Acked-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
-  Merge tag 'v4.3-rc2' into k.o/for-4.3-v1 (2015-09-25 10:46:07 -0400)
+> ---
+>  drivers/staging/rdma/ehca/ehca_cq.c | 13 +++++++------
+>  1 file changed, 7 insertions(+), 6 deletions(-)
+>=20
+> diff --git a/drivers/staging/rdma/ehca/ehca_cq.c b/drivers/staging/rdma=
+/ehca/ehca_cq.c
+> index 9b68b17..ea1b5c1 100644
+> --- a/drivers/staging/rdma/ehca/ehca_cq.c
+> +++ b/drivers/staging/rdma/ehca/ehca_cq.c
+> @@ -130,7 +130,7 @@ struct ib_cq *ehca_create_cq(struct ib_device *devi=
+ce,
+>  	void *vpage;
+>  	u32 counter;
+>  	u64 rpage, cqx_fec, h_ret;
+> -	int ipz_rc, i;
+> +	int rc, i;
+>  	unsigned long flags;
+> =20
+>  	if (attr->flags)
+> @@ -170,16 +170,17 @@ struct ib_cq *ehca_create_cq(struct ib_device *de=
+vice,
+> =20
+>  	idr_preload(GFP_KERNEL);
+>  	write_lock_irqsave(&ehca_cq_idr_lock, flags);
+> -	my_cq->token =3D idr_alloc(&ehca_cq_idr, my_cq, 0, 0x2000000, GFP_NOW=
+AIT);
+> +	rc =3D idr_alloc(&ehca_cq_idr, my_cq, 0, 0x2000000, GFP_NOWAIT);
+>  	write_unlock_irqrestore(&ehca_cq_idr_lock, flags);
+>  	idr_preload_end();
+> =20
+> -	if (my_cq->token < 0) {
+> +	if (rc < 0) {
+>  		cq =3D ERR_PTR(-ENOMEM);
+>  		ehca_err(device, "Can't allocate new idr entry. device=3D%p",
+>  			 device);
+>  		goto create_cq_exit1;
+>  	}
+> +	my_cq->token =3D rc;
+> =20
+>  	/*
+>  	 * CQs maximum depth is 4GB-64, but we need additional 20 as buffer
+> @@ -195,11 +196,11 @@ struct ib_cq *ehca_create_cq(struct ib_device *de=
+vice,
+>  		goto create_cq_exit2;
+>  	}
+> =20
+> -	ipz_rc =3D ipz_queue_ctor(NULL, &my_cq->ipz_queue, param.act_pages,
+> +	rc =3D ipz_queue_ctor(NULL, &my_cq->ipz_queue, param.act_pages,
+>  				EHCA_PAGESIZE, sizeof(struct ehca_cqe), 0, 0);
+> -	if (!ipz_rc) {
+> +	if (!rc) {
+>  		ehca_err(device, "ipz_queue_ctor() failed ipz_rc=3D%i device=3D%p",
+> -			 ipz_rc, device);
+> +			 rc, device);
+>  		cq =3D ERR_PTR(-EINVAL);
+>  		goto create_cq_exit3;
+>  	}
+>=20
 
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
-tags/for-linus
-
-for you to fetch changes up to 2866196f294954ce9fa226825c8c1eaa64c7da8a:
-
-  IB/ipoib: increase the max mcast backlog queue (2015-09-25 22:30:24 -04=
-00)
-
-----------------------------------------------------------------
-Changes for 4.3-rc4
-
-- Fixes for mlx5 related issues
-- Fixes for ipoib multicast handling
-
-----------------------------------------------------------------
-Christoph Lameter (1):
-      IB/ipoib: Expire sendonly multicast joins
-
-Chuck Lever (1):
-      xprtrdma: Replace global lkey with lkey local to PD
-
-Doug Ledford (2):
-      IB/ipoib: Make sendonly multicast joins create the mcast group
-      IB/ipoib: increase the max mcast backlog queue
-
-Sagi Grimberg (3):
-      IB/iser: Add module parameter for always register memory
-      IB/mlx5: Remove support for IB_DEVICE_LOCAL_DMA_LKEY
-      IB/mlx5: Remove pa_lkey usages
-
- drivers/infiniband/hw/mlx5/main.c              | 67
-+-------------------------
- drivers/infiniband/hw/mlx5/mlx5_ib.h           |  2 -
- drivers/infiniband/hw/mlx5/qp.c                |  4 +-
- drivers/infiniband/ulp/ipoib/ipoib.h           |  4 +-
- drivers/infiniband/ulp/ipoib/ipoib_main.c      | 18 +++++++
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 26 +++++-----
- drivers/infiniband/ulp/iser/iscsi_iser.c       |  5 ++
- drivers/infiniband/ulp/iser/iscsi_iser.h       |  1 +
- drivers/infiniband/ulp/iser/iser_memory.c      | 18 ++++---
- drivers/infiniband/ulp/iser/iser_verbs.c       | 21 +++++---
- drivers/net/ethernet/mellanox/mlx5/core/fw.c   | 22 ---------
- include/linux/mlx5/device.h                    | 11 -----
- include/linux/mlx5/driver.h                    |  1 -
- net/sunrpc/xprtrdma/fmr_ops.c                  | 19 --------
- net/sunrpc/xprtrdma/frwr_ops.c                 |  5 --
- net/sunrpc/xprtrdma/physical_ops.c             | 10 +---
- net/sunrpc/xprtrdma/verbs.c                    |  2 +-
- net/sunrpc/xprtrdma/xprt_rdma.h                |  1 -
- 18 files changed, 70 insertions(+), 167 deletions(-)
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -88,7 +100,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---cbRj4xO0LVOWTOsSxIXqiXc3629uuaW0C
+--JBs2Ge0CWoHPRDSCeghDptU31Wur4jqh1
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -97,22 +109,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWCtKfAAoJELgmozMOVy/dqHwQAMIPPiqnp9G42G/FrjE4elhL
-Ikr41eeZ1lPpDvcbVmVlkFCa8+Xew76aGkjjqIdJ+k09uaIzJ3L9v6w2Vpry7yWj
-yGc56phf8R4LFZdINbwvhs89uJa+C2W0cTBhj89WaVuEeCjpTV6DrSp1DGOMO0Aa
-08XbqRfP+X6v2VSxqFZe6kkTfQy1zEHJB+Azbkr4+aj/t080UEAcLEOWchi3pJzt
-rxDCs2uHe2CvXn7zSsg5cuvuZhzBcGH1XD6TDbHhXvsfRCxIvvv5Pk97nEQSFj00
-sq9nugu4rc639WNaVUwPDrZ5Kse6Vlv4nBkjsBgwCBTPZ1BtCy4uYMMMEIFrGMsi
-QvAja/QbmaytujpB/5DVU80JLXk8sNAUW0hrQ69ehRJszPqukDmBy3uHMz/kSlkE
-/XwzmIKU2NPoLlrFq06lSsyyTxQgSbfJn6bhXWJOzMKhEYGdzw/MQpUGUkMQFmhg
-qHSECyhERWSm6IqwXXLxJI/4ghva1jwQgSp3hmk/LIjEO7OHC+9VQNYkIxFbp/Vt
-KpvKK6k0JFeGXHs7Qb3Aa+So0TY4az5dlUH40tFQELDMQQoEZWdnEgP8a5PuYaYO
-VUu93BGZ44ri9K66NOAVpKv/e7xZi22nZXHjowfvCFiSgIbKEUbzylm0ul3R18jF
-pBQZsBs6XKuRkxCnXGce
-=FN6T
+iQIcBAEBCAAGBQJWCtcoAAoJELgmozMOVy/d/xkP/RSJADRmp6WMjMLQCTeKbV+P
+5MZF8Hlbg/CbnRS5mSrAH/42rmJE8fEX/2u+bnGmtfuRy8L8KDdnLolomyDCxVYq
+genZj/DJyyP98WguBAJR7N1BgUyHWaaNN3JOswgcLLR+NCP7nk39B8mHU1paeKtv
+GiqOfI3PXJwm+TL1OljkO2xYdfyXjIjyTlNJivox+Ha0h7LWUMZNm/mxEkUFAtvw
+EJJ6zB4I9VcycAIyw5wDiSQhxHfNiRMn8zn9kz3MokWstA5SOLIUBy7z8LvSts9q
+2jHP5qnUqYKmWqnfA0Z3qPYZnQGbP3fvxgbTTHZFH+ldAj99VP5ul0adbVCM9UmP
+Zd8DjkqGrOtsjQ8M2G/oe8EhwnLdUlwmX+awX6B5uF5lK14rulOuhcygq2pay55Y
+Q2x0cNPCyG1IfQo9V8tb9Q2hfQBsVy1wEEIpciZ1ePBnrH2iVzJn1lvLaaP3MtXW
+25awUFSLSccjTHxvkEZtNLpPb5m+nhjYZ8yviGbyWcTCmj+g3HT0xz++KmWFLHcS
+wpr/Oi0WzJuZICN8RlOQEBSqVvwCa4wpt+z4BZDrqzzB+mgrirtNnwuy7cBn3M/M
+4N8vwbbxNigPhHixetf+1YT4Ltk0Xq1zwtb1GEZUm92uALTczYOx2SA/yKQjU29K
+lb4WSg03HLKOW234BMqD
+=V40Q
 -----END PGP SIGNATURE-----
 
---cbRj4xO0LVOWTOsSxIXqiXc3629uuaW0C--
+--JBs2Ge0CWoHPRDSCeghDptU31Wur4jqh1--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
