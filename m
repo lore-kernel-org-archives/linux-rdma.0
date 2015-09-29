@@ -1,66 +1,86 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] Expire sendonly joins (was Re: [PATCH rdma-rc 0/2] Add
- mechanism for ipoib neigh state change notifications)
-Date: Tue, 29 Sep 2015 13:47:44 -0400
-Message-ID: <560ACEC0.4050207@redhat.com>
-References: <alpine.DEB.2.11.1509170940270.2052@east.gentwo.org>
- <CAJ3xEMg-h+J=cr2ddWvYUGU=MOBk4Aw-KtkeJutATH0Y17dnjg@mail.gmail.com>
- <alpine.DEB.2.20.1509241158420.21198@east.gentwo.org>
- <CAJ3xEMg2qQ3CXrfTrg=gUX2tQRuPnpxA-8PC98GzoF5iz=j5PQ@mail.gmail.com>
- <alpine.DEB.2.20.1509251140200.31792@east.gentwo.org>
- <CAJ3xEMj9kGaM6s+AqBQ_-ZTB_+cgDk3kefhq_O0V3PM120O9yQ@mail.gmail.com>
- <alpine.DEB.2.20.1509271136570.14486@east.gentwo.org>
- <5608282F.1020507@redhat.com>
- <alpine.DEB.2.20.1509272120090.18678@east.gentwo.org>
- <56095E6B.60509@redhat.com> <20150928171007.GE12415@obsidianresearch.com>
+Subject: [PULL REQUEST] Please pull rdma.git
+Date: Tue, 29 Sep 2015 14:04:15 -0400
+Message-ID: <560AD29F.8060708@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="mSt5GOgSOsqe8BlaAowo9ALlP16r5nfMD"
+ boundary="cbRj4xO0LVOWTOsSxIXqiXc3629uuaW0C"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150928171007.GE12415-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Torvalds, Linus" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---mSt5GOgSOsqe8BlaAowo9ALlP16r5nfMD
-Content-Type: text/plain; charset=windows-1252
+--cbRj4xO0LVOWTOsSxIXqiXc3629uuaW0C
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 09/28/2015 01:10 PM, Jason Gunthorpe wrote:
-> On Mon, Sep 28, 2015 at 11:36:11AM -0400, Doug Ledford wrote:
->=20
->>> Also broadcast could cause a unecessary reception event on the NICs o=
-f
->>> machines that have no interest in this traffic.
->>
->> This is true.  However, I'm trying to balance between several competin=
-g
->> issues.  You also stated the revamped multicast code was adding latenc=
-y
->> and dropped packets into the problem space.  Sending over the broadcas=
-t
->> would help with latency.  However, I have an alternative idea for that=
-=2E..
->=20
-> I think your original idea of broadcast immediately and deferred
-> optimal mlid lookup is the best *functionally* for every case - only
-> when you enter the very edge world of caring about timing does it make
-> any difference.
->=20
-> Christoph's needs would probably be better served by giving some API
-> to control the mlid cache (ie the neightbour table is already 99% of
-> the way there). This would let some userspace component pre-load and
-> fix all relevant data and undesired cache activity simply can't add
-> jitter.
+Hi Linus,
 
-So, I've taken Christoph's patch, added two of my own (just changed the
-comment and the #if statement so that we create groups on send-only
-joins, and upped the max send-only backlog queue).  We'll leave it at
-that for 4.3 and try to address it more fully in 4.4.
+I have a few -rc fixes for you.  One fix in particular, for the NFSoRDMA
+code, relied upon changes that went in during the 4.3 merge window to
+apply cleanly, but also relied on a group of related commits in this
+set, making it need to come through my tree.  So I merged up to 4.3-rc2,
+and this is what's in my tree beyond that:
 
+The following changes since commit 310b7cec8ea32dcd4e9978423717ce78dd89d4=
+5d:
+
+  Merge tag 'v4.3-rc2' into k.o/for-4.3-v1 (2015-09-25 10:46:07 -0400)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
+tags/for-linus
+
+for you to fetch changes up to 2866196f294954ce9fa226825c8c1eaa64c7da8a:
+
+  IB/ipoib: increase the max mcast backlog queue (2015-09-25 22:30:24 -04=
+00)
+
+----------------------------------------------------------------
+Changes for 4.3-rc4
+
+- Fixes for mlx5 related issues
+- Fixes for ipoib multicast handling
+
+----------------------------------------------------------------
+Christoph Lameter (1):
+      IB/ipoib: Expire sendonly multicast joins
+
+Chuck Lever (1):
+      xprtrdma: Replace global lkey with lkey local to PD
+
+Doug Ledford (2):
+      IB/ipoib: Make sendonly multicast joins create the mcast group
+      IB/ipoib: increase the max mcast backlog queue
+
+Sagi Grimberg (3):
+      IB/iser: Add module parameter for always register memory
+      IB/mlx5: Remove support for IB_DEVICE_LOCAL_DMA_LKEY
+      IB/mlx5: Remove pa_lkey usages
+
+ drivers/infiniband/hw/mlx5/main.c              | 67
++-------------------------
+ drivers/infiniband/hw/mlx5/mlx5_ib.h           |  2 -
+ drivers/infiniband/hw/mlx5/qp.c                |  4 +-
+ drivers/infiniband/ulp/ipoib/ipoib.h           |  4 +-
+ drivers/infiniband/ulp/ipoib/ipoib_main.c      | 18 +++++++
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 26 +++++-----
+ drivers/infiniband/ulp/iser/iscsi_iser.c       |  5 ++
+ drivers/infiniband/ulp/iser/iscsi_iser.h       |  1 +
+ drivers/infiniband/ulp/iser/iser_memory.c      | 18 ++++---
+ drivers/infiniband/ulp/iser/iser_verbs.c       | 21 +++++---
+ drivers/net/ethernet/mellanox/mlx5/core/fw.c   | 22 ---------
+ include/linux/mlx5/device.h                    | 11 -----
+ include/linux/mlx5/driver.h                    |  1 -
+ net/sunrpc/xprtrdma/fmr_ops.c                  | 19 --------
+ net/sunrpc/xprtrdma/frwr_ops.c                 |  5 --
+ net/sunrpc/xprtrdma/physical_ops.c             | 10 +---
+ net/sunrpc/xprtrdma/verbs.c                    |  2 +-
+ net/sunrpc/xprtrdma/xprt_rdma.h                |  1 -
+ 18 files changed, 70 insertions(+), 167 deletions(-)
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -68,7 +88,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---mSt5GOgSOsqe8BlaAowo9ALlP16r5nfMD
+--cbRj4xO0LVOWTOsSxIXqiXc3629uuaW0C
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -77,22 +97,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWCs7AAAoJELgmozMOVy/dzMwP/RIkmYkL1D/NhIydEVvMPAks
-8fSMVTtw5biMVZv1UtuL49wC5zZ8PwMOrjHodd+U0NAmhxhmZ8cax+xMwDnVA2LQ
-zNJPrdC0HaoiXyZp7y6QeecAFT6cmJdX8IsVjVYqRu6ezL0zVM9cabWKf/qh0ON5
-6vzlYliQagBmi4YvsfMSNDdUaU/FugKbaUuCL8852/g4HU4pMHCPmT+CKvkENx7H
-5GqUS2FMoUiIKMH1aLo2I21mpmKIUtqhySaDreNvvXbIz1Wy4VK5eVddbJl0od2l
-5P5PpZQOtpK0w/ig1aVixR80DOt663kmJlEAo2AYz8PRmx8kBKGvKJ80qIKziLze
-FNeGR0Dbf82YORU6cyalAdP81wT0C443UnDOuGGzy6Zak6m+av0kFfoovPeNaf4G
-X88Z/t6KYW8uH3wl3y1y2IuA1Zt2wT3uqF6is/0brRVPPOyALNi6nviM60OWZ3tT
-8dYRXT4hF6P7k5cFPKAaITKmbFt2XCxihSty7fUAo+eZ8KbkosPCM2TBUm+nDBy2
-QmbrQK9wVAd+Q3t2MfoJwfc0r3tlDs2KL6Ef15TmyrA8+gURgZRm5WRh0IgPbAcE
-GCObTiX12APgx7GSq0PZnTVfETrc2Y+uJscdzO2KpYPgeW/+wukZsLoYJ9Zf40Hb
-9S3PcAXIeDiV65SCdeo4
-=Wp9v
+iQIcBAEBCAAGBQJWCtKfAAoJELgmozMOVy/dqHwQAMIPPiqnp9G42G/FrjE4elhL
+Ikr41eeZ1lPpDvcbVmVlkFCa8+Xew76aGkjjqIdJ+k09uaIzJ3L9v6w2Vpry7yWj
+yGc56phf8R4LFZdINbwvhs89uJa+C2W0cTBhj89WaVuEeCjpTV6DrSp1DGOMO0Aa
+08XbqRfP+X6v2VSxqFZe6kkTfQy1zEHJB+Azbkr4+aj/t080UEAcLEOWchi3pJzt
+rxDCs2uHe2CvXn7zSsg5cuvuZhzBcGH1XD6TDbHhXvsfRCxIvvv5Pk97nEQSFj00
+sq9nugu4rc639WNaVUwPDrZ5Kse6Vlv4nBkjsBgwCBTPZ1BtCy4uYMMMEIFrGMsi
+QvAja/QbmaytujpB/5DVU80JLXk8sNAUW0hrQ69ehRJszPqukDmBy3uHMz/kSlkE
+/XwzmIKU2NPoLlrFq06lSsyyTxQgSbfJn6bhXWJOzMKhEYGdzw/MQpUGUkMQFmhg
+qHSECyhERWSm6IqwXXLxJI/4ghva1jwQgSp3hmk/LIjEO7OHC+9VQNYkIxFbp/Vt
+KpvKK6k0JFeGXHs7Qb3Aa+So0TY4az5dlUH40tFQELDMQQoEZWdnEgP8a5PuYaYO
+VUu93BGZ44ri9K66NOAVpKv/e7xZi22nZXHjowfvCFiSgIbKEUbzylm0ul3R18jF
+pBQZsBs6XKuRkxCnXGce
+=FN6T
 -----END PGP SIGNATURE-----
 
---mSt5GOgSOsqe8BlaAowo9ALlP16r5nfMD--
+--cbRj4xO0LVOWTOsSxIXqiXc3629uuaW0C--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
