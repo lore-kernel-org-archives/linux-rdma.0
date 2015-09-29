@@ -1,14 +1,14 @@
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Subject: [PATCH 3.4] IB/qib: Change lkey table allocation to support more MRs
-Date: Tue, 29 Sep 2015 10:48:44 -0400
-Message-ID: <20150929144844.27235.21244.stgit@phlsvslse11.ph.intel.com>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 3.2] IB/qib: Change lkey table allocation to support more MRs
+Date: Tue, 29 Sep 2015 10:51:43 -0400
+Message-ID: <20150929145143.27497.86046.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: stable@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 The lkey table is allocated with with a get_user_pages() with an
@@ -24,10 +24,10 @@ This patch:
 - caps the number of bits to 23 to insure at least 1 generation bit
   o this matches the module parameter description
 
-Cc: stable@vger.kernel.org # 3.4
-Reviewed-by: Vinit Agnihotri <vinit.abhay.agnihotri@intel.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Doug Ledford <dledford@redhat.com>
+Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org # 3.2
+Reviewed-by: Vinit Agnihotri <vinit.abhay.agnihotri-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
  drivers/infiniband/hw/qib/qib_keys.c  |    4 ++++
  drivers/infiniband/hw/qib/qib_verbs.c |   16 +++++++++++-----
@@ -50,7 +50,7 @@ index 8fd19a4..ca6e6cf 100644
  		((((1 << (24 - ib_qib_lkey_table_size)) - 1) & rkt->gen)
  		 << 8);
 diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index 7b6c3bf..3840137 100644
+index a894762..95df4cd 100644
 --- a/drivers/infiniband/hw/qib/qib_verbs.c
 +++ b/drivers/infiniband/hw/qib/qib_verbs.c
 @@ -40,6 +40,7 @@
@@ -61,7 +61,7 @@ index 7b6c3bf..3840137 100644
  
  #include "qib.h"
  #include "qib_common.h"
-@@ -2058,10 +2059,16 @@ int qib_register_ib_device(struct qib_devdata *dd)
+@@ -2035,10 +2036,16 @@ int qib_register_ib_device(struct qib_devdata *dd)
  	 * the LKEY).  The remaining bits act as a generation number or tag.
  	 */
  	spin_lock_init(&dev->lk_table.lock);
@@ -80,7 +80,7 @@ index 7b6c3bf..3840137 100644
  	if (dev->lk_table.table == NULL) {
  		ret = -ENOMEM;
  		goto err_lk;
-@@ -2231,7 +2238,7 @@ err_tx:
+@@ -2208,7 +2215,7 @@ err_tx:
  					sizeof(struct qib_pio_header),
  				  dev->pio_hdrs, dev->pio_hdrs_phys);
  err_hdrs:
@@ -89,7 +89,7 @@ index 7b6c3bf..3840137 100644
  err_lk:
  	kfree(dev->qp_table);
  err_qpt:
-@@ -2285,7 +2292,6 @@ void qib_unregister_ib_device(struct qib_devdata *dd)
+@@ -2262,7 +2269,6 @@ void qib_unregister_ib_device(struct qib_devdata *dd)
  					sizeof(struct qib_pio_header),
  				  dev->pio_hdrs, dev->pio_hdrs_phys);
  	lk_tab_size = dev->lk_table.max * sizeof(*dev->lk_table.table);
@@ -111,3 +111,8 @@ index 0c19ef0..66f7f62 100644
  struct qib_lkey_table {
  	spinlock_t lock; /* protect changes in this struct */
  	u32 next;               /* next unused index (speeds search) */
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
