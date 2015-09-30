@@ -1,45 +1,51 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v1 00/24] New fast registration API
-Date: Tue, 29 Sep 2015 23:58:25 +0300
-Message-ID: <560AFB71.3010003@dev.mellanox.co.il>
-References: <1442482947-27785-1-git-send-email-sagig@mellanox.com>
- <560AE099.2080004@sandisk.com>
+From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [ANNOUNCE] dapl-2.1.7-1 release
+Date: Wed, 30 Sep 2015 03:48:51 +0000
+Message-ID: <54347E5A035A054EAE9D05927FB467F980A6CBBF@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <560AE099.2080004-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: "Vladimir Sokolovsky (vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org)" <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Rupert Dance (rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org)" <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>, "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/29/2015 10:03 PM, Bart Van Assche wrote:
-> On 09/17/2015 02:42 AM, Sagi Grimberg wrote:
->> - Converted SRP initiator and RDS iwarp ULPs to the new API
->
-> Hello Sagi,
->
+New release for uDAPL (2.1.7) is available at http://downloads.openfabrics.org/dapl/
 
-Hi Bart,
+Vlad, please pull into OFED 3.18-1 RC2
 
-> How has the converted SRP initiator driver been tested ? With the kernel
-> tree that is available on branch reg_api.4
+     md5sum: c25f1c3f99fd7cf9de7c69f664cda492 dapl-2.1.7.tar.gz 
 
-That's odd. Although I haven't formally submitted reg_api.4 yet, I did
-test ib_srp initiator against upstream srpt over CX3 (mlx4) and CX4
-(mlx5). I ran connect, disconnect, stress IO of all block sizes and
-some unaligned block-IO and SG_IO test utilities. It all seems to pass
-for me.
+For v2.1 package install RPM packages as follow:
 
-Just this morning (my morning) I tested the v2 set on iser, srp, nfs. I
-placed that in branch reg_api.5. Would you mind running reg_api.5 and 
-see if this issue persist (I would be surprised because I haven't seen
-any sign of it)?
+     dapl-2.1.7-1
+     dapl-utils-2.1.7-1  
+     dapl-devel-2.1.7-1
+     dapl-debuginfo-2.1.7-1
 
-Thanks,
-Sagi.
+Release notes: http://downloads.openfabrics.org/dapl/documentation/uDAPL_release_notes.txt
+
+Summary of changes:
+
+Release 2.1.7
+dtest: add -a -i options, all data sizes, incremental size
+dapl: Fix segfault while freeing qp
+mpxyd: add P2P inline support for data size <= 96 bytes
+dtest: change rdma_write_ping_pong so client is always last receiver
+ucm: add DAPL_NETWORK_PROCESS_NUM option for total ranks
+ucm: fca create group incorrectly using IB addr instead of socket address.
+ucm: fca_comm_destroy called with NULL
+dtest: add -W option for rdma write pingpong, similar to ib_write_lat
+docs: update release notes for collective build
+mpxyd: reduce log level for rcv message flush
+dapltest: dapltest with no argument not working in ppc64 arch
+
+Release commit:  http://git.openfabrics.org/?p=~ardavis/dapl.git;a=commit;h=0494ec10176e07804c26b28484535252e47c3f99
+
+Regards, Arlin
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
