@@ -1,74 +1,48 @@
-From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: [PATCH v2 03/14] RDS: fix rds_sock reference bug while doing bind
-Date: Wed, 30 Sep 2015 13:24:22 -0400
-Message-ID: <1443633873-13359-4-git-send-email-santosh.shilimkar@oracle.com>
-References: <1443633873-13359-1-git-send-email-santosh.shilimkar@oracle.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1443633873-13359-1-git-send-email-santosh.shilimkar@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org, davem@davemloft.net, linux-kernel@vger.kernel.org, ssantosh@kernel.org, Santosh Shilimkar <santosh.shilimkar@oracle.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v1 00/24] New fast registration API
+Date: Wed, 30 Sep 2015 11:59:00 -0700
+Message-ID: <560C30F4.50900@sandisk.com>
+References: <1442482947-27785-1-git-send-email-sagig@mellanox.com>
+ <560AE099.2080004@sandisk.com> <560AFB71.3010003@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <560AFB71.3010003-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-One need to take rds socket reference while using it and release it
-once done with it. rds_add_bind() code path does not do that so
-lets fix it.
+On 09/29/2015 01:58 PM, Sagi Grimberg wrote:
+> On 9/29/2015 10:03 PM, Bart Van Assche wrote:
+>> On 09/17/2015 02:42 AM, Sagi Grimberg wrote:
+>>> - Converted SRP initiator and RDS iwarp ULPs to the new API
+>> How has the converted SRP initiator driver been tested ? With the kernel
+>> tree that is available on branch reg_api.4
+>
+> That's odd. Although I haven't formally submitted reg_api.4 yet, I did
+> test ib_srp initiator against upstream srpt over CX3 (mlx4) and CX4
+> (mlx5). I ran connect, disconnect, stress IO of all block sizes and
+> some unaligned block-IO and SG_IO test utilities. It all seems to pass
+> for me.
+>
+> Just this morning (my morning) I tested the v2 set on iser, srp, nfs. I
+> placed that in branch reg_api.5. Would you mind running reg_api.5 and
+> see if this issue persist (I would be surprised because I haven't seen
+> any sign of it)?
 
-Signed-off-by: Santosh Shilimkar <ssantosh@kernel.org>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
----
- net/rds/bind.c | 16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+Sorry but I still see these messages with the reg_api.5 branch.
+[root@ib-ini linux-kernel]# git show HEAD | grep ^commit
+commit 3b5b34777d3cd606433f0aca51e3885323648e07
+[root@ib-ini linux-kernel]# uname -a
+Linux ib-ini 4.2.0-rc6-debug+ #1 SMP Wed Sep 30 11:38:36 PDT 2015 x86_64 
+x86_64 x86_64 GNU/Linux
 
-diff --git a/net/rds/bind.c b/net/rds/bind.c
-index 01989e2..166c605 100644
---- a/net/rds/bind.c
-+++ b/net/rds/bind.c
-@@ -61,8 +61,10 @@ static struct rds_sock *rds_bind_lookup(__be32 addr, __be16 port,
- 		cmp = ((u64)be32_to_cpu(rs->rs_bound_addr) << 32) |
- 		      be16_to_cpu(rs->rs_bound_port);
- 
--		if (cmp == needle)
-+		if (cmp == needle) {
-+			rds_sock_addref(rs);
- 			return rs;
-+		}
- 	}
- 
- 	if (insert) {
-@@ -94,10 +96,10 @@ struct rds_sock *rds_find_bound(__be32 addr, __be16 port)
- 	rs = rds_bind_lookup(addr, port, NULL);
- 	read_unlock_irqrestore(&rds_bind_lock, flags);
- 
--	if (rs && !sock_flag(rds_rs_to_sk(rs), SOCK_DEAD))
--		rds_sock_addref(rs);
--	else
-+	if (rs && sock_flag(rds_rs_to_sk(rs), SOCK_DEAD)) {
-+		rds_sock_put(rs);
- 		rs = NULL;
-+	}
- 
- 	rdsdebug("returning rs %p for %pI4:%u\n", rs, &addr,
- 		ntohs(port));
-@@ -123,14 +125,18 @@ static int rds_add_bound(struct rds_sock *rs, __be32 addr, __be16 *port)
- 	write_lock_irqsave(&rds_bind_lock, flags);
- 
- 	do {
-+		struct rds_sock *rrs;
- 		if (rover == 0)
- 			rover++;
--		if (!rds_bind_lookup(addr, cpu_to_be16(rover), rs)) {
-+		rrs = rds_bind_lookup(addr, cpu_to_be16(rover), rs);
-+		if (!rrs) {
- 			*port = rs->rs_bound_port;
- 			ret = 0;
- 			rdsdebug("rs %p binding to %pI4:%d\n",
- 			  rs, &addr, (int)ntohs(*port));
- 			break;
-+		} else {
-+			rds_sock_put(rrs);
- 		}
- 	} while (rover++ != last);
- 
--- 
-1.9.1
+I will try to run a bisect.
+
+Bart.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
