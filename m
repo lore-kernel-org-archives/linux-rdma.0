@@ -1,56 +1,87 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH RFC] IB/mad: remove obsolete snoop interface
-Date: Wed, 30 Sep 2015 16:32:22 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E1CBA2FA4@CRSMSX101.amr.corp.intel.com>
-References: <1443592864-32019-1-git-send-email-ira.weiny@intel.com>
- <560BDB97.8010908@dev.mellanox.co.il>
+From: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH] scsi: fnic: use kernel's '%pM' format option to print
+ MAC
+Date: Wed, 30 Sep 2015 20:17:08 +0300
+Message-ID: <1443633428.8361.317.camel@linux.intel.com>
+References: <1398782723-13433-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <1426787642.14897.375.camel@linux.intel.com>
+	 <550B8B0D.6010901@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <560BDB97.8010908-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <550B8B0D.6010901-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "xerofoify-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <xerofoify-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Hiral Patel <hiralpat-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, 2015-03-19 at 21:50 -0500, Tom Tucker wrote:
+> Hi Andy,
 > 
-> On 9/30/2015 2:01 AM, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> > From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> >
-> > This interface has no current users and is obsolete.
+> On 3/19/15 12:54 PM, Andy Shevchenko wrote:
+> > On Tue, 2014-04-29 at 17:45 +0300, Andy Shevchenko wrote:
+> > > Instead of supplying each byte through stack let's use %pM 
+> > > specifier.
+> > Anyone to comment or apply this patch?
+> > 
+> > > Signed-off-by: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
+> > > >
+> > > Cc: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> > > Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> > > Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > > ---
+> > >   drivers/scsi/fnic/vnic_dev.c | 10 ++--------
+> > >   1 file changed, 2 insertions(+), 8 deletions(-)
+> > > 
+> > > diff --git a/drivers/scsi/fnic/vnic_dev.c 
+> > > b/drivers/scsi/fnic/vnic_dev.c
+> > > index 9795d6f..ba69d61 100644
+> > > --- a/drivers/scsi/fnic/vnic_dev.c
+> > > +++ b/drivers/scsi/fnic/vnic_dev.c
+> > > @@ -499,10 +499,7 @@ void vnic_dev_add_addr(struct vnic_dev 
+> > > *vdev, u8 *addr)
+> > >   
+> > >   	err = vnic_dev_cmd(vdev, CMD_ADDR_ADD, &a0, &a1, wait);
+> > >   	if (err)
+> > > -		printk(KERN_ERR
+> > > -			"Can't add addr 
+> > > [%02x:%02x:%02x:%02x:%02x:%02x], %d\n",
+> > > -			addr[0], addr[1], addr[2], addr[3], 
+> > > addr[4], addr[5],
+> > > -			err);
+> > > +		pr_err("Can't add addr [%pM], %d\n", addr, err);
 > 
-> There are no in tree users of this but there is Sean's madeye tool (which is out
-> of tree). This is still a useful debug tool for MADs.
+> This looks completely reasonable to me.
 
-Where is that?  I did not think it was supported any longer?
-
-I have a series of about 5 patches which implement tracing in the MAD stack which I was working through and was going to submit along with this patch (those are still being tested in my spare time).  I just wanted put this out here because of the patch Nicholas posted yesterday.
+Anyone to apply then?
 
 > 
-> > Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > ---
-> >
-> > This has undergone a medium level of testing.  I have run it against
-> > mlx4, qib, and OPA hardware and it does not seem to cause any regressions.
-> >
-> >  drivers/infiniband/core/mad.c      | 226 +------------------------------------
-> >  drivers/infiniband/core/mad_priv.h |  13 ---
-> >  2 files changed, 5 insertions(+), 234 deletions(-)
+> Tom
+> > >   }
+> > >   
+> > >   void vnic_dev_del_addr(struct vnic_dev *vdev, u8 *addr)
+> > > @@ -517,10 +514,7 @@ void vnic_dev_del_addr(struct vnic_dev 
+> > > *vdev, u8 *addr)
+> > >   
+> > >   	err = vnic_dev_cmd(vdev, CMD_ADDR_DEL, &a0, &a1, wait);
+> > >   	if (err)
+> > > -		printk(KERN_ERR
+> > > -			"Can't del addr 
+> > > [%02x:%02x:%02x:%02x:%02x:%02x], %d\n",
+> > > -			addr[0], addr[1], addr[2], addr[3], 
+> > > addr[4], addr[5],
+> > > -			err);
+> > > +		pr_err("Can't del addr [%pM], %d\n", addr, err);
+> > >   }
+> > >   
+> > >   int vnic_dev_notify_set(struct vnic_dev *vdev, u16 intr)
+> > 
 > 
-> There are also snoop changes needed in include/rdma/ib_mad.h.
 
-I'll look into it if there are no other objections to removing the snoop interface.
-
-> 
-> Is it correct to assume that OPA_CAP_MASK3_IsSnoopSupported in
-> opa_port_info.h is not related to this ?
-
-Nope, not related.
-
-Ira
-
+-- 
+Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Intel Finland Oy
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
