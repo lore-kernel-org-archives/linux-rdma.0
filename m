@@ -1,131 +1,161 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 3.2] IB/qib: Change lkey table allocation to support more
- MRs
-Date: Wed, 30 Sep 2015 10:46:05 +0300
-Message-ID: <560B933D.7020605@mellanox.com>
-References: <20150929145143.27497.86046.stgit@phlsvslse11.ph.intel.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH infiniband-diags] libibnetdisc: Avoid pushing same pointer
+ to the hash table
+Date: Wed, 30 Sep 2015 08:53:51 -0400
+Message-ID: <560BDB5F.2040001@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150929145143.27497.86046.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 29/09/2015 17:51, Mike Marciniszyn wrote:
-> The lkey table is allocated with with a get_user_pages() with an
-Don't you mean __get_free_pages?
+From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Regards,
-Haggai
+This patch avoids pushing the same pointer to the hash table that causes
+endless loop during dumping.
 
-> order based on a number of index bits from a module parameter.
-> 
-> The underlying kernel code cannot allocate that many contiguous pages.
-> 
-> There is no reason the underlying memory needs to be physically
-> contiguous.
-> 
-> This patch:
-> - switches the allocation/deallocation to vmalloc/vfree
-> - caps the number of bits to 23 to insure at least 1 generation bit
->   o this matches the module parameter description
-> 
-> Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org # 3.2
-> Reviewed-by: Vinit Agnihotri <vinit.abhay.agnihotri-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/hw/qib/qib_keys.c  |    4 ++++
->  drivers/infiniband/hw/qib/qib_verbs.c |   16 +++++++++++-----
->  drivers/infiniband/hw/qib/qib_verbs.h |    2 ++
->  3 files changed, 17 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/qib/qib_keys.c b/drivers/infiniband/hw/qib/qib_keys.c
-> index 8fd19a4..ca6e6cf 100644
-> --- a/drivers/infiniband/hw/qib/qib_keys.c
-> +++ b/drivers/infiniband/hw/qib/qib_keys.c
-> @@ -69,6 +69,10 @@ int qib_alloc_lkey(struct qib_lkey_table *rkt, struct qib_mregion *mr)
->  	 * unrestricted LKEY.
->  	 */
->  	rkt->gen++;
-> +	/*
-> +	 * bits are capped in qib_verbs.c to insure enough bits
-> +	 * for generation number
-> +	 */
->  	mr->lkey = (r << (32 - ib_qib_lkey_table_size)) |
->  		((((1 << (24 - ib_qib_lkey_table_size)) - 1) & rkt->gen)
->  		 << 8);
-> diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-> index a894762..95df4cd 100644
-> --- a/drivers/infiniband/hw/qib/qib_verbs.c
-> +++ b/drivers/infiniband/hw/qib/qib_verbs.c
-> @@ -40,6 +40,7 @@
->  #include <linux/rculist.h>
->  #include <linux/mm.h>
->  #include <linux/random.h>
-> +#include <linux/vmalloc.h>
->  
->  #include "qib.h"
->  #include "qib_common.h"
-> @@ -2035,10 +2036,16 @@ int qib_register_ib_device(struct qib_devdata *dd)
->  	 * the LKEY).  The remaining bits act as a generation number or tag.
->  	 */
->  	spin_lock_init(&dev->lk_table.lock);
-> +	/* insure generation is at least 4 bits see keys.c */
-> +	if (ib_qib_lkey_table_size > MAX_LKEY_TABLE_BITS) {
-> +		qib_dev_warn(dd, "lkey bits %u too large, reduced to %u\n",
-> +			ib_qib_lkey_table_size, MAX_LKEY_TABLE_BITS);
-> +		ib_qib_lkey_table_size = MAX_LKEY_TABLE_BITS;
-> +	}
->  	dev->lk_table.max = 1 << ib_qib_lkey_table_size;
->  	lk_tab_size = dev->lk_table.max * sizeof(*dev->lk_table.table);
-> -	dev->lk_table.table = (struct qib_mregion **)
-> -		__get_free_pages(GFP_KERNEL, get_order(lk_tab_size));
-> +	dev->lk_table.table = (struct qib_mregion __rcu **)
-> +		vmalloc(lk_tab_size);
->  	if (dev->lk_table.table == NULL) {
->  		ret = -ENOMEM;
->  		goto err_lk;
-> @@ -2208,7 +2215,7 @@ err_tx:
->  					sizeof(struct qib_pio_header),
->  				  dev->pio_hdrs, dev->pio_hdrs_phys);
->  err_hdrs:
-> -	free_pages((unsigned long) dev->lk_table.table, get_order(lk_tab_size));
-> +	vfree(dev->lk_table.table);
->  err_lk:
->  	kfree(dev->qp_table);
->  err_qpt:
-> @@ -2262,7 +2269,6 @@ void qib_unregister_ib_device(struct qib_devdata *dd)
->  					sizeof(struct qib_pio_header),
->  				  dev->pio_hdrs, dev->pio_hdrs_phys);
->  	lk_tab_size = dev->lk_table.max * sizeof(*dev->lk_table.table);
-> -	free_pages((unsigned long) dev->lk_table.table,
-> -		   get_order(lk_tab_size));
-> +	vfree(dev->lk_table.table);
->  	kfree(dev->qp_table);
->  }
-> diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
-> index 0c19ef0..66f7f62 100644
-> --- a/drivers/infiniband/hw/qib/qib_verbs.h
-> +++ b/drivers/infiniband/hw/qib/qib_verbs.h
-> @@ -622,6 +622,8 @@ struct qib_qpn_table {
->  	struct qpn_map map[QPNMAP_ENTRIES];
->  };
->  
-> +#define MAX_LKEY_TABLE_BITS 23
-> +
->  struct qib_lkey_table {
->  	spinlock_t lock; /* protect changes in this struct */
->  	u32 next;               /* next unused index (speeds search) */
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ libibnetdisc/src/ibnetdisc.c       |   39 ++++++++++++++++++++++++++++++++---
+ libibnetdisc/src/ibnetdisc_cache.c |   19 ++++++++++++++--
+ libibnetdisc/src/internal.h        |    4 +-
+ 3 files changed, 53 insertions(+), 9 deletions(-)
+
+diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
+index e0f2d78..938a516 100644
+--- a/libibnetdisc/src/ibnetdisc.c
++++ b/libibnetdisc/src/ibnetdisc.c
+@@ -353,7 +353,12 @@ static int recv_port_info(smp_engine_t * engine, ibnd_smp_t * smp,
+ 		port->lmc = node->smalmc;
+ 	}
+ 
+-	add_to_portguid_hash(port, f_int->fabric.portstbl);
++	int rc1 = add_to_portguid_hash(port, f_int->fabric.portstbl);
++	if (rc1)
++		IBND_ERROR("Error Occurred when trying"
++			   " to insert new port guid 0x%016" PRIx64 " to DB\n",
++			   port->guid);
++
+ 	add_to_portlid_hash(port, f_int->lid2guid);
+ 
+ 	if ((scan->cfg->flags & IBND_CONFIG_MLX_EPI)
+@@ -458,7 +463,11 @@ static ibnd_node_t *create_node(smp_engine_t * engine, ib_portid_t * path,
+ 	rc->path_portid = *path;
+ 	memcpy(rc->info, node_info, sizeof(rc->info));
+ 
+-	add_to_nodeguid_hash(rc, f_int->fabric.nodestbl);
++	int rc1 = add_to_nodeguid_hash(rc, f_int->fabric.nodestbl);
++	if (rc1)
++		IBND_ERROR("Error Occurred when trying"
++			   " to insert new node guid 0x%016" PRIx64 " to DB\n",
++			   rc->guid);
+ 
+ 	/* add this to the all nodes list */
+ 	rc->next = f_int->fabric.nodes;
+@@ -607,20 +616,42 @@ ibnd_node_t *ibnd_find_node_dr(ibnd_fabric_t * fabric, char *dr_str)
+ 	return rc->node;
+ }
+ 
+-void add_to_nodeguid_hash(ibnd_node_t * node, ibnd_node_t * hash[])
++int add_to_nodeguid_hash(ibnd_node_t * node, ibnd_node_t * hash[])
+ {
++	int rc = 0;
++	ibnd_node_t *tblnode;
+ 	int hash_idx = HASHGUID(node->guid) % HTSZ;
+ 
++	for (tblnode = hash[hash_idx]; tblnode; tblnode = tblnode->htnext) {
++		if (tblnode == node) {
++			IBND_ERROR("Duplicate Node: Node with guid 0x%016"
++				   PRIx64 " already exists in nodes DB\n",
++				   node->guid);
++			return 1;
++		}
++	}
+ 	node->htnext = hash[hash_idx];
+ 	hash[hash_idx] = node;
++	return rc;
+ }
+ 
+-void add_to_portguid_hash(ibnd_port_t * port, ibnd_port_t * hash[])
++int add_to_portguid_hash(ibnd_port_t * port, ibnd_port_t * hash[])
+ {
++	int rc = 0;
++	ibnd_port_t *tblport;
+ 	int hash_idx = HASHGUID(port->guid) % HTSZ;
+ 
++	for (tblport = hash[hash_idx]; tblport; tblport = tblport->htnext) {
++		if (tblport == port) {
++			IBND_ERROR("Duplicate Port: Port with guid 0x%016"
++				   PRIx64 " already exists in ports DB\n",
++				   port->guid);
++			return 1;
++		}
++	}
+ 	port->htnext = hash[hash_idx];
+ 	hash[hash_idx] = port;
++	return rc;
+ }
+ 
+ void create_lid2guid(f_internal_t *f_int)
+diff --git a/libibnetdisc/src/ibnetdisc_cache.c b/libibnetdisc/src/ibnetdisc_cache.c
+index d4663bf..94dd004 100644
+--- a/libibnetdisc/src/ibnetdisc_cache.c
++++ b/libibnetdisc/src/ibnetdisc_cache.c
+@@ -515,7 +515,13 @@ static int _fill_port(ibnd_fabric_cache_t * fabric_cache, ibnd_node_t * node,
+ 	/* achu: needed if user wishes to re-cache a loaded fabric.
+ 	 * Otherwise, mostly unnecessary to do this.
+ 	 */
+-	add_to_portguid_hash(port_cache->port, fabric_cache->f_int->fabric.portstbl);
++	int rc = add_to_portguid_hash(port_cache->port,
++				      fabric_cache->f_int->fabric.portstbl);
++	if (rc) {
++		IBND_DEBUG("Error Occurred when trying"
++			   " to insert new port guid 0x%016" PRIx64 " to DB\n",
++			   port_cache->port->guid);
++	}
+ 	return 0;
+ }
+ 
+@@ -538,8 +544,15 @@ static int _rebuild_nodes(ibnd_fabric_cache_t * fabric_cache)
+ 		node->next = fabric_cache->f_int->fabric.nodes;
+ 		fabric_cache->f_int->fabric.nodes = node;
+ 
+-		add_to_nodeguid_hash(node_cache->node,
+-				     fabric_cache->f_int->fabric.nodestbl);
++		int rc = add_to_nodeguid_hash(node_cache->node,
++					      fabric_cache->
++					      f_int->
++					      fabric.nodestbl);
++		if (rc) {
++			IBND_DEBUG("Error Occurred when trying"
++				   " to insert new node guid 0x%016" PRIx64 " to DB\n",
++				   node_cache->node->guid);
++		}
+ 
+ 		add_to_type_list(node_cache->node, fabric_cache->f_int);
+ 
+diff --git a/libibnetdisc/src/internal.h b/libibnetdisc/src/internal.h
+index a50d2d7..5a32cd2 100644
+--- a/libibnetdisc/src/internal.h
++++ b/libibnetdisc/src/internal.h
+@@ -106,9 +106,9 @@ int issue_smp(smp_engine_t * engine, ib_portid_t * portid,
+ int process_mads(smp_engine_t * engine);
+ void smp_engine_destroy(smp_engine_t * engine);
+ 
+-void add_to_nodeguid_hash(ibnd_node_t * node, ibnd_node_t * hash[]);
++int add_to_nodeguid_hash(ibnd_node_t * node, ibnd_node_t * hash[]);
+ 
+-void add_to_portguid_hash(ibnd_port_t * port, ibnd_port_t * hash[]);
++int add_to_portguid_hash(ibnd_port_t * port, ibnd_port_t * hash[]);
+ void add_to_portlid_hash(ibnd_port_t * port, GHashTable *htable);
+ 
+ void add_to_type_list(ibnd_node_t * node, f_internal_t * fabric);
+-- 
+1.7.8.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
