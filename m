@@ -1,40 +1,56 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v1 03/18] xprtrdma: Remove completion polling budgets
-Date: Thu, 1 Oct 2015 12:38:18 -0600
-Message-ID: <20151001183818.GA9477@obsidianresearch.com>
-References: <A3B1A836-81AF-40E6-B551-587B7173B72D@oracle.com>
- <55FE8C0F.1050706@dev.mellanox.co.il>
- <CANjDDBjcRXsPFt2Bd+9oL2wTBTxpDsAvN5PZN669dhTC7xSyqw@mail.gmail.com>
- <0804C887-9E32-4257-96D2-6C1FBC9CB271@oracle.com>
- <CANjDDBgB_T9BN7ATTWEJcJScs2JH9bGv5zikUpu_2JJaRYS-Ug@mail.gmail.com>
- <A5EE402A-82CE-49DC-8AB9-63EC340CE8DA@oracle.com>
- <20151001171310.GA8428@obsidianresearch.com>
- <CDDBC387-9135-405E-B535-EE89F952386E@oracle.com>
- <20151001181548.GA8670@obsidianresearch.com>
- <E543F197-56F6-43FC-A2FE-4273695405E9@oracle.com>
+From: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>
+Subject: Re: [PATCH v2 00/14] RDS: connection scalability and performance
+ improvements
+Date: Thu, 1 Oct 2015 12:00:16 -0700
+Message-ID: <560D82C0.4020006@oracle.com>
+References: <1443633873-13359-1-git-send-email-santosh.shilimkar@oracle.com>
+ <063D6719AE5E284EB5DD2968C1650D6D1CBAA322@AcuExch.aculab.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <E543F197-56F6-43FC-A2FE-4273695405E9-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6D1CBAA322@AcuExch.aculab.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Laight <David.Laight@ACULAB.COM>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ssantosh@kernel.org" <ssantosh@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 01, 2015 at 02:31:41PM -0400, Chuck Lever wrote:
+On 10/1/15 9:19 AM, David Laight wrote:
+> From: Santosh Shilimkar
+>> Sent: 30 September 2015 18:24
+> ...
+>> This is being addressed by simply using per bucket rw lock which makes the
+>> locking simple and very efficient. The hash table size is still an issue and
+>> I plan to address it by using re-sizable hash tables as suggested on the list.
+>
+> If the hash chains are short do you need the expense of a rw lock
+> for each chain?
+Chains can be really long on larger systems with many databases.
 
-> Does a ULP want to continue polling if ib_poll_cq{_and_arm)
-> returns a negative RC?
+> A simple spinlock may be faster.
+>
+> If you use the hash chain lock for the reference count on the hashed
+> objects you should be able to release the lock before locking the
+> object itself.
+>
+Because of the shared socket nature of RDS, the chain needs to be
+protected for parallel accesses for add/removal/lookup. Hashing is
+really used to get to the bucket which holds the hlist.
 
-No. We should try and figure out if that can even happen, if not get
-rid of the possibility.
+Just to give a bit of history, RDS bind code has evolved over
+few years of time. It started with a rb tree and a global rw
+lock which wasn't very efficient.Then it was converted to rcu
+hlist with spin lock to make the look ups faster. But that
+scheme as well exploded on larger systems with truckloads of
+sockets with read/write lock failures because of excessive
+contention. As high as almost ~25% of system load. Per bucket
+lock actually solved most of those issues. Bucket or chain table
+increase(1k to 8K) was actually relatively smaller gain though still 
+helped to reduce the contention by almost to a nominal 1 or 2 %.
 
-If it can happen, it can only mean the CQ is busted, and needs to be
-destroyed. Ie the whole ULP probably needs to restart.
+Am still getting my head around with rhashtable plumbing with
+this usecase. Will CC you when I post the RFC patch for the
+rhashtable conversion. Thanks for your comments so far.
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Santosh
