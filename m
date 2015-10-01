@@ -1,89 +1,88 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 03/18] xprtrdma: Remove completion polling budgets
-Date: Thu, 1 Oct 2015 13:36:26 -0400
-Message-ID: <CDDBC387-9135-405E-B535-EE89F952386E@oracle.com>
-References: <20150917202829.19671.90044.stgit@manet.1015granger.net> <20150917204435.19671.56195.stgit@manet.1015granger.net> <CANjDDBgokeHEZ7jWhRKRRU4Usr655zRoYY-qUHc9jeuyjYBzpA@mail.gmail.com> <A3B1A836-81AF-40E6-B551-587B7173B72D@oracle.com> <55FE8C0F.1050706@dev.mellanox.co.il> <CANjDDBjcRXsPFt2Bd+9oL2wTBTxpDsAvN5PZN669dhTC7xSyqw@mail.gmail.com> <0804C887-9E32-4257-96D2-6C1FBC9CB271@oracle.com> <CANjDDBgB_T9BN7ATTWEJcJScs2JH9bGv5zikUpu_2JJaRYS-Ug@mail.gmail.com> <A5EE402A-82CE-49DC-8AB9-63EC340CE8DA@oracle.com> <20151001171310.GA8428@obsidianresearch.com>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151001171310.GA8428-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v1 00/24] New fast registration API
+Date: Thu, 1 Oct 2015 10:53:16 -0700
+Message-ID: <560D730C.9000302@sandisk.com>
+References: <1442482947-27785-1-git-send-email-sagig@mellanox.com>
+ <560AE099.2080004@sandisk.com> <560AFB71.3010003@dev.mellanox.co.il>
+ <560C30F4.50900@sandisk.com> <560C42CE.6090000@sandisk.com>
+ <560CDDBC.8000400@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <560CDDBC.8000400-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 10/01/2015 12:16 AM, Sagi Grimberg wrote:
+>
+>>>> Just this morning (my morning) I tested the v2 set on iser, srp, nfs. I
+>>>> placed that in branch reg_api.5. Would you mind running reg_api.5 and
+>>>> see if this issue persist (I would be surprised because I haven't seen
+>>>> any sign of it)?
+>>>
+>>> Sorry but I still see these messages with the reg_api.5 branch.
+>>> [root@ib-ini linux-kernel]# git show HEAD | grep ^commit
+>>> commit 3b5b34777d3cd606433f0aca51e3885323648e07
+>>> [root@ib-ini linux-kernel]# uname -a
+>>> Linux ib-ini 4.2.0-rc6-debug+ #1 SMP Wed Sep 30 11:38:36 PDT 2015 x86_64
+>>> x86_64 x86_64 GNU/Linux
+>>>
+>>> I will try to run a bisect.
+>>
+>> (replying to my own e-mail)
+>>
+>> Apparently this behavior got introduced through the patch "IB/srp:
+>> Convert to new registration API" (commit
+>> ad66cbace5ca8c60673bedf35e5027868b0dd2d7). Without that patch SRP I/O
+>> works fine. With that patch I see receive failures being reported. The
+>> SRP initiator was loaded on my setup with the following kernel driver
+>> options:
+>>
+>> # cat /etc/modprobe.d/ib_srp.conf
+>> options ib_srp cmd_sg_entries=255 prefer_fr=1 register_always=1
+>
+> Strange. I don't see that.
+>
+> options ib_srp prefer_fr=1 register_always=1 are set by default.
+>
+> When I try to connect srp initiator against upstream srpt with
+> cmd_sg_entries=255 I get CM reject on iu max size:
+> kernel: scsi host17: ib_srp: REJ received
+> kernel: scsi host17: ib_srp: SRP_LOGIN_REJ: requested max_it_iu_len too
+> large
+> kernel: scsi host17: ib_srp: Connection 0/8 failed
+> kernel: scsi host17: ib_srp: Sending CM DREQ failed
+>
+> When I connect with cmd_sg_entries=128 I successfully connect:
+> kernel: scsi host18: SRP.T10:F452140300117400
+> kernel: scsi 18:0:0:0: Direct-Access     LIO-ORG  RAMDISK-MCP      4.0
+> PQ: 0 ANSI: 5
+> kernel: scsi host18: ib_srp: new target: id_ext f452140300117400
+> ioc_guid f452140300117400 pkey ffff service_id f452140300117400 sgid
+> fe80:0000:0000:0000:f452:1403:0011:7411 dgid
+> fe80:0000:0000:0000:f452:1403:0011:7401
+> kernel: sd 18:0:0:0: [sdy] 20480 512-byte logical blocks: (10.4 MB/10.0 MiB)
+> kernel: sd 18:0:0:0: [sdy] Write Protect is off
+> kernel: sd 18:0:0:0: [sdy] Mode Sense: 43 00 00 08
+> kernel: sd 18:0:0:0: [sdy] Write cache: disabled, read cache: enabled,
+> doesn't support DPO or FUA
+> kernel: sd 18:0:0:0: [sdy] Attached SCSI disk
+>
+> I wander what is the difference between our test environments? I can't
+> look into this if I'm not able to reproduce.
 
-> On Oct 1, 2015, at 1:13 PM, Jason Gunthorpe <jgunthorpe@obsidianresea=
-rch.com> wrote:
->=20
-> On Thu, Oct 01, 2015 at 12:37:36PM -0400, Chuck Lever wrote:
->=20
->> A missed WC will result in an RPC/RDMA transport deadlock. In
->> fact that is the reason for this particular patch (although
->> it addresses only one source of missed WCs). So I would like
->> to see that there are no windows here.
->=20
-> WCs are never missed.
+Hello Sagi,
 
-The review comment earlier in this thread suggested there is
-a race condition where a WC can be =E2=80=9Cdelayed=E2=80=9D resulting =
-in,
-well, I=E2=80=99m still not certain what the consequences are.
+At the target side I see "Sep 30 12:56:06 ibdev1 kernel: [178664.300296] 
+ib_srpt: RDMA t 5 for idx 0 failed with status 10." (status 10 
+corresponds to IB_WC_REM_ACCESS_ERR). I will try to determine the root 
+cause.
 
-There was some interest in going back to a single WC array
-argument when calling ib_poll_cq. I=E2=80=99d like to avoid that.
-
-If there is an issue using a WC array, I=E2=80=99d like to
-understand what it is.
-
-
-> The issue is a race where re-arming the CQ might not work, meaning yo=
-u
-> don't get an event.
->=20
-> You can certainly use arrays with poll_cq. There is no race in the AP=
-I
-> here.
->=20
-> But you have to use the IB_CQ_REPORT_MISSED_EVENTS scheme to guarante=
-e
-> the CQ is actually armed or continue to loop again.
->=20
-> Basically you have to loop until ib_req_notify_cq succeeds.
->=20
-> Any driver that doesn't support this is broken, do we know of any?
->=20
-> while (1) {
->  struct ib_wc wcs[100];
->  int rc =3D ib_poll_cq(cw, NELEMS(wcs), wcs);
->=20
->  .. process rc wcs ..
->=20
->  if (rc !=3D NELEMS(wcs))
->    if (ib_req_notify_cq(cq, IB_CQ_NEXT_COMP |
->        IB_CQ_REPORT_MISSED_EVENTS) =3D=3D 0)
->     break;
-> }
->=20
-> API wise, we should probably look at forcing
-> IB_CQ_REPORT_MISSED_EVENTS on and dropping the flag.
-
-It=E2=80=99s been suggested that it=E2=80=99s not clear what a positive
-return value from ib_req_notify_cq() means when the
-REPORT_MISSED_EVENTS flags is set: does it mean that
-the CQ has been re-armed? I had assumed that a positive
-RC meant both missed events and a successful re-arm,
-but the pseudo-code above suggests that is not the
-case.
-
-
-=E2=80=94
-Chuck Lever
-
-
-
+Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
