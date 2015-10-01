@@ -1,35 +1,33 @@
-From: Sasha Levin <sasha.levin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/ucma: check workqueue allocation before usage
-Date: Thu, 01 Oct 2015 10:54:23 -0400
-Message-ID: <560D491F.7020200@oracle.com>
-References: <1442520259-2248-1-git-send-email-sasha.levin@oracle.com> <20150917225934.GA22326@obsidianresearch.com>
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: RE: [PATCH v2 00/14] RDS: connection scalability and performance
+ improvements
+Date: Thu, 1 Oct 2015 16:19:20 +0000
+Message-ID: <063D6719AE5E284EB5DD2968C1650D6D1CBAA322@AcuExch.aculab.com>
+References: <1443633873-13359-1-git-send-email-santosh.shilimkar@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150917225934.GA22326-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1443633873-13359-1-git-send-email-santosh.shilimkar@oracle.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: 'Santosh Shilimkar' <santosh.shilimkar@oracle.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ssantosh@kernel.org" <ssantosh@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 09/17/2015 06:59 PM, Jason Gunthorpe wrote:
-> On Thu, Sep 17, 2015 at 04:04:19PM -0400, Sasha Levin wrote:
->> Allocating a workqueue might fail, which wasn't checked so far and would
->> lead to NULL ptr derefs when an attempt to use it was made.
-> 
-> Indeed.
-> 
-> Yishai, please check this and check the other patches you've sent to
-> see if they have a similar error.
+From: Santosh Shilimkar
+> Sent: 30 September 2015 18:24
+...
+> This is being addressed by simply using per bucket rw lock which makes the
+> locking simple and very efficient. The hash table size is still an issue and
+> I plan to address it by using re-sizable hash tables as suggested on the list.
 
-Ping? It doesn't seem that the patch got anywhere.
+If the hash chains are short do you need the expense of a rw lock
+for each chain?
+A simple spinlock may be faster.
 
+If you use the hash chain lock for the reference count on the hashed
+objects you should be able to release the lock before locking the
+object itself.
 
-Thanks,
-Sasha
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	David
