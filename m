@@ -1,222 +1,79 @@
-From: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/5 RFC] IB/MAD: add send path trace points
-Date: Thu, 1 Oct 2015 14:34:27 +0800
-Message-ID: <201510011455.a7LAn2jp%fengguang.wu@intel.com>
-References: <1443675089-11786-2-git-send-email-ira.weiny@intel.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v1 00/24] New fast registration API
+Date: Thu, 1 Oct 2015 10:16:12 +0300
+Message-ID: <560CDDBC.8000400@dev.mellanox.co.il>
+References: <1442482947-27785-1-git-send-email-sagig@mellanox.com>
+ <560AE099.2080004@sandisk.com> <560AFB71.3010003@dev.mellanox.co.il>
+ <560C30F4.50900@sandisk.com> <560C42CE.6090000@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1443675089-11786-2-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <560C42CE.6090000-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: kbuild-all-JC7UmRfGjtg@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org, xerofoify-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Ira,
 
-[auto build test results on v4.3-rc3 -- if it's inappropriate base, please ignore]
+>>> Just this morning (my morning) I tested the v2 set on iser, srp, nfs. I
+>>> placed that in branch reg_api.5. Would you mind running reg_api.5 and
+>>> see if this issue persist (I would be surprised because I haven't seen
+>>> any sign of it)?
+>>
+>> Sorry but I still see these messages with the reg_api.5 branch.
+>> [root@ib-ini linux-kernel]# git show HEAD | grep ^commit
+>> commit 3b5b34777d3cd606433f0aca51e3885323648e07
+>> [root@ib-ini linux-kernel]# uname -a
+>> Linux ib-ini 4.2.0-rc6-debug+ #1 SMP Wed Sep 30 11:38:36 PDT 2015 x86_64
+>> x86_64 x86_64 GNU/Linux
+>>
+>> I will try to run a bisect.
+>
+> (replying to my own e-mail)
+>
+> Apparently this behavior got introduced through the patch "IB/srp:
+> Convert to new registration API" (commit
+> ad66cbace5ca8c60673bedf35e5027868b0dd2d7). Without that patch SRP I/O
+> works fine. With that patch I see receive failures being reported. The
+> SRP initiator was loaded on my setup with the following kernel driver
+> options:
+>
+> # cat /etc/modprobe.d/ib_srp.conf
+> options ib_srp cmd_sg_entries=255 prefer_fr=1 register_always=1
 
-reproduce:
-        # apt-get install sparse
-        make ARCH=x86_64 allmodconfig
-        make C=1 CF=-D__CHECK_ENDIAN__
+Strange. I don't see that.
 
+options ib_srp prefer_fr=1 register_always=1 are set by default.
 
-sparse warnings: (new ones prefixed by >>)
+When I try to connect srp initiator against upstream srpt with
+cmd_sg_entries=255 I get CM reject on iu max size:
+kernel: scsi host17: ib_srp: REJ received
+kernel: scsi host17: ib_srp: SRP_LOGIN_REJ: requested max_it_iu_len too 
+large
+kernel: scsi host17: ib_srp: Connection 0/8 failed
+kernel: scsi host17: ib_srp: Sending CM DREQ failed
 
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be16
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be16
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be16
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be16
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be16
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be16
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be16
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be16
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be64
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be64
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be64
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be64
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be64
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be64
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be64
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be64
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be64
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be64
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be16
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be16
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be16
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be16
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be32
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be32
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be32
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be32
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be32
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be32
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be16
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be16
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be16
->> include/trace/events/ib_mad.h:43:1: sparse: cast to restricted __be16
-   include/trace/events/ib_mad.h:131:1: sparse: cast to restricted __be64
-   include/trace/events/ib_mad.h:131:1: sparse: cast to restricted __be64
-   include/trace/events/ib_mad.h:131:1: sparse: cast to restricted __be64
-   include/trace/events/ib_mad.h:131:1: sparse: cast to restricted __be64
-   include/trace/events/ib_mad.h:131:1: sparse: cast to restricted __be64
-   include/trace/events/ib_mad.h:131:1: sparse: cast to restricted __be64
-   include/trace/events/ib_mad.h:131:1: sparse: cast to restricted __be64
-   include/trace/events/ib_mad.h:131:1: sparse: cast to restricted __be64
-   include/trace/events/ib_mad.h:131:1: sparse: cast to restricted __be64
-   include/trace/events/ib_mad.h:131:1: sparse: cast to restricted __be64
-   include/trace/events/ib_mad.h:131:1: sparse: cast to restricted __be16
-   include/trace/events/ib_mad.h:131:1: sparse: cast to restricted __be16
-   include/trace/events/ib_mad.h:131:1: sparse: cast to restricted __be16
-   include/trace/events/ib_mad.h:131:1: sparse: cast to restricted __be16
->> include/trace/events/ib_mad.h:43:1: sparse: incorrect type in assignment (different base types)
-   include/trace/events/ib_mad.h:43:1:    expected unsigned short [unsigned] [usertype] status
-   include/trace/events/ib_mad.h:43:1:    got restricted __be16 [usertype] status
->> include/trace/events/ib_mad.h:43:1: sparse: incorrect type in assignment (different base types)
-   include/trace/events/ib_mad.h:43:1:    expected unsigned short [unsigned] [usertype] class_specific
-   include/trace/events/ib_mad.h:43:1:    got restricted __be16 [usertype] class_specific
->> include/trace/events/ib_mad.h:43:1: sparse: incorrect type in assignment (different base types)
-   include/trace/events/ib_mad.h:43:1:    expected unsigned long long [unsigned] [usertype] tid
-   include/trace/events/ib_mad.h:43:1:    got restricted __be64 [usertype] tid
->> include/trace/events/ib_mad.h:43:1: sparse: incorrect type in assignment (different base types)
-   include/trace/events/ib_mad.h:43:1:    expected unsigned short [unsigned] [usertype] attr_id
-   include/trace/events/ib_mad.h:43:1:    got restricted __be16 [usertype] attr_id
->> include/trace/events/ib_mad.h:43:1: sparse: incorrect type in assignment (different base types)
-   include/trace/events/ib_mad.h:43:1:    expected unsigned int [unsigned] [usertype] attr_mod
-   include/trace/events/ib_mad.h:43:1:    got restricted __be32 [usertype] attr_mod
->> include/trace/events/ib_mad.h:131:1: sparse: incorrect type in assignment (different base types)
-   include/trace/events/ib_mad.h:131:1:    expected unsigned long long [unsigned] [usertype] atid
-   include/trace/events/ib_mad.h:131:1:    got restricted __be64 [usertype] tid
-   include/trace/events/ib_mad.h:131:1: sparse: incorrect type in assignment (different base types)
-   include/trace/events/ib_mad.h:131:1:    expected unsigned short [unsigned] [usertype] status
-   include/trace/events/ib_mad.h:131:1:    got restricted __be16 [usertype] status
->> include/trace/events/ib_mad.h:43:1: sparse: incorrect type in assignment (different base types)
-   include/trace/events/ib_mad.h:43:1:    expected unsigned short [unsigned] [usertype] status
-   include/trace/events/ib_mad.h:43:1:    got restricted __be16 [usertype] status
->> include/trace/events/ib_mad.h:43:1: sparse: incorrect type in assignment (different base types)
-   include/trace/events/ib_mad.h:43:1:    expected unsigned short [unsigned] [usertype] class_specific
-   include/trace/events/ib_mad.h:43:1:    got restricted __be16 [usertype] class_specific
->> include/trace/events/ib_mad.h:43:1: sparse: incorrect type in assignment (different base types)
-   include/trace/events/ib_mad.h:43:1:    expected unsigned long long [unsigned] [usertype] tid
-   include/trace/events/ib_mad.h:43:1:    got restricted __be64 [usertype] tid
->> include/trace/events/ib_mad.h:43:1: sparse: incorrect type in assignment (different base types)
-   include/trace/events/ib_mad.h:43:1:    expected unsigned short [unsigned] [usertype] attr_id
-   include/trace/events/ib_mad.h:43:1:    got restricted __be16 [usertype] attr_id
->> include/trace/events/ib_mad.h:43:1: sparse: incorrect type in assignment (different base types)
-   include/trace/events/ib_mad.h:43:1:    expected unsigned int [unsigned] [usertype] attr_mod
-   include/trace/events/ib_mad.h:43:1:    got restricted __be32 [usertype] attr_mod
->> include/trace/events/ib_mad.h:131:1: sparse: incorrect type in assignment (different base types)
-   include/trace/events/ib_mad.h:131:1:    expected unsigned long long [unsigned] [usertype] atid
-   include/trace/events/ib_mad.h:131:1:    got restricted __be64 [usertype] tid
-   include/trace/events/ib_mad.h:131:1: sparse: incorrect type in assignment (different base types)
-   include/trace/events/ib_mad.h:131:1:    expected unsigned short [unsigned] [usertype] status
-   include/trace/events/ib_mad.h:131:1:    got restricted __be16 [usertype] status
+When I connect with cmd_sg_entries=128 I successfully connect:
+kernel: scsi host18: SRP.T10:F452140300117400
+kernel: scsi 18:0:0:0: Direct-Access     LIO-ORG  RAMDISK-MCP      4.0 
+PQ: 0 ANSI: 5
+kernel: scsi host18: ib_srp: new target: id_ext f452140300117400 
+ioc_guid f452140300117400 pkey ffff service_id f452140300117400 sgid 
+fe80:0000:0000:0000:f452:1403:0011:7411 dgid 
+fe80:0000:0000:0000:f452:1403:0011:7401
+kernel: sd 18:0:0:0: [sdy] 20480 512-byte logical blocks: (10.4 MB/10.0 MiB)
+kernel: sd 18:0:0:0: [sdy] Write Protect is off
+kernel: sd 18:0:0:0: [sdy] Mode Sense: 43 00 00 08
+kernel: sd 18:0:0:0: [sdy] Write cache: disabled, read cache: enabled, 
+doesn't support DPO or FUA
+kernel: sd 18:0:0:0: [sdy] Attached SCSI disk
 
-vim +43 include/trace/events/ib_mad.h
+I wander what is the difference between our test environments? I can't
+look into this if I'm not able to reproduce.
 
-    37	#if !defined(_TRACE_IB_MAD_H) || defined(TRACE_HEADER_MULTI_READ)
-    38	#define _TRACE_IB_MAD_H
-    39	
-    40	#include <linux/tracepoint.h>
-    41	#include <rdma/ib_mad.h>
-    42	
-  > 43	DECLARE_EVENT_CLASS(ib_mad_send_template,
-    44		TP_PROTO(struct ib_mad_send_wr_private *wr, struct ib_mad_addr *addr),
-    45		TP_ARGS(wr, addr),
-    46	
-    47		TP_STRUCT__entry(
-    48			__array(char,           dev_name, IB_DEVICE_NAME_MAX )
-    49			__field(u8,             port_num                     )
-    50			__field(u32,            qp_num                       )
-    51			__field(void *,         agent_priv                   )
-    52			__field(u64,            atid                         )
-    53			__field(int,            retries_left                 )
-    54			__field(int,            max_retries                  )
-    55			__field(int,            retry                        )
-    56			__field(unsigned long,  timeout                      )
-    57			__field(u32,            length                       )
-    58			__field(u8,             base_version                 )
-    59			__field(u8,             mgmt_class                   )
-    60			__field(u8,             class_version                )
-    61			__field(u8,             method                       )
-    62			__field(u16,            status                       )
-    63			__field(u16,            class_specific               )
-    64			__field(u64,            tid                          )
-    65			__field(u16,            attr_id                      )
-    66			__field(u32,            attr_mod                     )
-    67			__field(u16,            dlid                         )
-    68			__field(u8,             sl                           )
-    69			__field(u16,            pkey                         )
-    70			__field(u32,            rqpn                         )
-    71			__field(u32,            rqkey                        )
-    72		),
-    73	
-    74		TP_fast_assign(
-    75			memcpy(__entry->dev_name, wr->mad_agent_priv->agent.device->name, IB_DEVICE_NAME_MAX);
-    76			__entry->port_num = wr->mad_agent_priv->agent.port_num;
-    77			__entry->qp_num = wr->mad_agent_priv->qp_info->qp->qp_num;
-    78			__entry->agent_priv = wr->mad_agent_priv;
-    79			__entry->atid = be64_to_cpu(wr->tid);
-    80			__entry->max_retries = wr->max_retries;
-    81			__entry->retries_left = wr->retries_left;
-    82			__entry->retry = wr->retry;
-    83			__entry->timeout = wr->timeout;
-    84			__entry->length = wr->send_buf.hdr_len +
-    85					  wr->send_buf.data_len;
-    86			__entry->base_version = ((struct ib_mad_hdr *)wr->send_buf.mad)->base_version;
-    87			__entry->mgmt_class = ((struct ib_mad_hdr *)wr->send_buf.mad)->mgmt_class;
-    88			__entry->class_version = ((struct ib_mad_hdr *)wr->send_buf.mad)->class_version;
-    89			__entry->method = ((struct ib_mad_hdr *)wr->send_buf.mad)->method;
-    90			__entry->status = ((struct ib_mad_hdr *)wr->send_buf.mad)->status;
-    91			__entry->class_specific = ((struct ib_mad_hdr *)wr->send_buf.mad)->class_specific;
-    92			__entry->tid = ((struct ib_mad_hdr *)wr->send_buf.mad)->tid;
-    93			__entry->attr_id = ((struct ib_mad_hdr *)wr->send_buf.mad)->attr_id;
-    94			__entry->attr_mod = ((struct ib_mad_hdr *)wr->send_buf.mad)->attr_mod;
-    95			__entry->dlid = addr->dlid;
-    96			__entry->sl = addr->sl;
-    97			__entry->pkey = addr->pkey;
-    98			__entry->rqpn = addr->rqpn;
-    99			__entry->rqkey = addr->rqkey;
-   100		),
-   101	
-   102		TP_printk("%s:%d QP%d agent %p: " \
-   103			  "atid 0x%llx; %d/%d retries(%d); timeout %lu length %d : " \
-   104			  "base_ver 0x%x class 0x%x class_ver 0x%x method 0x%x " \
-   105			  "status 0x%x class_specific 0x%x tid 0x%llx attr_id 0x%x attr_mod 0x%x " \
-   106			  " => dlid 0x%x sl %d pkey 0x%x rpqn 0x%x rqpkey 0x%x",
-   107			__entry->dev_name, __entry->port_num, __entry->qp_num,
-   108			__entry->agent_priv, __entry->atid,
-   109			__entry->retries_left, __entry->max_retries,
-   110			__entry->retry, __entry->timeout, __entry->length,
-   111			__entry->base_version, __entry->mgmt_class, __entry->class_version,
-   112			__entry->method, be16_to_cpu(__entry->status),
-   113			be16_to_cpu(__entry->class_specific),
-   114			be64_to_cpu(__entry->tid), be16_to_cpu(__entry->attr_id),
-   115			be32_to_cpu(__entry->attr_mod),
-   116			be16_to_cpu(__entry->dlid), __entry->sl, __entry->pkey, __entry->rqpn,
-   117			__entry->rqkey
-   118		)
-   119	);
-   120	
-   121	DEFINE_EVENT(ib_mad_send_template, ib_mad_mad_error_handler,
-   122		TP_PROTO(struct ib_mad_send_wr_private *wr, struct ib_mad_addr *addr),
-   123		TP_ARGS(wr, addr));
-   124	DEFINE_EVENT(ib_mad_send_template, ib_mad_ib_send_mad,
-   125		TP_PROTO(struct ib_mad_send_wr_private *wr, struct ib_mad_addr *addr),
-   126		TP_ARGS(wr, addr));
-   127	DEFINE_EVENT(ib_mad_send_template, ib_mad_send_done_resend,
-   128		TP_PROTO(struct ib_mad_send_wr_private *wr, struct ib_mad_addr *addr),
-   129		TP_ARGS(wr, addr));
-   130	
- > 131	TRACE_EVENT(ib_mad_send_done_handler,
-   132		TP_PROTO(struct ib_mad_send_wr_private *wr, struct ib_wc *wc),
-   133		TP_ARGS(wr, wc),
-   134	
+Sagi.
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
