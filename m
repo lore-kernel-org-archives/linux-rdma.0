@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 5/5 RFC] IB/mad: Add SMP tracing
-Date: Thu,  1 Oct 2015 00:51:29 -0400
-Message-ID: <1443675089-11786-6-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 2/5 RFC] IB/MAD: add recv path trace point
+Date: Thu,  1 Oct 2015 00:51:26 -0400
+Message-ID: <1443675089-11786-3-git-send-email-ira.weiny@intel.com>
 References: <1443675089-11786-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1443675089-11786-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -14,151 +14,105 @@ From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/mad.c |  8 ++++
- include/trace/events/ib_mad.h | 90 +++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 98 insertions(+)
+ drivers/infiniband/core/mad.c | 10 +++++++
+ include/trace/events/ib_mad.h | 63 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 73 insertions(+)
 
 diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 189404194470..6ff87fcc6aea 100644
+index 0631bff54755..0dc0ae78d313 100644
 --- a/drivers/infiniband/core/mad.c
 +++ b/drivers/infiniband/core/mad.c
-@@ -604,6 +604,8 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
- 	if (opa && smp->class_version == OPA_SMP_CLASS_VERSION) {
- 		u32 opa_drslid;
+@@ -2051,6 +2051,16 @@ static void ib_mad_recv_done_handler(struct ib_mad_port_private *port_priv,
+ 	if (!validate_mad((const struct ib_mad_hdr *)recv->mad, qp_info, opa))
+ 		goto out;
  
-+		trace_ib_mad_handle_out_opa_smi(opa_smp);
++	if (trace_ib_mad_recv_done_handler_enabled()) {
++		u16 pkey;
 +
- 		if ((opa_get_smp_direction(opa_smp)
- 		     ? opa_smp->route.dr.dr_dlid : opa_smp->route.dr.dr_slid) ==
- 		     OPA_LID_PERMISSIVE &&
-@@ -629,6 +631,8 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
- 		    opa_smi_check_local_returning_smp(opa_smp, device) == IB_SMI_DISCARD)
- 			goto out;
- 	} else {
-+		trace_ib_mad_handle_out_ib_smi(smp);
++		ib_query_pkey(qp_info->port_priv->device, qp_info->port_priv->port_num,
++			      wc->pkey_index, &pkey);
 +
- 		if ((ib_get_smp_direction(smp) ? smp->dr_dlid : smp->dr_slid) ==
- 		     IB_LID_PERMISSIVE &&
- 		     smi_handle_dr_smp_send(smp, rdma_cap_ib_switch(device), port_num) ==
-@@ -1858,6 +1862,8 @@ static enum smi_action handle_ib_smi(const struct ib_mad_port_private *port_priv
- 	enum smi_forward_action retsmi;
- 	struct ib_smp *smp = (struct ib_smp *)recv->mad;
- 
-+	trace_ib_mad_handle_ib_smi(smp);
++		trace_ib_mad_recv_done_handler(qp_info, wc, (struct ib_mad_hdr *)recv->mad,
++					       pkey);
++	}
 +
- 	if (smi_handle_dr_smp_recv(smp,
- 				   rdma_cap_ib_switch(port_priv->device),
- 				   port_num,
-@@ -1943,6 +1949,8 @@ handle_opa_smi(struct ib_mad_port_private *port_priv,
- 	enum smi_forward_action retsmi;
- 	struct opa_smp *smp = (struct opa_smp *)recv->mad;
- 
-+	trace_ib_mad_handle_opa_smi(smp);
-+
- 	if (opa_smi_handle_dr_smp_recv(smp,
- 				   rdma_cap_ib_switch(port_priv->device),
- 				   port_num,
+ 	mad_size = recv->mad_size;
+ 	response = alloc_mad_private(mad_size, GFP_KERNEL);
+ 	if (!response) {
 diff --git a/include/trace/events/ib_mad.h b/include/trace/events/ib_mad.h
-index 3ac94636784b..8312eb1e7daf 100644
+index 7e42ac35324a..8704bbc476bd 100644
 --- a/include/trace/events/ib_mad.h
 +++ b/include/trace/events/ib_mad.h
-@@ -290,6 +290,96 @@ DEFINE_EVENT(ib_mad_agent_template, ib_mad_unregister_agent,
- 	TP_ARGS(agent));
+@@ -185,6 +185,69 @@ TRACE_EVENT(ib_mad_send_done_handler,
+ 	)
+ );
  
- 
-+
-+DECLARE_EVENT_CLASS(ib_mad_opa_smi_template,
-+	TP_PROTO(struct opa_smp *smp),
-+	TP_ARGS(smp),
++TRACE_EVENT(ib_mad_recv_done_handler,
++	TP_PROTO(struct ib_mad_qp_info *qp_info, struct ib_wc *wc, struct ib_mad_hdr *mad_hdr, u16 pkey),
++	TP_ARGS(qp_info, wc, mad_hdr, pkey),
 +
 +	TP_STRUCT__entry(
-+		__field(u8,             hop_ptr                             )
-+		__field(u8,             hop_cnt                             )
-+		__field(u64,            mkey                                )
-+		__field(u32,            dr_slid                             )
-+		__field(u32,            dr_dlid                             )
-+		__array(u8,             initial_path, OPA_SMP_MAX_PATH_HOPS )
-+		__array(u8,             return_path, OPA_SMP_MAX_PATH_HOPS  )
++		__array(char,           dev_name, IB_DEVICE_NAME_MAX )
++		__field(u8,             port_num                     )
++		__field(u32,            qp_num                       )
++		__field(u32,            length                       )
++		__field(u8,             base_version                 )
++		__field(u8,             mgmt_class                   )
++		__field(u8,             class_version                )
++		__field(u8,             method                       )
++		__field(u16,            status                       )
++		__field(u16,            class_specific               )
++		__field(u64,            tid                          )
++		__field(u16,            attr_id                      )
++		__field(u32,            attr_mod                     )
++		__field(u16,            slid                         )
++		__field(u16,            src_qp                       )
++		__field(u8,             sl                           )
++		__field(u16,            pkey                         )
++		__field(u16,            wc_status                    )
 +	),
 +
 +	TP_fast_assign(
-+		__entry->hop_ptr = smp->hop_ptr;
-+		__entry->hop_cnt = smp->hop_cnt;
-+		__entry->mkey = smp->mkey;
-+		__entry->dr_slid = smp->route.dr.dr_slid;
-+		__entry->dr_dlid = smp->route.dr.dr_dlid;
-+		memcpy(__entry->initial_path, smp->route.dr.initial_path,
-+			OPA_SMP_MAX_PATH_HOPS);
-+		memcpy(__entry->return_path, smp->route.dr.return_path,
-+			OPA_SMP_MAX_PATH_HOPS);
++		memcpy(__entry->dev_name, qp_info->port_priv->device->name, IB_DEVICE_NAME_MAX);
++		__entry->port_num = qp_info->port_priv->port_num;
++		__entry->qp_num = qp_info->qp->qp_num;
++		__entry->length = wc->byte_len;
++		__entry->base_version = mad_hdr->base_version;
++		__entry->mgmt_class = mad_hdr->mgmt_class;
++		__entry->class_version = mad_hdr->class_version;
++		__entry->method = mad_hdr->method;
++		__entry->status = mad_hdr->status;
++		__entry->class_specific = mad_hdr->class_specific;
++		__entry->tid = mad_hdr->tid;
++		__entry->attr_id = mad_hdr->attr_id;
++		__entry->attr_mod = mad_hdr->attr_mod;
++		__entry->slid = wc->slid;
++		__entry->src_qp = wc->src_qp;
++		__entry->sl = wc->sl;
++		__entry->pkey = pkey;
++		__entry->wc_status = wc->status;
 +	),
 +
-+	TP_printk("OPA SMP: hop_ptr %d hop_cnt %d " \
-+		  "mkey 0x%016llx dr_slid 0x%08x dr_dlid 0x%08x " \
-+		  "initial_path %*ph return_path %*ph ",
-+		__entry->hop_ptr, __entry->hop_cnt,
-+		be64_to_cpu(__entry->mkey), be32_to_cpu(__entry->dr_slid),
-+		be32_to_cpu(__entry->dr_dlid),
-+		OPA_SMP_MAX_PATH_HOPS, __entry->initial_path,
-+		OPA_SMP_MAX_PATH_HOPS, __entry->return_path
++	TP_printk("%s:%d QP%d : RECV WC Status %d : length %d " \
++		  "base_ver 0x%02x class 0x%02x class_ver 0x%02x method 0x%02x " \
++		  "status 0x%04x class_specific 0x%04x tid 0x%016llx " \
++		  "attr_id 0x%04x attr_mod 0x%08x slid 0x%04x src QP%d, sl %d " \
++		  "pkey 0x%04x",
++		__entry->dev_name, __entry->port_num, __entry->qp_num,
++		__entry->wc_status,
++		__entry->length,
++		__entry->base_version, __entry->mgmt_class, __entry->class_version,
++		__entry->method, be16_to_cpu(__entry->status),
++		be16_to_cpu(__entry->class_specific),
++		be64_to_cpu(__entry->tid), be16_to_cpu(__entry->attr_id),
++		be32_to_cpu(__entry->attr_mod),
++		__entry->slid, __entry->src_qp, __entry->sl, __entry->pkey
 +	)
 +);
 +
-+DEFINE_EVENT(ib_mad_opa_smi_template, ib_mad_handle_opa_smi,
-+	TP_PROTO(struct opa_smp *smp),
-+	TP_ARGS(smp));
-+DEFINE_EVENT(ib_mad_opa_smi_template, ib_mad_handle_out_opa_smi,
-+	TP_PROTO(struct opa_smp *smp),
-+	TP_ARGS(smp));
-+
-+
-+DECLARE_EVENT_CLASS(ib_mad_opa_ib_template,
-+	TP_PROTO(struct ib_smp *smp),
-+	TP_ARGS(smp),
-+
-+	TP_STRUCT__entry(
-+		__field(u8,             hop_ptr                             )
-+		__field(u8,             hop_cnt                             )
-+		__field(u64,            mkey                                )
-+		__field(u32,            dr_slid                             )
-+		__field(u32,            dr_dlid                             )
-+		__array(u8,             initial_path, IB_SMP_MAX_PATH_HOPS  )
-+		__array(u8,             return_path, IB_SMP_MAX_PATH_HOPS   )
-+	),
-+
-+	TP_fast_assign(
-+		__entry->hop_ptr = smp->hop_ptr;
-+		__entry->hop_cnt = smp->hop_cnt;
-+		__entry->mkey = smp->mkey;
-+		__entry->dr_slid = smp->dr_slid;
-+		__entry->dr_dlid = smp->dr_dlid;
-+		memcpy(__entry->initial_path, smp->initial_path,
-+			IB_SMP_MAX_PATH_HOPS);
-+		memcpy(__entry->return_path, smp->return_path,
-+			IB_SMP_MAX_PATH_HOPS);
-+	),
-+
-+	TP_printk("OPA SMP: hop_ptr %d hop_cnt %d " \
-+		  "mkey 0x%016llx dr_slid 0x%04x dr_dlid 0x%04x " \
-+		  "initial_path %*ph return_path %*ph ",
-+		__entry->hop_ptr, __entry->hop_cnt,
-+		be64_to_cpu(__entry->mkey), be16_to_cpu(__entry->dr_slid),
-+		be16_to_cpu(__entry->dr_dlid),
-+		IB_SMP_MAX_PATH_HOPS, __entry->initial_path,
-+		IB_SMP_MAX_PATH_HOPS, __entry->return_path
-+	)
-+);
-+
-+DEFINE_EVENT(ib_mad_opa_ib_template, ib_mad_handle_ib_smi,
-+	TP_PROTO(struct ib_smp *smp),
-+	TP_ARGS(smp));
-+DEFINE_EVENT(ib_mad_opa_ib_template, ib_mad_handle_out_ib_smi,
-+	TP_PROTO(struct ib_smp *smp),
-+	TP_ARGS(smp));
-+
+ 
  #endif /* _TRACE_IB_MAD_H */
  
- #include <trace/define_trace.h>
 -- 
 1.8.2
 
