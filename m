@@ -1,7 +1,7 @@
 From: Geliang Tang <geliangtang@163.com>
-Subject: [PATCH] IB/ipath: use offset_in_page macro
-Date: Sat,  3 Oct 2015 10:43:11 +0800
-Message-ID: <b373adf0d141449f5eb208e8bae46ce72c6e468b.1443840028.git.geliangtang@163.com>
+Subject: [PATCH] RDMA/amso1100: use offset_in_page macro
+Date: Sat,  3 Oct 2015 11:00:14 +0800
+Message-ID: <53f0aa15e8f3df09245cddb23875e16700121550.1443840917.git.geliangtang@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -15,7 +15,7 @@ List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driver
  <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
 Errors-To: driverdev-devel-bounces@linuxdriverproject.org
 Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Mike Marciniszyn <infinipath@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Steve Wise <swise@opengridcomputing.com>, Ira Weiny <ira.weiny@intel.com>, Matan Barak <matanb@mellanox.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Michael Wang <yun.wang@profitbricks.com>, Haggai Eran <haggaie@mellanox.com>
 Cc: linux-rdma@vger.kernel.org, Geliang Tang <geliangtang@163.com>, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
@@ -23,30 +23,35 @@ Use offset_in_page macro instead of (addr & ~PAGE_MASK).
 
 Signed-off-by: Geliang Tang <geliangtang@163.com>
 ---
- drivers/staging/rdma/ipath/ipath_user_sdma.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/staging/rdma/amso1100/c2_alloc.c    | 2 +-
+ drivers/staging/rdma/amso1100/c2_provider.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/rdma/ipath/ipath_user_sdma.c b/drivers/staging/rdma/ipath/ipath_user_sdma.c
-index cc04b7b..e82b3ee 100644
---- a/drivers/staging/rdma/ipath/ipath_user_sdma.c
-+++ b/drivers/staging/rdma/ipath/ipath_user_sdma.c
-@@ -239,7 +239,7 @@ static int ipath_user_sdma_num_pages(const struct iovec *iov)
- /* truncate length to page boundary */
- static int ipath_user_sdma_page_length(unsigned long addr, unsigned long len)
- {
--	const unsigned long offset = addr & ~PAGE_MASK;
-+	const unsigned long offset = offset_in_page(addr);
+diff --git a/drivers/staging/rdma/amso1100/c2_alloc.c b/drivers/staging/rdma/amso1100/c2_alloc.c
+index 78d247e..039872d 100644
+--- a/drivers/staging/rdma/amso1100/c2_alloc.c
++++ b/drivers/staging/rdma/amso1100/c2_alloc.c
+@@ -131,7 +131,7 @@ void c2_free_mqsp(__be16 *mqsp)
+ 	*mqsp = (__force __be16) head->head;
  
- 	return ((offset + len) > PAGE_SIZE) ? (PAGE_SIZE - offset) : len;
- }
-@@ -298,7 +298,7 @@ static int ipath_user_sdma_pin_pages(const struct ipath_devdata *dd,
- 		dma_addr_t dma_addr =
- 			dma_map_page(&dd->pcidev->dev,
- 				     pages[j], 0, flen, DMA_TO_DEVICE);
--		unsigned long fofs = addr & ~PAGE_MASK;
-+		unsigned long fofs = offset_in_page(addr);
+ 	/* Compute the shared_ptr index */
+-	idx = ((unsigned long) mqsp & ~PAGE_MASK) >> 1;
++	idx = (offset_in_page(mqsp)) >> 1;
+ 	idx -= (unsigned long) &(((struct sp_chunk *) 0)->shared_ptr[0]) >> 1;
  
- 		if (dma_mapping_error(&dd->pcidev->dev, dma_addr)) {
- 			ret = -ENOMEM;
+ 	/* Point this index at the head */
+diff --git a/drivers/staging/rdma/amso1100/c2_provider.c b/drivers/staging/rdma/amso1100/c2_provider.c
+index 25c3f00..956d76b 100644
+--- a/drivers/staging/rdma/amso1100/c2_provider.c
++++ b/drivers/staging/rdma/amso1100/c2_provider.c
+@@ -359,7 +359,7 @@ static struct ib_mr *c2_reg_phys_mr(struct ib_pd *ib_pd,
+ 
+ 	for (i = 0; i < num_phys_buf; i++) {
+ 
+-		if (buffer_list[i].addr & ~PAGE_MASK) {
++		if (offset_in_page(buffer_list[i].addr)) {
+ 			pr_debug("Unaligned Memory Buffer: 0x%x\n",
+ 				(unsigned int) buffer_list[i].addr);
+ 			return ERR_PTR(-EINVAL);
 -- 
 2.5.0
