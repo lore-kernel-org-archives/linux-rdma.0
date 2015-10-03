@@ -1,7 +1,7 @@
 From: Geliang Tang <geliangtang@163.com>
-Subject: [PATCH] IB/hfi1: use offset_in_page macro
-Date: Sat,  3 Oct 2015 10:34:59 +0800
-Message-ID: <20ad2117b3ba065a6e00e80f3c27682f70a53c6f.1443839524.git.geliangtang@163.com>
+Subject: [PATCH] IB/ipath: use offset_in_page macro
+Date: Sat,  3 Oct 2015 10:43:11 +0800
+Message-ID: <b373adf0d141449f5eb208e8bae46ce72c6e468b.1443840028.git.geliangtang@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -23,42 +23,30 @@ Use offset_in_page macro instead of (addr & ~PAGE_MASK).
 
 Signed-off-by: Geliang Tang <geliangtang@163.com>
 ---
- drivers/staging/rdma/hfi1/file_ops.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/staging/rdma/ipath/ipath_user_sdma.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
-index 9a77221..7d28680 100644
---- a/drivers/staging/rdma/hfi1/file_ops.c
-+++ b/drivers/staging/rdma/hfi1/file_ops.c
-@@ -168,7 +168,7 @@ enum mmap_types {
- 	HFI1_MMAP_TOKEN_SET(TYPE, type) | \
- 	HFI1_MMAP_TOKEN_SET(CTXT, ctxt) | \
- 	HFI1_MMAP_TOKEN_SET(SUBCTXT, subctxt) | \
--	HFI1_MMAP_TOKEN_SET(OFFSET, ((unsigned long)addr & ~PAGE_MASK)))
-+	HFI1_MMAP_TOKEN_SET(OFFSET, (offset_in_page(addr))))
+diff --git a/drivers/staging/rdma/ipath/ipath_user_sdma.c b/drivers/staging/rdma/ipath/ipath_user_sdma.c
+index cc04b7b..e82b3ee 100644
+--- a/drivers/staging/rdma/ipath/ipath_user_sdma.c
++++ b/drivers/staging/rdma/ipath/ipath_user_sdma.c
+@@ -239,7 +239,7 @@ static int ipath_user_sdma_num_pages(const struct iovec *iov)
+ /* truncate length to page boundary */
+ static int ipath_user_sdma_page_length(unsigned long addr, unsigned long len)
+ {
+-	const unsigned long offset = addr & ~PAGE_MASK;
++	const unsigned long offset = offset_in_page(addr);
  
- #define EXP_TID_SET(field, value)			\
- 	(((value) & EXP_TID_TID##field##_MASK) <<	\
-@@ -1335,9 +1335,9 @@ static int get_base_info(struct file *fp, void __user *ubase, __u32 len)
- 	 */
- 	binfo.user_regbase = HFI1_MMAP_TOKEN(UREGS, uctxt->ctxt,
- 					    subctxt_fp(fp), 0);
--	offset = ((((uctxt->ctxt - dd->first_user_ctxt) *
-+	offset = offset_in_page((((uctxt->ctxt - dd->first_user_ctxt) *
- 		    HFI1_MAX_SHARED_CTXTS) + subctxt_fp(fp)) *
--		  sizeof(*dd->events)) & ~PAGE_MASK;
-+		  sizeof(*dd->events));
- 	binfo.events_bufbase = HFI1_MMAP_TOKEN(EVENTS, uctxt->ctxt,
- 					      subctxt_fp(fp),
- 					      offset);
-@@ -1573,7 +1573,7 @@ static int exp_tid_setup(struct file *fp, struct hfi1_tid_info *tinfo)
+ 	return ((offset + len) > PAGE_SIZE) ? (PAGE_SIZE - offset) : len;
+ }
+@@ -298,7 +298,7 @@ static int ipath_user_sdma_pin_pages(const struct ipath_devdata *dd,
+ 		dma_addr_t dma_addr =
+ 			dma_map_page(&dd->pcidev->dev,
+ 				     pages[j], 0, flen, DMA_TO_DEVICE);
+-		unsigned long fofs = addr & ~PAGE_MASK;
++		unsigned long fofs = offset_in_page(addr);
  
- 	vaddr = tinfo->vaddr;
- 
--	if (vaddr & ~PAGE_MASK) {
-+	if (offset_in_page(vaddr)) {
- 		ret = -EINVAL;
- 		goto bail;
- 	}
+ 		if (dma_mapping_error(&dd->pcidev->dev, dma_addr)) {
+ 			ret = -ENOMEM;
 -- 
 2.5.0
