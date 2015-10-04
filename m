@@ -1,51 +1,46 @@
-From: Or Gerlitz <ogerlitz@mellanox.com>
+From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
 Subject: Re: [PATCH] staging: rdma: Fix braces around if/else
-Date: Sun, 4 Oct 2015 09:47:52 +0300
-Message-ID: <5610CB98.1090907@mellanox.com>
+Date: Sun, 4 Oct 2015 08:20:09 +0100
+Message-ID: <20151004072009.GA8336@kroah.com>
 References: <1b3a2e933e163bf11a2163c76bedd074551c1b9a.1443901389.git.mkletzan@redhat.com>
+ <5610CB98.1090907@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <1b3a2e933e163bf11a2163c76bedd074551c1b9a.1443901389.git.mkletzan@redhat.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: devel@driverdev.osuosl.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Mike Marciniszyn <infinipath@intel.com>, Doug Ledford <dledford@redhat.com>, Martin Kletzander <mkletzan@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5610CB98.1090907-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Martin Kletzander <mkletzan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/3/2015 11:55 PM, Martin Kletzander wrote:
-> Get rid of all ELSE_AFTER_BRACE type errors reported by checkpatch.pl.
+On Sun, Oct 04, 2015 at 09:47:52AM +0300, Or Gerlitz wrote:
+> On 10/3/2015 11:55 PM, Martin Kletzander wrote:
+> >Get rid of all ELSE_AFTER_BRACE type errors reported by checkpatch.pl.
+> 
+> Hi Greg,
+> 
+> Is there a way to signal people/tools that a certain driver parks in staging
+> on their way **out** of the kernel
+> and not the other way around? I guess you (nor Doug) don't want to spend
+> time on fixing such drivers, right?
 
-Hi Greg,
+I'm not spending the time :)
 
-Is there a way to signal people/tools that a certain driver parks in 
-staging on their way **out** of the kernel
-and not the other way around? I guess you (nor Doug) don't want to spend 
-time on fixing such drivers, right?
+But no, there isn't a way to really show that that I know of, and it's
+fine, we end up getting a number of "cleanup" patches for a kernel
+release or two before the drivers get deleted.  It gets people involved
+in kernel development which is the key thing here, it's not like they
+are actually using these drivers...
 
-Or.
+So it's fine, I take the patches, the people writing the patches are
+happy, and the code gets a bit nicer and feels better about itself
+before we kick it out the door.
 
->
-> Signed-off-by: Martin Kletzander <mkletzan@redhat.com>
-> ---
-> There is one warning reported in this patch though.  That's because of
-> the multiline string and it's pre-existing.  Feel free to let me know
-> if that should be fixed too, I'd also remove the pointless '#' then.
-> On the other hand, it'll create more-than-80-columns long line.
->
->   drivers/staging/rdma/ipath/ipath_driver.c    | 19 ++++++++-----------
->   drivers/staging/rdma/ipath/ipath_file_ops.c  | 12 ++++++------
->   drivers/staging/rdma/ipath/ipath_iba6110.c   |  7 +++----
->   drivers/staging/rdma/ipath/ipath_init_chip.c | 10 +++++-----
->   drivers/staging/rdma/ipath/ipath_intr.c      |  7 +++----
->   drivers/staging/rdma/ipath/ipath_sysfs.c     |  7 +++----
->   drivers/staging/rdma/ipath/ipath_verbs.c     |  4 ++--
->   7 files changed, 30 insertions(+), 36 deletions(-)
+thanks,
+
+greg k-h
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
