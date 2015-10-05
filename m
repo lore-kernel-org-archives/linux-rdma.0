@@ -1,70 +1,41 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] svcrdma: Fix NFS server crash triggered by 1MB NFS WRITE
-Date: Sun, 04 Oct 2015 23:03:26 -0400
-Message-ID: <20151005025022.5074.89318.stgit@klimt.1015granger.net>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH v2 05/14] RDS: defer the over_batch work to send worker
+Date: Mon, 05 Oct 2015 03:30:24 -0700 (PDT)
+Message-ID: <20151005.033024.2236659260552514725.davem@davemloft.net>
+References: <1443633873-13359-1-git-send-email-santosh.shilimkar@oracle.com>
+	<1443633873-13359-6-git-send-email-santosh.shilimkar@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1443633873-13359-6-git-send-email-santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Now that the NFS server advertises a maximum payload size of 1MB
-for RPC/RDMA again, it crashes in svc_process_common() when NFS
-client sends a 1MB NFS WRITE on an NFS/RDMA mount.
+From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Date: Wed, 30 Sep 2015 13:24:24 -0400
 
-The server has set up a 259 element array of struct page pointers
-in rq_pages[] for each incoming request. The last element of the
-array is NULL.
+> @@ -423,7 +423,9 @@ over_batch:
+>  		     !list_empty(&conn->c_send_queue)) &&
+>  		    send_gen == conn->c_send_gen) {
+>  			rds_stats_inc(s_send_lock_queue_raced);
+> -			goto restart;
+> +			if (batch_count < 1024)
+> +				goto restart;
+> +			queue_delayed_work(rds_wq, &conn->c_send_w, 1);
 
-When an incoming request has been completely received,
-rdma_read_complete() attempts to set the starting page of the
-incoming page vector:
+Sorry, you can't just use a magic number like this.
 
-  rqstp->rq_arg.pages = &rqstp->rq_pages[head->hdr_count];
+You have to describe, in detail, exactly how this value was
+choosen, derived, and tested to be effeective and in exactly
+what environment those tests were done.
 
-and the page to use for the reply:
+You must also use a mnenomic for this value rather than a
+raw magic constant.
 
-  rqstp->rq_respages = &rqstp->rq_arg.pages[page_no];
-
-But the value of page_no has already accounted for head->hdr_count.
-Thus rq_respages now points past the end of the incoming pages. For
-NFS WRITE operations smaller than the maximum, this is harmless.
-
-But when the NFS WRITE operation is as large as the server's max
-payload size, rq_respages now points at the last entry in rq_pages,
-which is NULL.
-
-Fixes: cc9a903d915c ('svcrdma: Change maximum server payload . . .')
-BugLink: https://bugzilla.linux-nfs.org/show_bug.cgi?id=270
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
-
-This fixes a 4.3-rc regression. Please apply to 4.3-rc when this
-patch passes review.
-
-It could also be appropriate for stable kernels which do not have
-commit 7e5be28827bf ("svcrdma: advertise the correct max payload"),
-though I have not tested them with this patch.
-
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-index cb51742..37b4341 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-@@ -531,7 +531,7 @@ static int rdma_read_complete(struct svc_rqst *rqstp,
- 	rqstp->rq_arg.page_base = head->arg.page_base;
- 
- 	/* rq_respages starts after the last arg page */
--	rqstp->rq_respages = &rqstp->rq_arg.pages[page_no];
-+	rqstp->rq_respages = &rqstp->rq_pages[page_no];
- 	rqstp->rq_next_page = rqstp->rq_respages + 1;
- 
- 	/* Rebuild rq_arg head and tail. */
-
+Thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
