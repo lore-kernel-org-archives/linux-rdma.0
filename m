@@ -1,65 +1,51 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] svcrdma: Fix NFS server crash triggered by 1MB NFS WRITE
-Date: Mon, 5 Oct 2015 11:04:26 -0400
-Message-ID: <F70E8A77-C1CB-4DC5-ABDA-FEA7E6F534C2@oracle.com>
-References: <20151005025022.5074.89318.stgit@klimt.1015granger.net> <5612912B.7080105@dev.mellanox.co.il>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5612912B.7080105-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: santosh shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 05/14] RDS: defer the over_batch work to send worker
+Date: Mon, 5 Oct 2015 08:31:00 -0700
+Message-ID: <561297B4.8000403@oracle.com>
+References: <1443633873-13359-1-git-send-email-santosh.shilimkar@oracle.com>
+ <1443633873-13359-6-git-send-email-santosh.shilimkar@oracle.com>
+ <20151005.033024.2236659260552514725.davem@davemloft.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151005.033024.2236659260552514725.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 10/5/2015 3:30 AM, David Miller wrote:
+> From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Date: Wed, 30 Sep 2015 13:24:24 -0400
+>
+>> @@ -423,7 +423,9 @@ over_batch:
+>>   		     !list_empty(&conn->c_send_queue)) &&
+>>   		    send_gen == conn->c_send_gen) {
+>>   			rds_stats_inc(s_send_lock_queue_raced);
+>> -			goto restart;
+>> +			if (batch_count < 1024)
+>> +				goto restart;
+>> +			queue_delayed_work(rds_wq, &conn->c_send_w, 1);
+>
+> Sorry, you can't just use a magic number like this.
+>
+> You have to describe, in detail, exactly how this value was
+> choosen, derived, and tested to be effeective and in exactly
+> what environment those tests were done.
+>
+> You must also use a mnenomic for this value rather than a
+> raw magic constant.
+>
+Right. Infact If I look at it now again, there is already a batch
+count parameter which is module parameter. I will use that in
+this hunk as well as the other couple places and send an update.
 
-> On Oct 5, 2015, at 11:03 AM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> 
-> On 10/5/2015 6:03 AM, Chuck Lever wrote:
->> Now that the NFS server advertises a maximum payload size of 1MB
->> for RPC/RDMA again, it crashes in svc_process_common() when NFS
->> client sends a 1MB NFS WRITE on an NFS/RDMA mount.
->> 
->> The server has set up a 259 element array of struct page pointers
->> in rq_pages[] for each incoming request. The last element of the
->> array is NULL.
->> 
->> When an incoming request has been completely received,
->> rdma_read_complete() attempts to set the starting page of the
->> incoming page vector:
->> 
->>   rqstp->rq_arg.pages = &rqstp->rq_pages[head->hdr_count];
->> 
->> and the page to use for the reply:
->> 
->>   rqstp->rq_respages = &rqstp->rq_arg.pages[page_no];
->> 
->> But the value of page_no has already accounted for head->hdr_count.
->> Thus rq_respages now points past the end of the incoming pages. For
->> NFS WRITE operations smaller than the maximum, this is harmless.
->> 
->> But when the NFS WRITE operation is as large as the server's max
->> payload size, rq_respages now points at the last entry in rq_pages,
->> which is NULL.
->> 
->> Fixes: cc9a903d915c ('svcrdma: Change maximum server payload . . .')
->> BugLink: https://bugzilla.linux-nfs.org/show_bug.cgi?id=270
->> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->> ---
-> 
-> Looks correct,
-> 
-> Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Thanks for review !!
 
-Excellent, thank you!
-
+Regards,
+Santosh
 --
-Chuck Lever
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
