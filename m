@@ -1,59 +1,27 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-rc v1] xprtrdma: Don't require LOCAL_DMA_LKEY support for fasterg
-Date: Tue,  6 Oct 2015 19:52:37 +0300
-Message-ID: <1444150357-2362-1-git-send-email-sagig@mellanox.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v1 for-next 0/7] Add support for multicast loopback
+ prevention to mlx4
+Date: Tue, 6 Oct 2015 19:54:09 +0300
+Message-ID: <5613FCB1.4050605@dev.mellanox.co.il>
+References: <1440081275-15864-1-git-send-email-eranbe@mellanox.com>
+ <CAKHjkjnQNqeLu+irEg97a1hcKp_ziXsDOFaTRwcaPpZAX_fMng@mail.gmail.com>
+ <560AD75A.7080700@redhat.com>
+ <CAJ3xEMiuPEJZ5EQueC=8wQyok2QbEaywQ3gRYVpqOwSaFQcj0A@mail.gmail.com>
+ <5613F145.3040204@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5613F145.3040204-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-There is no need to require LOCAL_DMA_LKEY support as the
-PD allocation makes sure that there is a local_dma_lkey. Also
-correctly set a return value in error path.
+> Then I have to see if any of the currently posted fixes for 4.3rc that I haven't grabbed yet
+> resolve the iSER issue I'm seeing, then I'll move on to for-next processing.
 
-This caused a NULL pointer dereference in mlx5 which removed
-the support for LOCAL_DMA_LKEY.
-
-Fixes: bb6c96d72879 ("xprtrdma: Replace global lkey with lkey local to PD")
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
-Changes from v0:
-- Added error path rc assignment.
-
- net/sunrpc/xprtrdma/verbs.c |    8 +++-----
- 1 files changed, 3 insertions(+), 5 deletions(-)
-
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index eb081ad..81e8d31 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -543,11 +543,8 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr, int memreg)
- 	}
- 
- 	if (memreg == RPCRDMA_FRMR) {
--		/* Requires both frmr reg and local dma lkey */
--		if (((devattr->device_cap_flags &
--		     (IB_DEVICE_MEM_MGT_EXTENSIONS|IB_DEVICE_LOCAL_DMA_LKEY)) !=
--		    (IB_DEVICE_MEM_MGT_EXTENSIONS|IB_DEVICE_LOCAL_DMA_LKEY)) ||
--		      (devattr->max_fast_reg_page_list_len == 0)) {
-+		if (!(devattr->device_cap_flags & IB_DEVICE_MEM_MGT_EXTENSIONS) ||
-+		    (devattr->max_fast_reg_page_list_len == 0)) {
- 			dprintk("RPC:       %s: FRMR registration "
- 				"not supported by HCA\n", __func__);
- 			memreg = RPCRDMA_MTHCAFMR;
-@@ -557,6 +554,7 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr, int memreg)
- 		if (!ia->ri_device->alloc_fmr) {
- 			dprintk("RPC:       %s: MTHCAFMR registration "
- 				"not supported by HCA\n", __func__);
-+			rc = -EINVAL;
- 			goto out3;
- 		}
- 	}
--- 
-1.7.1
-
+Anything I can help with Doug?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
