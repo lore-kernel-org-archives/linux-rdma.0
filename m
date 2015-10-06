@@ -1,46 +1,48 @@
-From: Jan Kara <jack-IBi9RG/b67k@public.gmane.org>
-Subject: [PATCH 5/7] IB/mthca: Convert mthca_map_user_db() to use get_user_pages_fast()
-Date: Tue,  6 Oct 2015 11:24:28 +0200
-Message-ID: <1444123470-4932-6-git-send-email-jack@suse.com>
-References: <1444123470-4932-1-git-send-email-jack@suse.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1444123470-4932-1-git-send-email-jack-IBi9RG/b67k@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org
-Cc: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH rdma-rc] xprtrdma: Don't require LOCAL_DMA_LKEY support for fasterg
+Date: Tue,  6 Oct 2015 12:48:09 +0300
+Message-ID: <1444124889-8957-1-git-send-email-sagig@mellanox.com>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+There is no need to require LOCAL_DMA_LKEY support in order to
+use fast registration as the PD allocation makes sure that there
+is a local_dma_lkey.
 
-Function mthca_map_user_db() appears to call get_user_pages() without
-holding mmap_sem. Fix the bug by using get_user_pages_fast() instead
-which also takes care of the locking.
+This caused a NULL pointer dereference in mlx5 which removed
+the support for LOCAL_DMA_LKEY.
 
-CC: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-CC: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Signed-off-by: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+Fixes: bb6c96d72879 ("xprtrdma: Replace global lkey with lkey local to PD")
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mthca/mthca_memfree.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ net/sunrpc/xprtrdma/verbs.c |    7 ++-----
+ 1 files changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mthca/mthca_memfree.c b/drivers/infiniband/hw/mthca/mthca_memfree.c
-index 7d2e42dd6926..c3543b27a2a7 100644
---- a/drivers/infiniband/hw/mthca/mthca_memfree.c
-+++ b/drivers/infiniband/hw/mthca/mthca_memfree.c
-@@ -472,8 +472,7 @@ int mthca_map_user_db(struct mthca_dev *dev, struct mthca_uar *uar,
- 		goto out;
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index eb081ad..7efd9ef 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -543,11 +543,8 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr, int memreg)
  	}
  
--	ret = get_user_pages(current, current->mm, uaddr & PAGE_MASK, 1, 1, 0,
--			     pages, NULL);
-+	ret = get_user_pages_fast(uaddr & PAGE_MASK, 1, 1, pages);
- 	if (ret < 0)
- 		goto out;
- 
+ 	if (memreg == RPCRDMA_FRMR) {
+-		/* Requires both frmr reg and local dma lkey */
+-		if (((devattr->device_cap_flags &
+-		     (IB_DEVICE_MEM_MGT_EXTENSIONS|IB_DEVICE_LOCAL_DMA_LKEY)) !=
+-		    (IB_DEVICE_MEM_MGT_EXTENSIONS|IB_DEVICE_LOCAL_DMA_LKEY)) ||
+-		      (devattr->max_fast_reg_page_list_len == 0)) {
++		if (!(devattr->device_cap_flags & IB_DEVICE_MEM_MGT_EXTENSIONS) ||
++		    (devattr->max_fast_reg_page_list_len == 0)) {
+ 			dprintk("RPC:       %s: FRMR registration "
+ 				"not supported by HCA\n", __func__);
+ 			memreg = RPCRDMA_MTHCAFMR;
 -- 
-2.1.4
+1.7.1
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
