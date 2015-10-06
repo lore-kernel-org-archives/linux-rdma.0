@@ -1,129 +1,44 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v1 00/24] New fast registration API
-Date: Tue, 6 Oct 2015 11:37:40 +0300
-Message-ID: <56138854.4040209@dev.mellanox.co.il>
-References: <1442482947-27785-1-git-send-email-sagig@mellanox.com>
- <560AE099.2080004@sandisk.com> <560AFB71.3010003@dev.mellanox.co.il>
- <560C30F4.50900@sandisk.com> <560C42CE.6090000@sandisk.com>
- <560CDDBC.8000400@dev.mellanox.co.il> <560D730C.9000302@sandisk.com>
- <560D9E69.70604@sandisk.com>
- <35618B90-4D6E-4036-A69B-4405F020D440@dev.mellanox.co.il>
- <560EA4A1.3080709@sandisk.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <560EA4A1.3080709-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+From: Jan Kara <jack@suse.com>
+Subject: [PATCH 0/7] get_user_pages() cleanup
+Date: Tue,  6 Oct 2015 11:24:23 +0200
+Message-ID: <1444123470-4932-1-git-send-email-jack@suse.com>
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Sender: linux-ia64-owner@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: Jan Kara <jack@suse.cz>, Jesper Nilsson <jesper.nilsson@axis.com>, linux-cris-kernel@axis.com, Mikael Starvik <starvik@axis.com>, linux-ia64@vger.kernel.org, Tony Luck <tony.luck@intel.com>, David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org, Timur Tabi <timur@freescale.com>, linux-rdma@vger.kernel.org, Roland Dreier <roland@kernel.org>, Daniel Vetter <daniel.vetter@intel.com>, Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org, Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/2/2015 6:37 PM, Bart Van Assche wrote:
-> On 10/01/2015 11:14 PM, Sagi Grimberg wrote:
->> Would you mind sending me your .config?
->
-> Hello Sagi,
+From: Jan Kara <jack@suse.cz>
 
-Hi Bart,
+  Hello,
 
->
-> I just sent this .config file to you off-list.
+Now when the usage of get_user_pages() in media drivers got cleaned up, here
+comes a series which removes knowledge about mmap_sem from a couple of other
+drivers. Patches are trivial and standalone but please check, they are only
+compile tested. If you are OK with them, either take them through your
+respective trees or ack them and I can take care of pushing them to Linus
+(probably through mm tree). Thanks.
 
-I see now the error you are referring to.
+After these patches there are some 12 call sites of get_user_pages() outside of
+core code (mostly infiniband and RDMA). So we are slowly getting to the goal of
+removing knowledge about page fault locking from drivers which will
+consequently allow us to change the locking rules with reasonable effort.
 
-The issue is that the device requires the MR page array to have
-an alignment (0x40 for mlx4 and 0x400 for mlx5). When I modified the
-page array allocation to be non-coherent I didn't take care of
-alignment.
+								Honza
 
-Taking care of this alignment may result in a higher order allocation
-as we'd need to add (alignment - 1) to the allocation size.
-
-e.g. a 512 pages on mlx4 will become:
-512 * 8 + 0x40 - 1 = 4159
-
-I'm leaning towards this approach. Any preference?
-
-I think this patch should take care of mlx4:
-diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h 
-b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-index de6eab3..4c69247 100644 
-
---- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
-+++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -129,6 +129,8 @@ struct mlx4_ib_cq {
-         struct list_head                recv_qp_list;
-  };
-
-+#define MLX4_MR_PAGES_ALIGN 0x40
-+
-  struct mlx4_ib_mr {
-         struct ib_mr            ibmr;
-         __be64                  *pages;
-@@ -137,6 +139,7 @@ struct mlx4_ib_mr {
-         u32                     max_pages;
-         struct mlx4_mr          mmr;
-         struct ib_umem         *umem;
-+       void                    *pages_alloc;
-  };
-
-  struct mlx4_ib_mw {
-diff --git a/drivers/infiniband/hw/mlx4/mr.c 
-b/drivers/infiniband/hw/mlx4/mr.c
-index fa01f75..d3f8175 100644
---- a/drivers/infiniband/hw/mlx4/mr.c
-+++ b/drivers/infiniband/hw/mlx4/mr.c
-@@ -279,10 +279,14 @@ mlx4_alloc_priv_pages(struct ib_device *device,
-         int size = max_pages * sizeof(u64);
-         int ret;
-
--       mr->pages = kzalloc(size, GFP_KERNEL);
--       if (!mr->pages)
-+       size += max_t(int, MLX4_MR_PAGES_ALIGN - ARCH_KMALLOC_MINALIGN, 0);
-+
-+       mr->pages_alloc = kzalloc(size, GFP_KERNEL);
-+       if (!mr->pages_alloc)
-                 return -ENOMEM;
-
-+       mr->pages = PTR_ALIGN(mr->pages_alloc, MLX4_MR_PAGES_ALIGN);
-+
-         mr->page_map = dma_map_single(device->dma_device, mr->pages,
-                                       size, DMA_TO_DEVICE);
-
-@@ -293,20 +297,22 @@ mlx4_alloc_priv_pages(struct ib_device *device,
-
-         return 0;
-  err:
--       kfree(mr->pages);
-+       kfree(mr->pages_alloc);
-         return ret;
-  }
-
-  static void
-  mlx4_free_priv_pages(struct mlx4_ib_mr *mr)
-  {
--       struct ib_device *device = mr->ibmr.device;
--       int size = mr->max_pages * sizeof(u64);
--
-         if (mr->pages) {
-+               struct ib_device *device = mr->ibmr.device;
-+               int size = mr->max_pages * sizeof(u64);
-+
-+               size += max_t(int, MLX4_MR_PAGES_ALIGN - 
-ARCH_KMALLOC_MINALIGN, 0);
-+
-                 dma_unmap_single(device->dma_device, mr->page_map,
-                                  size, DMA_TO_DEVICE);
--               kfree(mr->pages);
-+               kfree(mr->pages_alloc);
-                 mr->pages = NULL;
-         }
-  }
---
-
-Sagi.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+CC: Jesper Nilsson <jesper.nilsson@axis.com>
+CC: linux-cris-kernel@axis.com
+CC: Mikael Starvik <starvik@axis.com>
+CC: linux-ia64@vger.kernel.org
+CC: Tony Luck <tony.luck@intel.com>
+CC: David Airlie <airlied@linux.ie>
+CC: dri-devel@lists.freedesktop.org
+CC: Timur Tabi <timur@freescale.com>
+CC: linux-rdma@vger.kernel.org
+CC: Roland Dreier <roland@kernel.org>
+CC: Daniel Vetter <daniel.vetter@intel.com>
+CC: David Airlie <airlied@linux.ie>
+CC: dri-devel@lists.freedesktop.org
+CC: Andy Walls <awalls@md.metrocast.net>
+CC: linux-media@vger.kernel.org
+CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
