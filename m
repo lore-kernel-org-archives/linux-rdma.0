@@ -1,91 +1,72 @@
-From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-rc v1] xprtrdma: Don't require LOCAL_DMA_LKEY support
- for fasterg
-Date: Tue, 6 Oct 2015 13:37:48 -0400
-Message-ID: <561406EC.3050508@Netapp.com>
-References: <1444150357-2362-1-git-send-email-sagig@mellanox.com>
- <56140404.1010809@Netapp.com> <56140697.6050205@redhat.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 for-next 0/7] Add support for multicast loopback
+ prevention to mlx4
+Date: Tue, 6 Oct 2015 13:41:32 -0400
+Message-ID: <561407CC.7050505@redhat.com>
+References: <1440081275-15864-1-git-send-email-eranbe@mellanox.com>
+ <CAKHjkjnQNqeLu+irEg97a1hcKp_ziXsDOFaTRwcaPpZAX_fMng@mail.gmail.com>
+ <560AD75A.7080700@redhat.com>
+ <CAJ3xEMiuPEJZ5EQueC=8wQyok2QbEaywQ3gRYVpqOwSaFQcj0A@mail.gmail.com>
+ <5613F145.3040204@redhat.com> <5613FCB1.4050605@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56140697.6050205-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="L0WanAgaho1d0V42x7arPx3u6S7aVmXAN"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5613FCB1.4050605-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/06/2015 01:36 PM, Doug Ledford wrote:
-> On 10/06/2015 01:25 PM, Anna Schumaker wrote:
->> Hi Sagi,
->>
->> On 10/06/2015 12:52 PM, Sagi Grimberg wrote:
->>> There is no need to require LOCAL_DMA_LKEY support as the
->>> PD allocation makes sure that there is a local_dma_lkey. Also
->>> correctly set a return value in error path.
->>>
->>> This caused a NULL pointer dereference in mlx5 which removed
->>> the support for LOCAL_DMA_LKEY.
->>
->> Looks good to me!  This is another patch going directly to an RDMA tree somewhere, right?
-> 
-> Yeah, I'll pick this one up.  Thanks!
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--L0WanAgaho1d0V42x7arPx3u6S7aVmXAN
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Cool!  In that case you can add:
+On 10/06/2015 12:54 PM, Sagi Grimberg wrote:
+>> Then I have to see if any of the currently posted fixes for 4.3rc that=
 
-Acked-by: Anna Schumaker <Anna.Schumaker-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
+>> I haven't grabbed yet
+>> resolve the iSER issue I'm seeing, then I'll move on to for-next
+>> processing.
+>=20
+> Anything I can help with Doug?
 
-> 
->> Anna
->>
->>>
->>> Fixes: bb6c96d72879 ("xprtrdma: Replace global lkey with lkey local to PD")
->>> Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>> Reviewed-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>> ---
->>> Changes from v0:
->>> - Added error path rc assignment.
->>>
->>>  net/sunrpc/xprtrdma/verbs.c |    8 +++-----
->>>  1 files changed, 3 insertions(+), 5 deletions(-)
->>>
->>> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
->>> index eb081ad..81e8d31 100644
->>> --- a/net/sunrpc/xprtrdma/verbs.c
->>> +++ b/net/sunrpc/xprtrdma/verbs.c
->>> @@ -543,11 +543,8 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr, int memreg)
->>>  	}
->>>  
->>>  	if (memreg == RPCRDMA_FRMR) {
->>> -		/* Requires both frmr reg and local dma lkey */
->>> -		if (((devattr->device_cap_flags &
->>> -		     (IB_DEVICE_MEM_MGT_EXTENSIONS|IB_DEVICE_LOCAL_DMA_LKEY)) !=
->>> -		    (IB_DEVICE_MEM_MGT_EXTENSIONS|IB_DEVICE_LOCAL_DMA_LKEY)) ||
->>> -		      (devattr->max_fast_reg_page_list_len == 0)) {
->>> +		if (!(devattr->device_cap_flags & IB_DEVICE_MEM_MGT_EXTENSIONS) ||
->>> +		    (devattr->max_fast_reg_page_list_len == 0)) {
->>>  			dprintk("RPC:       %s: FRMR registration "
->>>  				"not supported by HCA\n", __func__);
->>>  			memreg = RPCRDMA_MTHCAFMR;
->>> @@ -557,6 +554,7 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr, int memreg)
->>>  		if (!ia->ri_device->alloc_fmr) {
->>>  			dprintk("RPC:       %s: MTHCAFMR registration "
->>>  				"not supported by HCA\n", __func__);
->>> +			rc = -EINVAL;
->>>  			goto out3;
->>>  		}
->>>  	}
->>>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> 
-> 
+I'll tell you in a few hours.
 
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--L0WanAgaho1d0V42x7arPx3u6S7aVmXAN
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJWFAfMAAoJELgmozMOVy/dvpcP/37S1ABVaOr5EKLKpj7azPit
+d9ASXgHTVGUANX01DpXuXlqzHBpdC/27KIN3wxPAC7a1KJm+sqETC7MfkPD80yBz
+4fbFDaHvjDwuX/4s3edkswX8NL0S2b2rjOa7DnHiyeKr/208Nes8LOP9Hc5kHwOj
+Ipp665m6h4TQ67HvydOO6hogeAgPZ5vyX2+DUfHuxqHC9lyQrBTLcP3oo0TiTkwS
+yeA1f7baZXkf3369TRGWDDLZKguEk5hE+KwpthgGH8Kf54ZqaYLkDHRELmn6rDYZ
+GZFdnuOG3BcyW981cGUOlt9GFebjfkxEy9kF9t7HtFTFuePTU+GpON3LvzcdOSET
+7hDSMdGEmBEyIhs7qsILnRlR+X/78WpmbFHk2XRfJ7x4OsBEvqtQioUktupW+bV/
+GG0/6QPwvKttNdJxcxFBGps6asKE0KGjMaHCdRjJ08Yc++CXbyXZLpDnaZ+I9Rlk
+tb2C3w1lMTYy26SP2BdeEvkHig/nB1nwE28Avs3HWgHos0Vz0hNhRZx3eDqDELPk
+BqXmxe00f5zBi8jQRboN4C6y3is/ZbizYH4r0sZcc23hAyLzqdZ48gTbahsMxZh9
+zwTv+wzeG3AKrR6L39NsYKQ0Ex+21g1eXYHfWpoSJraErMyXPMWgT4Omh4uOKleb
+cYJvMNSTSItylQYlMfn3
+=AeMf
+-----END PGP SIGNATURE-----
+
+--L0WanAgaho1d0V42x7arPx3u6S7aVmXAN--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
