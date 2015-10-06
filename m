@@ -1,336 +1,187 @@
-From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: Re: [PATCH v2 05/16] xprtrdma: Replace send and receive arrays
-Date: Tue, 6 Oct 2015 23:56:41 +0530
-Message-ID: <CANjDDBjw6uQiUhNUm2jQy3U9GRCJYWX0-SEnYt8Hx5Rs0GJ_uQ@mail.gmail.com>
-References: <20151006142430.11788.42604.stgit@manet.1015granger.net> <20151006145916.11788.22802.stgit@manet.1015granger.net>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] [RESEND] IB/cma: Accept connection without a valid netdev
+ on RoCE
+Date: Tue, 6 Oct 2015 14:27:35 -0400
+Message-ID: <56141297.7010707@redhat.com>
+References: <5607AC87.7070504@mellanox.com>
+ <1444143360-18549-1-git-send-email-haggaie@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="K29S3grK9fxxu9JBJ5axvWKG5iAqovpLu"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151006145916.11788.22802.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+In-Reply-To: <1444143360-18549-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-looks good,
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--K29S3grK9fxxu9JBJ5axvWKG5iAqovpLu
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Reviewed-By: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+On 10/06/2015 10:56 AM, Haggai Eran wrote:
+> The netdev checks recently added to RDMA CM expect a valid netdev to be=
 
-On Tue, Oct 6, 2015 at 8:29 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-> The rb_send_bufs and rb_recv_bufs arrays are used to implement a
-> pair of stacks for keeping track of free rpcrdma_req and rpcrdma_rep
-> structs. Replace those arrays with free lists.
->
-> To allow more than 512 RPCs in-flight at once, each of these arrays
-> would be larger than a page (assuming 8-byte addresses and 4KB
-> pages). Allowing up to 64K in-flight RPCs (as TCP now does), each
-> buffer array would have to be 128 pages. That's an order-6
-> allocation. (Not that we're going there.)
->
-> A list is easier to expand dynamically. Instead of allocating a
-> larger array of pointers and copying the existing pointers to the
-> new array, simply append more buffers to each list.
->
-> This also makes it simpler to manage receive buffers that might
-> catch backwards-direction calls, or to post receive buffers in
-> bulk to amortize the overhead of ib_post_recv.
->
-> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> found for both InfiniBand and RoCE, but the code that find a netdev is
+> only implemented for InfiniBand.
+>=20
+> Currently RoCE doesn't provide an API to find the netdev matching a
+> given set of parameters, so this patch just disables the netdev enforce=
+ment
+> for each incoming connections when the link layer is RoCE.
+>=20
+> Fixes: 4c21b5bcef73 ("IB/cma: Add net_dev and private data checks to RD=
+MA CM")
+> Reported-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+Thanks, applied.
+
 > ---
->  net/sunrpc/xprtrdma/verbs.c     |  155 +++++++++++++++++----------------------
->  net/sunrpc/xprtrdma/xprt_rdma.h |    9 +-
->  2 files changed, 73 insertions(+), 91 deletions(-)
->
-> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-> index 0076129..ab26392 100644
-> --- a/net/sunrpc/xprtrdma/verbs.c
-> +++ b/net/sunrpc/xprtrdma/verbs.c
-> @@ -928,44 +928,18 @@ rpcrdma_buffer_create(struct rpcrdma_xprt *r_xprt)
->  {
->         struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
->         struct rpcrdma_ia *ia = &r_xprt->rx_ia;
-> -       struct rpcrdma_create_data_internal *cdata = &r_xprt->rx_data;
-> -       char *p;
-> -       size_t len;
->         int i, rc;
->
-> -       buf->rb_max_requests = cdata->max_requests;
-> +       buf->rb_max_requests = r_xprt->rx_data.max_requests;
->         spin_lock_init(&buf->rb_lock);
->
-> -       /* Need to allocate:
-> -        *   1.  arrays for send and recv pointers
-> -        *   2.  arrays of struct rpcrdma_req to fill in pointers
-> -        *   3.  array of struct rpcrdma_rep for replies
-> -        * Send/recv buffers in req/rep need to be registered
-> -        */
-> -       len = buf->rb_max_requests *
-> -               (sizeof(struct rpcrdma_req *) + sizeof(struct rpcrdma_rep *));
-> -
-> -       p = kzalloc(len, GFP_KERNEL);
-> -       if (p == NULL) {
-> -               dprintk("RPC:       %s: req_t/rep_t/pad kzalloc(%zd) failed\n",
-> -                       __func__, len);
-> -               rc = -ENOMEM;
-> -               goto out;
-> -       }
-> -       buf->rb_pool = p;       /* for freeing it later */
-> -
-> -       buf->rb_send_bufs = (struct rpcrdma_req **) p;
-> -       p = (char *) &buf->rb_send_bufs[buf->rb_max_requests];
-> -       buf->rb_recv_bufs = (struct rpcrdma_rep **) p;
-> -       p = (char *) &buf->rb_recv_bufs[buf->rb_max_requests];
-> -
->         rc = ia->ri_ops->ro_init(r_xprt);
->         if (rc)
->                 goto out;
->
-> +       INIT_LIST_HEAD(&buf->rb_send_bufs);
->         for (i = 0; i < buf->rb_max_requests; i++) {
->                 struct rpcrdma_req *req;
-> -               struct rpcrdma_rep *rep;
->
->                 req = rpcrdma_create_req(r_xprt);
->                 if (IS_ERR(req)) {
-> @@ -974,7 +948,12 @@ rpcrdma_buffer_create(struct rpcrdma_xprt *r_xprt)
->                         rc = PTR_ERR(req);
->                         goto out;
->                 }
-> -               buf->rb_send_bufs[i] = req;
-> +               list_add(&req->rl_free, &buf->rb_send_bufs);
-> +       }
-> +
-> +       INIT_LIST_HEAD(&buf->rb_recv_bufs);
-> +       for (i = 0; i < buf->rb_max_requests + 2; i++) {
-> +               struct rpcrdma_rep *rep;
->
->                 rep = rpcrdma_create_rep(r_xprt);
->                 if (IS_ERR(rep)) {
-> @@ -983,7 +962,7 @@ rpcrdma_buffer_create(struct rpcrdma_xprt *r_xprt)
->                         rc = PTR_ERR(rep);
->                         goto out;
->                 }
-> -               buf->rb_recv_bufs[i] = rep;
-> +               list_add(&rep->rr_list, &buf->rb_recv_bufs);
->         }
->
->         return 0;
-> @@ -992,6 +971,28 @@ out:
->         return rc;
+> I accidentally forgot to send this to the list, so I'm sending again.
+>=20
+>  drivers/infiniband/core/cma.c | 54 ++++++++++++++++++++++++++++++++---=
+--------
+>  1 file changed, 40 insertions(+), 14 deletions(-)
+>=20
+> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cm=
+a.c
+> index b92a3c2c060b..f163ac680841 100644
+> --- a/drivers/infiniband/core/cma.c
+> +++ b/drivers/infiniband/core/cma.c
+> @@ -1232,14 +1232,32 @@ static bool cma_match_private_data(struct rdma_=
+id_private *id_priv,
+>  	return true;
 >  }
->
-> +static struct rpcrdma_req *
-> +rpcrdma_buffer_get_req_locked(struct rpcrdma_buffer *buf)
+> =20
+> +static bool cma_protocol_roce_dev_port(struct ib_device *device, int p=
+ort_num)
 > +{
-> +       struct rpcrdma_req *req;
+> +	enum rdma_link_layer ll =3D rdma_port_get_link_layer(device, port_num=
+);
+> +	enum rdma_transport_type transport =3D
+> +		rdma_node_get_transport(device->node_type);
 > +
-> +       req = list_first_entry(&buf->rb_send_bufs,
-> +                              struct rpcrdma_req, rl_free);
-> +       list_del(&req->rl_free);
-> +       return req;
+> +	return ll =3D=3D IB_LINK_LAYER_ETHERNET && transport =3D=3D RDMA_TRAN=
+SPORT_IB;
 > +}
 > +
-> +static struct rpcrdma_rep *
-> +rpcrdma_buffer_get_rep_locked(struct rpcrdma_buffer *buf)
+> +static bool cma_protocol_roce(const struct rdma_cm_id *id)
 > +{
-> +       struct rpcrdma_rep *rep;
+> +	struct ib_device *device =3D id->device;
+> +	const int port_num =3D id->port_num ?: rdma_start_port(device);
 > +
-> +       rep = list_first_entry(&buf->rb_recv_bufs,
-> +                              struct rpcrdma_rep, rr_list);
-> +       list_del(&rep->rr_list);
-> +       return rep;
+> +	return cma_protocol_roce_dev_port(device, port_num);
 > +}
 > +
->  static void
->  rpcrdma_destroy_rep(struct rpcrdma_ia *ia, struct rpcrdma_rep *rep)
+>  static bool cma_match_net_dev(const struct rdma_id_private *id_priv,
+>  			      const struct net_device *net_dev)
 >  {
-> @@ -1017,25 +1018,22 @@ void
->  rpcrdma_buffer_destroy(struct rpcrdma_buffer *buf)
->  {
->         struct rpcrdma_ia *ia = rdmab_to_ia(buf);
-> -       int i;
->
-> -       /* clean up in reverse order from create
-> -        *   1.  recv mr memory (mr free, then kfree)
-> -        *   2.  send mr memory (mr free, then kfree)
-> -        *   3.  MWs
-> -        */
-> -       dprintk("RPC:       %s: entering\n", __func__);
-> +       while (!list_empty(&buf->rb_recv_bufs)) {
-> +               struct rpcrdma_rep *rep;
->
-> -       for (i = 0; i < buf->rb_max_requests; i++) {
-> -               if (buf->rb_recv_bufs)
-> -                       rpcrdma_destroy_rep(ia, buf->rb_recv_bufs[i]);
-> -               if (buf->rb_send_bufs)
-> -                       rpcrdma_destroy_req(ia, buf->rb_send_bufs[i]);
-> +               rep = rpcrdma_buffer_get_rep_locked(buf);
-> +               rpcrdma_destroy_rep(ia, rep);
->         }
->
-> -       ia->ri_ops->ro_destroy(buf);
-> +       while (!list_empty(&buf->rb_send_bufs)) {
-> +               struct rpcrdma_req *req;
->
-> -       kfree(buf->rb_pool);
-> +               req = rpcrdma_buffer_get_req_locked(buf);
-> +               rpcrdma_destroy_req(ia, req);
-> +       }
-> +
-> +       ia->ri_ops->ro_destroy(buf);
->  }
->
->  struct rpcrdma_mw *
-> @@ -1067,25 +1065,10 @@ rpcrdma_put_mw(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mw *mw)
->         spin_unlock(&buf->rb_mwlock);
->  }
->
-> -static void
-> -rpcrdma_buffer_put_sendbuf(struct rpcrdma_req *req, struct rpcrdma_buffer *buf)
-> -{
-> -       buf->rb_send_bufs[--buf->rb_send_index] = req;
-> -       req->rl_niovs = 0;
-> -       if (req->rl_reply) {
-> -               buf->rb_recv_bufs[--buf->rb_recv_index] = req->rl_reply;
-> -               req->rl_reply = NULL;
-> -       }
-> -}
+>  	const struct rdma_addr *addr =3D &id_priv->id.route.addr;
+> =20
+>  	if (!net_dev)
+> -		/* This request is an AF_IB request */
+> -		return addr->src_addr.ss_family =3D=3D AF_IB;
+> +		/* This request is an AF_IB request or a RoCE request */
+> +		return addr->src_addr.ss_family =3D=3D AF_IB ||
+> +		       cma_protocol_roce(&id_priv->id);
+> =20
+>  	return !addr->dev_addr.bound_dev_if ||
+>  	       (net_eq(dev_net(net_dev), &init_net) &&
+> @@ -1294,6 +1312,10 @@ static struct rdma_id_private *cma_id_from_event=
+(struct ib_cm_id *cm_id,
+>  		if (PTR_ERR(*net_dev) =3D=3D -EAFNOSUPPORT) {
+>  			/* Assuming the protocol is AF_IB */
+>  			*net_dev =3D NULL;
+> +		} else if (cma_protocol_roce_dev_port(req.device, req.port)) {
+> +			/* TODO find the net dev matching the request parameters
+> +			 * through the RoCE GID table */
+> +			*net_dev =3D NULL;
+>  		} else {
+>  			return ERR_CAST(*net_dev);
+>  		}
+> @@ -1593,11 +1615,16 @@ static struct rdma_id_private *cma_new_conn_id(=
+struct rdma_cm_id *listen_id,
+>  		if (ret)
+>  			goto err;
+>  	} else {
+> -		/* An AF_IB connection */
+> -		WARN_ON_ONCE(ss_family !=3D AF_IB);
 > -
->  /*
->   * Get a set of request/reply buffers.
->   *
-> - * Reply buffer (if needed) is attached to send buffer upon return.
-> - * Rule:
-> - *    rb_send_index and rb_recv_index MUST always be pointing to the
-> - *    *next* available buffer (non-NULL). They are incremented after
-> - *    removing buffers, and decremented *before* returning them.
-> + * Reply buffer (if available) is attached to send buffer upon return.
->   */
->  struct rpcrdma_req *
->  rpcrdma_buffer_get(struct rpcrdma_buffer *buffers)
-> @@ -1094,26 +1077,23 @@ rpcrdma_buffer_get(struct rpcrdma_buffer *buffers)
->         unsigned long flags;
->
->         spin_lock_irqsave(&buffers->rb_lock, flags);
-> +       if (list_empty(&buffers->rb_send_bufs))
-> +               goto out_reqbuf;
-> +       req = rpcrdma_buffer_get_req_locked(buffers);
-> +       if (list_empty(&buffers->rb_recv_bufs))
-> +               goto out_repbuf;
-> +       req->rl_reply = rpcrdma_buffer_get_rep_locked(buffers);
-> +       spin_unlock_irqrestore(&buffers->rb_lock, flags);
-> +       return req;
->
-> -       if (buffers->rb_send_index == buffers->rb_max_requests) {
-> -               spin_unlock_irqrestore(&buffers->rb_lock, flags);
-> -               dprintk("RPC:       %s: out of request buffers\n", __func__);
-> -               return ((struct rpcrdma_req *)NULL);
-> -       }
+> -		cma_translate_ib((struct sockaddr_ib *)cma_src_addr(id_priv),
+> -				 &rt->addr.dev_addr);
+> +		if (!cma_protocol_roce(listen_id) &&
+> +		    cma_any_addr(cma_src_addr(id_priv))) {
+> +			rt->addr.dev_addr.dev_type =3D ARPHRD_INFINIBAND;
+> +			rdma_addr_set_sgid(&rt->addr.dev_addr, &rt->path_rec[0].sgid);
+> +			ib_addr_set_pkey(&rt->addr.dev_addr, be16_to_cpu(rt->path_rec[0].pk=
+ey));
+> +		} else if (!cma_any_addr(cma_src_addr(id_priv))) {
+> +			ret =3D cma_translate_addr(cma_src_addr(id_priv), &rt->addr.dev_add=
+r);
+> +			if (ret)
+> +				goto err;
+> +		}
+>  	}
+>  	rdma_addr_set_dgid(&rt->addr.dev_addr, &rt->path_rec[0].dgid);
+> =20
+> @@ -1635,13 +1662,12 @@ static struct rdma_id_private *cma_new_udp_id(s=
+truct rdma_cm_id *listen_id,
+>  		if (ret)
+>  			goto err;
+>  	} else {
+> -		/* An AF_IB connection */
+> -		WARN_ON_ONCE(ss_family !=3D AF_IB);
 > -
-> -       req = buffers->rb_send_bufs[buffers->rb_send_index];
-> -       if (buffers->rb_send_index < buffers->rb_recv_index) {
-> -               dprintk("RPC:       %s: %d extra receives outstanding (ok)\n",
-> -                       __func__,
-> -                       buffers->rb_recv_index - buffers->rb_send_index);
-> -               req->rl_reply = NULL;
-> -       } else {
-> -               req->rl_reply = buffers->rb_recv_bufs[buffers->rb_recv_index];
-> -               buffers->rb_recv_bufs[buffers->rb_recv_index++] = NULL;
-> -       }
-> -       buffers->rb_send_bufs[buffers->rb_send_index++] = NULL;
-> -
-> +out_reqbuf:
-> +       spin_unlock_irqrestore(&buffers->rb_lock, flags);
-> +       pr_warn("RPC:       %s: out of request buffers\n", __func__);
-> +       return NULL;
-> +out_repbuf:
->         spin_unlock_irqrestore(&buffers->rb_lock, flags);
-> +       pr_warn("RPC:       %s: out of reply buffers\n", __func__);
-> +       req->rl_reply = NULL;
->         return req;
->  }
->
-> @@ -1125,17 +1105,22 @@ void
->  rpcrdma_buffer_put(struct rpcrdma_req *req)
->  {
->         struct rpcrdma_buffer *buffers = req->rl_buffer;
-> +       struct rpcrdma_rep *rep = req->rl_reply;
->         unsigned long flags;
->
-> +       req->rl_niovs = 0;
-> +       req->rl_reply = NULL;
-> +
->         spin_lock_irqsave(&buffers->rb_lock, flags);
-> -       rpcrdma_buffer_put_sendbuf(req, buffers);
-> +       list_add_tail(&req->rl_free, &buffers->rb_send_bufs);
-> +       if (rep)
-> +               list_add_tail(&rep->rr_list, &buffers->rb_recv_bufs);
->         spin_unlock_irqrestore(&buffers->rb_lock, flags);
->  }
->
->  /*
->   * Recover reply buffers from pool.
-> - * This happens when recovering from error conditions.
-> - * Post-increment counter/array index.
-> + * This happens when recovering from disconnect.
->   */
->  void
->  rpcrdma_recv_buffer_get(struct rpcrdma_req *req)
-> @@ -1144,10 +1129,8 @@ rpcrdma_recv_buffer_get(struct rpcrdma_req *req)
->         unsigned long flags;
->
->         spin_lock_irqsave(&buffers->rb_lock, flags);
-> -       if (buffers->rb_recv_index < buffers->rb_max_requests) {
-> -               req->rl_reply = buffers->rb_recv_bufs[buffers->rb_recv_index];
-> -               buffers->rb_recv_bufs[buffers->rb_recv_index++] = NULL;
-> -       }
-> +       if (!list_empty(&buffers->rb_recv_bufs))
-> +               req->rl_reply = rpcrdma_buffer_get_rep_locked(buffers);
->         spin_unlock_irqrestore(&buffers->rb_lock, flags);
->  }
->
-> @@ -1162,7 +1145,7 @@ rpcrdma_recv_buffer_put(struct rpcrdma_rep *rep)
->         unsigned long flags;
->
->         spin_lock_irqsave(&buffers->rb_lock, flags);
-> -       buffers->rb_recv_bufs[--buffers->rb_recv_index] = rep;
-> +       list_add_tail(&rep->rr_list, &buffers->rb_recv_bufs);
->         spin_unlock_irqrestore(&buffers->rb_lock, flags);
->  }
->
-> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-> index a13508b..e6a358f 100644
-> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
-> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-> @@ -252,6 +252,7 @@ struct rpcrdma_mr_seg {             /* chunk descriptors */
->  #define RPCRDMA_MAX_IOVS       (2)
->
->  struct rpcrdma_req {
-> +       struct list_head        rl_free;
->         unsigned int            rl_niovs;
->         unsigned int            rl_nchunks;
->         unsigned int            rl_connect_cookie;
-> @@ -285,12 +286,10 @@ struct rpcrdma_buffer {
->         struct list_head        rb_all;
->         char                    *rb_pool;
->
-> -       spinlock_t              rb_lock;        /* protect buf arrays */
-> +       spinlock_t              rb_lock;        /* protect buf lists */
-> +       struct list_head        rb_send_bufs;
-> +       struct list_head        rb_recv_bufs;
->         u32                     rb_max_requests;
-> -       int                     rb_send_index;
-> -       int                     rb_recv_index;
-> -       struct rpcrdma_req      **rb_send_bufs;
-> -       struct rpcrdma_rep      **rb_recv_bufs;
->  };
->  #define rdmab_to_ia(b) (&container_of((b), struct rpcrdma_xprt, rx_buf)->rx_ia)
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -		if (!cma_any_addr(cma_src_addr(id_priv)))
+> -			cma_translate_ib((struct sockaddr_ib *)
+> -						cma_src_addr(id_priv),
+> -					 &id->route.addr.dev_addr);
+> +		if (!cma_any_addr(cma_src_addr(id_priv))) {
+> +			ret =3D cma_translate_addr(cma_src_addr(id_priv),
+> +						 &id->route.addr.dev_addr);
+> +			if (ret)
+> +				goto err;
+> +		}
+>  	}
+> =20
+>  	id_priv->state =3D RDMA_CM_CONNECT;
+>=20
+
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--K29S3grK9fxxu9JBJ5axvWKG5iAqovpLu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJWFBKXAAoJELgmozMOVy/dmmUP/2qF6VxQjYC2mg06qvkTx2Jm
+9gmRBjDD4UaOjoeSYAlaR/W3TKJ7vv9Ufy+E+YkKAVBvBVm1ERUDKzPUigbKFPZE
+sQp1t8YglbbGlb1MbbT1wdlkDAC48hyd7fb9zpyOC3caUrgr9QrHnU1VHUuzLB43
+yAucHdxZIwCKhn68Nc8ZhUKJrM3FCUrw7KzXeoImMqP8mIu8gwrM5o0wZCCejBRt
+D8RuED+b8j3ztzZag20grvzBNCSlMMS3XyyoSxlhbQS6B0uuyJ3q/rinn5698LFk
+K+8Xry6xUdM1zeL/7o3iKoFatvKyDMpGD1uWwInRn5qszukY2FZuL5ImFwkjZSAH
+Ndu5P2oKsf+huS7SpnE9hkTn9f5M/wLa+ck8cpwUdSsOTAA6GVCY7FEK55pQM34Z
+iDvBsTByNqVYwTnemOow6JlcHNbQ0TsAjERgJ/jMnk/hXiBh350ehybtTMpg9srq
+mHQvVDO559a0kY5nOJla2Kr4nS14NbuVLj/e7DShXUJ8ikemNcyinSHYwyvRqN80
+uTUeKk/K0MIX/QI/BmWlNH+sLBd1txyqLXOx+GsPI4K40l7+wjawdR5ZUcKDGd98
+dJzOzkmLE5kiu227wpZ1rDi9yZMhUWDbhwjFYJe/ojc1nUwJ32nmEHvOIl8PRFXJ
+vn7kNQKeVSRhtbWcSMda
+=pmuF
+-----END PGP SIGNATURE-----
+
+--K29S3grK9fxxu9JBJ5axvWKG5iAqovpLu--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
