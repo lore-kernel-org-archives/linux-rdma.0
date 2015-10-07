@@ -1,25 +1,108 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Seeing WARN_ON in ib_dealloc_pd from ipoib in kernel 4.3-rc1-debug
-Date: Wed, 7 Oct 2015 22:12:47 +0300
-Message-ID: <CAJ3xEMhQT3hS6BqrUXhKom6ud-HjETB8w_JZ4tef_XLT_VPwaw@mail.gmail.com>
-References: <56153F71.2010801@dev.mellanox.co.il>
+From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH RESEND] svcrdma: handle rdma read with a non-zero initial
+ page offset
+Date: Wed, 7 Oct 2015 16:41:55 -0400
+Message-ID: <20151007204155.GB28136@fieldses.org>
+References: <20150928214605.17900.50257.stgit@build2.ogc.int>
+ <56140879.3040000@redhat.com>
+ <20151007170151.GB26514@fieldses.org>
+ <56155751.7010903@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56153F71.2010801-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <56155751.7010903-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 7, 2015 at 6:51 PM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> This started popping up (not sure if it's new to 4.3-rc1).
-> Happens when unloading the provider driver (mlx4/mlx5 in my case).
-> Has anyone seen this?
+On Wed, Oct 07, 2015 at 01:33:05PM -0400, Doug Ledford wrote:
+> On 10/07/2015 01:01 PM, J. Bruce Fields wrote:
+> > On Tue, Oct 06, 2015 at 01:44:25PM -0400, Doug Ledford wrote:
+> >> On 09/28/2015 05:46 PM, Steve Wise wrote:
+> >>> The server rdma_read_chunk_lcl() and rdma_read_chunk_frmr() functions
+> >>> were not taking into account the initial page_offset when determining
+> >>> the rdma read length.  This resulted in a read who's starting address
+> >>> and length exceeded the base/bounds of the frmr.
+> >>>
+> >>> Most work loads don't tickle this bug apparently, but one test hit it
+> >>> every time: building the linux kernel on a 16 core node with 'make -j
+> >>> 16 O=/mnt/0' where /mnt/0 is a ramdisk mounted via NFSRDMA.
+> >>>
+> >>> This bug seems to only be tripped with devices having small fastreg page
+> >>> list depths.  I didn't see it with mlx4, for instance.
+> >>
+> >> Bruce, what's you're take on this?  Do you want to push this through or
+> >> would you care if I push it through my tree?
+> > 
+> > Whoops, sorry, I meant to send a pull request for that last week.  Uh, I
+> > think I'll go ahead and do that now if it's OK with you.
+> 
+> Fine with me.  I was just trying to make sure it didn't get forgotten ;-)
 
-yes, I think to see it over the last 1-2 years
+Understood, thanks!  I've sent the pull request.--b.
 
-Or.
+> 
+> > --b.
+> > 
+> >>
+> >>> Fixes: 0bf4828983df ('svcrdma: refactor marshalling logic')
+> >>> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> >>> Tested-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> >>> ---
+> >>>
+> >>>  net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |    6 ++++--
+> >>>  1 files changed, 4 insertions(+), 2 deletions(-)
+> >>>
+> >>> diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+> >>> index cb51742..5f6ca47 100644
+> >>> --- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+> >>> +++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+> >>> @@ -136,7 +136,8 @@ int rdma_read_chunk_lcl(struct svcxprt_rdma *xprt,
+> >>>  	ctxt->direction = DMA_FROM_DEVICE;
+> >>>  	ctxt->read_hdr = head;
+> >>>  	pages_needed = min_t(int, pages_needed, xprt->sc_max_sge_rd);
+> >>> -	read = min_t(int, pages_needed << PAGE_SHIFT, rs_length);
+> >>> +	read = min_t(int, (pages_needed << PAGE_SHIFT) - *page_offset,
+> >>> +		     rs_length);
+> >>>  
+> >>>  	for (pno = 0; pno < pages_needed; pno++) {
+> >>>  		int len = min_t(int, rs_length, PAGE_SIZE - pg_off);
+> >>> @@ -235,7 +236,8 @@ int rdma_read_chunk_frmr(struct svcxprt_rdma *xprt,
+> >>>  	ctxt->direction = DMA_FROM_DEVICE;
+> >>>  	ctxt->frmr = frmr;
+> >>>  	pages_needed = min_t(int, pages_needed, xprt->sc_frmr_pg_list_len);
+> >>> -	read = min_t(int, pages_needed << PAGE_SHIFT, rs_length);
+> >>> +	read = min_t(int, (pages_needed << PAGE_SHIFT) - *page_offset,
+> >>> +		     rs_length);
+> >>>  
+> >>>  	frmr->kva = page_address(rqstp->rq_arg.pages[pg_no]);
+> >>>  	frmr->direction = DMA_FROM_DEVICE;
+> >>>
+> >>> --
+> >>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> >>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> >>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>>
+> >>
+> >>
+> >> -- 
+> >> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> >>               GPG KeyID: 0E572FDD
+> >>
+> >>
+> > 
+> > 
+> 
+> 
+> -- 
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>               GPG KeyID: 0E572FDD
+> 
+> 
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
