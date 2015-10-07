@@ -1,44 +1,60 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: [PATCH] IB/core: avoid 32-bit warning
-Date: Wed, 07 Oct 2015 14:29:51 +0200
-Message-ID: <17269152.DqJfCm1LOx@wuerfel>
+From: Yann Droneaud <ydroneaud@opteya.com>
+Subject: Re: [PATCH] IB/core: avoid 32-bit warning
+Date: Wed, 07 Oct 2015 15:00:26 +0200
+Message-ID: <1444222826.3188.62.camel@opteya.com>
+References: <17269152.DqJfCm1LOx@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <17269152.DqJfCm1LOx@wuerfel>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Roland Dreier <roland@purestorage.com>, linux-rdma@vger.kernel.org, Matan Barak <matanb@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-rdma@vger.kernel.org
 
-The INIT_UDATA() macro requires a pointer or unsigned long argument for
-both input and output buffer, and all callers had a cast from when
-the code was merged until a recent restructuring, so now we get
+Hi,
 
-core/uverbs_cmd.c: In function 'ib_uverbs_create_cq':
-core/uverbs_cmd.c:1481:66: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+Le mercredi 07 octobre 2015 =C3=A0 14:29 +0200, Arnd Bergmann a =C3=A9c=
+rit :
+> The INIT_UDATA() macro requires a pointer or unsigned long argument=20
+> for both input and output buffer, and all callers had a cast from=20
+> when the code was merged until a recent restructuring, so now we get
+>=20
+> core/uverbs_cmd.c: In function 'ib_uverbs_create_cq':
+> core/uverbs_cmd.c:1481:66: warning: cast to pointer from integer of
+> different size [-Wint-to-pointer-cast]
+>=20
+> This makes the code behave as before by adding back the cast to
+> unsigned long.
+>=20
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Fixes: 565197dd8fb1 ("IB/core: Extend ib_uverbs_create_cq")
+>=20
 
-This makes the code behave as before by adding back the cast to
-unsigned long.
+Reviewed-by: Yann Droneaud <ydroneaud@opteya.com>
 
-Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Fixes: 565197dd8fb1 ("IB/core: Extend ib_uverbs_create_cq")
+> diff --git a/drivers/infiniband/core/uverbs_cmd.c
+> b/drivers/infiniband/core/uverbs_cmd.c
+> index be4cb9f04be3..88b3b78340f2 100644
+> --- a/drivers/infiniband/core/uverbs_cmd.c
+> +++ b/drivers/infiniband/core/uverbs_cmd.c
+> @@ -1478,7 +1478,7 @@ ssize_t ib_uverbs_create_cq(struct
+> ib_uverbs_file *file,
+>  	if (copy_from_user(&cmd, buf, sizeof(cmd)))
+>  		return -EFAULT;
+> =20
+> -	INIT_UDATA(&ucore, buf, cmd.response, sizeof(cmd),
+> sizeof(resp));
+> +	INIT_UDATA(&ucore, buf, (unsigned long)cmd.response,
+> sizeof(cmd), sizeof(resp));
+> =20
+>  	INIT_UDATA(&uhw, buf + sizeof(cmd),
+>  		   (unsigned long)cmd.response + sizeof(resp),
+>=20
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index be4cb9f04be3..88b3b78340f2 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1478,7 +1478,7 @@ ssize_t ib_uverbs_create_cq(struct ib_uverbs_file *file,
- 	if (copy_from_user(&cmd, buf, sizeof(cmd)))
- 		return -EFAULT;
- 
--	INIT_UDATA(&ucore, buf, cmd.response, sizeof(cmd), sizeof(resp));
-+	INIT_UDATA(&ucore, buf, (unsigned long)cmd.response, sizeof(cmd), sizeof(resp));
- 
- 	INIT_UDATA(&uhw, buf + sizeof(cmd),
- 		   (unsigned long)cmd.response + sizeof(resp),
+Regards.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+Yann Droneaud
+OPTEYA
