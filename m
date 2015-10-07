@@ -1,59 +1,148 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v1 00/24] New fast registration API
-Date: Wed, 7 Oct 2015 09:42:23 +0300
-Message-ID: <5614BECF.9030907@dev.mellanox.co.il>
-References: <1442482947-27785-1-git-send-email-sagig@mellanox.com>
- <560AE099.2080004@sandisk.com> <560AFB71.3010003@dev.mellanox.co.il>
- <560C30F4.50900@sandisk.com> <560C42CE.6090000@sandisk.com>
- <560CDDBC.8000400@dev.mellanox.co.il> <560D730C.9000302@sandisk.com>
- <560D9E69.70604@sandisk.com>
- <35618B90-4D6E-4036-A69B-4405F020D440@dev.mellanox.co.il>
- <560EA4A1.3080709@sandisk.com> <56138854.4040209@dev.mellanox.co.il>
- <561417B9.2080505@sandisk.com>
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: Re: [PATCH v2 16/16] NFS: Enable client side NFSv4.1 backchannel to
+ use other transports
+Date: Wed, 7 Oct 2015 12:14:10 +0300
+Message-ID: <CALq1K=+vHf-kyuoUVNcxd7G73jSswCOd83skLVswQSEG5z3LXA@mail.gmail.com>
+References: <20151006142430.11788.42604.stgit@manet.1015granger.net> <20151006150047.11788.65885.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <561417B9.2080505-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20151006150047.11788.65885.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/6/2015 9:49 PM, Bart Van Assche wrote:
-> On 10/06/2015 01:37 AM, Sagi Grimberg wrote:
->> I see now the error you are referring to.
->>
->> The issue is that the device requires the MR page array to have
->> an alignment (0x40 for mlx4 and 0x400 for mlx5). When I modified the
->> page array allocation to be non-coherent I didn't take care of
->> alignment.
->>
->> Taking care of this alignment may result in a higher order allocation
->> as we'd need to add (alignment - 1) to the allocation size.
->>
->> e.g. a 512 pages on mlx4 will become:
->> 512 * 8 + 0x40 - 1 = 4159
->>
->> I'm leaning towards this approach. Any preference?
->>
->> I think this patch should take care of mlx4:
->> [ ... ]
+On Tue, Oct 6, 2015 at 6:00 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> Pass the correct backchannel transport class to svc_create_xprt()
+> when setting up an NFSv4.1 backchannel transport.
 >
-> Hello Sagi,
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  fs/nfs/callback.c               |   33 +++++++++++++++++++++------------
+>  include/linux/sunrpc/xprt.h     |    1 +
+>  net/sunrpc/xprtrdma/transport.c |    1 +
+>  net/sunrpc/xprtsock.c           |    1 +
+>  4 files changed, 24 insertions(+), 12 deletions(-)
 >
-> Thanks for the patch. But since the patch included in the previous
-> e-mail mapped a memory range that could be outside the bounds of the
-> allocated memory I have been testing the patch below:
+> diff --git a/fs/nfs/callback.c b/fs/nfs/callback.c
+> index 75f7c0a..46ed2c5 100644
+> --- a/fs/nfs/callback.c
+> +++ b/fs/nfs/callback.c
+> @@ -99,15 +99,22 @@ nfs4_callback_up(struct svc_serv *serv)
+>  }
+>
+>  #if defined(CONFIG_NFS_V4_1)
+> -static int nfs41_callback_up_net(struct svc_serv *serv, struct net *net)
+> +/*
+> + * Create an svc_sock for the back channel service that shares the
+> + * fore channel connection.
+> + * Returns the input port (0) and sets the svc_serv bc_xprt on success
+> + */
+> +static int nfs41_callback_up_net(struct svc_serv *serv, struct net *net,
+> +                                struct rpc_xprt *xprt)
+>  {
+> -       /*
+> -        * Create an svc_sock for the back channel service that shares the
+> -        * fore channel connection.
+> -        * Returns the input port (0) and sets the svc_serv bc_xprt on success
+> -        */
+> -       return svc_create_xprt(serv, "tcp-bc", net, PF_INET, 0,
+> -                             SVC_SOCK_ANONYMOUS);
+> +       int ret = -EPROTONOSUPPORT;
+> +
+> +       if (xprt->bc_name)
+> +               ret = svc_create_xprt(serv, xprt->bc_name, net, PF_INET, 0,
+> +                                     SVC_SOCK_ANONYMOUS);
+> +       dprintk("NFS: svc_create_xprt(%s) returned %d\n",
+> +               xprt->bc_name, ret);
 
-Thanks! I correct the patches.
+Maybe we should convert it to more general and common pr_debug(..)
+interface [1]?
+Despite the fact that the other parts of code already use the dprintk macro.
 
-Can I take it as your Tested-by on srp?
+> +       return ret;
+>  }
+>
+>  /*
+> @@ -184,7 +191,8 @@ static inline void nfs_callback_bc_serv(u32 minorversion, struct rpc_xprt *xprt,
+>                 xprt->bc_serv = serv;
+>  }
+>  #else
+> -static int nfs41_callback_up_net(struct svc_serv *serv, struct net *net)
+> +static int nfs41_callback_up_net(struct svc_serv *serv, struct net *net,
+> +                                struct rpc_xprt *xprt)
+>  {
+>         return 0;
+>  }
+> @@ -259,7 +267,8 @@ static void nfs_callback_down_net(u32 minorversion, struct svc_serv *serv, struc
+>         svc_shutdown_net(serv, net);
+>  }
+>
+> -static int nfs_callback_up_net(int minorversion, struct svc_serv *serv, struct net *net)
+> +static int nfs_callback_up_net(int minorversion, struct svc_serv *serv,
+> +                              struct net *net, struct rpc_xprt *xprt)
+>  {
+>         struct nfs_net *nn = net_generic(net, nfs_net_id);
+>         int ret;
+> @@ -281,7 +290,7 @@ static int nfs_callback_up_net(int minorversion, struct svc_serv *serv, struct n
+>                         break;
+>                 case 1:
+>                 case 2:
+> -                       ret = nfs41_callback_up_net(serv, net);
+> +                       ret = nfs41_callback_up_net(serv, net, xprt);
+>                         break;
+>                 default:
+>                         printk(KERN_ERR "NFS: unknown callback version: %d\n",
+It can be pr_err(..) [1].
 
-Cheers,
-Sagi.
+> @@ -364,7 +373,7 @@ int nfs_callback_up(u32 minorversion, struct rpc_xprt *xprt)
+>                 goto err_create;
+>         }
+>
+> -       ret = nfs_callback_up_net(minorversion, serv, net);
+> +       ret = nfs_callback_up_net(minorversion, serv, net, xprt);
+>         if (ret < 0)
+>                 goto err_net;
+>
+> diff --git a/include/linux/sunrpc/xprt.h b/include/linux/sunrpc/xprt.h
+> index 82c0839..88bae18 100644
+> --- a/include/linux/sunrpc/xprt.h
+> +++ b/include/linux/sunrpc/xprt.h
+> @@ -170,6 +170,7 @@ struct rpc_xprt {
+>         struct sockaddr_storage addr;           /* server address */
+>         size_t                  addrlen;        /* size of server address */
+>         int                     prot;           /* IP protocol */
+> +       char                    *bc_name;       /* backchannel transport */
+>
+>         unsigned long           cong;           /* current congestion */
+>         unsigned long           cwnd;           /* congestion window */
+> diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+> index 845278e..c60bbc8 100644
+> --- a/net/sunrpc/xprtrdma/transport.c
+> +++ b/net/sunrpc/xprtrdma/transport.c
+> @@ -337,6 +337,7 @@ xprt_setup_rdma(struct xprt_create *args)
+>         /* Ensure xprt->addr holds valid server TCP (not RDMA)
+>          * address, for any side protocols which peek at it */
+>         xprt->prot = IPPROTO_TCP;
+> +       xprt->bc_name = "rdma-bc";
+>         xprt->addrlen = args->addrlen;
+>         memcpy(&xprt->addr, sap, xprt->addrlen);
+>
+> diff --git a/net/sunrpc/xprtsock.c b/net/sunrpc/xprtsock.c
+> index 3084163..d82d00b 100644
+> --- a/net/sunrpc/xprtsock.c
+> +++ b/net/sunrpc/xprtsock.c
+> @@ -2858,6 +2858,7 @@ static struct rpc_xprt *xs_setup_tcp(struct xprt_create *args)
+>         transport = container_of(xprt, struct sock_xprt, xprt);
+>
+>         xprt->prot = IPPROTO_TCP;
+> +       xprt->bc_name = "tcp-bc";
+>         xprt->tsh_size = sizeof(rpc_fraghdr) / sizeof(u32);
+>         xprt->max_payload = RPC_MAX_FRAGMENT_SIZE;
+>
 
-
+[1] https://lwn.net/Articles/487437/
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
