@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v3 11/26] iser-target: Port to new memory registration API
-Date: Thu,  8 Oct 2015 10:50:54 +0300
-Message-ID: <1444290669-5252-12-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v3 01/26] IB/core: Introduce new fast registration API
+Date: Thu,  8 Oct 2015 10:50:44 +0300
+Message-ID: <1444290669-5252-2-git-send-email-sagig@mellanox.com>
 References: <1444290669-5252-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1444290669-5252-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -9,260 +9,234 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Remove fastreg page list allocation as the page vector
-is now private to the provider. Instead of constructing
-the page list and fast_req work request, call ib_map_mr_sg
-and construct ib_reg_wr.
+The new fast registration  verb ib_map_mr_sg receives a scatterlist
+and converts it to a page list under the verbs API thus hiding
+the specific HW mapping details away from the consumer.
+
+The provider drivers are provided with a generic helper ib_sg_to_pages
+that converts a scatterlist into a vector of page addresses. The
+drivers can still perform any HW specific page address setting
+by passing a set_page function pointer which will be invoked for
+each page address. This allows drivers to avoid keeping a shadow
+page vectors and convert them to HW specific translations by doing
+extra copies.
+
+This API will allow ULPs to remove the duplicated code of constructing
+a page vector from a given sg list.
+
+The send work request ib_reg_wr also shrinks as it will contain only
+mr, key and access flags in addition.
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Acked-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Tested-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- drivers/infiniband/ulp/isert/ib_isert.c | 130 +++++++-------------------------
- drivers/infiniband/ulp/isert/ib_isert.h |   2 -
- 2 files changed, 28 insertions(+), 104 deletions(-)
+ drivers/infiniband/core/verbs.c | 107 ++++++++++++++++++++++++++++++++++++++++
+ include/rdma/ib_verbs.h         |  44 +++++++++++++++++
+ 2 files changed, 151 insertions(+)
 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index 70d55d381515..7dbae56e576a 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -473,10 +473,8 @@ isert_conn_free_fastreg_pool(struct isert_conn *isert_conn)
- 	list_for_each_entry_safe(fr_desc, tmp,
- 				 &isert_conn->fr_pool, list) {
- 		list_del(&fr_desc->list);
--		ib_free_fast_reg_page_list(fr_desc->data_frpl);
- 		ib_dereg_mr(fr_desc->data_mr);
- 		if (fr_desc->pi_ctx) {
--			ib_free_fast_reg_page_list(fr_desc->pi_ctx->prot_frpl);
- 			ib_dereg_mr(fr_desc->pi_ctx->prot_mr);
- 			ib_dereg_mr(fr_desc->pi_ctx->sig_mr);
- 			kfree(fr_desc->pi_ctx);
-@@ -504,22 +502,13 @@ isert_create_pi_ctx(struct fast_reg_descriptor *desc,
- 		return -ENOMEM;
- 	}
- 
--	pi_ctx->prot_frpl = ib_alloc_fast_reg_page_list(device,
--					    ISCSI_ISER_SG_TABLESIZE);
--	if (IS_ERR(pi_ctx->prot_frpl)) {
--		isert_err("Failed to allocate prot frpl err=%ld\n",
--			  PTR_ERR(pi_ctx->prot_frpl));
--		ret = PTR_ERR(pi_ctx->prot_frpl);
--		goto err_pi_ctx;
--	}
--
- 	pi_ctx->prot_mr = ib_alloc_mr(pd, IB_MR_TYPE_MEM_REG,
- 				      ISCSI_ISER_SG_TABLESIZE);
- 	if (IS_ERR(pi_ctx->prot_mr)) {
- 		isert_err("Failed to allocate prot frmr err=%ld\n",
- 			  PTR_ERR(pi_ctx->prot_mr));
- 		ret = PTR_ERR(pi_ctx->prot_mr);
--		goto err_prot_frpl;
-+		goto err_pi_ctx;
- 	}
- 	desc->ind |= ISERT_PROT_KEY_VALID;
- 
-@@ -539,8 +528,6 @@ isert_create_pi_ctx(struct fast_reg_descriptor *desc,
- 
- err_prot_mr:
- 	ib_dereg_mr(pi_ctx->prot_mr);
--err_prot_frpl:
--	ib_free_fast_reg_page_list(pi_ctx->prot_frpl);
- err_pi_ctx:
- 	kfree(pi_ctx);
- 
-@@ -551,34 +538,18 @@ static int
- isert_create_fr_desc(struct ib_device *ib_device, struct ib_pd *pd,
- 		     struct fast_reg_descriptor *fr_desc)
- {
--	int ret;
--
--	fr_desc->data_frpl = ib_alloc_fast_reg_page_list(ib_device,
--							 ISCSI_ISER_SG_TABLESIZE);
--	if (IS_ERR(fr_desc->data_frpl)) {
--		isert_err("Failed to allocate data frpl err=%ld\n",
--			  PTR_ERR(fr_desc->data_frpl));
--		return PTR_ERR(fr_desc->data_frpl);
--	}
--
- 	fr_desc->data_mr = ib_alloc_mr(pd, IB_MR_TYPE_MEM_REG,
- 				       ISCSI_ISER_SG_TABLESIZE);
- 	if (IS_ERR(fr_desc->data_mr)) {
- 		isert_err("Failed to allocate data frmr err=%ld\n",
- 			  PTR_ERR(fr_desc->data_mr));
--		ret = PTR_ERR(fr_desc->data_mr);
--		goto err_data_frpl;
-+		return PTR_ERR(fr_desc->data_mr);
- 	}
- 	fr_desc->ind |= ISERT_DATA_KEY_VALID;
- 
- 	isert_dbg("Created fr_desc %p\n", fr_desc);
- 
- 	return 0;
--
--err_data_frpl:
--	ib_free_fast_reg_page_list(fr_desc->data_frpl);
--
--	return ret;
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index e1f2c9887f3f..e18a8bce8130 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1469,3 +1469,110 @@ int ib_check_mr_status(struct ib_mr *mr, u32 check_mask,
+ 		mr->device->check_mr_status(mr, check_mask, mr_status) : -ENOSYS;
  }
- 
- static int
-@@ -2535,45 +2506,6 @@ unmap_cmd:
- 	return ret;
- }
- 
--static int
--isert_map_fr_pagelist(struct ib_device *ib_dev,
--		      struct scatterlist *sg_start, int sg_nents, u64 *fr_pl)
--{
--	u64 start_addr, end_addr, page, chunk_start = 0;
--	struct scatterlist *tmp_sg;
--	int i = 0, new_chunk, last_ent, n_pages;
--
--	n_pages = 0;
--	new_chunk = 1;
--	last_ent = sg_nents - 1;
--	for_each_sg(sg_start, tmp_sg, sg_nents, i) {
--		start_addr = ib_sg_dma_address(ib_dev, tmp_sg);
--		if (new_chunk)
--			chunk_start = start_addr;
--		end_addr = start_addr + ib_sg_dma_len(ib_dev, tmp_sg);
--
--		isert_dbg("SGL[%d] dma_addr: 0x%llx len: %u\n",
--			  i, (unsigned long long)tmp_sg->dma_address,
--			  tmp_sg->length);
--
--		if ((end_addr & ~PAGE_MASK) && i < last_ent) {
--			new_chunk = 0;
--			continue;
--		}
--		new_chunk = 1;
--
--		page = chunk_start & PAGE_MASK;
--		do {
--			fr_pl[n_pages++] = page;
--			isert_dbg("Mapped page_list[%d] page_addr: 0x%llx\n",
--				  n_pages - 1, page);
--			page += PAGE_SIZE;
--		} while (page < end_addr);
--	}
--
--	return n_pages;
--}
--
- static inline void
- isert_inv_rkey(struct ib_send_wr *inv_wr, struct ib_mr *mr)
- {
-@@ -2599,11 +2531,9 @@ isert_fast_reg_mr(struct isert_conn *isert_conn,
- 	struct isert_device *device = isert_conn->device;
- 	struct ib_device *ib_dev = device->ib_device;
- 	struct ib_mr *mr;
--	struct ib_fast_reg_page_list *frpl;
--	struct ib_fast_reg_wr fr_wr;
-+	struct ib_reg_wr reg_wr;
- 	struct ib_send_wr inv_wr, *bad_wr, *wr = NULL;
--	int ret, pagelist_len;
--	u32 page_off;
-+	int ret, n;
- 
- 	if (mem->dma_nents == 1) {
- 		sge->lkey = device->pd->local_dma_lkey;
-@@ -2614,45 +2544,41 @@ isert_fast_reg_mr(struct isert_conn *isert_conn,
- 		return 0;
- 	}
- 
--	if (ind == ISERT_DATA_KEY_VALID) {
-+	if (ind == ISERT_DATA_KEY_VALID)
- 		/* Registering data buffer */
- 		mr = fr_desc->data_mr;
--		frpl = fr_desc->data_frpl;
--	} else {
-+	else
- 		/* Registering protection buffer */
- 		mr = fr_desc->pi_ctx->prot_mr;
--		frpl = fr_desc->pi_ctx->prot_frpl;
--	}
--
--	page_off = mem->offset % PAGE_SIZE;
--
--	isert_dbg("Use fr_desc %p sg_nents %d offset %u\n",
--		  fr_desc, mem->nents, mem->offset);
--
--	pagelist_len = isert_map_fr_pagelist(ib_dev, mem->sg, mem->nents,
--					     &frpl->page_list[0]);
- 
- 	if (!(fr_desc->ind & ind)) {
- 		isert_inv_rkey(&inv_wr, mr);
- 		wr = &inv_wr;
- 	}
- 
--	/* Prepare FASTREG WR */
--	memset(&fr_wr, 0, sizeof(fr_wr));
--	fr_wr.wr.wr_id = ISER_FASTREG_LI_WRID;
--	fr_wr.wr.opcode = IB_WR_FAST_REG_MR;
--	fr_wr.iova_start = frpl->page_list[0] + page_off;
--	fr_wr.page_list = frpl;
--	fr_wr.page_list_len = pagelist_len;
--	fr_wr.page_shift = PAGE_SHIFT;
--	fr_wr.length = mem->len;
--	fr_wr.rkey = mr->rkey;
--	fr_wr.access_flags = IB_ACCESS_LOCAL_WRITE;
-+	n = ib_map_mr_sg(mr, mem->sg, mem->nents, PAGE_SIZE);
-+	if (unlikely(n != mem->nents)) {
-+		isert_err("failed to map mr sg (%d/%d)\n",
-+			 n, mem->nents);
-+		return n < 0 ? n : -EINVAL;
+ EXPORT_SYMBOL(ib_check_mr_status);
++
++/**
++ * ib_map_mr_sg() - Map the largest prefix of a dma mapped SG list
++ *     and set it the memory region.
++ * @mr:            memory region
++ * @sg:            dma mapped scatterlist
++ * @sg_nents:      number of entries in sg
++ * @page_size:     page vector desired page size
++ *
++ * Constraints:
++ * - The first sg element is allowed to have an offset.
++ * - Each sg element must be aligned to page_size (or physically
++ *   contiguous to the previous element). In case an sg element has a
++ *   non contiguous offset, the mapping prefix will not include it.
++ * - The last sg element is allowed to have length less than page_size.
++ * - If sg_nents total byte length exceeds the mr max_num_sge * page_size
++ *   then only max_num_sg entries will be mapped.
++ *
++ * Returns the number of sg elements that were mapped to the memory region.
++ *
++ * After this completes successfully, the  memory region
++ * is ready for registration.
++ */
++int ib_map_mr_sg(struct ib_mr *mr,
++		 struct scatterlist *sg,
++		 unsigned int sg_nents,
++		 unsigned int page_size)
++{
++	if (unlikely(!mr->device->map_mr_sg))
++		return -ENOSYS;
++
++	mr->page_size = page_size;
++
++	return mr->device->map_mr_sg(mr, sg, sg_nents);
++}
++EXPORT_SYMBOL(ib_map_mr_sg);
++
++/**
++ * ib_sg_to_pages() - Convert the largest prefix of a sg list
++ *     to a page vector
++ * @mr:            memory region
++ * @sgl:           dma mapped scatterlist
++ * @sg_nents:      number of entries in sg
++ * @set_page:      driver page assignment function pointer
++ *
++ * Core service helper for drivers to covert the largest
++ * prefix of given sg list to a page vector. The sg list
++ * prefix converted is the prefix that meet the requirements
++ * of ib_map_mr_sg.
++ *
++ * Returns the number of sg elements that were assigned to
++ * a page vector.
++ */
++int ib_sg_to_pages(struct ib_mr *mr,
++		   struct scatterlist *sgl,
++		   unsigned int sg_nents,
++		   int (*set_page)(struct ib_mr *, u64))
++{
++	struct scatterlist *sg;
++	u64 last_end_dma_addr = 0, last_page_addr = 0;
++	unsigned int last_page_off = 0;
++	u64 page_mask = ~((u64)mr->page_size - 1);
++	int i;
++
++	mr->iova = sg_dma_address(&sgl[0]);
++	mr->length = 0;
++
++	for_each_sg(sgl, sg, sg_nents, i) {
++		u64 dma_addr = sg_dma_address(sg);
++		unsigned int dma_len = sg_dma_len(sg);
++		u64 end_dma_addr = dma_addr + dma_len;
++		u64 page_addr = dma_addr & page_mask;
++
++		if (i && page_addr != dma_addr) {
++			if (last_end_dma_addr != dma_addr) {
++				/* gap */
++				goto done;
++
++			} else if (last_page_off + dma_len <= mr->page_size) {
++				/* chunk this fragment with the last */
++				mr->length += dma_len;
++				last_end_dma_addr += dma_len;
++				last_page_off += dma_len;
++				continue;
++			} else {
++				/* map starting from the next page */
++				page_addr = last_page_addr + mr->page_size;
++				dma_len -= mr->page_size - last_page_off;
++			}
++		}
++
++		do {
++			if (unlikely(set_page(mr, page_addr)))
++				goto done;
++			page_addr += mr->page_size;
++		} while (page_addr < end_dma_addr);
++
++		mr->length += dma_len;
++		last_end_dma_addr = end_dma_addr;
++		last_page_addr = end_dma_addr & page_mask;
++		last_page_off = end_dma_addr & ~page_mask;
 +	}
 +
-+	isert_dbg("Use fr_desc %p sg_nents %d offset %u\n",
-+		  fr_desc, mem->nents, mem->offset);
++done:
++	return i;
++}
++EXPORT_SYMBOL(ib_sg_to_pages);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index c9abc8fec620..24bb87f16afb 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -739,6 +739,7 @@ enum ib_wc_opcode {
+ 	IB_WC_LSO,
+ 	IB_WC_LOCAL_INV,
+ 	IB_WC_FAST_REG_MR,
++	IB_WC_REG_MR,
+ 	IB_WC_MASKED_COMP_SWAP,
+ 	IB_WC_MASKED_FETCH_ADD,
+ /*
+@@ -1030,6 +1031,7 @@ enum ib_wr_opcode {
+ 	IB_WR_RDMA_READ_WITH_INV,
+ 	IB_WR_LOCAL_INV,
+ 	IB_WR_FAST_REG_MR,
++	IB_WR_REG_MR,
+ 	IB_WR_MASKED_ATOMIC_CMP_AND_SWP,
+ 	IB_WR_MASKED_ATOMIC_FETCH_AND_ADD,
+ 	IB_WR_BIND_MW,
+@@ -1163,6 +1165,18 @@ static inline struct ib_fast_reg_wr *fast_reg_wr(struct ib_send_wr *wr)
+ 	return container_of(wr, struct ib_fast_reg_wr, wr);
+ }
+ 
++struct ib_reg_wr {
++	struct ib_send_wr	wr;
++	struct ib_mr		*mr;
++	u32			key;
++	int			access;
++};
 +
-+	reg_wr.wr.next = NULL;
-+	reg_wr.wr.opcode = IB_WR_REG_MR;
-+	reg_wr.wr.wr_id = ISER_FASTREG_LI_WRID;
-+	reg_wr.wr.send_flags = 0;
-+	reg_wr.wr.num_sge = 0;
-+	reg_wr.mr = mr;
-+	reg_wr.key = mr->lkey;
-+	reg_wr.access = IB_ACCESS_LOCAL_WRITE;
- 
- 	if (!wr)
--		wr = &fr_wr.wr;
-+		wr = &reg_wr.wr;
- 	else
--		wr->next = &fr_wr.wr;
-+		wr->next = &reg_wr.wr;
- 
- 	ret = ib_post_send(isert_conn->qp, wr, &bad_wr);
- 	if (ret) {
-@@ -2662,8 +2588,8 @@ isert_fast_reg_mr(struct isert_conn *isert_conn,
- 	fr_desc->ind &= ~ind;
- 
- 	sge->lkey = mr->lkey;
--	sge->addr = frpl->page_list[0] + page_off;
--	sge->length = mem->len;
-+	sge->addr = mr->iova;
-+	sge->length = mr->length;
- 
- 	isert_dbg("sge: addr: 0x%llx  length: %u lkey: %x\n",
- 		  sge->addr, sge->length, sge->lkey);
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.h b/drivers/infiniband/ulp/isert/ib_isert.h
-index 360461819452..3d7fbc47c343 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.h
-+++ b/drivers/infiniband/ulp/isert/ib_isert.h
-@@ -84,14 +84,12 @@ enum isert_indicator {
- 
- struct pi_context {
- 	struct ib_mr		       *prot_mr;
--	struct ib_fast_reg_page_list   *prot_frpl;
- 	struct ib_mr		       *sig_mr;
++static inline struct ib_reg_wr *reg_wr(struct ib_send_wr *wr)
++{
++	return container_of(wr, struct ib_reg_wr, wr);
++}
++
+ struct ib_bind_mw_wr {
+ 	struct ib_send_wr	wr;
+ 	struct ib_mw		*mw;
+@@ -1375,6 +1389,9 @@ struct ib_mr {
+ 	struct ib_uobject *uobject;
+ 	u32		   lkey;
+ 	u32		   rkey;
++	u64		   iova;
++	u32		   length;
++	unsigned int	   page_size;
+ 	atomic_t	   usecnt; /* count number of MWs */
  };
  
- struct fast_reg_descriptor {
- 	struct list_head		list;
- 	struct ib_mr		       *data_mr;
--	struct ib_fast_reg_page_list   *data_frpl;
- 	u8				ind;
- 	struct pi_context	       *pi_ctx;
- };
+@@ -1759,6 +1776,9 @@ struct ib_device {
+ 	struct ib_mr *		   (*alloc_mr)(struct ib_pd *pd,
+ 					       enum ib_mr_type mr_type,
+ 					       u32 max_num_sg);
++	int                        (*map_mr_sg)(struct ib_mr *mr,
++						struct scatterlist *sg,
++						unsigned int sg_nents);
+ 	struct ib_fast_reg_page_list * (*alloc_fast_reg_page_list)(struct ib_device *device,
+ 								   int page_list_len);
+ 	void			   (*free_fast_reg_page_list)(struct ib_fast_reg_page_list *page_list);
+@@ -3064,4 +3084,28 @@ struct net_device *ib_get_net_dev_by_params(struct ib_device *dev, u8 port,
+ 					    u16 pkey, const union ib_gid *gid,
+ 					    const struct sockaddr *addr);
+ 
++int ib_map_mr_sg(struct ib_mr *mr,
++		 struct scatterlist *sg,
++		 unsigned int sg_nents,
++		 unsigned int page_size);
++
++static inline int
++ib_map_mr_sg_zbva(struct ib_mr *mr,
++		  struct scatterlist *sg,
++		  unsigned int sg_nents,
++		  unsigned int page_size)
++{
++	int n;
++
++	n = ib_map_mr_sg(mr, sg, sg_nents, page_size);
++	mr->iova = 0;
++
++	return n;
++}
++
++int ib_sg_to_pages(struct ib_mr *mr,
++		   struct scatterlist *sgl,
++		   unsigned int sg_nents,
++		   int (*set_page)(struct ib_mr *, u64));
++
+ #endif /* IB_VERBS_H */
 -- 
 1.8.4.3
 
