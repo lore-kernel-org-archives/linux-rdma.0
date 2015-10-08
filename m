@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v3 22/26] RDMA/cxgb3: Remove old FRWR API
-Date: Thu,  8 Oct 2015 10:51:05 +0300
-Message-ID: <1444290669-5252-23-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v3 26/26] IB/core: Remove old fast registration API
+Date: Thu,  8 Oct 2015 10:51:09 +0300
+Message-ID: <1444290669-5252-27-git-send-email-sagig@mellanox.com>
 References: <1444290669-5252-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1444290669-5252-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -9,136 +9,151 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-No ULP uses it anymore, go ahead and remove it.
+No callers and no providers left, go ahead and remove it.
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Acked-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb3/iwch_cq.c       |  2 +-
- drivers/infiniband/hw/cxgb3/iwch_provider.c | 24 ---------------
- drivers/infiniband/hw/cxgb3/iwch_qp.c       | 47 -----------------------------
- 3 files changed, 1 insertion(+), 72 deletions(-)
+ drivers/infiniband/core/verbs.c | 25 -------------------
+ include/rdma/ib_verbs.h         | 54 -----------------------------------------
+ 2 files changed, 79 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_cq.c b/drivers/infiniband/hw/cxgb3/iwch_cq.c
-index cf5474ae68ff..cfe404925a39 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_cq.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_cq.c
-@@ -123,7 +123,7 @@ static int iwch_poll_cq_one(struct iwch_dev *rhp, struct iwch_cq *chp,
- 			wc->opcode = IB_WC_LOCAL_INV;
- 			break;
- 		case T3_FAST_REGISTER:
--			wc->opcode = IB_WC_FAST_REG_MR;
-+			wc->opcode = IB_WC_REG_MR;
- 			break;
- 		default:
- 			printk(KERN_ERR MOD "Unexpected opcode %d "
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-index ee3d5ca7de6c..99ae2ab14b9e 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -884,28 +884,6 @@ static int iwch_map_mr_sg(struct ib_mr *ibmr,
- 	return ib_sg_to_pages(ibmr, sg, sg_nents, iwch_set_page);
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index e18a8bce8130..ddfdd02ac35d 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1253,31 +1253,6 @@ struct ib_mr *ib_alloc_mr(struct ib_pd *pd,
  }
+ EXPORT_SYMBOL(ib_alloc_mr);
  
--static struct ib_fast_reg_page_list *iwch_alloc_fastreg_pbl(
--					struct ib_device *device,
--					int page_list_len)
+-struct ib_fast_reg_page_list *ib_alloc_fast_reg_page_list(struct ib_device *device,
+-							  int max_page_list_len)
 -{
 -	struct ib_fast_reg_page_list *page_list;
 -
--	page_list = kmalloc(sizeof *page_list + page_list_len * sizeof(u64),
--			    GFP_KERNEL);
--	if (!page_list)
--		return ERR_PTR(-ENOMEM);
+-	if (!device->alloc_fast_reg_page_list)
+-		return ERR_PTR(-ENOSYS);
 -
--	page_list->page_list = (u64 *)(page_list + 1);
--	page_list->max_page_list_len = page_list_len;
+-	page_list = device->alloc_fast_reg_page_list(device, max_page_list_len);
+-
+-	if (!IS_ERR(page_list)) {
+-		page_list->device = device;
+-		page_list->max_page_list_len = max_page_list_len;
+-	}
 -
 -	return page_list;
 -}
+-EXPORT_SYMBOL(ib_alloc_fast_reg_page_list);
 -
--static void iwch_free_fastreg_pbl(struct ib_fast_reg_page_list *page_list)
+-void ib_free_fast_reg_page_list(struct ib_fast_reg_page_list *page_list)
 -{
--	kfree(page_list);
+-	page_list->device->free_fast_reg_page_list(page_list);
 -}
+-EXPORT_SYMBOL(ib_free_fast_reg_page_list);
 -
- static int iwch_destroy_qp(struct ib_qp *ib_qp)
- {
- 	struct iwch_dev *rhp;
-@@ -1483,8 +1461,6 @@ int iwch_register_device(struct iwch_dev *dev)
- 	dev->ibdev.dealloc_mw = iwch_dealloc_mw;
- 	dev->ibdev.alloc_mr = iwch_alloc_mr;
- 	dev->ibdev.map_mr_sg = iwch_map_mr_sg;
--	dev->ibdev.alloc_fast_reg_page_list = iwch_alloc_fastreg_pbl;
--	dev->ibdev.free_fast_reg_page_list = iwch_free_fastreg_pbl;
- 	dev->ibdev.attach_mcast = iwch_multicast_attach;
- 	dev->ibdev.detach_mcast = iwch_multicast_detach;
- 	dev->ibdev.process_mad = iwch_process_mad;
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_qp.c b/drivers/infiniband/hw/cxgb3/iwch_qp.c
-index a09ea538e990..d0548fc6395e 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_qp.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_qp.c
-@@ -189,48 +189,6 @@ static int build_memreg(union t3_wr *wqe, struct ib_reg_wr *wr,
- 	return 0;
+ /* Memory windows */
+ 
+ struct ib_mw *ib_alloc_mw(struct ib_pd *pd, enum ib_mw_type type)
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 24bb87f16afb..f5d706ea2e19 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -738,7 +738,6 @@ enum ib_wc_opcode {
+ 	IB_WC_BIND_MW,
+ 	IB_WC_LSO,
+ 	IB_WC_LOCAL_INV,
+-	IB_WC_FAST_REG_MR,
+ 	IB_WC_REG_MR,
+ 	IB_WC_MASKED_COMP_SWAP,
+ 	IB_WC_MASKED_FETCH_ADD,
+@@ -1030,7 +1029,6 @@ enum ib_wr_opcode {
+ 	IB_WR_SEND_WITH_INV,
+ 	IB_WR_RDMA_READ_WITH_INV,
+ 	IB_WR_LOCAL_INV,
+-	IB_WR_FAST_REG_MR,
+ 	IB_WR_REG_MR,
+ 	IB_WR_MASKED_ATOMIC_CMP_AND_SWP,
+ 	IB_WR_MASKED_ATOMIC_FETCH_AND_ADD,
+@@ -1069,12 +1067,6 @@ struct ib_sge {
+ 	u32	lkey;
+ };
+ 
+-struct ib_fast_reg_page_list {
+-	struct ib_device       *device;
+-	u64		       *page_list;
+-	unsigned int		max_page_list_len;
+-};
+-
+ /**
+  * struct ib_mw_bind_info - Parameters for a memory window bind operation.
+  * @mr: A memory region to bind the memory window to.
+@@ -1149,22 +1141,6 @@ static inline struct ib_ud_wr *ud_wr(struct ib_send_wr *wr)
+ 	return container_of(wr, struct ib_ud_wr, wr);
  }
  
--static int build_fastreg(union t3_wr *wqe, struct ib_send_wr *send_wr,
--				u8 *flit_cnt, int *wr_cnt, struct t3_wq *wq)
+-struct ib_fast_reg_wr {
+-	struct ib_send_wr	wr;
+-	u64			iova_start;
+-	struct ib_fast_reg_page_list *page_list;
+-	unsigned int		page_shift;
+-	unsigned int		page_list_len;
+-	u32			length;
+-	int			access_flags;
+-	u32			rkey;
+-};
+-
+-static inline struct ib_fast_reg_wr *fast_reg_wr(struct ib_send_wr *wr)
 -{
--	struct ib_fast_reg_wr *wr = fast_reg_wr(send_wr);
--	int i;
--	__be64 *p;
--
--	if (wr->page_list_len > T3_MAX_FASTREG_DEPTH)
--		return -EINVAL;
--	*wr_cnt = 1;
--	wqe->fastreg.stag = cpu_to_be32(wr->rkey);
--	wqe->fastreg.len = cpu_to_be32(wr->length);
--	wqe->fastreg.va_base_hi = cpu_to_be32(wr->iova_start >> 32);
--	wqe->fastreg.va_base_lo_fbo = cpu_to_be32(wr->iova_start & 0xffffffff);
--	wqe->fastreg.page_type_perms = cpu_to_be32(
--		V_FR_PAGE_COUNT(wr->page_list_len) |
--		V_FR_PAGE_SIZE(wr->page_shift-12) |
--		V_FR_TYPE(TPT_VATO) |
--		V_FR_PERMS(iwch_ib_to_tpt_access(wr->access_flags)));
--	p = &wqe->fastreg.pbl_addrs[0];
--	for (i = 0; i < wr->page_list_len; i++, p++) {
--
--		/* If we need a 2nd WR, then set it up */
--		if (i == T3_MAX_FASTREG_FRAG) {
--			*wr_cnt = 2;
--			wqe = (union t3_wr *)(wq->queue +
--				Q_PTR2IDX((wq->wptr+1), wq->size_log2));
--			build_fw_riwrh((void *)wqe, T3_WR_FASTREG, 0,
--			       Q_GENBIT(wq->wptr + 1, wq->size_log2),
--			       0, 1 + wr->page_list_len - T3_MAX_FASTREG_FRAG,
--			       T3_EOP);
--
--			p = &wqe->pbl_frag.pbl_addrs[0];
--		}
--		*p = cpu_to_be64((u64)wr->page_list->page_list[i]);
--	}
--	*flit_cnt = 5 + wr->page_list_len;
--	if (*flit_cnt > 15)
--		*flit_cnt = 15;
--	return 0;
+-	return container_of(wr, struct ib_fast_reg_wr, wr);
 -}
 -
- static int build_inv_stag(union t3_wr *wqe, struct ib_send_wr *wr,
- 				u8 *flit_cnt)
- {
-@@ -457,11 +415,6 @@ int iwch_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 			if (!qhp->wq.oldest_read)
- 				qhp->wq.oldest_read = sqp;
- 			break;
--		case IB_WR_FAST_REG_MR:
--			t3_wr_opcode = T3_WR_FASTREG;
--			err = build_fastreg(wqe, wr, &t3_wr_flit_cnt,
--						 &wr_cnt, &qhp->wq);
--			break;
- 		case IB_WR_REG_MR:
- 			t3_wr_opcode = T3_WR_FASTREG;
- 			err = build_memreg(wqe, reg_wr(wr), &t3_wr_flit_cnt,
+ struct ib_reg_wr {
+ 	struct ib_send_wr	wr;
+ 	struct ib_mr		*mr;
+@@ -1779,9 +1755,6 @@ struct ib_device {
+ 	int                        (*map_mr_sg)(struct ib_mr *mr,
+ 						struct scatterlist *sg,
+ 						unsigned int sg_nents);
+-	struct ib_fast_reg_page_list * (*alloc_fast_reg_page_list)(struct ib_device *device,
+-								   int page_list_len);
+-	void			   (*free_fast_reg_page_list)(struct ib_fast_reg_page_list *page_list);
+ 	int                        (*rereg_phys_mr)(struct ib_mr *mr,
+ 						    int mr_rereg_mask,
+ 						    struct ib_pd *pd,
+@@ -2890,33 +2863,6 @@ struct ib_mr *ib_alloc_mr(struct ib_pd *pd,
+ 			  u32 max_num_sg);
+ 
+ /**
+- * ib_alloc_fast_reg_page_list - Allocates a page list array
+- * @device - ib device pointer.
+- * @page_list_len - size of the page list array to be allocated.
+- *
+- * This allocates and returns a struct ib_fast_reg_page_list * and a
+- * page_list array that is at least page_list_len in size.  The actual
+- * size is returned in max_page_list_len.  The caller is responsible
+- * for initializing the contents of the page_list array before posting
+- * a send work request with the IB_WC_FAST_REG_MR opcode.
+- *
+- * The page_list array entries must be translated using one of the
+- * ib_dma_*() functions just like the addresses passed to
+- * ib_map_phys_fmr().  Once the ib_post_send() is issued, the struct
+- * ib_fast_reg_page_list must not be modified by the caller until the
+- * IB_WC_FAST_REG_MR work request completes.
+- */
+-struct ib_fast_reg_page_list *ib_alloc_fast_reg_page_list(
+-				struct ib_device *device, int page_list_len);
+-
+-/**
+- * ib_free_fast_reg_page_list - Deallocates a previously allocated
+- *   page list array.
+- * @page_list - struct ib_fast_reg_page_list pointer to be deallocated.
+- */
+-void ib_free_fast_reg_page_list(struct ib_fast_reg_page_list *page_list);
+-
+-/**
+  * ib_update_fast_reg_key - updates the key portion of the fast_reg MR
+  *   R_Key and L_Key.
+  * @mr - struct ib_mr pointer to be updated.
 -- 
 1.8.4.3
 
