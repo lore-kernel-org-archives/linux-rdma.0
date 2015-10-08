@@ -1,312 +1,34 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCH v3 12/26] xprtrdma: Port to new memory registration API
-Date: Thu, 8 Oct 2015 11:56:36 -0400
-Message-ID: <87F3CC02-2979-4C6B-990A-C31C52790ABC@oracle.com>
-References: <1444290669-5252-1-git-send-email-sagig@mellanox.com> <1444290669-5252-13-git-send-email-sagig@mellanox.com>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Date: Thu, 8 Oct 2015 23:26:39 +0300
+Message-ID: <CAJ3xEMjiNA6+yzggVBKC5ff0huri0KJOYoLx=FfAfs3HDO=VpA@mail.gmail.com>
+References: <1444290669-5252-1-git-send-email-sagig@mellanox.com>
+	<1444290669-5252-13-git-send-email-sagig@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1444290669-5252-13-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-> On Oct 8, 2015, at 3:50 AM, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->=20
+On Thu, Oct 8, 2015 at 10:50 AM, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
 > Instead of maintaining a fastreg page list, keep an sg table
 > and convert an array of pages to a sg list. Then call ib_map_mr_sg
 > and construct ib_reg_wr.
->=20
+>
 > Note that the next step would be to have NFS work with sg lists
 > as it maps well to sk_frags (see comment from hch
-> http://marc.info/?l=3Dlinux-rdma&m=3D143677002622296&w=3D2).
->=20
-> Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Acked-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-> Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> Tested-by: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-
-Comments below.
+> http://marc.info/?l=linux-rdma&m=143677002622296&w=2).
 
 
-> ---
-> net/sunrpc/xprtrdma/frwr_ops.c  | 112 +++++++++++++++++++++++--------=
----------
-> net/sunrpc/xprtrdma/xprt_rdma.h |   3 +-
-> 2 files changed, 67 insertions(+), 48 deletions(-)
->=20
-> diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frw=
-r_ops.c
-> index 0d2f46f600b6..3c89f8052786 100644
-> --- a/net/sunrpc/xprtrdma/frwr_ops.c
-> +++ b/net/sunrpc/xprtrdma/frwr_ops.c
-> @@ -151,9 +151,13 @@ __frwr_init(struct rpcrdma_mw *r, struct ib_pd *=
-pd, struct ib_device *device,
-> 	f->fr_mr =3D ib_alloc_mr(pd, IB_MR_TYPE_MEM_REG, depth);
-> 	if (IS_ERR(f->fr_mr))
-> 		goto out_mr_err;
-> -	f->fr_pgl =3D ib_alloc_fast_reg_page_list(device, depth);
-> -	if (IS_ERR(f->fr_pgl))
-> +
-> +	f->sg =3D kcalloc(depth, sizeof(*f->sg), GFP_KERNEL);
-> +	if (!f->sg)
-> 		goto out_list_err;
-> +
-> +	sg_init_table(f->sg, depth);
-> +
-> 	return 0;
->=20
-> out_mr_err:
-> @@ -163,7 +167,7 @@ out_mr_err:
-> 	return rc;
->=20
-> out_list_err:
-> -	rc =3D PTR_ERR(f->fr_pgl);
-> +	rc =3D -ENOMEM;
-> 	dprintk("RPC:       %s: ib_alloc_fast_reg_page_list status %i\n=E2=80=
-=9D,
+I don't see the point to keep the 2nd paragraph in the upstream git log
+forever, it deserves to be after the --- line such that when the maintainer
+uses git am this stays out, so apply this in the respin you'd be doing
+to address Chuck's comments.
 
-Should you update this debugging message?
-
-
-> 		__func__, rc);
-> 	ib_dereg_mr(f->fr_mr);
-> @@ -179,7 +183,7 @@ __frwr_release(struct rpcrdma_mw *r)
-> 	if (rc)
-> 		dprintk("RPC:       %s: ib_dereg_mr status %i\n",
-> 			__func__, rc);
-> -	ib_free_fast_reg_page_list(r->r.frmr.fr_pgl);
-> +	kfree(r->r.frmr.sg);
-> }
->=20
-> static int
-> @@ -312,14 +316,11 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct=
- rpcrdma_mr_seg *seg,
-> 	struct rpcrdma_mw *mw;
-> 	struct rpcrdma_frmr *frmr;
-> 	struct ib_mr *mr;
-> -	struct ib_fast_reg_wr fastreg_wr;
-> +	struct ib_reg_wr reg_wr;
-> 	struct ib_send_wr *bad_wr;
-> +	unsigned int dma_nents;
-> 	u8 key;
-> -	int len, pageoff;
-> -	int i, rc;
-> -	int seg_len;
-> -	u64 pa;
-> -	int page_no;
-> +	int i, rc, len, n;
->=20
-> 	mw =3D seg1->rl_mw;
-> 	seg1->rl_mw =3D NULL;
-> @@ -332,64 +333,81 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct=
- rpcrdma_mr_seg *seg,
-> 	} while (mw->r.frmr.fr_state !=3D FRMR_IS_INVALID);
-> 	frmr =3D &mw->r.frmr;
-> 	frmr->fr_state =3D FRMR_IS_VALID;
-> +	mr =3D frmr->fr_mr;
->=20
-> -	pageoff =3D offset_in_page(seg1->mr_offset);
-> -	seg1->mr_offset -=3D pageoff;	/* start of page */
-> -	seg1->mr_len +=3D pageoff;
-> -	len =3D -pageoff;
-> 	if (nsegs > ia->ri_max_frmr_depth)
-> 		nsegs =3D ia->ri_max_frmr_depth;
->=20
-> -	for (page_no =3D i =3D 0; i < nsegs;) {
-> -		rpcrdma_map_one(device, seg, direction);
-> -		pa =3D seg->mr_dma;
-> -		for (seg_len =3D seg->mr_len; seg_len > 0; seg_len -=3D PAGE_SIZE)=
- {
-> -			frmr->fr_pgl->page_list[page_no++] =3D pa;
-> -			pa +=3D PAGE_SIZE;
-> -		}
-> +	for (len =3D 0, i =3D 0; i < nsegs;) {
-> +		if (seg->mr_page)
-> +			sg_set_page(&frmr->sg[i],
-> +				    seg->mr_page,
-> +				    seg->mr_len,
-> +				    offset_in_page(seg->mr_offset));
-> +		else
-> +			sg_set_buf(&frmr->sg[i], seg->mr_offset,
-> +				   seg->mr_len);
-> +
-> 		len +=3D seg->mr_len;
-> 		++seg;
-> 		++i;
-> +
-> 		/* Check for holes */
-> 		if ((i < nsegs && offset_in_page(seg->mr_offset)) ||
-> 		    offset_in_page((seg-1)->mr_offset + (seg-1)->mr_len))
-> 			break;
-> 	}
-> +	frmr->sg_nents =3D i;
-> +
-> +	dma_nents =3D ib_dma_map_sg(device, frmr->sg, frmr->sg_nents, direc=
-tion);
-> +	if (!dma_nents) {
-> +		pr_err("RPC:       %s: failed to dma map sg %p sg_nents %d\n",
-> +		       __func__, frmr->sg, frmr->sg_nents);
-> +		return -ENOMEM;
-> +	}
-> +
-> +	n =3D ib_map_mr_sg(mr, frmr->sg, frmr->sg_nents, PAGE_SIZE);
-> +	if (unlikely(n !=3D frmr->sg_nents)) {
-
-The basic logic looks OK. But signed v. unsigned comparison here?
-Is there a guarantee that the maximum value sg_nents can have is
-INT_MAX?
-
-i and n are signed, sg_nents is unsigned. I=E2=80=99d prefer to have
-the variable signage all agree. Since we=E2=80=99re counting stuff,
-maybe unsigned all around is a better choice? (rc should
-remain signed).
-
-If ib_map_mr_sg can return a negative value, maybe =E2=80=9Crc =3D ib_m=
-ap_mr_sg=E2=80=9D
-is more clear. Is n used anywhere else?
-
-Use %u formatter for displaying unsigned variables.
-
-
-> +		pr_err("RPC:       %s: failed to map mr %p (%d/%d)\n",
-> +		       __func__, frmr->fr_mr, n, frmr->sg_nents);
-> +		rc =3D n < 0 ? n : -EINVAL;
-> +		goto out_senderr;
-
-Is frmr->sg_nents set correctly here for the ib_dma_unmap_sg()
-call in the error exit? Maybe you want to use the value in
-=E2=80=9Cn=E2=80=9D instead (as long as it=E2=80=99s positive, of cours=
-e).
-
-
-> +	}
-> +
-> 	dprintk("RPC:       %s: Using frmr %p to map %d segments (%d bytes)\=
-n",
-> -		__func__, mw, i, len);
-> -
-> -	memset(&fastreg_wr, 0, sizeof(fastreg_wr));
-> -	fastreg_wr.wr.wr_id =3D (unsigned long)(void *)mw;
-> -	fastreg_wr.wr.opcode =3D IB_WR_FAST_REG_MR;
-> -	fastreg_wr.iova_start =3D seg1->mr_dma + pageoff;
-> -	fastreg_wr.page_list =3D frmr->fr_pgl;
-> -	fastreg_wr.page_shift =3D PAGE_SHIFT;
-> -	fastreg_wr.page_list_len =3D page_no;
-> -	fastreg_wr.length =3D len;
-> -	fastreg_wr.access_flags =3D writing ?
-> -				IB_ACCESS_REMOTE_WRITE | IB_ACCESS_LOCAL_WRITE :
-> -				IB_ACCESS_REMOTE_READ;
-> -	mr =3D frmr->fr_mr;
-> +		__func__, mw, frmr->sg_nents, mr->length);
-> +
-> 	key =3D (u8)(mr->rkey & 0x000000FF);
-> 	ib_update_fast_reg_key(mr, ++key);
-> -	fastreg_wr.rkey =3D mr->rkey;
-> +
-> +	reg_wr.wr.next =3D NULL;
-> +	reg_wr.wr.opcode =3D IB_WR_REG_MR;
-> +	reg_wr.wr.wr_id =3D (uintptr_t)mw;
-
-uintptr_t: Nice cleanup.
-
-
-> +	reg_wr.wr.num_sge =3D 0;
-> +	reg_wr.wr.send_flags =3D 0;
-> +	reg_wr.mr =3D mr;
-> +	reg_wr.key =3D mr->rkey;
-> +	reg_wr.access =3D writing ?
-> +			IB_ACCESS_REMOTE_WRITE | IB_ACCESS_LOCAL_WRITE :
-> +			IB_ACCESS_REMOTE_READ;
->=20
-> 	DECR_CQCOUNT(&r_xprt->rx_ep);
-> -	rc =3D ib_post_send(ia->ri_id->qp, &fastreg_wr.wr, &bad_wr);
-> +	rc =3D ib_post_send(ia->ri_id->qp, &reg_wr.wr, &bad_wr);
-> 	if (rc)
-> 		goto out_senderr;
->=20
-> +	seg1->mr_dir =3D direction;
-> 	seg1->rl_mw =3D mw;
-> 	seg1->mr_rkey =3D mr->rkey;
-> -	seg1->mr_base =3D seg1->mr_dma + pageoff;
-> -	seg1->mr_nsegs =3D i;
-> -	seg1->mr_len =3D len;
-> -	return i;
-> +	seg1->mr_base =3D mr->iova;
-> +	seg1->mr_nsegs =3D frmr->sg_nents;
-> +	seg1->mr_len =3D mr->length;
-> +
-> +	return frmr->sg_nents;
->=20
-> out_senderr:
-> 	dprintk("RPC:       %s: ib_post_send status %i\n", __func__, rc);
-> -	while (i--)
-> -		rpcrdma_unmap_one(device, --seg);
-> +	ib_dma_unmap_sg(device, frmr->sg, frmr->sg_nents, direction);
-> 	__frwr_queue_recovery(mw);
-> 	return rc;
-> }
-> @@ -403,22 +421,22 @@ frwr_op_unmap(struct rpcrdma_xprt *r_xprt, stru=
-ct rpcrdma_mr_seg *seg)
-> 	struct rpcrdma_mr_seg *seg1 =3D seg;
-> 	struct rpcrdma_ia *ia =3D &r_xprt->rx_ia;
-> 	struct rpcrdma_mw *mw =3D seg1->rl_mw;
-> +	struct rpcrdma_frmr *frmr =3D &mw->r.frmr;
-> 	struct ib_send_wr invalidate_wr, *bad_wr;
-> 	int rc, nsegs =3D seg->mr_nsegs;
->=20
-> 	dprintk("RPC:       %s: FRMR %p\n", __func__, mw);
->=20
-> 	seg1->rl_mw =3D NULL;
-> -	mw->r.frmr.fr_state =3D FRMR_IS_INVALID;
-> +	frmr->fr_state =3D FRMR_IS_INVALID;
->=20
-> 	memset(&invalidate_wr, 0, sizeof(invalidate_wr));
-> 	invalidate_wr.wr_id =3D (unsigned long)(void *)mw;
-> 	invalidate_wr.opcode =3D IB_WR_LOCAL_INV;
-> -	invalidate_wr.ex.invalidate_rkey =3D mw->r.frmr.fr_mr->rkey;
-> +	invalidate_wr.ex.invalidate_rkey =3D frmr->fr_mr->rkey;
-> 	DECR_CQCOUNT(&r_xprt->rx_ep);
->=20
-> -	while (seg1->mr_nsegs--)
-> -		rpcrdma_unmap_one(ia->ri_device, seg++);
-> +	ib_dma_unmap_sg(ia->ri_device, frmr->sg, frmr->sg_nents, seg1->mr_d=
-ir);
-> 	read_lock(&ia->ri_qplock);
-> 	rc =3D ib_post_send(ia->ri_id->qp, &invalidate_wr, &bad_wr);
-> 	read_unlock(&ia->ri_qplock);
-> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xp=
-rt_rdma.h
-> index c09414e6f91b..426a9107c0ff 100644
-> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
-> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-> @@ -193,7 +193,8 @@ enum rpcrdma_frmr_state {
-> };
->=20
-> struct rpcrdma_frmr {
-> -	struct ib_fast_reg_page_list	*fr_pgl;
-> +	struct scatterlist		*sg;
-> +	unsigned int			sg_nents;
-> 	struct ib_mr			*fr_mr;
-> 	enum rpcrdma_frmr_state		fr_state;
-> 	struct work_struct		fr_work;
-> --=20
-> 1.8.4.3
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-=E2=80=94
-Chuck Lever
-
-
-
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
