@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v3 24/26] IB/qib: Remove old FRWR API
-Date: Thu,  8 Oct 2015 10:51:07 +0300
-Message-ID: <1444290669-5252-25-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v3 06/26] RDMA/cxgb3: Support the new memory registration API
+Date: Thu,  8 Oct 2015 10:50:49 +0300
+Message-ID: <1444290669-5252-7-git-send-email-sagig@mellanox.com>
 References: <1444290669-5252-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1444290669-5252-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -9,192 +9,175 @@ Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-No ULP uses it anymore, go ahead and remove it.
+Support the new memory registration API by allocating a
+private page list array in iwch_mr and populate it when
+iwch_map_mr_sg is invoked. Also, support IB_WR_REG_MR
+by duplicating build_fastreg just take the needed information
+from different places:
+- page_size, iova, length (ib_mr)
+- page array (iwch_mr)
+- key, access flags (ib_reg_wr)
+
+The IB_WR_FAST_REG_MR handlers will be removed later when
+all the ULPs will be converted.
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Acked-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_keys.c  | 56 -----------------------------------
- drivers/infiniband/hw/qib/qib_mr.c    | 32 +-------------------
- drivers/infiniband/hw/qib/qib_verbs.c |  8 -----
- drivers/infiniband/hw/qib/qib_verbs.h |  7 -----
- 4 files changed, 1 insertion(+), 102 deletions(-)
+ drivers/infiniband/hw/cxgb3/iwch_provider.c | 33 ++++++++++++++++++++
+ drivers/infiniband/hw/cxgb3/iwch_provider.h |  2 ++
+ drivers/infiniband/hw/cxgb3/iwch_qp.c       | 48 +++++++++++++++++++++++++++++
+ 3 files changed, 83 insertions(+)
 
-diff --git a/drivers/infiniband/hw/qib/qib_keys.c b/drivers/infiniband/hw/qib/qib_keys.c
-index 95b8b9110fc6..d725c565518d 100644
---- a/drivers/infiniband/hw/qib/qib_keys.c
-+++ b/drivers/infiniband/hw/qib/qib_keys.c
-@@ -336,62 +336,6 @@ bail:
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+index 93308c45f298..ee3d5ca7de6c 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+@@ -463,6 +463,7 @@ static int iwch_dereg_mr(struct ib_mr *ib_mr)
+ 		return -EINVAL;
+ 
+ 	mhp = to_iwch_mr(ib_mr);
++	kfree(mhp->pages);
+ 	rhp = mhp->rhp;
+ 	mmid = mhp->attr.stag >> 8;
+ 	cxio_dereg_mem(&rhp->rdev, mhp->attr.stag, mhp->attr.pbl_size,
+@@ -821,6 +822,12 @@ static struct ib_mr *iwch_alloc_mr(struct ib_pd *pd,
+ 	if (!mhp)
+ 		goto err;
+ 
++	mhp->pages = kcalloc(max_num_sg, sizeof(u64), GFP_KERNEL);
++	if (!mhp->pages) {
++		ret = -ENOMEM;
++		goto pl_err;
++	}
++
+ 	mhp->rhp = rhp;
+ 	ret = iwch_alloc_pbl(mhp, max_num_sg);
+ 	if (ret)
+@@ -847,11 +854,36 @@ err3:
+ err2:
+ 	iwch_free_pbl(mhp);
+ err1:
++	kfree(mhp->pages);
++pl_err:
+ 	kfree(mhp);
+ err:
+ 	return ERR_PTR(ret);
  }
  
- /*
-- * Initialize the memory region specified by the work reqeust.
-- */
--int qib_fast_reg_mr(struct qib_qp *qp, struct ib_send_wr *send_wr)
--{
--	struct ib_fast_reg_wr *wr = fast_reg_wr(send_wr);
--	struct qib_lkey_table *rkt = &to_idev(qp->ibqp.device)->lk_table;
--	struct qib_pd *pd = to_ipd(qp->ibqp.pd);
--	struct qib_mregion *mr;
--	u32 rkey = wr->rkey;
--	unsigned i, n, m;
--	int ret = -EINVAL;
--	unsigned long flags;
--	u64 *page_list;
--	size_t ps;
--
--	spin_lock_irqsave(&rkt->lock, flags);
--	if (pd->user || rkey == 0)
--		goto bail;
--
--	mr = rcu_dereference_protected(
--		rkt->table[(rkey >> (32 - ib_qib_lkey_table_size))],
--		lockdep_is_held(&rkt->lock));
--	if (unlikely(mr == NULL || qp->ibqp.pd != mr->pd))
--		goto bail;
--
--	if (wr->page_list_len > mr->max_segs)
--		goto bail;
--
--	ps = 1UL << wr->page_shift;
--	if (wr->length > ps * wr->page_list_len)
--		goto bail;
--
--	mr->user_base = wr->iova_start;
--	mr->iova = wr->iova_start;
--	mr->lkey = rkey;
--	mr->length = wr->length;
--	mr->access_flags = wr->access_flags;
--	page_list = wr->page_list->page_list;
--	m = 0;
--	n = 0;
--	for (i = 0; i < wr->page_list_len; i++) {
--		mr->map[m]->segs[n].vaddr = (void *) page_list[i];
--		mr->map[m]->segs[n].length = ps;
--		if (++n == QIB_SEGSZ) {
--			m++;
--			n = 0;
--		}
--	}
--
--	ret = 0;
--bail:
--	spin_unlock_irqrestore(&rkt->lock, flags);
--	return ret;
--}
--
--/*
-  * Initialize the memory region specified by the work request.
-  */
- int qib_reg_mr(struct qib_qp *qp, struct ib_reg_wr *wr)
-diff --git a/drivers/infiniband/hw/qib/qib_mr.c b/drivers/infiniband/hw/qib/qib_mr.c
-index 0fa4b0de8074..73f78c0f9522 100644
---- a/drivers/infiniband/hw/qib/qib_mr.c
-+++ b/drivers/infiniband/hw/qib/qib_mr.c
-@@ -324,7 +324,7 @@ out:
++static int iwch_set_page(struct ib_mr *ibmr, u64 addr)
++{
++	struct iwch_mr *mhp = to_iwch_mr(ibmr);
++
++	if (unlikely(mhp->npages == mhp->attr.pbl_size))
++		return -ENOMEM;
++
++	mhp->pages[mhp->npages++] = addr;
++
++	return 0;
++}
++
++static int iwch_map_mr_sg(struct ib_mr *ibmr,
++			  struct scatterlist *sg,
++			  unsigned int sg_nents)
++{
++	struct iwch_mr *mhp = to_iwch_mr(ibmr);
++
++	mhp->npages = 0;
++
++	return ib_sg_to_pages(ibmr, sg, sg_nents, iwch_set_page);
++}
++
+ static struct ib_fast_reg_page_list *iwch_alloc_fastreg_pbl(
+ 					struct ib_device *device,
+ 					int page_list_len)
+@@ -1450,6 +1482,7 @@ int iwch_register_device(struct iwch_dev *dev)
+ 	dev->ibdev.bind_mw = iwch_bind_mw;
+ 	dev->ibdev.dealloc_mw = iwch_dealloc_mw;
+ 	dev->ibdev.alloc_mr = iwch_alloc_mr;
++	dev->ibdev.map_mr_sg = iwch_map_mr_sg;
+ 	dev->ibdev.alloc_fast_reg_page_list = iwch_alloc_fastreg_pbl;
+ 	dev->ibdev.free_fast_reg_page_list = iwch_free_fastreg_pbl;
+ 	dev->ibdev.attach_mcast = iwch_multicast_attach;
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.h b/drivers/infiniband/hw/cxgb3/iwch_provider.h
+index 87c14b0c5ac0..2ac85b86a680 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_provider.h
++++ b/drivers/infiniband/hw/cxgb3/iwch_provider.h
+@@ -77,6 +77,8 @@ struct iwch_mr {
+ 	struct iwch_dev *rhp;
+ 	u64 kva;
+ 	struct tpt_attributes attr;
++	u64 *pages;
++	u32 npages;
+ };
  
- /*
-  * Allocate a memory region usable with the
-- * IB_WR_FAST_REG_MR send work request.
-+ * IB_WR_REG_MR send work request.
-  *
-  * Return the memory region on success, otherwise return an errno.
-  */
-@@ -375,36 +375,6 @@ int qib_map_mr_sg(struct ib_mr *ibmr,
- 	return ib_sg_to_pages(ibmr, sg, sg_nents, qib_set_page);
+ typedef struct iwch_mw iwch_mw_handle;
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_qp.c b/drivers/infiniband/hw/cxgb3/iwch_qp.c
+index bac0508fedd9..a09ea538e990 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_qp.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_qp.c
+@@ -146,6 +146,49 @@ static int build_rdma_read(union t3_wr *wqe, struct ib_send_wr *wr,
+ 	return 0;
  }
  
--struct ib_fast_reg_page_list *
--qib_alloc_fast_reg_page_list(struct ib_device *ibdev, int page_list_len)
--{
--	unsigned size = page_list_len * sizeof(u64);
--	struct ib_fast_reg_page_list *pl;
--
--	if (size > PAGE_SIZE)
--		return ERR_PTR(-EINVAL);
--
--	pl = kzalloc(sizeof(*pl), GFP_KERNEL);
--	if (!pl)
--		return ERR_PTR(-ENOMEM);
--
--	pl->page_list = kzalloc(size, GFP_KERNEL);
--	if (!pl->page_list)
--		goto err_free;
--
--	return pl;
--
--err_free:
--	kfree(pl);
--	return ERR_PTR(-ENOMEM);
--}
--
--void qib_free_fast_reg_page_list(struct ib_fast_reg_page_list *pl)
--{
--	kfree(pl->page_list);
--	kfree(pl);
--}
--
- /**
-  * qib_alloc_fmr - allocate a fast memory region
-  * @pd: the protection domain for this memory region
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index a1e53d7b662b..de6cb6fcda8d 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.c
-+++ b/drivers/infiniband/hw/qib/qib_verbs.c
-@@ -365,9 +365,6 @@ static int qib_post_one_send(struct qib_qp *qp, struct ib_send_wr *wr,
- 	if (wr->opcode == IB_WR_REG_MR) {
- 		if (qib_reg_mr(qp, reg_wr(wr)))
- 			goto bail_inval;
--	} else if (wr->opcode == IB_WR_FAST_REG_MR) {
--		if (qib_fast_reg_mr(qp, wr))
--			goto bail_inval;
- 	} else if (qp->ibqp.qp_type == IB_QPT_UC) {
- 		if ((unsigned) wr->opcode >= IB_WR_RDMA_READ)
- 			goto bail_inval;
-@@ -407,9 +404,6 @@ static int qib_post_one_send(struct qib_qp *qp, struct ib_send_wr *wr,
- 	else if (wr->opcode == IB_WR_REG_MR)
- 		memcpy(&wqe->reg_wr, reg_wr(wr),
- 			sizeof(wqe->reg_wr));
--	else if (wr->opcode == IB_WR_FAST_REG_MR)
--		memcpy(&wqe->fast_reg_wr, fast_reg_wr(wr),
--			sizeof(wqe->fast_reg_wr));
- 	else if (wr->opcode == IB_WR_RDMA_WRITE_WITH_IMM ||
- 		 wr->opcode == IB_WR_RDMA_WRITE ||
- 		 wr->opcode == IB_WR_RDMA_READ)
-@@ -2267,8 +2261,6 @@ int qib_register_ib_device(struct qib_devdata *dd)
- 	ibdev->dereg_mr = qib_dereg_mr;
- 	ibdev->alloc_mr = qib_alloc_mr;
- 	ibdev->map_mr_sg = qib_map_mr_sg;
--	ibdev->alloc_fast_reg_page_list = qib_alloc_fast_reg_page_list;
--	ibdev->free_fast_reg_page_list = qib_free_fast_reg_page_list;
- 	ibdev->alloc_fmr = qib_alloc_fmr;
- 	ibdev->map_phys_fmr = qib_map_phys_fmr;
- 	ibdev->unmap_fmr = qib_unmap_fmr;
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
-index dbc81c5761e3..bb11fe56ac6e 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.h
-+++ b/drivers/infiniband/hw/qib/qib_verbs.h
-@@ -344,7 +344,6 @@ struct qib_swqe {
- 		struct ib_send_wr wr;   /* don't use wr.sg_list */
- 		struct ib_ud_wr ud_wr;
- 		struct ib_reg_wr reg_wr;
--		struct ib_fast_reg_wr fast_reg_wr;
- 		struct ib_rdma_wr rdma_wr;
- 		struct ib_atomic_wr atomic_wr;
- 	};
-@@ -1051,12 +1050,6 @@ int qib_map_mr_sg(struct ib_mr *ibmr,
- 		  struct scatterlist *sg,
- 		  unsigned int sg_nents);
- 
--struct ib_fast_reg_page_list *qib_alloc_fast_reg_page_list(
--				struct ib_device *ibdev, int page_list_len);
--
--void qib_free_fast_reg_page_list(struct ib_fast_reg_page_list *pl);
--
--int qib_fast_reg_mr(struct qib_qp *qp, struct ib_send_wr *wr);
- int qib_reg_mr(struct qib_qp *qp, struct ib_reg_wr *wr);
- 
- struct ib_fmr *qib_alloc_fmr(struct ib_pd *pd, int mr_access_flags,
++static int build_memreg(union t3_wr *wqe, struct ib_reg_wr *wr,
++			  u8 *flit_cnt, int *wr_cnt, struct t3_wq *wq)
++{
++	struct iwch_mr *mhp = to_iwch_mr(wr->mr);
++	int i;
++	__be64 *p;
++
++	if (mhp->npages > T3_MAX_FASTREG_DEPTH)
++		return -EINVAL;
++	*wr_cnt = 1;
++	wqe->fastreg.stag = cpu_to_be32(wr->key);
++	wqe->fastreg.len = cpu_to_be32(mhp->ibmr.length);
++	wqe->fastreg.va_base_hi = cpu_to_be32(mhp->ibmr.iova >> 32);
++	wqe->fastreg.va_base_lo_fbo =
++				cpu_to_be32(mhp->ibmr.iova & 0xffffffff);
++	wqe->fastreg.page_type_perms = cpu_to_be32(
++		V_FR_PAGE_COUNT(mhp->npages) |
++		V_FR_PAGE_SIZE(ilog2(wr->mr->page_size) - 12) |
++		V_FR_TYPE(TPT_VATO) |
++		V_FR_PERMS(iwch_ib_to_tpt_access(wr->access)));
++	p = &wqe->fastreg.pbl_addrs[0];
++	for (i = 0; i < mhp->npages; i++, p++) {
++
++		/* If we need a 2nd WR, then set it up */
++		if (i == T3_MAX_FASTREG_FRAG) {
++			*wr_cnt = 2;
++			wqe = (union t3_wr *)(wq->queue +
++				Q_PTR2IDX((wq->wptr+1), wq->size_log2));
++			build_fw_riwrh((void *)wqe, T3_WR_FASTREG, 0,
++			       Q_GENBIT(wq->wptr + 1, wq->size_log2),
++			       0, 1 + mhp->npages - T3_MAX_FASTREG_FRAG,
++			       T3_EOP);
++
++			p = &wqe->pbl_frag.pbl_addrs[0];
++		}
++		*p = cpu_to_be64((u64)mhp->pages[i]);
++	}
++	*flit_cnt = 5 + mhp->npages;
++	if (*flit_cnt > 15)
++		*flit_cnt = 15;
++	return 0;
++}
++
+ static int build_fastreg(union t3_wr *wqe, struct ib_send_wr *send_wr,
+ 				u8 *flit_cnt, int *wr_cnt, struct t3_wq *wq)
+ {
+@@ -419,6 +462,11 @@ int iwch_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 			err = build_fastreg(wqe, wr, &t3_wr_flit_cnt,
+ 						 &wr_cnt, &qhp->wq);
+ 			break;
++		case IB_WR_REG_MR:
++			t3_wr_opcode = T3_WR_FASTREG;
++			err = build_memreg(wqe, reg_wr(wr), &t3_wr_flit_cnt,
++					   &wr_cnt, &qhp->wq);
++			break;
+ 		case IB_WR_LOCAL_INV:
+ 			if (wr->send_flags & IB_SEND_FENCE)
+ 				t3_wr_flags |= T3_LOCAL_FENCE_FLAG;
 -- 
 1.8.4.3
 
