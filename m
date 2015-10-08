@@ -1,79 +1,257 @@
-From: Ben Hutchings <ben-/+tVBieCtBitmTQ+vhA3Yw@public.gmane.org>
-Subject: Re: [PATCH 3.2] IB/qib: Change lkey table allocation to support
- more MRs
-Date: Thu, 08 Oct 2015 13:49:54 +0100
-Message-ID: <1444308594.2956.255.camel@decadent.org.uk>
-References: <20150929145143.27497.86046.stgit@phlsvslse11.ph.intel.com>
+From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 12/26] xprtrdma: Port to new memory registration API
+Date: Thu, 8 Oct 2015 11:24:03 -0400
+Message-ID: <56168A93.9040707@Netapp.com>
+References: <1444290669-5252-1-git-send-email-sagig@mellanox.com>
+ <1444290669-5252-13-git-send-email-sagig@mellanox.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-DmGjfAANi9DhoWbDg3BQ"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150929145143.27497.86046.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1444290669-5252-13-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Sagi,
 
---=-DmGjfAANi9DhoWbDg3BQ
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On 10/08/2015 03:50 AM, Sagi Grimberg wrote:
+> Instead of maintaining a fastreg page list, keep an sg table
+> and convert an array of pages to a sg list. Then call ib_map_mr_sg
+> and construct ib_reg_wr.
+> 
+> Note that the next step would be to have NFS work with sg lists
+> as it maps well to sk_frags (see comment from hch
+> http://marc.info/?l=linux-rdma&m=143677002622296&w=2).
 
-On Tue, 2015-09-29 at 10:51 -0400, Mike Marciniszyn wrote:
-> The lkey table is allocated with with a get_user_pages() with an
-> order based on a number of index bits from a module parameter.
->=20
-> The underlying kernel code cannot allocate that many contiguous
-> pages.
->=20
-> There is no reason the underlying memory needs to be physically
-> contiguous.
->=20
-> This patch:
-> - switches the allocation/deallocation to vmalloc/vfree
-> - caps the number of bits to 23 to insure at least 1 generation bit
->   o this matches the module parameter description
->=20
-> Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org # 3.2
-> Reviewed-by: Vinit Agnihotri <vinit.abhay.agnihotri-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-[...]
+Looks good to me!
 
-qib_dev_warn() is not defined.  But, I worked out how to backport this
-anyway.
+Acked-by: Anna Schumaker <anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+> 
+> Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Acked-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+> Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> Tested-by: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+> ---
+>  net/sunrpc/xprtrdma/frwr_ops.c  | 112 +++++++++++++++++++++++-----------------
+>  net/sunrpc/xprtrdma/xprt_rdma.h |   3 +-
+>  2 files changed, 67 insertions(+), 48 deletions(-)
+> 
+> diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+> index 0d2f46f600b6..3c89f8052786 100644
+> --- a/net/sunrpc/xprtrdma/frwr_ops.c
+> +++ b/net/sunrpc/xprtrdma/frwr_ops.c
+> @@ -151,9 +151,13 @@ __frwr_init(struct rpcrdma_mw *r, struct ib_pd *pd, struct ib_device *device,
+>  	f->fr_mr = ib_alloc_mr(pd, IB_MR_TYPE_MEM_REG, depth);
+>  	if (IS_ERR(f->fr_mr))
+>  		goto out_mr_err;
+> -	f->fr_pgl = ib_alloc_fast_reg_page_list(device, depth);
+> -	if (IS_ERR(f->fr_pgl))
+> +
+> +	f->sg = kcalloc(depth, sizeof(*f->sg), GFP_KERNEL);
+> +	if (!f->sg)
+>  		goto out_list_err;
+> +
+> +	sg_init_table(f->sg, depth);
+> +
+>  	return 0;
+>  
+>  out_mr_err:
+> @@ -163,7 +167,7 @@ out_mr_err:
+>  	return rc;
+>  
+>  out_list_err:
+> -	rc = PTR_ERR(f->fr_pgl);
+> +	rc = -ENOMEM;
+>  	dprintk("RPC:       %s: ib_alloc_fast_reg_page_list status %i\n",
+>  		__func__, rc);
+>  	ib_dereg_mr(f->fr_mr);
+> @@ -179,7 +183,7 @@ __frwr_release(struct rpcrdma_mw *r)
+>  	if (rc)
+>  		dprintk("RPC:       %s: ib_dereg_mr status %i\n",
+>  			__func__, rc);
+> -	ib_free_fast_reg_page_list(r->r.frmr.fr_pgl);
+> +	kfree(r->r.frmr.sg);
+>  }
+>  
+>  static int
+> @@ -312,14 +316,11 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
+>  	struct rpcrdma_mw *mw;
+>  	struct rpcrdma_frmr *frmr;
+>  	struct ib_mr *mr;
+> -	struct ib_fast_reg_wr fastreg_wr;
+> +	struct ib_reg_wr reg_wr;
+>  	struct ib_send_wr *bad_wr;
+> +	unsigned int dma_nents;
+>  	u8 key;
+> -	int len, pageoff;
+> -	int i, rc;
+> -	int seg_len;
+> -	u64 pa;
+> -	int page_no;
+> +	int i, rc, len, n;
+>  
+>  	mw = seg1->rl_mw;
+>  	seg1->rl_mw = NULL;
+> @@ -332,64 +333,81 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
+>  	} while (mw->r.frmr.fr_state != FRMR_IS_INVALID);
+>  	frmr = &mw->r.frmr;
+>  	frmr->fr_state = FRMR_IS_VALID;
+> +	mr = frmr->fr_mr;
+>  
+> -	pageoff = offset_in_page(seg1->mr_offset);
+> -	seg1->mr_offset -= pageoff;	/* start of page */
+> -	seg1->mr_len += pageoff;
+> -	len = -pageoff;
+>  	if (nsegs > ia->ri_max_frmr_depth)
+>  		nsegs = ia->ri_max_frmr_depth;
+>  
+> -	for (page_no = i = 0; i < nsegs;) {
+> -		rpcrdma_map_one(device, seg, direction);
+> -		pa = seg->mr_dma;
+> -		for (seg_len = seg->mr_len; seg_len > 0; seg_len -= PAGE_SIZE) {
+> -			frmr->fr_pgl->page_list[page_no++] = pa;
+> -			pa += PAGE_SIZE;
+> -		}
+> +	for (len = 0, i = 0; i < nsegs;) {
+> +		if (seg->mr_page)
+> +			sg_set_page(&frmr->sg[i],
+> +				    seg->mr_page,
+> +				    seg->mr_len,
+> +				    offset_in_page(seg->mr_offset));
+> +		else
+> +			sg_set_buf(&frmr->sg[i], seg->mr_offset,
+> +				   seg->mr_len);
+> +
+>  		len += seg->mr_len;
+>  		++seg;
+>  		++i;
+> +
+>  		/* Check for holes */
+>  		if ((i < nsegs && offset_in_page(seg->mr_offset)) ||
+>  		    offset_in_page((seg-1)->mr_offset + (seg-1)->mr_len))
+>  			break;
+>  	}
+> +	frmr->sg_nents = i;
+> +
+> +	dma_nents = ib_dma_map_sg(device, frmr->sg, frmr->sg_nents, direction);
+> +	if (!dma_nents) {
+> +		pr_err("RPC:       %s: failed to dma map sg %p sg_nents %d\n",
+> +		       __func__, frmr->sg, frmr->sg_nents);
+> +		return -ENOMEM;
+> +	}
+> +
+> +	n = ib_map_mr_sg(mr, frmr->sg, frmr->sg_nents, PAGE_SIZE);
+> +	if (unlikely(n != frmr->sg_nents)) {
+> +		pr_err("RPC:       %s: failed to map mr %p (%d/%d)\n",
+> +		       __func__, frmr->fr_mr, n, frmr->sg_nents);
+> +		rc = n < 0 ? n : -EINVAL;
+> +		goto out_senderr;
+> +	}
+> +
+>  	dprintk("RPC:       %s: Using frmr %p to map %d segments (%d bytes)\n",
+> -		__func__, mw, i, len);
+> -
+> -	memset(&fastreg_wr, 0, sizeof(fastreg_wr));
+> -	fastreg_wr.wr.wr_id = (unsigned long)(void *)mw;
+> -	fastreg_wr.wr.opcode = IB_WR_FAST_REG_MR;
+> -	fastreg_wr.iova_start = seg1->mr_dma + pageoff;
+> -	fastreg_wr.page_list = frmr->fr_pgl;
+> -	fastreg_wr.page_shift = PAGE_SHIFT;
+> -	fastreg_wr.page_list_len = page_no;
+> -	fastreg_wr.length = len;
+> -	fastreg_wr.access_flags = writing ?
+> -				IB_ACCESS_REMOTE_WRITE | IB_ACCESS_LOCAL_WRITE :
+> -				IB_ACCESS_REMOTE_READ;
+> -	mr = frmr->fr_mr;
+> +		__func__, mw, frmr->sg_nents, mr->length);
+> +
+>  	key = (u8)(mr->rkey & 0x000000FF);
+>  	ib_update_fast_reg_key(mr, ++key);
+> -	fastreg_wr.rkey = mr->rkey;
+> +
+> +	reg_wr.wr.next = NULL;
+> +	reg_wr.wr.opcode = IB_WR_REG_MR;
+> +	reg_wr.wr.wr_id = (uintptr_t)mw;
+> +	reg_wr.wr.num_sge = 0;
+> +	reg_wr.wr.send_flags = 0;
+> +	reg_wr.mr = mr;
+> +	reg_wr.key = mr->rkey;
+> +	reg_wr.access = writing ?
+> +			IB_ACCESS_REMOTE_WRITE | IB_ACCESS_LOCAL_WRITE :
+> +			IB_ACCESS_REMOTE_READ;
+>  
+>  	DECR_CQCOUNT(&r_xprt->rx_ep);
+> -	rc = ib_post_send(ia->ri_id->qp, &fastreg_wr.wr, &bad_wr);
+> +	rc = ib_post_send(ia->ri_id->qp, &reg_wr.wr, &bad_wr);
+>  	if (rc)
+>  		goto out_senderr;
+>  
+> +	seg1->mr_dir = direction;
+>  	seg1->rl_mw = mw;
+>  	seg1->mr_rkey = mr->rkey;
+> -	seg1->mr_base = seg1->mr_dma + pageoff;
+> -	seg1->mr_nsegs = i;
+> -	seg1->mr_len = len;
+> -	return i;
+> +	seg1->mr_base = mr->iova;
+> +	seg1->mr_nsegs = frmr->sg_nents;
+> +	seg1->mr_len = mr->length;
+> +
+> +	return frmr->sg_nents;
+>  
+>  out_senderr:
+>  	dprintk("RPC:       %s: ib_post_send status %i\n", __func__, rc);
+> -	while (i--)
+> -		rpcrdma_unmap_one(device, --seg);
+> +	ib_dma_unmap_sg(device, frmr->sg, frmr->sg_nents, direction);
+>  	__frwr_queue_recovery(mw);
+>  	return rc;
+>  }
+> @@ -403,22 +421,22 @@ frwr_op_unmap(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg)
+>  	struct rpcrdma_mr_seg *seg1 = seg;
+>  	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
+>  	struct rpcrdma_mw *mw = seg1->rl_mw;
+> +	struct rpcrdma_frmr *frmr = &mw->r.frmr;
+>  	struct ib_send_wr invalidate_wr, *bad_wr;
+>  	int rc, nsegs = seg->mr_nsegs;
+>  
+>  	dprintk("RPC:       %s: FRMR %p\n", __func__, mw);
+>  
+>  	seg1->rl_mw = NULL;
+> -	mw->r.frmr.fr_state = FRMR_IS_INVALID;
+> +	frmr->fr_state = FRMR_IS_INVALID;
+>  
+>  	memset(&invalidate_wr, 0, sizeof(invalidate_wr));
+>  	invalidate_wr.wr_id = (unsigned long)(void *)mw;
+>  	invalidate_wr.opcode = IB_WR_LOCAL_INV;
+> -	invalidate_wr.ex.invalidate_rkey = mw->r.frmr.fr_mr->rkey;
+> +	invalidate_wr.ex.invalidate_rkey = frmr->fr_mr->rkey;
+>  	DECR_CQCOUNT(&r_xprt->rx_ep);
+>  
+> -	while (seg1->mr_nsegs--)
+> -		rpcrdma_unmap_one(ia->ri_device, seg++);
+> +	ib_dma_unmap_sg(ia->ri_device, frmr->sg, frmr->sg_nents, seg1->mr_dir);
+>  	read_lock(&ia->ri_qplock);
+>  	rc = ib_post_send(ia->ri_id->qp, &invalidate_wr, &bad_wr);
+>  	read_unlock(&ia->ri_qplock);
+> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+> index c09414e6f91b..426a9107c0ff 100644
+> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
+> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+> @@ -193,7 +193,8 @@ enum rpcrdma_frmr_state {
+>  };
+>  
+>  struct rpcrdma_frmr {
+> -	struct ib_fast_reg_page_list	*fr_pgl;
+> +	struct scatterlist		*sg;
+> +	unsigned int			sg_nents;
+>  	struct ib_mr			*fr_mr;
+>  	enum rpcrdma_frmr_state		fr_state;
+>  	struct work_struct		fr_work;
+> 
 
-Ben.
-
-
---=20
-Ben Hutchings
-Once a job is fouled up, anything done to improve it makes it worse.
-
---=-DmGjfAANi9DhoWbDg3BQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIVAwUAVhZmcue/yOyVhhEJAQpNyA/+Jn+xT6ZxoYtlQ25JGMmhOqR4cUKmCfZr
-WAup1zoJvADrGJEtZV1VDntQ6knZN3tkQcBPj/CPcZeM07qmk86ghIKceDMmK0el
-ybrg+/cfUNkB+HuNq47rVE8HajqYAq8hGKiGvGOogUoQEEHg/YMuztzSK3EU5Ckh
-ZIhohhG410XvTopJ87iQc1TELE/9BjQHkyhbx4GUhQlJSpXezWMMOdeoC+IxNwIn
-qa7KH4vA4Iv0LFKDsXo7+78I9Mnquedp0oJJQ1xIAZlEIV4SYQLLlj02K660EMal
-GblUVBH6JvKex4JxzXE+67jLD0iKwdfnkZpg4OkGe4UR//T1duWLGOyCUzyqLjgn
-uFCi9vyLcEk7J8TPClmPPpBPvj4nT2WFfxDReNAqWASfX649JHj9ZWM2jCOSQvOj
-tXaEEfgWwoZvF0yT9KAQg3uBYIlpcBiJ3RE7YIesXj6PzRFHk0q0jRFaWOqp3BW0
-L1owbb9A55yCGIgNApACX3MqpowyzhS3U5mdAAWPPZlRQQb6hrXiW0QDw42DjkEk
-BYL/mWdjDnxqR80FOOVm7oXaC7t/ba6B+/K4lGI52yio1CxfZyfP03cwySG16r+E
-JmupQIkyWdxfk2KQ91AVmQIpsBSNF1aARqxf2KhGaEkEtQNMNsURXVHJgq5rl5bo
-HihDRa573M8=
-=JaKY
------END PGP SIGNATURE-----
-
---=-DmGjfAANi9DhoWbDg3BQ--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
