@@ -1,35 +1,38 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v3 12/26] xprtrdma: Port to new memory registration API
-Date: Thu, 8 Oct 2015 23:26:39 +0300
-Message-ID: <CAJ3xEMjiNA6+yzggVBKC5ff0huri0KJOYoLx=FfAfs3HDO=VpA@mail.gmail.com>
-References: <1444290669-5252-1-git-send-email-sagig@mellanox.com>
-	<1444290669-5252-13-git-send-email-sagig@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1444290669-5252-13-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Geliang Tang <geliangtang-9Onoh4P/yGk@public.gmane.org>
+Subject: [PATCH] IB/hfi1: use TASK_COMM_LEN in hfi1_ctxtdata
+Date: Thu,  8 Oct 2015 22:04:26 -0700
+Message-ID: <d18008076bca0bf3f06ebd8c76bc71c0e2019517.1444394307.git.geliangtang@163.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: Geliang Tang <geliangtang-9Onoh4P/yGk@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 8, 2015 at 10:50 AM, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> Instead of maintaining a fastreg page list, keep an sg table
-> and convert an array of pages to a sg list. Then call ib_map_mr_sg
-> and construct ib_reg_wr.
->
-> Note that the next step would be to have NFS work with sg lists
-> as it maps well to sk_frags (see comment from hch
-> http://marc.info/?l=linux-rdma&m=143677002622296&w=2).
+Use comm[TASK_COMM_LEN] instead of comm[16].
+
+Signed-off-by: Geliang Tang <geliangtang-9Onoh4P/yGk@public.gmane.org>
+---
+ drivers/staging/rdma/hfi1/hfi.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
+index 8ca171b..a35213e 100644
+--- a/drivers/staging/rdma/hfi1/hfi.h
++++ b/drivers/staging/rdma/hfi1/hfi.h
+@@ -262,7 +262,7 @@ struct hfi1_ctxtdata {
+ 	pid_t pid;
+ 	pid_t subpid[HFI1_MAX_SHARED_CTXTS];
+ 	/* same size as task_struct .comm[], command that opened context */
+-	char comm[16];
++	char comm[TASK_COMM_LEN];
+ 	/* so file ops can get at unit */
+ 	struct hfi1_devdata *dd;
+ 	/* so functions that need physical port can get it easily */
+-- 
+1.9.1
 
 
-I don't see the point to keep the 2nd paragraph in the upstream git log
-forever, it deserves to be after the --- line such that when the maintainer
-uses git am this stays out, so apply this in the respin you'd be doing
-to address Chuck's comments.
-
-Or.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
