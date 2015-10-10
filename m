@@ -1,30 +1,37 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 0/2] iser bounce buffering cleanup
-Date: Sat, 10 Oct 2015 03:27:00 +0300
-Message-ID: <1444436822-6632-1-git-send-email-sagig@mellanox.com>
+Subject: [PATCH 2/2] IB/iser: Enable SG clustering
+Date: Sat, 10 Oct 2015 03:27:02 +0300
+Message-ID: <1444436822-6632-3-git-send-email-sagig@mellanox.com>
+References: <1444436822-6632-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1444436822-6632-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Now that the block layer reliably takes care that SG lists
-won't contain gaps if a driver set a virt_boundary we can
-lose the bounce buffering in iser code. The second patch
-enables SG clustering as iser fully supports it.
+iser can handle it and it can dramatically reduce the
+number of SG elements. It doesn't make much of a difference at
+the moment, but with arbitrary SG list support it will benefit
+greatly.
 
-This should be applied before the New memory registration
-API patch set.
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/ulp/iser/iscsi_iser.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Sagi Grimberg (2):
-  iser: set block queue_virt_boundary
-  IB/iser: Enable SG clustering
-
- drivers/infiniband/ulp/iser/iscsi_iser.c     |  14 +-
- drivers/infiniband/ulp/iser/iscsi_iser.h     |   7 +-
- drivers/infiniband/ulp/iser/iser_initiator.c |  51 +----
- drivers/infiniband/ulp/iser/iser_memory.c    | 274 ---------------------------
- 4 files changed, 19 insertions(+), 327 deletions(-)
-
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
+index f559fe9e3baf..8017f3a049fb 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.c
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
+@@ -990,7 +990,7 @@ static struct scsi_host_template iscsi_iser_sht = {
+ 	.eh_device_reset_handler= iscsi_eh_device_reset,
+ 	.eh_target_reset_handler = iscsi_eh_recover_target,
+ 	.target_alloc		= iscsi_target_alloc,
+-	.use_clustering         = DISABLE_CLUSTERING,
++	.use_clustering         = ENABLE_CLUSTERING,
+ 	.slave_alloc            = iscsi_iser_slave_alloc,
+ 	.proc_name              = "iscsi_iser",
+ 	.this_id                = -1,
 -- 
 1.8.4.3
 
