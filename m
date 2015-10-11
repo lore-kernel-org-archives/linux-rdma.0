@@ -1,40 +1,37 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v1 2/2] IB/iser: Enable SG clustering
-Date: Sun, 11 Oct 2015 18:35:07 +0300
-Message-ID: <1444577707-15778-3-git-send-email-sagig@mellanox.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v1 2/2] IB/iser: Enable SG clustering
+Date: Sun, 11 Oct 2015 18:38:35 +0300
+Message-ID: <561A827B.6020508@dev.mellanox.co.il>
 References: <1444577707-15778-1-git-send-email-sagig@mellanox.com>
+ <1444577707-15778-3-git-send-email-sagig@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1444577707-15778-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1444577707-15778-3-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
+
+On 10/11/2015 6:35 PM, Sagi Grimberg wrote:
+> iser can handle it and it can dramatically reduce the
+> number of SG elements. It doesn't make much of a difference at
+> the moment, but with arbitrary SG list support it will benefit
+> greatly.
+>
+
+Bahh, I updated the change-log in the previous revision :(
+
+Doug would you mind updating the change-log on the fly to:
 
 iser can handle it and it can dramatically reduce the
 number of SG elements. It doesn't make much of a difference at
 the moment, but with arbitrary SG list support it will benefit
-greatly.
+greatly as it would reduce the size of the HW descriptors array.
 
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/iser/iscsi_iser.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks and sorry...
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
-index f559fe9e3baf..8017f3a049fb 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.c
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-@@ -990,7 +990,7 @@ static struct scsi_host_template iscsi_iser_sht = {
- 	.eh_device_reset_handler= iscsi_eh_device_reset,
- 	.eh_target_reset_handler = iscsi_eh_recover_target,
- 	.target_alloc		= iscsi_target_alloc,
--	.use_clustering         = DISABLE_CLUSTERING,
-+	.use_clustering         = ENABLE_CLUSTERING,
- 	.slave_alloc            = iscsi_iser_slave_alloc,
- 	.proc_name              = "iscsi_iser",
- 	.this_id                = -1,
--- 
-1.8.4.3
-
+Sagi.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
