@@ -1,48 +1,33 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: 4.4's rdma plate
-Date: Sun, 11 Oct 2015 23:58:59 +0300
-Message-ID: <CAJ3xEMhniP7x3NCM51nCccB7wBiQfWiyqaeVm8cdx=SuotrHYQ@mail.gmail.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v1 1/2] IB/iser: set block queue_virt_boundary
+Date: Sun, 11 Oct 2015 14:22:37 -0700
+Message-ID: <561AD31D.6070701@sandisk.com>
+References: <1444577707-15778-1-git-send-email-sagig@mellanox.com>
+ <1444577707-15778-2-git-send-email-sagig@mellanox.com>
+ <CAJ3xEMhhFSRcMrDm--PD-ekr6hJZZXGk_3JE2iEmmHN0fi=b-Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAJ3xEMhhFSRcMrDm--PD-ekr6hJZZXGk_3JE2iEmmHN0fi=b-Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
+On 10/11/15 12:04, Or Gerlitz wrote:
+> If the 4X assertion made here is correct, why not keeping the current
+> BB logic to come into play for such devices? I know that without the
+> BB code our driver looks much nicer and elegant, but life is sometimes
+> more complex... thoughts?
 
-As we're soon on 4.3-rc5, could you please update how things look for 4.4?
+Hello Or,
 
-The mutlicast loopback prevention patches from Eran were intially
-posted ~two months ago and went through testing by Christoph and Co.
+Whether or not this 4x assertion is correct, logic like the bounce 
+buffer mechanism that is removed by this patch series belongs in the 
+block layer core and not in a SCSI LLD.
 
-The patches do have one new uverb entry (extended form for
-ib_uverbs_create_qp) and other than that no real sensitive piece. If
-you feel you need help to review that one (patch 1), I guess there
-should be people on this list who can do that, and anyway, I don't
-think it makes sense to delay a feature which is (1) small in volume
-(2) critical to latency sensitive application for another kernel
-release. The patch set also adds nice usage of the feature to the mlx4
-EN driver (patches 2,3,4) and we don't want another kernel cycle to
-get lost w.r.t this feature, so?
-
-Haggai has posted the follow up patches to the demux series, which
-adds name spaces support for the RDMA-CM [1] -- this is a strict
-follow up which by itself went through a detailed review -- the break
-up for a pre-series that does the demux refactoring didn't leave much
-in the name space series, so I would say this should be ready to go
-to, agree?
-
-Matan has posted the next steps of his RoCE work, two patch series.
-Please let us know where you see this standing too.
-
-The SW-RoCE driver was posted to staging, V1 is fully operable, do you
-see it as ready to be picked there?
-
-Or.
-
-[1] http://marc.info/?l=linux-rdma&m=144068579319679&w=2
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
