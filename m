@@ -1,43 +1,48 @@
 From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v1 1/2] IB/iser: set block queue_virt_boundary
-Date: Sun, 11 Oct 2015 22:04:02 +0300
-Message-ID: <CAJ3xEMhhFSRcMrDm--PD-ekr6hJZZXGk_3JE2iEmmHN0fi=b-Q@mail.gmail.com>
-References: <1444577707-15778-1-git-send-email-sagig@mellanox.com>
-	<1444577707-15778-2-git-send-email-sagig@mellanox.com>
+Subject: 4.4's rdma plate
+Date: Sun, 11 Oct 2015 23:58:59 +0300
+Message-ID: <CAJ3xEMhniP7x3NCM51nCccB7wBiQfWiyqaeVm8cdx=SuotrHYQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1444577707-15778-2-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Oct 11, 2015 at 6:35 PM, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> By limiting the sg lists that we are allowing to meet
-> and 4k virtual boundary, we can completely remove the
-> entire bounce buffering logic.
+Hi Doug,
 
-"limiting the sg lists that we are allowing to meet and 4k virtual boundary"
+As we're soon on 4.3-rc5, could you please update how things look for 4.4?
 
-This "and" must be typo, right? please fix.
+The mutlicast loopback prevention patches from Eran were intially
+posted ~two months ago and went through testing by Christoph and Co.
 
-What happens now when an app wants to use 1K, 2K, 3K IOs? they can
-only use 1/4, 1/2 or 3/4 of the available memory for these
-transactions? and we are going to fix it with devices like mlx5 over
-the new API you're proposing, right?
+The patches do have one new uverb entry (extended form for
+ib_uverbs_create_qp) and other than that no real sensitive piece. If
+you feel you need help to review that one (patch 1), I guess there
+should be people on this list who can do that, and anyway, I don't
+think it makes sense to delay a feature which is (1) small in volume
+(2) critical to latency sensitive application for another kernel
+release. The patch set also adds nice usage of the feature to the mlx4
+EN driver (patches 2,3,4) and we don't want another kernel cycle to
+get lost w.r.t this feature, so?
 
-If this is the case, aren't we introducing a regression for
-applications that used this IO pattern over devices which aren't
-capable as mlx5 is (e.g mlx4), in the sense that the required memory
-footprint to address the application IO demand can be made 4X bigger?
+Haggai has posted the follow up patches to the demux series, which
+adds name spaces support for the RDMA-CM [1] -- this is a strict
+follow up which by itself went through a detailed review -- the break
+up for a pre-series that does the demux refactoring didn't leave much
+in the name space series, so I would say this should be ready to go
+to, agree?
 
-If the 4X assertion made here is correct, why not keeping the current
-BB logic to come into play for such devices? I know that without the
-BB code our driver looks much nicer and elegant, but life is sometimes
-more complex... thoughts?
+Matan has posted the next steps of his RoCE work, two patch series.
+Please let us know where you see this standing too.
+
+The SW-RoCE driver was posted to staging, V1 is fully operable, do you
+see it as ready to be picked there?
 
 Or.
+
+[1] http://marc.info/?l=linux-rdma&m=144068579319679&w=2
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
