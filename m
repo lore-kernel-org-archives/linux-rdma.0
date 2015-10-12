@@ -1,71 +1,145 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] svcrdma: Fix NFS server crash triggered by 1MB NFS WRITE
-Date: Mon, 12 Oct 2015 10:53:39 -0400
-Message-ID: <20151012145257.3981.13852.stgit@oracle-120.nfsv4bat.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v4 00/26] New fast registration API
+Date: Mon, 12 Oct 2015 18:29:13 +0300
+Message-ID: <1444663779-1522-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
-Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Now that the NFS server advertises a maximum payload size of 1MB
-for RPC/RDMA again, it crashes in svc_process_common() when NFS
-client sends a 1MB NFS WRITE on an NFS/RDMA mount.
+Hi all,
 
-The server has set up a 259 element array of struct page pointers
-in rq_pages[] for each incoming request. The last element of the
-array is NULL.
+As discussed on the linux-rdma list, there is plenty of room for
+improvement in our memory registration APIs. We keep finding
+ULPs that are duplicating code, sometimes use wrong strategies
+and mis-use our current API.
 
-When an incoming request has been completely received,
-rdma_read_complete() attempts to set the starting page of the
-incoming page vector:
+As a first step, this patch set replaces the fast registration API
+to accept a kernel common struct scatterlist and takes care of
+the page vector construction in the core layer with hooks for the
+drivers HW specific assignments. This allows to remove a common
+code duplication as it was done in each and every ULP driver.
 
-  rqstp->rq_arg.pages = &rqstp->rq_pages[head->hdr_count];
+Changes from v3:
+- Addressed some xprtrdma comments (Chuck)
+- Removed xprtrdma change-log paragraph (Or)
 
-and the page to use for the reply:
+Changes from v2:
+- Fixed alignment for page lists allocations in mlx4, mlx5 (Bart)
+- Rebased against Doug's for-4.4 tree (4.3.0-rc1) + 4.3-rc fixes
+- Added Acked/Tested tags
 
-  rqstp->rq_respages = &rqstp->rq_arg.pages[page_no];
+Changes from v1:
+- Add ib_map_mr_sg_zbva() for RDS which uses it (preferred it over
+  polluting the API).
+- Replaced coherent allocations in mlx4, mlx5 with DMA streaming
+  APIs (Bart)
+- Changed ib_map_mr_sg description (Bart)
+- Split SRP driver patches (Bart)
+- Added missing wr->next = NULL from various ULPs (Steve, Santosh)
+- Fixed 0-day testing errors in nes driver, xprtrdma and svcrdma
+- Fixed checkpatch issues
 
-But the value of page_no has already accounted for head->hdr_count.
-Thus rq_respages now points past the end of the incoming pages.
+Changes from v0:
+- Rebased on top of 4.3-rc1 + Christoph's ib_send_wr conversion patches
+- Allow the ULP to pass page_size argument to ib_map_mr_sg in order
+  to have it work better in some specific workloads. This suggestion
+  came from Bart Van Assche which pointed out that some applications
+  might use page sizes significantly smaller than the system PAGE_SIZE
+  of specific architectures
+- Fixed some logical bugs in ib_sg_to_pages
+- Added a set_page function pointer for drivers to pass to ib_sg_to_pages
+  so some drivers (e.g mlx4, mlx5, nes) can avoid keeping a second page
+  vector and/or re-iterate on the page vector in order to perform HW specific
+  assignments (big/little endian conversion, extra flags)
+- Converted SRP initiator and RDS iwarp ULPs to the new API
+- Removed fast registration code from hfi1 driver (as it isn't supported
+  anyway). I assume that the correct place to get the support back would
+  be in a shared SW library (hfi1, qib, rxe).
+- Updated the change logs
 
-For NFS WRITE operations smaller than the maximum, this is harmless.
-But when the NFS WRITE operation is as large as the server's max
-payload size, rq_respages now points at the last entry in rq_pages,
-which is NULL.
+The code is available at: https://github.com/sagigrimberg/linux/tree/reg_api.6
 
-Fixes: cc9a903d915c ('svcrdma: Change maximum server payload . . .')
-BugLink: https://bugzilla.linux-nfs.org/show_bug.cgi?id=270
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Reviewed-by: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
+Sagi Grimberg (26):
+  IB/core: Introduce new fast registration API
+  IB/mlx5: Remove dead fmr code
+  IB/mlx5: Support the new memory registration API
+  IB/mlx4: Support the new memory registration API
+  RDMA/ocrdma: Support the new memory registration API
+  RDMA/cxgb3: Support the new memory registration API
+  iw_cxgb4: Support the new memory registration API
+  IB/qib: Support the new memory registration API
+  RDMA/nes: Support the new memory registration API
+  IB/iser: Port to new fast registration API
+  iser-target: Port to new memory registration API
+  xprtrdma: Port to new memory registration API
+  svcrdma: Port to new memory registration API
+  RDS/IW: Convert to new memory registration API
+  IB/srp: Split srp_map_sg
+  IB/srp: Convert to new registration API
+  IB/srp: Remove srp_finish_mapping
+  IB/srp: Dont allocate a page vector when using fast_reg
+  IB/mlx5: Remove old FRWR API support
+  IB/mlx4: Remove old FRWR API support
+  RDMA/ocrdma: Remove old FRWR API
+  RDMA/cxgb3: Remove old FRWR API
+  iw_cxgb4: Remove old FRWR API
+  IB/qib: Remove old FRWR API
+  RDMA/nes: Remove old FRWR API
+  IB/core: Remove old fast registration API
 
-Hi Bruce-
+ drivers/infiniband/core/verbs.c             | 132 +++++++++++---
+ drivers/infiniband/hw/cxgb3/iwch_cq.c       |   2 +-
+ drivers/infiniband/hw/cxgb3/iwch_provider.c |  39 +++--
+ drivers/infiniband/hw/cxgb3/iwch_provider.h |   2 +
+ drivers/infiniband/hw/cxgb3/iwch_qp.c       |  37 ++--
+ drivers/infiniband/hw/cxgb4/cq.c            |   2 +-
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h      |  25 +--
+ drivers/infiniband/hw/cxgb4/mem.c           |  61 +++----
+ drivers/infiniband/hw/cxgb4/provider.c      |   3 +-
+ drivers/infiniband/hw/cxgb4/qp.c            |  47 +++--
+ drivers/infiniband/hw/mlx4/cq.c             |   2 +-
+ drivers/infiniband/hw/mlx4/main.c           |   3 +-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h        |  25 ++-
+ drivers/infiniband/hw/mlx4/mr.c             | 149 ++++++++++------
+ drivers/infiniband/hw/mlx4/qp.c             |  34 ++--
+ drivers/infiniband/hw/mlx5/cq.c             |   4 +-
+ drivers/infiniband/hw/mlx5/main.c           |   3 +-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h        |  48 +-----
+ drivers/infiniband/hw/mlx5/mr.c             | 135 ++++++++++-----
+ drivers/infiniband/hw/mlx5/qp.c             | 140 +++++++--------
+ drivers/infiniband/hw/nes/nes_hw.h          |   6 -
+ drivers/infiniband/hw/nes/nes_verbs.c       | 163 +++++++-----------
+ drivers/infiniband/hw/nes/nes_verbs.h       |   4 +
+ drivers/infiniband/hw/ocrdma/ocrdma.h       |   2 +
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c  |   3 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 154 ++++++++---------
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.h |   7 +-
+ drivers/infiniband/hw/qib/qib_keys.c        |  42 ++---
+ drivers/infiniband/hw/qib/qib_mr.c          |  46 ++---
+ drivers/infiniband/hw/qib/qib_verbs.c       |  13 +-
+ drivers/infiniband/hw/qib/qib_verbs.h       |  13 +-
+ drivers/infiniband/ulp/iser/iscsi_iser.h    |   8 +-
+ drivers/infiniband/ulp/iser/iser_memory.c   |  54 +++---
+ drivers/infiniband/ulp/iser/iser_verbs.c    |  16 +-
+ drivers/infiniband/ulp/isert/ib_isert.c     | 130 +++-----------
+ drivers/infiniband/ulp/isert/ib_isert.h     |   2 -
+ drivers/infiniband/ulp/srp/ib_srp.c         | 256 +++++++++++++++++-----------
+ drivers/infiniband/ulp/srp/ib_srp.h         |  11 +-
+ include/linux/sunrpc/svc_rdma.h             |   6 +-
+ include/rdma/ib_verbs.h                     |  86 +++++-----
+ net/rds/iw.h                                |   5 +-
+ net/rds/iw_rdma.c                           | 128 +++++---------
+ net/rds/iw_send.c                           |  57 +++----
+ net/sunrpc/xprtrdma/frwr_ops.c              | 118 +++++++------
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c     |  76 +++++----
+ net/sunrpc/xprtrdma/svc_rdma_transport.c    |  34 ++--
+ net/sunrpc/xprtrdma/xprt_rdma.h             |   3 +-
+ 47 files changed, 1160 insertions(+), 1176 deletions(-)
 
-This is a regression in 4.3. Can you send this to Linus?
-
-
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-index cb51742..37b4341 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-@@ -531,7 +531,7 @@ static int rdma_read_complete(struct svc_rqst *rqstp,
- 	rqstp->rq_arg.page_base = head->arg.page_base;
- 
- 	/* rq_respages starts after the last arg page */
--	rqstp->rq_respages = &rqstp->rq_arg.pages[page_no];
-+	rqstp->rq_respages = &rqstp->rq_pages[page_no];
- 	rqstp->rq_next_page = rqstp->rq_respages + 1;
- 
- 	/* Rebuild rq_arg head and tail. */
+-- 
+1.8.4.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
