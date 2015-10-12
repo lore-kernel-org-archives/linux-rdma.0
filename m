@@ -1,188 +1,256 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v4 06/26] RDMA/cxgb3: Support the new memory registration API
-Date: Mon, 12 Oct 2015 18:29:19 +0300
-Message-ID: <1444663779-1522-7-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v4 15/26] IB/srp: Split srp_map_sg
+Date: Mon, 12 Oct 2015 18:29:28 +0300
+Message-ID: <1444663779-1522-16-git-send-email-sagig@mellanox.com>
 References: <1444663779-1522-1-git-send-email-sagig@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1444663779-1522-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Support the new memory registration API by allocating a
-private page list array in iwch_mr and populate it when
-iwch_map_mr_sg is invoked. Also, support IB_WR_REG_MR
-by duplicating build_fastreg just take the needed information
-from different places:
-- page_size, iova, length (ib_mr)
-- page array (iwch_mr)
-- key, access flags (ib_reg_wr)
-
-The IB_WR_FAST_REG_MR handlers will be removed later when
-all the ULPs will be converted.
+This is a preparation patch for the new registration API
+conversion. It splits srp_map_sg per registration strategy
+(srp_map_sg[fmr|fr|dma]. On its own it adds some code duplication,
+but it makes the API switch easier to comprehend.
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Acked-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Tested-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb3/iwch_provider.c | 33 ++++++++++++++++++++
- drivers/infiniband/hw/cxgb3/iwch_provider.h |  2 ++
- drivers/infiniband/hw/cxgb3/iwch_qp.c       | 48 +++++++++++++++++++++++++++++
- 3 files changed, 83 insertions(+)
+ drivers/infiniband/ulp/srp/ib_srp.c | 157 ++++++++++++++++++++++++------------
+ 1 file changed, 106 insertions(+), 51 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-index 93308c45f298..ee3d5ca7de6c 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -463,6 +463,7 @@ static int iwch_dereg_mr(struct ib_mr *ib_mr)
- 		return -EINVAL;
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 1390f99ca76b..3ec94c109e1b 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -1286,6 +1286,17 @@ static int srp_map_finish_fmr(struct srp_map_state *state,
+ 	if (state->fmr.next >= state->fmr.end)
+ 		return -ENOMEM;
  
- 	mhp = to_iwch_mr(ib_mr);
-+	kfree(mhp->pages);
- 	rhp = mhp->rhp;
- 	mmid = mhp->attr.stag >> 8;
- 	cxio_dereg_mem(&rhp->rdev, mhp->attr.stag, mhp->attr.pbl_size,
-@@ -821,6 +822,12 @@ static struct ib_mr *iwch_alloc_mr(struct ib_pd *pd,
- 	if (!mhp)
- 		goto err;
- 
-+	mhp->pages = kcalloc(max_num_sg, sizeof(u64), GFP_KERNEL);
-+	if (!mhp->pages) {
-+		ret = -ENOMEM;
-+		goto pl_err;
++	WARN_ON_ONCE(!dev->use_fmr);
++
++	if (state->npages == 0)
++		return 0;
++
++	if (state->npages == 1 && target->global_mr) {
++		srp_map_desc(state, state->base_dma_addr, state->dma_len,
++			     target->global_mr->rkey);
++		goto reset_state;
 +	}
 +
- 	mhp->rhp = rhp;
- 	ret = iwch_alloc_pbl(mhp, max_num_sg);
- 	if (ret)
-@@ -847,11 +854,36 @@ err3:
- err2:
- 	iwch_free_pbl(mhp);
- err1:
-+	kfree(mhp->pages);
-+pl_err:
- 	kfree(mhp);
- err:
- 	return ERR_PTR(ret);
- }
+ 	fmr = ib_fmr_pool_map_phys(ch->fmr_pool, state->pages,
+ 				   state->npages, io_addr);
+ 	if (IS_ERR(fmr))
+@@ -1297,6 +1308,10 @@ static int srp_map_finish_fmr(struct srp_map_state *state,
+ 	srp_map_desc(state, state->base_dma_addr & ~dev->mr_page_mask,
+ 		     state->dma_len, fmr->fmr->rkey);
  
-+static int iwch_set_page(struct ib_mr *ibmr, u64 addr)
-+{
-+	struct iwch_mr *mhp = to_iwch_mr(ibmr);
++reset_state:
++	state->npages = 0;
++	state->dma_len = 0;
 +
-+	if (unlikely(mhp->npages == mhp->attr.pbl_size))
-+		return -ENOMEM;
-+
-+	mhp->pages[mhp->npages++] = addr;
-+
-+	return 0;
-+}
-+
-+static int iwch_map_mr_sg(struct ib_mr *ibmr,
-+			  struct scatterlist *sg,
-+			  unsigned int sg_nents)
-+{
-+	struct iwch_mr *mhp = to_iwch_mr(ibmr);
-+
-+	mhp->npages = 0;
-+
-+	return ib_sg_to_pages(ibmr, sg, sg_nents, iwch_set_page);
-+}
-+
- static struct ib_fast_reg_page_list *iwch_alloc_fastreg_pbl(
- 					struct ib_device *device,
- 					int page_list_len)
-@@ -1450,6 +1482,7 @@ int iwch_register_device(struct iwch_dev *dev)
- 	dev->ibdev.bind_mw = iwch_bind_mw;
- 	dev->ibdev.dealloc_mw = iwch_dealloc_mw;
- 	dev->ibdev.alloc_mr = iwch_alloc_mr;
-+	dev->ibdev.map_mr_sg = iwch_map_mr_sg;
- 	dev->ibdev.alloc_fast_reg_page_list = iwch_alloc_fastreg_pbl;
- 	dev->ibdev.free_fast_reg_page_list = iwch_free_fastreg_pbl;
- 	dev->ibdev.attach_mcast = iwch_multicast_attach;
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.h b/drivers/infiniband/hw/cxgb3/iwch_provider.h
-index 87c14b0c5ac0..2ac85b86a680 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.h
-+++ b/drivers/infiniband/hw/cxgb3/iwch_provider.h
-@@ -77,6 +77,8 @@ struct iwch_mr {
- 	struct iwch_dev *rhp;
- 	u64 kva;
- 	struct tpt_attributes attr;
-+	u64 *pages;
-+	u32 npages;
- };
- 
- typedef struct iwch_mw iwch_mw_handle;
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_qp.c b/drivers/infiniband/hw/cxgb3/iwch_qp.c
-index bac0508fedd9..a09ea538e990 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_qp.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_qp.c
-@@ -146,6 +146,49 @@ static int build_rdma_read(union t3_wr *wqe, struct ib_send_wr *wr,
  	return 0;
  }
  
-+static int build_memreg(union t3_wr *wqe, struct ib_reg_wr *wr,
-+			  u8 *flit_cnt, int *wr_cnt, struct t3_wq *wq)
-+{
-+	struct iwch_mr *mhp = to_iwch_mr(wr->mr);
-+	int i;
-+	__be64 *p;
+@@ -1309,10 +1324,22 @@ static int srp_map_finish_fr(struct srp_map_state *state,
+ 	struct ib_fast_reg_wr wr;
+ 	struct srp_fr_desc *desc;
+ 	u32 rkey;
++	int err;
+ 
+ 	if (state->fr.next >= state->fr.end)
+ 		return -ENOMEM;
+ 
++	WARN_ON_ONCE(!dev->use_fast_reg);
 +
-+	if (mhp->npages > T3_MAX_FASTREG_DEPTH)
-+		return -EINVAL;
-+	*wr_cnt = 1;
-+	wqe->fastreg.stag = cpu_to_be32(wr->key);
-+	wqe->fastreg.len = cpu_to_be32(mhp->ibmr.length);
-+	wqe->fastreg.va_base_hi = cpu_to_be32(mhp->ibmr.iova >> 32);
-+	wqe->fastreg.va_base_lo_fbo =
-+				cpu_to_be32(mhp->ibmr.iova & 0xffffffff);
-+	wqe->fastreg.page_type_perms = cpu_to_be32(
-+		V_FR_PAGE_COUNT(mhp->npages) |
-+		V_FR_PAGE_SIZE(ilog2(wr->mr->page_size) - 12) |
-+		V_FR_TYPE(TPT_VATO) |
-+		V_FR_PERMS(iwch_ib_to_tpt_access(wr->access)));
-+	p = &wqe->fastreg.pbl_addrs[0];
-+	for (i = 0; i < mhp->npages; i++, p++) {
++	if (state->npages == 0)
++		return 0;
 +
-+		/* If we need a 2nd WR, then set it up */
-+		if (i == T3_MAX_FASTREG_FRAG) {
-+			*wr_cnt = 2;
-+			wqe = (union t3_wr *)(wq->queue +
-+				Q_PTR2IDX((wq->wptr+1), wq->size_log2));
-+			build_fw_riwrh((void *)wqe, T3_WR_FASTREG, 0,
-+			       Q_GENBIT(wq->wptr + 1, wq->size_log2),
-+			       0, 1 + mhp->npages - T3_MAX_FASTREG_FRAG,
-+			       T3_EOP);
-+
-+			p = &wqe->pbl_frag.pbl_addrs[0];
-+		}
-+		*p = cpu_to_be64((u64)mhp->pages[i]);
++	if (state->npages == 1 && target->global_mr) {
++		srp_map_desc(state, state->base_dma_addr, state->dma_len,
++			     target->global_mr->rkey);
++		goto reset_state;
 +	}
-+	*flit_cnt = 5 + mhp->npages;
-+	if (*flit_cnt > 15)
-+		*flit_cnt = 15;
++
+ 	desc = srp_fr_pool_get(ch->fr_pool);
+ 	if (!desc)
+ 		return -ENOMEM;
+@@ -1342,7 +1369,15 @@ static int srp_map_finish_fr(struct srp_map_state *state,
+ 	srp_map_desc(state, state->base_dma_addr, state->dma_len,
+ 		     desc->mr->rkey);
+ 
+-	return ib_post_send(ch->qp, &wr.wr, &bad_wr);
++	err = ib_post_send(ch->qp, &wr.wr, &bad_wr);
++	if (err)
++		return err;
++
++reset_state:
++	state->npages = 0;
++	state->dma_len = 0;
++
++	return 0;
+ }
+ 
+ static int srp_finish_mapping(struct srp_map_state *state,
+@@ -1350,26 +1385,9 @@ static int srp_finish_mapping(struct srp_map_state *state,
+ {
+ 	struct srp_target_port *target = ch->target;
+ 	struct srp_device *dev = target->srp_host->srp_dev;
+-	int ret = 0;
+ 
+-	WARN_ON_ONCE(!dev->use_fast_reg && !dev->use_fmr);
+-
+-	if (state->npages == 0)
+-		return 0;
+-
+-	if (state->npages == 1 && target->global_mr)
+-		srp_map_desc(state, state->base_dma_addr, state->dma_len,
+-			     target->global_mr->rkey);
+-	else
+-		ret = dev->use_fast_reg ? srp_map_finish_fr(state, ch) :
+-			srp_map_finish_fmr(state, ch);
+-
+-	if (ret == 0) {
+-		state->npages = 0;
+-		state->dma_len = 0;
+-	}
+-
+-	return ret;
++	return dev->use_fast_reg ? srp_map_finish_fr(state, ch) :
++				   srp_map_finish_fmr(state, ch);
+ }
+ 
+ static int srp_map_sg_entry(struct srp_map_state *state,
+@@ -1415,47 +1433,79 @@ static int srp_map_sg_entry(struct srp_map_state *state,
+ 	return ret;
+ }
+ 
+-static int srp_map_sg(struct srp_map_state *state, struct srp_rdma_ch *ch,
+-		      struct srp_request *req, struct scatterlist *scat,
+-		      int count)
++static int srp_map_sg_fmr(struct srp_map_state *state, struct srp_rdma_ch *ch,
++			  struct srp_request *req, struct scatterlist *scat,
++			  int count)
+ {
+-	struct srp_target_port *target = ch->target;
+-	struct srp_device *dev = target->srp_host->srp_dev;
+ 	struct scatterlist *sg;
+ 	int i, ret;
+ 
+-	state->desc	= req->indirect_desc;
+-	state->pages	= req->map_page;
+-	if (dev->use_fast_reg) {
+-		state->fr.next = req->fr_list;
+-		state->fr.end = req->fr_list + target->cmd_sg_cnt;
+-	} else if (dev->use_fmr) {
+-		state->fmr.next = req->fmr_list;
+-		state->fmr.end = req->fmr_list + target->cmd_sg_cnt;
++	state->desc = req->indirect_desc;
++	state->pages = req->map_page;
++	state->fmr.next = req->fmr_list;
++	state->fmr.end = req->fmr_list + ch->target->cmd_sg_cnt;
++
++	for_each_sg(scat, sg, count, i) {
++		ret = srp_map_sg_entry(state, ch, sg, i);
++		if (ret)
++			return ret;
+ 	}
+ 
+-	if (dev->use_fast_reg || dev->use_fmr) {
+-		for_each_sg(scat, sg, count, i) {
+-			ret = srp_map_sg_entry(state, ch, sg, i);
+-			if (ret)
+-				goto out;
+-		}
+-		ret = srp_finish_mapping(state, ch);
++	ret = srp_finish_mapping(state, ch);
++	if (ret)
++		return ret;
++
++	req->nmdesc = state->nmdesc;
++
 +	return 0;
 +}
 +
- static int build_fastreg(union t3_wr *wqe, struct ib_send_wr *send_wr,
- 				u8 *flit_cnt, int *wr_cnt, struct t3_wq *wq)
- {
-@@ -419,6 +462,11 @@ int iwch_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 			err = build_fastreg(wqe, wr, &t3_wr_flit_cnt,
- 						 &wr_cnt, &qhp->wq);
- 			break;
-+		case IB_WR_REG_MR:
-+			t3_wr_opcode = T3_WR_FASTREG;
-+			err = build_memreg(wqe, reg_wr(wr), &t3_wr_flit_cnt,
-+					   &wr_cnt, &qhp->wq);
-+			break;
- 		case IB_WR_LOCAL_INV:
- 			if (wr->send_flags & IB_SEND_FENCE)
- 				t3_wr_flags |= T3_LOCAL_FENCE_FLAG;
++static int srp_map_sg_fr(struct srp_map_state *state, struct srp_rdma_ch *ch,
++			 struct srp_request *req, struct scatterlist *scat,
++			 int count)
++{
++	struct scatterlist *sg;
++	int i, ret;
++
++	state->desc = req->indirect_desc;
++	state->pages = req->map_page;
++	state->fmr.next = req->fmr_list;
++	state->fmr.end = req->fmr_list + ch->target->cmd_sg_cnt;
++
++	for_each_sg(scat, sg, count, i) {
++		ret = srp_map_sg_entry(state, ch, sg, i);
+ 		if (ret)
+-			goto out;
+-	} else {
+-		for_each_sg(scat, sg, count, i) {
+-			srp_map_desc(state, ib_sg_dma_address(dev->dev, sg),
+-				     ib_sg_dma_len(dev->dev, sg),
+-				     target->global_mr->rkey);
+-		}
++			return ret;
+ 	}
+ 
++	ret = srp_finish_mapping(state, ch);
++	if (ret)
++		return ret;
++
+ 	req->nmdesc = state->nmdesc;
+-	ret = 0;
+ 
+-out:
+-	return ret;
++	return 0;
++}
++
++static int srp_map_sg_dma(struct srp_map_state *state, struct srp_rdma_ch *ch,
++			  struct srp_request *req, struct scatterlist *scat,
++			  int count)
++{
++	struct srp_target_port *target = ch->target;
++	struct srp_device *dev = target->srp_host->srp_dev;
++	struct scatterlist *sg;
++	int i;
++
++	state->desc = req->indirect_desc;
++	for_each_sg(scat, sg, count, i) {
++		srp_map_desc(state, ib_sg_dma_address(dev->dev, sg),
++			     ib_sg_dma_len(dev->dev, sg),
++			     target->global_mr->rkey);
++	}
++
++	req->nmdesc = state->nmdesc;
++
++	return 0;
+ }
+ 
+ /*
+@@ -1563,7 +1613,12 @@ static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_rdma_ch *ch,
+ 				   target->indirect_size, DMA_TO_DEVICE);
+ 
+ 	memset(&state, 0, sizeof(state));
+-	srp_map_sg(&state, ch, req, scat, count);
++	if (dev->use_fast_reg)
++		srp_map_sg_fr(&state, ch, req, scat, count);
++	else if (dev->use_fmr)
++		srp_map_sg_fmr(&state, ch, req, scat, count);
++	else
++		srp_map_sg_dma(&state, ch, req, scat, count);
+ 
+ 	/* We've mapped the request, now pull as much of the indirect
+ 	 * descriptor table as we can into the command buffer. If this
 -- 
 1.8.4.3
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
