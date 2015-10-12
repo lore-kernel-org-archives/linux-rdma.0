@@ -1,49 +1,78 @@
-From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: [PATCH for-next 0/2]  RDMA/cxgb4: Add iWARP support for T6 adapter
-Date: Mon, 12 Oct 2015 12:01:58 -0500
-Message-ID: <003201d1050f$b4b7d590$1e2780b0$@opengridcomputing.com>
-References: <1443008967-8942-1-git-send-email-hariprasad@chelsio.com>
+From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH] svcrdma: Fix NFS server crash triggered by 1MB NFS WRITE
+Date: Mon, 12 Oct 2015 13:13:52 -0400
+Message-ID: <20151012171352.GC28755@fieldses.org>
+References: <20151012145257.3981.13852.stgit@oracle-120.nfsv4bat.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1443008967-8942-1-git-send-email-hariprasad@chelsio.com>
-Content-Language: en-us
-Sender: netdev-owner@vger.kernel.org
-To: 'Hariprasad Shenai' <hariprasad@chelsio.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org
-Cc: dledford@redhat.com, davem@davemloft.net, leedom@chelsio.com, nirranjan@chelsio.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20151012145257.3981.13852.stgit-SEkpj4eus7wUkR7QxMS4uupQh6Td+b7Z@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-> -----Original Message-----
-> From: netdev-owner@vger.kernel.org [mailto:netdev-owner@vger.kernel.org] On Behalf Of Hariprasad Shenai
-> Sent: Wednesday, September 23, 2015 6:49 AM
-> To: linux-rdma@vger.kernel.org; netdev@vger.kernel.org
-> Cc: dledford@redhat.com; davem@davemloft.net; swise@opengridcomputing.com; leedom@chelsio.com; nirranjan@chelsio.com;
-> Hariprasad Shenai
-> Subject: [PATCH for-next 0/2] RDMA/cxgb4: Add iWARP support for T6 adapter
+On Mon, Oct 12, 2015 at 10:53:39AM -0400, Chuck Lever wrote:
+> Now that the NFS server advertises a maximum payload size of 1MB
+> for RPC/RDMA again, it crashes in svc_process_common() when NFS
+> client sends a 1MB NFS WRITE on an NFS/RDMA mount.
 > 
-> Hi,
+> The server has set up a 259 element array of struct page pointers
+> in rq_pages[] for each incoming request. The last element of the
+> array is NULL.
 > 
-> PATCH 1/2 adds changes like new register, structure and functions in cxgb4
-> driver for iw_cxgb4 driver, and PATCH 2/2 adds iw_cxgb4 specific code to
-> support T6 adapter.
+> When an incoming request has been completely received,
+> rdma_read_complete() attempts to set the starting page of the
+> incoming page vector:
 > 
-> This patch series has been created against Doug's linux tree and includes
-> patches on cxgb4 and iw_cxgb4 driver.
+>   rqstp->rq_arg.pages = &rqstp->rq_pages[head->hdr_count];
 > 
-> We have included all the maintainers of respective drivers. Kindly review
-> the change and let us know in case of any review comments.
+> and the page to use for the reply:
 > 
-> Thanks
+>   rqstp->rq_respages = &rqstp->rq_arg.pages[page_no];
 > 
+> But the value of page_no has already accounted for head->hdr_count.
+> Thus rq_respages now points past the end of the incoming pages.
+> 
+> For NFS WRITE operations smaller than the maximum, this is harmless.
+> But when the NFS WRITE operation is as large as the server's max
+> payload size, rq_respages now points at the last entry in rq_pages,
+> which is NULL.
+> 
+> Fixes: cc9a903d915c ('svcrdma: Change maximum server payload . . .')
+> BugLink: https://bugzilla.linux-nfs.org/show_bug.cgi?id=270
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+> Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> Reviewed-by: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+> 
+> Hi Bruce-
+> 
+> This is a regression in 4.3. Can you send this to Linus?
 
-These look ok to me. 
+OK, queuing for 4.3, thanks.--b.
 
-Series Reviewed-by: Steve Wise <swise@opengridcomputing.com>
-
-Doug, should these get staged through your tree?
-
-Steve.
+> 
+> 
+>  net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+> index cb51742..37b4341 100644
+> --- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+> +++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+> @@ -531,7 +531,7 @@ static int rdma_read_complete(struct svc_rqst *rqstp,
+>  	rqstp->rq_arg.page_base = head->arg.page_base;
+>  
+>  	/* rq_respages starts after the last arg page */
+> -	rqstp->rq_respages = &rqstp->rq_arg.pages[page_no];
+> +	rqstp->rq_respages = &rqstp->rq_pages[page_no];
+>  	rqstp->rq_next_page = rqstp->rq_respages + 1;
+>  
+>  	/* Rebuild rq_arg head and tail. */
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
