@@ -1,63 +1,67 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: merge struct ib_device_attr into struct ib_device V2
-Date: Mon, 12 Oct 2015 12:26:06 +0300
-Message-ID: <561B7CAE.3040505@dev.mellanox.co.il>
-References: <1444633078-27166-1-git-send-email-hch@lst.de>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH infiniband-diags] perfquery.c: Fix smp_query_via return value
+ checks
+Date: Mon, 12 Oct 2015 08:30:31 -0400
+Message-ID: <561BA7E7.4050401@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1444633078-27166-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: David Binderman <dcb314-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/12/2015 9:57 AM, Christoph Hellwig wrote:
-> This patch gets rid of struct ib_device_attr and cleans up drivers nicely.
->
-> It goes on top of my send_wr cleanups and the memory registration udpates
-> from Sagi.
->
-> Changes since V1:
->   - rebased on top of the Sagi's latest reg_api.6 branch
->
 
-Christoph,
+smp_query_via returns pointer so < 0 comparison is wrong:
+src/perfquery.c: In function ?is_rsfec_mode_active?:
+src/perfquery.c:481: warning: ordered comparison of pointer with integer zero
+src/perfquery.c: In function ?main?:
+src/perfquery.c:919: warning: ordered comparison of pointer with integer zero
+src/perfquery.c:928: warning: ordered comparison of pointer with integer zero
+ 
+Reported-by: David Binderman <dcb314-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org> 
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+Fix for OFA Bugzilla #2572
 
-First go with this looks OK for mlx4. mlx5 needs the below incremental
-patch to be folded in.
-
-we need dev->ib_dev.max_pkeys set when get_port_caps() is called.
-
---
-diff --git a/drivers/infiniband/hw/mlx5/main.c 
-b/drivers/infiniband/hw/mlx5/main.c
-index 67b979f..5b73322 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1321,6 +1321,10 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
-
-         dev->mdev = mdev;
-
-+       err = mlx5_ib_init_device_flags(&dev->ib_dev);
-+       if (err)
-+               goto err_dealloc;
-+
-         err = get_port_caps(dev);
-         if (err)
-                 goto err_dealloc;
-@@ -1433,10 +1437,6 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
-         if (err)
-                 goto err_rsrc;
-
--       err = mlx5_ib_init_device_flags(&dev->ib_dev);
--       if (err)
--               goto err_rsrc;
--
-         err = ib_register_device(&dev->ib_dev, NULL);
-         if (err)
-                 goto err_odp;
---
+diff --git a/src/perfquery.c b/src/perfquery.c
+index 9e3a307..948ce52 100644
+--- a/src/perfquery.c
++++ b/src/perfquery.c
+@@ -477,8 +477,8 @@ static uint8_t is_rsfec_mode_active(ib_portid_t * portid, int port,
+ 			return 0;
+ 		}
+ 
+-		if (smp_query_via(data, portid, IB_ATTR_PORT_INFO_EXT, port, 0,
+-				  srcport) < 0)
++		if (!smp_query_via(data, portid, IB_ATTR_PORT_INFO_EXT, port, 0,
++				   srcport))
+ 			IBEXIT("smp query portinfo extended failed");
+ 
+ 		mad_decode_field(data, IB_PORT_EXT_CAPMASK_F, &pie_capmask);
+@@ -915,8 +915,8 @@ int main(int argc, char **argv)
+ 
+ 
+ 	if (all_ports_loop || (loop_ports && (all_ports || port == ALL_PORTS))) {
+-		if (smp_query_via(data, &portid, IB_ATTR_NODE_INFO, 0, 0,
+-				  srcport) < 0)
++		if (!smp_query_via(data, &portid, IB_ATTR_NODE_INFO, 0, 0,
++				   srcport))
+ 			IBEXIT("smp query nodeinfo failed");
+ 		node_type = mad_get_field(data, 0, IB_NODE_TYPE_F);
+ 		mad_decode_field(data, IB_NODE_NPORTS_F, &num_ports);
+@@ -924,8 +924,8 @@ int main(int argc, char **argv)
+ 			IBEXIT("smp query nodeinfo: num ports invalid");
+ 
+ 		if (node_type == IB_NODE_SWITCH) {
+-			if (smp_query_via(data, &portid, IB_ATTR_SWITCH_INFO,
+-					  0, 0, srcport) < 0)
++			if (!smp_query_via(data, &portid, IB_ATTR_SWITCH_INFO,
++					   0, 0, srcport))
+ 				IBEXIT("smp query nodeinfo failed");
+ 			enhancedport0 =
+ 			    mad_get_field(data, 0, IB_SW_ENHANCED_PORT0_F);
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
