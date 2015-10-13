@@ -1,177 +1,87 @@
 From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH infiniband-diags] libibnetdisc: Avoid pushing same pointer to the hash table
-Date: Mon, 12 Oct 2015 23:02:19 -0400
-Message-ID: <20151013030218.GA14205@phlsvsds.ph.intel.com>
-References: <560BDB5F.2040001@dev.mellanox.co.il>
+Subject: [ANNOUNCE] infiniband-diags 1.6.6 release
+Date: Tue, 13 Oct 2015 00:11:33 -0400
+Message-ID: <20151013041132.GA27824@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <560BDB5F.2040001-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Sep 30, 2015 at 08:53:51AM -0400, Hal Rosenstock wrote:
-> From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> This patch avoids pushing the same pointer to the hash table that causes
-> endless loop during dumping.
-> 
-> Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->
+There is a new release of infiniband-diags at:
 
-I'm not sure what would cause this to happen in a real fabric, especially for
-the node guids.
+https://www.openfabrics.org/downloads/management/infiniband-diags-1.6.6=
+=2Etar.gz
 
-Regardless it seems like a good check if there is a misbehaving node on the
-fabric.
+md5sum:
 
-Thanks, applied,
-Ira
+b855ca3b98afefc2ad6a2de378ab71dd  infiniband-diags-1.6.6.tar.gz
 
->
-> ---
->  libibnetdisc/src/ibnetdisc.c       |   39 ++++++++++++++++++++++++++++++++---
->  libibnetdisc/src/ibnetdisc_cache.c |   19 ++++++++++++++--
->  libibnetdisc/src/internal.h        |    4 +-
->  3 files changed, 53 insertions(+), 9 deletions(-)
-> 
-> diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
-> index e0f2d78..938a516 100644
-> --- a/libibnetdisc/src/ibnetdisc.c
-> +++ b/libibnetdisc/src/ibnetdisc.c
-> @@ -353,7 +353,12 @@ static int recv_port_info(smp_engine_t * engine, ibnd_smp_t * smp,
->  		port->lmc = node->smalmc;
->  	}
->  
-> -	add_to_portguid_hash(port, f_int->fabric.portstbl);
-> +	int rc1 = add_to_portguid_hash(port, f_int->fabric.portstbl);
-> +	if (rc1)
-> +		IBND_ERROR("Error Occurred when trying"
-> +			   " to insert new port guid 0x%016" PRIx64 " to DB\n",
-> +			   port->guid);
-> +
->  	add_to_portlid_hash(port, f_int->lid2guid);
->  
->  	if ((scan->cfg->flags & IBND_CONFIG_MLX_EPI)
-> @@ -458,7 +463,11 @@ static ibnd_node_t *create_node(smp_engine_t * engine, ib_portid_t * path,
->  	rc->path_portid = *path;
->  	memcpy(rc->info, node_info, sizeof(rc->info));
->  
-> -	add_to_nodeguid_hash(rc, f_int->fabric.nodestbl);
-> +	int rc1 = add_to_nodeguid_hash(rc, f_int->fabric.nodestbl);
-> +	if (rc1)
-> +		IBND_ERROR("Error Occurred when trying"
-> +			   " to insert new node guid 0x%016" PRIx64 " to DB\n",
-> +			   rc->guid);
->  
->  	/* add this to the all nodes list */
->  	rc->next = f_int->fabric.nodes;
-> @@ -607,20 +616,42 @@ ibnd_node_t *ibnd_find_node_dr(ibnd_fabric_t * fabric, char *dr_str)
->  	return rc->node;
->  }
->  
-> -void add_to_nodeguid_hash(ibnd_node_t * node, ibnd_node_t * hash[])
-> +int add_to_nodeguid_hash(ibnd_node_t * node, ibnd_node_t * hash[])
->  {
-> +	int rc = 0;
-> +	ibnd_node_t *tblnode;
->  	int hash_idx = HASHGUID(node->guid) % HTSZ;
->  
-> +	for (tblnode = hash[hash_idx]; tblnode; tblnode = tblnode->htnext) {
-> +		if (tblnode == node) {
-> +			IBND_ERROR("Duplicate Node: Node with guid 0x%016"
-> +				   PRIx64 " already exists in nodes DB\n",
-> +				   node->guid);
-> +			return 1;
-> +		}
-> +	}
->  	node->htnext = hash[hash_idx];
->  	hash[hash_idx] = node;
-> +	return rc;
->  }
->  
-> -void add_to_portguid_hash(ibnd_port_t * port, ibnd_port_t * hash[])
-> +int add_to_portguid_hash(ibnd_port_t * port, ibnd_port_t * hash[])
->  {
-> +	int rc = 0;
-> +	ibnd_port_t *tblport;
->  	int hash_idx = HASHGUID(port->guid) % HTSZ;
->  
-> +	for (tblport = hash[hash_idx]; tblport; tblport = tblport->htnext) {
-> +		if (tblport == port) {
-> +			IBND_ERROR("Duplicate Port: Port with guid 0x%016"
-> +				   PRIx64 " already exists in ports DB\n",
-> +				   port->guid);
-> +			return 1;
-> +		}
-> +	}
->  	port->htnext = hash[hash_idx];
->  	hash[hash_idx] = port;
-> +	return rc;
->  }
->  
->  void create_lid2guid(f_internal_t *f_int)
-> diff --git a/libibnetdisc/src/ibnetdisc_cache.c b/libibnetdisc/src/ibnetdisc_cache.c
-> index d4663bf..94dd004 100644
-> --- a/libibnetdisc/src/ibnetdisc_cache.c
-> +++ b/libibnetdisc/src/ibnetdisc_cache.c
-> @@ -515,7 +515,13 @@ static int _fill_port(ibnd_fabric_cache_t * fabric_cache, ibnd_node_t * node,
->  	/* achu: needed if user wishes to re-cache a loaded fabric.
->  	 * Otherwise, mostly unnecessary to do this.
->  	 */
-> -	add_to_portguid_hash(port_cache->port, fabric_cache->f_int->fabric.portstbl);
-> +	int rc = add_to_portguid_hash(port_cache->port,
-> +				      fabric_cache->f_int->fabric.portstbl);
-> +	if (rc) {
-> +		IBND_DEBUG("Error Occurred when trying"
-> +			   " to insert new port guid 0x%016" PRIx64 " to DB\n",
-> +			   port_cache->port->guid);
-> +	}
->  	return 0;
->  }
->  
-> @@ -538,8 +544,15 @@ static int _rebuild_nodes(ibnd_fabric_cache_t * fabric_cache)
->  		node->next = fabric_cache->f_int->fabric.nodes;
->  		fabric_cache->f_int->fabric.nodes = node;
->  
-> -		add_to_nodeguid_hash(node_cache->node,
-> -				     fabric_cache->f_int->fabric.nodestbl);
-> +		int rc = add_to_nodeguid_hash(node_cache->node,
-> +					      fabric_cache->
-> +					      f_int->
-> +					      fabric.nodestbl);
-> +		if (rc) {
-> +			IBND_DEBUG("Error Occurred when trying"
-> +				   " to insert new node guid 0x%016" PRIx64 " to DB\n",
-> +				   node_cache->node->guid);
-> +		}
->  
->  		add_to_type_list(node_cache->node, fabric_cache->f_int);
->  
-> diff --git a/libibnetdisc/src/internal.h b/libibnetdisc/src/internal.h
-> index a50d2d7..5a32cd2 100644
-> --- a/libibnetdisc/src/internal.h
-> +++ b/libibnetdisc/src/internal.h
-> @@ -106,9 +106,9 @@ int issue_smp(smp_engine_t * engine, ib_portid_t * portid,
->  int process_mads(smp_engine_t * engine);
->  void smp_engine_destroy(smp_engine_t * engine);
->  
-> -void add_to_nodeguid_hash(ibnd_node_t * node, ibnd_node_t * hash[]);
-> +int add_to_nodeguid_hash(ibnd_node_t * node, ibnd_node_t * hash[]);
->  
-> -void add_to_portguid_hash(ibnd_port_t * port, ibnd_port_t * hash[]);
-> +int add_to_portguid_hash(ibnd_port_t * port, ibnd_port_t * hash[]);
->  void add_to_portlid_hash(ibnd_port_t * port, GHashTable *htable);
->  
->  void add_to_type_list(ibnd_node_t * node, f_internal_t * fabric);
-> -- 
-> 1.7.8.2
-> 
+
+Dependencies:
+
+        1) libibmad >=3D 1.3.12
+        2) libibumad >=3D 1.3.7
+        3) opensm-libs >=3D 3.3.10
+        4) ib_umad kernel module
+        5) glib2
+
+
+Release notes v1.6.5 =3D> 1.6.6
+
+   1) bug fixes
+
+
+Authors since 1.6.5
+
+Ana Guerrero L=F3pez (1):
+      rdma-ndd: fix compiler warnings.
+
+Dan Ben Yosef (2):
+      perfquery -T (print Extended Speed Counters) times out on nodes s=
+upporting
+      libibnetdisc: Avoid pushing same pointer to the hash table
+
+Hal Rosenstock (5):
+      perfquery.c: Change format of capability mask in IBWARN for consi=
+stency
+      ibdiag_sa.c: In sa_get_handle, handle umad_open_port and umad_reg=
+ister fai
+      iblinkinfo.c: Close additional file descriptor in advance
+      ibdiag_common.c: Move static to beginning of get_build_version de=
+claration
+      perfquery.c: Fix smp_query_via return value checks
+
+Ira Weiny (3):
+      infiniband-diags/rdma-ndd: Fix issues with install
+      infiniband-diags/rdma-ndd: add --pidfile option
+      infiniband-diags: rdma-ndd: remove udev logging when not supporte=
+d
+
+Michal Schmidt (2):
+      rdma-ndd: never use udev_get_sys_path()
+      build-sys: avoid overlinking to libudev
+
+Vladimir Koushnir (10):
+      ibqueryerrors: Resource leak in path_record_query
+      Remove redundant umad file descriptor from libibnetdisc
+      query_smp.c: Avoid busy looping in process_one_recv
+      dump_fts: Open global file descriptor after calling ibnd_discover=
+_fabric
+      ibqueryerrors: code improvement
+      ibqueryerrors: Fix crash when no SM is running
+      ibqueryerrors: Close global file descriptor before running ibnd_d=
+iscover_f
+      ibqueryerrors: improve code related to DR option
+      vendstat: mad_rpc_close_port not called in corner cases
+      saquery.c: Fix saquery -D option
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
