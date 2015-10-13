@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v5 08/26] IB/qib: Support the new memory registration API
-Date: Tue, 13 Oct 2015 19:11:31 +0300
-Message-ID: <1444752709-15429-9-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v5 12/26] xprtrdma: Port to new memory registration API
+Date: Tue, 13 Oct 2015 19:11:35 +0300
+Message-ID: <1444752709-15429-13-git-send-email-sagig@mellanox.com>
 References: <1444752709-15429-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1444752709-15429-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -9,215 +9,235 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Support the new memory registration API by allocating a
-private page list array in qib_mr and populate it when
-qib_map_mr_sg is invoked. Also, support IB_WR_REG_MR
-by duplicating qib_fastreg_mr just take the needed information
-from different places:
-- page_size, iova, length (ib_mr)
-- page array (qib_mr)
-- key, access flags (ib_reg_wr)
-
-The IB_WR_FAST_REG_MR handlers will be removed later when
-all the ULPs will be converted.
+Instead of maintaining a fastreg page list, keep an sg table
+and convert an array of pages to a sg list. Then call ib_map_mr_sg
+and construct ib_reg_wr.
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Acked-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Tested-by: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_keys.c  | 56 +++++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/qib/qib_mr.c    | 32 ++++++++++++++++++++
- drivers/infiniband/hw/qib/qib_verbs.c |  9 +++++-
- drivers/infiniband/hw/qib/qib_verbs.h |  8 +++++
- 4 files changed, 104 insertions(+), 1 deletion(-)
+ net/sunrpc/xprtrdma/frwr_ops.c  | 118 +++++++++++++++++++++++-----------------
+ net/sunrpc/xprtrdma/xprt_rdma.h |   3 +-
+ 2 files changed, 69 insertions(+), 52 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_keys.c b/drivers/infiniband/hw/qib/qib_keys.c
-index eaf139a33b2e..95b8b9110fc6 100644
---- a/drivers/infiniband/hw/qib/qib_keys.c
-+++ b/drivers/infiniband/hw/qib/qib_keys.c
-@@ -390,3 +390,59 @@ bail:
- 	spin_unlock_irqrestore(&rkt->lock, flags);
- 	return ret;
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index 0d2f46f600b6..a1434447b0d6 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -151,9 +151,13 @@ __frwr_init(struct rpcrdma_mw *r, struct ib_pd *pd, struct ib_device *device,
+ 	f->fr_mr = ib_alloc_mr(pd, IB_MR_TYPE_MEM_REG, depth);
+ 	if (IS_ERR(f->fr_mr))
+ 		goto out_mr_err;
+-	f->fr_pgl = ib_alloc_fast_reg_page_list(device, depth);
+-	if (IS_ERR(f->fr_pgl))
++
++	f->sg = kcalloc(depth, sizeof(*f->sg), GFP_KERNEL);
++	if (!f->sg)
+ 		goto out_list_err;
++
++	sg_init_table(f->sg, depth);
++
+ 	return 0;
+ 
+ out_mr_err:
+@@ -163,9 +167,9 @@ out_mr_err:
+ 	return rc;
+ 
+ out_list_err:
+-	rc = PTR_ERR(f->fr_pgl);
+-	dprintk("RPC:       %s: ib_alloc_fast_reg_page_list status %i\n",
+-		__func__, rc);
++	rc = -ENOMEM;
++	dprintk("RPC:       %s: sg allocation failure\n",
++		__func__);
+ 	ib_dereg_mr(f->fr_mr);
+ 	return rc;
  }
+@@ -179,7 +183,7 @@ __frwr_release(struct rpcrdma_mw *r)
+ 	if (rc)
+ 		dprintk("RPC:       %s: ib_dereg_mr status %i\n",
+ 			__func__, rc);
+-	ib_free_fast_reg_page_list(r->r.frmr.fr_pgl);
++	kfree(r->r.frmr.sg);
+ }
+ 
+ static int
+@@ -312,14 +316,10 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
+ 	struct rpcrdma_mw *mw;
+ 	struct rpcrdma_frmr *frmr;
+ 	struct ib_mr *mr;
+-	struct ib_fast_reg_wr fastreg_wr;
++	struct ib_reg_wr reg_wr;
+ 	struct ib_send_wr *bad_wr;
++	int rc, i, n, dma_nents;
+ 	u8 key;
+-	int len, pageoff;
+-	int i, rc;
+-	int seg_len;
+-	u64 pa;
+-	int page_no;
+ 
+ 	mw = seg1->rl_mw;
+ 	seg1->rl_mw = NULL;
+@@ -332,64 +332,80 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
+ 	} while (mw->r.frmr.fr_state != FRMR_IS_INVALID);
+ 	frmr = &mw->r.frmr;
+ 	frmr->fr_state = FRMR_IS_VALID;
++	mr = frmr->fr_mr;
+ 
+-	pageoff = offset_in_page(seg1->mr_offset);
+-	seg1->mr_offset -= pageoff;	/* start of page */
+-	seg1->mr_len += pageoff;
+-	len = -pageoff;
+ 	if (nsegs > ia->ri_max_frmr_depth)
+ 		nsegs = ia->ri_max_frmr_depth;
+ 
+-	for (page_no = i = 0; i < nsegs;) {
+-		rpcrdma_map_one(device, seg, direction);
+-		pa = seg->mr_dma;
+-		for (seg_len = seg->mr_len; seg_len > 0; seg_len -= PAGE_SIZE) {
+-			frmr->fr_pgl->page_list[page_no++] = pa;
+-			pa += PAGE_SIZE;
+-		}
+-		len += seg->mr_len;
++	for (i = 0; i < nsegs;) {
++		if (seg->mr_page)
++			sg_set_page(&frmr->sg[i],
++				    seg->mr_page,
++				    seg->mr_len,
++				    offset_in_page(seg->mr_offset));
++		else
++			sg_set_buf(&frmr->sg[i], seg->mr_offset,
++				   seg->mr_len);
 +
-+/*
-+ * Initialize the memory region specified by the work request.
-+ */
-+int qib_reg_mr(struct qib_qp *qp, struct ib_reg_wr *wr)
-+{
-+	struct qib_lkey_table *rkt = &to_idev(qp->ibqp.device)->lk_table;
-+	struct qib_pd *pd = to_ipd(qp->ibqp.pd);
-+	struct qib_mr *mr = to_imr(wr->mr);
-+	struct qib_mregion *mrg;
-+	u32 key = wr->key;
-+	unsigned i, n, m;
-+	int ret = -EINVAL;
-+	unsigned long flags;
-+	u64 *page_list;
-+	size_t ps;
+ 		++seg;
+ 		++i;
 +
-+	spin_lock_irqsave(&rkt->lock, flags);
-+	if (pd->user || key == 0)
-+		goto bail;
+ 		/* Check for holes */
+ 		if ((i < nsegs && offset_in_page(seg->mr_offset)) ||
+ 		    offset_in_page((seg-1)->mr_offset + (seg-1)->mr_len))
+ 			break;
+ 	}
+-	dprintk("RPC:       %s: Using frmr %p to map %d segments (%d bytes)\n",
+-		__func__, mw, i, len);
+-
+-	memset(&fastreg_wr, 0, sizeof(fastreg_wr));
+-	fastreg_wr.wr.wr_id = (unsigned long)(void *)mw;
+-	fastreg_wr.wr.opcode = IB_WR_FAST_REG_MR;
+-	fastreg_wr.iova_start = seg1->mr_dma + pageoff;
+-	fastreg_wr.page_list = frmr->fr_pgl;
+-	fastreg_wr.page_shift = PAGE_SHIFT;
+-	fastreg_wr.page_list_len = page_no;
+-	fastreg_wr.length = len;
+-	fastreg_wr.access_flags = writing ?
+-				IB_ACCESS_REMOTE_WRITE | IB_ACCESS_LOCAL_WRITE :
+-				IB_ACCESS_REMOTE_READ;
+-	mr = frmr->fr_mr;
++	frmr->sg_nents = i;
 +
-+	mrg = rcu_dereference_protected(
-+		rkt->table[(key >> (32 - ib_qib_lkey_table_size))],
-+		lockdep_is_held(&rkt->lock));
-+	if (unlikely(mrg == NULL || qp->ibqp.pd != mrg->pd))
-+		goto bail;
-+
-+	if (mr->npages > mrg->max_segs)
-+		goto bail;
-+
-+	ps = mr->ibmr.page_size;
-+	if (mr->ibmr.length > ps * mr->npages)
-+		goto bail;
-+
-+	mrg->user_base = mr->ibmr.iova;
-+	mrg->iova = mr->ibmr.iova;
-+	mrg->lkey = key;
-+	mrg->length = mr->ibmr.length;
-+	mrg->access_flags = wr->access;
-+	page_list = mr->pages;
-+	m = 0;
-+	n = 0;
-+	for (i = 0; i < mr->npages; i++) {
-+		mrg->map[m]->segs[n].vaddr = (void *) page_list[i];
-+		mrg->map[m]->segs[n].length = ps;
-+		if (++n == QIB_SEGSZ) {
-+			m++;
-+			n = 0;
-+		}
++	dma_nents = ib_dma_map_sg(device, frmr->sg, frmr->sg_nents, direction);
++	if (!dma_nents) {
++		pr_err("RPC:       %s: failed to dma map sg %p sg_nents %u\n",
++		       __func__, frmr->sg, frmr->sg_nents);
++		return -ENOMEM;
 +	}
 +
-+	ret = 0;
-+bail:
-+	spin_unlock_irqrestore(&rkt->lock, flags);
-+	return ret;
-+}
-diff --git a/drivers/infiniband/hw/qib/qib_mr.c b/drivers/infiniband/hw/qib/qib_mr.c
-index 19220dcb9a3b..dcabf1b2e263 100644
---- a/drivers/infiniband/hw/qib/qib_mr.c
-+++ b/drivers/infiniband/hw/qib/qib_mr.c
-@@ -303,6 +303,7 @@ int qib_dereg_mr(struct ib_mr *ibmr)
- 	int ret = 0;
- 	unsigned long timeout;
++	n = ib_map_mr_sg(mr, frmr->sg, frmr->sg_nents, PAGE_SIZE);
++	if (unlikely(n != frmr->sg_nents)) {
++		pr_err("RPC:       %s: failed to map mr %p (%u/%u)\n",
++		       __func__, frmr->fr_mr, n, frmr->sg_nents);
++		rc = n < 0 ? n : -EINVAL;
++		goto out_senderr;
++	}
++
++	dprintk("RPC:       %s: Using frmr %p to map %u segments (%u bytes)\n",
++		__func__, mw, frmr->sg_nents, mr->length);
++
+ 	key = (u8)(mr->rkey & 0x000000FF);
+ 	ib_update_fast_reg_key(mr, ++key);
+-	fastreg_wr.rkey = mr->rkey;
++
++	reg_wr.wr.next = NULL;
++	reg_wr.wr.opcode = IB_WR_REG_MR;
++	reg_wr.wr.wr_id = (uintptr_t)mw;
++	reg_wr.wr.num_sge = 0;
++	reg_wr.wr.send_flags = 0;
++	reg_wr.mr = mr;
++	reg_wr.key = mr->rkey;
++	reg_wr.access = writing ?
++			IB_ACCESS_REMOTE_WRITE | IB_ACCESS_LOCAL_WRITE :
++			IB_ACCESS_REMOTE_READ;
  
-+	kfree(mr->pages);
- 	qib_free_lkey(&mr->mr);
+ 	DECR_CQCOUNT(&r_xprt->rx_ep);
+-	rc = ib_post_send(ia->ri_id->qp, &fastreg_wr.wr, &bad_wr);
++	rc = ib_post_send(ia->ri_id->qp, &reg_wr.wr, &bad_wr);
+ 	if (rc)
+ 		goto out_senderr;
  
- 	qib_put_mr(&mr->mr); /* will set completion if last */
-@@ -340,7 +341,38 @@ struct ib_mr *qib_alloc_mr(struct ib_pd *pd,
- 	if (IS_ERR(mr))
- 		return (struct ib_mr *)mr;
++	seg1->mr_dir = direction;
+ 	seg1->rl_mw = mw;
+ 	seg1->mr_rkey = mr->rkey;
+-	seg1->mr_base = seg1->mr_dma + pageoff;
+-	seg1->mr_nsegs = i;
+-	seg1->mr_len = len;
+-	return i;
++	seg1->mr_base = mr->iova;
++	seg1->mr_nsegs = frmr->sg_nents;
++	seg1->mr_len = mr->length;
++
++	return frmr->sg_nents;
  
-+	mr->pages = kcalloc(max_num_sg, sizeof(u64), GFP_KERNEL);
-+	if (!mr->pages)
-+		goto err;
-+
- 	return &mr->ibmr;
-+
-+err:
-+	qib_dereg_mr(&mr->ibmr);
-+	return ERR_PTR(-ENOMEM);
-+}
-+
-+static int qib_set_page(struct ib_mr *ibmr, u64 addr)
-+{
-+	struct qib_mr *mr = to_imr(ibmr);
-+
-+	if (unlikely(mr->npages == mr->mr.max_segs))
-+		return -ENOMEM;
-+
-+	mr->pages[mr->npages++] = addr;
-+
-+	return 0;
-+}
-+
-+int qib_map_mr_sg(struct ib_mr *ibmr,
-+		  struct scatterlist *sg,
-+		  int sg_nents)
-+{
-+	struct qib_mr *mr = to_imr(ibmr);
-+
-+	mr->npages = 0;
-+
-+	return ib_sg_to_pages(ibmr, sg, sg_nents, qib_set_page);
+ out_senderr:
+ 	dprintk("RPC:       %s: ib_post_send status %i\n", __func__, rc);
+-	while (i--)
+-		rpcrdma_unmap_one(device, --seg);
++	ib_dma_unmap_sg(device, frmr->sg, dma_nents, direction);
+ 	__frwr_queue_recovery(mw);
+ 	return rc;
  }
+@@ -403,22 +419,22 @@ frwr_op_unmap(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg)
+ 	struct rpcrdma_mr_seg *seg1 = seg;
+ 	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
+ 	struct rpcrdma_mw *mw = seg1->rl_mw;
++	struct rpcrdma_frmr *frmr = &mw->r.frmr;
+ 	struct ib_send_wr invalidate_wr, *bad_wr;
+ 	int rc, nsegs = seg->mr_nsegs;
  
- struct ib_fast_reg_page_list *
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index a6b0b098ff30..a1e53d7b662b 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.c
-+++ b/drivers/infiniband/hw/qib/qib_verbs.c
-@@ -362,7 +362,10 @@ static int qib_post_one_send(struct qib_qp *qp, struct ib_send_wr *wr,
- 	 * undefined operations.
- 	 * Make sure buffer is large enough to hold the result for atomics.
- 	 */
--	if (wr->opcode == IB_WR_FAST_REG_MR) {
-+	if (wr->opcode == IB_WR_REG_MR) {
-+		if (qib_reg_mr(qp, reg_wr(wr)))
-+			goto bail_inval;
-+	} else if (wr->opcode == IB_WR_FAST_REG_MR) {
- 		if (qib_fast_reg_mr(qp, wr))
- 			goto bail_inval;
- 	} else if (qp->ibqp.qp_type == IB_QPT_UC) {
-@@ -401,6 +404,9 @@ static int qib_post_one_send(struct qib_qp *qp, struct ib_send_wr *wr,
- 	if (qp->ibqp.qp_type != IB_QPT_UC &&
- 	    qp->ibqp.qp_type != IB_QPT_RC)
- 		memcpy(&wqe->ud_wr, ud_wr(wr), sizeof(wqe->ud_wr));
-+	else if (wr->opcode == IB_WR_REG_MR)
-+		memcpy(&wqe->reg_wr, reg_wr(wr),
-+			sizeof(wqe->reg_wr));
- 	else if (wr->opcode == IB_WR_FAST_REG_MR)
- 		memcpy(&wqe->fast_reg_wr, fast_reg_wr(wr),
- 			sizeof(wqe->fast_reg_wr));
-@@ -2260,6 +2266,7 @@ int qib_register_ib_device(struct qib_devdata *dd)
- 	ibdev->reg_user_mr = qib_reg_user_mr;
- 	ibdev->dereg_mr = qib_dereg_mr;
- 	ibdev->alloc_mr = qib_alloc_mr;
-+	ibdev->map_mr_sg = qib_map_mr_sg;
- 	ibdev->alloc_fast_reg_page_list = qib_alloc_fast_reg_page_list;
- 	ibdev->free_fast_reg_page_list = qib_free_fast_reg_page_list;
- 	ibdev->alloc_fmr = qib_alloc_fmr;
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
-index 8aa16851a5e6..648f6c64f00d 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.h
-+++ b/drivers/infiniband/hw/qib/qib_verbs.h
-@@ -330,6 +330,8 @@ struct qib_mr {
- 	struct ib_mr ibmr;
- 	struct ib_umem *umem;
- 	struct qib_mregion mr;  /* must be last */
-+	u64 *pages;
-+	u32 npages;
+ 	dprintk("RPC:       %s: FRMR %p\n", __func__, mw);
+ 
+ 	seg1->rl_mw = NULL;
+-	mw->r.frmr.fr_state = FRMR_IS_INVALID;
++	frmr->fr_state = FRMR_IS_INVALID;
+ 
+ 	memset(&invalidate_wr, 0, sizeof(invalidate_wr));
+ 	invalidate_wr.wr_id = (unsigned long)(void *)mw;
+ 	invalidate_wr.opcode = IB_WR_LOCAL_INV;
+-	invalidate_wr.ex.invalidate_rkey = mw->r.frmr.fr_mr->rkey;
++	invalidate_wr.ex.invalidate_rkey = frmr->fr_mr->rkey;
+ 	DECR_CQCOUNT(&r_xprt->rx_ep);
+ 
+-	while (seg1->mr_nsegs--)
+-		rpcrdma_unmap_one(ia->ri_device, seg++);
++	ib_dma_unmap_sg(ia->ri_device, frmr->sg, frmr->sg_nents, seg1->mr_dir);
+ 	read_lock(&ia->ri_qplock);
+ 	rc = ib_post_send(ia->ri_id->qp, &invalidate_wr, &bad_wr);
+ 	read_unlock(&ia->ri_qplock);
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index c09414e6f91b..c82abf44e39d 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -193,7 +193,8 @@ enum rpcrdma_frmr_state {
  };
  
- /*
-@@ -341,6 +343,7 @@ struct qib_swqe {
- 	union {
- 		struct ib_send_wr wr;   /* don't use wr.sg_list */
- 		struct ib_ud_wr ud_wr;
-+		struct ib_reg_wr reg_wr;
- 		struct ib_fast_reg_wr fast_reg_wr;
- 		struct ib_rdma_wr rdma_wr;
- 		struct ib_atomic_wr atomic_wr;
-@@ -1044,12 +1047,17 @@ struct ib_mr *qib_alloc_mr(struct ib_pd *pd,
- 			   enum ib_mr_type mr_type,
- 			   u32 max_entries);
- 
-+int qib_map_mr_sg(struct ib_mr *ibmr,
-+		  struct scatterlist *sg,
-+		  int sg_nents);
-+
- struct ib_fast_reg_page_list *qib_alloc_fast_reg_page_list(
- 				struct ib_device *ibdev, int page_list_len);
- 
- void qib_free_fast_reg_page_list(struct ib_fast_reg_page_list *pl);
- 
- int qib_fast_reg_mr(struct qib_qp *qp, struct ib_send_wr *wr);
-+int qib_reg_mr(struct qib_qp *qp, struct ib_reg_wr *wr);
- 
- struct ib_fmr *qib_alloc_fmr(struct ib_pd *pd, int mr_access_flags,
- 			     struct ib_fmr_attr *fmr_attr);
+ struct rpcrdma_frmr {
+-	struct ib_fast_reg_page_list	*fr_pgl;
++	struct scatterlist		*sg;
++	int				sg_nents;
+ 	struct ib_mr			*fr_mr;
+ 	enum rpcrdma_frmr_state		fr_state;
+ 	struct work_struct		fr_work;
 -- 
 1.8.4.3
 
