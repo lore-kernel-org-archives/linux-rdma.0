@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v5 07/26] iw_cxgb4: Support the new memory registration API
-Date: Tue, 13 Oct 2015 19:11:30 +0300
-Message-ID: <1444752709-15429-8-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v5 09/26] RDMA/nes: Support the new memory registration API
+Date: Tue, 13 Oct 2015 19:11:32 +0300
+Message-ID: <1444752709-15429-10-git-send-email-sagig@mellanox.com>
 References: <1444752709-15429-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1444752709-15429-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,12 +10,12 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 Support the new memory registration API by allocating a
-private page list array in c4iw_mr and populate it when
-c4iw_map_mr_sg is invoked. Also, support IB_WR_REG_MR
-by duplicating build_fastreg just take the needed information
-from different places:
+private page list array in nes_mr and populate it when
+nes_map_mr_sg is invoked. Also, support IB_WR_REG_MR
+by duplicating IB_WR_FAST_REG_MR handling and take the
+needed information from different places:
 - page_size, iova, length (ib_mr)
-- page array (c4iw_mr)
+- page array (nes_mr)
 - key, access flags (ib_reg_wr)
 
 The IB_WR_FAST_REG_MR handlers will be removed later when
@@ -23,222 +23,184 @@ all the ULPs will be converted.
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Acked-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h |  7 ++++
- drivers/infiniband/hw/cxgb4/mem.c      | 38 +++++++++++++++++
- drivers/infiniband/hw/cxgb4/provider.c |  1 +
- drivers/infiniband/hw/cxgb4/qp.c       | 74 ++++++++++++++++++++++++++++++++++
- 4 files changed, 120 insertions(+)
+ drivers/infiniband/hw/nes/nes_verbs.c | 117 +++++++++++++++++++++++++++++++++-
+ drivers/infiniband/hw/nes/nes_verbs.h |   4 ++
+ 2 files changed, 120 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-index c7bb38c931a5..6a8e2696455f 100644
---- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-+++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-@@ -386,6 +386,10 @@ struct c4iw_mr {
- 	struct c4iw_dev *rhp;
- 	u64 kva;
- 	struct tpt_attributes attr;
-+	u64 *mpl;
-+	dma_addr_t mpl_addr;
-+	u32 max_mpl_len;
-+	u32 mpl_len;
- };
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+index f71b37b75f82..dc8a03b0ca0d 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.c
++++ b/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -51,6 +51,7 @@ atomic_t qps_created;
+ atomic_t sw_qps_destroyed;
  
- static inline struct c4iw_mr *to_c4iw_mr(struct ib_mr *ibmr)
-@@ -973,6 +977,9 @@ struct ib_fast_reg_page_list *c4iw_alloc_fastreg_pbl(
- struct ib_mr *c4iw_alloc_mr(struct ib_pd *pd,
- 			    enum ib_mr_type mr_type,
- 			    u32 max_num_sg);
-+int c4iw_map_mr_sg(struct ib_mr *ibmr,
-+		   struct scatterlist *sg,
-+		   int sg_nents);
- int c4iw_dealloc_mw(struct ib_mw *mw);
- struct ib_mw *c4iw_alloc_mw(struct ib_pd *pd, enum ib_mw_type type);
- struct ib_mr *c4iw_reg_user_mr(struct ib_pd *pd, u64 start,
-diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
-index 026b91ebd5e2..96fc02879955 100644
---- a/drivers/infiniband/hw/cxgb4/mem.c
-+++ b/drivers/infiniband/hw/cxgb4/mem.c
-@@ -863,6 +863,7 @@ struct ib_mr *c4iw_alloc_mr(struct ib_pd *pd,
- 	u32 mmid;
- 	u32 stag = 0;
- 	int ret = 0;
-+	int length = roundup(max_num_sg * sizeof(u64), 32);
+ static void nes_unregister_ofa_device(struct nes_ib_device *nesibdev);
++static int nes_dereg_mr(struct ib_mr *ib_mr);
  
- 	if (mr_type != IB_MR_TYPE_MEM_REG ||
- 	    max_num_sg > t4_max_fr_depth(use_dsgl))
-@@ -876,6 +877,14 @@ struct ib_mr *c4iw_alloc_mr(struct ib_pd *pd,
- 		goto err;
+ /**
+  * nes_alloc_mw
+@@ -443,9 +444,46 @@ static struct ib_mr *nes_alloc_mr(struct ib_pd *ibpd,
+ 	} else {
+ 		kfree(nesmr);
+ 		nes_free_resource(nesadapter, nesadapter->allocated_mrs, stag_index);
+-		ibmr = ERR_PTR(-ENOMEM);
++		return ERR_PTR(-ENOMEM);
  	}
- 
-+	mhp->mpl = dma_alloc_coherent(&rhp->rdev.lldi.pdev->dev,
-+				      length, &mhp->mpl_addr, GFP_KERNEL);
-+	if (!mhp->mpl) {
-+		ret = -ENOMEM;
-+		goto err_mpl;
-+	}
-+	mhp->max_mpl_len = length;
 +
- 	mhp->rhp = rhp;
- 	ret = alloc_pbl(mhp, max_num_sg);
- 	if (ret)
-@@ -905,11 +914,37 @@ err2:
- 	c4iw_pblpool_free(&mhp->rhp->rdev, mhp->attr.pbl_addr,
- 			      mhp->attr.pbl_size << 3);
- err1:
-+	dma_free_coherent(&mhp->rhp->rdev.lldi.pdev->dev,
-+			  mhp->max_mpl_len, mhp->mpl, mhp->mpl_addr);
-+err_mpl:
- 	kfree(mhp);
- err:
- 	return ERR_PTR(ret);
- }
- 
-+static int c4iw_set_page(struct ib_mr *ibmr, u64 addr)
++	nesmr->pages = pci_alloc_consistent(nesdev->pcidev,
++					    max_num_sg * sizeof(u64),
++					    &nesmr->paddr);
++	if (!nesmr->paddr)
++		goto err;
++
++	nesmr->max_pages = max_num_sg;
++
+ 	return ibmr;
++
++err:
++	nes_dereg_mr(ibmr);
++
++	return ERR_PTR(-ENOMEM);
++}
++
++static int nes_set_page(struct ib_mr *ibmr, u64 addr)
 +{
-+	struct c4iw_mr *mhp = to_c4iw_mr(ibmr);
++	struct nes_mr *nesmr = to_nesmr(ibmr);
 +
-+	if (unlikely(mhp->mpl_len == mhp->max_mpl_len))
++	if (unlikely(nesmr->npages == nesmr->max_pages))
 +		return -ENOMEM;
 +
-+	mhp->mpl[mhp->mpl_len++] = addr;
++	nesmr->pages[nesmr->npages++] = cpu_to_le64(addr);
 +
 +	return 0;
 +}
 +
-+int c4iw_map_mr_sg(struct ib_mr *ibmr,
-+		   struct scatterlist *sg,
-+		   int sg_nents)
++static int nes_map_mr_sg(struct ib_mr *ibmr,
++			 struct scatterlist *sg,
++			 int sg_nents)
 +{
-+	struct c4iw_mr *mhp = to_c4iw_mr(ibmr);
++	struct nes_mr *nesmr = to_nesmr(ibmr);
 +
-+	mhp->mpl_len = 0;
++	nesmr->npages = 0;
 +
-+	return ib_sg_to_pages(ibmr, sg, sg_nents, c4iw_set_page);
-+}
-+
- struct ib_fast_reg_page_list *c4iw_alloc_fastreg_pbl(struct ib_device *device,
- 						     int page_list_len)
- {
-@@ -970,6 +1005,9 @@ int c4iw_dereg_mr(struct ib_mr *ib_mr)
- 	rhp = mhp->rhp;
- 	mmid = mhp->attr.stag >> 8;
- 	remove_handle(rhp, &rhp->mmidr, mmid);
-+	if (mhp->mpl)
-+		dma_free_coherent(&mhp->rhp->rdev.lldi.pdev->dev,
-+				  mhp->max_mpl_len, mhp->mpl, mhp->mpl_addr);
- 	dereg_mem(&rhp->rdev, mhp->attr.stag, mhp->attr.pbl_size,
- 		       mhp->attr.pbl_addr);
- 	if (mhp->attr.pbl_size)
-diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
-index 7746113552e7..55dedadcffaa 100644
---- a/drivers/infiniband/hw/cxgb4/provider.c
-+++ b/drivers/infiniband/hw/cxgb4/provider.c
-@@ -557,6 +557,7 @@ int c4iw_register_device(struct c4iw_dev *dev)
- 	dev->ibdev.bind_mw = c4iw_bind_mw;
- 	dev->ibdev.dealloc_mw = c4iw_dealloc_mw;
- 	dev->ibdev.alloc_mr = c4iw_alloc_mr;
-+	dev->ibdev.map_mr_sg = c4iw_map_mr_sg;
- 	dev->ibdev.alloc_fast_reg_page_list = c4iw_alloc_fastreg_pbl;
- 	dev->ibdev.free_fast_reg_page_list = c4iw_free_fastreg_pbl;
- 	dev->ibdev.attach_mcast = c4iw_multicast_attach;
-diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-index b60498fff99a..12a23bc935f3 100644
---- a/drivers/infiniband/hw/cxgb4/qp.c
-+++ b/drivers/infiniband/hw/cxgb4/qp.c
-@@ -605,10 +605,76 @@ static int build_rdma_recv(struct c4iw_qp *qhp, union t4_recv_wr *wqe,
- 	return 0;
++	return ib_sg_to_pages(ibmr, sg, sg_nents, nes_set_page);
  }
  
-+static int build_memreg(struct t4_sq *sq, union t4_wr *wqe,
-+			struct ib_reg_wr *wr, u8 *len16, u8 t5dev)
-+{
-+	struct c4iw_mr *mhp = to_c4iw_mr(wr->mr);
-+	struct fw_ri_immd *imdp;
-+	__be64 *p;
-+	int i;
-+	int pbllen = roundup(mhp->mpl_len * sizeof(u64), 32);
-+	int rem;
+ /*
+@@ -2683,6 +2721,13 @@ static int nes_dereg_mr(struct ib_mr *ib_mr)
+ 	u16 major_code;
+ 	u16 minor_code;
+ 
 +
-+	if (mhp->mpl_len > t4_max_fr_depth(use_dsgl))
-+		return -EINVAL;
++	if (nesmr->pages)
++		pci_free_consistent(nesdev->pcidev,
++				    nesmr->max_pages * sizeof(u64),
++				    nesmr->pages,
++				    nesmr->paddr);
 +
-+	wqe->fr.qpbinde_to_dcacpu = 0;
-+	wqe->fr.pgsz_shift = ilog2(wr->mr->page_size) - 12;
-+	wqe->fr.addr_type = FW_RI_VA_BASED_TO;
-+	wqe->fr.mem_perms = c4iw_ib_to_tpt_access(wr->access);
-+	wqe->fr.len_hi = 0;
-+	wqe->fr.len_lo = cpu_to_be32(mhp->ibmr.length);
-+	wqe->fr.stag = cpu_to_be32(wr->key);
-+	wqe->fr.va_hi = cpu_to_be32(mhp->ibmr.iova >> 32);
-+	wqe->fr.va_lo_fbo = cpu_to_be32(mhp->ibmr.iova &
-+					0xffffffff);
-+
-+	if (t5dev && use_dsgl && (pbllen > max_fr_immd)) {
-+		struct fw_ri_dsgl *sglp;
-+
-+		for (i = 0; i < mhp->mpl_len; i++)
-+			mhp->mpl[i] = (__force u64)cpu_to_be64((u64)mhp->mpl[i]);
-+
-+		sglp = (struct fw_ri_dsgl *)(&wqe->fr + 1);
-+		sglp->op = FW_RI_DATA_DSGL;
-+		sglp->r1 = 0;
-+		sglp->nsge = cpu_to_be16(1);
-+		sglp->addr0 = cpu_to_be64(mhp->mpl_addr);
-+		sglp->len0 = cpu_to_be32(pbllen);
-+
-+		*len16 = DIV_ROUND_UP(sizeof(wqe->fr) + sizeof(*sglp), 16);
-+	} else {
-+		imdp = (struct fw_ri_immd *)(&wqe->fr + 1);
-+		imdp->op = FW_RI_DATA_IMMD;
-+		imdp->r1 = 0;
-+		imdp->r2 = 0;
-+		imdp->immdlen = cpu_to_be32(pbllen);
-+		p = (__be64 *)(imdp + 1);
-+		rem = pbllen;
-+		for (i = 0; i < mhp->mpl_len; i++) {
-+			*p = cpu_to_be64((u64)mhp->mpl[i]);
-+			rem -= sizeof(*p);
-+			if (++p == (__be64 *)&sq->queue[sq->size])
-+				p = (__be64 *)sq->queue;
-+		}
-+		BUG_ON(rem < 0);
-+		while (rem) {
-+			*p = 0;
-+			rem -= sizeof(*p);
-+			if (++p == (__be64 *)&sq->queue[sq->size])
-+				p = (__be64 *)sq->queue;
-+		}
-+		*len16 = DIV_ROUND_UP(sizeof(wqe->fr) + sizeof(*imdp)
-+				      + pbllen, 16);
-+	}
-+	return 0;
-+}
-+
- static int build_fastreg(struct t4_sq *sq, union t4_wr *wqe,
- 			 struct ib_send_wr *send_wr, u8 *len16, u8 t5dev)
- {
- 	struct ib_fast_reg_wr *wr = fast_reg_wr(send_wr);
-+
- 	struct fw_ri_immd *imdp;
- 	__be64 *p;
- 	int i;
-@@ -817,6 +883,14 @@ int c4iw_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 					    qhp->rhp->rdev.lldi.adapter_type) ?
- 					    1 : 0);
+ 	if (nesmr->region) {
+ 		ib_umem_release(nesmr->region);
+ 	}
+@@ -3513,6 +3558,75 @@ static int nes_post_send(struct ib_qp *ibqp, struct ib_send_wr *ib_wr,
+ 				  wqe_misc);
  			break;
+ 		}
 +		case IB_WR_REG_MR:
-+			fw_opcode = FW_RI_FR_NSMR_WR;
-+			swsqe->opcode = FW_RI_FAST_REGISTER;
-+			err = build_memreg(&qhp->wq.sq, wqe, reg_wr(wr), &len16,
-+					   is_t5(
-+					   qhp->rhp->rdev.lldi.adapter_type) ?
-+					   1 : 0);
++		{
++			struct nes_mr *mr = to_nesmr(reg_wr(ib_wr)->mr);
++			int page_shift = ilog2(reg_wr(ib_wr)->mr->page_size);
++			int flags = reg_wr(ib_wr)->access;
++
++			if (mr->npages > (NES_4K_PBL_CHUNK_SIZE / sizeof(u64))) {
++				nes_debug(NES_DBG_IW_TX, "SQ_FMR: bad page_list_len\n");
++				err = -EINVAL;
++				break;
++			}
++			wqe_misc = NES_IWARP_SQ_OP_FAST_REG;
++			set_wqe_64bit_value(wqe->wqe_words,
++					    NES_IWARP_SQ_FMR_WQE_VA_FBO_LOW_IDX,
++					    mr->ibmr.iova);
++			set_wqe_32bit_value(wqe->wqe_words,
++					    NES_IWARP_SQ_FMR_WQE_LENGTH_LOW_IDX,
++					    mr->ibmr.length);
++			set_wqe_32bit_value(wqe->wqe_words,
++					    NES_IWARP_SQ_FMR_WQE_LENGTH_HIGH_IDX, 0);
++			set_wqe_32bit_value(wqe->wqe_words,
++					    NES_IWARP_SQ_FMR_WQE_MR_STAG_IDX,
++					    reg_wr(ib_wr)->key);
++
++			if (page_shift == 12) {
++				wqe_misc |= NES_IWARP_SQ_FMR_WQE_PAGE_SIZE_4K;
++			} else if (page_shift == 21) {
++				wqe_misc |= NES_IWARP_SQ_FMR_WQE_PAGE_SIZE_2M;
++			} else {
++				nes_debug(NES_DBG_IW_TX, "Invalid page shift,"
++					  " ib_wr=%u, max=1\n", ib_wr->num_sge);
++				err = -EINVAL;
++				break;
++			}
++
++			/* Set access_flags */
++			wqe_misc |= NES_IWARP_SQ_FMR_WQE_RIGHTS_ENABLE_LOCAL_READ;
++			if (flags & IB_ACCESS_LOCAL_WRITE)
++				wqe_misc |= NES_IWARP_SQ_FMR_WQE_RIGHTS_ENABLE_LOCAL_WRITE;
++
++			if (flags & IB_ACCESS_REMOTE_WRITE)
++				wqe_misc |= NES_IWARP_SQ_FMR_WQE_RIGHTS_ENABLE_REMOTE_WRITE;
++
++			if (flags & IB_ACCESS_REMOTE_READ)
++				wqe_misc |= NES_IWARP_SQ_FMR_WQE_RIGHTS_ENABLE_REMOTE_READ;
++
++			if (flags & IB_ACCESS_MW_BIND)
++				wqe_misc |= NES_IWARP_SQ_FMR_WQE_RIGHTS_ENABLE_WINDOW_BIND;
++
++			/* Fill in PBL info: */
++			set_wqe_64bit_value(wqe->wqe_words,
++					    NES_IWARP_SQ_FMR_WQE_PBL_ADDR_LOW_IDX,
++					    mr->paddr);
++
++			set_wqe_32bit_value(wqe->wqe_words,
++					    NES_IWARP_SQ_FMR_WQE_PBL_LENGTH_IDX,
++					    mr->npages * 8);
++
++			nes_debug(NES_DBG_IW_TX, "SQ_REG_MR: iova_start: %llx, "
++				  "length: %d, rkey: %0x, pgl_paddr: %llx, "
++				  "page_list_len: %u, wqe_misc: %x\n",
++				  (unsigned long long) mr->ibmr.iova,
++				  mr->ibmr.length,
++				  reg_wr(ib_wr)->key,
++				  (unsigned long long) mr->paddr,
++				  mr->npages,
++				  wqe_misc);
 +			break;
- 		case IB_WR_LOCAL_INV:
- 			if (wr->send_flags & IB_SEND_FENCE)
- 				fw_flags |= FW_RI_LOCAL_FENCE_FLAG;
++		}
+ 		default:
+ 			/* error */
+ 			err = -EINVAL;
+@@ -3940,6 +4054,7 @@ struct nes_ib_device *nes_init_ofa_device(struct net_device *netdev)
+ 	nesibdev->ibdev.bind_mw = nes_bind_mw;
+ 
+ 	nesibdev->ibdev.alloc_mr = nes_alloc_mr;
++	nesibdev->ibdev.map_mr_sg = nes_map_mr_sg;
+ 	nesibdev->ibdev.alloc_fast_reg_page_list = nes_alloc_fast_reg_page_list;
+ 	nesibdev->ibdev.free_fast_reg_page_list = nes_free_fast_reg_page_list;
+ 
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.h b/drivers/infiniband/hw/nes/nes_verbs.h
+index 309b31c31ae1..a204b677af22 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.h
++++ b/drivers/infiniband/hw/nes/nes_verbs.h
+@@ -79,6 +79,10 @@ struct nes_mr {
+ 	u16               pbls_used;
+ 	u8                mode;
+ 	u8                pbl_4k;
++	__le64            *pages;
++	dma_addr_t        paddr;
++	u32               max_pages;
++	u32		  npages;
+ };
+ 
+ struct nes_hw_pb {
 -- 
 1.8.4.3
 
