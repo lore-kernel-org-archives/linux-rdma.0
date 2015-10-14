@@ -1,148 +1,78 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PULL REQUEST] Please pull rdma.git
-Date: Wed, 14 Oct 2015 15:08:21 -0400
-Message-ID: <561EA825.2080300@redhat.com>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 0/6] IB/mad: Support devices taking pkey_index from the
+ GSI QP
+Date: Wed, 14 Oct 2015 21:42:54 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E1CBC650D@CRSMSX101.amr.corp.intel.com>
+References: <1444811388-22486-1-git-send-email-haggaie@mellanox.com>
+ <20151014175410.GB28534@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="DDeVvrXISMKuE641gQo9bWwspvt3EkKUQ"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151014175410.GB28534-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Torvalds, Linus" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---DDeVvrXISMKuE641gQo9bWwspvt3EkKUQ
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+I was writing my own objection to this but Jason beat me too it.  More comments below.
 
-Hi Linus,
+> 
+> On Wed, Oct 14, 2015 at 11:29:42AM +0300, Haggai Eran wrote:
+> > respect the pkey_index in ib_send_wr.ud for GSI packets. Apparently
+> > having the pkey_index in a work request isn't required by the IBA
+> > specifications,
+> 
+> I disagree. The spec is very clear, 13.5.3.2.1 perscribes how GMP replies must
+> be generated and there are only two ways to follow that
+> perscription:
+>  - Have some mechanism to set the pkey on outgoing QP1 GMPs
+>  - Support only one pkey
 
-We have four batched up patches for the current rc kernel.
+Agree with Jason.
 
-Two of them are small fixes that are obvious.
+In addition Section 9.6.1.1.3 C9-42 specifically states that inbound Packets for QP1 are allowed on any PKey of which the port is a member.  What you are proposing widely deviates from the intent of QP1 processing.
 
-One of them is larger than I would like for a late stage rc pull, but we
-found an issue in the namespace lookup code related to RoCE and this
-works around the issue for now (we allow a lookup with a namespace to
-succeed on RoCE since RoCE namespaces aren't implemented yet).  This
-will go away in 4.4 when we put in support for namespaces in RoCE devices=
-=2E
+> 
+> What this series is doing (src QPN != 1) is absolutely not complainant with the
+> spec.
 
-The last one is large in terms of lines, but is all legal and no
-functional changes.  Cisco needed to update their files to be more
-specific about their license.  They had intended the files to be dual
-licensed as GPL/BSD all along, and specified that in their module
-license tag, but their file headers were not up to par.  They contacted
-all of the contributors to get agreement and then submitted a patch to
-update the license headers in the files.
+Agree.
 
-Thanks!
+> 
+> If hardware doesn't have the ability to set the pkey on outbound, then it can
+> only support 1 pkey. This may be why reading other parts of the spec is
+> confusing. pkey_index in the verbs section is optional, but without it an
+> implementation cannot support multiple pkeys. Thus when multiple pkeys are
+> supported it is not optional at all.
 
-The following changes since commit 2866196f294954ce9fa226825c8c1eaa64c7da=
-8a:
+Agree.
 
-  IB/ipoib: increase the max mcast backlog queue (2015-09-25 22:30:24 -04=
-00)
+> 
+> This proposed hack violates parts of 13.5.3.2.1 so I don't think it is acceptable
+> for core code to endorse ignoring the spec so badly. Especially when the
+> violations are visible on the wire.
+> 
+> Put the hack in the driver, and obsolete it when the hardware is fixed to follow
+> the spec. Even better would be to fix this in firmware and leave the kernel
+> alone.
 
-are available in the git repository at:
+Agree.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
-tags/for-linus
+One final point, this extends the MAD layer to do things it was not intended to do.  The MAD layer was designed to handle the special QPs (0 and 1) we should keep it that way.  Even if we had a valid use case to create multiple UD QPs for GSI traffic it should be done via a new "QP pool" mechanism rather than hiding it like it was part of QP1.
 
-for you to fetch changes up to 0b5c9279e568d90903acedc2b9b832d8d78e8288:
+Ira
 
-  IB/ipoib: For sendonly join free the multicast group on leave
-(2015-10-13 16:4
-3:59 -0400)
-
-----------------------------------------------------------------
-Changes for 4.3-rc5
-
-- Work around connection namespace lookup bug related to RoCE
-- Change usnic license to Dual GPL/BSD (was intended to be that way
-  all along, but wasn't clear, permission from contributors was
-  chased down)
-- Fix an issue between NFSoRDMA and mlx5 that could cause an oops
-- Fix leak of sendonly multicast groups
-
-----------------------------------------------------------------
-Christoph Lameter (1):
-      IB/ipoib: For sendonly join free the multicast group on leave
-
-Haggai Eran (1):
-      IB/cma: Accept connection without a valid netdev on RoCE
-
-Jeff Squyres (1):
-      usnic: add missing clauses to BSD license
-
-Sagi Grimberg (1):
-      xprtrdma: Don't require LOCAL_DMA_LKEY support for fastreg
-
- drivers/infiniband/core/cma.c                      | 54
-++++++++++++++++------
- drivers/infiniband/hw/usnic/usnic.h                | 21 +++++++--
- drivers/infiniband/hw/usnic/usnic_abi.h            | 21 +++++++--
- drivers/infiniband/hw/usnic/usnic_common_pkt_hdr.h | 21 +++++++--
- drivers/infiniband/hw/usnic/usnic_common_util.h    | 21 +++++++--
- drivers/infiniband/hw/usnic/usnic_debugfs.c        | 21 +++++++--
- drivers/infiniband/hw/usnic/usnic_debugfs.h        | 21 +++++++--
- drivers/infiniband/hw/usnic/usnic_fwd.c            | 21 +++++++--
- drivers/infiniband/hw/usnic/usnic_fwd.h            | 21 +++++++--
- drivers/infiniband/hw/usnic/usnic_ib.h             | 21 +++++++--
- drivers/infiniband/hw/usnic/usnic_ib_main.c        | 21 +++++++--
- drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c      | 21 +++++++--
- drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h      | 21 +++++++--
- drivers/infiniband/hw/usnic/usnic_ib_sysfs.c       | 21 +++++++--
- drivers/infiniband/hw/usnic/usnic_ib_sysfs.h       | 21 +++++++--
- drivers/infiniband/hw/usnic/usnic_ib_verbs.c       | 21 +++++++--
- drivers/infiniband/hw/usnic/usnic_ib_verbs.h       | 21 +++++++--
- drivers/infiniband/hw/usnic/usnic_log.h            | 21 +++++++--
- drivers/infiniband/hw/usnic/usnic_transport.c      | 21 +++++++--
- drivers/infiniband/hw/usnic/usnic_transport.h      | 21 +++++++--
- drivers/infiniband/hw/usnic/usnic_uiom.c           |  2 +-
- drivers/infiniband/hw/usnic/usnic_uiom.h           | 21 +++++++--
- .../infiniband/hw/usnic/usnic_uiom_interval_tree.c | 21 +++++++--
- .../infiniband/hw/usnic/usnic_uiom_interval_tree.h | 21 +++++++--
- drivers/infiniband/hw/usnic/usnic_vnic.c           | 21 +++++++--
- drivers/infiniband/hw/usnic/usnic_vnic.h           | 21 +++++++--
- drivers/infiniband/ulp/ipoib/ipoib.h               |  1 +
- drivers/infiniband/ulp/ipoib/ipoib_main.c          |  4 +-
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c     |  2 +-
- net/sunrpc/xprtrdma/verbs.c                        |  8 ++--
- 30 files changed, 481 insertions(+), 94 deletions(-)
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---DDeVvrXISMKuE641gQo9bWwspvt3EkKUQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJWHqglAAoJELgmozMOVy/dqLgP/jJbkoPfwgNs5HxKXyHIxNId
-Eq2XMvy+WsfJjQmQpt3NUhM7Gc/lZodutvkv00X0/a32HBda0tWPTBbNQBKYwFqZ
-9YL0YF50QidDB9sXOLnA/D2nrg3IpPyjcUDpZyQ8htPsbleGCZq2IoJodnDLCk1B
-FVLuVuLEqe6xFGUyT6aaF/4L2gMaXN/jvYKS3mrIXzun+eLDT0ZQGN7r8gtOKKmL
-wWyhMrE1IN45wB1/GDuoc4ikYLC2yuHuVVe5uiw/3deOPUVpU0GtlWKxGnqXHdjx
-VFcpYn/cgaB8iDW5mWWGfG6bjBzO83Fo3ISf1Ix6Jvae74PkpQbTV3AX/Rzf8jMY
-t04s1LbqDClbyJKip9ypIvNjuuxm6tGTFxbqnSRud/lK7CWH1f6KKGb/rq+fY9bI
-9RYaS2G8V4DI/8FKgvkWWfyX5nUaA1xZGW23eV52px3NPRXigyjm4LEosVCBF8aB
-tBChfABPbmVS1j3DWtNAuZhzbFXu8KxemV0N/HzX/ax4uBjjHZ/YxBFB6RT1JGIn
-JuwilfRTpo33zl9UUlFbjjUeMRjUAeQDQkzP3hz7dlmV6lZtn1wOPUd2AMNfDLT0
-n3TMaIcZ8r2MCyJRhn4BJ1/jK6s6vH1d1VOFMtD842PjplREkOVefNwDKCcktMxv
-xX2fyG0yTYxGEtECenav
-=+C8g
------END PGP SIGNATURE-----
-
---DDeVvrXISMKuE641gQo9bWwspvt3EkKUQ--
+> 
+> FWIW, IMHO, no device that works like this should be a candidate for the IBTA
+> Interop Logo.
+> 
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body
+> of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
+> http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
