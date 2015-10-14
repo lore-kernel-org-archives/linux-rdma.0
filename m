@@ -1,56 +1,44 @@
-From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-RC] IB/cm: Fix sleeping while atomic when creating AH
- from WC
-Date: Wed, 14 Oct 2015 10:44:15 +0300
-Message-ID: <CAAKD3BAF763brdhsrHtpm_peHk--g3iza53AioiUefepHM_s2w@mail.gmail.com>
-References: <1444568298-17289-1-git-send-email-matanb@mellanox.com>
-	<1444568298-17289-2-git-send-email-matanb@mellanox.com>
-	<1828884A29C6694DAF28B7E6B8A82373A9734356@ORSMSX109.amr.corp.intel.com>
-	<CAAKD3BCe_LAuyxifm=j-Am44S1k4nT328WrGBC+Day+XxMxk9g@mail.gmail.com>
-	<1828884A29C6694DAF28B7E6B8A82373A9734A57@ORSMSX109.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A9734A57-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+From: Heloise NH <os@iscas.ac.cn>
+Subject: [PATCH] fix return value error
+Date: Wed, 14 Oct 2015 16:17:59 +0800
+Message-ID: <1444810679-30592-1-git-send-email-os@iscas.ac.cn>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: infinipath@intel.com, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com
+Cc: linux-rdma@vger.kernel.org, os@iscas.ac.cn, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 13, 2015 at 7:18 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->> On Mon, Oct 12, 2015 at 7:42 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->> >> When IP based addressing was introduced, ib_create_ah_from_wc was
->> >> changed in order to support a suitable AH. Since this AH should
->> >> now contains the DMAC (which isn't a simple derivative of the GID).
->> >> In order to find the DMAC, an ARP should sometime be sent. This ARP
->> >> is a sleeping context.
->> >
->> > Wait - are you saying that the CM may now be waiting for an ARP response
->> before it can send a message?
->> >
->>
->> ib_create_ah_from_wc needs to resolve the DMAC in order to create the
->> AH (this may result sending an ARP and waiting for response).
->> CM uses this function (which is now sleepable).
->
-> This is a significant change to the CM.  The CM calls are invoked assuming that they return relatively quickly.  They're invoked from callbacks and internally.  Having the calls now wait for an ARP response requires that this be re-architected, so the calling thread doesn't go out to lunch for several seconds.
+Signed-off-by: Heloise NH <os@iscas.ac.cn>
+---
+ drivers/infiniband/hw/ipath/ipath_fs.c | 2 +-
+ drivers/infiniband/hw/qib/qib_fs.c     | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Agree - this is a significant change, but it was done a long time ago
-(at v4.3 if I recall). When we need to send a message we need to
-figure out the destination MAC. Even the passive side needs to do that
-as some vendors don't report the source MAC of the packet in their wc.
-Even if they did, since IP based addressing is rout-able by its
-nature, it should follow the networking stack rules. Some crazy
-configurations could force sending responses to packets that came from
-router1 to router2 - so we have no choice than resolving the DMAC at
-every side.
-
->
-> - Sean
-
-Matan
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/ipath/ipath_fs.c b/drivers/infiniband/hw/ipath/ipath_fs.c
+index 25422a3..da753bc 100644
+--- a/drivers/infiniband/hw/ipath/ipath_fs.c
++++ b/drivers/infiniband/hw/ipath/ipath_fs.c
+@@ -53,7 +53,7 @@ static int ipathfs_mknod(struct inode *dir, struct dentry *dentry,
+ 	struct inode *inode = new_inode(dir->i_sb);
+ 
+ 	if (!inode) {
+-		error = -EPERM;
++		error = -ENOMEM;
+ 		goto bail;
+ 	}
+ 
+diff --git a/drivers/infiniband/hw/qib/qib_fs.c b/drivers/infiniband/hw/qib/qib_fs.c
+index 13ef22b..a4c5a6a 100644
+--- a/drivers/infiniband/hw/qib/qib_fs.c
++++ b/drivers/infiniband/hw/qib/qib_fs.c
+@@ -55,7 +55,7 @@ static int qibfs_mknod(struct inode *dir, struct dentry *dentry,
+ 	struct inode *inode = new_inode(dir->i_sb);
+ 
+ 	if (!inode) {
+-		error = -EPERM;
++		error = -ENOMEM;
+ 		goto bail;
+ 	}
+ 
+-- 
+1.9.1
