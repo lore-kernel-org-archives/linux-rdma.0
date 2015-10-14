@@ -1,7 +1,7 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 4/6] IB/mad: Use a SRQ for receiving GMPs
-Date: Wed, 14 Oct 2015 11:29:46 +0300
-Message-ID: <1444811388-22486-5-git-send-email-haggaie@mellanox.com>
+Subject: [PATCH 6/6] IB/mad: P_Key change event handler
+Date: Wed, 14 Oct 2015 11:29:48 +0300
+Message-ID: <1444811388-22486-7-git-send-email-haggaie@mellanox.com>
 References: <1444811388-22486-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1444811388-22486-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,142 +10,131 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-As a preparation for supporting multiple transmission QPs for each GSI QP,
-add a SRQ that will be used for all the receive buffers of these QPs.
+Add a device event handler to capture P_Key table change events. For
+devices that don't support setting the P_Key index per work request, update
+the per-P_Key QP table in the MAD layer, creating QPs as
+needed.
+
+The code currently doesn't destroy created QPs when their pkeys are
+cleared. This can be added later on.
 
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/mad.c      | 58 ++++++++++++++++++++++++++++++++++----
- drivers/infiniband/core/mad_priv.h |  1 +
- 2 files changed, 54 insertions(+), 5 deletions(-)
+ drivers/infiniband/core/mad.c      | 51 ++++++++++++++++++++++++++++++++++++--
+ drivers/infiniband/core/mad_priv.h |  2 ++
+ 2 files changed, 51 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 7a1186173179..2d4457239908 100644
+index 02977942574c..a350b4117cb3 100644
 --- a/drivers/infiniband/core/mad.c
 +++ b/drivers/infiniband/core/mad.c
-@@ -2921,7 +2921,12 @@ static int ib_mad_post_receive_mads(struct ib_mad_qp_info *qp_info,
- 		post = (++recv_queue->count < recv_queue->max_active);
- 		list_add_tail(&mad_priv->header.mad_list.list, &recv_queue->list);
- 		spin_unlock_irqrestore(&recv_queue->lock, flags);
--		ret = ib_post_recv(qp_info->qp, &recv_wr, &bad_recv_wr);
-+		if (qp_info->srq)
-+			ret = ib_post_srq_recv(qp_info->srq, &recv_wr,
-+					       &bad_recv_wr);
-+		else
-+			ret = ib_post_recv(qp_info->qp, &recv_wr, &bad_recv_wr);
-+
- 		if (ret) {
- 			spin_lock_irqsave(&recv_queue->lock, flags);
- 			list_del(&mad_priv->header.mad_list.list);
-@@ -3074,6 +3079,16 @@ static void qp_event_handler(struct ib_event *event, void *qp_context)
- 		event->event, qp_info->qp->qp_num);
+@@ -3153,6 +3153,28 @@ static void srq_event_handler(struct ib_event *event, void *srq_context)
+ 		event->event, qp_num);
  }
  
-+static void srq_event_handler(struct ib_event *event, void *srq_context)
++static void device_event_handler(struct ib_event_handler *handler,
++				 struct ib_event *event)
 +{
-+	struct ib_mad_qp_info	*qp_info = srq_context;
++	struct ib_mad_port_private *port_priv =
++		container_of(handler, struct ib_mad_port_private,
++			     event_handler);
 +
-+	/* We aren't expecting limit reached events, so this must be an error */
-+	dev_err(&qp_info->port_priv->device->dev,
-+		"Fatal error (%d) on MAD SRQ (QP%d)\n",
-+		event->event, qp_info->qp->qp_num);
++	if (event->element.port_num != port_priv->port_num)
++		return;
++
++	dev_dbg(&port_priv->device->dev, "ib_mad: event %s on port %d\n",
++		ib_event_msg(event->event), event->element.port_num);
++
++	switch (event->event) {
++	case IB_EVENT_PKEY_CHANGE:
++		queue_work(port_priv->wq, &port_priv->pkey_change_work);
++		break;
++	default:
++		break;
++	}
 +}
 +
  static void init_mad_queue(struct ib_mad_qp_info *qp_info,
  			   struct ib_mad_queue *mad_queue)
  {
-@@ -3099,19 +3114,45 @@ static void init_mad_qp(struct ib_mad_port_private *port_priv,
- static int create_mad_qp(struct ib_mad_qp_info *qp_info,
- 			 enum ib_qp_type qp_type)
- {
-+	struct ib_device *device = qp_info->port_priv->device;
-+	struct ib_srq_init_attr srq_init_attr;
- 	struct ib_qp_init_attr	qp_init_attr;
-+	struct ib_srq *srq = NULL;
-+	const bool multiple_qps = qp_type == IB_QPT_GSI &&
-+				  device->gsi_pkey_index_in_qp;
+@@ -3306,6 +3328,15 @@ static int update_pkey_table(struct ib_mad_qp_info *qp_info)
+ 	return 0;
+ }
+ 
++static void pkey_change_handler(struct work_struct *work)
++{
++	struct ib_mad_port_private *port_priv =
++		container_of(work, struct ib_mad_port_private,
++			     pkey_change_work);
 +
- 	int ret;
++	update_pkey_table(&port_priv->qp_info[1]);
++}
++
+ static void destroy_mad_qp(struct ib_mad_qp_info *qp_info)
+ {
+ 	u16 qp_index;
+@@ -3453,6 +3484,17 @@ static int ib_mad_port_open(struct ib_device *device,
+ 	}
+ 	INIT_WORK(&port_priv->work, ib_mad_completion_handler);
  
- 	qp_info->qp_type = qp_type;
- 
-+	if (multiple_qps) {
-+		memset(&srq_init_attr, 0, sizeof(srq_init_attr));
-+		srq_init_attr.event_handler = srq_event_handler;
-+		srq_init_attr.srq_context = qp_info;
-+		srq_init_attr.attr.max_wr = mad_recvq_size;
-+		srq_init_attr.attr.max_sge = IB_MAD_RECV_REQ_MAX_SG;
-+		srq = ib_create_srq(qp_info->port_priv->pd, &srq_init_attr);
-+		if (IS_ERR(srq)) {
-+			dev_err(&qp_info->port_priv->device->dev,
-+				"Couldn't create ib_mad SRQ for QP%d\n",
-+				get_spl_qp_index(qp_type));
-+			ret = PTR_ERR(srq);
-+			goto error_srq;
++	if (device->gsi_pkey_index_in_qp) {
++		INIT_WORK(&port_priv->pkey_change_work, pkey_change_handler);
++		INIT_IB_EVENT_HANDLER(&port_priv->event_handler, device,
++				      device_event_handler);
++		ret = ib_register_event_handler(&port_priv->event_handler);
++		if (ret) {
++			dev_err(&device->dev, "Unable to register event handler for ib_mad\n");
++			goto error9;
 +		}
 +	}
-+	qp_info->srq = srq;
 +
- 	memset(&qp_init_attr, 0, sizeof qp_init_attr);
- 	qp_init_attr.send_cq = qp_info->port_priv->cq;
- 	qp_init_attr.recv_cq = qp_info->port_priv->cq;
-+	qp_init_attr.srq = srq;
- 	qp_init_attr.sq_sig_type = IB_SIGNAL_ALL_WR;
- 	qp_init_attr.cap.max_send_wr = mad_sendq_size;
--	qp_init_attr.cap.max_recv_wr = mad_recvq_size;
- 	qp_init_attr.cap.max_send_sge = IB_MAD_SEND_REQ_MAX_SG;
--	qp_init_attr.cap.max_recv_sge = IB_MAD_RECV_REQ_MAX_SG;
-+	if (!srq) {
-+		qp_init_attr.cap.max_recv_wr = mad_recvq_size;
-+		qp_init_attr.cap.max_recv_sge = IB_MAD_RECV_REQ_MAX_SG;
-+	}
- 	qp_init_attr.qp_type = qp_type;
- 	qp_init_attr.port_num = qp_info->port_priv->port_num;
- 	qp_init_attr.qp_context = qp_info;
-@@ -3122,7 +3163,7 @@ static int create_mad_qp(struct ib_mad_qp_info *qp_info,
- 			"Couldn't create ib_mad QP%d\n",
- 			get_spl_qp_index(qp_type));
- 		ret = PTR_ERR(qp_info->qp);
--		goto error;
-+		goto error_qp;
+ 	spin_lock_irqsave(&ib_mad_port_list_lock, flags);
+ 	list_add_tail(&port_priv->port_list, &ib_mad_port_list);
+ 	spin_unlock_irqrestore(&ib_mad_port_list_lock, flags);
+@@ -3460,16 +3502,19 @@ static int ib_mad_port_open(struct ib_device *device,
+ 	ret = ib_mad_port_start(port_priv);
+ 	if (ret) {
+ 		dev_err(&device->dev, "Couldn't start port\n");
+-		goto error9;
++		goto error10;
  	}
- 	/* Use minimum queue sizes unless the CQ is resized */
- 	qp_info->send_queue.max_active = mad_sendq_size;
-@@ -3130,7 +3171,12 @@ static int create_mad_qp(struct ib_mad_qp_info *qp_info,
- 	qp_info->qp_num = qp_info->qp->qp_num;
+ 
  	return 0;
  
--error:
-+error_qp:
-+	if (srq) {
-+		WARN_ON(ib_destroy_srq(srq));
-+		qp_info->srq = NULL;
-+	}
-+error_srq:
- 	return ret;
- }
+-error9:
++error10:
+ 	spin_lock_irqsave(&ib_mad_port_list_lock, flags);
+ 	list_del_init(&port_priv->port_list);
+ 	spin_unlock_irqrestore(&ib_mad_port_list_lock, flags);
  
-@@ -3140,6 +3186,8 @@ static void destroy_mad_qp(struct ib_mad_qp_info *qp_info)
- 		return;
++	if (device->gsi_pkey_index_in_qp)
++		ib_unregister_event_handler(&port_priv->event_handler);
++error9:
+ 	destroy_workqueue(port_priv->wq);
+ error8:
+ 	destroy_mad_qp(&port_priv->qp_info[1]);
+@@ -3507,6 +3552,8 @@ static int ib_mad_port_close(struct ib_device *device, int port_num)
+ 	list_del_init(&port_priv->port_list);
+ 	spin_unlock_irqrestore(&ib_mad_port_list_lock, flags);
  
- 	ib_destroy_qp(qp_info->qp);
-+	if (qp_info->srq)
-+		WARN_ON(ib_destroy_srq(qp_info->srq));
- 	kfree(qp_info->snoop_table);
- }
- 
++	if (device->gsi_pkey_index_in_qp)
++		ib_unregister_event_handler(&port_priv->event_handler);
+ 	destroy_workqueue(port_priv->wq);
+ 	destroy_mad_qp(&port_priv->qp_info[1]);
+ 	destroy_mad_qp(&port_priv->qp_info[0]);
 diff --git a/drivers/infiniband/core/mad_priv.h b/drivers/infiniband/core/mad_priv.h
-index ae099f0f9701..0c3b7c576f3a 100644
+index 32b9532c7868..ee8003648d8a 100644
 --- a/drivers/infiniband/core/mad_priv.h
 +++ b/drivers/infiniband/core/mad_priv.h
-@@ -184,6 +184,7 @@ struct ib_mad_queue {
- struct ib_mad_qp_info {
- 	struct ib_mad_port_private *port_priv;
- 	struct ib_qp *qp;
-+	struct ib_srq *srq;
- 	struct ib_mad_queue send_queue;
- 	struct ib_mad_queue recv_queue;
- 	struct list_head overflow_list;
+@@ -211,6 +211,8 @@ struct ib_mad_port_private {
+ 	struct workqueue_struct *wq;
+ 	struct work_struct work;
+ 	struct ib_mad_qp_info qp_info[IB_MAD_QPS_CORE];
++	struct ib_event_handler event_handler;
++	struct work_struct pkey_change_work;
+ };
+ 
+ int ib_send_mad(struct ib_mad_send_wr_private *mad_send_wr);
 -- 
 1.7.11.2
 
