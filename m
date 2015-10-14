@@ -1,76 +1,148 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Create a common verbs transport library
-Date: Wed, 14 Oct 2015 14:49:04 -0400
-Message-ID: <20151014184903.GA12463@phlsvsds.ph.intel.com>
-References: <20150929125648.GA3433@phlsvsds.ph.intel.com> <CAG9sBKPqXk671c7obj4wd8drNaxPU3gue428y3Es_BJfuC-sVQ@mail.gmail.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PULL REQUEST] Please pull rdma.git
+Date: Wed, 14 Oct 2015 15:08:21 -0400
+Message-ID: <561EA825.2080300@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="DDeVvrXISMKuE641gQo9bWwspvt3EkKUQ"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAG9sBKPqXk671c7obj4wd8drNaxPU3gue428y3Es_BJfuC-sVQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Torvalds, Linus" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 13, 2015 at 08:32:25AM +0300, Moni Shoua wrote:
->We initially thought to implement a shared library that contains the
->transport logic.
->
->However, it seems that a SW Verbs transport driver would allow better
->code sharing.
->
->In fact, the VT driver would need only a single user-space driver for
->all "backends". Any direct HW access from user-space should be exposed
->by the corresponding backend driver and accessed by a different
->library (e.g., psm).
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--DDeVvrXISMKuE641gQo9bWwspvt3EkKUQ
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-I assume by user-space driver we are talking about libverbs? We have 
-separate libraries for ipath/qib and hfi. We should probably coalesce these 
-into a single library but that is a separate issue. PSM is also unrelated to 
-the work here since PSM is not verbs.
+Hi Linus,
 
->At a high-level, it seems that we should do as follows:
->
->- Decide on an initial code base for VT (rxe/hfi/qib), clone it, and
->rename to VT
->
->- Split the code to VT and backend and create the initial backend APIs, e.g.:
+We have four batched up patches for the current rc kernel.
 
-We have been planning a bit of a different approach. My thoughts are we make 
-VT a completely new kmod. It will start out life lettings verbs calls from 
-the core go into the drivers to do their thing, but will contain a bunch of 
-the duplicated code that we have in hfi1/qib/ipath. The next step is to move 
-piece by piece the rest of the verbs code.
+Two of them are small fixes that are obvious.
 
->-- Send packet
->
->-- Deliver packet (receive)
->
->-- Attach multicast
->
->-- Packet buffer allocation
->
->-- Notify when more send space is available
->
->- In parallel, prepare the backends of other drivers while enhancing
->VT as needed.
+One of them is larger than I would like for a late stage rc pull, but we
+found an issue in the namespace lookup code related to RoCE and this
+works around the issue for now (we allow a lookup with a namespace to
+succeed on RoCE since RoCE namespaces aren't implemented yet).  This
+will go away in 4.4 when we put in support for namespaces in RoCE devices=
+=2E
 
-Yes, we need to come up with an API, I'm not fully sure what that should 
-look like yet, it is a work in progress.
+The last one is large in terms of lines, but is all legal and no
+functional changes.  Cisco needed to update their files to be more
+specific about their license.  They had intended the files to be dual
+licensed as GPL/BSD all along, and specified that in their module
+license tag, but their file headers were not up to par.  They contacted
+all of the contributors to get agreement and then submitted a patch to
+update the license headers in the files.
 
->Do you have any preferences to the initial code base?
->
->Do you already have some code that we can look at?
+Thanks!
 
-We'll be starting out with making changes to hfi1 and qib to follow shortly 
-behind. No code just yet, but I should have something to post as an RFC very 
-soon (in the next two weeks).
+The following changes since commit 2866196f294954ce9fa226825c8c1eaa64c7da=
+8a:
 
-Thanks
+  IB/ipoib: increase the max mcast backlog queue (2015-09-25 22:30:24 -04=
+00)
 
--Denny
+are available in the git repository at:
 
+  git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
+tags/for-linus
+
+for you to fetch changes up to 0b5c9279e568d90903acedc2b9b832d8d78e8288:
+
+  IB/ipoib: For sendonly join free the multicast group on leave
+(2015-10-13 16:4
+3:59 -0400)
+
+----------------------------------------------------------------
+Changes for 4.3-rc5
+
+- Work around connection namespace lookup bug related to RoCE
+- Change usnic license to Dual GPL/BSD (was intended to be that way
+  all along, but wasn't clear, permission from contributors was
+  chased down)
+- Fix an issue between NFSoRDMA and mlx5 that could cause an oops
+- Fix leak of sendonly multicast groups
+
+----------------------------------------------------------------
+Christoph Lameter (1):
+      IB/ipoib: For sendonly join free the multicast group on leave
+
+Haggai Eran (1):
+      IB/cma: Accept connection without a valid netdev on RoCE
+
+Jeff Squyres (1):
+      usnic: add missing clauses to BSD license
+
+Sagi Grimberg (1):
+      xprtrdma: Don't require LOCAL_DMA_LKEY support for fastreg
+
+ drivers/infiniband/core/cma.c                      | 54
+++++++++++++++++------
+ drivers/infiniband/hw/usnic/usnic.h                | 21 +++++++--
+ drivers/infiniband/hw/usnic/usnic_abi.h            | 21 +++++++--
+ drivers/infiniband/hw/usnic/usnic_common_pkt_hdr.h | 21 +++++++--
+ drivers/infiniband/hw/usnic/usnic_common_util.h    | 21 +++++++--
+ drivers/infiniband/hw/usnic/usnic_debugfs.c        | 21 +++++++--
+ drivers/infiniband/hw/usnic/usnic_debugfs.h        | 21 +++++++--
+ drivers/infiniband/hw/usnic/usnic_fwd.c            | 21 +++++++--
+ drivers/infiniband/hw/usnic/usnic_fwd.h            | 21 +++++++--
+ drivers/infiniband/hw/usnic/usnic_ib.h             | 21 +++++++--
+ drivers/infiniband/hw/usnic/usnic_ib_main.c        | 21 +++++++--
+ drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c      | 21 +++++++--
+ drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h      | 21 +++++++--
+ drivers/infiniband/hw/usnic/usnic_ib_sysfs.c       | 21 +++++++--
+ drivers/infiniband/hw/usnic/usnic_ib_sysfs.h       | 21 +++++++--
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c       | 21 +++++++--
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.h       | 21 +++++++--
+ drivers/infiniband/hw/usnic/usnic_log.h            | 21 +++++++--
+ drivers/infiniband/hw/usnic/usnic_transport.c      | 21 +++++++--
+ drivers/infiniband/hw/usnic/usnic_transport.h      | 21 +++++++--
+ drivers/infiniband/hw/usnic/usnic_uiom.c           |  2 +-
+ drivers/infiniband/hw/usnic/usnic_uiom.h           | 21 +++++++--
+ .../infiniband/hw/usnic/usnic_uiom_interval_tree.c | 21 +++++++--
+ .../infiniband/hw/usnic/usnic_uiom_interval_tree.h | 21 +++++++--
+ drivers/infiniband/hw/usnic/usnic_vnic.c           | 21 +++++++--
+ drivers/infiniband/hw/usnic/usnic_vnic.h           | 21 +++++++--
+ drivers/infiniband/ulp/ipoib/ipoib.h               |  1 +
+ drivers/infiniband/ulp/ipoib/ipoib_main.c          |  4 +-
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c     |  2 +-
+ net/sunrpc/xprtrdma/verbs.c                        |  8 ++--
+ 30 files changed, 481 insertions(+), 94 deletions(-)
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--DDeVvrXISMKuE641gQo9bWwspvt3EkKUQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJWHqglAAoJELgmozMOVy/dqLgP/jJbkoPfwgNs5HxKXyHIxNId
+Eq2XMvy+WsfJjQmQpt3NUhM7Gc/lZodutvkv00X0/a32HBda0tWPTBbNQBKYwFqZ
+9YL0YF50QidDB9sXOLnA/D2nrg3IpPyjcUDpZyQ8htPsbleGCZq2IoJodnDLCk1B
+FVLuVuLEqe6xFGUyT6aaF/4L2gMaXN/jvYKS3mrIXzun+eLDT0ZQGN7r8gtOKKmL
+wWyhMrE1IN45wB1/GDuoc4ikYLC2yuHuVVe5uiw/3deOPUVpU0GtlWKxGnqXHdjx
+VFcpYn/cgaB8iDW5mWWGfG6bjBzO83Fo3ISf1Ix6Jvae74PkpQbTV3AX/Rzf8jMY
+t04s1LbqDClbyJKip9ypIvNjuuxm6tGTFxbqnSRud/lK7CWH1f6KKGb/rq+fY9bI
+9RYaS2G8V4DI/8FKgvkWWfyX5nUaA1xZGW23eV52px3NPRXigyjm4LEosVCBF8aB
+tBChfABPbmVS1j3DWtNAuZhzbFXu8KxemV0N/HzX/ax4uBjjHZ/YxBFB6RT1JGIn
+JuwilfRTpo33zl9UUlFbjjUeMRjUAeQDQkzP3hz7dlmV6lZtn1wOPUd2AMNfDLT0
+n3TMaIcZ8r2MCyJRhn4BJ1/jK6s6vH1d1VOFMtD842PjplREkOVefNwDKCcktMxv
+xX2fyG0yTYxGEtECenav
+=+C8g
+-----END PGP SIGNATURE-----
+
+--DDeVvrXISMKuE641gQo9bWwspvt3EkKUQ--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
