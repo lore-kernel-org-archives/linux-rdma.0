@@ -1,51 +1,76 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 0/6] IB/mad: Support devices taking pkey_index from the
- GSI QP
-Date: Wed, 14 Oct 2015 11:54:10 -0600
-Message-ID: <20151014175410.GB28534@obsidianresearch.com>
-References: <1444811388-22486-1-git-send-email-haggaie@mellanox.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Create a common verbs transport library
+Date: Wed, 14 Oct 2015 14:49:04 -0400
+Message-ID: <20151014184903.GA12463@phlsvsds.ph.intel.com>
+References: <20150929125648.GA3433@phlsvsds.ph.intel.com> <CAG9sBKPqXk671c7obj4wd8drNaxPU3gue428y3Es_BJfuC-sVQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1444811388-22486-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <CAG9sBKPqXk671c7obj4wd8drNaxPU3gue428y3Es_BJfuC-sVQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 14, 2015 at 11:29:42AM +0300, Haggai Eran wrote:
-> respect the pkey_index in ib_send_wr.ud for GSI packets. Apparently having
-> the pkey_index in a work request isn't required by the IBA
-> specifications,
+On Tue, Oct 13, 2015 at 08:32:25AM +0300, Moni Shoua wrote:
+>We initially thought to implement a shared library that contains the
+>transport logic.
+>
+>However, it seems that a SW Verbs transport driver would allow better
+>code sharing.
+>
+>In fact, the VT driver would need only a single user-space driver for
+>all "backends". Any direct HW access from user-space should be exposed
+>by the corresponding backend driver and accessed by a different
+>library (e.g., psm).
 
-I disagree. The spec is very clear, 13.5.3.2.1 perscribes how GMP
-replies must be generated and there are only two ways to follow that
-perscription:
- - Have some mechanism to set the pkey on outgoing QP1 GMPs
- - Support only one pkey
+I assume by user-space driver we are talking about libverbs? We have 
+separate libraries for ipath/qib and hfi. We should probably coalesce these 
+into a single library but that is a separate issue. PSM is also unrelated to 
+the work here since PSM is not verbs.
 
-What this series is doing (src QPN != 1) is absolutely not complainant
-with the spec.
+>At a high-level, it seems that we should do as follows:
+>
+>- Decide on an initial code base for VT (rxe/hfi/qib), clone it, and
+>rename to VT
+>
+>- Split the code to VT and backend and create the initial backend APIs, e.g.:
 
-If hardware doesn't have the ability to set the pkey on outbound, then
-it can only support 1 pkey. This may be why reading other parts of the
-spec is confusing. pkey_index in the verbs section is optional, but
-without it an implementation cannot support multiple pkeys. Thus when
-multiple pkeys are supported it is not optional at all.
+We have been planning a bit of a different approach. My thoughts are we make 
+VT a completely new kmod. It will start out life lettings verbs calls from 
+the core go into the drivers to do their thing, but will contain a bunch of 
+the duplicated code that we have in hfi1/qib/ipath. The next step is to move 
+piece by piece the rest of the verbs code.
 
-This proposed hack violates parts of 13.5.3.2.1 so I don't think it
-is acceptable for core code to endorse ignoring the spec so
-badly. Especially when the violations are visible on the wire.
+>-- Send packet
+>
+>-- Deliver packet (receive)
+>
+>-- Attach multicast
+>
+>-- Packet buffer allocation
+>
+>-- Notify when more send space is available
+>
+>- In parallel, prepare the backends of other drivers while enhancing
+>VT as needed.
 
-Put the hack in the driver, and obsolete it when the hardware is fixed
-to follow the spec. Even better would be to fix this in firmware and
-leave the kernel alone.
+Yes, we need to come up with an API, I'm not fully sure what that should 
+look like yet, it is a work in progress.
 
-FWIW, IMHO, no device that works like this should be a candidate for
-the IBTA Interop Logo.
+>Do you have any preferences to the initial code base?
+>
+>Do you already have some code that we can look at?
 
-Jason
+We'll be starting out with making changes to hfi1 and qib to follow shortly 
+behind. No code just yet, but I should have something to post as an RFC very 
+soon (in the next two weeks).
+
+Thanks
+
+-Denny
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
