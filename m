@@ -1,140 +1,68 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 6/6] IB/mad: P_Key change event handler
-Date: Wed, 14 Oct 2015 11:29:48 +0300
-Message-ID: <1444811388-22486-7-git-send-email-haggaie@mellanox.com>
+Subject: [PATCH 3/6] IB/core: Add capability bit to tell whether per-WR P_Key change in GSI is supported
+Date: Wed, 14 Oct 2015 11:29:45 +0300
+Message-ID: <1444811388-22486-4-git-send-email-haggaie@mellanox.com>
 References: <1444811388-22486-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1444811388-22486-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add a device event handler to capture P_Key table change events. For
-devices that don't support setting the P_Key index per work request, update
-the per-P_Key QP table in the MAD layer, creating QPs as
-needed.
+The IB specs do not require per work-request control over the P_Key used in
+GMPs. Most drivers have implemented this feature, but some drivers such as
+ipath and mlx5 do not support it.
 
-The code currently doesn't destroy created QPs when their pkeys are
-cleared. This can be added later on.
+Add a capability bit, and turn it on in drivers that lack support for
+per-WR P_Key.
 
+Cc: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/mad.c      | 51 ++++++++++++++++++++++++++++++++++++--
- drivers/infiniband/core/mad_priv.h |  2 ++
- 2 files changed, 51 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c        | 1 +
+ drivers/staging/rdma/ipath/ipath_verbs.c | 1 +
+ include/rdma/ib_verbs.h                  | 2 ++
+ 3 files changed, 4 insertions(+)
 
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 02977942574c..a350b4117cb3 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -3153,6 +3153,28 @@ static void srq_event_handler(struct ib_event *event, void *srq_context)
- 		event->event, qp_num);
- }
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index f1ccd40beae9..2d35e0472215 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1429,6 +1429,7 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 	dev->ib_dev.free_fast_reg_page_list  = mlx5_ib_free_fast_reg_page_list;
+ 	dev->ib_dev.check_mr_status	= mlx5_ib_check_mr_status;
+ 	dev->ib_dev.get_port_immutable  = mlx5_port_immutable;
++	dev->ib_dev.gsi_pkey_index_in_qp = 1;
  
-+static void device_event_handler(struct ib_event_handler *handler,
-+				 struct ib_event *event)
-+{
-+	struct ib_mad_port_private *port_priv =
-+		container_of(handler, struct ib_mad_port_private,
-+			     event_handler);
-+
-+	if (event->element.port_num != port_priv->port_num)
-+		return;
-+
-+	dev_dbg(&port_priv->device->dev, "ib_mad: event %s on port %d\n",
-+		ib_event_msg(event->event), event->element.port_num);
-+
-+	switch (event->event) {
-+	case IB_EVENT_PKEY_CHANGE:
-+		queue_work(port_priv->wq, &port_priv->pkey_change_work);
-+		break;
-+	default:
-+		break;
-+	}
-+}
-+
- static void init_mad_queue(struct ib_mad_qp_info *qp_info,
- 			   struct ib_mad_queue *mad_queue)
- {
-@@ -3306,6 +3328,15 @@ static int update_pkey_table(struct ib_mad_qp_info *qp_info)
- 	return 0;
- }
+ 	mlx5_ib_internal_fill_odp_caps(dev);
  
-+static void pkey_change_handler(struct work_struct *work)
-+{
-+	struct ib_mad_port_private *port_priv =
-+		container_of(work, struct ib_mad_port_private,
-+			     pkey_change_work);
-+
-+	update_pkey_table(&port_priv->qp_info[1]);
-+}
-+
- static void destroy_mad_qp(struct ib_mad_qp_info *qp_info)
- {
- 	u16 qp_index;
-@@ -3453,6 +3484,17 @@ static int ib_mad_port_open(struct ib_device *device,
- 	}
- 	INIT_WORK(&port_priv->work, ib_mad_completion_handler);
+diff --git a/drivers/staging/rdma/ipath/ipath_verbs.c b/drivers/staging/rdma/ipath/ipath_verbs.c
+index ed2bbc2f7eae..2e13a82c1871 100644
+--- a/drivers/staging/rdma/ipath/ipath_verbs.c
++++ b/drivers/staging/rdma/ipath/ipath_verbs.c
+@@ -2202,6 +2202,7 @@ int ipath_register_ib_device(struct ipath_devdata *dd)
+ 	dev->mmap = ipath_mmap;
+ 	dev->dma_ops = &ipath_dma_mapping_ops;
+ 	dev->get_port_immutable = ipath_port_immutable;
++	dev->gsi_pkey_index_in_qp = 1;
  
-+	if (device->gsi_pkey_index_in_qp) {
-+		INIT_WORK(&port_priv->pkey_change_work, pkey_change_handler);
-+		INIT_IB_EVENT_HANDLER(&port_priv->event_handler, device,
-+				      device_event_handler);
-+		ret = ib_register_event_handler(&port_priv->event_handler);
-+		if (ret) {
-+			dev_err(&device->dev, "Unable to register event handler for ib_mad\n");
-+			goto error9;
-+		}
-+	}
-+
- 	spin_lock_irqsave(&ib_mad_port_list_lock, flags);
- 	list_add_tail(&port_priv->port_list, &ib_mad_port_list);
- 	spin_unlock_irqrestore(&ib_mad_port_list_lock, flags);
-@@ -3460,16 +3502,19 @@ static int ib_mad_port_open(struct ib_device *device,
- 	ret = ib_mad_port_start(port_priv);
- 	if (ret) {
- 		dev_err(&device->dev, "Couldn't start port\n");
--		goto error9;
-+		goto error10;
- 	}
+ 	snprintf(dev->node_desc, sizeof(dev->node_desc),
+ 		 IPATH_IDSTR " %s", init_utsname()->nodename);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 7845fae6f2df..dc5cd93b3386 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1792,6 +1792,8 @@ struct ib_device {
+ 	__be64			     node_guid;
+ 	u32			     local_dma_lkey;
+ 	u16                          is_switch:1;
++	/* The device reads the pkey_index from the QP in GSI (QP1) QPs. */
++	u16			     gsi_pkey_index_in_qp:1;
+ 	u8                           node_type;
+ 	u8                           phys_port_cnt;
  
- 	return 0;
- 
--error9:
-+error10:
- 	spin_lock_irqsave(&ib_mad_port_list_lock, flags);
- 	list_del_init(&port_priv->port_list);
- 	spin_unlock_irqrestore(&ib_mad_port_list_lock, flags);
- 
-+	if (device->gsi_pkey_index_in_qp)
-+		ib_unregister_event_handler(&port_priv->event_handler);
-+error9:
- 	destroy_workqueue(port_priv->wq);
- error8:
- 	destroy_mad_qp(&port_priv->qp_info[1]);
-@@ -3507,6 +3552,8 @@ static int ib_mad_port_close(struct ib_device *device, int port_num)
- 	list_del_init(&port_priv->port_list);
- 	spin_unlock_irqrestore(&ib_mad_port_list_lock, flags);
- 
-+	if (device->gsi_pkey_index_in_qp)
-+		ib_unregister_event_handler(&port_priv->event_handler);
- 	destroy_workqueue(port_priv->wq);
- 	destroy_mad_qp(&port_priv->qp_info[1]);
- 	destroy_mad_qp(&port_priv->qp_info[0]);
-diff --git a/drivers/infiniband/core/mad_priv.h b/drivers/infiniband/core/mad_priv.h
-index 32b9532c7868..ee8003648d8a 100644
---- a/drivers/infiniband/core/mad_priv.h
-+++ b/drivers/infiniband/core/mad_priv.h
-@@ -211,6 +211,8 @@ struct ib_mad_port_private {
- 	struct workqueue_struct *wq;
- 	struct work_struct work;
- 	struct ib_mad_qp_info qp_info[IB_MAD_QPS_CORE];
-+	struct ib_event_handler event_handler;
-+	struct work_struct pkey_change_work;
- };
- 
- int ib_send_mad(struct ib_mad_send_wr_private *mad_send_wr);
 -- 
 1.7.11.2
 
