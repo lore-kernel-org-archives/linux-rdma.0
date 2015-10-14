@@ -1,127 +1,33 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 00/16] NFS/RDMA patches for merging into v4.4
-Date: Wed, 14 Oct 2015 11:34:48 -0400
-Message-ID: <E7CD827E-53F6-4313-93F8-B85E63865A10@oracle.com>
-References: <20151006142430.11788.42604.stgit@manet.1015granger.net> <CANjDDBj5vyu3cG5fGe_w0pJxAxPUSwyBFFha5sNOCvfcwidc0A@mail.gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CANjDDBj5vyu3cG5fGe_w0pJxAxPUSwyBFFha5sNOCvfcwidc0A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Theodore Ts'o <tytso@mit.edu>
+Subject: Re: [Ksummit-discuss] [TECH TOPIC] IRQ affinity
+Date: Wed, 14 Oct 2015 11:56:55 -0400
+Message-ID: <20151014155655.GB17329@thunk.org>
+References: <20150715120708.GA24534@infradead.org>
+ <20151012160948.GD20210@thunk.org>
+ <20151012184145.GA22633@infradead.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20151012184145.GA22633@infradead.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@infradead.org>
+Cc: ksummit-discuss@lists.linuxfoundation.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, Oct 12, 2015 at 11:41:45AM -0700, Christoph Hellwig wrote:
+> 
+> Hi Ted,
+> 
+> while we have a high level agreement there's still some discussion
+> needed.  I can prepare a few slides for 10 minute discussion and then
+> take it to the hallways with the interested people.
 
-> On Oct 14, 2015, at 9:32 AM, Devesh Sharma <devesh.sharma@avagotech.c=
-om> wrote:
->=20
-> Hi Chuck,
->=20
-> With the server crash fix in place, ocrdma is passing iozone on this =
-series.
->=20
-> Series Tested-By: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Thanks,
 
-Thanks to you and Sagi. A v3 is coming soon, which should be more
-or less ready to merge.
+The Tech session day is designed for just that.  We should have plenty
+of slots so you can stay and have the chat in the room.
 
+Cheers,
 
->=20
-> On Tue, Oct 6, 2015 at 8:28 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> =
-wrote:
->> Introduce client-side support for bi-directional RPC/RDMA.
->> Bi-directional RPC/RDMA is a pre-requisite for NFSv4.1 on RDMA
->> transports.
->>=20
->> Also available in the "nfs-rdma-for-4.4" topic branch of this git re=
-po:
->>=20
->> git://git.linux-nfs.org/projects/cel/cel-2.6.git
->>=20
->> Or for browsing:
->>=20
->> http://git.linux-nfs.org/?p=3Dcel/cel-2.6.git;a=3Dlog;h=3Drefs/heads=
-/nfs-rdma-for-4.4
->>=20
->> Changes since v1:
->> - Dropped "RFC" in Subject: line
->> - Rebased on v4.3-rc4 + Steve W's recent fixes
->> - NFS Server-side backchannel support postponed
->> - "xprtrdma: Replace global lkey" dropped, already merged
->> - Addressed Sagi's comments on "Replace send and receive arrays"
->> - Addressed Jason's comment regarding ib_req_notify_cq return code
->> - Moved RPC/RDMA reply handling into a work queue
->>=20
->> I'm assuming recent list discussion has addressed Devesh's and
->> Sagi's concerns with "Prevent loss of completion signals". Let me
->> know if there is still a problem.
->>=20
->> ---
->>=20
->> Chuck Lever (16):
->>      xprtrdma: Enable swap-on-NFS/RDMA
->>      xprtrdma: Re-arm after missed events
->>      xprtrdma: Prevent loss of completion signals
->>      xprtrdma: Refactor reply handler error handling
->>      xprtrdma: Replace send and receive arrays
->>      xprtrdma: Use workqueue to process RPC/RDMA replies
->>      xprtrdma: Remove reply tasklet
->>      xprtrdma: Saving IRQs no longer needed for rb_lock
->>      SUNRPC: Abstract backchannel operations
->>      xprtrdma: Pre-allocate backward rpc_rqst and send/receive buffe=
-rs
->>      xprtrdma: Pre-allocate Work Requests for backchannel
->>      xprtrdma: Add support for sending backward direction RPC replie=
-s
->>      xprtrdma: Handle incoming backward direction RPC calls
->>      svcrdma: Add backward direction service for RPC/RDMA transport
->>      SUNRPC: Remove the TCP-only restriction in bc_svc_process()
->>      NFS: Enable client side NFSv4.1 backchannel to use other transp=
-orts
->>=20
->>=20
->> fs/nfs/callback.c                        |   33 +-
->> include/linux/sunrpc/bc_xprt.h           |    5
->> include/linux/sunrpc/svc_rdma.h          |    6
->> include/linux/sunrpc/xprt.h              |    7
->> net/sunrpc/backchannel_rqst.c            |   24 +-
->> net/sunrpc/svc.c                         |    5
->> net/sunrpc/xprtrdma/Makefile             |    1
->> net/sunrpc/xprtrdma/backchannel.c        |  373 ++++++++++++++++++++=
-+++
->> net/sunrpc/xprtrdma/rpc_rdma.c           |  148 ++++++---
->> net/sunrpc/xprtrdma/svc_rdma.c           |    6
->> net/sunrpc/xprtrdma/svc_rdma_transport.c |   58 ++++
->> net/sunrpc/xprtrdma/transport.c          |   18 +
->> net/sunrpc/xprtrdma/verbs.c              |  479 +++++++++++++++-----=
-----------
->> net/sunrpc/xprtrdma/xprt_rdma.h          |   53 +++
->> net/sunrpc/xprtsock.c                    |   16 +
->> 15 files changed, 916 insertions(+), 316 deletions(-)
->> create mode 100644 net/sunrpc/xprtrdma/backchannel.c
->>=20
->> --
->> Chuck Lever
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
-" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-=E2=80=94
-Chuck Lever
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+						- Ted
