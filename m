@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V1 4/9] IB/core: Add ROCE_UDP_ENCAP (RoCE V2) type
-Date: Thu, 15 Oct 2015 19:07:07 +0300
-Message-ID: <1444925232-13598-5-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next V1 6/9] IB/rdma_cm: Add wrapper for cma reference count
+Date: Thu, 15 Oct 2015 19:07:09 +0300
+Message-ID: <1444925232-13598-7-git-send-email-matanb@mellanox.com>
 References: <1444925232-13598-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1444925232-13598-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,105 +10,75 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Adding RoCE v2 GID type and port type. Vendors
-which support this type will get their GID table
-populated with RoCE v2 GIDs automatically.
+Currently, cma users can't increase or decrease the cma reference
+count. This is necassary when setting cma attributes (like the
+default GID type) in order to avoid use-after-free errors.
+Adding cma_ref_dev and cma_deref_dev APIs.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/cache.c         |  1 +
- drivers/infiniband/core/roce_gid_mgmt.c |  3 ++-
- include/rdma/ib_verbs.h                 | 23 +++++++++++++++++++++--
- 3 files changed, 24 insertions(+), 3 deletions(-)
+ drivers/infiniband/core/cma.c       | 11 +++++++++--
+ drivers/infiniband/core/core_priv.h |  4 ++++
+ 2 files changed, 13 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-index d9ca6c3..cb34b06 100644
---- a/drivers/infiniband/core/cache.c
-+++ b/drivers/infiniband/core/cache.c
-@@ -115,6 +115,7 @@ struct ib_gid_table {
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index c5d1685..0955690 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -58,6 +58,8 @@
+ #include <rdma/ib_sa.h>
+ #include <rdma/iw_cm.h>
  
- static const char * const gid_type_str[] = {
- 	[IB_GID_TYPE_IB]	= "IB/RoCE v1",
-+	[IB_GID_TYPE_ROCE_UDP_ENCAP]	= "RoCE v2",
++#include "core_priv.h"
++
+ MODULE_AUTHOR("Sean Hefty");
+ MODULE_DESCRIPTION("Generic RDMA CM Agent");
+ MODULE_LICENSE("Dual BSD/GPL");
+@@ -171,6 +173,11 @@ enum {
+ 	CMA_OPTION_AFONLY,
  };
  
- const char *ib_cache_gid_type_str(enum ib_gid_type gid_type)
-diff --git a/drivers/infiniband/core/roce_gid_mgmt.c b/drivers/infiniband/core/roce_gid_mgmt.c
-index 61c27a7..1e3673f 100644
---- a/drivers/infiniband/core/roce_gid_mgmt.c
-+++ b/drivers/infiniband/core/roce_gid_mgmt.c
-@@ -71,7 +71,8 @@ static const struct {
- 	bool (*is_supported)(const struct ib_device *device, u8 port_num);
- 	enum ib_gid_type gid_type;
- } PORT_CAP_TO_GID_TYPE[] = {
--	{rdma_protocol_roce,   IB_GID_TYPE_ROCE},
-+	{rdma_protocol_roce_eth_encap, IB_GID_TYPE_ROCE},
-+	{rdma_protocol_roce_udp_encap, IB_GID_TYPE_ROCE_UDP_ENCAP},
- };
- 
- #define CAP_TO_GID_TABLE_SIZE	ARRAY_SIZE(PORT_CAP_TO_GID_TYPE)
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 7619e22..77906fe 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -71,6 +71,7 @@ enum ib_gid_type {
- 	/* If link layer is Ethernet, this is RoCE V1 */
- 	IB_GID_TYPE_IB        = 0,
- 	IB_GID_TYPE_ROCE      = 0,
-+	IB_GID_TYPE_ROCE_UDP_ENCAP = 1,
- 	IB_GID_TYPE_SIZE
- };
- 
-@@ -399,6 +400,7 @@ union rdma_protocol_stats {
- #define RDMA_CORE_CAP_PROT_IB           0x00100000
- #define RDMA_CORE_CAP_PROT_ROCE         0x00200000
- #define RDMA_CORE_CAP_PROT_IWARP        0x00400000
-+#define RDMA_CORE_CAP_PROT_ROCE_UDP_ENCAP 0x00800000
- 
- #define RDMA_CORE_PORT_IBA_IB          (RDMA_CORE_CAP_PROT_IB  \
- 					| RDMA_CORE_CAP_IB_MAD \
-@@ -411,6 +413,12 @@ union rdma_protocol_stats {
- 					| RDMA_CORE_CAP_IB_CM   \
- 					| RDMA_CORE_CAP_AF_IB   \
- 					| RDMA_CORE_CAP_ETH_AH)
-+#define RDMA_CORE_PORT_IBA_ROCE_UDP_ENCAP			\
-+					(RDMA_CORE_CAP_PROT_ROCE_UDP_ENCAP \
-+					| RDMA_CORE_CAP_IB_MAD  \
-+					| RDMA_CORE_CAP_IB_CM   \
-+					| RDMA_CORE_CAP_AF_IB   \
-+					| RDMA_CORE_CAP_ETH_AH)
- #define RDMA_CORE_PORT_IWARP           (RDMA_CORE_CAP_PROT_IWARP \
- 					| RDMA_CORE_CAP_IW_CM)
- #define RDMA_CORE_PORT_INTEL_OPA       (RDMA_CORE_PORT_IBA_IB  \
-@@ -1942,6 +1950,17 @@ static inline bool rdma_protocol_ib(const struct ib_device *device, u8 port_num)
- 
- static inline bool rdma_protocol_roce(const struct ib_device *device, u8 port_num)
- {
-+	return device->port_immutable[port_num].core_cap_flags &
-+		(RDMA_CORE_CAP_PROT_ROCE | RDMA_CORE_CAP_PROT_ROCE_UDP_ENCAP);
++void cma_ref_dev(struct cma_device *cma_dev)
++{
++	atomic_inc(&cma_dev->refcount);
 +}
 +
-+static inline bool rdma_protocol_roce_udp_encap(const struct ib_device *device, u8 port_num)
-+{
-+	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_ROCE_UDP_ENCAP;
-+}
-+
-+static inline bool rdma_protocol_roce_eth_encap(const struct ib_device *device, u8 port_num)
-+{
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_ROCE;
- }
- 
-@@ -1952,8 +1971,8 @@ static inline bool rdma_protocol_iwarp(const struct ib_device *device, u8 port_n
- 
- static inline bool rdma_ib_or_roce(const struct ib_device *device, u8 port_num)
+ /*
+  * Device removal can occur at anytime, so we need extra handling to
+  * serialize notifying the user of device removal with other callbacks.
+@@ -325,7 +332,7 @@ static inline void cma_set_ip_ver(struct cma_hdr *hdr, u8 ip_ver)
+ static void cma_attach_to_dev(struct rdma_id_private *id_priv,
+ 			      struct cma_device *cma_dev)
  {
--	return device->port_immutable[port_num].core_cap_flags &
--		(RDMA_CORE_CAP_PROT_IB | RDMA_CORE_CAP_PROT_ROCE);
-+	return rdma_protocol_ib(device, port_num) ||
-+		rdma_protocol_roce(device, port_num);
+-	atomic_inc(&cma_dev->refcount);
++	cma_ref_dev(cma_dev);
+ 	id_priv->cma_dev = cma_dev;
+ 	id_priv->id.device = cma_dev->device;
+ 	id_priv->id.route.addr.dev_addr.transport =
+@@ -333,7 +340,7 @@ static void cma_attach_to_dev(struct rdma_id_private *id_priv,
+ 	list_add_tail(&id_priv->list, &cma_dev->id_list);
  }
  
- /**
+-static inline void cma_deref_dev(struct cma_device *cma_dev)
++void cma_deref_dev(struct cma_device *cma_dev)
+ {
+ 	if (atomic_dec_and_test(&cma_dev->refcount))
+ 		complete(&cma_dev->comp);
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index d531f91..aeb107c 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -38,6 +38,10 @@
+ 
+ #include <rdma/ib_verbs.h>
+ 
++struct cma_device;
++void cma_ref_dev(struct cma_device *cma_dev);
++void cma_deref_dev(struct cma_device *cma_dev);
++
+ int  ib_device_register_sysfs(struct ib_device *device,
+ 			      int (*port_callback)(struct ib_device *,
+ 						   u8, struct kobject *));
 -- 
 2.1.0
 
