@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 2/7] IB: Introduce Work Queue object and its verbs
-Date: Thu, 15 Oct 2015 10:16:45 +0300
-Message-ID: <1444893410-13242-3-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH for-next 1/7] net/mlx5_core: Expose transobj APIs from mlx5 core
+Date: Thu, 15 Oct 2015 10:16:44 +0300
+Message-ID: <1444893410-13242-2-git-send-email-yishaih@mellanox.com>
 References: <1444893410-13242-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1444893410-13242-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,220 +10,260 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Introduce Work Queue object and its create/destroy/modify verbs.
-
-QP can be created without internal WQs "packaged" inside it,
-this QP can be configured to use "external" WQ object as its
-receive/send queue.
-WQ is a necessary component for RSS technology since RSS mechanism
-is supposed to distribute the traffic between multiple
-Receive Work Queues.
-
-WQ associated (many to one) with Completion Queue and it owns WQ
-properties (PD, WQ size, etc.).
-WQ has a type, this patch introduces the IB_WQT_RQ (i.e.receive queue),
-it may be extend to others such as IB_WQT_SQ. (send queue).
-WQ from type IB_WQT_RQ contains receive work requests.
-
-WQ context is subject to a well-defined state transitions done by
-the modify_wq verb.
-When WQ is created its initial state becomes IB_WQS_RESET.
->From IB_WQS_RESET it can be modified to itself or to IB_WQS_RDY.
->From IB_WQS_RDY it can be modified to itself, to IB_WQS_RESET
-or to IB_WQS_ERR.
->From IB_WQS_ERR it can be modified to IB_WQS_RESET.
-
-Note: transition to IB_WQS_ERR might occur implicitly in case there
-was some HW error.
-
+Move transobj.h from the core library to include/linux/mlx5
+to enable using its functionality outside of mlx5 core.
 
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c |   59 ++++++++++++++++++++++++++
- include/rdma/ib_verbs.h         |   88 +++++++++++++++++++++++++++++++++++++++
- 2 files changed, 147 insertions(+), 0 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en.h       |    2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/srq.c      |    2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/transobj.c |    8 ++-
+ drivers/net/ethernet/mellanox/mlx5/core/transobj.h |   72 -------------------
+ include/linux/mlx5/transobj.h                      |   73 ++++++++++++++++++++
+ 5 files changed, 82 insertions(+), 75 deletions(-)
+ delete mode 100644 drivers/net/ethernet/mellanox/mlx5/core/transobj.h
+ create mode 100644 include/linux/mlx5/transobj.h
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index e1f2c98..c63c622 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -1435,6 +1435,65 @@ int ib_dealloc_xrcd(struct ib_xrcd *xrcd)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en.h b/drivers/net/ethernet/mellanox/mlx5/core/en.h
+index 0983a20..47b2811 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en.h
+@@ -36,8 +36,8 @@
+ #include <linux/mlx5/qp.h>
+ #include <linux/mlx5/cq.h>
+ #include <linux/mlx5/vport.h>
++#include <linux/mlx5/transobj.h>
+ #include "wq.h"
+-#include "transobj.h"
+ #include "mlx5_core.h"
+ 
+ #define MLX5E_MAX_NUM_TC	8
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/srq.c b/drivers/net/ethernet/mellanox/mlx5/core/srq.c
+index c48f504..1c1619a 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/srq.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/srq.c
+@@ -35,9 +35,9 @@
+ #include <linux/mlx5/driver.h>
+ #include <linux/mlx5/cmd.h>
+ #include <linux/mlx5/srq.h>
++#include <linux/mlx5/transobj.h>
+ #include <rdma/ib_verbs.h>
+ #include "mlx5_core.h"
+-#include "transobj.h"
+ 
+ void mlx5_srq_event(struct mlx5_core_dev *dev, u32 srqn, int event_type)
+ {
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/transobj.c b/drivers/net/ethernet/mellanox/mlx5/core/transobj.c
+index b4c87c7..3d5db0b 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/transobj.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/transobj.c
+@@ -30,9 +30,10 @@
+  * SOFTWARE.
+  */
+ 
++#include <linux/export.h>
+ #include <linux/mlx5/driver.h>
++#include <linux/mlx5/transobj.h>
+ #include "mlx5_core.h"
+-#include "transobj.h"
+ 
+ int mlx5_alloc_transport_domain(struct mlx5_core_dev *dev, u32 *tdn)
+ {
+@@ -83,6 +84,7 @@ int mlx5_core_create_rq(struct mlx5_core_dev *dev, u32 *in, int inlen, u32 *rqn)
+ 
+ 	return err;
  }
- EXPORT_SYMBOL(ib_dealloc_xrcd);
++EXPORT_SYMBOL(mlx5_core_create_rq);
  
-+struct ib_wq *ib_create_wq(struct ib_pd *pd,
-+			   struct ib_wq_init_attr *wq_attr)
-+{
-+	struct ib_wq *wq;
-+
-+	if (!pd->device->create_wq)
-+		return ERR_PTR(-ENOSYS);
-+
-+	wq = pd->device->create_wq(pd, wq_attr, NULL);
-+	if (!IS_ERR(wq)) {
-+		wq->event_handler = wq_attr->event_handler;
-+		wq->wq_context = wq_attr->wq_context;
-+		wq->wq_type = wq_attr->wq_type;
-+		wq->cq = wq_attr->cq;
-+		wq->device = pd->device;
-+		wq->pd = pd;
-+		wq->uobject = NULL;
-+		atomic_inc(&pd->usecnt);
-+		atomic_inc(&wq_attr->cq->usecnt);
-+		atomic_set(&wq->usecnt, 0);
-+	}
-+	return wq;
-+}
-+EXPORT_SYMBOL(ib_create_wq);
-+
-+int ib_destroy_wq(struct ib_wq *wq)
-+{
-+	int err;
-+	struct ib_cq *cq = wq->cq;
-+	struct ib_pd *pd = wq->pd;
-+
-+	if (!wq->device->destroy_wq)
-+		return -ENOSYS;
-+
-+	if (atomic_read(&wq->usecnt))
-+		return -EBUSY;
-+
-+	err = wq->device->destroy_wq(wq);
-+	if (!err) {
-+		atomic_dec(&pd->usecnt);
-+		atomic_dec(&cq->usecnt);
-+	}
-+	return err;
-+}
-+EXPORT_SYMBOL(ib_destroy_wq);
-+
-+int ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr *wq_attr,
-+		 enum ib_wq_attr_mask attr_mask)
-+{
-+	int err;
-+
-+	if (!wq->device->modify_wq)
-+		return -ENOSYS;
-+
-+	err = wq->device->modify_wq(wq, wq_attr, attr_mask, NULL);
-+	return err;
-+}
-+EXPORT_SYMBOL(ib_modify_wq);
-+
- struct ib_flow *ib_create_flow(struct ib_qp *qp,
- 			       struct ib_flow_attr *flow_attr,
- 			       int domain)
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index e1f65e2..0c6291b 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1310,6 +1310,48 @@ struct ib_srq {
- 	} ext;
- };
+ int mlx5_core_modify_rq(struct mlx5_core_dev *dev, u32 rqn, u32 *in, int inlen)
+ {
+@@ -94,6 +96,7 @@ int mlx5_core_modify_rq(struct mlx5_core_dev *dev, u32 rqn, u32 *in, int inlen)
+ 	memset(out, 0, sizeof(out));
+ 	return mlx5_cmd_exec_check_status(dev, in, inlen, out, sizeof(out));
+ }
++EXPORT_SYMBOL(mlx5_core_modify_rq);
  
-+enum ib_wq_type {
-+	IB_WQT_RQ
-+};
-+
-+enum ib_wq_state {
-+	IB_WQS_RESET,
-+	IB_WQS_RDY,
-+	IB_WQS_ERR
-+};
-+
-+struct ib_wq {
-+	struct ib_device       *device;
-+	struct ib_uobject      *uobject;
-+	void		    *wq_context;
-+	void		    (*event_handler)(struct ib_event *, void *);
-+	struct ib_pd	       *pd;
-+	struct ib_cq	       *cq;
-+	u32		wq_num;
-+	enum ib_wq_state       state;
-+	enum ib_wq_type	wq_type;
-+	atomic_t		usecnt;
-+};
-+
-+struct ib_wq_init_attr {
-+	void		       *wq_context;
-+	enum ib_wq_type	wq_type;
-+	u32		max_wr;
-+	u32		max_sge;
-+	struct	ib_cq	       *cq;
-+	void		    (*event_handler)(struct ib_event *, void *);
-+};
-+
-+enum ib_wq_attr_mask {
-+	IB_WQ_STATE	= 1 << 0,
-+	IB_WQ_CUR_STATE	= 1 << 1,
-+};
-+
-+struct ib_wq_attr {
-+	enum	ib_wq_state	wq_state;
-+	enum	ib_wq_state	curr_wq_state;
-+};
-+
- struct ib_qp {
- 	struct ib_device       *device;
- 	struct ib_pd	       *pd;
-@@ -1771,6 +1813,14 @@ struct ib_device {
- 	int			   (*check_mr_status)(struct ib_mr *mr, u32 check_mask,
- 						      struct ib_mr_status *mr_status);
- 	void			   (*disassociate_ucontext)(struct ib_ucontext *ibcontext);
-+	struct ib_wq *		   (*create_wq)(struct ib_pd *pd,
-+						struct ib_wq_init_attr *init_attr,
-+						struct ib_udata *udata);
-+	int			   (*destroy_wq)(struct ib_wq *wq);
-+	int			   (*modify_wq)(struct ib_wq *wq,
-+						struct ib_wq_attr *attr,
-+						enum ib_wq_attr_mask attr_mask,
-+						struct ib_udata *udata);
+ void mlx5_core_destroy_rq(struct mlx5_core_dev *dev, u32 rqn)
+ {
+@@ -107,6 +110,7 @@ void mlx5_core_destroy_rq(struct mlx5_core_dev *dev, u32 rqn)
  
- 	struct ib_dma_mapping_ops   *dma_ops;
+ 	mlx5_cmd_exec_check_status(dev, in, sizeof(in), out, sizeof(out));
+ }
++EXPORT_SYMBOL(mlx5_core_destroy_rq);
  
-@@ -3024,4 +3074,42 @@ struct net_device *ib_get_net_dev_by_params(struct ib_device *dev, u8 port,
- 					    u16 pkey, const union ib_gid *gid,
- 					    const struct sockaddr *addr);
+ int mlx5_core_create_sq(struct mlx5_core_dev *dev, u32 *in, int inlen, u32 *sqn)
+ {
+@@ -386,6 +390,7 @@ int mlx5_core_create_rqt(struct mlx5_core_dev *dev, u32 *in, int inlen,
  
-+/**
-+ * ib_create_wq - Creates a WQ associated with the specified protection
-+ * domain.
-+ * @pd: The protection domain associated with the WQ.
-+ * @wq_init_attr: A list of initial attributes required to create the
-+ * WQ. If WQ creation succeeds, then the attributes are updated to
-+ * the actual capabilities of the created WQ.
+ 	return err;
+ }
++EXPORT_SYMBOL(mlx5_core_create_rqt);
+ 
+ int mlx5_core_modify_rqt(struct mlx5_core_dev *dev, u32 rqtn, u32 *in,
+ 			 int inlen)
+@@ -411,3 +416,4 @@ void mlx5_core_destroy_rqt(struct mlx5_core_dev *dev, u32 rqtn)
+ 
+ 	mlx5_cmd_exec_check_status(dev, in, sizeof(in), out, sizeof(out));
+ }
++EXPORT_SYMBOL(mlx5_core_destroy_rqt);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/transobj.h b/drivers/net/ethernet/mellanox/mlx5/core/transobj.h
+deleted file mode 100644
+index 74cae51..0000000
+--- a/drivers/net/ethernet/mellanox/mlx5/core/transobj.h
++++ /dev/null
+@@ -1,72 +0,0 @@
+-/*
+- * Copyright (c) 2013-2015, Mellanox Technologies, Ltd.  All rights reserved.
+- *
+- * This software is available to you under a choice of one of two
+- * licenses.  You may choose to be licensed under the terms of the GNU
+- * General Public License (GPL) Version 2, available from the file
+- * COPYING in the main directory of this source tree, or the
+- * OpenIB.org BSD license below:
+- *
+- *     Redistribution and use in source and binary forms, with or
+- *     without modification, are permitted provided that the following
+- *     conditions are met:
+- *
+- *      - Redistributions of source code must retain the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer.
+- *
+- *      - Redistributions in binary form must reproduce the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer in the documentation and/or other materials
+- *        provided with the distribution.
+- *
+- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+- * SOFTWARE.
+- */
+-
+-#ifndef __TRANSOBJ_H__
+-#define __TRANSOBJ_H__
+-
+-int mlx5_alloc_transport_domain(struct mlx5_core_dev *dev, u32 *tdn);
+-void mlx5_dealloc_transport_domain(struct mlx5_core_dev *dev, u32 tdn);
+-int mlx5_core_create_rq(struct mlx5_core_dev *dev, u32 *in, int inlen,
+-			u32 *rqn);
+-int mlx5_core_modify_rq(struct mlx5_core_dev *dev, u32 rqn, u32 *in, int inlen);
+-void mlx5_core_destroy_rq(struct mlx5_core_dev *dev, u32 rqn);
+-int mlx5_core_create_sq(struct mlx5_core_dev *dev, u32 *in, int inlen,
+-			u32 *sqn);
+-int mlx5_core_modify_sq(struct mlx5_core_dev *dev, u32 sqn, u32 *in, int inlen);
+-void mlx5_core_destroy_sq(struct mlx5_core_dev *dev, u32 sqn);
+-int mlx5_core_create_tir(struct mlx5_core_dev *dev, u32 *in, int inlen,
+-			 u32 *tirn);
+-int mlx5_core_modify_tir(struct mlx5_core_dev *dev, u32 tirn, u32 *in,
+-			 int inlen);
+-void mlx5_core_destroy_tir(struct mlx5_core_dev *dev, u32 tirn);
+-int mlx5_core_create_tis(struct mlx5_core_dev *dev, u32 *in, int inlen,
+-			 u32 *tisn);
+-void mlx5_core_destroy_tis(struct mlx5_core_dev *dev, u32 tisn);
+-int mlx5_core_create_rmp(struct mlx5_core_dev *dev, u32 *in, int inlen,
+-			 u32 *rmpn);
+-int mlx5_core_modify_rmp(struct mlx5_core_dev *dev, u32 *in, int inlen);
+-int mlx5_core_destroy_rmp(struct mlx5_core_dev *dev, u32 rmpn);
+-int mlx5_core_query_rmp(struct mlx5_core_dev *dev, u32 rmpn, u32 *out);
+-int mlx5_core_arm_rmp(struct mlx5_core_dev *dev, u32 rmpn, u16 lwm);
+-int mlx5_core_create_xsrq(struct mlx5_core_dev *dev, u32 *in, int inlen,
+-			  u32 *rmpn);
+-int mlx5_core_destroy_xsrq(struct mlx5_core_dev *dev, u32 rmpn);
+-int mlx5_core_query_xsrq(struct mlx5_core_dev *dev, u32 rmpn, u32 *out);
+-int mlx5_core_arm_xsrq(struct mlx5_core_dev *dev, u32 rmpn, u16 lwm);
+-
+-int mlx5_core_create_rqt(struct mlx5_core_dev *dev, u32 *in, int inlen,
+-			 u32 *rqtn);
+-int mlx5_core_modify_rqt(struct mlx5_core_dev *dev, u32 rqtn, u32 *in,
+-			 int inlen);
+-void mlx5_core_destroy_rqt(struct mlx5_core_dev *dev, u32 rqtn);
+-
+-#endif /* __TRANSOBJ_H__ */
+diff --git a/include/linux/mlx5/transobj.h b/include/linux/mlx5/transobj.h
+new file mode 100644
+index 0000000..6b4b3a4
+--- /dev/null
++++ b/include/linux/mlx5/transobj.h
+@@ -0,0 +1,73 @@
++/*
++ * Copyright (c) 2013-2015, Mellanox Technologies, Ltd.  All rights reserved.
 + *
-+ * wq_init_attr->max_wr and wq_init_attr->max_sge determine
-+ * the requested size of the WQ, and set to the actual values allocated
-+ * on return.
-+ * If ib_create_wq() succeeds, then max_wr and max_sge will always be
-+ * at least as large as the requested values.
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
 + *
-+ * Return Value
-+ * ib_create_wq() returns a pointer to the created WQ, or NULL if the request
-+ * fails.
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
 + */
-+struct ib_wq *ib_create_wq(struct ib_pd *pd,
-+			   struct ib_wq_init_attr *init_attr);
 +
-+/**
-+ * ib_destroy_wq - Destroys the specified WQ.
-+ * @wq: The WQ to destroy.
-+ */
-+int ib_destroy_wq(struct ib_wq *wq);
++#ifndef __TRANSOBJ_H__
++#define __TRANSOBJ_H__
 +
-+/**
-+ * ib_modify_wq - Modifies the specified WQ.
-+ * @wq: The WQ to modify.
-+ * @wq_attr: On input, specifies the WQ attributes to modify.
-+ * @attr_mask: A bit-mask used to specify which attributes of the WQ
-+ *   are being modified.
-+ * On output, the current values of selected WQ attributes are returned.
-+ */
-+int ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr *attr,
-+		 enum ib_wq_attr_mask attr_mask);
++#include <linux/mlx5/driver.h>
 +
- #endif /* IB_VERBS_H */
++int mlx5_alloc_transport_domain(struct mlx5_core_dev *dev, u32 *tdn);
++void mlx5_dealloc_transport_domain(struct mlx5_core_dev *dev, u32 tdn);
++int mlx5_core_create_rq(struct mlx5_core_dev *dev, u32 *in, int inlen,
++			u32 *rqn);
++int mlx5_core_modify_rq(struct mlx5_core_dev *dev, u32 rqn, u32 *in, int inlen);
++void mlx5_core_destroy_rq(struct mlx5_core_dev *dev, u32 rqn);
++int mlx5_core_create_sq(struct mlx5_core_dev *dev, u32 *in, int inlen,
++			u32 *sqn);
++int mlx5_core_modify_sq(struct mlx5_core_dev *dev, u32 sqn, u32 *in, int inlen);
++void mlx5_core_destroy_sq(struct mlx5_core_dev *dev, u32 sqn);
++int mlx5_core_create_tir(struct mlx5_core_dev *dev, u32 *in, int inlen,
++			 u32 *tirn);
++int mlx5_core_modify_tir(struct mlx5_core_dev *dev, u32 tirn, u32 *in,
++			 int inlen);
++void mlx5_core_destroy_tir(struct mlx5_core_dev *dev, u32 tirn);
++int mlx5_core_create_tis(struct mlx5_core_dev *dev, u32 *in, int inlen,
++			 u32 *tisn);
++void mlx5_core_destroy_tis(struct mlx5_core_dev *dev, u32 tisn);
++int mlx5_core_create_rmp(struct mlx5_core_dev *dev, u32 *in, int inlen,
++			 u32 *rmpn);
++int mlx5_core_modify_rmp(struct mlx5_core_dev *dev, u32 *in, int inlen);
++int mlx5_core_destroy_rmp(struct mlx5_core_dev *dev, u32 rmpn);
++int mlx5_core_query_rmp(struct mlx5_core_dev *dev, u32 rmpn, u32 *out);
++int mlx5_core_arm_rmp(struct mlx5_core_dev *dev, u32 rmpn, u16 lwm);
++int mlx5_core_create_xsrq(struct mlx5_core_dev *dev, u32 *in, int inlen,
++			  u32 *rmpn);
++int mlx5_core_destroy_xsrq(struct mlx5_core_dev *dev, u32 rmpn);
++int mlx5_core_query_xsrq(struct mlx5_core_dev *dev, u32 rmpn, u32 *out);
++int mlx5_core_arm_xsrq(struct mlx5_core_dev *dev, u32 rmpn, u16 lwm);
++int mlx5_core_create_rqt(struct mlx5_core_dev *dev, u32 *in, int inlen,
++			 u32 *rqtn);
++int mlx5_core_modify_rqt(struct mlx5_core_dev *dev, u32 rqtn, u32 *in,
++			 int inlen);
++void mlx5_core_destroy_rqt(struct mlx5_core_dev *dev, u32 rqtn);
++
++#endif /* __TRANSOBJ_H__ */
 -- 
 1.7.1
 
