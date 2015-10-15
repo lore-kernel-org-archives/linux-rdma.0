@@ -1,303 +1,368 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V1 3/9] IB/core: Add gid attributes to sysfs
-Date: Thu, 15 Oct 2015 19:07:06 +0300
-Message-ID: <1444925232-13598-4-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next V1 8/9] IB/core: Initialize UD header structure with IP and UDP headers
+Date: Thu, 15 Oct 2015 19:07:11 +0300
+Message-ID: <1444925232-13598-9-git-send-email-matanb@mellanox.com>
 References: <1444925232-13598-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1444925232-13598-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch set adds attributes of net device and gid type to each GID
-in the GID table. Users that use verbs directly need to specify
-the GID index. Since the same GID could have different types or
-associated net devices, users should have the ability to query the
-associated GID attributes. Adding these attributes to sysfs.
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
+ib_ud_header_init() is used to format InfiniBand headers
+in a buffer up to (but not with) BTH. For RoCE UDP ENCAP it is
+required that this function would be able to build also IP and UDP
+headers.
+
+Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/sysfs.c | 184 +++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 182 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/ud_header.c    | 155 ++++++++++++++++++++++++++++++---
+ drivers/infiniband/hw/mlx4/qp.c        |   7 +-
+ drivers/infiniband/hw/mthca/mthca_qp.c |   2 +-
+ include/rdma/ib_pack.h                 |  45 ++++++++--
+ 4 files changed, 188 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index b1f37d4..4d5d87a 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -37,12 +37,22 @@
- #include <linux/slab.h>
- #include <linux/stat.h>
+diff --git a/drivers/infiniband/core/ud_header.c b/drivers/infiniband/core/ud_header.c
+index 72feee6..96697e7 100644
+--- a/drivers/infiniband/core/ud_header.c
++++ b/drivers/infiniband/core/ud_header.c
+@@ -35,6 +35,7 @@
  #include <linux/string.h>
-+#include <linux/netdevice.h>
+ #include <linux/export.h>
+ #include <linux/if_ether.h>
++#include <linux/ip.h>
  
- #include <rdma/ib_mad.h>
+ #include <rdma/ib_pack.h>
  
-+struct ib_port;
-+
-+struct gid_attr_group {
-+	struct ib_port		*port;
-+	struct kobject		kobj;
-+	struct attribute_group	ndev;
-+	struct attribute_group	type;
-+};
- struct ib_port {
- 	struct kobject         kobj;
- 	struct ib_device      *ibdev;
-+	struct gid_attr_group *gid_attr_group;
- 	struct attribute_group gid_group;
- 	struct attribute_group pkey_group;
- 	u8                     port_num;
-@@ -84,6 +94,24 @@ static const struct sysfs_ops port_sysfs_ops = {
- 	.show = port_attr_show
+@@ -116,6 +117,72 @@ static const struct ib_field vlan_table[]  = {
+ 	  .size_bits    = 16 }
  };
  
-+static ssize_t gid_attr_show(struct kobject *kobj,
-+			     struct attribute *attr, char *buf)
++static const struct ib_field ip4_table[]  = {
++	{ STRUCT_FIELD(ip4, ver),
++	  .offset_words = 0,
++	  .offset_bits  = 0,
++	  .size_bits    = 4 },
++	{ STRUCT_FIELD(ip4, hdr_len),
++	  .offset_words = 0,
++	  .offset_bits  = 4,
++	  .size_bits    = 4 },
++	{ STRUCT_FIELD(ip4, tos),
++	  .offset_words = 0,
++	  .offset_bits  = 8,
++	  .size_bits    = 8 },
++	{ STRUCT_FIELD(ip4, tot_len),
++	  .offset_words = 0,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(ip4, id),
++	  .offset_words = 1,
++	  .offset_bits  = 0,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(ip4, frag_off),
++	  .offset_words = 1,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(ip4, ttl),
++	  .offset_words = 2,
++	  .offset_bits  = 0,
++	  .size_bits    = 8 },
++	{ STRUCT_FIELD(ip4, protocol),
++	  .offset_words = 2,
++	  .offset_bits  = 8,
++	  .size_bits    = 8 },
++	{ STRUCT_FIELD(ip4, check),
++	  .offset_words = 2,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(ip4, saddr),
++	  .offset_words = 3,
++	  .offset_bits  = 0,
++	  .size_bits    = 32 },
++	{ STRUCT_FIELD(ip4, daddr),
++	  .offset_words = 4,
++	  .offset_bits  = 0,
++	  .size_bits    = 32 }
++};
++
++static const struct ib_field udp_table[]  = {
++	{ STRUCT_FIELD(udp, sport),
++	  .offset_words = 0,
++	  .offset_bits  = 0,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(udp, dport),
++	  .offset_words = 0,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(udp, length),
++	  .offset_words = 1,
++	  .offset_bits  = 0,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(udp, csum),
++	  .offset_words = 1,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 }
++};
++
+ static const struct ib_field grh_table[]  = {
+ 	{ STRUCT_FIELD(grh, ip_version),
+ 	  .offset_words = 0,
+@@ -213,26 +280,57 @@ static const struct ib_field deth_table[] = {
+ 	  .size_bits    = 24 }
+ };
+ 
++__be16 ib_ud_ip4_csum(struct ib_ud_header *header)
 +{
-+	struct port_attribute *port_attr =
-+		container_of(attr, struct port_attribute, attr);
-+	struct ib_port *p = container_of(kobj, struct gid_attr_group,
-+					 kobj)->port;
++	struct iphdr iph;
 +
-+	if (!port_attr->show)
-+		return -EIO;
++	iph.ihl		= 5;
++	iph.version	= 4;
++	iph.tos		= header->ip4.tos;
++	iph.tot_len	= header->ip4.tot_len;
++	iph.id		= header->ip4.id;
++	iph.frag_off	= header->ip4.frag_off;
++	iph.ttl		= header->ip4.ttl;
++	iph.protocol	= header->ip4.protocol;
++	iph.check	= 0;
++	iph.saddr	= header->ip4.saddr;
++	iph.daddr	= header->ip4.daddr;
 +
-+	return port_attr->show(p, port_attr, buf);
++	return ip_fast_csum((u8 *)&iph, iph.ihl);
 +}
++EXPORT_SYMBOL(ib_ud_ip4_csum);
 +
-+static const struct sysfs_ops gid_attr_sysfs_ops = {
-+	.show = gid_attr_show
-+};
-+
- static ssize_t state_show(struct ib_port *p, struct port_attribute *unused,
- 			  char *buf)
+ /**
+  * ib_ud_header_init - Initialize UD header structure
+  * @payload_bytes:Length of packet payload
+  * @lrh_present: specify if LRH is present
+  * @eth_present: specify if Eth header is present
+  * @vlan_present: packet is tagged vlan
+- * @grh_present:GRH flag (if non-zero, GRH will be included)
++ * @grh_present: GRH flag (if non-zero, GRH will be included)
++ * @ip_version: if non-zero, IP header, V4 or V6, will be included
++ * @udp_present :if non-zero, UDP header will be included
+  * @immediate_present: specify if immediate data is present
+  * @header:Structure to initialize
+  */
+-void ib_ud_header_init(int     		    payload_bytes,
+-		       int		    lrh_present,
+-		       int		    eth_present,
+-		       int		    vlan_present,
+-		       int    		    grh_present,
+-		       int		    immediate_present,
+-		       struct ib_ud_header *header)
++int ib_ud_header_init(int     payload_bytes,
++		      int    lrh_present,
++		      int    eth_present,
++		      int    vlan_present,
++		      int    grh_present,
++		      int    ip_version,
++		      int    udp_present,
++		      int    immediate_present,
++		      struct ib_ud_header *header)
  {
-@@ -281,6 +309,46 @@ static struct attribute *port_default_attrs[] = {
- 	NULL
- };
++	grh_present = grh_present && !ip_version;
+ 	memset(header, 0, sizeof *header);
  
-+static size_t print_ndev(struct ib_gid_attr *gid_attr, char *buf)
-+{
-+	if (!gid_attr->ndev)
++	/*
++	 * UDP header without IP header doesn't make sense
++	 */
++	if (udp_present && ip_version != 4 && ip_version != 6)
 +		return -EINVAL;
 +
-+	return sprintf(buf, "%s\n", gid_attr->ndev->name);
-+}
-+
-+static size_t print_gid_type(struct ib_gid_attr *gid_attr, char *buf)
-+{
-+	return sprintf(buf, "%s\n", ib_cache_gid_type_str(gid_attr->gid_type));
-+}
-+
-+static ssize_t _show_port_gid_attr(struct ib_port *p,
-+				   struct port_attribute *attr,
-+				   char *buf,
-+				   size_t (*print)(struct ib_gid_attr *gid_attr,
-+						   char *buf))
-+{
-+	struct port_table_attribute *tab_attr =
-+		container_of(attr, struct port_table_attribute, attr);
-+	union ib_gid gid;
-+	struct ib_gid_attr gid_attr = {};
-+	ssize_t ret;
-+	va_list args;
-+
-+	ret = ib_query_gid(p->ibdev, p->port_num, tab_attr->index, &gid,
-+			   &gid_attr);
-+	if (ret)
-+		goto err;
-+
-+	ret = print(&gid_attr, buf);
-+
-+err:
-+	if (gid_attr.ndev)
-+		dev_put(gid_attr.ndev);
-+	va_end(args);
-+	return ret;
-+}
-+
- static ssize_t show_port_gid(struct ib_port *p, struct port_attribute *attr,
- 			     char *buf)
- {
-@@ -296,6 +364,19 @@ static ssize_t show_port_gid(struct ib_port *p, struct port_attribute *attr,
- 	return sprintf(buf, "%pI6\n", gid.raw);
- }
+ 	if (lrh_present) {
+ 		u16 packet_length;
  
-+static ssize_t show_port_gid_attr_ndev(struct ib_port *p,
-+				       struct port_attribute *attr, char *buf)
-+{
-+	return _show_port_gid_attr(p, attr, buf, print_ndev);
-+}
-+
-+static ssize_t show_port_gid_attr_gid_type(struct ib_port *p,
-+					   struct port_attribute *attr,
-+					   char *buf)
-+{
-+	return _show_port_gid_attr(p, attr, buf, print_gid_type);
-+}
-+
- static ssize_t show_port_pkey(struct ib_port *p, struct port_attribute *attr,
- 			      char *buf)
- {
-@@ -451,12 +532,41 @@ static void ib_port_release(struct kobject *kobj)
- 	kfree(p);
- }
+@@ -252,7 +350,7 @@ void ib_ud_header_init(int     		    payload_bytes,
+ 	if (vlan_present)
+ 		header->eth.type = cpu_to_be16(ETH_P_8021Q);
  
-+static void ib_port_gid_attr_release(struct kobject *kobj)
-+{
-+	struct gid_attr_group *g = container_of(kobj, struct gid_attr_group,
-+						kobj);
-+	struct attribute *a;
-+	int i;
-+
-+	if (g->ndev.attrs) {
-+		for (i = 0; (a = g->ndev.attrs[i]); ++i)
-+			kfree(a);
-+
-+		kfree(g->ndev.attrs);
+-	if (grh_present) {
++	if (ip_version == 6 || grh_present) {
+ 		header->grh.ip_version      = 6;
+ 		header->grh.payload_length  =
+ 			cpu_to_be16((IB_BTH_BYTES     +
+@@ -260,8 +358,30 @@ void ib_ud_header_init(int     		    payload_bytes,
+ 				     payload_bytes    +
+ 				     4                + /* ICRC     */
+ 				     3) & ~3);          /* round up */
+-		header->grh.next_header     = 0x1b;
++		header->grh.next_header     = udp_present ? IPPROTO_UDP : 0x1b;
 +	}
 +
-+	if (g->type.attrs) {
-+		for (i = 0; (a = g->type.attrs[i]); ++i)
-+			kfree(a);
++	if (ip_version == 4) {
++		int udp_bytes = udp_present ? IB_UDP_BYTES : 0;
 +
-+		kfree(g->type.attrs);
++		header->ip4.ver = 4; /* version 4 */
++		header->ip4.hdr_len = 5; /* 5 words */
++		header->ip4.tot_len =
++			cpu_to_be16(IB_IP4_BYTES   +
++				     udp_bytes     +
++				     IB_BTH_BYTES  +
++				     IB_DETH_BYTES +
++				     payload_bytes +
++				     4);     /* ICRC     */
++		header->ip4.protocol = IPPROTO_UDP;
+ 	}
++	if (udp_present && ip_version)
++		header->udp.length =
++			cpu_to_be16(IB_UDP_BYTES   +
++				     IB_BTH_BYTES  +
++				     IB_DETH_BYTES +
++				     payload_bytes +
++				     4);     /* ICRC     */
+ 
+ 	if (immediate_present)
+ 		header->bth.opcode           = IB_OPCODE_UD_SEND_ONLY_WITH_IMMEDIATE;
+@@ -273,8 +393,11 @@ void ib_ud_header_init(int     		    payload_bytes,
+ 	header->lrh_present = lrh_present;
+ 	header->eth_present = eth_present;
+ 	header->vlan_present = vlan_present;
+-	header->grh_present = grh_present;
++	header->grh_present = grh_present || (ip_version == 6);
++	header->ipv4_present = ip_version == 4;
++	header->udp_present = udp_present;
+ 	header->immediate_present = immediate_present;
++	return 0;
+ }
+ EXPORT_SYMBOL(ib_ud_header_init);
+ 
+@@ -311,6 +434,16 @@ int ib_ud_header_pack(struct ib_ud_header *header,
+ 			&header->grh, buf + len);
+ 		len += IB_GRH_BYTES;
+ 	}
++	if (header->ipv4_present) {
++		ib_pack(ip4_table, ARRAY_SIZE(ip4_table),
++			&header->ip4, buf + len);
++		len += IB_IP4_BYTES;
 +	}
-+
-+	kfree(g);
-+}
-+
- static struct kobj_type port_type = {
- 	.release       = ib_port_release,
- 	.sysfs_ops     = &port_sysfs_ops,
- 	.default_attrs = port_default_attrs
++	if (header->udp_present) {
++		ib_pack(udp_table, ARRAY_SIZE(udp_table),
++			&header->udp, buf + len);
++		len += IB_UDP_BYTES;
++	}
+ 
+ 	ib_pack(bth_table, ARRAY_SIZE(bth_table),
+ 		&header->bth, buf + len);
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 71a4176..e8737ff 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -2089,7 +2089,7 @@ static int build_sriov_qp0_header(struct mlx4_ib_sqp *sqp,
+ 	if (sqp->qp.mlx4_ib_qp_type == MLX4_IB_QPT_PROXY_SMI_OWNER)
+ 		send_size += sizeof (struct mlx4_ib_tunnel_header);
+ 
+-	ib_ud_header_init(send_size, 1, 0, 0, 0, 0, &sqp->ud_header);
++	ib_ud_header_init(send_size, 1, 0, 0, 0, 0, 0, 0, &sqp->ud_header);
+ 
+ 	if (sqp->qp.mlx4_ib_qp_type == MLX4_IB_QPT_PROXY_SMI_OWNER) {
+ 		sqp->ud_header.lrh.service_level =
+@@ -2235,7 +2235,10 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
+ 			is_vlan = 1;
+ 		}
+ 	}
+-	ib_ud_header_init(send_size, !is_eth, is_eth, is_vlan, is_grh, 0, &sqp->ud_header);
++	err = ib_ud_header_init(send_size, !is_eth, is_eth, is_vlan, is_grh,
++				0, 0, 0, &sqp->ud_header);
++	if (err)
++		return err;
+ 
+ 	if (!is_eth) {
+ 		sqp->ud_header.lrh.service_level =
+diff --git a/drivers/infiniband/hw/mthca/mthca_qp.c b/drivers/infiniband/hw/mthca/mthca_qp.c
+index e354b2f..22a04fd 100644
+--- a/drivers/infiniband/hw/mthca/mthca_qp.c
++++ b/drivers/infiniband/hw/mthca/mthca_qp.c
+@@ -1485,7 +1485,7 @@ static int build_mlx_header(struct mthca_dev *dev, struct mthca_sqp *sqp,
+ 	u16 pkey;
+ 
+ 	ib_ud_header_init(256, /* assume a MAD */ 1, 0, 0,
+-			  mthca_ah_grh_present(to_mah(wr->wr.ud.ah)), 0,
++			  mthca_ah_grh_present(to_mah(wr->wr.ud.ah)), 0, 0, 0,
+ 			  &sqp->ud_header);
+ 
+ 	err = mthca_read_ah(dev, to_mah(wr->wr.ud.ah), &sqp->ud_header);
+diff --git a/include/rdma/ib_pack.h b/include/rdma/ib_pack.h
+index 709a533..0e494d5 100644
+--- a/include/rdma/ib_pack.h
++++ b/include/rdma/ib_pack.h
+@@ -41,6 +41,8 @@ enum {
+ 	IB_ETH_BYTES  = 14,
+ 	IB_VLAN_BYTES = 4,
+ 	IB_GRH_BYTES  = 40,
++	IB_IP4_BYTES  = 20,
++	IB_UDP_BYTES  = 8,
+ 	IB_BTH_BYTES  = 12,
+ 	IB_DETH_BYTES = 8
+ };
+@@ -223,6 +225,27 @@ struct ib_unpacked_eth {
+ 	__be16	type;
  };
  
-+static struct kobj_type gid_attr_type = {
-+	.sysfs_ops      = &gid_attr_sysfs_ops,
-+	.release        = ib_port_gid_attr_release
++struct ib_unpacked_ip4 {
++	u8	ver;
++	u8	hdr_len;
++	u8	tos;
++	__be16	tot_len;
++	__be16	id;
++	__be16	frag_off;
++	u8	ttl;
++	u8	protocol;
++	__be16	check;
++	__be32	saddr;
++	__be32	daddr;
 +};
 +
- static struct attribute **
- alloc_group_attrs(ssize_t (*show)(struct ib_port *,
- 				  struct port_attribute *, char *buf),
-@@ -528,9 +638,23 @@ static int add_port(struct ib_device *device, int port_num,
- 		return ret;
- 	}
++struct ib_unpacked_udp {
++	__be16	sport;
++	__be16	dport;
++	__be16	length;
++	__be16	csum;
++};
++
+ struct ib_unpacked_vlan {
+ 	__be16  tag;
+ 	__be16  type;
+@@ -237,6 +260,10 @@ struct ib_ud_header {
+ 	struct ib_unpacked_vlan vlan;
+ 	int			grh_present;
+ 	struct ib_unpacked_grh	grh;
++	int			ipv4_present;
++	struct ib_unpacked_ip4	ip4;
++	int			udp_present;
++	struct ib_unpacked_udp	udp;
+ 	struct ib_unpacked_bth	bth;
+ 	struct ib_unpacked_deth deth;
+ 	int			immediate_present;
+@@ -253,13 +280,17 @@ void ib_unpack(const struct ib_field        *desc,
+ 	       void                         *buf,
+ 	       void                         *structure);
  
-+	p->gid_attr_group = kzalloc(sizeof(*p->gid_attr_group), GFP_KERNEL);
-+	if (!p->gid_attr_group) {
-+		ret = -ENOMEM;
-+		goto err_put;
-+	}
+-void ib_ud_header_init(int		    payload_bytes,
+-		       int		    lrh_present,
+-		       int		    eth_present,
+-		       int		    vlan_present,
+-		       int		    grh_present,
+-		       int		    immediate_present,
+-		       struct ib_ud_header *header);
++__be16 ib_ud_ip4_csum(struct ib_ud_header *header);
 +
-+	p->gid_attr_group->port = p;
-+	ret = kobject_init_and_add(&p->gid_attr_group->kobj, &gid_attr_type,
-+				   &p->kobj, "gid_attrs");
-+	if (ret) {
-+		kfree(p->gid_attr_group);
-+		goto err_put;
-+	}
-+
- 	ret = sysfs_create_group(&p->kobj, &pma_group);
- 	if (ret)
--		goto err_put;
-+		goto err_put_gid_attrs;
++int ib_ud_header_init(int		    payload_bytes,
++		      int		    lrh_present,
++		      int		    eth_present,
++		      int		    vlan_present,
++		      int		    grh_present,
++		      int		    ip_version,
++		      int		    udp_present,
++		      int		    immediate_present,
++		      struct ib_ud_header *header);
  
- 	p->gid_group.name  = "gids";
- 	p->gid_group.attrs = alloc_group_attrs(show_port_gid, attr.gid_tbl_len);
-@@ -543,12 +667,38 @@ static int add_port(struct ib_device *device, int port_num,
- 	if (ret)
- 		goto err_free_gid;
- 
-+	p->gid_attr_group->ndev.name = "ndevs";
-+	p->gid_attr_group->ndev.attrs = alloc_group_attrs(show_port_gid_attr_ndev,
-+							  attr.gid_tbl_len);
-+	if (!p->gid_attr_group->ndev.attrs) {
-+		ret = -ENOMEM;
-+		goto err_remove_gid;
-+	}
-+
-+	ret = sysfs_create_group(&p->gid_attr_group->kobj,
-+				 &p->gid_attr_group->ndev);
-+	if (ret)
-+		goto err_free_gid_ndev;
-+
-+	p->gid_attr_group->type.name = "types";
-+	p->gid_attr_group->type.attrs = alloc_group_attrs(show_port_gid_attr_gid_type,
-+							  attr.gid_tbl_len);
-+	if (!p->gid_attr_group->type.attrs) {
-+		ret = -ENOMEM;
-+		goto err_remove_gid_ndev;
-+	}
-+
-+	ret = sysfs_create_group(&p->gid_attr_group->kobj,
-+				 &p->gid_attr_group->type);
-+	if (ret)
-+		goto err_free_gid_type;
-+
- 	p->pkey_group.name  = "pkeys";
- 	p->pkey_group.attrs = alloc_group_attrs(show_port_pkey,
- 						attr.pkey_tbl_len);
- 	if (!p->pkey_group.attrs) {
- 		ret = -ENOMEM;
--		goto err_remove_gid;
-+		goto err_remove_gid_type;
- 	}
- 
- 	ret = sysfs_create_group(&p->kobj, &p->pkey_group);
-@@ -576,6 +726,28 @@ err_free_pkey:
- 	kfree(p->pkey_group.attrs);
- 	p->pkey_group.attrs = NULL;
- 
-+err_remove_gid_type:
-+	sysfs_remove_group(&p->gid_attr_group->kobj,
-+			   &p->gid_attr_group->type);
-+
-+err_free_gid_type:
-+	for (i = 0; i < attr.gid_tbl_len; ++i)
-+		kfree(p->gid_attr_group->type.attrs[i]);
-+
-+	kfree(p->gid_attr_group->type.attrs);
-+	p->gid_attr_group->type.attrs = NULL;
-+
-+err_remove_gid_ndev:
-+	sysfs_remove_group(&p->gid_attr_group->kobj,
-+			   &p->gid_attr_group->ndev);
-+
-+err_free_gid_ndev:
-+	for (i = 0; i < attr.gid_tbl_len; ++i)
-+		kfree(p->gid_attr_group->ndev.attrs[i]);
-+
-+	kfree(p->gid_attr_group->ndev.attrs);
-+	p->gid_attr_group->ndev.attrs = NULL;
-+
- err_remove_gid:
- 	sysfs_remove_group(&p->kobj, &p->gid_group);
- 
-@@ -589,6 +761,9 @@ err_free_gid:
- err_remove_pma:
- 	sysfs_remove_group(&p->kobj, &pma_group);
- 
-+err_put_gid_attrs:
-+	kobject_put(&p->gid_attr_group->kobj);
-+
- err_put:
- 	kobject_put(&p->kobj);
- 	return ret;
-@@ -803,6 +978,11 @@ static void free_port_list_attributes(struct ib_device *device)
- 		sysfs_remove_group(p, &pma_group);
- 		sysfs_remove_group(p, &port->pkey_group);
- 		sysfs_remove_group(p, &port->gid_group);
-+		sysfs_remove_group(&port->gid_attr_group->kobj,
-+				   &port->gid_attr_group->ndev);
-+		sysfs_remove_group(&port->gid_attr_group->kobj,
-+				   &port->gid_attr_group->type);
-+		kobject_put(&port->gid_attr_group->kobj);
- 		kobject_put(p);
- 	}
- 
+ int ib_ud_header_pack(struct ib_ud_header *header,
+ 		      void                *buf);
 -- 
 2.1.0
 
