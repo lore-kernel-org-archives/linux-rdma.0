@@ -1,78 +1,103 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 0/6] IB/mad: Support devices taking pkey_index from the
- GSI QP
-Date: Wed, 14 Oct 2015 21:42:54 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E1CBC650D@CRSMSX101.amr.corp.intel.com>
-References: <1444811388-22486-1-git-send-email-haggaie@mellanox.com>
- <20151014175410.GB28534@obsidianresearch.com>
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: Create a common verbs transport library
+Date: Thu, 15 Oct 2015 08:40:25 +0300
+Message-ID: <CAG9sBKNKvpbRZgK+nsbuhycSnCMYnL3ObqfXmiab+akuFf99rw@mail.gmail.com>
+References: <20150929125648.GA3433@phlsvsds.ph.intel.com>
+	<CAG9sBKPqXk671c7obj4wd8drNaxPU3gue428y3Es_BJfuC-sVQ@mail.gmail.com>
+	<20151014184903.GA12463@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151014175410.GB28534-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20151014184903.GA12463-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I was writing my own objection to this but Jason beat me too it.  More comments below.
+>
+>
+> I assume by user-space driver we are talking about libverbs? We have
+> separate libraries for ipath/qib and hfi. We should probably coalesce these
+> into a single library but that is a separate issue. PSM is also unrelated to
+> the work here since PSM is not verbs.
+>
+Not libibverbs but lib<provider> (e.g. libmlx4, libqib,...), like for
+any other kernel verbs provider.
+In other wordsm if the name of the SW verbs provider is called VT
+(verbs transport) than the library we need to develop will be libVT.
+However, the challenge here is larger than for other providers due to
+different style of backends.
+Take for example the ibv_post_send() verb. For some totally incapable
+kernel bypass backends this requires that this verb go down to the
+kernel (Soft RoCE for example) but for others it needs to put the WQE
+directly on the HW in some HW specific manner.
+This needs some architectural effort.
 
-> 
-> On Wed, Oct 14, 2015 at 11:29:42AM +0300, Haggai Eran wrote:
-> > respect the pkey_index in ib_send_wr.ud for GSI packets. Apparently
-> > having the pkey_index in a work request isn't required by the IBA
-> > specifications,
-> 
-> I disagree. The spec is very clear, 13.5.3.2.1 perscribes how GMP replies must
-> be generated and there are only two ways to follow that
-> perscription:
->  - Have some mechanism to set the pkey on outgoing QP1 GMPs
->  - Support only one pkey
-
-Agree with Jason.
-
-In addition Section 9.6.1.1.3 C9-42 specifically states that inbound Packets for QP1 are allowed on any PKey of which the port is a member.  What you are proposing widely deviates from the intent of QP1 processing.
-
-> 
-> What this series is doing (src QPN != 1) is absolutely not complainant with the
-> spec.
-
-Agree.
-
-> 
-> If hardware doesn't have the ability to set the pkey on outbound, then it can
-> only support 1 pkey. This may be why reading other parts of the spec is
-> confusing. pkey_index in the verbs section is optional, but without it an
-> implementation cannot support multiple pkeys. Thus when multiple pkeys are
-> supported it is not optional at all.
-
-Agree.
-
-> 
-> This proposed hack violates parts of 13.5.3.2.1 so I don't think it is acceptable
-> for core code to endorse ignoring the spec so badly. Especially when the
-> violations are visible on the wire.
-> 
-> Put the hack in the driver, and obsolete it when the hardware is fixed to follow
-> the spec. Even better would be to fix this in firmware and leave the kernel
-> alone.
-
-Agree.
-
-One final point, this extends the MAD layer to do things it was not intended to do.  The MAD layer was designed to handle the special QPs (0 and 1) we should keep it that way.  Even if we had a valid use case to create multiple UD QPs for GSI traffic it should be done via a new "QP pool" mechanism rather than hiding it like it was part of QP1.
-
-Ira
-
-> 
-> FWIW, IMHO, no device that works like this should be a candidate for the IBTA
-> Interop Logo.
-> 
-> Jason
+>> At a high-level, it seems that we should do as follows:
+>>
+>> - Decide on an initial code base for VT (rxe/hfi/qib), clone it, and
+>> rename to VT
+>>
+>> - Split the code to VT and backend and create the initial backend APIs,
+>> e.g.:
+>
+>
+> We have been planning a bit of a different approach. My thoughts are we make
+> VT a completely new kmod. It will start out life lettings verbs calls from
+> the core go into the drivers to do their thing, but will contain a bunch of
+> the duplicated code that we have in hfi1/qib/ipath. The next step is to move
+> piece by piece the rest of the verbs code.
+>
+We agree with the kmod approach. However
+1. Until we get rid completely from code duplication I don't think we
+can get out from being in staging phase so the initial work better be
+complete. Don't you think so?
+2. Soft RoCE is a candidate driver (backend) for this framework and we
+would like to make sure that the new VT provider meets out needs.
+>> -- Send packet
+>>
+>> -- Deliver packet (receive)
+>>
+>> -- Attach multicast
+>>
+>> -- Packet buffer allocation
+>>
+>> -- Notify when more send space is available
+>>
+>> - In parallel, prepare the backends of other drivers while enhancing
+>> VT as needed.
+>
+>
+> Yes, we need to come up with an API, I'm not fully sure what that should
+> look like yet, it is a work in progress.
+I think that this will be a good place to start before implementation.
+Can you please share API between backends and VT so we can comment on?
+>
+>> Do you have any preferences to the initial code base?
+>>
+>> Do you already have some code that we can look at?
+>
+>
+> We'll be starting out with making changes to hfi1 and qib to follow shortly
+> behind. No code just yet, but I should have something to post as an RFC very
+> soon (in the next two weeks).
+I suggest that implementation will start after we close the arch. Like
+I said we want to make sure that Soft RoCE requirements are met in the
+design.
+I strongly recommend that we figure out a mechanism to allows us to cooperate.
+I hope that you see it this way too,
+>
+> Thanks
+>
+>
+> -Denny
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body
-> of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+thanks
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
