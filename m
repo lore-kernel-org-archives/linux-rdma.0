@@ -1,62 +1,93 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-cm] IB/core: Fix memory corruption in ib_cache_gid_set_default_gid
-Date: Thu, 15 Oct 2015 15:01:02 +0300
-Message-ID: <1444910463-5688-1-git-send-email-matanb@mellanox.com>
+From: eran ben elisha <eranlinuxmellanox-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2 for-next 0/7] Add support for multicast loopback
+ prevention to mlx4
+Date: Thu, 15 Oct 2015 15:19:10 +0300
+Message-ID: <CAKHjkjnT2C+c4ejbOzb5mBmF0oFcEt8bxKe3RRQyVw5qnf0qTA@mail.gmail.com>
+References: <1444909437-17050-1-git-send-email-eranbe@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1444909437-17050-1-git-send-email-eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doron Tsur <doront-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Doron Tsur <doront-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Thu, Oct 15, 2015 at 2:43 PM, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> Hi Doug,
+>
+> This patch-set adds a new  implementation for multicast loopback prevention for
+> mlx4 driver.  The current implementation is very limited, especially if link
+> layer is Ethernet. The new implementation is based on HW feature of dropping
+> incoming multicast packets if the sender QP counter index is equal to the
+> receiver counter index.
+>
+> Patch 0001 extends ib_uverbs_create_qp in order to allow receiving the
+> multicast loopback flag at create flags.
+> Patch 0002 allows setting IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK in create_flag
+> field both from uverbs and ib_create_qp.
+> Patch 0003 adds an infrastructure for the counters' loopback prevention in the
+> mlx4_core.
+> Patch 0004 modifies mlx4_en QPs to use the new loopback prevention mode.
+> Patches 0005-0007 implements this feature for mlx4_ib driver.
+>
+> Changes from v0:
+>         Move loopback assignment outside the for loop according to Yuval's comment
+>         rebase over to-be-rebased/for-4.3
+> Changes from v1:
+>         rebase over k.o/for-4.4
 
-When ib_cache_gid_set_default_gid is called from several threads,
-updating the table could make find_gid fail, therefore a negative
-index will be retruned and an invalid table entry will be used.
-Locking find_gid as well fixes this problem.
+Doug,
+I rebased the series due to a small conflict in
+drivers/net/ethernet/mellanox/mlx4/fw.c
 
-Fixes: 03db3a2d81e6 ('IB/core: Add RoCE GID table management')
-Signed-off-by: Doron Tsur <doront-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
+Eran.
 
-Hi Doug,
-
-This patch fixes a bug in RoCE GID table implementation. When several
-instances executes ib_cache_gid_set_default_gid, we could try to update
-the same default GID (at the same index) simultaneously.
-Therefore, find_gid will fail finding this default GID and we'll hit the
-WARN_ON condition.
-
-We hit this bug while testing this code under pressure of doing ifup/ifdown.
-
-Thanks,
-Matan
-
- drivers/infiniband/core/cache.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-index 8f66c67..87471ef 100644
---- a/drivers/infiniband/core/cache.c
-+++ b/drivers/infiniband/core/cache.c
-@@ -508,12 +508,12 @@ void ib_cache_gid_set_default_gid(struct ib_device *ib_dev, u8 port,
- 	memset(&gid_attr, 0, sizeof(gid_attr));
- 	gid_attr.ndev = ndev;
- 
-+	mutex_lock(&table->lock);
- 	ix = find_gid(table, NULL, NULL, true, GID_ATTR_FIND_MASK_DEFAULT);
- 
- 	/* Coudn't find default GID location */
- 	WARN_ON(ix < 0);
- 
--	mutex_lock(&table->lock);
- 	if (!__ib_cache_gid_get(ib_dev, port, ix,
- 				&current_gid, &current_gid_attr) &&
- 	    mode == IB_CACHE_GID_DEFAULT_MODE_SET &&
--- 
-2.1.0
-
+>         Fix cover letter patch description - was out of order
+>
+> Tested-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+>
+> Thanks,
+> Eran.
+>
+> Eran Ben Elisha (5):
+>   IB/core: Extend ib_uverbs_create_qp
+>   IB/core: Allow setting create flags in QP init attribute
+>   IB/mlx4: Add IB counters table
+>   IB/mlx4: Add counter based implementation for QP multicast loopback
+>     block
+>   IB/mlx4: Add support for blocking multicast loopback QP creation user
+>     flag
+>
+> Maor Gottlieb (2):
+>   net/mlx4_core: Add support for filtering multicast loopback
+>   net/mlx4_en: Implement mcast loopback prevention for ETH qps
+>
+>  drivers/infiniband/core/uverbs.h                   |   1 +
+>  drivers/infiniband/core/uverbs_cmd.c               | 259 +++++++++++++++------
+>  drivers/infiniband/core/uverbs_main.c              |   1 +
+>  drivers/infiniband/hw/mlx4/mad.c                   |  25 +-
+>  drivers/infiniband/hw/mlx4/main.c                  |  66 ++++--
+>  drivers/infiniband/hw/mlx4/mlx4_ib.h               |  10 +-
+>  drivers/infiniband/hw/mlx4/qp.c                    |  88 ++++++-
+>  drivers/net/ethernet/mellanox/mlx4/en_main.c       |  22 ++
+>  drivers/net/ethernet/mellanox/mlx4/en_resources.c  |  25 ++
+>  drivers/net/ethernet/mellanox/mlx4/fw.c            |   6 +
+>  drivers/net/ethernet/mellanox/mlx4/mlx4_en.h       |   3 +-
+>  drivers/net/ethernet/mellanox/mlx4/qp.c            |  19 +-
+>  .../net/ethernet/mellanox/mlx4/resource_tracker.c  |  30 ++-
+>  include/linux/mlx4/device.h                        |   2 +
+>  include/linux/mlx4/qp.h                            |  24 +-
+>  include/uapi/rdma/ib_user_verbs.h                  |  26 +++
+>  16 files changed, 498 insertions(+), 109 deletions(-)
+>
+> --
+> 1.8.3.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
