@@ -1,99 +1,53 @@
-From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 2/7] IB: Introduce Work Queue object and its verbs
-Date: Thu, 15 Oct 2015 22:19:35 +0530
-Message-ID: <CAG53R5UmEhOh3n-+9qMoDthAtROdWQXstwqAFxzx8Urx1ZETnw@mail.gmail.com>
-References: <1444893410-13242-1-git-send-email-yishaih@mellanox.com>
-	<1444893410-13242-3-git-send-email-yishaih@mellanox.com>
-	<CAG53R5V7u7o+cVQnqhfjXdUjKJRVBiMx5CF3snWAWKG6ZbWMow@mail.gmail.com>
-	<561FB463.8030602@dev.mellanox.co.il>
-	<CAG53R5U256Nt=3xd3sVUuf8J1icdK5YEiQFoQjR_HB_=5-cVww@mail.gmail.com>
-	<561FD375.3000205@dev.mellanox.co.il>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH rdma-RC] IB/cm: Fix sleeping while atomic when creating
+ AH from WC
+Date: Thu, 15 Oct 2015 16:58:39 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A9735914@ORSMSX109.amr.corp.intel.com>
+References: <1444568298-17289-1-git-send-email-matanb@mellanox.com>
+	<1444568298-17289-2-git-send-email-matanb@mellanox.com>
+	<1828884A29C6694DAF28B7E6B8A82373A9734356@ORSMSX109.amr.corp.intel.com>
+	<CAAKD3BCe_LAuyxifm=j-Am44S1k4nT328WrGBC+Day+XxMxk9g@mail.gmail.com>
+	<1828884A29C6694DAF28B7E6B8A82373A9734A57@ORSMSX109.amr.corp.intel.com>
+ <CAAKD3BAF763brdhsrHtpm_peHk--g3iza53AioiUefepHM_s2w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <561FD375.3000205-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <CAAKD3BAF763brdhsrHtpm_peHk--g3iza53AioiUefepHM_s2w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Vainman <alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 15, 2015 at 9:55 PM, Yishai Hadas
-<yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> On 10/15/2015 6:17 PM, Parav Pandit wrote:
->>
->> On Thu, Oct 15, 2015 at 7:42 PM, Yishai Hadas
->> <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->>>
->>> On 10/15/2015 12:13 PM, Parav Pandit wrote:
->>>>
->>>>
->>>> Just curious, why does WQ need to be bind to PD?
->>>> Isn't ucontext sufficient?
->>>> Or because kcontext doesn't exist, PD serves that role?
->>>> Or Is this just manifestation of how hardware behave?
->>>
->>>
->>>
->>> PD is an attribute of a work queue (i.e. send/receive queue), it's used
->>> by
->>> the hardware for security validation before scattering to a memory
->>> region.
->>> For that, an external WQ object needs a PD, letting the
->>> hardware makes that validation.
->>>
->>>> Since you mentioned, "QP can be configured to use "external" WQ
->>>> object", it might be worth to reuse the WQ across multiple QPs of
->>>> different PD?
->>>
->>>
->>>
->>> Correct, external WQ can be used across multiple QPs, in that case its PD
->>> is
->>> used by the hardware for security validation when it accesses to the MR,
->>> in
->>> that case the QP's PD is not in use.
->>>
->> I think I get it, just confirming with below example.
->
->
-> .
->
->> So I think below is possible.
->> WQ_A having PD=1.
->> QP_A having PD=2 bound to WQ_A.
->> QP_B having PD=3 bound to WQ_A.
->> MR_X having PD=2.
->> And checks are done between MR and QP.
->
-> No, please follow above description, in that case PD=1 of WQ_A is used for
-> the checks.
->
-This appears to me a manifestation of hardware implementation
-surfacing the verb layer.
-There may be nothing wrong in it, but worth to know how to actually do
-verb programming.
-
-If there is stateless WQ being used by multiple QPs in multiplexed
-way, it should be able to multiplex between QP's of different PD as
-well.
-Otherwise for every PD being created, there will have be one WQ needed
-to service all the QPs belonging to that PD.
-
->> In other use case,
->> MR is not at all used. (only physical addresses are used)
->> WQ_A having PD=1.
->> QP_A having PD=2 bound to WQ_A.
->> QP_B having PD=3 bound to WQ_A.
->>
->> WQ entries fail as MR is not associated and QP are bound to different
->> PD than the PD of WQ_A.
->> Because at QP bound time with WQ, its unknown whether it will use MR
->> or not in the WQE at run time.
->> Right?
->
->
-> In case there is MR for physical addresses it has a PD and the WQ's PD is
-> used, in case there is no MR the PD is not applicable.
+PiA+PiBpYl9jcmVhdGVfYWhfZnJvbV93YyBuZWVkcyB0byByZXNvbHZlIHRoZSBETUFDIGluIG9y
+ZGVyIHRvIGNyZWF0ZSB0aGUNCj4gPj4gQUggKHRoaXMgbWF5IHJlc3VsdCBzZW5kaW5nIGFuIEFS
+UCBhbmQgd2FpdGluZyBmb3IgcmVzcG9uc2UpLg0KPiA+PiBDTSB1c2VzIHRoaXMgZnVuY3Rpb24g
+KHdoaWNoIGlzIG5vdyBzbGVlcGFibGUpLg0KPiA+DQo+ID4gVGhpcyBpcyBhIHNpZ25pZmljYW50
+IGNoYW5nZSB0byB0aGUgQ00uICBUaGUgQ00gY2FsbHMgYXJlIGludm9rZWQNCj4gYXNzdW1pbmcg
+dGhhdCB0aGV5IHJldHVybiByZWxhdGl2ZWx5IHF1aWNrbHkuICBUaGV5J3JlIGludm9rZWQgZnJv
+bQ0KPiBjYWxsYmFja3MgYW5kIGludGVybmFsbHkuICBIYXZpbmcgdGhlIGNhbGxzIG5vdyB3YWl0
+IGZvciBhbiBBUlAgcmVzcG9uc2UNCj4gcmVxdWlyZXMgdGhhdCB0aGlzIGJlIHJlLWFyY2hpdGVj
+dGVkLCBzbyB0aGUgY2FsbGluZyB0aHJlYWQgZG9lc24ndCBnbyBvdXQNCj4gdG8gbHVuY2ggZm9y
+IHNldmVyYWwgc2Vjb25kcy4NCj4gDQo+IEFncmVlIC0gdGhpcyBpcyBhIHNpZ25pZmljYW50IGNo
+YW5nZSwgYnV0IGl0IHdhcyBkb25lIGEgbG9uZyB0aW1lIGFnbw0KPiAoYXQgdjQuMyBpZiBJIHJl
+Y2FsbCkuIFdoZW4gd2UgbmVlZCB0byBzZW5kIGEgbWVzc2FnZSB3ZSBuZWVkIHRvDQoNCldlJ3Jl
+IGF0IDQuMy1yYzU/DQoNCj4gZmlndXJlIG91dCB0aGUgZGVzdGluYXRpb24gTUFDLiBFdmVuIHRo
+ZSBwYXNzaXZlIHNpZGUgbmVlZHMgdG8gZG8gdGhhdA0KPiBhcyBzb21lIHZlbmRvcnMgZG9uJ3Qg
+cmVwb3J0IHRoZSBzb3VyY2UgTUFDIG9mIHRoZSBwYWNrZXQgaW4gdGhlaXIgd2MuDQo+IEV2ZW4g
+aWYgdGhleSBkaWQsIHNpbmNlIElQIGJhc2VkIGFkZHJlc3NpbmcgaXMgcm91dC1hYmxlIGJ5IGl0
+cw0KPiBuYXR1cmUsIGl0IHNob3VsZCBmb2xsb3cgdGhlIG5ldHdvcmtpbmcgc3RhY2sgcnVsZXMu
+IFNvbWUgY3JhenkNCj4gY29uZmlndXJhdGlvbnMgY291bGQgZm9yY2Ugc2VuZGluZyByZXNwb25z
+ZXMgdG8gcGFja2V0cyB0aGF0IGNhbWUgZnJvbQ0KPiByb3V0ZXIxIHRvIHJvdXRlcjIgLSBzbyB3
+ZSBoYXZlIG5vIGNob2ljZSB0aGFuIHJlc29sdmluZyB0aGUgRE1BQyBhdA0KPiBldmVyeSBzaWRl
+Lg0KDQpJYl9jcmVhdGVfYWhfZnJvbV93YyBpcyBicm9rZW4uICAgSXQgaXMgbm93IGFuIGFzeW5j
+aHJvbm91cyBvcGVyYXRpb24sIG9ubHkgdGhlIGNhbGwgaXRzZWxmIHdhcyBsZWZ0IGFzIHN5bmNo
+cm9ub3VzLiAgV2UgY2FuJ3QgYmxvY2sga2VybmVsIHRocmVhZHMgZm9yIGEgbWludXRlLCBvciBo
+b3dldmVyIGxvbmcgQVJQIHRha2VzIHRvIHJlc29sdmUuICBUaGUgY2FsbCBpdHNlbGYgbXVzdCBj
+aGFuZ2UgdG8gYmUgYXN5bmMsIGFuZCBhbGwgdXNlcnMgb2YgaXQgdXBkYXRlZCB0byBhbGxvY2F0
+ZSBzb21lIHJlcXVlc3QsIHF1ZXVlIGl0LCBhbmQgaGFuZGxlIGFsbCByYWNlIGNvbmRpdGlvbnMg
+dGhhdCByZXN1bHQgLS0gc3VjaCBhcyBzdGF0ZSBjaGFuZ2VzIG9yIGRlc3RydWN0aW9uIG9mIHRo
+ZSB3b3JrIHRoYXQgY2F1c2VkIHRoZSByZXF1ZXN0IHRvIGJlIGluaXRpYXRlZC4NCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
