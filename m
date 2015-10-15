@@ -1,123 +1,165 @@
 From: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 for-next 4/7] net/mlx4_en: Implement mcast loopback prevention for ETH qps
-Date: Thu, 15 Oct 2015 14:44:39 +0300
-Message-ID: <1444909482-17113-5-git-send-email-eranbe@mellanox.com>
+Subject: [PATCH v2 for-next 6/7] IB/mlx4: Add counter based implementation for QP multicast loopback block
+Date: Thu, 15 Oct 2015 14:44:41 +0300
+Message-ID: <1444909482-17113-7-git-send-email-eranbe@mellanox.com>
 References: <1444909482-17113-1-git-send-email-eranbe@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1444909482-17113-1-git-send-email-eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Current implementation for MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK is not
+supported when link layer is Ethernet.
 
-Set the mcast loopback prevention bit in the QPC for ETH MLX QPs (not
-RSS QPs), when the firmware supports this feature. In addition, all rx
-ring QPs need to be updated in order not to enforce loopback checks.
-This prevents getting packets we sent both from the network stack and
-the HCA. Loopback prevention is done by comparing the counter indices of
-the sent and receiving QPs. If they're equal, packets aren't
-loopback-ed.
+This patch will add counter based implementation for multicast loopback
+prevention. HW can drop multicast loopback packets if sender QP counter
+index is equal to receiver QP counter index. If qp flag
+MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK is set and link layer is Ethernet,
+create a new counter and attach it to the QP so it will continue
+receiving multicast loopback traffic but it's own.
 
-Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+The decision if to create a new counter is being made at the qp
+modification to RTR after the QP's port is set. When QP is destroyed or
+moved back to reset state, delete the counter.
+
 Signed-off-by: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx4/en_main.c      | 22 ++++++++++++++++++++
- drivers/net/ethernet/mellanox/mlx4/en_resources.c | 25 +++++++++++++++++++++++
- drivers/net/ethernet/mellanox/mlx4/mlx4_en.h      |  3 ++-
- 3 files changed, 49 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx4/mlx4_ib.h |  1 +
+ drivers/infiniband/hw/mlx4/qp.c      | 67 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 68 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/en_main.c b/drivers/net/ethernet/mellanox/mlx4/en_main.c
-index a946e4b..005f910 100644
---- a/drivers/net/ethernet/mellanox/mlx4/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/en_main.c
-@@ -123,6 +123,28 @@ void mlx4_en_update_loopback_state(struct net_device *dev,
- 	 */
- 	if (mlx4_is_mfunc(priv->mdev->dev) || priv->validate_loopback)
- 		priv->flags |= MLX4_EN_FLAG_ENABLE_HW_LOOPBACK;
-+
-+	mutex_lock(&priv->mdev->state_lock);
-+	if (priv->mdev->dev->caps.flags2 &
-+	    MLX4_DEV_CAP_FLAG2_UPDATE_QP_SRC_CHECK_LB &&
-+	    priv->rss_map.indir_qp.qpn) {
-+		int i;
-+		int err = 0;
-+		int loopback = !!(features & NETIF_F_LOOPBACK);
-+
-+		for (i = 0; i < priv->rx_ring_num; i++) {
-+			int ret;
-+
-+			ret = mlx4_en_change_mcast_lb(priv,
-+						      &priv->rss_map.qps[i],
-+						      loopback);
-+			if (!err)
-+				err = ret;
-+		}
-+		if (err)
-+			mlx4_warn(priv->mdev, "failed to change mcast loopback\n");
-+	}
-+	mutex_unlock(&priv->mdev->state_lock);
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index 4056dc1..086416a 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -320,6 +320,7 @@ struct mlx4_ib_qp {
+ 	struct list_head	qps_list;
+ 	struct list_head	cq_recv_list;
+ 	struct list_head	cq_send_list;
++	struct counter_index	*counter_index;
+ };
+ 
+ struct mlx4_ib_srq {
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 382913e..2871949 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -617,6 +617,18 @@ static int qp0_enabled_vf(struct mlx4_dev *dev, int qpn)
+ 	return 0;
  }
  
- static int mlx4_en_get_profile(struct mlx4_en_dev *mdev)
-diff --git a/drivers/net/ethernet/mellanox/mlx4/en_resources.c b/drivers/net/ethernet/mellanox/mlx4/en_resources.c
-index e482fa1b..12aab5a 100644
---- a/drivers/net/ethernet/mellanox/mlx4/en_resources.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/en_resources.c
-@@ -69,6 +69,15 @@ void mlx4_en_fill_qp_context(struct mlx4_en_priv *priv, int size, int stride,
- 	context->pri_path.counter_index = priv->counter_index;
- 	context->cqn_send = cpu_to_be32(cqn);
- 	context->cqn_recv = cpu_to_be32(cqn);
-+	if (!rss &&
-+	    (mdev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_LB_SRC_CHK) &&
-+	    context->pri_path.counter_index !=
-+			    MLX4_SINK_COUNTER_INDEX(mdev->dev)) {
-+		/* disable multicast loopback to qp with same counter */
-+		if (!(dev->features & NETIF_F_LOOPBACK))
-+			context->pri_path.fl |= MLX4_FL_ETH_SRC_CHECK_MC_LB;
-+		context->pri_path.control |= MLX4_CTRL_ETH_SRC_CHECK_IF_COUNTER;
-+	}
- 	context->db_rec_addr = cpu_to_be64(priv->res.db.dma << 2);
- 	if (!(dev->features & NETIF_F_HW_VLAN_CTAG_RX))
- 		context->param3 |= cpu_to_be32(1 << 30);
-@@ -80,6 +89,22 @@ void mlx4_en_fill_qp_context(struct mlx4_en_priv *priv, int size, int stride,
- 	}
- }
- 
-+int mlx4_en_change_mcast_lb(struct mlx4_en_priv *priv, struct mlx4_qp *qp,
-+			    int loopback)
++static void mlx4_ib_free_qp_counter(struct mlx4_ib_dev *dev,
++				    struct mlx4_ib_qp *qp)
 +{
-+	int ret;
-+	struct mlx4_update_qp_params qp_params;
++	mutex_lock(&dev->counters_table[qp->port - 1].mutex);
++	mlx4_counter_free(dev->dev, qp->counter_index->index);
++	list_del(&qp->counter_index->list);
++	mutex_unlock(&dev->counters_table[qp->port - 1].mutex);
 +
-+	memset(&qp_params, 0, sizeof(qp_params));
-+	if (!loopback)
-+		qp_params.flags = MLX4_UPDATE_QP_PARAMS_FLAGS_ETH_CHECK_MC_LB;
-+
-+	ret = mlx4_update_qp(priv->mdev->dev, qp->qpn,
-+			     MLX4_UPDATE_QP_ETH_SRC_CHECK_MC_LB,
-+			     &qp_params);
-+
-+	return ret;
++	kfree(qp->counter_index);
++	qp->counter_index = NULL;
 +}
++
+ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
+ 			    struct ib_qp_init_attr *init_attr,
+ 			    struct ib_udata *udata, int sqpn, struct mlx4_ib_qp **caller_qp,
+@@ -1189,6 +1201,9 @@ int mlx4_ib_destroy_qp(struct ib_qp *qp)
+ 		mutex_unlock(&dev->qp1_proxy_lock[mqp->port - 1]);
+ 	}
  
- int mlx4_en_map_buffer(struct mlx4_buf *buf)
- {
-diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
-index defcf8c..c41f151 100644
---- a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
-+++ b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
-@@ -798,7 +798,8 @@ void mlx4_en_fill_qp_context(struct mlx4_en_priv *priv, int size, int stride,
- void mlx4_en_sqp_event(struct mlx4_qp *qp, enum mlx4_event event);
- int mlx4_en_map_buffer(struct mlx4_buf *buf);
- void mlx4_en_unmap_buffer(struct mlx4_buf *buf);
--
-+int mlx4_en_change_mcast_lb(struct mlx4_en_priv *priv, struct mlx4_qp *qp,
-+			    int loopback);
- void mlx4_en_calc_rx_buf(struct net_device *dev);
- int mlx4_en_config_rss_steer(struct mlx4_en_priv *priv);
- void mlx4_en_release_rss_steer(struct mlx4_en_priv *priv);
++	if (mqp->counter_index)
++		mlx4_ib_free_qp_counter(dev, mqp);
++
+ 	pd = get_pd(mqp);
+ 	destroy_qp_common(dev, mqp, !!pd->ibpd.uobject);
+ 
+@@ -1447,6 +1462,40 @@ static int handle_eth_ud_smac_index(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *
+ 	return 0;
+ }
+ 
++static int create_qp_lb_counter(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp)
++{
++	struct counter_index *new_counter_index;
++	int err;
++	u32 tmp_idx;
++
++	if (rdma_port_get_link_layer(&dev->ib_dev, qp->port) !=
++	    IB_LINK_LAYER_ETHERNET ||
++	    !(qp->flags & MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK) ||
++	    !(dev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_LB_SRC_CHK))
++		return 0;
++
++	err = mlx4_counter_alloc(dev->dev, &tmp_idx);
++	if (err)
++		return err;
++
++	new_counter_index = kmalloc(sizeof(*new_counter_index), GFP_KERNEL);
++	if (!new_counter_index) {
++		mlx4_counter_free(dev->dev, tmp_idx);
++		return -ENOMEM;
++	}
++
++	new_counter_index->index = tmp_idx;
++	new_counter_index->allocated = 1;
++	qp->counter_index = new_counter_index;
++
++	mutex_lock(&dev->counters_table[qp->port - 1].mutex);
++	list_add_tail(&new_counter_index->list,
++		      &dev->counters_table[qp->port - 1].counters_list);
++	mutex_unlock(&dev->counters_table[qp->port - 1].mutex);
++
++	return 0;
++}
++
+ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+ 			       const struct ib_qp_attr *attr, int attr_mask,
+ 			       enum ib_qp_state cur_state, enum ib_qp_state new_state)
+@@ -1520,6 +1569,9 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+ 		context->sq_size_stride = ilog2(qp->sq.wqe_cnt) << 3;
+ 	context->sq_size_stride |= qp->sq.wqe_shift - 4;
+ 
++	if (new_state == IB_QPS_RESET && qp->counter_index)
++		mlx4_ib_free_qp_counter(dev, qp);
++
+ 	if (cur_state == IB_QPS_RESET && new_state == IB_QPS_INIT) {
+ 		context->sq_size_stride |= !!qp->sq_no_prefetch << 7;
+ 		context->xrcd = cpu_to_be32((u32) qp->xrcdn);
+@@ -1544,11 +1596,24 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+ 	}
+ 
+ 	if (cur_state == IB_QPS_INIT && new_state == IB_QPS_RTR) {
++		err = create_qp_lb_counter(dev, qp);
++		if (err)
++			goto out;
++
+ 		counter_index =
+ 			dev->counters_table[qp->port - 1].default_counter;
++		if (qp->counter_index)
++			counter_index = qp->counter_index->index;
++
+ 		if (counter_index != -1) {
+ 			context->pri_path.counter_index = counter_index;
+ 			optpar |= MLX4_QP_OPTPAR_COUNTER_INDEX;
++			if (qp->counter_index) {
++				context->pri_path.fl |=
++					MLX4_FL_ETH_SRC_CHECK_MC_LB;
++				context->pri_path.vlan_control |=
++					MLX4_CTRL_ETH_SRC_CHECK_IF_COUNTER;
++			}
+ 		} else
+ 			context->pri_path.counter_index =
+ 				MLX4_SINK_COUNTER_INDEX(dev->dev);
+@@ -1850,6 +1915,8 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+ 		}
+ 	}
+ out:
++	if (err && qp->counter_index)
++		mlx4_ib_free_qp_counter(dev, qp);
+ 	if (err && steer_qp)
+ 		mlx4_ib_steer_qp_reg(dev, qp, 0);
+ 	kfree(context);
 -- 
 1.8.3.1
 
