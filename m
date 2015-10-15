@@ -1,53 +1,64 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH rdma-RC] IB/cm: Fix sleeping while atomic when creating
- AH from WC
-Date: Thu, 15 Oct 2015 16:58:39 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A9735914@ORSMSX109.amr.corp.intel.com>
-References: <1444568298-17289-1-git-send-email-matanb@mellanox.com>
-	<1444568298-17289-2-git-send-email-matanb@mellanox.com>
-	<1828884A29C6694DAF28B7E6B8A82373A9734356@ORSMSX109.amr.corp.intel.com>
-	<CAAKD3BCe_LAuyxifm=j-Am44S1k4nT328WrGBC+Day+XxMxk9g@mail.gmail.com>
-	<1828884A29C6694DAF28B7E6B8A82373A9734A57@ORSMSX109.amr.corp.intel.com>
- <CAAKD3BAF763brdhsrHtpm_peHk--g3iza53AioiUefepHM_s2w@mail.gmail.com>
+From: "Dave Goodell (dgoodell)" <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] usnic: corretly check failed allocation
+Date: Thu, 15 Oct 2015 17:17:57 +0000
+Message-ID: <1D90F355-D799-4E9E-9526-836B71355109@cisco.com>
+References: <1444926460-29333-1-git-send-email-wuninsu@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAAKD3BAF763brdhsrHtpm_peHk--g3iza53AioiUefepHM_s2w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1444926460-29333-1-git-send-email-wuninsu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Content-Language: en-US
+Content-ID: <42CDFC178E7BDD47A540F672B21DB7D5-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Insu Yun <wuninsu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "taesoo-/4noJB3qBVQ3uPMLIKxrzw@public.gmane.org" <taesoo-/4noJB3qBVQ3uPMLIKxrzw@public.gmane.org>, "yeongjin.jang-/4noJB3qBVQ3uPMLIKxrzw@public.gmane.org" <yeongjin.jang-/4noJB3qBVQ3uPMLIKxrzw@public.gmane.org>, "insu-/4noJB3qBVQ3uPMLIKxrzw@public.gmane.org" <insu-/4noJB3qBVQ3uPMLIKxrzw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiA+PiBpYl9jcmVhdGVfYWhfZnJvbV93YyBuZWVkcyB0byByZXNvbHZlIHRoZSBETUFDIGluIG9y
-ZGVyIHRvIGNyZWF0ZSB0aGUNCj4gPj4gQUggKHRoaXMgbWF5IHJlc3VsdCBzZW5kaW5nIGFuIEFS
-UCBhbmQgd2FpdGluZyBmb3IgcmVzcG9uc2UpLg0KPiA+PiBDTSB1c2VzIHRoaXMgZnVuY3Rpb24g
-KHdoaWNoIGlzIG5vdyBzbGVlcGFibGUpLg0KPiA+DQo+ID4gVGhpcyBpcyBhIHNpZ25pZmljYW50
-IGNoYW5nZSB0byB0aGUgQ00uICBUaGUgQ00gY2FsbHMgYXJlIGludm9rZWQNCj4gYXNzdW1pbmcg
-dGhhdCB0aGV5IHJldHVybiByZWxhdGl2ZWx5IHF1aWNrbHkuICBUaGV5J3JlIGludm9rZWQgZnJv
-bQ0KPiBjYWxsYmFja3MgYW5kIGludGVybmFsbHkuICBIYXZpbmcgdGhlIGNhbGxzIG5vdyB3YWl0
-IGZvciBhbiBBUlAgcmVzcG9uc2UNCj4gcmVxdWlyZXMgdGhhdCB0aGlzIGJlIHJlLWFyY2hpdGVj
-dGVkLCBzbyB0aGUgY2FsbGluZyB0aHJlYWQgZG9lc24ndCBnbyBvdXQNCj4gdG8gbHVuY2ggZm9y
-IHNldmVyYWwgc2Vjb25kcy4NCj4gDQo+IEFncmVlIC0gdGhpcyBpcyBhIHNpZ25pZmljYW50IGNo
-YW5nZSwgYnV0IGl0IHdhcyBkb25lIGEgbG9uZyB0aW1lIGFnbw0KPiAoYXQgdjQuMyBpZiBJIHJl
-Y2FsbCkuIFdoZW4gd2UgbmVlZCB0byBzZW5kIGEgbWVzc2FnZSB3ZSBuZWVkIHRvDQoNCldlJ3Jl
-IGF0IDQuMy1yYzU/DQoNCj4gZmlndXJlIG91dCB0aGUgZGVzdGluYXRpb24gTUFDLiBFdmVuIHRo
-ZSBwYXNzaXZlIHNpZGUgbmVlZHMgdG8gZG8gdGhhdA0KPiBhcyBzb21lIHZlbmRvcnMgZG9uJ3Qg
-cmVwb3J0IHRoZSBzb3VyY2UgTUFDIG9mIHRoZSBwYWNrZXQgaW4gdGhlaXIgd2MuDQo+IEV2ZW4g
-aWYgdGhleSBkaWQsIHNpbmNlIElQIGJhc2VkIGFkZHJlc3NpbmcgaXMgcm91dC1hYmxlIGJ5IGl0
-cw0KPiBuYXR1cmUsIGl0IHNob3VsZCBmb2xsb3cgdGhlIG5ldHdvcmtpbmcgc3RhY2sgcnVsZXMu
-IFNvbWUgY3JhenkNCj4gY29uZmlndXJhdGlvbnMgY291bGQgZm9yY2Ugc2VuZGluZyByZXNwb25z
-ZXMgdG8gcGFja2V0cyB0aGF0IGNhbWUgZnJvbQ0KPiByb3V0ZXIxIHRvIHJvdXRlcjIgLSBzbyB3
-ZSBoYXZlIG5vIGNob2ljZSB0aGFuIHJlc29sdmluZyB0aGUgRE1BQyBhdA0KPiBldmVyeSBzaWRl
-Lg0KDQpJYl9jcmVhdGVfYWhfZnJvbV93YyBpcyBicm9rZW4uICAgSXQgaXMgbm93IGFuIGFzeW5j
-aHJvbm91cyBvcGVyYXRpb24sIG9ubHkgdGhlIGNhbGwgaXRzZWxmIHdhcyBsZWZ0IGFzIHN5bmNo
-cm9ub3VzLiAgV2UgY2FuJ3QgYmxvY2sga2VybmVsIHRocmVhZHMgZm9yIGEgbWludXRlLCBvciBo
-b3dldmVyIGxvbmcgQVJQIHRha2VzIHRvIHJlc29sdmUuICBUaGUgY2FsbCBpdHNlbGYgbXVzdCBj
-aGFuZ2UgdG8gYmUgYXN5bmMsIGFuZCBhbGwgdXNlcnMgb2YgaXQgdXBkYXRlZCB0byBhbGxvY2F0
-ZSBzb21lIHJlcXVlc3QsIHF1ZXVlIGl0LCBhbmQgaGFuZGxlIGFsbCByYWNlIGNvbmRpdGlvbnMg
-dGhhdCByZXN1bHQgLS0gc3VjaCBhcyBzdGF0ZSBjaGFuZ2VzIG9yIGRlc3RydWN0aW9uIG9mIHRo
-ZSB3b3JrIHRoYXQgY2F1c2VkIHRoZSByZXF1ZXN0IHRvIGJlIGluaXRpYXRlZC4NCg==
+On Oct 15, 2015, at 11:27 AM, Insu Yun <wuninsu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> 
+> Since ib_alloc_device returns allocated memory address, not error, 
+> it should be checked as IS_NULL, not IS_ERR_OR_NULL.
+> 
+> Signed-off-by: Insu Yun <wuninsu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> ---
+> drivers/infiniband/hw/usnic/usnic_ib_main.c | 4 ++--
+> 1 file changed, 2 insertions(+), 2 deletions(-)
+
+There's a typo in the subject ("corretly"-->"correctly").
+
+Out of curiosity, what led you to spot this?  General code inspection or did this come out of some tool?
+
+> diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+> index 34c49b8..7c5f602 100644
+> --- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
+> +++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+> @@ -328,14 +328,14 @@ static void *usnic_ib_device_add(struct pci_dev *dev)
+> 	netdev = pci_get_drvdata(dev);
+> 
+> 	us_ibdev = (struct usnic_ib_dev *)ib_alloc_device(sizeof(*us_ibdev));
+> -	if (IS_ERR_OR_NULL(us_ibdev)) {
+> +	if (!us_ibdev) {
+> 		usnic_err("Device %s context alloc failed\n",
+> 				netdev_name(pci_get_drvdata(dev)));
+> 		return ERR_PTR(us_ibdev ? PTR_ERR(us_ibdev) : -EFAULT);
+
+I think this can become:
+
+return ERR_PTR(-EFAULT);
+
+> 	}
+> 
+> 	us_ibdev->ufdev = usnic_fwd_dev_alloc(dev);
+> -	if (IS_ERR_OR_NULL(us_ibdev->ufdev)) {
+> +	if (!us_ibdev->ufdev) {
+> 		usnic_err("Failed to alloc ufdev for %s with err %ld\n",
+> 				pci_name(dev), PTR_ERR(us_ibdev->ufdev));
+
+This PTR_ERR and message make less sense now.
+
+-Dave
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
