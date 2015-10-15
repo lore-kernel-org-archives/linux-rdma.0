@@ -1,119 +1,73 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-RC] IB/cm: Fix rb-tree duplicate free and
- use-after-free
-Date: Thu, 15 Oct 2015 18:15:21 +0300
-Message-ID: <561FC309.2030102@mellanox.com>
-References: <1444568298-17289-1-git-send-email-matanb@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A82373A9734333@ORSMSX109.amr.corp.intel.com>
+From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next 2/7] IB: Introduce Work Queue object and its verbs
+Date: Thu, 15 Oct 2015 20:47:19 +0530
+Message-ID: <CAG53R5U256Nt=3xd3sVUuf8J1icdK5YEiQFoQjR_HB_=5-cVww@mail.gmail.com>
+References: <1444893410-13242-1-git-send-email-yishaih@mellanox.com>
+	<1444893410-13242-3-git-send-email-yishaih@mellanox.com>
+	<CAG53R5V7u7o+cVQnqhfjXdUjKJRVBiMx5CF3snWAWKG6ZbWMow@mail.gmail.com>
+	<561FB463.8030602@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A9734333-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <561FB463.8030602-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doron Tsur <doront-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Vainman <alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 10/12/2015 7:37 PM, Hefty, Sean wrote:
->> ib_send_cm_sidr_rep could sometimes erase the node from the sidr
->> (depending on errors in the process). Since ib_send_cm_sidr_rep is
->> called both from cm_sidr_req_handler and cm_destroy_id, cm_id_priv
->
-> This should clarify that it is the app calling from the callback, and not a direct call from the cm_sidr_req_handler.
->
-
-Consider the following error flows:
-
-Double free:
-cm_sidr_req_handler:3156->cm_reject_sidr_req:663->ib_send_cm_sidr_rep:3233->erase_rb 
- 
-cm_sidr_req_handler:3173->ib_destroy_cm_id->cm_destroy_id:846->ib_send_cm_sidr_rep:3233->erase_rb
-
-RB contains free node:
-cm_sidr_req_handler:3156->cm_reject_sidr_req:663->ib_send_cm_sidr_rep->returns 
-error(for example cm_alloc_msg,3219)
- 
-cm_sidr_req_handler:3173->ib_destroy_cm_id->cm_destroy_id:846->cm_reject_sidr_req->cm_reject_sidr_req:663->returns
-error(for example cm_alloc_msg,3219)->RB wasn't erased but memory is 
-freed :910 kfree(cm_id_priv)
-
-
->> could be either erased from the rb_tree twice or not erased at all.
->
-> In an error case, I can see why it would be left in the rbtree, but I don't see how it can be removed twice.
->
->
->> Fixing that by making sure it's erased only once before freeing
->> cm_id_priv.
+On Thu, Oct 15, 2015 at 7:42 PM, Yishai Hadas
+<yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> On 10/15/2015 12:13 PM, Parav Pandit wrote:
 >>
->> Fixes: a977049dacde ('[PATCH] IB: Add the kernel CM implementation')
->> Signed-off-by: Doron Tsur <doront-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> ---
->>
->> Hi Doug,
->> This patch fixes a bug in the CM. In some flow, rb-tree could be
->> freed twice or used after it was freed. This bug was picked by
->> our regression tests and this fix was verified.
->>
->> Thanks,
->> Doron and Matan
->>
->>   drivers/infiniband/core/cm.c | 10 +++++++++-
->>   1 file changed, 9 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
->> index f5cf1c4..56ff0f3 100644
->> --- a/drivers/infiniband/core/cm.c
->> +++ b/drivers/infiniband/core/cm.c
->> @@ -844,6 +844,11 @@ retest:
->>   	case IB_CM_SIDR_REQ_RCVD:
->>   		spin_unlock_irq(&cm_id_priv->lock);
->>   		cm_reject_sidr_req(cm_id_priv, IB_SIDR_REJECT);
->> +		spin_lock_irq(&cm.lock);
->> +		if (!RB_EMPTY_NODE(&cm_id_priv->sidr_id_node))
->> +			rb_erase(&cm_id_priv->sidr_id_node,
->> +				 &cm.remote_sidr_table);
->> +		spin_unlock_irq(&cm.lock);
-
-This change seeks to remove the about to be freed node from the rb tree, 
-while verifying it has not been freed already
-
+>> Just curious, why does WQ need to be bind to PD?
+>> Isn't ucontext sufficient?
+>> Or because kcontext doesn't exist, PD serves that role?
+>> Or Is this just manifestation of how hardware behave?
 >
-> We should be able to use a return value from cm_reject_sidr_req() -- passed through from ib_send_cm_sidr_rep() to determine if the id was removed from the tree.
 >
-
-But this won't protect from double free in ib_send_cm_sidr_rep, unless 
-we pass this parameter to the cm destroy function, but this alternative 
-is cumbersome.
-
->>   		break;
->>   	case IB_CM_REQ_SENT:
->>   	case IB_CM_MRA_REQ_RCVD:
->> @@ -3210,7 +3215,10 @@ int ib_send_cm_sidr_rep(struct ib_cm_id *cm_id,
->>   	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
->>
->>   	spin_lock_irqsave(&cm.lock, flags);
->> -	rb_erase(&cm_id_priv->sidr_id_node, &cm.remote_sidr_table);
->> +	if (!RB_EMPTY_NODE(&cm_id_priv->sidr_id_node)) {
->> +		rb_erase(&cm_id_priv->sidr_id_node, &cm.remote_sidr_table);
->> +		RB_CLEAR_NODE(&cm_id_priv->sidr_id_node);
->> +	}
-
-This change protects against double free
-
->>   	spin_unlock_irqrestore(&cm.lock, flags);
+> PD is an attribute of a work queue (i.e. send/receive queue), it's used by
+> the hardware for security validation before scattering to a memory region.
+> For that, an external WQ object needs a PD, letting the
+> hardware makes that validation.
 >
-> Something is very wrong in this function if the id is not in the tree at this point.
+>> Since you mentioned, "QP can be configured to use "external" WQ
+>> object", it might be worth to reuse the WQ across multiple QPs of
+>> different PD?
 >
+>
+> Correct, external WQ can be used across multiple QPs, in that case its PD is
+> used by the hardware for security validation when it accesses to the MR, in
+> that case the QP's PD is not in use.
+>
+I think I get it, just confirming with below example.
 
-We agree, but there's an error flow that triggers this behavior.
+So I think below is possible.
+WQ_A having PD=1.
+QP_A having PD=2 bound to WQ_A.
+QP_B having PD=3 bound to WQ_A.
+MR_X having PD=2.
+And checks are done between MR and QP.
 
-Regards,
-Matan and Doron.
+In other use case,
+MR is not at all used. (only physical addresses are used)
+WQ_A having PD=1.
+QP_A having PD=2 bound to WQ_A.
+QP_B having PD=3 bound to WQ_A.
+
+WQ entries fail as MR is not associated and QP are bound to different
+PD than the PD of WQ_A.
+Because at QP bound time with WQ, its unknown whether it will use MR
+or not in the WQE at run time.
+Right?
+
+
+>> Because MR and QP validation check has to happen among MR and actual
+>> QP and might not require that check against WQ.
+>
+>
+> No, in that case of an external WQ its PD is used and the QP's PD is not in
+> use.
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
