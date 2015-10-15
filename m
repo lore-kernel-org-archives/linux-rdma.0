@@ -1,88 +1,123 @@
 From: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 for-next 7/7] IB/mlx4: Add support for blocking multicast loopback QP creation user flag
-Date: Thu, 15 Oct 2015 14:44:42 +0300
-Message-ID: <1444909482-17113-8-git-send-email-eranbe@mellanox.com>
+Subject: [PATCH v2 for-next 4/7] net/mlx4_en: Implement mcast loopback prevention for ETH qps
+Date: Thu, 15 Oct 2015 14:44:39 +0300
+Message-ID: <1444909482-17113-5-git-send-email-eranbe@mellanox.com>
 References: <1444909482-17113-1-git-send-email-eranbe@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1444909482-17113-1-git-send-email-eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK is now supported downstream.
+From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-In addition, this flag was supported only for IB_QPT_UD, now, with the
-new implementation it is supported for all QP types.
+Set the mcast loopback prevention bit in the QPC for ETH MLX QPs (not
+RSS QPs), when the firmware supports this feature. In addition, all rx
+ring QPs need to be updated in order not to enforce loopback checks.
+This prevents getting packets we sent both from the network stack and
+the HCA. Loopback prevention is done by comparing the counter indices of
+the sent and receiving QPs. If they're equal, packets aren't
+loopback-ed.
 
-Support IB_USER_VERBS_EX_CMD_CREATE_QP in order to get the flag from
-user space using the extension create qp command.
-
+Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c |  3 ++-
- drivers/infiniband/hw/mlx4/qp.c   | 13 ++++++++-----
- 2 files changed, 10 insertions(+), 6 deletions(-)
+ drivers/net/ethernet/mellanox/mlx4/en_main.c      | 22 ++++++++++++++++++++
+ drivers/net/ethernet/mellanox/mlx4/en_resources.c | 25 +++++++++++++++++++++++
+ drivers/net/ethernet/mellanox/mlx4/mlx4_en.h      |  3 ++-
+ 3 files changed, 49 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 232b104..8779d26 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -2312,7 +2312,8 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 
- 	ibdev->ib_dev.uverbs_ex_cmd_mask |=
- 		(1ull << IB_USER_VERBS_EX_CMD_QUERY_DEVICE) |
--		(1ull << IB_USER_VERBS_EX_CMD_CREATE_CQ);
-+		(1ull << IB_USER_VERBS_EX_CMD_CREATE_CQ) |
-+		(1ull << IB_USER_VERBS_EX_CMD_CREATE_QP);
- 
- 	mlx4_ib_alloc_eqs(dev, ibdev);
- 
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 2871949..ba25a1b 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -758,9 +758,6 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
- 	} else {
- 		qp->sq_no_prefetch = 0;
- 
--		if (init_attr->create_flags & IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK)
--			qp->flags |= MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK;
--
- 		if (init_attr->create_flags & IB_QP_CREATE_IPOIB_UD_LSO)
- 			qp->flags |= MLX4_IB_QP_LSO;
- 
-@@ -834,6 +831,9 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
- 			goto err_proxy;
- 	}
- 
-+	if (init_attr->create_flags & IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK)
-+		qp->flags |= MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK;
+diff --git a/drivers/net/ethernet/mellanox/mlx4/en_main.c b/drivers/net/ethernet/mellanox/mlx4/en_main.c
+index a946e4b..005f910 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/en_main.c
+@@ -123,6 +123,28 @@ void mlx4_en_update_loopback_state(struct net_device *dev,
+ 	 */
+ 	if (mlx4_is_mfunc(priv->mdev->dev) || priv->validate_loopback)
+ 		priv->flags |= MLX4_EN_FLAG_ENABLE_HW_LOOPBACK;
 +
- 	err = mlx4_qp_alloc(dev->dev, qpn, &qp->mqp, gfp);
- 	if (err)
- 		goto err_qpn;
-@@ -1098,6 +1098,7 @@ struct ib_qp *mlx4_ib_create_qp(struct ib_pd *pd,
- {
- 	struct mlx4_ib_qp *qp = NULL;
- 	int err;
-+	int sup_u_create_flags = MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK;
- 	u16 xrcdn = 0;
- 	gfp_t gfp;
++	mutex_lock(&priv->mdev->state_lock);
++	if (priv->mdev->dev->caps.flags2 &
++	    MLX4_DEV_CAP_FLAG2_UPDATE_QP_SRC_CHECK_LB &&
++	    priv->rss_map.indir_qp.qpn) {
++		int i;
++		int err = 0;
++		int loopback = !!(features & NETIF_F_LOOPBACK);
++
++		for (i = 0; i < priv->rx_ring_num; i++) {
++			int ret;
++
++			ret = mlx4_en_change_mcast_lb(priv,
++						      &priv->rss_map.qps[i],
++						      loopback);
++			if (!err)
++				err = ret;
++		}
++		if (err)
++			mlx4_warn(priv->mdev, "failed to change mcast loopback\n");
++	}
++	mutex_unlock(&priv->mdev->state_lock);
+ }
  
-@@ -1121,8 +1122,10 @@ struct ib_qp *mlx4_ib_create_qp(struct ib_pd *pd,
+ static int mlx4_en_get_profile(struct mlx4_en_dev *mdev)
+diff --git a/drivers/net/ethernet/mellanox/mlx4/en_resources.c b/drivers/net/ethernet/mellanox/mlx4/en_resources.c
+index e482fa1b..12aab5a 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/en_resources.c
++++ b/drivers/net/ethernet/mellanox/mlx4/en_resources.c
+@@ -69,6 +69,15 @@ void mlx4_en_fill_qp_context(struct mlx4_en_priv *priv, int size, int stride,
+ 	context->pri_path.counter_index = priv->counter_index;
+ 	context->cqn_send = cpu_to_be32(cqn);
+ 	context->cqn_recv = cpu_to_be32(cqn);
++	if (!rss &&
++	    (mdev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_LB_SRC_CHK) &&
++	    context->pri_path.counter_index !=
++			    MLX4_SINK_COUNTER_INDEX(mdev->dev)) {
++		/* disable multicast loopback to qp with same counter */
++		if (!(dev->features & NETIF_F_LOOPBACK))
++			context->pri_path.fl |= MLX4_FL_ETH_SRC_CHECK_MC_LB;
++		context->pri_path.control |= MLX4_CTRL_ETH_SRC_CHECK_IF_COUNTER;
++	}
+ 	context->db_rec_addr = cpu_to_be64(priv->res.db.dma << 2);
+ 	if (!(dev->features & NETIF_F_HW_VLAN_CTAG_RX))
+ 		context->param3 |= cpu_to_be32(1 << 30);
+@@ -80,6 +89,22 @@ void mlx4_en_fill_qp_context(struct mlx4_en_priv *priv, int size, int stride,
  	}
+ }
  
- 	if (init_attr->create_flags &&
--	    (udata ||
--	     ((init_attr->create_flags & ~(MLX4_IB_SRIOV_SQP | MLX4_IB_QP_CREATE_USE_GFP_NOIO)) &&
-+	    ((udata && init_attr->create_flags & ~(sup_u_create_flags)) ||
-+	     ((init_attr->create_flags & ~(MLX4_IB_SRIOV_SQP |
-+					   MLX4_IB_QP_CREATE_USE_GFP_NOIO |
-+					   MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK)) &&
- 	      init_attr->qp_type != IB_QPT_UD) ||
- 	     ((init_attr->create_flags & MLX4_IB_SRIOV_SQP) &&
- 	      init_attr->qp_type > IB_QPT_GSI)))
++int mlx4_en_change_mcast_lb(struct mlx4_en_priv *priv, struct mlx4_qp *qp,
++			    int loopback)
++{
++	int ret;
++	struct mlx4_update_qp_params qp_params;
++
++	memset(&qp_params, 0, sizeof(qp_params));
++	if (!loopback)
++		qp_params.flags = MLX4_UPDATE_QP_PARAMS_FLAGS_ETH_CHECK_MC_LB;
++
++	ret = mlx4_update_qp(priv->mdev->dev, qp->qpn,
++			     MLX4_UPDATE_QP_ETH_SRC_CHECK_MC_LB,
++			     &qp_params);
++
++	return ret;
++}
+ 
+ int mlx4_en_map_buffer(struct mlx4_buf *buf)
+ {
+diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
+index defcf8c..c41f151 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
++++ b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
+@@ -798,7 +798,8 @@ void mlx4_en_fill_qp_context(struct mlx4_en_priv *priv, int size, int stride,
+ void mlx4_en_sqp_event(struct mlx4_qp *qp, enum mlx4_event event);
+ int mlx4_en_map_buffer(struct mlx4_buf *buf);
+ void mlx4_en_unmap_buffer(struct mlx4_buf *buf);
+-
++int mlx4_en_change_mcast_lb(struct mlx4_en_priv *priv, struct mlx4_qp *qp,
++			    int loopback);
+ void mlx4_en_calc_rx_buf(struct net_device *dev);
+ int mlx4_en_config_rss_steer(struct mlx4_en_priv *priv);
+ void mlx4_en_release_rss_steer(struct mlx4_en_priv *priv);
 -- 
 1.8.3.1
 
