@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next v2 05/10] IB/cma: cma_validate_port should verify the port and netdevice
-Date: Thu, 15 Oct 2015 18:38:49 +0300
-Message-ID: <1444923534-10882-6-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next v2 02/10] IB/core: Expose and rename ib_find_cached_gid_by_port cache API
+Date: Thu, 15 Oct 2015 18:38:46 +0300
+Message-ID: <1444923534-10882-3-git-send-email-matanb@mellanox.com>
 References: <1444923534-10882-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1444923534-10882-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,86 +10,109 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Previously, cma_validate_port searched for GIDs in IB cache and then
-tried to verify the found port. This could fail when there are
-identical GIDs on both ports. In addition, netdevice should be taken
-into account when searching the GID table.
-Fixing cma_validate_port to search only the relevant port's cache
-and netdevice.
+Sometime consumers might want to search for a GID in a specific port.
+For example, when a WC arrives and we want to search the GID
+that matches that port - it's better to search only the relevant
+port.
+Exposing and renaming ib_cache_gid_find_by_port in order to match
+the naming convention of the module.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c | 26 ++++++++++++++++++--------
- 1 file changed, 18 insertions(+), 8 deletions(-)
+ drivers/infiniband/core/cache.c     |  9 +++++----
+ drivers/infiniband/core/core_priv.h |  5 -----
+ drivers/infiniband/core/device.c    |  4 ++--
+ include/rdma/ib_cache.h             | 19 +++++++++++++++++++
+ 4 files changed, 26 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index b15d9d5..849c280 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -427,10 +427,11 @@ static int cma_translate_addr(struct sockaddr *addr, struct rdma_dev_addr *dev_a
+diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
+index 5c05407..639a726 100644
+--- a/drivers/infiniband/core/cache.c
++++ b/drivers/infiniband/core/cache.c
+@@ -409,10 +409,10 @@ static int ib_cache_gid_find(struct ib_device *ib_dev,
+ 					mask, port, index);
  }
  
- static inline int cma_validate_port(struct ib_device *device, u8 port,
--				      union ib_gid *gid, int dev_type)
-+				      union ib_gid *gid, int dev_type,
-+				      int bound_if_index)
+-int ib_cache_gid_find_by_port(struct ib_device *ib_dev,
+-			      const union ib_gid *gid,
+-			      u8 port, struct net_device *ndev,
+-			      u16 *index)
++int ib_find_cached_gid_by_port(struct ib_device *ib_dev,
++			       const union ib_gid *gid,
++			       u8 port, struct net_device *ndev,
++			       u16 *index)
  {
--	u8 found_port;
- 	int ret = -ENODEV;
-+	struct net_device *ndev = NULL;
+ 	int local_index;
+ 	struct ib_gid_table **ports_table = ib_dev->cache.gid_cache;
+@@ -438,6 +438,7 @@ int ib_cache_gid_find_by_port(struct ib_device *ib_dev,
  
- 	if ((dev_type == ARPHRD_INFINIBAND) && !rdma_protocol_ib(device, port))
- 		return ret;
-@@ -438,9 +439,13 @@ static inline int cma_validate_port(struct ib_device *device, u8 port,
- 	if ((dev_type != ARPHRD_INFINIBAND) && rdma_protocol_ib(device, port))
- 		return ret;
- 
--	ret = ib_find_cached_gid(device, gid, NULL, &found_port, NULL);
--	if (port != found_port)
--		return -ENODEV;
-+	if (dev_type == ARPHRD_ETHER)
-+		ndev = dev_get_by_index(&init_net, bound_if_index);
-+
-+	ret = ib_find_cached_gid_by_port(device, gid, port, ndev, NULL);
-+
-+	if (ndev)
-+		dev_put(ndev);
- 
- 	return ret;
+ 	return -ENOENT;
  }
-@@ -472,7 +477,8 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv,
- 		       &iboe_gid : &gid;
++EXPORT_SYMBOL(ib_find_cached_gid_by_port);
  
- 		ret = cma_validate_port(cma_dev->device, port, gidp,
--					dev_addr->dev_type);
-+					dev_addr->dev_type,
-+					dev_addr->bound_dev_if);
- 		if (!ret) {
- 			id_priv->id.port_num = port;
- 			goto out;
-@@ -490,7 +496,8 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv,
- 			       &iboe_gid : &gid;
+ static struct ib_gid_table *alloc_gid_table(int sz)
+ {
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index 70bb36e..0df82b1 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -65,11 +65,6 @@ void ib_enum_all_roce_netdevs(roce_netdev_filter filter,
+ 			      roce_netdev_callback cb,
+ 			      void *cookie);
  
- 			ret = cma_validate_port(cma_dev->device, port, gidp,
--						dev_addr->dev_type);
-+						dev_addr->dev_type,
-+						dev_addr->bound_dev_if);
- 			if (!ret) {
- 				id_priv->id.port_num = port;
- 				goto out;
-@@ -2270,8 +2277,11 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
+-int ib_cache_gid_find_by_port(struct ib_device *ib_dev,
+-			      const union ib_gid *gid,
+-			      u8 port, struct net_device *ndev,
+-			      u16 *index);
+-
+ enum ib_cache_gid_default_mode {
+ 	IB_CACHE_GID_DEFAULT_MODE_SET,
+ 	IB_CACHE_GID_DEFAULT_MODE_DELETE
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index f22ce48..179e813 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -838,8 +838,8 @@ int ib_find_gid(struct ib_device *device, union ib_gid *gid,
  
- 	route->num_paths = 1;
+ 	for (port = rdma_start_port(device); port <= rdma_end_port(device); ++port) {
+ 		if (rdma_cap_roce_gid_table(device, port)) {
+-			if (!ib_cache_gid_find_by_port(device, gid, port,
+-						       ndev, index)) {
++			if (!ib_find_cached_gid_by_port(device, gid, port,
++							ndev, index)) {
+ 				*port_num = port;
+ 				return 0;
+ 			}
+diff --git a/include/rdma/ib_cache.h b/include/rdma/ib_cache.h
+index dcc9bed..679d7ca 100644
+--- a/include/rdma/ib_cache.h
++++ b/include/rdma/ib_cache.h
+@@ -75,6 +75,25 @@ int ib_find_cached_gid(struct ib_device *device,
+ 		       u16              *index);
  
--	if (addr->dev_addr.bound_dev_if)
-+	if (addr->dev_addr.bound_dev_if) {
- 		ndev = dev_get_by_index(&init_net, addr->dev_addr.bound_dev_if);
-+		route->path_rec->net = &init_net;
-+		route->path_rec->ifindex = addr->dev_addr.bound_dev_if;
-+	}
- 	if (!ndev) {
- 		ret = -ENODEV;
- 		goto err2;
+ /**
++ * ib_find_cached_gid_by_port - Returns the GID table index where a specified
++ * GID value occurs
++ * @device: The device to query.
++ * @gid: The GID value to search for.
++ * @port_num: The port number of the device where the GID value sould be
++ *   searched.
++ * @ndev: In RoCE, the net device of the device. Null means ignore.
++ * @index: The index into the cached GID table where the GID was found.  This
++ *   parameter may be NULL.
++ *
++ * ib_find_cached_gid() searches for the specified GID value in
++ * the local software cache.
++ */
++int ib_find_cached_gid_by_port(struct ib_device *device,
++			       const union ib_gid *gid,
++			       u8               port_num,
++			       struct net_device *ndev,
++			       u16              *index);
++/**
+  * ib_get_cached_pkey - Returns a cached PKey table entry
+  * @device: The device to query.
+  * @port_num: The port number of the device to query.
 -- 
 2.1.0
 
