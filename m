@@ -1,7 +1,8 @@
 From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] ipoib mcast sendonly join: Isolate common list remove code
-Date: Fri, 16 Oct 2015 12:35:48 -0500 (CDT)
-Message-ID: <alpine.DEB.2.20.1510161234060.27368@east.gentwo.org>
+Subject: [PATCH] ipoib mcast sendonly join: Move multicast specific code out
+ of ipoib_main.c.
+Date: Fri, 16 Oct 2015 12:36:46 -0500 (CDT)
+Message-ID: <alpine.DEB.2.20.1510161235520.27368@east.gentwo.org>
 Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
@@ -10,127 +11,99 @@ Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: ipoib mcast sendonly join: Isolate common list remove code
+Subject: ipoib mcast sendonly join: Move multicast specific code out of ipoib_main.c.
 
-Code cleanup to remove multicast specific code from ipoib_main.c
-
-The removal of a list of multicast groups occurs in three places.
-Create a new function ipoib_mcast_remove_list(). Use this new
-function in ipoib_main.c too.
-That in turn allows the dropping of two functions that were
-exported from ipoib_multicast.c for expiration of mc groups.
+Code cleanup to move multicast specific code that checks for
+a sendonly join to ipoib_multicast.c. This allows the removal
+of the export of __ipoib_mcast_find().
 
 Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 
-Index: linux/drivers/infiniband/ulp/ipoib/ipoib.h
-===================================================================
---- linux.orig/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ linux/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -495,7 +495,6 @@ void ipoib_dev_cleanup(struct net_device
- void ipoib_mcast_join_task(struct work_struct *work);
- void ipoib_mcast_carrier_on_task(struct work_struct *work);
- void ipoib_mcast_send(struct net_device *dev, u8 *daddr, struct sk_buff *skb);
--void ipoib_mcast_free(struct ipoib_mcast *mc);
-
- void ipoib_mcast_restart_task(struct work_struct *work);
- int ipoib_mcast_start_thread(struct net_device *dev);
-@@ -549,7 +548,7 @@ void ipoib_path_iter_read(struct ipoib_p
-
- int ipoib_mcast_attach(struct net_device *dev, u16 mlid,
- 		       union ib_gid *mgid, int set_qkey);
--int ipoib_mcast_leave(struct net_device *dev, struct ipoib_mcast *mcast);
-+void ipoib_mcast_remove_list(struct net_device *dev, struct list_head *remove_list);
- struct ipoib_mcast *__ipoib_mcast_find(struct net_device *dev, void *mgid);
-
- int ipoib_init_qp(struct net_device *dev);
 Index: linux/drivers/infiniband/ulp/ipoib/ipoib_main.c
 ===================================================================
 --- linux.orig/drivers/infiniband/ulp/ipoib/ipoib_main.c
 +++ linux/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1150,7 +1150,7 @@ static void __ipoib_reap_neigh(struct ip
+@@ -1150,7 +1150,6 @@ static void __ipoib_reap_neigh(struct ip
  	unsigned long flags;
  	int i;
  	LIST_HEAD(remove_list);
--	struct ipoib_mcast *mcast, *tmcast;
-+	struct ipoib_mcast *mcast;
+-	struct ipoib_mcast *mcast;
  	struct net_device *dev = priv->dev;
 
  	if (test_bit(IPOIB_STOP_NEIGH_GC, &priv->flags))
-@@ -1207,10 +1207,7 @@ static void __ipoib_reap_neigh(struct ip
+@@ -1179,18 +1178,8 @@ static void __ipoib_reap_neigh(struct ip
+ 							  lockdep_is_held(&priv->lock))) != NULL) {
+ 			/* was the neigh idle for two GC periods */
+ 			if (time_after(neigh_obsolete, neigh->alive)) {
+-				u8 *mgid = neigh->daddr + 4;
 
- out_unlock:
- 	spin_unlock_irqrestore(&priv->lock, flags);
--	list_for_each_entry_safe(mcast, tmcast, &remove_list, list) {
--		ipoib_mcast_leave(dev, mcast);
--		ipoib_mcast_free(mcast);
--	}
-+	ipoib_mcast_remove_list(dev, &remove_list);
- }
+-				/* Is this multicast ? */
+-				if (*mgid == 0xff) {
+-					mcast = __ipoib_mcast_find(dev, mgid);
+-
+-					if (mcast && test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags)) {
+-						list_del(&mcast->list);
+-						rb_erase(&mcast->rb_node, &priv->multicast_tree);
+-						list_add_tail(&mcast->list, &remove_list);
+-					}
+-				}
++				ipoib_check_mcast_sendonly(priv, neigh->daddr + 4, &remove_list);
 
- static void ipoib_reap_neigh(struct work_struct *work)
+ 				rcu_assign_pointer(*np,
+ 						   rcu_dereference_protected(neigh->hnext,
+Index: linux/drivers/infiniband/ulp/ipoib/ipoib.h
+===================================================================
+--- linux.orig/drivers/infiniband/ulp/ipoib/ipoib.h
++++ linux/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -549,7 +549,8 @@ void ipoib_path_iter_read(struct ipoib_p
+ int ipoib_mcast_attach(struct net_device *dev, u16 mlid,
+ 		       union ib_gid *mgid, int set_qkey);
+ void ipoib_mcast_remove_list(struct net_device *dev, struct list_head *remove_list);
+-struct ipoib_mcast *__ipoib_mcast_find(struct net_device *dev, void *mgid);
++void ipoib_check_mcast_sendonly(struct ipoib_dev_priv *priv, u8 *mgid,
++				struct list_head *remove_list);
+
+ int ipoib_init_qp(struct net_device *dev);
+ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca);
 Index: linux/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
 ===================================================================
 --- linux.orig/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
 +++ linux/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -106,7 +106,7 @@ static void __ipoib_mcast_schedule_join_
- 		queue_delayed_work(priv->wq, &priv->mcast_task, 0);
+@@ -153,7 +153,7 @@ static struct ipoib_mcast *ipoib_mcast_a
+ 	return mcast;
  }
 
--void ipoib_mcast_free(struct ipoib_mcast *mcast)
-+static void ipoib_mcast_free(struct ipoib_mcast *mcast)
- {
- 	struct net_device *dev = mcast->dev;
- 	int tx_dropped = 0;
-@@ -677,7 +677,7 @@ int ipoib_mcast_stop_thread(struct net_d
- 	return 0;
- }
-
--int ipoib_mcast_leave(struct net_device *dev, struct ipoib_mcast *mcast)
-+static int ipoib_mcast_leave(struct net_device *dev, struct ipoib_mcast *mcast)
+-struct ipoib_mcast *__ipoib_mcast_find(struct net_device *dev, void *mgid)
++static struct ipoib_mcast *__ipoib_mcast_find(struct net_device *dev, void *mgid)
  {
  	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 	int ret = 0;
-@@ -704,6 +704,16 @@ int ipoib_mcast_leave(struct net_device
+ 	struct rb_node *n = priv->multicast_tree.rb_node;
+@@ -704,6 +704,25 @@ static int ipoib_mcast_leave(struct net_
  	return 0;
  }
 
-+void ipoib_mcast_remove_list(struct net_device *dev, struct list_head *remove_list)
++/*
++ * Check if the multicast group is sendonly. If so remove it from the maps
++ * and add to the remove list
++ */
++void ipoib_check_mcast_sendonly(struct ipoib_dev_priv *priv, u8 *mgid,
++				struct list_head *remove_list)
 +{
-+	struct ipoib_mcast *mcast, *tmcast;
++	/* Is this multicast ? */
++	if (*mgid == 0xff) {
++		struct ipoib_mcast *mcast = __ipoib_mcast_find(priv->dev, mgid);
 +
-+	list_for_each_entry_safe(mcast, tmcast, remove_list, list) {
-+		ipoib_mcast_leave(dev, mcast);
-+		ipoib_mcast_free(mcast);
++		if (mcast && test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags)) {
++			list_del(&mcast->list);
++			rb_erase(&mcast->rb_node, &priv->multicast_tree);
++			list_add_tail(&mcast->list, remove_list);
++		}
 +	}
 +}
 +
- void ipoib_mcast_send(struct net_device *dev, u8 *daddr, struct sk_buff *skb)
+ void ipoib_mcast_remove_list(struct net_device *dev, struct list_head *remove_list)
  {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
-@@ -810,10 +820,7 @@ void ipoib_mcast_dev_flush(struct net_de
- 		if (test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags))
- 			wait_for_completion(&mcast->done);
-
--	list_for_each_entry_safe(mcast, tmcast, &remove_list, list) {
--		ipoib_mcast_leave(dev, mcast);
--		ipoib_mcast_free(mcast);
--	}
-+	ipoib_mcast_remove_list(dev, &remove_list);
- }
-
- static int ipoib_mcast_addr_is_valid(const u8 *addr, const u8 *broadcast)
-@@ -939,10 +946,7 @@ void ipoib_mcast_restart_task(struct wor
- 		if (test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags))
- 			wait_for_completion(&mcast->done);
-
--	list_for_each_entry_safe(mcast, tmcast, &remove_list, list) {
--		ipoib_mcast_leave(mcast->dev, mcast);
--		ipoib_mcast_free(mcast);
--	}
-+	ipoib_mcast_remove_list(mcast->dev, &remove_list);
-
- 	/*
- 	 * Double check that we are still up
+ 	struct ipoib_mcast *mcast, *tmcast;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
