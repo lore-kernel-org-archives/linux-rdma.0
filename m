@@ -1,8 +1,8 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 11/16] xprtrdma: Pre-allocate Work Requests for
- backchannel
-Date: Fri, 16 Oct 2015 09:25:31 -0400
-Message-ID: <20151016132531.6819.63424.stgit@oracle-122.nfsv4bat.org>
+Subject: [PATCH v3 14/16] svcrdma: Add backward direction service for
+ RPC/RDMA transport
+Date: Fri, 16 Oct 2015 09:25:56 -0400
+Message-ID: <20151016132556.6819.32755.stgit@oracle-122.nfsv4bat.org>
 References: <20151016131958.6819.98407.stgit@oracle-122.nfsv4bat.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,109 +14,152 @@ To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Pre-allocate extra send and receive Work Requests needed to handle
-backchannel receives and sends.
-
-The transport doesn't know how many extra WRs to pre-allocate until
-the xprt_setup_backchannel() call, but that's long after the WRs are
-allocated during forechannel setup.
-
-So, use a fixed value for now.
+On NFSv4.1 mount points, the Linux NFS client uses this transport
+endpoint to receive backward direction calls and route replies back
+to the NFSv4.1 server.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Acked-by: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
 Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Tested-By: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/backchannel.c |    4 ++++
- net/sunrpc/xprtrdma/verbs.c       |   14 ++++++++++++--
- net/sunrpc/xprtrdma/xprt_rdma.h   |   10 ++++++++++
- 3 files changed, 26 insertions(+), 2 deletions(-)
+ include/linux/sunrpc/svc_rdma.h          |    6 +++
+ include/linux/sunrpc/xprt.h              |    1 +
+ net/sunrpc/xprtrdma/svc_rdma.c           |    6 +++
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |   58 ++++++++++++++++++++++++++++++
+ 4 files changed, 70 insertions(+), 1 deletion(-)
 
-diff --git a/net/sunrpc/xprtrdma/backchannel.c b/net/sunrpc/xprtrdma/backchannel.c
-index 3d01b32..3165ed6 100644
---- a/net/sunrpc/xprtrdma/backchannel.c
-+++ b/net/sunrpc/xprtrdma/backchannel.c
-@@ -125,6 +125,9 @@ int xprt_rdma_bc_setup(struct rpc_xprt *xprt, unsigned int reqs)
- 	 * Twice as many rpc_rqsts are prepared to ensure there is
- 	 * always an rpc_rqst available as soon as a reply is sent.
- 	 */
-+	if (reqs > RPCRDMA_BACKWARD_WRS >> 1)
-+		goto out_err;
-+
- 	for (i = 0; i < (reqs << 1); i++) {
- 		rqst = kzalloc(sizeof(*rqst), GFP_KERNEL);
- 		if (!rqst) {
-@@ -161,6 +164,7 @@ int xprt_rdma_bc_setup(struct rpc_xprt *xprt, unsigned int reqs)
- out_free:
- 	xprt_rdma_bc_destroy(xprt, reqs);
+diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
+index 7ccc961..fb4013e 100644
+--- a/include/linux/sunrpc/svc_rdma.h
++++ b/include/linux/sunrpc/svc_rdma.h
+@@ -228,9 +228,13 @@ extern void svc_rdma_put_frmr(struct svcxprt_rdma *,
+ 			      struct svc_rdma_fastreg_mr *);
+ extern void svc_sq_reap(struct svcxprt_rdma *);
+ extern void svc_rq_reap(struct svcxprt_rdma *);
+-extern struct svc_xprt_class svc_rdma_class;
+ extern void svc_rdma_prep_reply_hdr(struct svc_rqst *);
  
-+out_err:
- 	pr_err("RPC:       %s: setup backchannel transport failed\n", __func__);
- 	return -ENOMEM;
- }
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index d920367..d031856 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -570,6 +570,7 @@ rpcrdma_ep_create(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia,
- 	struct ib_device_attr *devattr = &ia->ri_devattr;
- 	struct ib_cq *sendcq, *recvcq;
- 	struct ib_cq_init_attr cq_attr = {};
-+	unsigned int max_qp_wr;
- 	int rc, err;
- 
- 	if (devattr->max_sge < RPCRDMA_MAX_IOVS) {
-@@ -578,18 +579,27 @@ rpcrdma_ep_create(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia,
- 		return -ENOMEM;
- 	}
- 
-+	if (devattr->max_qp_wr <= RPCRDMA_BACKWARD_WRS) {
-+		dprintk("RPC:       %s: insufficient wqe's available\n",
-+			__func__);
-+		return -ENOMEM;
-+	}
-+	max_qp_wr = devattr->max_qp_wr - RPCRDMA_BACKWARD_WRS;
-+
- 	/* check provider's send/recv wr limits */
--	if (cdata->max_requests > devattr->max_qp_wr)
--		cdata->max_requests = devattr->max_qp_wr;
-+	if (cdata->max_requests > max_qp_wr)
-+		cdata->max_requests = max_qp_wr;
- 
- 	ep->rep_attr.event_handler = rpcrdma_qp_async_error_upcall;
- 	ep->rep_attr.qp_context = ep;
- 	ep->rep_attr.srq = NULL;
- 	ep->rep_attr.cap.max_send_wr = cdata->max_requests;
-+	ep->rep_attr.cap.max_send_wr += RPCRDMA_BACKWARD_WRS;
- 	rc = ia->ri_ops->ro_open(ia, ep, cdata);
- 	if (rc)
- 		return rc;
- 	ep->rep_attr.cap.max_recv_wr = cdata->max_requests;
-+	ep->rep_attr.cap.max_recv_wr += RPCRDMA_BACKWARD_WRS;
- 	ep->rep_attr.cap.max_send_sge = RPCRDMA_MAX_IOVS;
- 	ep->rep_attr.cap.max_recv_sge = 1;
- 	ep->rep_attr.cap.max_inline_data = 0;
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index 1eb86c79f..55d2660 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -101,6 +101,16 @@ struct rpcrdma_ep {
-  */
- #define RPCRDMA_IGNORE_COMPLETION	(0ULL)
- 
-+/* Pre-allocate extra Work Requests for handling backward receives
-+ * and sends. This is a fixed value because the Work Queues are
-+ * allocated when the forward channel is set up.
-+ */
-+#if defined(CONFIG_SUNRPC_BACKCHANNEL)
-+#define RPCRDMA_BACKWARD_WRS		(8)
-+#else
-+#define RPCRDMA_BACKWARD_WRS		(0)
++extern struct svc_xprt_class svc_rdma_class;
++#ifdef CONFIG_SUNRPC_BACKCHANNEL
++extern struct svc_xprt_class svc_rdma_bc_class;
 +#endif
 +
- /* Registered buffer -- registered kmalloc'd memory for RDMA SEND/RECV
-  *
-  * The below structure appears at the front of a large region of kmalloc'd
+ /* svc_rdma.c */
+ extern int svc_rdma_init(void);
+ extern void svc_rdma_cleanup(void);
+diff --git a/include/linux/sunrpc/xprt.h b/include/linux/sunrpc/xprt.h
+index 3f79c4a..82c0839 100644
+--- a/include/linux/sunrpc/xprt.h
++++ b/include/linux/sunrpc/xprt.h
+@@ -158,6 +158,7 @@ enum xprt_transports {
+ 	XPRT_TRANSPORT_TCP	= IPPROTO_TCP,
+ 	XPRT_TRANSPORT_BC_TCP	= IPPROTO_TCP | XPRT_TRANSPORT_BC,
+ 	XPRT_TRANSPORT_RDMA	= 256,
++	XPRT_TRANSPORT_BC_RDMA	= XPRT_TRANSPORT_RDMA | XPRT_TRANSPORT_BC,
+ 	XPRT_TRANSPORT_LOCAL	= 257,
+ };
+ 
+diff --git a/net/sunrpc/xprtrdma/svc_rdma.c b/net/sunrpc/xprtrdma/svc_rdma.c
+index 2cd252f..1b7051b 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma.c
++++ b/net/sunrpc/xprtrdma/svc_rdma.c
+@@ -239,6 +239,9 @@ void svc_rdma_cleanup(void)
+ 		unregister_sysctl_table(svcrdma_table_header);
+ 		svcrdma_table_header = NULL;
+ 	}
++#if defined(CONFIG_SUNRPC_BACKCHANNEL)
++	svc_unreg_xprt_class(&svc_rdma_bc_class);
++#endif
+ 	svc_unreg_xprt_class(&svc_rdma_class);
+ 	kmem_cache_destroy(svc_rdma_map_cachep);
+ 	kmem_cache_destroy(svc_rdma_ctxt_cachep);
+@@ -286,6 +289,9 @@ int svc_rdma_init(void)
+ 
+ 	/* Register RDMA with the SVC transport switch */
+ 	svc_reg_xprt_class(&svc_rdma_class);
++#if defined(CONFIG_SUNRPC_BACKCHANNEL)
++	svc_reg_xprt_class(&svc_rdma_bc_class);
++#endif
+ 	return 0;
+  err1:
+ 	kmem_cache_destroy(svc_rdma_map_cachep);
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index fcc3eb8..a133b1e 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -56,6 +56,7 @@
+ 
+ #define RPCDBG_FACILITY	RPCDBG_SVCXPRT
+ 
++static struct svcxprt_rdma *rdma_create_xprt(struct svc_serv *, int);
+ static struct svc_xprt *svc_rdma_create(struct svc_serv *serv,
+ 					struct net *net,
+ 					struct sockaddr *sa, int salen,
+@@ -95,6 +96,63 @@ struct svc_xprt_class svc_rdma_class = {
+ 	.xcl_ident = XPRT_TRANSPORT_RDMA,
+ };
+ 
++#if defined(CONFIG_SUNRPC_BACKCHANNEL)
++static struct svc_xprt *svc_rdma_bc_create(struct svc_serv *, struct net *,
++					   struct sockaddr *, int, int);
++static void svc_rdma_bc_detach(struct svc_xprt *);
++static void svc_rdma_bc_free(struct svc_xprt *);
++
++static struct svc_xprt_ops svc_rdma_bc_ops = {
++	.xpo_create = svc_rdma_bc_create,
++	.xpo_detach = svc_rdma_bc_detach,
++	.xpo_free = svc_rdma_bc_free,
++	.xpo_prep_reply_hdr = svc_rdma_prep_reply_hdr,
++	.xpo_secure_port = svc_rdma_secure_port,
++};
++
++struct svc_xprt_class svc_rdma_bc_class = {
++	.xcl_name = "rdma-bc",
++	.xcl_owner = THIS_MODULE,
++	.xcl_ops = &svc_rdma_bc_ops,
++	.xcl_max_payload = (1024 - RPCRDMA_HDRLEN_MIN)
++};
++
++static struct svc_xprt *svc_rdma_bc_create(struct svc_serv *serv,
++					   struct net *net,
++					   struct sockaddr *sa, int salen,
++					   int flags)
++{
++	struct svcxprt_rdma *cma_xprt;
++	struct svc_xprt *xprt;
++
++	cma_xprt = rdma_create_xprt(serv, 0);
++	if (!cma_xprt)
++		return ERR_PTR(-ENOMEM);
++	xprt = &cma_xprt->sc_xprt;
++
++	svc_xprt_init(net, &svc_rdma_bc_class, xprt, serv);
++	serv->sv_bc_xprt = xprt;
++
++	dprintk("svcrdma: %s(%p)\n", __func__, xprt);
++	return xprt;
++}
++
++static void svc_rdma_bc_detach(struct svc_xprt *xprt)
++{
++	dprintk("svcrdma: %s(%p)\n", __func__, xprt);
++}
++
++static void svc_rdma_bc_free(struct svc_xprt *xprt)
++{
++	struct svcxprt_rdma *rdma =
++		container_of(xprt, struct svcxprt_rdma, sc_xprt);
++
++	dprintk("svcrdma: %s(%p)\n", __func__, xprt);
++	if (xprt)
++		kfree(rdma);
++}
++#endif	/* CONFIG_SUNRPC_BACKCHANNEL */
++
+ struct svc_rdma_op_ctxt *svc_rdma_get_context(struct svcxprt_rdma *xprt)
+ {
+ 	struct svc_rdma_op_ctxt *ctxt;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
