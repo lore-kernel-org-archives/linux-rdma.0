@@ -1,42 +1,50 @@
-From: Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] MAINTAINERS: update usnic maintainer contacts
-Date: Thu, 15 Oct 2015 20:01:29 -0700
-Message-ID: <1444964489-24798-1-git-send-email-dgoodell@cisco.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v3 01/16] xprtrdma: Enable swap-on-NFS/RDMA
+Date: Fri, 16 Oct 2015 09:24:08 -0400
+Message-ID: <20151016132408.6819.70670.stgit@oracle-122.nfsv4bat.org>
+References: <20151016131958.6819.98407.stgit@oracle-122.nfsv4bat.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151016131958.6819.98407.stgit-SEkpj4eus7zuCzdexAEDLOpQh6Td+b7Z@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Upinder hasn't worked for Cisco for a little while now, updating to more
-active maintainers.
+After adding a swapfile on an NFS/RDMA mount and removing the
+normal swap partition, I was able to push the NFS client well
+into swap without any issue.
 
-Signed-off-by: Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+I forgot to swapoff the NFS file before rebooting. This pinned
+the NFS mount and the IB core and provider, causing shutdown to
+hang. I think this is expected and safe behavior. Probably
+shutdown scripts should "swapoff -a" before unmounting any
+filesystems.
+
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Tested-By: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 ---
- MAINTAINERS | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ net/sunrpc/xprtrdma/transport.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 5f46784..20cb877 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -2730,9 +2730,10 @@ S:	Supported
- F:	drivers/net/ethernet/cisco/enic/
+diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+index 41e452b..e9e5ed7 100644
+--- a/net/sunrpc/xprtrdma/transport.c
++++ b/net/sunrpc/xprtrdma/transport.c
+@@ -676,7 +676,7 @@ static void xprt_rdma_print_stats(struct rpc_xprt *xprt, struct seq_file *seq)
+ static int
+ xprt_rdma_enable_swap(struct rpc_xprt *xprt)
+ {
+-	return -EINVAL;
++	return 0;
+ }
  
- CISCO VIC LOW LATENCY NIC DRIVER
--M:	Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-+M:	Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-+M:	Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
- S:	Supported
--F:	drivers/infiniband/hw/usnic
-+F:	drivers/infiniband/hw/usnic/
- 
- CIRRUS LOGIC EP93XX ETHERNET DRIVER
- M:	Hartley Sweeten <hsweeten-3FF4nKcrg1dE2c76skzGb0EOCMrvLtNR@public.gmane.org>
--- 
-2.4.3
+ static void
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
