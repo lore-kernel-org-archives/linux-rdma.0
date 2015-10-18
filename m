@@ -1,13 +1,13 @@
 From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: Re: [PATCH for-next v2 06/10] IB/cache: Add ib_find_gid_by_filter
- cache API
-Date: Sun, 18 Oct 2015 22:27:44 +0530
-Message-ID: <CANjDDBh7J7VK6YMwZvtdSqk=B1WsLYj5SSY8Nf6GJMStdA2OTg@mail.gmail.com>
-References: <1444923534-10882-1-git-send-email-matanb@mellanox.com> <1444923534-10882-7-git-send-email-matanb@mellanox.com>
+Subject: Re: [PATCH for-next v2 08/10] IB/cm: Remove the usage of smac and vid
+ of qp_attr and cm_av
+Date: Sun, 18 Oct 2015 22:52:57 +0530
+Message-ID: <CANjDDBhn4MMr7Ou91YS+z3+vGhrBbS_FoCVW=E8V1TxXagM7YA@mail.gmail.com>
+References: <1444923534-10882-1-git-send-email-matanb@mellanox.com> <1444923534-10882-9-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1444923534-10882-7-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1444923534-10882-9-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
@@ -17,147 +17,95 @@ Looks Good
 Reviewed-By: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 
 On Thu, Oct 15, 2015 at 9:08 PM, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> GID cache API users might want to search for GIDs with specific
-> attributes rather than just specifying GID, net device and port.
-> This is used in a later patch, where we find the sgid index by
-> L2 Ethernet attributes.
+> The cm and cma don't need to explicitly handle vlan and smac,
+> as they are resolved from the GID index now. Removing this
+> portion of code.
 >
 > Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
->  drivers/infiniband/core/cache.c | 93 +++++++++++++++++++++++++++++++++++++++++
->  include/rdma/ib_cache.h         |  8 ++++
->  2 files changed, 101 insertions(+)
+>  drivers/infiniband/core/cm.c  | 30 ------------------------------
+>  drivers/infiniband/core/cma.c |  6 ------
+>  2 files changed, 36 deletions(-)
 >
-> diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-> index 639a726..89bebea 100644
-> --- a/drivers/infiniband/core/cache.c
-> +++ b/drivers/infiniband/core/cache.c
-> @@ -440,6 +440,81 @@ int ib_find_cached_gid_by_port(struct ib_device *ib_dev,
+> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+> index ea7f3c5..6dd24a5 100644
+> --- a/drivers/infiniband/core/cm.c
+> +++ b/drivers/infiniband/core/cm.c
+> @@ -179,8 +179,6 @@ struct cm_av {
+>         struct ib_ah_attr ah_attr;
+>         u16 pkey_index;
+>         u8 timeout;
+> -       u8  valid;
+> -       u8  smac[ETH_ALEN];
+>  };
+>
+>  struct cm_work {
+> @@ -389,7 +387,6 @@ static int cm_init_av_by_path(struct ib_sa_path_rec *path, struct cm_av *av)
+>                              &av->ah_attr);
+>         av->timeout = path->packet_life_time + 1;
+>
+> -       av->valid = 1;
+>         return 0;
 >  }
->  EXPORT_SYMBOL(ib_find_cached_gid_by_port);
 >
-> +/**
-> + * ib_find_gid_by_filter - Returns the GID table index where a specified
-> + * GID value occurs
-> + * @device: The device to query.
-> + * @gid: The GID value to search for.
-> + * @port_num: The port number of the device where the GID value could be
-> + *   searched.
-> + * @filter: The filter function is executed on any matching GID in the table.
-> + *   If the filter function returns true, the corresponding index is returned,
-> + *   otherwise, we continue searching the GID table. It's guaranteed that
-> + *   while filter is executed, ndev field is valid and the structure won't
-> + *   change. filter is executed in an atomic context. filter must not be NULL.
-> + * @index: The index into the cached GID table where the GID was found.  This
-> + *   parameter may be NULL.
-> + *
-> + * ib_cache_gid_find_by_filter() searches for the specified GID value
-> + * of which the filter function returns true in the port's GID table.
-> + * This function is only supported on RoCE ports.
-> + *
-> + */
-> +static int ib_cache_gid_find_by_filter(struct ib_device *ib_dev,
-> +                                      const union ib_gid *gid,
-> +                                      u8 port,
-> +                                      bool (*filter)(const union ib_gid *,
-> +                                                     const struct ib_gid_attr *,
-> +                                                     void *),
-> +                                      void *context,
-> +                                      u16 *index)
-> +{
-> +       struct ib_gid_table **ports_table = ib_dev->cache.gid_cache;
-> +       struct ib_gid_table *table;
-> +       unsigned int i;
-> +       bool found = false;
-> +
-> +       if (!ports_table)
-> +               return -EOPNOTSUPP;
-> +
-> +       if (port < rdma_start_port(ib_dev) ||
-> +           port > rdma_end_port(ib_dev) ||
-> +           !rdma_protocol_roce(ib_dev, port))
-> +               return -EPROTONOSUPPORT;
-> +
-> +       table = ports_table[port - rdma_start_port(ib_dev)];
-> +
-> +       for (i = 0; i < table->sz; i++) {
-> +               struct ib_gid_attr attr;
-> +               unsigned long flags;
-> +
-> +               read_lock_irqsave(&table->data_vec[i].lock, flags);
-> +               if (table->data_vec[i].props & GID_TABLE_ENTRY_INVALID)
-> +                       goto next;
-> +
-> +               if (memcmp(gid, &table->data_vec[i].gid, sizeof(*gid)))
-> +                       goto next;
-> +
-> +               memcpy(&attr, &table->data_vec[i].attr, sizeof(attr));
-> +
-> +               if (filter(gid, &attr, context))
-> +                       found = true;
-> +
-> +next:
-> +               read_unlock_irqrestore(&table->data_vec[i].lock, flags);
-> +
-> +               if (found)
-> +                       break;
-> +       }
-> +
-> +       if (!found)
-> +               return -ENOENT;
-> +
-> +       if (index)
-> +               *index = i;
-> +       return 0;
-> +}
-> +
->  static struct ib_gid_table *alloc_gid_table(int sz)
->  {
->         unsigned int i;
-> @@ -670,6 +745,24 @@ int ib_find_cached_gid(struct ib_device *device,
->  }
->  EXPORT_SYMBOL(ib_find_cached_gid);
+> @@ -1637,7 +1634,6 @@ static int cm_req_handler(struct cm_work *work)
+>         cm_format_paths_from_req(req_msg, &work->path[0], &work->path[1]);
 >
-> +int ib_find_gid_by_filter(struct ib_device *device,
-> +                         const union ib_gid *gid,
-> +                         u8 port_num,
-> +                         bool (*filter)(const union ib_gid *gid,
-> +                                        const struct ib_gid_attr *,
-> +                                        void *),
-> +                         void *context, u16 *index)
-> +{
-> +       /* Only RoCE GID table supports filter function */
-> +       if (!rdma_cap_roce_gid_table(device, port_num) && filter)
-> +               return -EPROTONOSUPPORT;
-> +
-> +       return ib_cache_gid_find_by_filter(device, gid,
-> +                                          port_num, filter,
-> +                                          context, index);
-> +}
-> +EXPORT_SYMBOL(ib_find_gid_by_filter);
-> +
->  int ib_get_cached_pkey(struct ib_device *device,
->                        u8                port_num,
->                        int               index,
-> diff --git a/include/rdma/ib_cache.h b/include/rdma/ib_cache.h
-> index 679d7ca..269a27cf 100644
-> --- a/include/rdma/ib_cache.h
-> +++ b/include/rdma/ib_cache.h
-> @@ -93,6 +93,14 @@ int ib_find_cached_gid_by_port(struct ib_device *device,
->                                u8               port_num,
->                                struct net_device *ndev,
->                                u16              *index);
-> +
-> +int ib_find_gid_by_filter(struct ib_device *device,
-> +                         const union ib_gid *gid,
-> +                         u8 port_num,
-> +                         bool (*filter)(const union ib_gid *gid,
-> +                                        const struct ib_gid_attr *,
-> +                                        void *),
-> +                         void *context, u16 *index);
->  /**
->   * ib_get_cached_pkey - Returns a cached PKey table entry
->   * @device: The device to query.
+>         memcpy(work->path[0].dmac, cm_id_priv->av.ah_attr.dmac, ETH_ALEN);
+> -       work->path[0].vlan_id = cm_id_priv->av.ah_attr.vlan_id;
+>         ret = cm_init_av_by_path(&work->path[0], &cm_id_priv->av);
+>         if (ret) {
+>                 ib_get_cached_gid(work->port->cm_dev->ib_device,
+> @@ -3614,32 +3610,6 @@ static int cm_init_qp_rtr_attr(struct cm_id_private *cm_id_priv,
+>                 *qp_attr_mask = IB_QP_STATE | IB_QP_AV | IB_QP_PATH_MTU |
+>                                 IB_QP_DEST_QPN | IB_QP_RQ_PSN;
+>                 qp_attr->ah_attr = cm_id_priv->av.ah_attr;
+> -               if (!cm_id_priv->av.valid) {
+> -                       spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+> -                       return -EINVAL;
+> -               }
+> -               if (cm_id_priv->av.ah_attr.vlan_id != 0xffff) {
+> -                       qp_attr->vlan_id = cm_id_priv->av.ah_attr.vlan_id;
+> -                       *qp_attr_mask |= IB_QP_VID;
+> -               }
+> -               if (!is_zero_ether_addr(cm_id_priv->av.smac)) {
+> -                       memcpy(qp_attr->smac, cm_id_priv->av.smac,
+> -                              sizeof(qp_attr->smac));
+> -                       *qp_attr_mask |= IB_QP_SMAC;
+> -               }
+> -               if (cm_id_priv->alt_av.valid) {
+> -                       if (cm_id_priv->alt_av.ah_attr.vlan_id != 0xffff) {
+> -                               qp_attr->alt_vlan_id =
+> -                                       cm_id_priv->alt_av.ah_attr.vlan_id;
+> -                               *qp_attr_mask |= IB_QP_ALT_VID;
+> -                       }
+> -                       if (!is_zero_ether_addr(cm_id_priv->alt_av.smac)) {
+> -                               memcpy(qp_attr->alt_smac,
+> -                                      cm_id_priv->alt_av.smac,
+> -                                      sizeof(qp_attr->alt_smac));
+> -                               *qp_attr_mask |= IB_QP_ALT_SMAC;
+> -                       }
+> -               }
+>                 qp_attr->path_mtu = cm_id_priv->path_mtu;
+>                 qp_attr->dest_qp_num = be32_to_cpu(cm_id_priv->remote_qpn);
+>                 qp_attr->rq_psn = be32_to_cpu(cm_id_priv->rq_psn);
+> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+> index 849c280..bc11ea4 100644
+> --- a/drivers/infiniband/core/cma.c
+> +++ b/drivers/infiniband/core/cma.c
+> @@ -733,12 +733,6 @@ static int cma_modify_qp_rtr(struct rdma_id_private *id_priv,
+>
+>         BUG_ON(id_priv->cma_dev->device != id_priv->id.device);
+>
+> -       if (rdma_protocol_roce(id_priv->id.device, id_priv->id.port_num)) {
+> -               ret = rdma_addr_find_smac_by_sgid(&sgid, qp_attr.smac, NULL);
+> -
+> -               if (ret)
+> -                       goto out;
+> -       }
+>         if (conn_param)
+>                 qp_attr.max_dest_rd_atomic = conn_param->responder_resources;
+>         ret = ib_modify_qp(id_priv->id.qp, &qp_attr, qp_attr_mask);
 > --
 > 2.1.0
 >
