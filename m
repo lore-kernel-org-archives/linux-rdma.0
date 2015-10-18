@@ -1,13 +1,13 @@
 From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: Re: [PATCH for-next v2 08/10] IB/cm: Remove the usage of smac and vid
- of qp_attr and cm_av
-Date: Sun, 18 Oct 2015 22:52:57 +0530
-Message-ID: <CANjDDBhn4MMr7Ou91YS+z3+vGhrBbS_FoCVW=E8V1TxXagM7YA@mail.gmail.com>
-References: <1444923534-10882-1-git-send-email-matanb@mellanox.com> <1444923534-10882-9-git-send-email-matanb@mellanox.com>
+Subject: Re: [PATCH for-next v2 09/10] IB/core: Remove smac and vlan id from
+ qp_attr and ah_attr
+Date: Sun, 18 Oct 2015 22:54:51 +0530
+Message-ID: <CANjDDBjAHz4wLAK-HE25V2fLr7n2pLuP8OrnxcUXuXKh+U1rgA@mail.gmail.com>
+References: <1444923534-10882-1-git-send-email-matanb@mellanox.com> <1444923534-10882-10-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1444923534-10882-9-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1444923534-10882-10-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
@@ -17,95 +17,95 @@ Looks Good
 Reviewed-By: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 
 On Thu, Oct 15, 2015 at 9:08 PM, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> The cm and cma don't need to explicitly handle vlan and smac,
-> as they are resolved from the GID index now. Removing this
-> portion of code.
+> Smac and vlan id could be resolved from the GID attribute, and thus
+> these attributes aren't needed anymore. Removing them.
 >
 > Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
->  drivers/infiniband/core/cm.c  | 30 ------------------------------
->  drivers/infiniband/core/cma.c |  6 ------
->  2 files changed, 36 deletions(-)
+>  drivers/infiniband/core/sa_query.c   |  4 ----
+>  drivers/infiniband/core/ucma.c       |  1 -
+>  drivers/infiniband/core/uverbs_cmd.c |  1 -
+>  include/rdma/ib_verbs.h              | 13 ++++---------
+>  4 files changed, 4 insertions(+), 15 deletions(-)
 >
-> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-> index ea7f3c5..6dd24a5 100644
-> --- a/drivers/infiniband/core/cm.c
-> +++ b/drivers/infiniband/core/cm.c
-> @@ -179,8 +179,6 @@ struct cm_av {
->         struct ib_ah_attr ah_attr;
->         u16 pkey_index;
->         u8 timeout;
-> -       u8  valid;
-> -       u8  smac[ETH_ALEN];
->  };
->
->  struct cm_work {
-> @@ -389,7 +387,6 @@ static int cm_init_av_by_path(struct ib_sa_path_rec *path, struct cm_av *av)
->                              &av->ah_attr);
->         av->timeout = path->packet_life_time + 1;
->
-> -       av->valid = 1;
+> diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+> index c9d9d7a..77f5afc 100644
+> --- a/drivers/infiniband/core/sa_query.c
+> +++ b/drivers/infiniband/core/sa_query.c
+> @@ -1029,11 +1029,7 @@ int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
+>         }
+>         if (force_grh) {
+>                 memcpy(ah_attr->dmac, rec->dmac, ETH_ALEN);
+> -               ah_attr->vlan_id = rec->vlan_id;
+> -       } else {
+> -               ah_attr->vlan_id = 0xffff;
+>         }
+> -
 >         return 0;
 >  }
+>  EXPORT_SYMBOL(ib_init_ah_from_path);
+> diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+> index a53fc9b..ac55a9e 100644
+> --- a/drivers/infiniband/core/ucma.c
+> +++ b/drivers/infiniband/core/ucma.c
+> @@ -1211,7 +1211,6 @@ static int ucma_set_ib_path(struct ucma_context *ctx,
+>                 return -EINVAL;
 >
-> @@ -1637,7 +1634,6 @@ static int cm_req_handler(struct cm_work *work)
->         cm_format_paths_from_req(req_msg, &work->path[0], &work->path[1]);
+>         memset(&sa_path, 0, sizeof(sa_path));
+> -       sa_path.vlan_id = 0xffff;
 >
->         memcpy(work->path[0].dmac, cm_id_priv->av.ah_attr.dmac, ETH_ALEN);
-> -       work->path[0].vlan_id = cm_id_priv->av.ah_attr.vlan_id;
->         ret = cm_init_av_by_path(&work->path[0], &cm_id_priv->av);
->         if (ret) {
->                 ib_get_cached_gid(work->port->cm_dev->ib_device,
-> @@ -3614,32 +3610,6 @@ static int cm_init_qp_rtr_attr(struct cm_id_private *cm_id_priv,
->                 *qp_attr_mask = IB_QP_STATE | IB_QP_AV | IB_QP_PATH_MTU |
->                                 IB_QP_DEST_QPN | IB_QP_RQ_PSN;
->                 qp_attr->ah_attr = cm_id_priv->av.ah_attr;
-> -               if (!cm_id_priv->av.valid) {
-> -                       spin_unlock_irqrestore(&cm_id_priv->lock, flags);
-> -                       return -EINVAL;
-> -               }
-> -               if (cm_id_priv->av.ah_attr.vlan_id != 0xffff) {
-> -                       qp_attr->vlan_id = cm_id_priv->av.ah_attr.vlan_id;
-> -                       *qp_attr_mask |= IB_QP_VID;
-> -               }
-> -               if (!is_zero_ether_addr(cm_id_priv->av.smac)) {
-> -                       memcpy(qp_attr->smac, cm_id_priv->av.smac,
-> -                              sizeof(qp_attr->smac));
-> -                       *qp_attr_mask |= IB_QP_SMAC;
-> -               }
-> -               if (cm_id_priv->alt_av.valid) {
-> -                       if (cm_id_priv->alt_av.ah_attr.vlan_id != 0xffff) {
-> -                               qp_attr->alt_vlan_id =
-> -                                       cm_id_priv->alt_av.ah_attr.vlan_id;
-> -                               *qp_attr_mask |= IB_QP_ALT_VID;
-> -                       }
-> -                       if (!is_zero_ether_addr(cm_id_priv->alt_av.smac)) {
-> -                               memcpy(qp_attr->alt_smac,
-> -                                      cm_id_priv->alt_av.smac,
-> -                                      sizeof(qp_attr->alt_smac));
-> -                               *qp_attr_mask |= IB_QP_ALT_SMAC;
-> -                       }
-> -               }
->                 qp_attr->path_mtu = cm_id_priv->path_mtu;
->                 qp_attr->dest_qp_num = be32_to_cpu(cm_id_priv->remote_qpn);
->                 qp_attr->rq_psn = be32_to_cpu(cm_id_priv->rq_psn);
-> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-> index 849c280..bc11ea4 100644
-> --- a/drivers/infiniband/core/cma.c
-> +++ b/drivers/infiniband/core/cma.c
-> @@ -733,12 +733,6 @@ static int cma_modify_qp_rtr(struct rdma_id_private *id_priv,
+>         ib_sa_unpack_path(path_data->path_rec, &sa_path);
+>         ret = rdma_set_ib_paths(ctx->cm_id, &sa_path, 1);
+> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+> index b242480..ae5f912 100644
+> --- a/drivers/infiniband/core/uverbs_cmd.c
+> +++ b/drivers/infiniband/core/uverbs_cmd.c
+> @@ -2698,7 +2698,6 @@ ssize_t ib_uverbs_create_ah(struct ib_uverbs_file *file,
+>         attr.grh.sgid_index    = cmd.attr.grh.sgid_index;
+>         attr.grh.hop_limit     = cmd.attr.grh.hop_limit;
+>         attr.grh.traffic_class = cmd.attr.grh.traffic_class;
+> -       attr.vlan_id           = 0;
+>         memset(&attr.dmac, 0, sizeof(attr.dmac));
+>         memcpy(attr.grh.dgid.raw, cmd.attr.grh.dgid, 16);
 >
->         BUG_ON(id_priv->cma_dev->device != id_priv->id.device);
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> index 9868cab..0b20658 100644
+> --- a/include/rdma/ib_verbs.h
+> +++ b/include/rdma/ib_verbs.h
+> @@ -697,7 +697,6 @@ struct ib_ah_attr {
+>         u8                      ah_flags;
+>         u8                      port_num;
+>         u8                      dmac[ETH_ALEN];
+> -       u16                     vlan_id;
+>  };
 >
-> -       if (rdma_protocol_roce(id_priv->id.device, id_priv->id.port_num)) {
-> -               ret = rdma_addr_find_smac_by_sgid(&sgid, qp_attr.smac, NULL);
-> -
-> -               if (ret)
-> -                       goto out;
-> -       }
->         if (conn_param)
->                 qp_attr.max_dest_rd_atomic = conn_param->responder_resources;
->         ret = ib_modify_qp(id_priv->id.qp, &qp_attr, qp_attr_mask);
+>  enum ib_wc_status {
+> @@ -957,10 +956,10 @@ enum ib_qp_attr_mask {
+>         IB_QP_PATH_MIG_STATE            = (1<<18),
+>         IB_QP_CAP                       = (1<<19),
+>         IB_QP_DEST_QPN                  = (1<<20),
+> -       IB_QP_SMAC                      = (1<<21),
+> -       IB_QP_ALT_SMAC                  = (1<<22),
+> -       IB_QP_VID                       = (1<<23),
+> -       IB_QP_ALT_VID                   = (1<<24),
+> +       IB_QP_RESERVED1                 = (1<<21),
+> +       IB_QP_RESERVED2                 = (1<<22),
+> +       IB_QP_RESERVED3                 = (1<<23),
+> +       IB_QP_RESERVED4                 = (1<<24),
+>  };
+>
+>  enum ib_qp_state {
+> @@ -1010,10 +1009,6 @@ struct ib_qp_attr {
+>         u8                      rnr_retry;
+>         u8                      alt_port_num;
+>         u8                      alt_timeout;
+> -       u8                      smac[ETH_ALEN];
+> -       u8                      alt_smac[ETH_ALEN];
+> -       u16                     vlan_id;
+> -       u16                     alt_vlan_id;
+>  };
+>
+>  enum ib_wr_opcode {
 > --
 > 2.1.0
 >
