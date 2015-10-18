@@ -1,57 +1,127 @@
 From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: Re: [PATCH for-next 2/7] IB: Introduce Work Queue object and its verbs
-Date: Sun, 18 Oct 2015 21:08:07 +0530
-Message-ID: <CANjDDBgVhY-shh_ouBe2+_0FcYYkmTzgkthNv=f6jmkJxzPk3Q@mail.gmail.com>
-References: <1444893410-13242-1-git-send-email-yishaih@mellanox.com>
- <1444893410-13242-3-git-send-email-yishaih@mellanox.com> <CAG53R5V7u7o+cVQnqhfjXdUjKJRVBiMx5CF3snWAWKG6ZbWMow@mail.gmail.com>
- <561FB463.8030602@dev.mellanox.co.il> <CAG53R5U256Nt=3xd3sVUuf8J1icdK5YEiQFoQjR_HB_=5-cVww@mail.gmail.com>
- <561FD375.3000205@dev.mellanox.co.il> <CAG53R5UmEhOh3n-+9qMoDthAtROdWQXstwqAFxzx8Urx1ZETnw@mail.gmail.com>
- <5623B5D3.2020206@dev.mellanox.co.il> <CAG53R5VFK20e-=1VANya3XQCWts0wyhttsdp+SVJ=MR_27smnQ@mail.gmail.com>
+Subject: Re: [PATCH for-next v2 02/10] IB/core: Expose and rename
+ ib_find_cached_gid_by_port cache API
+Date: Sun, 18 Oct 2015 21:21:53 +0530
+Message-ID: <CANjDDBjwWNBuf4tV30BcfWBKpVNysDff6jg6XU6iOwE_Vrj9Tg@mail.gmail.com>
+References: <1444923534-10882-1-git-send-email-matanb@mellanox.com> <1444923534-10882-3-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG53R5VFK20e-=1VANya3XQCWts0wyhttsdp+SVJ=MR_27smnQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1444923534-10882-3-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Vainman <alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi All,
+looks good, Reviewed-By: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 
-Will it be a good idea to have ha separate header for this feature.
-Lets not append to ib_verbs.h?
-
--Regards
-Devesh
-
-On Sun, Oct 18, 2015 at 8:45 PM, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> On Sun, Oct 18, 2015 at 8:38 PM, Yishai Hadas
-> <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->> On 10/15/2015 7:49 PM, Parav Pandit wrote:
->>
->>> If there is stateless WQ being used by multiple QPs in multiplexed
->>
->>
->> The WQ is not stateless and always has its own PD.
->>
->>> way, it should be able to multiplex between QP's of different PD as
->>> well.
->>> Otherwise for every PD being created, there will have be one WQ needed
->>> to service all the QPs belonging to that PD.
->>
->>
->> As mentioned, same WQ can serve multiple QPs, from PD point of view it
->> behaves similarly to SRQ that may be associated with many QPs with different
->> PDs.
->>
->> See IB SPEC, Release 1.3, o10-2.2.1:
->> "SRQ may be associated with the same PD as used by one or more of its
->> associated QPs or a different PD."
->>
->> As part of coming V1 will improve the commit message to better clarify the
->> WQ's PD behavior, thanks.
+On Thu, Oct 15, 2015 at 9:08 PM, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> Sometime consumers might want to search for a GID in a specific port.
+> For example, when a WC arrives and we want to search the GID
+> that matches that port - it's better to search only the relevant
+> port.
+> Exposing and renaming ib_cache_gid_find_by_port in order to match
+> the naming convention of the module.
 >
-> Ok. Got it. Thanks.
+> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/core/cache.c     |  9 +++++----
+>  drivers/infiniband/core/core_priv.h |  5 -----
+>  drivers/infiniband/core/device.c    |  4 ++--
+>  include/rdma/ib_cache.h             | 19 +++++++++++++++++++
+>  4 files changed, 26 insertions(+), 11 deletions(-)
+>
+> diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
+> index 5c05407..639a726 100644
+> --- a/drivers/infiniband/core/cache.c
+> +++ b/drivers/infiniband/core/cache.c
+> @@ -409,10 +409,10 @@ static int ib_cache_gid_find(struct ib_device *ib_dev,
+>                                         mask, port, index);
+>  }
+>
+> -int ib_cache_gid_find_by_port(struct ib_device *ib_dev,
+> -                             const union ib_gid *gid,
+> -                             u8 port, struct net_device *ndev,
+> -                             u16 *index)
+> +int ib_find_cached_gid_by_port(struct ib_device *ib_dev,
+> +                              const union ib_gid *gid,
+> +                              u8 port, struct net_device *ndev,
+> +                              u16 *index)
+>  {
+>         int local_index;
+>         struct ib_gid_table **ports_table = ib_dev->cache.gid_cache;
+> @@ -438,6 +438,7 @@ int ib_cache_gid_find_by_port(struct ib_device *ib_dev,
+>
+>         return -ENOENT;
+>  }
+> +EXPORT_SYMBOL(ib_find_cached_gid_by_port);
+>
+>  static struct ib_gid_table *alloc_gid_table(int sz)
+>  {
+> diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+> index 70bb36e..0df82b1 100644
+> --- a/drivers/infiniband/core/core_priv.h
+> +++ b/drivers/infiniband/core/core_priv.h
+> @@ -65,11 +65,6 @@ void ib_enum_all_roce_netdevs(roce_netdev_filter filter,
+>                               roce_netdev_callback cb,
+>                               void *cookie);
+>
+> -int ib_cache_gid_find_by_port(struct ib_device *ib_dev,
+> -                             const union ib_gid *gid,
+> -                             u8 port, struct net_device *ndev,
+> -                             u16 *index);
+> -
+>  enum ib_cache_gid_default_mode {
+>         IB_CACHE_GID_DEFAULT_MODE_SET,
+>         IB_CACHE_GID_DEFAULT_MODE_DELETE
+> diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+> index f22ce48..179e813 100644
+> --- a/drivers/infiniband/core/device.c
+> +++ b/drivers/infiniband/core/device.c
+> @@ -838,8 +838,8 @@ int ib_find_gid(struct ib_device *device, union ib_gid *gid,
+>
+>         for (port = rdma_start_port(device); port <= rdma_end_port(device); ++port) {
+>                 if (rdma_cap_roce_gid_table(device, port)) {
+> -                       if (!ib_cache_gid_find_by_port(device, gid, port,
+> -                                                      ndev, index)) {
+> +                       if (!ib_find_cached_gid_by_port(device, gid, port,
+> +                                                       ndev, index)) {
+>                                 *port_num = port;
+>                                 return 0;
+>                         }
+> diff --git a/include/rdma/ib_cache.h b/include/rdma/ib_cache.h
+> index dcc9bed..679d7ca 100644
+> --- a/include/rdma/ib_cache.h
+> +++ b/include/rdma/ib_cache.h
+> @@ -75,6 +75,25 @@ int ib_find_cached_gid(struct ib_device *device,
+>                        u16              *index);
+>
+>  /**
+> + * ib_find_cached_gid_by_port - Returns the GID table index where a specified
+> + * GID value occurs
+> + * @device: The device to query.
+> + * @gid: The GID value to search for.
+> + * @port_num: The port number of the device where the GID value sould be
+> + *   searched.
+> + * @ndev: In RoCE, the net device of the device. Null means ignore.
+> + * @index: The index into the cached GID table where the GID was found.  This
+> + *   parameter may be NULL.
+> + *
+> + * ib_find_cached_gid() searches for the specified GID value in
+> + * the local software cache.
+> + */
+> +int ib_find_cached_gid_by_port(struct ib_device *device,
+> +                              const union ib_gid *gid,
+> +                              u8               port_num,
+> +                              struct net_device *ndev,
+> +                              u16              *index);
+> +/**
+>   * ib_get_cached_pkey - Returns a cached PKey table entry
+>   * @device: The device to query.
+>   * @port_num: The port number of the device to query.
+> --
+> 2.1.0
+>
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
