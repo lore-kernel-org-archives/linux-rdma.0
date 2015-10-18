@@ -1,141 +1,47 @@
-From: Geliang Tang <geliangtang@163.com>
-Subject: [PATCH v2 2/2] staging: IB/ipath: remove sched.h header
-Date: Sun, 18 Oct 2015 21:57:09 +0800
-Message-ID: <7653f784da256d3424c84d2c743d660219d66499.1445175749.git.geliangtang@163.com>
-References: <a1a9b6edcb6bbdc079476c99a4add4b21b4414ba.1445175749.git.geliangtang@163.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH for-next 2/7] IB: Introduce Work Queue object and its
+ verbs
+Date: Sun, 18 Oct 2015 18:08:03 +0300
+Message-ID: <5623B5D3.2020206@dev.mellanox.co.il>
+References: <1444893410-13242-1-git-send-email-yishaih@mellanox.com>
+ <1444893410-13242-3-git-send-email-yishaih@mellanox.com>
+ <CAG53R5V7u7o+cVQnqhfjXdUjKJRVBiMx5CF3snWAWKG6ZbWMow@mail.gmail.com>
+ <561FB463.8030602@dev.mellanox.co.il>
+ <CAG53R5U256Nt=3xd3sVUuf8J1icdK5YEiQFoQjR_HB_=5-cVww@mail.gmail.com>
+ <561FD375.3000205@dev.mellanox.co.il>
+ <CAG53R5UmEhOh3n-+9qMoDthAtROdWQXstwqAFxzx8Urx1ZETnw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <a1a9b6edcb6bbdc079476c99a4add4b21b4414ba.1445175749.git.geliangtang@163.com>
-In-Reply-To: <a1a9b6edcb6bbdc079476c99a4add4b21b4414ba.1445175749.git.geliangtang@163.com>
-References: <a1a9b6edcb6bbdc079476c99a4add4b21b4414ba.1445175749.git.geliangtang@163.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: devel@driverdev.osuosl.org, Mike Marciniszyn <infinipath@intel.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Geliang Tang <geliangtang@163.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAG53R5UmEhOh3n-+9qMoDthAtROdWQXstwqAFxzx8Urx1ZETnw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Vainman <alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-sched.h header in ipath_*.c is now unnecessary, since I have added
-sched.h in ipath_kernel.h. So remove it.
+On 10/15/2015 7:49 PM, Parav Pandit wrote:
 
-Signed-off-by: Geliang Tang <geliangtang@163.com>
----
-Changes in v2:
- - split it into two patches.
----
- drivers/staging/rdma/ipath/ipath_driver.c      | 1 -
- drivers/staging/rdma/ipath/ipath_intr.c        | 1 -
- drivers/staging/rdma/ipath/ipath_qp.c          | 1 -
- drivers/staging/rdma/ipath/ipath_ruc.c         | 1 -
- drivers/staging/rdma/ipath/ipath_ud.c          | 1 -
- drivers/staging/rdma/ipath/ipath_user_pages.c  | 1 -
- drivers/staging/rdma/ipath/ipath_user_sdma.c   | 1 -
- drivers/staging/rdma/ipath/ipath_verbs_mcast.c | 1 -
- 8 files changed, 8 deletions(-)
+> If there is stateless WQ being used by multiple QPs in multiplexed
 
-diff --git a/drivers/staging/rdma/ipath/ipath_driver.c b/drivers/staging/rdma/ipath/ipath_driver.c
-index 46d9898..dfcfaa5 100644
---- a/drivers/staging/rdma/ipath/ipath_driver.c
-+++ b/drivers/staging/rdma/ipath/ipath_driver.c
-@@ -33,7 +33,6 @@
- 
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- 
--#include <linux/sched.h>
- #include <linux/spinlock.h>
- #include <linux/idr.h>
- #include <linux/pci.h>
-diff --git a/drivers/staging/rdma/ipath/ipath_intr.c b/drivers/staging/rdma/ipath/ipath_intr.c
-index e568971..0403fa2 100644
---- a/drivers/staging/rdma/ipath/ipath_intr.c
-+++ b/drivers/staging/rdma/ipath/ipath_intr.c
-@@ -33,7 +33,6 @@
- 
- #include <linux/pci.h>
- #include <linux/delay.h>
--#include <linux/sched.h>
- 
- #include "ipath_kernel.h"
- #include "ipath_verbs.h"
-diff --git a/drivers/staging/rdma/ipath/ipath_qp.c b/drivers/staging/rdma/ipath/ipath_qp.c
-index b2c6766..280cd2d 100644
---- a/drivers/staging/rdma/ipath/ipath_qp.c
-+++ b/drivers/staging/rdma/ipath/ipath_qp.c
-@@ -32,7 +32,6 @@
-  */
- 
- #include <linux/err.h>
--#include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/vmalloc.h>
- 
-diff --git a/drivers/staging/rdma/ipath/ipath_ruc.c b/drivers/staging/rdma/ipath/ipath_ruc.c
-index 1f95bba..2296832 100644
---- a/drivers/staging/rdma/ipath/ipath_ruc.c
-+++ b/drivers/staging/rdma/ipath/ipath_ruc.c
-@@ -31,7 +31,6 @@
-  * SOFTWARE.
-  */
- 
--#include <linux/sched.h>
- #include <linux/spinlock.h>
- 
- #include "ipath_verbs.h"
-diff --git a/drivers/staging/rdma/ipath/ipath_ud.c b/drivers/staging/rdma/ipath/ipath_ud.c
-index e8a2a91..33fcfe2 100644
---- a/drivers/staging/rdma/ipath/ipath_ud.c
-+++ b/drivers/staging/rdma/ipath/ipath_ud.c
-@@ -31,7 +31,6 @@
-  * SOFTWARE.
-  */
- 
--#include <linux/sched.h>
- #include <rdma/ib_smi.h>
- 
- #include "ipath_verbs.h"
-diff --git a/drivers/staging/rdma/ipath/ipath_user_pages.c b/drivers/staging/rdma/ipath/ipath_user_pages.c
-index 1da1252..d29b4da 100644
---- a/drivers/staging/rdma/ipath/ipath_user_pages.c
-+++ b/drivers/staging/rdma/ipath/ipath_user_pages.c
-@@ -34,7 +34,6 @@
- #include <linux/mm.h>
- #include <linux/device.h>
- #include <linux/slab.h>
--#include <linux/sched.h>
- 
- #include "ipath_kernel.h"
- 
-diff --git a/drivers/staging/rdma/ipath/ipath_user_sdma.c b/drivers/staging/rdma/ipath/ipath_user_sdma.c
-index e82b3ee..8c12e3c 100644
---- a/drivers/staging/rdma/ipath/ipath_user_sdma.c
-+++ b/drivers/staging/rdma/ipath/ipath_user_sdma.c
-@@ -33,7 +33,6 @@
- #include <linux/types.h>
- #include <linux/device.h>
- #include <linux/dmapool.h>
--#include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/list.h>
- #include <linux/highmem.h>
-diff --git a/drivers/staging/rdma/ipath/ipath_verbs_mcast.c b/drivers/staging/rdma/ipath/ipath_verbs_mcast.c
-index 6216ea9..72d476f 100644
---- a/drivers/staging/rdma/ipath/ipath_verbs_mcast.c
-+++ b/drivers/staging/rdma/ipath/ipath_verbs_mcast.c
-@@ -32,7 +32,6 @@
-  */
- 
- #include <linux/rculist.h>
--#include <linux/sched.h>
- #include <linux/slab.h>
- 
- #include "ipath_verbs.h"
--- 
-2.5.0
+The WQ is not stateless and always has its own PD.
+
+> way, it should be able to multiplex between QP's of different PD as
+> well.
+> Otherwise for every PD being created, there will have be one WQ needed
+> to service all the QPs belonging to that PD.
+
+As mentioned, same WQ can serve multiple QPs, from PD point of view it 
+behaves similarly to SRQ that may be associated with many QPs with 
+different PDs.
+
+See IB SPEC, Release 1.3, o10-2.2.1:
+"SRQ may be associated with the same PD as used by one or more of its 
+associated QPs or a different PD."
+
+As part of coming V1 will improve the commit message to better clarify 
+the WQ's PD behavior, thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
