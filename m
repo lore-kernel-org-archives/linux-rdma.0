@@ -1,51 +1,40 @@
-From: Insu Yun <wuninsu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] usnix: correctly handle kzalloc return value
-Date: Sat, 17 Oct 2015 19:06:56 +0000
-Message-ID: <1445108816-7616-1-git-send-email-wuninsu@gmail.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: taesoo-/4noJB3qBVQ3uPMLIKxrzw@public.gmane.org, yeongjin.jang-/4noJB3qBVQ3uPMLIKxrzw@public.gmane.org, insu-/4noJB3qBVQ3uPMLIKxrzw@public.gmane.org, Insu Yun <wuninsu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH] staging: IB/ipath: use TASK_COMM_LEN in ipath_portdata
+Date: Sat, 17 Oct 2015 22:05:09 -0700
+Message-ID: <20151018050509.GA2703@kroah.com>
+References: <d18008076bca0bf3f06ebd8c76bc71c0e2019517.1444394307.git.geliangtang@163.com>
+ <85f5a431a363d505975b2aee477673ef12ea4f63.1444395550.git.geliangtang@163.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+Content-Disposition: inline
+In-Reply-To: <85f5a431a363d505975b2aee477673ef12ea4f63.1444395550.git.geliangtang@163.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Geliang Tang <geliangtang@163.com>
+Cc: devel@driverdev.osuosl.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Mike Marciniszyn <infinipath@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Since kzalloc returns memory address, not error code,
-it should be checked whether it is null or not. 
+On Thu, Oct 08, 2015 at 10:04:27PM -0700, Geliang Tang wrote:
+> Use comm[TASK_COMM_LEN] instead of comm[16]. Add linux/sched.h
+> header in ipath_kernel.h, and remove linux/sched.h header from
+> ipath_*.c which have included ipath_kernel.h.
 
-Signed-off-by: Insu Yun <wuninsu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+That's a lot of different things to be doing all in one patch.  Please
+break this up into different patches and resend.
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-index db3588d..a678a66 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-@@ -221,8 +221,8 @@ create_roce_custom_flow(struct usnic_ib_qp_grp *qp_grp,
- 
- 	/* Create Flow Handle */
- 	qp_flow = kzalloc(sizeof(*qp_flow), GFP_ATOMIC);
--	if (IS_ERR_OR_NULL(qp_flow)) {
--		err = qp_flow ? PTR_ERR(qp_flow) : -ENOMEM;
-+	if (!qp_flow) {
-+		err = -ENOMEM;
- 		goto out_dealloc_flow;
- 	}
- 	qp_flow->flow = flow;
-@@ -296,8 +296,8 @@ create_udp_flow(struct usnic_ib_qp_grp *qp_grp,
- 
- 	/* Create qp_flow */
- 	qp_flow = kzalloc(sizeof(*qp_flow), GFP_ATOMIC);
--	if (IS_ERR_OR_NULL(qp_flow)) {
--		err = qp_flow ? PTR_ERR(qp_flow) : -ENOMEM;
-+	if (!qp_flow) {
-+		err = -ENOMEM;
- 		goto out_dealloc_flow;
- 	}
- 	qp_flow->flow = flow;
--- 
-1.9.1
+Also please add the "staging:" prefix to your subject lines, like I
+changed it to here, that makes it easier for me to notice and handle
+your patches properly.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+thanks,
+
+greg k-h
