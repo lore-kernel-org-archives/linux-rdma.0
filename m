@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 for-next 5/7] IB: Introduce Receive Work Queue indirection table
-Date: Sun, 18 Oct 2015 19:00:38 +0300
-Message-ID: <1445184040-5306-6-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 for-next 2/7] IB: Introduce Work Queue object and its verbs
+Date: Sun, 18 Oct 2015 19:00:35 +0300
+Message-ID: <1445184040-5306-3-git-send-email-yishaih@mellanox.com>
 References: <1445184040-5306-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1445184040-5306-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,139 +10,221 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Introduce Receive Work Queue indirection table.
-This object can be used to spread incoming traffic to different
-receieve Work Queues.
+Introduce Work Queue object and its create/destroy/modify verbs.
+
+QP can be created without internal WQs "packaged" inside it,
+this QP can be configured to use "external" WQ object as its
+receive/send queue.
+WQ is a necessary component for RSS technology since RSS mechanism
+is supposed to distribute the traffic between multiple
+Receive Work Queues.
+
+WQ associated (many to one) with Completion Queue and it owns WQ
+properties (PD, WQ size, etc.).
+WQ has a type, this patch introduces the IB_WQT_RQ (i.e.receive queue),
+it may be extend to others such as IB_WQT_SQ. (send queue).
+WQ from type IB_WQT_RQ contains receive work requests.
+
+PD is an attribute of a work queue (i.e. send/receive queue), it's used
+by the hardware for security validation before scattering to a memory
+region which is pointed by the WQ. For that, an external WQ object
+needs a PD, letting the hardware makes that validation.
+
+When accessing a memory region that is pointed by the WQ its PD
+is used and not the QP's PD, this behavior is similar
+to a SRQ and a QP.
+
+WQ context is subject to a well-defined state transitions done by
+the modify_wq verb.
+When WQ is created its initial state becomes IB_WQS_RESET.
+>From IB_WQS_RESET it can be modified to itself or to IB_WQS_RDY.
+>From IB_WQS_RDY it can be modified to itself, to IB_WQS_RESET
+or to IB_WQS_ERR.
+>From IB_WQS_ERR it can be modified to IB_WQS_RESET.
+
+Note: transition to IB_WQS_ERR might occur implicitly in case there
+was some HW error.
+
 
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c |   66 +++++++++++++++++++++++++++++++++++++++
- include/rdma/ib_verbs.h         |   24 ++++++++++++++
- 2 files changed, 90 insertions(+), 0 deletions(-)
+ drivers/infiniband/core/verbs.c |   85 +++++++++++++++++++++++++++++++++++++++
+ include/rdma/ib_verbs.h         |   55 +++++++++++++++++++++++++
+ 2 files changed, 140 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 076d5ce..ae3ebab 100644
+index e1f2c98..076d5ce 100644
 --- a/drivers/infiniband/core/verbs.c
 +++ b/drivers/infiniband/core/verbs.c
-@@ -1520,6 +1520,72 @@ int ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr *wq_attr,
+@@ -1435,6 +1435,91 @@ int ib_dealloc_xrcd(struct ib_xrcd *xrcd)
  }
- EXPORT_SYMBOL(ib_modify_wq);
+ EXPORT_SYMBOL(ib_dealloc_xrcd);
  
-+/*
-+ * ib_create_rwq_ind_table - Creates a RQ Indirection Table.
-+ * @device: The device on which to create the rwq indirection table.
-+ * @ib_rwq_ind_table_init_attr: A list of initial attributes required to
-+ * create the Indirection Table.
++/**
++ * ib_create_wq - Creates a WQ associated with the specified protection
++ * domain.
++ * @pd: The protection domain associated with the WQ.
++ * @wq_init_attr: A list of initial attributes required to create the
++ * WQ. If WQ creation succeeds, then the attributes are updated to
++ * the actual capabilities of the created WQ.
 + *
-+ * Note: The life time of ib_rwq_ind_table_init_attr->ind_tbl is not less
-+ *	than the created ib_rwq_ind_table object and the caller is responsible
-+ *	for its memory allocation/free.
++ * wq_init_attr->max_wr and wq_init_attr->max_sge determine
++ * the requested size of the WQ, and set to the actual values allocated
++ * on return.
++ * If ib_create_wq() succeeds, then max_wr and max_sge will always be
++ * at least as large as the requested values.
 + */
-+struct ib_rwq_ind_table *ib_create_rwq_ind_table(struct ib_device *device,
-+						 struct ib_rwq_ind_table_init_attr*
-+						 init_attr)
++struct ib_wq *ib_create_wq(struct ib_pd *pd,
++			   struct ib_wq_init_attr *wq_attr)
 +{
-+	struct ib_rwq_ind_table *rwq_ind_table;
-+	int i;
-+	u32 table_size;
++	struct ib_wq *wq;
 +
-+	if (!device->create_rwq_ind_table)
++	if (!pd->device->create_wq)
 +		return ERR_PTR(-ENOSYS);
 +
-+	table_size = (1 << init_attr->log_ind_tbl_size);
-+	rwq_ind_table = device->create_rwq_ind_table(device,
-+				init_attr, NULL);
-+	if (IS_ERR(rwq_ind_table))
-+		return rwq_ind_table;
-+
-+	rwq_ind_table->ind_tbl = init_attr->ind_tbl;
-+	rwq_ind_table->log_ind_tbl_size = init_attr->log_ind_tbl_size;
-+	rwq_ind_table->device = device;
-+	rwq_ind_table->uobject = NULL;
-+	atomic_set(&rwq_ind_table->usecnt, 0);
-+
-+	for (i = 0; i < table_size; i++)
-+		atomic_inc(&rwq_ind_table->ind_tbl[i]->usecnt);
-+
-+	return rwq_ind_table;
++	wq = pd->device->create_wq(pd, wq_attr, NULL);
++	if (!IS_ERR(wq)) {
++		wq->event_handler = wq_attr->event_handler;
++		wq->wq_context = wq_attr->wq_context;
++		wq->wq_type = wq_attr->wq_type;
++		wq->cq = wq_attr->cq;
++		wq->device = pd->device;
++		wq->pd = pd;
++		wq->uobject = NULL;
++		atomic_inc(&pd->usecnt);
++		atomic_inc(&wq_attr->cq->usecnt);
++		atomic_set(&wq->usecnt, 0);
++	}
++	return wq;
 +}
-+EXPORT_SYMBOL(ib_create_rwq_ind_table);
++EXPORT_SYMBOL(ib_create_wq);
 +
-+/*
-+ * ib_destroy_rwq_ind_table - Destroys the specified Indirection Table.
-+ * @wq_ind_table: The Indirection Table to destroy.
-+*/
-+int ib_destroy_rwq_ind_table(struct ib_rwq_ind_table *rwq_ind_table)
++/**
++ * ib_destroy_wq - Destroys the specified WQ.
++ * @wq: The WQ to destroy.
++ */
++int ib_destroy_wq(struct ib_wq *wq)
 +{
-+	int err, i;
-+	u32 table_size = (1 << rwq_ind_table->log_ind_tbl_size);
-+	struct ib_wq **ind_tbl = rwq_ind_table->ind_tbl;
++	int err;
++	struct ib_cq *cq = wq->cq;
++	struct ib_pd *pd = wq->pd;
 +
-+	if (!rwq_ind_table->device->destroy_rwq_ind_table)
++	if (!wq->device->destroy_wq)
 +		return -ENOSYS;
 +
-+	if (atomic_read(&rwq_ind_table->usecnt))
++	if (atomic_read(&wq->usecnt))
 +		return -EBUSY;
 +
-+	err = rwq_ind_table->device->destroy_rwq_ind_table(rwq_ind_table);
++	err = wq->device->destroy_wq(wq);
 +	if (!err) {
-+		for (i = 0; i < table_size; i++)
-+			atomic_dec(&ind_tbl[i]->usecnt);
++		atomic_dec(&pd->usecnt);
++		atomic_dec(&cq->usecnt);
 +	}
-+
 +	return err;
 +}
-+EXPORT_SYMBOL(ib_destroy_rwq_ind_table);
++EXPORT_SYMBOL(ib_destroy_wq);
++
++/**
++ * ib_modify_wq - Modifies the specified WQ.
++ * @wq: The WQ to modify.
++ * @wq_attr: On input, specifies the WQ attributes to modify.
++ * @attr_mask: A bit-mask used to specify which attributes of the WQ
++ *   are being modified.
++ * On output, the current values of selected WQ attributes are returned.
++ */
++int ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr *wq_attr,
++		 enum ib_wq_attr_mask attr_mask)
++{
++	int err;
++
++	if (!wq->device->modify_wq)
++		return -ENOSYS;
++
++	err = wq->device->modify_wq(wq, wq_attr, attr_mask, NULL);
++	return err;
++}
++EXPORT_SYMBOL(ib_modify_wq);
 +
  struct ib_flow *ib_create_flow(struct ib_qp *qp,
  			       struct ib_flow_attr *flow_attr,
  			       int domain)
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 7436773..995a328 100644
+index e1f65e2..64d0983 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -1355,6 +1355,21 @@ struct ib_wq_attr {
- 	enum	ib_wq_state	curr_wq_state;
+@@ -1310,6 +1310,48 @@ struct ib_srq {
+ 	} ext;
  };
  
-+struct ib_rwq_ind_table {
-+	struct ib_device	*device;
-+	struct ib_uobject      *uobject;
-+	atomic_t		usecnt;
-+	u32		ind_tbl_num;
-+	u32		log_ind_tbl_size;
-+	struct ib_wq	**ind_tbl;
++enum ib_wq_type {
++	IB_WQT_RQ
 +};
 +
-+struct ib_rwq_ind_table_init_attr {
-+	u32		log_ind_tbl_size;
-+	/* Each entry is a pointer to Receive Work Queue */
-+	struct ib_wq	**ind_tbl;
++enum ib_wq_state {
++	IB_WQS_RESET,
++	IB_WQS_RDY,
++	IB_WQS_ERR
++};
++
++struct ib_wq {
++	struct ib_device       *device;
++	struct ib_uobject      *uobject;
++	void		    *wq_context;
++	void		    (*event_handler)(struct ib_event *, void *);
++	struct ib_pd	       *pd;
++	struct ib_cq	       *cq;
++	u32		wq_num;
++	enum ib_wq_state       state;
++	enum ib_wq_type	wq_type;
++	atomic_t		usecnt;
++};
++
++struct ib_wq_init_attr {
++	void		       *wq_context;
++	enum ib_wq_type	wq_type;
++	u32		max_wr;
++	u32		max_sge;
++	struct	ib_cq	       *cq;
++	void		    (*event_handler)(struct ib_event *, void *);
++};
++
++enum ib_wq_attr_mask {
++	IB_WQ_STATE	= 1 << 0,
++	IB_WQ_CUR_STATE	= 1 << 1,
++};
++
++struct ib_wq_attr {
++	enum	ib_wq_state	wq_state;
++	enum	ib_wq_state	curr_wq_state;
 +};
 +
  struct ib_qp {
  	struct ib_device       *device;
  	struct ib_pd	       *pd;
-@@ -1824,6 +1839,11 @@ struct ib_device {
- 						struct ib_wq_attr *attr,
- 						enum ib_wq_attr_mask attr_mask,
- 						struct ib_udata *udata);
-+	struct ib_rwq_ind_table *  (*create_rwq_ind_table)(struct ib_device *device,
-+							   struct ib_rwq_ind_table_init_attr *init_attr,
-+							   struct ib_udata *udata);
-+	int			   (*destroy_rwq_ind_table)(struct ib_rwq_ind_table *wq_ind_table);
-+
+@@ -1771,6 +1813,14 @@ struct ib_device {
+ 	int			   (*check_mr_status)(struct ib_mr *mr, u32 check_mask,
+ 						      struct ib_mr_status *mr_status);
+ 	void			   (*disassociate_ucontext)(struct ib_ucontext *ibcontext);
++	struct ib_wq *		   (*create_wq)(struct ib_pd *pd,
++						struct ib_wq_init_attr *init_attr,
++						struct ib_udata *udata);
++	int			   (*destroy_wq)(struct ib_wq *wq);
++	int			   (*modify_wq)(struct ib_wq *wq,
++						struct ib_wq_attr *attr,
++						enum ib_wq_attr_mask attr_mask,
++						struct ib_udata *udata);
  
  	struct ib_dma_mapping_ops   *dma_ops;
  
-@@ -3081,5 +3101,9 @@ struct ib_wq *ib_create_wq(struct ib_pd *pd,
- int ib_destroy_wq(struct ib_wq *wq);
- int ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr *attr,
- 		 enum ib_wq_attr_mask attr_mask);
-+struct ib_rwq_ind_table *ib_create_rwq_ind_table(struct ib_device *device,
-+						 struct ib_rwq_ind_table_init_attr*
-+						 wq_ind_table_init_attr);
-+int ib_destroy_rwq_ind_table(struct ib_rwq_ind_table *wq_ind_table);
+@@ -3023,5 +3073,10 @@ int ib_check_mr_status(struct ib_mr *mr, u32 check_mask,
+ struct net_device *ib_get_net_dev_by_params(struct ib_device *dev, u8 port,
+ 					    u16 pkey, const union ib_gid *gid,
+ 					    const struct sockaddr *addr);
++struct ib_wq *ib_create_wq(struct ib_pd *pd,
++			   struct ib_wq_init_attr *init_attr);
++int ib_destroy_wq(struct ib_wq *wq);
++int ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr *attr,
++		 enum ib_wq_attr_mask attr_mask);
  
  #endif /* IB_VERBS_H */
 -- 
