@@ -1,77 +1,32 @@
-From: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: Re: [PATCH 00/23] Update driver to 0.9-294
-Date: Mon, 19 Oct 2015 11:25:31 -0700
-Message-ID: <20151019182531.GA1084@kroah.com>
-References: <1445273027-29634-1-git-send-email-ira.weiny@intel.com>
- <20151019165408.GA30921@kroah.com>
- <2807E5FD2F6FDA4886F6618EAC48510E1CBCA641@CRSMSX101.amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-cm] IB/core: Fix use after free of ifa
+Date: Mon, 19 Oct 2015 12:26:39 -0600
+Message-ID: <20151019182639.GB19665@obsidianresearch.com>
+References: <1444910463-5688-1-git-send-email-matanb@mellanox.com>
+ <1444910463-5688-2-git-send-email-matanb@mellanox.com>
+ <561FE452.3050304@redhat.com>
+ <20151015175310.GA17519@obsidianresearch.com>
+ <CAAKD3BCoNmHjUvAR_SuKT_AL-823_y34QyRRV3aZ=T8cw9F9gw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E1CBCA641-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <CAAKD3BCoNmHjUvAR_SuKT_AL-823_y34QyRRV3aZ=T8cw9F9gw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org" <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 19, 2015 at 06:16:55PM +0000, Weiny, Ira wrote:
-> > 
-> > On Mon, Oct 19, 2015 at 12:43:24PM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> > > From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > >
-> > > The following series has bug fixes and updates to the staging hfi1 driver.
-> > 
-> > Why are you adding new functionality to this driver before it is moved out of
-> > drivers/staging/ ?  I _REALLY_ don't like to see that, because it implies that you
-> > are spending time and energy on new stuff, not fixing up the known issues
-> > instead.
-> 
-> Perhaps I did not chose my words carefully enough.
-> 
-> The largest issue on the TODO list is the refactoring of the code to
-> be shared between the hfi1 and qib driver.  While the hardware between
-> hfi1 and qib is similar and thus the initial code looked similar, our
-> performance tuning on hfi1 has revealed that some changes will be
-> required to the hfi1 code to fully utilize the hardware.  We would
-> like to get these updates in to make sure that the refactoring work is
-> done properly for the 2 hardware types.
+On Sun, Oct 18, 2015 at 10:51:04AM +0300, Matan Barak wrote:
 
-Then you need to say that very carefully :)
+> It's simpler, but every IP change could make us refresh the whole list
+> and possibly the GID indices as well.
 
-> > Please redo this patch series and don't add new stuff.
-> > 
-> 
-> I can do this but it will cause us to do our refactoring work 2 times in order for it to be done correctly (properly support both hardware types).  Of the 23 patches I sent only one has significant updates which don't conflict with this refactoring work.
+No, it is trivial to use a set intersection algorithm to convert two
+full current state lists into a sequence of add/remove's for the
+driver and preserve the indices.
 
-Please wrap your email lines...
-
-If you are just "refactoring to make things better for X" then great,
-that's fine, but that's not what you said here.
-
-> [PATCH 15/23] staging/rdma/hfi1: Implement Expected Receive TID caching
-> 
-> However, without this patch users performance will be impacted.
-
-You mean it would be just as bad as it is today, which is fine :)
-
-See my comments on that patch for what I object to it specifically.
-
-> In the interest of full disclosure we still have at least 2 more series, possibly 3 which are similar to this series, bug fixes and performance improvements.
-
-Why are you keeping these patch series from being submitted?  The longer
-you wait, the more work it will take on your part.  If you have
-performance fixes, those are just that, 'fixes', but please don't go
-adding new functionality, take the time to do the work to get this out
-of the staging tree and then you can optimize it as much as you want.
-
-> Given the above explanation, would you find it acceptable to take these "updates"?  I can certainly rework patch 15 to separate out the code clean up as per your other email.
-
-Please rework the series.
-
-thanks,
-
-greg k-h
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
