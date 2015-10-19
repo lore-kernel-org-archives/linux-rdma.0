@@ -1,97 +1,155 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 00/23] Update driver to 0.9-294
-Date: Mon, 19 Oct 2015 12:43:24 -0400
-Message-ID: <1445273027-29634-1-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 02/23] staging/rdma/hfi1: Reset ASIC CSRs on FLR, and once per ASIC
+Date: Mon, 19 Oct 2015 12:43:26 -0400
+Message-ID: <1445273027-29634-3-git-send-email-ira.weiny@intel.com>
+References: <1445273027-29634-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1445273027-29634-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The following series has bug fixes and updates to the staging hfi1 driver.
+The ASIC registers were not reset on FLR, and the code to
+protect the ASIC block against multiple initializations by
+peer HFIs did not extend to multiple ASICs in a system. This
+patch addresses this gap.
 
-Arthur Kepner (1):
-  staging/rdma/hfi1: optionally prescan rx queue for {B,F}ECNs - UC, RC
+Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/staging/rdma/hfi1/chip.c     | 35 +++++++++++++++--------------------
+ drivers/staging/rdma/hfi1/firmware.c |  4 ++++
+ 2 files changed, 19 insertions(+), 20 deletions(-)
 
-Caz Yokoyama (1):
-  staging/rdma/hfi1: Reset firmware instead of reloading Sbus
-
-Dean Luick (4):
-  staging/rdma/hfi1: Extend the offline timeout
-  staging/rdma/hfi1: Add a schedule in send thread
-  staging/rdma/hfi1: Add irqsaves in the packet processing path
-  staging/rdma/hfi1: Thread the receive interrupt.
-
-Easwar Hariharan (4):
-  staging/rdma/hfi1: Reset ASIC CSRs on FLR, and once per ASIC
-  staging/rdma/hfi1: Remove QSFP_ENABLED from HFI capability mask
-  staging/rdma/hfi1: Fix port bounce issues with 0.22 DC firmware
-  staging/rdma/hfi1: Load SBus firmware once per ASIC
-
-Jareer Abdel-Qader (1):
-  staging/rdma/hfi1: close shared context security hole
-
-Jubin John (2):
-  staging/rdma/hfi1: Add unit # to verbs txreq cache name
-  staging/rdma/hfi1: Update driver version string to 0.9-294
-
-Mike Marciniszyn (3):
-  staging/rdma/hfi1: inline clear_ahg()
-  staging/rdma/hfi: modify workqueue for parallelism
-  staging/rdma/hfi1: add additional rc traces
-
-Mitko Haralanov (3):
-  staging/rdma/hfi1: Prevent silent data corruption with user SDMA
-  staging/rdma/hfi1: Implement Expected Receive TID caching
-  staging/rdma/hfi1: Allow tuning of SDMA interrupt rate
-
-Niranjana Vishwanathapura (2):
-  staging/rdma/hfi1: Add coalescing support for SDMA TX descriptors
-  staging/rdma/hfi1: Fix sparse error in sdma.h file
-
-Vennila Megavannan (2):
-  staging/rdma/hfi1: Implement time-out for send context halt recovery
-  staging/rdma/hfi1: Method to toggle "fast ECN" detection
-
- drivers/staging/rdma/hfi1/Kconfig        |   14 +-
- drivers/staging/rdma/hfi1/Makefile       |    2 +-
- drivers/staging/rdma/hfi1/chip.c         |  157 +++-
- drivers/staging/rdma/hfi1/chip.h         |    2 +
- drivers/staging/rdma/hfi1/common.h       |   19 +-
- drivers/staging/rdma/hfi1/driver.c       |  178 ++---
- drivers/staging/rdma/hfi1/file_ops.c     |  495 ++-----------
- drivers/staging/rdma/hfi1/firmware.c     |   37 +-
- drivers/staging/rdma/hfi1/hfi.h          |   98 +--
- drivers/staging/rdma/hfi1/init.c         |   23 +-
- drivers/staging/rdma/hfi1/iowait.h       |    6 +-
- drivers/staging/rdma/hfi1/mad.c          |    4 +-
- drivers/staging/rdma/hfi1/pcie.c         |   15 +-
- drivers/staging/rdma/hfi1/pio.c          |   14 +-
- drivers/staging/rdma/hfi1/qp.c           |   47 +-
- drivers/staging/rdma/hfi1/qp.h           |   51 ++
- drivers/staging/rdma/hfi1/qsfp.c         |   13 +-
- drivers/staging/rdma/hfi1/rc.c           |   33 +-
- drivers/staging/rdma/hfi1/ruc.c          |   55 +-
- drivers/staging/rdma/hfi1/sdma.c         |  160 +++-
- drivers/staging/rdma/hfi1/sdma.h         |   82 ++-
- drivers/staging/rdma/hfi1/trace.c        |    4 +-
- drivers/staging/rdma/hfi1/trace.h        |  180 +++--
- drivers/staging/rdma/hfi1/uc.c           |   15 +-
- drivers/staging/rdma/hfi1/ud.c           |    1 +
- drivers/staging/rdma/hfi1/user_exp_rcv.c | 1171 ++++++++++++++++++++++++++++++
- drivers/staging/rdma/hfi1/user_exp_rcv.h |   82 +++
- drivers/staging/rdma/hfi1/user_pages.c   |  110 +--
- drivers/staging/rdma/hfi1/user_sdma.c    |  103 ++-
- drivers/staging/rdma/hfi1/user_sdma.h    |   10 +-
- drivers/staging/rdma/hfi1/verbs.c        |   91 ++-
- drivers/staging/rdma/hfi1/verbs.h        |    9 +-
- include/uapi/rdma/hfi/hfi1_user.h        |   46 +-
- 33 files changed, 2279 insertions(+), 1048 deletions(-)
- create mode 100644 drivers/staging/rdma/hfi1/user_exp_rcv.c
- create mode 100644 drivers/staging/rdma/hfi1/user_exp_rcv.h
-
+diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
+index 11523596ca57..f300d7fa5e5f 100644
+--- a/drivers/staging/rdma/hfi1/chip.c
++++ b/drivers/staging/rdma/hfi1/chip.c
+@@ -9327,8 +9327,6 @@ static void reset_cce_csrs(struct hfi1_devdata *dd)
+ /* set ASIC CSRs to chip reset defaults */
+ static void reset_asic_csrs(struct hfi1_devdata *dd)
+ {
+-	static DEFINE_MUTEX(asic_mutex);
+-	static int called;
+ 	int i;
+ 
+ 	/*
+@@ -9338,15 +9336,8 @@ static void reset_asic_csrs(struct hfi1_devdata *dd)
+ 	 * a known first load do the reset and blocking all others.
+ 	 */
+ 
+-	/*
+-	 * These CSRs should only be reset once - the first one here will
+-	 * do the work.  Use a mutex so that a non-first caller waits until
+-	 * the first is finished before it can proceed.
+-	 */
+-	mutex_lock(&asic_mutex);
+-	if (called)
+-		goto done;
+-	called = 1;
++	if (!(dd->flags & HFI1_DO_INIT_ASIC))
++		return;
+ 
+ 	if (dd->icode != ICODE_FPGA_EMULATION) {
+ 		/* emulation does not have an SBus - leave these alone */
+@@ -9366,7 +9357,10 @@ static void reset_asic_csrs(struct hfi1_devdata *dd)
+ 	for (i = 0; i < ASIC_NUM_SCRATCH; i++)
+ 		write_csr(dd, ASIC_CFG_SCRATCH + (8 * i), 0);
+ 	write_csr(dd, ASIC_CFG_MUTEX, 0);	/* this will clear it */
++
++	/* We might want to retain this state across FLR if we ever use it */
+ 	write_csr(dd, ASIC_CFG_DRV_STR, 0);
++
+ 	write_csr(dd, ASIC_CFG_THERM_POLL_EN, 0);
+ 	/* ASIC_STS_THERM read-only */
+ 	/* ASIC_CFG_RESET leave alone */
+@@ -9413,9 +9407,6 @@ static void reset_asic_csrs(struct hfi1_devdata *dd)
+ 	/* this also writes a NOP command, clearing paging mode */
+ 	write_csr(dd, ASIC_EEP_ADDR_CMD, 0);
+ 	write_csr(dd, ASIC_EEP_DATA, 0);
+-
+-done:
+-	mutex_unlock(&asic_mutex);
+ }
+ 
+ /* set MISC CSRs to chip reset defaults */
+@@ -9827,6 +9818,7 @@ static void init_chip(struct hfi1_devdata *dd)
+ 			restore_pci_variables(dd);
+ 		}
+ 
++		reset_asic_csrs(dd);
+ 	} else {
+ 		dd_dev_info(dd, "Resetting CSRs with writes\n");
+ 		reset_cce_csrs(dd);
+@@ -9837,6 +9829,7 @@ static void init_chip(struct hfi1_devdata *dd)
+ 	}
+ 	/* clear the DC reset */
+ 	write_csr(dd, CCE_DC_CTRL, 0);
++
+ 	/* Set the LED off */
+ 	if (is_a0(dd))
+ 		setextled(dd, 0);
+@@ -10332,7 +10325,7 @@ static void asic_should_init(struct hfi1_devdata *dd)
+ }
+ 
+ /**
+- * Allocate an initialize the device structure for the hfi.
++ * Allocate and initialize the device structure for the hfi.
+  * @dev: the pci_dev for hfi1_ib device
+  * @ent: pci_device_id struct for this dev
+  *
+@@ -10488,6 +10481,12 @@ struct hfi1_devdata *hfi1_init_dd(struct pci_dev *pdev,
+ 	else if (dd->rcv_intr_timeout_csr == 0 && rcv_intr_timeout)
+ 		dd->rcv_intr_timeout_csr = 1;
+ 
++	/* needs to be done before we look for the peer device */
++	read_guid(dd);
++
++	/* should this device init the ASIC block? */
++	asic_should_init(dd);
++
+ 	/* obtain chip sizes, reset chip CSRs */
+ 	init_chip(dd);
+ 
+@@ -10496,11 +10495,6 @@ struct hfi1_devdata *hfi1_init_dd(struct pci_dev *pdev,
+ 	if (ret)
+ 		goto bail_cleanup;
+ 
+-	/* needs to be done before we look for the peer device */
+-	read_guid(dd);
+-
+-	asic_should_init(dd);
+-
+ 	/* read in firmware */
+ 	ret = hfi1_firmware_init(dd);
+ 	if (ret)
+@@ -10715,6 +10709,7 @@ static int thermal_init(struct hfi1_devdata *dd)
+ 
+ 	acquire_hw_mutex(dd);
+ 	dd_dev_info(dd, "Initializing thermal sensor\n");
++
+ 	/* Thermal Sensor Initialization */
+ 	/*    Step 1: Reset the Thermal SBus Receiver */
+ 	ret = sbus_request_slow(dd, SBUS_THERMAL, 0x0,
+diff --git a/drivers/staging/rdma/hfi1/firmware.c b/drivers/staging/rdma/hfi1/firmware.c
+index 5c2f2ed8f224..15c9cb7a3150 100644
+--- a/drivers/staging/rdma/hfi1/firmware.c
++++ b/drivers/staging/rdma/hfi1/firmware.c
+@@ -1614,6 +1614,10 @@ done:
+  */
+ void read_guid(struct hfi1_devdata *dd)
+ {
++	/* Take the DC out of reset to get a valid GUID value */
++	write_csr(dd, CCE_DC_CTRL, 0);
++	(void) read_csr(dd, CCE_DC_CTRL);
++
+ 	dd->base_guid = read_csr(dd, DC_DC8051_CFG_LOCAL_GUID);
+ 	dd_dev_info(dd, "GUID %llx",
+ 		(unsigned long long)dd->base_guid);
 -- 
 1.8.2
 
