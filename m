@@ -1,56 +1,56 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] IB/cma: Use inner P_Key to determine netdev
-Date: Mon, 19 Oct 2015 21:09:25 +0300
-Message-ID: <1445278165-18442-1-git-send-email-haggaie@mellanox.com>
-References: <56252F7B.4000300@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56252F7B.4000300-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: "Weiny, Ira" <ira.weiny@intel.com>
+Subject: RE: [PATCH 00/23] Update driver to 0.9-294
+Date: Mon, 19 Oct 2015 18:16:55 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E1CBCA641@CRSMSX101.amr.corp.intel.com>
+References: <1445273027-29634-1-git-send-email-ira.weiny@intel.com>
+ <20151019165408.GA30921@kroah.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <20151019165408.GA30921@kroah.com>
+Content-Language: en-US
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>, "Dalessandro,
+ Dennis" <dennis.dalessandro@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-When discussing the patches to demux ids in rdma_cm instead of ib_cm, it
-was decided that it is best to use the P_Key value in the packet headers
-[1]. However, some drivers are currently unable to send correct P_Key in
-GMP headers.
+> 
+> On Mon, Oct 19, 2015 at 12:43:24PM -0400, ira.weiny@intel.com wrote:
+> > From: Ira Weiny <ira.weiny@intel.com>
+> >
+> > The following series has bug fixes and updates to the staging hfi1 driver.
+> 
+> Why are you adding new functionality to this driver before it is moved out of
+> drivers/staging/ ?  I _REALLY_ don't like to see that, because it implies that you
+> are spending time and energy on new stuff, not fixing up the known issues
+> instead.
 
-Change the rdma_cm code to look at the P_Key value that is part of the
-packet payload as a workaround. Once the drivers are fixed this patch can
-be reverted.
+Perhaps I did not chose my words carefully enough.
 
-Fixes: 4c21b5bcef73 ("IB/cma: Add net_dev and private data checks to
-RDMA CM")
-Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/cma.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+The largest issue on the TODO list is the refactoring of the code to be shared between the hfi1 and qib driver.  While the hardware between hfi1 and qib is similar and thus the initial code looked similar, our performance tuning on hfi1 has revealed that some changes will be required to the hfi1 code to fully utilize the hardware.  We would like to get these updates in to make sure that the refactoring work is done properly for the 2 hardware types.
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 59a2dafc8c57..e8324543e085 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -1067,14 +1067,14 @@ static int cma_save_req_info(const struct ib_cm_event *ib_event,
- 		       sizeof(req->local_gid));
- 		req->has_gid	= true;
- 		req->service_id	= req_param->primary_path->service_id;
--		req->pkey	= req_param->bth_pkey;
-+		req->pkey	= be16_to_cpu(req_param->primary_path->pkey);
- 		break;
- 	case IB_CM_SIDR_REQ_RECEIVED:
- 		req->device	= sidr_param->listen_id->device;
- 		req->port	= sidr_param->port;
- 		req->has_gid	= false;
- 		req->service_id	= sidr_param->service_id;
--		req->pkey	= sidr_param->bth_pkey;
-+		req->pkey	= sidr_param->pkey;
- 		break;
- 	default:
- 		return -EINVAL;
--- 
-1.7.11.2
+> 
+> Please redo this patch series and don't add new stuff.
+> 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I can do this but it will cause us to do our refactoring work 2 times in order for it to be done correctly (properly support both hardware types).  Of the 23 patches I sent only one has significant updates which don't conflict with this refactoring work.
+
+[PATCH 15/23] staging/rdma/hfi1: Implement Expected Receive TID caching
+
+However, without this patch users performance will be impacted.
+
+In the interest of full disclosure we still have at least 2 more series, possibly 3 which are similar to this series, bug fixes and performance improvements.
+
+Given the above explanation, would you find it acceptable to take these "updates"?  I can certainly rework patch 15 to separate out the code clean up as per your other email.
+
+Ira
