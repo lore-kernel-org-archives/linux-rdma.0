@@ -1,61 +1,65 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 21/23] staging/rdma/hfi1: Add unit # to verbs txreq cache name
-Date: Mon, 19 Oct 2015 12:43:45 -0400
-Message-ID: <1445273027-29634-22-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 16/23] staging/rdma/hfi1: Allow tuning of SDMA interrupt rate
+Date: Mon, 19 Oct 2015 12:43:40 -0400
+Message-ID: <1445273027-29634-17-git-send-email-ira.weiny@intel.com>
 References: <1445273027-29634-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1445273027-29634-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The name used to create the verbs txreq cache was not qualified with the unit
-number. This causes a panic when destroying the cache on a dual HFI systems.
-Create a unique name with the unit number with this patch
+The SDMA engines were configured to generate progrss interrupts every time they
+processed N/2 descriptors (where N is the size of the descriptor queue). This
+interval was too infrequent, leading to degraded performance.
+
+This commit adds a module parameter, which allows for the tuning of the
+interrupt frequency until an optimal frequency is found for both PSM and Verbs.
+At that time, the parameter could be pulled out, if desired.
 
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/verbs.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/staging/rdma/hfi1/sdma.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/staging/rdma/hfi1/verbs.c b/drivers/staging/rdma/hfi1/verbs.c
-index b2bb8ce97915..514956af5b5d 100644
---- a/drivers/staging/rdma/hfi1/verbs.c
-+++ b/drivers/staging/rdma/hfi1/verbs.c
-@@ -129,6 +129,9 @@ static void verbs_sdma_complete(
- 	int status,
- 	int drained);
+diff --git a/drivers/staging/rdma/hfi1/sdma.c b/drivers/staging/rdma/hfi1/sdma.c
+index 53b3e4d9518b..452e7edcee7a 100644
+--- a/drivers/staging/rdma/hfi1/sdma.c
++++ b/drivers/staging/rdma/hfi1/sdma.c
+@@ -80,6 +80,10 @@ uint mod_num_sdma;
+ module_param_named(num_sdma, mod_num_sdma, uint, S_IRUGO);
+ MODULE_PARM_DESC(num_sdma, "Set max number SDMA engines to use");
  
-+/* Length of buffer to create verbs txreq cache name */
-+#define TXREQ_NAME_LEN 24
++static uint sdma_desct_intr;
++module_param_named(desct_intr, sdma_desct_intr, uint, S_IRUGO | S_IWUSR);
++MODULE_PARM_DESC(desct_intr, "Number of SDMA descriptor before interrupt");
 +
- /*
-  * Note that it is OK to post send work requests in the SQE and ERR
-  * states; hfi1_do_send() will process them and generate error
-@@ -1899,6 +1902,7 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
- 	int ret;
- 	size_t lcpysz = IB_DEVICE_NAME_MAX;
- 	u16 descq_cnt;
-+	char buf[TXREQ_NAME_LEN];
+ #define SDMA_WAIT_BATCH_SIZE 20
+ /* max wait time for a SDMA engine to indicate it has halted */
+ #define SDMA_ERR_HALT_TIMEOUT 10 /* ms */
+@@ -1046,6 +1050,8 @@ int sdma_init(struct hfi1_devdata *dd, u8 port)
+ 		return -ENOMEM;
  
- 	ret = hfi1_qp_init(dev);
- 	if (ret)
-@@ -1952,8 +1956,9 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
- 
- 	descq_cnt = sdma_get_descq_cnt();
- 
-+	snprintf(buf, sizeof(buf), "hfi1_%u_vtxreq_cache", dd->unit);
- 	/* SLAB_HWCACHE_ALIGN for AHG */
--	dev->verbs_txreq_cache = kmem_cache_create("hfi1_vtxreq_cache",
-+	dev->verbs_txreq_cache = kmem_cache_create(buf,
- 						   sizeof(struct verbs_txreq),
- 						   0, SLAB_HWCACHE_ALIGN,
- 						   verbs_txreq_kmem_cache_ctor);
+ 	idle_cnt = ns_to_cclock(dd, idle_cnt);
++	if (!sdma_desct_intr)
++		sdma_desct_intr = descq_cnt / 2;
+ 	/* Allocate memory for SendDMA descriptor FIFOs */
+ 	for (this_idx = 0; this_idx < num_engines; ++this_idx) {
+ 		sde = &dd->per_sdma[this_idx];
+@@ -1548,7 +1554,7 @@ void sdma_engine_interrupt(struct sdma_engine *sde, u64 status)
+ {
+ 	trace_hfi1_sdma_engine_interrupt(sde, status);
+ 	write_seqlock(&sde->head_lock);
+-	sdma_set_desc_cnt(sde, sde->descq_cnt / 2);
++	sdma_set_desc_cnt(sde, sdma_desct_intr);
+ 	sdma_make_progress(sde, status);
+ 	write_sequnlock(&sde->head_lock);
+ }
 -- 
 1.8.2
 
