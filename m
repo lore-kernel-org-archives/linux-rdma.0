@@ -1,126 +1,92 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 12/23] staging/rdma/hfi1: Add a schedule in send thread
-Date: Mon, 19 Oct 2015 12:43:36 -0400
-Message-ID: <1445273027-29634-13-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 11/23] staging/rdma/hfi1: Reset firmware instead of reloading Sbus
+Date: Mon, 19 Oct 2015 12:43:35 -0400
+Message-ID: <1445273027-29634-12-git-send-email-ira.weiny@intel.com>
 References: <1445273027-29634-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1445273027-29634-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Caz Yokoyama <caz.yokoyama-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Caz Yokoyama <caz.yokoyama-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-When under heavy load, the send handler can run too long without allowing other
-tasks to run.  Add a conditional resched to break this up.
+Reset firmware instead of reloading Sbus firmware if it's already done for this
+ASIC.  To work around thermal polling problem in firmware, don't reload Sbus
+firmware, instead, reset the firmware on the initialization of the second HFI.
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Caz Yokoyama <caz.yokoyama-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/chip.c  | 10 ++++++++++
- drivers/staging/rdma/hfi1/chip.h  |  1 +
- drivers/staging/rdma/hfi1/ruc.c   | 12 ++++++++++++
- drivers/staging/rdma/hfi1/verbs.h |  1 +
- 4 files changed, 24 insertions(+)
+ drivers/staging/rdma/hfi1/chip.h     |  1 +
+ drivers/staging/rdma/hfi1/firmware.c |  4 +---
+ drivers/staging/rdma/hfi1/pcie.c     | 13 ++++++++++++-
+ 3 files changed, 14 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index 93ca13fceb51..3c48294abd20 100644
---- a/drivers/staging/rdma/hfi1/chip.c
-+++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -1530,6 +1530,14 @@ static u64 access_sw_kmem_wait(const struct cntr_entry *entry,
- 	return dd->verbs_dev.n_kmem_wait;
- }
- 
-+static u64 access_sw_send_schedule(const struct cntr_entry *entry,
-+			       void *context, int vl, int mode, u64 data)
-+{
-+	struct hfi1_devdata *dd = (struct hfi1_devdata *)context;
-+
-+	return dd->verbs_dev.n_send_schedule;
-+}
-+
- #define def_access_sw_cpu(cntr) \
- static u64 access_sw_cpu_##cntr(const struct cntr_entry *entry,		      \
- 			      void *context, int vl, int mode, u64 data)      \
-@@ -1720,6 +1728,8 @@ static struct cntr_entry dev_cntrs[DEV_CNTR_LAST] = {
- 			    access_sw_pio_wait),
- [C_SW_KMEM_WAIT] = CNTR_ELEM("KmemWait", 0, 0, CNTR_NORMAL,
- 			    access_sw_kmem_wait),
-+[C_SW_SEND_SCHED] = CNTR_ELEM("SendSched", 0, 0, CNTR_NORMAL,
-+			    access_sw_send_schedule),
- };
- 
- static struct cntr_entry port_cntrs[PORT_CNTR_LAST] = {
 diff --git a/drivers/staging/rdma/hfi1/chip.h b/drivers/staging/rdma/hfi1/chip.h
-index 497c5de23d53..ebf9041a1c5e 100644
+index f89a432c7334..497c5de23d53 100644
 --- a/drivers/staging/rdma/hfi1/chip.h
 +++ b/drivers/staging/rdma/hfi1/chip.h
-@@ -787,6 +787,7 @@ enum {
- 	C_SW_VTX_WAIT,
- 	C_SW_PIO_WAIT,
- 	C_SW_KMEM_WAIT,
-+	C_SW_SEND_SCHED,
- 	DEV_CNTR_LAST  /* Must be kept last */
- };
+@@ -609,6 +609,7 @@ static inline void write_uctxt_csr(struct hfi1_devdata *dd, int ctxt,
+ u64 create_pbc(struct hfi1_pportdata *ppd, u64, int, u32, u32);
  
-diff --git a/drivers/staging/rdma/hfi1/ruc.c b/drivers/staging/rdma/hfi1/ruc.c
-index faad1b93703e..8614b070545c 100644
---- a/drivers/staging/rdma/hfi1/ruc.c
-+++ b/drivers/staging/rdma/hfi1/ruc.c
-@@ -820,6 +820,9 @@ void hfi1_make_ruc_header(struct hfi1_qp *qp, struct hfi1_other_headers *ohdr,
- 	ohdr->bth[2] = cpu_to_be32(bth2);
+ /* firmware.c */
++#define SBUS_MASTER_BROADCAST 0xfd
+ #define NUM_PCIE_SERDES 16	/* number of PCIe serdes on the SBus */
+ extern const u8 pcie_serdes_broadcast[];
+ extern const u8 pcie_pcs_addrs[2][NUM_PCIE_SERDES];
+diff --git a/drivers/staging/rdma/hfi1/firmware.c b/drivers/staging/rdma/hfi1/firmware.c
+index 15c9cb7a3150..ace75ce3da3f 100644
+--- a/drivers/staging/rdma/hfi1/firmware.c
++++ b/drivers/staging/rdma/hfi1/firmware.c
+@@ -924,9 +924,6 @@ static int load_8051_firmware(struct hfi1_devdata *dd,
+ 	return 0;
  }
  
-+/* when sending, force a reschedule every one of these periods */
-+#define SEND_RESCHED_TIMEOUT (5 * HZ)  /* 5s in jiffies */
-+
- /**
-  * hfi1_do_send - perform a send on a QP
-  * @work: contains a pointer to the QP
-@@ -836,6 +839,7 @@ void hfi1_do_send(struct work_struct *work)
- 	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
- 	int (*make_req)(struct hfi1_qp *qp);
- 	unsigned long flags;
-+	unsigned long timeout;
- 
- 	if ((qp->ibqp.qp_type == IB_QPT_RC ||
- 	     qp->ibqp.qp_type == IB_QPT_UC) &&
-@@ -864,6 +868,7 @@ void hfi1_do_send(struct work_struct *work)
- 
- 	spin_unlock_irqrestore(&qp->s_lock, flags);
- 
-+	timeout = jiffies + SEND_RESCHED_TIMEOUT;
- 	do {
- 		/* Check for a constructed packet to be sent. */
- 		if (qp->s_hdrwords != 0) {
-@@ -877,6 +882,13 @@ void hfi1_do_send(struct work_struct *work)
- 			/* Record that s_hdr is empty. */
- 			qp->s_hdrwords = 0;
+-/* SBus Master broadcast address */
+-#define SBUS_MASTER_BROADCAST 0xfd
+-
+ /*
+  * Write the SBus request register
+  *
+@@ -1255,6 +1252,7 @@ int load_firmware(struct hfi1_devdata *dd)
+ 			ret = load_sbus_firmware(dd, &fw_sbus);
+ 			if (ret)
+ 				goto clear;
++			fw_sbus_load = 0;
  		}
+ 
+ 		if (fw_fabric_serdes_load) {
+diff --git a/drivers/staging/rdma/hfi1/pcie.c b/drivers/staging/rdma/hfi1/pcie.c
+index ac5653c0f65e..3b50cdda1c0a 100644
+--- a/drivers/staging/rdma/hfi1/pcie.c
++++ b/drivers/staging/rdma/hfi1/pcie.c
+@@ -946,9 +946,20 @@ int do_pcie_gen3_transition(struct hfi1_devdata *dd)
+ 			    __func__);
+ 	}
+ 
++retry:
++	if (therm) {
++		/* toggle SPICO_ENABLE to get back to the state
++		   just after the firmware load */
++		sbus_request(dd, SBUS_MASTER_BROADCAST, 0x01,
++			WRITE_SBUS_RECEIVER, 0x00000040);
++		sbus_request(dd, SBUS_MASTER_BROADCAST, 0x01,
++			WRITE_SBUS_RECEIVER, 0x00000140);
++		dd_dev_info(dd, "%s: toggle SPICO_ENABLE to reset the bus\n",
++			    __func__);
++	}
 +
-+		/* allow other tasks to run */
-+		if (unlikely(time_after(jiffies, timeout))) {
-+			cond_resched();
-+			ppd->dd->verbs_dev.n_send_schedule++;
-+			timeout = jiffies + SEND_RESCHED_TIMEOUT;
-+		}
- 	} while (make_req(qp));
- }
- 
-diff --git a/drivers/staging/rdma/hfi1/verbs.h b/drivers/staging/rdma/hfi1/verbs.h
-index afaa0fe619fe..e4a8a0d4ccf8 100644
---- a/drivers/staging/rdma/hfi1/verbs.h
-+++ b/drivers/staging/rdma/hfi1/verbs.h
-@@ -754,6 +754,7 @@ struct hfi1_ibdev {
- 	u64 n_piowait;
- 	u64 n_txwait;
- 	u64 n_kmem_wait;
-+	u64 n_send_schedule;
- 
- 	u32 n_pds_allocated;    /* number of PDs allocated for device */
- 	spinlock_t n_pds_lock;
+ 	/* step 3: download SBus Master firmware */
+ 	/* step 4: download PCIe Gen3 SerDes firmware */
+-retry:
+ 	dd_dev_info(dd, "%s: downloading firmware\n", __func__);
+ 	ret = load_pcie_firmware(dd);
+ 	if (ret)
 -- 
 1.8.2
 
