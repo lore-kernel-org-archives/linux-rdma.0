@@ -1,44 +1,42 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH TRIVIAL] ib_pack.h: Fix commentary IBA reference for CNP
- in IB opcode enum
-Date: Tue, 20 Oct 2015 13:30:32 -0400
-Message-ID: <56267A38.6080202@redhat.com>
-References: <560C323D.1000409@dev.mellanox.co.il>
+Subject: Re: [PATCH] IB/ucma: check workqueue allocation before usage
+Date: Tue, 20 Oct 2015 13:38:38 -0400
+Message-ID: <56267C1E.4040701@redhat.com>
+References: <1442520259-2248-1-git-send-email-sasha.levin@oracle.com>
+ <20150917225934.GA22326@obsidianresearch.com> <560D491F.7020200@oracle.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="TA1Mg1ceRo4warosDuPswuxDTDF0L3sTE"
+ boundary="DLIePnULmk972BLsQCQ7SFqwMLfmmhudN"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <560C323D.1000409-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <560D491F.7020200-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sasha Levin <sasha.levin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---TA1Mg1ceRo4warosDuPswuxDTDF0L3sTE
+--DLIePnULmk972BLsQCQ7SFqwMLfmmhudN
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 09/30/2015 03:04 PM, Hal Rosenstock wrote:
+On 10/01/2015 10:54 AM, Sasha Levin wrote:
+> On 09/17/2015 06:59 PM, Jason Gunthorpe wrote:
+>> On Thu, Sep 17, 2015 at 04:04:19PM -0400, Sasha Levin wrote:
+>>> Allocating a workqueue might fail, which wasn't checked so far and wo=
+uld
+>>> lead to NULL ptr derefs when an attempt to use it was made.
+>>
+>> Indeed.
+>>
+>> Yishai, please check this and check the other patches you've sent to
+>> see if they have a similar error.
 >=20
-> IBA spec is now 1.3 not 3.1 and vol 1 should be mentioned
-> as there is also vol 2.
->=20
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
-> diff --git a/include/rdma/ib_pack.h b/include/rdma/ib_pack.h
-> index 709a533..e99d8f9 100644
-> --- a/include/rdma/ib_pack.h
-> +++ b/include/rdma/ib_pack.h
-> @@ -76,7 +76,7 @@ enum {
->  	IB_OPCODE_UC                                =3D 0x20,
->  	IB_OPCODE_RD                                =3D 0x40,
->  	IB_OPCODE_UD                                =3D 0x60,
-> -	/* per IBTA 3.1 Table 38, A10.3.2 */
-> +	/* per IBTA 1.3 vol 1 Table 38, A10.3.2 */
+> Ping? It doesn't seem that the patch got anywhere.
 
-Thanks Hal, I've added this to the 4.4 list.
+Sorry, I took the "it applies to linux-next" to mean it wasn't against
+my tree yet and was against upcoming patches.  That wasn't the case.
+It's been applied.
 
 
 --=20
@@ -47,7 +45,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---TA1Mg1ceRo4warosDuPswuxDTDF0L3sTE
+--DLIePnULmk972BLsQCQ7SFqwMLfmmhudN
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -56,22 +54,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWJno4AAoJELgmozMOVy/diD0P/jKHXH6iApK9DtmqMDAuZabz
-K6teSvS55ZXVNhrYnhdMMfPghPN4GTT2vAdSUi08TZtVkbTDePYUr9K6wHj4VezH
-1nfDSWzUk5BN/HGziGdlUsbfsbLyFkv82ReBGJl6WVQryNq2hzoieAsNsHpgLeTF
-LGf3/OOBQIPzuDqC7bjEOqMFRsEifYTLtn/WtmWa8nF/WeB8I5bwaRndGvdmJSOJ
-AK+dm8gpfi0Fe97IXSp9axujJ6IQ6XKWgpne0hxNwv+aCqYm8/fJxxLk/WLLcFfB
-bXFNK1eGuMK8nOnfySe1OBvc6rCAdYo5n2wBKox/6ZIufM8oAwgyiGM/49D2bE1H
-0bVpV7FG/eKtyaaVV73LfWInWb2v0DGxqwdrzYVC5k7h5LP79kGSoFq7fpPK/TY1
-/CkkTb00wth6RToH9REJ6Dyez1r0Pw+iECxK7dzZr1nG9wJSUCtmAmzF1kBtewnd
-TzqS7Z30wiZGSM+uW0QENLQUbvzvSSFGv2hHi/O8NJz2lKXJVqr1qR572eyJ6Y4u
-J/9SN52UpvCzNI1leXmJ14/M92JjfCjE3evHx47cHld7vznje94NGTPdJvUgHIDi
-xKHiJt9YUZJoSvyY/OYK3bS9DtB3s5FpvqVPBsrq2n4+nIZJMzMDl1cpKw9nGy4p
-lkoJZsDiQh5LWP1FQ65W
-=sOiU
+iQIcBAEBCAAGBQJWJnweAAoJELgmozMOVy/dkTQP/Ri62QQ9Jpm9WlUi8g6zgvlt
+WgfYh+l83uaKa5HgPRwLj7iP4MaXOvOKI/zSZyAYxIQ2VRqigR0DpZ8tQ9RCGI1m
+Vf1DzvR3e4o1xvcecyl36weKuYdsXSJFzbgSMp/aQZtiMFdQ/yuoKAh/sIoCYCNH
+zbSf+1QJTWYL+i6zZSdVXE3eU3ptZhRtMZC37ZoBmRTf2B3rXA9Y2JcWPsV3kaiQ
+K2Oj40K91/EdkwA/zK/1C1EnHSxDvBRe7zyjI1tTJkfwUI9OWpNcAOGRjelEIWyG
+r09ROChgwYCvLIXnOzCaELpHBluQaWS8TfbnZnm8mb6sapGLXIjaXryVhEM13iXv
+jhDhYN/QHi8pet/Mg0U0f0r+DqD6bcnb5uZdZIdX5N/nRJNxmwaDOSbyDueahjOq
+f+HTzrI8X4LfRSyi8yIsL2scb/e583bs7M1H6tg68R2xm++q02fIht49HLyD/Lqe
+O661yOun/NGQhac2rA1agqLM8iX71+K4+kIwqHlX6c5pZjKJ8uiLVUrHFltem5wQ
+rhLC0sVRMO8JV/sVq/prjuBEGVEM+5rhgILyZ5qaT2ZvHilvzT3nHSCKfbUmT3yU
+w6hCyt142SQWB8YvsgFfECQu8YL9jmPBbDF+eFUo/nitIPvMh1jWU12LWCgb5G8a
++TeiWGbK+5fnSK68CIp/
+=jBdV
 -----END PGP SIGNATURE-----
 
---TA1Mg1ceRo4warosDuPswuxDTDF0L3sTE--
+--DLIePnULmk972BLsQCQ7SFqwMLfmmhudN--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
