@@ -1,35 +1,52 @@
 From: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: [PATCH for-next 5/5] RDMA/ocrdma: Bump up ocrdma version number to 11.0.0.0
-Date: Tue, 20 Oct 2015 14:18:00 +0530
-Message-ID: <1445330880-3912-6-git-send-email-selvin.xavier@avagotech.com>
+Subject: [PATCH for-next 4/5] RDMA/ocrdma: Prevent CQ-Doorbell floods
+Date: Tue, 20 Oct 2015 14:17:59 +0530
+Message-ID: <1445330880-3912-5-git-send-email-selvin.xavier@avagotech.com>
 References: <1445330880-3912-1-git-send-email-selvin.xavier@avagotech.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1445330880-3912-1-git-send-email-selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Updating the version number to 11.0.0.0
+From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 
+Changing CQ-Doorbell(DB) logic to prevent DB floods, it is supposed to be
+pressed only if any hw CQE is polled. If cq-arm was requested
+previously then don't bother about number of hw CQEs polled and
+arm the CQ.
+
+Signed-off-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma.h b/drivers/infiniband/hw/ocrdma/ocrdma.h
-index 8cd57c7..8f047f9 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma.h
-@@ -55,7 +55,7 @@
- #include <be_roce.h>
- #include "ocrdma_sli.h"
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index 1f3affb..1c4e83d 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -2933,16 +2933,11 @@ expand_cqe:
+ 	}
+ stop_cqe:
+ 	cq->getp = cur_getp;
+-	if (cq->deferred_arm) {
+-		ocrdma_ring_cq_db(dev, cq->id, true, cq->deferred_sol,
+-				  polled_hw_cqes);
++	if (cq->deferred_arm || polled_hw_cqes) {
++		ocrdma_ring_cq_db(dev, cq->id, cq->deferred_arm,
++				  cq->deferred_sol, polled_hw_cqes);
+ 		cq->deferred_arm = false;
+ 		cq->deferred_sol = false;
+-	} else {
+-		/* We need to pop the CQE. No need to arm */
+-		ocrdma_ring_cq_db(dev, cq->id, false, cq->deferred_sol,
+-				  polled_hw_cqes);
+-		cq->deferred_sol = false;
+ 	}
  
--#define OCRDMA_ROCE_DRV_VERSION "10.6.0.0"
-+#define OCRDMA_ROCE_DRV_VERSION "11.0.0.0"
- 
- #define OCRDMA_ROCE_DRV_DESC "Emulex OneConnect RoCE Driver"
- #define OCRDMA_NODE_DESC "Emulex OneConnect RoCE HCA"
+ 	return i;
 -- 
 1.8.3.1
 
