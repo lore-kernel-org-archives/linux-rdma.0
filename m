@@ -1,80 +1,46 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: 4.4's rdma plate
-Date: Tue, 20 Oct 2015 19:42:25 +0300
-Message-ID: <CAJ3xEMiM1VRCOZwVtMR2=3dmBi_DmOA3yhPas5TqBtaFCdzH-A@mail.gmail.com>
-References: <CAJ3xEMhniP7x3NCM51nCccB7wBiQfWiyqaeVm8cdx=SuotrHYQ@mail.gmail.com>
-	<CAJ3xEMiF1xrwBb4B54HEJVWAds76i9oPkKx-ROf3tubeH6a8TA@mail.gmail.com>
-	<561E510C.8060501@redhat.com>
-	<CAJ3xEMiZCrj83XK6R0za61SenfzDh5H3wF-DTanvsk1Hha7MKA@mail.gmail.com>
-	<56266C4B.1060000@redhat.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] IB/cma: Use inner P_Key to determine netdev
+Date: Tue, 20 Oct 2015 10:44:45 -0600
+Message-ID: <20151020164445.GB24608@obsidianresearch.com>
+References: <56252F7B.4000300@mellanox.com>
+ <1445278165-18442-1-git-send-email-haggaie@mellanox.com>
+ <20151019181953.GA19665@obsidianresearch.com>
+ <5625E307.4090105@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56266C4B.1060000-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5625E307.4090105-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 20, 2015 at 7:31 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> On 10/20/2015 12:25 PM, Or Gerlitz wrote:
->> On Wed, Oct 14, 2015 at 3:56 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
->>> On 10/14/2015 12:51 AM, Or Gerlitz wrote:
->>>> On Sun, Oct 11, 2015 at 11:58 PM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->>>>> Hi Doug,
->>>>> As we're soon on 4.3-rc5, could you please update how things look for 4.4?
->>>>>
->>>>> The mutlicast loopback prevention patches from Eran were intially
->>>>> posted ~two months ago and went through testing by Christoph and Co.
->>>> [...]
->>
->>
->>>> Hi Doug,
->>
->>>> So we're after rc5 and not a single word from you re the plans for the
->>>> next kernel, and your branch for that purpose contains exactly two patches... I do
->>>> see few chunks
->>>> of patches marked as under review in your patchworks, so there might
->>>> be sign for getting some hope, is that real?
->>
->>> Yes Or, I'm working on it.  A new 4.3-rc pull request should come out
->>> today and an update on the for next area probably as well.
+On Tue, Oct 20, 2015 at 09:45:27AM +0300, Haggai Eran wrote:
+> On 19/10/2015 21:19, Jason Gunthorpe wrote:
+> > On Mon, Oct 19, 2015 at 09:09:25PM +0300, Haggai Eran wrote:
+> >> When discussing the patches to demux ids in rdma_cm instead of ib_cm, it
+> >> was decided that it is best to use the P_Key value in the packet headers
+> >> [1]. However, some drivers are currently unable to send correct P_Key in
+> >> GMP headers.
+> > 
+> > You should explicitly describe the broken drivers in the commit text.
+> These are mlx5 and ipath. I'll add them to the commit message.
 
->> Doug,
->> So we're after rc6 and still pretty much nothing in your for-4.4
->> branch, are we getting there
->> (e.g picking something from the backlog such as the self multicast
->> loopback prevention and the
->> rdma-cm name space patches) or for 4.4 we'd be coming naked?
+And ipath is actually ipath, the obsolete driver being removed, not
+qib? (ie we don't care about it?)
 
-> Another pull request for the final 4.3 fixups will go in today.  I
-> prioritized those over the for-next work.
-> Next I'll be pulling simple for-next items, then I'll be reviewing the
+> The remaining issue is that it doesn't respect the
+> ib_send_wr.ud.pkey_index field when sending.
 
-Sounds good as a starter
+But this is a very serious bug, to the point the mis-labeled packets
+may not even be delivered in some cases - you really care about the
+sub case where mis-labeled packets happen to be deliverable but don't
+parse right?
 
-> then I'll be reviewing the
-> RoCE GID cadche usage in verbs/cma v2 patchset, then the Add RoCE v2
-> support v1 patchset, then the New fast registration API v5 set.
+Well, don't forget to undo this patch when the mlx5 driver is fixed..
 
-Doug, the New fast registration API v5 set has E2E community consensus,
-I guess there's not much left for you to dig there, so these are good news.
-
-As for the RoCE patches, you mentioned reviewing them, this is going to
-take time, which makes sense. However, the self-multicast loopback prevention
-patches are (1) sitting in the mailing list for months (2) small in
-volume and very large
-in benefit (3) passed testing by Christoph and Co, any reason not to
-pick them prior
-to review of the RoCE code.
-
-We need to encourage developers to take part in the upstream process,
-For this series
-I am clueless towards the developers where they ask me what's missing?
-why this isn't
-moving for months?
-
-Or.
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
