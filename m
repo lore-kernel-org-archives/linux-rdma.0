@@ -1,53 +1,53 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v2 for-next 1/7] IB/core: Extend ib_uverbs_create_qp
-Date: Wed, 21 Oct 2015 13:26:38 +0300
-Message-ID: <5627685E.1040409@mellanox.com>
-References: <1444909482-17113-1-git-send-email-eranbe@mellanox.com>
- <1444909482-17113-2-git-send-email-eranbe@mellanox.com>
- <56276095.6020803@dev.mellanox.co.il>
+Subject: Re: [PATCH] IB/cma: Use inner P_Key to determine netdev
+Date: Wed, 21 Oct 2015 13:51:24 +0300
+Message-ID: <56276E2C.2080903@mellanox.com>
+References: <56252F7B.4000300@mellanox.com>
+ <1445278165-18442-1-git-send-email-haggaie@mellanox.com>
+ <20151019181953.GA19665@obsidianresearch.com>
+ <5625E307.4090105@mellanox.com> <20151020164445.GB24608@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56276095.6020803-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20151020164445.GB24608-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 21/10/2015 12:53, Sagi Grimberg wrote:
-> On 10/15/2015 2:44 PM, Eran Ben Elisha wrote:
->> ib_uverbs_ex_create_qp follows the extension verbs
->> mechanism. New features (for example, QP creation flags
->> field which is added in a downstream patch) could used
->> via user-space libraries without breaking the ABI.
+On 20/10/2015 19:44, Jason Gunthorpe wrote:
+> On Tue, Oct 20, 2015 at 09:45:27AM +0300, Haggai Eran wrote:
+>> On 19/10/2015 21:19, Jason Gunthorpe wrote:
+>>> On Mon, Oct 19, 2015 at 09:09:25PM +0300, Haggai Eran wrote:
+>>>> When discussing the patches to demux ids in rdma_cm instead of ib_cm, it
+>>>> was decided that it is best to use the P_Key value in the packet headers
+>>>> [1]. However, some drivers are currently unable to send correct P_Key in
+>>>> GMP headers.
+>>>
+>>> You should explicitly describe the broken drivers in the commit text.
+>> These are mlx5 and ipath. I'll add them to the commit message.
 > 
-> This is an important addition, I'll need it soon for stuff
-> I'm working on...
-> 
->> +struct ib_uverbs_ex_create_qp {
->> +    __u64 user_handle;
->> +    __u32 pd_handle;
->> +    __u32 send_cq_handle;
->> +    __u32 recv_cq_handle;
->> +    __u32 srq_handle;
->> +    __u32 max_send_wr;
->> +    __u32 max_recv_wr;
->> +    __u32 max_send_sge;
->> +    __u32 max_recv_sge;
->> +    __u32 max_inline_data;
->> +    __u8  sq_sig_all;
->> +    __u8  qp_type;
->> +    __u8  is_srq;
->> +    __u8 reserved;
->> +    __u32 comp_mask;
->> +    __u32 create_flags;
-> 
-> Can we please make create_flags u64 to begin with?
-Note that the size of the struct must be a round number of 64-bit words
-to avoid different sizeof values on 32-bit systems. If you change the
-size of create_flags you'll need another 32-bit padding field in the struct.
+> And ipath is actually ipath, the obsolete driver being removed, not
+> qib? (ie we don't care about it?)
+Right. qib is fine.
 
+>> The remaining issue is that it doesn't respect the
+>> ib_send_wr.ud.pkey_index field when sending.
+> 
+> But this is a very serious bug, to the point the mis-labeled packets
+> may not even be delivered in some cases - you really care about the
+> sub case where mis-labeled packets happen to be deliverable but don't
+> parse right?
+I understand the issue in mlx5 is serious but we've lived with it a long
+time. In this patch I only wanted to work around it for the purpose of
+fixing the regression introduced in 4.3.
+
+> Well, don't forget to undo this patch when the mlx5 driver is fixed..
+Of course.
+
+Thanks,
+Haggai
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
