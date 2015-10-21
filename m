@@ -1,77 +1,67 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/core: avoid 32-bit warning
-Date: Wed, 21 Oct 2015 16:58:01 -0400
-Message-ID: <5627FC59.4070502@redhat.com>
-References: <17269152.DqJfCm1LOx@wuerfel>
- <56151BDF.8010504@dev.mellanox.co.il> <1444225608.3188.67.camel@opteya.com>
+Subject: Re: [PATCH for-next 0/2] RDMA/cxgb4: Add iWARP support for T6 adapter
+Date: Wed, 21 Oct 2015 16:58:50 -0400
+Message-ID: <5627FC8A.7000308@redhat.com>
+References: <1443008967-8942-1-git-send-email-hariprasad@chelsio.com>
+ <003201d1050f$b4b7d590$1e2780b0$@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="vGVh9UHWecC3Tjq3gNNeWCLX8fc9OTDVC"
+ boundary="cvG2PwqGogPnf875RtbFW52f2rnAvqAli"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1444225608.3188.67.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <003201d1050f$b4b7d590$1e2780b0$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Hariprasad Shenai' <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---vGVh9UHWecC3Tjq3gNNeWCLX8fc9OTDVC
-Content-Type: text/plain; charset=utf-8
+--cvG2PwqGogPnf875RtbFW52f2rnAvqAli
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 10/07/2015 09:46 AM, Yann Droneaud wrote:
-> Hi,
+On 10/12/2015 01:01 PM, Steve Wise wrote:
 >=20
-> Le mercredi 07 octobre 2015 =C3=A0 16:19 +0300, Sagi Grimberg a =C3=A9c=
-rit :
->> On 10/7/2015 3:29 PM, Arnd Bergmann wrote:
->>> The INIT_UDATA() macro requires a pointer or unsigned long argument
->>> for
->>> both input and output buffer, and all callers had a cast from when
->>> the code was merged until a recent restructuring, so now we get
->>>
->>> core/uverbs_cmd.c: In function 'ib_uverbs_create_cq':
->>> core/uverbs_cmd.c:1481:66: warning: cast to pointer from integer of
->>> different size [-Wint-to-pointer-cast]
->>>
->>> This makes the code behave as before by adding back the cast to
->>> unsigned long.
->>>
->>> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
->>> Fixes: 565197dd8fb1 ("IB/core: Extend ib_uverbs_create_cq")
->>>
->>> diff --git a/drivers/infiniband/core/uverbs_cmd.c
->>> b/drivers/infiniband/core/uverbs_cmd.c
->>> index be4cb9f04be3..88b3b78340f2 100644
->>> --- a/drivers/infiniband/core/uverbs_cmd.c
->>> +++ b/drivers/infiniband/core/uverbs_cmd.c
->>> @@ -1478,7 +1478,7 @@ ssize_t ib_uverbs_create_cq(struct
->>> ib_uverbs_file *file,
->>>   	if (copy_from_user(&cmd, buf, sizeof(cmd)))
->>>   		return -EFAULT;
->>>
->>> -	INIT_UDATA(&ucore, buf, cmd.response, sizeof(cmd),
->>> sizeof(resp));
->>> +	INIT_UDATA(&ucore, buf, (unsigned long)cmd.response,
->>> sizeof(cmd), sizeof(resp));
+>=20
+>> -----Original Message-----
+>> From: netdev-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:netdev-owner-u79uwXL29TaqPxH82wqD4g@public.gmane.org=
+g] On Behalf Of Hariprasad Shenai
+>> Sent: Wednesday, September 23, 2015 6:49 AM
+>> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org; swise@opengridcomputing.=
+com; leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org; nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org;
+>> Hariprasad Shenai
+>> Subject: [PATCH for-next 0/2] RDMA/cxgb4: Add iWARP support for T6 ada=
+pter
 >>
->> Would it make sense to cast inside INIT_UDATA() and not have callers
->> worry about it?
+>> Hi,
+>>
+>> PATCH 1/2 adds changes like new register, structure and functions in c=
+xgb4
+>> driver for iw_cxgb4 driver, and PATCH 2/2 adds iw_cxgb4 specific code =
+to
+>> support T6 adapter.
+>>
+>> This patch series has been created against Doug's linux tree and inclu=
+des
+>> patches on cxgb4 and iw_cxgb4 driver.
+>>
+>> We have included all the maintainers of respective drivers. Kindly rev=
+iew
+>> the change and let us know in case of any review comments.
+>>
+>> Thanks
+>>
 >=20
-> It's ... complicated. See INIT_UDATA_BUF_OR_NULL().
+> These look ok to me.=20
 >=20
-> Awayway, I have patch to do the opposite, eg. explicitly cast u64 value=
+> Series Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+>=20
+> Doug, should these get staged through your tree?
+>=20
 
-> to (void __user *)(unsigned long) in the caller function instead, as it=
+Probably.  Unless David objects, I'll queue them up.
 
-> allows some safer / new operations on the response buffer.
->=20
-> Regards.
->=20
-
-I haven't seen this oether patch that Yann is talking about, so I've
-taken this one.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -79,7 +69,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---vGVh9UHWecC3Tjq3gNNeWCLX8fc9OTDVC
+--cvG2PwqGogPnf875RtbFW52f2rnAvqAli
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -88,22 +78,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWJ/xZAAoJELgmozMOVy/dQncP/iXM8RulFr59PCia8vnLPSIs
-dj8p50TxrhJpSr2KXlXReTPq3VO61ZTV6AxFJWQqW/54H7piHhRu45GP+JeUWmbq
-mkVGIjHkI+BwElDxaoT0R6lhg/qsVvmbS2EhqWMY+B3cO65zl9EHyLxvu/hNhkA9
-VYf/ZGvNGiyVBhLqw+TESNfHB1AInRDPhP11L/agAmPy+y7Ga6bt1599ogGHKo9j
-6qiREBH0T7UIYgp/ghmsymiPbZ3FE5XtFVDYrhHyGWFtCWdmZIbLoI+DH8JKcSZS
-1SfHhiYQhOICKp6RqtXKTmoigbb48E1uRKPLkOvlKH6SMWDW+wuMvbCwRnRfGgSB
-7xo6Dy8/3MdpXkyyPQ19565U96x4lLuMYKrsZN+czb30w/3y62VC0DqODMQORRdR
-G/iDco4PUqo0uhPvjYXyxyDfI6Ae5836ePfOuDZuVmAZEbWdufRThyTNGuRg2lNG
-lDu9W78jaRsjVq2Zw66lbfbdG8C7s6f6N2nauCZp2n9Cwe3ls0wPvgZyfnTQlziD
-sMSqn76WT1YJI55gHcn6+YNthCbaef4ldsiOYr8nUp4/VM707dXYpWyTB97UtQ0g
-GWGVZ92HTGs6UEkUfOI/+pmxaJ9wOKb7oUBEQpPJjjs7+XuiK5LhWu4dvqzOl9nS
-gejwX1Pl1oC7/u+zZlxO
-=X26F
+iQIcBAEBCAAGBQJWJ/yKAAoJELgmozMOVy/dl7YQAKV9t9Dzs4rsHAS7lyzqFOzr
+k56JaXBRjKSuHP3Fgj2cRvpEBNGgiftbVcFrFmIgXwEtImLafHE01G/LBd7Ehfc2
+NArJh+pcX9eMQvzoNn8cj8bUUffOFT1RycD/qsrxaVAfuWDjiJSTzun3Mz8bJ8kD
+wcVAXwGGcky9LP4+dF6iQZW2/oVkuMzj1R4m0UycNsk+fUUM2CdPBvOP4whoLLsY
+6nqzqnnh6Bm06fssurdJ4KGd3XCbz4uNZsxR+qi22GjyxZHnjsySnJ3Shq7K0H+7
+9AR9yd6jAJLN6mgIsknOh+guXct08Qfth5GTXb6NtHGWavz1KLxxg6i+ktUJhepV
+VA2gbYEXDD97yJidUJXL/8V/r5R1+JgVZAtKGW+6Whj+f5vDv/0t/bakp9/23xw/
+grLtpeaBXCXQdYm3YpzaGPULWgcPjki6ijADhPCUWNXnSSILA0bA3KZIrI9E41aB
+3uhid11G0pNJOWHtlHOONIne0QGLkKCnSsuw/kPKC73YZ+L5XlQQDeiV1fIoUhh4
+w0DFHx/bk4phbcg9s5xXSgU05zv9Lp2OHV3KbIVJ3lhuplX6VK8oyrHaRR+ZY1ML
+Ema0Pfmibm25x0GeeJ28tRWTIyUrUT5xRaNLAMYrP+tIfmuWA+hnTKizQ5IbJKki
+uhpUpk+UPBQwGttd4CIg
+=3QUj
 -----END PGP SIGNATURE-----
 
---vGVh9UHWecC3Tjq3gNNeWCLX8fc9OTDVC--
+--cvG2PwqGogPnf875RtbFW52f2rnAvqAli--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
