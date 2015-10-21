@@ -1,67 +1,60 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 0/2] RDMA/cxgb4: Add iWARP support for T6 adapter
-Date: Wed, 21 Oct 2015 16:58:50 -0400
-Message-ID: <5627FC8A.7000308@redhat.com>
-References: <1443008967-8942-1-git-send-email-hariprasad@chelsio.com>
- <003201d1050f$b4b7d590$1e2780b0$@opengridcomputing.com>
+Subject: Re: [PATCH for-next 0/5] set MPA revision to 2 and misc. fixes for
+ iw_cxgb4
+Date: Wed, 21 Oct 2015 17:16:47 -0400
+Message-ID: <562800BF.6070100@redhat.com>
+References: <1441686421-5899-1-git-send-email-hariprasad@chelsio.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="cvG2PwqGogPnf875RtbFW52f2rnAvqAli"
+ boundary="aSIAUwpTPfmUlcuIE0WVlDlKPeONODHq0"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <003201d1050f$b4b7d590$1e2780b0$@opengridcomputing.com>
+In-Reply-To: <1441686421-5899-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Hariprasad Shenai' <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---cvG2PwqGogPnf875RtbFW52f2rnAvqAli
+--aSIAUwpTPfmUlcuIE0WVlDlKPeONODHq0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 10/12/2015 01:01 PM, Steve Wise wrote:
+On 09/08/2015 12:26 AM, Hariprasad Shenai wrote:
+> Hi,
+>=20
+> This patch series adds the following.
+> Detect errors while creating listening servers, pass ird/ord info in
+> connect reply events, fix misuse of ord for ird calculation and for the=
+
+> ESTABLISHED event we should have the peer's ord/ird so swap the values =
+in
+> the event before the upcall. Set default MPA version to 2.
+>=20
+> This patch series has been created against Doug's linux tree and includ=
+es
+> patches on iw_cxgb4 driver.
+>=20
+> We have included all the maintainers of respective drivers. Kindly revi=
+ew
+> the change and let us know in case of any review comments.
+>=20
+> Thanks
 >=20
 >=20
->> -----Original Message-----
->> From: netdev-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:netdev-owner-u79uwXL29TaqPxH82wqD4g@public.gmane.org=
-g] On Behalf Of Hariprasad Shenai
->> Sent: Wednesday, September 23, 2015 6:49 AM
->> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org; swise@opengridcomputing.=
-com; leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org; nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org;
->> Hariprasad Shenai
->> Subject: [PATCH for-next 0/2] RDMA/cxgb4: Add iWARP support for T6 ada=
-pter
->>
->> Hi,
->>
->> PATCH 1/2 adds changes like new register, structure and functions in c=
-xgb4
->> driver for iw_cxgb4 driver, and PATCH 2/2 adds iw_cxgb4 specific code =
-to
->> support T6 adapter.
->>
->> This patch series has been created against Doug's linux tree and inclu=
-des
->> patches on cxgb4 and iw_cxgb4 driver.
->>
->> We have included all the maintainers of respective drivers. Kindly rev=
-iew
->> the change and let us know in case of any review comments.
->>
->> Thanks
->>
+> Hariprasad Shenai (5):
+>   iw_cxgb4: detect fatal errors while creating listening filters
+>   iw_cxgb4: pass the ord/ird in connect reply events
+>   iw_cxgb4: fix misuse of ep->ord for minimum ird calculation
+>   iw_cxgb4: reverse the ord/ird in the ESTABLISHED upcall
+>   iw_cxgb4: set the default MPA version to 2
 >=20
-> These look ok to me.=20
->=20
-> Series Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
->=20
-> Doug, should these get staged through your tree?
+>  drivers/infiniband/hw/cxgb4/cm.c | 18 +++++++++++++-----
+>  1 file changed, 13 insertions(+), 5 deletions(-)
 >=20
 
-Probably.  Unless David objects, I'll queue them up.
-
+The series, minus the last one which I managed to get into a previous
+release, has been picked up.  Thanks!
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -69,7 +62,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---cvG2PwqGogPnf875RtbFW52f2rnAvqAli
+--aSIAUwpTPfmUlcuIE0WVlDlKPeONODHq0
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -78,22 +71,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWJ/yKAAoJELgmozMOVy/dl7YQAKV9t9Dzs4rsHAS7lyzqFOzr
-k56JaXBRjKSuHP3Fgj2cRvpEBNGgiftbVcFrFmIgXwEtImLafHE01G/LBd7Ehfc2
-NArJh+pcX9eMQvzoNn8cj8bUUffOFT1RycD/qsrxaVAfuWDjiJSTzun3Mz8bJ8kD
-wcVAXwGGcky9LP4+dF6iQZW2/oVkuMzj1R4m0UycNsk+fUUM2CdPBvOP4whoLLsY
-6nqzqnnh6Bm06fssurdJ4KGd3XCbz4uNZsxR+qi22GjyxZHnjsySnJ3Shq7K0H+7
-9AR9yd6jAJLN6mgIsknOh+guXct08Qfth5GTXb6NtHGWavz1KLxxg6i+ktUJhepV
-VA2gbYEXDD97yJidUJXL/8V/r5R1+JgVZAtKGW+6Whj+f5vDv/0t/bakp9/23xw/
-grLtpeaBXCXQdYm3YpzaGPULWgcPjki6ijADhPCUWNXnSSILA0bA3KZIrI9E41aB
-3uhid11G0pNJOWHtlHOONIne0QGLkKCnSsuw/kPKC73YZ+L5XlQQDeiV1fIoUhh4
-w0DFHx/bk4phbcg9s5xXSgU05zv9Lp2OHV3KbIVJ3lhuplX6VK8oyrHaRR+ZY1ML
-Ema0Pfmibm25x0GeeJ28tRWTIyUrUT5xRaNLAMYrP+tIfmuWA+hnTKizQ5IbJKki
-uhpUpk+UPBQwGttd4CIg
-=3QUj
+iQIcBAEBCAAGBQJWKAC/AAoJELgmozMOVy/dMdwP/RWmRPAAj/YJiPf11DExNQ4M
+xR/rqoANhBe0Y/QQsd0M34PdRZYkB1ZhZHUs6o3QktI1k7wApwmtOIpWRwLBS74+
+FGd5mt4147XTVX1/ffGGmpI9c7zPnfnZbTkEgmg8UvmZcgppR4Eo1QGKn4HIIEKO
++alND90oqlWOLQzCCiGnjbzbb6/0eBaogTa+4UKK9i7PhJbE+rBxXOaTSsOc5L9/
+X/2fBFjwVhSstXLPrg/G0l5ofG6e6xMo6JMmlYZO1GPBUuJlsK5If+V/Ifw8CY8F
+CUu8qMtE6FONB9qEENApQKloDpfS0DtYODqAHDA+p6E5faNi0nihlNuZi9kh/rat
+PAyzY59ydRF4evrWBYp4c7XeLVNYYzPHYS6lTdotgX5tyzRQWNvjmSdu1P74Bz5i
+97YNrYE9IejoXtPDu4WluMt45UFGMWxB07wjVAzoCYonzgK/6gRgxhzSEI4i8W79
+zVSv76qNxyDN1j0+b8gbB6v//0bAHCSDU0oGG/YSUGtWbGXWCotpcWYC9DEQHk00
+/Y2k09QxjcQviSMcZzpOmI2T2pBI7sI10e6A6HBKFN2UZh3GtFC5gvRqP+WrMKJ1
+brw9ioKG8KkM4lHKtierMkbDa21ec6Zxzlbl3B72MwVoSp222l6q5+xakSYj6wuE
+rxeiwsjIBQx/ovlm//kJ
+=G6L2
 -----END PGP SIGNATURE-----
 
---cvG2PwqGogPnf875RtbFW52f2rnAvqAli--
+--aSIAUwpTPfmUlcuIE0WVlDlKPeONODHq0--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
