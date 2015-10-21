@@ -1,60 +1,55 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: [PATCH] IB/mlx5: Postpone remove_keys under knowledge of coming preemption
-Date: Wed, 21 Oct 2015 09:21:17 +0300
-Message-ID: <1445408477-24886-1-git-send-email-leon@leon.nu>
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 00/23] Update driver to 0.9-294
+Date: Wed, 21 Oct 2015 09:36:17 +0300
+Message-ID: <CAG9sBKObS=wajYiKArcjjOCVWN7FqvnKRDoeDAo5rNqba48CjQ@mail.gmail.com>
+References: <1445273027-29634-1-git-send-email-ira.weiny@intel.com>
+	<20151019165408.GA30921@kroah.com>
+	<2807E5FD2F6FDA4886F6618EAC48510E1CBCA641@CRSMSX101.amr.corp.intel.com>
+	<CAG9sBKM+hidZi8i+1=dZowT5Pw+bYq21LHvPPZMqpmxPFNSRug@mail.gmail.com>
+	<20151020162910.GA13340@phlsvsds.ph.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151020162910.GA13340-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org" <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-The remove_keys() logic is performed as garbage collection task. Such
-task is intended to be run when no other active processes are running.
-
-The need_resched() will return TRUE if there are user tasks to be
-activated in near future.
-
-In such case, we don't execute remove_keys() and postpone
-the garbage collection work to try to run in next cycle,
-in order to free CPU resources to other tasks.
-
-The possible pseudo-code to trigger such scenario:
-1. Allocate a lot of MR to fill the cache above the limit.
-2. Wait a small amount of time "to calm" the system.
-3. Start CPU extensive operations on multi-node cluster.
-4. Expect performance degradation during MR cache shrink operation.
-
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 54a15b5..45ce00e 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -381,7 +381,19 @@
- 			}
- 		}
- 	} else if (ent->cur > 2 * ent->limit) {
--		if (!someone_adding(cache) &&
-+		/*
-+		 * The remove_keys() logic is performed as garbage collection
-+		 * task. Such task is intended to be run when no other active
-+		 * processes are running.
-+		 *
-+		 * The need_resched() will return TRUE if there are user tasks
-+		 * to be activated in near future.
-+		 *
-+		 * In such case, we don't execute remove_keys() and postpone
-+		 * the garbage collection work to try to run in next cycle,
-+		 * in order to free CPU resources to other tasks.
-+		 */
-+		if (!need_resched() && !someone_adding(cache) &&
- 		    time_after(jiffies, cache->last_add + 300 * HZ)) {
- 			remove_keys(dev, i, 1);
- 			if (ent->cur > ent->limit)
+> Understood, however, unlike SoftRoCE, qib and hfi currently share a lot of code
+> to drive the hardware.
+>
+> The underlying reason for the TODO item "Remove software processing of IB
+> protocol..." is because we have a large amount of duplicated code between these
+> drivers.  _Some_ of which, at a high level, is sharable with SoftRoCE.
+>
+After studying the qib driver (briefly I must admit) I found that it
+has a lot in common with SoftRoCE driver and both can be redesigned to
+share a fair amount of code.
+> These patches (and more to follow), further differentiate the 2 drivers along
+> hardware lines.  Accepting these patches will help us make sure that we don't
+> create some common code between qib and hfi which, because of our testing we
+> now know, needs to be separated out.
+>
+I'm sorry but I'm not sure that I understand the plan. What we had in
+mind is that we start following the idea which was presented by Deny,
+build a detailed design plan and implement it. All that can be done
+without fixing bugs, adding functionality and improving performance
+but I understand that you also need to move forward.
+Us, in Mellanox are willing to contribute to the effort and take
+responsibility over the Software Verbs Transport.
+> This is a separate issue from the higher level code sharing which will be done
+> with SoftRoCE.
+I'm not sure I agree. Can you explain the plan to remove code sharing
+between qib and hfi that is not part of the Software Verbs Transport
+module?
+>
+> Ira
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
