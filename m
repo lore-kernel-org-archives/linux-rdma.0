@@ -1,39 +1,42 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: merge struct ib_device_attr into struct ib_device V2
-Date: Wed, 21 Oct 2015 08:48:10 -0700
-Message-ID: <5627B3BA.7060700@sandisk.com>
-References: <561B7CAE.3040505@dev.mellanox.co.il>
- <20151012144212.GB24770@lst.de> <56262CF9.1040509@dev.mellanox.co.il>
- <CAJ3xEMhEE=Qp=LcYQYJB3rjfhdgd28QG_ZXbpFUCUubGD2uAGQ@mail.gmail.com>
- <56263CE6.5010005@dev.mellanox.co.il>
- <CAJ3xEMjmfNmiTiNctobN=BKvwB-oaMZtBxdqL5zVyvvG_M1KiQ@mail.gmail.com>
- <56265702.1030209@dev.mellanox.co.il>
- <CAJ3xEMh12RjU9ws3r5djigHdkMGnT35+uouRAMzGxj2jhmgKFA@mail.gmail.com>
- <20151021063830.GA19027@lst.de> <56273459.6050007@mellanox.com>
- <20151021065134.GA19210@lst.de> <56273AA1.6060607@mellanox.com>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v2 07/22] staging/rdma/hfi1: Fix sparse error in sdma.h
+ file
+Date: Wed, 21 Oct 2015 16:29:35 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E1CBCD931@CRSMSX101.amr.corp.intel.com>
+References: <1445307097-8244-1-git-send-email-ira.weiny@intel.com>
+ <1445307097-8244-8-git-send-email-ira.weiny@intel.com>
+ <20151021141231.GJ7340@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56273AA1.6060607-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20151021141231.GJ7340@mwanda>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org" <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/21/2015 12:11 AM, Or Gerlitz wrote:
-> haven't found any review or ack to your giant patch that touches the
- > whole subsystem (drivers, core and ULPs) expect from Sagi's -- lets
- > hear more opinions.
+> 
+> On Mon, Oct 19, 2015 at 10:11:22PM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> > From: Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> >
+> > Use NULL instead of 0 for pointer argument to fix the sparse error.
+> >
+> > Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Reviewed-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Signed-off-by: Niranjana Vishwanathapura
+> > <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> This should have just been folded in with the previous patch.  Don't introduce
+> problems and fix them in the patchset.
 
-Although I have not yet had the time to review the entire patch, 
-removing ib_query_device() seems a great idea to me and an idea that I 
-welcome very much. The ib_device_attr structure is too large to be 
-allocated on the stack. This means that with Christoph's patch it is no 
-longer needed to call kmalloc() + ib_query_device() + kfree() when a 
-device attribute is needed from kernel code.
+My bad, I will fix in v3.
 
-Bart.
+Ira
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
