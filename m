@@ -1,24 +1,30 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH v2 for-next 1/7] IB/core: Extend ib_uverbs_create_qp
-Date: Wed, 21 Oct 2015 13:04:38 +0300
-Message-ID: <56276336.7000704@mellanox.com>
+Date: Wed, 21 Oct 2015 13:26:38 +0300
+Message-ID: <5627685E.1040409@mellanox.com>
 References: <1444909482-17113-1-git-send-email-eranbe@mellanox.com>
  <1444909482-17113-2-git-send-email-eranbe@mellanox.com>
  <56276095.6020803@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <56276095.6020803-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/21/2015 12:53 PM, Sagi Grimberg wrote:
+On 21/10/2015 12:53, Sagi Grimberg wrote:
 > On 10/15/2015 2:44 PM, Eran Ben Elisha wrote:
->
->
+>> ib_uverbs_ex_create_qp follows the extension verbs
+>> mechanism. New features (for example, QP creation flags
+>> field which is added in a downstream patch) could used
+>> via user-space libraries without breaking the ABI.
+> 
+> This is an important addition, I'll need it soon for stuff
+> I'm working on...
+> 
 >> +struct ib_uverbs_ex_create_qp {
 >> +    __u64 user_handle;
 >> +    __u32 pd_handle;
@@ -36,13 +42,12 @@ On 10/21/2015 12:53 PM, Sagi Grimberg wrote:
 >> +    __u8 reserved;
 >> +    __u32 comp_mask;
 >> +    __u32 create_flags;
->
+> 
 > Can we please make create_flags u64 to begin with?
+Note that the size of the struct must be a round number of 64-bit words
+to avoid different sizeof values on 32-bit systems. If you change the
+size of create_flags you'll need another 32-bit padding field in the struct.
 
-
-In the kernel we used 4-5 flags over 10 years, why worry?
-
-Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
