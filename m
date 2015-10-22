@@ -1,96 +1,184 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v7 0/4] Add network namespace support in the RDMA-CM
-Date: Thu, 22 Oct 2015 15:20:07 +0300
-Message-ID: <1445516411-17327-1-git-send-email-haggaie@mellanox.com>
+Subject: [PATCH v7 1/4] IB/addr: Pass network namespace as a parameter
+Date: Thu, 22 Oct 2015 15:20:08 +0300
+Message-ID: <1445516411-17327-2-git-send-email-haggaie@mellanox.com>
+References: <1445516411-17327-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1445516411-17327-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
+From: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-I've rebased the network namespaces patches over your 4.4 tree.
+Add network namespace support to the ib_addr module. For that, all the
+address resolution and matching should be done using the appropriate
+namespace instead of init_net.
 
-Regards,
-Haggai
+This is achieved by:
 
-Changes from v6:
-- rebased over k.o/for-4.4
-- use init_net when no netdev is found (RoCE and AF_IB)
+1. Adding an explicit network namespace argument to exported function that
+   require a namespace.
+2. Saving the namespace in the rdma_addr_client structure.
+3. Using it when calling networking functions.
 
-Changes from v5:
-- removed patches that got in as part of the cleanup series.
+In order to preserve the behavior of calling modules, &init_net is
+passed as the parameter in calls from other modules. This is modified as
+namespace support is added on more levels.
 
-RDMA-CM uses IP based addressing and routing to setup RDMA connections between
-hosts. Currently, all of the IP interfaces and addresses used by the RDMA-CM
-must reside in the init_net namespace. This restricts the usage of containers
-with RDMA to only work with host network namespace (aka the kernel init_net NS
-instance).
+Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/addr.c | 17 +++++++++--------
+ drivers/infiniband/core/cma.c  |  1 +
+ include/rdma/ib_addr.h         | 16 +++++++++++++++-
+ 3 files changed, 25 insertions(+), 9 deletions(-)
 
-This patchset allows using network namespaces with the RDMA-CM.
-
-Each RDMA-CM id keeps a reference to a network namespace.
-
-This reference is based on the process network namespace at the time of the
-creation of the object or inherited from the listener.
-
-This network namespace is used to perform all IP and network related
-operations. Specifically, the local device lookup, as well as the remote GID
-address resolution are done in the context of the RDMA-CM object's namespace.
-This allows outgoing connections to reach the right target, even if the same
-IP address exists in multiple network namespaces. This can happen if each
-network namespace resides on a different P_Key.
-
-Additionally, the network namespace is used to split the listener port space
-tables. From the user point of view, each network namespace has a unique,
-completely independent tables for its port spaces. This allows running multiple
-instances of a single service on the same machine, using containers. 
-
-The functionality introduced by this series would come into play when the
-transport is InfiniBand and IPoIB interfaces are assigned to each namespace.
-Multiple IPoIB interfaces can be created and assigned to different RDMA-CM
-capable containers, for example using pipework [1].
-
-The patches apply against Doug's for-4.4 tree.
-
-The patchset is structured as follows:
-
-Patch 1 is a relatively trivial API extension, requiring the callers
-of certain ib_addr functions to provide a network namespace, as needed.
-
-Patches 2-4 add proper namespace support to the RDMA-CM module. This
-includes adding multiple port space tables, adding a network namespace
-parameter, and finally retrieving the namespace from the creating process.
-
-[1] https://github.com/jpetazzo/pipework/
-
-Guy Shapiro (3):
-  IB/addr: Pass network namespace as a parameter
-  IB/cma: Add support for network namespaces
-  IB/ucma: Take the network namespace from the process
-
-Haggai Eran (1):
-  IB/cma: Separate port allocation to network namespaces
-
- drivers/infiniband/core/addr.c                     |  17 +--
- drivers/infiniband/core/cma.c                      | 129 +++++++++++++++------
- drivers/infiniband/core/ucma.c                     |   4 +-
- drivers/infiniband/ulp/iser/iser_verbs.c           |   2 +-
- drivers/infiniband/ulp/isert/ib_isert.c            |   2 +-
- .../staging/lustre/lnet/klnds/o2iblnd/o2iblnd.h    |   4 +-
- include/rdma/ib_addr.h                             |  16 ++-
- include/rdma/rdma_cm.h                             |   6 +-
- net/9p/trans_rdma.c                                |   4 +-
- net/rds/ib.c                                       |   2 +-
- net/rds/ib_cm.c                                    |   2 +-
- net/rds/iw.c                                       |   2 +-
- net/rds/iw_cm.c                                    |   2 +-
- net/rds/rdma_transport.c                           |   4 +-
- net/sunrpc/xprtrdma/svc_rdma_transport.c           |   4 +-
- net/sunrpc/xprtrdma/verbs.c                        |   3 +-
- 16 files changed, 142 insertions(+), 61 deletions(-)
-
+diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
+index d3c42b3c1b51..34b1adad07aa 100644
+--- a/drivers/infiniband/core/addr.c
++++ b/drivers/infiniband/core/addr.c
+@@ -128,7 +128,7 @@ int rdma_translate_ip(struct sockaddr *addr, struct rdma_dev_addr *dev_addr,
+ 	int ret = -EADDRNOTAVAIL;
+ 
+ 	if (dev_addr->bound_dev_if) {
+-		dev = dev_get_by_index(&init_net, dev_addr->bound_dev_if);
++		dev = dev_get_by_index(dev_addr->net, dev_addr->bound_dev_if);
+ 		if (!dev)
+ 			return -ENODEV;
+ 		ret = rdma_copy_addr(dev_addr, dev, NULL);
+@@ -138,7 +138,7 @@ int rdma_translate_ip(struct sockaddr *addr, struct rdma_dev_addr *dev_addr,
+ 
+ 	switch (addr->sa_family) {
+ 	case AF_INET:
+-		dev = ip_dev_find(&init_net,
++		dev = ip_dev_find(dev_addr->net,
+ 			((struct sockaddr_in *) addr)->sin_addr.s_addr);
+ 
+ 		if (!dev)
+@@ -149,12 +149,11 @@ int rdma_translate_ip(struct sockaddr *addr, struct rdma_dev_addr *dev_addr,
+ 			*vlan_id = rdma_vlan_dev_vlan_id(dev);
+ 		dev_put(dev);
+ 		break;
+-
+ #if IS_ENABLED(CONFIG_IPV6)
+ 	case AF_INET6:
+ 		rcu_read_lock();
+-		for_each_netdev_rcu(&init_net, dev) {
+-			if (ipv6_chk_addr(&init_net,
++		for_each_netdev_rcu(dev_addr->net, dev) {
++			if (ipv6_chk_addr(dev_addr->net,
+ 					  &((struct sockaddr_in6 *) addr)->sin6_addr,
+ 					  dev, 1)) {
+ 				ret = rdma_copy_addr(dev_addr, dev, NULL);
+@@ -236,7 +235,7 @@ static int addr4_resolve(struct sockaddr_in *src_in,
+ 	fl4.daddr = dst_ip;
+ 	fl4.saddr = src_ip;
+ 	fl4.flowi4_oif = addr->bound_dev_if;
+-	rt = ip_route_output_key(&init_net, &fl4);
++	rt = ip_route_output_key(addr->net, &fl4);
+ 	if (IS_ERR(rt)) {
+ 		ret = PTR_ERR(rt);
+ 		goto out;
+@@ -278,12 +277,12 @@ static int addr6_resolve(struct sockaddr_in6 *src_in,
+ 	fl6.saddr = src_in->sin6_addr;
+ 	fl6.flowi6_oif = addr->bound_dev_if;
+ 
+-	dst = ip6_route_output(&init_net, NULL, &fl6);
++	dst = ip6_route_output(addr->net, NULL, &fl6);
+ 	if ((ret = dst->error))
+ 		goto put;
+ 
+ 	if (ipv6_addr_any(&fl6.saddr)) {
+-		ret = ipv6_dev_get_saddr(&init_net, ip6_dst_idev(dst)->dev,
++		ret = ipv6_dev_get_saddr(addr->net, ip6_dst_idev(dst)->dev,
+ 					 &fl6.daddr, 0, &fl6.saddr);
+ 		if (ret)
+ 			goto put;
+@@ -477,6 +476,7 @@ int rdma_addr_find_dmac_by_grh(const union ib_gid *sgid, const union ib_gid *dgi
+ 
+ 	memset(&dev_addr, 0, sizeof(dev_addr));
+ 	dev_addr.bound_dev_if = if_index;
++	dev_addr.net = &init_net;
+ 
+ 	ctx.addr = &dev_addr;
+ 	init_completion(&ctx.comp);
+@@ -511,6 +511,7 @@ int rdma_addr_find_smac_by_sgid(union ib_gid *sgid, u8 *smac, u16 *vlan_id)
+ 	rdma_gid2ip(&gid_addr._sockaddr, sgid);
+ 
+ 	memset(&dev_addr, 0, sizeof(dev_addr));
++	dev_addr.net = &init_net;
+ 	ret = rdma_translate_ip(&gid_addr._sockaddr, &dev_addr, vlan_id);
+ 	if (ret)
+ 		return ret;
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index be41784a62e4..80a8b469a9a8 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -610,6 +610,7 @@ struct rdma_cm_id *rdma_create_id(rdma_cm_event_handler event_handler,
+ 	INIT_LIST_HEAD(&id_priv->listen_list);
+ 	INIT_LIST_HEAD(&id_priv->mc_list);
+ 	get_random_bytes(&id_priv->seq_num, sizeof id_priv->seq_num);
++	id_priv->id.route.addr.dev_addr.net = &init_net;
+ 
+ 	return &id_priv->id;
+ }
+diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
+index 17e4a8bdecab..11528591d0d7 100644
+--- a/include/rdma/ib_addr.h
++++ b/include/rdma/ib_addr.h
+@@ -47,6 +47,7 @@
+ #include <rdma/ib_verbs.h>
+ #include <rdma/ib_pack.h>
+ #include <net/ipv6.h>
++#include <net/net_namespace.h>
+ 
+ struct rdma_addr_client {
+ 	atomic_t refcount;
+@@ -64,6 +65,16 @@ void rdma_addr_register_client(struct rdma_addr_client *client);
+  */
+ void rdma_addr_unregister_client(struct rdma_addr_client *client);
+ 
++/**
++ * struct rdma_dev_addr - Contains resolved RDMA hardware addresses
++ * @src_dev_addr:	Source MAC address.
++ * @dst_dev_addr:	Destination MAC address.
++ * @broadcast:		Broadcast address of the device.
++ * @dev_type:		The interface hardware type of the device.
++ * @bound_dev_if:	An optional device interface index.
++ * @transport:		The transport type used.
++ * @net:		Network namespace containing the bound_dev_if net_dev.
++ */
+ struct rdma_dev_addr {
+ 	unsigned char src_dev_addr[MAX_ADDR_LEN];
+ 	unsigned char dst_dev_addr[MAX_ADDR_LEN];
+@@ -71,11 +82,14 @@ struct rdma_dev_addr {
+ 	unsigned short dev_type;
+ 	int bound_dev_if;
+ 	enum rdma_transport_type transport;
++	struct net *net;
+ };
+ 
+ /**
+  * rdma_translate_ip - Translate a local IP address to an RDMA hardware
+  *   address.
++ *
++ * The dev_addr->net field must be initialized.
+  */
+ int rdma_translate_ip(struct sockaddr *addr, struct rdma_dev_addr *dev_addr,
+ 		      u16 *vlan_id);
+@@ -90,7 +104,7 @@ int rdma_translate_ip(struct sockaddr *addr, struct rdma_dev_addr *dev_addr,
+  * @dst_addr: The destination address to resolve.
+  * @addr: A reference to a data location that will receive the resolved
+  *   addresses.  The data location must remain valid until the callback has
+- *   been invoked.
++ *   been invoked. The net field of the addr struct must be valid.
+  * @timeout_ms: Amount of time to wait for the address resolution to complete.
+  * @callback: Call invoked once address resolution has completed, timed out,
+  *   or been canceled.  A status of 0 indicates success.
 -- 
 1.7.11.2
 
