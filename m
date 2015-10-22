@@ -1,37 +1,54 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v6 0/4] Add network namespace support in the RDMA-CM
-Date: Thu, 22 Oct 2015 09:38:04 +0300
-Message-ID: <5628844C.6070905@mellanox.com>
-References: <1440685772-14076-1-git-send-email-haggaie@mellanox.com>
- <562859E1.4020807@redhat.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [PATCH v2 07/22] staging/rdma/hfi1: Fix sparse error in sdma.h
+ file
+Date: Thu, 22 Oct 2015 13:01:25 +0300
+Message-ID: <20151022100125.GK7340@mwanda>
+References: <1445307097-8244-1-git-send-email-ira.weiny@intel.com>
+ <1445307097-8244-8-git-send-email-ira.weiny@intel.com>
+ <20151021141231.GJ7340@mwanda>
+ <2807E5FD2F6FDA4886F6618EAC48510E1CBCD931@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <562859E1.4020807-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+Content-Disposition: inline
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E1CBCD931@CRSMSX101.amr.corp.intel.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: "Weiny, Ira" <ira.weiny@intel.com>
+Cc: "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "Dalessandro,
+ Dennis" <dennis.dalessandro@intel.com>, "dledford@redhat.com" <dledford@redhat.com>, "Vishwanathapura,
+ Niranjana" <niranjana.vishwanathapura@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 22/10/2015 06:37, Doug Ledford wrote:
-> On 08/27/2015 10:29 AM, Haggai Eran wrote:
->> Hi,
->>
->> Now that the code for demuxing requests is inside rdma_cm, here are the patches
->> to add InfiniBand network namespace again.
->>
->> Changes from v5:
->> - removed patches that got in as part of the cleanup series.
+On Wed, Oct 21, 2015 at 04:29:35PM +0000, Weiny, Ira wrote:
+> > 
+> > On Mon, Oct 19, 2015 at 10:11:22PM -0400, ira.weiny@intel.com wrote:
+> > > From: Niranjana Vishwanathapura <niranjana.vishwanathapura@intel.com>
+> > >
+> > > Use NULL instead of 0 for pointer argument to fix the sparse error.
+> > >
+> > > Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+> > > Reviewed-by: Mitko Haralanov <mitko.haralanov@intel.com>
+> > > Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+> > > Signed-off-by: Niranjana Vishwanathapura
+> > > <niranjana.vishwanathapura@intel.com>
+> > > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> > 
+> > This should have just been folded in with the previous patch.  Don't introduce
+> > problems and fix them in the patchset.
 > 
-> Hi Haggai,
-> 
-> This series no longer applies cleanly after all of the cm changes that
-> made it into 4.3.  Can you please rebase and resend?
+> My bad, I will fix in v3.
 
-Sure, I'll do that.
+I don't think it's worth redoing the patchset over because it's just a
+Sparse warning, not a bug.  But for the future.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+regards,
+dan carpenter
