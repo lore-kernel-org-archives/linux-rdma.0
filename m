@@ -1,49 +1,47 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH] iser-target: Remove an unused variable
-Date: Thu, 22 Oct 2015 11:14:18 -0700
-Message-ID: <5629277A.20908@sandisk.com>
+From: "Mccormick, Patrick M" <patrick.m.mccormick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] openibd
+Date: Thu, 22 Oct 2015 19:59:59 +0000
+Message-ID: <856EA97E2D31FB4CB11D0FAEE9481E4BA71B5C5C@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Detected this by compiling with W=1.
+This fixes BZ issue: http://bugs.openfabrics.org/bugzilla/show_bug.cgi?id=2574
 
-Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/isert/ib_isert.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+"QIB makes SCIF does not work with xeon-phi"
 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index 403bd29..d255fe5 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -1550,7 +1550,6 @@ isert_rx_do_work(struct iser_rx_desc *rx_desc, struct isert_conn *isert_conn)
- 	struct iser_hdr *iser_hdr = &rx_desc->iser_header;
- 	uint64_t read_va = 0, write_va = 0;
- 	uint32_t read_stag = 0, write_stag = 0;
--	int rc;
- 
- 	switch (iser_hdr->flags & 0xF0) {
- 	case ISCSI_CTRL:
-@@ -1577,8 +1576,8 @@ isert_rx_do_work(struct iser_rx_desc *rx_desc, struct isert_conn *isert_conn)
- 		break;
- 	}
- 
--	rc = isert_rx_opcode(isert_conn, rx_desc,
--			     read_stag, read_va, write_stag, write_va);
-+	isert_rx_opcode(isert_conn, rx_desc,
-+			read_stag, read_va, write_stag, write_va);
- }
- 
- static void
--- 
-2.1.4
+See the bug entry for more details. This is a low-risk, low-impact change intended for 3.18-1.
+
+diff --git a/openibd b/openibd
+index 5b5077a..9d849f4 100755
+--- a/openibd
++++ b/openibd
+@@ -3,11 +3,16 @@
+ # Bring up/down openib
+ #
+ # chkconfig: 2345 05 95
+-# description: Activates/Deactivates InfiniBand Driver to \
+-#              start at boot time.
++# description: Activates/Deactivates InfiniBand Driver to start at boot time.
+ #
+ ### BEGIN INIT INFO
+ # Provides:       openibd
++# Required-Start: mpss
++# Required-Stop:
++# Default-Start: 2 3 4 5
++# Default-Stop: 0 1 6
++# Short-Description: Activates/Deactivates InfiniBand Driver to start at boot
+time.
++# Description: Loads kernel modules for Infiniband devices.
+ ### END INIT INFO
+
+ #
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
