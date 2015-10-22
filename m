@@ -1,423 +1,233 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v7 3/4] IB/cma: Add support for network namespaces
-Date: Thu, 22 Oct 2015 15:20:10 +0300
-Message-ID: <1445516411-17327-4-git-send-email-haggaie@mellanox.com>
+Subject: [PATCH v7 2/4] IB/cma: Separate port allocation to network namespaces
+Date: Thu, 22 Oct 2015 15:20:09 +0300
+Message-ID: <1445516411-17327-3-git-send-email-haggaie@mellanox.com>
 References: <1445516411-17327-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1445516411-17327-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Keep a struct for each network namespace containing the IDRs for the RDMA
+CM port spaces. The struct is created dynamically using the generic_net
+mechanism.
 
-Add support for network namespaces in the ib_cma module. This is
-accomplished by:
+This patch is internal infrastructure work for the following patches. In
+this patch, init_net is statically used as the network namespace for
+the new port-space API.
 
-1. Adding network namespace parameter for rdma_create_id. This parameter is
-   used to populate the network namespace field in rdma_id_private.
-   rdma_create_id keeps a reference on the network namespace.
-2. Using the network namespace from the rdma_id instead of init_net inside
-   of ib_cma, when listening on an ID and when looking for an ID for an
-   incoming request.
-3. Decrementing the reference count for the appropriate network namespace
-   when calling rdma_destroy_id.
-
-In order to preserve the current behavior init_net is passed when calling
-from other modules.
-
-Signed-off-by: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c                      | 46 +++++++++++++---------
- drivers/infiniband/core/ucma.c                     |  3 +-
- drivers/infiniband/ulp/iser/iser_verbs.c           |  2 +-
- drivers/infiniband/ulp/isert/ib_isert.c            |  2 +-
- .../staging/lustre/lnet/klnds/o2iblnd/o2iblnd.h    |  4 +-
- include/rdma/rdma_cm.h                             |  6 ++-
- net/9p/trans_rdma.c                                |  4 +-
- net/rds/ib.c                                       |  2 +-
- net/rds/ib_cm.c                                    |  2 +-
- net/rds/iw.c                                       |  2 +-
- net/rds/iw_cm.c                                    |  2 +-
- net/rds/rdma_transport.c                           |  4 +-
- net/sunrpc/xprtrdma/svc_rdma_transport.c           |  4 +-
- net/sunrpc/xprtrdma/verbs.c                        |  3 +-
- 14 files changed, 52 insertions(+), 34 deletions(-)
+ drivers/infiniband/core/cma.c | 94 ++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 70 insertions(+), 24 deletions(-)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index ac03c32ca7f1..7e93eb1f33eb 100644
+index 80a8b469a9a8..ac03c32ca7f1 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -600,7 +600,8 @@ static int cma_disable_callback(struct rdma_id_private *id_priv,
- 	return 0;
- }
+@@ -44,6 +44,8 @@
+ #include <linux/module.h>
+ #include <net/route.h>
  
--struct rdma_cm_id *rdma_create_id(rdma_cm_event_handler event_handler,
-+struct rdma_cm_id *rdma_create_id(struct net *net,
-+				  rdma_cm_event_handler event_handler,
- 				  void *context, enum rdma_port_space ps,
- 				  enum ib_qp_type qp_type)
++#include <net/net_namespace.h>
++#include <net/netns/generic.h>
+ #include <net/tcp.h>
+ #include <net/ipv6.h>
+ #include <net/ip_fib.h>
+@@ -110,22 +112,33 @@ static LIST_HEAD(dev_list);
+ static LIST_HEAD(listen_any_list);
+ static DEFINE_MUTEX(lock);
+ static struct workqueue_struct *cma_wq;
+-static DEFINE_IDR(tcp_ps);
+-static DEFINE_IDR(udp_ps);
+-static DEFINE_IDR(ipoib_ps);
+-static DEFINE_IDR(ib_ps);
++static int cma_pernet_id;
+ 
+-static struct idr *cma_idr(enum rdma_port_space ps)
++struct cma_pernet {
++	struct idr tcp_ps;
++	struct idr udp_ps;
++	struct idr ipoib_ps;
++	struct idr ib_ps;
++};
++
++static struct cma_pernet *cma_pernet(struct net *net)
++{
++	return net_generic(net, cma_pernet_id);
++}
++
++static struct idr *cma_pernet_idr(struct net *net, enum rdma_port_space ps)
  {
-@@ -624,7 +625,7 @@ struct rdma_cm_id *rdma_create_id(rdma_cm_event_handler event_handler,
- 	INIT_LIST_HEAD(&id_priv->listen_list);
- 	INIT_LIST_HEAD(&id_priv->mc_list);
- 	get_random_bytes(&id_priv->seq_num, sizeof id_priv->seq_num);
--	id_priv->id.route.addr.dev_addr.net = &init_net;
-+	id_priv->id.route.addr.dev_addr.net = get_net(net);
++	struct cma_pernet *pernet = cma_pernet(net);
++
+ 	switch (ps) {
+ 	case RDMA_PS_TCP:
+-		return &tcp_ps;
++		return &pernet->tcp_ps;
+ 	case RDMA_PS_UDP:
+-		return &udp_ps;
++		return &pernet->udp_ps;
+ 	case RDMA_PS_IPOIB:
+-		return &ipoib_ps;
++		return &pernet->ipoib_ps;
+ 	case RDMA_PS_IB:
+-		return &ib_ps;
++		return &pernet->ib_ps;
+ 	default:
+ 		return NULL;
+ 	}
+@@ -145,24 +158,25 @@ struct rdma_bind_list {
+ 	unsigned short		port;
+ };
  
- 	return &id_priv->id;
+-static int cma_ps_alloc(enum rdma_port_space ps,
++static int cma_ps_alloc(struct net *net, enum rdma_port_space ps,
+ 			struct rdma_bind_list *bind_list, int snum)
+ {
+-	struct idr *idr = cma_idr(ps);
++	struct idr *idr = cma_pernet_idr(net, ps);
+ 
+ 	return idr_alloc(idr, bind_list, snum, snum + 1, GFP_KERNEL);
  }
-@@ -1278,7 +1279,7 @@ static bool cma_match_net_dev(const struct rdma_id_private *id_priv,
- 		       cma_protocol_roce(&id_priv->id);
  
- 	return !addr->dev_addr.bound_dev_if ||
--	       (net_eq(dev_net(net_dev), &init_net) &&
-+	       (net_eq(dev_net(net_dev), addr->dev_addr.net) &&
- 		addr->dev_addr.bound_dev_if == net_dev->ifindex);
+-static struct rdma_bind_list *cma_ps_find(enum rdma_port_space ps, int snum)
++static struct rdma_bind_list *cma_ps_find(struct net *net,
++					  enum rdma_port_space ps, int snum)
+ {
+-	struct idr *idr = cma_idr(ps);
++	struct idr *idr = cma_pernet_idr(net, ps);
+ 
+ 	return idr_find(idr, snum);
  }
  
-@@ -1339,7 +1340,7 @@ static struct rdma_id_private *cma_id_from_event(struct ib_cm_id *cm_id,
+-static void cma_ps_remove(enum rdma_port_space ps, int snum)
++static void cma_ps_remove(struct net *net, enum rdma_port_space ps, int snum)
+ {
+-	struct idr *idr = cma_idr(ps);
++	struct idr *idr = cma_pernet_idr(net, ps);
+ 
+ 	idr_remove(idr, snum);
+ }
+@@ -1325,7 +1339,8 @@ static struct rdma_id_private *cma_id_from_event(struct ib_cm_id *cm_id,
  		}
  	}
  
--	bind_list = cma_ps_find(&init_net,
-+	bind_list = cma_ps_find(*net_dev ? dev_net(*net_dev) : &init_net,
- 				rdma_ps_from_service_id(req.service_id),
+-	bind_list = cma_ps_find(rdma_ps_from_service_id(req.service_id),
++	bind_list = cma_ps_find(&init_net,
++				rdma_ps_from_service_id(req.service_id),
  				cma_port_from_service_id(req.service_id));
  	id_priv = cma_find_listener(bind_list, cm_id, ib_event, &req, *net_dev);
-@@ -1411,6 +1412,7 @@ static void cma_cancel_operation(struct rdma_id_private *id_priv,
- static void cma_release_port(struct rdma_id_private *id_priv)
- {
- 	struct rdma_bind_list *bind_list = id_priv->bind_list;
-+	struct net *net = id_priv->id.route.addr.dev_addr.net;
- 
- 	if (!bind_list)
- 		return;
-@@ -1418,7 +1420,7 @@ static void cma_release_port(struct rdma_id_private *id_priv)
+ 	if (IS_ERR(id_priv) && *net_dev) {
+@@ -1403,7 +1418,7 @@ static void cma_release_port(struct rdma_id_private *id_priv)
  	mutex_lock(&lock);
  	hlist_del(&id_priv->node);
  	if (hlist_empty(&bind_list->owners)) {
--		cma_ps_remove(&init_net, bind_list->ps, bind_list->port);
-+		cma_ps_remove(net, bind_list->ps, bind_list->port);
+-		cma_ps_remove(bind_list->ps, bind_list->port);
++		cma_ps_remove(&init_net, bind_list->ps, bind_list->port);
  		kfree(bind_list);
  	}
  	mutex_unlock(&lock);
-@@ -1477,6 +1479,7 @@ void rdma_destroy_id(struct rdma_cm_id *id)
- 		cma_deref_id(id_priv->id.context);
- 
- 	kfree(id_priv->id.route.path_rec);
-+	put_net(id_priv->id.route.addr.dev_addr.net);
- 	kfree(id_priv);
- }
- EXPORT_SYMBOL(rdma_destroy_id);
-@@ -1607,7 +1610,8 @@ static struct rdma_id_private *cma_new_conn_id(struct rdma_cm_id *listen_id,
- 		      ib_event->param.req_rcvd.primary_path->service_id;
- 	int ret;
- 
--	id = rdma_create_id(listen_id->event_handler, listen_id->context,
-+	id = rdma_create_id(listen_id->route.addr.dev_addr.net,
-+			    listen_id->event_handler, listen_id->context,
- 			    listen_id->ps, ib_event->param.req_rcvd.qp_type);
- 	if (IS_ERR(id))
- 		return NULL;
-@@ -1662,9 +1666,10 @@ static struct rdma_id_private *cma_new_udp_id(struct rdma_cm_id *listen_id,
- 	struct rdma_id_private *id_priv;
- 	struct rdma_cm_id *id;
- 	const sa_family_t ss_family = listen_id->route.addr.src_addr.ss_family;
-+	struct net *net = listen_id->route.addr.dev_addr.net;
- 	int ret;
- 
--	id = rdma_create_id(listen_id->event_handler, listen_id->context,
-+	id = rdma_create_id(net, listen_id->event_handler, listen_id->context,
- 			    listen_id->ps, IB_QPT_UD);
- 	if (IS_ERR(id))
- 		return NULL;
-@@ -1901,7 +1906,8 @@ static int iw_conn_req_handler(struct iw_cm_id *cm_id,
- 		return -ECONNABORTED;
- 
- 	/* Create a new RDMA id for the new IW CM ID */
--	new_cm_id = rdma_create_id(listen_id->id.event_handler,
-+	new_cm_id = rdma_create_id(listen_id->id.route.addr.dev_addr.net,
-+				   listen_id->id.event_handler,
- 				   listen_id->id.context,
- 				   RDMA_PS_TCP, IB_QPT_RC);
- 	if (IS_ERR(new_cm_id)) {
-@@ -2029,12 +2035,13 @@ static void cma_listen_on_dev(struct rdma_id_private *id_priv,
- {
- 	struct rdma_id_private *dev_id_priv;
- 	struct rdma_cm_id *id;
-+	struct net *net = id_priv->id.route.addr.dev_addr.net;
- 	int ret;
- 
- 	if (cma_family(id_priv) == AF_IB && !rdma_cap_ib_cm(cma_dev->device, 1))
- 		return;
- 
--	id = rdma_create_id(cma_listen_handler, id_priv, id_priv->id.ps,
-+	id = rdma_create_id(net, cma_listen_handler, id_priv, id_priv->id.ps,
- 			    id_priv->id.qp_type);
- 	if (IS_ERR(id))
- 		return;
-@@ -2708,7 +2715,8 @@ static int cma_alloc_port(enum rdma_port_space ps,
+@@ -2693,7 +2708,7 @@ static int cma_alloc_port(enum rdma_port_space ps,
  	if (!bind_list)
  		return -ENOMEM;
  
--	ret = cma_ps_alloc(&init_net, ps, bind_list, snum);
-+	ret = cma_ps_alloc(id_priv->id.route.addr.dev_addr.net, ps, bind_list,
-+			   snum);
+-	ret = cma_ps_alloc(ps, bind_list, snum);
++	ret = cma_ps_alloc(&init_net, ps, bind_list, snum);
  	if (ret < 0)
  		goto err;
  
-@@ -2727,13 +2735,14 @@ static int cma_alloc_any_port(enum rdma_port_space ps,
- 	static unsigned int last_used_port;
- 	int low, high, remaining;
- 	unsigned int rover;
-+	struct net *net = id_priv->id.route.addr.dev_addr.net;
- 
--	inet_get_local_port_range(&init_net, &low, &high);
-+	inet_get_local_port_range(net, &low, &high);
- 	remaining = (high - low) + 1;
+@@ -2718,7 +2733,7 @@ static int cma_alloc_any_port(enum rdma_port_space ps,
  	rover = prandom_u32() % remaining + low;
  retry:
  	if (last_used_port != rover &&
--	    !cma_ps_find(&init_net, ps, (unsigned short)rover)) {
-+	    !cma_ps_find(net, ps, (unsigned short)rover)) {
+-	    !cma_ps_find(ps, (unsigned short)rover)) {
++	    !cma_ps_find(&init_net, ps, (unsigned short)rover)) {
  		int ret = cma_alloc_port(ps, id_priv, rover);
  		/*
  		 * Remember previously used port number in order to avoid
-@@ -2799,7 +2808,7 @@ static int cma_use_port(enum rdma_port_space ps,
+@@ -2784,7 +2799,7 @@ static int cma_use_port(enum rdma_port_space ps,
  	if (snum < PROT_SOCK && !capable(CAP_NET_BIND_SERVICE))
  		return -EACCES;
  
--	bind_list = cma_ps_find(&init_net, ps, snum);
-+	bind_list = cma_ps_find(id_priv->id.route.addr.dev_addr.net, ps, snum);
+-	bind_list = cma_ps_find(ps, snum);
++	bind_list = cma_ps_find(&init_net, ps, snum);
  	if (!bind_list) {
  		ret = cma_alloc_port(ps, id_priv, snum);
  	} else {
-@@ -2991,8 +3000,11 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
- 		if (addr->sa_family == AF_INET)
- 			id_priv->afonly = 1;
- #if IS_ENABLED(CONFIG_IPV6)
--		else if (addr->sa_family == AF_INET6)
--			id_priv->afonly = init_net.ipv6.sysctl.bindv6only;
-+		else if (addr->sa_family == AF_INET6) {
-+			struct net *net = id_priv->id.route.addr.dev_addr.net;
+@@ -4004,6 +4019,35 @@ static const struct ibnl_client_cbs cma_cb_table[] = {
+ 				       .module = THIS_MODULE },
+ };
+ 
++static int cma_init_net(struct net *net)
++{
++	struct cma_pernet *pernet = cma_pernet(net);
 +
-+			id_priv->afonly = net->ipv6.sysctl.bindv6only;
-+		}
- #endif
- 	}
- 	ret = cma_get_port(id_priv);
-@@ -3797,6 +3809,7 @@ static int cma_netdev_change(struct net_device *ndev, struct rdma_id_private *id
- 	dev_addr = &id_priv->id.route.addr.dev_addr;
- 
- 	if ((dev_addr->bound_dev_if == ndev->ifindex) &&
-+	    (net_eq(dev_net(ndev), dev_addr->net)) &&
- 	    memcmp(dev_addr->src_dev_addr, ndev->dev_addr, ndev->addr_len)) {
- 		printk(KERN_INFO "RDMA CM addr change for ndev %s used by id %p\n",
- 		       ndev->name, &id_priv->id);
-@@ -3822,9 +3835,6 @@ static int cma_netdev_callback(struct notifier_block *self, unsigned long event,
- 	struct rdma_id_private *id_priv;
- 	int ret = NOTIFY_DONE;
- 
--	if (dev_net(ndev) != &init_net)
--		return NOTIFY_DONE;
--
- 	if (event != NETDEV_BONDING_FAILOVER)
- 		return NOTIFY_DONE;
- 
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 3a342dfaac15..e80c107450ab 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -472,7 +472,8 @@ static ssize_t ucma_create_id(struct ucma_file *file, const char __user *inbuf,
- 		return -ENOMEM;
- 
- 	ctx->uid = cmd.uid;
--	ctx->cm_id = rdma_create_id(ucma_event_handler, ctx, cmd.ps, qp_type);
-+	ctx->cm_id = rdma_create_id(&init_net, ucma_event_handler, ctx, cmd.ps,
-+				    qp_type);
- 	if (IS_ERR(ctx->cm_id)) {
- 		ret = PTR_ERR(ctx->cm_id);
- 		goto err1;
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index 85132d867bc8..f3122372d49f 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -1017,7 +1017,7 @@ int iser_connect(struct iser_conn   *iser_conn,
- 	ib_conn->beacon.wr_id = ISER_BEACON_WRID;
- 	ib_conn->beacon.opcode = IB_WR_SEND;
- 
--	ib_conn->cma_id = rdma_create_id(iser_cma_handler,
-+	ib_conn->cma_id = rdma_create_id(&init_net, iser_cma_handler,
- 					 (void *)iser_conn,
- 					 RDMA_PS_TCP, IB_QPT_RC);
- 	if (IS_ERR(ib_conn->cma_id)) {
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index aa59037d7504..d5b5a027b0fb 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -3097,7 +3097,7 @@ isert_setup_id(struct isert_np *isert_np)
- 	sa = (struct sockaddr *)&np->np_sockaddr;
- 	isert_dbg("ksockaddr: %p, sa: %p\n", &np->np_sockaddr, sa);
- 
--	id = rdma_create_id(isert_cma_handler, isert_np,
-+	id = rdma_create_id(&init_net, isert_cma_handler, isert_np,
- 			    RDMA_PS_TCP, IB_QPT_RC);
- 	if (IS_ERR(id)) {
- 		isert_err("rdma_create_id() failed: %ld\n", PTR_ERR(id));
-diff --git a/drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd.h b/drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd.h
-index f4b6c33ac318..5015a9e830bd 100644
---- a/drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd.h
-+++ b/drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd.h
-@@ -128,7 +128,9 @@ extern kib_tunables_t  kiblnd_tunables;
- 				     IBLND_CREDIT_HIGHWATER_V1 : \
- 				     *kiblnd_tunables.kib_peercredits_hiw) /* when eagerly to return credits */
- 
--#define kiblnd_rdma_create_id(cb, dev, ps, qpt) rdma_create_id(cb, dev, ps, qpt)
-+#define kiblnd_rdma_create_id(cb, dev, ps, qpt) rdma_create_id(&init_net, \
-+							       cb, dev, \
-+							       ps, qpt)
- 
- static inline int
- kiblnd_concurrent_sends_v1(void)
-diff --git a/include/rdma/rdma_cm.h b/include/rdma/rdma_cm.h
-index c92522c192d2..463ec0ccbe51 100644
---- a/include/rdma/rdma_cm.h
-+++ b/include/rdma/rdma_cm.h
-@@ -160,13 +160,17 @@ struct rdma_cm_id {
- /**
-  * rdma_create_id - Create an RDMA identifier.
-  *
-+ * @net: The network namespace in which to create the new id.
-  * @event_handler: User callback invoked to report events associated with the
-  *   returned rdma_id.
-  * @context: User specified context associated with the id.
-  * @ps: RDMA port space.
-  * @qp_type: type of queue pair associated with the id.
-+ *
-+ * The id holds a reference on the network namespace until it is destroyed.
-  */
--struct rdma_cm_id *rdma_create_id(rdma_cm_event_handler event_handler,
-+struct rdma_cm_id *rdma_create_id(struct net *net,
-+				  rdma_cm_event_handler event_handler,
- 				  void *context, enum rdma_port_space ps,
- 				  enum ib_qp_type qp_type);
- 
-diff --git a/net/9p/trans_rdma.c b/net/9p/trans_rdma.c
-index ba1210253f5e..52b4a2f993f2 100644
---- a/net/9p/trans_rdma.c
-+++ b/net/9p/trans_rdma.c
-@@ -655,8 +655,8 @@ rdma_create_trans(struct p9_client *client, const char *addr, char *args)
- 		return -ENOMEM;
- 
- 	/* Create the RDMA CM ID */
--	rdma->cm_id = rdma_create_id(p9_cm_event_handler, client, RDMA_PS_TCP,
--				     IB_QPT_RC);
-+	rdma->cm_id = rdma_create_id(&init_net, p9_cm_event_handler, client,
-+				     RDMA_PS_TCP, IB_QPT_RC);
- 	if (IS_ERR(rdma->cm_id))
- 		goto error;
- 
-diff --git a/net/rds/ib.c b/net/rds/ib.c
-index 2d3f2ab475df..cd64ef9a4748 100644
---- a/net/rds/ib.c
-+++ b/net/rds/ib.c
-@@ -317,7 +317,7 @@ static int rds_ib_laddr_check(struct net *net, __be32 addr)
- 	/* Create a CMA ID and try to bind it. This catches both
- 	 * IB and iWARP capable NICs.
- 	 */
--	cm_id = rdma_create_id(NULL, NULL, RDMA_PS_TCP, IB_QPT_RC);
-+	cm_id = rdma_create_id(&init_net, NULL, NULL, RDMA_PS_TCP, IB_QPT_RC);
- 	if (IS_ERR(cm_id))
- 		return PTR_ERR(cm_id);
- 
-diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
-index 9043f5c04787..f5a98068faf0 100644
---- a/net/rds/ib_cm.c
-+++ b/net/rds/ib_cm.c
-@@ -565,7 +565,7 @@ int rds_ib_conn_connect(struct rds_connection *conn)
- 
- 	/* XXX I wonder what affect the port space has */
- 	/* delegate cm event handler to rdma_transport */
--	ic->i_cm_id = rdma_create_id(rds_rdma_cm_event_handler, conn,
-+	ic->i_cm_id = rdma_create_id(&init_net, rds_rdma_cm_event_handler, conn,
- 				     RDMA_PS_TCP, IB_QPT_RC);
- 	if (IS_ERR(ic->i_cm_id)) {
- 		ret = PTR_ERR(ic->i_cm_id);
-diff --git a/net/rds/iw.c b/net/rds/iw.c
-index 3df0295c6659..576f1825fc55 100644
---- a/net/rds/iw.c
-+++ b/net/rds/iw.c
-@@ -223,7 +223,7 @@ static int rds_iw_laddr_check(struct net *net, __be32 addr)
- 	/* Create a CMA ID and try to bind it. This catches both
- 	 * IB and iWARP capable NICs.
- 	 */
--	cm_id = rdma_create_id(NULL, NULL, RDMA_PS_TCP, IB_QPT_RC);
-+	cm_id = rdma_create_id(&init_net, NULL, NULL, RDMA_PS_TCP, IB_QPT_RC);
- 	if (IS_ERR(cm_id))
- 		return PTR_ERR(cm_id);
- 
-diff --git a/net/rds/iw_cm.c b/net/rds/iw_cm.c
-index a6553a6fb2bc..aea4c911bc76 100644
---- a/net/rds/iw_cm.c
-+++ b/net/rds/iw_cm.c
-@@ -524,7 +524,7 @@ int rds_iw_conn_connect(struct rds_connection *conn)
- 
- 	/* XXX I wonder what affect the port space has */
- 	/* delegate cm event handler to rdma_transport */
--	ic->i_cm_id = rdma_create_id(rds_rdma_cm_event_handler, conn,
-+	ic->i_cm_id = rdma_create_id(&init_net, rds_rdma_cm_event_handler, conn,
- 				     RDMA_PS_TCP, IB_QPT_RC);
- 	if (IS_ERR(ic->i_cm_id)) {
- 		ret = PTR_ERR(ic->i_cm_id);
-diff --git a/net/rds/rdma_transport.c b/net/rds/rdma_transport.c
-index b9b40af5345b..9c1fed81bf0f 100644
---- a/net/rds/rdma_transport.c
-+++ b/net/rds/rdma_transport.c
-@@ -142,8 +142,8 @@ static int rds_rdma_listen_init(void)
- 	struct rdma_cm_id *cm_id;
++	idr_init(&pernet->tcp_ps);
++	idr_init(&pernet->udp_ps);
++	idr_init(&pernet->ipoib_ps);
++	idr_init(&pernet->ib_ps);
++
++	return 0;
++}
++
++static void cma_exit_net(struct net *net)
++{
++	struct cma_pernet *pernet = cma_pernet(net);
++
++	idr_destroy(&pernet->tcp_ps);
++	idr_destroy(&pernet->udp_ps);
++	idr_destroy(&pernet->ipoib_ps);
++	idr_destroy(&pernet->ib_ps);
++}
++
++static struct pernet_operations cma_pernet_operations = {
++	.init = cma_init_net,
++	.exit = cma_exit_net,
++	.id = &cma_pernet_id,
++	.size = sizeof(struct cma_pernet),
++};
++
+ static int __init cma_init(void)
+ {
  	int ret;
+@@ -4012,6 +4056,10 @@ static int __init cma_init(void)
+ 	if (!cma_wq)
+ 		return -ENOMEM;
  
--	cm_id = rdma_create_id(rds_rdma_cm_event_handler, NULL, RDMA_PS_TCP,
--			       IB_QPT_RC);
-+	cm_id = rdma_create_id(&init_net, rds_rdma_cm_event_handler, NULL,
-+			       RDMA_PS_TCP, IB_QPT_RC);
- 	if (IS_ERR(cm_id)) {
- 		ret = PTR_ERR(cm_id);
- 		printk(KERN_ERR "RDS/RDMA: failed to setup listener, "
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-index fcc3eb80c265..4a41122d586f 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-@@ -692,8 +692,8 @@ static struct svc_xprt *svc_rdma_create(struct svc_serv *serv,
- 	if (!cma_xprt)
- 		return ERR_PTR(-ENOMEM);
++	ret = register_pernet_subsys(&cma_pernet_operations);
++	if (ret)
++		goto err_wq;
++
+ 	ib_sa_register_client(&sa_client);
+ 	rdma_addr_register_client(&addr_client);
+ 	register_netdevice_notifier(&cma_nb);
+@@ -4029,6 +4077,7 @@ err:
+ 	unregister_netdevice_notifier(&cma_nb);
+ 	rdma_addr_unregister_client(&addr_client);
+ 	ib_sa_unregister_client(&sa_client);
++err_wq:
+ 	destroy_workqueue(cma_wq);
+ 	return ret;
+ }
+@@ -4040,11 +4089,8 @@ static void __exit cma_cleanup(void)
+ 	unregister_netdevice_notifier(&cma_nb);
+ 	rdma_addr_unregister_client(&addr_client);
+ 	ib_sa_unregister_client(&sa_client);
++	unregister_pernet_subsys(&cma_pernet_operations);
+ 	destroy_workqueue(cma_wq);
+-	idr_destroy(&tcp_ps);
+-	idr_destroy(&udp_ps);
+-	idr_destroy(&ipoib_ps);
+-	idr_destroy(&ib_ps);
+ }
  
--	listen_id = rdma_create_id(rdma_listen_handler, cma_xprt, RDMA_PS_TCP,
--				   IB_QPT_RC);
-+	listen_id = rdma_create_id(&init_net, rdma_listen_handler, cma_xprt,
-+				   RDMA_PS_TCP, IB_QPT_RC);
- 	if (IS_ERR(listen_id)) {
- 		ret = PTR_ERR(listen_id);
- 		dprintk("svcrdma: rdma_create_id failed = %d\n", ret);
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 81e8d31f3abc..6c06ba088fea 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -432,7 +432,8 @@ rpcrdma_create_id(struct rpcrdma_xprt *xprt,
- 
- 	init_completion(&ia->ri_done);
- 
--	id = rdma_create_id(rpcrdma_conn_upcall, xprt, RDMA_PS_TCP, IB_QPT_RC);
-+	id = rdma_create_id(&init_net, rpcrdma_conn_upcall, xprt, RDMA_PS_TCP,
-+			    IB_QPT_RC);
- 	if (IS_ERR(id)) {
- 		rc = PTR_ERR(id);
- 		dprintk("RPC:       %s: rdma_create_id() failed %i\n",
+ module_init(cma_init);
 -- 
 1.7.11.2
 
