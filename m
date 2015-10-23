@@ -1,122 +1,89 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 14/22] staging/rdma/hfi1: Implement Expected Receive TID caching
-Date: Thu, 22 Oct 2015 19:18:19 -0400
-Message-ID: <20151022231819.GB4019@phlsvsds.ph.intel.com>
-References: <1445307097-8244-1-git-send-email-ira.weiny@intel.com> <1445307097-8244-15-git-send-email-ira.weiny@intel.com> <20151022104158.GL7340@mwanda>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 14/22] staging/rdma/hfi1: Implement Expected Receive
+ TID caching
+Date: Fri, 23 Oct 2015 06:53:37 +0300
+Message-ID: <20151023035337.GT7340@mwanda>
+References: <1445307097-8244-1-git-send-email-ira.weiny@intel.com>
+ <1445307097-8244-15-git-send-email-ira.weiny@intel.com>
+ <20151022104158.GL7340@mwanda>
+ <20151022231819.GB4019@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20151022104158.GL7340@mwanda>
+In-Reply-To: <20151022231819.GB4019-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 22, 2015 at 01:41:58PM +0300, Dan Carpenter wrote:
-> On Mon, Oct 19, 2015 at 10:11:29PM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> > +	case HFI1_CMD_TID_INVAL_READ:
-> > +		ret = hfi1_user_exp_rcv_invalid(fp, &tinfo);
-> > +		if (!ret) {
-> > +			addr = (unsigned long)cmd.addr +
-> > +				offsetof(struct hfi1_tid_info, tidcnt);
-> > +			if (copy_to_user((void __user *)addr, &tinfo.tidcnt,
-> > +					 sizeof(tinfo.tidcnt)))
-> > +				ret = -EFAULT;
-> > +		}
-> > +		break;
+On Thu, Oct 22, 2015 at 07:18:19PM -0400, ira.weiny wrote:
+> This follows the rest of the style of the case statement in this function.  We
+> prefer to leave this as is for a number of reasons.
 > 
-> This switch statement uses success handling throughtout instead of
-> error handling.  It's better if you write it like this:
-> 
-> 	case HFI1_CMD_TID_INVAL_READ:
-> 		ret = hfi1_user_exp_rcv_invalid(fp, &tinfo);
-> 		if (ret)
-> 			break;
-> 
-> 		addr = (unsigned long)cmd.addr +
-> 		       offsetof(struct hfi1_tid_info, tidcnt);
-> 		if (copy_to_user((void __user *)addr, &tinfo.tidcnt,
-> 				 sizeof(tinfo.tidcnt)))
-> 			ret = -EFAULT;
-> 		break;
+> 1) This is consistent with the coding style elsewhere in this driver.
 
-This follows the rest of the style of the case statement in this function.  We
-prefer to leave this as is for a number of reasons.
+Don't try to match existing style if it is wrong.  If 99 lines are
+consistent and 1 line is correct style then at least that's better than
+no lines being correct.  I am worried that you will feel you have to do
+this the wrong way forever for a silly reason...
 
-1) This is consistent with the coding style elsewhere in this driver.
-2) It is functionally equivalent.
-3) I have a long list of patches which need to be processed and this may cause
-   later merge conflicts.
+> 2) It is functionally equivalent.
 
-The main reason is number 1.  We want to remain consistent within this driver.
+It is a style issue and I only complained about it because in the
+next lines the bad style causes a bug.  If anyone finds this kind of
+info leak in released code, then we always give them a CVE for it btw.
+It's a headache.
 
-> 
-> 
-> The casting is sort of ugly...  It would be better to make address a
-> pointer.  It does cut down on the lines of code but at least the cast is
-> all done at once and really "addr" is actually a pointer.
-> 
-> 	case HFI1_CMD_TID_INVAL_READ:
-> 		ret = hfi1_user_exp_rcv_invalid(fp, &tinfo);
-> 		if (ret)
-> 			break;
-> 
-> 		addr = (void __user *)(unsigned long)cmd.addr +
-> 		       offsetof(struct hfi1_tid_info, tidcnt);
-> 		if (copy_to_user(addr, &tinfo.tidcnt, sizeof(tinfo.tidcnt)))
-> 			ret = -EFAULT;
-> 		break;
 
-I think this is more a matter of style.
+> 3) I have a long list of patches which need to be processed and this may cause
+>    later merge conflicts.
+> 
 
-> 
-> 
-> >  	case HFI1_CMD_TID_FREE:
-> > -		ret = exp_tid_free(fp, &tinfo);
-> > +		ret = hfi1_user_exp_rcv_clear(fp, &tinfo);
-> > +		addr = (unsigned long)cmd.addr +
-> > +			offsetof(struct hfi1_tid_info, tidcnt);
-> > +		if (copy_to_user((void __user *)addr, &tinfo.tidcnt,
-> > +				 sizeof(tinfo.tidcnt)))
-> > +			ret = -EFAULT;
-> >  		break;
-> 
-> This is an information leak.  We should break if
-> hfi1_user_exp_rcv_clear() fails, but instead we copy uninitialized
-> variables to the user.
+Yes, that's fine.  I'm not insisting that you redo everything because of
+a style issue.
 
-That is a bug, thanks.
+Let me explain a little more why success handling is an anti-pattern.
+Failure handling looks like this:
 
-Fixed in v3  (Although, I did use the same positive error check style to be
-consistent within this function.)
+	ret = one();
+	if (ret)
+		return ret;
+	ret = two();
+	if (ret)
+		goto undo_one;
+	ret = three();
+	if (ret)
+		goto undo_two;
 
-> 
-> 
-> 
-> >  	case HFI1_CMD_RECV_CTRL:
-> >  		ret = manage_rcvq(uctxt, subctxt_fp(fp), (int)user_val);
-> > @@ -607,9 +603,9 @@ static int hfi1_file_mmap(struct file *fp, struct vm_area_struct *vma)
-> >  		 * Use the page where this context's flags are. User level
-> >  		 * knows where it's own bitmap is within the page.
-> >  		 */
-> > -		memaddr = ((unsigned long)dd->events +
-> > -			   ((uctxt->ctxt - dd->first_user_ctxt) *
-> > -			    HFI1_MAX_SHARED_CTXTS)) & PAGE_MASK;
-> > +		memaddr = (unsigned long)(dd->events +
-> > +					  ((uctxt->ctxt - dd->first_user_ctxt) *
-> > +					   HFI1_MAX_SHARED_CTXTS)) & PAGE_MASK;
-> 
-> I am too lazy to investigate the types of all these variables but I'm
-> instead going to assert that moving the cast to later is an unrelated
-> white space change.  Don't mix white space changes in with a behavior
-> change patch because it makes it hard to review.
+	return 0;
 
-Actually this is a bug fix.  dd->events is a pointer which needs to be indexed
-prior to the cast.  I'll split this into a separate patch in v3.
+undo_two:
+	undo_two();
+undo_one:
+	undo_one();
+	return ret;
 
-Thanks!
-Ira
+In this example the success path is always at indent level one.  The
+code is a series of statements with no if conditions or indenting.  This
+is how most kernel code looks.
+
+With success handling it looks like:
+
+	ret = one();
+	if (!ret) {
+		ret = two();
+		if (!ret)
+			ret = three();
+	}
+	return ret;
+
+It is fewer lines but it is way more complicated.  It very quickly
+starts to bump into the 80 character limit.
+
+regards,
+dan carpenter
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
