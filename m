@@ -1,22 +1,11 @@
-From: Muhammad Falak R Wani <falakreyaz@gmail.com>
-Subject: [PATCH 2/3] staging: rdma: hfi1: Use setup_timer
-Date: Sat, 24 Oct 2015 07:58:55 +0530
-Message-ID: <1445653735-3186-1-git-send-email-falakreyaz@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Mike Marciniszyn <infinipath@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-rdma@vger.kernel.org, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Cc: Muhammad Falak R Wani <falakreyaz@gmail.com>
+From: Muhammad Falak R Wani <falakreyaz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 3/3] staging: rdma: hfi1: Use setup_timer
+Date: Sat, 24 Oct 2015 07:59:25 +0530
+Message-ID: <1445653765-3236-1-git-send-email-falakreyaz@gmail.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Muhammad Falak R Wani <falakreyaz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 Use the timer API function setup_timer instead of init_timer, removing
@@ -35,27 +24,32 @@ expression e1,e2,e3,fn_ptr;
 
 </smpl>
 
-Signed-off-by: Muhammad Falak R Wani <falakreyaz@gmail.com>
+Signed-off-by: Muhammad Falak R Wani <falakreyaz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/driver.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/staging/rdma/hfi1/sdma.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/driver.c b/drivers/staging/rdma/hfi1/driver.c
-index c0a5900..ef4e0c5 100644
---- a/drivers/staging/rdma/hfi1/driver.c
-+++ b/drivers/staging/rdma/hfi1/driver.c
-@@ -1062,9 +1062,9 @@ void hfi1_set_led_override(struct hfi1_pportdata *ppd, unsigned int val)
- 	 */
- 	if (atomic_inc_return(&ppd->led_override_timer_active) == 1) {
- 		/* Need to start timer */
--		init_timer(&ppd->led_override_timer);
--		ppd->led_override_timer.function = run_led_override;
--		ppd->led_override_timer.data = (unsigned long) ppd;
-+		setup_timer(&ppd->led_override_timer, run_led_override,
-+				(unsigned long)ppd);
-+
- 		ppd->led_override_timer.expires = jiffies + 1;
- 		add_timer(&ppd->led_override_timer);
- 	} else {
+diff --git a/drivers/staging/rdma/hfi1/sdma.c b/drivers/staging/rdma/hfi1/sdma.c
+index 63ab721..16d93ff 100644
+--- a/drivers/staging/rdma/hfi1/sdma.c
++++ b/drivers/staging/rdma/hfi1/sdma.c
+@@ -1094,10 +1094,8 @@ int sdma_init(struct hfi1_devdata *dd, u8 port)
+ 
+ 		sde->progress_check_head = 0;
+ 
+-		init_timer(&sde->err_progress_check_timer);
+-		sde->err_progress_check_timer.function =
+-						sdma_err_progress_check;
+-		sde->err_progress_check_timer.data = (unsigned long)sde;
++		setup_timer(&sde->err_progress_check_timer,
++			    sdma_err_progress_check, (unsigned long)sde);
+ 
+ 		sde->descq = dma_zalloc_coherent(
+ 			&dd->pcidev->dev,
 -- 
 1.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
