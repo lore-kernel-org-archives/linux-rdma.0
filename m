@@ -1,53 +1,57 @@
-From: Muhammad Falak R Wani <falakreyaz@gmail.com>
-Subject: [PATCH 3/3] staging: hfi1: sdma: Use setup_timer
-Date: Sun, 25 Oct 2015 16:13:25 +0530
-Message-ID: <1445769805-16522-3-git-send-email-falakreyaz@gmail.com>
-References: <1445769805-16522-1-git-send-email-falakreyaz@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <1445769805-16522-1-git-send-email-falakreyaz@gmail.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Mike Marciniszyn <infinipath@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Cc: Muhammad Falak R Wani <falakreyaz@gmail.com>
+From: Weston Silbaugh <weston.silbaugh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 2195/2195] Staging: rdma: amso1100: Fix multiple assignments on single line.
+Date: Sun, 25 Oct 2015 04:35:24 -0600
+Message-ID: <1445769324-9149-1-git-send-email-weston.silbaugh@gmail.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, Weston Silbaugh <weston.silbaugh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Use the timer API function setup_timer instead of init_timer, removing
-the structure field assignments.
+Multiple assignments should be avoided.
 
-Signed-off-by: Muhammad Falak R Wani <falakreyaz@gmail.com>
+For example:
+
+cm_event.ird = cm_event.ord = 128;
+
+Should be:
+
+cm_event.ird = 128;
+cm_event.ord = 128;
+
+Signed-off-by: Weston Silbaugh <weston.silbaugh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
-v2 changes
-	->make subject line more specific
+ drivers/staging/rdma/amso1100/c2_ae.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
- drivers/staging/rdma/hfi1/sdma.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/staging/rdma/hfi1/sdma.c b/drivers/staging/rdma/hfi1/sdma.c
-index 63ab721..16d93ff 100644
---- a/drivers/staging/rdma/hfi1/sdma.c
-+++ b/drivers/staging/rdma/hfi1/sdma.c
-@@ -1094,10 +1094,8 @@ int sdma_init(struct hfi1_devdata *dd, u8 port)
+diff --git a/drivers/staging/rdma/amso1100/c2_ae.c b/drivers/staging/rdma/amso1100/c2_ae.c
+index eb7a92b..20d98b7 100644
+--- a/drivers/staging/rdma/amso1100/c2_ae.c
++++ b/drivers/staging/rdma/amso1100/c2_ae.c
+@@ -173,7 +173,8 @@ void c2_ae_event(struct c2_dev *c2dev, u32 mq_index)
+ 	resource_user_context =
+ 	    (void *) (unsigned long) wr->ae.ae_generic.user_context;
  
- 		sde->progress_check_head = 0;
+-	status = cm_event.status = c2_convert_cm_status(c2_wr_get_result(wr));
++	status = c2_convert_cm_status(c2_wr_get_result(wr));
++	cm_event.status = c2_convert_cm_status(c2_wr_get_result(wr));
  
--		init_timer(&sde->err_progress_check_timer);
--		sde->err_progress_check_timer.function =
--						sdma_err_progress_check;
--		sde->err_progress_check_timer.data = (unsigned long)sde;
-+		setup_timer(&sde->err_progress_check_timer,
-+			    sdma_err_progress_check, (unsigned long)sde);
+ 	pr_debug("event received c2_dev=%p, event_id=%d, "
+ 		"resource_indicator=%d, user_context=%p, status = %d\n",
+@@ -294,7 +295,8 @@ void c2_ae_event(struct c2_dev *c2dev, u32 mq_index)
+ 		 * Until ird/ord negotiation via MPAv2 support is added, send
+ 		 * max supported values
+ 		 */
+-		cm_event.ird = cm_event.ord = 128;
++		cm_event.ird = 128;
++		cm_event.ord = 128;
  
- 		sde->descq = dma_zalloc_coherent(
- 			&dd->pcidev->dev,
+ 		if (cm_id->event_handler)
+ 			cm_id->event_handler(cm_id, &cm_event);
 -- 
-1.9.1
+2.4.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
