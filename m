@@ -1,27 +1,39 @@
-From: Leon Romanovsky <leon@leon.nu>
-Subject: Re: [PATCH 1/4 v2] staging: ipath: ipath_driver: Use setup_timer
-Date: Sun, 25 Oct 2015 13:21:11 +0200
-Message-ID: <CALq1K=J-jEU=-BKjnAEvuxVfMmbPn4-gdj0i4StRbrVy6ho6Ag@mail.gmail.com>
-References: <1445768253-16107-1-git-send-email-falakreyaz@gmail.com>
+From: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Subject: Re: [PATCH 2195/2195] Staging: rdma: amso1100: Fix multiple
+ assignments on single line.
+Date: Mon, 26 Oct 2015 01:31:27 +0900
+Message-ID: <20151025163127.GA8425@kroah.com>
+References: <1445770206-9645-1-git-send-email-weston.silbaugh@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <1445768253-16107-1-git-send-email-falakreyaz@gmail.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Muhammad Falak R Wani <falakreyaz@gmail.com>
-Cc: devel@driverdev.osuosl.org, linux-rdma <linux-rdma@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mike Marciniszyn <infinipath@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1445770206-9645-1-git-send-email-weston.silbaugh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Weston Silbaugh <weston.silbaugh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Oct 25, 2015 at 12:17 PM, Muhammad Falak R Wani
-<falakreyaz@gmail.com> wrote:
-Please follow standard naming convention for the patches.
-It should be [PATCH v2 1/4] and not [PATCH 1/4 v2].
+On Sun, Oct 25, 2015 at 04:50:06AM -0600, Weston Silbaugh wrote:
+> Multiple assignments should be avoided.
+> 
+> For example:
+> 
+> cm_event.ird = cm_event.ord = 128;
+> 
+> Should be:
+> 
+> cm_event.ird = 128;
+> cm_event.ord = 128;
+> 
+> Signed-off-by: Weston Silbaugh <weston.silbaugh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+
+Where are the 2194 other patches in this series?
+
+thanks,
+
+greg k-h
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
