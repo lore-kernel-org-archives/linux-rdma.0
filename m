@@ -1,14 +1,15 @@
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 1/3] staging: rdma: hfi1: Use setup_timer
-Date: Sat, 24 Oct 2015 19:00:05 -0700
-Message-ID: <20151025020005.GC30763@kroah.com>
-References: <1445653685-3137-1-git-send-email-falakreyaz@gmail.com>
+Subject: Re: [PATCH v2 2/2] staging: IB/ipath: remove sched.h header
+Date: Sat, 24 Oct 2015 19:05:32 -0700
+Message-ID: <20151025020532.GA22888@kroah.com>
+References: <a1a9b6edcb6bbdc079476c99a4add4b21b4414ba.1445175749.git.geliangtang@163.com>
+ <7653f784da256d3424c84d2c743d660219d66499.1445175749.git.geliangtang@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
 Content-Disposition: inline
-In-Reply-To: <1445653685-3137-1-git-send-email-falakreyaz@gmail.com>
+In-Reply-To: <7653f784da256d3424c84d2c743d660219d66499.1445175749.git.geliangtang@163.com>
 List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
  <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
 List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
@@ -18,30 +19,17 @@ List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driver
  <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
 Errors-To: driverdev-devel-bounces@linuxdriverproject.org
 Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Muhammad Falak R Wani <falakreyaz@gmail.com>
+To: Geliang Tang <geliangtang@163.com>
 Cc: devel@driverdev.osuosl.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Mike Marciniszyn <infinipath@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Oct 24, 2015 at 07:58:05AM +0530, Muhammad Falak R Wani wrote:
-> Use the timer API function setup_timer instead of init_timer, removing
-> the structure field assignments.
-> 
-> <smpl>
-> 
-> @timer@
-> expression e1,e2,e3,fn_ptr;
-> @@
-> -init_timer(&e1);
-> +setup_timer(&e1, fn_ptr, e2);
-> ... when != fn_ptr = e3
-> -e1.function = fn_ptr;
-> -e1.data = e2;
-> 
-> </smpl>
-> 
-> Signed-off-by: Muhammad Falak R Wani <falakreyaz@gmail.com>
-> ---
->  drivers/staging/rdma/hfi1/chip.c | 9 +++------
->  1 file changed, 3 insertions(+), 6 deletions(-)
+On Sun, Oct 18, 2015 at 09:57:09PM +0800, Geliang Tang wrote:
+> sched.h header in ipath_*.c is now unnecessary, since I have added
+> sched.h in ipath_kernel.h. So remove it.
 
-Again, 3 patches, all with the same subject, not good :(
+Overall, it's best to split this type of thing out, don't "hide" .h
+includes in another .h file, so I'm not going to take this patch, sorry.
+
+thanks,
+
+greg k-h
