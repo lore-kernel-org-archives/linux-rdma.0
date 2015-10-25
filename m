@@ -1,36 +1,62 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v2 2/2] staging: IB/ipath: remove sched.h header
-Date: Sat, 24 Oct 2015 19:06:33 -0700
-Message-ID: <20151025020633.GA24245@kroah.com>
-References: <a1a9b6edcb6bbdc079476c99a4add4b21b4414ba.1445175749.git.geliangtang@163.com>
- <7653f784da256d3424c84d2c743d660219d66499.1445175749.git.geliangtang@163.com>
- <20151025020532.GA22888@kroah.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-Content-Disposition: inline
-In-Reply-To: <20151025020532.GA22888@kroah.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Geliang Tang <geliangtang@163.com>
-Cc: devel@driverdev.osuosl.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Mike Marciniszyn <infinipath@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+From: Muhammad Falak R Wani <falakreyaz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/4 v2] staging: ipath: ipath_driver: Use setup_timer
+Date: Sun, 25 Oct 2015 15:47:30 +0530
+Message-ID: <1445768253-16107-1-git-send-email-falakreyaz@gmail.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Muhammad Falak R Wani <falakreyaz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Oct 24, 2015 at 07:05:32PM -0700, Greg Kroah-Hartman wrote:
-> On Sun, Oct 18, 2015 at 09:57:09PM +0800, Geliang Tang wrote:
-> > sched.h header in ipath_*.c is now unnecessary, since I have added
-> > sched.h in ipath_kernel.h. So remove it.
-> 
-> Overall, it's best to split this type of thing out, don't "hide" .h
-> includes in another .h file, so I'm not going to take this patch, sorry.
+Use the timer API function setup_timer instead of init_timer, removing
+the structure field assignments.
+The simplified semantic patch used is :-
+<smpl>
 
-Oh nevermind, your 1/2 patch made this make more sense, sorry for the
-noise...
+@timer@
+expression e1,e2,e3,fn_ptr;
+@@
+-init_timer(&e1);
++setup_timer(&e1, fn_ptr, e2);
+... when != fn_ptr = e3
+-e1.function = fn_ptr;
+-e1.data = e2;
+
+</smpl>
+
+Signed-off-by: Muhammad Falak R Wani <falakreyaz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+v2 changes:
+	-> Change the subject line to a be more specific
+	-> Add details about coccinelle in the commit log
+
+mfrw
+
+ drivers/staging/rdma/ipath/ipath_driver.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/staging/rdma/ipath/ipath_driver.c b/drivers/staging/rdma/ipath/ipath_driver.c
+index 46d9898..577704a 100644
+--- a/drivers/staging/rdma/ipath/ipath_driver.c
++++ b/drivers/staging/rdma/ipath/ipath_driver.c
+@@ -2307,10 +2307,9 @@ void ipath_set_led_override(struct ipath_devdata *dd, unsigned int val)
+ 	 */
+ 	if (atomic_inc_return(&dd->ipath_led_override_timer_active) == 1) {
+ 		/* Need to start timer */
+-		init_timer(&dd->ipath_led_override_timer);
+-		dd->ipath_led_override_timer.function =
+-						 ipath_run_led_override;
+-		dd->ipath_led_override_timer.data = (unsigned long) dd;
++		setup_timer(&dd->ipath_led_override_timer,
++				ipath_run_led_override, (unsigned long)dd);
++
+ 		dd->ipath_led_override_timer.expires = jiffies + 1;
+ 		add_timer(&dd->ipath_led_override_timer);
+ 	} else
+-- 
+1.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
