@@ -1,7 +1,7 @@
 From: Weston Silbaugh <weston.silbaugh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Subject: [PATCH 2195/2195] Staging: rdma: amso1100: Fix multiple assignments on single line.
-Date: Sun, 25 Oct 2015 04:35:24 -0600
-Message-ID: <1445769324-9149-1-git-send-email-weston.silbaugh@gmail.com>
+Date: Sun, 25 Oct 2015 04:50:06 -0600
+Message-ID: <1445770206-9645-1-git-send-email-weston.silbaugh@gmail.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
