@@ -1,54 +1,58 @@
-From: Muhammad Falak R Wani <falakreyaz@gmail.com>
-Subject: [PATCH 4/4 v2] staging: ipath: ipath_verbs: Use setup_timer
-Date: Sun, 25 Oct 2015 15:47:33 +0530
-Message-ID: <1445768253-16107-4-git-send-email-falakreyaz@gmail.com>
-References: <1445768253-16107-1-git-send-email-falakreyaz@gmail.com>
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: Create a common verbs transport library
+Date: Sun, 25 Oct 2015 13:15:49 +0300
+Message-ID: <CAG9sBKOa=3piY0V6qWdrp0GtFYuq8k=SfVB2vFXk9XdbSsFfmA@mail.gmail.com>
+References: <20150929125648.GA3433@phlsvsds.ph.intel.com>
+	<CAG9sBKPqXk671c7obj4wd8drNaxPU3gue428y3Es_BJfuC-sVQ@mail.gmail.com>
+	<20151014184903.GA12463@phlsvsds.ph.intel.com>
+	<CAG9sBKNKvpbRZgK+nsbuhycSnCMYnL3ObqfXmiab+akuFf99rw@mail.gmail.com>
+	<20151015130726.GA12480@phlsvsds.ph.intel.com>
+	<CAG9sBKNnGqdMwi+J1709JNgpW6fS1eWmc6ZN51SH2tv2Du1SGA@mail.gmail.com>
+	<20151023204938.GA18980@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <1445768253-16107-1-git-send-email-falakreyaz@gmail.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Mike Marciniszyn <infinipath@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-rdma@vger.kernel.org, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Cc: Muhammad Falak R Wani <falakreyaz@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151023204938.GA18980-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Use the timer API function setup_timer instead of init_timer, removing
-the structure field assignments.
+Thanks, we'll look into it today
 
-Signed-off-by: Muhammad Falak R Wani <falakreyaz@gmail.com>
----
-v2 changes:
-	-> Change the subject line to a be more specific
-
-mfrw
-
- drivers/staging/rdma/ipath/ipath_verbs.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/staging/rdma/ipath/ipath_verbs.c b/drivers/staging/rdma/ipath/ipath_verbs.c
-index 40f7f05..fa8d02b 100644
---- a/drivers/staging/rdma/ipath/ipath_verbs.c
-+++ b/drivers/staging/rdma/ipath/ipath_verbs.c
-@@ -1956,9 +1956,8 @@ static int enable_timer(struct ipath_devdata *dd)
- 				 dd->ipath_gpio_mask);
- 	}
- 
--	init_timer(&dd->verbs_timer);
--	dd->verbs_timer.function = __verbs_timer;
--	dd->verbs_timer.data = (unsigned long)dd;
-+	setup_timer(&dd->verbs_timer, __verbs_timer, (unsigned long)dd);
-+
- 	dd->verbs_timer.expires = jiffies + 1;
- 	add_timer(&dd->verbs_timer);
- 
--- 
-1.9.1
+On Fri, Oct 23, 2015 at 11:49 PM, Dennis Dalessandro
+<dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> On Thu, Oct 15, 2015 at 05:15:38PM +0300, Moni Shoua wrote:
+>>>
+>>> I'm thinking perhaps we'll post some stuff to GitHub and you folks can
+>>> take
+>>> a look. We can do some back and forth before even posting patches to the
+>>> list. I'll check into the logistics and share the details soon?
+>>
+>>
+>> This will be great. Just send us the ref.
+>> If you'd like we can have an online meeting to have an initial talk.
+>> From my experience this can be very useful to align all on the
+>> subject.
+>
+>
+> I have created a branch on a GitHub repo. You can find it at:
+> https://github.com/weiny2/linux-kernel/tree/rdmavt
+>
+> This is a starting point to get the ball rolling. I have a few more patches
+> to further refine the skeleton rdmavt module. I should be able to post those
+> early next week.  At that point we will have a more clear idea of what the
+> API between the drivers and rdmavt will need to look like for hfi1 and qib.
+> We will look for your feedback on how soft roce is going to fit in as well.
+>
+>
+> -Denny
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
