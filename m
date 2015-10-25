@@ -1,7 +1,7 @@
 From: Muhammad Falak R Wani <falakreyaz@gmail.com>
-Subject: [PATCH 2/3] staging: hfi1: driver: Use setup_timer
-Date: Sun, 25 Oct 2015 16:13:24 +0530
-Message-ID: <1445769805-16522-2-git-send-email-falakreyaz@gmail.com>
+Subject: [PATCH 3/3] staging: hfi1: sdma: Use setup_timer
+Date: Sun, 25 Oct 2015 16:13:25 +0530
+Message-ID: <1445769805-16522-3-git-send-email-falakreyaz@gmail.com>
 References: <1445769805-16522-1-git-send-email-falakreyaz@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -24,43 +24,30 @@ List-Id: linux-rdma@vger.kernel.org
 Use the timer API function setup_timer instead of init_timer, removing
 the structure field assignments.
 
-<smpl>
-
-@timer@
-expression e1,e2,e3,fn_ptr;
-@@
--init_timer(&e1);
-+setup_timer(&e1, fn_ptr, e2);
-... when != fn_ptr = e3
--e1.function = fn_ptr;
--e1.data = e2;
-
-</smpl>
-
 Signed-off-by: Muhammad Falak R Wani <falakreyaz@gmail.com>
 ---
 v2 changes
 	->make subject line more specific
 
- drivers/staging/rdma/hfi1/driver.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/staging/rdma/hfi1/sdma.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/driver.c b/drivers/staging/rdma/hfi1/driver.c
-index c0a5900..ef4e0c5 100644
---- a/drivers/staging/rdma/hfi1/driver.c
-+++ b/drivers/staging/rdma/hfi1/driver.c
-@@ -1062,9 +1062,9 @@ void hfi1_set_led_override(struct hfi1_pportdata *ppd, unsigned int val)
- 	 */
- 	if (atomic_inc_return(&ppd->led_override_timer_active) == 1) {
- 		/* Need to start timer */
--		init_timer(&ppd->led_override_timer);
--		ppd->led_override_timer.function = run_led_override;
--		ppd->led_override_timer.data = (unsigned long) ppd;
-+		setup_timer(&ppd->led_override_timer, run_led_override,
-+				(unsigned long)ppd);
-+
- 		ppd->led_override_timer.expires = jiffies + 1;
- 		add_timer(&ppd->led_override_timer);
- 	} else {
+diff --git a/drivers/staging/rdma/hfi1/sdma.c b/drivers/staging/rdma/hfi1/sdma.c
+index 63ab721..16d93ff 100644
+--- a/drivers/staging/rdma/hfi1/sdma.c
++++ b/drivers/staging/rdma/hfi1/sdma.c
+@@ -1094,10 +1094,8 @@ int sdma_init(struct hfi1_devdata *dd, u8 port)
+ 
+ 		sde->progress_check_head = 0;
+ 
+-		init_timer(&sde->err_progress_check_timer);
+-		sde->err_progress_check_timer.function =
+-						sdma_err_progress_check;
+-		sde->err_progress_check_timer.data = (unsigned long)sde;
++		setup_timer(&sde->err_progress_check_timer,
++			    sdma_err_progress_check, (unsigned long)sde);
+ 
+ 		sde->descq = dma_zalloc_coherent(
+ 			&dd->pcidev->dev,
 -- 
 1.9.1
