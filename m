@@ -1,50 +1,140 @@
-From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [ANNOUNCE] OFED 3.18-1-rc2 release is available
-Date: Mon, 26 Oct 2015 16:27:02 +0200
-Message-ID: <562E3836.6030200@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Unsubscribe: <http://lists.openfabrics.org/mailman/options/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-To: 'OpenFabrics EWG' <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH v3 00/23] staging/rdma/hfi1: Fix bugs and performance issues
+Date: Mon, 26 Oct 2015 10:28:26 -0400
+Message-ID: <1445869729-7507-1-git-send-email-ira.weiny@intel.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
-OFED-3.18-1-rc2 is available at:
-https://openfabrics.org/downloads/OFED/ofed-3.18-1/OFED-3.18-1-rc2.tgz
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-To get BUILD_ID run ofed_info
+The following are fixes to the hfi1 driver for stability, security, and
+performance.
 
-Please report any issues in bugzilla
-http://bugs.openfabrics.org/bugzilla/ for OFED 3.18-1
-
-Release notes:
-https://openfabrics.org/downloads/OFED/release_notes/OFED_3.18-1-rc2_release_notes
-
-OFED-3.18-1-rc2 Main Changes from OFED 3.18-1-rc1
--------------------------------------------------------------------------------
-1. Updated packages:
-   - dapl-2.1.7
-   - infiniband-diags-1.6.6
-   - infinipath-psm-3.3-7_g05f6f14_open
-   - libiwpm-1.0.3
-   - libfabric-1.1.1
-   - fabtests-1.1.1
-
-2. compat-rdma changes
-   - xeon-phi: ibscif bug 2575: Allow xeon-phi support for Knights Landing
-   - xeon-phi: ibscif bug 2570: correction to communitate between host and card
+Changes from v2:
+	Rebased to latest staging-next
+	Update commit messages
 
 
-Regards,
-Vladimir
+	Squashed these patches together:
+		0006-staging-rdma-hfi1-Add-coalescing-support-for-SDMA-TX.patch
+		0007-staging-rdma-hfi1-Fix-sparse-error-in-sdma.h-file.patch
+
+
+	Split some patches for clarity (new patches):
+		0013-staging-rdma-hfi1-Wrong-cast-breaks-desired-pointer-.patch
+		0016-staging-rdma-hfi1-Increase-SDMA-descriptor-queue-siz.patch
+
+
+	[PATCH v3 14/23] staging/rdma/hfi1: Implement Expected Receive TID caching
+		Fix random Kconfig 0-day build error
+		Fix leak of random memory to user space caught by Dan Carpenter
+		Separate out pointer bug fix into a previous patch
+		Change error checks in case statement per Dan's comments
+
+
+	[PATCH v3 15/23] staging/rdma/hfi1: Allow tuning of SDMA interrupt rate
+		Squash in a patch with a recommended default value of 64.
+
+
+
+Changes from v1:
+	Reviewed each patch for new features.  Found 2 which fixed congestion
+	notification in some corner cases but they could be considered
+	additional features, so they were dropped.
+
+	Split code clean up from patch 14 "Implement Expected Receive TID
+	caching" into a separate patch.
+
+	Updated some commit messages to be clear how those patches fixed the
+	driver.
+
+
+Caz Yokoyama (1):
+  staging/rdma/hfi1: Reset firmware instead of reloading Sbus
+
+Dean Luick (4):
+  staging/rdma/hfi1: Extend the offline timeout
+  staging/rdma/hfi1: Add a schedule in send thread
+  staging/rdma/hfi1: Add irqsaves in the packet processing path
+  staging/rdma/hfi1: Thread the receive interrupt.
+
+Easwar Hariharan (4):
+  staging/rdma/hfi1: Fix code to reset ASIC CSRs on FLR
+  staging/rdma/hfi1: Remove QSFP_ENABLED from HFI capability mask
+  staging/rdma/hfi1: Fix port bounce issues with 0.22 DC firmware
+  staging/rdma/hfi1: Load SBus firmware once per ASIC
+
+Ignacio Hernandez (1):
+  staging/rdma/hfi1: Increase SDMA descriptor queue size
+
+Jareer Abdel-Qader (1):
+  staging/rdma/hfi1: close shared context security hole
+
+Jubin John (2):
+  staging/rdma/hfi1: Add unit # to verbs txreq cache name
+  staging/rdma/hfi1: Update driver version string to 0.9-294
+
+Mike Marciniszyn (3):
+  staging/rdma/hfi1: Fix regression in send performance
+  staging/rdma/hfi: modify workqueue for parallelism
+  staging/rdma/hfi1: add additional rc traces
+
+Mitko Haralanov (5):
+  staging/rdma/hfi1: Prevent silent data corruption with user SDMA
+  staging/rdma/hfi1: Macro code clean up
+  staging/rdma/hfi1: Wrong cast breaks desired pointer arithmetic
+  staging/rdma/hfi1: Implement Expected Receive TID caching
+  staging/rdma/hfi1: Allow tuning of SDMA interrupt rate
+
+Niranjana Vishwanathapura (1):
+  staging/rdma/hfi1: Add coalescing support for SDMA TX descriptors
+
+Vennila Megavannan (1):
+  staging/rdma/hfi1: Prevent host software lock up
+
+ drivers/staging/rdma/hfi1/Kconfig        |    1 +
+ drivers/staging/rdma/hfi1/Makefile       |    2 +-
+ drivers/staging/rdma/hfi1/chip.c         |  157 +++-
+ drivers/staging/rdma/hfi1/chip.h         |    2 +
+ drivers/staging/rdma/hfi1/common.h       |   19 +-
+ drivers/staging/rdma/hfi1/driver.c       |   77 +-
+ drivers/staging/rdma/hfi1/file_ops.c     |  497 ++-----------
+ drivers/staging/rdma/hfi1/firmware.c     |   37 +-
+ drivers/staging/rdma/hfi1/hfi.h          |   85 ++-
+ drivers/staging/rdma/hfi1/init.c         |   23 +-
+ drivers/staging/rdma/hfi1/iowait.h       |    6 +-
+ drivers/staging/rdma/hfi1/mad.c          |    4 +-
+ drivers/staging/rdma/hfi1/pcie.c         |   15 +-
+ drivers/staging/rdma/hfi1/pio.c          |   14 +-
+ drivers/staging/rdma/hfi1/qp.c           |   47 +-
+ drivers/staging/rdma/hfi1/qp.h           |   51 ++
+ drivers/staging/rdma/hfi1/qsfp.c         |   13 +-
+ drivers/staging/rdma/hfi1/rc.c           |   23 +-
+ drivers/staging/rdma/hfi1/ruc.c          |   55 +-
+ drivers/staging/rdma/hfi1/sdma.c         |  164 ++++-
+ drivers/staging/rdma/hfi1/sdma.h         |   82 ++-
+ drivers/staging/rdma/hfi1/trace.c        |    4 +-
+ drivers/staging/rdma/hfi1/trace.h        |  180 +++--
+ drivers/staging/rdma/hfi1/ud.c           |    1 +
+ drivers/staging/rdma/hfi1/user_exp_rcv.c | 1171 ++++++++++++++++++++++++++++++
+ drivers/staging/rdma/hfi1/user_exp_rcv.h |   82 +++
+ drivers/staging/rdma/hfi1/user_pages.c   |  110 +--
+ drivers/staging/rdma/hfi1/user_sdma.c    |  103 ++-
+ drivers/staging/rdma/hfi1/user_sdma.h    |   10 +-
+ drivers/staging/rdma/hfi1/verbs.c        |   50 +-
+ drivers/staging/rdma/hfi1/verbs.h        |    9 +-
+ include/uapi/rdma/hfi/hfi1_user.h        |   46 +-
+ 32 files changed, 2177 insertions(+), 963 deletions(-)
+ create mode 100644 drivers/staging/rdma/hfi1/user_exp_rcv.c
+ create mode 100644 drivers/staging/rdma/hfi1/user_exp_rcv.h
+
+-- 
+1.8.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
