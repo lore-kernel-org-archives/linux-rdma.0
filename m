@@ -1,53 +1,50 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 01/22] staging/rdma/hfi1: Fix regression in send performance
-Date: Sun, 25 Oct 2015 22:10:05 -0400
-Message-ID: <20151026021004.GA25652@phlsvsds.ph.intel.com>
-References: <1445307097-8244-1-git-send-email-ira.weiny@intel.com> <1445307097-8244-2-git-send-email-ira.weiny@intel.com> <20151021131530.GI7340@mwanda>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [ANNOUNCE] OFED 3.18-1-rc2 release is available
+Date: Mon, 26 Oct 2015 16:27:02 +0200
+Message-ID: <562E3836.6030200@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20151021131530.GI7340@mwanda>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/mailman/options/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: 'OpenFabrics EWG' <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 21, 2015 at 04:18:06PM +0300, Dan Carpenter wrote:
-> On Mon, Oct 19, 2015 at 10:11:16PM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> > From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > 
-> > This additional call is a regression from qib.  For small messages the progress
-> > routine always builds one and clears out the ahg state when the queue has gone
-> > to empty which is the predominant case for small messages.
-> > 
-> > Inline the routine to mitigate the call and move the routine to qp.h for scope
-> > reasons.
-> > 
-> > Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > ---
-> 
-> The whole point of this patch is to do:
-> 
-> > -	if (qp->s_sde)
-> > +	if (qp->s_sde && qp->s_ahgidx >= 0)
-> 
-> It was not at all clear from the changelog and it was difficult to tell
-> because we moved code around as well.
+Hi,
+OFED-3.18-1-rc2 is available at:
+https://openfabrics.org/downloads/OFED/ofed-3.18-1/OFED-3.18-1-rc2.tgz
 
-I've cleaned up the commit message.
+To get BUILD_ID run ofed_info
 
-v3 should be on its way after I make sure I have addressed all your comments on
-all the patches.
+Please report any issues in bugzilla
+http://bugs.openfabrics.org/bugzilla/ for OFED 3.18-1
 
-Ira
+Release notes:
+https://openfabrics.org/downloads/OFED/release_notes/OFED_3.18-1-rc2_release_notes
 
-> 
-> regards,
-> dan carpenter
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+OFED-3.18-1-rc2 Main Changes from OFED 3.18-1-rc1
+-------------------------------------------------------------------------------
+1. Updated packages:
+   - dapl-2.1.7
+   - infiniband-diags-1.6.6
+   - infinipath-psm-3.3-7_g05f6f14_open
+   - libiwpm-1.0.3
+   - libfabric-1.1.1
+   - fabtests-1.1.1
+
+2. compat-rdma changes
+   - xeon-phi: ibscif bug 2575: Allow xeon-phi support for Knights Landing
+   - xeon-phi: ibscif bug 2570: correction to communitate between host and card
+
+
+Regards,
+Vladimir
