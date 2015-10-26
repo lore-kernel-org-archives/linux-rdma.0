@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v3 13/23] staging/rdma/hfi1: Wrong cast breaks desired pointer arithmetic
-Date: Mon, 26 Oct 2015 10:28:39 -0400
-Message-ID: <1445869729-7507-14-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH v3 12/23] staging/rdma/hfi1: Macro code clean up
+Date: Mon, 26 Oct 2015 10:28:38 -0400
+Message-ID: <1445869729-7507-13-git-send-email-ira.weiny@intel.com>
 References: <1445869729-7507-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1445869729-7507-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,37 +12,55 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The address being mapped into a process's memory for notification events was
-improperly calculated due to cast that was happening too early. dd->events is a
-pointer and should have been casted to unsigned long after the pointer
-arithmetic was done, not before.
-
-As a result, processes were looking at the wrong place and not seeing their
-notification events.
+Clean up the context and sdma macros and move them to a more logical place in
+hfi.h
 
 Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/file_ops.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/staging/rdma/hfi1/hfi.h | 22 ++++++++++------------
+ 1 file changed, 10 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
-index 955f80dfecf6..aae9826ec62b 100644
---- a/drivers/staging/rdma/hfi1/file_ops.c
-+++ b/drivers/staging/rdma/hfi1/file_ops.c
-@@ -607,9 +607,9 @@ static int hfi1_file_mmap(struct file *fp, struct vm_area_struct *vma)
- 		 * Use the page where this context's flags are. User level
- 		 * knows where it's own bitmap is within the page.
- 		 */
--		memaddr = ((unsigned long)dd->events +
--			   ((uctxt->ctxt - dd->first_user_ctxt) *
--			    HFI1_MAX_SHARED_CTXTS)) & PAGE_MASK;
-+		memaddr = (unsigned long)(dd->events +
-+					  ((uctxt->ctxt - dd->first_user_ctxt) *
-+					   HFI1_MAX_SHARED_CTXTS)) & PAGE_MASK;
- 		memlen = PAGE_SIZE;
- 		/*
- 		 * v3.7 removes VM_RESERVED but the effect is kept by
+diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
+index a35213e9b500..41ad9a30149b 100644
+--- a/drivers/staging/rdma/hfi1/hfi.h
++++ b/drivers/staging/rdma/hfi1/hfi.h
+@@ -1104,6 +1104,16 @@ struct hfi1_filedata {
+ 	int rec_cpu_num;
+ };
+ 
++/* for use in system calls, where we want to know device type, etc. */
++#define fp_to_fd(fp) ((struct hfi1_filedata *)(fp)->private_data)
++#define ctxt_fp(fp) (fp_to_fd((fp))->uctxt)
++#define subctxt_fp(fp) (fp_to_fd((fp))->subctxt)
++#define tidcursor_fp(fp) (fp_to_fd((fp))->tidcursor)
++#define user_sdma_pkt_fp(fp) (fp_to_fd((fp))->pq)
++#define user_sdma_comp_fp(fp) (fp_to_fd((fp))->cq)
++#define notifier_fp(fp) (fp_to_fd((fp))->mn)
++#define rb_fp(fp) (fp_to_fd((fp))->tid_rb_root)
++
+ extern struct list_head hfi1_dev_list;
+ extern spinlock_t hfi1_devs_lock;
+ struct hfi1_devdata *hfi1_lookup(int unit);
+@@ -1411,18 +1421,6 @@ int snoop_send_pio_handler(struct hfi1_qp *qp, struct ahg_ib_header *ibhdr,
+ void snoop_inline_pio_send(struct hfi1_devdata *dd, struct pio_buf *pbuf,
+ 			   u64 pbc, const void *from, size_t count);
+ 
+-/* for use in system calls, where we want to know device type, etc. */
+-#define ctxt_fp(fp) \
+-	(((struct hfi1_filedata *)(fp)->private_data)->uctxt)
+-#define subctxt_fp(fp) \
+-	(((struct hfi1_filedata *)(fp)->private_data)->subctxt)
+-#define tidcursor_fp(fp) \
+-	(((struct hfi1_filedata *)(fp)->private_data)->tidcursor)
+-#define user_sdma_pkt_fp(fp) \
+-	(((struct hfi1_filedata *)(fp)->private_data)->pq)
+-#define user_sdma_comp_fp(fp) \
+-	(((struct hfi1_filedata *)(fp)->private_data)->cq)
+-
+ static inline struct hfi1_devdata *dd_from_ppd(struct hfi1_pportdata *ppd)
+ {
+ 	return ppd->dd;
 -- 
 1.8.2
 
