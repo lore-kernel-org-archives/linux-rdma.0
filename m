@@ -1,7 +1,8 @@
 From: ira.weiny@intel.com
-Subject: [PATCH v3 04/23] staging/rdma/hfi1: Prevent host software lock up
-Date: Mon, 26 Oct 2015 10:28:30 -0400
-Message-ID: <1445869729-7507-5-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH v3 08/23] staging/rdma/hfi1: Reset firmware instead of
+ reloading Sbus
+Date: Mon, 26 Oct 2015 10:28:34 -0400
+Message-ID: <1445869729-7507-9-git-send-email-ira.weiny@intel.com>
 References: <1445869729-7507-1-git-send-email-ira.weiny@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,96 +19,85 @@ List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driver
 Errors-To: driverdev-devel-bounces@linuxdriverproject.org
 Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
 To: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org
-Cc: linux-rdma@vger.kernel.org, dennis.dalessandro@intel.com, dledford@redhat.com, Vennila Megavannan <vennila.megavannan@intel.com>
+Cc: linux-rdma@vger.kernel.org, dennis.dalessandro@intel.com, dledford@redhat.com, Caz Yokoyama <caz.yokoyama@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Vennila Megavannan <vennila.megavannan@intel.com>
+From: Caz Yokoyama <caz.yokoyama@intel.com>
 
-If packets stop egressing the hardware link, software can lock up.
+Reset firmware instead of reloading Sbus firmware if it's already done for this
+ASIC.  To work around thermal polling problem in firmware, don't reload Sbus
+firmware, instead, reset the firmware on the initialization of the second HFI.
 
-Implement a timeout for send context halt recovery.  This patch increases the
-timeout for packet egress to 500 us and timer resets to zero if the packet
-occupancy changes. Also we bounce the link on time out.
-
+Reviewed-by: Easwar Hariharan <easwar.hariharan@intel.com>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 Reviewed-by: Dean Luick <dean.luick@intel.com>
-Signed-off-by: Vennila Megavannan <vennila.megavannan@intel.com>
+Signed-off-by: Caz Yokoyama <caz.yokoyama@intel.com>
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
- drivers/staging/rdma/hfi1/pio.c  | 14 +++++++++++---
- drivers/staging/rdma/hfi1/sdma.c | 15 ++++++++++++---
- 2 files changed, 23 insertions(+), 6 deletions(-)
+ drivers/staging/rdma/hfi1/chip.h     |  1 +
+ drivers/staging/rdma/hfi1/firmware.c |  4 +---
+ drivers/staging/rdma/hfi1/pcie.c     | 13 ++++++++++++-
+ 3 files changed, 14 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/pio.c b/drivers/staging/rdma/hfi1/pio.c
-index 67dd93a6888c..e5c32db4bc67 100644
---- a/drivers/staging/rdma/hfi1/pio.c
-+++ b/drivers/staging/rdma/hfi1/pio.c
-@@ -922,10 +922,12 @@ void sc_disable(struct send_context *sc)
- static void sc_wait_for_packet_egress(struct send_context *sc, int pause)
- {
- 	struct hfi1_devdata *dd = sc->dd;
--	u64 reg;
-+	u64 reg = 0;
-+	u64 reg_prev;
- 	u32 loop = 0;
+diff --git a/drivers/staging/rdma/hfi1/chip.h b/drivers/staging/rdma/hfi1/chip.h
+index f89a432c7334..497c5de23d53 100644
+--- a/drivers/staging/rdma/hfi1/chip.h
++++ b/drivers/staging/rdma/hfi1/chip.h
+@@ -609,6 +609,7 @@ static inline void write_uctxt_csr(struct hfi1_devdata *dd, int ctxt,
+ u64 create_pbc(struct hfi1_pportdata *ppd, u64, int, u32, u32);
  
- 	while (1) {
-+		reg_prev = reg;
- 		reg = read_csr(dd, sc->hw_context * 8 +
- 			       SEND_EGRESS_CTXT_STATUS);
- 		/* done if egress is stopped */
-@@ -934,11 +936,17 @@ static void sc_wait_for_packet_egress(struct send_context *sc, int pause)
- 		reg = packet_occupancy(reg);
- 		if (reg == 0)
- 			break;
--		if (loop > 100) {
-+		/* counter is reset if occupancy count changes */
-+		if (reg != reg_prev)
-+			loop = 0;
-+		if (loop > 500) {
-+			/* timed out - bounce the link */
- 			dd_dev_err(dd,
--				"%s: context %u(%u) timeout waiting for packets to egress, remaining count %u\n",
-+				"%s: context %u(%u) timeout waiting for packets to egress, remaining count %u, bouncing link\n",
- 				__func__, sc->sw_index,
- 				sc->hw_context, (u32)reg);
-+			queue_work(dd->pport->hfi1_wq,
-+				&dd->pport->link_bounce_work);
- 			break;
+ /* firmware.c */
++#define SBUS_MASTER_BROADCAST 0xfd
+ #define NUM_PCIE_SERDES 16	/* number of PCIe serdes on the SBus */
+ extern const u8 pcie_serdes_broadcast[];
+ extern const u8 pcie_pcs_addrs[2][NUM_PCIE_SERDES];
+diff --git a/drivers/staging/rdma/hfi1/firmware.c b/drivers/staging/rdma/hfi1/firmware.c
+index 15c9cb7a3150..ace75ce3da3f 100644
+--- a/drivers/staging/rdma/hfi1/firmware.c
++++ b/drivers/staging/rdma/hfi1/firmware.c
+@@ -924,9 +924,6 @@ static int load_8051_firmware(struct hfi1_devdata *dd,
+ 	return 0;
+ }
+ 
+-/* SBus Master broadcast address */
+-#define SBUS_MASTER_BROADCAST 0xfd
+-
+ /*
+  * Write the SBus request register
+  *
+@@ -1255,6 +1252,7 @@ int load_firmware(struct hfi1_devdata *dd)
+ 			ret = load_sbus_firmware(dd, &fw_sbus);
+ 			if (ret)
+ 				goto clear;
++			fw_sbus_load = 0;
  		}
- 		loop++;
-diff --git a/drivers/staging/rdma/hfi1/sdma.c b/drivers/staging/rdma/hfi1/sdma.c
-index 63ab72102183..d57531796723 100644
---- a/drivers/staging/rdma/hfi1/sdma.c
-+++ b/drivers/staging/rdma/hfi1/sdma.c
-@@ -303,17 +303,26 @@ static void sdma_wait_for_packet_egress(struct sdma_engine *sde,
- 	u64 off = 8 * sde->this_idx;
- 	struct hfi1_devdata *dd = sde->dd;
- 	int lcnt = 0;
-+	u64 reg_prev;
-+	u64 reg = 0;
  
- 	while (1) {
--		u64 reg = read_csr(dd, off + SEND_EGRESS_SEND_DMA_STATUS);
-+		reg_prev = reg;
-+		reg = read_csr(dd, off + SEND_EGRESS_SEND_DMA_STATUS);
+ 		if (fw_fabric_serdes_load) {
+diff --git a/drivers/staging/rdma/hfi1/pcie.c b/drivers/staging/rdma/hfi1/pcie.c
+index ac5653c0f65e..3b50cdda1c0a 100644
+--- a/drivers/staging/rdma/hfi1/pcie.c
++++ b/drivers/staging/rdma/hfi1/pcie.c
+@@ -946,9 +946,20 @@ int do_pcie_gen3_transition(struct hfi1_devdata *dd)
+ 			    __func__);
+ 	}
  
- 		reg &= SDMA_EGRESS_PACKET_OCCUPANCY_SMASK;
- 		reg >>= SDMA_EGRESS_PACKET_OCCUPANCY_SHIFT;
- 		if (reg == 0)
- 			break;
--		if (lcnt++ > 100) {
--			dd_dev_err(dd, "%s: engine %u timeout waiting for packets to egress, remaining count %u\n",
-+		/* counter is reest if accupancy count changes */
-+		if (reg != reg_prev)
-+			lcnt = 0;
-+		if (lcnt++ > 500) {
-+			/* timed out - bounce the link */
-+			dd_dev_err(dd, "%s: engine %u timeout waiting for packets to egress, remaining count %u, bouncing link\n",
- 				  __func__, sde->this_idx, (u32)reg);
-+			queue_work(dd->pport->hfi1_wq,
-+				&dd->pport->link_bounce_work);
- 			break;
- 		}
- 		udelay(1);
++retry:
++	if (therm) {
++		/* toggle SPICO_ENABLE to get back to the state
++		   just after the firmware load */
++		sbus_request(dd, SBUS_MASTER_BROADCAST, 0x01,
++			WRITE_SBUS_RECEIVER, 0x00000040);
++		sbus_request(dd, SBUS_MASTER_BROADCAST, 0x01,
++			WRITE_SBUS_RECEIVER, 0x00000140);
++		dd_dev_info(dd, "%s: toggle SPICO_ENABLE to reset the bus\n",
++			    __func__);
++	}
++
+ 	/* step 3: download SBus Master firmware */
+ 	/* step 4: download PCIe Gen3 SerDes firmware */
+-retry:
+ 	dd_dev_info(dd, "%s: downloading firmware\n", __func__);
+ 	ret = load_pcie_firmware(dd);
+ 	if (ret)
 -- 
 1.8.2
