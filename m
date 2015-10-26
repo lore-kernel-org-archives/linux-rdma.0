@@ -1,155 +1,126 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v3 22/23] staging/rdma/hfi1: add additional rc traces
-Date: Mon, 26 Oct 2015 10:28:48 -0400
-Message-ID: <1445869729-7507-23-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH v3 09/23] staging/rdma/hfi1: Add a schedule in send thread
+Date: Mon, 26 Oct 2015 10:28:35 -0400
+Message-ID: <1445869729-7507-10-git-send-email-ira.weiny@intel.com>
 References: <1445869729-7507-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1445869729-7507-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Add additional rc traces to aid in debugging rc retry logic.
+When under heavy load, the send handler can run too long without allowing other
+tasks to run.  Add a conditional resched to break this up.
 
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/rc.c    |  4 ++++
- drivers/staging/rdma/hfi1/trace.c |  4 ++--
- drivers/staging/rdma/hfi1/trace.h | 48 +++++++++++++++++++++++++++++----------
- 3 files changed, 42 insertions(+), 14 deletions(-)
+ drivers/staging/rdma/hfi1/chip.c  | 10 ++++++++++
+ drivers/staging/rdma/hfi1/chip.h  |  1 +
+ drivers/staging/rdma/hfi1/ruc.c   | 12 ++++++++++++
+ drivers/staging/rdma/hfi1/verbs.h |  1 +
+ 4 files changed, 24 insertions(+)
 
-diff --git a/drivers/staging/rdma/hfi1/rc.c b/drivers/staging/rdma/hfi1/rc.c
-index 72d442143b1c..0b19206ff33e 100644
---- a/drivers/staging/rdma/hfi1/rc.c
-+++ b/drivers/staging/rdma/hfi1/rc.c
-@@ -927,6 +927,7 @@ static void rc_timeout(unsigned long arg)
- 		ibp->n_rc_timeouts++;
- 		qp->s_flags &= ~HFI1_S_TIMER;
- 		del_timer(&qp->s_timer);
-+		trace_hfi1_rc_timeout(qp, qp->s_last_psn + 1);
- 		restart_rc(qp, qp->s_last_psn + 1, 1);
- 		hfi1_schedule_send(qp);
- 	}
-@@ -1442,6 +1443,8 @@ static void rc_rcv_resp(struct hfi1_ibport *ibp,
+diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
+index aad25b6686ff..1a6dd877c8d8 100644
+--- a/drivers/staging/rdma/hfi1/chip.c
++++ b/drivers/staging/rdma/hfi1/chip.c
+@@ -1530,6 +1530,14 @@ static u64 access_sw_kmem_wait(const struct cntr_entry *entry,
+ 	return dd->verbs_dev.n_kmem_wait;
+ }
  
- 	spin_lock_irqsave(&qp->s_lock, flags);
- 
-+	trace_hfi1_rc_ack(qp, psn);
++static u64 access_sw_send_schedule(const struct cntr_entry *entry,
++			       void *context, int vl, int mode, u64 data)
++{
++	struct hfi1_devdata *dd = (struct hfi1_devdata *)context;
 +
- 	/* Ignore invalid responses. */
- 	if (cmp_psn(psn, qp->s_next_psn) >= 0)
- 		goto ack_done;
-@@ -1630,6 +1633,7 @@ static noinline int rc_rcv_error(struct hfi1_other_headers *ohdr, void *data,
- 	u8 i, prev;
- 	int old_req;
- 
-+	trace_hfi1_rc_rcv_error(qp, psn);
- 	if (diff > 0) {
- 		/*
- 		 * Packet sequence error.
-diff --git a/drivers/staging/rdma/hfi1/trace.c b/drivers/staging/rdma/hfi1/trace.c
-index 70ad7b9fc1ce..f55b75194847 100644
---- a/drivers/staging/rdma/hfi1/trace.c
-+++ b/drivers/staging/rdma/hfi1/trace.c
-@@ -126,13 +126,13 @@ const char *parse_everbs_hdrs(
- 	case OP(RC, ACKNOWLEDGE):
- 		trace_seq_printf(p, AETH_PRN,
- 			be32_to_cpu(eh->aeth) >> 24,
--			be32_to_cpu(eh->aeth) & HFI1_QPN_MASK);
-+			be32_to_cpu(eh->aeth) & HFI1_MSN_MASK);
- 		break;
- 	/* aeth + atomicacketh */
- 	case OP(RC, ATOMIC_ACKNOWLEDGE):
- 		trace_seq_printf(p, AETH_PRN " " ATOMICACKETH_PRN,
- 			(be32_to_cpu(eh->at.aeth) >> 24) & 0xff,
--			be32_to_cpu(eh->at.aeth) & HFI1_QPN_MASK,
-+			be32_to_cpu(eh->at.aeth) & HFI1_MSN_MASK,
- 			(unsigned long long)ib_u64_get(eh->at.atomic_ack_eth));
- 		break;
- 	/* atomiceth */
-diff --git a/drivers/staging/rdma/hfi1/trace.h b/drivers/staging/rdma/hfi1/trace.h
-index 0354dca9a6f4..db51cf55c538 100644
---- a/drivers/staging/rdma/hfi1/trace.h
-+++ b/drivers/staging/rdma/hfi1/trace.h
-@@ -1290,37 +1290,61 @@ TRACE_EVENT(hfi1_sdma_state,
- #undef TRACE_SYSTEM
- #define TRACE_SYSTEM hfi1_rc
- 
--DECLARE_EVENT_CLASS(hfi1_sdma_rc,
-+DECLARE_EVENT_CLASS(hfi1_rc_template,
- 	TP_PROTO(struct hfi1_qp *qp, u32 psn),
- 	TP_ARGS(qp, psn),
- 	TP_STRUCT__entry(
- 		DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
- 		__field(u32, qpn)
--		__field(u32, flags)
-+		__field(u32, s_flags)
- 		__field(u32, psn)
--		__field(u32, sending_psn)
--		__field(u32, sending_hpsn)
-+		__field(u32, s_psn)
-+		__field(u32, s_next_psn)
-+		__field(u32, s_sending_psn)
-+		__field(u32, s_sending_hpsn)
-+		__field(u32, r_psn)
- 	),
- 	TP_fast_assign(
- 		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device))
- 		__entry->qpn = qp->ibqp.qp_num;
--		__entry->flags = qp->s_flags;
-+		__entry->s_flags = qp->s_flags;
- 		__entry->psn = psn;
--		__entry->sending_psn = qp->s_sending_psn;
--		__entry->sending_hpsn = qp->s_sending_hpsn;
-+		__entry->s_psn = qp->s_psn;
-+		__entry->s_next_psn = qp->s_next_psn;
-+		__entry->s_sending_psn = qp->s_sending_psn;
-+		__entry->s_sending_hpsn = qp->s_sending_hpsn;
-+		__entry->r_psn = qp->r_psn;
- 	),
- 	TP_printk(
--		"[%s] qpn 0x%x flags 0x%x psn 0x%x sending_psn 0x%x sending_hpsn 0x%x",
-+		"[%s] qpn 0x%x s_flags 0x%x psn 0x%x s_psn 0x%x s_next_psn 0x%x s_sending_psn 0x%x sending_hpsn 0x%x r_psn 0x%x",
- 		__get_str(dev),
- 		__entry->qpn,
--		__entry->flags,
-+		__entry->s_flags,
- 		__entry->psn,
--		__entry->sending_psn,
--		__entry->sending_psn
-+		__entry->s_psn,
-+		__entry->s_next_psn,
-+		__entry->s_sending_psn,
-+		__entry->s_sending_hpsn,
-+		__entry->r_psn
- 	)
- );
- 
--DEFINE_EVENT(hfi1_sdma_rc, hfi1_rc_sendcomplete,
-+DEFINE_EVENT(hfi1_rc_template, hfi1_rc_sendcomplete,
-+	     TP_PROTO(struct hfi1_qp *qp, u32 psn),
-+	     TP_ARGS(qp, psn)
-+);
++	return dd->verbs_dev.n_send_schedule;
++}
 +
-+DEFINE_EVENT(hfi1_rc_template, hfi1_rc_ack,
-+	     TP_PROTO(struct hfi1_qp *qp, u32 psn),
-+	     TP_ARGS(qp, psn)
-+);
+ #define def_access_sw_cpu(cntr) \
+ static u64 access_sw_cpu_##cntr(const struct cntr_entry *entry,		      \
+ 			      void *context, int vl, int mode, u64 data)      \
+@@ -1720,6 +1728,8 @@ static struct cntr_entry dev_cntrs[DEV_CNTR_LAST] = {
+ 			    access_sw_pio_wait),
+ [C_SW_KMEM_WAIT] = CNTR_ELEM("KmemWait", 0, 0, CNTR_NORMAL,
+ 			    access_sw_kmem_wait),
++[C_SW_SEND_SCHED] = CNTR_ELEM("SendSched", 0, 0, CNTR_NORMAL,
++			    access_sw_send_schedule),
+ };
+ 
+ static struct cntr_entry port_cntrs[PORT_CNTR_LAST] = {
+diff --git a/drivers/staging/rdma/hfi1/chip.h b/drivers/staging/rdma/hfi1/chip.h
+index 497c5de23d53..ebf9041a1c5e 100644
+--- a/drivers/staging/rdma/hfi1/chip.h
++++ b/drivers/staging/rdma/hfi1/chip.h
+@@ -787,6 +787,7 @@ enum {
+ 	C_SW_VTX_WAIT,
+ 	C_SW_PIO_WAIT,
+ 	C_SW_KMEM_WAIT,
++	C_SW_SEND_SCHED,
+ 	DEV_CNTR_LAST  /* Must be kept last */
+ };
+ 
+diff --git a/drivers/staging/rdma/hfi1/ruc.c b/drivers/staging/rdma/hfi1/ruc.c
+index faad1b93703e..8614b070545c 100644
+--- a/drivers/staging/rdma/hfi1/ruc.c
++++ b/drivers/staging/rdma/hfi1/ruc.c
+@@ -820,6 +820,9 @@ void hfi1_make_ruc_header(struct hfi1_qp *qp, struct hfi1_other_headers *ohdr,
+ 	ohdr->bth[2] = cpu_to_be32(bth2);
+ }
+ 
++/* when sending, force a reschedule every one of these periods */
++#define SEND_RESCHED_TIMEOUT (5 * HZ)  /* 5s in jiffies */
 +
-+DEFINE_EVENT(hfi1_rc_template, hfi1_rc_timeout,
-+	     TP_PROTO(struct hfi1_qp *qp, u32 psn),
-+	     TP_ARGS(qp, psn)
-+);
+ /**
+  * hfi1_do_send - perform a send on a QP
+  * @work: contains a pointer to the QP
+@@ -836,6 +839,7 @@ void hfi1_do_send(struct work_struct *work)
+ 	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+ 	int (*make_req)(struct hfi1_qp *qp);
+ 	unsigned long flags;
++	unsigned long timeout;
+ 
+ 	if ((qp->ibqp.qp_type == IB_QPT_RC ||
+ 	     qp->ibqp.qp_type == IB_QPT_UC) &&
+@@ -864,6 +868,7 @@ void hfi1_do_send(struct work_struct *work)
+ 
+ 	spin_unlock_irqrestore(&qp->s_lock, flags);
+ 
++	timeout = jiffies + SEND_RESCHED_TIMEOUT;
+ 	do {
+ 		/* Check for a constructed packet to be sent. */
+ 		if (qp->s_hdrwords != 0) {
+@@ -877,6 +882,13 @@ void hfi1_do_send(struct work_struct *work)
+ 			/* Record that s_hdr is empty. */
+ 			qp->s_hdrwords = 0;
+ 		}
 +
-+DEFINE_EVENT(hfi1_rc_template, hfi1_rc_rcv_error,
- 	     TP_PROTO(struct hfi1_qp *qp, u32 psn),
- 	     TP_ARGS(qp, psn)
- );
++		/* allow other tasks to run */
++		if (unlikely(time_after(jiffies, timeout))) {
++			cond_resched();
++			ppd->dd->verbs_dev.n_send_schedule++;
++			timeout = jiffies + SEND_RESCHED_TIMEOUT;
++		}
+ 	} while (make_req(qp));
+ }
+ 
+diff --git a/drivers/staging/rdma/hfi1/verbs.h b/drivers/staging/rdma/hfi1/verbs.h
+index afaa0fe619fe..e4a8a0d4ccf8 100644
+--- a/drivers/staging/rdma/hfi1/verbs.h
++++ b/drivers/staging/rdma/hfi1/verbs.h
+@@ -754,6 +754,7 @@ struct hfi1_ibdev {
+ 	u64 n_piowait;
+ 	u64 n_txwait;
+ 	u64 n_kmem_wait;
++	u64 n_send_schedule;
+ 
+ 	u32 n_pds_allocated;    /* number of PDs allocated for device */
+ 	spinlock_t n_pds_lock;
 -- 
 1.8.2
 
