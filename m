@@ -1,8 +1,7 @@
 From: ira.weiny@intel.com
-Subject: [PATCH v3 06/23] staging/rdma/hfi1: Add coalescing support for SDMA
- TX descriptors
-Date: Mon, 26 Oct 2015 10:28:32 -0400
-Message-ID: <1445869729-7507-7-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH v3 02/23] staging/rdma/hfi1: Fix code to reset ASIC CSRs on FLR
+Date: Mon, 26 Oct 2015 10:28:28 -0400
+Message-ID: <1445869729-7507-3-git-send-email-ira.weiny@intel.com>
 References: <1445869729-7507-1-git-send-email-ira.weiny@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -19,339 +18,148 @@ List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driver
 Errors-To: driverdev-devel-bounces@linuxdriverproject.org
 Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
 To: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org
-Cc: linux-rdma@vger.kernel.org, dennis.dalessandro@intel.com, dledford@redhat.com, Niranjana Vishwanathapura <niranjana.vishwanathapura@intel.com>
+Cc: linux-rdma@vger.kernel.org, dennis.dalessandro@intel.com, Easwar Hariharan <easwar.hariharan@intel.com>, dledford@redhat.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Niranjana Vishwanathapura <niranjana.vishwanathapura@intel.com>
+From: Easwar Hariharan <easwar.hariharan@intel.com>
 
-This fixes transmit errors when the number of scatter gather elements in the
-request is more that the number of per packet descriptors supported by the
-hardware, allocate and coalesce the extra scatter gather elements into a single
-buffer. The last descriptor is reserved and used for this coalesced buffer.
+The ASIC registers were not reset on FLR, and the code to
+protect the ASIC block against multiple initializations by
+peer HFIs did not extend to multiple ASICs in a system. This
+patch addresses this gap.
 
-Verbs potentially need this support when transferring small data chunks
-involving different memory regions.
-
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Reviewed-by: Mitko Haralanov <mitko.haralanov@intel.com>
-Signed-off-by: Niranjana Vishwanathapura <niranjana.vishwanathapura@intel.com>
+Reviewed-by: Dean Luick <dean.luick@intel.com>
+Signed-off-by: Easwar Hariharan <easwar.hariharan@intel.com>
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
- drivers/staging/rdma/hfi1/sdma.c | 124 ++++++++++++++++++++++++++++++++++++---
- drivers/staging/rdma/hfi1/sdma.h |  74 +++++++++++++++--------
- 2 files changed, 168 insertions(+), 30 deletions(-)
+ drivers/staging/rdma/hfi1/chip.c     | 35 +++++++++++++++--------------------
+ drivers/staging/rdma/hfi1/firmware.c |  4 ++++
+ 2 files changed, 19 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/sdma.c b/drivers/staging/rdma/hfi1/sdma.c
-index d57531796723..53b3e4d9518b 100644
---- a/drivers/staging/rdma/hfi1/sdma.c
-+++ b/drivers/staging/rdma/hfi1/sdma.c
-@@ -55,6 +55,7 @@
- #include <linux/bitops.h>
- #include <linux/timer.h>
- #include <linux/vmalloc.h>
-+#include <linux/highmem.h>
- 
- #include "hfi.h"
- #include "common.h"
-@@ -2706,27 +2707,134 @@ static void __sdma_process_event(struct sdma_engine *sde,
-  * of descriptors in the sdma_txreq is exhausted.
-  *
-  * The code will bump the allocation up to the max
-- * of MAX_DESC (64) descriptors.  There doesn't seem
-- * much point in an interim step.
-+ * of MAX_DESC (64) descriptors. There doesn't seem
-+ * much point in an interim step. The last descriptor
-+ * is reserved for coalesce buffer in order to support
-+ * cases where input packet has >MAX_DESC iovecs.
-  *
-  */
--int _extend_sdma_tx_descs(struct hfi1_devdata *dd, struct sdma_txreq *tx)
-+static int _extend_sdma_tx_descs(struct hfi1_devdata *dd, struct sdma_txreq *tx)
+diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
+index 46ebc381a792..9d8aa1d09724 100644
+--- a/drivers/staging/rdma/hfi1/chip.c
++++ b/drivers/staging/rdma/hfi1/chip.c
+@@ -9327,8 +9327,6 @@ static void reset_cce_csrs(struct hfi1_devdata *dd)
+ /* set ASIC CSRs to chip reset defaults */
+ static void reset_asic_csrs(struct hfi1_devdata *dd)
  {
+-	static DEFINE_MUTEX(asic_mutex);
+-	static int called;
  	int i;
  
-+	/* Handle last descriptor */
-+	if (unlikely((tx->num_desc == (MAX_DESC - 1)))) {
-+		/* if tlen is 0, it is for padding, release last descriptor */
-+		if (!tx->tlen) {
-+			tx->desc_limit = MAX_DESC;
-+		} else if (!tx->coalesce_buf) {
-+			/* allocate coalesce buffer with space for padding */
-+			tx->coalesce_buf = kmalloc(tx->tlen + sizeof(u32),
-+						   GFP_ATOMIC);
-+			if (!tx->coalesce_buf)
-+				return -ENOMEM;
+ 	/*
+@@ -9338,15 +9336,8 @@ static void reset_asic_csrs(struct hfi1_devdata *dd)
+ 	 * a known first load do the reset and blocking all others.
+ 	 */
+ 
+-	/*
+-	 * These CSRs should only be reset once - the first one here will
+-	 * do the work.  Use a mutex so that a non-first caller waits until
+-	 * the first is finished before it can proceed.
+-	 */
+-	mutex_lock(&asic_mutex);
+-	if (called)
+-		goto done;
+-	called = 1;
++	if (!(dd->flags & HFI1_DO_INIT_ASIC))
++		return;
+ 
+ 	if (dd->icode != ICODE_FPGA_EMULATION) {
+ 		/* emulation does not have an SBus - leave these alone */
+@@ -9366,7 +9357,10 @@ static void reset_asic_csrs(struct hfi1_devdata *dd)
+ 	for (i = 0; i < ASIC_NUM_SCRATCH; i++)
+ 		write_csr(dd, ASIC_CFG_SCRATCH + (8 * i), 0);
+ 	write_csr(dd, ASIC_CFG_MUTEX, 0);	/* this will clear it */
 +
-+			tx->coalesce_idx = 0;
-+		}
-+		return 0;
-+	}
++	/* We might want to retain this state across FLR if we ever use it */
+ 	write_csr(dd, ASIC_CFG_DRV_STR, 0);
 +
-+	if (unlikely(tx->num_desc == MAX_DESC))
-+		return -ENOMEM;
-+
- 	tx->descp = kmalloc_array(
- 			MAX_DESC,
- 			sizeof(struct sdma_desc),
- 			GFP_ATOMIC);
- 	if (!tx->descp)
- 		return -ENOMEM;
--	tx->desc_limit = MAX_DESC;
-+
-+	/* reserve last descriptor for coalescing */
-+	tx->desc_limit = MAX_DESC - 1;
- 	/* copy ones already built */
- 	for (i = 0; i < tx->num_desc; i++)
- 		tx->descp[i] = tx->descs[i];
- 	return 0;
+ 	write_csr(dd, ASIC_CFG_THERM_POLL_EN, 0);
+ 	/* ASIC_STS_THERM read-only */
+ 	/* ASIC_CFG_RESET leave alone */
+@@ -9413,9 +9407,6 @@ static void reset_asic_csrs(struct hfi1_devdata *dd)
+ 	/* this also writes a NOP command, clearing paging mode */
+ 	write_csr(dd, ASIC_EEP_ADDR_CMD, 0);
+ 	write_csr(dd, ASIC_EEP_DATA, 0);
+-
+-done:
+-	mutex_unlock(&asic_mutex);
  }
  
-+/*
-+ * ext_coal_sdma_tx_descs() - extend or coalesce sdma tx descriptors
-+ *
-+ * This is called once the initial nominal allocation of descriptors
-+ * in the sdma_txreq is exhausted.
-+ *
-+ * This function calls _extend_sdma_tx_descs to extend or allocate
-+ * coalesce buffer. If there is a allocated coalesce buffer, it will
-+ * copy the input packet data into the coalesce buffer. It also adds
-+ * coalesce buffer descriptor once whe whole packet is received.
-+ *
-+ * Return:
-+ * <0 - error
-+ * 0 - coalescing, don't populate descriptor
-+ * 1 - continue with populating descriptor
-+ */
-+int ext_coal_sdma_tx_descs(struct hfi1_devdata *dd, struct sdma_txreq *tx,
-+			   int type, void *kvaddr, struct page *page,
-+			   unsigned long offset, u16 len)
-+{
-+	int pad_len, rval;
-+	dma_addr_t addr;
-+
-+	rval = _extend_sdma_tx_descs(dd, tx);
-+	if (rval) {
-+		sdma_txclean(dd, tx);
-+		return rval;
-+	}
-+
-+	/* If coalesce buffer is allocated, copy data into it */
-+	if (tx->coalesce_buf) {
-+		if (type == SDMA_MAP_NONE) {
-+			sdma_txclean(dd, tx);
-+			return -EINVAL;
-+		}
-+
-+		if (type == SDMA_MAP_PAGE) {
-+			kvaddr = kmap(page);
-+			kvaddr += offset;
-+		} else if (WARN_ON(!kvaddr)) {
-+			sdma_txclean(dd, tx);
-+			return -EINVAL;
-+		}
-+
-+		memcpy(tx->coalesce_buf + tx->coalesce_idx, kvaddr, len);
-+		tx->coalesce_idx += len;
-+		if (type == SDMA_MAP_PAGE)
-+			kunmap(page);
-+
-+		/* If there is more data, return */
-+		if (tx->tlen - tx->coalesce_idx)
-+			return 0;
-+
-+		/* Whole packet is received; add any padding */
-+		pad_len = tx->packet_len & (sizeof(u32) - 1);
-+		if (pad_len) {
-+			pad_len = sizeof(u32) - pad_len;
-+			memset(tx->coalesce_buf + tx->coalesce_idx, 0, pad_len);
-+			/* padding is taken care of for coalescing case */
-+			tx->packet_len += pad_len;
-+			tx->tlen += pad_len;
-+		}
-+
-+		/* dma map the coalesce buffer */
-+		addr = dma_map_single(&dd->pcidev->dev,
-+				      tx->coalesce_buf,
-+				      tx->tlen,
-+				      DMA_TO_DEVICE);
-+
-+		if (unlikely(dma_mapping_error(&dd->pcidev->dev, addr))) {
-+			sdma_txclean(dd, tx);
-+			return -ENOSPC;
-+		}
-+
-+		/* Add descriptor for coalesce buffer */
-+		tx->desc_limit = MAX_DESC;
-+		return _sdma_txadd_daddr(dd, SDMA_MAP_SINGLE, tx,
-+					 addr, tx->tlen);
-+	}
-+
-+	return 1;
-+}
-+
- /* Update sdes when the lmc changes */
- void sdma_update_lmc(struct hfi1_devdata *dd, u64 mask, u32 lid)
- {
-@@ -2752,13 +2860,15 @@ int _pad_sdma_tx_descs(struct hfi1_devdata *dd, struct sdma_txreq *tx)
- {
- 	int rval = 0;
+ /* set MISC CSRs to chip reset defaults */
+@@ -9827,6 +9818,7 @@ static void init_chip(struct hfi1_devdata *dd)
+ 			restore_pci_variables(dd);
+ 		}
  
-+	tx->num_desc++;
- 	if ((unlikely(tx->num_desc == tx->desc_limit))) {
- 		rval = _extend_sdma_tx_descs(dd, tx);
--		if (rval)
-+		if (rval) {
-+			sdma_txclean(dd, tx);
- 			return rval;
-+		}
++		reset_asic_csrs(dd);
+ 	} else {
+ 		dd_dev_info(dd, "Resetting CSRs with writes\n");
+ 		reset_cce_csrs(dd);
+@@ -9837,6 +9829,7 @@ static void init_chip(struct hfi1_devdata *dd)
  	}
--	/* finish the one just added  */
--	tx->num_desc++;
-+	/* finish the one just added */
- 	make_tx_sdma_desc(
- 		tx,
- 		SDMA_MAP_NONE,
-diff --git a/drivers/staging/rdma/hfi1/sdma.h b/drivers/staging/rdma/hfi1/sdma.h
-index 496086903891..cc22d2ee2054 100644
---- a/drivers/staging/rdma/hfi1/sdma.h
-+++ b/drivers/staging/rdma/hfi1/sdma.h
-@@ -352,6 +352,8 @@ struct sdma_txreq {
- 	/* private: */
- 	void *coalesce_buf;
- 	/* private: */
-+	u16 coalesce_idx;
-+	/* private: */
- 	struct iowait *wait;
- 	/* private: */
- 	callback_t                  complete;
-@@ -735,7 +737,9 @@ static inline void make_tx_sdma_desc(
+ 	/* clear the DC reset */
+ 	write_csr(dd, CCE_DC_CTRL, 0);
++
+ 	/* Set the LED off */
+ 	if (is_a0(dd))
+ 		setextled(dd, 0);
+@@ -10332,7 +10325,7 @@ static void asic_should_init(struct hfi1_devdata *dd)
  }
  
- /* helper to extend txreq */
--int _extend_sdma_tx_descs(struct hfi1_devdata *, struct sdma_txreq *);
-+int ext_coal_sdma_tx_descs(struct hfi1_devdata *dd, struct sdma_txreq *tx,
-+			   int type, void *kvaddr, struct page *page,
-+			   unsigned long offset, u16 len);
- int _pad_sdma_tx_descs(struct hfi1_devdata *, struct sdma_txreq *);
- void sdma_txclean(struct hfi1_devdata *, struct sdma_txreq *);
- 
-@@ -762,11 +766,6 @@ static inline int _sdma_txadd_daddr(
- {
- 	int rval = 0;
- 
--	if ((unlikely(tx->num_desc == tx->desc_limit))) {
--		rval = _extend_sdma_tx_descs(dd, tx);
--		if (rval)
--			return rval;
--	}
- 	make_tx_sdma_desc(
- 		tx,
- 		type,
-@@ -798,9 +797,7 @@ static inline int _sdma_txadd_daddr(
+ /**
+- * Allocate an initialize the device structure for the hfi.
++ * Allocate and initialize the device structure for the hfi.
+  * @dev: the pci_dev for hfi1_ib device
+  * @ent: pci_device_id struct for this dev
   *
-  * Return:
-  * 0 - success, -ENOSPC - mapping fail, -ENOMEM - couldn't
-- * extend descriptor array or couldn't allocate coalesce
-- * buffer.
-- *
-+ * extend/coalesce descriptor array
-  */
- static inline int sdma_txadd_page(
- 	struct hfi1_devdata *dd,
-@@ -809,17 +806,28 @@ static inline int sdma_txadd_page(
- 	unsigned long offset,
- 	u16 len)
- {
--	dma_addr_t addr =
--		dma_map_page(
--			&dd->pcidev->dev,
--			page,
--			offset,
--			len,
--			DMA_TO_DEVICE);
-+	dma_addr_t addr;
-+	int rval;
-+
-+	if ((unlikely(tx->num_desc == tx->desc_limit))) {
-+		rval = ext_coal_sdma_tx_descs(dd, tx, SDMA_MAP_PAGE,
-+					      NULL, page, offset, len);
-+		if (rval <= 0)
-+			return rval;
-+	}
-+
-+	addr = dma_map_page(
-+		       &dd->pcidev->dev,
-+		       page,
-+		       offset,
-+		       len,
-+		       DMA_TO_DEVICE);
-+
- 	if (unlikely(dma_mapping_error(&dd->pcidev->dev, addr))) {
- 		sdma_txclean(dd, tx);
- 		return -ENOSPC;
- 	}
-+
- 	return _sdma_txadd_daddr(
- 			dd, SDMA_MAP_PAGE, tx, addr, len);
- }
-@@ -846,6 +854,15 @@ static inline int sdma_txadd_daddr(
- 	dma_addr_t addr,
- 	u16 len)
- {
-+	int rval;
-+
-+	if ((unlikely(tx->num_desc == tx->desc_limit))) {
-+		rval = ext_coal_sdma_tx_descs(dd, tx, SDMA_MAP_NONE,
-+					      NULL, NULL, 0, 0);
-+		if (rval <= 0)
-+			return rval;
-+	}
-+
- 	return _sdma_txadd_daddr(dd, SDMA_MAP_NONE, tx, addr, len);
- }
+@@ -10488,6 +10481,12 @@ struct hfi1_devdata *hfi1_init_dd(struct pci_dev *pdev,
+ 	else if (dd->rcv_intr_timeout_csr == 0 && rcv_intr_timeout)
+ 		dd->rcv_intr_timeout_csr = 1;
  
-@@ -862,7 +879,7 @@ static inline int sdma_txadd_daddr(
-  * The mapping/unmapping of the kvaddr and len is automatically handled.
-  *
-  * Return:
-- * 0 - success, -ENOSPC - mapping fail, -ENOMEM - couldn't extend
-+ * 0 - success, -ENOSPC - mapping fail, -ENOMEM - couldn't extend/coalesce
-  * descriptor array
++	/* needs to be done before we look for the peer device */
++	read_guid(dd);
++
++	/* should this device init the ASIC block? */
++	asic_should_init(dd);
++
+ 	/* obtain chip sizes, reset chip CSRs */
+ 	init_chip(dd);
+ 
+@@ -10496,11 +10495,6 @@ struct hfi1_devdata *hfi1_init_dd(struct pci_dev *pdev,
+ 	if (ret)
+ 		goto bail_cleanup;
+ 
+-	/* needs to be done before we look for the peer device */
+-	read_guid(dd);
+-
+-	asic_should_init(dd);
+-
+ 	/* read in firmware */
+ 	ret = hfi1_firmware_init(dd);
+ 	if (ret)
+@@ -10715,6 +10709,7 @@ static int thermal_init(struct hfi1_devdata *dd)
+ 
+ 	acquire_hw_mutex(dd);
+ 	dd_dev_info(dd, "Initializing thermal sensor\n");
++
+ 	/* Thermal Sensor Initialization */
+ 	/*    Step 1: Reset the Thermal SBus Receiver */
+ 	ret = sbus_request_slow(dd, SBUS_THERMAL, 0x0,
+diff --git a/drivers/staging/rdma/hfi1/firmware.c b/drivers/staging/rdma/hfi1/firmware.c
+index 5c2f2ed8f224..15c9cb7a3150 100644
+--- a/drivers/staging/rdma/hfi1/firmware.c
++++ b/drivers/staging/rdma/hfi1/firmware.c
+@@ -1614,6 +1614,10 @@ done:
   */
- static inline int sdma_txadd_kvaddr(
-@@ -871,16 +888,27 @@ static inline int sdma_txadd_kvaddr(
- 	void *kvaddr,
- 	u16 len)
+ void read_guid(struct hfi1_devdata *dd)
  {
--	dma_addr_t addr =
--		dma_map_single(
--			&dd->pcidev->dev,
--			kvaddr,
--			len,
--			DMA_TO_DEVICE);
-+	dma_addr_t addr;
-+	int rval;
++	/* Take the DC out of reset to get a valid GUID value */
++	write_csr(dd, CCE_DC_CTRL, 0);
++	(void) read_csr(dd, CCE_DC_CTRL);
 +
-+	if ((unlikely(tx->num_desc == tx->desc_limit))) {
-+		rval = ext_coal_sdma_tx_descs(dd, tx, SDMA_MAP_SINGLE,
-+					      kvaddr, NULL, 0, len);
-+		if (rval <= 0)
-+			return rval;
-+	}
-+
-+	addr = dma_map_single(
-+		       &dd->pcidev->dev,
-+		       kvaddr,
-+		       len,
-+		       DMA_TO_DEVICE);
-+
- 	if (unlikely(dma_mapping_error(&dd->pcidev->dev, addr))) {
- 		sdma_txclean(dd, tx);
- 		return -ENOSPC;
- 	}
-+
- 	return _sdma_txadd_daddr(
- 			dd, SDMA_MAP_SINGLE, tx, addr, len);
- }
+ 	dd->base_guid = read_csr(dd, DC_DC8051_CFG_LOCAL_GUID);
+ 	dd_dev_info(dd, "GUID %llx",
+ 		(unsigned long long)dd->base_guid);
 -- 
 1.8.2
