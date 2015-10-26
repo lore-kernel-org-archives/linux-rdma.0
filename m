@@ -1,103 +1,81 @@
-From: ira.weiny@intel.com
-Subject: [PATCH v3 08/23] staging/rdma/hfi1: Reset firmware instead of
- reloading Sbus
-Date: Mon, 26 Oct 2015 10:28:34 -0400
-Message-ID: <1445869729-7507-9-git-send-email-ira.weiny@intel.com>
+From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH v3 15/23] staging/rdma/hfi1: Allow tuning of SDMA interrupt rate
+Date: Mon, 26 Oct 2015 10:28:41 -0400
+Message-ID: <1445869729-7507-16-git-send-email-ira.weiny@intel.com>
 References: <1445869729-7507-1-git-send-email-ira.weiny@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <1445869729-7507-1-git-send-email-ira.weiny@intel.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org
-Cc: linux-rdma@vger.kernel.org, dennis.dalessandro@intel.com, dledford@redhat.com, Caz Yokoyama <caz.yokoyama@intel.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1445869729-7507-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Caz Yokoyama <caz.yokoyama@intel.com>
+From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Reset firmware instead of reloading Sbus firmware if it's already done for this
-ASIC.  To work around thermal polling problem in firmware, don't reload Sbus
-firmware, instead, reset the firmware on the initialization of the second HFI.
+The SDMA engines were configured to generate progress interrupts every time they
+processed N/2 descriptors (where N is the size of the descriptor queue). This
+interval was too infrequent, leading to degraded performance.
 
-Reviewed-by: Easwar Hariharan <easwar.hariharan@intel.com>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Reviewed-by: Dean Luick <dean.luick@intel.com>
-Signed-off-by: Caz Yokoyama <caz.yokoyama@intel.com>
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+This commit adds a module parameter, as well as a recommended default, which
+allows for the tuning of the interrupt frequency.
+
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
 ---
- drivers/staging/rdma/hfi1/chip.h     |  1 +
- drivers/staging/rdma/hfi1/firmware.c |  4 +---
- drivers/staging/rdma/hfi1/pcie.c     | 13 ++++++++++++-
- 3 files changed, 14 insertions(+), 4 deletions(-)
+Change from v2:
+	Squash in a patch with a recommended default value of 64.
 
-diff --git a/drivers/staging/rdma/hfi1/chip.h b/drivers/staging/rdma/hfi1/chip.h
-index f89a432c7334..497c5de23d53 100644
---- a/drivers/staging/rdma/hfi1/chip.h
-+++ b/drivers/staging/rdma/hfi1/chip.h
-@@ -609,6 +609,7 @@ static inline void write_uctxt_csr(struct hfi1_devdata *dd, int ctxt,
- u64 create_pbc(struct hfi1_pportdata *ppd, u64, int, u32, u32);
+ drivers/staging/rdma/hfi1/sdma.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/staging/rdma/hfi1/sdma.c b/drivers/staging/rdma/hfi1/sdma.c
+index 53b3e4d9518b..77800df1d3b8 100644
+--- a/drivers/staging/rdma/hfi1/sdma.c
++++ b/drivers/staging/rdma/hfi1/sdma.c
+@@ -66,6 +66,7 @@
  
- /* firmware.c */
-+#define SBUS_MASTER_BROADCAST 0xfd
- #define NUM_PCIE_SERDES 16	/* number of PCIe serdes on the SBus */
- extern const u8 pcie_serdes_broadcast[];
- extern const u8 pcie_pcs_addrs[2][NUM_PCIE_SERDES];
-diff --git a/drivers/staging/rdma/hfi1/firmware.c b/drivers/staging/rdma/hfi1/firmware.c
-index 15c9cb7a3150..ace75ce3da3f 100644
---- a/drivers/staging/rdma/hfi1/firmware.c
-+++ b/drivers/staging/rdma/hfi1/firmware.c
-@@ -924,9 +924,6 @@ static int load_8051_firmware(struct hfi1_devdata *dd,
- 	return 0;
- }
+ /* must be a power of 2 >= 64 <= 32768 */
+ #define SDMA_DESCQ_CNT 1024
++#define SDMA_DESC_INTR 64
+ #define INVALID_TAIL 0xffff
  
--/* SBus Master broadcast address */
--#define SBUS_MASTER_BROADCAST 0xfd
--
- /*
-  * Write the SBus request register
-  *
-@@ -1255,6 +1252,7 @@ int load_firmware(struct hfi1_devdata *dd)
- 			ret = load_sbus_firmware(dd, &fw_sbus);
- 			if (ret)
- 				goto clear;
-+			fw_sbus_load = 0;
- 		}
+ static uint sdma_descq_cnt = SDMA_DESCQ_CNT;
+@@ -80,6 +81,10 @@ uint mod_num_sdma;
+ module_param_named(num_sdma, mod_num_sdma, uint, S_IRUGO);
+ MODULE_PARM_DESC(num_sdma, "Set max number SDMA engines to use");
  
- 		if (fw_fabric_serdes_load) {
-diff --git a/drivers/staging/rdma/hfi1/pcie.c b/drivers/staging/rdma/hfi1/pcie.c
-index ac5653c0f65e..3b50cdda1c0a 100644
---- a/drivers/staging/rdma/hfi1/pcie.c
-+++ b/drivers/staging/rdma/hfi1/pcie.c
-@@ -946,9 +946,20 @@ int do_pcie_gen3_transition(struct hfi1_devdata *dd)
- 			    __func__);
- 	}
- 
-+retry:
-+	if (therm) {
-+		/* toggle SPICO_ENABLE to get back to the state
-+		   just after the firmware load */
-+		sbus_request(dd, SBUS_MASTER_BROADCAST, 0x01,
-+			WRITE_SBUS_RECEIVER, 0x00000040);
-+		sbus_request(dd, SBUS_MASTER_BROADCAST, 0x01,
-+			WRITE_SBUS_RECEIVER, 0x00000140);
-+		dd_dev_info(dd, "%s: toggle SPICO_ENABLE to reset the bus\n",
-+			    __func__);
-+	}
++static uint sdma_desct_intr = SDMA_DESC_INTR;
++module_param_named(desct_intr, sdma_desct_intr, uint, S_IRUGO | S_IWUSR);
++MODULE_PARM_DESC(desct_intr, "Number of SDMA descriptor before interrupt");
 +
- 	/* step 3: download SBus Master firmware */
- 	/* step 4: download PCIe Gen3 SerDes firmware */
--retry:
- 	dd_dev_info(dd, "%s: downloading firmware\n", __func__);
- 	ret = load_pcie_firmware(dd);
- 	if (ret)
+ #define SDMA_WAIT_BATCH_SIZE 20
+ /* max wait time for a SDMA engine to indicate it has halted */
+ #define SDMA_ERR_HALT_TIMEOUT 10 /* ms */
+@@ -1046,6 +1051,9 @@ int sdma_init(struct hfi1_devdata *dd, u8 port)
+ 		return -ENOMEM;
+ 
+ 	idle_cnt = ns_to_cclock(dd, idle_cnt);
++	if (!sdma_desct_intr)
++		sdma_desct_intr = SDMA_DESC_INTR;
++
+ 	/* Allocate memory for SendDMA descriptor FIFOs */
+ 	for (this_idx = 0; this_idx < num_engines; ++this_idx) {
+ 		sde = &dd->per_sdma[this_idx];
+@@ -1548,7 +1556,7 @@ void sdma_engine_interrupt(struct sdma_engine *sde, u64 status)
+ {
+ 	trace_hfi1_sdma_engine_interrupt(sde, status);
+ 	write_seqlock(&sde->head_lock);
+-	sdma_set_desc_cnt(sde, sde->descq_cnt / 2);
++	sdma_set_desc_cnt(sde, sdma_desct_intr);
+ 	sdma_make_progress(sde, status);
+ 	write_sequnlock(&sde->head_lock);
+ }
 -- 
 1.8.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
