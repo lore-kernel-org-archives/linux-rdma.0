@@ -1,440 +1,301 @@
-From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v3 18/23] staging/rdma/hfi1: Thread the receive interrupt.
-Date: Mon, 26 Oct 2015 10:28:44 -0400
-Message-ID: <1445869729-7507-19-git-send-email-ira.weiny@intel.com>
+From: ira.weiny@intel.com
+Subject: [PATCH v3 17/23] staging/rdma/hfi1: Add irqsaves in the packet
+ processing path
+Date: Mon, 26 Oct 2015 10:28:43 -0400
+Message-ID: <1445869729-7507-18-git-send-email-ira.weiny@intel.com>
 References: <1445869729-7507-1-git-send-email-ira.weiny@intel.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1445869729-7507-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <1445869729-7507-1-git-send-email-ira.weiny@intel.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org
+Cc: Dean Luick <dean.luick@intel.com>, linux-rdma@vger.kernel.org, dennis.dalessandro@intel.com, dledford@redhat.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Dean Luick <dean.luick@intel.com>
 
-When under heavy load, the receive interrupt handler can run too long with IRQs
-disabled.  Add a mixed-mode threading scheme.  Initially process packets in the
-handler for quick responses (latency).  If there are too many packets to
-process move to a thread to continue (bandwidth).
+In preparation for threading the receive interrupt, add irqsaves in the packet
+processing path.
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+When the receive interrupt is threaded, the packet processing path is no longer
+guaranteed to have IRQs disabled.  Add irqsaves where needed on several locks
+in the packet processing path.  Anything that did not have an obvious, "close"
+irqsave in its caller is a candidate.
+
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Signed-off-by: Dean Luick <dean.luick@intel.com>
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
- drivers/staging/rdma/hfi1/chip.c   | 104 +++++++++++++++++++++++++++++++++----
- drivers/staging/rdma/hfi1/driver.c |  72 ++++++++++++++-----------
- drivers/staging/rdma/hfi1/hfi.h    |  20 +++++--
- drivers/staging/rdma/hfi1/sdma.c   |   4 +-
- 4 files changed, 154 insertions(+), 46 deletions(-)
+ drivers/staging/rdma/hfi1/driver.c |  5 +++--
+ drivers/staging/rdma/hfi1/init.c   |  5 +++--
+ drivers/staging/rdma/hfi1/mad.c    |  4 ++--
+ drivers/staging/rdma/hfi1/rc.c     | 19 +++++++++++--------
+ drivers/staging/rdma/hfi1/sdma.c   |  9 +++++----
+ drivers/staging/rdma/hfi1/verbs.c  |  9 +++++----
+ 6 files changed, 29 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index 8b8b7ee4200d..50d2b113b95b 100644
---- a/drivers/staging/rdma/hfi1/chip.c
-+++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -4426,7 +4426,7 @@ static void is_rcv_avail_int(struct hfi1_devdata *dd, unsigned int source)
- 		rcd = dd->rcd[source];
- 		if (rcd) {
- 			if (source < dd->first_user_ctxt)
--				rcd->do_interrupt(rcd);
-+				rcd->do_interrupt(rcd, 0);
- 			else
- 				handle_user_interrupt(rcd);
- 			return;	/* OK */
-@@ -4592,23 +4592,106 @@ static irqreturn_t sdma_interrupt(int irq, void *data)
- }
- 
- /*
-- * NOTE: this routine expects to be on its own MSI-X interrupt.  If
-- * multiple receive contexts share the same MSI-X interrupt, then this
-- * routine must check for who received it.
-+ * Clear the receive interrupt, forcing the write and making sure
-+ * we have data from the chip, pushing everything in front of it
-+ * back to the host.
-+ */
-+static inline void clear_recv_intr(struct hfi1_ctxtdata *rcd)
-+{
-+	struct hfi1_devdata *dd = rcd->dd;
-+	u32 addr = CCE_INT_CLEAR + (8 * rcd->ireg);
-+
-+	mmiowb();	/* make sure everything before is written */
-+	write_csr(dd, addr, rcd->imask);
-+	/* force the above write on the chip and get a value back */
-+	(void)read_csr(dd, addr);
-+}
-+
-+/* force the receive interrupt */
-+static inline void force_recv_intr(struct hfi1_ctxtdata *rcd)
-+{
-+	write_csr(rcd->dd, CCE_INT_FORCE + (8 * rcd->ireg), rcd->imask);
-+}
-+
-+/* return non-zero if a packet is present */
-+static inline int check_packet_present(struct hfi1_ctxtdata *rcd)
-+{
-+	if (!HFI1_CAP_IS_KSET(DMA_RTAIL))
-+		return (rcd->seq_cnt ==
-+				rhf_rcv_seq(rhf_to_cpu(get_rhf_addr(rcd))));
-+
-+	/* else is RDMA rtail */
-+	return (rcd->head != get_rcvhdrtail(rcd));
-+}
-+
-+/*
-+ * Receive packet IRQ handler.  This routine expects to be on its own IRQ.
-+ * This routine will try to handle packets immediately (latency), but if
-+ * it finds too many, it will invoke the thread handler (bandwitdh).  The
-+ * chip receive interupt is *not* cleared down until this or the thread (if
-+ * invoked) is finished.  The intent is to avoid extra interrupts while we
-+ * are processing packets anyway.
-  */
- static irqreturn_t receive_context_interrupt(int irq, void *data)
- {
- 	struct hfi1_ctxtdata *rcd = data;
- 	struct hfi1_devdata *dd = rcd->dd;
-+	int disposition;
-+	int present;
- 
- 	trace_hfi1_receive_interrupt(dd, rcd->ctxt);
- 	this_cpu_inc(*dd->int_counter);
- 
--	/* clear the interrupt */
--	write_csr(rcd->dd, CCE_INT_CLEAR + (8*rcd->ireg), rcd->imask);
-+	/* receive interrupt remains blocked while processing packets */
-+	disposition = rcd->do_interrupt(rcd, 0);
- 
--	/* handle the interrupt */
--	rcd->do_interrupt(rcd);
-+	/*
-+	 * Too many packets were seen while processing packets in this
-+	 * IRQ handler.  Invoke the handler thread.  The receive interrupt
-+	 * remains blocked.
-+	 */
-+	if (disposition == RCV_PKT_LIMIT)
-+		return IRQ_WAKE_THREAD;
-+
-+	/*
-+	 * The packet processor detected no more packets.  Clear the receive
-+	 * interrupt and recheck for a packet packet that may have arrived
-+	 * after the previous check and interrupt clear.  If a packet arrived,
-+	 * force another interrupt.
-+	 */
-+	clear_recv_intr(rcd);
-+	present = check_packet_present(rcd);
-+	if (present)
-+		force_recv_intr(rcd);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+/*
-+ * Receive packet thread handler.  This expects to be invoked with the
-+ * receive interrupt still blocked.
-+ */
-+static irqreturn_t receive_context_thread(int irq, void *data)
-+{
-+	struct hfi1_ctxtdata *rcd = data;
-+	int present;
-+
-+	/* receive interrupt is still blocked from the IRQ handler */
-+	(void)rcd->do_interrupt(rcd, 1);
-+
-+	/*
-+	 * The packet processor will only return if it detected no more
-+	 * packets.  Hold IRQs here so we can safely clear the interrupt and
-+	 * recheck for a packet that may have arrived after the previous
-+	 * check and the interrupt clear.  If a packet arrived, force another
-+	 * interrupt.
-+	 */
-+	local_irq_disable();
-+	clear_recv_intr(rcd);
-+	present = check_packet_present(rcd);
-+	if (present)
-+		force_recv_intr(rcd);
-+	local_irq_enable();
- 
- 	return IRQ_HANDLED;
- }
-@@ -8861,6 +8944,7 @@ static int request_msix_irqs(struct hfi1_devdata *dd)
- 		struct hfi1_msix_entry *me = &dd->msix_entries[i];
- 		const char *err_info;
- 		irq_handler_t handler;
-+		irq_handler_t thread = NULL;
- 		void *arg;
- 		int idx;
- 		struct hfi1_ctxtdata *rcd = NULL;
-@@ -8897,6 +8981,7 @@ static int request_msix_irqs(struct hfi1_devdata *dd)
- 			rcd->imask = ((u64)1) <<
- 					((IS_RCVAVAIL_START+idx) % 64);
- 			handler = receive_context_interrupt;
-+			thread = receive_context_thread;
- 			arg = rcd;
- 			snprintf(me->name, sizeof(me->name),
- 				DRIVER_NAME"_%d kctxt%d", dd->unit, idx);
-@@ -8915,7 +9000,8 @@ static int request_msix_irqs(struct hfi1_devdata *dd)
- 		/* make sure the name is terminated */
- 		me->name[sizeof(me->name)-1] = 0;
- 
--		ret = request_irq(me->msix.vector, handler, 0, me->name, arg);
-+		ret = request_threaded_irq(me->msix.vector, handler, thread, 0,
-+						me->name, arg);
- 		if (ret) {
- 			dd_dev_err(dd,
- 				"unable to allocate %s interrupt, vector %d, index %d, err %d\n",
 diff --git a/drivers/staging/rdma/hfi1/driver.c b/drivers/staging/rdma/hfi1/driver.c
-index ce1e4d102993..24af4aba0b7b 100644
+index c0a59001e5cd..ce1e4d102993 100644
 --- a/drivers/staging/rdma/hfi1/driver.c
 +++ b/drivers/staging/rdma/hfi1/driver.c
-@@ -427,8 +427,7 @@ static inline void init_packet(struct hfi1_ctxtdata *rcd,
- 	packet->rcd = rcd;
- 	packet->updegr = 0;
- 	packet->etail = -1;
--	packet->rhf_addr = (__le32 *) rcd->rcvhdrq + rcd->head +
--			   rcd->dd->rhf_offset;
-+	packet->rhf_addr = get_rhf_addr(rcd);
- 	packet->rhf = rhf_to_cpu(packet->rhf_addr);
- 	packet->rhqoff = rcd->head;
- 	packet->numpkt = 0;
-@@ -619,10 +618,7 @@ next:
- }
- #endif /* CONFIG_PRESCAN_RXQ */
+@@ -302,6 +302,7 @@ static void rcv_hdrerr(struct hfi1_ctxtdata *rcd, struct hfi1_pportdata *ppd,
+ 		qp_num = be32_to_cpu(ohdr->bth[1]) & HFI1_QPN_MASK;
+ 		if (lid < HFI1_MULTICAST_LID_BASE) {
+ 			struct hfi1_qp *qp;
++			unsigned long flags;
  
--#define RCV_PKT_OK 0x0
--#define RCV_PKT_MAX 0x1
--
--static inline int process_rcv_packet(struct hfi1_packet *packet)
-+static inline int process_rcv_packet(struct hfi1_packet *packet, int thread)
- {
- 	int ret = RCV_PKT_OK;
+ 			rcu_read_lock();
+ 			qp = hfi1_lookup_qpn(ibp, qp_num);
+@@ -314,7 +315,7 @@ static void rcv_hdrerr(struct hfi1_ctxtdata *rcd, struct hfi1_pportdata *ppd,
+ 			 * Handle only RC QPs - for other QP types drop error
+ 			 * packet.
+ 			 */
+-			spin_lock(&qp->r_lock);
++			spin_lock_irqsave(&qp->r_lock, flags);
  
-@@ -664,9 +660,13 @@ static inline int process_rcv_packet(struct hfi1_packet *packet)
- 	if (packet->rhqoff >= packet->maxcnt)
- 		packet->rhqoff = 0;
- 
--	if (packet->numpkt == MAX_PKT_RECV) {
--		ret = RCV_PKT_MAX;
--		this_cpu_inc(*packet->rcd->dd->rcv_limit);
-+	if (unlikely((packet->numpkt & (MAX_PKT_RECV - 1)) == 0)) {
-+		if (thread) {
-+			cond_resched();
-+		} else {
-+			ret = RCV_PKT_LIMIT;
-+			this_cpu_inc(*packet->rcd->dd->rcv_limit);
-+		}
- 	}
- 
- 	packet->rhf_addr = (__le32 *) packet->rcd->rcvhdrq + packet->rhqoff +
-@@ -743,57 +743,63 @@ static inline void process_rcv_qp_work(struct hfi1_packet *packet)
- /*
-  * Handle receive interrupts when using the no dma rtail option.
-  */
--void handle_receive_interrupt_nodma_rtail(struct hfi1_ctxtdata *rcd)
-+int handle_receive_interrupt_nodma_rtail(struct hfi1_ctxtdata *rcd, int thread)
- {
- 	u32 seq;
--	int last = 0;
-+	int last = RCV_PKT_OK;
- 	struct hfi1_packet packet;
- 
- 	init_packet(rcd, &packet);
- 	seq = rhf_rcv_seq(packet.rhf);
--	if (seq != rcd->seq_cnt)
-+	if (seq != rcd->seq_cnt) {
-+		last = RCV_PKT_DONE;
- 		goto bail;
-+	}
- 
- 	prescan_rxq(&packet);
- 
--	while (!last) {
--		last = process_rcv_packet(&packet);
-+	while (last == RCV_PKT_OK) {
-+		last = process_rcv_packet(&packet, thread);
- 		seq = rhf_rcv_seq(packet.rhf);
- 		if (++rcd->seq_cnt > 13)
- 			rcd->seq_cnt = 1;
- 		if (seq != rcd->seq_cnt)
--			last = 1;
-+			last = RCV_PKT_DONE;
- 		process_rcv_update(last, &packet);
- 	}
- 	process_rcv_qp_work(&packet);
- bail:
- 	finish_packet(&packet);
-+	return last;
- }
- 
--void handle_receive_interrupt_dma_rtail(struct hfi1_ctxtdata *rcd)
-+int handle_receive_interrupt_dma_rtail(struct hfi1_ctxtdata *rcd, int thread)
- {
- 	u32 hdrqtail;
--	int last = 0;
-+	int last = RCV_PKT_OK;
- 	struct hfi1_packet packet;
- 
- 	init_packet(rcd, &packet);
- 	hdrqtail = get_rcvhdrtail(rcd);
--	if (packet.rhqoff == hdrqtail)
-+	if (packet.rhqoff == hdrqtail) {
-+		last = RCV_PKT_DONE;
- 		goto bail;
-+	}
- 	smp_rmb();  /* prevent speculative reads of dma'ed hdrq */
- 
- 	prescan_rxq(&packet);
- 
--	while (!last) {
--		last = process_rcv_packet(&packet);
-+	while (last == RCV_PKT_OK) {
-+		last = process_rcv_packet(&packet, thread);
-+		hdrqtail = get_rcvhdrtail(rcd);
- 		if (packet.rhqoff == hdrqtail)
--			last = 1;
-+			last = RCV_PKT_DONE;
- 		process_rcv_update(last, &packet);
- 	}
- 	process_rcv_qp_work(&packet);
- bail:
- 	finish_packet(&packet);
--
-+	return last;
- }
- 
- static inline void set_all_nodma_rtail(struct hfi1_devdata *dd)
-@@ -821,12 +827,11 @@ static inline void set_all_dma_rtail(struct hfi1_devdata *dd)
-  * Called from interrupt handler for errors or receive interrupt.
-  * This is the slow path interrupt handler.
-  */
--void handle_receive_interrupt(struct hfi1_ctxtdata *rcd)
-+int handle_receive_interrupt(struct hfi1_ctxtdata *rcd, int thread)
- {
--
- 	struct hfi1_devdata *dd = rcd->dd;
- 	u32 hdrqtail;
--	int last = 0, needset = 1;
-+	int last = RCV_PKT_OK, needset = 1;
- 	struct hfi1_packet packet;
- 
- 	init_packet(rcd, &packet);
-@@ -834,19 +839,23 @@ void handle_receive_interrupt(struct hfi1_ctxtdata *rcd)
- 	if (!HFI1_CAP_IS_KSET(DMA_RTAIL)) {
- 		u32 seq = rhf_rcv_seq(packet.rhf);
- 
--		if (seq != rcd->seq_cnt)
-+		if (seq != rcd->seq_cnt) {
-+			last = RCV_PKT_DONE;
- 			goto bail;
-+		}
- 		hdrqtail = 0;
- 	} else {
- 		hdrqtail = get_rcvhdrtail(rcd);
--		if (packet.rhqoff == hdrqtail)
-+		if (packet.rhqoff == hdrqtail) {
-+			last = RCV_PKT_DONE;
- 			goto bail;
-+		}
- 		smp_rmb();  /* prevent speculative reads of dma'ed hdrq */
- 	}
- 
- 	prescan_rxq(&packet);
- 
--	while (!last) {
-+	while (last == RCV_PKT_OK) {
- 
- 		if (unlikely(dd->do_drop && atomic_xchg(&dd->drop_packet,
- 			DROP_PACKET_OFF) == DROP_PACKET_ON)) {
-@@ -860,7 +869,7 @@ void handle_receive_interrupt(struct hfi1_ctxtdata *rcd)
- 			packet.rhf = rhf_to_cpu(packet.rhf_addr);
- 
- 		} else {
--			last = process_rcv_packet(&packet);
-+			last = process_rcv_packet(&packet, thread);
- 		}
- 
- 		if (!HFI1_CAP_IS_KSET(DMA_RTAIL)) {
-@@ -869,7 +878,7 @@ void handle_receive_interrupt(struct hfi1_ctxtdata *rcd)
- 			if (++rcd->seq_cnt > 13)
- 				rcd->seq_cnt = 1;
- 			if (seq != rcd->seq_cnt)
--				last = 1;
-+				last = RCV_PKT_DONE;
- 			if (needset) {
- 				dd_dev_info(dd,
- 					"Switching to NO_DMA_RTAIL\n");
-@@ -878,7 +887,7 @@ void handle_receive_interrupt(struct hfi1_ctxtdata *rcd)
+ 			/* Check for valid receive state. */
+ 			if (!(ib_hfi1_state_ops[qp->state] &
+@@ -335,7 +336,7 @@ static void rcv_hdrerr(struct hfi1_ctxtdata *rcd, struct hfi1_pportdata *ppd,
+ 				break;
  			}
- 		} else {
- 			if (packet.rhqoff == hdrqtail)
--				last = 1;
-+				last = RCV_PKT_DONE;
- 			if (needset) {
- 				dd_dev_info(dd,
- 					    "Switching to DMA_RTAIL\n");
-@@ -898,6 +907,7 @@ bail:
- 	 * if no packets were processed.
- 	 */
- 	finish_packet(&packet);
-+	return last;
+ 
+-			spin_unlock(&qp->r_lock);
++			spin_unlock_irqrestore(&qp->r_lock, flags);
+ 			rcu_read_unlock();
+ 		} /* Unicast QP */
+ 	} /* Valid packet with TIDErr */
+diff --git a/drivers/staging/rdma/hfi1/init.c b/drivers/staging/rdma/hfi1/init.c
+index 62aa7718b6d6..060ab566856a 100644
+--- a/drivers/staging/rdma/hfi1/init.c
++++ b/drivers/staging/rdma/hfi1/init.c
+@@ -413,6 +413,7 @@ static enum hrtimer_restart cca_timer_fn(struct hrtimer *t)
+ 	int sl;
+ 	u16 ccti, ccti_timer, ccti_min;
+ 	struct cc_state *cc_state;
++	unsigned long flags;
+ 
+ 	cca_timer = container_of(t, struct cca_timer, hrtimer);
+ 	ppd = cca_timer->ppd;
+@@ -436,7 +437,7 @@ static enum hrtimer_restart cca_timer_fn(struct hrtimer *t)
+ 	ccti_min = cc_state->cong_setting.entries[sl].ccti_min;
+ 	ccti_timer = cc_state->cong_setting.entries[sl].ccti_timer;
+ 
+-	spin_lock(&ppd->cca_timer_lock);
++	spin_lock_irqsave(&ppd->cca_timer_lock, flags);
+ 
+ 	ccti = cca_timer->ccti;
+ 
+@@ -445,7 +446,7 @@ static enum hrtimer_restart cca_timer_fn(struct hrtimer *t)
+ 		set_link_ipg(ppd);
+ 	}
+ 
+-	spin_unlock(&ppd->cca_timer_lock);
++	spin_unlock_irqrestore(&ppd->cca_timer_lock, flags);
+ 
+ 	rcu_read_unlock();
+ 
+diff --git a/drivers/staging/rdma/hfi1/mad.c b/drivers/staging/rdma/hfi1/mad.c
+index 1de282c989b0..32f703736185 100644
+--- a/drivers/staging/rdma/hfi1/mad.c
++++ b/drivers/staging/rdma/hfi1/mad.c
+@@ -3257,7 +3257,7 @@ static int __subn_get_opa_hfi1_cong_log(struct opa_smp *smp, u32 am,
+ 		return reply((struct ib_mad_hdr *)smp);
+ 	}
+ 
+-	spin_lock(&ppd->cc_log_lock);
++	spin_lock_irq(&ppd->cc_log_lock);
+ 
+ 	cong_log->log_type = OPA_CC_LOG_TYPE_HFI;
+ 	cong_log->congestion_flags = 0;
+@@ -3300,7 +3300,7 @@ static int __subn_get_opa_hfi1_cong_log(struct opa_smp *smp, u32 am,
+ 	       sizeof(ppd->threshold_cong_event_map));
+ 	ppd->threshold_event_counter = 0;
+ 
+-	spin_unlock(&ppd->cc_log_lock);
++	spin_unlock_irq(&ppd->cc_log_lock);
+ 
+ 	if (resp_len)
+ 		*resp_len += sizeof(struct opa_hfi1_cong_log);
+diff --git a/drivers/staging/rdma/hfi1/rc.c b/drivers/staging/rdma/hfi1/rc.c
+index 1e9caebb0281..72d442143b1c 100644
+--- a/drivers/staging/rdma/hfi1/rc.c
++++ b/drivers/staging/rdma/hfi1/rc.c
+@@ -697,6 +697,7 @@ void hfi1_send_rc_ack(struct hfi1_ctxtdata *rcd, struct hfi1_qp *qp,
+ 	struct pio_buf *pbuf;
+ 	struct hfi1_ib_header hdr;
+ 	struct hfi1_other_headers *ohdr;
++	unsigned long flags;
+ 
+ 	/* Don't send ACK or NAK if a RDMA read or atomic is pending. */
+ 	if (qp->s_flags & HFI1_S_RESP_PENDING)
+@@ -771,7 +772,7 @@ void hfi1_send_rc_ack(struct hfi1_ctxtdata *rcd, struct hfi1_qp *qp,
+ 
+ queue_ack:
+ 	this_cpu_inc(*ibp->rc_qacks);
+-	spin_lock(&qp->s_lock);
++	spin_lock_irqsave(&qp->s_lock, flags);
+ 	qp->s_flags |= HFI1_S_ACK_PENDING | HFI1_S_RESP_PENDING;
+ 	qp->s_nak_state = qp->r_nak_state;
+ 	qp->s_ack_psn = qp->r_ack_psn;
+@@ -780,7 +781,7 @@ queue_ack:
+ 
+ 	/* Schedule the send tasklet. */
+ 	hfi1_schedule_send(qp);
+-	spin_unlock(&qp->s_lock);
++	spin_unlock_irqrestore(&qp->s_lock, flags);
  }
  
- /*
-diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
-index 47b6bf586803..cb8461526ffa 100644
---- a/drivers/staging/rdma/hfi1/hfi.h
-+++ b/drivers/staging/rdma/hfi1/hfi.h
-@@ -313,7 +313,7 @@ struct hfi1_ctxtdata {
- 	 * be valid. Worst case is we process an extra interrupt and up to 64
- 	 * packets with the wrong interrupt handler.
- 	 */
--	void (*do_interrupt)(struct hfi1_ctxtdata *rcd);
-+	int (*do_interrupt)(struct hfi1_ctxtdata *rcd, int threaded);
- };
+ /**
+@@ -1152,7 +1153,7 @@ static struct hfi1_swqe *do_rc_completion(struct hfi1_qp *qp,
+  *
+  * This is called from rc_rcv_resp() to process an incoming RC ACK
+  * for the given QP.
+- * Called at interrupt level with the QP s_lock held.
++ * May be called at interrupt level, with the QP s_lock held.
+  * Returns 1 if OK, 0 if current operation should be aborted (NAK).
+  */
+ static int do_rc_ack(struct hfi1_qp *qp, u32 aeth, u32 psn, int opcode,
+@@ -1835,11 +1836,12 @@ static void log_cca_event(struct hfi1_pportdata *ppd, u8 sl, u32 rlid,
+ 			  u32 lqpn, u32 rqpn, u8 svc_type)
+ {
+ 	struct opa_hfi1_cong_log_event_internal *cc_event;
++	unsigned long flags;
  
- /*
-@@ -1151,9 +1151,21 @@ void hfi1_init_pportdata(struct pci_dev *, struct hfi1_pportdata *,
- 			 struct hfi1_devdata *, u8, u8);
- void hfi1_free_ctxtdata(struct hfi1_devdata *, struct hfi1_ctxtdata *);
+ 	if (sl >= OPA_MAX_SLS)
+ 		return;
  
--void handle_receive_interrupt(struct hfi1_ctxtdata *);
--void handle_receive_interrupt_nodma_rtail(struct hfi1_ctxtdata *rcd);
--void handle_receive_interrupt_dma_rtail(struct hfi1_ctxtdata *rcd);
-+int handle_receive_interrupt(struct hfi1_ctxtdata *, int);
-+int handle_receive_interrupt_nodma_rtail(struct hfi1_ctxtdata *, int);
-+int handle_receive_interrupt_dma_rtail(struct hfi1_ctxtdata *, int);
-+
-+/* receive packet handler dispositions */
-+#define RCV_PKT_OK      0x0 /* keep going */
-+#define RCV_PKT_LIMIT   0x1 /* stop, hit limit, start thread */
-+#define RCV_PKT_DONE    0x2 /* stop, no more packets detected */
-+
-+/* calculate the current RHF address */
-+static inline __le32 *get_rhf_addr(struct hfi1_ctxtdata *rcd)
-+{
-+	return (__le32 *)rcd->rcvhdrq + rcd->head + rcd->dd->rhf_offset;
-+}
-+
- int hfi1_reset_device(int);
+-	spin_lock(&ppd->cc_log_lock);
++	spin_lock_irqsave(&ppd->cc_log_lock, flags);
  
- /* return the driver's idea of the logical OPA port state */
+ 	ppd->threshold_cong_event_map[sl/8] |= 1 << (sl % 8);
+ 	ppd->threshold_event_counter++;
+@@ -1855,7 +1857,7 @@ static void log_cca_event(struct hfi1_pportdata *ppd, u8 sl, u32 rlid,
+ 	/* keep timestamp in units of 1.024 usec */
+ 	cc_event->timestamp = ktime_to_ns(ktime_get()) / 1024;
+ 
+-	spin_unlock(&ppd->cc_log_lock);
++	spin_unlock_irqrestore(&ppd->cc_log_lock, flags);
+ }
+ 
+ void process_becn(struct hfi1_pportdata *ppd, u8 sl, u16 rlid, u32 lqpn,
+@@ -1865,6 +1867,7 @@ void process_becn(struct hfi1_pportdata *ppd, u8 sl, u16 rlid, u32 lqpn,
+ 	u16 ccti, ccti_incr, ccti_timer, ccti_limit;
+ 	u8 trigger_threshold;
+ 	struct cc_state *cc_state;
++	unsigned long flags;
+ 
+ 	if (sl >= OPA_MAX_SLS)
+ 		return;
+@@ -1887,7 +1890,7 @@ void process_becn(struct hfi1_pportdata *ppd, u8 sl, u16 rlid, u32 lqpn,
+ 	trigger_threshold =
+ 		cc_state->cong_setting.entries[sl].trigger_threshold;
+ 
+-	spin_lock(&ppd->cca_timer_lock);
++	spin_lock_irqsave(&ppd->cca_timer_lock, flags);
+ 
+ 	if (cca_timer->ccti < ccti_limit) {
+ 		if (cca_timer->ccti + ccti_incr <= ccti_limit)
+@@ -1897,7 +1900,7 @@ void process_becn(struct hfi1_pportdata *ppd, u8 sl, u16 rlid, u32 lqpn,
+ 		set_link_ipg(ppd);
+ 	}
+ 
+-	spin_unlock(&ppd->cca_timer_lock);
++	spin_unlock_irqrestore(&ppd->cca_timer_lock, flags);
+ 
+ 	ccti = cca_timer->ccti;
+ 
+@@ -1924,7 +1927,7 @@ void process_becn(struct hfi1_pportdata *ppd, u8 sl, u16 rlid, u32 lqpn,
+  *
+  * This is called from qp_rcv() to process an incoming RC packet
+  * for the given QP.
+- * Called at interrupt level.
++ * May be called at interrupt level.
+  */
+ void hfi1_rc_rcv(struct hfi1_packet *packet)
+ {
 diff --git a/drivers/staging/rdma/hfi1/sdma.c b/drivers/staging/rdma/hfi1/sdma.c
-index 58892c1514d9..6c84f3f2dad7 100644
+index a82588200bdb..58892c1514d9 100644
 --- a/drivers/staging/rdma/hfi1/sdma.c
 +++ b/drivers/staging/rdma/hfi1/sdma.c
-@@ -2098,9 +2098,9 @@ unlock_noconn:
+@@ -384,16 +384,17 @@ static void sdma_flush(struct sdma_engine *sde)
+ {
+ 	struct sdma_txreq *txp, *txp_next;
+ 	LIST_HEAD(flushlist);
++	unsigned long flags;
+ 
+ 	/* flush from head to tail */
+ 	sdma_flush_descq(sde);
+-	spin_lock(&sde->flushlist_lock);
++	spin_lock_irqsave(&sde->flushlist_lock, flags);
+ 	/* copy flush list */
+ 	list_for_each_entry_safe(txp, txp_next, &sde->flushlist, list) {
+ 		list_del_init(&txp->list);
+ 		list_add_tail(&txp->list, &flushlist);
+ 	}
+-	spin_unlock(&sde->flushlist_lock);
++	spin_unlock_irqrestore(&sde->flushlist_lock, flags);
+ 	/* flush from flush list */
+ 	list_for_each_entry_safe(txp, txp_next, &flushlist, list) {
+ 		int drained = 0;
+@@ -2097,9 +2098,9 @@ unlock_noconn:
  	tx->sn = sde->tail_sn++;
  	trace_hfi1_sdma_in_sn(sde, tx->sn);
  #endif
--	spin_lock_irqsave(&sde->flushlist_lock, flags);
-+	spin_lock(&sde->flushlist_lock);
+-	spin_lock(&sde->flushlist_lock);
++	spin_lock_irqsave(&sde->flushlist_lock, flags);
  	list_add_tail(&tx->list, &sde->flushlist);
--	spin_unlock_irqrestore(&sde->flushlist_lock, flags);
-+	spin_unlock(&sde->flushlist_lock);
+-	spin_unlock(&sde->flushlist_lock);
++	spin_unlock_irqrestore(&sde->flushlist_lock, flags);
  	if (wait) {
  		wait->tx_count++;
  		wait->count += tx->num_desc;
+diff --git a/drivers/staging/rdma/hfi1/verbs.c b/drivers/staging/rdma/hfi1/verbs.c
+index 45f291fd3236..d8f6347decd6 100644
+--- a/drivers/staging/rdma/hfi1/verbs.c
++++ b/drivers/staging/rdma/hfi1/verbs.c
+@@ -597,6 +597,7 @@ void hfi1_ib_rcv(struct hfi1_packet *packet)
+ 	u32 tlen = packet->tlen;
+ 	struct hfi1_pportdata *ppd = rcd->ppd;
+ 	struct hfi1_ibport *ibp = &ppd->ibport_data;
++	unsigned long flags;
+ 	u32 qp_num;
+ 	int lnh;
+ 	u8 opcode;
+@@ -639,10 +640,10 @@ void hfi1_ib_rcv(struct hfi1_packet *packet)
+ 			goto drop;
+ 		list_for_each_entry_rcu(p, &mcast->qp_list, list) {
+ 			packet->qp = p->qp;
+-			spin_lock(&packet->qp->r_lock);
++			spin_lock_irqsave(&packet->qp->r_lock, flags);
+ 			if (likely((qp_ok(opcode, packet))))
+ 				opcode_handler_tbl[opcode](packet);
+-			spin_unlock(&packet->qp->r_lock);
++			spin_unlock_irqrestore(&packet->qp->r_lock, flags);
+ 		}
+ 		/*
+ 		 * Notify hfi1_multicast_detach() if it is waiting for us
+@@ -657,10 +658,10 @@ void hfi1_ib_rcv(struct hfi1_packet *packet)
+ 			rcu_read_unlock();
+ 			goto drop;
+ 		}
+-		spin_lock(&packet->qp->r_lock);
++		spin_lock_irqsave(&packet->qp->r_lock, flags);
+ 		if (likely((qp_ok(opcode, packet))))
+ 			opcode_handler_tbl[opcode](packet);
+-		spin_unlock(&packet->qp->r_lock);
++		spin_unlock_irqrestore(&packet->qp->r_lock, flags);
+ 		rcu_read_unlock();
+ 	}
+ 	return;
 -- 
 1.8.2
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
