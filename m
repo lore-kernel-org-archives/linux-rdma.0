@@ -1,52 +1,123 @@
-From: ira.weiny@intel.com
-Subject: [PATCH v3 16/23] staging/rdma/hfi1: Increase SDMA descriptor queue
- size
-Date: Mon, 26 Oct 2015 10:28:42 -0400
-Message-ID: <1445869729-7507-17-git-send-email-ira.weiny@intel.com>
+From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH v3 20/23] staging/rdma/hfi1: Load SBus firmware once per ASIC
+Date: Mon, 26 Oct 2015 10:28:46 -0400
+Message-ID: <1445869729-7507-21-git-send-email-ira.weiny@intel.com>
 References: <1445869729-7507-1-git-send-email-ira.weiny@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <1445869729-7507-1-git-send-email-ira.weiny@intel.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org
-Cc: linux-rdma@vger.kernel.org, dennis.dalessandro@intel.com, Ignacio Hernandez <ignacio.hernandez@intel.com>, dledford@redhat.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1445869729-7507-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ignacio Hernandez <ignacio.hernandez@intel.com>
+From: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-A value of 2048 increased PSM performance while not impacting verbs
-performance.
+Using fw_sbus_load to control SBus firmware load doesn't scale across multiple
+HFI1 cards in a single system. This patch ensures that the SBus firmware is
+loaded once per ASIC.
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Reviewed-by: Mitko Haralanov <mitko.haralanov@intel.com>
-Signed-off-by: Ignacio Hernandez <ignacio.hernandez@intel.com>
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/sdma.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/staging/rdma/hfi1/firmware.c | 31 ++++++++-----------------------
+ drivers/staging/rdma/hfi1/pcie.c     | 10 ++++++----
+ 2 files changed, 14 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/sdma.c b/drivers/staging/rdma/hfi1/sdma.c
-index 77800df1d3b8..a82588200bdb 100644
---- a/drivers/staging/rdma/hfi1/sdma.c
-+++ b/drivers/staging/rdma/hfi1/sdma.c
-@@ -65,7 +65,7 @@
- #include "trace.h"
+diff --git a/drivers/staging/rdma/hfi1/firmware.c b/drivers/staging/rdma/hfi1/firmware.c
+index ace75ce3da3f..b4bdcf341aac 100644
+--- a/drivers/staging/rdma/hfi1/firmware.c
++++ b/drivers/staging/rdma/hfi1/firmware.c
+@@ -1236,35 +1236,20 @@ int load_firmware(struct hfi1_devdata *dd)
+ {
+ 	int ret;
  
- /* must be a power of 2 >= 64 <= 32768 */
--#define SDMA_DESCQ_CNT 1024
-+#define SDMA_DESCQ_CNT 2048
- #define SDMA_DESC_INTR 64
- #define INVALID_TAIL 0xffff
+-	if (fw_sbus_load || fw_fabric_serdes_load) {
++	if (fw_fabric_serdes_load) {
+ 		ret = acquire_hw_mutex(dd);
+ 		if (ret)
+ 			return ret;
  
+ 		set_sbus_fast_mode(dd);
+ 
+-		/*
+-		 * The SBus contains part of the fabric firmware and so must
+-		 * also be downloaded.
+-		 */
+-		if (fw_sbus_load) {
+-			turn_off_spicos(dd, SPICO_SBUS);
+-			ret = load_sbus_firmware(dd, &fw_sbus);
+-			if (ret)
+-				goto clear;
+-			fw_sbus_load = 0;
+-		}
++		set_serdes_broadcast(dd, all_fabric_serdes_broadcast,
++				fabric_serdes_broadcast[dd->hfi1_id],
++				fabric_serdes_addrs[dd->hfi1_id],
++				NUM_FABRIC_SERDES);
++		turn_off_spicos(dd, SPICO_FABRIC);
++		ret = load_fabric_serdes_firmware(dd, &fw_fabric);
+ 
+-		if (fw_fabric_serdes_load) {
+-			set_serdes_broadcast(dd, all_fabric_serdes_broadcast,
+-					fabric_serdes_broadcast[dd->hfi1_id],
+-					fabric_serdes_addrs[dd->hfi1_id],
+-					NUM_FABRIC_SERDES);
+-			turn_off_spicos(dd, SPICO_FABRIC);
+-			ret = load_fabric_serdes_firmware(dd, &fw_fabric);
+-		}
+-
+-clear:
+ 		clear_sbus_fast_mode(dd);
+ 		release_hw_mutex(dd);
+ 		if (ret)
+@@ -1583,7 +1568,7 @@ int load_pcie_firmware(struct hfi1_devdata *dd)
+ 	/* both firmware loads below use the SBus */
+ 	set_sbus_fast_mode(dd);
+ 
+-	if (fw_sbus_load) {
++	if (fw_sbus_load && (dd->flags & HFI1_DO_INIT_ASIC)) {
+ 		turn_off_spicos(dd, SPICO_SBUS);
+ 		ret = load_sbus_firmware(dd, &fw_sbus);
+ 		if (ret)
+diff --git a/drivers/staging/rdma/hfi1/pcie.c b/drivers/staging/rdma/hfi1/pcie.c
+index 3b50cdda1c0a..a956044459a2 100644
+--- a/drivers/staging/rdma/hfi1/pcie.c
++++ b/drivers/staging/rdma/hfi1/pcie.c
+@@ -947,15 +947,16 @@ int do_pcie_gen3_transition(struct hfi1_devdata *dd)
+ 	}
+ 
+ retry:
++
+ 	if (therm) {
+-		/* toggle SPICO_ENABLE to get back to the state
+-		   just after the firmware load */
++		/*
++		 * toggle SPICO_ENABLE to get back to the state
++		 * just after the firmware load
++		 */
+ 		sbus_request(dd, SBUS_MASTER_BROADCAST, 0x01,
+ 			WRITE_SBUS_RECEIVER, 0x00000040);
+ 		sbus_request(dd, SBUS_MASTER_BROADCAST, 0x01,
+ 			WRITE_SBUS_RECEIVER, 0x00000140);
+-		dd_dev_info(dd, "%s: toggle SPICO_ENABLE to reset the bus\n",
+-			    __func__);
+ 	}
+ 
+ 	/* step 3: download SBus Master firmware */
+@@ -1198,6 +1199,7 @@ retry:
+ 
+ 	/* clear the DC reset */
+ 	write_csr(dd, CCE_DC_CTRL, 0);
++
+ 	/* Set the LED off */
+ 	if (is_a0(dd))
+ 		setextled(dd, 0);
 -- 
 1.8.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
