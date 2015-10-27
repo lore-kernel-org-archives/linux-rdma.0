@@ -1,167 +1,60 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libibverbs 1/7] Add support for extended version of ibv_query_device
-Date: Tue, 27 Oct 2015 18:52:29 +0200
-Message-ID: <1445964755-13371-2-git-send-email-matanb@mellanox.com>
-References: <1445964755-13371-1-git-send-email-matanb@mellanox.com>
+Subject: [PATCH libibverbs 0/7] Completion timestamping
+Date: Tue, 27 Oct 2015 18:52:28 +0200
+Message-ID: <1445964755-13371-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1445964755-13371-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The new mlx4_query_device_ex implementation uses the
-extended version of libibverbs/uverbs query_device command.
-In addition, it reads the hca_core_clock offset in the bar
-from the vendor specific part of ibv_query_device_ex command.
+Hi Yishai,
 
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- src/mlx4-abi.h | 13 +++++++++++++
- src/mlx4.c     |  1 +
- src/mlx4.h     |  8 ++++++++
- src/verbs.c    | 54 +++++++++++++++++++++++++++++++++++++++++++++++++++---
- 4 files changed, 73 insertions(+), 3 deletions(-)
+This series adds support for completion timestamp. In order to
+support this feature, several extended verbs were implemented
+(as instructed in libibverbs).
 
-diff --git a/src/mlx4-abi.h b/src/mlx4-abi.h
-index b48f6fc..b348ce3 100644
---- a/src/mlx4-abi.h
-+++ b/src/mlx4-abi.h
-@@ -111,4 +111,17 @@ struct mlx4_create_qp {
- 	__u8				reserved[5];
- };
- 
-+enum query_device_resp_mask {
-+	QUERY_DEVICE_RESP_MASK_TIMESTAMP = 1UL << 0,
-+};
-+
-+struct query_device_ex_resp {
-+	struct ibv_query_device_resp_ex core;
-+	struct {
-+		uint32_t comp_mask;
-+		uint32_t response_length;
-+		uint64_t hca_core_clock_offset;
-+	};
-+};
-+
- #endif /* MLX4_ABI_H */
-diff --git a/src/mlx4.c b/src/mlx4.c
-index c30f4bf..d41dff0 100644
---- a/src/mlx4.c
-+++ b/src/mlx4.c
-@@ -207,6 +207,7 @@ static int mlx4_init_context(struct verbs_device *v_device,
- 	verbs_set_ctx_op(verbs_ctx, open_qp, mlx4_open_qp);
- 	verbs_set_ctx_op(verbs_ctx, ibv_create_flow, ibv_cmd_create_flow);
- 	verbs_set_ctx_op(verbs_ctx, ibv_destroy_flow, ibv_cmd_destroy_flow);
-+	verbs_set_ctx_op(verbs_ctx, query_device_ex, mlx4_query_device_ex);
- 
- 	return 0;
- 
-diff --git a/src/mlx4.h b/src/mlx4.h
-index 519d8f4..0f643bc 100644
---- a/src/mlx4.h
-+++ b/src/mlx4.h
-@@ -198,6 +198,7 @@ struct mlx4_context {
- 		uint8_t                 link_layer;
- 		enum ibv_port_cap_flags caps;
- 	} port_query_cache[MLX4_PORTS_NUM];
-+	uint64_t			core_clock_offset;
- };
- 
- struct mlx4_buf {
-@@ -378,6 +379,13 @@ void mlx4_free_db(struct mlx4_context *context, enum mlx4_db_type type, uint32_t
- 
- int mlx4_query_device(struct ibv_context *context,
- 		       struct ibv_device_attr *attr);
-+int _mlx4_query_device_ex(struct ibv_context *context,
-+			  const struct ibv_query_device_ex_input *input,
-+			  struct ibv_device_attr_ex *attr, size_t attr_size,
-+			  uint32_t *comp_mask);
-+int mlx4_query_device_ex(struct ibv_context *context,
-+			 const struct ibv_query_device_ex_input *input,
-+			 struct ibv_device_attr_ex *attr, size_t attr_size);
- int mlx4_query_port(struct ibv_context *context, uint8_t port,
- 		     struct ibv_port_attr *attr);
- 
-diff --git a/src/verbs.c b/src/verbs.c
-index 2cb1f8a..e93114b 100644
---- a/src/verbs.c
-+++ b/src/verbs.c
-@@ -45,6 +45,14 @@
- #include "mlx4-abi.h"
- #include "wqe.h"
- 
-+static void parse_raw_fw_ver(uint64_t raw_fw_ver, unsigned *major,
-+			     unsigned *minor, unsigned *sub_minor)
-+{
-+	*major     = (raw_fw_ver >> 32) & 0xffff;
-+	*minor     = (raw_fw_ver >> 16) & 0xffff;
-+	*sub_minor = raw_fw_ver & 0xffff;
-+}
-+
- int mlx4_query_device(struct ibv_context *context, struct ibv_device_attr *attr)
- {
- 	struct ibv_query_device cmd;
-@@ -56,9 +64,7 @@ int mlx4_query_device(struct ibv_context *context, struct ibv_device_attr *attr)
- 	if (ret)
- 		return ret;
- 
--	major     = (raw_fw_ver >> 32) & 0xffff;
--	minor     = (raw_fw_ver >> 16) & 0xffff;
--	sub_minor = raw_fw_ver & 0xffff;
-+	parse_raw_fw_ver(raw_fw_ver, &major, &minor, &sub_minor);
- 
- 	snprintf(attr->fw_ver, sizeof attr->fw_ver,
- 		 "%d.%d.%03d", major, minor, sub_minor);
-@@ -66,6 +72,48 @@ int mlx4_query_device(struct ibv_context *context, struct ibv_device_attr *attr)
- 	return 0;
- }
- 
-+int _mlx4_query_device_ex(struct ibv_context *context,
-+			  const struct ibv_query_device_ex_input *input,
-+			  struct ibv_device_attr_ex *attr, size_t attr_size,
-+			  uint32_t *comp_mask)
-+{
-+	struct ibv_query_device_ex cmd;
-+	struct query_device_ex_resp resp;
-+	uint64_t raw_fw_ver;
-+	unsigned major, minor, sub_minor;
-+	int ret;
-+
-+	memset(&resp, 0, sizeof(resp));
-+
-+	ret = ibv_cmd_query_device_ex(context, input, attr, attr_size,
-+				      &raw_fw_ver, &cmd, sizeof(cmd),
-+				      sizeof(cmd), &resp.core,
-+				      sizeof(resp.core), sizeof(resp));
-+	if (ret)
-+		return ret;
-+
-+	parse_raw_fw_ver(raw_fw_ver, &major, &minor, &sub_minor);
-+
-+	snprintf(attr->orig_attr.fw_ver, sizeof(attr->orig_attr.fw_ver),
-+		 "%d.%d.%03d", major, minor, sub_minor);
-+
-+	if (resp.comp_mask & QUERY_DEVICE_RESP_MASK_TIMESTAMP)
-+		to_mctx(context)->core_clock_offset =
-+			resp.hca_core_clock_offset;
-+
-+	if (comp_mask)
-+		*comp_mask = resp.comp_mask;
-+
-+	return 0;
-+}
-+
-+int mlx4_query_device_ex(struct ibv_context *context,
-+			 const struct ibv_query_device_ex_input *input,
-+			 struct ibv_device_attr_ex *attr, size_t attr_size)
-+{
-+	return _mlx4_query_device_ex(context, input, attr, attr_size, NULL);
-+}
-+
- int mlx4_query_port(struct ibv_context *context, uint8_t port,
- 		     struct ibv_port_attr *attr)
- {
+ibv_query_device_ex was extended to support reading the
+hca_core_clock and timestamp mask. The same verb was extended
+with vendor dependant data which is used in order to map the
+HCA's free running clock register.
+When libmlx4 initializes, it tried to mmap this free running
+clock register. This mapping is used in order to implement
+ibv_query_values_ex efficiently.
+
+In order to support CQ completion timestmap reporting, we implement
+ibv_create_cq_ex verb. This verb is used both for creating a CQ
+which supports timestamp and in order to state which fields should
+be returned via WC. Returning this data is done via implementing
+ibv_poll_cq_ex. We query the CQ requested wc_flags for every field
+the user has requested and populate it according to the carried
+network operation and WC status.
+
+Last but not least, ibv_poll_cq_ex was optimized in order to eliminate
+the if statements and or operations for common combinations of wc
+fields. This is done by inlining and using a custom poll_one_ex
+function for these fields.
+
+Thanks,
+Matan
+
+Matan Barak (7):
+  Add support for extended version of ibv_query_device
+  Add support for ibv_create_cq_ex
+  Implement ibv_poll_cq_ex extension verb
+  Add timestmap support to extended poll_cq verb
+  Add support for ibv_query_values_ex
+  Add support for different poll_one_ex functions
+  Optimize ibv_poll_cq_ex for common scenarios
+
+ configure.ac   |  17 ++
+ src/cq.c       | 512 +++++++++++++++++++++++++++++++++++++++++++++++++++++----
+ src/mlx4-abi.h |  25 +++
+ src/mlx4.c     |  39 +++++
+ src/mlx4.h     |  64 +++++++-
+ src/verbs.c    | 219 +++++++++++++++++++++---
+ 6 files changed, 823 insertions(+), 53 deletions(-)
+
 -- 
 2.1.0
 
