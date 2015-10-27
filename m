@@ -1,45 +1,44 @@
-From: Muhammad Falak R Wani <falakreyaz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/4 v2] staging: ipath: ipath_driver: Use setup_timer
-Date: Tue, 27 Oct 2015 19:42:36 +0530
-Message-ID: <1E5808FF-B927-45D6-B7C8-68AFFEC9BFCD@gmail.com>
-References: <1445768253-16107-1-git-send-email-falakreyaz@gmail.com> <CALq1K=J-jEU=-BKjnAEvuxVfMmbPn4-gdj0i4StRbrVy6ho6Ag@mail.gmail.com> <20151027091903.GA7340@mwanda> <CALq1K=LLQd4CjVr=gB68MjLy0=uoY34nJxwTgsaEWtB0vBbUng@mail.gmail.com> <20151027111042.GD7340@mwanda>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH 0/2] Expose max_sge_rd correctly
+Date: Tue, 27 Oct 2015 09:26:46 -0500
+Message-ID: <000a01d110c3$82583120$87089360$@opengridcomputing.com>
+References: <1445938846-9240-1-git-send-email-sagig@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151027111042.GD7340@mwanda>
+In-Reply-To: <1445938846-9240-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: 'Sagi Grimberg' <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: "'Nicholas A. Bellinger'" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, 'Or Gerlitz' <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-On October 27, 2015 4:40:42 PM GMT+05:30, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
->On Tue, Oct 27, 2015 at 11:45:18AM +0200, Leon Romanovsky wrote:
->> On Tue, Oct 27, 2015 at 11:19 AM, Dan Carpenter
->> <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
->> > On Sun, Oct 25, 2015 at 01:21:11PM +0200, Leon Romanovsky wrote:
->> >> On Sun, Oct 25, 2015 at 12:17 PM, Muhammad Falak R Wani
->> >> <falakreyaz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> >> Please follow standard naming convention for the patches.
->> >> It should be [PATCH v2 1/4] and not [PATCH 1/4 v2].
->> >
->> > Does this matter?  It's in a thread so it sorts fine either way.
->> It will be wise if people read guides and follow examples.
->> 
->> [1] https://www.kernel.org/doc/Documentation/SubmittingPatches
->
->That document doesn't really specify one way or the other.  And even if
->it did then why would you care?  Stop being so picky for no reason.
->
->regards,
->dan carpenter
+> -----Original Message-----
+> From: Sagi Grimberg [mailto:sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
+> Sent: Tuesday, October 27, 2015 4:41 AM
+> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: Steve Wise; Nicholas A. Bellinger; Or Gerlitz; Doug Ledford
+> Subject: [PATCH 0/2] Expose max_sge_rd correctly
+> 
+> This addresses a specific mlx4 issue where the max_sge_rd
+> is actually smaller than max_sge (rdma reads with max_sge
+> entries completes with error).
+> 
+> The second patch removes the explicit work-around from the
+> iser target code.
+> 
+> This applies on top of Christoph's device attributes modification.
+> 
 
-Sorry, my bad . Won't repeat such mistakes.
--- 
-mfrw
+
+Looks correct to me.
+
+Series Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
