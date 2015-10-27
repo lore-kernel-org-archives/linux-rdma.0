@@ -1,171 +1,254 @@
 From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH libibverbs 1/7] Add support for extended version of ibv_query_device
-Date: Tue, 27 Oct 2015 19:05:05 +0200
-Message-ID: <CAAKD3BAj87azavOkp_tOPfznEwMcjAb8sUrX0KH3wAB2vECXeA@mail.gmail.com>
+Subject: Re: [PATCH libibverbs 2/7] Add support for ibv_create_cq_ex
+Date: Tue, 27 Oct 2015 19:05:24 +0200
+Message-ID: <CAAKD3BB8J_bwFCFF=R4PLf_n2Jz5tHRJ+tHzkR=GxxtMNs1LpA@mail.gmail.com>
 References: <1445964755-13371-1-git-send-email-matanb@mellanox.com>
-	<1445964755-13371-2-git-send-email-matanb@mellanox.com>
+	<1445964755-13371-3-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1445964755-13371-2-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1445964755-13371-3-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 On Tue, Oct 27, 2015 at 6:52 PM, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> The new mlx4_query_device_ex implementation uses the
-> extended version of libibverbs/uverbs query_device command.
-> In addition, it reads the hca_core_clock offset in the bar
-> from the vendor specific part of ibv_query_device_ex command.
+> Add an extension verb mlx4_create_cq_ex that follows the
+> standard extension verb mechanism.
+> This function is similar to mlx4_create_cq but supports the
+> extension verbs functions and stores the creation flags
+> for later use (for example, timestamp flag is used in poll_cq).
+> The function fails if the user passes unsupported WC attributes.
 >
 > Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
->  src/mlx4-abi.h | 13 +++++++++++++
->  src/mlx4.c     |  1 +
->  src/mlx4.h     |  8 ++++++++
->  src/verbs.c    | 54 +++++++++++++++++++++++++++++++++++++++++++++++++++---
->  4 files changed, 73 insertions(+), 3 deletions(-)
+>  src/mlx4-abi.h |  12 ++++++
+>  src/mlx4.c     |   1 +
+>  src/mlx4.h     |   3 ++
+>  src/verbs.c    | 117 +++++++++++++++++++++++++++++++++++++++++++++++++--------
+>  4 files changed, 117 insertions(+), 16 deletions(-)
 >
 > diff --git a/src/mlx4-abi.h b/src/mlx4-abi.h
-> index b48f6fc..b348ce3 100644
+> index b348ce3..9b765e4 100644
 > --- a/src/mlx4-abi.h
 > +++ b/src/mlx4-abi.h
-> @@ -111,4 +111,17 @@ struct mlx4_create_qp {
->         __u8                            reserved[5];
+> @@ -72,12 +72,24 @@ struct mlx4_create_cq {
+>         __u64                           db_addr;
 >  };
 >
-> +enum query_device_resp_mask {
-> +       QUERY_DEVICE_RESP_MASK_TIMESTAMP = 1UL << 0,
+> +struct mlx4_create_cq_ex {
+> +       struct ibv_create_cq_ex         ibv_cmd;
+> +       __u64                           buf_addr;
+> +       __u64                           db_addr;
 > +};
 > +
-> +struct query_device_ex_resp {
-> +       struct ibv_query_device_resp_ex core;
-> +       struct {
-> +               uint32_t comp_mask;
-> +               uint32_t response_length;
-> +               uint64_t hca_core_clock_offset;
-> +       };
+>  struct mlx4_create_cq_resp {
+>         struct ibv_create_cq_resp       ibv_resp;
+>         __u32                           cqn;
+>         __u32                           reserved;
+>  };
+>
+> +struct mlx4_create_cq_resp_ex {
+> +       struct ibv_create_cq_resp_ex    ibv_resp;
+> +       __u32                           cqn;
+> +       __u32                           reserved;
 > +};
 > +
->  #endif /* MLX4_ABI_H */
+>  struct mlx4_resize_cq {
+>         struct ibv_resize_cq            ibv_cmd;
+>         __u64                           buf_addr;
 > diff --git a/src/mlx4.c b/src/mlx4.c
-> index c30f4bf..d41dff0 100644
+> index d41dff0..9cfd013 100644
 > --- a/src/mlx4.c
 > +++ b/src/mlx4.c
-> @@ -207,6 +207,7 @@ static int mlx4_init_context(struct verbs_device *v_device,
->         verbs_set_ctx_op(verbs_ctx, open_qp, mlx4_open_qp);
+> @@ -208,6 +208,7 @@ static int mlx4_init_context(struct verbs_device *v_device,
 >         verbs_set_ctx_op(verbs_ctx, ibv_create_flow, ibv_cmd_create_flow);
 >         verbs_set_ctx_op(verbs_ctx, ibv_destroy_flow, ibv_cmd_destroy_flow);
-> +       verbs_set_ctx_op(verbs_ctx, query_device_ex, mlx4_query_device_ex);
+>         verbs_set_ctx_op(verbs_ctx, query_device_ex, mlx4_query_device_ex);
+> +       verbs_set_ctx_op(verbs_ctx, create_cq_ex, mlx4_create_cq_ex);
 >
 >         return 0;
 >
 > diff --git a/src/mlx4.h b/src/mlx4.h
-> index 519d8f4..0f643bc 100644
+> index 0f643bc..91eb79c 100644
 > --- a/src/mlx4.h
 > +++ b/src/mlx4.h
-> @@ -198,6 +198,7 @@ struct mlx4_context {
->                 uint8_t                 link_layer;
->                 enum ibv_port_cap_flags caps;
->         } port_query_cache[MLX4_PORTS_NUM];
-> +       uint64_t                        core_clock_offset;
+> @@ -222,6 +222,7 @@ struct mlx4_cq {
+>         uint32_t                       *arm_db;
+>         int                             arm_sn;
+>         int                             cqe_size;
+> +       int                             creation_flags;
 >  };
 >
->  struct mlx4_buf {
-> @@ -378,6 +379,13 @@ void mlx4_free_db(struct mlx4_context *context, enum mlx4_db_type type, uint32_t
->
->  int mlx4_query_device(struct ibv_context *context,
->                        struct ibv_device_attr *attr);
-> +int _mlx4_query_device_ex(struct ibv_context *context,
-> +                         const struct ibv_query_device_ex_input *input,
-> +                         struct ibv_device_attr_ex *attr, size_t attr_size,
-> +                         uint32_t *comp_mask);
-> +int mlx4_query_device_ex(struct ibv_context *context,
-> +                        const struct ibv_query_device_ex_input *input,
-> +                        struct ibv_device_attr_ex *attr, size_t attr_size);
->  int mlx4_query_port(struct ibv_context *context, uint8_t port,
->                      struct ibv_port_attr *attr);
->
+>  struct mlx4_srq {
+> @@ -402,6 +403,8 @@ int mlx4_dereg_mr(struct ibv_mr *mr);
+>  struct ibv_cq *mlx4_create_cq(struct ibv_context *context, int cqe,
+>                                struct ibv_comp_channel *channel,
+>                                int comp_vector);
+> +struct ibv_cq *mlx4_create_cq_ex(struct ibv_context *context,
+> +                                struct ibv_create_cq_attr_ex *cq_attr);
+>  int mlx4_alloc_cq_buf(struct mlx4_device *dev, struct mlx4_buf *buf, int nent,
+>                       int entry_size);
+>  int mlx4_resize_cq(struct ibv_cq *cq, int cqe);
 > diff --git a/src/verbs.c b/src/verbs.c
-> index 2cb1f8a..e93114b 100644
+> index e93114b..3290b86 100644
 > --- a/src/verbs.c
 > +++ b/src/verbs.c
-> @@ -45,6 +45,14 @@
->  #include "mlx4-abi.h"
->  #include "wqe.h"
->
-> +static void parse_raw_fw_ver(uint64_t raw_fw_ver, unsigned *major,
-> +                            unsigned *minor, unsigned *sub_minor)
-> +{
-> +       *major     = (raw_fw_ver >> 32) & 0xffff;
-> +       *minor     = (raw_fw_ver >> 16) & 0xffff;
-> +       *sub_minor = raw_fw_ver & 0xffff;
-> +}
-> +
->  int mlx4_query_device(struct ibv_context *context, struct ibv_device_attr *attr)
->  {
->         struct ibv_query_device cmd;
-> @@ -56,9 +64,7 @@ int mlx4_query_device(struct ibv_context *context, struct ibv_device_attr *attr)
->         if (ret)
->                 return ret;
->
-> -       major     = (raw_fw_ver >> 32) & 0xffff;
-> -       minor     = (raw_fw_ver >> 16) & 0xffff;
-> -       sub_minor = raw_fw_ver & 0xffff;
-> +       parse_raw_fw_ver(raw_fw_ver, &major, &minor, &sub_minor);
->
->         snprintf(attr->fw_ver, sizeof attr->fw_ver,
->                  "%d.%d.%03d", major, minor, sub_minor);
-> @@ -66,6 +72,48 @@ int mlx4_query_device(struct ibv_context *context, struct ibv_device_attr *attr)
->         return 0;
+> @@ -272,19 +272,69 @@ int align_queue_size(int req)
+>         return nent;
 >  }
 >
-> +int _mlx4_query_device_ex(struct ibv_context *context,
-> +                         const struct ibv_query_device_ex_input *input,
-> +                         struct ibv_device_attr_ex *attr, size_t attr_size,
-> +                         uint32_t *comp_mask)
-> +{
-> +       struct ibv_query_device_ex cmd;
-> +       struct query_device_ex_resp resp;
-> +       uint64_t raw_fw_ver;
-> +       unsigned major, minor, sub_minor;
-> +       int ret;
+> -struct ibv_cq *mlx4_create_cq(struct ibv_context *context, int cqe,
+> -                              struct ibv_comp_channel *channel,
+> -                              int comp_vector)
+> +enum cmd_type {
+> +       MLX4_CMD_TYPE_BASIC,
+> +       MLX4_CMD_TYPE_EXTENDED
+> +};
 > +
-> +       memset(&resp, 0, sizeof(resp));
+> +enum {
+> +       CREATE_CQ_SUPPORTED_COMP_MASK = IBV_CREATE_CQ_ATTR_FLAGS
+> +};
 > +
-> +       ret = ibv_cmd_query_device_ex(context, input, attr, attr_size,
-> +                                     &raw_fw_ver, &cmd, sizeof(cmd),
-> +                                     sizeof(cmd), &resp.core,
-> +                                     sizeof(resp.core), sizeof(resp));
-> +       if (ret)
-> +               return ret;
+> +enum {
+> +       CREATE_CQ_SUPPORTED_FLAGS = IBV_CREATE_CQ_ATTR_COMPLETION_TIMESTAMP
+> +};
 > +
-> +       parse_raw_fw_ver(raw_fw_ver, &major, &minor, &sub_minor);
+> +enum {
+> +       CREATE_CQ_SUPPORTED_WC_FLAGS = IBV_WC_STANDARD_FLAGS
+> +};
 > +
-> +       snprintf(attr->orig_attr.fw_ver, sizeof(attr->orig_attr.fw_ver),
-> +                "%d.%d.%03d", major, minor, sub_minor);
-> +
-> +       if (resp.comp_mask & QUERY_DEVICE_RESP_MASK_TIMESTAMP)
-> +               to_mctx(context)->core_clock_offset =
-> +                       resp.hca_core_clock_offset;
-> +
-> +       if (comp_mask)
-> +               *comp_mask = resp.comp_mask;
-> +
-> +       return 0;
-> +}
-> +
-> +int mlx4_query_device_ex(struct ibv_context *context,
-> +                        const struct ibv_query_device_ex_input *input,
-> +                        struct ibv_device_attr_ex *attr, size_t attr_size)
-> +{
-> +       return _mlx4_query_device_ex(context, input, attr, attr_size, NULL);
-> +}
-> +
->  int mlx4_query_port(struct ibv_context *context, uint8_t port,
->                      struct ibv_port_attr *attr)
+> +static struct ibv_cq *create_cq(struct ibv_context *context,
+> +                               struct ibv_create_cq_attr_ex *cq_attr,
+> +                               enum cmd_type cmd_type)
 >  {
+> -       struct mlx4_create_cq      cmd;
+> -       struct mlx4_create_cq_resp resp;
+> -       struct mlx4_cq            *cq;
+> -       int                        ret;
+> -       struct mlx4_context       *mctx = to_mctx(context);
+> +       struct mlx4_create_cq           cmd;
+> +       struct mlx4_create_cq_ex        cmd_e;
+> +       struct mlx4_create_cq_resp      resp;
+> +       struct mlx4_create_cq_resp_ex   resp_e;
+> +       struct mlx4_cq                  *cq;
+> +       int                             ret;
+> +       struct mlx4_context             *mctx = to_mctx(context);
+> +       struct ibv_create_cq_attr_ex    cq_attr_e;
+> +       int cqe;
+>
+>         /* Sanity check CQ size before proceeding */
+> -       if (cqe > 0x3fffff)
+> +       if (cq_attr->cqe > 0x3fffff)
+> +               return NULL;
+> +
+> +       if (cq_attr->comp_mask & ~CREATE_CQ_SUPPORTED_COMP_MASK) {
+> +               errno = EINVAL;
+>                 return NULL;
+> +       }
+> +
+> +       if (cq_attr->comp_mask & IBV_CREATE_CQ_ATTR_FLAGS &&
+> +           cq_attr->flags & ~CREATE_CQ_SUPPORTED_FLAGS) {
+> +               errno = EINVAL;
+> +               return NULL;
+> +       }
+> +
+> +       if (cq_attr->wc_flags & ~CREATE_CQ_SUPPORTED_WC_FLAGS) {
+> +               errno = ENOTSUP;
+> +               return NULL;
+> +       }
+> +
+> +       if (!(cq_attr->wc_flags & IBV_WC_EX_WITH_COMPLETION_TIMESTAMP) !=
+> +           !(cq_attr->comp_mask & IBV_CREATE_CQ_ATTR_FLAGS &&
+> +             cq_attr->flags & IBV_CREATE_CQ_ATTR_COMPLETION_TIMESTAMP)) {
+> +               errno = EINVAL;
+> +               return NULL;
+> +       }
+> +
+> +       if (cq_attr->wc_flags & IBV_WC_EX_WITH_COMPLETION_TIMESTAMP &&
+> +           cq_attr->wc_flags & (IBV_WC_EX_WITH_SL | IBV_WC_EX_WITH_SLID)) {
+> +               errno = EOPNOTSUPP;
+> +               return NULL;
+> +       }
+>
+>         cq = malloc(sizeof *cq);
+>         if (!cq)
+> @@ -295,9 +345,11 @@ struct ibv_cq *mlx4_create_cq(struct ibv_context *context, int cqe,
+>         if (pthread_spin_init(&cq->lock, PTHREAD_PROCESS_PRIVATE))
+>                 goto err;
+>
+> -       cqe = align_queue_size(cqe + 1);
+> +       cq_attr_e = *cq_attr;
+> +       cqe = align_queue_size(cq_attr->cqe + 1);
+>
+> -       if (mlx4_alloc_cq_buf(to_mdev(context->device), &cq->buf, cqe, mctx->cqe_size))
+> +       if (mlx4_alloc_cq_buf(to_mdev(context->device), &cq->buf, cqe,
+> +                             mctx->cqe_size))
+>                 goto err;
+>
+>         cq->cqe_size = mctx->cqe_size;
+> @@ -310,15 +362,31 @@ struct ibv_cq *mlx4_create_cq(struct ibv_context *context, int cqe,
+>         cq->arm_sn     = 1;
+>         *cq->set_ci_db = 0;
+>
+> -       cmd.buf_addr = (uintptr_t) cq->buf.buf;
+> -       cmd.db_addr  = (uintptr_t) cq->set_ci_db;
+> +       if (cmd_type == MLX4_CMD_TYPE_BASIC) {
+> +               cmd.buf_addr = (uintptr_t)cq->buf.buf;
+> +               cmd.db_addr  = (uintptr_t)cq->set_ci_db;
+> +
+> +               ret = ibv_cmd_create_cq(context, cqe - 1,
+> +                                       cq_attr_e.channel, cq_attr_e.comp_vector,
+> +                                       &cq->ibv_cq, &cmd.ibv_cmd, sizeof(cmd),
+> +                                       &resp.ibv_resp, sizeof(resp));
+> +       } else {
+> +               cmd_e.buf_addr = (uintptr_t)cq->buf.buf;
+> +               cmd_e.db_addr  = (uintptr_t)cq->set_ci_db;
+> +
+> +               cq_attr_e.cqe = cqe - 1;
+> +               ret = ibv_cmd_create_cq_ex(context, &cq_attr_e, &cq->ibv_cq,
+> +                                          &cmd_e.ibv_cmd,
+> +                                          sizeof(cmd_e.ibv_cmd), sizeof(cmd_e),
+> +                                          &resp_e.ibv_resp,
+> +                                          sizeof(resp_e.ibv_resp),
+> +                                          sizeof(resp_e));
+> +       }
+>
+> -       ret = ibv_cmd_create_cq(context, cqe - 1, channel, comp_vector,
+> -                               &cq->ibv_cq, &cmd.ibv_cmd, sizeof cmd,
+> -                               &resp.ibv_resp, sizeof resp);
+>         if (ret)
+>                 goto err_db;
+>
+> +       cq->creation_flags = cmd_e.ibv_cmd.flags;
+>         cq->cqn = resp.cqn;
+>
+>         return &cq->ibv_cq;
+> @@ -335,6 +403,23 @@ err:
+>         return NULL;
+>  }
+>
+> +struct ibv_cq *mlx4_create_cq(struct ibv_context *context, int cqe,
+> +                             struct ibv_comp_channel *channel,
+> +                             int comp_vector)
+> +{
+> +       struct ibv_create_cq_attr_ex attr = {.cqe = cqe, .channel = channel,
+> +                                            .comp_vector = comp_vector,
+> +                                            .wc_flags = IBV_WC_STANDARD_FLAGS};
+> +
+> +       return create_cq(context, &attr, MLX4_CMD_TYPE_BASIC);
+> +}
+> +
+> +struct ibv_cq *mlx4_create_cq_ex(struct ibv_context *context,
+> +                                struct ibv_create_cq_attr_ex *cq_attr)
+> +{
+> +       return create_cq(context, cq_attr, MLX4_CMD_TYPE_EXTENDED);
+> +}
+> +
+>  int mlx4_resize_cq(struct ibv_cq *ibcq, int cqe)
+>  {
+>         struct mlx4_cq *cq = to_mcq(ibcq);
 > --
 > 2.1.0
 >
