@@ -1,86 +1,167 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libibverbs 5/5] Add ibv_query_values_ex
-Date: Tue, 27 Oct 2015 18:51:40 +0200
-Message-ID: <1445964700-13235-6-git-send-email-matanb@mellanox.com>
-References: <1445964700-13235-1-git-send-email-matanb@mellanox.com>
+Subject: [PATCH libibverbs 1/7] Add support for extended version of ibv_query_device
+Date: Tue, 27 Oct 2015 18:52:29 +0200
+Message-ID: <1445964755-13371-2-git-send-email-matanb@mellanox.com>
+References: <1445964755-13371-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1445964700-13235-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1445964755-13371-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add an extension verb to query certain values of device.
-Currently, only IBV_VALUES_HW_CLOCK is supported, but this
-verb could support other flags like IBV_VALUES_TEMP_SENSOR,
-IBV_VALUES_CORE_FREQ, etc.
-This extension verb only calls the provider.
-The provider has to query this value somehow and mark the queried
-values in comp_mask.
+The new mlx4_query_device_ex implementation uses the
+extended version of libibverbs/uverbs query_device command.
+In addition, it reads the hca_core_clock offset in the bar
+from the vendor specific part of ibv_query_device_ex command.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/infiniband/verbs.h | 33 +++++++++++++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
+ src/mlx4-abi.h | 13 +++++++++++++
+ src/mlx4.c     |  1 +
+ src/mlx4.h     |  8 ++++++++
+ src/verbs.c    | 54 +++++++++++++++++++++++++++++++++++++++++++++++++++---
+ 4 files changed, 73 insertions(+), 3 deletions(-)
 
-diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index 3d66726..4829dac 100644
---- a/include/infiniband/verbs.h
-+++ b/include/infiniband/verbs.h
-@@ -1234,6 +1234,16 @@ struct ibv_create_cq_attr_ex {
- 	uint32_t		flags;
+diff --git a/src/mlx4-abi.h b/src/mlx4-abi.h
+index b48f6fc..b348ce3 100644
+--- a/src/mlx4-abi.h
++++ b/src/mlx4-abi.h
+@@ -111,4 +111,17 @@ struct mlx4_create_qp {
+ 	__u8				reserved[5];
  };
  
-+enum ibv_values_mask {
-+	IBV_VALUES_MASK_RAW_CLOCK	= 1 << 0,
-+	IBV_VALUES_MASK_RESERVED	= 1 << 1
++enum query_device_resp_mask {
++	QUERY_DEVICE_RESP_MASK_TIMESTAMP = 1UL << 0,
 +};
 +
-+struct ibv_values_ex {
-+	uint32_t	comp_mask;
-+	struct timespec raw_clock;
++struct query_device_ex_resp {
++	struct ibv_query_device_resp_ex core;
++	struct {
++		uint32_t comp_mask;
++		uint32_t response_length;
++		uint64_t hca_core_clock_offset;
++	};
 +};
 +
- enum verbs_context_mask {
- 	VERBS_CONTEXT_XRCD	= 1 << 0,
- 	VERBS_CONTEXT_SRQ	= 1 << 1,
-@@ -1250,6 +1260,8 @@ struct ibv_poll_cq_ex_attr {
+ #endif /* MLX4_ABI_H */
+diff --git a/src/mlx4.c b/src/mlx4.c
+index c30f4bf..d41dff0 100644
+--- a/src/mlx4.c
++++ b/src/mlx4.c
+@@ -207,6 +207,7 @@ static int mlx4_init_context(struct verbs_device *v_device,
+ 	verbs_set_ctx_op(verbs_ctx, open_qp, mlx4_open_qp);
+ 	verbs_set_ctx_op(verbs_ctx, ibv_create_flow, ibv_cmd_create_flow);
+ 	verbs_set_ctx_op(verbs_ctx, ibv_destroy_flow, ibv_cmd_destroy_flow);
++	verbs_set_ctx_op(verbs_ctx, query_device_ex, mlx4_query_device_ex);
  
- struct verbs_context {
- 	/*  "grows up" - new fields go here */
-+	int (*query_values)(struct ibv_context *context,
-+			    struct ibv_values_ex *values);
- 	struct ibv_cq *(*create_cq_ex)(struct ibv_context *context,
- 				       struct ibv_create_cq_attr_ex *);
- 	void *priv;
-@@ -1730,6 +1742,27 @@ ibv_create_qp_ex(struct ibv_context *context, struct ibv_qp_init_attr_ex *qp_ini
- }
+ 	return 0;
  
- /**
-+ * ibv_query_values_ex - Get current @q_values of device,
-+ * @q_values is mask (Or's bits of enum ibv_values_mask) of the attributes
-+ *	we need to query.
-+ */
-+static inline int
-+ibv_query_values_ex(struct ibv_context *context,
-+		    struct ibv_values_ex *values)
+diff --git a/src/mlx4.h b/src/mlx4.h
+index 519d8f4..0f643bc 100644
+--- a/src/mlx4.h
++++ b/src/mlx4.h
+@@ -198,6 +198,7 @@ struct mlx4_context {
+ 		uint8_t                 link_layer;
+ 		enum ibv_port_cap_flags caps;
+ 	} port_query_cache[MLX4_PORTS_NUM];
++	uint64_t			core_clock_offset;
+ };
+ 
+ struct mlx4_buf {
+@@ -378,6 +379,13 @@ void mlx4_free_db(struct mlx4_context *context, enum mlx4_db_type type, uint32_t
+ 
+ int mlx4_query_device(struct ibv_context *context,
+ 		       struct ibv_device_attr *attr);
++int _mlx4_query_device_ex(struct ibv_context *context,
++			  const struct ibv_query_device_ex_input *input,
++			  struct ibv_device_attr_ex *attr, size_t attr_size,
++			  uint32_t *comp_mask);
++int mlx4_query_device_ex(struct ibv_context *context,
++			 const struct ibv_query_device_ex_input *input,
++			 struct ibv_device_attr_ex *attr, size_t attr_size);
+ int mlx4_query_port(struct ibv_context *context, uint8_t port,
+ 		     struct ibv_port_attr *attr);
+ 
+diff --git a/src/verbs.c b/src/verbs.c
+index 2cb1f8a..e93114b 100644
+--- a/src/verbs.c
++++ b/src/verbs.c
+@@ -45,6 +45,14 @@
+ #include "mlx4-abi.h"
+ #include "wqe.h"
+ 
++static void parse_raw_fw_ver(uint64_t raw_fw_ver, unsigned *major,
++			     unsigned *minor, unsigned *sub_minor)
 +{
-+	struct verbs_context *vctx;
-+
-+	vctx = verbs_get_ctx_op(context, query_values);
-+	if (!vctx)
-+		return ENOSYS;
-+
-+	if (values->comp_mask & ~(IBV_VALUES_MASK_RESERVED - 1))
-+		return EINVAL;
-+
-+	return vctx->query_values(context, values);
++	*major     = (raw_fw_ver >> 32) & 0xffff;
++	*minor     = (raw_fw_ver >> 16) & 0xffff;
++	*sub_minor = raw_fw_ver & 0xffff;
 +}
 +
-+/**
-  * ibv_query_device_ex - Get extended device properties
-  */
- static inline int
+ int mlx4_query_device(struct ibv_context *context, struct ibv_device_attr *attr)
+ {
+ 	struct ibv_query_device cmd;
+@@ -56,9 +64,7 @@ int mlx4_query_device(struct ibv_context *context, struct ibv_device_attr *attr)
+ 	if (ret)
+ 		return ret;
+ 
+-	major     = (raw_fw_ver >> 32) & 0xffff;
+-	minor     = (raw_fw_ver >> 16) & 0xffff;
+-	sub_minor = raw_fw_ver & 0xffff;
++	parse_raw_fw_ver(raw_fw_ver, &major, &minor, &sub_minor);
+ 
+ 	snprintf(attr->fw_ver, sizeof attr->fw_ver,
+ 		 "%d.%d.%03d", major, minor, sub_minor);
+@@ -66,6 +72,48 @@ int mlx4_query_device(struct ibv_context *context, struct ibv_device_attr *attr)
+ 	return 0;
+ }
+ 
++int _mlx4_query_device_ex(struct ibv_context *context,
++			  const struct ibv_query_device_ex_input *input,
++			  struct ibv_device_attr_ex *attr, size_t attr_size,
++			  uint32_t *comp_mask)
++{
++	struct ibv_query_device_ex cmd;
++	struct query_device_ex_resp resp;
++	uint64_t raw_fw_ver;
++	unsigned major, minor, sub_minor;
++	int ret;
++
++	memset(&resp, 0, sizeof(resp));
++
++	ret = ibv_cmd_query_device_ex(context, input, attr, attr_size,
++				      &raw_fw_ver, &cmd, sizeof(cmd),
++				      sizeof(cmd), &resp.core,
++				      sizeof(resp.core), sizeof(resp));
++	if (ret)
++		return ret;
++
++	parse_raw_fw_ver(raw_fw_ver, &major, &minor, &sub_minor);
++
++	snprintf(attr->orig_attr.fw_ver, sizeof(attr->orig_attr.fw_ver),
++		 "%d.%d.%03d", major, minor, sub_minor);
++
++	if (resp.comp_mask & QUERY_DEVICE_RESP_MASK_TIMESTAMP)
++		to_mctx(context)->core_clock_offset =
++			resp.hca_core_clock_offset;
++
++	if (comp_mask)
++		*comp_mask = resp.comp_mask;
++
++	return 0;
++}
++
++int mlx4_query_device_ex(struct ibv_context *context,
++			 const struct ibv_query_device_ex_input *input,
++			 struct ibv_device_attr_ex *attr, size_t attr_size)
++{
++	return _mlx4_query_device_ex(context, input, attr, attr_size, NULL);
++}
++
+ int mlx4_query_port(struct ibv_context *context, uint8_t port,
+ 		     struct ibv_port_attr *attr)
+ {
 -- 
 2.1.0
 
