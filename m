@@ -1,43 +1,37 @@
-From: Sagi Grimberg <sagig@mellanox.com>
-Subject: [PATCH 2/2] iser-target: Remove explicit mlx4 work-around
-Date: Tue, 27 Oct 2015 11:40:46 +0200
-Message-ID: <1445938846-9240-3-git-send-email-sagig@mellanox.com>
-References: <1445938846-9240-1-git-send-email-sagig@mellanox.com>
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1445938846-9240-1-git-send-email-sagig@mellanox.com>
-Sender: target-devel-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
-Cc: Steve Wise <swise@opengridcomputing.com>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Or Gerlitz <ogerlitz@mellanox.com>, Doug Ledford <dledford@redhat.com>
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: Re: [PATCH 1/4 v2] staging: ipath: ipath_driver: Use setup_timer
+Date: Tue, 27 Oct 2015 11:45:18 +0200
+Message-ID: <CALq1K=LLQd4CjVr=gB68MjLy0=uoY34nJxwTgsaEWtB0vBbUng@mail.gmail.com>
+References: <1445768253-16107-1-git-send-email-falakreyaz@gmail.com>
+ <CALq1K=J-jEU=-BKjnAEvuxVfMmbPn4-gdj0i4StRbrVy6ho6Ag@mail.gmail.com> <20151027091903.GA7340@mwanda>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151027091903.GA7340@mwanda>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Muhammad Falak R Wani <falakreyaz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The driver now exposes sufficient limits so we can
-avoid having mlx4 specific work-around.
+On Tue, Oct 27, 2015 at 11:19 AM, Dan Carpenter
+<dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> On Sun, Oct 25, 2015 at 01:21:11PM +0200, Leon Romanovsky wrote:
+>> On Sun, Oct 25, 2015 at 12:17 PM, Muhammad Falak R Wani
+>> <falakreyaz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>> Please follow standard naming convention for the patches.
+>> It should be [PATCH v2 1/4] and not [PATCH 1/4 v2].
+>
+> Does this matter?  It's in a thread so it sorts fine either way.
+It will be wise if people read guides and follow examples.
 
-Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
----
- drivers/infiniband/ulp/isert/ib_isert.c |   10 ++--------
- 1 files changed, 2 insertions(+), 8 deletions(-)
+[1] https://www.kernel.org/doc/Documentation/SubmittingPatches
 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index 96336a9..303cea7 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -141,14 +141,8 @@ isert_create_qp(struct isert_conn *isert_conn,
- 	attr.recv_cq = comp->cq;
- 	attr.cap.max_send_wr = ISERT_QP_MAX_REQ_DTOS;
- 	attr.cap.max_recv_wr = ISERT_QP_MAX_RECV_DTOS + 1;
--	/*
--	 * FIXME: Use devattr.max_sge - 2 for max_send_sge as
--	 * work-around for RDMA_READs with ConnectX-2.
--	 *
--	 * Also, still make sure to have at least two SGEs for
--	 * outgoing control PDU responses.
--	 */
--	attr.cap.max_send_sge = max(2, device->ib_device->max_sge - 2);
-+	attr.cap.max_send_sge = min(device->ib_device->max_sge,
-+				    device->ib_device->max_sge_rd);
- 	isert_conn->max_sge = attr.cap.max_send_sge;
- 
- 	attr.cap.max_recv_sge = 1;
--- 
-1.7.1
+
+>
+> regards,
+> dan carpenter
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
