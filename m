@@ -1,46 +1,35 @@
-From: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: Re: [PATCH v3 23/23] staging/rdma/hfi1: Update driver version string
- to 0.9-294
-Date: Tue, 27 Oct 2015 17:46:41 +0900
-Message-ID: <20151027084641.GA16795@kroah.com>
-References: <1445869729-7507-1-git-send-email-ira.weiny@intel.com>
- <1445869729-7507-24-git-send-email-ira.weiny@intel.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [PATCH 1/4 v2] staging: ipath: ipath_driver: Use setup_timer
+Date: Tue, 27 Oct 2015 12:19:03 +0300
+Message-ID: <20151027091903.GA7340@mwanda>
+References: <1445768253-16107-1-git-send-email-falakreyaz@gmail.com>
+ <CALq1K=J-jEU=-BKjnAEvuxVfMmbPn4-gdj0i4StRbrVy6ho6Ag@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
 Content-Disposition: inline
-In-Reply-To: <1445869729-7507-24-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <CALq1K=J-jEU=-BKjnAEvuxVfMmbPn4-gdj0i4StRbrVy6ho6Ag@mail.gmail.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Leon Romanovsky <leon@leon.nu>
+Cc: devel@driverdev.osuosl.org, linux-rdma <linux-rdma@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mike Marciniszyn <infinipath@intel.com>, Doug Ledford <dledford@redhat.com>, Muhammad Falak R Wani <falakreyaz@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 26, 2015 at 10:28:49AM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
-> Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/staging/rdma/hfi1/common.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/staging/rdma/hfi1/common.h b/drivers/staging/rdma/hfi1/common.h
-> index 7809093eb55e..5dd92720faae 100644
-> --- a/drivers/staging/rdma/hfi1/common.h
-> +++ b/drivers/staging/rdma/hfi1/common.h
-> @@ -205,7 +205,7 @@
->   * to the driver itself, not the software interfaces it supports.
->   */
->  #ifndef HFI1_DRIVER_VERSION_BASE
-> -#define HFI1_DRIVER_VERSION_BASE "0.9-248"
-> +#define HFI1_DRIVER_VERSION_BASE "0.9-294"
+On Sun, Oct 25, 2015 at 01:21:11PM +0200, Leon Romanovsky wrote:
+> On Sun, Oct 25, 2015 at 12:17 PM, Muhammad Falak R Wani
+> <falakreyaz@gmail.com> wrote:
+> Please follow standard naming convention for the patches.
+> It should be [PATCH v2 1/4] and not [PATCH 1/4 v2].
 
-Patches like this make no sense at all, please drop it and only use the
-kernel version.  Trust me, it's going to get messy really fast (hint, it
-already did...)
+Does this matter?  It's in a thread so it sorts fine either way.
 
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+regards,
+dan carpenter
