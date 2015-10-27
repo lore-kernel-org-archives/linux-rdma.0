@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libibverbs 4/7] Add timestmap support to extended poll_cq verb
-Date: Tue, 27 Oct 2015 18:52:32 +0200
-Message-ID: <1445964755-13371-5-git-send-email-matanb@mellanox.com>
+Subject: [PATCH libibverbs 6/7] Add support for different poll_one_ex functions
+Date: Tue, 27 Oct 2015 18:52:34 +0200
+Message-ID: <1445964755-13371-7-git-send-email-matanb@mellanox.com>
 References: <1445964755-13371-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1445964755-13371-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,91 +10,74 @@ To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Adding support to the extended version of poll_cq verb to read
-completion timestamp. Reading timestamp isn't supported with reading
-IBV_WC_EX_WITH_SL and IBV_WC_EX_WITH_SLID.
+In order to opitimize the poll_one extended verb for different
+wc_flags, add support for poll_one_ex callback function.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/cq.c    | 10 ++++++++++
- src/mlx4.h  | 25 ++++++++++++++++++++-----
- src/verbs.c |  3 ++-
- 3 files changed, 32 insertions(+), 6 deletions(-)
+ src/cq.c    | 5 +++--
+ src/mlx4.h  | 5 +++++
+ src/verbs.c | 1 +
+ 3 files changed, 9 insertions(+), 2 deletions(-)
 
 diff --git a/src/cq.c b/src/cq.c
-index c86e824..7f40f12 100644
+index 7f40f12..1f2d572 100644
 --- a/src/cq.c
 +++ b/src/cq.c
-@@ -399,6 +399,16 @@ static inline int _mlx4_poll_one_ex(struct mlx4_cq *cq,
- 	if (err != CQ_CONTINUE)
- 		return err;
+@@ -601,7 +601,8 @@ int mlx4_poll_cq_ex(struct ibv_cq *ibcq,
+ 	int npolled;
+ 	int err = CQ_OK;
+ 	unsigned int ne = attr->max_entries;
+-	uint64_t wc_flags = cq->wc_flags;
++	int (*poll_fn)(struct mlx4_cq *cq, struct mlx4_qp **cur_qp,
++		       struct ibv_wc_ex **wc_ex) = cq->mlx4_poll_one;
  
-+	if (wc_flags & IBV_WC_EX_WITH_COMPLETION_TIMESTAMP) {
-+		uint16_t timestamp_0_15 = cqe->timestamp_0_7 |
-+			cqe->timestamp_8_15 << 8;
-+
-+		wc_flags_out |= IBV_WC_EX_WITH_COMPLETION_TIMESTAMP;
-+		*wc_buffer.b64++ = (((uint64_t)ntohl(cqe->timestamp_16_47)
-+					     + !timestamp_0_15) << 16) |
-+					   (uint64_t)timestamp_0_15;
-+	}
-+
- 	if (is_send) {
- 		switch (cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK) {
- 		case MLX4_OPCODE_RDMA_WRITE_IMM:
+ 	if (attr->comp_mask)
+ 		return -EINVAL;
+@@ -609,7 +610,7 @@ int mlx4_poll_cq_ex(struct ibv_cq *ibcq,
+ 	pthread_spin_lock(&cq->lock);
+ 
+ 	for (npolled = 0; npolled < ne; ++npolled) {
+-		err = _mlx4_poll_one_ex(cq, &qp, &wc, wc_flags);
++		err = poll_fn(cq, &qp, &wc);
+ 		if (err != CQ_OK)
+ 			break;
+ 	}
 diff --git a/src/mlx4.h b/src/mlx4.h
-index e22f879..2465298 100644
+index 8e1935d..46a18d6 100644
 --- a/src/mlx4.h
 +++ b/src/mlx4.h
-@@ -312,14 +312,29 @@ struct mlx4_cqe {
- 	uint32_t	vlan_my_qpn;
- 	uint32_t	immed_rss_invalid;
- 	uint32_t	g_mlpath_rqpn;
--	uint8_t		sl_vid;
--	uint8_t		reserved1;
--	uint16_t	rlid;
--	uint32_t	status;
-+	union {
-+		struct {
-+			union {
-+				struct {
-+					uint8_t   sl_vid;
-+					uint8_t   reserved1;
-+					uint16_t  rlid;
-+				};
-+				uint32_t  timestamp_16_47;
-+			};
-+			uint32_t  status;
-+		};
-+		struct {
-+			uint16_t reserved2;
-+			uint8_t  smac[6];
-+		};
-+	};
- 	uint32_t	byte_cnt;
- 	uint16_t	wqe_index;
- 	uint16_t	checksum;
--	uint8_t		reserved3[3];
-+	uint8_t		reserved3;
-+	uint8_t		timestamp_8_15;
-+	uint8_t		timestamp_0_7;
- 	uint8_t		owner_sr_opcode;
- };
- 
+@@ -215,6 +215,8 @@ struct mlx4_pd {
+ struct mlx4_cq {
+ 	struct ibv_cq			ibv_cq;
+ 	uint64_t			wc_flags;
++	int (*mlx4_poll_one)(struct mlx4_cq *cq, struct mlx4_qp **cur_qp,
++			     struct ibv_wc_ex **wc_ex);
+ 	struct mlx4_buf			buf;
+ 	struct mlx4_buf			resize_buf;
+ 	pthread_spinlock_t		lock;
+@@ -432,6 +434,9 @@ int mlx4_poll_cq(struct ibv_cq *cq, int ne, struct ibv_wc *wc);
+ int mlx4_poll_cq_ex(struct ibv_cq *ibcq,
+ 		    struct ibv_wc_ex *wc,
+ 		    struct ibv_poll_cq_ex_attr *attr);
++int mlx4_poll_one_ex(struct mlx4_cq *cq,
++		     struct mlx4_qp **cur_qp,
++		     struct ibv_wc_ex **pwc_ex);
+ int mlx4_arm_cq(struct ibv_cq *cq, int solicited);
+ void mlx4_cq_event(struct ibv_cq *cq);
+ void __mlx4_cq_clean(struct mlx4_cq *cq, uint32_t qpn, struct mlx4_srq *srq);
 diff --git a/src/verbs.c b/src/verbs.c
-index 0dcdc87..a8d6bd7 100644
+index 843ca1e..62908c1 100644
 --- a/src/verbs.c
 +++ b/src/verbs.c
-@@ -286,7 +286,8 @@ enum {
- };
+@@ -432,6 +432,7 @@ static struct ibv_cq *create_cq(struct ibv_context *context,
+ 	if (ret)
+ 		goto err_db;
  
- enum {
--	CREATE_CQ_SUPPORTED_WC_FLAGS = IBV_WC_STANDARD_FLAGS
-+	CREATE_CQ_SUPPORTED_WC_FLAGS = IBV_WC_STANDARD_FLAGS	|
-+				       IBV_WC_EX_WITH_COMPLETION_TIMESTAMP
- };
- 
- static struct ibv_cq *create_cq(struct ibv_context *context,
++	cq->mlx4_poll_one = mlx4_poll_one_ex;
+ 	cq->creation_flags = cmd_e.ibv_cmd.flags;
+ 	cq->wc_flags = cq_attr->wc_flags;
+ 	cq->cqn = resp.cqn;
 -- 
 2.1.0
 
