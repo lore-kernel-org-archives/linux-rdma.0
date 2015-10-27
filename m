@@ -1,35 +1,68 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] IB/sa: replace GFP_KERNEL with GFP_ATOMIC
-Date: Tue, 27 Oct 2015 14:00:12 -0600
-Message-ID: <20151027200012.GA7403@obsidianresearch.com>
-References: <saurabh.truth@gmail.com>
- <1445960860-3396-1-git-send-email-saurabh.truth@gmail.com>
- <20151027181235.GA27038@phlsvsds.ph.intel.com>
- <20151027181652.GA6879@obsidianresearch.com>
- <3F128C9216C9B84BB6ED23EF16290AFB18571E3F@CRSMSX101.amr.corp.intel.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3 12/23] staging/rdma/hfi1: Macro code clean up
+Date: Tue, 27 Oct 2015 16:51:15 -0400
+Message-ID: <20151027205115.GB32118@phlsvsds.ph.intel.com>
+References: <1445869729-7507-1-git-send-email-ira.weiny@intel.com> <1445869729-7507-13-git-send-email-ira.weiny@intel.com> <20151027081910.GA25171@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <3F128C9216C9B84BB6ED23EF16290AFB18571E3F-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20151027081910.GA25171-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Saurabh Sengar <saurabh.truth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 27, 2015 at 06:56:50PM +0000, Wan, Kaike wrote:
- 
-> > I do wonder if it is a good idea to call ib_nl_send_msg with a spinlock held
-> > though.. Would be nice to see that go away.
+On Tue, Oct 27, 2015 at 05:19:10PM +0900, Greg KH wrote:
+> On Mon, Oct 26, 2015 at 10:28:38AM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> > From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > 
+> > Clean up the context and sdma macros and move them to a more logical place in
+> > hfi.h
+> > 
+> > Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > ---
+> >  drivers/staging/rdma/hfi1/hfi.h | 22 ++++++++++------------
+> >  1 file changed, 10 insertions(+), 12 deletions(-)
+> > 
+> > diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
+> > index a35213e9b500..41ad9a30149b 100644
+> > --- a/drivers/staging/rdma/hfi1/hfi.h
+> > +++ b/drivers/staging/rdma/hfi1/hfi.h
+> > @@ -1104,6 +1104,16 @@ struct hfi1_filedata {
+> >  	int rec_cpu_num;
+> >  };
+> >  
+> > +/* for use in system calls, where we want to know device type, etc. */
+> > +#define fp_to_fd(fp) ((struct hfi1_filedata *)(fp)->private_data)
+> > +#define ctxt_fp(fp) (fp_to_fd((fp))->uctxt)
+> > +#define subctxt_fp(fp) (fp_to_fd((fp))->subctxt)
+> > +#define tidcursor_fp(fp) (fp_to_fd((fp))->tidcursor)
+> > +#define user_sdma_pkt_fp(fp) (fp_to_fd((fp))->pq)
+> > +#define user_sdma_comp_fp(fp) (fp_to_fd((fp))->cq)
+> > +#define notifier_fp(fp) (fp_to_fd((fp))->mn)
+> > +#define rb_fp(fp) (fp_to_fd((fp))->tid_rb_root)
 > 
-> We have to hold the lock to protect against a race condition that a
-> quick response will try to free the request from the
-> ib_nl_request_list before we even put it on the list.
+> Ick, no, don't do this, just spell it all out (odds are you will see tht
+> you can make the code simpler...)  If you don't know what "cq" or "pq"
+> are, then name them properly.
+> 
+> These need to be all removed.
 
-Put is on the list first? Use a kref? Doesn't look like a big deal to
-clean this up.
+Ok.
 
-Jason
+Can I add the removal of these macros to the TODO list and get this patch
+accepted in the interm?
+
+Many of the patches I am queueing up to submit as well as one in this series do
+not apply cleanly without this change.  It will be much easier if I can get
+everything applied and then do a global clean up of these macros after the
+fact.
+
+Thanks,
+Ira
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
