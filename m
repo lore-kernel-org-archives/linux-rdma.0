@@ -1,7 +1,7 @@
 From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 2/2] IB/mlx5: Publish mlx5 driver support for extended create QP
-Date: Wed, 28 Oct 2015 02:58:35 +0200
-Message-ID: <1445993915-111262-3-git-send-email-eli@mellanox.com>
+Subject: [PATCH 1/2] IB/mlx5: Add debug print to signify if block multicast is used
+Date: Wed, 28 Oct 2015 02:58:34 +0200
+Message-ID: <1445993915-111262-2-git-send-email-eli@mellanox.com>
 References: <1445993915-111262-1-git-send-email-eli@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1445993915-111262-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,23 +12,24 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/mlx5/qp.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index f1ccd40..634de84 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1385,7 +1385,8 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 		(1ull << IB_USER_VERBS_CMD_CREATE_XSRQ)		|
- 		(1ull << IB_USER_VERBS_CMD_OPEN_QP);
- 	dev->ib_dev.uverbs_ex_cmd_mask =
--		(1ull << IB_USER_VERBS_EX_CMD_QUERY_DEVICE);
-+		(1ull << IB_USER_VERBS_EX_CMD_QUERY_DEVICE)	|
-+		(1ull << IB_USER_VERBS_EX_CMD_CREATE_QP);
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 6f521a3..b80b2bd 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -1033,6 +1033,10 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
  
- 	dev->ib_dev.query_device	= mlx5_ib_query_device;
- 	dev->ib_dev.query_port		= mlx5_ib_query_port;
+ 	qp->mqp.event = mlx5_ib_qp_event;
+ 
++	/* QP related debug prints go here */
++	if (qp->flags & MLX5_IB_QP_BLOCK_MULTICAST_LOOPBACK)
++		mlx5_ib_dbg(dev, "QP 0x%x will block multicast\n", qp->mqp.qpn);
++
+ 	return 0;
+ 
+ err_create:
 -- 
 1.7.1
 
