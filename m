@@ -1,43 +1,70 @@
-From: Muhammad Falak R Wani <falakreyaz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] staging: rdma: ipath: Remove unneeded vairable.
-Date: Wed, 28 Oct 2015 18:34:55 +0530
-Message-ID: <1446037495-18970-1-git-send-email-falakreyaz@gmail.com>
+From: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH 1/1] IB/sa: Put netlink request into the request list before sending
+Date: Wed, 28 Oct 2015 09:44:27 -0400
+Message-ID: <1446039867-27883-1-git-send-email-kaike.wan@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Muhammad Falak R Wani <falakreyaz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Remove unneeded variable ret, directly return 0.
+From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Signed-off-by: Muhammad Falak R Wani <falakreyaz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+It was found by Saurabh Sengar that the netlink code tried to allocate
+memory with GFP_KERNEL while holding a spinlock. While it is possible
+to fix the issue by replacing GFP_KERNEL with GFP_ATOMIC, it is better
+to get rid of the spinlock while sending the packet. However, in order
+to protect against a race condition that a quick response may be received
+before the request is put on the request list, we need to put the request
+on the list first.
+
+Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/ipath/ipath_file_ops.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/infiniband/core/sa_query.c |   22 ++++++++++++----------
+ 1 files changed, 12 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/staging/rdma/ipath/ipath_file_ops.c b/drivers/staging/rdma/ipath/ipath_file_ops.c
-index c796a51..5d9b9db 100644
---- a/drivers/staging/rdma/ipath/ipath_file_ops.c
-+++ b/drivers/staging/rdma/ipath/ipath_file_ops.c
-@@ -2046,7 +2046,6 @@ static void unlock_expected_tids(struct ipath_portdata *pd)
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index edcf568..240b57c 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -562,23 +562,25 @@ static int ib_nl_make_request(struct ib_sa_query *query)
+ 	INIT_LIST_HEAD(&query->list);
+ 	query->seq = (u32)atomic_inc_return(&ib_nl_sa_request_seq);
  
- static int ipath_close(struct inode *in, struct file *fp)
- {
--	int ret = 0;
- 	struct ipath_filedata *fd;
- 	struct ipath_portdata *pd;
- 	struct ipath_devdata *dd;
-@@ -2158,7 +2157,7 @@ static int ipath_close(struct inode *in, struct file *fp)
++	/* Put the request on the list first.*/
+ 	spin_lock_irqsave(&ib_nl_request_lock, flags);
++	delay = msecs_to_jiffies(sa_local_svc_timeout_ms);
++	query->timeout = delay + jiffies;
++	list_add_tail(&query->list, &ib_nl_request_list);
++	spin_unlock_irqrestore(&ib_nl_request_lock, flags);
++
+ 	ret = ib_nl_send_msg(query);
++	spin_lock_irqsave(&ib_nl_request_lock, flags);
+ 	if (ret <= 0) {
+ 		ret = -EIO;
+-		goto request_out;
++		/* Remove the request */
++		list_del(&query->list);
+ 	} else {
+ 		ret = 0;
++		/* Start the timeout if this is the only request */
++		if (ib_nl_request_list.next == &query->list)
++			queue_delayed_work(ib_nl_wq, &ib_nl_timed_work, delay);
+ 	}
+-
+-	delay = msecs_to_jiffies(sa_local_svc_timeout_ms);
+-	query->timeout = delay + jiffies;
+-	list_add_tail(&query->list, &ib_nl_request_list);
+-	/* Start the timeout if this is the only request */
+-	if (ib_nl_request_list.next == &query->list)
+-		queue_delayed_work(ib_nl_wq, &ib_nl_timed_work, delay);
+-
+-request_out:
+ 	spin_unlock_irqrestore(&ib_nl_request_lock, flags);
  
- bail:
- 	kfree(fd);
--	return ret;
-+	return 0;
- }
- 
- static int ipath_port_info(struct ipath_portdata *pd, u16 subport,
+ 	return ret;
 -- 
-1.9.1
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
