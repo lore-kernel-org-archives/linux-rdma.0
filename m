@@ -1,96 +1,35 @@
 From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/1] IB/sa: Put netlink request into the request list before sending
-Date: Wed, 28 Oct 2015 11:39:50 -0400
-Message-ID: <20151028153949.GA10890@phlsvsds.ph.intel.com>
-References: <1446039867-27883-1-git-send-email-kaike.wan@intel.com>
+Subject: Re: [PATCH v3 12/23] staging/rdma/hfi1: Macro code clean up
+Date: Wed, 28 Oct 2015 11:47:21 -0400
+Message-ID: <20151028154720.GB10890@phlsvsds.ph.intel.com>
+References: <1445869729-7507-1-git-send-email-ira.weiny@intel.com> <1445869729-7507-13-git-send-email-ira.weiny@intel.com> <20151027081910.GA25171@kroah.com> <20151027205115.GB32118@phlsvsds.ph.intel.com> <20151027211404.GA18879@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1446039867-27883-1-git-send-email-kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20151027211404.GA18879-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 28, 2015 at 09:44:27AM -0400, kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Can I add the removal of these macros to the TODO list and get this patch
+> > accepted in the interm?
 > 
-> It was found by Saurabh Sengar that the netlink code tried to allocate
-> memory with GFP_KERNEL while holding a spinlock. While it is possible
-> to fix the issue by replacing GFP_KERNEL with GFP_ATOMIC, it is better
-> to get rid of the spinlock while sending the packet. However, in order
-> to protect against a race condition that a quick response may be received
-> before the request is put on the request list, we need to put the request
-> on the list first.
+> Nope, sorry, why would I accept a known-problem patch?  Would you do
+> such a thing?
 > 
-> Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/core/sa_query.c |   22 ++++++++++++----------
->  1 files changed, 12 insertions(+), 10 deletions(-)
+> > Many of the patches I am queueing up to submit as well as one in this series do
+> > not apply cleanly without this change.  It will be much easier if I can get
+> > everything applied and then do a global clean up of these macros after the
+> > fact.
 > 
-> diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-> index edcf568..240b57c 100644
-> --- a/drivers/infiniband/core/sa_query.c
-> +++ b/drivers/infiniband/core/sa_query.c
-> @@ -562,23 +562,25 @@ static int ib_nl_make_request(struct ib_sa_query *query)
->  	INIT_LIST_HEAD(&query->list);
->  	query->seq = (u32)atomic_inc_return(&ib_nl_sa_request_seq);
->  
-> +	/* Put the request on the list first.*/
->  	spin_lock_irqsave(&ib_nl_request_lock, flags);
-> +	delay = msecs_to_jiffies(sa_local_svc_timeout_ms);
-> +	query->timeout = delay + jiffies;
-> +	list_add_tail(&query->list, &ib_nl_request_list);
-> +	spin_unlock_irqrestore(&ib_nl_request_lock, flags);
-> +
->  	ret = ib_nl_send_msg(query);
+> But you would have no incentive to do that if I take this patch now :)
+> 
 
-What about using the gfp_mask through this stack?
-
-I think you need to split ib_nl_send_msg into "create message" and "send
-message".  Then don't add the message to the list unless it is ready to go.
-Then you can get rid of the code below which is removing it on error.
-
-> +	spin_lock_irqsave(&ib_nl_request_lock, flags);
-
-Do we still need the spin lock?
-
->  	if (ret <= 0) {
->  		ret = -EIO;
-> -		goto request_out;
-> +		/* Remove the request */
-> +		list_del(&query->list);
-
-Don't need to do this if we split ib_nl_send_msg.
-
+Understood.
 Ira
 
->  	} else {
->  		ret = 0;
-> +		/* Start the timeout if this is the only request */
-> +		if (ib_nl_request_list.next == &query->list)
-> +			queue_delayed_work(ib_nl_wq, &ib_nl_timed_work, delay);
->  	}
-> -
-> -	delay = msecs_to_jiffies(sa_local_svc_timeout_ms);
-> -	query->timeout = delay + jiffies;
-> -	list_add_tail(&query->list, &ib_nl_request_list);
-> -	/* Start the timeout if this is the only request */
-> -	if (ib_nl_request_list.next == &query->list)
-> -		queue_delayed_work(ib_nl_wq, &ib_nl_timed_work, delay);
-> -
-> -request_out:
->  	spin_unlock_irqrestore(&ib_nl_request_lock, flags);
->  
->  	return ret;
-> -- 
-> 1.7.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
