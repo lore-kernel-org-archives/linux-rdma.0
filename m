@@ -1,161 +1,47 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 3/3] IB/core: Find gid searches for empty slot while traversing the GID table
-Date: Wed, 28 Oct 2015 16:52:41 +0200
-Message-ID: <1446043961-17667-4-git-send-email-matanb@mellanox.com>
-References: <1446043961-17667-1-git-send-email-matanb@mellanox.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 0/7] Fix an infinite loop in the SRP initiator
+Date: Wed, 28 Oct 2015 08:32:46 -0700
+Message-ID: <5630EA9E.30304@sandisk.com>
+References: <562FF404.7000504@sandisk.com> <5630A454.40604@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1446043961-17667-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <5630A454.40604-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Previously, we've searched the GID table twice, once - in order to
-find the GID itself and afterwards in order to find a free GID
-entry. Replacing it with finding the GID and the empty index
-in one traversal.
+On 10/28/2015 03:32 AM, Sagi Grimberg wrote:
+>> Submitting a SCSI request through the SG_IO mechanism with a scatterlist
+>> that is longer than what is supported by the SRP initiator triggers an
+>> infinite loop. This patch series fixes that behavior.
+>>
+>> The individual patches in this series are as follows:
+>>
+>> 0001-IB-srp-Fix-a-spelling-error.patch
+>> 0002-IB-srp-Document-srp_map_data-return-value.patch
+>> 0003-IB-srp-Rename-work-request-ID-labels.patch
+>> 0004-IB-srp-Fix-a-potential-queue-overflow-in-an-error-pa.patch
+>> 0005-IB-srp-Fix-srp_map_data-error-paths.patch
+>> 0006-IB-srp-Introduce-target-mr_pool_size.patch
+>> 0007-IB-srp-Avoid-that-mapping-failure-triggers-an-infini.patch
+>
+> I didn't look at the patches yet but are these patches on top of
+> the registration changes I posted for 4.4? I am hoping Doug will merge
+> them so if they aren't it might be a good idea to respin the series on
+> top of that.
 
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/cache.c | 53 +++++++++++++++++++++++++++--------------
- 1 file changed, 35 insertions(+), 18 deletions(-)
+Hello Sagi,
 
-diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-index 83aee7c..097e9df 100644
---- a/drivers/infiniband/core/cache.c
-+++ b/drivers/infiniband/core/cache.c
-@@ -208,19 +208,33 @@ static int del_gid(struct ib_device *ib_dev, u8 port,
- /* rwlock should be read locked */
- static int find_gid(struct ib_gid_table *table, const union ib_gid *gid,
- 		    const struct ib_gid_attr *val, bool default_gid,
--		    unsigned long mask)
-+		    unsigned long mask, int *pempty)
- {
--	int i;
-+	int i = 0;
-+	int found = -1;
-+	int empty = pempty ? -1 : 0;
- 
--	for (i = 0; i < table->sz; i++) {
--		struct ib_gid_attr *attr = &table->data_vec[i].attr;
-+	while (i < table->sz && (found < 0 || empty < 0)) {
-+		struct ib_gid_table_entry *data = &table->data_vec[i];
-+		struct ib_gid_attr *attr = &data->attr;
-+		int curr_index = i;
- 
-+		i++;
- 
--		if (table->data_vec[i].props & GID_TABLE_ENTRY_INVALID)
-+		if (data->props & GID_TABLE_ENTRY_INVALID)
-+			continue;
-+
-+		if (empty < 0)
-+			if (!memcmp(&data->gid, &zgid, sizeof(*gid)) &&
-+			    !memcmp(attr, &zattr, sizeof(*attr)) &&
-+			    !data->props)
-+				empty = curr_index;
-+
-+		if (found >=0)
- 			continue;
- 
- 		if (mask & GID_ATTR_FIND_MASK_GID &&
--		    memcmp(gid, &table->data_vec[i].gid, sizeof(*gid)))
-+		    memcmp(gid, &data->gid, sizeof(*gid)))
- 			continue;
- 
- 		if (mask & GID_ATTR_FIND_MASK_NETDEV &&
-@@ -228,14 +242,17 @@ static int find_gid(struct ib_gid_table *table, const union ib_gid *gid,
- 			continue;
- 
- 		if (mask & GID_ATTR_FIND_MASK_DEFAULT &&
--		    !!(table->data_vec[i].props & GID_TABLE_ENTRY_DEFAULT) !=
-+		    !!(data->props & GID_TABLE_ENTRY_DEFAULT) !=
- 		    default_gid)
- 			continue;
- 
--		break;
-+		found = curr_index;
- 	}
- 
--	return i == table->sz ? -1 : i;
-+	if (pempty)
-+		*pempty = empty;
-+
-+	return found;
- }
- 
- static void make_default_gid(struct  net_device *dev, union ib_gid *gid)
-@@ -252,6 +269,7 @@ int ib_cache_gid_add(struct ib_device *ib_dev, u8 port,
- 	int ix;
- 	int ret = 0;
- 	struct net_device *idev;
-+	int empty;
- 
- 	table = ports_table[port - rdma_start_port(ib_dev)];
- 
-@@ -278,18 +296,16 @@ int ib_cache_gid_add(struct ib_device *ib_dev, u8 port,
- 	write_lock_irq(&table->rwlock);
- 
- 	ix = find_gid(table, gid, attr, false, GID_ATTR_FIND_MASK_GID |
--		      GID_ATTR_FIND_MASK_NETDEV);
-+		      GID_ATTR_FIND_MASK_NETDEV, &empty);
- 	if (ix >= 0)
- 		goto out_unlock;
- 
--	ix = find_gid(table, &zgid, NULL, false, GID_ATTR_FIND_MASK_GID |
--		      GID_ATTR_FIND_MASK_DEFAULT);
--	if (ix < 0) {
-+	if (empty < 0) {
- 		ret = -ENOSPC;
- 		goto out_unlock;
- 	}
- 
--	ret = add_gid(ib_dev, port, table, ix, gid, attr, false);
-+	ret = add_gid(ib_dev, port, table, empty, gid, attr, false);
- 	if (!ret)
- 		dispatch_gid_change_event(ib_dev, port);
- 
-@@ -314,7 +330,8 @@ int ib_cache_gid_del(struct ib_device *ib_dev, u8 port,
- 	ix = find_gid(table, gid, attr, false,
- 		      GID_ATTR_FIND_MASK_GID	  |
- 		      GID_ATTR_FIND_MASK_NETDEV	  |
--		      GID_ATTR_FIND_MASK_DEFAULT);
-+		      GID_ATTR_FIND_MASK_DEFAULT,
-+		      NULL);
- 	if (ix < 0)
- 		goto out_unlock;
- 
-@@ -393,7 +410,7 @@ static int _ib_cache_gid_table_find(struct ib_device *ib_dev,
- 	for (p = 0; p < ib_dev->phys_port_cnt; p++) {
- 		table = ports_table[p];
- 		read_lock_irqsave(&table->rwlock, flags);
--		local_index = find_gid(table, gid, val, false, mask);
-+		local_index = find_gid(table, gid, val, false, mask, NULL);
- 		if (local_index >= 0) {
- 			if (index)
- 				*index = local_index;
-@@ -445,7 +462,7 @@ int ib_find_cached_gid_by_port(struct ib_device *ib_dev,
- 		mask |= GID_ATTR_FIND_MASK_NETDEV;
- 
- 	read_lock_irqsave(&table->rwlock, flags);
--	local_index = find_gid(table, gid, &val, false, mask);
-+	local_index = find_gid(table, gid, &val, false, mask, NULL);
- 	if (local_index >= 0) {
- 		if (index)
- 			*index = local_index;
-@@ -608,7 +625,7 @@ void ib_cache_gid_set_default_gid(struct ib_device *ib_dev, u8 port,
- 
- 	mutex_lock(&table->lock);
- 	write_lock_irq(&table->rwlock);
--	ix = find_gid(table, NULL, NULL, true, GID_ATTR_FIND_MASK_DEFAULT);
-+	ix = find_gid(table, NULL, NULL, true, GID_ATTR_FIND_MASK_DEFAULT, NULL);
- 
- 	/* Coudn't find default GID location */
- 	WARN_ON(ix < 0);
--- 
-2.1.0
+These patches have been prepared on top of v4.3-rc7. Doug, did I see 
+correctly that you have not yet queued Sagi's registration API changes 
+for the v4.4 merge window ?
 
+Thanks,
+
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
