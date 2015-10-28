@@ -1,47 +1,96 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/7] Fix an infinite loop in the SRP initiator
-Date: Wed, 28 Oct 2015 08:32:46 -0700
-Message-ID: <5630EA9E.30304@sandisk.com>
-References: <562FF404.7000504@sandisk.com> <5630A454.40604@dev.mellanox.co.il>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/1] IB/sa: Put netlink request into the request list before sending
+Date: Wed, 28 Oct 2015 11:39:50 -0400
+Message-ID: <20151028153949.GA10890@phlsvsds.ph.intel.com>
+References: <1446039867-27883-1-git-send-email-kaike.wan@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5630A454.40604-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1446039867-27883-1-git-send-email-kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/28/2015 03:32 AM, Sagi Grimberg wrote:
->> Submitting a SCSI request through the SG_IO mechanism with a scatterlist
->> that is longer than what is supported by the SRP initiator triggers an
->> infinite loop. This patch series fixes that behavior.
->>
->> The individual patches in this series are as follows:
->>
->> 0001-IB-srp-Fix-a-spelling-error.patch
->> 0002-IB-srp-Document-srp_map_data-return-value.patch
->> 0003-IB-srp-Rename-work-request-ID-labels.patch
->> 0004-IB-srp-Fix-a-potential-queue-overflow-in-an-error-pa.patch
->> 0005-IB-srp-Fix-srp_map_data-error-paths.patch
->> 0006-IB-srp-Introduce-target-mr_pool_size.patch
->> 0007-IB-srp-Avoid-that-mapping-failure-triggers-an-infini.patch
->
-> I didn't look at the patches yet but are these patches on top of
-> the registration changes I posted for 4.4? I am hoping Doug will merge
-> them so if they aren't it might be a good idea to respin the series on
-> top of that.
+On Wed, Oct 28, 2015 at 09:44:27AM -0400, kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> It was found by Saurabh Sengar that the netlink code tried to allocate
+> memory with GFP_KERNEL while holding a spinlock. While it is possible
+> to fix the issue by replacing GFP_KERNEL with GFP_ATOMIC, it is better
+> to get rid of the spinlock while sending the packet. However, in order
+> to protect against a race condition that a quick response may be received
+> before the request is put on the request list, we need to put the request
+> on the list first.
+> 
+> Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/infiniband/core/sa_query.c |   22 ++++++++++++----------
+>  1 files changed, 12 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+> index edcf568..240b57c 100644
+> --- a/drivers/infiniband/core/sa_query.c
+> +++ b/drivers/infiniband/core/sa_query.c
+> @@ -562,23 +562,25 @@ static int ib_nl_make_request(struct ib_sa_query *query)
+>  	INIT_LIST_HEAD(&query->list);
+>  	query->seq = (u32)atomic_inc_return(&ib_nl_sa_request_seq);
+>  
+> +	/* Put the request on the list first.*/
+>  	spin_lock_irqsave(&ib_nl_request_lock, flags);
+> +	delay = msecs_to_jiffies(sa_local_svc_timeout_ms);
+> +	query->timeout = delay + jiffies;
+> +	list_add_tail(&query->list, &ib_nl_request_list);
+> +	spin_unlock_irqrestore(&ib_nl_request_lock, flags);
+> +
+>  	ret = ib_nl_send_msg(query);
 
-Hello Sagi,
+What about using the gfp_mask through this stack?
 
-These patches have been prepared on top of v4.3-rc7. Doug, did I see 
-correctly that you have not yet queued Sagi's registration API changes 
-for the v4.4 merge window ?
+I think you need to split ib_nl_send_msg into "create message" and "send
+message".  Then don't add the message to the list unless it is ready to go.
+Then you can get rid of the code below which is removing it on error.
 
-Thanks,
+> +	spin_lock_irqsave(&ib_nl_request_lock, flags);
 
-Bart.
+Do we still need the spin lock?
+
+>  	if (ret <= 0) {
+>  		ret = -EIO;
+> -		goto request_out;
+> +		/* Remove the request */
+> +		list_del(&query->list);
+
+Don't need to do this if we split ib_nl_send_msg.
+
+Ira
+
+>  	} else {
+>  		ret = 0;
+> +		/* Start the timeout if this is the only request */
+> +		if (ib_nl_request_list.next == &query->list)
+> +			queue_delayed_work(ib_nl_wq, &ib_nl_timed_work, delay);
+>  	}
+> -
+> -	delay = msecs_to_jiffies(sa_local_svc_timeout_ms);
+> -	query->timeout = delay + jiffies;
+> -	list_add_tail(&query->list, &ib_nl_request_list);
+> -	/* Start the timeout if this is the only request */
+> -	if (ib_nl_request_list.next == &query->list)
+> -		queue_delayed_work(ib_nl_wq, &ib_nl_timed_work, delay);
+> -
+> -request_out:
+>  	spin_unlock_irqrestore(&ib_nl_request_lock, flags);
+>  
+>  	return ret;
+> -- 
+> 1.7.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
