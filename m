@@ -1,38 +1,75 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 2/2] IB/mlx5: Publish mlx5 driver support for extended
- create QP
-Date: Wed, 28 Oct 2015 13:19:55 -0600
-Message-ID: <20151028191955.GA27283@obsidianresearch.com>
-References: <1445993915-111262-1-git-send-email-eli@mellanox.com>
- <1445993915-111262-3-git-send-email-eli@mellanox.com>
- <20151028163225.GA14310@obsidianresearch.com>
- <HE1PR05MB1355F2259428B7DB0D096583C5210@HE1PR05MB1355.eurprd05.prod.outlook.com>
- <20151028182400.GB26645@obsidianresearch.com>
- <HE1PR05MB1355F83A223671CA59BC940AC5210@HE1PR05MB1355.eurprd05.prod.outlook.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: RFC: RPC/RDMA memory invalidation
+Date: Wed, 28 Oct 2015 15:56:08 -0400
+Message-ID: <094A348A-0764-4F46-A422-FBF2F1DC1C28@oracle.com>
+Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <HE1PR05MB1355F83A223671CA59BC940AC5210-eBadYZ65MZ+lkJP6d7MyxNqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org" <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+To: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 28, 2015 at 06:44:05PM +0000, Eli Cohen wrote:
-> > Did you read the above thread?
-> >
-> > Don't set uverbs_ex_cmd_mask in drivers.
-> 
-> But that's not how it is currently. IB core does not set any of the
-> extended verbs flags for all the devices.
+RPC/RDMA is moving towards a model where R_keys are invalidated
+as part of reply handling (either the client does it in the
+reply handler, or the server does it via Send With Invalidate).
+This fences the RPC's memory from the server before the RPC
+consumer is awoken and can access it.
 
-We agreed it would be fixed as a follow up patch so the timestamp
-stuff could move forward. That patch never came, and now it is needed
-before more stuff does this wrong.
+There are some cases where no reply occurs, however.
 
-Jason
+- A signal such as ^C or a software fault
+
+- A soft timeout
+
+- A local RPC client error
+
+- A GSS credential problem
+
+The safest thing to do is to ensure that memory is completely
+fenced (invalidated and DMA unmapped) before allowing such an
+abnormally terminated RPC to exit and its memory to be re-used.
+
+Unfortunately in the current kernel RPC client implementation
+there is no place an RPC can park itself, after it is awoken
+by means other than a reply, to wait for R_key invalidation
+to complete. Even if invalidation is started asynchronously
+as the RPC exits, it opens a window where an RPC can complete
+and exit while the memory is still registered and exposed for
+a short period.
+
+One way to handle this rare situation is to ensure that such
+an error exit always results in a connection loss if the
+request has registered memory. Any registered memory would be
+invalidated by the loss and fenced from the server; only a
+DMA unmap, which never sleeps, would be needed before the RPC
+exits.
+
+Knocking the QP out of RTS may seem drastic, but I believe in
+some of these cases the connection may already be gone.
+
+A key question is whether connection loss guarantees that the
+server is fenced, for all device types, from existing
+registered MRs. After reconnect, each MR must be registered
+again before it can be accessed remotely. Is this true for the
+Linux IB core, and all kernel providers, when using FRWR?
+
+After a connection loss, the Linux kernel RPC/RDMA client
+creates a new QP as it reconnects, thus I=E2=80=99d expect the QPN to
+be different on the new connection. That should be enough to
+prevent access to MRs that were registered with the previous
+QP and PD, right?
+
+I ask here because I am often surprised by the subtlety of
+standards language. ;-)
+
+-=E2=80=94
+Chuck Lever
+
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
