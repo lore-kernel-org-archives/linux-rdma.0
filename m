@@ -1,70 +1,37 @@
-From: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 1/1] IB/sa: Put netlink request into the request list before sending
-Date: Wed, 28 Oct 2015 09:44:27 -0400
-Message-ID: <1446039867-27883-1-git-send-email-kaike.wan@intel.com>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-next 0/3] Change per-entry locks in GID cache to table lock
+Date: Wed, 28 Oct 2015 16:52:38 +0200
+Message-ID: <1446043961-17667-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Hi Doug,
 
-It was found by Saurabh Sengar that the netlink code tried to allocate
-memory with GFP_KERNEL while holding a spinlock. While it is possible
-to fix the issue by replacing GFP_KERNEL with GFP_ATOMIC, it is better
-to get rid of the spinlock while sending the packet. However, in order
-to protect against a race condition that a quick response may be received
-before the request is put on the request list, we need to put the request
-on the list first.
+During the RoCE GID cache changes, we used a per-entry rwlock. This could cause
+a major overhead when traversing the GID table. We could spend thousands of
+cycles just by locking and unlocking entries. This change was requested by
+Doug.
 
-Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/core/sa_query.c |   22 ++++++++++++----------
- 1 files changed, 12 insertions(+), 10 deletions(-)
+In order to solve that, we moved to one table lock. find_gid is also optimized
+to find an empty slot while traversing the GID table (when needed).
 
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index edcf568..240b57c 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -562,23 +562,25 @@ static int ib_nl_make_request(struct ib_sa_query *query)
- 	INIT_LIST_HEAD(&query->list);
- 	query->seq = (u32)atomic_inc_return(&ib_nl_sa_request_seq);
- 
-+	/* Put the request on the list first.*/
- 	spin_lock_irqsave(&ib_nl_request_lock, flags);
-+	delay = msecs_to_jiffies(sa_local_svc_timeout_ms);
-+	query->timeout = delay + jiffies;
-+	list_add_tail(&query->list, &ib_nl_request_list);
-+	spin_unlock_irqrestore(&ib_nl_request_lock, flags);
-+
- 	ret = ib_nl_send_msg(query);
-+	spin_lock_irqsave(&ib_nl_request_lock, flags);
- 	if (ret <= 0) {
- 		ret = -EIO;
--		goto request_out;
-+		/* Remove the request */
-+		list_del(&query->list);
- 	} else {
- 		ret = 0;
-+		/* Start the timeout if this is the only request */
-+		if (ib_nl_request_list.next == &query->list)
-+			queue_delayed_work(ib_nl_wq, &ib_nl_timed_work, delay);
- 	}
--
--	delay = msecs_to_jiffies(sa_local_svc_timeout_ms);
--	query->timeout = delay + jiffies;
--	list_add_tail(&query->list, &ib_nl_request_list);
--	/* Start the timeout if this is the only request */
--	if (ib_nl_request_list.next == &query->list)
--		queue_delayed_work(ib_nl_wq, &ib_nl_timed_work, delay);
--
--request_out:
- 	spin_unlock_irqrestore(&ib_nl_request_lock, flags);
- 
- 	return ret;
+Regards,
+Matan
+
+Matan Barak (3):
+  IB/core: Refactor GID cache's ib_dispatch_event
+  IB/core: Change per-entry lock in RoCE GID table to one lock
+  IB/core: Find gid searches for empty slot while traversing the GID
+    table
+
+ drivers/infiniband/core/cache.c | 209 ++++++++++++++++++++++++++--------------
+ 1 file changed, 134 insertions(+), 75 deletions(-)
+
 -- 
-1.7.1
+2.1.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
