@@ -1,186 +1,209 @@
-From: Parav Pandit <pandit.parav@gmail.com>
-Subject: RFC rdma cgroup
-Date: Wed, 28 Oct 2015 13:59:15 +0530
-Message-ID: <CAG53R5Vd=tLbKPeKy8ZKP2DoHG-rnzW85COiE1Hk4GLv6SAZyA@mail.gmail.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 02/25] IB/mthca, net/mlx4: remove counting semaphores
+Date: Wed, 28 Oct 2015 11:19:20 +0200
+Message-ID: <56309318.8030409@dev.mellanox.co.il>
+References: <1446000373-1823620-1-git-send-email-arnd@arndb.de>
+ <1446000373-1823620-3-git-send-email-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>, Doug Ledford <dledford@redhat.com>, "Hefty, Sean" <sean.hefty@intel.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "cgroups@vger.kernel.org" <cgroups@vger.kernel.org>, Liran Liss <liranl@mellanox.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lizefan@huawei.com" <lizefan@huawei.com>, Johannes Weiner <hannes@cmpxchg.org>, Jonathan Corbet <corbet@lwn.net>, "james.l.morris@oracle.com" <james.l.morris@oracle.com>, "serge@hallyn.com" <serge@hallyn.com>, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, "raindel@mellanox.com" <raindel@mellanox.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Parav Pandit <pandit.parav@gmail.com>, Haggai
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1446000373-1823620-3-git-send-email-arnd-r2nGTMty4D4@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi All,
+Hi Arnd,
 
-Based on the review comments, feedback, discussion from/with Tejun,
-Haggai, Doug, Jason, Liran, Sean, ORNL team, I have updated the design
-as below.
+> Since we want to make counting semaphores go away,
 
-This is fairly strong and simple design, addresses most of the points
-raised to cover current RDMA use cases.
-Feel free to skip design guidelines section and jump to design section
-below if you find it too verbose. I had to describe it to set the
-context and address comments from our past discussion.
+Why do we want to make counting semaphores go away? completely?
+or just for binary use cases?
 
-Design guidelines:
------------------------
-1. There will be new rdma cgroup for accounting rdma resources
-(instead of extending device cgroup).
-Rationale: RDMA tracks different type of resources and it functions
-differently than device cgroup. Though device cgroup could have been
-extended for more generic nature, community feels that its better to
-create RDMA cgroup, which might have more features than just resource
-limit enforcement in future.
+I have a use case in iser target code where a counting semaphore is the
+best suited synchronizing mechanism.
 
-2. RDMA cgroup will allow resource accounting, limit enforcement on
-per cgroup, per rdma device basis (instead of resource limiting across
-all devices).
-Rationale: this give granular control when multiple devices exist in the system.
+I have a single thread handling connect requests (one at a time) while
+connect requests are event driven and come asynchronously. This is
+why I use a queue and a counting semaphore to handle this situation.
 
-3. Resources are not defined by the RDMA cgroup. Resources are defined
-by RDMA/IB subsystem and optionally by HCA vendor device drivers.
-Rationale: This allows rdma cgroup to remain constant while RDMA/IB
-subsystem can evolve without the need of rdma cgroup update. A new
-resource can be easily added by the RDMA/IB subsystem without touching
-rdma cgroup.
+I'd need to rethink of a new strategy to handle this without counting
+semaphores and I'm not entirely sure it would be simpler.
 
-4. RDMA uverbs layer will enforce limits on well defined RDMA verb
-resources without any HCA vendor device driver involvement.
-Rationale:
-(a) RDMA verbs are very well defined set of resource abstraction in
-Linux kernel stack for many years now and in use by many applications
-directly working with RDMA resources in varied manner. Instead of
-replicating code in every vendor driver, RDMA uverbs layer will
-enforce such resource limits (with help of rdma cgroup).
-(b) IB verbs resource is also a vendor agnostic representation of RDMA
-resource; therefore its done at RDMA uverbs level.
-
-6. RDMA uverbs layer will not do accounting of hw vendor specific resources.
-Rationale: RDMA uverbs layer is not aware of which hw resource maps to
-which verb resource and by how much amount. Therefore hw resource
-accounting, charging, uncharging has to happen by the vendor driver.
-This is optional and left to the HCA vendor device driver to
-implement. HCA driver best knows on how to keep the mapping, therefore
-its left to HCA vendor driver to do the accounting.
-
-7. RDMA cgroup will provide unified APIs through which both RDMA
-subsystem and vendor defined RDMA resource can be charged, uncharged
-by verb layer and HCA driver respectively.
-
-8. RDMA cgroup initial version will support only hard limits without
-any kind of reservation of resources or ranges. In future it might be
-extended for more dynamic nature.
-Rationale: Typically RDMA resources are stateful resource unlike cpu
-and RDMA resources don't follow work conserving nature.
-
-9. Resource limit enforcement is hierarchical.
-
-10. Process migration from one to other cgroup with active RDMA
-resource is highly discouraged.
-
-11. When process is migrated with active RDMA resources, rdma cgroup
-continues to charge original cgroup.
-Rationale:
-Unlike other POSIX calls, RDMA resources are not defined as POSIX
-level. These resources sit behind a file descriptor.
-Multiple processes forked, belonging to different thread group, can
-possibly placed in different cgroup sharing same rdma resources.
-It could be well done where its allocated by one thread group and
-release by other thread group from different cgroup.
-Resource usage hierarchy can bet easily get complex even though that
-is not primary use case.
-Typically all processes which want to use RDMA resources will be part
-of one leaf cgroup throughout their life cycle.
-Therefore its not worth to complicate design around process migration.
-
-Design:
----------
-1. New RDMA cgroup defines resource pool object, that connects cgroup
-subsystem to RDMA subsystem.
-2. Resource pool object is per cgroup, per device entity that is
-managed, controlled, configured by the administrator via cgroup
-interface.
-3. There can be at maximum of 64 resources per resource pool (such as
-MR, QP, AH, PD etc and other hardware resources). To manage resources
-beyond 64, it will require RDMA cgroup subsystem update. This will be
-done in future if at all its needed.
-
-4. RDMA cgroup defines two class of resources.
-(a) verb resources - tracks RDMA verb layer resources
-(b) hw resources - tracks HCA HW specific resources
-5. verbs resource template is defined by RDMA uverbs layer.
-6. hw resource template is defined by HCA vendor driver. This is
-optional and should be done by those driver which doesn't have one to
-one mapping with verb resource and hw resource.
-
-7. Processes in a cgroup without any configured limit (or in other
-words without resource pools) has max limits of the resources. If one
-of the resource limit is configured, that particular resource will be
-enforced, rest will enjoy upto their maximum limit.
-
-8. Typically each RDMA cgroup will have 0 to 4 RDMA devices. Therefore
-each cgroup will have 0 to 4 verbs resource pool and optionally 0 to 4
-hw resource pool per such device.
-(Nothing stops to have more devices and pools, but design is around
-this use case).
-
-9. Resource pool object is created in following situations.
-(a) administrative operation is done to set the limit and no previous
-resource pool exist for the device of interest for the cgroup.
-(b) no resource limits were configured, but IB/RDMA subsystem tries to
-charge the resource. so that when applications are running without
-limits and later on when limits are enforced, during uncharging, it
-correctly uncharges them, otherwise usage count will drop to negative.
-This is done using default resource pool.
-Instead of implementing any sort of time markers, default pool
-simplifies the design.
-(c) When process migrate from one to other cgroup, resource is
-continue to be owned by the creator cgroup (rather css).
-After process migration, whenever new resource is created in new
-cgroup, it will be owned by new cgroup.
-
-10. Resource pool is destroyed if it was of default type (not created
-by administrative operation) and its the last resource getting
-deallocated. Resource pool created as administrative operation is not
-deleted, as its expected to be used in near future.
-
-13. if administrative command tries to delete all the resource limit
-with active resources per device, RDMA cgroup just marks the pool as
-default pool with maximum limits.
-----------------------------------------------------------------
-
-Examples:
-#configure resource limit:
-echo mlx4_0 mr=100 qp=10 ah=2 cq=10 >
-/sys/fs/cgroup/rdma/1/rdma.resource.verb.limit
-echo ocrdma1 mr=120 qp=20 ah=2 cq=10 >
-/sys/fs/cgroup/rdma/2/rdma.resource.verb.limit
-
-#query resource limit:
-cat /sys/fs/cgroup/rdma/2/rdma.resource.verb.limit
-#output:
-mlx4_0 mr=100 qp=10 ah=2 cq=10
-ocrdma1 mr=120 qp=20 cq=10
-
-#delete resource limit:
-echo mlx4_0 del > /sys/fs/cgroup/rdma/1/rdma.resource.verb.limit
-
-#query resource list:
-cat /sys/fs/cgroup/rdma/1/rdma.resource.verb.list
-mlx4_0 mr qp ah pd cq
-
-cat /sys/fs/cgroup/rdma/1/rdma.hw.verb.list
-vendor1 hw_qp hw_cq hw_timer
-
-#configure hw specific resource limit
-echo vendor1 hw_qp=56 > /sys/fs/cgroup/rdma/2/rdma.resource.hw.limit
-
--------------------------------------------------------------------------
-
-I have completed initial development of above design. I am currently
-testing this design.
-I will post the patch soon once I am done validating it.
-
-Let me know if there are any design comments.
-
-Regards,
-Parav Pandit
+> this patch replaces the semaphore counting the event-driven
+> commands with an open-coded wait-queue, which should
+> be an equivalent transformation of the code, although
+> it does not make it any nicer.
+>
+> As far as I can tell, there is a preexisting race condition
+> regarding the cmd->use_events flag, which is not protected
+> by any lock. When this flag is toggled while another command
+> is being started, that command gets stuck until the mode is
+> toggled back.
+>
+> A better solution that would solve the race condition and
+> at the same time improve the code readability would create
+> a new locking primitive that replaces both semaphores, like
+>
+> static int mlx4_use_events(struct mlx4_cmd *cmd)
+> {
+> 	int ret = -EAGAIN;
+> 	spin_lock(&cmd->lock);
+> 	if (cmd->use_events && cmd->commands < cmd->max_commands) {
+> 		cmd->commands++;
+> 		ret = 1;
+> 	} else if (!cmd->use_events && cmd->commands == 0) {
+> 		cmd->commands = 1;
+> 		ret = 0;
+> 	}
+> 	spin_unlock(&cmd->lock);
+> 	return ret;
+> }
+>
+> static bool mlx4_use_events(struct mlx4_cmd *cmd)
+> {
+> 	int ret;
+> 	wait_event(cmd->events_wq, ret = __mlx4_use_events(cmd) >= 0);
+> 	return ret;
+> }
+>
+> Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+> Cc: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+> Cc: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+> Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+>
+> Conflicts:
+>
+> 	drivers/net/mlx4/cmd.c
+> 	drivers/net/mlx4/mlx4.h
+> ---
+>   drivers/infiniband/hw/mthca/mthca_cmd.c   | 12 ++++++++----
+>   drivers/infiniband/hw/mthca/mthca_dev.h   |  3 ++-
+>   drivers/net/ethernet/mellanox/mlx4/cmd.c  | 12 ++++++++----
+>   drivers/net/ethernet/mellanox/mlx4/mlx4.h |  3 ++-
+>   4 files changed, 20 insertions(+), 10 deletions(-)
+>
+> diff --git a/drivers/infiniband/hw/mthca/mthca_cmd.c b/drivers/infiniband/hw/mthca/mthca_cmd.c
+> index 9d3e5c1ac60e..aad1852e8e10 100644
+> --- a/drivers/infiniband/hw/mthca/mthca_cmd.c
+> +++ b/drivers/infiniband/hw/mthca/mthca_cmd.c
+> @@ -417,7 +417,8 @@ static int mthca_cmd_wait(struct mthca_dev *dev,
+>   	int err = 0;
+>   	struct mthca_cmd_context *context;
+>
+> -	down(&dev->cmd.event_sem);
+> +	wait_event(dev->cmd.event_wait,
+> +		   atomic_add_unless(&dev->cmd.commands, -1, 0));
+>
+>   	spin_lock(&dev->cmd.context_lock);
+>   	BUG_ON(dev->cmd.free_head < 0);
+> @@ -459,7 +460,8 @@ out:
+>   	dev->cmd.free_head = context - dev->cmd.context;
+>   	spin_unlock(&dev->cmd.context_lock);
+>
+> -	up(&dev->cmd.event_sem);
+> +	atomic_inc(&dev->cmd.commands);
+> +	wake_up(&dev->cmd.event_wait);
+>   	return err;
+>   }
+>
+> @@ -571,7 +573,8 @@ int mthca_cmd_use_events(struct mthca_dev *dev)
+>   	dev->cmd.context[dev->cmd.max_cmds - 1].next = -1;
+>   	dev->cmd.free_head = 0;
+>
+> -	sema_init(&dev->cmd.event_sem, dev->cmd.max_cmds);
+> +	init_waitqueue_head(&dev->cmd.event_wait);
+> +	atomic_set(&dev->cmd.commands, dev->cmd.max_cmds);
+>   	spin_lock_init(&dev->cmd.context_lock);
+>
+>   	for (dev->cmd.token_mask = 1;
+> @@ -597,7 +600,8 @@ void mthca_cmd_use_polling(struct mthca_dev *dev)
+>   	dev->cmd.flags &= ~MTHCA_CMD_USE_EVENTS;
+>
+>   	for (i = 0; i < dev->cmd.max_cmds; ++i)
+> -		down(&dev->cmd.event_sem);
+> +		wait_event(dev->cmd.event_wait,
+> +			   atomic_add_unless(&dev->cmd.commands, -1, 0));
+>
+>   	kfree(dev->cmd.context);
+>
+> diff --git a/drivers/infiniband/hw/mthca/mthca_dev.h b/drivers/infiniband/hw/mthca/mthca_dev.h
+> index 7e6a6d64ad4e..3055f5c12ac8 100644
+> --- a/drivers/infiniband/hw/mthca/mthca_dev.h
+> +++ b/drivers/infiniband/hw/mthca/mthca_dev.h
+> @@ -121,7 +121,8 @@ struct mthca_cmd {
+>   	struct pci_pool          *pool;
+>   	struct mutex              hcr_mutex;
+>   	struct semaphore 	  poll_sem;
+> -	struct semaphore 	  event_sem;
+> +	wait_queue_head_t 	  event_wait;
+> +	atomic_t	 	  commands;
+>   	int              	  max_cmds;
+>   	spinlock_t                context_lock;
+>   	int                       free_head;
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+> index 78f5a1a0b8c8..60134a4245ef 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
+> +++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+> @@ -273,7 +273,8 @@ static int mlx4_cmd_wait(struct mlx4_dev *dev, u64 in_param, u64 *out_param,
+>   	struct mlx4_cmd_context *context;
+>   	int err = 0;
+>
+> -	down(&cmd->event_sem);
+> +	wait_event(cmd->event_wait,
+> +		   atomic_add_unless(&cmd->commands, -1, 0));
+>
+>   	spin_lock(&cmd->context_lock);
+>   	BUG_ON(cmd->free_head < 0);
+> @@ -305,7 +306,8 @@ out:
+>   	cmd->free_head = context - cmd->context;
+>   	spin_unlock(&cmd->context_lock);
+>
+> -	up(&cmd->event_sem);
+> +	atomic_inc(&cmd->commands);
+> +	wake_up(&cmd->event_wait);
+>   	return err;
+>   }
+>
+> @@ -380,7 +382,8 @@ int mlx4_cmd_use_events(struct mlx4_dev *dev)
+>   	priv->cmd.context[priv->cmd.max_cmds - 1].next = -1;
+>   	priv->cmd.free_head = 0;
+>
+> -	sema_init(&priv->cmd.event_sem, priv->cmd.max_cmds);
+> +	init_waitqueue_head(&priv->cmd.event_wait);
+> +	atomic_set(&priv->cmd.commands, priv->cmd.max_cmds);
+>   	spin_lock_init(&priv->cmd.context_lock);
+>
+>   	for (priv->cmd.token_mask = 1;
+> @@ -407,7 +410,8 @@ void mlx4_cmd_use_polling(struct mlx4_dev *dev)
+>   	priv->cmd.use_events = 0;
+>
+>   	for (i = 0; i < priv->cmd.max_cmds; ++i)
+> -		down(&priv->cmd.event_sem);
+> +		wait_event(priv->cmd.event_wait,
+> +			   atomic_add_unless(&priv->cmd.commands, -1, 0));
+>
+>   	kfree(priv->cmd.context);
+>
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+> index 5dfa68ffc11c..5a2c55d8ccfd 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+> +++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+> @@ -189,7 +189,8 @@ struct mlx4_cmd {
+>   	void __iomem	       *hcr;
+>   	struct mutex		hcr_mutex;
+>   	struct semaphore	poll_sem;
+> -	struct semaphore	event_sem;
+> +	wait_queue_head_t 	event_wait;
+> +	atomic_t	 	commands;
+>   	int			max_cmds;
+>   	spinlock_t		context_lock;
+>   	int			free_head;
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
