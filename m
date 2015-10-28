@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 1/3] IB/core: Refactor GID cache's ib_dispatch_event
-Date: Wed, 28 Oct 2015 16:52:39 +0200
-Message-ID: <1446043961-17667-2-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next 3/3] IB/core: Find gid searches for empty slot while traversing the GID table
+Date: Wed, 28 Oct 2015 16:52:41 +0200
+Message-ID: <1446043961-17667-4-git-send-email-matanb@mellanox.com>
 References: <1446043961-17667-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1446043961-17667-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,57 +10,149 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Refactor ib_dispatch_event into a new function in order to avoid
-duplicating code in the next patch.
+Previously, we've searched the GID table twice, once - in order to
+find the GID itself and afterwards in order to find a free GID
+entry. Replacing it with finding the GID and the empty index
+in one traversal.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/cache.c | 23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
+ drivers/infiniband/core/cache.c | 53 +++++++++++++++++++++++++++--------------
+ 1 file changed, 35 insertions(+), 18 deletions(-)
 
 diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-index 89bebea..f0703d2 100644
+index 83aee7c..097e9df 100644
 --- a/drivers/infiniband/core/cache.c
 +++ b/drivers/infiniband/core/cache.c
-@@ -112,6 +112,19 @@ struct ib_gid_table {
- 	struct ib_gid_table_entry *data_vec;
- };
+@@ -208,19 +208,33 @@ static int del_gid(struct ib_device *ib_dev, u8 port,
+ /* rwlock should be read locked */
+ static int find_gid(struct ib_gid_table *table, const union ib_gid *gid,
+ 		    const struct ib_gid_attr *val, bool default_gid,
+-		    unsigned long mask)
++		    unsigned long mask, int *pempty)
+ {
+-	int i;
++	int i = 0;
++	int found = -1;
++	int empty = pempty ? -1 : 0;
  
-+static void dispatch_gid_change_event(struct ib_device *ib_dev, u8 port)
-+{
-+	if (rdma_cap_roce_gid_table(ib_dev, port)) {
-+		struct ib_event event;
+-	for (i = 0; i < table->sz; i++) {
+-		struct ib_gid_attr *attr = &table->data_vec[i].attr;
++	while (i < table->sz && (found < 0 || empty < 0)) {
++		struct ib_gid_table_entry *data = &table->data_vec[i];
++		struct ib_gid_attr *attr = &data->attr;
++		int curr_index = i;
+ 
++		i++;
+ 
+-		if (table->data_vec[i].props & GID_TABLE_ENTRY_INVALID)
++		if (data->props & GID_TABLE_ENTRY_INVALID)
++			continue;
 +
-+		event.device		= ib_dev;
-+		event.element.port_num	= port;
-+		event.event		= IB_EVENT_GID_CHANGE;
++		if (empty < 0)
++			if (!memcmp(&data->gid, &zgid, sizeof(*gid)) &&
++			    !memcmp(attr, &zattr, sizeof(*attr)) &&
++			    !data->props)
++				empty = curr_index;
 +
-+		ib_dispatch_event(&event);
-+	}
-+}
++		if (found >=0)
+ 			continue;
+ 
+ 		if (mask & GID_ATTR_FIND_MASK_GID &&
+-		    memcmp(gid, &table->data_vec[i].gid, sizeof(*gid)))
++		    memcmp(gid, &data->gid, sizeof(*gid)))
+ 			continue;
+ 
+ 		if (mask & GID_ATTR_FIND_MASK_NETDEV &&
+@@ -228,14 +242,17 @@ static int find_gid(struct ib_gid_table *table, const union ib_gid *gid,
+ 			continue;
+ 
+ 		if (mask & GID_ATTR_FIND_MASK_DEFAULT &&
+-		    !!(table->data_vec[i].props & GID_TABLE_ENTRY_DEFAULT) !=
++		    !!(data->props & GID_TABLE_ENTRY_DEFAULT) !=
+ 		    default_gid)
+ 			continue;
+ 
+-		break;
++		found = curr_index;
+ 	}
+ 
+-	return i == table->sz ? -1 : i;
++	if (pempty)
++		*pempty = empty;
 +
- static int write_gid(struct ib_device *ib_dev, u8 port,
- 		     struct ib_gid_table *table, int ix,
- 		     const union ib_gid *gid,
-@@ -164,15 +177,9 @@ static int write_gid(struct ib_device *ib_dev, u8 port,
- 
- 	write_unlock_irqrestore(&table->data_vec[ix].lock, flags);
- 
--	if (!ret && rdma_cap_roce_gid_table(ib_dev, port)) {
--		struct ib_event event;
-+	if (!ret)
-+		dispatch_gid_change_event(ib_dev, port);
- 
--		event.device		= ib_dev;
--		event.element.port_num	= port;
--		event.event		= IB_EVENT_GID_CHANGE;
--
--		ib_dispatch_event(&event);
--	}
- 	return ret;
++	return found;
  }
  
+ static void make_default_gid(struct  net_device *dev, union ib_gid *gid)
+@@ -252,6 +269,7 @@ int ib_cache_gid_add(struct ib_device *ib_dev, u8 port,
+ 	int ix;
+ 	int ret = 0;
+ 	struct net_device *idev;
++	int empty;
+ 
+ 	table = ports_table[port - rdma_start_port(ib_dev)];
+ 
+@@ -278,18 +296,16 @@ int ib_cache_gid_add(struct ib_device *ib_dev, u8 port,
+ 	write_lock_irq(&table->rwlock);
+ 
+ 	ix = find_gid(table, gid, attr, false, GID_ATTR_FIND_MASK_GID |
+-		      GID_ATTR_FIND_MASK_NETDEV);
++		      GID_ATTR_FIND_MASK_NETDEV, &empty);
+ 	if (ix >= 0)
+ 		goto out_unlock;
+ 
+-	ix = find_gid(table, &zgid, NULL, false, GID_ATTR_FIND_MASK_GID |
+-		      GID_ATTR_FIND_MASK_DEFAULT);
+-	if (ix < 0) {
++	if (empty < 0) {
+ 		ret = -ENOSPC;
+ 		goto out_unlock;
+ 	}
+ 
+-	ret = add_gid(ib_dev, port, table, ix, gid, attr, false);
++	ret = add_gid(ib_dev, port, table, empty, gid, attr, false);
+ 	if (!ret)
+ 		dispatch_gid_change_event(ib_dev, port);
+ 
+@@ -314,7 +330,8 @@ int ib_cache_gid_del(struct ib_device *ib_dev, u8 port,
+ 	ix = find_gid(table, gid, attr, false,
+ 		      GID_ATTR_FIND_MASK_GID	  |
+ 		      GID_ATTR_FIND_MASK_NETDEV	  |
+-		      GID_ATTR_FIND_MASK_DEFAULT);
++		      GID_ATTR_FIND_MASK_DEFAULT,
++		      NULL);
+ 	if (ix < 0)
+ 		goto out_unlock;
+ 
+@@ -393,7 +410,7 @@ static int _ib_cache_gid_table_find(struct ib_device *ib_dev,
+ 	for (p = 0; p < ib_dev->phys_port_cnt; p++) {
+ 		table = ports_table[p];
+ 		read_lock_irqsave(&table->rwlock, flags);
+-		local_index = find_gid(table, gid, val, false, mask);
++		local_index = find_gid(table, gid, val, false, mask, NULL);
+ 		if (local_index >= 0) {
+ 			if (index)
+ 				*index = local_index;
+@@ -445,7 +462,7 @@ int ib_find_cached_gid_by_port(struct ib_device *ib_dev,
+ 		mask |= GID_ATTR_FIND_MASK_NETDEV;
+ 
+ 	read_lock_irqsave(&table->rwlock, flags);
+-	local_index = find_gid(table, gid, &val, false, mask);
++	local_index = find_gid(table, gid, &val, false, mask, NULL);
+ 	if (local_index >= 0) {
+ 		if (index)
+ 			*index = local_index;
+@@ -608,7 +625,7 @@ void ib_cache_gid_set_default_gid(struct ib_device *ib_dev, u8 port,
+ 
+ 	mutex_lock(&table->lock);
+ 	write_lock_irq(&table->rwlock);
+-	ix = find_gid(table, NULL, NULL, true, GID_ATTR_FIND_MASK_DEFAULT);
++	ix = find_gid(table, NULL, NULL, true, GID_ATTR_FIND_MASK_DEFAULT, NULL);
+ 
+ 	/* Coudn't find default GID location */
+ 	WARN_ON(ix < 0);
 -- 
 2.1.0
 
