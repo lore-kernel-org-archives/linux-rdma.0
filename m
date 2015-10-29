@@ -1,76 +1,111 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: RFC: RPC/RDMA memory invalidation
-Date: Wed, 28 Oct 2015 15:51:19 -0600
-Message-ID: <20151028215119.GA30564@obsidianresearch.com>
-References: <094A348A-0764-4F46-A422-FBF2F1DC1C28@oracle.com>
- <20151028201002.GA27901@obsidianresearch.com>
- <59849A38-0C8F-46AB-BB76-71216C6C0631@oracle.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: shrink struct ib_send_wr V4
+Date: Wed, 28 Oct 2015 22:25:31 -0400
+Message-ID: <5631839B.30300@redhat.com>
+References: <1442157215-22341-1-git-send-email-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="MVwegaPDAlqBVRDt6x29Wu8jtKVTfL4WM"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <59849A38-0C8F-46AB-BB76-71216C6C0631-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1442157215-22341-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 28, 2015 at 05:30:17PM -0400, Chuck Lever wrote:
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--MVwegaPDAlqBVRDt6x29Wu8jtKVTfL4WM
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-> IBTA spec states:
+On 09/13/2015 11:13 AM, Christoph Hellwig wrote:
+> This series shrinks the WR size by splitting out the different WR
+> types.
 >=20
-> > MW access operations (i.e. RDMA Write, RDMA Reads, and Atom-
-> > ics) are only allowed if the Type 2B MW is in the Valid state and t=
-he
-> > QP Number (QPN) and PD of the QP performing the MW access op-
-> > eration matches the QPN and PD associated with the Bound Type 2B
-> > MW.
+> Patch number one is too large for the mailinglist, so if you didn't
+> get it grab it here:
 >=20
-> Once the QP is out of RTS, there can be no incoming RDMA
-> requests that match the R_key, QPN, PD tuple. I think you
-> are saying that the QP state change has the same problem
-> as not waiting for an invalidation to complete.
-
-MW (Memory Window) is something different from a MR.
-
-MR's do not match on the QPN.
-
-> > If there was one PD per QP then the above would be true, since the =
-MR
-> > is linked to the PD.
+> 	http://git.infradead.org/users/hch/rdma.git/commitdiff_plain/c752d8093=
+7ff2d71f25ae7fcdd1a151054fb2ceb
 >=20
-> There is a per-connection struct rpcrdma_ia that contains
-> both a PD and a QP. Therefore there is one PD and only one
-> QP (on the client) per connection.
-
-Oh, that is great then
-
-> > FWIW, the same is true on the send side too, if the RPC had send
-> > buffers and gets canceled, you have to block until a CQ linked to t=
-hat
-> > send is seen.
+> or the full git tree at:
 >=20
-> By =E2=80=9Cyou have to block=E2=80=9D you mean the send buffer canno=
-t be reused
-> until the Send WR is known to have completed, and new Send WRs
-> cannot be posted until it is known that enough send queue resources
-> are available.
+> 	git://git.infradead.org/users/hch/rdma.git wr-cleanup
 
-Yes
+I had to do a minor hand merge to get this to apply, but it has been
+pulled in for 4.4.
 
-> I=E2=80=99m not certain we are careful to ensure
-> the hardware has truly relinquished the send buffer before it is
-> made available for re-use. A known issue.
-
-This is the issue I was thinking of, yes. Ideally the CPU would not
-touch the send buffer until the HW is done with it under any
-situation. This is less serious than having a rouge writable R_Key
-however.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+>=20
+> Now that we have 4.3-rc1 out it might be a good idea to get the rdma tr=
+ee
+> for 4.4 started with it.  Both I and others have additional large patch=
+es
+> pending that build ontop of this.
+>=20
+> Changes since V3:
+>   - dropped the old first patch as it has been merged
+>   - rebase to 4.3-rc1
+>=20
+> Changes since V2:
+>  - fixed patch one to accept SEND - note that this was alredy fixed by
+>    patch 2
+>  - added a CC: stable for patch 1
+>  - added additional review tags
+>=20
+> Changes since V1:
+>  - new patch 1 which rejects invalid opcodes.  Patch 2 was doing
+>    this implicitly except for UD QPs, but I think we should a)
+>    do this explicitly and b) ensure this goes into 4.2 and -stable
+>    as I can see quite a lot of harm from submitting such malformed
+>    operations
+>  - patch 2 now covers all drivers including those in staging to
+>    side step any sort of discussions on the staging tree.
+>  - patch 2 now explicitly replaces the weird overloading in the mlx5
+>    driver with an explicit embedding of struct ib_send_wr, similar
+>    to what we do for all other MRs.
+>  - new patch to drop another unused send_wr field.
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
+
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--MVwegaPDAlqBVRDt6x29Wu8jtKVTfL4WM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJWMYObAAoJELgmozMOVy/d2BoP/jr7TIgTMIKluIU/JAq9JO17
+cWKdmTTzMiLlYgFl80w3+hCYESWrTwimOua1E2oLC0TkkNzevyEJ0dwjSN79+Zxk
+1wyNFIgflR9ReCjYN9q3XkdLpr+/ZB5jecsBBaJHfoxKoBk9HIExeyJa4A6hxC0F
+71B+1ecD8y3SYt4wrYdxZLjIO8lpnCoXzj89TXcCDL+o4mNg/65qwuPqj/nIg1kI
+lkFCrp7j5s4X4zaIJOJSJGZywy25frG5mNLlMvRbs2eaPTaTXBdpsAxT3cmFdKpK
+opCZXkXTJeWwRTh2tSRS/21Y5dOIR6TRPdU2B+qP6+/uXzjcHZk7STOIdao0MXCX
+cSMbdg3Y77QLpCslndQn5n3T2jBy1p7heW2rE8jznCyxnKoBcz9drUs/JBCdy7Nu
+cBUs0YHT2NJANQINKTo5Y16uwlRwtYAAIAKR2TQ86cCEtucz8duiLQyhf4k87NFH
+othnk+YoqrXQsFylYLWNxz5rcIVLxotjWn2UMJmXNcrkk0e0LT7UCdij+r63L2ql
+k0vMOX1LwsbWH8aChrXrzdNnKdZwxl4VgoluYCZEnXKNONxakRJjj0Pamz/owZqj
+fQw2ccR0qpFO5Syc70+413itCBHHkKKppdqw+QrilhgFh2EJDWbk2l+KTcZIt1Rb
+AbcTt1JqAfOOt9K0TJ7z
+=FjcW
+-----END PGP SIGNATURE-----
+
+--MVwegaPDAlqBVRDt6x29Wu8jtKVTfL4WM--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
