@@ -1,68 +1,40 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: RFC rdma cgroup
-Date: Thu, 29 Oct 2015 16:57:27 +0200
-Message-ID: <563233D7.90808@mellanox.com>
-References: <CAG53R5Vd=tLbKPeKy8ZKP2DoHG-rnzW85COiE1Hk4GLv6SAZyA@mail.gmail.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v5 00/26] New fast registration API
+Date: Thu, 29 Oct 2015 17:24:00 +0200
+Message-ID: <56323A10.7030103@dev.mellanox.co.il>
+References: <1444752709-15429-1-git-send-email-sagig@mellanox.com>
+ <56262676.7000403@dev.mellanox.co.il> <563185AC.10804@redhat.com>
+ <CAJ3xEMjYd2WUzFxNNSvWCkedt0bczC3H2ySP0ACvEkaoUP2SGw@mail.gmail.com>
+ <56322A41.9050004@redhat.com> <56322E39.6020602@dev.mellanox.co.il>
+ <5632305A.6050800@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG53R5Vd=tLbKPeKy8ZKP2DoHG-rnzW85COiE1Hk4GLv6SAZyA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <5632305A.6050800-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, "james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org" <serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 28/10/2015 10:29, Parav Pandit wrote:
-> 3. Resources are not defined by the RDMA cgroup. Resources are defined
-> by RDMA/IB subsystem and optionally by HCA vendor device drivers.
-> Rationale: This allows rdma cgroup to remain constant while RDMA/IB
-> subsystem can evolve without the need of rdma cgroup update. A new
-> resource can be easily added by the RDMA/IB subsystem without touching
-> rdma cgroup.
-Resources exposed by the cgroup are basically a UAPI, so we have to be
-careful to make it stable when it evolves. I understand the need for
-vendor specific resources, following the discussion on the previous
-proposal, but could you write on how you plan to allow these set of
-resources to evolve?
 
-> 8. Typically each RDMA cgroup will have 0 to 4 RDMA devices. Therefore
-> each cgroup will have 0 to 4 verbs resource pool and optionally 0 to 4
-> hw resource pool per such device.
-> (Nothing stops to have more devices and pools, but design is around
-> this use case).
-In what way does the design depend on this assumption?
+>> I can provide a patch for hfi, anything else needed?
+>
+> It breaks all of them in staging, not just hgi1.  So, hfi1, amso1100,
+> ipath, and ehca.
 
-> 9. Resource pool object is created in following situations.
-> (a) administrative operation is done to set the limit and no previous
-> resource pool exist for the device of interest for the cgroup.
-> (b) no resource limits were configured, but IB/RDMA subsystem tries to
-> charge the resource. so that when applications are running without
-> limits and later on when limits are enforced, during uncharging, it
-> correctly uncharges them, otherwise usage count will drop to negative.
-> This is done using default resource pool.
-> Instead of implementing any sort of time markers, default pool
-> simplifies the design.
-Having a default resource pool kind of implies there is a non-default
-one. Is the only difference between the default and non-default the fact
-that the second was created with an administrative operation and has
-specified limits or is there some other difference?
+hfi1: Does not support FRWR at all, there are just some copy-paste
+sections that supposedly handle it - so I'll drop any sign of it from
+the code. We'll add this support to the generic for qib, hfi, softroce.
 
-> (c) When process migrate from one to other cgroup, resource is
-> continue to be owned by the creator cgroup (rather css).
-> After process migration, whenever new resource is created in new
-> cgroup, it will be owned by new cgroup.
-It sounds a little different from how other cgroups behave. I agree that
-mostly processes will create the resources in their cgroup and won't
-migrate, but why not move the charge during migration?
+ipath: same
 
-I finally wanted to ask about other limitations an RDMA cgroup could
-handle. It would be great to be able to limit a container to be allowed
-to use only a subset of the MAC/VLAN pairs programmed to a device, or
-only a subset of P_Keys and GIDs it has. Do you see such limitations
-also as part of this cgroup?
+amso1100 & ehca: it does not have FRWR at all - no sign of it in terms
+of code... did they really break?
 
-Thanks,
-Haggai
+I'll send a patch for hfi1 and ipath.
+
+Sagi.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
