@@ -1,34 +1,46 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v5 00/26] New fast registration API
-Date: Wed, 28 Oct 2015 22:34:20 -0400
-Message-ID: <563185AC.10804@redhat.com>
-References: <1444752709-15429-1-git-send-email-sagig@mellanox.com>
- <56262676.7000403@dev.mellanox.co.il>
+Subject: Re: shrink struct ib_send_wr V4
+Date: Wed, 28 Oct 2015 22:57:59 -0400
+Message-ID: <56318B37.20207@redhat.com>
+References: <1442157215-22341-1-git-send-email-hch@lst.de>
+ <5631839B.30300@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="a57r3oQ8FLFIJ91Ns83HRPEhs9C0cHIsc"
+ boundary="4SR9UqmMuFAIpT969iR1imFqkBKO2gjcL"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56262676.7000403-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <5631839B.30300-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---a57r3oQ8FLFIJ91Ns83HRPEhs9C0cHIsc
-Content-Type: text/plain; charset=utf-8
+--4SR9UqmMuFAIpT969iR1imFqkBKO2gjcL
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 10/20/2015 07:33 AM, Sagi Grimberg wrote:
-> Doug, are you planning on taking this for 4.4?
+On 10/28/2015 10:25 PM, Doug Ledford wrote:
+> On 09/13/2015 11:13 AM, Christoph Hellwig wrote:
+>> This series shrinks the WR size by splitting out the different WR
+>> types.
+>>
+>> Patch number one is too large for the mailinglist, so if you didn't
+>> get it grab it here:
+>>
+>> 	http://git.infradead.org/users/hch/rdma.git/commitdiff_plain/c752d809=
+37ff2d71f25ae7fcdd1a151054fb2ceb
+>>
+>> or the full git tree at:
+>>
+>> 	git://git.infradead.org/users/hch/rdma.git wr-cleanup
 >=20
-> I think this set has converged towards inclusion.
->=20
-> Reminder, this series goes on top of Christoph's
-> wr_cleanup patches and iser bounce buffering cleanup.
+> I had to do a minor hand merge to get this to apply, but it has been
+> pulled in for 4.4.
 
-Yes, I've pulled this in for 4.4.  Thanks!
+This breaks all of the drivers in staging BTW.  That will need fixed up
+before the pull request goes in during the merge window.
+
 
 
 --=20
@@ -37,7 +49,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---a57r3oQ8FLFIJ91Ns83HRPEhs9C0cHIsc
+--4SR9UqmMuFAIpT969iR1imFqkBKO2gjcL
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -46,22 +58,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWMYWsAAoJELgmozMOVy/d7oYP/jjq0DhjkvXxb9IYReduHGcF
-fGIzBaDgA7bBs/ixYBjsXB9HgNK+4WDfuNm2Uau7AFOag08V2wjSVOoDnxPRxpPz
-RsZKDnyaXDQ1UFrmOVM+GlCRN/LI/ZvofQZFlehraUbpYM9m+orCzYT9gO8ZliNy
-fDLm4kH7Rc8qdCio/hmoK6DQxwLreZQGKC6GPAch5F+K6/yaUVm/ELW11WhUIaqM
-1GMDPOMHdM6VbJf4yhPa1wZV5qJ3B0KS2/zKjDnhWigestEAynBDP+cLjD5PXJmx
-R2lGJgYnJRdk++4RCoMdP7EncG5xhgQ2X9A+ALN2xEtdnxUk+lqXI2v9dqrUdk98
-T2L3YWLMWOjxqAVyzOpAoZNifLDLB1KR4Z+BZwzlYY8r9f0zYyCfTptpd1K/QHh8
-w2ZHrEVImaWOCgmeb38RGN6DM7sOg4rdd76TFSUBA3H6v+aTFa69wI7EO9mOAYCq
-7jU6btg4oDLN3rYeqDYEACtgUCay3rTy9Sh1x5BLq41t4TmSj4H7mm7FLRVbD2t8
-dLLmQ+j88Enplik2dREt/3iiXnqhhwzGGRB9lM4tIu+TvL+ZiXDdIb3C5Nnu2dfv
-bQCACaWDN4w1tGwewBrfQwnzW/IThd4qgwAjkY9kyB/WrfCHYwM/BZ69vAi8bdnD
-d+CIUIoOl0N4XUXaf9+A
-=mTpL
+iQIcBAEBCAAGBQJWMYs3AAoJELgmozMOVy/dnTYQALaAtuOhGBvqpFVtT8+Vu/wD
+jWCXWMGf1dbi0szDuHiAoN8j/PlmYnvoDdM57f5t3ZGN3PvMdB4oxMy/U74B8dY+
++Jj6oOnTQRtOKWOypSUNYm7Y2dTssiS8JbR9uVXflKu6Ta7BqJ0r9GZdMlOJ/N/o
+EtiGDRZOK/EflUkaphq8C9q9c7R5urThjxn13x2zbadAVsdkuJnEL7uKJAsIdn78
+53kVFNILuXJ7WSPJEHtgCdtm1NzsEmarXmAe26LXMFfF4f+PtmdowbybFj7DCNQw
+Xgt5R2bHISsSueYe5f0/3Sa/VTwjJJcZz1FOxrYp/lqV79ffWgwNBf/v3K4NyEhZ
+aVGo1dEe9Ba/FEJ5lFXQDB8fPwpbhEtvW4oFS4sLgITos9s7oZM083l7mx6H8eTh
+vWj5Kt8Y9b53823BGGTF7cRormpr2e1y2pmmHbx/DsZ6llV02dVGFfnu0sjMlbMH
+hGuMAFKp/BcuwdOeXnZq/7UEo9GKb7mEF2rGptDeBIFmKqqnmuVTaARIVDQlR814
+QJupSJVvWjrFZ3Bk2uIqY2N7eliRkKFdxkp4C57mTXIJeqU6wV0Q5l3IA2f6Fi+Z
+7uSbuOmG6JM4kVvVMv7SjCkPp8ZTxlpmQw+MOjZ6v7fJPqYIEgLTGQZsNu0NCx1z
++sefBbMbH9XSrL2YuHR4
+=zC51
 -----END PGP SIGNATURE-----
 
---a57r3oQ8FLFIJ91Ns83HRPEhs9C0cHIsc--
+--4SR9UqmMuFAIpT969iR1imFqkBKO2gjcL--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
