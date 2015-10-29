@@ -1,86 +1,68 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v5 00/26] New fast registration API
-Date: Thu, 29 Oct 2015 10:42:34 -0400
-Message-ID: <5632305A.6050800@redhat.com>
-References: <1444752709-15429-1-git-send-email-sagig@mellanox.com>
- <56262676.7000403@dev.mellanox.co.il> <563185AC.10804@redhat.com>
- <CAJ3xEMjYd2WUzFxNNSvWCkedt0bczC3H2ySP0ACvEkaoUP2SGw@mail.gmail.com>
- <56322A41.9050004@redhat.com> <56322E39.6020602@dev.mellanox.co.il>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: RFC rdma cgroup
+Date: Thu, 29 Oct 2015 16:57:27 +0200
+Message-ID: <563233D7.90808@mellanox.com>
+References: <CAG53R5Vd=tLbKPeKy8ZKP2DoHG-rnzW85COiE1Hk4GLv6SAZyA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="OhaBSn2s9UgELOV4gQ6qaMUE6bv3SK8Rr"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56322E39.6020602-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <CAG53R5Vd=tLbKPeKy8ZKP2DoHG-rnzW85COiE1Hk4GLv6SAZyA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, "james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org" <serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---OhaBSn2s9UgELOV4gQ6qaMUE6bv3SK8Rr
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+On 28/10/2015 10:29, Parav Pandit wrote:
+> 3. Resources are not defined by the RDMA cgroup. Resources are defined
+> by RDMA/IB subsystem and optionally by HCA vendor device drivers.
+> Rationale: This allows rdma cgroup to remain constant while RDMA/IB
+> subsystem can evolve without the need of rdma cgroup update. A new
+> resource can be easily added by the RDMA/IB subsystem without touching
+> rdma cgroup.
+Resources exposed by the cgroup are basically a UAPI, so we have to be
+careful to make it stable when it evolves. I understand the need for
+vendor specific resources, following the discussion on the previous
+proposal, but could you write on how you plan to allow these set of
+resources to evolve?
 
-On 10/29/2015 10:33 AM, Sagi Grimberg wrote:
->=20
->=20
-> On 29/10/2015 16:16, Doug Ledford wrote:
->> On 10/29/2015 01:42 AM, Or Gerlitz wrote:
->>> On Thu, Oct 29, 2015 at 4:34 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->>> wrote:
->>>> Yes, I've pulled this in for 4.4.  Thanks!
->>>
->>> Doug, we want to run regression over the 4.4 bits, when do you expect=
+> 8. Typically each RDMA cgroup will have 0 to 4 RDMA devices. Therefore
+> each cgroup will have 0 to 4 verbs resource pool and optionally 0 to 4
+> hw resource pool per such device.
+> (Nothing stops to have more devices and pools, but design is around
+> this use case).
+In what way does the design depend on this assumption?
 
->>> for them to show up @ your kernel.org tree?
->>
->> Sorry, when the fast registration API caused compile failure yesterday=
- I
->> stopped at it and forgot to push the result out.  So, I've removed the=
+> 9. Resource pool object is created in following situations.
+> (a) administrative operation is done to set the limit and no previous
+> resource pool exist for the device of interest for the cgroup.
+> (b) no resource limits were configured, but IB/RDMA subsystem tries to
+> charge the resource. so that when applications are running without
+> limits and later on when limits are enforced, during uncharging, it
+> correctly uncharges them, otherwise usage count will drop to negative.
+> This is done using default resource pool.
+> Instead of implementing any sort of time markers, default pool
+> simplifies the design.
+Having a default resource pool kind of implies there is a non-default
+one. Is the only difference between the default and non-default the fact
+that the second was created with an administrative operation and has
+specified limits or is there some other difference?
 
->> last patch of that series so it resolves the build breakage for now.  =
-We
->> can add the last patch back in after the staging drivers are fixed up.=
+> (c) When process migrate from one to other cgroup, resource is
+> continue to be owned by the creator cgroup (rather css).
+> After process migration, whenever new resource is created in new
+> cgroup, it will be owned by new cgroup.
+It sounds a little different from how other cgroups behave. I agree that
+mostly processes will create the resources in their cgroup and won't
+migrate, but why not move the charge during migration?
 
->> The result has been pushed to both github and k.o.
->=20
-> I can provide a patch for hfi, anything else needed?
+I finally wanted to ask about other limitations an RDMA cgroup could
+handle. It would be great to be able to limit a container to be allowed
+to use only a subset of the MAC/VLAN pairs programmed to a device, or
+only a subset of P_Keys and GIDs it has. Do you see such limitations
+also as part of this cgroup?
 
-It breaks all of them in staging, not just hgi1.  So, hfi1, amso1100,
-ipath, and ehca.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---OhaBSn2s9UgELOV4gQ6qaMUE6bv3SK8Rr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJWMjBaAAoJELgmozMOVy/d88wP/RkRbV3z5Ys/WTwOfl/8iDvN
-R8Y5ESH5DCwCenEUWh7pJJYAF6hUaxUdCo0PZOzUhlg8Z8y60ETEZ6kgVABv5Rch
-X9Y4I3fInnoQAfyrvXxbV39VTNtn8OD8PK/RvnNLppt92bIgLZlKjQKFbhyx/Afd
-WcUTIg/eHJx269af5rBzbHIReDh7lh+zH5w/kxLNfZUVOS93cTm4RWOccCr2Id4A
-8EmrVAiuxenpRRNRF+set+ft2+b7xO2gKLKy/eXKprPnGQUeioMvYnkKIjuTDOBz
-oNaHGf3sec8A4S87KSND4lXrTwIim+gjFRNCFe0HHGdT3Dimo/dzSDatUeU4l7ko
-XYAhm3v2i5WKM5kGjDG8gt8ryW/9eC3LeAZ3nPcqahLDVge4Mjvive6s5PtPRtG0
-uZnJ92jPpfeC0CP8r+r/qMtcl1ESuCujf8O+N8L5gY0gMWG1WrmorgaYfto/9Ytt
-m3xSpnlfHhdlI/QMNPn0OQHIlXdmfSPEyTZ1g/Pdpl0mjuhXocK/OQXqEPjp28cl
-GvjstnpMQDzvbVQkYZjTElnr2BpTRSSseyqcvDH+mZPPdFcF8xfsiDqkcLAwa171
-6mS2BVP9FwWajWwRxkKf9Ub+j7+9103fKXfZXyHMYNYbgQ1HdUKJXbjHM3i2Sc2k
-Z0w3UMl2YV34j1PSj8o3
-=itVP
------END PGP SIGNATURE-----
-
---OhaBSn2s9UgELOV4gQ6qaMUE6bv3SK8Rr--
+Thanks,
+Haggai
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
