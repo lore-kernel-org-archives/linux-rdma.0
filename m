@@ -1,90 +1,73 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/core, cma: Make __attribute_const__ declarations
- sparse-friendly
-Date: Fri, 30 Oct 2015 18:00:40 -0400
-Message-ID: <5633E888.7090303@redhat.com>
-References: <55BF9E80.3030306@sandisk.com> <55CE410C.7080002@redhat.com>
- <56328C9A.1030105@sandisk.com>
+From: ira.weiny@intel.com
+Subject: [PATCH 0/9] staging/rdma/hfi1: Fix bugs and performance issues
+Date: Fri, 30 Oct 2015 18:41:49 -0400
+Message-ID: <1446244918-12089-1-git-send-email-ira.weiny@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="DLA9DJp1KriOmggBOSpCWLnAVHKmGpEKi"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56328C9A.1030105-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org
+Cc: linux-rdma@vger.kernel.org, dledford@redhat.com, dennis.dalessandro@intel.com
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---DLA9DJp1KriOmggBOSpCWLnAVHKmGpEKi
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+From: Ira Weiny <ira.weiny@intel.com>
 
-On 10/29/2015 05:16 PM, Bart Van Assche wrote:
-> On 08/14/2015 12:27 PM, Doug Ledford wrote:
->> On 08/03/2015 01:01 PM, Bart Van Assche wrote:
->>> Move the __attribute_const__ declarations such that sparse understand=
-s
->>> that these apply to the function itself and not to the return type.
->>> This avoids that sparse reports error messages like the following:
->>>
->>> drivers/infiniband/core/verbs.c:73:12: error: symbol 'ib_event_msg'
->>> redeclared with different type (originally declared at
->>> include/rdma/ib_verbs.h:470) - different modifiers
->>>
->>> Fixes: 2b1b5b601230 ("IB/core, cma: Nice log-friendly string helpers"=
-)
->>> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
->>> Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>
->> Thanks, applied.
->=20
-> (replying to an e-mail of two months ago)
->=20
-> Hi Doug,
->=20
-> On which branch has this patch been applied ? I couldn't find it in you=
-r
-> k.o/for-4.4 branch.
+The following are fixes to the hfi1 driver for stability, security, and
+performance.
 
-I can't find it myself.  Either I said I was taking it and then it got
-overlooked, or it got lost sometime during a rebase.  I've added it to
-the for-next stack.
+New series based off of the latest staging-next.  Large patches were split up
+and a new patch was added to remove offending macros.
 
+Ira Weiny (1):
+  staging/rdma/hfi1: Remove file pointer macros
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+Mike Marciniszyn (3):
+  staging/rdma/hfi1: move hfi1_migrate_qp
+  staging/rdma/hfi1: Use parallel workqueue for SDMA engines
+  staging/rdma/hfi: pre-compute sc and sde for RC/UC QPs
 
+Mitko Haralanov (5):
+  staging/rdma/hfi1: Clean up macro indentation
+  staging/rdma/hfi1: Remove unnecessary include files
+  staging/rdma/hfi1: Move macros to a common header
+  staging/rdma/hfi1: Add function stubs for TID caching
+  staging/rdma/hfi1: Implement Expected Receive TID caching
 
+ drivers/staging/rdma/hfi1/Kconfig        |    1 +
+ drivers/staging/rdma/hfi1/Makefile       |    2 +-
+ drivers/staging/rdma/hfi1/chip.c         |    1 +
+ drivers/staging/rdma/hfi1/common.h       |   15 +-
+ drivers/staging/rdma/hfi1/file_ops.c     |  598 +++------------
+ drivers/staging/rdma/hfi1/hfi.h          |   55 +-
+ drivers/staging/rdma/hfi1/init.c         |   18 +-
+ drivers/staging/rdma/hfi1/iowait.h       |    6 +-
+ drivers/staging/rdma/hfi1/qp.c           |   47 +-
+ drivers/staging/rdma/hfi1/qp.h           |   38 +-
+ drivers/staging/rdma/hfi1/ruc.c          |   30 +-
+ drivers/staging/rdma/hfi1/sdma.c         |    8 +-
+ drivers/staging/rdma/hfi1/sdma.h         |    8 +-
+ drivers/staging/rdma/hfi1/trace.h        |  132 ++--
+ drivers/staging/rdma/hfi1/ud.c           |    1 +
+ drivers/staging/rdma/hfi1/user_exp_rcv.c | 1174 ++++++++++++++++++++++++++++++
+ drivers/staging/rdma/hfi1/user_exp_rcv.h |   82 +++
+ drivers/staging/rdma/hfi1/user_pages.c   |  110 +--
+ drivers/staging/rdma/hfi1/user_sdma.c    |   47 +-
+ drivers/staging/rdma/hfi1/user_sdma.h    |   10 +-
+ drivers/staging/rdma/hfi1/verbs.c        |   34 +-
+ drivers/staging/rdma/hfi1/verbs.h        |    6 +-
+ include/uapi/rdma/hfi/hfi1_user.h        |   42 +-
+ 23 files changed, 1670 insertions(+), 795 deletions(-)
+ create mode 100644 drivers/staging/rdma/hfi1/user_exp_rcv.c
+ create mode 100644 drivers/staging/rdma/hfi1/user_exp_rcv.h
 
---DLA9DJp1KriOmggBOSpCWLnAVHKmGpEKi
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJWM+iIAAoJELgmozMOVy/d+QgP/jnSOBnQXxud/I97JKyjW3Ng
-6BTDCs/WdTHNLFclgnz01ShQrVPoe+xfnSLApTV6D13dp+kGWYD0MWZ3Qsvx9PA5
-ZUGFxNZW1FGu36p5OQ4nf5DH4EV6MPizyBFNHVt1mf4u1JQSgnyUCjxveMw6vI/v
-lPhTZTzjDFI73++0blke0N1hEJvaPetBV+AltRGeSZuPjvaKJNANSeVKyJDBldNE
-NG2Z8ZUe1YvH74AB8E5grYhAIOxS0v9PWQ1DQvq2Wiu965AsGbW23lrUeTasOpHj
-13N5JC138yRhUAP1PEdKFx3XaFu6nbsMRr/DoM5wdlMJcbyfDql3zdb/dhw6gcEH
-f6WjKFyNhIKw7vV4386blbAl8SoxB2w1Kql7WdfRym27Ba9Hm8wX/ZHYv1u6FiAu
-rps9QXrztf53NRkaiHDjch5MsPXsgSCYCDMSTyIxQil7zh0oP23sdZoNYoZ7gHfQ
-H8hXjl8bToUPs/cYzXV0qyTpEVHkdXMnh2sm1Ez3fwaC/gwycd5CqrlHF+IVAHBO
-OKQ5uiJa9qWQn9r9d0+THd0UAbRZpUEUaezZgRPxtG4mvQVX/cDrfFIOCMlIRsWX
-PEtF6oF5DLN2WpqCj3kVC4h9R+ZFhcsrTuVVPfx7v7qNcpiuf6ywYEmDxwh7X9Mk
-5QmnruIdmVb+BMDJIkMV
-=Igh8
------END PGP SIGNATURE-----
-
---DLA9DJp1KriOmggBOSpCWLnAVHKmGpEKi--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+1.8.2
