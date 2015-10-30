@@ -1,421 +1,244 @@
-From: ira.weiny@intel.com
-Subject: [PATCH 5/9] staging/rdma/hfi1: Add function stubs for TID caching
-Date: Fri, 30 Oct 2015 18:41:54 -0400
-Message-ID: <1446244918-12089-6-git-send-email-ira.weiny@intel.com>
+From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH 9/9] staging/rdma/hfi: pre-compute sc and sde for RC/UC QPs
+Date: Fri, 30 Oct 2015 18:41:58 -0400
+Message-ID: <1446244918-12089-10-git-send-email-ira.weiny@intel.com>
 References: <1446244918-12089-1-git-send-email-ira.weiny@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <1446244918-12089-1-git-send-email-ira.weiny@intel.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org
-Cc: linux-rdma@vger.kernel.org, Mitko Haralanov <mitko.haralanov@intel.com>, dledford@redhat.com, dennis.dalessandro@intel.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1446244918-12089-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mitko Haralanov <mitko.haralanov@intel.com>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Add mmu notify helper functions and TID caching function stubs in preparation
-for the TID caching implementation.
+Now that we have a multi-threaded work queue we precomputed and store the SC
+and SDE on RC and UC QPs for faster access.
 
-TID caching makes use of the MMU notifier to allow the driver to respond to the
-user freeing memory which is allocated to the HFI.
-
-This patch implements the basic MMU notifier functions to insert, find and
-remove buffer pages from memory based on the mmu_notifier being invoked.
-
-In addition it places stubs in place for the main entry points by follow on
-code.
-
-Follow up patches will complete the implementation of the interaction with user
-space and makes use of these functions.
-
-Signed-off-by: Mitko Haralanov <mitko.haralanov@intel.com>
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/Kconfig        |   1 +
- drivers/staging/rdma/hfi1/Makefile       |   2 +-
- drivers/staging/rdma/hfi1/user_exp_rcv.c | 314 +++++++++++++++++++++++++++++++
- drivers/staging/rdma/hfi1/user_exp_rcv.h |   8 +
- 4 files changed, 324 insertions(+), 1 deletion(-)
- create mode 100644 drivers/staging/rdma/hfi1/user_exp_rcv.c
+ drivers/staging/rdma/hfi1/qp.c    | 27 +++++++++++++++++++++------
+ drivers/staging/rdma/hfi1/qp.h    |  1 -
+ drivers/staging/rdma/hfi1/ruc.c   | 10 ++--------
+ drivers/staging/rdma/hfi1/ud.c    |  1 +
+ drivers/staging/rdma/hfi1/verbs.c | 14 +++-----------
+ drivers/staging/rdma/hfi1/verbs.h |  3 ++-
+ 6 files changed, 29 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/Kconfig b/drivers/staging/rdma/hfi1/Kconfig
-index fd25078ee923..bd0249bcf199 100644
---- a/drivers/staging/rdma/hfi1/Kconfig
-+++ b/drivers/staging/rdma/hfi1/Kconfig
-@@ -1,6 +1,7 @@
- config INFINIBAND_HFI1
- 	tristate "Intel OPA Gen1 support"
- 	depends on X86_64
-+	select MMU_NOTIFIER
- 	default m
- 	---help---
- 	This is a low-level driver for Intel OPA Gen1 adapter.
-diff --git a/drivers/staging/rdma/hfi1/Makefile b/drivers/staging/rdma/hfi1/Makefile
-index 2e5daa6cdcc2..00c47b788666 100644
---- a/drivers/staging/rdma/hfi1/Makefile
-+++ b/drivers/staging/rdma/hfi1/Makefile
-@@ -10,7 +10,7 @@ obj-$(CONFIG_INFINIBAND_HFI1) += hfi1.o
- hfi1-y := chip.o cq.o device.o diag.o dma.o driver.o eprom.o file_ops.o firmware.o \
- 	init.o intr.o keys.o mad.o mmap.o mr.o pcie.o pio.o pio_copy.o \
- 	qp.o qsfp.o rc.o ruc.o sdma.o srq.o sysfs.o trace.o twsi.o \
--	uc.o ud.o user_pages.o user_sdma.o verbs_mcast.o verbs.o
-+	uc.o ud.o user_exp_rcv.o user_pages.o user_sdma.o verbs_mcast.o verbs.o
- hfi1-$(CONFIG_DEBUG_FS) += debugfs.o
+diff --git a/drivers/staging/rdma/hfi1/qp.c b/drivers/staging/rdma/hfi1/qp.c
+index 6e6c9a8f6b6f..87aa49227bf6 100644
+--- a/drivers/staging/rdma/hfi1/qp.c
++++ b/drivers/staging/rdma/hfi1/qp.c
+@@ -617,7 +617,7 @@ int hfi1_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 	int mig = 0;
+ 	int ret;
+ 	u32 pmtu = 0; /* for gcc warning only */
+-	struct hfi1_devdata *dd;
++	struct hfi1_devdata *dd = dd_from_dev(dev);
  
- CFLAGS_trace.o = -I$(src)
-diff --git a/drivers/staging/rdma/hfi1/user_exp_rcv.c b/drivers/staging/rdma/hfi1/user_exp_rcv.c
-new file mode 100644
-index 000000000000..d8066c646f0c
---- /dev/null
-+++ b/drivers/staging/rdma/hfi1/user_exp_rcv.c
-@@ -0,0 +1,314 @@
-+/*
-+ *
-+ * This file is provided under a dual BSD/GPLv2 license.  When using or
-+ * redistributing this file, you may do so under either license.
-+ *
-+ * GPL LICENSE SUMMARY
-+ *
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * BSD LICENSE
-+ *
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ *  - Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *  - Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *  - Neither the name of Intel Corporation nor the names of its
-+ *    contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ */
-+#include <asm/page.h>
-+
-+#include "user_exp_rcv.h"
-+#include "trace.h"
-+
-+
-+struct mmu_rb_node {
-+	struct rb_node rbnode;
-+	unsigned long virt;
-+	unsigned long phys;
-+	unsigned long len;
-+	struct tid_group *grp;
-+	u32 rcventry;
-+	dma_addr_t dma_addr;
-+	bool freed;
-+	unsigned npages;
-+	struct page *pages[0];
-+};
-+
-+enum mmu_call_types {
-+	MMU_INVALIDATE_PAGE = 0,
-+	MMU_INVALIDATE_RANGE = 1
-+};
-+
-+static const char * const mmu_types[] = {
-+	"PAGE",
-+	"RANGE"
-+};
-+
-+static inline int mmu_addr_cmp(struct mmu_rb_node *, unsigned long,
-+			       unsigned long);
-+static struct mmu_rb_node *mmu_rb_search_by_addr(struct rb_root *,
-+						 unsigned long);
-+static inline struct mmu_rb_node *mmu_rb_search_by_entry(struct rb_root *,
-+							 u32);
-+static int mmu_rb_insert_by_addr(struct rb_root *, struct mmu_rb_node *);
-+static int mmu_rb_insert_by_entry(struct rb_root *, struct mmu_rb_node *);
-+static void mmu_notifier_mem_invalidate(struct mmu_notifier *,
-+					unsigned long, unsigned long,
-+					enum mmu_call_types);
-+static inline void mmu_notifier_page(struct mmu_notifier *, struct mm_struct *,
-+				     unsigned long);
-+static inline void mmu_notifier_range_start(struct mmu_notifier *,
-+					    struct mm_struct *,
-+					    unsigned long, unsigned long);
-+
-+
-+static struct mmu_notifier_ops mn_opts = {
-+	.invalidate_page = mmu_notifier_page,
-+	.invalidate_range_start = mmu_notifier_range_start,
-+};
-+
-+/*
-+ * Initialize context and file private data needed for Expected
-+ * receive caching. This needs to be done after the context has
-+ * been configured with the eager/expected RcvEntry counts.
-+ */
-+int hfi1_user_exp_rcv_init(struct file *fp)
-+{
-+	return -EINVAL;
-+}
-+
-+int hfi1_user_exp_rcv_free(struct hfi1_filedata *fd)
-+{
-+	return -EINVAL;
-+}
-+
-+/*
-+ * RcvArray entry allocation for Expected Receives is done by the
-+ * following algorithm:
-+ *
-+ * The context keeps 3 lists of groups of RcvArray entries:
-+ *   1. List of empty groups - tid_group_list
-+ *      This list is created during user context creation and
-+ *      contains elements which describe sets (of 8) of empty
-+ *      RcvArray entries.
-+ *   2. List of partially used groups - tid_used_list
-+ *      This list contains sets of RcvArray entries which are
-+ *      not completely used up. Another mapping request could
-+ *      use some of all of the remaining entries.
-+ *   3. List of full groups - tid_full_list
-+ *      This is the list where sets that are completely used
-+ *      up go.
-+ *
-+ * An attempt to optimize the usage of RcvArray entries is
-+ * made by finding all sets of physically contiguous pages in a
-+ * user's buffer.
-+ * These physically contiguous sets are further split into
-+ * sizes supported by the receive engine of the HFI. The
-+ * resulting sets of pages are stored in struct tid_pageset,
-+ * which describes the sets as:
-+ *    * .count - number of pages in this set
-+ *    * .idx - starting index into struct page ** array
-+ *                    of this set
-+ *
-+ * From this point on, the algorithm deals with the page sets
-+ * described above. The number of pagesets is divided by the
-+ * RcvArray group size to produce the number of full groups
-+ * needed.
-+ *
-+ * Groups from the 3 lists are manipulated using the following
-+ * rules:
-+ *   1. For each set of 8 pagesets, a complete group from
-+ *      tid_group_list is taken, programmed, and moved to
-+ *      the tid_full_list list.
-+ *   2. For all remaining pagesets:
-+ *      2.1 If the tid_used_list is empty and the tid_group_list
-+ *          is empty, stop processing pageset and return only
-+ *          what has been programmed up to this point.
-+ *      2.2 If the tid_used_list is empty and the tid_group_list
-+ *          is not empty, move a group from tid_group_list to
-+ *          tid_used_list.
-+ *      2.3 For each group is tid_used_group, program as much as
-+ *          can fit into the group. If the group becomes fully
-+ *          used, move it to tid_full_list.
-+ */
-+int hfi1_user_exp_rcv_setup(struct file *fp, struct hfi1_tid_info *tinfo)
-+{
-+	return -EINVAL;
-+}
-+
-+int hfi1_user_exp_rcv_clear(struct file *fp, struct hfi1_tid_info *tinfo)
-+{
-+	return -EINVAL;
-+}
-+
-+int hfi1_user_exp_rcv_invalid(struct file *fp, struct hfi1_tid_info *tinfo)
-+{
-+	return -EINVAL;
-+}
-+
-+static inline void mmu_notifier_page(struct mmu_notifier *mn,
-+				     struct mm_struct *mm, unsigned long addr)
-+{
-+	mmu_notifier_mem_invalidate(mn, addr, addr + PAGE_SIZE,
-+				    MMU_INVALIDATE_PAGE);
-+}
-+
-+static inline void mmu_notifier_range_start(struct mmu_notifier *mn,
-+					    struct mm_struct *mm,
-+					    unsigned long start,
-+					    unsigned long end)
-+{
-+	mmu_notifier_mem_invalidate(mn, start, end, MMU_INVALIDATE_RANGE);
-+}
-+
-+static void mmu_notifier_mem_invalidate(struct mmu_notifier *mn,
-+					unsigned long start, unsigned long end,
-+					enum mmu_call_types type)
-+{
-+	/* Stub for now */
-+	return;
-+}
-+
-+static inline int mmu_addr_cmp(struct mmu_rb_node *node, unsigned long addr,
-+			       unsigned long len)
-+{
-+	if ((addr + len) <= node->virt)
-+		return -1;
-+	else if (addr >= node->virt && addr < (node->virt + node->len))
-+		return 0;
-+	else
-+		return 1;
-+}
-+
-+static inline int mmu_entry_cmp(struct mmu_rb_node *node, u32 entry)
-+{
-+	if (entry < node->rcventry)
-+		return -1;
-+	else if (entry > node->rcventry)
-+		return 1;
-+	else
-+		return 0;
-+}
-+
-+static struct mmu_rb_node *mmu_rb_search_by_addr(struct rb_root *root,
-+						 unsigned long addr)
-+{
-+	struct rb_node *node = root->rb_node;
-+
-+	while (node) {
-+		struct mmu_rb_node *mnode =
-+			container_of(node, struct mmu_rb_node, rbnode);
-+		/*
-+		 * When searching, use at least one page length for size. The
-+		 * MMU notifier will not give us anything less than that. We
-+		 * also don't need anything more than a page because we are
-+		 * guaranteed to have non-overlapping buffers in the tree.
-+		 */
-+		int result = mmu_addr_cmp(mnode, addr, PAGE_SIZE);
-+
-+		if (result < 0)
-+			node = node->rb_left;
-+		else if (result > 0)
-+			node = node->rb_right;
-+		else
-+			return mnode;
-+	}
-+	return NULL;
-+}
-+
-+static inline struct mmu_rb_node *mmu_rb_search_by_entry(struct rb_root *root,
-+							 u32 index)
-+{
-+	struct mmu_rb_node *rbnode;
-+	struct rb_node *node;
-+
-+	if (root && !RB_EMPTY_ROOT(root))
-+		for (node = rb_first(root); node; node = rb_next(node)) {
-+			rbnode = rb_entry(node, struct mmu_rb_node, rbnode);
-+			if (rbnode->rcventry == index)
-+				return rbnode;
-+		}
-+	return NULL;
-+}
-+
-+static int mmu_rb_insert_by_entry(struct rb_root *root,
-+				  struct mmu_rb_node *node)
-+{
-+	struct rb_node **new = &(root->rb_node), *parent = NULL;
-+
-+	while (*new) {
-+		struct mmu_rb_node *this =
-+			container_of(*new, struct mmu_rb_node, rbnode);
-+		int result = mmu_entry_cmp(this, node->rcventry);
-+
-+		parent = *new;
-+		if (result < 0)
-+			new = &((*new)->rb_left);
-+		else if (result > 0)
-+			new = &((*new)->rb_right);
-+		else
-+			return 1;
-+	}
-+
-+	rb_link_node(&node->rbnode, parent, new);
-+	rb_insert_color(&node->rbnode, root);
-+	return 0;
-+}
-+
-+static int mmu_rb_insert_by_addr(struct rb_root *root, struct mmu_rb_node *node)
-+{
-+	struct rb_node **new = &(root->rb_node), *parent = NULL;
-+
-+	/* Figure out where to put new node */
-+	while (*new) {
-+		struct mmu_rb_node *this =
-+			container_of(*new, struct mmu_rb_node, rbnode);
-+		int result = mmu_addr_cmp(this, node->virt, node->len);
-+
-+		parent = *new;
-+		if (result < 0)
-+			new = &((*new)->rb_left);
-+		else if (result > 0)
-+			new = &((*new)->rb_right);
-+		else
-+			return 1;
-+	}
-+
-+	/* Add new node and rebalance tree. */
-+	rb_link_node(&node->rbnode, parent, new);
-+	rb_insert_color(&node->rbnode, root);
-+
-+	return 0;
-+}
-diff --git a/drivers/staging/rdma/hfi1/user_exp_rcv.h b/drivers/staging/rdma/hfi1/user_exp_rcv.h
-index 4f4876e1d353..28ef98a45a1e 100644
---- a/drivers/staging/rdma/hfi1/user_exp_rcv.h
-+++ b/drivers/staging/rdma/hfi1/user_exp_rcv.h
-@@ -50,6 +50,8 @@
-  *
-  */
+ 	spin_lock_irq(&qp->r_lock);
+ 	spin_lock(&qp->s_lock);
+@@ -631,23 +631,35 @@ int hfi1_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 		goto inval;
  
-+#include "hfi.h"
+ 	if (attr_mask & IB_QP_AV) {
++		u8 sc;
 +
- #define EXP_TID_TIDLEN_MASK   0x7FFULL
- #define EXP_TID_TIDLEN_SHIFT  0
- #define EXP_TID_TIDCTRL_MASK  0x3ULL
-@@ -71,4 +73,10 @@
- 		(tid) |= EXP_TID_SET(field, (value));			\
- 	} while (0)
+ 		if (attr->ah_attr.dlid >= HFI1_MULTICAST_LID_BASE)
+ 			goto inval;
+ 		if (hfi1_check_ah(qp->ibqp.device, &attr->ah_attr))
+ 			goto inval;
++		sc = ah_to_sc(ibqp->device, &attr->ah_attr);
++		if (!qp_to_sdma_engine(qp, sc) &&
++				dd->flags & HFI1_HAS_SEND_DMA)
++			goto inval;
+ 	}
  
-+int hfi1_user_exp_rcv_init(struct file *);
-+int hfi1_user_exp_rcv_free(struct hfi1_filedata *);
-+int hfi1_user_exp_rcv_setup(struct file *, struct hfi1_tid_info *);
-+int hfi1_user_exp_rcv_clear(struct file *, struct hfi1_tid_info *);
-+int hfi1_user_exp_rcv_invalid(struct file *, struct hfi1_tid_info *);
+ 	if (attr_mask & IB_QP_ALT_PATH) {
++		u8 sc;
 +
- #endif /* _HFI1_USER_EXP_RCV_H */
+ 		if (attr->alt_ah_attr.dlid >= HFI1_MULTICAST_LID_BASE)
+ 			goto inval;
+ 		if (hfi1_check_ah(qp->ibqp.device, &attr->alt_ah_attr))
+ 			goto inval;
+-		if (attr->alt_pkey_index >= hfi1_get_npkeys(dd_from_dev(dev)))
++		if (attr->alt_pkey_index >= hfi1_get_npkeys(dd))
++			goto inval;
++		sc = ah_to_sc(ibqp->device, &attr->alt_ah_attr);
++		if (!qp_to_sdma_engine(qp, sc) &&
++				dd->flags & HFI1_HAS_SEND_DMA)
+ 			goto inval;
+ 	}
+ 
+ 	if (attr_mask & IB_QP_PKEY_INDEX)
+-		if (attr->pkey_index >= hfi1_get_npkeys(dd_from_dev(dev)))
++		if (attr->pkey_index >= hfi1_get_npkeys(dd))
+ 			goto inval;
+ 
+ 	if (attr_mask & IB_QP_MIN_RNR_TIMER)
+@@ -792,6 +804,8 @@ int hfi1_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 		qp->remote_ah_attr = attr->ah_attr;
+ 		qp->s_srate = attr->ah_attr.static_rate;
+ 		qp->srate_mbps = ib_rate_to_mbps(qp->s_srate);
++		qp->s_sc = ah_to_sc(ibqp->device, &qp->remote_ah_attr);
++		qp->s_sde = qp_to_sdma_engine(qp, qp->s_sc);
+ 	}
+ 
+ 	if (attr_mask & IB_QP_ALT_PATH) {
+@@ -806,6 +820,8 @@ int hfi1_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 			qp->port_num = qp->alt_ah_attr.port_num;
+ 			qp->s_pkey_index = qp->s_alt_pkey_index;
+ 			qp->s_flags |= HFI1_S_AHG_CLEAR;
++			qp->s_sc = ah_to_sc(ibqp->device, &qp->remote_ah_attr);
++			qp->s_sde = qp_to_sdma_engine(qp, qp->s_sc);
+ 		}
+ 	}
+ 
+@@ -1528,9 +1544,6 @@ struct sdma_engine *qp_to_sdma_engine(struct hfi1_qp *qp, u8 sc5)
+ 	if (!(dd->flags & HFI1_HAS_SEND_DMA))
+ 		return NULL;
+ 	switch (qp->ibqp.qp_type) {
+-	case IB_QPT_UC:
+-	case IB_QPT_RC:
+-		break;
+ 	case IB_QPT_SMI:
+ 		return NULL;
+ 	default:
+@@ -1699,6 +1712,8 @@ void hfi1_migrate_qp(struct hfi1_qp *qp)
+ 	qp->port_num = qp->alt_ah_attr.port_num;
+ 	qp->s_pkey_index = qp->s_alt_pkey_index;
+ 	qp->s_flags |= HFI1_S_AHG_CLEAR;
++	qp->s_sc = ah_to_sc(qp->ibqp.device, &qp->remote_ah_attr);
++	qp->s_sde = qp_to_sdma_engine(qp, qp->s_sc);
+ 
+ 	ev.device = qp->ibqp.device;
+ 	ev.element.qp = &qp->ibqp;
+diff --git a/drivers/staging/rdma/hfi1/qp.h b/drivers/staging/rdma/hfi1/qp.h
+index ca70a0e662d0..5e1def523f61 100644
+--- a/drivers/staging/rdma/hfi1/qp.h
++++ b/drivers/staging/rdma/hfi1/qp.h
+@@ -128,7 +128,6 @@ static inline void clear_ahg(struct hfi1_qp *qp)
+ 	if (qp->s_sde && qp->s_ahgidx >= 0)
+ 		sdma_ahg_free(qp->s_sde, qp->s_ahgidx);
+ 	qp->s_ahgidx = -1;
+-	qp->s_sde = NULL;
+ }
+ 
+ /**
+diff --git a/drivers/staging/rdma/hfi1/ruc.c b/drivers/staging/rdma/hfi1/ruc.c
+index 947ea27332ff..7b11c61ac5d6 100644
+--- a/drivers/staging/rdma/hfi1/ruc.c
++++ b/drivers/staging/rdma/hfi1/ruc.c
+@@ -694,11 +694,8 @@ static inline void build_ahg(struct hfi1_qp *qp, u32 npsn)
+ 		clear_ahg(qp);
+ 	if (!(qp->s_flags & HFI1_S_AHG_VALID)) {
+ 		/* first middle that needs copy  */
+-		if (qp->s_ahgidx < 0) {
+-			if (!qp->s_sde)
+-				qp->s_sde = qp_to_sdma_engine(qp, qp->s_sc);
++		if (qp->s_ahgidx < 0)
+ 			qp->s_ahgidx = sdma_ahg_alloc(qp->s_sde);
+-		}
+ 		if (qp->s_ahgidx >= 0) {
+ 			qp->s_ahgpsn = npsn;
+ 			qp->s_hdr->tx_flags |= SDMA_TXREQ_F_AHG_COPY;
+@@ -741,7 +738,6 @@ void hfi1_make_ruc_header(struct hfi1_qp *qp, struct hfi1_other_headers *ohdr,
+ 	u16 lrh0;
+ 	u32 nwords;
+ 	u32 extra_bytes;
+-	u8 sc5;
+ 	u32 bth1;
+ 
+ 	/* Construct the header. */
+@@ -755,9 +751,7 @@ void hfi1_make_ruc_header(struct hfi1_qp *qp, struct hfi1_other_headers *ohdr,
+ 		lrh0 = HFI1_LRH_GRH;
+ 		middle = 0;
+ 	}
+-	sc5 = ibp->sl_to_sc[qp->remote_ah_attr.sl];
+-	lrh0 |= (sc5 & 0xf) << 12 | (qp->remote_ah_attr.sl & 0xf) << 4;
+-	qp->s_sc = sc5;
++	lrh0 |= (qp->s_sc & 0xf) << 12 | (qp->remote_ah_attr.sl & 0xf) << 4;
+ 	/*
+ 	 * reset s_hdr/AHG fields
+ 	 *
+diff --git a/drivers/staging/rdma/hfi1/ud.c b/drivers/staging/rdma/hfi1/ud.c
+index d40d1a1e10aa..d6b4ba8a811e 100644
+--- a/drivers/staging/rdma/hfi1/ud.c
++++ b/drivers/staging/rdma/hfi1/ud.c
+@@ -383,6 +383,7 @@ int hfi1_make_ud_req(struct hfi1_qp *qp)
+ 		lrh0 |= (sc5 & 0xf) << 12;
+ 		qp->s_sc = sc5;
+ 	}
++	qp->s_sde = qp_to_sdma_engine(qp, qp->s_sc);
+ 	qp->s_hdr->ibh.lrh[0] = cpu_to_be16(lrh0);
+ 	qp->s_hdr->ibh.lrh[1] = cpu_to_be16(ah_attr->dlid);  /* DEST LID */
+ 	qp->s_hdr->ibh.lrh[2] =
+diff --git a/drivers/staging/rdma/hfi1/verbs.c b/drivers/staging/rdma/hfi1/verbs.c
+index f43a8646af1b..2c7cf783f24d 100644
+--- a/drivers/staging/rdma/hfi1/verbs.c
++++ b/drivers/staging/rdma/hfi1/verbs.c
+@@ -999,7 +999,6 @@ int hfi1_verbs_send_dma(struct hfi1_qp *qp, struct ahg_ib_header *ahdr,
+ 	struct verbs_txreq *tx;
+ 	struct sdma_txreq *stx;
+ 	u64 pbc_flags = 0;
+-	struct sdma_engine *sde;
+ 	u8 sc5 = qp->s_sc;
+ 	int ret;
+ 
+@@ -1020,12 +1019,7 @@ int hfi1_verbs_send_dma(struct hfi1_qp *qp, struct ahg_ib_header *ahdr,
+ 	if (IS_ERR(tx))
+ 		goto bail_tx;
+ 
+-	if (!qp->s_hdr->sde) {
+-		tx->sde = sde = qp_to_sdma_engine(qp, sc5);
+-		if (!sde)
+-			goto bail_no_sde;
+-	} else
+-		tx->sde = sde = qp->s_hdr->sde;
++	tx->sde = qp->s_sde;
+ 
+ 	if (likely(pbc == 0)) {
+ 		u32 vl = sc_to_vlt(dd_from_ibdev(qp->ibqp.device), sc5);
+@@ -1040,17 +1034,15 @@ int hfi1_verbs_send_dma(struct hfi1_qp *qp, struct ahg_ib_header *ahdr,
+ 	if (qp->s_rdma_mr)
+ 		qp->s_rdma_mr = NULL;
+ 	tx->hdr_dwords = hdrwords + 2;
+-	ret = build_verbs_tx_desc(sde, ss, len, tx, ahdr, pbc);
++	ret = build_verbs_tx_desc(tx->sde, ss, len, tx, ahdr, pbc);
+ 	if (unlikely(ret))
+ 		goto bail_build;
+ 	trace_output_ibhdr(dd_from_ibdev(qp->ibqp.device), &ahdr->ibh);
+-	ret =  sdma_send_txreq(sde, &qp->s_iowait, &tx->txreq);
++	ret =  sdma_send_txreq(tx->sde, &qp->s_iowait, &tx->txreq);
+ 	if (unlikely(ret == -ECOMM))
+ 		goto bail_ecomm;
+ 	return ret;
+ 
+-bail_no_sde:
+-	hfi1_put_txreq(tx);
+ bail_ecomm:
+ 	/* The current one got "sent" */
+ 	return 0;
+diff --git a/drivers/staging/rdma/hfi1/verbs.h b/drivers/staging/rdma/hfi1/verbs.h
+index fb8ea5c892c6..62c6e38cca45 100644
+--- a/drivers/staging/rdma/hfi1/verbs.h
++++ b/drivers/staging/rdma/hfi1/verbs.h
+@@ -436,7 +436,8 @@ struct hfi1_qp {
+ 	struct hfi1_swqe *s_wq;  /* send work queue */
+ 	struct hfi1_mmap_info *ip;
+ 	struct ahg_ib_header *s_hdr;     /* next packet header to send */
+-	u8 s_sc;			/* SC[0..4] for next packet */
++	/* sc for UC/RC QPs - based on ah for UD */
++	u8 s_sc;
+ 	unsigned long timeout_jiffies;  /* computed from timeout */
+ 
+ 	enum ib_mtu path_mtu;
 -- 
 1.8.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
