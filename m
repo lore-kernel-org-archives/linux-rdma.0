@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v4 5/9] staging/rdma/hfi1: Add function stubs for TID caching
-Date: Fri, 30 Oct 2015 18:58:44 -0400
-Message-ID: <1446245928-12675-6-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH v4 4/9] staging/rdma/hfi1: Move macros to a common header
+Date: Fri, 30 Oct 2015 18:58:43 -0400
+Message-ID: <1446245928-12675-5-git-send-email-ira.weiny@intel.com>
 References: <1446245928-12675-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1446245928-12675-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,62 +12,57 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Add mmu notify helper functions and TID caching function stubs in preparation
-for the TID caching implementation.
-
-TID caching makes use of the MMU notifier to allow the driver to respond to the
-user freeing memory which is allocated to the HFI.
-
-This patch implements the basic MMU notifier functions to insert, find and
-remove buffer pages from memory based on the mmu_notifier being invoked.
-
-In addition it places stubs in place for the main entry points by follow on
-code.
-
-Follow up patches will complete the implementation of the interaction with user
-space and makes use of these functions.
+In preparation of implementing TID caching move EXP_TID macros to a common
+header user_exp_rcv.h
 
 Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/Kconfig        |   1 +
- drivers/staging/rdma/hfi1/Makefile       |   2 +-
- drivers/staging/rdma/hfi1/user_exp_rcv.c | 314 +++++++++++++++++++++++++++++++
- drivers/staging/rdma/hfi1/user_exp_rcv.h |   8 +
- 4 files changed, 324 insertions(+), 1 deletion(-)
- create mode 100644 drivers/staging/rdma/hfi1/user_exp_rcv.c
+ drivers/staging/rdma/hfi1/file_ops.c     | 13 +-----
+ drivers/staging/rdma/hfi1/user_exp_rcv.h | 74 ++++++++++++++++++++++++++++++++
+ drivers/staging/rdma/hfi1/user_sdma.h    | 10 +----
+ 3 files changed, 76 insertions(+), 21 deletions(-)
+ create mode 100644 drivers/staging/rdma/hfi1/user_exp_rcv.h
 
-diff --git a/drivers/staging/rdma/hfi1/Kconfig b/drivers/staging/rdma/hfi1/Kconfig
-index fd25078ee923..bd0249bcf199 100644
---- a/drivers/staging/rdma/hfi1/Kconfig
-+++ b/drivers/staging/rdma/hfi1/Kconfig
-@@ -1,6 +1,7 @@
- config INFINIBAND_HFI1
- 	tristate "Intel OPA Gen1 support"
- 	depends on X86_64
-+	select MMU_NOTIFIER
- 	default m
- 	---help---
- 	This is a low-level driver for Intel OPA Gen1 adapter.
-diff --git a/drivers/staging/rdma/hfi1/Makefile b/drivers/staging/rdma/hfi1/Makefile
-index 2e5daa6cdcc2..00c47b788666 100644
---- a/drivers/staging/rdma/hfi1/Makefile
-+++ b/drivers/staging/rdma/hfi1/Makefile
-@@ -10,7 +10,7 @@ obj-$(CONFIG_INFINIBAND_HFI1) += hfi1.o
- hfi1-y := chip.o cq.o device.o diag.o dma.o driver.o eprom.o file_ops.o firmware.o \
- 	init.o intr.o keys.o mad.o mmap.o mr.o pcie.o pio.o pio_copy.o \
- 	qp.o qsfp.o rc.o ruc.o sdma.o srq.o sysfs.o trace.o twsi.o \
--	uc.o ud.o user_pages.o user_sdma.o verbs_mcast.o verbs.o
-+	uc.o ud.o user_exp_rcv.o user_pages.o user_sdma.o verbs_mcast.o verbs.o
- hfi1-$(CONFIG_DEBUG_FS) += debugfs.o
+diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
+index b8aeef0e0d39..3b15eb4d5bf9 100644
+--- a/drivers/staging/rdma/hfi1/file_ops.c
++++ b/drivers/staging/rdma/hfi1/file_ops.c
+@@ -58,6 +58,7 @@
+ #include "common.h"
+ #include "trace.h"
+ #include "user_sdma.h"
++#include "user_exp_rcv.h"
+ #include "eprom.h"
  
- CFLAGS_trace.o = -I$(src)
-diff --git a/drivers/staging/rdma/hfi1/user_exp_rcv.c b/drivers/staging/rdma/hfi1/user_exp_rcv.c
+ #undef pr_fmt
+@@ -160,18 +161,6 @@ enum mmap_types {
+ 	HFI1_MMAP_TOKEN_SET(SUBCTXT, subctxt) | \
+ 	HFI1_MMAP_TOKEN_SET(OFFSET, (offset_in_page(addr))))
+ 
+-#define EXP_TID_SET(field, value)			\
+-	(((value) & EXP_TID_TID##field##_MASK) <<	\
+-	 EXP_TID_TID##field##_SHIFT)
+-#define EXP_TID_CLEAR(tid, field) {					\
+-		(tid) &= ~(EXP_TID_TID##field##_MASK <<			\
+-			   EXP_TID_TID##field##_SHIFT);			\
+-			}
+-#define EXP_TID_RESET(tid, field, value) do {				\
+-		EXP_TID_CLEAR(tid, field);				\
+-		(tid) |= EXP_TID_SET(field, value);			\
+-	} while (0)
+-
+ #define dbg(fmt, ...)				\
+ 	pr_info(fmt, ##__VA_ARGS__)
+ 
+diff --git a/drivers/staging/rdma/hfi1/user_exp_rcv.h b/drivers/staging/rdma/hfi1/user_exp_rcv.h
 new file mode 100644
-index 000000000000..d8066c646f0c
+index 000000000000..4f4876e1d353
 --- /dev/null
-+++ b/drivers/staging/rdma/hfi1/user_exp_rcv.c
-@@ -0,0 +1,314 @@
++++ b/drivers/staging/rdma/hfi1/user_exp_rcv.h
+@@ -0,0 +1,74 @@
++#ifndef _HFI1_USER_EXP_RCV_H
++#define _HFI1_USER_EXP_RCV_H
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -117,295 +112,50 @@ index 000000000000..d8066c646f0c
 + * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + */
-+#include <asm/page.h>
 +
++#define EXP_TID_TIDLEN_MASK   0x7FFULL
++#define EXP_TID_TIDLEN_SHIFT  0
++#define EXP_TID_TIDCTRL_MASK  0x3ULL
++#define EXP_TID_TIDCTRL_SHIFT 20
++#define EXP_TID_TIDIDX_MASK   0x3FFULL
++#define EXP_TID_TIDIDX_SHIFT  22
++#define EXP_TID_GET(tid, field)	\
++	(((tid) >> EXP_TID_TID##field##_SHIFT) & EXP_TID_TID##field##_MASK)
++
++#define EXP_TID_SET(field, value)			\
++	(((value) & EXP_TID_TID##field##_MASK) <<	\
++	 EXP_TID_TID##field##_SHIFT)
++#define EXP_TID_CLEAR(tid, field) ({					\
++		(tid) &= ~(EXP_TID_TID##field##_MASK <<			\
++			   EXP_TID_TID##field##_SHIFT);			\
++		})
++#define EXP_TID_RESET(tid, field, value) do {				\
++		EXP_TID_CLEAR(tid, field);				\
++		(tid) |= EXP_TID_SET(field, (value));			\
++	} while (0)
++
++#endif /* _HFI1_USER_EXP_RCV_H */
+diff --git a/drivers/staging/rdma/hfi1/user_sdma.h b/drivers/staging/rdma/hfi1/user_sdma.h
+index fa4422553e23..0046ffa774fe 100644
+--- a/drivers/staging/rdma/hfi1/user_sdma.h
++++ b/drivers/staging/rdma/hfi1/user_sdma.h
+@@ -52,15 +52,7 @@
+ 
+ #include "common.h"
+ #include "iowait.h"
+-
+-#define EXP_TID_TIDLEN_MASK   0x7FFULL
+-#define EXP_TID_TIDLEN_SHIFT  0
+-#define EXP_TID_TIDCTRL_MASK  0x3ULL
+-#define EXP_TID_TIDCTRL_SHIFT 20
+-#define EXP_TID_TIDIDX_MASK   0x7FFULL
+-#define EXP_TID_TIDIDX_SHIFT  22
+-#define EXP_TID_GET(tid, field)	\
+-	(((tid) >> EXP_TID_TID##field##_SHIFT) & EXP_TID_TID##field##_MASK)
 +#include "user_exp_rcv.h"
-+#include "trace.h"
-+
-+
-+struct mmu_rb_node {
-+	struct rb_node rbnode;
-+	unsigned long virt;
-+	unsigned long phys;
-+	unsigned long len;
-+	struct tid_group *grp;
-+	u32 rcventry;
-+	dma_addr_t dma_addr;
-+	bool freed;
-+	unsigned npages;
-+	struct page *pages[0];
-+};
-+
-+enum mmu_call_types {
-+	MMU_INVALIDATE_PAGE = 0,
-+	MMU_INVALIDATE_RANGE = 1
-+};
-+
-+static const char * const mmu_types[] = {
-+	"PAGE",
-+	"RANGE"
-+};
-+
-+static inline int mmu_addr_cmp(struct mmu_rb_node *, unsigned long,
-+			       unsigned long);
-+static struct mmu_rb_node *mmu_rb_search_by_addr(struct rb_root *,
-+						 unsigned long);
-+static inline struct mmu_rb_node *mmu_rb_search_by_entry(struct rb_root *,
-+							 u32);
-+static int mmu_rb_insert_by_addr(struct rb_root *, struct mmu_rb_node *);
-+static int mmu_rb_insert_by_entry(struct rb_root *, struct mmu_rb_node *);
-+static void mmu_notifier_mem_invalidate(struct mmu_notifier *,
-+					unsigned long, unsigned long,
-+					enum mmu_call_types);
-+static inline void mmu_notifier_page(struct mmu_notifier *, struct mm_struct *,
-+				     unsigned long);
-+static inline void mmu_notifier_range_start(struct mmu_notifier *,
-+					    struct mm_struct *,
-+					    unsigned long, unsigned long);
-+
-+
-+static struct mmu_notifier_ops mn_opts = {
-+	.invalidate_page = mmu_notifier_page,
-+	.invalidate_range_start = mmu_notifier_range_start,
-+};
-+
-+/*
-+ * Initialize context and file private data needed for Expected
-+ * receive caching. This needs to be done after the context has
-+ * been configured with the eager/expected RcvEntry counts.
-+ */
-+int hfi1_user_exp_rcv_init(struct file *fp)
-+{
-+	return -EINVAL;
-+}
-+
-+int hfi1_user_exp_rcv_free(struct hfi1_filedata *fd)
-+{
-+	return -EINVAL;
-+}
-+
-+/*
-+ * RcvArray entry allocation for Expected Receives is done by the
-+ * following algorithm:
-+ *
-+ * The context keeps 3 lists of groups of RcvArray entries:
-+ *   1. List of empty groups - tid_group_list
-+ *      This list is created during user context creation and
-+ *      contains elements which describe sets (of 8) of empty
-+ *      RcvArray entries.
-+ *   2. List of partially used groups - tid_used_list
-+ *      This list contains sets of RcvArray entries which are
-+ *      not completely used up. Another mapping request could
-+ *      use some of all of the remaining entries.
-+ *   3. List of full groups - tid_full_list
-+ *      This is the list where sets that are completely used
-+ *      up go.
-+ *
-+ * An attempt to optimize the usage of RcvArray entries is
-+ * made by finding all sets of physically contiguous pages in a
-+ * user's buffer.
-+ * These physically contiguous sets are further split into
-+ * sizes supported by the receive engine of the HFI. The
-+ * resulting sets of pages are stored in struct tid_pageset,
-+ * which describes the sets as:
-+ *    * .count - number of pages in this set
-+ *    * .idx - starting index into struct page ** array
-+ *                    of this set
-+ *
-+ * From this point on, the algorithm deals with the page sets
-+ * described above. The number of pagesets is divided by the
-+ * RcvArray group size to produce the number of full groups
-+ * needed.
-+ *
-+ * Groups from the 3 lists are manipulated using the following
-+ * rules:
-+ *   1. For each set of 8 pagesets, a complete group from
-+ *      tid_group_list is taken, programmed, and moved to
-+ *      the tid_full_list list.
-+ *   2. For all remaining pagesets:
-+ *      2.1 If the tid_used_list is empty and the tid_group_list
-+ *          is empty, stop processing pageset and return only
-+ *          what has been programmed up to this point.
-+ *      2.2 If the tid_used_list is empty and the tid_group_list
-+ *          is not empty, move a group from tid_group_list to
-+ *          tid_used_list.
-+ *      2.3 For each group is tid_used_group, program as much as
-+ *          can fit into the group. If the group becomes fully
-+ *          used, move it to tid_full_list.
-+ */
-+int hfi1_user_exp_rcv_setup(struct file *fp, struct hfi1_tid_info *tinfo)
-+{
-+	return -EINVAL;
-+}
-+
-+int hfi1_user_exp_rcv_clear(struct file *fp, struct hfi1_tid_info *tinfo)
-+{
-+	return -EINVAL;
-+}
-+
-+int hfi1_user_exp_rcv_invalid(struct file *fp, struct hfi1_tid_info *tinfo)
-+{
-+	return -EINVAL;
-+}
-+
-+static inline void mmu_notifier_page(struct mmu_notifier *mn,
-+				     struct mm_struct *mm, unsigned long addr)
-+{
-+	mmu_notifier_mem_invalidate(mn, addr, addr + PAGE_SIZE,
-+				    MMU_INVALIDATE_PAGE);
-+}
-+
-+static inline void mmu_notifier_range_start(struct mmu_notifier *mn,
-+					    struct mm_struct *mm,
-+					    unsigned long start,
-+					    unsigned long end)
-+{
-+	mmu_notifier_mem_invalidate(mn, start, end, MMU_INVALIDATE_RANGE);
-+}
-+
-+static void mmu_notifier_mem_invalidate(struct mmu_notifier *mn,
-+					unsigned long start, unsigned long end,
-+					enum mmu_call_types type)
-+{
-+	/* Stub for now */
-+	return;
-+}
-+
-+static inline int mmu_addr_cmp(struct mmu_rb_node *node, unsigned long addr,
-+			       unsigned long len)
-+{
-+	if ((addr + len) <= node->virt)
-+		return -1;
-+	else if (addr >= node->virt && addr < (node->virt + node->len))
-+		return 0;
-+	else
-+		return 1;
-+}
-+
-+static inline int mmu_entry_cmp(struct mmu_rb_node *node, u32 entry)
-+{
-+	if (entry < node->rcventry)
-+		return -1;
-+	else if (entry > node->rcventry)
-+		return 1;
-+	else
-+		return 0;
-+}
-+
-+static struct mmu_rb_node *mmu_rb_search_by_addr(struct rb_root *root,
-+						 unsigned long addr)
-+{
-+	struct rb_node *node = root->rb_node;
-+
-+	while (node) {
-+		struct mmu_rb_node *mnode =
-+			container_of(node, struct mmu_rb_node, rbnode);
-+		/*
-+		 * When searching, use at least one page length for size. The
-+		 * MMU notifier will not give us anything less than that. We
-+		 * also don't need anything more than a page because we are
-+		 * guaranteed to have non-overlapping buffers in the tree.
-+		 */
-+		int result = mmu_addr_cmp(mnode, addr, PAGE_SIZE);
-+
-+		if (result < 0)
-+			node = node->rb_left;
-+		else if (result > 0)
-+			node = node->rb_right;
-+		else
-+			return mnode;
-+	}
-+	return NULL;
-+}
-+
-+static inline struct mmu_rb_node *mmu_rb_search_by_entry(struct rb_root *root,
-+							 u32 index)
-+{
-+	struct mmu_rb_node *rbnode;
-+	struct rb_node *node;
-+
-+	if (root && !RB_EMPTY_ROOT(root))
-+		for (node = rb_first(root); node; node = rb_next(node)) {
-+			rbnode = rb_entry(node, struct mmu_rb_node, rbnode);
-+			if (rbnode->rcventry == index)
-+				return rbnode;
-+		}
-+	return NULL;
-+}
-+
-+static int mmu_rb_insert_by_entry(struct rb_root *root,
-+				  struct mmu_rb_node *node)
-+{
-+	struct rb_node **new = &(root->rb_node), *parent = NULL;
-+
-+	while (*new) {
-+		struct mmu_rb_node *this =
-+			container_of(*new, struct mmu_rb_node, rbnode);
-+		int result = mmu_entry_cmp(this, node->rcventry);
-+
-+		parent = *new;
-+		if (result < 0)
-+			new = &((*new)->rb_left);
-+		else if (result > 0)
-+			new = &((*new)->rb_right);
-+		else
-+			return 1;
-+	}
-+
-+	rb_link_node(&node->rbnode, parent, new);
-+	rb_insert_color(&node->rbnode, root);
-+	return 0;
-+}
-+
-+static int mmu_rb_insert_by_addr(struct rb_root *root, struct mmu_rb_node *node)
-+{
-+	struct rb_node **new = &(root->rb_node), *parent = NULL;
-+
-+	/* Figure out where to put new node */
-+	while (*new) {
-+		struct mmu_rb_node *this =
-+			container_of(*new, struct mmu_rb_node, rbnode);
-+		int result = mmu_addr_cmp(this, node->virt, node->len);
-+
-+		parent = *new;
-+		if (result < 0)
-+			new = &((*new)->rb_left);
-+		else if (result > 0)
-+			new = &((*new)->rb_right);
-+		else
-+			return 1;
-+	}
-+
-+	/* Add new node and rebalance tree. */
-+	rb_link_node(&node->rbnode, parent, new);
-+	rb_insert_color(&node->rbnode, root);
-+
-+	return 0;
-+}
-diff --git a/drivers/staging/rdma/hfi1/user_exp_rcv.h b/drivers/staging/rdma/hfi1/user_exp_rcv.h
-index 4f4876e1d353..28ef98a45a1e 100644
---- a/drivers/staging/rdma/hfi1/user_exp_rcv.h
-+++ b/drivers/staging/rdma/hfi1/user_exp_rcv.h
-@@ -50,6 +50,8 @@
-  *
-  */
  
-+#include "hfi.h"
-+
- #define EXP_TID_TIDLEN_MASK   0x7FFULL
- #define EXP_TID_TIDLEN_SHIFT  0
- #define EXP_TID_TIDCTRL_MASK  0x3ULL
-@@ -71,4 +73,10 @@
- 		(tid) |= EXP_TID_SET(field, (value));			\
- 	} while (0)
+ extern uint extended_psn;
  
-+int hfi1_user_exp_rcv_init(struct file *);
-+int hfi1_user_exp_rcv_free(struct hfi1_filedata *);
-+int hfi1_user_exp_rcv_setup(struct file *, struct hfi1_tid_info *);
-+int hfi1_user_exp_rcv_clear(struct file *, struct hfi1_tid_info *);
-+int hfi1_user_exp_rcv_invalid(struct file *, struct hfi1_tid_info *);
-+
- #endif /* _HFI1_USER_EXP_RCV_H */
 -- 
 1.8.2
 
