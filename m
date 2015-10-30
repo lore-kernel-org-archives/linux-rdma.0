@@ -1,8 +1,8 @@
 From: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Subject: Klientskie bazi Tel/Viber/WhatsApp +79133913837 Email: mamontova260-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org Skype: prodawez389 ICQ: 6288862 FOTO ONLINE: http://media.xtwind.com/images/2015/10/19/2ba70554b12778c54b6a8ac82a7cc178.png
-Date: Fri, 30 Oct 2015 02:48:18 +0600
-Message-ID: <8B7177DD96426D0ED2D79E20B41E7D53@vger.kernel.org>
-Reply-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <nonen22pp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date: Fri, 30 Oct 2015 11:06:32 +0600
+Message-ID: <15EFE94308DCF3904C4900BE2AEC2E66@vger.kernel.org>
+Reply-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <gdrozdova37-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="utf-8";
@@ -12,7 +12,7 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Klientskie bazi Tel/Viber/WhatsApp +79133913837 Email: mamontova260-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org Skype: prodawez389 ICQ: 6288862 FOTO ONLINE: http://media.xtwind.com/images/2015/10/19/2ba70554b12778c54b6a8ac82a7cc178.png
+Klientskie bazi Tel/Viber/WhatsApp +79133913837 Email: nonen22pp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org Skype: prodawez389 ICQ: 6288862 FOTO ONLINE: http://media.xtwind.com/images/2015/10/19/2ba70554b12778c54b6a8ac82a7cc178.png
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
