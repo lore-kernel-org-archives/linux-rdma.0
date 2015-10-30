@@ -1,73 +1,107 @@
-From: ira.weiny@intel.com
-Subject: [PATCH 0/9] staging/rdma/hfi1: Fix bugs and performance issues
-Date: Fri, 30 Oct 2015 18:41:49 -0400
-Message-ID: <1446244918-12089-1-git-send-email-ira.weiny@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org
-Cc: linux-rdma@vger.kernel.org, dledford@redhat.com, dennis.dalessandro@intel.com
+From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH 2/9] staging/rdma/hfi1: Clean up macro indentation
+Date: Fri, 30 Oct 2015 18:41:51 -0400
+Message-ID: <1446244918-12089-3-git-send-email-ira.weiny@intel.com>
+References: <1446244918-12089-1-git-send-email-ira.weiny@intel.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1446244918-12089-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <ira.weiny@intel.com>
+From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The following are fixes to the hfi1 driver for stability, security, and
-performance.
+In preparation for implementing Expected TID caching we do some simple clean up
+of header file macros.
 
-New series based off of the latest staging-next.  Large patches were split up
-and a new patch was added to remove offending macros.
+Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/staging/rdma/hfi1/common.h | 15 ++++++++-------
+ include/uapi/rdma/hfi/hfi1_user.h  | 26 +++++++++++++-------------
+ 2 files changed, 21 insertions(+), 20 deletions(-)
 
-Ira Weiny (1):
-  staging/rdma/hfi1: Remove file pointer macros
-
-Mike Marciniszyn (3):
-  staging/rdma/hfi1: move hfi1_migrate_qp
-  staging/rdma/hfi1: Use parallel workqueue for SDMA engines
-  staging/rdma/hfi: pre-compute sc and sde for RC/UC QPs
-
-Mitko Haralanov (5):
-  staging/rdma/hfi1: Clean up macro indentation
-  staging/rdma/hfi1: Remove unnecessary include files
-  staging/rdma/hfi1: Move macros to a common header
-  staging/rdma/hfi1: Add function stubs for TID caching
-  staging/rdma/hfi1: Implement Expected Receive TID caching
-
- drivers/staging/rdma/hfi1/Kconfig        |    1 +
- drivers/staging/rdma/hfi1/Makefile       |    2 +-
- drivers/staging/rdma/hfi1/chip.c         |    1 +
- drivers/staging/rdma/hfi1/common.h       |   15 +-
- drivers/staging/rdma/hfi1/file_ops.c     |  598 +++------------
- drivers/staging/rdma/hfi1/hfi.h          |   55 +-
- drivers/staging/rdma/hfi1/init.c         |   18 +-
- drivers/staging/rdma/hfi1/iowait.h       |    6 +-
- drivers/staging/rdma/hfi1/qp.c           |   47 +-
- drivers/staging/rdma/hfi1/qp.h           |   38 +-
- drivers/staging/rdma/hfi1/ruc.c          |   30 +-
- drivers/staging/rdma/hfi1/sdma.c         |    8 +-
- drivers/staging/rdma/hfi1/sdma.h         |    8 +-
- drivers/staging/rdma/hfi1/trace.h        |  132 ++--
- drivers/staging/rdma/hfi1/ud.c           |    1 +
- drivers/staging/rdma/hfi1/user_exp_rcv.c | 1174 ++++++++++++++++++++++++++++++
- drivers/staging/rdma/hfi1/user_exp_rcv.h |   82 +++
- drivers/staging/rdma/hfi1/user_pages.c   |  110 +--
- drivers/staging/rdma/hfi1/user_sdma.c    |   47 +-
- drivers/staging/rdma/hfi1/user_sdma.h    |   10 +-
- drivers/staging/rdma/hfi1/verbs.c        |   34 +-
- drivers/staging/rdma/hfi1/verbs.h        |    6 +-
- include/uapi/rdma/hfi/hfi1_user.h        |   42 +-
- 23 files changed, 1670 insertions(+), 795 deletions(-)
- create mode 100644 drivers/staging/rdma/hfi1/user_exp_rcv.c
- create mode 100644 drivers/staging/rdma/hfi1/user_exp_rcv.h
-
+diff --git a/drivers/staging/rdma/hfi1/common.h b/drivers/staging/rdma/hfi1/common.h
+index 5e203239c5b0..5dd92720faae 100644
+--- a/drivers/staging/rdma/hfi1/common.h
++++ b/drivers/staging/rdma/hfi1/common.h
+@@ -132,13 +132,14 @@
+  * HFI1_CAP_RESERVED_MASK bits.
+  */
+ #define HFI1_CAP_WRITABLE_MASK   (HFI1_CAP_SDMA_AHG |			\
+-				 HFI1_CAP_HDRSUPP |			\
+-				 HFI1_CAP_MULTI_PKT_EGR |		\
+-				 HFI1_CAP_NODROP_RHQ_FULL |		\
+-				 HFI1_CAP_NODROP_EGR_FULL |		\
+-				 HFI1_CAP_ALLOW_PERM_JKEY |		\
+-				 HFI1_CAP_STATIC_RATE_CTRL |		\
+-				 HFI1_CAP_PRINT_UNIMPL)
++				  HFI1_CAP_HDRSUPP |			\
++				  HFI1_CAP_MULTI_PKT_EGR |		\
++				  HFI1_CAP_NODROP_RHQ_FULL |		\
++				  HFI1_CAP_NODROP_EGR_FULL |		\
++				  HFI1_CAP_ALLOW_PERM_JKEY |		\
++				  HFI1_CAP_STATIC_RATE_CTRL |		\
++				  HFI1_CAP_PRINT_UNIMPL |		\
++				  HFI1_CAP_TID_UNMAP)
+ /*
+  * A set of capability bits that are "global" and are not allowed to be
+  * set in the user bitmask.
+diff --git a/include/uapi/rdma/hfi/hfi1_user.h b/include/uapi/rdma/hfi/hfi1_user.h
+index 599562fe5d57..a2fc6cbfe414 100644
+--- a/include/uapi/rdma/hfi/hfi1_user.h
++++ b/include/uapi/rdma/hfi/hfi1_user.h
+@@ -127,13 +127,13 @@
+ #define HFI1_CMD_TID_UPDATE      4	/* update expected TID entries */
+ #define HFI1_CMD_TID_FREE        5	/* free expected TID entries */
+ #define HFI1_CMD_CREDIT_UPD      6	/* force an update of PIO credit */
+-#define HFI1_CMD_SDMA_STATUS_UPD 7       /* force update of SDMA status ring */
++#define HFI1_CMD_SDMA_STATUS_UPD 7      /* force update of SDMA status ring */
+ 
+ #define HFI1_CMD_RECV_CTRL       8	/* control receipt of packets */
+ #define HFI1_CMD_POLL_TYPE       9	/* set the kind of polling we want */
+ #define HFI1_CMD_ACK_EVENT       10	/* ack & clear user status bits */
+-#define HFI1_CMD_SET_PKEY        11      /* set context's pkey */
+-#define HFI1_CMD_CTXT_RESET      12      /* reset context's HW send context */
++#define HFI1_CMD_SET_PKEY        11     /* set context's pkey */
++#define HFI1_CMD_CTXT_RESET      12     /* reset context's HW send context */
+ /* separate EPROM commands from normal PSM commands */
+ #define HFI1_CMD_EP_INFO         64      /* read EPROM device ID */
+ #define HFI1_CMD_EP_ERASE_CHIP   65      /* erase whole EPROM */
+@@ -144,18 +144,18 @@
+ #define HFI1_CMD_EP_WRITE_P0     70      /* write EPROM partition 0 */
+ #define HFI1_CMD_EP_WRITE_P1     71      /* write EPROM partition 1 */
+ 
+-#define _HFI1_EVENT_FROZEN_BIT       0
+-#define _HFI1_EVENT_LINKDOWN_BIT     1
+-#define _HFI1_EVENT_LID_CHANGE_BIT   2
+-#define _HFI1_EVENT_LMC_CHANGE_BIT   3
+-#define _HFI1_EVENT_SL2VL_CHANGE_BIT 4
++#define _HFI1_EVENT_FROZEN_BIT         0
++#define _HFI1_EVENT_LINKDOWN_BIT       1
++#define _HFI1_EVENT_LID_CHANGE_BIT     2
++#define _HFI1_EVENT_LMC_CHANGE_BIT     3
++#define _HFI1_EVENT_SL2VL_CHANGE_BIT   4
+ #define _HFI1_MAX_EVENT_BIT _HFI1_EVENT_SL2VL_CHANGE_BIT
+ 
+-#define HFI1_EVENT_FROZEN                (1UL << _HFI1_EVENT_FROZEN_BIT)
+-#define HFI1_EVENT_LINKDOWN_BIT		(1UL << _HFI1_EVENT_LINKDOWN_BIT)
+-#define HFI1_EVENT_LID_CHANGE_BIT	(1UL << _HFI1_EVENT_LID_CHANGE_BIT)
+-#define HFI1_EVENT_LMC_CHANGE_BIT	(1UL << _HFI1_EVENT_LMC_CHANGE_BIT)
+-#define HFI1_EVENT_SL2VL_CHANGE_BIT	(1UL << _HFI1_EVENT_SL2VL_CHANGE_BIT)
++#define HFI1_EVENT_FROZEN            (1UL << _HFI1_EVENT_FROZEN_BIT)
++#define HFI1_EVENT_LINKDOWN          (1UL << _HFI1_EVENT_LINKDOWN_BIT)
++#define HFI1_EVENT_LID_CHANGE        (1UL << _HFI1_EVENT_LID_CHANGE_BIT)
++#define HFI1_EVENT_LMC_CHANGE        (1UL << _HFI1_EVENT_LMC_CHANGE_BIT)
++#define HFI1_EVENT_SL2VL_CHANGE      (1UL << _HFI1_EVENT_SL2VL_CHANGE_BIT)
+ 
+ /*
+  * These are the status bits readable (in ASCII form, 64bit value)
 -- 
 1.8.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
