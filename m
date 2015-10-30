@@ -1,35 +1,28 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v2 1/1] IB/sa: Put netlink request into the request list
- before sending
-Date: Fri, 30 Oct 2015 10:26:20 -0600
-Message-ID: <20151030162620.GA8667@obsidianresearch.com>
-References: <1446207825-17664-1-git-send-email-kaike.wan@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Alexey Khoroshilov <khoroshilov-ufN2psIa012HXe+LvDLADg@public.gmane.org>
+Subject: [BUG] IB/hfi1: might sleep under spinlock in hfi1_ioctl()
+Date: Sat, 31 Oct 2015 00:32:29 +0300
+Message-ID: <1446240749-5003-1-git-send-email-khoroshilov@ispras.ru>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1446207825-17664-1-git-send-email-kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Alexey Khoroshilov <khoroshilov-ufN2psIa012HXe+LvDLADg@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ldv-project-tpLiQldItUH5n4uC9ZG1Ww@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Oct 30, 2015 at 08:23:45AM -0400, kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
-> It was found by Saurabh Sengar that the netlink code tried to allocate
-> memory with GFP_KERNEL while holding a spinlock. While it is possible
-> to fix the issue by replacing GFP_KERNEL with GFP_ATOMIC, it is better
-> to get rid of the spinlock while sending the packet. However, in order
-> to protect against a race condition that a quick response may be received
-> before the request is put on the request list, we need to put the request
-> on the list first.
-> 
-> Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Hello,
 
-Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+hfi1_ioctl() contains many calls to might sleep functions with
+dd->hfi1_snoop.snoop_lock spinlock held (for example, access_ok,
+copy_from_user, kzalloc(GFP_KERNEL), etc.).
 
-Jason
+Should dd->hfi1_snoop.snoop_lock be acquired just before updating state?
+
+Found by Linux Driver Verification project (linuxtesting.org).
+
+--
+Alexey Khoroshilov
+Linux Verification Center, ISPRAS
+web: http://linuxtesting.org
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
