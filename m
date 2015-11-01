@@ -1,75 +1,43 @@
-From: Saurabh Sengar <saurabh.truth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/ipoib: optimized the function ipoib_mcast_alloc
-Date: Sun,  1 Nov 2015 11:53:49 +0530
-Message-ID: <1446359029-6261-1-git-send-email-saurabh.truth@gmail.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: shrink struct ib_send_wr V4
+Date: Sun, 1 Nov 2015 14:10:48 +0200
+Message-ID: <56360148.8060608@mellanox.com>
+References: <1442157215-22341-1-git-send-email-hch@lst.de>
+ <5631839B.30300@redhat.com> <56318B37.20207@redhat.com>
+ <20151029115114.GA18466@lst.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151029115114.GA18466-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Saurabh Sengar <saurabh.truth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-ipoib_mcast_alloc is called only in atomic context,
-hence removing the extra check.
+On 10/29/2015 1:51 PM, Christoph Hellwig wrote:
+> On Wed, Oct 28, 2015 at 10:57:59PM -0400, Doug Ledford wrote:
+>>> > >I had to do a minor hand merge to get this to apply, but it has been
+>>> > >pulled in for 4.4.
+>> >
+>> >This breaks all of the drivers in staging BTW.  That will need fixed up
+>> >before the pull request goes in during the merge window.
+> That latest branch on infradead.org should have fixed all the staging
+> drivers.  But Linus just clarified that we indeed do not have to care for
+> staging drivers, I asked him at kernel summit in front of the whole audience.
 
-Signed-off-by: Saurabh Sengar <saurabh.truth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
-Hi, 
-Even if in future, if there are some functions expected to call it in normal context(not atomic),
-we can pass the GFP_KERNEL or GFP_ATOMIC directly to function call instead of passing 0 and 1,
-which later again need to be compared in order to change it to GFP_KERNEL and GFP_ATOMIC.
-Please let me know if there are better ways to improve it.
+Can you and/or Greg clarify this a little further... when someone 
+modified an API called by others
+drivers,  they don't have to deal with staging drivers? that is, the 
+folks that care for this staging code
+need to handle that?
 
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index d750a86..15d35be 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -132,12 +132,11 @@ void ipoib_mcast_free(struct ipoib_mcast *mcast)
- 	kfree(mcast);
- }
- 
--static struct ipoib_mcast *ipoib_mcast_alloc(struct net_device *dev,
--					     int can_sleep)
-+static struct ipoib_mcast *ipoib_mcast_alloc(struct net_device *dev)
- {
- 	struct ipoib_mcast *mcast;
- 
--	mcast = kzalloc(sizeof *mcast, can_sleep ? GFP_KERNEL : GFP_ATOMIC);
-+	mcast = kzalloc(sizeof *mcast, GFP_ATOMIC);
- 	if (!mcast)
- 		return NULL;
- 
-@@ -573,7 +572,7 @@ void ipoib_mcast_join_task(struct work_struct *work)
- 	if (!priv->broadcast) {
- 		struct ipoib_mcast *broadcast;
- 
--		broadcast = ipoib_mcast_alloc(dev, 0);
-+		broadcast = ipoib_mcast_alloc(dev);
- 		if (!broadcast) {
- 			ipoib_warn(priv, "failed to allocate broadcast group\n");
- 			/*
-@@ -728,7 +727,7 @@ void ipoib_mcast_send(struct net_device *dev, u8 *daddr, struct sk_buff *skb)
- 			ipoib_dbg_mcast(priv, "setting up send only multicast group for %pI6\n",
- 					mgid);
- 
--			mcast = ipoib_mcast_alloc(dev, 0);
-+			mcast = ipoib_mcast_alloc(dev);
- 			if (!mcast) {
- 				ipoib_warn(priv, "unable to allocate memory "
- 					   "for multicast structure\n");
-@@ -886,7 +885,7 @@ void ipoib_mcast_restart_task(struct work_struct *work)
- 			ipoib_dbg_mcast(priv, "adding multicast entry for mgid %pI6\n",
- 					mgid.raw);
- 
--			nmcast = ipoib_mcast_alloc(dev, 0);
-+			nmcast = ipoib_mcast_alloc(dev);
- 			if (!nmcast) {
- 				ipoib_warn(priv, "unable to allocate memory for multicast structure\n");
- 				continue;
--- 
-1.9.1
+Or.
+
+> If you were not merging the latest branch you might also have to pick up
+> the mlx5 fix separately, Eli or Sagi might be able to help with that as
+> I'll be offline for a few days.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
