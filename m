@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/qib: Minor fixes to qib per SFF 8636
-Date: Mon, 02 Nov 2015 12:13:14 -0500
-Message-ID: <20151102171314.7574.32816.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH] IB/core: use RCU for uverbs id lookup
+Date: Mon, 02 Nov 2015 12:13:25 -0500
+Message-ID: <20151102171325.7601.96477.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -11,46 +11,82 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+The current implementation gets a spin_lock, and at any scale with
+qib and hfi1 post send, the lock contention grows exponentially
+with the number of QPs.
 
-Minor errors found via code inspection during future development.
-SFF 8636 defines bit position 2 to hold the status indication of
-QSFP memory paging. The mask used to test for the value was
-incorrect and is fixed in this patch. Additionally, the dump
-function had a mismatch between the field being printed out and
-the field used to source the data which was fixed.
+idr_find() is RCU compatibile, so read doesn't need the lock.
 
-Reviewed-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reported-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Change to use rcu_read_lock() and rcu_read_unlock() in
+__idr_get_uobj().
+
+kfree_rcu() is used to insure a grace period between the
+idr removal and actual free.
+
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_qsfp.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c |   12 +++++++-----
+ include/rdma/ib_verbs.h              |    1 +
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_qsfp.c b/drivers/infiniband/hw/qib/qib_qsfp.c
-index 5e27f76..4c7c3c8 100644
---- a/drivers/infiniband/hw/qib/qib_qsfp.c
-+++ b/drivers/infiniband/hw/qib/qib_qsfp.c
-@@ -292,7 +292,7 @@ int qib_refresh_qsfp_cache(struct qib_pportdata *ppd, struct qib_qsfp_cache *cp)
- 		qib_dev_porterr(ppd->dd, ppd->port,
- 				"QSFP byte0 is 0x%02X, S/B 0x0C/D\n", peek[0]);
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index be4cb9f..eb7f74f 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -62,9 +62,11 @@ static struct uverbs_lock_class rule_lock_class = { .name = "RULE-uobj" };
+  * The ib_uobject locking scheme is as follows:
+  *
+  * - ib_uverbs_idr_lock protects the uverbs idrs themselves, so it
+- *   needs to be held during all idr operations.  When an object is
++ *   needs to be held during all idr write operations.  When an object is
+  *   looked up, a reference must be taken on the object's kref before
+- *   dropping this lock.
++ *   dropping this lock.  For read operations, the rcu_read_lock()
++ *   and rcu_write_lock() but similarly the kref reference is grabbed
++ *   before the rcu_read_unlock().
+  *
+  * - Each object also has an rwsem.  This rwsem must be held for
+  *   reading while an operation that uses the object is performed.
+@@ -96,7 +98,7 @@ static void init_uobj(struct ib_uobject *uobj, u64 user_handle,
  
--	if ((peek[2] & 2) == 0) {
-+	if ((peek[2] & 4) == 0) {
- 		/*
- 		 * If cable is paged, rather than "flat memory", we need to
- 		 * set the page to zero, Even if it already appears to be zero.
-@@ -538,7 +538,7 @@ int qib_qsfp_dump(struct qib_pportdata *ppd, char *buf, int len)
- 	sofar += scnprintf(buf + sofar, len - sofar, "Date:%.*s\n",
- 			   QSFP_DATE_LEN, cd.date);
- 	sofar += scnprintf(buf + sofar, len - sofar, "Lot:%.*s\n",
--			   QSFP_LOT_LEN, cd.date);
-+			   QSFP_LOT_LEN, cd.lot);
+ static void release_uobj(struct kref *kref)
+ {
+-	kfree(container_of(kref, struct ib_uobject, ref));
++	kfree_rcu(container_of(kref, struct ib_uobject, ref), rcu);
+ }
  
- 	while (bidx < QSFP_DEFAULT_HDR_CNT) {
- 		int iidx;
+ static void put_uobj(struct ib_uobject *uobj)
+@@ -145,7 +147,7 @@ static struct ib_uobject *__idr_get_uobj(struct idr *idr, int id,
+ {
+ 	struct ib_uobject *uobj;
+ 
+-	spin_lock(&ib_uverbs_idr_lock);
++	rcu_read_lock();
+ 	uobj = idr_find(idr, id);
+ 	if (uobj) {
+ 		if (uobj->context == context)
+@@ -153,7 +155,7 @@ static struct ib_uobject *__idr_get_uobj(struct idr *idr, int id,
+ 		else
+ 			uobj = NULL;
+ 	}
+-	spin_unlock(&ib_uverbs_idr_lock);
++	rcu_read_unlock();
+ 
+ 	return uobj;
+ }
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 7845fae..f46092f 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1246,6 +1246,7 @@ struct ib_uobject {
+ 	int			id;		/* index into kernel idr */
+ 	struct kref		ref;
+ 	struct rw_semaphore	mutex;		/* protects .live */
++	struct rcu_head		rcu;		/* kfree_rcu() overhead */
+ 	int			live;
+ };
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
