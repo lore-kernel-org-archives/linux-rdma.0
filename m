@@ -1,77 +1,40 @@
 From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: [PATCH 1/4] RDMA/libocrdma:sync qp-state with hw state
-Date: Mon,  2 Nov 2015 01:37:22 -0500
-Message-ID: <1446446245-534-2-git-send-email-devesh.sharma@avagotech.com>
+Subject: [PATCH 4/4] RDMA/libocrdma: update libocrdma version string
+Date: Mon,  2 Nov 2015 01:37:25 -0500
+Message-ID: <1446446245-534-5-git-send-email-devesh.sharma@avagotech.com>
 References: <1446446245-534-1-git-send-email-devesh.sharma@avagotech.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1446446245-534-1-git-send-email-devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Padmanabh Ratnakar <padmanabh.ratnakar-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Cc: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Padmanabh Ratnakar <padmanabh.ratnakar-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+version string updated from 1.0.5 to 1.0.6
 
-This patch sync up the QP state with the underlying h/w
-QP state and reports the same to user application.
-
-Signed-off-by: Padmanabh Ratnakar <padmanabh.ratnakar-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 Signed-off-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 ---
- src/ocrdma_verbs.c | 33 +++++++++++++++++++--------------
- 1 file changed, 19 insertions(+), 14 deletions(-)
+ configure.in | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/src/ocrdma_verbs.c b/src/ocrdma_verbs.c
-index cf2ecd2..ab90b4f 100644
---- a/src/ocrdma_verbs.c
-+++ b/src/ocrdma_verbs.c
-@@ -651,20 +651,6 @@ mbx_err:
- 	return NULL;
- }
+diff --git a/configure.in b/configure.in
+index 140c07b..653bc43 100644
+--- a/configure.in
++++ b/configure.in
+@@ -1,11 +1,11 @@
+ dnl Process this file with autoconf to produce a configure script.
  
--/*
-- * ocrdma_query_qp
-- */
--int ocrdma_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
--		    int attr_mask, struct ibv_qp_init_attr *init_attr)
--{
--	struct ibv_query_qp cmd;
--	int status;
--
--	status =
--	    ibv_cmd_query_qp(qp, attr, attr_mask, init_attr, &cmd, sizeof(cmd));
--	return status;
--}
--
- enum ocrdma_qp_state get_ocrdma_qp_state(enum ibv_qp_state qps)
- {
- 	switch (qps) {
-@@ -896,6 +882,25 @@ int ocrdma_modify_qp(struct ibv_qp *ibqp, struct ibv_qp_attr *attr,
- 	return status;
- }
+ AC_PREREQ(2.57)
+-AC_INIT(libocrdma, 1.0.5, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
++AC_INIT(libocrdma, 1.0.6, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
+ AC_CONFIG_SRCDIR([src/ocrdma_main.h])
+ AC_CONFIG_AUX_DIR(config)
+ AM_CONFIG_HEADER(config.h)
+-AM_INIT_AUTOMAKE(libocrdma, 1.0.5)
++AM_INIT_AUTOMAKE(libocrdma, 1.0.6)
+ AM_PROG_LIBTOOL
  
-+/*
-+ * ocrdma_query_qp
-+ */
-+int ocrdma_query_qp(struct ibv_qp *ibqp, struct ibv_qp_attr *attr,
-+		    int attr_mask, struct ibv_qp_init_attr *init_attr)
-+{
-+	struct ibv_query_qp cmd;
-+	struct ocrdma_qp *qp = get_ocrdma_qp(ibqp);
-+	int status;
-+
-+	status = ibv_cmd_query_qp(ibqp, attr, attr_mask,
-+				  init_attr, &cmd, sizeof(cmd));
-+
-+	if (!status)
-+		ocrdma_qp_state_machine(qp, attr->qp_state);
-+
-+	return status;
-+}
-+
- static void ocrdma_srq_toggle_bit(struct ocrdma_srq *srq, int idx)
- {
- 	int i = idx / 32;
+ AC_ARG_ENABLE(libcheck, [ --disable-libcheck    do not test for the presence of ib libraries],
 -- 
 1.8.3.1
 
