@@ -1,73 +1,53 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC] RDMA verbs transport design notes
-Date: Mon, 2 Nov 2015 11:34:32 -0500
-Message-ID: <20151102163431.GA15228@phlsvsds.ph.intel.com>
-References: <20151029194129.GE26235@phlsvsds.ph.intel.com> <CAG9sBKOEs_u-YVTwS=Gk2sxRCqV+Wsdh1PyNy+baf3EBSCSbTA@mail.gmail.com>
+From: Lillian Timothy <ltimothy-w0VlB6qXta5bz9FWJaI6nQC/G2K4zDHf@public.gmane.org>
+Subject: Data Storage Users List
+Date: Mon, 2 Nov 2015 11:09:15 -0500
+Message-ID: <56378AAB.4090405@waveyoursales.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAG9sBKOEs_u-YVTwS=Gk2sxRCqV+Wsdh1PyNy+baf3EBSCSbTA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 02, 2015 at 03:46:52PM +0200, Moni Shoua wrote:
->> get_lid()
->>         Provides the LID
->>
->LID is a special case of L2 address (MAC is another special case)
->Maybe change this to het_l2()?
 
-I'm not particularly tied to the name, we can certainly change it to 
-something else. I assume that's a typo and should be "get_l2()"?
+Hi,
+=09
+Would you be interested in acquiring an email list of "Data Storage Use=
+rs List" with opt-in verified email addresses. From the USA?
 
->> qp_mtu()
->>         Using the SL determines the MTU (this varies per VL in OPA)
->>
->Again, this is too tied to the InfiniBand protocol.
->Also, It doesn't make sense to me that a driver won't know how to
->create a QP (this is done by the rvt) but will know how to answer
->about QP mtu. Does it?
+We also have CRM/Marketing Automation, Data Management, Data Storage, I=
+TSM, ITO Agreements/IT Intel, Networking, Servers users,  Security, Bus=
+iness Intelligence, Collaboration, Enterprise Application, ERP/HR/HCM/F=
+I, Hardware/OS/Systems Environment, Programming Tools,Languages, Teleco=
+mmunication, Virtualization,
 
-Perhaps that should have been written as "validate_mtu()", to take the user 
-supplied MTU and ensure that it is valid. Keep in mind that OPA can have an 
-MTU that varies across VLs. For those drivers which do not support this the 
-function basically becomes a no-op.
+We provide 30+ Data fields on each record which contains: Company Name =
+,Contact First Name, Last Name, Title, HQ Phone, Direct No, Email, Addr=
+ess1, Address2, City, State, Zip, Country, Industry, Revenue, Fiscal Ye=
+ar End, Employees, IT Budget, IT Employees, Website, Technology, Compan=
+y HQ Address1, Company HQ Address2, Company HQ City, Company HQ State, =
+Company HQ Zip, Company HQ Country and LinkedIn link
 
->> flush_qp()
->>         Flush out all pending operations for a QP that have not made it the
->> wire, and wait for that flush to finish.
->Again, needs generalization
+Please let me know your targeted criteria, so that I can help you out t=
+o driver your sales effort in the right direction.
 
-Sure, we can work on that.
+Best Regards,
+Lillian Timothy
 
->> do_send()
->>         Take a fully constructed packet and place on the wire
->>
->The hardest operation of all IMO.
->Should  be efficient but yet general
 
-We are on the same page here.
+We respect your privacy, if you do not wish to receive any further emai=
+ls from our end, please reply with a subject =E2=80=9CLeave Out=E2=80=9D=
+=2E
 
->> Next steps
->> ----------
->> We will continue posting code to GitHub [2] while we field feedback. Note
->> the repo has been moved from my previous announcement [1]. I have placed it
->> under my GitHub. Once there is more significant development and folks are
->> generally happy with the design we will begin posting to this mailing list
->> (linux-rdma).
->What's the minimal progress in the rvt and the drivers before you
->think it's ready for posting to the list?
 
-I don't think we have a hard set minimal state before we are ready to post 
-to the list. Let's see how things shape up over the next couple of weeks and 
-if we as a community like the direction of the code and think its ready to 
-post we can surely do so.
+---
+This email has been checked for viruses by Avast antivirus software.
+https://www.avast.com/antivirus
 
--Denny
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
