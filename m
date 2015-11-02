@@ -1,308 +1,153 @@
-From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v4 16/16] NFS: Enable client side NFSv4.1 backchannel to
- use other transports
-Date: Mon, 2 Nov 2015 16:29:03 -0500
-Message-ID: <5637D59F.2000309@Netapp.com>
-References: <20151024211707.4715.61650.stgit@manet.1015granger.net>
- <20151024212832.4715.39528.stgit@manet.1015granger.net>
- <5637CAFC.7070805@Netapp.com>
- <920F59C9-B37D-47AA-ADE8-F72B1958FE68@oracle.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: shrink struct ib_send_wr V4
+Date: Mon, 2 Nov 2015 18:20:40 -0500
+Message-ID: <5637EFC8.4010300@redhat.com>
+References: <1442157215-22341-1-git-send-email-hch@lst.de>
+ <5631839B.30300@redhat.com> <56318B37.20207@redhat.com>
+ <20151029115114.GA18466@lst.de> <56360148.8060608@mellanox.com>
+ <20151101180609.GC13943@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <920F59C9-B37D-47AA-ADE8-F72B1958FE68-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="6UDgK45q7ACJUkLQhrTmnjjrLaIC15gFC"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151101180609.GC13943-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/02/2015 04:16 PM, Chuck Lever wrote:
->=20
->> On Nov 2, 2015, at 3:43 PM, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgRhl2p70BpVqQ@public.gmane.org=
-m> wrote:
->>
->> Hi Chuck,
->>
->> Sorry for the delay in reviewing.
->>
->> On 10/24/2015 05:28 PM, Chuck Lever wrote:
->>> Forechannel transports get their own "bc_up" method to create an
->>> endpoint for the backchannel service.
->>>
->>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>> ---
->>> fs/nfs/callback.c                 |   40 +++++++-------------------=
------------
->>> include/linux/sunrpc/xprt.h       |    2 ++
->>> net/sunrpc/xprtrdma/backchannel.c |   21 +++++++++++++++++++
->>> net/sunrpc/xprtrdma/transport.c   |    1 +
->>> net/sunrpc/xprtrdma/xprt_rdma.h   |    1 +
->>> net/sunrpc/xprtsock.c             |   12 +++++++++++
->>> 6 files changed, 45 insertions(+), 32 deletions(-)
->>>
->>> diff --git a/fs/nfs/callback.c b/fs/nfs/callback.c
->>> index 75f7c0a..a7f2e6e 100644
->>> --- a/fs/nfs/callback.c
->>> +++ b/fs/nfs/callback.c
->>> @@ -99,17 +99,6 @@ nfs4_callback_up(struct svc_serv *serv)
->>> }
->>>
->>> #if defined(CONFIG_NFS_V4_1)
->>> -static int nfs41_callback_up_net(struct svc_serv *serv, struct net=
- *net)
->>> -{
->>> -	/*
->>> -	 * Create an svc_sock for the back channel service that shares th=
-e
->>> -	 * fore channel connection.
->>> -	 * Returns the input port (0) and sets the svc_serv bc_xprt on su=
-ccess
->>> -	 */
->>> -	return svc_create_xprt(serv, "tcp-bc", net, PF_INET, 0,
->>> -			      SVC_SOCK_ANONYMOUS);
->>> -}
->>> -
->>> /*
->>>  * The callback service for NFSv4.1 callbacks
->>>  */
->>> @@ -184,11 +173,6 @@ static inline void nfs_callback_bc_serv(u32 mi=
-norversion, struct rpc_xprt *xprt,
->>> 		xprt->bc_serv =3D serv;
->>> }
->>> #else
->>> -static int nfs41_callback_up_net(struct svc_serv *serv, struct net=
- *net)
->>> -{
->>> -	return 0;
->>> -}
->>> -
->>> static void nfs_minorversion_callback_svc_setup(struct svc_serv *se=
-rv,
->>> 		struct svc_rqst **rqstpp, int (**callback_svc)(void *vrqstp))
->>> {
->>> @@ -259,7 +243,8 @@ static void nfs_callback_down_net(u32 minorvers=
-ion, struct svc_serv *serv, struc
->>> 	svc_shutdown_net(serv, net);
->>> }
->>>
->>> -static int nfs_callback_up_net(int minorversion, struct svc_serv *=
-serv, struct net *net)
->>> +static int nfs_callback_up_net(int minorversion, struct svc_serv *=
-serv,
->>> +			       struct net *net, struct rpc_xprt *xprt)
->>> {
->>> 	struct nfs_net *nn =3D net_generic(net, nfs_net_id);
->>> 	int ret;
->>> @@ -275,20 +260,11 @@ static int nfs_callback_up_net(int minorversi=
-on, struct svc_serv *serv, struct n
->>> 		goto err_bind;
->>> 	}
->>>
->>> -	switch (minorversion) {
->>> -		case 0:
->>> -			ret =3D nfs4_callback_up_net(serv, net);
->>> -			break;
->>> -		case 1:
->>> -		case 2:
->>> -			ret =3D nfs41_callback_up_net(serv, net);
->>> -			break;
->>> -		default:
->>> -			printk(KERN_ERR "NFS: unknown callback version: %d\n",
->>> -					minorversion);
->>> -			ret =3D -EINVAL;
->>> -			break;
->>> -	}
->>> +	ret =3D -EPROTONOSUPPORT;
->>> +	if (minorversion =3D=3D 0)
->>> +		ret =3D nfs4_callback_up_net(serv, net);
->>> +	else if (xprt->ops->bc_up)
->>> +		ret =3D xprt->ops->bc_up(serv, net);
->>>
->>> 	if (ret < 0) {
->>> 		printk(KERN_ERR "NFS: callback service start failed\n");
->>> @@ -364,7 +340,7 @@ int nfs_callback_up(u32 minorversion, struct rp=
-c_xprt *xprt)
->>> 		goto err_create;
->>> 	}
->>>
->>> -	ret =3D nfs_callback_up_net(minorversion, serv, net);
->>> +	ret =3D nfs_callback_up_net(minorversion, serv, net, xprt);
->>> 	if (ret < 0)
->>> 		goto err_net;
->>>
->>> diff --git a/include/linux/sunrpc/xprt.h b/include/linux/sunrpc/xpr=
-t.h
->>> index 82c0839..9d22f43 100644
->>> --- a/include/linux/sunrpc/xprt.h
->>> +++ b/include/linux/sunrpc/xprt.h
->>> @@ -54,6 +54,7 @@ enum rpc_display_format_t {
->>> struct rpc_task;
->>> struct rpc_xprt;
->>> struct seq_file;
->>> +struct svc_serv;
->=20
-> Adding
->=20
->   struct net;
->=20
-> here seems to help.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--6UDgK45q7ACJUkLQhrTmnjjrLaIC15gFC
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Yep.  I'll fix up the patch and send to Trond in a few minutes!
+On 11/01/2015 01:06 PM, Greg Kroah-Hartman wrote:
+> On Sun, Nov 01, 2015 at 02:10:48PM +0200, Or Gerlitz wrote:
+>> On 10/29/2015 1:51 PM, Christoph Hellwig wrote:
+>>> On Wed, Oct 28, 2015 at 10:57:59PM -0400, Doug Ledford wrote:
+>>>>>>> I had to do a minor hand merge to get this to apply, but it has b=
+een
+>>>>>>> pulled in for 4.4.
+>>>>>
+>>>>> This breaks all of the drivers in staging BTW.  That will need fixe=
+d up
+>>>>> before the pull request goes in during the merge window.
+>>> That latest branch on infradead.org should have fixed all the staging=
 
-Anna
+>>> drivers.  But Linus just clarified that we indeed do not have to care=
+ for
+>>> staging drivers, I asked him at kernel summit in front of the whole a=
+udience.
+>>
+>> Can you and/or Greg clarify this a little further... when someone modi=
+fied
+>> an API called by others
+>> drivers,  they don't have to deal with staging drivers?
 >=20
+> Yes, that is correct.
 >=20
->>> /*
->>>  * This describes a complete RPC request
->>> @@ -138,6 +139,7 @@ struct rpc_xprt_ops {
->>> 	void		(*inject_disconnect)(struct rpc_xprt *xprt);
->>> 	int		(*bc_setup)(struct rpc_xprt *xprt,
->>> 				    unsigned int min_reqs);
->>> +	int		(*bc_up)(struct svc_serv *serv, struct net *net);
->>
->> Disabling CONFIG_SUNRPC_DEBUG gives me several:
->>
->>  CC [M]  fs/nfsd/nfs4acl.o
->>  CC [M]  fs/nfsd/nfs4callback.o
->> In file included from include/linux/sunrpc/clnt.h:19:0,
->>                 from fs/nfsd/nfs4callback.c:34:
->> include/linux/sunrpc/xprt.h:142:46: error: 'struct net' declared ins=
-ide parameter list [-Werror]
->>  int  (*bc_up)(struct svc_serv *serv, struct net *net);
->>                                              ^
->> include/linux/sunrpc/xprt.h:142:46: error: its scope is only this de=
-finition or declaration, which is probably not what you want [-Werror]
->>
->> I'm guessing an include file is missing somewhere?
->>
->> Anna
->>
->>
->>> 	void		(*bc_free_rqst)(struct rpc_rqst *rqst);
->>> 	void		(*bc_destroy)(struct rpc_xprt *xprt,
->>> 				      unsigned int max_reqs);
->>> diff --git a/net/sunrpc/xprtrdma/backchannel.c b/net/sunrpc/xprtrdm=
-a/backchannel.c
->>> index 0b3387f..2dcb44f 100644
->>> --- a/net/sunrpc/xprtrdma/backchannel.c
->>> +++ b/net/sunrpc/xprtrdma/backchannel.c
->>> @@ -7,6 +7,7 @@
->>> #include <linux/module.h>
->>> #include <linux/sunrpc/xprt.h>
->>> #include <linux/sunrpc/svc.h>
->>> +#include <linux/sunrpc/svc_xprt.h>
->>>
->>> #include "xprt_rdma.h"
->>>
->>> @@ -174,6 +175,26 @@ out_err:
->>> }
->>>
->>> /**
->>> + * xprt_rdma_bc_up - Create transport endpoint for backchannel ser=
-vice
->>> + * @serv: server endpoint
->>> + * @net: network namespace
->>> + *
->>> + * The "xprt" is an implied argument: it supplies the name of the
->>> + * backchannel transport class.
->>> + *
->>> + * Returns zero on success, negative errno on failure
->>> + */
->>> +int xprt_rdma_bc_up(struct svc_serv *serv, struct net *net)
->>> +{
->>> +	int ret;
->>> +
->>> +	ret =3D svc_create_xprt(serv, "rdma-bc", net, PF_INET, 0, 0);
->>> +	if (ret < 0)
->>> +		return ret;
->>> +	return 0;
->>> +}
->>> +
->>> +/**
->>>  * rpcrdma_bc_marshal_reply - Send backwards direction reply
->>>  * @rqst: buffer containing RPC reply data
->>>  *
->>> diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/=
-transport.c
->>> index 845278e..8c545f7 100644
->>> --- a/net/sunrpc/xprtrdma/transport.c
->>> +++ b/net/sunrpc/xprtrdma/transport.c
->>> @@ -708,6 +708,7 @@ static struct rpc_xprt_ops xprt_rdma_procs =3D =
-{
->>> 	.inject_disconnect	=3D xprt_rdma_inject_disconnect,
->>> #if defined(CONFIG_SUNRPC_BACKCHANNEL)
->>> 	.bc_setup		=3D xprt_rdma_bc_setup,
->>> +	.bc_up			=3D xprt_rdma_bc_up,
->>> 	.bc_free_rqst		=3D xprt_rdma_bc_free_rqst,
->>> 	.bc_destroy		=3D xprt_rdma_bc_destroy,
->>> #endif
->>> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/=
-xprt_rdma.h
->>> index eb87d96e8..f8dd17b 100644
->>> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
->>> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
->>> @@ -520,6 +520,7 @@ void xprt_rdma_cleanup(void);
->>>  */
->>> #if defined(CONFIG_SUNRPC_BACKCHANNEL)
->>> int xprt_rdma_bc_setup(struct rpc_xprt *, unsigned int);
->>> +int xprt_rdma_bc_up(struct svc_serv *, struct net *);
->>> int rpcrdma_bc_post_recv(struct rpcrdma_xprt *, unsigned int);
->>> void rpcrdma_bc_receive_call(struct rpcrdma_xprt *, struct rpcrdma_=
-rep *);
->>> int rpcrdma_bc_marshal_reply(struct rpc_rqst *);
->>> diff --git a/net/sunrpc/xprtsock.c b/net/sunrpc/xprtsock.c
->>> index 44a81e4..dc47067 100644
->>> --- a/net/sunrpc/xprtsock.c
->>> +++ b/net/sunrpc/xprtsock.c
->>> @@ -1306,6 +1306,17 @@ static inline int _xs_tcp_read_data(struct r=
-pc_xprt *xprt,
->>> 		xs_tcp_read_reply(xprt, desc) :
->>> 		xs_tcp_read_callback(xprt, desc);
->>> }
->>> +
->>> +static int xs_tcp_bc_up(struct svc_serv *serv, struct net *net)
->>> +{
->>> +	int ret;
->>> +
->>> +	ret =3D svc_create_xprt(serv, "tcp-bc", net, PF_INET, 0,
->>> +			      SVC_SOCK_ANONYMOUS);
->>> +	if (ret < 0)
->>> +		return ret;
->>> +	return 0;
->>> +}
->>> #else
->>> static inline int _xs_tcp_read_data(struct rpc_xprt *xprt,
->>> 					struct xdr_skb_reader *desc)
->>> @@ -2582,6 +2593,7 @@ static struct rpc_xprt_ops xs_tcp_ops =3D {
->>> 	.inject_disconnect	=3D xs_inject_disconnect,
->>> #ifdef CONFIG_SUNRPC_BACKCHANNEL
->>> 	.bc_setup		=3D xprt_setup_bc,
->>> +	.bc_up			=3D xs_tcp_bc_up,
->>> 	.bc_free_rqst		=3D xprt_free_bc_rqst,
->>> 	.bc_destroy		=3D xprt_destroy_bc,
->>> #endif
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-nfs=
-" in
->>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
-" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> that is, the folks that care for this staging code need to handle
+>> that?
 >=20
-> =E2=80=94
-> Chuck Lever
+> Yes, that is correct.
 >=20
->=20
->=20
+> It's up to the owners of the staging drivers to do the work, we do not
+> make it the responsibility of anyone else.  Now most of the time people=
 
+> are nice and fix up everything else, but it's not a requirement at all.=
+
+>=20
+> hope this helps,
+
+Not really.  That may be a satisfactory answer for most of the things in
+the staging area, but it is not a satisfactory for the items I moved
+into that area.  The things I moved there belong in one of two categories=
+:
+
+1) Aging, but working, drivers that will be removed in the future.
+Since we no longer have a deprecation mechanism, I was informed that the
+normal procedure now is to move the driver to staging for a while and
+then remove it permanently on a future schedule.  This provides an
+orderly removal process.  But, if you make it so that random people can
+break the driver with no responsibility for fixing up their breakage, in
+contrast to the entire rest of the kernel, then you eliminate that
+orderly removal process and turn it into a completely non-deterministic
+and chaotic removal process.  So, no, if that's how it will be handled,
+I will move the deprecated drivers back to the main rdma tree and time
+them out and perform the orderly removal myself.
+
+2) New drivers (one currently, one other one submitted but not yet
+pulled in) under active development but which need specific things fixed
+up.  These have people already working on them full time.  They were
+submitted to the staging tree with a specific TODO in order to get out.
+ If you then break that driver and force the driver author to fix it,
+you have in essence changed the TODO list.  That means you now have a
+moving goal post scenario.
+
+And this behavior is somewhat justified if you have a driver that is
+languishing in staging and being mostly ignored by the
+authors/maintainers of the driver.  If the maintainers don't care enough
+about it to fix it up, why should the core kernel developers keeping the
+kernel modern fix them up?
+
+But what about when the drivers *are* being actively maintained and
+worked on?  From the perspective of a maintainer trying to get their
+driver out of staging, this policy means that drivers that are already
+in the main tree get help from the core developer who *must* fix them up
+to work with their changes according to policy, while the same core
+developer is allowed to ignore any responsibility for fixing up any
+staging drivers.  At the same time, it is highly likely that since the
+core kernel drivers have reached a level of maturity that they don't
+really *need* a lot of help keeping up with changes nor require a lot of
+work.  The maintainer trying to get their driver out of staging however
+could probably use the help the most, and certainly likely doesn't need
+any extra work dumped on their back.
+
+So, no, for the drivers I have moved into the staging tree, I don't
+support this policy.  This policy is really just a means of not making
+core developers work on drivers that no one cares about.  The *means* of
+saving those core developers that work turns out to effectively be a
+punishment to any driver maintainer in the staging area who isn't
+allowing their driver to languish and go unmaintained.  Because the
+staging tree is not limited to just drivers deserving of this
+punishment, the policy itself is inappropriate IMO.  If that's going to
+be a problem, I have no issue moving the entire staging/rdma tree back
+into the drivers/infiniband area and fixing it up appropriately.
+
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--6UDgK45q7ACJUkLQhrTmnjjrLaIC15gFC
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJWN+/IAAoJELgmozMOVy/dhEEP/0AfY4T1p46uv+/8J0quih//
+UBPCk9Bn1VxooZKOkHJfcryisqYklzrndVwfwME6SrhsT8EssNFD6TjRIXQ4+746
+hYQy6OVXSCrHPpsY2kjGLcPQsxUXV+Y2vsTtnDH54WLmGr1bPSDmy762su2i0wmC
+SkQvL6hH2sGTlvLFON+293AlqPAUvpjd+/flcpnryMMyu+uKEs3saI4hv7PZpFKQ
+lqK3Hi/PXaxp7IDJqskRb8V/XRCD0iQ/Fhdats0HTjM+pUn3ybh9ISTW2W4I6PVz
+QlayoV5xU6cOZV+z1XktNMOqeYxBhTdxIUGZ1lBjJCRcuIxLuiXgO/xsDW4tUF1K
+mF7K3jWm55Jr2OS62+3VO2wDoZZ5WIlE54Hz//u65HEQmc92qpA6PWQOcsDZsgnH
+bbhS+jOHfWOq51IfDlMge+ELGpyyTkogIDi1BMjPfRLmxJU4AD+dW2gWmNO96kex
+dK/irHvOLfP5DUvy6hb1DBJOa9goAF5T3M+FJP5DV4VTdpGg/IUqqpBWNfriF2hD
+6CRIZEe+Qsy9IMY2P8DViBGnTNWslDtmFGQXNjrXJmSfyQYpDeofAFR24B7t7GH7
+wndF6upJd3/c2vRiYdtGAiKOWszQ1SQ8by3elExEE2A8nlmzsfRQVNYchkIM57WX
+Peks4PeuenNr0Rq7uu5a
+=hpQi
+-----END PGP SIGNATURE-----
+
+--6UDgK45q7ACJUkLQhrTmnjjrLaIC15gFC--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
