@@ -1,104 +1,46 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: shrink struct ib_send_wr V4
-Date: Mon, 2 Nov 2015 21:38:15 -0700
-Message-ID: <20151103043815.GA4877@obsidianresearch.com>
-References: <20151029115114.GA18466@lst.de>
- <56360148.8060608@mellanox.com>
- <20151101180609.GC13943@kroah.com>
- <5637EFC8.4010300@redhat.com>
- <20151102233726.GA18251@kroah.com>
- <5637F97C.5090205@redhat.com>
- <20151103001845.GA24206@obsidianresearch.com>
- <56380535.5040101@redhat.com>
- <20151103012821.GA24650@obsidianresearch.com>
- <563815F7.2090003@redhat.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v5 00/26] New fast registration API
+Date: Tue, 3 Nov 2015 09:09:57 +0200
+Message-ID: <CAJ3xEMjv-FG3xy1YC7xf5ziKTqOSv9cBn5z=t2EmUsh3t_kk5A@mail.gmail.com>
+References: <1444752709-15429-1-git-send-email-sagig@mellanox.com>
+	<56262676.7000403@dev.mellanox.co.il>
+	<563185AC.10804@redhat.com>
+	<CAJ3xEMjYd2WUzFxNNSvWCkedt0bczC3H2ySP0ACvEkaoUP2SGw@mail.gmail.com>
+	<56322A41.9050004@redhat.com>
+	<CAJ3xEMjDpELFd5rMgRwtL4JhB_uHca6oE28exKamXUm4rmkrtg@mail.gmail.com>
+	<20151102085651.1dafc855@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <563815F7.2090003-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20151102085651.1dafc855-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 02, 2015 at 09:03:35PM -0500, Doug Ledford wrote:
+On Sun, Nov 1, 2015 at 11:56 PM, Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org> wrote:
+> On Sun, 1 Nov 2015 17:00:22 +0200 Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-> No, one kernel consumer that never worked on iWARP before now works on a
-> different iWARP controller but doesn't work on the old iWARP controller.
->  Hardly the end of the world.
+>> Stephen, is the framework for linux-next merge tests OK with this tag?
+>> can you confirm that the-next bits of the rdma tree are covered fine?
 
-NFS is gone/going as well, and that used to work. No iWarp enabled ULP
-(now or in future) will work without at least FMRs..
+> linux-next fetches the "for-next" tag for that tree.
 
-I just disagree we should continue to hang on to unused hardware that
-isn't even capable of running the whole stack we are maintaining. That
-makes no sense to me. If it doesn't run our full stack then ditch it.
+Good!
 
-> > *WHY* spend an ounce of time fixing up code that *NO-ONE* will ever
-> > even run? Wasted effort. Just delete them now.
-> 
-> You don't just "delete them now" because it denies anyone advanced
-> warning of the change and denies them the chance to speak up in
-> opposition to the driver's removal.
+Doug, did you also manage to register this tag habit to the 0-day
+framework? we want all
+our subsystem patches to go through 0-day before they hit upstream,
+both rc fixes and next bits.
 
-We've already gone through a cycle, 'now' is a fine time to do it.
+Also, Doug, how do you suggest someone that wants to automatically
+track rc fixes branch? can
+you make another flying "for-rc" tag?
 
-You are talking like deletion is irreversible. It isn't. If someone
-comes forward with a need and a desire to test that it still works
-then reverting a delete shouldn't be that difficult.
+Alaa, lets set our internal build system to follow on this tag too and let Doug
+know if we fail so he can coach us further.
 
-On the other hand, the developer time wasted keeping it working while
-we wait is not recoverable.
-
-> distros proactively queried their customer's hardware usage.  But
-> without either a query activity or a push back cycle, your assertion
-> that "*NO-ONE* will ever even run?" is mere assumption not a statement
-> of fact.
-
-No, it is a statement based on my knowledge of the history of these
-cards and our user base, combined with the responses from the vendors
-who do have a better sense.
-
-Ammasso went out of buisness before the driver was even in mainline.
-Tom got it in mainline after the fact as a early way to work on
-generic iWarp support. There were few users (<<100) and similarly few
-cards. As far as I'm concerned all users got the 'obsolete, do not
-use' message 10 years ago.
-
-ipath only supports the HTX cards, which where a short run engineering
-experiment that were not market successful (10 years ago), few were
-made. Those cards are unsuable in modern hardware. The vendor
-announced they were no longer supported when the qib driver was made,
-as far as I'm concerned all users got the 'obsolete, do no use'
-message 5 years ago.
-
-ehca was part of IBM's high end systems. A >= 4.4 kernel isn't going
-to be qualified or tested on that hardware. Nobody would run
-production like that. I actually bet some are still running
-somewhere..
-
-Seriously, there are zero production users, it isn't even a question.
-
-If a hobby user appears, then they can restore the driver and fix it
-up, and explain why we should carry it when it doesn't run the full
-stack.
-
-> I suspect you are right and we *could* delete them now without a
-> problem.  But without that push back cycle or a query to find out for
-> sure, you're asking me to take it on faith instead of doing due
-> diligence, and I don't have any intention of being called out later for
-> failing to do due diligence.
-
-Nobody is going to call you out for removing a driver, especially when
-the *vendor* said it was OK.
-
-On the other hand, people have been sending unhappy messages with
-the current arrangement...
-
-kernel.org isn't a distro - we can flip flop ...
-
-Jason
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
