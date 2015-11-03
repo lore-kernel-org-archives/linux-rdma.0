@@ -1,140 +1,104 @@
-From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: shrink struct ib_send_wr V4
-Date: Mon, 2 Nov 2015 20:22:14 -0800
-Message-ID: <20151103042214.GB14023@kroah.com>
-References: <5631839B.30300@redhat.com>
- <56318B37.20207@redhat.com>
- <20151029115114.GA18466@lst.de>
+Date: Mon, 2 Nov 2015 21:38:15 -0700
+Message-ID: <20151103043815.GA4877@obsidianresearch.com>
+References: <20151029115114.GA18466@lst.de>
  <56360148.8060608@mellanox.com>
  <20151101180609.GC13943@kroah.com>
  <5637EFC8.4010300@redhat.com>
  <20151102233726.GA18251@kroah.com>
  <5637F97C.5090205@redhat.com>
- <20151103004922.GA22926@kroah.com>
- <5638267E.3020408@redhat.com>
+ <20151103001845.GA24206@obsidianresearch.com>
+ <56380535.5040101@redhat.com>
+ <20151103012821.GA24650@obsidianresearch.com>
+ <563815F7.2090003@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <5638267E.3020408-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <563815F7.2090003-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 02, 2015 at 10:14:06PM -0500, Doug Ledford wrote:
-> On 11/02/2015 07:49 PM, Greg Kroah-Hartman wrote:
-> > On Mon, Nov 02, 2015 at 07:02:04PM -0500, Doug Ledford wrote:
-> >>> so overall it still benifits being in the
-> >>> staging tree, so a few minor breakages every once in a while should be
-> >>> easy for you to fix up, _if_ they happen.
-> >>>
-> >>> Again, I don't know of any recent api change that has caused any
-> >>> problems in a long time, but the VFS developers really hate having to
-> >>> touch lustre code, and I don't blame them, so sometimes that codebase
-> >>> breaks.  That will not affect your drivers at all, so I wouldn't worry
-> >>> about this.
-> >>
-> >> Yes.  I get that.  And I understand that.  But because of Lustre, you
-> >> have made a global policy that effects all staging drivers without
-> >> legitimate cause, proudly broadcast that policy at a conference, even
-> >> answered a question from Christoph confirming that policy, and now in
-> >> this email thread where I object to that policy you say "It doesn't
-> >> really happen anyway, don't worry about it.'
-> > 
-> > No, it's not "because" of lustre, it's been that way since day one when
-> > we started the staging tree.  Christoph was just annoyed that someone
-> > was trying to tell him otherwise.  And he is right.
+On Mon, Nov 02, 2015 at 09:03:35PM -0500, Doug Ledford wrote:
+
+> No, one kernel consumer that never worked on iWARP before now works on a
+> different iWARP controller but doesn't work on the old iWARP controller.
+>  Hardly the end of the world.
+
+NFS is gone/going as well, and that used to work. No iWarp enabled ULP
+(now or in future) will work without at least FMRs..
+
+I just disagree we should continue to hang on to unused hardware that
+isn't even capable of running the whole stack we are maintaining. That
+makes no sense to me. If it doesn't run our full stack then ditch it.
+
+> > *WHY* spend an ounce of time fixing up code that *NO-ONE* will ever
+> > even run? Wasted effort. Just delete them now.
 > 
-> No, he's not.  As I've already pointed out, the policy is only
-> appropriate for neglected drivers.
+> You don't just "delete them now" because it denies anyone advanced
+> warning of the change and denies them the chance to speak up in
+> opposition to the driver's removal.
 
-No, it's appropriate for all of drivers/staging/ and was what I ensured
-the rest of the kernel community when I created it many years ago.
+We've already gone through a cycle, 'now' is a fine time to do it.
 
-> I don't care if the policy was applied to everything in staging,
-> whether neglected or not, from day one.  It was evidently bad from the
-> beginning.  I'm calling it out.  I've even provided justification for
-> calling it out.
+You are talking like deletion is irreversible. It isn't. If someone
+comes forward with a need and a desire to test that it still works
+then reverting a delete shouldn't be that difficult.
 
-And I disagree, sorry.  And as maintainer of this portion of the kernel,
-I don't want to go back on my word to the rest of the kernel community,
-that would be rude.
+On the other hand, the developer time wasted keeping it working while
+we wait is not recoverable.
 
-> So far, your only response has been "That's the way it's always been,
-> and that's the way it is", which does nothing to justify the status quo
-> but stands only to argue that it is the status quo and therefore should
-> remain such.  Inertia is a poor argument.
+> distros proactively queried their customer's hardware usage.  But
+> without either a query activity or a push back cycle, your assertion
+> that "*NO-ONE* will ever even run?" is mere assumption not a statement
+> of fact.
 
-My argument is, "No kernel developer should care about what is in
-drivers/staging/ as it is obviously code that is not in a mergable
-state, otherwise it would not be in this location."  Now yes, we have
-started to use it to delete drivers, but that's now not really a good
-idea (see my other email about that.)
+No, it is a statement based on my knowledge of the history of these
+cards and our user base, combined with the responses from the vendors
+who do have a better sense.
 
-If your code was in mergable state, then please take it out of staging
-now, but from what I have seen, that is not the case, so it needs to
-live here until it can get cleaned up properly.
+Ammasso went out of buisness before the driver was even in mainline.
+Tom got it in mainline after the fact as a early way to work on
+generic iWarp support. There were few users (<<100) and similarly few
+cards. As far as I'm concerned all users got the 'obsolete, do not
+use' message 10 years ago.
 
-> >> But the person who quoted
-> >> you (Christoph) is the author of one of the API changes that *did* break
-> >> the RDMA drivers in the staging tree and he fixed them up when I asked
-> >> him to.  Christoph then later quoted you and his interaction with you at
-> >> conference to indicate he didn't have to.
-> > 
-> > He didn't have to.  He was being nice.
-> 
-> Again, I disagree.
+ipath only supports the HTX cards, which where a short run engineering
+experiment that were not market successful (10 years ago), few were
+made. Those cards are unsuable in modern hardware. The vendor
+announced they were no longer supported when the qib driver was made,
+as far as I'm concerned all users got the 'obsolete, do no use'
+message 5 years ago.
 
-Fair enough, but that doesn't change the fact that he had no requirement
-to make this change.
+ehca was part of IBM's high end systems. A >= 4.4 kernel isn't going
+to be qualified or tested on that hardware. Nobody would run
+production like that. I actually bet some are still running
+somewhere..
 
-> >  That's your job to fix them up
-> > if you want the code in staging.
-> 
-> As I pointed out in an earlier email, allowing deprecated drivers to
-> simply break defeats the whole purpose of deprecating them in the first
-> place.
+Seriously, there are zero production users, it isn't even a question.
 
-Then we should just delete them from the tree, that makes things simpler
-for everyone involved.
+If a hobby user appears, then they can restore the driver and fix it
+up, and explain why we should carry it when it doesn't run the full
+stack.
 
-> >> And what I'm telling him, and
-> >> you since you are the person he's quoting to justify not fixing up
-> >> things, is that I don't care what you say, when it comes to those
-> >> drivers that I moved into staging, if he wants me to take his core
-> >> patches, then he needs to make sure they don't break those drivers I
-> >> moved into staging.
-> > 
-> > Nope, not true.  If you don't like this, I'll gladly just delete the
-> > drivers from staging, sorry.
-> 
-> Maybe you should be more clear about your intention here.  Under
-> precisely which actions of mine will you resort to retaliatory deletion
-> of code, and which code?
+> I suspect you are right and we *could* delete them now without a
+> problem.  But without that push back cycle or a query to find out for
+> sure, you're asking me to take it on faith instead of doing due
+> diligence, and I don't have any intention of being called out later for
+> failing to do due diligence.
 
-If you insist to other kernel developers that they have to fix up code
-in drivers/staging/ I will not accept that, and will ask for that code
-to be removed as that is not how this portion of the kernel tree works,
-sorry.
+Nobody is going to call you out for removing a driver, especially when
+the *vendor* said it was OK.
 
-> >  You don't get a "free ride" in staging at
-> > all.
-> 
-> I'm not sure what you are calling a "free ride".  Certainly, if what I
-> asked Christoph for is a "free ride", then drivers in the core kernel
-> get "free rides" all the time.  As such, I didn't ask for anything
-> unusual or out of the ordinary.  Because of the reasons I stated in my
-> previous email, I asked for the drivers I moved to staging to be treated
-> the same as any other driver would be.  Equal treatment is hardly a
-> "free ride".
+On the other hand, people have been sending unhappy messages with
+the current arrangement...
 
-drivers/staging is not "equal" to the rest of the kernel, I think that
-is the misunderstanding here.
+kernel.org isn't a distro - we can flip flop ...
 
-hope this helps,
-
-greg k-h
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
