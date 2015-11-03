@@ -1,57 +1,86 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 4/7] IB/srp: Fix a potential queue overflow in an error
- path
-Date: Tue, 3 Nov 2015 12:01:20 -0800
-Message-ID: <56391290.2080708@sandisk.com>
-References: <562FF404.7000504@sandisk.com> <562FF484.6030400@sandisk.com>
- <5638F08D.9070206@dev.mellanox.co.il> <56390557.204@sandisk.com>
- <56391181.8040207@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] svcrdma: Do not send XDR roundup bytes for a write chunk
+Date: Tue, 3 Nov 2015 15:10:21 -0500
+Message-ID: <94E65795-E205-44FE-93DE-A1FF24CD5C2E@oracle.com>
+References: <20151016132938.8597.65237.stgit@oracle-120.nfsv4bat.org>
+Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56391181.8040207-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20151016132938.8597.65237.stgit-SEkpj4eus7wUkR7QxMS4uupQh6Td+b7Z@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/03/2015 11:56 AM, Sagi Grimberg wrote:
-> On 03/11/2015 21:04, Bart Van Assche wrote:
->> On 11/03/2015 09:36 AM, Sagi Grimberg wrote:
->>> On 28/10/2015 00:02, Bart Van Assche wrote:
->>>> Wait until memory registration has finished in the srp_queuecommand()
->>>> error path before invalidating memory regions to avoid a send queue
->>>> overflow.
->>>
->>> This looks backwards to me... Why do we even post anything on our
->>> queue-pair to begin with if we got an unsupported sg list?
->>>
->>> Can't we perform a simple sanity check on the sg list instead?
->>
->> Hello Sagi,
->>
->> There is one memory descriptor pool per RDMA channel and RDMA channels
->> are typically used by more than one CPU. This means that memory
->> registration for more than one command can happen concurrently from a
->> single memory descriptor pool.
->> This is why checking how many memory
->> descriptors are left before memory registration occurs wouldn't be
->> sufficient.
->
-> How harm would it do to make the entire SG list mapping channel-wide
-> atomic? I'm asking because it's really a non-trivial flow you're
-> introducing.
 
-Hello Sagi,
+> On Oct 16, 2015, at 9:30 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wro=
+te:
+>=20
+> Minor optimization: when dealing with write chunk XDR roundup, do
+> not post a Write WR for the zero bytes in the pad. Simply update
+> the write segment in the RPC-over-RDMA header to reflect the extra
+> pad bytes.
+>=20
+> The Reply chunk is also a write chunk, but the server does not use
+> send_write_chunks() to send the Reply chunk. That's OK in this case:
+> the server Upper Layer typically marshals the Reply chunk contents
+> in a single contiguous buffer, without a separate tail for the XDR
+> pad.
+>=20
+> The comments and the variable naming refer to "chunks" but what is
+> really meant is "segments." The existing code sends only one
+> xdr_write_chunk per RPC reply.
+>=20
+> The fix assumes this as well. When the XDR pad in the first write
+> chunk is reached, the assumption is the Write list is complete and
+> send_write_chunks() returns.
+>=20
+> That will remain a valid assumption until the server Upper Layer can
+> support multiple bulk payload results per RPC.
+>=20
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> --
 
-Sorry but I strongly prefer not to introduce new contention points in 
-the SRP initiator driver.
+Bruce, can you take this for 4.4 ?
 
-Thanks,
 
-Bart.
+> net/sunrpc/xprtrdma/svc_rdma_sendto.c |    7 +++++++
+> 1 files changed, 7 insertions(+), 0 deletions(-)
+>=20
+> diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtr=
+dma/svc_rdma_sendto.c
+> index 1dfae83..6c48901 100644
+> --- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+> +++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+> @@ -342,6 +342,13 @@ static int send_write_chunks(struct svcxprt_rdma=
+ *xprt,
+> 						arg_ch->rs_handle,
+> 						arg_ch->rs_offset,
+> 						write_len);
+> +
+> +		/* Do not send XDR pad bytes */
+> +		if (chunk_no && write_len < 4) {
+> +			chunk_no++;
+> +			break;
+> +		}
+> +
+> 		chunk_off =3D 0;
+> 		while (write_len) {
+> 			ret =3D send_write(xprt, rqstp,
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+=E2=80=94
+Chuck Lever
+
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
