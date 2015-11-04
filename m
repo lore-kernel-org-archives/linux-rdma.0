@@ -1,91 +1,46 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: shrink struct ib_send_wr V4
-Date: Wed, 4 Nov 2015 12:40:27 -0500
-Message-ID: <563A430B.70906@redhat.com>
-References: <20151101180609.GC13943@kroah.com> <5637EFC8.4010300@redhat.com>
- <20151102233726.GA18251@kroah.com> <5637F97C.5090205@redhat.com>
- <20151103001845.GA24206@obsidianresearch.com> <56380535.5040101@redhat.com>
- <20151103012821.GA24650@obsidianresearch.com> <563815F7.2090003@redhat.com>
- <20151103041614.GA14023@kroah.com> <563A1D96.2050507@redhat.com>
- <20151104171620.GA8504@kroah.com>
+From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH 2/2] IB/mlx5: Publish mlx5 driver support for extended
+ create QP
+Date: Wed, 4 Nov 2015 19:36:13 +0000
+Message-ID: <HE1PR05MB1355A9548BBDBEDD1452F453C52A0@HE1PR05MB1355.eurprd05.prod.outlook.com>
+References: <1445993915-111262-1-git-send-email-eli@mellanox.com>
+ <1445993915-111262-3-git-send-email-eli@mellanox.com>
+ <20151028163225.GA14310@obsidianresearch.com>
+ <HE1PR05MB1355F2259428B7DB0D096583C5210@HE1PR05MB1355.eurprd05.prod.outlook.com>
+ <20151028182400.GB26645@obsidianresearch.com>
+ <HE1PR05MB1355F83A223671CA59BC940AC5210@HE1PR05MB1355.eurprd05.prod.outlook.com>
+ <20151028191955.GA27283@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="VcmkQeIuKJWEVUA6Ld5mQEerLoHXm6csP"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151104171620.GA8504-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20151028191955.GA27283-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org" <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---VcmkQeIuKJWEVUA6Ld5mQEerLoHXm6csP
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+Following this email is another one with the fix.
 
-On 11/04/2015 12:16 PM, Greg Kroah-Hartman wrote:
-> On Wed, Nov 04, 2015 at 10:00:38AM -0500, Doug Ledford wrote:
->> On 11/02/2015 11:16 PM, Greg Kroah-Hartman wrote:
->>> This too was something we discussed at the kernel summit, it's
->>> recommended that you just delete the drivers from where they are now,=
- no
->>> need to move them to staging first.
->>
->> So, don't take any more patches against them then.  I'll delete them i=
-n
->> a week or so when I send my pull request.  I have a few other things t=
-o
->> touch up before then and I have patches that touch those drivers, so i=
-n
->> order to avoid merge issues that would seem the best course at this po=
-int.
->=20
-> Which drivers specifically are you referring to?
+-----Original Message-----
+From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org] 
+Sent: Wednesday, October 28, 2015 2:20 PM
+To: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org
+Subject: Re: [PATCH 2/2] IB/mlx5: Publish mlx5 driver support for extended create QP
 
-All three of the drivers that are scheduled for deletion: ehca,
-amso1100, ipath.
+On Wed, Oct 28, 2015 at 06:44:05PM +0000, Eli Cohen wrote:
+> > Did you read the above thread?
+> >
+> > Don't set uverbs_ex_cmd_mask in drivers.
+> 
+> But that's not how it is currently. IB core does not set any of the 
+> extended verbs flags for all the devices.
 
-> And I'm not queueing up any new patches in my tree due to the merge
-> window, so there's nothing for me to take right now :)
->=20
-> thanks,
->=20
-> greg k-h
->=20
+We agreed it would be fixed as a follow up patch so the timestamp stuff could move forward. That patch never came, and now it is needed before more stuff does this wrong.
 
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---VcmkQeIuKJWEVUA6Ld5mQEerLoHXm6csP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJWOkMLAAoJELgmozMOVy/dWdAP/RQ7qFhtgEjQ7UJM8aQ89D2K
-Cxhl88c28IQ50G63uJ3Ckc44q0jTS+FXl5TnACgQgAwpj4/AP4GyuamSdxEL7L8I
-GtCCwKZDooam1AcJkhXZe2jEDpN+5gQ+e7lmKHwltzdVh+MVKgCTGjuZXAUsIkIX
-88QcN+mz4Ja8UeOt3cmDnHMbWwsWfbsNoIdzWZ44ViI3vbBaHfFZs2N71EuDDPzM
-T19pdysJKSqjf2OB/fvv1HJPgsYh1l7z84SQkbR2wqFbObCGyOvqoxQIbtv0OHqo
-oA80sjrKuwO+SI0cgPZJQ+hLdJr2KVSd54f8L/SVTe6SmVDqbB7m4OHL4J/DX2BZ
-q7pslFVcUfJ2bZPOLZ5S7b+HqTr9CdcDvVx1/6zP9DVO30PFqkpfqi61062Tc5Am
-gJjHxnFGY22jpkrjwaIFlF37TwBbUnMxIO0M31RR0OS6VYmU7/s0EoQUoCzw8IR6
-tJVbzVGth9w6f5TOnLtuyhEhji6Pd0gGGWLlAfaOPF43PmA8U4jXORWqqUc/BSYX
-V6IvzFMY6gXxxTxskUpxdcMejmikb+b7eN70gJNXxm1vd2LKttqhMh2aCDab7NyO
-E8JtM80VHyajxQ/Ted59bIK06FZ5+gJ8MEz0maLJe7PMdgdm2ukuHARUbzyu0Vq3
-lKwWfGVxONRQzqmkBVwz
-=Ok46
------END PGP SIGNATURE-----
-
---VcmkQeIuKJWEVUA6Ld5mQEerLoHXm6csP--
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
