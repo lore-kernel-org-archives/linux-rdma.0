@@ -1,102 +1,70 @@
-From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] IB/core: Allow legacy verbs through extended interfaces
-Date: Wed, 4 Nov 2015 21:36:21 +0200
-Message-ID: <20151104193621.GA30146@x-vnc01.mtx.labs.mlnx>
+From: Amitoj Kaur Chawla <amitoj1606-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v4] staging: rdma: amso1100: c2: Remove wrapper function
+Date: Thu, 5 Nov 2015 02:25:58 +0530
+Message-ID: <20151104205557.GA3550@amitoj-Inspiron-3542>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When an extended verbs is an extension to a legacy verb, the original
-functionality is preserved. Hence we do not require each hardware driver
-to set the extended capability. This will allow to use the extended verb
-in its simple form with drivers that do not support the extended
-capability.
+This patch removes the c2_print_macaddr() wrapper function which calls
+the pr_debug standard kernel function only.
 
-In addition, avoid code duplication by moving sanity checks to a common
-area.
+c2_print_macaddr() has been replaced by directly calling pr_debug().
 
-Change-Id: Iedba714224fa07b85325c146621c07e0dbf349fb
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Amitoj Kaur Chawla <amitoj1606-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_main.c | 30 ++++++++++--------------------
- 1 file changed, 10 insertions(+), 20 deletions(-)
+Changes in v2:
+        -Removed comment added in previous version
+Changes in v3:
+        -Corrected indentation
+Changes in v4:
+        -Removed trailing whitespace
 
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index e3ef28861be6..0ae934d81b04 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -678,6 +678,7 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 	struct ib_uverbs_file *file = filp->private_data;
- 	struct ib_device *ib_dev;
- 	struct ib_uverbs_cmd_hdr hdr;
-+	__u32 command;
- 	__u32 flags;
- 	int srcu_key;
- 	ssize_t ret;
-@@ -699,17 +700,15 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 	flags = (hdr.command &
- 		 IB_USER_VERBS_CMD_FLAGS_MASK) >> IB_USER_VERBS_CMD_FLAGS_SHIFT;
+ drivers/staging/rdma/amso1100/c2.c | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/staging/rdma/amso1100/c2.c b/drivers/staging/rdma/amso1100/c2.c
+index 7f1e794..20bdb8c 100644
+--- a/drivers/staging/rdma/amso1100/c2.c
++++ b/drivers/staging/rdma/amso1100/c2.c
+@@ -87,11 +87,6 @@ static struct pci_device_id c2_pci_table[] = {
  
--	if (!flags) {
--		__u32 command;
+ MODULE_DEVICE_TABLE(pci, c2_pci_table);
+ 
+-static void c2_print_macaddr(struct net_device *netdev)
+-{
+-	pr_debug("%s: MAC %pM, IRQ %u\n", netdev->name, netdev->dev_addr, netdev->irq);
+-}
 -
--		if (hdr.command & ~(__u32)(IB_USER_VERBS_CMD_FLAGS_MASK |
--					   IB_USER_VERBS_CMD_COMMAND_MASK)) {
--			ret = -EINVAL;
--			goto out;
--		}
-+	if (hdr.command & ~(__u32)(IB_USER_VERBS_CMD_FLAGS_MASK |
-+				   IB_USER_VERBS_CMD_COMMAND_MASK)) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
+ static void c2_set_rxbufsize(struct c2_port *c2_port)
+ {
+ 	struct net_device *netdev = c2_port->netdev;
+@@ -908,7 +903,8 @@ static struct net_device *c2_devinit(struct c2_dev *c2dev,
+ 	/* Validate the MAC address */
+ 	if (!is_valid_ether_addr(netdev->dev_addr)) {
+ 		pr_debug("Invalid MAC Address\n");
+-		c2_print_macaddr(netdev);
++		pr_debug("%s: MAC %pM, IRQ %u\n", netdev->name,
++			 netdev->dev_addr, netdev->irq);
+ 		free_netdev(netdev);
+ 		return NULL;
+ 	}
+@@ -1142,7 +1138,8 @@ static int c2_probe(struct pci_dev *pcidev, const struct pci_device_id *ent)
+ 	}
  
--		command = hdr.command & IB_USER_VERBS_CMD_COMMAND_MASK;
-+	command = hdr.command & IB_USER_VERBS_CMD_COMMAND_MASK;
+ 	/* Print out the MAC address */
+-	c2_print_macaddr(netdev);
++	pr_debug("%s: MAC %pM, IRQ %u\n", netdev->name, netdev->dev_addr,
++		 netdev->irq);
  
-+	if (!flags) {
- 		if (command >= ARRAY_SIZE(uverbs_cmd_table) ||
- 		    !uverbs_cmd_table[command]) {
- 			ret = -EINVAL;
-@@ -738,21 +737,11 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 						 hdr.out_words * 4);
- 
- 	} else if (flags == IB_USER_VERBS_CMD_FLAG_EXTENDED) {
--		__u32 command;
--
- 		struct ib_uverbs_ex_cmd_hdr ex_hdr;
- 		struct ib_udata ucore;
- 		struct ib_udata uhw;
- 		size_t written_count = count;
- 
--		if (hdr.command & ~(__u32)(IB_USER_VERBS_CMD_FLAGS_MASK |
--					   IB_USER_VERBS_CMD_COMMAND_MASK)) {
--			ret = -EINVAL;
--			goto out;
--		}
--
--		command = hdr.command & IB_USER_VERBS_CMD_COMMAND_MASK;
--
- 		if (command >= ARRAY_SIZE(uverbs_ex_cmd_table) ||
- 		    !uverbs_ex_cmd_table[command]) {
- 			ret = -ENOSYS;
-@@ -764,7 +753,8 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 			goto out;
- 		}
- 
--		if (!(ib_dev->uverbs_ex_cmd_mask & (1ull << command))) {
-+		if ((command > IB_USER_VERBS_CMD_OPEN_QP) &&
-+		    !(ib_dev->uverbs_ex_cmd_mask & (1ull << command))) {
- 			ret = -ENOSYS;
- 			goto out;
- 		}
+ 	ret = c2_rnic_init(c2dev);
+ 	if (ret) {
 -- 
-2.6.1
+1.9.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
