@@ -1,39 +1,29 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [PATCH] staging/rdma/hfi1: Convert dd_dev_info() to hfi1_cdbg()
- in process startup
-Date: Thu, 5 Nov 2015 10:58:36 +0300
-Message-ID: <20151105075836.GS18797@mwanda>
-References: <1446696897-25892-1-git-send-email-jubin.john@intel.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] staging/rdma/hfi1: Disable thermal polling before sensor
+ initialization
+Date: Thu, 5 Nov 2015 11:01:41 +0300
+Message-ID: <20151105080141.GT18797@mwanda>
+References: <1446698657-26743-1-git-send-email-jubin.john@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1446696897-25892-1-git-send-email-jubin.john@intel.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: jubin.john@intel.com
-Cc: devel@driverdev.osuosl.org, gregkh@linuxfoundation.org, dledford@redhat.com, Sebastian Sanchez <sebastian.sanchez@intel.com>, linux-rdma@vger.kernel.org
+In-Reply-To: <1446698657-26743-1-git-send-email-jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "jareer.h.abdel-qader" <jareer.h.abdel-qader-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 04, 2015 at 11:14:57PM -0500, jubin.john@intel.com wrote:
-> From: Sebastian Sanchez <sebastian.sanchez@intel.com>
-> 
-> Replacing dd_dev_info() for hfi1_cdbg() to avoid generating syslog
-> output for every context that is open by PSM.
-> 
+On Wed, Nov 04, 2015 at 11:44:17PM -0500, jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> From: jareer.h.abdel-qader <jareer.h.abdel-qader-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Just delete it...  People get scared about deleting debug code but you
-can add it back if there is really a bug.
 
-/me chants, "delete.  delete.  delete."
+This should be "Jareer Abdel-Qader <jareer.h.abdel-qader-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>".
 
 regards,
 dan carpenter
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
