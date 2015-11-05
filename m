@@ -1,52 +1,65 @@
 From: jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH] staging/rdma/hfi1: Enable WFR PCIe extended tags from the driver
-Date: Wed,  4 Nov 2015 23:27:44 -0500
-Message-ID: <1446697664-26332-1-git-send-email-jubin.john@intel.com>
+Subject: [PATCH] staging/rdma/hfi1: Always download SBus firmware
+Date: Wed,  4 Nov 2015 23:36:05 -0500
+Message-ID: <1446698165-26547-1-git-send-email-jubin.john@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Vennila Megavannan <vennila.megavannan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Vennila Megavannan <vennila.megavannan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Some BIOS implementations turn off extended tags in DevCtl (a RW
-field) even though it was originally set and is advertised in DevCap
-Fix is to set it in the driver
+B0 dual port parts require the SBus firmware to always be
+downloaded.
 
-Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Ashutosh Dixit <ashutosh.dixit-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Vennila Megavannan <vennila.megavannan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Remove reset of the SBus Master spico.  It is not necessary
+since the SBus firmware download already does that.
+
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/pcie.c |   12 +++++++++++-
- 1 files changed, 11 insertions(+), 1 deletions(-)
+ drivers/staging/rdma/hfi1/firmware.c |    2 +-
+ drivers/staging/rdma/hfi1/pcie.c     |   12 +-----------
+ 2 files changed, 2 insertions(+), 12 deletions(-)
 
+diff --git a/drivers/staging/rdma/hfi1/firmware.c b/drivers/staging/rdma/hfi1/firmware.c
+index b4bdcf3..f311282 100644
+--- a/drivers/staging/rdma/hfi1/firmware.c
++++ b/drivers/staging/rdma/hfi1/firmware.c
+@@ -1568,7 +1568,7 @@ int load_pcie_firmware(struct hfi1_devdata *dd)
+ 	/* both firmware loads below use the SBus */
+ 	set_sbus_fast_mode(dd);
+ 
+-	if (fw_sbus_load && (dd->flags & HFI1_DO_INIT_ASIC)) {
++	if (fw_sbus_load) {
+ 		turn_off_spicos(dd, SPICO_SBUS);
+ 		ret = load_sbus_firmware(dd, &fw_sbus);
+ 		if (ret)
 diff --git a/drivers/staging/rdma/hfi1/pcie.c b/drivers/staging/rdma/hfi1/pcie.c
-index a956044..430e95a 100644
+index a956044..6f0eff7 100644
 --- a/drivers/staging/rdma/hfi1/pcie.c
 +++ b/drivers/staging/rdma/hfi1/pcie.c
-@@ -475,8 +475,18 @@ static void tune_pcie_caps(struct hfi1_devdata *dd)
- {
- 	struct pci_dev *parent;
- 	u16 rc_mpss, rc_mps, ep_mpss, ep_mps;
--	u16 rc_mrrs, ep_mrrs, max_mrrs;
-+	u16 rc_mrrs, ep_mrrs, max_mrrs, ectl;
+@@ -947,17 +947,7 @@ int do_pcie_gen3_transition(struct hfi1_devdata *dd)
+ 	}
  
-+	/*
-+	 * Turn on extended tags in DevCtl in case the BIOS has turned it off
-+	 * to improve WFR SDMA bandwidth
-+	 */
-+	pcie_capability_read_word(dd->pcidev, PCI_EXP_DEVCTL, &ectl);
-+	if (!(ectl & PCI_EXP_DEVCTL_EXT_TAG)) {
-+		dd_dev_info(dd, "Enabling PCIe extended tags\n");
-+		ectl |= PCI_EXP_DEVCTL_EXT_TAG;
-+		pcie_capability_write_word(dd->pcidev, PCI_EXP_DEVCTL, ectl);
-+	}
- 	/* Find out supported and configured values for parent (root) */
- 	parent = dd->pcidev->bus->self;
- 	if (!pci_is_root_bus(parent->bus)) {
+ retry:
+-
+-	if (therm) {
+-		/*
+-		 * toggle SPICO_ENABLE to get back to the state
+-		 * just after the firmware load
+-		 */
+-		sbus_request(dd, SBUS_MASTER_BROADCAST, 0x01,
+-			WRITE_SBUS_RECEIVER, 0x00000040);
+-		sbus_request(dd, SBUS_MASTER_BROADCAST, 0x01,
+-			WRITE_SBUS_RECEIVER, 0x00000140);
+-	}
++	/* the SBus download will reset the spico for thermal */
+ 
+ 	/* step 3: download SBus Master firmware */
+ 	/* step 4: download PCIe Gen3 SerDes firmware */
 -- 
 1.7.1
 
