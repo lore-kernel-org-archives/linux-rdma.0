@@ -1,44 +1,93 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [PATCH] staging/rdma/hfi1: Convert dd_dev_info() to hfi1_cdbg()
- in process startup
-Date: Thu, 5 Nov 2015 17:53:34 +0300
-Message-ID: <20151105145334.GY18797@mwanda>
-References: <1446696897-25892-1-git-send-email-jubin.john@intel.com>
- <20151105075836.GS18797@mwanda>
- <20151105145119.GA16285@phlsvsds.ph.intel.com>
+From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] IB/core: Allow legacy verbs through extended interfaces
+Date: Thu, 5 Nov 2015 17:12:51 +0200
+Message-ID: <20151105151251.GA33200@x-vnc01.mtx.labs.mlnx>
+References: <20151104193621.GA30146@x-vnc01.mtx.labs.mlnx>
+ <1446720117.10170.35.camel@opteya.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20151105145119.GA16285@phlsvsds.ph.intel.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc: devel@driverdev.osuosl.org, linux-rdma@vger.kernel.org, gregkh@linuxfoundation.org, jubin.john@intel.com, dledford@redhat.com, Sebastian Sanchez <sebastian.sanchez@intel.com>
+In-Reply-To: <1446720117.10170.35.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 05, 2015 at 09:51:20AM -0500, Dennis Dalessandro wrote:
-> >/me chants, "delete.  delete.  delete."
+On Thu, Nov 05, 2015 at 11:41:57AM +0100, Yann Droneaud wrote:
 > 
-> I would tend to agree with that, but in this case we want to keep a
-> way to get this information without making code changes. We just
-> don't want it to spew to the console/syslog all the time. Instead we
-> are using the trace mechanism which lets the user selectively turn
-> on the messages when needed.
+> Those checks were written with the assumption the command and flags
+> masks could be different between the legacy and the new verb format.
 > 
-> Perhaps we should expand on the commit message to make this more clear?
-> 
+> But since it did happen (yet), it's ok to avoid the duplication (I
+> would have prefer a separate preliminary patch for this).
 
-No no.  It's fine.  So long as you aren't just keeping it around because
-you are afraid to delete things.
+OK, will send in a different patch.
+> 
+> 
+> 
+> What about IB_USER_VERBS_CMD_THRESHOLD instead of
+>  IB_USER_VERBS_CMD_OPEN_QP ?
+> 
+I wanted to be more restrictive here. After all there can't be any
+more legacy commands.
+> > +		    !(ib_dev->uverbs_ex_cmd_mask & (1ull <<
+> > command))) {
+> >  			ret = -ENOSYS;
+> >  			goto out;
+> >  		}
+> 
+> 
+> uverbs_ex_cmd_table[] has already been looked up at this point, so that
+> can only work if uverbs_ex_cmd_table[] is extended to support the
+> legacy verbs.
+> 
+> Currently there's only two verbs with dual implementation
+> 
+>   IB_USER_VERBS_EX_CMD_QUERY_DEVICE
+>   IB_USER_VERBS_EX_CMD_CREATE_CQ
+> 
+> 
+> If we want to have a 1:1 mapping legacy verbs as extended verbs, then I
+> would suggest to check the legacy mask to not allow a legacy verb not
+> supported by the hw provider to be called:
+> 
+> 	if (! (((command <= IB_USER_VERBS_CMD_OPEN_QP) ?
+> 		 ib_dev->uverbs_cmd_mask :
+> 		 ib_dev->uverbs_ex_cmd_mask) & (1 ull << command))) {
+> 		ret = -ENOSYS;
+> 		goto out;
+> 	}
+> 
+Yes this looks even safer. So I will apply this idea and re-send.
 
-regards,
-dan carpenter
+> Perhaps we could drop uverbs_ex_cmd_mask and set bit for extended verbs
+> in uverbs_cmd_mask instead. Then, there will be no need to check againt
+> the command threshold.
+> 
+> Anyway, this is a new assumption that extended verbs will have to be
+> somewhat retro compatible with the legacy hw provider implementation
+> used by the legacy verbs they intend to replace: an extended verbs
+> matching a legacy one will need to be written in such way it will not
+> be calling into a hw provider function pointer that can be NULL (in
+> case there's new function pointer is added for an updated verbs in
+> struct ib_device  while we keep in place the legacy one ... but for in
+> -kernel drivers that should never happen: it usual better to replace
+> the previous one by the newer and the existing drivers have to be
+> updated to provide the new function and remove the previous one, so I
+> think it's quite safe).
+> 
+> Regards.
+> 
+> -- 
+> Yann Droneaud
+> OPTEYA
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
