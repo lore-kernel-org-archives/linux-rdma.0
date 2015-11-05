@@ -1,39 +1,39 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx: Expose max_fmr to ib_query_device
-Date: Thu, 5 Nov 2015 14:12:30 +0200
-Message-ID: <20151105121229.GC8115@yuval-lab>
-References: <1446134879-20456-1-git-send-email-yuval.shaia@oracle.com>
- <563255A9.1050705@dev.mellanox.co.il>
- <20151105104844.GA7749@yuval-lab>
- <20151105105128.GA24381@infradead.org>
- <20151105110749.GA8115@yuval-lab>
- <20151105111035.GA25203@infradead.org>
+From: Leon Romanovsky <leon@leon.nu>
+Subject: Re: [PATCH 1/1] staging: rdma: hfi1 : Prefer using the BIT macro
+Date: Thu, 5 Nov 2015 15:27:33 +0200
+Message-ID: <20151105132733.GD4023@leon.nu>
+References: <1446724683-30092-1-git-send-email-sunnyk@cdac.in>
+Reply-To: leon@leon.nu
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20151105111035.GA25203-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1446724683-30092-1-git-send-email-sunnyk@cdac.in>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sunny Kumar <sunny.kumar.roy@gmail.com>
+Cc: Mike Marciniszyn <infinipath@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-rdma@vger.kernel.org, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, Sunny Kumar <sunnyk@cdac.in>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 05, 2015 at 03:10:35AM -0800, Christoph Hellwig wrote:
-> On Thu, Nov 05, 2015 at 01:07:49PM +0200, Yuval Shaia wrote:
-> > > What do you plan to use it for?  We're aiming hard to get rid of FMRs
-> > > from the whole kernel stack ASAP.
-> > We have two drivers that are using FMR.
+On Thu, Nov 05, 2015 at 05:28:03PM +0530, Sunny Kumar wrote:
+> This patch replaces bit shifting on 1 with the BIT(x) macro
 > 
-> I now RDS still has the totally silly separate code bases for IB vs
-> iWrap and you need to move IB to use the IW code for memory
-> registrations, but that's the second one?
-Sorry, my mistake, only RDS.
+> Signed-off-by: Sunny Kumar <sunnyk@cdac.in>
+> ---
+>  drivers/staging/rdma/hfi1/user_sdma.c | 10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  /* Last packet in the request */
+> -#define TXREQ_FLAGS_REQ_LAST_PKT   (1 << 0)
+> -#define TXREQ_FLAGS_IOVEC_LAST_PKT (1 << 0)
+> +#define TXREQ_FLAGS_REQ_LAST_PKT   BIT(1 << 0)
+> +#define TXREQ_FLAGS_IOVEC_LAST_PKT BIT(1 << 0)
+>  
+It is wrong. It actually creates 0x2 instead of 0x1.
+
+> -#define SDMA_PKT_Q_INACTIVE (1 << 0)
+> -#define SDMA_PKT_Q_ACTIVE   (1 << 1)
+> -#define SDMA_PKT_Q_DEFERRED (1 << 2)
+> +#define SDMA_PKT_Q_INACTIVE BIT(1 << 0)
+> +#define SDMA_PKT_Q_ACTIVE   BIT(1 << 1)
+> +#define SDMA_PKT_Q_DEFERRED BIT(1 << 2)
+The same comment as above. It is wrong.
