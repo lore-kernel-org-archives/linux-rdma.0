@@ -1,55 +1,52 @@
 From: jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH] staging/rdma/hfi1: Clear the QSFP reset that is asserted on FLR
-Date: Wed,  4 Nov 2015 23:22:53 -0500
-Message-ID: <1446697373-26094-1-git-send-email-jubin.john@intel.com>
+Subject: [PATCH] staging/rdma/hfi1: Enable WFR PCIe extended tags from the driver
+Date: Wed,  4 Nov 2015 23:27:44 -0500
+Message-ID: <1446697664-26332-1-git-send-email-jubin.john@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Vennila Megavannan <vennila.megavannan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Vennila Megavannan <vennila.megavannan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The FLR on driver load asserts the QSFP reset pin and the driver does
-not deassert it after. This patch allows the external QSFP cable to exit
-reset by writing 1 to all the QSFP pins.
+Some BIOS implementations turn off extended tags in DevCtl (a RW
+field) even though it was originally set and is advertised in DevCap
+Fix is to set it in the driver
 
 Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ashutosh Dixit <ashutosh.dixit-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Vennila Megavannan <vennila.megavannan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/chip.c |   13 +++++--------
- 1 files changed, 5 insertions(+), 8 deletions(-)
+ drivers/staging/rdma/hfi1/pcie.c |   12 +++++++++++-
+ 1 files changed, 11 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index e489819..e309828 100644
---- a/drivers/staging/rdma/hfi1/chip.c
-+++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -9929,19 +9929,16 @@ static void init_chip(struct hfi1_devdata *dd)
- 		setextled(dd, 0);
- 	/*
- 	 * Clear the QSFP reset.
--	 * A0 leaves the out lines floating on power on, then on an FLR
--	 * enforces a 0 on all out pins.  The driver does not touch
-+	 * An FLR enforces a 0 on all out pins. The driver does not touch
- 	 * ASIC_QSFPn_OUT otherwise.  This leaves RESET_N low and
--	 * anything  plugged constantly in reset, if it pays attention
-+	 * anything plugged constantly in reset, if it pays attention
- 	 * to RESET_N.
--	 * A prime example of this is SiPh. For now, set all pins high.
-+	 * Prime examples of this are optical cables. Set all pins high.
- 	 * I2CCLK and I2CDAT will change per direction, and INT_N and
- 	 * MODPRS_N are input only and their value is ignored.
- 	 */
--	if (is_a0(dd)) {
--		write_csr(dd, ASIC_QSFP1_OUT, 0x1f);
--		write_csr(dd, ASIC_QSFP2_OUT, 0x1f);
--	}
-+	write_csr(dd, ASIC_QSFP1_OUT, 0x1f);
-+	write_csr(dd, ASIC_QSFP2_OUT, 0x1f);
- }
+diff --git a/drivers/staging/rdma/hfi1/pcie.c b/drivers/staging/rdma/hfi1/pcie.c
+index a956044..430e95a 100644
+--- a/drivers/staging/rdma/hfi1/pcie.c
++++ b/drivers/staging/rdma/hfi1/pcie.c
+@@ -475,8 +475,18 @@ static void tune_pcie_caps(struct hfi1_devdata *dd)
+ {
+ 	struct pci_dev *parent;
+ 	u16 rc_mpss, rc_mps, ep_mpss, ep_mps;
+-	u16 rc_mrrs, ep_mrrs, max_mrrs;
++	u16 rc_mrrs, ep_mrrs, max_mrrs, ectl;
  
- static void init_early_variables(struct hfi1_devdata *dd)
++	/*
++	 * Turn on extended tags in DevCtl in case the BIOS has turned it off
++	 * to improve WFR SDMA bandwidth
++	 */
++	pcie_capability_read_word(dd->pcidev, PCI_EXP_DEVCTL, &ectl);
++	if (!(ectl & PCI_EXP_DEVCTL_EXT_TAG)) {
++		dd_dev_info(dd, "Enabling PCIe extended tags\n");
++		ectl |= PCI_EXP_DEVCTL_EXT_TAG;
++		pcie_capability_write_word(dd->pcidev, PCI_EXP_DEVCTL, ectl);
++	}
+ 	/* Find out supported and configured values for parent (root) */
+ 	parent = dd->pcidev->bus->self;
+ 	if (!pci_is_root_bus(parent->bus)) {
 -- 
 1.7.1
 
