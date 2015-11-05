@@ -1,30 +1,50 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx: Expose max_fmr to ib_query_device
-Date: Thu, 5 Nov 2015 03:10:35 -0800
-Message-ID: <20151105111035.GA25203@infradead.org>
-References: <1446134879-20456-1-git-send-email-yuval.shaia@oracle.com>
- <563255A9.1050705@dev.mellanox.co.il>
- <20151105104844.GA7749@yuval-lab>
- <20151105105128.GA24381@infradead.org>
- <20151105110749.GA8115@yuval-lab>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sunny Kumar <sunny.kumar.roy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/1] staging: rdma: hfi1 : Prefer using the BIT macro
+Date: Thu,  5 Nov 2015 17:28:03 +0530
+Message-ID: <1446724683-30092-1-git-send-email-sunnyk@cdac.in>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20151105110749.GA8115@yuval-lab>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Sunny Kumar <sunnyk-If5XQcfNmg0@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 05, 2015 at 01:07:49PM +0200, Yuval Shaia wrote:
-> > What do you plan to use it for?  We're aiming hard to get rid of FMRs
-> > from the whole kernel stack ASAP.
-> We have two drivers that are using FMR.
+This patch replaces bit shifting on 1 with the BIT(x) macro
 
-I now RDS still has the totally silly separate code bases for IB vs
-iWrap and you need to move IB to use the IW code for memory
-registrations, but that's the second one?
+Signed-off-by: Sunny Kumar <sunnyk-If5XQcfNmg0@public.gmane.org>
+---
+ drivers/staging/rdma/hfi1/user_sdma.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/staging/rdma/hfi1/user_sdma.c b/drivers/staging/rdma/hfi1/user_sdma.c
+index 36c838d..95a6d99 100644
+--- a/drivers/staging/rdma/hfi1/user_sdma.c
++++ b/drivers/staging/rdma/hfi1/user_sdma.c
+@@ -146,8 +146,8 @@ MODULE_PARM_DESC(sdma_comp_size, "Size of User SDMA completion ring. Default: 12
+ #define KDETH_OM_MAX_SIZE  (1 << ((KDETH_OM_LARGE / KDETH_OM_SMALL) + 1))
+ 
+ /* Last packet in the request */
+-#define TXREQ_FLAGS_REQ_LAST_PKT   (1 << 0)
+-#define TXREQ_FLAGS_IOVEC_LAST_PKT (1 << 0)
++#define TXREQ_FLAGS_REQ_LAST_PKT   BIT(1 << 0)
++#define TXREQ_FLAGS_IOVEC_LAST_PKT BIT(1 << 0)
+ 
+ #define SDMA_REQ_IN_USE     0
+ #define SDMA_REQ_FOR_THREAD 1
+@@ -156,9 +156,9 @@ MODULE_PARM_DESC(sdma_comp_size, "Size of User SDMA completion ring. Default: 12
+ #define SDMA_REQ_HAS_ERROR  4
+ #define SDMA_REQ_DONE_ERROR 5
+ 
+-#define SDMA_PKT_Q_INACTIVE (1 << 0)
+-#define SDMA_PKT_Q_ACTIVE   (1 << 1)
+-#define SDMA_PKT_Q_DEFERRED (1 << 2)
++#define SDMA_PKT_Q_INACTIVE BIT(1 << 0)
++#define SDMA_PKT_Q_ACTIVE   BIT(1 << 1)
++#define SDMA_PKT_Q_DEFERRED BIT(1 << 2)
+ 
+ /*
+  * Maximum retry attempts to submit a TX request
+-- 
+2.1.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
