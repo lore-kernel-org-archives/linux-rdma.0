@@ -1,7 +1,7 @@
 From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH ib-next 1/3] IB/core: Avoid duplicate code
-Date: Thu,  5 Nov 2015 19:40:06 +0200
-Message-ID: <1446745208-17733-2-git-send-email-eli@mellanox.com>
+Subject: [PATCH ib-next 2/3] IB/core: IB/core: Allow legacy verbs through extended interfaces
+Date: Thu,  5 Nov 2015 19:40:07 +0200
+Message-ID: <1446745208-17733-3-git-send-email-eli@mellanox.com>
 References: <1446745208-17733-1-git-send-email-eli@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1446745208-17733-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,76 +10,78 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4E
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Move the check on the validity of the command to a common area.
+When an extended verbs is an extension to a legacy verb, the original
+functionality is preserved. Hence we do not require each hardware driver
+to set the extended capability. This will allow to use the extended verb
+in its simple form with drivers that do not support the extended
+capability.
 
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_main.c | 29 +++++++++--------------------
- 1 file changed, 9 insertions(+), 20 deletions(-)
+ drivers/infiniband/core/uverbs_main.c | 29 +++++++++++++++++++----------
+ 1 file changed, 19 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index e3ef28861be6..e93ba9125198 100644
+index e93ba9125198..1740a03e6ac6 100644
 --- a/drivers/infiniband/core/uverbs_main.c
 +++ b/drivers/infiniband/core/uverbs_main.c
-@@ -678,6 +678,7 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 	struct ib_uverbs_file *file = filp->private_data;
- 	struct ib_device *ib_dev;
- 	struct ib_uverbs_cmd_hdr hdr;
-+	__u32 command;
- 	__u32 flags;
- 	int srcu_key;
- 	ssize_t ret;
-@@ -696,20 +697,18 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 		goto out;
+@@ -672,6 +672,21 @@ out:
+ 	return ev_file;
+ }
+ 
++static int verify_command_mask(struct ib_device *ib_dev, __u32 command)
++{
++	u64 mask;
++
++	if (command <= IB_USER_VERBS_CMD_OPEN_QP)
++		mask = ib_dev->uverbs_cmd_mask;
++	else
++		mask = ib_dev->uverbs_ex_cmd_mask;
++
++	if (mask & ((u64)1 << command))
++		return 0;
++
++	return -1;
++}
++
+ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
+ 			     size_t count, loff_t *pos)
+ {
+@@ -704,6 +719,10 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
  	}
  
-+	if (hdr.command & ~(__u32)(IB_USER_VERBS_CMD_FLAGS_MASK |
-+				   IB_USER_VERBS_CMD_COMMAND_MASK)) {
+ 	command = hdr.command & IB_USER_VERBS_CMD_COMMAND_MASK;
++	if (verify_command_mask(ib_dev, command)) {
 +		ret = -EINVAL;
 +		goto out;
 +	}
-+
-+	command = hdr.command & IB_USER_VERBS_CMD_COMMAND_MASK;
-+
+ 
  	flags = (hdr.command &
  		 IB_USER_VERBS_CMD_FLAGS_MASK) >> IB_USER_VERBS_CMD_FLAGS_SHIFT;
+@@ -721,11 +740,6 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
+ 			goto out;
+ 		}
  
- 	if (!flags) {
--		__u32 command;
--
--		if (hdr.command & ~(__u32)(IB_USER_VERBS_CMD_FLAGS_MASK |
--					   IB_USER_VERBS_CMD_COMMAND_MASK)) {
--			ret = -EINVAL;
+-		if (!(ib_dev->uverbs_cmd_mask & (1ull << command))) {
+-			ret = -ENOSYS;
 -			goto out;
 -		}
 -
--		command = hdr.command & IB_USER_VERBS_CMD_COMMAND_MASK;
--
- 		if (command >= ARRAY_SIZE(uverbs_cmd_table) ||
- 		    !uverbs_cmd_table[command]) {
+ 		if (hdr.in_words * 4 != count) {
  			ret = -EINVAL;
-@@ -738,21 +737,11 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 						 hdr.out_words * 4);
+ 			goto out;
+@@ -753,11 +767,6 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
+ 			goto out;
+ 		}
  
- 	} else if (flags == IB_USER_VERBS_CMD_FLAG_EXTENDED) {
--		__u32 command;
--
- 		struct ib_uverbs_ex_cmd_hdr ex_hdr;
- 		struct ib_udata ucore;
- 		struct ib_udata uhw;
- 		size_t written_count = count;
- 
--		if (hdr.command & ~(__u32)(IB_USER_VERBS_CMD_FLAGS_MASK |
--					   IB_USER_VERBS_CMD_COMMAND_MASK)) {
--			ret = -EINVAL;
+-		if (!(ib_dev->uverbs_ex_cmd_mask & (1ull << command))) {
+-			ret = -ENOSYS;
 -			goto out;
 -		}
 -
--		command = hdr.command & IB_USER_VERBS_CMD_COMMAND_MASK;
--
- 		if (command >= ARRAY_SIZE(uverbs_ex_cmd_table) ||
- 		    !uverbs_ex_cmd_table[command]) {
- 			ret = -ENOSYS;
+ 		if (count < (sizeof(hdr) + sizeof(ex_hdr))) {
+ 			ret = -EINVAL;
+ 			goto out;
 -- 
 2.6.2
 
