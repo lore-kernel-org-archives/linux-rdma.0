@@ -1,82 +1,60 @@
-From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] staging/rdma/hfi1: Select only devices with active links
-Date: Thu,  5 Nov 2015 18:48:16 -0500
-Message-ID: <1446767296-26479-1-git-send-email-jubin.john@intel.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+From: Jubin John <jubin.john@intel.com>
+Subject: [PATCH] staging/rdma/hfi1: Fix for opaportconfig ledon by not
+ checking for portNum
+Date: Thu,  5 Nov 2015 18:53:26 -0500
+Message-ID: <1446767606-26654-1-git-send-email-jubin.john@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org
+Cc: linux-rdma@vger.kernel.org, dledford@redhat.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Sebastian Sanchez <sebastian.sanchez@intel.com>
 
-When looking for or validating a user device, only use devices
-that are currently active.
+opaportconfig ledon fails with error message due to port
+number being checked in the attr modifier. This change
+removes the check for the port number in AttrMod, so the
+P field is ignored.
 
-Reviewed-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Easwar Hariharan <easwar.hariharan@intel.com>
+Signed-off-by: Sebastian Sanchez <sebastian.sanchez@intel.com>
+Signed-off-by: Jubin John <jubin.john@intel.com>
 ---
- drivers/staging/rdma/hfi1/file_ops.c |   21 ++++++++++++++++++---
- 1 files changed, 18 insertions(+), 3 deletions(-)
+ drivers/staging/rdma/hfi1/mad.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
-index aae9826..cd4c982 100644
---- a/drivers/staging/rdma/hfi1/file_ops.c
-+++ b/drivers/staging/rdma/hfi1/file_ops.c
-@@ -874,6 +874,14 @@ done:
- 	return ret;
- }
+diff --git a/drivers/staging/rdma/hfi1/mad.c b/drivers/staging/rdma/hfi1/mad.c
+index 32f7037..a122565 100644
+--- a/drivers/staging/rdma/hfi1/mad.c
++++ b/drivers/staging/rdma/hfi1/mad.c
+@@ -3458,7 +3458,7 @@ static int __subn_get_opa_led_info(struct opa_smp *smp, u32 am, u8 *data,
+ 	u32 nport = OPA_AM_NPORT(am);
+ 	u64 reg;
  
-+/* return true if the device available for general use */
-+static int usable_device(struct hfi1_devdata *dd)
-+{
-+	struct hfi1_pportdata *ppd = dd->pport;
-+
-+	return driver_lstate(ppd) == IB_PORT_ACTIVE;
-+}
-+
- static int get_user_context(struct file *fp, struct hfi1_user_info *uinfo,
- 			    int devno, unsigned alg)
- {
-@@ -903,7 +911,11 @@ static int get_user_context(struct file *fp, struct hfi1_user_info *uinfo,
+-	if (nport != 1 || OPA_AM_PORTNUM(am)) {
++	if (nport != 1) {
+ 		smp->status |= IB_SMP_INVALID_FIELD;
+ 		return reply((struct ib_mad_hdr *)smp);
+ 	}
+@@ -3483,7 +3483,7 @@ static int __subn_set_opa_led_info(struct opa_smp *smp, u32 am, u8 *data,
+ 	u32 nport = OPA_AM_NPORT(am);
+ 	int on = !!(be32_to_cpu(p->rsvd_led_mask) & OPA_LED_MASK);
  
- 			for (dev = 0; dev < devmax; dev++) {
- 				pdd = hfi1_lookup(dev);
--				if (pdd && pdd->freectxts &&
-+				if (!pdd)
-+					continue;
-+				if (!usable_device(pdd))
-+					continue;
-+				if (pdd->freectxts &&
- 				    pdd->freectxts > free) {
- 					dd = pdd;
- 					free = pdd->freectxts;
-@@ -912,7 +924,11 @@ static int get_user_context(struct file *fp, struct hfi1_user_info *uinfo,
- 		} else {
- 			for (dev = 0; dev < devmax; dev++) {
- 				pdd = hfi1_lookup(dev);
--				if (pdd && pdd->freectxts) {
-+				if (!pdd)
-+					continue;
-+				if (!usable_device(pdd))
-+					continue;
-+				if (pdd->freectxts) {
- 					dd = pdd;
- 					break;
- 				}
-@@ -936,7 +952,6 @@ static int find_shared_ctxt(struct file *fp,
- 	for (ndev = 0; ndev < devmax; ndev++) {
- 		struct hfi1_devdata *dd = hfi1_lookup(ndev);
- 
--		/* device portion of usable() */
- 		if (!(dd && (dd->flags & HFI1_PRESENT) && dd->kregbase))
- 			continue;
- 		for (i = dd->first_user_ctxt; i < dd->num_rcv_contexts; i++) {
+-	if (nport != 1 || OPA_AM_PORTNUM(am)) {
++	if (nport != 1) {
+ 		smp->status |= IB_SMP_INVALID_FIELD;
+ 		return reply((struct ib_mad_hdr *)smp);
+ 	}
 -- 
 1.7.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
