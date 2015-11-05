@@ -1,60 +1,70 @@
-From: Jubin John <jubin.john@intel.com>
-Subject: [PATCH] staging/rdma/hfi1: Fix for opaportconfig ledon by not
- checking for portNum
-Date: Thu,  5 Nov 2015 18:53:26 -0500
-Message-ID: <1446767606-26654-1-git-send-email-jubin.john@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org
-Cc: linux-rdma@vger.kernel.org, dledford@redhat.com
+From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] staging/rdma/hfi1: Remove spurious error messages
+Date: Thu,  5 Nov 2015 18:58:25 -0500
+Message-ID: <1446767905-26811-1-git-send-email-jubin.john@intel.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sebastian Sanchez <sebastian.sanchez@intel.com>
+From: Ignacio Hernandez <ignacio.hernandez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-opaportconfig ledon fails with error message due to port
-number being checked in the attr modifier. This change
-removes the check for the port number in AttrMod, so the
-P field is ignored.
+Changed the order in which diagnostics messages are printed,
+taking into account the cases where the errors are handled in
+rcv_hdrerr() and no further message is needed to report.
 
-Reviewed-by: Easwar Hariharan <easwar.hariharan@intel.com>
-Signed-off-by: Sebastian Sanchez <sebastian.sanchez@intel.com>
-Signed-off-by: Jubin John <jubin.john@intel.com>
+Reviewed-by: Mark Debbage <mark.debbage-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Arthur Kepner <arthur.kepner-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ignacio Hernandez <ignacio.hernandez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/mad.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/staging/rdma/hfi1/driver.c |   26 +++++++++++++-------------
+ 1 files changed, 13 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/mad.c b/drivers/staging/rdma/hfi1/mad.c
-index 32f7037..a122565 100644
---- a/drivers/staging/rdma/hfi1/mad.c
-+++ b/drivers/staging/rdma/hfi1/mad.c
-@@ -3458,7 +3458,7 @@ static int __subn_get_opa_led_info(struct opa_smp *smp, u32 am, u8 *data,
- 	u32 nport = OPA_AM_NPORT(am);
- 	u64 reg;
+diff --git a/drivers/staging/rdma/hfi1/driver.c b/drivers/staging/rdma/hfi1/driver.c
+index ce69141..61fc626 100644
+--- a/drivers/staging/rdma/hfi1/driver.c
++++ b/drivers/staging/rdma/hfi1/driver.c
+@@ -1163,20 +1163,20 @@ void handle_eflags(struct hfi1_packet *packet)
+ 	struct hfi1_ctxtdata *rcd = packet->rcd;
+ 	u32 rte = rhf_rcv_type_err(packet->rhf);
  
--	if (nport != 1 || OPA_AM_PORTNUM(am)) {
-+	if (nport != 1) {
- 		smp->status |= IB_SMP_INVALID_FIELD;
- 		return reply((struct ib_mad_hdr *)smp);
- 	}
-@@ -3483,7 +3483,7 @@ static int __subn_set_opa_led_info(struct opa_smp *smp, u32 am, u8 *data,
- 	u32 nport = OPA_AM_NPORT(am);
- 	int on = !!(be32_to_cpu(p->rsvd_led_mask) & OPA_LED_MASK);
+-	dd_dev_err(rcd->dd,
+-		"receive context %d: rhf 0x%016llx, errs [ %s%s%s%s%s%s%s%s] rte 0x%x\n",
+-		rcd->ctxt, packet->rhf,
+-		packet->rhf & RHF_K_HDR_LEN_ERR ? "k_hdr_len " : "",
+-		packet->rhf & RHF_DC_UNC_ERR ? "dc_unc " : "",
+-		packet->rhf & RHF_DC_ERR ? "dc " : "",
+-		packet->rhf & RHF_TID_ERR ? "tid " : "",
+-		packet->rhf & RHF_LEN_ERR ? "len " : "",
+-		packet->rhf & RHF_ECC_ERR ? "ecc " : "",
+-		packet->rhf & RHF_VCRC_ERR ? "vcrc " : "",
+-		packet->rhf & RHF_ICRC_ERR ? "icrc " : "",
+-		rte);
+-
+ 	rcv_hdrerr(rcd, rcd->ppd, packet);
++	if (rhf_err_flags(packet->rhf))
++		dd_dev_err(rcd->dd,
++			   "receive context %d: rhf 0x%016llx, errs [ %s%s%s%s%s%s%s%s] rte 0x%x\n",
++			   rcd->ctxt, packet->rhf,
++			   packet->rhf & RHF_K_HDR_LEN_ERR ? "k_hdr_len " : "",
++			   packet->rhf & RHF_DC_UNC_ERR ? "dc_unc " : "",
++			   packet->rhf & RHF_DC_ERR ? "dc " : "",
++			   packet->rhf & RHF_TID_ERR ? "tid " : "",
++			   packet->rhf & RHF_LEN_ERR ? "len " : "",
++			   packet->rhf & RHF_ECC_ERR ? "ecc " : "",
++			   packet->rhf & RHF_VCRC_ERR ? "vcrc " : "",
++			   packet->rhf & RHF_ICRC_ERR ? "icrc " : "",
++			   rte);
+ }
  
--	if (nport != 1 || OPA_AM_PORTNUM(am)) {
-+	if (nport != 1) {
- 		smp->status |= IB_SMP_INVALID_FIELD;
- 		return reply((struct ib_mad_hdr *)smp);
- 	}
+ /*
 -- 
 1.7.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
