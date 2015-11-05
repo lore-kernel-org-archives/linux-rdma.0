@@ -1,68 +1,82 @@
-From: Jubin John <jubin.john@intel.com>
-Subject: [PATCH v2] staging/rdma/hfi1: Disable thermal polling before sensor
- initialization
-Date: Thu,  5 Nov 2015 18:36:25 -0500
-Message-ID: <1446766585-25952-1-git-send-email-jubin.john@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org
-Cc: linux-rdma@vger.kernel.org, dledford@redhat.com
+From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] staging/rdma/hfi1: Select only devices with active links
+Date: Thu,  5 Nov 2015 18:48:16 -0500
+Message-ID: <1446767296-26479-1-git-send-email-jubin.john@intel.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jareer Abdel-Qader <jareer.h.abdel-qader@intel.com>
+From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-During driver load the thermal sensor needs to be reset prior
-to initialization of the sensor. This prevents a possible sensor lock
-up which can cause the wrong temperature value to be reported.
-This fix leads to remove disabling thermal polling from
-reset_asic_csrs() function.
+When looking for or validating a user device, only use devices
+that are currently active.
 
-Reviewed by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Reviewed by: Easwar Hariharan <easwar.hariharan@intel.com>
-Signed-off-by: Jareer Abdel-Qader <jareer.h.abdel-qader@intel.com>
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-Signed-off-by: Jubin John <jubin.john@intel.com>
+Reviewed-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
-Changes in v2:
-	- Fixed author name format
+ drivers/staging/rdma/hfi1/file_ops.c |   21 ++++++++++++++++++---
+ 1 files changed, 18 insertions(+), 3 deletions(-)
 
- drivers/staging/rdma/hfi1/chip.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index e489819..e1951f4 100644
---- a/drivers/staging/rdma/hfi1/chip.c
-+++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -9455,7 +9455,7 @@ static void reset_asic_csrs(struct hfi1_devdata *dd)
- 	/* We might want to retain this state across FLR if we ever use it */
- 	write_csr(dd, ASIC_CFG_DRV_STR, 0);
+diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
+index aae9826..cd4c982 100644
+--- a/drivers/staging/rdma/hfi1/file_ops.c
++++ b/drivers/staging/rdma/hfi1/file_ops.c
+@@ -874,6 +874,14 @@ done:
+ 	return ret;
+ }
  
--	write_csr(dd, ASIC_CFG_THERM_POLL_EN, 0);
-+	/* ASIC_CFG_THERM_POLL_EN leave alone */
- 	/* ASIC_STS_THERM read-only */
- 	/* ASIC_CFG_RESET leave alone */
++/* return true if the device available for general use */
++static int usable_device(struct hfi1_devdata *dd)
++{
++	struct hfi1_pportdata *ppd = dd->pport;
++
++	return driver_lstate(ppd) == IB_PORT_ACTIVE;
++}
++
+ static int get_user_context(struct file *fp, struct hfi1_user_info *uinfo,
+ 			    int devno, unsigned alg)
+ {
+@@ -903,7 +911,11 @@ static int get_user_context(struct file *fp, struct hfi1_user_info *uinfo,
  
-@@ -10803,7 +10803,9 @@ static int thermal_init(struct hfi1_devdata *dd)
+ 			for (dev = 0; dev < devmax; dev++) {
+ 				pdd = hfi1_lookup(dev);
+-				if (pdd && pdd->freectxts &&
++				if (!pdd)
++					continue;
++				if (!usable_device(pdd))
++					continue;
++				if (pdd->freectxts &&
+ 				    pdd->freectxts > free) {
+ 					dd = pdd;
+ 					free = pdd->freectxts;
+@@ -912,7 +924,11 @@ static int get_user_context(struct file *fp, struct hfi1_user_info *uinfo,
+ 		} else {
+ 			for (dev = 0; dev < devmax; dev++) {
+ 				pdd = hfi1_lookup(dev);
+-				if (pdd && pdd->freectxts) {
++				if (!pdd)
++					continue;
++				if (!usable_device(pdd))
++					continue;
++				if (pdd->freectxts) {
+ 					dd = pdd;
+ 					break;
+ 				}
+@@ -936,7 +952,6 @@ static int find_shared_ctxt(struct file *fp,
+ 	for (ndev = 0; ndev < devmax; ndev++) {
+ 		struct hfi1_devdata *dd = hfi1_lookup(ndev);
  
- 	acquire_hw_mutex(dd);
- 	dd_dev_info(dd, "Initializing thermal sensor\n");
--
-+	/* Disable polling of thermal readings */
-+	write_csr(dd, ASIC_CFG_THERM_POLL_EN, 0x0);
-+	msleep(100);
- 	/* Thermal Sensor Initialization */
- 	/*    Step 1: Reset the Thermal SBus Receiver */
- 	ret = sbus_request_slow(dd, SBUS_THERMAL, 0x0,
+-		/* device portion of usable() */
+ 		if (!(dd && (dd->flags & HFI1_PRESENT) && dd->kregbase))
+ 			continue;
+ 		for (i = dd->first_user_ctxt; i < dd->num_rcv_contexts; i++) {
 -- 
 1.7.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
