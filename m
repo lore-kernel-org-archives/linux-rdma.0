@@ -1,39 +1,28 @@
-From: Leon Romanovsky <leon@leon.nu>
-Subject: Re: [PATCH 1/1] staging: rdma: hfi1 : Prefer using the BIT macro
-Date: Thu, 5 Nov 2015 15:27:33 +0200
-Message-ID: <20151105132733.GD4023@leon.nu>
+From: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
+Subject: RE: [PATCH 1/1] staging: rdma: hfi1 : Prefer using the BIT macro
+Date: Thu, 5 Nov 2015 14:24:37 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC25996212@fmsmsx120.amr.corp.intel.com>
 References: <1446724683-30092-1-git-send-email-sunnyk@cdac.in>
-Reply-To: leon@leon.nu
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
 In-Reply-To: <1446724683-30092-1-git-send-email-sunnyk@cdac.in>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sunny Kumar <sunny.kumar.roy@gmail.com>
-Cc: Mike Marciniszyn <infinipath@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-rdma@vger.kernel.org, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, Sunny Kumar <sunnyk@cdac.in>
+To: Sunny Kumar <sunny.kumar.roy@gmail.com>, Doug Ledford <dledford@redhat.com>, "Hefty, Sean" <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: Sunny Kumar <sunnyk@cdac.in>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 05, 2015 at 05:28:03PM +0530, Sunny Kumar wrote:
+> Subject: [PATCH 1/1] staging: rdma: hfi1 : Prefer using the BIT macro
+> 
 > This patch replaces bit shifting on 1 with the BIT(x) macro
 > 
 > Signed-off-by: Sunny Kumar <sunnyk@cdac.in>
 > ---
->  drivers/staging/rdma/hfi1/user_sdma.c | 10 +++++-----
->  1 file changed, 5 insertions(+), 5 deletions(-)
-> 
->  /* Last packet in the request */
-> -#define TXREQ_FLAGS_REQ_LAST_PKT   (1 << 0)
-> -#define TXREQ_FLAGS_IOVEC_LAST_PKT (1 << 0)
-> +#define TXREQ_FLAGS_REQ_LAST_PKT   BIT(1 << 0)
-> +#define TXREQ_FLAGS_IOVEC_LAST_PKT BIT(1 << 0)
->  
-It is wrong. It actually creates 0x2 instead of 0x1.
 
-> -#define SDMA_PKT_Q_INACTIVE (1 << 0)
-> -#define SDMA_PKT_Q_ACTIVE   (1 << 1)
-> -#define SDMA_PKT_Q_DEFERRED (1 << 2)
-> +#define SDMA_PKT_Q_INACTIVE BIT(1 << 0)
-> +#define SDMA_PKT_Q_ACTIVE   BIT(1 << 1)
-> +#define SDMA_PKT_Q_DEFERRED BIT(1 << 2)
-The same comment as above. It is wrong.
+Nak.
+
+The patch leaves the shift in.
+
+Mike
