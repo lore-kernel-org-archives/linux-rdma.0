@@ -1,66 +1,89 @@
-From: "ira.weiny" <ira.weiny@intel.com>
-Subject: Re: [PATCH 1/1] staging: rdma: hfi1 : Prefer using the BIT macro
-Date: Thu, 5 Nov 2015 12:06:53 -0500
-Message-ID: <20151105170652.GC14837@phlsvsds.ph.intel.com>
-References: <1446724683-30092-1-git-send-email-sunnyk@cdac.in>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1446724683-30092-1-git-send-email-sunnyk@cdac.in>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sunny Kumar <sunny.kumar.roy@gmail.com>
-Cc: Mike Marciniszyn <infinipath@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-rdma@vger.kernel.org, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, Sunny Kumar <sunnyk@cdac.in>
+From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH ib-next 1/3] IB/core: Avoid duplicate code
+Date: Thu,  5 Nov 2015 19:40:06 +0200
+Message-ID: <1446745208-17733-2-git-send-email-eli@mellanox.com>
+References: <1446745208-17733-1-git-send-email-eli@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1446745208-17733-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 05, 2015 at 05:28:03PM +0530, Sunny Kumar wrote:
-> This patch replaces bit shifting on 1 with the BIT(x) macro
-> 
-> Signed-off-by: Sunny Kumar <sunnyk@cdac.in>
+Move the check on the validity of the command to a common area.
 
-Also, NAK as has been covered in other responses.
+Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/uverbs_main.c | 29 +++++++++--------------------
+ 1 file changed, 9 insertions(+), 20 deletions(-)
 
-However, I wanted to add, similar to the hfi1_ioctl fix, we have follow on
-checkpatch patches which address this.
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index e3ef28861be6..e93ba9125198 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -678,6 +678,7 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
+ 	struct ib_uverbs_file *file = filp->private_data;
+ 	struct ib_device *ib_dev;
+ 	struct ib_uverbs_cmd_hdr hdr;
++	__u32 command;
+ 	__u32 flags;
+ 	int srcu_key;
+ 	ssize_t ret;
+@@ -696,20 +697,18 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
+ 		goto out;
+ 	}
+ 
++	if (hdr.command & ~(__u32)(IB_USER_VERBS_CMD_FLAGS_MASK |
++				   IB_USER_VERBS_CMD_COMMAND_MASK)) {
++		ret = -EINVAL;
++		goto out;
++	}
++
++	command = hdr.command & IB_USER_VERBS_CMD_COMMAND_MASK;
++
+ 	flags = (hdr.command &
+ 		 IB_USER_VERBS_CMD_FLAGS_MASK) >> IB_USER_VERBS_CMD_FLAGS_SHIFT;
+ 
+ 	if (!flags) {
+-		__u32 command;
+-
+-		if (hdr.command & ~(__u32)(IB_USER_VERBS_CMD_FLAGS_MASK |
+-					   IB_USER_VERBS_CMD_COMMAND_MASK)) {
+-			ret = -EINVAL;
+-			goto out;
+-		}
+-
+-		command = hdr.command & IB_USER_VERBS_CMD_COMMAND_MASK;
+-
+ 		if (command >= ARRAY_SIZE(uverbs_cmd_table) ||
+ 		    !uverbs_cmd_table[command]) {
+ 			ret = -EINVAL;
+@@ -738,21 +737,11 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
+ 						 hdr.out_words * 4);
+ 
+ 	} else if (flags == IB_USER_VERBS_CMD_FLAG_EXTENDED) {
+-		__u32 command;
+-
+ 		struct ib_uverbs_ex_cmd_hdr ex_hdr;
+ 		struct ib_udata ucore;
+ 		struct ib_udata uhw;
+ 		size_t written_count = count;
+ 
+-		if (hdr.command & ~(__u32)(IB_USER_VERBS_CMD_FLAGS_MASK |
+-					   IB_USER_VERBS_CMD_COMMAND_MASK)) {
+-			ret = -EINVAL;
+-			goto out;
+-		}
+-
+-		command = hdr.command & IB_USER_VERBS_CMD_COMMAND_MASK;
+-
+ 		if (command >= ARRAY_SIZE(uverbs_ex_cmd_table) ||
+ 		    !uverbs_ex_cmd_table[command]) {
+ 			ret = -ENOSYS;
+-- 
+2.6.2
 
-Ira
-
-> ---
->  drivers/staging/rdma/hfi1/user_sdma.c | 10 +++++-----
->  1 file changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/staging/rdma/hfi1/user_sdma.c b/drivers/staging/rdma/hfi1/user_sdma.c
-> index 36c838d..95a6d99 100644
-> --- a/drivers/staging/rdma/hfi1/user_sdma.c
-> +++ b/drivers/staging/rdma/hfi1/user_sdma.c
-> @@ -146,8 +146,8 @@ MODULE_PARM_DESC(sdma_comp_size, "Size of User SDMA completion ring. Default: 12
->  #define KDETH_OM_MAX_SIZE  (1 << ((KDETH_OM_LARGE / KDETH_OM_SMALL) + 1))
->  
->  /* Last packet in the request */
-> -#define TXREQ_FLAGS_REQ_LAST_PKT   (1 << 0)
-> -#define TXREQ_FLAGS_IOVEC_LAST_PKT (1 << 0)
-> +#define TXREQ_FLAGS_REQ_LAST_PKT   BIT(1 << 0)
-> +#define TXREQ_FLAGS_IOVEC_LAST_PKT BIT(1 << 0)
->  
->  #define SDMA_REQ_IN_USE     0
->  #define SDMA_REQ_FOR_THREAD 1
-> @@ -156,9 +156,9 @@ MODULE_PARM_DESC(sdma_comp_size, "Size of User SDMA completion ring. Default: 12
->  #define SDMA_REQ_HAS_ERROR  4
->  #define SDMA_REQ_DONE_ERROR 5
->  
-> -#define SDMA_PKT_Q_INACTIVE (1 << 0)
-> -#define SDMA_PKT_Q_ACTIVE   (1 << 1)
-> -#define SDMA_PKT_Q_DEFERRED (1 << 2)
-> +#define SDMA_PKT_Q_INACTIVE BIT(1 << 0)
-> +#define SDMA_PKT_Q_ACTIVE   BIT(1 << 1)
-> +#define SDMA_PKT_Q_DEFERRED BIT(1 << 2)
->  
->  /*
->   * Maximum retry attempts to submit a TX request
-> -- 
-> 2.1.4
-> 
-> _______________________________________________
-> devel mailing list
-> devel@linuxdriverproject.org
-> http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
