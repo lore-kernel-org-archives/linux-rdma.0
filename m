@@ -1,109 +1,312 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 3/3] staging/rdma/hfi1: Method to toggle "fast ECN" detection
-Date: Wed,  4 Nov 2015 21:10:11 -0500
-Message-ID: <1446689411-22263-4-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 2/3] staging/rdma/hfi1: optionally prescan rx queue for {B,F}ECNs - UC, RC
+Date: Wed,  4 Nov 2015 21:10:10 -0500
+Message-ID: <1446689411-22263-3-git-send-email-ira.weiny@intel.com>
 References: <1446689411-22263-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1446689411-22263-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Vennila Megavannan <vennila.megavannan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Arthur Kepner <arthur.kepner-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Vennila Megavannan <vennila.megavannan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Arthur Kepner <arthur.kepner-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Add a module paramter to toggle prescan/Fast ECN Detection.
+To more rapidly respond to Explicit Congestion Notifications, prescan the
+receive queue, and process FECNs, and BECNs first.  When a UC, or RC packet
+containing a FECN, or BECN is found, immediately react to the ECN (either by
+returning a CNP, or adjusting the injection rate). Afterward, the packet will
+be processed normally.
 
-In addition change the PRESCAN_RXQ Kconfig default to "yes".
-
-Reviewed-by: Arthur Kepner<arthur.kepner-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Mike Marciniszyn<mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Vennila Megavannan<vennila.megavannan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Arthur Kepner <arthur.kepner-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/Kconfig  | 14 +++++++-------
- drivers/staging/rdma/hfi1/driver.c | 24 +++++++++++++++++-------
- 2 files changed, 24 insertions(+), 14 deletions(-)
+ drivers/staging/rdma/hfi1/driver.c | 64 +++++++++++++++++++-------------------
+ drivers/staging/rdma/hfi1/rc.c     | 10 +++---
+ drivers/staging/rdma/hfi1/uc.c     | 15 +++++----
+ drivers/staging/rdma/hfi1/verbs.c  | 41 ++++++++++++++++++++----
+ 4 files changed, 81 insertions(+), 49 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/Kconfig b/drivers/staging/rdma/hfi1/Kconfig
-index fd25078ee923..cfc9f9324b8d 100644
---- a/drivers/staging/rdma/hfi1/Kconfig
-+++ b/drivers/staging/rdma/hfi1/Kconfig
-@@ -26,12 +26,12 @@ config SDMA_VERBOSITY
- 	This is a configuration flag to enable verbose
- 	SDMA debug
- config PRESCAN_RXQ
--	bool "Enable prescanning of the RX queue for ECNs"
-+	bool "Enable optional prescanning of the RX queue for ECNs"
- 	depends on INFINIBAND_HFI1
--	default n
-+	default y
- 	---help---
--	This option toggles the prescanning of the receive queue for
--	Explicit Congestion Notifications. If an ECN is detected, it
--	is processed as quickly as possible, the ECN is toggled off.
--	After the prescanning step, the receive queue is processed as
--	usual.
-+	This option enables code for the prescanning of the receive queue for
-+	Explicit Congestion Notifications.  Pre-scanning can be controlled via a
-+	module option at run time.  If an ECN is detected, it is processed as
-+	quickly as possible, the ECN is toggled off.  After the prescanning
-+	step, the receive queue is processed as usual.
 diff --git a/drivers/staging/rdma/hfi1/driver.c b/drivers/staging/rdma/hfi1/driver.c
-index 9a4ec09af020..4c1dd7130d7a 100644
+index cfcbe417fde9..9a4ec09af020 100644
 --- a/drivers/staging/rdma/hfi1/driver.c
 +++ b/drivers/staging/rdma/hfi1/driver.c
-@@ -83,6 +83,14 @@ unsigned int hfi1_cu = 1;
- module_param_named(cu, hfi1_cu, uint, S_IRUGO);
- MODULE_PARM_DESC(cu, "Credit return units");
- 
-+#ifdef CONFIG_PRESCAN_RXQ
-+static unsigned int prescan_rx_queue;
-+module_param_named(prescan_rxq, prescan_rx_queue, uint,
-+		   S_IRUGO | S_IWUSR);
-+MODULE_PARM_DESC(prescan_rxq,
-+		 "Used to toggle rx prescan. Set to 1 to enable prescan");
-+#endif /* CONFIG_PRESCAN_RXQ */
-+
- unsigned long hfi1_cap_mask = HFI1_CAP_MASK_DEFAULT;
- static int hfi1_caps_set(const char *, const struct kernel_param *);
- static int hfi1_caps_get(char *, const struct kernel_param *);
-@@ -435,10 +443,8 @@ static inline void init_packet(struct hfi1_ctxtdata *rcd,
- }
+@@ -436,59 +436,58 @@ static inline void init_packet(struct hfi1_ctxtdata *rcd,
  
  #ifndef CONFIG_PRESCAN_RXQ
--static void prescan_rxq(struct hfi1_packet *packet) {}
-+#define prescan_rxq(packet)
- #else /* !CONFIG_PRESCAN_RXQ */
--static int prescan_receive_queue;
--
+ static void prescan_rxq(struct hfi1_packet *packet) {}
+-#else /* CONFIG_PRESCAN_RXQ */
++#else /* !CONFIG_PRESCAN_RXQ */
+ static int prescan_receive_queue;
+ 
  static void process_ecn(struct hfi1_qp *qp, struct hfi1_ib_header *hdr,
  			struct hfi1_other_headers *ohdr,
- 			u64 rhf, u32 bth1, struct ib_grh *grh)
-@@ -541,15 +547,19 @@ static inline void update_ps_mdata(struct ps_mdata *mdata)
-  * containing Excplicit Congestion Notifications (FECNs, or BECNs).
-  * When an ECN is found, process the Congestion Notification, and toggle
-  * it off.
-+ * This is declared as a macro to allow quick checking of the module param and
-+ * avoid the overhead of a function call if not enabled.
-  */
--static void prescan_rxq(struct hfi1_packet *packet)
-+#define prescan_rxq(packet) \
-+	do { \
-+		if (prescan_rx_queue) \
-+			__prescan_rxq(packet); \
-+	} while (0)
-+static void __prescan_rxq(struct hfi1_packet *packet)
+-			u64 rhf, struct ib_grh *grh)
++			u64 rhf, u32 bth1, struct ib_grh *grh)
  {
- 	struct hfi1_ctxtdata *rcd = packet->rcd;
- 	struct ps_mdata mdata;
+ 	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
+-	u32 bth1;
++	u32 rqpn = 0;
++	u16 rlid;
+ 	u8 sc5, svc_type;
+-	int is_fecn, is_becn;
  
--	if (!prescan_receive_queue)
--		return;
+ 	switch (qp->ibqp.qp_type) {
++	case IB_QPT_SMI:
++	case IB_QPT_GSI:
+ 	case IB_QPT_UD:
++		rlid = be16_to_cpu(hdr->lrh[3]);
++		rqpn = be32_to_cpu(ohdr->u.ud.deth[1]) & HFI1_QPN_MASK;
+ 		svc_type = IB_CC_SVCTYPE_UD;
+ 		break;
+-	case IB_QPT_UC:	/* LATER */
+-	case IB_QPT_RC:	/* LATER */
++	case IB_QPT_UC:
++		rlid = qp->remote_ah_attr.dlid;
++		rqpn = qp->remote_qpn;
++		svc_type = IB_CC_SVCTYPE_UC;
++		break;
++	case IB_QPT_RC:
++		rlid = qp->remote_ah_attr.dlid;
++		rqpn = qp->remote_qpn;
++		svc_type = IB_CC_SVCTYPE_RC;
++		break;
+ 	default:
+ 		return;
+ 	}
+ 
+-	is_fecn = (be32_to_cpu(ohdr->bth[1]) >> HFI1_FECN_SHIFT) &
+-			HFI1_FECN_MASK;
+-	is_becn = (be32_to_cpu(ohdr->bth[1]) >> HFI1_BECN_SHIFT) &
+-			HFI1_BECN_MASK;
 -
- 	init_ps_mdata(&mdata, packet);
+ 	sc5 = (be16_to_cpu(hdr->lrh[0]) >> 12) & 0xf;
+ 	if (rhf_dc_info(rhf))
+ 		sc5 |= 0x10;
  
- 	while (1) {
+-	if (is_fecn) {
+-		u32 src_qpn = be32_to_cpu(ohdr->u.ud.deth[1]) & HFI1_QPN_MASK;
++	if (bth1 & HFI1_FECN_SMASK) {
+ 		u16 pkey = (u16)be32_to_cpu(ohdr->bth[0]);
+ 		u16 dlid = be16_to_cpu(hdr->lrh[1]);
+-		u16 slid = be16_to_cpu(hdr->lrh[3]);
+ 
+-		return_cnp(ibp, qp, src_qpn, pkey, dlid, slid, sc5, grh);
++		return_cnp(ibp, qp, rqpn, pkey, dlid, rlid, sc5, grh);
+ 	}
+ 
+-	if (is_becn) {
++	if (bth1 & HFI1_BECN_SMASK) {
+ 		struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+-		u32 lqpn =  be32_to_cpu(ohdr->bth[1]) & HFI1_QPN_MASK;
++		u32 lqpn = bth1 & HFI1_QPN_MASK;
+ 		u8 sl = ibp->sc_to_sl[sc5];
+ 
+-		process_becn(ppd, sl, 0, lqpn, 0, svc_type);
++		process_becn(ppd, sl, rlid, lqpn, rqpn, svc_type);
+ 	}
+-
+-	/* turn off BECN, or FECN */
+-	bth1 = be32_to_cpu(ohdr->bth[1]);
+-	bth1 &= ~(HFI1_FECN_MASK << HFI1_FECN_SHIFT);
+-	bth1 &= ~(HFI1_BECN_MASK << HFI1_BECN_SHIFT);
+-	ohdr->bth[1] = cpu_to_be32(bth1);
+ }
+ 
+ struct ps_mdata {
+@@ -508,7 +507,6 @@ static inline void init_ps_mdata(struct ps_mdata *mdata,
+ 	mdata->rcd = rcd;
+ 	mdata->rsize = packet->rsize;
+ 	mdata->maxcnt = packet->maxcnt;
+-
+ 	mdata->ps_head = packet->rhqoff;
+ 
+ 	if (HFI1_CAP_IS_KSET(DMA_RTAIL)) {
+@@ -564,7 +562,7 @@ static void prescan_rxq(struct hfi1_packet *packet)
+ 		struct hfi1_other_headers *ohdr;
+ 		struct ib_grh *grh = NULL;
+ 		u64 rhf = rhf_to_cpu(rhf_addr);
+-		u32 etype = rhf_rcv_type(rhf), qpn;
++		u32 etype = rhf_rcv_type(rhf), qpn, bth1;
+ 		int is_ecn = 0;
+ 		u8 lnh;
+ 
+@@ -586,15 +584,13 @@ static void prescan_rxq(struct hfi1_packet *packet)
+ 		} else
+ 			goto next; /* just in case */
+ 
+-		is_ecn |= be32_to_cpu(ohdr->bth[1]) &
+-			(HFI1_FECN_MASK << HFI1_FECN_SHIFT);
+-		is_ecn |= be32_to_cpu(ohdr->bth[1]) &
+-			(HFI1_BECN_MASK << HFI1_BECN_SHIFT);
++		bth1 = be32_to_cpu(ohdr->bth[1]);
++		is_ecn = !!(bth1 & (HFI1_FECN_SMASK | HFI1_BECN_SMASK));
+ 
+ 		if (!is_ecn)
+ 			goto next;
+ 
+-		qpn = be32_to_cpu(ohdr->bth[1]) & HFI1_QPN_MASK;
++		qpn = bth1 & HFI1_QPN_MASK;
+ 		rcu_read_lock();
+ 		qp = hfi1_lookup_qpn(ibp, qpn);
+ 
+@@ -603,8 +599,12 @@ static void prescan_rxq(struct hfi1_packet *packet)
+ 			goto next;
+ 		}
+ 
+-		process_ecn(qp, hdr, ohdr, rhf, grh);
++		process_ecn(qp, hdr, ohdr, rhf, bth1, grh);
+ 		rcu_read_unlock();
++
++		/* turn off BECN, FECN */
++		bth1 &= ~(HFI1_FECN_SMASK | HFI1_BECN_SMASK);
++		ohdr->bth[1] = cpu_to_be32(bth1);
+ next:
+ 		update_ps_mdata(&mdata);
+ 	}
+diff --git a/drivers/staging/rdma/hfi1/rc.c b/drivers/staging/rdma/hfi1/rc.c
+index 0b19206ff33e..e25c70b9de34 100644
+--- a/drivers/staging/rdma/hfi1/rc.c
++++ b/drivers/staging/rdma/hfi1/rc.c
+@@ -1978,7 +1978,7 @@ void hfi1_rc_rcv(struct hfi1_packet *packet)
+ 	}
+ 
+ 	psn = be32_to_cpu(ohdr->bth[2]);
+-	opcode = bth0 >> 24;
++	opcode = (bth0 >> 24) & 0xff;
+ 
+ 	/*
+ 	 * Process responses (ACKs) before anything else.  Note that the
+@@ -2391,19 +2391,19 @@ void hfi1_rc_hdrerr(
+ 	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
+ 	int diff;
+ 	u32 opcode;
+-	u32 psn;
++	u32 psn, bth0;
+ 
+ 	/* Check for GRH */
+ 	ohdr = &hdr->u.oth;
+ 	if (has_grh)
+ 		ohdr = &hdr->u.l.oth;
+ 
+-	opcode = be32_to_cpu(ohdr->bth[0]);
+-	if (hfi1_ruc_check_hdr(ibp, hdr, has_grh, qp, opcode))
++	bth0 = be32_to_cpu(ohdr->bth[0]);
++	if (hfi1_ruc_check_hdr(ibp, hdr, has_grh, qp, bth0))
+ 		return;
+ 
+ 	psn = be32_to_cpu(ohdr->bth[2]);
+-	opcode >>= 24;
++	opcode = (bth0 >> 24) & 0xff;
+ 
+ 	/* Only deal with RDMA Writes for now */
+ 	if (opcode < IB_OPCODE_RC_RDMA_READ_RESPONSE_FIRST) {
+diff --git a/drivers/staging/rdma/hfi1/uc.c b/drivers/staging/rdma/hfi1/uc.c
+index b536f397737c..d785878d8b90 100644
+--- a/drivers/staging/rdma/hfi1/uc.c
++++ b/drivers/staging/rdma/hfi1/uc.c
+@@ -268,7 +268,7 @@ void hfi1_uc_rcv(struct hfi1_packet *packet)
+ 	u32 tlen = packet->tlen;
+ 	struct hfi1_qp *qp = packet->qp;
+ 	struct hfi1_other_headers *ohdr = packet->ohdr;
+-	u32 opcode;
++	u32 bth0, opcode;
+ 	u32 hdrsize = packet->hlen;
+ 	u32 psn;
+ 	u32 pad;
+@@ -278,10 +278,9 @@ void hfi1_uc_rcv(struct hfi1_packet *packet)
+ 	int has_grh = rcv_flags & HFI1_HAS_GRH;
+ 	int ret;
+ 	u32 bth1;
+-	struct ib_grh *grh = NULL;
+ 
+-	opcode = be32_to_cpu(ohdr->bth[0]);
+-	if (hfi1_ruc_check_hdr(ibp, hdr, has_grh, qp, opcode))
++	bth0 = be32_to_cpu(ohdr->bth[0]);
++	if (hfi1_ruc_check_hdr(ibp, hdr, has_grh, qp, bth0))
+ 		return;
+ 
+ 	bth1 = be32_to_cpu(ohdr->bth[1]);
+@@ -303,6 +302,7 @@ void hfi1_uc_rcv(struct hfi1_packet *packet)
+ 		}
+ 
+ 		if (bth1 & HFI1_FECN_SMASK) {
++			struct ib_grh *grh = NULL;
+ 			u16 pkey = (u16)be32_to_cpu(ohdr->bth[0]);
+ 			u16 slid = be16_to_cpu(hdr->lrh[3]);
+ 			u16 dlid = be16_to_cpu(hdr->lrh[1]);
+@@ -310,13 +310,16 @@ void hfi1_uc_rcv(struct hfi1_packet *packet)
+ 			u8 sc5;
+ 
+ 			sc5 = ibp->sl_to_sc[qp->remote_ah_attr.sl];
++			if (has_grh)
++				grh = &hdr->u.l.grh;
+ 
+-			return_cnp(ibp, qp, src_qp, pkey, dlid, slid, sc5, grh);
++			return_cnp(ibp, qp, src_qp, pkey, dlid, slid, sc5,
++				   grh);
+ 		}
+ 	}
+ 
+ 	psn = be32_to_cpu(ohdr->bth[2]);
+-	opcode >>= 24;
++	opcode = (bth0 >> 24) & 0xff;
+ 
+ 	/* Compare the PSN verses the expected PSN. */
+ 	if (unlikely(cmp_psn(psn, qp->r_psn) != 0)) {
+diff --git a/drivers/staging/rdma/hfi1/verbs.c b/drivers/staging/rdma/hfi1/verbs.c
+index a13a2b135365..b31588264ca0 100644
+--- a/drivers/staging/rdma/hfi1/verbs.c
++++ b/drivers/staging/rdma/hfi1/verbs.c
+@@ -2142,11 +2142,40 @@ void hfi1_schedule_send(struct hfi1_qp *qp)
+ void hfi1_cnp_rcv(struct hfi1_packet *packet)
+ {
+ 	struct hfi1_ibport *ibp = &packet->rcd->ppd->ibport_data;
+-
+-	if (packet->qp->ibqp.qp_type == IB_QPT_UC)
+-		hfi1_uc_rcv(packet);
+-	else if (packet->qp->ibqp.qp_type == IB_QPT_UD)
+-		hfi1_ud_rcv(packet);
+-	else
++	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
++	struct hfi1_ib_header *hdr = packet->hdr;
++	struct hfi1_qp *qp = packet->qp;
++	u32 lqpn, rqpn = 0;
++	u16 rlid = 0;
++	u8 sl, sc5, sc4_bit, svc_type;
++	bool sc4_set = has_sc4_bit(packet);
++
++	switch (packet->qp->ibqp.qp_type) {
++	case IB_QPT_UC:
++		rlid = qp->remote_ah_attr.dlid;
++		rqpn = qp->remote_qpn;
++		svc_type = IB_CC_SVCTYPE_UC;
++		break;
++	case IB_QPT_RC:
++		rlid = qp->remote_ah_attr.dlid;
++		rqpn = qp->remote_qpn;
++		svc_type = IB_CC_SVCTYPE_RC;
++		break;
++	case IB_QPT_SMI:
++	case IB_QPT_GSI:
++	case IB_QPT_UD:
++		svc_type = IB_CC_SVCTYPE_UD;
++		break;
++	default:
+ 		ibp->n_pkt_drops++;
++		return;
++	}
++
++	sc4_bit = sc4_set << 4;
++	sc5 = (be16_to_cpu(hdr->lrh[0]) >> 12) & 0xf;
++	sc5 |= sc4_bit;
++	sl = ibp->sc_to_sl[sc5];
++	lqpn = qp->ibqp.qp_num;
++
++	process_becn(ppd, sl, rlid, lqpn, rqpn, svc_type);
+ }
 -- 
 1.8.2
 
