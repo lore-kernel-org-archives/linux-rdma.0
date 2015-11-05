@@ -1,58 +1,38 @@
-From: jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH] staging/rdma/hfi1: Disable thermal polling before sensor initialization
-Date: Wed,  4 Nov 2015 23:44:17 -0500
-Message-ID: <1446698657-26743-1-git-send-email-jubin.john@intel.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, "jareer.h.abdel-qader" <jareer.h.abdel-qader-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [PATCH] staging/rdma/hfi1: set Gen3 half-swing for integrated
+ devices
+Date: Thu, 5 Nov 2015 10:34:48 +0300
+Message-ID: <20151105073448.GQ18797@mwanda>
+References: <1446689168-21620-1-git-send-email-ira.weiny@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+Content-Disposition: inline
+In-Reply-To: <1446689168-21620-1-git-send-email-ira.weiny@intel.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: ira.weiny@intel.com
+Cc: devel@driverdev.osuosl.org, gregkh@linuxfoundation.org, dledford@redhat.com, Dean Luick <dean.luick@intel.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: jareer.h.abdel-qader <jareer.h.abdel-qader-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Wed, Nov 04, 2015 at 09:06:08PM -0500, ira.weiny@intel.com wrote:
 
-During driver load the thermal sensor needs to be reset prior
-to initialization of the sensor. This prevents a possible sensor lock
-up which can cause the wrong temperature value to be reported.
-This fix leads to remove disabling thermal polling from
-reset_asic_csrs() function.
+> +#define CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_OVERWRITE_ENABLE_MASK 0x1ull
 
-Reviewed by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Jareer Abdel-Qader <jareer.h.abdel-qader-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/staging/rdma/hfi1/chip.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+There is absolutely no point to having a variable name which is nine
+bajillion characters long since we are not able to use it and have to
+instead use macro majic to hide the first twelve zillion characters.  If
+we can't even see the name when it is used, then why does it exist? Also
+macro magic breaks grep and cscope.  Just think of a better name to
+begin with and get rid of the PC macro.
 
-diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index e489819..e1951f4 100644
---- a/drivers/staging/rdma/hfi1/chip.c
-+++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -9455,7 +9455,7 @@ static void reset_asic_csrs(struct hfi1_devdata *dd)
- 	/* We might want to retain this state across FLR if we ever use it */
- 	write_csr(dd, ASIC_CFG_DRV_STR, 0);
- 
--	write_csr(dd, ASIC_CFG_THERM_POLL_EN, 0);
-+	/* ASIC_CFG_THERM_POLL_EN leave alone */
- 	/* ASIC_STS_THERM read-only */
- 	/* ASIC_CFG_RESET leave alone */
- 
-@@ -10803,7 +10803,9 @@ static int thermal_init(struct hfi1_devdata *dd)
- 
- 	acquire_hw_mutex(dd);
- 	dd_dev_info(dd, "Initializing thermal sensor\n");
--
-+	/* Disable polling of thermal readings */
-+	write_csr(dd, ASIC_CFG_THERM_POLL_EN, 0x0);
-+	msleep(100);
- 	/* Thermal Sensor Initialization */
- 	/*    Step 1: Reset the Thermal SBus Receiver */
- 	ret = sbus_request_slow(dd, SBUS_THERMAL, 0x0,
--- 
-1.7.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+regards,
+dan carpenter
