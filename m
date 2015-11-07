@@ -1,7 +1,7 @@
 From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH RESEND 10/11] staging/rdma/hfi1: Eliminate WARN_ON when VL is invalid
-Date: Fri,  6 Nov 2015 20:07:05 -0500
-Message-ID: <1446858426-30509-11-git-send-email-jubin.john@intel.com>
+Subject: [PATCH RESEND 04/11] staging/rdma/hfi1: Always download SBus firmware
+Date: Fri,  6 Nov 2015 20:06:59 -0500
+Message-ID: <1446858426-30509-5-git-send-email-jubin.john@intel.com>
 References: <1446858426-30509-1-git-send-email-jubin.john@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1446858426-30509-1-git-send-email-jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,51 +10,58 @@ To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQ
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-sdma_select_engine_vl only needs to protect itself from an invalid VL.
-Something higher up the stack should be warning the user when they try
-to use an SL which maps to an invalid VL.
+B0 dual port parts require the SBus firmware to always be
+downloaded.
 
-Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Ira Weiny <iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Remove reset of the SBus Master spico.  It is not necessary
+since the SBus firmware download already does that.
+
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/sdma.c |   12 ++++++++++--
- 1 files changed, 10 insertions(+), 2 deletions(-)
+ drivers/staging/rdma/hfi1/firmware.c |    2 +-
+ drivers/staging/rdma/hfi1/pcie.c     |   12 +-----------
+ 2 files changed, 2 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/sdma.c b/drivers/staging/rdma/hfi1/sdma.c
-index 2a1da21..998bf43 100644
---- a/drivers/staging/rdma/hfi1/sdma.c
-+++ b/drivers/staging/rdma/hfi1/sdma.c
-@@ -777,8 +777,14 @@ struct sdma_engine *sdma_select_engine_vl(
- 	struct sdma_map_elem *e;
- 	struct sdma_engine *rval;
+diff --git a/drivers/staging/rdma/hfi1/firmware.c b/drivers/staging/rdma/hfi1/firmware.c
+index b4bdcf3..f311282 100644
+--- a/drivers/staging/rdma/hfi1/firmware.c
++++ b/drivers/staging/rdma/hfi1/firmware.c
+@@ -1568,7 +1568,7 @@ int load_pcie_firmware(struct hfi1_devdata *dd)
+ 	/* both firmware loads below use the SBus */
+ 	set_sbus_fast_mode(dd);
  
--	if (WARN_ON(vl > 8))
--		return NULL;
-+	/* NOTE This should only happen if SC->VL changed after the initial
-+	 *      checks on the QP/AH
-+	 *      Default will return engine 0 below
-+	 */
-+	if (unlikely(vl >= num_vls)) {
-+		rval = NULL;
-+		goto done;
-+	}
+-	if (fw_sbus_load && (dd->flags & HFI1_DO_INIT_ASIC)) {
++	if (fw_sbus_load) {
+ 		turn_off_spicos(dd, SPICO_SBUS);
+ 		ret = load_sbus_firmware(dd, &fw_sbus);
+ 		if (ret)
+diff --git a/drivers/staging/rdma/hfi1/pcie.c b/drivers/staging/rdma/hfi1/pcie.c
+index 430e95a..01c0a5a 100644
+--- a/drivers/staging/rdma/hfi1/pcie.c
++++ b/drivers/staging/rdma/hfi1/pcie.c
+@@ -957,17 +957,7 @@ int do_pcie_gen3_transition(struct hfi1_devdata *dd)
+ 	}
  
- 	rcu_read_lock();
- 	m = rcu_dereference(dd->sdma_map);
-@@ -790,6 +796,8 @@ struct sdma_engine *sdma_select_engine_vl(
- 	rval = e->sde[selector & e->mask];
- 	rcu_read_unlock();
+ retry:
+-
+-	if (therm) {
+-		/*
+-		 * toggle SPICO_ENABLE to get back to the state
+-		 * just after the firmware load
+-		 */
+-		sbus_request(dd, SBUS_MASTER_BROADCAST, 0x01,
+-			WRITE_SBUS_RECEIVER, 0x00000040);
+-		sbus_request(dd, SBUS_MASTER_BROADCAST, 0x01,
+-			WRITE_SBUS_RECEIVER, 0x00000140);
+-	}
++	/* the SBus download will reset the spico for thermal */
  
-+done:
-+	rval =  !rval ? &dd->per_sdma[0] : rval;
- 	trace_hfi1_sdma_engine_select(dd, selector, vl, rval->this_idx);
- 	return rval;
- }
+ 	/* step 3: download SBus Master firmware */
+ 	/* step 4: download PCIe Gen3 SerDes firmware */
 -- 
 1.7.1
 
