@@ -1,7 +1,7 @@
 From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH RESEND 04/11] staging/rdma/hfi1: Always download SBus firmware
-Date: Fri,  6 Nov 2015 20:06:59 -0500
-Message-ID: <1446858426-30509-5-git-send-email-jubin.john@intel.com>
+Subject: [PATCH RESEND 06/11] staging/rdma/hfi1: Select only devices with active links
+Date: Fri,  6 Nov 2015 20:07:01 -0500
+Message-ID: <1446858426-30509-7-git-send-email-jubin.john@intel.com>
 References: <1446858426-30509-1-git-send-email-jubin.john@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1446858426-30509-1-git-send-email-jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,56 +12,69 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-B0 dual port parts require the SBus firmware to always be
-downloaded.
+When looking for or validating a user device, only use devices
+that are currently active.
 
-Remove reset of the SBus Master spico.  It is not necessary
-since the SBus firmware download already does that.
-
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/firmware.c |    2 +-
- drivers/staging/rdma/hfi1/pcie.c     |   12 +-----------
- 2 files changed, 2 insertions(+), 12 deletions(-)
+ drivers/staging/rdma/hfi1/file_ops.c |   21 ++++++++++++++++++---
+ 1 files changed, 18 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/firmware.c b/drivers/staging/rdma/hfi1/firmware.c
-index b4bdcf3..f311282 100644
---- a/drivers/staging/rdma/hfi1/firmware.c
-+++ b/drivers/staging/rdma/hfi1/firmware.c
-@@ -1568,7 +1568,7 @@ int load_pcie_firmware(struct hfi1_devdata *dd)
- 	/* both firmware loads below use the SBus */
- 	set_sbus_fast_mode(dd);
+diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
+index fba5889..6fc7691 100644
+--- a/drivers/staging/rdma/hfi1/file_ops.c
++++ b/drivers/staging/rdma/hfi1/file_ops.c
+@@ -874,6 +874,14 @@ done:
+ 	return ret;
+ }
  
--	if (fw_sbus_load && (dd->flags & HFI1_DO_INIT_ASIC)) {
-+	if (fw_sbus_load) {
- 		turn_off_spicos(dd, SPICO_SBUS);
- 		ret = load_sbus_firmware(dd, &fw_sbus);
- 		if (ret)
-diff --git a/drivers/staging/rdma/hfi1/pcie.c b/drivers/staging/rdma/hfi1/pcie.c
-index 430e95a..01c0a5a 100644
---- a/drivers/staging/rdma/hfi1/pcie.c
-+++ b/drivers/staging/rdma/hfi1/pcie.c
-@@ -957,17 +957,7 @@ int do_pcie_gen3_transition(struct hfi1_devdata *dd)
- 	}
++/* return true if the device available for general use */
++static int usable_device(struct hfi1_devdata *dd)
++{
++	struct hfi1_pportdata *ppd = dd->pport;
++
++	return driver_lstate(ppd) == IB_PORT_ACTIVE;
++}
++
+ static int get_user_context(struct file *fp, struct hfi1_user_info *uinfo,
+ 			    int devno, unsigned alg)
+ {
+@@ -903,7 +911,11 @@ static int get_user_context(struct file *fp, struct hfi1_user_info *uinfo,
  
- retry:
--
--	if (therm) {
--		/*
--		 * toggle SPICO_ENABLE to get back to the state
--		 * just after the firmware load
--		 */
--		sbus_request(dd, SBUS_MASTER_BROADCAST, 0x01,
--			WRITE_SBUS_RECEIVER, 0x00000040);
--		sbus_request(dd, SBUS_MASTER_BROADCAST, 0x01,
--			WRITE_SBUS_RECEIVER, 0x00000140);
--	}
-+	/* the SBus download will reset the spico for thermal */
+ 			for (dev = 0; dev < devmax; dev++) {
+ 				pdd = hfi1_lookup(dev);
+-				if (pdd && pdd->freectxts &&
++				if (!pdd)
++					continue;
++				if (!usable_device(pdd))
++					continue;
++				if (pdd->freectxts &&
+ 				    pdd->freectxts > free) {
+ 					dd = pdd;
+ 					free = pdd->freectxts;
+@@ -912,7 +924,11 @@ static int get_user_context(struct file *fp, struct hfi1_user_info *uinfo,
+ 		} else {
+ 			for (dev = 0; dev < devmax; dev++) {
+ 				pdd = hfi1_lookup(dev);
+-				if (pdd && pdd->freectxts) {
++				if (!pdd)
++					continue;
++				if (!usable_device(pdd))
++					continue;
++				if (pdd->freectxts) {
+ 					dd = pdd;
+ 					break;
+ 				}
+@@ -936,7 +952,6 @@ static int find_shared_ctxt(struct file *fp,
+ 	for (ndev = 0; ndev < devmax; ndev++) {
+ 		struct hfi1_devdata *dd = hfi1_lookup(ndev);
  
- 	/* step 3: download SBus Master firmware */
- 	/* step 4: download PCIe Gen3 SerDes firmware */
+-		/* device portion of usable() */
+ 		if (!(dd && (dd->flags & HFI1_PRESENT) && dd->kregbase))
+ 			continue;
+ 		for (i = dd->first_user_ctxt; i < dd->num_rcv_contexts; i++) {
 -- 
 1.7.1
 
