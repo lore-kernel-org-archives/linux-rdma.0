@@ -1,7 +1,7 @@
 From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH RESEND 06/11] staging/rdma/hfi1: Select only devices with active links
-Date: Fri,  6 Nov 2015 20:07:01 -0500
-Message-ID: <1446858426-30509-7-git-send-email-jubin.john@intel.com>
+Subject: [PATCH RESEND 09/11] staging/rdma/hfi1: use one-shot LCB write
+Date: Fri,  6 Nov 2015 20:07:04 -0500
+Message-ID: <1446858426-30509-10-git-send-email-jubin.john@intel.com>
 References: <1446858426-30509-1-git-send-email-jubin.john@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1446858426-30509-1-git-send-email-jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,69 +12,92 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-When looking for or validating a user device, only use devices
-that are currently active.
+Use the one-shot LCB write implemented in the 8051 firmware.
+This speeds up 8051 LCB writes by 2x.  Use old method for older
+firmwares.
 
-Reviewed-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/file_ops.c |   21 ++++++++++++++++++---
- 1 files changed, 18 insertions(+), 3 deletions(-)
+ drivers/staging/rdma/hfi1/chip.c |   42 +++++++++++++++++++++++++++++++++----
+ drivers/staging/rdma/hfi1/chip.h |    1 +
+ 2 files changed, 38 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
-index fba5889..6fc7691 100644
---- a/drivers/staging/rdma/hfi1/file_ops.c
-+++ b/drivers/staging/rdma/hfi1/file_ops.c
-@@ -874,6 +874,14 @@ done:
- 	return ret;
+diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
+index bf7cc2d..7658c76 100644
+--- a/drivers/staging/rdma/hfi1/chip.c
++++ b/drivers/staging/rdma/hfi1/chip.c
+@@ -4774,13 +4774,25 @@ int read_lcb_csr(struct hfi1_devdata *dd, u32 addr, u64 *data)
+  */
+ static int write_lcb_via_8051(struct hfi1_devdata *dd, u32 addr, u64 data)
+ {
++	u32 regno;
++	int ret;
+ 
+-	if (acquire_lcb_access(dd, 0) == 0) {
+-		write_csr(dd, addr, data);
+-		release_lcb_access(dd, 0);
+-		return 0;
++	if (dd->icode == ICODE_FUNCTIONAL_SIMULATOR ||
++	    (dd->dc8051_ver < dc8051_ver(0, 20))) {
++		if (acquire_lcb_access(dd, 0) == 0) {
++			write_csr(dd, addr, data);
++			release_lcb_access(dd, 0);
++			return 0;
++		}
++		return -EBUSY;
+ 	}
+-	return -EBUSY;
++
++	/* register is an index of LCB registers: (offset - base) / 8 */
++	regno = (addr - DC_LCB_CFG_RUN) >> 3;
++	ret = do_8051_command(dd, HCMD_WRITE_LCB_CSR, regno, &data);
++	if (ret != HCMD_SUCCESS)
++		return -EBUSY;
++	return 0;
  }
  
-+/* return true if the device available for general use */
-+static int usable_device(struct hfi1_devdata *dd)
-+{
-+	struct hfi1_pportdata *ppd = dd->pport;
-+
-+	return driver_lstate(ppd) == IB_PORT_ACTIVE;
-+}
-+
- static int get_user_context(struct file *fp, struct hfi1_user_info *uinfo,
- 			    int devno, unsigned alg)
- {
-@@ -903,7 +911,11 @@ static int get_user_context(struct file *fp, struct hfi1_user_info *uinfo,
+ /*
+@@ -4862,6 +4874,26 @@ static int do_8051_command(
+ 	 */
  
- 			for (dev = 0; dev < devmax; dev++) {
- 				pdd = hfi1_lookup(dev);
--				if (pdd && pdd->freectxts &&
-+				if (!pdd)
-+					continue;
-+				if (!usable_device(pdd))
-+					continue;
-+				if (pdd->freectxts &&
- 				    pdd->freectxts > free) {
- 					dd = pdd;
- 					free = pdd->freectxts;
-@@ -912,7 +924,11 @@ static int get_user_context(struct file *fp, struct hfi1_user_info *uinfo,
- 		} else {
- 			for (dev = 0; dev < devmax; dev++) {
- 				pdd = hfi1_lookup(dev);
--				if (pdd && pdd->freectxts) {
-+				if (!pdd)
-+					continue;
-+				if (!usable_device(pdd))
-+					continue;
-+				if (pdd->freectxts) {
- 					dd = pdd;
- 					break;
- 				}
-@@ -936,7 +952,6 @@ static int find_shared_ctxt(struct file *fp,
- 	for (ndev = 0; ndev < devmax; ndev++) {
- 		struct hfi1_devdata *dd = hfi1_lookup(ndev);
+ 	/*
++	 * When writing a LCB CSR, out_data contains the full value to
++	 * to be written, while in_data contains the relative LCB
++	 * address in 7:0.  Do the work here, rather than the caller,
++	 * of distrubting the write data to where it needs to go:
++	 *
++	 * Write data
++	 *   39:00 -> in_data[47:8]
++	 *   47:40 -> DC8051_CFG_EXT_DEV_0.RETURN_CODE
++	 *   63:48 -> DC8051_CFG_EXT_DEV_0.RSP_DATA
++	 */
++	if (type == HCMD_WRITE_LCB_CSR) {
++		in_data |= ((*out_data) & 0xffffffffffull) << 8;
++		reg = ((((*out_data) >> 40) & 0xff) <<
++				DC_DC8051_CFG_EXT_DEV_0_RETURN_CODE_SHIFT)
++		      | ((((*out_data) >> 48) & 0xffff) <<
++				DC_DC8051_CFG_EXT_DEV_0_RSP_DATA_SHIFT);
++		write_csr(dd, DC_DC8051_CFG_EXT_DEV_0, reg);
++	}
++
++	/*
+ 	 * Do two writes: the first to stabilize the type and req_data, the
+ 	 * second to activate.
+ 	 */
+diff --git a/drivers/staging/rdma/hfi1/chip.h b/drivers/staging/rdma/hfi1/chip.h
+index ebf9041..d74aed8 100644
+--- a/drivers/staging/rdma/hfi1/chip.h
++++ b/drivers/staging/rdma/hfi1/chip.h
+@@ -235,6 +235,7 @@
+ #define HCMD_MISC		   0x05
+ #define HCMD_READ_LCB_IDLE_MSG 0x06
+ #define HCMD_READ_LCB_CSR      0x07
++#define HCMD_WRITE_LCB_CSR     0x08
+ #define HCMD_INTERFACE_TEST	   0xff
  
--		/* device portion of usable() */
- 		if (!(dd && (dd->flags & HFI1_PRESENT) && dd->kregbase))
- 			continue;
- 		for (i = dd->first_user_ctxt; i < dd->num_rcv_contexts; i++) {
+ /* DC_DC8051_CFG_HOST_CMD_1.RETURN_CODE - 8051 host command return */
 -- 
 1.7.1
 
