@@ -1,12 +1,15 @@
-From: Amitoj Kaur Chawla <amitoj1606@gmail.com>
-Subject: [PATCH] staging: rdma: amso1100: Remove unnecessary variables
-Date: Sun, 8 Nov 2015 01:42:03 +0530
-Message-ID: <20151107201203.GA12265@amitoj-Inspiron-3542>
+From: Geliang Tang <geliangtang@163.com>
+Subject: [PATCH 2/4] staging: rdma: use kmalloc_array instead of kmalloc
+Date: Sun,  8 Nov 2015 22:17:52 +0800
+Message-ID: <9c21d2635419867a29994568c2dfda0b72cce63d.1446991712.git.geliangtang@163.com>
+References: <6ada2cca5a646c6bea9a900a48109d10cdc45e85.1446991712.git.geliangtang@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-Content-Disposition: inline
+In-Reply-To: <6ada2cca5a646c6bea9a900a48109d10cdc45e85.1446991712.git.geliangtang@163.com>
+In-Reply-To: <6ada2cca5a646c6bea9a900a48109d10cdc45e85.1446991712.git.geliangtang@163.com>
+References: <6ada2cca5a646c6bea9a900a48109d10cdc45e85.1446991712.git.geliangtang@163.com>
 List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
  <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
 List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
@@ -16,49 +19,65 @@ List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driver
  <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
 Errors-To: driverdev-devel-bounces@linuxdriverproject.org
 Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: dledford@redhat.com, hal.rosenstock@gmail.com, gregkh@linuxfoundation.org, linux-rdma@vger.kernel.org, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mike Marciniszyn <infinipath@intel.com>
+Cc: linux-rdma@vger.kernel.org, Geliang Tang <geliangtang@163.com>, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Remove unnecessary variable 'err' from functions c2_reject() and
-c2_service_destroy() since it can be replaced by a single line of
-code instead.
+Use kmalloc_array instead of kmalloc to allocate memory for an array.
 
-Signed-off-by: Amitoj Kaur Chawla <amitoj1606@gmail.com>
+Signed-off-by: Geliang Tang <geliangtang@163.com>
 ---
- drivers/staging/rdma/amso1100/c2_provider.c | 10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ drivers/staging/rdma/amso1100/c2.c          | 6 ++++--
+ drivers/staging/rdma/ipath/ipath_file_ops.c | 8 ++++----
+ 2 files changed, 8 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/staging/rdma/amso1100/c2_provider.c b/drivers/staging/rdma/amso1100/c2_provider.c
-index e44ad22..53bc1ec 100644
---- a/drivers/staging/rdma/amso1100/c2_provider.c
-+++ b/drivers/staging/rdma/amso1100/c2_provider.c
-@@ -620,12 +620,9 @@ static int c2_accept(struct iw_cm_id *cm_id, struct iw_cm_conn_param *iw_param)
+diff --git a/drivers/staging/rdma/amso1100/c2.c b/drivers/staging/rdma/amso1100/c2.c
+index 35ac536..4e6d24a 100644
+--- a/drivers/staging/rdma/amso1100/c2.c
++++ b/drivers/staging/rdma/amso1100/c2.c
+@@ -116,7 +116,8 @@ static int c2_tx_ring_alloc(struct c2_ring *tx_ring, void *vaddr,
+ 	struct c2_element *elem;
+ 	int i;
  
- static int c2_reject(struct iw_cm_id *cm_id, const void *pdata, u8 pdata_len)
- {
--	int err;
--
- 	pr_debug("%s:%u\n", __func__, __LINE__);
+-	tx_ring->start = kmalloc(sizeof(*elem) * tx_ring->count, GFP_KERNEL);
++	tx_ring->start = kmalloc_array(tx_ring->count, sizeof(*elem),
++				       GFP_KERNEL);
+ 	if (!tx_ring->start)
+ 		return -ENOMEM;
  
--	err = c2_llp_reject(cm_id, pdata, pdata_len);
--	return err;
-+	return c2_llp_reject(cm_id, pdata, pdata_len);
- }
+@@ -165,7 +166,8 @@ static int c2_rx_ring_alloc(struct c2_ring *rx_ring, void *vaddr,
+ 	struct c2_element *elem;
+ 	int i;
  
- static int c2_service_create(struct iw_cm_id *cm_id, int backlog)
-@@ -642,12 +639,9 @@ static int c2_service_create(struct iw_cm_id *cm_id, int backlog)
+-	rx_ring->start = kmalloc(sizeof(*elem) * rx_ring->count, GFP_KERNEL);
++	rx_ring->start = kmalloc_array(rx_ring->count, sizeof(*elem),
++				       GFP_KERNEL);
+ 	if (!rx_ring->start)
+ 		return -ENOMEM;
  
- static int c2_service_destroy(struct iw_cm_id *cm_id)
- {
--	int err;
- 	pr_debug("%s:%u\n", __func__, __LINE__);
- 
--	err = c2_llp_service_destroy(cm_id);
--
--	return err;
-+	return c2_llp_service_destroy(cm_id);
- }
- 
- static int c2_pseudo_up(struct net_device *netdev)
+diff --git a/drivers/staging/rdma/ipath/ipath_file_ops.c b/drivers/staging/rdma/ipath/ipath_file_ops.c
+index 13c3cd1..6187b84 100644
+--- a/drivers/staging/rdma/ipath/ipath_file_ops.c
++++ b/drivers/staging/rdma/ipath/ipath_file_ops.c
+@@ -917,15 +917,15 @@ static int ipath_create_user_egr(struct ipath_portdata *pd)
+ 	chunk = pd->port_rcvegrbuf_chunks;
+ 	egrperchunk = pd->port_rcvegrbufs_perchunk;
+ 	size = pd->port_rcvegrbuf_size;
+-	pd->port_rcvegrbuf = kmalloc(chunk * sizeof(pd->port_rcvegrbuf[0]),
+-				     GFP_KERNEL);
++	pd->port_rcvegrbuf = kmalloc_array(chunk, sizeof(pd->port_rcvegrbuf[0]),
++					   GFP_KERNEL);
+ 	if (!pd->port_rcvegrbuf) {
+ 		ret = -ENOMEM;
+ 		goto bail;
+ 	}
+ 	pd->port_rcvegrbuf_phys =
+-		kmalloc(chunk * sizeof(pd->port_rcvegrbuf_phys[0]),
+-			GFP_KERNEL);
++		kmalloc_array(chunk, sizeof(pd->port_rcvegrbuf_phys[0]),
++			      GFP_KERNEL);
+ 	if (!pd->port_rcvegrbuf_phys) {
+ 		ret = -ENOMEM;
+ 		goto bail_rcvegrbuf;
 -- 
-1.9.1
+2.5.0
