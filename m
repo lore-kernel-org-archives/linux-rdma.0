@@ -1,32 +1,45 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH libibcm] cmpost.c: Handle ibv_get_device_list returning no
- IB devices in init()
-Date: Mon, 9 Nov 2015 15:37:02 +0200
-Message-ID: <5640A17E.8000509@dev.mellanox.co.il>
-References: <56369FEE.7060100@dev.mellanox.co.il>
- <1828884A29C6694DAF28B7E6B8A82373A9BA5132@ORSMSX110.amr.corp.intel.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: RDMAVT pull request
+Date: Mon, 9 Nov 2015 09:25:53 -0500
+Message-ID: <20151109142552.GA16939@phlsvsds.ph.intel.com>
+References: <8F089EE2-9289-4F89-8DB4-8CD971927EBB@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A9BA5132-8oqHQFITsIHTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <8F089EE2-9289-4F89-8DB4-8CD971927EBB-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/5/2015 7:46 PM, Hefty, Sean wrote:
-> Merged - thanks.
-> 
-> This is the first patch against the libibcm in over 4 years.  Is there a reason why this is being used instead of the librdmacm?  I ask because I assumed that the libibcm was basically deprecated.  The last release was over 6 years ago.
+On Mon, Nov 09, 2015 at 01:32:03PM +0000, Kamal Heib wrote:
+>   Hi Dennis,
+>   I forked from your rdmavt project at Github and created pull request [1].
+>   Could you please check my pull request for the following patches:
+>   Author: Kamal Heib <[1]kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>   Date:   Sun Nov 8 23:11:09 2015 +0200
+>       IB/rdmavt: Add address handle to rdmavt
+>
+>       Create datastructure for address handle and implement
+>       create/destroy/modify/query of address handle for rdmavt.
+>
+>       Signed-off-by: Kamal Heib <[2]kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>   Author: Kamal Heib <[3]kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>   Date:   Sun Nov 8 21:36:28 2015 +0200
+>       IB/rdmavt: Move common LID defines to rdmavt
+>
+>       Move {QIB, HFI1}_PERMISSIVE_LID to RVT_PERMISSIVE_LID
+>       Move {QIB, HFI1}_MULTICAST_LID_BASE to RVT_MULTICAST_LID_BASE
+>
+>       Signed-off-by: Kamal Heib <[4]kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>   [1] - [5]https://github.com/ddalessa/kernel/pull/1
 
-I started trying to use this test program to try to reproduce a CM bug.
-More to follow after some additional verification.
+Hi Kamal,
 
--- Hal
+Thanks for the patches! I will take a look and run some quick sanity tests.
 
-> - Sean
-> 
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
