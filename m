@@ -1,37 +1,42 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH for-next 3/4] IB/mlx5: Add support querying timestamp
- related fields in query_device
-Date: Mon, 9 Nov 2015 21:26:10 +0200
-Message-ID: <20151109192610.GF4023@leon.nu>
-References: <1447086657-15358-1-git-send-email-matanb@mellanox.com>
- <1447086657-15358-4-git-send-email-matanb@mellanox.com>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH ib-next 2/3] IB/core: IB/core: Allow legacy verbs through
+ extended interfaces
+Date: Mon, 9 Nov 2015 15:35:31 -0700
+Message-ID: <20151109223531.GB1305@obsidianresearch.com>
+References: <1446745208-17733-1-git-send-email-eli@mellanox.com>
+ <1446745208-17733-3-git-send-email-eli@mellanox.com>
+ <CAAKD3BDq_o+J3yM1qAKg_x35Dps5Ne_ffaD_Mz55a272pwQcJg@mail.gmail.com>
+ <564041C4.1090303@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1447086657-15358-4-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <564041C4.1090303-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, matanbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 09, 2015 at 06:30:56PM +0200, Matan Barak wrote:
-> +
-> +	if (uhw->outlen) {
-> +		err = ib_copy_to_udata(uhw, &resp, resp.response_length);
-> +		if (err)
-> +			return err;
-> +	}
-> +
->  	return 0;
-What do you think about to rewrite this part of code to be something
-like that?
-+	int ret = 0;
-.....
-+	if (uhw->outlen)
-+		ret = ib_copy_to_udata(uhw, &resp, resp.response_length);
-+	return ret;
+On Mon, Nov 09, 2015 at 08:48:36AM +0200, Haggai Eran wrote:
+> On 08/11/2015 17:04, Matan Barak wrote:
+> >> @@ -704,6 +719,10 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
+> >> >         }
+> >> >
+> >> >         command = hdr.command & IB_USER_VERBS_CMD_COMMAND_MASK;
+> >> > +       if (verify_command_mask(ib_dev, command)) {
+> >> > +               ret = -EINVAL;
+> > Why did you replace ENOSYS with EINVAL?
+> 
+> I think ENOSYS is meant only to represent a system call number that
+> isn't supported. There was a change in checkpatch that now warns about
+> it [1]. I'm not sure the intention was to fix existing uses though.
+
+Within verbs we should have two kinds of return - not supported
+request, and supported request with invalid parameters.
+
+Maybe use EOPNOTSUPP ?
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
