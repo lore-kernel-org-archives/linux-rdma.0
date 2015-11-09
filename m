@@ -1,7 +1,7 @@
 From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH for-next 1/4] IB/mlx5: Add create_cq extended command
-Date: Mon, 9 Nov 2015 19:06:02 +0200
-Message-ID: <20151109170602.GA20103@x-vnc01.mtx.labs.mlnx>
+Date: Mon, 9 Nov 2015 19:06:42 +0200
+Message-ID: <20151109170642.GB20103@x-vnc01.mtx.labs.mlnx>
 References: <1447086657-15358-1-git-send-email-matanb@mellanox.com>
  <1447086657-15358-2-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
@@ -18,7 +18,7 @@ On Mon, Nov 09, 2015 at 06:30:54PM +0200, Matan Barak wrote:
 > In order to create a CQ that supports timestamp, mlx5 needs to
 > support the extended create CQ command with the timestamp flag.
 > 
-i> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
 Acked-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 --
