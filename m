@@ -1,38 +1,32 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH ib-next 2/3] IB/core: IB/core: Allow legacy verbs through
- extended interfaces
-Date: Mon, 9 Nov 2015 08:48:36 +0200
-Message-ID: <564041C4.1090303@mellanox.com>
-References: <1446745208-17733-1-git-send-email-eli@mellanox.com>
- <1446745208-17733-3-git-send-email-eli@mellanox.com>
- <CAAKD3BDq_o+J3yM1qAKg_x35Dps5Ne_ffaD_Mz55a272pwQcJg@mail.gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH libibcm] cmpost.c: Handle ibv_get_device_list returning no
+ IB devices in init()
+Date: Mon, 9 Nov 2015 15:37:02 +0200
+Message-ID: <5640A17E.8000509@dev.mellanox.co.il>
+References: <56369FEE.7060100@dev.mellanox.co.il>
+ <1828884A29C6694DAF28B7E6B8A82373A9BA5132@ORSMSX110.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAAKD3BDq_o+J3yM1qAKg_x35Dps5Ne_ffaD_Mz55a272pwQcJg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A9BA5132-8oqHQFITsIHTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, matanbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 08/11/2015 17:04, Matan Barak wrote:
->> @@ -704,6 +719,10 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
->> >         }
->> >
->> >         command = hdr.command & IB_USER_VERBS_CMD_COMMAND_MASK;
->> > +       if (verify_command_mask(ib_dev, command)) {
->> > +               ret = -EINVAL;
-> Why did you replace ENOSYS with EINVAL?
+On 11/5/2015 7:46 PM, Hefty, Sean wrote:
+> Merged - thanks.
+> 
+> This is the first patch against the libibcm in over 4 years.  Is there a reason why this is being used instead of the librdmacm?  I ask because I assumed that the libibcm was basically deprecated.  The last release was over 6 years ago.
 
-I think ENOSYS is meant only to represent a system call number that
-isn't supported. There was a change in checkpatch that now warns about
-it [1]. I'm not sure the intention was to fix existing uses though.
+I started trying to use this test program to try to reproduce a CM bug.
+More to follow after some additional verification.
 
-Haggai
+-- Hal
 
-[1] http://www.gossamer-threads.com/lists/linux/kernel/2148343
-
+> - Sean
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
