@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 1/4] IB/mlx5: Add create_cq extended command
-Date: Mon,  9 Nov 2015 18:30:54 +0200
-Message-ID: <1447086657-15358-2-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next 2/4] IB/core: Add ib_is_udata_cleared
+Date: Mon,  9 Nov 2015 18:30:55 +0200
+Message-ID: <1447086657-15358-3-git-send-email-matanb@mellanox.com>
 References: <1447086657-15358-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1447086657-15358-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,54 +10,46 @@ To: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In order to create a CQ that supports timestamp, mlx5 needs to
-support the extended create CQ command with the timestamp flag.
+Extending core and vendor verb commands require us to check that the
+unknown part of the user's given command is all zeros.
+Adding ib_is_udata_cleared in order to do so.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/cq.c   | 7 +++++++
- drivers/infiniband/hw/mlx5/main.c | 3 ++-
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ include/rdma/ib_verbs.h | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index 2d0dbbf..674f857 100644
---- a/drivers/infiniband/hw/mlx5/cq.c
-+++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -743,6 +743,10 @@ static void destroy_cq_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_cq *cq)
- 	mlx5_db_free(dev->mdev, &cq->db);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index e4cc389..43f3cf2 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1855,6 +1855,26 @@ static inline int ib_copy_to_udata(struct ib_udata *udata, void *src, size_t len
+ 	return copy_to_user(udata->outbuf, src, len) ? -EFAULT : 0;
  }
  
-+enum {
-+	CQ_CREATE_FLAGS_SUPPORTED = IB_CQ_FLAGS_TIMESTAMP_COMPLETION
-+};
++static inline bool ib_is_udata_cleared(struct ib_udata *udata,
++				       char cleared_char,
++				       size_t offset,
++				       size_t len)
++{
++	short i;
 +
- struct ib_cq *mlx5_ib_create_cq(struct ib_device *ibdev,
- 				const struct ib_cq_init_attr *attr,
- 				struct ib_ucontext *context,
-@@ -766,6 +770,9 @@ struct ib_cq *mlx5_ib_create_cq(struct ib_device *ibdev,
- 	if (entries < 0)
- 		return ERR_PTR(-EINVAL);
- 
-+	if (attr->flags & ~CQ_CREATE_FLAGS_SUPPORTED)
-+		return ERR_PTR(-EINVAL);
++	for (i = 0; i < len; i++) {
++		char c;
 +
- 	entries = roundup_pow_of_two(entries + 1);
- 	if (entries > (1 << MLX5_CAP_GEN(dev->mdev, log_max_cq_sz)))
- 		return ERR_PTR(-EINVAL);
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index f1ccd40..05f00da 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1385,7 +1385,8 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 		(1ull << IB_USER_VERBS_CMD_CREATE_XSRQ)		|
- 		(1ull << IB_USER_VERBS_CMD_OPEN_QP);
- 	dev->ib_dev.uverbs_ex_cmd_mask =
--		(1ull << IB_USER_VERBS_EX_CMD_QUERY_DEVICE);
-+		(1ull << IB_USER_VERBS_EX_CMD_QUERY_DEVICE)	|
-+		(1ull << IB_USER_VERBS_EX_CMD_CREATE_CQ);
- 
- 	dev->ib_dev.query_device	= mlx5_ib_query_device;
- 	dev->ib_dev.query_port		= mlx5_ib_query_port;
++		if (copy_from_user(&c, udata->inbuf + offset + i, sizeof(c)))
++			return false;
++
++		if (c != cleared_char)
++			return false;
++	}
++
++	return true;
++}
++
+ /**
+  * ib_modify_qp_is_ok - Check that the supplied attribute mask
+  * contains all required attributes and no attributes not allowed for
 -- 
 2.1.0
 
