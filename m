@@ -1,160 +1,124 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/2] staging/rdma/hfi1: add common routine for queuing acks
-Date: Tue, 10 Nov 2015 09:13:55 -0500
-Message-ID: <20151110141355.30166.93359.stgit@phlsvslse11.ph.intel.com>
+From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Subject: [PATCH 2/2] staging/rdma/hfi1: add ACK coalescing logic
+Date: Tue, 10 Nov 2015 09:14:01 -0500
+Message-ID: <20151110141401.30166.89741.stgit@phlsvslse11.ph.intel.com>
+References: <20151110141355.30166.93359.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <20151110141355.30166.93359.stgit@phlsvslse11.ph.intel.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: devel@driverdev.osuosl.org
+Cc: linux-rdma@vger.kernel.org, dledford@redhat.com, linux-next@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch is a prelimary patch required to
-coalesce acks.
+Implement ACK coalesing logic using a 8 bit counter.
 
-The routine to "schedule" a QP for sending a NAK is
-now centralized in rc_defer_ack().  The flag is changed
-for clarity since the all acks will potentially use
-the deferral  mechanism.
+The algorithm is send pio ack when:
+- fecn present
+- this is the first packet in an interrupt session
+- counter is >= HFI1_PSN_CREDIT
 
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Otherwise the ack is defered.
+
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
 ---
- drivers/staging/rdma/hfi1/driver.c |    4 ++-
- drivers/staging/rdma/hfi1/rc.c     |   42 +++++++++++++-----------------------
- drivers/staging/rdma/hfi1/verbs.h  |   12 ++++++----
- 3 files changed, 24 insertions(+), 34 deletions(-)
+ drivers/staging/rdma/hfi1/qp.c    |    1 +
+ drivers/staging/rdma/hfi1/rc.c    |   29 +++++++++++++++++++++++++++--
+ drivers/staging/rdma/hfi1/verbs.h |    7 ++++---
+ 3 files changed, 32 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/driver.c b/drivers/staging/rdma/hfi1/driver.c
-index ce69141..e8e0f55 100644
---- a/drivers/staging/rdma/hfi1/driver.c
-+++ b/drivers/staging/rdma/hfi1/driver.c
-@@ -721,8 +721,8 @@ static inline void process_rcv_qp_work(struct hfi1_packet *packet)
- 	 */
- 	list_for_each_entry_safe(qp, nqp, &rcd->qp_wait_list, rspwait) {
- 		list_del_init(&qp->rspwait);
--		if (qp->r_flags & HFI1_R_RSP_NAK) {
--			qp->r_flags &= ~HFI1_R_RSP_NAK;
-+		if (qp->r_flags & HFI1_R_RSP_DEFERED_ACK) {
-+			qp->r_flags &= ~HFI1_R_RSP_DEFERED_ACK;
- 			hfi1_send_rc_ack(rcd, qp, 0);
- 		}
- 		if (qp->r_flags & HFI1_R_RSP_SEND) {
+diff --git a/drivers/staging/rdma/hfi1/qp.c b/drivers/staging/rdma/hfi1/qp.c
+index df1fa56..8f867ba 100644
+--- a/drivers/staging/rdma/hfi1/qp.c
++++ b/drivers/staging/rdma/hfi1/qp.c
+@@ -378,6 +378,7 @@ static void reset_qp(struct hfi1_qp *qp, enum ib_qp_type type)
+ 	}
+ 	qp->s_ack_state = IB_OPCODE_RC_ACKNOWLEDGE;
+ 	qp->r_nak_state = 0;
++	qp->r_adefered = 0;
+ 	qp->r_aflags = 0;
+ 	qp->r_flags = 0;
+ 	qp->s_head = 0;
 diff --git a/drivers/staging/rdma/hfi1/rc.c b/drivers/staging/rdma/hfi1/rc.c
-index 0b19206..6fe0104 100644
+index 6fe0104..0193497 100644
 --- a/drivers/staging/rdma/hfi1/rc.c
 +++ b/drivers/staging/rdma/hfi1/rc.c
-@@ -1608,6 +1608,16 @@ bail:
- 	return;
+@@ -1618,6 +1618,17 @@ static inline void rc_defered_ack(struct hfi1_ctxtdata *rcd,
+ 	}
  }
  
-+static inline void rc_defered_ack(struct hfi1_ctxtdata *rcd,
-+				  struct hfi1_qp *qp)
++static inline void rc_cancel_ack(struct hfi1_qp *qp)
 +{
-+	if (list_empty(&qp->rspwait)) {
-+		qp->r_flags |= HFI1_R_RSP_DEFERED_ACK;
-+		atomic_inc(&qp->refcount);
-+		list_add_tail(&qp->rspwait, &rcd->qp_wait_list);
-+	}
++	qp->r_adefered = 0;
++	if (list_empty(&qp->rspwait))
++		return;
++	list_del_init(&qp->rspwait);
++	qp->r_flags &= ~HFI1_R_RSP_DEFERED_ACK;
++	if (atomic_dec_and_test(&qp->refcount))
++		wake_up(&qp->wait);
 +}
 +
  /**
   * rc_rcv_error - process an incoming duplicate or error RC packet
   * @ohdr: the other headers for this packet
-@@ -1650,11 +1660,7 @@ static noinline int rc_rcv_error(struct hfi1_other_headers *ohdr, void *data,
- 			 * in the receive queue have been processed.
- 			 * Otherwise, we end up propagating congestion.
- 			 */
--			if (list_empty(&qp->rspwait)) {
--				qp->r_flags |= HFI1_R_RSP_NAK;
--				atomic_inc(&qp->refcount);
--				list_add_tail(&qp->rspwait, &rcd->qp_wait_list);
--			}
-+			rc_defered_ack(rcd, qp);
- 		}
- 		goto done;
- 	}
-@@ -2337,11 +2343,7 @@ rnr_nak:
- 	qp->r_nak_state = IB_RNR_NAK | qp->r_min_rnr_timer;
- 	qp->r_ack_psn = qp->r_psn;
- 	/* Queue RNR NAK for later */
--	if (list_empty(&qp->rspwait)) {
--		qp->r_flags |= HFI1_R_RSP_NAK;
--		atomic_inc(&qp->refcount);
--		list_add_tail(&qp->rspwait, &rcd->qp_wait_list);
--	}
-+	rc_defered_ack(rcd, qp);
+@@ -2335,8 +2346,22 @@ send_last:
+ 	qp->r_ack_psn = psn;
+ 	qp->r_nak_state = 0;
+ 	/* Send an ACK if requested or required. */
+-	if (psn & (1 << 31))
+-		goto send_ack;
++	if (psn & IB_BTH_REQ_ACK) {
++		if (packet->numpkt == 0) {
++			rc_cancel_ack(qp);
++			goto send_ack;
++		}
++		if (qp->r_adefered >= HFI1_PSN_CREDIT) {
++			rc_cancel_ack(qp);
++			goto send_ack;
++		}
++		if (unlikely(is_fecn)) {
++			rc_cancel_ack(qp);
++			goto send_ack;
++		}
++		qp->r_adefered++;
++		rc_defered_ack(rcd, qp);
++	}
  	return;
  
- nack_op_err:
-@@ -2349,11 +2351,7 @@ nack_op_err:
- 	qp->r_nak_state = IB_NAK_REMOTE_OPERATIONAL_ERROR;
- 	qp->r_ack_psn = qp->r_psn;
- 	/* Queue NAK for later */
--	if (list_empty(&qp->rspwait)) {
--		qp->r_flags |= HFI1_R_RSP_NAK;
--		atomic_inc(&qp->refcount);
--		list_add_tail(&qp->rspwait, &rcd->qp_wait_list);
--	}
-+	rc_defered_ack(rcd, qp);
- 	return;
- 
- nack_inv_unlck:
-@@ -2363,11 +2361,7 @@ nack_inv:
- 	qp->r_nak_state = IB_NAK_INVALID_REQUEST;
- 	qp->r_ack_psn = qp->r_psn;
- 	/* Queue NAK for later */
--	if (list_empty(&qp->rspwait)) {
--		qp->r_flags |= HFI1_R_RSP_NAK;
--		atomic_inc(&qp->refcount);
--		list_add_tail(&qp->rspwait, &rcd->qp_wait_list);
--	}
-+	rc_defered_ack(rcd, qp);
- 	return;
- 
- nack_acc_unlck:
-@@ -2421,13 +2415,7 @@ void hfi1_rc_hdrerr(
- 			 * Otherwise, we end up
- 			 * propagating congestion.
- 			 */
--			if (list_empty(&qp->rspwait)) {
--				qp->r_flags |= HFI1_R_RSP_NAK;
--				atomic_inc(&qp->refcount);
--				list_add_tail(
--					&qp->rspwait,
--					&rcd->qp_wait_list);
--				}
-+			rc_defered_ack(rcd, qp);
- 		} /* Out of sequence NAK */
- 	} /* QP Request NAKs */
- }
+ rnr_nak:
 diff --git a/drivers/staging/rdma/hfi1/verbs.h b/drivers/staging/rdma/hfi1/verbs.h
-index e4a8a0d..c5e6f47 100644
+index c5e6f47..6d2012b 100644
 --- a/drivers/staging/rdma/hfi1/verbs.h
 +++ b/drivers/staging/rdma/hfi1/verbs.h
-@@ -547,11 +547,13 @@ struct hfi1_qp {
- /*
-  * Bit definitions for r_flags.
-  */
--#define HFI1_R_REUSE_SGE 0x01
--#define HFI1_R_RDMAR_SEQ 0x02
--#define HFI1_R_RSP_NAK   0x04
--#define HFI1_R_RSP_SEND  0x08
--#define HFI1_R_COMM_EST  0x10
-+#define HFI1_R_REUSE_SGE       0x01
-+#define HFI1_R_RDMAR_SEQ       0x02
-+/* defer ack until end of interrupt session */
-+#define HFI1_R_RSP_DEFERED_ACK 0x04
-+/* relay ack to send engine */
-+#define HFI1_R_RSP_SEND        0x08
-+#define HFI1_R_COMM_EST        0x10
+@@ -120,9 +120,9 @@ struct hfi1_packet;
  
- /*
-  * Bit definitions for s_flags.
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ #define HFI1_VENDOR_IPG		cpu_to_be16(0xFFA0)
+ 
+-#define IB_BTH_REQ_ACK		(1 << 31)
+-#define IB_BTH_SOLICITED	(1 << 23)
+-#define IB_BTH_MIG_REQ		(1 << 22)
++#define IB_BTH_REQ_ACK		BIT(31)
++#define IB_BTH_SOLICITED	BIT(23)
++#define IB_BTH_MIG_REQ		BIT(22)
+ 
+ #define IB_GRH_VERSION		6
+ #define IB_GRH_VERSION_MASK	0xF
+@@ -484,6 +484,7 @@ struct hfi1_qp {
+ 	u32 r_psn;              /* expected rcv packet sequence number */
+ 	u32 r_msn;              /* message sequence number */
+ 
++	u8 r_adefered;         /* number of acks defered */
+ 	u8 r_state;             /* opcode of last packet received */
+ 	u8 r_flags;
+ 	u8 r_head_ack_queue;    /* index into s_ack_queue[] */
