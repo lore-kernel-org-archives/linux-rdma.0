@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH infiniband-diags] ibportstate.c: Fix unsigned comparison
- warnings
-Date: Tue, 10 Nov 2015 13:23:01 +0200
-Message-ID: <5641D395.9050208@dev.mellanox.co.il>
+Subject: [PATCH infiniband-diags] Remove unused pisize parameter from
+ dump_portinfo in ibdiag_common
+Date: Tue, 10 Nov 2015 13:22:51 +0200
+Message-ID: <5641D38B.605@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
@@ -13,84 +13,63 @@ Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
-src/ibportstate.c:450: warning: comparison of unsigned expression < 0 is always false
-src/ibportstate.c:454: warning: comparison of unsigned expression < 0 is always false
-src/ibportstate.c:458: warning: comparison of unsigned expression < 0 is always false
-src/ibportstate.c:462: warning: comparison of unsigned expression < 0 is always false
-src/ibportstate.c:483: warning: comparison of unsigned expression < 0 is always false
-src/ibportstate.c:500: warning: comparison of unsigned expression < 0 is always false
-src/ibportstate.c:504: warning: comparison of unsigned expression < 0 is always false
+src/ibdiag_common.c: In function ?dump_portinfo?:
+src/ibdiag_common.c:856: warning: unused parameter ?pisize?
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-diff --git a/src/ibportstate.c b/src/ibportstate.c
-index 47e9133..cb47aa9 100644
---- a/src/ibportstate.c
-+++ b/src/ibportstate.c
-@@ -447,40 +447,40 @@ int main(int argc, char **argv)
- 			val = strtoull(argv[i], 0, 0);
- 			switch (j) {
- 			case SPEED:
--				if (val < 0 || val > 15)
-+				if (val > 15)
- 					IBEXIT("invalid speed value %ld", val);
- 				break;
- 			case ESPEED:
--				if (val < 0 || val > 31)
-+				if (val > 31)
- 					IBEXIT("invalid extended speed value %ld", val);
- 				break;
- 			case FDR10SPEED:
--				if (val < 0 || val > 1)
-+				if (val > 1)
- 					IBEXIT("invalid fdr10 speed value %ld", val);
- 				break;
- 			case WIDTH:
--				if (val < 0 || (val > 15 && val != 255))
-+				if ((val > 15 && val != 255))
- 					IBEXIT("invalid width value %ld", val);
- 				break;
- 			case VLS:
--				if (val <= 0 || val > 5)
-+				if (val == 0 || val > 5)
- 					IBEXIT("invalid vls value %ld", val);
- 				break;
- 			case MTU:
--				if (val <= 0 || val > 5)
-+				if (val == 0 || val > 5)
- 					IBEXIT("invalid mtu value %ld", val);
- 				break;
- 			case LID:
--				if (val <= 0 || val >= 0xC000)
-+				if (val == 0 || val >= 0xC000)
- 					IBEXIT("invalid lid value 0x%lx", val);
- 				break;
- 			case SMLID:
--				if (val <= 0 || val >= 0xC000)
-+				if (val == 0 || val >= 0xC000)
- 					IBEXIT("invalid smlid value 0x%lx",
- 						val);
- 				break;
- 			case LMC:
--				if (val < 0 || val > 7)
-+				if (val > 7)
- 					IBEXIT("invalid lmc value %ld", val);
- 				break;
- 			case MKEY:
-@@ -497,11 +497,11 @@ int main(int argc, char **argv)
- 				/* All 64-bit values are legal */
- 				break;
- 			case MKEYLEASE:
--				if (val < 0 || val > 0xFFFF)
-+				if (val > 0xFFFF)
- 					IBEXIT("invalid mkey lease time %ld", val);
- 				break;
- 			case MKEYPROT:
--				if (val < 0 || val > 3)
-+				if (val > 3)
- 					IBEXIT("invalid mkey protection bit setting %ld", val);
- 			}
- 			*port_args[j].val = val;
+diff --git a/include/ibdiag_common.h b/include/ibdiag_common.h
+index af5b3c4..21b0522 100644
+--- a/include/ibdiag_common.h
++++ b/include/ibdiag_common.h
+@@ -150,7 +150,7 @@ int vsnprint_field(char *buf, size_t n, enum MAD_FIELDS f, int spacing,
+ 		   const char *format, va_list va_args);
+ int snprint_field(char *buf, size_t n, enum MAD_FIELDS f, int spacing,
+ 		  const char *format, ...);
+-void dump_portinfo(void *pi, int pisize, int tabs);
++void dump_portinfo(void *pi, int tabs);
+ 
+ /**
+  * Some common command line parsing
+diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
+index 5ec0167..3ebdbb9 100644
+--- a/src/ibdiag_common.c
++++ b/src/ibdiag_common.c
+@@ -853,7 +853,7 @@ int snprint_field(char *buf, size_t n, enum MAD_FIELDS f, int spacing,
+ 	return ret;
+ }
+ 
+-void dump_portinfo(void *pi, int pisize, int tabs)
++void dump_portinfo(void *pi, int tabs)
+ {
+ 	int field, i;
+ 	char val[64];
+diff --git a/src/saquery.c b/src/saquery.c
+index cc8d8dc..bd70b7b 100644
+--- a/src/saquery.c
++++ b/src/saquery.c
+@@ -304,7 +304,7 @@ static void dump_one_portinfo_record(void *data, struct query_params *p)
+ 	       "\t\tOptions.................0x%x\n"
+ 	       "\tPortInfo dump:\n",
+ 	       cl_ntoh16(pir->lid), pir->port_num, pir->options);
+-	dump_portinfo(pi, sizeof(*pi), 2);
++	dump_portinfo(pi, 2);
+ }
+ 
+ static void dump_one_mcmember_record(void *data, struct query_params *p)
+diff --git a/src/smpquery.c b/src/smpquery.c
+index 187ef61..2bd7132 100644
+--- a/src/smpquery.c
++++ b/src/smpquery.c
+@@ -161,7 +161,7 @@ static char *port_info(ib_portid_t * dest, char **argv, int argc)
+ 		return "port info query failed";
+ 
+ 	printf("# Port info: %s port %d\n", portid2str(dest), orig_portnum);
+-	dump_portinfo(data, sizeof data, 0);
++	dump_portinfo(data, 0);
+ 	return 0;
+ }
+ 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
