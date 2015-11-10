@@ -1,95 +1,96 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH RFC 3/3] RDS_IW: Use device rdma_read_access_flags
-Date: Tue, 10 Nov 2015 12:44:15 +0200
-Message-ID: <1447152255-28231-4-git-send-email-sagig@mellanox.com>
-References: <1447152255-28231-1-git-send-email-sagig@mellanox.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH infiniband-diags] ibportstate.c: Fix unsigned comparison
+ warnings
+Date: Tue, 10 Nov 2015 13:23:01 +0200
+Message-ID: <5641D395.9050208@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1447152255-28231-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Instead of hard-coding remote access (which is not secured
-issue in IB).
 
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+src/ibportstate.c:450: warning: comparison of unsigned expression < 0 is always false
+src/ibportstate.c:454: warning: comparison of unsigned expression < 0 is always false
+src/ibportstate.c:458: warning: comparison of unsigned expression < 0 is always false
+src/ibportstate.c:462: warning: comparison of unsigned expression < 0 is always false
+src/ibportstate.c:483: warning: comparison of unsigned expression < 0 is always false
+src/ibportstate.c:500: warning: comparison of unsigned expression < 0 is always false
+src/ibportstate.c:504: warning: comparison of unsigned expression < 0 is always false
+
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- net/rds/iw_send.c | 17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
-
-diff --git a/net/rds/iw_send.c b/net/rds/iw_send.c
-index e20bd503f4bd..47d684541342 100644
---- a/net/rds/iw_send.c
-+++ b/net/rds/iw_send.c
-@@ -763,7 +763,8 @@ out:
- 
- static int rds_iw_build_send_reg(struct rds_iw_send_work *send,
- 				 struct scatterlist *sg,
--				 int sg_nents)
-+				 int sg_nents,
-+				 int access_flags)
- {
- 	int n;
- 
-@@ -776,7 +777,7 @@ static int rds_iw_build_send_reg(struct rds_iw_send_work *send,
- 	send->s_reg_wr.wr.num_sge = 0;
- 	send->s_reg_wr.mr = send->s_mr;
- 	send->s_reg_wr.key = send->s_mr->rkey;
--	send->s_reg_wr.access = IB_ACCESS_REMOTE_WRITE;
-+	send->s_reg_wr.access = access_flags;
- 
- 	ib_update_fast_reg_key(send->s_mr, send->s_remap_count++);
- 
-@@ -786,6 +787,7 @@ static int rds_iw_build_send_reg(struct rds_iw_send_work *send,
- int rds_iw_xmit_rdma(struct rds_connection *conn, struct rm_rdma_op *op)
- {
- 	struct rds_iw_connection *ic = conn->c_transport_data;
-+	struct ib_device *device = ic->i_cm_id->device;
- 	struct rds_iw_send_work *send = NULL;
- 	struct rds_iw_send_work *first;
- 	struct rds_iw_send_work *prev;
-@@ -803,11 +805,11 @@ int rds_iw_xmit_rdma(struct rds_connection *conn, struct rm_rdma_op *op)
- 	int num_sge;
- 	int sg_nents;
- 
--	rds_iwdev = ib_get_client_data(ic->i_cm_id->device, &rds_iw_client);
-+	rds_iwdev = ib_get_client_data(device, &rds_iw_client);
- 
- 	/* map the message the first time we see it */
- 	if (!op->op_mapped) {
--		op->op_count = ib_dma_map_sg(ic->i_cm_id->device,
-+		op->op_count = ib_dma_map_sg(device,
- 					     op->op_sg, op->op_nents, (op->op_write) ?
- 					     DMA_TO_DEVICE : DMA_FROM_DEVICE);
- 		rdsdebug("ic %p mapping op %p: %d\n", ic, op, op->op_count);
-@@ -896,12 +898,12 @@ int rds_iw_xmit_rdma(struct rds_connection *conn, struct rm_rdma_op *op)
- 
- 		for (j = 0; j < send->s_rdma_wr.wr.num_sge &&
- 		     scat != &op->op_sg[op->op_count]; j++) {
--			len = ib_sg_dma_len(ic->i_cm_id->device, scat);
-+			len = ib_sg_dma_len(device, scat);
- 
- 			if (send->s_rdma_wr.wr.opcode == IB_WR_RDMA_READ_WITH_INV)
- 				sg_nents++;
- 			else {
--				send->s_sge[j].addr = ib_sg_dma_address(ic->i_cm_id->device, scat);
-+				send->s_sge[j].addr = ib_sg_dma_address(device, scat);
- 				send->s_sge[j].length = len;
- 				send->s_sge[j].lkey = rds_iw_local_dma_lkey(ic);
+diff --git a/src/ibportstate.c b/src/ibportstate.c
+index 47e9133..cb47aa9 100644
+--- a/src/ibportstate.c
++++ b/src/ibportstate.c
+@@ -447,40 +447,40 @@ int main(int argc, char **argv)
+ 			val = strtoull(argv[i], 0, 0);
+ 			switch (j) {
+ 			case SPEED:
+-				if (val < 0 || val > 15)
++				if (val > 15)
+ 					IBEXIT("invalid speed value %ld", val);
+ 				break;
+ 			case ESPEED:
+-				if (val < 0 || val > 31)
++				if (val > 31)
+ 					IBEXIT("invalid extended speed value %ld", val);
+ 				break;
+ 			case FDR10SPEED:
+-				if (val < 0 || val > 1)
++				if (val > 1)
+ 					IBEXIT("invalid fdr10 speed value %ld", val);
+ 				break;
+ 			case WIDTH:
+-				if (val < 0 || (val > 15 && val != 255))
++				if ((val > 15 && val != 255))
+ 					IBEXIT("invalid width value %ld", val);
+ 				break;
+ 			case VLS:
+-				if (val <= 0 || val > 5)
++				if (val == 0 || val > 5)
+ 					IBEXIT("invalid vls value %ld", val);
+ 				break;
+ 			case MTU:
+-				if (val <= 0 || val > 5)
++				if (val == 0 || val > 5)
+ 					IBEXIT("invalid mtu value %ld", val);
+ 				break;
+ 			case LID:
+-				if (val <= 0 || val >= 0xC000)
++				if (val == 0 || val >= 0xC000)
+ 					IBEXIT("invalid lid value 0x%lx", val);
+ 				break;
+ 			case SMLID:
+-				if (val <= 0 || val >= 0xC000)
++				if (val == 0 || val >= 0xC000)
+ 					IBEXIT("invalid smlid value 0x%lx",
+ 						val);
+ 				break;
+ 			case LMC:
+-				if (val < 0 || val > 7)
++				if (val > 7)
+ 					IBEXIT("invalid lmc value %ld", val);
+ 				break;
+ 			case MKEY:
+@@ -497,11 +497,11 @@ int main(int argc, char **argv)
+ 				/* All 64-bit values are legal */
+ 				break;
+ 			case MKEYLEASE:
+-				if (val < 0 || val > 0xFFFF)
++				if (val > 0xFFFF)
+ 					IBEXIT("invalid mkey lease time %ld", val);
+ 				break;
+ 			case MKEYPROT:
+-				if (val < 0 || val > 3)
++				if (val > 3)
+ 					IBEXIT("invalid mkey protection bit setting %ld", val);
  			}
-@@ -947,7 +949,8 @@ int rds_iw_xmit_rdma(struct rds_connection *conn, struct rm_rdma_op *op)
- 	 */
- 	if (!op->op_write) {
- 		ret = rds_iw_build_send_reg(&ic->i_sends[fr_pos],
--					    &op->op_sg[0], sg_nents);
-+					    &op->op_sg[0], sg_nents,
-+					    device->rdma_read_access_flags);
- 		if (ret) {
- 			printk(KERN_WARNING "RDS/IW: failed to reg send mem\n");
- 			goto out;
--- 
-1.8.4.3
-
+ 			*port_args[j].val = val;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
