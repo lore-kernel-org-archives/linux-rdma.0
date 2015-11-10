@@ -1,44 +1,59 @@
-From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH for-next 3/4] IB/mlx5: Add support querying timestamp
- related fields in query_device
-Date: Tue, 10 Nov 2015 10:52:20 +0200
-Message-ID: <CAAKD3BD3td5RFH3cPzgepuydsZQ66nyAru-nREpMUgbdg4CQCg@mail.gmail.com>
-References: <1447086657-15358-1-git-send-email-matanb@mellanox.com>
-	<1447086657-15358-4-git-send-email-matanb@mellanox.com>
-	<20151109192610.GF4023@leon.nu>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [PATCH v2] staging/rdma/hfi1: set Gen3 half-swing for integrated
+ devices
+Date: Tue, 10 Nov 2015 12:59:29 +0300
+Message-ID: <20151110095929.GW18797@mwanda>
+References: <1447112288-28327-1-git-send-email-ira.weiny@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151109192610.GF4023-2ukJVAZIZ/Y@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: leon-2ukJVAZIZ/Y@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+Content-Disposition: inline
+In-Reply-To: <1447112288-28327-1-git-send-email-ira.weiny@intel.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: ira.weiny@intel.com
+Cc: devel@driverdev.osuosl.org, gregkh@linuxfoundation.org, dledford@redhat.com, Dean Luick <dean.luick@intel.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 9, 2015 at 9:26 PM, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org> wrote:
-> On Mon, Nov 09, 2015 at 06:30:56PM +0200, Matan Barak wrote:
->> +
->> +     if (uhw->outlen) {
->> +             err = ib_copy_to_udata(uhw, &resp, resp.response_length);
->> +             if (err)
->> +                     return err;
->> +     }
->> +
->>       return 0;
-> What do you think about to rewrite this part of code to be something
-> like that?
-> +       int ret = 0;
-> .....
-> +       if (uhw->outlen)
-> +               ret = ib_copy_to_udata(uhw, &resp, resp.response_length);
-> +       return ret;
+Gar...  No.  Please please get rid of the PC() macro.  It makes the code
+impossible to understand because instead of hitting CTRL-[ you have
+decode it and then manually type out
 
-I'll change that. Thanks.
+:cs find g CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_OVERWRITE_ENABLE_SHIFT
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+which is the length of a typical college essay.  I meant just put a
+comment like this:
+
+/*
+ * In the hardware spec these are prefixed with:
+ * CCE_PCIE_CTRL_...
+ * But it is too long to use in code.
+ */
+#define XMT_MARGIN_GEN1_GEN2_OVERWRITE_ENABLE_MASK 0x1ull
+
+Or probably even better:
+
+#define CCE_PCIE_CTRL (CCE + 0x0000000000C0)
+#define LANE_BUNDLE_MASK	0x3ull /* CCE_PCIE_CTRL_PCIE_LANE_BUNDLE_MASK */
+#define LANE_BUNDLE_SHIFT	0      /* CCE_PCIE_CTRL_PCIE_LANE_BUNDLE_SHIFT */
+#define LANE_DELAY_MASK		0xFull /* CCE_PCIE_CTRL_PCIE_LANE_DELAY_MASK */
+#define LANE_DELAY_SHIFT	2      /* CCE_PCIE_CTRL_PCIE_LANE_DELAY_SHIFT */
+#define MARGIN_OVERWRITE_SHIFT	8      /* CCE_PCIE_CTRL_XMT_MARGIN_OVERWRITE_ENABLE_SHIFT */
+#define MARGIN_SHIFT		9      /* CCE_PCIE_CTRL_XMT_MARGIN_SHIFT */
+#define MARGIN_G1G2_OVERWRITE_MASK 0x1ull /* CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_OVERWRITE_ENABLE_MASK */
+#define MARGIN_G1G2_OVERWRITE_SHIFT 12    /* CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_OVERWRITE_ENABLE_SHIFT */
+#define MARGIN_G1G2_MASK	0x7ull /* CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_MASK */
+#define MARGIN_G1G2_SHIFT	13     /* CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_SHIFT */
+
+Those lines go over the 80 character limit but it's fine.
+
+regards,
+dan carpenter
