@@ -1,45 +1,41 @@
 From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v1 ib-next 2/3] IB/core: IB/core: Allow legacy verbs
- through extended interfaces
-Date: Tue, 10 Nov 2015 21:57:13 +0200
-Message-ID: <20151110195713.GA21849@x-vnc01.mtx.labs.mlnx>
-References: <1447178410-15360-1-git-send-email-eli@mellanox.com>
- <1447178410-15360-3-git-send-email-eli@mellanox.com>
- <20151110182107.GG12667@obsidianresearch.com>
+Subject: Re: [PATCH ib-next 2/3] IB/core: IB/core: Allow legacy verbs through
+ extended interfaces
+Date: Tue, 10 Nov 2015 22:02:26 +0200
+Message-ID: <20151110200226.GB21849@x-vnc01.mtx.labs.mlnx>
+References: <CAAKD3BDq_o+J3yM1qAKg_x35Dps5Ne_ffaD_Mz55a272pwQcJg@mail.gmail.com>
+ <564041C4.1090303@mellanox.com>
+ <20151109223531.GB1305@obsidianresearch.com>
+ <20151109230531.GF20103@x-vnc01.mtx.labs.mlnx>
+ <20151109231542.GA20707@obsidianresearch.com>
+ <20151109232431.GA114170@x-vnc01.mtx.labs.mlnx>
+ <20151109233059.GA21475@obsidianresearch.com>
+ <20151110152310.GB114170@x-vnc01.mtx.labs.mlnx>
+ <20151110154026.GC114170@x-vnc01.mtx.labs.mlnx>
+ <56424437.9090908@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20151110182107.GG12667-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <56424437.9090908-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, matanbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 10, 2015 at 11:21:07AM -0700, Jason Gunthorpe wrote:
-> On Tue, Nov 10, 2015 at 08:00:09PM +0200, Eli Cohen wrote:
-> > When an extended verbs is an extension to a legacy verb, the original
-> > functionality is preserved. Hence we do not require each hardware driver
-> > to set the extended capability. This will allow to use the extended verb
-> > in its simple form with drivers that do not support the extended
-> > capability.
+On Tue, Nov 10, 2015 at 11:23:35AM -0800, Bart Van Assche wrote:
 > 
-> Can we please get rid of uverbs_cmd_mask and uverbs_ex_cmd_mask ?
+> How about using ENOTSUPP ?
 > 
-> The driver should set the function pointers it does not support to
-> NULL. We don't need the bitmask because we already know the answer.
+> $ PAGER= git grep 'define ENOTSUPP' include
+> include/linux/errno.h:#define ENOTSUPP 524 /* Operation is not supported */
 > 
-> For performance, I recommend having the core replace the NULL op
-> pointers from the driver with a stub that returns ENOTSUP, and then
-> drop all the checking in the fast path.
->
 
-Yes, we can do this but I think this should be the subject for another
-patch, agree?
+Appearently this looks a better option but the following appears as a
+icomment above this group: /* Defined for the NFSv3 protocol */
 
-Regarding using stabs, it may be nice but I don't think performance is
-the issue here. Most verbs implementations involve relatively long i/o
-operations anyway so the gain will not be noticable.
+I don't mind using this if we can all agree that this is the best
+choise.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
