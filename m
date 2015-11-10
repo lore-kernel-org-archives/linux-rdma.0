@@ -1,104 +1,116 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v4 6/9] staging/rdma/hfi1: Implement Expected Receive TID caching
-Date: Mon, 9 Nov 2015 19:12:56 -0500
-Message-ID: <20151110001255.GB11150@phlsvsds.ph.intel.com>
-References: <1446245928-12675-1-git-send-email-ira.weiny@intel.com> <1446245928-12675-7-git-send-email-ira.weiny@intel.com> <20151107010328.GA24617@kroah.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [RESEND PATCH v4 1/3] staging/rdma/hfi1: move hfi1_migrate_qp
+Date: Mon,  9 Nov 2015 19:13:57 -0500
+Message-ID: <1447114439-10525-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20151107010328.GA24617-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Nov 06, 2015 at 05:03:28PM -0800, Greg KH wrote:
-> On Fri, Oct 30, 2015 at 06:58:45PM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> > From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > 
-> > Expected receives work by user-space libraries (PSM) calling into the driver
-> > with information about the user's receive buffer and have the driver DMA-map
-> > that buffer and program the HFI to receive data directly into it.
-> > 
-> > This is an expensive operation as it requires the driver to pin the pages which
-> > the user's buffer maps to, DMA-map them, and then program the HFI.
-> > 
-> > When the receive is complete, user-space libraries have to call into the driver
-> > again so the buffer is removed from the HFI, un-mapped, and the pages unpinned.
-> > 
-> > All of these operations are expensive, considering that a lot of applications
-> > (especially micro-benchmarks) use the same buffer over and over.
-> > 
-> > In order to get better performance for user-space applications, it is highly
-> > beneficial that they don't continuously call into the driver to register and
-> > unregister the same buffer. Rather, they can register the buffer and cache it
-> > for future work. The buffer can be unregistered when it is freed by the user.
-> > 
-> > This change implements such buffer caching by making use of the kernel's MMU
-> > notifier API. User-space libraries call into the driver only when the need to
-> > register a new buffer.
-> > 
-> > Once a buffer is registered, it stays programmed into the HFI until the kernel
-> > notifies the driver that the buffer has been freed by the user. At that time,
-> > the user-space library is notified and it can do the necessary work to remove
-> > the buffer from its cache.
-> > 
-> > Buffers which have been invalidated by the kernel are not automatically removed
-> > from the HFI and do not have their pages unpinned. Buffers are only completely
-> > removed when the user-space libraries call into the driver to free them.  This
-> > is done to ensure that any ongoing transfers into that buffer are complete.
-> > This is important when a buffer is not completely freed but rather it is
-> > shrunk. The user-space library could still have uncompleted transfers into the
-> > remaining buffer.
-> > 
-> > With this feature, it is important that systems are setup with reasonable
-> > limits for the amount of lockable memory.  Keeping the limit at "unlimited" (as
-> > we've done up to this point), may result in jobs being killed by the kernel's
-> > OOM due to them taking up excessive amounts of memory.
-> > 
-> > Reviewed-by: Arthur Kepner <arthur.kepner-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > 
-> > ---
-> > Changes from V3:
-> > 	Reworked based on the removal of the file pointer macros
-> > 	Split out some prep patches and code clean up
-> > 
-> > Changes from V2:
-> > 	Fix random Kconfig 0-day build error
-> > 	Fix leak of random memory to user space caught by Dan Carpenter
-> > 	Separate out pointer bug fix into a previous patch
-> > 	Change error checks in case statement per Dan's comments
-> > 
-> >  drivers/staging/rdma/hfi1/file_ops.c     | 469 ++---------------
-> >  drivers/staging/rdma/hfi1/hfi.h          |  43 +-
-> >  drivers/staging/rdma/hfi1/init.c         |   5 +-
-> >  drivers/staging/rdma/hfi1/trace.h        | 132 +++--
-> >  drivers/staging/rdma/hfi1/user_exp_rcv.c | 874 ++++++++++++++++++++++++++++++-
-> >  drivers/staging/rdma/hfi1/user_pages.c   | 110 +---
-> >  drivers/staging/rdma/hfi1/user_sdma.c    |  13 +
-> >  include/uapi/rdma/hfi/hfi1_user.h        |  14 +-
-> >  8 files changed, 1069 insertions(+), 591 deletions(-)
-> 
-> This is still a really big patch, any chance you can break it up into
-> smaller, reviewable parts?  I see you add different operations, perhaps
-> break it up into one patch per logical thing?
-> 
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-I understand, however, as you have seen with my attempt to break this up there
-are issues if we do so.
+Move hfi1_migrate_qp from ruc.c to qp.[hc] in prep for modifying the QP
+workqueue.
 
-I need to clean up the previous patch which was an attempt to split this one
-up.  But at this point I would really like to preserve the functionality we
-have here.  Breaking this up beyond this point is going to be difficult to do
-and really will not allow for bisecting the code across this feature being
-in vs out.
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+This patch was previously sent as #7/9 but 5/9 failed.
 
-Thanks,
-Ira
+I'm resending 7,8, and 9 as they did not explicitly depend on 5 and 6.
+
+ drivers/staging/rdma/hfi1/qp.c    | 20 ++++++++++++++++++++
+ drivers/staging/rdma/hfi1/qp.h    |  2 ++
+ drivers/staging/rdma/hfi1/ruc.c   | 20 --------------------
+ drivers/staging/rdma/hfi1/verbs.h |  2 --
+ 4 files changed, 22 insertions(+), 22 deletions(-)
+
+diff --git a/drivers/staging/rdma/hfi1/qp.c b/drivers/staging/rdma/hfi1/qp.c
+index df1fa56eaf85..6e6c9a8f6b6f 100644
+--- a/drivers/staging/rdma/hfi1/qp.c
++++ b/drivers/staging/rdma/hfi1/qp.c
+@@ -1685,3 +1685,23 @@ void qp_comm_est(struct hfi1_qp *qp)
+ 		qp->ibqp.event_handler(&ev, qp->ibqp.qp_context);
+ 	}
+ }
++
++/*
++ * Switch to alternate path.
++ * The QP s_lock should be held and interrupts disabled.
++ */
++void hfi1_migrate_qp(struct hfi1_qp *qp)
++{
++	struct ib_event ev;
++
++	qp->s_mig_state = IB_MIG_MIGRATED;
++	qp->remote_ah_attr = qp->alt_ah_attr;
++	qp->port_num = qp->alt_ah_attr.port_num;
++	qp->s_pkey_index = qp->s_alt_pkey_index;
++	qp->s_flags |= HFI1_S_AHG_CLEAR;
++
++	ev.device = qp->ibqp.device;
++	ev.element.qp = &qp->ibqp;
++	ev.event = IB_EVENT_PATH_MIG;
++	qp->ibqp.event_handler(&ev, qp->ibqp.qp_context);
++}
+diff --git a/drivers/staging/rdma/hfi1/qp.h b/drivers/staging/rdma/hfi1/qp.h
+index b9c1575990aa..bacfa9c5e8a8 100644
+--- a/drivers/staging/rdma/hfi1/qp.h
++++ b/drivers/staging/rdma/hfi1/qp.h
+@@ -247,4 +247,6 @@ void qp_iter_print(struct seq_file *s, struct qp_iter *iter);
+  */
+ void qp_comm_est(struct hfi1_qp *qp);
+ 
++void hfi1_migrate_qp(struct hfi1_qp *qp);
++
+ #endif /* _QP_H */
+diff --git a/drivers/staging/rdma/hfi1/ruc.c b/drivers/staging/rdma/hfi1/ruc.c
+index 8614b070545c..947ea27332ff 100644
+--- a/drivers/staging/rdma/hfi1/ruc.c
++++ b/drivers/staging/rdma/hfi1/ruc.c
+@@ -241,26 +241,6 @@ bail:
+ 	return ret;
+ }
+ 
+-/*
+- * Switch to alternate path.
+- * The QP s_lock should be held and interrupts disabled.
+- */
+-void hfi1_migrate_qp(struct hfi1_qp *qp)
+-{
+-	struct ib_event ev;
+-
+-	qp->s_mig_state = IB_MIG_MIGRATED;
+-	qp->remote_ah_attr = qp->alt_ah_attr;
+-	qp->port_num = qp->alt_ah_attr.port_num;
+-	qp->s_pkey_index = qp->s_alt_pkey_index;
+-	qp->s_flags |= HFI1_S_AHG_CLEAR;
+-
+-	ev.device = qp->ibqp.device;
+-	ev.element.qp = &qp->ibqp;
+-	ev.event = IB_EVENT_PATH_MIG;
+-	qp->ibqp.event_handler(&ev, qp->ibqp.qp_context);
+-}
+-
+ static __be64 get_sguid(struct hfi1_ibport *ibp, unsigned index)
+ {
+ 	if (!index) {
+diff --git a/drivers/staging/rdma/hfi1/verbs.h b/drivers/staging/rdma/hfi1/verbs.h
+index e4a8a0d4ccf8..9555aab51530 100644
+--- a/drivers/staging/rdma/hfi1/verbs.h
++++ b/drivers/staging/rdma/hfi1/verbs.h
+@@ -1071,8 +1071,6 @@ int hfi1_mmap(struct ib_ucontext *context, struct vm_area_struct *vma);
+ 
+ int hfi1_get_rwqe(struct hfi1_qp *qp, int wr_id_only);
+ 
+-void hfi1_migrate_qp(struct hfi1_qp *qp);
+-
+ int hfi1_ruc_check_hdr(struct hfi1_ibport *ibp, struct hfi1_ib_header *hdr,
+ 		       int has_grh, struct hfi1_qp *qp, u32 bth0);
+ 
+-- 
+1.8.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
