@@ -1,186 +1,159 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH RFC 1/3] IB/core: Expose a device attribute for rdma_read
- access flags
-Date: Tue, 10 Nov 2015 05:41:47 -0800
-Message-ID: <20151110134147.GA12814@infradead.org>
-References: <1447152255-28231-1-git-send-email-sagig@mellanox.com>
- <1447152255-28231-2-git-send-email-sagig@mellanox.com>
- <1447156270.7089.3.camel@opteya.com>
- <5641E4C9.7000206@talpey.com>
- <5641E644.7080101@mellanox.com>
- <20151110130648.GA10682@infradead.org>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/2] staging/rdma/hfi1: add common routine for queuing acks
+Date: Tue, 10 Nov 2015 09:13:55 -0500
+Message-ID: <20151110141355.30166.93359.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20151110130648.GA10682-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-FYI, this is the API I'd aim for (only SRP and no HW driver converted
-yet):
+This patch is a prelimary patch required to
+coalesce acks.
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 0e21367..7ea695c 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -1484,14 +1484,15 @@ EXPORT_SYMBOL(ib_check_mr_status);
- int ib_map_mr_sg(struct ib_mr *mr,
- 		 struct scatterlist *sg,
- 		 int sg_nents,
--		 unsigned int page_size)
-+		 unsigned int page_size,
-+		 unsigned int flags)
- {
- 	if (unlikely(!mr->device->map_mr_sg))
- 		return -ENOSYS;
- 
- 	mr->page_size = page_size;
- 
--	return mr->device->map_mr_sg(mr, sg, sg_nents);
-+	return mr->device->map_mr_sg(mr, sg, sg_nents, flags);
- }
- EXPORT_SYMBOL(ib_map_mr_sg);
- 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 62b6cba..d77a5b4 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1314,7 +1314,6 @@ static int srp_map_finish_fr(struct srp_map_state *state,
- 	struct srp_target_port *target = ch->target;
- 	struct srp_device *dev = target->srp_host->srp_dev;
- 	struct ib_send_wr *bad_wr;
--	struct ib_reg_wr wr;
- 	struct srp_fr_desc *desc;
- 	u32 rkey;
- 	int n, err;
-@@ -1342,20 +1341,17 @@ static int srp_map_finish_fr(struct srp_map_state *state,
- 	ib_update_fast_reg_key(desc->mr, rkey);
- 
- 	n = ib_map_mr_sg(desc->mr, state->sg, state->sg_nents,
--			 dev->mr_page_size);
-+			 dev->mr_page_size,
-+			 /*
-+			  * XXX: add a bool write argument to this function,
-+			  * so that we only need to open up the required
-+			  * permissions.
-+			  */
-+			 IB_MR_REMOTE | IB_MR_RDMA_READ | IB_MR_RDMA_WRITE);
- 	if (unlikely(n < 0))
- 		return n;
- 
--	wr.wr.next = NULL;
--	wr.wr.opcode = IB_WR_REG_MR;
--	wr.wr.wr_id = FAST_REG_WR_ID_MASK;
--	wr.wr.num_sge = 0;
--	wr.wr.send_flags = 0;
--	wr.mr = desc->mr;
--	wr.key = desc->mr->rkey;
--	wr.access = (IB_ACCESS_LOCAL_WRITE |
--		     IB_ACCESS_REMOTE_READ |
--		     IB_ACCESS_REMOTE_WRITE);
-+	desc->mr->wr.wr_id = FAST_REG_WR_ID_MASK;
- 
- 	*state->fr.next++ = desc;
- 	state->nmdesc++;
-@@ -1363,7 +1359,7 @@ static int srp_map_finish_fr(struct srp_map_state *state,
- 	srp_map_desc(state, desc->mr->iova,
- 		     desc->mr->length, desc->mr->rkey);
- 
--	err = ib_post_send(ch->qp, &wr.wr, &bad_wr);
-+	err = ib_post_send(ch->qp, &desc->mr->wr, &bad_wr);
- 	if (unlikely(err))
- 		return err;
- 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 83d6ee8..b168b3a 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1105,18 +1105,6 @@ static inline struct ib_ud_wr *ud_wr(struct ib_send_wr *wr)
- 	return container_of(wr, struct ib_ud_wr, wr);
+The routine to "schedule" a QP for sending a NAK is
+now centralized in rc_defer_ack().  The flag is changed
+for clarity since the all acks will potentially use
+the deferral  mechanism.
+
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/staging/rdma/hfi1/driver.c |    4 ++-
+ drivers/staging/rdma/hfi1/rc.c     |   42 +++++++++++++-----------------------
+ drivers/staging/rdma/hfi1/verbs.h  |   12 ++++++----
+ 3 files changed, 24 insertions(+), 34 deletions(-)
+
+diff --git a/drivers/staging/rdma/hfi1/driver.c b/drivers/staging/rdma/hfi1/driver.c
+index ce69141..e8e0f55 100644
+--- a/drivers/staging/rdma/hfi1/driver.c
++++ b/drivers/staging/rdma/hfi1/driver.c
+@@ -721,8 +721,8 @@ static inline void process_rcv_qp_work(struct hfi1_packet *packet)
+ 	 */
+ 	list_for_each_entry_safe(qp, nqp, &rcd->qp_wait_list, rspwait) {
+ 		list_del_init(&qp->rspwait);
+-		if (qp->r_flags & HFI1_R_RSP_NAK) {
+-			qp->r_flags &= ~HFI1_R_RSP_NAK;
++		if (qp->r_flags & HFI1_R_RSP_DEFERED_ACK) {
++			qp->r_flags &= ~HFI1_R_RSP_DEFERED_ACK;
+ 			hfi1_send_rc_ack(rcd, qp, 0);
+ 		}
+ 		if (qp->r_flags & HFI1_R_RSP_SEND) {
+diff --git a/drivers/staging/rdma/hfi1/rc.c b/drivers/staging/rdma/hfi1/rc.c
+index 0b19206..6fe0104 100644
+--- a/drivers/staging/rdma/hfi1/rc.c
++++ b/drivers/staging/rdma/hfi1/rc.c
+@@ -1608,6 +1608,16 @@ bail:
+ 	return;
  }
  
--struct ib_reg_wr {
--	struct ib_send_wr	wr;
--	struct ib_mr		*mr;
--	u32			key;
--	int			access;
--};
--
--static inline struct ib_reg_wr *reg_wr(struct ib_send_wr *wr)
--{
--	return container_of(wr, struct ib_reg_wr, wr);
--}
--
- struct ib_bind_mw_wr {
- 	struct ib_send_wr	wr;
- 	struct ib_mw		*mw;
-@@ -1314,7 +1302,18 @@ struct ib_qp {
- 	enum ib_qp_type		qp_type;
- };
- 
-+enum ib_mr_flags {
-+	/* scope: either remote or local */
-+	IB_MR_REMOTE,
-+	IB_MR_LOCAL,
-+
-+	/* direction: one or both can be ORed into the scope above */
-+	IB_MR_RDMA_READ		= (1 << 10),
-+	IB_MR_RDMA_WRITE	= (1 << 11)
-+};
-+
- struct ib_mr {
-+	struct ib_send_wr  wr;
- 	struct ib_device  *device;
- 	struct ib_pd	  *pd;
- 	struct ib_uobject *uobject;
-@@ -1326,6 +1325,11 @@ struct ib_mr {
- 	atomic_t	   usecnt; /* count number of MWs */
- };
- 
-+static inline struct ib_mr *wr_to_mr(struct ib_send_wr *wr)
++static inline void rc_defered_ack(struct hfi1_ctxtdata *rcd,
++				  struct hfi1_qp *qp)
 +{
-+	return container_of(wr, struct ib_mr, wr);
++	if (list_empty(&qp->rspwait)) {
++		qp->r_flags |= HFI1_R_RSP_DEFERED_ACK;
++		atomic_inc(&qp->refcount);
++		list_add_tail(&qp->rspwait, &rcd->qp_wait_list);
++	}
 +}
 +
- struct ib_mw {
- 	struct ib_device	*device;
- 	struct ib_pd		*pd;
-@@ -1706,7 +1710,8 @@ struct ib_device {
- 					       u32 max_num_sg);
- 	int                        (*map_mr_sg)(struct ib_mr *mr,
- 						struct scatterlist *sg,
--						int sg_nents);
-+						int sg_nents,
-+						unsigned int flags);
- 	int                        (*rereg_phys_mr)(struct ib_mr *mr,
- 						    int mr_rereg_mask,
- 						    struct ib_pd *pd,
-@@ -3022,17 +3027,19 @@ struct net_device *ib_get_net_dev_by_params(struct ib_device *dev, u8 port,
- int ib_map_mr_sg(struct ib_mr *mr,
- 		 struct scatterlist *sg,
- 		 int sg_nents,
--		 unsigned int page_size);
-+		 unsigned int page_size,
-+		 unsigned int flags);
+ /**
+  * rc_rcv_error - process an incoming duplicate or error RC packet
+  * @ohdr: the other headers for this packet
+@@ -1650,11 +1660,7 @@ static noinline int rc_rcv_error(struct hfi1_other_headers *ohdr, void *data,
+ 			 * in the receive queue have been processed.
+ 			 * Otherwise, we end up propagating congestion.
+ 			 */
+-			if (list_empty(&qp->rspwait)) {
+-				qp->r_flags |= HFI1_R_RSP_NAK;
+-				atomic_inc(&qp->refcount);
+-				list_add_tail(&qp->rspwait, &rcd->qp_wait_list);
+-			}
++			rc_defered_ack(rcd, qp);
+ 		}
+ 		goto done;
+ 	}
+@@ -2337,11 +2343,7 @@ rnr_nak:
+ 	qp->r_nak_state = IB_RNR_NAK | qp->r_min_rnr_timer;
+ 	qp->r_ack_psn = qp->r_psn;
+ 	/* Queue RNR NAK for later */
+-	if (list_empty(&qp->rspwait)) {
+-		qp->r_flags |= HFI1_R_RSP_NAK;
+-		atomic_inc(&qp->refcount);
+-		list_add_tail(&qp->rspwait, &rcd->qp_wait_list);
+-	}
++	rc_defered_ack(rcd, qp);
+ 	return;
  
- static inline int
- ib_map_mr_sg_zbva(struct ib_mr *mr,
- 		  struct scatterlist *sg,
- 		  int sg_nents,
--		  unsigned int page_size)
-+		  unsigned int page_size,
-+		  unsigned int flags)
- {
- 	int n;
+ nack_op_err:
+@@ -2349,11 +2351,7 @@ nack_op_err:
+ 	qp->r_nak_state = IB_NAK_REMOTE_OPERATIONAL_ERROR;
+ 	qp->r_ack_psn = qp->r_psn;
+ 	/* Queue NAK for later */
+-	if (list_empty(&qp->rspwait)) {
+-		qp->r_flags |= HFI1_R_RSP_NAK;
+-		atomic_inc(&qp->refcount);
+-		list_add_tail(&qp->rspwait, &rcd->qp_wait_list);
+-	}
++	rc_defered_ack(rcd, qp);
+ 	return;
  
--	n = ib_map_mr_sg(mr, sg, sg_nents, page_size);
-+	n = ib_map_mr_sg(mr, sg, sg_nents, page_size, flags);
- 	mr->iova = 0;
+ nack_inv_unlck:
+@@ -2363,11 +2361,7 @@ nack_inv:
+ 	qp->r_nak_state = IB_NAK_INVALID_REQUEST;
+ 	qp->r_ack_psn = qp->r_psn;
+ 	/* Queue NAK for later */
+-	if (list_empty(&qp->rspwait)) {
+-		qp->r_flags |= HFI1_R_RSP_NAK;
+-		atomic_inc(&qp->refcount);
+-		list_add_tail(&qp->rspwait, &rcd->qp_wait_list);
+-	}
++	rc_defered_ack(rcd, qp);
+ 	return;
  
- 	return n;
+ nack_acc_unlck:
+@@ -2421,13 +2415,7 @@ void hfi1_rc_hdrerr(
+ 			 * Otherwise, we end up
+ 			 * propagating congestion.
+ 			 */
+-			if (list_empty(&qp->rspwait)) {
+-				qp->r_flags |= HFI1_R_RSP_NAK;
+-				atomic_inc(&qp->refcount);
+-				list_add_tail(
+-					&qp->rspwait,
+-					&rcd->qp_wait_list);
+-				}
++			rc_defered_ack(rcd, qp);
+ 		} /* Out of sequence NAK */
+ 	} /* QP Request NAKs */
+ }
+diff --git a/drivers/staging/rdma/hfi1/verbs.h b/drivers/staging/rdma/hfi1/verbs.h
+index e4a8a0d..c5e6f47 100644
+--- a/drivers/staging/rdma/hfi1/verbs.h
++++ b/drivers/staging/rdma/hfi1/verbs.h
+@@ -547,11 +547,13 @@ struct hfi1_qp {
+ /*
+  * Bit definitions for r_flags.
+  */
+-#define HFI1_R_REUSE_SGE 0x01
+-#define HFI1_R_RDMAR_SEQ 0x02
+-#define HFI1_R_RSP_NAK   0x04
+-#define HFI1_R_RSP_SEND  0x08
+-#define HFI1_R_COMM_EST  0x10
++#define HFI1_R_REUSE_SGE       0x01
++#define HFI1_R_RDMAR_SEQ       0x02
++/* defer ack until end of interrupt session */
++#define HFI1_R_RSP_DEFERED_ACK 0x04
++/* relay ack to send engine */
++#define HFI1_R_RSP_SEND        0x08
++#define HFI1_R_COMM_EST        0x10
+ 
+ /*
+  * Bit definitions for s_flags.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
