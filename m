@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH infiniband-diags] Remove unused pisize parameter from
- dump_portinfo in ibdiag_common
-Date: Tue, 10 Nov 2015 13:22:51 +0200
-Message-ID: <5641D38B.605@dev.mellanox.co.il>
+Subject: [PATCH infiniband-diags] ibsendtrap.c: Eliminate unused parameter
+ from send_trap
+Date: Tue, 10 Nov 2015 13:23:39 +0200
+Message-ID: <5641D3BB.4090003@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
@@ -13,63 +13,34 @@ Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
-src/ibdiag_common.c: In function ?dump_portinfo?:
-src/ibdiag_common.c:856: warning: unused parameter ?pisize?
+src/ibsendtrap.c: In function ?send_trap?:
+src/ibsendtrap.c:124: warning: unused parameter ?name?
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-diff --git a/include/ibdiag_common.h b/include/ibdiag_common.h
-index af5b3c4..21b0522 100644
---- a/include/ibdiag_common.h
-+++ b/include/ibdiag_common.h
-@@ -150,7 +150,7 @@ int vsnprint_field(char *buf, size_t n, enum MAD_FIELDS f, int spacing,
- 		   const char *format, va_list va_args);
- int snprint_field(char *buf, size_t n, enum MAD_FIELDS f, int spacing,
- 		  const char *format, ...);
--void dump_portinfo(void *pi, int pisize, int tabs);
-+void dump_portinfo(void *pi, int tabs);
- 
- /**
-  * Some common command line parsing
-diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
-index 5ec0167..3ebdbb9 100644
---- a/src/ibdiag_common.c
-+++ b/src/ibdiag_common.c
-@@ -853,7 +853,7 @@ int snprint_field(char *buf, size_t n, enum MAD_FIELDS f, int spacing,
- 	return ret;
+diff --git a/src/ibsendtrap.c b/src/ibsendtrap.c
+index 46fd6e7..659f2d2 100644
+--- a/src/ibsendtrap.c
++++ b/src/ibsendtrap.c
+@@ -121,8 +121,7 @@ static void build_trap129(ib_mad_notice_attr_t * n, ib_portid_t * port)
+ 	n->data_details.ntc_129_131.port_num = (uint8_t) error_port;
  }
  
--void dump_portinfo(void *pi, int pisize, int tabs)
-+void dump_portinfo(void *pi, int tabs)
+-static int send_trap(const char *name,
+-		     void (*build) (ib_mad_notice_attr_t *, ib_portid_t *))
++static int send_trap(void (*build) (ib_mad_notice_attr_t *, ib_portid_t *))
  {
- 	int field, i;
- 	char val[64];
-diff --git a/src/saquery.c b/src/saquery.c
-index cc8d8dc..bd70b7b 100644
---- a/src/saquery.c
-+++ b/src/saquery.c
-@@ -304,7 +304,7 @@ static void dump_one_portinfo_record(void *data, struct query_params *p)
- 	       "\t\tOptions.................0x%x\n"
- 	       "\tPortInfo dump:\n",
- 	       cl_ntoh16(pir->lid), pir->port_num, pir->options);
--	dump_portinfo(pi, sizeof(*pi), 2);
-+	dump_portinfo(pi, 2);
+ 	ib_portid_t sm_port;
+ 	ib_portid_t selfportid;
+@@ -169,7 +168,7 @@ int process_send_trap(char *trap_name)
+ 
+ 	for (i = 0; traps[i].trap_name; i++)
+ 		if (strcmp(traps[i].trap_name, trap_name) == 0)
+-			return send_trap(trap_name, traps[i].build_func);
++			return send_trap(traps[i].build_func);
+ 	ibdiag_show_usage();
+ 	return 1;
  }
- 
- static void dump_one_mcmember_record(void *data, struct query_params *p)
-diff --git a/src/smpquery.c b/src/smpquery.c
-index 187ef61..2bd7132 100644
---- a/src/smpquery.c
-+++ b/src/smpquery.c
-@@ -161,7 +161,7 @@ static char *port_info(ib_portid_t * dest, char **argv, int argc)
- 		return "port info query failed";
- 
- 	printf("# Port info: %s port %d\n", portid2str(dest), orig_portnum);
--	dump_portinfo(data, sizeof data, 0);
-+	dump_portinfo(data, 0);
- 	return 0;
- }
- 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
