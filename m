@@ -1,66 +1,53 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH RFC 1/3] IB/core: Expose a device attribute for rdma_read
- access flags
-Date: Tue, 10 Nov 2015 11:36:27 -0700
-Message-ID: <20151110183627.GJ12667@obsidianresearch.com>
-References: <1447152255-28231-1-git-send-email-sagig@mellanox.com>
- <1447152255-28231-2-git-send-email-sagig@mellanox.com>
- <1447156270.7089.3.camel@opteya.com>
- <5641E4C9.7000206@talpey.com>
- <5641E644.7080101@mellanox.com>
- <20151110130648.GA10682@infradead.org>
- <20151110134147.GA12814@infradead.org>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH ib-next 2/3] IB/core: IB/core: Allow legacy verbs through
+ extended interfaces
+Date: Tue, 10 Nov 2015 11:23:35 -0800
+Message-ID: <56424437.9090908@sandisk.com>
+References: <1446745208-17733-1-git-send-email-eli@mellanox.com>
+ <1446745208-17733-3-git-send-email-eli@mellanox.com>
+ <CAAKD3BDq_o+J3yM1qAKg_x35Dps5Ne_ffaD_Mz55a272pwQcJg@mail.gmail.com>
+ <564041C4.1090303@mellanox.com> <20151109223531.GB1305@obsidianresearch.com>
+ <20151109230531.GF20103@x-vnc01.mtx.labs.mlnx>
+ <20151109231542.GA20707@obsidianresearch.com>
+ <20151109232431.GA114170@x-vnc01.mtx.labs.mlnx>
+ <20151109233059.GA21475@obsidianresearch.com>
+ <20151110152310.GB114170@x-vnc01.mtx.labs.mlnx>
+ <20151110154026.GC114170@x-vnc01.mtx.labs.mlnx>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20151110134147.GA12814-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <20151110154026.GC114170-lgQlq6cFzJSjLWYaRI30zHI+JuX82XLG@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, matanbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 10, 2015 at 05:41:47AM -0800, Christoph Hellwig wrote:
-> FYI, this is the API I'd aim for (only SRP and no HW driver converted
-> yet):
+On 11/10/2015 07:40 AM, Eli Cohen wrote:
+> On Tue, Nov 10, 2015 at 05:23:10PM +0200, Eli Cohen wrote:
+>>>
+>>> Call it ENOTSUP then:
+>>>
+>>>         ENOTSUP         Operation not supported (POSIX.1)
+>>>
+>>> Same value on Linux.
+>>>
+>>
+>> Yes, that's better. I will resend.
+> 
+> 
+> Well it seems like ENOTSUP is defined only here:
+> 
+> ./arch/parisc/include/uapi/asm/errno.h:115:#define ENOTSUP 252     /* Function not implemented (POSIX.4 / HPUX) */
+> 
+> Which obviously I cannot use. Jason, do you have another idea?
 
->  	n = ib_map_mr_sg(desc->mr, state->sg, state->sg_nents,
-> -			 dev->mr_page_size);
-> +			 dev->mr_page_size,
-> +			 /*
-> +			  * XXX: add a bool write argument to this function,
-> +			  * so that we only need to open up the required
-> +			  * permissions.
-> +			  */
-> +			 IB_MR_REMOTE | IB_MR_RDMA_READ |
-> IB_MR_RDMA_WRITE);
+How about using ENOTSUPP ?
 
-I would call it IB_RDMA_LKEY and IB_RDMA_RKEY. We have other places in
-the API where lkey/rkey is used and it makes a lot more sense to think
-about a MR as being either a lkey or rkey usable MR - since this is
-effectively what we are doing here with these ops.
+$ PAGER= git grep 'define ENOTSUPP' include
+include/linux/errno.h:#define ENOTSUPP 524 /* Operation is not supported */
 
-IB_MR_RKEY | IB_MR_RDMA_READ == The resulting key can be used
-in a wr.rdma.rkey field
-
-IB_MR_LKEY | IB_MR_SEND == The key can be used in wr.sg_list[].lkey
-
-etc
-
-It is an error to use a IB_MR_LKEY in a rkey field, etc..
-
-> +enum ib_mr_flags {
-> +	/* scope: either remote or local */
-> +	IB_MR_REMOTE,
-> +	IB_MR_LOCAL,
-> +
-> +	/* direction: one or both can be ORed into the scope above */
-> +	IB_MR_RDMA_READ		= (1 << 10),
-> +	IB_MR_RDMA_WRITE	= (1 << 11)
-
-Don't forget SEND too.
-
-Jason
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
