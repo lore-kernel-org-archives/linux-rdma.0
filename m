@@ -1,65 +1,68 @@
-From: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: Re: [PATCH v4 5/9] staging/rdma/hfi1: Add function stubs for TID
- caching
-Date: Mon, 9 Nov 2015 16:18:27 -0800
-Message-ID: <20151110001827.GA29500@kroah.com>
-References: <1446245928-12675-1-git-send-email-ira.weiny@intel.com>
- <1446245928-12675-6-git-send-email-ira.weiny@intel.com>
- <20151107010235.GA24586@kroah.com>
- <20151110001102.GA11150@phlsvsds.ph.intel.com>
+From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH for-next 1/4] IB/mlx5: Add create_cq extended command
+Date: Tue, 10 Nov 2015 10:28:58 +0200
+Message-ID: <CAAKD3BC9yGWwj91_WPN8XVNUKkqTHHhNR7jK99Vi3r8688OE_Q@mail.gmail.com>
+References: <1447086657-15358-1-git-send-email-matanb@mellanox.com>
+	<1447086657-15358-2-git-send-email-matanb@mellanox.com>
+	<20151109232259.GB20707@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20151110001102.GA11150-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <20151109232259.GB20707-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 09, 2015 at 07:11:03PM -0500, ira.weiny wrote:
-> On Fri, Nov 06, 2015 at 05:02:35PM -0800, Greg KH wrote:
-> > On Fri, Oct 30, 2015 at 06:58:44PM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> > > From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > 
-> > > Add mmu notify helper functions and TID caching function stubs in preparation
-> > > for the TID caching implementation.
-> > > 
-> > > TID caching makes use of the MMU notifier to allow the driver to respond to the
-> > > user freeing memory which is allocated to the HFI.
-> > > 
-> > > This patch implements the basic MMU notifier functions to insert, find and
-> > > remove buffer pages from memory based on the mmu_notifier being invoked.
-> > > 
-> > > In addition it places stubs in place for the main entry points by follow on
-> > > code.
-> > > 
-> > > Follow up patches will complete the implementation of the interaction with user
-> > > space and makes use of these functions.
-> > 
-> > This patch adds warnings to the build, which isn't ok, so I've stopped
-> > here in this series and just applied the first 4.  Please fix up and
-> > resend the remaining ones.
-> 
-> Ok, patch 7-9 of this series do not depend on this patch nor number 6.  I will
-> resend those 3 while I figure out what to do about these 2:
-> 
-> staging/rdma/hfi1: Add function stubs for TID caching
-> staging/rdma/hfi1: Implement Expected Receive TID caching
-> 
-> Frankly this was an attempt to reduce the size of "Implement Expected Receive
-> TID caching".  I obviously did something wrong.
-> 
-> I really don't know that I can split these up any more without causing issues
-> with bisecting the code.
+On Tue, Nov 10, 2015 at 1:22 AM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Mon, Nov 09, 2015 at 06:30:54PM +0200, Matan Barak wrote:
+>> In order to create a CQ that supports timestamp, mlx5 needs to
+>> support the extended create CQ command with the timestamp flag.
+>>
+>> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>  drivers/infiniband/hw/mlx5/cq.c   | 7 +++++++
+>>  drivers/infiniband/hw/mlx5/main.c | 3 ++-
+>>  2 files changed, 9 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
+>> index 2d0dbbf..674f857 100644
+>> +++ b/drivers/infiniband/hw/mlx5/cq.c
+>> @@ -743,6 +743,10 @@ static void destroy_cq_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_cq *cq)
+>>       mlx5_db_free(dev->mdev, &cq->db);
+>>  }
+>>
+>> +enum {
+>> +     CQ_CREATE_FLAGS_SUPPORTED = IB_CQ_FLAGS_TIMESTAMP_COMPLETION
+>> +};
+>> +
+>>  struct ib_cq *mlx5_ib_create_cq(struct ib_device *ibdev,
+>>                               const struct ib_cq_init_attr *attr,
+>>                               struct ib_ucontext *context,
+>> @@ -766,6 +770,9 @@ struct ib_cq *mlx5_ib_create_cq(struct ib_device *ibdev,
+>>       if (entries < 0)
+>>               return ERR_PTR(-EINVAL);
+>>
+>> +     if (attr->flags & ~CQ_CREATE_FLAGS_SUPPORTED)
+>> +             return ERR_PTR(-EINVAL);
+>
+> And this is what I was just mentioning to Eli, EINVAL is not the right
+> return, and this same comment applies to the places where the above
+> was copy and pasted into drivers during the ex patching.
+>
+> Try for EOPNOTSUPP maybe?
+>
 
-I strongly doubt that you created this new feature all "at once", it
-took a set of steps to get to your final destination.  So show that
-work, like your math professor told you...
+Agree. Thanks, I'll fix.
 
-thanks,
+> Jason
 
-greg k-h
+Matan
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
