@@ -1,38 +1,34 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH RFC 1/3] IB/core: Expose a device attribute for rdma_read
- access flags
-Date: Tue, 10 Nov 2015 14:42:44 +0200
-Message-ID: <5641E644.7080101@mellanox.com>
-References: <1447152255-28231-1-git-send-email-sagig@mellanox.com>
- <1447152255-28231-2-git-send-email-sagig@mellanox.com>
- <1447156270.7089.3.camel@opteya.com> <5641E4C9.7000206@talpey.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] IB: start documenting device capabilities
+Date: Tue, 10 Nov 2015 14:46:53 +0200
+Message-ID: <5641E73D.3070400@dev.mellanox.co.il>
+References: <1447157983-13519-1-git-send-email-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5641E4C9.7000206-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1447157983-13519-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-> Sagi, the Windows NDKPI has an NDK_MR_FLAG_RDMA_READ_SINK attribute
-> which the upper layer can use to convey this information, I've mentioned
-> it here before.
-> https://msdn.microsoft.com/en-us/library/windows/hardware/hh439908(v=vs.85).aspx
->
+> +
+> +	/*
+> +	 * This device supports the IB "base memory management extension",
+> +	 * which includes support for fast registrations (IB_WR_REG_MR,
+> +	 * IB_WR_LOCAL_INV and IB_WR_SEND_WITH_INV verbs).  This flag should
+> +	 * also be set by any iWarp device which must support FRs to comply
+> +	 * to the iWarp verbs spec.  iWarp devices also support the
+> +	 * IB_WR_RDMA_READ_WITH_INV verb for RDMA READs that invalidate the
+> +	 * stag.
+> +	 */
 
-Thanks for the tip Tom.
+Kinda weird that READ_WITH_INV came in without a device cap for it.
 
->
-> When this approach is used, the upper layer doesn't have to be aware
-> at all of the lower layer's details.
+Looks good,
 
-Yea, we could do that too. Any preferences from other people?
-I'm pretty indifferent on which way to go...
-
-Sagi.
+Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
