@@ -1,53 +1,103 @@
 From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v4 5/9] staging/rdma/hfi1: Add function stubs for TID caching
-Date: Mon, 9 Nov 2015 19:11:03 -0500
-Message-ID: <20151110001102.GA11150@phlsvsds.ph.intel.com>
-References: <1446245928-12675-1-git-send-email-ira.weiny@intel.com> <1446245928-12675-6-git-send-email-ira.weiny@intel.com> <20151107010235.GA24586@kroah.com>
+Subject: Re: [PATCH v4 6/9] staging/rdma/hfi1: Implement Expected Receive TID caching
+Date: Mon, 9 Nov 2015 19:12:56 -0500
+Message-ID: <20151110001255.GB11150@phlsvsds.ph.intel.com>
+References: <1446245928-12675-1-git-send-email-ira.weiny@intel.com> <1446245928-12675-7-git-send-email-ira.weiny@intel.com> <20151107010328.GA24617@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20151107010235.GA24586-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20151107010328.GA24617-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
 Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Nov 06, 2015 at 05:02:35PM -0800, Greg KH wrote:
-> On Fri, Oct 30, 2015 at 06:58:44PM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+On Fri, Nov 06, 2015 at 05:03:28PM -0800, Greg KH wrote:
+> On Fri, Oct 30, 2015 at 06:58:45PM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
 > > From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > > 
-> > Add mmu notify helper functions and TID caching function stubs in preparation
-> > for the TID caching implementation.
+> > Expected receives work by user-space libraries (PSM) calling into the driver
+> > with information about the user's receive buffer and have the driver DMA-map
+> > that buffer and program the HFI to receive data directly into it.
 > > 
-> > TID caching makes use of the MMU notifier to allow the driver to respond to the
-> > user freeing memory which is allocated to the HFI.
+> > This is an expensive operation as it requires the driver to pin the pages which
+> > the user's buffer maps to, DMA-map them, and then program the HFI.
 > > 
-> > This patch implements the basic MMU notifier functions to insert, find and
-> > remove buffer pages from memory based on the mmu_notifier being invoked.
+> > When the receive is complete, user-space libraries have to call into the driver
+> > again so the buffer is removed from the HFI, un-mapped, and the pages unpinned.
 > > 
-> > In addition it places stubs in place for the main entry points by follow on
-> > code.
+> > All of these operations are expensive, considering that a lot of applications
+> > (especially micro-benchmarks) use the same buffer over and over.
 > > 
-> > Follow up patches will complete the implementation of the interaction with user
-> > space and makes use of these functions.
+> > In order to get better performance for user-space applications, it is highly
+> > beneficial that they don't continuously call into the driver to register and
+> > unregister the same buffer. Rather, they can register the buffer and cache it
+> > for future work. The buffer can be unregistered when it is freed by the user.
+> > 
+> > This change implements such buffer caching by making use of the kernel's MMU
+> > notifier API. User-space libraries call into the driver only when the need to
+> > register a new buffer.
+> > 
+> > Once a buffer is registered, it stays programmed into the HFI until the kernel
+> > notifies the driver that the buffer has been freed by the user. At that time,
+> > the user-space library is notified and it can do the necessary work to remove
+> > the buffer from its cache.
+> > 
+> > Buffers which have been invalidated by the kernel are not automatically removed
+> > from the HFI and do not have their pages unpinned. Buffers are only completely
+> > removed when the user-space libraries call into the driver to free them.  This
+> > is done to ensure that any ongoing transfers into that buffer are complete.
+> > This is important when a buffer is not completely freed but rather it is
+> > shrunk. The user-space library could still have uncompleted transfers into the
+> > remaining buffer.
+> > 
+> > With this feature, it is important that systems are setup with reasonable
+> > limits for the amount of lockable memory.  Keeping the limit at "unlimited" (as
+> > we've done up to this point), may result in jobs being killed by the kernel's
+> > OOM due to them taking up excessive amounts of memory.
+> > 
+> > Reviewed-by: Arthur Kepner <arthur.kepner-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > 
+> > ---
+> > Changes from V3:
+> > 	Reworked based on the removal of the file pointer macros
+> > 	Split out some prep patches and code clean up
+> > 
+> > Changes from V2:
+> > 	Fix random Kconfig 0-day build error
+> > 	Fix leak of random memory to user space caught by Dan Carpenter
+> > 	Separate out pointer bug fix into a previous patch
+> > 	Change error checks in case statement per Dan's comments
+> > 
+> >  drivers/staging/rdma/hfi1/file_ops.c     | 469 ++---------------
+> >  drivers/staging/rdma/hfi1/hfi.h          |  43 +-
+> >  drivers/staging/rdma/hfi1/init.c         |   5 +-
+> >  drivers/staging/rdma/hfi1/trace.h        | 132 +++--
+> >  drivers/staging/rdma/hfi1/user_exp_rcv.c | 874 ++++++++++++++++++++++++++++++-
+> >  drivers/staging/rdma/hfi1/user_pages.c   | 110 +---
+> >  drivers/staging/rdma/hfi1/user_sdma.c    |  13 +
+> >  include/uapi/rdma/hfi/hfi1_user.h        |  14 +-
+> >  8 files changed, 1069 insertions(+), 591 deletions(-)
 > 
-> This patch adds warnings to the build, which isn't ok, so I've stopped
-> here in this series and just applied the first 4.  Please fix up and
-> resend the remaining ones.
+> This is still a really big patch, any chance you can break it up into
+> smaller, reviewable parts?  I see you add different operations, perhaps
+> break it up into one patch per logical thing?
+> 
 
-Ok, patch 7-9 of this series do not depend on this patch nor number 6.  I will
-resend those 3 while I figure out what to do about these 2:
+I understand, however, as you have seen with my attempt to break this up there
+are issues if we do so.
 
-staging/rdma/hfi1: Add function stubs for TID caching
-staging/rdma/hfi1: Implement Expected Receive TID caching
+I need to clean up the previous patch which was an attempt to split this one
+up.  But at this point I would really like to preserve the functionality we
+have here.  Breaking this up beyond this point is going to be difficult to do
+and really will not allow for bisecting the code across this feature being
+in vs out.
 
-Frankly this was an attempt to reduce the size of "Implement Expected Receive
-TID caching".  I obviously did something wrong.
-
-I really don't know that I can split these up any more without causing issues
-with bisecting the code.
-
+Thanks,
 Ira
 
 --
