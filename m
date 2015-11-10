@@ -1,35 +1,27 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v1 ib-next 2/3] IB/core: IB/core: Allow legacy verbs
- through extended interfaces
-Date: Tue, 10 Nov 2015 11:21:07 -0700
-Message-ID: <20151110182107.GG12667@obsidianresearch.com>
-References: <1447178410-15360-1-git-send-email-eli@mellanox.com>
- <1447178410-15360-3-git-send-email-eli@mellanox.com>
+Subject: Re: [PATCH] IB: start documenting device capabilities
+Date: Tue, 10 Nov 2015 11:21:59 -0700
+Message-ID: <20151110182159.GH12667@obsidianresearch.com>
+References: <1447157983-13519-1-git-send-email-hch@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1447178410-15360-3-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1447157983-13519-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 10, 2015 at 08:00:09PM +0200, Eli Cohen wrote:
-> When an extended verbs is an extension to a legacy verb, the original
-> functionality is preserved. Hence we do not require each hardware driver
-> to set the extended capability. This will allow to use the extended verb
-> in its simple form with drivers that do not support the extended
-> capability.
+On Tue, Nov 10, 2015 at 01:19:43PM +0100, Christoph Hellwig wrote:
+> Just IB_DEVICE_LOCAL_DMA_LKEY and IB_DEVICE_MEM_MGT_EXTENSIONS for now
+> as I'm most familar with those.
+> 
+> Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 
-Can we please get rid of uverbs_cmd_mask and uverbs_ex_cmd_mask ?
+Looks right to me
 
-The driver should set the function pointers it does not support to
-NULL. We don't need the bitmask because we already know the answer.
-
-For performance, I recommend having the core replace the NULL op
-pointers from the driver with a stub that returns ENOTSUP, and then
-drop all the checking in the fast path.
+Reviewed-By: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
 Jason
 --
