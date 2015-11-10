@@ -1,73 +1,103 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH RFC 2/3] svcrdma: Use device rdma_read_access_flags
-Date: Tue, 10 Nov 2015 18:01:01 -0500
-Message-ID: <54CF0111-E9C4-4196-BF92-7E134A6A329A@oracle.com>
-References: <1447152255-28231-1-git-send-email-sagig@mellanox.com> <1447152255-28231-3-git-send-email-sagig@mellanox.com> <20151110114145.GA2810@infradead.org> <5641D920.5000409@mellanox.com> <20151110120432.GA8230@infradead.org> <20151110182546.GI12667@obsidianresearch.com> <56425AFB.30202@talpey.com> <20151110211716.GA21631@obsidianresearch.com> <564261EF.4000008@talpey.com>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2] staging/rdma/hfi1: set Gen3 half-swing for integrated devices
+Date: Tue, 10 Nov 2015 18:51:27 -0500
+Message-ID: <20151110235126.GA347@phlsvsds.ph.intel.com>
+References: <1447112288-28327-1-git-send-email-ira.weiny@intel.com> <20151110095929.GW18797@mwanda>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <564261EF.4000008-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20151110095929.GW18797@mwanda>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Nov 10, 2015 at 12:59:29PM +0300, Dan Carpenter wrote:
+> Gar...  No.  Please please get rid of the PC() macro.  It makes the code
+> impossible to understand because instead of hitting CTRL-[ you have
+> decode it and then manually type out
+> 
+> :cs find g CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_OVERWRITE_ENABLE_SHIFT
+> 
+> which is the length of a typical college essay.  I meant just put a
+> comment like this:
+> 
+> /*
+>  * In the hardware spec these are prefixed with:
+>  * CCE_PCIE_CTRL_...
+>  * But it is too long to use in code.
+>  */
+> #define XMT_MARGIN_GEN1_GEN2_OVERWRITE_ENABLE_MASK 0x1ull
+> 
+> Or probably even better:
+> 
+> #define CCE_PCIE_CTRL (CCE + 0x0000000000C0)
+> #define LANE_BUNDLE_MASK	0x3ull /* CCE_PCIE_CTRL_PCIE_LANE_BUNDLE_MASK */
+> #define LANE_BUNDLE_SHIFT	0      /* CCE_PCIE_CTRL_PCIE_LANE_BUNDLE_SHIFT */
+> #define LANE_DELAY_MASK		0xFull /* CCE_PCIE_CTRL_PCIE_LANE_DELAY_MASK */
+> #define LANE_DELAY_SHIFT	2      /* CCE_PCIE_CTRL_PCIE_LANE_DELAY_SHIFT */
+> #define MARGIN_OVERWRITE_SHIFT	8      /* CCE_PCIE_CTRL_XMT_MARGIN_OVERWRITE_ENABLE_SHIFT */
+> #define MARGIN_SHIFT		9      /* CCE_PCIE_CTRL_XMT_MARGIN_SHIFT */
+> #define MARGIN_G1G2_OVERWRITE_MASK 0x1ull /* CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_OVERWRITE_ENABLE_MASK */
+> #define MARGIN_G1G2_OVERWRITE_SHIFT 12    /* CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_OVERWRITE_ENABLE_SHIFT */
+> #define MARGIN_G1G2_MASK	0x7ull /* CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_MASK */
+> #define MARGIN_G1G2_SHIFT	13     /* CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_SHIFT */
+> 
+> Those lines go over the 80 character limit but it's fine.
 
-> On Nov 10, 2015, at 4:30 PM, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org> wrote:
->=20
-> On 11/10/2015 4:17 PM, Jason Gunthorpe wrote:
->> On Tue, Nov 10, 2015 at 04:00:43PM -0500, Tom Talpey wrote:
->>=20
->>> Hmm, agreed, but it must still be acceptable to perform a registrat=
-ion
->>> instead of using the local_dma_lkey. As mentioned earlier, there ar=
-e
->>> scatter limits and other implications for all-physical addressing t=
-hat
->>> an upper layer may choose to avoid.
->>=20
->> It is always acceptable to use a lkey MR instead of the local dma
->> lkey, but ULPs should prefer to use the local dma lkey if possible,
->> for performance reasons.
->=20
-> Sure, the key words are "if possible". For example, a single 1MB
-> RDMA Read is unlikely to be possible with the dma lkey, assuming
-> worst-case physical page scatter it would need 256 SGEs. But 1MB
-> can be registered easily.
->=20
-> In any case, my point was that the ULP gets to choose, so, it looks
-> like we agree.
+My apologies for not understanding what you meant.  I took your meaning to be
+that we had to honor the checkpatch checks so while the PC macro was
+undesirable it was ok if I just made some comments...
 
-I=92d like to see our NFS server use the local DMA lkey where it
-makes sense, to avoid the cost of registering and invalidating
-memory.
+FWIW I don't like the PC macro either.  But we have a tool which is generating
+these names to be identical to the hardware spec.  And we really want to
+preserve those as a reference back to the spec.  Creating additional names which
+are in the code is a bit cumbersome but what if we do something like this:
 
-I have to agree with Tom that once the device=92s s/g limit is
-exceeded, the server has to post an RDMA Read WR every few
-pages, and appears to get expensive for large NFS requests.
+<auto generated from spec>
+...
+#define CCE_PCIE_CTRL (CCE + 0x0000000000C0)
+#define CCE_PCIE_CTRL_PCIE_LANE_BUNDLE_MASK 0x3ull
+#define CCE_PCIE_CTRL_PCIE_LANE_BUNDLE_SHIFT 0
+...
 
-The current mechanism of statically choosing either FRMR or
-local DMA depending on the device is probably not adequate.
-Maybe we could post all the Read WRs via a single chain? Or
-stick with FRMR when the amount of data to read is significant.
 
-I=92ve also tested Christoph=92s patch. The logic currently in
-rdma_read_chunk_lcl does not seem up to the task. Once the
-device=92s s/g limit is exceeded, the server starts throwing
-local length exceptions, and the client workload hangs.
 
-None of this is impossible to fix, but there is some work to
-do here.
+<Defined for use in the code>
+#define LANE_BUNDLE_MASK    CCE_PCIE_CTRL_PCIE_LANE_BUNDLE_MASK
+#define LANE_BUNDLE_SHIFT   CCE_PCIE_CTRL_PCIE_LANE_BUNDLE_SHIFT
+...
 
+
+?????
+
+
+
+An alternative would be to define some helper functions such as:
+
+static inline u64 extract_xmt_margin_g1g2(u64 reg)
+{
+	return (reg >> CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_SHIFT)
+		& CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_MASK;
+}
+
+...
+
+
+...
+	xmt_margin = extract_xmt_margin_g1g2(pcie_ctrl);
+...
+
+I prefer the second option as it preserves the register names right in the
+code.  So you can reference the hardware spec without looking anything up in a
+header file.
+
+I again apologize for misunderstanding your previous meaning.
+
+Ira
 
 --
-Chuck Lever
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
