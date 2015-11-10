@@ -1,156 +1,66 @@
-From: Jubin John <jubin.john@intel.com>
-Subject: [PATCH v2 1/2] staging/rdma/hfi1: Workaround to prevent corruption
- during packet delivery
-Date: Mon,  9 Nov 2015 19:18:20 -0500
-Message-ID: <1447114701-11003-2-git-send-email-jubin.john@intel.com>
-References: <1447114701-11003-1-git-send-email-jubin.john@intel.com>
+From: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Subject: Re: [PATCH v4 5/9] staging/rdma/hfi1: Add function stubs for TID
+ caching
+Date: Mon, 9 Nov 2015 16:18:27 -0800
+Message-ID: <20151110001827.GA29500@kroah.com>
+References: <1446245928-12675-1-git-send-email-ira.weiny@intel.com>
+ <1446245928-12675-6-git-send-email-ira.weiny@intel.com>
+ <20151107010235.GA24586@kroah.com>
+ <20151110001102.GA11150@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <1447114701-11003-1-git-send-email-jubin.john@intel.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org
-Cc: linux-rdma@vger.kernel.org, dledford@redhat.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20151110001102.GA11150-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mark F. Brown <mark.f.brown@intel.com>
+On Mon, Nov 09, 2015 at 07:11:03PM -0500, ira.weiny wrote:
+> On Fri, Nov 06, 2015 at 05:02:35PM -0800, Greg KH wrote:
+> > On Fri, Oct 30, 2015 at 06:58:44PM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> > > From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > 
+> > > Add mmu notify helper functions and TID caching function stubs in preparation
+> > > for the TID caching implementation.
+> > > 
+> > > TID caching makes use of the MMU notifier to allow the driver to respond to the
+> > > user freeing memory which is allocated to the HFI.
+> > > 
+> > > This patch implements the basic MMU notifier functions to insert, find and
+> > > remove buffer pages from memory based on the mmu_notifier being invoked.
+> > > 
+> > > In addition it places stubs in place for the main entry points by follow on
+> > > code.
+> > > 
+> > > Follow up patches will complete the implementation of the interaction with user
+> > > space and makes use of these functions.
+> > 
+> > This patch adds warnings to the build, which isn't ok, so I've stopped
+> > here in this series and just applied the first 4.  Please fix up and
+> > resend the remaining ones.
+> 
+> Ok, patch 7-9 of this series do not depend on this patch nor number 6.  I will
+> resend those 3 while I figure out what to do about these 2:
+> 
+> staging/rdma/hfi1: Add function stubs for TID caching
+> staging/rdma/hfi1: Implement Expected Receive TID caching
+> 
+> Frankly this was an attempt to reduce the size of "Implement Expected Receive
+> TID caching".  I obviously did something wrong.
+> 
+> I really don't know that I can split these up any more without causing issues
+> with bisecting the code.
 
-Disabling one receive context when RX_DMA is receiving a packet can cause
-incorrect packet delivery for a subsequent packet on another receive
-context.
+I strongly doubt that you created this new feature all "at once", it
+took a set of steps to get to your final destination.  So show that
+work, like your math professor told you...
 
-This is resolved by doing the following:
-1. Programming dummy tail address for every receive context
-   before enabling it
-2. While deallocating receive context resetting tail address
-   to dummy address
-3. Leaving the dummy address in when disabling tail update
-4. When disabling receive context leaving tail update enabled
+thanks,
 
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Reviewed-by: Mitko Haralanov <mitko.haralanov@intel.com>
-Signed-off-by: Mark F. Brown <mark.f.brown@intel.com>
-Signed-off-by: Jubin John <jubin.john@intel.com>
----
- drivers/staging/rdma/hfi1/chip.c |   18 +++++++++++++++---
- drivers/staging/rdma/hfi1/hfi.h  |    4 ++++
- drivers/staging/rdma/hfi1/init.c |   28 ++++++++++++++++++++++++++++
- 3 files changed, 47 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index e489819..3c3ba52 100644
---- a/drivers/staging/rdma/hfi1/chip.c
-+++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -7753,6 +7753,17 @@ void hfi1_rcvctrl(struct hfi1_devdata *dd, unsigned int op, int ctxt)
- 	}
- 	if (op & HFI1_RCVCTRL_CTXT_DIS) {
- 		write_csr(dd, RCV_VL15, 0);
-+		/*
-+		 * When receive context is being disabled turn on tail
-+		 * update with a dummy tail address and then disable
-+		 * receive context.
-+		 */
-+		if (dd->rcvhdrtail_dummy_physaddr) {
-+			write_kctxt_csr(dd, ctxt, RCV_HDR_TAIL_ADDR,
-+					dd->rcvhdrtail_dummy_physaddr);
-+			rcvctrl |= RCV_CTXT_CTRL_TAIL_UPD_SMASK;
-+		}
-+
- 		rcvctrl &= ~RCV_CTXT_CTRL_ENABLE_SMASK;
- 	}
- 	if (op & HFI1_RCVCTRL_INTRAVAIL_ENB)
-@@ -7822,10 +7833,11 @@ void hfi1_rcvctrl(struct hfi1_devdata *dd, unsigned int op, int ctxt)
- 	if (op & (HFI1_RCVCTRL_TAILUPD_DIS | HFI1_RCVCTRL_CTXT_DIS))
- 		/*
- 		 * If the context has been disabled and the Tail Update has
--		 * been cleared, clear the RCV_HDR_TAIL_ADDR CSR so
--		 * it doesn't contain an address that is invalid.
-+		 * been cleared, set the RCV_HDR_TAIL_ADDR CSR to dummy address
-+		 * so it doesn't contain an address that is invalid.
- 		 */
--		write_kctxt_csr(dd, ctxt, RCV_HDR_TAIL_ADDR, 0);
-+		write_kctxt_csr(dd, ctxt, RCV_HDR_TAIL_ADDR,
-+				dd->rcvhdrtail_dummy_physaddr);
- }
- 
- u32 hfi1_read_cntrs(struct hfi1_devdata *dd, loff_t pos, char **namep,
-diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
-index 190f7a2..10b227c 100644
---- a/drivers/staging/rdma/hfi1/hfi.h
-+++ b/drivers/staging/rdma/hfi1/hfi.h
-@@ -1084,6 +1084,10 @@ struct hfi1_devdata {
- 	/* Save the enabled LCB error bits */
- 	u64 lcb_err_en;
- 	u8 dc_shutdown;
-+
-+	/* receive context tail dummy address */
-+	__le64 *rcvhdrtail_dummy_kvaddr;
-+	dma_addr_t rcvhdrtail_dummy_physaddr;
- };
- 
- /* 8051 firmware version helper */
-diff --git a/drivers/staging/rdma/hfi1/init.c b/drivers/staging/rdma/hfi1/init.c
-index 8666f3a..3879d80 100644
---- a/drivers/staging/rdma/hfi1/init.c
-+++ b/drivers/staging/rdma/hfi1/init.c
-@@ -691,6 +691,18 @@ int hfi1_init(struct hfi1_devdata *dd, int reinit)
- 	if (ret)
- 		goto done;
- 
-+	/* allocate dummy tail memory for all receive contexts */
-+	dd->rcvhdrtail_dummy_kvaddr = dma_zalloc_coherent(
-+		&dd->pcidev->dev, sizeof(u64),
-+		&dd->rcvhdrtail_dummy_physaddr,
-+		GFP_KERNEL);
-+
-+	if (!dd->rcvhdrtail_dummy_kvaddr) {
-+		dd_dev_err(dd, "cannot allocate dummy tail memory\n");
-+		ret = -ENOMEM;
-+		goto done;
-+	}
-+
- 	/* dd->rcd can be NULL if early initialization failed */
- 	for (i = 0; dd->rcd && i < dd->first_user_ctxt; ++i) {
- 		/*
-@@ -1266,6 +1278,14 @@ static void cleanup_device_data(struct hfi1_devdata *dd)
- 	tmp = dd->rcd;
- 	dd->rcd = NULL;
- 	spin_unlock_irqrestore(&dd->uctxt_lock, flags);
-+
-+	if (dd->rcvhdrtail_dummy_kvaddr) {
-+		dma_free_coherent(&dd->pcidev->dev, sizeof(u64),
-+				  (void *)dd->rcvhdrtail_dummy_kvaddr,
-+				  dd->rcvhdrtail_dummy_physaddr);
-+				  dd->rcvhdrtail_dummy_kvaddr = NULL;
-+	}
-+
- 	for (ctxt = 0; tmp && ctxt < dd->num_rcv_contexts; ctxt++) {
- 		struct hfi1_ctxtdata *rcd = tmp[ctxt];
- 
-@@ -1521,6 +1541,14 @@ int hfi1_create_rcvhdrq(struct hfi1_devdata *dd, struct hfi1_ctxtdata *rcd)
- 	reg = (dd->rcvhdrsize & RCV_HDR_SIZE_HDR_SIZE_MASK)
- 		<< RCV_HDR_SIZE_HDR_SIZE_SHIFT;
- 	write_kctxt_csr(dd, rcd->ctxt, RCV_HDR_SIZE, reg);
-+
-+	/*
-+	 * Program dummy tail address for every receive context
-+	 * before enabling any receive context
-+	 */
-+	write_kctxt_csr(dd, rcd->ctxt, RCV_HDR_TAIL_ADDR,
-+			dd->rcvhdrtail_dummy_physaddr);
-+
- 	return 0;
- 
- bail_free:
--- 
-1.7.1
+greg k-h
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
