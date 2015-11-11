@@ -1,37 +1,40 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] staging/rdma/hfi1: Reduce number of parameters passed to send handlers
-Date: Wed, 11 Nov 2015 08:39:08 -0500
-Message-ID: <20151111133907.GA21044@phlsvsds.ph.intel.com>
-References: <1447220077-8325-1-git-send-email-ira.weiny@intel.com> <20151111062535.GG4023@leon.nu>
+Subject: Re: [PATCH 4/8] staging/rdma/hfi1: remove unneeded goto done
+Date: Wed, 11 Nov 2015 09:00:08 -0500
+Message-ID: <20151111140007.GB21044@phlsvsds.ph.intel.com>
+References: <1447220589-9067-1-git-send-email-ira.weiny@intel.com> <1447220589-9067-5-git-send-email-ira.weiny@intel.com> <20151111090336.GC18797@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20151111062535.GG4023-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <20151111090336.GC18797@mwanda>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 11, 2015 at 08:25:35AM +0200, Leon Romanovsky wrote:
->On Wed, Nov 11, 2015 at 12:34:37AM -0500, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
->> From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Wed, Nov 11, 2015 at 12:03:36PM +0300, Dan Carpenter wrote:
+>On Wed, Nov 11, 2015 at 12:43:05AM -0500, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+>> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 >> 
->> +int snoop_send_dma_handler(struct hfi1_qp *qp, struct hfi1_pkt_state *ps,
->> +			   u64 pbc)
->>  {
->> -	pr_alert("Snooping/Capture of  Send DMA Packets Is Not Supported!\n");
->> +	pr_alert("Snooping/Capture of Send DMA Packets Is Not Supported!\n");
->>  	snoop_dbg("Unsupported Operation");
->Is it really necessary to do both print alert to message log (pr_alert) and to
->trace buffer (snoop_dbg)?
+>> This goto done is followed by an if (ret) break in the outer switch clause.  It
+>> is unnecessary.
+>> 
+>> Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>> Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>
+>Also these sign offs don't really make sense.  Signed-off-by is
+>basically like signing a legal document saying the code in this patch
+>was not stolen from SCO UnixWare.  You only need to sign if you have
+>handled the patch.
+>
+>Did Dennis write this patch or did he Ack it or Review it somehow?
+>
+>regards,
+>dan carpenter
 
-Well yes, and no. They serve two different purposes. One for users of the
-snoop feature the other for developers.
-
-However, I don't think we really even need to keep this function around
-anymore. How about we just remove it in a follow on patch, and let this one
-stand as is?
+We both participated in creating the patch(s) in this series. I think the 
+dual signed-off-by is appropriate here.
 
 -Denny
 --
