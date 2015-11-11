@@ -1,7 +1,7 @@
 From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH 4/8] staging/rdma/hfi1: remove unneeded goto done
-Date: Wed, 11 Nov 2015 12:01:08 +0300
-Message-ID: <20151111090108.GB18797@mwanda>
+Date: Wed, 11 Nov 2015 12:03:36 +0300
+Message-ID: <20151111090336.GC18797@mwanda>
 References: <1447220589-9067-1-git-send-email-ira.weiny@intel.com>
  <1447220589-9067-5-git-send-email-ira.weiny@intel.com>
 Mime-Version: 1.0
@@ -22,24 +22,13 @@ On Wed, Nov 11, 2015 at 12:43:05AM -0500, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@publi
 > 
 > Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/staging/rdma/hfi1/diag.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
-> 
-> diff --git a/drivers/staging/rdma/hfi1/diag.c b/drivers/staging/rdma/hfi1/diag.c
-> index 2bb857b2a103..556a47591989 100644
-> --- a/drivers/staging/rdma/hfi1/diag.c
-> +++ b/drivers/staging/rdma/hfi1/diag.c
-> @@ -1053,7 +1053,6 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
->  				break;
->  			default:
->  				ret = -EINVAL;
-> -				goto done;
->  			}
->  			ret = set_link_state(ppd, dev_state);
->  			break;
 
-Wut?  No it's not.
+Also these sign offs don't really make sense.  Signed-off-by is
+basically like signing a legal document saying the code in this patch
+was not stolen from SCO UnixWare.  You only need to sign if you have
+handled the patch.
+
+Did Dennis write this patch or did he Ack it or Review it somehow?
 
 regards,
 dan carpenter
