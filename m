@@ -1,60 +1,40 @@
 From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH RFC 1/3] IB/core: Expose a device attribute for rdma_read
- access flags
-Date: Wed, 11 Nov 2015 00:03:53 -0800
-Message-ID: <20151111080353.GB31508@infradead.org>
-References: <1447152255-28231-1-git-send-email-sagig@mellanox.com>
- <1447152255-28231-2-git-send-email-sagig@mellanox.com>
- <1447156270.7089.3.camel@opteya.com>
- <5641E4C9.7000206@talpey.com>
- <5641E644.7080101@mellanox.com>
- <20151110130648.GA10682@infradead.org>
- <20151110134147.GA12814@infradead.org>
- <20151110183627.GJ12667@obsidianresearch.com>
+Subject: Re: [PATCH RFC 2/3] svcrdma: Use device rdma_read_access_flags
+Date: Wed, 11 Nov 2015 00:07:27 -0800
+Message-ID: <20151111080727.GC31508@infradead.org>
+References: <1447152255-28231-3-git-send-email-sagig@mellanox.com>
+ <20151110114145.GA2810@infradead.org>
+ <5641D920.5000409@mellanox.com>
+ <20151110120432.GA8230@infradead.org>
+ <20151110182546.GI12667@obsidianresearch.com>
+ <56425AFB.30202@talpey.com>
+ <20151110211716.GA21631@obsidianresearch.com>
+ <564261EF.4000008@talpey.com>
+ <54CF0111-E9C4-4196-BF92-7E134A6A329A@oracle.com>
+ <20151110235551.GA12795@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20151110183627.GJ12667-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20151110235551.GA12795-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 10, 2015 at 11:36:27AM -0700, Jason Gunthorpe wrote:
-> >  	n = ib_map_mr_sg(desc->mr, state->sg, state->sg_nents,
-> > -			 dev->mr_page_size);
-> > +			 dev->mr_page_size,
-> > +			 /*
-> > +			  * XXX: add a bool write argument to this function,
-> > +			  * so that we only need to open up the required
-> > +			  * permissions.
-> > +			  */
-> > +			 IB_MR_REMOTE | IB_MR_RDMA_READ |
-> > IB_MR_RDMA_WRITE);
-> 
-> I would call it IB_RDMA_LKEY and IB_RDMA_RKEY. We have other places in
-> the API where lkey/rkey is used and it makes a lot more sense to think
-> about a MR as being either a lkey or rkey usable MR - since this is
-> effectively what we are doing here with these ops.
+On Tue, Nov 10, 2015 at 04:55:51PM -0700, Jason Gunthorpe wrote:
+> IMHO, the break point for when it makes sense to switch from a RDMA
+> READ chain to a MR is going to be a RDMA core tunable. The performance
+> curve won't have much to do with the ULP.
 
-Hmm, I really hate these suport short names, but if there is consensus I
-can fix it up.
+core/device, a lot of it depends on when we'd exceed the nr_sge limit
+as well.  But yes, it needs to move out ot the ULP and into the core,
+the ULP has no business here.
 
-> > +enum ib_mr_flags {
-> > +	/* scope: either remote or local */
-> > +	IB_MR_REMOTE,
-> > +	IB_MR_LOCAL,
-> > +
-> > +	/* direction: one or both can be ORed into the scope above */
-> > +	IB_MR_RDMA_READ		= (1 << 10),
-> > +	IB_MR_RDMA_WRITE	= (1 << 11)
-> 
-> Don't forget SEND too.
-
-I don't think we're ever using that in the kernel, but it's an easy
-addition for completeless.  Especially once we start exposing these
-flags to the drivers.
+As said a few times before we need a core API that takes a struct
+scatterlist and builds RDMA READ/WRITE requests from it in an efficient
+way.  I have started talking to Sagi and preparing some build blocks
+for it, but getting all corner cases right will take a while.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
