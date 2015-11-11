@@ -1,7 +1,7 @@
 From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 06/13] staging/rdma/hfi1: Move s_sde to the read mostly portion of the hfi1_qp structure
-Date: Wed, 11 Nov 2015 02:33:26 -0500
-Message-ID: <1447227213-15122-6-git-send-email-jubin.john@intel.com>
+Subject: [PATCH 03/13] staging/rdma/hfi1: remove RxCtxRHQS from hfi1stats
+Date: Wed, 11 Nov 2015 02:33:23 -0500
+Message-ID: <1447227213-15122-3-git-send-email-jubin.john@intel.com>
 References: <1447227213-15122-1-git-send-email-jubin.john@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1447227213-15122-1-git-send-email-jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,39 +10,56 @@ To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQ
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Vennila Megavannan <vennila.megavannan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-This would reduce L2 cache misses on s_sde in the _hfi1_schedule_send
-function when invoked from post_send thereby improving performance of
-post_send.
+Removed the RxCtxRHQS counter being dumped into dev_cntrs
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Vennila Megavannan <vennila.megavannan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/verbs.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/staging/rdma/hfi1/chip.c           |    2 --
+ drivers/staging/rdma/hfi1/chip.h           |    1 -
+ drivers/staging/rdma/hfi1/chip_registers.h |    1 -
+ 3 files changed, 0 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/verbs.h b/drivers/staging/rdma/hfi1/verbs.h
-index 600bd1b..638094d 100644
---- a/drivers/staging/rdma/hfi1/verbs.h
-+++ b/drivers/staging/rdma/hfi1/verbs.h
-@@ -441,6 +441,7 @@ struct hfi1_qp {
- 	struct hfi1_swqe *s_wq;  /* send work queue */
- 	struct hfi1_mmap_info *ip;
- 	struct ahg_ib_header *s_hdr;     /* next packet header to send */
-+	struct sdma_engine *s_sde; /* current sde */
- 	u8 s_sc;			/* SC[0..4] for next packet */
- 	unsigned long timeout_jiffies;  /* computed from timeout */
- 
-@@ -504,7 +505,6 @@ struct hfi1_qp {
- 	struct hfi1_swqe *s_wqe;
- 	struct hfi1_sge_state s_sge;     /* current send request data */
- 	struct hfi1_mregion *s_rdma_mr;
--	struct sdma_engine *s_sde; /* current sde */
- 	u32 s_cur_size;         /* size of send packet in bytes */
- 	u32 s_len;              /* total length of s_sge */
- 	u32 s_rdma_read_len;    /* total length of s_rdma_read_sge */
+diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
+index 16302d6..9db141d 100644
+--- a/drivers/staging/rdma/hfi1/chip.c
++++ b/drivers/staging/rdma/hfi1/chip.c
+@@ -1587,8 +1587,6 @@ static struct cntr_entry dev_cntrs[DEV_CNTR_LAST] = {
+ [C_RX_TID_FLGMS] = RXE32_DEV_CNTR_ELEM(RxTidFLGMs,
+ 			RCV_TID_FLOW_GEN_MISMATCH_CNT,
+ 			CNTR_NORMAL),
+-[C_RX_CTX_RHQS] = RXE32_DEV_CNTR_ELEM(RxCtxRHQS, RCV_CONTEXT_RHQ_STALL,
+-			CNTR_NORMAL),
+ [C_RX_CTX_EGRS] = RXE32_DEV_CNTR_ELEM(RxCtxEgrS, RCV_CONTEXT_EGR_STALL,
+ 			CNTR_NORMAL),
+ [C_RCV_TID_FLSMS] = RXE32_DEV_CNTR_ELEM(RxTidFLSMs,
+diff --git a/drivers/staging/rdma/hfi1/chip.h b/drivers/staging/rdma/hfi1/chip.h
+index ccfaf6d..6946fae 100644
+--- a/drivers/staging/rdma/hfi1/chip.h
++++ b/drivers/staging/rdma/hfi1/chip.h
+@@ -721,7 +721,6 @@ enum {
+ 	C_RX_TID_FULL,
+ 	C_RX_TID_INVALID,
+ 	C_RX_TID_FLGMS,
+-	C_RX_CTX_RHQS,
+ 	C_RX_CTX_EGRS,
+ 	C_RCV_TID_FLSMS,
+ 	C_CCE_PCI_CR_ST,
+diff --git a/drivers/staging/rdma/hfi1/chip_registers.h b/drivers/staging/rdma/hfi1/chip_registers.h
+index bf45de2..5056c84 100644
+--- a/drivers/staging/rdma/hfi1/chip_registers.h
++++ b/drivers/staging/rdma/hfi1/chip_registers.h
+@@ -379,7 +379,6 @@
+ #define DC_LCB_STS_ROUND_TRIP_LTP_CNT (DC_LCB_CSRS + 0x0000000004B0)
+ #define RCV_BUF_OVFL_CNT 10
+ #define RCV_CONTEXT_EGR_STALL 22
+-#define RCV_CONTEXT_RHQ_STALL 21
+ #define RCV_DATA_PKT_CNT 0
+ #define RCV_DWORD_CNT 1
+ #define RCV_TID_FLOW_GEN_MISMATCH_CNT 20
 -- 
 1.7.1
 
