@@ -1,100 +1,62 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] svcrdma: Do not send XDR roundup bytes for a write chunk
-Date: Wed, 11 Nov 2015 15:20:33 -0500
-Message-ID: <2CF378F3-09B3-441D-9DE6-5336F0B8BF65@oracle.com>
-References: <20151016132938.8597.65237.stgit@oracle-120.nfsv4bat.org> <94E65795-E205-44FE-93DE-A1FF24CD5C2E@oracle.com>
+Subject: Re: [PATCH RFC 2/3] svcrdma: Use device rdma_read_access_flags
+Date: Wed, 11 Nov 2015 15:50:48 -0500
+Message-ID: <51EFCA05-7CA4-44AA-8AAF-21D1853C143D@oracle.com>
+References: <1447152255-28231-1-git-send-email-sagig@mellanox.com> <1447152255-28231-3-git-send-email-sagig@mellanox.com> <20151110114145.GA2810@infradead.org> <5641D920.5000409@mellanox.com> <20151110120432.GA8230@infradead.org> <20151110182546.GI12667@obsidianresearch.com> <56425AFB.30202@talpey.com> <20151110211716.GA21631@obsidianresearch.com> <564261EF.4000008@talpey.com> <54CF0111-E9C4-4196-BF92-7E134A6A329A@oracle.com> <56430A20.6040600@dev.mellanox.co.il> <D4228973-6DFA-4181-9848-41BFE8E75200@oracle.com> <56436CDB.6090305@dev.mellanox.co.il>
 Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <94E65795-E205-44FE-93DE-A1FF24CD5C2E-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <56436CDB.6090305-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-> On Nov 3, 2015, at 3:10 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrot=
-e:
+> On Nov 11, 2015, at 11:29 AM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org=
+> wrote:
 >=20
 >=20
->> On Oct 16, 2015, at 9:30 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wr=
-ote:
->>=20
->> Minor optimization: when dealing with write chunk XDR roundup, do
->> not post a Write WR for the zero bytes in the pad. Simply update
->> the write segment in the RPC-over-RDMA header to reflect the extra
->> pad bytes.
->>=20
->> The Reply chunk is also a write chunk, but the server does not use
->> send_write_chunks() to send the Reply chunk. That's OK in this case:
->> the server Upper Layer typically marshals the Reply chunk contents
->> in a single contiguous buffer, without a separate tail for the XDR
->> pad.
->>=20
->> The comments and the variable naming refer to "chunks" but what is
->> really meant is "segments." The existing code sends only one
->> xdr_write_chunk per RPC reply.
->>=20
->> The fix assumes this as well. When the XDR pad in the first write
->> chunk is reached, the assumption is the Write list is complete and
->> send_write_chunks() returns.
->>=20
->> That will remain a valid assumption until the server Upper Layer can
->> support multiple bulk payload results per RPC.
->>=20
->> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->> --
 >=20
-> Bruce, can you take this for 4.4 ?
+>> An alternate explanation is that the provider is not setting
+>> device->max_sge_rd properly. rdma_read_chunks_lcl() seems to
+>> be the only thing in my copy of the kernel tree that relies on
+>> that value.
+>>=20
+>> I=92ve reproduced the local length errors with CX-2 and CX-3
+>> Pro, which both set that field to 32. If I artificially
+>> set that field to 30, I don=92t see any issue.
+>>=20
+>> Is commit 18ebd40773bf correct?
+>=20
+> See my latest patchset "Handle mlx4 max_sge_rd correctly" (v2).
+>=20
+> It fixes exactly this.
+> Now you will be able to add your "Tested-by:" tag  ;)
 
-Hi Bruce-
-
-Your 4.4 pull request did not include this patch.
+Confirmed that the current value (32) does not work, and
+that the proposed replacement (30) does work, in an NFS
+server that uses the _lcl path with mlx4.
 
 
->> net/sunrpc/xprtrdma/svc_rdma_sendto.c |    7 +++++++
->> 1 files changed, 7 insertions(+), 0 deletions(-)
->>=20
->> diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprt=
-rdma/svc_rdma_sendto.c
->> index 1dfae83..6c48901 100644
->> --- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
->> +++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
->> @@ -342,6 +342,13 @@ static int send_write_chunks(struct svcxprt_rdm=
-a *xprt,
->> 						arg_ch->rs_handle,
->> 						arg_ch->rs_offset,
->> 						write_len);
->> +
->> +		/* Do not send XDR pad bytes */
->> +		if (chunk_no && write_len < 4) {
->> +			chunk_no++;
->> +			break;
->> +		}
->> +
->> 		chunk_off =3D 0;
->> 		while (write_len) {
->> 			ret =3D send_write(xprt, rqstp,
->>=20
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
-" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
-> =E2=80=94
-> Chuck Lever
->=20
->=20
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-nfs" =
-in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> It on Doug to take it...
 
-=E2=80=94
+Noted that the NFS server=92s _lcl path is the only
+kernel consumer of this value.
+
+Because the current NFS server does not use the _lcl
+path with mlx4 devices, maybe this fix is not needed in
+stable, unless the max_sge_rd field is visible to user
+space.
+
+However no future changes to the NFS server=92s reader
+selection logic should be made until this fix, or one
+like it, is merged. And I recommend adding a
+"Fixes: 18ebd40773bf" tag.
+
+
+--
 Chuck Lever
 
 
