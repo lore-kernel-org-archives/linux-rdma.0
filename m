@@ -1,102 +1,46 @@
-From: ira.weiny@intel.com
-Subject: [PATCH 7/8] staging/rdma/hfi1: Reduce snoop locking scope in IOCTL
- handler.
-Date: Wed, 11 Nov 2015 00:43:08 -0500
-Message-ID: <1447220589-9067-8-git-send-email-ira.weiny@intel.com>
-References: <1447220589-9067-1-git-send-email-ira.weiny@intel.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [BUG] IB/hfi1: might sleep under spinlock in hfi1_ioctl()
+Date: Wed, 11 Nov 2015 00:53:07 -0500
+Message-ID: <20151111055305.GA9594@phlsvsds.ph.intel.com>
+References: <1446240749-5003-1-git-send-email-khoroshilov@ispras.ru> <20151030235817.GA13800@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <1447220589-9067-1-git-send-email-ira.weiny@intel.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org
-Cc: linux-rdma@vger.kernel.org, dledford@redhat.com, dennis.dalessandro@intel.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20151030235817.GA13800-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alexey Khoroshilov <khoroshilov-ufN2psIa012HXe+LvDLADg@public.gmane.org>
+Cc: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ldv-project-tpLiQldItUH5n4uC9ZG1Ww@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+On Fri, Oct 30, 2015 at 07:58:18PM -0400, ira. weiny wrote:
+> On Sat, Oct 31, 2015 at 12:32:29AM +0300, Alexey Khoroshilov wrote:
+> > Hello,
+> > 
+> > hfi1_ioctl() contains many calls to might sleep functions with
+> > dd->hfi1_snoop.snoop_lock spinlock held (for example, access_ok,
+> > copy_from_user, kzalloc(GFP_KERNEL), etc.).
+> > 
+> > Should dd->hfi1_snoop.snoop_lock be acquired just before updating state?
+> 
+> I believe you are correct.
+> 
+> I am currently in the process of pushing fixes to the staging tree.
+> 
+> We have a patch which fixes this queued up but it depends on at least one other
+> patch in my queue.
+> 
+> I will do my best to get this submitted soon.
 
-This patch avoids issues while calling into copy from/to user while holding the
-lock by only taking the lock when it is absolutely required.
+I have just posted a series which addresses this problem as well as doing
+general clean up on hfi1_ioctl.  The specific fix is contained in this patch.
 
-The only commands which require the snoop lock are: *Set Filter *Clear Filter
-*Clear Queue
+[PATCH 7/8] staging/rdma/hfi1: Reduce snoop locking scope in IOCTL handler.
 
-Reported-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
----
- drivers/staging/rdma/hfi1/diag.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+Thanks for the report,
+Ira
 
-diff --git a/drivers/staging/rdma/hfi1/diag.c b/drivers/staging/rdma/hfi1/diag.c
-index 43f08080480c..34a8c4da71d2 100644
---- a/drivers/staging/rdma/hfi1/diag.c
-+++ b/drivers/staging/rdma/hfi1/diag.c
-@@ -1008,8 +1008,6 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
- 		/* We do not support the old setlink state */
- 		return -EINVAL;
- 
--	spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
--
- 	switch (cmd) {
- 	case HFI1_SNOOP_IOCSETLINKSTATE_EXTRA:
- 		memset(&link_info, 0, sizeof(link_info));
-@@ -1125,11 +1123,14 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
- 
- 	case HFI1_SNOOP_IOCCLEARQUEUE:
- 		snoop_dbg("Clearing snoop queue");
-+		spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
- 		drain_snoop_list(&dd->hfi1_snoop.queue);
-+		spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
- 		break;
- 
- 	case HFI1_SNOOP_IOCCLEARFILTER:
- 		snoop_dbg("Clearing filter");
-+		spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
- 		if (dd->hfi1_snoop.filter_callback) {
- 			/* Drain packets first */
- 			drain_snoop_list(&dd->hfi1_snoop.queue);
-@@ -1137,6 +1138,7 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
- 		}
- 		kfree(dd->hfi1_snoop.filter_value);
- 		dd->hfi1_snoop.filter_value = NULL;
-+		spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
- 		break;
- 
- 	case HFI1_SNOOP_IOCSETFILTER:
-@@ -1173,13 +1175,14 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
- 			break;
- 		}
- 		/* Drain packets first */
-+		spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
- 		drain_snoop_list(&dd->hfi1_snoop.queue);
- 		dd->hfi1_snoop.filter_callback =
- 			hfi1_filters[filter_cmd.opcode].filter;
- 		/* just in case we see back to back sets */
- 		kfree(dd->hfi1_snoop.filter_value);
- 		dd->hfi1_snoop.filter_value = filter_value;
--
-+		spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
- 		break;
- 	case HFI1_SNOOP_IOCGETVERSION:
- 		value = SNOOP_CAPTURE_VERSION;
-@@ -1203,7 +1206,6 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
- 		break;
- 	}
- 
--	spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
- 	return ret;
- }
- 
--- 
-1.8.2
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
