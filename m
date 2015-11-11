@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 6/8] staging/rdma/hfi1: Further clean up hfi1_ioctl parameter checks
-Date: Wed, 11 Nov 2015 00:43:07 -0500
-Message-ID: <1447220589-9067-7-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 8/8] staging/rdma/hfi1: Return immediately on error
+Date: Wed, 11 Nov 2015 00:43:09 -0500
+Message-ID: <1447220589-9067-9-git-send-email-ira.weiny@intel.com>
 References: <1447220589-9067-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1447220589-9067-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,72 +10,158 @@ To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQ
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Final clean up of the if/then/else clause for the parameter checks of
-hfi1_ioctl
+Now that the spinlock is not taken throughout hfi1_ioctl it is safe to return
+early rather than setting a variable and falling through the switch.
 
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/diag.c | 26 +++++++++++++++-----------
- 1 file changed, 15 insertions(+), 11 deletions(-)
+ drivers/staging/rdma/hfi1/diag.c | 59 ++++++++++++++++------------------------
+ 1 file changed, 23 insertions(+), 36 deletions(-)
 
 diff --git a/drivers/staging/rdma/hfi1/diag.c b/drivers/staging/rdma/hfi1/diag.c
-index a489a79dd3b6..43f08080480c 100644
+index 34a8c4da71d2..0f01618cc5b7 100644
 --- a/drivers/staging/rdma/hfi1/diag.c
 +++ b/drivers/staging/rdma/hfi1/diag.c
-@@ -974,24 +974,28 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
- 	struct hfi1_pportdata *ppd = NULL;
- 	unsigned int index;
- 	struct hfi1_link_info link_info;
-+	int read_cmd, write_cmd, read_ok, write_ok;
+@@ -1015,20 +1015,16 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
+ 		if (copy_from_user(&link_info,
+ 				   (struct hfi1_link_info __user *)arg,
+ 				   sizeof(link_info)))
+-			ret = -EFAULT;
++			return -EFAULT;
  
- 	dd = hfi1_dd_from_sc_inode(fp->f_inode);
- 	if (dd == NULL)
- 		return -ENODEV;
+ 		value = link_info.port_state;
+ 		index = link_info.port_number;
+-		if (index > dd->num_pports - 1) {
+-			ret = -EINVAL;
+-			break;
+-		}
++		if (index > dd->num_pports - 1)
++			return -EINVAL;
  
- 	mode_flag = dd->hfi1_snoop.mode_flag;
-+	read_cmd = _IOC_DIR(cmd) & _IOC_READ;
-+	write_cmd = _IOC_DIR(cmd) & _IOC_WRITE;
-+	write_ok = access_ok(VERIFY_WRITE, (void __user *)arg, _IOC_SIZE(cmd));
-+	read_ok = access_ok(VERIFY_READ, (void __user *)arg, _IOC_SIZE(cmd));
+ 		ppd = &dd->pport[index];
+-		if (!ppd) {
+-			ret = -EINVAL;
+-			break;
+-		}
++		if (!ppd)
++			return -EINVAL;
  
--	if (((_IOC_DIR(cmd) & _IOC_READ)
--	    && !access_ok(VERIFY_WRITE, (void __user *)arg, _IOC_SIZE(cmd)))
--	    || ((_IOC_DIR(cmd) & _IOC_WRITE)
--	    && !access_ok(VERIFY_READ, (void __user *)arg, _IOC_SIZE(cmd)))) {
-+	if ((read_cmd && !write_ok) || (write_cmd && !read_ok))
- 		return -EFAULT;
--	} else if (!capable(CAP_SYS_ADMIN)) {
+ 		/* What we want to transition to */
+ 		phys_state = (value >> 4) & 0xF;
+@@ -1052,7 +1048,7 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
+ 				dev_state = HLS_DN_DISABLE;
+ 				break;
+ 			default:
+-				ret = -EINVAL;
++				return -EINVAL;
+ 			}
+ 			ret = set_link_state(ppd, dev_state);
+ 			break;
+@@ -1067,8 +1063,7 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
+ 				send_idle_sma(dd, SMA_IDLE_ACTIVE);
+ 			break;
+ 		default:
+-			ret = -EINVAL;
+-			break;
++			return -EINVAL;
+ 		}
+ 
+ 		if (ret)
+@@ -1081,7 +1076,7 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
+ 			if (copy_from_user(&link_info,
+ 					   (struct hfi1_link_info __user *)arg,
+ 					   sizeof(link_info)))
+-				ret = -EFAULT;
++				return -EFAULT;
+ 			index = link_info.port_number;
+ 		} else {
+ 			ret = __get_user(index, (int __user *)arg);
+@@ -1089,16 +1084,13 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
+ 				break;
+ 		}
+ 
+-		if (index > dd->num_pports - 1) {
+-			ret = -EINVAL;
+-			break;
+-		}
++		if (index > dd->num_pports - 1)
++			return -EINVAL;
+ 
+ 		ppd = &dd->pport[index];
+-		if (!ppd) {
+-			ret = -EINVAL;
+-			break;
+-		}
++		if (!ppd)
++			return -EINVAL;
 +
-+	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
--	} else if ((mode_flag & HFI1_PORT_CAPTURE_MODE) &&
--		   (cmd != HFI1_SNOOP_IOCCLEARQUEUE) &&
--		   (cmd != HFI1_SNOOP_IOCCLEARFILTER) &&
--		   (cmd != HFI1_SNOOP_IOCSETFILTER)) {
+ 		value = hfi1_ibphys_portstate(ppd);
+ 		value <<= 4;
+ 		value |= driver_lstate(ppd);
+@@ -1115,7 +1107,7 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
+ 						ppd->link_width_active;
+ 			if (copy_to_user((struct hfi1_link_info __user *)arg,
+ 					 &link_info, sizeof(link_info)))
+-				ret = -EFAULT;
++				return -EFAULT;
+ 		} else {
+ 			ret = __put_user(value, (int __user *)arg);
+ 		}
+@@ -1146,14 +1138,12 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
+ 		/* just copy command structure */
+ 		argp = (unsigned long *)arg;
+ 		if (copy_from_user(&filter_cmd, (void __user *)argp,
+-				   sizeof(filter_cmd))) {
+-			ret = -EFAULT;
+-			break;
+-		}
++				   sizeof(filter_cmd)))
++			return -EFAULT;
 +
-+	if ((mode_flag & HFI1_PORT_CAPTURE_MODE) &&
-+	    (cmd != HFI1_SNOOP_IOCCLEARQUEUE) &&
-+	    (cmd != HFI1_SNOOP_IOCCLEARFILTER) &&
-+	    (cmd != HFI1_SNOOP_IOCSETFILTER))
- 		/* Capture devices are allowed only 3 operations
- 		 * 1.Clear capture queue
- 		 * 2.Clear capture filter
-@@ -999,10 +1003,10 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
- 		 * Other are invalid.
- 		 */
- 		return -EINVAL;
--	} else if (cmd == HFI1_SNOOP_IOCSETLINKSTATE) {
+ 		if (filter_cmd.opcode >= HFI1_MAX_FILTERS) {
+ 			pr_alert("Invalid opcode in request\n");
+-			ret = -EINVAL;
+-			break;
++			return -EINVAL;
+ 		}
+ 
+ 		snoop_dbg("Opcode %d Len %d Ptr %p",
+@@ -1162,17 +1152,15 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
+ 
+ 		filter_value = kcalloc(filter_cmd.length, sizeof(u8),
+ 				       GFP_KERNEL);
+-		if (!filter_value) {
+-			ret = -ENOMEM;
+-			break;
+-		}
++		if (!filter_value)
++			return -ENOMEM;
 +
-+	if (cmd == HFI1_SNOOP_IOCSETLINKSTATE)
- 		/* We do not support the old setlink state */
- 		return -EINVAL;
--	}
+ 		/* copy remaining data from userspace */
+ 		if (copy_from_user((u8 *)filter_value,
+ 				   (void __user *)filter_cmd.value_ptr,
+ 				   filter_cmd.length)) {
+ 			kfree(filter_value);
+-			ret = -EFAULT;
+-			break;
++			return -EFAULT;
+ 		}
+ 		/* Drain packets first */
+ 		spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
+@@ -1202,8 +1190,7 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
+ 			snoop_flags |= SNOOP_USE_METADATA;
+ 		break;
+ 	default:
+-		ret = -ENOTTY;
+-		break;
++		return -ENOTTY;
+ 	}
  
- 	spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
- 
+ 	return ret;
 -- 
 1.8.2
 
