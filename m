@@ -1,54 +1,102 @@
-From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 5/8] staging/rdma/hfi1: return early if setlink state was specified
-Date: Wed, 11 Nov 2015 00:43:06 -0500
-Message-ID: <1447220589-9067-6-git-send-email-ira.weiny@intel.com>
+From: ira.weiny@intel.com
+Subject: [PATCH 7/8] staging/rdma/hfi1: Reduce snoop locking scope in IOCTL
+ handler.
+Date: Wed, 11 Nov 2015 00:43:08 -0500
+Message-ID: <1447220589-9067-8-git-send-email-ira.weiny@intel.com>
 References: <1447220589-9067-1-git-send-email-ira.weiny@intel.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1447220589-9067-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <1447220589-9067-1-git-send-email-ira.weiny@intel.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org
+Cc: linux-rdma@vger.kernel.org, dledford@redhat.com, dennis.dalessandro@intel.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
 
-Set link state was not supported and so we can return early in the parameter
-checks rather than falling through the switch clause.
+This patch avoids issues while calling into copy from/to user while holding the
+lock by only taking the lock when it is absolutely required.
 
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+The only commands which require the snoop lock are: *Set Filter *Clear Filter
+*Clear Queue
+
+Reported-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
- drivers/staging/rdma/hfi1/diag.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/staging/rdma/hfi1/diag.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/staging/rdma/hfi1/diag.c b/drivers/staging/rdma/hfi1/diag.c
-index 556a47591989..a489a79dd3b6 100644
+index 43f08080480c..34a8c4da71d2 100644
 --- a/drivers/staging/rdma/hfi1/diag.c
 +++ b/drivers/staging/rdma/hfi1/diag.c
-@@ -999,16 +999,14 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
- 		 * Other are invalid.
- 		 */
+@@ -1008,8 +1008,6 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
+ 		/* We do not support the old setlink state */
  		return -EINVAL;
-+	} else if (cmd == HFI1_SNOOP_IOCSETLINKSTATE) {
-+		/* We do not support the old setlink state */
-+		return -EINVAL;
- 	}
  
- 	spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
- 
- 	switch (cmd) {
--	case HFI1_SNOOP_IOCSETLINKSTATE:
--		snoop_dbg("HFI1_SNOOP_IOCSETLINKSTATE is not valid");
--		ret = -EINVAL;
--		break;
+-	spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
 -
+ 	switch (cmd) {
  	case HFI1_SNOOP_IOCSETLINKSTATE_EXTRA:
  		memset(&link_info, 0, sizeof(link_info));
+@@ -1125,11 +1123,14 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
+ 
+ 	case HFI1_SNOOP_IOCCLEARQUEUE:
+ 		snoop_dbg("Clearing snoop queue");
++		spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
+ 		drain_snoop_list(&dd->hfi1_snoop.queue);
++		spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
+ 		break;
+ 
+ 	case HFI1_SNOOP_IOCCLEARFILTER:
+ 		snoop_dbg("Clearing filter");
++		spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
+ 		if (dd->hfi1_snoop.filter_callback) {
+ 			/* Drain packets first */
+ 			drain_snoop_list(&dd->hfi1_snoop.queue);
+@@ -1137,6 +1138,7 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
+ 		}
+ 		kfree(dd->hfi1_snoop.filter_value);
+ 		dd->hfi1_snoop.filter_value = NULL;
++		spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
+ 		break;
+ 
+ 	case HFI1_SNOOP_IOCSETFILTER:
+@@ -1173,13 +1175,14 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
+ 			break;
+ 		}
+ 		/* Drain packets first */
++		spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
+ 		drain_snoop_list(&dd->hfi1_snoop.queue);
+ 		dd->hfi1_snoop.filter_callback =
+ 			hfi1_filters[filter_cmd.opcode].filter;
+ 		/* just in case we see back to back sets */
+ 		kfree(dd->hfi1_snoop.filter_value);
+ 		dd->hfi1_snoop.filter_value = filter_value;
+-
++		spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
+ 		break;
+ 	case HFI1_SNOOP_IOCGETVERSION:
+ 		value = SNOOP_CAPTURE_VERSION;
+@@ -1203,7 +1206,6 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
+ 		break;
+ 	}
+ 
+-	spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
+ 	return ret;
+ }
  
 -- 
 1.8.2
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
