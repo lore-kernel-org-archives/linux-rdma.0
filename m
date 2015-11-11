@@ -1,7 +1,7 @@
 From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 10/13] staging/rdma/hfi1: adding per SDMA engine stats to hfistats
-Date: Wed, 11 Nov 2015 02:33:30 -0500
-Message-ID: <1447227213-15122-10-git-send-email-jubin.john@intel.com>
+Subject: [PATCH 12/13] staging/rdma/hfi1: Read EFI variable for device description
+Date: Wed, 11 Nov 2015 02:33:32 -0500
+Message-ID: <1447227213-15122-12-git-send-email-jubin.john@intel.com>
 References: <1447227213-15122-1-git-send-email-jubin.john@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1447227213-15122-1-git-send-email-jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,282 +10,351 @@ To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQ
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Vennila Megavannan <vennila.megavannan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Added the following per sdma engine stats:
-  - SendDmaDescFetchedCnt
-  - software maintained count of SDMA interrupts
-	 (SDmaInt, SDmaIdleInt, SDmaProgressInt)
-  - software maintained counts of SDMA error cases
+Read an EFI variable for the device description.  Create the
+infrastructure for additional variable reads.
 
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Vennila Megavannan <vennila.megavannan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/chip.c           |  110 +++++++++++++++++++++++++++-
- drivers/staging/rdma/hfi1/chip.h           |    5 +
- drivers/staging/rdma/hfi1/chip_registers.h |    1 +
- drivers/staging/rdma/hfi1/hfi.h            |    1 +
- drivers/staging/rdma/hfi1/sdma.c           |    9 ++-
- drivers/staging/rdma/hfi1/sdma.h           |    7 ++
- 6 files changed, 129 insertions(+), 4 deletions(-)
+ drivers/staging/rdma/hfi1/Makefile |    2 +-
+ drivers/staging/rdma/hfi1/chip.c   |   38 ++++++--
+ drivers/staging/rdma/hfi1/efivar.c |  176 ++++++++++++++++++++++++++++++++++++
+ drivers/staging/rdma/hfi1/efivar.h |   60 ++++++++++++
+ 4 files changed, 267 insertions(+), 9 deletions(-)
+ create mode 100644 drivers/staging/rdma/hfi1/efivar.c
+ create mode 100644 drivers/staging/rdma/hfi1/efivar.h
 
+diff --git a/drivers/staging/rdma/hfi1/Makefile b/drivers/staging/rdma/hfi1/Makefile
+index 2e5daa6..68c5a31 100644
+--- a/drivers/staging/rdma/hfi1/Makefile
++++ b/drivers/staging/rdma/hfi1/Makefile
+@@ -7,7 +7,7 @@
+ #
+ obj-$(CONFIG_INFINIBAND_HFI1) += hfi1.o
+ 
+-hfi1-y := chip.o cq.o device.o diag.o dma.o driver.o eprom.o file_ops.o firmware.o \
++hfi1-y := chip.o cq.o device.o diag.o dma.o driver.o efivar.o eprom.o file_ops.o firmware.o \
+ 	init.o intr.o keys.o mad.o mmap.o mr.o pcie.o pio.o pio_copy.o \
+ 	qp.o qsfp.o rc.o ruc.o sdma.o srq.o sysfs.o trace.o twsi.o \
+ 	uc.o ud.o user_pages.o user_sdma.o verbs_mcast.o verbs.o
 diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index aac47ad..5bd4841 100644
+index 15ae4c9..dcaa61c 100644
 --- a/drivers/staging/rdma/hfi1/chip.c
 +++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -1296,10 +1296,58 @@ static u64 dev_access_u32_csr(const struct cntr_entry *entry,
- 			    void *context, int vl, int mode, u64 data)
- {
- 	struct hfi1_devdata *dd = context;
-+	u64 csr = entry->csr;
+@@ -63,6 +63,7 @@
+ #include "pio.h"
+ #include "sdma.h"
+ #include "eprom.h"
++#include "efivar.h"
  
--	if (vl != CNTR_INVALID_VL)
--		return 0;
--	return read_write_csr(dd, entry->csr, mode, data);
-+	if (entry->flags & CNTR_SDMA) {
-+		if (vl == CNTR_INVALID_VL)
-+			return 0;
-+		csr += 0x100 * vl;
-+	} else {
-+		if (vl != CNTR_INVALID_VL)
-+			return 0;
+ #define NUM_IB_PORTS 1
+ 
+@@ -10524,6 +10525,32 @@ static void asic_should_init(struct hfi1_devdata *dd)
+ 	spin_unlock_irqrestore(&hfi1_devs_lock, flags);
+ }
+ 
++/*
++ * Set dd->boardname.  Use a generic name if a name is not returned from
++ * EFI variable space.
++ *
++ * Return 0 on success, -ENOMEM if space could not be allocated.
++ */
++static int obtain_boardname(struct hfi1_devdata *dd)
++{
++	/* generic board description */
++	const char generic[] =
++		"Intel Omni-Path Host Fabric Interface Adapter 100 Series";
++	unsigned long size;
++	int ret;
++
++	ret = read_hfi1_efi_var(dd, "description", &size,
++				(void **)&dd->boardname);
++	if (ret) {
++		dd_dev_err(dd, "Board description not found\n");
++		/* use generic description */
++		dd->boardname = kstrdup(generic, GFP_KERNEL);
++		if (!dd->boardname)
++			return -ENOMEM;
 +	}
-+	return read_write_csr(dd, csr, mode, data);
-+}
-+
-+static u64 access_sde_err_cnt(const struct cntr_entry *entry,
-+			      void *context, int idx, int mode, u64 data)
-+{
-+	struct hfi1_devdata *dd = (struct hfi1_devdata *)context;
-+
-+	if (dd->per_sdma && idx < dd->num_sdma)
-+		return dd->per_sdma[idx].err_cnt;
 +	return 0;
 +}
 +
-+static u64 access_sde_int_cnt(const struct cntr_entry *entry,
-+			      void *context, int idx, int mode, u64 data)
-+{
-+	struct hfi1_devdata *dd = (struct hfi1_devdata *)context;
-+
-+	if (dd->per_sdma && idx < dd->num_sdma)
-+		return dd->per_sdma[idx].sdma_int_cnt;
-+	return 0;
-+}
-+
-+static u64 access_sde_idle_int_cnt(const struct cntr_entry *entry,
-+				   void *context, int idx, int mode, u64 data)
-+{
-+	struct hfi1_devdata *dd = (struct hfi1_devdata *)context;
-+
-+	if (dd->per_sdma && idx < dd->num_sdma)
-+		return dd->per_sdma[idx].idle_int_cnt;
-+	return 0;
-+}
-+
-+static u64 access_sde_progress_int_cnt(const struct cntr_entry *entry,
-+				       void *context, int idx, int mode,
-+				       u64 data)
-+{
-+	struct hfi1_devdata *dd = (struct hfi1_devdata *)context;
-+
-+	if (dd->per_sdma && idx < dd->num_sdma)
-+		return dd->per_sdma[idx].progress_int_cnt;
-+	return 0;
- }
+ /**
+  * Allocate and initialize the device structure for the hfi.
+  * @dev: the pci_dev for hfi1_ib device
+@@ -10721,18 +10748,13 @@ struct hfi1_devdata *hfi1_init_dd(struct pci_dev *pdev,
  
- static u64 dev_access_u64_csr(const struct cntr_entry *entry, void *context,
-@@ -1728,6 +1776,22 @@ static struct cntr_entry dev_cntrs[DEV_CNTR_LAST] = {
- 			    access_sw_kmem_wait),
- [C_SW_SEND_SCHED] = CNTR_ELEM("SendSched", 0, 0, CNTR_NORMAL,
- 			    access_sw_send_schedule),
-+[C_SDMA_DESC_FETCHED_CNT] = CNTR_ELEM("SDEDscFdCn",
-+				      SEND_DMA_DESC_FETCHED_CNT, 0,
-+				      CNTR_NORMAL | CNTR_32BIT | CNTR_SDMA,
-+				      dev_access_u32_csr),
-+[C_SDMA_INT_CNT] = CNTR_ELEM("SDMAInt", 0, 0,
-+			     CNTR_NORMAL | CNTR_32BIT | CNTR_SDMA,
-+			     access_sde_int_cnt),
-+[C_SDMA_ERR_CNT] = CNTR_ELEM("SDMAErrCt", 0, 0,
-+			     CNTR_NORMAL | CNTR_32BIT | CNTR_SDMA,
-+			     access_sde_err_cnt),
-+[C_SDMA_IDLE_INT_CNT] = CNTR_ELEM("SDMAIdInt", 0, 0,
-+				  CNTR_NORMAL | CNTR_32BIT | CNTR_SDMA,
-+				  access_sde_idle_int_cnt),
-+[C_SDMA_PROGRESS_INT_CNT] = CNTR_ELEM("SDMAPrIntCn", 0, 0,
-+				      CNTR_NORMAL | CNTR_32BIT | CNTR_SDMA,
-+				      access_sde_progress_int_cnt)
- };
+ 	parse_platform_config(dd);
  
- static struct cntr_entry port_cntrs[PORT_CNTR_LAST] = {
-@@ -2520,6 +2584,7 @@ static void handle_sdma_eng_err(struct hfi1_devdata *dd,
- 	dd_dev_err(sde->dd, "CONFIG SDMA(%u) source: %u status 0x%llx\n",
- 		   sde->this_idx, source, (unsigned long long)status);
- #endif
-+	sde->err_cnt++;
- 	sdma_engine_error(sde, status);
- }
+-	/* add board names as they are defined */
+-	dd->boardname = kmalloc(64, GFP_KERNEL);
+-	if (!dd->boardname)
++	ret = obtain_boardname(dd);
++	if (ret)
+ 		goto bail_cleanup;
+-	snprintf(dd->boardname, 64, "Board ID 0x%llx",
+-		 dd->revision >> CCE_REVISION_BOARD_ID_LOWER_NIBBLE_SHIFT
+-		    & CCE_REVISION_BOARD_ID_LOWER_NIBBLE_MASK);
  
-@@ -7885,6 +7950,20 @@ u32 hfi1_read_cntrs(struct hfi1_devdata *dd, loff_t pos, char **namep,
- 						dd->cntrs[entry->offset + j] =
- 									    val;
- 					}
-+				} else if (entry->flags & CNTR_SDMA) {
-+					hfi1_cdbg(CNTR,
-+						  "\t Per SDMA Engine\n");
-+					for (j = 0; j < dd->chip_sdma_engines;
-+					     j++) {
-+						val =
-+						entry->rw_cntr(entry, dd, j,
-+							       CNTR_MODE_R, 0);
-+						hfi1_cdbg(CNTR,
-+							  "\t\tRead 0x%llx for %d\n",
-+							  val, j);
-+						dd->cntrs[entry->offset + j] =
-+									val;
-+					}
- 				} else {
- 					val = entry->rw_cntr(entry, dd,
- 							CNTR_INVALID_VL,
-@@ -8288,6 +8367,21 @@ static int init_cntrs(struct hfi1_devdata *dd)
- 				dd->ndevcntrs++;
- 				index++;
- 			}
-+		} else if (dev_cntrs[i].flags & CNTR_SDMA) {
-+			hfi1_dbg_early(
-+				       "\tProcessing per SDE counters chip enginers %u\n",
-+				       dd->chip_sdma_engines);
-+			dev_cntrs[i].offset = index;
-+			for (j = 0; j < dd->chip_sdma_engines; j++) {
-+				memset(name, '\0', C_MAX_NAME);
-+				snprintf(name, C_MAX_NAME, "%s%d",
-+					 dev_cntrs[i].name, j);
-+				sz += strlen(name);
-+				sz++;
-+				hfi1_dbg_early("\t\t%s\n", name);
-+				dd->ndevcntrs++;
-+				index++;
+ 	snprintf(dd->boardversion, BOARD_VERS_MAX,
+-		 "ChipABI %u.%u, %s, ChipRev %u.%u, SW Compat %llu\n",
++		 "ChipABI %u.%u, ChipRev %u.%u, SW Compat %llu\n",
+ 		 HFI1_CHIP_VERS_MAJ, HFI1_CHIP_VERS_MIN,
+-		 dd->boardname,
+ 		 (u32)dd->majrev,
+ 		 (u32)dd->minrev,
+ 		 (dd->revision >> CCE_REVISION_SW_SHIFT)
+diff --git a/drivers/staging/rdma/hfi1/efivar.c b/drivers/staging/rdma/hfi1/efivar.c
+new file mode 100644
+index 0000000..476391d
+--- /dev/null
++++ b/drivers/staging/rdma/hfi1/efivar.c
+@@ -0,0 +1,176 @@
++/*
++ *
++ * This file is provided under a dual BSD/GPLv2 license.  When using or
++ * redistributing this file, you may do so under either license.
++ *
++ * GPL LICENSE SUMMARY
++ *
++ * Copyright(c) 2015 Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * BSD LICENSE
++ *
++ * Copyright(c) 2015 Intel Corporation.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ *  - Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ *  - Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *  - Neither the name of Intel Corporation nor the names of its
++ *    contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ */
++
++#include "efivar.h"
++
++/* GUID for HFI1 variables in EFI */
++#define HFI1_EFIVAR_GUID EFI_GUID(0xc50a953e, 0xa8b2, 0x42a6, \
++		0xbf, 0x89, 0xd3, 0x33, 0xa6, 0xe9, 0xe6, 0xd4)
++/* largest EFI data size we expect */
++#define EFI_DATA_SIZE 4096
++
++/*
++ * Read the named EFI variable.  Return the size of the actual data in *size
++ * and a kmalloc'ed buffer in *return_data.  The caller must free the
++ * data.  It is guaranteed that *return_data will be NULL and *size = 0
++ * if this routine fails.
++ *
++ * Return 0 on success, -errno on failure.
++ */
++static int read_efi_var(const char *name, unsigned long *size,
++			void **return_data)
++{
++	int ret;
++
++	/* set failure return values */
++	*size = 0;
++	*return_data = NULL;
++
++	/*
++	 * Use EFI run-time support to obtain an EFI variable.  Support may
++	 * be compiled out, so declare all variables inside.
++	 */
++	if (efi_enabled(EFI_RUNTIME_SERVICES)) {
++		efi_status_t status;
++		efi_char16_t *uni_name;
++		efi_guid_t guid;
++		unsigned long temp_size;
++		void *temp_buffer;
++		void *data;
++		int i;
++
++		uni_name = kzalloc(sizeof(efi_char16_t) * (strlen(name) + 1),
++				   GFP_KERNEL);
++		temp_buffer = kzalloc(EFI_DATA_SIZE, GFP_KERNEL);
++		data = NULL;
++
++		if (!uni_name || !temp_buffer) {
++			ret = -ENOMEM;
++			goto fail;
++		}
++
++		/* input: the size of the buffer */
++		temp_size = EFI_DATA_SIZE;
++
++		/* convert ASCII to unicode - it is a 1:1 mapping */
++		for (i = 0; name[i]; i++)
++			uni_name[i] = name[i];
++
++		/* need a variable for our GUID */
++		guid = HFI1_EFIVAR_GUID;
++
++		/* call into EFI runtime services */
++		status = efi.get_variable(
++				uni_name,
++				&guid,
++				NULL,
++				&temp_size,
++				temp_buffer);
++
++		/*
++		 * It would be nice to call efi_status_to_err() here, but that
++		 * is in the EFIVAR_FS code and may not be compiled in.
++		 * However, even that is insufficient since it does not cover
++		 * EFI_BUFFER_TOO_SMALL which could be an important return.
++		 * For now, just split out succces or not found.
++		 */
++		ret = status == EFI_SUCCESS   ? 0 :
++		      status == EFI_NOT_FOUND ? -ENOENT :
++						-EINVAL;
++
++		if (!ret) {
++			/*
++			 * We have successfully read the EFI variable into our
++			 * temporary buffer.  Now allocate a correctly sized
++			 * buffer.
++			 */
++			data = kmalloc(temp_size, GFP_KERNEL);
++			if (data) {
++				memcpy(data, temp_buffer, temp_size);
++				*size = temp_size;
++				*return_data = data;
++			} else {
++				ret = -ENOMEM;
 +			}
- 		} else {
- 			/* +1 for newline  */
- 			sz += strlen(dev_cntrs[i].name) + 1;
-@@ -8329,6 +8423,16 @@ static int init_cntrs(struct hfi1_devdata *dd)
- 					p += strlen(name);
- 					*p++ = '\n';
- 				}
-+			} else if (dev_cntrs[i].flags & CNTR_SDMA) {
-+				for (j = 0; j < TXE_NUM_SDMA_ENGINES;
-+				     j++) {
-+					memset(name, '\0', C_MAX_NAME);
-+					snprintf(name, C_MAX_NAME, "%s%d",
-+						 dev_cntrs[i].name, j);
-+					memcpy(p, name, strlen(name));
-+					p += strlen(name);
-+					*p++ = '\n';
-+				}
- 			} else {
- 				memcpy(p, dev_cntrs[i].name,
- 				       strlen(dev_cntrs[i].name));
-diff --git a/drivers/staging/rdma/hfi1/chip.h b/drivers/staging/rdma/hfi1/chip.h
-index c8eb0f5..9e01df6 100644
---- a/drivers/staging/rdma/hfi1/chip.h
-+++ b/drivers/staging/rdma/hfi1/chip.h
-@@ -786,6 +786,11 @@ enum {
- 	C_SW_PIO_WAIT,
- 	C_SW_KMEM_WAIT,
- 	C_SW_SEND_SCHED,
-+	C_SDMA_DESC_FETCHED_CNT,
-+	C_SDMA_INT_CNT,
-+	C_SDMA_ERR_CNT,
-+	C_SDMA_IDLE_INT_CNT,
-+	C_SDMA_PROGRESS_INT_CNT,
- 	DEV_CNTR_LAST  /* Must be kept last */
- };
- 
-diff --git a/drivers/staging/rdma/hfi1/chip_registers.h b/drivers/staging/rdma/hfi1/chip_registers.h
-index 5056c84..487e4e4 100644
---- a/drivers/staging/rdma/hfi1/chip_registers.h
-+++ b/drivers/staging/rdma/hfi1/chip_registers.h
-@@ -1287,5 +1287,6 @@
- #define CCE_INT_BLOCKED (CCE + 0x000000110C00)
- #define SEND_DMA_IDLE_CNT (TXE + 0x000000200040)
- #define SEND_DMA_DESC_FETCHED_CNT (TXE + 0x000000200058)
-+#define CCE_MSIX_PBA_OFFSET 0X0110000
- 
- #endif          /* DEF_CHIP_REG */
-diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
-index a17fc87..f9201b4 100644
---- a/drivers/staging/rdma/hfi1/hfi.h
-+++ b/drivers/staging/rdma/hfi1/hfi.h
-@@ -483,6 +483,7 @@ struct hfi1_sge_state;
- #define CNTR_DISABLED		0x2 /* Disable this counter */
- #define CNTR_32BIT		0x4 /* Simulate 64 bits for this counter */
- #define CNTR_VL			0x8 /* Per VL counter */
-+#define CNTR_SDMA              0x10
- #define CNTR_INVALID_VL		-1  /* Specifies invalid VL */
- #define CNTR_MODE_W		0x0
- #define CNTR_MODE_R		0x1
-diff --git a/drivers/staging/rdma/hfi1/sdma.c b/drivers/staging/rdma/hfi1/sdma.c
-index 283badb..ca1d15b 100644
---- a/drivers/staging/rdma/hfi1/sdma.c
-+++ b/drivers/staging/rdma/hfi1/sdma.c
-@@ -1065,7 +1065,6 @@ int sdma_init(struct hfi1_devdata *dd, u8 port)
- 		sde->desc_avail = sdma_descq_freecnt(sde);
- 		sde->sdma_shift = ilog2(descq_cnt);
- 		sde->sdma_mask = (1 << sde->sdma_shift) - 1;
--		sde->descq_full_count = 0;
- 
- 		/* Create a mask for all 3 chip interrupt sources */
- 		sde->imask = (u64)1 << (0*TXE_NUM_SDMA_ENGINES + this_idx)
-@@ -1077,6 +1076,8 @@ int sdma_init(struct hfi1_devdata *dd, u8 port)
- 		/* Create a mask specifically for sdma_progress */
- 		sde->progress_mask =
- 			(u64)1 << (TXE_NUM_SDMA_ENGINES + this_idx);
-+		sde->int_mask =
-+			(u64)1 << (0 * TXE_NUM_SDMA_ENGINES + this_idx);
- 		spin_lock_init(&sde->tail_lock);
- 		seqlock_init(&sde->head_lock);
- 		spin_lock_init(&sde->senddmactrl_lock);
-@@ -1556,6 +1557,12 @@ void sdma_engine_interrupt(struct sdma_engine *sde, u64 status)
- 	trace_hfi1_sdma_engine_interrupt(sde, status);
- 	write_seqlock(&sde->head_lock);
- 	sdma_set_desc_cnt(sde, sdma_desct_intr);
-+	if (status & sde->idle_mask)
-+		sde->idle_int_cnt++;
-+	else if (status & sde->progress_mask)
-+		sde->progress_int_cnt++;
-+	else if (status & sde->int_mask)
-+		sde->sdma_int_cnt++;
- 	sdma_make_progress(sde, status);
- 	write_sequnlock(&sde->head_lock);
- }
-diff --git a/drivers/staging/rdma/hfi1/sdma.h b/drivers/staging/rdma/hfi1/sdma.h
-index cc22d2e..294d3ca 100644
---- a/drivers/staging/rdma/hfi1/sdma.h
-+++ b/drivers/staging/rdma/hfi1/sdma.h
-@@ -409,6 +409,7 @@ struct sdma_engine {
- 	u64 imask;			/* clear interrupt mask */
- 	u64 idle_mask;
- 	u64 progress_mask;
-+	u64 int_mask;
- 	/* private: */
- 	struct workqueue_struct *wq;
- 	/* private: */
-@@ -465,6 +466,12 @@ struct sdma_engine {
- 	u16                   tx_head;
- 	/* private: */
- 	u64                   last_status;
-+	/* private */
-+	u64                     err_cnt;
-+	/* private */
-+	u64                     sdma_int_cnt;
-+	u64                     idle_int_cnt;
-+	u64                     progress_int_cnt;
- 
- 	/* private: */
- 	struct list_head      dmawait;
++		}
++
++fail:
++		kfree(uni_name);
++		kfree(temp_buffer);
++	} else {
++		ret = -ENOSYS;
++	}
++
++	return ret;
++}
++
++/*
++ * Read an HFI1 EFI variable of the form:
++ *	<PCIe address>-<kind>
++ * Return an kalloc'ed array and size of the data.
++ *
++ * Returns 0 on success, -errno on failure.
++ */
++int read_hfi1_efi_var(struct hfi1_devdata *dd, const char *kind,
++		      unsigned long *size, void **return_data)
++{
++	char name[64];
++
++	/* create a common prefix */
++	snprintf(name, sizeof(name), "%04x:%02x:%02x.%x-%s",
++		 pci_domain_nr(dd->pcidev->bus),
++		 dd->pcidev->bus->number,
++		 PCI_SLOT(dd->pcidev->devfn),
++		 PCI_FUNC(dd->pcidev->devfn),
++		 kind);
++	name[sizeof(name) - 1] = 0; /* make sure the string is terminated */
++
++	return read_efi_var(name, size, return_data);
++}
+diff --git a/drivers/staging/rdma/hfi1/efivar.h b/drivers/staging/rdma/hfi1/efivar.h
+new file mode 100644
+index 0000000..0707062
+--- /dev/null
++++ b/drivers/staging/rdma/hfi1/efivar.h
+@@ -0,0 +1,60 @@
++/*
++ *
++ * This file is provided under a dual BSD/GPLv2 license.  When using or
++ * redistributing this file, you may do so under either license.
++ *
++ * GPL LICENSE SUMMARY
++ *
++ * Copyright(c) 2015 Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * BSD LICENSE
++ *
++ * Copyright(c) 2015 Intel Corporation.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ *  - Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ *  - Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *  - Neither the name of Intel Corporation nor the names of its
++ *    contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ */
++#ifndef _HFI1_EFIVAR_H
++#define _HFI1_EFIVAR_H
++
++#include <linux/efi.h>
++
++#include "hfi.h"
++
++int read_hfi1_efi_var(struct hfi1_devdata *dd, const char *kind,
++		      unsigned long *size, void **return_data);
++
++#endif /* _HFI1_EFIVAR_H */
 -- 
 1.7.1
 
