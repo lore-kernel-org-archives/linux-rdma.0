@@ -1,43 +1,47 @@
 From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [BUG] IB/hfi1: might sleep under spinlock in hfi1_ioctl()
-Date: Wed, 11 Nov 2015 00:53:07 -0500
-Message-ID: <20151111055305.GA9594@phlsvsds.ph.intel.com>
-References: <1446240749-5003-1-git-send-email-khoroshilov@ispras.ru> <20151030235817.GA13800@phlsvsds.ph.intel.com>
+Subject: Re: [PATCH v4 5/9] staging/rdma/hfi1: Add function stubs for TID caching
+Date: Wed, 11 Nov 2015 01:10:40 -0500
+Message-ID: <20151111061039.GB9594@phlsvsds.ph.intel.com>
+References: <1446245928-12675-1-git-send-email-ira.weiny@intel.com> <1446245928-12675-6-git-send-email-ira.weiny@intel.com> <20151107010235.GA24586@kroah.com> <20151110001102.GA11150@phlsvsds.ph.intel.com> <20151110001827.GA29500@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20151030235817.GA13800-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <20151110001827.GA29500-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexey Khoroshilov <khoroshilov-ufN2psIa012HXe+LvDLADg@public.gmane.org>
-Cc: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ldv-project-tpLiQldItUH5n4uC9ZG1Ww@public.gmane.org
+To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Oct 30, 2015 at 07:58:18PM -0400, ira. weiny wrote:
-> On Sat, Oct 31, 2015 at 12:32:29AM +0300, Alexey Khoroshilov wrote:
-> > Hello,
 > > 
-> > hfi1_ioctl() contains many calls to might sleep functions with
-> > dd->hfi1_snoop.snoop_lock spinlock held (for example, access_ok,
-> > copy_from_user, kzalloc(GFP_KERNEL), etc.).
+> > Ok, patch 7-9 of this series do not depend on this patch nor number 6.  I will
+> > resend those 3 while I figure out what to do about these 2:
 > > 
-> > Should dd->hfi1_snoop.snoop_lock be acquired just before updating state?
+> > staging/rdma/hfi1: Add function stubs for TID caching
+> > staging/rdma/hfi1: Implement Expected Receive TID caching
+> > 
+> > Frankly this was an attempt to reduce the size of "Implement Expected Receive
+> > TID caching".  I obviously did something wrong.
+> > 
+> > I really don't know that I can split these up any more without causing issues
+> > with bisecting the code.
 > 
-> I believe you are correct.
+> I strongly doubt that you created this new feature all "at once", it
+> took a set of steps to get to your final destination.  So show that
+> work, like your math professor told you...
 > 
-> I am currently in the process of pushing fixes to the staging tree.
-> 
-> We have a patch which fixes this queued up but it depends on at least one other
-> patch in my queue.
-> 
-> I will do my best to get this submitted soon.
 
-I have just posted a series which addresses this problem as well as doing
-general clean up on hfi1_ioctl.  The specific fix is contained in this patch.
+The original author and I have been going through the code to see what we can
+do.  We have identified a couple of other pieces which can be split.
 
-[PATCH 7/8] staging/rdma/hfi1: Reduce snoop locking scope in IOCTL handler.
+One question.  Is it ok to have functionality which is added which is unused in
+a preliminary patch?  I believe this is ok as long as the code compiles but I
+just wanted to make sure.  While there are different operations added in this
+patch it is broken to not use them as a set.  So we need to have a series which
+implement the pieces with a final patch which exposes the set of operations.
 
-Thanks for the report,
+Is this acceptable?
+
 Ira
 
 --
