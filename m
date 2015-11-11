@@ -1,49 +1,180 @@
 From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 10/13] staging/rdma/hfi1: adding per SDMA engine stats to
- hfistats
-Date: Wed, 11 Nov 2015 11:22:15 +0300
-Message-ID: <20151111082215.GZ18797@mwanda>
+Subject: Re: [PATCH 12/13] staging/rdma/hfi1: Read EFI variable for device
+ description
+Date: Wed, 11 Nov 2015 11:44:39 +0300
+Message-ID: <20151111084439.GA18797@mwanda>
 References: <1447227213-15122-1-git-send-email-jubin.john@intel.com>
- <1447227213-15122-10-git-send-email-jubin.john@intel.com>
+ <1447227213-15122-12-git-send-email-jubin.john@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1447227213-15122-10-git-send-email-jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1447227213-15122-12-git-send-email-jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 11, 2015 at 02:33:30AM -0500, Jubin John wrote:
-> @@ -8288,6 +8367,21 @@ static int init_cntrs(struct hfi1_devdata *dd)
->  				dd->ndevcntrs++;
->  				index++;
->  			}
-> +		} else if (dev_cntrs[i].flags & CNTR_SDMA) {
-> +			hfi1_dbg_early(
-> +				       "\tProcessing per SDE counters chip enginers %u\n",
-> +				       dd->chip_sdma_engines);
-> +			dev_cntrs[i].offset = index;
-> +			for (j = 0; j < dd->chip_sdma_engines; j++) {
-> +				memset(name, '\0', C_MAX_NAME);
+On Wed, Nov 11, 2015 at 02:33:32AM -0500, Jubin John wrote:
+> +static int read_efi_var(const char *name, unsigned long *size,
+> +			void **return_data)
+> +{
+> +	int ret;
+> +
+> +	/* set failure return values */
+> +	*size = 0;
+> +	*return_data = NULL;
+> +
+> +	/*
+> +	 * Use EFI run-time support to obtain an EFI variable.  Support may
+> +	 * be compiled out, so declare all variables inside.
+> +	 */
+> +	if (efi_enabled(EFI_RUNTIME_SERVICES)) {
 
-This patch is ok, but none of the memsets in this function are needed.
-You could remove them in a later patch.
 
-> +				snprintf(name, C_MAX_NAME, "%s%d",
-> +					 dev_cntrs[i].name, j);
-> +				sz += strlen(name);
-> +				sz++;
-> +				hfi1_dbg_early("\t\t%s\n", name);
+Flip this around:
 
-We're basically just trying to calculate a bunch of strlen()s but there
-is a lot of extra code to generate debug output.  It would be better to
-remove it in a later patch.
+	if (!efi_enabled(EFI_RUNTIME_SERVICES))
+		return -ENOSYS;
 
-> +				dd->ndevcntrs++;
-> +				index++;
+
+> +		efi_status_t status;
+> +		efi_char16_t *uni_name;
+> +		efi_guid_t guid;
+> +		unsigned long temp_size;
+> +		void *temp_buffer;
+> +		void *data;
+> +		int i;
+> +
+> +		uni_name = kzalloc(sizeof(efi_char16_t) * (strlen(name) + 1),
+> +				   GFP_KERNEL);
+> +		temp_buffer = kzalloc(EFI_DATA_SIZE, GFP_KERNEL);
+> +		data = NULL;
+
+No need.
+
+> +
+> +		if (!uni_name || !temp_buffer) {
+> +			ret = -ENOMEM;
+> +			goto fail;
+> +		}
+> +
+> +		/* input: the size of the buffer */
+> +		temp_size = EFI_DATA_SIZE;
+> +
+> +		/* convert ASCII to unicode - it is a 1:1 mapping */
+> +		for (i = 0; name[i]; i++)
+> +			uni_name[i] = name[i];
+> +
+> +		/* need a variable for our GUID */
+> +		guid = HFI1_EFIVAR_GUID;
+> +
+> +		/* call into EFI runtime services */
+> +		status = efi.get_variable(
+> +				uni_name,
+> +				&guid,
+> +				NULL,
+> +				&temp_size,
+> +				temp_buffer);
+> +
+> +		/*
+> +		 * It would be nice to call efi_status_to_err() here, but that
+> +		 * is in the EFIVAR_FS code and may not be compiled in.
+> +		 * However, even that is insufficient since it does not cover
+> +		 * EFI_BUFFER_TOO_SMALL which could be an important return.
+> +		 * For now, just split out succces or not found.
+> +		 */
+> +		ret = status == EFI_SUCCESS   ? 0 :
+> +		      status == EFI_NOT_FOUND ? -ENOENT :
+> +						-EINVAL;
+> +
+> +		if (!ret) {
+> +			/*
+> +			 * We have successfully read the EFI variable into our
+> +			 * temporary buffer.  Now allocate a correctly sized
+> +			 * buffer.
+> +			 */
+> +			data = kmalloc(temp_size, GFP_KERNEL);
+> +			if (data) {
+> +				memcpy(data, temp_buffer, temp_size);
+> +				*size = temp_size;
+> +				*return_data = data;
+> +			} else {
+> +				ret = -ENOMEM;
 > +			}
+> +		}
+
+People often change the last two conditions in the function from
+error handling to success handling.  I have ranted about it before many
+times so I should just paste a previous rant instead of commenting here.
+:P
+
+http://www.spinics.net/lists/arm-kernel/msg457849.html
+
+Success handling makes this look more complicated than it really is.
+This code is just a string of commands in a row with error handling.  No
+need for if statements or indenting.  Here is how it looks when it's
+pulled in one indent level and changed from success handling to error
+handling.
+
+	ret = status == EFI_SUCCESS   ? 0 :
+	      status == EFI_NOT_FOUND ? -ENOENT : -EINVAL;
+	if (ret)
+		goto free;
+
+	data = kmemdup(data, temp_size, GFP_KERNEL);
+	if (!data) {
+		ret = -ENOMEM;
+		goto free;
+	}
+
+	*size = temp_size;
+	*return_data = data;
+
+free:
+	kfree(uni_name);
+	kfree(temp_buffer);
+
+	return ret;
+
+> +
+> +fail:
+> +		kfree(uni_name);
+> +		kfree(temp_buffer);
+> +	} else {
+> +		ret = -ENOSYS;
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+> +/*
+> + * Read an HFI1 EFI variable of the form:
+> + *	<PCIe address>-<kind>
+> + * Return an kalloc'ed array and size of the data.
+> + *
+> + * Returns 0 on success, -errno on failure.
+> + */
+> +int read_hfi1_efi_var(struct hfi1_devdata *dd, const char *kind,
+> +		      unsigned long *size, void **return_data)
+> +{
+> +	char name[64];
+> +
+> +	/* create a common prefix */
+> +	snprintf(name, sizeof(name), "%04x:%02x:%02x.%x-%s",
+> +		 pci_domain_nr(dd->pcidev->bus),
+> +		 dd->pcidev->bus->number,
+> +		 PCI_SLOT(dd->pcidev->devfn),
+> +		 PCI_FUNC(dd->pcidev->devfn),
+> +		 kind);
+> +	name[sizeof(name) - 1] = 0; /* make sure the string is terminated */
+
+No need.  snprintf() always puts a NUL terminator (technically it
+doesn't if the sizeof(name) is zero, I suppose).
+
+> +
+> +	return read_efi_var(name, size, return_data);
+> +}
 
 regards,
 dan carpenter
