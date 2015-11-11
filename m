@@ -1,43 +1,106 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH RFC 2/3] svcrdma: Use device rdma_read_access_flags
-Date: Wed, 11 Nov 2015 10:39:46 -0700
-Message-ID: <20151111173946.GB843@obsidianresearch.com>
-References: <1447152255-28231-1-git-send-email-sagig@mellanox.com>
- <1447152255-28231-3-git-send-email-sagig@mellanox.com>
- <20151110114145.GA2810@infradead.org>
- <5641D920.5000409@mellanox.com>
- <20151110120432.GA8230@infradead.org>
- <20151110182546.GI12667@obsidianresearch.com>
- <56425AFB.30202@talpey.com>
- <20151110211716.GA21631@obsidianresearch.com>
- <56430972.8080703@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] svcrdma: Do not send XDR roundup bytes for a write chunk
+Date: Wed, 11 Nov 2015 15:20:33 -0500
+Message-ID: <2CF378F3-09B3-441D-9DE6-5336F0B8BF65@oracle.com>
+References: <20151016132938.8597.65237.stgit@oracle-120.nfsv4bat.org> <94E65795-E205-44FE-93DE-A1FF24CD5C2E@oracle.com>
+Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <56430972.8080703-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <94E65795-E205-44FE-93DE-A1FF24CD5C2E-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 11, 2015 at 11:25:06AM +0200, Sagi Grimberg wrote:
-> For RDMA READs, a HCA will perform the memory scatters when on the RX
-> path, when receiving the read responses containing the data. This means
-> that the HCA needs to perform a lookup of the relevant scatter entries
-> upon each read response. Due to that, modern HCAs keep a dedicate cache
-> for this type of RX-path lookup (which is limited in size naturally).
 
-There is always a memory scatter, and MR setup overheads and table
-reads are not zero. There is nothing architectural in the verbs or IBA
-that would require a HCA to run slower for SGL than MR...
+> On Nov 3, 2015, at 3:10 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrot=
+e:
+>=20
+>=20
+>> On Oct 16, 2015, at 9:30 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wr=
+ote:
+>>=20
+>> Minor optimization: when dealing with write chunk XDR roundup, do
+>> not post a Write WR for the zero bytes in the pad. Simply update
+>> the write segment in the RPC-over-RDMA header to reflect the extra
+>> pad bytes.
+>>=20
+>> The Reply chunk is also a write chunk, but the server does not use
+>> send_write_chunks() to send the Reply chunk. That's OK in this case:
+>> the server Upper Layer typically marshals the Reply chunk contents
+>> in a single contiguous buffer, without a separate tail for the XDR
+>> pad.
+>>=20
+>> The comments and the variable naming refer to "chunks" but what is
+>> really meant is "segments." The existing code sends only one
+>> xdr_write_chunk per RPC reply.
+>>=20
+>> The fix assumes this as well. When the XDR pad in the first write
+>> chunk is reached, the assumption is the Write list is complete and
+>> send_write_chunks() returns.
+>>=20
+>> That will remain a valid assumption until the server Upper Layer can
+>> support multiple bulk payload results per RPC.
+>>=20
+>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> --
+>=20
+> Bruce, can you take this for 4.4 ?
 
-As you say, another choice the ULP should not be making.. Even
-selecting the optimal SGL list len is not something the ULP should
-do, in that case.
+Hi Bruce-
 
-Jason
+Your 4.4 pull request did not include this patch.
+
+
+>> net/sunrpc/xprtrdma/svc_rdma_sendto.c |    7 +++++++
+>> 1 files changed, 7 insertions(+), 0 deletions(-)
+>>=20
+>> diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprt=
+rdma/svc_rdma_sendto.c
+>> index 1dfae83..6c48901 100644
+>> --- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+>> +++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+>> @@ -342,6 +342,13 @@ static int send_write_chunks(struct svcxprt_rdm=
+a *xprt,
+>> 						arg_ch->rs_handle,
+>> 						arg_ch->rs_offset,
+>> 						write_len);
+>> +
+>> +		/* Do not send XDR pad bytes */
+>> +		if (chunk_no && write_len < 4) {
+>> +			chunk_no++;
+>> +			break;
+>> +		}
+>> +
+>> 		chunk_off =3D 0;
+>> 		while (write_len) {
+>> 			ret =3D send_write(xprt, rqstp,
+>>=20
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
+" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
+> =E2=80=94
+> Chuck Lever
+>=20
+>=20
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-nfs" =
+in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+=E2=80=94
+Chuck Lever
+
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
