@@ -1,44 +1,35 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: srp state in current mainline
-Date: Wed, 11 Nov 2015 18:34:25 +0200
-Message-ID: <56436E11.3020009@dev.mellanox.co.il>
-References: <20151110171509.GA27781@infradead.org>
- <56436053.7030201@sandisk.com> <20151111154617.GA3754@infradead.org>
- <564366E2.8000209@sandisk.com> <20151111161845.GA31542@infradead.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH RFC 2/3] svcrdma: Use device rdma_read_access_flags
+Date: Wed, 11 Nov 2015 10:23:09 -0700
+Message-ID: <20151111172309.GA843@obsidianresearch.com>
+References: <1447152255-28231-1-git-send-email-sagig@mellanox.com>
+ <1447152255-28231-3-git-send-email-sagig@mellanox.com>
+ <20151110114145.GA2810@infradead.org>
+ <5641D920.5000409@mellanox.com>
+ <20151110120432.GA8230@infradead.org>
+ <20151110182546.GI12667@obsidianresearch.com>
+ <20151111080225.GA31508@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151111161845.GA31542-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20151111080225.GA31508-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Nov 11, 2015 at 12:02:25AM -0800, Christoph Hellwig wrote:
+> > No need for the else, !rdma_cap_needs_rdma_read_mr means pd->local_dma_lkey is okay
+> > to use.
+> 
+> What would happen if someone tried to use NFS on usnic without this?
 
+Honestly, I have no idea how usnic fits into the kernel side, it
+simply doesn't provide the kapi. It should fail much earlier, like
+when creating a PD, IMHO.
 
-On 11/11/2015 18:18, Christoph Hellwig wrote:
-> On Wed, Nov 11, 2015 at 08:03:46AM -0800, Bart Van Assche wrote:
->> Hello Christoph,
->>
->> The SRP initiator from kernel 4.3 is working fine on my test setup. I will
->> start a test with Linus' tree and with the following SRP kernel module
->> parameters:
->>
->> # cat /etc/modprobe.d/ib_srp.conf
->> options ib_srp cmd_sg_entries=255 register_always=1 prefer_fr=1
->
-> I just finished two runs with the current Linus tree.
->
-> register_always=N prefer_fr=N finishes fine.
->
-> default options isn't happy:
-
-I was able to see those too (with the registration changes). Do you
-have the registration changes applied?
-
-For some reason the dma_len is 0 when coming from the indirect
-descriptor srp_map_idb..
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
