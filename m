@@ -1,71 +1,64 @@
-From: "Luick, Dean" <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 12/13] staging/rdma/hfi1: Read EFI variable for device
- description
-Date: Wed, 11 Nov 2015 15:03:12 +0000
-Message-ID: <4AF12E8016D2BF46BCDFCE8FAA77A3580BC19FC8@FMSMSX102.amr.corp.intel.com>
-References: <1447227213-15122-1-git-send-email-jubin.john@intel.com>
- <1447227213-15122-12-git-send-email-jubin.john@intel.com>
- <20151111084439.GA18797@mwanda>
- <4AF12E8016D2BF46BCDFCE8FAA77A3580BC19F69@FMSMSX102.amr.corp.intel.com>
- <20151111143921.GG18797@mwanda>
+From: "ira.weiny" <ira.weiny@intel.com>
+Subject: Re: [PATCH 4/8] staging/rdma/hfi1: remove unneeded goto done
+Date: Wed, 11 Nov 2015 10:15:53 -0500
+Message-ID: <20151111151552.GA13414@phlsvsds.ph.intel.com>
+References: <1447220589-9067-1-git-send-email-ira.weiny@intel.com>
+ <1447220589-9067-5-git-send-email-ira.weiny@intel.com>
+ <20151111090108.GB18797@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151111143921.GG18797@mwanda>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "John, Jubin" <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org" <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+Content-Disposition: inline
+In-Reply-To: <20151111090108.GB18797@mwanda>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: devel@driverdev.osuosl.org, gregkh@linuxfoundation.org, dledford@redhat.com, dennis.dalessandro@intel.com, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: Dan Carpenter [mailto:dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org]
-> Sent: Wednesday, November 11, 2015 8:39 AM
-> To: Luick, Dean <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: John, Jubin <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org;
-> gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-
-> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH 12/13] staging/rdma/hfi1: Read EFI variable for device
-> description
+On Wed, Nov 11, 2015 at 12:01:08PM +0300, Dan Carpenter wrote:
+> On Wed, Nov 11, 2015 at 12:43:05AM -0500, ira.weiny@intel.com wrote:
+> > From: Ira Weiny <ira.weiny@intel.com>
+> > 
+> > This goto done is followed by an if (ret) break in the outer switch clause.  It
+> > is unnecessary.
+> > 
+> > Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+> > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> > ---
+> >  drivers/staging/rdma/hfi1/diag.c | 3 +--
+> >  1 file changed, 1 insertion(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/staging/rdma/hfi1/diag.c b/drivers/staging/rdma/hfi1/diag.c
+> > index 2bb857b2a103..556a47591989 100644
+> > --- a/drivers/staging/rdma/hfi1/diag.c
+> > +++ b/drivers/staging/rdma/hfi1/diag.c
+> > @@ -1053,7 +1053,6 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
+> >  				break;
+> >  			default:
+> >  				ret = -EINVAL;
+> > -				goto done;
+> >  			}
+> >  			ret = set_link_state(ppd, dev_state);
+> >  			break;
 > 
-> > > > +	if (efi_enabled(EFI_RUNTIME_SERVICES)) {
-> > >
-> > >
-> > > Flip this around:
-> > >
-> > > 	if (!efi_enabled(EFI_RUNTIME_SERVICES))
-> > > 		return -ENOSYS;
-> >
-> > The style here is very deliberate.
-> >
-> > The issue is how efi_enabled() is defined via CONFIG options.
-> >  The function can be turned into a 0 if certain CONFIG variables are
-> > not set.  The code is structured to make all of the dependent
-> > variables disappear if efi_enabled() becomes 0.
-> 
-> This all understand.
-> 
-> >  If the code is shifted as you suggest, we will get builds from the
-> > automatic builders that try all combinations with unused variables.
-> >  This was done to avoid that.
-> 
-> I'm not sure I understand.  You are doing this to try tricking the
-> autobuilders into not testind certain configs?  What?
+> Wut?  No it's not.
 
-Certainly not.  I did not explain this well.
+Sorry, you are correct at this point in the series.
 
-> I don't
-> understand what you mean by unused variables.  There shouldn't be any
-> unused variable warnings.  If you are getting unused variable warnings
-> can you post one so that I can take a look?
+I got over zealous with my splitting of this patch.  This needs to be squashed
+into 
 
-If you move the variables to the top and have the early return as you suggest, then in some CONFIG cases, there will be all those automatic variables declared but they are never used - the compiler has short-circuited the rest of the function.  Will not the compiler complain about unused variables in those cases?  That is the situation I was trying to avoid.
+staging/rdma/hfi1: Return immediately on error
 
+Which returns here.
 
-Dean
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ira
