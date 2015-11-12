@@ -1,78 +1,42 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] IB/mad: In validate_mad, validate CM method and attribute
-Date: Thu, 12 Nov 2015 13:48:50 +0200
-Message-ID: <56447CA2.1070802@dev.mellanox.co.il>
+From: "Luick, Dean" <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 12/13] staging/rdma/hfi1: Read EFI variable for device
+ description
+Date: Thu, 12 Nov 2015 12:31:51 +0000
+Message-ID: <4AF12E8016D2BF46BCDFCE8FAA77A3580BC1C5EF@FMSMSX102.amr.corp.intel.com>
+References: <1447227213-15122-1-git-send-email-jubin.john@intel.com>
+ <1447227213-15122-12-git-send-email-jubin.john@intel.com>
+ <20151111084439.GA18797@mwanda>
+ <4AF12E8016D2BF46BCDFCE8FAA77A3580BC19F69@FMSMSX102.amr.corp.intel.com>
+ <20151111143921.GG18797@mwanda>
+ <4AF12E8016D2BF46BCDFCE8FAA77A3580BC19FC8@FMSMSX102.amr.corp.intel.com>
+ <20151111172411.GA20481@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151111172411.GA20481-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+To: "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org" <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, "John, Jubin" <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+> -----Original Message-----
+> From: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org [mailto:gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org]
+> Sent: Wednesday, November 11, 2015 11:24 AM
 
-Receipt of CM MAD with response method for other than ClassPortInfo
-attribute is invalid.
+> > If you move the variables to the top and have the early return as you suggest,
+> then in some CONFIG cases, there will be all those automatic variables declared
+> but they are never used - the compiler has short-circuited the rest of the
+> function.  Will not the compiler complain about unused variables in those cases?
+> That is the situation I was trying to avoid.
+> 
+> Try it and see (hint, I don't think so...)
 
-CM attributes other than ClassPortInfo use send method only
-and GetResp is valid for ClassPortInfo attribute.
-Note also that the CM ClassPortInfo is not currently supported.
+I tested this - you are correct, no compiler warnings.  Looks like my fears were premature.  The failure logic will be inverted per Dan's comments.
 
-The SRP initiator does not maintain a timeout policy for CM connect
-requests relies on the CM layer to do that. The result was that
-the SRP initiator hung as the connect request never completed.
 
-A new SRP target has been observed to respond to Send CM REQ
-with GetResp of CM REQ with bad status. This is non conformant
-with IBA spec but exposes a vulnerability in the current MAD/CM
-code which will respond to the incoming GetResp of CM REQ as if
-it was a valid incoming Send of CM REQ rather than tossing
-this on the floor. It also causes the MAD layer not to
-retransmit the original REQ even though it has not received a REP.
-
-Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/mad.c |    8 ++++++++
- include/rdma/ib_mad.h         |    2 ++
- 2 files changed, 10 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 8d8af7a..e2d425f 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -1811,6 +1811,14 @@ static int validate_mad(const struct ib_mad_hdr *mad_hdr,
- 		if (qp_num == 0)
- 			valid = 1;
- 	} else {
-+		/* CM attributes other than ClassPortInfo only use Send method */
-+		if (mad_hdr->mgmt_class == IB_MGMT_CLASS_CM) {
-+			if (mad_hdr->attr_id != IB_MGMT_CLASSPORTINFO_ATTR_ID) {
-+				if (mad_hdr->method != IB_MGMT_METHOD_SEND)
-+					goto out;
-+			} else if (mad_hdr->method != IB_MGMT_METHOD_GET_RESP)
-+				goto out;
-+		}
- 		/* Filter GSI packets sent to QP0 */
- 		if (qp_num != 0)
- 			valid = 1;
-diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
-index 188df91..ec9b44d 100644
---- a/include/rdma/ib_mad.h
-+++ b/include/rdma/ib_mad.h
-@@ -237,6 +237,8 @@ struct ib_vendor_mad {
- 	u8			data[IB_MGMT_VENDOR_DATA];
- };
- 
-+#define IB_MGMT_CLASSPORTINFO_ATTR_ID	cpu_to_be16(0x0001)
-+
- struct ib_class_port_info {
- 	u8			base_version;
- 	u8			class_version;
--- 
-1.7.8.2
-
+Dean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
