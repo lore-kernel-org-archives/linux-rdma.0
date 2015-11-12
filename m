@@ -1,40 +1,35 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Fwd: [PATCH] svcrdma: Do not send XDR roundup bytes for a write
- chunk
-Date: Thu, 12 Nov 2015 11:30:40 -0700
-Message-ID: <20151112183040.GC25178@obsidianresearch.com>
-References: <20151112144433.13507.34603.stgit@klimt.1015granger.net>
- <648A8847-9836-42EC-9D62-77C01C6E9ACF@oracle.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] IB/mad: In validate_mad, validate CM method and
+ attribute
+Date: Thu, 12 Nov 2015 20:30:55 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A9BACD7D@ORSMSX110.amr.corp.intel.com>
+References: <56447CA2.1070802@dev.mellanox.co.il>
+ <20151112181339.GA16488@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <648A8847-9836-42EC-9D62-77C01C6E9ACF-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20151112181339.GA16488-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 12, 2015 at 09:47:13AM -0500, Chuck Lever wrote:
-> I wish git send-mail had an address book. I=E2=80=99m really tired
-> of misspelling the to/cc addresses on patches.
+> > +		/* CM attributes other than ClassPortInfo only use Send method
+> */
+> > +		if (mad_hdr->mgmt_class == IB_MGMT_CLASS_CM) {
+> > +			if (mad_hdr->attr_id != IB_MGMT_CLASSPORTINFO_ATTR_ID) {
+> > +				if (mad_hdr->method != IB_MGMT_METHOD_SEND)
+> > +					goto out;
+> > +			} else if (mad_hdr->method != IB_MGMT_METHOD_GET_RESP)
+> > +				goto out;
+> > +		}
+> 
+> Doesn't this invalidate a CM Get(ClassPortInfo) mad?
 
-It does:
-
-CONFIGURATION
-       sendemail.aliasesfile
-           To avoid typing long email addresses, point this to one or m=
-ore email aliases files. You must also supply
-           sendemail.aliasfiletype.
-
-       sendemail.aliasfiletype
-           Format of the file(s) specified in sendemail.aliasesfile. Mu=
-st be one of mutt, mailrc, pine, elm, or gnus.
-
-Jason
+I believe this does.  I think you could remove the else if clause and let the received MAD get passed to the CM.  It would be dropped there as unsupported.  The net result is likely the same.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
