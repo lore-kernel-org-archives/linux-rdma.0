@@ -1,33 +1,40 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] staging/rdma/hfi1: Reduce number of parameters passed to
- send handlers
-Date: Thu, 12 Nov 2015 17:35:24 +0200
-Message-ID: <CAJ3xEMgDih4xSkvaXgyK8RuQL4aNtSGcY2s1XeapNiLdu08SbA@mail.gmail.com>
-References: <1447220077-8325-1-git-send-email-ira.weiny@intel.com>
-	<20151111062535.GG4023@leon.nu>
-	<20151111133907.GA21044@phlsvsds.ph.intel.com>
-	<CAJ3xEMiaKkPX0gjTYqvdSjiHqiXSxGuPL=t8yfkwpamGa0+e3w@mail.gmail.com>
-	<20151112132538.GA23251@phlsvsds.ph.intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] IB/mad: In validate_mad, validate CM method and
+ attribute
+Date: Thu, 12 Nov 2015 17:52:26 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A9BAC9A4@ORSMSX110.amr.corp.intel.com>
+References: <56447CA2.1070802@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151112132538.GA23251-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <56447CA2.1070802-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 12, 2015 at 3:25 PM, Dennis Dalessandro
-<dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> On Thu, Nov 12, 2015 at 08:04:01AM +0200, Or Gerlitz wrote:
-
->> Dennis, can we have less camelcase sort of speak in this upstream driver?
->> this is linux here not windowZ.
-
-> I plan to just remove this function.
-> See: http://www.spinics.net/lists/linux-rdma/msg30244.html
-
-my comment was general
+PiBSZWNlaXB0IG9mIENNIE1BRCB3aXRoIHJlc3BvbnNlIG1ldGhvZCBmb3Igb3RoZXIgdGhhbiBD
+bGFzc1BvcnRJbmZvDQo+IGF0dHJpYnV0ZSBpcyBpbnZhbGlkLg0KPiANCj4gQ00gYXR0cmlidXRl
+cyBvdGhlciB0aGFuIENsYXNzUG9ydEluZm8gdXNlIHNlbmQgbWV0aG9kIG9ubHkNCj4gYW5kIEdl
+dFJlc3AgaXMgdmFsaWQgZm9yIENsYXNzUG9ydEluZm8gYXR0cmlidXRlLg0KPiBOb3RlIGFsc28g
+dGhhdCB0aGUgQ00gQ2xhc3NQb3J0SW5mbyBpcyBub3QgY3VycmVudGx5IHN1cHBvcnRlZC4NCj4g
+DQo+IFRoZSBTUlAgaW5pdGlhdG9yIGRvZXMgbm90IG1haW50YWluIGEgdGltZW91dCBwb2xpY3kg
+Zm9yIENNIGNvbm5lY3QNCj4gcmVxdWVzdHMgcmVsaWVzIG9uIHRoZSBDTSBsYXllciB0byBkbyB0
+aGF0LiBUaGUgcmVzdWx0IHdhcyB0aGF0DQo+IHRoZSBTUlAgaW5pdGlhdG9yIGh1bmcgYXMgdGhl
+IGNvbm5lY3QgcmVxdWVzdCBuZXZlciBjb21wbGV0ZWQuDQo+IA0KPiBBIG5ldyBTUlAgdGFyZ2V0
+IGhhcyBiZWVuIG9ic2VydmVkIHRvIHJlc3BvbmQgdG8gU2VuZCBDTSBSRVENCj4gd2l0aCBHZXRS
+ZXNwIG9mIENNIFJFUSB3aXRoIGJhZCBzdGF0dXMuIFRoaXMgaXMgbm9uIGNvbmZvcm1hbnQNCj4g
+d2l0aCBJQkEgc3BlYyBidXQgZXhwb3NlcyBhIHZ1bG5lcmFiaWxpdHkgaW4gdGhlIGN1cnJlbnQg
+TUFEL0NNDQo+IGNvZGUgd2hpY2ggd2lsbCByZXNwb25kIHRvIHRoZSBpbmNvbWluZyBHZXRSZXNw
+IG9mIENNIFJFUSBhcyBpZg0KPiBpdCB3YXMgYSB2YWxpZCBpbmNvbWluZyBTZW5kIG9mIENNIFJF
+USByYXRoZXIgdGhhbiB0b3NzaW5nDQo+IHRoaXMgb24gdGhlIGZsb29yLiBJdCBhbHNvIGNhdXNl
+cyB0aGUgTUFEIGxheWVyIG5vdCB0bw0KPiByZXRyYW5zbWl0IHRoZSBvcmlnaW5hbCBSRVEgZXZl
+biB0aG91Z2ggaXQgaGFzIG5vdCByZWNlaXZlZCBhIFJFUC4NCj4gDQo+IFJldmlld2VkLWJ5OiBT
+YWdpIEdyaW1iZXJnIDxzYWdpZ0BtZWxsYW5veC5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IEhhbCBS
+b3NlbnN0b2NrIDxoYWxAbWVsbGFub3guY29tPg0KDQpSZXZpZXdlZC1ieTogU2VhbiBIZWZ0eSA8
+c2Vhbi5oZWZ0eUBpbnRlbC5jb20+DQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
