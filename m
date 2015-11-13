@@ -1,62 +1,30 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v2] IB/mad: In validate_mad, validate CM send method for
- attributes other than ClassPortInfo
-Date: Fri, 13 Nov 2015 20:57:00 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E1CBF33BE@CRSMSX101.amr.corp.intel.com>
-References: <5646467E.2000509@dev.mellanox.co.il>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: PGP Keysigning at SC|15?
+Date: Fri, 13 Nov 2015 14:40:58 -0700
+Message-ID: <20151113214058.GA30709@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5646467E.2000509-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiANCj4gDQo+IFJlY2VpcHQgb2YgQ00gTUFEIHdpdGggb3RoZXIgdGhhbiB0aGUgU2VuZCBtZXRo
-b2QgZm9yIGFuIGF0dHJpYnV0ZSBvdGhlcg0KPiB0aGFuIHRoZSBDbGFzc1BvcnRJbmZvIGF0dHJp
-YnV0ZSBpcyBpbnZhbGlkLg0KPiANCj4gQ00gYXR0cmlidXRlcyBvdGhlciB0aGFuIENsYXNzUG9y
-dEluZm8gb25seSB1c2UgdGhlIHNlbmQgbWV0aG9kLg0KPiANCj4gVGhlIFNSUCBpbml0aWF0b3Ig
-ZG9lcyBub3QgbWFpbnRhaW4gYSB0aW1lb3V0IHBvbGljeSBmb3IgQ00gY29ubmVjdCByZXF1ZXN0
-cw0KPiByZWxpZXMgb24gdGhlIENNIGxheWVyIHRvIGRvIHRoYXQuIFRoZSByZXN1bHQgd2FzIHRo
-YXQgdGhlIFNSUCBpbml0aWF0b3IgaHVuZyBhcw0KPiB0aGUgY29ubmVjdCByZXF1ZXN0IG5ldmVy
-IGNvbXBsZXRlZC4NCj4gDQo+IEEgbmV3IFNSUCB0YXJnZXQgaGFzIGJlZW4gb2JzZXJ2ZWQgdG8g
-cmVzcG9uZCB0byBTZW5kIENNIFJFUSB3aXRoIEdldFJlc3ANCj4gb2YgQ00gUkVRIHdpdGggYmFk
-IHN0YXR1cy4gVGhpcyBpcyBub24gY29uZm9ybWFudCB3aXRoIElCQSBzcGVjIGJ1dCBleHBvc2Vz
-IGENCj4gdnVsbmVyYWJpbGl0eSBpbiB0aGUgY3VycmVudCBNQUQvQ00gY29kZSB3aGljaCB3aWxs
-IHJlc3BvbmQgdG8gdGhlIGluY29taW5nDQo+IEdldFJlc3Agb2YgQ00gUkVRIGFzIGlmIGl0IHdh
-cyBhIHZhbGlkIGluY29taW5nIFNlbmQgb2YgQ00gUkVRIHJhdGhlciB0aGFuDQo+IHRvc3Npbmcg
-dGhpcyBvbiB0aGUgZmxvb3IuIEl0IGFsc28gY2F1c2VzIHRoZSBNQUQgbGF5ZXIgbm90IHRvIHJl
-dHJhbnNtaXQgdGhlDQo+IG9yaWdpbmFsIFJFUSBldmVuIHRob3VnaCBpdCBoYXMgbm90IHJlY2Vp
-dmVkIGEgUkVQLg0KPiANCj4gUmV2aWV3ZWQtYnk6IFNhZ2kgR3JpbWJlcmcgPHNhZ2lnQG1lbGxh
-bm94LmNvbT4NCg0KUmV2aWV3ZWQtYnk6IElyYSBXZWlueSA8aXJhLndlaW55QGludGVsLmNvbT4N
-Cg0KPiBTaWduZWQtb2ZmLWJ5OiBIYWwgUm9zZW5zdG9jayA8aGFsQG1lbGxhbm94LmNvbT4NCj4g
-LS0tDQo+IENoYW5nZXMgc2luY2UgdjE6DQo+IFJlbW92ZWQgQ2xhc3NQb3J0SW5mbyBtZXRob2Qg
-dmFsaWRhdGlvbg0KPiANCj4gIGRyaXZlcnMvaW5maW5pYmFuZC9jb3JlL21hZC5jIHwgICAgNSAr
-KysrKw0KPiAgaW5jbHVkZS9yZG1hL2liX21hZC5oICAgICAgICAgfCAgICAyICsrDQo+ICAyIGZp
-bGVzIGNoYW5nZWQsIDcgaW5zZXJ0aW9ucygrKSwgMCBkZWxldGlvbnMoLSkNCj4gDQo+IGRpZmYg
-LS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9tYWQuYyBiL2RyaXZlcnMvaW5maW5pYmFu
-ZC9jb3JlL21hZC5jDQo+IGluZGV4IDhkOGFmN2EuLjIyODFkZTEgMTAwNjQ0DQo+IC0tLSBhL2Ry
-aXZlcnMvaW5maW5pYmFuZC9jb3JlL21hZC5jDQo+ICsrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC9j
-b3JlL21hZC5jDQo+IEBAIC0xODExLDYgKzE4MTEsMTEgQEAgc3RhdGljIGludCB2YWxpZGF0ZV9t
-YWQoY29uc3Qgc3RydWN0IGliX21hZF9oZHINCj4gKm1hZF9oZHIsDQo+ICAJCWlmIChxcF9udW0g
-PT0gMCkNCj4gIAkJCXZhbGlkID0gMTsNCj4gIAl9IGVsc2Ugew0KPiArCQkvKiBDTSBhdHRyaWJ1
-dGVzIG90aGVyIHRoYW4gQ2xhc3NQb3J0SW5mbyBvbmx5IHVzZSBTZW5kDQo+IG1ldGhvZCAqLw0K
-PiArCQlpZiAoKG1hZF9oZHItPm1nbXRfY2xhc3MgPT0gSUJfTUdNVF9DTEFTU19DTSkgJiYNCj4g
-KwkJICAgIChtYWRfaGRyLT5hdHRyX2lkICE9IElCX01HTVRfQ0xBU1NQT1JUSU5GT19BVFRSX0lE
-KQ0KPiAmJg0KPiArCQkgICAgKG1hZF9oZHItPm1ldGhvZCAhPSBJQl9NR01UX01FVEhPRF9TRU5E
-KSkNCj4gKwkJCWdvdG8gb3V0Ow0KPiAgCQkvKiBGaWx0ZXIgR1NJIHBhY2tldHMgc2VudCB0byBR
-UDAgKi8NCj4gIAkJaWYgKHFwX251bSAhPSAwKQ0KPiAgCQkJdmFsaWQgPSAxOw0KPiBkaWZmIC0t
-Z2l0IGEvaW5jbHVkZS9yZG1hL2liX21hZC5oIGIvaW5jbHVkZS9yZG1hL2liX21hZC5oIGluZGV4
-DQo+IDE4OGRmOTEuLmVjOWI0NGQgMTAwNjQ0DQo+IC0tLSBhL2luY2x1ZGUvcmRtYS9pYl9tYWQu
-aA0KPiArKysgYi9pbmNsdWRlL3JkbWEvaWJfbWFkLmgNCj4gQEAgLTIzNyw2ICsyMzcsOCBAQCBz
-dHJ1Y3QgaWJfdmVuZG9yX21hZCB7DQo+ICAJdTgJCQlkYXRhW0lCX01HTVRfVkVORE9SX0RBVEFd
-Ow0KPiAgfTsNCj4gDQo+ICsjZGVmaW5lIElCX01HTVRfQ0xBU1NQT1JUSU5GT19BVFRSX0lECWNw
-dV90b19iZTE2KDB4MDAwMSkNCj4gKw0KPiAgc3RydWN0IGliX2NsYXNzX3BvcnRfaW5mbyB7DQo+
-ICAJdTgJCQliYXNlX3ZlcnNpb247DQo+ICAJdTgJCQljbGFzc192ZXJzaW9uOw0KPiAtLQ0KPiAx
-LjcuOC4yDQo+IA0KDQo=
+Hello,
+
+To those attending SC|15, I would like to try and meet up to do a PGP
+keysigning.
+
+I am starting a new key with modern crypto and would like to get a few
+signatures for it - https://quartz.obsidianresearch.com/~jgg/transition.txt
+
+I'll be around booth #278 and can meet up other interested people on
+the floor, etc. Perhaps if there are enough interested folks we can
+do a group signing.
+
+Regards,
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
