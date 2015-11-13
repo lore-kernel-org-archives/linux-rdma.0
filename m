@@ -1,42 +1,30 @@
-From: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v2 1/1] IB/sa: Put netlink request into the request list
- before sending
-Date: Fri, 13 Nov 2015 13:57:43 +0000
-Message-ID: <3F128C9216C9B84BB6ED23EF16290AFB1857DA25@CRSMSX101.amr.corp.intel.com>
-References: <1446207825-17664-1-git-send-email-kaike.wan@intel.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/9] move blk_iopoll to limit and make it generally available
+Date: Fri, 13 Nov 2015 17:23:39 +0200
+Message-ID: <CAJ3xEMgj2ycv61K38ZOowTRbrri_UhQgBcaKT0ZnnMHiBrmL5A@mail.gmail.com>
+References: <1447422410-20891-1-git-send-email-hch@lst.de>
+	<1447422410-20891-2-git-send-email-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1446207825-17664-1-git-send-email-kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1447422410-20891-2-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, axboe-b10kYP2dOMg@public.gmane.org, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-> Sent: Friday, October 30, 2015 8:24 AM
-> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: Wan, Kaike
-> Subject: [PATCH v2 1/1] IB/sa: Put netlink request into the request list before
-> sending
-> 
-> From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
-> It was found by Saurabh Sengar that the netlink code tried to allocate
-> memory with GFP_KERNEL while holding a spinlock. While it is possible to fix
-> the issue by replacing GFP_KERNEL with GFP_ATOMIC, it is better to get rid
-> of the spinlock while sending the packet. However, in order to protect
-> against a race condition that a quick response may be received before the
-> request is put on the request list, we need to put the request on the list first.
-> 
-> Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
+On Fri, Nov 13, 2015 at 3:46 PM, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org> wrote:
+> The new name is irq_poll as iopoll is already taken.  Better suggestions
+> welcome.
 
-Reported-by: Saurabh Sengar <saurabh.truth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sagi (or Christoph if you can address that),
 
-Kaike
+@ some pointer over the last 18 months there was a port done at
+mellanox for iser to use blk-iopoll and AFAIR it didn't work well or
+didn't work at all. Can you tell now what was the problem and how did
+you address it at your generalization?
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
