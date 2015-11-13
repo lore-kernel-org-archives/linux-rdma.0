@@ -1,27 +1,24 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] IB/mad: In validate_mad, validate CM method and
- attribute
-Date: Thu, 12 Nov 2015 22:57:31 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A9BACE42@ORSMSX110.amr.corp.intel.com>
-References: <56447CA2.1070802@dev.mellanox.co.il>
- <20151112181339.GA16488@phlsvsds.ph.intel.com>
- <1828884A29C6694DAF28B7E6B8A82373A9BACD7D@ORSMSX110.amr.corp.intel.com>
- <20151112221300.GA12250@obsidianresearch.com>
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: Re: srp state in current mainline
+Date: Thu, 12 Nov 2015 17:12:14 -0800
+Message-ID: <564538EE.3050805@sandisk.com>
+References: <20151110171509.GA27781@infradead.org>
+ <5643AE20.7040003@sandisk.com> <20151112175924.GA26612@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151112221300.GA12250-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <20151112175924.GA26612@infradead.org>
+Sender: target-devel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Sagi Grimberg <sagig@dev.mellanox.co.il>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> IIRC responding to Get(CPI) is mandatory?
+On 11/12/2015 09:59 AM, Christoph Hellwig wrote:
+> [  108.998574] WARNING: CPU: 0 PID: 1258 at kernel/sched/core.c:7389 __might_sleep+0xa7/0xb0()
+> [  108.998580] do not call blocking ops when !TASK_RUNNING; state=1 set
 
-Maybe the drivers are responding?  I don't believe that the CM does.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Although this is most likely unrelated to the issue reported at the 
+start of this thread, I have started working on a patch for this warning.
+
+Bart.
