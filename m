@@ -1,83 +1,95 @@
-From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 01/13] staging/rdma/hfi1: Use BIT macro
-Date: Fri, 13 Nov 2015 13:03:44 -0500
-Message-ID: <20151113180344.GA10934@phlsvsds.ph.intel.com>
-References: <1447227213-15122-1-git-send-email-jubin.john@intel.com> <20151113131558.GC18741@sudip-pc> <20151113160921.GA31028@phlsvsds.ph.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 2/9] IB: add a proper completion queue abstraction
+Date: Fri, 13 Nov 2015 11:25:13 -0700
+Message-ID: <20151113182513.GB21808@obsidianresearch.com>
+References: <1447422410-20891-1-git-send-email-hch@lst.de>
+ <1447422410-20891-3-git-send-email-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20151113160921.GA31028-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <1447422410-20891-3-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sudip Mukherjee <sudipm.mukherjee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, axboe-b10kYP2dOMg@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Nov 13, 2015 at 11:09:22AM -0500, Jubin John wrote:
-> On Fri, Nov 13, 2015 at 06:45:58PM +0530, Sudip Mukherjee wrote:
-> > On Wed, Nov 11, 2015 at 02:33:21AM -0500, Jubin John wrote:
-> > > This patch fixes the checkpatch issue:
-> > > CHECK: Prefer using the BIT macro
-> > >=20
-> > > Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > ---
-> > <snip>
-> > > =20
-> > > diff --git a/drivers/staging/rdma/hfi1/init.c b/drivers/staging/r=
-dma/hfi1/init.c
-> > > index 8666f3a..680f877 100644
-> > > --- a/drivers/staging/rdma/hfi1/init.c
-> > > +++ b/drivers/staging/rdma/hfi1/init.c
-> > > @@ -252,7 +252,7 @@ struct hfi1_ctxtdata *hfi1_create_ctxtdata(st=
-ruct hfi1_pportdata *ppd, u32 ctxt)
-> > >  		/* Validate and initialize Rcv Hdr Q variables */
-> > >  		if (rcvhdrcnt % HDRQ_INCREMENT) {
-> > >  			dd_dev_err(dd,
-> > > -				   "ctxt%u: header queue count %d must be divisible by %d\n"=
-,
-> > > +				   "ctxt%u: header queue count %d must be divisible by %lud\=
-n",
-> >=20
-> > This is an unrelated change. If you are sending the series based on
-> > Dan's comment on 12/13 then please remove this also.
-> >=20
-> This is not an unrelated change. This was needed due to the use of th=
-e
-> BIT macro for HDRQ_INCREMENT in chip.h.
-> Otherwise, the following warning is shown during the build:
-> drivers/staging/rdma/hfi1/init.c: In function =E2=80=98hfi1_create_ct=
-xtdata=E2=80=99:
-> drivers/staging/rdma/hfi1/init.c:254:4: warning: format =E2=80=98%u=E2=
-=80=99 expects
-> argument of type =E2=80=98unsigned int=E2=80=99, but argument 6 has t=
-ype
-> =E2=80=98long unsigned int=E2=80=99 [-Wformat=3D]
->     dd_dev_err(dd,
->=20
-Sorry for the weird characters, they seem to have slipped in when I
-copied that message.
-Hopefully this is clearer:
-drivers/staging/rdma/hfi1/init.c: In function =E2=80=98hfi1_create_ctxt=
-data=E2=80=99:
-drivers/staging/rdma/hfi1/init.c:254:4: warning: format =E2=80=98%d=E2=80=
-=99 expects argument of type =E2=80=98int=E2=80=99, but argument 6 has =
-type =E2=80=98long unsigned int=E2=80=99 [-Wformat=3D]
-    dd_dev_err(dd,
-    ^
+On Fri, Nov 13, 2015 at 02:46:43PM +0100, Christoph Hellwig wrote:
+> This adds an abstraction that allows ULP to simply pass a completion
+> object and completion callback with each submitted WR and let the RDMA
+> core handle the nitty gritty details of how to handle completion
+> interrupts and poll the CQ.
 
-> Thanks,
-> Jubin John
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This looks pretty nice, I'd really like to look it over carefully
+after SC|15..
+
+I know Bart and others have attempted to have switching between event
+and polling driven operation, but there were problems resolving the
+races. Would be nice to review that conversation.. Do you remember the
+details Bart?
+
+> +static int __ib_process_cq(struct ib_cq *cq, int budget)
+> +{
+> +	int i, n, completed = 0;
+> +
+> +	while ((n = ib_poll_cq(cq, IB_POLL_BATCH, cq->wc)) > 0) {
+> +		completed += n;
+> +		if (completed >= budget)
+> +			break;
+
+For instance, like this, not fulling draining the cq and then doing:
+
+> +	completed = __ib_process_cq(cq, budget);
+> +	if (completed < budget) {
+> +		irq_poll_complete(&cq->iop);
+> +		if (ib_req_notify_cq(cq, IB_POLL_FLAGS) > 0) {
+
+Doesn't seem entirely right? There is no point in calling
+ib_req_notify_cq if the code knows there is still stuff in the CQ and
+has already, independently, arranged for ib_poll_hander to be
+guarenteed called.
+
+> +			if (!irq_poll_sched_prep(&cq->iop))
+> +				irq_poll_sched(&cq->iop);
+
+Which, it seems, is what this is doing.
+
+Assuming irq_poll_sched is safe to call from a hard irq context, this
+looks sane, at first glance.
+
+> +	completed = __ib_process_cq(cq, IB_POLL_BUDGET_WORKQUEUE);
+> +	if (completed >= IB_POLL_BUDGET_WORKQUEUE ||
+> +	    ib_req_notify_cq(cq, IB_POLL_FLAGS) > 0)
+> +		queue_work(ib_comp_wq, &cq->work);
+
+Same comment here..
+
+> +static void ib_cq_completion_workqueue(struct ib_cq *cq, void *private)
+> +{
+> +	queue_work(ib_comp_wq, &cq->work);
+
+> +	switch (cq->poll_ctx) {
+> +	case IB_POLL_DIRECT:
+> +		cq->comp_handler = ib_cq_completion_direct;
+> +		break;
+> +	case IB_POLL_SOFTIRQ:
+> +		cq->comp_handler = ib_cq_completion_softirq;
+> +
+> +		irq_poll_init(&cq->iop, IB_POLL_BUDGET_IRQ, ib_poll_handler);
+> +		irq_poll_enable(&cq->iop);
+> +		ib_req_notify_cq(cq, IB_CQ_NEXT_COMP);
+> +		break;
+
+I understand several drivers are not using a hard irq context for the
+comp_handler call back. Is there any way to exploit that in this new
+API so we don't have to do so many context switches? Ie if the driver
+already is using a softirq when calling comp_handler can we somehow
+just rig ib_poll_handler directly and avoid the overhead? (Future)
+
+At first glance this seems so much saner than what we have..
+
+Jason
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
