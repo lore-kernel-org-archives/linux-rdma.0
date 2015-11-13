@@ -1,75 +1,110 @@
-From: "Interfax Service" <incoming-wwpBGFb64evk1uMJSBkQmQ@public.gmane.org>
-Subject: You have new fax, document 00000476698
-Date: Fri, 13 Nov 2015 21:00:53 +0000
-Message-ID: <3171409980540b9de2e13d41a4dc1214@exercisebikereview.org>
-Reply-To: "Interfax Service" <incoming-wwpBGFb64evk1uMJSBkQmQ@public.gmane.org>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH 2/9] IB: add a proper completion queue abstraction
+Date: Fri, 13 Nov 2015 15:06:36 -0700
+Message-ID: <20151113220636.GA32133@obsidianresearch.com>
+References: <1447422410-20891-1-git-send-email-hch@lst.de>
+ <1447422410-20891-3-git-send-email-hch@lst.de>
+ <20151113182513.GB21808@obsidianresearch.com>
+ <564640C4.3000603@sandisk.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="b1_28ac540975cdcd8771316e76aed1ba38"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <564640C4.3000603@sandisk.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Christoph Hellwig <hch@lst.de>, linux-rdma@vger.kernel.org, sagig@dev.mellanox.co.il, axboe@fb.com, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
---b1_28ac540975cdcd8771316e76aed1ba38
-Content-Type: text/plain; charset=us-ascii
+On Fri, Nov 13, 2015 at 11:57:56AM -0800, Bart Van Assche wrote:
 
-New incoming fax document.
+> I think this is the conversation you are referring to: "About a shortcoming
+> of the verbs API" (http://thread.gmane.org/gmane.linux.drivers.rdma/5028).
+> That conversation occurred five years ago, which means that you have an
+> excellent memory :-)
 
-Please, download fax document attached to this email.
+Heh, the whole thread is interesting, but this message is what I was
+thinking of
 
-Pages sent:          8
-Scan duration:       20 seconds
-Date of scan:        Fri, 13 Nov 2015 09:28:58 +0300
-File size:           198 Kb
-Scan quality:        100 DPI
-Author:              Jerome Gill
-Filename:            scanned_00000476698.doc
+http://thread.gmane.org/gmane.linux.drivers.rdma/5028
 
-Thanks for using Interfax service!
+And it looks like this patch is OK relative to that discussion.
 
+> I doesn't seem to me like Christoph wanted to support dynamic switching
+> between the IB_POLL_DIRECT, IB_POLL_SOFTIRQ and IB_POLL_WORKQUEUE polling
+> modes. I think this should have been mentioned in the patch description.
 
---b1_28ac540975cdcd8771316e76aed1ba38
-Content-Type: application/zip; name="scanned_00000476698.zip"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename=scanned_00000476698.zip
+Indeed. Which is probably OK.
 
-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
-SAAAACEGAAAAAA==
+> The implementation of this patch makes it clear that it is essential that
+> all polling is serialized. The WC array that is used for polling is embedded
+> in the CQ and is not protected against concurrent access. This means that it
+> is essential that _ib_process_cq() calls are serialized. I need some more
+> time to verify whether such serialization is always guaranteed by this
+> patch.
 
+Yes, the two big design/review checks 
+ - ib_process_cq is fully serialized/etc
+ - All re-arm cases are done properly - rearm is only called when the
+   CQ is empty and all cases where it is not empty guarentee that the
+   polling loop happens again.
 
---b1_28ac540975cdcd8771316e76aed1ba38--
+Looking at that thread and then at the patch a bit more..
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
++void ib_process_cq_direct(struct ib_cq *cq)
+[..]
++	__ib_process_cq(cq, INT_MAX);
+
+INT_MAX is not enough, it needs to loop.
+This is missing a ib_req_notify also.
+
+And this structure:
+
++static int __ib_process_cq(struct ib_cq *cq, int budget)
++	while ((n = ib_poll_cq(cq, IB_POLL_BATCH, cq->wc)) > 0) {
+
+Does an unnecessary ib_poll_cq call in common cases. I'd suggest
+change the result to bool and do:
+
+// true return means the caller should attempt ib_req_notify_cq
+while ((n = ib_poll_cq(cq, IB_POLL_BATCH, cq->wc)) > 0) {
+ for (...)
+ if (n != IB_POLL_BATCH)
+   return true;
+ completed += n;
+ if (completed > budget)
+    return false;
+}
+return true;
+
+And then change call site like:
+
+static void ib_cq_poll_work(struct work_struct *work)
+{
+    if (__ib_process_cq(...))
+        if (ib_req_notify_cq(cq, IB_POLL_FLAGS) == 0)
+	    return;
+    // Else we need to loop again.
+    queue_work(ib_comp_wq, &cq->work);
+}
+
+Which avoids the rearm.
+
+void ib_process_cq_direct(struct ib_cq *cq)
+{
+   while (1) {
+       if (__ib_process_cq(..) &&
+           ib_req_notify_cq(cq, IB_POLL_FLAGS) == 0)
+           return;
+   }
+}
+
+Which adds the inf loop and rearm.
+
+etc for softirq
+
+Perhaps ib_req_notify_cq should be folded into __ib_process_cq, then
+it can trivially honour the budget on additional loops from
+IB_CQ_REPORT_MISSED_EVENTS.
+
+Jason
