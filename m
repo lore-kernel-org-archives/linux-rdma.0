@@ -1,7 +1,7 @@
 From: Jubin John <jubin.john@intel.com>
-Subject: [PATCH 03/18] staging/rdma/hfi1: Add aeth name syndrome decode
-Date: Fri, 13 Nov 2015 19:37:01 -0800
-Message-ID: <1447472236-622-3-git-send-email-jubin.john@intel.com>
+Subject: [PATCH 05/18] staging/rdma/hfi1: Clean up comments
+Date: Fri, 13 Nov 2015 19:37:03 -0800
+Message-ID: <1447472236-622-5-git-send-email-jubin.john@intel.com>
 References: <1447472236-622-1-git-send-email-jubin.john@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,74 +21,93 @@ To: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org
 Cc: linux-rdma@vger.kernel.org, dledford@redhat.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dean Luick <dean.luick@intel.com>
+From: Edward Mascarenhas <edward.mascarenhas@intel.com>
 
-Add aeth name syndrome decode
+Clean up comments
 
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Dean Luick <dean.luick@intel.com>
+Signed-off-by: Edward Mascarenhas <edward.mascarenhas@intel.com>
 Signed-off-by: Jubin John <jubin.john@intel.com>
 ---
- drivers/staging/rdma/hfi1/trace.c |   29 ++++++++++++++++++++++-------
- 1 files changed, 22 insertions(+), 7 deletions(-)
+ drivers/staging/rdma/hfi1/chip.c   |    1 -
+ drivers/staging/rdma/hfi1/driver.c |    2 +-
+ drivers/staging/rdma/hfi1/hfi.h    |    4 ++--
+ drivers/staging/rdma/hfi1/pcie.c   |    2 +-
+ drivers/staging/rdma/hfi1/ud.c     |    2 +-
+ 5 files changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/trace.c b/drivers/staging/rdma/hfi1/trace.c
-index f55b751..10122e8 100644
---- a/drivers/staging/rdma/hfi1/trace.c
-+++ b/drivers/staging/rdma/hfi1/trace.c
-@@ -67,7 +67,7 @@ u8 ibhdr_exhdr_len(struct hfi1_ib_header *hdr)
+diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
+index e489819..a5b3653 100644
+--- a/drivers/staging/rdma/hfi1/chip.c
++++ b/drivers/staging/rdma/hfi1/chip.c
+@@ -10274,7 +10274,6 @@ int hfi1_set_ctxt_jkey(struct hfi1_devdata *dd, unsigned ctxt, u16 jkey)
+ 	write_kctxt_csr(dd, sctxt, SEND_CTXT_CHECK_JOB_KEY, reg);
+ 	/*
+ 	 * Enable send-side J_KEY integrity check, unless this is A0 h/w
+-	 * (due to A0 erratum).
+ 	 */
+ 	if (!is_a0(dd)) {
+ 		reg = read_kctxt_csr(dd, sctxt, SEND_CTXT_CHECK_ENABLE);
+diff --git a/drivers/staging/rdma/hfi1/driver.c b/drivers/staging/rdma/hfi1/driver.c
+index ce69141..9e58662 100644
+--- a/drivers/staging/rdma/hfi1/driver.c
++++ b/drivers/staging/rdma/hfi1/driver.c
+@@ -368,7 +368,7 @@ static void rcv_hdrerr(struct hfi1_ctxtdata *rcd, struct hfi1_pportdata *ppd,
+ 		if (opcode == IB_OPCODE_CNP) {
+ 			/*
+ 			 * Only in pre-B0 h/w is the CNP_OPCODE handled
+-			 * via this code path (errata 291394).
++			 * via this code path.
+ 			 */
+ 			struct hfi1_qp *qp = NULL;
+ 			u32 lqpn, rqpn;
+diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
+index 190f7a2..e7ed319 100644
+--- a/drivers/staging/rdma/hfi1/hfi.h
++++ b/drivers/staging/rdma/hfi1/hfi.h
+@@ -1714,7 +1714,7 @@ static inline u64 hfi1_pkt_default_send_ctxt_mask(struct hfi1_devdata *dd,
+ 		base_sc_integrity |= HFI1_PKT_KERNEL_SC_INTEGRITY;
  
- #define IMM_PRN  "imm %d"
- #define RETH_PRN "reth vaddr 0x%.16llx rkey 0x%.8x dlen 0x%.8x"
--#define AETH_PRN "aeth syn 0x%.2x msn 0x%.8x"
-+#define AETH_PRN "aeth syn 0x%.2x %s msn 0x%.8x"
- #define DETH_PRN "deth qkey 0x%.8x sqpn 0x%.6x"
- #define ATOMICACKETH_PRN "origdata %lld"
- #define ATOMICETH_PRN "vaddr 0x%llx rkey 0x%.8x sdata %lld cdata %lld"
-@@ -79,6 +79,19 @@ static u64 ib_u64_get(__be32 *p)
- 	return ((u64)be32_to_cpu(p[0]) << 32) | be32_to_cpu(p[1]);
- }
+ 	if (is_a0(dd))
+-		/* turn off send-side job key checks - A0 erratum */
++		/* turn off send-side job key checks - A0 */
+ 		return base_sc_integrity &
+ 		       ~SEND_CTXT_CHECK_ENABLE_CHECK_JOB_KEY_SMASK;
+ 	return base_sc_integrity;
+@@ -1741,7 +1741,7 @@ static inline u64 hfi1_pkt_base_sdma_integrity(struct hfi1_devdata *dd)
+ 	| SEND_DMA_CHECK_ENABLE_CHECK_ENABLE_SMASK;
  
-+static const char *parse_syndrome(u8 syndrome)
-+{
-+	switch (syndrome >> 5) {
-+	case 0:
-+		return "ACK";
-+	case 1:
-+		return "RNRNAK";
-+	case 3:
-+		return "NAK";
-+	}
-+	return "";
-+}
-+
- const char *parse_everbs_hdrs(
- 	struct trace_seq *p,
- 	u8 opcode,
-@@ -124,16 +137,18 @@ const char *parse_everbs_hdrs(
- 	case OP(RC, RDMA_READ_RESPONSE_LAST):
- 	case OP(RC, RDMA_READ_RESPONSE_ONLY):
- 	case OP(RC, ACKNOWLEDGE):
--		trace_seq_printf(p, AETH_PRN,
--			be32_to_cpu(eh->aeth) >> 24,
--			be32_to_cpu(eh->aeth) & HFI1_MSN_MASK);
-+		trace_seq_printf(p, AETH_PRN, be32_to_cpu(eh->aeth) >> 24,
-+				 parse_syndrome(be32_to_cpu(eh->aeth) >> 24),
-+				 be32_to_cpu(eh->aeth) & HFI1_MSN_MASK);
- 		break;
- 	/* aeth + atomicacketh */
- 	case OP(RC, ATOMIC_ACKNOWLEDGE):
- 		trace_seq_printf(p, AETH_PRN " " ATOMICACKETH_PRN,
--			(be32_to_cpu(eh->at.aeth) >> 24) & 0xff,
--			be32_to_cpu(eh->at.aeth) & HFI1_MSN_MASK,
--			(unsigned long long)ib_u64_get(eh->at.atomic_ack_eth));
-+				 be32_to_cpu(eh->at.aeth) >> 24,
-+				 parse_syndrome(be32_to_cpu(eh->at.aeth) >> 24),
-+				 be32_to_cpu(eh->at.aeth) & HFI1_MSN_MASK,
-+				 (unsigned long long)
-+				 ib_u64_get(eh->at.atomic_ack_eth));
- 		break;
- 	/* atomiceth */
- 	case OP(RC, COMPARE_SWAP):
+ 	if (is_a0(dd))
+-		/* turn off send-side job key checks - A0 erratum */
++		/* turn off send-side job key checks - A0 */
+ 		return base_sdma_integrity &
+ 		       ~SEND_DMA_CHECK_ENABLE_CHECK_JOB_KEY_SMASK;
+ 	return base_sdma_integrity;
+diff --git a/drivers/staging/rdma/hfi1/pcie.c b/drivers/staging/rdma/hfi1/pcie.c
+index a956044..bfaf137 100644
+--- a/drivers/staging/rdma/hfi1/pcie.c
++++ b/drivers/staging/rdma/hfi1/pcie.c
+@@ -994,7 +994,7 @@ retry:
+ 	 * PcieCfgRegPl100 - Gen3 Control
+ 	 *
+ 	 * turn off PcieCfgRegPl100.Gen3ZRxDcNonCompl
+-	 * turn on PcieCfgRegPl100.EqEieosCnt (erratum)
++	 * turn on PcieCfgRegPl100.EqEieosCnt
+ 	 * Everything else zero.
+ 	 */
+ 	reg32 = PCIE_CFG_REG_PL100_EQ_EIEOS_CNT_SMASK;
+diff --git a/drivers/staging/rdma/hfi1/ud.c b/drivers/staging/rdma/hfi1/ud.c
+index d40d1a1..c77c11b 100644
+--- a/drivers/staging/rdma/hfi1/ud.c
++++ b/drivers/staging/rdma/hfi1/ud.c
+@@ -671,7 +671,7 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
+ 	if (unlikely(bth1 & HFI1_BECN_SMASK)) {
+ 		/*
+ 		 * In pre-B0 h/w the CNP_OPCODE is handled via an
+-		 * error path (errata 291394).
++		 * error path.
+ 		 */
+ 		struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+ 		u32 lqpn =  be32_to_cpu(ohdr->bth[1]) & HFI1_QPN_MASK;
 -- 
 1.7.0.7
