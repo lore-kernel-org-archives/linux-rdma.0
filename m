@@ -1,8 +1,8 @@
 From: Jubin John <jubin.john@intel.com>
-Subject: [PATCH 09/18] staging/rdma/hfi1: Correctly limit VLs against SDMA
- engines
-Date: Fri, 13 Nov 2015 19:37:07 -0800
-Message-ID: <1447472236-622-9-git-send-email-jubin.john@intel.com>
+Subject: [PATCH 08/18] staging/rdma/hfi1: Add a credit push on diagpkt
+ allocate fail
+Date: Fri, 13 Nov 2015 19:37:06 -0800
+Message-ID: <1447472236-622-8-git-send-email-jubin.john@intel.com>
 References: <1447472236-622-1-git-send-email-jubin.john@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -24,32 +24,43 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dean Luick <dean.luick@intel.com>
 
-Correctly reduce the number of VLs when limited by the number
-of SDMA engines.
+When sending a diagnostic packet, if the send context does not
+have enough room, force a credit return and try again.
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 Signed-off-by: Dean Luick <dean.luick@intel.com>
 Signed-off-by: Jubin John <jubin.john@intel.com>
 ---
- drivers/staging/rdma/hfi1/chip.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/staging/rdma/hfi1/diag.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index f1ee644..b0c1e2b 100644
---- a/drivers/staging/rdma/hfi1/chip.c
-+++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -10574,9 +10574,9 @@ struct hfi1_devdata *hfi1_init_dd(struct pci_dev *pdev,
- 	/* insure num_vls isn't larger than number of sdma engines */
- 	if (HFI1_CAP_IS_KSET(SDMA) && num_vls > dd->chip_sdma_engines) {
- 		dd_dev_err(dd, "num_vls %u too large, using %u VLs\n",
--				num_vls, HFI1_MAX_VLS_SUPPORTED);
--		ppd->vls_supported = num_vls = HFI1_MAX_VLS_SUPPORTED;
--		ppd->vls_operational = ppd->vls_supported;
-+			   num_vls, dd->chip_sdma_engines);
-+		num_vls = dd->chip_sdma_engines;
-+		ppd->vls_supported = dd->chip_sdma_engines;
+diff --git a/drivers/staging/rdma/hfi1/diag.c b/drivers/staging/rdma/hfi1/diag.c
+index 88414d7..24baa6a 100644
+--- a/drivers/staging/rdma/hfi1/diag.c
++++ b/drivers/staging/rdma/hfi1/diag.c
+@@ -379,6 +379,7 @@ static ssize_t diagpkt_send(struct diag_pkt *dp)
+ 	pio_release_cb credit_cb = NULL;
+ 	void *credit_arg = NULL;
+ 	struct diagpkt_wait *wait = NULL;
++	int trycount = 0;
+ 
+ 	dd = hfi1_lookup(dp->unit);
+ 	if (!dd || !(dd->flags & HFI1_PRESENT) || !dd->kregbase) {
+@@ -493,8 +494,15 @@ static ssize_t diagpkt_send(struct diag_pkt *dp)
+ 		credit_arg = wait;
  	}
  
- 	/*
++retry:
+ 	pbuf = sc_buffer_alloc(sc, total_len, credit_cb, credit_arg);
+ 	if (!pbuf) {
++		if (trycount == 0) {
++			/* force a credit return and try again */
++			sc_return_credits(sc);
++			trycount = 1;
++			goto retry;
++		}
+ 		/*
+ 		 * No send buffer means no credit callback.  Undo
+ 		 * the wait set-up that was done above.  We free wait
 -- 
 1.7.0.7
