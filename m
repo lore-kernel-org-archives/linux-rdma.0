@@ -1,110 +1,94 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH 2/9] IB: add a proper completion queue abstraction
-Date: Fri, 13 Nov 2015 15:06:36 -0700
-Message-ID: <20151113220636.GA32133@obsidianresearch.com>
-References: <1447422410-20891-1-git-send-email-hch@lst.de>
- <1447422410-20891-3-git-send-email-hch@lst.de>
- <20151113182513.GB21808@obsidianresearch.com>
- <564640C4.3000603@sandisk.com>
+From: Jubin John <jubin.john@intel.com>
+Subject: [PATCH 03/18] staging/rdma/hfi1: Add aeth name syndrome decode
+Date: Fri, 13 Nov 2015 19:37:01 -0800
+Message-ID: <1447472236-622-3-git-send-email-jubin.john@intel.com>
+References: <1447472236-622-1-git-send-email-jubin.john@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <564640C4.3000603@sandisk.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: Christoph Hellwig <hch@lst.de>, linux-rdma@vger.kernel.org, sagig@dev.mellanox.co.il, axboe@fb.com, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <1447472236-622-1-git-send-email-jubin.john@intel.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org
+Cc: linux-rdma@vger.kernel.org, dledford@redhat.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Nov 13, 2015 at 11:57:56AM -0800, Bart Van Assche wrote:
+From: Dean Luick <dean.luick@intel.com>
 
-> I think this is the conversation you are referring to: "About a shortcoming
-> of the verbs API" (http://thread.gmane.org/gmane.linux.drivers.rdma/5028).
-> That conversation occurred five years ago, which means that you have an
-> excellent memory :-)
+Add aeth name syndrome decode
 
-Heh, the whole thread is interesting, but this message is what I was
-thinking of
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Signed-off-by: Dean Luick <dean.luick@intel.com>
+Signed-off-by: Jubin John <jubin.john@intel.com>
+---
+ drivers/staging/rdma/hfi1/trace.c |   29 ++++++++++++++++++++++-------
+ 1 files changed, 22 insertions(+), 7 deletions(-)
 
-http://thread.gmane.org/gmane.linux.drivers.rdma/5028
-
-And it looks like this patch is OK relative to that discussion.
-
-> I doesn't seem to me like Christoph wanted to support dynamic switching
-> between the IB_POLL_DIRECT, IB_POLL_SOFTIRQ and IB_POLL_WORKQUEUE polling
-> modes. I think this should have been mentioned in the patch description.
-
-Indeed. Which is probably OK.
-
-> The implementation of this patch makes it clear that it is essential that
-> all polling is serialized. The WC array that is used for polling is embedded
-> in the CQ and is not protected against concurrent access. This means that it
-> is essential that _ib_process_cq() calls are serialized. I need some more
-> time to verify whether such serialization is always guaranteed by this
-> patch.
-
-Yes, the two big design/review checks 
- - ib_process_cq is fully serialized/etc
- - All re-arm cases are done properly - rearm is only called when the
-   CQ is empty and all cases where it is not empty guarentee that the
-   polling loop happens again.
-
-Looking at that thread and then at the patch a bit more..
-
-+void ib_process_cq_direct(struct ib_cq *cq)
-[..]
-+	__ib_process_cq(cq, INT_MAX);
-
-INT_MAX is not enough, it needs to loop.
-This is missing a ib_req_notify also.
-
-And this structure:
-
-+static int __ib_process_cq(struct ib_cq *cq, int budget)
-+	while ((n = ib_poll_cq(cq, IB_POLL_BATCH, cq->wc)) > 0) {
-
-Does an unnecessary ib_poll_cq call in common cases. I'd suggest
-change the result to bool and do:
-
-// true return means the caller should attempt ib_req_notify_cq
-while ((n = ib_poll_cq(cq, IB_POLL_BATCH, cq->wc)) > 0) {
- for (...)
- if (n != IB_POLL_BATCH)
-   return true;
- completed += n;
- if (completed > budget)
-    return false;
-}
-return true;
-
-And then change call site like:
-
-static void ib_cq_poll_work(struct work_struct *work)
-{
-    if (__ib_process_cq(...))
-        if (ib_req_notify_cq(cq, IB_POLL_FLAGS) == 0)
-	    return;
-    // Else we need to loop again.
-    queue_work(ib_comp_wq, &cq->work);
-}
-
-Which avoids the rearm.
-
-void ib_process_cq_direct(struct ib_cq *cq)
-{
-   while (1) {
-       if (__ib_process_cq(..) &&
-           ib_req_notify_cq(cq, IB_POLL_FLAGS) == 0)
-           return;
-   }
-}
-
-Which adds the inf loop and rearm.
-
-etc for softirq
-
-Perhaps ib_req_notify_cq should be folded into __ib_process_cq, then
-it can trivially honour the budget on additional loops from
-IB_CQ_REPORT_MISSED_EVENTS.
-
-Jason
+diff --git a/drivers/staging/rdma/hfi1/trace.c b/drivers/staging/rdma/hfi1/trace.c
+index f55b751..10122e8 100644
+--- a/drivers/staging/rdma/hfi1/trace.c
++++ b/drivers/staging/rdma/hfi1/trace.c
+@@ -67,7 +67,7 @@ u8 ibhdr_exhdr_len(struct hfi1_ib_header *hdr)
+ 
+ #define IMM_PRN  "imm %d"
+ #define RETH_PRN "reth vaddr 0x%.16llx rkey 0x%.8x dlen 0x%.8x"
+-#define AETH_PRN "aeth syn 0x%.2x msn 0x%.8x"
++#define AETH_PRN "aeth syn 0x%.2x %s msn 0x%.8x"
+ #define DETH_PRN "deth qkey 0x%.8x sqpn 0x%.6x"
+ #define ATOMICACKETH_PRN "origdata %lld"
+ #define ATOMICETH_PRN "vaddr 0x%llx rkey 0x%.8x sdata %lld cdata %lld"
+@@ -79,6 +79,19 @@ static u64 ib_u64_get(__be32 *p)
+ 	return ((u64)be32_to_cpu(p[0]) << 32) | be32_to_cpu(p[1]);
+ }
+ 
++static const char *parse_syndrome(u8 syndrome)
++{
++	switch (syndrome >> 5) {
++	case 0:
++		return "ACK";
++	case 1:
++		return "RNRNAK";
++	case 3:
++		return "NAK";
++	}
++	return "";
++}
++
+ const char *parse_everbs_hdrs(
+ 	struct trace_seq *p,
+ 	u8 opcode,
+@@ -124,16 +137,18 @@ const char *parse_everbs_hdrs(
+ 	case OP(RC, RDMA_READ_RESPONSE_LAST):
+ 	case OP(RC, RDMA_READ_RESPONSE_ONLY):
+ 	case OP(RC, ACKNOWLEDGE):
+-		trace_seq_printf(p, AETH_PRN,
+-			be32_to_cpu(eh->aeth) >> 24,
+-			be32_to_cpu(eh->aeth) & HFI1_MSN_MASK);
++		trace_seq_printf(p, AETH_PRN, be32_to_cpu(eh->aeth) >> 24,
++				 parse_syndrome(be32_to_cpu(eh->aeth) >> 24),
++				 be32_to_cpu(eh->aeth) & HFI1_MSN_MASK);
+ 		break;
+ 	/* aeth + atomicacketh */
+ 	case OP(RC, ATOMIC_ACKNOWLEDGE):
+ 		trace_seq_printf(p, AETH_PRN " " ATOMICACKETH_PRN,
+-			(be32_to_cpu(eh->at.aeth) >> 24) & 0xff,
+-			be32_to_cpu(eh->at.aeth) & HFI1_MSN_MASK,
+-			(unsigned long long)ib_u64_get(eh->at.atomic_ack_eth));
++				 be32_to_cpu(eh->at.aeth) >> 24,
++				 parse_syndrome(be32_to_cpu(eh->at.aeth) >> 24),
++				 be32_to_cpu(eh->at.aeth) & HFI1_MSN_MASK,
++				 (unsigned long long)
++				 ib_u64_get(eh->at.atomic_ack_eth));
+ 		break;
+ 	/* atomiceth */
+ 	case OP(RC, COMPARE_SWAP):
+-- 
+1.7.0.7
