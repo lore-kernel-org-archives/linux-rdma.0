@@ -1,7 +1,8 @@
 From: Jubin John <jubin.john@intel.com>
-Subject: [PATCH 13/18] staging/rdma/hfi1: remove SPC freeze error messages
-Date: Fri, 13 Nov 2015 19:37:11 -0800
-Message-ID: <1447472236-622-13-git-send-email-jubin.john@intel.com>
+Subject: [PATCH 12/18] staging/rdma/hfi1: Unexpected link up pkey values are
+ not an error
+Date: Fri, 13 Nov 2015 19:37:10 -0800
+Message-ID: <1447472236-622-12-git-send-email-jubin.john@intel.com>
 References: <1447472236-622-1-git-send-email-jubin.john@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,34 +24,34 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dean Luick <dean.luick@intel.com>
 
-An SPC freeze is not an error.  Remove the messages.
+Only warn when link up pkeys are not what we expect.  Also, allow
+for the pkey to already be initialized.
 
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Reviewed-by: Arthur Kepner <arthur.kepner@intel.com>
 Signed-off-by: Dean Luick <dean.luick@intel.com>
 Signed-off-by: Jubin John <jubin.john@intel.com>
 ---
- drivers/staging/rdma/hfi1/chip.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+ drivers/staging/rdma/hfi1/chip.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index a62a538..2ac145f 100644
+index c83f360..a62a538 100644
 --- a/drivers/staging/rdma/hfi1/chip.c
 +++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -6496,7 +6496,6 @@ void handle_freeze(struct work_struct *work)
+@@ -6725,10 +6725,10 @@ static void add_full_mgmt_pkey(struct hfi1_pportdata *ppd)
+ {
  	struct hfi1_devdata *dd = ppd->dd;
  
- 	/* wait for freeze indicators on all affected blocks */
--	dd_dev_info(dd, "Entering SPC freeze\n");
- 	wait_for_freeze_status(dd, 1);
- 
- 	/* SPC is now frozen */
-@@ -6554,7 +6553,6 @@ void handle_freeze(struct work_struct *work)
- 	wake_up(&dd->event_queue);
- 
- 	/* no longer frozen */
--	dd_dev_err(dd, "Exiting SPC freeze\n");
+-	/* Sanity check - ppd->pkeys[2] should be 0 */
+-	if (ppd->pkeys[2] != 0)
+-		dd_dev_err(dd, "%s pkey[2] already set to 0x%x, resetting it to 0x%x\n",
+-			   __func__, ppd->pkeys[2], FULL_MGMT_P_KEY);
++	/* Sanity check - ppd->pkeys[2] should be 0, or already initalized */
++	if (!((ppd->pkeys[2] == 0) || (ppd->pkeys[2] == FULL_MGMT_P_KEY)))
++		dd_dev_warn(dd, "%s pkey[2] already set to 0x%x, resetting it to 0x%x\n",
++			    __func__, ppd->pkeys[2], FULL_MGMT_P_KEY);
+ 	ppd->pkeys[2] = FULL_MGMT_P_KEY;
+ 	(void)hfi1_set_ib_cfg(ppd, HFI1_IB_CFG_PKEYS, 0);
  }
- 
- /*
 -- 
 1.7.0.7
