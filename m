@@ -1,8 +1,7 @@
 From: Jubin John <jubin.john@intel.com>
-Subject: [PATCH 08/18] staging/rdma/hfi1: Add a credit push on diagpkt
- allocate fail
-Date: Fri, 13 Nov 2015 19:37:06 -0800
-Message-ID: <1447472236-622-8-git-send-email-jubin.john@intel.com>
+Subject: [PATCH 13/18] staging/rdma/hfi1: remove SPC freeze error messages
+Date: Fri, 13 Nov 2015 19:37:11 -0800
+Message-ID: <1447472236-622-13-git-send-email-jubin.john@intel.com>
 References: <1447472236-622-1-git-send-email-jubin.john@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -24,43 +23,34 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dean Luick <dean.luick@intel.com>
 
-When sending a diagnostic packet, if the send context does not
-have enough room, force a credit return and try again.
+An SPC freeze is not an error.  Remove the messages.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 Signed-off-by: Dean Luick <dean.luick@intel.com>
 Signed-off-by: Jubin John <jubin.john@intel.com>
 ---
- drivers/staging/rdma/hfi1/diag.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+ drivers/staging/rdma/hfi1/chip.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/diag.c b/drivers/staging/rdma/hfi1/diag.c
-index 88414d7..24baa6a 100644
---- a/drivers/staging/rdma/hfi1/diag.c
-+++ b/drivers/staging/rdma/hfi1/diag.c
-@@ -379,6 +379,7 @@ static ssize_t diagpkt_send(struct diag_pkt *dp)
- 	pio_release_cb credit_cb = NULL;
- 	void *credit_arg = NULL;
- 	struct diagpkt_wait *wait = NULL;
-+	int trycount = 0;
+diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
+index a62a538..2ac145f 100644
+--- a/drivers/staging/rdma/hfi1/chip.c
++++ b/drivers/staging/rdma/hfi1/chip.c
+@@ -6496,7 +6496,6 @@ void handle_freeze(struct work_struct *work)
+ 	struct hfi1_devdata *dd = ppd->dd;
  
- 	dd = hfi1_lookup(dp->unit);
- 	if (!dd || !(dd->flags & HFI1_PRESENT) || !dd->kregbase) {
-@@ -493,8 +494,15 @@ static ssize_t diagpkt_send(struct diag_pkt *dp)
- 		credit_arg = wait;
- 	}
+ 	/* wait for freeze indicators on all affected blocks */
+-	dd_dev_info(dd, "Entering SPC freeze\n");
+ 	wait_for_freeze_status(dd, 1);
  
-+retry:
- 	pbuf = sc_buffer_alloc(sc, total_len, credit_cb, credit_arg);
- 	if (!pbuf) {
-+		if (trycount == 0) {
-+			/* force a credit return and try again */
-+			sc_return_credits(sc);
-+			trycount = 1;
-+			goto retry;
-+		}
- 		/*
- 		 * No send buffer means no credit callback.  Undo
- 		 * the wait set-up that was done above.  We free wait
+ 	/* SPC is now frozen */
+@@ -6554,7 +6553,6 @@ void handle_freeze(struct work_struct *work)
+ 	wake_up(&dd->event_queue);
+ 
+ 	/* no longer frozen */
+-	dd_dev_err(dd, "Exiting SPC freeze\n");
+ }
+ 
+ /*
 -- 
 1.7.0.7
