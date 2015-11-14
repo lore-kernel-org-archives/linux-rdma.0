@@ -1,7 +1,8 @@
 From: Jubin John <jubin.john@intel.com>
-Subject: [PATCH 04/18] staging/rdma/hfi1: Fix qp.h comments
-Date: Fri, 13 Nov 2015 19:37:02 -0800
-Message-ID: <1447472236-622-4-git-send-email-jubin.john@intel.com>
+Subject: [PATCH 09/18] staging/rdma/hfi1: Correctly limit VLs against SDMA
+ engines
+Date: Fri, 13 Nov 2015 19:37:07 -0800
+Message-ID: <1447472236-622-9-git-send-email-jubin.john@intel.com>
 References: <1447472236-622-1-git-send-email-jubin.john@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,52 +22,34 @@ To: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org
 Cc: linux-rdma@vger.kernel.org, dledford@redhat.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Kaike Wan <kaike.wan@intel.com>
+From: Dean Luick <dean.luick@intel.com>
 
-This patch fixes a few qp.h comments.
+Correctly reduce the number of VLs when limited by the number
+of SDMA engines.
 
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Kaike Wan <kaike.wan@intel.com>
+Signed-off-by: Dean Luick <dean.luick@intel.com>
 Signed-off-by: Jubin John <jubin.john@intel.com>
 ---
- drivers/staging/rdma/hfi1/qp.h |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/staging/rdma/hfi1/chip.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/qp.h b/drivers/staging/rdma/hfi1/qp.h
-index b9c1575..8ef64cd 100644
---- a/drivers/staging/rdma/hfi1/qp.h
-+++ b/drivers/staging/rdma/hfi1/qp.h
-@@ -212,7 +212,7 @@ int hfi1_qp_init(struct hfi1_ibdev *dev);
- void hfi1_qp_exit(struct hfi1_ibdev *dev);
+diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
+index f1ee644..b0c1e2b 100644
+--- a/drivers/staging/rdma/hfi1/chip.c
++++ b/drivers/staging/rdma/hfi1/chip.c
+@@ -10574,9 +10574,9 @@ struct hfi1_devdata *hfi1_init_dd(struct pci_dev *pdev,
+ 	/* insure num_vls isn't larger than number of sdma engines */
+ 	if (HFI1_CAP_IS_KSET(SDMA) && num_vls > dd->chip_sdma_engines) {
+ 		dd_dev_err(dd, "num_vls %u too large, using %u VLs\n",
+-				num_vls, HFI1_MAX_VLS_SUPPORTED);
+-		ppd->vls_supported = num_vls = HFI1_MAX_VLS_SUPPORTED;
+-		ppd->vls_operational = ppd->vls_supported;
++			   num_vls, dd->chip_sdma_engines);
++		num_vls = dd->chip_sdma_engines;
++		ppd->vls_supported = dd->chip_sdma_engines;
+ 	}
  
- /**
-- * hfi1_qp_waitup - wake up on the indicated event
-+ * hfi1_qp_wakeup - wake up on the indicated event
-  * @qp: the QP
-  * @flag: flag the qp on which the qp is stalled
-  */
-@@ -223,19 +223,19 @@ struct sdma_engine *qp_to_sdma_engine(struct hfi1_qp *qp, u8 sc5);
- struct qp_iter;
- 
- /**
-- * qp_iter_init - wake up on the indicated event
-+ * qp_iter_init - initialize the iterator for the qp hash list
-  * @dev: the hfi1_ibdev
-  */
- struct qp_iter *qp_iter_init(struct hfi1_ibdev *dev);
- 
- /**
-- * qp_iter_next - wakeup on the indicated event
-+ * qp_iter_next - Find the next qp in the hash list
-  * @iter: the iterator for the qp hash list
-  */
- int qp_iter_next(struct qp_iter *iter);
- 
- /**
-- * qp_iter_next - wake up on the indicated event
-+ * qp_iter_print - print the qp information to seq_file
-  * @s: the seq_file to emit the qp information on
-  * @iter: the iterator for the qp hash list
-  */
+ 	/*
 -- 
 1.7.0.7
