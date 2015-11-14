@@ -1,8 +1,7 @@
 From: Jubin John <jubin.john@intel.com>
-Subject: [PATCH 15/18] staging/rdma/hfi1: Consider VL15 MTU also when
- calculating the maximum VL MTU
-Date: Fri, 13 Nov 2015 19:37:13 -0800
-Message-ID: <1447472236-622-15-git-send-email-jubin.john@intel.com>
+Subject: [PATCH 16/18] staging/rdma/hfi1: Fix Xmit Wait calculation
+Date: Fri, 13 Nov 2015 19:37:14 -0800
+Message-ID: <1447472236-622-16-git-send-email-jubin.john@intel.com>
 References: <1447472236-622-1-git-send-email-jubin.john@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,34 +21,97 @@ To: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org
 Cc: linux-rdma@vger.kernel.org, dledford@redhat.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Harish Chegondi <harish.chegondi@intel.com>
+From: Ira Weiny <iweiny@gmail.com>
 
-Currently, only MTUs of VLs 0-7 are checked when calculating the maximum VL
-MTU which is used to set the port MTU capability in DCC_CFG_PORT_CONFIG CSR
-This can cause a port MTU capability to be set to 0 if MTUs of VLs 0-7 is 0
-This would affect the VL15 traffic.
+Total XMIT wait needs to sum the xmit wait values of all the VLs not just
+those requested in the query.  Also, make the algorithm used for both
+PortStatus and PortDataCounters the same.
 
-Reviewed-by: Dean Luick <dean.luick@intel.com>
 Reviewed-by: Arthur Kepner <arthur.kepner@intel.com>
-Signed-off-by: Harish Chegondi <harish.chegondi@intel.com>
+Reviewed-by: Breyer, Scott J <scott.j.breyer@intel.com>
+Signed-off-by: Ira Weiny <iweiny@gmail.com>
 Signed-off-by: Jubin John <jubin.john@intel.com>
 ---
- drivers/staging/rdma/hfi1/chip.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ drivers/staging/rdma/hfi1/mad.c |   32 ++++++++++++++++++++------------
+ 1 files changed, 20 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index f26b9d5..043bfc6 100644
---- a/drivers/staging/rdma/hfi1/chip.c
-+++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -9367,7 +9367,8 @@ u32 lrh_max_header_bytes(struct hfi1_devdata *dd)
- static void set_send_length(struct hfi1_pportdata *ppd)
+diff --git a/drivers/staging/rdma/hfi1/mad.c b/drivers/staging/rdma/hfi1/mad.c
+index 32f7037..e151359 100644
+--- a/drivers/staging/rdma/hfi1/mad.c
++++ b/drivers/staging/rdma/hfi1/mad.c
+@@ -2272,7 +2272,7 @@ static void a0_portstatus(struct hfi1_pportdata *ppd,
+ 	if (!is_bx(ppd->dd)) {
+ 		unsigned long vl;
+ 		int vfi = 0;
+-		u64 max_vl_xmit_wait = 0, tmp;
++		u64 sum_vl_xmit_wait = 0;
+ 		u32 vl_all_mask = VL_MASK_ALL;
+ 		u64 rcv_data, rcv_bubble;
+ 
+@@ -2302,12 +2302,18 @@ static void a0_portstatus(struct hfi1_pportdata *ppd,
+ 
+ 		for_each_set_bit(vl, (unsigned long *)&(vl_all_mask),
+ 				 8 * sizeof(vl_all_mask)) {
+-			tmp = read_port_cntr(ppd, C_TX_WAIT_VL,
+-					     idx_from_vl(vl));
+-			if (tmp > max_vl_xmit_wait)
+-				max_vl_xmit_wait = tmp;
++			u64 tmp = sum_vl_xmit_wait +
++				  read_port_cntr(ppd, C_TX_WAIT_VL,
++						 idx_from_vl(vl));
++			if (tmp < sum_vl_xmit_wait) {
++				/* we wrapped */
++				sum_vl_xmit_wait = (u64)~0;
++				break;
++			}
++			sum_vl_xmit_wait = tmp;
+ 		}
+-		rsp->port_xmit_wait = cpu_to_be64(max_vl_xmit_wait);
++		if (be64_to_cpu(rsp->port_xmit_wait) > sum_vl_xmit_wait)
++			rsp->port_xmit_wait = cpu_to_be64(sum_vl_xmit_wait);
+ 	}
+ }
+ 
+@@ -2513,13 +2519,14 @@ static u64 get_error_counter_summary(struct ib_device *ibdev, u8 port)
+ 	return error_counter_summary;
+ }
+ 
+-static void a0_datacounters(struct hfi1_devdata *dd, struct _port_dctrs *rsp,
++static void a0_datacounters(struct hfi1_pportdata *ppd, struct _port_dctrs *rsp,
+ 			    u32 vl_select_mask)
  {
- 	struct hfi1_devdata *dd = ppd->dd;
--	u32 max_hb = lrh_max_header_bytes(dd), maxvlmtu = 0, dcmtu;
-+	u32 max_hb = lrh_max_header_bytes(dd), dcmtu;
-+	u32 maxvlmtu = dd->vld[15].mtu;
- 	u64 len1 = 0, len2 = (((dd->vld[15].mtu + max_hb) >> 2)
- 			      & SEND_LEN_CHECK1_LEN_VL15_MASK) <<
- 		SEND_LEN_CHECK1_LEN_VL15_SHIFT;
+-	if (!is_bx(dd)) {
++	if (!is_bx(ppd->dd)) {
+ 		unsigned long vl;
+ 		int vfi = 0;
+ 		u64 rcv_data, rcv_bubble, sum_vl_xmit_wait = 0;
++		u32 vl_all_mask = VL_MASK_ALL;
+ 
+ 		rcv_data = be64_to_cpu(rsp->port_rcv_data);
+ 		rcv_bubble = be64_to_cpu(rsp->port_rcv_bubble);
+@@ -2545,10 +2552,11 @@ static void a0_datacounters(struct hfi1_devdata *dd, struct _port_dctrs *rsp,
+ 			vfi++;
+ 		}
+ 		vfi = 0;
+-		for_each_set_bit(vl, (unsigned long *)&(vl_select_mask),
+-				8 * sizeof(vl_select_mask)) {
++		for_each_set_bit(vl, (unsigned long *)&(vl_all_mask),
++				 8 * sizeof(vl_all_mask)) {
+ 			u64 tmp = sum_vl_xmit_wait +
+-				be64_to_cpu(rsp->vls[vfi++].port_vl_xmit_wait);
++				  read_port_cntr(ppd, C_TX_WAIT_VL,
++						 idx_from_vl(vl));
+ 			if (tmp < sum_vl_xmit_wait) {
+ 				/* we wrapped */
+ 				sum_vl_xmit_wait = (u64) ~0;
+@@ -2710,7 +2718,7 @@ static int pma_get_opa_datacounters(struct opa_pma_mad *pmp,
+ 		vfi++;
+ 	}
+ 
+-	a0_datacounters(dd, rsp, vl_select_mask);
++	a0_datacounters(ppd, rsp, vl_select_mask);
+ 
+ 	if (resp_len)
+ 		*resp_len += response_data_size;
 -- 
 1.7.0.7
