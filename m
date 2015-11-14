@@ -1,7 +1,8 @@
 From: Jubin John <jubin.john@intel.com>
-Subject: [PATCH 14/18] staging/rdma/hfi1: unknown frame messages are not errors
-Date: Fri, 13 Nov 2015 19:37:12 -0800
-Message-ID: <1447472236-622-14-git-send-email-jubin.john@intel.com>
+Subject: [PATCH 15/18] staging/rdma/hfi1: Consider VL15 MTU also when
+ calculating the maximum VL MTU
+Date: Fri, 13 Nov 2015 19:37:13 -0800
+Message-ID: <1447472236-622-15-git-send-email-jubin.john@intel.com>
 References: <1447472236-622-1-git-send-email-jubin.john@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,87 +22,34 @@ To: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org
 Cc: linux-rdma@vger.kernel.org, dledford@redhat.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dean Luick <dean.luick@intel.com>
+From: Harish Chegondi <harish.chegondi@intel.com>
 
-Change reported unknown frame messages into a counter.
-These are informational, no errors.
+Currently, only MTUs of VLs 0-7 are checked when calculating the maximum VL
+MTU which is used to set the port MTU capability in DCC_CFG_PORT_CONFIG CSR
+This can cause a port MTU capability to be set to 0 if MTUs of VLs 0-7 is 0
+This would affect the VL15 traffic.
 
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Signed-off-by: Dean Luick <dean.luick@intel.com>
+Reviewed-by: Dean Luick <dean.luick@intel.com>
+Reviewed-by: Arthur Kepner <arthur.kepner@intel.com>
+Signed-off-by: Harish Chegondi <harish.chegondi@intel.com>
 Signed-off-by: Jubin John <jubin.john@intel.com>
 ---
- drivers/staging/rdma/hfi1/chip.c |   18 ++++++++++++++++++
- drivers/staging/rdma/hfi1/chip.h |    1 +
- drivers/staging/rdma/hfi1/hfi.h  |    2 ++
- 3 files changed, 21 insertions(+), 0 deletions(-)
+ drivers/staging/rdma/hfi1/chip.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index 2ac145f..f26b9d5 100644
+index f26b9d5..043bfc6 100644
 --- a/drivers/staging/rdma/hfi1/chip.c
 +++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -1417,6 +1417,17 @@ static u64 access_sw_link_up_cnt(const struct cntr_entry *entry, void *context,
- 	return read_write_sw(ppd->dd, &ppd->link_up, mode, data);
- }
- 
-+static u64 access_sw_unknown_frame_cnt(const struct cntr_entry *entry,
-+				       void *context, int vl, int mode,
-+				       u64 data)
-+{
-+	struct hfi1_pportdata *ppd = (struct hfi1_pportdata *)context;
-+
-+	if (vl != CNTR_INVALID_VL)
-+		return 0;
-+	return read_write_sw(ppd->dd, &ppd->unknown_frame_count, mode, data);
-+}
-+
- static u64 access_sw_xmit_discards(const struct cntr_entry *entry,
- 				    void *context, int vl, int mode, u64 data)
+@@ -9367,7 +9367,8 @@ u32 lrh_max_header_bytes(struct hfi1_devdata *dd)
+ static void set_send_length(struct hfi1_pportdata *ppd)
  {
-@@ -4880,6 +4891,8 @@ static struct cntr_entry port_cntrs[PORT_CNTR_LAST] = {
- 			access_sw_link_dn_cnt),
- [C_SW_LINK_UP] = CNTR_ELEM("SwLinkUp", 0, 0, CNTR_SYNTH | CNTR_32BIT,
- 			access_sw_link_up_cnt),
-+[C_SW_UNKNOWN_FRAME] = CNTR_ELEM("UnknownFrame", 0, 0, CNTR_NORMAL,
-+				 access_sw_unknown_frame_cnt),
- [C_SW_XMIT_DSCD] = CNTR_ELEM("XmitDscd", 0, 0, CNTR_SYNTH | CNTR_32BIT,
- 			access_sw_xmit_discards),
- [C_SW_XMIT_DSCD_VL] = CNTR_ELEM("XmitDscdVl", 0, 0,
-@@ -7227,6 +7240,11 @@ static void handle_8051_interrupt(struct hfi1_devdata *dd, u32 unused, u64 reg)
- 			}
- 			err &= ~(u64)FAILED_LNI;
- 		}
-+		/* unknown frames can happen durning LNI, just count */
-+		if (err & UNKNOWN_FRAME) {
-+			ppd->unknown_frame_count++;
-+			err &= ~(u64)UNKNOWN_FRAME;
-+		}
- 		if (err) {
- 			/* report remaining errors, but do not do anything */
- 			dd_dev_err(dd, "8051 info error: %s\n",
-diff --git a/drivers/staging/rdma/hfi1/chip.h b/drivers/staging/rdma/hfi1/chip.h
-index a24dd09..eb22061 100644
---- a/drivers/staging/rdma/hfi1/chip.h
-+++ b/drivers/staging/rdma/hfi1/chip.h
-@@ -1079,6 +1079,7 @@ enum {
- 	C_RX_WORDS,
- 	C_SW_LINK_DOWN,
- 	C_SW_LINK_UP,
-+	C_SW_UNKNOWN_FRAME,
- 	C_SW_XMIT_DSCD,
- 	C_SW_XMIT_DSCD_VL,
- 	C_SW_XMIT_CSTR_ERR,
-diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
-index 44a7124..4558a19 100644
---- a/drivers/staging/rdma/hfi1/hfi.h
-+++ b/drivers/staging/rdma/hfi1/hfi.h
-@@ -720,6 +720,8 @@ struct hfi1_pportdata {
- 	u64 link_downed;
- 	/* number of times link retrained successfully */
- 	u64 link_up;
-+	/* number of times a link unknown frame was reported */
-+	u64 unknown_frame_count;
- 	/* port_ltp_crc_mode is returned in 'portinfo' MADs */
- 	u16 port_ltp_crc_mode;
- 	/* port_crc_mode_enabled is the crc we support */
+ 	struct hfi1_devdata *dd = ppd->dd;
+-	u32 max_hb = lrh_max_header_bytes(dd), maxvlmtu = 0, dcmtu;
++	u32 max_hb = lrh_max_header_bytes(dd), dcmtu;
++	u32 maxvlmtu = dd->vld[15].mtu;
+ 	u64 len1 = 0, len2 = (((dd->vld[15].mtu + max_hb) >> 2)
+ 			      & SEND_LEN_CHECK1_LEN_VL15_MASK) <<
+ 		SEND_LEN_CHECK1_LEN_VL15_SHIFT;
 -- 
 1.7.0.7
