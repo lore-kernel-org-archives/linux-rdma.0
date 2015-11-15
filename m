@@ -1,23 +1,25 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: srp state in current mainline
-Date: Sun, 15 Nov 2015 10:06:21 -0800
-Message-ID: <20151115180621.GA24488@infradead.org>
-References: <20151110171509.GA27781@infradead.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <target-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20151110171509.GA27781@infradead.org>
-Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@dev.mellanox.co.il>, Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: garbage collect old memory registration code
+Date: Sun, 15 Nov 2015 19:05:53 +0100
+Message-ID: <1447610762-3781-1-git-send-email-hch@lst.de>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-FYI, I sent a patch for the zero S/G length issue.  With this xfstests
-does fine for ext4 and btrfs.  With XFS I still run into corruption
-warnings for the slab use after free poison pattern.  I suspect that
-issue might be related to uniqueue XFS I/O patterns.  One thing that
-might be related is that XFS can submit bios backed by kmalloced memory.
+This series removes huge chunks of code related to old memory
+registration methods that we don't use anymore.
 
-I've also tested XFS on various other storage devices on the same kernel
-and didn't see an issue like that just to be sure.
+This expects my "IB: merge struct ib_device_attr into struct ib_device"
+patch to be already applied.
+
+Also available as a git tree:
+
+	http://git.infradead.org/users/hch/rdma.git/shortlog/refs/heads/rdma-mr-cleanups
+	git://git.infradead.org/users/hch/rdma.git rdma-mr-cleanups
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
