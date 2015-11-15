@@ -1,166 +1,41 @@
-From: Hagay Abramovsky <hagaya-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libmlx5 v1  2/5] libmlx5: Add QPs and XSRQs resource tracking
-Date: Sun, 15 Nov 2015 13:30:56 +0200
-Message-ID: <1447587059-26725-3-git-send-email-hagaya@dev-l-vrt-198-005.mtl.labs.mlnx>
-References: <1447587059-26725-1-git-send-email-hagaya@dev-l-vrt-198-005.mtl.labs.mlnx>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH libmlx5 3/7] Add timestmap support for ibv_poll_cq_ex
+Date: Sun, 15 Nov 2015 14:30:30 +0200
+Message-ID: <1447590634-12858-4-git-send-email-matanb@mellanox.com>
+References: <1447590634-12858-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1447587059-26725-1-git-send-email-hagaya-15NSNdRadKCMbgUxWz6G6EUdt8N5EOSuJ7HPLuWx/II@public.gmane.org>
+In-Reply-To: <1447590634-12858-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Haggai Abramonvsky <hagaya-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Haggai Abramonvsky <hagaya-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Add support for filling the timestamp field in ibv_poll_cq_ex
+(if it's required by the user).
 
-Add new database that stores all the QPs and XSRQs context. Insertions
-and deletions to the database are done using the object's user-index.
-
-This database will allow us to retrieve the objects; QPs and XSRQs; by
-their user-index in the poll_one.
-
-Change-Id: I3b87e79be35cc9eaf310cfb592b5ec1722f9f2fa
-Signed-off-by: Haggai Abramovsky <hagaya-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/mlx5.c | 67 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- src/mlx5.h | 24 ++++++++++++++++++++++
- 2 files changed, 91 insertions(+)
+ src/cq.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/src/mlx5.c b/src/mlx5.c
-index e44898a..512ded3 100644
---- a/src/mlx5.c
-+++ b/src/mlx5.c
-@@ -128,6 +128,73 @@ static int read_number_from_line(const char *line, int *value)
- 	return 0;
- }
+diff --git a/src/cq.c b/src/cq.c
+index 0185696..5e06990 100644
+--- a/src/cq.c
++++ b/src/cq.c
+@@ -913,6 +913,11 @@ inline int mlx5_poll_one_ex(struct mlx5_cq *cq,
+ 	wc_ex->wc_flags = 0;
+ 	wc_ex->reserved = 0;
  
-+static int32_t get_free_uidx(struct mlx5_context *ctx)
-+{
-+	int32_t tind;
-+	int32_t i;
-+
-+	for (tind = 0; tind < MLX5_UIDX_TABLE_SIZE; tind++) {
-+		if (ctx->uidx_table[tind].refcnt < MLX5_UIDX_TABLE_MASK)
-+			break;
++	if (wc_flags & IBV_WC_EX_WITH_COMPLETION_TIMESTAMP) {
++		*wc_buffer.b64++ = ntohll(cqe64->timestamp);
++		wc_ex->wc_flags |= IBV_WC_EX_WITH_COMPLETION_TIMESTAMP;
 +	}
 +
-+	if (tind == MLX5_UIDX_TABLE_SIZE)
-+		return -1;
-+
-+	if (!ctx->uidx_table[tind].refcnt)
-+		return tind << MLX5_UIDX_TABLE_SHIFT;
-+
-+	for (i = 0; i < MLX5_UIDX_TABLE_MASK + 1; i++) {
-+		if (!ctx->uidx_table[tind].table[i])
-+			break;
-+	}
-+
-+	return (tind << MLX5_UIDX_TABLE_SHIFT) | i;
-+}
-+
-+int32_t mlx5_store_uidx(struct mlx5_context *ctx, void *rsc)
-+{
-+	int32_t tind;
-+	int32_t ret = -1;
-+	int32_t uidx;
-+
-+	pthread_mutex_lock(&ctx->uidx_table_mutex);
-+	uidx = get_free_uidx(ctx);
-+	if (uidx < 0)
-+		goto out;
-+
-+	tind = uidx >> MLX5_UIDX_TABLE_SHIFT;
-+
-+	if (!ctx->uidx_table[tind].refcnt) {
-+		ctx->uidx_table[tind].table = calloc(MLX5_UIDX_TABLE_MASK + 1,
-+						     sizeof(void *));
-+		if (!ctx->uidx_table[tind].table)
-+			goto out;
-+	}
-+
-+	++ctx->uidx_table[tind].refcnt;
-+	ctx->uidx_table[tind].table[uidx & MLX5_UIDX_TABLE_MASK] = rsc;
-+	ret = uidx;
-+
-+out:
-+	pthread_mutex_unlock(&ctx->uidx_table_mutex);
-+	return ret;
-+}
-+
-+void mlx5_clear_uidx(struct mlx5_context *ctx, uint32_t uidx)
-+{
-+	int tind = uidx >> MLX5_UIDX_TABLE_SHIFT;
-+
-+	pthread_mutex_lock(&ctx->uidx_table_mutex);
-+
-+	if (!--ctx->uidx_table[tind].refcnt)
-+		free(ctx->uidx_table[tind].table);
-+	else
-+		ctx->uidx_table[tind].table[uidx & MLX5_UIDX_TABLE_MASK] = NULL;
-+
-+	pthread_mutex_unlock(&ctx->uidx_table_mutex);
-+}
-+
- static int mlx5_is_sandy_bridge(int *num_cores)
- {
- 	char line[128];
-diff --git a/src/mlx5.h b/src/mlx5.h
-index d8ce908..dd618bd 100644
---- a/src/mlx5.h
-+++ b/src/mlx5.h
-@@ -165,6 +165,12 @@ enum {
- };
- 
- enum {
-+	MLX5_UIDX_TABLE_SHIFT		= 12,
-+	MLX5_UIDX_TABLE_MASK		= (1 << MLX5_UIDX_TABLE_SHIFT) - 1,
-+	MLX5_UIDX_TABLE_SIZE		= 1 << (24 - MLX5_UIDX_TABLE_SHIFT),
-+};
-+
-+enum {
- 	MLX5_SRQ_TABLE_SHIFT		= 12,
- 	MLX5_SRQ_TABLE_MASK		= (1 << MLX5_SRQ_TABLE_SHIFT) - 1,
- 	MLX5_SRQ_TABLE_SIZE		= 1 << (24 - MLX5_SRQ_TABLE_SHIFT),
-@@ -275,6 +281,12 @@ struct mlx5_context {
- 	}				srq_table[MLX5_SRQ_TABLE_SIZE];
- 	pthread_mutex_t			srq_table_mutex;
- 
-+	struct {
-+		struct mlx5_resource  **table;
-+		int                     refcnt;
-+	}				uidx_table[MLX5_UIDX_TABLE_SIZE];
-+	pthread_mutex_t                 uidx_table_mutex;
-+
- 	void			       *uar[MLX5_MAX_UAR_PAGES];
- 	struct mlx5_spinlock		lock32;
- 	struct mlx5_db_page	       *db_list;
-@@ -616,6 +628,8 @@ void mlx5_set_sq_sizes(struct mlx5_qp *qp, struct ibv_qp_cap *cap,
- struct mlx5_qp *mlx5_find_qp(struct mlx5_context *ctx, uint32_t qpn);
- int mlx5_store_qp(struct mlx5_context *ctx, uint32_t qpn, struct mlx5_qp *qp);
- void mlx5_clear_qp(struct mlx5_context *ctx, uint32_t qpn);
-+int32_t mlx5_store_uidx(struct mlx5_context *ctx, void *rsc);
-+void mlx5_clear_uidx(struct mlx5_context *ctx, uint32_t uidx);
- struct mlx5_srq *mlx5_find_srq(struct mlx5_context *ctx, uint32_t srqn);
- int mlx5_store_srq(struct mlx5_context *ctx, uint32_t srqn,
- 		   struct mlx5_srq *srq);
-@@ -640,6 +654,16 @@ int mlx5_close_xrcd(struct ibv_xrcd *ib_xrcd);
- struct ibv_srq *mlx5_create_srq_ex(struct ibv_context *context,
- 				   struct ibv_srq_init_attr_ex *attr);
- 
-+static inline void *mlx5_find_uidx(struct mlx5_context *ctx, uint32_t uidx)
-+{
-+	int tind = uidx >> MLX5_UIDX_TABLE_SHIFT;
-+
-+	if (likely(ctx->uidx_table[tind].refcnt))
-+		return ctx->uidx_table[tind].table[uidx & MLX5_UIDX_TABLE_MASK];
-+
-+	return NULL;
-+}
-+
- static inline int mlx5_spin_lock(struct mlx5_spinlock *lock)
- {
- 	if (!mlx5_single_threaded)
+ 	switch (opcode) {
+ 	case MLX5_CQE_REQ:
+ 		err = mlx5_poll_one_cqe_req(cq, cur_rsc, cqe, qpn, cqe_ver,
 -- 
-1.8.3.1
+2.1.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
