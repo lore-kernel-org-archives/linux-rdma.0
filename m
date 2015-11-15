@@ -1,35 +1,23 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH] ib_srp: initialize dma_length in srp_map_idb
-Date: Sun, 15 Nov 2015 18:59:53 +0100
-Message-ID: <1447610393-2899-1-git-send-email-hch@lst.de>
-Return-path: <linux-scsi-owner@vger.kernel.org>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: sagig@dev.mellanox.co.il, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: srp state in current mainline
+Date: Sun, 15 Nov 2015 10:06:21 -0800
+Message-ID: <20151115180621.GA24488@infradead.org>
+References: <20151110171509.GA27781@infradead.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <target-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20151110171509.GA27781@infradead.org>
+Sender: target-devel-owner@vger.kernel.org
+To: Sagi Grimberg <sagig@dev.mellanox.co.il>, Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Without this sg_dma_len will return 0 on architectures tha have
-the dma_length field.
+FYI, I sent a patch for the zero S/G length issue.  With this xfstests
+does fine for ext4 and btrfs.  With XFS I still run into corruption
+warnings for the slab use after free poison pattern.  I suspect that
+issue might be related to uniqueue XFS I/O patterns.  One thing that
+might be related is that XFS can submit bios backed by kmalloced memory.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- drivers/infiniband/ulp/srp/ib_srp.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 32f7962..445c0a6 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1520,6 +1520,9 @@ static int srp_map_idb(struct srp_rdma_ch *ch, struct srp_request *req,
- 		state.sg_nents = 1;
- 		sg_set_buf(idb_sg, req->indirect_desc, idb_len);
- 		idb_sg->dma_address = req->indirect_dma_addr; /* hack! */
-+#ifdef CONFIG_NEED_SG_DMA_LENGTH
-+		idb_sg->dma_length = idb_sg->length;	      /* hack^2 */
-+#endif
- 		ret = srp_map_finish_fr(&state, ch);
- 		if (ret < 0)
- 			return ret;
--- 
-1.9.1
-
+I've also tested XFS on various other storage devices on the same kernel
+and didn't see an issue like that just to be sure.
