@@ -1,29 +1,48 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH libmlx5 0/7] Completion timestamping
-Date: Sun, 15 Nov 2015 12:11:06 -0600 (CST)
-Message-ID: <alpine.DEB.2.20.1511151209290.31074@east.gentwo.org>
-References: <1447590634-12858-1-git-send-email-matanb@mellanox.com>
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1447590634-12858-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: [PATCH] ib_srp: initialize dma_length in srp_map_idb
+Date: Sun, 15 Nov 2015 20:20:51 +0200
+Message-ID: <5648CD03.4000206@dev.mellanox.co.il>
+References: <1447610393-2899-1-git-send-email-hch@lst.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <1447610393-2899-1-git-send-email-hch@lst.de>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>, Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 15 Nov 2015, Matan Barak wrote:
 
-> This series adds support for completion timestamp. In order to
-> support this feature, several extended verbs were implemented
-> (as instructed in libibverbs).
 
-This is the portion that
-implements timestaping for libmlx5 and this patchset depends on another
-one that needs to be merged into libibverbs.
+On 15/11/2015 19:59, Christoph Hellwig wrote:
+> Without this sg_dma_len will return 0 on architectures tha have
+> the dma_length field.
+>
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>   drivers/infiniband/ulp/srp/ib_srp.c | 3 +++
+>   1 file changed, 3 insertions(+)
+>
+> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+> index 32f7962..445c0a6 100644
+> --- a/drivers/infiniband/ulp/srp/ib_srp.c
+> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
+> @@ -1520,6 +1520,9 @@ static int srp_map_idb(struct srp_rdma_ch *ch, struct srp_request *req,
+>   		state.sg_nents = 1;
+>   		sg_set_buf(idb_sg, req->indirect_desc, idb_len);
+>   		idb_sg->dma_address = req->indirect_dma_addr; /* hack! */
+> +#ifdef CONFIG_NEED_SG_DMA_LENGTH
+> +		idb_sg->dma_length = idb_sg->length;	      /* hack^2 */
+> +#endif
 
-Right?
+:)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+We should really get this properly map/unmap per IO at some point.
+Probably do it in both code paths...
+
+Having said that,
+
+Looks fine,
+
+Reviewed-by: Sagi Grimberg <sagig@mellanox.com>
