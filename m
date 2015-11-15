@@ -1,37 +1,45 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [PATCH 2/9] IB: add a proper completion queue abstraction
-Date: Sun, 15 Nov 2015 11:40:02 +0200
-Message-ID: <564852F2.5080602@dev.mellanox.co.il>
-References: <1447422410-20891-1-git-send-email-hch@lst.de>
- <1447422410-20891-3-git-send-email-hch@lst.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <1447422410-20891-3-git-send-email-hch@lst.de>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>, linux-rdma@vger.kernel.org
-Cc: bart.vanassche@sandisk.com, axboe@fb.com, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Hagay Abramovsky <hagaya-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH libmlx5 v1  0/5] Support CQE versions
+Date: Sun, 15 Nov 2015 13:30:54 +0200
+Message-ID: <1447587059-26725-1-git-send-email-hagaya@dev-l-vrt-198-005.mtl.labs.mlnx>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Haggai Abramovsky <hagaya-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Haggai Abramovsky <hagaya-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
+This series adds support for CQE (cookie) versions in libmlx5
 
-> +/**
-> + * ib_process_direct_cq - process a CQ in caller context
-> + * @cq:		CQ to process
-> + *
-> + * This function is used to process all outstanding CQ entries on a
-> + * %IB_POLL_DIRECT CQ.  It does not offload CQ processing to a different
-> + * context and does not ask from completion interrupts from the HCA.
-> + */
-> +void ib_process_cq_direct(struct ib_cq *cq)
-> +{
-> +	WARN_ON_ONCE(cq->poll_ctx != IB_POLL_DIRECT);
-> +
-> +	__ib_process_cq(cq, INT_MAX);
-> +}
+Non-default cookie versions are a must for RAW PACKET Eth QPs.
 
-I doubt INT_MAX is useful as a budget in any use-case. it can easily
-hog the CPU. If the consumer is given access to poll a CQ, it must be
-able to provide some way to budget it. Why not expose a budget argument
-to the consumer?
+The code is capable to work over kernels which don't have this
+support yet for the sake of creating other QP types.
+
+Haggai
+
+Changes from v0:
+	Rebase over master branch.
+
+Haggai Abramonvsky (5):
+  libmlx5: Add infrastructure for resource identification
+  libmlx5: Add QPs and XSRQs resource tracking
+  libmlx5: Added new poll_cq according to the new CQE format
+  libmlx5: Added QP and XSRQ create/destroy flow with user index
+  libmlx5: Work with CQE version 1
+
+ src/cq.c       | 262 +++++++++++++++++++++++++++++++++++++++++++++++----------
+ src/mlx5-abi.h |  10 ++-
+ src/mlx5.c     |  80 ++++++++++++++++++
+ src/mlx5.h     |  54 +++++++++++-
+ src/verbs.c    | 146 +++++++++++++++++++++++---------
+ 5 files changed, 466 insertions(+), 86 deletions(-)
+
+-- 
+1.8.3.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
