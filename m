@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 2/9] IB: remove ib_query_mr
-Date: Sun, 15 Nov 2015 19:05:55 +0100
-Message-ID: <1447610762-3781-3-git-send-email-hch@lst.de>
+Subject: [PATCH 5/9] cxgb3: simplify iwch_get_dma_wr
+Date: Sun, 15 Nov 2015 19:05:58 +0100
+Message-ID: <1447610762-3781-6-git-send-email-hch@lst.de>
 References: <1447610762-3781-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1447610762-3781-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
@@ -10,164 +10,242 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This functionality has no users and was only supported by the staged out
-EHCA driver.
+Fold simplified versions of build_phys_page_list and
+iwch_register_phys_mem into iwch_get_dma_wr now that no other callers
+are left.
 
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c         |  7 -----
- drivers/staging/rdma/ehca/ehca_iverbs.h |  2 --
- drivers/staging/rdma/ehca/ehca_main.c   |  1 -
- drivers/staging/rdma/ehca/ehca_mrmw.c   | 49 ---------------------------------
- include/rdma/ib_verbs.h                 | 18 ------------
- 5 files changed, 77 deletions(-)
+ drivers/infiniband/hw/cxgb3/iwch_mem.c      | 71 ---------------------------
+ drivers/infiniband/hw/cxgb3/iwch_provider.c | 75 ++++++++++++-----------------
+ drivers/infiniband/hw/cxgb3/iwch_provider.h |  8 ---
+ 3 files changed, 30 insertions(+), 124 deletions(-)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 45c197a..0e21367 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -1216,13 +1216,6 @@ struct ib_mr *ib_get_dma_mr(struct ib_pd *pd, int mr_access_flags)
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_mem.c b/drivers/infiniband/hw/cxgb3/iwch_mem.c
+index 3a5e27d..1d04c87 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_mem.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_mem.c
+@@ -99,74 +99,3 @@ int iwch_write_pbl(struct iwch_mr *mhp, __be64 *pages, int npages, int offset)
+ 	return cxio_write_pbl(&mhp->rhp->rdev, pages,
+ 			      mhp->attr.pbl_addr + (offset << 3), npages);
  }
- EXPORT_SYMBOL(ib_get_dma_mr);
- 
--int ib_query_mr(struct ib_mr *mr, struct ib_mr_attr *mr_attr)
+-
+-int build_phys_page_list(struct ib_phys_buf *buffer_list,
+-					int num_phys_buf,
+-					u64 *iova_start,
+-					u64 *total_size,
+-					int *npages,
+-					int *shift,
+-					__be64 **page_list)
 -{
--	return mr->device->query_mr ?
--		mr->device->query_mr(mr, mr_attr) : -ENOSYS;
+-	u64 mask;
+-	int i, j, n;
+-
+-	mask = 0;
+-	*total_size = 0;
+-	for (i = 0; i < num_phys_buf; ++i) {
+-		if (i != 0 && buffer_list[i].addr & ~PAGE_MASK)
+-			return -EINVAL;
+-		if (i != 0 && i != num_phys_buf - 1 &&
+-		    (buffer_list[i].size & ~PAGE_MASK))
+-			return -EINVAL;
+-		*total_size += buffer_list[i].size;
+-		if (i > 0)
+-			mask |= buffer_list[i].addr;
+-		else
+-			mask |= buffer_list[i].addr & PAGE_MASK;
+-		if (i != num_phys_buf - 1)
+-			mask |= buffer_list[i].addr + buffer_list[i].size;
+-		else
+-			mask |= (buffer_list[i].addr + buffer_list[i].size +
+-				PAGE_SIZE - 1) & PAGE_MASK;
+-	}
+-
+-	if (*total_size > 0xFFFFFFFFULL)
+-		return -ENOMEM;
+-
+-	/* Find largest page shift we can use to cover buffers */
+-	for (*shift = PAGE_SHIFT; *shift < 27; ++(*shift))
+-		if ((1ULL << *shift) & mask)
+-			break;
+-
+-	buffer_list[0].size += buffer_list[0].addr & ((1ULL << *shift) - 1);
+-	buffer_list[0].addr &= ~0ull << *shift;
+-
+-	*npages = 0;
+-	for (i = 0; i < num_phys_buf; ++i)
+-		*npages += (buffer_list[i].size +
+-			(1ULL << *shift) - 1) >> *shift;
+-
+-	if (!*npages)
+-		return -EINVAL;
+-
+-	*page_list = kmalloc(sizeof(u64) * *npages, GFP_KERNEL);
+-	if (!*page_list)
+-		return -ENOMEM;
+-
+-	n = 0;
+-	for (i = 0; i < num_phys_buf; ++i)
+-		for (j = 0;
+-		     j < (buffer_list[i].size + (1ULL << *shift) - 1) >> *shift;
+-		     ++j)
+-			(*page_list)[n++] = cpu_to_be64(buffer_list[i].addr +
+-			    ((u64) j << *shift));
+-
+-	PDBG("%s va 0x%llx mask 0x%llx shift %d len %lld pbl_size %d\n",
+-	     __func__, (unsigned long long) *iova_start,
+-	     (unsigned long long) mask, *shift, (unsigned long long) *total_size,
+-	     *npages);
+-
+-	return 0;
+-
 -}
--EXPORT_SYMBOL(ib_query_mr);
--
- int ib_dereg_mr(struct ib_mr *mr)
- {
- 	struct ib_pd *pd;
-diff --git a/drivers/staging/rdma/ehca/ehca_iverbs.h b/drivers/staging/rdma/ehca/ehca_iverbs.h
-index 75c9876..4a45ca3 100644
---- a/drivers/staging/rdma/ehca/ehca_iverbs.h
-+++ b/drivers/staging/rdma/ehca/ehca_iverbs.h
-@@ -94,8 +94,6 @@ int ehca_rereg_phys_mr(struct ib_mr *mr,
- 		       struct ib_phys_buf *phys_buf_array,
- 		       int num_phys_buf, int mr_access_flags, u64 *iova_start);
- 
--int ehca_query_mr(struct ib_mr *mr, struct ib_mr_attr *mr_attr);
--
- int ehca_dereg_mr(struct ib_mr *mr);
- 
- struct ib_mw *ehca_alloc_mw(struct ib_pd *pd, enum ib_mw_type type);
-diff --git a/drivers/staging/rdma/ehca/ehca_main.c b/drivers/staging/rdma/ehca/ehca_main.c
-index 285e560..0be7959 100644
---- a/drivers/staging/rdma/ehca/ehca_main.c
-+++ b/drivers/staging/rdma/ehca/ehca_main.c
-@@ -513,7 +513,6 @@ static int ehca_init_device(struct ehca_shca *shca)
- 	shca->ib_device.get_dma_mr	    = ehca_get_dma_mr;
- 	shca->ib_device.reg_phys_mr	    = ehca_reg_phys_mr;
- 	shca->ib_device.reg_user_mr	    = ehca_reg_user_mr;
--	shca->ib_device.query_mr	    = ehca_query_mr;
- 	shca->ib_device.dereg_mr	    = ehca_dereg_mr;
- 	shca->ib_device.rereg_phys_mr	    = ehca_rereg_phys_mr;
- 	shca->ib_device.alloc_mw	    = ehca_alloc_mw;
-diff --git a/drivers/staging/rdma/ehca/ehca_mrmw.c b/drivers/staging/rdma/ehca/ehca_mrmw.c
-index f914b30..eb274c1 100644
---- a/drivers/staging/rdma/ehca/ehca_mrmw.c
-+++ b/drivers/staging/rdma/ehca/ehca_mrmw.c
-@@ -589,55 +589,6 @@ rereg_phys_mr_exit0:
- 	return ret;
- } /* end ehca_rereg_phys_mr() */
- 
--/*----------------------------------------------------------------------*/
--
--int ehca_query_mr(struct ib_mr *mr, struct ib_mr_attr *mr_attr)
--{
--	int ret = 0;
--	u64 h_ret;
--	struct ehca_shca *shca =
--		container_of(mr->device, struct ehca_shca, ib_device);
--	struct ehca_mr *e_mr = container_of(mr, struct ehca_mr, ib.ib_mr);
--	unsigned long sl_flags;
--	struct ehca_mr_hipzout_parms hipzout;
--
--	if ((e_mr->flags & EHCA_MR_FLAG_FMR)) {
--		ehca_err(mr->device, "not supported for FMR, mr=%p e_mr=%p "
--			 "e_mr->flags=%x", mr, e_mr, e_mr->flags);
--		ret = -EINVAL;
--		goto query_mr_exit0;
--	}
--
--	memset(mr_attr, 0, sizeof(struct ib_mr_attr));
--	spin_lock_irqsave(&e_mr->mrlock, sl_flags);
--
--	h_ret = hipz_h_query_mr(shca->ipz_hca_handle, e_mr, &hipzout);
--	if (h_ret != H_SUCCESS) {
--		ehca_err(mr->device, "hipz_mr_query failed, h_ret=%lli mr=%p "
--			 "hca_hndl=%llx mr_hndl=%llx lkey=%x",
--			 h_ret, mr, shca->ipz_hca_handle.handle,
--			 e_mr->ipz_mr_handle.handle, mr->lkey);
--		ret = ehca2ib_return_code(h_ret);
--		goto query_mr_exit1;
--	}
--	mr_attr->pd = mr->pd;
--	mr_attr->device_virt_addr = hipzout.vaddr;
--	mr_attr->size = hipzout.len;
--	mr_attr->lkey = hipzout.lkey;
--	mr_attr->rkey = hipzout.rkey;
--	ehca_mrmw_reverse_map_acl(&hipzout.acl, &mr_attr->mr_access_flags);
--
--query_mr_exit1:
--	spin_unlock_irqrestore(&e_mr->mrlock, sl_flags);
--query_mr_exit0:
--	if (ret)
--		ehca_err(mr->device, "ret=%i mr=%p mr_attr=%p",
--			 ret, mr, mr_attr);
--	return ret;
--} /* end ehca_query_mr() */
--
--/*----------------------------------------------------------------------*/
--
- int ehca_dereg_mr(struct ib_mr *mr)
- {
- 	int ret = 0;
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 6034f92..83d6ee8 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1165,15 +1165,6 @@ struct ib_phys_buf {
- 	u64      size;
- };
- 
--struct ib_mr_attr {
--	struct ib_pd	*pd;
--	u64		device_virt_addr;
--	u64		size;
--	int		mr_access_flags;
--	u32		lkey;
--	u32		rkey;
--};
--
- enum ib_mr_rereg_flags {
- 	IB_MR_REREG_TRANS	= 1,
- 	IB_MR_REREG_PD		= (1<<1),
-@@ -1709,8 +1700,6 @@ struct ib_device {
- 						    int mr_access_flags,
- 						    struct ib_pd *pd,
- 						    struct ib_udata *udata);
--	int                        (*query_mr)(struct ib_mr *mr,
--					       struct ib_mr_attr *mr_attr);
- 	int                        (*dereg_mr)(struct ib_mr *mr);
- 	struct ib_mr *		   (*alloc_mr)(struct ib_pd *pd,
- 					       enum ib_mr_type mr_type,
-@@ -2850,13 +2839,6 @@ static inline void ib_dma_free_coherent(struct ib_device *dev,
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+index b184933..9642ec4a 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+@@ -479,24 +479,26 @@ static int iwch_dereg_mr(struct ib_mr *ib_mr)
+ 	return 0;
  }
  
- /**
-- * ib_query_mr - Retrieves information about a specific memory region.
-- * @mr: The memory region to retrieve information about.
-- * @mr_attr: The attributes of the specified memory region.
-- */
--int ib_query_mr(struct ib_mr *mr, struct ib_mr_attr *mr_attr);
+-static struct ib_mr *iwch_register_phys_mem(struct ib_pd *pd,
+-					struct ib_phys_buf *buffer_list,
+-					int num_phys_buf,
+-					int acc,
+-					u64 *iova_start)
++static struct ib_mr *iwch_get_dma_mr(struct ib_pd *pd, int acc)
+ {
++	const u64 total_size = 0xffffffff;
++	const u64 mask = (total_size + PAGE_SIZE - 1) & PAGE_MASK;
++	struct iwch_pd *php = to_iwch_pd(pd);
++	struct iwch_dev *rhp = php->rhp;
+ 	__be64 *page_list;
+ 	int shift;
+-	u64 total_size;
+-	int npages;
+-	struct iwch_dev *rhp;
+-	struct iwch_pd *php;
+ 	struct iwch_mr *mhp;
+-	int ret;
++	int ret, npages, i;
+ 
+ 	PDBG("%s ib_pd %p\n", __func__, pd);
+-	php = to_iwch_pd(pd);
+-	rhp = php->rhp;
++
++	/*
++	 * T3 only supports 32 bits of size.
++	 */
++	if (sizeof(phys_addr_t) > 4) {
++		pr_warn_once(MOD "Cannot support dma_mrs on this platform.\n");
++		return ERR_PTR(-ENOTSUPP);
++	}
+ 
+ 	mhp = kzalloc(sizeof(*mhp), GFP_KERNEL);
+ 	if (!mhp)
+@@ -504,22 +506,28 @@ static struct ib_mr *iwch_register_phys_mem(struct ib_pd *pd,
+ 
+ 	mhp->rhp = rhp;
+ 
+-	/* First check that we have enough alignment */
+-	if ((*iova_start & ~PAGE_MASK) != (buffer_list[0].addr & ~PAGE_MASK)) {
++	/* Find largest page shift we can use to cover buffers */
++	for (shift = PAGE_SHIFT; shift < 27; ++(shift))
++		if ((1ULL << shift) & mask)
++			break;
++
++	npages = (total_size + (1ULL << shift) - 1) >> shift;
++	if (!npages) {
+ 		ret = -EINVAL;
+ 		goto err;
+ 	}
+ 
+-	if (num_phys_buf > 1 &&
+-	    ((buffer_list[0].addr + buffer_list[0].size) & ~PAGE_MASK)) {
+-		ret = -EINVAL;
++	page_list = kmalloc_array(npages, sizeof(u64), GFP_KERNEL);
++	if (!page_list) {
++		ret = -ENOMEM;
+ 		goto err;
+ 	}
+ 
+-	ret = build_phys_page_list(buffer_list, num_phys_buf, iova_start,
+-				   &total_size, &npages, &shift, &page_list);
+-	if (ret)
+-		goto err;
++	for (i = 0; i < npages; i++)
++		page_list[i] = cpu_to_be64((u64)i << shift);
++
++	PDBG("%s mask 0x%llx shift %d len %lld pbl_size %d\n",
++		__func__, mask, shift, total_size, npages);
+ 
+ 	ret = iwch_alloc_pbl(mhp, npages);
+ 	if (ret) {
+@@ -536,7 +544,7 @@ static struct ib_mr *iwch_register_phys_mem(struct ib_pd *pd,
+ 	mhp->attr.zbva = 0;
+ 
+ 	mhp->attr.perms = iwch_ib_to_tpt_access(acc);
+-	mhp->attr.va_fbo = *iova_start;
++	mhp->attr.va_fbo = 0;
+ 	mhp->attr.page_size = shift - 12;
+ 
+ 	mhp->attr.len = (u32) total_size;
+@@ -553,7 +561,6 @@ err_pbl:
+ err:
+ 	kfree(mhp);
+ 	return ERR_PTR(ret);
 -
--/**
-  * ib_dereg_mr - Deregisters a memory region and removes it from the
-  *   HCA translation table.
-  * @mr: The memory region to deregister.
+ }
+ 
+ static struct ib_mr *iwch_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+@@ -659,28 +666,6 @@ err:
+ 	return ERR_PTR(err);
+ }
+ 
+-static struct ib_mr *iwch_get_dma_mr(struct ib_pd *pd, int acc)
+-{
+-	struct ib_phys_buf bl;
+-	u64 kva;
+-	struct ib_mr *ibmr;
+-
+-	PDBG("%s ib_pd %p\n", __func__, pd);
+-
+-	/*
+-	 * T3 only supports 32 bits of size.
+-	 */
+-	if (sizeof(phys_addr_t) > 4) {
+-		pr_warn_once(MOD "Cannot support dma_mrs on this platform.\n");
+-		return ERR_PTR(-ENOTSUPP);
+-	}
+-	bl.size = 0xffffffff;
+-	bl.addr = 0;
+-	kva = 0;
+-	ibmr = iwch_register_phys_mem(pd, &bl, 1, acc, &kva);
+-	return ibmr;
+-}
+-
+ static struct ib_mw *iwch_alloc_mw(struct ib_pd *pd, enum ib_mw_type type)
+ {
+ 	struct iwch_dev *rhp;
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.h b/drivers/infiniband/hw/cxgb3/iwch_provider.h
+index f24df44..252c464 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_provider.h
++++ b/drivers/infiniband/hw/cxgb3/iwch_provider.h
+@@ -341,14 +341,6 @@ int iwch_register_mem(struct iwch_dev *rhp, struct iwch_pd *php,
+ int iwch_alloc_pbl(struct iwch_mr *mhp, int npages);
+ void iwch_free_pbl(struct iwch_mr *mhp);
+ int iwch_write_pbl(struct iwch_mr *mhp, __be64 *pages, int npages, int offset);
+-int build_phys_page_list(struct ib_phys_buf *buffer_list,
+-					int num_phys_buf,
+-					u64 *iova_start,
+-					u64 *total_size,
+-					int *npages,
+-					int *shift,
+-					__be64 **page_list);
+-
+ 
+ #define IWCH_NODE_DESC "cxgb3 Chelsio Communications"
+ 
 -- 
 1.9.1
 
