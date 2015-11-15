@@ -1,30 +1,35 @@
-From: zhongjun-NQqDYL4TTn4@public.gmane.org
-Subject: Greetings.
-Date: Sun, 15 Nov 2015 10:48:14 +0100
-Message-ID: <20151115142522.22A7D148D83@ampsrv1.comunidad-ameripol.org>
-Reply-To: fuzhong348-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Description: Mail message body
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Recipients <zhongjun-NQqDYL4TTn4@public.gmane.org>
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH] ib_srp: initialize dma_length in srp_map_idb
+Date: Sun, 15 Nov 2015 18:59:53 +0100
+Message-ID: <1447610393-2899-1-git-send-email-hch@lst.de>
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: sagig@dev.mellanox.co.il, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Good Day,
+Without this sg_dma_len will return 0 on architectures tha have
+the dma_length field.
 
-I need a foreign partner for a proposed mutual business, which refers to the transfer of a large sum of money to an account abroad, as the beneficiary of the funds. Everything about this operation, will be legally done without any bridge financial authority, both in my country and yours.I wil indulge you exercise the utmost discretion in all matters concerning this issue. If you are interested, please reply back through my private email address written down, I'll give you more information about myself with the financial institution I represented and the actual amounts involved about the project so I receive your positive response.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ drivers/infiniband/ulp/srp/ib_srp.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Private E-mail: fu.zhong-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 32f7962..445c0a6 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -1520,6 +1520,9 @@ static int srp_map_idb(struct srp_rdma_ch *ch, struct srp_request *req,
+ 		state.sg_nents = 1;
+ 		sg_set_buf(idb_sg, req->indirect_desc, idb_len);
+ 		idb_sg->dma_address = req->indirect_dma_addr; /* hack! */
++#ifdef CONFIG_NEED_SG_DMA_LENGTH
++		idb_sg->dma_length = idb_sg->length;	      /* hack^2 */
++#endif
+ 		ret = srp_map_finish_fr(&state, ch);
+ 		if (ret < 0)
+ 			return ret;
+-- 
+1.9.1
 
-
-Friendly greeting,
-
-Executive director.
-
-China Bank.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
