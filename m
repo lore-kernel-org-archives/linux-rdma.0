@@ -1,48 +1,43 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [PATCH] ib_srp: initialize dma_length in srp_map_idb
-Date: Sun, 15 Nov 2015 20:20:51 +0200
-Message-ID: <5648CD03.4000206@dev.mellanox.co.il>
-References: <1447610393-2899-1-git-send-email-hch@lst.de>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: srp state in current mainline
+Date: Sun, 15 Nov 2015 11:48:08 -0800
+Message-ID: <5648E178.9010106@sandisk.com>
+References: <20151110171509.GA27781@infradead.org>
+ <20151115180621.GA24488@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <1447610393-2899-1-git-send-email-hch@lst.de>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>, Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151115180621.GA24488-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 15/11/2015 19:59, Christoph Hellwig wrote:
-> Without this sg_dma_len will return 0 on architectures tha have
-> the dma_length field.
+On 11/15/15 10:06, Christoph Hellwig wrote:
+> FYI, I sent a patch for the zero S/G length issue.  With this xfstests
+> does fine for ext4 and btrfs.  With XFS I still run into corruption
+> warnings for the slab use after free poison pattern.  I suspect that
+> issue might be related to uniqueue XFS I/O patterns.  One thing that
+> might be related is that XFS can submit bios backed by kmalloced memory.
 >
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->   drivers/infiniband/ulp/srp/ib_srp.c | 3 +++
->   1 file changed, 3 insertions(+)
->
-> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-> index 32f7962..445c0a6 100644
-> --- a/drivers/infiniband/ulp/srp/ib_srp.c
-> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-> @@ -1520,6 +1520,9 @@ static int srp_map_idb(struct srp_rdma_ch *ch, struct srp_request *req,
->   		state.sg_nents = 1;
->   		sg_set_buf(idb_sg, req->indirect_desc, idb_len);
->   		idb_sg->dma_address = req->indirect_dma_addr; /* hack! */
-> +#ifdef CONFIG_NEED_SG_DMA_LENGTH
-> +		idb_sg->dma_length = idb_sg->length;	      /* hack^2 */
-> +#endif
+> I've also tested XFS on various other storage devices on the same kernel
+> and didn't see an issue like that just to be sure.
 
-:)
+Thanks for submitting that patch.
 
-We should really get this properly map/unmap per IO at some point.
-Probably do it in both code paths...
+Did I understand correctly that page-aligned I/O works fine but I/O that 
+is not aligned on a page boundary not ? Have you already had the time to 
+verify whether the "IB/srp: Convert to new registration API" patch is 
+the patch that introduced this issue ?
 
-Having said that,
+BTW, another location where a buffer is used that is not aligned on a 
+page boundary is the scsi_probe_and_add_lun() function. If a crash 
+occurs while probing LUNs or lsscsi shows garbled data for SRP LUNs that 
+might indicate a problem in the buffer mapping or registration code.
 
-Looks fine,
-
-Reviewed-by: Sagi Grimberg <sagig@mellanox.com>
+Bart.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
