@@ -1,83 +1,73 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH 2/9] IB: add a proper completion queue abstraction
-Date: Sat, 14 Nov 2015 08:13:44 +0100
-Message-ID: <20151114071344.GE27738@lst.de>
-References: <1447422410-20891-1-git-send-email-hch@lst.de> <1447422410-20891-3-git-send-email-hch@lst.de> <20151113182513.GB21808@obsidianresearch.com> <564640C4.3000603@sandisk.com> <20151113220636.GA32133@obsidianresearch.com>
+From: "Interfax" <incoming-wwpBGFb64evk1uMJSBkQmQ@public.gmane.org>
+Subject: You have 1 new fax, document 0000600301
+Date: Sun, 15 Nov 2015 02:14:36 +0100
+Message-ID: <be85f7f2bcece1f0c04bab8099b25fdd@artemarbella.net>
+Reply-To: "Interfax" <incoming-wwpBGFb64evk1uMJSBkQmQ@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+	boundary="b1_9b19869c91e6639c038d0406317398e9"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20151113220636.GA32133-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, axboe-b10kYP2dOMg@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Nov 13, 2015 at 03:06:36PM -0700, Jason Gunthorpe wrote:
-> Looking at that thread and then at the patch a bit more..
-> 
-> +void ib_process_cq_direct(struct ib_cq *cq)
-> [..]
-> +	__ib_process_cq(cq, INT_MAX);
-> 
-> INT_MAX is not enough, it needs to loop.
-> This is missing a ib_req_notify also.
+--b1_9b19869c91e6639c038d0406317398e9
+Content-Type: text/plain; charset=us-ascii
 
-No.  Direct cases _never_ calls ib_req_notify.  Its for the case where
-the SRP case polls the send CQ only from the same context it sends for
-without any interrupt notification at al.
+New incoming fax document.
 
-> +static int __ib_process_cq(struct ib_cq *cq, int budget)
-> +	while ((n = ib_poll_cq(cq, IB_POLL_BATCH, cq->wc)) > 0) {
-> 
-> Does an unnecessary ib_poll_cq call in common cases. I'd suggest
-> change the result to bool and do:
-> 
-> // true return means the caller should attempt ib_req_notify_cq
-> while ((n = ib_poll_cq(cq, IB_POLL_BATCH, cq->wc)) > 0) {
->  for (...)
->  if (n != IB_POLL_BATCH)
->    return true;
->  completed += n;
->  if (completed > budget)
->     return false;
-> }
-> return true;
-> 
-> And then change call site like:
-> 
-> static void ib_cq_poll_work(struct work_struct *work)
-> {
->     if (__ib_process_cq(...))
->         if (ib_req_notify_cq(cq, IB_POLL_FLAGS) == 0)
-> 	    return;
->     // Else we need to loop again.
->     queue_work(ib_comp_wq, &cq->work);
-> }
-> 
-> Which avoids the rearm.
-> 
-> void ib_process_cq_direct(struct ib_cq *cq)
-> {
->    while (1) {
->        if (__ib_process_cq(..) &&
->            ib_req_notify_cq(cq, IB_POLL_FLAGS) == 0)
->            return;
->    }
-> }
-> 
-> Which adds the inf loop and rearm.
-> 
-> etc for softirq
+To view it please open the attachment.
 
-For the workqueue and softirq cases this looks reasonable.  For the
-direct case there is no rearming, though.
+Pages scanned:    7
+Scanned in:       36 seconds
+Sender:           Vernon Noble
+Date:             Sat, 14 Nov 2015 20:24:19 +0300
+Filesize:         110 Kb
+Document name:    task0000600301.doc
+Scan quality:     200 DPI
 
-> Perhaps ib_req_notify_cq should be folded into __ib_process_cq, then
-> it can trivially honour the budget on additional loops from
-> IB_CQ_REPORT_MISSED_EVENTS.
+Thanks for choosing Interfax!
 
-Which also defeats this proposal.
+
+--b1_9b19869c91e6639c038d0406317398e9
+Content-Type: application/zip; name="task0000600301.zip"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename=task0000600301.zip
+
+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
+
+
+--b1_9b19869c91e6639c038d0406317398e9--
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
