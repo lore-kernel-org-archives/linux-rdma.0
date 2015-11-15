@@ -1,139 +1,60 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH] staging-EHCA: Delete unnecessary checks before the function
- call "kmem_cache_destroy"
-Date: Sun, 15 Nov 2015 22:08:32 +0100
-Message-ID: <5648F450.3050004@users.sourceforge.net>
-References: <5307CAA2.8060406@users.sourceforge.net>
- <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6>
- <530A086E.8010901@users.sourceforge.net>
- <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6>
- <530A72AA.3000601@users.sourceforge.net>
- <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6>
- <530B5FB6.6010207@users.sourceforge.net>
- <alpine.DEB.2.10.1402241710370.2074@hadrien>
- <530C5E18.1020800@users.sourceforge.net>
- <alpine.DEB.2.10.1402251014170.2080@hadrien>
- <530CD2C4.4050903@users.sourceforge.net>
- <alpine.DEB.2.10.1402251840450.7035@hadrien>
- <530CF8FF.8080600@users.sourceforge.net>
- <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6>
- <530DD06F.4090703@users.sourceforge.net>
- <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>
- <5317A59D.4@users.sourceforge.net>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] ib_srp: initialize dma_length in srp_map_idb
+Date: Sun, 15 Nov 2015 23:10:54 +0200
+Message-ID: <CAJ3xEMgKiB_qK-WkD0mB3NnCkE0=S_khc93-X381rRbROoYWkw@mail.gmail.com>
+References: <1447610393-2899-1-git-send-email-hch@lst.de>
+	<5648CD03.4000206@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <5317A59D.4@users.sourceforge.net>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Doug Ledford <dledford@redhat.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org, devel@driverdev.osuosl.org
-Cc: Julia Lawall <julia.lawall@lip6.fr>, kernel-janitors@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5648CD03.4000206-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 15 Nov 2015 21:58:45 +0100
+On Sun, Nov 15, 2015, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> On 15/11/2015 19:59, Christoph Hellwig wrote:
 
-The kmem_cache_destroy() function tests whether its argument is NULL
-and then returns immediately. Thus the test around the calls is not needed.
+>> Without this sg_dma_len will return 0 on architectures tha have
+>> the dma_length field.
 
-This issue was detected by using the Coccinelle software.
+and what wrong with that?
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/staging/rdma/ehca/ehca_av.c   | 3 +--
- drivers/staging/rdma/ehca/ehca_cq.c   | 3 +--
- drivers/staging/rdma/ehca/ehca_main.c | 3 +--
- drivers/staging/rdma/ehca/ehca_mrmw.c | 6 ++----
- drivers/staging/rdma/ehca/ehca_pd.c   | 3 +--
- drivers/staging/rdma/ehca/ehca_qp.c   | 3 +--
- 6 files changed, 7 insertions(+), 14 deletions(-)
+Christoph, probably typo here? "tha" needs to be "that"
 
-diff --git a/drivers/staging/rdma/ehca/ehca_av.c b/drivers/staging/rdma/ehca/ehca_av.c
-index 4659263..04b9398 100644
---- a/drivers/staging/rdma/ehca/ehca_av.c
-+++ b/drivers/staging/rdma/ehca/ehca_av.c
-@@ -272,6 +272,5 @@ int ehca_init_av_cache(void)
- 
- void ehca_cleanup_av_cache(void)
- {
--	if (av_cache)
--		kmem_cache_destroy(av_cache);
-+	kmem_cache_destroy(av_cache);
- }
-diff --git a/drivers/staging/rdma/ehca/ehca_cq.c b/drivers/staging/rdma/ehca/ehca_cq.c
-index ea1b5c1..1aa7931 100644
---- a/drivers/staging/rdma/ehca/ehca_cq.c
-+++ b/drivers/staging/rdma/ehca/ehca_cq.c
-@@ -393,6 +393,5 @@ int ehca_init_cq_cache(void)
- 
- void ehca_cleanup_cq_cache(void)
- {
--	if (cq_cache)
--		kmem_cache_destroy(cq_cache);
-+	kmem_cache_destroy(cq_cache);
- }
-diff --git a/drivers/staging/rdma/ehca/ehca_main.c b/drivers/staging/rdma/ehca/ehca_main.c
-index 8246418..860b974 100644
---- a/drivers/staging/rdma/ehca/ehca_main.c
-+++ b/drivers/staging/rdma/ehca/ehca_main.c
-@@ -245,8 +245,7 @@ static void ehca_destroy_slab_caches(void)
- 	ehca_cleanup_cq_cache();
- 	ehca_cleanup_pd_cache();
- #ifdef CONFIG_PPC_64K_PAGES
--	if (ctblk_cache)
--		kmem_cache_destroy(ctblk_cache);
-+	kmem_cache_destroy(ctblk_cache);
- #endif
- }
- 
-diff --git a/drivers/staging/rdma/ehca/ehca_mrmw.c b/drivers/staging/rdma/ehca/ehca_mrmw.c
-index f914b30..553e883 100644
---- a/drivers/staging/rdma/ehca/ehca_mrmw.c
-+++ b/drivers/staging/rdma/ehca/ehca_mrmw.c
-@@ -2251,10 +2251,8 @@ int ehca_init_mrmw_cache(void)
- 
- void ehca_cleanup_mrmw_cache(void)
- {
--	if (mr_cache)
--		kmem_cache_destroy(mr_cache);
--	if (mw_cache)
--		kmem_cache_destroy(mw_cache);
-+	kmem_cache_destroy(mr_cache);
-+	kmem_cache_destroy(mw_cache);
- }
- 
- static inline int ehca_init_top_bmap(struct ehca_top_bmap *ehca_top_bmap,
-diff --git a/drivers/staging/rdma/ehca/ehca_pd.c b/drivers/staging/rdma/ehca/ehca_pd.c
-index 351577a..2a8aae4 100644
---- a/drivers/staging/rdma/ehca/ehca_pd.c
-+++ b/drivers/staging/rdma/ehca/ehca_pd.c
-@@ -119,6 +119,5 @@ int ehca_init_pd_cache(void)
- 
- void ehca_cleanup_pd_cache(void)
- {
--	if (pd_cache)
--		kmem_cache_destroy(pd_cache);
-+	kmem_cache_destroy(pd_cache);
- }
-diff --git a/drivers/staging/rdma/ehca/ehca_qp.c b/drivers/staging/rdma/ehca/ehca_qp.c
-index 2e89356..896c01f 100644
---- a/drivers/staging/rdma/ehca/ehca_qp.c
-+++ b/drivers/staging/rdma/ehca/ehca_qp.c
-@@ -2252,6 +2252,5 @@ int ehca_init_qp_cache(void)
- 
- void ehca_cleanup_qp_cache(void)
- {
--	if (qp_cache)
--		kmem_cache_destroy(qp_cache);
-+	kmem_cache_destroy(qp_cache);
- }
--- 
-2.6.2
+>> Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+>> ---
+>>   drivers/infiniband/ulp/srp/ib_srp.c | 3 +++
+>>   1 file changed, 3 insertions(+)
+>>
+>> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c
+>> b/drivers/infiniband/ulp/srp/ib_srp.c
+>> index 32f7962..445c0a6 100644
+>> --- a/drivers/infiniband/ulp/srp/ib_srp.c
+>> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
+>> @@ -1520,6 +1520,9 @@ static int srp_map_idb(struct srp_rdma_ch *ch,
+>> struct srp_request *req,
+>>                 state.sg_nents = 1;
+>>                 sg_set_buf(idb_sg, req->indirect_desc, idb_len);
+>>                 idb_sg->dma_address = req->indirect_dma_addr; /* hack! */
+>> +#ifdef CONFIG_NEED_SG_DMA_LENGTH
+>> +               idb_sg->dma_length = idb_sg->length;          /* hack^2 */
+>> +#endif
+>
+>
+> :)
+>
+> We should really get this properly map/unmap per IO at some point.
+> Probably do it in both code paths...
+
+Sagi, can you please elaborate a little further on the problem, srpt
+WA, what do we do in isert and what is the proposed not WA solution?
+
+> Having said that,
+> Looks fine,
+> Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
