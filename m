@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig@mellanox.com>
-Subject: [PATCH for-next 08/10] iser-target: Support the remote invalidation exception
-Date: Mon, 16 Nov 2015 18:37:39 +0200
-Message-ID: <1447691861-3796-9-git-send-email-sagig@mellanox.com>
+Subject: [PATCH for-next 10/10] IB/iser: Support the remote invalidation exception
+Date: Mon, 16 Nov 2015 18:37:41 +0200
+Message-ID: <1447691861-3796-11-git-send-email-sagig@mellanox.com>
 References: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
 Return-path: <target-devel-owner@vger.kernel.org>
 In-Reply-To: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
@@ -12,115 +12,181 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jenny Derzhavetz <jennyf@mellanox.com>
 
-We'll use remote invalidate, according to negotiation result
-during connection establishment. If the initiator declared that
-it supports the remote invalidate exception then the target will
-use IB_WR_SEND_WITH_INV with the correct rkey for the response.
+Declare that we support remote invalidation and be able to detect
+the invalidated rkey so we won't invalidate it locally. The spec
+mandates that we must not rely on the taget remote invalidate our
+rkey so we must check it upon a receive (scsi response) completion.
 
 Signed-off-by: Jenny Derzhavetz <jennyf@mellanox.com>
 Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
 ---
- drivers/infiniband/ulp/isert/ib_isert.c | 39 +++++++++++++++++++++++++++------
- drivers/infiniband/ulp/isert/ib_isert.h |  2 ++
- 2 files changed, 34 insertions(+), 7 deletions(-)
+ drivers/infiniband/ulp/iser/iscsi_iser.h     |  3 +-
+ drivers/infiniband/ulp/iser/iser_initiator.c | 55 +++++++++++++++++++++++++++-
+ drivers/infiniband/ulp/iser/iser_verbs.c     | 19 +++++++---
+ 3 files changed, 70 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index 667238f6253f..035fd12ec7ae 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -679,6 +679,25 @@ out_login_buf:
- 	return ret;
- }
- 
-+static void
-+isert_set_nego_params(struct isert_conn *isert_conn,
-+		      struct rdma_conn_param *param)
-+{
-+	struct isert_device *device = isert_conn->device;
-+
-+	/* Set max inflight RDMA READ requests */
-+	isert_conn->initiator_depth = min_t(u8, param->initiator_depth,
-+				device->dev_attr.max_qp_init_rd_atom);
-+	isert_dbg("Using initiator_depth: %u\n", isert_conn->initiator_depth);
-+
-+	if (param->private_data) {
-+		u8 flags = *(u8 *)param->private_data;
-+
-+		isert_conn->snd_w_inv = !(flags & ISER_SEND_W_INV_NOT_SUP);
-+		isert_info("Using remote invalidation\n");
-+	}
-+}
-+
- static int
- isert_connect_request(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
- {
-@@ -717,11 +736,7 @@ isert_connect_request(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
- 	}
- 	isert_conn->device = device;
- 
--	/* Set max inflight RDMA READ requests */
--	isert_conn->initiator_depth = min_t(u8,
--				event->param.conn.initiator_depth,
--				device->dev_attr.max_qp_init_rd_atom);
--	isert_dbg("Using initiator_depth: %u\n", isert_conn->initiator_depth);
-+	isert_set_nego_params(isert_conn, &event->param.conn);
- 
- 	ret = isert_conn_setup_qp(isert_conn, cma_id);
- 	if (ret)
-@@ -1100,7 +1115,14 @@ isert_init_send_wr(struct isert_conn *isert_conn, struct isert_cmd *isert_cmd,
- 
- 	isert_cmd->rdma_wr.iser_ib_op = ISER_IB_SEND;
- 	send_wr->wr_id = (uintptr_t)&isert_cmd->tx_desc;
--	send_wr->opcode = IB_WR_SEND;
-+
-+	if (isert_conn->snd_w_inv && isert_cmd->inv_rkey) {
-+		send_wr->opcode  = IB_WR_SEND_WITH_INV;
-+		send_wr->ex.invalidate_rkey = isert_cmd->inv_rkey;
-+	} else {
-+		send_wr->opcode = IB_WR_SEND;
-+	}
-+
- 	send_wr->sg_list = &tx_desc->tx_sg[0];
- 	send_wr->num_sge = isert_cmd->tx_desc.num_sge;
- 	send_wr->send_flags = IB_SEND_SIGNALED;
-@@ -1489,6 +1511,7 @@ isert_rx_opcode(struct isert_conn *isert_conn, struct iser_rx_desc *rx_desc,
- 		isert_cmd->read_va = read_va;
- 		isert_cmd->write_stag = write_stag;
- 		isert_cmd->write_va = write_va;
-+		isert_cmd->inv_rkey = read_stag ? read_stag : write_stag;
- 
- 		ret = isert_handle_scsi_cmd(isert_conn, isert_cmd, cmd,
- 					rx_desc, (unsigned char *)hdr);
-@@ -3107,7 +3130,9 @@ isert_rdma_accept(struct isert_conn *isert_conn)
- 	cp.rnr_retry_count = 7;
- 
- 	memset(&rsp_hdr, 0, sizeof(rsp_hdr));
--	rsp_hdr.flags = (ISERT_ZBVA_NOT_USED | ISERT_SEND_W_INV_NOT_USED);
-+	rsp_hdr.flags = ISERT_ZBVA_NOT_USED;
-+	if (!isert_conn->snd_w_inv)
-+		rsp_hdr.flags = rsp_hdr.flags | ISERT_SEND_W_INV_NOT_USED;
- 	cp.private_data = (void *)&rsp_hdr;
- 	cp.private_data_len = sizeof(rsp_hdr);
- 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.h b/drivers/infiniband/ulp/isert/ib_isert.h
-index 00edd5b68ca8..b23086d3d08b 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.h
-+++ b/drivers/infiniband/ulp/isert/ib_isert.h
-@@ -162,6 +162,7 @@ struct isert_cmd {
- 	uint32_t		write_stag;
- 	uint64_t		read_va;
- 	uint64_t		write_va;
-+	uint32_t		inv_rkey;
- 	u64			pdu_buf_dma;
- 	u32			pdu_buf_len;
- 	struct isert_conn	*conn;
-@@ -209,6 +210,7 @@ struct isert_conn {
- 	struct work_struct	release_work;
- 	struct ib_recv_wr       beacon;
- 	bool                    logout_posted;
-+	bool                    snd_w_inv;
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
+index 096d5234bbea..2e0a24ba18ed 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.h
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
+@@ -519,6 +519,7 @@ struct iser_conn {
+ 	u32                          num_rx_descs;
+ 	unsigned short               scsi_sg_tablesize;
+ 	unsigned int                 scsi_max_sectors;
++	bool			     snd_w_inv;
  };
  
- #define ISERT_MAX_CQ 64
+ /**
+@@ -603,7 +604,7 @@ int iser_conn_terminate(struct iser_conn *iser_conn);
+ void iser_release_work(struct work_struct *work);
+ 
+ void iser_rcv_completion(struct iser_rx_desc *desc,
+-			 unsigned long dto_xfer_len,
++			 struct ib_wc *wc,
+ 			 struct ib_conn *ib_conn);
+ 
+ void iser_snd_completion(struct iser_tx_desc *desc,
+diff --git a/drivers/infiniband/ulp/iser/iser_initiator.c b/drivers/infiniband/ulp/iser/iser_initiator.c
+index 6a968e350c14..df6a4b70ffc9 100644
+--- a/drivers/infiniband/ulp/iser/iser_initiator.c
++++ b/drivers/infiniband/ulp/iser/iser_initiator.c
+@@ -563,11 +563,57 @@ send_control_error:
+ 	return err;
+ }
+ 
++static int
++iser_check_remote_inv(struct iser_conn *iser_conn,
++		      struct ib_wc *wc,
++		      struct iscsi_hdr *hdr)
++{
++	if (wc->wc_flags & IB_WC_WITH_INVALIDATE) {
++		struct iscsi_task *task;
++		struct iscsi_iser_task *iser_task;
++		u32 rkey = wc->ex.invalidate_rkey;
++
++		iser_dbg("conn %p: remote invalidation\n", iser_conn);
++		if (unlikely(!iser_conn->snd_w_inv)) {
++			iser_err("conn %p: unexepected remote invalidation,"
++				 "terminating connection\n", iser_conn);
++			return -EPROTO;
++		}
++
++		task = iscsi_itt_to_ctask(iser_conn->iscsi_conn, hdr->itt);
++		if (likely(task)) {
++			struct iser_mem_reg *reg;
++			struct iser_fr_desc *desc;
++
++			iser_task = task->dd_data;
++			if (iser_task->dir[ISER_DIR_IN])
++				reg = &iser_task->rdma_reg[ISER_DIR_IN];
++			else
++				reg = &iser_task->rdma_reg[ISER_DIR_OUT];
++			desc = reg->mem_h;
++
++			if (likely(rkey == desc->rsc.mr->rkey)) {
++				desc->rsc.mr_valid = 0;
++			} else if (likely(rkey == desc->pi_ctx->sig_mr->rkey)) {
++				desc->pi_ctx->sig_mr_valid = 0;
++			} else {
++				iser_err("invalidation of unknown rkey=0x%x\n", rkey);
++				return -EINVAL;
++			}
++		} else {
++			iser_err("failed to get task for itt=%d\n", hdr->itt);
++			return -EINVAL;
++		}
++	}
++
++	return 0;
++}
++
+ /**
+  * iser_rcv_dto_completion - recv DTO completion
+  */
+ void iser_rcv_completion(struct iser_rx_desc *rx_desc,
+-			 unsigned long rx_xfer_len,
++			 struct ib_wc *wc,
+ 			 struct ib_conn *ib_conn)
+ {
+ 	struct iser_conn *iser_conn = container_of(ib_conn, struct iser_conn,
+@@ -575,6 +621,7 @@ void iser_rcv_completion(struct iser_rx_desc *rx_desc,
+ 	struct iscsi_hdr *hdr;
+ 	u64 rx_dma;
+ 	int rx_buflen, outstanding, count, err;
++	unsigned long rx_xfer_len = wc->byte_len;
+ 
+ 	/* differentiate between login to all other PDUs */
+ 	if ((char *)rx_desc == iser_conn->login_resp_buf) {
+@@ -593,6 +640,12 @@ void iser_rcv_completion(struct iser_rx_desc *rx_desc,
+ 	iser_dbg("op 0x%x itt 0x%x dlen %d\n", hdr->opcode,
+ 			hdr->itt, (int)(rx_xfer_len - ISER_HEADERS_LEN));
+ 
++	if (iser_check_remote_inv(iser_conn, wc, hdr)) {
++		iscsi_conn_failure(iser_conn->iscsi_conn,
++				   ISCSI_ERR_CONN_FAILED);
++		return;
++	}
++
+ 	iscsi_iser_recv(iser_conn->iscsi_conn, hdr, rx_desc->data,
+ 			rx_xfer_len - ISER_HEADERS_LEN);
+ 
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index 74161a566852..5dd7cbd8e2e2 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -847,7 +847,7 @@ static void iser_route_handler(struct rdma_cm_id *cma_id)
+ 	conn_param.rnr_retry_count     = 6;
+ 
+ 	memset(&req_hdr, 0, sizeof(req_hdr));
+-	req_hdr.flags = (ISER_ZBVA_NOT_SUP | ISER_SEND_W_INV_NOT_SUP);
++	req_hdr.flags = ISER_ZBVA_NOT_SUP;
+ 	conn_param.private_data	= (void *)&req_hdr;
+ 	conn_param.private_data_len = sizeof(struct iser_cm_hdr);
+ 
+@@ -862,7 +862,8 @@ failure:
+ 	iser_connect_error(cma_id);
+ }
+ 
+-static void iser_connected_handler(struct rdma_cm_id *cma_id)
++static void iser_connected_handler(struct rdma_cm_id *cma_id,
++				   const void *private_data)
+ {
+ 	struct iser_conn *iser_conn;
+ 	struct ib_qp_attr attr;
+@@ -876,6 +877,15 @@ static void iser_connected_handler(struct rdma_cm_id *cma_id)
+ 	(void)ib_query_qp(cma_id->qp, &attr, ~0, &init_attr);
+ 	iser_info("remote qpn:%x my qpn:%x\n", attr.dest_qp_num, cma_id->qp->qp_num);
+ 
++	if (private_data) {
++		u8 flags = *(u8 *)private_data;
++
++		iser_conn->snd_w_inv = !(flags & ISER_SEND_W_INV_NOT_SUP);
++	}
++
++	iser_info("conn %p: negotiated %s invalidation\n",
++		  iser_conn, iser_conn->snd_w_inv ? "remote" : "local");
++
+ 	iser_conn->state = ISER_CONN_UP;
+ 	complete(&iser_conn->up_completion);
+ }
+@@ -927,7 +937,7 @@ static int iser_cma_handler(struct rdma_cm_id *cma_id, struct rdma_cm_event *eve
+ 		iser_route_handler(cma_id);
+ 		break;
+ 	case RDMA_CM_EVENT_ESTABLISHED:
+-		iser_connected_handler(cma_id);
++		iser_connected_handler(cma_id, event->param.conn.private_data);
+ 		break;
+ 	case RDMA_CM_EVENT_ADDR_ERROR:
+ 	case RDMA_CM_EVENT_ROUTE_ERROR:
+@@ -1205,8 +1215,7 @@ static void iser_handle_wc(struct ib_wc *wc)
+ 	if (likely(wc->status == IB_WC_SUCCESS)) {
+ 		if (wc->opcode == IB_WC_RECV) {
+ 			rx_desc = (struct iser_rx_desc *)(uintptr_t)wc->wr_id;
+-			iser_rcv_completion(rx_desc, wc->byte_len,
+-					    ib_conn);
++			iser_rcv_completion(rx_desc, wc, ib_conn);
+ 		} else
+ 		if (wc->opcode == IB_WC_SEND) {
+ 			tx_desc = (struct iser_tx_desc *)(uintptr_t)wc->wr_id;
 -- 
 1.8.4.3
