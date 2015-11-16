@@ -1,75 +1,118 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [PATCH] ib_srp: initialize dma_length in srp_map_idb
-Date: Mon, 16 Nov 2015 11:50:52 +0200
-Message-ID: <5649A6FC.7000700@dev.mellanox.co.il>
-References: <1447610393-2899-1-git-send-email-hch@lst.de>
- <5648CD03.4000206@dev.mellanox.co.il>
- <CAJ3xEMgKiB_qK-WkD0mB3NnCkE0=S_khc93-X381rRbROoYWkw@mail.gmail.com>
+From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-cm] IB/core: Fix use after free of ifa
+Date: Mon, 16 Nov 2015 15:17:48 +0200
+Message-ID: <CAAKD3BDYbo7BEqubFDw_p4Oiq08t4V80AcSPEZpb2O_aVj5Rsw@mail.gmail.com>
+References: <1444910463-5688-1-git-send-email-matanb@mellanox.com>
+	<1444910463-5688-2-git-send-email-matanb@mellanox.com>
+	<5626A15E.7080800@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <CAJ3xEMgKiB_qK-WkD0mB3NnCkE0=S_khc93-X381rRbROoYWkw@mail.gmail.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Or Gerlitz <gerlitz.or@gmail.com>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Cc: Christoph Hellwig <hch@lst.de>, Bart Van Assche <bart.vanassche@sandisk.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5626A15E.7080800-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 15/11/2015 23:10, Or Gerlitz wrote:
-> On Sun, Nov 15, 2015, Sagi Grimberg <sagig@dev.mellanox.co.il> wrote:
->> On 15/11/2015 19:59, Christoph Hellwig wrote:
->
->>> Without this sg_dma_len will return 0 on architectures tha have
->>> the dma_length field.
->
-> and what wrong with that?
-
-Because it's not length 0. It's because I did a (documented) hack
-with the new memory registration API. I hope we can fix it soon.
-
->
-> Christoph, probably typo here? "tha" needs to be "that"
->
->>> Signed-off-by: Christoph Hellwig <hch@lst.de>
->>> ---
->>>    drivers/infiniband/ulp/srp/ib_srp.c | 3 +++
->>>    1 file changed, 3 insertions(+)
->>>
->>> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c
->>> b/drivers/infiniband/ulp/srp/ib_srp.c
->>> index 32f7962..445c0a6 100644
->>> --- a/drivers/infiniband/ulp/srp/ib_srp.c
->>> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
->>> @@ -1520,6 +1520,9 @@ static int srp_map_idb(struct srp_rdma_ch *ch,
->>> struct srp_request *req,
->>>                  state.sg_nents = 1;
->>>                  sg_set_buf(idb_sg, req->indirect_desc, idb_len);
->>>                  idb_sg->dma_address = req->indirect_dma_addr; /* hack! */
->>> +#ifdef CONFIG_NEED_SG_DMA_LENGTH
->>> +               idb_sg->dma_length = idb_sg->length;          /* hack^2 */
->>> +#endif
+On Tue, Oct 20, 2015 at 10:17 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> On 10/15/2015 08:01 AM, Matan Barak wrote:
+>> When using ifup/ifdown while executing enum_netdev_ipv4_ips,
+>> ifa could become invalid and cause use after free error.
+>> Fixing it by protecting with RCU lock.
 >>
->>
->> :)
->>
->> We should really get this properly map/unmap per IO at some point.
->> Probably do it in both code paths...
+>> Fixes: 03db3a2d81e6 ('IB/core: Add RoCE GID table management')
+>> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >
-> Sagi, can you please elaborate a little further on the problem, srpt
-> WA,
+> This is in my tree for -rc.  Thanks.
+>
 
-It's srp initiator. This falls in the case where srp sends an indirect
-buffer descriptor to the target (which is registered). For this
-descriptor it uses a pre-dma-mapped buffer, so in order to fit it into
-the new memory registration scheme (which works on SG lists), I hacked
-a single entry SG and used the pre-dma-mapped address. What was missing
-is the dma_length setting (because we didn't dma mapped the SG).
+The series "[PATCH for-next 0/3] Change per-entry locks in GID cache
+to table lock" I've posted a while ago addresses the locking concerns.
+Thanks.
 
-The proper fix is doing correct map/unmap per IO.
-
-> what do we do in isert and what is the proposed not WA solution?
-
-iser does not have indirect buffer descriptors, only a single rkey
-(per-direction).
+>> ---
+>>
+>> Hi Doug,
+>>
+>> This patch fixes a bug in RoCE GID table implementation. Under stress conditions
+>> where ifup/ifdown are used, the ifa pointer could become invalid. Using a
+>> RCU lock in order to avoid freeing the ifa node (as done in other inet functions
+>> (for example, inet_addr_onlink).
+>>
+>> Our QA team verified that this patch fixes this issue.
+>>
+>> Thanks,
+>> Matan
+>>
+>>  drivers/infiniband/core/roce_gid_mgmt.c | 35 +++++++++++++++++++++++++--------
+>>  1 file changed, 27 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/drivers/infiniband/core/roce_gid_mgmt.c b/drivers/infiniband/core/roce_gid_mgmt.c
+>> index 6b24cba..178f984 100644
+>> --- a/drivers/infiniband/core/roce_gid_mgmt.c
+>> +++ b/drivers/infiniband/core/roce_gid_mgmt.c
+>> @@ -250,25 +250,44 @@ static void enum_netdev_ipv4_ips(struct ib_device *ib_dev,
+>>                                u8 port, struct net_device *ndev)
+>>  {
+>>       struct in_device *in_dev;
+>> +     struct sin_list {
+>> +             struct list_head        list;
+>> +             struct sockaddr_in      ip;
+>> +     };
+>> +     struct sin_list *sin_iter;
+>> +     struct sin_list *sin_temp;
+>>
+>> +     LIST_HEAD(sin_list);
+>>       if (ndev->reg_state >= NETREG_UNREGISTERING)
+>>               return;
+>>
+>> -     in_dev = in_dev_get(ndev);
+>> -     if (!in_dev)
+>> +     rcu_read_lock();
+>> +     in_dev = __in_dev_get_rcu(ndev);
+>> +     if (!in_dev) {
+>> +             rcu_read_unlock();
+>>               return;
+>> +     }
+>>
+>>       for_ifa(in_dev) {
+>> -             struct sockaddr_in ip;
+>> +             struct sin_list *entry = kzalloc(sizeof(*entry), GFP_ATOMIC);
+>>
+>> -             ip.sin_family = AF_INET;
+>> -             ip.sin_addr.s_addr = ifa->ifa_address;
+>> -             update_gid_ip(GID_ADD, ib_dev, port, ndev,
+>> -                           (struct sockaddr *)&ip);
+>> +             if (!entry) {
+>> +                     pr_warn("roce_gid_mgmt: couldn't allocate entry for IPv4 update\n");
+>> +                     continue;
+>> +             }
+>> +             entry->ip.sin_family = AF_INET;
+>> +             entry->ip.sin_addr.s_addr = ifa->ifa_address;
+>> +             list_add_tail(&entry->list, &sin_list);
+>>       }
+>>       endfor_ifa(in_dev);
+>> +     rcu_read_unlock();
+>>
+>> -     in_dev_put(in_dev);
+>> +     list_for_each_entry_safe(sin_iter, sin_temp, &sin_list, list) {
+>> +             update_gid_ip(GID_ADD, ib_dev, port, ndev,
+>> +                           (struct sockaddr *)&sin_iter->ip);
+>> +             list_del(&sin_iter->list);
+>> +             kfree(sin_iter);
+>> +     }
+>>  }
+>>
+>>  static void enum_netdev_ipv6_ips(struct ib_device *ib_dev,
+>>
+>
+>
+> --
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>               GPG KeyID: 0E572FDD
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
