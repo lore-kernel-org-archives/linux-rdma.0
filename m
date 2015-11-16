@@ -1,51 +1,47 @@
-From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH libmlx5 0/7] Completion timestamping
-Date: Mon, 16 Nov 2015 18:30:38 +0200
-Message-ID: <CAAKD3BByY0Tq+Ne6_aEVC=CRy-aE8t+HnqxpcpCWm6enzD+wFw@mail.gmail.com>
-References: <1447590634-12858-1-git-send-email-matanb@mellanox.com>
-	<5649FA3F.2050209@talpey.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5649FA3F.2050209-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+From: Sagi Grimberg <sagig@mellanox.com>
+Subject: [PATCH for-next 02/10] IB/iser: Default to fastreg instead of fmr
+Date: Mon, 16 Nov 2015 18:37:33 +0200
+Message-ID: <1447691861-3796-3-git-send-email-sagig@mellanox.com>
+References: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
+Sender: target-devel-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+Cc: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Or Gerlitz <ogerlitz@mellanox.com>, Steve Wise <swise@opengridcomputing.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 16, 2015 at 5:46 PM, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org> wrote:
-> On 11/15/2015 7:30 AM, Matan Barak wrote:
->>
->> This series adds support for completion timestamp. In order to
->> support this feature, several extended verbs were implemented
->> (as instructed in libibverbs).
->
->
-> Can you describe what these timestamps are actually for? It's not
-> clear at all from the comments. I'm assuming they are for some sort
-> of fine-grained statistics? Are they purely for userspace consumers?
->
->
+This is a pre-step before adding remote invalidate
+support. Also, every ULP should prefer fastreg over
+fmr.
 
-Completion timestamps could be used for various things. For examples,
-applications could use them for ordering (packet x came before packet
-y), measuring the delta (in raw cycles) between two packets
-(benchmarking) and between an event (for example, the call to
-ibv_post_send) and its respective WQE.
-The times are given in raw cycles time. The frequency of the
-respective timer is given in the extended verb of ibv_query_device,
-but this isn't system time just another form of raw time converted to
-nanoseconds.
+Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
+---
+ drivers/infiniband/ulp/iser/iser_memory.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-We currently implemented only the control path in kernel, so it's for
-userspace consumers only. However, implementing it in kernel shouldn't
-be hard.
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
+index ea765fb9664d..1103aa6e8d00 100644
+--- a/drivers/infiniband/ulp/iser/iser_memory.c
++++ b/drivers/infiniband/ulp/iser/iser_memory.c
+@@ -71,15 +71,14 @@ int iser_assign_reg_ops(struct iser_device *device)
+ {
+ 	struct ib_device_attr *dev_attr = &device->dev_attr;
+ 
+-	/* Assign function handles  - based on FMR support */
++	if (dev_attr->device_cap_flags & IB_DEVICE_MEM_MGT_EXTENSIONS) {
++		iser_info("FastReg supported, using FastReg for registration\n");
++		device->reg_ops = &fastreg_ops;
++	} else
+ 	if (device->ib_device->alloc_fmr && device->ib_device->dealloc_fmr &&
+ 	    device->ib_device->map_phys_fmr && device->ib_device->unmap_fmr) {
+ 		iser_info("FMR supported, using FMR for registration\n");
+ 		device->reg_ops = &fmr_ops;
+-	} else
+-	if (dev_attr->device_cap_flags & IB_DEVICE_MEM_MGT_EXTENSIONS) {
+-		iser_info("FastReg supported, using FastReg for registration\n");
+-		device->reg_ops = &fastreg_ops;
+ 	} else {
+ 		iser_err("IB device does not support FMRs nor FastRegs, can't register memory\n");
+ 		return -1;
+-- 
+1.8.4.3
