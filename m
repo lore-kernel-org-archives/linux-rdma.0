@@ -1,54 +1,76 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH 3/9] IB: add a helper to safely drain a QP
-Date: Mon, 16 Nov 2015 13:03:27 -0600
-Message-ID: <003801d120a1$799338d0$6cb9aa70$@opengridcomputing.com>
-References: <1447422410-20891-1-git-send-email-hch@lst.de> <1447422410-20891-4-git-send-email-hch@lst.de> <564851BB.1020004@dev.mellanox.co.il> <564A067B.8030504@opengridcomputing.com> <003001d1209c$ecb70760$c6251620$@opengridcomputing.com> <564A2270.1040004@dev.mellanox.co.il>
+From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 01/13] staging/rdma/hfi1: Use BIT macro
+Date: Mon, 16 Nov 2015 16:21:50 -0500
+Message-ID: <20151116212149.GA9268@phlsvsds.ph.intel.com>
+References: <1447227213-15122-1-git-send-email-jubin.john@intel.com> <20151113131558.GC18741@sudip-pc> <20151113160921.GA31028@phlsvsds.ph.intel.com> <20151114071102.GE3685@sudip-pc>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <564A2270.1040004-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <20151114071102.GE3685@sudip-pc>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, axboe-b10kYP2dOMg@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sudip Mukherjee <sudipm.mukherjee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Sat, Nov 14, 2015 at 12:41:02PM +0530, Sudip Mukherjee wrote:
+> On Fri, Nov 13, 2015 at 11:09:22AM -0500, Jubin John wrote:
+> > On Fri, Nov 13, 2015 at 06:45:58PM +0530, Sudip Mukherjee wrote:
+> > > On Wed, Nov 11, 2015 at 02:33:21AM -0500, Jubin John wrote:
+> > > > This patch fixes the checkpatch issue:
+> > > > CHECK: Prefer using the BIT macro
+> > > >=20
+> > > > Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > > Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > > Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > > Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > > ---
+> > > <snip>
+> > > > =20
+> > > > diff --git a/drivers/staging/rdma/hfi1/init.c b/drivers/staging=
+/rdma/hfi1/init.c
+> > > > index 8666f3a..680f877 100644
+> > > > --- a/drivers/staging/rdma/hfi1/init.c
+> > > > +++ b/drivers/staging/rdma/hfi1/init.c
+> > > > @@ -252,7 +252,7 @@ struct hfi1_ctxtdata *hfi1_create_ctxtdata(=
+struct hfi1_pportdata *ppd, u32 ctxt)
+> > > >  		/* Validate and initialize Rcv Hdr Q variables */
+> > > >  		if (rcvhdrcnt % HDRQ_INCREMENT) {
+> > > >  			dd_dev_err(dd,
+> > > > -				   "ctxt%u: header queue count %d must be divisible by %d\=
+n",
+> > > > +				   "ctxt%u: header queue count %d must be divisible by %lu=
+d\n",
+> > >=20
+> > > This is an unrelated change. If you are sending the series based =
+on
+> > > Dan's comment on 12/13 then please remove this also.
+> > >=20
+> > This is not an unrelated change. This was needed due to the use of =
+the
+> > BIT macro for HDRQ_INCREMENT in chip.h.
+> > Otherwise, the following warning is shown during the build:
+> > drivers/staging/rdma/hfi1/init.c: In function =E2=80=98hfi1_create_=
+ctxtdata=E2=80=99:
+> > drivers/staging/rdma/hfi1/init.c:254:4: warning: format =E2=80=98%u=
+=E2=80=99 expects
+> > argument of type =E2=80=98unsigned int=E2=80=99, but argument 6 has=
+ type
+> > =E2=80=98long unsigned int=E2=80=99 [-Wformat=3D]
+> >     dd_dev_err(dd,
+>=20
+> Then it should have better been mentioned in the commit message.
 
+Ok, I will update the commit message in v2.
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Sagi Grimberg
-> Sent: Monday, November 16, 2015 12:38 PM
-> To: Steve Wise; 'Christoph Hellwig'; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org; axboe-b10kYP2dOMg@public.gmane.org; linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH 3/9] IB: add a helper to safely drain a QP
-> 
-> 
-> > After looking at the nes driver, I don't see any common way to support drain w/o some serious driver mods.  Since SRP is the
-only
-> > user, perhaps we can ignore iWARP for this function...
-> 
-> But iser/isert essentially does it too (and I think xprtrdma will have
-> it soon)...
-> 
-> the modify_qp is invoked from rdma_disconnect() and we do post
-> an 'empty' wr to wait for all the flushes to drain (see
-> iser_conn_terminate).
-
-That won't work for iWARP.  Is this code new?  I didn't see any errors that would result from this code when I tested iSER over
-cxgb4 with the old iwarp support patches.   
-
-Perhaps we need another way to do this?  Like a completion object in the QP that gets triggered when the SQ and RQ become empty
-after a transition to ERROR (and CLOSING for iwarp).  Then a core service that just waits until the QP is empty.  Implementation of
-this design would hit the providers though since only they know when the flush is completed.
-
-Alternatively, I could enable post-while-in-error support in cxgb4 and ignore the spec in this regard.  But I'd rather not do that.
-:)
-
-Steve.
-
+Thanks,
+Jubin John
+>=20
+> regards
+> sudip
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
