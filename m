@@ -1,59 +1,159 @@
-From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 10/13] staging/rdma/hfi1: adding per SDMA engine stats to hfistats
-Date: Mon, 16 Nov 2015 16:33:37 -0500
-Message-ID: <20151116213335.GA9452@phlsvsds.ph.intel.com>
-References: <1447227213-15122-1-git-send-email-jubin.john@intel.com> <1447227213-15122-10-git-send-email-jubin.john@intel.com> <20151111082215.GZ18797@mwanda>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH v3] staging/rdma/hfi1: set Gen3 half-swing for integrated devices
+Date: Mon, 16 Nov 2015 17:03:49 -0500
+Message-ID: <1447711429-10389-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20151111082215.GZ18797@mwanda>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 11, 2015 at 11:22:15AM +0300, Dan Carpenter wrote:
-> On Wed, Nov 11, 2015 at 02:33:30AM -0500, Jubin John wrote:
-> > @@ -8288,6 +8367,21 @@ static int init_cntrs(struct hfi1_devdata *dd)
-> >  				dd->ndevcntrs++;
-> >  				index++;
-> >  			}
-> > +		} else if (dev_cntrs[i].flags & CNTR_SDMA) {
-> > +			hfi1_dbg_early(
-> > +				       "\tProcessing per SDE counters chip enginers %u\n",
-> > +				       dd->chip_sdma_engines);
-> > +			dev_cntrs[i].offset = index;
-> > +			for (j = 0; j < dd->chip_sdma_engines; j++) {
-> > +				memset(name, '\0', C_MAX_NAME);
-> 
-> This patch is ok, but none of the memsets in this function are needed.
-> You could remove them in a later patch.
-> 
-> > +				snprintf(name, C_MAX_NAME, "%s%d",
-> > +					 dev_cntrs[i].name, j);
-> > +				sz += strlen(name);
-> > +				sz++;
-> > +				hfi1_dbg_early("\t\t%s\n", name);
-> 
-> We're basically just trying to calculate a bunch of strlen()s but there
-> is a lot of extra code to generate debug output.  It would be better to
-> remove it in a later patch.
-> 
-> > +				dd->ndevcntrs++;
-> > +				index++;
-> > +			}
-> 
-> regards,
-> dan carpenter
+From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Hi Dan,
+Correctly set half-swing for integrated devices.  A0 needs all fields set for
+CcePcieCtrl.  B0 and later only need a few fields set.
 
-I will let this patch stand as-is and follow up with a clean up patch
-to remove the memsets and the debug code.
+Reviewed-by: Stuart Summers <john.s.summers-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Thanks,
-Jubin John 
+---
+Changes from V1:
+	Add comments concerning the very long names.
+
+Changes from V2:
+	Remove PC Macro and define short names to be used in the code.
+
+ drivers/staging/rdma/hfi1/chip_registers.h | 11 ++++
+ drivers/staging/rdma/hfi1/pcie.c           | 82 ++++++++++++++++++++++++++++--
+ 2 files changed, 89 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/staging/rdma/hfi1/chip_registers.h b/drivers/staging/rdma/hfi1/chip_registers.h
+index bf45de29d8bd..d0deb2278635 100644
+--- a/drivers/staging/rdma/hfi1/chip_registers.h
++++ b/drivers/staging/rdma/hfi1/chip_registers.h
+@@ -549,6 +549,17 @@
+ #define CCE_MSIX_TABLE_UPPER (CCE + 0x000000100008)
+ #define CCE_MSIX_TABLE_UPPER_RESETCSR 0x0000000100000000ull
+ #define CCE_MSIX_VEC_CLR_WITHOUT_INT (CCE + 0x000000110400)
++#define CCE_PCIE_CTRL (CCE + 0x0000000000C0)
++#define CCE_PCIE_CTRL_PCIE_LANE_BUNDLE_MASK 0x3ull
++#define CCE_PCIE_CTRL_PCIE_LANE_BUNDLE_SHIFT 0
++#define CCE_PCIE_CTRL_PCIE_LANE_DELAY_MASK 0xFull
++#define CCE_PCIE_CTRL_PCIE_LANE_DELAY_SHIFT 2
++#define CCE_PCIE_CTRL_XMT_MARGIN_OVERWRITE_ENABLE_SHIFT 8
++#define CCE_PCIE_CTRL_XMT_MARGIN_SHIFT 9
++#define CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_OVERWRITE_ENABLE_MASK 0x1ull
++#define CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_OVERWRITE_ENABLE_SHIFT 12
++#define CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_MASK 0x7ull
++#define CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_SHIFT 13
+ #define CCE_REVISION (CCE + 0x000000000000)
+ #define CCE_REVISION2 (CCE + 0x000000000008)
+ #define CCE_REVISION2_HFI_ID_MASK 0x1ull
+diff --git a/drivers/staging/rdma/hfi1/pcie.c b/drivers/staging/rdma/hfi1/pcie.c
+index 0b7eafb0fc70..a92ad4577cc8 100644
+--- a/drivers/staging/rdma/hfi1/pcie.c
++++ b/drivers/staging/rdma/hfi1/pcie.c
+@@ -867,6 +867,83 @@ static void arm_gasket_logic(struct hfi1_devdata *dd)
+ }
+ 
+ /*
++ * CCE_PCIE_CTRL long name helpers
++ * We redefine these shorter macros to use in the code while leaving
++ * chip_registers.h to be autogenerated from the hardware spec.
++ */
++#define LANE_BUNDLE_MASK              CCE_PCIE_CTRL_PCIE_LANE_BUNDLE_MASK
++#define LANE_BUNDLE_SHIFT             CCE_PCIE_CTRL_PCIE_LANE_BUNDLE_SHIFT
++#define LANE_DELAY_MASK               CCE_PCIE_CTRL_PCIE_LANE_DELAY_MASK
++#define LANE_DELAY_SHIFT              CCE_PCIE_CTRL_PCIE_LANE_DELAY_SHIFT
++#define MARGIN_OVERWRITE_ENABLE_SHIFT CCE_PCIE_CTRL_XMT_MARGIN_OVERWRITE_ENABLE_SHIFT
++#define MARGIN_SHIFT                  CCE_PCIE_CTRL_XMT_MARGIN_SHIFT
++#define MARGIN_G1_G2_OVERWRITE_MASK   CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_OVERWRITE_ENABLE_MASK
++#define MARGIN_G1_G2_OVERWRITE_SHIFT  CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_OVERWRITE_ENABLE_SHIFT
++#define MARGIN_GEN1_GEN2_MASK         CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_MASK
++#define MARGIN_GEN1_GEN2_SHIFT        CCE_PCIE_CTRL_XMT_MARGIN_GEN1_GEN2_SHIFT
++
++ /*
++  * Write xmt_margin for full-swing (WFR-B) or half-swing (WFR-C).
++  */
++static void write_xmt_margin(struct hfi1_devdata *dd, const char *fname)
++{
++	u64 pcie_ctrl;
++	u64 xmt_margin;
++	u64 xmt_margin_oe;
++	u64 lane_delay;
++	u64 lane_bundle;
++
++	pcie_ctrl = read_csr(dd, CCE_PCIE_CTRL);
++
++	/*
++	 * For Discrete, use full-swing.
++	 *  - PCIe TX defaults to full-swing.
++	 *    Leave this register as default.
++	 * For Integrated, use half-swing
++	 *  - Copy xmt_margin and xmt_margin_oe
++	 *    from Gen1/Gen2 to Gen3.
++	 */
++	if (dd->pcidev->device == PCI_DEVICE_ID_INTEL1) { /* integrated */
++		/* extract initial fields */
++		xmt_margin = (pcie_ctrl >> MARGIN_GEN1_GEN2_SHIFT)
++			      & MARGIN_GEN1_GEN2_MASK;
++		xmt_margin_oe = (pcie_ctrl >> MARGIN_G1_G2_OVERWRITE_SHIFT)
++				 & MARGIN_G1_G2_OVERWRITE_MASK;
++		lane_delay = (pcie_ctrl >> LANE_DELAY_SHIFT) & LANE_DELAY_MASK;
++		lane_bundle = (pcie_ctrl >> LANE_BUNDLE_SHIFT)
++			       & LANE_BUNDLE_MASK;
++
++		/*
++		 * For A0, EFUSE values are not set.  Override with the
++		 * correct values.
++		 */
++		if (is_a0(dd)) {
++			/*
++			 * xmt_margin and OverwiteEnabel should be the
++			 * same for Gen1/Gen2 and Gen3
++			 */
++			xmt_margin = 0x5;
++			xmt_margin_oe = 0x1;
++			lane_delay = 0xF; /* Delay 240ns. */
++			lane_bundle = 0x0; /* Set to 1 lane. */
++		}
++
++		/* overwrite existing values */
++		pcie_ctrl = (xmt_margin << MARGIN_GEN1_GEN2_SHIFT)
++			| (xmt_margin_oe << MARGIN_G1_G2_OVERWRITE_SHIFT)
++			| (xmt_margin << MARGIN_SHIFT)
++			| (xmt_margin_oe << MARGIN_OVERWRITE_ENABLE_SHIFT)
++			| (lane_delay << LANE_DELAY_SHIFT)
++			| (lane_bundle << LANE_BUNDLE_SHIFT);
++
++		write_csr(dd, CCE_PCIE_CTRL, pcie_ctrl);
++	}
++
++	dd_dev_info(dd, "%s: program XMT margin, CcePcieCtrl 0x%llx\n",
++		    fname, pcie_ctrl);
++}
++
++/*
+  * Do all the steps needed to transition the PCIe link to Gen3 speed.
+  */
+ int do_pcie_gen3_transition(struct hfi1_devdata *dd)
+@@ -1064,11 +1141,8 @@ retry:
+ 
+ 	/*
+ 	 * step 5d: program XMT margin
+-	 * Right now, leave the default alone.  To change, do a
+-	 * read-modify-write of:
+-	 *	CcePcieCtrl.XmtMargin
+-	 *	CcePcieCtrl.XmitMarginOverwriteEnable
+ 	 */
++	write_xmt_margin(dd, __func__);
+ 
+ 	/* step 5e: disable active state power management (ASPM) */
+ 	dd_dev_info(dd, "%s: clearing ASPM\n", __func__);
+-- 
+1.8.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
