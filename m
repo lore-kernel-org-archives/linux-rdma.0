@@ -1,42 +1,38 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Subject: Re: [PATCH for-next 06/10] iser-target: Remove unused file
  iser_proto.h
-Date: Tue, 17 Nov 2015 11:45:28 +0200
-Message-ID: <564AF738.3060103@dev.mellanox.co.il>
+Date: Tue, 17 Nov 2015 11:46:01 +0200
+Message-ID: <564AF759.1040505@dev.mellanox.co.il>
 References: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
  <1447691861-3796-7-git-send-email-sagig@mellanox.com>
- <564ADDCE.4010501@mellanox.com>
+ <20151117090046.GD19578@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <564ADDCE.4010501@mellanox.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Or Gerlitz <ogerlitz@mellanox.com>, Sagi Grimberg <sagig@mellanox.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
-Cc: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Steve Wise <swise@opengridcomputing.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151117090046.GD19578-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-On 17/11/2015 09:57, Or Gerlitz wrote:
-> On 11/16/2015 6:37 PM, Sagi Grimberg wrote:
->> -/* From iscsi_iser.h */
->> -
->> -struct iser_hdr {
->> -    u8    flags;
->> -    u8    rsvd[3];
->> -    __be32    write_stag; /* write rkey */
->> -    __be64    write_va;
->> -    __be32    read_stag;  /* read rkey */
->> -    __be64    read_va;
->> -} __packed;
->> -
->> -/*Constant PDU lengths calculations */
->> -#define ISER_HEADERS_LEN  (sizeof(struct iser_hdr) + sizeof(struct
->> iscsi_hdr))
+On 17/11/2015 11:00, Christoph Hellwig wrote:
+> Sorry for the nitpicking, but:
 >
-> move this part of the cleanup to the preceding patch, so it can be
-> reviewed and bisected into
-> regardless of this or any downstream patch of the series.
+>> +/*Constant PDU lengths calculations */
+>
+> This really needs a space before the 'C'.
+>
+>> +#define ISER_HEADERS_LEN	(sizeof(struct iser_ctrl) + sizeof(struct iscsi_hdr))
+>
+> Also fixing lines over 8- characters would be nice.
 
-You're right... will fix..
+It was just a copy-paste kinda thing...
+
+I'll fix though.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
