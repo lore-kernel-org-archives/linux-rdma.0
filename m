@@ -1,7 +1,7 @@
 From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 04/13] staging/rdma/hfi1: Remove rcv bubbles code
-Date: Mon, 16 Nov 2015 21:59:26 -0500
-Message-ID: <1447729175-28745-5-git-send-email-jubin.john@intel.com>
+Subject: [PATCH v2 09/13] staging/rdma/hfi1: Change default krcvqs
+Date: Mon, 16 Nov 2015 21:59:31 -0500
+Message-ID: <1447729175-28745-10-git-send-email-jubin.john@intel.com>
 References: <1447729175-28745-1-git-send-email-jubin.john@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1447729175-28745-1-git-send-email-jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,130 +10,28 @@ To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQ
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-Rcv bubbles were improperly calculated for HFIs, fix that here.
+Change the default number of krcvqs to number of numa nodes + 1
+based on the performance data collected.
 
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Arthur Kepner <arthur.kepner-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Ira Weiny <iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/mad.c |   64 +-------------------------------------
- 1 files changed, 2 insertions(+), 62 deletions(-)
+ drivers/staging/rdma/hfi1/chip.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/mad.c b/drivers/staging/rdma/hfi1/mad.c
-index 1baeb01..69c5d81 100644
---- a/drivers/staging/rdma/hfi1/mad.c
-+++ b/drivers/staging/rdma/hfi1/mad.c
-@@ -2271,34 +2271,8 @@ static void a0_portstatus(struct hfi1_pportdata *ppd,
- {
- 	if (!is_bx(ppd->dd)) {
- 		unsigned long vl;
--		int vfi = 0;
- 		u64 max_vl_xmit_wait = 0, tmp;
- 		u32 vl_all_mask = VL_MASK_ALL;
--		u64 rcv_data, rcv_bubble;
--
--		rcv_data = be64_to_cpu(rsp->port_rcv_data);
--		rcv_bubble = be64_to_cpu(rsp->port_rcv_bubble);
--		/* In the measured time period, calculate the total number
--		 * of flits that were received. Subtract out one false
--		 * rcv_bubble increment for every 32 received flits but
--		 * don't let the number go negative.
--		 */
--		if (rcv_bubble >= (rcv_data>>5)) {
--			rcv_bubble -= (rcv_data>>5);
--			rsp->port_rcv_bubble = cpu_to_be64(rcv_bubble);
--		}
--		for_each_set_bit(vl, (unsigned long *)&(vl_select_mask),
--				 8 * sizeof(vl_select_mask)) {
--			rcv_data = be64_to_cpu(rsp->vls[vfi].port_vl_rcv_data);
--			rcv_bubble =
--				be64_to_cpu(rsp->vls[vfi].port_vl_rcv_bubble);
--			if (rcv_bubble >= (rcv_data>>5)) {
--				rcv_bubble -= (rcv_data>>5);
--				rsp->vls[vfi].port_vl_rcv_bubble =
--							cpu_to_be64(rcv_bubble);
--			}
--			vfi++;
--		}
- 
- 		for_each_set_bit(vl, (unsigned long *)&(vl_all_mask),
- 				 8 * sizeof(vl_all_mask)) {
-@@ -2363,8 +2337,6 @@ static int pma_get_opa_portstatus(struct opa_pma_mad *pmp,
- 					  CNTR_INVALID_VL));
- 	rsp->port_rcv_data = cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_FLITS,
- 					 CNTR_INVALID_VL));
--	rsp->port_rcv_bubble =
--		cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_BBL, CNTR_INVALID_VL));
- 	rsp->port_xmit_pkts = cpu_to_be64(read_dev_cntr(dd, C_DC_XMIT_PKTS,
- 					  CNTR_INVALID_VL));
- 	rsp->port_rcv_pkts = cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_PKTS,
-@@ -2434,9 +2406,6 @@ static int pma_get_opa_portstatus(struct opa_pma_mad *pmp,
- 
- 		tmp = read_dev_cntr(dd, C_DC_RX_FLIT_VL, idx_from_vl(vl));
- 		rsp->vls[vfi].port_vl_rcv_data = cpu_to_be64(tmp);
--		rsp->vls[vfi].port_vl_rcv_bubble =
--			cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_BBL_VL,
--					idx_from_vl(vl)));
- 
- 		rsp->vls[vfi].port_vl_rcv_pkts =
- 			cpu_to_be64(read_dev_cntr(dd, C_DC_RX_PKT_VL,
-@@ -2519,32 +2488,8 @@ static void a0_datacounters(struct hfi1_devdata *dd, struct _port_dctrs *rsp,
- 	if (!is_bx(dd)) {
- 		unsigned long vl;
- 		int vfi = 0;
--		u64 rcv_data, rcv_bubble, sum_vl_xmit_wait = 0;
--
--		rcv_data = be64_to_cpu(rsp->port_rcv_data);
--		rcv_bubble = be64_to_cpu(rsp->port_rcv_bubble);
--		/* In the measured time period, calculate the total number
--		 * of flits that were received. Subtract out one false
--		 * rcv_bubble increment for every 32 received flits but
--		 * don't let the number go negative.
--		 */
--		if (rcv_bubble >= (rcv_data>>5)) {
--			rcv_bubble -= (rcv_data>>5);
--			rsp->port_rcv_bubble = cpu_to_be64(rcv_bubble);
--		}
--		for_each_set_bit(vl, (unsigned long *)&(vl_select_mask),
--				8 * sizeof(vl_select_mask)) {
--			rcv_data = be64_to_cpu(rsp->vls[vfi].port_vl_rcv_data);
--			rcv_bubble =
--				be64_to_cpu(rsp->vls[vfi].port_vl_rcv_bubble);
--			if (rcv_bubble >= (rcv_data>>5)) {
--				rcv_bubble -= (rcv_data>>5);
--				rsp->vls[vfi].port_vl_rcv_bubble =
--							cpu_to_be64(rcv_bubble);
--			}
--			vfi++;
--		}
--		vfi = 0;
-+		u64 sum_vl_xmit_wait = 0;
-+
- 		for_each_set_bit(vl, (unsigned long *)&(vl_select_mask),
- 				8 * sizeof(vl_select_mask)) {
- 			u64 tmp = sum_vl_xmit_wait +
-@@ -2635,8 +2580,6 @@ static int pma_get_opa_datacounters(struct opa_pma_mad *pmp,
- 						CNTR_INVALID_VL));
- 	rsp->port_rcv_data = cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_FLITS,
- 						CNTR_INVALID_VL));
--	rsp->port_rcv_bubble =
--		cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_BBL, CNTR_INVALID_VL));
- 	rsp->port_xmit_pkts = cpu_to_be64(read_dev_cntr(dd, C_DC_XMIT_PKTS,
- 						CNTR_INVALID_VL));
- 	rsp->port_rcv_pkts = cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_PKTS,
-@@ -2675,9 +2618,6 @@ static int pma_get_opa_datacounters(struct opa_pma_mad *pmp,
- 		rsp->vls[vfi].port_vl_rcv_data =
- 			cpu_to_be64(read_dev_cntr(dd, C_DC_RX_FLIT_VL,
- 							idx_from_vl(vl)));
--		rsp->vls[vfi].port_vl_rcv_bubble =
--			cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_BBL_VL,
--					idx_from_vl(vl)));
- 
- 		rsp->vls[vfi].port_vl_xmit_pkts =
- 			cpu_to_be64(read_port_cntr(ppd, C_TX_PKT_VL,
+diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
+index af59d23..4adf30c 100644
+--- a/drivers/staging/rdma/hfi1/chip.c
++++ b/drivers/staging/rdma/hfi1/chip.c
+@@ -9200,7 +9200,7 @@ static int set_up_context_variables(struct hfi1_devdata *dd)
+ 	if (n_krcvqs)
+ 		num_kernel_contexts = n_krcvqs + MIN_KERNEL_KCTXTS;
+ 	else
+-		num_kernel_contexts = num_online_nodes();
++		num_kernel_contexts = num_online_nodes() + 1;
+ 	num_kernel_contexts =
+ 		max_t(int, MIN_KERNEL_KCTXTS, num_kernel_contexts);
+ 	/*
 -- 
 1.7.1
 
