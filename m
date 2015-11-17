@@ -1,20 +1,24 @@
 From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH for-next 01/10] IB/iser: Fix module init not cleaning up
- on error flow
-Date: Tue, 17 Nov 2015 00:56:07 -0800
-Message-ID: <20151117085607.GA19578@infradead.org>
+Subject: Re: [PATCH for-next 02/10] IB/iser: Default to fastreg instead of fmr
+Date: Tue, 17 Nov 2015 00:57:26 -0800
+Message-ID: <20151117085726.GB19578@infradead.org>
 References: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
- <1447691861-3796-2-git-send-email-sagig@mellanox.com>
+ <1447691861-3796-3-git-send-email-sagig@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <target-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1447691861-3796-2-git-send-email-sagig@mellanox.com>
+In-Reply-To: <1447691861-3796-3-git-send-email-sagig@mellanox.com>
 Sender: target-devel-owner@vger.kernel.org
 To: Sagi Grimberg <sagig@mellanox.com>
-Cc: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Or Gerlitz <ogerlitz@mellanox.com>, Steve Wise <swise@opengridcomputing.com>, Roi Dayan <roid@mellanox.com>
+Cc: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Or Gerlitz <ogerlitz@mellanox.com>, Steve Wise <swise@opengridcomputing.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Looks good,
+> +	if (dev_attr->device_cap_flags & IB_DEVICE_MEM_MGT_EXTENSIONS) {
+> +		iser_info("FastReg supported, using FastReg for registration\n");
+> +		device->reg_ops = &fastreg_ops;
+> +	} else
+>  	if (device->ib_device->alloc_fmr && device->ib_device->dealloc_fmr &&
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Should an 'else if'.  If the line gets to long it might be time to add a
+rdma_cap_fmr() helper to ib_verbs.h
