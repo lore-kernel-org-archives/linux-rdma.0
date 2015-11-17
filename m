@@ -1,78 +1,42 @@
-From: Haggai Abramonvsky <hagaya-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libmlx5 v2 1/5] libmlx5: Add infrastructure for resource identification
-Date: Tue, 17 Nov 2015 23:52:18 +0200
-Message-ID: <1447797142-24149-2-git-send-email-hagaya@mellanox.com>
-References: <1447797142-24149-1-git-send-email-hagaya@mellanox.com>
+From: "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Subject: Re: [PATCH v2 1/7] staging/rdma/hfi1: diag.c Correct code style
+ issues
+Date: Tue, 17 Nov 2015 14:27:46 -0800
+Message-ID: <20151117222746.GA9580@kroah.com>
+References: <1447713160-24858-1-git-send-email-ira.weiny@intel.com>
+ <1447713160-24858-2-git-send-email-ira.weiny@intel.com>
+ <20151117164726.GC32098@sudip-pc>
+ <20151117203023.GA31037@phlsvsds.ph.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1447797142-24149-1-git-send-email-hagaya-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20151117203023.GA31037-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Haggai Abramovsky <hagaya-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Sudip Mukherjee <sudipm.mukherjee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Haggai Abramovsky <hagaya-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Tue, Nov 17, 2015 at 03:30:24PM -0500, ira.weiny wrote:
+> On Tue, Nov 17, 2015 at 10:17:26PM +0530, Sudip Mukherjee wrote:
+> > On Mon, Nov 16, 2015 at 05:32:34PM -0500, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> > > From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > 
+> > > Correct the checks on diag.c with the latest checkpatch
+> > > 
+> > > Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > ---
+> > 
+> > Different types of changes in a single patch.
+> 
+> Greg,
+> 
+> Do you want me to resubmit the entire series for this?
 
-Add new struct member, mlx5_resource, for each tracked object, mlx5_srq
-and mlx5_qp, to allow retrieving the object in the  poll_cq once we need
-it.
-
-Signed-off-by: Haggai Abramovsky <hagaya-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- src/mlx5.h | 18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
-
-diff --git a/src/mlx5.h b/src/mlx5.h
-index 92ef33d..d8ce908 100644
---- a/src/mlx5.h
-+++ b/src/mlx5.h
-@@ -228,6 +228,18 @@ enum mlx5_alloc_type {
- 	MLX5_ALLOC_TYPE_ALL
- };
- 
-+enum mlx5_rsc_type {
-+	MLX5_RSC_TYPE_QP,
-+	MLX5_RSC_TYPE_XSRQ,
-+	MLX5_RSC_TYPE_SRQ,
-+	MLX5_RSC_TYPE_INVAL,
-+};
-+
-+struct mlx5_resource {
-+	enum mlx5_rsc_type      type;
-+	uint32_t                rsn;
-+};
-+
- struct mlx5_device {
- 	struct verbs_device	verbs_dev;
- 	int			page_size;
-@@ -341,6 +353,7 @@ struct mlx5_cq {
- };
- 
- struct mlx5_srq {
-+	struct mlx5_resource            rsc;  /* This struct must be first */
- 	struct verbs_srq		vsrq;
- 	struct mlx5_buf			buf;
- 	struct mlx5_spinlock		lock;
-@@ -392,6 +405,7 @@ struct mlx5_mr {
- };
- 
- struct mlx5_qp {
-+	struct mlx5_resource            rsc; /* This struct must be first */
- 	struct verbs_qp			verbs_qp;
- 	struct ibv_qp			ibv_qp;
- 	struct mlx5_buf                 buf;
-@@ -491,7 +505,9 @@ static inline struct mlx5_cq *to_mcq(struct ibv_cq *ibcq)
- 
- static inline struct mlx5_srq *to_msrq(struct ibv_srq *ibsrq)
- {
--	return (struct mlx5_srq *)ibsrq;
-+	struct verbs_srq *vsrq = (struct verbs_srq *)ibsrq;
-+
-+	return container_of(vsrq, struct mlx5_srq, vsrq);
- }
- 
- static inline struct mlx5_qp *to_mqp(struct ibv_qp *ibqp)
--- 
-1.8.3.1
+Why wouldn't you?  :)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
