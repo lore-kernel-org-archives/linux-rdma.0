@@ -1,8 +1,8 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH for-next 10/10] IB/iser: Support the remote invalidation
  exception
-Date: Tue, 17 Nov 2015 10:03:52 +0200
-Message-ID: <564ADF68.1050408@mellanox.com>
+Date: Tue, 17 Nov 2015 10:05:32 +0200
+Message-ID: <564ADFCC.4030109@mellanox.com>
 References: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
  <1447691861-3796-11-git-send-email-sagig@mellanox.com>
 Mime-Version: 1.0
@@ -16,20 +16,12 @@ Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Steve
 List-Id: linux-rdma@vger.kernel.org
 
 On 11/16/2015 6:37 PM, Sagi Grimberg wrote:
->   void iser_rcv_completion(struct iser_rx_desc *rx_desc,
-> -			 unsigned long rx_xfer_len,
-> +			 struct ib_wc *wc,
->   			 struct ib_conn *ib_conn)
->   {
->   	struct iser_conn *iser_conn = container_of(ib_conn, struct iser_conn,
-> @@ -575,6 +621,7 @@ void iser_rcv_completion(struct iser_rx_desc *rx_desc,
->   	struct iscsi_hdr *hdr;
->   	u64 rx_dma;
->   	int rx_buflen, outstanding, count, err;
-> +	unsigned long rx_xfer_len = wc->byte_len;
+> +			if (iser_task->dir[ISER_DIR_IN])
+> +				reg = &iser_task->rdma_reg[ISER_DIR_IN];
+> +			else
+> +				reg = &iser_task->rdma_reg[ISER_DIR_OUT];
 
-unrelated small enhancement which has nothing to do with this patch, 
-remove it from here
+and what happens with bidirectional commands?!
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
