@@ -1,27 +1,30 @@
 From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH for-next 05/10] iser: Have initiator and target to share
- protocol structures and definitions
-Date: Tue, 17 Nov 2015 00:59:33 -0800
-Message-ID: <20151117085933.GC19578@infradead.org>
+Subject: Re: [PATCH for-next 06/10] iser-target: Remove unused file
+ iser_proto.h
+Date: Tue, 17 Nov 2015 01:00:46 -0800
+Message-ID: <20151117090046.GD19578@infradead.org>
 References: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
- <1447691861-3796-6-git-send-email-sagig@mellanox.com>
+ <1447691861-3796-7-git-send-email-sagig@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-scsi-owner@vger.kernel.org>
+Return-path: <target-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1447691861-3796-6-git-send-email-sagig@mellanox.com>
-Sender: linux-scsi-owner@vger.kernel.org
+In-Reply-To: <1447691861-3796-7-git-send-email-sagig@mellanox.com>
+Sender: target-devel-owner@vger.kernel.org
 To: Sagi Grimberg <sagig@mellanox.com>
-Cc: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Or Gerlitz <ogerlitz@mellanox.com>, Steve Wise <swise@opengridcomputing.com>, linux-scsi <linux-scsi@vger.kernel.org>
+Cc: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Or Gerlitz <ogerlitz@mellanox.com>, Steve Wise <swise@opengridcomputing.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 16, 2015 at 06:37:36PM +0200, Sagi Grimberg wrote:
-> The iser RDMA_CM negotiation protocol is shared by
-> the initiator and the target, so have a shared header
-> for the defines and structure. Move relevant items from
-> the initiator and target headers.
+Sorry for the nitpicking, but:
 
-Nice!
+> +/*Constant PDU lengths calculations */
 
-But should a header that just documents protocol constants really
-have a copyright header?
+This really needs a space before the 'C'.
+
+> +#define ISER_HEADERS_LEN	(sizeof(struct iser_ctrl) + sizeof(struct iscsi_hdr))
+
+Also fixing lines over 8- characters would be nice.
+
+Otherwise looks good:
+
+Reviewed-by: Christoph Hellwig <hch@lst.de>
