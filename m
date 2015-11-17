@@ -1,35 +1,28 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next 08/10] iser-target: Support the remote
- invalidation exception
-Date: Tue, 17 Nov 2015 12:05:55 +0200
-Message-ID: <564AFC03.8030306@mellanox.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH for-next 05/10] iser: Have initiator and target to share
+ protocol structures and definitions
+Date: Tue, 17 Nov 2015 02:07:17 -0800
+Message-ID: <20151117100717.GA32216@infradead.org>
 References: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
- <1447691861-3796-9-git-send-email-sagig@mellanox.com>
- <564AE0C6.2030203@mellanox.com> <564AF857.5090701@dev.mellanox.co.il>
+ <1447691861-3796-6-git-send-email-sagig@mellanox.com>
+ <20151117085933.GC19578@infradead.org>
+ <564AFA42.5060808@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <564AF857.5090701-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <564AFA42.5060808-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/17/2015 11:50 AM, Sagi Grimberg wrote:
->> same comment as the one I posted for the initiator patch, check for
->> IB_DEVICE_MEM_MGT_EXTENSIONS
->
-> SEND_WITH_INV doesn't have anything to do with 
-> IB_DEVICE_MEM_MGT_EXTENSIONS does it? What is the relations between
-> the device capability to do FRWR and invalidating a remote rkey? 
+On Tue, Nov 17, 2015 at 11:58:26AM +0200, Sagi Grimberg wrote:
+> I don't know... Shouldn't it?
+> 
+> I just copied include/scsi/srp.h and changed it...
 
-I am not sure.
-
-I expect you as the author and leader for this series to dig into IBTA 
-BMME annex and come with answers...
-
-Or.
+Not a major issue, it just seemed a little strange to me.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
