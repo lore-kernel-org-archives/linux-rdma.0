@@ -1,37 +1,42 @@
 From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH for-next 06/10] iser-target: Remove unused file
- iser_proto.h
-Date: Tue, 17 Nov 2015 11:46:01 +0200
-Message-ID: <564AF759.1040505@dev.mellanox.co.il>
+Subject: Re: [PATCH for-next 07/10] iser-target: Declare correct flags when
+ accepting a connection
+Date: Tue, 17 Nov 2015 11:48:56 +0200
+Message-ID: <564AF808.7010404@dev.mellanox.co.il>
 References: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
- <1447691861-3796-7-git-send-email-sagig@mellanox.com>
- <20151117090046.GD19578@infradead.org>
+ <1447691861-3796-8-git-send-email-sagig@mellanox.com>
+ <564ADE63.3030901@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151117090046.GD19578-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <564ADE63.3030901-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
+> On 11/16/2015 6:37 PM, Sagi Grimberg wrote:
+>> From: Jenny Derzhavetz<jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>
+>> iser target does not support zero based virtual addresses and
+>> send with invalidate, so it should declare that it doesn't.
+>>
+>>
+>
+> This better go to stable kernels too, however there's little ugliness
+> involved since
+> struct iser_cm_hdr doesn't exist for LIO in those kernels, thoughts?
 
-On 17/11/2015 11:00, Christoph Hellwig wrote:
-> Sorry for the nitpicking, but:
->
->> +/*Constant PDU lengths calculations */
->
-> This really needs a space before the 'C'.
->
->> +#define ISER_HEADERS_LEN	(sizeof(struct iser_ctrl) + sizeof(struct iscsi_hdr))
->
-> Also fixing lines over 8- characters would be nice.
+Umm, I think older kernels will interop just fine as the initiator
+considers rdma_cm accepts with no private data as not supporting any
+features (remote invalidate, zbva).
 
-It was just a copy-paste kinda thing...
+> did you get any complaints from probably not Linux initiators interop-ing with LIO
+> on that matter?
 
-I'll fix though.
+Nope... Have you?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
