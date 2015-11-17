@@ -1,7 +1,7 @@
 From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 07/13] staging/rdma/hfi1: rework is_a0() and is_bx()
-Date: Mon, 16 Nov 2015 21:59:29 -0500
-Message-ID: <1447729175-28745-8-git-send-email-jubin.john@intel.com>
+Subject: [PATCH v2 12/13] staging/rdma/hfi1: Read EFI variable for device description
+Date: Mon, 16 Nov 2015 21:59:34 -0500
+Message-ID: <1447729175-28745-13-git-send-email-jubin.john@intel.com>
 References: <1447729175-28745-1-git-send-email-jubin.john@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1447729175-28745-1-git-send-email-jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,273 +10,344 @@ To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQ
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The current is_bx() will incorrectly match on other steppings.
+Read an EFI variable for the device description.  Create the
+infrastructure for additional variable reads.
 
-is_a0() is removed in favor of is_ax().
-
-Reviewed-by: Mark Debbage <mark.debbage-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/chip.c     |   44 ++++++++++++++--------------------
- drivers/staging/rdma/hfi1/chip.h     |    1 -
- drivers/staging/rdma/hfi1/firmware.c |    2 +-
- drivers/staging/rdma/hfi1/hfi.h      |    4 +-
- drivers/staging/rdma/hfi1/init.c     |    2 +-
- drivers/staging/rdma/hfi1/pcie.c     |    4 +-
- 6 files changed, 24 insertions(+), 33 deletions(-)
+ drivers/staging/rdma/hfi1/Makefile |    2 +-
+ drivers/staging/rdma/hfi1/chip.c   |   38 +++++++--
+ drivers/staging/rdma/hfi1/efivar.c |  169 ++++++++++++++++++++++++++++++++++++
+ drivers/staging/rdma/hfi1/efivar.h |   60 +++++++++++++
+ 4 files changed, 260 insertions(+), 9 deletions(-)
+ create mode 100644 drivers/staging/rdma/hfi1/efivar.c
+ create mode 100644 drivers/staging/rdma/hfi1/efivar.h
 
+diff --git a/drivers/staging/rdma/hfi1/Makefile b/drivers/staging/rdma/hfi1/Makefile
+index 2e5daa6..68c5a31 100644
+--- a/drivers/staging/rdma/hfi1/Makefile
++++ b/drivers/staging/rdma/hfi1/Makefile
+@@ -7,7 +7,7 @@
+ #
+ obj-$(CONFIG_INFINIBAND_HFI1) += hfi1.o
+ 
+-hfi1-y := chip.o cq.o device.o diag.o dma.o driver.o eprom.o file_ops.o firmware.o \
++hfi1-y := chip.o cq.o device.o diag.o dma.o driver.o efivar.o eprom.o file_ops.o firmware.o \
+ 	init.o intr.o keys.o mad.o mmap.o mr.o pcie.o pio.o pio_copy.o \
+ 	qp.o qsfp.o rc.o ruc.o sdma.o srq.o sysfs.o trace.o twsi.o \
+ 	uc.o ud.o user_pages.o user_sdma.o verbs_mcast.o verbs.o
 diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index 7c58c7b..af59d23 100644
+index 812a3bf..c9a4180 100644
 --- a/drivers/staging/rdma/hfi1/chip.c
 +++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -1871,13 +1871,6 @@ static struct cntr_entry port_cntrs[PORT_CNTR_LAST] = {
+@@ -63,6 +63,7 @@
+ #include "pio.h"
+ #include "sdma.h"
+ #include "eprom.h"
++#include "efivar.h"
  
- /* ======================================================================== */
+ #define NUM_IB_PORTS 1
  
--/* return true if this is chip revision revision a0 */
--int is_a0(struct hfi1_devdata *dd)
--{
--	return ((dd->revision >> CCE_REVISION_CHIP_REV_MINOR_SHIFT)
--			& CCE_REVISION_CHIP_REV_MINOR_MASK) == 0;
--}
--
- /* return true if this is chip revision revision a */
- int is_ax(struct hfi1_devdata *dd)
- {
-@@ -1893,7 +1886,7 @@ int is_bx(struct hfi1_devdata *dd)
- 	u8 chip_rev_minor =
- 		dd->revision >> CCE_REVISION_CHIP_REV_MINOR_SHIFT
- 			& CCE_REVISION_CHIP_REV_MINOR_MASK;
--	return !!(chip_rev_minor & 0x10);
-+	return (chip_rev_minor & 0xF0) == 0x10;
+@@ -10547,6 +10548,32 @@ static void asic_should_init(struct hfi1_devdata *dd)
+ 	spin_unlock_irqrestore(&hfi1_devs_lock, flags);
  }
  
- /*
-@@ -2188,9 +2181,8 @@ static void handle_cce_err(struct hfi1_devdata *dd, u32 unused, u64 reg)
- 	dd_dev_info(dd, "CCE Error: %s\n",
- 		cce_err_status_string(buf, sizeof(buf), reg));
++/*
++ * Set dd->boardname.  Use a generic name if a name is not returned from
++ * EFI variable space.
++ *
++ * Return 0 on success, -ENOMEM if space could not be allocated.
++ */
++static int obtain_boardname(struct hfi1_devdata *dd)
++{
++	/* generic board description */
++	const char generic[] =
++		"Intel Omni-Path Host Fabric Interface Adapter 100 Series";
++	unsigned long size;
++	int ret;
++
++	ret = read_hfi1_efi_var(dd, "description", &size,
++				(void **)&dd->boardname);
++	if (ret) {
++		dd_dev_err(dd, "Board description not found\n");
++		/* use generic description */
++		dd->boardname = kstrdup(generic, GFP_KERNEL);
++		if (!dd->boardname)
++			return -ENOMEM;
++	}
++	return 0;
++}
++
+ /**
+  * Allocate and initialize the device structure for the hfi.
+  * @dev: the pci_dev for hfi1_ib device
+@@ -10744,18 +10771,13 @@ struct hfi1_devdata *hfi1_init_dd(struct pci_dev *pdev,
  
--	if ((reg & CCE_ERR_STATUS_CCE_CLI2_ASYNC_FIFO_PARITY_ERR_SMASK)
--			&& is_a0(dd)
--			&& (dd->icode != ICODE_FUNCTIONAL_SIMULATOR)) {
-+	if ((reg & CCE_ERR_STATUS_CCE_CLI2_ASYNC_FIFO_PARITY_ERR_SMASK) &&
-+	    is_ax(dd) && (dd->icode != ICODE_FUNCTIONAL_SIMULATOR)) {
- 		/* this error requires a manual drop into SPC freeze mode */
- 		/* then a fix up */
- 		start_freeze_handling(dd->pport, FREEZE_SELF);
-@@ -2250,7 +2242,7 @@ static void handle_rxe_err(struct hfi1_devdata *dd, u32 unused, u64 reg)
- 		 * Freeze mode recovery is disabled for the errors
- 		 * in RXE_FREEZE_ABORT_MASK
- 		 */
--		if (is_a0(dd) && (reg & RXE_FREEZE_ABORT_MASK))
-+		if (is_ax(dd) && (reg & RXE_FREEZE_ABORT_MASK))
- 			flags = FREEZE_ABORT;
+ 	parse_platform_config(dd);
  
- 		start_freeze_handling(dd->pport, flags);
-@@ -2353,7 +2345,7 @@ static void handle_egress_err(struct hfi1_devdata *dd, u32 unused, u64 reg)
+-	/* add board names as they are defined */
+-	dd->boardname = kmalloc(64, GFP_KERNEL);
+-	if (!dd->boardname)
++	ret = obtain_boardname(dd);
++	if (ret)
+ 		goto bail_cleanup;
+-	snprintf(dd->boardname, 64, "Board ID 0x%llx",
+-		 dd->revision >> CCE_REVISION_BOARD_ID_LOWER_NIBBLE_SHIFT
+-		    & CCE_REVISION_BOARD_ID_LOWER_NIBBLE_MASK);
  
- 	if (reg & ALL_TXE_EGRESS_FREEZE_ERR)
- 		start_freeze_handling(dd->pport, 0);
--	if (is_a0(dd) && (reg &
-+	if (is_ax(dd) && (reg &
- 		    SEND_EGRESS_ERR_STATUS_TX_CREDIT_RETURN_VL_ERR_SMASK)
- 		    && (dd->icode != ICODE_FUNCTIONAL_SIMULATOR))
- 		start_freeze_handling(dd->pport, 0);
-@@ -3048,7 +3040,7 @@ static void adjust_lcb_for_fpga_serdes(struct hfi1_devdata *dd)
- 	/* else this is _p */
- 
- 	version = emulator_rev(dd);
--	if (!is_a0(dd))
-+	if (!is_ax(dd))
- 		version = 0x2d;	/* all B0 use 0x2d or higher settings */
- 
- 	if (version <= 0x12) {
-@@ -3334,7 +3326,7 @@ void handle_freeze(struct work_struct *work)
- 	write_csr(dd, CCE_CTRL, CCE_CTRL_SPC_UNFREEZE_SMASK);
- 	wait_for_freeze_status(dd, 0);
- 
--	if (is_a0(dd)) {
-+	if (is_ax(dd)) {
- 		write_csr(dd, CCE_CTRL, CCE_CTRL_SPC_FREEZE_SMASK);
- 		wait_for_freeze_status(dd, 1);
- 		write_csr(dd, CCE_CTRL, CCE_CTRL_SPC_UNFREEZE_SMASK);
-@@ -3862,7 +3854,7 @@ void handle_verify_cap(struct work_struct *work)
- 	 *	REPLAY_BUF_MBE_SMASK
- 	 *	FLIT_INPUT_BUF_MBE_SMASK
- 	 */
--	if (is_a0(dd)) {			/* fixed in B0 */
-+	if (is_ax(dd)) {			/* fixed in B0 */
- 		reg = read_csr(dd, DC_LCB_CFG_LINK_KILL_EN);
- 		reg |= DC_LCB_CFG_LINK_KILL_EN_REPLAY_BUF_MBE_SMASK
- 			| DC_LCB_CFG_LINK_KILL_EN_FLIT_INPUT_BUF_MBE_SMASK;
-@@ -7329,8 +7321,8 @@ static int set_buffer_control(struct hfi1_devdata *dd,
- 	 */
- 	use_all_mask = 0;
- 	if ((be16_to_cpu(new_bc->overall_shared_limit) <
--				be16_to_cpu(cur_bc.overall_shared_limit))
--			|| (is_a0(dd) && any_shared_limit_changing)) {
-+	     be16_to_cpu(cur_bc.overall_shared_limit)) ||
-+	    (is_ax(dd) && any_shared_limit_changing)) {
- 		set_global_shared(dd, 0);
- 		cur_bc.overall_shared_limit = 0;
- 		use_all_mask = 1;
-@@ -7504,7 +7496,7 @@ int fm_set_table(struct hfi1_pportdata *ppd, int which, void *t)
-  */
- static int disable_data_vls(struct hfi1_devdata *dd)
- {
--	if (is_a0(dd))
-+	if (is_ax(dd))
- 		return 1;
- 
- 	pio_send_control(dd, PSC_DATA_VL_DISABLE);
-@@ -7522,7 +7514,7 @@ static int disable_data_vls(struct hfi1_devdata *dd)
-  */
- int open_fill_data_vls(struct hfi1_devdata *dd)
- {
--	if (is_a0(dd))
-+	if (is_ax(dd))
- 		return 1;
- 
- 	pio_send_control(dd, PSC_DATA_VL_ENABLE);
-@@ -9947,7 +9939,7 @@ static void init_chip(struct hfi1_devdata *dd)
- 		/* restore command and BARs */
- 		restore_pci_variables(dd);
- 
--		if (is_a0(dd)) {
-+		if (is_ax(dd)) {
- 			dd_dev_info(dd, "Resetting CSRs with FLR\n");
- 			hfi1_pcie_flr(dd);
- 			restore_pci_variables(dd);
-@@ -9966,7 +9958,7 @@ static void init_chip(struct hfi1_devdata *dd)
- 	write_csr(dd, CCE_DC_CTRL, 0);
- 
- 	/* Set the LED off */
--	if (is_a0(dd))
-+	if (is_ax(dd))
- 		setextled(dd, 0);
- 	/*
- 	 * Clear the QSFP reset.
-@@ -9989,7 +9981,7 @@ static void init_early_variables(struct hfi1_devdata *dd)
- 	/* assign link credit variables */
- 	dd->vau = CM_VAU;
- 	dd->link_credits = CM_GLOBAL_CREDITS;
--	if (is_a0(dd))
-+	if (is_ax(dd))
- 		dd->link_credits--;
- 	dd->vcu = cu_to_vcu(hfi1_cu);
- 	/* enough room for 8 MAD packets plus header - 17K */
-@@ -10103,7 +10095,7 @@ static void init_qos(struct hfi1_devdata *dd, u32 first_ctxt)
- 	unsigned qpns_per_vl, ctxt, i, qpn, n = 1, m;
- 	u64 *rsmmap;
- 	u64 reg;
--	u8  rxcontext = is_a0(dd) ? 0 : 0xff;  /* 0 is default if a0 ver. */
-+	u8  rxcontext = is_ax(dd) ? 0 : 0xff;  /* 0 is default if a0 ver. */
- 
- 	/* validate */
- 	if (dd->n_krcv_queues <= MIN_KERNEL_KCTXTS ||
-@@ -10314,7 +10306,7 @@ int hfi1_set_ctxt_jkey(struct hfi1_devdata *dd, unsigned ctxt, u16 jkey)
- 	 * Enable send-side J_KEY integrity check, unless this is A0 h/w
- 	 * (due to A0 erratum).
- 	 */
--	if (!is_a0(dd)) {
-+	if (!is_ax(dd)) {
- 		reg = read_kctxt_csr(dd, sctxt, SEND_CTXT_CHECK_ENABLE);
- 		reg |= SEND_CTXT_CHECK_ENABLE_CHECK_JOB_KEY_SMASK;
- 		write_kctxt_csr(dd, sctxt, SEND_CTXT_CHECK_ENABLE, reg);
-@@ -10347,7 +10339,7 @@ int hfi1_clear_ctxt_jkey(struct hfi1_devdata *dd, unsigned ctxt)
- 	 * This check would not have been enabled for A0 h/w, see
- 	 * set_ctxt_jkey().
- 	 */
--	if (!is_a0(dd)) {
-+	if (!is_ax(dd)) {
- 		reg = read_kctxt_csr(dd, sctxt, SEND_CTXT_CHECK_ENABLE);
- 		reg &= ~SEND_CTXT_CHECK_ENABLE_CHECK_JOB_KEY_SMASK;
- 		write_kctxt_csr(dd, sctxt, SEND_CTXT_CHECK_ENABLE, reg);
-diff --git a/drivers/staging/rdma/hfi1/chip.h b/drivers/staging/rdma/hfi1/chip.h
-index d7f3f81..05d90ce 100644
---- a/drivers/staging/rdma/hfi1/chip.h
-+++ b/drivers/staging/rdma/hfi1/chip.h
-@@ -664,7 +664,6 @@ void get_linkup_link_widths(struct hfi1_pportdata *ppd);
- void read_ltp_rtt(struct hfi1_devdata *dd);
- void clear_linkup_counters(struct hfi1_devdata *dd);
- u32 hdrqempty(struct hfi1_ctxtdata *rcd);
--int is_a0(struct hfi1_devdata *dd);
- int is_ax(struct hfi1_devdata *dd);
- int is_bx(struct hfi1_devdata *dd);
- u32 read_physical_state(struct hfi1_devdata *dd);
-diff --git a/drivers/staging/rdma/hfi1/firmware.c b/drivers/staging/rdma/hfi1/firmware.c
-index f311282..938b97c 100644
---- a/drivers/staging/rdma/hfi1/firmware.c
-+++ b/drivers/staging/rdma/hfi1/firmware.c
-@@ -951,7 +951,7 @@ void sbus_request(struct hfi1_devdata *dd,
- static void turn_off_spicos(struct hfi1_devdata *dd, int flags)
- {
- 	/* only needed on A0 */
--	if (!is_a0(dd))
-+	if (!is_ax(dd))
- 		return;
- 
- 	dd_dev_info(dd, "Turning off spicos:%s%s\n",
-diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
-index 488aa34..fe751bb 100644
---- a/drivers/staging/rdma/hfi1/hfi.h
-+++ b/drivers/staging/rdma/hfi1/hfi.h
-@@ -1687,7 +1687,7 @@ static inline u64 hfi1_pkt_default_send_ctxt_mask(struct hfi1_devdata *dd,
- 	else
- 		base_sc_integrity |= HFI1_PKT_KERNEL_SC_INTEGRITY;
- 
--	if (is_a0(dd))
-+	if (is_ax(dd))
- 		/* turn off send-side job key checks - A0 erratum */
- 		return base_sc_integrity &
- 		       ~SEND_CTXT_CHECK_ENABLE_CHECK_JOB_KEY_SMASK;
-@@ -1714,7 +1714,7 @@ static inline u64 hfi1_pkt_base_sdma_integrity(struct hfi1_devdata *dd)
- 	| SEND_DMA_CHECK_ENABLE_CHECK_VL_SMASK
- 	| SEND_DMA_CHECK_ENABLE_CHECK_ENABLE_SMASK;
- 
--	if (is_a0(dd))
-+	if (is_ax(dd))
- 		/* turn off send-side job key checks - A0 erratum */
- 		return base_sdma_integrity &
- 		       ~SEND_DMA_CHECK_ENABLE_CHECK_JOB_KEY_SMASK;
-diff --git a/drivers/staging/rdma/hfi1/init.c b/drivers/staging/rdma/hfi1/init.c
-index 5fdd9dd..3f5a409 100644
---- a/drivers/staging/rdma/hfi1/init.c
-+++ b/drivers/staging/rdma/hfi1/init.c
-@@ -672,7 +672,7 @@ int hfi1_init(struct hfi1_devdata *dd, int reinit)
- 	dd->process_dma_send = hfi1_verbs_send_dma;
- 	dd->pio_inline_send = pio_copy;
- 
--	if (is_a0(dd)) {
-+	if (is_ax(dd)) {
- 		atomic_set(&dd->drop_packet, DROP_PACKET_ON);
- 		dd->do_drop = 1;
- 	} else {
-diff --git a/drivers/staging/rdma/hfi1/pcie.c b/drivers/staging/rdma/hfi1/pcie.c
-index 0b7eafb..8317b07 100644
---- a/drivers/staging/rdma/hfi1/pcie.c
-+++ b/drivers/staging/rdma/hfi1/pcie.c
-@@ -917,7 +917,7 @@ int do_pcie_gen3_transition(struct hfi1_devdata *dd)
- 	/*
- 	 * A0 needs an additional SBR
- 	 */
--	if (is_a0(dd))
-+	if (is_ax(dd))
- 		nsbr++;
- 
- 	/*
-@@ -1193,7 +1193,7 @@ retry:
- 	write_csr(dd, CCE_DC_CTRL, 0);
- 
- 	/* Set the LED off */
--	if (is_a0(dd))
-+	if (is_ax(dd))
- 		setextled(dd, 0);
- 
- 	/* check for any per-lane errors */
+ 	snprintf(dd->boardversion, BOARD_VERS_MAX,
+-		 "ChipABI %u.%u, %s, ChipRev %u.%u, SW Compat %llu\n",
++		 "ChipABI %u.%u, ChipRev %u.%u, SW Compat %llu\n",
+ 		 HFI1_CHIP_VERS_MAJ, HFI1_CHIP_VERS_MIN,
+-		 dd->boardname,
+ 		 (u32)dd->majrev,
+ 		 (u32)dd->minrev,
+ 		 (dd->revision >> CCE_REVISION_SW_SHIFT)
+diff --git a/drivers/staging/rdma/hfi1/efivar.c b/drivers/staging/rdma/hfi1/efivar.c
+new file mode 100644
+index 0000000..7dc5bae
+--- /dev/null
++++ b/drivers/staging/rdma/hfi1/efivar.c
+@@ -0,0 +1,169 @@
++/*
++ *
++ * This file is provided under a dual BSD/GPLv2 license.  When using or
++ * redistributing this file, you may do so under either license.
++ *
++ * GPL LICENSE SUMMARY
++ *
++ * Copyright(c) 2015 Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * BSD LICENSE
++ *
++ * Copyright(c) 2015 Intel Corporation.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ *  - Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ *  - Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *  - Neither the name of Intel Corporation nor the names of its
++ *    contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ */
++
++#include "efivar.h"
++
++/* GUID for HFI1 variables in EFI */
++#define HFI1_EFIVAR_GUID EFI_GUID(0xc50a953e, 0xa8b2, 0x42a6, \
++		0xbf, 0x89, 0xd3, 0x33, 0xa6, 0xe9, 0xe6, 0xd4)
++/* largest EFI data size we expect */
++#define EFI_DATA_SIZE 4096
++
++/*
++ * Read the named EFI variable.  Return the size of the actual data in *size
++ * and a kmalloc'ed buffer in *return_data.  The caller must free the
++ * data.  It is guaranteed that *return_data will be NULL and *size = 0
++ * if this routine fails.
++ *
++ * Return 0 on success, -errno on failure.
++ */
++static int read_efi_var(const char *name, unsigned long *size,
++			void **return_data)
++{
++	efi_status_t status;
++	efi_char16_t *uni_name;
++	efi_guid_t guid;
++	unsigned long temp_size;
++	void *temp_buffer;
++	void *data;
++	int i;
++	int ret;
++
++	/* set failure return values */
++	*size = 0;
++	*return_data = NULL;
++
++	if (!efi_enabled(EFI_RUNTIME_SERVICES))
++		return -EOPNOTSUPP;
++
++	uni_name = kzalloc(sizeof(efi_char16_t) * (strlen(name) + 1),
++			   GFP_KERNEL);
++	temp_buffer = kzalloc(EFI_DATA_SIZE, GFP_KERNEL);
++
++	if (!uni_name || !temp_buffer) {
++		ret = -ENOMEM;
++		goto fail;
++	}
++
++	/* input: the size of the buffer */
++	temp_size = EFI_DATA_SIZE;
++
++	/* convert ASCII to unicode - it is a 1:1 mapping */
++	for (i = 0; name[i]; i++)
++		uni_name[i] = name[i];
++
++	/* need a variable for our GUID */
++	guid = HFI1_EFIVAR_GUID;
++
++	/* call into EFI runtime services */
++	status = efi.get_variable(
++			uni_name,
++			&guid,
++			NULL,
++			&temp_size,
++			temp_buffer);
++
++	/*
++	 * It would be nice to call efi_status_to_err() here, but that
++	 * is in the EFIVAR_FS code and may not be compiled in.
++	 * However, even that is insufficient since it does not cover
++	 * EFI_BUFFER_TOO_SMALL which could be an important return.
++	 * For now, just split out succces or not found.
++	 */
++	ret = status == EFI_SUCCESS   ? 0 :
++	      status == EFI_NOT_FOUND ? -ENOENT :
++					-EINVAL;
++	if (ret)
++		goto fail;
++
++	/*
++	 * We have successfully read the EFI variable into our
++	 * temporary buffer.  Now allocate a correctly sized
++	 * buffer.
++	 */
++	data = kmalloc(temp_size, GFP_KERNEL);
++	if (!data) {
++		ret = -ENOMEM;
++		goto fail;
++	}
++
++	memcpy(data, temp_buffer, temp_size);
++	*size = temp_size;
++	*return_data = data;
++
++fail:
++	kfree(uni_name);
++	kfree(temp_buffer);
++
++	return ret;
++}
++
++/*
++ * Read an HFI1 EFI variable of the form:
++ *	<PCIe address>-<kind>
++ * Return an kalloc'ed array and size of the data.
++ *
++ * Returns 0 on success, -errno on failure.
++ */
++int read_hfi1_efi_var(struct hfi1_devdata *dd, const char *kind,
++		      unsigned long *size, void **return_data)
++{
++	char name[64];
++
++	/* create a common prefix */
++	snprintf(name, sizeof(name), "%04x:%02x:%02x.%x-%s",
++		 pci_domain_nr(dd->pcidev->bus),
++		 dd->pcidev->bus->number,
++		 PCI_SLOT(dd->pcidev->devfn),
++		 PCI_FUNC(dd->pcidev->devfn),
++		 kind);
++
++	return read_efi_var(name, size, return_data);
++}
+diff --git a/drivers/staging/rdma/hfi1/efivar.h b/drivers/staging/rdma/hfi1/efivar.h
+new file mode 100644
+index 0000000..0707062
+--- /dev/null
++++ b/drivers/staging/rdma/hfi1/efivar.h
+@@ -0,0 +1,60 @@
++/*
++ *
++ * This file is provided under a dual BSD/GPLv2 license.  When using or
++ * redistributing this file, you may do so under either license.
++ *
++ * GPL LICENSE SUMMARY
++ *
++ * Copyright(c) 2015 Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * BSD LICENSE
++ *
++ * Copyright(c) 2015 Intel Corporation.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ *  - Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ *  - Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *  - Neither the name of Intel Corporation nor the names of its
++ *    contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ */
++#ifndef _HFI1_EFIVAR_H
++#define _HFI1_EFIVAR_H
++
++#include <linux/efi.h>
++
++#include "hfi.h"
++
++int read_hfi1_efi_var(struct hfi1_devdata *dd, const char *kind,
++		      unsigned long *size, void **return_data);
++
++#endif /* _HFI1_EFIVAR_H */
 -- 
 1.7.1
 
