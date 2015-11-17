@@ -1,38 +1,25 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH for-next 03/10] IB/iser: Don't register memory for all
- immediatedata writes
-Date: Tue, 17 Nov 2015 12:15:16 +0200
-Message-ID: <564AFE34.5090500@dev.mellanox.co.il>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH for-next 10/10] IB/iser: Support the remote invalidation
+ exception
+Date: Tue, 17 Nov 2015 02:15:55 -0800
+Message-ID: <20151117101555.GB2569@infradead.org>
 References: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
- <1447691861-3796-4-git-send-email-sagig@mellanox.com>
- <564ADB7D.20806@mellanox.com> <564AF653.6060401@dev.mellanox.co.il>
- <564AFD4A.4030300@mellanox.com>
+ <1447691861-3796-11-git-send-email-sagig@mellanox.com>
+ <564ADFCC.4030109@mellanox.com>
+ <564AF929.60209@dev.mellanox.co.il>
+ <564AFB93.9010602@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <564AFD4A.4030300-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <target-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <564AFB93.9010602@mellanox.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Or Gerlitz <ogerlitz@mellanox.com>
+Cc: Sagi Grimberg <sagig@dev.mellanox.co.il>, Sagi Grimberg <sagig@mellanox.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Steve Wise <swise@opengridcomputing.com>, Jenny Derzhavetz <jennyf@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Nov 17, 2015 at 12:04:03PM +0200, Or Gerlitz wrote:
+> Also, do we refuse to queuecommand a bidi? where?
 
->> It's because device->mr might not be allocated at all if
->> always_register=Y, however in this case for all-immediatedata writes
->> I don't need memory registration and I can use pd->local_dma_lkey.
->>
->> This hunk prevents a NULL dereference (as I mentioned, device->mr might
->> not be allocated at all).
->
-> I am not sure to follow, but can't you put this fix into a separate
-> patch to make things more clearer?
-
-I don't know how to split this patch any further. Before this patch in
-case always_register=Y we *always registered* and never allocated the
-global mr. This patch allows us not to do it ifor all-immediatedata
-writes. So in order not to hit a NULL deref we use this conditional.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Or, can you please do the basic research first?  Thanks! (Hint: check
+how few drivers support bidi commands, and how it's enabled)
