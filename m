@@ -1,7 +1,7 @@
 From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 09/13] staging/rdma/hfi1: Change default krcvqs
-Date: Mon, 16 Nov 2015 21:59:31 -0500
-Message-ID: <1447729175-28745-10-git-send-email-jubin.john@intel.com>
+Subject: [PATCH v2 06/13] staging/rdma/hfi1: Move s_sde to the read mostly portion of the hfi1_qp structure
+Date: Mon, 16 Nov 2015 21:59:28 -0500
+Message-ID: <1447729175-28745-7-git-send-email-jubin.john@intel.com>
 References: <1447729175-28745-1-git-send-email-jubin.john@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1447729175-28745-1-git-send-email-jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,28 +10,39 @@ To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQ
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Change the default number of krcvqs to number of numa nodes + 1
-based on the performance data collected.
+From: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+This would reduce L2 cache misses on s_sde in the _hfi1_schedule_send
+function when invoked from post_send thereby improving performance of
+post_send.
 
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/chip.c |    2 +-
+ drivers/staging/rdma/hfi1/verbs.h |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index af59d23..4adf30c 100644
---- a/drivers/staging/rdma/hfi1/chip.c
-+++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -9200,7 +9200,7 @@ static int set_up_context_variables(struct hfi1_devdata *dd)
- 	if (n_krcvqs)
- 		num_kernel_contexts = n_krcvqs + MIN_KERNEL_KCTXTS;
- 	else
--		num_kernel_contexts = num_online_nodes();
-+		num_kernel_contexts = num_online_nodes() + 1;
- 	num_kernel_contexts =
- 		max_t(int, MIN_KERNEL_KCTXTS, num_kernel_contexts);
- 	/*
+diff --git a/drivers/staging/rdma/hfi1/verbs.h b/drivers/staging/rdma/hfi1/verbs.h
+index 600bd1b..638094d 100644
+--- a/drivers/staging/rdma/hfi1/verbs.h
++++ b/drivers/staging/rdma/hfi1/verbs.h
+@@ -441,6 +441,7 @@ struct hfi1_qp {
+ 	struct hfi1_swqe *s_wq;  /* send work queue */
+ 	struct hfi1_mmap_info *ip;
+ 	struct ahg_ib_header *s_hdr;     /* next packet header to send */
++	struct sdma_engine *s_sde; /* current sde */
+ 	u8 s_sc;			/* SC[0..4] for next packet */
+ 	unsigned long timeout_jiffies;  /* computed from timeout */
+ 
+@@ -504,7 +505,6 @@ struct hfi1_qp {
+ 	struct hfi1_swqe *s_wqe;
+ 	struct hfi1_sge_state s_sge;     /* current send request data */
+ 	struct hfi1_mregion *s_rdma_mr;
+-	struct sdma_engine *s_sde; /* current sde */
+ 	u32 s_cur_size;         /* size of send packet in bytes */
+ 	u32 s_len;              /* total length of s_sge */
+ 	u32 s_rdma_read_len;    /* total length of s_rdma_read_sge */
 -- 
 1.7.1
 
