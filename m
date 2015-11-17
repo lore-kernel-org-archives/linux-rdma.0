@@ -1,39 +1,27 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH for-next 05/10] iser: Have initiator and target to share
- protocol structures and definitions
-Date: Tue, 17 Nov 2015 11:58:26 +0200
-Message-ID: <564AFA42.5060808@dev.mellanox.co.il>
+From: Or Gerlitz <ogerlitz@mellanox.com>
+Subject: Re: [PATCH for-next 10/10] IB/iser: Support the remote invalidation
+ exception
+Date: Tue, 17 Nov 2015 12:04:03 +0200
+Message-ID: <564AFB93.9010602@mellanox.com>
 References: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
- <1447691861-3796-6-git-send-email-sagig@mellanox.com>
- <20151117085933.GC19578@infradead.org>
+ <1447691861-3796-11-git-send-email-sagig@mellanox.com>
+ <564ADFCC.4030109@mellanox.com> <564AF929.60209@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151117085933.GC19578-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <564AF929.60209@dev.mellanox.co.il>
+Sender: target-devel-owner@vger.kernel.org
+To: Sagi Grimberg <sagig@dev.mellanox.co.il>, Sagi Grimberg <sagig@mellanox.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+Cc: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Steve Wise <swise@opengridcomputing.com>, Jenny Derzhavetz <jennyf@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
+On 11/17/2015 11:53 AM, Sagi Grimberg wrote:
+> [...] iSER lacks support for bidirectional commands for as long as I'm 
+> involved with it 
 
 
-On 17/11/2015 10:59, Christoph Hellwig wrote:
-> On Mon, Nov 16, 2015 at 06:37:36PM +0200, Sagi Grimberg wrote:
->> The iser RDMA_CM negotiation protocol is shared by
->> the initiator and the target, so have a shared header
->> for the defines and structure. Move relevant items from
->> the initiator and target headers.
->
-> Nice!
->
-> But should a header that just documents protocol constants really
-> have a copyright header?
+Why? we don't support and when did we broke it after the initial 2.6.18 
+upstreaming of the driver
 
-I don't know... Shouldn't it?
-
-I just copied include/scsi/srp.h and changed it...
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Also, do we refuse to queuecommand a bidi? where?
