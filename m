@@ -1,34 +1,38 @@
-From: Or Gerlitz <ogerlitz@mellanox.com>
-Subject: Re: [PATCH for-next 02/10] IB/iser: Default to fastreg instead of fmr
-Date: Tue, 17 Nov 2015 12:09:26 +0200
-Message-ID: <564AFCD6.309@mellanox.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next 03/10] IB/iser: Don't register memory for all
+ immediatedata writes
+Date: Tue, 17 Nov 2015 12:11:22 +0200
+Message-ID: <564AFD4A.4030300@mellanox.com>
 References: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
- <1447691861-3796-3-git-send-email-sagig@mellanox.com>
- <564ADA1C.4090905@mellanox.com> <564AF4CB.9060302@dev.mellanox.co.il>
+ <1447691861-3796-4-git-send-email-sagig@mellanox.com>
+ <564ADB7D.20806@mellanox.com> <564AF653.6060401@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <564AF4CB.9060302@dev.mellanox.co.il>
-Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@dev.mellanox.co.il>, Sagi Grimberg <sagig@mellanox.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
-Cc: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Steve Wise <swise@opengridcomputing.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <564AF653.6060401-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/17/2015 11:35 AM, Sagi Grimberg wrote:
->> On 11/16/2015 6:37 PM, Sagi Grimberg wrote:
->>> This is a pre-step before adding remote invalidate support.
->>
->> Wouldn't that introduce performance regression on ConnectX3 devices?
+On 11/17/2015 11:41 AM, Sagi Grimberg wrote:
 >
-> With remote invalidate it shouldn't make much of a difference. 
+>> what's the role of this hunk? why it belongs here? you are testing
+>> device->mr but this is something global and has nothing to do 
+>> specially with specific IOs for
+>> which this patch aims to act
+>
+> It's because device->mr might not be allocated at all if
+> always_register=Y, however in this case for all-immediatedata writes
+> I don't need memory registration and I can use pd->local_dma_lkey.
+>
+> This hunk prevents a NULL dereference (as I mentioned, device->mr might
+> not be allocated at all). 
 
-Why? the invalidate is just one part of the story, we are doing a 
-mapping on IO submission
-and CX3 has strong ordering on FRWRs, right?
-
-> Plus, I'd really like us to start phasing out from FMRs... 
-
-We should make sure not to introduce performance regression for HW which 
-has
-such a big existing install base and is well selling in 2015/16
+I am not sure to follow, but can't you put this fix into a separate 
+patch to make things more clearer?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
