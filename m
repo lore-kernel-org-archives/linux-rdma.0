@@ -1,37 +1,37 @@
-From: Or Gerlitz <ogerlitz@mellanox.com>
-Subject: Re: [PATCH for-next 06/10] iser-target: Remove unused file
- iser_proto.h
-Date: Tue, 17 Nov 2015 09:57:02 +0200
-Message-ID: <564ADDCE.4010501@mellanox.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next 07/10] iser-target: Declare correct flags when
+ accepting a connection
+Date: Tue, 17 Nov 2015 09:59:31 +0200
+Message-ID: <564ADE63.3030901@mellanox.com>
 References: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
- <1447691861-3796-7-git-send-email-sagig@mellanox.com>
+ <1447691861-3796-8-git-send-email-sagig@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1447691861-3796-7-git-send-email-sagig@mellanox.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@mellanox.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
-Cc: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Steve Wise <swise@opengridcomputing.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1447691861-3796-8-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 On 11/16/2015 6:37 PM, Sagi Grimberg wrote:
-> -/* From iscsi_iser.h */
-> -
-> -struct iser_hdr {
-> -	u8	flags;
-> -	u8	rsvd[3];
-> -	__be32	write_stag; /* write rkey */
-> -	__be64	write_va;
-> -	__be32	read_stag;  /* read rkey */
-> -	__be64	read_va;
-> -} __packed;
-> -
-> -/*Constant PDU lengths calculations */
-> -#define ISER_HEADERS_LEN  (sizeof(struct iser_hdr) + sizeof(struct iscsi_hdr))
+> From: Jenny Derzhavetz<jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>
+> iser target does not support zero based virtual addresses and
+> send with invalidate, so it should declare that it doesn't.
+>
+>
 
-move this part of the cleanup to the preceding patch, so it can be 
-reviewed and bisected into
-regardless of this or any downstream patch of the series.
+This better go to stable kernels too, however there's little ugliness 
+involved since
+struct iser_cm_hdr doesn't exist for LIO in those kernels, thoughts? did 
+you get
+any complaints from probably not Linux initiators interop-ing with LIO 
+on that matter?
 
 Or.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
