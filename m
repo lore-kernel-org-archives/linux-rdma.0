@@ -1,30 +1,29 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [PATCH for-next 02/10] IB/iser: Default to fastreg instead of fmr
-Date: Tue, 17 Nov 2015 12:46:14 +0200
-Message-ID: <564B0576.4060300@dev.mellanox.co.il>
-References: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
- <1447691861-3796-3-git-send-email-sagig@mellanox.com>
- <564ADA1C.4090905@mellanox.com> <564AF4CB.9060302@dev.mellanox.co.il>
- <564AFCD6.309@mellanox.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/ipoib: Change sendq threshold size
+Date: Tue, 17 Nov 2015 17:02:44 +0200
+Message-ID: <20151117150243.GC2432@yuval-lab>
+References: <1447700076-795-1-git-send-email-yuval.shaia@oracle.com>
+ <564AE125.4030700@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <564AFCD6.309@mellanox.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Or Gerlitz <ogerlitz@mellanox.com>, Sagi Grimberg <sagig@mellanox.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
-Cc: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Steve Wise <swise@opengridcomputing.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <564AE125.4030700-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-> Why? the invalidate is just one part of the story, we are doing a
-> mapping on IO submission
-> and CX3 has strong ordering on FRWRs, right?
-
-Yes, this is correct.
-We'll test on CX3 to see if this introduces a regression.
-
-> We should make sure not to introduce performance regression for HW which
-> has such a big existing install base and is well selling in 2015/16
-
-You are right.
+On Tue, Nov 17, 2015 at 10:11:17AM +0200, Or Gerlitz wrote:
+> On 11/16/2015 8:54 PM, Yuval Shaia wrote:
+> >-	    test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags))
+> >+	    likely(test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags)))
+> 
+> this hunk has nothing to do with the proposed change, remove it from here.
+np
+> 
+> upstream patches should have one logical change,
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
