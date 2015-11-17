@@ -1,35 +1,37 @@
 From: Or Gerlitz <ogerlitz@mellanox.com>
-Subject: Re: [PATCH for-next 03/10] IB/iser: Don't register memory for all
- immediatedata writes
-Date: Tue, 17 Nov 2015 09:47:09 +0200
-Message-ID: <564ADB7D.20806@mellanox.com>
+Subject: Re: [PATCH for-next 06/10] iser-target: Remove unused file
+ iser_proto.h
+Date: Tue, 17 Nov 2015 09:57:02 +0200
+Message-ID: <564ADDCE.4010501@mellanox.com>
 References: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
- <1447691861-3796-4-git-send-email-sagig@mellanox.com>
+ <1447691861-3796-7-git-send-email-sagig@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1447691861-3796-4-git-send-email-sagig@mellanox.com>
+In-Reply-To: <1447691861-3796-7-git-send-email-sagig@mellanox.com>
 Sender: target-devel-owner@vger.kernel.org
 To: Sagi Grimberg <sagig@mellanox.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
-Cc: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Steve Wise <swise@opengridcomputing.com>, Jenny Derzhavetz <jennyf@mellanox.com>
+Cc: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Steve Wise <swise@opengridcomputing.com>
 List-Id: linux-rdma@vger.kernel.org
 
 On 11/16/2015 6:37 PM, Sagi Grimberg wrote:
-> --- a/drivers/infiniband/ulp/iser/iser_memory.c
-> +++ b/drivers/infiniband/ulp/iser/iser_memory.c
-> @@ -250,7 +250,7 @@ iser_reg_dma(struct iser_device *device, struct iser_data_buf *mem,
->   	struct scatterlist *sg = mem->sg;
->   
->   	reg->sge.lkey = device->pd->local_dma_lkey;
-> -	reg->rkey = device->mr->rkey;
-> +	reg->rkey = device->mr ? device->mr->rkey : 0;
->   	reg->sge.addr = ib_sg_dma_address(device->ib_device, &sg[0]);
->   	reg->sge.length = ib_sg_dma_len(device->ib_device, &sg[0]);
->   
+> -/* From iscsi_iser.h */
+> -
+> -struct iser_hdr {
+> -	u8	flags;
+> -	u8	rsvd[3];
+> -	__be32	write_stag; /* write rkey */
+> -	__be64	write_va;
+> -	__be32	read_stag;  /* read rkey */
+> -	__be64	read_va;
+> -} __packed;
+> -
+> -/*Constant PDU lengths calculations */
+> -#define ISER_HEADERS_LEN  (sizeof(struct iser_hdr) + sizeof(struct iscsi_hdr))
 
-what's the role of this hunk? why it belongs here? you are testing 
-device->mr but this is
-something global and has nothing to do specially with specific IOs for 
-which this patch
-aims to act
+move this part of the cleanup to the preceding patch, so it can be 
+reviewed and bisected into
+regardless of this or any downstream patch of the series.
+
+Or.
