@@ -1,24 +1,25 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH for-next 00/10] iSER support for remote invalidate
-Date: Tue, 17 Nov 2015 01:35:10 -0800
-Message-ID: <20151117093510.GA30398@infradead.org>
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: [PATCH for-next 02/10] IB/iser: Default to fastreg instead of fmr
+Date: Tue, 17 Nov 2015 11:35:07 +0200
+Message-ID: <564AF4CB.9060302@dev.mellanox.co.il>
 References: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
+ <1447691861-3796-3-git-send-email-sagig@mellanox.com>
+ <564ADA1C.4090905@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <target-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
+In-Reply-To: <564ADA1C.4090905@mellanox.com>
 Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@mellanox.com>
-Cc: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Or Gerlitz <ogerlitz@mellanox.com>, Steve Wise <swise@opengridcomputing.com>
+To: Or Gerlitz <ogerlitz@mellanox.com>, Sagi Grimberg <sagig@mellanox.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+Cc: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Steve Wise <swise@opengridcomputing.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 16, 2015 at 06:37:31PM +0200, Sagi Grimberg wrote:
-> This patchset adds remote invalidation support to iser initiator and
-> target. The support negotiation for this feature is based on IBTA
-> annex 12 "Support for iSCSI Extensions for RDMA" carried in rdma_cm
-> private data.
 
-Oh, okay - this answers my question where the private data comes from,
-might be worth documenting it in the header what standard each bit
-comes from.
+> On 11/16/2015 6:37 PM, Sagi Grimberg wrote:
+>> This is a pre-step before adding remote invalidate support.
+>
+> Wouldn't that introduce performance regression on ConnectX3 devices?
+
+With remote invalidate it shouldn't make much of a difference. Plus,
+I'd really like us to start phasing out from FMRs...
