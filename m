@@ -1,41 +1,37 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH for-next 08/10] iser-target: Support the remote
- invalidation exception
-Date: Tue, 17 Nov 2015 02:14:44 -0800
-Message-ID: <20151117101444.GA2569@infradead.org>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH for-next 03/10] IB/iser: Don't register memory for all
+ immediatedata writes
+Date: Tue, 17 Nov 2015 12:15:16 +0200
+Message-ID: <564AFE34.5090500@dev.mellanox.co.il>
 References: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
- <1447691861-3796-9-git-send-email-sagig@mellanox.com>
- <564AE0C6.2030203@mellanox.com>
- <564AF857.5090701@dev.mellanox.co.il>
+ <1447691861-3796-4-git-send-email-sagig@mellanox.com>
+ <564ADB7D.20806@mellanox.com> <564AF653.6060401@dev.mellanox.co.il>
+ <564AFD4A.4030300@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <564AF857.5090701-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <564AFD4A.4030300-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 17, 2015 at 11:50:15AM +0200, Sagi Grimberg wrote:
-> 
-> 
-> On 17/11/2015 10:09, Or Gerlitz wrote:
-> >On 11/16/2015 6:37 PM, Sagi Grimberg wrote:
-> >>We'll use remote invalidate, according to negotiation result
-> >>during connection establishment. If the initiator declared that
-> >>it supports the remote invalidate exception then the target will
-> >>use IB_WR_SEND_WITH_INV with the correct rkey for the response.
-> >
-> >same comment as the one I posted for the initiator patch, check for
-> >IB_DEVICE_MEM_MGT_EXTENSIONS
-> 
-> SEND_WITH_INV doesn't have anything to do with
-> IB_DEVICE_MEM_MGT_EXTENSIONS does it? What is the relations between
-> the device capability to do FRWR and invalidating a remote rkey?
 
-Both FRs and SEND_WITH_INV are part of the base memory management
-extensions and also required for iWarp.
+>> It's because device->mr might not be allocated at all if
+>> always_register=Y, however in this case for all-immediatedata writes
+>> I don't need memory registration and I can use pd->local_dma_lkey.
+>>
+>> This hunk prevents a NULL dereference (as I mentioned, device->mr might
+>> not be allocated at all).
+>
+> I am not sure to follow, but can't you put this fix into a separate
+> patch to make things more clearer?
+
+I don't know how to split this patch any further. Before this patch in
+case always_register=Y we *always registered* and never allocated the
+global mr. This patch allows us not to do it ifor all-immediatedata
+writes. So in order not to hit a NULL deref we use this conditional.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
