@@ -1,43 +1,35 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [PATCH for-next 08/10] iser-target: Support the remote
- invalidation exception
-Date: Tue, 17 Nov 2015 12:16:45 +0200
-Message-ID: <564AFE8D.5040209@dev.mellanox.co.il>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH for-next 10/10] IB/iser: Support the remote invalidation
+ exception
+Date: Tue, 17 Nov 2015 12:26:11 +0200
+Message-ID: <564B00C3.1030506@dev.mellanox.co.il>
 References: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
- <1447691861-3796-9-git-send-email-sagig@mellanox.com>
- <564AE0C6.2030203@mellanox.com> <564AF857.5090701@dev.mellanox.co.il>
- <20151117101444.GA2569@infradead.org>
+ <1447691861-3796-11-git-send-email-sagig@mellanox.com>
+ <564ADFCC.4030109@mellanox.com> <564AF929.60209@dev.mellanox.co.il>
+ <564AFB93.9010602@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20151117101444.GA2569@infradead.org>
-Sender: target-devel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Or Gerlitz <ogerlitz@mellanox.com>, Sagi Grimberg <sagig@mellanox.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Steve Wise <swise@opengridcomputing.com>, Jenny Derzhavetz <jennyf@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <564AFB93.9010602-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-
-On 17/11/2015 12:14, Christoph Hellwig wrote:
-> On Tue, Nov 17, 2015 at 11:50:15AM +0200, Sagi Grimberg wrote:
->>
->>
->> On 17/11/2015 10:09, Or Gerlitz wrote:
->>> On 11/16/2015 6:37 PM, Sagi Grimberg wrote:
->>>> We'll use remote invalidate, according to negotiation result
->>>> during connection establishment. If the initiator declared that
->>>> it supports the remote invalidate exception then the target will
->>>> use IB_WR_SEND_WITH_INV with the correct rkey for the response.
->>>
->>> same comment as the one I posted for the initiator patch, check for
->>> IB_DEVICE_MEM_MGT_EXTENSIONS
->>
->> SEND_WITH_INV doesn't have anything to do with
->> IB_DEVICE_MEM_MGT_EXTENSIONS does it? What is the relations between
->> the device capability to do FRWR and invalidating a remote rkey?
+> Why? we don't support and when did we broke it after the initial 2.6.18
+> upstreaming of the driver
 >
-> Both FRs and SEND_WITH_INV are part of the base memory management
-> extensions and also required for iWarp.
+> Also, do we refuse to queuecommand a bidi? where?
 
-Thanks for clarifying. I'll add the check.
+Or, bidirectional support is not assumed and needs to be actively set
+as a request queue flag (see iscsi_sw_tcp_slave_alloc()). AFAICT iser
+never exposed support for bidirectional commands.
+
+Did things change from back in 2.6.18 that we ever carried bidi
+commands over iser?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
