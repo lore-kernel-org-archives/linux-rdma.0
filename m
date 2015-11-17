@@ -1,7 +1,7 @@
 From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 06/13] staging/rdma/hfi1: Move s_sde to the read mostly portion of the hfi1_qp structure
-Date: Mon, 16 Nov 2015 21:59:28 -0500
-Message-ID: <1447729175-28745-7-git-send-email-jubin.john@intel.com>
+Subject: [PATCH v2 11/13] staging/rdma/hfi1: Remove unneeded variable index
+Date: Mon, 16 Nov 2015 21:59:33 -0500
+Message-ID: <1447729175-28745-12-git-send-email-jubin.john@intel.com>
 References: <1447729175-28745-1-git-send-email-jubin.john@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1447729175-28745-1-git-send-email-jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,39 +10,109 @@ To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQ
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-This would reduce L2 cache misses on s_sde in the _hfi1_schedule_send
-function when invoked from post_send thereby improving performance of
-post_send.
+The variable "index" increments the same as dd->ndevcntrs.
+Just use the later.  Remove uneeded usage of "index" in the
+fill loop - it is not used there or later in the function.
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/verbs.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/staging/rdma/hfi1/chip.c |   19 +++++++------------
+ 1 files changed, 7 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/verbs.h b/drivers/staging/rdma/hfi1/verbs.h
-index 600bd1b..638094d 100644
---- a/drivers/staging/rdma/hfi1/verbs.h
-+++ b/drivers/staging/rdma/hfi1/verbs.h
-@@ -441,6 +441,7 @@ struct hfi1_qp {
- 	struct hfi1_swqe *s_wq;  /* send work queue */
- 	struct hfi1_mmap_info *ip;
- 	struct ahg_ib_header *s_hdr;     /* next packet header to send */
-+	struct sdma_engine *s_sde; /* current sde */
- 	u8 s_sc;			/* SC[0..4] for next packet */
- 	unsigned long timeout_jiffies;  /* computed from timeout */
+diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
+index 205dff3..812a3bf 100644
+--- a/drivers/staging/rdma/hfi1/chip.c
++++ b/drivers/staging/rdma/hfi1/chip.c
+@@ -8359,7 +8359,7 @@ mod_timer(&dd->synth_stats_timer, jiffies + HZ * SYNTH_CNT_TIME);
+ #define C_MAX_NAME 13 /* 12 chars + one for /0 */
+ static int init_cntrs(struct hfi1_devdata *dd)
+ {
+-	int i, rcv_ctxts, index, j;
++	int i, rcv_ctxts, j;
+ 	size_t sz;
+ 	char *p;
+ 	char name[C_MAX_NAME];
+@@ -8376,7 +8376,6 @@ static int init_cntrs(struct hfi1_devdata *dd)
+ 	/* size names and determine how many we have*/
+ 	dd->ndevcntrs = 0;
+ 	sz = 0;
+-	index = 0;
  
-@@ -504,7 +505,6 @@ struct hfi1_qp {
- 	struct hfi1_swqe *s_wqe;
- 	struct hfi1_sge_state s_sge;     /* current send request data */
- 	struct hfi1_mregion *s_rdma_mr;
--	struct sdma_engine *s_sde; /* current sde */
- 	u32 s_cur_size;         /* size of send packet in bytes */
- 	u32 s_len;              /* total length of s_sge */
- 	u32 s_rdma_read_len;    /* total length of s_rdma_read_sge */
+ 	for (i = 0; i < DEV_CNTR_LAST; i++) {
+ 		hfi1_dbg_early("Init cntr %s\n", dev_cntrs[i].name);
+@@ -8387,7 +8386,7 @@ static int init_cntrs(struct hfi1_devdata *dd)
+ 
+ 		if (dev_cntrs[i].flags & CNTR_VL) {
+ 			hfi1_dbg_early("\tProcessing VL cntr\n");
+-			dev_cntrs[i].offset = index;
++			dev_cntrs[i].offset = dd->ndevcntrs;
+ 			for (j = 0; j < C_VL_COUNT; j++) {
+ 				memset(name, '\0', C_MAX_NAME);
+ 				snprintf(name, C_MAX_NAME, "%s%d",
+@@ -8397,13 +8396,12 @@ static int init_cntrs(struct hfi1_devdata *dd)
+ 				sz++;
+ 				hfi1_dbg_early("\t\t%s\n", name);
+ 				dd->ndevcntrs++;
+-				index++;
+ 			}
+ 		} else if (dev_cntrs[i].flags & CNTR_SDMA) {
+ 			hfi1_dbg_early(
+ 				       "\tProcessing per SDE counters chip enginers %u\n",
+ 				       dd->chip_sdma_engines);
+-			dev_cntrs[i].offset = index;
++			dev_cntrs[i].offset = dd->ndevcntrs;
+ 			for (j = 0; j < dd->chip_sdma_engines; j++) {
+ 				memset(name, '\0', C_MAX_NAME);
+ 				snprintf(name, C_MAX_NAME, "%s%d",
+@@ -8412,24 +8410,22 @@ static int init_cntrs(struct hfi1_devdata *dd)
+ 				sz++;
+ 				hfi1_dbg_early("\t\t%s\n", name);
+ 				dd->ndevcntrs++;
+-				index++;
+ 			}
+ 		} else {
+ 			/* +1 for newline  */
+ 			sz += strlen(dev_cntrs[i].name) + 1;
++			dev_cntrs[i].offset = dd->ndevcntrs;
+ 			dd->ndevcntrs++;
+-			dev_cntrs[i].offset = index;
+-			index++;
+ 			hfi1_dbg_early("\tAdding %s\n", dev_cntrs[i].name);
+ 		}
+ 	}
+ 
+ 	/* allocate space for the counter values */
+-	dd->cntrs = kcalloc(index, sizeof(u64), GFP_KERNEL);
++	dd->cntrs = kcalloc(dd->ndevcntrs, sizeof(u64), GFP_KERNEL);
+ 	if (!dd->cntrs)
+ 		goto bail;
+ 
+-	dd->scntrs = kcalloc(index, sizeof(u64), GFP_KERNEL);
++	dd->scntrs = kcalloc(dd->ndevcntrs, sizeof(u64), GFP_KERNEL);
+ 	if (!dd->scntrs)
+ 		goto bail;
+ 
+@@ -8441,7 +8437,7 @@ static int init_cntrs(struct hfi1_devdata *dd)
+ 		goto bail;
+ 
+ 	/* fill in the names */
+-	for (p = dd->cntrnames, i = 0, index = 0; i < DEV_CNTR_LAST; i++) {
++	for (p = dd->cntrnames, i = 0; i < DEV_CNTR_LAST; i++) {
+ 		if (dev_cntrs[i].flags & CNTR_DISABLED) {
+ 			/* Nothing */
+ 		} else {
+@@ -8471,7 +8467,6 @@ static int init_cntrs(struct hfi1_devdata *dd)
+ 				p += strlen(dev_cntrs[i].name);
+ 				*p++ = '\n';
+ 			}
+-			index++;
+ 		}
+ 	}
+ 
 -- 
 1.7.1
 
