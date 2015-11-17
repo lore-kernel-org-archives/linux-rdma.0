@@ -1,7 +1,7 @@
 From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 12/13] staging/rdma/hfi1: Read EFI variable for device description
-Date: Mon, 16 Nov 2015 21:59:34 -0500
-Message-ID: <1447729175-28745-13-git-send-email-jubin.john@intel.com>
+Subject: [PATCH v2 13/13] staging/rdma/hfi1: Adjust EPROM partitions, add EPROM commands
+Date: Mon, 16 Nov 2015 21:59:35 -0500
+Message-ID: <1447729175-28745-14-git-send-email-jubin.john@intel.com>
 References: <1447729175-28745-1-git-send-email-jubin.john@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1447729175-28745-1-git-send-email-jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,342 +12,278 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Read an EFI variable for the device description.  Create the
-infrastructure for additional variable reads.
+Add a new EPROM partition, adjusting partition placement.
 
-Reviewed-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Add EPROM range commands as a supserset of the partition
+commands.  Remove old partition commands.
+
+Enhance EPROM erase, creating a range function and using the
+largest erase (sub) commands when possible.
+
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/Makefile |    2 +-
- drivers/staging/rdma/hfi1/chip.c   |   38 +++++++--
- drivers/staging/rdma/hfi1/efivar.c |  169 ++++++++++++++++++++++++++++++++++++
- drivers/staging/rdma/hfi1/efivar.h |   60 +++++++++++++
- 4 files changed, 260 insertions(+), 9 deletions(-)
- create mode 100644 drivers/staging/rdma/hfi1/efivar.c
- create mode 100644 drivers/staging/rdma/hfi1/efivar.h
+ drivers/staging/rdma/hfi1/eprom.c    |  119 +++++++++++++++++++---------------
+ drivers/staging/rdma/hfi1/file_ops.c |   18 ++----
+ include/uapi/rdma/hfi/hfi1_user.h    |   10 +--
+ 3 files changed, 77 insertions(+), 70 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/Makefile b/drivers/staging/rdma/hfi1/Makefile
-index 2e5daa6..68c5a31 100644
---- a/drivers/staging/rdma/hfi1/Makefile
-+++ b/drivers/staging/rdma/hfi1/Makefile
-@@ -7,7 +7,7 @@
- #
- obj-$(CONFIG_INFINIBAND_HFI1) += hfi1.o
- 
--hfi1-y := chip.o cq.o device.o diag.o dma.o driver.o eprom.o file_ops.o firmware.o \
-+hfi1-y := chip.o cq.o device.o diag.o dma.o driver.o efivar.o eprom.o file_ops.o firmware.o \
- 	init.o intr.o keys.o mad.o mmap.o mr.o pcie.o pio.o pio_copy.o \
- 	qp.o qsfp.o rc.o ruc.o sdma.o srq.o sysfs.o trace.o twsi.o \
- 	uc.o ud.o user_pages.o user_sdma.o verbs_mcast.o verbs.o
-diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index 812a3bf..c9a4180 100644
---- a/drivers/staging/rdma/hfi1/chip.c
-+++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -63,6 +63,7 @@
- #include "pio.h"
- #include "sdma.h"
+diff --git a/drivers/staging/rdma/hfi1/eprom.c b/drivers/staging/rdma/hfi1/eprom.c
+index b61d3ae..fb620c9 100644
+--- a/drivers/staging/rdma/hfi1/eprom.c
++++ b/drivers/staging/rdma/hfi1/eprom.c
+@@ -53,17 +53,26 @@
  #include "eprom.h"
-+#include "efivar.h"
  
- #define NUM_IB_PORTS 1
+ /*
+- * The EPROM is logically divided into two partitions:
++ * The EPROM is logically divided into three partitions:
+  *	partition 0: the first 128K, visible from PCI ROM BAR
+- *	partition 1: the rest
++ *	partition 1: 4K config file (sector size)
++ *	partition 2: the rest
+  */
+ #define P0_SIZE (128 * 1024)
++#define P1_SIZE   (4 * 1024)
+ #define P1_START P0_SIZE
++#define P2_START (P0_SIZE + P1_SIZE)
++
++/* erase sizes supported by the controller */
++#define SIZE_4KB (4 * 1024)
++#define MASK_4KB (SIZE_4KB - 1)
  
-@@ -10547,6 +10548,32 @@ static void asic_should_init(struct hfi1_devdata *dd)
- 	spin_unlock_irqrestore(&hfi1_devs_lock, flags);
+-/* largest erase size supported by the controller */
+ #define SIZE_32KB (32 * 1024)
+ #define MASK_32KB (SIZE_32KB - 1)
+ 
++#define SIZE_64KB (64 * 1024)
++#define MASK_64KB (SIZE_64KB - 1)
++
+ /* controller page size, in bytes */
+ #define EP_PAGE_SIZE 256
+ #define EEP_PAGE_MASK (EP_PAGE_SIZE - 1)
+@@ -75,10 +84,12 @@
+ #define CMD_READ_DATA(addr)	    ((0x03 << CMD_SHIFT) | addr)
+ #define CMD_READ_SR1		    ((0x05 << CMD_SHIFT))
+ #define CMD_WRITE_ENABLE	    ((0x06 << CMD_SHIFT))
++#define CMD_SECTOR_ERASE_4KB(addr)  ((0x20 << CMD_SHIFT) | addr)
+ #define CMD_SECTOR_ERASE_32KB(addr) ((0x52 << CMD_SHIFT) | addr)
+ #define CMD_CHIP_ERASE		    ((0x60 << CMD_SHIFT))
+ #define CMD_READ_MANUF_DEV_ID	    ((0x90 << CMD_SHIFT))
+ #define CMD_RELEASE_POWERDOWN_NOID  ((0xab << CMD_SHIFT))
++#define CMD_SECTOR_ERASE_64KB(addr) ((0xd8 << CMD_SHIFT) | addr)
+ 
+ /* controller interface speeds */
+ #define EP_SPEED_FULL 0x2	/* full speed */
+@@ -188,28 +199,43 @@ static int erase_chip(struct hfi1_devdata *dd)
  }
  
-+/*
-+ * Set dd->boardname.  Use a generic name if a name is not returned from
-+ * EFI variable space.
-+ *
-+ * Return 0 on success, -ENOMEM if space could not be allocated.
-+ */
-+static int obtain_boardname(struct hfi1_devdata *dd)
+ /*
+- * Erase a range using the 32KB erase command.
++ * Erase a range.
+  */
+-static int erase_32kb_range(struct hfi1_devdata *dd, u32 start, u32 end)
++static int erase_range(struct hfi1_devdata *dd, u32 start, u32 len)
+ {
++	u32 end = start + len;
+ 	int ret = 0;
+ 
+ 	if (end < start)
+ 		return -EINVAL;
+ 
+-	if ((start & MASK_32KB) || (end & MASK_32KB)) {
++	/* check the end points for the minimum erase */
++	if ((start & MASK_4KB) || (end & MASK_4KB)) {
+ 		dd_dev_err(dd,
+-			"%s: non-aligned range (0x%x,0x%x) for a 32KB erase\n",
++			"%s: non-aligned range (0x%x,0x%x) for a 4KB erase\n",
+ 			__func__, start, end);
+ 		return -EINVAL;
+ 	}
+ 
+ 	write_enable(dd);
+ 
+-	for (; start < end; start += SIZE_32KB) {
++	while (start < end) {
+ 		write_csr(dd, ASIC_EEP_ADDR_CMD, CMD_WRITE_ENABLE);
+-		write_csr(dd, ASIC_EEP_ADDR_CMD,
+-						CMD_SECTOR_ERASE_32KB(start));
++		/* check in order of largest to smallest */
++		if (((start & MASK_64KB) == 0) && (start + SIZE_64KB <= end)) {
++			write_csr(dd, ASIC_EEP_ADDR_CMD,
++				  CMD_SECTOR_ERASE_64KB(start));
++			start += SIZE_64KB;
++		} else if (((start & MASK_32KB) == 0) &&
++			   (start + SIZE_32KB <= end)) {
++			write_csr(dd, ASIC_EEP_ADDR_CMD,
++				  CMD_SECTOR_ERASE_32KB(start));
++			start += SIZE_32KB;
++		} else {	/* 4KB will work */
++			write_csr(dd, ASIC_EEP_ADDR_CMD,
++				  CMD_SECTOR_ERASE_4KB(start));
++			start += SIZE_4KB;
++		}
+ 		ret = wait_for_not_busy(dd);
+ 		if (ret)
+ 			goto done;
+@@ -309,6 +335,18 @@ done:
+ 	return ret;
+ }
+ 
++/* convert an range composite to a length, in bytes */
++static inline u32 extract_rlen(u32 composite)
 +{
-+	/* generic board description */
-+	const char generic[] =
-+		"Intel Omni-Path Host Fabric Interface Adapter 100 Series";
-+	unsigned long size;
-+	int ret;
-+
-+	ret = read_hfi1_efi_var(dd, "description", &size,
-+				(void **)&dd->boardname);
-+	if (ret) {
-+		dd_dev_err(dd, "Board description not found\n");
-+		/* use generic description */
-+		dd->boardname = kstrdup(generic, GFP_KERNEL);
-+		if (!dd->boardname)
-+			return -ENOMEM;
-+	}
-+	return 0;
++	return (composite & 0xffff) * EP_PAGE_SIZE;
 +}
 +
- /**
-  * Allocate and initialize the device structure for the hfi.
-  * @dev: the pci_dev for hfi1_ib device
-@@ -10744,18 +10771,13 @@ struct hfi1_devdata *hfi1_init_dd(struct pci_dev *pdev,
- 
- 	parse_platform_config(dd);
- 
--	/* add board names as they are defined */
--	dd->boardname = kmalloc(64, GFP_KERNEL);
--	if (!dd->boardname)
-+	ret = obtain_boardname(dd);
-+	if (ret)
- 		goto bail_cleanup;
--	snprintf(dd->boardname, 64, "Board ID 0x%llx",
--		 dd->revision >> CCE_REVISION_BOARD_ID_LOWER_NIBBLE_SHIFT
--		    & CCE_REVISION_BOARD_ID_LOWER_NIBBLE_MASK);
- 
- 	snprintf(dd->boardversion, BOARD_VERS_MAX,
--		 "ChipABI %u.%u, %s, ChipRev %u.%u, SW Compat %llu\n",
-+		 "ChipABI %u.%u, ChipRev %u.%u, SW Compat %llu\n",
- 		 HFI1_CHIP_VERS_MAJ, HFI1_CHIP_VERS_MIN,
--		 dd->boardname,
- 		 (u32)dd->majrev,
- 		 (u32)dd->minrev,
- 		 (dd->revision >> CCE_REVISION_SW_SHIFT)
-diff --git a/drivers/staging/rdma/hfi1/efivar.c b/drivers/staging/rdma/hfi1/efivar.c
-new file mode 100644
-index 0000000..7dc5bae
---- /dev/null
-+++ b/drivers/staging/rdma/hfi1/efivar.c
-@@ -0,0 +1,169 @@
-+/*
-+ *
-+ * This file is provided under a dual BSD/GPLv2 license.  When using or
-+ * redistributing this file, you may do so under either license.
-+ *
-+ * GPL LICENSE SUMMARY
-+ *
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * BSD LICENSE
-+ *
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ *  - Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *  - Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *  - Neither the name of Intel Corporation nor the names of its
-+ *    contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ */
-+
-+#include "efivar.h"
-+
-+/* GUID for HFI1 variables in EFI */
-+#define HFI1_EFIVAR_GUID EFI_GUID(0xc50a953e, 0xa8b2, 0x42a6, \
-+		0xbf, 0x89, 0xd3, 0x33, 0xa6, 0xe9, 0xe6, 0xd4)
-+/* largest EFI data size we expect */
-+#define EFI_DATA_SIZE 4096
-+
-+/*
-+ * Read the named EFI variable.  Return the size of the actual data in *size
-+ * and a kmalloc'ed buffer in *return_data.  The caller must free the
-+ * data.  It is guaranteed that *return_data will be NULL and *size = 0
-+ * if this routine fails.
-+ *
-+ * Return 0 on success, -errno on failure.
-+ */
-+static int read_efi_var(const char *name, unsigned long *size,
-+			void **return_data)
++/* convert an range composite to a start, in bytes */
++static inline u32 extract_rstart(u32 composite)
 +{
-+	efi_status_t status;
-+	efi_char16_t *uni_name;
-+	efi_guid_t guid;
-+	unsigned long temp_size;
-+	void *temp_buffer;
-+	void *data;
-+	int i;
-+	int ret;
-+
-+	/* set failure return values */
-+	*size = 0;
-+	*return_data = NULL;
-+
-+	if (!efi_enabled(EFI_RUNTIME_SERVICES))
-+		return -EOPNOTSUPP;
-+
-+	uni_name = kzalloc(sizeof(efi_char16_t) * (strlen(name) + 1),
-+			   GFP_KERNEL);
-+	temp_buffer = kzalloc(EFI_DATA_SIZE, GFP_KERNEL);
-+
-+	if (!uni_name || !temp_buffer) {
-+		ret = -ENOMEM;
-+		goto fail;
-+	}
-+
-+	/* input: the size of the buffer */
-+	temp_size = EFI_DATA_SIZE;
-+
-+	/* convert ASCII to unicode - it is a 1:1 mapping */
-+	for (i = 0; name[i]; i++)
-+		uni_name[i] = name[i];
-+
-+	/* need a variable for our GUID */
-+	guid = HFI1_EFIVAR_GUID;
-+
-+	/* call into EFI runtime services */
-+	status = efi.get_variable(
-+			uni_name,
-+			&guid,
-+			NULL,
-+			&temp_size,
-+			temp_buffer);
-+
-+	/*
-+	 * It would be nice to call efi_status_to_err() here, but that
-+	 * is in the EFIVAR_FS code and may not be compiled in.
-+	 * However, even that is insufficient since it does not cover
-+	 * EFI_BUFFER_TOO_SMALL which could be an important return.
-+	 * For now, just split out succces or not found.
-+	 */
-+	ret = status == EFI_SUCCESS   ? 0 :
-+	      status == EFI_NOT_FOUND ? -ENOENT :
-+					-EINVAL;
-+	if (ret)
-+		goto fail;
-+
-+	/*
-+	 * We have successfully read the EFI variable into our
-+	 * temporary buffer.  Now allocate a correctly sized
-+	 * buffer.
-+	 */
-+	data = kmalloc(temp_size, GFP_KERNEL);
-+	if (!data) {
-+		ret = -ENOMEM;
-+		goto fail;
-+	}
-+
-+	memcpy(data, temp_buffer, temp_size);
-+	*size = temp_size;
-+	*return_data = data;
-+
-+fail:
-+	kfree(uni_name);
-+	kfree(temp_buffer);
-+
-+	return ret;
++	return (composite >> 16) * EP_PAGE_SIZE;
 +}
 +
-+/*
-+ * Read an HFI1 EFI variable of the form:
-+ *	<PCIe address>-<kind>
-+ * Return an kalloc'ed array and size of the data.
-+ *
-+ * Returns 0 on success, -errno on failure.
-+ */
-+int read_hfi1_efi_var(struct hfi1_devdata *dd, const char *kind,
-+		      unsigned long *size, void **return_data)
-+{
-+	char name[64];
+ /*
+  * Perform the given operation on the EPROM.  Called from user space.  The
+  * user credentials have already been checked.
+@@ -319,6 +357,8 @@ int handle_eprom_command(const struct hfi1_cmd *cmd)
+ {
+ 	struct hfi1_devdata *dd;
+ 	u32 dev_id;
++	u32 rlen;	/* range length */
++	u32 rstart;	/* range start */
+ 	int ret = 0;
+ 
+ 	/*
+@@ -364,54 +404,29 @@ int handle_eprom_command(const struct hfi1_cmd *cmd)
+ 								sizeof(u32)))
+ 			ret = -EFAULT;
+ 		break;
 +
-+	/* create a common prefix */
-+	snprintf(name, sizeof(name), "%04x:%02x:%02x.%x-%s",
-+		 pci_domain_nr(dd->pcidev->bus),
-+		 dd->pcidev->bus->number,
-+		 PCI_SLOT(dd->pcidev->devfn),
-+		 PCI_FUNC(dd->pcidev->devfn),
-+		 kind);
+ 	case HFI1_CMD_EP_ERASE_CHIP:
+ 		ret = erase_chip(dd);
+ 		break;
+-	case HFI1_CMD_EP_ERASE_P0:
+-		if (cmd->len != P0_SIZE) {
+-			ret = -ERANGE;
+-			break;
+-		}
+-		ret = erase_32kb_range(dd, 0, cmd->len);
+-		break;
+-	case HFI1_CMD_EP_ERASE_P1:
+-		/* check for overflow */
+-		if (P1_START + cmd->len > ASIC_EEP_ADDR_CMD_EP_ADDR_MASK) {
+-			ret = -ERANGE;
+-			break;
+-		}
+-		ret = erase_32kb_range(dd, P1_START, P1_START + cmd->len);
+-		break;
+-	case HFI1_CMD_EP_READ_P0:
+-		if (cmd->len != P0_SIZE) {
+-			ret = -ERANGE;
+-			break;
+-		}
+-		ret = read_length(dd, 0, cmd->len, cmd->addr);
+-		break;
+-	case HFI1_CMD_EP_READ_P1:
+-		/* check for overflow */
+-		if (P1_START + cmd->len > ASIC_EEP_ADDR_CMD_EP_ADDR_MASK) {
+-			ret = -ERANGE;
+-			break;
+-		}
+-		ret = read_length(dd, P1_START, cmd->len, cmd->addr);
 +
-+	return read_efi_var(name, size, return_data);
-+}
-diff --git a/drivers/staging/rdma/hfi1/efivar.h b/drivers/staging/rdma/hfi1/efivar.h
-new file mode 100644
-index 0000000..0707062
---- /dev/null
-+++ b/drivers/staging/rdma/hfi1/efivar.h
-@@ -0,0 +1,60 @@
-+/*
-+ *
-+ * This file is provided under a dual BSD/GPLv2 license.  When using or
-+ * redistributing this file, you may do so under either license.
-+ *
-+ * GPL LICENSE SUMMARY
-+ *
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * BSD LICENSE
-+ *
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ *  - Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *  - Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *  - Neither the name of Intel Corporation nor the names of its
-+ *    contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ */
-+#ifndef _HFI1_EFIVAR_H
-+#define _HFI1_EFIVAR_H
++	case HFI1_CMD_EP_ERASE_RANGE:
++		rlen = extract_rlen(cmd->len);
++		rstart = extract_rstart(cmd->len);
++		ret = erase_range(dd, rstart, rlen);
+ 		break;
+-	case HFI1_CMD_EP_WRITE_P0:
+-		if (cmd->len > P0_SIZE) {
+-			ret = -ERANGE;
+-			break;
+-		}
+-		ret = write_length(dd, 0, cmd->len, cmd->addr);
 +
-+#include <linux/efi.h>
++	case HFI1_CMD_EP_READ_RANGE:
++		rlen = extract_rlen(cmd->len);
++		rstart = extract_rstart(cmd->len);
++		ret = read_length(dd, rstart, rlen, cmd->addr);
+ 		break;
+-	case HFI1_CMD_EP_WRITE_P1:
+-		/* check for overflow */
+-		if (P1_START + cmd->len > ASIC_EEP_ADDR_CMD_EP_ADDR_MASK) {
+-			ret = -ERANGE;
+-			break;
+-		}
+-		ret = write_length(dd, P1_START, cmd->len, cmd->addr);
 +
-+#include "hfi.h"
++	case HFI1_CMD_EP_WRITE_RANGE:
++		rlen = extract_rlen(cmd->len);
++		rstart = extract_rstart(cmd->len);
++		ret = write_length(dd, rstart, rlen, cmd->addr);
+ 		break;
 +
-+int read_hfi1_efi_var(struct hfi1_devdata *dd, const char *kind,
-+		      unsigned long *size, void **return_data);
-+
-+#endif /* _HFI1_EFIVAR_H */
+ 	default:
+ 		dd_dev_err(dd, "%s: unexpected command %d\n",
+ 			__func__, cmd->type);
+diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
+index 22037ce..874305f 100644
+--- a/drivers/staging/rdma/hfi1/file_ops.c
++++ b/drivers/staging/rdma/hfi1/file_ops.c
+@@ -234,12 +234,9 @@ static ssize_t hfi1_file_write(struct file *fp, const char __user *data,
+ 		break;
+ 	case HFI1_CMD_EP_INFO:
+ 	case HFI1_CMD_EP_ERASE_CHIP:
+-	case HFI1_CMD_EP_ERASE_P0:
+-	case HFI1_CMD_EP_ERASE_P1:
+-	case HFI1_CMD_EP_READ_P0:
+-	case HFI1_CMD_EP_READ_P1:
+-	case HFI1_CMD_EP_WRITE_P0:
+-	case HFI1_CMD_EP_WRITE_P1:
++	case HFI1_CMD_EP_ERASE_RANGE:
++	case HFI1_CMD_EP_READ_RANGE:
++	case HFI1_CMD_EP_WRITE_RANGE:
+ 		uctxt_required = 0;	/* assigned user context not required */
+ 		must_be_root = 1;	/* validate user */
+ 		copy = 0;
+@@ -393,12 +390,9 @@ static ssize_t hfi1_file_write(struct file *fp, const char __user *data,
+ 	}
+ 	case HFI1_CMD_EP_INFO:
+ 	case HFI1_CMD_EP_ERASE_CHIP:
+-	case HFI1_CMD_EP_ERASE_P0:
+-	case HFI1_CMD_EP_ERASE_P1:
+-	case HFI1_CMD_EP_READ_P0:
+-	case HFI1_CMD_EP_READ_P1:
+-	case HFI1_CMD_EP_WRITE_P0:
+-	case HFI1_CMD_EP_WRITE_P1:
++	case HFI1_CMD_EP_ERASE_RANGE:
++	case HFI1_CMD_EP_READ_RANGE:
++	case HFI1_CMD_EP_WRITE_RANGE:
+ 		ret = handle_eprom_command(&cmd);
+ 		break;
+ 	}
+diff --git a/include/uapi/rdma/hfi/hfi1_user.h b/include/uapi/rdma/hfi/hfi1_user.h
+index a2fc6cb..288694e 100644
+--- a/include/uapi/rdma/hfi/hfi1_user.h
++++ b/include/uapi/rdma/hfi/hfi1_user.h
+@@ -137,12 +137,10 @@
+ /* separate EPROM commands from normal PSM commands */
+ #define HFI1_CMD_EP_INFO         64      /* read EPROM device ID */
+ #define HFI1_CMD_EP_ERASE_CHIP   65      /* erase whole EPROM */
+-#define HFI1_CMD_EP_ERASE_P0     66      /* erase EPROM partition 0 */
+-#define HFI1_CMD_EP_ERASE_P1     67      /* erase EPROM partition 1 */
+-#define HFI1_CMD_EP_READ_P0      68      /* read EPROM partition 0 */
+-#define HFI1_CMD_EP_READ_P1      69      /* read EPROM partition 1 */
+-#define HFI1_CMD_EP_WRITE_P0     70      /* write EPROM partition 0 */
+-#define HFI1_CMD_EP_WRITE_P1     71      /* write EPROM partition 1 */
++/* range 66-74 no longer used */
++#define HFI1_CMD_EP_ERASE_RANGE  75      /* erase EPROM range */
++#define HFI1_CMD_EP_READ_RANGE   76      /* read EPROM range */
++#define HFI1_CMD_EP_WRITE_RANGE  77      /* write EPROM range */
+ 
+ #define _HFI1_EVENT_FROZEN_BIT         0
+ #define _HFI1_EVENT_LINKDOWN_BIT       1
 -- 
 1.7.1
 
