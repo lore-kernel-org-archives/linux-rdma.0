@@ -1,62 +1,56 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [PATCH 4/9] srpt: chain RDMA READ/WRITE requests
-Date: Wed, 18 Nov 2015 11:15:36 +0200
-Message-ID: <564C41B8.2080904@dev.mellanox.co.il>
-References: <1447422410-20891-1-git-send-email-hch@lst.de>
- <1447422410-20891-5-git-send-email-hch@lst.de> <564BD1AF.60200@sandisk.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/ipoib: CSUM support in connected mode
+Date: Wed, 18 Nov 2015 12:27:59 +0200
+Message-ID: <20151118102758.GA4597@yuval-lab>
+References: <1438256764-9077-1-git-send-email-yuval.shaia@oracle.com>
+ <55BA531E.6060403@sandisk.com>
+ <20150730200907.GA3487@yuval-lab>
+ <55BAD76A.1070700@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <564BD1AF.60200@sandisk.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@sandisk.com>, Christoph Hellwig <hch@lst.de>, linux-rdma@vger.kernel.org
-Cc: axboe@fb.com, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <55BAD76A.1070700-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 18/11/2015 03:17, Bart Van Assche wrote:
-> On 11/13/2015 05:46 AM, Christoph Hellwig wrote:
->> -        ret = ib_post_send(ch->qp, &wr.wr, &bad_wr);
->> -        if (ret)
->> -            break;
->> +        if (i == n_rdma - 1) {
->> +            /* only get completion event for the last rdma read */
->> +            if (dir == DMA_TO_DEVICE)
->> +                wr->wr.send_flags = IB_SEND_SIGNALED;
->> +            wr->wr.next = NULL;
->> +        } else {
->> +            wr->wr.next = &ioctx->rdma_ius[i + 1].wr;
->> +        }
->>       }
->>
->> +    ret = ib_post_send(ch->qp, &ioctx->rdma_ius->wr, &bad_wr);
->>       if (ret)
->>           pr_err("%s[%d]: ib_post_send() returned %d for %d/%d\n",
->>                    __func__, __LINE__, ret, i, n_rdma);
->
-> Hello Christoph,
-
-Hi Bart,
-
->
-> Chaining RDMA requests is a great idea. But it seems to me that this
-> patch is based on the assumption that posting multiple RDMA requests
-> either succeeds as a whole or fails as a whole. Sorry but I'm not sure
-> that the verbs API guarantees this. In the ib_srpt driver a QP can be
-> changed at any time into the error state and there might be drivers that
-> report an immediate failure in that case.
-
-I'm not so sure it actually matters if some WRs succeeded. In the normal
-flow when srpt has enough available work requests (sq_wr_avail) they
-should all succeed otherwise we're in trouble. If the QP transitioned
-to ERROR state, then some failed, but those that succeeded will
-generate flush completions, and srpt should handle it correctly
-shouldn't it?
-
-> I think even when chaining
-> RDMA requests that we still need a mechanism to wait until ongoing RDMA
-> transfers have finished if some but not all RDMA requests have been posted.
-
-I'm not an expert on srpt, can you explain how this mechanism will help?
+On Thu, Jul 30, 2015 at 07:03:22PM -0700, Bart Van Assche wrote:
+> On 07/30/15 13:09, Yuval Shaia wrote:
+> >On Thu, Jul 30, 2015 at 09:38:54AM -0700, Bart Van Assche wrote:
+> >>On 07/30/2015 04:46 AM, Yuval Shaia wrote:
+> >>>  struct ipoib_cm_data {
+> >>>  	__be32 qpn; /* High byte MUST be ignored on receive */
+> >>>  	__be32 mtu;
+> >>>+	__be16 sig; /* must be IPOIB_CM_PROTO_SIG */
+> >>>+	__be16 caps; /* 4 bits proto ver and 12 bits capabilities */
+> >>>  };
+> >>
+> >>This patch modifies the private login data format that has been
+> >>standardized by the IETF in RFC 4755. Has this modification already
+> >>been discussed with the IETF ?
+> >>
+> >Yes.
+> 
+> Hello Yuval,
+> 
+> It should have been mentioned in the patch description that this
+> patch modifies the wire format, how it modifies the wire format, and
+Thanks,
+Will add something like this:
+"To support this, the Private-Data is extended (by 32 bits) with two new
+attributes - protocol version and capabilities."
+> also which feedback (if any) has been received so far from the IETF.
+> 
+> Thanks,
+> 
+> Bart.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
