@@ -1,43 +1,61 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next 10/10] IB/iser: Support the remote invalidation
- exception
-Date: Wed, 18 Nov 2015 16:16:44 +0200
-Message-ID: <564C884C.8020006@mellanox.com>
-References: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
- <1447691861-3796-11-git-send-email-sagig@mellanox.com>
- <564ADFCC.4030109@mellanox.com> <564AF929.60209@dev.mellanox.co.il>
- <564AFB93.9010602@mellanox.com> <564B00C3.1030506@dev.mellanox.co.il>
- <CAJ3xEMjB_5pzuKyXJRXxHEvaFeHwmBLK31OFFtmA-RRY0i+82A@mail.gmail.com>
- <564C6347.3040501@dev.mellanox.co.il>
- <CAJ3xEMhxOQ-HXKiXuBOKNet0VeDbNQingphFvzUXBiLcDjCmNQ@mail.gmail.com>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: [PATCH v3 00/22] kthread: Use kthread worker API more widely
+Date: Wed, 18 Nov 2015 06:25:45 -0800
+Message-ID: <20151118142545.GD5184@linux.vnet.ibm.com>
+References: <1447853127-3461-1-git-send-email-pmladek@suse.com>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMhxOQ-HXKiXuBOKNet0VeDbNQingphFvzUXBiLcDjCmNQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Pete Wyckoff <pw-VNBDo6LsbKA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <1447853127-3461-1-git-send-email-pmladek@suse.com>
+Sender: owner-linux-mm@kvack.org
+To: Petr Mladek <pmladek@suse.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Oleg Nesterov <oleg@redhat.com>, Tejun Heo <tj@kernel.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Steven Rostedt <rostedt@goodmis.org>, Josh Triplett <josh@joshtriplett.org>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Jiri Kosina <jkosina@suse.cz>, Borislav Petkov <bp@suse.de>, Michal Hocko <mhocko@suse.cz>, linux-mm@kvack.org, Vlastimil Babka <vbabka@suse.cz>, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, linux-watchdog@vger.kernel.org, Corey Minyard <minyard@acm.org>, openipmi-developer@lists.sourceforge.net, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Nov 18, 2015 at 02:25:05PM +0100, Petr Mladek wrote:
+> My intention is to make it easier to manipulate and maintain kthreads.
+> Especially, I want to replace all the custom main cycles with a
+> generic one. Also I want to make the kthreads sleep in a consistent
+> state in a common place when there is no work.
+> 
+> My first attempt was with a brand new API (iterant kthread), see
+> http://thread.gmane.org/gmane.linux.kernel.api/11892 . But I was
+> directed to improve the existing kthread worker API. This is
+> the 3rd iteration of the new direction.
+> 
+> 
+> 1st patch: add support to check if a timer callback is being called
+> 
+> 2nd..12th patches: improve the existing kthread worker API
+> 
+> 13th..18th, 20th, 22nd patches: convert several kthreads into
+>       the kthread worker API, namely: khugepaged, ring buffer
+>       benchmark, hung_task, kmemleak, ipmi, IB/fmr_pool,
+>       memstick/r592, intel_powerclamp
+>       
+> 21st, 23rd patches: do some preparation steps; they usually do
+>       some clean up that makes sense even without the conversion.
+> 
+>   
+> Changes against v2:
+> 
+>   + used worker->lock to synchronize the operations with the work
+>     instead of the PENDING bit as suggested by Tejun Heo; it simplified
+>     the implementation in several ways
+> 
+>   + added timer_active(); used it together with del_timer_sync()
+>     to cancel the work a less tricky way
+> 
+>   + removed the controversial conversion of the RCU kthreads
 
-> Sagi, it works in TGT and AFAIR with the initiator too.
->
-> Looking on this paper of Pete Wyckoff  [1] I see that he says that
-> few changes to the initiator were needed, not sure which.
+Thank you!  ;-)
 
-I see. I wasn't aware that TGT supports bidi. However, AFAICT the
-initiator support was never fully introduced upstream nor in our mlnx
-backports (perhaps in an off-tree implementation). As I see it, bidi
-functionality, is broken for a long time (if it was ever supported).
+							Thanx, Paul
 
-So I'd suggest we (you and me Or) look at bidi separately and try to
-find out if someone wants it (not for academic research).
-
-Would you mind if we don't include bidi considerations in this patchset?
-
-Sagi.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
