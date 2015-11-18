@@ -1,29 +1,31 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 3/9] IB: add a helper to safely drain a QP
-Date: Wed, 18 Nov 2015 13:32:19 +0200
-Message-ID: <564C61C3.3050307@dev.mellanox.co.il>
-References: <1447422410-20891-1-git-send-email-hch@lst.de>
- <1447422410-20891-4-git-send-email-hch@lst.de>
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: [PATCH for-next 10/10] IB/iser: Support the remote invalidation
+ exception
+Date: Wed, 18 Nov 2015 13:38:47 +0200
+Message-ID: <564C6347.3040501@dev.mellanox.co.il>
+References: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
+ <1447691861-3796-11-git-send-email-sagig@mellanox.com>
+ <564ADFCC.4030109@mellanox.com> <564AF929.60209@dev.mellanox.co.il>
+ <564AFB93.9010602@mellanox.com> <564B00C3.1030506@dev.mellanox.co.il>
+ <CAJ3xEMjB_5pzuKyXJRXxHEvaFeHwmBLK31OFFtmA-RRY0i+82A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1447422410-20891-4-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, axboe-b10kYP2dOMg@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <CAJ3xEMjB_5pzuKyXJRXxHEvaFeHwmBLK31OFFtmA-RRY0i+82A@mail.gmail.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Or Gerlitz <gerlitz.or@gmail.com>, Pete Wyckoff <pw@padd.com>
+Cc: Or Gerlitz <ogerlitz@mellanox.com>, Sagi Grimberg <sagig@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, target-devel@vger.kernel.org, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Steve Wise <swise@opengridcomputing.com>, Jenny Derzhavetz <jennyf@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Christoph,
 
-Given the discussion around this patch I think it would
-be a good idea remove it from the patchset since it's not
-mandatory for the CQ abstraction. I think that we should
-take it with Steve to come up with a complete solution for
-this bit.
+> AFAIR, in the past there weren't explicit means to do that.
+>
+> What's makes iscsi tcp eligible to support bidi's that we don't have @ iser?
 
-Thoughts?
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+In theory, nothing.
+In practice, iser is missing customer demands, iser targets that
+support bidi and testing...
+
+If someone cared enough about it then I assume we'd hear about it by
+now...
