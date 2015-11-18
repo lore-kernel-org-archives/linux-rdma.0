@@ -1,37 +1,76 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH 3/9] IB: add a helper to safely drain a QP
-Date: Wed, 18 Nov 2015 09:21:41 -0600
-Message-ID: <564C9785.9040706@opengridcomputing.com>
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: Re: [PATCH 4/9] srpt: chain RDMA READ/WRITE requests
+Date: Wed, 18 Nov 2015 08:32:59 -0800
+Message-ID: <564CA83B.4060403@sandisk.com>
 References: <1447422410-20891-1-git-send-email-hch@lst.de>
- <1447422410-20891-4-git-send-email-hch@lst.de>
- <564C61C3.3050307@dev.mellanox.co.il> <20151118140645.GI18820@lst.de>
+ <1447422410-20891-5-git-send-email-hch@lst.de> <564BD1AF.60200@sandisk.com>
+ <564C41B8.2080904@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151118140645.GI18820-jcswGhMUV9g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, axboe-b10kYP2dOMg@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <564C41B8.2080904@dev.mellanox.co.il>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sagi Grimberg <sagig@dev.mellanox.co.il>, Christoph Hellwig <hch@lst.de>, linux-rdma@vger.kernel.org
+Cc: axboe@fb.com, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/18/2015 8:06 AM, Christoph Hellwig wrote:
-> On Wed, Nov 18, 2015 at 01:32:19PM +0200, Sagi Grimberg wrote:
->> Christoph,
+On 11/18/2015 01:15 AM, Sagi Grimberg wrote:
+> On 18/11/2015 03:17, Bart Van Assche wrote:
+>> On 11/13/2015 05:46 AM, Christoph Hellwig wrote:
+>>> -        ret = ib_post_send(ch->qp, &wr.wr, &bad_wr);
+>>> -        if (ret)
+>>> -            break;
+>>> +        if (i == n_rdma - 1) {
+>>> +            /* only get completion event for the last rdma read */
+>>> +            if (dir == DMA_TO_DEVICE)
+>>> +                wr->wr.send_flags = IB_SEND_SIGNALED;
+>>> +            wr->wr.next = NULL;
+>>> +        } else {
+>>> +            wr->wr.next = &ioctx->rdma_ius[i + 1].wr;
+>>> +        }
+>>>       }
+>>>
+>>> +    ret = ib_post_send(ch->qp, &ioctx->rdma_ius->wr, &bad_wr);
+>>>       if (ret)
+>>>           pr_err("%s[%d]: ib_post_send() returned %d for %d/%d\n",
+>>>                    __func__, __LINE__, ret, i, n_rdma);
 >>
->> Given the discussion around this patch I think it would
->> be a good idea remove it from the patchset since it's not
->> mandatory for the CQ abstraction. I think that we should
->> take it with Steve to come up with a complete solution for
->> this bit.
->>
->> Thoughts?
-> Yes, let's drop it for now.
+>> Hello Christoph,
 >
+> Hi Bart,
+>
+>>
+>> Chaining RDMA requests is a great idea. But it seems to me that this
+>> patch is based on the assumption that posting multiple RDMA requests
+>> either succeeds as a whole or fails as a whole. Sorry but I'm not sure
+>> that the verbs API guarantees this. In the ib_srpt driver a QP can be
+>> changed at any time into the error state and there might be drivers that
+>> report an immediate failure in that case.
+>
+> I'm not so sure it actually matters if some WRs succeeded. In the normal
+> flow when srpt has enough available work requests (sq_wr_avail) they
+> should all succeed otherwise we're in trouble. If the QP transitioned
+> to ERROR state, then some failed, but those that succeeded will
+> generate flush completions, and srpt should handle it correctly
+> shouldn't it?
+>
+>> I think even when chaining
+>> RDMA requests that we still need a mechanism to wait until ongoing RDMA
+>> transfers have finished if some but not all RDMA requests have been
+>> posted.
+>
+> I'm not an expert on srpt, can you explain how this mechanism will help?
 
-Fine with me.
+Hello Sagi,
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+As you know events like a cable pull can cause some of the RDMA work 
+requests to succeed and others to fail. It is essential that all RDMA 
+work requests related to the same SCSI command have finished before the 
+buffers these requests operate upon are reused. The purpose of the 
+SRPT_RDMA_ABORT request is to wait for the RDMA requests that were 
+posted without IB_SEND_SIGNALED and for which no error completion will 
+be received. BTW, I think this consideration applies to all SCSI target 
+drivers and not only to SRP target drivers.
+
+Bart.
