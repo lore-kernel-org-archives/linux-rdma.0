@@ -1,44 +1,47 @@
-From: "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: Re: [PATCH v2 1/7] staging/rdma/hfi1: diag.c Correct code style
- issues
-Date: Tue, 17 Nov 2015 14:27:46 -0800
-Message-ID: <20151117222746.GA9580@kroah.com>
-References: <1447713160-24858-1-git-send-email-ira.weiny@intel.com>
- <1447713160-24858-2-git-send-email-ira.weiny@intel.com>
- <20151117164726.GC32098@sudip-pc>
- <20151117203023.GA31037@phlsvsds.ph.intel.com>
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: Re: [PATCH 4/9] srpt: chain RDMA READ/WRITE requests
+Date: Tue, 17 Nov 2015 17:17:35 -0800
+Message-ID: <564BD1AF.60200@sandisk.com>
+References: <1447422410-20891-1-git-send-email-hch@lst.de>
+ <1447422410-20891-5-git-send-email-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20151117203023.GA31037-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Sudip Mukherjee <sudipm.mukherjee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <1447422410-20891-5-git-send-email-hch@lst.de>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>, linux-rdma@vger.kernel.org
+Cc: sagig@dev.mellanox.co.il, bart.vanassche@sandisk.com, axboe@fb.com, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 17, 2015 at 03:30:24PM -0500, ira.weiny wrote:
-> On Tue, Nov 17, 2015 at 10:17:26PM +0530, Sudip Mukherjee wrote:
-> > On Mon, Nov 16, 2015 at 05:32:34PM -0500, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> > > From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > 
-> > > Correct the checks on diag.c with the latest checkpatch
-> > > 
-> > > Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > ---
-> > 
-> > Different types of changes in a single patch.
-> 
-> Greg,
-> 
-> Do you want me to resubmit the entire series for this?
+On 11/13/2015 05:46 AM, Christoph Hellwig wrote:
+> -		ret = ib_post_send(ch->qp, &wr.wr, &bad_wr);
+> -		if (ret)
+> -			break;
+> +		if (i == n_rdma - 1) {
+> +			/* only get completion event for the last rdma read */
+> +			if (dir == DMA_TO_DEVICE)
+> +				wr->wr.send_flags = IB_SEND_SIGNALED;
+> +			wr->wr.next = NULL;
+> +		} else {
+> +			wr->wr.next = &ioctx->rdma_ius[i + 1].wr;
+> +		}
+>   	}
+>
+> +	ret = ib_post_send(ch->qp, &ioctx->rdma_ius->wr, &bad_wr);
+>   	if (ret)
+>   		pr_err("%s[%d]: ib_post_send() returned %d for %d/%d\n",
+>   				 __func__, __LINE__, ret, i, n_rdma);
 
-Why wouldn't you?  :)
+Hello Christoph,
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Chaining RDMA requests is a great idea. But it seems to me that this 
+patch is based on the assumption that posting multiple RDMA requests 
+either succeeds as a whole or fails as a whole. Sorry but I'm not sure 
+that the verbs API guarantees this. In the ib_srpt driver a QP can be 
+changed at any time into the error state and there might be drivers that 
+report an immediate failure in that case. I think even when chaining 
+RDMA requests that we still need a mechanism to wait until ongoing RDMA 
+transfers have finished if some but not all RDMA requests have been posted.
+
+Bart.
