@@ -1,65 +1,39 @@
 From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH for-next 05/10] iser: Have initiator and target to share
- protocol structures and definitions
-Date: Thu, 19 Nov 2015 10:40:51 +0200
-Message-ID: <564D8B13.8040800@dev.mellanox.co.il>
-References: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
- <1447691861-3796-6-git-send-email-sagig@mellanox.com>
- <564D7835.4010407@mellanox.com>
+Subject: Re: [PATCH for-next 10/10] IB/iser: Support the remote invalidation
+ exception
+Date: Thu, 19 Nov 2015 11:15:57 +0200
+Message-ID: <564D934D.4020809@dev.mellanox.co.il>
+References: <1447691861-3796-11-git-send-email-sagig@mellanox.com>
+ <564ADFCC.4030109@mellanox.com> <564AF929.60209@dev.mellanox.co.il>
+ <564AFB93.9010602@mellanox.com> <564B00C3.1030506@dev.mellanox.co.il>
+ <CAJ3xEMjB_5pzuKyXJRXxHEvaFeHwmBLK31OFFtmA-RRY0i+82A@mail.gmail.com>
+ <564C6347.3040501@dev.mellanox.co.il>
+ <CAJ3xEMhxOQ-HXKiXuBOKNet0VeDbNQingphFvzUXBiLcDjCmNQ@mail.gmail.com>
+ <20151118135237.GA3214@infradead.org>
+ <CAJ3xEMiBwowDFPEVqjKr-DMeDiWih8qbwshP2QbaH_56aNsRDg@mail.gmail.com>
+ <20151118141023.GA10198@infradead.org> <564D7653.8070101@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <564D7835.4010407-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <564D7653.8070101-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Pete Wyckoff <pw-VNBDo6LsbKA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-On 19/11/2015 09:20, Or Gerlitz wrote:
-> On 11/16/2015 6:37 PM, Sagi Grimberg wrote:
->> +/**
->> + * struct iser_hello - iSER Hello header
->> + *
->> + * @opcode:       opcode (must be set to ISER_HELLO)
->> + * @max_min_ver:  maximum and minimum iser versions
->> + * @iser_ird:     iSER IRD
->> + * @rsvd:         reserved
->> + */
->> +struct iser_hello {
->> +    u8      opcode;
->> +    u8    max_min_ver;
->> +    u16    iser_ird;
->> +    u8    rsvd[20];
->> +} __packed;
->> +
->> +/**
->> + * struct iser_hello_rep - iSER Hello reply header
->> + *
->> + * @opcode_rej:   opcode (must be set to ISER_HELLORPLY)
->> + *                lower bit is reject bit
->> + * @max_cur_ver:  maximum and current iser versions
->> + * @iser_ord:     iSER ORD
->> + * @rsvd:         reserved
->> + */
->> +struct iser_hello_rep {
->> +    u8      opcode_rej;
->> +    u8    max_cur_ver;
->> +    u16    iser_ord;
->> +    u8    rsvd[20];
->> +} __packed;
->> +
->
-> I don't see the point to include these two defs, we don't use them and
-> Steve even got iser to work
-> over iwarp without them, so why care? we should only leave
+> Sagi, do we still do IN, OUT, both or none? if not, where this stopped
+> to be supported? how large would be the fix?
 
-It's part of the protocol so I figured it should go here even if
-it's not used today.
+Or, it's hard for me to say where exactly it stopped being supported
+because I've never tested it and I'm not convinced it was ever
+supported.
 
-I can remove them if you like...
+I'm exhausted with this discussion so I'll change the tiny condition
+and bidi will remain unsupported until we'll decide we want to get it
+working.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
