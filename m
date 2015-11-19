@@ -1,45 +1,66 @@
-From: Or Gerlitz <ogerlitz@mellanox.com>
-Subject: Re: [PATCH for-next 08/10] iser-target: Support the remote
- invalidation exception
-Date: Thu, 19 Nov 2015 09:25:42 +0200
-Message-ID: <564D7976.3080202@mellanox.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH for-next 05/10] iser: Have initiator and target to share
+ protocol structures and definitions
+Date: Thu, 19 Nov 2015 10:40:51 +0200
+Message-ID: <564D8B13.8040800@dev.mellanox.co.il>
 References: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
- <1447691861-3796-9-git-send-email-sagig@mellanox.com>
+ <1447691861-3796-6-git-send-email-sagig@mellanox.com>
+ <564D7835.4010407@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1447691861-3796-9-git-send-email-sagig@mellanox.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@mellanox.com>
-Cc: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Steve Wise <swise@opengridcomputing.com>, Jenny Derzhavetz <jennyf@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <564D7835.4010407-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/16/2015 6:37 PM, Sagi Grimberg wrote:
->   	struct isert_conn	*conn;
-> @@ -209,6 +210,7 @@ struct isert_conn {
->   	struct work_struct	release_work;
->   	struct ib_recv_wr       beacon;
->   	bool                    logout_posted;
-> +	bool                    snd_w_inv;
->   };
 
-We've gone into this aspect few times in the past... my preference
-is to use bit flags so the code would look like
 
-conn->flags |= ISER_CONN_SEND_W_INV
+On 19/11/2015 09:20, Or Gerlitz wrote:
+> On 11/16/2015 6:37 PM, Sagi Grimberg wrote:
+>> +/**
+>> + * struct iser_hello - iSER Hello header
+>> + *
+>> + * @opcode:       opcode (must be set to ISER_HELLO)
+>> + * @max_min_ver:  maximum and minimum iser versions
+>> + * @iser_ird:     iSER IRD
+>> + * @rsvd:         reserved
+>> + */
+>> +struct iser_hello {
+>> +    u8      opcode;
+>> +    u8    max_min_ver;
+>> +    u16    iser_ird;
+>> +    u8    rsvd[20];
+>> +} __packed;
+>> +
+>> +/**
+>> + * struct iser_hello_rep - iSER Hello reply header
+>> + *
+>> + * @opcode_rej:   opcode (must be set to ISER_HELLORPLY)
+>> + *                lower bit is reject bit
+>> + * @max_cur_ver:  maximum and current iser versions
+>> + * @iser_ord:     iSER ORD
+>> + * @rsvd:         reserved
+>> + */
+>> +struct iser_hello_rep {
+>> +    u8      opcode_rej;
+>> +    u8    max_cur_ver;
+>> +    u16    iser_ord;
+>> +    u8    rsvd[20];
+>> +} __packed;
+>> +
+>
+> I don't see the point to include these two defs, we don't use them and
+> Steve even got iser to work
+> over iwarp without them, so why care? we should only leave
 
-or
+It's part of the protocol so I figured it should go here even if
+it's not used today.
 
-if (conn->flags & ISER_CONN_LOGOUT_POSTED)
-
-And you didn't want to go that way... but you did used
-bit-fields in other areas of the driver, right?
-
-Lets use some sort of BF-ing (bit fields or bit flags) all over the place
-and not introduce new booleans everywhere we go.
-
-Doing this over and over makes our fast path structures to grow and
-maybe start crossing cache-lines (did you check that?)
-
-Or.
+I can remove them if you like...
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
