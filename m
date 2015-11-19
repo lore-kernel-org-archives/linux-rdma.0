@@ -1,56 +1,61 @@
-From: Or Gerlitz <ogerlitz@mellanox.com>
-Subject: Re: [PATCH for-next 10/10] IB/iser: Support the remote invalidation
- exception
-Date: Thu, 19 Nov 2015 09:16:55 +0200
-Message-ID: <564D7767.1010104@mellanox.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next 05/10] iser: Have initiator and target to share
+ protocol structures and definitions
+Date: Thu, 19 Nov 2015 09:20:21 +0200
+Message-ID: <564D7835.4010407@mellanox.com>
 References: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
- <1447691861-3796-11-git-send-email-sagig@mellanox.com>
- <564ADFCC.4030109@mellanox.com> <564AF929.60209@dev.mellanox.co.il>
- <564AFB93.9010602@mellanox.com> <564B00C3.1030506@dev.mellanox.co.il>
- <CAJ3xEMjB_5pzuKyXJRXxHEvaFeHwmBLK31OFFtmA-RRY0i+82A@mail.gmail.com>
- <564C6347.3040501@dev.mellanox.co.il>
- <CAJ3xEMhxOQ-HXKiXuBOKNet0VeDbNQingphFvzUXBiLcDjCmNQ@mail.gmail.com>
- <564C884C.8020006@mellanox.com>
+ <1447691861-3796-6-git-send-email-sagig@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <564C884C.8020006@mellanox.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@mellanox.com>, Or Gerlitz <gerlitz.or@gmail.com>, Sagi Grimberg <sagig@dev.mellanox.co.il>
-Cc: Pete Wyckoff <pw@padd.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, target-devel@vger.kernel.org, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Steve Wise <swise@opengridcomputing.com>, Jenny Derzhavetz <jennyf@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1447691861-3796-6-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/18/2015 4:16 PM, Sagi Grimberg wrote:
->> Sagi, it works in TGT and AFAIR with the initiator too.
->>
->> Looking on this paper of Pete Wyckoff  [1] I see that he says that
->> few changes to the initiator were needed, not sure which.
+On 11/16/2015 6:37 PM, Sagi Grimberg wrote:
+> +/**
+> + * struct iser_hello - iSER Hello header
+> + *
+> + * @opcode:       opcode (must be set to ISER_HELLO)
+> + * @max_min_ver:  maximum and minimum iser versions
+> + * @iser_ird:     iSER IRD
+> + * @rsvd:         reserved
+> + */
+> +struct iser_hello {
+> +	u8      opcode;
+> +	u8	max_min_ver;
+> +	u16	iser_ird;
+> +	u8	rsvd[20];
+> +} __packed;
+> +
+> +/**
+> + * struct iser_hello_rep - iSER Hello reply header
+> + *
+> + * @opcode_rej:   opcode (must be set to ISER_HELLORPLY)
+> + *                lower bit is reject bit
+> + * @max_cur_ver:  maximum and current iser versions
+> + * @iser_ord:     iSER ORD
+> + * @rsvd:         reserved
+> + */
+> +struct iser_hello_rep {
+> +	u8      opcode_rej;
+> +	u8	max_cur_ver;
+> +	u16	iser_ord;
+> +	u8	rsvd[20];
+> +} __packed;
+> +
+
+I don't see the point to include these two defs, we don't use them and 
+Steve even got iser to work
+over iwarp without them, so why care? we should only leave
 >
-> I see. I wasn't aware that TGT supports bidi. However, AFAICT the
-> initiator support was never fully introduced upstream nor in our mlnx
-> backports (perhaps in an off-tree implementation). As I see it, bidi
-> functionality, is broken for a long time (if it was ever supported).
-
-Sounds like we weren't communicating enough while reviewing the patches
-since you joined as maintainer... lets improve.
-
-> So I'd suggest we (you and me Or) look at bidi separately and try to
-> find out if someone wants it (not for academic research).
-
-I didn't follow on the comment, what's wrong with having the upstream 
-kernel serve
-for academics? features used for academics today might turn to 
-production tomorrow.
-It's not that we're writing a whole new driver for that, there's one 
-piece in our
-design/code which is good for that purpose, this is perfectly fine.
-
-
-> Would you mind if we don't include bidi considerations in this patchset? 
-
-You should not further break it, whatever is still there should remain.  
-As for breakages
-that were introduced over the last few cycles, we should think that to do.
-
-Or.
+> +#define ISER_HELLO	0x20
+> +#define ISER_HELLORPLY	0x30
+to allow warnings on them if we get such packets
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
