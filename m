@@ -1,25 +1,28 @@
 From: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: Re: [PATCH 07/18] staging/rdma/hfi1: Extend quiet timeout
-Date: Thu, 19 Nov 2015 17:10:52 -0800
-Message-ID: <20151120011052.GG11695@kroah.com>
+Subject: Re: [PATCH 18/18] staging/rdma/hfi1: Workaround
+ CONFIG_SDMA_VERBOSITY timing issue
+Date: Thu, 19 Nov 2015 17:11:35 -0800
+Message-ID: <20151120011135.GH11695@kroah.com>
 References: <1447472236-622-1-git-send-email-jubin.john@intel.com>
- <1447472236-622-7-git-send-email-jubin.john@intel.com>
+ <1447472236-622-18-git-send-email-jubin.john@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1447472236-622-7-git-send-email-jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1447472236-622-18-git-send-email-jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Nov 13, 2015 at 07:37:05PM -0800, Jubin John wrote:
-> From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
-> The longest quiet timeout is now 6s.  Extend the driver wait.
+On Fri, Nov 13, 2015 at 07:37:16PM -0800, Jubin John wrote:
+> Enabling CONFIG_SDMA_VERBOSITY exposes a timing issue in the
+> driver/DC firmware. Removing the CCE_INT_* CSR reads from
+> sdma_dumpstate and a sdma_dumpstate call from the sdma_sendctrl()
+> works around the issue
 
-To what?  And why?  What does this fix?
+That sounds like a horrid hack, and this implies that a slower machine
+will still have this problem...
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
