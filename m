@@ -1,41 +1,34 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
-Subject: RE: [PATCH 18/18] staging/rdma/hfi1: Workaround
- CONFIG_SDMA_VERBOSITY timing issue
-Date: Fri, 20 Nov 2015 16:01:18 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC259BD8A2@fmsmsx120.amr.corp.intel.com>
-References: <1447472236-622-1-git-send-email-jubin.john@intel.com>
- <1447472236-622-18-git-send-email-jubin.john@intel.com>
- <20151120011135.GH11695@kroah.com>
+From: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Subject: Re: [PATCH v2 2/2] staging/rdma/hfi1: Eliminate WARN_ON when VL is
+ invalid
+Date: Fri, 20 Nov 2015 08:35:42 -0800
+Message-ID: <20151120163542.GA31501@kroah.com>
+References: <1447114701-11003-1-git-send-email-jubin.john@intel.com>
+ <1447114701-11003-3-git-send-email-jubin.john@intel.com>
+ <20151120005837.GA18080@kroah.com>
+ <32E1700B9017364D9B60AED9960492BC259BD7E1@fmsmsx120.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <20151120011135.GH11695@kroah.com>
-Content-Language: en-US
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Greg KH <gregkh@linuxfoundation.org>, "John, Jubin" <jubin.john@intel.com>
-Cc: "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <32E1700B9017364D9B60AED9960492BC259BD7E1-RjuIdWtd+YbTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "John, Jubin" <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org" <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> That sounds like a horrid hack, and this implies that a slower machine will
-> still have this problem...
+On Fri, Nov 20, 2015 at 03:23:55PM +0000, Marciniszyn, Mike wrote:
+> > >  drivers/staging/rdma/hfi1/sdma.c |   12 ++++++++++--
+> > >  1 files changed, 10 insertions(+), 2 deletions(-)
+> > 
+> > Doesn't apply to my tree :(
+> 
+> Ok.
+> 
+> Is the inprocess branch available?
 
-Greg,
-
-I'm NAK'ing this patch for two reasons:
-1. Code underneath the CONFIG option is only used during rework
-2. It is a hack as you have noted
-
-We are going to take this up internally to get to the root cause.
-
-Go ahead and drop or whatever you do.
-
-Mike
+I do not understand what you mean here :(
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
