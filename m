@@ -1,50 +1,34 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: HFI1 code duplication todo
-Date: Thu, 19 Nov 2015 17:23:20 -0500
-Message-ID: <20151119222319.GA17605@phlsvsds.ph.intel.com>
-References: <20151112211317.GB11252@phlsvsds.ph.intel.com>
+From: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Subject: Re: [PATCH v3 3/3] staging/rdma/hfi1: Method to toggle "fast ECN"
+ detection
+Date: Thu, 19 Nov 2015 16:54:44 -0800
+Message-ID: <20151120005444.GA32083@kroah.com>
+References: <1447112084-12532-1-git-send-email-ira.weiny@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20151112211317.GB11252-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <1447112084-12532-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Vennila Megavannan <vennila.megavannan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 12, 2015 at 04:13:18PM -0500, Dennis Dalessandro wrote:
->The major todo for the hfi1 driver in staging is getting rid of the verbs 
->code duplication between ipath, qib, and now hfi1. The ipath driver has 
->been deprecated and is going to be deleted soon. So that leaves qib and 
->hfi. To address this we have proposed rdmavt which will be a common kmod 
->that provides software RDMA verbs support. qib and hfi1 will both use this 
->as well as other forthcoming drivers such as soft-roce. See this thread for 
->some details: http://www.spinics.net/lists/linux-rdma/msg29922.html.
->
->Since that initial RFC we have been accumulating patches in a GitHub repo 
->for an early look at the development. At some point soon we want to 
->actually start posting the patches to the mailing list. This is where it 
->gets tricky.  The code basically not only adds a new driver but it modifies 
->two existing ones, heavily. To make it more murky one driver is in staging 
->the other is in the usual drivers/infiniband tree.
->
->The question is, how do we go about this logistically due to the 2 drivers 
->being in separate sub-trees?
->
->Greg, Doug,
->As the maintainers of the two trees involved we'd kind of like to get your 
->thoughts on this.
+On Mon, Nov 09, 2015 at 06:34:44PM -0500, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> From: Vennila Megavannan <vennila.megavannan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> Add a module paramter to toggle prescan/Fast ECN Detection and remove the
+> Kconfig option which used to control this.
 
-Hi Greg and Doug,
+Ick, no, not a module parameter, that's horrid (hint, it isn't a
+per-device option...)
 
-Just wanted to ping you guys again in case my mail last week slipped through 
-the cracks. We are at the point now where we have some patches we can start 
-posting. Looking for some logistical guidance.
+Why can't you do this dynamically?
+Why would anyone ever want to make this "slow"?
 
-Thanks
+thanks,
 
--Denny
+greg k-h
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
