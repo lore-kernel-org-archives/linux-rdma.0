@@ -1,44 +1,63 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: HFI1 code duplication todo
-Date: Sat, 21 Nov 2015 01:25:23 +0300
-Message-ID: <20151120222523.GX18797@mwanda>
-References: <20151112211317.GB11252@phlsvsds.ph.intel.com>
- <20151119222319.GA17605@phlsvsds.ph.intel.com>
- <564F3F1C.4020508@redhat.com>
+From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] staging/rdma/hfi1: Fix error in hfi1 driver build
+Date: Fri, 20 Nov 2015 18:13:08 -0500
+Message-ID: <1448061188-15701-1-git-send-email-jubin.john@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-Content-Disposition: inline
-In-Reply-To: <564F3F1C.4020508@redhat.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Doug Ledford <dledford@redhat.com>
-Cc: linux-rdma@vger.kernel.org, devel@driverdev.osuosl.org, gregkh@linuxfoundation.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Nov 20, 2015 at 10:41:16AM -0500, Doug Ledford wrote:
-> So, as to the hfi1/qib/rxe transport library.  The qib driver is in the
-> rdma tree, and we aren't going to move it to staging just because it
-> depends on something in staging, so we need to start adding the library
-> in the core tree to avoid dependency issues.  As for the hfi1 driver,
-> I'm of the opinion that putting it in staging because of the code
-> duplication issue was probably not the right thing to do.  It's
-> benefited from the extra eyes on it to help make it a better driver, but
-> I think I'm ready to move it to the main RDMA tree and start working on
-> it from there where there won't be any cross tree dependency issues.
+hfi1 driver build fails with the following error:
+In function =E2=80=98handle_receive_interrupt=E2=80=99:
+error: implicit declaration of function =E2=80=98skip_rcv_packet=E2=80=99=
+ [-Werror=3Dimplicit-function-declaration]
+    last =3D skip_rcv_packet(&packet, thread);
+    ^
+This is due to the inclusion of the skip_rcv_packet() in the
+CONFIG_PRESCAN_RXQ ifdef block. This function is independent of
+CONFIG_PRESCAN_RXQ and should be outside this block.
 
-You could leave it staging but manage it from the same git tree.  It
-avoids the cross tree dependencies.  This is what we do for
-drivers/staging/media/, all that stuff goes through the linux-media
-tree.
+=46ixes: 82c2611daaf0 ("staging/rdma/hfi1: Handle packets with invalid =
+RHF on context 0")
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/staging/rdma/hfi1/driver.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-regards,
-dan carpenter
+diff --git a/drivers/staging/rdma/hfi1/driver.c b/drivers/staging/rdma/=
+hfi1/driver.c
+index 4c52e78..3b7a707 100644
+--- a/drivers/staging/rdma/hfi1/driver.c
++++ b/drivers/staging/rdma/hfi1/driver.c
+@@ -633,6 +633,7 @@ next:
+ 		update_ps_mdata(&mdata, rcd);
+ 	}
+ }
++#endif /* CONFIG_PRESCAN_RXQ */
+=20
+ static inline int skip_rcv_packet(struct hfi1_packet *packet, int thre=
+ad)
+ {
+@@ -659,7 +660,6 @@ static inline int skip_rcv_packet(struct hfi1_packe=
+t *packet, int thread)
+=20
+ 	return ret;
+ }
+-#endif /* CONFIG_PRESCAN_RXQ */
+=20
+ static inline int process_rcv_packet(struct hfi1_packet *packet, int t=
+hread)
+ {
+--=20
+1.7.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
