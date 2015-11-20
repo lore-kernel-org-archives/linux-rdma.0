@@ -1,38 +1,26 @@
-From: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: Re: [PATCH v2 2/2] staging/rdma/hfi1: Eliminate WARN_ON when VL is
- invalid
-Date: Fri, 20 Nov 2015 09:00:23 -0800
-Message-ID: <20151120170023.GA14450@kroah.com>
-References: <1447114701-11003-1-git-send-email-jubin.john@intel.com>
- <1447114701-11003-3-git-send-email-jubin.john@intel.com>
- <20151120005837.GA18080@kroah.com>
- <32E1700B9017364D9B60AED9960492BC259BD7E1@fmsmsx120.amr.corp.intel.com>
- <20151120163542.GA31501@kroah.com>
- <32E1700B9017364D9B60AED9960492BC259BD977@fmsmsx120.amr.corp.intel.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: HFI1 code duplication todo
+Date: Fri, 20 Nov 2015 09:01:27 -0800
+Message-ID: <20151120170127.GA7683@infradead.org>
+References: <20151112211317.GB11252@phlsvsds.ph.intel.com>
+ <20151119222319.GA17605@phlsvsds.ph.intel.com>
+ <564F3F1C.4020508@redhat.com>
+ <20151120163935.GA10091@kroah.com>
+ <564F512A.1060808@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <32E1700B9017364D9B60AED9960492BC259BD977-RjuIdWtd+YbTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <564F512A.1060808-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "John, Jubin" <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org" <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Nov 20, 2015 at 04:43:56PM +0000, Marciniszyn, Mike wrote:
-> > >
-> > > Is the inprocess branch available?
-> > 
-> > I do not understand what you mean here :(
-> 
-> Does it fail to apply to staging-next or staging-testing or something else?
+Hi Doug,
 
-As both trees are now the same, it fails to apply to both at the moment
-:)
-
-thanks,
-
-greg k-h
+before the drivers stops overloading writev vs write (hfi1_file_ops)
+it MUST not be moved to the main tree.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
