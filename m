@@ -1,34 +1,38 @@
 From: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: Re: [PATCH v3 3/3] staging/rdma/hfi1: Method to toggle "fast ECN"
- detection
-Date: Thu, 19 Nov 2015 16:54:44 -0800
-Message-ID: <20151120005444.GA32083@kroah.com>
-References: <1447112084-12532-1-git-send-email-ira.weiny@intel.com>
+Subject: Re: [PATCH v2 2/2] staging/rdma/hfi1: Eliminate WARN_ON when VL is
+ invalid
+Date: Thu, 19 Nov 2015 16:58:37 -0800
+Message-ID: <20151120005837.GA18080@kroah.com>
+References: <1447114701-11003-1-git-send-email-jubin.john@intel.com>
+ <1447114701-11003-3-git-send-email-jubin.john@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1447112084-12532-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1447114701-11003-3-git-send-email-jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Vennila Megavannan <vennila.megavannan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 09, 2015 at 06:34:44PM -0500, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> From: Vennila Megavannan <vennila.megavannan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Mon, Nov 09, 2015 at 07:18:21PM -0500, Jubin John wrote:
+> From: Ira Weiny <iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 > 
-> Add a module paramter to toggle prescan/Fast ECN Detection and remove the
-> Kconfig option which used to control this.
+> sdma_select_engine_vl only needs to protect itself from an invalid VL.
+> Something higher up the stack should be warning the user when they try
+> to use an SL which maps to an invalid VL.
+> 
+> Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Ira Weiny <iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/staging/rdma/hfi1/sdma.c |   12 ++++++++++--
+>  1 files changed, 10 insertions(+), 2 deletions(-)
 
-Ick, no, not a module parameter, that's horrid (hint, it isn't a
-per-device option...)
+Doesn't apply to my tree :(
 
-Why can't you do this dynamically?
-Why would anyone ever want to make this "slow"?
-
-thanks,
-
-greg k-h
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
