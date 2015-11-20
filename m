@@ -1,38 +1,33 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] IB/iser: use sector_div instead of do_div
-Date: Fri, 20 Nov 2015 17:41:36 +0100
-Message-ID: <5922990.8IJpyksX8K@wuerfel>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v2 2/2] staging/rdma/hfi1: Eliminate WARN_ON when VL is
+ invalid
+Date: Fri, 20 Nov 2015 16:43:56 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC259BD977@fmsmsx120.amr.corp.intel.com>
+References: <1447114701-11003-1-git-send-email-jubin.john@intel.com>
+ <1447114701-11003-3-git-send-email-jubin.john@intel.com>
+ <20151120005837.GA18080@kroah.com>
+ <32E1700B9017364D9B60AED9960492BC259BD7E1@fmsmsx120.amr.corp.intel.com>
+ <20151120163542.GA31501@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Or Gerlitz <ogerlitz@mellanox.com>, Sagi Grimberg <sagig@mellanox.com>
-Cc: nico@fluxnic.net, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Roi Dayan <roid@mellanox.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151120163542.GA31501-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: "John, Jubin" <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org" <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-do_div is the wrong way to divide a sector_t, as it is less
-efficient when sector_t is 32-bit wide. With the upcoming
-do_div optimizations, the kernel starts warning about this:
+> >
+> > Is the inprocess branch available?
+> 
+> I do not understand what you mean here :(
 
-drivers/infiniband/ulp/iser/iser_verbs.c:1296:4: note: in expansion of macro 'do_div'
-include/asm-generic/div64.h:224:22: warning: passing argument 1 of '__div64_32' from incompatible pointer type
+Does it fail to apply to staging-next or staging-testing or something else?
 
-This changes the code to use sector_div instead, which always
-produces optimal code.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index a93070210109..42f4da620f2e 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -1293,7 +1293,7 @@ u8 iser_check_task_pi_status(struct iscsi_iser_task *iser_task,
- 		if (mr_status.fail_status & IB_MR_CHECK_SIG_STATUS) {
- 			sector_t sector_off = mr_status.sig_err.sig_err_offset;
- 
--			do_div(sector_off, sector_size + 8);
-+			sector_div(sector_off, sector_size + 8);
- 			*sector = scsi_get_lba(iser_task->sc) + sector_off;
- 
- 			pr_err("PI error found type %d at sector %llx "
+Mike
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
