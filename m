@@ -1,42 +1,45 @@
-From: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: Re: [PATCH 18/18] staging/rdma/hfi1: Workaround
- CONFIG_SDMA_VERBOSITY timing issue
-Date: Fri, 20 Nov 2015 09:57:03 -0800
-Message-ID: <20151120175703.GA15988@kroah.com>
-References: <1447472236-622-1-git-send-email-jubin.john@intel.com>
- <1447472236-622-18-git-send-email-jubin.john@intel.com>
- <20151120011135.GH11695@kroah.com>
- <32E1700B9017364D9B60AED9960492BC259BD8A2@fmsmsx120.amr.corp.intel.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH] IB/cma: Add a missing rcu_read_unlock()
+Date: Fri, 20 Nov 2015 11:04:12 -0800
+Message-ID: <564F6EAC.7070608@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <32E1700B9017364D9B60AED9960492BC259BD8A2-RjuIdWtd+YbTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "John, Jubin" <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org" <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Nov 20, 2015 at 04:01:18PM +0000, Marciniszyn, Mike wrote:
-> > That sounds like a horrid hack, and this implies that a slower machine will
-> > still have this problem...
-> 
-> Greg,
-> 
-> I'm NAK'ing this patch for two reasons:
-> 1. Code underneath the CONFIG option is only used during rework
-> 2. It is a hack as you have noted
-> 
-> We are going to take this up internally to get to the root cause.
-> 
-> Go ahead and drop or whatever you do.
+Ensure that validate_ipv4_net_dev() calls rcu_read_unlock() if
+fib_lookup() fails. Detected by sparse. Compile-tested only.
 
-This whole series is dropped from my queue, it needs to be fixed up and
-resent before I will consider it again.
+Fixes: "IB/cma: Validate routing of incoming requests" (commit f887f2ac87c2).
+Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: stable <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+---
+ drivers/infiniband/core/cma.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-thanks,
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 69e5477..f8dfc63 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -1126,10 +1126,7 @@ static bool validate_ipv4_net_dev(struct net_device *net_dev,
+ 
+ 	rcu_read_lock();
+ 	err = fib_lookup(dev_net(net_dev), &fl4, &res, 0);
+-	if (err)
+-		return false;
+-
+-	ret = FIB_RES_DEV(res) == net_dev;
++	ret = err == 0 && FIB_RES_DEV(res) == net_dev;
+ 	rcu_read_unlock();
+ 
+ 	return ret;
+-- 
+2.1.4
 
-greg k-h
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
