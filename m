@@ -1,63 +1,43 @@
 From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] staging/rdma/hfi1: Fix error in hfi1 driver build
-Date: Fri, 20 Nov 2015 18:13:08 -0500
-Message-ID: <1448061188-15701-1-git-send-email-jubin.john@intel.com>
+Subject: Re: [PATCH v2 2/2] staging/rdma/hfi1: Eliminate WARN_ON when VL is invalid
+Date: Fri, 20 Nov 2015 18:59:04 -0500
+Message-ID: <20151120235903.GA16384@phlsvsds.ph.intel.com>
+References: <1447114701-11003-1-git-send-email-jubin.john@intel.com> <1447114701-11003-3-git-send-email-jubin.john@intel.com> <20151120005837.GA18080@kroah.com> <32E1700B9017364D9B60AED9960492BC259BD7E1@fmsmsx120.amr.corp.intel.com> <20151120163542.GA31501@kroah.com> <32E1700B9017364D9B60AED9960492BC259BD977@fmsmsx120.amr.corp.intel.com> <20151120170023.GA14450@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20151120170023.GA14450-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org" <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-hfi1 driver build fails with the following error:
-In function =E2=80=98handle_receive_interrupt=E2=80=99:
-error: implicit declaration of function =E2=80=98skip_rcv_packet=E2=80=99=
- [-Werror=3Dimplicit-function-declaration]
-    last =3D skip_rcv_packet(&packet, thread);
-    ^
-This is due to the inclusion of the skip_rcv_packet() in the
-CONFIG_PRESCAN_RXQ ifdef block. This function is independent of
-CONFIG_PRESCAN_RXQ and should be outside this block.
+On Fri, Nov 20, 2015 at 09:00:23AM -0800, Greg KH wrote:
+> On Fri, Nov 20, 2015 at 04:43:56PM +0000, Marciniszyn, Mike wrote:
+> > > >
+> > > > Is the inprocess branch available?
+> > > 
+> > > I do not understand what you mean here :(
+> > 
+> > Does it fail to apply to staging-next or staging-testing or something else?
+> 
+> As both trees are now the same, it fails to apply to both at the moment
+> :)
 
-=46ixes: 82c2611daaf0 ("staging/rdma/hfi1: Handle packets with invalid =
-RHF on context 0")
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/staging/rdma/hfi1/driver.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+I will refresh this patch against the latest staging-next.
 
-diff --git a/drivers/staging/rdma/hfi1/driver.c b/drivers/staging/rdma/=
-hfi1/driver.c
-index 4c52e78..3b7a707 100644
---- a/drivers/staging/rdma/hfi1/driver.c
-+++ b/drivers/staging/rdma/hfi1/driver.c
-@@ -633,6 +633,7 @@ next:
- 		update_ps_mdata(&mdata, rcd);
- 	}
- }
-+#endif /* CONFIG_PRESCAN_RXQ */
-=20
- static inline int skip_rcv_packet(struct hfi1_packet *packet, int thre=
-ad)
- {
-@@ -659,7 +660,6 @@ static inline int skip_rcv_packet(struct hfi1_packe=
-t *packet, int thread)
-=20
- 	return ret;
- }
--#endif /* CONFIG_PRESCAN_RXQ */
-=20
- static inline int process_rcv_packet(struct hfi1_packet *packet, int t=
-hread)
- {
---=20
-1.7.1
-
+Thanks,
+Jubin John
+> 
+> thanks,
+> 
+> greg k-h
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
