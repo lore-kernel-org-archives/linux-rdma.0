@@ -1,124 +1,105 @@
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: Re: [PATCH 2/9] IB: add a proper completion queue abstraction
-Date: Fri, 20 Nov 2015 08:50:00 -0800
-Message-ID: <564F4F38.9040505@sandisk.com>
-References: <1447422410-20891-1-git-send-email-hch@lst.de>
- <1447422410-20891-3-git-send-email-hch@lst.de> <564B697A.2020601@sandisk.com>
- <564C2F01.6020407@dev.mellanox.co.il> <564CC15E.7030602@sandisk.com>
- <20151120101644.GC24298@lst.de>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: HFI1 code duplication todo
+Date: Fri, 20 Nov 2015 11:58:18 -0500
+Message-ID: <564F512A.1060808@redhat.com>
+References: <20151112211317.GB11252@phlsvsds.ph.intel.com>
+ <20151119222319.GA17605@phlsvsds.ph.intel.com> <564F3F1C.4020508@redhat.com>
+ <20151120163935.GA10091@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151120101644.GC24298@lst.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Sagi Grimberg <sagig@dev.mellanox.co.il>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "axboe@fb.com" <axboe@fb.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="HVbsw1MtpLdWwAXOlGE0biFM4wubeEpIf"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151120163935.GA10091-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/20/2015 02:16 AM, Christoph Hellwig wrote:
-> On Wed, Nov 18, 2015 at 10:20:14AM -0800, Bart Van Assche wrote:
->> Are you perhaps referring to the sysfs CPU mask that allows to control
->> workqueue affinity ?
-> 
-> I think he is referring to the defintion of WQ_UNBOUND:
-> 
->    WQ_UNBOUND
-> 
-> 	Work items queued to an unbound wq are served by the special
-> 	woker-pools which host workers which are not bound to any
-> 	specific CPU.  This makes the wq behave as a simple execution
-> 	context provider without concurrency management.  The unbound
-> 	worker-pools try to start execution of work items as soon as
-> 	possible.  Unbound wq sacrifices locality but is useful for
-> 	the following cases.
-> 
-> 	* Wide fluctuation in the concurrency level requirement is
-> 	  expected and using bound wq may end up creating large number
-> 	  of mostly unused workers across different CPUs as the issuer
-> 	  hops through different CPUs.
-> 
-> 	* Long running CPU intensive workloads which can be better
-> 	  managed by the system scheduler.
- 
-Hello Christoph,
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--HVbsw1MtpLdWwAXOlGE0biFM4wubeEpIf
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-The comment about locality in the above quote is interesting. How about
-modifying patch 2/9 as indicated below ? The modification below does not
-change the behavior of this patch if ib_cq.w.cpu is not modified. And it
-allows users who care about locality and who want to skip the scheduler
-overhead by setting ib_cq.w.cpu to the index of the CPU they want the
-work to be processed on.
+On 11/20/2015 11:39 AM, Greg KH wrote:
+> On Fri, Nov 20, 2015 at 10:41:16AM -0500, Doug Ledford wrote:
+>> To that end, I've opened my 4.4-rc branch and deleted the three
+>> deprecated drivers from staging and moved hfi1 to the rdma tree.  I've=
 
-Thanks,
+>> sent an email to Linus to see if he's ok taking those changes, and if
+>> so, I'll get them submitted and then open up my for-4.5 branch early t=
+o
+>> be able to start taking for-next patches.
+>=20
+> I think it's too late for that, especially given that I have 34+ patche=
+s
+> for the staging rdma drivers already in my tree in linux-next.
 
-Bart.
+For hfi1 rename detection should work, for the other three, patches to
+removed files are easily resolved as simply dropped patches.  So I don't
+think it's that large of an issue.  Correct me if I'm wrong.
 
----
- drivers/infiniband/core/cq.c | 11 ++++++-----
- include/rdma/ib_verbs.h      |  5 ++++-
- 2 files changed, 10 insertions(+), 6 deletions(-)
+>  And the
+> hfil1 code really doesn't look like its ready to merge into the "real"
+> portion of the kernel tree, given the horrid nature of the patches
+> submitted recently for it :(
 
-diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
-index bf2a079..4d80d8c 100644
---- a/drivers/infiniband/core/cq.c
-+++ b/drivers/infiniband/core/cq.c
-@@ -94,18 +94,18 @@ static void ib_cq_completion_softirq(struct ib_cq *cq, void *private)
- 
- static void ib_cq_poll_work(struct work_struct *work)
- {
--	struct ib_cq *cq = container_of(work, struct ib_cq, work);
-+	struct ib_cq *cq = container_of(work, struct ib_cq, w.work);
- 	int completed;
- 
- 	completed = __ib_process_cq(cq, IB_POLL_BUDGET_WORKQUEUE);
- 	if (completed >= IB_POLL_BUDGET_WORKQUEUE ||
- 	    ib_req_notify_cq(cq, IB_POLL_FLAGS) > 0)
--		queue_work(ib_comp_wq, &cq->work);
-+		queue_work_on(cq->w.cpu, ib_comp_wq, &cq->w.work);
- }
- 
- static void ib_cq_completion_workqueue(struct ib_cq *cq, void *private)
- {
--	queue_work(ib_comp_wq, &cq->work);
-+	queue_work_on(cq->w.cpu, ib_comp_wq, &cq->w.work);
- }
- 
- /**
-@@ -159,7 +159,8 @@ struct ib_cq *ib_alloc_cq(struct ib_device *dev, void *private,
- 		break;
- 	case IB_POLL_WORKQUEUE:
- 		cq->comp_handler = ib_cq_completion_workqueue;
--		INIT_WORK(&cq->work, ib_cq_poll_work);
-+		INIT_WORK(&cq->w.work, ib_cq_poll_work);
-+		cq->w.cpu = WORK_CPU_UNBOUND;
- 		ib_req_notify_cq(cq, IB_CQ_NEXT_COMP);
- 		break;
- 	default:
-@@ -195,7 +196,7 @@ void ib_free_cq(struct ib_cq *cq)
- 		irq_poll_disable(&cq->iop);
- 		break;
- 	case IB_POLL_WORKQUEUE:
--		flush_work(&cq->work);
-+		flush_work(&cq->w.work);
- 		break;
- 	default:
- 		WARN_ON_ONCE(1);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index f59a8d3..b1344f8 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1291,7 +1291,10 @@ struct ib_cq {
- 	struct ib_wc		*wc;
- 	union {
- 		struct irq_poll		iop;
--		struct work_struct	work;
-+		struct {
-+			struct work_struct	work;
-+			int			cpu;
-+		} w;
- 	};
- };
- 
--- 
-2.1.4
+I'm sorry, that doesn't make sense to me.  How can the quality of
+patches that aren't part of the driver yet and are just being submitted
+impune the readiness of the code the patches are supposed to be touching?=
+
+
+And that's orthogonal to the issue that the primary TODO item for this
+driver requires coordination between it, qib (in the RDMA tree), and the
+upcoming soft_roce driver.  If the driver isn't moved, then we have to
+coordinate between your tree and mine to make sure that no patches are
+taken into your tree until after the patches they depend on have landed
+in my tree.  And then you tree likely won't build unless you pull from
+my tree and merge up first.  It's not really tenable.  That was why I
+had suggested (and originally you agreed to) that I would handle the
+entire staging/rdma tree.  However, since you changed your mind on that
+issue, we now have this coordination issue.  I don't really want to deal
+with that, so I would rather move the hfi1 driver and take care of the
+all the needed patching myself going forward.
+
+> I had expected the drivers to be deleted for -rc1, removing them now
+> seems a bit late in the merge window.
+
+Yes, I know.  I've been busy.  My apologies for not getting it in prior
+to rc1.
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--HVbsw1MtpLdWwAXOlGE0biFM4wubeEpIf
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJWT1ErAAoJELgmozMOVy/dRI4QAKhHzh1i8dRkbEBVMS2iNwkB
+/X3JLtiWAqu3SUNLZ3rpU4pCStd8ERTcGcnBLDUiJnFwgXy6IXMKV+GgB5j7OOTg
+olwlZkG9VK/ENXy43Sy5BEsk2/tnYqDlLWAb/UAw6ZG3Nv3smmzLqw0HUom26RJC
+Ru4OUD/JBBe13k1ZCfCEJq8ISKDUdf0jdqMAUJDpkC1hRlemzYUZxZdUe8tAW5xK
+AEvN81C9RWT+yC3VUbEQJmiHxmSsM1mlriu00BpqmLKBLbhqY67yxt/pJPLXILSS
+9wS7ZDZOBeu8cPn8QV3cOhesa5HmliSAA/Gc1tTp4FEvg+w/vplxAQBMctuxHTog
+Co+6kZP5sEz9EDZKUyoLgm4JwEVnVVvAM+CgxR5xADOK/9aQ1f6XSH9p10whUwww
+82BKNatTPILzvUsD4LZL/ZqZ+QdjQMvjxYlUPiPViq0ySUU+kZCDh67v1egM4iAw
+3SbVPWthLXklYP+1lify5P54SHqpSGsxhbadHNdM0dgZQEAVMWVczU+Efhf6MHuq
+GFUC2KB03zXX5mm9JlMe1w/R2k2Kj+BHyzD9ykAIl07HlHHg/GofFuBAfHtDeBhm
+mTScUADXlONDHSTNnLYB3nycO4Ep9s60bNKhqRWP2fik2YvQwcGLSWrsiAvv+AJ7
+OtrZRaGw0qR93TWPyikp
+=LM48
+-----END PGP SIGNATURE-----
+
+--HVbsw1MtpLdWwAXOlGE0biFM4wubeEpIf--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
