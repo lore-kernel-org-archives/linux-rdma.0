@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 05/11] cxgb3: simplify iwch_get_dma_wr
-Date: Sun, 22 Nov 2015 18:46:43 +0100
-Message-ID: <1448214409-7729-6-git-send-email-hch@lst.de>
+Subject: [PATCH 04/11] IB: remove in-kernel support for memory windows
+Date: Sun, 22 Nov 2015 18:46:42 +0100
+Message-ID: <1448214409-7729-5-git-send-email-hch@lst.de>
 References: <1448214409-7729-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1448214409-7729-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
@@ -10,238 +10,819 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Fold simplified versions of build_phys_page_list and
-iwch_register_phys_mem into iwch_get_dma_wr now that no other callers
-are left.
+Remove the unused ib_allow_mw and ib_bind_mw functions, remove the
+unused IB_WR_BIND_MW and IB_WC_BIND_MW opcodes and move ib_dealloc_mw
+into the uverbs module.
 
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb3/iwch_mem.c      | 71 ----------------------------
- drivers/infiniband/hw/cxgb3/iwch_provider.c | 73 ++++++++++-------------------
- drivers/infiniband/hw/cxgb3/iwch_provider.h |  8 ----
- 3 files changed, 26 insertions(+), 126 deletions(-)
+ Documentation/infiniband/core_locking.txt   |  2 -
+ drivers/infiniband/core/uverbs.h            |  2 +
+ drivers/infiniband/core/uverbs_cmd.c        |  4 +-
+ drivers/infiniband/core/uverbs_main.c       | 13 ++++-
+ drivers/infiniband/core/verbs.c             | 36 -------------
+ drivers/infiniband/hw/cxgb3/iwch_cq.c       |  4 --
+ drivers/infiniband/hw/cxgb3/iwch_provider.c |  1 -
+ drivers/infiniband/hw/cxgb3/iwch_provider.h |  3 --
+ drivers/infiniband/hw/cxgb3/iwch_qp.c       | 82 ----------------------------
+ drivers/infiniband/hw/cxgb4/cq.c            |  3 --
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h      |  2 -
+ drivers/infiniband/hw/cxgb4/provider.c      |  1 -
+ drivers/infiniband/hw/cxgb4/qp.c            |  5 --
+ drivers/infiniband/hw/mlx4/cq.c             |  3 --
+ drivers/infiniband/hw/mlx4/main.c           |  1 -
+ drivers/infiniband/hw/mlx4/mlx4_ib.h        |  2 -
+ drivers/infiniband/hw/mlx4/mr.c             | 22 --------
+ drivers/infiniband/hw/mlx4/qp.c             | 27 ----------
+ drivers/infiniband/hw/mlx5/cq.c             |  3 --
+ drivers/infiniband/hw/mthca/mthca_cq.c      |  3 --
+ drivers/infiniband/hw/nes/nes_verbs.c       | 75 --------------------------
+ drivers/staging/rdma/amso1100/c2_cq.c       |  3 --
+ drivers/staging/rdma/ehca/ehca_iverbs.h     |  3 --
+ drivers/staging/rdma/ehca/ehca_main.c       |  1 -
+ drivers/staging/rdma/ehca/ehca_mrmw.c       | 12 -----
+ drivers/staging/rdma/ehca/ehca_reqs.c       |  1 -
+ include/rdma/ib_verbs.h                     | 83 -----------------------------
+ 27 files changed, 16 insertions(+), 381 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_mem.c b/drivers/infiniband/hw/cxgb3/iwch_mem.c
-index 3a5e27d..1d04c87 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_mem.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_mem.c
-@@ -99,74 +99,3 @@ int iwch_write_pbl(struct iwch_mr *mhp, __be64 *pages, int npages, int offset)
- 	return cxio_write_pbl(&mhp->rhp->rdev, pages,
- 			      mhp->attr.pbl_addr + (offset << 3), npages);
+diff --git a/Documentation/infiniband/core_locking.txt b/Documentation/infiniband/core_locking.txt
+index e167854..4b1f36b 100644
+--- a/Documentation/infiniband/core_locking.txt
++++ b/Documentation/infiniband/core_locking.txt
+@@ -15,7 +15,6 @@ Sleeping and interrupt context
+     modify_ah
+     query_ah
+     destroy_ah
+-    bind_mw
+     post_send
+     post_recv
+     poll_cq
+@@ -31,7 +30,6 @@ Sleeping and interrupt context
+     ib_modify_ah
+     ib_query_ah
+     ib_destroy_ah
+-    ib_bind_mw
+     ib_post_send
+     ib_post_recv
+     ib_req_notify_cq
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index 94bbd8c..612ccfd 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -204,6 +204,8 @@ void ib_uverbs_event_handler(struct ib_event_handler *handler,
+ 			     struct ib_event *event);
+ void ib_uverbs_dealloc_xrcd(struct ib_uverbs_device *dev, struct ib_xrcd *xrcd);
+ 
++int uverbs_dealloc_mw(struct ib_mw *mw);
++
+ struct ib_uverbs_flow_spec {
+ 	union {
+ 		union {
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 29c1413..b0f7872 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1240,7 +1240,7 @@ err_copy:
+ 	idr_remove_uobj(&ib_uverbs_mw_idr, uobj);
+ 
+ err_unalloc:
+-	ib_dealloc_mw(mw);
++	uverbs_dealloc_mw(mw);
+ 
+ err_put:
+ 	put_pd_read(pd);
+@@ -1269,7 +1269,7 @@ ssize_t ib_uverbs_dealloc_mw(struct ib_uverbs_file *file,
+ 
+ 	mw = uobj->object;
+ 
+-	ret = ib_dealloc_mw(mw);
++	ret = uverbs_dealloc_mw(mw);
+ 	if (!ret)
+ 		uobj->live = 0;
+ 
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index e3ef288..39680ae 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -133,6 +133,17 @@ static int (*uverbs_ex_cmd_table[])(struct ib_uverbs_file *file,
+ static void ib_uverbs_add_one(struct ib_device *device);
+ static void ib_uverbs_remove_one(struct ib_device *device, void *client_data);
+ 
++int uverbs_dealloc_mw(struct ib_mw *mw)
++{
++	struct ib_pd *pd = mw->pd;
++	int ret;
++
++	ret = mw->device->dealloc_mw(mw);
++	if (!ret)
++		atomic_dec(&pd->usecnt);
++	return ret;
++}
++
+ static void ib_uverbs_release_dev(struct kobject *kobj)
+ {
+ 	struct ib_uverbs_device *dev =
+@@ -224,7 +235,7 @@ static int ib_uverbs_cleanup_ucontext(struct ib_uverbs_file *file,
+ 		struct ib_mw *mw = uobj->object;
+ 
+ 		idr_remove_uobj(&ib_uverbs_mw_idr, uobj);
+-		ib_dealloc_mw(mw);
++		uverbs_dealloc_mw(mw);
+ 		kfree(uobj);
+ 	}
+ 
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 0e21367..b31beb1 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1267,42 +1267,6 @@ struct ib_mr *ib_alloc_mr(struct ib_pd *pd,
  }
+ EXPORT_SYMBOL(ib_alloc_mr);
+ 
+-/* Memory windows */
 -
--int build_phys_page_list(struct ib_phys_buf *buffer_list,
--					int num_phys_buf,
--					u64 *iova_start,
--					u64 *total_size,
--					int *npages,
--					int *shift,
--					__be64 **page_list)
+-struct ib_mw *ib_alloc_mw(struct ib_pd *pd, enum ib_mw_type type)
 -{
--	u64 mask;
--	int i, j, n;
+-	struct ib_mw *mw;
 -
--	mask = 0;
--	*total_size = 0;
--	for (i = 0; i < num_phys_buf; ++i) {
--		if (i != 0 && buffer_list[i].addr & ~PAGE_MASK)
--			return -EINVAL;
--		if (i != 0 && i != num_phys_buf - 1 &&
--		    (buffer_list[i].size & ~PAGE_MASK))
--			return -EINVAL;
--		*total_size += buffer_list[i].size;
--		if (i > 0)
--			mask |= buffer_list[i].addr;
--		else
--			mask |= buffer_list[i].addr & PAGE_MASK;
--		if (i != num_phys_buf - 1)
--			mask |= buffer_list[i].addr + buffer_list[i].size;
--		else
--			mask |= (buffer_list[i].addr + buffer_list[i].size +
--				PAGE_SIZE - 1) & PAGE_MASK;
+-	if (!pd->device->alloc_mw)
+-		return ERR_PTR(-ENOSYS);
+-
+-	mw = pd->device->alloc_mw(pd, type);
+-	if (!IS_ERR(mw)) {
+-		mw->device  = pd->device;
+-		mw->pd      = pd;
+-		mw->uobject = NULL;
+-		mw->type    = type;
+-		atomic_inc(&pd->usecnt);
 -	}
 -
--	if (*total_size > 0xFFFFFFFFULL)
--		return -ENOMEM;
+-	return mw;
+-}
+-EXPORT_SYMBOL(ib_alloc_mw);
 -
--	/* Find largest page shift we can use to cover buffers */
--	for (*shift = PAGE_SHIFT; *shift < 27; ++(*shift))
--		if ((1ULL << *shift) & mask)
+-int ib_dealloc_mw(struct ib_mw *mw)
+-{
+-	struct ib_pd *pd;
+-	int ret;
+-
+-	pd = mw->pd;
+-	ret = mw->device->dealloc_mw(mw);
+-	if (!ret)
+-		atomic_dec(&pd->usecnt);
+-
+-	return ret;
+-}
+-EXPORT_SYMBOL(ib_dealloc_mw);
+-
+ /* "Fast" memory regions */
+ 
+ struct ib_fmr *ib_alloc_fmr(struct ib_pd *pd,
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_cq.c b/drivers/infiniband/hw/cxgb3/iwch_cq.c
+index cfe4049..97fbfd2 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_cq.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_cq.c
+@@ -115,10 +115,6 @@ static int iwch_poll_cq_one(struct iwch_dev *rhp, struct iwch_cq *chp,
+ 		case T3_SEND_WITH_SE_INV:
+ 			wc->opcode = IB_WC_SEND;
+ 			break;
+-		case T3_BIND_MW:
+-			wc->opcode = IB_WC_BIND_MW;
 -			break;
 -
--	buffer_list[0].size += buffer_list[0].addr & ((1ULL << *shift) - 1);
--	buffer_list[0].addr &= ~0ull << *shift;
--
--	*npages = 0;
--	for (i = 0; i < num_phys_buf; ++i)
--		*npages += (buffer_list[i].size +
--			(1ULL << *shift) - 1) >> *shift;
--
--	if (!*npages)
--		return -EINVAL;
--
--	*page_list = kmalloc(sizeof(u64) * *npages, GFP_KERNEL);
--	if (!*page_list)
--		return -ENOMEM;
--
--	n = 0;
--	for (i = 0; i < num_phys_buf; ++i)
--		for (j = 0;
--		     j < (buffer_list[i].size + (1ULL << *shift) - 1) >> *shift;
--		     ++j)
--			(*page_list)[n++] = cpu_to_be64(buffer_list[i].addr +
--			    ((u64) j << *shift));
--
--	PDBG("%s va 0x%llx mask 0x%llx shift %d len %lld pbl_size %d\n",
--	     __func__, (unsigned long long) *iova_start,
--	     (unsigned long long) mask, *shift, (unsigned long long) *total_size,
--	     *npages);
--
--	return 0;
--
--}
+ 		case T3_LOCAL_INV:
+ 			wc->opcode = IB_WC_LOCAL_INV;
+ 			break;
 diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-index b184933..097eb93 100644
+index 9576e15..b184933 100644
 --- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
 +++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -479,24 +479,25 @@ static int iwch_dereg_mr(struct ib_mr *ib_mr)
- 	return 0;
+@@ -1350,7 +1350,6 @@ int iwch_register_device(struct iwch_dev *dev)
+ 	dev->ibdev.reg_user_mr = iwch_reg_user_mr;
+ 	dev->ibdev.dereg_mr = iwch_dereg_mr;
+ 	dev->ibdev.alloc_mw = iwch_alloc_mw;
+-	dev->ibdev.bind_mw = iwch_bind_mw;
+ 	dev->ibdev.dealloc_mw = iwch_dealloc_mw;
+ 	dev->ibdev.alloc_mr = iwch_alloc_mr;
+ 	dev->ibdev.map_mr_sg = iwch_map_mr_sg;
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.h b/drivers/infiniband/hw/cxgb3/iwch_provider.h
+index f4fa6d6..f24df44 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_provider.h
++++ b/drivers/infiniband/hw/cxgb3/iwch_provider.h
+@@ -330,9 +330,6 @@ int iwch_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 		      struct ib_send_wr **bad_wr);
+ int iwch_post_receive(struct ib_qp *ibqp, struct ib_recv_wr *wr,
+ 		      struct ib_recv_wr **bad_wr);
+-int iwch_bind_mw(struct ib_qp *qp,
+-			     struct ib_mw *mw,
+-			     struct ib_mw_bind *mw_bind);
+ int iwch_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc);
+ int iwch_post_terminate(struct iwch_qp *qhp, struct respQ_msg_t *rsp_msg);
+ int iwch_post_zb_read(struct iwch_ep *ep);
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_qp.c b/drivers/infiniband/hw/cxgb3/iwch_qp.c
+index d0548fc..d939980 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_qp.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_qp.c
+@@ -526,88 +526,6 @@ out:
+ 	return err;
  }
  
--static struct ib_mr *iwch_register_phys_mem(struct ib_pd *pd,
--					struct ib_phys_buf *buffer_list,
--					int num_phys_buf,
--					int acc,
--					u64 *iova_start)
-+static struct ib_mr *iwch_get_dma_mr(struct ib_pd *pd, int acc)
- {
--	__be64 *page_list;
--	int shift;
--	u64 total_size;
--	int npages;
+-int iwch_bind_mw(struct ib_qp *qp,
+-			     struct ib_mw *mw,
+-			     struct ib_mw_bind *mw_bind)
+-{
 -	struct iwch_dev *rhp;
--	struct iwch_pd *php;
-+	const u64 total_size = 0xffffffff;
-+	const u64 mask = (total_size + PAGE_SIZE - 1) & PAGE_MASK;
-+	struct iwch_pd *php = to_iwch_pd(pd);
-+	struct iwch_dev *rhp = php->rhp;
- 	struct iwch_mr *mhp;
--	int ret;
-+	__be64 *page_list;
-+	int shift = 26, npages, ret, i;
- 
- 	PDBG("%s ib_pd %p\n", __func__, pd);
--	php = to_iwch_pd(pd);
--	rhp = php->rhp;
-+
-+	/*
-+	 * T3 only supports 32 bits of size.
-+	 */
-+	if (sizeof(phys_addr_t) > 4) {
-+		pr_warn_once(MOD "Cannot support dma_mrs on this platform.\n");
-+		return ERR_PTR(-ENOTSUPP);
-+	}
- 
- 	mhp = kzalloc(sizeof(*mhp), GFP_KERNEL);
- 	if (!mhp)
-@@ -504,22 +505,23 @@ static struct ib_mr *iwch_register_phys_mem(struct ib_pd *pd,
- 
- 	mhp->rhp = rhp;
- 
--	/* First check that we have enough alignment */
--	if ((*iova_start & ~PAGE_MASK) != (buffer_list[0].addr & ~PAGE_MASK)) {
-+	npages = (total_size + (1ULL << shift) - 1) >> shift;
-+	if (!npages) {
- 		ret = -EINVAL;
- 		goto err;
- 	}
- 
--	if (num_phys_buf > 1 &&
--	    ((buffer_list[0].addr + buffer_list[0].size) & ~PAGE_MASK)) {
--		ret = -EINVAL;
-+	page_list = kmalloc_array(npages, sizeof(u64), GFP_KERNEL);
-+	if (!page_list) {
-+		ret = -ENOMEM;
- 		goto err;
- 	}
- 
--	ret = build_phys_page_list(buffer_list, num_phys_buf, iova_start,
--				   &total_size, &npages, &shift, &page_list);
--	if (ret)
--		goto err;
-+	for (i = 0; i < npages; i++)
-+		page_list[i] = cpu_to_be64((u64)i << shift);
-+
-+	PDBG("%s mask 0x%llx shift %d len %lld pbl_size %d\n",
-+		__func__, mask, shift, total_size, npages);
- 
- 	ret = iwch_alloc_pbl(mhp, npages);
- 	if (ret) {
-@@ -536,7 +538,7 @@ static struct ib_mr *iwch_register_phys_mem(struct ib_pd *pd,
- 	mhp->attr.zbva = 0;
- 
- 	mhp->attr.perms = iwch_ib_to_tpt_access(acc);
--	mhp->attr.va_fbo = *iova_start;
-+	mhp->attr.va_fbo = 0;
- 	mhp->attr.page_size = shift - 12;
- 
- 	mhp->attr.len = (u32) total_size;
-@@ -553,7 +555,6 @@ err_pbl:
- err:
- 	kfree(mhp);
- 	return ERR_PTR(ret);
+-	struct iwch_mw *mhp;
+-	struct iwch_qp *qhp;
+-	union t3_wr *wqe;
+-	u32 pbl_addr;
+-	u8 page_size;
+-	u32 num_wrs;
+-	unsigned long flag;
+-	struct ib_sge sgl;
+-	int err=0;
+-	enum t3_wr_flags t3_wr_flags;
+-	u32 idx;
+-	struct t3_swsq *sqp;
 -
+-	qhp = to_iwch_qp(qp);
+-	mhp = to_iwch_mw(mw);
+-	rhp = qhp->rhp;
+-
+-	spin_lock_irqsave(&qhp->lock, flag);
+-	if (qhp->attr.state > IWCH_QP_STATE_RTS) {
+-		spin_unlock_irqrestore(&qhp->lock, flag);
+-		return -EINVAL;
+-	}
+-	num_wrs = Q_FREECNT(qhp->wq.sq_rptr, qhp->wq.sq_wptr,
+-			    qhp->wq.sq_size_log2);
+-	if (num_wrs == 0) {
+-		spin_unlock_irqrestore(&qhp->lock, flag);
+-		return -ENOMEM;
+-	}
+-	idx = Q_PTR2IDX(qhp->wq.wptr, qhp->wq.size_log2);
+-	PDBG("%s: idx 0x%0x, mw 0x%p, mw_bind 0x%p\n", __func__, idx,
+-	     mw, mw_bind);
+-	wqe = (union t3_wr *) (qhp->wq.queue + idx);
+-
+-	t3_wr_flags = 0;
+-	if (mw_bind->send_flags & IB_SEND_SIGNALED)
+-		t3_wr_flags = T3_COMPLETION_FLAG;
+-
+-	sgl.addr = mw_bind->bind_info.addr;
+-	sgl.lkey = mw_bind->bind_info.mr->lkey;
+-	sgl.length = mw_bind->bind_info.length;
+-	wqe->bind.reserved = 0;
+-	wqe->bind.type = TPT_VATO;
+-
+-	/* TBD: check perms */
+-	wqe->bind.perms = iwch_ib_to_tpt_bind_access(
+-		mw_bind->bind_info.mw_access_flags);
+-	wqe->bind.mr_stag = cpu_to_be32(mw_bind->bind_info.mr->lkey);
+-	wqe->bind.mw_stag = cpu_to_be32(mw->rkey);
+-	wqe->bind.mw_len = cpu_to_be32(mw_bind->bind_info.length);
+-	wqe->bind.mw_va = cpu_to_be64(mw_bind->bind_info.addr);
+-	err = iwch_sgl2pbl_map(rhp, &sgl, 1, &pbl_addr, &page_size);
+-	if (err) {
+-		spin_unlock_irqrestore(&qhp->lock, flag);
+-		return err;
+-	}
+-	wqe->send.wrid.id0.hi = qhp->wq.sq_wptr;
+-	sqp = qhp->wq.sq + Q_PTR2IDX(qhp->wq.sq_wptr, qhp->wq.sq_size_log2);
+-	sqp->wr_id = mw_bind->wr_id;
+-	sqp->opcode = T3_BIND_MW;
+-	sqp->sq_wptr = qhp->wq.sq_wptr;
+-	sqp->complete = 0;
+-	sqp->signaled = (mw_bind->send_flags & IB_SEND_SIGNALED);
+-	wqe->bind.mr_pbl_addr = cpu_to_be32(pbl_addr);
+-	wqe->bind.mr_pagesz = page_size;
+-	build_fw_riwrh((void *)wqe, T3_WR_BIND, t3_wr_flags,
+-		       Q_GENBIT(qhp->wq.wptr, qhp->wq.size_log2), 0,
+-		       sizeof(struct t3_bind_mw_wr) >> 3, T3_SOPEOP);
+-	++(qhp->wq.wptr);
+-	++(qhp->wq.sq_wptr);
+-	spin_unlock_irqrestore(&qhp->lock, flag);
+-
+-	if (cxio_wq_db_enabled(&qhp->wq))
+-		ring_doorbell(qhp->wq.doorbell, qhp->wq.qpid);
+-
+-	return err;
+-}
+-
+ static inline void build_term_codes(struct respQ_msg_t *rsp_msg,
+ 				    u8 *layer_type, u8 *ecode)
+ {
+diff --git a/drivers/infiniband/hw/cxgb4/cq.c b/drivers/infiniband/hw/cxgb4/cq.c
+index de9cd69..cf21df4 100644
+--- a/drivers/infiniband/hw/cxgb4/cq.c
++++ b/drivers/infiniband/hw/cxgb4/cq.c
+@@ -744,9 +744,6 @@ static int c4iw_poll_cq_one(struct c4iw_cq *chp, struct ib_wc *wc)
+ 		case FW_RI_SEND_WITH_SE:
+ 			wc->opcode = IB_WC_SEND;
+ 			break;
+-		case FW_RI_BIND_MW:
+-			wc->opcode = IB_WC_BIND_MW;
+-			break;
+ 
+ 		case FW_RI_LOCAL_INV:
+ 			wc->opcode = IB_WC_LOCAL_INV;
+diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+index dd00cf2..fb2de75 100644
+--- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
++++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+@@ -947,8 +947,6 @@ int c4iw_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 		      struct ib_send_wr **bad_wr);
+ int c4iw_post_receive(struct ib_qp *ibqp, struct ib_recv_wr *wr,
+ 		      struct ib_recv_wr **bad_wr);
+-int c4iw_bind_mw(struct ib_qp *qp, struct ib_mw *mw,
+-		 struct ib_mw_bind *mw_bind);
+ int c4iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param);
+ int c4iw_create_listen(struct iw_cm_id *cm_id, int backlog);
+ int c4iw_destroy_listen(struct iw_cm_id *cm_id);
+diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
+index 186319e..5544adc 100644
+--- a/drivers/infiniband/hw/cxgb4/provider.c
++++ b/drivers/infiniband/hw/cxgb4/provider.c
+@@ -512,7 +512,6 @@ int c4iw_register_device(struct c4iw_dev *dev)
+ 	dev->ibdev.reg_user_mr = c4iw_reg_user_mr;
+ 	dev->ibdev.dereg_mr = c4iw_dereg_mr;
+ 	dev->ibdev.alloc_mw = c4iw_alloc_mw;
+-	dev->ibdev.bind_mw = c4iw_bind_mw;
+ 	dev->ibdev.dealloc_mw = c4iw_dealloc_mw;
+ 	dev->ibdev.alloc_mr = c4iw_alloc_mr;
+ 	dev->ibdev.map_mr_sg = c4iw_map_mr_sg;
+diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+index aa515af..e99345e 100644
+--- a/drivers/infiniband/hw/cxgb4/qp.c
++++ b/drivers/infiniband/hw/cxgb4/qp.c
+@@ -933,11 +933,6 @@ int c4iw_post_receive(struct ib_qp *ibqp, struct ib_recv_wr *wr,
+ 	return err;
  }
  
- static struct ib_mr *iwch_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
-@@ -659,28 +660,6 @@ err:
+-int c4iw_bind_mw(struct ib_qp *qp, struct ib_mw *mw, struct ib_mw_bind *mw_bind)
+-{
+-	return -ENOSYS;
+-}
+-
+ static inline void build_term_codes(struct t4_cqe *err_cqe, u8 *layer_type,
+ 				    u8 *ecode)
+ {
+diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
+index b88fc8f..9f8b516 100644
+--- a/drivers/infiniband/hw/mlx4/cq.c
++++ b/drivers/infiniband/hw/mlx4/cq.c
+@@ -811,9 +811,6 @@ repoll:
+ 			wc->opcode    = IB_WC_MASKED_FETCH_ADD;
+ 			wc->byte_len  = 8;
+ 			break;
+-		case MLX4_OPCODE_BIND_MW:
+-			wc->opcode    = IB_WC_BIND_MW;
+-			break;
+ 		case MLX4_OPCODE_LSO:
+ 			wc->opcode    = IB_WC_LSO;
+ 			break;
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 7026580..4b1c40f 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -2313,7 +2313,6 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 	if (dev->caps.flags & MLX4_DEV_CAP_FLAG_MEM_WINDOW ||
+ 	    dev->caps.bmme_flags & MLX4_BMME_FLAG_TYPE_2_WIN) {
+ 		ibdev->ib_dev.alloc_mw = mlx4_ib_alloc_mw;
+-		ibdev->ib_dev.bind_mw = mlx4_ib_bind_mw;
+ 		ibdev->ib_dev.dealloc_mw = mlx4_ib_dealloc_mw;
+ 
+ 		ibdev->ib_dev.uverbs_cmd_mask |=
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index 1caa11e..8916e9b 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -704,8 +704,6 @@ struct ib_mr *mlx4_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 				  struct ib_udata *udata);
+ int mlx4_ib_dereg_mr(struct ib_mr *mr);
+ struct ib_mw *mlx4_ib_alloc_mw(struct ib_pd *pd, enum ib_mw_type type);
+-int mlx4_ib_bind_mw(struct ib_qp *qp, struct ib_mw *mw,
+-		    struct ib_mw_bind *mw_bind);
+ int mlx4_ib_dealloc_mw(struct ib_mw *mw);
+ struct ib_mr *mlx4_ib_alloc_mr(struct ib_pd *pd,
+ 			       enum ib_mr_type mr_type,
+diff --git a/drivers/infiniband/hw/mlx4/mr.c b/drivers/infiniband/hw/mlx4/mr.c
+index 4d1e1c6..242b94e 100644
+--- a/drivers/infiniband/hw/mlx4/mr.c
++++ b/drivers/infiniband/hw/mlx4/mr.c
+@@ -366,28 +366,6 @@ err_free:
  	return ERR_PTR(err);
  }
  
--static struct ib_mr *iwch_get_dma_mr(struct ib_pd *pd, int acc)
+-int mlx4_ib_bind_mw(struct ib_qp *qp, struct ib_mw *mw,
+-		    struct ib_mw_bind *mw_bind)
 -{
--	struct ib_phys_buf bl;
--	u64 kva;
--	struct ib_mr *ibmr;
+-	struct ib_bind_mw_wr  wr;
+-	struct ib_send_wr *bad_wr;
+-	int ret;
 -
--	PDBG("%s ib_pd %p\n", __func__, pd);
+-	memset(&wr, 0, sizeof(wr));
+-	wr.wr.opcode		= IB_WR_BIND_MW;
+-	wr.wr.wr_id		= mw_bind->wr_id;
+-	wr.wr.send_flags	= mw_bind->send_flags;
+-	wr.mw			= mw;
+-	wr.bind_info		= mw_bind->bind_info;
+-	wr.rkey			= ib_inc_rkey(mw->rkey);
 -
--	/*
--	 * T3 only supports 32 bits of size.
--	 */
--	if (sizeof(phys_addr_t) > 4) {
--		pr_warn_once(MOD "Cannot support dma_mrs on this platform.\n");
--		return ERR_PTR(-ENOTSUPP);
--	}
--	bl.size = 0xffffffff;
--	bl.addr = 0;
--	kva = 0;
--	ibmr = iwch_register_phys_mem(pd, &bl, 1, acc, &kva);
--	return ibmr;
+-	ret = mlx4_ib_post_send(qp, &wr.wr, &bad_wr);
+-	if (!ret)
+-		mw->rkey = wr.rkey;
+-
+-	return ret;
 -}
 -
- static struct ib_mw *iwch_alloc_mw(struct ib_pd *pd, enum ib_mw_type type)
+ int mlx4_ib_dealloc_mw(struct ib_mw *ibmw)
  {
- 	struct iwch_dev *rhp;
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.h b/drivers/infiniband/hw/cxgb3/iwch_provider.h
-index f24df44..252c464 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.h
-+++ b/drivers/infiniband/hw/cxgb3/iwch_provider.h
-@@ -341,14 +341,6 @@ int iwch_register_mem(struct iwch_dev *rhp, struct iwch_pd *php,
- int iwch_alloc_pbl(struct iwch_mr *mhp, int npages);
- void iwch_free_pbl(struct iwch_mr *mhp);
- int iwch_write_pbl(struct iwch_mr *mhp, __be64 *pages, int npages, int offset);
--int build_phys_page_list(struct ib_phys_buf *buffer_list,
--					int num_phys_buf,
--					u64 *iova_start,
--					u64 *total_size,
--					int *npages,
--					int *shift,
--					__be64 **page_list);
+ 	struct mlx4_ib_mw *mw = to_mmw(ibmw);
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index a2e4ca5..9781ac3 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -114,7 +114,6 @@ static const __be32 mlx4_ib_opcode[] = {
+ 	[IB_WR_REG_MR]				= cpu_to_be32(MLX4_OPCODE_FMR),
+ 	[IB_WR_MASKED_ATOMIC_CMP_AND_SWP]	= cpu_to_be32(MLX4_OPCODE_MASKED_ATOMIC_CS),
+ 	[IB_WR_MASKED_ATOMIC_FETCH_AND_ADD]	= cpu_to_be32(MLX4_OPCODE_MASKED_ATOMIC_FA),
+-	[IB_WR_BIND_MW]				= cpu_to_be32(MLX4_OPCODE_BIND_MW),
+ };
+ 
+ static struct mlx4_ib_sqp *to_msqp(struct mlx4_ib_qp *mqp)
+@@ -2521,25 +2520,6 @@ static void set_reg_seg(struct mlx4_wqe_fmr_seg *fseg,
+ 	fseg->reserved[1]	= 0;
+ }
+ 
+-static void set_bind_seg(struct mlx4_wqe_bind_seg *bseg,
+-		struct ib_bind_mw_wr *wr)
+-{
+-	bseg->flags1 =
+-		convert_access(wr->bind_info.mw_access_flags) &
+-		cpu_to_be32(MLX4_WQE_FMR_AND_BIND_PERM_REMOTE_READ  |
+-			    MLX4_WQE_FMR_AND_BIND_PERM_REMOTE_WRITE |
+-			    MLX4_WQE_FMR_AND_BIND_PERM_ATOMIC);
+-	bseg->flags2 = 0;
+-	if (wr->mw->type == IB_MW_TYPE_2)
+-		bseg->flags2 |= cpu_to_be32(MLX4_WQE_BIND_TYPE_2);
+-	if (wr->bind_info.mw_access_flags & IB_ZERO_BASED)
+-		bseg->flags2 |= cpu_to_be32(MLX4_WQE_BIND_ZERO_BASED);
+-	bseg->new_rkey = cpu_to_be32(wr->rkey);
+-	bseg->lkey = cpu_to_be32(wr->bind_info.mr->lkey);
+-	bseg->addr = cpu_to_be64(wr->bind_info.addr);
+-	bseg->length = cpu_to_be64(wr->bind_info.length);
+-}
 -
+ static void set_local_inv_seg(struct mlx4_wqe_local_inval_seg *iseg, u32 rkey)
+ {
+ 	memset(iseg, 0, sizeof(*iseg));
+@@ -2860,13 +2840,6 @@ int mlx4_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 				size += sizeof(struct mlx4_wqe_fmr_seg) / 16;
+ 				break;
  
- #define IWCH_NODE_DESC "cxgb3 Chelsio Communications"
+-			case IB_WR_BIND_MW:
+-				ctrl->srcrb_flags |=
+-					cpu_to_be32(MLX4_WQE_CTRL_STRONG_ORDER);
+-				set_bind_seg(wqe, bind_mw_wr(wr));
+-				wqe  += sizeof(struct mlx4_wqe_bind_seg);
+-				size += sizeof(struct mlx4_wqe_bind_seg) / 16;
+-				break;
+ 			default:
+ 				/* No extra segments required for sends */
+ 				break;
+diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
+index 3dfd287..82f86ed 100644
+--- a/drivers/infiniband/hw/mlx5/cq.c
++++ b/drivers/infiniband/hw/mlx5/cq.c
+@@ -154,9 +154,6 @@ static void handle_good_req(struct ib_wc *wc, struct mlx5_cqe64 *cqe,
+ 		wc->opcode    = IB_WC_MASKED_FETCH_ADD;
+ 		wc->byte_len  = 8;
+ 		break;
+-	case MLX5_OPCODE_BIND_MW:
+-		wc->opcode    = IB_WC_BIND_MW;
+-		break;
+ 	case MLX5_OPCODE_UMR:
+ 		wc->opcode = get_umr_comp(wq, idx);
+ 		break;
+diff --git a/drivers/infiniband/hw/mthca/mthca_cq.c b/drivers/infiniband/hw/mthca/mthca_cq.c
+index 40ba833..a6531ff 100644
+--- a/drivers/infiniband/hw/mthca/mthca_cq.c
++++ b/drivers/infiniband/hw/mthca/mthca_cq.c
+@@ -608,9 +608,6 @@ static inline int mthca_poll_one(struct mthca_dev *dev,
+ 			entry->opcode    = IB_WC_FETCH_ADD;
+ 			entry->byte_len  = MTHCA_ATOMIC_BYTE_LEN;
+ 			break;
+-		case MTHCA_OPCODE_BIND_MW:
+-			entry->opcode    = IB_WC_BIND_MW;
+-			break;
+ 		default:
+ 			entry->opcode    = MTHCA_OPCODE_INVALID;
+ 			break;
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+index 453ebc2..640f68f 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.c
++++ b/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -206,80 +206,6 @@ static int nes_dealloc_mw(struct ib_mw *ibmw)
+ }
  
+ 
+-/**
+- * nes_bind_mw
+- */
+-static int nes_bind_mw(struct ib_qp *ibqp, struct ib_mw *ibmw,
+-		struct ib_mw_bind *ibmw_bind)
+-{
+-	u64 u64temp;
+-	struct nes_vnic *nesvnic = to_nesvnic(ibqp->device);
+-	struct nes_device *nesdev = nesvnic->nesdev;
+-	/* struct nes_mr *nesmr = to_nesmw(ibmw); */
+-	struct nes_qp *nesqp = to_nesqp(ibqp);
+-	struct nes_hw_qp_wqe *wqe;
+-	unsigned long flags = 0;
+-	u32 head;
+-	u32 wqe_misc = 0;
+-	u32 qsize;
+-
+-	if (nesqp->ibqp_state > IB_QPS_RTS)
+-		return -EINVAL;
+-
+-	spin_lock_irqsave(&nesqp->lock, flags);
+-
+-	head = nesqp->hwqp.sq_head;
+-	qsize = nesqp->hwqp.sq_tail;
+-
+-	/* Check for SQ overflow */
+-	if (((head + (2 * qsize) - nesqp->hwqp.sq_tail) % qsize) == (qsize - 1)) {
+-		spin_unlock_irqrestore(&nesqp->lock, flags);
+-		return -ENOMEM;
+-	}
+-
+-	wqe = &nesqp->hwqp.sq_vbase[head];
+-	/* nes_debug(NES_DBG_MR, "processing sq wqe at %p, head = %u.\n", wqe, head); */
+-	nes_fill_init_qp_wqe(wqe, nesqp, head);
+-	u64temp = ibmw_bind->wr_id;
+-	set_wqe_64bit_value(wqe->wqe_words, NES_IWARP_SQ_WQE_COMP_SCRATCH_LOW_IDX, u64temp);
+-	wqe_misc = NES_IWARP_SQ_OP_BIND;
+-
+-	wqe_misc |= NES_IWARP_SQ_WQE_LOCAL_FENCE;
+-
+-	if (ibmw_bind->send_flags & IB_SEND_SIGNALED)
+-		wqe_misc |= NES_IWARP_SQ_WQE_SIGNALED_COMPL;
+-
+-	if (ibmw_bind->bind_info.mw_access_flags & IB_ACCESS_REMOTE_WRITE)
+-		wqe_misc |= NES_CQP_STAG_RIGHTS_REMOTE_WRITE;
+-	if (ibmw_bind->bind_info.mw_access_flags & IB_ACCESS_REMOTE_READ)
+-		wqe_misc |= NES_CQP_STAG_RIGHTS_REMOTE_READ;
+-
+-	set_wqe_32bit_value(wqe->wqe_words, NES_IWARP_SQ_WQE_MISC_IDX, wqe_misc);
+-	set_wqe_32bit_value(wqe->wqe_words, NES_IWARP_SQ_BIND_WQE_MR_IDX,
+-			    ibmw_bind->bind_info.mr->lkey);
+-	set_wqe_32bit_value(wqe->wqe_words, NES_IWARP_SQ_BIND_WQE_MW_IDX, ibmw->rkey);
+-	set_wqe_32bit_value(wqe->wqe_words, NES_IWARP_SQ_BIND_WQE_LENGTH_LOW_IDX,
+-			ibmw_bind->bind_info.length);
+-	wqe->wqe_words[NES_IWARP_SQ_BIND_WQE_LENGTH_HIGH_IDX] = 0;
+-	u64temp = (u64)ibmw_bind->bind_info.addr;
+-	set_wqe_64bit_value(wqe->wqe_words, NES_IWARP_SQ_BIND_WQE_VA_FBO_LOW_IDX, u64temp);
+-
+-	head++;
+-	if (head >= qsize)
+-		head = 0;
+-
+-	nesqp->hwqp.sq_head = head;
+-	barrier();
+-
+-	nes_write32(nesdev->regs+NES_WQE_ALLOC,
+-			(1 << 24) | 0x00800000 | nesqp->hwqp.qp_id);
+-
+-	spin_unlock_irqrestore(&nesqp->lock, flags);
+-
+-	return 0;
+-}
+-
+-
+ /*
+  * nes_alloc_fast_mr
+  */
+@@ -3836,7 +3762,6 @@ struct nes_ib_device *nes_init_ofa_device(struct net_device *netdev)
+ 	nesibdev->ibdev.dereg_mr = nes_dereg_mr;
+ 	nesibdev->ibdev.alloc_mw = nes_alloc_mw;
+ 	nesibdev->ibdev.dealloc_mw = nes_dealloc_mw;
+-	nesibdev->ibdev.bind_mw = nes_bind_mw;
+ 
+ 	nesibdev->ibdev.alloc_mr = nes_alloc_mr;
+ 	nesibdev->ibdev.map_mr_sg = nes_map_mr_sg;
+diff --git a/drivers/staging/rdma/amso1100/c2_cq.c b/drivers/staging/rdma/amso1100/c2_cq.c
+index 3ef881f..7ad0c08 100644
+--- a/drivers/staging/rdma/amso1100/c2_cq.c
++++ b/drivers/staging/rdma/amso1100/c2_cq.c
+@@ -173,9 +173,6 @@ static inline int c2_poll_one(struct c2_dev *c2dev,
+ 	case C2_WR_TYPE_RDMA_READ:
+ 		entry->opcode = IB_WC_RDMA_READ;
+ 		break;
+-	case C2_WR_TYPE_BIND_MW:
+-		entry->opcode = IB_WC_BIND_MW;
+-		break;
+ 	case C2_WR_TYPE_RECV:
+ 		entry->byte_len = be32_to_cpu(ce->bytes_rcvd);
+ 		entry->opcode = IB_WC_RECV;
+diff --git a/drivers/staging/rdma/ehca/ehca_iverbs.h b/drivers/staging/rdma/ehca/ehca_iverbs.h
+index 219f635..630416d 100644
+--- a/drivers/staging/rdma/ehca/ehca_iverbs.h
++++ b/drivers/staging/rdma/ehca/ehca_iverbs.h
+@@ -87,9 +87,6 @@ int ehca_dereg_mr(struct ib_mr *mr);
+ 
+ struct ib_mw *ehca_alloc_mw(struct ib_pd *pd, enum ib_mw_type type);
+ 
+-int ehca_bind_mw(struct ib_qp *qp, struct ib_mw *mw,
+-		 struct ib_mw_bind *mw_bind);
+-
+ int ehca_dealloc_mw(struct ib_mw *mw);
+ 
+ struct ib_fmr *ehca_alloc_fmr(struct ib_pd *pd,
+diff --git a/drivers/staging/rdma/ehca/ehca_main.c b/drivers/staging/rdma/ehca/ehca_main.c
+index ba023426..915e924 100644
+--- a/drivers/staging/rdma/ehca/ehca_main.c
++++ b/drivers/staging/rdma/ehca/ehca_main.c
+@@ -514,7 +514,6 @@ static int ehca_init_device(struct ehca_shca *shca)
+ 	shca->ib_device.reg_user_mr	    = ehca_reg_user_mr;
+ 	shca->ib_device.dereg_mr	    = ehca_dereg_mr;
+ 	shca->ib_device.alloc_mw	    = ehca_alloc_mw;
+-	shca->ib_device.bind_mw		    = ehca_bind_mw;
+ 	shca->ib_device.dealloc_mw	    = ehca_dealloc_mw;
+ 	shca->ib_device.alloc_fmr	    = ehca_alloc_fmr;
+ 	shca->ib_device.map_phys_fmr	    = ehca_map_phys_fmr;
+diff --git a/drivers/staging/rdma/ehca/ehca_mrmw.c b/drivers/staging/rdma/ehca/ehca_mrmw.c
+index 1c1a8dd..c6e3245 100644
+--- a/drivers/staging/rdma/ehca/ehca_mrmw.c
++++ b/drivers/staging/rdma/ehca/ehca_mrmw.c
+@@ -413,18 +413,6 @@ alloc_mw_exit0:
+ 
+ /*----------------------------------------------------------------------*/
+ 
+-int ehca_bind_mw(struct ib_qp *qp,
+-		 struct ib_mw *mw,
+-		 struct ib_mw_bind *mw_bind)
+-{
+-	/* TODO: not supported up to now */
+-	ehca_gen_err("bind MW currently not supported by HCAD");
+-
+-	return -EPERM;
+-} /* end ehca_bind_mw() */
+-
+-/*----------------------------------------------------------------------*/
+-
+ int ehca_dealloc_mw(struct ib_mw *mw)
+ {
+ 	u64 h_ret;
+diff --git a/drivers/staging/rdma/ehca/ehca_reqs.c b/drivers/staging/rdma/ehca/ehca_reqs.c
+index 10e2074..11813b8 100644
+--- a/drivers/staging/rdma/ehca/ehca_reqs.c
++++ b/drivers/staging/rdma/ehca/ehca_reqs.c
+@@ -614,7 +614,6 @@ int ehca_post_srq_recv(struct ib_srq *srq,
+ static const u8 ib_wc_opcode[255] = {
+ 	[0x01] = IB_WC_RECV+1,
+ 	[0x02] = IB_WC_RECV_RDMA_WITH_IMM+1,
+-	[0x04] = IB_WC_BIND_MW+1,
+ 	[0x08] = IB_WC_FETCH_ADD+1,
+ 	[0x10] = IB_WC_COMP_SWAP+1,
+ 	[0x20] = IB_WC_RDMA_WRITE+1,
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index a3402af..1b2412b 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -704,7 +704,6 @@ enum ib_wc_opcode {
+ 	IB_WC_RDMA_READ,
+ 	IB_WC_COMP_SWAP,
+ 	IB_WC_FETCH_ADD,
+-	IB_WC_BIND_MW,
+ 	IB_WC_LSO,
+ 	IB_WC_LOCAL_INV,
+ 	IB_WC_REG_MR,
+@@ -997,7 +996,6 @@ enum ib_wr_opcode {
+ 	IB_WR_REG_MR,
+ 	IB_WR_MASKED_ATOMIC_CMP_AND_SWP,
+ 	IB_WR_MASKED_ATOMIC_FETCH_AND_ADD,
+-	IB_WR_BIND_MW,
+ 	IB_WR_REG_SIG_MR,
+ 	/* reserve values for low level drivers' internal use.
+ 	 * These values will not be used at all in the ib core layer.
+@@ -1032,23 +1030,6 @@ struct ib_sge {
+ 	u32	lkey;
+ };
+ 
+-/**
+- * struct ib_mw_bind_info - Parameters for a memory window bind operation.
+- * @mr: A memory region to bind the memory window to.
+- * @addr: The address where the memory window should begin.
+- * @length: The length of the memory window, in bytes.
+- * @mw_access_flags: Access flags from enum ib_access_flags for the window.
+- *
+- * This struct contains the shared parameters for type 1 and type 2
+- * memory window bind operations.
+- */
+-struct ib_mw_bind_info {
+-	struct ib_mr   *mr;
+-	u64		addr;
+-	u64		length;
+-	int		mw_access_flags;
+-};
+-
+ struct ib_send_wr {
+ 	struct ib_send_wr      *next;
+ 	u64			wr_id;
+@@ -1117,19 +1098,6 @@ static inline struct ib_reg_wr *reg_wr(struct ib_send_wr *wr)
+ 	return container_of(wr, struct ib_reg_wr, wr);
+ }
+ 
+-struct ib_bind_mw_wr {
+-	struct ib_send_wr	wr;
+-	struct ib_mw		*mw;
+-	/* The new rkey for the memory window. */
+-	u32			rkey;
+-	struct ib_mw_bind_info	bind_info;
+-};
+-
+-static inline struct ib_bind_mw_wr *bind_mw_wr(struct ib_send_wr *wr)
+-{
+-	return container_of(wr, struct ib_bind_mw_wr, wr);
+-}
+-
+ struct ib_sig_handover_wr {
+ 	struct ib_send_wr	wr;
+ 	struct ib_sig_attrs    *sig_attrs;
+@@ -1176,18 +1144,6 @@ enum ib_mr_rereg_flags {
+ 	IB_MR_REREG_SUPPORTED	= ((IB_MR_REREG_ACCESS << 1) - 1)
+ };
+ 
+-/**
+- * struct ib_mw_bind - Parameters for a type 1 memory window bind operation.
+- * @wr_id:      Work request id.
+- * @send_flags: Flags from ib_send_flags enum.
+- * @bind_info:  More parameters of the bind operation.
+- */
+-struct ib_mw_bind {
+-	u64                    wr_id;
+-	int                    send_flags;
+-	struct ib_mw_bind_info bind_info;
+-};
+-
+ struct ib_fmr_attr {
+ 	int	max_pages;
+ 	int	max_maps;
+@@ -1708,9 +1664,6 @@ struct ib_device {
+ 						int sg_nents);
+ 	struct ib_mw *             (*alloc_mw)(struct ib_pd *pd,
+ 					       enum ib_mw_type type);
+-	int                        (*bind_mw)(struct ib_qp *qp,
+-					      struct ib_mw *mw,
+-					      struct ib_mw_bind *mw_bind);
+ 	int                        (*dealloc_mw)(struct ib_mw *mw);
+ 	struct ib_fmr *	           (*alloc_fmr)(struct ib_pd *pd,
+ 						int mr_access_flags,
+@@ -2867,42 +2820,6 @@ static inline u32 ib_inc_rkey(u32 rkey)
+ }
+ 
+ /**
+- * ib_alloc_mw - Allocates a memory window.
+- * @pd: The protection domain associated with the memory window.
+- * @type: The type of the memory window (1 or 2).
+- */
+-struct ib_mw *ib_alloc_mw(struct ib_pd *pd, enum ib_mw_type type);
+-
+-/**
+- * ib_bind_mw - Posts a work request to the send queue of the specified
+- *   QP, which binds the memory window to the given address range and
+- *   remote access attributes.
+- * @qp: QP to post the bind work request on.
+- * @mw: The memory window to bind.
+- * @mw_bind: Specifies information about the memory window, including
+- *   its address range, remote access rights, and associated memory region.
+- *
+- * If there is no immediate error, the function will update the rkey member
+- * of the mw parameter to its new value. The bind operation can still fail
+- * asynchronously.
+- */
+-static inline int ib_bind_mw(struct ib_qp *qp,
+-			     struct ib_mw *mw,
+-			     struct ib_mw_bind *mw_bind)
+-{
+-	/* XXX reference counting in corresponding MR? */
+-	return mw->device->bind_mw ?
+-		mw->device->bind_mw(qp, mw, mw_bind) :
+-		-ENOSYS;
+-}
+-
+-/**
+- * ib_dealloc_mw - Deallocates a memory window.
+- * @mw: The memory window to deallocate.
+- */
+-int ib_dealloc_mw(struct ib_mw *mw);
+-
+-/**
+  * ib_alloc_fmr - Allocates a unmapped fast memory region.
+  * @pd: The protection domain associated with the unmapped region.
+  * @mr_access_flags: Specifies the memory access rights.
 -- 
 1.9.1
 
