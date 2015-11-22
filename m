@@ -1,30 +1,31 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH 2/9] IB: add a proper completion queue abstraction
-Date: Sun, 22 Nov 2015 11:13:08 +0100
-Message-ID: <20151122101308.GA12189@lst.de>
-References: <1447422410-20891-1-git-send-email-hch@lst.de> <1447422410-20891-3-git-send-email-hch@lst.de> <564B697A.2020601@sandisk.com> <564C2F01.6020407@dev.mellanox.co.il> <564CC15E.7030602@sandisk.com> <20151120101644.GC24298@lst.de> <564F4F38.9040505@sandisk.com> <56519011.6060204@dev.mellanox.co.il>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH for-next 1/4] IB/mlx5: Add create_cq extended command
+Date: Sun, 22 Nov 2015 02:15:20 -0800
+Message-ID: <20151122101520.GA25187@infradead.org>
+References: <1447086657-15358-1-git-send-email-matanb@mellanox.com>
+ <1447086657-15358-2-git-send-email-matanb@mellanox.com>
+ <20151119145457.GA1104@infradead.org>
+ <CAAKD3BAOq+26vV1k5LKOXgOfdr2J92fBta31Pv9XHhEcFc3v6g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <56519011.6060204@dev.mellanox.co.il>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Cc: Bart Van Assche <bart.vanassche@sandisk.com>, Christoph Hellwig <hch@lst.de>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "axboe@fb.com" <axboe@fb.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+In-Reply-To: <CAAKD3BAOq+26vV1k5LKOXgOfdr2J92fBta31Pv9XHhEcFc3v6g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Nov 22, 2015 at 11:51:13AM +0200, Sagi Grimberg wrote:
->
->> Hello Christoph,
->>
->> The comment about locality in the above quote is interesting. How about
->> modifying patch 2/9 as indicated below ? The modification below does not
->> change the behavior of this patch if ib_cq.w.cpu is not modified. And it
->> allows users who care about locality and who want to skip the scheduler
->> overhead by setting ib_cq.w.cpu to the index of the CPU they want the
->> work to be processed on.
->
-> That sounds acceptable...
+Hi Matan,
 
-Wouldn't it be a better idea to set the WQ_SYSFS interface and use
-the standard sysfs interface for specifying cpumasks or node affinity?
+IB_CQ_FLAGS_TIMESTAMP_COMPLETION is _only_ used in the uverbs interface.
+
+But other than that userspace ABIs really must go to the UAPI headers,
+otherwise they will be broken sooner or later.  RDMA is an unfortunate
+oddball under the kernel subsystems that's been ignoring the rule for
+now.  Please ensure at least new interfaces follow this principle, and
+old code will need to be fixed up as well.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
