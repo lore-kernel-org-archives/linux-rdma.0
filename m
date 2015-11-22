@@ -1,38 +1,46 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: srp state in current mainline
-Date: Sun, 22 Nov 2015 07:31:06 -0800
-Message-ID: <20151122153106.GA26919@infradead.org>
-References: <20151110171509.GA27781@infradead.org>
- <20151122135343.GA11703@infradead.org>
- <20151122143215.GA14667@infradead.org>
- <5651D775.9090500@dev.mellanox.co.il>
- <20151122151034.GA29240@infradead.org>
- <5651DEA4.8040506@dev.mellanox.co.il>
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: Re: [PATCH 2/9] IB: add a proper completion queue abstraction
+Date: Sun, 22 Nov 2015 08:55:54 -0800
+Message-ID: <5651F39A.2020003@acm.org>
+References: <1447422410-20891-1-git-send-email-hch@lst.de>
+	<1447422410-20891-3-git-send-email-hch@lst.de>
+	<564B697A.2020601@sandisk.com>
+	<564C2F01.6020407@dev.mellanox.co.il> <564CC15E.7030602@sandisk.com>
+	<20151120101644.GC24298@lst.de> <564F4F38.9040505@sandisk.com>
+	<56519011.6060204@dev.mellanox.co.il> <20151122101308.GA12189@lst.de>
+	<56519A90.5010502@dev.mellanox.co.il> <20151122132352.GA14154@lst.de>
+	<5651D7D3.7030509@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <target-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5651DEA4.8040506@dev.mellanox.co.il>
-Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Cc: Christoph Hellwig <hch@infradead.org>, Bart Van Assche <bart.vanassche@sandisk.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <5651D7D3.7030509@dev.mellanox.co.il>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Sagi Grimberg <sagig@dev.mellanox.co.il>, Christoph Hellwig <hch@lst.de>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "axboe@fb.com" <axboe@fb.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Nov 22, 2015 at 05:26:28PM +0200, Sagi Grimberg wrote:
-> >No. register_always=Y is already broken in 4.3, but register_always=N is
-> >now also broken in 4.4.
-> 
-> OK, I'm confused so please let me understand slowly :)
-> 
-> Your patch "ib_srp: initialize dma_length in srp_map_idb" solves
-> the register_always=Y dma_length = 0 WARN_ON() on 4.4-rc, does it solve
-> the data integrity errors too?
+On 11/22/15 06:57, Sagi Grimberg wrote:
+>>> I think that bart wants to allow the caller to select cpu affinity
+>>> per CQ. In this case ib_alloc_cq in workqueue mode would need to
+>>> accept a affinity_hint from the caller (default to wild-card
+>>> WORK_CPU_UNBOUND).
+>>
+>> Hmm, true.  How would be set that hint from userspace?  I'd really prefer
+>> to see a practical justification for it first.
+>
+> In order to assign CPUs from user-space we'd need an ethtool like
+> interface for isert/srpt/<xxxt>. Given that this is something we don't
+> want to get into right now, I assumed that Bart meant that srpt
+> would take a "least used" approach from srpt driver (which isn't better
+> taking the wild-card option I'd say), So I'll let Bart answer...
 
-No, it doesn't.
+Hello Christoph and Sagi,
 
-> This code path is specific to srp because all other ULPs guarantee
-> no-gaps...
+My intention is indeed to allow to control CPU affinity per CQ. One use 
+case is to implement a least-used policy in RDMA drivers that use 
+multiple completion queues. Another use case is to make CPU affinity 
+configurable from user space through something similar to ethtool or via 
+sysfs.
 
-Yes.  Life would be simpler if we could just set the virt_boundary
-on SRP, and Bart has indicated that he's willing to at least looks at
-this for the next merge window.
+Bart.
