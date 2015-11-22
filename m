@@ -1,30 +1,30 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH for-next 1/4] IB/mlx5: Add create_cq extended command
-Date: Sun, 22 Nov 2015 02:15:20 -0800
-Message-ID: <20151122101520.GA25187@infradead.org>
-References: <1447086657-15358-1-git-send-email-matanb@mellanox.com>
- <1447086657-15358-2-git-send-email-matanb@mellanox.com>
- <20151119145457.GA1104@infradead.org>
- <CAAKD3BAOq+26vV1k5LKOXgOfdr2J92fBta31Pv9XHhEcFc3v6g@mail.gmail.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 2/9] IB: add a proper completion queue abstraction
+Date: Sun, 22 Nov 2015 12:36:00 +0200
+Message-ID: <56519A90.5010502@dev.mellanox.co.il>
+References: <1447422410-20891-1-git-send-email-hch@lst.de>
+ <1447422410-20891-3-git-send-email-hch@lst.de> <564B697A.2020601@sandisk.com>
+ <564C2F01.6020407@dev.mellanox.co.il> <564CC15E.7030602@sandisk.com>
+ <20151120101644.GC24298@lst.de> <564F4F38.9040505@sandisk.com>
+ <56519011.6060204@dev.mellanox.co.il> <20151122101308.GA12189@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAAKD3BAOq+26vV1k5LKOXgOfdr2J92fBta31Pv9XHhEcFc3v6g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20151122101308.GA12189-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "axboe-b10kYP2dOMg@public.gmane.org" <axboe-b10kYP2dOMg@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Matan,
 
-IB_CQ_FLAGS_TIMESTAMP_COMPLETION is _only_ used in the uverbs interface.
+> Wouldn't it be a better idea to set the WQ_SYSFS interface and use
+> the standard sysfs interface for specifying cpumasks or node affinity?
 
-But other than that userspace ABIs really must go to the UAPI headers,
-otherwise they will be broken sooner or later.  RDMA is an unfortunate
-oddball under the kernel subsystems that's been ignoring the rule for
-now.  Please ensure at least new interfaces follow this principle, and
-old code will need to be fixed up as well.
+I think that bart wants to allow the caller to select cpu affinity
+per CQ. In this case ib_alloc_cq in workqueue mode would need to
+accept a affinity_hint from the caller (default to wild-card 
+WORK_CPU_UNBOUND).
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
