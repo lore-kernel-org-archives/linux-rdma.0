@@ -1,76 +1,44 @@
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: Re: [PATCH 2/9] IB: add a proper completion queue abstraction
-Date: Mon, 23 Nov 2015 13:04:25 -0800
-Message-ID: <56537F59.4080708@sandisk.com>
-References: <1447422410-20891-1-git-send-email-hch@lst.de>
- <1447422410-20891-3-git-send-email-hch@lst.de>
- <20151113182513.GB21808@obsidianresearch.com> <564640C4.3000603@sandisk.com>
- <20151113220636.GA32133@obsidianresearch.com> <20151114071344.GE27738@lst.de>
- <20151123203712.GB5640@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH for-next V1 5/9] IB/core: Add rdma_network_type to wc
+Date: Mon, 23 Nov 2015 14:19:16 -0700
+Message-ID: <20151123211916.GA6062@obsidianresearch.com>
+References: <1444925232-13598-1-git-send-email-matanb@mellanox.com>
+ <1444925232-13598-6-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <20151123203712.GB5640@obsidianresearch.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Christoph Hellwig <hch@lst.de>
-Cc: Bart Van Assche <bart.vanassche@sandisk.com>, linux-rdma@vger.kernel.org, sagig@dev.mellanox.co.il, axboe@fb.com, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1444925232-13598-6-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/23/2015 12:37 PM, Jason Gunthorpe wrote:
-> On Sat, Nov 14, 2015 at 08:13:44AM +0100, Christoph Hellwig wrote:
->> On Fri, Nov 13, 2015 at 03:06:36PM -0700, Jason Gunthorpe wrote:
->>> Looking at that thread and then at the patch a bit more..
->>>
->>> +void ib_process_cq_direct(struct ib_cq *cq)
->>> [..]
->>> +	__ib_process_cq(cq, INT_MAX);
->>>
->>> INT_MAX is not enough, it needs to loop.
->>> This is missing a ib_req_notify also.
->>
->> No.  Direct cases _never_ calls ib_req_notify.  Its for the case where
->> the SRP case polls the send CQ only from the same context it sends for
->> without any interrupt notification at al.
->
-> Hurm, okay, that is not at all what I was thinking this was for..
->
-> So the only use of this function is to drain a send cq, in a state
-> where it is guarenteed no new entries can be added, and only if the cq
-> is not already event driven. I'd stick those notes in the comment..
->
-> Hum. I wonder if this is even a reasonable way to run a ULP. It is
-> important that rx completions are not used to drive reaping of
-> resources that are still committed to the send queue. ie do not
-> trigger send buffer reuse based on a rx completion.
->
-> So, if a ULP uses this API, how does it handle the sendq becoming
-> full? As above, a ULP cannot use recvs to infer available sendq
-> space. It must directly reap the sendq. So a correct ULP would have to
-> spin calling ib_process_direct_cq until it makes enough progress to
-> add more things to the sendq. I don't obviously see that in SRP - so
-> I'm guessing it has buggered up sendq flow control?
->
-> NFS had similar problems lately too, I wrote a long explanation to
-> Chuck on this subject.
->
-> That said, the demand poll almost seems like a reasonable way for a
-> ULP to run the sendq, do the polls on send occasionally or when more
-> space is needed to better amortize the reaping overhead at the cost of
-> send latency. But API wise it needs to be able to switch over to a
-> sleep if enough progress hasn't been made.
->
-> So.. maybe also add to the comment that ib_process_cq_direct is
-> deprecated and should not be used in new code until SRP gets sorted?
+> +	/* Use the hint from IP Stack to select GID Type */
+> +	network_gid_type = ib_network_to_gid_type(addr->dev_addr.network);
+> +	if (addr->dev_addr.network != RDMA_NETWORK_IB) {
+> +		route->path_rec->gid_type = network_gid_type;
+> +		/* TODO: get the hoplimit from the inet/inet6 device */
+> +		route->path_rec->hop_limit = IPV6_DEFAULT_HOPLIMIT;
 
-Hello Jason,
+Uh, that is more than a TODO, that is showing this is all messed up.
 
-Considerable time ago the send queue in the SRP initiator driver was 
-modified from signaled to non-signaled to reduce the number of 
-interrupts triggered by the SRP initiator driver. The SRP initiator 
-driver polls the send queue every time before a SCSI command is sent to 
-the target. I think this is a pattern that is also useful for other 
-ULP's so I'm not convinced that ib_process_cq_direct() should be 
-deprecated :-)
+It isn't just the hop limit that has to come from the route entry, all
+the source information of the path comes from there. Ie the gid table
+should accept the route entry directly and spit out the sgid_index.
 
-Bart.
+The responder side is the same, it also needs to do a route lookup to
+figure out what it is doing, and that may not match what the rx says
+from the headers. This is important stuff.
+
+I really don't like the API changes that went in with the last series
+that added net_dev and gid_attr everywhere, that just seems to be
+enabling mistakes like the above. You can't use rocev2 without doing
+route lookups, providing APIs that don't force this to happen just
+encourages broken flows like this.
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
