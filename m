@@ -1,53 +1,78 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH for-next 03/10] IB/iser: Don't register memory for all
- immediatedata writes
-Date: Mon, 23 Nov 2015 11:13:43 -0700
-Message-ID: <20151123181343.GB32085@obsidianresearch.com>
-References: <1447691861-3796-1-git-send-email-sagig@mellanox.com>
- <1447691861-3796-4-git-send-email-sagig@mellanox.com>
- <564ADB7D.20806@mellanox.com>
- <564AF653.6060401@dev.mellanox.co.il>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] IB/ipoib: CSUM support in connected mode
+Date: Mon, 23 Nov 2015 11:29:57 -0700
+Message-ID: <20151123182957.GC32085@obsidianresearch.com>
+References: <1438256764-9077-1-git-send-email-yuval.shaia@oracle.com>
+ <1438264693.9344.19.camel@opteya.com>
+ <20150730152049.GA29102@yuval-lab>
+ <55BA47F0.5080504@redhat.com>
+ <20150730171538.GA25282@obsidianresearch.com>
+ <20150730204635.GC3487@yuval-lab>
+ <20150730210018.GA32451@obsidianresearch.com>
+ <20151118202740.GA3262@yuval-lab>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <target-devel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <564AF653.6060401@dev.mellanox.co.il>
-Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Cc: Or Gerlitz <ogerlitz@mellanox.com>, Sagi Grimberg <sagig@mellanox.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Steve Wise <swise@opengridcomputing.com>, Jenny Derzhavetz <jennyf@mellanox.com>
+In-Reply-To: <20151118202740.GA3262@yuval-lab>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 17, 2015 at 11:41:39AM +0200, Sagi Grimberg wrote:
-> 
-> >On 11/16/2015 6:37 PM, Sagi Grimberg wrote:
-> >>+++ b/drivers/infiniband/ulp/iser/iser_memory.c
-> >>@@ -250,7 +250,7 @@ iser_reg_dma(struct iser_device *device, struct
-> >>iser_data_buf *mem,
-> >>      struct scatterlist *sg = mem->sg;
-> >>      reg->sge.lkey = device->pd->local_dma_lkey;
-> >>-    reg->rkey = device->mr->rkey;
-> >>+    reg->rkey = device->mr ? device->mr->rkey : 0;
-> >>      reg->sge.addr = ib_sg_dma_address(device->ib_device, &sg[0]);
-> >>      reg->sge.length = ib_sg_dma_len(device->ib_device, &sg[0]);
-> >
-> >what's the role of this hunk? why it belongs here? you are testing
-> >device->mr but this is
-> >something global and has nothing to do specially with specific IOs for
-> >which this patch
-> >aims to act
-> 
-> It's because device->mr might not be allocated at all if
-> always_register=Y, however in this case for all-immediatedata writes
-> I don't need memory registration and I can use pd->local_dma_lkey.
+On Wed, Nov 18, 2015 at 10:27:41PM +0200, Yuval Shaia wrote:
+> > You need private-data exchange to negotiate the feature.
+> > 
+> > The feature should be a per-packet csum status header.
+> > 
+> > When sending a skb that is already fully csumed the receiver sets
+> > CHECKSUM_UNNECESSARY.
+> > 
+> > When sending a skb that has CHECKSUM_PARTIAL then the
+> > receiver needs to call skb_partial_csum_set.
+> > 
+> > Look at how something like VIRTIO_NET_HDR_F_NEEDS_CSUM works and copy
+> > that scheme.
 
-I'm with Or on this, this is really goofy looking.
+> Correct me if i'm wrong here but isn't this protocol assume both parties
+> are aware of this special header?
 
-This routine probably should not be setting the rkey at all, it makes
-no sense to have a routine that returns a lkey and a rkey. Those are
-always different flows.
+Yes.
 
-Once that is fixed then the above if can be hoisted to the actual
-calling code that needs an rkey, at the point where it does something
-different when !iser_always_reg is true..
+No matter what you do both sides must be aware of the change in
+protocol, doing it correctly requires adding a small wire header to
+flow through the checksum state. This would be enabled once
+negotiation confirms both sides will support this.
+
+> My case is a bit different, driver must support backward
+> computability in a way that peer maybe a driver that do not support
+> this feature and expect packet to be full checksummed.
+
+This is why negotiation is mandatory.
+
+> > DO NOT EVER set CHECKSUM_UNNECESSARY on packets that do not have valid
+> > csums - that breaks the net stack.
+> The entire idea here is to fake csum offload so how would i tell the stack
+> not to run csum on incoming packet?
+
+I already explained this, call skb_partial_csum_set and the stack will
+avoid csum work.
+
+> > Yes, you need to add a header to all packets to support this scheme,
+> > that is what the private-data negotiation is for.
+> > 
+> > While you are at it, I'd make room for something like
+> > VIRTIO_NET_HDR_GSO_* in the RC protocol too. Implementing GSO
+> > forwarding is probably another big performance win.
+> If i understood you correctly and you mean exchange of
+> "driver-capabilities", then yes, it is there with the extends of
+> ipoib_cm_data structure.
+
+You need to dig into how the things I referenced above work, fully
+understand them and then adapt them to IPoIB.
 
 Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
