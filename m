@@ -1,72 +1,40 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 11/11] IB: provide better access flags for fast
- registrations
-Date: Mon, 23 Nov 2015 11:58:29 -0700
-Message-ID: <20151123185829.GE32085@obsidianresearch.com>
+Subject: Re: [PATCH 10/11] IB: only keep a single key in struct ib_mr
+Date: Mon, 23 Nov 2015 12:41:24 -0700
+Message-ID: <20151123194124.GF32085@obsidianresearch.com>
 References: <1448214409-7729-1-git-send-email-hch@lst.de>
- <1448214409-7729-12-git-send-email-hch@lst.de>
+ <1448214409-7729-11-git-send-email-hch@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1448214409-7729-12-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <1448214409-7729-11-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Nov 22, 2015 at 06:46:49PM +0100, Christoph Hellwig wrote:
-> Instead of the confusing IB spec values provide a flags argument that
-> describes:
+On Sun, Nov 22, 2015 at 06:46:48PM +0100, Christoph Hellwig wrote:
+> While IB supports the notion of returning separate local and remote keys
+> from a memory registration, the iWarp spec doesn't and neither does any
+> of our in-tree HCA drivers [1] nor consumers.  Consolidate the in-kernel
+> API to provide only a single key and make everyones life easier.
 > 
->   a) the operation we perform the memory registration for, and
->   b) if we want to access it for read or write purposes.
-> 
-> This helps to abstract out the IB vs iWarp differences as well.
+> [1] the EHCA driver which is in the staging tree on it's way out can
+>     actually return two values from it's thick firmware interface.
+>     I doubt they ever were different, though.
 
-This is so much better, thanks
+I like this too, but, I'm a little worried this makes the API more
+confusing - ideally, we'd get rid of all the IB_ACCESS stuff from
+within the kernel completely. Then it make sense, the mr is created as
+a rkey/lkey mr, the single return is only one kind, and that kind must
+go in the lkey/rkey spots in other API places.
 
-> +#define IB_REG_LKEY		(ib_reg_scope_t)0x0000
-> +#define IB_REG_RKEY		(ib_reg_scope_t)0x0001
+Anyhow, for the core stuff:
 
-Wrap in () just for convention?
+Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
-> +static inline int ib_scope_to_access(ib_reg_scope_t scope)
-> +{
-> +	unsigned int acc = 0;
-> +
-> +	if (scope & IB_REG_RKEY) {
-> +		WARN_ON(scope & IB_REG_OP_SEND);
-> +
-> +		if (scope & IB_REG_OP_RDMA_READ)
-> +			acc |= IB_ACCESS_REMOTE_READ;
-> +		if (scope & IB_REG_OP_RDMA_WRITE)
-> +			acc |= IB_ACCESS_REMOTE_WRITE | IB_ACCESS_LOCAL_WRITE;
-> +	} else {
-> +		if (scope & IB_REG_OP_RDMA_READ)
-> +			acc |= IB_ACCESS_LOCAL_WRITE;
-
-> +	}
-> +
-> +	return acc;
-> +}
-> +
-> +static inline int iwarp_scope_to_access(ib_reg_scope_t scope)
-> +{
-
-Maybe
-
-unsigned int acc = ib_scope_to_access(scope);
-if ((scope & (IB_REG_RKEY | IB_REG_OP_RDMA_READ)) == (IB_REG_RKEY | IB_REG_OP_RDMA_READ))
-   acc |= IB_ACCESS_LOCAL_WRITE;
-
-return acc;
-
-Makes it a bit clearer what the only difference is.
-
-Is this enough to purge the cap test related to this?
-
-Jaason
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
