@@ -1,54 +1,54 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH 2/9] IB: add a proper completion queue abstraction
-Date: Mon, 23 Nov 2015 15:18:06 -0700
-Message-ID: <20151123221806.GA7152@obsidianresearch.com>
-References: <1447422410-20891-1-git-send-email-hch@lst.de>
- <1447422410-20891-3-git-send-email-hch@lst.de>
- <20151113182513.GB21808@obsidianresearch.com>
- <564640C4.3000603@sandisk.com>
- <20151113220636.GA32133@obsidianresearch.com>
- <20151114071344.GE27738@lst.de>
- <20151123203712.GB5640@obsidianresearch.com>
- <56537F59.4080708@sandisk.com>
- <20151123212822.GE6062@obsidianresearch.com>
- <56538AFD.9080103@sandisk.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v1 0/8] NFS/RDMA server patches for 4.5
+Date: Mon, 23 Nov 2015 17:20:13 -0500
+Message-ID: <20151123221738.13040.26277.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <56538AFD.9080103@sandisk.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: Christoph Hellwig <hch@lst.de>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "sagig@dev.mellanox.co.il" <sagig@dev.mellanox.co.il>, "axboe@fb.com" <axboe@fb.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 23, 2015 at 01:54:05PM -0800, Bart Van Assche wrote:
+Here are patches to support server-side bi-directional RPC/RDMA
+operation (to enable NFSv4.1 on RPC/RDMA transports). These still
+need testing, but they are ready for initial review.
 
-> Not really ... Please have a look at the SRP initiator source code. What the
-> SRP initiator does is to poll the send queue before sending a new
-> SCSI
+Also available in the "nfsd-rdma-for-4.5" topic branch of this git repo:
 
-I see that. What I don't see is how SRP handles things when the
-sendq fills up, ie the case where __srp_get_tx_iu() == NULL. It looks
-like the driver starts to panic and generates printks. I can't tell if
-it can survive that, but it doesn't look very good..
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
 
-It would be a lot better if this wasn't allowed to happen, the polling
-loop can run until a sendq becomes available, and never return null
-from __srp_get_tx_iu().
+Or for browsing:
 
-Ie, __srp_get_tx_iu should look more like
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-for-4.5
 
-   ib_poll_cq_until(..., !list_empty(&ch->free_tx));
+---
 
-Which would be a fairly sane core API for this direct usage.. Ideally
-the core code would sleep if possible and not just spin. Maybe also
-protect it with a timer.
+Chuck Lever (8):
+      svcrdma: Do not send XDR roundup bytes for a write chunk
+      svcrdma: Define maximum number of backchannel requests
+      svcrdma: Add svc_rdma_get_context() API that is allowed to fail
+      svcrdma: Add infrastructure to send backwards direction RPC/RDMA calls
+      svcrdma: Add infrastructure to receive backwards direction RPC/RDMA replies
+      xprtrdma: Add class for RDMA backwards direction transport
+      svcrdma: No need to count WRs in svc_rdma_send()
+      svcrdma: Remove svc_rdma_fastreg_mr::access_flags field
 
-> command to the target system starts. I think this approach could also be
-> used in other ULP drivers if the send queue poll frequency is such that no
-> send queue overflow occurs.
 
-Yes, I agree, but it has to be done properly :)
+ include/linux/sunrpc/svc_rdma.h          |   12 +
+ include/linux/sunrpc/xprt.h              |    1 
+ net/sunrpc/xprt.c                        |    1 
+ net/sunrpc/xprtrdma/rpc_rdma.c           |   76 +++++++++
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c  |   72 ++++++++-
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c    |   74 +++++++++
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |   65 ++++++--
+ net/sunrpc/xprtrdma/transport.c          |  243 ++++++++++++++++++++++++++++++
+ net/sunrpc/xprtrdma/xprt_rdma.h          |    6 +
+ 9 files changed, 519 insertions(+), 31 deletions(-)
 
-Jason
+--
+Chuck Lever
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
