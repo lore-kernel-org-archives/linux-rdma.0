@@ -1,53 +1,100 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 0/9] NFS/RDMA client patches for 4.5
-Date: Mon, 23 Nov 2015 17:13:48 -0500
-Message-ID: <20151123220627.32702.62667.stgit@manet.1015granger.net>
+Subject: [PATCH v1 1/9] xprtrdma: Add a safety margin for receive buffers
+Date: Mon, 23 Nov 2015 17:13:57 -0500
+Message-ID: <20151123221357.32702.59922.stgit@manet.1015granger.net>
+References: <20151123220627.32702.62667.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151123220627.32702.62667.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-For 4.5, I'd like to address the send queue accounting and
-invalidation/unmap ordering issues Jason brought up a couple of
-months ago. Here's a first shot at that.
+Rarely, senders post a Send that is larger than the client's inline
+threshold. That can be due to a bug, or the client and server may
+not have communicated about their inline limits. RPC-over-RDMA
+currently doesn't specify any particular limit on inline size, so
+peers have to guess what it is.
 
-Also available in the "nfs-rdma-for-4.5" topic branch of this git repo:
+It is fatal to the connection if the size of a Send is larger than
+the client's receive buffer. The sender is likely to retry with the
+same message size, so the workload is stuck at that point.
 
-git://git.linux-nfs.org/projects/cel/cel-2.6.git
+Follow Postel's robustness principal: Be conservative in what you
+do, be liberal in what you accept from others. Increase the size of
+client receive buffers by a safety margin, and add a warning when
+the inline threshold is exceeded during receive.
 
-Or for browsing:
+Note the Linux server's receive buffers are already page-sized.
 
-http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfs-rdma-for-4.5
-
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
+ net/sunrpc/xprtrdma/rpc_rdma.c  |    7 +++++++
+ net/sunrpc/xprtrdma/verbs.c     |    6 +++++-
+ net/sunrpc/xprtrdma/xprt_rdma.h |    5 +++++
+ 3 files changed, 17 insertions(+), 1 deletion(-)
 
-Chuck Lever (9):
-      xprtrdma: Add a safety margin for receive buffers
-      xprtrdma: Move struct ib_send_wr off the stack
-      xprtrdma: Introduce ro_unmap_sync method
-      xprtrdma: Add ro_unmap_sync method for FRWR
-      xprtrdma: Add ro_unmap_sync method for FMR
-      xprtrdma: Add ro_unmap_sync method for all-physical registration
-      SUNRPC: Introduce xprt_commit_rqst()
-      xprtrdma: Invalidate in the RPC reply handler
-      xprtrdma: Revert commit e7104a2a9606 ('xprtrdma: Cap req_cqinit').
+diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
+index c10d969..a169252 100644
+--- a/net/sunrpc/xprtrdma/rpc_rdma.c
++++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+@@ -776,6 +776,7 @@ rpcrdma_reply_handler(struct rpcrdma_rep *rep)
+ 	int rdmalen, status;
+ 	unsigned long cwnd;
+ 	u32 credits;
++	RPC_IFDEBUG(struct rpcrdma_create_data_internal *cdata);
+ 
+ 	dprintk("RPC:       %s: incoming rep %p\n", __func__, rep);
+ 
+@@ -783,6 +784,12 @@ rpcrdma_reply_handler(struct rpcrdma_rep *rep)
+ 		goto out_badstatus;
+ 	if (rep->rr_len < RPCRDMA_HDRLEN_MIN)
+ 		goto out_shortreply;
++#if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
++	cdata = &r_xprt->rx_data;
++	if (rep->rr_len > cdata->inline_rsize)
++		pr_warn("RPC: %u byte reply exceeds inline threshold\n",
++			rep->rr_len);
++#endif
+ 
+ 	headerp = rdmab_to_msg(rep->rr_rdmabuf);
+ 	if (headerp->rm_vers != rpcrdma_version)
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index eadd1655..e3f12e2 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -924,7 +924,11 @@ rpcrdma_create_rep(struct rpcrdma_xprt *r_xprt)
+ 	if (rep == NULL)
+ 		goto out;
+ 
+-	rep->rr_rdmabuf = rpcrdma_alloc_regbuf(ia, cdata->inline_rsize,
++	/* The actual size of our receive buffers is increased slightly
++	 * to prevent small receive overruns from killing our connection.
++	 */
++	rep->rr_rdmabuf = rpcrdma_alloc_regbuf(ia, cdata->inline_rsize +
++					       RPCRDMA_RECV_MARGIN,
+ 					       GFP_KERNEL);
+ 	if (IS_ERR(rep->rr_rdmabuf)) {
+ 		rc = PTR_ERR(rep->rr_rdmabuf);
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index ac7f8d4..1b72ab1 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -337,6 +337,11 @@ struct rpcrdma_create_data_internal {
+ #define RPCRDMA_INLINE_PAD_VALUE(rq)\
+ 	rpcx_to_rdmad(rq->rq_xprt).padding
+ 
++/* To help prevent spurious connection shutdown, allow senders to
++ * overrun our receive inline threshold by a small bit.
++ */
++#define RPCRDMA_RECV_MARGIN	(128)
++
+ /*
+  * Statistics for RPCRDMA
+  */
 
-
- include/linux/sunrpc/xprt.h        |    1 
- net/sunrpc/xprt.c                  |   14 +++
- net/sunrpc/xprtrdma/fmr_ops.c      |   64 +++++++++++++
- net/sunrpc/xprtrdma/frwr_ops.c     |  175 +++++++++++++++++++++++++++++++-----
- net/sunrpc/xprtrdma/physical_ops.c |   13 +++
- net/sunrpc/xprtrdma/rpc_rdma.c     |   21 ++++
- net/sunrpc/xprtrdma/verbs.c        |   12 +-
- net/sunrpc/xprtrdma/xprt_rdma.h    |   17 ++-
- 8 files changed, 284 insertions(+), 33 deletions(-)
-
---
-Chuck Lever
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
