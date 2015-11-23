@@ -1,68 +1,54 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 9/9] xprtrdma: Revert commit e7104a2a9606 ('xprtrdma: Cap
- req_cqinit').
-Date: Mon, 23 Nov 2015 17:15:03 -0500
-Message-ID: <20151123221503.32702.13068.stgit@manet.1015granger.net>
-References: <20151123220627.32702.62667.stgit@manet.1015granger.net>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH 2/9] IB: add a proper completion queue abstraction
+Date: Mon, 23 Nov 2015 15:18:06 -0700
+Message-ID: <20151123221806.GA7152@obsidianresearch.com>
+References: <1447422410-20891-1-git-send-email-hch@lst.de>
+ <1447422410-20891-3-git-send-email-hch@lst.de>
+ <20151113182513.GB21808@obsidianresearch.com>
+ <564640C4.3000603@sandisk.com>
+ <20151113220636.GA32133@obsidianresearch.com>
+ <20151114071344.GE27738@lst.de>
+ <20151123203712.GB5640@obsidianresearch.com>
+ <56537F59.4080708@sandisk.com>
+ <20151123212822.GE6062@obsidianresearch.com>
+ <56538AFD.9080103@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151123220627.32702.62667.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <56538AFD.9080103@sandisk.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Christoph Hellwig <hch@lst.de>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "sagig@dev.mellanox.co.il" <sagig@dev.mellanox.co.il>, "axboe@fb.com" <axboe@fb.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The root of the problem was that sends (especially unsignalled
-FASTREG and LOCAL_INV Work Requests) were not properly flow-
-controlled, which allowed a send queue overrun.
+On Mon, Nov 23, 2015 at 01:54:05PM -0800, Bart Van Assche wrote:
 
-Now that the RPC/RDMA reply handler waits for invalidation to
-complete, the send queue is properly flow-controlled. Thus this
-limit is no longer necessary.
+> Not really ... Please have a look at the SRP initiator source code. What the
+> SRP initiator does is to poll the send queue before sending a new
+> SCSI
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/xprtrdma/verbs.c     |    6 ++----
- net/sunrpc/xprtrdma/xprt_rdma.h |    6 ------
- 2 files changed, 2 insertions(+), 10 deletions(-)
+I see that. What I don't see is how SRP handles things when the
+sendq fills up, ie the case where __srp_get_tx_iu() == NULL. It looks
+like the driver starts to panic and generates printks. I can't tell if
+it can survive that, but it doesn't look very good..
 
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index e3f12e2..e3baf05 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -616,10 +616,8 @@ rpcrdma_ep_create(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia,
- 
- 	/* set trigger for requesting send completion */
- 	ep->rep_cqinit = ep->rep_attr.cap.max_send_wr/2 - 1;
--	if (ep->rep_cqinit > RPCRDMA_MAX_UNSIGNALED_SENDS)
--		ep->rep_cqinit = RPCRDMA_MAX_UNSIGNALED_SENDS;
--	else if (ep->rep_cqinit <= 2)
--		ep->rep_cqinit = 0;
-+	if (ep->rep_cqinit <= 2)
-+		ep->rep_cqinit = 0;	/* always signal? */
- 	INIT_CQCOUNT(ep);
- 	init_waitqueue_head(&ep->rep_connect_wait);
- 	INIT_DELAYED_WORK(&ep->rep_connect_worker, rpcrdma_connect_worker);
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index 45dd0b7..c166aeb 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -88,12 +88,6 @@ struct rpcrdma_ep {
- 	struct delayed_work	rep_connect_worker;
- };
- 
--/*
-- * Force a signaled SEND Work Request every so often,
-- * in case the provider needs to do some housekeeping.
-- */
--#define RPCRDMA_MAX_UNSIGNALED_SENDS	(32)
--
- #define INIT_CQCOUNT(ep) atomic_set(&(ep)->rep_cqcount, (ep)->rep_cqinit)
- #define DECR_CQCOUNT(ep) atomic_sub_return(1, &(ep)->rep_cqcount)
- 
+It would be a lot better if this wasn't allowed to happen, the polling
+loop can run until a sendq becomes available, and never return null
+from __srp_get_tx_iu().
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ie, __srp_get_tx_iu should look more like
+
+   ib_poll_cq_until(..., !list_empty(&ch->free_tx));
+
+Which would be a fairly sane core API for this direct usage.. Ideally
+the core code would sleep if possible and not just spin. Maybe also
+protect it with a timer.
+
+> command to the target system starts. I think this approach could also be
+> used in other ULP drivers if the send queue poll frequency is such that no
+> send queue overflow occurs.
+
+Yes, I agree, but it has to be done properly :)
+
+Jason
