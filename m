@@ -1,48 +1,54 @@
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: Re: [PATCH 2/9] IB: add a proper completion queue abstraction
-Date: Mon, 23 Nov 2015 13:54:05 -0800
-Message-ID: <56538AFD.9080103@sandisk.com>
-References: <1447422410-20891-1-git-send-email-hch@lst.de>
- <1447422410-20891-3-git-send-email-hch@lst.de>
- <20151113182513.GB21808@obsidianresearch.com> <564640C4.3000603@sandisk.com>
- <20151113220636.GA32133@obsidianresearch.com> <20151114071344.GE27738@lst.de>
- <20151123203712.GB5640@obsidianresearch.com> <56537F59.4080708@sandisk.com>
- <20151123212822.GE6062@obsidianresearch.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v1 0/9] NFS/RDMA client patches for 4.5
+Date: Mon, 23 Nov 2015 17:13:48 -0500
+Message-ID: <20151123220627.32702.62667.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <20151123212822.GE6062@obsidianresearch.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Christoph Hellwig <hch@lst.de>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "sagig@dev.mellanox.co.il" <sagig@dev.mellanox.co.il>, "axboe@fb.com" <axboe@fb.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/23/2015 01:28 PM, Jason Gunthorpe wrote:
-> On Mon, Nov 23, 2015 at 01:04:25PM -0800, Bart Van Assche wrote:
->
->> Considerable time ago the send queue in the SRP initiator driver was
->> modified from signaled to non-signaled to reduce the number of interrupts
->> triggered by the SRP initiator driver. The SRP initiator driver polls the
->> send queue every time before a SCSI command is sent to the target. I think
->> this is a pattern that is also useful for other ULP's so I'm not convinced
->> that ib_process_cq_direct() should be deprecated :-)
->
-> As I explained, that is a fine idea, but I can't see how SRP is able
-> to correctly do sendq flow control without spinning on the poll, which
-> it does not do.
->
-> I'm guessing SRP is trying to drive sendq flow control from the recv
-> side, like NFS was. This is wrong and should not be part of the common
-> API.
->
-> Does that make sense?
+For 4.5, I'd like to address the send queue accounting and
+invalidation/unmap ordering issues Jason brought up a couple of
+months ago. Here's a first shot at that.
 
-Not really ... Please have a look at the SRP initiator source code. What 
-the SRP initiator does is to poll the send queue before sending a new 
-SCSI command to the target system starts. I think this approach could 
-also be used in other ULP drivers if the send queue poll frequency is 
-such that no send queue overflow occurs.
+Also available in the "nfs-rdma-for-4.5" topic branch of this git repo:
 
-Bart.
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
 
+Or for browsing:
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfs-rdma-for-4.5
+
+---
+
+Chuck Lever (9):
+      xprtrdma: Add a safety margin for receive buffers
+      xprtrdma: Move struct ib_send_wr off the stack
+      xprtrdma: Introduce ro_unmap_sync method
+      xprtrdma: Add ro_unmap_sync method for FRWR
+      xprtrdma: Add ro_unmap_sync method for FMR
+      xprtrdma: Add ro_unmap_sync method for all-physical registration
+      SUNRPC: Introduce xprt_commit_rqst()
+      xprtrdma: Invalidate in the RPC reply handler
+      xprtrdma: Revert commit e7104a2a9606 ('xprtrdma: Cap req_cqinit').
+
+
+ include/linux/sunrpc/xprt.h        |    1 
+ net/sunrpc/xprt.c                  |   14 +++
+ net/sunrpc/xprtrdma/fmr_ops.c      |   64 +++++++++++++
+ net/sunrpc/xprtrdma/frwr_ops.c     |  175 +++++++++++++++++++++++++++++++-----
+ net/sunrpc/xprtrdma/physical_ops.c |   13 +++
+ net/sunrpc/xprtrdma/rpc_rdma.c     |   21 ++++
+ net/sunrpc/xprtrdma/verbs.c        |   12 +-
+ net/sunrpc/xprtrdma/xprt_rdma.h    |   17 ++-
+ 8 files changed, 284 insertions(+), 33 deletions(-)
+
+--
+Chuck Lever
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
