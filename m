@@ -1,54 +1,65 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 0/8] NFS/RDMA server patches for 4.5
-Date: Mon, 23 Nov 2015 17:20:13 -0500
-Message-ID: <20151123221738.13040.26277.stgit@klimt.1015granger.net>
+Subject: [PATCH v1 1/8] svcrdma: Do not send XDR roundup bytes for a write
+ chunk
+Date: Mon, 23 Nov 2015 17:20:22 -0500
+Message-ID: <20151123222021.13040.85752.stgit@klimt.1015granger.net>
+References: <20151123221738.13040.26277.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151123221738.13040.26277.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Here are patches to support server-side bi-directional RPC/RDMA
-operation (to enable NFSv4.1 on RPC/RDMA transports). These still
-need testing, but they are ready for initial review.
+Minor optimization: when dealing with write chunk XDR roundup, do
+not post a Write WR for the zero bytes in the pad. Simply update
+the write segment in the RPC-over-RDMA header to reflect the extra
+pad bytes.
 
-Also available in the "nfsd-rdma-for-4.5" topic branch of this git repo:
+The Reply chunk is also a write chunk, but the server does not use
+send_write_chunks() to send the Reply chunk. That's OK in this case:
+the server Upper Layer typically marshals the Reply chunk contents
+in a single contiguous buffer, without a separate tail for the XDR
+pad.
 
-git://git.linux-nfs.org/projects/cel/cel-2.6.git
+The comments and the variable naming refer to "chunks" but what is
+really meant is "segments." The existing code sends only one
+xdr_write_chunk per RPC reply.
 
-Or for browsing:
+The fix assumes this as well. When the XDR pad in the first write
+chunk is reached, the assumption is the Write list is complete and
+send_write_chunks() returns.
 
-http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-for-4.5
+That will remain a valid assumption until the server Upper Layer can
+support multiple bulk payload results per RPC.
 
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-Chuck Lever (8):
-      svcrdma: Do not send XDR roundup bytes for a write chunk
-      svcrdma: Define maximum number of backchannel requests
-      svcrdma: Add svc_rdma_get_context() API that is allowed to fail
-      svcrdma: Add infrastructure to send backwards direction RPC/RDMA calls
-      svcrdma: Add infrastructure to receive backwards direction RPC/RDMA replies
-      xprtrdma: Add class for RDMA backwards direction transport
-      svcrdma: No need to count WRs in svc_rdma_send()
-      svcrdma: Remove svc_rdma_fastreg_mr::access_flags field
-
-
- include/linux/sunrpc/svc_rdma.h          |   12 +
- include/linux/sunrpc/xprt.h              |    1 
- net/sunrpc/xprt.c                        |    1 
- net/sunrpc/xprtrdma/rpc_rdma.c           |   76 +++++++++
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c  |   72 ++++++++-
- net/sunrpc/xprtrdma/svc_rdma_sendto.c    |   74 +++++++++
- net/sunrpc/xprtrdma/svc_rdma_transport.c |   65 ++++++--
- net/sunrpc/xprtrdma/transport.c          |  243 ++++++++++++++++++++++++++++++
- net/sunrpc/xprtrdma/xprt_rdma.h          |    6 +
- 9 files changed, 519 insertions(+), 31 deletions(-)
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+index 969a1ab..bad5eaa 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+@@ -342,6 +342,13 @@ static int send_write_chunks(struct svcxprt_rdma *xprt,
+ 						arg_ch->rs_handle,
+ 						arg_ch->rs_offset,
+ 						write_len);
++
++		/* Do not send XDR pad bytes */
++		if (chunk_no && write_len < 4) {
++			chunk_no++;
++			break;
++		}
++
+ 		chunk_off = 0;
+ 		while (write_len) {
+ 			ret = send_write(xprt, rqstp,
 
 --
-Chuck Lever
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
