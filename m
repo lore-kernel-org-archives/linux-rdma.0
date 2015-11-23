@@ -1,69 +1,57 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v3 3/3] staging/rdma/hfi1: Method to toggle "fast ECN" detection
-Date: Sun, 22 Nov 2015 21:15:02 -0500
-Message-ID: <20151123021501.GC3304@phlsvsds.ph.intel.com>
-References: <1447112084-12532-1-git-send-email-ira.weiny@intel.com> <20151120005444.GA32083@kroah.com>
+From: "ira.weiny" <ira.weiny@intel.com>
+Subject: Re: [PATCH v2 1/7] staging/rdma/hfi1: diag.c Correct code style issues
+Date: Sun, 22 Nov 2015 21:17:22 -0500
+Message-ID: <20151123021721.GD3304@phlsvsds.ph.intel.com>
+References: <1447713160-24858-1-git-send-email-ira.weiny@intel.com>
+ <1447713160-24858-2-git-send-email-ira.weiny@intel.com>
+ <20151117164726.GC32098@sudip-pc>
+ <20151117203023.GA31037@phlsvsds.ph.intel.com>
+ <20151117222746.GA9580@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
 Content-Disposition: inline
-In-Reply-To: <20151120005444.GA32083-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Vennila Megavannan <vennila.megavannan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20151117222746.GA9580@kroah.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
+Cc: devel@driverdev.osuosl.org, linux-rdma@vger.kernel.org, dledford@redhat.com, Sudip Mukherjee <sudipm.mukherjee@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 19, 2015 at 04:54:44PM -0800, Greg KH wrote:
-> On Mon, Nov 09, 2015 at 06:34:44PM -0500, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> > From: Vennila Megavannan <vennila.megavannan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Tue, Nov 17, 2015 at 02:27:46PM -0800, gregkh@linuxfoundation.org wrote:
+> On Tue, Nov 17, 2015 at 03:30:24PM -0500, ira.weiny wrote:
+> > On Tue, Nov 17, 2015 at 10:17:26PM +0530, Sudip Mukherjee wrote:
+> > > On Mon, Nov 16, 2015 at 05:32:34PM -0500, ira.weiny@intel.com wrote:
+> > > > From: Jubin John <jubin.john@intel.com>
+> > > > 
+> > > > Correct the checks on diag.c with the latest checkpatch
+> > > > 
+> > > > Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+> > > > Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+> > > > Signed-off-by: Jubin John <jubin.john@intel.com>
+> > > > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> > > > ---
+> > > 
+> > > Different types of changes in a single patch.
 > > 
-> > Add a module paramter to toggle prescan/Fast ECN Detection and remove the
-> > Kconfig option which used to control this.
+> > Greg,
+> > 
+> > Do you want me to resubmit the entire series for this?
 > 
-> Ick, no, not a module parameter, that's horrid (hint, it isn't a
-> per-device option...)
-
-This is a good point.  Previous to this patch we had a compile time option
-which would have affected all devices and I think we just continued that.  I do
-like the idea of making this per port.  I will respin the patch.
-
-However, I want to be clear on your hint.  Are you saying that sysfs would be a
-better place to put such a flag?
-
+> Why wouldn't you?  :)
 > 
-> Why can't you do this dynamically?
 
-ECN is always on.  The key is the reaction time of the individual port.
-Attempting to turn this on and off would affect both the reaction time and the
-processing time in a negative way.
+I meant instead of just replacing this single patch with a new "pre" series.
 
-> Why would anyone ever want to make this "slow"?
-
-This is a tuning nob for over all fabric performance not individual node
-performance.  ECN controls congestion spreading through the network as is
-explained in this paper.
-
-http://infocom2003.ieee-infocom.org/papers/28_01.PDF
-
-As is shown in figure 1 and 2 of that paper congestion at node Bc is affecting
-traffic at node Bv.  The default reaction time of ECN is likely to be
-sufficient for most users based on our experience so far.
-
-However, should a particular network see system wide degradation, this option
-can be turned on to increase the reaction time at node Bc.  However, node Bc is
-already overloaded so the trade off is likely acceptable.
-
-Unfortunately, it is hard to predict when a user may need this option as we
-don't have the resources to build extreme scale fabrics for testing.  Nor do we
-know all users workloads or the fabric topologies those workloads may be
-running on.
-
-We developed the code which this option enables based on lab experiments.  So
-we need this to be an option available to users.
+It is easier to just resend the entire series.  I can do that once we settle
+whos tree these patches are going to land in.
 
 Ira
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
