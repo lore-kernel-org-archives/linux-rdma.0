@@ -1,124 +1,40 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 2/8] svcrdma: Define maximum number of backchannel requests
-Date: Mon, 23 Nov 2015 20:09:22 -0500
-Message-ID: <BABDB763-B4D6-4538-82FB-11F494BAC27C@oracle.com>
-References: <20151123221738.13040.26277.stgit@klimt.1015granger.net> <20151123222030.13040.19373.stgit@klimt.1015granger.net> <5653B1A6.3010707@talpey.com>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] IB/srp: Fix possible send queue overflow
+Date: Mon, 23 Nov 2015 17:11:55 -0800
+Message-ID: <5653B95B.1020207@sandisk.com>
+References: <1444901206-27462-1-git-send-email-sagig@mellanox.com>
+ <5639035D.6050805@dev.mellanox.co.il> <563B2E0A.4020102@dev.mellanox.co.il>
+ <5641C859.6070107@dev.mellanox.co.il> <20151122133704.GA22831@infradead.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5653B1A6.3010707-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20151122133704.GA22831-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Stable <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 11/22/2015 05:37 AM, Christoph Hellwig wrote:
+> On Tue, Nov 10, 2015 at 12:35:05PM +0200, Sagi Grimberg wrote:
+>>> Are you planning to pick this up? Note that this patch
+>>> is stable material as well.
+>>
+>> Doug? any plans for this patch?
+>
+> We should really get this in an into -stable.  Bart, can you resend
+> the series and if it doesn't get picked up next week send it directly
+> to Linus?
 
-> On Nov 23, 2015, at 7:39 PM, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org> wrote:
->=20
-> On 11/23/2015 5:20 PM, Chuck Lever wrote:
->> Extra resources for handling backchannel requests have to be
->> pre-allocated when a transport instance is created. Set a limit.
->>=20
->> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->> ---
->>  include/linux/sunrpc/svc_rdma.h          |    5 +++++
->>  net/sunrpc/xprtrdma/svc_rdma_transport.c |    6 +++++-
->>  2 files changed, 10 insertions(+), 1 deletion(-)
->>=20
->> diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/=
-svc_rdma.h
->> index f869807..478aa30 100644
->> --- a/include/linux/sunrpc/svc_rdma.h
->> +++ b/include/linux/sunrpc/svc_rdma.h
->> @@ -178,6 +178,11 @@ struct svcxprt_rdma {
->>  #define RPCRDMA_SQ_DEPTH_MULT   8
->>  #define RPCRDMA_MAX_REQUESTS    32
->>  #define RPCRDMA_MAX_REQ_SIZE    4096
->> +#if defined(CONFIG_SUNRPC_BACKCHANNEL)
->=20
-> Why is this a config option? Why wouldn't you always want
-> this? It's needed for any post-1990 NFS dialect.
+Hi Christoph,
 
-I think some distros want to be able to compile out NFSv4.x
-on small systems, and take all the backchannel cruft with it.
+Are you referring to Sagi's patch only or also to my patch series that 
+fixes error handling ?
 
+Thanks,
 
->> +#define RPCRDMA_MAX_BC_REQUESTS	8
->=20
-> Why a constant 8? The forward channel value is apparently
-> configurable, just a few lines down.
-
-The client side backward direction credit limit, now
-in 4.4, is already a constant.
-
-The client side ULP uses a constant for the slot table
-size: NFS4_MAX_BACK_CHANNEL_OPS. I=E2=80=99m not 100% sure but
-the server seems to just echo that number back to the
-client.
-
-I=E2=80=99d rather not add an admin knob for this. Why would it
-be necessary?
-
-
->> +#else
->> +#define RPCRDMA_MAX_BC_REQUESTS	0
->> +#endif
->>=20
->>  #define RPCSVC_MAXPAYLOAD_RDMA	RPCSVC_MAXPAYLOAD
->>=20
->> diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/x=
-prtrdma/svc_rdma_transport.c
->> index b348b4a..01c7b36 100644
->> --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
->> +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
->> @@ -923,8 +923,10 @@ static struct svc_xprt *svc_rdma_accept(struct =
-svc_xprt *xprt)
->>  				  (size_t)RPCSVC_MAXPAGES);
->>  	newxprt->sc_max_sge_rd =3D min_t(size_t, devattr.max_sge_rd,
->>  				       RPCSVC_MAXPAGES);
->> +	/* XXX: what if HCA can't support enough WRs for bc operation? */
->>  	newxprt->sc_max_requests =3D min((size_t)devattr.max_qp_wr,
->> -				   (size_t)svcrdma_max_requests);
->> +				       (size_t)(svcrdma_max_requests +
->> +				       RPCRDMA_MAX_BC_REQUESTS));
->>  	newxprt->sc_sq_depth =3D RPCRDMA_SQ_DEPTH_MULT * newxprt->sc_max_r=
-equests;
->>=20
->>  	/*
->> @@ -964,7 +966,9 @@ static struct svc_xprt *svc_rdma_accept(struct s=
-vc_xprt *xprt)
->>  	qp_attr.event_handler =3D qp_event_handler;
->>  	qp_attr.qp_context =3D &newxprt->sc_xprt;
->>  	qp_attr.cap.max_send_wr =3D newxprt->sc_sq_depth;
->> +	qp_attr.cap.max_send_wr +=3D RPCRDMA_MAX_BC_REQUESTS;
->>  	qp_attr.cap.max_recv_wr =3D newxprt->sc_max_requests;
->> +	qp_attr.cap.max_recv_wr +=3D RPCRDMA_MAX_BC_REQUESTS;
->>  	qp_attr.cap.max_send_sge =3D newxprt->sc_max_sge;
->>  	qp_attr.cap.max_recv_sge =3D newxprt->sc_max_sge;
->>  	qp_attr.sq_sig_type =3D IB_SIGNAL_REQ_WR;
->>=20
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-nfs"=
- in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>=20
->>=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-nfs" =
-in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Bart.
 --
-Chuck Lever
-
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
