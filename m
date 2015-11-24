@@ -1,71 +1,84 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 3/9] xprtrdma: Introduce ro_unmap_sync method
-Date: Tue, 24 Nov 2015 10:20:10 -0500
-Message-ID: <0632A14B-5391-4AAC-8F05-1809A092F04B@oracle.com>
-References: <20151123220627.32702.62667.stgit@manet.1015granger.net> <20151123221414.32702.87638.stgit@manet.1015granger.net> <20151124064556.GA29141@infradead.org> <565442F5.7080400@dev.mellanox.co.il> <4B2D7C66-31AC-44F3-A8CC-22CC7136015C@oracle.com> <565477CC.5070309@dev.mellanox.co.il>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <565477CC.5070309-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: RFC rdma cgroup
+Date: Tue, 24 Nov 2015 10:47:45 -0500
+Message-ID: <20151124154745.GK17033@mtj.duckdns.org>
+References: <CAG53R5Vd=tLbKPeKy8ZKP2DoHG-rnzW85COiE1Hk4GLv6SAZyA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-security-module-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAG53R5Vd=tLbKPeKy8ZKP2DoHG-rnzW85COiE1Hk4GLv6SAZyA@mail.gmail.com>
+Sender: owner-linux-security-module@vger.kernel.org
+To: Parav Pandit <pandit.parav@gmail.com>
+Cc: Doug Ledford <dledford@redhat.com>, "Hefty, Sean" <sean.hefty@intel.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "cgroups@vger.kernel.org" <cgroups@vger.kernel.org>, Liran Liss <liranl@mellanox.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lizefan@huawei.com" <lizefan@huawei.com>, Johannes Weiner <hannes@cmpxchg.org>, Jonathan Corbet <corbet@lwn.net>, "james.l.morris@oracle.com" <james.l.morris@oracle.com>, "serge@hallyn.com" <serge@hallyn.com>, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, "raindel@mellanox.com" <raindel@mellanox.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Haggai Eran <haggaie@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
+Hello, chiming in late.
 
-> On Nov 24, 2015, at 9:44 AM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>=
- wrote:
->=20
-> Hey Chuck,
->=20
->>=20
->>> It is painful, too painful. The entire value proposition of RDMA is
->>> low-latency and waiting for the extra HW round-trip for a local
->>> invalidation to complete is unacceptable, moreover it adds a huge l=
-oads
->>> of extra interrupts and cache-line pollutions.
->>=20
->> The killer is the extra context switches, I=92ve found.
->=20
-> That too...
->=20
->> I=92ve noticed only a marginal loss of performance on modern
->> hardware.
->=20
-> Would you mind sharing your observations?
+On Wed, Oct 28, 2015 at 01:59:15PM +0530, Parav Pandit wrote:
+> Design guidelines:
+> -----------------------
+> 1. There will be new rdma cgroup for accounting rdma resources
+> (instead of extending device cgroup).
+> Rationale: RDMA tracks different type of resources and it functions
+> differently than device cgroup. Though device cgroup could have been
+> extended for more generic nature, community feels that its better to
+> create RDMA cgroup, which might have more features than just resource
+> limit enforcement in future.
 
-I=92m testing with CX-3 Pro on FDR.
+Yeap, it should definitely be separate from device cgroup.
 
-NFS READ and WRITE round trip latency, which includes the cost
-of registration and now invalidation, is not noticeably longer.
-dbench and fio results are marginally slower (in the neighborhood
-of 5%).
+> 2. RDMA cgroup will allow resource accounting, limit enforcement on
+> per cgroup, per rdma device basis (instead of resource limiting across
+> all devices).
+> Rationale: this give granular control when multiple devices exist in the system.
+> 
+> 3. Resources are not defined by the RDMA cgroup. Resources are defined
+> by RDMA/IB subsystem and optionally by HCA vendor device drivers.
+> Rationale: This allows rdma cgroup to remain constant while RDMA/IB
+> subsystem can evolve without the need of rdma cgroup update. A new
+> resource can be easily added by the RDMA/IB subsystem without touching
+> rdma cgroup.
 
-=46or NFS, the cost of invalidation is probably not significant
-compared to other bottlenecks in our stack (lock contention and
-scheduling overhead are likely the largest contributors).
+I'm *extremely* uncomfortable with this.  Drivers for this sort of
+higher end devices tend to pull a lot of stunts for better or worse
+and my gut feeling is that letting low level drivers run free with
+resource definition is highly likely to lead to an unmanageable mess
+in the long run.  I'd strongly urge to gather consensus on what the
+resources should be across the board.
 
-Notice that xprtrdma chains together all the LOCAL_INV WRs for
-an RPC, and only signals the final one. Before, every LOCAL_INV
-WR was signaled. So this patch actually reduces the send
-completion rate.
+> Design:
+> ---------
+> 8. Typically each RDMA cgroup will have 0 to 4 RDMA devices. Therefore
+> each cgroup will have 0 to 4 verbs resource pool and optionally 0 to 4
+> hw resource pool per such device.
+> (Nothing stops to have more devices and pools, but design is around
+> this use case).
 
-The main benefit for NFS of waiting for invalidation to complete
-is better send queue accounting. Even without the data integrity
-issue, we have to ensure the WQEs consumed by invalidation
-requests are released before dispatching another RPC. Otherwise
-the send queue can be overrun.
+Heh, 4 seems like an arbitrary number.  idk, it feels weird to bake in
+a number like 4 into the design.
 
+> 9. Resource pool object is created in following situations.
+> (a) administrative operation is done to set the limit and no previous
+> resource pool exist for the device of interest for the cgroup.
+> (b) no resource limits were configured, but IB/RDMA subsystem tries to
+> charge the resource. so that when applications are running without
+> limits and later on when limits are enforced, during uncharging, it
+> correctly uncharges them, otherwise usage count will drop to negative.
+> This is done using default resource pool.
+> Instead of implementing any sort of time markers, default pool
+> simplifies the design.
 
---
-Chuck Lever
+So, the usual way to deal with this is that the root cgroup is exempt
+from accounting and each resource tracks where they were charged to
+and frees that cgroup on release.  IOW, asssociate on charge and
+maintain the association till release.
 
+For interface details, please refer to the following documentation.
 
+ https://git.kernel.org/cgit/linux/kernel/git/tj/cgroup.git/tree/Documentation/cgroup.txt?h=for-4.5
 
+Thanks.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+tejun
