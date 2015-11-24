@@ -1,32 +1,42 @@
 From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH v1 8/8] svcrdma: Remove svc_rdma_fastreg_mr::access_flags
- field
-Date: Mon, 23 Nov 2015 22:39:03 -0800
-Message-ID: <20151124063903.GA12300@infradead.org>
-References: <20151123221738.13040.26277.stgit@klimt.1015granger.net>
- <20151123222118.13040.24258.stgit@klimt.1015granger.net>
- <5653B4CA.5050806@talpey.com>
- <92B143FC-0F2C-48E4-9042-189883D76403@oracle.com>
+Subject: Re: [PATCH v1 3/9] xprtrdma: Introduce ro_unmap_sync method
+Date: Mon, 23 Nov 2015 22:45:56 -0800
+Message-ID: <20151124064556.GA29141@infradead.org>
+References: <20151123220627.32702.62667.stgit@manet.1015granger.net>
+ <20151123221414.32702.87638.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <92B143FC-0F2C-48E4-9042-189883D76403-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20151123221414.32702.87638.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 23, 2015 at 07:53:04PM -0500, Chuck Lever wrote:
-> > Wait, the REMOTE_WRITE is there to support iWARP, but it isn't
-> > needed for IB or RoCE. Shouldn't this be updated to peek at those
-> > new attributes to decide, instead of remaining unconditional?
+On Mon, Nov 23, 2015 at 05:14:14PM -0500, Chuck Lever wrote:
+> In the current xprtrdma implementation, some memreg strategies
+> implement ro_unmap synchronously (the MR is knocked down before the
+> method returns) and some asynchonously (the MR will be knocked down
+> and returned to the pool in the background).
 > 
-> That???s coming in another patch from Christoph.
+> To guarantee the MR is truly invalid before the RPC consumer is
+> allowed to resume execution, we need an unmap method that is
+> always synchronous, invoked from the RPC/RDMA reply handler.
+> 
+> The new method unmaps all MRs for an RPC. The existing ro_unmap
+> method unmaps only one MR at a time.
 
-Can you drop this patch so that we have less conflicts with that one,
-assuming this series goes in through the NFS tree, and the memory
-registration changes go in through the RDMA tree?
+Do we really want to go down that road?  It seems like we've decided
+in general that while the protocol specs say MR must be unmapped before
+proceeding with the data that is painful enough to ignore this
+requirement.  E.g. iser for example only does the local invalidate
+just before reusing the MR.
+
+I'd like to hear arguments for and against each method instead of
+adding more magic to drivers to either optimize MR performance and
+add clunky workarounds to make it even slower, and instead handled
+the semantics we agreed upo in common code.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
