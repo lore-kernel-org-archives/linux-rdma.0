@@ -1,46 +1,36 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: re: staging/rdma/hfi1: pre-compute sc and sde for RC/UC QPs
-Date: Tue, 24 Nov 2015 15:57:55 +0300
-Message-ID: <20151124125755.GA7088@mwanda>
+From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 3/9] xprtrdma: Introduce ro_unmap_sync method
+Date: Tue, 24 Nov 2015 08:43:26 -0500
+Message-ID: <5654697E.1030809@talpey.com>
+References: <20151123220627.32702.62667.stgit@manet.1015granger.net>
+ <20151123221414.32702.87638.stgit@manet.1015granger.net>
+ <20151124064556.GA29141@infradead.org> <565442F5.7080400@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <565442F5.7080400-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Mike Marciniszyn,
+On 11/24/2015 5:59 AM, Sagi Grimberg wrote:
+> As I see it, if we don't wait for local-invalidate to complete before
+> unmap and IO completion (and no one does)
 
-The patch d7b8ba5121e8: "staging/rdma/hfi1: pre-compute sc and sde
-for RC/UC QPs" from Nov 9, 2015, leads to the following static
-checker warning:
+For the record, that is false. Windows quite strictly performs these
+steps, and deliver millions of real 4K IOPS over SMB Direct.
 
-	drivers/staging/rdma/hfi1/verbs.c:1657 ah_to_sc()
-	error: buffer overflow 'ibp->sl_to_sc' 32 <= 255
+> Waiting for local invalidate to complete would be a really big
+> sacrifice for our storage ULPs.
 
-drivers/staging/rdma/hfi1/qp.c
-   817          if (attr_mask & IB_QP_PATH_MIG_STATE) {
-   818                  qp->s_mig_state = attr->path_mig_state;
-   819                  if (mig) {
-   820                          qp->remote_ah_attr = qp->alt_ah_attr;
-   821                          qp->port_num = qp->alt_ah_attr.port_num;
-   822                          qp->s_pkey_index = qp->s_alt_pkey_index;
-   823                          qp->s_flags |= HFI1_S_AHG_CLEAR;
-   824                          qp->s_sc = ah_to_sc(ibqp->device, &qp->remote_ah_attr);
+Not waiting would also be a sacrifice, by compromising data integrity.
+It's a tough tradeoff, but if you choose to go that way it will be
+critical to be honest about the consequences to the data.
 
-Do we need to verify (hfi1_check_ah(ibqp->device, &qp->remote_ah_attr))
-before calling ah_to_sc()?
-
-
-   825                          qp->s_sde = qp_to_sdma_engine(qp, qp->s_sc);
-   826                  }
-   827          }
-
-regards,
-dan carpenter
+Tom.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
