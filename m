@@ -1,65 +1,45 @@
 From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Future of FMR support, was: Re: [PATCH v1 5/9] xprtrdma: Add
- ro_unmap_sync method for FMR
-Date: Tue, 24 Nov 2015 07:36:34 -0500
-Message-ID: <565459D2.9010600@talpey.com>
-References: <20151123220627.32702.62667.stgit@manet.1015granger.net>
- <20151123221430.32702.86114.stgit@manet.1015granger.net>
- <5653B606.3070700@talpey.com> <20151124065225.GB29141@infradead.org>
+Subject: Re: [PATCH 2/9] IB: add a proper completion queue abstraction
+Date: Tue, 24 Nov 2015 07:52:40 -0500
+Message-ID: <56545D98.1020904@talpey.com>
+References: <20151123203712.GB5640@obsidianresearch.com>
+ <56537F59.4080708@sandisk.com> <20151123212822.GE6062@obsidianresearch.com>
+ <56538AFD.9080103@sandisk.com> <20151123221806.GA7152@obsidianresearch.com>
+ <56539421.9050705@sandisk.com> <20151123230659.GA8287@obsidianresearch.com>
+ <B24F4DDE-709A-4D2D-8B26-4E83325DBB1A@asomi.com>
+ <20151124000011.GA9301@obsidianresearch.com> <5653CCF0.7050501@asomi.com>
+ <20151124070301.GA23597@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151124065225.GB29141-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <20151124070301.GA23597-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Caitlin Bestler <cait-DpaxOq6QOWMAvxtiuMwx3w@public.gmane.org>
+Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "axboe-b10kYP2dOMg@public.gmane.org" <axboe-b10kYP2dOMg@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/24/2015 1:52 AM, Christoph Hellwig wrote:
-> On Mon, Nov 23, 2015 at 07:57:42PM -0500, Tom Talpey wrote:
->> On 11/23/2015 5:14 PM, Chuck Lever wrote:
->>> FMR's ro_unmap method is already synchronous because ib_unmap_fmr()
->>> is a synchronous verb. However, some improvements can be made here.
->>
->> I thought FMR support was about to be removed in the core.
+On 11/24/2015 2:03 AM, Jason Gunthorpe wrote:
+> On Mon, Nov 23, 2015 at 06:35:28PM -0800, Caitlin Bestler wrote:
+>> Are there actual HCAs that make this mistake?
 >
-> Seems like everyone would love to kill it, but no one dares to do
-> it just yet.  Reasons to keep FMRs:
->
->   - mthca doesn't support FRs but haven't been staged out
->   - RDS only supports FRMs for the IB transports (it does support FRs for
->     an entirely separate iWarp transports.  I'd love to know why we can't
->     just use that iWarp transport for IB as well).
->   - mlx4 hardware might be slower with FRs than FRMs (Or mentioned this
->     in reply to the iSER remote invalidation series).
+> All IB HCAs have this behavior and require apps to see a send CQ
+> completion before making any statements about the state of the send Q
+> or buffers handed over to the HCA. Tom and I have seen this in real
+> systems under proper stress conditions. [Which is why I am so certain
+> about this, because when I first hit it years ago I dug into the spec
+> and figured out it was not a HW bug I was looking at]
 
-Ok, let me add then.
+To be clear, I saw the reply-completion-before-request-completion on
+Windows, not Linux, but the principle is identical. It's simply a
+fact of life on a multiprocessor, unless you want to throw in locks
+and synchronization rules that drivers have to follow to enforce
+ordered completions across queues. Which trust me, you don't.
 
-Reasons to kill FMRs:
-
-   - FMRs are UNSAFE. They protect on page boundaries, not byte,
-     therefore a length error on an operation can corrupt data
-     outside the i/o buffer remotely. To say nothing of maliciousness.
-
-   - FMRs are SLOWER. The supposed performance improvement of FMR
-     comes from the "mempool" that is often placed in front of them.
-     These pools cache remotely registered regions, in the hope of
-     reusing them without having to invalidate in between. See the
-     first bullet for the ramifications of that.
-
-   - FMRs are SYNCHRONOUS. The FMR verbs make direct calls into the
-     verbs which block and/or do not return control to the caller
-     promptly as do work queue operations. The processor spends
-     more time servicing the device, typically at raised irq.
-
-   - FMRs are PROPRIETARY. Only one vendor supports them, only one
-     of their NICs has no decent alternative, and that NIC is
-     functionally obsolete.
-
-If storage stacks continue to support them, I personally feel it
-is critical to carefully document the risks to customer data as
-part of shipping the code.
+In Windows SMB Direct, we added reference counts around pretty much
+every verb interaction associated with each upper layer operation,
+and did not retire them until all refcounts went to zero. It is
+excruciatingly correct yet performs incredibly well.
 
 Tom.
 --
