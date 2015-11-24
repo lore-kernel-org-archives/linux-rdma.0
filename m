@@ -1,14 +1,14 @@
 From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: [PATCH v1 03/10] IB/iser: Don't register memory for all immediatedata writes
-Date: Tue, 24 Nov 2015 10:46:43 -0600
-Message-ID: <00e201d126d7$b2eb1530$18c13f90$@opengridcomputing.com>
-References: <1448382234-24806-1-git-send-email-sagig@mellanox.com> <1448382234-24806-4-git-send-email-sagig@mellanox.com>
+Subject: RE: [PATCH v1 00/10] iSER support for remote invalidate
+Date: Tue, 24 Nov 2015 10:55:40 -0600
+Message-ID: <00e401d126d8$f3650390$da2f0ab0$@opengridcomputing.com>
+References: <1448382234-24806-1-git-send-email-sagig@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1448382234-24806-4-git-send-email-sagig@mellanox.com>
+In-Reply-To: <1448382234-24806-1-git-send-email-sagig@mellanox.com>
 Content-Language: en-us
 Sender: target-devel-owner@vger.kernel.org
 To: 'Sagi Grimberg' <sagig@mellanox.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
@@ -18,104 +18,35 @@ List-Id: linux-rdma@vger.kernel.org
 
 
 > -----Original Message-----
-> From: Sagi Grimberg [mailto:sagig@mellanox.com]
+> From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-owner@vger.kernel.org] On Behalf Of Sagi Grimberg
 > Sent: Tuesday, November 24, 2015 10:24 AM
 > To: linux-rdma@vger.kernel.org; target-devel@vger.kernel.org
 > Cc: Nicholas A. Bellinger; Or Gerlitz; Jenny Derzhavetz; Steve Wise
-> Subject: [PATCH v1 03/10] IB/iser: Don't register memory for all immediatedata writes
+> Subject: [PATCH v1 00/10] iSER support for remote invalidate
 > 
-> From: Jenny Derzhavetz <jennyf@mellanox.com>
+> This patchset adds remote invalidation support to iser initiator and
+> target. The support negotiation for this feature is based on IBTA
+> annex 12 "Support for iSCSI Extensions for RDMA" carried in rdma_cm
+> private data.
 > 
-> When all the task data is sent as immeidatedata, we are
+> Remote invalidation allows a peer host to invalidate a remote key
+> as part of a SEND operation. This feature allows a host to avoid
+> invalidating an rkey locally. By supporting this feature iser initiator
+> can save extra latency and processing time yielded by invalidating
+> the memory key locally.
+> 
+> The initiator feature support is dependent on:
+> - fastreg is used (not FMR)
+> - always_register=Y
+> 
+> In this case the initiator will expose support for remote invalidation,
+> however it will not blindly rely on the target to do so and will verify
+> that in the work completion information. The iser target now looks into
+> the iser header in the CM request and in case the initiator supports
+> remote invalidation it will respond it will use remote invalidation for
+> provided remote keys.
+>
 
-nit: the above should be "immediate data,"
+Series looks ok to me.
 
-> allowed to use the local_dma_lkey as it is not sent to
-> the wire. In the long run we'd really need to rework
-> the memory registration flow only when we need rkeys.
-> 
-> Signed-off-by: Jenny Derzhavetz <jennyf@mellanox.com>
-> Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
-> ---
->  drivers/infiniband/ulp/iser/iscsi_iser.h     |  3 ++-
->  drivers/infiniband/ulp/iser/iser_initiator.c |  5 +++--
->  drivers/infiniband/ulp/iser/iser_memory.c    | 13 +++++++++----
->  3 files changed, 14 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
-> index 233ec0c2ae3d..7b5cf1332ddb 100644
-> --- a/drivers/infiniband/ulp/iser/iscsi_iser.h
-> +++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
-> @@ -650,7 +650,8 @@ void iser_finalize_rdma_unaligned_sg(struct iscsi_iser_task *iser_task,
->  				     enum iser_data_dir cmd_dir);
-> 
->  int iser_reg_rdma_mem(struct iscsi_iser_task *task,
-> -		      enum iser_data_dir dir);
-> +		      enum iser_data_dir dir,
-> +		      bool all_imm);
->  void iser_unreg_rdma_mem(struct iscsi_iser_task *task,
->  			 enum iser_data_dir dir);
-> 
-> diff --git a/drivers/infiniband/ulp/iser/iser_initiator.c b/drivers/infiniband/ulp/iser/iser_initiator.c
-> index ffd00c420729..07bf26427ee7 100644
-> --- a/drivers/infiniband/ulp/iser/iser_initiator.c
-> +++ b/drivers/infiniband/ulp/iser/iser_initiator.c
-> @@ -72,7 +72,7 @@ static int iser_prepare_read_cmd(struct iscsi_task *task)
->  			return err;
->  	}
-> 
-> -	err = iser_reg_rdma_mem(iser_task, ISER_DIR_IN);
-> +	err = iser_reg_rdma_mem(iser_task, ISER_DIR_IN, false);
->  	if (err) {
->  		iser_err("Failed to set up Data-IN RDMA\n");
->  		return err;
-> @@ -126,7 +126,8 @@ iser_prepare_write_cmd(struct iscsi_task *task,
->  			return err;
->  	}
-> 
-> -	err = iser_reg_rdma_mem(iser_task, ISER_DIR_OUT);
-> +	err = iser_reg_rdma_mem(iser_task, ISER_DIR_OUT,
-> +				buf_out->data_len == imm_sz);
->  	if (err != 0) {
->  		iser_err("Failed to register write cmd RDMA mem\n");
->  		return err;
-> diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-> index b7a2b88f48ce..62d0578388d3 100644
-> --- a/drivers/infiniband/ulp/iser/iser_memory.c
-> +++ b/drivers/infiniband/ulp/iser/iser_memory.c
-> @@ -190,7 +190,11 @@ iser_reg_dma(struct iser_device *device, struct iser_data_buf *mem,
->  	struct scatterlist *sg = mem->sg;
-> 
->  	reg->sge.lkey = device->pd->local_dma_lkey;
-> -	reg->rkey = device->mr->rkey;
-> +	/*
-> +	 * FIXME: rework the registration code path to differentiate
-> +	 * rkey/lkey use cases
-> +	 */
-> +	reg->rkey = device->mr ? device->mr->rkey : 0;
->  	reg->sge.addr = ib_sg_dma_address(device->ib_device, &sg[0]);
->  	reg->sge.length = ib_sg_dma_len(device->ib_device, &sg[0]);
-> 
-> @@ -495,7 +499,8 @@ iser_reg_data_sg(struct iscsi_iser_task *task,
->  }
-> 
->  int iser_reg_rdma_mem(struct iscsi_iser_task *task,
-> -		      enum iser_data_dir dir)
-> +		      enum iser_data_dir dir,
-> +		      bool all_imm)
->  {
->  	struct ib_conn *ib_conn = &task->iser_conn->ib_conn;
->  	struct iser_device *device = ib_conn->device;
-> @@ -506,8 +511,8 @@ int iser_reg_rdma_mem(struct iscsi_iser_task *task,
->  	bool use_dma_key;
->  	int err;
-> 
-> -	use_dma_key = (mem->dma_nents == 1 && !iser_always_reg &&
-> -		       scsi_get_prot_op(task->sc) == SCSI_PROT_NORMAL);
-> +	use_dma_key = mem->dma_nents == 1 && (all_imm || !iser_always_reg) &&
-> +		      scsi_get_prot_op(task->sc) == SCSI_PROT_NORMAL;
-> 
->  	if (!use_dma_key) {
->  		desc = device->reg_ops->reg_desc_get(ib_conn);
-> --
-> 1.8.4.3
+Reviewed-by: Steve Wise <swise@opengridcomputing.com> 
