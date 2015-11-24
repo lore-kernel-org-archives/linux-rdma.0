@@ -1,139 +1,121 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v1 08/10] iser-target: Support the remote invalidation exception
-Date: Tue, 24 Nov 2015 18:23:52 +0200
-Message-ID: <1448382234-24806-9-git-send-email-sagig@mellanox.com>
-References: <1448382234-24806-1-git-send-email-sagig@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1448382234-24806-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+From: "Steve Wise" <swise@opengridcomputing.com>
+Subject: RE: [PATCH v1 03/10] IB/iser: Don't register memory for all immediatedata writes
+Date: Tue, 24 Nov 2015 10:46:43 -0600
+Message-ID: <00e201d126d7$b2eb1530$18c13f90$@opengridcomputing.com>
+References: <1448382234-24806-1-git-send-email-sagig@mellanox.com> <1448382234-24806-4-git-send-email-sagig@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1448382234-24806-4-git-send-email-sagig@mellanox.com>
+Content-Language: en-us
+Sender: target-devel-owner@vger.kernel.org
+To: 'Sagi Grimberg' <sagig@mellanox.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+Cc: "'Nicholas A. Bellinger'" <nab@linux-iscsi.org>, 'Or Gerlitz' <ogerlitz@mellanox.com>, 'Jenny Derzhavetz' <jennyf@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-We'll use remote invalidate, according to negotiation result
-during connection establishment. If the initiator declared that
-it supports the remote invalidate exception and the local HCA
-supports IB_DEVICE_MEM_MGT_EXTENSIONS then the target will
-use IB_WR_SEND_WITH_INV with the correct rkey for the response.
 
-Signed-off-by: Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/isert/ib_isert.c | 46 ++++++++++++++++++++++++++++-----
- drivers/infiniband/ulp/isert/ib_isert.h |  2 ++
- 2 files changed, 41 insertions(+), 7 deletions(-)
+> -----Original Message-----
+> From: Sagi Grimberg [mailto:sagig@mellanox.com]
+> Sent: Tuesday, November 24, 2015 10:24 AM
+> To: linux-rdma@vger.kernel.org; target-devel@vger.kernel.org
+> Cc: Nicholas A. Bellinger; Or Gerlitz; Jenny Derzhavetz; Steve Wise
+> Subject: [PATCH v1 03/10] IB/iser: Don't register memory for all immediatedata writes
+> 
+> From: Jenny Derzhavetz <jennyf@mellanox.com>
+> 
+> When all the task data is sent as immeidatedata, we are
 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index 8a90475ed2f2..91eb22c4fdba 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -679,6 +679,32 @@ out_login_buf:
- 	return ret;
- }
- 
-+static void
-+isert_set_nego_params(struct isert_conn *isert_conn,
-+		      struct rdma_conn_param *param)
-+{
-+	struct isert_device *device = isert_conn->device;
-+
-+	/* Set max inflight RDMA READ requests */
-+	isert_conn->initiator_depth = min_t(u8, param->initiator_depth,
-+				device->dev_attr.max_qp_init_rd_atom);
-+	isert_dbg("Using initiator_depth: %u\n", isert_conn->initiator_depth);
-+
-+	if (param->private_data) {
-+		u8 flags = *(u8 *)param->private_data;
-+
-+		/*
-+		 * use remote invalidation if the both initiator
-+		 * and the HCA support it
-+		 */
-+		isert_conn->snd_w_inv = !(flags & ISER_SEND_W_INV_NOT_SUP) &&
-+					  (device->dev_attr.device_cap_flags &
-+					   IB_DEVICE_MEM_MGT_EXTENSIONS);
-+		if (isert_conn->snd_w_inv)
-+			isert_info("Using remote invalidation\n");
-+	}
-+}
-+
- static int
- isert_connect_request(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
- {
-@@ -717,11 +743,7 @@ isert_connect_request(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
- 	}
- 	isert_conn->device = device;
- 
--	/* Set max inflight RDMA READ requests */
--	isert_conn->initiator_depth = min_t(u8,
--				event->param.conn.initiator_depth,
--				device->dev_attr.max_qp_init_rd_atom);
--	isert_dbg("Using initiator_depth: %u\n", isert_conn->initiator_depth);
-+	isert_set_nego_params(isert_conn, &event->param.conn);
- 
- 	ret = isert_conn_setup_qp(isert_conn, cma_id);
- 	if (ret)
-@@ -1100,7 +1122,14 @@ isert_init_send_wr(struct isert_conn *isert_conn, struct isert_cmd *isert_cmd,
- 
- 	isert_cmd->rdma_wr.iser_ib_op = ISER_IB_SEND;
- 	send_wr->wr_id = (uintptr_t)&isert_cmd->tx_desc;
--	send_wr->opcode = IB_WR_SEND;
-+
-+	if (isert_conn->snd_w_inv && isert_cmd->inv_rkey) {
-+		send_wr->opcode  = IB_WR_SEND_WITH_INV;
-+		send_wr->ex.invalidate_rkey = isert_cmd->inv_rkey;
-+	} else {
-+		send_wr->opcode = IB_WR_SEND;
-+	}
-+
- 	send_wr->sg_list = &tx_desc->tx_sg[0];
- 	send_wr->num_sge = isert_cmd->tx_desc.num_sge;
- 	send_wr->send_flags = IB_SEND_SIGNALED;
-@@ -1489,6 +1518,7 @@ isert_rx_opcode(struct isert_conn *isert_conn, struct iser_rx_desc *rx_desc,
- 		isert_cmd->read_va = read_va;
- 		isert_cmd->write_stag = write_stag;
- 		isert_cmd->write_va = write_va;
-+		isert_cmd->inv_rkey = read_stag ? read_stag : write_stag;
- 
- 		ret = isert_handle_scsi_cmd(isert_conn, isert_cmd, cmd,
- 					rx_desc, (unsigned char *)hdr);
-@@ -3106,7 +3136,9 @@ isert_rdma_accept(struct isert_conn *isert_conn)
- 	cp.rnr_retry_count = 7;
- 
- 	memset(&rsp_hdr, 0, sizeof(rsp_hdr));
--	rsp_hdr.flags = (ISERT_ZBVA_NOT_USED | ISERT_SEND_W_INV_NOT_USED);
-+	rsp_hdr.flags = ISERT_ZBVA_NOT_USED;
-+	if (!isert_conn->snd_w_inv)
-+		rsp_hdr.flags = rsp_hdr.flags | ISERT_SEND_W_INV_NOT_USED;
- 	cp.private_data = (void *)&rsp_hdr;
- 	cp.private_data_len = sizeof(rsp_hdr);
- 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.h b/drivers/infiniband/ulp/isert/ib_isert.h
-index da8b2fae5776..586561cb23fc 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.h
-+++ b/drivers/infiniband/ulp/isert/ib_isert.h
-@@ -163,6 +163,7 @@ struct isert_cmd {
- 	uint32_t		write_stag;
- 	uint64_t		read_va;
- 	uint64_t		write_va;
-+	uint32_t		inv_rkey;
- 	u64			pdu_buf_dma;
- 	u32			pdu_buf_len;
- 	struct isert_conn	*conn;
-@@ -210,6 +211,7 @@ struct isert_conn {
- 	struct work_struct	release_work;
- 	struct ib_recv_wr       beacon;
- 	bool                    logout_posted;
-+	bool                    snd_w_inv;
- };
- 
- #define ISERT_MAX_CQ 64
--- 
-1.8.4.3
+nit: the above should be "immediate data,"
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> allowed to use the local_dma_lkey as it is not sent to
+> the wire. In the long run we'd really need to rework
+> the memory registration flow only when we need rkeys.
+> 
+> Signed-off-by: Jenny Derzhavetz <jennyf@mellanox.com>
+> Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
+> ---
+>  drivers/infiniband/ulp/iser/iscsi_iser.h     |  3 ++-
+>  drivers/infiniband/ulp/iser/iser_initiator.c |  5 +++--
+>  drivers/infiniband/ulp/iser/iser_memory.c    | 13 +++++++++----
+>  3 files changed, 14 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
+> index 233ec0c2ae3d..7b5cf1332ddb 100644
+> --- a/drivers/infiniband/ulp/iser/iscsi_iser.h
+> +++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
+> @@ -650,7 +650,8 @@ void iser_finalize_rdma_unaligned_sg(struct iscsi_iser_task *iser_task,
+>  				     enum iser_data_dir cmd_dir);
+> 
+>  int iser_reg_rdma_mem(struct iscsi_iser_task *task,
+> -		      enum iser_data_dir dir);
+> +		      enum iser_data_dir dir,
+> +		      bool all_imm);
+>  void iser_unreg_rdma_mem(struct iscsi_iser_task *task,
+>  			 enum iser_data_dir dir);
+> 
+> diff --git a/drivers/infiniband/ulp/iser/iser_initiator.c b/drivers/infiniband/ulp/iser/iser_initiator.c
+> index ffd00c420729..07bf26427ee7 100644
+> --- a/drivers/infiniband/ulp/iser/iser_initiator.c
+> +++ b/drivers/infiniband/ulp/iser/iser_initiator.c
+> @@ -72,7 +72,7 @@ static int iser_prepare_read_cmd(struct iscsi_task *task)
+>  			return err;
+>  	}
+> 
+> -	err = iser_reg_rdma_mem(iser_task, ISER_DIR_IN);
+> +	err = iser_reg_rdma_mem(iser_task, ISER_DIR_IN, false);
+>  	if (err) {
+>  		iser_err("Failed to set up Data-IN RDMA\n");
+>  		return err;
+> @@ -126,7 +126,8 @@ iser_prepare_write_cmd(struct iscsi_task *task,
+>  			return err;
+>  	}
+> 
+> -	err = iser_reg_rdma_mem(iser_task, ISER_DIR_OUT);
+> +	err = iser_reg_rdma_mem(iser_task, ISER_DIR_OUT,
+> +				buf_out->data_len == imm_sz);
+>  	if (err != 0) {
+>  		iser_err("Failed to register write cmd RDMA mem\n");
+>  		return err;
+> diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
+> index b7a2b88f48ce..62d0578388d3 100644
+> --- a/drivers/infiniband/ulp/iser/iser_memory.c
+> +++ b/drivers/infiniband/ulp/iser/iser_memory.c
+> @@ -190,7 +190,11 @@ iser_reg_dma(struct iser_device *device, struct iser_data_buf *mem,
+>  	struct scatterlist *sg = mem->sg;
+> 
+>  	reg->sge.lkey = device->pd->local_dma_lkey;
+> -	reg->rkey = device->mr->rkey;
+> +	/*
+> +	 * FIXME: rework the registration code path to differentiate
+> +	 * rkey/lkey use cases
+> +	 */
+> +	reg->rkey = device->mr ? device->mr->rkey : 0;
+>  	reg->sge.addr = ib_sg_dma_address(device->ib_device, &sg[0]);
+>  	reg->sge.length = ib_sg_dma_len(device->ib_device, &sg[0]);
+> 
+> @@ -495,7 +499,8 @@ iser_reg_data_sg(struct iscsi_iser_task *task,
+>  }
+> 
+>  int iser_reg_rdma_mem(struct iscsi_iser_task *task,
+> -		      enum iser_data_dir dir)
+> +		      enum iser_data_dir dir,
+> +		      bool all_imm)
+>  {
+>  	struct ib_conn *ib_conn = &task->iser_conn->ib_conn;
+>  	struct iser_device *device = ib_conn->device;
+> @@ -506,8 +511,8 @@ int iser_reg_rdma_mem(struct iscsi_iser_task *task,
+>  	bool use_dma_key;
+>  	int err;
+> 
+> -	use_dma_key = (mem->dma_nents == 1 && !iser_always_reg &&
+> -		       scsi_get_prot_op(task->sc) == SCSI_PROT_NORMAL);
+> +	use_dma_key = mem->dma_nents == 1 && (all_imm || !iser_always_reg) &&
+> +		      scsi_get_prot_op(task->sc) == SCSI_PROT_NORMAL;
+> 
+>  	if (!use_dma_key) {
+>  		desc = device->reg_ops->reg_desc_get(ib_conn);
+> --
+> 1.8.4.3
