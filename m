@@ -1,52 +1,45 @@
-From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: [PATCH v1 00/10] iSER support for remote invalidate
-Date: Tue, 24 Nov 2015 10:55:40 -0600
-Message-ID: <00e401d126d8$f3650390$da2f0ab0$@opengridcomputing.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v1 08/10] iser-target: Support the remote invalidation exception
+Date: Tue, 24 Nov 2015 19:42:54 +0200
+Message-ID: <CAJ3xEMjPwD3X-B+56-+sZ9RqMrcNgr_Y060nR3wLMhi_O0MgqA@mail.gmail.com>
 References: <1448382234-24806-1-git-send-email-sagig@mellanox.com>
+	<1448382234-24806-9-git-send-email-sagig@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1448382234-24806-1-git-send-email-sagig@mellanox.com>
-Content-Language: en-us
-Sender: target-devel-owner@vger.kernel.org
-To: 'Sagi Grimberg' <sagig@mellanox.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
-Cc: "'Nicholas A. Bellinger'" <nab@linux-iscsi.org>, 'Or Gerlitz' <ogerlitz@mellanox.com>, 'Jenny Derzhavetz' <jennyf@mellanox.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1448382234-24806-9-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-> -----Original Message-----
-> From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-owner@vger.kernel.org] On Behalf Of Sagi Grimberg
-> Sent: Tuesday, November 24, 2015 10:24 AM
-> To: linux-rdma@vger.kernel.org; target-devel@vger.kernel.org
-> Cc: Nicholas A. Bellinger; Or Gerlitz; Jenny Derzhavetz; Steve Wise
-> Subject: [PATCH v1 00/10] iSER support for remote invalidate
-> 
-> This patchset adds remote invalidation support to iser initiator and
-> target. The support negotiation for this feature is based on IBTA
-> annex 12 "Support for iSCSI Extensions for RDMA" carried in rdma_cm
-> private data.
-> 
-> Remote invalidation allows a peer host to invalidate a remote key
-> as part of a SEND operation. This feature allows a host to avoid
-> invalidating an rkey locally. By supporting this feature iser initiator
-> can save extra latency and processing time yielded by invalidating
-> the memory key locally.
-> 
-> The initiator feature support is dependent on:
-> - fastreg is used (not FMR)
-> - always_register=Y
-> 
-> In this case the initiator will expose support for remote invalidation,
-> however it will not blindly rely on the target to do so and will verify
-> that in the work completion information. The iser target now looks into
-> the iser header in the CM request and in case the initiator supports
-> remote invalidation it will respond it will use remote invalidation for
-> provided remote keys.
+On Tue, Nov 24, 2015 at 6:23 PM, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> @@ -1100,7 +1122,14 @@ isert_init_send_wr(struct isert_conn *isert_conn, struct isert_cmd *isert_cmd,
 >
+>         isert_cmd->rdma_wr.iser_ib_op = ISER_IB_SEND;
+>         send_wr->wr_id = (uintptr_t)&isert_cmd->tx_desc;
+> -       send_wr->opcode = IB_WR_SEND;
+> +
+> +       if (isert_conn->snd_w_inv && isert_cmd->inv_rkey) {
+> +               send_wr->opcode  = IB_WR_SEND_WITH_INV;
+> +               send_wr->ex.invalidate_rkey = isert_cmd->inv_rkey;
+> +       } else {
+> +               send_wr->opcode = IB_WR_SEND;
+> +       }
+> +
 
-Series looks ok to me.
+> @@ -1489,6 +1518,7 @@ isert_rx_opcode(struct isert_conn *isert_conn, struct iser_rx_desc *rx_desc,
+>                 isert_cmd->read_va = read_va;
+>                 isert_cmd->write_stag = write_stag;
+>                 isert_cmd->write_va = write_va;
+> +               isert_cmd->inv_rkey = read_stag ? read_stag : write_stag;
 
-Reviewed-by: Steve Wise <swise@opengridcomputing.com> 
+bug
+
+what happens for commands for which we don't register any memory, TUR and such?
+
+Or.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
