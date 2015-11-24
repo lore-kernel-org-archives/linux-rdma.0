@@ -1,107 +1,120 @@
 From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 1/9] xprtrdma: Add a safety margin for receive buffers
-Date: Mon, 23 Nov 2015 19:55:34 -0500
-Message-ID: <5653B586.705@talpey.com>
+Subject: Re: [PATCH v1 5/9] xprtrdma: Add ro_unmap_sync method for FMR
+Date: Mon, 23 Nov 2015 19:57:42 -0500
+Message-ID: <5653B606.3070700@talpey.com>
 References: <20151123220627.32702.62667.stgit@manet.1015granger.net>
- <20151123221357.32702.59922.stgit@manet.1015granger.net>
+ <20151123221430.32702.86114.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151123221357.32702.59922.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151123221430.32702.86114.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/23/2015 5:13 PM, Chuck Lever wrote:
-> Rarely, senders post a Send that is larger than the client's inline
-> threshold. That can be due to a bug, or the client and server may
-> not have communicated about their inline limits. RPC-over-RDMA
-> currently doesn't specify any particular limit on inline size, so
-> peers have to guess what it is.
->
-> It is fatal to the connection if the size of a Send is larger than
-> the client's receive buffer. The sender is likely to retry with the
-> same message size, so the workload is stuck at that point.
->
-> Follow Postel's robustness principal: Be conservative in what you
-> do, be liberal in what you accept from others. Increase the size of
-> client receive buffers by a safety margin, and add a warning when
-> the inline threshold is exceeded during receive.
+On 11/23/2015 5:14 PM, Chuck Lever wrote:
+> FMR's ro_unmap method is already synchronous because ib_unmap_fmr()
+> is a synchronous verb. However, some improvements can be made here.
 
-Safety is good, but how do know the chosen value is enough?
-Isn't it better to fail the badly-composed request and be done
-with it? Even if the stupid sender loops, which it will do
-anyway.
+I thought FMR support was about to be removed in the core.
+
 
 >
-> Note the Linux server's receive buffers are already page-sized.
+> 1. Gather all the MRs for the RPC request onto a list, and invoke
+>     ib_unmap_fmr() once with that list. This reduces the number of
+>     doorbells when there is more than one MR to invalidate
+>
+> 2. Perform the DMA unmap _after_ the MRs are unmapped, not before.
+>     This is critical after invalidating a Write chunk.
 >
 > Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 > ---
->   net/sunrpc/xprtrdma/rpc_rdma.c  |    7 +++++++
->   net/sunrpc/xprtrdma/verbs.c     |    6 +++++-
->   net/sunrpc/xprtrdma/xprt_rdma.h |    5 +++++
->   3 files changed, 17 insertions(+), 1 deletion(-)
+>   net/sunrpc/xprtrdma/fmr_ops.c |   64 +++++++++++++++++++++++++++++++++++++++++
+>   1 file changed, 64 insertions(+)
 >
-> diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-> index c10d969..a169252 100644
-> --- a/net/sunrpc/xprtrdma/rpc_rdma.c
-> +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-> @@ -776,6 +776,7 @@ rpcrdma_reply_handler(struct rpcrdma_rep *rep)
->   	int rdmalen, status;
->   	unsigned long cwnd;
->   	u32 credits;
-> +	RPC_IFDEBUG(struct rpcrdma_create_data_internal *cdata);
+> diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
+> index f1e8daf..c14f3a4 100644
+> --- a/net/sunrpc/xprtrdma/fmr_ops.c
+> +++ b/net/sunrpc/xprtrdma/fmr_ops.c
+> @@ -179,6 +179,69 @@ out_maperr:
+>   	return rc;
+>   }
 >
->   	dprintk("RPC:       %s: incoming rep %p\n", __func__, rep);
->
-> @@ -783,6 +784,12 @@ rpcrdma_reply_handler(struct rpcrdma_rep *rep)
->   		goto out_badstatus;
->   	if (rep->rr_len < RPCRDMA_HDRLEN_MIN)
->   		goto out_shortreply;
-> +#if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
-> +	cdata = &r_xprt->rx_data;
-> +	if (rep->rr_len > cdata->inline_rsize)
-> +		pr_warn("RPC: %u byte reply exceeds inline threshold\n",
-> +			rep->rr_len);
-> +#endif
->
->   	headerp = rdmab_to_msg(rep->rr_rdmabuf);
->   	if (headerp->rm_vers != rpcrdma_version)
-> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-> index eadd1655..e3f12e2 100644
-> --- a/net/sunrpc/xprtrdma/verbs.c
-> +++ b/net/sunrpc/xprtrdma/verbs.c
-> @@ -924,7 +924,11 @@ rpcrdma_create_rep(struct rpcrdma_xprt *r_xprt)
->   	if (rep == NULL)
->   		goto out;
->
-> -	rep->rr_rdmabuf = rpcrdma_alloc_regbuf(ia, cdata->inline_rsize,
-> +	/* The actual size of our receive buffers is increased slightly
-> +	 * to prevent small receive overruns from killing our connection.
-> +	 */
-> +	rep->rr_rdmabuf = rpcrdma_alloc_regbuf(ia, cdata->inline_rsize +
-> +					       RPCRDMA_RECV_MARGIN,
->   					       GFP_KERNEL);
->   	if (IS_ERR(rep->rr_rdmabuf)) {
->   		rc = PTR_ERR(rep->rr_rdmabuf);
-> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-> index ac7f8d4..1b72ab1 100644
-> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
-> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-> @@ -337,6 +337,11 @@ struct rpcrdma_create_data_internal {
->   #define RPCRDMA_INLINE_PAD_VALUE(rq)\
->   	rpcx_to_rdmad(rq->rq_xprt).padding
->
-> +/* To help prevent spurious connection shutdown, allow senders to
-> + * overrun our receive inline threshold by a small bit.
-> + */
-> +#define RPCRDMA_RECV_MARGIN	(128)
+> +static void
+> +__fmr_dma_unmap(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg)
+> +{
+> +	struct ib_device *device = r_xprt->rx_ia.ri_device;
+> +	struct rpcrdma_mw *mw = seg->rl_mw;
+> +	int nsegs = seg->mr_nsegs;
 > +
->   /*
->    * Statistics for RPCRDMA
+> +	seg->rl_mw = NULL;
+> +
+> +	while (nsegs--)
+> +		rpcrdma_unmap_one(device, seg++);
+> +
+> +	rpcrdma_put_mw(r_xprt, mw);
+> +}
+> +
+> +/* Invalidate all memory regions that were registered for "req".
+> + *
+> + * Sleeps until it is safe for the host CPU to access the
+> + * previously mapped memory regions.
+> + */
+> +static void
+> +fmr_op_unmap_sync(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req)
+> +{
+> +	struct rpcrdma_mr_seg *seg;
+> +	unsigned int i, nchunks;
+> +	struct rpcrdma_mw *mw;
+> +	LIST_HEAD(unmap_list);
+> +	int rc;
+> +
+> +	dprintk("RPC:       %s: req %p\n", __func__, req);
+> +
+> +	/* ORDER: Invalidate all of the req's MRs first
+> +	 *
+> +	 * ib_unmap_fmr() is slow, so use a single call instead
+> +	 * of one call per mapped MR.
+> +	 */
+> +	for (i = 0, nchunks = req->rl_nchunks; nchunks; nchunks--) {
+> +		seg = &req->rl_segments[i];
+> +		mw = seg->rl_mw;
+> +
+> +		list_add(&mw->r.fmr.fmr->list, &unmap_list);
+> +
+> +		i += seg->mr_nsegs;
+> +	}
+> +	rc = ib_unmap_fmr(&unmap_list);
+> +	if (rc)
+> +		pr_warn("%s: ib_unmap_fmr failed (%i)\n", __func__, rc);
+> +
+> +	/* ORDER: Now DMA unmap all of the req's MRs, and return
+> +	 * them to the free MW list.
+> +	 */
+> +	for (i = 0, nchunks = req->rl_nchunks; nchunks; nchunks--) {
+> +		seg = &req->rl_segments[i];
+> +
+> +		__fmr_dma_unmap(r_xprt, seg);
+> +
+> +		i += seg->mr_nsegs;
+> +		seg->mr_nsegs = 0;
+> +	}
+> +
+> +	req->rl_nchunks = 0;
+> +}
+> +
+>   /* Use the ib_unmap_fmr() verb to prevent further remote
+>    * access via RDMA READ or RDMA WRITE.
 >    */
+> @@ -231,6 +294,7 @@ fmr_op_destroy(struct rpcrdma_buffer *buf)
+>
+>   const struct rpcrdma_memreg_ops rpcrdma_fmr_memreg_ops = {
+>   	.ro_map				= fmr_op_map,
+> +	.ro_unmap_sync			= fmr_op_unmap_sync,
+>   	.ro_unmap			= fmr_op_unmap,
+>   	.ro_open			= fmr_op_open,
+>   	.ro_maxpages			= fmr_op_maxpages,
 >
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
@@ -110,6 +123,6 @@ anyway.
 >
 >
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
