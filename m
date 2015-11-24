@@ -1,36 +1,82 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 8/8] svcrdma: Remove svc_rdma_fastreg_mr::access_flags field
-Date: Tue, 24 Nov 2015 11:04:04 -0500
-Message-ID: <5AC80703-8CA1-4CB3-9F96-642C45F650A3@oracle.com>
-References: <20151123221738.13040.26277.stgit@klimt.1015granger.net> <20151123222118.13040.24258.stgit@klimt.1015granger.net> <5653B4CA.5050806@talpey.com> <92B143FC-0F2C-48E4-9042-189883D76403@oracle.com> <20151124063903.GA12300@infradead.org> <7B9388F8-3A88-4F61-AB87-A1E6DB9902FE@oracle.com> <20151124160323.GA16427@infradead.org>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151124160323.GA16427-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Sagi Grimberg <sagig@mellanox.com>
+Subject: [PATCH v1 00/10] iSER support for remote invalidate
+Date: Tue, 24 Nov 2015 18:23:44 +0200
+Message-ID: <1448382234-24806-1-git-send-email-sagig@mellanox.com>
+Return-path: <target-devel-owner@vger.kernel.org>
+Sender: target-devel-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+Cc: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Or Gerlitz <ogerlitz@mellanox.com>, Jenny Derzhavetz <jennyf@mellanox.com>, Steve Wise <swise@opengridcomputing.com>
 List-Id: linux-rdma@vger.kernel.org
 
+This patchset adds remote invalidation support to iser initiator and
+target. The support negotiation for this feature is based on IBTA
+annex 12 "Support for iSCSI Extensions for RDMA" carried in rdma_cm
+private data.
 
-> On Nov 24, 2015, at 11:03 AM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
-> 
-> On Tue, Nov 24, 2015 at 09:08:21AM -0500, Chuck Lever wrote:
->> Why don???t you fold my change into yours?
-> 
-> It's already included.  Well, sort of - I have removed used of the
-> field, but forgot to remove the definition.  I will update it.
+Remote invalidation allows a peer host to invalidate a remote key
+as part of a SEND operation. This feature allows a host to avoid
+invalidating an rkey locally. By supporting this feature iser initiator
+can save extra latency and processing time yielded by invalidating 
+the memory key locally.
 
-Excellent, that works for me.
+The initiator feature support is dependent on:
+- fastreg is used (not FMR)
+- always_register=Y
 
---
-Chuck Lever
+In this case the initiator will expose support for remote invalidation,
+however it will not blindly rely on the target to do so and will verify
+that in the work completion information. The iser target now looks into
+the iser header in the CM request and in case the initiator supports
+remote invalidation it will respond it will use remote invalidation for
+provided remote keys.
 
+Thanks a lot to all the reviewers!
 
+Changes from v0:
+- Rebased on top of 4.4-rc2
+- Removed iser_hello messages from the protocol header
+- Avoided from further breaking the non-existent bidi support
+- Fixed initiator remote invalidate support exposure only
+  for fastreg && iser_always_register
+- Removed patch 2/10 as it's still under testing.
+- Minor line-spacing nitpicks CR comments fixes.
+- Added a FIXME comment to declare our debt to Or and Jason
+  on the awkward device->mr->rkey deref.
+- Piggybacked another patch that reduces some iser code that
+  is now available by the ib_core (ib_sg_to_pages).
 
+Code is available at:
+git@github.com:sagigrimberg/linux.git iser-remote-inv
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jenny Derzhavetz (5):
+  IB/iser: Don't register memory for all immediatedata writes
+  IB/iser: set intuitive values for mr_valid
+  iser-target: Declare correct flags when accepting a connection
+  iser-target: Support the remote invalidation exception
+  IB/iser: Support the remote invalidation exception
+
+Roi Dayan (1):
+  IB/iser: Fix module init not cleaning up on error flow
+
+Sagi Grimberg (4):
+  IB/iser: Reuse ib_sg_to_pages
+  iser: Have initiator and target to share protocol structures and
+    definitions
+  iser-target: Remove unused file iser_proto.h
+  IB/iser: Increment the rkey when registering and not when invalidating
+
+ drivers/infiniband/ulp/iser/iscsi_iser.c     |   9 +-
+ drivers/infiniband/ulp/iser/iscsi_iser.h     |  54 +++-------
+ drivers/infiniband/ulp/iser/iser_initiator.c |  70 +++++++++++--
+ drivers/infiniband/ulp/iser/iser_memory.c    | 150 +++++++++------------------
+ drivers/infiniband/ulp/iser/iser_verbs.c     |  30 ++++--
+ drivers/infiniband/ulp/isert/ib_isert.c      |  73 +++++++++----
+ drivers/infiniband/ulp/isert/ib_isert.h      |  40 ++++++-
+ drivers/infiniband/ulp/isert/isert_proto.h   |  47 ---------
+ include/scsi/iser.h                          |  78 ++++++++++++++
+ 9 files changed, 322 insertions(+), 229 deletions(-)
+ delete mode 100644 drivers/infiniband/ulp/isert/isert_proto.h
+ create mode 100644 include/scsi/iser.h
+
+-- 
+1.8.4.3
