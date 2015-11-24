@@ -1,51 +1,72 @@
-From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [ANNOUNCE] OFED 3.18-1 release is available
-Date: Tue, 24 Nov 2015 16:12:49 +0200
-Message-ID: <56547061.5040704@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 3/8] svcrdma: Add svc_rdma_get_context() API that is allowed to fail
+Date: Tue, 24 Nov 2015 09:24:51 -0500
+Message-ID: <7717B6B1-4A27-4D8A-8BCC-528CEC6DB54D@oracle.com>
+References: <20151123221738.13040.26277.stgit@klimt.1015granger.net> <20151123222038.13040.61285.stgit@klimt.1015granger.net> <20151124065522.GC29141@infradead.org>
+Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151124065522.GC29141-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'OpenFabrics EWG' <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
-OFED-3.18-1 is available at:
-https://openfabrics.org/downloads/OFED/ofed-3.18-1/OFED-3.18-1.tgz
 
-To get BUILD_ID run ofed_info
+> On Nov 24, 2015, at 1:55 AM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wr=
+ote:
+>=20
+>> +struct svc_rdma_op_ctxt *svc_rdma_get_context_gfp(struct svcxprt_rd=
+ma *xprt,
+>> +						  gfp_t flags)
+>> +{
+>> +	struct svc_rdma_op_ctxt *ctxt;
+>> +
+>> +	ctxt =3D kmem_cache_alloc(svc_rdma_ctxt_cachep, flags);
+>> +	if (!ctxt)
+>> +		return NULL;
+>> +	svc_rdma_init_context(xprt, ctxt);
+>> +	return ctxt;
+>> +}
+>> +
+>> +struct svc_rdma_op_ctxt *svc_rdma_get_context(struct svcxprt_rdma *=
+xprt)
+>> +{
+>> +	struct svc_rdma_op_ctxt *ctxt;
+>> +
+>> +	ctxt =3D kmem_cache_alloc(svc_rdma_ctxt_cachep,
+>> +				GFP_KERNEL | __GFP_NOFAIL);
+>> +	svc_rdma_init_context(xprt, ctxt);
+>> 	return ctxt;
+>=20
+> Sounds like you should have just added a gfp_t argument to
+> svc_rdma_get_context.
 
-Please report any issues in bugzilla
-http://bugs.openfabrics.org/bugzilla/ for OFED 3.18-1
+There is only one (new) call site that needs it. I can simplify
+this patch as Sagi suggested before, but it seems silly to
+introduce the extra clutter of adding a gfp_t argument
+everywhere.
 
-Release notes:
-https://openfabrics.org/downloads/OFED/release_notes/OFED_3.18-1_release_notes
 
-OFED-3.18-1 Main Changes from OFED 3.18
--------------------------------------------------------------------------------
-1. Updated packages:
-   - libocrdma-1.0.6
-   - perftest-3.0-0.12
-   - dapl-2.1.7
-   - infiniband-diags-1.6.6
-   - infinipath-psm-3.3-7_g05f6f14_open
-   - libiwpm-1.0.3
-   - libfabric-1.1.1
-   - fabtests-1.1.1
-   - ibacm-1.1.0
-   - mstflint-4.1.0-1.45.g1d75d01
+> And if we have any way to avoid the __GFP_NOFAIL
+> I'd really appreciate if we could give that a try.
 
-2. compat-rdma changes
-   - xeon-phi: ibscif bug 2575: Allow xeon-phi support for Knights Landing
-   - xeon-phi: ibscif bug 2570: correction to communitate between host 
-and card
-   - Added RHEL7.1 support on ppc64le
+I=E2=80=99m not introducing the flag here.
 
-Regards,
-Vladimir
+Changing all the svc_rdma_get_context() call sites to handle
+allocation failure (when it is already highly unlikely) is
+a lot of needless work, IMO, and not related to supporting
+bi-directional RPC.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
