@@ -1,82 +1,96 @@
-From: Sagi Grimberg <sagig@mellanox.com>
-Subject: [PATCH v1 00/10] iSER support for remote invalidate
-Date: Tue, 24 Nov 2015 18:23:44 +0200
-Message-ID: <1448382234-24806-1-git-send-email-sagig@mellanox.com>
-Return-path: <target-devel-owner@vger.kernel.org>
-Sender: target-devel-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
-Cc: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Or Gerlitz <ogerlitz@mellanox.com>, Jenny Derzhavetz <jennyf@mellanox.com>, Steve Wise <swise@opengridcomputing.com>
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v1 04/10] IB/iser: set intuitive values for mr_valid
+Date: Tue, 24 Nov 2015 18:23:48 +0200
+Message-ID: <1448382234-24806-5-git-send-email-sagig@mellanox.com>
+References: <1448382234-24806-1-git-send-email-sagig@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1448382234-24806-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patchset adds remote invalidation support to iser initiator and
-target. The support negotiation for this feature is based on IBTA
-annex 12 "Support for iSCSI Extensions for RDMA" carried in rdma_cm
-private data.
+From: Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Remote invalidation allows a peer host to invalidate a remote key
-as part of a SEND operation. This feature allows a host to avoid
-invalidating an rkey locally. By supporting this feature iser initiator
-can save extra latency and processing time yielded by invalidating 
-the memory key locally.
+This parameter is described as "is mr valid indicator".
+In other words, it indicates whether memory registration
+is valid or not. So intuitive values would be:
+mr_valid=True, when memory registration is valid and
+mr_valid=False otherwise.
 
-The initiator feature support is dependent on:
-- fastreg is used (not FMR)
-- always_register=Y
+Signed-off-by: Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/ulp/iser/iser_memory.c | 8 ++++----
+ drivers/infiniband/ulp/iser/iser_verbs.c  | 4 ++--
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-In this case the initiator will expose support for remote invalidation,
-however it will not blindly rely on the target to do so and will verify
-that in the work completion information. The iser target now looks into
-the iser header in the CM request and in case the initiator supports
-remote invalidation it will respond it will use remote invalidation for
-provided remote keys.
-
-Thanks a lot to all the reviewers!
-
-Changes from v0:
-- Rebased on top of 4.4-rc2
-- Removed iser_hello messages from the protocol header
-- Avoided from further breaking the non-existent bidi support
-- Fixed initiator remote invalidate support exposure only
-  for fastreg && iser_always_register
-- Removed patch 2/10 as it's still under testing.
-- Minor line-spacing nitpicks CR comments fixes.
-- Added a FIXME comment to declare our debt to Or and Jason
-  on the awkward device->mr->rkey deref.
-- Piggybacked another patch that reduces some iser code that
-  is now available by the ib_core (ib_sg_to_pages).
-
-Code is available at:
-git@github.com:sagigrimberg/linux.git iser-remote-inv
-
-Jenny Derzhavetz (5):
-  IB/iser: Don't register memory for all immediatedata writes
-  IB/iser: set intuitive values for mr_valid
-  iser-target: Declare correct flags when accepting a connection
-  iser-target: Support the remote invalidation exception
-  IB/iser: Support the remote invalidation exception
-
-Roi Dayan (1):
-  IB/iser: Fix module init not cleaning up on error flow
-
-Sagi Grimberg (4):
-  IB/iser: Reuse ib_sg_to_pages
-  iser: Have initiator and target to share protocol structures and
-    definitions
-  iser-target: Remove unused file iser_proto.h
-  IB/iser: Increment the rkey when registering and not when invalidating
-
- drivers/infiniband/ulp/iser/iscsi_iser.c     |   9 +-
- drivers/infiniband/ulp/iser/iscsi_iser.h     |  54 +++-------
- drivers/infiniband/ulp/iser/iser_initiator.c |  70 +++++++++++--
- drivers/infiniband/ulp/iser/iser_memory.c    | 150 +++++++++------------------
- drivers/infiniband/ulp/iser/iser_verbs.c     |  30 ++++--
- drivers/infiniband/ulp/isert/ib_isert.c      |  73 +++++++++----
- drivers/infiniband/ulp/isert/ib_isert.h      |  40 ++++++-
- drivers/infiniband/ulp/isert/isert_proto.h   |  47 ---------
- include/scsi/iser.h                          |  78 ++++++++++++++
- 9 files changed, 322 insertions(+), 229 deletions(-)
- delete mode 100644 drivers/infiniband/ulp/isert/isert_proto.h
- create mode 100644 include/scsi/iser.h
-
+diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
+index 62d0578388d3..a0216da6e8bf 100644
+--- a/drivers/infiniband/ulp/iser/iser_memory.c
++++ b/drivers/infiniband/ulp/iser/iser_memory.c
+@@ -392,7 +392,7 @@ iser_reg_sig_mr(struct iscsi_iser_task *iser_task,
+ 
+ 	iser_set_prot_checks(iser_task->sc, &sig_attrs->check_mask);
+ 
+-	if (!pi_ctx->sig_mr_valid)
++	if (pi_ctx->sig_mr_valid)
+ 		iser_inv_rkey(iser_tx_next_wr(tx_desc), pi_ctx->sig_mr);
+ 
+ 	wr = sig_handover_wr(iser_tx_next_wr(tx_desc));
+@@ -410,7 +410,7 @@ iser_reg_sig_mr(struct iscsi_iser_task *iser_task,
+ 	wr->access_flags = IB_ACCESS_LOCAL_WRITE |
+ 			   IB_ACCESS_REMOTE_READ |
+ 			   IB_ACCESS_REMOTE_WRITE;
+-	pi_ctx->sig_mr_valid = 0;
++	pi_ctx->sig_mr_valid = 1;
+ 
+ 	sig_reg->sge.lkey = pi_ctx->sig_mr->lkey;
+ 	sig_reg->rkey = pi_ctx->sig_mr->rkey;
+@@ -434,7 +434,7 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
+ 	struct ib_reg_wr *wr;
+ 	int n;
+ 
+-	if (!rsc->mr_valid)
++	if (rsc->mr_valid)
+ 		iser_inv_rkey(iser_tx_next_wr(tx_desc), mr);
+ 
+ 	n = ib_map_mr_sg(mr, mem->sg, mem->size, SIZE_4K);
+@@ -455,7 +455,7 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
+ 		     IB_ACCESS_REMOTE_WRITE |
+ 		     IB_ACCESS_REMOTE_READ;
+ 
+-	rsc->mr_valid = 0;
++	rsc->mr_valid = 1;
+ 
+ 	reg->sge.lkey = mr->lkey;
+ 	reg->rkey = mr->rkey;
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index a93070210109..415a06e69bc5 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -299,7 +299,7 @@ iser_alloc_reg_res(struct ib_device *ib_device,
+ 		iser_err("Failed to allocate ib_fast_reg_mr err=%d\n", ret);
+ 		return ret;
+ 	}
+-	res->mr_valid = 1;
++	res->mr_valid = 0;
+ 
+ 	return 0;
+ }
+@@ -336,7 +336,7 @@ iser_alloc_pi_ctx(struct ib_device *ib_device,
+ 		ret = PTR_ERR(pi_ctx->sig_mr);
+ 		goto sig_mr_failure;
+ 	}
+-	pi_ctx->sig_mr_valid = 1;
++	pi_ctx->sig_mr_valid = 0;
+ 	desc->pi_ctx->sig_protected = 0;
+ 
+ 	return 0;
 -- 
 1.8.4.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
