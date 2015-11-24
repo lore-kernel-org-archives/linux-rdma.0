@@ -1,50 +1,44 @@
-From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH for-next V1 3/9] IB/core: Add gid attributes to sysfs
-Date: Tue, 24 Nov 2015 15:49:28 +0200
-Message-ID: <CAAKD3BA=h+Mpq9VBnCNpv0UCAkmwCBtOahpOhhWdCvUM=C7JPw@mail.gmail.com>
-References: <1444925232-13598-1-git-send-email-matanb@mellanox.com>
-	<1444925232-13598-4-git-send-email-matanb@mellanox.com>
-	<20151123212029.GB6062@obsidianresearch.com>
-	<CAAKD3BCQzBax6N3+-RhdEvByQu3mz1KKsjQ7yjs-fn2_nSPfOA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 8/8] svcrdma: Remove svc_rdma_fastreg_mr::access_flags field
+Date: Tue, 24 Nov 2015 09:08:21 -0500
+Message-ID: <7B9388F8-3A88-4F61-AB87-A1E6DB9902FE@oracle.com>
+References: <20151123221738.13040.26277.stgit@klimt.1015granger.net> <20151123222118.13040.24258.stgit@klimt.1015granger.net> <5653B4CA.5050806@talpey.com> <92B143FC-0F2C-48E4-9042-189883D76403@oracle.com> <20151124063903.GA12300@infradead.org>
+Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAAKD3BCQzBax6N3+-RhdEvByQu3mz1KKsjQ7yjs-fn2_nSPfOA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20151124063903.GA12300-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 24, 2015 at 10:31 AM, Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> On Mon, Nov 23, 2015 at 11:20 PM, Jason Gunthorpe
-> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
->> On Thu, Oct 15, 2015 at 07:07:06PM +0300, Matan Barak wrote:
->>> This patch set adds attributes of net device and gid type to each GID
->>> in the GID table. Users that use verbs directly need to specify
->>> the GID index. Since the same GID could have different types or
->>> associated net devices, users should have the ability to query the
->>> associated GID attributes. Adding these attributes to sysfs.
->>
->> There is no addition to Documentation/ABI/ for this change
->>
->
-> Do we have documentation for our sysfs ABI in the Documentation directory?
-> Grepping for infiniband there only found sysfs-driver-ib_srp, which
-> isn't the right place to add these things.
->
 
-Of course that if there is no such documentation, I can add a new file
-for the sysfs ABI defined in this patch.
+> On Nov 24, 2015, at 1:39 AM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wr=
+ote:
+>=20
+> On Mon, Nov 23, 2015 at 07:53:04PM -0500, Chuck Lever wrote:
+>>> Wait, the REMOTE_WRITE is there to support iWARP, but it isn't
+>>> needed for IB or RoCE. Shouldn't this be updated to peek at those
+>>> new attributes to decide, instead of remaining unconditional?
+>>=20
+>> That???s coming in another patch from Christoph.
+>=20
+> Can you drop this patch so that we have less conflicts with that one,
+> assuming this series goes in through the NFS tree, and the memory
+> registration changes go in through the RDMA tree?
 
->> Jason
->
-> Matan
->
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Why don=E2=80=99t you fold my change into yours?
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
