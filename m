@@ -1,21 +1,107 @@
-From: Or Gerlitz <gerlitz.or@gmail.com>
-Subject: Re: [PATCH v1 09/10] IB/iser: Increment the rkey when registering and
- not when invalidating
-Date: Tue, 24 Nov 2015 21:12:32 +0200
-Message-ID: <CAJ3xEMgpXb-9B53pLCO3thyLd-u84LYUpT6Wh5N3Gwy3fgdQgg@mail.gmail.com>
-References: <1448382234-24806-1-git-send-email-sagig@mellanox.com>
-	<1448382234-24806-10-git-send-email-sagig@mellanox.com>
+From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 7/9] SUNRPC: Introduct xprt_commit_rqst()
+Date: Tue, 24 Nov 2015 14:54:33 -0500
+Message-ID: <5654C079.7060507@Netapp.com>
+References: <20151123220627.32702.62667.stgit@manet.1015granger.net>
+ <20151123221446.32702.24797.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1448382234-24806-10-git-send-email-sagig@mellanox.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@mellanox.com>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, target-devel@vger.kernel.org, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Or Gerlitz <ogerlitz@mellanox.com>, Jenny Derzhavetz <jennyf@mellanox.com>, Steve Wise <swise@opengridcomputing.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151123221446.32702.24797.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 24, 2015 at 6:23 PM, Sagi Grimberg <sagig@mellanox.com> wrote:
-> With remote invalidate we won't local invalidate
-> but we still want to increment the rkey.
+Hi Chuck,
 
-nit, better to phrase is as "we won't do local invalidate"
+On 11/23/2015 05:14 PM, Chuck Lever wrote:
+> I'm about to add code in the RPC/RDMA reply handler between the
+> xprt_lookup_rqst() and xprt_complete_rqst() call site that needs
+> to execute outside of spinlock critical sections.
+> 
+> Add a hook to remove an rpc_rqst from the pending list once
+> the transport knows its going to invoke xprt_complete_rqst().
+> 
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  include/linux/sunrpc/xprt.h    |    1 +
+>  net/sunrpc/xprt.c              |   14 ++++++++++++++
+>  net/sunrpc/xprtrdma/rpc_rdma.c |    4 ++++
+>  3 files changed, 19 insertions(+)
+> 
+> diff --git a/include/linux/sunrpc/xprt.h b/include/linux/sunrpc/xprt.h
+> index 69ef5b3..ab6c3a5 100644
+> --- a/include/linux/sunrpc/xprt.h
+> +++ b/include/linux/sunrpc/xprt.h
+> @@ -366,6 +366,7 @@ void			xprt_wait_for_buffer_space(struct rpc_task *task, rpc_action action);
+>  void			xprt_write_space(struct rpc_xprt *xprt);
+>  void			xprt_adjust_cwnd(struct rpc_xprt *xprt, struct rpc_task *task, int result);
+>  struct rpc_rqst *	xprt_lookup_rqst(struct rpc_xprt *xprt, __be32 xid);
+> +void			xprt_commit_rqst(struct rpc_task *task);
+>  void			xprt_complete_rqst(struct rpc_task *task, int copied);
+>  void			xprt_release_rqst_cong(struct rpc_task *task);
+>  void			xprt_disconnect_done(struct rpc_xprt *xprt);
+> diff --git a/net/sunrpc/xprt.c b/net/sunrpc/xprt.c
+> index 2e98f4a..a5be4ab 100644
+> --- a/net/sunrpc/xprt.c
+> +++ b/net/sunrpc/xprt.c
+> @@ -837,6 +837,20 @@ static void xprt_update_rtt(struct rpc_task *task)
+>  }
+>  
+>  /**
+> + * xprt_commit_rqst - remove rqst from pending list early
+> + * @task: RPC request to remove
+
+Is xprt_commit_rqst() the right name for this function?  Removing a request from a list isn't how I would expect a commit to work.
+
+Anna
+
+> + *
+> + * Caller holds transport lock.
+> + */
+> +void xprt_commit_rqst(struct rpc_task *task)
+> +{
+> +	struct rpc_rqst *req = task->tk_rqstp;
+> +
+> +	list_del_init(&req->rq_list);
+> +}
+> +EXPORT_SYMBOL_GPL(xprt_commit_rqst);
+> +
+> +/**
+>   * xprt_complete_rqst - called when reply processing is complete
+>   * @task: RPC request that recently completed
+>   * @copied: actual number of bytes received from the transport
+> diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
+> index a169252..d7b9156 100644
+> --- a/net/sunrpc/xprtrdma/rpc_rdma.c
+> +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+> @@ -811,6 +811,9 @@ rpcrdma_reply_handler(struct rpcrdma_rep *rep)
+>  	if (req->rl_reply)
+>  		goto out_duplicate;
+>  
+> +	xprt_commit_rqst(rqst->rq_task);
+> +	spin_unlock_bh(&xprt->transport_lock);
+> +
+>  	dprintk("RPC:       %s: reply 0x%p completes request 0x%p\n"
+>  		"                   RPC request 0x%p xid 0x%08x\n",
+>  			__func__, rep, req, rqst,
+> @@ -901,6 +904,7 @@ badheader:
+>  	else if (credits > r_xprt->rx_buf.rb_max_requests)
+>  		credits = r_xprt->rx_buf.rb_max_requests;
+>  
+> +	spin_lock_bh(&xprt->transport_lock);
+>  	cwnd = xprt->cwnd;
+>  	xprt->cwnd = credits << RPC_CWNDSHIFT;
+>  	if (xprt->cwnd > cwnd)
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
