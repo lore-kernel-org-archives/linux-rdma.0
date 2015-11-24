@@ -1,86 +1,34 @@
-From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 2/8] svcrdma: Define maximum number of backchannel
- requests
-Date: Mon, 23 Nov 2015 19:39:02 -0500
-Message-ID: <5653B1A6.3010707@talpey.com>
-References: <20151123221738.13040.26277.stgit@klimt.1015granger.net>
- <20151123222030.13040.19373.stgit@klimt.1015granger.net>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 2/9] IB: add a proper completion queue abstraction
+Date: Mon, 23 Nov 2015 17:40:22 -0700
+Message-ID: <20151124004022.GA10279@obsidianresearch.com>
+References: <20151123203712.GB5640@obsidianresearch.com>
+ <56537F59.4080708@sandisk.com>
+ <20151123212822.GE6062@obsidianresearch.com>
+ <56538AFD.9080103@sandisk.com>
+ <20151123221806.GA7152@obsidianresearch.com>
+ <56539421.9050705@sandisk.com>
+ <20151123230659.GA8287@obsidianresearch.com>
+ <B24F4DDE-709A-4D2D-8B26-4E83325DBB1A@asomi.com>
+ <20151124000011.GA9301@obsidianresearch.com>
+ <5653B0AD.7090402@talpey.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151123222030.13040.19373.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5653B0AD.7090402-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Cc: Caitlin Bestler <cait-DpaxOq6QOWMAvxtiuMwx3w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "axboe-b10kYP2dOMg@public.gmane.org" <axboe-b10kYP2dOMg@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/23/2015 5:20 PM, Chuck Lever wrote:
-> Extra resources for handling backchannel requests have to be
-> pre-allocated when a transport instance is created. Set a limit.
->
-> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->   include/linux/sunrpc/svc_rdma.h          |    5 +++++
->   net/sunrpc/xprtrdma/svc_rdma_transport.c |    6 +++++-
->   2 files changed, 10 insertions(+), 1 deletion(-)
->
-> diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
-> index f869807..478aa30 100644
-> --- a/include/linux/sunrpc/svc_rdma.h
-> +++ b/include/linux/sunrpc/svc_rdma.h
-> @@ -178,6 +178,11 @@ struct svcxprt_rdma {
->   #define RPCRDMA_SQ_DEPTH_MULT   8
->   #define RPCRDMA_MAX_REQUESTS    32
->   #define RPCRDMA_MAX_REQ_SIZE    4096
-> +#if defined(CONFIG_SUNRPC_BACKCHANNEL)
+On Mon, Nov 23, 2015 at 07:34:53PM -0500, Tom Talpey wrote:
 
-Why is this a config option? Why wouldn't you always want
-this? It's needed for any post-1990 NFS dialect.
+> Been there, seen that. Bluescreened on it, mysteriously.
 
-> +#define RPCRDMA_MAX_BC_REQUESTS	8
+Yes, me too :(
 
-Why a constant 8? The forward channel value is apparently
-configurable, just a few lines down.
-
-> +#else
-> +#define RPCRDMA_MAX_BC_REQUESTS	0
-> +#endif
->
->   #define RPCSVC_MAXPAYLOAD_RDMA	RPCSVC_MAXPAYLOAD
->
-> diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-> index b348b4a..01c7b36 100644
-> --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
-> +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-> @@ -923,8 +923,10 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
->   				  (size_t)RPCSVC_MAXPAGES);
->   	newxprt->sc_max_sge_rd = min_t(size_t, devattr.max_sge_rd,
->   				       RPCSVC_MAXPAGES);
-> +	/* XXX: what if HCA can't support enough WRs for bc operation? */
->   	newxprt->sc_max_requests = min((size_t)devattr.max_qp_wr,
-> -				   (size_t)svcrdma_max_requests);
-> +				       (size_t)(svcrdma_max_requests +
-> +				       RPCRDMA_MAX_BC_REQUESTS));
->   	newxprt->sc_sq_depth = RPCRDMA_SQ_DEPTH_MULT * newxprt->sc_max_requests;
->
->   	/*
-> @@ -964,7 +966,9 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
->   	qp_attr.event_handler = qp_event_handler;
->   	qp_attr.qp_context = &newxprt->sc_xprt;
->   	qp_attr.cap.max_send_wr = newxprt->sc_sq_depth;
-> +	qp_attr.cap.max_send_wr += RPCRDMA_MAX_BC_REQUESTS;
->   	qp_attr.cap.max_recv_wr = newxprt->sc_max_requests;
-> +	qp_attr.cap.max_recv_wr += RPCRDMA_MAX_BC_REQUESTS;
->   	qp_attr.cap.max_send_sge = newxprt->sc_max_sge;
->   	qp_attr.cap.max_recv_sge = newxprt->sc_max_sge;
->   	qp_attr.sq_sig_type = IB_SIGNAL_REQ_WR;
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
