@@ -1,55 +1,53 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 3/8] svcrdma: Add svc_rdma_get_context() API that is allowed to fail
-Date: Tue, 24 Nov 2015 15:06:35 -0500
-Message-ID: <0BDC9E9B-02FA-43DB-AB04-806CF71EA26E@oracle.com>
-References: <20151123221738.13040.26277.stgit@klimt.1015granger.net> <20151123222038.13040.61285.stgit@klimt.1015granger.net> <20151124065522.GC29141@infradead.org> <7717B6B1-4A27-4D8A-8BCC-528CEC6DB54D@oracle.com> <20151124200212.GA10208@infradead.org>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: staging/rdma/hfi1: pre-compute sc and sde for RC/UC QPs
+Date: Tue, 24 Nov 2015 21:12:43 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC259C1047@fmsmsx120.amr.corp.intel.com>
+References: <20151124125755.GA7088@mwanda>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151124200212.GA10208-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <20151124125755.GA7088@mwanda>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+> drivers/staging/rdma/hfi1/qp.c
+>    817          if (attr_mask & IB_QP_PATH_MIG_STATE) {
+>    818                  qp->s_mig_state = attr->path_mig_state;
+>    819                  if (mig) {
+>    820                          qp->remote_ah_attr = qp->alt_ah_attr;
+>    821                          qp->port_num = qp->alt_ah_attr.port_num;
+>    822                          qp->s_pkey_index = qp->s_alt_pkey_index;
+>    823                          qp->s_flags |= HFI1_S_AHG_CLEAR;
+>    824                          qp->s_sc = ah_to_sc(ibqp->device, &qp-
+> >remote_ah_attr);
+> 
+> Do we need to verify (hfi1_check_ah(ibqp->device, &qp->remote_ah_attr))
+> before calling ah_to_sc()?
+> 
 
-> On Nov 24, 2015, at 3:02 PM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wr=
-ote:
->=20
-> On Tue, Nov 24, 2015 at 09:24:51AM -0500, Chuck Lever wrote:
->> There is only one (new) call site that needs it. I can simplify
->> this patch as Sagi suggested before, but it seems silly to
->> introduce the extra clutter of adding a gfp_t argument
->> everywhere.
->=20
-> We a) generally try to pass the gfp_t around if we expect calling
-> contexts to change, and b the changes to the 6 callers are probably
-> still smaller than this patch :)
+The modify code validates the IB_QP_ALT_PATH above:
+647         if (attr_mask & IB_QP_ALT_PATH) {
+ 648                 u8 sc;
+ 649
+ 650                 if (attr->alt_ah_attr.dlid >= HFI1_MULTICAST_LID_BASE)
+ 651                         goto inval;
+ 652                 if (hfi1_check_ah(qp->ibqp.device, &attr->alt_ah_attr))
+ 653                         goto inval;
+ 654                 if (attr->alt_pkey_index >= hfi1_get_npkeys(dd))
+ 655                         goto inval;
+ 656                 sc = ah_to_sc(ibqp->device, &attr->alt_ah_attr);
+ 657                 if (!qp_to_sdma_engine(qp, sc) &&
+ 658                     dd->flags & HFI1_HAS_SEND_DMA)
+ 659                         goto inval;
+ 660         }
 
-I=E2=80=99ll post a v2 early next week. It will be smaller and simpler.
-
-
->>> And if we have any way to avoid the __GFP_NOFAIL
->>> I'd really appreciate if we could give that a try.
->>=20
->> I???m not introducing the flag here.
->>=20
->> Changing all the svc_rdma_get_context() call sites to handle
->> allocation failure (when it is already highly unlikely) is
->> a lot of needless work, IMO, and not related to supporting
->> bi-directional RPC.
->=20
-> Ok.
-
---
-Chuck Lever
-
-
-
+Mike
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
