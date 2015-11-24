@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig@mellanox.com>
-Subject: [PATCH v1 06/10] iser-target: Remove unused file iser_proto.h
-Date: Tue, 24 Nov 2015 18:23:50 +0200
-Message-ID: <1448382234-24806-7-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v1 09/10] IB/iser: Increment the rkey when registering and not when invalidating
+Date: Tue, 24 Nov 2015 18:23:53 +0200
+Message-ID: <1448382234-24806-10-git-send-email-sagig@mellanox.com>
 References: <1448382234-24806-1-git-send-email-sagig@mellanox.com>
 Return-path: <target-devel-owner@vger.kernel.org>
 In-Reply-To: <1448382234-24806-1-git-send-email-sagig@mellanox.com>
@@ -10,109 +10,87 @@ To: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
 Cc: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Or Gerlitz <ogerlitz@mellanox.com>, Jenny Derzhavetz <jennyf@mellanox.com>, Steve Wise <swise@opengridcomputing.com>
 List-Id: linux-rdma@vger.kernel.org
 
-We don't need iser_proto.h anymore, remove it and
-move (non-protocol) declarations to ib_isert.h
+With remote invalidate we won't local invalidate
+but we still want to increment the rkey.
 
 Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
 Signed-off-by: Jenny Derzhavetz <jennyf@mellanox.com>
 ---
- drivers/infiniband/ulp/isert/ib_isert.c    |  1 -
- drivers/infiniband/ulp/isert/ib_isert.h    | 32 ++++++++++++++++++++++++++++++
- drivers/infiniband/ulp/isert/isert_proto.h | 31 -----------------------------
- 3 files changed, 32 insertions(+), 32 deletions(-)
- delete mode 100644 drivers/infiniband/ulp/isert/isert_proto.h
+ drivers/infiniband/ulp/iser/iser_memory.c | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index 19ab0510dd1e..63217e382140 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -29,7 +29,6 @@
- #include <target/iscsi/iscsi_transport.h>
- #include <linux/semaphore.h>
+diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
+index a0216da6e8bf..c008fc262aee 100644
+--- a/drivers/infiniband/ulp/iser/iser_memory.c
++++ b/drivers/infiniband/ulp/iser/iser_memory.c
+@@ -358,19 +358,14 @@ iser_set_prot_checks(struct scsi_cmnd *sc, u8 *mask)
+ 		*mask |= ISER_CHECK_GUARD;
+ }
  
--#include "isert_proto.h"
- #include "ib_isert.h"
+-static void
++static inline void
+ iser_inv_rkey(struct ib_send_wr *inv_wr, struct ib_mr *mr)
+ {
+-	u32 rkey;
+-
+ 	inv_wr->opcode = IB_WR_LOCAL_INV;
+ 	inv_wr->wr_id = ISER_FASTREG_LI_WRID;
+ 	inv_wr->ex.invalidate_rkey = mr->rkey;
+ 	inv_wr->send_flags = 0;
+ 	inv_wr->num_sge = 0;
+-
+-	rkey = ib_inc_rkey(mr->rkey);
+-	ib_update_fast_reg_key(mr, rkey);
+ }
  
- #define	ISERT_MAX_CONN		8
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.h b/drivers/infiniband/ulp/isert/ib_isert.h
-index 03ddc3e0087f..da8b2fae5776 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.h
-+++ b/drivers/infiniband/ulp/isert/ib_isert.h
-@@ -33,6 +33,38 @@
- #define isert_err(fmt, arg...) \
- 	pr_err(PFX "%s: " fmt, __func__ , ## arg)
+ static int
+@@ -383,6 +378,7 @@ iser_reg_sig_mr(struct iscsi_iser_task *iser_task,
+ 	struct iser_tx_desc *tx_desc = &iser_task->desc;
+ 	struct ib_sig_attrs *sig_attrs = &tx_desc->sig_attrs;
+ 	struct ib_sig_handover_wr *wr;
++	struct ib_mr *mr = pi_ctx->sig_mr;
+ 	int ret;
  
-+/* Constant PDU lengths calculations */
-+#define ISER_HEADERS_LEN	(sizeof(struct iser_ctrl) + \
-+				 sizeof(struct iscsi_hdr))
-+#define ISER_RECV_DATA_SEG_LEN	8192
-+#define ISER_RX_PAYLOAD_SIZE	(ISER_HEADERS_LEN + ISER_RECV_DATA_SEG_LEN)
-+#define ISER_RX_LOGIN_SIZE	(ISER_HEADERS_LEN + ISCSI_DEF_MAX_RECV_SEG_LEN)
+ 	memset(sig_attrs, 0, sizeof(*sig_attrs));
+@@ -393,7 +389,9 @@ iser_reg_sig_mr(struct iscsi_iser_task *iser_task,
+ 	iser_set_prot_checks(iser_task->sc, &sig_attrs->check_mask);
+ 
+ 	if (pi_ctx->sig_mr_valid)
+-		iser_inv_rkey(iser_tx_next_wr(tx_desc), pi_ctx->sig_mr);
++		iser_inv_rkey(iser_tx_next_wr(tx_desc), mr);
 +
-+/* QP settings */
-+/* Maximal bounds on received asynchronous PDUs */
-+#define ISERT_MAX_TX_MISC_PDUS	4 /* NOOP_IN(2) , ASYNC_EVENT(2)   */
++	ib_update_fast_reg_key(mr, ib_inc_rkey(mr->rkey));
+ 
+ 	wr = sig_handover_wr(iser_tx_next_wr(tx_desc));
+ 	wr->wr.opcode = IB_WR_REG_SIG_MR;
+@@ -402,7 +400,7 @@ iser_reg_sig_mr(struct iscsi_iser_task *iser_task,
+ 	wr->wr.num_sge = 1;
+ 	wr->wr.send_flags = 0;
+ 	wr->sig_attrs = sig_attrs;
+-	wr->sig_mr = pi_ctx->sig_mr;
++	wr->sig_mr = mr;
+ 	if (scsi_prot_sg_count(iser_task->sc))
+ 		wr->prot = &prot_reg->sge;
+ 	else
+@@ -412,8 +410,8 @@ iser_reg_sig_mr(struct iscsi_iser_task *iser_task,
+ 			   IB_ACCESS_REMOTE_WRITE;
+ 	pi_ctx->sig_mr_valid = 1;
+ 
+-	sig_reg->sge.lkey = pi_ctx->sig_mr->lkey;
+-	sig_reg->rkey = pi_ctx->sig_mr->rkey;
++	sig_reg->sge.lkey = mr->lkey;
++	sig_reg->rkey = mr->rkey;
+ 	sig_reg->sge.addr = 0;
+ 	sig_reg->sge.length = scsi_transfer_length(iser_task->sc);
+ 
+@@ -437,6 +435,8 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
+ 	if (rsc->mr_valid)
+ 		iser_inv_rkey(iser_tx_next_wr(tx_desc), mr);
+ 
++	ib_update_fast_reg_key(mr, ib_inc_rkey(mr->rkey));
 +
-+#define ISERT_MAX_RX_MISC_PDUS	6 /*
-+				   * NOOP_OUT(2), TEXT(1),
-+				   * SCSI_TMFUNC(2), LOGOUT(1)
-+				   */
-+
-+#define ISCSI_DEF_XMIT_CMDS_MAX 128 /* from libiscsi.h, must be power of 2 */
-+
-+#define ISERT_QP_MAX_RECV_DTOS	(ISCSI_DEF_XMIT_CMDS_MAX)
-+
-+#define ISERT_MIN_POSTED_RX	(ISCSI_DEF_XMIT_CMDS_MAX >> 2)
-+
-+#define ISERT_INFLIGHT_DATAOUTS	8
-+
-+#define ISERT_QP_MAX_REQ_DTOS	(ISCSI_DEF_XMIT_CMDS_MAX *    \
-+				(1 + ISERT_INFLIGHT_DATAOUTS) + \
-+				ISERT_MAX_TX_MISC_PDUS	+ \
-+				ISERT_MAX_RX_MISC_PDUS)
-+
-+#define ISER_RX_PAD_SIZE	(ISER_RECV_DATA_SEG_LEN + 4096 - \
-+		(ISER_RX_PAYLOAD_SIZE + sizeof(u64) + sizeof(struct ib_sge)))
-+
- #define ISCSI_ISER_SG_TABLESIZE		256
- #define ISER_FASTREG_LI_WRID		0xffffffffffffffffULL
- #define ISER_BEACON_WRID               0xfffffffffffffffeULL
-diff --git a/drivers/infiniband/ulp/isert/isert_proto.h b/drivers/infiniband/ulp/isert/isert_proto.h
-deleted file mode 100644
-index c835b0083fa7..000000000000
---- a/drivers/infiniband/ulp/isert/isert_proto.h
-+++ /dev/null
-@@ -1,31 +0,0 @@
--/* From iscsi_iser.h */
--
--/* Constant PDU lengths calculations */
--#define ISER_HEADERS_LEN  (sizeof(struct iser_ctrl) + sizeof(struct iscsi_hdr))
--
--#define ISER_RECV_DATA_SEG_LEN  8192
--#define ISER_RX_PAYLOAD_SIZE    (ISER_HEADERS_LEN + ISER_RECV_DATA_SEG_LEN)
--#define ISER_RX_LOGIN_SIZE      (ISER_HEADERS_LEN + ISCSI_DEF_MAX_RECV_SEG_LEN)
--
--/* QP settings */
--/* Maximal bounds on received asynchronous PDUs */
--#define ISERT_MAX_TX_MISC_PDUS	4 /* NOOP_IN(2) , ASYNC_EVENT(2)   */
--
--#define ISERT_MAX_RX_MISC_PDUS	6 /* NOOP_OUT(2), TEXT(1),         *
--				   * SCSI_TMFUNC(2), LOGOUT(1) */
--
--#define ISCSI_DEF_XMIT_CMDS_MAX 128 /* from libiscsi.h, must be power of 2 */
--
--#define ISERT_QP_MAX_RECV_DTOS	(ISCSI_DEF_XMIT_CMDS_MAX)
--
--#define ISERT_MIN_POSTED_RX	(ISCSI_DEF_XMIT_CMDS_MAX >> 2)
--
--#define ISERT_INFLIGHT_DATAOUTS	8
--
--#define ISERT_QP_MAX_REQ_DTOS	(ISCSI_DEF_XMIT_CMDS_MAX *    \
--				(1 + ISERT_INFLIGHT_DATAOUTS) + \
--				ISERT_MAX_TX_MISC_PDUS	+ \
--				ISERT_MAX_RX_MISC_PDUS)
--
--#define ISER_RX_PAD_SIZE	(ISER_RECV_DATA_SEG_LEN + 4096 - \
--		(ISER_RX_PAYLOAD_SIZE + sizeof(u64) + sizeof(struct ib_sge)))
+ 	n = ib_map_mr_sg(mr, mem->sg, mem->size, SIZE_4K);
+ 	if (unlikely(n != mem->size)) {
+ 		iser_err("failed to map sg (%d/%d)\n",
 -- 
 1.8.4.3
