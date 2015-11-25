@@ -1,60 +1,37 @@
-From: santosh shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: Future of FMR support, was: Re: [PATCH v1 5/9] xprtrdma: Add
  ro_unmap_sync method for FMR
-Date: Wed, 25 Nov 2015 11:17:41 -0800
-Message-ID: <56560955.2080705@oracle.com>
+Date: Wed, 25 Nov 2015 12:28:24 -0700
+Message-ID: <20151125192824.GD3223@obsidianresearch.com>
 References: <20151123220627.32702.62667.stgit@manet.1015granger.net>
  <20151123221430.32702.86114.stgit@manet.1015granger.net>
- <5653B606.3070700@talpey.com> <20151124065225.GB29141@infradead.org>
- <5654DC7A.7080807@oracle.com> <20151125090009.GA11255@infradead.org>
+ <5653B606.3070700@talpey.com>
+ <20151124065225.GB29141@infradead.org>
+ <5654DC7A.7080807@oracle.com>
+ <20151125090009.GA11255@infradead.org>
  <5655EB40.8070508@oracle.com>
- <CAJ3xEMgC5aa8pvvvs0y8O+h_WBk-em07gHvOgP=DFDrv4ydGAg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMgC5aa8pvvvs0y8O+h_WBk-em07gHvOgP=DFDrv4ydGAg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5655EB40.8070508-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: santosh shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/25/2015 10:22 AM, Or Gerlitz wrote:
-> On Wed, Nov 25, 2015 at 7:09 PM, santosh shilimkar
-> <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
->>>> As already indicated to Sagi [1], RDS IB FR support is work in
->>>> progress and I was hoping to get it ready for 4.5.
->
-> These are really good news! can you please elaborate a bit on the
-> design changes this move introduced in RDS?
->
-Yeah. It has been a bit of pain point since the need
-was to keep the RDS design same and retrofit the FR
-support so that it can co-exist with existing deployed
-FMR code.
+On Wed, Nov 25, 2015 at 09:09:20AM -0800, santosh shilimkar wrote:
+> >I'd say drop the current iWarp transport if it's not testable.  The
+> >only real difference between IB and iWarp is the needed to create
+> >a MR for the RDMA READ sink, and we're much better of adding that into
+> >the current IB transport if new iWarp users show up.
+> 
+> Agree. I will probably do it along with RDS IB FR support in 4.6
 
-Leaving the details for the code review but at very high
-level,
+Great news!
 
-- Have to split the poll CQ handling so that
-send + FR WR completion can be handled together.
-FR CQ handler and reg/inv WR prep marks the MR state
-like INVALID, VALID & STALE appropriately.
-- Allocate 2X space on WR and WC queues during queue setup.
-- Manage the MR reg/inv based on the space available
-in FR WR ring(actually it is just a counter). This is
-bit tricky because RDS does MR operation via sendmsg()
-as well as directly through socket APIs so needs
-co-ordination.
-
-Am hoping that above remains true when code actually
-makes to the list but that is how things stand as
-of now.
-
-Regards,
-Santosh
-
+Jason
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
