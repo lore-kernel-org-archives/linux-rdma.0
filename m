@@ -1,39 +1,43 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [PATCH v1 08/10] iser-target: Support the remote invalidation
- exception
-Date: Wed, 25 Nov 2015 10:48:41 +0200
-Message-ID: <565575E9.9070100@dev.mellanox.co.il>
-References: <1448382234-24806-1-git-send-email-sagig@mellanox.com>
- <1448382234-24806-9-git-send-email-sagig@mellanox.com>
- <CAJ3xEMjPwD3X-B+56-+sZ9RqMrcNgr_Y060nR3wLMhi_O0MgqA@mail.gmail.com>
- <5655698A.4020306@dev.mellanox.co.il>
- <CAJ3xEMhiktX7tGe55esggTCoMy4WvipVyTNMNPaB4rBKk4bZHA@mail.gmail.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: Future of FMR support, was: Re: [PATCH v1 5/9] xprtrdma: Add
+ ro_unmap_sync method for FMR
+Date: Wed, 25 Nov 2015 01:00:09 -0800
+Message-ID: <20151125090009.GA11255@infradead.org>
+References: <20151123220627.32702.62667.stgit@manet.1015granger.net>
+ <20151123221430.32702.86114.stgit@manet.1015granger.net>
+ <5653B606.3070700@talpey.com>
+ <20151124065225.GB29141@infradead.org>
+ <5654DC7A.7080807@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <CAJ3xEMhiktX7tGe55esggTCoMy4WvipVyTNMNPaB4rBKk4bZHA@mail.gmail.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Or Gerlitz <gerlitz.or@gmail.com>
-Cc: Sagi Grimberg <sagig@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, target-devel@vger.kernel.org, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Or Gerlitz <ogerlitz@mellanox.com>, Jenny Derzhavetz <jennyf@mellanox.com>, Steve Wise <swise@opengridcomputing.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5654DC7A.7080807-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: santosh shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Nov 24, 2015 at 01:54:02PM -0800, santosh shilimkar wrote:
+> As already indicated to Sagi [1], RDS IB FR support is work in
+> progress and I was hoping to get it ready for 4.5. There are few
+> issues we found with one of the HCA and hence the progress
+> slowed down. Looking at where we are, 4.6 merge window seems
+> to be realistic for me to get RDS FR support.
 
+Ok.
 
-On 25/11/2015 10:41, Or Gerlitz wrote:
-> On Wed, Nov 25, 2015 at 9:55 AM, Sagi Grimberg <sagig@dev.mellanox.co.il> wrote:
->
->> For NO_DATA commands the iser specification explicitly states that
->> read_stag and write_stag should be 0 which means that inv_rkey is 0
->> too. We don't do remote invalidate in case inv_rkey is 0.
->
-> I see, so if this is case,  can you eliminate one the checks here
->
->>>> +       if (isert_conn->snd_w_inv && isert_cmd->inv_rkey) {
+> Now on the iWARP transport itself, it has been bit tough because
+> of lack of hardware to tests. I have been requesting test(s) in
+> previous RDS patches and haven't seen any interest so far. If
+> this continues to be the trend, I might as well get rid of
+> RDS iWARP support after couple of merge windows.
 
-This are *exactly* the checks that enforce what I said above.
-If we remove that we'd step on the bug you mentioned.
-
-We do remote invalidate only if:
-- we are allowed to (send_w_inv)
-- initiator passed us rkey (inv_rkey).
+I'd say drop the current iWarp transport if it's not testable.  The
+only real difference between IB and iWarp is the needed to create
+a MR for the RDMA READ sink, and we're much better of adding that into
+the current IB transport if new iWarp users show up.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
