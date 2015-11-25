@@ -1,34 +1,86 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: When does IB Multicast drop?
-Date: Wed, 25 Nov 2015 11:23:36 -0600 (CST)
-Message-ID: <alpine.DEB.2.20.1511251123040.32381@east.gentwo.org>
-References: <5654E056.5050608@gmail.com> <CADPSxAgifjbSP0qL5fvRt8G7-qgTY0YjdFuPnB9WKi7kkUw55Q@mail.gmail.com> <alpine.DEB.2.20.1511251007020.31676@east.gentwo.org> <5655EB96.2090600@gmail.com>
-Content-Type: text/plain; charset=US-ASCII
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH for-next V1 5/9] IB/core: Add rdma_network_type to wc
+Date: Wed, 25 Nov 2015 10:29:56 -0700
+Message-ID: <20151125172956.GA3223@obsidianresearch.com>
+References: <1444925232-13598-1-git-send-email-matanb@mellanox.com>
+ <1444925232-13598-6-git-send-email-matanb@mellanox.com>
+ <20151123211916.GA6062@obsidianresearch.com>
+ <CAAKD3BCWMrd8A+UgjQg+jtfLmyOCaOB4iGCr2ZAbaazRBZeGxw@mail.gmail.com>
+ <20151124181415.GC10391@obsidianresearch.com>
+ <CAAKD3BAO6rNn-Br=MZxvkd+rYSsE9G7wK+9YR9uJ3xdP1U+u0w@mail.gmail.com>
+ <20151125065542.GC4326@obsidianresearch.com>
+ <CAAKD3BAEMD47cScunGNnx2iitL6uFWicDHALJt5w-szoSZwOwg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5655EB96.2090600-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAAKD3BAEMD47cScunGNnx2iitL6uFWicDHALJt5w-szoSZwOwg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Chinetti <peter.chinetti-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 25 Nov 2015, Peter Chinetti wrote:
+On Wed, Nov 25, 2015 at 04:18:25PM +0200, Matan Barak wrote:
+> On Wed, Nov 25, 2015 at 8:55 AM, Jason Gunthorpe
+> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> > On Tue, Nov 24, 2015 at 09:07:41PM +0200, Matan Barak wrote:
+> >
+> >> IMHO, the user is entitles to choose any valid sgid_index for the
+> >> interface. Anything he chooses guaranteed to be valid (from security
+> >> perspective)
+> >
+> > No, the namespace patches will have to limit the sgid_indexes that can
+> > be used with a QP to those that fall within the namespace. This is
+> > another reason I don't like this approach for the kapi.
+> 
+> By saying namespace, do you mean net namespaces?
 
-> > Correct. But multicast packets are droped at the QP receive level if the
-> > app does not provide enough buffers to accept the data stream. The
-> > bufers can easily be overrun if one does not code carefully given that
-> > the maximum number of those is 16K or so. These drops occurs silently.
-> > Currently there is no accounting for these drops in the upstream kernel.
+Whatever it turns out to be, Haggie was talking about rdma namespaces
+for some for this stuff too, but IMHO, rocev2 is pretty clearly
+covered under net namespaces.
 
-> How about when one of the destinations for the multicast group has its
-> connection to the switch overloaded (because it is subscribing to many
-> multicast groups whose combined bandwidth is momentarily greater than the
-> bandwidth of the link to the switch). Are the messages destined for that
-> endpoint dropped at the switch, or is traffic to the entire multicast group
-> delayed?
+> If so, the gid cache allows to search by net device (and there's a
+> "custom" search that the user can define a filter function which can
+> filter by net).
+> Anyway, I don't think this cache should be used other than a simple database.
 
-The entire traffic to the muilticast group will be delayed.
+It has nothing to do with the cache, it is everywhere else, you can't
+create a qp with a sgid index that is not part of your namespace, for
+instance, or recieve a packet on a QP outside your namespace,
+etc. Lots of details.
 
 
+
+> >> Why do we need to block users who use ibv_rc_pingpong and chose the
+> >> GID index correctly by hand?
+> >
+> > I'm not really concerned with user space, we are stuck with exporting
+> > the gid index there.
+> 
+> So why do we need to block kernel applications from doing the same
+> things user-space application can do?
+
+As I explained, it is never correct to use a naked sgid_index and
+roceve2, uverbs can't be fixed without a uapi change, but the kernel
+can be.
+
+> If there are kernel consumers that want to work with verbs directly,
+> they should use ib_init_ah_from_wc and ib_resolve_eth_dmac (or we
+> can
+
+As I already said these functions are wrong, they don't have the
+routing lookup needed for rocev2. That is my whole point, the
+functions that are using the gid cache for rocev2 are *not correct*
+
+I don't really care how you fix it, but every rocev2 sgid-index lookup
+in the kernel must be accompanied by a route lookup.
+
+I think the gid cache API design is wrong here because it doesn't
+force the above, but whatever, if you choose a different API it
+becomes your job to review every patch from now own to make sure other
+people use your dangerous API properly.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
