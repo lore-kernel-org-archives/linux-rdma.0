@@ -1,74 +1,47 @@
-From: Peter Chinetti <peter.chinetti-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: When does IB Multicast drop?
-Date: Wed, 25 Nov 2015 10:34:36 -0600
-Message-ID: <5655E31C.8020908@gmail.com>
-References: <5654E056.5050608@gmail.com>
- <CADPSxAgifjbSP0qL5fvRt8G7-qgTY0YjdFuPnB9WKi7kkUw55Q@mail.gmail.com>
+From: santosh shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Future of FMR support, was: Re: [PATCH v1 5/9] xprtrdma: Add
+ ro_unmap_sync method for FMR
+Date: Wed, 25 Nov 2015 09:09:20 -0800
+Message-ID: <5655EB40.8070508@oracle.com>
+References: <20151123220627.32702.62667.stgit@manet.1015granger.net>
+ <20151123221430.32702.86114.stgit@manet.1015granger.net>
+ <5653B606.3070700@talpey.com> <20151124065225.GB29141@infradead.org>
+ <5654DC7A.7080807@oracle.com> <20151125090009.GA11255@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CADPSxAgifjbSP0qL5fvRt8G7-qgTY0YjdFuPnB9WKi7kkUw55Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20151125090009.GA11255-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Thank you very much for the info, is there a good Infiniband reference
-(other than the IBA spec, I mean) I should read?
+On 11/25/2015 1:00 AM, Christoph Hellwig wrote:
+> On Tue, Nov 24, 2015 at 01:54:02PM -0800, santosh shilimkar wrote:
+>> As already indicated to Sagi [1], RDS IB FR support is work in
+>> progress and I was hoping to get it ready for 4.5. There are few
+>> issues we found with one of the HCA and hence the progress
+>> slowed down. Looking at where we are, 4.6 merge window seems
+>> to be realistic for me to get RDS FR support.
+>
+> Ok.
+>
+>> Now on the iWARP transport itself, it has been bit tough because
+>> of lack of hardware to tests. I have been requesting test(s) in
+>> previous RDS patches and haven't seen any interest so far. If
+>> this continues to be the trend, I might as well get rid of
+>> RDS iWARP support after couple of merge windows.
+>
+> I'd say drop the current iWarp transport if it's not testable.  The
+> only real difference between IB and iWarp is the needed to create
+> a MR for the RDMA READ sink, and we're much better of adding that into
+> the current IB transport if new iWarp users show up.
 
--Peter
+Agree. I will probably do it along with RDS IB FR support in 4.6
 
-On 11/24/2015 05:08 PM, Anuj Kalia wrote:
-> I don't have experience with multicast, but here's some info.
->
-> InfiniBand flow control is done at the link layer, so UD does not drop
-> packets due to congestion.
->
-> AFAIK, UD only drops packets due to irrecoverable bit errors and
-> network device failures. Mellanox's FDR physical layer has BER less
-> than 10^(-15), and forward error correction on top of that, so an
-> irrecoverable bit error is extremeley extremely rare.
->
-> If the network topology does not have multipath, (Mellanox) UD will
-> not reorder packets to a particular destination sent from the same UD
-> QP. There is probably some guarantee in multipath topologies, too.
->
-> --Anuj (rdma_guy)
->
-> On Tue, Nov 24, 2015 at 10:10 PM, Peter Chinetti
-> <peter.chinetti-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> I've been reading* through the IBA spec (Release 1.3 2015-03-03), trying to
->> understand IB multicast and its pitfalls.
->>
->> I understand that IB multicast only supports Unreliable Datagram sends
->> (10.5.2.1), and that there are neither delivery guarantees nor
->> acknowledgments for UD sends. Furthermore, flow control is only available
->> for Reliable Connections. I thought I saw that there was an ordering
->> guarantee within a multicast group for a specific sender, but now I can't
->> find that section again.
->>
->> How far is the send guaranteed to propagate? What would cause the data to be
->> dropped? Is it possible for an oversubscribed (e.g. a 80 Gb/s burst of
->> multicast bandwidth trying to fit through a link with only 40 Gb/s of
->> bandwidth) link to slow down multicast data on a different network path, or
->> will burst be "clipped" by dropping packets?
->>
->> In testing some co-workers of mine have done we have found that when
->> multicast is run in parallel over IB and Ether, the IB is occasionally
->> slower, but does not seem to drop packets. This seems to suggest that flow
->> control /is/ working for multicast (which would be great, as long as we know
->> where the pathological cases are and avoid them).
->>
->> Thank you,
->> Peter Chinetti
->>
->> *Honestly, more like Control-F'ing for "multicast". Not super effective.
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Regards,
+Santosh
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
