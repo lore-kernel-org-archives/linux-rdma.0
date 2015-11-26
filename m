@@ -1,30 +1,40 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [PATCH v1 08/10] iser-target: Support the remote invalidation
- exception
-Date: Thu, 26 Nov 2015 10:55:43 +0200
-Message-ID: <5656C90F.6040500@dev.mellanox.co.il>
-References: <1448382234-24806-1-git-send-email-sagig@mellanox.com>
- <1448382234-24806-9-git-send-email-sagig@mellanox.com>
- <CAJ3xEMjPwD3X-B+56-+sZ9RqMrcNgr_Y060nR3wLMhi_O0MgqA@mail.gmail.com>
- <5655698A.4020306@dev.mellanox.co.il>
- <CAJ3xEMhiktX7tGe55esggTCoMy4WvipVyTNMNPaB4rBKk4bZHA@mail.gmail.com>
- <565575E9.9070100@dev.mellanox.co.il>
- <CAJ3xEMiJhW-uh-+G+F8UXgbTJV56R_ERM1wxc4Ex0v4VmcOq6A@mail.gmail.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: Future of FMR support, was: Re: [PATCH v1 5/9] xprtrdma: Add
+ ro_unmap_sync method for FMR
+Date: Thu, 26 Nov 2015 12:01:24 +0200
+Message-ID: <5656D874.8060500@dev.mellanox.co.il>
+References: <20151123220627.32702.62667.stgit@manet.1015granger.net>
+ <20151123221430.32702.86114.stgit@manet.1015granger.net>
+ <5653B606.3070700@talpey.com> <20151124065225.GB29141@infradead.org>
+ <5654DC7A.7080807@oracle.com> <20151125090009.GA11255@infradead.org>
+ <5655EB40.8070508@oracle.com> <20151125192824.GD3223@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <CAJ3xEMiJhW-uh-+G+F8UXgbTJV56R_ERM1wxc4Ex0v4VmcOq6A@mail.gmail.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Or Gerlitz <gerlitz.or@gmail.com>
-Cc: Sagi Grimberg <sagig@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, target-devel@vger.kernel.org, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Or Gerlitz <ogerlitz@mellanox.com>, Jenny Derzhavetz <jennyf@mellanox.com>, Steve Wise <swise@opengridcomputing.com>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151125192824.GD3223-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, santosh shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-> yep, should be probably OK.
+On 25/11/2015 21:28, Jason Gunthorpe wrote:
+> On Wed, Nov 25, 2015 at 09:09:20AM -0800, santosh shilimkar wrote:
+>>> I'd say drop the current iWarp transport if it's not testable.  The
+>>> only real difference between IB and iWarp is the needed to create
+>>> a MR for the RDMA READ sink, and we're much better of adding that into
+>>> the current IB transport if new iWarp users show up.
+>>
+>> Agree. I will probably do it along with RDS IB FR support in 4.6
 >
-> You didn't respond to my comment re adding bools vs bit-fields vs bit-flags
+> Great news!
 
-This is outside the scope of this patchset.
-I'm willing to look into this incrementally to this.
+Great news indeed!
+
+Looking forward to seeing this.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
