@@ -1,48 +1,61 @@
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH] RDMA/nes: constify nes_cm_ops structure
-Date: Sat, 28 Nov 2015 15:00:37 +0100
-Message-ID: <1448719237-17445-1-git-send-email-Julia.Lawall@lip6.fr>
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Faisal Latif <faisal.latif@intel.com>
-Cc: kernel-janitors@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>
+Subject: [PATCH] IB/iser: constify iser_reg_ops structure
+Date: Sat, 28 Nov 2015 16:52:04 +0100
+Message-ID: <1448725924-26376-1-git-send-email-Julia.Lawall@lip6.fr>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The nes_cm_ops structure is never modified, so declare it as const.
+The iser_reg_ops structures are never modified, so declare them as const.
 
 Done with the help of Coccinelle.
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+Signed-off-by: Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>
 
 ---
- drivers/infiniband/hw/nes/nes_cm.c |    2 +-
- drivers/infiniband/hw/nes/nes_cm.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/ulp/iser/iscsi_iser.h  |    2 +-
+ drivers/infiniband/ulp/iser/iser_memory.c |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
-index 8a3ad17..d129342 100644
---- a/drivers/infiniband/hw/nes/nes_cm.c
-+++ b/drivers/infiniband/hw/nes/nes_cm.c
-@@ -134,7 +134,7 @@ static void record_ird_ord(struct nes_cm_node *, u16, u16);
- /* External CM API Interface */
- /* instance of function pointers for client API */
- /* set address of this instance to cm_core->cm_ops at cm_core alloc */
--static struct nes_cm_ops nes_cm_api = {
-+static const struct nes_cm_ops nes_cm_api = {
- 	mini_cm_accelerated,
- 	mini_cm_listen,
- 	mini_cm_del_listen,
-diff --git a/drivers/infiniband/hw/nes/nes_cm.h b/drivers/infiniband/hw/nes/nes_cm.h
-index 32a6420..147c2c8 100644
---- a/drivers/infiniband/hw/nes/nes_cm.h
-+++ b/drivers/infiniband/hw/nes/nes_cm.h
-@@ -423,7 +423,7 @@ struct nes_cm_core {
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
+index 8a5998e..08d0926 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.h
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
+@@ -400,7 +400,7 @@ struct iser_device {
+ 	int                          refcount;
+ 	int			     comps_used;
+ 	struct iser_comp	     *comps;
+-	struct iser_reg_ops          *reg_ops;
++	const struct iser_reg_ops    *reg_ops;
+ };
  
- 	struct timer_list       tcp_timer;
+ #define ISER_CHECK_GUARD	0xc0
+diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
+index ea765fb..b137d6d 100644
+--- a/drivers/infiniband/ulp/iser/iser_memory.c
++++ b/drivers/infiniband/ulp/iser/iser_memory.c
+@@ -49,7 +49,7 @@ int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
+ 		     struct iser_reg_resources *rsc,
+ 		     struct iser_mem_reg *mem_reg);
  
--	struct nes_cm_ops       *api;
-+	const struct nes_cm_ops *api;
+-static struct iser_reg_ops fastreg_ops = {
++static const struct iser_reg_ops fastreg_ops = {
+ 	.alloc_reg_res	= iser_alloc_fastreg_pool,
+ 	.free_reg_res	= iser_free_fastreg_pool,
+ 	.reg_mem	= iser_fast_reg_mr,
+@@ -58,7 +58,7 @@ static struct iser_reg_ops fastreg_ops = {
+ 	.reg_desc_put	= iser_reg_desc_put_fr,
+ };
  
- 	int (*post_event)(struct nes_cm_event *event);
- 	atomic_t                events_posted;
+-static struct iser_reg_ops fmr_ops = {
++static const struct iser_reg_ops fmr_ops = {
+ 	.alloc_reg_res	= iser_alloc_fmr_pool,
+ 	.free_reg_res	= iser_free_fmr_pool,
+ 	.reg_mem	= iser_fast_reg_fmr,
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
