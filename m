@@ -1,35 +1,47 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/2] IB/core: correct issue with sge copyin corrupting wr
-Date: Mon, 30 Nov 2015 23:39:05 +0200
-Message-ID: <CAJ3xEMjqcvfe6Gvt5Ctee354RotRXCw8BATWTv2+zgpodGhMOA@mail.gmail.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v2 02/11] xprtrdma: xprt_rdma_free() must not release
+ backchannel reqs
+Date: Mon, 30 Nov 2015 17:14:14 -0500
+Message-ID: <20151130221414.12235.17712.stgit@manet.1015granger.net>
+References: <20151130221349.12235.29565.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151130221349.12235.29565.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 30, 2015 at 4:34 PM, Mike Marciniszyn
-<mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+Preserve any rpcrdma_req that is attached to rpc_rqst's allocated
+for the backchannel. Otherwise, after all the pre-allocated
+backchannel req's are consumed, incoming backward calls start
+writing on freed memory.
 
-Being a non native English speaker I am not fully sure, but "copyin
-corrupting" sounds like slang / street talking... proper English
-please
+Somehow this hunk got lost.
 
-> Commit e622f2f4ad21 ("IB: split struct ib_send_wr")
-> introduced a regression for HCAs whose user mode post
-> sends go through ib_uverbs_post_send().
->
-> The code didn't account for the fact that the first sge is
-> offset by an operation dependent length.  The allocation did,
-> but the pointer to the sge list is computed without that knowledge.
->
-> Store the operation dependent length in an automatic and
-> compute the sge list copy in destination using that length.
+Fixes: f531a5dbc451 ('xprtrdma: Pre-allocate backward rpc_rqst')
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ net/sunrpc/xprtrdma/transport.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-in an automatic what?
+diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+index 8c545f7..740bddc 100644
+--- a/net/sunrpc/xprtrdma/transport.c
++++ b/net/sunrpc/xprtrdma/transport.c
+@@ -576,6 +576,9 @@ xprt_rdma_free(void *buffer)
+ 
+ 	rb = container_of(buffer, struct rpcrdma_regbuf, rg_base[0]);
+ 	req = rb->rg_owner;
++	if (req->rl_backchannel)
++		return;
++
+ 	r_xprt = container_of(req->rl_buffer, struct rpcrdma_xprt, rx_buf);
+ 
+ 	dprintk("RPC:       %s: called on 0x%p\n", __func__, req->rl_reply);
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
