@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/2] IB/core: correct issue with sge copyin corrupting wr
-Date: Mon, 30 Nov 2015 09:34:21 -0500
-Message-ID: <20151130143421.24060.88406.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH 2/2] IB/qib: Fix qib_mr structure
+Date: Mon, 30 Nov 2015 09:34:26 -0500
+Message-ID: <20151130143426.24060.87964.stgit@phlsvslse11.ph.intel.com>
 References: <20151130143326.24060.35941.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,84 +13,43 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Commit e622f2f4ad21 ("IB: split struct ib_send_wr")
-introduced a regression for HCAs whose user mode post
-sends go through ib_uverbs_post_send().
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The code didn't account for the fact that the first sge is
-offset by an operation dependent length.  The allocation did,
-but the pointer to the sge list is computed without that knowledge.
+struct qib_mr requires the mr member be the last because struct
+qib_mregion contains a dynamic array at the end.  The additions
+of members should have been placed before this structure as the
+comment noted.
 
-Store the operation dependent length in an automatic and
-compute the sge list copy in destination using that length.
+Failure to do so was causing random memory corruption.  Reproducing
+this bug was easy to do by running the client and server of
+ib_write_bw -s 8 -n 5 on the same node.
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+This BUG() was tripped in a slab debug kernel:
+
+kernel BUG at mm/slab.c:2572!
+
+Fixes: 38071a461f0a ("IB/qib: Support the new memory registration API")
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/qib/qib_verbs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 94816ae..4cb8e9d 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -2446,6 +2446,7 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
- 	int                             i, sg_ind;
- 	int				is_ud;
- 	ssize_t                         ret = -EINVAL;
-+	size_t                          next_size;
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
+index 2baf5ad..bc803f3 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.h
++++ b/drivers/infiniband/hw/qib/qib_verbs.h
+@@ -329,9 +329,9 @@ struct qib_sge {
+ struct qib_mr {
+ 	struct ib_mr ibmr;
+ 	struct ib_umem *umem;
+-	struct qib_mregion mr;  /* must be last */
+ 	u64 *pages;
+ 	u32 npages;
++	struct qib_mregion mr;  /* must be last */
+ };
  
- 	if (copy_from_user(&cmd, buf, sizeof cmd))
- 		return -EFAULT;
-@@ -2490,7 +2491,8 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
- 				goto out_put;
- 			}
- 
--			ud = alloc_wr(sizeof(*ud), user_wr->num_sge);
-+			next_size = sizeof(*ud);
-+			ud = alloc_wr(next_size, user_wr->num_sge);
- 			if (!ud) {
- 				ret = -ENOMEM;
- 				goto out_put;
-@@ -2511,7 +2513,8 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
- 			   user_wr->opcode == IB_WR_RDMA_READ) {
- 			struct ib_rdma_wr *rdma;
- 
--			rdma = alloc_wr(sizeof(*rdma), user_wr->num_sge);
-+			next_size = sizeof(*rdma);
-+			rdma = alloc_wr(next_size, user_wr->num_sge);
- 			if (!rdma) {
- 				ret = -ENOMEM;
- 				goto out_put;
-@@ -2525,7 +2528,8 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
- 			   user_wr->opcode == IB_WR_ATOMIC_FETCH_AND_ADD) {
- 			struct ib_atomic_wr *atomic;
- 
--			atomic = alloc_wr(sizeof(*atomic), user_wr->num_sge);
-+			next_size = sizeof(*atomic);
-+			atomic = alloc_wr(next_size, user_wr->num_sge);
- 			if (!atomic) {
- 				ret = -ENOMEM;
- 				goto out_put;
-@@ -2540,7 +2544,8 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
- 		} else if (user_wr->opcode == IB_WR_SEND ||
- 			   user_wr->opcode == IB_WR_SEND_WITH_IMM ||
- 			   user_wr->opcode == IB_WR_SEND_WITH_INV) {
--			next = alloc_wr(sizeof(*next), user_wr->num_sge);
-+			next_size = sizeof(*next);
-+			next = alloc_wr(next_size, user_wr->num_sge);
- 			if (!next) {
- 				ret = -ENOMEM;
- 				goto out_put;
-@@ -2572,7 +2577,7 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
- 
- 		if (next->num_sge) {
- 			next->sg_list = (void *) next +
--				ALIGN(sizeof *next, sizeof (struct ib_sge));
-+				ALIGN(next_size, sizeof(struct ib_sge));
- 			if (copy_from_user(next->sg_list,
- 					   buf + sizeof cmd +
- 					   cmd.wr_count * cmd.wqe_size +
+ /*
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
