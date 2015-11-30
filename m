@@ -1,68 +1,101 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 11/11] xprtrdma: Revert commit e7104a2a9606 ('xprtrdma:
- Cap req_cqinit').
-Date: Mon, 30 Nov 2015 17:15:26 -0500
-Message-ID: <20151130221526.12235.35195.stgit@manet.1015granger.net>
-References: <20151130221349.12235.29565.stgit@manet.1015granger.net>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH V2 1/2] IB/core: Fix user mode post post wr corruption
+Date: Mon, 30 Nov 2015 17:23:57 -0500
+Message-ID: <20151130222216.29332.64213.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151130221349.12235.29565.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The root of the problem was that sends (especially unsignalled
-FASTREG and LOCAL_INV Work Requests) were not properly flow-
-controlled, which allowed a send queue overrun.
+Commit e622f2f4ad21 ("IB: split struct ib_send_wr")
+introduced a regression for HCAs whose user mode post
+sends go through ib_uverbs_post_send().
 
-Now that the RPC/RDMA reply handler waits for invalidation to
-complete, the send queue is properly flow-controlled. Thus this
-limit is no longer necessary.
+The code didn't account for the fact that the first sge is
+offset by an operation dependent length.  The allocation did,
+but the pointer to the destination sge list is computed without
+that knowledge.  The sge list copy_from_user() then corrupts
+fields in the work request
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Store the operation dependent length in a local variable and
+compute the sge list copy_from_user() destination using that length.
+
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/verbs.c     |    6 ++----
- net/sunrpc/xprtrdma/xprt_rdma.h |    6 ------
- 2 files changed, 2 insertions(+), 10 deletions(-)
+differences from v1
+ - address comments from Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index d9c2097..daff5e7 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -616,10 +616,8 @@ rpcrdma_ep_create(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia,
+ drivers/infiniband/core/uverbs_cmd.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 94816ae..4cb8e9d 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -2446,6 +2446,7 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
+ 	int                             i, sg_ind;
+ 	int				is_ud;
+ 	ssize_t                         ret = -EINVAL;
++	size_t                          next_size;
  
- 	/* set trigger for requesting send completion */
- 	ep->rep_cqinit = ep->rep_attr.cap.max_send_wr/2 - 1;
--	if (ep->rep_cqinit > RPCRDMA_MAX_UNSIGNALED_SENDS)
--		ep->rep_cqinit = RPCRDMA_MAX_UNSIGNALED_SENDS;
--	else if (ep->rep_cqinit <= 2)
--		ep->rep_cqinit = 0;
-+	if (ep->rep_cqinit <= 2)
-+		ep->rep_cqinit = 0;	/* always signal? */
- 	INIT_CQCOUNT(ep);
- 	init_waitqueue_head(&ep->rep_connect_wait);
- 	INIT_DELAYED_WORK(&ep->rep_connect_worker, rpcrdma_connect_worker);
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index 6726cb3..6a9e627 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -88,12 +88,6 @@ struct rpcrdma_ep {
- 	struct delayed_work	rep_connect_worker;
- };
+ 	if (copy_from_user(&cmd, buf, sizeof cmd))
+ 		return -EFAULT;
+@@ -2490,7 +2491,8 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
+ 				goto out_put;
+ 			}
  
--/*
-- * Force a signaled SEND Work Request every so often,
-- * in case the provider needs to do some housekeeping.
-- */
--#define RPCRDMA_MAX_UNSIGNALED_SENDS	(32)
--
- #define INIT_CQCOUNT(ep) atomic_set(&(ep)->rep_cqcount, (ep)->rep_cqinit)
- #define DECR_CQCOUNT(ep) atomic_sub_return(1, &(ep)->rep_cqcount)
+-			ud = alloc_wr(sizeof(*ud), user_wr->num_sge);
++			next_size = sizeof(*ud);
++			ud = alloc_wr(next_size, user_wr->num_sge);
+ 			if (!ud) {
+ 				ret = -ENOMEM;
+ 				goto out_put;
+@@ -2511,7 +2513,8 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
+ 			   user_wr->opcode == IB_WR_RDMA_READ) {
+ 			struct ib_rdma_wr *rdma;
  
+-			rdma = alloc_wr(sizeof(*rdma), user_wr->num_sge);
++			next_size = sizeof(*rdma);
++			rdma = alloc_wr(next_size, user_wr->num_sge);
+ 			if (!rdma) {
+ 				ret = -ENOMEM;
+ 				goto out_put;
+@@ -2525,7 +2528,8 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
+ 			   user_wr->opcode == IB_WR_ATOMIC_FETCH_AND_ADD) {
+ 			struct ib_atomic_wr *atomic;
+ 
+-			atomic = alloc_wr(sizeof(*atomic), user_wr->num_sge);
++			next_size = sizeof(*atomic);
++			atomic = alloc_wr(next_size, user_wr->num_sge);
+ 			if (!atomic) {
+ 				ret = -ENOMEM;
+ 				goto out_put;
+@@ -2540,7 +2544,8 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
+ 		} else if (user_wr->opcode == IB_WR_SEND ||
+ 			   user_wr->opcode == IB_WR_SEND_WITH_IMM ||
+ 			   user_wr->opcode == IB_WR_SEND_WITH_INV) {
+-			next = alloc_wr(sizeof(*next), user_wr->num_sge);
++			next_size = sizeof(*next);
++			next = alloc_wr(next_size, user_wr->num_sge);
+ 			if (!next) {
+ 				ret = -ENOMEM;
+ 				goto out_put;
+@@ -2572,7 +2577,7 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
+ 
+ 		if (next->num_sge) {
+ 			next->sg_list = (void *) next +
+-				ALIGN(sizeof *next, sizeof (struct ib_sge));
++				ALIGN(next_size, sizeof(struct ib_sge));
+ 			if (copy_from_user(next->sg_list,
+ 					   buf + sizeof cmd +
+ 					   cmd.wr_count * cmd.wqe_size +
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
