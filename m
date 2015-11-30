@@ -1,49 +1,76 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 05/11] xprtrdma: Introduce ro_unmap_sync method
-Date: Mon, 30 Nov 2015 17:14:38 -0500
-Message-ID: <20151130221438.12235.51061.stgit@manet.1015granger.net>
+Subject: [PATCH v2 10/11] xprtrdma: Invalidate in the RPC reply handler
+Date: Mon, 30 Nov 2015 17:15:18 -0500
+Message-ID: <20151130221518.12235.50333.stgit@manet.1015granger.net>
 References: <20151130221349.12235.29565.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20151130221349.12235.29565.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-In the current xprtrdma implementation, some memreg strategies
-implement ro_unmap synchronously (the MR is knocked down before the
-method returns) and some asynchonously (the MR will be knocked down
-and returned to the pool in the background).
+There is a window between the time the RPC reply handler wakes the
+waiting RPC task and when xprt_release() invokes ops->buf_free.
+During this time, memory regions containing the data payload may
+still be accessed by a broken or malicious server, but the RPC
+application has already been allowed access to the memory containing
+the RPC request's data payloads.
 
-To guarantee the MR is truly invalid before the RPC consumer is
-allowed to resume execution, we need an unmap method that is
-always synchronous, invoked from the RPC/RDMA reply handler.
+The server should be fenced from client memory containing RPC data
+payloads _before_ the RPC application is allowed to continue.
 
-The new method unmaps all MRs for an RPC. The existing ro_unmap
-method unmaps only one MR at a time.
+This change also more strongly enforces send queue accounting. There
+is a maximum number of RPC calls allowed to be outstanding. When an
+RPC/RDMA transport is set up, just enough send queue resources are
+allocated to handle registration, Send, and invalidation WRs for
+each those RPCs at the same time.
 
+Before, additional RPC calls could be dispatched while invalidation
+WRs were still consuming send WQEs. When invalidation WRs backed
+up, dispatching additional RPCs resulted in a send queue overrun.
+
+Now, the reply handler prevents RPC dispatch until invalidation is
+complete. This prevents RPC call dispatch until there are enough
+send queue resources to proceed.
+
+Still to do: If an RPC exits early (say, ^C), the reply handler has
+no opportunity to perform invalidation. Currently, xprt_rdma_free()
+still frees remaining RDMA resources, which could deadlock.
+Additional changes are needed to handle invalidation properly in this
+case.
+
+Reported-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/xprt_rdma.h |    2 ++
- 1 file changed, 2 insertions(+)
+ net/sunrpc/xprtrdma/rpc_rdma.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index ca481b2..d2384b5 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -366,6 +366,8 @@ struct rpcrdma_xprt;
- struct rpcrdma_memreg_ops {
- 	int		(*ro_map)(struct rpcrdma_xprt *,
- 				  struct rpcrdma_mr_seg *, int, bool);
-+	void		(*ro_unmap_sync)(struct rpcrdma_xprt *,
-+					 struct rpcrdma_req *);
- 	int		(*ro_unmap)(struct rpcrdma_xprt *,
- 				    struct rpcrdma_mr_seg *);
- 	int		(*ro_open)(struct rpcrdma_ia *,
+diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
+index 0bc8c39..3d00c5d 100644
+--- a/net/sunrpc/xprtrdma/rpc_rdma.c
++++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+@@ -891,6 +891,16 @@ badheader:
+ 		break;
+ 	}
+ 
++	/* Invalidate and flush the data payloads before waking the
++	 * waiting application. This guarantees the memory region is
++	 * properly fenced from the server before the application
++	 * accesses the data. It also ensures proper send flow
++	 * control: waking the next RPC waits until this RPC has
++	 * relinquished all its Send Queue entries.
++	 */
++	if (req->rl_nchunks)
++		r_xprt->rx_ia.ri_ops->ro_unmap_sync(r_xprt, req);
++
+ 	credits = be32_to_cpu(headerp->rm_credit);
+ 	if (credits == 0)
+ 		credits = 1;	/* don't deadlock */
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
