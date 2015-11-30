@@ -1,96 +1,66 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 03/11] xprtrdma: Disable RPC/RDMA backchannel debugging
- messages
-Date: Mon, 30 Nov 2015 17:14:22 -0500
-Message-ID: <20151130221422.12235.78353.stgit@manet.1015granger.net>
-References: <20151130221349.12235.29565.stgit@manet.1015granger.net>
+Subject: [PATCH v2 00/11] NFS/RDMA client patches for 4.5
+Date: Mon, 30 Nov 2015 17:13:58 -0500
+Message-ID: <20151130221349.12235.29565.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151130221349.12235.29565.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up.
+For 4.5, I'd like to address the send queue accounting and
+invalidation/unmap ordering issues Jason brought up a couple of
+months ago. Thanks to all reviewers of v1.
 
-Fixes: 63cae47005af ('xprtrdma: Handle incoming backward direction')
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Also available in the "nfs-rdma-for-4.5" topic branch of this git repo:
+
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
+
+Or for browsing:
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfs-rdma-for-4.5
+
+Changes since v1:
+
+- Rebased on v4.4-rc3
+- Receive buffer safety margin patch dropped
+- Backchannel pr_err and pr_info converted to dprintk
+- Backchannel spin locks converted to work queue-safe locks
+- Fixed premature release of backchannel request buffer
+- NFSv4.1 callbacks tested with for-4.5 server
+
 ---
- net/sunrpc/xprtrdma/backchannel.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/backchannel.c b/net/sunrpc/xprtrdma/backchannel.c
-index 11d2cfb..cd31181 100644
---- a/net/sunrpc/xprtrdma/backchannel.c
-+++ b/net/sunrpc/xprtrdma/backchannel.c
-@@ -15,7 +15,7 @@
- # define RPCDBG_FACILITY	RPCDBG_TRANS
- #endif
- 
--#define RPCRDMA_BACKCHANNEL_DEBUG
-+#undef RPCRDMA_BACKCHANNEL_DEBUG
- 
- static void rpcrdma_bc_free_rqst(struct rpcrdma_xprt *r_xprt,
- 				 struct rpc_rqst *rqst)
-@@ -136,6 +136,7 @@ int xprt_rdma_bc_setup(struct rpc_xprt *xprt, unsigned int reqs)
- 			       __func__);
- 			goto out_free;
- 		}
-+		dprintk("RPC:       %s: new rqst %p\n", __func__, rqst);
- 
- 		rqst->rq_xprt = &r_xprt->rx_xprt;
- 		INIT_LIST_HEAD(&rqst->rq_list);
-@@ -216,12 +217,14 @@ int rpcrdma_bc_marshal_reply(struct rpc_rqst *rqst)
- 
- 	rpclen = rqst->rq_svec[0].iov_len;
- 
-+#ifdef RPCRDMA_BACKCHANNEL_DEBUG
- 	pr_info("RPC:       %s: rpclen %zd headerp 0x%p lkey 0x%x\n",
- 		__func__, rpclen, headerp, rdmab_lkey(req->rl_rdmabuf));
- 	pr_info("RPC:       %s: RPC/RDMA: %*ph\n",
- 		__func__, (int)RPCRDMA_HDRLEN_MIN, headerp);
- 	pr_info("RPC:       %s:      RPC: %*ph\n",
- 		__func__, (int)rpclen, rqst->rq_svec[0].iov_base);
-+#endif
- 
- 	req->rl_send_iov[0].addr = rdmab_addr(req->rl_rdmabuf);
- 	req->rl_send_iov[0].length = RPCRDMA_HDRLEN_MIN;
-@@ -265,6 +268,9 @@ void xprt_rdma_bc_free_rqst(struct rpc_rqst *rqst)
- {
- 	struct rpc_xprt *xprt = rqst->rq_xprt;
- 
-+	dprintk("RPC:       %s: freeing rqst %p (req %p)\n",
-+		__func__, rqst, rpcr_to_rdmar(rqst));
-+
- 	smp_mb__before_atomic();
- 	WARN_ON_ONCE(!test_bit(RPC_BC_PA_IN_USE, &rqst->rq_bc_pa_state));
- 	clear_bit(RPC_BC_PA_IN_USE, &rqst->rq_bc_pa_state);
-@@ -329,9 +335,7 @@ void rpcrdma_bc_receive_call(struct rpcrdma_xprt *r_xprt,
- 				struct rpc_rqst, rq_bc_pa_list);
- 	list_del(&rqst->rq_bc_pa_list);
- 	spin_unlock(&xprt->bc_pa_lock);
--#ifdef RPCRDMA_BACKCHANNEL_DEBUG
--	pr_info("RPC:       %s: using rqst %p\n", __func__, rqst);
--#endif
-+	dprintk("RPC:       %s: using rqst %p\n", __func__, rqst);
- 
- 	/* Prepare rqst */
- 	rqst->rq_reply_bytes_recvd = 0;
-@@ -351,10 +355,8 @@ void rpcrdma_bc_receive_call(struct rpcrdma_xprt *r_xprt,
- 	 * direction reply.
- 	 */
- 	req = rpcr_to_rdmar(rqst);
--#ifdef RPCRDMA_BACKCHANNEL_DEBUG
--	pr_info("RPC:       %s: attaching rep %p to req %p\n",
-+	dprintk("RPC:       %s: attaching rep %p to req %p\n",
- 		__func__, rep, req);
--#endif
- 	req->rl_reply = rep;
- 
- 	/* Defeat the retransmit detection logic in send_request */
+Chuck Lever (11):
+      xprtrdma: Fix additional uses of spin_lock_irqsave(rb_lock)
+      xprtrdma: xprt_rdma_free() must not release backchannel reqs
+      xprtrdma: Disable RPC/RDMA backchannel debugging messages
+      xprtrdma: Move struct ib_send_wr off the stack
+      xprtrdma: Introduce ro_unmap_sync method
+      xprtrdma: Add ro_unmap_sync method for FRWR
+      xprtrdma: Add ro_unmap_sync method for FMR
+      xprtrdma: Add ro_unmap_sync method for all-physical registration
+      SUNRPC: Introduce xprt_commit_rqst()
+      xprtrdma: Invalidate in the RPC reply handler
+      xprtrdma: Revert commit e7104a2a9606 ('xprtrdma: Cap req_cqinit').
 
+
+ include/linux/sunrpc/xprt.h        |    1 
+ net/sunrpc/xprt.c                  |   14 +++
+ net/sunrpc/xprtrdma/backchannel.c  |   22 ++---
+ net/sunrpc/xprtrdma/fmr_ops.c      |   64 +++++++++++++
+ net/sunrpc/xprtrdma/frwr_ops.c     |  175 +++++++++++++++++++++++++++++++-----
+ net/sunrpc/xprtrdma/physical_ops.c |   13 +++
+ net/sunrpc/xprtrdma/rpc_rdma.c     |   14 +++
+ net/sunrpc/xprtrdma/transport.c    |    3 +
+ net/sunrpc/xprtrdma/verbs.c        |   13 +--
+ net/sunrpc/xprtrdma/xprt_rdma.h    |   12 +-
+ 10 files changed, 283 insertions(+), 48 deletions(-)
+
+--
+Chuck Lever
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
