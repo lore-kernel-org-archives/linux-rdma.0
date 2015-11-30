@@ -1,67 +1,128 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 00/11] NFS/RDMA client patches for 4.5
-Date: Mon, 30 Nov 2015 17:13:58 -0500
-Message-ID: <20151130221349.12235.29565.stgit@manet.1015granger.net>
+Subject: [PATCH v2 04/11] xprtrdma: Move struct ib_send_wr off the stack
+Date: Mon, 30 Nov 2015 17:14:30 -0500
+Message-ID: <20151130221430.12235.67037.stgit@manet.1015granger.net>
+References: <20151130221349.12235.29565.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151130221349.12235.29565.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-For 4.5, I'd like to address the send queue accounting and
-invalidation/unmap ordering issues Jason brought up a couple of
-months ago. Thanks to all reviewers of v1.
+For FRWR FASTREG and LOCAL_INV, move the ib_*_wr structure off
+the stack. This allows frwr_op_map and frwr_op_unmap to chain
+WRs together without limit to register or invalidate a set of MRs
+with a single ib_post_send().
 
-Also available in the "nfs-rdma-for-4.5" topic branch of this git repo:
+(This will be for chaining LOCAL_INV requests).
 
-git://git.linux-nfs.org/projects/cel/cel-2.6.git
-
-Or for browsing:
-
-http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfs-rdma-for-4.5
-
-Changes since v1:
-
-- Rebased on v4.4-rc3
-- Receive buffer safety margin patch dropped
-- Backchannel pr_err and pr_info converted to dprintk
-- Backchannel spin locks converted to work queue-safe locks
-- Fixed premature release of backchannel request buffer
-- NFSv4.1 callbacks tested with for-4.5 server
-
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
+ net/sunrpc/xprtrdma/frwr_ops.c  |   38 ++++++++++++++++++++------------------
+ net/sunrpc/xprtrdma/xprt_rdma.h |    2 ++
+ 2 files changed, 22 insertions(+), 18 deletions(-)
 
-Chuck Lever (11):
-      xprtrdma: Fix additional uses of spin_lock_irqsave(rb_lock)
-      xprtrdma: xprt_rdma_free() must not release backchannel reqs
-      xprtrdma: Disable RPC/RDMA backchannel debugging messages
-      xprtrdma: Move struct ib_send_wr off the stack
-      xprtrdma: Introduce ro_unmap_sync method
-      xprtrdma: Add ro_unmap_sync method for FRWR
-      xprtrdma: Add ro_unmap_sync method for FMR
-      xprtrdma: Add ro_unmap_sync method for all-physical registration
-      SUNRPC: Introduce xprt_commit_rqst()
-      xprtrdma: Invalidate in the RPC reply handler
-      xprtrdma: Revert commit e7104a2a9606 ('xprtrdma: Cap req_cqinit').
-
-
- include/linux/sunrpc/xprt.h        |    1 
- net/sunrpc/xprt.c                  |   14 +++
- net/sunrpc/xprtrdma/backchannel.c  |   22 ++---
- net/sunrpc/xprtrdma/fmr_ops.c      |   64 +++++++++++++
- net/sunrpc/xprtrdma/frwr_ops.c     |  175 +++++++++++++++++++++++++++++++-----
- net/sunrpc/xprtrdma/physical_ops.c |   13 +++
- net/sunrpc/xprtrdma/rpc_rdma.c     |   14 +++
- net/sunrpc/xprtrdma/transport.c    |    3 +
- net/sunrpc/xprtrdma/verbs.c        |   13 +--
- net/sunrpc/xprtrdma/xprt_rdma.h    |   12 +-
- 10 files changed, 283 insertions(+), 48 deletions(-)
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index 88cf9e7..31a4578 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -319,7 +319,7 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
+ 	struct rpcrdma_mw *mw;
+ 	struct rpcrdma_frmr *frmr;
+ 	struct ib_mr *mr;
+-	struct ib_reg_wr reg_wr;
++	struct ib_reg_wr *reg_wr;
+ 	struct ib_send_wr *bad_wr;
+ 	int rc, i, n, dma_nents;
+ 	u8 key;
+@@ -336,6 +336,7 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
+ 	frmr = &mw->r.frmr;
+ 	frmr->fr_state = FRMR_IS_VALID;
+ 	mr = frmr->fr_mr;
++	reg_wr = &frmr->fr_regwr;
+ 
+ 	if (nsegs > ia->ri_max_frmr_depth)
+ 		nsegs = ia->ri_max_frmr_depth;
+@@ -381,19 +382,19 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
+ 	key = (u8)(mr->rkey & 0x000000FF);
+ 	ib_update_fast_reg_key(mr, ++key);
+ 
+-	reg_wr.wr.next = NULL;
+-	reg_wr.wr.opcode = IB_WR_REG_MR;
+-	reg_wr.wr.wr_id = (uintptr_t)mw;
+-	reg_wr.wr.num_sge = 0;
+-	reg_wr.wr.send_flags = 0;
+-	reg_wr.mr = mr;
+-	reg_wr.key = mr->rkey;
+-	reg_wr.access = writing ?
+-			IB_ACCESS_REMOTE_WRITE | IB_ACCESS_LOCAL_WRITE :
+-			IB_ACCESS_REMOTE_READ;
++	reg_wr->wr.next = NULL;
++	reg_wr->wr.opcode = IB_WR_REG_MR;
++	reg_wr->wr.wr_id = (uintptr_t)mw;
++	reg_wr->wr.num_sge = 0;
++	reg_wr->wr.send_flags = 0;
++	reg_wr->mr = mr;
++	reg_wr->key = mr->rkey;
++	reg_wr->access = writing ?
++			 IB_ACCESS_REMOTE_WRITE | IB_ACCESS_LOCAL_WRITE :
++			 IB_ACCESS_REMOTE_READ;
+ 
+ 	DECR_CQCOUNT(&r_xprt->rx_ep);
+-	rc = ib_post_send(ia->ri_id->qp, &reg_wr.wr, &bad_wr);
++	rc = ib_post_send(ia->ri_id->qp, &reg_wr->wr, &bad_wr);
+ 	if (rc)
+ 		goto out_senderr;
+ 
+@@ -423,23 +424,24 @@ frwr_op_unmap(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg)
+ 	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
+ 	struct rpcrdma_mw *mw = seg1->rl_mw;
+ 	struct rpcrdma_frmr *frmr = &mw->r.frmr;
+-	struct ib_send_wr invalidate_wr, *bad_wr;
++	struct ib_send_wr *invalidate_wr, *bad_wr;
+ 	int rc, nsegs = seg->mr_nsegs;
+ 
+ 	dprintk("RPC:       %s: FRMR %p\n", __func__, mw);
+ 
+ 	seg1->rl_mw = NULL;
+ 	frmr->fr_state = FRMR_IS_INVALID;
++	invalidate_wr = &mw->r.frmr.fr_invwr;
+ 
+-	memset(&invalidate_wr, 0, sizeof(invalidate_wr));
+-	invalidate_wr.wr_id = (unsigned long)(void *)mw;
+-	invalidate_wr.opcode = IB_WR_LOCAL_INV;
+-	invalidate_wr.ex.invalidate_rkey = frmr->fr_mr->rkey;
++	memset(invalidate_wr, 0, sizeof(*invalidate_wr));
++	invalidate_wr->wr_id = (uintptr_t)mw;
++	invalidate_wr->opcode = IB_WR_LOCAL_INV;
++	invalidate_wr->ex.invalidate_rkey = frmr->fr_mr->rkey;
+ 	DECR_CQCOUNT(&r_xprt->rx_ep);
+ 
+ 	ib_dma_unmap_sg(ia->ri_device, frmr->sg, frmr->sg_nents, seg1->mr_dir);
+ 	read_lock(&ia->ri_qplock);
+-	rc = ib_post_send(ia->ri_id->qp, &invalidate_wr, &bad_wr);
++	rc = ib_post_send(ia->ri_id->qp, invalidate_wr, &bad_wr);
+ 	read_unlock(&ia->ri_qplock);
+ 	if (rc)
+ 		goto out_err;
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index ac7f8d4..ca481b2 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -207,6 +207,8 @@ struct rpcrdma_frmr {
+ 	enum rpcrdma_frmr_state		fr_state;
+ 	struct work_struct		fr_work;
+ 	struct rpcrdma_xprt		*fr_xprt;
++	struct ib_reg_wr		fr_regwr;
++	struct ib_send_wr		fr_invwr;
+ };
+ 
+ struct rpcrdma_fmr {
 
 --
-Chuck Lever
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
