@@ -1,109 +1,80 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 3/7] svcrdma: Define maximum number of backchannel
- requests
-Date: Mon, 30 Nov 2015 17:24:49 -0500
-Message-ID: <20151130222449.13029.35573.stgit@klimt.1015granger.net>
+Subject: [PATCH v2 2/7] svcrdma: Add svc_rdma_get_context() API that is
+ allowed to fail
+Date: Mon, 30 Nov 2015 17:24:41 -0500
+Message-ID: <20151130222441.13029.88950.stgit@klimt.1015granger.net>
 References: <20151130222141.13029.98664.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20151130222141.13029.98664.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Extra resources for handling backchannel requests have to be
-pre-allocated when a transport instance is created. Set a limit.
+To support backward direction calls, I'm going to add an
+svc_rdma_get_context() call in the client RDMA transport.
+
+Called from ->buf_alloc(), we can't sleep waiting for memory.
+So add an API that can get a server op_ctxt but won't sleep.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
  include/linux/sunrpc/svc_rdma.h          |    2 ++
- net/sunrpc/xprtrdma/svc_rdma_transport.c |   14 +++++++++-----
- 2 files changed, 11 insertions(+), 5 deletions(-)
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |   14 +++++++++++---
+ 2 files changed, 13 insertions(+), 3 deletions(-)
 
 diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
-index cc69551..c189fbd 100644
+index f869807..cc69551 100644
 --- a/include/linux/sunrpc/svc_rdma.h
 +++ b/include/linux/sunrpc/svc_rdma.h
-@@ -137,6 +137,7 @@ struct svcxprt_rdma {
- 
- 	int                  sc_max_requests;	/* Depth of RQ */
- 	int                  sc_max_req_size;	/* Size of each RQ WR buf */
-+	int                  sc_max_bc_requests;
- 
- 	struct ib_pd         *sc_pd;
- 
-@@ -178,6 +179,7 @@ struct svcxprt_rdma {
- #define RPCRDMA_SQ_DEPTH_MULT   8
- #define RPCRDMA_MAX_REQUESTS    32
- #define RPCRDMA_MAX_REQ_SIZE    4096
-+#define RPCRDMA_MAX_BC_REQUESTS	2
- 
- #define RPCSVC_MAXPAYLOAD_RDMA	RPCSVC_MAXPAYLOAD
- 
+@@ -217,6 +217,8 @@ extern void svc_rdma_send_error(struct svcxprt_rdma *, struct rpcrdma_msg *,
+ extern int svc_rdma_post_recv(struct svcxprt_rdma *);
+ extern int svc_rdma_create_listen(struct svc_serv *, int, struct sockaddr *);
+ extern struct svc_rdma_op_ctxt *svc_rdma_get_context(struct svcxprt_rdma *);
++extern struct svc_rdma_op_ctxt *svc_rdma_get_context_gfp(struct svcxprt_rdma *,
++							 gfp_t);
+ extern void svc_rdma_put_context(struct svc_rdma_op_ctxt *, int);
+ extern void svc_rdma_unmap_dma(struct svc_rdma_op_ctxt *ctxt);
+ extern struct svc_rdma_req_map *svc_rdma_get_req_map(void);
 diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-index 94b8d4c..643402e 100644
+index b348b4a..94b8d4c 100644
 --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
 +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-@@ -541,6 +541,7 @@ static struct svcxprt_rdma *rdma_create_xprt(struct svc_serv *serv,
+@@ -153,12 +153,15 @@ static void svc_rdma_bc_free(struct svc_xprt *xprt)
+ }
+ #endif	/* CONFIG_SUNRPC_BACKCHANNEL */
  
- 	cma_xprt->sc_max_req_size = svcrdma_max_req_size;
- 	cma_xprt->sc_max_requests = svcrdma_max_requests;
-+	cma_xprt->sc_max_bc_requests = RPCRDMA_MAX_BC_REQUESTS;
- 	cma_xprt->sc_sq_depth = svcrdma_max_requests * RPCRDMA_SQ_DEPTH_MULT;
- 	atomic_set(&cma_xprt->sc_sq_count, 0);
- 	atomic_set(&cma_xprt->sc_ctxt_used, 0);
-@@ -897,6 +898,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
- 	struct ib_device_attr devattr;
- 	int uninitialized_var(dma_mr_acc);
- 	int need_dma_mr = 0;
-+	int total_reqs;
- 	int ret;
- 	int i;
+-struct svc_rdma_op_ctxt *svc_rdma_get_context(struct svcxprt_rdma *xprt)
++struct svc_rdma_op_ctxt *svc_rdma_get_context_gfp(struct svcxprt_rdma *xprt,
++						  gfp_t flags)
+ {
+ 	struct svc_rdma_op_ctxt *ctxt;
  
-@@ -932,8 +934,10 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
- 	newxprt->sc_max_sge_rd = min_t(size_t, devattr.max_sge_rd,
- 				       RPCSVC_MAXPAGES);
- 	newxprt->sc_max_requests = min((size_t)devattr.max_qp_wr,
--				   (size_t)svcrdma_max_requests);
--	newxprt->sc_sq_depth = RPCRDMA_SQ_DEPTH_MULT * newxprt->sc_max_requests;
-+				       (size_t)svcrdma_max_requests);
-+	newxprt->sc_max_bc_requests = RPCRDMA_MAX_BC_REQUESTS;
-+	total_reqs = newxprt->sc_max_requests + newxprt->sc_max_bc_requests;
-+	newxprt->sc_sq_depth = total_reqs * RPCRDMA_SQ_DEPTH_MULT;
+-	ctxt = kmem_cache_alloc(svc_rdma_ctxt_cachep,
+-				GFP_KERNEL | __GFP_NOFAIL);
++	ctxt = kmem_cache_alloc(svc_rdma_ctxt_cachep, flags);
++	if (!ctxt)
++		return NULL;
++
+ 	ctxt->xprt = xprt;
+ 	INIT_LIST_HEAD(&ctxt->dto_q);
+ 	ctxt->count = 0;
+@@ -167,6 +170,11 @@ struct svc_rdma_op_ctxt *svc_rdma_get_context(struct svcxprt_rdma *xprt)
+ 	return ctxt;
+ }
  
- 	/*
- 	 * Limit ORD based on client limit, local device limit, and
-@@ -957,7 +961,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
- 		dprintk("svcrdma: error creating SQ CQ for connect request\n");
- 		goto errout;
- 	}
--	cq_attr.cqe = newxprt->sc_max_requests;
-+	cq_attr.cqe = total_reqs;
- 	newxprt->sc_rq_cq = ib_create_cq(newxprt->sc_cm_id->device,
- 					 rq_comp_handler,
- 					 cq_event_handler,
-@@ -972,7 +976,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
- 	qp_attr.event_handler = qp_event_handler;
- 	qp_attr.qp_context = &newxprt->sc_xprt;
- 	qp_attr.cap.max_send_wr = newxprt->sc_sq_depth;
--	qp_attr.cap.max_recv_wr = newxprt->sc_max_requests;
-+	qp_attr.cap.max_recv_wr = total_reqs;
- 	qp_attr.cap.max_send_sge = newxprt->sc_max_sge;
- 	qp_attr.cap.max_recv_sge = newxprt->sc_max_sge;
- 	qp_attr.sq_sig_type = IB_SIGNAL_REQ_WR;
-@@ -1068,7 +1072,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
- 			newxprt->sc_cm_id->device->local_dma_lkey;
- 
- 	/* Post receive buffers */
--	for (i = 0; i < newxprt->sc_max_requests; i++) {
-+	for (i = 0; i < total_reqs; i++) {
- 		ret = svc_rdma_post_recv(newxprt);
- 		if (ret) {
- 			dprintk("svcrdma: failure posting receive buffers\n");
++struct svc_rdma_op_ctxt *svc_rdma_get_context(struct svcxprt_rdma *xprt)
++{
++	return svc_rdma_get_context_gfp(xprt, GFP_KERNEL | __GFP_NOFAIL);
++}
++
+ void svc_rdma_unmap_dma(struct svc_rdma_op_ctxt *ctxt)
+ {
+ 	struct svcxprt_rdma *xprt = ctxt->xprt;
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
