@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 2/6] IB/srp: Fix possible send queue overflow
-Date: Tue, 1 Dec 2015 10:18:03 -0800
-Message-ID: <565DE45B.7060100@sandisk.com>
+Subject: [PATCH 3/6] IB/srp: Initialize dma_length in srp_map_idb
+Date: Tue, 1 Dec 2015 10:18:30 -0800
+Message-ID: <565DE476.3080308@sandisk.com>
 References: <565DE3EC.2070002@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,33 +13,31 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 
-When using work request based memory registration (fast_reg)
-we must reserve SQ entries for registration and invalidation
-in addition to send operations. Each IO consumes 3 SQ entries
-(registration, send, invalidation) so we need to allocate 3x
-larger send-queue instead of 2x.
+Without this sg_dma_len will return 0 on architectures tha have
+the dma_length field.
 
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-CC: Stable <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Fixes: commit f7f7aab1a5c0 ("IB/srp: Convert to new registration API")
+Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index a074dad..c7a95d2 100644
+index c7a95d2..72fac20 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -488,7 +488,7 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
- 	struct ib_qp *qp;
- 	struct ib_fmr_pool *fmr_pool = NULL;
- 	struct srp_fr_pool *fr_pool = NULL;
--	const int m = 1 + dev->use_fast_reg;
-+	const int m = dev->use_fast_reg ? 3 : 1;
- 	struct ib_cq_init_attr cq_attr = {};
- 	int ret;
- 
+@@ -1524,6 +1524,9 @@ static int srp_map_idb(struct srp_rdma_ch *ch, struct srp_request *req,
+ 		state.sg_nents = 1;
+ 		sg_set_buf(idb_sg, req->indirect_desc, idb_len);
+ 		idb_sg->dma_address = req->indirect_dma_addr; /* hack! */
++#ifdef CONFIG_NEED_SG_DMA_LENGTH
++		idb_sg->dma_length = idb_sg->length;	      /* hack^2 */
++#endif
+ 		ret = srp_map_finish_fr(&state, ch);
+ 		if (ret < 0)
+ 			return ret;
 -- 
 2.1.4
 
