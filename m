@@ -1,34 +1,46 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 1/2] IB/core: correct issue with sge copyin corrupting wr
-Date: Mon, 30 Nov 2015 22:31:58 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC259C322E@fmsmsx120.amr.corp.intel.com>
-References: <CAJ3xEMjqcvfe6Gvt5Ctee354RotRXCw8BATWTv2+zgpodGhMOA@mail.gmail.com>
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: [PATCH v1 10/10] IB/iser: Support the remote invalidation
+ exception
+Date: Tue, 1 Dec 2015 12:43:41 +0200
+Message-ID: <565D79DD.7060600@dev.mellanox.co.il>
+References: <CAJ3xEMjqhCMZz=dX91vzzi20F8P1Tjh=WA2MKwBQ5G7OR8mn5Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMjqcvfe6Gvt5Ctee354RotRXCw8BATWTv2+zgpodGhMOA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <CAJ3xEMjqhCMZz=dX91vzzi20F8P1Tjh=WA2MKwBQ5G7OR8mn5Q@mail.gmail.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Or Gerlitz <gerlitz.or@gmail.com>, Sagi Grimberg <sagig@mellanox.com>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, target-devel@vger.kernel.org, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Or Gerlitz <ogerlitz@mellanox.com>, Jenny Derzhavetz <jennyf@mellanox.com>, Steve Wise <swise@opengridcomputing.com>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBCZWluZyBhIG5vbiBuYXRpdmUgRW5nbGlzaCBzcGVha2VyIEkgYW0gbm90IGZ1bGx5IHN1cmUs
-IGJ1dCAiY29weWluDQo+IGNvcnJ1cHRpbmciIHNvdW5kcyBsaWtlIHNsYW5nIC8gc3RyZWV0IHRh
-bGtpbmcuLi4gcHJvcGVyIEVuZ2xpc2ggcGxlYXNlDQo+IA0KPiA+IENvbW1pdCBlNjIyZjJmNGFk
-MjEgKCJJQjogc3BsaXQgc3RydWN0IGliX3NlbmRfd3IiKSBpbnRyb2R1Y2VkIGENCj4gPiByZWdy
-ZXNzaW9uIGZvciBIQ0FzIHdob3NlIHVzZXIgbW9kZSBwb3N0IHNlbmRzIGdvIHRocm91Z2gNCj4g
-PiBpYl91dmVyYnNfcG9zdF9zZW5kKCkuDQo+ID4NCj4gPiBUaGUgY29kZSBkaWRuJ3QgYWNjb3Vu
-dCBmb3IgdGhlIGZhY3QgdGhhdCB0aGUgZmlyc3Qgc2dlIGlzIG9mZnNldCBieQ0KPiA+IGFuIG9w
-ZXJhdGlvbiBkZXBlbmRlbnQgbGVuZ3RoLiAgVGhlIGFsbG9jYXRpb24gZGlkLCBidXQgdGhlIHBv
-aW50ZXIgdG8NCj4gPiB0aGUgc2dlIGxpc3QgaXMgY29tcHV0ZWQgd2l0aG91dCB0aGF0IGtub3ds
-ZWRnZS4NCj4gPg0KPiA+IFN0b3JlIHRoZSBvcGVyYXRpb24gZGVwZW5kZW50IGxlbmd0aCBpbiBh
-biBhdXRvbWF0aWMgYW5kIGNvbXB1dGUgdGhlDQo+ID4gc2dlIGxpc3QgY29weSBpbiBkZXN0aW5h
-dGlvbiB1c2luZyB0aGF0IGxlbmd0aC4NCj4gDQo+IGluIGFuIGF1dG9tYXRpYyB3aGF0Pw0KDQpT
-ZWUgaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1yZG1hJm09MTQ0ODkyMjI0MTE4NDA2Jnc9Mi4N
-Cg0KTWlrZQ0K
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+On 30/11/2015 23:36, Or Gerlitz wrote:
+> On Tue, Nov 24, 2015 at 6:23 PM, Sagi Grimberg <sagig@mellanox.com> wrote:
+>>
+>> From: Jenny Derzhavetz <jennyf@mellanox.com>
+>>
+>> Declare that we support remote invalidation in case we are:
+>> 1. using Fastreg method
+>> 2. always registering memory.
+>
+> decide if you want or don't want to use periods @ the end of these
+> cases, but be consistent... I vote not to use periods
+
+I'll fix.
+
+>
+>>
+>> Detect the invalidated rkey from the work completion info so we
+>> won't invalidate it locally. The spec madates that we must not rely
+>> on the taget remote invalidate our rkey so we must check it upon
+>> a receive (scsi response) completion.
+>>
+>
+> s/madates/mandates/ and run spell check over the change-logs of the
+> whole series please before posting v2
+
+OK.
+
+Thanks Or
