@@ -1,7 +1,7 @@
 From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 07/17] staging/rdma/hfi1: Extend quiet timeout
-Date: Tue,  1 Dec 2015 15:38:16 -0500
-Message-ID: <1449002306-15180-8-git-send-email-jubin.john@intel.com>
+Subject: [PATCH v2 08/17] staging/rdma/hfi1: Add a credit push on diagpkt allocate fail
+Date: Tue,  1 Dec 2015 15:38:17 -0500
+Message-ID: <1449002306-15180-9-git-send-email-jubin.john@intel.com>
 References: <1449002306-15180-1-git-send-email-jubin.john@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1449002306-15180-1-git-send-email-jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,38 +12,47 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The longest quiet timeout is now 6s.  Extend the driver wait to 6s.
-
-The driver wasn't following our internal specification: 6 seconds.
-This patch corrects that issue.
+When sending a diagnostic packet, if the send context does not
+have enough room, force a credit return and try again.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 Changes in v2:
-	- Added more information in commit message
+	- No changes
 
- drivers/staging/rdma/hfi1/chip.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/staging/rdma/hfi1/diag.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index 8191065..d9bb389 100644
---- a/drivers/staging/rdma/hfi1/chip.c
-+++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -6371,9 +6371,10 @@ static int goto_offline(struct hfi1_pportdata *ppd, u8 rem_reason)
- 	 * depending on how the link went down.  The 8051 firmware
- 	 * will observe the needed wait time and only move to ready
- 	 * when that is completed.  The largest of the quiet timeouts
--	 * is 2.5s, so wait that long and then a bit more.
-+	 * is 6s, so wait that long and then at least 0.5s more for
-+	 * other transitions, and another 0.5s for a buffer.
- 	 */
--	ret = wait_fm_ready(dd, 3000);
-+	ret = wait_fm_ready(dd, 7000);
- 	if (ret) {
- 		dd_dev_err(dd,
- 			"After going offline, timed out waiting for the 8051 to become ready to accept host requests\n");
+diff --git a/drivers/staging/rdma/hfi1/diag.c b/drivers/staging/rdma/hfi1/diag.c
+index 0aaad74..e4cd333 100644
+--- a/drivers/staging/rdma/hfi1/diag.c
++++ b/drivers/staging/rdma/hfi1/diag.c
+@@ -379,6 +379,7 @@ static ssize_t diagpkt_send(struct diag_pkt *dp)
+ 	pio_release_cb credit_cb = NULL;
+ 	void *credit_arg = NULL;
+ 	struct diagpkt_wait *wait = NULL;
++	int trycount = 0;
+ 
+ 	dd = hfi1_lookup(dp->unit);
+ 	if (!dd || !(dd->flags & HFI1_PRESENT) || !dd->kregbase) {
+@@ -493,8 +494,15 @@ static ssize_t diagpkt_send(struct diag_pkt *dp)
+ 		credit_arg = wait;
+ 	}
+ 
++retry:
+ 	pbuf = sc_buffer_alloc(sc, total_len, credit_cb, credit_arg);
+ 	if (!pbuf) {
++		if (trycount == 0) {
++			/* force a credit return and try again */
++			sc_return_credits(sc);
++			trycount = 1;
++			goto retry;
++		}
+ 		/*
+ 		 * No send buffer means no credit callback.  Undo
+ 		 * the wait set-up that was done above.  We free wait
 -- 
 1.7.1
 
