@@ -1,46 +1,70 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [PATCH v1 10/10] IB/iser: Support the remote invalidation
- exception
-Date: Tue, 1 Dec 2015 12:43:41 +0200
-Message-ID: <565D79DD.7060600@dev.mellanox.co.il>
-References: <CAJ3xEMjqhCMZz=dX91vzzi20F8P1Tjh=WA2MKwBQ5G7OR8mn5Q@mail.gmail.com>
+From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 6/7] xprtrdma: Add class for RDMA backwards direction
+ transport
+Date: Tue, 1 Dec 2015 08:38:18 -0500
+Message-ID: <565DA2CA.5090507@talpey.com>
+References: <20151130222141.13029.98664.stgit@klimt.1015granger.net>
+ <20151130222513.13029.52447.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <CAJ3xEMjqhCMZz=dX91vzzi20F8P1Tjh=WA2MKwBQ5G7OR8mn5Q@mail.gmail.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Or Gerlitz <gerlitz.or@gmail.com>, Sagi Grimberg <sagig@mellanox.com>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, target-devel@vger.kernel.org, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Or Gerlitz <ogerlitz@mellanox.com>, Jenny Derzhavetz <jennyf@mellanox.com>, Steve Wise <swise@opengridcomputing.com>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151130222513.13029.52447.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 30/11/2015 23:36, Or Gerlitz wrote:
-> On Tue, Nov 24, 2015 at 6:23 PM, Sagi Grimberg <sagig@mellanox.com> wrote:
->>
->> From: Jenny Derzhavetz <jennyf@mellanox.com>
->>
->> Declare that we support remote invalidation in case we are:
->> 1. using Fastreg method
->> 2. always registering memory.
+On 11/30/2015 5:25 PM, Chuck Lever wrote:
+> To support the server-side of an NFSv4.1 backchannel on RDMA
+> connections, add a transport class that enables backward
+> direction messages on an existing forward channel connection.
 >
-> decide if you want or don't want to use periods @ the end of these
-> cases, but be consistent... I vote not to use periods
 
-I'll fix.
+> +static void *
+> +xprt_rdma_bc_allocate(struct rpc_task *task, size_t size)
+> +{
+> +	struct rpc_rqst *rqst = task->tk_rqstp;
+> +	struct svc_rdma_op_ctxt *ctxt;
+> +	struct svcxprt_rdma *rdma;
+> +	struct svc_xprt *sxprt;
+> +	struct page *page;
+> +
+> +	if (size > PAGE_SIZE) {
+> +		WARN_ONCE(1, "failed to handle buffer allocation (size %zu)\n",
+> +			  size);
 
->
->>
->> Detect the invalidated rkey from the work completion info so we
->> won't invalidate it locally. The spec madates that we must not rely
->> on the taget remote invalidate our rkey so we must check it upon
->> a receive (scsi response) completion.
->>
->
-> s/madates/mandates/ and run spell check over the change-logs of the
-> whole series please before posting v2
+You may want to add more context to that rather cryptic string, at
+least the function name.
 
-OK.
+Also, it's not exactly "failed to handle", it's an invalid size. Why
+would this ever happen? Why even log it?
 
-Thanks Or
+
+
+> +static int
+> +rpcrdma_bc_send_request(struct svcxprt_rdma *rdma, struct rpc_rqst *rqst)
+> +{
+...
+> +
+> +drop_connection:
+> +	dprintk("Failed to send backchannel call\n");
+
+Ditto on the prefix / function context.
+
+And also...
+
+> +	dprintk("%s: sending request with xid: %08x\n",
+> +		__func__, be32_to_cpu(rqst->rq_xid));
+...
+> +	dprintk("RPC:       %s: xprt %p\n", __func__, xprt);
+
+The format strings for many of the dprintk's are somewhat inconsistent.
+Some start with "RPC", some with the function name, and some (in other
+patches of this series) with "svcrdma". Confusing, and perhaps hard to
+pick out of the log.
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
