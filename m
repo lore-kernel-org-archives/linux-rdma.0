@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 1/6] IB/srp: Fix a memory leak
-Date: Tue, 1 Dec 2015 10:17:32 -0800
-Message-ID: <565DE43C.6040805@sandisk.com>
+Subject: [PATCH 2/6] IB/srp: Fix possible send queue overflow
+Date: Tue, 1 Dec 2015 10:18:03 -0800
+Message-ID: <565DE45B.7060100@sandisk.com>
 References: <565DE3EC.2070002@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,109 +13,33 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If srp_connect_ch() returns a positive value then that is considered
-by its caller as a connection failure but this does not result in a
-scsi_host_put() call and additionally causes the srp_create_target()
-function to return a positive value while it should return a negative
-value. Avoid all this confusion and additionally fix a memory leak by
-ensuring that srp_connect_ch() always returns a value that is <= 0.
-This patch avoids that a rejected login triggers the following memory
-leak:
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-unreferenced object 0xffff88021b24a220 (size 8):
-  comm "srp_daemon", pid 56421, jiffies 4295006762 (age 4240.750s)
-  hex dump (first 8 bytes):
-    68 6f 73 74 35 38 00 a5                          host58..
-  backtrace:
-    [<ffffffff8151014a>] kmemleak_alloc+0x7a/0xc0
-    [<ffffffff81165c1e>] __kmalloc_track_caller+0xfe/0x160
-    [<ffffffff81260d2b>] kvasprintf+0x5b/0x90
-    [<ffffffff81260e2d>] kvasprintf_const+0x8d/0xb0
-    [<ffffffff81254b0c>] kobject_set_name_vargs+0x3c/0xa0
-    [<ffffffff81337e3c>] dev_set_name+0x3c/0x40
-    [<ffffffff81355757>] scsi_host_alloc+0x327/0x4b0
-    [<ffffffffa03edc8e>] srp_create_target+0x4e/0x8a0 [ib_srp]
-    [<ffffffff8133778b>] dev_attr_store+0x1b/0x20
-    [<ffffffff811f27fa>] sysfs_kf_write+0x4a/0x60
-    [<ffffffff811f1e8e>] kernfs_fop_write+0x14e/0x180
-    [<ffffffff81176eef>] __vfs_write+0x2f/0xf0
-    [<ffffffff811771e4>] vfs_write+0xa4/0x100
-    [<ffffffff81177c64>] SyS_write+0x54/0xc0
-    [<ffffffff8151b257>] entry_SYSCALL_64_fastpath+0x12/0x6f
+When using work request based memory registration (fast_reg)
+we must reserve SQ entries for registration and invalidation
+in addition to send operations. Each IO consumes 3 SQ entries
+(registration, send, invalidation) so we need to allocate 3x
+larger send-queue instead of 2x.
 
-Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: stable <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+CC: Stable <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 9909022..a074dad 100644
+index a074dad..c7a95d2 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -994,16 +994,16 @@ static int srp_connect_ch(struct srp_rdma_ch *ch, bool multich)
+@@ -488,7 +488,7 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
+ 	struct ib_qp *qp;
+ 	struct ib_fmr_pool *fmr_pool = NULL;
+ 	struct srp_fr_pool *fr_pool = NULL;
+-	const int m = 1 + dev->use_fast_reg;
++	const int m = dev->use_fast_reg ? 3 : 1;
+ 	struct ib_cq_init_attr cq_attr = {};
+ 	int ret;
  
- 	ret = srp_lookup_path(ch);
- 	if (ret)
--		return ret;
-+		goto out;
- 
- 	while (1) {
- 		init_completion(&ch->done);
- 		ret = srp_send_req(ch, multich);
- 		if (ret)
--			return ret;
-+			goto out;
- 		ret = wait_for_completion_interruptible(&ch->done);
- 		if (ret < 0)
--			return ret;
-+			goto out;
- 
- 		/*
- 		 * The CM event handling code will set status to
-@@ -1011,15 +1011,16 @@ static int srp_connect_ch(struct srp_rdma_ch *ch, bool multich)
- 		 * back, or SRP_DLID_REDIRECT if we get a lid/qp
- 		 * redirect REJ back.
- 		 */
--		switch (ch->status) {
-+		ret = ch->status;
-+		switch (ret) {
- 		case 0:
- 			ch->connected = true;
--			return 0;
-+			goto out;
- 
- 		case SRP_PORT_REDIRECT:
- 			ret = srp_lookup_path(ch);
- 			if (ret)
--				return ret;
-+				goto out;
- 			break;
- 
- 		case SRP_DLID_REDIRECT:
-@@ -1028,13 +1029,16 @@ static int srp_connect_ch(struct srp_rdma_ch *ch, bool multich)
- 		case SRP_STALE_CONN:
- 			shost_printk(KERN_ERR, target->scsi_host, PFX
- 				     "giving up on stale connection\n");
--			ch->status = -ECONNRESET;
--			return ch->status;
-+			ret = -ECONNRESET;
-+			goto out;
- 
- 		default:
--			return ch->status;
-+			goto out;
- 		}
- 	}
-+
-+out:
-+	return ret <= 0 ? ret : -ENODEV;
- }
- 
- static int srp_inv_rkey(struct srp_rdma_ch *ch, u32 rkey)
 -- 
 2.1.4
 
