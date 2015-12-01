@@ -1,53 +1,69 @@
-From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 13/17] staging/rdma/hfi1: remove SPC freeze error messages
-Date: Tue,  1 Dec 2015 15:38:22 -0500
-Message-ID: <1449002306-15180-14-git-send-email-jubin.john@intel.com>
+From: Jubin John <jubin.john@intel.com>
+Subject: [PATCH v2 02/17] staging/rdma/hfi1: Decode CNP opcode
+Date: Tue,  1 Dec 2015 15:38:11 -0500
+Message-ID: <1449002306-15180-3-git-send-email-jubin.john@intel.com>
 References: <1449002306-15180-1-git-send-email-jubin.john@intel.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1449002306-15180-1-git-send-email-jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <1449002306-15180-1-git-send-email-jubin.john@intel.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org
+Cc: linux-rdma@vger.kernel.org, dledford@redhat.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Dean Luick <dean.luick@intel.com>
 
-An SPC freeze is not an error.  Remove the messages.
+Add CNP opcode decode.
 
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Prior to this patch the trace appeared like:
+
+<idle>-0     [001] d.h. 94062.578932: input_ibhdr: [0000:05:00.0] vl 0
+lver 0 sl 0 lnh 2,LRH_BTH dlid 0003 len 6 slid 0001 op 0x80,0x80 se 0 m 0
+pad 0 tver 0 pkey 0x8001 f 0 b 0 qpn 0x001234 a 0 psn 0x00000000
+
+Note the "op 0x80,0x80".
+
+With this patch:
+
+<idle>-0     [000] d.h. 233975.912059: input_ibhdr: [0000:05:00.0] vl 0
+lver 0 sl 0 lnh 2,LRH_BTH dlid 0015 len 6 slid 0014 op 0x80,CNP se 0 m 0
+pad 0 tver 0 pkey 0x8001 f 0 b 0 qpn 0x001234 a 0 psn 0x00000000
+
+Note the "op 0x80,CNP"
+
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Signed-off-by: Dean Luick <dean.luick@intel.com>
+Signed-off-by: Jubin John <jubin.john@intel.com>
 ---
 Changes in v2:
-	- No changes
+	- Added more information in commit message
 
- drivers/staging/rdma/hfi1/chip.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+ drivers/staging/rdma/hfi1/trace.h |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index 342a564..85365d8 100644
---- a/drivers/staging/rdma/hfi1/chip.c
-+++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -6496,7 +6496,6 @@ void handle_freeze(struct work_struct *work)
- 	struct hfi1_devdata *dd = ppd->dd;
+diff --git a/drivers/staging/rdma/hfi1/trace.h b/drivers/staging/rdma/hfi1/trace.h
+index 5743029..86c12eb 100644
+--- a/drivers/staging/rdma/hfi1/trace.h
++++ b/drivers/staging/rdma/hfi1/trace.h
+@@ -417,7 +417,8 @@ __print_symbolic(opcode,                                   \
+ 	ib_opcode_name(UC_RDMA_WRITE_ONLY),                \
+ 	ib_opcode_name(UC_RDMA_WRITE_ONLY_WITH_IMMEDIATE), \
+ 	ib_opcode_name(UD_SEND_ONLY),                      \
+-	ib_opcode_name(UD_SEND_ONLY_WITH_IMMEDIATE))
++	ib_opcode_name(UD_SEND_ONLY_WITH_IMMEDIATE),       \
++	ib_opcode_name(CNP))
  
- 	/* wait for freeze indicators on all affected blocks */
--	dd_dev_info(dd, "Entering SPC freeze\n");
- 	wait_for_freeze_status(dd, 1);
  
- 	/* SPC is now frozen */
-@@ -6554,7 +6553,6 @@ void handle_freeze(struct work_struct *work)
- 	wake_up(&dd->event_queue);
- 
- 	/* no longer frozen */
--	dd_dev_err(dd, "Exiting SPC freeze\n");
- }
- 
- /*
+ #define LRH_PRN "vl %d lver %d sl %d lnh %d,%s dlid %.4x len %d slid %.4x"
 -- 
 1.7.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
