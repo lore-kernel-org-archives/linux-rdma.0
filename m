@@ -1,50 +1,34 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Future of FMR support, was: Re: [PATCH v1 5/9] xprtrdma: Add ro_unmap_sync method for FMR
-Date: Tue, 1 Dec 2015 10:33:18 -0500
-Message-ID: <AE86B182-6000-4437-8502-9D2C5EC3B09D@oracle.com>
-References: <20151123220627.32702.62667.stgit@manet.1015granger.net> <20151123221430.32702.86114.stgit@manet.1015granger.net> <5653B606.3070700@talpey.com> <20151124065225.GB29141@infradead.org> <20151124071215.GC23597@obsidianresearch.com>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151124071215.GC23597-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, santosh shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: stalled again
+Date: Tue, 1 Dec 2015 18:30:28 +0200
+Message-ID: <565DCB24.7020304@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Doug,
 
-> On Nov 24, 2015, at 2:12 AM, Jason Gunthorpe <jgunthorpe@obsidianrese=
-arch.com> wrote:
->=20
-> On Mon, Nov 23, 2015 at 10:52:26PM -0800, Christoph Hellwig wrote:
->>=20
->> So at lest for 4.5 we're unlikely to be able to get rid of it alone
->> due to the RDS issue.  We'll then need performance numbers for mlx4,
->> and figure out how much we care about mthca.
->=20
-> mthca is unfortunately very popular in the used market, it is very
-> easy to get cards, build a cheap test cluster, etc. :(
+We're against into this... upstream is on 4.4-rc3 while your latest 
+branch in kernel.org (the one that carries thefor-next tag) is rebased 
+to 4.3-rc3...
 
-Oracle recently announced Sonoma, which is a SPARC CPU with
-an on-chip IB HCA. Oracle plans to publish an open-source
-GPL device driver that enables this HCA in Linux for SPARC.
-We=E2=80=99d eventually like to contribute it to the upstream
-Linux kernel.
+--> our internal build and review systems for patches to linux-rdma 
+can'tmake any use of your tree. People here have to rebase their work 
+against their own clones of Linus tree and can't work with our internal 
+Gerrit rdma-next branch, etc, etc.
 
-At the moment, the device and driver support only FMR. As
-you might expect, Oracle needs it to work at least with
-in-kernel RDS. Thus we hope to see the life of in-kernel
-=46MR extended for a bit to accommodate this new device.
+We have to work in a very inefficient manner.
 
+Any reason on earth not to rebase your tree (== create new branch, move 
+their the for-next tag) after an rc1 is out? how long does this take?
 
+Or.
 --
-Chuck Lever
-
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
