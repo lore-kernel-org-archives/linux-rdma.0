@@ -1,49 +1,27 @@
-From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: Re: stalled again
-Date: Tue, 1 Dec 2015 10:13:10 -0800
-Message-ID: <20151201181310.GB14080@kroah.com>
-References: <565DCB24.7020304@mellanox.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 0/6] SRP initiator related bug fixes
+Date: Tue, 1 Dec 2015 10:16:12 -0800
+Message-ID: <565DE3EC.2070002@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <565DCB24.7020304-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 01, 2015 at 06:30:28PM +0200, Or Gerlitz wrote:
-> Doug,
-> 
-> We're against into this... upstream is on 4.4-rc3 while your latest branch
-> in kernel.org (the one that carries thefor-next tag) is rebased to
-> 4.3-rc3...
-> 
-> --> our internal build and review systems for patches to linux-rdma
-> can'tmake any use of your tree. People here have to rebase their work
-> against their own clones of Linus tree and can't work with our internal
-> Gerrit rdma-next branch, etc, etc.
+This patch series contains six bug fixes either for the SRP initiator 
+itself or for IB core functionality used by the SRP initiator. The order 
+of these patches matches the order in which the corresponding bugs have 
+been introduced. The patches in this series are:
 
-Why is your broken internal development process a concern to the kernel
-community in general?
-
-> We have to work in a very inefficient manner.
-
-Then stop doing foolish things :)
-
-> Any reason on earth not to rebase your tree (== create new branch, move
-> their the for-next tag) after an rc1 is out? how long does this take?
-
-Why does that matter?  You have access to everything, base your patches
-on a -rc release.
-
-And why are you concerning me with linux-rdma things, come on, you all
-really don't want to drag me into this again...
-
-thanks,
-
-greg k-h
+0001-IB-srp-Fix-a-memory-leak.patch
+0002-IB-srp-Fix-possible-send-queue-overflow.patch
+0003-IB-srp-Initialize-dma_length-in-srp_map_idb.patch
+0004-IB-srp-Fix-indirect-data-buffer-rkey-endianness.patch
+0005-IB-core-Fix-ib_sg_to_pages.patch
+0006-IB-srp-Fix-srp_map_sg_fr.patch
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
