@@ -1,103 +1,50 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH V3 1/2] IB/core: Fix user mode post wr corruption
-Date: Tue, 01 Dec 2015 10:13:51 -0500
-Message-ID: <20151201151313.8859.92428.stgit@phlsvslse11.ph.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Future of FMR support, was: Re: [PATCH v1 5/9] xprtrdma: Add ro_unmap_sync method for FMR
+Date: Tue, 1 Dec 2015 10:33:18 -0500
+Message-ID: <AE86B182-6000-4437-8502-9D2C5EC3B09D@oracle.com>
+References: <20151123220627.32702.62667.stgit@manet.1015granger.net> <20151123221430.32702.86114.stgit@manet.1015granger.net> <5653B606.3070700@talpey.com> <20151124065225.GB29141@infradead.org> <20151124071215.GC23597@obsidianresearch.com>
+Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151124071215.GC23597-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, santosh shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Commit e622f2f4ad21 ("IB: split struct ib_send_wr")
-introduced a regression for HCAs whose user mode post
-sends go through ib_uverbs_post_send().
 
-The code didn't account for the fact that the first sge is
-offset by an operation dependent length.  The allocation did,
-but the pointer to the destination sge list is computed without
-that knowledge.  The sge list copy_from_user() then corrupts
-fields in the work request
+> On Nov 24, 2015, at 2:12 AM, Jason Gunthorpe <jgunthorpe@obsidianrese=
+arch.com> wrote:
+>=20
+> On Mon, Nov 23, 2015 at 10:52:26PM -0800, Christoph Hellwig wrote:
+>>=20
+>> So at lest for 4.5 we're unlikely to be able to get rid of it alone
+>> due to the RDS issue.  We'll then need performance numbers for mlx4,
+>> and figure out how much we care about mthca.
+>=20
+> mthca is unfortunately very popular in the used market, it is very
+> easy to get cards, build a cheap test cluster, etc. :(
 
-Store the operation dependent length in a local variable and
-compute the sge list copy_from_user() destination using that length.
+Oracle recently announced Sonoma, which is a SPARC CPU with
+an on-chip IB HCA. Oracle plans to publish an open-source
+GPL device driver that enables this HCA in Linux for SPARC.
+We=E2=80=99d eventually like to contribute it to the upstream
+Linux kernel.
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
-differences from v2
- - remove double post in summary
-differences from v1
- - address comments from Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+At the moment, the device and driver support only FMR. As
+you might expect, Oracle needs it to work at least with
+in-kernel RDS. Thus we hope to see the life of in-kernel
+=46MR extended for a bit to accommodate this new device.
 
- drivers/infiniband/core/uverbs_cmd.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 94816ae..4cb8e9d 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -2446,6 +2446,7 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
- 	int                             i, sg_ind;
- 	int				is_ud;
- 	ssize_t                         ret = -EINVAL;
-+	size_t                          next_size;
- 
- 	if (copy_from_user(&cmd, buf, sizeof cmd))
- 		return -EFAULT;
-@@ -2490,7 +2491,8 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
- 				goto out_put;
- 			}
- 
--			ud = alloc_wr(sizeof(*ud), user_wr->num_sge);
-+			next_size = sizeof(*ud);
-+			ud = alloc_wr(next_size, user_wr->num_sge);
- 			if (!ud) {
- 				ret = -ENOMEM;
- 				goto out_put;
-@@ -2511,7 +2513,8 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
- 			   user_wr->opcode == IB_WR_RDMA_READ) {
- 			struct ib_rdma_wr *rdma;
- 
--			rdma = alloc_wr(sizeof(*rdma), user_wr->num_sge);
-+			next_size = sizeof(*rdma);
-+			rdma = alloc_wr(next_size, user_wr->num_sge);
- 			if (!rdma) {
- 				ret = -ENOMEM;
- 				goto out_put;
-@@ -2525,7 +2528,8 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
- 			   user_wr->opcode == IB_WR_ATOMIC_FETCH_AND_ADD) {
- 			struct ib_atomic_wr *atomic;
- 
--			atomic = alloc_wr(sizeof(*atomic), user_wr->num_sge);
-+			next_size = sizeof(*atomic);
-+			atomic = alloc_wr(next_size, user_wr->num_sge);
- 			if (!atomic) {
- 				ret = -ENOMEM;
- 				goto out_put;
-@@ -2540,7 +2544,8 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
- 		} else if (user_wr->opcode == IB_WR_SEND ||
- 			   user_wr->opcode == IB_WR_SEND_WITH_IMM ||
- 			   user_wr->opcode == IB_WR_SEND_WITH_INV) {
--			next = alloc_wr(sizeof(*next), user_wr->num_sge);
-+			next_size = sizeof(*next);
-+			next = alloc_wr(next_size, user_wr->num_sge);
- 			if (!next) {
- 				ret = -ENOMEM;
- 				goto out_put;
-@@ -2572,7 +2577,7 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
- 
- 		if (next->num_sge) {
- 			next->sg_list = (void *) next +
--				ALIGN(sizeof *next, sizeof (struct ib_sge));
-+				ALIGN(next_size, sizeof(struct ib_sge));
- 			if (copy_from_user(next->sg_list,
- 					   buf + sizeof cmd +
- 					   cmd.wr_count * cmd.wqe_size +
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
