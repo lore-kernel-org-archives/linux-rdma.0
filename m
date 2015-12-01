@@ -1,7 +1,7 @@
 From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 09/17] staging/rdma/hfi1: Correctly limit VLs against SDMA engines
-Date: Tue,  1 Dec 2015 15:38:18 -0500
-Message-ID: <1449002306-15180-10-git-send-email-jubin.john@intel.com>
+Subject: [PATCH v2 15/17] staging/rdma/hfi1: Consider VL15 MTU also when calculating the maximum VL MTU
+Date: Tue,  1 Dec 2015 15:38:24 -0500
+Message-ID: <1449002306-15180-16-git-send-email-jubin.john@intel.com>
 References: <1449002306-15180-1-git-send-email-jubin.john@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1449002306-15180-1-git-send-email-jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,44 +10,38 @@ To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQ
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Correctly reduce the number of VLs when limited by the number
-of SDMA engines.
+Currently, only MTUs of VLs 0-7 are checked when calculating the maximum VL
+MTU which is used to set the port MTU capability in DCC_CFG_PORT_CONFIG CSR
+This can cause a port MTU capability to be set to 0 if MTUs of VLs 0-7 is 0
+This would affect the VL15 traffic.
 
-The hardware has multiple egress mechanisms, SDMA and pio, and multiples
-of those. These mechanisms are chosen using the VL (8)
-
-The fix corrects a panic issue with one of the platforms that doesn't have
-enough SDMA (4) mechanisms for the typical number of VLs.
-
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Arthur Kepner <arthur.kepner-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 Changes in v2:
-	- Added more information in commit message
+	- No changes
 
- drivers/staging/rdma/hfi1/chip.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/staging/rdma/hfi1/chip.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index d9bb389..d17fd29 100644
+index e7c1505..9811954 100644
 --- a/drivers/staging/rdma/hfi1/chip.c
 +++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -10610,9 +10610,9 @@ struct hfi1_devdata *hfi1_init_dd(struct pci_dev *pdev,
- 	/* insure num_vls isn't larger than number of sdma engines */
- 	if (HFI1_CAP_IS_KSET(SDMA) && num_vls > dd->chip_sdma_engines) {
- 		dd_dev_err(dd, "num_vls %u too large, using %u VLs\n",
--				num_vls, HFI1_MAX_VLS_SUPPORTED);
--		ppd->vls_supported = num_vls = HFI1_MAX_VLS_SUPPORTED;
--		ppd->vls_operational = ppd->vls_supported;
-+			   num_vls, dd->chip_sdma_engines);
-+		num_vls = dd->chip_sdma_engines;
-+		ppd->vls_supported = dd->chip_sdma_engines;
- 	}
- 
- 	/*
+@@ -9399,7 +9399,8 @@ u32 lrh_max_header_bytes(struct hfi1_devdata *dd)
+ static void set_send_length(struct hfi1_pportdata *ppd)
+ {
+ 	struct hfi1_devdata *dd = ppd->dd;
+-	u32 max_hb = lrh_max_header_bytes(dd), maxvlmtu = 0, dcmtu;
++	u32 max_hb = lrh_max_header_bytes(dd), dcmtu;
++	u32 maxvlmtu = dd->vld[15].mtu;
+ 	u64 len1 = 0, len2 = (((dd->vld[15].mtu + max_hb) >> 2)
+ 			      & SEND_LEN_CHECK1_LEN_VL15_MASK) <<
+ 		SEND_LEN_CHECK1_LEN_VL15_SHIFT;
 -- 
 1.7.1
 
