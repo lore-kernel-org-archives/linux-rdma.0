@@ -1,86 +1,213 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: stalled again
-Date: Wed, 2 Dec 2015 15:10:13 -0500
-Message-ID: <565F5025.2090002@redhat.com>
-References: <565DCB24.7020304@mellanox.com>
- <20151202122927.GC28278@infradead.org>
- <20151202184201.GB17021@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="Iu9jQowCut3GWM77C9LJCLnt8v2GOhF6T"
+From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH 1/5] staging/rdma/hfi1: Convert to use get_user_pages_fast
+Date: Wed,  2 Dec 2015 15:56:23 -0500
+Message-ID: <1449089787-7258-2-git-send-email-ira.weiny@intel.com>
+References: <1449089787-7258-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151202184201.GB17021-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1449089787-7258-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---Iu9jQowCut3GWM77C9LJCLnt8v2GOhF6T
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-On 12/02/2015 01:42 PM, Jason Gunthorpe wrote:
-> On Wed, Dec 02, 2015 at 04:29:27AM -0800, Christoph Hellwig wrote:
->> Maybe we need more co-maintainers if the two current maintainers can't=
+Convert hfi1_get_user_pages() to use get_user_pages_fast(),
+which is much fatster. The mm semaphore is still taken to
+update the pinned page count but is for a much shorter
+amount of time.
 
->> handle the workload?
->=20
-> Doug is the only maintainer. The idea of co-maintainers was rejected
-> by some parties.
->=20
-> Don't be confused, the other 'M' people in the MAINTAINERS file are
-> really doing the 'R' job.
+Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/staging/rdma/hfi1/file_ops.c   |  8 +--
+ drivers/staging/rdma/hfi1/hfi.h        |  4 +-
+ drivers/staging/rdma/hfi1/user_pages.c | 97 +++++++++-------------------------
+ 3 files changed, 32 insertions(+), 77 deletions(-)
 
-For certain of those, I defer to their opinion on any patches.  For
-example, I deferred to Sean's opinion on the recent changes to the
-rdma_cm in regards to it no longer being sync versus async due to the
-RoCE changes.
+diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
+index 22037ce984c8..76580030f514 100644
+--- a/drivers/staging/rdma/hfi1/file_ops.c
++++ b/drivers/staging/rdma/hfi1/file_ops.c
+@@ -1670,8 +1670,8 @@ static int exp_tid_setup(struct file *fp, struct hfi1_tid_info *tinfo)
+ 		 * Now that we know how many free RcvArray entries we have,
+ 		 * we can pin that many user pages.
+ 		 */
+-		ret = hfi1_get_user_pages(vaddr + (mapped * PAGE_SIZE),
+-					  pinned, pages);
++		ret = hfi1_acquire_user_pages(vaddr + (mapped * PAGE_SIZE),
++					      pinned, true, pages);
+ 		if (ret) {
+ 			/*
+ 			 * We can't continue because the pages array won't be
+@@ -1840,7 +1840,7 @@ static int exp_tid_free(struct file *fp, struct hfi1_tid_info *tinfo)
+ 				}
+ 			}
+ 			flush_wc();
+-			hfi1_release_user_pages(pshadow, pcount);
++			hfi1_release_user_pages(pshadow, pcount, true);
+ 			clear_bit(bitidx, &uctxt->tidusemap[idx]);
+ 			map &= ~(1ULL<<bitidx);
+ 		}
+@@ -1869,7 +1869,7 @@ static void unlock_exp_tids(struct hfi1_ctxtdata *uctxt)
+ 		uctxt->physshadow[tid] = 0;
+ 		uctxt->tid_pg_list[tid] = NULL;
+ 		pci_unmap_page(dd->pcidev, phys, PAGE_SIZE, PCI_DMA_FROMDEVICE);
+-		hfi1_release_user_pages(&p, 1);
++		hfi1_release_user_pages(&p, 1, true);
+ 	}
+ }
+ 
+diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
+index 54ed6b36c1a7..467e1a9f8ed2 100644
+--- a/drivers/staging/rdma/hfi1/hfi.h
++++ b/drivers/staging/rdma/hfi1/hfi.h
+@@ -1551,8 +1551,8 @@ void hfi1_set_led_override(struct hfi1_pportdata *ppd, unsigned int val);
+  */
+ #define DEFAULT_RCVHDR_ENTSIZE 32
+ 
+-int hfi1_get_user_pages(unsigned long, size_t, struct page **);
+-void hfi1_release_user_pages(struct page **, size_t);
++int hfi1_acquire_user_pages(unsigned long, size_t, bool, struct page **);
++void hfi1_release_user_pages(struct page **, size_t, bool);
+ 
+ static inline void clear_rcvhdrtail(const struct hfi1_ctxtdata *rcd)
+ {
+diff --git a/drivers/staging/rdma/hfi1/user_pages.c b/drivers/staging/rdma/hfi1/user_pages.c
+index 9071afbd7bf4..692de658f0dc 100644
+--- a/drivers/staging/rdma/hfi1/user_pages.c
++++ b/drivers/staging/rdma/hfi1/user_pages.c
+@@ -49,59 +49,11 @@
+  */
+ 
+ #include <linux/mm.h>
++#include <linux/sched.h>
+ #include <linux/device.h>
+ 
+ #include "hfi.h"
+ 
+-static void __hfi1_release_user_pages(struct page **p, size_t num_pages,
+-				      int dirty)
+-{
+-	size_t i;
+-
+-	for (i = 0; i < num_pages; i++) {
+-		if (dirty)
+-			set_page_dirty_lock(p[i]);
+-		put_page(p[i]);
+-	}
+-}
+-
+-/*
+- * Call with current->mm->mmap_sem held.
+- */
+-static int __hfi1_get_user_pages(unsigned long start_page, size_t num_pages,
+-				 struct page **p)
+-{
+-	unsigned long lock_limit;
+-	size_t got;
+-	int ret;
+-
+-	lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
+-
+-	if (num_pages > lock_limit && !capable(CAP_IPC_LOCK)) {
+-		ret = -ENOMEM;
+-		goto bail;
+-	}
+-
+-	for (got = 0; got < num_pages; got += ret) {
+-		ret = get_user_pages(current, current->mm,
+-				     start_page + got * PAGE_SIZE,
+-				     num_pages - got, 1, 1,
+-				     p + got, NULL);
+-		if (ret < 0)
+-			goto bail_release;
+-	}
+-
+-	current->mm->pinned_vm += num_pages;
+-
+-	ret = 0;
+-	goto bail;
+-
+-bail_release:
+-	__hfi1_release_user_pages(p, got, 0);
+-bail:
+-	return ret;
+-}
+-
+ /**
+  * hfi1_map_page - a safety wrapper around pci_map_page()
+  *
+@@ -116,41 +68,44 @@ dma_addr_t hfi1_map_page(struct pci_dev *hwdev, struct page *page,
+ 	return phys;
+ }
+ 
+-/**
+- * hfi1_get_user_pages - lock user pages into memory
+- * @start_page: the start page
+- * @num_pages: the number of pages
+- * @p: the output page structures
+- *
+- * This function takes a given start page (page aligned user virtual
+- * address) and pins it and the following specified number of pages.  For
+- * now, num_pages is always 1, but that will probably change at some point
+- * (because caller is doing expected sends on a single virtually contiguous
+- * buffer, so we can do all pages at once).
+- */
+-int hfi1_get_user_pages(unsigned long start_page, size_t num_pages,
+-			struct page **p)
++int hfi1_acquire_user_pages(unsigned long vaddr, size_t npages, bool writable,
++			    struct page **pages)
+ {
++	unsigned long pinned, lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
++	bool can_lock = capable(CAP_IPC_LOCK);
+ 	int ret;
+ 
+-	down_write(&current->mm->mmap_sem);
++	down_read(&current->mm->mmap_sem);
++	pinned = current->mm->pinned_vm;
++	up_read(&current->mm->mmap_sem);
+ 
+-	ret = __hfi1_get_user_pages(start_page, num_pages, p);
++	if (pinned + npages > lock_limit && !can_lock)
++		return -ENOMEM;
+ 
++	ret = get_user_pages_fast(vaddr, npages, writable, pages);
++	if (ret < 0)
++		return ret;
++
++	down_write(&current->mm->mmap_sem);
++	current->mm->pinned_vm += ret;
+ 	up_write(&current->mm->mmap_sem);
+ 
+ 	return ret;
+ }
+ 
+-void hfi1_release_user_pages(struct page **p, size_t num_pages)
++void hfi1_release_user_pages(struct page **p, size_t npages, bool dirty)
+ {
+-	if (current->mm) /* during close after signal, mm can be NULL */
+-		down_write(&current->mm->mmap_sem);
++	size_t i;
+ 
+-	__hfi1_release_user_pages(p, num_pages, 1);
++	for (i = 0; i < npages; i++) {
++		if (dirty)
++			set_page_dirty_lock(p[i]);
++		put_page(p[i]);
++	}
+ 
+-	if (current->mm) {
+-		current->mm->pinned_vm -= num_pages;
++	if (current->mm) { /* during close after signal, mm can be NULL */
++		down_write(&current->mm->mmap_sem);
++		current->mm->pinned_vm -= npages;
+ 		up_write(&current->mm->mmap_sem);
+ 	}
+ }
+-- 
+1.8.2
 
-> If Doug wasn't able to become full time on this project we should
-> probably revisit that.
-
-I'm more or less full time.  There is still some lingering work on my
-part in terms of helping out my replacements internally come fully up to
-speed.  But even full time I don't sit around reading mail and slurping
-up patches all day, there are other aspects to what I do in my role now.
-
-However, that's neither here nor there.  The real issue for the last
-month plus has been the paternity leave.  Things still haven't settled
-fully down at home and I'm simply horribly behind.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---Iu9jQowCut3GWM77C9LJCLnt8v2GOhF6T
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJWX1AlAAoJELgmozMOVy/dqngP/j09L07FmNYLEoWnGfjiQ+iG
-cNWg/LxvUmwpqqGIxKisfPwPBPJA5QqJzKIs8ZGCtliDyrqvs4MUm2X/RIO3dhsB
-j0qGd1KevMvAiMoMBmw3A9GhOtCAt+PZeQUUT56TpEHCFNV/WITa1ujzaH0G+PIm
-6e+3nFnU/HsDihXlex2PQ4jV9m97tfge525zFKaj4pTZrWwMftJ4gTut6RtM+NTs
-a/FtNuYHuciS4EJLoOOF5LMBH3JVgbTvx/rcQmh1gdF6Xz3PtSShLV48AiR5aqYE
-05uHmG7iRORhh7DFtdylVkXuDqYuMysK8lgHUKVInJ/TnevYBpTnLr46hyyOI5cy
-E+Unc1hohDPCxJPvyX1dZAt6Td87l3pFfv6j7u4x9rxpodBIXBIQw9CprH1Y3hfj
-MMGhnpVF4XqUm2W9KlmGS4ijuaOU2U9uBLaU+XB99rWS6OMsnxn2Eq7Xlw+Yo+IM
-4IuS+US0gCm7A7E+eebm8+XZihmI+bQpKqV2329AHakd+fcd7tlnlRvdcNbkuOif
-a1eG89JwItQ3ZPoeDewgocmqW+DD6LCjgSrHc8EDx20ZjV8T4lIkTX7GYQqZPzhR
-Hc4yif+uxiQPbLKVGD/RDa/d7x3B/hJJI4e5jdwVnON73I24cXlBCpj+rxgEtNmR
-45N0asA9jprRV/qZxAqi
-=eYE2
------END PGP SIGNATURE-----
-
---Iu9jQowCut3GWM77C9LJCLnt8v2GOhF6T--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
