@@ -1,29 +1,69 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v2 04/17] staging/rdma/hfi1: Fix qp.h comments
-Date: Tue, 1 Dec 2015 14:30:25 -0700
-Message-ID: <20151201213025.GB25973@obsidianresearch.com>
-References: <1449002306-15180-1-git-send-email-jubin.john@intel.com>
- <1449002306-15180-5-git-send-email-jubin.john@intel.com>
+From: ira.weiny@intel.com
+Subject: [PATCH v3 00/13] Fix hfi1_ioctl locking
+Date: Wed,  2 Dec 2015 00:43:25 -0500
+Message-ID: <1449035018-26396-1-git-send-email-ira.weiny@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1449002306-15180-5-git-send-email-jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org
+Cc: linux-rdma@vger.kernel.org, dledford@redhat.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 01, 2015 at 03:38:13PM -0500, Jubin John wrote:
-> From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
-> This patch fixes a few incorrect header file comments in qp.h
+From: Ira Weiny <ira.weiny@intel.com>
 
-FWIW, within drivers/infiniband we've been moving these comments
-to the implementation, not the function prototype.
+It was identified that hfi1_ioctl may sleep with a spin lock held.
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This was identified publicly here:
+
+http://www.spinics.net/lists/linux-rdma/msg29926.html
+
+As well as by our internal development.
+
+This series cleans up the code and parameter checks, as well as fixing the
+locking.
+
+---
+Changes from v1
+        Alter switch to just ignore set link state and default to return -ENOTTY
+	Remove patch which introduced an intermediate bug and squash it in the
+	final patch
+		Series was 7 patches rather than 8
+
+Changes from v2
+	Split patch 1 (diag.c Correct code style issues) into 7 patches which
+	each fix a specific checkpatch issue.
+		Series is now 13 patches
+	
+
+Dennis Dalessandro (2):
+  staging/rdma/hfi1: Reduce snoop locking scope in IOCTL handler.
+  staging/rdma/hfi1: Return immediately on error
+
+Ira Weiny (11):
+  staging/rdma/hfi1: diag.c use BIT macros
+  staging/rdma/hfi1: diag.c fix alignment
+  staging/rdma/hfi1: diag.c fix logical continuations
+  staging/rdma/hfi1: diag.c fix white space errors
+  staging/rdma/hfi1: diag.c change null comparisons
+  staging/rdma/hfi1: diag.c add missing braces
+  staging/rdma/hfi1: diag.c correct sizeof parameter
+  staging/rdma/hfi1: Fix camel case variables
+  staging/rdma/hfi1: Return early from hfi1_ioctl parameter errors
+  staging/rdma/hfi1: hfi1_ioctl remove setlink state
+  staging/rdma/hfi1: Further clean up hfi1_ioctl parameter checks
+
+ drivers/staging/rdma/hfi1/diag.c | 464 +++++++++++++++++++--------------------
+ 1 file changed, 220 insertions(+), 244 deletions(-)
+
+-- 
+1.8.2
