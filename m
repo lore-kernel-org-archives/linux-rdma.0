@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v3 02/13] staging/rdma/hfi1: diag.c fix alignment
-Date: Wed,  2 Dec 2015 00:43:27 -0500
-Message-ID: <1449035018-26396-3-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH v3 05/13] staging/rdma/hfi1: diag.c change null comparisons
+Date: Wed,  2 Dec 2015 00:43:30 -0500
+Message-ID: <1449035018-26396-6-git-send-email-ira.weiny@intel.com>
 References: <1449035018-26396-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1449035018-26396-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,78 +12,107 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Fix line alignment in various places as caught by checkpatch --strict.
+Use !foo rather than (foo == NULL) as recommended by checkpatch --strict
 
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/diag.c | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/staging/rdma/hfi1/diag.c | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/staging/rdma/hfi1/diag.c b/drivers/staging/rdma/hfi1/diag.c
-index 8faad4556ae1..1d9faad7662f 100644
+index ac0685ce373f..0643f3716719 100644
 --- a/drivers/staging/rdma/hfi1/diag.c
 +++ b/drivers/staging/rdma/hfi1/diag.c
-@@ -135,7 +135,7 @@ static struct cdev diagpkt_cdev;
- static struct device *diagpkt_device;
+@@ -563,7 +563,7 @@ static ssize_t diagpkt_write(struct file *fp, const char __user *data,
+ 	*/
+ 	if (dp.pbc) {
+ 		dd = hfi1_lookup(dp.unit);
+-		if (dd == NULL)
++		if (!dd)
+ 			return -ENODEV;
+ 		vl = (dp.pbc >> PBC_VL_SHIFT) & PBC_VL_MASK;
+ 		sc = dd->vld[vl].sc;
+@@ -649,7 +649,7 @@ static int hfi1_snoop_open(struct inode *in, struct file *fp)
+ 	mutex_lock(&hfi1_mutex);
  
- static ssize_t diagpkt_write(struct file *fp, const char __user *data,
--				 size_t count, loff_t *off);
-+			     size_t count, loff_t *off);
- 
- static const struct file_operations diagpkt_file_ops = {
- 	.owner = THIS_MODULE,
-@@ -202,12 +202,12 @@ struct hfi1_link_info {
- 
- static int hfi1_snoop_open(struct inode *in, struct file *fp);
- static ssize_t hfi1_snoop_read(struct file *fp, char __user *data,
--				size_t pkt_len, loff_t *off);
-+			       size_t pkt_len, loff_t *off);
- static ssize_t hfi1_snoop_write(struct file *fp, const char __user *data,
--				 size_t count, loff_t *off);
-+				size_t count, loff_t *off);
- static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg);
- static unsigned int hfi1_snoop_poll(struct file *fp,
--					struct poll_table_struct *wait);
-+				    struct poll_table_struct *wait);
- static int hfi1_snoop_release(struct inode *in, struct file *fp);
- 
- struct hfi1_packet_filter_command {
-@@ -393,7 +393,7 @@ static ssize_t diagpkt_send(struct diag_pkt *dp)
- 
- 	if (dp->version != _DIAG_PKT_VERS) {
- 		dd_dev_err(dd, "Invalid version %u for diagpkt_write\n",
--			    dp->version);
-+			   dp->version);
- 		ret = -EINVAL;
+ 	dd = hfi1_dd_from_sc_inode(in);
+-	if (dd == NULL) {
++	if (!dd) {
+ 		ret = -ENODEV;
  		goto bail;
  	}
-@@ -545,7 +545,7 @@ bail:
- }
+@@ -736,7 +736,7 @@ static int hfi1_snoop_release(struct inode *in, struct file *fp)
+ 	int mode_flag;
  
- static ssize_t diagpkt_write(struct file *fp, const char __user *data,
--				 size_t count, loff_t *off)
-+			     size_t count, loff_t *off)
- {
+ 	dd = hfi1_dd_from_sc_inode(in);
+-	if (dd == NULL)
++	if (!dd)
+ 		return -ENODEV;
+ 
+ 	spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
+@@ -791,7 +791,7 @@ static unsigned int hfi1_snoop_poll(struct file *fp,
  	struct hfi1_devdata *dd;
- 	struct send_context *sc;
-@@ -598,7 +598,7 @@ static int hfi1_snoop_add(struct hfi1_devdata *dd, const char *name)
- 	if (ret) {
- 		dd_dev_err(dd, "Couldn't create %s device: %d", name, ret);
- 		hfi1_cdev_cleanup(&dd->hfi1_snoop.cdev,
--				 &dd->hfi1_snoop.class_dev);
-+				  &dd->hfi1_snoop.class_dev);
- 	}
  
- 	return ret;
-@@ -946,7 +946,7 @@ static ssize_t hfi1_snoop_read(struct file *fp, char __user *data,
- 		spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
- 		if (pkt_len >= packet->total_len) {
- 			if (copy_to_user(data, packet->data,
--				packet->total_len))
-+					 packet->total_len))
- 				ret = -EFAULT;
- 			else
- 				ret = packet->total_len;
+ 	dd = hfi1_dd_from_sc_inode(fp->f_inode);
+-	if (dd == NULL)
++	if (!dd)
+ 		return -ENODEV;
+ 
+ 	spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
+@@ -818,7 +818,7 @@ static ssize_t hfi1_snoop_write(struct file *fp, const char __user *data,
+ 	struct hfi1_pportdata *ppd;
+ 
+ 	dd = hfi1_dd_from_sc_inode(fp->f_inode);
+-	if (dd == NULL)
++	if (!dd)
+ 		return -ENODEV;
+ 
+ 	ppd = dd->pport;
+@@ -916,7 +916,7 @@ static ssize_t hfi1_snoop_read(struct file *fp, char __user *data,
+ 	struct hfi1_devdata *dd;
+ 
+ 	dd = hfi1_dd_from_sc_inode(fp->f_inode);
+-	if (dd == NULL)
++	if (!dd)
+ 		return -ENODEV;
+ 
+ 	spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
+@@ -974,7 +974,7 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
+ 	struct hfi1_link_info link_info;
+ 
+ 	dd = hfi1_dd_from_sc_inode(fp->f_inode);
+-	if (dd == NULL)
++	if (!dd)
+ 		return -ENODEV;
+ 
+ 	spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
+@@ -1538,7 +1538,7 @@ int snoop_recv_handler(struct hfi1_packet *packet)
+ 						 tlen - header_size,
+ 						 md_len);
+ 
+-		if (unlikely(s_packet == NULL)) {
++		if (unlikely(!s_packet)) {
+ 			dd_dev_warn_ratelimited(ppd->dd, "Unable to allocate snoop/capture packet\n");
+ 			break;
+ 		}
+@@ -1659,7 +1659,7 @@ int snoop_send_pio_handler(struct hfi1_qp *qp, struct hfi1_pkt_state *ps,
+ 	/* not using ss->total_len as arg 2 b/c that does not count CRC */
+ 	s_packet = allocate_snoop_packet(hdr_len, tlen - hdr_len, md_len);
+ 
+-	if (unlikely(s_packet == NULL)) {
++	if (unlikely(!s_packet)) {
+ 		dd_dev_warn_ratelimited(ppd->dd, "Unable to allocate snoop/capture packet\n");
+ 		goto out;
+ 	}
+@@ -1828,7 +1828,7 @@ void snoop_inline_pio_send(struct hfi1_devdata *dd, struct pio_buf *pbuf,
+ 
+ 		s_packet = allocate_snoop_packet(packet_len, 0, md_len);
+ 
+-		if (unlikely(s_packet == NULL)) {
++		if (unlikely(!s_packet)) {
+ 			dd_dev_warn_ratelimited(dd, "Unable to allocate snoop/capture packet\n");
+ 			goto inline_pio_out;
+ 		}
 -- 
 1.8.2
 
