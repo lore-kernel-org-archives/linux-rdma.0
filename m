@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 1/5] staging/rdma/hfi1: Convert to use get_user_pages_fast
-Date: Wed,  2 Dec 2015 15:56:23 -0500
-Message-ID: <1449089787-7258-2-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 3/5] staging/rdma/hfi1: Clean-up unnecessary goto statements
+Date: Wed,  2 Dec 2015 15:56:25 -0500
+Message-ID: <1449089787-7258-4-git-send-email-ira.weiny@intel.com>
 References: <1449089787-7258-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1449089787-7258-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,199 +12,122 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Convert hfi1_get_user_pages() to use get_user_pages_fast(),
-which is much fatster. The mm semaphore is still taken to
-update the pinned page count but is for a much shorter
-amount of time.
+Clean-up unnecessary goto statements based on feedback from the
+mailing list on previous patch submissions.
 
-Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/file_ops.c   |  8 +--
- drivers/staging/rdma/hfi1/hfi.h        |  4 +-
- drivers/staging/rdma/hfi1/user_pages.c | 97 +++++++++-------------------------
- 3 files changed, 32 insertions(+), 77 deletions(-)
+ drivers/staging/rdma/hfi1/user_sdma.c | 37 +++++++++++++----------------------
+ 1 file changed, 14 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
-index 22037ce984c8..76580030f514 100644
---- a/drivers/staging/rdma/hfi1/file_ops.c
-+++ b/drivers/staging/rdma/hfi1/file_ops.c
-@@ -1670,8 +1670,8 @@ static int exp_tid_setup(struct file *fp, struct hfi1_tid_info *tinfo)
- 		 * Now that we know how many free RcvArray entries we have,
- 		 * we can pin that many user pages.
- 		 */
--		ret = hfi1_get_user_pages(vaddr + (mapped * PAGE_SIZE),
--					  pinned, pages);
-+		ret = hfi1_acquire_user_pages(vaddr + (mapped * PAGE_SIZE),
-+					      pinned, true, pages);
- 		if (ret) {
- 			/*
- 			 * We can't continue because the pages array won't be
-@@ -1840,7 +1840,7 @@ static int exp_tid_free(struct file *fp, struct hfi1_tid_info *tinfo)
- 				}
- 			}
- 			flush_wc();
--			hfi1_release_user_pages(pshadow, pcount);
-+			hfi1_release_user_pages(pshadow, pcount, true);
- 			clear_bit(bitidx, &uctxt->tidusemap[idx]);
- 			map &= ~(1ULL<<bitidx);
- 		}
-@@ -1869,7 +1869,7 @@ static void unlock_exp_tids(struct hfi1_ctxtdata *uctxt)
- 		uctxt->physshadow[tid] = 0;
- 		uctxt->tid_pg_list[tid] = NULL;
- 		pci_unmap_page(dd->pcidev, phys, PAGE_SIZE, PCI_DMA_FROMDEVICE);
--		hfi1_release_user_pages(&p, 1);
-+		hfi1_release_user_pages(&p, 1, true);
+diff --git a/drivers/staging/rdma/hfi1/user_sdma.c b/drivers/staging/rdma/hfi1/user_sdma.c
+index 41408f82afe8..060c2200757d 100644
+--- a/drivers/staging/rdma/hfi1/user_sdma.c
++++ b/drivers/staging/rdma/hfi1/user_sdma.c
+@@ -505,15 +505,13 @@ int hfi1_user_sdma_process_request(struct file *fp, struct iovec *iovec,
+ 		   "[%u:%u:%u] First vector not big enough for header %lu/%lu",
+ 		   dd->unit, uctxt->ctxt, fd->subctxt,
+ 		   iovec[idx].iov_len, sizeof(info) + sizeof(req->hdr));
+-		ret = -EINVAL;
+-		goto done;
++		return -EINVAL;
  	}
- }
+ 	ret = copy_from_user(&info, iovec[idx].iov_base, sizeof(info));
+ 	if (ret) {
+ 		hfi1_cdbg(SDMA, "[%u:%u:%u] Failed to copy info QW (%d)",
+ 			  dd->unit, uctxt->ctxt, fd->subctxt, ret);
+-		ret = -EFAULT;
+-		goto done;
++		return -EFAULT;
+ 	}
+ 	trace_hfi1_sdma_user_reqinfo(dd, uctxt->ctxt, fd->subctxt,
+ 				     (u16 *)&info);
+@@ -521,15 +519,13 @@ int hfi1_user_sdma_process_request(struct file *fp, struct iovec *iovec,
+ 		hfi1_cdbg(SDMA, "[%u:%u:%u] Entry %u is in QUEUED state",
+ 			  dd->unit, uctxt->ctxt, fd->subctxt,
+ 			  info.comp_idx);
+-		ret = -EBADSLT;
+-		goto done;
++		return -EBADSLT;
+ 	}
+ 	if (!info.fragsize) {
+ 		hfi1_cdbg(SDMA,
+ 			  "[%u:%u:%u:%u] Request does not specify fragsize",
+ 			  dd->unit, uctxt->ctxt, fd->subctxt, info.comp_idx);
+-		ret = -EINVAL;
+-		goto done;
++		return -EINVAL;
+ 	}
+ 	/*
+ 	 * We've done all the safety checks that we can up to this point,
+@@ -554,8 +550,7 @@ int hfi1_user_sdma_process_request(struct file *fp, struct iovec *iovec,
+ 	if (!info.npkts || req->data_iovs > MAX_VECTORS_PER_REQ) {
+ 		SDMA_DBG(req, "Too many vectors (%u/%u)", req->data_iovs,
+ 			 MAX_VECTORS_PER_REQ);
+-		ret = -EINVAL;
+-		goto done;
++		return -EINVAL;
+ 	}
+ 	/* Copy the header from the user buffer */
+ 	ret = copy_from_user(&req->hdr, iovec[idx].iov_base + sizeof(info),
+@@ -782,10 +777,8 @@ static int user_sdma_send_pkts(struct user_sdma_request *req, unsigned maxpkts)
+ 	struct hfi1_user_sdma_pkt_q *pq = NULL;
+ 	struct user_sdma_iovec *iovec = NULL;
  
-diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
-index 54ed6b36c1a7..467e1a9f8ed2 100644
---- a/drivers/staging/rdma/hfi1/hfi.h
-+++ b/drivers/staging/rdma/hfi1/hfi.h
-@@ -1551,8 +1551,8 @@ void hfi1_set_led_override(struct hfi1_pportdata *ppd, unsigned int val);
-  */
- #define DEFAULT_RCVHDR_ENTSIZE 32
- 
--int hfi1_get_user_pages(unsigned long, size_t, struct page **);
--void hfi1_release_user_pages(struct page **, size_t);
-+int hfi1_acquire_user_pages(unsigned long, size_t, bool, struct page **);
-+void hfi1_release_user_pages(struct page **, size_t, bool);
- 
- static inline void clear_rcvhdrtail(const struct hfi1_ctxtdata *rcd)
- {
-diff --git a/drivers/staging/rdma/hfi1/user_pages.c b/drivers/staging/rdma/hfi1/user_pages.c
-index 9071afbd7bf4..692de658f0dc 100644
---- a/drivers/staging/rdma/hfi1/user_pages.c
-+++ b/drivers/staging/rdma/hfi1/user_pages.c
-@@ -49,59 +49,11 @@
-  */
- 
- #include <linux/mm.h>
-+#include <linux/sched.h>
- #include <linux/device.h>
- 
- #include "hfi.h"
- 
--static void __hfi1_release_user_pages(struct page **p, size_t num_pages,
--				      int dirty)
--{
--	size_t i;
--
--	for (i = 0; i < num_pages; i++) {
--		if (dirty)
--			set_page_dirty_lock(p[i]);
--		put_page(p[i]);
+-	if (!req->pq) {
+-		ret = -EINVAL;
+-		goto done;
 -	}
--}
--
--/*
-- * Call with current->mm->mmap_sem held.
-- */
--static int __hfi1_get_user_pages(unsigned long start_page, size_t num_pages,
--				 struct page **p)
--{
--	unsigned long lock_limit;
--	size_t got;
--	int ret;
--
--	lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
--
--	if (num_pages > lock_limit && !capable(CAP_IPC_LOCK)) {
--		ret = -ENOMEM;
--		goto bail;
--	}
--
--	for (got = 0; got < num_pages; got += ret) {
--		ret = get_user_pages(current, current->mm,
--				     start_page + got * PAGE_SIZE,
--				     num_pages - got, 1, 1,
--				     p + got, NULL);
--		if (ret < 0)
--			goto bail_release;
--	}
--
--	current->mm->pinned_vm += num_pages;
--
--	ret = 0;
--	goto bail;
--
--bail_release:
--	__hfi1_release_user_pages(p, got, 0);
--bail:
--	return ret;
--}
--
- /**
-  * hfi1_map_page - a safety wrapper around pci_map_page()
-  *
-@@ -116,41 +68,44 @@ dma_addr_t hfi1_map_page(struct pci_dev *hwdev, struct page *page,
- 	return phys;
- }
++	if (!req->pq)
++		return -EINVAL;
  
--/**
-- * hfi1_get_user_pages - lock user pages into memory
-- * @start_page: the start page
-- * @num_pages: the number of pages
-- * @p: the output page structures
-- *
-- * This function takes a given start page (page aligned user virtual
-- * address) and pins it and the following specified number of pages.  For
-- * now, num_pages is always 1, but that will probably change at some point
-- * (because caller is doing expected sends on a single virtually contiguous
-- * buffer, so we can do all pages at once).
-- */
--int hfi1_get_user_pages(unsigned long start_page, size_t num_pages,
--			struct page **p)
-+int hfi1_acquire_user_pages(unsigned long vaddr, size_t npages, bool writable,
-+			    struct page **pages)
- {
-+	unsigned long pinned, lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
-+	bool can_lock = capable(CAP_IPC_LOCK);
- 	int ret;
+ 	pq = req->pq;
  
--	down_write(&current->mm->mmap_sem);
-+	down_read(&current->mm->mmap_sem);
-+	pinned = current->mm->pinned_vm;
-+	up_read(&current->mm->mmap_sem);
- 
--	ret = __hfi1_get_user_pages(start_page, num_pages, p);
-+	if (pinned + npages > lock_limit && !can_lock)
-+		return -ENOMEM;
- 
-+	ret = get_user_pages_fast(vaddr, npages, writable, pages);
-+	if (ret < 0)
+@@ -795,7 +788,7 @@ static int user_sdma_send_pkts(struct user_sdma_request *req, unsigned maxpkts)
+ 	if (unlikely(req->seqnum == req->info.npkts)) {
+ 		if (!list_empty(&req->txps))
+ 			goto dosend;
+-		goto done;
 +		return ret;
-+
-+	down_write(&current->mm->mmap_sem);
-+	current->mm->pinned_vm += ret;
- 	up_write(&current->mm->mmap_sem);
+ 	}
  
+ 	if (!maxpkts || maxpkts > req->info.npkts - req->seqnum)
+@@ -812,15 +805,13 @@ static int user_sdma_send_pkts(struct user_sdma_request *req, unsigned maxpkts)
+ 		 */
+ 		if (test_bit(SDMA_REQ_HAS_ERROR, &req->flags)) {
+ 			set_bit(SDMA_REQ_DONE_ERROR, &req->flags);
+-			ret = -EFAULT;
+-			goto done;
++			return -EFAULT;
+ 		}
+ 
+ 		tx = kmem_cache_alloc(pq->txreq_cache, GFP_KERNEL);
+-		if (!tx) {
+-			ret = -ENOMEM;
+-			goto done;
+-		}
++		if (!tx)
++			return -ENOMEM;
++
+ 		tx->flags = 0;
+ 		tx->req = req;
+ 		tx->busycount = 0;
+@@ -1021,12 +1012,12 @@ dosend:
+ 			if (test_bit(SDMA_REQ_HAVE_AHG, &req->flags))
+ 				sdma_ahg_free(req->sde, req->ahg_idx);
+ 		}
+-	goto done;
++	return ret;
++
+ free_txreq:
+ 	sdma_txclean(pq->dd, &tx->txreq);
+ free_tx:
+ 	kmem_cache_free(pq->txreq_cache, tx);
+-done:
  	return ret;
  }
  
--void hfi1_release_user_pages(struct page **p, size_t num_pages)
-+void hfi1_release_user_pages(struct page **p, size_t npages, bool dirty)
- {
--	if (current->mm) /* during close after signal, mm can be NULL */
--		down_write(&current->mm->mmap_sem);
-+	size_t i;
- 
--	__hfi1_release_user_pages(p, num_pages, 1);
-+	for (i = 0; i < npages; i++) {
-+		if (dirty)
-+			set_page_dirty_lock(p[i]);
-+		put_page(p[i]);
-+	}
- 
--	if (current->mm) {
--		current->mm->pinned_vm -= num_pages;
-+	if (current->mm) { /* during close after signal, mm can be NULL */
-+		down_write(&current->mm->mmap_sem);
-+		current->mm->pinned_vm -= npages;
- 		up_write(&current->mm->mmap_sem);
- 	}
- }
 -- 
 1.8.2
 
