@@ -1,94 +1,84 @@
-From: ira.weiny@intel.com
-Subject: [PATCH v3 08/13] staging/rdma/hfi1: Fix camel case variables
-Date: Wed,  2 Dec 2015 00:43:33 -0500
-Message-ID: <1449035018-26396-9-git-send-email-ira.weiny@intel.com>
+From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH v3 11/13] staging/rdma/hfi1: Further clean up hfi1_ioctl parameter checks
+Date: Wed,  2 Dec 2015 00:43:36 -0500
+Message-ID: <1449035018-26396-12-git-send-email-ira.weiny@intel.com>
 References: <1449035018-26396-1-git-send-email-ira.weiny@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <1449035018-26396-1-git-send-email-ira.weiny@intel.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org
-Cc: linux-rdma@vger.kernel.org, dledford@redhat.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1449035018-26396-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <ira.weiny@intel.com>
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-physState, linkState, and devState should be phys_state, link_state, and
-dev_state
+Final clean up of the if/then/else clause for the parameter checks of
+hfi1_ioctl
 
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
 ---
- drivers/staging/rdma/hfi1/diag.c | 24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+Changes from v1:
+	SETLINKSTATE is removed
+
+ drivers/staging/rdma/hfi1/diag.c | 23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/staging/rdma/hfi1/diag.c b/drivers/staging/rdma/hfi1/diag.c
-index a050e09699d8..eb74e492eca1 100644
+index b2a9f581be1e..d7bc0ae9d20a 100644
 --- a/drivers/staging/rdma/hfi1/diag.c
 +++ b/drivers/staging/rdma/hfi1/diag.c
-@@ -964,9 +964,9 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
- 	void *filter_value = NULL;
- 	long ret = 0;
- 	int value = 0;
--	u8 physState = 0;
--	u8 linkState = 0;
--	u16 devState = 0;
-+	u8 phys_state = 0;
-+	u8 link_state = 0;
-+	u16 dev_state = 0;
- 	unsigned long flags = 0;
- 	unsigned long *argp = NULL;
- 	struct hfi1_packet_filter_command filter_cmd = {0};
-@@ -1030,31 +1030,31 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
- 			}
+@@ -974,24 +974,28 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
+ 	struct hfi1_pportdata *ppd = NULL;
+ 	unsigned int index;
+ 	struct hfi1_link_info link_info;
++	int read_cmd, write_cmd, read_ok, write_ok;
  
- 			/* What we want to transition to */
--			physState = (value >> 4) & 0xF;
--			linkState = value & 0xF;
-+			phys_state = (value >> 4) & 0xF;
-+			link_state = value & 0xF;
- 			snoop_dbg("Setting link state 0x%x", value);
+ 	dd = hfi1_dd_from_sc_inode(fp->f_inode);
+ 	if (!dd)
+ 		return -ENODEV;
  
--			switch (linkState) {
-+			switch (link_state) {
- 			case IB_PORT_NOP:
--				if (physState == 0)
-+				if (phys_state == 0)
- 					break;
- 					/* fall through */
- 			case IB_PORT_DOWN:
--				switch (physState) {
-+				switch (phys_state) {
- 				case 0:
--					devState = HLS_DN_DOWNDEF;
-+					dev_state = HLS_DN_DOWNDEF;
- 					break;
- 				case 2:
--					devState = HLS_DN_POLL;
-+					dev_state = HLS_DN_POLL;
- 					break;
- 				case 3:
--					devState = HLS_DN_DISABLE;
-+					dev_state = HLS_DN_DISABLE;
- 					break;
- 				default:
- 					ret = -EINVAL;
- 					goto done;
- 				}
--				ret = set_link_state(ppd, devState);
-+				ret = set_link_state(ppd, dev_state);
- 				break;
- 			case IB_PORT_ARMED:
- 				ret = set_link_state(ppd, HLS_UP_ARMED);
+ 	mode_flag = dd->hfi1_snoop.mode_flag;
++	read_cmd = _IOC_DIR(cmd) & _IOC_READ;
++	write_cmd = _IOC_DIR(cmd) & _IOC_WRITE;
++	write_ok = access_ok(VERIFY_WRITE, (void __user *)arg, _IOC_SIZE(cmd));
++	read_ok = access_ok(VERIFY_READ, (void __user *)arg, _IOC_SIZE(cmd));
+ 
+-	if (((_IOC_DIR(cmd) & _IOC_READ)
+-	    && !access_ok(VERIFY_WRITE, (void __user *)arg, _IOC_SIZE(cmd)))
+-	    || ((_IOC_DIR(cmd) & _IOC_WRITE)
+-	    && !access_ok(VERIFY_READ, (void __user *)arg, _IOC_SIZE(cmd)))) {
++	if ((read_cmd && !write_ok) || (write_cmd && !read_ok))
+ 		return -EFAULT;
+-	} else if (!capable(CAP_SYS_ADMIN)) {
++
++	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+-	} else if ((mode_flag & HFI1_PORT_CAPTURE_MODE) &&
+-		   (cmd != HFI1_SNOOP_IOCCLEARQUEUE) &&
+-		   (cmd != HFI1_SNOOP_IOCCLEARFILTER) &&
+-		   (cmd != HFI1_SNOOP_IOCSETFILTER)) {
++
++	if ((mode_flag & HFI1_PORT_CAPTURE_MODE) &&
++	    (cmd != HFI1_SNOOP_IOCCLEARQUEUE) &&
++	    (cmd != HFI1_SNOOP_IOCCLEARFILTER) &&
++	    (cmd != HFI1_SNOOP_IOCSETFILTER))
+ 		/* Capture devices are allowed only 3 operations
+ 		 * 1.Clear capture queue
+ 		 * 2.Clear capture filter
+@@ -999,7 +1003,6 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
+ 		 * Other are invalid.
+ 		 */
+ 		return -EINVAL;
+-	}
+ 
+ 	spin_lock_irqsave(&dd->hfi1_snoop.snoop_lock, flags);
+ 
 -- 
 1.8.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
