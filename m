@@ -1,50 +1,48 @@
-From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v3 06/13] staging/rdma/hfi1: diag.c add missing braces
-Date: Wed,  2 Dec 2015 00:43:31 -0500
-Message-ID: <1449035018-26396-7-git-send-email-ira.weiny@intel.com>
+From: ira.weiny@intel.com
+Subject: [PATCH v3 07/13] staging/rdma/hfi1: diag.c correct sizeof parameter
+Date: Wed,  2 Dec 2015 00:43:32 -0500
+Message-ID: <1449035018-26396-8-git-send-email-ira.weiny@intel.com>
 References: <1449035018-26396-1-git-send-email-ira.weiny@intel.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1449035018-26396-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <1449035018-26396-1-git-send-email-ira.weiny@intel.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org
+Cc: linux-rdma@vger.kernel.org, dledford@redhat.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Ira Weiny <ira.weiny@intel.com>
 
-Else statements should continue using braces even if there is only 1 line in
-the block.  Found by checkpatch --strict
+sizeof should use the variable rather than the struct definition to ensure that
+type changes are properly accounted for.
 
-Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
- drivers/staging/rdma/hfi1/diag.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/staging/rdma/hfi1/diag.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/staging/rdma/hfi1/diag.c b/drivers/staging/rdma/hfi1/diag.c
-index 0643f3716719..efc0d2239311 100644
+index efc0d2239311..a050e09699d8 100644
 --- a/drivers/staging/rdma/hfi1/diag.c
 +++ b/drivers/staging/rdma/hfi1/diag.c
-@@ -946,12 +946,14 @@ static ssize_t hfi1_snoop_read(struct file *fp, char __user *data,
- 				ret = -EFAULT;
- 			else
- 				ret = packet->total_len;
--		} else
-+		} else {
- 			ret = -EINVAL;
-+		}
+@@ -1474,7 +1474,7 @@ static struct snoop_packet *allocate_snoop_packet(u32 hdr_len,
+ {
+ 	struct snoop_packet *packet;
  
- 		kfree(packet);
--	} else
-+	} else {
- 		spin_unlock_irqrestore(&dd->hfi1_snoop.snoop_lock, flags);
-+	}
- 
- 	return ret;
- }
+-	packet = kzalloc(sizeof(struct snoop_packet) + hdr_len + data_len
++	packet = kzalloc(sizeof(*packet) + hdr_len + data_len
+ 			 + md_len,
+ 			 GFP_ATOMIC | __GFP_NOWARN);
+ 	if (likely(packet))
 -- 
 1.8.2
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
