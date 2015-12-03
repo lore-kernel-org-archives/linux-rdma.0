@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V1 3/5] IB/mlx5: Add support for hca_core_clock and timestamp_mask
-Date: Thu,  3 Dec 2015 17:44:21 +0200
-Message-ID: <1449157463-25313-4-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next V1 2/5] IB/core: Add ib_is_udata_cleared
+Date: Thu,  3 Dec 2015 17:44:20 +0200
+Message-ID: <1449157463-25313-3-git-send-email-matanb@mellanox.com>
 References: <1449157463-25313-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1449157463-25313-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,58 +10,94 @@ To: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Reporting the hca_core_clock (in kHZ) and the timestamp_mask in
-query_device extended verb. timestamp_mask is used by users in order
-to know what is the valid range of the raw timestamps, while
-hca_core_clock reports the clock frequency that is used for
-timestamps.
+Extending core and vendor verb commands require us to check that the
+unknown part of the user's given command is all zeros.
+Adding ib_is_udata_cleared in order to do so.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 2 ++
- include/linux/mlx5/mlx5_ifc.h     | 9 ++++++---
- 2 files changed, 8 insertions(+), 3 deletions(-)
+ include/rdma/ib_verbs.h | 67 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 67 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 9b77058..8aa0330 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -504,6 +504,8 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 	props->max_total_mcast_qp_attach = props->max_mcast_qp_attach *
- 					   props->max_mcast_grp;
- 	props->max_map_per_fmr = INT_MAX; /* no limit in ConnectIB */
-+	props->hca_core_clock = MLX5_CAP_GEN(mdev, device_frequency_khz);
-+	props->timestamp_mask = 0x7FFFFFFFFFFFFFFFULL;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 31fb409..0ad89e3 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1947,6 +1947,73 @@ static inline int ib_copy_to_udata(struct ib_udata *udata, void *src, size_t len
+ 	return copy_to_user(udata->outbuf, src, len) ? -EFAULT : 0;
+ }
  
- #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
- 	if (MLX5_CAP_GEN(mdev, pg))
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index af51cd2..c57e975 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -792,15 +792,18 @@ struct mlx5_ifc_cmd_hca_cap_bits {
- 	u8         reserved_63[0x8];
- 	u8         log_uar_page_sz[0x10];
- 
--	u8         reserved_64[0x100];
-+	u8	   reserved_64[0x20];
-+	u8	   device_frequency_mhz[0x20];
-+	u8	   device_frequency_khz[0x20];
-+	u8         reserved_65[0xa0];
- 
--	u8         reserved_65[0x1f];
-+	u8         reserved_66[0x1f];
- 	u8         cqe_zip[0x1];
- 
- 	u8         cqe_zip_timeout[0x10];
- 	u8         cqe_zip_max_num[0x10];
- 
--	u8         reserved_66[0x220];
-+	u8         reserved_67[0x220];
- };
- 
- enum {
++#define IB_UDATA_ELEMENT_CLEARED(type, ptr, len, expected)		\
++		({type v;						\
++		  typeof(ptr) __ptr = ptr;				\
++									\
++		  ptr = (void *)ptr + sizeof(type);			\
++		  len -= sizeof(type);					\
++		  !copy_from_user(&v, __ptr, sizeof(v)) && (v == expected); })
++
++static inline bool ib_is_udata_cleared(struct ib_udata *udata,
++				       u8 cleared_char,
++				       size_t offset,
++				       size_t len)
++{
++	const void __user *p = udata->inbuf + offset;
++#ifdef CONFIG_64BIT
++	u64 expected = cleared_char;
++#else
++	u32 expected = cleared_char;
++#endif
++
++	if (len > USHRT_MAX)
++		return false;
++
++	if (len && (uintptr_t)p & 1)
++		if (!IB_UDATA_ELEMENT_CLEARED(u8, p, len, expected))
++			return false;
++
++	expected = expected << 8 | expected;
++	if (len >= 2 && (uintptr_t)p & 2)
++		if (!IB_UDATA_ELEMENT_CLEARED(u16, p, len, expected))
++			return false;
++
++	expected = expected << 16 | expected;
++#ifdef CONFIG_64BIT
++	if (len >= 4 && (uintptr_t)p & 4)
++		if (!IB_UDATA_ELEMENT_CLEARED(u32, p, len, expected))
++			return false;
++
++	expected = expected << 32 | expected;
++#define IB_UDATA_CLEAR_LOOP_TYPE	u64
++#else
++#define IB_UDATA_CLEAR_LOOP_TYPE	u32
++#endif
++	while (len >= sizeof(IB_UDATA_CLEAR_LOOP_TYPE))
++		if (!IB_UDATA_ELEMENT_CLEARED(IB_UDATA_CLEAR_LOOP_TYPE, p, len,
++					      expected))
++			return false;
++
++#ifdef CONFIG_64BIT
++	expected = expected >> 32;
++	if (len >= 4 && (uintptr_t)p & 4)
++		if (!IB_UDATA_ELEMENT_CLEARED(u32, p, len, expected))
++			return false;
++#endif
++	expected = expected >> 16;
++	if (len >= 2 && (uintptr_t)p & 2)
++		if (!IB_UDATA_ELEMENT_CLEARED(u16, p, len, expected))
++			return false;
++
++	expected = expected >> 8;
++	if (len)
++		if (!IB_UDATA_ELEMENT_CLEARED(u8, p, len, expected))
++			return false;
++
++	return true;
++}
++
+ /**
+  * ib_modify_qp_is_ok - Check that the supplied attribute mask
+  * contains all required attributes and no attributes not allowed for
 -- 
 2.1.0
 
