@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V2 06/11] IB/core: Move rdma_is_upper_dev_rcu to header file
-Date: Thu,  3 Dec 2015 15:47:13 +0200
-Message-ID: <1449150450-13679-7-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next V2 03/11] IB/core: Add gid attributes to sysfs
+Date: Thu,  3 Dec 2015 15:47:10 +0200
+Message-ID: <1449150450-13679-4-git-send-email-matanb@mellanox.com>
 References: <1449150450-13679-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1449150450-13679-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,98 +10,318 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In order to validate the route, we need an easy way to check if a
-net-device belongs to our RDMA device. Move this helper function
-to a header file in order to make this check easier.
+This patch set adds attributes of net device and gid type to each GID
+in the GID table. Users that use verbs directly need to specify
+the GID index. Since the same GID could have different types or
+associated net devices, users should have the ability to query the
+associated GID attributes. Adding these attributes to sysfs.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/core_priv.h     | 13 +++++++++++++
- drivers/infiniband/core/roce_gid_mgmt.c | 20 ++++----------------
- 2 files changed, 17 insertions(+), 16 deletions(-)
+ Documentation/ABI/testing/sysfs-class-infiniband |  16 ++
+ drivers/infiniband/core/sysfs.c                  | 184 ++++++++++++++++++++++-
+ 2 files changed, 198 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/ABI/testing/sysfs-class-infiniband
 
-diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index d531f91..3b250a2 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -96,4 +96,17 @@ int ib_cache_setup_one(struct ib_device *device);
- void ib_cache_cleanup_one(struct ib_device *device);
- void ib_cache_release_one(struct ib_device *device);
+diff --git a/Documentation/ABI/testing/sysfs-class-infiniband b/Documentation/ABI/testing/sysfs-class-infiniband
+new file mode 100644
+index 0000000..a86abe6
+--- /dev/null
++++ b/Documentation/ABI/testing/sysfs-class-infiniband
+@@ -0,0 +1,16 @@
++What:		/sys/class/infiniband/<hca>/ports/<port-number>/gid_attrs/ndevs/<gid-index>
++Date:		November 29, 2015
++KernelVersion:	4.4.0
++Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
++Description: 	The net-device's name associated with the GID resides
++		at index <gid-index>.
++
++What:		/sys/class/infiniband/<hca>/ports/<port-number>/gid_attrs/types/<gid-index>
++Date:		November 29, 2015
++KernelVersion:	4.4.0
++Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
++Description: 	The RoCE type of the associated GID resides at index <gid-index>.
++		This could either be "IB/RoCE v1" for IB and RoCE v1 based GODs
++		or "RoCE v2" for RoCE v2 based GIDs.
++
++
+diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+index b1f37d4..4d5d87a 100644
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -37,12 +37,22 @@
+ #include <linux/slab.h>
+ #include <linux/stat.h>
+ #include <linux/string.h>
++#include <linux/netdevice.h>
  
-+static inline bool rdma_is_upper_dev_rcu(struct net_device *dev,
-+					 struct net_device *upper)
+ #include <rdma/ib_mad.h>
+ 
++struct ib_port;
++
++struct gid_attr_group {
++	struct ib_port		*port;
++	struct kobject		kobj;
++	struct attribute_group	ndev;
++	struct attribute_group	type;
++};
+ struct ib_port {
+ 	struct kobject         kobj;
+ 	struct ib_device      *ibdev;
++	struct gid_attr_group *gid_attr_group;
+ 	struct attribute_group gid_group;
+ 	struct attribute_group pkey_group;
+ 	u8                     port_num;
+@@ -84,6 +94,24 @@ static const struct sysfs_ops port_sysfs_ops = {
+ 	.show = port_attr_show
+ };
+ 
++static ssize_t gid_attr_show(struct kobject *kobj,
++			     struct attribute *attr, char *buf)
 +{
-+	struct net_device *_upper = NULL;
-+	struct list_head *iter;
++	struct port_attribute *port_attr =
++		container_of(attr, struct port_attribute, attr);
++	struct ib_port *p = container_of(kobj, struct gid_attr_group,
++					 kobj)->port;
 +
-+	netdev_for_each_all_upper_dev_rcu(dev, _upper, iter)
-+		if (_upper == upper)
-+			break;
++	if (!port_attr->show)
++		return -EIO;
 +
-+	return _upper == upper;
++	return port_attr->show(p, port_attr, buf);
 +}
 +
- #endif /* _CORE_PRIV_H */
-diff --git a/drivers/infiniband/core/roce_gid_mgmt.c b/drivers/infiniband/core/roce_gid_mgmt.c
-index 1e3673f..06556c3 100644
---- a/drivers/infiniband/core/roce_gid_mgmt.c
-+++ b/drivers/infiniband/core/roce_gid_mgmt.c
-@@ -139,18 +139,6 @@ static enum bonding_slave_state is_eth_active_slave_of_bonding_rcu(struct net_de
- 	return BONDING_SLAVE_STATE_NA;
++static const struct sysfs_ops gid_attr_sysfs_ops = {
++	.show = gid_attr_show
++};
++
+ static ssize_t state_show(struct ib_port *p, struct port_attribute *unused,
+ 			  char *buf)
+ {
+@@ -281,6 +309,46 @@ static struct attribute *port_default_attrs[] = {
+ 	NULL
+ };
+ 
++static size_t print_ndev(struct ib_gid_attr *gid_attr, char *buf)
++{
++	if (!gid_attr->ndev)
++		return -EINVAL;
++
++	return sprintf(buf, "%s\n", gid_attr->ndev->name);
++}
++
++static size_t print_gid_type(struct ib_gid_attr *gid_attr, char *buf)
++{
++	return sprintf(buf, "%s\n", ib_cache_gid_type_str(gid_attr->gid_type));
++}
++
++static ssize_t _show_port_gid_attr(struct ib_port *p,
++				   struct port_attribute *attr,
++				   char *buf,
++				   size_t (*print)(struct ib_gid_attr *gid_attr,
++						   char *buf))
++{
++	struct port_table_attribute *tab_attr =
++		container_of(attr, struct port_table_attribute, attr);
++	union ib_gid gid;
++	struct ib_gid_attr gid_attr = {};
++	ssize_t ret;
++	va_list args;
++
++	ret = ib_query_gid(p->ibdev, p->port_num, tab_attr->index, &gid,
++			   &gid_attr);
++	if (ret)
++		goto err;
++
++	ret = print(&gid_attr, buf);
++
++err:
++	if (gid_attr.ndev)
++		dev_put(gid_attr.ndev);
++	va_end(args);
++	return ret;
++}
++
+ static ssize_t show_port_gid(struct ib_port *p, struct port_attribute *attr,
+ 			     char *buf)
+ {
+@@ -296,6 +364,19 @@ static ssize_t show_port_gid(struct ib_port *p, struct port_attribute *attr,
+ 	return sprintf(buf, "%pI6\n", gid.raw);
  }
  
--static bool is_upper_dev_rcu(struct net_device *dev, struct net_device *upper)
--{
--	struct net_device *_upper = NULL;
--	struct list_head *iter;
--
--	netdev_for_each_all_upper_dev_rcu(dev, _upper, iter)
--		if (_upper == upper)
--			break;
--
--	return _upper == upper;
--}
--
- #define REQUIRED_BOND_STATES		(BONDING_SLAVE_STATE_ACTIVE |	\
- 					 BONDING_SLAVE_STATE_NA)
- static int is_eth_port_of_netdev(struct ib_device *ib_dev, u8 port,
-@@ -168,7 +156,7 @@ static int is_eth_port_of_netdev(struct ib_device *ib_dev, u8 port,
- 	if (!real_dev)
- 		real_dev = event_ndev;
++static ssize_t show_port_gid_attr_ndev(struct ib_port *p,
++				       struct port_attribute *attr, char *buf)
++{
++	return _show_port_gid_attr(p, attr, buf, print_ndev);
++}
++
++static ssize_t show_port_gid_attr_gid_type(struct ib_port *p,
++					   struct port_attribute *attr,
++					   char *buf)
++{
++	return _show_port_gid_attr(p, attr, buf, print_gid_type);
++}
++
+ static ssize_t show_port_pkey(struct ib_port *p, struct port_attribute *attr,
+ 			      char *buf)
+ {
+@@ -451,12 +532,41 @@ static void ib_port_release(struct kobject *kobj)
+ 	kfree(p);
+ }
  
--	res = ((is_upper_dev_rcu(rdma_ndev, event_ndev) &&
-+	res = ((rdma_is_upper_dev_rcu(rdma_ndev, event_ndev) &&
- 	       (is_eth_active_slave_of_bonding_rcu(rdma_ndev, real_dev) &
- 		REQUIRED_BOND_STATES)) ||
- 	       real_dev == rdma_ndev);
-@@ -214,7 +202,7 @@ static int upper_device_filter(struct ib_device *ib_dev, u8 port,
- 		return 1;
++static void ib_port_gid_attr_release(struct kobject *kobj)
++{
++	struct gid_attr_group *g = container_of(kobj, struct gid_attr_group,
++						kobj);
++	struct attribute *a;
++	int i;
++
++	if (g->ndev.attrs) {
++		for (i = 0; (a = g->ndev.attrs[i]); ++i)
++			kfree(a);
++
++		kfree(g->ndev.attrs);
++	}
++
++	if (g->type.attrs) {
++		for (i = 0; (a = g->type.attrs[i]); ++i)
++			kfree(a);
++
++		kfree(g->type.attrs);
++	}
++
++	kfree(g);
++}
++
+ static struct kobj_type port_type = {
+ 	.release       = ib_port_release,
+ 	.sysfs_ops     = &port_sysfs_ops,
+ 	.default_attrs = port_default_attrs
+ };
  
- 	rcu_read_lock();
--	res = is_upper_dev_rcu(rdma_ndev, event_ndev);
-+	res = rdma_is_upper_dev_rcu(rdma_ndev, event_ndev);
- 	rcu_read_unlock();
++static struct kobj_type gid_attr_type = {
++	.sysfs_ops      = &gid_attr_sysfs_ops,
++	.release        = ib_port_gid_attr_release
++};
++
+ static struct attribute **
+ alloc_group_attrs(ssize_t (*show)(struct ib_port *,
+ 				  struct port_attribute *, char *buf),
+@@ -528,9 +638,23 @@ static int add_port(struct ib_device *device, int port_num,
+ 		return ret;
+ 	}
  
- 	return res;
-@@ -244,7 +232,7 @@ static void enum_netdev_default_gids(struct ib_device *ib_dev,
- 	rcu_read_lock();
- 	if (!rdma_ndev ||
- 	    ((rdma_ndev != event_ndev &&
--	      !is_upper_dev_rcu(rdma_ndev, event_ndev)) ||
-+	      !rdma_is_upper_dev_rcu(rdma_ndev, event_ndev)) ||
- 	     is_eth_active_slave_of_bonding_rcu(rdma_ndev,
- 						netdev_master_upper_dev_get_rcu(rdma_ndev)) ==
- 	     BONDING_SLAVE_STATE_INACTIVE)) {
-@@ -274,7 +262,7 @@ static void bond_delete_netdev_default_gids(struct ib_device *ib_dev,
++	p->gid_attr_group = kzalloc(sizeof(*p->gid_attr_group), GFP_KERNEL);
++	if (!p->gid_attr_group) {
++		ret = -ENOMEM;
++		goto err_put;
++	}
++
++	p->gid_attr_group->port = p;
++	ret = kobject_init_and_add(&p->gid_attr_group->kobj, &gid_attr_type,
++				   &p->kobj, "gid_attrs");
++	if (ret) {
++		kfree(p->gid_attr_group);
++		goto err_put;
++	}
++
+ 	ret = sysfs_create_group(&p->kobj, &pma_group);
+ 	if (ret)
+-		goto err_put;
++		goto err_put_gid_attrs;
  
- 	rcu_read_lock();
+ 	p->gid_group.name  = "gids";
+ 	p->gid_group.attrs = alloc_group_attrs(show_port_gid, attr.gid_tbl_len);
+@@ -543,12 +667,38 @@ static int add_port(struct ib_device *device, int port_num,
+ 	if (ret)
+ 		goto err_free_gid;
  
--	if (is_upper_dev_rcu(rdma_ndev, event_ndev) &&
-+	if (rdma_is_upper_dev_rcu(rdma_ndev, event_ndev) &&
- 	    is_eth_active_slave_of_bonding_rcu(rdma_ndev, real_dev) ==
- 	    BONDING_SLAVE_STATE_INACTIVE) {
- 		unsigned long gid_type_mask;
++	p->gid_attr_group->ndev.name = "ndevs";
++	p->gid_attr_group->ndev.attrs = alloc_group_attrs(show_port_gid_attr_ndev,
++							  attr.gid_tbl_len);
++	if (!p->gid_attr_group->ndev.attrs) {
++		ret = -ENOMEM;
++		goto err_remove_gid;
++	}
++
++	ret = sysfs_create_group(&p->gid_attr_group->kobj,
++				 &p->gid_attr_group->ndev);
++	if (ret)
++		goto err_free_gid_ndev;
++
++	p->gid_attr_group->type.name = "types";
++	p->gid_attr_group->type.attrs = alloc_group_attrs(show_port_gid_attr_gid_type,
++							  attr.gid_tbl_len);
++	if (!p->gid_attr_group->type.attrs) {
++		ret = -ENOMEM;
++		goto err_remove_gid_ndev;
++	}
++
++	ret = sysfs_create_group(&p->gid_attr_group->kobj,
++				 &p->gid_attr_group->type);
++	if (ret)
++		goto err_free_gid_type;
++
+ 	p->pkey_group.name  = "pkeys";
+ 	p->pkey_group.attrs = alloc_group_attrs(show_port_pkey,
+ 						attr.pkey_tbl_len);
+ 	if (!p->pkey_group.attrs) {
+ 		ret = -ENOMEM;
+-		goto err_remove_gid;
++		goto err_remove_gid_type;
+ 	}
+ 
+ 	ret = sysfs_create_group(&p->kobj, &p->pkey_group);
+@@ -576,6 +726,28 @@ err_free_pkey:
+ 	kfree(p->pkey_group.attrs);
+ 	p->pkey_group.attrs = NULL;
+ 
++err_remove_gid_type:
++	sysfs_remove_group(&p->gid_attr_group->kobj,
++			   &p->gid_attr_group->type);
++
++err_free_gid_type:
++	for (i = 0; i < attr.gid_tbl_len; ++i)
++		kfree(p->gid_attr_group->type.attrs[i]);
++
++	kfree(p->gid_attr_group->type.attrs);
++	p->gid_attr_group->type.attrs = NULL;
++
++err_remove_gid_ndev:
++	sysfs_remove_group(&p->gid_attr_group->kobj,
++			   &p->gid_attr_group->ndev);
++
++err_free_gid_ndev:
++	for (i = 0; i < attr.gid_tbl_len; ++i)
++		kfree(p->gid_attr_group->ndev.attrs[i]);
++
++	kfree(p->gid_attr_group->ndev.attrs);
++	p->gid_attr_group->ndev.attrs = NULL;
++
+ err_remove_gid:
+ 	sysfs_remove_group(&p->kobj, &p->gid_group);
+ 
+@@ -589,6 +761,9 @@ err_free_gid:
+ err_remove_pma:
+ 	sysfs_remove_group(&p->kobj, &pma_group);
+ 
++err_put_gid_attrs:
++	kobject_put(&p->gid_attr_group->kobj);
++
+ err_put:
+ 	kobject_put(&p->kobj);
+ 	return ret;
+@@ -803,6 +978,11 @@ static void free_port_list_attributes(struct ib_device *device)
+ 		sysfs_remove_group(p, &pma_group);
+ 		sysfs_remove_group(p, &port->pkey_group);
+ 		sysfs_remove_group(p, &port->gid_group);
++		sysfs_remove_group(&port->gid_attr_group->kobj,
++				   &port->gid_attr_group->ndev);
++		sysfs_remove_group(&port->gid_attr_group->kobj,
++				   &port->gid_attr_group->type);
++		kobject_put(&port->gid_attr_group->kobj);
+ 		kobject_put(p);
+ 	}
+ 
 -- 
 2.1.0
 
