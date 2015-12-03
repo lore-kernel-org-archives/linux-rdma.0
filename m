@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V2 09/11] IB/cma: Add configfs for rdma_cm
-Date: Thu,  3 Dec 2015 15:47:16 +0200
-Message-ID: <1449150450-13679-10-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next V2 05/11] IB/core: Add rdma_network_type to wc
+Date: Thu,  3 Dec 2015 15:47:24 +0200
+Message-ID: <1449150450-13679-18-git-send-email-matanb@mellanox.com>
 References: <1449150450-13679-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1449150450-13679-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,713 +10,395 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Users would like to control the behaviour of rdma_cm.
-For example, old applications which don't set the
-required RoCE gid type could be executed on RoCE V2
-network types. In order to support this configuration,
-we implement a configfs for rdma_cm.
+From: Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>
 
-In order to use the configfs, one needs to mount it and
-mkdir <IB device name> inside rdma_cm directory.
+Providers should tell IB core the wc's network type.
+This is used in order to search for the proper GID in the
+GID table. When using HCAs that can't provide this info,
+IB core tries to deep examine the packet and extract
+the GID type by itself.
 
-The patch adds support for a single configuration file,
-default_roce_mode. The mode can either be "IB/RoCE v1" or
-"RoCE v2".
+We choose sgid_index and type from all the matching entries in
+RDMA-CM based on hint from the IP stack and we set hop_limit for
+the IP packet based on above hint from IP stack.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>
 ---
- Documentation/ABI/testing/configfs-rdma_cm |  22 ++
- drivers/infiniband/Kconfig                 |   9 +
- drivers/infiniband/core/Makefile           |   2 +
- drivers/infiniband/core/cache.c            |  24 +++
- drivers/infiniband/core/cma.c              | 108 +++++++++-
- drivers/infiniband/core/cma_configfs.c     | 321 +++++++++++++++++++++++++++++
- drivers/infiniband/core/core_priv.h        |  24 +++
- 7 files changed, 503 insertions(+), 7 deletions(-)
- create mode 100644 Documentation/ABI/testing/configfs-rdma_cm
- create mode 100644 drivers/infiniband/core/cma_configfs.c
+ drivers/infiniband/core/addr.c  |  14 +++++
+ drivers/infiniband/core/cma.c   |  11 +++-
+ drivers/infiniband/core/verbs.c | 123 ++++++++++++++++++++++++++++++++++++++--
+ include/rdma/ib_addr.h          |   1 +
+ include/rdma/ib_verbs.h         |  44 ++++++++++++++
+ 5 files changed, 187 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/ABI/testing/configfs-rdma_cm b/Documentation/ABI/testing/configfs-rdma_cm
-new file mode 100644
-index 0000000..5c389aa
---- /dev/null
-+++ b/Documentation/ABI/testing/configfs-rdma_cm
-@@ -0,0 +1,22 @@
-+What: 		/config/rdma_cm
-+Date: 		November 29, 2015
-+KernelVersion:  4.4.0
-+Description: 	Interface is used to configure RDMA-cable HCAs in respect to
-+		RDMA-CM attributes.
-+
-+		Attributes are visible only when configfs is mounted. To mount
-+		configfs in /config directory use:
-+		# mount -t configfs none /config/
-+
-+		In order to set parameters related to a specific HCA, a directory
-+		for this HCA has to be created:
-+		mkdir -p /config/rdma_cm/<hca>
-+
-+
-+What: 		/config/rdma_cm/<hca>/ports/<port-num>/default_roce_mode
-+Date: 		November 29, 2015
-+KernelVersion:  4.4.0
-+Description: 	RDMA-CM based connections from HCA <hca> at port <port-num>
-+		will be initiated with this RoCE type as default.
-+		The possible RoCE types are either "IB/RoCE v1" or "RoCE v2".
-+		This parameter has RW access.
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index aa26f3c..f5312da 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -54,6 +54,15 @@ config INFINIBAND_ADDR_TRANS
- 	depends on INFINIBAND
- 	default y
- 
-+config INFINIBAND_ADDR_TRANS_CONFIGFS
-+	bool
-+	depends on INFINIBAND_ADDR_TRANS && !(INFINIBAND=y && CONFIGFS_FS=m)
-+	default y
-+	---help---
-+	  ConfigFS support for RDMA communication manager (CM).
-+	  This allows the user to config the default GID type that the CM
-+	  uses for each device, when initiaing new connections.
-+
- source "drivers/infiniband/hw/mthca/Kconfig"
- source "drivers/infiniband/hw/qib/Kconfig"
- source "drivers/infiniband/hw/cxgb3/Kconfig"
-diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
-index d43a899..7922fa7 100644
---- a/drivers/infiniband/core/Makefile
-+++ b/drivers/infiniband/core/Makefile
-@@ -24,6 +24,8 @@ iw_cm-y :=			iwcm.o iwpm_util.o iwpm_msg.o
- 
- rdma_cm-y :=			cma.o
- 
-+rdma_cm-$(CONFIG_INFINIBAND_ADDR_TRANS_CONFIGFS) += cma_configfs.o
-+
- rdma_ucm-y :=			ucma.o
- 
- ib_addr-y :=			addr.o
-diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-index 88b4b6f..4aada52 100644
---- a/drivers/infiniband/core/cache.c
-+++ b/drivers/infiniband/core/cache.c
-@@ -140,6 +140,30 @@ const char *ib_cache_gid_type_str(enum ib_gid_type gid_type)
- }
- EXPORT_SYMBOL(ib_cache_gid_type_str);
- 
-+int ib_cache_gid_parse_type_str(const char *buf)
-+{
-+	unsigned int i;
-+	size_t len;
-+	int err = -EINVAL;
-+
-+	len = strlen(buf);
-+	if (len == 0)
-+		return -EINVAL;
-+
-+	if (buf[len - 1] == '\n')
-+		len--;
-+
-+	for (i = 0; i < ARRAY_SIZE(gid_type_str); ++i)
-+		if (gid_type_str[i] && !strncmp(buf, gid_type_str[i], len) &&
-+		    len == strlen(gid_type_str[i])) {
-+			err = i;
-+			break;
-+		}
-+
-+	return err;
-+}
-+EXPORT_SYMBOL(ib_cache_gid_parse_type_str);
-+
- /* This function expects that rwlock will be write locked in all
-  * scenarios and that lock will be locked in sleep-able (RoCE)
-  * scenarios.
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index f78088a..8fab267 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -152,6 +152,7 @@ struct cma_device {
- 	struct completion	comp;
- 	atomic_t		refcount;
- 	struct list_head	id_list;
-+	enum ib_gid_type	*default_gid_type;
- };
- 
- struct rdma_bind_list {
-@@ -192,6 +193,62 @@ void cma_ref_dev(struct cma_device *cma_dev)
- 	atomic_inc(&cma_dev->refcount);
- }
- 
-+struct cma_device *cma_enum_devices_by_ibdev(cma_device_filter	filter,
-+					     void		*cookie)
-+{
-+	struct cma_device *cma_dev;
-+	struct cma_device *found_cma_dev = NULL;
-+
-+	mutex_lock(&lock);
-+
-+	list_for_each_entry(cma_dev, &dev_list, list)
-+		if (filter(cma_dev->device, cookie)) {
-+			found_cma_dev = cma_dev;
-+			break;
-+		}
-+
-+	if (found_cma_dev)
-+		cma_ref_dev(found_cma_dev);
-+	mutex_unlock(&lock);
-+	return found_cma_dev;
-+}
-+
-+int cma_get_default_gid_type(struct cma_device *cma_dev,
-+			     unsigned int port)
-+{
-+	if (port < rdma_start_port(cma_dev->device) ||
-+	    port > rdma_end_port(cma_dev->device))
-+		return -EINVAL;
-+
-+	return cma_dev->default_gid_type[port - rdma_start_port(cma_dev->device)];
-+}
-+
-+int cma_set_default_gid_type(struct cma_device *cma_dev,
-+			     unsigned int port,
-+			     enum ib_gid_type default_gid_type)
-+{
-+	unsigned long supported_gids;
-+
-+	if (port < rdma_start_port(cma_dev->device) ||
-+	    port > rdma_end_port(cma_dev->device))
-+		return -EINVAL;
-+
-+	supported_gids = roce_gid_type_mask_support(cma_dev->device, port);
-+
-+	if (!(supported_gids & 1 << default_gid_type))
-+		return -EINVAL;
-+
-+	cma_dev->default_gid_type[port - rdma_start_port(cma_dev->device)] =
-+		default_gid_type;
-+
-+	return 0;
-+}
-+
-+struct ib_device *cma_get_ib_dev(struct cma_device *cma_dev)
-+{
-+	return cma_dev->device;
-+}
-+
- /*
-  * Device removal can occur at anytime, so we need extra handling to
-  * serialize notifying the user of device removal with other callbacks.
-@@ -343,17 +400,27 @@ static inline void cma_set_ip_ver(struct cma_hdr *hdr, u8 ip_ver)
- 	hdr->ip_version = (ip_ver << 4) | (hdr->ip_version & 0xF);
- }
- 
--static void cma_attach_to_dev(struct rdma_id_private *id_priv,
--			      struct cma_device *cma_dev)
-+static void _cma_attach_to_dev(struct rdma_id_private *id_priv,
-+			       struct cma_device *cma_dev)
- {
- 	cma_ref_dev(cma_dev);
- 	id_priv->cma_dev = cma_dev;
-+	id_priv->gid_type = 0;
- 	id_priv->id.device = cma_dev->device;
- 	id_priv->id.route.addr.dev_addr.transport =
- 		rdma_node_get_transport(cma_dev->device->node_type);
- 	list_add_tail(&id_priv->list, &cma_dev->id_list);
- }
- 
-+static void cma_attach_to_dev(struct rdma_id_private *id_priv,
-+			      struct cma_device *cma_dev)
-+{
-+	_cma_attach_to_dev(id_priv, cma_dev);
-+	id_priv->gid_type =
-+		cma_dev->default_gid_type[id_priv->id.port_num -
-+					  rdma_start_port(cma_dev->device)];
-+}
-+
- void cma_deref_dev(struct cma_device *cma_dev)
- {
- 	if (atomic_dec_and_test(&cma_dev->refcount))
-@@ -449,6 +516,7 @@ static int cma_translate_addr(struct sockaddr *addr, struct rdma_dev_addr *dev_a
- }
- 
- static inline int cma_validate_port(struct ib_device *device, u8 port,
-+				    enum ib_gid_type gid_type,
- 				      union ib_gid *gid, int dev_type,
- 				      int bound_if_index)
- {
-@@ -474,9 +542,11 @@ static inline int cma_validate_port(struct ib_device *device, u8 port,
- 			if (!ndev)
- 				return -ENODEV;
- 		}
-+	} else {
-+		gid_type = IB_GID_TYPE_IB;
+diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
+index 34b1ada..6e35299 100644
+--- a/drivers/infiniband/core/addr.c
++++ b/drivers/infiniband/core/addr.c
+@@ -256,6 +256,12 @@ static int addr4_resolve(struct sockaddr_in *src_in,
+ 		goto put;
  	}
  
--	ret = ib_find_cached_gid_by_port(device, gid, IB_GID_TYPE_IB, port,
-+	ret = ib_find_cached_gid_by_port(device, gid, gid_type, port,
- 					 ndev, NULL);
- 
- 	if (ndev)
-@@ -511,7 +581,10 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv,
- 		gidp = rdma_protocol_roce(cma_dev->device, port) ?
- 		       &iboe_gid : &gid;
- 
--		ret = cma_validate_port(cma_dev->device, port, gidp,
-+		ret = cma_validate_port(cma_dev->device, port,
-+					rdma_protocol_ib(cma_dev->device, port) ?
-+					IB_GID_TYPE_IB :
-+					listen_id_priv->gid_type, gidp,
- 					dev_addr->dev_type,
- 					dev_addr->bound_dev_if);
- 		if (!ret) {
-@@ -530,8 +603,11 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv,
- 			gidp = rdma_protocol_roce(cma_dev->device, port) ?
- 			       &iboe_gid : &gid;
- 
--			ret = cma_validate_port(cma_dev->device, port, gidp,
--						dev_addr->dev_type,
-+			ret = cma_validate_port(cma_dev->device, port,
-+						rdma_protocol_ib(cma_dev->device, port) ?
-+						IB_GID_TYPE_IB :
-+						cma_dev->default_gid_type[port - 1],
-+						gidp, dev_addr->dev_type,
- 						dev_addr->bound_dev_if);
- 			if (!ret) {
- 				id_priv->id.port_num = port;
-@@ -2073,7 +2149,7 @@ static void cma_listen_on_dev(struct rdma_id_private *id_priv,
- 	memcpy(cma_src_addr(dev_id_priv), cma_src_addr(id_priv),
- 	       rdma_addr_size(cma_src_addr(id_priv)));
- 
--	cma_attach_to_dev(dev_id_priv, cma_dev);
-+	_cma_attach_to_dev(dev_id_priv, cma_dev);
- 	list_add_tail(&dev_id_priv->listen_list, &id_priv->listen_list);
- 	atomic_inc(&id_priv->refcount);
- 	dev_id_priv->internal_id = 1;
-@@ -3907,12 +3983,27 @@ static void cma_add_one(struct ib_device *device)
++	/* If there's a gateway, we're definitely in RoCE v2 (as RoCE v1 isn't
++	 * routable) and we could set the network type accordingly.
++	 */
++	if (rt->rt_uses_gateway)
++		addr->network = RDMA_NETWORK_IPV4;
++
+ 	ret = dst_fetch_ha(&rt->dst, addr, &fl4.daddr);
+ put:
+ 	ip_rt_put(rt);
+@@ -270,6 +276,7 @@ static int addr6_resolve(struct sockaddr_in6 *src_in,
  {
- 	struct cma_device *cma_dev;
- 	struct rdma_id_private *id_priv;
-+	unsigned int i;
-+	unsigned long supported_gids = 0;
+ 	struct flowi6 fl6;
+ 	struct dst_entry *dst;
++	struct rt6_info *rt;
+ 	int ret;
  
- 	cma_dev = kmalloc(sizeof *cma_dev, GFP_KERNEL);
- 	if (!cma_dev)
- 		return;
+ 	memset(&fl6, 0, sizeof fl6);
+@@ -281,6 +288,7 @@ static int addr6_resolve(struct sockaddr_in6 *src_in,
+ 	if ((ret = dst->error))
+ 		goto put;
  
- 	cma_dev->device = device;
-+	cma_dev->default_gid_type = kcalloc(device->phys_port_cnt,
-+					    sizeof(*cma_dev->default_gid_type),
-+					    GFP_KERNEL);
-+	if (!cma_dev->default_gid_type) {
-+		kfree(cma_dev);
-+		return;
++	rt = (struct rt6_info *)dst;
+ 	if (ipv6_addr_any(&fl6.saddr)) {
+ 		ret = ipv6_dev_get_saddr(addr->net, ip6_dst_idev(dst)->dev,
+ 					 &fl6.daddr, 0, &fl6.saddr);
+@@ -304,6 +312,12 @@ static int addr6_resolve(struct sockaddr_in6 *src_in,
+ 		goto put;
+ 	}
+ 
++	/* If there's a gateway, we're definitely in RoCE v2 (as RoCE v1 isn't
++	 * routable) and we could set the network type accordingly.
++	 */
++	if (rt->rt6i_flags & RTF_GATEWAY)
++		addr->network = RDMA_NETWORK_IPV6;
++
+ 	ret = dst_fetch_ha(dst, addr, &fl6.daddr);
+ put:
+ 	dst_release(dst);
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 2914e08..5dc853c 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -2302,6 +2302,7 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
+ {
+ 	struct rdma_route *route = &id_priv->id.route;
+ 	struct rdma_addr *addr = &route->addr;
++	enum ib_gid_type network_gid_type;
+ 	struct cma_work *work;
+ 	int ret;
+ 	struct net_device *ndev = NULL;
+@@ -2340,7 +2341,15 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
+ 	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.dst_addr,
+ 		    &route->path_rec->dgid);
+ 
+-	route->path_rec->hop_limit = 1;
++	/* Use the hint from IP Stack to select GID Type */
++	network_gid_type = ib_network_to_gid_type(addr->dev_addr.network);
++	if (addr->dev_addr.network != RDMA_NETWORK_IB) {
++		route->path_rec->gid_type = network_gid_type;
++		/* TODO: get the hoplimit from the inet/inet6 device */
++		route->path_rec->hop_limit = IPV6_DEFAULT_HOPLIMIT;
++	} else {
++		route->path_rec->hop_limit = 1;
 +	}
-+	for (i = rdma_start_port(device); i <= rdma_end_port(device); i++) {
-+		supported_gids = roce_gid_type_mask_support(device, i);
-+		WARN_ON(!supported_gids);
-+		cma_dev->default_gid_type[i - rdma_start_port(device)] =
-+			find_first_bit(&supported_gids, BITS_PER_LONG);
-+	}
- 
- 	init_completion(&cma_dev->comp);
- 	atomic_set(&cma_dev->refcount, 1);
-@@ -3992,6 +4083,7 @@ static void cma_remove_one(struct ib_device *device, void *client_data)
- 	mutex_unlock(&lock);
- 
- 	cma_process_remove(cma_dev);
-+	kfree(cma_dev->default_gid_type);
- 	kfree(cma_dev);
+ 	route->path_rec->reversible = 1;
+ 	route->path_rec->pkey = cpu_to_be16(0xffff);
+ 	route->path_rec->mtu_selector = IB_SA_EQ;
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 4263c4c..c564131 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -311,8 +311,61 @@ struct ib_ah *ib_create_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr)
  }
+ EXPORT_SYMBOL(ib_create_ah);
  
-@@ -4125,6 +4217,7 @@ static int __init cma_init(void)
- 
- 	if (ibnl_add_client(RDMA_NL_RDMA_CM, RDMA_NL_RDMA_CM_NUM_OPS, cma_cb_table))
- 		printk(KERN_WARNING "RDMA CMA: failed to add netlink callback\n");
-+	cma_configfs_init();
- 
- 	return 0;
- 
-@@ -4139,6 +4232,7 @@ err_wq:
- 
- static void __exit cma_cleanup(void)
- {
-+	cma_configfs_exit();
- 	ibnl_remove_client(RDMA_NL_RDMA_CM);
- 	ib_unregister_client(&cma_client);
- 	unregister_netdevice_notifier(&cma_nb);
-diff --git a/drivers/infiniband/core/cma_configfs.c b/drivers/infiniband/core/cma_configfs.c
-new file mode 100644
-index 0000000..744834b
---- /dev/null
-+++ b/drivers/infiniband/core/cma_configfs.c
-@@ -0,0 +1,321 @@
-+/*
-+ * Copyright (c) 2015, Mellanox Technologies inc.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include <linux/configfs.h>
-+#include <rdma/ib_verbs.h>
-+#include "core_priv.h"
-+
-+struct cma_device;
-+
-+struct cma_dev_group;
-+
-+struct cma_dev_port_group {
-+	unsigned int		port_num;
-+	struct cma_dev_group	*cma_dev_group;
-+	struct config_group	group;
-+};
-+
-+struct cma_dev_group {
-+	char				name[IB_DEVICE_NAME_MAX];
-+	struct config_group		device_group;
-+	struct config_group		ports_group;
-+	struct config_group		*default_dev_group[2];
-+	struct config_group		**default_ports_group;
-+	struct cma_dev_port_group	*ports;
-+};
-+
-+static struct cma_dev_port_group *to_dev_port_group(struct config_item *item)
++static int ib_get_header_version(const union rdma_network_hdr *hdr)
 +{
-+	struct config_group *group;
++	const struct iphdr *ip4h = (struct iphdr *)&hdr->roce4grh;
++	struct iphdr ip4h_checked;
++	const struct ipv6hdr *ip6h = (struct ipv6hdr *)&hdr->ibgrh;
 +
-+	if (!item)
-+		return NULL;
++	/* If it's IPv6, the version must be 6, otherwise, the first
++	 * 20 bytes (before the IPv4 header) are garbled.
++	 */
++	if (ip6h->version != 6)
++		return (ip4h->version == 4) ? 4 : 0;
++	/* version may be 6 or 4 because the first 20 bytes could be garbled */
 +
-+	group = container_of(item, struct config_group, cg_item);
-+	return container_of(group, struct cma_dev_port_group, group);
++	/* RoCE v2 requires no options, thus header length
++	 * must be 5 words
++	 */
++	if (ip4h->ihl != 5)
++		return 6;
++
++	/* Verify checksum.
++	 * We can't write on scattered buffers so we need to copy to
++	 * temp buffer.
++	 */
++	memcpy(&ip4h_checked, ip4h, sizeof(ip4h_checked));
++	ip4h_checked.check = 0;
++	ip4h_checked.check = ip_fast_csum((u8 *)&ip4h_checked, 5);
++	/* if IPv4 header checksum is OK, believe it */
++	if (ip4h->check == ip4h_checked.check)
++		return 4;
++	return 6;
 +}
 +
-+static bool filter_by_name(struct ib_device *ib_dev, void *cookie)
++static enum rdma_network_type ib_get_net_type_by_grh(struct ib_device *device,
++						     u8 port_num,
++						     const struct ib_grh *grh)
 +{
-+	return !strcmp(ib_dev->name, cookie);
++	int grh_version;
++
++	if (rdma_protocol_ib(device, port_num))
++		return RDMA_NETWORK_IB;
++
++	grh_version = ib_get_header_version((union rdma_network_hdr *)grh);
++
++	if (grh_version == 4)
++		return RDMA_NETWORK_IPV4;
++
++	if (grh->next_hdr == IPPROTO_UDP)
++		return RDMA_NETWORK_IPV6;
++
++	return RDMA_NETWORK_ROCE_V1;
 +}
 +
-+static int cma_configfs_params_get(struct config_item *item,
-+				   struct cma_device **pcma_dev,
-+				   struct cma_dev_port_group **pgroup)
-+{
-+	struct cma_dev_port_group *group = to_dev_port_group(item);
-+	struct cma_device *cma_dev;
-+
-+	if (!group)
-+		return -ENODEV;
-+
-+	cma_dev = cma_enum_devices_by_ibdev(filter_by_name,
-+					    group->cma_dev_group->name);
-+	if (!cma_dev)
-+		return -ENODEV;
-+
-+	*pcma_dev = cma_dev;
-+	*pgroup = group;
-+
-+	return 0;
-+}
-+
-+static void cma_configfs_params_put(struct cma_device *cma_dev)
-+{
-+	cma_deref_dev(cma_dev);
-+}
-+
-+static ssize_t default_roce_mode_show(struct config_item *item,
-+				      char *buf)
-+{
-+	struct cma_device *cma_dev;
-+	struct cma_dev_port_group *group;
-+	int gid_type;
-+	ssize_t ret;
-+
-+	ret = cma_configfs_params_get(item, &cma_dev, &group);
-+	if (ret)
-+		return ret;
-+
-+	gid_type = cma_get_default_gid_type(cma_dev, group->port_num);
-+	cma_configfs_params_put(cma_dev);
-+
-+	if (gid_type < 0)
-+		return gid_type;
-+
-+	return sprintf(buf, "%s\n", ib_cache_gid_type_str(gid_type));
-+}
-+
-+static ssize_t default_roce_mode_store(struct config_item *item,
-+				       const char *buf, size_t count)
-+{
-+	struct cma_device *cma_dev;
-+	struct cma_dev_port_group *group;
-+	int gid_type = ib_cache_gid_parse_type_str(buf);
-+	ssize_t ret;
-+
-+	if (gid_type < 0)
-+		return -EINVAL;
-+
-+	ret = cma_configfs_params_get(item, &cma_dev, &group);
-+	if (ret)
-+		return ret;
-+
-+	ret = cma_set_default_gid_type(cma_dev, group->port_num, gid_type);
-+
-+	cma_configfs_params_put(cma_dev);
-+
-+	return !ret ? strnlen(buf, count) : ret;
-+}
-+
-+CONFIGFS_ATTR(, default_roce_mode);
-+
-+static struct configfs_attribute *cma_configfs_attributes[] = {
-+	&attr_default_roce_mode,
-+	NULL,
-+};
-+
-+static struct config_item_type cma_port_group_type = {
-+	.ct_attrs	= cma_configfs_attributes,
-+	.ct_owner	= THIS_MODULE
-+};
-+
-+static int make_cma_ports(struct cma_dev_group *cma_dev_group,
-+			  struct cma_device *cma_dev)
-+{
-+	struct ib_device *ibdev;
-+	unsigned int i;
-+	unsigned int ports_num;
-+	struct cma_dev_port_group *ports;
-+	int err;
-+
-+	ibdev = cma_get_ib_dev(cma_dev);
-+
-+	if (!ibdev)
-+		return -ENODEV;
-+
-+	ports_num = ibdev->phys_port_cnt;
-+	ports = kcalloc(ports_num, sizeof(*cma_dev_group->ports),
-+			GFP_KERNEL);
-+
-+	cma_dev_group->default_ports_group = kcalloc(ports_num + 1,
-+						     sizeof(*cma_dev_group->ports),
-+						     GFP_KERNEL);
-+
-+	if (!ports || !cma_dev_group->default_ports_group) {
-+		err = -ENOMEM;
-+		goto free;
-+	}
-+
-+	for (i = 0; i < ports_num; i++) {
-+		char port_str[10];
-+
-+		ports[i].port_num = i + 1;
-+		snprintf(port_str, sizeof(port_str), "%u", i + 1);
-+		ports[i].cma_dev_group = cma_dev_group;
-+		config_group_init_type_name(&ports[i].group,
-+					    port_str,
-+					    &cma_port_group_type);
-+		cma_dev_group->default_ports_group[i] = &ports[i].group;
-+	}
-+	cma_dev_group->default_ports_group[i] = NULL;
-+	cma_dev_group->ports = ports;
-+
-+	return 0;
-+free:
-+	kfree(ports);
-+	kfree(cma_dev_group->default_ports_group);
-+	cma_dev_group->ports = NULL;
-+	cma_dev_group->default_ports_group = NULL;
-+	return err;
-+}
-+
-+static void release_cma_dev(struct config_item  *item)
-+{
-+	struct config_group *group = container_of(item, struct config_group,
-+						  cg_item);
-+	struct cma_dev_group *cma_dev_group = container_of(group,
-+							   struct cma_dev_group,
-+							   device_group);
-+
-+	kfree(cma_dev_group);
-+};
-+
-+static void release_cma_ports_group(struct config_item  *item)
-+{
-+	struct config_group *group = container_of(item, struct config_group,
-+						  cg_item);
-+	struct cma_dev_group *cma_dev_group = container_of(group,
-+							   struct cma_dev_group,
-+							   ports_group);
-+
-+	kfree(cma_dev_group->ports);
-+	kfree(cma_dev_group->default_ports_group);
-+	cma_dev_group->ports = NULL;
-+	cma_dev_group->default_ports_group = NULL;
-+};
-+
-+static struct configfs_item_operations cma_ports_item_ops = {
-+	.release = release_cma_ports_group
-+};
-+
-+static struct config_item_type cma_ports_group_type = {
-+	.ct_item_ops	= &cma_ports_item_ops,
-+	.ct_owner	= THIS_MODULE
-+};
-+
-+static struct configfs_item_operations cma_device_item_ops = {
-+	.release = release_cma_dev
-+};
-+
-+static struct config_item_type cma_device_group_type = {
-+	.ct_item_ops	= &cma_device_item_ops,
-+	.ct_owner	= THIS_MODULE
-+};
-+
-+static struct config_group *make_cma_dev(struct config_group *group,
-+					 const char *name)
-+{
-+	int err = -ENODEV;
-+	struct cma_device *cma_dev = cma_enum_devices_by_ibdev(filter_by_name,
-+							       (void *)name);
-+	struct cma_dev_group *cma_dev_group = NULL;
-+
-+	if (!cma_dev)
-+		goto fail;
-+
-+	cma_dev_group = kzalloc(sizeof(*cma_dev_group), GFP_KERNEL);
-+
-+	if (!cma_dev_group) {
-+		err = -ENOMEM;
-+		goto fail;
-+	}
-+
-+	strncpy(cma_dev_group->name, name, sizeof(cma_dev_group->name));
-+
-+	err = make_cma_ports(cma_dev_group, cma_dev);
-+	if (err)
-+		goto fail;
-+
-+	cma_dev_group->ports_group.default_groups =
-+		cma_dev_group->default_ports_group;
-+	config_group_init_type_name(&cma_dev_group->ports_group, "ports",
-+				    &cma_ports_group_type);
-+
-+	cma_dev_group->device_group.default_groups
-+		= cma_dev_group->default_dev_group;
-+	cma_dev_group->default_dev_group[0] = &cma_dev_group->ports_group;
-+	cma_dev_group->default_dev_group[1] = NULL;
-+
-+	config_group_init_type_name(&cma_dev_group->device_group, name,
-+				    &cma_device_group_type);
-+
-+	cma_deref_dev(cma_dev);
-+	return &cma_dev_group->device_group;
-+
-+fail:
-+	if (cma_dev)
-+		cma_deref_dev(cma_dev);
-+	kfree(cma_dev_group);
-+	return ERR_PTR(err);
-+}
-+
-+static struct configfs_group_operations cma_subsys_group_ops = {
-+	.make_group	= make_cma_dev,
-+};
-+
-+static struct config_item_type cma_subsys_type = {
-+	.ct_group_ops	= &cma_subsys_group_ops,
-+	.ct_owner	= THIS_MODULE,
-+};
-+
-+static struct configfs_subsystem cma_subsys = {
-+	.su_group	= {
-+		.cg_item	= {
-+			.ci_namebuf	= "rdma_cm",
-+			.ci_type	= &cma_subsys_type,
-+		},
-+	},
-+};
-+
-+int __init cma_configfs_init(void)
-+{
-+	config_group_init(&cma_subsys.su_group);
-+	mutex_init(&cma_subsys.su_mutex);
-+	return configfs_register_subsystem(&cma_subsys);
-+}
-+
-+void __exit cma_configfs_exit(void)
-+{
-+	configfs_unregister_subsystem(&cma_subsys);
-+}
-diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index 1945b4e..eab3221 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -38,9 +38,31 @@
- 
- #include <rdma/ib_verbs.h>
- 
-+#if IS_ENABLED(CONFIG_INFINIBAND_ADDR_TRANS_CONFIGFS)
-+int cma_configfs_init(void);
-+void cma_configfs_exit(void);
-+#else
-+static inline int cma_configfs_init(void)
-+{
-+	return 0;
-+}
-+
-+static inline void cma_configfs_exit(void)
-+{
-+}
-+#endif
- struct cma_device;
- void cma_ref_dev(struct cma_device *cma_dev);
- void cma_deref_dev(struct cma_device *cma_dev);
-+typedef bool (*cma_device_filter)(struct ib_device *, void *);
-+struct cma_device *cma_enum_devices_by_ibdev(cma_device_filter	filter,
-+					     void		*cookie);
-+int cma_get_default_gid_type(struct cma_device *cma_dev,
-+			     unsigned int port);
-+int cma_set_default_gid_type(struct cma_device *cma_dev,
-+			     unsigned int port,
-+			     enum ib_gid_type default_gid_type);
-+struct ib_device *cma_get_ib_dev(struct cma_device *cma_dev);
- 
- int  ib_device_register_sysfs(struct ib_device *device,
- 			      int (*port_callback)(struct ib_device *,
-@@ -74,6 +96,8 @@ enum ib_cache_gid_default_mode {
- 	IB_CACHE_GID_DEFAULT_MODE_DELETE
+ struct find_gid_index_context {
+ 	u16 vlan_id;
++	enum ib_gid_type gid_type;
  };
  
-+int ib_cache_gid_parse_type_str(const char *buf);
-+
- const char *ib_cache_gid_type_str(enum ib_gid_type gid_type);
+ static bool find_gid_index(const union ib_gid *gid,
+@@ -322,6 +375,9 @@ static bool find_gid_index(const union ib_gid *gid,
+ 	struct find_gid_index_context *ctx =
+ 		(struct find_gid_index_context *)context;
  
- void ib_cache_gid_set_default_gid(struct ib_device *ib_dev, u8 port,
++	if (ctx->gid_type != gid_attr->gid_type)
++		return false;
++
+ 	if ((!!(ctx->vlan_id != 0xffff) == !is_vlan_dev(gid_attr->ndev)) ||
+ 	    (is_vlan_dev(gid_attr->ndev) &&
+ 	     vlan_dev_vlan_id(gid_attr->ndev) != ctx->vlan_id))
+@@ -332,14 +388,49 @@ static bool find_gid_index(const union ib_gid *gid,
+ 
+ static int get_sgid_index_from_eth(struct ib_device *device, u8 port_num,
+ 				   u16 vlan_id, const union ib_gid *sgid,
++				   enum ib_gid_type gid_type,
+ 				   u16 *gid_index)
+ {
+-	struct find_gid_index_context context = {.vlan_id = vlan_id};
++	struct find_gid_index_context context = {.vlan_id = vlan_id,
++						 .gid_type = gid_type};
+ 
+ 	return ib_find_gid_by_filter(device, sgid, port_num, find_gid_index,
+ 				     &context, gid_index);
+ }
+ 
++static int get_gids_from_rdma_hdr(union rdma_network_hdr *hdr,
++				  enum rdma_network_type net_type,
++				  union ib_gid *sgid, union ib_gid *dgid)
++{
++	struct sockaddr_in  src_in;
++	struct sockaddr_in  dst_in;
++	__be32 src_saddr, dst_saddr;
++
++	if (!sgid || !dgid)
++		return -EINVAL;
++
++	if (net_type == RDMA_NETWORK_IPV4) {
++		memcpy(&src_in.sin_addr.s_addr,
++		       &hdr->roce4grh.saddr, 4);
++		memcpy(&dst_in.sin_addr.s_addr,
++		       &hdr->roce4grh.daddr, 4);
++		src_saddr = src_in.sin_addr.s_addr;
++		dst_saddr = dst_in.sin_addr.s_addr;
++		ipv6_addr_set_v4mapped(src_saddr,
++				       (struct in6_addr *)sgid);
++		ipv6_addr_set_v4mapped(dst_saddr,
++				       (struct in6_addr *)dgid);
++		return 0;
++	} else if (net_type == RDMA_NETWORK_IPV6 ||
++		   net_type == RDMA_NETWORK_IB) {
++		*dgid = hdr->ibgrh.dgid;
++		*sgid = hdr->ibgrh.sgid;
++		return 0;
++	} else {
++		return -EINVAL;
++	}
++}
++
+ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num,
+ 		       const struct ib_wc *wc, const struct ib_grh *grh,
+ 		       struct ib_ah_attr *ah_attr)
+@@ -347,9 +438,25 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num,
+ 	u32 flow_class;
+ 	u16 gid_index;
+ 	int ret;
++	enum rdma_network_type net_type = RDMA_NETWORK_IB;
++	enum ib_gid_type gid_type = IB_GID_TYPE_IB;
++	union ib_gid dgid;
++	union ib_gid sgid;
+ 
+ 	memset(ah_attr, 0, sizeof *ah_attr);
+ 	if (rdma_cap_eth_ah(device, port_num)) {
++		if (wc->wc_flags & IB_WC_WITH_NETWORK_HDR_TYPE)
++			net_type = wc->network_hdr_type;
++		else
++			net_type = ib_get_net_type_by_grh(device, port_num, grh);
++		gid_type = ib_network_to_gid_type(net_type);
++	}
++	ret = get_gids_from_rdma_hdr((union rdma_network_hdr *)grh, net_type,
++				     &sgid, &dgid);
++	if (ret)
++		return ret;
++
++	if (rdma_protocol_roce(device, port_num)) {
+ 		u16 vlan_id = wc->wc_flags & IB_WC_WITH_VLAN ?
+ 				wc->vlan_id : 0xffff;
+ 
+@@ -358,7 +465,7 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num,
+ 
+ 		if (!(wc->wc_flags & IB_WC_WITH_SMAC) ||
+ 		    !(wc->wc_flags & IB_WC_WITH_VLAN)) {
+-			ret = rdma_addr_find_dmac_by_grh(&grh->dgid, &grh->sgid,
++			ret = rdma_addr_find_dmac_by_grh(&dgid, &sgid,
+ 							 ah_attr->dmac,
+ 							 wc->wc_flags & IB_WC_WITH_VLAN ?
+ 							 NULL : &vlan_id,
+@@ -368,7 +475,7 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num,
+ 		}
+ 
+ 		ret = get_sgid_index_from_eth(device, port_num, vlan_id,
+-					      &grh->dgid, &gid_index);
++					      &dgid, gid_type, &gid_index);
+ 		if (ret)
+ 			return ret;
+ 
+@@ -383,10 +490,10 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num,
+ 
+ 	if (wc->wc_flags & IB_WC_GRH) {
+ 		ah_attr->ah_flags = IB_AH_GRH;
+-		ah_attr->grh.dgid = grh->sgid;
++		ah_attr->grh.dgid = sgid;
+ 
+ 		if (!rdma_cap_eth_ah(device, port_num)) {
+-			ret = ib_find_cached_gid_by_port(device, &grh->dgid,
++			ret = ib_find_cached_gid_by_port(device, &dgid,
+ 							 IB_GID_TYPE_IB,
+ 							 port_num, NULL,
+ 							 &gid_index);
+@@ -1026,6 +1133,12 @@ int ib_resolve_eth_dmac(struct ib_qp *qp,
+ 					ret = -ENXIO;
+ 				goto out;
+ 			}
++			if (sgid_attr.gid_type == IB_GID_TYPE_ROCE_UDP_ENCAP)
++				/* TODO: get the hoplimit from the inet/inet6
++				 * device
++				 */
++				qp_attr->ah_attr.grh.hop_limit =
++							IPV6_DEFAULT_HOPLIMIT;
+ 
+ 			ifindex = sgid_attr.ndev->ifindex;
+ 
+diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
+index 1152859..c799caa 100644
+--- a/include/rdma/ib_addr.h
++++ b/include/rdma/ib_addr.h
+@@ -83,6 +83,7 @@ struct rdma_dev_addr {
+ 	int bound_dev_if;
+ 	enum rdma_transport_type transport;
+ 	struct net *net;
++	enum rdma_network_type network;
+ };
+ 
+ /**
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 87df931..31fb409 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -50,6 +50,8 @@
+ #include <linux/workqueue.h>
+ #include <linux/socket.h>
+ #include <uapi/linux/if_ether.h>
++#include <net/ipv6.h>
++#include <net/ip.h>
+ 
+ #include <linux/atomic.h>
+ #include <linux/mmu_notifier.h>
+@@ -107,6 +109,35 @@ enum rdma_protocol_type {
+ __attribute_const__ enum rdma_transport_type
+ rdma_node_get_transport(enum rdma_node_type node_type);
+ 
++enum rdma_network_type {
++	RDMA_NETWORK_IB,
++	RDMA_NETWORK_ROCE_V1 = RDMA_NETWORK_IB,
++	RDMA_NETWORK_IPV4,
++	RDMA_NETWORK_IPV6
++};
++
++static inline enum ib_gid_type ib_network_to_gid_type(enum rdma_network_type network_type)
++{
++	if (network_type == RDMA_NETWORK_IPV4 ||
++	    network_type == RDMA_NETWORK_IPV6)
++		return IB_GID_TYPE_ROCE_UDP_ENCAP;
++
++	/* IB_GID_TYPE_IB same as RDMA_NETWORK_ROCE_V1 */
++	return IB_GID_TYPE_IB;
++}
++
++static inline enum rdma_network_type ib_gid_to_network_type(enum ib_gid_type gid_type,
++							    union ib_gid *gid)
++{
++	if (gid_type == IB_GID_TYPE_IB)
++		return RDMA_NETWORK_IB;
++
++	if (ipv6_addr_v4mapped((struct in6_addr *)gid))
++		return RDMA_NETWORK_IPV4;
++	else
++		return RDMA_NETWORK_IPV6;
++}
++
+ enum rdma_link_layer {
+ 	IB_LINK_LAYER_UNSPECIFIED,
+ 	IB_LINK_LAYER_INFINIBAND,
+@@ -535,6 +566,17 @@ struct ib_grh {
+ 	union ib_gid	dgid;
+ };
+ 
++union rdma_network_hdr {
++	struct ib_grh ibgrh;
++	struct {
++		/* The IB spec states that if it's IPv4, the header
++		 * is located in the last 20 bytes of the header.
++		 */
++		u8		reserved[20];
++		struct iphdr	roce4grh;
++	};
++};
++
+ enum {
+ 	IB_MULTICAST_QPN = 0xffffff
+ };
+@@ -771,6 +813,7 @@ enum ib_wc_flags {
+ 	IB_WC_IP_CSUM_OK	= (1<<3),
+ 	IB_WC_WITH_SMAC		= (1<<4),
+ 	IB_WC_WITH_VLAN		= (1<<5),
++	IB_WC_WITH_NETWORK_HDR_TYPE	= (1<<6),
+ };
+ 
+ struct ib_wc {
+@@ -793,6 +836,7 @@ struct ib_wc {
+ 	u8			port_num;	/* valid only for DR SMPs on switches */
+ 	u8			smac[ETH_ALEN];
+ 	u16			vlan_id;
++	u8			network_hdr_type;
+ };
+ 
+ enum ib_cq_notify_flags {
 -- 
 2.1.0
 
