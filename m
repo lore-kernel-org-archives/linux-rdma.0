@@ -1,90 +1,43 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] staging/rdma/hfi1: fix sdma build failures to always clean
- up
-Date: Thu, 03 Dec 2015 16:41:05 -0500
-Message-ID: <20151203214105.6103.23333.stgit@phlsvslse11.ph.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH libibverbs] init.c: increase sysfs read buffer size to 16
+Date: Thu,  3 Dec 2015 15:09:41 -0800
+Message-ID: <1449184181-25676-1-git-send-email-jsquyres@cisco.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Xuyang Wang <xuywang-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-There are holes in the sdma build support routines that do
-not clean any partially built sdma descriptors after mapping or
-allocate failures.
+The default value of 8 is too small to read
+/sys/class/infiniband/usnic_x/node_type, which contains "6: usNIC
+UDP".  Per a7a73a8c1b39362f1701256bc772d82847832f9c, the too-small
+buffer causes a stderr warning to be emitted from ibv_devinfo when
+reading usNIC devices.
 
-This patch corrects these issues.
+This commit therefore increases the buffer size to 16, which is long
+enough to read the usNIC node_type value.
 
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Xuyang Wang <xuywang-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/sdma.c |   10 ++++++----
- drivers/staging/rdma/hfi1/sdma.h |    7 +++++--
- 2 files changed, 11 insertions(+), 6 deletions(-)
+ src/init.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/staging/rdma/hfi1/sdma.c b/drivers/staging/rdma/hfi1/sdma.c
-index 90b7072..8023eeb 100644
---- a/drivers/staging/rdma/hfi1/sdma.c
-+++ b/drivers/staging/rdma/hfi1/sdma.c
-@@ -2724,22 +2724,21 @@ static int _extend_sdma_tx_descs(struct hfi1_devdata *dd, struct sdma_txreq *tx)
- 			tx->coalesce_buf = kmalloc(tx->tlen + sizeof(u32),
- 						   GFP_ATOMIC);
- 			if (!tx->coalesce_buf)
--				return -ENOMEM;
--
-+				goto enomem;
- 			tx->coalesce_idx = 0;
- 		}
- 		return 0;
- 	}
+diff --git a/src/init.c b/src/init.c
+index dbdd795..ef78871 100644
+--- a/src/init.c
++++ b/src/init.c
+@@ -351,7 +351,7 @@ static struct ibv_device *try_driver(struct ibv_driver *driver,
+ {
+ 	struct verbs_device *vdev;
+ 	struct ibv_device *dev;
+-	char value[8];
++	char value[16];
  
- 	if (unlikely(tx->num_desc == MAX_DESC))
--		return -ENOMEM;
-+		goto enomem;
- 
- 	tx->descp = kmalloc_array(
- 			MAX_DESC,
- 			sizeof(struct sdma_desc),
- 			GFP_ATOMIC);
- 	if (!tx->descp)
--		return -ENOMEM;
-+		goto enomem;
- 
- 	/* reserve last descriptor for coalescing */
- 	tx->desc_limit = MAX_DESC - 1;
-@@ -2747,6 +2746,9 @@ static int _extend_sdma_tx_descs(struct hfi1_devdata *dd, struct sdma_txreq *tx)
- 	for (i = 0; i < tx->num_desc; i++)
- 		tx->descp[i] = tx->descs[i];
- 	return 0;
-+enomem:
-+	sdma_txclean(dd, tx);
-+	return -ENOMEM;
- }
- 
- /*
-diff --git a/drivers/staging/rdma/hfi1/sdma.h b/drivers/staging/rdma/hfi1/sdma.h
-index 85701ee..da89e64 100644
---- a/drivers/staging/rdma/hfi1/sdma.h
-+++ b/drivers/staging/rdma/hfi1/sdma.h
-@@ -774,10 +774,13 @@ static inline int _sdma_txadd_daddr(
- 	tx->tlen -= len;
- 	/* special cases for last */
- 	if (!tx->tlen) {
--		if (tx->packet_len & (sizeof(u32) - 1))
-+		if (tx->packet_len & (sizeof(u32) - 1)) {
- 			rval = _pad_sdma_tx_descs(dd, tx);
--		else
-+			if (rval)
-+				return rval;
-+		} else {
- 			_sdma_close_tx(dd, tx);
-+		}
- 	}
- 	tx->num_desc++;
- 	return rval;
+ 	if (driver->init_func) {
+ 		dev = driver->init_func(sysfs_dev->sysfs_path, sysfs_dev->abi_ver);
+-- 
+2.4.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
