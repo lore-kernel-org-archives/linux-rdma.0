@@ -1,37 +1,37 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 6/6] IB/srp: Fix srp_map_sg_fr()
-Date: Thu, 3 Dec 2015 10:46:10 +0200
-Message-ID: <56600152.5050401@dev.mellanox.co.il>
-References: <565DE3EC.2070002@sandisk.com> <565DE4BA.1040703@sandisk.com>
- <565DE864.5050407@dev.mellanox.co.il> <565DE977.2070606@sandisk.com>
- <565EDD2A.6050407@dev.mellanox.co.il> <20151202124154.GF28278@infradead.org>
- <565EE90D.8060303@dev.mellanox.co.il>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: stalled again
+Date: Thu, 3 Dec 2015 00:46:28 -0800
+Message-ID: <20151203084628.GA30399@infradead.org>
+References: <565DCB24.7020304@mellanox.com>
+ <20151202122927.GC28278@infradead.org>
+ <20151202184201.GB17021@obsidianresearch.com>
+ <565F5025.2090002@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <565EE90D.8060303-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <565F5025.2090002-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Replying to my own email,
+Hi Doug,
 
+not having any maintainer available for an extended time is a problem,
+and we actually had long discussions about that at kernel summit, with
+a clear hint with a cluebat from Linus that he'd prefer maintainer
+teams.  So I'd really love to know who was so ead set aginst them.
 
->> dma_map_sg returns the actual number of entries to iterate.  At least
->> historically some IOMMU implementations would do strange tricks like:
->>
->>    If entries 2 and 3 could be merged dma_len for 2 would span 2 and 3,
->>    and then entry 3 would actually have the dma addr and len for entry 4.
+I personally don't really care if there is a real team (active/active)
+or just a standby (active/passive), but I think we really need a
+coherent tree of pending patches to avoid last minute rebases due to
+conflicts, as well as some feedback for submitters.
 
-So what would be in the last entry {dma_addr, dma_len}? zeros?
-
->> I'm not sure anyone still does that, but the first spot to check would
->> be the Parisc IOMMU drivers.
-
-So how does that sit with the fact that dma_unmap requires the
-same sg_nents as in dma_map and not the actual value of dma entries?
+I'd be happy to volunteer to collect all patches that were properly
+review into a queue for you to consider to at least sort out these
+mechanics, although I'd be even more happy if someone who has a longer
+experience with the subsystem would volunteer instead.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
