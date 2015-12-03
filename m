@@ -1,119 +1,114 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V2 00/11] Add RoCE v2 support
-Date: Thu,  3 Dec 2015 15:47:07 +0200
-Message-ID: <1449150450-13679-1-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next V2 04/11] IB/core: Add ROCE_UDP_ENCAP (RoCE V2) type
+Date: Thu,  3 Dec 2015 15:47:11 +0200
+Message-ID: <1449150450-13679-5-git-send-email-matanb@mellanox.com>
+References: <1449150450-13679-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1449150450-13679-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
+Adding RoCE v2 GID type and port type. Vendors
+which support this type will get their GID table
+populated with RoCE v2 GIDs automatically.
 
-This series adds the support for RoCE v2. In order to support RoCE v2,
-we add gid_type attribute to every GID. When the RoCE GID management
-populates the GID table, it duplicates each GID with all supported types.
-This gives the user the ability to communicate over each supported
-type.
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/cache.c         |  1 +
+ drivers/infiniband/core/roce_gid_mgmt.c |  3 ++-
+ include/rdma/ib_verbs.h                 | 23 +++++++++++++++++++++--
+ 3 files changed, 24 insertions(+), 3 deletions(-)
 
-Patch 0001, 0002 and 0003 add support for multiple GID types to the
-cache and related APIs. The third patch exposes the GID attributes
-information is sysfs.
-
-Patch 0004 adds the RoCE v2 GID type and the capabilities required
-from the vendor in order to implement RoCE v2. These capabilities
-are grouped together as RDMA_CORE_PORT_IBA_ROCE_UDP_ENCAP.
-
-RoCE v2 could work at IPv4 and IPv6 networks. When receiving ib_wc, this
-information should come from the vendor's driver. In case the vendor
-doesn't supply this information, we parse the packet headers and resolve
-its network type. Patch 0005 adds this information and required utilities.
-
-Patches 0006 and 0007 adds route validation. This is mandatory to ensure
-that we send packets using GIDS which corresponds to a net-device that
-can be routed to the destination.
-
-Patches 0008 and 0009 add configfs support (and the required
-infrastructure) for CMA. The administrator should be able to set the
-default RoCE type. This is done through a new per-port
-default_roce_mode configfs file.
-
-Patch 0010 formats a QP1 packet in order to support RoCE v2 CM
-packets. This is required for vendors which implement their
-QP1 as a Raw QP.
-
-Patch 0011 adds support for IPv4 multicast as an IPv4 network
-requires IGMP to be sent in order to join multicast groups.
-
-Vendors code aren't part of this patch-set. Soft-Roce will be
-sent soon and depends on these patches. Other vendors, like
-mlx4, ocrdma and mlx5 will follow.
-
-This patch is applied on "Change per-entry locks in GID cache to table lock"
-which was sent to the mailing list.
-
-Thanks,
-Matan
-
-Changed from V1:
- - Rebased against Linux 4.4-rc2 master branch.
- - Add route validation
- - ConfigFS - avoid compiling INFINIBAND=y and CONFIGFS_FS=m
- - Add documentation for configfs and sysfs ABI
- - Remove ifindex and gid_type from mcmember
-
-Changes from V0:
- - Rebased patches against Doug's latest k.o/for-4.4 tree.
- - Fixed a bug in configfs (rmdir caused an incorrect free).
-
-Matan Barak (8):
-  IB/core: Add gid_type to gid attribute
-  IB/cm: Use the source GID index type
-  IB/core: Add gid attributes to sysfs
-  IB/core: Add ROCE_UDP_ENCAP (RoCE V2) type
-  IB/core: Move rdma_is_upper_dev_rcu to header file
-  IB/core: Validate route in ib_init_ah_from_wc and ib_init_ah_from_path
-  IB/rdma_cm: Add wrapper for cma reference count
-  IB/cma: Add configfs for rdma_cm
-
-Moni Shoua (2):
-  IB/core: Initialize UD header structure with IP and UDP headers
-  IB/cma: Join and leave multicast groups with IGMP
-
-Somnath Kotur (1):
-  IB/core: Add rdma_network_type to wc
-
- Documentation/ABI/testing/configfs-rdma_cm       |  22 ++
- Documentation/ABI/testing/sysfs-class-infiniband |  16 ++
- drivers/infiniband/Kconfig                       |   9 +
- drivers/infiniband/core/Makefile                 |   2 +
- drivers/infiniband/core/addr.c                   | 185 +++++++++----
- drivers/infiniband/core/cache.c                  | 169 ++++++++----
- drivers/infiniband/core/cm.c                     |  31 ++-
- drivers/infiniband/core/cma.c                    | 261 ++++++++++++++++--
- drivers/infiniband/core/cma_configfs.c           | 321 +++++++++++++++++++++++
- drivers/infiniband/core/core_priv.h              |  45 ++++
- drivers/infiniband/core/device.c                 |  10 +-
- drivers/infiniband/core/multicast.c              |  17 +-
- drivers/infiniband/core/roce_gid_mgmt.c          |  81 ++++--
- drivers/infiniband/core/sa_query.c               |  76 +++++-
- drivers/infiniband/core/sysfs.c                  | 184 ++++++++++++-
- drivers/infiniband/core/ud_header.c              | 155 ++++++++++-
- drivers/infiniband/core/uverbs_marshall.c        |   1 +
- drivers/infiniband/core/verbs.c                  | 170 ++++++++++--
- drivers/infiniband/hw/mlx4/qp.c                  |   7 +-
- drivers/infiniband/hw/mthca/mthca_qp.c           |   2 +-
- drivers/infiniband/hw/ocrdma/ocrdma_ah.c         |   2 +-
- include/rdma/ib_addr.h                           |  11 +-
- include/rdma/ib_cache.h                          |   4 +
- include/rdma/ib_pack.h                           |  45 +++-
- include/rdma/ib_sa.h                             |   3 +
- include/rdma/ib_verbs.h                          |  78 +++++-
- 26 files changed, 1704 insertions(+), 203 deletions(-)
- create mode 100644 Documentation/ABI/testing/configfs-rdma_cm
- create mode 100644 Documentation/ABI/testing/sysfs-class-infiniband
- create mode 100644 drivers/infiniband/core/cma_configfs.c
-
+diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
+index 566fd8f..88b4b6f 100644
+--- a/drivers/infiniband/core/cache.c
++++ b/drivers/infiniband/core/cache.c
+@@ -128,6 +128,7 @@ static void dispatch_gid_change_event(struct ib_device *ib_dev, u8 port)
+ 
+ static const char * const gid_type_str[] = {
+ 	[IB_GID_TYPE_IB]	= "IB/RoCE v1",
++	[IB_GID_TYPE_ROCE_UDP_ENCAP]	= "RoCE v2",
+ };
+ 
+ const char *ib_cache_gid_type_str(enum ib_gid_type gid_type)
+diff --git a/drivers/infiniband/core/roce_gid_mgmt.c b/drivers/infiniband/core/roce_gid_mgmt.c
+index 61c27a7..1e3673f 100644
+--- a/drivers/infiniband/core/roce_gid_mgmt.c
++++ b/drivers/infiniband/core/roce_gid_mgmt.c
+@@ -71,7 +71,8 @@ static const struct {
+ 	bool (*is_supported)(const struct ib_device *device, u8 port_num);
+ 	enum ib_gid_type gid_type;
+ } PORT_CAP_TO_GID_TYPE[] = {
+-	{rdma_protocol_roce,   IB_GID_TYPE_ROCE},
++	{rdma_protocol_roce_eth_encap, IB_GID_TYPE_ROCE},
++	{rdma_protocol_roce_udp_encap, IB_GID_TYPE_ROCE_UDP_ENCAP},
+ };
+ 
+ #define CAP_TO_GID_TABLE_SIZE	ARRAY_SIZE(PORT_CAP_TO_GID_TYPE)
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 2933aeb..87df931 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -71,6 +71,7 @@ enum ib_gid_type {
+ 	/* If link layer is Ethernet, this is RoCE V1 */
+ 	IB_GID_TYPE_IB        = 0,
+ 	IB_GID_TYPE_ROCE      = 0,
++	IB_GID_TYPE_ROCE_UDP_ENCAP = 1,
+ 	IB_GID_TYPE_SIZE
+ };
+ 
+@@ -401,6 +402,7 @@ union rdma_protocol_stats {
+ #define RDMA_CORE_CAP_PROT_IB           0x00100000
+ #define RDMA_CORE_CAP_PROT_ROCE         0x00200000
+ #define RDMA_CORE_CAP_PROT_IWARP        0x00400000
++#define RDMA_CORE_CAP_PROT_ROCE_UDP_ENCAP 0x00800000
+ 
+ #define RDMA_CORE_PORT_IBA_IB          (RDMA_CORE_CAP_PROT_IB  \
+ 					| RDMA_CORE_CAP_IB_MAD \
+@@ -413,6 +415,12 @@ union rdma_protocol_stats {
+ 					| RDMA_CORE_CAP_IB_CM   \
+ 					| RDMA_CORE_CAP_AF_IB   \
+ 					| RDMA_CORE_CAP_ETH_AH)
++#define RDMA_CORE_PORT_IBA_ROCE_UDP_ENCAP			\
++					(RDMA_CORE_CAP_PROT_ROCE_UDP_ENCAP \
++					| RDMA_CORE_CAP_IB_MAD  \
++					| RDMA_CORE_CAP_IB_CM   \
++					| RDMA_CORE_CAP_AF_IB   \
++					| RDMA_CORE_CAP_ETH_AH)
+ #define RDMA_CORE_PORT_IWARP           (RDMA_CORE_CAP_PROT_IWARP \
+ 					| RDMA_CORE_CAP_IW_CM)
+ #define RDMA_CORE_PORT_INTEL_OPA       (RDMA_CORE_PORT_IBA_IB  \
+@@ -1975,6 +1983,17 @@ static inline bool rdma_protocol_ib(const struct ib_device *device, u8 port_num)
+ 
+ static inline bool rdma_protocol_roce(const struct ib_device *device, u8 port_num)
+ {
++	return device->port_immutable[port_num].core_cap_flags &
++		(RDMA_CORE_CAP_PROT_ROCE | RDMA_CORE_CAP_PROT_ROCE_UDP_ENCAP);
++}
++
++static inline bool rdma_protocol_roce_udp_encap(const struct ib_device *device, u8 port_num)
++{
++	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_ROCE_UDP_ENCAP;
++}
++
++static inline bool rdma_protocol_roce_eth_encap(const struct ib_device *device, u8 port_num)
++{
+ 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_ROCE;
+ }
+ 
+@@ -1985,8 +2004,8 @@ static inline bool rdma_protocol_iwarp(const struct ib_device *device, u8 port_n
+ 
+ static inline bool rdma_ib_or_roce(const struct ib_device *device, u8 port_num)
+ {
+-	return device->port_immutable[port_num].core_cap_flags &
+-		(RDMA_CORE_CAP_PROT_IB | RDMA_CORE_CAP_PROT_ROCE);
++	return rdma_protocol_ib(device, port_num) ||
++		rdma_protocol_roce(device, port_num);
+ }
+ 
+ /**
 -- 
 2.1.0
 
