@@ -1,68 +1,69 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next V2 05/11] IB/core: Add rdma_network_type to wc
-Date: Thu, 3 Dec 2015 09:36:00 -0700
-Message-ID: <20151203163600.GA27565@obsidianresearch.com>
-References: <1449150450-13679-1-git-send-email-matanb@mellanox.com>
- <1449150450-13679-6-git-send-email-matanb@mellanox.com>
+From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Subject: [PATCH] staging/rdma/hfi1: fix pio progress routine race with
+ allocator
+Date: Thu, 03 Dec 2015 14:34:18 -0500
+Message-ID: <20151203193417.12617.62289.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1449150450-13679-6-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: devel@driverdev.osuosl.org
+Cc: linux-rdma@vger.kernel.org, dledford@redhat.com, linux-next@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 03, 2015 at 03:47:12PM +0200, Matan Barak wrote:
-> From: Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>
-> 
-> Providers should tell IB core the wc's network type.
-> This is used in order to search for the proper GID in the
-> GID table. When using HCAs that can't provide this info,
-> IB core tries to deep examine the packet and extract
-> the GID type by itself.
+The allocation code assumes that the shadow ring cannot
+be overrun because the credits will limit the allocation.
 
-Eh? A wc has a sgid_index, and in this brave new world a gid has the
-network type. Why do we need to specify it again?
+Unfortuately, the progress mechanism in sc_release_update() updates
+the free count prior to processing the shadow ring, allowing the
+shadow ring to be overrun by an allocation.
 
->  	memset(ah_attr, 0, sizeof *ah_attr);
->  	if (rdma_cap_eth_ah(device, port_num)) {
-> +		if (wc->wc_flags & IB_WC_WITH_NETWORK_HDR_TYPE)
-> +			net_type = wc->network_hdr_type;
-> +		else
-> +			net_type = ib_get_net_type_by_grh(device, port_num, grh);
-> +		gid_type = ib_network_to_gid_type(net_type);
+Reviewed-by: Mark Debbage <mark.debbage@intel.com>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+---
+ drivers/staging/rdma/hfi1/pio.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-Like here for instance.
-
-... and I keep saying this is all wrong, once you get into IP land
-this entire process needs a route/neighbour lookup.
-
-
-> -			ret = rdma_addr_find_dmac_by_grh(&grh->dgid, &grh->sgid,
-> +			ret = rdma_addr_find_dmac_by_grh(&dgid, &sgid,
->  							 ah_attr->dmac,
->  							 wc->wc_flags & IB_WC_WITH_VLAN ?
->  							 NULL : &vlan_id,
-
-ie no to this.
-
-> +			if (sgid_attr.gid_type == IB_GID_TYPE_ROCE_UDP_ENCAP)
-> +				/* TODO: get the hoplimit from the inet/inet6
-> +				 * device
-> +				 */
-
-And no again, please fix this and all other missing route lookups
-before sending another version.
-
-> +	struct {
-> +		/* The IB spec states that if it's IPv4, the header
-
-roceev2 spec, surely
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/staging/rdma/hfi1/pio.c b/drivers/staging/rdma/hfi1/pio.c
+index eab58c1..8e10857 100644
+--- a/drivers/staging/rdma/hfi1/pio.c
++++ b/drivers/staging/rdma/hfi1/pio.c
+@@ -1565,6 +1565,7 @@ void sc_release_update(struct send_context *sc)
+ 	u64 hw_free;
+ 	u32 head, tail;
+ 	unsigned long old_free;
++	unsigned long free;
+ 	unsigned long extra;
+ 	unsigned long flags;
+ 	int code;
+@@ -1579,7 +1580,7 @@ void sc_release_update(struct send_context *sc)
+ 	extra = (((hw_free & CR_COUNTER_SMASK) >> CR_COUNTER_SHIFT)
+ 			- (old_free & CR_COUNTER_MASK))
+ 				& CR_COUNTER_MASK;
+-	sc->free = old_free + extra;
++	free = old_free + extra;
+ 	trace_hfi1_piofree(sc, extra);
+ 
+ 	/* call sent buffer callbacks */
+@@ -1589,7 +1590,7 @@ void sc_release_update(struct send_context *sc)
+ 	while (head != tail) {
+ 		pbuf = &sc->sr[tail].pbuf;
+ 
+-		if (sent_before(sc->free, pbuf->sent_at)) {
++		if (sent_before(free, pbuf->sent_at)) {
+ 			/* not sent yet */
+ 			break;
+ 		}
+@@ -1603,8 +1604,10 @@ void sc_release_update(struct send_context *sc)
+ 		if (tail >= sc->sr_size)
+ 			tail = 0;
+ 	}
+-	/* update tail, in case we moved it */
+ 	sc->sr_tail = tail;
++	/* make sure tail is updated before free */
++	smp_wmb();
++	sc->free = free;
+ 	spin_unlock_irqrestore(&sc->release_lock, flags);
+ 	sc_piobufavail(sc);
+ }
