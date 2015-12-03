@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libmlx5 V1 3/6] Add ibv_create_cq_ex support
-Date: Thu,  3 Dec 2015 18:02:48 +0200
-Message-ID: <1449158571-26228-4-git-send-email-matanb@mellanox.com>
+Subject: [PATCH libmlx5 V1 5/6] Optimize poll_cq
+Date: Thu,  3 Dec 2015 18:02:50 +0200
+Message-ID: <1449158571-26228-6-git-send-email-matanb@mellanox.com>
 References: <1449158571-26228-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1449158571-26228-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,169 +10,620 @@ To: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In order to create a CQ which supports timestamp, the user needs
-to specify the timestamp flag for ibv_create_cq_ex.
-Adding support for ibv_create_cq_ex in the mlx5's vendor library.
+The current ibv_poll_cq_ex mechanism needs to query every field
+for its existence. In order to avoid this penalty at runtime,
+add optimized functions for special cases.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/mlx5.c  |  1 +
- src/mlx5.h  |  2 ++
- src/verbs.c | 72 +++++++++++++++++++++++++++++++++++++++++++++++++++++--------
- 3 files changed, 66 insertions(+), 9 deletions(-)
+ src/cq.c    | 363 +++++++++++++++++++++++++++++++++++++++++++++++++-----------
+ src/mlx5.h  |  10 ++
+ src/verbs.c |   9 +-
+ 3 files changed, 310 insertions(+), 72 deletions(-)
 
-diff --git a/src/mlx5.c b/src/mlx5.c
-index eac332b..229d99d 100644
---- a/src/mlx5.c
-+++ b/src/mlx5.c
-@@ -664,6 +664,7 @@ static int mlx5_init_context(struct verbs_device *vdev,
- 	verbs_set_ctx_op(v_ctx, create_srq_ex, mlx5_create_srq_ex);
- 	verbs_set_ctx_op(v_ctx, get_srq_num, mlx5_get_srq_num);
- 	verbs_set_ctx_op(v_ctx, query_device_ex, mlx5_query_device_ex);
-+	verbs_set_ctx_op(v_ctx, create_cq_ex, mlx5_create_cq_ex);
- 	if (context->cqe_version && context->cqe_version == 1)
- 		verbs_set_ctx_op(v_ctx, poll_cq_ex, mlx5_poll_cq_v1_ex);
- 	else
-diff --git a/src/mlx5.h b/src/mlx5.h
-index 91aafbe..0c0b027 100644
---- a/src/mlx5.h
-+++ b/src/mlx5.h
-@@ -600,6 +600,8 @@ int mlx5_dereg_mr(struct ibv_mr *mr);
- struct ibv_cq *mlx5_create_cq(struct ibv_context *context, int cqe,
- 			       struct ibv_comp_channel *channel,
- 			       int comp_vector);
-+struct ibv_cq *mlx5_create_cq_ex(struct ibv_context *context,
-+				 struct ibv_create_cq_attr_ex *cq_attr);
- int mlx5_poll_cq_ex(struct ibv_cq *ibcq, struct ibv_wc_ex *wc,
- 		    struct ibv_poll_cq_ex_attr *attr);
- int mlx5_poll_cq_v1_ex(struct ibv_cq *ibcq, struct ibv_wc_ex *wc,
-diff --git a/src/verbs.c b/src/verbs.c
-index 92f273d..1dbee60 100644
---- a/src/verbs.c
-+++ b/src/verbs.c
-@@ -240,9 +240,21 @@ static int qp_sig_enabled(void)
- 	return 0;
+diff --git a/src/cq.c b/src/cq.c
+index 5e06990..fcb4237 100644
+--- a/src/cq.c
++++ b/src/cq.c
+@@ -41,6 +41,7 @@
+ #include <netinet/in.h>
+ #include <string.h>
+ #include <errno.h>
++#include <assert.h>
+ #include <unistd.h>
+ 
+ #include <infiniband/opcode.h>
+@@ -207,73 +208,91 @@ union wc_buffer {
+ 	uint64_t	*b64;
+ };
+ 
++#define IS_IN_WC_FLAGS(yes, no, maybe, flag) (((yes) & (flag)) ||    \
++					      (!((no) & (flag)) && \
++					       ((maybe) & (flag))))
+ static inline void handle_good_req_ex(struct ibv_wc_ex *wc_ex,
+ 				      union wc_buffer *pwc_buffer,
+ 				      struct mlx5_cqe64 *cqe,
+ 				      uint64_t wc_flags,
+-				      uint32_t qpn)
++				      uint64_t wc_flags_yes,
++				      uint64_t wc_flags_no,
++				      uint32_t qpn, uint64_t *wc_flags_out)
+ {
+ 	union wc_buffer wc_buffer = *pwc_buffer;
+ 
+ 	switch (ntohl(cqe->sop_drop_qpn) >> 24) {
+ 	case MLX5_OPCODE_RDMA_WRITE_IMM:
+-		wc_ex->wc_flags |= IBV_WC_EX_IMM;
++		*wc_flags_out |= IBV_WC_EX_IMM;
+ 	case MLX5_OPCODE_RDMA_WRITE:
+ 		wc_ex->opcode    = IBV_WC_RDMA_WRITE;
+-		if (wc_flags & IBV_WC_EX_WITH_BYTE_LEN)
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_BYTE_LEN))
+ 			wc_buffer.b32++;
+-		if (wc_flags & IBV_WC_EX_WITH_IMM)
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_IMM))
+ 			wc_buffer.b32++;
+ 		break;
+ 	case MLX5_OPCODE_SEND_IMM:
+-		wc_ex->wc_flags |= IBV_WC_EX_IMM;
++		*wc_flags_out |= IBV_WC_EX_IMM;
+ 	case MLX5_OPCODE_SEND:
+ 	case MLX5_OPCODE_SEND_INVAL:
+ 		wc_ex->opcode    = IBV_WC_SEND;
+-		if (wc_flags & IBV_WC_EX_WITH_BYTE_LEN)
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_BYTE_LEN))
+ 			wc_buffer.b32++;
+-		if (wc_flags & IBV_WC_EX_WITH_IMM)
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_IMM))
+ 			wc_buffer.b32++;
+ 		break;
+ 	case MLX5_OPCODE_RDMA_READ:
+ 		wc_ex->opcode    = IBV_WC_RDMA_READ;
+-		if (wc_flags & IBV_WC_EX_WITH_BYTE_LEN) {
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_BYTE_LEN)) {
+ 			*wc_buffer.b32++ = ntohl(cqe->byte_cnt);
+-			wc_ex->wc_flags |= IBV_WC_EX_WITH_BYTE_LEN;
++			*wc_flags_out |= IBV_WC_EX_WITH_BYTE_LEN;
+ 		}
+-		if (wc_flags & IBV_WC_EX_WITH_IMM)
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_IMM))
+ 			wc_buffer.b32++;
+ 		break;
+ 	case MLX5_OPCODE_ATOMIC_CS:
+ 		wc_ex->opcode    = IBV_WC_COMP_SWAP;
+-		if (wc_flags & IBV_WC_EX_WITH_BYTE_LEN) {
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_BYTE_LEN)) {
+ 			*wc_buffer.b32++ = 8;
+-			wc_ex->wc_flags |= IBV_WC_EX_WITH_BYTE_LEN;
++			*wc_flags_out |= IBV_WC_EX_WITH_BYTE_LEN;
+ 		}
+-		if (wc_flags & IBV_WC_EX_WITH_IMM)
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_IMM))
+ 			wc_buffer.b32++;
+ 		break;
+ 	case MLX5_OPCODE_ATOMIC_FA:
+ 		wc_ex->opcode    = IBV_WC_FETCH_ADD;
+-		if (wc_flags & IBV_WC_EX_WITH_BYTE_LEN) {
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_BYTE_LEN)) {
+ 			*wc_buffer.b32++ = 8;
+-			wc_ex->wc_flags |= IBV_WC_EX_WITH_BYTE_LEN;
++			*wc_flags_out |= IBV_WC_EX_WITH_BYTE_LEN;
+ 		}
+-		if (wc_flags & IBV_WC_EX_WITH_IMM)
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_IMM))
+ 			wc_buffer.b32++;
+ 		break;
+ 	case MLX5_OPCODE_BIND_MW:
+ 		wc_ex->opcode    = IBV_WC_BIND_MW;
+-		if (wc_flags & IBV_WC_EX_WITH_BYTE_LEN)
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_BYTE_LEN))
+ 			wc_buffer.b32++;
+-		if (wc_flags & IBV_WC_EX_WITH_IMM)
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_IMM))
+ 			wc_buffer.b32++;
+ 		break;
+ 	}
+ 
+-	if (wc_flags & IBV_WC_EX_WITH_QP_NUM) {
++	if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++			   IBV_WC_EX_WITH_QP_NUM)) {
+ 		*wc_buffer.b32++ = qpn;
+-		wc_ex->wc_flags |= IBV_WC_EX_WITH_QP_NUM;
++		*wc_flags_out |= IBV_WC_EX_WITH_QP_NUM;
+ 	}
+ 
+ 	*pwc_buffer = wc_buffer;
+@@ -345,7 +364,9 @@ static inline int handle_responder_ex(struct ibv_wc_ex *wc_ex,
+ 				      union wc_buffer *pwc_buffer,
+ 				      struct mlx5_cqe64 *cqe,
+ 				      struct mlx5_qp *qp, struct mlx5_srq *srq,
+-				      uint64_t wc_flags, uint32_t qpn)
++				      uint64_t wc_flags, uint64_t wc_flags_yes,
++				      uint64_t wc_flags_no, uint32_t qpn,
++				      uint64_t *wc_flags_out)
+ {
+ 	uint16_t wqe_ctr;
+ 	struct mlx5_wq *wq;
+@@ -354,9 +375,10 @@ static inline int handle_responder_ex(struct ibv_wc_ex *wc_ex,
+ 	int err = 0;
+ 	uint32_t byte_len = ntohl(cqe->byte_cnt);
+ 
+-	if (wc_flags & IBV_WC_EX_WITH_BYTE_LEN) {
++	if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++			   IBV_WC_EX_WITH_BYTE_LEN)) {
+ 		*wc_buffer.b32++ = byte_len;
+-		wc_ex->wc_flags |= IBV_WC_EX_WITH_BYTE_LEN;
++		*wc_flags_out |= IBV_WC_EX_WITH_BYTE_LEN;
+ 	}
+ 	if (srq) {
+ 		wqe_ctr = ntohs(cqe->wqe_counter);
+@@ -386,53 +408,62 @@ static inline int handle_responder_ex(struct ibv_wc_ex *wc_ex,
+ 	switch (cqe->op_own >> 4) {
+ 	case MLX5_CQE_RESP_WR_IMM:
+ 		wc_ex->opcode	= IBV_WC_RECV_RDMA_WITH_IMM;
+-		wc_ex->wc_flags	= IBV_WC_EX_IMM;
+-		if (wc_flags & IBV_WC_EX_WITH_IMM) {
++		*wc_flags_out	= IBV_WC_EX_IMM;
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_IMM)) {
+ 			*wc_buffer.b32++ = ntohl(cqe->byte_cnt);
+-			wc_ex->wc_flags |= IBV_WC_EX_WITH_IMM;
++			*wc_flags_out |= IBV_WC_EX_WITH_IMM;
+ 		}
+ 		break;
+ 	case MLX5_CQE_RESP_SEND:
+ 		wc_ex->opcode   = IBV_WC_RECV;
+-		if (wc_flags & IBV_WC_EX_WITH_IMM)
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_IMM))
+ 			wc_buffer.b32++;
+ 		break;
+ 	case MLX5_CQE_RESP_SEND_IMM:
+ 		wc_ex->opcode	= IBV_WC_RECV;
+-		wc_ex->wc_flags	= IBV_WC_EX_WITH_IMM;
+-		if (wc_flags & IBV_WC_EX_WITH_IMM) {
++		*wc_flags_out	= IBV_WC_EX_WITH_IMM;
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_IMM)) {
+ 			*wc_buffer.b32++ = ntohl(cqe->imm_inval_pkey);
+-			wc_ex->wc_flags |= IBV_WC_EX_WITH_IMM;
++			*wc_flags_out |= IBV_WC_EX_WITH_IMM;
+ 		}
+ 		break;
+ 	}
+-	if (wc_flags & IBV_WC_EX_WITH_QP_NUM) {
++	if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++			   IBV_WC_EX_WITH_QP_NUM)) {
+ 		*wc_buffer.b32++ = qpn;
+-		wc_ex->wc_flags |= IBV_WC_EX_WITH_QP_NUM;
++		*wc_flags_out |= IBV_WC_EX_WITH_QP_NUM;
+ 	}
+-	if (wc_flags & IBV_WC_EX_WITH_SRC_QP) {
++	if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++			   IBV_WC_EX_WITH_SRC_QP)) {
+ 		*wc_buffer.b32++ = ntohl(cqe->flags_rqpn) & 0xffffff;
+-		wc_ex->wc_flags |= IBV_WC_EX_WITH_SRC_QP;
++		*wc_flags_out |= IBV_WC_EX_WITH_SRC_QP;
+ 	}
+-	if (wc_flags & IBV_WC_EX_WITH_PKEY_INDEX) {
++	if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++			   IBV_WC_EX_WITH_PKEY_INDEX)) {
+ 		*wc_buffer.b16++ = ntohl(cqe->imm_inval_pkey) & 0xffff;
+-		wc_ex->wc_flags |= IBV_WC_EX_WITH_PKEY_INDEX;
++		*wc_flags_out |= IBV_WC_EX_WITH_PKEY_INDEX;
+ 	}
+-	if (wc_flags & IBV_WC_EX_WITH_SLID) {
++	if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++			   IBV_WC_EX_WITH_SLID)) {
+ 		*wc_buffer.b16++ = ntohs(cqe->slid);
+-		wc_ex->wc_flags |= IBV_WC_EX_WITH_SLID;
++		*wc_flags_out |= IBV_WC_EX_WITH_SLID;
+ 	}
+-	if (wc_flags & IBV_WC_EX_WITH_SL) {
++	if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++			   IBV_WC_EX_WITH_SL)) {
+ 		*wc_buffer.b8++ = (ntohl(cqe->flags_rqpn) >> 24) & 0xf;
+-		wc_ex->wc_flags |= IBV_WC_EX_WITH_SL;
++		*wc_flags_out |= IBV_WC_EX_WITH_SL;
+ 	}
+-	if (wc_flags & IBV_WC_EX_WITH_DLID_PATH_BITS) {
++	if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++			   IBV_WC_EX_WITH_DLID_PATH_BITS)) {
+ 		*wc_buffer.b8++ = cqe->ml_path & 0x7f;
+-		wc_ex->wc_flags |= IBV_WC_EX_WITH_DLID_PATH_BITS;
++		*wc_flags_out |= IBV_WC_EX_WITH_DLID_PATH_BITS;
+ 	}
+ 
+ 	g = (ntohl(cqe->flags_rqpn) >> 28) & 3;
+-	wc_ex->wc_flags |= g ? IBV_WC_EX_GRH : 0;
++	*wc_flags_out |= g ? IBV_WC_EX_GRH : 0;
+ 
+ 	*pwc_buffer = wc_buffer;
+ 	return IBV_WC_SUCCESS;
+@@ -795,6 +826,9 @@ inline int mlx5_poll_one_cqe_err(struct mlx5_context *mctx,
+ 	return err;
  }
  
--struct ibv_cq *mlx5_create_cq(struct ibv_context *context, int cqe,
--			      struct ibv_comp_channel *channel,
--			      int comp_vector)
++#define IS_IN_WC_FLAGS(yes, no, maybe, flag) (((yes) & (flag)) ||    \
++					      (!((no) & (flag)) && \
++					       ((maybe) & (flag))))
+ static inline int mlx5_poll_one(struct mlx5_cq *cq,
+ 			 struct mlx5_resource **cur_rsc,
+ 			 struct mlx5_srq **cur_srq,
+@@ -874,11 +908,21 @@ static inline int mlx5_poll_one(struct mlx5_cq *cq,
+ 	return CQ_OK;
+ }
+ 
+-inline int mlx5_poll_one_ex(struct mlx5_cq *cq,
+-			    struct mlx5_resource **cur_rsc,
+-			    struct mlx5_srq **cur_srq,
+-			    struct ibv_wc_ex **pwc_ex, uint64_t wc_flags,
+-			    int cqe_ver)
++static inline int _mlx5_poll_one_ex(struct mlx5_cq *cq,
++				    struct mlx5_resource **cur_rsc,
++				    struct mlx5_srq **cur_srq,
++				    struct ibv_wc_ex **pwc_ex,
++				    uint64_t wc_flags,
++				    uint64_t wc_flags_yes, uint64_t wc_flags_no,
++				    int cqe_ver)
++	__attribute__((always_inline));
++static inline int _mlx5_poll_one_ex(struct mlx5_cq *cq,
++				    struct mlx5_resource **cur_rsc,
++				    struct mlx5_srq **cur_srq,
++				    struct ibv_wc_ex **pwc_ex,
++				    uint64_t wc_flags,
++				    uint64_t wc_flags_yes, uint64_t wc_flags_no,
++				    int cqe_ver)
+ {
+ 	struct mlx5_cqe64 *cqe64;
+ 	void *cqe;
+@@ -888,6 +932,7 @@ inline int mlx5_poll_one_ex(struct mlx5_cq *cq,
+ 	struct mlx5_context *mctx = to_mctx(cq->ibv_cq.context);
+ 	struct ibv_wc_ex *wc_ex = *pwc_ex;
+ 	union wc_buffer wc_buffer;
++	uint64_t wc_flags_out = 0;
+ 
+ 	cqe = next_cqe_sw(cq);
+ 	if (!cqe)
+@@ -913,26 +958,34 @@ inline int mlx5_poll_one_ex(struct mlx5_cq *cq,
+ 	wc_ex->wc_flags = 0;
+ 	wc_ex->reserved = 0;
+ 
+-	if (wc_flags & IBV_WC_EX_WITH_COMPLETION_TIMESTAMP) {
++	if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++			   IBV_WC_EX_WITH_COMPLETION_TIMESTAMP)) {
+ 		*wc_buffer.b64++ = ntohll(cqe64->timestamp);
+-		wc_ex->wc_flags |= IBV_WC_EX_WITH_COMPLETION_TIMESTAMP;
++		wc_flags_out |= IBV_WC_EX_WITH_COMPLETION_TIMESTAMP;
+ 	}
+ 
+ 	switch (opcode) {
+ 	case MLX5_CQE_REQ:
+ 		err = mlx5_poll_one_cqe_req(cq, cur_rsc, cqe, qpn, cqe_ver,
+ 					    &wc_ex->wr_id);
+-		handle_good_req_ex(wc_ex, &wc_buffer, cqe64, wc_flags, qpn);
++		handle_good_req_ex(wc_ex, &wc_buffer, cqe64, wc_flags,
++				   wc_flags_yes, wc_flags_no, qpn,
++				   &wc_flags_out);
+ 		wc_ex->status = err;
+-		if (wc_flags & IBV_WC_EX_WITH_SRC_QP)
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_SRC_QP))
+ 			wc_buffer.b32++;
+-		if (wc_flags & IBV_WC_EX_WITH_PKEY_INDEX)
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_PKEY_INDEX))
+ 			wc_buffer.b16++;
+-		if (wc_flags & IBV_WC_EX_WITH_SLID)
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_SLID))
+ 			wc_buffer.b16++;
+-		if (wc_flags & IBV_WC_EX_WITH_SL)
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_SL))
+ 			wc_buffer.b8++;
+-		if (wc_flags & IBV_WC_EX_WITH_DLID_PATH_BITS)
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_DLID_PATH_BITS))
+ 			wc_buffer.b8++;
+ 		break;
+ 
+@@ -950,7 +1003,9 @@ inline int mlx5_poll_one_ex(struct mlx5_cq *cq,
+ 		wc_ex->status = handle_responder_ex(wc_ex, &wc_buffer, cqe64,
+ 						    rsc_to_mqp(*cur_rsc),
+ 						    is_srq ? *cur_srq : NULL,
+-						    wc_flags, qpn);
++						    wc_flags, wc_flags_yes,
++						    wc_flags_no, qpn,
++						    &wc_flags_out);
+ 		break;
+ 	}
+ 	case MLX5_CQE_REQ_ERR:
+@@ -963,32 +1018,208 @@ inline int mlx5_poll_one_ex(struct mlx5_cq *cq,
+ 			return err;
+ 
+ 	case MLX5_CQE_RESIZE_CQ:
+-		if (wc_flags & IBV_WC_EX_WITH_BYTE_LEN)
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_BYTE_LEN))
+ 			wc_buffer.b32++;
+-		if (wc_flags & IBV_WC_EX_WITH_IMM)
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_IMM))
+ 			wc_buffer.b32++;
+-		if (wc_flags & IBV_WC_EX_WITH_QP_NUM) {
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_QP_NUM)) {
+ 			*wc_buffer.b32++ = qpn;
+-			wc_ex->wc_flags |= IBV_WC_EX_WITH_QP_NUM;
++			wc_flags_out |= IBV_WC_EX_WITH_QP_NUM;
+ 		}
+-		if (wc_flags & IBV_WC_EX_WITH_SRC_QP)
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_SRC_QP))
+ 			wc_buffer.b32++;
+-		if (wc_flags & IBV_WC_EX_WITH_PKEY_INDEX)
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_PKEY_INDEX))
+ 			wc_buffer.b16++;
+-		if (wc_flags & IBV_WC_EX_WITH_SLID)
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_SLID))
+ 			wc_buffer.b16++;
+-		if (wc_flags & IBV_WC_EX_WITH_SL)
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_SL))
+ 			wc_buffer.b8++;
+-		if (wc_flags & IBV_WC_EX_WITH_DLID_PATH_BITS)
++		if (IS_IN_WC_FLAGS(wc_flags_yes, wc_flags_no, wc_flags,
++				   IBV_WC_EX_WITH_DLID_PATH_BITS))
+ 			wc_buffer.b8++;
+ 		break;
+ 	}
+ 
++	wc_ex->wc_flags = wc_flags_out;
+ 	*pwc_ex = (struct ibv_wc_ex *)((uintptr_t)(wc_buffer.b8 + sizeof(uint64_t) - 1) &
+ 				       ~(sizeof(uint64_t) - 1));
+ 	return CQ_OK;
+ }
+ 
++int mlx5_poll_one_ex(struct mlx5_cq *cq,
++		     struct mlx5_resource **cur_rsc,
++		     struct mlx5_srq **cur_srq,
++		     struct ibv_wc_ex **pwc_ex, uint64_t wc_flags,
++		     int cqe_ver)
++{
++	return _mlx5_poll_one_ex(cq, cur_rsc, cur_srq, pwc_ex, wc_flags, 0, 0,
++				 cqe_ver);
++}
++
++#define MLX5_POLL_ONE_EX_WC_FLAGS_NAME(wc_flags_yes, wc_flags_no) \
++	mlx5_poll_one_ex_custom##wc_flags_yes ## _ ## wc_flags_no
++
++/* The compiler will create one function per wc_flags combination. Since
++ * _mlx5_poll_one_ex  is always inlined (for compilers that supports that),
++ * the compiler drops the if statements and merge all wc_flags_out ORs/ANDs.
++ */
++#define MLX5_POLL_ONE_EX_WC_FLAGS(wc_flags_yes, wc_flags_no)	\
++static int MLX5_POLL_ONE_EX_WC_FLAGS_NAME(wc_flags_yes, wc_flags_no)		\
++						(struct mlx5_cq *cq,		\
++						 struct mlx5_resource **cur_rsc,\
++						 struct mlx5_srq **cur_srq,	\
++						 struct ibv_wc_ex **pwc_ex,	\
++						 uint64_t wc_flags,		\
++						 int cqe_ver)			\
++{									        \
++	return _mlx5_poll_one_ex(cq, cur_rsc, cur_srq, pwc_ex, wc_flags,        \
++				 wc_flags_yes, wc_flags_no, cqe_ver);	        \
++}
++
++/*
++	Since we use the preprocessor here, we have to calculate the Or value
++	ourselves:
++	IBV_WC_EX_GRH			= 1 << 0,
++	IBV_WC_EX_IMM			= 1 << 1,
++	IBV_WC_EX_WITH_BYTE_LEN		= 1 << 2,
++	IBV_WC_EX_WITH_IMM		= 1 << 3,
++	IBV_WC_EX_WITH_QP_NUM		= 1 << 4,
++	IBV_WC_EX_WITH_SRC_QP		= 1 << 5,
++	IBV_WC_EX_WITH_PKEY_INDEX	= 1 << 6,
++	IBV_WC_EX_WITH_SLID		= 1 << 7,
++	IBV_WC_EX_WITH_SL		= 1 << 8,
++	IBV_WC_EX_WITH_DLID_PATH_BITS	= 1 << 9,
++	IBV_WC_EX_WITH_COMPLETION_TIMESTAMP = 1 << 10,
++*/
++
++/* Bitwise or of all flags between IBV_WC_EX_WITH_BYTE_LEN and
++ * IBV_WC_EX_WITH_COMPLETION_TIMESTAMP.
++ */
++#define SUPPORTED_WC_ALL_FLAGS	2045
++/* Bitwise or of all flags between IBV_WC_EX_WITH_BYTE_LEN and
++ * IBV_WC_EX_WITH_DLID_PATH_BITS (all the fields that are available
++ * in the legacy WC).
++ */
++#define SUPPORTED_WC_STD_FLAGS  1020
++
++#define OPTIMIZE_POLL_CQ	/* All maybe - must be in table! */	    \
++				OP(0, 0)				SEP \
++				/* No options */			    \
++				OP(0, SUPPORTED_WC_ALL_FLAGS)		SEP \
++				/* All options */			    \
++				OP(SUPPORTED_WC_ALL_FLAGS, 0)		SEP \
++				/* All standard options */		    \
++				OP(SUPPORTED_WC_STD_FLAGS, 1024)	SEP \
++				/* Just Bytelen - for DPDK */		    \
++				OP(4, 1016)				SEP \
++				/* Timestmap only, for FSI */		    \
++				OP(1024, 1020)				SEP
++
++#define OP	MLX5_POLL_ONE_EX_WC_FLAGS
++#define SEP	;
++
++/* Declare optimized poll_one function for popular scenarios. Each function
++ * has a name of
++ * mlx5_poll_one_ex_custom<supported_wc_flags>_<not_supported_wc_flags>.
++ * Since the supported and not supported wc_flags are given beforehand,
++ * the compiler could optimize the if and or statements and create optimized
++ * code.
++ */
++OPTIMIZE_POLL_CQ
++
++#define ADD_POLL_ONE(_wc_flags_yes, _wc_flags_no)			\
++				{.wc_flags_yes = _wc_flags_yes,		\
++				 .wc_flags_no = _wc_flags_no,		\
++				 .fn = MLX5_POLL_ONE_EX_WC_FLAGS_NAME(  \
++					_wc_flags_yes, _wc_flags_no)	\
++				}
++
++#undef OP
++#undef SEP
++#define OP	ADD_POLL_ONE
++#define SEP	,
++
++struct {
++	int (*fn)(struct mlx5_cq *cq,
++		  struct mlx5_resource **cur_rsc,
++		  struct mlx5_srq **cur_srq,
++		  struct ibv_wc_ex **pwc_ex, uint64_t wc_flags,
++		  int cqe_ver);
++	uint64_t wc_flags_yes;
++	uint64_t wc_flags_no;
++} mlx5_poll_one_ex_fns[] = {
++	/* This array contains all the custom poll_one functions. Every entry
++	 * in this array looks like:
++	 * {.wc_flags_yes = <flags that are always in the wc>,
++	 *  .wc_flags_no = <flags that are never in the wc>,
++	 *  .fn = <the custom poll one function}.
++	 * The .fn function is optimized according to the .wc_flags_yes and
++	 * .wc_flags_no flags. Other flags have the "if statement".
++	 */
++	OPTIMIZE_POLL_CQ
++};
++
++/* This function gets wc_flags as an argument and returns a function pointer
++ * of type  *	int (*fn)(struct mlx5_cq *cq,
++		  struct mlx5_resource **cur_rsc,
++		  struct mlx5_srq **cur_srq,
++		  struct ibv_wc_ex **pwc_ex, uint64_t wc_flags,
++		  int cqe_ver);
++ * The returned function is one of the custom poll one functions declared in
++ * mlx5_poll_one_ex_fns. The function is chosen as the function which the
++ * number of wc_flags_maybe bits (the fields that aren't in the yes/no parts)
++ * is the smallest.
++ */
++int (*mlx5_get_poll_one_fn(uint64_t wc_flags))(struct mlx5_cq *cq,
++					       struct mlx5_resource **cur_rsc,
++					       struct mlx5_srq **cur_srq,
++					       struct ibv_wc_ex **pwc_ex, uint64_t wc_flags,
++					       int cqe_ver)
++{
++	unsigned int i = 0;
++	uint8_t min_bits = -1;
++	int min_index = 0xff;
++
++	for (i = 0;
++	     i < sizeof(mlx5_poll_one_ex_fns) / sizeof(mlx5_poll_one_ex_fns[0]);
++	     i++) {
++		uint64_t bits;
++		uint8_t nbits;
++
++		/* Can't have required flags in "no" */
++		if (wc_flags & mlx5_poll_one_ex_fns[i].wc_flags_no)
++			continue;
++
++		/* Can't have not required flags in yes */
++		if (~wc_flags & mlx5_poll_one_ex_fns[i].wc_flags_yes)
++			continue;
++
++		/* Number of wc_flags_maybe. See above comment for more details */
++		bits = (wc_flags  ^ mlx5_poll_one_ex_fns[i].wc_flags_yes) |
++		       ((~wc_flags ^ mlx5_poll_one_ex_fns[i].wc_flags_no) &
++			CREATE_CQ_SUPPORTED_WC_FLAGS);
++
++		nbits = ibv_popcount64(bits);
++
++		/* Look for the minimum number of bits */
++		if (nbits < min_bits) {
++			min_bits = nbits;
++			min_index = i;
++		}
++	}
++
++	assert(min_index >= 0);
++
++	return mlx5_poll_one_ex_fns[min_index].fn;
++}
++
+ static inline void mlx5_poll_cq_stall_start(struct mlx5_cq *cq)
+ __attribute__((always_inline));
+ static inline void mlx5_poll_cq_stall_start(struct mlx5_cq *cq)
+diff --git a/src/mlx5.h b/src/mlx5.h
+index b5bcfaa..6c40d6d 100644
+--- a/src/mlx5.h
++++ b/src/mlx5.h
+@@ -109,6 +109,10 @@
+ 
+ #define PFX		"mlx5: "
+ 
 +enum {
 +	CREATE_CQ_SUPPORTED_WC_FLAGS = IBV_WC_STANDARD_FLAGS	|
 +				       IBV_WC_EX_WITH_COMPLETION_TIMESTAMP
 +};
-+
-+enum {
-+	CREATE_CQ_SUPPORTED_COMP_MASK = IBV_CREATE_CQ_ATTR_FLAGS
-+};
-+
-+enum {
-+	CREATE_CQ_SUPPORTED_FLAGS = IBV_CREATE_CQ_ATTR_COMPLETION_TIMESTAMP
-+};
-+
-+static struct ibv_cq *create_cq(struct ibv_context *context,
-+				const struct ibv_create_cq_attr_ex *cq_attr)
- {
- 	struct mlx5_create_cq		cmd;
- 	struct mlx5_create_cq_resp	resp;
-@@ -254,12 +266,33 @@ struct ibv_cq *mlx5_create_cq(struct ibv_context *context, int cqe,
- 	FILE *fp = to_mctx(context)->dbg_fp;
- #endif
  
--	if (!cqe) {
--		mlx5_dbg(fp, MLX5_DBG_CQ, "\n");
-+	if (!cq_attr->cqe) {
-+		mlx5_dbg(fp, MLX5_DBG_CQ, "CQE invalid\n");
-+		errno = EINVAL;
-+		return NULL;
-+	}
-+
-+	if (cq_attr->comp_mask & ~CREATE_CQ_SUPPORTED_COMP_MASK) {
-+		mlx5_dbg(fp, MLX5_DBG_CQ,
-+			 "Unsupported comp_mask for create_cq\n");
-+		errno = EINVAL;
-+		return NULL;
-+	}
-+
-+	if (cq_attr->comp_mask & IBV_CREATE_CQ_ATTR_FLAGS &&
-+	    cq_attr->flags & ~CREATE_CQ_SUPPORTED_FLAGS) {
-+		mlx5_dbg(fp, MLX5_DBG_CQ,
-+			 "Unsupported creation flags requested for create_cq\n");
- 		errno = EINVAL;
- 		return NULL;
- 	}
- 
-+	if (cq_attr->wc_flags & ~CREATE_CQ_SUPPORTED_WC_FLAGS) {
-+		mlx5_dbg(fp, MLX5_DBG_CQ, "\n");
-+		errno = ENOTSUP;
-+		return NULL;
-+	}
-+
- 	cq =  calloc(1, sizeof *cq);
- 	if (!cq) {
- 		mlx5_dbg(fp, MLX5_DBG_CQ, "\n");
-@@ -273,14 +306,14 @@ struct ibv_cq *mlx5_create_cq(struct ibv_context *context, int cqe,
- 		goto err;
- 
- 	/* The additional entry is required for resize CQ */
--	if (cqe <= 0) {
-+	if (cq_attr->cqe <= 0) {
- 		mlx5_dbg(fp, MLX5_DBG_CQ, "\n");
- 		errno = EINVAL;
- 		goto err_spl;
- 	}
- 
--	ncqe = align_queue_size(cqe + 1);
--	if ((ncqe > (1 << 24)) || (ncqe < (cqe + 1))) {
-+	ncqe = align_queue_size(cq_attr->cqe + 1);
-+	if ((ncqe > (1 << 24)) || (ncqe < (cq_attr->cqe + 1))) {
- 		mlx5_dbg(fp, MLX5_DBG_CQ, "ncqe %d\n", ncqe);
- 		errno = EINVAL;
- 		goto err_spl;
-@@ -313,7 +346,8 @@ struct ibv_cq *mlx5_create_cq(struct ibv_context *context, int cqe,
- 	cmd.db_addr  = (uintptr_t) cq->dbrec;
- 	cmd.cqe_size = cqe_sz;
- 
--	ret = ibv_cmd_create_cq(context, ncqe - 1, channel, comp_vector,
-+	ret = ibv_cmd_create_cq(context, ncqe - 1, cq_attr->channel,
-+				cq_attr->comp_vector,
- 				&cq->ibv_cq, &cmd.ibv_cmd, sizeof cmd,
- 				&resp.ibv_resp, sizeof resp);
- 	if (ret) {
-@@ -328,6 +362,9 @@ struct ibv_cq *mlx5_create_cq(struct ibv_context *context, int cqe,
- 	cq->stall_adaptive_enable = to_mctx(context)->stall_adaptive_enable;
- 	cq->stall_cycles = to_mctx(context)->stall_cycles;
- 
-+	cq->wc_flags = cq_attr->wc_flags;
-+	cq->poll_one = mlx5_poll_one_ex;
-+
- 	return &cq->ibv_cq;
- 
- err_db:
-@@ -345,6 +382,23 @@ err:
- 	return NULL;
+ enum {
+ 	MLX5_IB_MMAP_CMD_SHIFT	= 8,
+@@ -619,6 +623,12 @@ int mlx5_poll_one_ex(struct mlx5_cq *cq,
+ 		     struct mlx5_srq **cur_srq,
+ 		     struct ibv_wc_ex **pwc_ex, uint64_t wc_flags,
+ 		     int cqe_ver);
++int (*mlx5_get_poll_one_fn(uint64_t wc_flags))(struct mlx5_cq *cq,
++					       struct mlx5_resource **cur_rsc,
++					       struct mlx5_srq **cur_srq,
++					       struct ibv_wc_ex **pwc_ex,
++					       uint64_t wc_flags,
++					       int cqe_ver);
+ int mlx5_alloc_cq_buf(struct mlx5_context *mctx, struct mlx5_cq *cq,
+ 		      struct mlx5_buf *buf, int nent, int cqe_sz);
+ int mlx5_free_cq_buf(struct mlx5_context *ctx, struct mlx5_buf *buf);
+diff --git a/src/verbs.c b/src/verbs.c
+index 5d732a2..504aacf 100644
+--- a/src/verbs.c
++++ b/src/verbs.c
+@@ -287,11 +287,6 @@ static int qp_sig_enabled(void)
  }
  
-+struct ibv_cq *mlx5_create_cq(struct ibv_context *context, int cqe,
-+			      struct ibv_comp_channel *channel,
-+			      int comp_vector)
-+{
-+	struct ibv_create_cq_attr_ex cq_attr = {.cqe = cqe, .channel = channel,
-+						.comp_vector = comp_vector,
-+						.wc_flags = IBV_WC_STANDARD_FLAGS};
-+
-+	return create_cq(context, &cq_attr);
-+}
-+
-+struct ibv_cq *mlx5_create_cq_ex(struct ibv_context *context,
-+				 struct ibv_create_cq_attr_ex *cq_attr)
-+{
-+	return create_cq(context, cq_attr);
-+}
-+
- int mlx5_resize_cq(struct ibv_cq *ibcq, int cqe)
- {
- 	struct mlx5_cq *cq = to_mcq(ibcq);
+ enum {
+-	CREATE_CQ_SUPPORTED_WC_FLAGS = IBV_WC_STANDARD_FLAGS	|
+-				       IBV_WC_EX_WITH_COMPLETION_TIMESTAMP
+-};
+-
+-enum {
+ 	CREATE_CQ_SUPPORTED_COMP_MASK = IBV_CREATE_CQ_ATTR_FLAGS
+ };
+ 
+@@ -409,7 +404,9 @@ static struct ibv_cq *create_cq(struct ibv_context *context,
+ 	cq->stall_cycles = to_mctx(context)->stall_cycles;
+ 
+ 	cq->wc_flags = cq_attr->wc_flags;
+-	cq->poll_one = mlx5_poll_one_ex;
++	cq->poll_one = mlx5_get_poll_one_fn(cq->wc_flags);
++	if (!cq->poll_one)
++		cq->poll_one = mlx5_poll_one_ex;
+ 
+ 	return &cq->ibv_cq;
+ 
 -- 
 2.1.0
 
