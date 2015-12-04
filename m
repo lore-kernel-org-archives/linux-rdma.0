@@ -1,87 +1,107 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 3/8] svcrdma: Add svc_rdma_get_context() API that is allowed to fail
-Date: Fri, 4 Dec 2015 10:29:45 -0500
-Message-ID: <E41A0933-FDF0-4995-B676-83B648D35F46@oracle.com>
-References: <20151123221738.13040.26277.stgit@klimt.1015granger.net> <20151123222038.13040.61285.stgit@klimt.1015granger.net> <20151124065522.GC29141@infradead.org>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151124065522.GC29141-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 0/6] SRP initiator related bug fixes
+Date: Fri, 4 Dec 2015 15:08:15 -0800
+Message-ID: <56621CDF.3070604@sandisk.com>
+References: <565DE3EC.2070002@sandisk.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <565DE3EC.2070002-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 12/01/2015 10:16 AM, Bart Van Assche wrote:
+> [ ... ]
 
-> On Nov 24, 2015, at 1:55 AM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wr=
-ote:
->=20
->> +struct svc_rdma_op_ctxt *svc_rdma_get_context_gfp(struct svcxprt_rd=
-ma *xprt,
->> +						  gfp_t flags)
->> +{
->> +	struct svc_rdma_op_ctxt *ctxt;
->> +
->> +	ctxt =3D kmem_cache_alloc(svc_rdma_ctxt_cachep, flags);
->> +	if (!ctxt)
->> +		return NULL;
->> +	svc_rdma_init_context(xprt, ctxt);
->> +	return ctxt;
->> +}
->> +
->> +struct svc_rdma_op_ctxt *svc_rdma_get_context(struct svcxprt_rdma *=
-xprt)
->> +{
->> +	struct svc_rdma_op_ctxt *ctxt;
->> +
->> +	ctxt =3D kmem_cache_alloc(svc_rdma_ctxt_cachep,
->> +				GFP_KERNEL | __GFP_NOFAIL);
->> +	svc_rdma_init_context(xprt, ctxt);
->> 	return ctxt;
->=20
-> Sounds like you should have just added a gfp_t argument to
-> svc_rdma_get_context.  And if we have any way to avoid the __GFP_NOFA=
-IL
-> I'd really appreciate if we could give that a try.
+Hello,
 
-Changed my mind on this.
+While preparing this patch series I noticed that none of the SCSI RDMA
+initiator drivers syncs RDMA buffers before performing RDMA. Does
+anyone know why something like the code below is not present in these
+drivers and why no dma_sync_sg operations are present in struct
+ib_dma_mapping_ops ?
 
-struct svc_rdma_op_ctxt used to be smaller than a page, so these
-allocations were not likely to fail. But since the maximum NFS
-READ and WRITE payload for NFS/RDMA has been increased to 1MB,
-struct svc_rdma_op_ctxt has grown to more than 6KB, thus it is
-no longer an order 0 memory allocation.
+Thanks,
 
-Some ideas:
+Bart.
 
-1. Pre-allocate these per connection in svc_rdma_accept().
-There will never be more than sc_sq_depth of these. But that
-could be a large number to allocate during connection
-establishment.
 
-2. Once allocated, cache them. If traffic doesn=E2=80=99t manage to
-allocate sc_sq_depth of these over time, allocation can still
-fail during a traffic burst in very low memory scenarios.
+[PATCH] IB/srp: Sync scatterlists before and after DMA
 
-3. Use a mempool. This reserves a few of these which may never
-be used. But allocation can still fail once the reserve is
-consumed (same as 2).
+---
+ drivers/infiniband/ulp/srp/ib_srp.c | 10 ++++++++++
+ include/rdma/ib_verbs.h             | 16 ++++++++++++++++
+ 2 files changed, 26 insertions(+)
 
-4. Break out the sge and pages arrays into separate allocations
-so the allocation requests are order 0.
-
-1 seems like the most robust solution, and it would be fast.
-svc_rdma_get_context is a very common operation.
-
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 3db9a65..23e3c25 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -1780,6 +1780,7 @@ static int srp_post_recv(struct srp_rdma_ch *ch, struct srp_iu *iu)
+ static void srp_process_rsp(struct srp_rdma_ch *ch, struct srp_rsp *rsp)
+ {
+ 	struct srp_target_port *target = ch->target;
++	struct ib_device *dev = target->srp_host->srp_dev->dev;
+ 	struct srp_request *req;
+ 	struct scsi_cmnd *scmnd;
+ 	unsigned long flags;
+@@ -1828,6 +1829,11 @@ static void srp_process_rsp(struct srp_rdma_ch *ch, struct srp_rsp *rsp)
+ 		else if (unlikely(rsp->flags & SRP_RSP_FLAG_DOOVER))
+ 			scsi_set_resid(scmnd, -be32_to_cpu(rsp->data_out_res_cnt));
+ 
++		if (scmnd->sc_data_direction != DMA_NONE)
++			ib_dma_sync_sg_for_cpu(dev, scsi_sglist(scmnd),
++					       scsi_sg_count(scmnd),
++					       scmnd->sc_data_direction);
++
+ 		srp_free_req(ch, req, scmnd,
+ 			     be32_to_cpu(rsp->req_lim_delta));
+ 
+@@ -2112,6 +2118,10 @@ static int srp_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
+ 
+ 	ib_dma_sync_single_for_device(dev, iu->dma, target->max_iu_len,
+ 				      DMA_TO_DEVICE);
++	if (scmnd->sc_data_direction != DMA_NONE)
++		ib_dma_sync_sg_for_device(dev, scsi_sglist(scmnd),
++					  scsi_sg_count(scmnd),
++					  scmnd->sc_data_direction);
+ 
+ 	if (srp_post_send(ch, iu, len)) {
+ 		shost_printk(KERN_ERR, target->scsi_host, PFX "Send failed\n");
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 9a68a19..5f9cba7 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2796,6 +2796,22 @@ static inline void ib_dma_sync_single_for_device(struct ib_device *dev,
+ 		dma_sync_single_for_device(dev->dma_device, addr, size, dir);
+ }
+ 
++/* Prepare DMA region to be accessed by CPU */
++static inline void ib_dma_sync_sg_for_cpu(struct ib_device *dev,
++					  struct scatterlist *sg, int nelems,
++					  enum dma_data_direction dir)
++{
++	dma_sync_sg_for_cpu(dev->dma_device, sg, nelems, dir);
++}
++
++/* Prepare DMA region to be accessed by HCA */
++static inline void ib_dma_sync_sg_for_device(struct ib_device *dev,
++					     struct scatterlist *sg, int nelems,
++					     enum dma_data_direction dir)
++{
++	dma_sync_sg_for_device(dev->dma_device, sg, nelems, dir);
++}
++
+ /**
+  * ib_dma_alloc_coherent - Allocate memory and map it for DMA
+  * @dev: The device for which the DMA address is requested
+-- 
+2.1.4
 
 --
-Chuck Lever
-
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
