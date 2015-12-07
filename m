@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 14/37] IB/rdmavt: Add SRQ stubs
-Date: Mon, 07 Dec 2015 15:43:59 -0500
-Message-ID: <20151207204358.8144.3240.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH 16/37] IB/rdmavt: Add process MAD stub
+Date: Mon, 07 Dec 2015 15:44:08 -0500
+Message-ID: <20151207204407.8144.77271.stgit@phlsvslse11.ph.intel.com>
 References: <20151207204046.8144.18752.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,38 +13,36 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Adds the stubs for create, modify, query, and destory for shared
-request queues.
+This adds the stub for process mad. More study is needed to determine the
+final MAD interaction between the driver and rvt.
 
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
  drivers/infiniband/sw/rdmavt/Makefile |    2 -
- drivers/infiniband/sw/rdmavt/srq.c    |   89 +++++++++++++++++++++++++++++++++
- drivers/infiniband/sw/rdmavt/srq.h    |   64 ++++++++++++++++++++++++
- drivers/infiniband/sw/rdmavt/vt.c     |    6 ++
- drivers/infiniband/sw/rdmavt/vt.h     |    1 
- 5 files changed, 161 insertions(+), 1 deletions(-)
- create mode 100644 drivers/infiniband/sw/rdmavt/srq.c
- create mode 100644 drivers/infiniband/sw/rdmavt/srq.h
+ drivers/infiniband/sw/rdmavt/mad.c    |   88 +++++++++++++++++++++++++++++++++
+ drivers/infiniband/sw/rdmavt/mad.h    |   62 +++++++++++++++++++++++
+ 3 files changed, 151 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/infiniband/sw/rdmavt/mad.c
+ create mode 100644 drivers/infiniband/sw/rdmavt/mad.h
 
 diff --git a/drivers/infiniband/sw/rdmavt/Makefile b/drivers/infiniband/sw/rdmavt/Makefile
-index 084ee6a..204be84 100644
+index d2af114..fe65410 100644
 --- a/drivers/infiniband/sw/rdmavt/Makefile
 +++ b/drivers/infiniband/sw/rdmavt/Makefile
 @@ -7,4 +7,4 @@
  #
  obj-$(CONFIG_INFINIBAND_RDMAVT) += rdmavt.o
  
--rdmavt-y := vt.o ah.o dma.o mr.o pd.o qp.o
-+rdmavt-y := vt.o ah.o dma.o mr.o pd.o qp.o srq.o
-diff --git a/drivers/infiniband/sw/rdmavt/srq.c b/drivers/infiniband/sw/rdmavt/srq.c
+-rdmavt-y := vt.o ah.o dma.o mcast.o mr.o pd.o qp.o srq.o
++rdmavt-y := vt.o ah.o dma.o mad.o mcast.o mr.o pd.o qp.o srq.o
+diff --git a/drivers/infiniband/sw/rdmavt/mad.c b/drivers/infiniband/sw/rdmavt/mad.c
 new file mode 100644
-index 0000000..57b3cc4
+index 0000000..218cdc9
 --- /dev/null
-+++ b/drivers/infiniband/sw/rdmavt/srq.c
-@@ -0,0 +1,89 @@
++++ b/drivers/infiniband/sw/rdmavt/mad.c
+@@ -0,0 +1,88 @@
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -95,53 +93,52 @@ index 0000000..57b3cc4
 + *
 + */
 +
-+#include "srq.h"
++#include "mad.h"
 +
 +/**
-+ * rvt_create_srq - create a shared receive queue
-+ * @ibpd: the protection domain of the SRQ to create
-+ * @srq_init_attr: the attributes of the SRQ
-+ * @udata: data from libibverbs when creating a user SRQ
++ * rvt_process_mad - process an incoming MAD packet
++ * @ibdev: the infiniband device this packet came in on
++ * @mad_flags: MAD flags
++ * @port: the port number this packet came in on
++ * @in_wc: the work completion entry for this packet
++ * @in_grh: the global route header for this packet
++ * @in_mad: the incoming MAD
++ * @out_mad: any outgoing MAD reply
++ *
++ * Returns IB_MAD_RESULT_SUCCESS if this is a MAD that we are not
++ * interested in processing.
++ *
++ * Note that the verbs framework has already done the MAD sanity checks,
++ * and hop count/pointer updating for IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE
++ * MADs.
++ *
++ * This is called by the ib_mad module.
 + */
-+struct ib_srq *rvt_create_srq(struct ib_pd *ibpd,
-+			      struct ib_srq_init_attr *srq_init_attr,
-+			      struct ib_udata *udata)
++int rvt_process_mad(struct ib_device *ibdev, int mad_flags, u8 port,
++		    const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++		    const struct ib_mad_hdr *in, size_t in_mad_size,
++		    struct ib_mad_hdr *out, size_t *out_mad_size,
++		    u16 *out_mad_pkey_index)
 +{
-+	return ERR_PTR(-ENOMEM);
++	/*
++	 * Drivers will need to provide a number of things. For exmaple counters
++	 * will need to be maintained by the driver but shoud live in the rvt
++	 * structure. More study will be needed to finalize the interface
++	 * between drivers and rvt for mad packets.
++	 *
++	 *VT-DRIVER-API: ????
++	 *
++	 */
++	return IB_MAD_RESULT_FAILURE;
 +}
-+
-+/**
-+ * rvt_modify_srq - modify a shared receive queue
-+ * @ibsrq: the SRQ to modify
-+ * @attr: the new attributes of the SRQ
-+ * @attr_mask: indicates which attributes to modify
-+ * @udata: user data for libibverbs.so
-+ */
-+int rvt_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
-+		   enum ib_srq_attr_mask attr_mask,
-+		   struct ib_udata *udata)
-+{
-+	return -EINVAL;
-+}
-+
-+int rvt_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr)
-+{
-+	return -EINVAL;
-+}
-+
-+int rvt_destroy_srq(struct ib_srq *ibsrq)
-+{
-+	return -EINVAL;
-+}
-+
-diff --git a/drivers/infiniband/sw/rdmavt/srq.h b/drivers/infiniband/sw/rdmavt/srq.h
+diff --git a/drivers/infiniband/sw/rdmavt/mad.h b/drivers/infiniband/sw/rdmavt/mad.h
 new file mode 100644
-index 0000000..20eb6a6
+index 0000000..45f48ab
 --- /dev/null
-+++ b/drivers/infiniband/sw/rdmavt/srq.h
-@@ -0,0 +1,64 @@
-+#ifndef DEF_RVTSRQ_H
-+#define DEF_RVTSRQ_H
++++ b/drivers/infiniband/sw/rdmavt/mad.h
+@@ -0,0 +1,62 @@
++#ifndef DEF_RVTMAD_H
++#define DEF_RVTMAD_H
 +
 +/*
 + *
@@ -194,44 +191,14 @@ index 0000000..20eb6a6
 + */
 +
 +#include <rdma/rdma_vt.h>
-+struct ib_srq *rvt_create_srq(struct ib_pd *ibpd,
-+			      struct ib_srq_init_attr *srq_init_attr,
-+			      struct ib_udata *udata);
-+int rvt_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
-+		   enum ib_srq_attr_mask attr_mask,
-+		   struct ib_udata *udata);
-+int rvt_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr);
-+int rvt_destroy_srq(struct ib_srq *ibsrq);
 +
-+#endif          /* DEF_RVTSRQ_H */
-diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-index de64d18..5a05fdd 100644
---- a/drivers/infiniband/sw/rdmavt/vt.c
-+++ b/drivers/infiniband/sw/rdmavt/vt.c
-@@ -238,6 +238,12 @@ int rvt_register_device(struct rvt_dev_info *rdi)
- 	CDR(rdi, modify_ah);
- 	CDR(rdi, query_ah);
- 
-+	/* Shared Receive Queue */
-+	CDR(rdi, create_srq);
-+	CDR(rdi, modify_srq);
-+	CDR(rdi, destroy_srq);
-+	CDR(rdi, query_srq);
++int rvt_process_mad(struct ib_device *ibdev, int mad_flags, u8 port,
++		    const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++		    const struct ib_mad_hdr *in, size_t in_mad_size,
++		    struct ib_mad_hdr *out, size_t *out_mad_size,
++		    u16 *out_mad_pkey_index);
 +
- 	/* Mem Region */
- 	CDR(rdi, get_dma_mr);
- 	CDR(rdi, reg_phys_mr);
-diff --git a/drivers/infiniband/sw/rdmavt/vt.h b/drivers/infiniband/sw/rdmavt/vt.h
-index 7aad71b..453affb 100644
---- a/drivers/infiniband/sw/rdmavt/vt.h
-+++ b/drivers/infiniband/sw/rdmavt/vt.h
-@@ -57,5 +57,6 @@
- #include "qp.h"
- #include "ah.h"
- #include "mr.h"
-+#include "srq.h"
- 
- #endif          /* DEF_RDMAVT_H */
++#endif          /* DEF_RVTMAD_H */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
