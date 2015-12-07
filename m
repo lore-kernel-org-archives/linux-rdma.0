@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 04/10] IB/qib: Remove most uses of QIB_PERMISSIVE_LID and
- QIB_MULTICAST_LID_BASE
-Date: Mon, 07 Dec 2015 15:49:07 -0500
-Message-ID: <20151207204906.11219.70822.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH 10/10] IB/qib: Remove srq from qib
+Date: Mon, 07 Dec 2015 15:49:34 -0500
+Message-ID: <20151207204933.11219.49849.stgit@phlsvslse11.ph.intel.com>
 References: <20151207204735.11219.68688.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,138 +10,136 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20151207204735.11219.68688.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch removes most of the uses of QIB_PERMISSIBVE_LID and
-QIB_MULTICAST_LID_BASE in favor of the recently added IB_* versions.
-There are still minor uses in AH functions as well as the QIB_* defines
-but those will be removed in a follow on patch.
+Remove srq from qib now that it has been moved into rdmavt.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_driver.c |    2 +-
- drivers/infiniband/hw/qib/qib_mad.c    |    4 ++--
- drivers/infiniband/hw/qib/qib_qp.c     |    5 +++--
- drivers/infiniband/hw/qib/qib_ud.c     |   11 ++++++-----
- drivers/infiniband/hw/qib/qib_verbs.c  |    2 +-
- 5 files changed, 13 insertions(+), 11 deletions(-)
+ drivers/infiniband/hw/qib/qib_qp.c    |    2 +-
+ drivers/infiniband/hw/qib/qib_ruc.c   |    4 ++--
+ drivers/infiniband/hw/qib/qib_srq.c   |   10 +++++-----
+ drivers/infiniband/hw/qib/qib_verbs.h |   13 -------------
+ 4 files changed, 8 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_driver.c b/drivers/infiniband/hw/qib/qib_driver.c
-index f58fdc3..57b19ea 100644
---- a/drivers/infiniband/hw/qib/qib_driver.c
-+++ b/drivers/infiniband/hw/qib/qib_driver.c
-@@ -319,7 +319,7 @@ static u32 qib_rcv_hdrerr(struct qib_ctxtdata *rcd, struct qib_pportdata *ppd,
- 		if (tlen < 24)
- 			goto drop;
- 
--		if (lid < QIB_MULTICAST_LID_BASE) {
-+		if (lid < be16_to_cpu(IB_MULTICAST_LID_BASE)) {
- 			lid &= ~((1 << ppd->lmc) - 1);
- 			if (unlikely(lid != ppd->lid))
- 				goto drop;
-diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
-index c65d3aa..70fc1b2 100644
---- a/drivers/infiniband/hw/qib/qib_mad.c
-+++ b/drivers/infiniband/hw/qib/qib_mad.c
-@@ -691,7 +691,7 @@ static int subn_set_portinfo(struct ib_smp *smp, struct ib_device *ibdev,
- 
- 	lid = be16_to_cpu(pip->lid);
- 	/* Must be a valid unicast LID address. */
--	if (lid == 0 || lid >= QIB_MULTICAST_LID_BASE)
-+	if (lid == 0 || lid >= be16_to_cpu(IB_MULTICAST_LID_BASE))
- 		smp->status |= IB_SMP_INVALID_FIELD;
- 	else if (ppd->lid != lid || ppd->lmc != (pip->mkeyprot_resv_lmc & 7)) {
- 		if (ppd->lid != lid)
-@@ -706,7 +706,7 @@ static int subn_set_portinfo(struct ib_smp *smp, struct ib_device *ibdev,
- 	smlid = be16_to_cpu(pip->sm_lid);
- 	msl = pip->neighbormtu_mastersmsl & 0xF;
- 	/* Must be a valid unicast LID address. */
--	if (smlid == 0 || smlid >= QIB_MULTICAST_LID_BASE)
-+	if (smlid == 0 || smlid >= be16_to_cpu(IB_MULTICAST_LID_BASE))
- 		smp->status |= IB_SMP_INVALID_FIELD;
- 	else if (smlid != ibp->sm_lid || msl != ibp->sm_sl) {
- 		spin_lock_irqsave(&ibp->lock, flags);
 diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
-index 40f85bb..e6544dc 100644
+index f3964ef..79907d1 100644
 --- a/drivers/infiniband/hw/qib/qib_qp.c
 +++ b/drivers/infiniband/hw/qib/qib_qp.c
-@@ -589,14 +589,15 @@ int qib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 		goto inval;
+@@ -1036,7 +1036,7 @@ struct ib_qp *qib_create_qp(struct ib_pd *ibpd,
+ 		sz = sizeof(*qp);
+ 		sg_list_sz = 0;
+ 		if (init_attr->srq) {
+-			struct qib_srq *srq = to_isrq(init_attr->srq);
++			struct rvt_srq *srq = ibsrq_to_rvtsrq(init_attr->srq);
  
- 	if (attr_mask & IB_QP_AV) {
--		if (attr->ah_attr.dlid >= QIB_MULTICAST_LID_BASE)
-+		if (attr->ah_attr.dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE))
- 			goto inval;
- 		if (qib_check_ah(qp->ibqp.device, &attr->ah_attr))
- 			goto inval;
- 	}
+ 			if (srq->rq.max_sge > 1)
+ 				sg_list_sz = sizeof(*qp->r_sg_list) *
+diff --git a/drivers/infiniband/hw/qib/qib_ruc.c b/drivers/infiniband/hw/qib/qib_ruc.c
+index a9c0b58..71c9a49 100644
+--- a/drivers/infiniband/hw/qib/qib_ruc.c
++++ b/drivers/infiniband/hw/qib/qib_ruc.c
+@@ -141,14 +141,14 @@ int qib_get_rwqe(struct rvt_qp *qp, int wr_id_only)
+ 	unsigned long flags;
+ 	struct rvt_rq *rq;
+ 	struct rvt_rwq *wq;
+-	struct qib_srq *srq;
++	struct rvt_srq *srq;
+ 	struct rvt_rwqe *wqe;
+ 	void (*handler)(struct ib_event *, void *);
+ 	u32 tail;
+ 	int ret;
  
- 	if (attr_mask & IB_QP_ALT_PATH) {
--		if (attr->alt_ah_attr.dlid >= QIB_MULTICAST_LID_BASE)
-+		if (attr->alt_ah_attr.dlid >=
-+		    be16_to_cpu(IB_MULTICAST_LID_BASE))
- 			goto inval;
- 		if (qib_check_ah(qp->ibqp.device, &attr->alt_ah_attr))
- 			goto inval;
-diff --git a/drivers/infiniband/hw/qib/qib_ud.c b/drivers/infiniband/hw/qib/qib_ud.c
-index 59193f6..32fc80c 100644
---- a/drivers/infiniband/hw/qib/qib_ud.c
-+++ b/drivers/infiniband/hw/qib/qib_ud.c
-@@ -32,6 +32,7 @@
+ 	if (qp->ibqp.srq) {
+-		srq = to_isrq(qp->ibqp.srq);
++		srq = ibsrq_to_rvtsrq(qp->ibqp.srq);
+ 		handler = srq->ibsrq.event_handler;
+ 		rq = &srq->rq;
+ 	} else {
+diff --git a/drivers/infiniband/hw/qib/qib_srq.c b/drivers/infiniband/hw/qib/qib_srq.c
+index 8547263..e9dfa30 100644
+--- a/drivers/infiniband/hw/qib/qib_srq.c
++++ b/drivers/infiniband/hw/qib/qib_srq.c
+@@ -48,7 +48,7 @@
+ int qib_post_srq_receive(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
+ 			 struct ib_recv_wr **bad_wr)
+ {
+-	struct qib_srq *srq = to_isrq(ibsrq);
++	struct rvt_srq *srq = ibsrq_to_rvtsrq(ibsrq);
+ 	struct rvt_rwq *wq;
+ 	unsigned long flags;
+ 	int ret;
+@@ -103,7 +103,7 @@ struct ib_srq *qib_create_srq(struct ib_pd *ibpd,
+ 			      struct ib_udata *udata)
+ {
+ 	struct qib_ibdev *dev = to_idev(ibpd->device);
+-	struct qib_srq *srq;
++	struct rvt_srq *srq;
+ 	u32 sz;
+ 	struct ib_srq *ret;
+ 
+@@ -212,7 +212,7 @@ int qib_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
+ 		   enum ib_srq_attr_mask attr_mask,
+ 		   struct ib_udata *udata)
+ {
+-	struct qib_srq *srq = to_isrq(ibsrq);
++	struct rvt_srq *srq = ibsrq_to_rvtsrq(ibsrq);
+ 	struct rvt_rwq *wq;
+ 	int ret = 0;
+ 
+@@ -350,7 +350,7 @@ bail:
+ 
+ int qib_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr)
+ {
+-	struct qib_srq *srq = to_isrq(ibsrq);
++	struct rvt_srq *srq = ibsrq_to_rvtsrq(ibsrq);
+ 
+ 	attr->max_wr = srq->rq.size - 1;
+ 	attr->max_sge = srq->rq.max_sge;
+@@ -364,7 +364,7 @@ int qib_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr)
   */
+ int qib_destroy_srq(struct ib_srq *ibsrq)
+ {
+-	struct qib_srq *srq = to_isrq(ibsrq);
++	struct rvt_srq *srq = ibsrq_to_rvtsrq(ibsrq);
+ 	struct qib_ibdev *dev = to_idev(ibsrq->device);
  
- #include <rdma/ib_smi.h>
-+#include <rdma/ib_verbs.h>
+ 	spin_lock(&dev->n_srqs_lock);
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
+index a9d7f0a..00dd2ad 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.h
++++ b/drivers/infiniband/hw/qib/qib_verbs.h
+@@ -251,14 +251,6 @@ struct qib_cq {
+ 	struct rvt_mmap_info *ip;
+ };
  
- #include "qib.h"
- #include "qib_mad.h"
-@@ -278,8 +279,8 @@ int qib_make_ud_req(struct qib_qp *qp)
- 	ibp = to_iport(qp->ibqp.device, qp->port_num);
- 	ppd = ppd_from_ibp(ibp);
- 	ah_attr = &to_iah(wqe->ud_wr.ah)->attr;
--	if (ah_attr->dlid >= QIB_MULTICAST_LID_BASE) {
--		if (ah_attr->dlid != QIB_PERMISSIVE_LID)
-+	if (ah_attr->dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE)) {
-+		if (ah_attr->dlid != be16_to_cpu(IB_LID_PERMISSIVE))
- 			this_cpu_inc(ibp->pmastats->n_multicast_xmit);
- 		else
- 			this_cpu_inc(ibp->pmastats->n_unicast_xmit);
-@@ -368,8 +369,8 @@ int qib_make_ud_req(struct qib_qp *qp)
- 	/*
- 	 * Use the multicast QP if the destination LID is a multicast LID.
- 	 */
--	ohdr->bth[1] = ah_attr->dlid >= QIB_MULTICAST_LID_BASE &&
--		ah_attr->dlid != QIB_PERMISSIVE_LID ?
-+	ohdr->bth[1] = ah_attr->dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE) &&
-+		ah_attr->dlid != be16_to_cpu(IB_LID_PERMISSIVE) ?
- 		cpu_to_be32(QIB_MULTICAST_QPN) :
- 		cpu_to_be32(wqe->ud_wr.remote_qpn);
- 	ohdr->bth[2] = cpu_to_be32(qp->s_next_psn++ & QIB_PSN_MASK);
-@@ -576,7 +577,7 @@ void qib_ud_rcv(struct qib_ibport *ibp, struct qib_ib_header *hdr,
- 	/*
- 	 * Save the LMC lower bits if the destination LID is a unicast LID.
- 	 */
--	wc.dlid_path_bits = dlid >= QIB_MULTICAST_LID_BASE ? 0 :
-+	wc.dlid_path_bits = dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE) ? 0 :
- 		dlid & ((1 << ppd_from_ibp(ibp)->lmc) - 1);
- 	wc.port_num = qp->port_num;
- 	/* Signal completion event if the solicited bit is set. */
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index 7711d64..c64e054 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.c
-+++ b/drivers/infiniband/hw/qib/qib_verbs.c
-@@ -641,7 +641,7 @@ void qib_ib_rcv(struct qib_ctxtdata *rcd, void *rhdr, void *data, u32 tlen)
+-struct qib_srq {
+-	struct ib_srq ibsrq;
+-	struct rvt_rq rq;
+-	struct rvt_mmap_info *ip;
+-	/* send signal when number of RWQEs < limit */
+-	u32 limit;
+-};
+-
+ /*
+  * qib specific data structure that will be hidden from rvt after the queue pair
+  * is made common.
+@@ -539,11 +531,6 @@ static inline struct qib_cq *to_icq(struct ib_cq *ibcq)
+ 	return container_of(ibcq, struct qib_cq, ibcq);
+ }
  
- 	/* Check for a valid destination LID (see ch. 7.11.1). */
- 	lid = be16_to_cpu(hdr->lrh[1]);
--	if (lid < QIB_MULTICAST_LID_BASE) {
-+	if (lid < be16_to_cpu(IB_MULTICAST_LID_BASE)) {
- 		lid &= ~((1 << ppd->lmc) - 1);
- 		if (unlikely(lid != ppd->lid))
- 			goto drop;
+-static inline struct qib_srq *to_isrq(struct ib_srq *ibsrq)
+-{
+-	return container_of(ibsrq, struct qib_srq, ibsrq);
+-}
+-
+ static inline struct rvt_qp *to_iqp(struct ib_qp *ibqp)
+ {
+ 	return container_of(ibqp, struct rvt_qp, ibqp);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
