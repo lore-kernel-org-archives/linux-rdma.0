@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 15/37] IB/rdmavt: Add multicast stubs
-Date: Mon, 07 Dec 2015 15:44:04 -0500
-Message-ID: <20151207204402.8144.88044.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH 14/37] IB/rdmavt: Add SRQ stubs
+Date: Mon, 07 Dec 2015 15:43:59 -0500
+Message-ID: <20151207204358.8144.3240.stgit@phlsvslse11.ph.intel.com>
 References: <20151207204046.8144.18752.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,37 +13,38 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Adds the function stubs for attach and detach multicast.
+Adds the stubs for create, modify, query, and destory for shared
+request queues.
 
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/Makefile |    2 +
- drivers/infiniband/sw/rdmavt/mcast.c  |   61 +++++++++++++++++++++++++++++++++
- drivers/infiniband/sw/rdmavt/mcast.h  |   59 ++++++++++++++++++++++++++++++++
- drivers/infiniband/sw/rdmavt/vt.c     |    4 ++
- drivers/infiniband/sw/rdmavt/vt.h     |    1 +
- 5 files changed, 126 insertions(+), 1 deletions(-)
- create mode 100644 drivers/infiniband/sw/rdmavt/mcast.c
- create mode 100644 drivers/infiniband/sw/rdmavt/mcast.h
+ drivers/infiniband/sw/rdmavt/Makefile |    2 -
+ drivers/infiniband/sw/rdmavt/srq.c    |   89 +++++++++++++++++++++++++++++++++
+ drivers/infiniband/sw/rdmavt/srq.h    |   64 ++++++++++++++++++++++++
+ drivers/infiniband/sw/rdmavt/vt.c     |    6 ++
+ drivers/infiniband/sw/rdmavt/vt.h     |    1 
+ 5 files changed, 161 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/infiniband/sw/rdmavt/srq.c
+ create mode 100644 drivers/infiniband/sw/rdmavt/srq.h
 
 diff --git a/drivers/infiniband/sw/rdmavt/Makefile b/drivers/infiniband/sw/rdmavt/Makefile
-index 204be84..d2af114 100644
+index 084ee6a..204be84 100644
 --- a/drivers/infiniband/sw/rdmavt/Makefile
 +++ b/drivers/infiniband/sw/rdmavt/Makefile
 @@ -7,4 +7,4 @@
  #
  obj-$(CONFIG_INFINIBAND_RDMAVT) += rdmavt.o
  
--rdmavt-y := vt.o ah.o dma.o mr.o pd.o qp.o srq.o
-+rdmavt-y := vt.o ah.o dma.o mcast.o mr.o pd.o qp.o srq.o
-diff --git a/drivers/infiniband/sw/rdmavt/mcast.c b/drivers/infiniband/sw/rdmavt/mcast.c
+-rdmavt-y := vt.o ah.o dma.o mr.o pd.o qp.o
++rdmavt-y := vt.o ah.o dma.o mr.o pd.o qp.o srq.o
+diff --git a/drivers/infiniband/sw/rdmavt/srq.c b/drivers/infiniband/sw/rdmavt/srq.c
 new file mode 100644
-index 0000000..fb2a775
+index 0000000..57b3cc4
 --- /dev/null
-+++ b/drivers/infiniband/sw/rdmavt/mcast.c
-@@ -0,0 +1,61 @@
++++ b/drivers/infiniband/sw/rdmavt/srq.c
+@@ -0,0 +1,89 @@
 +/*
 + *
 + * This file is provided under a dual BSD/GPLv2 license.  When using or
@@ -94,25 +95,53 @@ index 0000000..fb2a775
 + *
 + */
 +
-+#include "mcast.h"
++#include "srq.h"
 +
-+int rvt_attach_mcast(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
++/**
++ * rvt_create_srq - create a shared receive queue
++ * @ibpd: the protection domain of the SRQ to create
++ * @srq_init_attr: the attributes of the SRQ
++ * @udata: data from libibverbs when creating a user SRQ
++ */
++struct ib_srq *rvt_create_srq(struct ib_pd *ibpd,
++			      struct ib_srq_init_attr *srq_init_attr,
++			      struct ib_udata *udata)
++{
++	return ERR_PTR(-ENOMEM);
++}
++
++/**
++ * rvt_modify_srq - modify a shared receive queue
++ * @ibsrq: the SRQ to modify
++ * @attr: the new attributes of the SRQ
++ * @attr_mask: indicates which attributes to modify
++ * @udata: user data for libibverbs.so
++ */
++int rvt_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
++		   enum ib_srq_attr_mask attr_mask,
++		   struct ib_udata *udata)
 +{
 +	return -EINVAL;
 +}
 +
-+int rvt_detach_mcast(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
++int rvt_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr)
 +{
 +	return -EINVAL;
 +}
-diff --git a/drivers/infiniband/sw/rdmavt/mcast.h b/drivers/infiniband/sw/rdmavt/mcast.h
++
++int rvt_destroy_srq(struct ib_srq *ibsrq)
++{
++	return -EINVAL;
++}
++
+diff --git a/drivers/infiniband/sw/rdmavt/srq.h b/drivers/infiniband/sw/rdmavt/srq.h
 new file mode 100644
-index 0000000..1a47121
+index 0000000..20eb6a6
 --- /dev/null
-+++ b/drivers/infiniband/sw/rdmavt/mcast.h
-@@ -0,0 +1,59 @@
-+#ifndef DEF_RVTMCAST_H
-+#define DEF_RVTMCAST_H
++++ b/drivers/infiniband/sw/rdmavt/srq.h
+@@ -0,0 +1,64 @@
++#ifndef DEF_RVTSRQ_H
++#define DEF_RVTSRQ_H
 +
 +/*
 + *
@@ -165,35 +194,42 @@ index 0000000..1a47121
 + */
 +
 +#include <rdma/rdma_vt.h>
++struct ib_srq *rvt_create_srq(struct ib_pd *ibpd,
++			      struct ib_srq_init_attr *srq_init_attr,
++			      struct ib_udata *udata);
++int rvt_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
++		   enum ib_srq_attr_mask attr_mask,
++		   struct ib_udata *udata);
++int rvt_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr);
++int rvt_destroy_srq(struct ib_srq *ibsrq);
 +
-+int rvt_attach_mcast(struct ib_qp *ibqp, union ib_gid *gid, u16 lid);
-+int rvt_detach_mcast(struct ib_qp *ibqp, union ib_gid *gid, u16 lid);
-+
-+#endif          /* DEF_RVTMCAST_H */
++#endif          /* DEF_RVTSRQ_H */
 diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-index 5a05fdd..dfc62ad 100644
+index de64d18..5a05fdd 100644
 --- a/drivers/infiniband/sw/rdmavt/vt.c
 +++ b/drivers/infiniband/sw/rdmavt/vt.c
-@@ -244,6 +244,10 @@ int rvt_register_device(struct rvt_dev_info *rdi)
- 	CDR(rdi, destroy_srq);
- 	CDR(rdi, query_srq);
+@@ -238,6 +238,12 @@ int rvt_register_device(struct rvt_dev_info *rdi)
+ 	CDR(rdi, modify_ah);
+ 	CDR(rdi, query_ah);
  
-+	/* Multicast */
-+	CDR(rdi, attach_mcast);
-+	CDR(rdi, detach_mcast);
++	/* Shared Receive Queue */
++	CDR(rdi, create_srq);
++	CDR(rdi, modify_srq);
++	CDR(rdi, destroy_srq);
++	CDR(rdi, query_srq);
 +
  	/* Mem Region */
  	CDR(rdi, get_dma_mr);
  	CDR(rdi, reg_phys_mr);
 diff --git a/drivers/infiniband/sw/rdmavt/vt.h b/drivers/infiniband/sw/rdmavt/vt.h
-index 453affb..7afe383 100644
+index 7aad71b..453affb 100644
 --- a/drivers/infiniband/sw/rdmavt/vt.h
 +++ b/drivers/infiniband/sw/rdmavt/vt.h
-@@ -58,5 +58,6 @@
+@@ -57,5 +57,6 @@
+ #include "qp.h"
  #include "ah.h"
  #include "mr.h"
- #include "srq.h"
-+#include "mcast.h"
++#include "srq.h"
  
  #endif          /* DEF_RDMAVT_H */
 
