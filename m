@@ -1,85 +1,58 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 22/37] IB/rdmavt: Add queue pair data structure to rdmavt
-Date: Mon, 7 Dec 2015 21:48:17 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AAFE733B@ORSMSX109.amr.corp.intel.com>
-References: <20151207204046.8144.18752.stgit@phlsvslse11.ph.intel.com>
- <20151207204433.8144.93461.stgit@phlsvslse11.ph.intel.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 0/6] SRP initiator related bug fixes
+Date: Mon, 7 Dec 2015 14:07:40 -0800
+Message-ID: <5666032C.4090803@sandisk.com>
+References: <565DE3EC.2070002@sandisk.com> <5665DD50.5090906@sandisk.com>
+ <5665F502.5020305@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151207204433.8144.93461.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <5665F502.5020305-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiAgZHJpdmVycy9pbmZpbmliYW5kL3N3L3JkbWF2dC9xcC5oIHwgICAgNSAtDQo+ICBpbmNsdWRl
-L3JkbWEvcmRtYV92dC5oICAgICAgICAgICAgfCAgMjMzDQo+ICsrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysNCj4gIDIgZmlsZXMgY2hhbmdlZCwgMjMzIGluc2VydGlvbnMoKyks
-IDUgZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL3N3
-L3JkbWF2dC9xcC5oDQo+IGIvZHJpdmVycy9pbmZpbmliYW5kL3N3L3JkbWF2dC9xcC5oDQo+IGlu
-ZGV4IDRlNDcwOWYuLmM4MGQzMjYgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9z
-dy9yZG1hdnQvcXAuaA0KPiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQvc3cvcmRtYXZ0L3FwLmgN
-Cj4gQEAgLTUzLDExICs1Myw2IEBADQo+IA0KPiAgI2luY2x1ZGUgPHJkbWEvcmRtYV92dC5oPg0K
-PiANCj4gLXN0cnVjdCBydnRfcXAgew0KPiAtCXN0cnVjdCBpYl9xcCAqaWJxcDsNCj4gLQkvKiBP
-dGhlciBzdHVmZiAqLw0KPiAtfTsNCj4gLQ0KPiAgc3RydWN0IGliX3FwICpydnRfY3JlYXRlX3Fw
-KHN0cnVjdCBpYl9wZCAqaWJwZCwNCj4gIAkJCSAgICBzdHJ1Y3QgaWJfcXBfaW5pdF9hdHRyICpp
-bml0X2F0dHIsDQo+ICAJCQkgICAgc3RydWN0IGliX3VkYXRhICp1ZGF0YSk7DQo+IGRpZmYgLS1n
-aXQgYS9pbmNsdWRlL3JkbWEvcmRtYV92dC5oIGIvaW5jbHVkZS9yZG1hL3JkbWFfdnQuaA0KPiBp
-bmRleCAzOWEwNzM3Li44ZDNhNDFhIDEwMDY0NA0KPiAtLS0gYS9pbmNsdWRlL3JkbWEvcmRtYV92
-dC5oDQo+ICsrKyBiL2luY2x1ZGUvcmRtYS9yZG1hX3Z0LmgNCj4gQEAgLTEwOSw2ICsxMDksMjM5
-IEBAIHN0cnVjdCBydnRfbGtleV90YWJsZSB7DQo+ICAvKiBFbmQgTWVtbW9yeSBSZWdpb24gKi8N
-Cj4gDQo+ICAvKg0KPiArICogVGhpbmdzIG5lZWRlZCBmb3IgdGhlIFF1ZXVlIFBhaXIgZGVmaW5p
-dGlvbi4gTGlrZSB0aGUgTVIgc3R1ZmYgYWJvdmUNCj4gdGhlDQo+ICsgKiBmb2xsb3dpbmcgc2hv
-dWxkIHByb2JhYmx5IGdldCBtb3ZlZCB0byBxcC5oIG9uY2UgZHJpdmVycyBzdG9wIHRyeWluZw0K
-PiB0byBtYWtlDQo+ICsgKiBhbmQgbWFuaXB1bGF0ZSB0aGllciBvd24gUVBzLiBGb3IgdGhlIGZl
-dyBpbnN0bmFjZXMgd2hlcmUgYSBkcml2ZXIgbWF5DQo+IG5lZWQNCj4gKyAqIHRvIGxvb2sgaW50
-byBhIHF1ZXVlIHBhaXIgdGhlcmUgc2hvdWxkIGJlIGEgcG9pbnRlciB0byBhIGRyaXZlcg0KPiBw
-cmlhdnRlIGRhdGENCj4gKyAqIHN0cnVjdHVyZSB0aGF0IHRoZXkgY2FuIGxvb2sgYXQuDQo+ICsg
-Ki8NCj4gKw0KPiArLyoNCj4gKyAqIFRoZXNlIGtlZXAgdHJhY2sgb2YgdGhlIGNvcHkgcHJvZ3Jl
-c3Mgd2l0aGluIGEgbWVtb3J5IHJlZ2lvbi4NCj4gKyAqIFVzZWQgYnkgdGhlIHZlcmJzIGxheWVy
-Lg0KPiArICovDQo+ICtzdHJ1Y3QgcnZ0X3NnZSB7DQo+ICsJc3RydWN0IHJ2dF9tcmVnaW9uICpt
-cjsNCj4gKwl2b2lkICp2YWRkcjsgICAgICAgICAgICAvKiBrZXJuZWwgdmlydHVhbCBhZGRyZXNz
-IG9mIHNlZ21lbnQgKi8NCj4gKwl1MzIgc2dlX2xlbmd0aDsgICAgICAgICAvKiBsZW5ndGggb2Yg
-dGhlIFNHRSAqLw0KPiArCXUzMiBsZW5ndGg7ICAgICAgICAgICAgIC8qIHJlbWFpbmluZyBsZW5n
-dGggb2YgdGhlIHNlZ21lbnQgKi8NCj4gKwl1MTYgbTsgICAgICAgICAgICAgICAgICAvKiBjdXJy
-ZW50IGluZGV4OiBtci0+bWFwW21dICovDQoNClJlbmFtZSB0byBjdXJfbWFwPw0KDQo+ICsJdTE2
-IG47ICAgICAgICAgICAgICAgICAgLyogY3VycmVudCBpbmRleDogbXItPm1hcFttXS0+c2Vnc1tu
-XSAqLw0KDQpjdXJfc2VnPw0KDQo+ICt9Ow0KPiArDQo+ICsvKg0KPiArICogU2VuZCB3b3JrIHJl
-cXVlc3QgcXVldWUgZW50cnkuDQo+ICsgKiBUaGUgc2l6ZSBvZiB0aGUgc2dfbGlzdCBpcyBkZXRl
-cm1pbmVkIHdoZW4gdGhlIFFQIGlzIGNyZWF0ZWQgYW5kDQo+IHN0b3JlZA0KPiArICogaW4gcXAt
-PnNfbWF4X3NnZS4NCj4gKyAqLw0KPiArc3RydWN0IHJ2dF9zd3FlIHsNCj4gKwl1bmlvbiB7DQo+
-ICsJCXN0cnVjdCBpYl9zZW5kX3dyIHdyOyAgIC8qIGRvbid0IHVzZSB3ci5zZ19saXN0ICovDQo+
-ICsJCXN0cnVjdCBpYl91ZF93ciB1ZF93cjsNCj4gKwkJc3RydWN0IGliX3JlZ193ciByZWdfd3I7
-DQo+ICsJCXN0cnVjdCBpYl9yZG1hX3dyIHJkbWFfd3I7DQo+ICsJCXN0cnVjdCBpYl9hdG9taWNf
-d3IgYXRvbWljX3dyOw0KPiArCX07DQo+ICsJdTMyIHBzbjsgICAgICAgICAgICAgICAgLyogZmly
-c3QgcGFja2V0IHNlcXVlbmNlIG51bWJlciAqLw0KPiArCXUzMiBscHNuOyAgICAgICAgICAgICAg
-IC8qIGxhc3QgcGFja2V0IHNlcXVlbmNlIG51bWJlciAqLw0KPiArCXUzMiBzc247ICAgICAgICAg
-ICAgICAgIC8qIHNlbmQgc2VxdWVuY2UgbnVtYmVyICovDQo+ICsJdTMyIGxlbmd0aDsgICAgICAg
-ICAgICAgLyogdG90YWwgbGVuZ3RoIG9mIGRhdGEgaW4gc2dfbGlzdCAqLw0KPiArCXN0cnVjdCBy
-dnRfc2dlIHNnX2xpc3RbMF07DQo+ICt9Ow0KPiArDQo+ICsvKg0KPiArICogUmVjZWl2ZSB3b3Jr
-IHJlcXVlc3QgcXVldWUgZW50cnkuDQo+ICsgKiBUaGUgc2l6ZSBvZiB0aGUgc2dfbGlzdCBpcyBk
-ZXRlcm1pbmVkIHdoZW4gdGhlIFFQIChvciBTUlEpIGlzIGNyZWF0ZWQNCj4gKyAqIGFuZCBzdG9y
-ZWQgaW4gcXAtPnJfcnEubWF4X3NnZSAob3Igc3JxLT5ycS5tYXhfc2dlKS4NCj4gKyAqLw0KPiAr
-c3RydWN0IHJ2dF9yd3FlIHsNCj4gKwl1NjQgd3JfaWQ7DQo+ICsJdTggbnVtX3NnZTsNCj4gKwlz
-dHJ1Y3QgaWJfc2dlIHNnX2xpc3RbMF07DQo+ICt9Ow0KPiArDQo+ICsvKg0KPiArICogVGhpcyBz
-dHJ1Y3R1cmUgaXMgdXNlZCB0byBjb250YWluIHRoZSBoZWFkIHBvaW50ZXIsIHRhaWwgcG9pbnRl
-ciwNCj4gKyAqIGFuZCByZWNlaXZlIHdvcmsgcXVldWUgZW50cmllcyBhcyBhIHNpbmdsZSBtZW1v
-cnkgYWxsb2NhdGlvbiBzbw0KPiArICogaXQgY2FuIGJlIG1tYXAnZWQgaW50byB1c2VyIHNwYWNl
-Lg0KPiArICogTm90ZSB0aGF0IHRoZSB3cSBhcnJheSBlbGVtZW50cyBhcmUgdmFyaWFibGUgc2l6
-ZSBzbyB5b3UgY2FuJ3QNCj4gKyAqIGp1c3QgaW5kZXggaW50byB0aGUgYXJyYXkgdG8gZ2V0IHRo
-ZSBOJ3RoIGVsZW1lbnQ7DQo+ICsgKiB1c2UgZ2V0X3J3cWVfcHRyKCkgaW5zdGVhZC4NCg0KQ2Fu
-IHlvdSBhZGQvdXNlIGFuIGVudHJ5X3NpemUgZmllbGQ/DQoNCg0KPiArICovDQo+ICtzdHJ1Y3Qg
-cnZ0X3J3cSB7DQo+ICsJdTMyIGhlYWQ7ICAgICAgICAgICAgICAgLyogbmV3IHdvcmsgcmVxdWVz
-dHMgcG9zdGVkIHRvIHRoZSBoZWFkICovDQo+ICsJdTMyIHRhaWw7ICAgICAgICAgICAgICAgLyog
-cmVjZWl2ZXMgcHVsbCByZXF1ZXN0cyBmcm9tIGhlcmUuICovDQo+ICsJc3RydWN0IHJ2dF9yd3Fl
-IHdxWzBdOw0KPiArfTsNCj4gKw0KPiArc3RydWN0IHJ2dF9ycSB7DQo+ICsJc3RydWN0IHJ2dF9y
-d3EgKndxOw0KPiArCXUzMiBzaXplOyAgICAgICAgICAgICAgIC8qIHNpemUgb2YgUldRRSBhcnJh
-eSAqLw0KPiArCXU4IG1heF9zZ2U7DQo+ICsJLyogcHJvdGVjdCBjaGFuZ2VzIGluIHRoaXMgc3Ry
-dWN0ICovDQo+ICsJc3BpbmxvY2tfdCBsb2NrIF9fX19jYWNoZWxpbmVfYWxpZ25lZF9pbl9zbXA7
-DQo+ICt9Ow0K
+On 12/07/2015 01:07 PM, Doug Ledford wrote:
+> On 12/07/2015 02:26 PM, Bart Van Assche wrote:
+>> On 12/01/2015 10:16 AM, Bart Van Assche wrote:
+>>> This patch series contains six bug fixes either for the SRP initiator
+>>> itself or for IB core functionality used by the SRP initiator. The order
+>>> of these patches matches the order in which the corresponding bugs have
+>>> been introduced. The patches in this series are:
+>>>
+>>> 0001-IB-srp-Fix-a-memory-leak.patch
+>>> 0002-IB-srp-Fix-possible-send-queue-overflow.patch
+>>> 0003-IB-srp-Initialize-dma_length-in-srp_map_idb.patch
+>>> 0004-IB-srp-Fix-indirect-data-buffer-rkey-endianness.patch
+>>> 0005-IB-core-Fix-ib_sg_to_pages.patch
+>>> 0006-IB-srp-Fix-srp_map_sg_fr.patch
+>>
+>> (replying to my own e-mail)
+>>
+>> Hello Doug,
+>>
+>> A consensus has been achieved about this patch series. Since one of the
+>> patches in this series fixes a data corruption bug that has been
+>> introduced during the latest (v4.4) merge window I'd like to see these
+>> patches upstream soon. Please recommend how I should proceed. When I
+>> repost this patch series, should I send it to you, to Linus or perhaps
+>> to someone else ?
+>
+> I was just getting ready to pull this set in.  The only one you actually
+> changed, and therefore needs either a resubmit or I have to be careful
+> to get the follow-on version in Patchworks is 5/6, yes?
+
+Hello Doug,
+
+You are correct, only for patch 5 the patch itself has been modified. 
+The only change for the other patches is that Reviewed-by tags have been 
+posted on the list.
+
+Thanks,
+
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
