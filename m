@@ -1,40 +1,64 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 06/37] IB/rdmavt: Add query and modify device stubs
-Date: Mon, 7 Dec 2015 14:39:04 -0700
-Message-ID: <20151207213904.GA3113@obsidianresearch.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 21/37] IB/rdmavt: Move MR datastructures into rvt
+Date: Mon, 7 Dec 2015 21:39:17 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AAFE7322@ORSMSX109.amr.corp.intel.com>
 References: <20151207204046.8144.18752.stgit@phlsvslse11.ph.intel.com>
- <20151207204322.8144.60452.stgit@phlsvslse11.ph.intel.com>
- <1828884A29C6694DAF28B7E6B8A82373AAFE72C8@ORSMSX109.amr.corp.intel.com>
+ <20151207204429.8144.62688.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AAFE72C8-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20151207204429.8144.62688.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Luick, Dean" <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 07, 2015 at 09:26:11PM +0000, Hefty, Sean wrote:
-> > +static int rvt_query_device(struct ib_device *ibdev,
-> > +			    struct ib_device_attr *props,
-> > +			    struct ib_udata *uhw)
-> > +{
-> > +	/*
-> > +	 * Return rvt_dev_info.props contents
-> > +	 */
-> > +	return -EINVAL;
-> 
-> ENOSYS on all of the function templates.  This and subsequent patches.
-
-We recently had a long discussion about what the correct answer here
-is.
-
-ENOSYS and EINVAL are both wrong for different reasons.. Can't recall
-if something else was settled on? I think I was suggesting one of the
-ENOTSUP varients?
-
-Jason
+PiAgaW5jbHVkZS9yZG1hL3JkbWFfdnQuaCB8ICAgNTMNCj4gKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrDQo+ICAxIGZpbGVzIGNoYW5nZWQsIDUzIGluc2Vy
+dGlvbnMoKyksIDAgZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9yZG1h
+L3JkbWFfdnQuaCBiL2luY2x1ZGUvcmRtYS9yZG1hX3Z0LmgNCj4gaW5kZXggNTExMmRkNy4uMzlh
+MDczNyAxMDA2NDQNCj4gLS0tIGEvaW5jbHVkZS9yZG1hL3JkbWFfdnQuaA0KPiArKysgYi9pbmNs
+dWRlL3JkbWEvcmRtYV92dC5oDQo+IEBAIC01OSw2ICs1OSw1NiBAQA0KPiAgI2luY2x1ZGUgImli
+X3ZlcmJzLmgiDQo+IA0KPiAgLyoNCj4gKyAqIEZvciBNZW1vcnkgUmVnaW9ucy4gVGhpcyBzdHVm
+ZiBzaG91bGQgcHJvYmFibHkgYmUgbW92ZWQgaW50bw0KPiByZG1hdnQvbXIuaCBvbmNlDQo+ICsg
+KiBkcml2ZXJzIG5vIGxvbmdlciBuZWVkIGFjY2VzcyB0byB0aGUgTVIgZGlyZWN0bHkuDQo+ICsg
+Ki8NCj4gKw0KPiArLyoNCj4gKyAqIEEgc2VnbWVudCBpcyBhIGxpbmVhciByZWdpb24gb2YgbG93
+IHBoeXNpY2FsIG1lbW9yeS4NCj4gKyAqIFVzZWQgYnkgdGhlIHZlcmJzIGxheWVyLg0KPiArICov
+DQo+ICtzdHJ1Y3QgcnZ0X3NlZyB7DQo+ICsJdm9pZCAqdmFkZHI7DQo+ICsJc2l6ZV90IGxlbmd0
+aDsNCj4gK307DQo+ICsNCj4gKy8qIFRoZSBudW1iZXIgb2YgcnZ0X3NlZ3MgdGhhdCBmaXQgaW4g
+YSBwYWdlLiAqLw0KPiArI2RlZmluZSBSVlRfU0VHU1ogICAgIChQQUdFX1NJWkUgLyBzaXplb2Yo
+c3RydWN0IHJ2dF9zZWcpKQ0KPiArDQo+ICtzdHJ1Y3QgcnZ0X3NlZ2FycmF5IHsNCj4gKwlzdHJ1
+Y3QgcnZ0X3NlZyBzZWdzW1JWVF9TRUdTWl07DQo+ICt9Ow0KPiArDQo+ICtzdHJ1Y3QgcnZ0X21y
+ZWdpb24gew0KPiArCXN0cnVjdCBpYl9wZCAqcGQ7ICAgICAgIC8qIHNoYXJlcyByZWZjbnQgb2Yg
+aWJtci5wZCAqLw0KPiArCXU2NCB1c2VyX2Jhc2U7ICAgICAgICAgIC8qIFVzZXIncyBhZGRyZXNz
+IGZvciB0aGlzIHJlZ2lvbiAqLw0KPiArCXU2NCBpb3ZhOyAgICAgICAgICAgICAgIC8qIElCIHN0
+YXJ0IGFkZHJlc3Mgb2YgdGhpcyByZWdpb24gKi8NCj4gKwlzaXplX3QgbGVuZ3RoOw0KPiArCXUz
+MiBsa2V5Ow0KPiArCXUzMiBvZmZzZXQ7ICAgICAgICAgICAgIC8qIG9mZnNldCAoYnl0ZXMpIHRv
+IHN0YXJ0IG9mIHJlZ2lvbiAqLw0KPiArCWludCBhY2Nlc3NfZmxhZ3M7DQo+ICsJdTMyIG1heF9z
+ZWdzOyAgICAgICAgICAgLyogbnVtYmVyIG9mIHJ2dF9zZWdzIGluIGFsbCB0aGUgYXJyYXlzICov
+DQo+ICsJdTMyIG1hcHN6OyAgICAgICAgICAgICAgLyogc2l6ZSBvZiB0aGUgbWFwIGFycmF5ICov
+DQo+ICsJdTggIHBhZ2Vfc2hpZnQ7ICAgICAgICAgLyogMCAtIG5vbiB1bmZvcm0vbm9uIHBvd2Vy
+b2YyIHNpemVzICovDQo+ICsJdTggIGxrZXlfcHVibGlzaGVkOyAgICAgLyogaW4gZ2xvYmFsIHRh
+YmxlICovDQoNCldpdGhvdXQgbG9va2luZyBhaGVhZCBpbiB0aGUgcGF0Y2ggc2VyaWVzLCB3b24n
+dCB0aGUgYWNjZXNzX2ZsYWdzIGluZGljYXRlIHRoaXM/DQoNCj4gKwlzdHJ1Y3QgY29tcGxldGlv
+biBjb21wOyAvKiBjb21wbGV0ZSB3aGVuIHJlZmNvdW50IGdvZXMgdG8gemVybyAqLw0KPiArCWF0
+b21pY190IHJlZmNvdW50Ow0KPiArCXN0cnVjdCBydnRfc2VnYXJyYXkgKm1hcFswXTsgICAgLyog
+dGhlIHNlZ21lbnRzICovDQo+ICt9Ow0KPiArDQo+ICsjZGVmaW5lIFJWVF9NQVhfTEtFWV9UQUJM
+RV9CSVRTIDIzDQo+ICsNCj4gK3N0cnVjdCBydnRfbGtleV90YWJsZSB7DQo+ICsJc3BpbmxvY2tf
+dCBsb2NrOyAvKiBwcm90ZWN0IGNoYW5nZXMgaW4gdGhpcyBzdHJ1Y3QgKi8NCj4gKwl1MzIgbmV4
+dDsgICAgICAgICAgICAgICAvKiBuZXh0IHVudXNlZCBpbmRleCAoc3BlZWRzIHNlYXJjaCkgKi8N
+Cj4gKwl1MzIgZ2VuOyAgICAgICAgICAgICAgICAvKiBnZW5lcmF0aW9uIGNvdW50ICovDQo+ICsJ
+dTMyIG1heDsgICAgICAgICAgICAgICAgLyogc2l6ZSBvZiB0aGUgdGFibGUgKi8NCj4gKwlzdHJ1
+Y3QgcnZ0X21yZWdpb24gX19yY3UgKip0YWJsZTsNCj4gK307DQo+ICsNCj4gKy8qIEVuZCBNZW1t
+b3J5IFJlZ2lvbiAqLw0KPiArDQo+ICsvKg0KPiAgICogVGhpbmdzIHRoYXQgYXJlIGRyaXZlciBz
+cGVjaWZpYywgbW9kdWxlIHBhcmFtZXRlcnMgaW4gaGZpMSBhbmQgcWliDQo+ICAgKi8NCj4gIHN0
+cnVjdCBydnRfZHJpdmVyX3BhcmFtcyB7DQo+IEBAIC0xMjUsNiArMTc1LDkgQEAgc3RydWN0IHJ2
+dF9kZXZfaW5mbyB7DQo+ICAJLyogRHJpdmVyIHNwZWNpZmljIHByb3BlcnRpZXMgKi8NCj4gIAlz
+dHJ1Y3QgcnZ0X2RyaXZlcl9wYXJhbXMgZHBhcm1zOw0KPiANCj4gKwlzdHJ1Y3QgcnZ0X21yZWdp
+b24gX19yY3UgKmRtYV9tcjsNCj4gKwlzdHJ1Y3QgcnZ0X2xrZXlfdGFibGUgbGtfdGFibGU7DQoN
+CkdvIGNyYXp5IGhlcmUgYW5kIGFkZCB0aGUgJ2V5JyBpbnRvIHRoZSBmaWVsZCBuYW1lLg0KDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
