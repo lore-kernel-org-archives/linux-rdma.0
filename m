@@ -1,44 +1,63 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 5/5] staging/rdma/hfi1: Add page lock limit check for
- SDMA requests
-Date: Mon, 7 Dec 2015 11:49:46 +0300
-Message-ID: <20151207084946.GD18797@mwanda>
-References: <1449089787-7258-1-git-send-email-ira.weiny@intel.com>
- <1449089787-7258-6-git-send-email-ira.weiny@intel.com>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH libmlx5 V1 6/6] Add always_inline check
+Date: Mon, 7 Dec 2015 15:07:42 +0200
+Message-ID: <5665849E.4000304@mellanox.com>
+References: <1449158571-26228-1-git-send-email-matanb@mellanox.com>
+ <1449158571-26228-7-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1449089787-7258-6-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1449158571-26228-7-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 02, 2015 at 03:56:27PM -0500, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> -		for (i = tx->idx; i >= 0; i--) {
-> -			if (tx->iovecs[i].flags & TXREQ_FLAGS_IOVEC_LAST_PKT)
-> -				unpin_vector_pages(tx->iovecs[i].vec);
-> +	/*
-> +	 * If we have any io vectors associated with this txreq,
-> +	 * check whether they need to be 'freed'. We can't free them
-> +	 * here because the unpin function needs to be able to sleep.
-> +	 */
-> +	i = tx->idx;
-> +	while (i)
-> +		if (tx->iovecs[i--].flags & TXREQ_FLAGS_IOVEC_LAST_PKT) {
-> +			defer = true;
-> +			break;
->  		}
+On 12/03/2015 06:02 PM, Matan Barak wrote:
+> Always inline isn't supported by every compiler. Adding it to
+> configure.ac in order to support it only when possible.
+> Inline other poll_one data path functions in order to eliminate
+> "ifs".
+> 
+> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  configure.ac | 17 +++++++++++++++++
+>  src/cq.c     | 42 +++++++++++++++++++++++++++++-------------
+>  src/mlx5.h   |  6 ++++++
+>  3 files changed, 52 insertions(+), 13 deletions(-)
+> 
+> diff --git a/configure.ac b/configure.ac
+> index fca0b46..50b4f9c 100644
+> --- a/configure.ac
+> +++ b/configure.ac
+> @@ -65,6 +65,23 @@ AC_CHECK_FUNC(ibv_read_sysfs_file, [],
+>      AC_MSG_ERROR([ibv_read_sysfs_file() not found.  libmlx5 requires libibverbs >= 1.0.3.]))
+>  AC_CHECK_FUNCS(ibv_dontfork_range ibv_dofork_range ibv_register_driver)
+>  
+> +AC_MSG_CHECKING("always inline")
+Did you consider using an existing script like AX_GCC_FUNC_ATTRIBUTE [1]?
 
+> +CFLAGS_BAK="$CFLAGS"
+> +CFLAGS="$CFLAGS -Werror"
+> +AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+> +	static inline int f(void)
+> +		__attribute__((always_inline));
+> +	static inline int f(void)
+> +	{
+> +		return 1;
+> +	}
+> +]],[[
+> +		int a = f();
+> +		a = a;
+> +]])], [AC_MSG_RESULT([yes]) AC_DEFINE([HAVE_ALWAYS_INLINE], [1], [Define if __attribute((always_inline)).])]
+The description here doesn't look right. How about "Define if
+__attribute__((always_inline) is supported"?
 
-In the original code, we checked tx->iovecs[0].flags but now we skip
-that one.  Going back to the original for loop is probably the right way
-to fix this.
+Regards,
+Haggai
 
-regards,
-dan carpenter
-
+[1] https://www.gnu.org/software/autoconf-archive/ax_gcc_func_attribute.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
