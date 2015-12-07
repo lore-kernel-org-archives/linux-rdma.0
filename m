@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 09/37] IB/rdmavt: Add query gid stub
-Date: Mon, 07 Dec 2015 15:43:37 -0500
-Message-ID: <20151207204336.8144.61573.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH 10/37] IB/rdmavt: Alloc and dealloc ucontexts
+Date: Mon, 07 Dec 2015 15:43:41 -0500
+Message-ID: <20151207204340.8144.42516.stgit@phlsvslse11.ph.intel.com>
 References: <20151207204046.8144.18752.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,8 +13,8 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The handler for query gid operates along the same lines as the query pkey
-handler. The driver will take care to keep the guid table updated.
+Add the stubs to allocate and deallocate user contexts. This will be
+handled completely by rvt.
 
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -24,42 +24,42 @@ Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@pub
  1 files changed, 22 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-index 823c877..c4d7f76 100644
+index c4d7f76..eab1ede 100644
 --- a/drivers/infiniband/sw/rdmavt/vt.c
 +++ b/drivers/infiniband/sw/rdmavt/vt.c
-@@ -163,6 +163,27 @@ static int rvt_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
- 	return 0;
+@@ -184,6 +184,26 @@ static int rvt_query_gid(struct ib_device *ibdev, u8 port,
+ 	return -EINVAL;
  }
  
 +/**
-+ * rvt_query_gid - Return a gid from the table
-+ * @ibdev: Verbs IB dev
-+ * @port: Port number
-+ * @index: = Index in table
-+ * @gid: Gid to return
-+ *
-+ * Returns 0 on success
++ * rvt_alloc_ucontext - Allocate a user context
++ * @ibdev: Vers IB dev
++ * @data: User data allocated
 + */
-+static int rvt_query_gid(struct ib_device *ibdev, u8 port,
-+			 int index, union ib_gid *gid)
++static struct ib_ucontext *rvt_alloc_ucontext(struct ib_device *ibdev,
++					      struct ib_udata *udata)
 +{
-+	/*
-+	 * Driver is responsible for updating the guid table. Which will be used
-+	 * to craft the return value. This will work similar to how query_pkey()
-+	 * is being done.
-+	 */
++	return ERR_PTR(-ENOMEM);
++}
 +
++/**
++ *rvt_dealloc_ucontext - Free a user context
++ *@context - Free this
++ */
++static int rvt_dealloc_ucontext(struct ib_ucontext *context)
++{
 +	return -EINVAL;
 +}
 +
  /*
   * Check driver override. If driver passes a value use it, otherwise we use our
   * own value.
-@@ -181,6 +202,7 @@ int rvt_register_device(struct rvt_dev_info *rdi)
- 	CDR(rdi, query_port);
+@@ -203,6 +223,8 @@ int rvt_register_device(struct rvt_dev_info *rdi)
  	CDR(rdi, modify_port);
  	CDR(rdi, query_pkey);
-+	CDR(rdi, query_gid);
+ 	CDR(rdi, query_gid);
++	CDR(rdi, alloc_ucontext);
++	CDR(rdi, dealloc_ucontext);
  
  	/* DMA Operations */
  	rdi->ibdev.dma_ops =
