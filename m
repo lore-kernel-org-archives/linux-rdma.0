@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 01/37] IB/rdmavt: Create module framework and handle driver
- registration
-Date: Mon, 07 Dec 2015 15:43:02 -0500
-Message-ID: <20151207204300.8144.20089.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH 04/37] IB/rdmavt: Add ib core device attributes to rvt
+ driver params list
+Date: Mon, 07 Dec 2015 15:43:15 -0500
+Message-ID: <20151207204314.8144.46170.stgit@phlsvslse11.ph.intel.com>
 References: <20151207204046.8144.18752.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,345 +14,112 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch introduces the basics for a new module called rdma_vt. This new
-driver is a software implementation of the InfiniBand verbs and aims to
-replace the multiple implementations that exist and duplicate each others'
-code.
+Instead of trying to handle each parameter separately, add ib_device_attr
+to rvt_driver_params. This means drivers will fill this in and pass to the
+rvt registration function.
 
-While the call to actually register the device with the IB core happens in
-rdma_vt, most of the work is still done in the drivers themselves. This
-will be changing in a follow on patch this is just laying the groundwork
-for this infrastructure.
-
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- MAINTAINERS                           |    6 ++
- drivers/infiniband/Kconfig            |    2 +
- drivers/infiniband/Makefile           |    1 
- drivers/infiniband/sw/Makefile        |    1 
- drivers/infiniband/sw/rdmavt/Kconfig  |    6 ++
- drivers/infiniband/sw/rdmavt/Makefile |   10 ++++
- drivers/infiniband/sw/rdmavt/vt.c     |   89 +++++++++++++++++++++++++++++++++
- drivers/infiniband/sw/rdmavt/vt.h     |   56 +++++++++++++++++++++
- include/rdma/rdma_vt.h                |   73 +++++++++++++++++++++++++++
- 9 files changed, 244 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/sw/Makefile
- create mode 100644 drivers/infiniband/sw/rdmavt/Kconfig
- create mode 100644 drivers/infiniband/sw/rdmavt/Makefile
- create mode 100644 drivers/infiniband/sw/rdmavt/vt.c
- create mode 100644 drivers/infiniband/sw/rdmavt/vt.h
- create mode 100644 include/rdma/rdma_vt.h
+ drivers/infiniband/sw/rdmavt/pd.c |    2 +
+ include/rdma/rdma_vt.h            |   60 ++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 59 insertions(+), 3 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index cba790b..dcb8129 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8880,6 +8880,12 @@ L:	rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org (moderated for non-subscribers)
- S:	Supported
- F:	net/rds/
+diff --git a/drivers/infiniband/sw/rdmavt/pd.c b/drivers/infiniband/sw/rdmavt/pd.c
+index 2f7a97f..1522880 100644
+--- a/drivers/infiniband/sw/rdmavt/pd.c
++++ b/drivers/infiniband/sw/rdmavt/pd.c
+@@ -72,7 +72,7 @@ struct ib_pd *rvt_alloc_pd(struct ib_device *ibdev,
+ 	 */
  
-+RDMAVT - RDMA verbs software
-+M:	Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-+L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+S:	Supported
-+F:	drivers/infiniband/sw/rdmavt
-+
- READ-COPY UPDATE (RCU)
- M:	"Paul E. McKenney" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
- M:	Josh Triplett <josh-iaAMLnmF4UmaiuxdJuQwMA@public.gmane.org>
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index aa26f3c..1b00bb8 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -72,4 +72,6 @@ source "drivers/infiniband/ulp/srpt/Kconfig"
- source "drivers/infiniband/ulp/iser/Kconfig"
- source "drivers/infiniband/ulp/isert/Kconfig"
- 
-+source "drivers/infiniband/sw/rdmavt/Kconfig"
-+
- endif # INFINIBAND
-diff --git a/drivers/infiniband/Makefile b/drivers/infiniband/Makefile
-index dc21836..fad0b44 100644
---- a/drivers/infiniband/Makefile
-+++ b/drivers/infiniband/Makefile
-@@ -1,3 +1,4 @@
- obj-$(CONFIG_INFINIBAND)		+= core/
- obj-$(CONFIG_INFINIBAND)		+= hw/
- obj-$(CONFIG_INFINIBAND)		+= ulp/
-+obj-$(CONFIG_INFINIBAND)		+= sw/
-diff --git a/drivers/infiniband/sw/Makefile b/drivers/infiniband/sw/Makefile
-new file mode 100644
-index 0000000..988b6a0
---- /dev/null
-+++ b/drivers/infiniband/sw/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_INFINIBAND_RDMAVT)		+= rdmavt/
-diff --git a/drivers/infiniband/sw/rdmavt/Kconfig b/drivers/infiniband/sw/rdmavt/Kconfig
-new file mode 100644
-index 0000000..11aa6a3
---- /dev/null
-+++ b/drivers/infiniband/sw/rdmavt/Kconfig
-@@ -0,0 +1,6 @@
-+config INFINIBAND_RDMAVT
-+	tristate "RDMA verbs transport library"
-+	depends on 64BIT
-+	default m
-+	---help---
-+	This is a common software verbs provider for RDMA networks.
-diff --git a/drivers/infiniband/sw/rdmavt/Makefile b/drivers/infiniband/sw/rdmavt/Makefile
-new file mode 100644
-index 0000000..98a664d
---- /dev/null
-+++ b/drivers/infiniband/sw/rdmavt/Makefile
-@@ -0,0 +1,10 @@
-+#
-+# rdmavt driver
-+#
-+#
-+#
-+# Called from the kernel module build system.
-+#
-+obj-$(CONFIG_INFINIBAND_RDMAVT) += rdmavt.o
-+
-+rdmavt-y := vt.o
-diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-new file mode 100644
-index 0000000..7e87f8d
---- /dev/null
-+++ b/drivers/infiniband/sw/rdmavt/vt.c
-@@ -0,0 +1,89 @@
-+/*
-+ *
-+ * This file is provided under a dual BSD/GPLv2 license.  When using or
-+ * redistributing this file, you may do so under either license.
-+ *
-+ * GPL LICENSE SUMMARY
-+ *
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * BSD LICENSE
-+ *
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ *  - Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *  - Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *  - Neither the name of Intel Corporation nor the names of its
-+ *    contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include "vt.h"
-+
-+#define RDMAVT_DRIVER_VERSION "0.1"
-+
-+MODULE_LICENSE("Dual BSD/GPL");
-+MODULE_DESCRIPTION("RDMA Verbs Transport Library");
-+MODULE_VERSION(RDMAVT_DRIVER_VERSION);
-+
-+static int rvt_init(void)
-+{
-+	/* Do any work needed prior to drivers calling for registration*/
-+	return 0;
-+}
-+module_init(rvt_init);
-+
-+static void rvt_cleanup(void)
-+{
-+}
-+module_exit(rvt_cleanup);
-+
-+int rvt_register_device(struct rvt_dev_info *rdi)
-+{
-+	if (!rdi)
-+		return -EINVAL;
-+
-+	return ib_register_device(&rdi->ibdev, rdi->port_callback);
-+}
-+EXPORT_SYMBOL(rvt_register_device);
-+
-+void rvt_unregister_device(struct rvt_dev_info *rdi)
-+{
-+	if (!rdi)
-+		return;
-+
-+	ib_unregister_device(&rdi->ibdev);
-+}
-+EXPORT_SYMBOL(rvt_unregister_device);
-diff --git a/drivers/infiniband/sw/rdmavt/vt.h b/drivers/infiniband/sw/rdmavt/vt.h
-new file mode 100644
-index 0000000..ec210f3
---- /dev/null
-+++ b/drivers/infiniband/sw/rdmavt/vt.h
-@@ -0,0 +1,56 @@
-+#ifndef DEF_RDMAVT_H
-+#define DEF_RDMAVT_H
-+
-+/*
-+ *
-+ * This file is provided under a dual BSD/GPLv2 license.  When using or
-+ * redistributing this file, you may do so under either license.
-+ *
-+ * GPL LICENSE SUMMARY
-+ *
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * BSD LICENSE
-+ *
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ *  - Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *  - Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *  - Neither the name of Intel Corporation nor the names of its
-+ *    contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ */
-+
-+#include <rdma/rdma_vt.h>
-+
-+#endif          /* DEF_RDMAVT_H */
+ 	spin_lock(&dev->n_pds_lock);
+-	if (dev->n_pds_allocated == dev->dparms.max_pds) {
++	if (dev->n_pds_allocated == dev->dparms.props.max_pd) {
+ 		spin_unlock(&dev->n_pds_lock);
+ 		kfree(pd);
+ 		ret = ERR_PTR(-ENOMEM);
 diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
-new file mode 100644
-index 0000000..da87fb2
---- /dev/null
+index b4ddcd3..89b8cd9 100644
+--- a/include/rdma/rdma_vt.h
 +++ b/include/rdma/rdma_vt.h
-@@ -0,0 +1,73 @@
-+#ifndef DEF_RDMA_VT_H
-+#define DEF_RDMA_VT_H
-+
-+/*
-+ *
-+ * This file is provided under a dual BSD/GPLv2 license.  When using or
-+ * redistributing this file, you may do so under either license.
-+ *
-+ * GPL LICENSE SUMMARY
-+ *
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * BSD LICENSE
-+ *
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ *  - Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *  - Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *  - Neither the name of Intel Corporation nor the names of its
-+ *    contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ */
-+
-+/*
-+ * Structure that low level drivers will populate in order to register with the
-+ * rdmavt layer.
-+ */
-+
-+#include "ib_verbs.h"
-+struct rvt_dev_info {
-+	struct ib_device ibdev;
-+	int (*port_callback)(struct ib_device *, u8, struct kobject *);
+@@ -62,7 +62,45 @@
+  * Things that are driver specific, module parameters in hfi1 and qib
+  */
+ struct rvt_driver_params {
+-	int max_pds;
++	/*
++	 * driver required fields:
++	 *	node_guid
++	 *	phys_port_cnt
++	 *	dma_device
++	 *	owner
++	 * driver optional fields (rvt will provide generic value if blank):
++	 *	name
++	 *	node_desc
++	 * rvt fields, driver value ignored:
++	 *	uverbs_abi_ver
++	 *	node_type
++	 *	num_comp_vectors
++	 *	uverbs_cmd_mask
++	 */
++	struct ib_device_attr props;
 +
 +	/*
-+	 * TODO:
-+	 *	need to reflect module parameters that may vary by dev
++	 * Drivers will need to support a number of notifications to rvt in
++	 * accordance with certain events. This structure should contain a mask
++	 * of the supported events. Such events that the rvt may need to know
++	 * about include:
++	 * port errors
++	 * port active
++	 * lid change
++	 * sm change
++	 * client reregister
++	 * pkey change
++	 *
++	 * There may also be other events that the rvt layers needs to know
++	 * about this is not an exhaustive list. Some events though rvt does not
++	 * need to rely on the driver for such as completion queue error.
 +	 */
-+};
++	 int rvt_signal_supported;
 +
-+int rvt_register_device(struct rvt_dev_info *rvd);
-+void rvt_unregister_device(struct rvt_dev_info *rvd);
++	/*
++	 * Anything driver specific that is not covered by props
++	 * For instance special module parameters. Goes here.
++	 */
+ };
+ 
+ /* Protection domain */
+@@ -72,10 +110,28 @@ struct rvt_pd {
+ };
+ 
+ struct rvt_dev_info {
++	/*
++	 * Prior to calling for registration the driver will be responsible for
++	 * allocating space for this structure. The driver will also need to
++	 * allocate space for any private device or per port data structures.
++	 * Alternatively rvt could do this allocation and the registration API
++	 * would then change to accept an "extra" piece to allocate.
++	 *
++	 * The driver will also be
++	 * responsible for filling in certain members of dparms.props
++	 */
 +
-+#endif          /* DEF_RDMA_VT_H */
+ 	struct ib_device ibdev;
+ 
+-	/* Driver specific */
++	/* Driver specific properties */
+ 	struct rvt_driver_params dparms;
++
++	/*
++	 * The work to create port files in /sys/class Infiniband is different
++	 * depending on the driver. This should not be extracted away and
++	 * instead drivers are responsible for setting the correct callback for
++	 * this.
++	 */
+ 	int (*port_callback)(struct ib_device *, u8, struct kobject *);
+ 
+ 	/* Internal use */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
