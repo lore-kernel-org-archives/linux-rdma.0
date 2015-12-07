@@ -1,46 +1,169 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/6] SRP initiator related bug fixes
-Date: Mon, 7 Dec 2015 11:26:08 -0800
-Message-ID: <5665DD50.5090906@sandisk.com>
-References: <565DE3EC.2070002@sandisk.com>
+From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Subject: [PATCH] staging/rdma/hfi1: convert buffers allocated atomic to per
+ cpu
+Date: Mon, 07 Dec 2015 15:39:22 -0500
+Message-ID: <20151207203922.8009.36069.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <565DE3EC.2070002-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: devel@driverdev.osuosl.org
+Cc: linux-rdma@vger.kernel.org, dledford@redhat.com, linux-next@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/01/2015 10:16 AM, Bart Van Assche wrote:
-> This patch series contains six bug fixes either for the SRP initiator
-> itself or for IB core functionality used by the SRP initiator. The order
-> of these patches matches the order in which the corresponding bugs have
-> been introduced. The patches in this series are:
->
-> 0001-IB-srp-Fix-a-memory-leak.patch
-> 0002-IB-srp-Fix-possible-send-queue-overflow.patch
-> 0003-IB-srp-Initialize-dma_length-in-srp_map_idb.patch
-> 0004-IB-srp-Fix-indirect-data-buffer-rkey-endianness.patch
-> 0005-IB-core-Fix-ib_sg_to_pages.patch
-> 0006-IB-srp-Fix-srp_map_sg_fr.patch
+Profiling has shown the the atomic is a performance issue
+for the pio hot path.
 
-(replying to my own e-mail)
+If multiple cpus allocated an sc's buffer, the cacheline
+containing the atomic will bounce from L0 to L0.
 
-Hello Doug,
+Convert the atomic to a percpu variable.
 
-A consensus has been achieved about this patch series. Since one of the 
-patches in this series fixes a data corruption bug that has been 
-introduced during the latest (v4.4) merge window I'd like to see these 
-patches upstream soon. Please recommend how I should proceed. When I 
-repost this patch series, should I send it to you, to Linus or perhaps 
-to someone else ?
+Reviewed-by: Jubin John <jubin.john@intel.com>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+---
+ drivers/staging/rdma/hfi1/pio.c      |   40 ++++++++++++++++++++++++++++++----
+ drivers/staging/rdma/hfi1/pio.h      |    2 +-
+ drivers/staging/rdma/hfi1/pio_copy.c |    6 +++--
+ 3 files changed, 40 insertions(+), 8 deletions(-)
 
-Thanks,
-
-Bart.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/staging/rdma/hfi1/pio.c b/drivers/staging/rdma/hfi1/pio.c
+index eab58c1..ed8043b 100644
+--- a/drivers/staging/rdma/hfi1/pio.c
++++ b/drivers/staging/rdma/hfi1/pio.c
+@@ -660,6 +660,24 @@ void set_pio_integrity(struct send_context *sc)
+ 	write_kctxt_csr(dd, hw_context, SC(CHECK_ENABLE), reg);
+ }
+ 
++static u32 get_buffers_allocated(struct send_context *sc)
++{
++	int cpu;
++	u32 ret = 0;
++
++	for_each_possible_cpu(cpu)
++		ret += *per_cpu_ptr(sc->buffers_allocated, cpu);
++	return ret;
++}
++
++static void reset_buffers_allocated(struct send_context *sc)
++{
++	int cpu;
++
++	for_each_possible_cpu(cpu)
++		(*per_cpu_ptr(sc->buffers_allocated, cpu)) = 0;
++}
++
+ /*
+  * Allocate a NUMA relative send context structure of the given type along
+  * with a HW context.
+@@ -668,7 +686,7 @@ struct send_context *sc_alloc(struct hfi1_devdata *dd, int type,
+ 			      uint hdrqentsize, int numa)
+ {
+ 	struct send_context_info *sci;
+-	struct send_context *sc;
++	struct send_context *sc = NULL;
+ 	dma_addr_t pa;
+ 	unsigned long flags;
+ 	u64 reg;
+@@ -686,10 +704,20 @@ struct send_context *sc_alloc(struct hfi1_devdata *dd, int type,
+ 	if (!sc)
+ 		return NULL;
+ 
++	sc->buffers_allocated = alloc_percpu(u32);
++	if (!sc->buffers_allocated) {
++		kfree(sc);
++		dd_dev_err(dd,
++			   "Cannot allocate buffers_allocated per cpu counters\n"
++			  );
++		return NULL;
++	}
++
+ 	spin_lock_irqsave(&dd->sc_lock, flags);
+ 	ret = sc_hw_alloc(dd, type, &sw_index, &hw_context);
+ 	if (ret) {
+ 		spin_unlock_irqrestore(&dd->sc_lock, flags);
++		free_percpu(sc->buffers_allocated);
+ 		kfree(sc);
+ 		return NULL;
+ 	}
+@@ -705,7 +733,6 @@ struct send_context *sc_alloc(struct hfi1_devdata *dd, int type,
+ 	spin_lock_init(&sc->credit_ctrl_lock);
+ 	INIT_LIST_HEAD(&sc->piowait);
+ 	INIT_WORK(&sc->halt_work, sc_halted);
+-	atomic_set(&sc->buffers_allocated, 0);
+ 	init_waitqueue_head(&sc->halt_wait);
+ 
+ 	/* grouping is always single context for now */
+@@ -866,6 +893,7 @@ void sc_free(struct send_context *sc)
+ 	spin_unlock_irqrestore(&dd->sc_lock, flags);
+ 
+ 	kfree(sc->sr);
++	free_percpu(sc->buffers_allocated);
+ 	kfree(sc);
+ }
+ 
+@@ -1029,7 +1057,7 @@ int sc_restart(struct send_context *sc)
+ 		/* kernel context */
+ 		loop = 0;
+ 		while (1) {
+-			count = atomic_read(&sc->buffers_allocated);
++			count = get_buffers_allocated(sc);
+ 			if (count == 0)
+ 				break;
+ 			if (loop > 100) {
+@@ -1197,7 +1225,8 @@ int sc_enable(struct send_context *sc)
+ 	sc->sr_head = 0;
+ 	sc->sr_tail = 0;
+ 	sc->flags = 0;
+-	atomic_set(&sc->buffers_allocated, 0);
++	/* the alloc lock insures no fast path allocation */
++	reset_buffers_allocated(sc);
+ 
+ 	/*
+ 	 * Clear all per-context errors.  Some of these will be set when
+@@ -1373,7 +1402,8 @@ retry:
+ 
+ 	/* there is enough room */
+ 
+-	atomic_inc(&sc->buffers_allocated);
++	preempt_disable();
++	this_cpu_inc(*sc->buffers_allocated);
+ 
+ 	/* read this once */
+ 	head = sc->sr_head;
+diff --git a/drivers/staging/rdma/hfi1/pio.h b/drivers/staging/rdma/hfi1/pio.h
+index 0bb885c..53d3e0a 100644
+--- a/drivers/staging/rdma/hfi1/pio.h
++++ b/drivers/staging/rdma/hfi1/pio.h
+@@ -130,7 +130,7 @@ struct send_context {
+ 	spinlock_t credit_ctrl_lock ____cacheline_aligned_in_smp;
+ 	u64 credit_ctrl;		/* cache for credit control */
+ 	u32 credit_intr_count;		/* count of credit intr users */
+-	atomic_t buffers_allocated;	/* count of buffers allocated */
++	u32 __percpu *buffers_allocated;/* count of buffers allocated */
+ 	wait_queue_head_t halt_wait;    /* wait until kernel sees interrupt */
+ };
+ 
+diff --git a/drivers/staging/rdma/hfi1/pio_copy.c b/drivers/staging/rdma/hfi1/pio_copy.c
+index 8972bbc..ebb0baf 100644
+--- a/drivers/staging/rdma/hfi1/pio_copy.c
++++ b/drivers/staging/rdma/hfi1/pio_copy.c
+@@ -160,7 +160,8 @@ void pio_copy(struct hfi1_devdata *dd, struct pio_buf *pbuf, u64 pbc,
+ 	}
+ 
+ 	/* finished with this buffer */
+-	atomic_dec(&pbuf->sc->buffers_allocated);
++	this_cpu_dec(*pbuf->sc->buffers_allocated);
++	preempt_enable();
+ }
+ 
+ /* USE_SHIFTS is faster in user-space tests on a Xeon X5570 @ 2.93GHz */
+@@ -854,5 +855,6 @@ void seg_pio_copy_end(struct pio_buf *pbuf)
+ 	}
+ 
+ 	/* finished with this buffer */
+-	atomic_dec(&pbuf->sc->buffers_allocated);
++	this_cpu_dec(*pbuf->sc->buffers_allocated);
++	preempt_enable();
+ }
