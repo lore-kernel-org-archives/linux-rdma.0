@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 35/37] IB/rdmavt: Add mmap related functions
-Date: Mon, 07 Dec 2015 15:45:32 -0500
-Message-ID: <20151207204531.8144.94355.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH 34/37] IB/rdmavt: Initialize and teardown of qpn table
+Date: Mon, 07 Dec 2015 15:45:28 -0500
+Message-ID: <20151207204527.8144.45517.stgit@phlsvslse11.ph.intel.com>
 References: <20151207204046.8144.18752.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,232 +13,389 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The mmap data structure was moved in a previous commit. This patch now
-pulls in the related functions.
+Add table init as well as teardown for handling qpn maps. Drivers can still
+provide this functionality by setting the QP_INIT_DRIVER bit.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/mmap.c |  140 +++++++++++++++++++++++++++++++++++
- drivers/infiniband/sw/rdmavt/mmap.h |    2 -
- drivers/infiniband/sw/rdmavt/vt.c   |    1 
- include/rdma/rdma_vt.h              |   15 ++++
- 4 files changed, 156 insertions(+), 2 deletions(-)
+ drivers/infiniband/sw/rdmavt/qp.c |  197 +++++++++++++++++++++++++++++++++++++
+ drivers/infiniband/sw/rdmavt/qp.h |    2 
+ drivers/infiniband/sw/rdmavt/vt.c |   34 ++++--
+ include/rdma/rdma_vt.h            |    9 ++
+ include/rdma/rdmavt_qp.h          |   33 ++++++
+ 5 files changed, 262 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rdmavt/mmap.c b/drivers/infiniband/sw/rdmavt/mmap.c
-index 8b9f0d4..3e4da99 100644
---- a/drivers/infiniband/sw/rdmavt/mmap.c
-+++ b/drivers/infiniband/sw/rdmavt/mmap.c
-@@ -49,8 +49,61 @@
+diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
+index d393a38..9ccbf66 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.c
++++ b/drivers/infiniband/sw/rdmavt/qp.c
+@@ -48,8 +48,205 @@
+  *
   */
  
- #include <linux/slab.h>
-+#include <linux/vmalloc.h>
-+#include <linux/mm.h>
-+#include <asm/pgtable.h>
- #include "mmap.h"
++#include <linux/bitops.h>
++#include <linux/lockdep.h>
++#include "vt.h"
+ #include "qp.h"
  
-+void rvt_mmap_init(struct rvt_dev_info *rdi)
++static void get_map_page(struct rvt_qpn_table *qpt, struct rvt_qpn_map *map)
 +{
-+	INIT_LIST_HEAD(&rdi->pending_mmaps);
-+	spin_lock_init(&rdi->pending_lock);
-+	rdi->mmap_offset = PAGE_SIZE;
-+	spin_lock_init(&rdi->mmap_offset_lock);
++	unsigned long page = get_zeroed_page(GFP_KERNEL);
++
++	/*
++	 * Free the page if someone raced with us installing it.
++	 */
++
++	spin_lock(&qpt->lock);
++	if (map->page)
++		free_page(page);
++	else
++		map->page = (void *)page;
++	spin_unlock(&qpt->lock);
 +}
 +
 +/**
-+ * rvt_release_mmap_info - free mmap info structure
-+ * @ref: a pointer to the kref within struct rvt_mmap_info
++ * init_qpn_table - initialize the QP number table for a device
++ * @qpt: the QPN table
 + */
-+void rvt_release_mmap_info(struct kref *ref)
++static int init_qpn_table(struct rvt_dev_info *rdi, struct rvt_qpn_table *qpt)
 +{
-+	struct rvt_mmap_info *ip =
-+		container_of(ref, struct rvt_mmap_info, ref);
-+	struct rvt_dev_info *rdi = ib_to_rvt(ip->context->device);
++	u32 offset, i;
++	struct rvt_qpn_map *map;
++	int ret = 0;
 +
-+	spin_lock_irq(&rdi->pending_lock);
-+	list_del(&ip->pending_mmaps);
-+	spin_unlock_irq(&rdi->pending_lock);
++	if (!(rdi->dparms.qpn_res_end > rdi->dparms.qpn_res_start))
++		return -EINVAL;
 +
-+	vfree(ip->obj);
-+	kfree(ip);
-+}
-+EXPORT_SYMBOL(rvt_release_mmap_info);
++	spin_lock_init(&qpt->lock);
 +
-+/*
-+ * open and close keep track of how many times the CQ is mapped,
-+ * to avoid releasing it.
-+ */
-+static void rvt_vma_open(struct vm_area_struct *vma)
-+{
-+	struct rvt_mmap_info *ip = vma->vm_private_data;
-+
-+	kref_get(&ip->ref);
-+}
-+
-+static void rvt_vma_close(struct vm_area_struct *vma)
-+{
-+	struct rvt_mmap_info *ip = vma->vm_private_data;
-+
-+	kref_put(&ip->ref, rvt_release_mmap_info);
-+}
-+
-+static const struct vm_operations_struct rvt_vm_ops = {
-+	.open = rvt_vma_open,
-+	.close = rvt_vma_close,
-+};
-+
- /**
-  * rvt_mmap - create a new mmap region
-  * @context: the IB user context of the process making the mmap() call
-@@ -59,5 +112,90 @@
-  */
- int rvt_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
- {
--	return -ENOMEM;
-+	struct rvt_dev_info *rdi = ib_to_rvt(context->device);
-+	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
-+	unsigned long size = vma->vm_end - vma->vm_start;
-+	struct rvt_mmap_info *ip, *pp;
-+	int ret = -EINVAL;
++	qpt->last = rdi->dparms.qpn_start;
++	qpt->incr = rdi->dparms.qpn_inc << rdi->dparms.qos_shift;
 +
 +	/*
-+	 * Search the device's list of objects waiting for a mmap call.
-+	 * Normally, this list is very short since a call to create a
-+	 * CQ, QP, or SRQ is soon followed by a call to mmap().
++	 * Drivers may want some QPs beyond what we need for verbs let them use
++	 * our qpn table. No need for two. Lets go ahead and mark the bitmaps
++	 * for those. The reserved range must be *after* the range which verbs
++	 * will pick from.
 +	 */
-+	spin_lock_irq(&rdi->pending_lock);
-+	list_for_each_entry_safe(ip, pp, &rdi->pending_mmaps,
-+				 pending_mmaps) {
-+		/* Only the creator is allowed to mmap the object */
-+		if (context != ip->context || (__u64)offset != ip->offset)
-+			continue;
-+		/* Don't allow a mmap larger than the object. */
-+		if (size > ip->size)
-+			break;
 +
-+		list_del_init(&ip->pending_mmaps);
-+		spin_unlock_irq(&rdi->pending_lock);
++	/* Figure out number of bit maps needed before reserved range */
++	qpt->nmaps = rdi->dparms.qpn_res_start / RVT_BITS_PER_PAGE;
 +
-+		ret = remap_vmalloc_range(vma, ip->obj, 0);
-+		if (ret)
-+			goto done;
-+		vma->vm_ops = &rvt_vm_ops;
-+		vma->vm_private_data = ip;
-+		rvt_vma_open(vma);
-+		goto done;
++	/* This should always be zero */
++	offset = rdi->dparms.qpn_res_start & RVT_BITS_PER_PAGE_MASK;
++
++	/* Starting with the first reserved bit map */
++	map = &qpt->map[qpt->nmaps];
++
++	rvt_pr_info(rdi, "Reserving QPNs from 0x%x to 0x%x for non-verbs use\n",
++		    rdi->dparms.qpn_res_start, rdi->dparms.qpn_res_end);
++	for (i = rdi->dparms.qpn_res_start; i < rdi->dparms.qpn_res_end; i++) {
++		if (!map->page) {
++			get_map_page(qpt, map);
++			if (!map->page) {
++				ret = -ENOMEM;
++				break;
++			}
++		}
++		set_bit(offset, map->page);
++		offset++;
++		if (offset == RVT_BITS_PER_PAGE) {
++			/* next page */
++			qpt->nmaps++;
++			map++;
++			offset = 0;
++		}
 +	}
-+	spin_unlock_irq(&rdi->pending_lock);
-+done:
 +	return ret;
 +}
-+EXPORT_SYMBOL(rvt_mmap);
 +
-+/*
-+ * Allocate information for hfi1_mmap
++/**
++ * free_qpn_table - free the QP number table for a device
++ * @qpt: the QPN table
 + */
-+struct rvt_mmap_info *rvt_create_mmap_info(struct rvt_dev_info *rdi,
-+					   u32 size,
-+					   struct ib_ucontext *context,
-+					   void *obj)
++static void free_qpn_table(struct rvt_qpn_table *qpt)
 +{
-+	struct rvt_mmap_info *ip;
++	int i;
 +
-+	ip = kmalloc(sizeof(*ip), GFP_KERNEL);
-+	if (!ip)
-+		return ip;
-+
-+	size = PAGE_ALIGN(size);
-+
-+	spin_lock_irq(&rdi->mmap_offset_lock);
-+	if (rdi->mmap_offset == 0)
-+		rdi->mmap_offset = PAGE_SIZE;
-+	ip->offset = rdi->mmap_offset;
-+	rdi->mmap_offset += size;
-+	spin_unlock_irq(&rdi->mmap_offset_lock);
-+
-+	INIT_LIST_HEAD(&ip->pending_mmaps);
-+	ip->size = size;
-+	ip->context = context;
-+	ip->obj = obj;
-+	kref_init(&ip->ref);
-+
-+	return ip;
++	for (i = 0; i < ARRAY_SIZE(qpt->map); i++)
++		free_page((unsigned long)qpt->map[i].page);
 +}
-+EXPORT_SYMBOL(rvt_create_mmap_info);
 +
-+void rvt_update_mmap_info(struct rvt_dev_info *rdi, struct rvt_mmap_info *ip,
-+			  u32 size, void *obj)
++int rvt_driver_qp_init(struct rvt_dev_info *rdi)
 +{
-+	size = PAGE_ALIGN(size);
++	int i;
++	int ret = -ENOMEM;
 +
-+	spin_lock_irq(&rdi->mmap_offset_lock);
-+	if (rdi->mmap_offset == 0)
-+		rdi->mmap_offset = PAGE_SIZE;
-+	ip->offset = rdi->mmap_offset;
-+	rdi->mmap_offset += size;
-+	spin_unlock_irq(&rdi->mmap_offset_lock);
++	if (rdi->flags & RVT_FLAG_QP_INIT_DRIVER) {
++		rvt_pr_info(rdi, "Driver is doing QP init.\n");
++		return 0;
++	}
 +
-+	ip->size = size;
-+	ip->obj = obj;
- }
-+EXPORT_SYMBOL(rvt_update_mmap_info);
-diff --git a/drivers/infiniband/sw/rdmavt/mmap.h b/drivers/infiniband/sw/rdmavt/mmap.h
-index 7e66910..dad2424 100644
---- a/drivers/infiniband/sw/rdmavt/mmap.h
-+++ b/drivers/infiniband/sw/rdmavt/mmap.h
-@@ -53,6 +53,6 @@
++	if (!rdi->dparms.qp_table_size)
++		return -EINVAL;
++
++	/*
++	 * If driver is not doing any QP allocation then make sure it is
++	 * providing the necessary QP functions.
++	 */
++	if (!rdi->driver_f.free_all_qps)
++		return -EINVAL;
++
++	/* allocate parent object */
++	rdi->qp_dev = kzalloc(sizeof(*rdi->qp_dev), GFP_KERNEL);
++	if (!rdi->qp_dev)
++		return -ENOMEM;
++
++	/* allocate hash table */
++	rdi->qp_dev->qp_table_size = rdi->dparms.qp_table_size;
++	rdi->qp_dev->qp_table_bits = ilog2(rdi->dparms.qp_table_size);
++	rdi->qp_dev->qp_table =
++		kmalloc(rdi->qp_dev->qp_table_size *
++			sizeof(*rdi->qp_dev->qp_table),
++			GFP_KERNEL);
++	if (!rdi->qp_dev->qp_table)
++		goto no_qp_table;
++
++	for (i = 0; i < rdi->qp_dev->qp_table_size; i++)
++		RCU_INIT_POINTER(rdi->qp_dev->qp_table[i], NULL);
++
++	spin_lock_init(&rdi->qp_dev->qpt_lock);
++
++	/* initialize qpn map */
++	if (init_qpn_table(rdi, &rdi->qp_dev->qpn_table))
++		goto fail_table;
++
++	return ret;
++
++fail_table:
++	kfree(rdi->qp_dev->qp_table);
++	free_qpn_table(&rdi->qp_dev->qpn_table);
++
++no_qp_table:
++	kfree(rdi->qp_dev);
++
++	return ret;
++}
++
++/**
++ * free_all_qps - check for QPs still in use
++ * @qpt: the QP table to empty
++ *
++ * There should not be any QPs still in use.
++ * Free memory for table.
++ */
++static unsigned free_all_qps(struct rvt_dev_info *rdi)
++{
++	unsigned long flags;
++	struct rvt_qp *qp;
++	unsigned n, qp_inuse = 0;
++	spinlock_t *ql; /* work around too long line below */
++
++	rdi->driver_f.free_all_qps(rdi);
++
++	if (!rdi->qp_dev)
++		return 0;
++
++	ql = &rdi->qp_dev->qpt_lock;
++	spin_lock_irqsave(&rdi->qp_dev->qpt_lock, flags);
++	for (n = 0; n < rdi->qp_dev->qp_table_size; n++) {
++		qp = rcu_dereference_protected(rdi->qp_dev->qp_table[n],
++					       lockdep_is_held(ql));
++		RCU_INIT_POINTER(rdi->qp_dev->qp_table[n], NULL);
++		qp =  rcu_dereference_protected(qp->next,
++						lockdep_is_held(ql));
++		while (qp) {
++			qp_inuse++;
++			qp =  rcu_dereference_protected(qp->next,
++							lockdep_is_held(ql));
++		}
++	}
++	spin_unlock_irqrestore(ql, flags);
++	synchronize_rcu();
++	return qp_inuse;
++}
++
++void rvt_qp_exit(struct rvt_dev_info *rdi)
++{
++	u32 qps_inuse = free_all_qps(rdi);
++
++	qps_inuse = free_all_qps(rdi);
++	if (qps_inuse)
++		rvt_pr_err(rdi, "QP memory leak! %u still in use\n",
++			   qps_inuse);
++	if (!rdi->qp_dev)
++		return;
++
++	kfree(rdi->qp_dev->qp_table);
++	free_qpn_table(&rdi->qp_dev->qpn_table);
++	kfree(rdi->qp_dev);
++}
++
+ /**
+  * rvt_create_qp - create a queue pair for a device
+  * @ibpd: the protection domain who's device we create the queue pair for
+diff --git a/drivers/infiniband/sw/rdmavt/qp.h b/drivers/infiniband/sw/rdmavt/qp.h
+index c80d326..231480a 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.h
++++ b/drivers/infiniband/sw/rdmavt/qp.h
+@@ -53,6 +53,8 @@
  
  #include <rdma/rdma_vt.h>
  
--int rvt_mmap(struct ib_ucontext *context, struct vm_area_struct *vma);
-+void rvt_mmap_init(struct rvt_dev_info *rdi);
- 
- #endif          /* DEF_RDMAVTMMAP_H */
++int rvt_driver_qp_init(struct rvt_dev_info *rdi);
++void rvt_qp_exit(struct rvt_dev_info *rdi);
+ struct ib_qp *rvt_create_qp(struct ib_pd *ibpd,
+ 			    struct ib_qp_init_attr *init_attr,
+ 			    struct ib_udata *udata);
 diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-index cb7b8c4..ae0a1fe 100644
+index 297e1d5..cb7b8c4 100644
 --- a/drivers/infiniband/sw/rdmavt/vt.c
 +++ b/drivers/infiniband/sw/rdmavt/vt.c
-@@ -247,6 +247,7 @@ int rvt_register_device(struct rvt_dev_info *rdi)
+@@ -229,9 +229,23 @@ int rvt_register_device(struct rvt_dev_info *rdi)
+ 	    (!rdi->driver_f.get_card_name) ||
+ 	    (!rdi->driver_f.get_pci_dev) ||
+ 	    (!rdi->driver_f.check_ah)) {
++		pr_err("Driver not supporting req func\n");
+ 		return -EINVAL;
  	}
  
++	if (!rdi->dparms.nports) {
++		rvt_pr_err(rdi, "Driver says it has no ports.\n");
++		return -EINVAL;
++	}
++
++	rdi->ports = kcalloc(rdi->dparms.nports,
++			     sizeof(struct rvt_ibport **),
++			     GFP_KERNEL);
++	if (!rdi->ports) {
++		rvt_pr_err(rdi, "Could not allocate port mem.\n");
++		return -ENOMEM;
++	}
++
  	/* Once we get past here we can use the rvt_pr macros */
-+	rvt_mmap_init(rdi);
  
  	/* Dev Ops */
- 	CDR(rdi, query_device);
+@@ -246,6 +260,11 @@ int rvt_register_device(struct rvt_dev_info *rdi)
+ 	CDR(rdi, get_port_immutable);
+ 
+ 	/* Queue Pairs */
++	ret = rvt_driver_qp_init(rdi);
++	if (ret) {
++		pr_err("Error in driver QP init.\n");
++		return -EINVAL;
++	}
+ 	CDR(rdi, create_qp);
+ 	CDR(rdi, modify_qp);
+ 	CDR(rdi, destroy_qp);
+@@ -306,19 +325,6 @@ int rvt_register_device(struct rvt_dev_info *rdi)
+ 	spin_lock_init(&rdi->n_pds_lock);
+ 	rdi->n_pds_allocated = 0;
+ 
+-	if (rdi->dparms.nports) {
+-		rdi->ports = kcalloc(rdi->dparms.nports,
+-				     sizeof(struct rvt_ibport **),
+-				     GFP_KERNEL);
+-		if (!rdi->ports) {
+-			rvt_pr_err(rdi, "Could not allocate port mem.\n");
+-			ret = -ENOMEM;
+-			goto bail_mr;
+-		}
+-	} else {
+-		rvt_pr_warn(rdi, "Driver says it has no ports.\n");
+-	}
+-
+ 	/* We are now good to announce we exist */
+ 	ret =  ib_register_device(&rdi->ibdev, rdi->driver_f.port_callback);
+ 	if (ret) {
+@@ -333,6 +339,8 @@ bail_mr:
+ 	rvt_mr_exit(rdi);
+ 
+ bail_no_mr:
++	rvt_qp_exit(rdi);
++
+ 	return ret;
+ }
+ EXPORT_SYMBOL(rvt_register_device);
 diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
-index b578cda..5681a54 100644
+index ac5222c..b578cda 100644
 --- a/include/rdma/rdma_vt.h
 +++ b/include/rdma/rdma_vt.h
-@@ -260,6 +260,12 @@ struct rvt_dev_info {
- 	struct rvt_ibport **ports;
+@@ -175,7 +175,13 @@ struct rvt_driver_params {
+ 	 * For instance special module parameters. Goes here.
+ 	 */
+ 	unsigned int lkey_table_size;
++	unsigned int qp_table_size;
++	int qpn_start;
++	int qpn_inc;
++	int qpn_res_start;
++	int qpn_res_end;
+ 	int nports;
++	u8 qos_shift;
+ };
  
- 	struct rvt_qp_ibdev *qp_dev;
+ /* Protection domain */
+@@ -208,6 +214,7 @@ struct rvt_driver_provided {
+ 	int (*port_callback)(struct ib_device *, u8, struct kobject *);
+ 	const char * (*get_card_name)(struct rvt_dev_info *rdi);
+ 	struct pci_dev * (*get_pci_dev)(struct rvt_dev_info *rdi);
++	void (*free_all_qps)(struct rvt_dev_info *rdi);
+ 
+ 	/*--------------------*/
+ 	/* Optional functions */
+@@ -251,6 +258,8 @@ struct rvt_dev_info {
+ 
+ 	int flags;
+ 	struct rvt_ibport **ports;
 +
-+	/* memory maps */
-+	struct list_head pending_mmaps;
-+	spinlock_t mmap_offset_lock; /* protect mmap_offset */
-+	u32 mmap_offset;
-+	spinlock_t pending_lock; /* protect pending mmap list */
++	struct rvt_qp_ibdev *qp_dev;
  };
  
  static inline struct rvt_pd *ibpd_to_rvtpd(struct ib_pd *ibpd)
-@@ -291,4 +297,13 @@ int rvt_rkey_ok(struct rvt_qp *qp, struct rvt_sge *sge,
- 		u32 len, u64 vaddr, u32 rkey, int acc);
- int rvt_lkey_ok(struct rvt_lkey_table *rkt, struct rvt_pd *pd,
- 		struct rvt_sge *isge, struct ib_sge *sge, int acc);
-+int rvt_mmap(struct ib_ucontext *context, struct vm_area_struct *vma);
-+void rvt_release_mmap_info(struct kref *ref);
-+struct rvt_mmap_info *rvt_create_mmap_info(struct rvt_dev_info *rdi,
-+					   u32 size,
-+					   struct ib_ucontext *context,
-+					   void *obj);
-+void rvt_update_mmap_info(struct rvt_dev_info *rdi, struct rvt_mmap_info *ip,
-+			  u32 size, void *obj);
+diff --git a/include/rdma/rdmavt_qp.h b/include/rdma/rdmavt_qp.h
+index 9d4444f..34fa389 100644
+--- a/include/rdma/rdmavt_qp.h
++++ b/include/rdma/rdmavt_qp.h
+@@ -262,4 +262,37 @@ struct rvt_srq {
+ 	u32 limit;
+ };
+ 
++#define RVT_QPN_MAX                 BIT(24)
++#define RVT_QPNMAP_ENTRIES          (RVT_QPN_MAX / PAGE_SIZE / BITS_PER_BYTE)
++#define RVT_BITS_PER_PAGE           (PAGE_SIZE * BITS_PER_BYTE)
++#define RVT_BITS_PER_PAGE_MASK      (RVT_BITS_PER_PAGE - 1)
 +
- #endif          /* DEF_RDMA_VT_H */
++/*
++ * QPN-map pages start out as NULL, they get allocated upon
++ * first use and are never deallocated. This way,
++ * large bitmaps are not allocated unless large numbers of QPs are used.
++ */
++struct rvt_qpn_map {
++	void *page;
++};
++
++struct rvt_qpn_table {
++	spinlock_t lock; /* protect changes to the qp table */
++	unsigned flags;         /* flags for QP0/1 allocated for each port */
++	u32 last;               /* last QP number allocated */
++	u32 nmaps;              /* size of the map table */
++	u16 limit;
++	u8  incr;
++	/* bit map of free QP numbers other than 0/1 */
++	struct rvt_qpn_map map[RVT_QPNMAP_ENTRIES];
++};
++
++struct rvt_qp_ibdev {
++	u32 qp_table_size;
++	u32 qp_table_bits;
++	struct rvt_qp __rcu **qp_table;
++	spinlock_t qpt_lock; /* qptable lock */
++	struct rvt_qpn_table qpn_table;
++};
++
+ #endif          /* DEF_RDMAVT_INCQP_H */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
