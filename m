@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 21/37] IB/rdmavt: Move MR datastructures into rvt
-Date: Mon, 07 Dec 2015 15:44:30 -0500
-Message-ID: <20151207204429.8144.62688.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH 20/37] IB/rdamvt: Add post send and recv stubs
+Date: Mon, 07 Dec 2015 15:44:26 -0500
+Message-ID: <20151207204425.8144.34725.stgit@phlsvslse11.ph.intel.com>
 References: <20151207204046.8144.18752.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,93 +10,120 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20151207204046.8144.18752.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds the MR datastructures based on hfi1 into rvt. For now the
-data structures are defined in include/rdma/rdma_vt.h but once all MR
-functionality has been moved from the drivers into rvt these should move to
-rdmavt/mr.h
+This adds the post sned and recv function stubs.
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- include/rdma/rdma_vt.h |   53 ++++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 53 insertions(+), 0 deletions(-)
+ drivers/infiniband/sw/rdmavt/qp.c |   62 +++++++++++++++++++++++++++++++++++++
+ drivers/infiniband/sw/rdmavt/qp.h |    7 ++++
+ drivers/infiniband/sw/rdmavt/vt.c |    3 ++
+ 3 files changed, 71 insertions(+), 1 deletions(-)
 
-diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
-index 5112dd7..39a0737 100644
---- a/include/rdma/rdma_vt.h
-+++ b/include/rdma/rdma_vt.h
-@@ -59,6 +59,56 @@
- #include "ib_verbs.h"
- 
- /*
-+ * For Memory Regions. This stuff should probably be moved into rdmavt/mr.h once
-+ * drivers no longer need access to the MR directly.
+diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
+index 23479d3..d393a38 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.c
++++ b/drivers/infiniband/sw/rdmavt/qp.c
+@@ -121,3 +121,65 @@ int rvt_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ {
+ 	return -EINVAL;
+ }
++
++/**
++ * rvt_post_receive - post a receive on a QP
++ * @ibqp: the QP to post the receive on
++ * @wr: the WR to post
++ * @bad_wr: the first bad WR is put here
++ *
++ * This may be called from interrupt context.
 + */
++int rvt_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
++		  struct ib_recv_wr **bad_wr)
++{
++	/*
++	 * When a packet arrives the driver needs to call up to rvt to process
++	 * the packet. The UD, RC, UC processing will be done in rvt, however
++	 * the driver should be able to override this if it so choses. Perhaps a
++	 * set of function pointers set up at registration time.
++	 */
 +
-+/*
-+ * A segment is a linear region of low physical memory.
-+ * Used by the verbs layer.
++	return -EINVAL;
++}
++
++/**
++ * rvt_post_send - post a send on a QP
++ * @ibqp: the QP to post the send on
++ * @wr: the list of work requests to post
++ * @bad_wr: the first bad WR is put here
++ *
++ * This may be called from interrupt context.
 + */
-+struct rvt_seg {
-+	void *vaddr;
-+	size_t length;
-+};
++int rvt_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
++		  struct ib_send_wr **bad_wr)
++{
++	/*
++	 * VT-DRIVER-API: do_send()
++	 * Driver needs to have a do_send() call which is a single entry point
++	 * to take an already formed packet and throw it out on the wire. Once
++	 * the packet is sent the driver needs to make an upcall to rvt so the
++	 * completion queue can be notified and/or any other outstanding
++	 * work/book keeping can be finished.
++	 *
++	 * Note that there should also be a way for rvt to protect itself
++	 * against hangs in the driver layer. If a send doesn't actually
++	 * complete in a timely manor rvt needs to return an error event.
++	 */
 +
-+/* The number of rvt_segs that fit in a page. */
-+#define RVT_SEGSZ     (PAGE_SIZE / sizeof(struct rvt_seg))
++	return -EINVAL;
++}
 +
-+struct rvt_segarray {
-+	struct rvt_seg segs[RVT_SEGSZ];
-+};
-+
-+struct rvt_mregion {
-+	struct ib_pd *pd;       /* shares refcnt of ibmr.pd */
-+	u64 user_base;          /* User's address for this region */
-+	u64 iova;               /* IB start address of this region */
-+	size_t length;
-+	u32 lkey;
-+	u32 offset;             /* offset (bytes) to start of region */
-+	int access_flags;
-+	u32 max_segs;           /* number of rvt_segs in all the arrays */
-+	u32 mapsz;              /* size of the map array */
-+	u8  page_shift;         /* 0 - non unform/non powerof2 sizes */
-+	u8  lkey_published;     /* in global table */
-+	struct completion comp; /* complete when refcount goes to zero */
-+	atomic_t refcount;
-+	struct rvt_segarray *map[0];    /* the segments */
-+};
-+
-+#define RVT_MAX_LKEY_TABLE_BITS 23
-+
-+struct rvt_lkey_table {
-+	spinlock_t lock; /* protect changes in this struct */
-+	u32 next;               /* next unused index (speeds search) */
-+	u32 gen;                /* generation count */
-+	u32 max;                /* size of the table */
-+	struct rvt_mregion __rcu **table;
-+};
-+
-+/* End Memmory Region */
-+
-+/*
-  * Things that are driver specific, module parameters in hfi1 and qib
-  */
- struct rvt_driver_params {
-@@ -125,6 +175,9 @@ struct rvt_dev_info {
- 	/* Driver specific properties */
- 	struct rvt_driver_params dparms;
++/**
++ * rvt_post_srq_receive - post a receive on a shared receive queue
++ * @ibsrq: the SRQ to post the receive on
++ * @wr: the list of work requests to post
++ * @bad_wr: A pointer to the first WR to cause a problem is put here
++ *
++ * This may be called from interrupt context.
++ */
++int rvt_post_srq_recv(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
++		      struct ib_recv_wr **bad_wr)
++{
++	return -EINVAL;
++}
+diff --git a/drivers/infiniband/sw/rdmavt/qp.h b/drivers/infiniband/sw/rdmavt/qp.h
+index 93f2f2e..4e4709f 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.h
++++ b/drivers/infiniband/sw/rdmavt/qp.h
+@@ -66,5 +66,10 @@ int rvt_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ int rvt_destroy_qp(struct ib_qp *ibqp);
+ int rvt_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 		 int attr_mask, struct ib_qp_init_attr *init_attr);
+-
++int rvt_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
++		  struct ib_recv_wr **bad_wr);
++int rvt_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
++		  struct ib_send_wr **bad_wr);
++int rvt_post_srq_recv(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
++		      struct ib_recv_wr **bad_wr);
+ #endif          /* DEF_RVTQP_H */
+diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
+index f996389..a1667ea 100644
+--- a/drivers/infiniband/sw/rdmavt/vt.c
++++ b/drivers/infiniband/sw/rdmavt/vt.c
+@@ -238,6 +238,9 @@ int rvt_register_device(struct rvt_dev_info *rdi)
+ 	CDR(rdi, modify_qp);
+ 	CDR(rdi, destroy_qp);
+ 	CDR(rdi, query_qp);
++	CDR(rdi, post_send);
++	CDR(rdi, post_recv);
++	CDR(rdi, post_srq_recv);
  
-+	struct rvt_mregion __rcu *dma_mr;
-+	struct rvt_lkey_table lk_table;
-+
- 	/* PKey Table goes here */
- 
- 	/*
+ 	/* Address Handle */
+ 	CDR(rdi, create_ah);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
