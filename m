@@ -1,69 +1,45 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next V2 05/11] IB/core: Add rdma_network_type to wc
-Date: Mon, 7 Dec 2015 11:48:32 -0700
-Message-ID: <20151207184832.GA21402@obsidianresearch.com>
-References: <1449150450-13679-1-git-send-email-matanb@mellanox.com>
- <1449150450-13679-6-git-send-email-matanb@mellanox.com>
- <20151203140543.GA4283@infradead.org>
- <HE1PR05MB141857FA57EECD82D1533543B10D0@HE1PR05MB1418.eurprd05.prod.outlook.com>
- <20151207060241.GA19038@obsidianresearch.com>
- <CAG9sBKO0rsSQK1WcyBciZEONWJsusw9GwR19H7FfAsebEH63dg@mail.gmail.com>
- <20151207063415.GB20066@obsidianresearch.com>
- <CAG9sBKMBt6Toa25Ouasr7hudAcOYrxZyBUFYMXzrMTFZvooWfQ@mail.gmail.com>
- <20151207171228.GA26969@obsidianresearch.com>
- <CAG9sBKNXnzp7PgJhfcjbYvje5qgZWYqygJYkbs4WyTZtDc4ckg@mail.gmail.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 0/6] SRP initiator related bug fixes
+Date: Mon, 7 Dec 2015 11:26:08 -0800
+Message-ID: <5665DD50.5090906@sandisk.com>
+References: <565DE3EC.2070002@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAG9sBKNXnzp7PgJhfcjbYvje5qgZWYqygJYkbs4WyTZtDc4ckg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <565DE3EC.2070002-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 07, 2015 at 08:34:43PM +0200, Moni Shoua wrote:
-> Well, just tell me how you want to discover gid_index when you poll
-> the WC out of the CQ.
+On 12/01/2015 10:16 AM, Bart Van Assche wrote:
+> This patch series contains six bug fixes either for the SRP initiator
+> itself or for IB core functionality used by the SRP initiator. The order
+> of these patches matches the order in which the corresponding bugs have
+> been introduced. The patches in this series are:
+>
+> 0001-IB-srp-Fix-a-memory-leak.patch
+> 0002-IB-srp-Fix-possible-send-queue-overflow.patch
+> 0003-IB-srp-Initialize-dma_length-in-srp_map_idb.patch
+> 0004-IB-srp-Fix-indirect-data-buffer-rkey-endianness.patch
+> 0005-IB-core-Fix-ib_sg_to_pages.patch
+> 0006-IB-srp-Fix-srp_map_sg_fr.patch
 
-Hey, I'm not desiging this rocev2 stuff, this is something the rocev2
-community needs to sort out.
+(replying to my own e-mail)
 
-> Like I said, the sgid itself is in the GRH that is scattered to the
-> buffers in the receive queue. When ib_poll_cq() is called the pointer
-> to GRH is not passed so there is no way to determine the gid_index
-> inside the polling context.
+Hello Doug,
 
-Then have an API to let the consumer recover it.
+A consensus has been achieved about this patch series. Since one of the 
+patches in this series fixes a data corruption bug that has been 
+introduced during the latest (v4.4) merge window I'd like to see these 
+patches upstream soon. Please recommend how I should proceed. When I 
+repost this patch series, should I send it to you, to Linus or perhaps 
+to someone else ?
 
-> BTW, why do you argue about this only now? This is not RoCE specific
-> issue. sgid_index was always resolved outside the polling context. The
-> only difference between then and now is that with InfiniBand there was
-> no conflict about sgid_index once you had the sgid.
+Thanks,
 
-I think you answered your own question. In IB and rocev1 the sgid
-index is not ambiguous, rocev2 breaks that requirement without
-adaquately fixing it.
-
-It is probably also the case that rocev1 has similar problems,
-depending on how vland and macvlan ended up being implemented.
-
-> Now, when same gid value can be present in multiple entries you need
-> an extra parameter to get distinguish between them - that would be
-> the netwrok_type
-
-Eh?  You are only worried about duplicates between rocev1 mode which
-uses the GUID and v2 mode which uses the host's IP address?
-
-What about duplicates entirely within v2 mode where vlan and macvlan
-can create duplicate host IP addresses.
-
-You can also just not create duplicate entries in the first place. For
-instance there probably isn't a really a good reason to use rocev2 for
-IPv6 link local addreses, that trivially eliminates the v1/v2
-collision.
-
-Jason
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
