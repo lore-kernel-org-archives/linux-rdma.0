@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 05/37] IB/rdmavt: Macroize override checks during driver
- registration
-Date: Mon, 07 Dec 2015 15:43:19 -0500
-Message-ID: <20151207204318.8144.29135.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH 03/37] IB/rdmavt: Add protection domain to rdmavt.
+Date: Mon, 07 Dec 2015 15:43:10 -0500
+Message-ID: <20151207204309.8144.26707.stgit@phlsvslse11.ph.intel.com>
 References: <20151207204046.8144.18752.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,58 +13,300 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add a macro to cut down on writing the same lines over and over again for
-what will be a large number of functions that will be supported.
+Add datastructure for and allocation/deallocation of protection domains for
+RDMAVT.
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/vt.c |   22 +++++++++-------------
- 1 files changed, 9 insertions(+), 13 deletions(-)
+ drivers/infiniband/sw/rdmavt/Makefile |    3 +
+ drivers/infiniband/sw/rdmavt/pd.c     |  106 +++++++++++++++++++++++++++++++++
+ drivers/infiniband/sw/rdmavt/pd.h     |   61 +++++++++++++++++++
+ drivers/infiniband/sw/rdmavt/vt.c     |   12 ++++
+ drivers/infiniband/sw/rdmavt/vt.h     |    1 
+ include/rdma/rdma_vt.h                |   34 +++++++++--
+ 6 files changed, 212 insertions(+), 5 deletions(-)
+ create mode 100644 drivers/infiniband/sw/rdmavt/pd.c
+ create mode 100644 drivers/infiniband/sw/rdmavt/pd.h
 
+diff --git a/drivers/infiniband/sw/rdmavt/Makefile b/drivers/infiniband/sw/rdmavt/Makefile
+index 134d2d0..c6751bb 100644
+--- a/drivers/infiniband/sw/rdmavt/Makefile
++++ b/drivers/infiniband/sw/rdmavt/Makefile
+@@ -7,4 +7,5 @@
+ #
+ obj-$(CONFIG_INFINIBAND_RDMAVT) += rdmavt.o
+ 
+-rdmavt-y := vt.o dma.o
++rdmavt-y := vt.o dma.o pd.o
++
+diff --git a/drivers/infiniband/sw/rdmavt/pd.c b/drivers/infiniband/sw/rdmavt/pd.c
+new file mode 100644
+index 0000000..2f7a97f
+--- /dev/null
++++ b/drivers/infiniband/sw/rdmavt/pd.c
+@@ -0,0 +1,106 @@
++/*
++ *
++ * This file is provided under a dual BSD/GPLv2 license.  When using or
++ * redistributing this file, you may do so under either license.
++ *
++ * GPL LICENSE SUMMARY
++ *
++ * Copyright(c) 2015 Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * BSD LICENSE
++ *
++ * Copyright(c) 2015 Intel Corporation.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ *  - Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ *  - Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *  - Neither the name of Intel Corporation nor the names of its
++ *    contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ */
++
++#include <linux/slab.h>
++#include "pd.h"
++
++struct ib_pd *rvt_alloc_pd(struct ib_device *ibdev,
++			   struct ib_ucontext *context,
++			   struct ib_udata *udata)
++{
++	struct rvt_dev_info *dev = ib_to_rvt(ibdev);
++	struct rvt_pd *pd;
++	struct ib_pd *ret;
++
++	pd = kmalloc(sizeof(*pd), GFP_KERNEL);
++	if (!pd) {
++		ret = ERR_PTR(-ENOMEM);
++		goto bail;
++	}
++	/*
++	 * This is actually totally arbitrary.  Some correctness tests
++	 * assume there's a maximum number of PDs that can be allocated.
++	 * We don't actually have this limit, but we fail the test if
++	 * we allow allocations of more than we report for this value.
++	 */
++
++	spin_lock(&dev->n_pds_lock);
++	if (dev->n_pds_allocated == dev->dparms.max_pds) {
++		spin_unlock(&dev->n_pds_lock);
++		kfree(pd);
++		ret = ERR_PTR(-ENOMEM);
++		goto bail;
++	}
++
++	dev->n_pds_allocated++;
++	spin_unlock(&dev->n_pds_lock);
++
++	/* ib_alloc_pd() will initialize pd->ibpd. */
++	pd->user = udata ? 1 : 0;
++
++	ret = &pd->ibpd;
++
++bail:
++	return ret;
++}
++
++int rvt_dealloc_pd(struct ib_pd *ibpd)
++{
++	struct rvt_pd *pd = ibpd_to_rvtpd(ibpd);
++	struct rvt_dev_info *dev = ib_to_rvt(ibpd->device);
++
++	spin_lock(&dev->n_pds_lock);
++	dev->n_pds_allocated--;
++	spin_unlock(&dev->n_pds_lock);
++
++	kfree(pd);
++
++	return 0;
++}
+diff --git a/drivers/infiniband/sw/rdmavt/pd.h b/drivers/infiniband/sw/rdmavt/pd.h
+new file mode 100644
+index 0000000..d501c38
+--- /dev/null
++++ b/drivers/infiniband/sw/rdmavt/pd.h
+@@ -0,0 +1,61 @@
++#ifndef DEF_RDMAVTPD_H
++#define DEF_RDMAVTPD_H
++
++/*
++ *
++ * This file is provided under a dual BSD/GPLv2 license.  When using or
++ * redistributing this file, you may do so under either license.
++ *
++ * GPL LICENSE SUMMARY
++ *
++ * Copyright(c) 2015 Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * BSD LICENSE
++ *
++ * Copyright(c) 2015 Intel Corporation.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ *  - Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ *  - Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *  - Neither the name of Intel Corporation nor the names of its
++ *    contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ */
++
++#include <rdma/rdma_vt.h>
++
++struct ib_pd *rvt_alloc_pd(struct ib_device *ibdev,
++			   struct ib_ucontext *context,
++			   struct ib_udata *udata);
++int rvt_dealloc_pd(struct ib_pd *ibpd);
++
++#endif          /* DEF_RDMAVTPD_H */
 diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-index fc977b3..aaf10e7 100644
+index c0f5988..fc977b3 100644
 --- a/drivers/infiniband/sw/rdmavt/vt.c
 +++ b/drivers/infiniband/sw/rdmavt/vt.c
-@@ -70,29 +70,25 @@ static void rvt_cleanup(void)
- }
- module_exit(rvt_cleanup);
- 
-+/*
-+ * Check driver override. If driver passes a value use it, otherwise we use our
-+ * own value.
-+ */
-+#define CDR(rdi, x) \
-+	rdi->ibdev.x = rdi->ibdev.x ? : rvt_ ##x
+@@ -82,9 +82,21 @@ int rvt_register_device(struct rvt_dev_info *rdi)
+ 	 * come up with a better mechanism that simplifies the code at some
+ 	 * point.
+ 	 */
 +
- int rvt_register_device(struct rvt_dev_info *rdi)
- {
- 	if (!rdi)
- 		return -EINVAL;
- 
--	/*
--	 * Drivers have the option to override anything in the ibdev that they
--	 * want to specifically handle. VT needs to check for things it supports
--	 * and if the driver wants to handle that functionality let it. We may
--	 * come up with a better mechanism that simplifies the code at some
--	 * point.
--	 */
--
- 	/* DMA Operations */
++	/* DMA Operations */
  	rdi->ibdev.dma_ops =
  		rdi->ibdev.dma_ops ? : &rvt_default_dma_mapping_ops;
  
- 	/* Protection Domain */
--	rdi->ibdev.alloc_pd =
--		rdi->ibdev.alloc_pd ? : rvt_alloc_pd;
--	rdi->ibdev.dealloc_pd =
--		rdi->ibdev.dealloc_pd ? : rvt_dealloc_pd;
--
-+	CDR(rdi, alloc_pd);
-+	CDR(rdi, dealloc_pd);
- 	spin_lock_init(&rdi->n_pds_lock);
- 	rdi->n_pds_allocated = 0;
++	/* Protection Domain */
++	rdi->ibdev.alloc_pd =
++		rdi->ibdev.alloc_pd ? : rvt_alloc_pd;
++	rdi->ibdev.dealloc_pd =
++		rdi->ibdev.dealloc_pd ? : rvt_dealloc_pd;
++
++	spin_lock_init(&rdi->n_pds_lock);
++	rdi->n_pds_allocated = 0;
++
++	/* We are now good to announce we exist */
+ 	return ib_register_device(&rdi->ibdev, rdi->port_callback);
+ }
+ EXPORT_SYMBOL(rvt_register_device);
+diff --git a/drivers/infiniband/sw/rdmavt/vt.h b/drivers/infiniband/sw/rdmavt/vt.h
+index a19a3af..0d3cc79 100644
+--- a/drivers/infiniband/sw/rdmavt/vt.h
++++ b/drivers/infiniband/sw/rdmavt/vt.h
+@@ -53,5 +53,6 @@
+ 
+ #include <rdma/rdma_vt.h>
+ #include "dma.h"
++#include "pd.h"
+ 
+ #endif          /* DEF_RDMAVT_H */
+diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
+index da87fb2..b4ddcd3 100644
+--- a/include/rdma/rdma_vt.h
++++ b/include/rdma/rdma_vt.h
+@@ -57,16 +57,42 @@
+  */
+ 
+ #include "ib_verbs.h"
++
++/*
++ * Things that are driver specific, module parameters in hfi1 and qib
++ */
++struct rvt_driver_params {
++	int max_pds;
++};
++
++/* Protection domain */
++struct rvt_pd {
++	struct ib_pd ibpd;
++	int user;               /* non-zero if created from user space */
++};
++
+ struct rvt_dev_info {
+ 	struct ib_device ibdev;
++
++	/* Driver specific */
++	struct rvt_driver_params dparms;
+ 	int (*port_callback)(struct ib_device *, u8, struct kobject *);
+ 
+-	/*
+-	 * TODO:
+-	 *	need to reflect module parameters that may vary by dev
+-	 */
++	/* Internal use */
++	int n_pds_allocated;
++	spinlock_t n_pds_lock; /* Protect pd allocated count */
+ };
+ 
++static inline struct rvt_pd *ibpd_to_rvtpd(struct ib_pd *ibpd)
++{
++	return container_of(ibpd, struct rvt_pd, ibpd);
++}
++
++static inline struct rvt_dev_info *ib_to_rvt(struct ib_device *ibdev)
++{
++	return  container_of(ibdev, struct rvt_dev_info, ibdev);
++}
++
+ int rvt_register_device(struct rvt_dev_info *rvd);
+ void rvt_unregister_device(struct rvt_dev_info *rvd);
  
 
 --
