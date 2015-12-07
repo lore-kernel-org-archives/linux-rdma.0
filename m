@@ -1,240 +1,331 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 5/6] svcrdma: Add infrastructure to receive backwards
- direction RPC/RDMA replies
-Date: Mon, 07 Dec 2015 15:43:05 -0500
-Message-ID: <20151207204305.12988.2749.stgit@klimt.1015granger.net>
-References: <20151207203851.12988.97804.stgit@klimt.1015granger.net>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 02/37] IB/rdmavt: Consolidate dma ops in rdmavt.
+Date: Mon, 07 Dec 2015 15:43:06 -0500
+Message-ID: <20151207204305.8144.7038.stgit@phlsvslse11.ph.intel.com>
+References: <20151207204046.8144.18752.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151207203851.12988.97804.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+In-Reply-To: <20151207204046.8144.18752.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-To support the NFSv4.1 backchannel on RDMA connections, add a
-capability for receiving an RPC/RDMA reply on a connection
-established by a client.
+This patch adds dma functions to rdmavt. The source is hfi1's version of
+dma.c which will be removed by a subsequent hfi1 patch.
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- include/linux/sunrpc/svc_rdma.h            |    5 ++
- net/sunrpc/xprtrdma/Makefile               |    2 -
- net/sunrpc/xprtrdma/svc_rdma_backchannel.c |   86 ++++++++++++++++++++++++++++
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |   51 +++++++++++++++++
- net/sunrpc/xprtrdma/xprt_rdma.h            |    2 +
- 5 files changed, 145 insertions(+), 1 deletion(-)
- create mode 100644 net/sunrpc/xprtrdma/svc_rdma_backchannel.c
+ drivers/infiniband/sw/rdmavt/Makefile |    2 
+ drivers/infiniband/sw/rdmavt/dma.c    |  187 +++++++++++++++++++++++++++++++++
+ drivers/infiniband/sw/rdmavt/dma.h    |   56 ++++++++++
+ drivers/infiniband/sw/rdmavt/vt.c     |   10 ++
+ drivers/infiniband/sw/rdmavt/vt.h     |    1 
+ 5 files changed, 255 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/infiniband/sw/rdmavt/dma.c
+ create mode 100644 drivers/infiniband/sw/rdmavt/dma.h
 
-diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
-index bf9b17b..5371d42 100644
---- a/include/linux/sunrpc/svc_rdma.h
-+++ b/include/linux/sunrpc/svc_rdma.h
-@@ -187,6 +187,11 @@ struct svcxprt_rdma {
+diff --git a/drivers/infiniband/sw/rdmavt/Makefile b/drivers/infiniband/sw/rdmavt/Makefile
+index 98a664d..134d2d0 100644
+--- a/drivers/infiniband/sw/rdmavt/Makefile
++++ b/drivers/infiniband/sw/rdmavt/Makefile
+@@ -7,4 +7,4 @@
+ #
+ obj-$(CONFIG_INFINIBAND_RDMAVT) += rdmavt.o
  
- #define RPCSVC_MAXPAYLOAD_RDMA	RPCSVC_MAXPAYLOAD
- 
-+/* svc_rdma_backchannel.c */
-+extern int svc_rdma_handle_bc_reply(struct rpc_xprt *xprt,
-+				    struct rpcrdma_msg *rmsgp,
-+				    struct xdr_buf *rcvbuf);
-+
- /* svc_rdma_marshal.c */
- extern int svc_rdma_xdr_decode_req(struct rpcrdma_msg **, struct svc_rqst *);
- extern int svc_rdma_xdr_encode_error(struct svcxprt_rdma *,
-diff --git a/net/sunrpc/xprtrdma/Makefile b/net/sunrpc/xprtrdma/Makefile
-index 33f99d3..dc9f3b5 100644
---- a/net/sunrpc/xprtrdma/Makefile
-+++ b/net/sunrpc/xprtrdma/Makefile
-@@ -2,7 +2,7 @@ obj-$(CONFIG_SUNRPC_XPRT_RDMA) += rpcrdma.o
- 
- rpcrdma-y := transport.o rpc_rdma.o verbs.o \
- 	fmr_ops.o frwr_ops.o physical_ops.o \
--	svc_rdma.o svc_rdma_transport.o \
-+	svc_rdma.o svc_rdma_backchannel.o svc_rdma_transport.o \
- 	svc_rdma_marshal.o svc_rdma_sendto.o svc_rdma_recvfrom.o \
- 	module.o
- rpcrdma-$(CONFIG_SUNRPC_BACKCHANNEL) += backchannel.o
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
+-rdmavt-y := vt.o
++rdmavt-y := vt.o dma.o
+diff --git a/drivers/infiniband/sw/rdmavt/dma.c b/drivers/infiniband/sw/rdmavt/dma.c
 new file mode 100644
-index 0000000..69dab71
+index 0000000..d03d304
 --- /dev/null
-+++ b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
-@@ -0,0 +1,86 @@
++++ b/drivers/infiniband/sw/rdmavt/dma.c
+@@ -0,0 +1,187 @@
 +/*
-+ * Copyright (c) 2015 Oracle.  All rights reserved.
 + *
-+ * Support for backward direction RPCs on RPC/RDMA (server-side).
++ * This file is provided under a dual BSD/GPLv2 license.  When using or
++ * redistributing this file, you may do so under either license.
++ *
++ * GPL LICENSE SUMMARY
++ *
++ * Copyright(c) 2015 Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * BSD LICENSE
++ *
++ * Copyright(c) 2015 Intel Corporation.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ *  - Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ *  - Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *  - Neither the name of Intel Corporation nor the names of its
++ *    contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ */
++#include <linux/types.h>
++#include <linux/scatterlist.h>
++#include <rdma/ib_verbs.h>
++
++#include "dma.h"
++
++#define BAD_DMA_ADDRESS ((u64)0)
++
++/*
++ * The following functions implement driver specific replacements
++ * for the ib_dma_*() functions.
++ *
++ * These functions return kernel virtual addresses instead of
++ * device bus addresses since the driver uses the CPU to copy
++ * data instead of using hardware DMA.
 + */
 +
-+#include <linux/sunrpc/svc_rdma.h>
-+#include "xprt_rdma.h"
-+
-+#define RPCDBG_FACILITY	RPCDBG_SVCXPRT
-+
-+#undef SVCRDMA_BACKCHANNEL_DEBUG
-+
-+int
-+svc_rdma_handle_bc_reply(struct rpc_xprt *xprt, struct rpcrdma_msg *rmsgp,
-+			 struct xdr_buf *rcvbuf)
++static int rvt_mapping_error(struct ib_device *dev, u64 dma_addr)
 +{
-+	struct rpcrdma_xprt *r_xprt = rpcx_to_rdmax(xprt);
-+	struct kvec *dst, *src = &rcvbuf->head[0];
-+	struct rpc_rqst *req;
-+	unsigned long cwnd;
-+	u32 credits;
-+	size_t len;
-+	__be32 xid;
-+	__be32 *p;
-+	int ret;
++	return dma_addr == BAD_DMA_ADDRESS;
++}
 +
-+	p = (__be32 *)src->iov_base;
-+	len = src->iov_len;
-+	xid = rmsgp->rm_xid;
++static u64 rvt_dma_map_single(struct ib_device *dev, void *cpu_addr,
++			      size_t size, enum dma_data_direction direction)
++{
++	if (WARN_ON(!valid_dma_direction(direction)))
++		return BAD_DMA_ADDRESS;
 +
-+#ifdef SVCRDMA_BACKCHANNEL_DEBUG
-+	pr_info("%s: xid=%08x, length=%zu\n",
-+		__func__, be32_to_cpu(xid), len);
-+	pr_info("%s: RPC/RDMA: %*ph\n",
-+		__func__, (int)RPCRDMA_HDRLEN_MIN, rmsgp);
-+	pr_info("%s:      RPC: %*ph\n",
-+		__func__, (int)len, p);
++	return (u64)cpu_addr;
++}
++
++static void rvt_dma_unmap_single(struct ib_device *dev, u64 addr, size_t size,
++				 enum dma_data_direction direction)
++{
++	/* This is a stub, nothing to be done here */
++}
++
++static u64 rvt_dma_map_page(struct ib_device *dev, struct page *page,
++			    unsigned long offset, size_t size,
++			    enum dma_data_direction direction)
++{
++	u64 addr;
++
++	if (WARN_ON(!valid_dma_direction(direction)))
++		return BAD_DMA_ADDRESS;
++
++	if (offset + size > PAGE_SIZE)
++		return BAD_DMA_ADDRESS;
++
++	addr = (u64)page_address(page);
++	if (addr)
++		addr += offset;
++
++	return addr;
++}
++
++static void rvt_dma_unmap_page(struct ib_device *dev, u64 addr, size_t size,
++			       enum dma_data_direction direction)
++{
++	/* This is a stub, nothing to be done here */
++}
++
++static int rvt_map_sg(struct ib_device *dev, struct scatterlist *sgl,
++		      int nents, enum dma_data_direction direction)
++{
++	struct scatterlist *sg;
++	u64 addr;
++	int i;
++	int ret = nents;
++
++	if (WARN_ON(!valid_dma_direction(direction)))
++		return BAD_DMA_ADDRESS;
++
++	for_each_sg(sgl, sg, nents, i) {
++		addr = (u64)page_address(sg_page(sg));
++		if (!addr) {
++			ret = 0;
++			break;
++		}
++		sg->dma_address = addr + sg->offset;
++#ifdef CONFIG_NEED_SG_DMA_LENGTH
++		sg->dma_length = sg->length;
 +#endif
-+
-+	ret = -EAGAIN;
-+	if (src->iov_len < 24)
-+		goto out_shortreply;
-+
-+	spin_lock_bh(&xprt->transport_lock);
-+	req = xprt_lookup_rqst(xprt, xid);
-+	if (!req)
-+		goto out_notfound;
-+
-+	dst = &req->rq_private_buf.head[0];
-+	memcpy(&req->rq_private_buf, &req->rq_rcv_buf, sizeof(struct xdr_buf));
-+	if (dst->iov_len < len)
-+		goto out_unlock;
-+	memcpy(dst->iov_base, p, len);
-+
-+	credits = be32_to_cpu(rmsgp->rm_credit);
-+	if (credits == 0)
-+		credits = 1;	/* don't deadlock */
-+	else if (credits > r_xprt->rx_buf.rb_bc_max_requests)
-+		credits = r_xprt->rx_buf.rb_bc_max_requests;
-+
-+	cwnd = xprt->cwnd;
-+	xprt->cwnd = credits << RPC_CWNDSHIFT;
-+	if (xprt->cwnd > cwnd)
-+		xprt_release_rqst_cong(req->rq_task);
-+
-+	ret = 0;
-+	xprt_complete_rqst(req->rq_task, rcvbuf->len);
-+	rcvbuf->len = 0;
-+
-+out_unlock:
-+	spin_unlock_bh(&xprt->transport_lock);
-+out:
++	}
 +	return ret;
-+
-+out_shortreply:
-+	dprintk("svcrdma: short bc reply: xprt=%p, len=%zu\n",
-+		xprt, src->iov_len);
-+	goto out;
-+
-+out_notfound:
-+	dprintk("svcrdma: unrecognized bc reply: xprt=%p, xid=%08x\n",
-+		xprt, be32_to_cpu(xid));
-+
-+	goto out_unlock;
 +}
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-index ff4f01e..faa1fc0 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-@@ -567,6 +567,38 @@ static int rdma_read_complete(struct svc_rqst *rqstp,
- 	return ret;
- }
- 
-+/* By convention, backchannel calls arrive via rdma_msg type
-+ * messages, and never populate the chunk lists. This makes
-+ * the RPC/RDMA header small and fixed in size, so it is
-+ * straightforward to check the RPC header's direction field.
-+ */
-+static bool
-+svc_rdma_is_backchannel_reply(struct svc_xprt *xprt, struct rpcrdma_msg *rmsgp)
++
++static void rvt_unmap_sg(struct ib_device *dev,
++			 struct scatterlist *sg, int nents,
++			 enum dma_data_direction direction)
 +{
-+	__be32 *p = (__be32 *)rmsgp;
-+
-+	if (!xprt->xpt_bc_xprt)
-+		return false;
-+
-+	if (rmsgp->rm_type != rdma_msg)
-+		return false;
-+	if (rmsgp->rm_body.rm_chunks[0] != xdr_zero)
-+		return false;
-+	if (rmsgp->rm_body.rm_chunks[1] != xdr_zero)
-+		return false;
-+	if (rmsgp->rm_body.rm_chunks[2] != xdr_zero)
-+		return false;
-+
-+	/* sanity */
-+	if (p[7] != rmsgp->rm_xid)
-+		return false;
-+	/* call direction */
-+	if (p[8] == cpu_to_be32(RPC_CALL))
-+		return false;
-+
-+	return true;
++	/* This is a stub, nothing to be done here */
 +}
 +
- /*
-  * Set up the rqstp thread context to point to the RQ buffer. If
-  * necessary, pull additional data from the client with an RDMA_READ
-@@ -632,6 +664,15 @@ int svc_rdma_recvfrom(struct svc_rqst *rqstp)
- 		goto close_out;
- 	}
++static void rvt_sync_single_for_cpu(struct ib_device *dev, u64 addr,
++				    size_t size, enum dma_data_direction dir)
++{
++}
++
++static void rvt_sync_single_for_device(struct ib_device *dev, u64 addr,
++				       size_t size,
++				       enum dma_data_direction dir)
++{
++}
++
++static void *rvt_dma_alloc_coherent(struct ib_device *dev, size_t size,
++				    u64 *dma_handle, gfp_t flag)
++{
++	struct page *p;
++	void *addr = NULL;
++
++	p = alloc_pages(flag, get_order(size));
++	if (p)
++		addr = page_address(p);
++	if (dma_handle)
++		*dma_handle = (u64)addr;
++	return addr;
++}
++
++static void rvt_dma_free_coherent(struct ib_device *dev, size_t size,
++				  void *cpu_addr, u64 dma_handle)
++{
++	free_pages((unsigned long)cpu_addr, get_order(size));
++}
++
++struct ib_dma_mapping_ops rvt_default_dma_mapping_ops = {
++	.mapping_error = rvt_mapping_error,
++	.map_single = rvt_dma_map_single,
++	.unmap_single = rvt_dma_unmap_single,
++	.map_page = rvt_dma_map_page,
++	.unmap_page = rvt_dma_unmap_page,
++	.map_sg = rvt_map_sg,
++	.unmap_sg = rvt_unmap_sg,
++	.sync_single_for_cpu = rvt_sync_single_for_cpu,
++	.sync_single_for_device = rvt_sync_single_for_device,
++	.alloc_coherent = rvt_dma_alloc_coherent,
++	.free_coherent = rvt_dma_free_coherent
++};
+diff --git a/drivers/infiniband/sw/rdmavt/dma.h b/drivers/infiniband/sw/rdmavt/dma.h
+new file mode 100644
+index 0000000..780bab1
+--- /dev/null
++++ b/drivers/infiniband/sw/rdmavt/dma.h
+@@ -0,0 +1,56 @@
++#ifndef DEF_RDMAVTDMA_H
++#define DEF_RDMAVTDMA_H
++
++/*
++ *
++ * This file is provided under a dual BSD/GPLv2 license.  When using or
++ * redistributing this file, you may do so under either license.
++ *
++ * GPL LICENSE SUMMARY
++ *
++ * Copyright(c) 2015 Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * BSD LICENSE
++ *
++ * Copyright(c) 2015 Intel Corporation.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ *  - Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ *  - Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *  - Neither the name of Intel Corporation nor the names of its
++ *    contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ */
++
++extern struct ib_dma_mapping_ops rvt_default_dma_mapping_ops;
++
++#endif          /* DEF_RDMAVTDMA_H */
+diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
+index 7e87f8d..c0f5988 100644
+--- a/drivers/infiniband/sw/rdmavt/vt.c
++++ b/drivers/infiniband/sw/rdmavt/vt.c
+@@ -75,6 +75,16 @@ int rvt_register_device(struct rvt_dev_info *rdi)
+ 	if (!rdi)
+ 		return -EINVAL;
  
-+	if (svc_rdma_is_backchannel_reply(xprt, rmsgp)) {
-+		ret = svc_rdma_handle_bc_reply(xprt->xpt_bc_xprt, rmsgp,
-+					       &rqstp->rq_arg);
-+		svc_rdma_put_context(ctxt, 0);
-+		if (ret)
-+			goto repost;
-+		return ret;
-+	}
++	/*
++	 * Drivers have the option to override anything in the ibdev that they
++	 * want to specifically handle. VT needs to check for things it supports
++	 * and if the driver wants to handle that functionality let it. We may
++	 * come up with a better mechanism that simplifies the code at some
++	 * point.
++	 */
++	rdi->ibdev.dma_ops =
++		rdi->ibdev.dma_ops ? : &rvt_default_dma_mapping_ops;
 +
- 	/* Read read-list data. */
- 	ret = rdma_read_chunks(rdma_xprt, rmsgp, rqstp, ctxt);
- 	if (ret > 0) {
-@@ -668,4 +709,14 @@ int svc_rdma_recvfrom(struct svc_rqst *rqstp)
- 	set_bit(XPT_CLOSE, &xprt->xpt_flags);
- defer:
- 	return 0;
-+
-+repost:
-+	ret = svc_rdma_post_recv(rdma_xprt);
-+	if (ret) {
-+		pr_err("svcrdma: could not post a receive buffer, err=%d."
-+		       "Closing transport %p.\n", ret, rdma_xprt);
-+		set_bit(XPT_CLOSE, &rdma_xprt->sc_xprt.xpt_flags);
-+		ret = -ENOTCONN;
-+	}
-+	return ret;
+ 	return ib_register_device(&rdi->ibdev, rdi->port_callback);
  }
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index a1fd74a..3895574 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -309,6 +309,8 @@ struct rpcrdma_buffer {
- 	u32			rb_bc_srv_max_requests;
- 	spinlock_t		rb_reqslock;	/* protect rb_allreqs */
- 	struct list_head	rb_allreqs;
-+
-+	u32			rb_bc_max_requests;
- };
- #define rdmab_to_ia(b) (&container_of((b), struct rpcrdma_xprt, rx_buf)->rx_ia)
+ EXPORT_SYMBOL(rvt_register_device);
+diff --git a/drivers/infiniband/sw/rdmavt/vt.h b/drivers/infiniband/sw/rdmavt/vt.h
+index ec210f3..a19a3af 100644
+--- a/drivers/infiniband/sw/rdmavt/vt.h
++++ b/drivers/infiniband/sw/rdmavt/vt.h
+@@ -52,5 +52,6 @@
+  */
  
+ #include <rdma/rdma_vt.h>
++#include "dma.h"
+ 
+ #endif          /* DEF_RDMAVT_H */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
