@@ -1,53 +1,65 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: 4.4's rdma plate
-Date: Tue, 8 Dec 2015 17:01:14 -0500
-Message-ID: <5667532A.1070202@redhat.com>
-References: <CAJ3xEMhniP7x3NCM51nCccB7wBiQfWiyqaeVm8cdx=SuotrHYQ@mail.gmail.com>
- <CAJ3xEMiF1xrwBb4B54HEJVWAds76i9oPkKx-ROf3tubeH6a8TA@mail.gmail.com>
- <561E510C.8060501@redhat.com>
- <CAJ3xEMiZCrj83XK6R0za61SenfzDh5H3wF-DTanvsk1Hha7MKA@mail.gmail.com>
- <56266C4B.1060000@redhat.com>
- <CAJ3xEMhexSZhkVVqZaCxvYYKXay6FWrUsXoKgmW=Q-+2pcdN8w@mail.gmail.com>
- <CAJ3xEMiDpiVWeW7MVs8VuULj39VchDW==OpqB28ni3U_=i5Dog@mail.gmail.com>
- <562A57AB.4000702@redhat.com>
- <CAJ3xEMj397H-9Jrfk3K+MX92d6Q4gNA8w2tkKM6LytodPSbP-g@mail.gmail.com>
+Subject: Re: device attr cleanup (was: Handle mlx4 max_sge_rd correctly)
+Date: Tue, 8 Dec 2015 17:04:19 -0500
+Message-ID: <566753E3.9060301@redhat.com>
+References: <CAJ3xEMj2EOxX1CiA93MPOsM-FdU9ijcWCYm9tObbkLqqja0PoA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="xnBqMxbVbixT3qBuP6O5e41JQH7RLrcJ7"
+ boundary="HsD2rhd6vnxHaN60HcSSTPkGlmGN1mvsw"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMj397H-9Jrfk3K+MX92d6Q4gNA8w2tkKM6LytodPSbP-g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAJ3xEMj2EOxX1CiA93MPOsM-FdU9ijcWCYm9tObbkLqqja0PoA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---xnBqMxbVbixT3qBuP6O5e41JQH7RLrcJ7
+--HsD2rhd6vnxHaN60HcSSTPkGlmGN1mvsw
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 12/08/2015 04:07 PM, Or Gerlitz wrote:
-> On Fri, Oct 23, 2015 at 5:52 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wro=
-te:
->> On 10/23/2015 02:46 AM, Or Gerlitz wrote:
+On 12/08/2015 04:00 PM, Or Gerlitz wrote:
+> On Tue, Dec 8, 2015 at 8:17 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrot=
+e:
+>>
+>> On 12/08/2015 01:13 PM, Sagi Grimberg wrote:
 >=20
->>> Doug, there are few singleton patches to mlxN drivers, just to make
->>> sure they are not left behind (thanks)
 >=20
->>> a small mlx5 enhancement, Signed by Eli C. the driver maintainer
->>> https://patchwork.kernel.org/patch/7454641
+>>
+>>> I mentioned this in v1. This patch set is applied over Christoph's
+>>> device attributes patch. Will it go in as well?
+>>
+>> No, that's too big and not the right sort of fix for 4.4-rc.  I had it=
 
-I originally had bumped this one to 4.5.  As you say, it's an
-enhancement.  But, the particular issue is so simple, and can be
-considered buggy behavior (hogging the CPU when you shouldn't), that
-just adding a need_resched check I'll take.
+>> on my radar for getting into for-next.
+>=20
+>=20
+>=20
+> Doug, re the device attribute patch, I have expressed my opinion that
+> --- we should be going in a slightly different direction of stashing a
+> struct ib_device_attr as a direct or pointer field of struct ib_device
+> and have the device or the core to fill it up just before the device
+> instance creation with the core is to be complete. This way we can
+> remove all the annoying calls from ULPs to query device and avoid
+> adding so many fields to the device structure itself.
+>=20
+> So there are two suggestions on the table here and we need to hear the
+> maintainer thinking. I do expect that your response will not be "I
+> applied X" but rather you'll allow the time to try and convince you on
+> whatever direction, this is pending for long time and we're on
+> 4.4-rc4, there should be no rush to cut this over night and push to
+> k.o the code for this small cleanup.
+>=20
+> I didn't submit a patch that follows my suggestion, but Ira did so in
+> one of the OPA submission rounds, if you're OK with that proposal or
+> if you even just want to see the patch to cast your vote/decision, I
+> will rebase it and complete.
+>=20
+> Makes sense?
 
->>> two small mlx4 fixes, acked by me...
->>> https://patchwork.kernel.org/patch/7348911/
->>> https://patchwork.kernel.org/patch/7348871/
-
-I took these two.
+Makes sense.  Show me what you are talking about (either a link to Ira's
+patch you are referring to or your own patch).
 
 
 --=20
@@ -56,7 +68,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---xnBqMxbVbixT3qBuP6O5e41JQH7RLrcJ7
+--HsD2rhd6vnxHaN60HcSSTPkGlmGN1mvsw
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -65,22 +77,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWZ1MqAAoJELgmozMOVy/dvPcP/RnvNlub/cboNQVxe786y43g
-97qskRwT6wzE7rWcVi1EwZDR/E2IWB4mOrTkoNFHJBPmqVfm9Byt+BLEsnoZINwI
-6Wbwe3sbfYGkDtiWMZ4WqxxJC5ZqYcLdAPTPnAbUQLpQk/ZWkdDbU8sqQoSAl/eU
-S7qcVp1+8yUDDnXq31vA/rAOm3gqYgyfFigSb01tHt/ACk/7/pYRPq96BgIj7vu4
-p70ZZ8rlc2DxtS35qVlbKhOPHT0ULXq/kg9n1VBAOVcFLvItiWzvz5u2lVFCaivG
-dII0kxYEGScBeL9UmgcN7h/rRp/R+uYOhjKPiDvCryWdre/prbAuxdhXqIv5IZyb
-OA5beHNRGwDivLKn9ZzTXenxvAW2F0poAVOVJG28+cumbcuFrP4lTq2dmB/kX35d
-2wpzrtwP760tvQqXotmtjIdKm5i4UQMndhU51DZbCcTKti2KcClaUy2g8GpZFzmK
-XL21BDLAELtoVw90bm2Rq0yPBVqiFu8KcYlH+BcfXqc6zbZqQLWj5wIJFih6VDkn
-NsBKNVRZBDulUomD+pT/yZvTUySRE4cEOu5ql4lLI+OUkkv5o17qS6ODp3t0TOB/
-sPsBhWeV7jYdiCj8IUMzcVdgbITKLBIFduqOidjDdkG/4048iIj90h0nRMECzGWj
-iJ0CdQDeKvgM6sOFEnm4
-=Y1nJ
+iQIcBAEBCAAGBQJWZ1PjAAoJELgmozMOVy/dtZ0QALjc7oAgeDL3pE5Cu0Q6aCOd
+RNpPZ/AgkjAuBPqjJdxGg60Ij2spcrr3/QSQqWycNINWA1KB2wqTTpJT3Ht2Sgyg
+crXSQpgbrugvue+W9JTICtv6/agSaXrl8EyRVhzlRq87Tcfo47BGcf7kpd3FD0L1
+hydu8Wuy8yAuvQH6QRe2UZoG1VJxCxw9k+CDjHN87rtDXXxBxpC7rdTBHQQbarnt
+Pp9g6vE0JX9HoEqFyHYVp4x214+j3u4BEJ+DmmsZ8BwbJ+NjtF8M1Q607Z2SFlhb
+0X9BllaVBHDt8GqhTlOZ3SskDpedJoFmdQUiigu20gU+1Nmjf0pGFneYr+fGc36G
+g8f/CSupOnLuouZvbMGgI0iNXv9s75i/RbxUxk038dZGe+Jyo+3SfT/jB61rdRMC
+3VbFf/5jHptX67ipPLHQ4KlRM8ocmyM9NqhPthocgOT61lpHjWMqp5Z/jSmQ6lQ1
+OTAn9OeuiK74k4LsAGsjKIA5u66+8ELHbNDqGDNPoOErZhs50EzHitKZlXIM9VFc
+ygrRucm88Xg2TGxhF8UycDuHm0GjlyGmUVvXUN6CxAji9u2AqKAzKygb80P/u/lS
+VFghhUnpORgKccnxcjjHc7zC3WXgPtnTvqSnjr6TCpyqBz91uPo6cg4u9qqy7gWq
+X7OiAN6pd1MGBQBaQdJD
+=77Wq
 -----END PGP SIGNATURE-----
 
---xnBqMxbVbixT3qBuP6O5e41JQH7RLrcJ7--
+--HsD2rhd6vnxHaN60HcSSTPkGlmGN1mvsw--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
