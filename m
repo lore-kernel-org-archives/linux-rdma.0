@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v2 2/5] staging/rdma/hfi1: Unconditionally clean-up SDMA queues
-Date: Tue,  8 Dec 2015 17:10:10 -0500
-Message-ID: <1449612613-6616-3-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH v2 4/5] staging/rdma/hfi1: Detect SDMA transmission error early
+Date: Tue,  8 Dec 2015 17:10:12 -0500
+Message-ID: <1449612613-6616-5-git-send-email-ira.weiny@intel.com>
 References: <1449612613-6616-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1449612613-6616-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,30 +12,34 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-There is no need to cleck if the packet queue is allocated
-when cleaning up a user context. The hfi1_user_sdma_free_queues()
-function already does all the required checks.
+It is possible for an SDMA transmission error to happen
+during the processing of an user SDMA transfer. In that
+case it is better to detect it early and abort any further
+attempts to send more packets.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/file_ops.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/staging/rdma/hfi1/user_sdma.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
-index 76580030f514..fd90fb658b5b 100644
---- a/drivers/staging/rdma/hfi1/file_ops.c
-+++ b/drivers/staging/rdma/hfi1/file_ops.c
-@@ -737,8 +737,7 @@ static int hfi1_file_close(struct inode *inode, struct file *fp)
+diff --git a/drivers/staging/rdma/hfi1/user_sdma.c b/drivers/staging/rdma/hfi1/user_sdma.c
+index 060c2200757d..3033df5596f3 100644
+--- a/drivers/staging/rdma/hfi1/user_sdma.c
++++ b/drivers/staging/rdma/hfi1/user_sdma.c
+@@ -782,6 +782,12 @@ static int user_sdma_send_pkts(struct user_sdma_request *req, unsigned maxpkts)
  
- 	flush_wc();
- 	/* drain user sdma queue */
--	if (fdata->pq)
--		hfi1_user_sdma_free_queues(fdata);
-+	hfi1_user_sdma_free_queues(fdata);
+ 	pq = req->pq;
  
++	/* If tx completion has reported an error, we are done. */
++	if (test_bit(SDMA_REQ_HAS_ERROR, &req->flags)) {
++		set_bit(SDMA_REQ_DONE_ERROR, &req->flags);
++		return -EFAULT;
++	}
++
  	/*
- 	 * Clear any left over, unhandled events so the next process that
+ 	 * Check if we might have sent the entire request already
+ 	 */
 -- 
 1.8.2
 
