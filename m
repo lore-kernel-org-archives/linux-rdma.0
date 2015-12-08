@@ -1,58 +1,43 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: device attr cleanup (was: Handle mlx4 max_sge_rd correctly)
-Date: Wed, 9 Dec 2015 01:15:42 +0200
-Message-ID: <CAJ3xEMgQNMtxgTKC0zaKgy-WGugf6KwT7Ys5h3_RbN_7qd2=tg@mail.gmail.com>
-References: <CAJ3xEMj2EOxX1CiA93MPOsM-FdU9ijcWCYm9tObbkLqqja0PoA@mail.gmail.com>
-	<566753E3.9060301@redhat.com>
-	<CAJ3xEMhaEnv9He7N5q8fFsRzy_j27wdE6KWSFF39UzA680udwA@mail.gmail.com>
-	<20151208225940.GB27609@obsidianresearch.com>
-	<CAJ3xEMiEYgsxiL6zR-Dia3Rxwriye1WHcadTmUjU7zV=ide1LA@mail.gmail.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 05/10] IB/qib: Use rdmavt lid defines in qib
+Date: Tue, 8 Dec 2015 18:19:41 -0500
+Message-ID: <20151208231941.GD14221@phlsvsds.ph.intel.com>
+References: <20151207204735.11219.68688.stgit@phlsvslse11.ph.intel.com> <20151207204911.11219.50129.stgit@phlsvslse11.ph.intel.com> <20151207205439.GA29576@obsidianresearch.com> <20151208192455.GB16976@phlsvsds.ph.intel.com> <20151208205511.GA14378@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMiEYgsxiL6zR-Dia3Rxwriye1WHcadTmUjU7zV=ide1LA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20151208205511.GA14378-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "ira. weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 9, 2015 at 1:13 AM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> On Wed, Dec 9, 2015 at 12:59 AM, Jason Gunthorpe
-> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
->> On Wed, Dec 09, 2015 at 12:47:55AM +0200, Or Gerlitz wrote:
+On Tue, Dec 08, 2015 at 01:55:11PM -0700, Jason Gunthorpe wrote:
+>On Tue, Dec 08, 2015 at 02:24:55PM -0500, ira.weiny wrote:
+>> On Mon, Dec 07, 2015 at 01:54:39PM -0700, Jason Gunthorpe wrote:
+>> > On Mon, Dec 07, 2015 at 03:49:12PM -0500, Dennis Dalessandro wrote:
+>> > >  	/* A multicast address requires a GRH (see ch. 8.4.1). */
+>> > > -	if (ah_attr->dlid >= QIB_MULTICAST_LID_BASE &&
+>> > > -	    ah_attr->dlid != QIB_PERMISSIVE_LID &&
+>> > > +	if (ah_attr->dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE) &&
+>> > > +	    ah_attr->dlid != be16_to_cpu(IB_LID_PERMISSIVE) &&
+>> > 
+>> > Uh cpu_to_be16 please..
+>> 
+>> But, the defines are big endian and the dlid here is cpu endian.
 >
->>> The patch is three liner to add the cached attrs --
->>> http://marc.info/?l=linux-rdma&m=142309296813985&w=2 -- if you are OK
->>> with that, I will add a 2nd patch that ports all ULPs to use the
->>> cached copy instead of their code which does the query.
+>Hurm, I can't even find the patch that adds IB_MULTICAST_LID_BASE..
 >
->>> Actually, why not start with this approach and later decide if we need
->>> to go further of this is enough?
->
->> Or, can we please stop this bikeshedding. Christoph's patch is done,
->> well tested and does a lot more clean up that this hacky three liner.
->
-> Christoph patch is here indeed, it does two things
->
-> 1. remove all the ULP device attr alloc, device query, attr free hassle
-> 2. adds tons of new fields to struct ib_device
->
-> I think it just goes too much and needlessly adds tons of these new
-> fields directly to struct ib_device where we can have them all well
-> scoped into ib_device_attr member or pointer from struct ib_device
->
->> It is a good patch,
->
-> I didn't say it's bad, I said I think we can achieve #1 above with way
-> less drastic patch, and I'd like to hear the maintainer option, and
-> have the chance to argu with the maintainer if needed, yours I heard,
-> you like it, I know.
+>But I believe you, and think that is pretty gross to have the constant
+>be BE when typical uses like this are CPU..
 
-and I will be OOO for the rest of this week, since this is in the air
-for ***months***, it would be fair enough to ask the maintainer not to
-cut it this way or another before next week, Doug, agree?
+So what is the consensus here? Should we leave it alone for now and 
+potentially go back and deal with this separately?  Just define the new one 
+as LE and use it, even though it doesn't match the rest?  Something else 
+entirely?
 
-Or.
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
