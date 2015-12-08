@@ -1,26 +1,33 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH v2 0/2] Handle mlx4 max_sge_rd correctly
-Date: Tue, 8 Dec 2015 09:01:39 -0800
-Message-ID: <20151208170139.GA425@infradead.org>
-References: <1446031696-19022-1-git-send-email-sagig@mellanox.com>
- <5641C8BC.40507@dev.mellanox.co.il>
- <20151203142730.GA20520@infradead.org>
- <56605AB7.3000705@dev.mellanox.co.il>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [RFC contig pages support 1/2] IB: Supports contiguous memory
+ operations
+Date: Tue, 8 Dec 2015 10:15:42 -0700
+Message-ID: <20151208171542.GB13549@obsidianresearch.com>
+References: <1449587707-24214-1-git-send-email-yishaih@mellanox.com>
+ <1449587707-24214-2-git-send-email-yishaih@mellanox.com>
+ <20151208151852.GA6688@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <target-devel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <56605AB7.3000705@dev.mellanox.co.il>
-Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Cc: Christoph Hellwig <hch@infradead.org>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, Steve Wise <swise@opengridcomputing.com>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Or Gerlitz <ogerlitz@mellanox.com>
+In-Reply-To: <20151208151852.GA6688-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 03, 2015 at 05:07:35PM +0200, Sagi Grimberg wrote:
-> 
-> >Did we ever make progress on this?
-> 
-> Just up to Doug to pull it in.
+On Tue, Dec 08, 2015 at 07:18:52AM -0800, Christoph Hellwig wrote:
+> There is absolutely nothing IB specific here.  If you want to support
+> anonymous mmaps to allocate large contiguous pages work with the MM
+> folks on providing that in a generic fashion.
 
-Doug, any chance to get this into the 4.4 queue?  It's annoying
-having to work around this driver bug in every new ULP.
+Yes please.
+
+We already have huge page mmaps, how much win is had by going from
+huge page maps to this contiguous map?
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
