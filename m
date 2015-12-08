@@ -1,7 +1,7 @@
 From: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 1/2] net/mlx5_core: Configure HW to support atomic request in host endianness
-Date: Tue,  8 Dec 2015 18:54:15 +0200
-Message-ID: <1449593656-8437-2-git-send-email-eranbe@mellanox.com>
+Subject: [PATCH for-next 2/2] IB/mlx5: Advertise atomic capabilities in query device
+Date: Tue,  8 Dec 2015 18:54:16 +0200
+Message-ID: <1449593656-8437-3-git-send-email-eranbe@mellanox.com>
 References: <1449593656-8437-1-git-send-email-eranbe@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1449593656-8437-1-git-send-email-eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,169 +10,144 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-HW is capable of 2 requestor endianness modes for standard 8 Bytes
-atomic: BE (0x0) and host endianness (0x1). Read the supported modes
-from hca atomic capabilities and configure HW to host endianness mode if
-supported.
+In addition, check if qp support atomic operations when asking QP access
+flags with IB_ACCESS_REMOTE_ATOMIC in modify QP.
 
 Signed-off-by: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> 
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/main.c | 57 +++++++++++++++++++++++++-
- include/linux/mlx5/mlx5_ifc.h                  | 22 ++++++----
- 2 files changed, 70 insertions(+), 9 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c    | 40 +++++++++++++++++++++++++++++++++++-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 +
+ drivers/infiniband/hw/mlx5/qp.c      |  8 ++++++++
+ include/linux/mlx5/driver.h          |  5 +++++
+ 4 files changed, 53 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index 03aabdd..682a4c0 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -73,6 +73,11 @@ struct mlx5_device_context {
- 	void		       *context;
- };
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index bdd60a6..431ba16 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -63,6 +63,10 @@ static char mlx5_version[] =
+ 	DRIVER_NAME ": Mellanox Connect-IB Infiniband driver v"
+ 	DRIVER_VERSION " (" DRIVER_RELDATE ")\n";
  
 +enum {
-+	MLX5_ATOMIC_REQ_MODE_BE = 0x0,
-+	MLX5_ATOMIC_REQ_MODE_HOST_ENDIANNESS = 0x1,
++	MLX5_ATOMIC_SIZE_QP_8BYTES = 1 << 3,
 +};
 +
- static struct mlx5_profile profile[] = {
- 	[0] = {
- 		.mask           = 0,
-@@ -335,7 +340,7 @@ query_ex:
- 	return err;
- }
- 
--static int set_caps(struct mlx5_core_dev *dev, void *in, int in_sz)
-+static int set_caps(struct mlx5_core_dev *dev, void *in, int in_sz, int opmod)
+ static enum rdma_link_layer
+ mlx5_ib_port_link_layer(struct ib_device *device)
  {
- 	u32 out[MLX5_ST_SZ_DW(set_hca_cap_out)];
- 	int err;
-@@ -343,6 +348,7 @@ static int set_caps(struct mlx5_core_dev *dev, void *in, int in_sz)
- 	memset(out, 0, sizeof(out));
- 
- 	MLX5_SET(set_hca_cap_in, in, opcode, MLX5_CMD_OP_SET_HCA_CAP);
-+	MLX5_SET(set_hca_cap_in, in, op_mod, opmod << 1);
- 	err = mlx5_cmd_exec(dev, in, in_sz, out, sizeof(out));
- 	if (err)
- 		return err;
-@@ -352,6 +358,46 @@ static int set_caps(struct mlx5_core_dev *dev, void *in, int in_sz)
- 	return err;
+@@ -101,6 +105,28 @@ static int mlx5_get_vport_access_method(struct ib_device *ibdev)
+ 	return MLX5_VPORT_ACCESS_METHOD_HCA;
  }
  
-+static int handle_hca_cap_atomic(struct mlx5_core_dev *dev)
++static void get_atomic_caps(struct mlx5_ib_dev *dev,
++			    struct ib_device_attr *props)
 +{
-+	void *set_ctx;
-+	void *set_hca_cap;
-+	int set_sz = MLX5_ST_SZ_BYTES(set_hca_cap_in);
-+	int req_endianness;
-+	int err;
++	u8 tmp;
++	u8 atomic_operations = MLX5_CAP_ATOMIC(dev->mdev, atomic_operations);
++	u8 atomic_size_qp = MLX5_CAP_ATOMIC(dev->mdev, atomic_size_qp);
++	u8 atomic_req_8B_endianness_mode =
++		MLX5_CAP_ATOMIC(dev->mdev, atomic_req_8B_endianess_mode);
 +
-+	if (MLX5_CAP_GEN(dev, atomic)) {
-+		err = mlx5_core_get_caps(dev, MLX5_CAP_ATOMIC,
-+					 HCA_CAP_OPMOD_GET_CUR);
-+		if (err)
-+			return err;
++	/* Check if HW supports 8 bytes standard atomic operations and capable
++	 * of host endianness respond
++	 */
++	tmp = MLX5_ATOMIC_OPS_CMP_SWAP | MLX5_ATOMIC_OPS_FETCH_ADD;
++	if (((atomic_operations & tmp) == tmp) &&
++	    (atomic_size_qp & MLX5_ATOMIC_SIZE_QP_8BYTES) &&
++	    (atomic_req_8B_endianness_mode)) {
++		props->atomic_cap = IB_ATOMIC_HCA;
 +	} else {
-+		return 0;
++		props->atomic_cap = IB_ATOMIC_NONE;
 +	}
-+
-+	req_endianness =
-+		MLX5_CAP_ATOMIC(dev,
-+				supported_atomic_req_8B_endianess_mode_1);
-+
-+	if (req_endianness != MLX5_ATOMIC_REQ_MODE_HOST_ENDIANNESS)
-+		return 0;
-+
-+	set_ctx = kzalloc(set_sz, GFP_KERNEL);
-+	if (!set_ctx)
-+		return -ENOMEM;
-+
-+	set_hca_cap = MLX5_ADDR_OF(set_hca_cap_in, set_ctx, capability);
-+
-+	/* Set requestor to host endianness */
-+	MLX5_SET(atomic_caps, set_hca_cap, atomic_req_8B_endianess_mode,
-+		 MLX5_ATOMIC_REQ_MODE_HOST_ENDIANNESS);
-+
-+	err = set_caps(dev, set_ctx, set_sz, MLX5_SET_HCA_CAP_OP_MOD_ATOMIC);
-+
-+	kfree(set_ctx);
-+	return err;
 +}
 +
- static int handle_hca_cap(struct mlx5_core_dev *dev)
+ static int mlx5_query_system_image_guid(struct ib_device *ibdev,
+ 					__be64 *sys_image_guid)
  {
- 	void *set_ctx = NULL;
-@@ -393,7 +439,8 @@ static int handle_hca_cap(struct mlx5_core_dev *dev)
+@@ -286,7 +312,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	props->max_res_rd_atom	   = props->max_qp_rd_atom * props->max_qp;
+ 	props->max_srq_sge	   = max_rq_sg - 1;
+ 	props->max_fast_reg_page_list_len = (unsigned int)-1;
+-	props->atomic_cap	   = IB_ATOMIC_NONE;
++	get_atomic_caps(dev, props);
+ 	props->masked_atomic_cap   = IB_ATOMIC_NONE;
+ 	props->max_mcast_grp	   = 1 << MLX5_CAP_GEN(mdev, log_max_mcg);
+ 	props->max_mcast_qp_attach = MLX5_CAP_GEN(mdev, max_qp_mcg);
+@@ -1011,6 +1037,16 @@ static void get_ext_port_caps(struct mlx5_ib_dev *dev)
+ 		mlx5_query_ext_port_caps(dev, port);
+ }
  
- 	MLX5_SET(cmd_hca_cap, set_hca_cap, log_uar_page_sz, PAGE_SHIFT - 12);
- 
--	err = set_caps(dev, set_ctx, set_sz);
-+	err = set_caps(dev, set_ctx, set_sz,
-+		       MLX5_SET_HCA_CAP_OP_MOD_GENERAL_DEVICE);
- 
- query_ex:
- 	kfree(set_ctx);
-@@ -764,6 +811,12 @@ static int mlx5_dev_init(struct mlx5_core_dev *dev, struct pci_dev *pdev)
- 		goto reclaim_boot_pages;
++static void config_atomic_responder(struct mlx5_ib_dev *dev,
++				    struct ib_device_attr *props)
++{
++	enum ib_atomic_cap cap = props->atomic_cap;
++
++	if (cap == IB_ATOMIC_HCA ||
++	    cap == IB_ATOMIC_GLOB)
++		dev->enable_atomic_resp = 1;
++}
++
+ static int get_port_caps(struct mlx5_ib_dev *dev)
+ {
+ 	struct ib_device_attr *dprops = NULL;
+@@ -1033,6 +1069,8 @@ static int get_port_caps(struct mlx5_ib_dev *dev)
+ 		goto out;
  	}
  
-+	err = handle_hca_cap_atomic(dev);
-+	if (err) {
-+		dev_err(&pdev->dev, "handle_hca_cap_atomic failed\n");
-+		goto reclaim_boot_pages;
++	config_atomic_responder(dev, dprops);
++
+ 	for (port = 1; port <= MLX5_CAP_GEN(dev->mdev, num_ports); port++) {
+ 		err = mlx5_ib_query_port(&dev->ib_dev, port, pprops);
+ 		if (err) {
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 6333472..80664fe 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -423,6 +423,7 @@ struct mlx5_ib_dev {
+ 	struct mlx5_mr_cache		cache;
+ 	struct timer_list		delay_timer;
+ 	int				fill_delay;
++	int				enable_atomic_resp;
+ #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+ 	struct ib_odp_caps	odp_caps;
+ 	/*
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 307bdbc..e65703e 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -1669,6 +1669,14 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 				cpu_to_be32(fls(attr->max_dest_rd_atomic - 1) << 21);
+ 	}
+ 
++	if ((attr_mask & IB_QP_ACCESS_FLAGS) &&
++	    (attr->qp_access_flags & IB_ACCESS_REMOTE_ATOMIC) &&
++	    !dev->enable_atomic_resp) {
++		mlx5_ib_warn(dev, "atomic responder is not supported\n");
++		err = -EINVAL;
++		goto out;
 +	}
 +
- 	err = mlx5_satisfy_startup_pages(dev, 0);
- 	if (err) {
- 		dev_err(&pdev->dev, "failed to allocate init pages\n");
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index dd20974..3da1951 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -67,6 +67,11 @@ enum {
+ 	if (attr_mask & (IB_QP_ACCESS_FLAGS | IB_QP_MAX_DEST_RD_ATOMIC))
+ 		context->params2 |= to_mlx5_access_flags(qp, attr, attr_mask);
+ 
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 8b6d6f2..4c5a7e6 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -115,6 +115,11 @@ enum {
+ 	MLX5_REG_HOST_ENDIANNESS = 0x7004,
  };
  
- enum {
-+	MLX5_SET_HCA_CAP_OP_MOD_GENERAL_DEVICE        = 0x0,
-+	MLX5_SET_HCA_CAP_OP_MOD_ATOMIC                = 0x3,
++enum {
++	MLX5_ATOMIC_OPS_CMP_SWAP	= 1 << 0,
++	MLX5_ATOMIC_OPS_FETCH_ADD	= 1 << 1,
 +};
 +
-+enum {
- 	MLX5_CMD_OP_QUERY_HCA_CAP                 = 0x100,
- 	MLX5_CMD_OP_QUERY_ADAPTER                 = 0x101,
- 	MLX5_CMD_OP_INIT_HCA                      = 0x102,
-@@ -525,21 +530,24 @@ enum {
- struct mlx5_ifc_atomic_caps_bits {
- 	u8         reserved_0[0x40];
- 
--	u8         atomic_req_endianness[0x1];
--	u8         reserved_1[0x1f];
-+	u8         atomic_req_8B_endianess_mode[0x2];
-+	u8         reserved_1[0x4];
-+	u8         supported_atomic_req_8B_endianess_mode_1[0x1];
- 
--	u8         reserved_2[0x20];
-+	u8         reserved_2[0x19];
- 
--	u8         reserved_3[0x10];
--	u8         atomic_operations[0x10];
-+	u8         reserved_3[0x20];
- 
- 	u8         reserved_4[0x10];
--	u8         atomic_size_qp[0x10];
-+	u8         atomic_operations[0x10];
- 
- 	u8         reserved_5[0x10];
-+	u8         atomic_size_qp[0x10];
-+
-+	u8         reserved_6[0x10];
- 	u8         atomic_size_dc[0x10];
- 
--	u8         reserved_6[0x720];
-+	u8         reserved_7[0x720];
- };
- 
- struct mlx5_ifc_odp_cap_bits {
+ enum mlx5_page_fault_resume_flags {
+ 	MLX5_PAGE_FAULT_RESUME_REQUESTOR = 1 << 0,
+ 	MLX5_PAGE_FAULT_RESUME_WRITE	 = 1 << 1,
 -- 
 1.8.3.1
 
