@@ -1,50 +1,43 @@
 From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH 06/37] IB/rdmavt: Add query and modify device stubs
-Date: Tue, 8 Dec 2015 09:29:15 +0200
-Message-ID: <20151208072915.GG7313@leon.nu>
+Subject: Re: [PATCH 07/37] IB/rdmavt: Add query and modify port stubs
+Date: Tue, 8 Dec 2015 10:06:11 +0200
+Message-ID: <20151208080611.GH7313@leon.nu>
 References: <20151207204046.8144.18752.stgit@phlsvslse11.ph.intel.com>
- <20151207204322.8144.60452.stgit@phlsvslse11.ph.intel.com>
- <1828884A29C6694DAF28B7E6B8A82373AAFE72C8@ORSMSX109.amr.corp.intel.com>
- <20151207213904.GA3113@obsidianresearch.com>
+ <20151207204327.8144.17959.stgit@phlsvslse11.ph.intel.com>
 Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20151207213904.GA3113-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20151207204327.8144.17959.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 07, 2015 at 02:39:04PM -0700, Jason Gunthorpe wrote:
-> On Mon, Dec 07, 2015 at 09:26:11PM +0000, Hefty, Sean wrote:
-> > > +static int rvt_query_device(struct ib_device *ibdev,
-> > > +			    struct ib_device_attr *props,
-> > > +			    struct ib_udata *uhw)
-> > > +{
-> > > +	/*
-> > > +	 * Return rvt_dev_info.props contents
-> > > +	 */
-> > > +	return -EINVAL;
-> > 
-> > ENOSYS on all of the function templates.  This and subsequent patches.
-> 
-> We recently had a long discussion about what the correct answer here
-> is.
-> 
-> ENOSYS and EINVAL are both wrong for different reasons.. Can't recall
-> if something else was settled on? I think I was suggesting one of the
-> ENOTSUP varients?
-You suggested EOPNOTSUPP [1]
+On Mon, Dec 07, 2015 at 03:43:28PM -0500, Dennis Dalessandro wrote:
+> +/**
+> + * rvt_query_port: Passes the query port call to the driver
+> + * ibdev: Verbs IB dev
+> + * port: port number
+> + * props: structure to hold returned properties
+> + *
+> + * Returns 0 on success
+> + */
+...
 
-[1] http://www.spinics.net/lists/linux-rdma/msg30176.html
-> 
-> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +/**
+> + * rvt_modify_port
+> + * @ibdev: Verbs IB dev
+> + * @port: Port number
+> + * @port_modify_mask: How to change the port
+> + * @props: Structure to fill in
+> + *
+> + * Returns 0 on success
+> + */
+
+The comments are different in their format: one start from @ for
+variables and another without @.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
