@@ -1,58 +1,37 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/6] SRP initiator related bug fixes
-Date: Mon, 7 Dec 2015 14:07:40 -0800
-Message-ID: <5666032C.4090803@sandisk.com>
-References: <565DE3EC.2070002@sandisk.com> <5665DD50.5090906@sandisk.com>
- <5665F502.5020305@redhat.com>
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: Re: [PATCH 02/37] IB/rdmavt: Consolidate dma ops in rdmavt.
+Date: Tue, 8 Dec 2015 08:08:21 +0200
+Message-ID: <20151208060821.GD7313@leon.nu>
+References: <20151207204046.8144.18752.stgit@phlsvslse11.ph.intel.com>
+ <20151207204305.8144.7038.stgit@phlsvslse11.ph.intel.com>
+Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5665F502.5020305-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20151207204305.8144.7038.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/07/2015 01:07 PM, Doug Ledford wrote:
-> On 12/07/2015 02:26 PM, Bart Van Assche wrote:
->> On 12/01/2015 10:16 AM, Bart Van Assche wrote:
->>> This patch series contains six bug fixes either for the SRP initiator
->>> itself or for IB core functionality used by the SRP initiator. The order
->>> of these patches matches the order in which the corresponding bugs have
->>> been introduced. The patches in this series are:
->>>
->>> 0001-IB-srp-Fix-a-memory-leak.patch
->>> 0002-IB-srp-Fix-possible-send-queue-overflow.patch
->>> 0003-IB-srp-Initialize-dma_length-in-srp_map_idb.patch
->>> 0004-IB-srp-Fix-indirect-data-buffer-rkey-endianness.patch
->>> 0005-IB-core-Fix-ib_sg_to_pages.patch
->>> 0006-IB-srp-Fix-srp_map_sg_fr.patch
->>
->> (replying to my own e-mail)
->>
->> Hello Doug,
->>
->> A consensus has been achieved about this patch series. Since one of the
->> patches in this series fixes a data corruption bug that has been
->> introduced during the latest (v4.4) merge window I'd like to see these
->> patches upstream soon. Please recommend how I should proceed. When I
->> repost this patch series, should I send it to you, to Linus or perhaps
->> to someone else ?
->
-> I was just getting ready to pull this set in.  The only one you actually
-> changed, and therefore needs either a resubmit or I have to be careful
-> to get the follow-on version in Patchworks is 5/6, yes?
+On Mon, Dec 07, 2015 at 03:43:06PM -0500, Dennis Dalessandro wrote:
+> +
+> +#define BAD_DMA_ADDRESS ((u64)0)
+What is the advantage in using directly u64 values instead of
+pointers? You will get NULL and functions which return pointers
+without need of casting.
 
-Hello Doug,
-
-You are correct, only for patch 5 the patch itself has been modified. 
-The only change for the other patches is that Reviewed-by tags have been 
-posted on the list.
-
-Thanks,
-
-Bart.
+...
+> +static u64 rvt_dma_map_single(struct ib_device *dev, void *cpu_addr,
+> +			      size_t size, enum dma_data_direction direction)
+> +{
+> +	if (WARN_ON(!valid_dma_direction(direction)))
+> +		return BAD_DMA_ADDRESS;
+> +
+> +	return (u64)cpu_addr;
+> +}
+An example of such function.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
