@@ -1,48 +1,35 @@
-From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v2 4/5] staging/rdma/hfi1: Detect SDMA transmission error early
-Date: Tue,  8 Dec 2015 17:10:12 -0500
-Message-ID: <1449612613-6616-5-git-send-email-ira.weiny@intel.com>
-References: <1449612613-6616-1-git-send-email-ira.weiny@intel.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: device attr cleanup (was: Handle mlx4 max_sge_rd correctly)
+Date: Wed, 9 Dec 2015 00:47:55 +0200
+Message-ID: <CAJ3xEMhaEnv9He7N5q8fFsRzy_j27wdE6KWSFF39UzA680udwA@mail.gmail.com>
+References: <CAJ3xEMj2EOxX1CiA93MPOsM-FdU9ijcWCYm9tObbkLqqja0PoA@mail.gmail.com>
+	<566753E3.9060301@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1449612613-6616-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <566753E3.9060301-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Wed, Dec 9, 2015 at 12:04 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> Makes sense.
 
-It is possible for an SDMA transmission error to happen
-during the processing of an user SDMA transfer. In that
-case it is better to detect it early and abort any further
-attempts to send more packets.
+thanks.
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/staging/rdma/hfi1/user_sdma.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+> Show me what you are talking about (either a link to Ira's
+> patch you are referring to or your own patch).
 
-diff --git a/drivers/staging/rdma/hfi1/user_sdma.c b/drivers/staging/rdma/hfi1/user_sdma.c
-index 060c2200757d..3033df5596f3 100644
---- a/drivers/staging/rdma/hfi1/user_sdma.c
-+++ b/drivers/staging/rdma/hfi1/user_sdma.c
-@@ -782,6 +782,12 @@ static int user_sdma_send_pkts(struct user_sdma_request *req, unsigned maxpkts)
- 
- 	pq = req->pq;
- 
-+	/* If tx completion has reported an error, we are done. */
-+	if (test_bit(SDMA_REQ_HAS_ERROR, &req->flags)) {
-+		set_bit(SDMA_REQ_DONE_ERROR, &req->flags);
-+		return -EFAULT;
-+	}
-+
- 	/*
- 	 * Check if we might have sent the entire request already
- 	 */
--- 
-1.8.2
+The patch is three liner to add the cached attrs --
+http://marc.info/?l=linux-rdma&m=142309296813985&w=2 -- if you are OK
+with that, I will add a 2nd patch that ports all ULPs to use the
+cached copy instead of their code which does the query.
 
+Actually, why not start with this approach and later decide if we need
+to go further of this is enough?
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
