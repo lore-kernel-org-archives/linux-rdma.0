@@ -1,34 +1,41 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: device attr cleanup (was: Handle mlx4 max_sge_rd correctly)
-Date: Tue, 8 Dec 2015 15:02:44 -0800
-Message-ID: <20151208230244.GA10701@infradead.org>
-References: <CAJ3xEMj2EOxX1CiA93MPOsM-FdU9ijcWCYm9tObbkLqqja0PoA@mail.gmail.com>
- <566753E3.9060301@redhat.com>
- <CAJ3xEMhaEnv9He7N5q8fFsRzy_j27wdE6KWSFF39UzA680udwA@mail.gmail.com>
- <20151208225940.GB27609@obsidianresearch.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 01/37] IB/rdmavt: Create module framework and handle driver registration
+Date: Tue, 8 Dec 2015 18:06:13 -0500
+Message-ID: <20151208230612.GB14221@phlsvsds.ph.intel.com>
+References: <20151207204046.8144.18752.stgit@phlsvslse11.ph.intel.com> <20151207204300.8144.20089.stgit@phlsvslse11.ph.intel.com> <20151208055545.GC7313@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20151208225940.GB27609-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20151208055545.GC7313-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 08, 2015 at 03:59:40PM -0700, Jason Gunthorpe wrote:
-> Or, can we please stop this bikeshedding. Christoph's patch is done,
-> well tested and does a lot more clean up that this hacky three liner.
-> 
-> It is a good patch, and although patchworks doesn't have my remarks
-> from an earlier revision I still think it should go forward. 
+On Tue, Dec 08, 2015 at 07:55:45AM +0200, Leon Romanovsky wrote:
+>On Mon, Dec 07, 2015 at 03:43:02PM -0500, Dennis Dalessandro wrote:
+>> +#include <linux/module.h>
+>> +#include <linux/kernel.h>
+>> +#include "vt.h"
+>> +
+>> +#define RDMAVT_DRIVER_VERSION "0.1"
+>Do we really need driver version?
 
-While I'd prefer the version Or points to over not having anything
-at all I'd much prefer sorting it properly and make the RDMA code
-behave like all other Linux subsystems.
+Based on these patches thus far. Probably not. We do still have a bit more 
+development to go here, I added it more as a just in case but am not 
+steadfast in keeping it.
 
-Jason, can you give me a formal ACK'ed by and I'll rebase it on top
-of the current 4.4 queue so we could start the 4.5 window with it.
+What's the general rule here? Should we not assign a version if we aren't 
+explicitly doing anything with it yet, but may at some point?
+
+>
+>> +
+>> +MODULE_LICENSE("Dual BSD/GPL");
+>> +MODULE_DESCRIPTION("RDMA Verbs Transport Library");
+>> +MODULE_VERSION(RDMAVT_DRIVER_VERSION);
+>> +
+
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
