@@ -1,7 +1,7 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: 4.4's rdma plate
-Date: Tue, 8 Dec 2015 16:44:01 -0500
-Message-ID: <56674F21.8020702@redhat.com>
+Date: Tue, 8 Dec 2015 17:01:14 -0500
+Message-ID: <5667532A.1070202@redhat.com>
 References: <CAJ3xEMhniP7x3NCM51nCccB7wBiQfWiyqaeVm8cdx=SuotrHYQ@mail.gmail.com>
  <CAJ3xEMiF1xrwBb4B54HEJVWAds76i9oPkKx-ROf3tubeH6a8TA@mail.gmail.com>
  <561E510C.8060501@redhat.com>
@@ -14,7 +14,7 @@ References: <CAJ3xEMhniP7x3NCM51nCccB7wBiQfWiyqaeVm8cdx=SuotrHYQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="FKrv1RIBD8AgqT4KQkFuIIBuNv3pWuCFO"
+ boundary="xnBqMxbVbixT3qBuP6O5e41JQH7RLrcJ7"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <CAJ3xEMj397H-9Jrfk3K+MX92d6Q4gNA8w2tkKM6LytodPSbP-g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
@@ -23,7 +23,7 @@ Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---FKrv1RIBD8AgqT4KQkFuIIBuNv3pWuCFO
+--xnBqMxbVbixT3qBuP6O5e41JQH7RLrcJ7
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
@@ -37,33 +37,17 @@ te:
 >=20
 >>> a small mlx5 enhancement, Signed by Eli C. the driver maintainer
 >>> https://patchwork.kernel.org/patch/7454641
->=20
+
+I originally had bumped this one to 4.5.  As you say, it's an
+enhancement.  But, the particular issue is so simple, and can be
+considered buggy behavior (hogging the CPU when you shouldn't), that
+just adding a need_resched check I'll take.
+
 >>> two small mlx4 fixes, acked by me...
 >>> https://patchwork.kernel.org/patch/7348911/
 >>> https://patchwork.kernel.org/patch/7348871/
->=20
->> Yes, I know.  There are quite a few different things for mlx5.  I was
->> waiting on all of them until I knew that RoCEv2 was in as that gates
->> whether or not mlx5 RoCE can go in.
->=20
-> Doug,
->=20
-> So RoCEv2 didn't make it for 4.4, but still, the above are changes
-> touching driver only code and I don't see why they should be waiting
-> so long.
 
-I knew some of the mlx5 changes relied on the RoCEv2 stuff (such as mlx5
-RoCE support).  Others are larger in scope.  I tried to sort through the
-singletons on patchworks today and saw at least one which I opted not to
-take as it wasn't really a fix, it was a performance enhancement.  I'll
-look over the ones you linked above to make sure I didn't miss them.
-
-> Can we finally see them in a k.o branch of yours please? either for
-> your 4.4-rc pull or on 4.5 branch.
-
-I'm getting ready to put out the initial 4.5 branch.  I was only waiting
-on getting the last few 4.4-rc patches in so I can then merge that into
-the 4.5 base and go from there.
+I took these two.
 
 
 --=20
@@ -72,7 +56,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---FKrv1RIBD8AgqT4KQkFuIIBuNv3pWuCFO
+--xnBqMxbVbixT3qBuP6O5e41JQH7RLrcJ7
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -81,22 +65,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWZ08hAAoJELgmozMOVy/dNdgQAJRCMa6eUU+CiSy3ygMgoTFK
-VSzPhUQ9edPXFgR4RFSOSAR45Ta5veivwsvT7SyiSN13qGZALlb8rRaPOC05QfcB
-OE2K6uDTvSuJQAv3grW3ML34FBCQcUsFYwxCCrMuUjgCdlZszGIK54Rg4db0CJwZ
-dnoLjlXBzE6pfGupgGoRmz8vJGNBv27zN7DpToltWLucS+hhYExwaa5DfvQz4TKx
-48Xj9p6AJuE2U5oEIMGd++Ur1RAaVZ4/d58TFn4O6sp+j29mlnnMPSXvq1Ko3hsK
-2cCMYdvWk4qaj4a4IJVoVVI0RVW+lLerGdMzLtA3sjXe0+OBzpW+9OVXxnGz6o8G
-bzvBErP3Z5o7RDBnZmpz9W7jIGt90m82IOB/LN/W3ZhTKP4IS1v7r9PDDivxoLnk
-7BqmGZeFAQjE/WHCFugCZZoxXqPenTFv2dTIXV1/S9fuDKhFOFugFTPLulJkNUSR
-JI64fcjlQFu9Luy+/VqqkasTZzktc3VakZzHGfAJjHfwgBTbIxqVVANIp2OF8J3E
-zCGbKMHLtoJSE7To3ZrRP7W2oCVEJKu35y74DZ/g1ZAtSoc0Mk7pm7X0vUEBbc7F
-oAjuzUaEggQihEzZyYkaMqUjk0qvqJeW/s6+21ZOvHNI3eWhcuNRZnrZfogWffQG
-jHmsmFW38iyLHE/g6nj5
-=N1yc
+iQIcBAEBCAAGBQJWZ1MqAAoJELgmozMOVy/dvPcP/RnvNlub/cboNQVxe786y43g
+97qskRwT6wzE7rWcVi1EwZDR/E2IWB4mOrTkoNFHJBPmqVfm9Byt+BLEsnoZINwI
+6Wbwe3sbfYGkDtiWMZ4WqxxJC5ZqYcLdAPTPnAbUQLpQk/ZWkdDbU8sqQoSAl/eU
+S7qcVp1+8yUDDnXq31vA/rAOm3gqYgyfFigSb01tHt/ACk/7/pYRPq96BgIj7vu4
+p70ZZ8rlc2DxtS35qVlbKhOPHT0ULXq/kg9n1VBAOVcFLvItiWzvz5u2lVFCaivG
+dII0kxYEGScBeL9UmgcN7h/rRp/R+uYOhjKPiDvCryWdre/prbAuxdhXqIv5IZyb
+OA5beHNRGwDivLKn9ZzTXenxvAW2F0poAVOVJG28+cumbcuFrP4lTq2dmB/kX35d
+2wpzrtwP760tvQqXotmtjIdKm5i4UQMndhU51DZbCcTKti2KcClaUy2g8GpZFzmK
+XL21BDLAELtoVw90bm2Rq0yPBVqiFu8KcYlH+BcfXqc6zbZqQLWj5wIJFih6VDkn
+NsBKNVRZBDulUomD+pT/yZvTUySRE4cEOu5ql4lLI+OUkkv5o17qS6ODp3t0TOB/
+sPsBhWeV7jYdiCj8IUMzcVdgbITKLBIFduqOidjDdkG/4048iIj90h0nRMECzGWj
+iJ0CdQDeKvgM6sOFEnm4
+=Y1nJ
 -----END PGP SIGNATURE-----
 
---FKrv1RIBD8AgqT4KQkFuIIBuNv3pWuCFO--
+--xnBqMxbVbixT3qBuP6O5e41JQH7RLrcJ7--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
