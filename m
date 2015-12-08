@@ -1,30 +1,29 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC contig pages support 1/2] IB: Supports contiguous memory
- operations
-Date: Tue, 8 Dec 2015 10:15:42 -0700
-Message-ID: <20151208171542.GB13549@obsidianresearch.com>
-References: <1449587707-24214-1-git-send-email-yishaih@mellanox.com>
- <1449587707-24214-2-git-send-email-yishaih@mellanox.com>
- <20151208151852.GA6688@infradead.org>
+Subject: Re: [PATCH for-next 1/2] net/mlx5_core: Configure HW to support
+ atomic request in host endianness
+Date: Tue, 8 Dec 2015 10:17:57 -0700
+Message-ID: <20151208171757.GC13549@obsidianresearch.com>
+References: <1449593656-8437-1-git-send-email-eranbe@mellanox.com>
+ <1449593656-8437-2-git-send-email-eranbe@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20151208151852.GA6688-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <1449593656-8437-2-git-send-email-eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org
+To: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 08, 2015 at 07:18:52AM -0800, Christoph Hellwig wrote:
-> There is absolutely nothing IB specific here.  If you want to support
-> anonymous mmaps to allocate large contiguous pages work with the MM
-> folks on providing that in a generic fashion.
+On Tue, Dec 08, 2015 at 06:54:15PM +0200, Eran Ben Elisha wrote:
+> HW is capable of 2 requestor endianness modes for standard 8 Bytes
+> atomic: BE (0x0) and host endianness (0x1). Read the supported modes
+> from hca atomic capabilities and configure HW to host endianness mode if
+> supported.
 
-Yes please.
+Uh, isn't this a user visible thing?
 
-We already have huge page mmaps, how much win is had by going from
-huge page maps to this contiguous map?
+How will apps know if they need to swap or not?
 
 Jason
 --
