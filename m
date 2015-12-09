@@ -1,103 +1,62 @@
-From: Sagi Grimberg <sagig@mellanox.com>
-Subject: [PATCH v2 03/10] IB/iser: Don't register memory for all immediate data writes
-Date: Wed,  9 Dec 2015 14:12:01 +0200
-Message-ID: <1449663128-368-4-git-send-email-sagig@mellanox.com>
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v2 01/10] IB/iser: Fix module init not cleaning up on error flow
+Date: Wed,  9 Dec 2015 14:11:59 +0200
+Message-ID: <1449663128-368-2-git-send-email-sagig@mellanox.com>
 References: <1449663128-368-1-git-send-email-sagig@mellanox.com>
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1449663128-368-1-git-send-email-sagig@mellanox.com>
-Sender: target-devel-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
-Cc: Or Gerlitz <ogerlitz@mellanox.com>, Jenny Derzhavetz <jennyf@mellanox.com>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1449663128-368-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jenny Derzhavetz <jennyf@mellanox.com>
+From: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-When all the task data is sent as immediate data, we are
-allowed to use the local_dma_lkey as it is not sent to
-the wire.
+Destroy workqueue on transport register error, also
+release kmem cache on workqueue allocation error.
 
-Signed-off-by: Jenny Derzhavetz <jennyf@mellanox.com>
-Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
+Signed-off-by: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.h     |  3 ++-
- drivers/infiniband/ulp/iser/iser_initiator.c |  5 +++--
- drivers/infiniband/ulp/iser/iser_memory.c    | 13 +++++++++----
- 3 files changed, 14 insertions(+), 7 deletions(-)
+ drivers/infiniband/ulp/iser/iscsi_iser.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
-index 233ec0c2ae3d..7b5cf1332ddb 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.h
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
-@@ -650,7 +650,8 @@ void iser_finalize_rdma_unaligned_sg(struct iscsi_iser_task *iser_task,
- 				     enum iser_data_dir cmd_dir);
- 
- int iser_reg_rdma_mem(struct iscsi_iser_task *task,
--		      enum iser_data_dir dir);
-+		      enum iser_data_dir dir,
-+		      bool all_imm);
- void iser_unreg_rdma_mem(struct iscsi_iser_task *task,
- 			 enum iser_data_dir dir);
- 
-diff --git a/drivers/infiniband/ulp/iser/iser_initiator.c b/drivers/infiniband/ulp/iser/iser_initiator.c
-index ffd00c420729..07bf26427ee7 100644
---- a/drivers/infiniband/ulp/iser/iser_initiator.c
-+++ b/drivers/infiniband/ulp/iser/iser_initiator.c
-@@ -72,7 +72,7 @@ static int iser_prepare_read_cmd(struct iscsi_task *task)
- 			return err;
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
+index 9080161e01af..5e6c0bf1e84b 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.c
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
+@@ -1059,7 +1059,8 @@ static int __init iser_init(void)
+ 	release_wq = alloc_workqueue("release workqueue", 0, 0);
+ 	if (!release_wq) {
+ 		iser_err("failed to allocate release workqueue\n");
+-		return -ENOMEM;
++		err = -ENOMEM;
++		goto err_alloc_wq;
  	}
  
--	err = iser_reg_rdma_mem(iser_task, ISER_DIR_IN);
-+	err = iser_reg_rdma_mem(iser_task, ISER_DIR_IN, false);
- 	if (err) {
- 		iser_err("Failed to set up Data-IN RDMA\n");
- 		return err;
-@@ -126,7 +126,8 @@ iser_prepare_write_cmd(struct iscsi_task *task,
- 			return err;
+ 	iscsi_iser_scsi_transport = iscsi_register_transport(
+@@ -1067,12 +1068,14 @@ static int __init iser_init(void)
+ 	if (!iscsi_iser_scsi_transport) {
+ 		iser_err("iscsi_register_transport failed\n");
+ 		err = -EINVAL;
+-		goto register_transport_failure;
++		goto err_reg;
  	}
  
--	err = iser_reg_rdma_mem(iser_task, ISER_DIR_OUT);
-+	err = iser_reg_rdma_mem(iser_task, ISER_DIR_OUT,
-+				buf_out->data_len == imm_sz);
- 	if (err != 0) {
- 		iser_err("Failed to register write cmd RDMA mem\n");
- 		return err;
-diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index b7a2b88f48ce..62d0578388d3 100644
---- a/drivers/infiniband/ulp/iser/iser_memory.c
-+++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -190,7 +190,11 @@ iser_reg_dma(struct iser_device *device, struct iser_data_buf *mem,
- 	struct scatterlist *sg = mem->sg;
+ 	return 0;
  
- 	reg->sge.lkey = device->pd->local_dma_lkey;
--	reg->rkey = device->mr->rkey;
-+	/*
-+	 * FIXME: rework the registration code path to differentiate
-+	 * rkey/lkey use cases
-+	 */
-+	reg->rkey = device->mr ? device->mr->rkey : 0;
- 	reg->sge.addr = ib_sg_dma_address(device->ib_device, &sg[0]);
- 	reg->sge.length = ib_sg_dma_len(device->ib_device, &sg[0]);
+-register_transport_failure:
++err_reg:
++	destroy_workqueue(release_wq);
++err_alloc_wq:
+ 	kmem_cache_destroy(ig.desc_cache);
  
-@@ -495,7 +499,8 @@ iser_reg_data_sg(struct iscsi_iser_task *task,
- }
- 
- int iser_reg_rdma_mem(struct iscsi_iser_task *task,
--		      enum iser_data_dir dir)
-+		      enum iser_data_dir dir,
-+		      bool all_imm)
- {
- 	struct ib_conn *ib_conn = &task->iser_conn->ib_conn;
- 	struct iser_device *device = ib_conn->device;
-@@ -506,8 +511,8 @@ int iser_reg_rdma_mem(struct iscsi_iser_task *task,
- 	bool use_dma_key;
- 	int err;
- 
--	use_dma_key = (mem->dma_nents == 1 && !iser_always_reg &&
--		       scsi_get_prot_op(task->sc) == SCSI_PROT_NORMAL);
-+	use_dma_key = mem->dma_nents == 1 && (all_imm || !iser_always_reg) &&
-+		      scsi_get_prot_op(task->sc) == SCSI_PROT_NORMAL;
- 
- 	if (!use_dma_key) {
- 		desc = device->reg_ops->reg_desc_get(ib_conn);
+ 	return err;
 -- 
 1.8.4.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
