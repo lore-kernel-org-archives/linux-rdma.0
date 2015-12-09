@@ -1,7 +1,7 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 1/1] Ibacm: default pkey for partitioned fabrics
-Date: Wed, 9 Dec 2015 10:15:22 -0500
-Message-ID: <5668458A.7020809@dev.mellanox.co.il>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 1/1] Ibacm: default pkey for partitioned fabrics
+Date: Wed, 9 Dec 2015 16:26:04 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AAFE7F21@ORSMSX109.amr.corp.intel.com>
 References: <1449595982-20781-1-git-send-email-kaike.wan@intel.com>
  <56682392.5000302@dev.mellanox.co.il>
  <3F128C9216C9B84BB6ED23EF16290AFB185810A2@CRSMSX101.amr.corp.intel.com>
@@ -11,33 +11,41 @@ References: <1449595982-20781-1-git-send-email-kaike.wan@intel.com>
  <3F128C9216C9B84BB6ED23EF16290AFB18581111@CRSMSX101.amr.corp.intel.com>
  <56683C6C.7070106@dev.mellanox.co.il>
  <3F128C9216C9B84BB6ED23EF16290AFB185811ED@CRSMSX101.amr.corp.intel.com>
+ <5668458A.7020809@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <3F128C9216C9B84BB6ED23EF16290AFB185811ED-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <5668458A.7020809-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/9/2015 10:04 AM, Wan, Kaike wrote:
-> I mean that the user needs to investigate why the fabric is not working out of box. 
-
-My point is that an educated admin should _know_ to configure in these
-cases and that debug is only when things are broken not by default in
-these more complex cases. This means the limitations of the out of box
-approach needs to be explained in the docs.
-
-> This patch itself does not make configuration of the fabric harder.
-
-Agreed.
-
-> On the contrary, it relieves the user from having to configure ibacm on each node in those common cases.
-
-Agreed.
-
--- Hal
+PiA+IEkgbWVhbiB0aGF0IHRoZSB1c2VyIG5lZWRzIHRvIGludmVzdGlnYXRlIHdoeSB0aGUgZmFi
+cmljIGlzIG5vdCB3b3JraW5nDQo+IG91dCBvZiBib3guDQo+IA0KPiBNeSBwb2ludCBpcyB0aGF0
+IGFuIGVkdWNhdGVkIGFkbWluIHNob3VsZCBfa25vd18gdG8gY29uZmlndXJlIGluIHRoZXNlDQo+
+IGNhc2VzIGFuZCB0aGF0IGRlYnVnIGlzIG9ubHkgd2hlbiB0aGluZ3MgYXJlIGJyb2tlbiBub3Qg
+YnkgZGVmYXVsdCBpbg0KPiB0aGVzZSBtb3JlIGNvbXBsZXggY2FzZXMuIFRoaXMgbWVhbnMgdGhl
+IGxpbWl0YXRpb25zIG9mIHRoZSBvdXQgb2YgYm94DQo+IGFwcHJvYWNoIG5lZWRzIHRvIGJlIGV4
+cGxhaW5lZCBpbiB0aGUgZG9jcy4NCg0KV2hlbiBJUCBhZGRyZXNzZXMgYXJlIHVzZWQsIHRoZSBj
+b3JyZXNwb25kaW5nIHBrZXkgaXMgdXNlZC4gIFRoZSBpc3N1ZSB0aGlzIHBhdGNoIGlzIGFkZHJl
+c3NpbmcgaXMgdGhlIG1hcHBpbmcgb2YgJ2hvc3RuYW1lcycgdG8gcGtleXMsIGFzIHNob3cgaW4g
+dGhpcyBpYmFjbV9hZGRyLmNmZyBleGFtcGxlOg0KDQojTmFtZSAgICAgIGRldmljZSBwb3J0IHBr
+ZXkNCmNzdC1saW4wICAgbWx4NF8wIDEgICAgZGVmYXVsdA0KY3N0LWxpbjAtMSBtbHg0XzAgMSAg
+ICBkZWZhdWx0DQpjc3QtbGluMC0yIG1seDRfMCAyICAgIGRlZmF1bHQNCg0KQ3VycmVudGx5LCAn
+ZGVmYXVsdCcgaXMgaGFyZC1jb2RlZCB0byBhIHBrZXkgb2YgMHhmZmZmLiAgVGhlIGludGVudCBp
+cyB0byBkZWZpbmUgYSBiZXR0ZXIgZGVmYXVsdCB2YWx1ZS4gIEthaWtlIGhhcyBzdWdnZXN0ZWQg
+dGhpcyBiZSB0aGUgbmV3IGRlZmF1bHQ6DQoNCjEuIEZpbmQgdGhlIGZpcnN0IG5vbi1tYW5hZ2Vt
+ZW50IGZ1bGwtbWVtYmVyIHBrZXk7DQoyLiBJZiBpdCBmYWlscywgZmluZCBwa2V5IDB4ZmZmZjsN
+CjMuIElmIHBrZXkgMHhmZmZmIGlzIG5vdCBhdmFpbGFibGUsIHVzZSB0aGUgZmlyc3QgcGtleS4N
+Cg0KSXMgdGhlcmUgYmV0dGVyIGFsdGVybmF0aXZlIGZvciB3aGF0IGRlZmF1bHQgc2hvdWxkIGJl
+PyAgSmFzb24gd2FzIHN1Z2dlc3RpbmcgdXNlIHBrZXlbMF0sIHdoaWNoIHNlZW1zIGxlc3Mgcm9i
+dXN0IGluIHRoZW9yeSwgYnV0IGlzIHNpbXBsZSBhbmQgbWF5IGNvdmVyIHRoZSB2YXN0IG1ham9y
+aXR5IG9mIHJlYWwgdXNlIGNhc2VzLg0KDQpUaGUgZmV3ZXIgY2FzZXMgd2hlcmUgbWFudWFsIGNv
+bmZpZ3VyYXRpb24gaXMgbmVjZXNzYXJ5LCB0aGUgZmV3ZXIgZW1haWxzIEkgcmVjZWl2ZSwgYW5k
+IHRoZSBiZXR0ZXIgb2ZmIEkgYW0uICA6KQ0KDQotIFNlYW4NCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
