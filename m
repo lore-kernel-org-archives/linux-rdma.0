@@ -1,108 +1,40 @@
-From: Hans Westgaard Ry <hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Ping: [PATCH 1/1] Fix deadlock when running run_iter_bw_infinitely
-Date: Wed, 9 Dec 2015 09:33:11 +0100
-Message-ID: <5667E747.2070006@oracle.com>
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: Re: Ping: [PATCH 1/1] Fix deadlock when running
+ run_iter_bw_infinitely
+Date: Wed, 9 Dec 2015 10:52:45 +0200
+Message-ID: <20151209085245.GA8662@leon.nu>
 References: <1447849673-30034-1-git-send-email-hans.westgaard.ry@oracle.com>
+ <5667E747.2070006@oracle.com>
+Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1447849673-30034-1-git-send-email-hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5667E747.2070006-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Gil Rockah <gilr-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Hans Westgaard Ry <hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Gil Rockah <gilr-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Any comments on this patch ?
+On Wed, Dec 09, 2015 at 09:33:11AM +0100, Hans Westgaard Ry wrote:
+> Any comments on this patch ?
+> 
+> 
+> 
+> On 11/18/2015 01:27 PM, Hans Westgaard Ry wrote:
+> >The test uses a signal-handler to periodically print a line of report.
+> >+		if (trig_print_report_bw) {
+> >+			duration_param->tcompleted[0] =et_cycles();
+> >+			print_report_bw(duration_param,NULL);
+> >+			duration_param->iters =;
+Excuse me, what did you mean by the line above?
 
-
-
-On 11/18/2015 01:27 PM, Hans Westgaard Ry wrote:
-> The test uses a signal-handler to periodically print a line of report=
-=2E
-> Snip libc info:
-> <quote>
-> 24.4.6 Signal Handling and Nonreentrant Functions
-> Handler functions usually don't do very much.  The best practice is t=
-o
-> write a handler that does nothing but set an external variable that t=
-he
-> program checks regularly, and leave all serious work to the program.
-> </quote>
-> The current codebase violates the above and is deadlock prone.
-> The mutexes taken by the printf functions called from the signal hand=
-ler
-> might be held by activity conducted by the main thread.
->
-> This commit fixes this by setting a flag in the signal handler and ha=
-ndle the
-> printout in the mainloop of the test.
->
-> Signed-off-by: Hans Westgaard Ry <hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: H=C3=A5kon Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->   src/perftest_resources.c | 22 ++++++++++++++++------
->   1 file changed, 16 insertions(+), 6 deletions(-)
->
-> diff --git a/src/perftest_resources.c b/src/perftest_resources.c
-> index cb915e0..4d8e6c0 100755
-> --- a/src/perftest_resources.c
-> +++ b/src/perftest_resources.c
-> @@ -25,6 +25,12 @@ static enum ibv_wr_opcode opcode_atomic_array[] =3D=
-IBV_WR_ATOMIC_CMP_AND_SWP,IBV
->  =20
->   struct perftest_parameters* duration_param;
->   struct check_alive_data check_alive_data;
-> +/*
-> + * Flag to trig call to print_report_bw
-> + * The flag is set in signal_handler and tested/reset in run_iter_bw=
-_infinitely
-> + */
-> +static volatile int trig_print_report_bw =3D;
-> +
->  =20
->   /******************************************************************=
-************
->    * Beginning
-> @@ -3214,7 +3220,15 @@ int run_iter_bw_infinitely(struct pingpong_con=
-text *ctx,struct perftest_paramete
->  =20
->   	/* main loop for posting */
->   	while (1) {
-> -
-> +		if (trig_print_report_bw) {
-> +			duration_param->tcompleted[0] =3Det_cycles();
-> +			print_report_bw(duration_param,NULL);
-> +			duration_param->iters =3D;
-> +			alarm(duration_param->duration);
-> +			duration_param->tposted[0] =3Det_cycles();
-> +			trig_print_report_bw =3D;
-> +		}
-> +	=09
->   		/* main loop to run over all the qps and post each time n message=
-s */
->   		for (index =3D; index < num_of_qps ; index++) {
->  =20
-> @@ -4213,11 +4227,7 @@ void check_alive(int sig)
->    ******************************************************************=
-************/
->   void catch_alarm_infintely(int sig)
->   {
-> -	duration_param->tcompleted[0] =3Det_cycles();
-> -	print_report_bw(duration_param,NULL);
-> -	duration_param->iters =3D;
-> -	alarm(duration_param->duration);
-> -	duration_param->tposted[0] =3Det_cycles();
-> +	trig_print_report_bw =3D;
->   }
->  =20
->   /******************************************************************=
-************
+> >+			alarm(duration_param->duration);
+> >+			duration_param->tposted[0] =et_cycles();
+> >+			trig_print_report_bw =;
+And this line too.
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
