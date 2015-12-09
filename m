@@ -1,44 +1,50 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Subject: Re: [PATCH 1/1] Ibacm: default pkey for partitioned fabrics
-Date: Wed, 9 Dec 2015 07:51:30 -0500
-Message-ID: <566823D2.9010708@dev.mellanox.co.il>
+Date: Wed, 9 Dec 2015 07:51:46 -0500
+Message-ID: <566823E2.5090504@dev.mellanox.co.il>
 References: <1449595982-20781-1-git-send-email-kaike.wan@intel.com>
  <20151208212133.GC14378@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AAFE7BE2@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AAFE7BE2-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20151208212133.GC14378-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/8/2015 7:26 PM, Hefty, Sean wrote:
->>> +	 * Determine the default pkey for parsing address file as well.
->>> +	 *   order of preference: first full-member non-management pkey,
->>> +	 *   0xffff, first pkey.
->>> +	 */
+On 12/8/2015 4:21 PM, Jason Gunthorpe wrote:
+> On Tue, Dec 08, 2015 at 12:33:02PM -0500, kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+>> From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 >>
->> This really should just be the 0 index pkey, which exactly matches how
->> IPoIB determines the default pkey, which is what matters when talking
->> rdmacm..
+>> In an insecure IB fabric, the default pkey in a port is 0xffff, where each
+>> node is allowed to talk to any other node in the fabric, including the SA
+>> node. However, in a secure fabric, to limit member access, not all nodes
+>> can have the full-member default pkey 0xffff. A typical configuration is
+>> to let SA node have pkey 0xffff while all other nodes have pkey 0x7fff; in
+>> addition, each node can be assigned some other full-member pkeys, such as
+>> 0x8001 and 0x8002, so that it can be assigned to different partitions.
+>> In this case, each node can access SA, and yet limits its other access to
+>> only those nodes in its assigned partitions. In such a secure fabric,
+>> however, ibacm will not work by interpreting "default" in its default
+>> address file as 0xffff.
 > 
-> Ibacm currently hard-codes the 'default' pkey to 0xffff for ibacm <-> ibacm communication.   
-> If there's no disagreement to switching to pkey[0], I'm fine with that.  
+> ipoib always uses the 0 pkey index to create the default ipoib
+> interface. (see eg, update_parent_pkey)
 
-There's no IBA requirement that 0xffff pkey is always in index 0. It's
-only a requirement on device bootup with non volatile storage per C10-123.
+This is beyond IBA spec and is currently a linux convention for IPoIB.
+IMO it should be changed to search for this pkey rather than assume it's
+in index 0. There's no requirement that it be in index 0 other than at
+bootup with non volatile storage (C10-123).
 
-Furthermore, there's no requirement that 0xffff pkey is present in the
-table. It may be that there's only 0x7fff pkey.
+> When operating securely the SA should place the pkey for default ipoib
+> operation in pkey index 0, and place 0x7FFF in another index. I run
+> alot of networks exactly like this and it works very well.
 
-> I did not realize that ipoib uses this same default.
-
-I think this is a problem in limiting partition use and should be
-changed. Rather than assuming index 0, pkey table should be searched for
-this pkey.
+Yes, it can run that way but more secure is without the full default
+pkey. When full default pkey is in every port, the rest of the
+partitioning doesn't really matter...
 
 -- Hal
 --
