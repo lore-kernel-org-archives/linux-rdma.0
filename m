@@ -1,169 +1,121 @@
 From: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libmlx5] Add support for standard atomic operations
-Date: Wed,  9 Dec 2015 16:24:06 +0200
-Message-ID: <1449671047-17834-1-git-send-email-eranbe@mellanox.com>
+Subject: [PATCH libmlx5] Fix use of uninitialized struct ibv_qp at struct mlx5_qp
+Date: Wed,  9 Dec 2015 16:24:07 +0200
+Message-ID: <1449671047-17834-2-git-send-email-eranbe@mellanox.com>
+References: <1449671047-17834-1-git-send-email-eranbe@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1449671047-17834-1-git-send-email-eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+The current state was use of mlx5_qp->ibv_qp which was uninitiallized.
+
 Signed-off-by: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-Hi Eli,
-Added here support for atomic standard operations.
-Kernel part of query_device was sent to the mailing list also.
-Obviously, it will functionality work only with kernel patches applied.
+ src/cq.c    | 2 +-
+ src/mlx5.h  | 2 +-
+ src/qp.c    | 8 ++++----
+ src/verbs.c | 5 +++--
+ 4 files changed, 9 insertions(+), 8 deletions(-)
 
-Thanks,
-Eran
- src/mlx5.c  |  8 ++++++++
- src/mlx5.h  |  2 ++
- src/qp.c    | 50 +++++++++++++++++++++++++++++++++++++++++++++-----
- src/verbs.c |  2 ++
- 4 files changed, 57 insertions(+), 5 deletions(-)
-
-diff --git a/src/mlx5.c b/src/mlx5.c
-index e44898a..078ac8a 100644
---- a/src/mlx5.c
-+++ b/src/mlx5.c
-@@ -472,6 +472,8 @@ static int mlx5_init_context(struct verbs_device *vdev,
- 	off_t				offset;
- 	struct mlx5_device	       *mdev;
- 	struct verbs_context	       *v_ctx;
-+	struct ibv_device_attr		attr;
-+	int				err;
- 
- 	mdev = to_mdev(&vdev->device);
- 	v_ctx = verbs_get_ctx(ctx);
-@@ -585,6 +587,12 @@ static int mlx5_init_context(struct verbs_device *vdev,
- 	verbs_set_ctx_op(v_ctx, get_srq_num, mlx5_get_srq_num);
- 	verbs_set_ctx_op(v_ctx, query_device_ex, mlx5_query_device_ex);
- 
-+	err = mlx5_query_device(ctx, &attr);
-+	if (err)
-+		goto err_free_bf;
-+
-+	context->atomic_cap = attr.atomic_cap;
-+
- 	return 0;
- 
- err_free_bf:
+diff --git a/src/cq.c b/src/cq.c
+index 63c3ab0..231b278 100644
+--- a/src/cq.c
++++ b/src/cq.c
+@@ -413,7 +413,7 @@ static int mlx5_poll_one(struct mlx5_cq *cq,
+ 				return CQ_POLL_ERR;
+ 		}
+ 	} else {
+-		if (!*cur_qp || (qpn != (*cur_qp)->ibv_qp.qp_num)) {
++		if (!*cur_qp || (qpn != (*cur_qp)->ibv_qp->qp_num)) {
+ 			/*
+ 			 * We do not have to take the QP table lock here,
+ 			 * because CQs will be locked while QPs are removed
 diff --git a/src/mlx5.h b/src/mlx5.h
-index 9181ec5..704a922 100644
+index 92ef33d..9181ec5 100644
 --- a/src/mlx5.h
 +++ b/src/mlx5.h
-@@ -282,6 +282,7 @@ struct mlx5_context {
- 	char				hostname[40];
- 	struct mlx5_spinlock            hugetlb_lock;
- 	struct list_head                hugetlb_list;
-+	enum ibv_atomic_cap             atomic_cap;
- };
+@@ -393,7 +393,7 @@ struct mlx5_mr {
  
- struct mlx5_bitmap {
-@@ -405,6 +406,7 @@ struct mlx5_qp {
- 	uint32_t                       *db;
- 	struct mlx5_wq                  rq;
- 	int                             wq_sig;
-+	int				atomics_enabled;
- };
- 
- struct mlx5_av {
+ struct mlx5_qp {
+ 	struct verbs_qp			verbs_qp;
+-	struct ibv_qp			ibv_qp;
++	struct ibv_qp		       *ibv_qp;
+ 	struct mlx5_buf                 buf;
+ 	int                             max_inline_data;
+ 	int                             buf_size;
 diff --git a/src/qp.c b/src/qp.c
-index 67ded0d..841788c 100644
+index eeb0c92..67ded0d 100644
 --- a/src/qp.c
 +++ b/src/qp.c
-@@ -180,6 +180,20 @@ static inline void set_raddr_seg(struct mlx5_wqe_raddr_seg *rseg,
- 	rseg->reserved = 0;
- }
+@@ -104,7 +104,7 @@ int mlx5_copy_to_send_wqe(struct mlx5_qp *qp, int idx, void *buf, int size)
  
-+static void set_atomic_seg(struct mlx5_wqe_atomic_seg *aseg,
-+			   enum ibv_wr_opcode   opcode,
-+			   uint64_t swap,
-+			   uint64_t compare_add)
-+{
-+	if (opcode == IBV_WR_ATOMIC_CMP_AND_SWP) {
-+		aseg->swap_add = htonll(swap);
-+		aseg->compare  = htonll(compare_add);
-+	} else {
-+		aseg->swap_add = htonll(compare_add);
-+		aseg->compare  = 0;
-+	}
-+}
-+
- static void set_datagram_seg(struct mlx5_wqe_datagram_seg *dseg,
- 			     struct ibv_send_wr *wr)
+ 	idx &= (qp->sq.wqe_cnt - 1);
+ 	ctrl = mlx5_get_send_wqe(qp, idx);
+-	if (qp->ibv_qp.qp_type != IBV_QPT_RC) {
++	if (qp->ibv_qp->qp_type != IBV_QPT_RC) {
+ 		fprintf(stderr, "scatter to CQE is supported only for RC QPs\n");
+ 		return IBV_WC_GENERAL_ERR;
+ 	}
+@@ -353,7 +353,7 @@ int mlx5_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 		}
+ 
+ 		if (unlikely(mlx5_wq_overflow(&qp->sq, nreq,
+-					      to_mcq(qp->ibv_qp.send_cq)))) {
++					      to_mcq(qp->ibv_qp->send_cq)))) {
+ 			mlx5_dbg(fp, MLX5_DBG_QP_SEND, "work queue overflow\n");
+ 			errno = ENOMEM;
+ 			err = -1;
+@@ -537,7 +537,7 @@ static void set_sig_seg(struct mlx5_qp *qp, struct mlx5_rwqe_sig *sig,
+ 			int size, uint16_t idx)
  {
-@@ -336,6 +350,7 @@ int mlx5_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
- 	void *qend = qp->sq.qend;
- 	uint32_t mlx5_opcode;
- 	struct mlx5_wqe_xrc_seg *xrc;
-+	int atom_arg = 0;
- #ifdef MLX5_DEBUG
- 	FILE *fp = to_mctx(ibqp->context)->dbg_fp;
- #endif
-@@ -405,10 +420,25 @@ int mlx5_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 	uint8_t  sign;
+-	uint32_t qpn = qp->ibv_qp.qp_num;
++	uint32_t qpn = qp->ibv_qp->qp_num;
  
- 			case IBV_WR_ATOMIC_CMP_AND_SWP:
- 			case IBV_WR_ATOMIC_FETCH_AND_ADD:
--				fprintf(stderr, "atomic operations are not supported yet\n");
--				err = ENOSYS;
--				*bad_wr = wr;
--				goto out;
-+				if (unlikely(!qp->atomics_enabled)) {
-+					mlx5_dbg(fp, MLX5_DBG_QP_SEND, "atomic operations are not supported\n");
-+					err = ENOSYS;
-+					*bad_wr = wr;
-+					goto out;
-+				}
-+				set_raddr_seg(seg, wr->wr.atomic.remote_addr,
-+					      wr->wr.atomic.rkey);
-+				seg  += sizeof(struct mlx5_wqe_raddr_seg);
-+
-+				set_atomic_seg(seg, wr->opcode,
-+					       wr->wr.atomic.swap,
-+					       wr->wr.atomic.compare_add);
-+				seg  += sizeof(struct mlx5_wqe_atomic_seg);
-+
-+				size += (sizeof(struct mlx5_wqe_raddr_seg) +
-+				sizeof(struct mlx5_wqe_atomic_seg)) / 16;
-+				atom_arg = 8;
-+				break;
+ 	sign = calc_sig(sig, size);
+ 	sign ^= calc_sig(&qpn, 4);
+@@ -562,7 +562,7 @@ int mlx5_post_recv(struct ibv_qp *ibqp, struct ibv_recv_wr *wr,
  
- 			default:
- 				break;
-@@ -462,7 +492,17 @@ int mlx5_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
- 					dpseg = seg;
- 				}
- 				if (likely(wr->sg_list[i].length)) {
--					set_data_ptr_seg(dpseg, wr->sg_list + i);
-+					struct ibv_sge sge;
-+					struct ibv_sge *psge;
-+
-+					if (unlikely(atom_arg)) {
-+						sge = wr->sg_list[i];
-+						sge.length = atom_arg;
-+						psge = &sge;
-+					} else {
-+						psge = wr->sg_list + i;
-+					}
-+					set_data_ptr_seg(dpseg, psge);
- 					++dpseg;
- 					size += sizeof(struct mlx5_wqe_data_seg) / 16;
- 				}
+ 	for (nreq = 0; wr; ++nreq, wr = wr->next) {
+ 		if (unlikely(mlx5_wq_overflow(&qp->rq, nreq,
+-					      to_mcq(qp->ibv_qp.recv_cq)))) {
++					      to_mcq(qp->ibv_qp->recv_cq)))) {
+ 			errno = ENOMEM;
+ 			*bad_wr = wr;
+ 			err = -1;
 diff --git a/src/verbs.c b/src/verbs.c
-index 8cbdd68..f96790b 100644
+index b99c8df..8cbdd68 100644
 --- a/src/verbs.c
 +++ b/src/verbs.c
-@@ -1001,6 +1001,8 @@ struct ibv_qp *create_qp(struct ibv_context *context,
- 	qp->db[MLX5_RCV_DBR] = 0;
- 	qp->db[MLX5_SND_DBR] = 0;
+@@ -822,7 +822,7 @@ static int mlx5_alloc_qp_buf(struct ibv_context *context,
+ 	}
  
-+	if (ctx->atomic_cap == IBV_ATOMIC_HCA)
-+		qp->atomics_enabled = 1;
+ 	/* compatability support */
+-	qp_huge_key  = qptype2key(qp->ibv_qp.qp_type);
++	qp_huge_key  = qptype2key(qp->ibv_qp->qp_type);
+ 	if (mlx5_use_huge(qp_huge_key))
+ 		default_alloc_type = MLX5_ALLOC_TYPE_HUGE;
  
- 	pthread_mutex_lock(&ctx->qp_table_mutex);
+@@ -860,7 +860,7 @@ ex_wrid:
+ 
+ static void mlx5_free_qp_buf(struct mlx5_qp *qp)
+ {
+-	struct mlx5_context *ctx = to_mctx(qp->ibv_qp.context);
++	struct mlx5_context *ctx = to_mctx(qp->ibv_qp->context);
+ 
+ 	mlx5_free_actual_buf(ctx, &qp->buf);
+ 	if (qp->rq.wrid)
+@@ -968,6 +968,7 @@ struct ibv_qp *create_qp(struct ibv_context *context,
+ 		return NULL;
+ 	}
+ 	ibqp = (struct ibv_qp *)&qp->verbs_qp;
++	qp->ibv_qp = ibqp;
+ 
+ 	qp->wq_sig = qp_sig_enabled();
  
 -- 
 1.8.3.1
