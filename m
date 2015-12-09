@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: [PATCH for-next V2 05/11] IB/core: Add rdma_network_type to wc
-Date: Wed, 9 Dec 2015 11:01:29 -0700
-Message-ID: <20151209180129.GD31636@obsidianresearch.com>
+Date: Wed, 9 Dec 2015 11:09:20 -0700
+Message-ID: <20151209180920.GE31636@obsidianresearch.com>
 References: <20151207060241.GA19038@obsidianresearch.com>
  <CAG9sBKO0rsSQK1WcyBciZEONWJsusw9GwR19H7FfAsebEH63dg@mail.gmail.com>
  <20151207063415.GB20066@obsidianresearch.com>
@@ -11,90 +11,54 @@ References: <20151207060241.GA19038@obsidianresearch.com>
  <20151207184832.GA21402@obsidianresearch.com>
  <CAG9sBKNWMQA3XDGpDc_+2QoJcnnNL9o67p0JNoVqrU0u9UQCrA@mail.gmail.com>
  <20151208225251.GA27609@obsidianresearch.com>
- <CAG9sBKM2s9BMv8priCHnFaMcSnuafn4vf+6+0Rooc6Gw0ZSaLA@mail.gmail.com>
+ <HE1PR05MB1418B1F0F393AD0D92424043B1E80@HE1PR05MB1418.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAG9sBKM2s9BMv8priCHnFaMcSnuafn4vf+6+0Rooc6Gw0ZSaLA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <HE1PR05MB1418B1F0F393AD0D92424043B1E80-eBadYZ65MZ87O8BmmlM1zNqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+To: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 09, 2015 at 11:34:10AM +0200, Moni Shoua wrote:
-> > Eh? I think you've missed the point, there is no net device when
-> > looking at a wc.
-> >
-> > Look, here is a concrete direction:
-> >
-> > Replace all the crap in
-> > ib_init_ah_from_wc/get_sgid_index_from_eth/rdma_addr_find_dmac_by_grh
-> >
-> > with a straightforward
-> >
-> >    rdma_dgid_index_from_wc(
-> >                         const struct ib_qp *qp,
-> >                         const struct ib_wc *wc,
-> >                         const struct ib_grh *grh,
-> >                         u16 *gid_index)
-> >
-> > Sort of function that reads the GRH and wc and returns the unambiguous
-> > gid index that was used to receive that packet on the UD QP.
-> >
-> 
-> I already answered this to but I'll do it again
-> RoCEv2 spec says that L3 header will be scattered to receive WQE in
-> the following way
-> IPv6 and RoCEv1 - 40 bytes of the L3 header (GRH or IPv6) to the first
-> 40 bytes of the receive bufs
-> IPv4 - 20 bytes of the L3 header to the second half of the first 40
-> bytes of the receive bufs. The first 20 bytes remain undefined.
-> 
-> Now, if you think how you deduce network_type from GRH you'll see that
-> it requires tools like checksum validation and other validations and
-> you end up with a method that is not 100% error free. So,to eliminate
-> the need for heavy computation (with regards to the other option) and
-> be free from false deductions you have the option of getting
-> network_type from the hardware. So, if you do have hardware that
-> supports it why give it up?
+On Wed, Dec 09, 2015 at 09:38:21AM +0000, Liran Liss wrote:
 
-I understand how it works.
+> > But, it is not part of our verbs API, and I'd *strongly* encourage other
+> > vendors and future hardware to simply return the gid index that the
+> > hardware matched instead of requiring the software to try and guess after
+> > the fact.
+ 
+> You are pushing abstraction into provider code instead of handling it in a generic way.
 
->From an API perspective, I want to see something that can be used
-*correctly* and that means more along the lines of
-rdma_dgid_index_from_wc and not what is proposed in this series.
+No, I am defining an API that *make sense* and doesn't leak useless
+details. Of course that doesn't force code duplication or anyhting
+like that, just implement it smartly.
 
-That means not exposing the callers to this awful mess.
+I think mlx made a big mistake returning network_type instead of gid
+index, and I don't want to see that error enshrined in our API.
 
-> > That said, I wouldn't object to vendor-specific bits in the wc. Ie if
-> > mlx hardware needs a network_type bit to implement
-> > rdma_find_dgid_index_from_wc, then fine - define a vendor specific
-> > place to put it. In this case rdma_find_dgid_index_from_wc would be a
-> > driver call back, which is fine, and what Caitlin was talking about.
-> 
-> This is not a Mellanox specific flag. See a quote from the spec
->
-> A17.4.5.1 UD COMPLETION QUEUE ENTRIES (CQES)
-> For UD, the Completion Queue Entry (CQE) includes remote address
-> information (InfiniBand Specification Vol. 1 Rev 1.2.1 Section
-> 11.4.2.1). For RoCEv2, the remote address information comprises the
-> source L2 Address and a flag that indicates if the received frame is
-> an IPv4, IPv6 or RoCE packet.
+> The Verbs are a low-level API, that should report exactly what was
+> received from the wire.  In the RoCEv2 case, it should be the GID/IP
+> addresses and the protocol type.  The addressing information is not
+> intended to be used directly by applications; it is the raw bits
+> that were accepted from the wire.
 
-rdma_dgid_index_from_wc satisfies the above spec requirements without
-creating a horrible API, or requiring all vendors to implement a
-network type flag.
+Low level details isn't what any in kernel consumer needs. Everything
+in kernel needs the gid index to determine the namespace, routing and
+other details. It is not optional. A common API is thus needed to do
+this conversion.
 
-> > But, it is not part of our verbs API, and I'd *strongly* encourage
-> > other vendors and future hardware to simply return the gid index that
-> > the hardware matched instead of requiring the software to try and
-> > guess after the fact.
-> 
-> Could be problematic for virtual machine architectures that give a
-> portion of the entire GID table to a VM that index it 0..N
+API-wise, once you get the gid index then it is trivial to make easy
+extractors for everything else. ie for example:
+rdma_get_ud_src_sockaddr(gid_index,&addr,wc,grh)
+rdma_get_ud_dst_sockaddr(gid_index,&addr,wc,grh)
 
-I doubt it.
+> ib_init_ah_from_wc() and friends is exactly the place that you want
+> to create an address handle based on completion and packet fields.
+
+CMA needs exactly the same logic as well, the fact it doesn't have it
+is a bug in this series.
 
 Jason
 --
