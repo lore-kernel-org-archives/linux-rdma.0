@@ -1,58 +1,46 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 1/1] Ibacm: default pkey for partitioned fabrics
-Date: Wed, 9 Dec 2015 10:46:02 -0700
-Message-ID: <20151209174602.GB31636@obsidianresearch.com>
-References: <1449595982-20781-1-git-send-email-kaike.wan@intel.com>
- <20151208212133.GC14378@obsidianresearch.com>
- <3F128C9216C9B84BB6ED23EF16290AFB1858107A@CRSMSX101.amr.corp.intel.com>
+Subject: Re: [RFC contig pages support 1/2] IB: Supports contiguous memory
+ operations
+Date: Wed, 9 Dec 2015 10:48:31 -0700
+Message-ID: <20151209174831.GC31636@obsidianresearch.com>
+References: <1449587707-24214-1-git-send-email-yishaih@mellanox.com>
+ <1449587707-24214-2-git-send-email-yishaih@mellanox.com>
+ <20151208151852.GA6688@infradead.org>
+ <20151208171542.GB13549@obsidianresearch.com>
+ <AM4PR05MB146005B448BEA876519335CDDCE80@AM4PR05MB1460.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <3F128C9216C9B84BB6ED23EF16290AFB1858107A-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <AM4PR05MB146005B448BEA876519335CDDCE80-n5Jp0YuYvM1n/kQvjoF5G9qRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 09, 2015 at 01:07:14PM +0000, Wan, Kaike wrote:
+On Wed, Dec 09, 2015 at 10:00:02AM +0000, Shachar Raindel wrote:
+> > Yes please.
 
-> > > +	/* Determine the default pkey index for SA access first.
-> > > +	 *   Order of preference: 0xffff, 0x7fff, first pkey.
-> > 
-> > No, IBA says that only the default pkey should be used to talk to the SA,
-> > every port needs 0x7FFF or the full mebership version. Do not search for the
-> > first pkey.
+> Note that other HW vendors are developing similar solutions, see for
+> example:
+> http://www.slideshare.net/linaroorg/hkg15106-replacing-cmem-meeting-tis-soc-shared-buffer-allocation-management-and-address-translation-requirements
+
+CMA and it's successors are for something totally different.
+
+> > We already have huge page mmaps, how much win is had by going from
+> > huge page maps to this contiguous map?
 > 
-> We use the first pkey only if there is neither 0x7fff nor 0xffff in
-> this port. If the port is in compliance with IB Spec, then we will
-> be using either 0xffff or 0x7fff for SA access.
+> As far as gain is concerned, we are seeing gains in two cases here:
+> 1. If the system has lots of non-fragmented, free memory, you can
+> create large contig blocks that are above the CPU huge page size.
+> 2. If the system memory is very fragmented, you cannot allocate huge
+> pages. However, an API that allows you to create small (i.e. 64KB,
+> 128KB, etc.) contig blocks reduces the load on the HW page tables
+> and caches.
 
-This is just confusing for readers, the IBA spec is very clear on what
-pkey must be used to talk to the SA, don't ever use something
-else. Follow the spec.
-
-> > > +	 * Determine the default pkey for parsing address file as well.
-> > > +	 *   order of preference: first full-member non-management pkey,
-> > > +	 *   0xffff, first pkey.
-> > > +	 */
-> > 
-> > This really should just be the 0 index pkey, which exactly matches how IPoIB
-> > determines the default pkey, which is what matters when talking rdmacm..
-> 
-> It is true in most default configurations. However, since ibacm will
-> use the default pkey for multicast, we want to make sure that it
-> will not use a limited-member pkey to create/join a multicast group
-> (practically of little use in this case) if such a pkey is placed at
-> index 0.
-
-If you don't follow the exact ipoib algorithm then you get different
-answers in some cases and ugly subtle failure modes. Ie this algorithm
-will not choose 0xFFFF as the pkey in cases where ipoib would - which
-is not acceptable, IMHO.
-
-If the 0 index pkey is not usable for ipoib then ipoib will be broken
-too and that is far more likely to be noticed than if acm is broken.
+I understand what it does, I was looking for performance numbers. The
+last time I trivially benchmarked huge pages vs not huge pages on mlx4
+I wasn't able to detect a performance difference.
 
 Jason
 --
