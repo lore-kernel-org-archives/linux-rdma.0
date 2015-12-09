@@ -1,76 +1,63 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH for-next V2 05/11] IB/core: Add rdma_network_type to wc
-Date: Wed, 9 Dec 2015 09:38:21 +0000
-Message-ID: <HE1PR05MB1418B1F0F393AD0D92424043B1E80@HE1PR05MB1418.eurprd05.prod.outlook.com>
-References: <20151203140543.GA4283@infradead.org>
- <HE1PR05MB141857FA57EECD82D1533543B10D0@HE1PR05MB1418.eurprd05.prod.outlook.com>
- <20151207060241.GA19038@obsidianresearch.com>
- <CAG9sBKO0rsSQK1WcyBciZEONWJsusw9GwR19H7FfAsebEH63dg@mail.gmail.com>
- <20151207063415.GB20066@obsidianresearch.com>
- <CAG9sBKMBt6Toa25Ouasr7hudAcOYrxZyBUFYMXzrMTFZvooWfQ@mail.gmail.com>
- <20151207171228.GA26969@obsidianresearch.com>
- <CAG9sBKNXnzp7PgJhfcjbYvje5qgZWYqygJYkbs4WyTZtDc4ckg@mail.gmail.com>
- <20151207184832.GA21402@obsidianresearch.com>
- <CAG9sBKNWMQA3XDGpDc_+2QoJcnnNL9o67p0JNoVqrU0u9UQCrA@mail.gmail.com>
- <20151208225251.GA27609@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151208225251.GA27609-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+From: Sagi Grimberg <sagig@mellanox.com>
+Subject: [PATCH v2 00/10] iSER support for remote invalidate
+Date: Wed,  9 Dec 2015 14:11:58 +0200
+Message-ID: <1449663128-368-1-git-send-email-sagig@mellanox.com>
+Return-path: <target-devel-owner@vger.kernel.org>
+Sender: target-devel-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+Cc: Or Gerlitz <ogerlitz@mellanox.com>, Jenny Derzhavetz <jennyf@mellanox.com>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
+Changes from v1:
+- Fixed change-log typos
 
-> Look, here is a concrete direction:
-> 
-> Replace all the crap in
-> ib_init_ah_from_wc/get_sgid_index_from_eth/rdma_addr_find_dmac_by_
-> grh
-> 
-> with a straightforward
-> 
->    rdma_dgid_index_from_wc(
->                         const struct ib_qp *qp,
->                         const struct ib_wc *wc,
-> 			const struct ib_grh *grh,
-> 			u16 *gid_index)
-> 
-> Sort of function that reads the GRH and wc and returns the unambiguous gid
-> index that was used to receive that packet on the UD QP.
-> 
-> The gid cache is not allowed to create an ambiguity the driver cannot resolve.
-> 
-> That said, I wouldn't object to vendor-specific bits in the wc. Ie if mlx
-> hardware needs a network_type bit to implement
-> rdma_find_dgid_index_from_wc, then fine - define a vendor specific place
-> to put it. In this case rdma_find_dgid_index_from_wc would be a driver call
-> back, which is fine, and what Caitlin was talking about.
-> 
-> But, it is not part of our verbs API, and I'd *strongly* encourage other
-> vendors and future hardware to simply return the gid index that the
-> hardware matched instead of requiring the software to try and guess after
-> the fact.
-> 
+Changes from v0:
+- Rebased on top of 4.4-rc2
+- Removed iser_hello messages from the protocol header
+- Avoided from further breaking the non-existent bidi support
+- Fixed initiator remote invalidate support exposure only
+  for fastreg && iser_always_register
+- Removed patch 2/10 as it's still under testing.
+- Minor line-spacing nitpicks CR comments fixes.
+- Added a FIXME comment to declare our debt to Or and Jason
+  on the awkward device->mr->rkey deref.
+- Piggybacked another patch that reduces some iser code that
+  is now available by the ib_core (ib_sg_to_pages).
 
-You are pushing abstraction into provider code instead of handling it in a generic way.
+Thanks a lot to all the reviewers!
 
-The Verbs are a low-level API, that should report exactly what was received from the wire.
-In the RoCEv2 case, it should be the GID/IP addresses and the protocol type.
-The addressing information is not intended to be used directly by applications; it is the raw bits that were accepted from the wire.
-I don't want to replicate resolution code in every RoCE driver.
+Code is available at:
+git@github.com:sagigrimberg/linux.git iser-remote-inv.2
 
-ib_init_ah_from_wc() and friends is exactly the place that you want to create an address handle based on completion and packet fields.
-This is what applications will use (and only if they are interested in generating a response; otherwise this overhead can be skipped).
+Jenny Derzhavetz (5):
+  IB/iser: Don't register memory for all immediate data writes
+  IB/iser: set intuitive values for mr_valid
+  iser-target: Declare correct flags when accepting a connection
+  iser-target: Support the remote invalidation exception
+  IB/iser: Support the remote invalidation exception
 
-As I said earlier, we can make sure that protocol type information doesn't incur any additional overhead.
---Liran
+Roi Dayan (1):
+  IB/iser: Fix module init not cleaning up on error flow
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sagi Grimberg (4):
+  IB/iser: Reuse ib_sg_to_pages
+  iser: Have initiator and target to share protocol structures and
+    definitions
+  iser-target: Remove unused file iser_proto.h
+  IB/iser: Increment the rkey when registering and not when invalidating
+
+ drivers/infiniband/ulp/iser/iscsi_iser.c     |   9 +-
+ drivers/infiniband/ulp/iser/iscsi_iser.h     |  54 +++-------
+ drivers/infiniband/ulp/iser/iser_initiator.c |  70 +++++++++++--
+ drivers/infiniband/ulp/iser/iser_memory.c    | 150 +++++++++------------------
+ drivers/infiniband/ulp/iser/iser_verbs.c     |  30 ++++--
+ drivers/infiniband/ulp/isert/ib_isert.c      |  73 +++++++++----
+ drivers/infiniband/ulp/isert/ib_isert.h      |  40 ++++++-
+ drivers/infiniband/ulp/isert/isert_proto.h   |  47 ---------
+ include/scsi/iser.h                          |  78 ++++++++++++++
+ 9 files changed, 322 insertions(+), 229 deletions(-)
+ delete mode 100644 drivers/infiniband/ulp/isert/isert_proto.h
+ create mode 100644 include/scsi/iser.h
+
+-- 
+1.8.4.3
