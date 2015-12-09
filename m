@@ -1,34 +1,30 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 05/10] IB/qib: Use rdmavt lid defines in qib
-Date: Tue, 8 Dec 2015 16:54:40 -0700
-Message-ID: <20151208235440.GB28017@obsidianresearch.com>
-References: <20151207204735.11219.68688.stgit@phlsvslse11.ph.intel.com>
- <20151207204911.11219.50129.stgit@phlsvslse11.ph.intel.com>
- <20151207205439.GA29576@obsidianresearch.com>
- <20151208192455.GB16976@phlsvsds.ph.intel.com>
- <20151208205511.GA14378@obsidianresearch.com>
- <20151208231941.GD14221@phlsvsds.ph.intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 1/1] Ibacm: default pkey for partitioned fabrics
+Date: Wed, 9 Dec 2015 00:26:54 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AAFE7BE2@ORSMSX109.amr.corp.intel.com>
+References: <1449595982-20781-1-git-send-email-kaike.wan@intel.com>
+ <20151208212133.GC14378@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20151208231941.GD14221-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <20151208212133.GC14378-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "ira. weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 08, 2015 at 06:19:41PM -0500, Dennis Dalessandro wrote:
+> > +	 * Determine the default pkey for parsing address file as well.
+> > +	 *   order of preference: first full-member non-management pkey,
+> > +	 *   0xffff, first pkey.
+> > +	 */
+> 
+> This really should just be the 0 index pkey, which exactly matches how
+> IPoIB determines the default pkey, which is what matters when talking
+> rdmacm..
 
-> So what is the consensus here? Should we leave it alone for now and
-> potentially go back and deal with this separately?  Just define the new one
-> as LE and use it, even though it doesn't match the rest?  Something else
-> entirely?
-
-I'm okay if you stick with what you have, there are too many other
-cases of byteswapped constants to get too excited I guess. :(
-
-Jason
+Ibacm currently hard-codes the 'default' pkey to 0xffff for ibacm <-> ibacm communication.  If there's no disagreement to switching to pkey[0], I'm fine with that.  I did not realize that ipoib uses this same default.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
