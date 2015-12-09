@@ -1,44 +1,108 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: device attr cleanup (was: Handle mlx4 max_sge_rd correctly)
-Date: Tue, 8 Dec 2015 19:52:03 -0500
-Message-ID: <20151209005203.GD16976@phlsvsds.ph.intel.com>
-References: <CAJ3xEMj2EOxX1CiA93MPOsM-FdU9ijcWCYm9tObbkLqqja0PoA@mail.gmail.com> <566753E3.9060301@redhat.com> <CAJ3xEMhaEnv9He7N5q8fFsRzy_j27wdE6KWSFF39UzA680udwA@mail.gmail.com> <20151208225940.GB27609@obsidianresearch.com> <20151208230244.GA10701@infradead.org>
+From: Hans Westgaard Ry <hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Ping: [PATCH 1/1] Fix deadlock when running run_iter_bw_infinitely
+Date: Wed, 9 Dec 2015 09:33:11 +0100
+Message-ID: <5667E747.2070006@oracle.com>
+References: <1447849673-30034-1-git-send-email-hans.westgaard.ry@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20151208230244.GA10701-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <1447849673-30034-1-git-send-email-hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Gil Rockah <gilr-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 08, 2015 at 03:02:44PM -0800, Christoph Hellwig wrote:
-> On Tue, Dec 08, 2015 at 03:59:40PM -0700, Jason Gunthorpe wrote:
-> > Or, can we please stop this bikeshedding. Christoph's patch is done,
-> > well tested and does a lot more clean up that this hacky three liner.
-> > 
-> > It is a good patch, and although patchworks doesn't have my remarks
-> > from an earlier revision I still think it should go forward. 
-> 
-> While I'd prefer the version Or points to over not having anything
-> at all I'd much prefer sorting it properly and make the RDMA code
-> behave like all other Linux subsystems.
-> 
-> Jason, can you give me a formal ACK'ed by and I'll rebase it on top
-> of the current 4.4 queue so we could start the 4.5 window with it.
+Any comments on this patch ?
 
-Searching patchworks...
 
-I'm a bit worried about the size of the patch and I would like to see it split
-up for review.  But I agree Christophs method is better long term.
 
-Christoph do you have this on github somewhere?  Perhaps it is split but I'm
-not finding in on patchworks?
-
-Ira
+On 11/18/2015 01:27 PM, Hans Westgaard Ry wrote:
+> The test uses a signal-handler to periodically print a line of report=
+=2E
+> Snip libc info:
+> <quote>
+> 24.4.6 Signal Handling and Nonreentrant Functions
+> Handler functions usually don't do very much.  The best practice is t=
+o
+> write a handler that does nothing but set an external variable that t=
+he
+> program checks regularly, and leave all serious work to the program.
+> </quote>
+> The current codebase violates the above and is deadlock prone.
+> The mutexes taken by the printf functions called from the signal hand=
+ler
+> might be held by activity conducted by the main thread.
+>
+> This commit fixes this by setting a flag in the signal handler and ha=
+ndle the
+> printout in the mainloop of the test.
+>
+> Signed-off-by: Hans Westgaard Ry <hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: H=C3=A5kon Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>   src/perftest_resources.c | 22 ++++++++++++++++------
+>   1 file changed, 16 insertions(+), 6 deletions(-)
+>
+> diff --git a/src/perftest_resources.c b/src/perftest_resources.c
+> index cb915e0..4d8e6c0 100755
+> --- a/src/perftest_resources.c
+> +++ b/src/perftest_resources.c
+> @@ -25,6 +25,12 @@ static enum ibv_wr_opcode opcode_atomic_array[] =3D=
+IBV_WR_ATOMIC_CMP_AND_SWP,IBV
+>  =20
+>   struct perftest_parameters* duration_param;
+>   struct check_alive_data check_alive_data;
+> +/*
+> + * Flag to trig call to print_report_bw
+> + * The flag is set in signal_handler and tested/reset in run_iter_bw=
+_infinitely
+> + */
+> +static volatile int trig_print_report_bw =3D;
+> +
+>  =20
+>   /******************************************************************=
+************
+>    * Beginning
+> @@ -3214,7 +3220,15 @@ int run_iter_bw_infinitely(struct pingpong_con=
+text *ctx,struct perftest_paramete
+>  =20
+>   	/* main loop for posting */
+>   	while (1) {
+> -
+> +		if (trig_print_report_bw) {
+> +			duration_param->tcompleted[0] =3Det_cycles();
+> +			print_report_bw(duration_param,NULL);
+> +			duration_param->iters =3D;
+> +			alarm(duration_param->duration);
+> +			duration_param->tposted[0] =3Det_cycles();
+> +			trig_print_report_bw =3D;
+> +		}
+> +	=09
+>   		/* main loop to run over all the qps and post each time n message=
+s */
+>   		for (index =3D; index < num_of_qps ; index++) {
+>  =20
+> @@ -4213,11 +4227,7 @@ void check_alive(int sig)
+>    ******************************************************************=
+************/
+>   void catch_alarm_infintely(int sig)
+>   {
+> -	duration_param->tcompleted[0] =3Det_cycles();
+> -	print_report_bw(duration_param,NULL);
+> -	duration_param->iters =3D;
+> -	alarm(duration_param->duration);
+> -	duration_param->tposted[0] =3Det_cycles();
+> +	trig_print_report_bw =3D;
+>   }
+>  =20
+>   /******************************************************************=
+************
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
