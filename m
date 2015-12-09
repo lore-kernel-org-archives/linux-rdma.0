@@ -1,53 +1,58 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: [PATCH 1/1] Ibacm: default pkey for partitioned fabrics
-Date: Wed, 9 Dec 2015 10:39:43 -0700
-Message-ID: <20151209173943.GA31636@obsidianresearch.com>
+Date: Wed, 9 Dec 2015 10:46:02 -0700
+Message-ID: <20151209174602.GB31636@obsidianresearch.com>
 References: <1449595982-20781-1-git-send-email-kaike.wan@intel.com>
  <20151208212133.GC14378@obsidianresearch.com>
- <566823E2.5090504@dev.mellanox.co.il>
+ <3F128C9216C9B84BB6ED23EF16290AFB1858107A@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <566823E2.5090504-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <3F128C9216C9B84BB6ED23EF16290AFB1858107A-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 09, 2015 at 07:51:46AM -0500, Hal Rosenstock wrote:
-> > ipoib always uses the 0 pkey index to create the default ipoib
-> > interface. (see eg, update_parent_pkey)
+On Wed, Dec 09, 2015 at 01:07:14PM +0000, Wan, Kaike wrote:
+
+> > > +	/* Determine the default pkey index for SA access first.
+> > > +	 *   Order of preference: 0xffff, 0x7fff, first pkey.
+> > 
+> > No, IBA says that only the default pkey should be used to talk to the SA,
+> > every port needs 0x7FFF or the full mebership version. Do not search for the
+> > first pkey.
 > 
-> This is beyond IBA spec and is currently a linux convention for IPoIB.
-> IMO it should be changed to search for this pkey rather than assume
-> it's
+> We use the first pkey only if there is neither 0x7fff nor 0xffff in
+> this port. If the port is in compliance with IB Spec, then we will
+> be using either 0xffff or 0x7fff for SA access.
 
-I don't think you are following. It uses pkey[0] as the pkey for
-ipoib, not necessarily for SA communication.
+This is just confusing for readers, the IBA spec is very clear on what
+pkey must be used to talk to the SA, don't ever use something
+else. Follow the spec.
 
-Since there is no way to know what the desired pkey is for ipoib there
-is no possibility to search. Using pkey index is 0 a good solution
-since it allows the SM to configure ipoib defaults centrally.
-
-> > When operating securely the SA should place the pkey for default ipoib
-> > operation in pkey index 0, and place 0x7FFF in another index. I run
-> > alot of networks exactly like this and it works very well.
+> > > +	 * Determine the default pkey for parsing address file as well.
+> > > +	 *   order of preference: first full-member non-management pkey,
+> > > +	 *   0xffff, first pkey.
+> > > +	 */
+> > 
+> > This really should just be the 0 index pkey, which exactly matches how IPoIB
+> > determines the default pkey, which is what matters when talking rdmacm..
 > 
-> Yes, it can run that way but more secure is without the full default
-> pkey. When full default pkey is in every port, the rest of the
-> partitioning doesn't really matter...
+> It is true in most default configurations. However, since ibacm will
+> use the default pkey for multicast, we want to make sure that it
+> will not use a limited-member pkey to create/join a multicast group
+> (practically of little use in this case) if such a pkey is placed at
+> index 0.
 
-That isn't what I said, I said the pkey for the default ipoib
-interface is in pkey[0], eg, the network runs with [0x8001,0x7FFF] as
-the pkey table. There is no 0xFFFF pkey except on SA nodes.
+If you don't follow the exact ipoib algorithm then you get different
+answers in some cases and ugly subtle failure modes. Ie this algorithm
+will not choose 0xFFFF as the pkey in cases where ipoib would - which
+is not acceptable, IMHO.
 
-Linux automatically creates ib0 on 0x8001 and the rest of the
-in-kernel stack (should?) correctly find and use 0x7FFF as the pkey to
-use to talk to the SA.
-
-acm should follow ipoib convention for creating it's multicast groups
-and setup it's default multicast group using pkey[0]
+If the 0 index pkey is not usable for ipoib then ipoib will be broken
+too and that is far more likely to be noticed than if acm is broken.
 
 Jason
 --
