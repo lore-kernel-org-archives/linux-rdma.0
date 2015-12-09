@@ -1,7 +1,7 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 1/1] Ibacm: default pkey for partitioned fabrics
-Date: Wed, 9 Dec 2015 16:26:04 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AAFE7F21@ORSMSX109.amr.corp.intel.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 1/1] Ibacm: default pkey for partitioned fabrics
+Date: Wed, 9 Dec 2015 11:49:28 -0500
+Message-ID: <56685B98.5080803@dev.mellanox.co.il>
 References: <1449595982-20781-1-git-send-email-kaike.wan@intel.com>
  <56682392.5000302@dev.mellanox.co.il>
  <3F128C9216C9B84BB6ED23EF16290AFB185810A2@CRSMSX101.amr.corp.intel.com>
@@ -12,40 +12,69 @@ References: <1449595982-20781-1-git-send-email-kaike.wan@intel.com>
  <56683C6C.7070106@dev.mellanox.co.il>
  <3F128C9216C9B84BB6ED23EF16290AFB185811ED@CRSMSX101.amr.corp.intel.com>
  <5668458A.7020809@dev.mellanox.co.il>
+ <1828884A29C6694DAF28B7E6B8A82373AAFE7F21@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5668458A.7020809-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AAFE7F21-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiA+IEkgbWVhbiB0aGF0IHRoZSB1c2VyIG5lZWRzIHRvIGludmVzdGlnYXRlIHdoeSB0aGUgZmFi
-cmljIGlzIG5vdCB3b3JraW5nDQo+IG91dCBvZiBib3guDQo+IA0KPiBNeSBwb2ludCBpcyB0aGF0
-IGFuIGVkdWNhdGVkIGFkbWluIHNob3VsZCBfa25vd18gdG8gY29uZmlndXJlIGluIHRoZXNlDQo+
-IGNhc2VzIGFuZCB0aGF0IGRlYnVnIGlzIG9ubHkgd2hlbiB0aGluZ3MgYXJlIGJyb2tlbiBub3Qg
-YnkgZGVmYXVsdCBpbg0KPiB0aGVzZSBtb3JlIGNvbXBsZXggY2FzZXMuIFRoaXMgbWVhbnMgdGhl
-IGxpbWl0YXRpb25zIG9mIHRoZSBvdXQgb2YgYm94DQo+IGFwcHJvYWNoIG5lZWRzIHRvIGJlIGV4
-cGxhaW5lZCBpbiB0aGUgZG9jcy4NCg0KV2hlbiBJUCBhZGRyZXNzZXMgYXJlIHVzZWQsIHRoZSBj
-b3JyZXNwb25kaW5nIHBrZXkgaXMgdXNlZC4gIFRoZSBpc3N1ZSB0aGlzIHBhdGNoIGlzIGFkZHJl
-c3NpbmcgaXMgdGhlIG1hcHBpbmcgb2YgJ2hvc3RuYW1lcycgdG8gcGtleXMsIGFzIHNob3cgaW4g
-dGhpcyBpYmFjbV9hZGRyLmNmZyBleGFtcGxlOg0KDQojTmFtZSAgICAgIGRldmljZSBwb3J0IHBr
-ZXkNCmNzdC1saW4wICAgbWx4NF8wIDEgICAgZGVmYXVsdA0KY3N0LWxpbjAtMSBtbHg0XzAgMSAg
-ICBkZWZhdWx0DQpjc3QtbGluMC0yIG1seDRfMCAyICAgIGRlZmF1bHQNCg0KQ3VycmVudGx5LCAn
-ZGVmYXVsdCcgaXMgaGFyZC1jb2RlZCB0byBhIHBrZXkgb2YgMHhmZmZmLiAgVGhlIGludGVudCBp
-cyB0byBkZWZpbmUgYSBiZXR0ZXIgZGVmYXVsdCB2YWx1ZS4gIEthaWtlIGhhcyBzdWdnZXN0ZWQg
-dGhpcyBiZSB0aGUgbmV3IGRlZmF1bHQ6DQoNCjEuIEZpbmQgdGhlIGZpcnN0IG5vbi1tYW5hZ2Vt
-ZW50IGZ1bGwtbWVtYmVyIHBrZXk7DQoyLiBJZiBpdCBmYWlscywgZmluZCBwa2V5IDB4ZmZmZjsN
-CjMuIElmIHBrZXkgMHhmZmZmIGlzIG5vdCBhdmFpbGFibGUsIHVzZSB0aGUgZmlyc3QgcGtleS4N
-Cg0KSXMgdGhlcmUgYmV0dGVyIGFsdGVybmF0aXZlIGZvciB3aGF0IGRlZmF1bHQgc2hvdWxkIGJl
-PyAgSmFzb24gd2FzIHN1Z2dlc3RpbmcgdXNlIHBrZXlbMF0sIHdoaWNoIHNlZW1zIGxlc3Mgcm9i
-dXN0IGluIHRoZW9yeSwgYnV0IGlzIHNpbXBsZSBhbmQgbWF5IGNvdmVyIHRoZSB2YXN0IG1ham9y
-aXR5IG9mIHJlYWwgdXNlIGNhc2VzLg0KDQpUaGUgZmV3ZXIgY2FzZXMgd2hlcmUgbWFudWFsIGNv
-bmZpZ3VyYXRpb24gaXMgbmVjZXNzYXJ5LCB0aGUgZmV3ZXIgZW1haWxzIEkgcmVjZWl2ZSwgYW5k
-IHRoZSBiZXR0ZXIgb2ZmIEkgYW0uICA6KQ0KDQotIFNlYW4NCg==
+On 12/9/2015 11:26 AM, Hefty, Sean wrote:
+>>> I mean that the user needs to investigate why the fabric is not working
+>> out of box.
+>>
+>> My point is that an educated admin should _know_ to configure in these
+>> cases and that debug is only when things are broken not by default in
+>> these more complex cases. This means the limitations of the out of box
+>> approach needs to be explained in the docs.
+> 
+> When IP addresses are used, the corresponding pkey is used.  The issue this patch is addressing is the mapping of 'hostnames' to pkeys, as show in this ibacm_addr.cfg example:
+> 
+> #Name      device port pkey
+> cst-lin0   mlx4_0 1    default
+> cst-lin0-1 mlx4_0 1    default
+> cst-lin0-2 mlx4_0 2    default
+> 
+> Currently, 'default' is hard-coded to a pkey of 0xffff.  The intent is to define a better default value.  Kaike has suggested this be the new default:
+> 
+> 1. Find the first non-management full-member pkey;
+
+By "non-management full-member pkey", I think you mean "pkey which is
+other than a full member of default (0x7fff) partition".
+
+> 2. If it fails, find pkey 0xffff;
+
+To me, finding pkey 0xffff is better/safer than assuming it's in index 0
+although it's likely there.
+
+> 3. If pkey 0xffff is not available, use the first pkey.
+> 
+> Is there better alternative for what default should be?  
+
+Order of 1 and 2 depends on use models for full default partition and
+other partitions. Reversing 1 and 2 (full default partition first) would
+handle the most common use models and handles Jason's case.
+
+The only common case that I'm aware of where that might fall down is in
+the virtualized case. I'm not sure what policy is best there and would
+need to think about that scenario some more (and there is more
+fundamental issue with ACM in those environments).
+
+> Jason was suggesting use pkey[0], which seems less robust in theory, but is simple and may cover the vast majority of real use cases.
+
+Seems less robust to me too.
+
+> The fewer cases where manual configuration is necessary, the fewer emails I receive, and the better off I am.  :)
+
+Understood.
+
+-- Hal
+
+> - Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
