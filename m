@@ -1,62 +1,48 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 01/10] IB/iser: Fix module init not cleaning up on error flow
-Date: Wed,  9 Dec 2015 14:11:59 +0200
-Message-ID: <1449663128-368-2-git-send-email-sagig@mellanox.com>
+From: Sagi Grimberg <sagig@mellanox.com>
+Subject: [PATCH v2 07/10] iser-target: Declare correct flags when accepting a connection
+Date: Wed,  9 Dec 2015 14:12:05 +0200
+Message-ID: <1449663128-368-8-git-send-email-sagig@mellanox.com>
 References: <1449663128-368-1-git-send-email-sagig@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1449663128-368-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1449663128-368-1-git-send-email-sagig@mellanox.com>
+Sender: target-devel-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+Cc: Or Gerlitz <ogerlitz@mellanox.com>, Jenny Derzhavetz <jennyf@mellanox.com>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Jenny Derzhavetz <jennyf@mellanox.com>
 
-Destroy workqueue on transport register error, also
-release kmem cache on workqueue allocation error.
+iser target does not support zero based virtual addresses and
+send with invalidate, so it should declare that it doesn't.
 
-Signed-off-by: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Signed-off-by: Jenny Derzhavetz <jennyf@mellanox.com>
+Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/infiniband/ulp/isert/ib_isert.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
-index 9080161e01af..5e6c0bf1e84b 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.c
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-@@ -1059,7 +1059,8 @@ static int __init iser_init(void)
- 	release_wq = alloc_workqueue("release workqueue", 0, 0);
- 	if (!release_wq) {
- 		iser_err("failed to allocate release workqueue\n");
--		return -ENOMEM;
-+		err = -ENOMEM;
-+		goto err_alloc_wq;
- 	}
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index 63217e382140..8a90475ed2f2 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -3098,12 +3098,18 @@ isert_rdma_accept(struct isert_conn *isert_conn)
+ 	struct rdma_cm_id *cm_id = isert_conn->cm_id;
+ 	struct rdma_conn_param cp;
+ 	int ret;
++	struct iser_cm_hdr rsp_hdr;
  
- 	iscsi_iser_scsi_transport = iscsi_register_transport(
-@@ -1067,12 +1068,14 @@ static int __init iser_init(void)
- 	if (!iscsi_iser_scsi_transport) {
- 		iser_err("iscsi_register_transport failed\n");
- 		err = -EINVAL;
--		goto register_transport_failure;
-+		goto err_reg;
- 	}
+ 	memset(&cp, 0, sizeof(struct rdma_conn_param));
+ 	cp.initiator_depth = isert_conn->initiator_depth;
+ 	cp.retry_count = 7;
+ 	cp.rnr_retry_count = 7;
  
- 	return 0;
- 
--register_transport_failure:
-+err_reg:
-+	destroy_workqueue(release_wq);
-+err_alloc_wq:
- 	kmem_cache_destroy(ig.desc_cache);
- 
- 	return err;
++	memset(&rsp_hdr, 0, sizeof(rsp_hdr));
++	rsp_hdr.flags = (ISERT_ZBVA_NOT_USED | ISERT_SEND_W_INV_NOT_USED);
++	cp.private_data = (void *)&rsp_hdr;
++	cp.private_data_len = sizeof(rsp_hdr);
++
+ 	ret = rdma_accept(cm_id, &cp);
+ 	if (ret) {
+ 		isert_err("rdma_accept() failed with: %d\n", ret);
 -- 
 1.8.4.3
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
