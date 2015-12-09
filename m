@@ -1,46 +1,43 @@
-From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH libibverbs] init.c: increase sysfs read buffer size to 16
-Date: Wed, 9 Dec 2015 15:05:09 +0000
-Message-ID: <8CCFAB20-21D8-4915-98C6-3DE6130BF389@cisco.com>
-References: <1449184181-25676-1-git-send-email-jsquyres@cisco.com>
- <56658940.5040506@mellanox.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 1/1] Ibacm: default pkey for partitioned fabrics
+Date: Wed, 9 Dec 2015 10:15:22 -0500
+Message-ID: <5668458A.7020809@dev.mellanox.co.il>
+References: <1449595982-20781-1-git-send-email-kaike.wan@intel.com>
+ <56682392.5000302@dev.mellanox.co.il>
+ <3F128C9216C9B84BB6ED23EF16290AFB185810A2@CRSMSX101.amr.corp.intel.com>
+ <56683080.1090801@dev.mellanox.co.il>
+ <3F128C9216C9B84BB6ED23EF16290AFB185810D9@CRSMSX101.amr.corp.intel.com>
+ <5668354B.4090903@dev.mellanox.co.il>
+ <3F128C9216C9B84BB6ED23EF16290AFB18581111@CRSMSX101.amr.corp.intel.com>
+ <56683C6C.7070106@dev.mellanox.co.il>
+ <3F128C9216C9B84BB6ED23EF16290AFB185811ED@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56658940.5040506-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-Content-ID: <56A788B2DFA4794880611C317752A3A2-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
+In-Reply-To: <3F128C9216C9B84BB6ED23EF16290AFB185811ED-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Xuyang Wang (xuywang)" <xuywang-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Any further comments on this?
+On 12/9/2015 10:04 AM, Wan, Kaike wrote:
+> I mean that the user needs to investigate why the fabric is not working out of box. 
 
-Doug -- does it look ok to you?
+My point is that an educated admin should _know_ to configure in these
+cases and that debug is only when things are broken not by default in
+these more complex cases. This means the limitations of the out of box
+approach needs to be explained in the docs.
 
+> This patch itself does not make configuration of the fabric harder.
 
-> On Dec 7, 2015, at 5:27 AM, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> 
-> On 12/04/2015 01:09 AM, Jeff Squyres wrote:
->> The default value of 8 is too small to read
->> /sys/class/infiniband/usnic_x/node_type, which contains "6: usNIC
->> UDP".  Per a7a73a8c1b39362f1701256bc772d82847832f9c, the too-small
->> buffer causes a stderr warning to be emitted from ibv_devinfo when
->> reading usNIC devices.
->> 
->> This commit therefore increases the buffer size to 16, which is long
->> enough to read the usNIC node_type value.
-> 
-> Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Agreed.
 
+> On the contrary, it relieves the user from having to configure ibacm on each node in those common cases.
 
--- 
-Jeff Squyres
-jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
-For corporate legal information go to: http://www.cisco.com/web/about/doing_business/legal/cri/
+Agreed.
 
+-- Hal
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
