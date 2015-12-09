@@ -1,38 +1,26 @@
-From: Nelson Escobar <neescoba-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/usnic: Fix message typo
-Date: Wed,  9 Dec 2015 10:42:16 -0800
-Message-ID: <1449686539-29959-3-git-send-email-neescoba@cisco.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Nelson Escobar <neescoba-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH v2 02/10] IB/iser: Reuse ib_sg_to_pages
+Date: Wed, 9 Dec 2015 11:28:19 -0800
+Message-ID: <20151209192819.GA21477@infradead.org>
+References: <1449663128-368-1-git-send-email-sagig@mellanox.com>
+ <1449663128-368-3-git-send-email-sagig@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <target-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1449663128-368-3-git-send-email-sagig@mellanox.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Sagi Grimberg <sagig@mellanox.com>
+Cc: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, Or Gerlitz <ogerlitz@mellanox.com>, Jenny Derzhavetz <jennyf@mellanox.com>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Reese Faucette <rfaucett-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Xuyang Wang <xuywang-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Nelson Escobar <neescoba-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Wed, Dec 09, 2015 at 02:12:00PM +0200, Sagi Grimberg wrote:
+> We have in iser iser_sg_to_page_vec which has exactly
+> the same role as ib_sg_to_pages. Customize the page_vec
+> to hold a fake MR so we can reuse ib_sg_to_pages.
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-index fcea3a2..b306870 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-@@ -521,7 +521,7 @@ int usnic_ib_qp_grp_modify(struct usnic_ib_qp_grp *qp_grp,
- 
- 	if (!status) {
- 		qp_grp->state = new_state;
--		usnic_info("Transistioned %u from %s to %s",
-+		usnic_info("Transitioned %u from %s to %s",
- 		qp_grp->grp_id,
- 		usnic_ib_qp_grp_state_to_string(old_state),
- 		usnic_ib_qp_grp_state_to_string(new_state));
--- 
-2.4.3
+Looks good.  In the long run we should simply kill struct ib_fmr
+and make FRMs operate on struct ib_mr so that it can use
+ib_sg_to_pages directly.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Christoph Hellwig <hch@lst.de>
