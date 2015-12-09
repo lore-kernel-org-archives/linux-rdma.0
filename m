@@ -1,53 +1,55 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 1/1] Ibacm: default pkey for partitioned fabrics
-Date: Wed, 9 Dec 2015 17:13:49 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AAFE7FB6@ORSMSX109.amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 1/1] Ibacm: default pkey for partitioned fabrics
+Date: Wed, 9 Dec 2015 10:39:43 -0700
+Message-ID: <20151209173943.GA31636@obsidianresearch.com>
 References: <1449595982-20781-1-git-send-email-kaike.wan@intel.com>
- <56682392.5000302@dev.mellanox.co.il>
- <3F128C9216C9B84BB6ED23EF16290AFB185810A2@CRSMSX101.amr.corp.intel.com>
- <56683080.1090801@dev.mellanox.co.il>
- <3F128C9216C9B84BB6ED23EF16290AFB185810D9@CRSMSX101.amr.corp.intel.com>
- <5668354B.4090903@dev.mellanox.co.il>
- <3F128C9216C9B84BB6ED23EF16290AFB18581111@CRSMSX101.amr.corp.intel.com>
- <56683C6C.7070106@dev.mellanox.co.il>
- <3F128C9216C9B84BB6ED23EF16290AFB185811ED@CRSMSX101.amr.corp.intel.com>
- <5668458A.7020809@dev.mellanox.co.il>
- <1828884A29C6694DAF28B7E6B8A82373AAFE7F21@ORSMSX109.amr.corp.intel.com>
- <56685B98.5080803@dev.mellanox.co.il>
+ <20151208212133.GC14378@obsidianresearch.com>
+ <566823E2.5090504@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56685B98.5080803-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <566823E2.5090504-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiA+IDEuIEZpbmQgdGhlIGZpcnN0IG5vbi1tYW5hZ2VtZW50IGZ1bGwtbWVtYmVyIHBrZXk7DQoN
-CkkuZS4gYSBwa2V5IHdpdGggdGhlIGhpZ2gtb3JkZXIgYml0IHNldCB0aGF0IGlzIG5vdCAweGZm
-ZmYNCg0KPiA+IDIuIElmIGl0IGZhaWxzLCBmaW5kIHBrZXkgMHhmZmZmOw0KPiANCj4gT3JkZXIg
-b2YgMSBhbmQgMiBkZXBlbmRzIG9uIHVzZSBtb2RlbHMgZm9yIGZ1bGwgZGVmYXVsdCBwYXJ0aXRp
-b24gYW5kDQo+IG90aGVyIHBhcnRpdGlvbnMuIFJldmVyc2luZyAxIGFuZCAyIChmdWxsIGRlZmF1
-bHQgcGFydGl0aW9uIGZpcnN0KSB3b3VsZA0KPiBoYW5kbGUgdGhlIG1vc3QgY29tbW9uIHVzZSBt
-b2RlbHMgYW5kIGhhbmRsZXMgSmFzb24ncyBjYXNlLg0KPiANCj4gVGhlIG9ubHkgY29tbW9uIGNh
-c2UgdGhhdCBJJ20gYXdhcmUgb2Ygd2hlcmUgdGhhdCBtaWdodCBmYWxsIGRvd24gaXMgaW4NCj4g
-dGhlIHZpcnR1YWxpemVkIGNhc2UuIEknbSBub3Qgc3VyZSB3aGF0IHBvbGljeSBpcyBiZXN0IHRo
-ZXJlIGFuZCB3b3VsZA0KPiBuZWVkIHRvIHRoaW5rIGFib3V0IHRoYXQgc2NlbmFyaW8gc29tZSBt
-b3JlIChhbmQgdGhlcmUgaXMgbW9yZQ0KPiBmdW5kYW1lbnRhbCBpc3N1ZSB3aXRoIEFDTSBpbiB0
-aG9zZSBlbnZpcm9ubWVudHMpLg0KDQpPZmZsaW5lIEkgaGFkIGFza2VkIGFib3V0IHJldmVyc2lu
-ZyAxIGFuZCAyLiAgVGhlIHJlYXNvbmluZyBnaXZlbiB3YXMgdGhhdCBpYmFjbSBjb3VsZCBiZSBy
-dW5uaW5nIG9uIGEgJ21hbmFnZW1lbnQnIG5vZGUsIGJ1dCBuZWVkZWQgdG8gY29tbXVuaWNhdGUg
-d2l0aCBjb21wdXRlIG5vZGVzLg0KIA0KSU9XLCB0aGUgb2NjdXJyZW5jZSBvZiBhICdub24tbWFu
-YWdlbWVudCwgZnVsbCBtZW1iZXInIHBrZXkgaW4gdGhlIHBrZXkgdGFibGUgc3Ryb25nbHkgaW5k
-aWNhdGVzIHRoYXQgYSBub2RlIGlzIGJlaW5nIHVzZWQgaW4gYSBzZWN1cmUgZW52aXJvbm1lbnQs
-IGFuZCBpYmFjbSBzaG91bGQgcHJlZmVyIHVzaW5nIHRoYXQgcGtleSBvdmVyIDB4ZmZmZi4NCg0K
-RXhhbXBsZTogQ29tcHV0ZSBub2RlcyBhcmUgYXNzaWduZWQgcGtleXMgMHg4MDAwIGFuZCAweDdm
-ZmYuICBBIG5vZGUgcnVubmluZyB0aGUgam9iIHNjaGVkdWxlciBoYXMgcGtleXMgMHhmZmZmIGFu
-ZCAweDgwMDAgKG1heWJlIGl0J3MgYWxzbyB0aGUgYmFja3VwIFNBKS4gIEliYWNtIHdvdWxkIG5l
-ZWQgdG8gc2VsZWN0IHBrZXkgMHg4MDAwIGZvciBjb21tdW5pY2F0aW9uLg0KDQpUaGlzIHNlZW1z
-IGxpa2UgYSByZWFzb25hYmxlIGFyZ3VtZW50IHRvIG1lLg0KDQotIFNlYW4NCg==
+On Wed, Dec 09, 2015 at 07:51:46AM -0500, Hal Rosenstock wrote:
+> > ipoib always uses the 0 pkey index to create the default ipoib
+> > interface. (see eg, update_parent_pkey)
+> 
+> This is beyond IBA spec and is currently a linux convention for IPoIB.
+> IMO it should be changed to search for this pkey rather than assume
+> it's
+
+I don't think you are following. It uses pkey[0] as the pkey for
+ipoib, not necessarily for SA communication.
+
+Since there is no way to know what the desired pkey is for ipoib there
+is no possibility to search. Using pkey index is 0 a good solution
+since it allows the SM to configure ipoib defaults centrally.
+
+> > When operating securely the SA should place the pkey for default ipoib
+> > operation in pkey index 0, and place 0x7FFF in another index. I run
+> > alot of networks exactly like this and it works very well.
+> 
+> Yes, it can run that way but more secure is without the full default
+> pkey. When full default pkey is in every port, the rest of the
+> partitioning doesn't really matter...
+
+That isn't what I said, I said the pkey for the default ipoib
+interface is in pkey[0], eg, the network runs with [0x8001,0x7FFF] as
+the pkey table. There is no 0xFFFF pkey except on SA nodes.
+
+Linux automatically creates ib0 on 0x8001 and the rest of the
+in-kernel stack (should?) correctly find and use 0x7FFF as the pkey to
+use to talk to the SA.
+
+acm should follow ipoib convention for creating it's multicast groups
+and setup it's default multicast group using pkey[0]
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
