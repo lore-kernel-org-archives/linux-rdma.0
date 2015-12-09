@@ -1,45 +1,31 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 1/1] Ibacm: default pkey for partitioned fabrics
-Date: Wed, 9 Dec 2015 18:37:16 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AAFE8111@ORSMSX109.amr.corp.intel.com>
-References: <56683080.1090801@dev.mellanox.co.il>
- <3F128C9216C9B84BB6ED23EF16290AFB185810D9@CRSMSX101.amr.corp.intel.com>
- <5668354B.4090903@dev.mellanox.co.il>
- <3F128C9216C9B84BB6ED23EF16290AFB18581111@CRSMSX101.amr.corp.intel.com>
- <56683C6C.7070106@dev.mellanox.co.il>
- <3F128C9216C9B84BB6ED23EF16290AFB185811ED@CRSMSX101.amr.corp.intel.com>
- <5668458A.7020809@dev.mellanox.co.il>
- <1828884A29C6694DAF28B7E6B8A82373AAFE7F21@ORSMSX109.amr.corp.intel.com>
- <56685B98.5080803@dev.mellanox.co.il>
- <1828884A29C6694DAF28B7E6B8A82373AAFE7FB6@ORSMSX109.amr.corp.intel.com>
- <20151209182212.GF31636@obsidianresearch.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [RFC contig pages support 1/2] IB: Supports contiguous memory
+ operations
+Date: Wed, 9 Dec 2015 10:39:40 -0800
+Message-ID: <20151209183940.GA4522@infradead.org>
+References: <1449587707-24214-1-git-send-email-yishaih@mellanox.com>
+ <1449587707-24214-2-git-send-email-yishaih@mellanox.com>
+ <20151208151852.GA6688@infradead.org>
+ <20151208171542.GB13549@obsidianresearch.com>
+ <AM4PR05MB146005B448BEA876519335CDDCE80@AM4PR05MB1460.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151209182212.GF31636-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <AM4PR05MB146005B448BEA876519335CDDCE80-n5Jp0YuYvM1n/kQvjoF5G9qRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> pkey[0] at least has the logic that the admin will configure things so
-> that the default ipoib device reaches the broadest audiance makes the
-> most sense to me. That is what most sites I've seen want to do.
+On Wed, Dec 09, 2015 at 10:00:02AM +0000, Shachar Raindel wrote:
+> As far as gain is concerned, we are seeing gains in two cases here:
+> 1. If the system has lots of non-fragmented, free memory, you can create large contig blocks that are above the CPU huge page size.
+> 2. If the system memory is very fragmented, you cannot allocate huge pages. However, an API that allows you to create small (i.e. 64KB, 128KB, etc.) contig blocks reduces the load on the HW page tables and caches.
 
-Kaike, will pkey[0] work in the configurations that you're targeting with this change?
-
-This seems like a very simple solution that's better than what we have now. 
-
-> I'm not quite sure what the acm algorithm is, but can't it just figure
-> out the pkey from the IP routing? Ie if you have an IP address to
-> resolve a few netlink queries will tell you what pkey to use, and that
-> is where the acm multicast should go?
-
-When an IP address is used, it uses the correct pkey (based on routing data).  I mentioned this in a separate email, but this addresses the case when hostnames are used and ipoib may not be involved.
-
-- Sean
+None of that is a uniqueue requirement for the mlx4 devices.  Again,
+please work with the memory management folks to address your
+requirements in a generic way!
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
