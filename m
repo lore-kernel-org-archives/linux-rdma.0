@@ -1,84 +1,65 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next V2 05/11] IB/core: Add rdma_network_type to wc
-Date: Wed, 9 Dec 2015 11:41:39 +0200
-Message-ID: <CAG9sBKOkpdX5KByDT_+Tz32sBYwx-3BxUQbVxXkLvmz22At9Qg@mail.gmail.com>
-References: <1449150450-13679-1-git-send-email-matanb@mellanox.com>
-	<1449150450-13679-6-git-send-email-matanb@mellanox.com>
-	<20151203140543.GA4283@infradead.org>
-	<HE1PR05MB141857FA57EECD82D1533543B10D0@HE1PR05MB1418.eurprd05.prod.outlook.com>
-	<20151207060241.GA19038@obsidianresearch.com>
-	<CAG9sBKO0rsSQK1WcyBciZEONWJsusw9GwR19H7FfAsebEH63dg@mail.gmail.com>
-	<20151207063415.GB20066@obsidianresearch.com>
-	<CAG9sBKMBt6Toa25Ouasr7hudAcOYrxZyBUFYMXzrMTFZvooWfQ@mail.gmail.com>
-	<20151207171228.GA26969@obsidianresearch.com>
-	<CAG9sBKNXnzp7PgJhfcjbYvje5qgZWYqygJYkbs4WyTZtDc4ckg@mail.gmail.com>
-	<20151207184832.GA21402@obsidianresearch.com>
+From: Shachar Raindel <raindel@mellanox.com>
+Subject: RE: [RFC contig pages support 1/2] IB: Supports contiguous memory
+ operations
+Date: Wed, 9 Dec 2015 10:00:02 +0000
+Message-ID: <AM4PR05MB146005B448BEA876519335CDDCE80@AM4PR05MB1460.eurprd05.prod.outlook.com>
+References: <1449587707-24214-1-git-send-email-yishaih@mellanox.com>
+ <1449587707-24214-2-git-send-email-yishaih@mellanox.com>
+ <20151208151852.GA6688@infradead.org>
+ <20151208171542.GB13549@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151207184832.GA21402-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20151208171542.GB13549@obsidianresearch.com>
+Content-Language: en-US
+Sender: owner-linux-mm@kvack.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Christoph Hellwig <hch@infradead.org>
+Cc: Yishai Hadas <yishaih@mellanox.com>, "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Or Gerlitz <ogerlitz@mellanox.com>, Tal Alon <talal@mellanox.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 7, 2015 at 8:48 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Mon, Dec 07, 2015 at 08:34:43PM +0200, Moni Shoua wrote:
->> Well, just tell me how you want to discover gid_index when you poll
->> the WC out of the CQ.
->
-> Hey, I'm not desiging this rocev2 stuff, this is something the rocev2
-> community needs to sort out.
->
->> Like I said, the sgid itself is in the GRH that is scattered to the
->> buffers in the receive queue. When ib_poll_cq() is called the pointer
->> to GRH is not passed so there is no way to determine the gid_index
->> inside the polling context.
->
-> Then have an API to let the consumer recover it.
-We do but it has it disadvantages. We'll use it when there it no other
-choice (i.e. not supporting HW)
->
->> BTW, why do you argue about this only now? This is not RoCE specific
->> issue. sgid_index was always resolved outside the polling context. The
->> only difference between then and now is that with InfiniBand there was
->> no conflict about sgid_index once you had the sgid.
->
-> I think you answered your own question. In IB and rocev1 the sgid
-> index is not ambiguous, rocev2 breaks that requirement without
-> adaquately fixing it.
 
-ambiguity is not the issue here. You say that sgid_index needs to be
-known during poll so why raise it now?
-We want to add information to the CQE to help resolve the conflict but
-we leave the resolution of sgid index to the caller, like for RoCEv1
-and like for native InfiniBand
->
-> It is probably also the case that rocev1 has similar problems,
-> depending on how vland and macvlan ended up being implemented.
->
->> Now, when same gid value can be present in multiple entries you need
->> an extra parameter to get distinguish between them - that would be
->> the netwrok_type
->
-> Eh?  You are only worried about duplicates between rocev1 mode which
-> uses the GUID and v2 mode which uses the host's IP address?
->
-> What about duplicates entirely within v2 mode where vlan and macvlan
-> can create duplicate host IP addresses.
->
-> You can also just not create duplicate entries in the first place. For
-> instance there probably isn't a really a good reason to use rocev2 for
-> IPv6 link local addreses, that trivially eliminates the v1/v2
-> collision.
->
-> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> -----Original Message-----
+> From: owner-linux-mm@kvack.org [mailto:owner-linux-mm@kvack.org] On
+> Behalf Of Jason Gunthorpe
+> Sent: Tuesday, December 08, 2015 7:16 PM
+> To: Christoph Hellwig <hch@infradead.org>
+> Cc: Yishai Hadas <yishaih@mellanox.com>; dledford@redhat.com; linux-
+> rdma@vger.kernel.org; Or Gerlitz <ogerlitz@mellanox.com>; Tal Alon
+> <talal@mellanox.com>; linux-mm@kvack.org
+> Subject: Re: [RFC contig pages support 1/2] IB: Supports contiguous
+> memory operations
+>=20
+> On Tue, Dec 08, 2015 at 07:18:52AM -0800, Christoph Hellwig wrote:
+> > There is absolutely nothing IB specific here.  If you want to support
+> > anonymous mmaps to allocate large contiguous pages work with the MM
+> > folks on providing that in a generic fashion.
+>=20
+> Yes please.
+>=20
+
+Note that other HW vendors are developing similar solutions, see for exampl=
+e: http://www.slideshare.net/linaroorg/hkg15106-replacing-cmem-meeting-tis-=
+soc-shared-buffer-allocation-management-and-address-translation-requirement=
+s
+
+> We already have huge page mmaps, how much win is had by going from
+> huge page maps to this contiguous map?
+>=20
+
+As far as gain is concerned, we are seeing gains in two cases here:
+1. If the system has lots of non-fragmented, free memory, you can create la=
+rge contig blocks that are above the CPU huge page size.
+2. If the system memory is very fragmented, you cannot allocate huge pages.=
+ However, an API that allows you to create small (i.e. 64KB, 128KB, etc.) c=
+ontig blocks reduces the load on the HW page tables and caches.
+
+Thanks,
+--Shachar
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
