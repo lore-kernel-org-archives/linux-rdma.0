@@ -1,79 +1,65 @@
 From: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: [PATCH 1/1] Ibacm: default pkey for partitioned fabrics
-Date: Wed, 9 Dec 2015 13:07:14 +0000
-Message-ID: <3F128C9216C9B84BB6ED23EF16290AFB1858107A@CRSMSX101.amr.corp.intel.com>
+Date: Wed, 9 Dec 2015 13:24:14 +0000
+Message-ID: <3F128C9216C9B84BB6ED23EF16290AFB185810A2@CRSMSX101.amr.corp.intel.com>
 References: <1449595982-20781-1-git-send-email-kaike.wan@intel.com>
- <20151208212133.GC14378@obsidianresearch.com>
+ <56682392.5000302@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151208212133.GC14378-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <56682392.5000302-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
-> Sent: Tuesday, December 08, 2015 4:22 PM
-> To: Wan, Kaike
-> Cc: Hefty, Sean; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH 1/1] Ibacm: default pkey for partitioned fabrics
-> 
-> On Tue, Dec 08, 2015 at 12:33:02PM -0500, kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> > From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> >
-> > In an insecure IB fabric, the default pkey in a port is 0xffff, where
-> > each node is allowed to talk to any other node in the fabric,
-> > including the SA node. However, in a secure fabric, to limit member
-> > access, not all nodes can have the full-member default pkey 0xffff. A
-> > typical configuration is to let SA node have pkey 0xffff while all
-> > other nodes have pkey 0x7fff; in addition, each node can be assigned
-> > some other full-member pkeys, such as
-> > 0x8001 and 0x8002, so that it can be assigned to different partitions.
-> > In this case, each node can access SA, and yet limits its other access
-> > to only those nodes in its assigned partitions. In such a secure
-> > fabric, however, ibacm will not work by interpreting "default" in its
-> > default address file as 0xffff.
-> 
-> ipoib always uses the 0 pkey index to create the default ipoib interface. (see
-> eg, update_parent_pkey)
-> 
-> When operating securely the SA should place the pkey for default ipoib
-> operation in pkey index 0, and place 0x7FFF in another index. I run alot of
-> networks exactly like this and it works very well.
-
-In such a configuration, this patch will enable ibacm to use pkey 0 for address resolution through multicast while use 0x7fff for SA access, exactly matching what ipoib is currently doing. 
-
-> 
-> This ensures that ipoib works out of the box without additional configuration.
-
-This is exactly the purpose of this patch.
-
-> 
-> > +	/* Determine the default pkey index for SA access first.
-> > +	 *   Order of preference: 0xffff, 0x7fff, first pkey.
-> 
-> No, IBA says that only the default pkey should be used to talk to the SA,
-> every port needs 0x7FFF or the full mebership version. Do not search for the
-> first pkey.
-
-We use the first pkey only if there is neither 0x7fff nor 0xffff in this port. If the port is in compliance with IB Spec, then we will be using either 0xffff or 0x7fff for SA access.
-
-> 
-> > +	 * Determine the default pkey for parsing address file as well.
-> > +	 *   order of preference: first full-member non-management pkey,
-> > +	 *   0xffff, first pkey.
-> > +	 */
-> 
-> This really should just be the 0 index pkey, which exactly matches how IPoIB
-> determines the default pkey, which is what matters when talking rdmacm..
-
-It is true in most default configurations. However, since ibacm will use the default pkey for multicast, we want to make sure that it will not use a limited-member pkey to create/join a multicast group (practically of little use in this case) if such a pkey is placed at index 0.
-
-> 
-> Jason
+PiBGcm9tOiBIYWwgUm9zZW5zdG9jayBbbWFpbHRvOmhhbEBkZXYubWVsbGFub3guY28uaWxdDQo+
+IFNlbnQ6IFdlZG5lc2RheSwgRGVjZW1iZXIgMDksIDIwMTUgNzo1MCBBTQ0KPiBUbzogV2FuLCBL
+YWlrZTsgSGVmdHksIFNlYW4NCj4gQ2M6IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnDQo+IFN1
+YmplY3Q6IFJlOiBbUEFUQ0ggMS8xXSBJYmFjbTogZGVmYXVsdCBwa2V5IGZvciBwYXJ0aXRpb25l
+ZCBmYWJyaWNzDQo+IA0KPiBPbiAxMi84LzIwMTUgMTI6MzMgUE0sIGthaWtlLndhbkBpbnRlbC5j
+b20gd3JvdGU6DQo+ID4gRnJvbTogS2Fpa2UgV2FuIDxrYWlrZS53YW5AaW50ZWwuY29tPg0KPiA+
+DQo+ID4gSW4gYW4gaW5zZWN1cmUgSUIgZmFicmljLCB0aGUgZGVmYXVsdCBwa2V5IGluIGEgcG9y
+dCBpcyAweGZmZmYsIHdoZXJlDQo+ID4gZWFjaCBub2RlIGlzIGFsbG93ZWQgdG8gdGFsayB0byBh
+bnkgb3RoZXIgbm9kZSBpbiB0aGUgZmFicmljLA0KPiA+IGluY2x1ZGluZyB0aGUgU0Egbm9kZS4g
+SG93ZXZlciwgaW4gYSBzZWN1cmUgZmFicmljLCB0byBsaW1pdCBtZW1iZXINCj4gPiBhY2Nlc3Ms
+IG5vdCBhbGwgbm9kZXMgY2FuIGhhdmUgdGhlIGZ1bGwtbWVtYmVyIGRlZmF1bHQgcGtleSAweGZm
+ZmYuIEENCj4gPiB0eXBpY2FsIGNvbmZpZ3VyYXRpb24gaXMgdG8gbGV0IFNBIG5vZGUgaGF2ZSBw
+a2V5IDB4ZmZmZiB3aGlsZSBhbGwNCj4gPiBvdGhlciBub2RlcyBoYXZlIHBrZXkgMHg3ZmZmOyBp
+biBhZGRpdGlvbiwgZWFjaCBub2RlIGNhbiBiZSBhc3NpZ25lZA0KPiA+IHNvbWUgb3RoZXIgZnVs
+bC1tZW1iZXIgcGtleXMsIHN1Y2ggYXMNCj4gPiAweDgwMDEgYW5kIDB4ODAwMiwgc28gdGhhdCBp
+dCBjYW4gYmUgYXNzaWduZWQgdG8gZGlmZmVyZW50IHBhcnRpdGlvbnMuDQo+ID4gSW4gdGhpcyBj
+YXNlLCBlYWNoIG5vZGUgY2FuIGFjY2VzcyBTQSwgYW5kIHlldCBsaW1pdHMgaXRzIG90aGVyIGFj
+Y2Vzcw0KPiA+IHRvIG9ubHkgdGhvc2Ugbm9kZXMgaW4gaXRzIGFzc2lnbmVkIHBhcnRpdGlvbnMu
+IEluIHN1Y2ggYSBzZWN1cmUNCj4gPiBmYWJyaWMsIGhvd2V2ZXIsIGliYWNtIHdpbGwgbm90IHdv
+cmsgYnkgaW50ZXJwcmV0aW5nICJkZWZhdWx0IiBpbiBpdHMNCj4gPiBkZWZhdWx0IGFkZHJlc3Mg
+ZmlsZSBhcyAweGZmZmYuDQo+ID4NCj4gPiBUbyBzb2x2ZSB0aGUgcHJvYmxlbSwgdGhpcyBwYXRj
+aCBpbnRyb2R1Y2VzIHRoZSBmb2xsb3dpbmcgcHJpb3JpdHkgdG8NCj4gPiBpbnRlcnByZXQgZGVm
+YXVsdCBwa2V5Og0KPiA+IDEuIEZpbmQgdGhlIGZpcnN0IG5vbi1tYW5hZ2VtZW50IGZ1bGwtbWVt
+YmVyIHBrZXk7IDIuIElmIGl0IGZhaWxzLA0KPiA+IGZpbmQgcGtleSAweGZmZmY7IDMuIElmIHBr
+ZXkgMHhmZmZmIGlzIG5vdCBhdmFpbGFibGUsIHVzZSB0aGUgZmlyc3QNCj4gPiBwa2V5Lg0KPiA+
+IFRoaXMgYXBwcm9hY2ggd2lsbCB3b3JrIGluIGJvdGggc2VjdXJlbHkgYW5kIGluc2VjdXJlbHkg
+cGFydGl0aW9ucw0KPiA+IGZhYnJpY3MuDQo+IA0KPiBTaG91bGRuJ3QgdGhlIHBrZXkgdG8gYmUg
+dXNlZCBmb3Igc3VjaCBpbnRlckFDTSBjb21tdW5pY2F0aW9uIGJlDQo+IGNvbmZpZ3VyZWQgPw0K
+WWVzLiBUaGUgcHVycG9zZSBvZiB0aGlzIHBhdGNoIGlzIG9ubHkgdG8gbWFrZSBhIHNlY3VyZSBz
+eXN0ZW0gd29yayBvdXQgb2YgYm94IChkZWZhdWx0IGNvbmZpZ3VyYXRpb24pLiBXaGVuIGEgc3Bl
+Y2lmaWMgcGtleSBpcyBnaXZlbiBpbiB0aGUgaWJhY21fYWRkci5jZmcgZmlsZSwgdGhlcmUgd2ls
+bCBiZSBubyBuZWVkIHRvIGludGVycHJldCB0aGUgImRlZmF1bHQiIHBrZXkuDQoNCj4gRmlyc3Qg
+ZnVsbCBtZW1iZXIgcGtleSBpcyBub24tZGV0ZXJtaW5pc3RpYy4gSXNuJ3QgaXQgdGhlIGNhc2Ug
+dGhhdA0KPiBpdCBtYXkgbm90IGluY2x1ZGUgcHJvcGVyIHNldCBvZiBBQ01zIHRvIGNvbW11bmlj
+YXRlIHdpdGggPw0KDQpUaGlzIGlzIG9ubHkgZm9yIHRoZSBkZWZhdWx0IGNvbmZpZ3VyYXRpb24s
+IHdoZXJlIGEgcmVhc29uYWJsZSBhc3N1bXB0aW9uIGlzIHRoYXQgbWVtYmVycyBvZiBhbiBpbnRl
+bmRlZCBwYXJ0aXRpb24gKGdyb3VwIG9mIHBvcnRzKSB3aWxsIGFsbCBoYXZlIHRoZSBzYW1lIGZ1
+bGwtbWVtYmVyIHBrZXkuIE9uZSBjb3VsZCBhcmd1ZSB0aGF0IGEgcG9ydCBjb3VsZCBoYXZlIHR3
+byBvciBtb3JlIGZ1bGwtbWVtYmVyIG5vbi1tYW5hZ2VtZW50IHBrZXlzIGJlY2F1c2UgaXQgaXMg
+YXNzaWduZWQgdG8gbXVsdGlwbGUgcGFydGl0aW9ucy4gSW4gdGhpcyBjYXNlLCB0aGUgcG9ydCB3
+aWxsIG9ubHkgam9pbiBvbmx5IG9uZSBtdWx0aWNhc3QgZ3JvdXAsIG5vdCBhbGwgdGhlIG11bHRp
+Y2FzdCBncm91cHMuIFRoZSByZXBseSBpcyB0aGF0IHRoZSBkZWZhdWx0IGliYWNtX2FkZHIuY2Zn
+IGhhdmUgb25seSBvbmUgZW5kcG9pbnQgd2l0aCBwa2V5ICJkZWZhdWx0IiBhbnl3YXkuIFRvIG1h
+a2UgaXQgcmVhbGx5IHdvcmssIG9uZSBuZWVkcyB0byBlZGl0IGliYWNtX2FkZHIuY2ZnLg0KDQpL
+YWlrZQ0KDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
