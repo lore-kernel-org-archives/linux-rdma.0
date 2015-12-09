@@ -1,81 +1,49 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH libibverbs] init.c: increase sysfs read buffer size to 16
-Date: Wed, 9 Dec 2015 16:36:22 -0500
-Message-ID: <56689ED6.4000602@redhat.com>
-References: <1449184181-25676-1-git-send-email-jsquyres@cisco.com>
- <56658940.5040506@mellanox.com>
- <8CCFAB20-21D8-4915-98C6-3DE6130BF389@cisco.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 1/1] Ibacm: default pkey for partitioned fabrics
+Date: Wed, 9 Dec 2015 21:52:47 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AAFE820B@ORSMSX109.amr.corp.intel.com>
+References: <56683080.1090801@dev.mellanox.co.il>
+ <3F128C9216C9B84BB6ED23EF16290AFB185810D9@CRSMSX101.amr.corp.intel.com>
+ <5668354B.4090903@dev.mellanox.co.il>
+ <3F128C9216C9B84BB6ED23EF16290AFB18581111@CRSMSX101.amr.corp.intel.com>
+ <56683C6C.7070106@dev.mellanox.co.il>
+ <3F128C9216C9B84BB6ED23EF16290AFB185811ED@CRSMSX101.amr.corp.intel.com>
+ <5668458A.7020809@dev.mellanox.co.il>
+ <1828884A29C6694DAF28B7E6B8A82373AAFE7F21@ORSMSX109.amr.corp.intel.com>
+ <56685B98.5080803@dev.mellanox.co.il>
+ <1828884A29C6694DAF28B7E6B8A82373AAFE7FB6@ORSMSX109.amr.corp.intel.com>
+ <20151209182212.GF31636@obsidianresearch.com> <56689E86.9080807@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="iBhJAfwVG3wWb68Nv6KK8mttUBshFFwvA"
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <8CCFAB20-21D8-4915-98C6-3DE6130BF389-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <56689E86.9080807-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Xuyang Wang (xuywang)" <xuywang-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---iBhJAfwVG3wWb68Nv6KK8mttUBshFFwvA
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+> >> Example: Compute nodes are assigned pkeys 0x8000 and 0x7fff.  A node
+> >> running the job scheduler has pkeys 0xffff and 0x8000 (maybe it's
+> >> also the backup SA).  Ibacm would need to select pkey 0x8000 for
+> >> communication.
+> >
+> > I've also seen the reverse, eg 0xFFFF is used for default ipoib
+> > communication and 0x8001 is assigned to only some nodes as a child
+> > vlan.
+> 
+> That's what I use internally in our test lab.
+> 
+> > Choosing 0x8001 in that case won't work either.
+> 
+> Nope.  The suggestion here would break our setup.  Well, *would* being
+> the operative word where what I mean is would if we used ibacm.  But
+> that's a story for another email...
 
-On 12/09/2015 10:05 AM, Jeff Squyres (jsquyres) wrote:
-> Any further comments on this?
->=20
-> Doug -- does it look ok to you?
->=20
->=20
->> On Dec 7, 2015, at 5:27 AM, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->>
->> On 12/04/2015 01:09 AM, Jeff Squyres wrote:
->>> The default value of 8 is too small to read
->>> /sys/class/infiniband/usnic_x/node_type, which contains "6: usNIC
->>> UDP".  Per a7a73a8c1b39362f1701256bc772d82847832f9c, the too-small
->>> buffer causes a stderr warning to be emitted from ibv_devinfo when
->>> reading usNIC devices.
->>>
->>> This commit therefore increases the buffer size to 16, which is long
->>> enough to read the usNIC node_type value.
->>
->> Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->=20
->=20
+In this case, Kaike, please change the default to just be pkey[0].
 
-Yeah, looks fine to me.  I'll pull it in shortly.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---iBhJAfwVG3wWb68Nv6KK8mttUBshFFwvA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJWaJ7WAAoJELgmozMOVy/dwFkP/0JBlro9ZwygH/x2kGFZ3UuJ
-Wj6ZIfmEsUq2bhl2wPkLWetC98V/NowLEsFxnZ8hCFZD/qva+NcTe6SKpLulxsyW
-fUcD6Zpac+bxX3+68Grrstw5U/vhElaeSHDSlWvVf80hO+W5zAMXef2M4QBOoE6R
-BxjIGTM9ksRwlubNQl4Bl0GdFwh4cXL1Y28gYlFGOwXZHWCUxFMmOSeEXReS0O1n
-hbmYBj+Uk3+GQXm5Sq+Seh5ksjEKza8WiBJOdjdCeyf3hi64+JR+5hrr0P5otn3I
-vD5UH3+AyC2vS2v+ApX2FqZ69+SrituVxf0NZLeN+bv0ethS5okitZZ0C1JfZiVG
-2ZOxkg9Ir52UDXQ78eeWSBhQXCKkLNaFze8ZC0sPLIyrOUGt0FtpRrWd10s2gQ1V
-paxVHy0Cc4jLOy9hEUDQiwhRF9hiNT9ZZ3N4hCB0gvsuctbnDLMVfwtheuanIO/c
-Mbg5rc2k2HL7g5HSMyZgQpa98OM0DoJEJIL5hIywJq5DzV5lKgG0GOJXNffkm+tx
-5v8Gl1RY7Lydm6t0DkxTcqe6S0kU+44OVVEjfhzwBL4Buo0HsTlNAYAFrbBgZ4QH
-SqwGs9UzSpscCXndmNm4fSWa4AbwGNx5MKeRWzMTKpM3DMJsD1aA1EJaYGJ3aBcF
-cIeLyi0u6BpmM9XZFh58
-=pjhe
------END PGP SIGNATURE-----
-
---iBhJAfwVG3wWb68Nv6KK8mttUBshFFwvA--
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
