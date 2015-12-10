@@ -1,49 +1,52 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 1/1] Ibacm: default pkey for partitioned fabrics
-Date: Wed, 9 Dec 2015 21:52:47 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AAFE820B@ORSMSX109.amr.corp.intel.com>
-References: <56683080.1090801@dev.mellanox.co.il>
- <3F128C9216C9B84BB6ED23EF16290AFB185810D9@CRSMSX101.amr.corp.intel.com>
- <5668354B.4090903@dev.mellanox.co.il>
- <3F128C9216C9B84BB6ED23EF16290AFB18581111@CRSMSX101.amr.corp.intel.com>
- <56683C6C.7070106@dev.mellanox.co.il>
- <3F128C9216C9B84BB6ED23EF16290AFB185811ED@CRSMSX101.amr.corp.intel.com>
- <5668458A.7020809@dev.mellanox.co.il>
- <1828884A29C6694DAF28B7E6B8A82373AAFE7F21@ORSMSX109.amr.corp.intel.com>
- <56685B98.5080803@dev.mellanox.co.il>
- <1828884A29C6694DAF28B7E6B8A82373AAFE7FB6@ORSMSX109.amr.corp.intel.com>
- <20151209182212.GF31636@obsidianresearch.com> <56689E86.9080807@redhat.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: device attr cleanup (was: Handle mlx4 max_sge_rd correctly)
+Date: Wed, 9 Dec 2015 20:45:56 -0500
+Message-ID: <20151210014556.GA32059@phlsvsds.ph.intel.com>
+References: <CAJ3xEMj2EOxX1CiA93MPOsM-FdU9ijcWCYm9tObbkLqqja0PoA@mail.gmail.com> <566753E3.9060301@redhat.com> <CAJ3xEMhaEnv9He7N5q8fFsRzy_j27wdE6KWSFF39UzA680udwA@mail.gmail.com> <20151208225940.GB27609@obsidianresearch.com> <20151208230244.GA10701@infradead.org> <20151209005203.GD16976@phlsvsds.ph.intel.com> <20151209184235.GB4522@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56689E86.9080807-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20151209184235.GB4522-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> >> Example: Compute nodes are assigned pkeys 0x8000 and 0x7fff.  A node
-> >> running the job scheduler has pkeys 0xffff and 0x8000 (maybe it's
-> >> also the backup SA).  Ibacm would need to select pkey 0x8000 for
-> >> communication.
-> >
-> > I've also seen the reverse, eg 0xFFFF is used for default ipoib
-> > communication and 0x8001 is assigned to only some nodes as a child
-> > vlan.
+On Wed, Dec 09, 2015 at 10:42:35AM -0800, Christoph Hellwig wrote:
+> On Tue, Dec 08, 2015 at 07:52:03PM -0500, ira.weiny wrote:
+> > Searching patchworks...
+> > 
+> > I'm a bit worried about the size of the patch and I would like to see it split
+> > up for review.  But I agree Christophs method is better long term.
 > 
-> That's what I use internally in our test lab.
-> 
-> > Choosing 0x8001 in that case won't work either.
-> 
-> Nope.  The suggestion here would break our setup.  Well, *would* being
-> the operative word where what I mean is would if we used ibacm.  But
-> that's a story for another email...
+> I'd be happy to split it up if I could see a way to split it.  So if
+> anyone has an idea you're welcome!
 
-In this case, Kaike, please change the default to just be pkey[0].
+Well this is a ~3300 line patch which is pretty hard to review in total.
 
-- Sean
+> 
+> > Christoph do you have this on github somewhere?  Perhaps it is split but I'm
+> > not finding in on patchworks?
+> 
+> No need for github, we have much better (and older) git hosting sites :)
+> 
+> http://git.infradead.org/users/hch/rdma.git/shortlog/refs/heads/ib_device_attr
+
+Another nice side effect of this patch is to get rid of all the struct
+ib_device_attr allocations which are littered all over the ULPs.
+
+For the core, srp, ipoib, qib, hfi1 bits.  Generally the rest looks fine I just
+did not have time to really go through it line by line.
+
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+Doug this is going to conflict with the rdmavt work.  So if you take this could
+you respond on the list.
+
+Thanks,
+Ira
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
