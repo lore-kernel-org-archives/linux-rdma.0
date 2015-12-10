@@ -1,139 +1,81 @@
-From: Nelson Escobar <neescoba-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/usnic: Handle 0 counts in resource allocation
-Date: Thu, 10 Dec 2015 13:46:15 -0800
-Message-ID: <5669F2A7.8060502@cisco.com>
-References: <1449686539-29959-6-git-send-email-neescoba@cisco.com>
- <20151210064702.GC8662@leon.nu> <5669D0F0.7010104@cisco.com>
- <20151210194734.GF8662@leon.nu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH] IB/mad: Ensure fairness in ib_mad_completion_handler
+Date: Thu, 10 Dec 2015 16:52:30 -0500
+Message-ID: <1449784350-30214-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151210194734.GF8662-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "leon-2ukJVAZIZ/Y@public.gmane.org" <leon-2ukJVAZIZ/Y@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
+It was found that when a process was rapidly sending MADs other processes could
+be hung in their unregister calls.
 
-On 12/10/2015 11:47 AM, leon-2ukJVAZIZ/Y@public.gmane.org wrote:
-> On Thu, Dec 10, 2015 at 11:22:24AM -0800, Nelson Escobar wrote:
->> On 12/9/2015 10:47 PM, Leon Romanovsky wrote:
->>> On Wed, Dec 09, 2015 at 10:42:19AM -0800, Nelson Escobar wrote:
->>>> -	if (usnic_vnic_res_free_cnt(vnic, type) < cnt || cnt < 1 || !owner)
->>>> +	if (usnic_vnic_res_free_cnt(vnic, type) < cnt || cnt < 0 || !owner)
->>> Before this change you returned EINVAL if no free_cnt were available,
->>> now you will continue. is this behaviour expected?
->> Yes.  If cnt is 0, then no resources are being requested, so it is OK if
->> there are no resources available.
-> I afraid that you missed the point.
-Thanks for looking at the code.  I am still not understanding your point.
-> Old code:
-> usnic_vnic_res_free_cnt(vnic, type) == 0 and cnt == 1 will return EINVAL
-Yes:
-	if (0 < 1 || 1 < 1 || !owner)
-		return -EINVAL;
-> New code
-> snic_vnic_res_free_cnt(vnic, type) == 0 and cnt == 1 will pass and will
-> pass te "if (cnt > 0)" check below and will decrease free_cnt variable
-> to be below zero.
-This I don't understand.  The following still fails with -EINVAL.
-	if (0 < 1 || 1 < 0 || !owner)
-		return -EINVAL;
-> 
-> Is this behavior expected?
->>>
->>>>  		return ERR_PTR(-EINVAL);
->>>>  
->>>>  	ret = kzalloc(sizeof(*ret), GFP_ATOMIC);
->>>> @@ -247,26 +247,28 @@ usnic_vnic_get_resources(struct usnic_vnic *vnic, enum usnic_vnic_res_type type,
->>>>  		return ERR_PTR(-ENOMEM);
->>>>  	}
->>>>  
->>>> -	ret->res = kzalloc(sizeof(*(ret->res))*cnt, GFP_ATOMIC);
->>>> -	if (!ret->res) {
->>>> -		usnic_err("Failed to allocate resources for %s. Out of memory\n",
->>>> -				usnic_vnic_pci_name(vnic));
->>>> -		kfree(ret);
->>>> -		return ERR_PTR(-ENOMEM);
->>>> -	}
->>>> +	if (cnt > 0) {
->>>> +		ret->res = kcalloc(cnt, sizeof(*(ret->res)), GFP_ATOMIC);
->>>> +		if (!ret->res) {
->>>> +			usnic_err("Failed to allocate resources for %s. Out of memory\n",
->>>> +					usnic_vnic_pci_name(vnic));
->>> You don't need to print OOM messages, failure in memory allocation very hard to miss.
->> OOM messages are hard to miss, but this message is already in upstream
->> and outside the scope of this patch.
-> It is worth to fix, especially if you are changing these exact lines.
->>>> +			kfree(ret);
->>>> +			return ERR_PTR(-ENOMEM);
->>>> +		}
->>>>  
->>>> -	spin_lock(&vnic->res_lock);
->>>> -	src = &vnic->chunks[type];
->>>> -	for (i = 0; i < src->cnt && ret->cnt < cnt; i++) {
->>>> -		res = src->res[i];
->>>> -		if (!res->owner) {
->>>> -			src->free_cnt--;
->>>> -			res->owner = owner;
->>>> -			ret->res[ret->cnt++] = res;
->>>> +		spin_lock(&vnic->res_lock);
->>>> +		src = &vnic->chunks[type];
->>>> +		for (i = 0; i < src->cnt && ret->cnt < cnt; i++) {
->>>> +			res = src->res[i];
->>>> +			if (!res->owner) {
->>>> +				src->free_cnt--;
->>> It will be negative, because of skip usnic_vnic_res_free_cnt check
->>> before.
->> We are inside the 'if (cnt > 0)' clause here, so the previous
->> usnic_vnic_res_free_cnt check wasn't skipped.
-> See above.
-> 
->>>> +				res->owner = owner;
->>>> +				ret->res[ret->cnt++] = res;
->>>> +			}
->>>>  		}
->>>> -	}
->>>>  
->>>> -	spin_unlock(&vnic->res_lock);
->>>> +		spin_unlock(&vnic->res_lock);
->>>> +	}
->>>>  	ret->type = type;
->>>>  	ret->vnic = vnic;
->>>>  	WARN_ON(ret->cnt != cnt);
->>>> @@ -281,14 +283,16 @@ void usnic_vnic_put_resources(struct usnic_vnic_res_chunk *chunk)
->>>>  	int i;
->>>>  	struct usnic_vnic *vnic = chunk->vnic;
->>>>  
->>>> -	spin_lock(&vnic->res_lock);
->>>> -	while ((i = --chunk->cnt) >= 0) {
->>>> -		res = chunk->res[i];
->>>> -		chunk->res[i] = NULL;
->>>> -		res->owner = NULL;
->>>> -		vnic->chunks[res->type].free_cnt++;
->>>> +	if (chunk->cnt > 0) {
->>>> +		spin_lock(&vnic->res_lock);
->>>> +		while ((i = --chunk->cnt) >= 0) {
->>>> +			res = chunk->res[i];
->>>> +			chunk->res[i] = NULL;
->>>> +			res->owner = NULL;
->>>> +			vnic->chunks[res->type].free_cnt++;
->>>> +		}
->>>> +		spin_unlock(&vnic->res_lock);
->>>>  	}
->>>> -	spin_unlock(&vnic->res_lock);
->>>>  
->>>>  	kfree(chunk->res);
->>>>  	kfree(chunk);
->>>> -- 
->>>> 2.4.3
->>>>
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This would happen when process A was injecting packets fast enough that the
+single threaded workqueue was never exiting ib_mad_completion_handler.
+Therefore when process B called flush_workqueue via the unregister call it
+would hang until process A stopped sending MADs.
+
+The fix is to periodically reschedule ib_mad_completion_handler after
+processing a large number of completions.  The number of completions chosen was
+decided based on the defaults for the recv queue size.  However, it was kept
+fixed such that increasing those queue sizes would not adversely affect
+fairness in the future.
+
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/core/mad.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 2281de122038..d4d2a618fd66 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -61,6 +61,18 @@ MODULE_PARM_DESC(send_queue_size, "Size of send queue in number of work requests
+ module_param_named(recv_queue_size, mad_recvq_size, int, 0444);
+ MODULE_PARM_DESC(recv_queue_size, "Size of receive queue in number of work requests");
+ 
++/*
++ * Define a limit on the number of completions which will be processed by the
++ * worker thread in a single work item.  This ensures that other work items
++ * (potentially from other users) are processed fairly.
++ *
++ * The number of completions was derived from the default queue sizes above.
++ * We use a value which is double the larger of the 2 queues (receive @ 512)
++ * but keep it fixed such that an increase in that value does not introduce
++ * unfairness.
++ */
++#define MAD_COMPLETION_PROC_LIMIT 1024
++
+ static struct list_head ib_mad_port_list;
+ static u32 ib_mad_client_id = 0;
+ 
+@@ -2555,6 +2567,7 @@ static void ib_mad_completion_handler(struct work_struct *work)
+ {
+ 	struct ib_mad_port_private *port_priv;
+ 	struct ib_wc wc;
++	int count = 0;
+ 
+ 	port_priv = container_of(work, struct ib_mad_port_private, work);
+ 	ib_req_notify_cq(port_priv->cq, IB_CQ_NEXT_COMP);
+@@ -2574,6 +2587,11 @@ static void ib_mad_completion_handler(struct work_struct *work)
+ 			}
+ 		} else
+ 			mad_error_handler(port_priv, &wc);
++
++		if (++count > MAD_COMPLETION_PROC_LIMIT) {
++			queue_work(port_priv->wq, &port_priv->work);
++			break;
++		}
+ 	}
+ }
+ 
+-- 
+1.8.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
