@@ -1,30 +1,70 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH 26/37] IB/rdmavt: Move memory registration into rdmavt
-Date: Thu, 10 Dec 2015 07:25:44 -0800
-Message-ID: <20151210152544.GA32222@infradead.org>
-References: <20151207204046.8144.18752.stgit@phlsvslse11.ph.intel.com>
- <20151207204451.8144.52356.stgit@phlsvslse11.ph.intel.com>
- <56698B2C.2010806@dev.mellanox.co.il>
- <20151210151455.GD11526@phlsvsds.ph.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: device attr cleanup (was: Handle mlx4 max_sge_rd correctly)
+Date: Thu, 10 Dec 2015 11:07:37 -0500
+Message-ID: <93E3DE8A-0589-436D-A9A1-7EAC66B12739@oracle.com>
+References: <CAJ3xEMj2EOxX1CiA93MPOsM-FdU9ijcWCYm9tObbkLqqja0PoA@mail.gmail.com> <566753E3.9060301@redhat.com> <CAJ3xEMhaEnv9He7N5q8fFsRzy_j27wdE6KWSFF39UzA680udwA@mail.gmail.com> <20151208225940.GB27609@obsidianresearch.com> <20151208230244.GA10701@infradead.org> <20151209005203.GD16976@phlsvsds.ph.intel.com> <20151209184235.GB4522@infradead.org> <20151210014556.GA32059@phlsvsds.ph.intel.com> <56693758.90808@dev.mellanox.co.il>
+Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20151210151455.GD11526-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <56693758.90808-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 10, 2015 at 10:14:56AM -0500, Dennis Dalessandro wrote:
-> Why? Because, it exists in qib and hfi1.
-> 
-> However, it seems no one is actually using this in the kernel these days and
-> the core support was removed in commit 1241d7bf. Yet the function pointer
-> still exists in struct ib_device. Are there plans to remove this?
 
-Yes, I've send a patch that remove it, and which only got positive
-review so far.
+> On Dec 10, 2015, at 3:27 AM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> 
+> 
+> 
+>> Doug this is going to conflict with the rdmavt work.  So if you take this could
+>> you respond on the list.
+> 
+> It will also conflict with the iser remote invalidate series.
+> 
+> Doug it would help if you share your plans so people can rebase
+> accordingly.
+
+I would be remiss not to mention that it probably also
+conflicts with the NFS server bi-directional RPC/RDMA
+series.
+
+Invasive IB core changes like this clean up are especially
+burdensome for me because NFS/RDMA changes do not normally
+go through Doug's tree, so it takes extra co-ordination.
+
+Here is a modest proposal. An obvious way to split the
+device attr cleanup might go like this:
+
+a. first patch: add new fields to ib_device
+b. then one patch for each provider to populate these fields
+c. then one patch for each kernel ULP to use the new fields
+d. then one patch for each provider to remove ->query_attr
+e. last patch: remove ib_device_attr from the IB core
+
+That way each provider and ULP maintainer can review and
+ack the portion of the changes that he or she is responsible
+for, and it should help make it much easier to merge with
+conflicting changes.
+
+Splitting it across more than one kernel release would be
+helpful too, IMO. a. and b. can go into 4.5, c. into 4.6,
+and d. and e. can go in any time after that.
+
+This adds more "process" but given the long chain of core
+changes now in plan, we should acknowledge how disruptive
+they will be, and come up with ways to make it possible to
+get other work done while the core maintenance work
+progresses.
+
+
+--
+Chuck Lever
+
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
