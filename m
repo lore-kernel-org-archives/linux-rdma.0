@@ -1,53 +1,45 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next V2 05/11] IB/core: Add rdma_network_type to wc
-Date: Thu, 10 Dec 2015 10:38:20 -0700
-Message-ID: <20151210173820.GA21482@obsidianresearch.com>
-References: <20151207063415.GB20066@obsidianresearch.com>
- <CAG9sBKMBt6Toa25Ouasr7hudAcOYrxZyBUFYMXzrMTFZvooWfQ@mail.gmail.com>
- <20151207171228.GA26969@obsidianresearch.com>
- <CAG9sBKNXnzp7PgJhfcjbYvje5qgZWYqygJYkbs4WyTZtDc4ckg@mail.gmail.com>
- <20151207184832.GA21402@obsidianresearch.com>
- <CAG9sBKNWMQA3XDGpDc_+2QoJcnnNL9o67p0JNoVqrU0u9UQCrA@mail.gmail.com>
- <20151208225251.GA27609@obsidianresearch.com>
- <CAG9sBKM2s9BMv8priCHnFaMcSnuafn4vf+6+0Rooc6Gw0ZSaLA@mail.gmail.com>
- <20151209180129.GD31636@obsidianresearch.com>
- <CAG9sBKPNWsO7ugdyhd5sYp_yOSrUkG0b-Lfq6Eenrydg3MzyvQ@mail.gmail.com>
+Subject: Re: [PATCH 02/37] IB/rdmavt: Consolidate dma ops in rdmavt.
+Date: Thu, 10 Dec 2015 10:44:13 -0700
+Message-ID: <20151210174413.GB21482@obsidianresearch.com>
+References: <20151207204046.8144.18752.stgit@phlsvslse11.ph.intel.com>
+ <20151207204305.8144.7038.stgit@phlsvslse11.ph.intel.com>
+ <20151208060821.GD7313@leon.nu>
+ <20151210161708.GA13412@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAG9sBKPNWsO7ugdyhd5sYp_yOSrUkG0b-Lfq6Eenrydg3MzyvQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20151210161708.GA13412-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 10, 2015 at 09:58:51AM +0200, Moni Shoua wrote:
+On Thu, Dec 10, 2015 at 11:17:09AM -0500, Dennis Dalessandro wrote:
+> On Tue, Dec 08, 2015 at 08:08:21AM +0200, Leon Romanovsky wrote:
+> >On Mon, Dec 07, 2015 at 03:43:06PM -0500, Dennis Dalessandro wrote:
+> >>+
+> >>+#define BAD_DMA_ADDRESS ((u64)0)
 
-> > creating a horrible API, or requiring all vendors to implement a
-> > network type flag.
-> >
-> Actually you haven't suggested anything yet besides a name to the function.
-> I already said that calculating gid_index from wc and grh requires
-> extra CPU cycles and is prone to mistakes. But, I might be wrong and
-> you have a better idea. Do you?
+Just use DMA_ERROR_CODE.
 
-I told you, if a driver requires vendor specific information then
-include it as private data in the grh.
+> >>+static u64 rvt_dma_map_single(struct ib_device *dev, void *cpu_addr,
+> >>+			      size_t size, enum dma_data_direction direction)
+> >>+{
+> >>+	if (WARN_ON(!valid_dma_direction(direction)))
+> >>+		return BAD_DMA_ADDRESS;
+> >>+
+> >>+	return (u64)cpu_addr;
+> >>+}
+> >An example of such function.
+> 
+> Honestly I'm not really sure why it's done this way. We are just following
+> the signature of the function in struct ib_dma_mapping_ops.
 
-I keep saying this: computing the gid index is not optional. If a
-drive can't do it efficiently then too bad, it has to go the long way
-around.
+It is supposed to be a dma_addr_t 'cookie' not a u64.
 
->> I think mlx made a big mistake returning network_type instead of gid
->> index, and I don't want to see that error enshrined in our API.
->>
-> returning gid_index is wrong because it forces CQ pollers to be aware
-> of the entire table. Like I already mentioned, the GID table is a HW
-> resource that can be divided and handed to multiple VMs,
-
-Please. If HW virt stuff can't sort this out it is broken, there are
-many trivial solutions.
+A patch to cleanup the core in this area would be appreciated.
 
 Jason
 --
