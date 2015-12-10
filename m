@@ -1,44 +1,71 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next V1 2/5] IB/core: Add ib_is_udata_cleared
-Date: Thu, 10 Dec 2015 17:20:30 +0200
-Message-ID: <5669983E.5000200@mellanox.com>
-References: <1449157463-25313-1-git-send-email-matanb@mellanox.com>
- <1449157463-25313-3-git-send-email-matanb@mellanox.com>
- <56658718.8080308@mellanox.com>
- <CAAKD3BC7bhKC+jKV3aH9W+pcBwV19PJZYwXdZue6hNew=CJW9g@mail.gmail.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 04/37] IB/rdmavt: Add ib core device attributes to rvt driver params list
+Date: Thu, 10 Dec 2015 10:22:52 -0500
+Message-ID: <20151210152251.GE11526@phlsvsds.ph.intel.com>
+References: <20151207204046.8144.18752.stgit@phlsvslse11.ph.intel.com> <20151207204314.8144.46170.stgit@phlsvslse11.ph.intel.com> <56696F63.90707@mellanox.com> <20151210132523.GB11526@phlsvsds.ph.intel.com> <56699674.3030900@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAAKD3BC7bhKC+jKV3aH9W+pcBwV19PJZYwXdZue6hNew=CJW9g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <56699674.3030900-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/12/2015 16:59, Matan Barak wrote:
-> On Mon, Dec 7, 2015 at 3:18 PM, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->> On 12/03/2015 05:44 PM, Matan Barak wrote:
->>> Extending core and vendor verb commands require us to check that the
->>> unknown part of the user's given command is all zeros.
->>> Adding ib_is_udata_cleared in order to do so.
+On Thu, Dec 10, 2015 at 05:12:52PM +0200, Haggai Eran wrote:
+>On 10/12/2015 15:25, Dennis Dalessandro wrote:
+>> On Thu, Dec 10, 2015 at 02:26:11PM +0200, Haggai Eran wrote:
+>>> On 07/12/2015 22:43, Dennis Dalessandro wrote:
+>>>> +    /*
+>>>> +     * Drivers will need to support a number of notifications to rvt in
+>>>> +     * accordance with certain events. This structure should contain
+>>>> a mask
+>>>> +     * of the supported events. Such events that the rvt may need to
+>>>> know
+>>>> +     * about include:
+>>>> +     * port errors
+>>>> +     * port active
+>>>> +     * lid change
+>>>> +     * sm change
+>>>> +     * client reregister
+>>>> +     * pkey change
+>>> Where are the event values defined?
+>> 
+>> They aren't really yet. A lot of the comments like this were put in and
+>> made available on GitHub for an early look into the design. This will
+>> all get cleaned up as the code continues to come together.
+>Okay, Great. Since the events above are already defined as
+>ib_event/ib_event_type maybe you can reuse them somehow.
+
+Yeah, I don't think there is a need to redefine this.
+
+>>>>> +     *
+>>>> +     * There may also be other events that the rvt layers needs to know
+>>>> +     * about this is not an exhaustive list. Some events though rvt
+>>>> does not
+>>>> +     * need to rely on the driver for such as completion queue error.
+>>>> +     */
+>>>> +     int rvt_signal_supported;
 >>>
->>
->> Why not copy the data into kernel space and run memchr_inv() on it?
->>
-> 
-> Probably less efficient, isn't it?
-Why do you think it is less efficient?
+>>> What will rvt do if it learns that the device doesn't support some of
+>>> the events?
+>> 
+>> Good question. I don't really have a great answer right now. Mostly it
+>> sort of depends on what events we end up. If it's something critical
+>> rdmavt will have to check during the registration and fail the call.
+>> This is not yet implemented in the two patch sets posted.
+>I'm not sure that's needed. If the driver doesn't satisfy what rvt
+>expects from it they can break in many ways. I'm not sure this specific
+>instance requires a check during registration. But it really depends on
+>the specific drivers and the specific events we're going to have.
 
-I'm not sure calling copy_from_user multiple times is very efficient.
-For once, you are calling access_ok multiple times. I guess it depends
-on the amount of data you are copying.
+Basically if the driver is just not going to function because it doesn't 
+provide something, that's probably not such a big deal. If it can lead to a 
+kernel panic then we probably want to validate. In the end, yes, it just all 
+depends on what we end up with.
 
-> I know it isn't data path, but we'll execute this code in all extended
-> functions (sometimes even more than once).
-Do you think it is important enough to maintain our own copy of
-memchr_inv()?
-
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
