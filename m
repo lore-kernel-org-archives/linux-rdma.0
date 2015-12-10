@@ -1,108 +1,45 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH] IB/usnic: Handle 0 counts in resource allocation
-Date: Thu, 10 Dec 2015 08:47:02 +0200
-Message-ID: <20151210064702.GC8662@leon.nu>
-References: <1449686539-29959-6-git-send-email-neescoba@cisco.com>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next V2 05/11] IB/core: Add rdma_network_type to wc
+Date: Thu, 10 Dec 2015 09:58:51 +0200
+Message-ID: <CAG9sBKPNWsO7ugdyhd5sYp_yOSrUkG0b-Lfq6Eenrydg3MzyvQ@mail.gmail.com>
+References: <20151207060241.GA19038@obsidianresearch.com>
+	<CAG9sBKO0rsSQK1WcyBciZEONWJsusw9GwR19H7FfAsebEH63dg@mail.gmail.com>
+	<20151207063415.GB20066@obsidianresearch.com>
+	<CAG9sBKMBt6Toa25Ouasr7hudAcOYrxZyBUFYMXzrMTFZvooWfQ@mail.gmail.com>
+	<20151207171228.GA26969@obsidianresearch.com>
+	<CAG9sBKNXnzp7PgJhfcjbYvje5qgZWYqygJYkbs4WyTZtDc4ckg@mail.gmail.com>
+	<20151207184832.GA21402@obsidianresearch.com>
+	<CAG9sBKNWMQA3XDGpDc_+2QoJcnnNL9o67p0JNoVqrU0u9UQCrA@mail.gmail.com>
+	<20151208225251.GA27609@obsidianresearch.com>
+	<CAG9sBKM2s9BMv8priCHnFaMcSnuafn4vf+6+0Rooc6Gw0ZSaLA@mail.gmail.com>
+	<20151209180129.GD31636@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1449686539-29959-6-git-send-email-neescoba-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20151209180129.GD31636-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nelson Escobar <neescoba-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 09, 2015 at 10:42:19AM -0800, Nelson Escobar wrote:
-> -	if (usnic_vnic_res_free_cnt(vnic, type) < cnt || cnt < 1 || !owner)
-> +	if (usnic_vnic_res_free_cnt(vnic, type) < cnt || cnt < 0 || !owner)
-Before this change you returned EINVAL if no free_cnt were available,
-now you will continue. is this behaviour expected?
+>>
+>> A17.4.5.1 UD COMPLETION QUEUE ENTRIES (CQES)
+>> For UD, the Completion Queue Entry (CQE) includes remote address
+>> information (InfiniBand Specification Vol. 1 Rev 1.2.1 Section
+>> 11.4.2.1). For RoCEv2, the remote address information comprises the
+>> source L2 Address and a flag that indicates if the received frame is
+>> an IPv4, IPv6 or RoCE packet.
+>
+> rdma_dgid_index_from_wc satisfies the above spec requirements without
+How? Please explain.
 
->  		return ERR_PTR(-EINVAL);
->  
->  	ret = kzalloc(sizeof(*ret), GFP_ATOMIC);
-> @@ -247,26 +247,28 @@ usnic_vnic_get_resources(struct usnic_vnic *vnic, enum usnic_vnic_res_type type,
->  		return ERR_PTR(-ENOMEM);
->  	}
->  
-> -	ret->res = kzalloc(sizeof(*(ret->res))*cnt, GFP_ATOMIC);
-> -	if (!ret->res) {
-> -		usnic_err("Failed to allocate resources for %s. Out of memory\n",
-> -				usnic_vnic_pci_name(vnic));
-> -		kfree(ret);
-> -		return ERR_PTR(-ENOMEM);
-> -	}
-> +	if (cnt > 0) {
-> +		ret->res = kcalloc(cnt, sizeof(*(ret->res)), GFP_ATOMIC);
-> +		if (!ret->res) {
-> +			usnic_err("Failed to allocate resources for %s. Out of memory\n",
-> +					usnic_vnic_pci_name(vnic));
-You don't need to print OOM messages, failure in memory allocation very hard to miss.
-> +			kfree(ret);
-> +			return ERR_PTR(-ENOMEM);
-> +		}
->  
-> -	spin_lock(&vnic->res_lock);
-> -	src = &vnic->chunks[type];
-> -	for (i = 0; i < src->cnt && ret->cnt < cnt; i++) {
-> -		res = src->res[i];
-> -		if (!res->owner) {
-> -			src->free_cnt--;
-> -			res->owner = owner;
-> -			ret->res[ret->cnt++] = res;
-> +		spin_lock(&vnic->res_lock);
-> +		src = &vnic->chunks[type];
-> +		for (i = 0; i < src->cnt && ret->cnt < cnt; i++) {
-> +			res = src->res[i];
-> +			if (!res->owner) {
-> +				src->free_cnt--;
-It will be negative, because of skip usnic_vnic_res_free_cnt check
-before.
-> +				res->owner = owner;
-> +				ret->res[ret->cnt++] = res;
-> +			}
->  		}
-> -	}
->  
-> -	spin_unlock(&vnic->res_lock);
-> +		spin_unlock(&vnic->res_lock);
-> +	}
->  	ret->type = type;
->  	ret->vnic = vnic;
->  	WARN_ON(ret->cnt != cnt);
-> @@ -281,14 +283,16 @@ void usnic_vnic_put_resources(struct usnic_vnic_res_chunk *chunk)
->  	int i;
->  	struct usnic_vnic *vnic = chunk->vnic;
->  
-> -	spin_lock(&vnic->res_lock);
-> -	while ((i = --chunk->cnt) >= 0) {
-> -		res = chunk->res[i];
-> -		chunk->res[i] = NULL;
-> -		res->owner = NULL;
-> -		vnic->chunks[res->type].free_cnt++;
-> +	if (chunk->cnt > 0) {
-> +		spin_lock(&vnic->res_lock);
-> +		while ((i = --chunk->cnt) >= 0) {
-> +			res = chunk->res[i];
-> +			chunk->res[i] = NULL;
-> +			res->owner = NULL;
-> +			vnic->chunks[res->type].free_cnt++;
-> +		}
-> +		spin_unlock(&vnic->res_lock);
->  	}
-> -	spin_unlock(&vnic->res_lock);
->  
->  	kfree(chunk->res);
->  	kfree(chunk);
-> -- 
-> 2.4.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> creating a horrible API, or requiring all vendors to implement a
+> network type flag.
+>
+Actually you haven't suggested anything yet besides a name to the function.
+I already said that calculating gid_index from wc and grh requires
+extra CPU cycles and is prone to mistakes. But, I might be wrong and
+you have a better idea. Do you?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
