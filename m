@@ -1,81 +1,160 @@
-From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH libmlx5 V1 6/6] Add always_inline check
-Date: Thu, 10 Dec 2015 16:57:34 +0200
-Message-ID: <CAAKD3BA0xLsYTdgDCOhCuDS86OnGizjN=gk3=awNYVYf+G3+hQ@mail.gmail.com>
-References: <1449158571-26228-1-git-send-email-matanb@mellanox.com>
-	<1449158571-26228-7-git-send-email-matanb@mellanox.com>
-	<5665849E.4000304@mellanox.com>
+From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Subject: [PATCH 1/2] staging/rdma/hfi1: add definitions for OPA traps
+Date: Thu, 10 Dec 2015 09:59:34 -0500
+Message-ID: <20151210145934.22192.48913.stgit@phlsvslse11.ph.intel.com>
+References: <20151210145904.22192.40996.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5665849E.4000304-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <20151210145904.22192.40996.stgit@phlsvslse11.ph.intel.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: devel@driverdev.osuosl.org
+Cc: linux-rdma@vger.kernel.org, dledford@redhat.com, linux-next@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 7, 2015 at 3:07 PM, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> On 12/03/2015 06:02 PM, Matan Barak wrote:
->> Always inline isn't supported by every compiler. Adding it to
->> configure.ac in order to support it only when possible.
->> Inline other poll_one data path functions in order to eliminate
->> "ifs".
->>
->> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> ---
->>  configure.ac | 17 +++++++++++++++++
->>  src/cq.c     | 42 +++++++++++++++++++++++++++++-------------
->>  src/mlx5.h   |  6 ++++++
->>  3 files changed, 52 insertions(+), 13 deletions(-)
->>
->> diff --git a/configure.ac b/configure.ac
->> index fca0b46..50b4f9c 100644
->> --- a/configure.ac
->> +++ b/configure.ac
->> @@ -65,6 +65,23 @@ AC_CHECK_FUNC(ibv_read_sysfs_file, [],
->>      AC_MSG_ERROR([ibv_read_sysfs_file() not found.  libmlx5 requires libibverbs >= 1.0.3.]))
->>  AC_CHECK_FUNCS(ibv_dontfork_range ibv_dofork_range ibv_register_driver)
->>
->> +AC_MSG_CHECKING("always inline")
-> Did you consider using an existing script like AX_GCC_FUNC_ATTRIBUTE [1]?
->
+From: Jubin John <jubin.john@intel.com>
 
-That's probably better, I'll change.
+These new definitions will be used by follow-on
+patches for formating and sending OPA traps.
 
->> +CFLAGS_BAK="$CFLAGS"
->> +CFLAGS="$CFLAGS -Werror"
->> +AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
->> +     static inline int f(void)
->> +             __attribute__((always_inline));
->> +     static inline int f(void)
->> +     {
->> +             return 1;
->> +     }
->> +]],[[
->> +             int a = f();
->> +             a = a;
->> +]])], [AC_MSG_RESULT([yes]) AC_DEFINE([HAVE_ALWAYS_INLINE], [1], [Define if __attribute((always_inline)).])]
-> The description here doesn't look right. How about "Define if
-> __attribute__((always_inline) is supported"?
->
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Signed-off-by: Jubin John <jubin.john@intel.com>
+---
+ drivers/staging/rdma/hfi1/mad.h |  114 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 114 insertions(+)
 
-If I use AX_GCC_FUNC_ATTRIBUTE, I don't need this anymore.
-
-> Regards,
-> Haggai
->
-> [1] https://www.gnu.org/software/autoconf-archive/ax_gcc_func_attribute.html
-
-Thanks for the review.
-
-Regards,
-Matan
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/staging/rdma/hfi1/mad.h b/drivers/staging/rdma/hfi1/mad.h
+index 4745750..f031775 100644
+--- a/drivers/staging/rdma/hfi1/mad.h
++++ b/drivers/staging/rdma/hfi1/mad.h
+@@ -60,7 +60,121 @@
+ #endif
+ #include "opa_compat.h"
+ 
++/*
++ * OPA Traps
++ */
++#define OPA_TRAP_GID_NOW_IN_SERVICE             cpu_to_be16(64)
++#define OPA_TRAP_GID_OUT_OF_SERVICE             cpu_to_be16(65)
++#define OPA_TRAP_ADD_MULTICAST_GROUP            cpu_to_be16(66)
++#define OPA_TRAL_DEL_MULTICAST_GROUP            cpu_to_be16(67)
++#define OPA_TRAP_UNPATH                         cpu_to_be16(68)
++#define OPA_TRAP_REPATH                         cpu_to_be16(69)
++#define OPA_TRAP_PORT_CHANGE_STATE              cpu_to_be16(128)
++#define OPA_TRAP_LINK_INTEGRITY                 cpu_to_be16(129)
++#define OPA_TRAP_EXCESSIVE_BUFFER_OVERRUN       cpu_to_be16(130)
++#define OPA_TRAP_FLOW_WATCHDOG                  cpu_to_be16(131)
++#define OPA_TRAP_CHANGE_CAPABILITY              cpu_to_be16(144)
++#define OPA_TRAP_CHANGE_SYSGUID                 cpu_to_be16(145)
++#define OPA_TRAP_BAD_M_KEY                      cpu_to_be16(256)
++#define OPA_TRAP_BAD_P_KEY                      cpu_to_be16(257)
++#define OPA_TRAP_BAD_Q_KEY                      cpu_to_be16(258)
++#define OPA_TRAP_SWITCH_BAD_PKEY                cpu_to_be16(259)
++#define OPA_SMA_TRAP_DATA_LINK_WIDTH            cpu_to_be16(2048)
+ 
++/*
++ * Generic trap/notice other local changes flags (trap 144).
++ */
++#define	OPA_NOTICE_TRAP_LWDE_CHG        0x08 /* Link Width Downgrade Enable
++					      * changed
++					      */
++#define OPA_NOTICE_TRAP_LSE_CHG         0x04 /* Link Speed Enable changed */
++#define OPA_NOTICE_TRAP_LWE_CHG         0x02 /* Link Width Enable changed */
++#define OPA_NOTICE_TRAP_NODE_DESC_CHG   0x01
++
++struct opa_mad_notice_attr {
++	u8 generic_type;
++	u8 prod_type_msb;
++	__be16 prod_type_lsb;
++	__be16 trap_num;
++	__be16 toggle_count;
++	__be32 issuer_lid;
++	__be32 reserved1;
++	union ib_gid issuer_gid;
++
++	union {
++		struct {
++			u8	details[64];
++		} raw_data;
++
++		struct {
++			union ib_gid	gid;
++		} __packed ntc_64_65_66_67;
++
++		struct {
++			__be32	lid;
++		} __packed ntc_128;
++
++		struct {
++			__be32	lid;		/* where violation happened */
++			u8	port_num;	/* where violation happened */
++		} __packed ntc_129_130_131;
++
++		struct {
++			__be32	lid;		/* LID where change occurred */
++			__be32	new_cap_mask;	/* new capability mask */
++			__be16	reserved2;
++			__be16	cap_mask;
++			__be16	change_flags;	/* low 4 bits only */
++		} __packed ntc_144;
++
++		struct {
++			__be64	new_sys_guid;
++			__be32	lid;		/* lid where sys guid changed */
++		} __packed ntc_145;
++
++		struct {
++			__be32	lid;
++			__be32	dr_slid;
++			u8	method;
++			u8	dr_trunc_hop;
++			__be16	attr_id;
++			__be32	attr_mod;
++			__be64	mkey;
++			u8	dr_rtn_path[30];
++		} __packed ntc_256;
++
++		struct {
++			__be32		lid1;
++			__be32		lid2;
++			__be32		key;
++			u8		sl;	/* SL: high 5 bits */
++			u8		reserved3[3];
++			union ib_gid	gid1;
++			union ib_gid	gid2;
++			__be32		qp1;	/* high 8 bits reserved */
++			__be32		qp2;	/* high 8 bits reserved */
++		} __packed ntc_257_258;
++
++		struct {
++			__be16		flags;	/* low 8 bits reserved */
++			__be16		pkey;
++			__be32		lid1;
++			__be32		lid2;
++			u8		sl;	/* SL: high 5 bits */
++			u8		reserved4[3];
++			union ib_gid	gid1;
++			union ib_gid	gid2;
++			__be32		qp1;	/* high 8 bits reserved */
++			__be32		qp2;	/* high 8 bits reserved */
++		} __packed ntc_259;
++
++		struct {
++			__be32	lid;
++		} __packed ntc_2048;
++
++	};
++	u8	class_data[0];
++};
+ 
+ #define IB_VLARB_LOWPRI_0_31    1
+ #define IB_VLARB_LOWPRI_32_63   2
