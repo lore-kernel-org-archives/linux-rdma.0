@@ -1,7 +1,7 @@
 From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 4/6] net/mlx5_core: Add RQ and SQ event handling
-Date: Thu, 10 Dec 2015 21:54:31 +0200
-Message-ID: <1449777273-9219-5-git-send-email-majd@mellanox.com>
+Subject: [PATCH for-next 5/6] net/mlx5_core: Warn on unsupported events of QP/RQ/SQ
+Date: Thu, 10 Dec 2015 21:54:32 +0200
+Message-ID: <1449777273-9219-6-git-send-email-majd@mellanox.com>
 References: <1449777273-9219-1-git-send-email-majd@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1449777273-9219-1-git-send-email-majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,283 +10,84 @@ To: eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-RQ/SQ will be used to implement IB verbs QPs, so the IB QP affiliated
-events are affiliated also with SQs and RQs.
-
-Since SQ, RQ and QP resource numbers do not share the same name
-space, a queue type field was added to the event data to specify
-the SW object that the event is affiliated with.
+When an event arrives on QP/RQ/SQ, check whether it's supported,
+and WARN_ON otherwise.
 
 Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/eq.c |   1 +
- drivers/net/ethernet/mellanox/mlx5/core/qp.c | 123 ++++++++++++++++++++++-----
- include/linux/mlx5/device.h                  |  10 ++-
- include/linux/mlx5/driver.h                  |   8 +-
- include/linux/mlx5/qp.h                      |   8 ++
- 5 files changed, 127 insertions(+), 23 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/qp.c | 52 ++++++++++++++++++++++++++++
+ 1 file changed, 52 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-index a40b96d..a62c4bf 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-@@ -227,6 +227,7 @@ static int mlx5_eq_int(struct mlx5_core_dev *dev, struct mlx5_eq *eq)
- 		case MLX5_EVENT_TYPE_WQ_INVAL_REQ_ERROR:
- 		case MLX5_EVENT_TYPE_WQ_ACCESS_ERROR:
- 			rsn = be32_to_cpu(eqe->data.qp_srq.qp_srq_n) & 0xffffff;
-+			rsn |= (eqe->data.qp_srq.type << 24);
- 			mlx5_core_dbg(dev, "event %s(%d) arrived on resource 0x%x\n",
- 				      eqe_type_str(eqe->type), eqe->type, rsn);
- 			mlx5_rsc_event(dev, rsn, eqe->type);
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/qp.c b/drivers/net/ethernet/mellanox/mlx5/core/qp.c
-index dc7dbf7..27fed69 100644
+index 27fed69..0b803a1 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/qp.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/qp.c
-@@ -36,6 +36,7 @@
- #include <linux/mlx5/cmd.h>
- #include <linux/mlx5/qp.h>
- #include <linux/mlx5/driver.h>
-+#include <linux/mlx5/transobj.h>
+@@ -68,6 +68,52 @@ void mlx5_core_put_rsc(struct mlx5_core_rsc_common *common)
+ 		complete(&common->free);
+ }
  
- #include "mlx5_core.h"
++static u64 qp_allowed_event_types(void)
++{
++	u64 mask;
++
++	mask = MLX5_EVENT_TYPE_PATH_MIG |
++	       MLX5_EVENT_TYPE_COMM_EST |
++	       MLX5_EVENT_TYPE_SQ_DRAINED |
++	       MLX5_EVENT_TYPE_SRQ_LAST_WQE |
++	       MLX5_EVENT_TYPE_WQ_CATAS_ERROR |
++	       MLX5_EVENT_TYPE_PATH_MIG_FAILED |
++	       MLX5_EVENT_TYPE_WQ_INVAL_REQ_ERROR |
++	       MLX5_EVENT_TYPE_WQ_ACCESS_ERROR;
++
++	return mask;
++}
++
++static u64 rq_allowed_event_types(void)
++{
++	u64 mask;
++
++	mask = MLX5_EVENT_TYPE_SRQ_LAST_WQE |
++	       MLX5_EVENT_TYPE_WQ_CATAS_ERROR;
++
++	return mask;
++}
++
++static u64 sq_allowed_event_types(void)
++{
++	return MLX5_EVENT_TYPE_WQ_CATAS_ERROR;
++}
++
++static bool is_event_type_allowed(int rsc_type, int event_type)
++{
++	switch (rsc_type) {
++	case MLX5_EVENT_QUEUE_TYPE_QP:
++		return !!(BIT(event_type) & qp_allowed_event_types());
++	case MLX5_EVENT_QUEUE_TYPE_RQ:
++		return !!(BIT(event_type) & rq_allowed_event_types());
++	case MLX5_EVENT_QUEUE_TYPE_SQ:
++		return !!(BIT(event_type) & sq_allowed_event_types());
++	default:
++		WARN_ON(1);
++		return false;
++	}
++}
++
+ void mlx5_rsc_event(struct mlx5_core_dev *dev, u32 rsn, int event_type)
+ {
+ 	struct mlx5_core_rsc_common *common = mlx5_get_rsc(dev, rsn);
+@@ -76,6 +122,12 @@ void mlx5_rsc_event(struct mlx5_core_dev *dev, u32 rsn, int event_type)
+ 	if (!common)
+ 		return;
  
-@@ -77,6 +78,8 @@ void mlx5_rsc_event(struct mlx5_core_dev *dev, u32 rsn, int event_type)
- 
++	if (!is_event_type_allowed((rsn >> 24), event_type)) {
++		mlx5_core_warn(dev, "event 0x%.2x is not allowed on resource 0x%.8x\n",
++			       event_type, rsn);
++		return;
++	}
++
  	switch (common->res) {
  	case MLX5_RES_QP:
-+	case MLX5_RES_RQ:
-+	case MLX5_RES_SQ:
- 		qp = (struct mlx5_core_qp *)common;
- 		qp->event(qp, event_type);
- 		break;
-@@ -177,12 +180,45 @@ void mlx5_eq_pagefault(struct mlx5_core_dev *dev, struct mlx5_eqe *eqe)
- }
- #endif
- 
-+static int create_qprqsq_common(struct mlx5_core_dev *dev,
-+				struct mlx5_core_qp *qp,
-+				int rsc_type)
-+{
-+	struct mlx5_qp_table *table = &dev->priv.qp_table;
-+	int err;
-+
-+	qp->common.res = rsc_type;
-+	spin_lock_irq(&table->lock);
-+	err = radix_tree_insert(&table->tree, qp->qpn | (rsc_type << 24), qp);
-+	spin_unlock_irq(&table->lock);
-+	if (err)
-+		return err;
-+
-+	atomic_set(&qp->common.refcount, 1);
-+	init_completion(&qp->common.free);
-+	qp->pid = current->pid;
-+
-+	return 0;
-+}
-+
-+static void destroy_qprqsq_common(struct mlx5_core_dev *dev,
-+				  struct mlx5_core_qp *qp)
-+{
-+	struct mlx5_qp_table *table = &dev->priv.qp_table;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&table->lock, flags);
-+	radix_tree_delete(&table->tree, qp->qpn | (qp->common.res << 24));
-+	spin_unlock_irqrestore(&table->lock, flags);
-+	mlx5_core_put_rsc((struct mlx5_core_rsc_common *)qp);
-+	wait_for_completion(&qp->common.free);
-+}
-+
- int mlx5_core_create_qp(struct mlx5_core_dev *dev,
- 			struct mlx5_core_qp *qp,
- 			struct mlx5_create_qp_mbox_in *in,
- 			int inlen)
- {
--	struct mlx5_qp_table *table = &dev->priv.qp_table;
- 	struct mlx5_create_qp_mbox_out out;
- 	struct mlx5_destroy_qp_mbox_in din;
- 	struct mlx5_destroy_qp_mbox_out dout;
-@@ -206,24 +242,16 @@ int mlx5_core_create_qp(struct mlx5_core_dev *dev,
- 	qp->qpn = be32_to_cpu(out.qpn) & 0xffffff;
- 	mlx5_core_dbg(dev, "qpn = 0x%x\n", qp->qpn);
- 
--	qp->common.res = MLX5_RES_QP;
--	spin_lock_irq(&table->lock);
--	err = radix_tree_insert(&table->tree, qp->qpn, qp);
--	spin_unlock_irq(&table->lock);
--	if (err) {
--		mlx5_core_warn(dev, "err %d\n", err);
-+	err = create_qprqsq_common(dev, qp, MLX5_RES_QP);
-+	if (err)
- 		goto err_cmd;
--	}
- 
- 	err = mlx5_debug_qp_add(dev, qp);
- 	if (err)
- 		mlx5_core_dbg(dev, "failed adding QP 0x%x to debug file system\n",
- 			      qp->qpn);
- 
--	qp->pid = current->pid;
--	atomic_set(&qp->common.refcount, 1);
- 	atomic_inc(&dev->num_qps);
--	init_completion(&qp->common.free);
- 
- 	return 0;
- 
-@@ -243,18 +271,11 @@ int mlx5_core_destroy_qp(struct mlx5_core_dev *dev,
- {
- 	struct mlx5_destroy_qp_mbox_in in;
- 	struct mlx5_destroy_qp_mbox_out out;
--	struct mlx5_qp_table *table = &dev->priv.qp_table;
--	unsigned long flags;
- 	int err;
- 
- 	mlx5_debug_qp_remove(dev, qp);
- 
--	spin_lock_irqsave(&table->lock, flags);
--	radix_tree_delete(&table->tree, qp->qpn);
--	spin_unlock_irqrestore(&table->lock, flags);
--
--	mlx5_core_put_rsc((struct mlx5_core_rsc_common *)qp);
--	wait_for_completion(&qp->common.free);
-+	destroy_qprqsq_common(dev, qp);
- 
- 	memset(&in, 0, sizeof(in));
- 	memset(&out, 0, sizeof(out));
-@@ -441,3 +462,67 @@ int mlx5_core_page_fault_resume(struct mlx5_core_dev *dev, u32 qpn,
- }
- EXPORT_SYMBOL_GPL(mlx5_core_page_fault_resume);
- #endif
-+
-+int mlx5_core_create_rq_tracked(struct mlx5_core_dev *dev, u32 *in, int inlen,
-+				struct mlx5_core_qp *rq)
-+{
-+	int err;
-+	u32 rqn;
-+
-+	err = mlx5_core_create_rq(dev, in, inlen, &rqn);
-+	if (err)
-+		return err;
-+
-+	rq->qpn = rqn;
-+	err = create_qprqsq_common(dev, rq, MLX5_RES_RQ);
-+	if (err)
-+		goto err_destroy_rq;
-+
-+	return 0;
-+
-+err_destroy_rq:
-+	mlx5_core_destroy_rq(dev, rq->qpn);
-+
-+	return err;
-+}
-+EXPORT_SYMBOL(mlx5_core_create_rq_tracked);
-+
-+void mlx5_core_destroy_rq_tracked(struct mlx5_core_dev *dev,
-+				  struct mlx5_core_qp *rq)
-+{
-+	destroy_qprqsq_common(dev, rq);
-+	mlx5_core_destroy_rq(dev, rq->qpn);
-+}
-+EXPORT_SYMBOL(mlx5_core_destroy_rq_tracked);
-+
-+int mlx5_core_create_sq_tracked(struct mlx5_core_dev *dev, u32 *in, int inlen,
-+				struct mlx5_core_qp *sq)
-+{
-+	int err;
-+	u32 sqn;
-+
-+	err = mlx5_core_create_sq(dev, in, inlen, &sqn);
-+	if (err)
-+		return err;
-+
-+	sq->qpn = sqn;
-+	err = create_qprqsq_common(dev, sq, MLX5_RES_SQ);
-+	if (err)
-+		goto err_destroy_sq;
-+
-+	return 0;
-+
-+err_destroy_sq:
-+	mlx5_core_destroy_sq(dev, sq->qpn);
-+
-+	return err;
-+}
-+EXPORT_SYMBOL(mlx5_core_create_sq_tracked);
-+
-+void mlx5_core_destroy_sq_tracked(struct mlx5_core_dev *dev,
-+				  struct mlx5_core_qp *sq)
-+{
-+	destroy_qprqsq_common(dev, sq);
-+	mlx5_core_destroy_sq(dev, sq->qpn);
-+}
-+EXPORT_SYMBOL(mlx5_core_destroy_sq_tracked);
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index 250b1ff..c789761 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -223,6 +223,12 @@ enum {
- #define MLX5_UMR_MTT_MASK      (MLX5_UMR_MTT_ALIGNMENT - 1)
- #define MLX5_UMR_MTT_MIN_CHUNK_SIZE MLX5_UMR_MTT_ALIGNMENT
- 
-+enum {
-+	MLX5_EVENT_QUEUE_TYPE_QP = 0,
-+	MLX5_EVENT_QUEUE_TYPE_RQ = 1,
-+	MLX5_EVENT_QUEUE_TYPE_SQ = 2,
-+};
-+
- enum mlx5_event {
- 	MLX5_EVENT_TYPE_COMP		   = 0x0,
- 
-@@ -455,7 +461,9 @@ struct mlx5_eqe_comp {
- };
- 
- struct mlx5_eqe_qp_srq {
--	__be32	reserved[6];
-+	__be32	reserved1[5];
-+	u8	type;
-+	u8	reserved2[3];
- 	__be32	qp_srq_n;
- };
- 
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 8b6d6f2..d07b380 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -341,9 +341,11 @@ struct mlx5_core_mr {
- };
- 
- enum mlx5_res_type {
--	MLX5_RES_QP,
--	MLX5_RES_SRQ,
--	MLX5_RES_XSRQ,
-+	MLX5_RES_QP	= MLX5_EVENT_QUEUE_TYPE_QP,
-+	MLX5_RES_RQ	= MLX5_EVENT_QUEUE_TYPE_RQ,
-+	MLX5_RES_SQ	= MLX5_EVENT_QUEUE_TYPE_SQ,
-+	MLX5_RES_SRQ	= 3,
-+	MLX5_RES_XSRQ	= 4,
- };
- 
- struct mlx5_core_rsc_common {
-diff --git a/include/linux/mlx5/qp.h b/include/linux/mlx5/qp.h
-index f079fb1..3c4b3e9 100644
---- a/include/linux/mlx5/qp.h
-+++ b/include/linux/mlx5/qp.h
-@@ -639,6 +639,14 @@ void mlx5_debug_qp_remove(struct mlx5_core_dev *dev, struct mlx5_core_qp *qp);
- int mlx5_core_page_fault_resume(struct mlx5_core_dev *dev, u32 qpn,
- 				u8 context, int error);
- #endif
-+int mlx5_core_create_rq_tracked(struct mlx5_core_dev *dev, u32 *in, int inlen,
-+				struct mlx5_core_qp *rq);
-+void mlx5_core_destroy_rq_tracked(struct mlx5_core_dev *dev,
-+				  struct mlx5_core_qp *rq);
-+int mlx5_core_create_sq_tracked(struct mlx5_core_dev *dev, u32 *in, int inlen,
-+				struct mlx5_core_qp *sq);
-+void mlx5_core_destroy_sq_tracked(struct mlx5_core_dev *dev,
-+				  struct mlx5_core_qp *sq);
- 
- static inline const char *mlx5_qp_type_str(int type)
- {
+ 	case MLX5_RES_RQ:
 -- 
 1.8.3.1
 
