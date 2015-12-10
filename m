@@ -1,38 +1,41 @@
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Subject: [PATCH] staging/rdma/hfi1: Fix a possible null pointer dereference
-Date: Thu, 10 Dec 2015 11:13:38 -0500
-Message-ID: <20151210161338.3341.95259.stgit@phlsvslse11.ph.intel.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 02/37] IB/rdmavt: Consolidate dma ops in rdmavt.
+Date: Thu, 10 Dec 2015 11:17:09 -0500
+Message-ID: <20151210161708.GA13412@phlsvsds.ph.intel.com>
+References: <20151207204046.8144.18752.stgit@phlsvslse11.ph.intel.com> <20151207204305.8144.7038.stgit@phlsvslse11.ph.intel.com> <20151208060821.GD7313@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
-Sender: linux-next-owner@vger.kernel.org
-To: devel@driverdev.osuosl.org
-Cc: linux-rdma@vger.kernel.org, dledford@redhat.com, linux-next@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20151208060821.GD7313-2ukJVAZIZ/Y@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Easwar Hariharan <easwar.hariharan@intel.com>
+On Tue, Dec 08, 2015 at 08:08:21AM +0200, Leon Romanovsky wrote:
+>On Mon, Dec 07, 2015 at 03:43:06PM -0500, Dennis Dalessandro wrote:
+>> +
+>> +#define BAD_DMA_ADDRESS ((u64)0)
+>What is the advantage in using directly u64 values instead of
+>pointers? You will get NULL and functions which return pointers
+>without need of casting.
+>
+>...
+>> +static u64 rvt_dma_map_single(struct ib_device *dev, void *cpu_addr,
+>> +			      size_t size, enum dma_data_direction direction)
+>> +{
+>> +	if (WARN_ON(!valid_dma_direction(direction)))
+>> +		return BAD_DMA_ADDRESS;
+>> +
+>> +	return (u64)cpu_addr;
+>> +}
+>An example of such function.
 
-A code inspection pointed out that kmalloc_array may return NULL and
-memset doesn't check the input pointer for NULL, resulting in a possible
-NULL dereference. This patch fixes this.
+Honestly I'm not really sure why it's done this way. We are just following 
+the signature of the function in struct ib_dma_mapping_ops.
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Easwar Hariharan <easwar.hariharan@intel.com>
----
- drivers/staging/rdma/hfi1/chip.c |    2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index dc69159..49d49b2 100644
---- a/drivers/staging/rdma/hfi1/chip.c
-+++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -10129,6 +10129,8 @@ static void init_qos(struct hfi1_devdata *dd, u32 first_ctxt)
- 	if (num_vls * qpns_per_vl > dd->chip_rcv_contexts)
- 		goto bail;
- 	rsmmap = kmalloc_array(NUM_MAP_REGS, sizeof(u64), GFP_KERNEL);
-+	if (!rsmmap)
-+		goto bail;
- 	memset(rsmmap, rxcontext, NUM_MAP_REGS * sizeof(u64));
- 	/* init the local copy of the table */
- 	for (i = 0, ctxt = first_ctxt; i < num_vls; i++) {
+-Denny
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
