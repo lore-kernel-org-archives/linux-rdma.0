@@ -1,145 +1,116 @@
 From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/2] ipoib mcast sendonly join: Move multicast specific code out of ipoib_main.c.
-Date: Fri, 11 Dec 2015 18:24:17 -0500
-Message-ID: <20151211232417.GD7855@phlsvsds.ph.intel.com>
-References: <20151211181652.187735744@linux.com> <20151211181724.290844844@linux.com> <20151211232143.GC7855@phlsvsds.ph.intel.com>
+Subject: Re: [PATCH 1/3] IB core: Allow specification of attr_id in PORT_PMA_ATTR macro
+Date: Fri, 11 Dec 2015 18:31:00 -0500
+Message-ID: <20151211233100.GE7855@phlsvsds.ph.intel.com>
+References: <20151211182532.332343651@linux.com> <20151211182543.135984387@linux.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20151211232143.GC7855-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <20151211182543.135984387-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Dec 11, 2015 at 06:21:43PM -0500, ira. weiny wrote:
-> On Fri, Dec 11, 2015 at 12:16:54PM -0600, Christoph Lameter wrote:
-> > Code cleanup to move multicast specific code that checks for
-> > a sendonly join to ipoib_multicast.c. This allows the removal
-> > of the export of __ipoib_mcast_find().
-> > 
-> > Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-> > ---
-> >  drivers/infiniband/ulp/ipoib/ipoib.h           |  3 ++-
-> >  drivers/infiniband/ulp/ipoib/ipoib_main.c      | 13 +------------
-> >  drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 21 ++++++++++++++++++++-
-> >  3 files changed, 23 insertions(+), 14 deletions(-)
-> > 
-> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-> > index 989c409..a13f48c 100644
-> > --- a/drivers/infiniband/ulp/ipoib/ipoib.h
-> > +++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-> > @@ -549,7 +549,8 @@ void ipoib_path_iter_read(struct ipoib_path_iter *iter,
-> >  int ipoib_mcast_attach(struct net_device *dev, u16 mlid,
-> >  		       union ib_gid *mgid, int set_qkey);
-> >  void ipoib_mcast_remove_list(struct net_device *dev, struct list_head *remove_list);
-> > -struct ipoib_mcast *__ipoib_mcast_find(struct net_device *dev, void *mgid);
-> > +void ipoib_check_mcast_sendonly(struct ipoib_dev_priv *priv, u8 *mgid,
-> > +				struct list_head *remove_list);
+On Fri, Dec 11, 2015 at 12:25:33PM -0600, Christoph Lameter wrote:
+> This is necessary to support the extended attributes which involves
+> a different attribute id.
 > 
-> I think I would rather see this called something like
-> 
-> ipoib_add_to_list_sendonly
-> 
-> Or something...
-> 
-> Calling it iboib_check* sounds like it should return a bool.
-> 
-> >  
-> >  int ipoib_init_qp(struct net_device *dev);
-> >  int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca);
-> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> > index 483ff20..6b16428 100644
-> > --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> > +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> > @@ -1150,7 +1150,6 @@ static void __ipoib_reap_neigh(struct ipoib_dev_priv *priv)
-> >  	unsigned long flags;
-> >  	int i;
-> >  	LIST_HEAD(remove_list);
-> > -	struct ipoib_mcast *mcast;
-> >  	struct net_device *dev = priv->dev;
-> >  
-> >  	if (test_bit(IPOIB_STOP_NEIGH_GC, &priv->flags))
-> > @@ -1179,18 +1178,8 @@ static void __ipoib_reap_neigh(struct ipoib_dev_priv *priv)
-> >  							  lockdep_is_held(&priv->lock))) != NULL) {
-> >  			/* was the neigh idle for two GC periods */
-> >  			if (time_after(neigh_obsolete, neigh->alive)) {
-> > -				u8 *mgid = neigh->daddr + 4;
-> >  
-> > -				/* Is this multicast ? */
-> > -				if (*mgid == 0xff) {
-> > -					mcast = __ipoib_mcast_find(dev, mgid);
-> > -
-> > -					if (mcast && test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags)) {
-> > -						list_del(&mcast->list);
-> > -						rb_erase(&mcast->rb_node, &priv->multicast_tree);
-> > -						list_add_tail(&mcast->list, &remove_list);
-> > -					}
-> > -				}
-> > +				ipoib_check_mcast_sendonly(priv, neigh->daddr + 4, &remove_list);
-> >  
-> >  				rcu_assign_pointer(*np,
-> >  						   rcu_dereference_protected(neigh->hnext,
-> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> > index 8acb420a..1158819 100644
-> > --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> > +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> > @@ -153,7 +153,7 @@ static struct ipoib_mcast *ipoib_mcast_alloc(struct net_device *dev,
-> >  	return mcast;
-> >  }
-> >  
-> > -struct ipoib_mcast *__ipoib_mcast_find(struct net_device *dev, void *mgid)
-> > +static struct ipoib_mcast *__ipoib_mcast_find(struct net_device *dev, void *mgid)
-> >  {
-> >  	struct ipoib_dev_priv *priv = netdev_priv(dev);
-> >  	struct rb_node *n = priv->multicast_tree.rb_node;
-> > @@ -704,6 +704,25 @@ static int ipoib_mcast_leave(struct net_device *dev, struct ipoib_mcast *mcast)
-> >  	return 0;
-> >  }
-> >  
-> > +/*
-> > + * Check if the multicast group is sendonly. If so remove it from the maps
-> > + * and add to the remove list
-> > + */
-> > +void ipoib_check_mcast_sendonly(struct ipoib_dev_priv *priv, u8 *mgid,
-> > +				struct list_head *remove_list)
-> > +{
-> > +	/* Is this multicast ? */
-> > +	if (*mgid == 0xff) {
-> 
-> Odd to see a mgid variable which is only u8?
-> 
-> How about "gid_prefix"?
+> Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 
-Nevermind on this one, I misread this, it's a pointer to the full gid...
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Ira
-
+> ---
+>  drivers/infiniband/core/sysfs.c | 41 ++++++++++++++++++++++-------------------
+>  1 file changed, 22 insertions(+), 19 deletions(-)
 > 
-> Ira
+> diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+> index b1f37d4..1c8716f 100644
+> --- a/drivers/infiniband/core/sysfs.c
+> +++ b/drivers/infiniband/core/sysfs.c
+> @@ -39,6 +39,7 @@
+>  #include <linux/string.h>
+>  
+>  #include <rdma/ib_mad.h>
+> +#include <rdma/ib_pma.h>
+>  
+>  struct ib_port {
+>  	struct kobject         kobj;
+> @@ -65,6 +66,7 @@ struct port_table_attribute {
+>  	struct port_attribute	attr;
+>  	char			name[8];
+>  	int			index;
+> +	int			attr_id;
+>  };
+>  
+>  static ssize_t port_attr_show(struct kobject *kobj,
+> @@ -311,10 +313,11 @@ static ssize_t show_port_pkey(struct ib_port *p, struct port_attribute *attr,
+>  	return sprintf(buf, "0x%04x\n", pkey);
+>  }
+>  
+> -#define PORT_PMA_ATTR(_name, _counter, _width, _offset)			\
+> +#define PORT_PMA_ATTR(_name, _counter, _width, _offset, _attr_id)	\
+>  struct port_table_attribute port_pma_attr_##_name = {			\
+>  	.attr  = __ATTR(_name, S_IRUGO, show_pma_counter, NULL),	\
+> -	.index = (_offset) | ((_width) << 16) | ((_counter) << 24)	\
+> +	.index = (_offset) | ((_width) << 16) | ((_counter) << 24),	\
+> +	.attr_id = _attr_id ,						\
+>  }
+>  
+>  static ssize_t show_pma_counter(struct ib_port *p, struct port_attribute *attr,
+> @@ -344,7 +347,7 @@ static ssize_t show_pma_counter(struct ib_port *p, struct port_attribute *attr,
+>  	in_mad->mad_hdr.mgmt_class    = IB_MGMT_CLASS_PERF_MGMT;
+>  	in_mad->mad_hdr.class_version = 1;
+>  	in_mad->mad_hdr.method        = IB_MGMT_METHOD_GET;
+> -	in_mad->mad_hdr.attr_id       = cpu_to_be16(0x12); /* PortCounters */
+> +	in_mad->mad_hdr.attr_id       = tab_attr->attr_id;
+>  
+>  	in_mad->data[41] = p->port_num;	/* PortSelect field */
+>  
+> @@ -386,22 +389,22 @@ out:
+>  	return ret;
+>  }
+>  
+> -static PORT_PMA_ATTR(symbol_error		    ,  0, 16,  32);
+> -static PORT_PMA_ATTR(link_error_recovery	    ,  1,  8,  48);
+> -static PORT_PMA_ATTR(link_downed		    ,  2,  8,  56);
+> -static PORT_PMA_ATTR(port_rcv_errors		    ,  3, 16,  64);
+> -static PORT_PMA_ATTR(port_rcv_remote_physical_errors,  4, 16,  80);
+> -static PORT_PMA_ATTR(port_rcv_switch_relay_errors   ,  5, 16,  96);
+> -static PORT_PMA_ATTR(port_xmit_discards		    ,  6, 16, 112);
+> -static PORT_PMA_ATTR(port_xmit_constraint_errors    ,  7,  8, 128);
+> -static PORT_PMA_ATTR(port_rcv_constraint_errors	    ,  8,  8, 136);
+> -static PORT_PMA_ATTR(local_link_integrity_errors    ,  9,  4, 152);
+> -static PORT_PMA_ATTR(excessive_buffer_overrun_errors, 10,  4, 156);
+> -static PORT_PMA_ATTR(VL15_dropped		    , 11, 16, 176);
+> -static PORT_PMA_ATTR(port_xmit_data		    , 12, 32, 192);
+> -static PORT_PMA_ATTR(port_rcv_data		    , 13, 32, 224);
+> -static PORT_PMA_ATTR(port_xmit_packets		    , 14, 32, 256);
+> -static PORT_PMA_ATTR(port_rcv_packets		    , 15, 32, 288);
+> +static PORT_PMA_ATTR(symbol_error		    ,  0, 16,  32, IB_PMA_PORT_COUNTERS);
+> +static PORT_PMA_ATTR(link_error_recovery	    ,  1,  8,  48, IB_PMA_PORT_COUNTERS);
+> +static PORT_PMA_ATTR(link_downed		    ,  2,  8,  56, IB_PMA_PORT_COUNTERS);
+> +static PORT_PMA_ATTR(port_rcv_errors		    ,  3, 16,  64, IB_PMA_PORT_COUNTERS);
+> +static PORT_PMA_ATTR(port_rcv_remote_physical_errors,  4, 16,  80, IB_PMA_PORT_COUNTERS);
+> +static PORT_PMA_ATTR(port_rcv_switch_relay_errors   ,  5, 16,  96, IB_PMA_PORT_COUNTERS);
+> +static PORT_PMA_ATTR(port_xmit_discards		    ,  6, 16, 112, IB_PMA_PORT_COUNTERS);
+> +static PORT_PMA_ATTR(port_xmit_constraint_errors    ,  7,  8, 128, IB_PMA_PORT_COUNTERS);
+> +static PORT_PMA_ATTR(port_rcv_constraint_errors	    ,  8,  8, 136, IB_PMA_PORT_COUNTERS);
+> +static PORT_PMA_ATTR(local_link_integrity_errors    ,  9,  4, 152, IB_PMA_PORT_COUNTERS);
+> +static PORT_PMA_ATTR(excessive_buffer_overrun_errors, 10,  4, 156, IB_PMA_PORT_COUNTERS);
+> +static PORT_PMA_ATTR(VL15_dropped		    , 11, 16, 176, IB_PMA_PORT_COUNTERS);
+> +static PORT_PMA_ATTR(port_xmit_data		    , 12, 32, 192, IB_PMA_PORT_COUNTERS);
+> +static PORT_PMA_ATTR(port_rcv_data		    , 13, 32, 224, IB_PMA_PORT_COUNTERS);
+> +static PORT_PMA_ATTR(port_xmit_packets		    , 14, 32, 256, IB_PMA_PORT_COUNTERS);
+> +static PORT_PMA_ATTR(port_rcv_packets		    , 15, 32, 288, IB_PMA_PORT_COUNTERS);
+>  
+>  static struct attribute *pma_attrs[] = {
+>  	&port_pma_attr_symbol_error.attr.attr,
+> -- 
+> 2.5.0
 > 
-> > +		struct ipoib_mcast *mcast = __ipoib_mcast_find(priv->dev, mgid);
-> > +
-> > +		if (mcast && test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags)) {
-> > +			list_del(&mcast->list);
-> > +			rb_erase(&mcast->rb_node, &priv->multicast_tree);
-> > +			list_add_tail(&mcast->list, remove_list);
-> > +		}
-> > +	}
-> > +}
-> > +
-> >  void ipoib_mcast_remove_list(struct net_device *dev, struct list_head *remove_list)
-> >  {
-> >  	struct ipoib_mcast *mcast, *tmcast;
-> > -- 
-> > 2.5.0
-> > 
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
