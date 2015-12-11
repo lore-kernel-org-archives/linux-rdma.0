@@ -1,19 +1,21 @@
 From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 0/2] IB multicast cleanup patches
-Date: Fri, 11 Dec 2015 12:16:52 -0600
-Message-ID: <20151211181652.187735744@linux.com>
+Subject: [PATCH 0/3] IB 64 bit counter support
+Date: Fri, 11 Dec 2015 12:25:32 -0600
+Message-ID: <20151211182532.332343651@linux.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patchset cleans up the code a bit after the last round of multicast
-patches related to the sendonly join logic. Some of the bits of code
-landed in ipoib_main.c instead of ipoib_multicast.c.
+Currently we only use 32 bits for the packet and byte counters. There have been
+extended countes available for some time but we have no support for those
+yet upstream. We keep having issues with 32 bit counters wrapping. Especially
+the byte counter can wrap frequently (as in multiple times per minute)
 
-- Move the multicast bits into that file so that everything is neatly together
-- Reduce the number of functions exported from ipoib_multicast.c
+This patch adds 4 new counters and updates 4 32 bit counters to use the
+64 bit sizes so that they no longer wrap.
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
