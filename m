@@ -1,95 +1,54 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] staging/rdma/hfi1: Change num_rcv_contexts to
- num_user_contexts and its meaning
-Date: Fri, 11 Dec 2015 08:44:48 -0500
-Message-ID: <20151211134448.27874.69204.stgit@phlsvslse11.ph.intel.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH 02/37] IB/rdmavt: Consolidate dma ops in rdmavt.
+Date: Fri, 11 Dec 2015 06:10:40 -0800
+Message-ID: <20151211141040.GA22596@infradead.org>
+References: <20151207204046.8144.18752.stgit@phlsvslse11.ph.intel.com>
+ <20151207204305.8144.7038.stgit@phlsvslse11.ph.intel.com>
+ <20151208060821.GD7313@leon.nu>
+ <20151210161708.GA13412@phlsvsds.ph.intel.com>
+ <20151210174413.GB21482@obsidianresearch.com>
+ <20151210234112.GA15546@infradead.org>
+ <20151211002950.GA5964@obsidianresearch.com>
+ <20151211004624.GA9994@infradead.org>
+ <20151211060202.GA16513@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20151211060202.GA16513-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Thu, Dec 10, 2015 at 11:02:02PM -0700, Jason Gunthorpe wrote:
+> > FYI, I have a patch series in linux-next to switches all remaining
+> > architectures to use get_dma_ops, and there are plans to allow generic
+> > per-device dma_ops based on that.
+> 
+> Great, so once that is merged we can drop the ib_* versions of all
+> this and just have qib/etc customize get_dma_ops? Other than the
+> dma_addr_t size issue that sounds great..
 
-num_rcv_contexts sets the number of user contexts, both receive and send.
-Renaming it to num_user_contexts makes sense to reflect its true meaning.
-When num_rcv_contexts is 0, the default behavior is the number of CPU
-cores instead of 0 contexts. This commit changes the variable
-num_rcv_contexts to num_user_contexts, and it also makes any negative
-value for this variable default to the number of CPU cores, so if
-num_user_contexts is set >= 0, the value will number of contexts.
+I'm not sure the per-device ops are a done deal, as there has been
+vocal opposition to it everytime it came up.  But at least we have
+the infrastructure for it now.
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/staging/rdma/hfi1/chip.c |    9 +++------
- drivers/staging/rdma/hfi1/hfi.h  |    2 +-
- drivers/staging/rdma/hfi1/init.c |    6 +++---
- 3 files changed, 7 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index dc69159..510e5f6 100644
---- a/drivers/staging/rdma/hfi1/chip.c
-+++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -9197,7 +9197,6 @@ fail:
- static int set_up_context_variables(struct hfi1_devdata *dd)
- {
- 	int num_kernel_contexts;
--	int num_user_contexts;
- 	int total_contexts;
- 	int ret;
- 	unsigned ngroups;
-@@ -9234,12 +9233,10 @@ static int set_up_context_variables(struct hfi1_devdata *dd)
- 	}
- 	/*
- 	 * User contexts: (to be fixed later)
--	 *	- set to num_rcv_contexts if non-zero
--	 *	- default to 1 user context per CPU
-+	 *	- default to 1 user context per CPU if num_user_contexts is
-+	 *	  negative
- 	 */
--	if (num_rcv_contexts)
--		num_user_contexts = num_rcv_contexts;
--	else
-+	if (num_user_contexts < 0)
- 		num_user_contexts = num_online_cpus();
- 
- 	total_contexts = num_kernel_contexts + num_user_contexts;
-diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
-index 54ed6b3..434a89b 100644
---- a/drivers/staging/rdma/hfi1/hfi.h
-+++ b/drivers/staging/rdma/hfi1/hfi.h
-@@ -1629,7 +1629,7 @@ void update_sge(struct hfi1_sge_state *ss, u32 length);
- extern unsigned int hfi1_max_mtu;
- extern unsigned int hfi1_cu;
- extern unsigned int user_credit_return_threshold;
--extern uint num_rcv_contexts;
-+extern int num_user_contexts;
- extern unsigned n_krcvqs;
- extern u8 krcvqs[];
- extern int krcvqsset;
-diff --git a/drivers/staging/rdma/hfi1/init.c b/drivers/staging/rdma/hfi1/init.c
-index 1c8286f..a091b6c 100644
---- a/drivers/staging/rdma/hfi1/init.c
-+++ b/drivers/staging/rdma/hfi1/init.c
-@@ -82,10 +82,10 @@
-  * Number of user receive contexts we are configured to use (to allow for more
-  * pio buffers per ctxt, etc.)  Zero means use one user context per CPU.
-  */
--uint num_rcv_contexts;
--module_param_named(num_rcv_contexts, num_rcv_contexts, uint, S_IRUGO);
-+int num_user_contexts = -1;
-+module_param_named(num_user_contexts, num_user_contexts, uint, S_IRUGO);
- MODULE_PARM_DESC(
--	num_rcv_contexts, "Set max number of user receive contexts to use");
-+	num_user_contexts, "Set max number of user contexts to use");
- 
- u8 krcvqs[RXE_NUM_DATA_VL];
- int krcvqsset;
-
+Other than that I think we're getting ready to actually remove
+dma mapping from the ULPs.  Sagi's MR API that takes a scatterlist
+is a first step, as it would allow for trivially moving the
+dma_map_sg into the core helpes.  For the client side we now just
+need to switch FMRs to use that API as well (given that it seems
+like we can't get rid of them) and provide an API to "map" a
+scatterlist using the DMA MR for those drivers playing fast and
+loose.  On the server side I have a first draft of a R/W API that
+does RDMA READ/WRITE requests and handles the required registration
+and invalidation internally.  It again takes a scatterlist and handles
+dma mapping internal.  Now all the dma mapping will be in the core,
+which means they are only one step away from the driver.  Now if the
+per-device dma_ops don't work out we can simply have a flag in
+struct ib_device that it doesn't need dma mapping and can avoid
+the indirection through another set of ops at least.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
