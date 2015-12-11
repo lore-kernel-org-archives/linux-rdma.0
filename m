@@ -1,60 +1,66 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+From: "santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Subject: Re: device attr cleanup (was: Handle mlx4 max_sge_rd correctly)
-Date: Thu, 10 Dec 2015 23:14:33 -0700
-Message-ID: <20151211061433.GB16513@obsidianresearch.com>
-References: <CAJ3xEMj2EOxX1CiA93MPOsM-FdU9ijcWCYm9tObbkLqqja0PoA@mail.gmail.com>
- <566753E3.9060301@redhat.com>
+Date: Thu, 10 Dec 2015 22:54:58 -0800
+Message-ID: <566A7342.9090400@oracle.com>
+References: <566753E3.9060301@redhat.com>
  <CAJ3xEMhaEnv9He7N5q8fFsRzy_j27wdE6KWSFF39UzA680udwA@mail.gmail.com>
  <20151208225940.GB27609@obsidianresearch.com>
- <CAJ3xEMiEYgsxiL6zR-Dia3Rxwriye1WHcadTmUjU7zV=ide1LA@mail.gmail.com>
- <20151209184448.GC4522@infradead.org>
- <5669BA8E.30200@redhat.com>
- <20151210232956.GA26009@infradead.org>
- <566A5792.9080102@redhat.com>
+ <20151208230244.GA10701@infradead.org>
+ <20151209005203.GD16976@phlsvsds.ph.intel.com>
+ <20151209184235.GB4522@infradead.org>
+ <20151210014556.GA32059@phlsvsds.ph.intel.com>
+ <56693758.90808@dev.mellanox.co.il>
+ <93E3DE8A-0589-436D-A9A1-7EAC66B12739@oracle.com>
+ <20151210180703.GC21482@obsidianresearch.com>
+ <20151210233047.GB26009@infradead.org>
+ <09F96E8A-5E1E-4345-9069-C07108AF0BC7@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <566A5792.9080102-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <09F96E8A-5E1E-4345-9069-C07108AF0BC7-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Anna Schumaker <schumakeranna-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 10, 2015 at 11:56:50PM -0500, Doug Ledford wrote:
++Dave,
 
-> Looking at struct netdevice, it has the sort of organization I would
-> call reasonable.  Things like struct tx_stats is a struct, even though
-> it's embedded in the parent struct and not a pointer and there is
-> exactly and only one copy, so it could be flat.
+On 12/10/15 4:49 PM, Chuck Lever wrote:
+>
+>> On Dec 10, 2015, at 6:30 PM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
+>>
+>> On Thu, Dec 10, 2015 at 11:07:03AM -0700, Jason Gunthorpe wrote:
+>>> The ARM folks do this sort of stuff on a regular basis.. Very early on
+>>> Doug prepares a topic branch with only the big change, NFS folks pull
+>>> it and then pull your work. Then Doug would send the topic branch to
+>>> Linus as soon as the merge window opens, then NFS would send theirs.
+>>>
+>>> This is alot less work overall than trying to sequence multiple
+>>> patches over multiple releases..
+>>
+>> Agreed.  Staging has alaways been a giant pain and things tend to never
+>> finish moving over that way if they are non-trivial enough.
+>
+> In that case:
+>
+> You need to make sure you have all the right Acks. I've added
+> Anna and Bruce to Ack the NFS-related portions. Santosh should
+> Ack the RDS part.
+>
+To make this flow work for RDS, Doug's topic branch needs to
+pulled into Dave's net-next as well.
 
-struct net_device_stats exists because it is used in many more places
-that just in struct net_device, so this is a code sharing thing.
+> http://git.infradead.org/users/hch/rdma.git/shortlog/refs/heads/ib_device_attr
+>
+> Given the proximity to the holidays and the next merge window,
+> Doug will need to get a properly-acked topic branch published
+> in the next day or two so the rest of us can rebase and start
+> testing before the relevant parties disappear for the holiday.
+>
 
-> something I would call well organized.  And speaking of that, in struct
-> netdevice, all of the various ops elements are handled as structs,
-
-.. and 'struct net_device_ops' is used extensively.
-
-Whereas once we get rid of the query call ib_device_attr has no second
-user.
-
-> including the base netdevice ops, whereas struct ib_device puts the base
-> ops flat in the struct.  So if we wanted to be more like struct
-> netdevice, we would move the base ops out of struct ib_device.
-
-It would make the drivers a bit nicer if they initialized an ib_ops
-structure like netdev does instead of in code, but performance wise
-this is probably better, especially if we sorted the struct members
-sanely..
-
-> out like this.  An ib_device can be multi-port, and each port can be a
-> different RDMA device type.
-
-I thought we figured out that wasn't actually allowed today when
-working on the caps rework?
-
-Jason
+Regards,
+Santosh
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
