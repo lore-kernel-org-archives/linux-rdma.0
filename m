@@ -1,43 +1,90 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/3] IB core: Support 64 bit values in the port counters
-Date: Fri, 11 Dec 2015 12:25:34 -0600
-Message-ID: <20151211182543.229518282@linux.com>
-References: <20151211182532.332343651@linux.com>
-Content-Type: text/plain; charset=UTF-8
+From: Matthew Finlay <Matt-goXnUAHYgFxWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V3] IB/mlx4: Use vmalloc for WR buffers when needed
+Date: Fri, 11 Dec 2015 20:28:46 +0000
+Message-ID: <17CFA44C-D58F-49C0-B3CE-95D38C08E16B@mellanox.com>
+References: <1444282024-11425-1-git-send-email-wen.gang.wang@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=0002-IB-core-Support-64-bit-values-in-the-port-counters.patch
+In-Reply-To: <1444282024-11425-1-git-send-email-wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+Content-ID: <1E104581F8539749AC2BD3F7BF27AC92-wNKe6lTLrGecE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add a branch to display 64 bit values
-
-Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/core/sysfs.c | 5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index 1c8716f..0083a4f 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -378,6 +378,11 @@ static ssize_t show_pma_counter(struct ib_port *p, struct port_attribute *attr,
- 		ret = sprintf(buf, "%u\n",
- 			      be32_to_cpup((__be32 *)(out_mad->data + 40 + offset / 8)));
- 		break;
-+	case 64:
-+		ret = sprintf(buf, "%llu\n",
-+				be64_to_cpup((__be64 *)(out_mad->data + 40 + offset / 8)));
-+		break;
-+
- 	default:
- 		ret = 0;
- 	}
--- 
-2.5.0
-
-
+SGkgV2VuZ2FuZywNCg0KSSB3YXMgZ29pbmcgdGhyb3VnaCB5b3VyIHBhdGNoIHNldCBoZXJlLCBh
+bmQgaXQgc2VlbXMgdGhhdCB5b3UgbWlzc2VkIGNoYW5naW5nIGtmcmVlIHRvIGt2ZnJlZSBpbiBt
+bHg0X2liX2Rlc3Ryb3lfc3JxKCkuICBJbiB0aGUgY3VycmVudCBjb2RlIGlmIHRoZSBzcnEgd3Jp
+ZCBpcyBhbGxvY2F0ZWQgdXNpbmcgdm1hbGxvYywgdGhlbiBvbiBjbGVhbnVwIHdlIHdpbGwgdXNl
+IGtmcmVlLCB3aGljaCBpcyBhIGJ1Zy4NCg0KVGhhbmtzLA0KLW1hdHQNCg0KDQoNCg0KT24gMTAv
+Ny8xNSwgMTA6MjcgUE0sICJsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZyBvbiBiZWhh
+bGYgb2YgV2VuZ2FuZyBXYW5nIiA8bGludXgtcmRtYS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgb24g
+YmVoYWxmIG9mIHdlbi5nYW5nLndhbmdAb3JhY2xlLmNvbT4gd3JvdGU6DQoNCj5UaGVyZSBhcmUg
+c2V2ZXJhbCBoaXRzIHRoYXQgV1IgYnVmZmVyIGFsbG9jYXRpb24oa21hbGxvYykgZmFpbGVkLg0K
+Pkl0IGZhaWxlZCBhdCBvcmRlciAzIGFuZC9vciA0IGNvbnRpZ291cyBwYWdlcyBhbGxvY2F0aW9u
+LiBBdCB0aGUgc2FtZSB0aW1lDQo+dGhlcmUgYXJlIGFjdHVhbGx5IDEwME1CKyBmcmVlIG1lbW9y
+eSBidXQgd2VsbCBmcmFnbWVudGVkLg0KPlNvIHRyeSB2bWFsbG9jIHdoZW4ga21hbGxvYyBmYWls
+ZWQuDQo+DQo+U2lnbmVkLW9mZi1ieTogV2VuZ2FuZyBXYW5nIDx3ZW4uZ2FuZy53YW5nQG9yYWNs
+ZS5jb20+DQo+QWNrZWQtYnk6IE9yIEdlcmxpdHogPG9nZXJsaXR6QG1lbGxhbm94LmNvbT4NCj4t
+LS0NCj4gZHJpdmVycy9pbmZpbmliYW5kL2h3L21seDQvcXAuYyAgfCAxOSArKysrKysrKysrKysr
+LS0tLS0tDQo+IGRyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg0L3NycS5jIHwgMTEgKysrKysrKyst
+LS0NCj4gMiBmaWxlcyBjaGFuZ2VkLCAyMSBpbnNlcnRpb25zKCspLCA5IGRlbGV0aW9ucygtKQ0K
+Pg0KPmRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NC9xcC5jIGIvZHJpdmVy
+cy9pbmZpbmliYW5kL2h3L21seDQvcXAuYw0KPmluZGV4IDRhZDliZTMuLjNjY2JkM2EgMTAwNjQ0
+DQo+LS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL2h3L21seDQvcXAuYw0KPisrKyBiL2RyaXZlcnMv
+aW5maW5pYmFuZC9ody9tbHg0L3FwLmMNCj5AQCAtMzQsNiArMzQsNyBAQA0KPiAjaW5jbHVkZSA8
+bGludXgvbG9nMi5oPg0KPiAjaW5jbHVkZSA8bGludXgvc2xhYi5oPg0KPiAjaW5jbHVkZSA8bGlu
+dXgvbmV0ZGV2aWNlLmg+DQo+KyNpbmNsdWRlIDxsaW51eC92bWFsbG9jLmg+DQo+IA0KPiAjaW5j
+bHVkZSA8cmRtYS9pYl9jYWNoZS5oPg0KPiAjaW5jbHVkZSA8cmRtYS9pYl9wYWNrLmg+DQo+QEAg
+LTc4Niw4ICs3ODcsMTQgQEAgc3RhdGljIGludCBjcmVhdGVfcXBfY29tbW9uKHN0cnVjdCBtbHg0
+X2liX2RldiAqZGV2LCBzdHJ1Y3QgaWJfcGQgKnBkLA0KPiAJCWlmIChlcnIpDQo+IAkJCWdvdG8g
+ZXJyX210dDsNCj4gDQo+LQkJcXAtPnNxLndyaWQgID0ga21hbGxvYyhxcC0+c3Eud3FlX2NudCAq
+IHNpemVvZiAodTY0KSwgZ2ZwKTsNCj4tCQlxcC0+cnEud3JpZCAgPSBrbWFsbG9jKHFwLT5ycS53
+cWVfY250ICogc2l6ZW9mICh1NjQpLCBnZnApOw0KPisJCXFwLT5zcS53cmlkID0ga21hbGxvYyhx
+cC0+c3Eud3FlX2NudCAqIHNpemVvZih1NjQpLCBnZnApOw0KPisJCWlmICghcXAtPnNxLndyaWQp
+DQo+KwkJCXFwLT5zcS53cmlkID0gX192bWFsbG9jKHFwLT5zcS53cWVfY250ICogc2l6ZW9mKHU2
+NCksDQo+KwkJCQkJCWdmcCwgUEFHRV9LRVJORUwpOw0KPisJCXFwLT5ycS53cmlkID0ga21hbGxv
+YyhxcC0+cnEud3FlX2NudCAqIHNpemVvZih1NjQpLCBnZnApOw0KPisJCWlmICghcXAtPnJxLndy
+aWQpDQo+KwkJCXFwLT5ycS53cmlkID0gX192bWFsbG9jKHFwLT5ycS53cWVfY250ICogc2l6ZW9m
+KHU2NCksDQo+KwkJCQkJCWdmcCwgUEFHRV9LRVJORUwpOw0KPiAJCWlmICghcXAtPnNxLndyaWQg
+fHwgIXFwLT5ycS53cmlkKSB7DQo+IAkJCWVyciA9IC1FTk9NRU07DQo+IAkJCWdvdG8gZXJyX3dy
+aWQ7DQo+QEAgLTg3NCw4ICs4ODEsOCBAQCBlcnJfd3JpZDoNCj4gCQlpZiAocXBfaGFzX3JxKGlu
+aXRfYXR0cikpDQo+IAkJCW1seDRfaWJfZGJfdW5tYXBfdXNlcih0b19tdWNvbnRleHQocGQtPnVv
+YmplY3QtPmNvbnRleHQpLCAmcXAtPmRiKTsNCj4gCX0gZWxzZSB7DQo+LQkJa2ZyZWUocXAtPnNx
+LndyaWQpOw0KPi0JCWtmcmVlKHFwLT5ycS53cmlkKTsNCj4rCQlrdmZyZWUocXAtPnNxLndyaWQp
+Ow0KPisJCWt2ZnJlZShxcC0+cnEud3JpZCk7DQo+IAl9DQo+IA0KPiBlcnJfbXR0Og0KPkBAIC0x
+MDUwLDggKzEwNTcsOCBAQCBzdGF0aWMgdm9pZCBkZXN0cm95X3FwX2NvbW1vbihzdHJ1Y3QgbWx4
+NF9pYl9kZXYgKmRldiwgc3RydWN0IG1seDRfaWJfcXAgKnFwLA0KPiAJCQkJCSAgICAgICZxcC0+
+ZGIpOw0KPiAJCWliX3VtZW1fcmVsZWFzZShxcC0+dW1lbSk7DQo+IAl9IGVsc2Ugew0KPi0JCWtm
+cmVlKHFwLT5zcS53cmlkKTsNCj4tCQlrZnJlZShxcC0+cnEud3JpZCk7DQo+KwkJa3ZmcmVlKHFw
+LT5zcS53cmlkKTsNCj4rCQlrdmZyZWUocXAtPnJxLndyaWQpOw0KPiAJCWlmIChxcC0+bWx4NF9p
+Yl9xcF90eXBlICYgKE1MWDRfSUJfUVBUX1BST1hZX1NNSV9PV05FUiB8DQo+IAkJICAgIE1MWDRf
+SUJfUVBUX1BST1hZX1NNSSB8IE1MWDRfSUJfUVBUX1BST1hZX0dTSSkpDQo+IAkJCWZyZWVfcHJv
+eHlfYnVmcygmZGV2LT5pYl9kZXYsIHFwKTsNCj5kaWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmli
+YW5kL2h3L21seDQvc3JxLmMgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NC9zcnEuYw0KPmlu
+ZGV4IGRjZTVkZmUuLjhkMTMzYzQgMTAwNjQ0DQo+LS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL2h3
+L21seDQvc3JxLmMNCj4rKysgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NC9zcnEuYw0KPkBA
+IC0zNCw2ICszNCw3IEBADQo+ICNpbmNsdWRlIDxsaW51eC9tbHg0L3FwLmg+DQo+ICNpbmNsdWRl
+IDxsaW51eC9tbHg0L3NycS5oPg0KPiAjaW5jbHVkZSA8bGludXgvc2xhYi5oPg0KPisjaW5jbHVk
+ZSA8bGludXgvdm1hbGxvYy5oPg0KPiANCj4gI2luY2x1ZGUgIm1seDRfaWIuaCINCj4gI2luY2x1
+ZGUgInVzZXIuaCINCj5AQCAtMTcyLDggKzE3MywxMiBAQCBzdHJ1Y3QgaWJfc3JxICptbHg0X2li
+X2NyZWF0ZV9zcnEoc3RydWN0IGliX3BkICpwZCwNCj4gDQo+IAkJc3JxLT53cmlkID0ga21hbGxv
+YyhzcnEtPm1zcnEubWF4ICogc2l6ZW9mICh1NjQpLCBHRlBfS0VSTkVMKTsNCj4gCQlpZiAoIXNy
+cS0+d3JpZCkgew0KPi0JCQllcnIgPSAtRU5PTUVNOw0KPi0JCQlnb3RvIGVycl9tdHQ7DQo+KwkJ
+CXNycS0+d3JpZCA9IF9fdm1hbGxvYyhzcnEtPm1zcnEubWF4ICogc2l6ZW9mKHU2NCksDQo+KwkJ
+CQkJICAgICAgR0ZQX0tFUk5FTCwgUEFHRV9LRVJORUwpOw0KPisJCQlpZiAoIXNycS0+d3JpZCkg
+ew0KPisJCQkJZXJyID0gLUVOT01FTTsNCj4rCQkJCWdvdG8gZXJyX210dDsNCj4rCQkJfQ0KPiAJ
+CX0NCj4gCX0NCj4gDQo+QEAgLTIwNCw3ICsyMDksNyBAQCBlcnJfd3JpZDoNCj4gCWlmIChwZC0+
+dW9iamVjdCkNCj4gCQltbHg0X2liX2RiX3VubWFwX3VzZXIodG9fbXVjb250ZXh0KHBkLT51b2Jq
+ZWN0LT5jb250ZXh0KSwgJnNycS0+ZGIpOw0KPiAJZWxzZQ0KPi0JCWtmcmVlKHNycS0+d3JpZCk7
+DQo+KwkJa3ZmcmVlKHNycS0+d3JpZCk7DQo+IA0KPiBlcnJfbXR0Og0KPiAJbWx4NF9tdHRfY2xl
+YW51cChkZXYtPmRldiwgJnNycS0+bXR0KTsNCj4tLSANCj4yLjEuMA0KPg0KPi0tDQo+VG8gdW5z
+dWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4
+LXJkbWEiIGluDQo+dGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5l
+bC5vcmcNCj5Nb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21h
+am9yZG9tby1pbmZvLmh0bWwNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
