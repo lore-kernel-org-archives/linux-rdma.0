@@ -1,55 +1,53 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH 02/37] IB/rdmavt: Consolidate dma ops in rdmavt.
-Date: Thu, 10 Dec 2015 16:46:24 -0800
-Message-ID: <20151211004624.GA9994@infradead.org>
-References: <20151207204046.8144.18752.stgit@phlsvslse11.ph.intel.com>
- <20151207204305.8144.7038.stgit@phlsvslse11.ph.intel.com>
- <20151208060821.GD7313@leon.nu>
- <20151210161708.GA13412@phlsvsds.ph.intel.com>
- <20151210174413.GB21482@obsidianresearch.com>
- <20151210234112.GA15546@infradead.org>
- <20151211002950.GA5964@obsidianresearch.com>
-Mime-Version: 1.0
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: device attr cleanup (was: Handle mlx4 max_sge_rd correctly)
+Date: Thu, 10 Dec 2015 19:49:59 -0500
+Message-ID: <09F96E8A-5E1E-4345-9069-C07108AF0BC7@oracle.com>
+References: <566753E3.9060301@redhat.com> <CAJ3xEMhaEnv9He7N5q8fFsRzy_j27wdE6KWSFF39UzA680udwA@mail.gmail.com> <20151208225940.GB27609@obsidianresearch.com> <20151208230244.GA10701@infradead.org> <20151209005203.GD16976@phlsvsds.ph.intel.com> <20151209184235.GB4522@infradead.org> <20151210014556.GA32059@phlsvsds.ph.intel.com> <56693758.90808@dev.mellanox.co.il> <93E3DE8A-0589-436D-A9A1-7EAC66B12739@oracle.com> <20151210180703.GC21482@obsidianresearch.com> <20151210233047.GB26009@infradead.org>
+Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20151211002950.GA5964-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20151210233047.GB26009-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Anna Schumaker <schumakeranna-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 10, 2015 at 05:29:50PM -0700, Jason Gunthorpe wrote:
-> Hrm.. sizeof(void *) > sizeof(dma_addr_t) seemed pretty obscure to me,
-> here is the original discussion:
+
+> On Dec 10, 2015, at 6:30 PM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
 > 
-> https://lkml.org/lkml/2006/12/13/245
+> On Thu, Dec 10, 2015 at 11:07:03AM -0700, Jason Gunthorpe wrote:
+>> The ARM folks do this sort of stuff on a regular basis.. Very early on
+>> Doug prepares a topic branch with only the big change, NFS folks pull
+>> it and then pull your work. Then Doug would send the topic branch to
+>> Linus as soon as the merge window opens, then NFS would send theirs.
+>> 
+>> This is alot less work overall than trying to sequence multiple
+>> patches over multiple releases..
 > 
-> Sounds like someone was worried about sparc64. I doubt it is an actual
-> issue today, but granted the u64 did make some sense.
+> Agreed.  Staging has alaways been a giant pain and things tend to never
+> finish moving over that way if they are non-trivial enough.
 
-sparc64 still uses a 32-bit dma_addr_t.
+In that case:
 
-> > Now these drivers will end up dma mapping these virtual addresses later,
-> > so we might want figure out a) why the qib & co drivers even need the
-> > virtual address, and b) see if we maybe should always do the dma_map
-> > in the callers anyway, and just have an additional virtual address field
-> > for those drivers if absolutely needed.
-> 
-> So, I *believe* the issue is that linux has (had?) no approved way to
-> convert from a device specific dma_addr_t to a virtual address.
+You need to make sure you have all the right Acks. I've added
+Anna and Bruce to Ack the NFS-related portions. Santosh should
+Ack the RDS part.
 
-Linux doesn't have an approved way because it's impossible for the
-generic case.  When you have an iommu you have potentially multiple
-page tables mapping physical addresses to device virtual addresses,
-and there is no easy way to do a reverse mapping.
+http://git.infradead.org/users/hch/rdma.git/shortlog/refs/heads/ib_device_attr
 
-> It is really too bad we can't just use get_dma_ops to handle this case
-> and instead require our own infrastructure.
+Given the proximity to the holidays and the next merge window,
+Doug will need to get a properly-acked topic branch published
+in the next day or two so the rest of us can rebase and start
+testing before the relevant parties disappear for the holiday.
 
-FYI, I have a patch series in linux-next to switches all remaining
-architectures to use get_dma_ops, and there are plans to allow generic
-per-device dma_ops based on that.
+
+--
+Chuck Lever
+
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
