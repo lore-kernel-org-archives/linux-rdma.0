@@ -1,55 +1,45 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH 02/37] IB/rdmavt: Consolidate dma ops in rdmavt.
-Date: Fri, 11 Dec 2015 06:10:40 -0800
-Message-ID: <20151211141040.GA22596@infradead.org>
-References: <20151207204046.8144.18752.stgit@phlsvslse11.ph.intel.com>
- <20151207204305.8144.7038.stgit@phlsvslse11.ph.intel.com>
- <20151208060821.GD7313@leon.nu>
- <20151210161708.GA13412@phlsvsds.ph.intel.com>
- <20151210174413.GB21482@obsidianresearch.com>
- <20151210234112.GA15546@infradead.org>
- <20151211002950.GA5964@obsidianresearch.com>
- <20151211004624.GA9994@infradead.org>
- <20151211060202.GA16513@obsidianresearch.com>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH 07/13] IB: add a proper completion queue abstraction
+Date: Fri, 11 Dec 2015 15:17:49 +0100
+Message-ID: <20151211141749.GA20201@lst.de>
+References: <1449521512-22921-1-git-send-email-hch@lst.de> <1449521512-22921-8-git-send-email-hch@lst.de> <5669C78E.6070302@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20151211060202.GA16513-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <5669C78E.6070302@sandisk.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: linux-rdma@vger.kernel.org, sagig@dev.mellanox.co.il, axboe@fb.com, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 10, 2015 at 11:02:02PM -0700, Jason Gunthorpe wrote:
-> > FYI, I have a patch series in linux-next to switches all remaining
-> > architectures to use get_dma_ops, and there are plans to allow generic
-> > per-device dma_ops based on that.
-> 
-> Great, so once that is merged we can drop the ib_* versions of all
-> this and just have qib/etc customize get_dma_ops? Other than the
-> dma_addr_t size issue that sounds great..
+On Thu, Dec 10, 2015 at 10:42:22AM -0800, Bart Van Assche wrote:
+>> +struct ib_cq *ib_alloc_cq(struct ib_device *dev, void *private,
+>> +		int nr_cqe, int comp_vector, enum ib_poll_context poll_ctx)
+>> +{
+> > [ ... ]
+>> +	cq->wc = kmalloc_array(IB_POLL_BATCH, sizeof(*cq->wc), GFP_KERNEL);
+>
+> Why is the wc array allocated separately instead of being embedded in 
+> struct ib_cq ? I think the faster completion queues can be created the 
+> better so if it is possible to eliminate the above kmalloc() call I would 
+> prefer that.
 
-I'm not sure the per-device ops are a done deal, as there has been
-vocal opposition to it everytime it came up.  But at least we have
-the infrastructure for it now.
+I originally allocated an embedded aray, but Sagi pointed out that
+we'd waste memory for CQs not using the new API, so I changed it.
+The embedded one would be quite a bit simpler indeed.
 
-Other than that I think we're getting ready to actually remove
-dma mapping from the ULPs.  Sagi's MR API that takes a scatterlist
-is a first step, as it would allow for trivially moving the
-dma_map_sg into the core helpes.  For the client side we now just
-need to switch FMRs to use that API as well (given that it seems
-like we can't get rid of them) and provide an API to "map" a
-scatterlist using the DMA MR for those drivers playing fast and
-loose.  On the server side I have a first draft of a R/W API that
-does RDMA READ/WRITE requests and handles the required registration
-and invalidation internally.  It again takes a scatterlist and handles
-dma mapping internal.  Now all the dma mapping will be in the core,
-which means they are only one step away from the driver.  Now if the
-per-device dma_ops don't work out we can simply have a flag in
-struct ib_device that it doesn't need dma mapping and can avoid
-the indirection through another set of ops at least.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> --- a/drivers/infiniband/ulp/srp/ib_srp.c
+>> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
+>> @@ -457,10 +457,11 @@ static struct srp_fr_pool *srp_alloc_fr_pool(struct srp_target_port *target)
+>>   static void srp_destroy_qp(struct srp_rdma_ch *ch)
+>>   {
+>>   	static struct ib_qp_attr attr = { .qp_state = IB_QPS_ERR };
+>> -	static struct ib_recv_wr wr = { .wr_id = SRP_LAST_WR_ID };
+>> +	static struct ib_recv_wr wr = { 0 };
+>>   	struct ib_recv_wr *bad_wr;
+>>   	int ret;
+>
+> Is explicit initialization to "{ 0 }" really needed for static structures ?
+
+It shouldn't be needed, but I can't see how it harms either.
