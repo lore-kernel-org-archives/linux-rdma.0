@@ -1,90 +1,154 @@
-From: Matthew Finlay <Matt-goXnUAHYgFxWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V3] IB/mlx4: Use vmalloc for WR buffers when needed
-Date: Fri, 11 Dec 2015 20:28:46 +0000
-Message-ID: <17CFA44C-D58F-49C0-B3CE-95D38C08E16B@mellanox.com>
-References: <1444282024-11425-1-git-send-email-wen.gang.wang@oracle.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/2] ipoib mcast sendonly join: Isolate common list remove code
+Date: Fri, 11 Dec 2015 18:10:37 -0500
+Message-ID: <20151211231037.GB7855@phlsvsds.ph.intel.com>
+References: <20151211181652.187735744@linux.com> <20151211181724.185428150@linux.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1444282024-11425-1-git-send-email-wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <1E104581F8539749AC2BD3F7BF27AC92-wNKe6lTLrGecE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20151211181724.185428150-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgV2VuZ2FuZywNCg0KSSB3YXMgZ29pbmcgdGhyb3VnaCB5b3VyIHBhdGNoIHNldCBoZXJlLCBh
-bmQgaXQgc2VlbXMgdGhhdCB5b3UgbWlzc2VkIGNoYW5naW5nIGtmcmVlIHRvIGt2ZnJlZSBpbiBt
-bHg0X2liX2Rlc3Ryb3lfc3JxKCkuICBJbiB0aGUgY3VycmVudCBjb2RlIGlmIHRoZSBzcnEgd3Jp
-ZCBpcyBhbGxvY2F0ZWQgdXNpbmcgdm1hbGxvYywgdGhlbiBvbiBjbGVhbnVwIHdlIHdpbGwgdXNl
-IGtmcmVlLCB3aGljaCBpcyBhIGJ1Zy4NCg0KVGhhbmtzLA0KLW1hdHQNCg0KDQoNCg0KT24gMTAv
-Ny8xNSwgMTA6MjcgUE0sICJsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZyBvbiBiZWhh
-bGYgb2YgV2VuZ2FuZyBXYW5nIiA8bGludXgtcmRtYS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgb24g
-YmVoYWxmIG9mIHdlbi5nYW5nLndhbmdAb3JhY2xlLmNvbT4gd3JvdGU6DQoNCj5UaGVyZSBhcmUg
-c2V2ZXJhbCBoaXRzIHRoYXQgV1IgYnVmZmVyIGFsbG9jYXRpb24oa21hbGxvYykgZmFpbGVkLg0K
-Pkl0IGZhaWxlZCBhdCBvcmRlciAzIGFuZC9vciA0IGNvbnRpZ291cyBwYWdlcyBhbGxvY2F0aW9u
-LiBBdCB0aGUgc2FtZSB0aW1lDQo+dGhlcmUgYXJlIGFjdHVhbGx5IDEwME1CKyBmcmVlIG1lbW9y
-eSBidXQgd2VsbCBmcmFnbWVudGVkLg0KPlNvIHRyeSB2bWFsbG9jIHdoZW4ga21hbGxvYyBmYWls
-ZWQuDQo+DQo+U2lnbmVkLW9mZi1ieTogV2VuZ2FuZyBXYW5nIDx3ZW4uZ2FuZy53YW5nQG9yYWNs
-ZS5jb20+DQo+QWNrZWQtYnk6IE9yIEdlcmxpdHogPG9nZXJsaXR6QG1lbGxhbm94LmNvbT4NCj4t
-LS0NCj4gZHJpdmVycy9pbmZpbmliYW5kL2h3L21seDQvcXAuYyAgfCAxOSArKysrKysrKysrKysr
-LS0tLS0tDQo+IGRyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg0L3NycS5jIHwgMTEgKysrKysrKyst
-LS0NCj4gMiBmaWxlcyBjaGFuZ2VkLCAyMSBpbnNlcnRpb25zKCspLCA5IGRlbGV0aW9ucygtKQ0K
-Pg0KPmRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NC9xcC5jIGIvZHJpdmVy
-cy9pbmZpbmliYW5kL2h3L21seDQvcXAuYw0KPmluZGV4IDRhZDliZTMuLjNjY2JkM2EgMTAwNjQ0
-DQo+LS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL2h3L21seDQvcXAuYw0KPisrKyBiL2RyaXZlcnMv
-aW5maW5pYmFuZC9ody9tbHg0L3FwLmMNCj5AQCAtMzQsNiArMzQsNyBAQA0KPiAjaW5jbHVkZSA8
-bGludXgvbG9nMi5oPg0KPiAjaW5jbHVkZSA8bGludXgvc2xhYi5oPg0KPiAjaW5jbHVkZSA8bGlu
-dXgvbmV0ZGV2aWNlLmg+DQo+KyNpbmNsdWRlIDxsaW51eC92bWFsbG9jLmg+DQo+IA0KPiAjaW5j
-bHVkZSA8cmRtYS9pYl9jYWNoZS5oPg0KPiAjaW5jbHVkZSA8cmRtYS9pYl9wYWNrLmg+DQo+QEAg
-LTc4Niw4ICs3ODcsMTQgQEAgc3RhdGljIGludCBjcmVhdGVfcXBfY29tbW9uKHN0cnVjdCBtbHg0
-X2liX2RldiAqZGV2LCBzdHJ1Y3QgaWJfcGQgKnBkLA0KPiAJCWlmIChlcnIpDQo+IAkJCWdvdG8g
-ZXJyX210dDsNCj4gDQo+LQkJcXAtPnNxLndyaWQgID0ga21hbGxvYyhxcC0+c3Eud3FlX2NudCAq
-IHNpemVvZiAodTY0KSwgZ2ZwKTsNCj4tCQlxcC0+cnEud3JpZCAgPSBrbWFsbG9jKHFwLT5ycS53
-cWVfY250ICogc2l6ZW9mICh1NjQpLCBnZnApOw0KPisJCXFwLT5zcS53cmlkID0ga21hbGxvYyhx
-cC0+c3Eud3FlX2NudCAqIHNpemVvZih1NjQpLCBnZnApOw0KPisJCWlmICghcXAtPnNxLndyaWQp
-DQo+KwkJCXFwLT5zcS53cmlkID0gX192bWFsbG9jKHFwLT5zcS53cWVfY250ICogc2l6ZW9mKHU2
-NCksDQo+KwkJCQkJCWdmcCwgUEFHRV9LRVJORUwpOw0KPisJCXFwLT5ycS53cmlkID0ga21hbGxv
-YyhxcC0+cnEud3FlX2NudCAqIHNpemVvZih1NjQpLCBnZnApOw0KPisJCWlmICghcXAtPnJxLndy
-aWQpDQo+KwkJCXFwLT5ycS53cmlkID0gX192bWFsbG9jKHFwLT5ycS53cWVfY250ICogc2l6ZW9m
-KHU2NCksDQo+KwkJCQkJCWdmcCwgUEFHRV9LRVJORUwpOw0KPiAJCWlmICghcXAtPnNxLndyaWQg
-fHwgIXFwLT5ycS53cmlkKSB7DQo+IAkJCWVyciA9IC1FTk9NRU07DQo+IAkJCWdvdG8gZXJyX3dy
-aWQ7DQo+QEAgLTg3NCw4ICs4ODEsOCBAQCBlcnJfd3JpZDoNCj4gCQlpZiAocXBfaGFzX3JxKGlu
-aXRfYXR0cikpDQo+IAkJCW1seDRfaWJfZGJfdW5tYXBfdXNlcih0b19tdWNvbnRleHQocGQtPnVv
-YmplY3QtPmNvbnRleHQpLCAmcXAtPmRiKTsNCj4gCX0gZWxzZSB7DQo+LQkJa2ZyZWUocXAtPnNx
-LndyaWQpOw0KPi0JCWtmcmVlKHFwLT5ycS53cmlkKTsNCj4rCQlrdmZyZWUocXAtPnNxLndyaWQp
-Ow0KPisJCWt2ZnJlZShxcC0+cnEud3JpZCk7DQo+IAl9DQo+IA0KPiBlcnJfbXR0Og0KPkBAIC0x
-MDUwLDggKzEwNTcsOCBAQCBzdGF0aWMgdm9pZCBkZXN0cm95X3FwX2NvbW1vbihzdHJ1Y3QgbWx4
-NF9pYl9kZXYgKmRldiwgc3RydWN0IG1seDRfaWJfcXAgKnFwLA0KPiAJCQkJCSAgICAgICZxcC0+
-ZGIpOw0KPiAJCWliX3VtZW1fcmVsZWFzZShxcC0+dW1lbSk7DQo+IAl9IGVsc2Ugew0KPi0JCWtm
-cmVlKHFwLT5zcS53cmlkKTsNCj4tCQlrZnJlZShxcC0+cnEud3JpZCk7DQo+KwkJa3ZmcmVlKHFw
-LT5zcS53cmlkKTsNCj4rCQlrdmZyZWUocXAtPnJxLndyaWQpOw0KPiAJCWlmIChxcC0+bWx4NF9p
-Yl9xcF90eXBlICYgKE1MWDRfSUJfUVBUX1BST1hZX1NNSV9PV05FUiB8DQo+IAkJICAgIE1MWDRf
-SUJfUVBUX1BST1hZX1NNSSB8IE1MWDRfSUJfUVBUX1BST1hZX0dTSSkpDQo+IAkJCWZyZWVfcHJv
-eHlfYnVmcygmZGV2LT5pYl9kZXYsIHFwKTsNCj5kaWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmli
-YW5kL2h3L21seDQvc3JxLmMgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NC9zcnEuYw0KPmlu
-ZGV4IGRjZTVkZmUuLjhkMTMzYzQgMTAwNjQ0DQo+LS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL2h3
-L21seDQvc3JxLmMNCj4rKysgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NC9zcnEuYw0KPkBA
-IC0zNCw2ICszNCw3IEBADQo+ICNpbmNsdWRlIDxsaW51eC9tbHg0L3FwLmg+DQo+ICNpbmNsdWRl
-IDxsaW51eC9tbHg0L3NycS5oPg0KPiAjaW5jbHVkZSA8bGludXgvc2xhYi5oPg0KPisjaW5jbHVk
-ZSA8bGludXgvdm1hbGxvYy5oPg0KPiANCj4gI2luY2x1ZGUgIm1seDRfaWIuaCINCj4gI2luY2x1
-ZGUgInVzZXIuaCINCj5AQCAtMTcyLDggKzE3MywxMiBAQCBzdHJ1Y3QgaWJfc3JxICptbHg0X2li
-X2NyZWF0ZV9zcnEoc3RydWN0IGliX3BkICpwZCwNCj4gDQo+IAkJc3JxLT53cmlkID0ga21hbGxv
-YyhzcnEtPm1zcnEubWF4ICogc2l6ZW9mICh1NjQpLCBHRlBfS0VSTkVMKTsNCj4gCQlpZiAoIXNy
-cS0+d3JpZCkgew0KPi0JCQllcnIgPSAtRU5PTUVNOw0KPi0JCQlnb3RvIGVycl9tdHQ7DQo+KwkJ
-CXNycS0+d3JpZCA9IF9fdm1hbGxvYyhzcnEtPm1zcnEubWF4ICogc2l6ZW9mKHU2NCksDQo+KwkJ
-CQkJICAgICAgR0ZQX0tFUk5FTCwgUEFHRV9LRVJORUwpOw0KPisJCQlpZiAoIXNycS0+d3JpZCkg
-ew0KPisJCQkJZXJyID0gLUVOT01FTTsNCj4rCQkJCWdvdG8gZXJyX210dDsNCj4rCQkJfQ0KPiAJ
-CX0NCj4gCX0NCj4gDQo+QEAgLTIwNCw3ICsyMDksNyBAQCBlcnJfd3JpZDoNCj4gCWlmIChwZC0+
-dW9iamVjdCkNCj4gCQltbHg0X2liX2RiX3VubWFwX3VzZXIodG9fbXVjb250ZXh0KHBkLT51b2Jq
-ZWN0LT5jb250ZXh0KSwgJnNycS0+ZGIpOw0KPiAJZWxzZQ0KPi0JCWtmcmVlKHNycS0+d3JpZCk7
-DQo+KwkJa3ZmcmVlKHNycS0+d3JpZCk7DQo+IA0KPiBlcnJfbXR0Og0KPiAJbWx4NF9tdHRfY2xl
-YW51cChkZXYtPmRldiwgJnNycS0+bXR0KTsNCj4tLSANCj4yLjEuMA0KPg0KPi0tDQo+VG8gdW5z
-dWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4
-LXJkbWEiIGluDQo+dGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5l
-bC5vcmcNCj5Nb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21h
-am9yZG9tby1pbmZvLmh0bWwNCg==
+On Fri, Dec 11, 2015 at 12:16:53PM -0600, Christoph Lameter wrote:
+> Code cleanup to remove multicast specific code from ipoib_main.c
+> 
+> The removal of a list of multicast groups occurs in three places.
+> Create a new function ipoib_mcast_remove_list(). Use this new
+> function in ipoib_main.c too.
+> That in turn allows the dropping of two functions that were
+> exported from ipoib_multicast.c for expiration of mc groups.
+> 
+> Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+> ---
+>  drivers/infiniband/ulp/ipoib/ipoib.h           |  3 +--
+>  drivers/infiniband/ulp/ipoib/ipoib_main.c      |  7 ++-----
+>  drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 24 ++++++++++++++----------
+>  3 files changed, 17 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+> index 3ede103..989c409 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib.h
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+> @@ -495,7 +495,6 @@ void ipoib_dev_cleanup(struct net_device *dev);
+>  void ipoib_mcast_join_task(struct work_struct *work);
+>  void ipoib_mcast_carrier_on_task(struct work_struct *work);
+>  void ipoib_mcast_send(struct net_device *dev, u8 *daddr, struct sk_buff *skb);
+> -void ipoib_mcast_free(struct ipoib_mcast *mc);
+>  
+>  void ipoib_mcast_restart_task(struct work_struct *work);
+>  int ipoib_mcast_start_thread(struct net_device *dev);
+> @@ -549,7 +548,7 @@ void ipoib_path_iter_read(struct ipoib_path_iter *iter,
+>  
+>  int ipoib_mcast_attach(struct net_device *dev, u16 mlid,
+>  		       union ib_gid *mgid, int set_qkey);
+> -int ipoib_mcast_leave(struct net_device *dev, struct ipoib_mcast *mcast);
+> +void ipoib_mcast_remove_list(struct net_device *dev, struct list_head *remove_list);
+>  struct ipoib_mcast *__ipoib_mcast_find(struct net_device *dev, void *mgid);
+>  
+>  int ipoib_init_qp(struct net_device *dev);
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> index 7d32818..483ff20 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> @@ -1150,7 +1150,7 @@ static void __ipoib_reap_neigh(struct ipoib_dev_priv *priv)
+>  	unsigned long flags;
+>  	int i;
+>  	LIST_HEAD(remove_list);
+> -	struct ipoib_mcast *mcast, *tmcast;
+> +	struct ipoib_mcast *mcast;
+>  	struct net_device *dev = priv->dev;
+>  
+>  	if (test_bit(IPOIB_STOP_NEIGH_GC, &priv->flags))
+> @@ -1207,10 +1207,7 @@ static void __ipoib_reap_neigh(struct ipoib_dev_priv *priv)
+>  
+>  out_unlock:
+>  	spin_unlock_irqrestore(&priv->lock, flags);
+> -	list_for_each_entry_safe(mcast, tmcast, &remove_list, list) {
+> -		ipoib_mcast_leave(dev, mcast);
+> -		ipoib_mcast_free(mcast);
+> -	}
+> +	ipoib_mcast_remove_list(dev, &remove_list);
+>  }
+>  
+>  static void ipoib_reap_neigh(struct work_struct *work)
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> index f357ca6..8acb420a 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> @@ -106,7 +106,7 @@ static void __ipoib_mcast_schedule_join_thread(struct ipoib_dev_priv *priv,
+>  		queue_delayed_work(priv->wq, &priv->mcast_task, 0);
+>  }
+>  
+> -void ipoib_mcast_free(struct ipoib_mcast *mcast)
+> +static void ipoib_mcast_free(struct ipoib_mcast *mcast)
+>  {
+>  	struct net_device *dev = mcast->dev;
+>  	int tx_dropped = 0;
+> @@ -677,7 +677,7 @@ int ipoib_mcast_stop_thread(struct net_device *dev)
+>  	return 0;
+>  }
+>  
+> -int ipoib_mcast_leave(struct net_device *dev, struct ipoib_mcast *mcast)
+> +static int ipoib_mcast_leave(struct net_device *dev, struct ipoib_mcast *mcast)
+>  {
+>  	struct ipoib_dev_priv *priv = netdev_priv(dev);
+>  	int ret = 0;
+> @@ -704,6 +704,16 @@ int ipoib_mcast_leave(struct net_device *dev, struct ipoib_mcast *mcast)
+>  	return 0;
+>  }
+>  
+> +void ipoib_mcast_remove_list(struct net_device *dev, struct list_head *remove_list)
+> +{
+> +	struct ipoib_mcast *mcast, *tmcast;
+> +
+> +	list_for_each_entry_safe(mcast, tmcast, remove_list, list) {
+> +		ipoib_mcast_leave(dev, mcast);
+> +		ipoib_mcast_free(mcast);
+> +	}
+> +}
+> +
+>  void ipoib_mcast_send(struct net_device *dev, u8 *daddr, struct sk_buff *skb)
+>  {
+>  	struct ipoib_dev_priv *priv = netdev_priv(dev);
+> @@ -810,10 +820,7 @@ void ipoib_mcast_dev_flush(struct net_device *dev)
+>  		if (test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags))
+>  			wait_for_completion(&mcast->done);
+>  
+> -	list_for_each_entry_safe(mcast, tmcast, &remove_list, list) {
+> -		ipoib_mcast_leave(dev, mcast);
+> -		ipoib_mcast_free(mcast);
+> -	}
+> +	ipoib_mcast_remove_list(dev, &remove_list);
+>  }
+>  
+>  static int ipoib_mcast_addr_is_valid(const u8 *addr, const u8 *broadcast)
+> @@ -939,10 +946,7 @@ void ipoib_mcast_restart_task(struct work_struct *work)
+>  		if (test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags))
+>  			wait_for_completion(&mcast->done);
+>  
+> -	list_for_each_entry_safe(mcast, tmcast, &remove_list, list) {
+> -		ipoib_mcast_leave(mcast->dev, mcast);
+> -		ipoib_mcast_free(mcast);
+> -	}
+> +	ipoib_mcast_remove_list(mcast->dev, &remove_list);
+>  
+>  	/*
+>  	 * Double check that we are still up
+> -- 
+> 2.5.0
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
