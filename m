@@ -1,66 +1,73 @@
-From: "santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: device attr cleanup (was: Handle mlx4 max_sge_rd correctly)
-Date: Thu, 10 Dec 2015 22:54:58 -0800
-Message-ID: <566A7342.9090400@oracle.com>
-References: <566753E3.9060301@redhat.com>
- <CAJ3xEMhaEnv9He7N5q8fFsRzy_j27wdE6KWSFF39UzA680udwA@mail.gmail.com>
- <20151208225940.GB27609@obsidianresearch.com>
- <20151208230244.GA10701@infradead.org>
- <20151209005203.GD16976@phlsvsds.ph.intel.com>
- <20151209184235.GB4522@infradead.org>
- <20151210014556.GA32059@phlsvsds.ph.intel.com>
- <56693758.90808@dev.mellanox.co.il>
- <93E3DE8A-0589-436D-A9A1-7EAC66B12739@oracle.com>
- <20151210180703.GC21482@obsidianresearch.com>
- <20151210233047.GB26009@infradead.org>
- <09F96E8A-5E1E-4345-9069-C07108AF0BC7@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH for-next] iw_cxgb4: Pass qid range to user space driver
+Date: Fri, 11 Dec 2015 13:02:01 +0530
+Message-ID: <1449819121-6993-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <09F96E8A-5E1E-4345-9069-C07108AF0BC7-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Anna Schumaker <schumakeranna-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-+Dave,
+Enhances the t4_dev_status_page to pass the qid start and size
+attributes from iw_cxgb4 to libcxgb4.
+Bump the ABI Version to 3 -> To allow libcxgb4 to detect old drivers and
+revert to the old way of computing the qid ranges.
 
-On 12/10/15 4:49 PM, Chuck Lever wrote:
->
->> On Dec 10, 2015, at 6:30 PM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
->>
->> On Thu, Dec 10, 2015 at 11:07:03AM -0700, Jason Gunthorpe wrote:
->>> The ARM folks do this sort of stuff on a regular basis.. Very early on
->>> Doug prepares a topic branch with only the big change, NFS folks pull
->>> it and then pull your work. Then Doug would send the topic branch to
->>> Linus as soon as the merge window opens, then NFS would send theirs.
->>>
->>> This is alot less work overall than trying to sequence multiple
->>> patches over multiple releases..
->>
->> Agreed.  Staging has alaways been a giant pain and things tend to never
->> finish moving over that way if they are non-trivial enough.
->
-> In that case:
->
-> You need to make sure you have all the right Acks. I've added
-> Anna and Bruce to Ack the NFS-related portions. Santosh should
-> Ack the RDS part.
->
-To make this flow work for RDS, Doug's topic branch needs to
-pulled into Dave's net-next as well.
+Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+ drivers/infiniband/hw/cxgb4/device.c | 4 ++++
+ drivers/infiniband/hw/cxgb4/t4.h     | 7 +++++++
+ drivers/infiniband/hw/cxgb4/user.h   | 2 +-
+ 3 files changed, 12 insertions(+), 1 deletion(-)
 
-> http://git.infradead.org/users/hch/rdma.git/shortlog/refs/heads/ib_device_attr
->
-> Given the proximity to the holidays and the next merge window,
-> Doug will need to get a properly-acked topic branch published
-> in the next day or two so the rest of us can rebase and start
-> testing before the relevant parties disappear for the holiday.
->
+diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+index 1a29739..fab8ba3 100644
+--- a/drivers/infiniband/hw/cxgb4/device.c
++++ b/drivers/infiniband/hw/cxgb4/device.c
+@@ -850,6 +850,10 @@ static int c4iw_rdev_open(struct c4iw_rdev *rdev)
+ 	}
+ 	rdev->status_page = (struct t4_dev_status_page *)
+ 			    __get_free_page(GFP_KERNEL);
++	rdev->status_page->qp_start = rdev->lldi.vr->qp.start;
++	rdev->status_page->qp_size = rdev->lldi.vr->qp.size;
++	rdev->status_page->cq_start = rdev->lldi.vr->cq.start;
++	rdev->status_page->cq_size = rdev->lldi.vr->cq.size;
+ 	if (!rdev->status_page) {
+ 		pr_err(MOD "error allocating status page\n");
+ 		goto err4;
+diff --git a/drivers/infiniband/hw/cxgb4/t4.h b/drivers/infiniband/hw/cxgb4/t4.h
+index 274a7ab..483d99b 100644
+--- a/drivers/infiniband/hw/cxgb4/t4.h
++++ b/drivers/infiniband/hw/cxgb4/t4.h
+@@ -700,4 +700,11 @@ static inline void t4_set_cq_in_error(struct t4_cq *cq)
+ 
+ struct t4_dev_status_page {
+ 	u8 db_off;
++	u8 pad1;
++	u16 pad2;
++	u32 pad3;
++	u64 qp_start;
++	u64 qp_size;
++	u64 cq_start;
++	u64 cq_size;
+ };
+diff --git a/drivers/infiniband/hw/cxgb4/user.h b/drivers/infiniband/hw/cxgb4/user.h
+index cbd0ce1..295f422 100644
+--- a/drivers/infiniband/hw/cxgb4/user.h
++++ b/drivers/infiniband/hw/cxgb4/user.h
+@@ -32,7 +32,7 @@
+ #ifndef __C4IW_USER_H__
+ #define __C4IW_USER_H__
+ 
+-#define C4IW_UVERBS_ABI_VERSION	2
++#define C4IW_UVERBS_ABI_VERSION	3
+ 
+ /*
+  * Make sure that all structs defined in this file remain laid out so
+-- 
+2.3.4
 
-Regards,
-Santosh
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
