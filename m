@@ -1,60 +1,58 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 02/37] IB/rdmavt: Consolidate dma ops in rdmavt.
-Date: Thu, 10 Dec 2015 23:02:02 -0700
-Message-ID: <20151211060202.GA16513@obsidianresearch.com>
-References: <20151207204046.8144.18752.stgit@phlsvslse11.ph.intel.com>
- <20151207204305.8144.7038.stgit@phlsvslse11.ph.intel.com>
- <20151208060821.GD7313@leon.nu>
- <20151210161708.GA13412@phlsvsds.ph.intel.com>
- <20151210174413.GB21482@obsidianresearch.com>
- <20151210234112.GA15546@infradead.org>
- <20151211002950.GA5964@obsidianresearch.com>
- <20151211004624.GA9994@infradead.org>
+Subject: Re: device attr cleanup (was: Handle mlx4 max_sge_rd correctly)
+Date: Thu, 10 Dec 2015 23:14:33 -0700
+Message-ID: <20151211061433.GB16513@obsidianresearch.com>
+References: <CAJ3xEMj2EOxX1CiA93MPOsM-FdU9ijcWCYm9tObbkLqqja0PoA@mail.gmail.com>
+ <566753E3.9060301@redhat.com>
+ <CAJ3xEMhaEnv9He7N5q8fFsRzy_j27wdE6KWSFF39UzA680udwA@mail.gmail.com>
+ <20151208225940.GB27609@obsidianresearch.com>
+ <CAJ3xEMiEYgsxiL6zR-Dia3Rxwriye1WHcadTmUjU7zV=ide1LA@mail.gmail.com>
+ <20151209184448.GC4522@infradead.org>
+ <5669BA8E.30200@redhat.com>
+ <20151210232956.GA26009@infradead.org>
+ <566A5792.9080102@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20151211004624.GA9994-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <566A5792.9080102-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 10, 2015 at 04:46:24PM -0800, Christoph Hellwig wrote:
-> On Thu, Dec 10, 2015 at 05:29:50PM -0700, Jason Gunthorpe wrote:
-> > Hrm.. sizeof(void *) > sizeof(dma_addr_t) seemed pretty obscure to me,
-> > here is the original discussion:
-> > 
-> > https://lkml.org/lkml/2006/12/13/245
-> > 
-> > Sounds like someone was worried about sparc64. I doubt it is an actual
-> > issue today, but granted the u64 did make some sense.
-> 
-> sparc64 still uses a 32-bit dma_addr_t.
+On Thu, Dec 10, 2015 at 11:56:50PM -0500, Doug Ledford wrote:
 
-Hmm, too bad, that choice severly compromises the rdma userspace -
-user space can't create mrs that exceed 4G in total :(
+> Looking at struct netdevice, it has the sort of organization I would
+> call reasonable.  Things like struct tx_stats is a struct, even though
+> it's embedded in the parent struct and not a pointer and there is
+> exactly and only one copy, so it could be flat.
 
-> > So, I *believe* the issue is that linux has (had?) no approved way to
-> > convert from a device specific dma_addr_t to a virtual address.
-> 
-> Linux doesn't have an approved way because it's impossible for the
-> generic case.  When you have an iommu you have potentially multiple
-> page tables mapping physical addresses to device virtual addresses,
-> and there is no easy way to do a reverse mapping.
+struct net_device_stats exists because it is used in many more places
+that just in struct net_device, so this is a code sharing thing.
 
-Yes, I know
+> something I would call well organized.  And speaking of that, in struct
+> netdevice, all of the various ops elements are handled as structs,
 
-> > It is really too bad we can't just use get_dma_ops to handle this case
-> > and instead require our own infrastructure.
-> 
-> FYI, I have a patch series in linux-next to switches all remaining
-> architectures to use get_dma_ops, and there are plans to allow generic
-> per-device dma_ops based on that.
+.. and 'struct net_device_ops' is used extensively.
 
-Great, so once that is merged we can drop the ib_* versions of all
-this and just have qib/etc customize get_dma_ops? Other than the
-dma_addr_t size issue that sounds great..
+Whereas once we get rid of the query call ib_device_attr has no second
+user.
+
+> including the base netdevice ops, whereas struct ib_device puts the base
+> ops flat in the struct.  So if we wanted to be more like struct
+> netdevice, we would move the base ops out of struct ib_device.
+
+It would make the drivers a bit nicer if they initialized an ib_ops
+structure like netdev does instead of in code, but performance wise
+this is probably better, especially if we sorted the struct members
+sanely..
+
+> out like this.  An ib_device can be multi-port, and each port can be a
+> different RDMA device type.
+
+I thought we figured out that wasn't actually allowed today when
+working on the caps rework?
 
 Jason
 --
