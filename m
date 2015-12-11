@@ -1,106 +1,64 @@
 From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/3] IB core: Allow specification of attr_id in PORT_PMA_ATTR macro
-Date: Fri, 11 Dec 2015 12:25:33 -0600
-Message-ID: <20151211182543.135984387@linux.com>
+Subject: [PATCH 3/3] IB core: Display 64 bit counters from the extended set
+Date: Fri, 11 Dec 2015 12:25:35 -0600
+Message-ID: <20151211182543.329283794@linux.com>
 References: <20151211182532.332343651@linux.com>
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=0001-IB-core-Allow-specification-of-attr_id-in-PORT_PMA_A.patch
+Content-Disposition: inline; filename=0003-IB-core-Display-64-bit-counters-from-the-extended-se.patch
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is necessary to support the extended attributes which involves
-a different attribute id.
+Display the additional 64 bit counters available through the extended
+set and replace the existing 32 bit counters if there is a 64 bit
+alternative available.
+
+Note: This requires universal support of extended counters in
+the devices. If there are still devices around that do not
+support extended counters then we will have to add some fallback
+technique here.
 
 Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/sysfs.c | 41 ++++++++++++++++++++++-------------------
- 1 file changed, 22 insertions(+), 19 deletions(-)
+ drivers/infiniband/core/sysfs.c | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index b1f37d4..1c8716f 100644
+index 0083a4f..f7f2954 100644
 --- a/drivers/infiniband/core/sysfs.c
 +++ b/drivers/infiniband/core/sysfs.c
-@@ -39,6 +39,7 @@
- #include <linux/string.h>
- 
- #include <rdma/ib_mad.h>
-+#include <rdma/ib_pma.h>
- 
- struct ib_port {
- 	struct kobject         kobj;
-@@ -65,6 +66,7 @@ struct port_table_attribute {
- 	struct port_attribute	attr;
- 	char			name[8];
- 	int			index;
-+	int			attr_id;
- };
- 
- static ssize_t port_attr_show(struct kobject *kobj,
-@@ -311,10 +313,11 @@ static ssize_t show_port_pkey(struct ib_port *p, struct port_attribute *attr,
- 	return sprintf(buf, "0x%04x\n", pkey);
- }
- 
--#define PORT_PMA_ATTR(_name, _counter, _width, _offset)			\
-+#define PORT_PMA_ATTR(_name, _counter, _width, _offset, _attr_id)	\
- struct port_table_attribute port_pma_attr_##_name = {			\
- 	.attr  = __ATTR(_name, S_IRUGO, show_pma_counter, NULL),	\
--	.index = (_offset) | ((_width) << 16) | ((_counter) << 24)	\
-+	.index = (_offset) | ((_width) << 16) | ((_counter) << 24),	\
-+	.attr_id = _attr_id ,						\
- }
- 
- static ssize_t show_pma_counter(struct ib_port *p, struct port_attribute *attr,
-@@ -344,7 +347,7 @@ static ssize_t show_pma_counter(struct ib_port *p, struct port_attribute *attr,
- 	in_mad->mad_hdr.mgmt_class    = IB_MGMT_CLASS_PERF_MGMT;
- 	in_mad->mad_hdr.class_version = 1;
- 	in_mad->mad_hdr.method        = IB_MGMT_METHOD_GET;
--	in_mad->mad_hdr.attr_id       = cpu_to_be16(0x12); /* PortCounters */
-+	in_mad->mad_hdr.attr_id       = tab_attr->attr_id;
- 
- 	in_mad->data[41] = p->port_num;	/* PortSelect field */
- 
-@@ -386,22 +389,22 @@ out:
- 	return ret;
- }
- 
--static PORT_PMA_ATTR(symbol_error		    ,  0, 16,  32);
--static PORT_PMA_ATTR(link_error_recovery	    ,  1,  8,  48);
--static PORT_PMA_ATTR(link_downed		    ,  2,  8,  56);
--static PORT_PMA_ATTR(port_rcv_errors		    ,  3, 16,  64);
--static PORT_PMA_ATTR(port_rcv_remote_physical_errors,  4, 16,  80);
--static PORT_PMA_ATTR(port_rcv_switch_relay_errors   ,  5, 16,  96);
--static PORT_PMA_ATTR(port_xmit_discards		    ,  6, 16, 112);
--static PORT_PMA_ATTR(port_xmit_constraint_errors    ,  7,  8, 128);
--static PORT_PMA_ATTR(port_rcv_constraint_errors	    ,  8,  8, 136);
--static PORT_PMA_ATTR(local_link_integrity_errors    ,  9,  4, 152);
--static PORT_PMA_ATTR(excessive_buffer_overrun_errors, 10,  4, 156);
--static PORT_PMA_ATTR(VL15_dropped		    , 11, 16, 176);
--static PORT_PMA_ATTR(port_xmit_data		    , 12, 32, 192);
--static PORT_PMA_ATTR(port_rcv_data		    , 13, 32, 224);
--static PORT_PMA_ATTR(port_xmit_packets		    , 14, 32, 256);
--static PORT_PMA_ATTR(port_rcv_packets		    , 15, 32, 288);
-+static PORT_PMA_ATTR(symbol_error		    ,  0, 16,  32, IB_PMA_PORT_COUNTERS);
-+static PORT_PMA_ATTR(link_error_recovery	    ,  1,  8,  48, IB_PMA_PORT_COUNTERS);
-+static PORT_PMA_ATTR(link_downed		    ,  2,  8,  56, IB_PMA_PORT_COUNTERS);
-+static PORT_PMA_ATTR(port_rcv_errors		    ,  3, 16,  64, IB_PMA_PORT_COUNTERS);
-+static PORT_PMA_ATTR(port_rcv_remote_physical_errors,  4, 16,  80, IB_PMA_PORT_COUNTERS);
-+static PORT_PMA_ATTR(port_rcv_switch_relay_errors   ,  5, 16,  96, IB_PMA_PORT_COUNTERS);
-+static PORT_PMA_ATTR(port_xmit_discards		    ,  6, 16, 112, IB_PMA_PORT_COUNTERS);
-+static PORT_PMA_ATTR(port_xmit_constraint_errors    ,  7,  8, 128, IB_PMA_PORT_COUNTERS);
-+static PORT_PMA_ATTR(port_rcv_constraint_errors	    ,  8,  8, 136, IB_PMA_PORT_COUNTERS);
-+static PORT_PMA_ATTR(local_link_integrity_errors    ,  9,  4, 152, IB_PMA_PORT_COUNTERS);
-+static PORT_PMA_ATTR(excessive_buffer_overrun_errors, 10,  4, 156, IB_PMA_PORT_COUNTERS);
-+static PORT_PMA_ATTR(VL15_dropped		    , 11, 16, 176, IB_PMA_PORT_COUNTERS);
-+static PORT_PMA_ATTR(port_xmit_data		    , 12, 32, 192, IB_PMA_PORT_COUNTERS);
-+static PORT_PMA_ATTR(port_rcv_data		    , 13, 32, 224, IB_PMA_PORT_COUNTERS);
-+static PORT_PMA_ATTR(port_xmit_packets		    , 14, 32, 256, IB_PMA_PORT_COUNTERS);
-+static PORT_PMA_ATTR(port_rcv_packets		    , 15, 32, 288, IB_PMA_PORT_COUNTERS);
+@@ -406,10 +406,14 @@ static PORT_PMA_ATTR(port_rcv_constraint_errors	    ,  8,  8, 136, IB_PMA_PORT_C
+ static PORT_PMA_ATTR(local_link_integrity_errors    ,  9,  4, 152, IB_PMA_PORT_COUNTERS);
+ static PORT_PMA_ATTR(excessive_buffer_overrun_errors, 10,  4, 156, IB_PMA_PORT_COUNTERS);
+ static PORT_PMA_ATTR(VL15_dropped		    , 11, 16, 176, IB_PMA_PORT_COUNTERS);
+-static PORT_PMA_ATTR(port_xmit_data		    , 12, 32, 192, IB_PMA_PORT_COUNTERS);
+-static PORT_PMA_ATTR(port_rcv_data		    , 13, 32, 224, IB_PMA_PORT_COUNTERS);
+-static PORT_PMA_ATTR(port_xmit_packets		    , 14, 32, 256, IB_PMA_PORT_COUNTERS);
+-static PORT_PMA_ATTR(port_rcv_packets		    , 15, 32, 288, IB_PMA_PORT_COUNTERS);
++static PORT_PMA_ATTR(port_xmit_data		    ,  0, 64,  64, IB_PMA_PORT_COUNTERS_EXT);
++static PORT_PMA_ATTR(port_rcv_data		    ,  0, 64, 128, IB_PMA_PORT_COUNTERS_EXT);
++static PORT_PMA_ATTR(port_xmit_packets		    ,  0, 64, 192, IB_PMA_PORT_COUNTERS_EXT);
++static PORT_PMA_ATTR(port_rcv_packets		    ,  0, 64, 256, IB_PMA_PORT_COUNTERS_EXT);
++static PORT_PMA_ATTR(unicast_xmit_packets	    ,  0, 64, 320, IB_PMA_PORT_COUNTERS_EXT);
++static PORT_PMA_ATTR(unicast_rcv_packets	    ,  0, 64, 384, IB_PMA_PORT_COUNTERS_EXT);
++static PORT_PMA_ATTR(multicast_xmit_packets	    ,  0, 64, 448, IB_PMA_PORT_COUNTERS_EXT);
++static PORT_PMA_ATTR(multicast_rcv_packets	    ,  0, 64, 512, IB_PMA_PORT_COUNTERS_EXT);
  
  static struct attribute *pma_attrs[] = {
  	&port_pma_attr_symbol_error.attr.attr,
+@@ -428,6 +432,10 @@ static struct attribute *pma_attrs[] = {
+ 	&port_pma_attr_port_rcv_data.attr.attr,
+ 	&port_pma_attr_port_xmit_packets.attr.attr,
+ 	&port_pma_attr_port_rcv_packets.attr.attr,
++	&port_pma_attr_unicast_rcv_packets.attr.attr,
++	&port_pma_attr_unicast_xmit_packets.attr.attr,
++	&port_pma_attr_multicast_rcv_packets.attr.attr,
++	&port_pma_attr_multicast_xmit_packets.attr.attr,
+ 	NULL
+ };
+ 
 -- 
 2.5.0
 
