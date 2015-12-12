@@ -1,36 +1,49 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH] IB/usnic: Handle 0 counts in resource allocation
-Date: Sat, 12 Dec 2015 09:29:26 +0200
-Message-ID: <CALq1K=JjQfXwge8EHMrNR9uqB3-sxRWCWr6PN7pA_S_GTMvHag@mail.gmail.com>
-References: <1449686539-29959-6-git-send-email-neescoba@cisco.com>
- <20151210064702.GC8662@leon.nu> <5669D0F0.7010104@cisco.com>
- <20151210194734.GF8662@leon.nu> <5669F2A7.8060502@cisco.com>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH 10/13] IB/srp: use the new CQ API
+Date: Sat, 12 Dec 2015 00:08:33 -0800
+Message-ID: <20151212080833.GA32638@infradead.org>
+References: <1449521512-22921-1-git-send-email-hch@lst.de>
+ <1449521512-22921-11-git-send-email-hch@lst.de>
+ <5669C7AA.4080206@sandisk.com>
+ <20151211142220.GB20201@lst.de>
+ <566B0EE5.8080602@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5669F2A7.8060502-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nelson Escobar <neescoba-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <566B0EE5.8080602@redhat.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>, Bart Van Assche <bart.vanassche@sandisk.com>, linux-rdma@vger.kernel.org, sagig@dev.mellanox.co.il, axboe@fb.com, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Thanks for looking at the code.  I am still not understanding your point.
->> Old code:
->> usnic_vnic_res_free_cnt(vnic, type) == 0 and cnt == 1 will return EINVAL
-> Yes:
->         if (0 < 1 || 1 < 1 || !owner)
->                 return -EINVAL;
->> New code
->> snic_vnic_res_free_cnt(vnic, type) == 0 and cnt == 1 will pass and will
->> pass te "if (cnt > 0)" check below and will decrease free_cnt variable
->> to be below zero.
-> This I don't understand.  The following still fails with -EINVAL.
->         if (0 < 1 || 1 < 0 || !owner)
->                 return -EINVAL;
+On Fri, Dec 11, 2015 at 12:59:01PM -0500, Doug Ledford wrote:
+> On 12/11/2015 09:22 AM, Christoph Hellwig wrote:
+> > Hi Bart,
+> > 
+> > thanks for all the reviews.  I've updated the git branch with your
+> > suggestions and reviewed-by tags.  I'm going to wait a little bit
+> > longer for other reviews to come in before reposting the series.
+> 
+> Indeed, thanks for all the catches Bart.  This patchset, with Bart's
+> fixups, looks good to me.
 
-Thank you for clarifying it. I don't know why I missed first comparison.
-Sorry for bothering you.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Allright.  How do you want to proceed?  The current rdma-cq branch
+has all kinds of dependencies, but I've also prepared a new rdma-cq.2
+branch that could go straight on top of your current queue:
+
+http://git.infradead.org/users/hch/rdma.git/shortlog/refs/heads/rdma-cq.2
+
+If you're ready to start the 4.5 tree I can send those out as a patch
+series.
+
+> 
+> 
+> -- 
+> Doug Ledford <dledford@redhat.com>
+>               GPG KeyID: 0E572FDD
+> 
+> 
+
+
+---end quoted text---
