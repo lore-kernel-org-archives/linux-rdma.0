@@ -1,79 +1,121 @@
-From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 5/6] svcrdma: Add infrastructure to receive backwards
- direction RPC/RDMA replies
-Date: Sat, 12 Dec 2015 19:24:23 -0800
-Message-ID: <566CE4E7.9050307@talpey.com>
-References: <20151207203851.12988.97804.stgit@klimt.1015granger.net>
- <20151207204305.12988.2749.stgit@klimt.1015granger.net>
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: [PATCH 2/3] IB/core: Add cross-channel support
+Date: Sun, 13 Dec 2015 08:18:35 +0200
+Message-ID: <1449987516-31608-3-git-send-email-leon@leon.nu>
+References: <1449987516-31608-1-git-send-email-leon@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151207204305.12988.2749.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1449987516-31608-1-git-send-email-leon-2ukJVAZIZ/Y@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Three comments.
+=46rom: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-On 12/7/2015 12:43 PM, Chuck Lever wrote:
-> To support the NFSv4.1 backchannel on RDMA connections, add a
-> capability for receiving an RPC/RDMA reply on a connection
-> established by a client.
-> (snip)
+The cross-channel feature allows to execute WQEs that involve
+synchronization of I/O operations=E2=80=99 on different QPs.
 
-> +/* By convention, backchannel calls arrive via rdma_msg type
+This capability enables to program complex flows with a single
+function call, hereby significantly reducing overhead associated
+with I/O processing.
 
-"By convention" is ok, but it's important to note that this is
-actually not "by protocol". Therefore, the following check may
-reject valid messages. Even though it is unlikely an implementation
-will insert chunks, it's not illegal, and ignoring them will
-be less harmful. So I'm going to remake my earlier observation
-that three checks below should be removed:
+Cross-channel operations support is indicated by HCA capability
+information.
 
-> + * messages, and never populate the chunk lists. This makes
-> + * the RPC/RDMA header small and fixed in size, so it is
-> + * straightforward to check the RPC header's direction field.
-> + */
-> +static bool
-> +svc_rdma_is_backchannel_reply(struct svc_xprt *xprt, struct rpcrdma_msg *rmsgp)
-> +{
-> +	__be32 *p = (__be32 *)rmsgp;
-> +
-> +	if (!xprt->xpt_bc_xprt)
-> +		return false;
-> +
-> +	if (rmsgp->rm_type != rdma_msg)
-> +		return false;
+The queue pairs can be configured to work as a =E2=80=9Csync master que=
+ue=E2=80=9D
+or =E2=80=9Csync slave queues=E2=80=9D.
 
-These three:
+The added flags are:
 
-> +	if (rmsgp->rm_body.rm_chunks[0] != xdr_zero)
-> +		return false;
-> +	if (rmsgp->rm_body.rm_chunks[1] != xdr_zero)
-> +		return false;
-> +	if (rmsgp->rm_body.rm_chunks[2] != xdr_zero)
-> +		return false;
-> +
+1. Device capability flag IB_DEVICE_CROSS_CHANNEL for the
+   devices that can perform cross-channel operations.
 
-(snip)
-> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-> index a1fd74a..3895574 100644
-> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
-> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-> @@ -309,6 +309,8 @@ struct rpcrdma_buffer {
->   	u32			rb_bc_srv_max_requests;
->   	spinlock_t		rb_reqslock;	/* protect rb_allreqs */
->   	struct list_head	rb_allreqs;
-> +
-> +	u32			rb_bc_max_requests;
+2. CQ property flag IB_CQ_FLAGS_IGNORE_OVERRUN to disable CQ overrun
+   check. This check is useless in cross-channel scenario.
 
-Why does this need to be u32? Shouldn't it be an int, and also the
-rb_bc_srv_max_requests just above? The forward channel max_requests
-are int, btw.
+3. QP property flags to indicate if queues are slave or master:
+   * IB_QP_CREATE_MANAGED_SEND indicates that posted send work requests
+     will not be executed immediately and requires enabling.
+   * IB_QP_CREATE_MANAGED_RECV indicates that posted receive work
+     requests will not be executed immediately and requires enabling.
+   * IB_QP_CREATE_CROSS_CHANNEL declares the QP to work in cross-channe=
+l
+     mode. If IB_QP_CREATE_MANAGED_SEND and IB_QP_CREATE_MANAGED_RECV a=
+re
+     not provided, this QP will be sync master queue, else it will be s=
+ync
+     slave.
 
-Tom.
+Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/uverbs_cmd.c |  5 ++++-
+ include/rdma/ib_verbs.h              | 11 +++++++++++
+ 2 files changed, 15 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/=
+core/uverbs_cmd.c
+index 94816ae..0e9711f 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1843,7 +1843,10 @@ static int create_qp(struct ib_uverbs_file *file=
+,
+ 		      sizeof(cmd->create_flags))
+ 		attr.create_flags =3D cmd->create_flags;
+=20
+-	if (attr.create_flags & ~IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK) {
++	if (attr.create_flags & ~(IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK |
++				IB_QP_CREATE_CROSS_CHANNEL |
++				IB_QP_CREATE_MANAGED_SEND |
++				IB_QP_CREATE_MANAGED_RECV)) {
+ 		ret =3D -EINVAL;
+ 		goto err_put;
+ 	}
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index bcf40ad..370fbdf 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -139,6 +139,13 @@ enum ib_device_cap_flags {
+ 	IB_DEVICE_MEM_WINDOW_TYPE_2B	=3D (1 << 24),
+ 	IB_DEVICE_RC_IP_CSUM		=3D (1 << 25),
+ 	IB_DEVICE_RAW_IP_CSUM		=3D (1 << 26),
++	/*
++	 * Devices should set IB_DEVICE_CROSS_CHANNEL if they
++	 * support execution of WQEs that involve synchronization
++	 * of I/O operations with single completion queue managed
++	 * by hardware.
++	 */
++	IB_DEVICE_CROSS_CHANNEL		=3D (1 << 27),
+ 	IB_DEVICE_MANAGED_FLOW_STEERING =3D (1 << 29),
+ 	IB_DEVICE_SIGNATURE_HANDOVER	=3D (1 << 30),
+ 	IB_DEVICE_ON_DEMAND_PAGING	=3D (1 << 31),
+@@ -184,6 +191,7 @@ struct ib_odp_caps {
+=20
+ enum ib_cq_creation_flags {
+ 	IB_CQ_FLAGS_TIMESTAMP_COMPLETION   =3D 1 << 0,
++	IB_CQ_FLAGS_IGNORE_OVERRUN	   =3D 1 << 1,
+ };
+=20
+ struct ib_cq_init_attr {
+@@ -866,6 +874,9 @@ enum ib_qp_type {
+ enum ib_qp_create_flags {
+ 	IB_QP_CREATE_IPOIB_UD_LSO		=3D 1 << 0,
+ 	IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK	=3D 1 << 1,
++	IB_QP_CREATE_CROSS_CHANNEL              =3D 1 << 2,
++	IB_QP_CREATE_MANAGED_SEND               =3D 1 << 3,
++	IB_QP_CREATE_MANAGED_RECV               =3D 1 << 4,
+ 	IB_QP_CREATE_NETIF_QP			=3D 1 << 5,
+ 	IB_QP_CREATE_SIGNATURE_EN		=3D 1 << 6,
+ 	IB_QP_CREATE_USE_GFP_NOIO		=3D 1 << 7,
+--=20
+1.7.12.4
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
