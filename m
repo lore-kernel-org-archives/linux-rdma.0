@@ -1,73 +1,89 @@
-From: Shachar Raindel <raindel@mellanox.com>
-Subject: RE: [RFC contig pages support 1/2] IB: Supports contiguous memory
- operations
-Date: Sun, 13 Dec 2015 12:48:05 +0000
-Message-ID: <AM4PR05MB14603FC8169D50AD2A8F5AA3DCEC0@AM4PR05MB1460.eurprd05.prod.outlook.com>
-References: <1449587707-24214-1-git-send-email-yishaih@mellanox.com>
- <1449587707-24214-2-git-send-email-yishaih@mellanox.com>
- <20151208151852.GA6688@infradead.org>
- <20151208171542.GB13549@obsidianresearch.com>
- <AM4PR05MB146005B448BEA876519335CDDCE80@AM4PR05MB1460.eurprd05.prod.outlook.com>
- <20151209183940.GA4522@infradead.org>
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH for-next V2 05/11] IB/core: Add rdma_network_type to wc
+Date: Sun, 13 Dec 2015 13:56:41 +0000
+Message-ID: <HE1PR05MB141868A873246D76F580401FB1EC0@HE1PR05MB1418.eurprd05.prod.outlook.com>
+References: <20151207060241.GA19038@obsidianresearch.com>
+ <CAG9sBKO0rsSQK1WcyBciZEONWJsusw9GwR19H7FfAsebEH63dg@mail.gmail.com>
+ <20151207063415.GB20066@obsidianresearch.com>
+ <CAG9sBKMBt6Toa25Ouasr7hudAcOYrxZyBUFYMXzrMTFZvooWfQ@mail.gmail.com>
+ <20151207171228.GA26969@obsidianresearch.com>
+ <CAG9sBKNXnzp7PgJhfcjbYvje5qgZWYqygJYkbs4WyTZtDc4ckg@mail.gmail.com>
+ <20151207184832.GA21402@obsidianresearch.com>
+ <CAG9sBKNWMQA3XDGpDc_+2QoJcnnNL9o67p0JNoVqrU0u9UQCrA@mail.gmail.com>
+ <20151208225251.GA27609@obsidianresearch.com>
+ <HE1PR05MB1418B1F0F393AD0D92424043B1E80@HE1PR05MB1418.eurprd05.prod.outlook.com>
+ <20151209180920.GE31636@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20151209183940.GA4522@infradead.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151209180920.GE31636-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-US
-Sender: owner-linux-mm@kvack.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Yishai Hadas <yishaih@mellanox.com>, "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Or Gerlitz <ogerlitz@mellanox.com>, Tal Alon <talal@mellanox.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
 
+> 
+> > You are pushing abstraction into provider code instead of handling it in a
+> generic way.
+> 
+> No, I am defining an API that *make sense* and doesn't leak useless details.
+> Of course that doesn't force code duplication or anyhting like that, just
+> implement it smartly.
+> 
+> I think mlx made a big mistake returning network_type instead of gid index,
+> and I don't want to see that error enshrined in our API.
+> 
+> > The Verbs are a low-level API, that should report exactly what was
+> > received from the wire.  In the RoCEv2 case, it should be the GID/IP
+> > addresses and the protocol type.  The addressing information is not
+> > intended to be used directly by applications; it is the raw bits that
+> > were accepted from the wire.
+> 
+> Low level details isn't what any in kernel consumer needs. Everything in
+> kernel needs the gid index to determine the namespace, routing and other
+> details. It is not optional. A common API is thus needed to do this conversion.
 
-> -----Original Message-----
-> From: Christoph Hellwig [mailto:hch@infradead.org]
-> Sent: Wednesday, December 09, 2015 8:40 PM
->=20
-> On Wed, Dec 09, 2015 at 10:00:02AM +0000, Shachar Raindel wrote:
-> > As far as gain is concerned, we are seeing gains in two cases here:
-> > 1. If the system has lots of non-fragmented, free memory, you can
-> create large contig blocks that are above the CPU huge page size.
-> > 2. If the system memory is very fragmented, you cannot allocate huge
-> pages. However, an API that allows you to create small (i.e. 64KB,
-> 128KB, etc.) contig blocks reduces the load on the HW page tables and
-> caches.
->=20
-> None of that is a uniqueue requirement for the mlx4 devices.  Again,
-> please work with the memory management folks to address your
-> requirements in a generic way!
+The Verbs are not intended only for kernel consumers, but also for the ib_core, cma, etc.
+For the ib_core, a provider needs to report *all* relevant information that is not visible in the packet payload.
+The network type is part of this information.
+The proposed changes are a straightforward extension to the code base, directly follow the specification, and adhere to the RDMA stack design in which IP addressing is handled by the cma.
 
-I completely agree, and this RFC was sent in order to start discussion
-on this subject.
+Also, I don't want to do any route resolution on the Rx path.
+A UD QP completion just reports the details of the packet it received.
 
-Dear MM people, can you please advise on the subject?
+Conceptually, an incoming packet may not even match an SGID index at all.
+Maybe, responses should be sent from another device. This should not be decided that the point that a packet was received.
 
-Multiple HW vendors, from different fields, ranging between embedded SoC
-devices (TI) and HPC (Mellanox) are looking for a solution to allocate
-blocks of contiguous memory to user space applications, without using huge
-pages.
+> 
+> API-wise, once you get the gid index then it is trivial to make easy extractors
+> for everything else. ie for example:
+> rdma_get_ud_src_sockaddr(gid_index,&addr,wc,grh)
+> rdma_get_ud_dst_sockaddr(gid_index,&addr,wc,grh)
+> 
 
-What should be the API to expose such feature?=20
+Nice ideas, but not relevant to completions.
+The resolved dst address could point to another port or device completely.
+The proper way to handle remote UD addresses is by rdma_ids that encapsulate address handles and bound devices.
 
-Should we create a virtual FS that allows the user to create "files"
-representing memory allocations, and define the contiguous level we
-attempt to allocate using folders (similar to hugetlbfs)?
+> > ib_init_ah_from_wc() and friends is exactly the place that you want to
+> > create an address handle based on completion and packet fields.
+> 
+> CMA needs exactly the same logic as well, the fact it doesn't have it is a bug
+> in this series.
+> 
 
-Should we patch hugetlbfs to allow allocation of contiguous memory chunks,
-without creating larger memory mapping in the CPU page tables?
+init_ah_from_wc() should include a route lookup, and this will be fixed.
 
-Should we create a special "allocator" virtual device, that will hand out
-memory in contiguous chunks via a call to mmap with an FD connected to the
-device?
-
-Thanks,
---Shachar
-
-
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
+> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
+> http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
