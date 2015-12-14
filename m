@@ -1,42 +1,29 @@
-From: Nicholas Mc Guire <hofrat@osadl.org>
-Subject: [PATCH 1/3] staging/rdma/hfi1: consolidate kmalloc_array+memset into kcalloc
-Date: Mon, 14 Dec 2015 15:43:07 +0100
-Message-ID: <1450104189-2653-1-git-send-email-hofrat@osadl.org>
-References: <y>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <y>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Marciniszyn <infinipath@intel.com>
-Cc: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-rdma@vger.kernel.org, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, Nicholas Mc Guire <hofrat@osadl.org>
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 3/3] IB core: Display 64 bit counters from the extended
+ set
+Date: Mon, 14 Dec 2015 08:55:14 -0600 (CST)
+Message-ID: <alpine.DEB.2.20.1512140853510.25000@east.gentwo.org>
+References: <20151211182532.332343651@linux.com> <20151211182543.329283794@linux.com> <CAAKD3BAT36BGP+21y9oz1E4EuURFuwiAHi558ho8y+k3GEy4Ww@mail.gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAAKD3BAT36BGP+21y9oz1E4EuURFuwiAHi558ho8y+k3GEy4Ww-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-rather than using kmalloc_array + memset it seems cleaner to simply use
-kcalloc which will deliver memory set to zero.
+On Mon, 14 Dec 2015, Matan Barak wrote:
 
-Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
----
+> > +static PORT_PMA_ATTR(unicast_rcv_packets           ,  0, 64, 384, IB_PMA_PORT_COUNTERS_EXT);
+> > +static PORT_PMA_ATTR(multicast_xmit_packets        ,  0, 64, 448, IB_PMA_PORT_COUNTERS_EXT);
+> > +static PORT_PMA_ATTR(multicast_rcv_packets         ,  0, 64, 512, IB_PMA_PORT_COUNTERS_EXT);
+> >
+>
+> Why do we use 0 as the counter argument for all EXT counters?
 
-Patch was compile tested with: x86_64_defconfig
-CONFIG_INFINIBAND=m, CONFIG_STAGING=y, CONFIG_STAGING_RDMA=m
-
-Patch is against linux-next (localversion-next is -next-20151214)
-
- drivers/staging/rdma/hfi1/chip.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index dc69159..31eec8a 100644
---- a/drivers/staging/rdma/hfi1/chip.c
-+++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -10128,8 +10128,7 @@ static void init_qos(struct hfi1_devdata *dd, u32 first_ctxt)
- 		goto bail;
- 	if (num_vls * qpns_per_vl > dd->chip_rcv_contexts)
- 		goto bail;
--	rsmmap = kmalloc_array(NUM_MAP_REGS, sizeof(u64), GFP_KERNEL);
--	memset(rsmmap, rxcontext, NUM_MAP_REGS * sizeof(u64));
-+	rsmmap = kcalloc(NUM_MAP_REGS, sizeof(u64), GFP_KERNEL);
- 	/* init the local copy of the table */
- 	for (i = 0, ctxt = first_ctxt; i < num_vls; i++) {
- 		unsigned tctxt;
--- 
-1.7.10.4
+No idea what the counter is doing. Saw another EXT counter implementation
+use 0 so I thought that was fine.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
