@@ -1,43 +1,77 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v4 0/2] staging/rdma/hfi1: set Gen 3 half-swing for integrated devices.
-Date: Mon, 14 Dec 2015 14:54:09 -0500
-Message-ID: <20151214195409.GC24498@phlsvsds.ph.intel.com>
-References: <1448999277-22972-1-git-send-email-ira.weiny@intel.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v3 00/11] NFS/RDMA client patches for 4.5
+Date: Mon, 14 Dec 2015 16:17:37 -0500
+Message-ID: <20151214211317.16295.70115.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1448999277-22972-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Any further feedback on this series?
+For 4.5, I'd like to address the send queue accounting and
+invalidation/unmap ordering issues Jason brought up a couple of
+months ago.
 
-Ira
+In preparation for Doug's final topic branch, Anna, I've rebased
+these on Christoph's ib_device_attr branch, but there were no merge
+conflicts or other changes needed. Could you begin preparing these
+for linux-next and other final testing and review?
 
-On Tue, Dec 01, 2015 at 02:47:55PM -0500, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
-> This was a single patch before.  The change to dev_dbg required a precursor
-> patch to add the dd_dev_dbg which is consistent with the other dev_* macros
-> which automatically use struct hfi1_devdata.
-> 
-> Dean Luick (1):
->   staging/rdma/hfi1: set Gen3 half-swing for integrated devices
-> 
-> Ira Weiny (1):
->   staging/rdma/hf1: add dd_dev_dbg
-> 
->  drivers/staging/rdma/hfi1/chip_registers.h | 11 ++++
->  drivers/staging/rdma/hfi1/hfi.h            |  4 ++
->  drivers/staging/rdma/hfi1/pcie.c           | 82 ++++++++++++++++++++++++++++--
->  3 files changed, 93 insertions(+), 4 deletions(-)
-> 
-> -- 
-> 1.8.2
-> 
+Also available in the "nfs-rdma-for-4.5" topic branch of this git repo:
+
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
+
+Or for browsing:
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfs-rdma-for-4.5
+
+
+Changes since v2:
+- Rebased on Christoph's ib_device_attr branch
+
+
+Changes since v1:
+
+- Rebased on v4.4-rc3
+- Receive buffer safety margin patch dropped
+- Backchannel pr_err and pr_info converted to dprintk
+- Backchannel spin locks converted to work queue-safe locks
+- Fixed premature release of backchannel request buffer
+- NFSv4.1 callbacks tested with for-4.5 server
+
+---
+
+Chuck Lever (11):
+      xprtrdma: Fix additional uses of spin_lock_irqsave(rb_lock)
+      xprtrdma: xprt_rdma_free() must not release backchannel reqs
+      xprtrdma: Disable RPC/RDMA backchannel debugging messages
+      xprtrdma: Move struct ib_send_wr off the stack
+      xprtrdma: Introduce ro_unmap_sync method
+      xprtrdma: Add ro_unmap_sync method for FRWR
+      xprtrdma: Add ro_unmap_sync method for FMR
+      xprtrdma: Add ro_unmap_sync method for all-physical registration
+      SUNRPC: Introduce xprt_commit_rqst()
+      xprtrdma: Invalidate in the RPC reply handler
+      xprtrdma: Revert commit e7104a2a9606 ('xprtrdma: Cap req_cqinit').
+
+
+ include/linux/sunrpc/xprt.h        |    1 
+ net/sunrpc/xprt.c                  |   14 +++
+ net/sunrpc/xprtrdma/backchannel.c  |   22 ++---
+ net/sunrpc/xprtrdma/fmr_ops.c      |   64 +++++++++++++
+ net/sunrpc/xprtrdma/frwr_ops.c     |  175 +++++++++++++++++++++++++++++++-----
+ net/sunrpc/xprtrdma/physical_ops.c |   13 +++
+ net/sunrpc/xprtrdma/rpc_rdma.c     |   14 +++
+ net/sunrpc/xprtrdma/transport.c    |    3 +
+ net/sunrpc/xprtrdma/verbs.c        |   13 +--
+ net/sunrpc/xprtrdma/xprt_rdma.h    |   12 +-
+ 10 files changed, 283 insertions(+), 48 deletions(-)
+
+--
+Chuck Lever
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
