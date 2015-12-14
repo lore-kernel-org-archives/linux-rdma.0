@@ -1,224 +1,121 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v4 05/11] svcrdma: Improve allocation of struct
- svc_rdma_req_map
-Date: Mon, 14 Dec 2015 16:30:42 -0500
-Message-ID: <20151214213042.12932.60223.stgit@klimt.1015granger.net>
+Subject: [PATCH v4 06/11] svcrdma: Remove unused req_map and ctxt kmem_caches
+Date: Mon, 14 Dec 2015 16:30:50 -0500
+Message-ID: <20151214213050.12932.10521.stgit@klimt.1015granger.net>
 References: <20151214211951.12932.99017.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20151214211951.12932.99017.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-To ensure this allocation cannot fail and will not sleep,
-pre-allocate the req_map structures per-connection.
+Clean up.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- include/linux/sunrpc/svc_rdma.h          |    8 ++-
- net/sunrpc/xprtrdma/svc_rdma_sendto.c    |    6 +-
- net/sunrpc/xprtrdma/svc_rdma_transport.c |   85 ++++++++++++++++++++++++++----
- 3 files changed, 84 insertions(+), 15 deletions(-)
+ include/linux/sunrpc/svc_rdma.h |    1 +
+ net/sunrpc/xprtrdma/svc_rdma.c  |   35 -----------------------------------
+ net/sunrpc/xprtrdma/xprt_rdma.h |    7 -------
+ 3 files changed, 1 insertion(+), 42 deletions(-)
 
 diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
-index be2804b..05bf4fe 100644
+index 05bf4fe..141edbb 100644
 --- a/include/linux/sunrpc/svc_rdma.h
 +++ b/include/linux/sunrpc/svc_rdma.h
-@@ -113,6 +113,7 @@ struct svc_rdma_fastreg_mr {
- 	struct list_head frmr_list;
- };
- struct svc_rdma_req_map {
-+	struct list_head free;
- 	unsigned long count;
- 	union {
- 		struct kvec sge[RPCSVC_MAXPAGES];
-@@ -145,6 +146,8 @@ struct svcxprt_rdma {
- 	spinlock_t	     sc_ctxt_lock;
- 	struct list_head     sc_ctxts;
- 	int		     sc_ctxt_used;
-+	spinlock_t	     sc_map_lock;
-+	struct list_head     sc_maps;
+@@ -242,6 +242,7 @@ extern struct svc_xprt_class svc_rdma_bc_class;
+ #endif
  
- 	struct list_head     sc_rq_dto_q;
- 	spinlock_t	     sc_rq_dto_lock;
-@@ -223,8 +226,9 @@ extern int svc_rdma_create_listen(struct svc_serv *, int, struct sockaddr *);
- extern struct svc_rdma_op_ctxt *svc_rdma_get_context(struct svcxprt_rdma *);
- extern void svc_rdma_put_context(struct svc_rdma_op_ctxt *, int);
- extern void svc_rdma_unmap_dma(struct svc_rdma_op_ctxt *ctxt);
--extern struct svc_rdma_req_map *svc_rdma_get_req_map(void);
--extern void svc_rdma_put_req_map(struct svc_rdma_req_map *);
-+extern struct svc_rdma_req_map *svc_rdma_get_req_map(struct svcxprt_rdma *);
-+extern void svc_rdma_put_req_map(struct svcxprt_rdma *,
-+				 struct svc_rdma_req_map *);
- extern struct svc_rdma_fastreg_mr *svc_rdma_get_frmr(struct svcxprt_rdma *);
- extern void svc_rdma_put_frmr(struct svcxprt_rdma *,
- 			      struct svc_rdma_fastreg_mr *);
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-index bad5eaa..b75566c 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-@@ -598,7 +598,7 @@ int svc_rdma_sendto(struct svc_rqst *rqstp)
- 	/* Build an req vec for the XDR */
- 	ctxt = svc_rdma_get_context(rdma);
- 	ctxt->direction = DMA_TO_DEVICE;
--	vec = svc_rdma_get_req_map();
-+	vec = svc_rdma_get_req_map(rdma);
- 	ret = map_xdr(rdma, &rqstp->rq_res, vec);
- 	if (ret)
- 		goto err0;
-@@ -637,14 +637,14 @@ int svc_rdma_sendto(struct svc_rqst *rqstp)
+ /* svc_rdma.c */
++extern struct workqueue_struct *svc_rdma_wq;
+ extern int svc_rdma_init(void);
+ extern void svc_rdma_cleanup(void);
  
- 	ret = send_reply(rdma, rqstp, res_page, rdma_resp, ctxt, vec,
- 			 inline_bytes);
--	svc_rdma_put_req_map(vec);
-+	svc_rdma_put_req_map(rdma, vec);
- 	dprintk("svcrdma: send_reply returns %d\n", ret);
- 	return ret;
+diff --git a/net/sunrpc/xprtrdma/svc_rdma.c b/net/sunrpc/xprtrdma/svc_rdma.c
+index 1b7051b..e894e06 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma.c
++++ b/net/sunrpc/xprtrdma/svc_rdma.c
+@@ -71,10 +71,6 @@ atomic_t rdma_stat_rq_prod;
+ atomic_t rdma_stat_sq_poll;
+ atomic_t rdma_stat_sq_prod;
  
-  err1:
- 	put_page(res_page);
-  err0:
--	svc_rdma_put_req_map(vec);
-+	svc_rdma_put_req_map(rdma, vec);
- 	svc_rdma_put_context(ctxt, 0);
- 	return ret;
- }
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-index 58ed9f2..ec10ae3 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-@@ -273,23 +273,83 @@ static void svc_rdma_destroy_ctxts(struct svcxprt_rdma *xprt)
- 	}
+-/* Temporary NFS request map and context caches */
+-struct kmem_cache *svc_rdma_map_cachep;
+-struct kmem_cache *svc_rdma_ctxt_cachep;
+-
+ struct workqueue_struct *svc_rdma_wq;
+ 
+ /*
+@@ -243,8 +239,6 @@ void svc_rdma_cleanup(void)
+ 	svc_unreg_xprt_class(&svc_rdma_bc_class);
+ #endif
+ 	svc_unreg_xprt_class(&svc_rdma_class);
+-	kmem_cache_destroy(svc_rdma_map_cachep);
+-	kmem_cache_destroy(svc_rdma_ctxt_cachep);
  }
  
--/*
-- * Temporary NFS req mappings are shared across all transport
-- * instances. These are short lived and should be bounded by the number
-- * of concurrent server threads * depth of the SQ.
-- */
--struct svc_rdma_req_map *svc_rdma_get_req_map(void)
-+static struct svc_rdma_req_map *alloc_req_map(gfp_t flags)
- {
- 	struct svc_rdma_req_map *map;
--	map = kmem_cache_alloc(svc_rdma_map_cachep,
--			       GFP_KERNEL | __GFP_NOFAIL);
-+
-+	map = kmalloc(sizeof(*map), flags);
-+	if (map)
-+		INIT_LIST_HEAD(&map->free);
-+	return map;
-+}
-+
-+static bool svc_rdma_prealloc_maps(struct svcxprt_rdma *xprt)
-+{
-+	int i;
-+
-+	/* One for each receive buffer on this connection. */
-+	i = xprt->sc_max_requests;
-+
-+	while (i--) {
-+		struct svc_rdma_req_map *map;
-+
-+		map = alloc_req_map(GFP_KERNEL);
-+		if (!map) {
-+			dprintk("svcrdma: No memory for request map\n");
-+			return false;
-+		}
-+		list_add(&map->free, &xprt->sc_maps);
-+	}
-+	return true;
-+}
-+
-+struct svc_rdma_req_map *svc_rdma_get_req_map(struct svcxprt_rdma *xprt)
-+{
-+	struct svc_rdma_req_map *map = NULL;
-+
-+	spin_lock(&xprt->sc_map_lock);
-+	if (list_empty(&xprt->sc_maps))
-+		goto out_empty;
-+
-+	map = list_first_entry(&xprt->sc_maps,
-+			       struct svc_rdma_req_map, free);
-+	list_del_init(&map->free);
-+	spin_unlock(&xprt->sc_map_lock);
-+
-+out:
- 	map->count = 0;
- 	return map;
-+
-+out_empty:
-+	spin_unlock(&xprt->sc_map_lock);
-+
-+	/* Pre-allocation amount was incorrect */
-+	map = alloc_req_map(GFP_NOIO);
-+	if (map)
-+		goto out;
-+
-+	WARN_ON_ONCE("svcrdma: empty request map list?\n");
-+	return NULL;
+ int svc_rdma_init(void)
+@@ -264,39 +258,10 @@ int svc_rdma_init(void)
+ 		svcrdma_table_header =
+ 			register_sysctl_table(svcrdma_root_table);
+ 
+-	/* Create the temporary map cache */
+-	svc_rdma_map_cachep = kmem_cache_create("svc_rdma_map_cache",
+-						sizeof(struct svc_rdma_req_map),
+-						0,
+-						SLAB_HWCACHE_ALIGN,
+-						NULL);
+-	if (!svc_rdma_map_cachep) {
+-		printk(KERN_INFO "Could not allocate map cache.\n");
+-		goto err0;
+-	}
+-
+-	/* Create the temporary context cache */
+-	svc_rdma_ctxt_cachep =
+-		kmem_cache_create("svc_rdma_ctxt_cache",
+-				  sizeof(struct svc_rdma_op_ctxt),
+-				  0,
+-				  SLAB_HWCACHE_ALIGN,
+-				  NULL);
+-	if (!svc_rdma_ctxt_cachep) {
+-		printk(KERN_INFO "Could not allocate WR ctxt cache.\n");
+-		goto err1;
+-	}
+-
+ 	/* Register RDMA with the SVC transport switch */
+ 	svc_reg_xprt_class(&svc_rdma_class);
+ #if defined(CONFIG_SUNRPC_BACKCHANNEL)
+ 	svc_reg_xprt_class(&svc_rdma_bc_class);
+ #endif
+ 	return 0;
+- err1:
+-	kmem_cache_destroy(svc_rdma_map_cachep);
+- err0:
+-	unregister_sysctl_table(svcrdma_table_header);
+-	destroy_workqueue(svc_rdma_wq);
+-	return -ENOMEM;
  }
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index 4197191..72276c7 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -528,11 +528,4 @@ void xprt_rdma_bc_free_rqst(struct rpc_rqst *);
+ void xprt_rdma_bc_destroy(struct rpc_xprt *, unsigned int);
+ #endif	/* CONFIG_SUNRPC_BACKCHANNEL */
  
--void svc_rdma_put_req_map(struct svc_rdma_req_map *map)
-+void svc_rdma_put_req_map(struct svcxprt_rdma *xprt,
-+			  struct svc_rdma_req_map *map)
- {
--	kmem_cache_free(svc_rdma_map_cachep, map);
-+	spin_lock(&xprt->sc_map_lock);
-+	list_add(&map->free, &xprt->sc_maps);
-+	spin_unlock(&xprt->sc_map_lock);
-+}
-+
-+static void svc_rdma_destroy_maps(struct svcxprt_rdma *xprt)
-+{
-+	while (!list_empty(&xprt->sc_maps)) {
-+		struct svc_rdma_req_map *map;
-+
-+		map = list_first_entry(&xprt->sc_maps,
-+				       struct svc_rdma_req_map, free);
-+		list_del(&map->free);
-+		kfree(map);
-+	}
- }
- 
- /* ib_cq event handler */
-@@ -593,12 +653,14 @@ static struct svcxprt_rdma *rdma_create_xprt(struct svc_serv *serv,
- 	INIT_LIST_HEAD(&cma_xprt->sc_read_complete_q);
- 	INIT_LIST_HEAD(&cma_xprt->sc_frmr_q);
- 	INIT_LIST_HEAD(&cma_xprt->sc_ctxts);
-+	INIT_LIST_HEAD(&cma_xprt->sc_maps);
- 	init_waitqueue_head(&cma_xprt->sc_send_wait);
- 
- 	spin_lock_init(&cma_xprt->sc_lock);
- 	spin_lock_init(&cma_xprt->sc_rq_dto_lock);
- 	spin_lock_init(&cma_xprt->sc_frmr_q_lock);
- 	spin_lock_init(&cma_xprt->sc_ctxt_lock);
-+	spin_lock_init(&cma_xprt->sc_map_lock);
- 
- 	if (listener)
- 		set_bit(XPT_LISTENER, &cma_xprt->sc_xprt.xpt_flags);
-@@ -988,6 +1050,8 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
- 
- 	if (!svc_rdma_prealloc_ctxts(newxprt))
- 		goto errout;
-+	if (!svc_rdma_prealloc_maps(newxprt))
-+		goto errout;
- 
- 	/*
- 	 * Limit ORD based on client limit, local device limit, and
-@@ -1259,6 +1323,7 @@ static void __svc_rdma_free(struct work_struct *work)
- 
- 	rdma_dealloc_frmr_q(rdma);
- 	svc_rdma_destroy_ctxts(rdma);
-+	svc_rdma_destroy_maps(rdma);
- 
- 	/* Destroy the QP if present (not a listener) */
- 	if (rdma->sc_qp && !IS_ERR(rdma->sc_qp))
+-/* Temporary NFS request map cache. Created in svc_rdma.c  */
+-extern struct kmem_cache *svc_rdma_map_cachep;
+-/* WR context cache. Created in svc_rdma.c  */
+-extern struct kmem_cache *svc_rdma_ctxt_cachep;
+-/* Workqueue created in svc_rdma.c */
+-extern struct workqueue_struct *svc_rdma_wq;
+-
+ #endif				/* _LINUX_SUNRPC_XPRT_RDMA_H */
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
