@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V2 for-next 5/7] IB: Introduce Receive Work Queue indirection table
-Date: Mon, 14 Dec 2015 17:04:55 +0200
-Message-ID: <1450105497-15639-6-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V2 for-next 7/7] IB/mlx5: Add Receive Work Queue Indirection table operations
+Date: Mon, 14 Dec 2015 17:04:57 +0200
+Message-ID: <1450105497-15639-8-git-send-email-yishaih@mellanox.com>
 References: <1450105497-15639-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450105497-15639-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,143 +10,140 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Introduce Receive Work Queue indirection table.
-This object can be used to spread incoming traffic to different
-receive Work Queues.
+Add Receive Work Queue Indirection table operations, it includes:
+create, destroy.
 
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c | 66 +++++++++++++++++++++++++++++++++++++++++
- include/rdma/ib_verbs.h         | 24 +++++++++++++++
- 2 files changed, 90 insertions(+)
+ drivers/infiniband/hw/mlx5/main.c    |  6 +++-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h | 14 +++++++++
+ drivers/infiniband/hw/mlx5/qp.c      | 56 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 75 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 576c65d..e2951145 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -1522,6 +1522,72 @@ int ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr *wq_attr,
- }
- EXPORT_SYMBOL(ib_modify_wq);
- 
-+/*
-+ * ib_create_rwq_ind_table - Creates a RQ Indirection Table.
-+ * @device: The device on which to create the rwq indirection table.
-+ * @ib_rwq_ind_table_init_attr: A list of initial attributes required to
-+ * create the Indirection Table.
-+ *
-+ * Note: The life time of ib_rwq_ind_table_init_attr->ind_tbl is not less
-+ *	than the created ib_rwq_ind_table object and the caller is responsible
-+ *	for its memory allocation/free.
-+ */
-+struct ib_rwq_ind_table *ib_create_rwq_ind_table(struct ib_device *device,
-+						 struct ib_rwq_ind_table_init_attr*
-+						 init_attr)
-+{
-+	struct ib_rwq_ind_table *rwq_ind_table;
-+	int i;
-+	u32 table_size;
-+
-+	if (!device->create_rwq_ind_table)
-+		return ERR_PTR(-ENOSYS);
-+
-+	table_size = (1 << init_attr->log_ind_tbl_size);
-+	rwq_ind_table = device->create_rwq_ind_table(device,
-+				init_attr, NULL);
-+	if (IS_ERR(rwq_ind_table))
-+		return rwq_ind_table;
-+
-+	rwq_ind_table->ind_tbl = init_attr->ind_tbl;
-+	rwq_ind_table->log_ind_tbl_size = init_attr->log_ind_tbl_size;
-+	rwq_ind_table->device = device;
-+	rwq_ind_table->uobject = NULL;
-+	atomic_set(&rwq_ind_table->usecnt, 0);
-+
-+	for (i = 0; i < table_size; i++)
-+		atomic_inc(&rwq_ind_table->ind_tbl[i]->usecnt);
-+
-+	return rwq_ind_table;
-+}
-+EXPORT_SYMBOL(ib_create_rwq_ind_table);
-+
-+/*
-+ * ib_destroy_rwq_ind_table - Destroys the specified Indirection Table.
-+ * @wq_ind_table: The Indirection Table to destroy.
-+*/
-+int ib_destroy_rwq_ind_table(struct ib_rwq_ind_table *rwq_ind_table)
-+{
-+	int err, i;
-+	u32 table_size = (1 << rwq_ind_table->log_ind_tbl_size);
-+	struct ib_wq **ind_tbl = rwq_ind_table->ind_tbl;
-+
-+	if (!rwq_ind_table->device->destroy_rwq_ind_table)
-+		return -ENOSYS;
-+
-+	if (atomic_read(&rwq_ind_table->usecnt))
-+		return -EBUSY;
-+
-+	err = rwq_ind_table->device->destroy_rwq_ind_table(rwq_ind_table);
-+	if (!err) {
-+		for (i = 0; i < table_size; i++)
-+			atomic_dec(&ind_tbl[i]->usecnt);
-+	}
-+
-+	return err;
-+}
-+EXPORT_SYMBOL(ib_destroy_rwq_ind_table);
-+
- struct ib_flow *ib_create_flow(struct ib_qp *qp,
- 			       struct ib_flow_attr *flow_attr,
- 			       int domain)
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index a3243ad..10107a8 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1379,6 +1379,21 @@ struct ib_wq_attr {
- 	enum	ib_wq_state	curr_wq_state;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 61e9a50..e549c4e7 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1446,7 +1446,11 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 		dev->ib_dev.uverbs_ex_cmd_mask |=
+ 				(1ull << IB_USER_VERBS_EX_CMD_CREATE_WQ) |
+ 				(1ull << IB_USER_VERBS_EX_CMD_MODIFY_WQ) |
+-				(1ull << IB_USER_VERBS_EX_CMD_DESTROY_WQ);
++				(1ull << IB_USER_VERBS_EX_CMD_DESTROY_WQ) |
++				(1ull << IB_USER_VERBS_EX_CMD_CREATE_RWQ_IND_TBL) |
++				(1ull << IB_USER_VERBS_EX_CMD_DESTROY_RWQ_IND_TBL);
++		dev->ib_dev.create_rwq_ind_table = mlx5_ib_create_rwq_ind_table;
++		dev->ib_dev.destroy_rwq_ind_table = mlx5_ib_destroy_rwq_ind_table;
+ 	}
+ 	err = init_node_data(dev);
+ 	if (err)
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 2418b91..0bedfa2 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -172,6 +172,11 @@ enum {
+ 	MLX5_WQ_KERNEL
  };
  
-+struct ib_rwq_ind_table {
-+	struct ib_device	*device;
-+	struct ib_uobject      *uobject;
-+	atomic_t		usecnt;
-+	u32		ind_tbl_num;
-+	u32		log_ind_tbl_size;
-+	struct ib_wq	**ind_tbl;
++struct mlx5_ib_rwq_ind_table {
++	struct ib_rwq_ind_table ib_rwq_ind_tbl;
++	u32			rqtn;
 +};
 +
-+struct ib_rwq_ind_table_init_attr {
-+	u32		log_ind_tbl_size;
-+	/* Each entry is a pointer to Receive Work Queue */
-+	struct ib_wq	**ind_tbl;
-+};
+ /*
+  * Connect-IB can trigger up to four concurrent pagefaults
+  * per-QP.
+@@ -507,6 +512,11 @@ static inline struct mlx5_ib_rwq *to_mrwq(struct ib_wq *ibwq)
+ 	return container_of(ibwq, struct mlx5_ib_rwq, ibwq);
+ }
+ 
++static inline struct mlx5_ib_rwq_ind_table *to_mrwq_ind_table(struct ib_rwq_ind_table *ib_rwq_ind_tbl)
++{
++	return container_of(ib_rwq_ind_tbl, struct mlx5_ib_rwq_ind_table, ib_rwq_ind_tbl);
++}
 +
- struct ib_qp {
- 	struct ib_device       *device;
- 	struct ib_pd	       *pd;
-@@ -1851,6 +1866,11 @@ struct ib_device {
- 						struct ib_wq_attr *attr,
- 						u32 wq_attr_mask,
- 						struct ib_udata *udata);
-+	struct ib_rwq_ind_table *  (*create_rwq_ind_table)(struct ib_device *device,
-+							   struct ib_rwq_ind_table_init_attr *init_attr,
-+							   struct ib_udata *udata);
-+	int			   (*destroy_rwq_ind_table)(struct ib_rwq_ind_table *wq_ind_table);
+ static inline struct mlx5_ib_srq *to_mibsrq(struct mlx5_core_srq *msrq)
+ {
+ 	return container_of(msrq, struct mlx5_ib_srq, msrq);
+@@ -639,6 +649,10 @@ struct ib_wq *mlx5_ib_create_wq(struct ib_pd *pd,
+ int mlx5_ib_destroy_wq(struct ib_wq *wq);
+ int mlx5_ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr *wq_attr,
+ 		      u32 wq_attr_mask, struct ib_udata *udata);
++struct ib_rwq_ind_table *mlx5_ib_create_rwq_ind_table(struct ib_device *device,
++						      struct ib_rwq_ind_table_init_attr *init_attr,
++						      struct ib_udata *udata);
++int mlx5_ib_destroy_rwq_ind_table(struct ib_rwq_ind_table *wq_ind_table);
+ 
+ #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+ extern struct workqueue_struct *mlx5_ib_page_fault_wq;
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 2179bd0..f0ac9fa 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -3387,6 +3387,62 @@ int mlx5_ib_destroy_wq(struct ib_wq *wq)
+ 	return 0;
+ }
+ 
++struct ib_rwq_ind_table *mlx5_ib_create_rwq_ind_table(struct ib_device *device,
++						      struct ib_rwq_ind_table_init_attr *init_attr,
++						      struct ib_udata *udata)
++{
++	struct mlx5_ib_dev *dev = to_mdev(device);
++	struct mlx5_ib_rwq_ind_table *rwq_ind_tbl;
++	int sz = 1 << init_attr->log_ind_tbl_size;
++	int inlen;
++	int err;
++	int i;
++	u32 *in;
++	void *rqtc;
 +
- 
- 	struct ib_dma_mapping_ops   *dma_ops;
- 
-@@ -3082,6 +3102,10 @@ struct ib_wq *ib_create_wq(struct ib_pd *pd,
- int ib_destroy_wq(struct ib_wq *wq);
- int ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr *attr,
- 		 u32 wq_attr_mask);
-+struct ib_rwq_ind_table *ib_create_rwq_ind_table(struct ib_device *device,
-+						 struct ib_rwq_ind_table_init_attr*
-+						 wq_ind_table_init_attr);
-+int ib_destroy_rwq_ind_table(struct ib_rwq_ind_table *wq_ind_table);
- 
- int ib_map_mr_sg(struct ib_mr *mr,
- 		 struct scatterlist *sg,
++	rwq_ind_tbl = kzalloc(sizeof(*rwq_ind_tbl), GFP_KERNEL);
++	if (!rwq_ind_tbl)
++		return ERR_PTR(-ENOMEM);
++
++	inlen = MLX5_ST_SZ_BYTES(create_rqt_in) + sizeof(u32) * sz;
++	in = mlx5_vzalloc(inlen);
++	if (!in) {
++		err = -ENOMEM;
++		goto err;
++	}
++
++	rqtc = MLX5_ADDR_OF(create_rqt_in, in, rqt_context);
++
++	MLX5_SET(rqtc, rqtc, rqt_actual_size, sz);
++	MLX5_SET(rqtc, rqtc, rqt_max_size, sz);
++
++	for (i = 0; i < sz; i++)
++		MLX5_SET(rqtc, rqtc, rq_num[i], init_attr->ind_tbl[i]->wq_num);
++
++	err = mlx5_core_create_rqt(dev->mdev, in, inlen, &rwq_ind_tbl->rqtn);
++	kvfree(in);
++
++	if (err)
++		goto err;
++
++	rwq_ind_tbl->ib_rwq_ind_tbl.ind_tbl_num = rwq_ind_tbl->rqtn;
++	return &rwq_ind_tbl->ib_rwq_ind_tbl;
++err:
++	kfree(rwq_ind_tbl);
++	return ERR_PTR(err);
++}
++
++int mlx5_ib_destroy_rwq_ind_table(struct ib_rwq_ind_table *ib_rwq_ind_tbl)
++{
++	struct mlx5_ib_rwq_ind_table *rwq_ind_tbl = to_mrwq_ind_table(ib_rwq_ind_tbl);
++	struct mlx5_ib_dev *dev = to_mdev(ib_rwq_ind_tbl->device);
++
++	mlx5_core_destroy_rqt(dev->mdev, rwq_ind_tbl->rqtn);
++
++	kfree(rwq_ind_tbl);
++	return 0;
++}
++
+ int mlx5_ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr *wq_attr,
+ 		      u32 wq_attr_mask, struct ib_udata *udata)
+ {
 -- 
 1.8.3.1
 
