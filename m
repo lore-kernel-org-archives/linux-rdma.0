@@ -1,73 +1,79 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 2/2] ipoib mcast sendonly join: Move multicast specific
- code out of ipoib_main.c.
-Date: Mon, 14 Dec 2015 10:24:07 -0600 (CST)
-Message-ID: <alpine.DEB.2.20.1512141023380.26779@east.gentwo.org>
-References: <20151211181652.187735744@linux.com> <20151211181724.290844844@linux.com> <20151211232143.GC7855@phlsvsds.ph.intel.com> <alpine.DEB.2.20.1512141000470.25235@east.gentwo.org>
- <2807E5FD2F6FDA4886F6618EAC48510E1CC1C353@CRSMSX101.amr.corp.intel.com>
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E1CC1C353-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH 10/13] IB/srp: use the new CQ API
+Date: Mon, 14 Dec 2015 11:26:08 -0500
+Message-ID: <566EEDA0.203@redhat.com>
+References: <1449521512-22921-1-git-send-email-hch@lst.de>
+ <1449521512-22921-11-git-send-email-hch@lst.de>
+ <5669C7AA.4080206@sandisk.com> <20151211142220.GB20201@lst.de>
+ <566B0EE5.8080602@redhat.com> <20151212080833.GA32638@infradead.org>
+ <566D47EC.3000000@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="woAFES8JS3ueHkgLljeVPGQsQPQbMDplG"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <566D47EC.3000000@dev.mellanox.co.il>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sagi Grimberg <sagig@dev.mellanox.co.il>, Christoph Hellwig <hch@infradead.org>
+Cc: Christoph Hellwig <hch@lst.de>, Bart Van Assche <bart.vanassche@sandisk.com>, linux-rdma@vger.kernel.org, axboe@fb.com, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 14 Dec 2015, Weiny, Ira wrote:
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--woAFES8JS3ueHkgLljeVPGQsQPQbMDplG
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-> > How about
-> >=20
-> > 		ipoib_check_and_add_mcast_sendonly()
->
-> Better.
+On 12/13/2015 05:26 AM, Sagi Grimberg wrote:
+>=20
+>> Allright.  How do you want to proceed?  The current rdma-cq branch
+>> has all kinds of dependencies, but I've also prepared a new rdma-cq.2
+>> branch that could go straight on top of your current queue:
+>>
+>> http://git.infradead.org/users/hch/rdma.git/shortlog/refs/heads/rdma-c=
+q.2
+>>
+>> If you're ready to start the 4.5 tree I can send those out as a patch
+>> series.
+>=20
+> Will this get on top of iser-remote-inv? Or should I resend atop of thi=
+s?
 
-Fixup patch:
+I'm going through my inbox right now.  I expect somewhere in there Or
+will make his case for why he doesn't like Christoph's patch to get rid
+of the attr struct.  I'll listen, and if I'm not convinced, I'll take
+that patchset first and this one second. (I reviewed the patchset
+already....aside from the fact that I *like* having the attr struct
+elements in an organized sub-struct, it's fine and it definitely
+improves on all of those query calls).
+
+--=20
+Doug Ledford <dledford@redhat.com>
+              GPG KeyID: 0E572FDD
 
 
-Subject: ipoib: Fix up naming of ipoib_check_and_add_mcast_sendonly
 
-Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+--woAFES8JS3ueHkgLljeVPGQsQPQbMDplG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-Index: linux/drivers/infiniband/ulp/ipoib/ipoib.h
-===================================================================
---- linux.orig/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ linux/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -549,7 +549,7 @@ void ipoib_path_iter_read(struct ipoib_p
- int ipoib_mcast_attach(struct net_device *dev, u16 mlid,
- 		       union ib_gid *mgid, int set_qkey);
- void ipoib_mcast_remove_list(struct net_device *dev, struct list_head *remove_list);
--void ipoib_check_mcast_sendonly(struct ipoib_dev_priv *priv, u8 *mgid,
-+void ipoib_check_and_add_mcast_sendonly(struct ipoib_dev_priv *priv, u8 *mgid,
- 				struct list_head *remove_list);
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
- int ipoib_init_qp(struct net_device *dev);
-Index: linux/drivers/infiniband/ulp/ipoib/ipoib_main.c
-===================================================================
---- linux.orig/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ linux/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1179,7 +1179,7 @@ static void __ipoib_reap_neigh(struct ip
- 			/* was the neigh idle for two GC periods */
- 			if (time_after(neigh_obsolete, neigh->alive)) {
+iQIcBAEBCAAGBQJWbu2gAAoJELgmozMOVy/dWEkQAJgaW67D8ZAMdnP/02niP9K6
+gmbpdwpxSShj7/oM5ZN9NtbxMDumoodsb1D+6CFxl7VxANtj3QGjA13bCSbZR0Zk
+9U/JOJ0HJI75R02pz/G6d7wePVNEU00Vwuc1/eGkNyPwWMHWjzjbF3bJSxklBYdN
+kTOZF/o2dneGLAXKEp5OYyTPc1HVd5raHSPJ1pNSWTFMLE4PQSIjY9uoBir4LdDO
+TtINjsM9Izwlr53JeWqXd1t+UDThMSQxW7d44ANu/NEFAjJ7hjj1xOfH3v28ENV7
+pBp5hmfwTNhegRzt67XbOPdvce+KSEbdwGeWpp97GKjAc41BGQVDSBRNdRL5oK5K
+7M3fwZCxtYwIfOYt5d3ZqzySZoIGxr6NKxtHrNAyXewHzhhveKdxcUEJ+MbDgQeF
+J9bJucUo+QTlp44Ebui2XfabUR6KAcn9ZfmVsvRke9u6ciWUz5+xAhJ5cCRCCvwW
+pZbqK0+1OCKvus2lPMmuL56i7xt5fYikGrHgSpDHmZz3jZYvUBAMHbKW04aiB7h9
+vAJksxNOaSq8OCGj4WED5ZdDJJ2lf4JBiQDq2QmfF0Ylcb8HjdC44uaCaTuxrI1L
+VVMh0cdc5n1Ys0Jq0RNSMIHxcjrAjXrOQ4lW0S2SQr7af4+qZ6eT9wEgQwJ6r+ZP
+VfMLHb1rrvAgBmJf4nbb
+=anU5
+-----END PGP SIGNATURE-----
 
--				ipoib_check_mcast_sendonly(priv, neigh->daddr + 4, &remove_list);
-+				ipoib_check_and_add_mcast_sendonly(priv, neigh->daddr + 4, &remove_list);
-
- 				rcu_assign_pointer(*np,
- 						   rcu_dereference_protected(neigh->hnext,
-Index: linux/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-===================================================================
---- linux.orig/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ linux/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -708,7 +708,7 @@ static int ipoib_mcast_leave(struct net_
-  * Check if the multicast group is sendonly. If so remove it from the maps
-  * and add to the remove list
-  */
--void ipoib_check_mcast_sendonly(struct ipoib_dev_priv *priv, u8 *mgid,
-+void ipoib_check_and_add_mcast_sendonly(struct ipoib_dev_priv *priv, u8 *mgid,
- 				struct list_head *remove_list)
- {
- 	/* Is this multicast ? */
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--woAFES8JS3ueHkgLljeVPGQsQPQbMDplG--
