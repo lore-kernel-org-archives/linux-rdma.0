@@ -1,39 +1,64 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 21/37] IB/rdmavt: Move MR datastructures into rvt
-Date: Mon, 14 Dec 2015 11:07:56 -0500
-Message-ID: <20151214160755.GA23833@phlsvsds.ph.intel.com>
-References: <20151207204046.8144.18752.stgit@phlsvslse11.ph.intel.com> <20151207204429.8144.62688.stgit@phlsvslse11.ph.intel.com> <1828884A29C6694DAF28B7E6B8A82373AAFE7322@ORSMSX109.amr.corp.intel.com>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 2/2] ipoib mcast sendonly join: Move multicast specific
+ code out of ipoib_main.c.
+Date: Mon, 14 Dec 2015 16:07:58 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E1CC1C353@CRSMSX101.amr.corp.intel.com>
+References: <20151211181652.187735744@linux.com>
+ <20151211181724.290844844@linux.com>
+ <20151211232143.GC7855@phlsvsds.ph.intel.com>
+ <alpine.DEB.2.20.1512141000470.25235@east.gentwo.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AAFE7322-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.20.1512141000470.25235-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Luick, Dean" <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 07, 2015 at 03:39:17PM -0600, Hefty, Sean wrote:
->> +struct rvt_mregion {
->> +	struct ib_pd *pd;       /* shares refcnt of ibmr.pd */
->> +	u64 user_base;          /* User's address for this region */
->> +	u64 iova;               /* IB start address of this region */
->> +	size_t length;
->> +	u32 lkey;
->> +	u32 offset;             /* offset (bytes) to start of region */
->> +	int access_flags;
->> +	u32 max_segs;           /* number of rvt_segs in all the arrays */
->> +	u32 mapsz;              /* size of the map array */
->> +	u8  page_shift;         /* 0 - non unform/non powerof2 sizes */
->> +	u8  lkey_published;     /* in global table */
->
->Without looking ahead in the patch series, won't the access_flags indicate this?
+> 
+> On Fri, 11 Dec 2015, ira.weiny wrote:
+> 
+> > I think I would rather see this called something like
+> >
+> > ipoib_add_to_list_sendonly
+> >
+> > Or something...
+> >
+> > Calling it iboib_check* sounds like it should return a bool.
+> 
+> Hmm... It only adds the multicast group if the check was successful.
+> 
+> How about
+> 
+> 		ipoib_check_and_add_mcast_sendonly()
 
-I think it could. However to me this is more clear. When we allocate an lkey 
-we set this, when it's freed we clear it, we check this flag in the free 
-routine to decide if we should actually free it.
+Better.
 
--Denny
+> 
+> 
+> > > +void ipoib_check_mcast_sendonly(struct ipoib_dev_priv *priv, u8
+> *mgid,
+> > > +				struct list_head *remove_list)
+> > > +{
+> > > +	/* Is this multicast ? */
+> > > +	if (*mgid == 0xff) {
+> >
+> > Odd to see a mgid variable which is only u8?
+> >
+> > How about "gid_prefix"?
+> 
+> That is only used in the qib driver and there it is a field.
+> 
+> mgid is a pointer to the seres of bytes of the MGID and the first byte of that
+> signifies multicast if 0xff....
+
+Understood, I misread the code at first.
+
+Ira
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
