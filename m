@@ -1,35 +1,27 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v4 0/2] staging/rdma/hfi1: set Gen 3 half-swing for
- integrated devices.
-Date: Mon, 14 Dec 2015 13:48:15 -0800
-Message-ID: <20151214214815.GB13364@kroah.com>
-References: <1448999277-22972-1-git-send-email-ira.weiny@intel.com>
- <20151214195409.GC24498@phlsvsds.ph.intel.com>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: hfi1 patches and ordering
+Date: Mon, 14 Dec 2015 21:52:31 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC259CE1A0@fmsmsx120.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-Content-Disposition: inline
-In-Reply-To: <20151214195409.GC24498@phlsvsds.ph.intel.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: "ira.weiny" <ira.weiny@intel.com>
-Cc: devel@driverdev.osuosl.org, linux-rdma@vger.kernel.org, dledford@redhat.com
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: "devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org" <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 14, 2015 at 02:54:09PM -0500, ira.weiny wrote:
-> Any further feedback on this series?
+Greg,
 
-I'm way behind on staging patches right now (1000+ patches behind...),
-hopefully will catch up on them this week.
+We have other patch series close to being submitted.
 
-thanks,
+Some depend on the inflight patches you are behind on, some on each other.
 
-greg k-h
+What is the best way of handling this to insure no conflicts?
+
+Mike
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
