@@ -1,147 +1,94 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 5/6] svcrdma: Add infrastructure to receive backwards direction RPC/RDMA replies
-Date: Sun, 13 Dec 2015 15:27:15 -0500
-Message-ID: <9C958C9B-6C55-4570-B633-A620164A54ED@oracle.com>
-References: <20151207203851.12988.97804.stgit@klimt.1015granger.net> <20151207204305.12988.2749.stgit@klimt.1015granger.net> <566CE4E7.9050307@talpey.com>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
+From: Nicholas Mc Guire <der.herr@hofr.at>
+Subject: Re: [PATCH] staging/rdma/hfi1: Fix a possible null pointer
+ dereference
+Date: Mon, 14 Dec 2015 13:28:49 +0000
+Message-ID: <20151214132849.GA22053@osadl.at>
+References: <20151210161338.3341.95259.stgit@phlsvslse11.ph.intel.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <566CE4E7.9050307-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-next-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20151210161338.3341.95259.stgit@phlsvslse11.ph.intel.com>
+Sender: linux-next-owner@vger.kernel.org
+To: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Cc: devel@driverdev.osuosl.org, linux-rdma@vger.kernel.org, dledford@redhat.com, linux-next@vger.kernel.org, Cocci@systeme.lip6.fr
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Tom-
-
-
-> On Dec 12, 2015, at 10:24 PM, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org> wrote:
+On Thu, Dec 10, 2015 at 11:13:38AM -0500, Mike Marciniszyn wrote:
+> From: Easwar Hariharan <easwar.hariharan@intel.com>
 > 
-> Three comments.
+> A code inspection pointed out that kmalloc_array may return NULL and
+> memset doesn't check the input pointer for NULL, resulting in a possible
+> NULL dereference. This patch fixes this.
 > 
-> On 12/7/2015 12:43 PM, Chuck Lever wrote:
->> To support the NFSv4.1 backchannel on RDMA connections, add a
->> capability for receiving an RPC/RDMA reply on a connection
->> established by a client.
->> (snip)
+> Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+> Signed-off-by: Easwar Hariharan <easwar.hariharan@intel.com>
+> ---
+>  drivers/staging/rdma/hfi1/chip.c |    2 ++
+>  1 file changed, 2 insertions(+)
 > 
->> +/* By convention, backchannel calls arrive via rdma_msg type
+> diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
+> index dc69159..49d49b2 100644
+> --- a/drivers/staging/rdma/hfi1/chip.c
+> +++ b/drivers/staging/rdma/hfi1/chip.c
+> @@ -10129,6 +10129,8 @@ static void init_qos(struct hfi1_devdata *dd, u32 first_ctxt)
+>  	if (num_vls * qpns_per_vl > dd->chip_rcv_contexts)
+>  		goto bail;
+>  	rsmmap = kmalloc_array(NUM_MAP_REGS, sizeof(u64), GFP_KERNEL);
+> +	if (!rsmmap)
+> +		goto bail;
+>  	memset(rsmmap, rxcontext, NUM_MAP_REGS * sizeof(u64));
+>  	/* init the local copy of the table */
+>  	for (i = 0, ctxt = first_ctxt; i < num_vls; i++) {
 > 
-> "By convention" is ok, but it's important to note that this is
-> actually not "by protocol". Therefore, the following check may
-> reject valid messages. Even though it is unlikely an implementation
-> will insert chunks, it's not illegal, and ignoring them will
-> be less harmful. So I'm going to remake my earlier observation
-> that three checks below should be removed:
+> --
 
-The convention is established in
+Based on this report a generalization of unchecked use turned up one more
+case in the current kernel (patch sent). Probably the  when  block needs 
+some cleanup, but findings like this definitely are a case for coccinelle 
+scanners.
 
- https://datatracker.ietf.org/doc/draft-ietf-nfsv4-rpcrdma-bidirection/
+<snip>
+/// check for missing NULL check before use                                     
+//
+//  missing check in: 
+//  ./drivers/staging/rdma/hfi1/chip.c:10131 unchecked allocation
+//  in -next-20151214
+//  reported-by Mike Marciniszyn <mike.marciniszyn@intel.com> 
+//
+//  after generalization this also found:
+//  ./drivers/clk/shmobile/clk-div6.c:197 unchecked allocation
 
-Specifically, it states that backward direction messages in
-RPC-over-RDMA Version One cannot have chunks and cannot be
-larger than the connection's inline threshold. Thus these
-checks are all valid and will not reject valid forward or
-backward messages.
+virtual context
+virtual org
+virtual report
 
-The reason for that stipulation is it makes the RPC-over-RDMA
-header in backward direction messages a fixed size.
+@badmemset@
+expression mem;
+position p;
+statement S;
+@@
 
-a. The call direction field in incoming RPC headers is then
-   always at a predictable offset in backward direction calls.
-   This means chunk lists don't have to be parsed to find the
-   call direction field. All that is needed is to ensure that
-   the chunk lists in the header are empty before going after
-   the call direction field. If any chunk list is present, it
-   must be a forward direction message.
+<+...
+*mem = kmalloc_array@p(...);
+  ... when != if (!mem || ...) S
+      when != if (... && !mem) S
+      when != if (mem == NULL || ...) S
+      when != if (... && mem == NULL) S
+      when != if (unlikely(mem == NULL)) S
+      when != if (unlikely(!mem)) S
+      when != if (likely(!mem)) S
+      when != if (likely(mem == NULL)) S
+  return;
+...+>
 
-b. The maximum size of backward direction messages is
-   predictable: it is always the inline threshold minus the
-   size of the RPC-over-RDMA header (always 28 bytes when
-   there are no chunks).
+@script:python@
+p << badmemset.p;
+@@
 
-The client side has a very similar looking set of checks in
-its reply handler to distinguish incoming backward direction
-RPC calls from forward direction RPC replies.
+print "%s:%s unchecked allocation" % (p[0].file,p[0].line)
 
+<snip>
 
->> + * messages, and never populate the chunk lists. This makes
->> + * the RPC/RDMA header small and fixed in size, so it is
->> + * straightforward to check the RPC header's direction field.
->> + */
->> +static bool
->> +svc_rdma_is_backchannel_reply(struct svc_xprt *xprt, struct rpcrdma_msg *rmsgp)
->> +{
->> +	__be32 *p = (__be32 *)rmsgp;
->> +
->> +	if (!xprt->xpt_bc_xprt)
->> +		return false;
->> +
->> +	if (rmsgp->rm_type != rdma_msg)
->> +		return false;
-> 
-> These three:
-> 
->> +	if (rmsgp->rm_body.rm_chunks[0] != xdr_zero)
->> +		return false;
->> +	if (rmsgp->rm_body.rm_chunks[1] != xdr_zero)
->> +		return false;
->> +	if (rmsgp->rm_body.rm_chunks[2] != xdr_zero)
->> +		return false;
->> +
-> 
-> (snip)
->> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
->> index a1fd74a..3895574 100644
->> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
->> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
->> @@ -309,6 +309,8 @@ struct rpcrdma_buffer {
->>  	u32			rb_bc_srv_max_requests;
->>  	spinlock_t		rb_reqslock;	/* protect rb_allreqs */
->>  	struct list_head	rb_allreqs;
->> +
->> +	u32			rb_bc_max_requests;
-> 
-> Why does this need to be u32? Shouldn't it be an int, and also the
-> rb_bc_srv_max_requests just above? The forward channel max_requests
-> are int, btw.
-
-The XDR definition of RPC-over-RDMA in Section 4.3 of
-RFC 5666 defines the on-the-wire credits field as a 
-uint32.
-
-I prefer that the host representation of this
-field match the sign and be able to contain the full
-range values that can be conveyed in the on-the-wire
-field. That makes marshaling and unmarshaling of the
-wire value straightforward; and reasoning about the
-C code in our implementation also applies directly to
-wire values as well.
-
-The forward channel max_requests field on the client,
-rb_max_requests, is also a u32 since commit 9b1dcbc8cf46
-from February 2015.
-
-I've changed the equivalent server side field,
-sc_max_requests, to a u32 in the next version of this
-series.
-
-ib_device_attr::max_qp_wr and svcxprt_rdma::sc_sq_depth
-are both signed, but I can't imagine what a negative
-value in these fields could mean.
-
-sc_sq_depth is plugged into ib_qp_cap::max_send_wr and
-ib_cq_init_attr::cqe, which are both unsigned, so
-sc_sq_depth really should be unsigned too, IMHO.
-
---
-Chuck Lever
-
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+thx!
+hofrat
