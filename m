@@ -1,56 +1,109 @@
-From: Nicholas Mc Guire <der.herr@hofr.at>
-Subject: Re: [PATCH 2/3] staging/rdma/hfi1: check return value of kcalloc
-Date: Mon, 14 Dec 2015 17:36:31 +0000
-Message-ID: <20151214173631.GA22987@osadl.at>
-References: <y>
- <1450104189-2653-1-git-send-email-hofrat@osadl.org>
- <1450104189-2653-2-git-send-email-hofrat@osadl.org>
- <32E1700B9017364D9B60AED9960492BC259CD79F@fmsmsx120.amr.corp.intel.com>
+From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Subject: Re: [PATCH 3/3] IB core: Display 64 bit counters from the extended set
+Date: Mon, 14 Dec 2015 23:06:40 +0530
+Message-ID: <CANjDDBhkNnTHSLBgJra6SfZmv0Uy7tCRjo6gCwP1fHavrFUGHg@mail.gmail.com>
+References: <20151211182532.332343651@linux.com> <20151211182543.329283794@linux.com>
+ <20151211235630.GG7855@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <32E1700B9017364D9B60AED9960492BC259CD79F@fmsmsx120.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
-Cc: Nicholas Mc Guire <hofrat@osadl.org>, Doug Ledford <dledford@redhat.com>, "Hefty, Sean" <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151211235630.GG7855-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 14, 2015 at 03:21:24PM +0000, Marciniszyn, Mike wrote:
-> > @@ -10129,6 +10129,9 @@ static void init_qos(struct hfi1_devdata *dd,
-> > u32 first_ctxt)
-> >  	if (num_vls * qpns_per_vl > dd->chip_rcv_contexts)
-> >  		goto bail;
-> >  	rsmmap = kcalloc(NUM_MAP_REGS, sizeof(u64), GFP_KERNEL);
-> > +	if (!rsmmap)
-> > +		goto bail;
-> > +
-> 
-> I checked out a linux-next remote at the next-20151214 tag.
-> 
-> The allocation method is clearly kmalloc_array() not kcalloc().
-> 
-> Where are you seeing the kcalloc()?
-> 
-> While it is tempting to allocate and zero, there is a chip rev specific difference.
+Hello all,
+
+On Sat, Dec 12, 2015 at 5:26 AM, ira.weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> On Fri, Dec 11, 2015 at 12:25:35PM -0600, Christoph Lameter wrote:
+>> Display the additional 64 bit counters available through the extended
+>> set and replace the existing 32 bit counters if there is a 64 bit
+>> alternative available.
+>>
+>> Note: This requires universal support of extended counters in
+>> the devices. If there are still devices around that do not
+>> support extended counters then we will have to add some fallback
+>> technique here.
 >
-x = kmalloc_array(...)
-if(!x)
-   ...
-memset(x...)
+> Looks like ocrdma will break here.
 
-should be equivalent to
+Yes, today we report 32 bit counters and to support this change a
+simple patch is needed to replace those cpu_to_be32() with
+cpu_to_be64(). Internally we already have 64bit countes.
 
-kcalloc - include/linux/slab.h
-
-static inline void *kcalloc(size_t n, size_t size, gfp_t flags)
-{
-        return kmalloc_array(n, size, flags | __GFP_ZERO);
-}
-
-if the assumption that this is equvalent is wrong I appologize
-the intent was simply API consolidation as the patch description
-stated.
-
-thx!
-hofrta
+>
+> I'm not sure about mthca.
+>
+> qib, mlx4 are fine.  mlx5 should be as well I would think (I don't have that
+> hardware.)
+>
+> hfi1 did not process these MADs previously as all the hardware counters are 64
+> bits.  But with this patch series we would add it.
+>
+> ehca, amso1100, and ipath are all gone so they don't matter.
+>
+> I can whip up a patch for hfi1 and we have to wait for Doug to take over that
+> driver anyway to make sure that the patch would apply.  So I think you can
+> ignore it.
+>
+> ocrdma seems like it could be a quick patch pre this one.
+>
+> Ira
+>
+>>
+>> Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+>> ---
+>>  drivers/infiniband/core/sysfs.c | 16 ++++++++++++----
+>>  1 file changed, 12 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+>> index 0083a4f..f7f2954 100644
+>> --- a/drivers/infiniband/core/sysfs.c
+>> +++ b/drivers/infiniband/core/sysfs.c
+>> @@ -406,10 +406,14 @@ static PORT_PMA_ATTR(port_rcv_constraint_errors     ,  8,  8, 136, IB_PMA_PORT_C
+>>  static PORT_PMA_ATTR(local_link_integrity_errors    ,  9,  4, 152, IB_PMA_PORT_COUNTERS);
+>>  static PORT_PMA_ATTR(excessive_buffer_overrun_errors, 10,  4, 156, IB_PMA_PORT_COUNTERS);
+>>  static PORT_PMA_ATTR(VL15_dropped                , 11, 16, 176, IB_PMA_PORT_COUNTERS);
+>> -static PORT_PMA_ATTR(port_xmit_data              , 12, 32, 192, IB_PMA_PORT_COUNTERS);
+>> -static PORT_PMA_ATTR(port_rcv_data               , 13, 32, 224, IB_PMA_PORT_COUNTERS);
+>> -static PORT_PMA_ATTR(port_xmit_packets                   , 14, 32, 256, IB_PMA_PORT_COUNTERS);
+>> -static PORT_PMA_ATTR(port_rcv_packets                    , 15, 32, 288, IB_PMA_PORT_COUNTERS);
+>> +static PORT_PMA_ATTR(port_xmit_data              ,  0, 64,  64, IB_PMA_PORT_COUNTERS_EXT);
+>> +static PORT_PMA_ATTR(port_rcv_data               ,  0, 64, 128, IB_PMA_PORT_COUNTERS_EXT);
+>> +static PORT_PMA_ATTR(port_xmit_packets                   ,  0, 64, 192, IB_PMA_PORT_COUNTERS_EXT);
+>> +static PORT_PMA_ATTR(port_rcv_packets                    ,  0, 64, 256, IB_PMA_PORT_COUNTERS_EXT);
+>> +static PORT_PMA_ATTR(unicast_xmit_packets        ,  0, 64, 320, IB_PMA_PORT_COUNTERS_EXT);
+>> +static PORT_PMA_ATTR(unicast_rcv_packets         ,  0, 64, 384, IB_PMA_PORT_COUNTERS_EXT);
+>> +static PORT_PMA_ATTR(multicast_xmit_packets      ,  0, 64, 448, IB_PMA_PORT_COUNTERS_EXT);
+>> +static PORT_PMA_ATTR(multicast_rcv_packets       ,  0, 64, 512, IB_PMA_PORT_COUNTERS_EXT);
+>>
+>>  static struct attribute *pma_attrs[] = {
+>>       &port_pma_attr_symbol_error.attr.attr,
+>> @@ -428,6 +432,10 @@ static struct attribute *pma_attrs[] = {
+>>       &port_pma_attr_port_rcv_data.attr.attr,
+>>       &port_pma_attr_port_xmit_packets.attr.attr,
+>>       &port_pma_attr_port_rcv_packets.attr.attr,
+>> +     &port_pma_attr_unicast_rcv_packets.attr.attr,
+>> +     &port_pma_attr_unicast_xmit_packets.attr.attr,
+>> +     &port_pma_attr_multicast_rcv_packets.attr.attr,
+>> +     &port_pma_attr_multicast_xmit_packets.attr.attr,
+>>       NULL
+>>  };
+>>
+>> --
+>> 2.5.0
+>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
