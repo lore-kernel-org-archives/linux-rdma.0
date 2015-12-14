@@ -1,77 +1,92 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 10/11] xprtrdma: Invalidate in the RPC reply handler
-Date: Mon, 14 Dec 2015 16:19:23 -0500
-Message-ID: <20151214211923.16295.14709.stgit@manet.1015granger.net>
-References: <20151214211317.16295.70115.stgit@manet.1015granger.net>
+Subject: [PATCH v4 00/11] NFS/RDMA server patches for v4.5
+Date: Mon, 14 Dec 2015 16:30:01 -0500
+Message-ID: <20151214211951.12932.99017.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151214211317.16295.70115.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-There is a window between the time the RPC reply handler wakes the
-waiting RPC task and when xprt_release() invokes ops->buf_free.
-During this time, memory regions containing the data payload may
-still be accessed by a broken or malicious server, but the RPC
-application has already been allowed access to the memory containing
-the RPC request's data payloads.
+Here are patches to support server-side bi-directional RPC/RDMA
+operation (to enable NFSv4.1 on RPC/RDMA transports). Thanks to
+all who reviewed v1, v2, and v3. This version has some significant
+changes since the previous one.
 
-The server should be fenced from client memory containing RPC data
-payloads _before_ the RPC application is allowed to continue.
+In preparation for Doug's final topic branch, Bruce, I've rebased
+these on Christoph's ib_device_attr branch. There were some merge
+conflicts which I've fixed and tested. These are ready for your
+review.
 
-This change also more strongly enforces send queue accounting. There
-is a maximum number of RPC calls allowed to be outstanding. When an
-RPC/RDMA transport is set up, just enough send queue resources are
-allocated to handle registration, Send, and invalidation WRs for
-each those RPCs at the same time.
+Also available in the "nfsd-rdma-for-4.5" topic branch of this git repo:
 
-Before, additional RPC calls could be dispatched while invalidation
-WRs were still consuming send WQEs. When invalidation WRs backed
-up, dispatching additional RPCs resulted in a send queue overrun.
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
 
-Now, the reply handler prevents RPC dispatch until invalidation is
-complete. This prevents RPC call dispatch until there are enough
-send queue resources to proceed.
+Or for browsing:
 
-Still to do: If an RPC exits early (say, ^C), the reply handler has
-no opportunity to perform invalidation. Currently, xprt_rdma_free()
-still frees remaining RDMA resources, which could deadlock.
-Additional changes are needed to handle invalidation properly in this
-case.
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-for-4.5
 
-Reported-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+
+Changes since v3:
+- Rebased on Christoph's ib_device_attr branch
+- Backchannel patches have been squashed together
+- Memory allocation overhaul to prevent blocking allocation
+  when sending backchannel calls
+
+
+Changes since v2:
+- Rebased on v4.4-rc4
+- Backchannel code in new source file to address dprintk issues
+- svc_rdma_get_context() now uses a pre-allocated cache
+- Dropped svc_rdma_send clean up
+
+
+Changes since v1:
+
+- Rebased on v4.4-rc3
+- Removed the use of CONFIG_SUNRPC_BACKCHANNEL
+- Fixed computation of forward and backward max_requests
+- Updated some comments and patch descriptions
+- pr_err and pr_info converted to dprintk
+- Simplified svc_rdma_get_context()
+- Dropped patch removing access_flags field
+- NFSv4.1 callbacks tested with for-4.5 client
+
 ---
- net/sunrpc/xprtrdma/rpc_rdma.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
 
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index 0bc8c39..3d00c5d 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -891,6 +891,16 @@ badheader:
- 		break;
- 	}
- 
-+	/* Invalidate and flush the data payloads before waking the
-+	 * waiting application. This guarantees the memory region is
-+	 * properly fenced from the server before the application
-+	 * accesses the data. It also ensures proper send flow
-+	 * control: waking the next RPC waits until this RPC has
-+	 * relinquished all its Send Queue entries.
-+	 */
-+	if (req->rl_nchunks)
-+		r_xprt->rx_ia.ri_ops->ro_unmap_sync(r_xprt, req);
-+
- 	credits = be32_to_cpu(headerp->rm_credit);
- 	if (credits == 0)
- 		credits = 1;	/* don't deadlock */
+Chuck Lever (11):
+      svcrdma: Do not send XDR roundup bytes for a write chunk
+      svcrdma: Clean up rdma_create_xprt()
+      svcrdma: Clean up process_context()
+      svcrdma: Improve allocation of struct svc_rdma_op_ctxt
+      svcrdma: Improve allocation of struct svc_rdma_req_map
+      svcrdma: Remove unused req_map and ctxt kmem_caches
+      svcrdma: Add gfp flags to svc_rdma_post_recv()
+      svcrdma: Remove last two __GFP_NOFAIL call sites
+      svcrdma: Make map_xdr non-static
+      svcrdma: Define maximum number of backchannel requests
+      svcrdma: Add class for RDMA backwards direction transport
+
+
+ include/linux/sunrpc/svc_rdma.h            |   37 ++-
+ net/sunrpc/xprt.c                          |    1 
+ net/sunrpc/xprtrdma/Makefile               |    2 
+ net/sunrpc/xprtrdma/svc_rdma.c             |   41 ---
+ net/sunrpc/xprtrdma/svc_rdma_backchannel.c |  371 ++++++++++++++++++++++++++++
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |   52 ++++
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c      |   34 ++-
+ net/sunrpc/xprtrdma/svc_rdma_transport.c   |  284 ++++++++++++++++-----
+ net/sunrpc/xprtrdma/transport.c            |   30 +-
+ net/sunrpc/xprtrdma/xprt_rdma.h            |   20 +-
+ 10 files changed, 730 insertions(+), 142 deletions(-)
+ create mode 100644 net/sunrpc/xprtrdma/svc_rdma_backchannel.c
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Signature
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
