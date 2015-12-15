@@ -1,61 +1,48 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next V1 2/5] IB/core: Add ib_is_udata_cleared
-Date: Tue, 15 Dec 2015 16:13:55 +0200
-Message-ID: <56702023.5080307@mellanox.com>
-References: <1449157463-25313-1-git-send-email-matanb@mellanox.com>
- <1449157463-25313-3-git-send-email-matanb@mellanox.com>
- <56658718.8080308@mellanox.com>
- <CAAKD3BC7bhKC+jKV3aH9W+pcBwV19PJZYwXdZue6hNew=CJW9g@mail.gmail.com>
- <5669983E.5000200@mellanox.com>
- <CAAKD3BDfobwroOnvoxPMTA5zL=wxY3KDL=FAvq5EdUOkFG_F+Q@mail.gmail.com>
- <566D9315.9050807@mellanox.com>
- <CAAKD3BBKu493f539h+SfG=JLgW-OKrsUZ8FhZPHy598n6+j4=Q@mail.gmail.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next 6/6] IB/mlx5: Add Raw Packet Queue Pair (QP)
+ support
+Date: Tue, 15 Dec 2015 16:37:17 +0200
+Message-ID: <5670259D.3080801@mellanox.com>
+References: <1449778184-10618-1-git-send-email-majd@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAAKD3BBKu493f539h+SfG=JLgW-OKrsUZ8FhZPHy598n6+j4=Q@mail.gmail.com>
+In-Reply-To: <1449778184-10618-1-git-send-email-majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+To: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 14/12/2015 18:31, Matan Barak wrote:
-> I'm not sure regarding the string.c location, as it deals with user
-> buffers, but in order not to
-> be dependent on this, I'll change this code to the following.
-> 
-> static inline bool ib_is_udata_cleared(struct ib_udata *udata,
->                                        u8 cleared_char,
->                                        size_t offset,
->                                        size_t len)
-> {
->         const void __user *p = udata->inbuf + offset;
->         bool ret = false;
->         u8 *buf;
-> 
->         if (len > USHRT_MAX)
->                 return false;
-> 
->         buf = kmalloc(len, GFP_KERNEL);
->         if (!buf)
->                 return false;
-> 
->         if (copy_from_user(buf, p, len))
->                 goto free;
-> 
->         ret = !memchr_inv(buf, cleared_char, len);
-> 
-> free:
->         kfree(buf);
->         return ret;
-> }
+On 12/10/2015 10:09 PM, Majd Dibbiny wrote:
+> This patchs adds support for Raw Packet QP for the mlx5 device.
+>
+> Raw Packet QP, unlike other QP types, has no matching mlx5_core_qp
+> object but rather it is built of RQ/SQ/TIR/TIS/TD mlx5_core object.
+>
+> The Raw Packet QP state changes are implemented by changing the
+> state of the sub-objects.
+>
+> Since the SQ and RQ work-queue (WQ) buffers are not contiguous like
+> other QPs, we allocate separate buffers in the user-space and pass
+> the address of each one of them separately to the kernel.
+>
+> Signed-off-by: Majd Dibbiny<majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>   drivers/infiniband/hw/mlx5/main.c                  |  15 +-
+>   drivers/infiniband/hw/mlx5/mlx5_ib.h               |  52 +-
+>   drivers/infiniband/hw/mlx5/qp.c                    | 894 ++++++++++++++++++---
+>   drivers/infiniband/hw/mlx5/user.h                  |   1 +
+>   drivers/net/ethernet/mellanox/mlx5/core/qp.c       |  48 +-
+>   drivers/net/ethernet/mellanox/mlx5/core/transobj.c |  39 +
+>   include/linux/mlx5/mlx5_ifc.h                      |  11 +-
+>   include/linux/mlx5/qp.h                            |   3 +-
+>   include/linux/mlx5/transobj.h                      |   4 +
+>   9 files changed, 913 insertions(+), 154 deletions(-)
 
-Looks good to me.
+Seems way too big for single patch, seek how to split to 2-3 patches
 
-Thanks,
-Haggai
-
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
