@@ -1,89 +1,59 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 3/3] IB core: Display 64 bit counters from the extended
- set
-Date: Tue, 15 Dec 2015 16:46:01 -0500
-Message-ID: <56708A19.8030403@redhat.com>
-References: <20151211182532.332343651@linux.com>
- <20151211182543.329283794@linux.com>
- <20151211235630.GG7855@phlsvsds.ph.intel.com>
- <20151212000047.GA9961@obsidianresearch.com>
- <566EEE69.5080906@dev.mellanox.co.il>
- <alpine.DEB.2.20.1512151351050.3509@east.gentwo.org>
- <20151215195554.GA28167@obsidianresearch.com>
- <5670717F.9090701@dev.mellanox.co.il>
- <20151215212035.GD28167@obsidianresearch.com>
- <56708961.1040505@dev.mellanox.co.il>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH for-next V2 00/11] Add RoCE v2 support
+Date: Tue, 15 Dec 2015 15:00:33 -0700
+Message-ID: <20151215220033.GB30404@obsidianresearch.com>
+References: <1449150450-13679-1-git-send-email-matanb@mellanox.com>
+ <CAG9sBKM7j6w+Gk4PXXO+0mHpFeVaBdeNmr-z9V9fPR562o+kmw@mail.gmail.com>
+ <567089F1.30004@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="2BxxmU6XtjU07htM16SuuuuFSTTbiplgv"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56708961.1040505-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <567089F1.30004-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---2BxxmU6XtjU07htM16SuuuuFSTTbiplgv
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On Tue, Dec 15, 2015 at 04:45:21PM -0500, Doug Ledford wrote:
 
-On 12/15/2015 04:42 PM, Hal Rosenstock wrote:
-> On 12/15/2015 4:20 PM, Jason Gunthorpe wrote:
->>> The unicast/multicast extended counters are not always supported -
->>>> depends on setting of PerfMgt ClassPortInfo
->>>> CapabilityMask.IsExtendedWidthSupportedNoIETF (bit 10).
->=20
->> Yes.. certainly this proposed patch needs to account for that and
->> continue to use the 32 bit ones in that case.
->=20
-> There are no 32 bit equivalents of those 4 "IETF" counters ([uni
-> multi]cast [xmit rcv] pkts).
->=20
-> When not supported, perhaps it is best not to populate these counters i=
-n
-> sysfs so one can discern between counter not supported and 0 value.
->=20
-> I'm still working on definitive mthca answer but think the attribute is=
+> In particular, Liran piped up with this comment:
+> 
+> "Also, I don't want to do any route resolution on the Rx path. A UD QP
+> completion just reports the details of the packet it received.
+> 
+> Conceptually, an incoming packet may not even match an SGID index at
+> all.  Maybe, responses should be sent from another device. This should
+> not be decided that the point that a packet was received."
+> 
+> The part that bothers me about this is that this statement makes sense
+> when just thinking about the spec, as you say.  However, once you
+> consider namespaces, security implications make this statement spec
+> compliant, but still unacceptable.
 
-> not supported there. Does anyone out there have an mthca setup where
-> they can try this ?
+This is where I got to and decided there is no desire to make a
+correct patch for this stuff.
 
-Yes.
+You are completely correct in your comments above.
 
+> Since you and Jason did not reach a consensus, I have to dig in and see
+> if these patches make it possible to break namespace confinement, either
+> accidentally or with intentionally tricky behavior.  That's going to
+> take me some time.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+Everything to do with parsing a wc and constructing an AH is wrong in
+this series, and the fixes require the API changes I mentioned ( add
+'wc to gid index' API call, add 'route to AH' API call)
 
+Every time you read 'route validation' - that is an error, the route
+should never just be validated, it is needed information to construct
+a rocev2 AH. All the places that roughly hand parse the rocev2 WC
+should not be open coded.
 
+Even if current HW is broken for namespaces we should not enshrine that
+in the kapi.
 
---2BxxmU6XtjU07htM16SuuuuFSTTbiplgv
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJWcIoZAAoJELgmozMOVy/dySsQAJAOzM9/ATUu3OHM7LjnYgYr
-jE0ZfF5GoFcguK3hLdB22fy+W3InzDlPaRgoxzY+kAzHtjTn+YH0DOfOwi2MMb2j
-tcs0M8eT2Cwol8Y4akpZNxJOyX9UHUyJELB6PVwBnMm3jOAANERkIBvkGuL48k+L
-H1nfFjPKP29S9d9v+cvDqC8+Tcb0A1Ba4ITj69/D4WhuBzIh24reGv/o6CMgH98q
-wfW+OmLnNXxBpOUdY8FDVq4y4huq0A9oFd67I7SoqjZjvAL2j/JHdi7PAfT/VRDI
-WJR+xSx+ok1pkD32e38rpwbU1tdDIv73sfQTKuOUqPRQcENXoYFGpFzO9GIMCelY
-JIxEam6FoYRiqmnLHcKQeNoS333L0tZxQN1rFPAFz8U1GiWpLFKQbYIYQ3xvFtqQ
-0EyqFu827iNzWNFbIt3DvvuCs6zMP8qC/8fZ0Ysrxl9rxxcXJaZWkrUeB0c/5C7p
-/UCOWnpfUGhviLTUEBjHcKsekcnx/f+BUU4NEJ2AdNzmfRNN9kugJi/f2l0lXzMY
-FLT27ATQBRyoQL7IoHyMIRIZjI/0FfmZGPldIy5oIFO2R39Jjy0tuDaoJv7MZfRe
-GLaw7eQWeVLT5YeoULxvGPbSVT3xKjkoWbI42dfFcaJvCTNZiJ/2NjSj5/5GRTEc
-P4xvM3WJFqkYwTlGrhwm
-=tLCt
------END PGP SIGNATURE-----
-
---2BxxmU6XtjU07htM16SuuuuFSTTbiplgv--
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
