@@ -1,182 +1,111 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V2 4/5] IB/mlx5: Add hca_core_clock_offset to udata in init_ucontext
-Date: Tue, 15 Dec 2015 20:30:12 +0200
-Message-ID: <1450204213-5630-5-git-send-email-matanb@mellanox.com>
-References: <1450204213-5630-1-git-send-email-matanb@mellanox.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: device attr cleanup
+Date: Tue, 15 Dec 2015 14:03:48 -0500
+Message-ID: <56706414.8010807@redhat.com>
+References: <CAJ3xEMj2EOxX1CiA93MPOsM-FdU9ijcWCYm9tObbkLqqja0PoA@mail.gmail.com>
+ <566753E3.9060301@redhat.com>
+ <CAJ3xEMhaEnv9He7N5q8fFsRzy_j27wdE6KWSFF39UzA680udwA@mail.gmail.com>
+ <20151208225940.GB27609@obsidianresearch.com>
+ <CAJ3xEMiEYgsxiL6zR-Dia3Rxwriye1WHcadTmUjU7zV=ide1LA@mail.gmail.com>
+ <CAJ3xEMgQNMtxgTKC0zaKgy-WGugf6KwT7Ys5h3_RbN_7qd2=tg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="B9SW5reK0lJqAWt1xDAs4PevIwWu6GTtK"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1450204213-5630-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <CAJ3xEMgQNMtxgTKC0zaKgy-WGugf6KwT7Ys5h3_RbN_7qd2=tg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Pass hca_core_clock_offset to user-space is mandatory in order to
-let the user-space read the free-running clock register from the
-right offset in the memory mapped page.
-Passing this value is done by changing the vendor's command
-and response of init_ucontext to be in extensible form.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--B9SW5reK0lJqAWt1xDAs4PevIwWu6GTtK
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/mlx5/main.c    | 37 ++++++++++++++++++++++++++++--------
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  3 +++
- drivers/infiniband/hw/mlx5/user.h    | 12 ++++++++++--
- include/linux/mlx5/device.h          |  7 +++++--
- 4 files changed, 47 insertions(+), 12 deletions(-)
+On 12/08/2015 06:15 PM, Or Gerlitz wrote:
+> On Wed, Dec 9, 2015 at 1:13 AM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote=
+:
+>> On Wed, Dec 9, 2015 at 12:59 AM, Jason Gunthorpe
+>> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+>>> On Wed, Dec 09, 2015 at 12:47:55AM +0200, Or Gerlitz wrote:
+>>
+>>>> The patch is three liner to add the cached attrs --
+>>>> http://marc.info/?l=3Dlinux-rdma&m=3D142309296813985&w=3D2 -- if you=
+ are OK
+>>>> with that, I will add a 2nd patch that ports all ULPs to use the
+>>>> cached copy instead of their code which does the query.
+>>
+>>>> Actually, why not start with this approach and later decide if we ne=
+ed
+>>>> to go further of this is enough?
+>>
+>>> Or, can we please stop this bikeshedding. Christoph's patch is done,
+>>> well tested and does a lot more clean up that this hacky three liner.=
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index c707c43..917363c 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -582,8 +582,8 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
- 						  struct ib_udata *udata)
- {
- 	struct mlx5_ib_dev *dev = to_mdev(ibdev);
--	struct mlx5_ib_alloc_ucontext_req_v2 req;
--	struct mlx5_ib_alloc_ucontext_resp resp;
-+	struct mlx5_ib_alloc_ucontext_req_v2 req = {};
-+	struct mlx5_ib_alloc_ucontext_resp resp = {};
- 	struct mlx5_ib_ucontext *context;
- 	struct mlx5_uuar_info *uuari;
- 	struct mlx5_uar *uars;
-@@ -598,20 +598,19 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
- 	if (!dev->ib_active)
- 		return ERR_PTR(-EAGAIN);
- 
--	memset(&req, 0, sizeof(req));
- 	reqlen = udata->inlen - sizeof(struct ib_uverbs_cmd_hdr);
- 	if (reqlen == sizeof(struct mlx5_ib_alloc_ucontext_req))
- 		ver = 0;
--	else if (reqlen == sizeof(struct mlx5_ib_alloc_ucontext_req_v2))
-+	else if (reqlen >= sizeof(struct mlx5_ib_alloc_ucontext_req_v2))
- 		ver = 2;
- 	else
- 		return ERR_PTR(-EINVAL);
- 
--	err = ib_copy_from_udata(&req, udata, reqlen);
-+	err = ib_copy_from_udata(&req, udata, min(reqlen, sizeof(req)));
- 	if (err)
- 		return ERR_PTR(err);
- 
--	if (req.flags || req.reserved)
-+	if (req.flags)
- 		return ERR_PTR(-EINVAL);
- 
- 	if (req.total_num_uuars > MLX5_MAX_UUARS)
-@@ -620,6 +619,14 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
- 	if (req.total_num_uuars == 0)
- 		return ERR_PTR(-EINVAL);
- 
-+	if (req.comp_mask)
-+		return ERR_PTR(-EOPNOTSUPP);
-+
-+	if (reqlen > sizeof(req) &&
-+	    !ib_is_udata_cleared(udata, sizeof(req),
-+				 udata->inlen - sizeof(req)))
-+		return ERR_PTR(-EOPNOTSUPP);
-+
- 	req.total_num_uuars = ALIGN(req.total_num_uuars,
- 				    MLX5_NON_FP_BF_REGS_PER_PAGE);
- 	if (req.num_low_latency_uuars > req.total_num_uuars - 1)
-@@ -635,6 +642,8 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
- 	resp.max_send_wqebb = 1 << MLX5_CAP_GEN(dev->mdev, log_max_qp_sz);
- 	resp.max_recv_wr = 1 << MLX5_CAP_GEN(dev->mdev, log_max_qp_sz);
- 	resp.max_srq_recv_wr = 1 << MLX5_CAP_GEN(dev->mdev, log_max_srq_sz);
-+	resp.response_length = min(offsetof(typeof(resp), response_length) +
-+				   sizeof(resp.response_length), udata->outlen);
- 
- 	context = kzalloc(sizeof(*context), GFP_KERNEL);
- 	if (!context)
-@@ -685,8 +694,20 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
- 
- 	resp.tot_uuars = req.total_num_uuars;
- 	resp.num_ports = MLX5_CAP_GEN(dev->mdev, num_ports);
--	err = ib_copy_to_udata(udata, &resp,
--			       sizeof(resp) - sizeof(resp.reserved));
-+
-+	if (field_avail(typeof(resp), reserved2, udata->outlen))
-+		resp.response_length += sizeof(resp.reserved2);
-+
-+	if (field_avail(typeof(resp), hca_core_clock_offset, udata->outlen)) {
-+		resp.comp_mask |=
-+			MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_CORE_CLOCK_OFFSET;
-+		resp.hca_core_clock_offset =
-+			offsetof(struct mlx5_init_seg, internal_timer_h) %
-+			PAGE_SIZE;
-+		resp.response_length += sizeof(resp.hca_core_clock_offset);
-+	}
-+
-+	err = ib_copy_to_udata(udata, &resp, resp.response_length);
- 	if (err)
- 		goto out_uars;
- 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 6333472..43b3c58 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -55,6 +55,9 @@ pr_err("%s:%s:%d:(pid %d): " format, (dev)->ib_dev.name, __func__,	\
- pr_warn("%s:%s:%d:(pid %d): " format, (dev)->ib_dev.name, __func__,	\
- 	__LINE__, current->pid, ##arg)
- 
-+#define field_avail(type, fld, sz) (offsetof(type, fld) +		\
-+				    sizeof(((type *)0)->fld) <= (sz))
-+
- enum {
- 	MLX5_IB_MMAP_CMD_SHIFT	= 8,
- 	MLX5_IB_MMAP_CMD_MASK	= 0xff,
-diff --git a/drivers/infiniband/hw/mlx5/user.h b/drivers/infiniband/hw/mlx5/user.h
-index 76fb7b9..e22a35f 100644
---- a/drivers/infiniband/hw/mlx5/user.h
-+++ b/drivers/infiniband/hw/mlx5/user.h
-@@ -66,7 +66,11 @@ struct mlx5_ib_alloc_ucontext_req_v2 {
- 	__u32	total_num_uuars;
- 	__u32	num_low_latency_uuars;
- 	__u32	flags;
--	__u32	reserved;
-+	__u32	comp_mask;
-+};
-+
-+enum mlx5_ib_alloc_ucontext_resp_mask {
-+	MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_CORE_CLOCK_OFFSET = 1UL << 0,
- };
- 
- struct mlx5_ib_alloc_ucontext_resp {
-@@ -80,7 +84,11 @@ struct mlx5_ib_alloc_ucontext_resp {
- 	__u32	max_recv_wr;
- 	__u32	max_srq_recv_wr;
- 	__u16	num_ports;
--	__u16	reserved;
-+	__u16	reserved1;
-+	__u32	comp_mask;
-+	__u32	response_length;
-+	__u32	reserved2;
-+	__u64	hca_core_clock_offset;
- };
- 
- struct mlx5_ib_alloc_pd_resp {
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index 0b473cb..cc74a8a 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -442,9 +442,12 @@ struct mlx5_init_seg {
- 	__be32			rsvd1[120];
- 	__be32			initializing;
- 	struct health_buffer	health;
--	__be32			rsvd2[884];
-+	__be32			rsvd2[880];
-+	__be32			internal_timer_h;
-+	__be32			internal_timer_l;
-+	__be32			rsvd3[2];
- 	__be32			health_counter;
--	__be32			rsvd3[1019];
-+	__be32			rsvd4[1019];
- 	__be64			ieee1588_clk;
- 	__be32			ieee1588_clk_type;
- 	__be32			clr_intx;
--- 
-2.1.0
+>>
+>> Christoph patch is here indeed, it does two things
+>>
+>> 1. remove all the ULP device attr alloc, device query, attr free hassl=
+e
+>> 2. adds tons of new fields to struct ib_device
+>>
+>> I think it just goes too much and needlessly adds tons of these new
+>> fields directly to struct ib_device where we can have them all well
+>> scoped into ib_device_attr member or pointer from struct ib_device
+>>
+>>> It is a good patch,
+>>
+>> I didn't say it's bad, I said I think we can achieve #1 above with way=
 
+>> less drastic patch, and I'd like to hear the maintainer option, and
+>> have the chance to argu with the maintainer if needed, yours I heard,
+>> you like it, I know.
+>=20
+> and I will be OOO for the rest of this week, since this is in the air
+> for ***months***, it would be fair enough to ask the maintainer not to
+> cut it this way or another before next week, Doug, agree?
+
+Or, you specifically asked me to wait until this week.  I made my
+initial impressions clear (I don't necessarily like the removal of the
+attr struct, but I like the removal of all of the query calls, and I'm
+inclined to take the patch in spite of not liking the removal of the
+struct).  Do you have anything to add or have we beat this horse to death=
+?
+
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--B9SW5reK0lJqAWt1xDAs4PevIwWu6GTtK
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJWcGQUAAoJELgmozMOVy/dfDkQAKVQE/CE8e+7BnD8rnT4CphR
+jbfouKMBkz/eIT3lbeNJFaL6VN6xpYuYv36I2gLy6HviTcsSBp12Gmo/pKBUcUI9
+ua93mE8frNovEi04Ys9k3Rv6JuPAi2AA32ZZYdH3jq9EeRH3QbvIxZUq505FKinY
+Mnbi3lbS7UstmNOFDChThr81+xXkOj0Z7hJ5CkWvb9mdVPCTcga0eGxF8P1KhozG
+SOgKtqqRO7vgBJmODpc4YaWoY6rrnuCXSEtpFvTNJ1HlAcC6vq2SP5ybTHm1swmu
+k+1UsCpxgu4NUSYgUfHyiFbW6PvBNonclPzdnDh9dHQwyg2EJpF9ARFvk4VyXckh
+DzIIlGKLAp1wpHuOFx/5Oe5wCYRIjfDi1dNR5q7EWeurxVUCzSpSuwHTN27jbspL
+w0hhc7CDRIARZwuolwUAVU9IS7bYCWpy+fJ5iHRkyqsIq9URA2RFcitT7N1lG2GA
+7BmD2/SWSgic6L8TApLOZRYK3P5KohfWb10CqfYnYXhH3hd3qqAA0qRd9Ft4UNq8
+h4EmhKsFJxTdUkd0UexZt+buMGIn4R8siqiNnIDpteFGO1AJqVSpzjO577CWVBf7
+T/+XqsYUbTggbcCbDofADV/Uj2hF/TYTp6DO1PtA3LqasteBSmLSOjW64k6qDPYi
+oKn+WvWAiRtJ5qqA9O1M
+=YygI
+-----END PGP SIGNATURE-----
+
+--B9SW5reK0lJqAWt1xDAs4PevIwWu6GTtK--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
