@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V2 2/5] IB/core: Add ib_is_udata_cleared
-Date: Tue, 15 Dec 2015 20:30:10 +0200
-Message-ID: <1450204213-5630-3-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next V2 5/5] IB/mlx5: Mmap the HCA's core clock register to user-space
+Date: Tue, 15 Dec 2015 20:30:13 +0200
+Message-ID: <1450204213-5630-6-git-send-email-matanb@mellanox.com>
 References: <1450204213-5630-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450204213-5630-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,60 +10,71 @@ To: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Extending core and vendor verb commands require us to check that the
-unknown part of the user's given command is all zeros.
-Adding ib_is_udata_cleared in order to do so.
+In order to read the HCA's current cycles register, we need
+to map it to user-space. Add support to map this register
+via mmap command.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/rdma/ib_verbs.h | 27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+ drivers/infiniband/hw/mlx5/main.c    | 28 ++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  4 +++-
+ 2 files changed, 31 insertions(+), 1 deletion(-)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 9a68a19..33ab4eb 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -50,6 +50,8 @@
- #include <linux/workqueue.h>
- #include <linux/socket.h>
- #include <uapi/linux/if_ether.h>
-+#include <linux/string.h>
-+#include <linux/slab.h>
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 917363c..d037a72 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -810,6 +810,34 @@ static int mlx5_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vm
+ 	case MLX5_IB_MMAP_GET_CONTIGUOUS_PAGES:
+ 		return -ENOSYS;
  
- #include <linux/atomic.h>
- #include <linux/mmu_notifier.h>
-@@ -1887,6 +1889,31 @@ static inline int ib_copy_to_udata(struct ib_udata *udata, void *src, size_t len
- 	return copy_to_user(udata->outbuf, src, len) ? -EFAULT : 0;
- }
++	case MLX5_IB_MMAP_CORE_CLOCK:
++	{
++		phys_addr_t pfn;
++
++		if (vma->vm_end - vma->vm_start != PAGE_SIZE)
++			return -EINVAL;
++
++		if (vma->vm_flags & (VM_WRITE | VM_EXEC))
++			return -EPERM;
++
++		/* Don't expose to user-space information it shouldn't have */
++		if (PAGE_SIZE > 4096)
++			return -EOPNOTSUPP;
++
++		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
++		pfn = (dev->mdev->iseg_base +
++		       offsetof(struct mlx5_init_seg, internal_timer_h)) >>
++			PAGE_SHIFT;
++		if (io_remap_pfn_range(vma, vma->vm_start, pfn,
++				       PAGE_SIZE, vma->vm_page_prot))
++			return -EAGAIN;
++
++		mlx5_ib_dbg(dev, "mapped internal timer at 0x%lx, PA 0x%llx\n",
++			    vma->vm_start,
++			    (unsigned long long)pfn << PAGE_SHIFT);
++		break;
++	}
++
+ 	default:
+ 		return -EINVAL;
+ 	}
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 43b3c58..a87f312 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -65,7 +65,9 @@ enum {
  
-+static inline bool ib_is_udata_cleared(struct ib_udata *udata,
-+				       size_t offset,
-+				       size_t len)
-+{
-+	const void __user *p = udata->inbuf + offset;
-+	bool ret = false;
-+	u8 *buf;
-+
-+	if (len > USHRT_MAX)
-+		return false;
-+
-+	buf = kmalloc(len, GFP_KERNEL);
-+	if (!buf)
-+		return false;
-+
-+	if (copy_from_user(buf, p, len))
-+		goto free;
-+
-+	ret = !memchr_inv(buf, 0, len);
-+
-+free:
-+	kfree(buf);
-+	return ret;
-+}
-+
- /**
-  * ib_modify_qp_is_ok - Check that the supplied attribute mask
-  * contains all required attributes and no attributes not allowed for
+ enum mlx5_ib_mmap_cmd {
+ 	MLX5_IB_MMAP_REGULAR_PAGE		= 0,
+-	MLX5_IB_MMAP_GET_CONTIGUOUS_PAGES	= 1, /* always last */
++	MLX5_IB_MMAP_GET_CONTIGUOUS_PAGES	= 1,
++	/* 5 is chosen in order to be compatible with old versions of libmlx5 */
++	MLX5_IB_MMAP_CORE_CLOCK			= 5,
+ };
+ 
+ enum {
 -- 
 2.1.0
 
