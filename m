@@ -1,62 +1,48 @@
-From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH RESEND] infiniband:core:Add needed error path in
- cm_init_av_by_path
-Date: Tue, 15 Dec 2015 17:38:34 +0100
-Message-ID: <5670420A.7040202@profitbricks.com>
-References: <1450194724-7107-1-git-send-email-xerofoify@gmail.com>
+From: santosh shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: device attr cleanup (was: Handle mlx4 max_sge_rd correctly)
+Date: Tue, 15 Dec 2015 08:52:34 -0800
+Message-ID: <56704552.6090503@oracle.com>
+References: <CAJ3xEMj2EOxX1CiA93MPOsM-FdU9ijcWCYm9tObbkLqqja0PoA@mail.gmail.com>
+ <566753E3.9060301@redhat.com>
+ <CAJ3xEMhaEnv9He7N5q8fFsRzy_j27wdE6KWSFF39UzA680udwA@mail.gmail.com>
+ <20151208225940.GB27609@obsidianresearch.com>
+ <20151208230244.GA10701@infradead.org>
+ <20151209005203.GD16976@phlsvsds.ph.intel.com>
+ <20151209184235.GB4522@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1450194724-7107-1-git-send-email-xerofoify-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20151209184235.GB4522-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nicholas Krause <xerofoify-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, doront-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, david.ahern-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 12/9/2015 10:42 AM, Christoph Hellwig wrote:
+> On Tue, Dec 08, 2015 at 07:52:03PM -0500, ira.weiny wrote:
+>> Searching patchworks...
+>>
+>> I'm a bit worried about the size of the patch and I would like to see it split
+>> up for review.  But I agree Christophs method is better long term.
+>
+> I'd be happy to split it up if I could see a way to split it.  So if
+> anyone has an idea you're welcome!
+>
+>> Christoph do you have this on github somewhere?  Perhaps it is split but I'm
+>> not finding in on patchworks?
+>
+> No need for github, we have much better (and older) git hosting sites :)
+>
+> http://git.infradead.org/users/hch/rdma.git/shortlog/refs/heads/ib_device_attr
 
+net/rds/ib.c                                       |  34 ++---
+net/rds/iw.c                                       |  23 +--
 
-On 12/15/2015 04:52 PM, Nicholas Krause wrote:
-> This adds a needed error path in the function, cm_init_av_by_path
-> after the call to ib_init_ah_from_path in order to avoid incorrectly
-> accessing the path pointer of structure type ib_sa_path_rec if this
-> function call fails to complete its intended work successfully by
-> returning a error code.
-> 
-> Signed-off-by: Nicholas Krause <xerofoify-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/core/cm.c | 7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-> index 0a26dd6..e9b36ea 100644
-> --- a/drivers/infiniband/core/cm.c
-> +++ b/drivers/infiniband/core/cm.c
-> @@ -383,8 +383,11 @@ static int cm_init_av_by_path(struct ib_sa_path_rec *path, struct cm_av *av)
->  		return ret;
->  
->  	av->port = port;
-> -	ib_init_ah_from_path(cm_dev->ib_device, port->port_num, path,
-> -			     &av->ah_attr);
-> +	ret = ib_init_ah_from_path(cm_dev->ib_device, port->port_num, path,
-> +				   &av->ah_attr);
+For RDS changes,
+Acked-by: Santosh Shilimlkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-..Just wondering what if the transport don't require GRH?
-eg inside the same subnet?
-
-The hop_limit is only suggest that the package allowed to be
-routed, not have to, correct?
-
-Regards,
-Michael Wang
-
-> +	if (ret)
-> +		return ret;
-> +
->  	av->timeout = path->packet_life_time + 1;
->  
->  	return 0;
-> 
+I will try and find some time to test them out. Thanks !!
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
