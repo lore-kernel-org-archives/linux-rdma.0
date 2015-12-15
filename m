@@ -1,48 +1,31 @@
-From: santosh shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: device attr cleanup (was: Handle mlx4 max_sge_rd correctly)
-Date: Tue, 15 Dec 2015 08:52:34 -0800
-Message-ID: <56704552.6090503@oracle.com>
-References: <CAJ3xEMj2EOxX1CiA93MPOsM-FdU9ijcWCYm9tObbkLqqja0PoA@mail.gmail.com>
- <566753E3.9060301@redhat.com>
- <CAJ3xEMhaEnv9He7N5q8fFsRzy_j27wdE6KWSFF39UzA680udwA@mail.gmail.com>
- <20151208225940.GB27609@obsidianresearch.com>
- <20151208230244.GA10701@infradead.org>
- <20151209005203.GD16976@phlsvsds.ph.intel.com>
- <20151209184235.GB4522@infradead.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH RESEND] infiniband:core:Add needed error path in
+ cm_init_av_by_path
+Date: Tue, 15 Dec 2015 10:30:22 -0700
+Message-ID: <20151215173022.GB25965@obsidianresearch.com>
+References: <1450194724-7107-1-git-send-email-xerofoify@gmail.com>
+ <5670420A.7040202@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151209184235.GB4522-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5670420A.7040202-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: Nicholas Krause <xerofoify-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, doront-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, david.ahern-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/9/2015 10:42 AM, Christoph Hellwig wrote:
-> On Tue, Dec 08, 2015 at 07:52:03PM -0500, ira.weiny wrote:
->> Searching patchworks...
->>
->> I'm a bit worried about the size of the patch and I would like to see it split
->> up for review.  But I agree Christophs method is better long term.
->
-> I'd be happy to split it up if I could see a way to split it.  So if
-> anyone has an idea you're welcome!
->
->> Christoph do you have this on github somewhere?  Perhaps it is split but I'm
->> not finding in on patchworks?
->
-> No need for github, we have much better (and older) git hosting sites :)
->
-> http://git.infradead.org/users/hch/rdma.git/shortlog/refs/heads/ib_device_attr
+On Tue, Dec 15, 2015 at 05:38:34PM +0100, Michael Wang wrote:
+> The hop_limit is only suggest that the package allowed to be
+> routed, not have to, correct?
 
-net/rds/ib.c                                       |  34 ++---
-net/rds/iw.c                                       |  23 +--
+If the hop limit is >= 2 (?) then the GRH is mandatory. The
+SM will return this information in the PathRecord if it determines a
+GRH is required. The whole stack follows this protocol.
 
-For RDS changes,
-Acked-by: Santosh Shilimlkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+The GRH is optional for in-subnet communications.
 
-I will try and find some time to test them out. Thanks !!
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
