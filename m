@@ -1,64 +1,132 @@
-From: Chuck Lever <chucklever-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: device attr cleanup (was: Handle mlx4 max_sge_rd correctly)
-Date: Mon, 14 Dec 2015 19:19:28 -0500
-Message-ID: <A49A6C93-74D3-40B6-926C-AEE911528F50@gmail.com>
-References: <CAJ3xEMj2EOxX1CiA93MPOsM-FdU9ijcWCYm9tObbkLqqja0PoA@mail.gmail.com> <566753E3.9060301@redhat.com> <CAJ3xEMhaEnv9He7N5q8fFsRzy_j27wdE6KWSFF39UzA680udwA@mail.gmail.com> <20151208225940.GB27609@obsidianresearch.com> <20151208230244.GA10701@infradead.org> <20151209005203.GD16976@phlsvsds.ph.intel.com> <20151209184235.GB4522@infradead.org> <20151210014556.GA32059@phlsvsds.ph.intel.com>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next V2 00/11] Add RoCE v2 support
+Date: Tue, 15 Dec 2015 09:15:56 +0200
+Message-ID: <CAG9sBKM7j6w+Gk4PXXO+0mHpFeVaBdeNmr-z9V9fPR562o+kmw@mail.gmail.com>
+References: <1449150450-13679-1-git-send-email-matanb@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151210014556.GA32059-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <1449150450-13679-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Dec 3, 2015 at 3:47 PM, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> Hi Doug,
+>
+> This series adds the support for RoCE v2. In order to support RoCE v2,
+> we add gid_type attribute to every GID. When the RoCE GID management
+> populates the GID table, it duplicates each GID with all supported types.
+> This gives the user the ability to communicate over each supported
+> type.
+>
+> Patch 0001, 0002 and 0003 add support for multiple GID types to the
+> cache and related APIs. The third patch exposes the GID attributes
+> information is sysfs.
+>
+> Patch 0004 adds the RoCE v2 GID type and the capabilities required
+> from the vendor in order to implement RoCE v2. These capabilities
+> are grouped together as RDMA_CORE_PORT_IBA_ROCE_UDP_ENCAP.
+>
+> RoCE v2 could work at IPv4 and IPv6 networks. When receiving ib_wc, this
+> information should come from the vendor's driver. In case the vendor
+> doesn't supply this information, we parse the packet headers and resolve
+> its network type. Patch 0005 adds this information and required utilities.
+>
+> Patches 0006 and 0007 adds route validation. This is mandatory to ensure
+> that we send packets using GIDS which corresponds to a net-device that
+> can be routed to the destination.
+>
+> Patches 0008 and 0009 add configfs support (and the required
+> infrastructure) for CMA. The administrator should be able to set the
+> default RoCE type. This is done through a new per-port
+> default_roce_mode configfs file.
+>
+> Patch 0010 formats a QP1 packet in order to support RoCE v2 CM
+> packets. This is required for vendors which implement their
+> QP1 as a Raw QP.
+>
+> Patch 0011 adds support for IPv4 multicast as an IPv4 network
+> requires IGMP to be sent in order to join multicast groups.
+>
+> Vendors code aren't part of this patch-set. Soft-Roce will be
+> sent soon and depends on these patches. Other vendors, like
+> mlx4, ocrdma and mlx5 will follow.
+>
+> This patch is applied on "Change per-entry locks in GID cache to table lock"
+> which was sent to the mailing list.
+>
+> Thanks,
+> Matan
+>
+> Changed from V1:
+>  - Rebased against Linux 4.4-rc2 master branch.
+>  - Add route validation
+>  - ConfigFS - avoid compiling INFINIBAND=y and CONFIGFS_FS=m
+>  - Add documentation for configfs and sysfs ABI
+>  - Remove ifindex and gid_type from mcmember
+>
+> Changes from V0:
+>  - Rebased patches against Doug's latest k.o/for-4.4 tree.
+>  - Fixed a bug in configfs (rmdir caused an incorrect free).
+>
+> Matan Barak (8):
+>   IB/core: Add gid_type to gid attribute
+>   IB/cm: Use the source GID index type
+>   IB/core: Add gid attributes to sysfs
+>   IB/core: Add ROCE_UDP_ENCAP (RoCE V2) type
+>   IB/core: Move rdma_is_upper_dev_rcu to header file
+>   IB/core: Validate route in ib_init_ah_from_wc and ib_init_ah_from_path
+>   IB/rdma_cm: Add wrapper for cma reference count
+>   IB/cma: Add configfs for rdma_cm
+>
+> Moni Shoua (2):
+>   IB/core: Initialize UD header structure with IP and UDP headers
+>   IB/cma: Join and leave multicast groups with IGMP
+>
+> Somnath Kotur (1):
+>   IB/core: Add rdma_network_type to wc
+>
+>  Documentation/ABI/testing/configfs-rdma_cm       |  22 ++
+>  Documentation/ABI/testing/sysfs-class-infiniband |  16 ++
+>  drivers/infiniband/Kconfig                       |   9 +
+>  drivers/infiniband/core/Makefile                 |   2 +
+>  drivers/infiniband/core/addr.c                   | 185 +++++++++----
+>  drivers/infiniband/core/cache.c                  | 169 ++++++++----
+>  drivers/infiniband/core/cm.c                     |  31 ++-
+>  drivers/infiniband/core/cma.c                    | 261 ++++++++++++++++--
+>  drivers/infiniband/core/cma_configfs.c           | 321 +++++++++++++++++++++++
+>  drivers/infiniband/core/core_priv.h              |  45 ++++
+>  drivers/infiniband/core/device.c                 |  10 +-
+>  drivers/infiniband/core/multicast.c              |  17 +-
+>  drivers/infiniband/core/roce_gid_mgmt.c          |  81 ++++--
+>  drivers/infiniband/core/sa_query.c               |  76 +++++-
+>  drivers/infiniband/core/sysfs.c                  | 184 ++++++++++++-
+>  drivers/infiniband/core/ud_header.c              | 155 ++++++++++-
+>  drivers/infiniband/core/uverbs_marshall.c        |   1 +
+>  drivers/infiniband/core/verbs.c                  | 170 ++++++++++--
+>  drivers/infiniband/hw/mlx4/qp.c                  |   7 +-
+>  drivers/infiniband/hw/mthca/mthca_qp.c           |   2 +-
+>  drivers/infiniband/hw/ocrdma/ocrdma_ah.c         |   2 +-
+>  include/rdma/ib_addr.h                           |  11 +-
+>  include/rdma/ib_cache.h                          |   4 +
+>  include/rdma/ib_pack.h                           |  45 +++-
+>  include/rdma/ib_sa.h                             |   3 +
+>  include/rdma/ib_verbs.h                          |  78 +++++-
+>  26 files changed, 1704 insertions(+), 203 deletions(-)
+>  create mode 100644 Documentation/ABI/testing/configfs-rdma_cm
+>  create mode 100644 Documentation/ABI/testing/sysfs-class-infiniband
+>  create mode 100644 drivers/infiniband/core/cma_configfs.c
+Doug
+What's your stand here?
+Besides the disagreement on patch #5 in the series there seems to be
+no major comments
+And regarding patch #5 I still claim that the implementation fits the
+spec and therefore is how it should be.
+How can we move on?
 
-> On Dec 9, 2015, at 8:45 PM, ira.weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> 
-> On Wed, Dec 09, 2015 at 10:42:35AM -0800, Christoph Hellwig wrote:
->> On Tue, Dec 08, 2015 at 07:52:03PM -0500, ira.weiny wrote:
->>> Searching patchworks...
->>> 
->>> I'm a bit worried about the size of the patch and I would like to see it split
->>> up for review.  But I agree Christophs method is better long term.
->> 
->> I'd be happy to split it up if I could see a way to split it.  So if
->> anyone has an idea you're welcome!
-> 
-> Well this is a ~3300 line patch which is pretty hard to review in total.
-> 
->> 
->>> Christoph do you have this on github somewhere?  Perhaps it is split but I'm
->>> not finding in on patchworks?
->> 
->> No need for github, we have much better (and older) git hosting sites :)
->> 
->> http://git.infradead.org/users/hch/rdma.git/shortlog/refs/heads/ib_device_attr
-
-Tested-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-
-With NFS/RDMA client and server.
-
-
-> Another nice side effect of this patch is to get rid of all the struct
-> ib_device_attr allocations which are littered all over the ULPs.
-> 
-> For the core, srp, ipoib, qib, hfi1 bits.  Generally the rest looks fine I just
-> did not have time to really go through it line by line.
-> 
-> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
-> Doug this is going to conflict with the rdmavt work.  So if you take this could
-> you respond on the list.
-
-
---
-Chuck Lever
-chucklever-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-
-
-
+thanks
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
