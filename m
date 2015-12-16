@@ -1,58 +1,61 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 37/37] IB/rdmavt: Add support for new memory registration API
-Date: Wed, 16 Dec 2015 09:22:25 -0500
-Message-ID: <20151216142224.GA28117@phlsvsds.ph.intel.com>
-References: <20151207204046.8144.18752.stgit@phlsvslse11.ph.intel.com> <20151207204540.8144.94303.stgit@phlsvslse11.ph.intel.com> <5669940D.4040402@dev.mellanox.co.il> <566EEBE8.8020007@dev.mellanox.co.il> <20151214171440.GC23833@phlsvsds.ph.intel.com> <5671653E.40501@dev.mellanox.co.il>
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH for-next V2 00/11] Add RoCE v2 support
+Date: Wed, 16 Dec 2015 14:18:49 +0000
+Message-ID: <HE1PR05MB1418D834EFAF9E5F387587B2B1EF0@HE1PR05MB1418.eurprd05.prod.outlook.com>
+References: <1449150450-13679-1-git-send-email-matanb@mellanox.com>
+ <CAG9sBKM7j6w+Gk4PXXO+0mHpFeVaBdeNmr-z9V9fPR562o+kmw@mail.gmail.com>
+ <567089F1.30004@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5671653E.40501-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <567089F1.30004-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 16, 2015 at 03:21:02PM +0200, Sagi Grimberg wrote:
->
->>>>This question is not directly related to this patch, but given that
->>>>this is a copy-paste from the qib driver I'll go ahead and take it
->>>>anyway. How does qib (and rvt now) do memory key invalidation? I didn't
->>>>see any reference to IB_WR_LOCAL_INV anywhere in the qib driver...
->>>>
->>>>What am I missing?
->>>
->>>ping?
->>
->>In short, it doesn't look like qib or hfi1 support this.
->
->Oh, I'm surprised to learn that. At least I see that
->qib is not exposing IB_DEVICE_MEM_MGT_EXTENSIONS. But whats
->the point in doing something with a IB_WR_REG_MR at all?
-
->Given that this is not supported anyway, why does this patch
->exist?
-
-This patch exists to provide parity for what is in qib. Should we not have 
-it?  If not, why do we have:
-
-commit 38071a461f0a ("IB/qib: Support the new memory registration API")
-
->>That doesn't mean it can't be added to rdmavt as a future enhancement
->>though if there is a need.
->
->Well, given that we're trying to consolidate on post send registration
->interface it's kind of a must I'd say.
->
->>Are you asking because soft-roce will need it?
->
->I was asking in general, but in specific soft-roce as a consumer will
->need to support that yes.
-
-I think it makes sense to revisit when soft-roce comes in, since qib/hfi do 
-not need IB_WR_LOCAL_INV.
-
--Denny
+PiBGcm9tOiBsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LXJk
+bWEtDQo+IG93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIERvdWcgTGVkZm9yZA0K
+DQo+IEluIHBhcnRpY3VsYXIsIExpcmFuIHBpcGVkIHVwIHdpdGggdGhpcyBjb21tZW50Og0KPiAN
+Cj4gIkFsc28sIEkgZG9uJ3Qgd2FudCB0byBkbyBhbnkgcm91dGUgcmVzb2x1dGlvbiBvbiB0aGUg
+UnggcGF0aC4gQSBVRCBRUA0KPiBjb21wbGV0aW9uIGp1c3QgcmVwb3J0cyB0aGUgZGV0YWlscyBv
+ZiB0aGUgcGFja2V0IGl0IHJlY2VpdmVkLg0KPiANCj4gQ29uY2VwdHVhbGx5LCBhbiBpbmNvbWlu
+ZyBwYWNrZXQgbWF5IG5vdCBldmVuIG1hdGNoIGFuIFNHSUQgaW5kZXggYXQgYWxsLg0KPiBNYXli
+ZSwgcmVzcG9uc2VzIHNob3VsZCBiZSBzZW50IGZyb20gYW5vdGhlciBkZXZpY2UuIFRoaXMgc2hv
+dWxkIG5vdCBiZQ0KPiBkZWNpZGVkIHRoYXQgdGhlIHBvaW50IHRoYXQgYSBwYWNrZXQgd2FzIHJl
+Y2VpdmVkLiINCj4gDQo+IFRoZSBwYXJ0IHRoYXQgYm90aGVycyBtZSBhYm91dCB0aGlzIGlzIHRo
+YXQgdGhpcyBzdGF0ZW1lbnQgbWFrZXMgc2Vuc2Ugd2hlbg0KPiBqdXN0IHRoaW5raW5nIGFib3V0
+IHRoZSBzcGVjLCBhcyB5b3Ugc2F5LiAgSG93ZXZlciwgb25jZSB5b3UgY29uc2lkZXINCj4gbmFt
+ZXNwYWNlcywgc2VjdXJpdHkgaW1wbGljYXRpb25zIG1ha2UgdGhpcyBzdGF0ZW1lbnQgc3BlYyBj
+b21wbGlhbnQsIGJ1dA0KPiBzdGlsbCB1bmFjY2VwdGFibGUuICBUaGUgc3BlYyBpdHNlbGYgaXMg
+c2lsZW50IG9uIG5hbWVzcGFjZXMuICBCdXQsIHlvdSBndXlzDQo+IHdhbnRlZCwgYW5kIHlvdSBn
+b3QsIG5hbWVzcGFjZSBzdXBwb3J0Lg0KPiBTaW5jZSB0aGF0J3MgYmV5b25kIHNwZWMsIGFuZCBj
+YXJyaWVzIHNlY3VyaXR5IHJlcXVpcmVtZW50cywgSSB0aGluayBpdCdzIGZhaXIgdG8NCj4gc2F5
+IHRoYXQgZnJvbSBub3cgb24sIHRoZSBMaW51eCBrZXJuZWwgUkRNQSBzdGFjayBjYW4gbm8gbG9u
+Z2VyICpqdXN0KiBiZQ0KPiBzcGVjIGNvbXBsaWFudC4gIFRoZXJlIGFyZSBhZGRpdGlvbmFsIGNv
+bmNlcm5zIHRoYXQgbXVzdCBhbHdheXMgYmUNCj4gYWRkcmVzc2VkIHdpdGggbmV3IGNoYW5nZXMs
+IGFuZCB0aG9zZSBhcmUgdGhlIG5hbWVzcGFjZSBjb25zdHJhaW50DQo+IHByZXNlcnZhdGlvbiBj
+b25jZXJucy4NCj4gDQoNCkhpIERvdWcsDQoNCkN1cnJlbnRseSwgdGhlcmUgaXMgbm8gbmFtZXNw
+YWNlIHN1cHBvcnQgZm9yIFJvQ0UsIHNvIHRoZSBSb0NFdjIgcGF0Y2hlcyBoYXZlICpub3RoaW5n
+KiB0byBkbyB3aXRoIHRoaXMuDQpUaGF0IHNhaWQsIHRoZSBSb0NFIHNwZWNpZmljYXRpb24gZG9l
+cyBub3QgY29udHJhZGljdCBvciBpbmhpYml0IGFueSBmdXR1cmUgaW1wbGVtZW50YXRpb24gZm9y
+IG5hbWVzcGFjZXMuDQpUaGUgQ01BIHdpbGwgZ2V0IHRoZSA8VkxBTiwgSVA+IGZyb20gaWJfd2Mg
+YW5kIHJlc29sdmUgdG8gYSBuZXRkZXYgKG9yIHNnaWRfaW5kZXgtPm5ldGRldiwgd2hhdGV2ZXIp
+IGFuZCBwcm9jZXNzIHRoZSByZXF1ZXN0IGFjY29yZGluZ2x5Lg0KDQpXZSBjYW4gaGF2ZSBlbmRs
+ZXNzIHRoZW9yZXRpY2FsIGRpc2N1c3Npb25zIG9uIGZlYXR1cmVzIHRoYXQgYXJlIG5vdCBldmVu
+IGltcGxlbWVudGVkIHlldCAoZS5nLiwgUm9DRSBuYW1lc3BhY2Ugc3VwcG9ydCkgZWFjaCB0aW1l
+IHdlIGFkZCBhIG1pbm9yIHN0cmFpZ2h0Zm9yd2FyZCwgKnNwZWMtY29tcGxpYW50KiBjaGFuZ2Ug
+dGhhdCAqYWxsKiBSb0NFIHZlbmRvcnMgYWRoZXJlIHRvLg0KSWYgc29tZW9uZSB3aXNoZXMgdG8g
+aW50cm9kdWNlIGEgbmV3IGNvbmNlcHQsIEFQSSByZWZhY3RvcmluZyBwcm9wb3NhbCwgb3Igc2lt
+aWxhciBmb3IgY29tbXVuaXR5IHJldmlldywgcGxlYXNlIGRvIHNvIHdpdGggYSBkaWZmZXJlbnQg
+UkZDLg0KDQpUaGlzIGlzIGhpbmRlcmluZyBwcm9ncmVzcyBvZiB0aGUgd2hvbGUgUkRNQSBzdGFj
+ayBkZXZlbG9wbWVudCENCkZvciBleGFtcGxlLCB0aGUgcG9zdGVkIFNvZnRSb0NFIHBhdGNoZXMg
+YXJlIHdhaXRpbmcganVzdCBmb3IgdGhpcy4NCg0KVGhlIFJvQ0V2MiBwYXRjaGVzIGhhdmUgYmVl
+biBwb3N0ZWQgdXBzdHJlYW0gZm9yIHJldmlldyBmb3IgbW9udGhzICghKSBub3cuDQpJIHNpbXBs
+eSBjYW5ub3QgdW5kZXJzdGFuZCB3aHkgdGhpcyBpcyBsYWdnaW5nIGZvciBzbyBsb25nOyBsZXQn
+cyBzdGFydCB0byBnZXQgdGhlIHdoZWVscyByb2xsaW5nLg0KLS1MaXJhbg0KDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
