@@ -1,61 +1,27 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH for-next V2 00/11] Add RoCE v2 support
-Date: Wed, 16 Dec 2015 14:18:49 +0000
-Message-ID: <HE1PR05MB1418D834EFAF9E5F387587B2B1EF0@HE1PR05MB1418.eurprd05.prod.outlook.com>
-References: <1449150450-13679-1-git-send-email-matanb@mellanox.com>
- <CAG9sBKM7j6w+Gk4PXXO+0mHpFeVaBdeNmr-z9V9fPR562o+kmw@mail.gmail.com>
- <567089F1.30004@redhat.com>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next V2 2/5] IB/core: Add ib_is_udata_cleared
+Date: Wed, 16 Dec 2015 16:35:55 +0200
+Message-ID: <567176CB.6020203@mellanox.com>
+References: <1450204213-5630-1-git-send-email-matanb@mellanox.com>
+ <1450204213-5630-3-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <567089F1.30004-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1450204213-5630-3-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBGcm9tOiBsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LXJk
-bWEtDQo+IG93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIERvdWcgTGVkZm9yZA0K
-DQo+IEluIHBhcnRpY3VsYXIsIExpcmFuIHBpcGVkIHVwIHdpdGggdGhpcyBjb21tZW50Og0KPiAN
-Cj4gIkFsc28sIEkgZG9uJ3Qgd2FudCB0byBkbyBhbnkgcm91dGUgcmVzb2x1dGlvbiBvbiB0aGUg
-UnggcGF0aC4gQSBVRCBRUA0KPiBjb21wbGV0aW9uIGp1c3QgcmVwb3J0cyB0aGUgZGV0YWlscyBv
-ZiB0aGUgcGFja2V0IGl0IHJlY2VpdmVkLg0KPiANCj4gQ29uY2VwdHVhbGx5LCBhbiBpbmNvbWlu
-ZyBwYWNrZXQgbWF5IG5vdCBldmVuIG1hdGNoIGFuIFNHSUQgaW5kZXggYXQgYWxsLg0KPiBNYXli
-ZSwgcmVzcG9uc2VzIHNob3VsZCBiZSBzZW50IGZyb20gYW5vdGhlciBkZXZpY2UuIFRoaXMgc2hv
-dWxkIG5vdCBiZQ0KPiBkZWNpZGVkIHRoYXQgdGhlIHBvaW50IHRoYXQgYSBwYWNrZXQgd2FzIHJl
-Y2VpdmVkLiINCj4gDQo+IFRoZSBwYXJ0IHRoYXQgYm90aGVycyBtZSBhYm91dCB0aGlzIGlzIHRo
-YXQgdGhpcyBzdGF0ZW1lbnQgbWFrZXMgc2Vuc2Ugd2hlbg0KPiBqdXN0IHRoaW5raW5nIGFib3V0
-IHRoZSBzcGVjLCBhcyB5b3Ugc2F5LiAgSG93ZXZlciwgb25jZSB5b3UgY29uc2lkZXINCj4gbmFt
-ZXNwYWNlcywgc2VjdXJpdHkgaW1wbGljYXRpb25zIG1ha2UgdGhpcyBzdGF0ZW1lbnQgc3BlYyBj
-b21wbGlhbnQsIGJ1dA0KPiBzdGlsbCB1bmFjY2VwdGFibGUuICBUaGUgc3BlYyBpdHNlbGYgaXMg
-c2lsZW50IG9uIG5hbWVzcGFjZXMuICBCdXQsIHlvdSBndXlzDQo+IHdhbnRlZCwgYW5kIHlvdSBn
-b3QsIG5hbWVzcGFjZSBzdXBwb3J0Lg0KPiBTaW5jZSB0aGF0J3MgYmV5b25kIHNwZWMsIGFuZCBj
-YXJyaWVzIHNlY3VyaXR5IHJlcXVpcmVtZW50cywgSSB0aGluayBpdCdzIGZhaXIgdG8NCj4gc2F5
-IHRoYXQgZnJvbSBub3cgb24sIHRoZSBMaW51eCBrZXJuZWwgUkRNQSBzdGFjayBjYW4gbm8gbG9u
-Z2VyICpqdXN0KiBiZQ0KPiBzcGVjIGNvbXBsaWFudC4gIFRoZXJlIGFyZSBhZGRpdGlvbmFsIGNv
-bmNlcm5zIHRoYXQgbXVzdCBhbHdheXMgYmUNCj4gYWRkcmVzc2VkIHdpdGggbmV3IGNoYW5nZXMs
-IGFuZCB0aG9zZSBhcmUgdGhlIG5hbWVzcGFjZSBjb25zdHJhaW50DQo+IHByZXNlcnZhdGlvbiBj
-b25jZXJucy4NCj4gDQoNCkhpIERvdWcsDQoNCkN1cnJlbnRseSwgdGhlcmUgaXMgbm8gbmFtZXNw
-YWNlIHN1cHBvcnQgZm9yIFJvQ0UsIHNvIHRoZSBSb0NFdjIgcGF0Y2hlcyBoYXZlICpub3RoaW5n
-KiB0byBkbyB3aXRoIHRoaXMuDQpUaGF0IHNhaWQsIHRoZSBSb0NFIHNwZWNpZmljYXRpb24gZG9l
-cyBub3QgY29udHJhZGljdCBvciBpbmhpYml0IGFueSBmdXR1cmUgaW1wbGVtZW50YXRpb24gZm9y
-IG5hbWVzcGFjZXMuDQpUaGUgQ01BIHdpbGwgZ2V0IHRoZSA8VkxBTiwgSVA+IGZyb20gaWJfd2Mg
-YW5kIHJlc29sdmUgdG8gYSBuZXRkZXYgKG9yIHNnaWRfaW5kZXgtPm5ldGRldiwgd2hhdGV2ZXIp
-IGFuZCBwcm9jZXNzIHRoZSByZXF1ZXN0IGFjY29yZGluZ2x5Lg0KDQpXZSBjYW4gaGF2ZSBlbmRs
-ZXNzIHRoZW9yZXRpY2FsIGRpc2N1c3Npb25zIG9uIGZlYXR1cmVzIHRoYXQgYXJlIG5vdCBldmVu
-IGltcGxlbWVudGVkIHlldCAoZS5nLiwgUm9DRSBuYW1lc3BhY2Ugc3VwcG9ydCkgZWFjaCB0aW1l
-IHdlIGFkZCBhIG1pbm9yIHN0cmFpZ2h0Zm9yd2FyZCwgKnNwZWMtY29tcGxpYW50KiBjaGFuZ2Ug
-dGhhdCAqYWxsKiBSb0NFIHZlbmRvcnMgYWRoZXJlIHRvLg0KSWYgc29tZW9uZSB3aXNoZXMgdG8g
-aW50cm9kdWNlIGEgbmV3IGNvbmNlcHQsIEFQSSByZWZhY3RvcmluZyBwcm9wb3NhbCwgb3Igc2lt
-aWxhciBmb3IgY29tbXVuaXR5IHJldmlldywgcGxlYXNlIGRvIHNvIHdpdGggYSBkaWZmZXJlbnQg
-UkZDLg0KDQpUaGlzIGlzIGhpbmRlcmluZyBwcm9ncmVzcyBvZiB0aGUgd2hvbGUgUkRNQSBzdGFj
-ayBkZXZlbG9wbWVudCENCkZvciBleGFtcGxlLCB0aGUgcG9zdGVkIFNvZnRSb0NFIHBhdGNoZXMg
-YXJlIHdhaXRpbmcganVzdCBmb3IgdGhpcy4NCg0KVGhlIFJvQ0V2MiBwYXRjaGVzIGhhdmUgYmVl
-biBwb3N0ZWQgdXBzdHJlYW0gZm9yIHJldmlldyBmb3IgbW9udGhzICghKSBub3cuDQpJIHNpbXBs
-eSBjYW5ub3QgdW5kZXJzdGFuZCB3aHkgdGhpcyBpcyBsYWdnaW5nIGZvciBzbyBsb25nOyBsZXQn
-cyBzdGFydCB0byBnZXQgdGhlIHdoZWVscyByb2xsaW5nLg0KLS1MaXJhbg0KDQo=
+On 15/12/2015 20:30, Matan Barak wrote:
+> Extending core and vendor verb commands require us to check that the
+> unknown part of the user's given command is all zeros.
+> Adding ib_is_udata_cleared in order to do so.
+> 
+> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
