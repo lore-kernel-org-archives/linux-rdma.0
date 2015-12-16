@@ -1,64 +1,41 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH RESEND] infiniband:core:Add needed error path in
- cm_init_av_by_path
-Date: Wed, 16 Dec 2015 11:16:44 -0700
-Message-ID: <20151216181644.GF32594@obsidianresearch.com>
-References: <1450194724-7107-1-git-send-email-xerofoify@gmail.com>
- <5670420A.7040202@profitbricks.com>
- <20151215173022.GB25965@obsidianresearch.com>
- <56713C5F.5020507@profitbricks.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] svc_rdma: use local_dma_lkey
+Date: Wed, 16 Dec 2015 11:49:33 -0700
+Message-ID: <20151216184933.GA11846@obsidianresearch.com>
+References: <1450278664-2133-1-git-send-email-hch@lst.de>
+ <1450278664-2133-2-git-send-email-hch@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <56713C5F.5020507@profitbricks.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Michael Wang <yun.wang@profitbricks.com>
-Cc: Nicholas Krause <xerofoify@gmail.com>, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, haggaie@mellanox.com, matanb@mellanox.com, doront@mellanox.com, david.ahern@oracle.com, erezsh@mellanox.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <1450278664-2133-2-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 16, 2015 at 11:26:39AM +0100, Michael Wang wrote:
+On Wed, Dec 16, 2015 at 04:11:04PM +0100, Christoph Hellwig wrote:
+> We now alwasy have a per-PD local_dma_lkey available.  Make use of that
+> fact in svc_rdma and stop registering our own MR.
 > 
-> On 12/15/2015 06:30 PM, Jason Gunthorpe wrote:
-> > On Tue, Dec 15, 2015 at 05:38:34PM +0100, Michael Wang wrote:
-> >> The hop_limit is only suggest that the package allowed to be
-> >> routed, not have to, correct?
-> > 
-> > If the hop limit is >= 2 (?) then the GRH is mandatory. The
-> > SM will return this information in the PathRecord if it determines a
-> > GRH is required. The whole stack follows this protocol.
-> > 
-> > The GRH is optional for in-subnet communications.
-> 
-> Thanks for the explain :-)
-> 
-> I've rechecked the ib_init_ah_from_path() again, and found it
-> still set IB_AH_GRH when the GID cache missing, but with:
+> Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 
-How do you mean?
+Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
-                ah_attr->ah_flags = IB_AH_GRH;
-                ah_attr->grh.dgid = rec->dgid;
+> +++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+> @@ -144,6 +144,7 @@ int rdma_read_chunk_lcl(struct svcxprt_rdma *xprt,
+>  
+>  		head->arg.pages[pg_no] = rqstp->rq_arg.pages[pg_no];
+>  		head->arg.page_len += len;
+> +
+>  		head->arg.len += len;
+>  		if (!pg_off)
+>  			head->count++;
 
-                ret = ib_find_cached_gid(device, &rec->sgid, ndev, &port_num,
-                                         &gid_index);
-                if (ret) {
-                        if (ndev)
-                                dev_put(ndev);
-                        return ret;
-                }
-
-If find_cached_gid fails then ib_init_ah_from_path also fails.
-
-Is there a case where ib_find_cached_gid can succeed but not return
-good data?
-
-I agree it would read nicer if the ah_flags and gr.dgid was moved
-after the ib_find_cached_gid
-
-> BTW, cma_sidr_rep_handler() also call ib_init_ah_from_path() with out
-> a check on return.
-
-That sounds like a problem.
+Was this hunk deliberate?
 
 Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
