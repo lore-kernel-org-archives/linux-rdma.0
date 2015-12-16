@@ -1,41 +1,106 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: device attr cleanup
-Date: Wed, 16 Dec 2015 15:40:03 +0200
-Message-ID: <567169B3.4040908@dev.mellanox.co.il>
-References: <CAJ3xEMj2EOxX1CiA93MPOsM-FdU9ijcWCYm9tObbkLqqja0PoA@mail.gmail.com>
- <566753E3.9060301@redhat.com>
- <CAJ3xEMhaEnv9He7N5q8fFsRzy_j27wdE6KWSFF39UzA680udwA@mail.gmail.com>
- <20151208225940.GB27609@obsidianresearch.com>
- <CAJ3xEMiEYgsxiL6zR-Dia3Rxwriye1WHcadTmUjU7zV=ide1LA@mail.gmail.com>
- <CAJ3xEMgQNMtxgTKC0zaKgy-WGugf6KwT7Ys5h3_RbN_7qd2=tg@mail.gmail.com>
- <56706414.8010807@redhat.com> <5670FC5E.8070405@mellanox.com>
+From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 09/11] SUNRPC: Introduce xprt_commit_rqst()
+Date: Wed, 16 Dec 2015 08:48:36 -0500
+Message-ID: <56716BB4.8080500@Netapp.com>
+References: <20151214211317.16295.70115.stgit@manet.1015granger.net>
+ <20151214211915.16295.30339.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5670FC5E.8070405-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151214211915.16295.30339.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Chuck,
 
+Sorry for the last minute comment.
 
-> Hi Doug,
->
-> Lets stop beating, both horses and people.
->
-> I do understand that
->
-> 1. you don't link the removal of the attr
-> 2. you do like the removal of all the query calls
->
-> I am proposing to take the path of a patch that
-> does exactly #2 while avoiding #1.
+On 12/14/2015 04:19 PM, Chuck Lever wrote:
+> I'm about to add code in the RPC/RDMA reply handler between the
+> xprt_lookup_rqst() and xprt_complete_rqst() call site that needs
+> to execute outside of spinlock critical sections.
+> 
+> Add a hook to remove an rpc_rqst from the pending list once
+> the transport knows its going to invoke xprt_complete_rqst().
+> 
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  include/linux/sunrpc/xprt.h    |    1 +
+>  net/sunrpc/xprt.c              |   14 ++++++++++++++
+>  net/sunrpc/xprtrdma/rpc_rdma.c |    4 ++++
+>  3 files changed, 19 insertions(+)
+> 
+> diff --git a/include/linux/sunrpc/xprt.h b/include/linux/sunrpc/xprt.h
+> index 69ef5b3..ab6c3a5 100644
+> --- a/include/linux/sunrpc/xprt.h
+> +++ b/include/linux/sunrpc/xprt.h
+> @@ -366,6 +366,7 @@ void			xprt_wait_for_buffer_space(struct rpc_task *task, rpc_action action);
+>  void			xprt_write_space(struct rpc_xprt *xprt);
+>  void			xprt_adjust_cwnd(struct rpc_xprt *xprt, struct rpc_task *task, int result);
+>  struct rpc_rqst *	xprt_lookup_rqst(struct rpc_xprt *xprt, __be32 xid);
+> +void			xprt_commit_rqst(struct rpc_task *task);
+>  void			xprt_complete_rqst(struct rpc_task *task, int copied);
+>  void			xprt_release_rqst_cong(struct rpc_task *task);
+>  void			xprt_disconnect_done(struct rpc_xprt *xprt);
+> diff --git a/net/sunrpc/xprt.c b/net/sunrpc/xprt.c
+> index 2e98f4a..a5be4ab 100644
+> --- a/net/sunrpc/xprt.c
+> +++ b/net/sunrpc/xprt.c
+> @@ -837,6 +837,20 @@ static void xprt_update_rtt(struct rpc_task *task)
+>  }
+>  
+>  /**
+> + * xprt_commit_rqst - remove rqst from pending list early
+> + * @task: RPC request to remove
+> + *
+> + * Caller holds transport lock.
+> + */
+> +void xprt_commit_rqst(struct rpc_task *task)
+> +{
+> +	struct rpc_rqst *req = task->tk_rqstp;
+> +
+> +	list_del_init(&req->rq_list);
+> +}
+> +EXPORT_SYMBOL_GPL(xprt_commit_rqst);
 
-I really don't have a strong preference on either of the approaches. I
-just want to see this included one way or the other.
+Can you move this function into the xprtrdma code, since it's not called outside of there?
+
+Thanks,
+Anna
+
+> +
+> +/**
+>   * xprt_complete_rqst - called when reply processing is complete
+>   * @task: RPC request that recently completed
+>   * @copied: actual number of bytes received from the transport
+> diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
+> index c10d969..0bc8c39 100644
+> --- a/net/sunrpc/xprtrdma/rpc_rdma.c
+> +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+> @@ -804,6 +804,9 @@ rpcrdma_reply_handler(struct rpcrdma_rep *rep)
+>  	if (req->rl_reply)
+>  		goto out_duplicate;
+>  
+> +	xprt_commit_rqst(rqst->rq_task);
+> +	spin_unlock_bh(&xprt->transport_lock);
+> +
+>  	dprintk("RPC:       %s: reply 0x%p completes request 0x%p\n"
+>  		"                   RPC request 0x%p xid 0x%08x\n",
+>  			__func__, rep, req, rqst,
+> @@ -894,6 +897,7 @@ badheader:
+>  	else if (credits > r_xprt->rx_buf.rb_max_requests)
+>  		credits = r_xprt->rx_buf.rb_max_requests;
+>  
+> +	spin_lock_bh(&xprt->transport_lock);
+>  	cwnd = xprt->cwnd;
+>  	xprt->cwnd = credits << RPC_CWNDSHIFT;
+>  	if (xprt->cwnd > cwnd)
+> 
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
