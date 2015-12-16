@@ -1,58 +1,104 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH for-next V2 00/11] Add RoCE v2 support
-Date: Wed, 16 Dec 2015 09:57:02 +0000
-Message-ID: <HE1PR05MB14188FDA12D077BA2720C84BB1EF0@HE1PR05MB1418.eurprd05.prod.outlook.com>
-References: <1449150450-13679-1-git-send-email-matanb@mellanox.com>
- <CAG9sBKM7j6w+Gk4PXXO+0mHpFeVaBdeNmr-z9V9fPR562o+kmw@mail.gmail.com>
- <567089F1.30004@redhat.com> <20151215220033.GB30404@obsidianresearch.com>
+From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Subject: Re: [PATCH v4 00/11] NFS/RDMA server patches for v4.5
+Date: Wed, 16 Dec 2015 17:40:09 +0530
+Message-ID: <CANjDDBjypu0jX22fZ-Nf-bNNeam2MM0MADaZY9C-o9ihJPiseg@mail.gmail.com>
+References: <20151214211951.12932.99017.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151215220033.GB30404-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151214211951.12932.99017.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+iozone passed on ocrdma device. Link bounce fails to recover iozone
+traffic, however failure is not related to this patch series. I am in
+processes of finding out the patch which broke it.
 
-> > Since you and Jason did not reach a consensus, I have to dig in and
-> > see if these patches make it possible to break namespace confinement,
-> > either accidentally or with intentionally tricky behavior.  That's
-> > going to take me some time.
-> 
-> Everything to do with parsing a wc and constructing an AH is wrong in this
-> series, and the fixes require the API changes I mentioned ( add 'wc to gid
-> index' API call, add 'route to AH' API call)
-> 
-> Every time you read 'route validation' - that is an error, the route should
-> never just be validated, it is needed information to construct a rocev2 AH. All
-> the places that roughly hand parse the rocev2 WC should not be open coded.
-> 
-> Even if current HW is broken for namespaces we should not enshrine that in
-> the kapi.
+Tested-By: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+
+On Tue, Dec 15, 2015 at 3:00 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> Here are patches to support server-side bi-directional RPC/RDMA
+> operation (to enable NFSv4.1 on RPC/RDMA transports). Thanks to
+> all who reviewed v1, v2, and v3. This version has some significant
+> changes since the previous one.
 >
-
-Currently, namespaces are not supported for RoCE.
-So for this patches, this is irrelevant.
-That said, we have everything we need for RoCE namespace support when we get there.
-
-All of this has nothing to do with "broken" and enshrining anything in the kapi.
-That's just bullshit.
-
-The crux of the discussion is the meaning of the API.
-The design of the RDMA stack is that Verbs are used by core IB services, such as addressing.
-For these services, as the specification requires, all relevant fields must be reported in the CQE, period.
-All spec-compliant HW devices follow this.
-
-If a ULP wants to create an address handle from a completion, there are service routines to accomplish that, based on the reported fields.
-If it doesn't care, there is no reason to sacrifice performance.
-
---Liran
-
+> In preparation for Doug's final topic branch, Bruce, I've rebased
+> these on Christoph's ib_device_attr branch. There were some merge
+> conflicts which I've fixed and tested. These are ready for your
+> review.
+>
+> Also available in the "nfsd-rdma-for-4.5" topic branch of this git repo:
+>
+> git://git.linux-nfs.org/projects/cel/cel-2.6.git
+>
+> Or for browsing:
+>
+> http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-for-4.5
+>
+>
+> Changes since v3:
+> - Rebased on Christoph's ib_device_attr branch
+> - Backchannel patches have been squashed together
+> - Memory allocation overhaul to prevent blocking allocation
+>   when sending backchannel calls
+>
+>
+> Changes since v2:
+> - Rebased on v4.4-rc4
+> - Backchannel code in new source file to address dprintk issues
+> - svc_rdma_get_context() now uses a pre-allocated cache
+> - Dropped svc_rdma_send clean up
+>
+>
+> Changes since v1:
+>
+> - Rebased on v4.4-rc3
+> - Removed the use of CONFIG_SUNRPC_BACKCHANNEL
+> - Fixed computation of forward and backward max_requests
+> - Updated some comments and patch descriptions
+> - pr_err and pr_info converted to dprintk
+> - Simplified svc_rdma_get_context()
+> - Dropped patch removing access_flags field
+> - NFSv4.1 callbacks tested with for-4.5 client
+>
+> ---
+>
+> Chuck Lever (11):
+>       svcrdma: Do not send XDR roundup bytes for a write chunk
+>       svcrdma: Clean up rdma_create_xprt()
+>       svcrdma: Clean up process_context()
+>       svcrdma: Improve allocation of struct svc_rdma_op_ctxt
+>       svcrdma: Improve allocation of struct svc_rdma_req_map
+>       svcrdma: Remove unused req_map and ctxt kmem_caches
+>       svcrdma: Add gfp flags to svc_rdma_post_recv()
+>       svcrdma: Remove last two __GFP_NOFAIL call sites
+>       svcrdma: Make map_xdr non-static
+>       svcrdma: Define maximum number of backchannel requests
+>       svcrdma: Add class for RDMA backwards direction transport
+>
+>
+>  include/linux/sunrpc/svc_rdma.h            |   37 ++-
+>  net/sunrpc/xprt.c                          |    1
+>  net/sunrpc/xprtrdma/Makefile               |    2
+>  net/sunrpc/xprtrdma/svc_rdma.c             |   41 ---
+>  net/sunrpc/xprtrdma/svc_rdma_backchannel.c |  371 ++++++++++++++++++++++++++++
+>  net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |   52 ++++
+>  net/sunrpc/xprtrdma/svc_rdma_sendto.c      |   34 ++-
+>  net/sunrpc/xprtrdma/svc_rdma_transport.c   |  284 ++++++++++++++++-----
+>  net/sunrpc/xprtrdma/transport.c            |   30 +-
+>  net/sunrpc/xprtrdma/xprt_rdma.h            |   20 +-
+>  10 files changed, 730 insertions(+), 142 deletions(-)
+>  create mode 100644 net/sunrpc/xprtrdma/svc_rdma_backchannel.c
+>
+> --
+> Signature
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
