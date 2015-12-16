@@ -1,125 +1,62 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 3/3] IB core: Display 64 bit counters from the extended
- set
-Date: Wed, 16 Dec 2015 11:44:13 -0500
-Message-ID: <567194DD.9020103@redhat.com>
-References: <20151211182532.332343651@linux.com>
- <20151211182543.329283794@linux.com>
- <20151211235630.GG7855@phlsvsds.ph.intel.com>
- <20151212000047.GA9961@obsidianresearch.com>
- <566EEE69.5080906@dev.mellanox.co.il>
- <alpine.DEB.2.20.1512151351050.3509@east.gentwo.org>
- <20151215195554.GA28167@obsidianresearch.com>
- <5670717F.9090701@dev.mellanox.co.il>
- <20151215212035.GD28167@obsidianresearch.com>
- <56708961.1040505@dev.mellanox.co.il> <56708A19.8030403@redhat.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH for-next V2 00/11] Add RoCE v2 support
+Date: Wed, 16 Dec 2015 11:02:19 -0700
+Message-ID: <20151216180219.GD32594@obsidianresearch.com>
+References: <1449150450-13679-1-git-send-email-matanb@mellanox.com>
+ <CAG9sBKM7j6w+Gk4PXXO+0mHpFeVaBdeNmr-z9V9fPR562o+kmw@mail.gmail.com>
+ <567089F1.30004@redhat.com>
+ <20151215220033.GB30404@obsidianresearch.com>
+ <HE1PR05MB14188FDA12D077BA2720C84BB1EF0@HE1PR05MB1418.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="wMLTPGA0Fla8hTBKP1lL9xjXOEhRW1AOC"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56708A19.8030403-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <HE1PR05MB14188FDA12D077BA2720C84BB1EF0-eBadYZ65MZ87O8BmmlM1zNqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---wMLTPGA0Fla8hTBKP1lL9xjXOEhRW1AOC
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On Wed, Dec 16, 2015 at 09:57:02AM +0000, Liran Liss wrote:
+> Currently, namespaces are not supported for RoCE.
 
-On 12/15/2015 04:46 PM, Doug Ledford wrote:
-> On 12/15/2015 04:42 PM, Hal Rosenstock wrote:
->> On 12/15/2015 4:20 PM, Jason Gunthorpe wrote:
->>>> The unicast/multicast extended counters are not always supported -
->>>>> depends on setting of PerfMgt ClassPortInfo
->>>>> CapabilityMask.IsExtendedWidthSupportedNoIETF (bit 10).
->>
->>> Yes.. certainly this proposed patch needs to account for that and
->>> continue to use the 32 bit ones in that case.
->>
->> There are no 32 bit equivalents of those 4 "IETF" counters ([uni
->> multi]cast [xmit rcv] pkts).
->>
->> When not supported, perhaps it is best not to populate these counters =
-in
->> sysfs so one can discern between counter not supported and 0 value.
->>
->> I'm still working on definitive mthca answer but think the attribute i=
-s
->> not supported there. Does anyone out there have an mthca setup where
->> they can try this ?
->=20
-> Yes.
->=20
->=20
+IMHO, we should not be accepting rocev2 without at least basic
+namespace support too, since it is fairly trivial to do based on the
+work that is already done for verbs. An obvious missing piece is the
+'wc to gid index' API I keep asking for.
 
-=46rom my mthca machine:
+> That said, we have everything we need for RoCE namespace support when we get there.
 
-[root@rdma-dev-04 ~]$ lspci | grep Mellanox
-01:00.0 InfiniBand: Mellanox Technologies MT25208 InfiniHost III Ex
-(Tavor compatibility mode) (rev 20)
-[root@rdma-dev-04 ~]$ perfquery
-# Port counters: Lid 36 port 1 (CapMask: 0x00)
-PortSelect:......................1
-CounterSelect:...................0x0000
-SymbolErrorCounter:..............0
-LinkErrorRecoveryCounter:........0
-LinkDownedCounter:...............0
-PortRcvErrors:...................0
-PortRcvRemotePhysicalErrors:.....0
-PortRcvSwitchRelayErrors:........0
-PortXmitDiscards:................0
-PortXmitConstraintErrors:........0
-PortRcvConstraintErrors:.........0
-CounterSelect2:..................0x00
-LocalLinkIntegrityErrors:........0
-ExcessiveBufferOverrunErrors:....0
-VL15Dropped:.....................1
-PortXmitData:....................2470620192
-PortRcvData:.....................2401094563
-PortXmitPkts:....................6363544
-PortRcvPkts:.....................6321251
-[root@rdma-dev-04 ~]$ perfquery -x
-ibwarn: [29831] dump_perfcounters: PerfMgt ClassPortInfo 0x0; No
-extended counter support indicated
+Then there is no problem with the 'wc to gid index' stuff, so stop
+complaining about it.
 
-perfquery: iberror: failed: perfextquery
+> All of this has nothing to do with "broken" and enshrining anything in the kapi.
+> That's just bullshit.
 
-So, no extended counters on this device.
+No, it is a critique of the bad kAPI choices in this patch that mean
+it broadly doesn't use namespaces, net devices or IP routing
+correctly.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+> The design of the RDMA stack is that Verbs are used by core IB
+> services, such as addressing.  For these services, as the
+> specification requires, all relevant fields must be reported in the
+> CQE, period.  All spec-compliant HW devices follow this.
 
+Wrong, the kapi needs to meet the needs of the kernel, and is
+influenced but not set by the various standards.
 
+That means we get to make better choices in the kapi than exposing
+wc.network_type.
 
---wMLTPGA0Fla8hTBKP1lL9xjXOEhRW1AOC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+> If a ULP wants to create an address handle from a completion, there
+> are service routines to accomplish that, based on the reported
+> fields.  If it doesn't care, there is no reason to sacrifice
+> performance.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+I have no idea why you think there would be a performance sacrifice,
+maybe you should review the patches and my remarks again.
 
-iQIcBAEBCAAGBQJWcZTdAAoJELgmozMOVy/ddEEP/3u2HMbuBjUFUyR2hTqcSX+f
-ARxMPLks8R/IooQLRG1gHZcmOCwmSUrZzpdhJN/8Kwa8oWA1P/s37ZagjUpv+2QE
-c65RHWHET9AmMNVMdrJ4dkOSOkXlv7AIfqjpoYsYeAhmrebQJ8yXQbJ5QZV9V1iL
-Biw6hVXi6aoPi4HsSUI09qBteyK7Ze8WGSfKk+hijs4zMR7xuRMdHE82DwrwpxnT
-ZfR1yRa5jJdksTp1mEByu61gwjs98jF7XJxVD7OlJ790MjFmoUk4cFTHGoCI1/EQ
-PweXq7XFe6YIoF0miiHagirEWsmS1rszBbiaOxvQLhfUwUB+/L3whEYqnTPoe+nE
-m0KJ6xY5gCgBKlRnfhGUEPD4v19BCyHomos/ezzdhqBpB77ZoXOQw5KhyLUJ2mHN
-bkjm3MgwILsQTbzgD76YYWOGLorBkuMacNZaK11d26+wh8JV6x8T08jg5reOQGle
-/Nzs76Jp1x/dVHZkr17Ka0Qj6kflKhWEcl+8VxwXe7JFV7Z/W8zI7Lyyw5n92Mut
-YOOLdLKF/cxcYfw1bduNnigpRPlYBGXELILSoxjDI+8in5C5rxOMhuvP2gQif+RC
-jIF/rJiUt42u/09h3DjDknxMva3DgMEcXf/MwS9dxiFynEzWIRGXs7FQMpaUJfAj
-v6fzXF6D7ywa4DN9jVD5
-=Nu2L
------END PGP SIGNATURE-----
-
---wMLTPGA0Fla8hTBKP1lL9xjXOEhRW1AOC--
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
