@@ -1,139 +1,103 @@
-From: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org (J. Bruce Fields)
-Subject: Re: warning in ext4 with nfs/rdma server
-Date: Wed, 16 Dec 2015 16:06:35 -0500
-Message-ID: <20151216210635.GF5491@fieldses.org>
-References: <005001d13105$58a486f0$09ed94d0$@opengridcomputing.com>
- <88B98264-A00A-4957-963E-F672E7F6DBBC@oracle.com>
- <004001d131bc$ce9fd910$6bdf8b30$@opengridcomputing.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH for-next V2 00/11] Add RoCE v2 support
+Date: Wed, 16 Dec 2015 14:25:11 -0700
+Message-ID: <20151216212511.GA14301@obsidianresearch.com>
+References: <1449150450-13679-1-git-send-email-matanb@mellanox.com>
+ <CAG9sBKM7j6w+Gk4PXXO+0mHpFeVaBdeNmr-z9V9fPR562o+kmw@mail.gmail.com>
+ <567089F1.30004@redhat.com>
+ <CAG9sBKNa4Hd0WVqhZCLeqXjc2zE2h+dBwF6zVgGT0R_Gt1FEwA@mail.gmail.com>
+ <5671CBF4.4060602@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <004001d131bc$ce9fd910$6bdf8b30$@opengridcomputing.com>
+In-Reply-To: <5671CBF4.4060602-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "'Veeresh U. Kokatnur'" <veereshuk-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, 'Linux NFS Mailing List' <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 08, 2015 at 07:31:56AM -0600, Steve Wise wrote:
+On Wed, Dec 16, 2015 at 03:39:16PM -0500, Doug Ledford wrote:
+
+> These patches add the concept of duplicate GIDs that are differentiated
+> by their RoCE version (also called network type).
+
+and by vlan, and smac, and ... Basically everything network unique about
+a namespace has to be encapsulted in the gid index now. Each namespace
+thus has a subset of gid indexes that are valid for it to use for
+outbound and to recieve packets on.
+
+roce didn't really have a way to work with net namespaces, AFAIK (?)
+so it gets a pass.
+
+But rocev2 very clearly does. It needs needs to address the issue
+outlined in commit b8cab5dab15ff5c2acc3faefdde28919b0341c11 (IB/cma:
+Accept connection without a valid netdev on RoCE)
+
+That means cma.c needs to get the gid index every single CMA packet it
+processes and confirm that the associated net device is permitted to
+talk to the matching CM ID. 
+
+It is no mistake there is a hole in cma.c waiting for this code, when
+Haggai did that work it was very clear in my mind that rocev2 would
+need to slot into here as well.
+
+> Jason's objections are this:
 > 
-> 
-> > -----Original Message-----
-> > From: Chuck Lever [mailto:chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org]
-> > Sent: Monday, December 07, 2015 9:45 AM
-> > To: Steve Wise
-> > Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Veeresh U. Kokatnur; Linux NFS Mailing List
-> > Subject: Re: warning in ext4 with nfs/rdma server
-> > 
-> > Hi Steve-
-> > 
-> > > On Dec 7, 2015, at 10:38 AM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
-> > >
-> > > Hey Chuck/NFS developers,
-> > >
-> > > We're hitting this warning in ext4 on the linux-4.3 nfs server running over RDMA/cxgb4.  We're still gathering data, like if it
-> > > happens with NFS/TCP.  But has anyone seen this warning on 4.3?  Is it likely to indicate some bug in the xprtrdma transport or
-> > > above it in NFS?
-> > 
-> > Yes, please confirm with NFS/TCP. Thanks!
-> >
-> 
-> The same thing happens with NFS/TCP, so this isn't related to xprtrdma.
->  
-> > 
-> > > We can hit this running cthon tests over 2 mount points:
-> > >
-> > > -------------
-> > > #!/bin/bash
-> > > rm -rf /root/cthon04/loop_iter.txt
-> > > while [ 1 ]
-> > > do
-> > > {
-> > >
-> > > ./server -s -m /mnt/share1 -o rdma,port=20049,vers=4 -p /mnt/share1 -N 100
-> > > 102.1.1.162 &
-> > > ./server -s -m /mnt/share2 -o rdma,port=20049,vers=3,rsize=65535,wsize=65535 -p
-> > > /mnt/share2 -N 100 102.2.2.162 &
-> > > wait
-> > > echo "iteration $i" >>/root/cthon04/loop_iter.txt
-> > > date >>/root/cthon04/loop_iter.txt
-> > > }
-> > > done
-> > > --------------
-> > >
-> > > Thanks,
-> > >
-> > > Steve.
-> > >
-> > > ------------[ cut here ]------------
-> > > WARNING: CPU: 14 PID: 6689 at fs/ext4/inode.c:231 ext4_evict_inode+0x41e/0x490
+> 1)  The lazy resolution is wrong.
 
-Looks like this is the
+Wrong in the sense it doesn't actually exist in a usable form
+anyplace.
 
-	WARN_ON(atomic_read(&EXT4_I(inode)->i_ioend_count));
+cma.c does not do it, and absoultely must as discussed above.
 
-in ext4_evice_inode?  Ext4 developers, any idea how that could happen?
+init_ah_from_wc needs to do it, and maybe does. It is hard to tell,
+perhaps a 'rdma_wc_to_dgid_index()' is actually open coded in there
+now. Just from a code readability perspective that is ugly.
 
---b.
+Then we get into the missing route handling in all places that
+construct a rocev2 AH...
 
+> Jason's preference would be that the above issues be resolved by
+> skipping the lazy resolution and instead doing proactive resolution
+> on
 
-> > > [ext4]()
-> > > Modules linked in: nfsd(E) lockd(E) grace(E) nfs_acl(E) exportfs(E)
-> > > auth_rpcgss(E) rpcrdma(E) sunrpc(E) rdma_ucm(E) ib_uverbs(E) rdma_cm(E)
-> > > ib_cm(E) ib_sa(E) ib_mad(E) iw_cxgb4(E) iw_cm(E) ib_core(E) ib_addr(E) cxgb4(E)
-> > > autofs4(E) target_core_iblock(E) target_core_file(E) target_core_pscsi(E)
-> > > target_core_mod(E) configfs(E) bnx2fc(E) cnic(E) uio(E) fcoe(E) libfcoe(E)
-> > > 8021q(E) libfc(E) garp(E) stp(E) llc(E) cpufreq_ondemand(E) cachefiles(E)
-> > > fscache(E) ipv6(E) dm_mirror(E) dm_region_hash(E) dm_log(E) vhost_net(E)
-> > > macvtap(E) macvlan(E) vhost(E) tun(E) kvm(E) uinput(E) microcode(E) sg(E)
-> > > pcspkr(E) serio_raw(E) fam15h_power(E) k10temp(E) amd64_edac_mod(E)
-> > > edac_core(E) edac_mce_amd(E) i2c_piix4(E) igb(E) dca(E) i2c_algo_bit(E)
-> > > i2c_core(E) ptp(E) pps_core(E) scsi_transport_fc(E) acpi_cpufreq(E) dm_mod(E)
-> > > ext4(E) jbd2(E) mbcache(E) sr_mod(E) cdrom(E) sd_mod(E) ahci(E) libahci(E)
-> > > [last unloaded: cxgb4]
-> > > CPU: 14 PID: 6689 Comm: nfsd Tainted: G            E   4.3.0 #1
-> > > Hardware name: Supermicro H8QGL/H8QGL, BIOS 3.5        12/19/2013
-> > > 00000000000000e7 ffff88400634fad8 ffffffff812a4084 ffffffffa00c96eb
-> > > 0000000000000000 ffff88400634fb18 ffffffff81059fd5 ffff88400634fbd8
-> > > ffff880fd1a460c8 ffff880fd1a461d8 ffff880fd1a46008 ffff88400634fbd8
-> > > Call Trace:
-> > > [<ffffffff812a4084>] dump_stack+0x48/0x64
-> > > [<ffffffff81059fd5>] warn_slowpath_common+0x95/0xe0
-> > > [<ffffffff8105a03a>] warn_slowpath_null+0x1a/0x20
-> > > [<ffffffffa007dd6e>] ext4_evict_inode+0x41e/0x490 [ext4]
-> > > [<ffffffff811bcaae>] evict+0xae/0x1a0
-> > > [<ffffffff811bcd45>] iput_final+0xe5/0x170
-> > > [<ffffffff811bce73>] iput+0xa3/0xf0
-> > > [<ffffffff811e14a4>] ? fsnotify_destroy_marks+0x64/0x80
-> > > [<ffffffff811bafc9>] dentry_unlink_inode+0xa9/0xe0
-> > > [<ffffffff811bb0a6>] d_delete+0xa6/0xb0
-> > > [<ffffffff811b3308>] vfs_unlink+0x138/0x140
-> > > [<ffffffffa0717835>] nfsd_unlink+0x165/0x200 [nfsd]
-> > > [<ffffffffa071aa7c>] ? lru_put_end+0x5c/0x70 [nfsd]
-> > > [<ffffffffa071e323>] nfsd3_proc_remove+0x83/0x120 [nfsd]
-> > > [<ffffffffa07105ec>] nfsd_dispatch+0xdc/0x210 [nfsd]
-> > > [<ffffffffa021c931>] svc_process_common+0x311/0x620 [sunrpc]
-> > > [<ffffffffa0710bf0>] ? nfsd_set_nrthreads+0x1b0/0x1b0 [nfsd]
-> > > [<ffffffffa021d078>] svc_process+0x128/0x1b0 [sunrpc]
-> > > [<ffffffffa0710ce3>] nfsd+0xf3/0x160 [nfsd]
-> > > [<ffffffff8107770c>] kthread+0xcc/0xf0
-> > > [<ffffffff8108282e>] ? schedule_tail+0x1e/0xc0
-> > > [<ffffffff81077640>] ? kthread_freezable_should_stop+0x70/0x70
-> > > [<ffffffff815d44ef>] ret_from_fork+0x3f/0x70
-> > > [<ffffffff81077640>] ? kthread_freezable_should_stop+0x70/0x70
-> > > ---[ end trace 39afe9aeef2cfb34 ]---
-> > > ------------[ cut here ]------------
-> > 
-> > --
-> > Chuck Lever
-> > 
-> > 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I am happy with lazy resolution, that is a fine compromise.
+
+I just want to see kapi that makes sense here. It is very clear to me
+no kernel user can possibly correctly touch a rocev2 UD packet without
+retrieving the gid index, so we must have a kAPI for this.
+
+> namespace.  Or, at a minimum, at least make the information added to the
+> core API not something vendor specific like network_type, which is a
+> detail of the Mellanox implementation.
+
+I keep suggesting a rdma_wc_to_dgid_index() API call.
+
+Perhasp most of he code for this already seems to exist in
+init_ah_from_wc.
+
+> 1 - Actually, for any received packet with associated IP address
+> information.  We've only enabled net namespaces for IP connections
+> between user space applications, for direct IB connections or for kernel
+> connections there is not yet any namespace support.
+
+IHMO, this is actually a problem for rocev2.
+
+IB needs more work to create a rdma namespace, but rocve2 does not.
+
+The kernel software side should certainly be completed as a quick
+follow on to this series, that means the use of gid_indexes at all
+uAPI access points needs to be checked for rocev2.
+
+HW support is needed to complete rocve2 containment, as the hw must
+check the gid_index on all directly posted WCs and *ALL* rx'd packets
+for a QP to ensure it is allowed.
+
+Some kind of warn on until that support is available would also be
+great.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
