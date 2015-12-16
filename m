@@ -1,59 +1,67 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next V2 00/11] Add RoCE v2 support
-Date: Tue, 15 Dec 2015 15:00:33 -0700
-Message-ID: <20151215220033.GB30404@obsidianresearch.com>
-References: <1449150450-13679-1-git-send-email-matanb@mellanox.com>
- <CAG9sBKM7j6w+Gk4PXXO+0mHpFeVaBdeNmr-z9V9fPR562o+kmw@mail.gmail.com>
- <567089F1.30004@redhat.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: device attr cleanup
+Date: Wed, 16 Dec 2015 07:53:34 +0200
+Message-ID: <5670FC5E.8070405@mellanox.com>
+References: <CAJ3xEMj2EOxX1CiA93MPOsM-FdU9ijcWCYm9tObbkLqqja0PoA@mail.gmail.com>
+ <566753E3.9060301@redhat.com>
+ <CAJ3xEMhaEnv9He7N5q8fFsRzy_j27wdE6KWSFF39UzA680udwA@mail.gmail.com>
+ <20151208225940.GB27609@obsidianresearch.com>
+ <CAJ3xEMiEYgsxiL6zR-Dia3Rxwriye1WHcadTmUjU7zV=ide1LA@mail.gmail.com>
+ <CAJ3xEMgQNMtxgTKC0zaKgy-WGugf6KwT7Ys5h3_RbN_7qd2=tg@mail.gmail.com>
+ <56706414.8010807@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <567089F1.30004-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <56706414.8010807-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 15, 2015 at 04:45:21PM -0500, Doug Ledford wrote:
+On 12/15/2015 9:03 PM, Doug Ledford wrote:
+>
+> Or, you specifically asked me to wait until this week.  I made my
+> initial impressions clear (I don't necessarily like the removal of the
+> attr struct, but I like the removal of all of the query calls, and I'm
+> inclined to take the patch in spite of not liking the removal of the
+> struct).  Do you have anything to add or have we beat this horse to death?
 
-> In particular, Liran piped up with this comment:
-> 
-> "Also, I don't want to do any route resolution on the Rx path. A UD QP
-> completion just reports the details of the packet it received.
-> 
-> Conceptually, an incoming packet may not even match an SGID index at
-> all.  Maybe, responses should be sent from another device. This should
-> not be decided that the point that a packet was received."
-> 
-> The part that bothers me about this is that this statement makes sense
-> when just thinking about the spec, as you say.  However, once you
-> consider namespaces, security implications make this statement spec
-> compliant, but still unacceptable.
+Hi Doug,
 
-This is where I got to and decided there is no desire to make a
-correct patch for this stuff.
+Lets stop beating, both horses and people.
 
-You are completely correct in your comments above.
+I do understand that
 
-> Since you and Jason did not reach a consensus, I have to dig in and see
-> if these patches make it possible to break namespace confinement, either
-> accidentally or with intentionally tricky behavior.  That's going to
-> take me some time.
+1. you don't link the removal of the attr
+2. you do like the removal of all the query calls
 
-Everything to do with parsing a wc and constructing an AH is wrong in
-this series, and the fixes require the API changes I mentioned ( add
-'wc to gid index' API call, add 'route to AH' API call)
+I am proposing to take the path of a patch that
+does exactly #2 while avoiding #1.
 
-Every time you read 'route validation' - that is an error, the route
-should never just be validated, it is needed information to construct
-a rocev2 AH. All the places that roughly hand parse the rocev2 WC
-should not be open coded.
+What's wrong with that? I haven't heard any reasoning for why its
+so good to stash ~50 new fields on the IB device structure except
+for the author saying that other subsystems do that and other people
+saying they are in favor of this approach while not providing any
+reasoning, except for maybe something on bikes.
 
-Even if current HW is broken for namespaces we should not enshrine that
-in the kapi.
+Why you or anyone else has to be from now and ever the cache line police
+making sure that people don't add new attributes in random locations
+over the IB device structure?
 
-Jason
+What's wrong with putting fifty attributesin a structure which is a field
+of the device struct and have people go there to see what are the d
+ifferentattrs and add news ones there?
+
+This will make the 4.5 merge window extremely complex or even totally
+threatened  w.r.t to the RDMA subsystem and related drivers by 3.3K LOC 
+patch.
+
+Sorry, but, I still don't get it.
+
+Or.
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
