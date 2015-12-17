@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next 2/6] IB/core: Avoid calling ib_query_device when possible
-Date: Thu, 17 Dec 2015 15:18:56 +0200
-Message-ID: <1450358340-19361-3-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH rdma-next 5/6] xprtrdma: Avoid calling ib_query_device
+Date: Thu, 17 Dec 2015 15:18:59 +0200
+Message-ID: <1450358340-19361-6-git-send-email-ogerlitz@mellanox.com>
 References: <1450358340-19361-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450358340-19361-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -16,226 +16,259 @@ Based on a patch from Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/cm.c         | 12 +-----------
- drivers/infiniband/core/cma.c        |  8 --------
- drivers/infiniband/core/fmr_pool.c   | 20 ++------------------
- drivers/infiniband/core/sysfs.c      | 14 ++++----------
- drivers/infiniband/core/uverbs_cmd.c | 23 ++++-------------------
- drivers/infiniband/core/verbs.c      |  8 +-------
- 6 files changed, 12 insertions(+), 73 deletions(-)
+ net/sunrpc/xprtrdma/frwr_ops.c           |  7 ++---
+ net/sunrpc/xprtrdma/svc_rdma_transport.c | 48 +++++++++++++-------------------
+ net/sunrpc/xprtrdma/verbs.c              | 24 ++++++----------
+ net/sunrpc/xprtrdma/xprt_rdma.h          |  1 -
+ 4 files changed, 30 insertions(+), 50 deletions(-)
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 0a26dd6..7fa2b94 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -3731,16 +3731,6 @@ int ib_cm_init_qp_attr(struct ib_cm_id *cm_id,
- }
- EXPORT_SYMBOL(ib_cm_init_qp_attr);
- 
--static void cm_get_ack_delay(struct cm_device *cm_dev)
--{
--	struct ib_device_attr attr;
--
--	if (ib_query_device(cm_dev->ib_device, &attr))
--		cm_dev->ack_delay = 0; /* acks will rely on packet life time */
--	else
--		cm_dev->ack_delay = attr.local_ca_ack_delay;
--}
--
- static ssize_t cm_show_counter(struct kobject *obj, struct attribute *attr,
- 			       char *buf)
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index 88cf9e7..8d4864f 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -190,12 +190,11 @@ static int
+ frwr_op_open(struct rpcrdma_ia *ia, struct rpcrdma_ep *ep,
+ 	     struct rpcrdma_create_data_internal *cdata)
  {
-@@ -3852,7 +3842,7 @@ static void cm_add_one(struct ib_device *ib_device)
- 		return;
+-	struct ib_device_attr *devattr = &ia->ri_devattr;
+ 	int depth, delta;
  
- 	cm_dev->ib_device = ib_device;
--	cm_get_ack_delay(cm_dev);
-+	cm_dev->ack_delay = ib_device->attrs.local_ca_ack_delay;
- 	cm_dev->going_down = 0;
- 	cm_dev->device = device_create(&cm_class, &ib_device->dev,
- 				       MKDEV(0, 0), NULL,
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index d2d5d00..f8dfc63 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -1894,7 +1894,6 @@ static int iw_conn_req_handler(struct iw_cm_id *cm_id,
- 	struct rdma_id_private *listen_id, *conn_id;
- 	struct rdma_cm_event event;
- 	int ret;
--	struct ib_device_attr attr;
- 	struct sockaddr *laddr = (struct sockaddr *)&iw_event->local_addr;
- 	struct sockaddr *raddr = (struct sockaddr *)&iw_event->remote_addr;
+ 	ia->ri_max_frmr_depth =
+ 			min_t(unsigned int, RPCRDMA_MAX_DATA_SEGS,
+-			      devattr->max_fast_reg_page_list_len);
++			      ia->ri_device->attrs.max_fast_reg_page_list_len);
+ 	dprintk("RPC:       %s: device's max FR page list len = %u\n",
+ 		__func__, ia->ri_max_frmr_depth);
  
-@@ -1936,13 +1935,6 @@ static int iw_conn_req_handler(struct iw_cm_id *cm_id,
- 	memcpy(cma_src_addr(conn_id), laddr, rdma_addr_size(laddr));
- 	memcpy(cma_dst_addr(conn_id), raddr, rdma_addr_size(raddr));
- 
--	ret = ib_query_device(conn_id->id.device, &attr);
--	if (ret) {
--		mutex_unlock(&conn_id->handler_mutex);
--		rdma_destroy_id(new_cm_id);
--		goto out;
--	}
--
- 	memset(&event, 0, sizeof event);
- 	event.event = RDMA_CM_EVENT_CONNECT_REQUEST;
- 	event.param.conn.private_data = iw_event->private_data;
-diff --git a/drivers/infiniband/core/fmr_pool.c b/drivers/infiniband/core/fmr_pool.c
-index 9f5ad7c..6ac3683 100644
---- a/drivers/infiniband/core/fmr_pool.c
-+++ b/drivers/infiniband/core/fmr_pool.c
-@@ -212,7 +212,6 @@ struct ib_fmr_pool *ib_create_fmr_pool(struct ib_pd             *pd,
- {
- 	struct ib_device   *device;
- 	struct ib_fmr_pool *pool;
--	struct ib_device_attr *attr;
- 	int i;
- 	int ret;
- 	int max_remaps;
-@@ -228,25 +227,10 @@ struct ib_fmr_pool *ib_create_fmr_pool(struct ib_pd             *pd,
- 		return ERR_PTR(-ENOSYS);
+@@ -222,8 +221,8 @@ frwr_op_open(struct rpcrdma_ia *ia, struct rpcrdma_ep *ep,
  	}
  
--	attr = kmalloc(sizeof *attr, GFP_KERNEL);
--	if (!attr) {
--		printk(KERN_WARNING PFX "couldn't allocate device attr struct\n");
--		return ERR_PTR(-ENOMEM);
--	}
--
--	ret = ib_query_device(device, attr);
--	if (ret) {
--		printk(KERN_WARNING PFX "couldn't query device: %d\n", ret);
--		kfree(attr);
--		return ERR_PTR(ret);
--	}
--
--	if (!attr->max_map_per_fmr)
-+	if (!device->attrs.max_map_per_fmr)
- 		max_remaps = IB_FMR_MAX_REMAPS;
- 	else
--		max_remaps = attr->max_map_per_fmr;
--
--	kfree(attr);
-+		max_remaps = device->attrs.max_map_per_fmr;
- 
- 	pool = kmalloc(sizeof *pool, GFP_KERNEL);
- 	if (!pool) {
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index b1f37d4..1d5b4b0 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -614,18 +614,12 @@ static ssize_t show_sys_image_guid(struct device *device,
- 				   struct device_attribute *dev_attr, char *buf)
- {
- 	struct ib_device *dev = container_of(device, struct ib_device, dev);
--	struct ib_device_attr attr;
--	ssize_t ret;
--
--	ret = ib_query_device(dev, &attr);
--	if (ret)
--		return ret;
- 
- 	return sprintf(buf, "%04x:%04x:%04x:%04x\n",
--		       be16_to_cpu(((__be16 *) &attr.sys_image_guid)[0]),
--		       be16_to_cpu(((__be16 *) &attr.sys_image_guid)[1]),
--		       be16_to_cpu(((__be16 *) &attr.sys_image_guid)[2]),
--		       be16_to_cpu(((__be16 *) &attr.sys_image_guid)[3]));
-+		       be16_to_cpu(((__be16 *) &dev->attrs.sys_image_guid)[0]),
-+		       be16_to_cpu(((__be16 *) &dev->attrs.sys_image_guid)[1]),
-+		       be16_to_cpu(((__be16 *) &dev->attrs.sys_image_guid)[2]),
-+		       be16_to_cpu(((__be16 *) &dev->attrs.sys_image_guid)[3]));
- }
- 
- static ssize_t show_node_guid(struct device *device,
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index e358fa1..cb21af7 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -291,9 +291,6 @@ ssize_t ib_uverbs_get_context(struct ib_uverbs_file *file,
- 	struct ib_uverbs_get_context      cmd;
- 	struct ib_uverbs_get_context_resp resp;
- 	struct ib_udata                   udata;
--#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
--	struct ib_device_attr		  dev_attr;
--#endif
- 	struct ib_ucontext		 *ucontext;
- 	struct file			 *filp;
- 	int ret;
-@@ -342,10 +339,7 @@ ssize_t ib_uverbs_get_context(struct ib_uverbs_file *file,
- 	ucontext->odp_mrs_count = 0;
- 	INIT_LIST_HEAD(&ucontext->no_private_counters);
- 
--	ret = ib_query_device(ib_dev, &dev_attr);
--	if (ret)
--		goto err_free;
--	if (!(dev_attr.device_cap_flags & IB_DEVICE_ON_DEMAND_PAGING))
-+	if (!(ib_dev->attrs.device_cap_flags & IB_DEVICE_ON_DEMAND_PAGING))
- 		ucontext->invalidate_range = NULL;
- 
- #endif
-@@ -447,8 +441,6 @@ ssize_t ib_uverbs_query_device(struct ib_uverbs_file *file,
- {
- 	struct ib_uverbs_query_device      cmd;
- 	struct ib_uverbs_query_device_resp resp;
--	struct ib_device_attr              attr;
--	int                                ret;
- 
- 	if (out_len < sizeof resp)
- 		return -ENOSPC;
-@@ -456,12 +448,8 @@ ssize_t ib_uverbs_query_device(struct ib_uverbs_file *file,
- 	if (copy_from_user(&cmd, buf, sizeof cmd))
- 		return -EFAULT;
- 
--	ret = ib_query_device(ib_dev, &attr);
--	if (ret)
--		return ret;
--
- 	memset(&resp, 0, sizeof resp);
--	copy_query_dev_fields(file, ib_dev, &resp, &attr);
-+	copy_query_dev_fields(file, ib_dev, &resp, &ib_dev->attrs);
- 
- 	if (copy_to_user((void __user *) (unsigned long) cmd.response,
- 			 &resp, sizeof resp))
-@@ -986,11 +974,8 @@ ssize_t ib_uverbs_reg_mr(struct ib_uverbs_file *file,
- 	}
- 
- 	if (cmd.access_flags & IB_ACCESS_ON_DEMAND) {
--		struct ib_device_attr attr;
--
--		ret = ib_query_device(pd->device, &attr);
--		if (ret || !(attr.device_cap_flags &
--				IB_DEVICE_ON_DEMAND_PAGING)) {
-+		if (!(pd->device->attrs.device_cap_flags &
-+		      IB_DEVICE_ON_DEMAND_PAGING)) {
- 			pr_debug("ODP support not available\n");
- 			ret = -EINVAL;
- 			goto err_put;
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 545906d..7617d94 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -229,12 +229,6 @@ EXPORT_SYMBOL(rdma_port_get_link_layer);
- struct ib_pd *ib_alloc_pd(struct ib_device *device)
- {
- 	struct ib_pd *pd;
+ 	ep->rep_attr.cap.max_send_wr *= depth;
+-	if (ep->rep_attr.cap.max_send_wr > devattr->max_qp_wr) {
+-		cdata->max_requests = devattr->max_qp_wr / depth;
++	if (ep->rep_attr.cap.max_send_wr > ia->ri_device->attrs.max_qp_wr) {
++		cdata->max_requests = ia->ri_device->attrs.max_qp_wr / depth;
+ 		if (!cdata->max_requests)
+ 			return -EINVAL;
+ 		ep->rep_attr.cap.max_send_wr = cdata->max_requests *
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index b348b4a..4d695af 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -886,10 +886,10 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 	struct rdma_conn_param conn_param;
+ 	struct ib_cq_init_attr cq_attr = {};
+ 	struct ib_qp_init_attr qp_attr;
 -	struct ib_device_attr devattr;
--	int rc;
++	struct ib_device *dev;
+ 	int uninitialized_var(dma_mr_acc);
+ 	int need_dma_mr = 0;
+-	int ret;
++	int ret = 0;
+ 	int i;
+ 
+ 	listen_rdma = container_of(xprt, struct svcxprt_rdma, sc_xprt);
+@@ -910,20 +910,15 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 	dprintk("svcrdma: newxprt from accept queue = %p, cm_id=%p\n",
+ 		newxprt, newxprt->sc_cm_id);
+ 
+-	ret = ib_query_device(newxprt->sc_cm_id->device, &devattr);
+-	if (ret) {
+-		dprintk("svcrdma: could not query device attributes on "
+-			"device %p, rc=%d\n", newxprt->sc_cm_id->device, ret);
+-		goto errout;
+-	}
++	dev = newxprt->sc_cm_id->device;
+ 
+ 	/* Qualify the transport resource defaults with the
+ 	 * capabilities of this particular device */
+-	newxprt->sc_max_sge = min((size_t)devattr.max_sge,
++	newxprt->sc_max_sge = min((size_t)dev->attrs.max_sge,
+ 				  (size_t)RPCSVC_MAXPAGES);
+-	newxprt->sc_max_sge_rd = min_t(size_t, devattr.max_sge_rd,
++	newxprt->sc_max_sge_rd = min_t(size_t, dev->attrs.max_sge_rd,
+ 				       RPCSVC_MAXPAGES);
+-	newxprt->sc_max_requests = min((size_t)devattr.max_qp_wr,
++	newxprt->sc_max_requests = min((size_t)dev->attrs.max_qp_wr,
+ 				   (size_t)svcrdma_max_requests);
+ 	newxprt->sc_sq_depth = RPCRDMA_SQ_DEPTH_MULT * newxprt->sc_max_requests;
+ 
+@@ -931,16 +926,16 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 	 * Limit ORD based on client limit, local device limit, and
+ 	 * configured svcrdma limit.
+ 	 */
+-	newxprt->sc_ord = min_t(size_t, devattr.max_qp_rd_atom, newxprt->sc_ord);
++	newxprt->sc_ord = min_t(size_t, dev->attrs.max_qp_rd_atom, newxprt->sc_ord);
+ 	newxprt->sc_ord = min_t(size_t,	svcrdma_ord, newxprt->sc_ord);
+ 
+-	newxprt->sc_pd = ib_alloc_pd(newxprt->sc_cm_id->device);
++	newxprt->sc_pd = ib_alloc_pd(dev);
+ 	if (IS_ERR(newxprt->sc_pd)) {
+ 		dprintk("svcrdma: error creating PD for connect request\n");
+ 		goto errout;
+ 	}
+ 	cq_attr.cqe = newxprt->sc_sq_depth;
+-	newxprt->sc_sq_cq = ib_create_cq(newxprt->sc_cm_id->device,
++	newxprt->sc_sq_cq = ib_create_cq(dev,
+ 					 sq_comp_handler,
+ 					 cq_event_handler,
+ 					 newxprt,
+@@ -950,7 +945,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 		goto errout;
+ 	}
+ 	cq_attr.cqe = newxprt->sc_max_requests;
+-	newxprt->sc_rq_cq = ib_create_cq(newxprt->sc_cm_id->device,
++	newxprt->sc_rq_cq = ib_create_cq(dev,
+ 					 rq_comp_handler,
+ 					 cq_event_handler,
+ 					 newxprt,
+@@ -978,7 +973,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 		"    cap.max_send_sge = %d\n"
+ 		"    cap.max_recv_sge = %d\n",
+ 		newxprt->sc_cm_id, newxprt->sc_pd,
+-		newxprt->sc_cm_id->device, newxprt->sc_pd->device,
++		dev, newxprt->sc_pd->device,
+ 		qp_attr.cap.max_send_wr,
+ 		qp_attr.cap.max_recv_wr,
+ 		qp_attr.cap.max_send_sge,
+@@ -1014,9 +1009,9 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 	 *	of an RDMA_READ. IB does not.
+ 	 */
+ 	newxprt->sc_reader = rdma_read_chunk_lcl;
+-	if (devattr.device_cap_flags & IB_DEVICE_MEM_MGT_EXTENSIONS) {
++	if (dev->attrs.device_cap_flags & IB_DEVICE_MEM_MGT_EXTENSIONS) {
+ 		newxprt->sc_frmr_pg_list_len =
+-			devattr.max_fast_reg_page_list_len;
++			dev->attrs.max_fast_reg_page_list_len;
+ 		newxprt->sc_dev_caps |= SVCRDMA_DEVCAP_FAST_REG;
+ 		newxprt->sc_reader = rdma_read_chunk_frmr;
+ 	}
+@@ -1024,24 +1019,20 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 	/*
+ 	 * Determine if a DMA MR is required and if so, what privs are required
+ 	 */
+-	if (!rdma_protocol_iwarp(newxprt->sc_cm_id->device,
+-				 newxprt->sc_cm_id->port_num) &&
+-	    !rdma_ib_or_roce(newxprt->sc_cm_id->device,
+-			     newxprt->sc_cm_id->port_num))
++	if (!rdma_protocol_iwarp(dev, newxprt->sc_cm_id->port_num) &&
++	    !rdma_ib_or_roce(dev, newxprt->sc_cm_id->port_num))
+ 		goto errout;
+ 
+ 	if (!(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG) ||
+-	    !(devattr.device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)) {
++	    !(dev->attrs.device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)) {
+ 		need_dma_mr = 1;
+ 		dma_mr_acc = IB_ACCESS_LOCAL_WRITE;
+-		if (rdma_protocol_iwarp(newxprt->sc_cm_id->device,
+-					newxprt->sc_cm_id->port_num) &&
++		if (rdma_protocol_iwarp(dev, newxprt->sc_cm_id->port_num) &&
+ 		    !(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG))
+ 			dma_mr_acc |= IB_ACCESS_REMOTE_WRITE;
+ 	}
+ 
+-	if (rdma_protocol_iwarp(newxprt->sc_cm_id->device,
+-				newxprt->sc_cm_id->port_num))
++	if (rdma_protocol_iwarp(dev, newxprt->sc_cm_id->port_num))
+ 		newxprt->sc_dev_caps |= SVCRDMA_DEVCAP_READ_W_INV;
+ 
+ 	/* Create the DMA MR if needed, otherwise, use the DMA LKEY */
+@@ -1056,8 +1047,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 		}
+ 		newxprt->sc_dma_lkey = newxprt->sc_phys_mr->lkey;
+ 	} else
+-		newxprt->sc_dma_lkey =
+-			newxprt->sc_cm_id->device->local_dma_lkey;
++		newxprt->sc_dma_lkey = dev->local_dma_lkey;
+ 
+ 	/* Post receive buffers */
+ 	for (i = 0; i < newxprt->sc_max_requests; i++) {
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index eadd1655..aa9b444 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -462,7 +462,6 @@ int
+ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr, int memreg)
+ {
+ 	struct rpcrdma_ia *ia = &xprt->rx_ia;
+-	struct ib_device_attr *devattr = &ia->ri_devattr;
+ 	int rc;
+ 
+ 	ia->ri_dma_mr = NULL;
+@@ -482,16 +481,10 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr, int memreg)
+ 		goto out2;
+ 	}
+ 
+-	rc = ib_query_device(ia->ri_device, devattr);
+-	if (rc) {
+-		dprintk("RPC:       %s: ib_query_device failed %d\n",
+-			__func__, rc);
+-		goto out3;
+-	}
 -
--	rc = ib_query_device(device, &devattr);
--	if (rc)
--		return ERR_PTR(rc);
+ 	if (memreg == RPCRDMA_FRMR) {
+-		if (!(devattr->device_cap_flags & IB_DEVICE_MEM_MGT_EXTENSIONS) ||
+-		    (devattr->max_fast_reg_page_list_len == 0)) {
++		if (!(ia->ri_device->attrs.device_cap_flags &
++				IB_DEVICE_MEM_MGT_EXTENSIONS) ||
++		    (ia->ri_device->attrs.max_fast_reg_page_list_len == 0)) {
+ 			dprintk("RPC:       %s: FRMR registration "
+ 				"not supported by HCA\n", __func__);
+ 			memreg = RPCRDMA_MTHCAFMR;
+@@ -566,24 +559,23 @@ int
+ rpcrdma_ep_create(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia,
+ 				struct rpcrdma_create_data_internal *cdata)
+ {
+-	struct ib_device_attr *devattr = &ia->ri_devattr;
+ 	struct ib_cq *sendcq, *recvcq;
+ 	struct ib_cq_init_attr cq_attr = {};
+ 	unsigned int max_qp_wr;
+ 	int rc, err;
  
- 	pd = device->alloc_pd(device, NULL, NULL);
- 	if (IS_ERR(pd))
-@@ -245,7 +239,7 @@ struct ib_pd *ib_alloc_pd(struct ib_device *device)
- 	pd->local_mr = NULL;
- 	atomic_set(&pd->usecnt, 0);
+-	if (devattr->max_sge < RPCRDMA_MAX_IOVS) {
++	if (ia->ri_device->attrs.max_sge < RPCRDMA_MAX_IOVS) {
+ 		dprintk("RPC:       %s: insufficient sge's available\n",
+ 			__func__);
+ 		return -ENOMEM;
+ 	}
  
--	if (devattr.device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)
-+	if (device->attrs.device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)
- 		pd->local_dma_lkey = device->local_dma_lkey;
- 	else {
- 		struct ib_mr *mr;
+-	if (devattr->max_qp_wr <= RPCRDMA_BACKWARD_WRS) {
++	if (ia->ri_device->attrs.max_qp_wr <= RPCRDMA_BACKWARD_WRS) {
+ 		dprintk("RPC:       %s: insufficient wqe's available\n",
+ 			__func__);
+ 		return -ENOMEM;
+ 	}
+-	max_qp_wr = devattr->max_qp_wr - RPCRDMA_BACKWARD_WRS;
++	max_qp_wr = ia->ri_device->attrs.max_qp_wr - RPCRDMA_BACKWARD_WRS;
+ 
+ 	/* check provider's send/recv wr limits */
+ 	if (cdata->max_requests > max_qp_wr)
+@@ -670,11 +662,11 @@ rpcrdma_ep_create(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia,
+ 
+ 	/* Client offers RDMA Read but does not initiate */
+ 	ep->rep_remote_cma.initiator_depth = 0;
+-	if (devattr->max_qp_rd_atom > 32)	/* arbitrary but <= 255 */
++	if (ia->ri_device->attrs.max_qp_rd_atom > 32)	/* arbitrary but <= 255 */
+ 		ep->rep_remote_cma.responder_resources = 32;
+ 	else
+ 		ep->rep_remote_cma.responder_resources =
+-						devattr->max_qp_rd_atom;
++						ia->ri_device->attrs.max_qp_rd_atom;
+ 
+ 	ep->rep_remote_cma.retry_count = 7;
+ 	ep->rep_remote_cma.flow_control = 0;
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index ac7f8d4..4197191 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -68,7 +68,6 @@ struct rpcrdma_ia {
+ 	struct completion	ri_done;
+ 	int			ri_async_rc;
+ 	unsigned int		ri_max_frmr_depth;
+-	struct ib_device_attr	ri_devattr;
+ 	struct ib_qp_attr	ri_qp_attr;
+ 	struct ib_qp_init_attr	ri_qp_init_attr;
+ };
 -- 
 2.3.7
 
