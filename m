@@ -1,70 +1,23 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: [PATCH 2/2] IB/mlx4: Convert kmalloc to be kmalloc_array to fix checkpatch warnings
-Date: Thu, 17 Dec 2015 09:31:53 +0200
-Message-ID: <1450337513-22609-2-git-send-email-leon@leon.nu>
-References: <1450337513-22609-1-git-send-email-leon@leon.nu>
+From: Michael-FRN3bSZE4v/5NTPwaLTJmkNGhIIjRCmT@public.gmane.org,
+	"J.Tynan <f.digeronimo"@federconsumatori.abruzzo.it
+Subject: Review & Reply
+Date: Thu, 17 Dec 2015 07:55:35 +0700
+Message-ID: <20151217005626.8CD1589D5DDB__33573.9539158114$1450341367$gmane$org@mail.microamerica.com.pe>
+Reply-To: michaeljtynan8-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1450337513-22609-1-git-send-email-leon-2ukJVAZIZ/Y@public.gmane.org>
+Content-Description: Mail message body
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Recipients <f.digeronimo-OEd0YSEqKZmNIHX6aw5/uifbKdxUEgilNRkNT7W+5VM@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-Convert kmalloc to be kmalloc_array to fix warnings below:
-
-WARNING: Prefer kmalloc_array over kmalloc with multiply
-+               qp->sq.wrid = kmalloc(qp->sq.wqe_cnt * sizeof(u64),
-
-WARNING: Prefer kmalloc_array over kmalloc with multiply
-+               qp->rq.wrid = kmalloc(qp->rq.wqe_cnt * sizeof(u64),
-
-WARNING: Prefer kmalloc_array over kmalloc with multiply
-+               srq->wrid = kmalloc(srq->msrq.max * sizeof(u64),
-
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/qp.c  | 4 ++--
- drivers/infiniband/hw/mlx4/srq.c | 2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index dc86975fe1a9..70de13ed9da7 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -796,12 +796,12 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
- 		if (err)
- 			goto err_mtt;
- 
--		qp->sq.wrid = kmalloc(qp->sq.wqe_cnt * sizeof(u64),
-+		qp->sq.wrid = kmalloc_array(qp->sq.wqe_cnt, sizeof(u64),
- 					gfp | __GFP_NOWARN);
- 		if (!qp->sq.wrid)
- 			qp->sq.wrid = __vmalloc(qp->sq.wqe_cnt * sizeof(u64),
- 						gfp, PAGE_KERNEL);
--		qp->rq.wrid = kmalloc(qp->rq.wqe_cnt * sizeof(u64),
-+		qp->rq.wrid = kmalloc_array(qp->rq.wqe_cnt, sizeof(u64),
- 					gfp | __GFP_NOWARN);
- 		if (!qp->rq.wrid)
- 			qp->rq.wrid = __vmalloc(qp->rq.wqe_cnt * sizeof(u64),
-diff --git a/drivers/infiniband/hw/mlx4/srq.c b/drivers/infiniband/hw/mlx4/srq.c
-index f416c7463827..68d5a5fda271 100644
---- a/drivers/infiniband/hw/mlx4/srq.c
-+++ b/drivers/infiniband/hw/mlx4/srq.c
-@@ -171,7 +171,7 @@ struct ib_srq *mlx4_ib_create_srq(struct ib_pd *pd,
- 		if (err)
- 			goto err_mtt;
- 
--		srq->wrid = kmalloc(srq->msrq.max * sizeof(u64),
-+		srq->wrid = kmalloc_array(srq->msrq.max, sizeof(u64),
- 					GFP_KERNEL | __GFP_NOWARN);
- 		if (!srq->wrid) {
- 			srq->wrid = __vmalloc(srq->msrq.max * sizeof(u64),
--- 
-1.7.12.4
-
+Greetings,
+My name is Mr.Michael J. Tynan, I am a banker with Bank Of America. It is true that we have not meet each other in person, but I strongly believe in trust and friendship in every business. I have a Lebanese deceased customer's abandoned fund, which I am his personal financial adviser before his accidental death, that being the main reason why I alone working in the bank here, know much about the existence of this fund and the secrets surrounding this money. But before I disclose the full details to you, I will like to know your interest and willingness to assist me. You can call me as soon you receive my message, so that i will send to you full details about the transaction.
+My best regards,
+Mr.Michael J. Tynan
+MOBILE: +1 347 269 3740
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
