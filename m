@@ -1,7 +1,7 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH 07/15] i40iw: add hw and utils files
-Date: Thu, 17 Dec 2015 08:07:36 -0800
-Message-ID: <20151217160736.GA19013@infradead.org>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH 08/15] i40iw: add files for iwarp interface
+Date: Thu, 17 Dec 2015 08:27:38 -0800
+Message-ID: <20151217162738.GA12875@infradead.org>
 References: <1450295919-17292-1-git-send-email-faisal.latif@intel.com>
  <1450295919-17292-2-git-send-email-faisal.latif@intel.com>
  <1450295919-17292-3-git-send-email-faisal.latif@intel.com>
@@ -10,58 +10,105 @@ References: <1450295919-17292-1-git-send-email-faisal.latif@intel.com>
  <1450295919-17292-6-git-send-email-faisal.latif@intel.com>
  <1450295919-17292-7-git-send-email-faisal.latif@intel.com>
  <1450295919-17292-8-git-send-email-faisal.latif@intel.com>
+ <1450295919-17292-9-git-send-email-faisal.latif@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1450295919-17292-8-git-send-email-faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <1450295919-17292-9-git-send-email-faisal.latif@intel.com>
+Sender: netdev-owner@vger.kernel.org
+To: Faisal Latif <faisal.latif@intel.com>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, jeffrey.t.kirsher@intel.com, e1000-rdma@lists.sourceforge.net
 List-Id: linux-rdma@vger.kernel.org
 
-> +#ifndef UNREFERENCED_PARAMETER
-> +#define UNREFERENCED_PARAMETER(_p)	\
-> +{					\
-> +	(_p) = (_p);			\
-> +}
-> +#endif
-
-No need for this, just remove it.
-
-> +#define I40E_MASK(mask, shift) (mask << shift)
-
-Please just opencode the shit, this macro is silly.
-
-> +#define i40iw_flush(a)          readl((a)->hw_addr + I40E_GLGEN_STAT)
+> +		i40iw_next_iw_state(iwqp, I40IW_QP_STATE_ERROR, 0, 0, 0);
 > +
-> +#define wr32(a, reg, value)     writel((value), (a)->hw_addr + (reg))
-> +#define rd32(a, reg)            readl((a)->hw_addr + (reg))
+> +	if (!iwqp->user_mode) {
+> +		if (iwqp->iwscq)
+> +			i40iw_clean_cqes(iwqp, iwqp->iwscq);
+> +		if ((iwqp->iwrcq) && (iwqp->iwrcq != iwqp->iwscq))
 
-Please urn these into inlines.
+Please try to do a pass over your code and remove all these pointless
+braces.
 
-> +
-> +#ifndef readq
-> +static inline u64 rd64(u8 * __iomem addr)
+> +static int i40iw_setup_virt_qp(struct i40iw_device *iwdev,
+> +			       struct i40iw_qp *iwqp,
+> +			       struct i40iw_qp_init_info *init_info)
 > +{
-> +	return ((u64)readl(addr)) | (((u64)readl(addr + 4UL)) << 32);
-> +}
-> +#else
-> +#define rd64(a)            readq((a))
-> +#endif
-
-Please use the magic in <linux/io-64-nonatomic-lo-hi.h> instead.
-
+> +	struct i40iw_pbl *iwpbl = iwqp->iwpbl;
+> +	struct i40iw_qp_mr *qpmr = &iwpbl->qp_mr;
+> +	u64 *sq_base;
 > +
-> +#define db_wr32(a, value)       writel((value), (a))
+> +	sq_base = kmap(qpmr->sq_page);
+> +	iwqp->sq_kmapped = 1;
 
-Pleas remove this pointless wrapper.
 
-> +void SLEEP(u8 ms);
+You must never use kmap for any long lived resource.  Just allocate
+it it out of lowmem so that you don't need the kmap.
 
-Please give this function a sensible name.
+> +	ukinfo->rq = (u64 *)((u8 *)mem->va + (sqdepth * I40IW_QP_WQE_MIN_SIZE));
+> +	info->rq_pa = (uintptr_t)((u8 *)mem->pa + (sqdepth * I40IW_QP_WQE_MIN_SIZE));
+> +
+> +	ukinfo->shadow_area = (u64 *)((u8 *)ukinfo->rq +
+> +				      (rqdepth * I40IW_QP_WQE_MIN_SIZE));
+> +	info->shadow_area_pa = info->rq_pa + (rqdepth * I40IW_QP_WQE_MIN_SIZE);
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Can you please try to get away with less casts here?  Note that Linux does
+use GCC extensions for void pointer arithmetics.  Even without that you
+never need to use casts to or from void pointers.  All this happes in
+lots of places in the code, so a little audit would be useful.
+
+> +/**
+> + * i40iw_alloc_mw - Allocate memory window
+> + * @ibpd: protection domain
+> + * @type: memory window type
+> + */
+> +static struct ib_mw *i40iw_alloc_mw(struct ib_pd *ibpd,
+> +				    enum ib_mw_type type)
+> +{
+> +	return ERR_PTR(-ENOSYS);
+> +}
+> +
+> +/**
+> + * i40iw_dealloc_mw - Free a memory window
+> + * @ibmw: memory window to free
+> + */
+> +static int i40iw_dealloc_mw(struct ib_mw *ibmw)
+> +{
+> +	return -EIO;
+> +}
+> +
+> +/**
+> + * i40iw_bind_mw - Bind a memory window to a qp
+> + * @ibqp: queue pair
+> + * @ibmw: memory window
+> + * @ibmw_bind: pointer to bind structure
+> + */
+> +static int i40iw_bind_mw(struct ib_qp *ibqp,
+> +			 struct ib_mw *ibmw,
+> +			 struct ib_mw_bind *ibmw_bind)
+> +{
+> +	return -ENOSYS;
+> +}
+
+There shouldn't be any need to stub all these out.
+
+> +/**
+> + * i40iw_init_ofa_device - initialization of iwarp device
+> + * @iwdev: iwarp device
+> + */
+> +static struct i40iw_ib_device *i40iw_init_ofa_device(struct i40iw_device *iwdev)
+
+Where is that weird ofa prefix coming from?
+
+> +	iwibdev->ibdev.reg_phys_mr = i40iw_reg_phys_mr;
+
+Please don't add phys MR support in new drivers, it's about to
+disappear.
+
+> +	iwibdev->ibdev.detach_mcast = NULL;
+> +	iwibdev->ibdev.attach_mcast = NULL;
+> +	iwibdev->ibdev.get_protocol_stats = i40iw_get_protocol_stats;
+> +	iwibdev->ibdev.process_mad = NULL;
+
+All the unused fields should already be zeroed.
