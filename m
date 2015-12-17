@@ -1,53 +1,133 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 3/3] IB core: Display 64 bit counters from the extended
- set
-Date: Thu, 17 Dec 2015 14:47:17 -0500
-Message-ID: <56731145.5010402@dev.mellanox.co.il>
-References: <20151211182532.332343651@linux.com>
- <20151211182543.329283794@linux.com>
- <20151211235630.GG7855@phlsvsds.ph.intel.com>
- <20151212000047.GA9961@obsidianresearch.com>
- <566EEE69.5080906@dev.mellanox.co.il>
- <alpine.DEB.2.20.1512151351050.3509@east.gentwo.org>
- <20151215195554.GA28167@obsidianresearch.com>
- <5670717F.9090701@dev.mellanox.co.il>
- <20151215212035.GD28167@obsidianresearch.com>
- <alpine.DEB.2.20.1512161000150.17457@east.gentwo.org>
- <alpine.DEB.2.20.1512161332200.10147@east.gentwo.org>
- <5672F47F.9060806@dev.mellanox.co.il>
- <alpine.DEB.2.20.1512171252200.2954@east.gentwo.org>
- <5673097D.8050906@dev.mellanox.co.il>
- <alpine.DEB.2.20.1512171321110.8087@east.gentwo.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/3] IB Core: Create get_perf_mad function in sysfs.c
+Date: Thu, 17 Dec 2015 13:52:56 -0600
+Message-ID: <20151217195312.126391272@linux.com>
+References: <20151217195255.334854705@linux.com>
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.20.1512171321110.8087-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
+Content-Disposition: inline; filename=ib_64bit_create_get_perf_mad
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/17/2015 2:21 PM, Christoph Lameter wrote:
-> On Thu, 17 Dec 2015, Hal Rosenstock wrote:
-> 
->>> I thought a port is always supplied since we get the info for a particular
->>> port and the directory only exists if there is a port?
->>
->> Yes, but there is no port (PortSelect) field in ClassPortInfo attribute
->> unlike the PortCounters and PortExtendedCounters attributes.
-> 
-> Ok but its valid for all ports on that class right? Then this does not
-> matter?
+Create a new function to retrieve performance management
+data from the existing code in get_pma_counter().
 
-It would be queried for each end port LID but should provide same
-response on each port. Note that switch only has port 0 as end port.
+Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 
-It looks to me that in the query that the port supplied overwrites
-ClassVersion field in supplied ClassPortInfo attribute which is MAD data
-offset 41 where PortSelect goes. ClassPortInfo.ClassVersion is a RO
-field and should be ignored by the PMA in the query and set properly in
-the response so yes, you're right that it should not matter.
+Index: linux/drivers/infiniband/core/sysfs.c
+===================================================================
+--- linux.orig/drivers/infiniband/core/sysfs.c
++++ linux/drivers/infiniband/core/sysfs.c
+@@ -317,21 +317,21 @@ struct port_table_attribute port_pma_att
+ 	.index = (_offset) | ((_width) << 16) | ((_counter) << 24)	\
+ }
+ 
+-static ssize_t show_pma_counter(struct ib_port *p, struct port_attribute *attr,
+-				char *buf)
++/*
++ * Get a Perfmgmt MAD block of data.
++ * Returns error code or the number of bytes retrieved.
++ */
++static int get_perf_mad(struct ib_device *dev, int port_num, int attr,
++		void *data, int offset, size_t size)
+ {
+-	struct port_table_attribute *tab_attr =
+-		container_of(attr, struct port_table_attribute, attr);
+-	int offset = tab_attr->index & 0xffff;
+-	int width  = (tab_attr->index >> 16) & 0xff;
+-	struct ib_mad *in_mad  = NULL;
+-	struct ib_mad *out_mad = NULL;
++	struct ib_mad *in_mad;
++	struct ib_mad *out_mad;
+ 	size_t mad_size = sizeof(*out_mad);
+ 	u16 out_mad_pkey_index = 0;
+ 	ssize_t ret;
+ 
+-	if (!p->ibdev->process_mad)
+-		return sprintf(buf, "N/A (no PMA)\n");
++	if (!dev->process_mad)
++		return -ENOSYS;
+ 
+ 	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
+ 	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
+@@ -344,12 +344,12 @@ static ssize_t show_pma_counter(struct i
+ 	in_mad->mad_hdr.mgmt_class    = IB_MGMT_CLASS_PERF_MGMT;
+ 	in_mad->mad_hdr.class_version = 1;
+ 	in_mad->mad_hdr.method        = IB_MGMT_METHOD_GET;
+-	in_mad->mad_hdr.attr_id       = cpu_to_be16(0x12); /* PortCounters */
++	in_mad->mad_hdr.attr_id       = attr;
+ 
+-	in_mad->data[41] = p->port_num;	/* PortSelect field */
++	in_mad->data[41] = port_num;	/* PortSelect field */
+ 
+-	if ((p->ibdev->process_mad(p->ibdev, IB_MAD_IGNORE_MKEY,
+-		 p->port_num, NULL, NULL,
++	if ((dev->process_mad(dev, IB_MAD_IGNORE_MKEY,
++		 port_num, NULL, NULL,
+ 		 (const struct ib_mad_hdr *)in_mad, mad_size,
+ 		 (struct ib_mad_hdr *)out_mad, &mad_size,
+ 		 &out_mad_pkey_index) &
+@@ -358,31 +358,49 @@ static ssize_t show_pma_counter(struct i
+ 		ret = -EINVAL;
+ 		goto out;
+ 	}
++	memcpy(data, out_mad->data + offset, size);
++	ret = size;
++out:
++	kfree(in_mad);
++	kfree(out_mad);
++	return ret;
++}
++
++static ssize_t show_pma_counter(struct ib_port *p, struct port_attribute *attr,
++				char *buf)
++{
++	struct port_table_attribute *tab_attr =
++		container_of(attr, struct port_table_attribute, attr);
++	int offset = tab_attr->index & 0xffff;
++	int width  = (tab_attr->index >> 16) & 0xff;
++	ssize_t ret;
++	u8 data[8];
++
++	ret = get_perf_mad(p->ibdev, p->port_num, cpu_to_be16(0x12), &data,
++			40 + offset / 8, sizeof(data));
++	if (ret < 0)
++		return sprintf(buf, "N/A (no PMA)\n");
+ 
+ 	switch (width) {
+ 	case 4:
+-		ret = sprintf(buf, "%u\n", (out_mad->data[40 + offset / 8] >>
++		ret = sprintf(buf, "%u\n", (*data >>
+ 					    (4 - (offset % 8))) & 0xf);
+ 		break;
+ 	case 8:
+-		ret = sprintf(buf, "%u\n", out_mad->data[40 + offset / 8]);
++		ret = sprintf(buf, "%u\n", *data);
+ 		break;
+ 	case 16:
+ 		ret = sprintf(buf, "%u\n",
+-			      be16_to_cpup((__be16 *)(out_mad->data + 40 + offset / 8)));
++			      be16_to_cpup((__be16 *)data));
+ 		break;
+ 	case 32:
+ 		ret = sprintf(buf, "%u\n",
+-			      be32_to_cpup((__be32 *)(out_mad->data + 40 + offset / 8)));
++			      be32_to_cpup((__be32 *)data));
+ 		break;
+ 	default:
+ 		ret = 0;
+ 	}
+ 
+-out:
+-	kfree(in_mad);
+-	kfree(out_mad);
+-
+ 	return ret;
+ }
+ 
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
