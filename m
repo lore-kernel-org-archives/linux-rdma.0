@@ -1,18 +1,18 @@
 From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/3] IB Core: Create get_perf_mad function in sysfs.c
-Date: Thu, 17 Dec 2015 13:52:56 -0600
-Message-ID: <20151217195312.126391272@linux.com>
+Subject: [PATCH 3/3] bject: IB Core: Display extended counter set if available
+Date: Thu, 17 Dec 2015 13:52:58 -0600
+Message-ID: <20151217195312.334770847@linux.com>
 References: <20151217195255.334854705@linux.com>
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=ib_64bit_create_get_perf_mad
+Content-Disposition: inline; filename=ib_64bit_add_counters
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Create a new function to retrieve performance management
-data from the existing code in get_pma_counter().
+Check if the extended counters are available and if so
+create the proper extended and additional counters.
 
 Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 
@@ -20,113 +20,154 @@ Index: linux/drivers/infiniband/core/sysfs.c
 ===================================================================
 --- linux.orig/drivers/infiniband/core/sysfs.c
 +++ linux/drivers/infiniband/core/sysfs.c
-@@ -317,21 +317,21 @@ struct port_table_attribute port_pma_att
- 	.index = (_offset) | ((_width) << 16) | ((_counter) << 24)	\
+@@ -320,6 +320,13 @@ struct port_table_attribute port_pma_att
+ 	.attr_id = IB_PMA_PORT_COUNTERS ,				\
  }
  
--static ssize_t show_pma_counter(struct ib_port *p, struct port_attribute *attr,
--				char *buf)
-+/*
-+ * Get a Perfmgmt MAD block of data.
-+ * Returns error code or the number of bytes retrieved.
-+ */
-+static int get_perf_mad(struct ib_device *dev, int port_num, int attr,
-+		void *data, int offset, size_t size)
- {
--	struct port_table_attribute *tab_attr =
--		container_of(attr, struct port_table_attribute, attr);
--	int offset = tab_attr->index & 0xffff;
--	int width  = (tab_attr->index >> 16) & 0xff;
--	struct ib_mad *in_mad  = NULL;
--	struct ib_mad *out_mad = NULL;
-+	struct ib_mad *in_mad;
-+	struct ib_mad *out_mad;
- 	size_t mad_size = sizeof(*out_mad);
- 	u16 out_mad_pkey_index = 0;
- 	ssize_t ret;
- 
--	if (!p->ibdev->process_mad)
--		return sprintf(buf, "N/A (no PMA)\n");
-+	if (!dev->process_mad)
-+		return -ENOSYS;
- 
- 	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
- 	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
-@@ -344,12 +344,12 @@ static ssize_t show_pma_counter(struct i
- 	in_mad->mad_hdr.mgmt_class    = IB_MGMT_CLASS_PERF_MGMT;
- 	in_mad->mad_hdr.class_version = 1;
- 	in_mad->mad_hdr.method        = IB_MGMT_METHOD_GET;
--	in_mad->mad_hdr.attr_id       = cpu_to_be16(0x12); /* PortCounters */
-+	in_mad->mad_hdr.attr_id       = attr;
- 
--	in_mad->data[41] = p->port_num;	/* PortSelect field */
-+	in_mad->data[41] = port_num;	/* PortSelect field */
- 
--	if ((p->ibdev->process_mad(p->ibdev, IB_MAD_IGNORE_MKEY,
--		 p->port_num, NULL, NULL,
-+	if ((dev->process_mad(dev, IB_MAD_IGNORE_MKEY,
-+		 port_num, NULL, NULL,
- 		 (const struct ib_mad_hdr *)in_mad, mad_size,
- 		 (struct ib_mad_hdr *)out_mad, &mad_size,
- 		 &out_mad_pkey_index) &
-@@ -358,31 +358,49 @@ static ssize_t show_pma_counter(struct i
- 		ret = -EINVAL;
- 		goto out;
- 	}
-+	memcpy(data, out_mad->data + offset, size);
-+	ret = size;
-+out:
-+	kfree(in_mad);
-+	kfree(out_mad);
-+	return ret;
++#define PORT_PMA_ATTR_EXT(_name, _width, _offset)			\
++struct port_table_attribute port_pma_attr_ext_##_name = {		\
++	.attr  = __ATTR(_name, S_IRUGO, show_pma_counter, NULL),	\
++	.index = (_offset) | ((_width) << 16),				\
++	.attr_id = IB_PMA_PORT_COUNTERS_EXT ,				\
 +}
 +
-+static ssize_t show_pma_counter(struct ib_port *p, struct port_attribute *attr,
-+				char *buf)
-+{
-+	struct port_table_attribute *tab_attr =
-+		container_of(attr, struct port_table_attribute, attr);
-+	int offset = tab_attr->index & 0xffff;
-+	int width  = (tab_attr->index >> 16) & 0xff;
-+	ssize_t ret;
-+	u8 data[8];
-+
-+	ret = get_perf_mad(p->ibdev, p->port_num, cpu_to_be16(0x12), &data,
-+			40 + offset / 8, sizeof(data));
-+	if (ret < 0)
-+		return sprintf(buf, "N/A (no PMA)\n");
+ /*
+  * Get a Perfmgmt MAD block of data.
+  * Returns error code or the number of bytes retrieved.
+@@ -349,7 +356,8 @@ static int get_perf_mad(struct ib_device
+ 	in_mad->mad_hdr.method        = IB_MGMT_METHOD_GET;
+ 	in_mad->mad_hdr.attr_id       = attr;
  
- 	switch (width) {
- 	case 4:
--		ret = sprintf(buf, "%u\n", (out_mad->data[40 + offset / 8] >>
-+		ret = sprintf(buf, "%u\n", (*data >>
- 					    (4 - (offset % 8))) & 0xf);
- 		break;
- 	case 8:
--		ret = sprintf(buf, "%u\n", out_mad->data[40 + offset / 8]);
-+		ret = sprintf(buf, "%u\n", *data);
- 		break;
- 	case 16:
+-	in_mad->data[41] = port_num;	/* PortSelect field */
++	if (port_num)
++		in_mad->data[41] = port_num;	/* PortSelect field */
+ 
+ 	if ((dev->process_mad(dev, IB_MAD_IGNORE_MKEY,
+ 		 port_num, NULL, NULL,
+@@ -400,6 +408,11 @@ static ssize_t show_pma_counter(struct i
  		ret = sprintf(buf, "%u\n",
--			      be16_to_cpup((__be16 *)(out_mad->data + 40 + offset / 8)));
-+			      be16_to_cpup((__be16 *)data));
+ 			      be32_to_cpup((__be32 *)data));
  		break;
- 	case 32:
- 		ret = sprintf(buf, "%u\n",
--			      be32_to_cpup((__be32 *)(out_mad->data + 40 + offset / 8)));
-+			      be32_to_cpup((__be32 *)data));
- 		break;
++	case 64:
++		ret = sprintf(buf, "%llu\n",
++				be64_to_cpup((__be64 *)data));
++		break;
++
  	default:
  		ret = 0;
  	}
+@@ -424,6 +437,18 @@ static PORT_PMA_ATTR(port_rcv_data
+ static PORT_PMA_ATTR(port_xmit_packets		    , 14, 32, 256);
+ static PORT_PMA_ATTR(port_rcv_packets		    , 15, 32, 288);
  
--out:
--	kfree(in_mad);
--	kfree(out_mad);
--
- 	return ret;
++/*
++ * Counters added by extended set
++ */
++static PORT_PMA_ATTR_EXT(port_xmit_data		    , 64,  64);
++static PORT_PMA_ATTR_EXT(port_rcv_data		    , 64, 128);
++static PORT_PMA_ATTR_EXT(port_xmit_packets	    , 64, 192);
++static PORT_PMA_ATTR_EXT(port_rcv_packets	    , 64, 256);
++static PORT_PMA_ATTR_EXT(unicast_xmit_packets	    , 64, 320);
++static PORT_PMA_ATTR_EXT(unicast_rcv_packets	    , 64, 384);
++static PORT_PMA_ATTR_EXT(multicast_xmit_packets	    , 64, 448);
++static PORT_PMA_ATTR_EXT(multicast_rcv_packets	    , 64, 512);
++
+ static struct attribute *pma_attrs[] = {
+ 	&port_pma_attr_symbol_error.attr.attr,
+ 	&port_pma_attr_link_error_recovery.attr.attr,
+@@ -444,11 +469,40 @@ static struct attribute *pma_attrs[] = {
+ 	NULL
+ };
+ 
++static struct attribute *pma_attrs_ext[] = {
++	&port_pma_attr_symbol_error.attr.attr,
++	&port_pma_attr_link_error_recovery.attr.attr,
++	&port_pma_attr_link_downed.attr.attr,
++	&port_pma_attr_port_rcv_errors.attr.attr,
++	&port_pma_attr_port_rcv_remote_physical_errors.attr.attr,
++	&port_pma_attr_port_rcv_switch_relay_errors.attr.attr,
++	&port_pma_attr_port_xmit_discards.attr.attr,
++	&port_pma_attr_port_xmit_constraint_errors.attr.attr,
++	&port_pma_attr_port_rcv_constraint_errors.attr.attr,
++	&port_pma_attr_local_link_integrity_errors.attr.attr,
++	&port_pma_attr_excessive_buffer_overrun_errors.attr.attr,
++	&port_pma_attr_VL15_dropped.attr.attr,
++	&port_pma_attr_ext_port_xmit_data.attr.attr,
++	&port_pma_attr_ext_port_rcv_data.attr.attr,
++	&port_pma_attr_ext_port_xmit_packets.attr.attr,
++	&port_pma_attr_ext_port_rcv_packets.attr.attr,
++	&port_pma_attr_ext_unicast_rcv_packets.attr.attr,
++	&port_pma_attr_ext_unicast_xmit_packets.attr.attr,
++	&port_pma_attr_ext_multicast_rcv_packets.attr.attr,
++	&port_pma_attr_ext_multicast_xmit_packets.attr.attr,
++	NULL
++};
++
+ static struct attribute_group pma_group = {
+ 	.name  = "counters",
+ 	.attrs  = pma_attrs
+ };
+ 
++static struct attribute_group pma_group_ext = {
++	.name  = "counters",
++	.attrs  = pma_attrs_ext
++};
++
+ static void ib_port_release(struct kobject *kobj)
+ {
+ 	struct ib_port *p = container_of(kobj, struct ib_port, kobj);
+@@ -521,6 +575,26 @@ err:
+ 	return NULL;
  }
  
++/*
++ * Check if the port supports the Extended Counters.
++ * Return error code of 0 for success
++ */
++static int port_check_extended_counters(struct ib_device *dev)
++{
++	int ret = 0;
++	struct ib_class_port_info cpi;
++
++	ret = get_perf_mad(dev, 0, IB_PMA_CLASS_PORT_INFO, &cpi, 40, sizeof(cpi));
++
++	if (ret >= 0) {
++		if (!(cpi.capability_mask && IB_PMA_CLASS_CAP_EXT_WIDTH) &&
++			!(cpi.capability_mask && IB_PMA_CLASS_CAP_EXT_WIDTH_NOIETF))
++			ret = -ENOSYS;
++	}
++
++	return ret;
++}
++
+ static int add_port(struct ib_device *device, int port_num,
+ 		    int (*port_callback)(struct ib_device *,
+ 					 u8, struct kobject *))
+@@ -549,7 +623,11 @@ static int add_port(struct ib_device *de
+ 		return ret;
+ 	}
+ 
+-	ret = sysfs_create_group(&p->kobj, &pma_group);
++	ret = sysfs_create_group(&p->kobj,
++		port_check_extended_counters(device) ?
++			&pma_group_ext :
++			&pma_group);
++
+ 	if (ret)
+ 		goto err_put;
+ 
+Index: linux/include/rdma/ib_pma.h
+===================================================================
+--- linux.orig/include/rdma/ib_pma.h
++++ linux/include/rdma/ib_pma.h
+@@ -42,6 +42,7 @@
+  */
+ #define IB_PMA_CLASS_CAP_ALLPORTSELECT  cpu_to_be16(1 << 8)
+ #define IB_PMA_CLASS_CAP_EXT_WIDTH      cpu_to_be16(1 << 9)
++#define IB_PMA_CLASS_CAP_EXT_WIDTH_NOIETF cpu_to_be16(1 << 10)
+ #define IB_PMA_CLASS_CAP_XMIT_WAIT      cpu_to_be16(1 << 12)
+ 
+ #define IB_PMA_CLASS_PORT_INFO          cpu_to_be16(0x0001)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
