@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 05/14] staging/rdma/hfi1: Add definitions needed for TID caching support
-Date: Thu, 17 Dec 2015 02:00:15 -0500
-Message-ID: <1450335624-12134-6-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 06/14] staging/rdma/hfi1: Remove un-needed variable
+Date: Thu, 17 Dec 2015 02:00:16 -0500
+Message-ID: <1450335624-12134-7-git-send-email-ira.weiny@intel.com>
 References: <1450335624-12134-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450335624-12134-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,61 +12,47 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-In preparation for adding the TID caching support, there is a set
-of headers, structures, and variables which will be needed. This
-commit adds them to the hfi.h header file.
+There is no need to use a separate variable for a
+return value and a label when returning right away
+would do just as well.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/hfi.h | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ drivers/staging/rdma/hfi1/file_ops.c | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
-index 057a41cee734..996dd520cf41 100644
---- a/drivers/staging/rdma/hfi1/hfi.h
-+++ b/drivers/staging/rdma/hfi1/hfi.h
-@@ -179,6 +179,11 @@ struct ctxt_eager_bufs {
- 	} *rcvtids;
- };
+diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
+index c66693532be0..76fe60315bb4 100644
+--- a/drivers/staging/rdma/hfi1/file_ops.c
++++ b/drivers/staging/rdma/hfi1/file_ops.c
+@@ -1037,22 +1037,19 @@ static int allocate_ctxt(struct file *fp, struct hfi1_devdata *dd,
+ static int init_subctxts(struct hfi1_ctxtdata *uctxt,
+ 			 const struct hfi1_user_info *uinfo)
+ {
+-	int ret = 0;
+ 	unsigned num_subctxts;
  
-+struct exp_tid_set {
-+	struct list_head list;
-+	u32 count;
-+};
-+
- struct hfi1_ctxtdata {
- 	/* shadow the ctxt's RcvCtrl register */
- 	u64 rcvctrl;
-@@ -247,6 +252,11 @@ struct hfi1_ctxtdata {
- 	struct page **tid_pg_list;
- 	/* dma handles for exp tid pages */
- 	dma_addr_t *physshadow;
-+
-+	struct exp_tid_set tid_group_list;
-+	struct exp_tid_set tid_used_list;
-+	struct exp_tid_set tid_full_list;
-+
- 	/* lock protecting all Expected TID data */
- 	spinlock_t exp_lock;
- 	/* number of pio bufs for this ctxt (all procs, if shared) */
-@@ -1138,6 +1148,16 @@ struct hfi1_filedata {
- 	struct hfi1_user_sdma_pkt_q *pq;
- 	/* for cpu affinity; -1 if none */
- 	int rec_cpu_num;
-+	struct mmu_notifier mn;
-+	struct rb_root tid_rb_root;
-+	spinlock_t tid_lock; /* protect tid_[limit,used] counters */
-+	u32 tid_limit;
-+	u32 tid_used;
-+	spinlock_t rb_lock; /* protect tid_rb_root RB tree */
-+	u32 *invalid_tids;
-+	u32 invalid_tid_idx;
-+	spinlock_t invalid_lock; /* protect the invalid_tids array */
-+	int (*mmu_rb_insert)(struct rb_root *, struct mmu_rb_node *);
- };
+ 	num_subctxts = uinfo->subctxt_cnt;
+-	if (num_subctxts > HFI1_MAX_SHARED_CTXTS) {
+-		ret = -EINVAL;
+-		goto bail;
+-	}
++	if (num_subctxts > HFI1_MAX_SHARED_CTXTS)
++		return -EINVAL;
  
- extern struct list_head hfi1_dev_list;
+ 	uctxt->subctxt_cnt = uinfo->subctxt_cnt;
+ 	uctxt->subctxt_id = uinfo->subctxt_id;
+ 	uctxt->active_slaves = 1;
+ 	uctxt->redirect_seq_cnt = 1;
+ 	set_bit(HFI1_CTXT_MASTER_UNINIT, &uctxt->event_flags);
+-bail:
+-	return ret;
++
++	return 0;
+ }
+ 
+ static int setup_subctxt(struct hfi1_ctxtdata *uctxt)
 -- 
 1.8.2
 
