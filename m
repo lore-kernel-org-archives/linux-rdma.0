@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 12/14] staging/rdma/hfi1: Add TID free/clear function bodies
-Date: Thu, 17 Dec 2015 02:00:22 -0500
-Message-ID: <1450335624-12134-13-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 11/14] staging/rdma/hfi1: Add MMU notifier callback function
+Date: Thu, 17 Dec 2015 02:00:21 -0500
+Message-ID: <1450335624-12134-12-git-send-email-ira.weiny@intel.com>
 References: <1450335624-12134-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450335624-12134-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,148 +12,106 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Up to now, the functions which cleared the programmed
-TID entries and gave PSM the list of invalidated TID entries
-were just stubs. With this commit, the bodies of these
-functions are added.
+TID caching will rely on the MMU notifier to be told
+when memory is being invalidated. When the callback
+is called, the driver will find all RcvArray entries
+that span the invalidated buffer and "schedule" them
+to be freed by the PSM library.
 
-This commit is a bit asymmetric as it only contains the
-free code path. This is done on purpose to help with patch
-reviews as the programming code path is much longer.
+This function is currently unused and is being added
+in preparation for the TID caching feature.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/user_exp_rcv.c | 91 +++++++++++++++++++++++++++++---
- 1 file changed, 85 insertions(+), 6 deletions(-)
+ drivers/staging/rdma/hfi1/user_exp_rcv.c | 67 +++++++++++++++++++++++++++++++-
+ 1 file changed, 65 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/staging/rdma/hfi1/user_exp_rcv.c b/drivers/staging/rdma/hfi1/user_exp_rcv.c
-index 7996ce763adf..91950d225da5 100644
+index b303182be08a..7996ce763adf 100644
 --- a/drivers/staging/rdma/hfi1/user_exp_rcv.c
 +++ b/drivers/staging/rdma/hfi1/user_exp_rcv.c
-@@ -120,10 +120,8 @@ static inline void mmu_notifier_range_start(struct mmu_notifier *,
- static int program_rcvarray(struct file *, unsigned long, struct tid_group *,
- 			    struct tid_pageset *, unsigned, u16, struct page **,
- 			    u32 *, unsigned *, unsigned *) __maybe_unused;
--static int unprogram_rcvarray(struct file *, u32,
--			      struct tid_group **) __maybe_unused;
--static void clear_tid_node(struct hfi1_filedata *, u16,
--			   struct mmu_rb_node *) __maybe_unused;
-+static int unprogram_rcvarray(struct file *, u32, struct tid_group **);
-+static void clear_tid_node(struct hfi1_filedata *, u16, struct mmu_rb_node *);
- 
- static inline u32 rcventry2tidinfo(u32 rcventry)
+@@ -104,7 +104,7 @@ static int set_rcvarray_entry(struct file *, unsigned long, u32,
+ static inline int mmu_addr_cmp(struct mmu_rb_node *, unsigned long,
+ 			       unsigned long);
+ static struct mmu_rb_node *mmu_rb_search_by_addr(struct rb_root *,
+-						 unsigned long) __maybe_unused;
++						 unsigned long);
+ static inline struct mmu_rb_node *mmu_rb_search_by_entry(struct rb_root *,
+ 							 u32);
+ static int mmu_rb_insert_by_addr(struct rb_root *, struct mmu_rb_node *);
+@@ -656,7 +656,70 @@ static void mmu_notifier_mem_invalidate(struct mmu_notifier *mn,
+ 					unsigned long start, unsigned long end,
+ 					enum mmu_call_types type)
  {
-@@ -264,6 +262,7 @@ int hfi1_user_exp_rcv_init(struct file *fp)
- 	 * Make sure that we set the tid counts only after successful
- 	 * init.
- 	 */
-+	spin_lock(&fd->tid_lock);
- 	if (uctxt->subctxt_cnt && !HFI1_CAP_IS_USET(TID_UNMAP)) {
- 		u16 remainder;
- 
-@@ -274,6 +273,7 @@ int hfi1_user_exp_rcv_init(struct file *fp)
- 	} else {
- 		fd->tid_limit = uctxt->expected_count;
- 	}
-+	spin_unlock(&fd->tid_lock);
- done:
- 	return ret;
- }
-@@ -346,12 +346,91 @@ int hfi1_user_exp_rcv_setup(struct file *fp, struct hfi1_tid_info *tinfo)
- 
- int hfi1_user_exp_rcv_clear(struct file *fp, struct hfi1_tid_info *tinfo)
- {
--	return -EINVAL;
-+	int ret = 0;
-+	struct hfi1_filedata *fd = fp->private_data;
+-	/* Stub for now */
++	struct hfi1_filedata *fd = container_of(mn, struct hfi1_filedata, mn);
 +	struct hfi1_ctxtdata *uctxt = fd->uctxt;
-+	u32 *tidinfo;
-+	unsigned tididx;
++	struct rb_root *root = &fd->tid_rb_root;
++	struct mmu_rb_node *node;
++	unsigned long addr = start;
 +
-+	tidinfo = kcalloc(tinfo->tidcnt, sizeof(*tidinfo), GFP_KERNEL);
-+	if (!tidinfo)
-+		return -ENOMEM;
++	spin_lock(&fd->rb_lock);
++	while (addr < end) {
++		node = mmu_rb_search_by_addr(root, addr);
 +
-+	if (copy_from_user(tidinfo, (void __user *)(unsigned long)
-+			   tinfo->tidlist, sizeof(tidinfo[0]) *
-+			   tinfo->tidcnt)) {
-+		ret = -EFAULT;
-+		goto done;
-+	}
-+
-+	mutex_lock(&uctxt->exp_lock);
-+	for (tididx = 0; tididx < tinfo->tidcnt; tididx++) {
-+		ret = unprogram_rcvarray(fp, tidinfo[tididx], NULL);
-+		if (ret) {
-+			hfi1_cdbg(TID, "Failed to unprogram rcv array %d",
-+				  ret);
-+			break;
++		if (!node) {
++			/*
++			 * Didn't find a node at this address. However, the
++			 * range could be bigger than what we have registered
++			 * so we have to keep looking.
++			 */
++			addr += PAGE_SIZE;
++			continue;
 +		}
-+	}
-+	spin_lock(&fd->tid_lock);
-+	fd->tid_used -= tididx;
-+	spin_unlock(&fd->tid_lock);
-+	tinfo->tidcnt = tididx;
-+	mutex_unlock(&uctxt->exp_lock);
-+done:
-+	kfree(tidinfo);
-+	return ret;
- }
- 
- int hfi1_user_exp_rcv_invalid(struct file *fp, struct hfi1_tid_info *tinfo)
- {
--	return -EINVAL;
-+	struct hfi1_filedata *fd = fp->private_data;
-+	struct hfi1_ctxtdata *uctxt = fd->uctxt;
-+	unsigned long *ev = uctxt->dd->events +
-+		(((uctxt->ctxt - uctxt->dd->first_user_ctxt) *
-+		  HFI1_MAX_SHARED_CTXTS) + fd->subctxt);
-+	u32 *array;
-+	int ret = 0;
 +
-+	if (!fd->invalid_tids)
-+		return -EINVAL;
-+
-+	/*
-+	 * copy_to_user() can sleep, which will leave the invalid_lock
-+	 * locked and cause the MMU notifier to be blocked on the lock
-+	 * for a long time.
-+	 * Copy the data to a local buffer so we can release the lock.
-+	 */
-+	array = kcalloc(uctxt->expected_count, sizeof(*array), GFP_KERNEL);
-+	if (!array)
-+		return -EFAULT;
-+
-+	spin_lock(&fd->invalid_lock);
-+	if (fd->invalid_tid_idx) {
-+		memcpy(array, fd->invalid_tids, sizeof(*array) *
-+		       fd->invalid_tid_idx);
-+		memset(fd->invalid_tids, 0, sizeof(*fd->invalid_tids) *
-+		       fd->invalid_tid_idx);
-+		tinfo->tidcnt = fd->invalid_tid_idx;
-+		fd->invalid_tid_idx = 0;
 +		/*
-+		 * Reset the user flag while still holding the lock.
-+		 * Otherwise, PSM can miss events.
++		 * The next address to be looked up is computed based
++		 * on the node's starting address. This is due to the
++		 * fact that the range where we start might be in the
++		 * middle of the node's buffer so simply incrementing
++		 * the address by the node's size would result is a
++		 * bad address.
 +		 */
-+		clear_bit(_HFI1_EVENT_TID_MMU_NOTIFY_BIT, ev);
-+	} else {
-+		tinfo->tidcnt = 0;
-+	}
-+	spin_unlock(&fd->invalid_lock);
++		addr = node->virt + (node->npages * PAGE_SIZE);
++		if (node->freed)
++			continue;
 +
-+	if (tinfo->tidcnt) {
-+		if (copy_to_user((void __user *)tinfo->tidlist,
-+				 array, sizeof(*array) * tinfo->tidcnt))
-+			ret = -EFAULT;
-+	}
-+	kfree(array);
++		node->freed = true;
 +
-+	return ret;
++		spin_lock(&fd->invalid_lock);
++		if (fd->invalid_tid_idx < uctxt->expected_count) {
++			fd->invalid_tids[fd->invalid_tid_idx] =
++				rcventry2tidinfo(node->rcventry -
++						 uctxt->expected_base);
++			fd->invalid_tids[fd->invalid_tid_idx] |=
++				EXP_TID_SET(LEN, node->npages);
++			if (!fd->invalid_tid_idx) {
++				unsigned long *ev;
++
++				/*
++				 * hfi1_set_uevent_bits() sets a user event flag
++				 * for all processes. Because calling into the
++				 * driver to process TID cache invalidations is
++				 * expensive and TID cache invalidations are
++				 * handled on a per-process basis, we can
++				 * optimize this to set the flag only for the
++				 * process in question.
++				 */
++				ev = uctxt->dd->events +
++					(((uctxt->ctxt -
++					   uctxt->dd->first_user_ctxt) *
++					  HFI1_MAX_SHARED_CTXTS) + fd->subctxt);
++				set_bit(_HFI1_EVENT_TID_MMU_NOTIFY_BIT, ev);
++			}
++			fd->invalid_tid_idx++;
++		}
++		spin_unlock(&fd->invalid_lock);
++	}
++	spin_unlock(&fd->rb_lock);
  }
  
- static u32 find_phys_blocks(struct page **pages, unsigned npages,
+ static inline int mmu_addr_cmp(struct mmu_rb_node *node, unsigned long addr,
 -- 
 1.8.2
 
