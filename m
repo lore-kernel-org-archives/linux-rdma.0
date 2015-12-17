@@ -1,81 +1,64 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH for-next V2 00/11] Add RoCE v2 support
-Date: Thu, 17 Dec 2015 10:14:25 +0000
-Message-ID: <HE1PR05MB141888BC80198CA983A022C2B1E00@HE1PR05MB1418.eurprd05.prod.outlook.com>
-References: <1449150450-13679-1-git-send-email-matanb@mellanox.com>
- <CAG9sBKM7j6w+Gk4PXXO+0mHpFeVaBdeNmr-z9V9fPR562o+kmw@mail.gmail.com>
- <567089F1.30004@redhat.com>
- <CAG9sBKNa4Hd0WVqhZCLeqXjc2zE2h+dBwF6zVgGT0R_Gt1FEwA@mail.gmail.com>
- <5671CBF4.4060602@redhat.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 08/14] staging/rdma/hfi1: Start adding building blocks
+ for TID caching
+Date: Thu, 17 Dec 2015 14:23:39 +0300
+Message-ID: <20151217112339.GH5284@mwanda>
+References: <1450335624-12134-1-git-send-email-ira.weiny@intel.com>
+ <1450335624-12134-9-git-send-email-ira.weiny@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5671CBF4.4060602-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1450335624-12134-9-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBGcm9tOiBsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LXJk
-bWEtDQo+IG93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIERvdWcgTGVkZm9yZA0K
-DQo+IFRoZXNlIHBhdGNoZXMgYWRkIHRoZSBjb25jZXB0IG9mIGR1cGxpY2F0ZSBHSURzIHRoYXQg
-YXJlIGRpZmZlcmVudGlhdGVkIGJ5DQo+IHRoZWlyIFJvQ0UgdmVyc2lvbiAoYWxzbyBjYWxsZWQg
-bmV0d29yayB0eXBlKS4gIFNvLCBub3csIGFuIGluY29taW5nIHBhY2tldA0KPiBjb3VsZCBtYXRj
-aCBhIGNvdXBsZSBkaWZmZXJlbnQgZ2lkX2luZGV4ZXMgYW5kIHdlIG5lZWQgYWRkaXRpb25hbA0K
-PiBpbmZvcm1hdGlvbiB0byBnZXQgYmFjayB0byB0aGUgZGVmaW5pdGl2ZSAxOjEgbWFwcGluZy4g
-IFRoZSBzdWJtaXR0ZWQgcGF0Y2hlcw0KPiBhcmUgZGVzaWduZWQgYXJvdW5kIGEgbGF6eSByZXNv
-bHV0aW9uIG9mIHRoZSBuYW1lc3BhY2UsIHByZWZlcnJpbmcgdG8gZGVmZXINCj4gdGhlIHdvcmsg
-b2YgbWFwcGluZyB0aGUgaW5jb21pbmcgcGFja2V0IHRvIGEgdW5pcXVlIG5hbWVzcGFjZSB1bnRp
-bCB0aGF0DQo+IGluZm9ybWF0aW9uIGlzIGFjdHVhbGx5IG5lZWRlZC4gIFRvIGVuYWJsZSB0aGlz
-IGxhenkgcmVzb2x1dGlvbiwgaXQgcHJvdmlkZXMgdGhlDQo+IG5ldHdvcmtfdHlwZSBzbyB0aGF0
-IHRoZSByZXNvbHV0aW9uIGNhbiBiZSBkb25lLg0KPiANCj4gVGhpcyBpcyBhIGZhaXIgYXNzZXNz
-bWVudCBvZiB0aGUgY3VycmVudCBzdGF0ZSBvZiB0aGluZ3MgYW5kIHdoYXQgdGhlc2UNCj4gcGF0
-Y2hlcyBkbywgeWVzPw0KDQpIaSBEb3VnLA0KWWVzLCB5b3VyIGRlc2NyaXB0aW9uIG5haWxzIHRo
-ZSBjcnV4IG9mIHRoZSBkaXNjdXNzaW9uLg0KVGhhbmtzLg0KDQo+IA0KPiBKYXNvbidzIG9iamVj
-dGlvbnMgYXJlIHRoaXM6DQo+IA0KPiAxKSAgVGhlIGxhenkgcmVzb2x1dGlvbiBpcyB3cm9uZy4N
-Cj4gMikgIFRoZSB1c2Ugb2YgbmV0d29ya190eXBlIGFzIHRoZSBhZGRpdGlvbmFsIGluZm9ybWF0
-aW9uIHRvIGdldCB0byB0aGUNCj4gdW5pcXVlIG5hbWVzcGFjZSBpcyB2ZW5kb3Igc3BlY2lmaWMg
-Y3J1ZnQgdGhhdCBzaG91bGRuJ3QgYmUgcGFydCBvZiB0aGUgY29yZQ0KPiBrZXJuZWwgQVBJLg0K
-PiANCg0KV2hpY2ggaXMgdG90YWxseSB3cm9uZy4gUm9DRSB2ZXJzaW9ucyBhbmQgdGhlIG5ldHdv
-cmsgdHlwZSBhdHRyaWJ1dGUgYXJlIHBhcnQgb2YgdGhlIFJvQ0Ugc3BlY2lmaWNhdGlvbi4NClRo
-ZXJlIGlzIG5vdGhpbmcgdmVuZG9yIHNwZWNpZmljLiBJbiBmYWN0LCB0aGlzIHBhdGNoIGluaXRp
-YWxseSBjYW1lIGZyb20gQXZhZ28hISENCg0KPiBKYXNvbidzIHByZWZlcmVuY2Ugd291bGQgYmUg
-dGhhdCB0aGUgYWJvdmUgaXNzdWVzIGJlIHJlc29sdmVkIGJ5IHNraXBwaW5nDQo+IHRoZSBsYXp5
-IHJlc29sdXRpb24gYW5kIGluc3RlYWQgZG9pbmcgcHJvYWN0aXZlIHJlc29sdXRpb24gb24gcmVj
-ZWlwdCBvZiBhDQo+IHBhY2tldCBhbmQgdGhlbiBwcm9iYWJseSBqdXN0IHBhc3MgdGhlIG5hbWVz
-cGFjZSBhcm91bmQgaW5zdGVhZCBvZiBwYXNzaW5nDQo+IGFyb3VuZCB0aGUgaW5mb3JtYXRpb24g
-bmVlZGVkIHRvIHJlc29sdmUgdGhlIG5hbWVzcGFjZS4gIE9yLCBhdCBhDQo+IG1pbmltdW0sIGF0
-IGxlYXN0IG1ha2UgdGhlIGluZm9ybWF0aW9uIGFkZGVkIHRvIHRoZSBjb3JlIEFQSSBub3QNCj4g
-c29tZXRoaW5nIHZlbmRvciBzcGVjaWZpYyBsaWtlIG5ldHdvcmtfdHlwZSwgd2hpY2ggaXMgYSBk
-ZXRhaWwgb2YgdGhlDQo+IE1lbGxhbm94IGltcGxlbWVudGF0aW9uLg0KDQpBZ2FpbiwgdGhlcmUg
-aXMgbm90aGluZyBoZXJlIHNwZWNpZmljIHRvIHRoZSBNZWxsYW5veCBpbXBsZW1lbnRhdGlvbi4N
-ClRoaXMgYXJndW1lbnQgaXMgaW52YWxpZC4NCg0KPiANCj4gSmFzb24sIGlzIHRoaXMgYWNjdXJh
-dGUgZm9yIHlvdXIgcG9zaXRpb24/DQo+IA0KPiBJZiBldmVyeW9uZSBhZ3JlZXMgdGhhdCB0aGlz
-IGlzIGEgZmFpciBzdGF0ZW1lbnQgb2Ygd2hlcmUgd2Ugc3RhbmQsIHRoZW4gSSdsbA0KPiBjb250
-aW51ZSBteSByZXNwb25zZS4gIElmIG5vdCwgcGxlYXNlIGNvcnJlY3QgYW55dGhpbmcgSSBoYXZl
-IHdyb25nIGFib3ZlDQo+IGFuZCBJJ2xsIHRha2UgdGhhdCBpbnRvIG15IGNvbnRpbnVlZCByZXNw
-b25zZS4NCj4gDQoNClNpbmNlIHdlIGFyZSBmb2xsb3dpbmcgdGhlIHN0YW5kYXJkLCBhbmQ6DQot
-IFRoaXMgaXMgKm5vdCogYSB2ZW5kb3Igc3BlY2lmaWMgaXNzdWUNCi0gTGF6eSByZXNvbHV0aW9u
-IGFkaGVyZXMgdG8gdGhlIGN1cnJlbnQgZmxvdyBvZiB0aGUgc3RhY2sgKHdoaWNoIElNTywgaXMg
-dGhlIHJpZ2h0IHRoaW5nIHRvIGRvIGFueXdheSkNCi0gVGhlcmUgYXJlIG5vIHNlY3VyaXR5IGlz
-c3VlcyB3aGF0c29ldmVyIChzZWUgYmVsb3cpDQotIFRoZSBjb2RlIGNvdWxkIGJlIGVhc2lseSBl
-eHRlbmRlZCB0byBzdXBwb3J0IG5hbWVzcGFjZXMgaW4gdGhlIGZ1dHVyZQ0KLSBXZSBzaG91bGQg
-InJlbGVhc2UgZWFybHkgcmVsZWFzZSBvZnRlbiIsIGFuZCBub3QgaG9sZCBwcm9ncmVzcyBiZWNh
-dXNlIG9mIGVuZGxlc3MgcGhpbG9zb3BoaWNhbCBkaXNjdXNzaW9ucw0KdGhlbiBsZXQncyBhcHBs
-eSB0aGVzZSBwYXRjaGVzLg0KDQpJIHBlcmZlY3RseSB1bmRlcnN0YW5kIEphc29uJ3MgcHJvcG9z
-YWwgYW5kIGl0cyBtZXJpdHMuDQpJIGp1c3QgZG9uJ3QgYWdyZWUgdGhhdCBpdCBpcyBhIGJldHRl
-ciBhcHByb2FjaCwgYW5kIGluIGFueSBjYXNlIHRoaXMgaXMgbm90IHRoZSB0aW1lIHRvIGNvbnRp
-bnVlIGRpc2N1c3NpbmcgaXQuDQoNCj4gMSAtIEFjdHVhbGx5LCBmb3IgYW55IHJlY2VpdmVkIHBh
-Y2tldCB3aXRoIGFzc29jaWF0ZWQgSVAgYWRkcmVzcyBpbmZvcm1hdGlvbi4NCj4gV2UndmUgb25s
-eSBlbmFibGVkIG5ldCBuYW1lc3BhY2VzIGZvciBJUCBjb25uZWN0aW9ucyBiZXR3ZWVuIHVzZXIg
-c3BhY2UNCj4gYXBwbGljYXRpb25zLCBmb3IgZGlyZWN0IElCIGNvbm5lY3Rpb25zIG9yIGZvciBr
-ZXJuZWwgY29ubmVjdGlvbnMgdGhlcmUgaXMgbm90DQo+IHlldCBhbnkgbmFtZXNwYWNlIHN1cHBv
-cnQuDQoNCkNvcnJlY3QuDQpUaGF0J3Mgd2h5IHdlIGFyZSBub3Qgcmlza2luZyBhbnl0aGluZyBp
-biB0aGUgS0FQSSB3aXRoIHJlZ2FyZCB0byBuYW1lc3BhY2VzOyB0aGVyZSBpcyBubyBzZWN1cml0
-eSBpc3N1ZS4NCg0KLS1MaXJhbg0KDQo+IA0KPiAtLQ0KPiBEb3VnIExlZGZvcmQgPGRsZWRmb3Jk
-QHJlZGhhdC5jb20+DQo+ICAgICAgICAgICAgICAgR1BHIEtleUlEOiAwRTU3MkZERA0KPiANCg0K
+On Thu, Dec 17, 2015 at 02:00:18AM -0500, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> +static int unprogram_rcvarray(struct file *fp, u32 tidinfo,
+> +			      struct tid_group **grp)
+> +{
+> +	struct hfi1_filedata *fd = fp->private_data;
+> +	struct hfi1_ctxtdata *uctxt = fd->uctxt;
+> +	struct hfi1_devdata *dd = uctxt->dd;
+> +	struct mmu_rb_node *node;
+> +	u8 tidctrl = EXP_TID_GET(tidinfo, CTRL);
+> +	u32 tidbase = uctxt->expected_base,
+> +		tididx = EXP_TID_GET(tidinfo, IDX) << 1, rcventry;
+> +
+> +	if (tididx > uctxt->expected_count) {
+
+Should this be >= ?  I don't think it makes that much difference since
+we're not using it as an offset.
+
+> +		dd_dev_err(dd, "Invalid RcvArray entry (%u) index for ctxt %u\n",
+> +			   tididx, uctxt->ctxt);
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (tidctrl == 0x3)
+> +		return -EINVAL;
+> +
+> +	rcventry = tidbase + tididx + (tidctrl - 1);
+> +
+> +	spin_lock(&fd->rb_lock);
+> +	node = mmu_rb_search_by_entry(&fd->tid_rb_root, rcventry);
+> +	if (!node) {
+> +		spin_unlock(&fd->rb_lock);
+> +		return -EBADF;
+> +	}
+> +	rb_erase(&node->rbnode, &fd->tid_rb_root);
+> +	spin_unlock(&fd->rb_lock);
+> +	if (grp)
+> +		*grp = node->grp;
+> +	clear_tid_node(fd, fd->subctxt, node);
+> +	return 0;
+> +}
+
+regards,
+dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
