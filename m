@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 04/14] uapi/rdma/hfi/hfi1_user.h: Add command and event for TID caching
-Date: Thu, 17 Dec 2015 02:00:14 -0500
-Message-ID: <1450335624-12134-5-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 03/14] uapi/rdma/hfi/hfi1_user.h: Convert definitions to use BIT() macro
+Date: Thu, 17 Dec 2015 02:00:13 -0500
+Message-ID: <1450335624-12134-4-git-send-email-ira.weiny@intel.com>
 References: <1450335624-12134-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450335624-12134-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,60 +12,86 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-TID caching will use a new event to signal userland that cache
-invalidation has occurred and needs a matching command code that
-will be used to read the invalidated TIDs.
-
-Add the event bit and the new command to the exported header file.
-
-The command is also added to the switch() statement in file_ops.c
-for completeness and in preparation for its usage later.
+Convert bit definitions to use BIT() macro as per checkpatch.pl
+requirements.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/file_ops.c | 1 +
- include/uapi/rdma/hfi/hfi1_user.h    | 5 ++++-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ include/uapi/rdma/hfi/hfi1_user.h | 56 +++++++++++++++++++--------------------
+ 1 file changed, 28 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
-index d57d549052c8..c66693532be0 100644
---- a/drivers/staging/rdma/hfi1/file_ops.c
-+++ b/drivers/staging/rdma/hfi1/file_ops.c
-@@ -241,6 +241,7 @@ static ssize_t hfi1_file_write(struct file *fp, const char __user *data,
- 		must_be_root = 1;	/* validate user */
- 		copy = 0;
- 		break;
-+	case HFI1_CMD_TID_INVAL_READ:
- 	default:
- 		ret = -EINVAL;
- 		goto bail;
 diff --git a/include/uapi/rdma/hfi/hfi1_user.h b/include/uapi/rdma/hfi/hfi1_user.h
-index a65f2fe17660..959204df5318 100644
+index cf172718e3d5..a65f2fe17660 100644
 --- a/include/uapi/rdma/hfi/hfi1_user.h
 +++ b/include/uapi/rdma/hfi/hfi1_user.h
-@@ -134,6 +134,7 @@
- #define HFI1_CMD_ACK_EVENT       10	/* ack & clear user status bits */
- #define HFI1_CMD_SET_PKEY        11     /* set context's pkey */
- #define HFI1_CMD_CTXT_RESET      12     /* reset context's HW send context */
-+#define HFI1_CMD_TID_INVAL_READ  13     /* read TID cache invalidations */
- /* separate EPROM commands from normal PSM commands */
- #define HFI1_CMD_EP_INFO         64      /* read EPROM device ID */
- #define HFI1_CMD_EP_ERASE_CHIP   65      /* erase whole EPROM */
-@@ -147,13 +148,15 @@
- #define _HFI1_EVENT_LID_CHANGE_BIT     2
- #define _HFI1_EVENT_LMC_CHANGE_BIT     3
- #define _HFI1_EVENT_SL2VL_CHANGE_BIT   4
--#define _HFI1_MAX_EVENT_BIT _HFI1_EVENT_SL2VL_CHANGE_BIT
-+#define _HFI1_EVENT_TID_MMU_NOTIFY_BIT 5
-+#define _HFI1_MAX_EVENT_BIT _HFI1_EVENT_TID_MMU_NOTIFY_BIT
+@@ -83,29 +83,29 @@
+  * driver features. The same set of bits are communicated to user
+  * space.
+  */
+-#define HFI1_CAP_DMA_RTAIL        (1UL <<  0) /* Use DMA'ed RTail value */
+-#define HFI1_CAP_SDMA             (1UL <<  1) /* Enable SDMA support */
+-#define HFI1_CAP_SDMA_AHG         (1UL <<  2) /* Enable SDMA AHG support */
+-#define HFI1_CAP_EXTENDED_PSN     (1UL <<  3) /* Enable Extended PSN support */
+-#define HFI1_CAP_HDRSUPP          (1UL <<  4) /* Enable Header Suppression */
+-/* 1UL << 5 unused */
+-#define HFI1_CAP_USE_SDMA_HEAD    (1UL <<  6) /* DMA Hdr Q tail vs. use CSR */
+-#define HFI1_CAP_MULTI_PKT_EGR    (1UL <<  7) /* Enable multi-packet Egr buffs*/
+-#define HFI1_CAP_NODROP_RHQ_FULL  (1UL <<  8) /* Don't drop on Hdr Q full */
+-#define HFI1_CAP_NODROP_EGR_FULL  (1UL <<  9) /* Don't drop on EGR buffs full */
+-#define HFI1_CAP_TID_UNMAP        (1UL << 10) /* Disable Expected TID caching */
+-#define HFI1_CAP_PRINT_UNIMPL     (1UL << 11) /* Show for unimplemented feats */
+-#define HFI1_CAP_ALLOW_PERM_JKEY  (1UL << 12) /* Allow use of permissive JKEY */
+-#define HFI1_CAP_NO_INTEGRITY     (1UL << 13) /* Enable ctxt integrity checks */
+-#define HFI1_CAP_PKEY_CHECK       (1UL << 14) /* Enable ctxt PKey checking */
+-#define HFI1_CAP_STATIC_RATE_CTRL (1UL << 15) /* Allow PBC.StaticRateControl */
+-/* 1UL << 16 unused */
+-#define HFI1_CAP_SDMA_HEAD_CHECK  (1UL << 17) /* SDMA head checking */
+-#define HFI1_CAP_EARLY_CREDIT_RETURN (1UL << 18) /* early credit return */
+-
+-#define HFI1_RCVHDR_ENTSIZE_2    (1UL << 0)
+-#define HFI1_RCVHDR_ENTSIZE_16   (1UL << 1)
+-#define HFI1_RCVDHR_ENTSIZE_32   (1UL << 2)
++#define HFI1_CAP_DMA_RTAIL        BIT(0) /* Use DMA'ed RTail value */
++#define HFI1_CAP_SDMA             BIT(1) /* Enable SDMA support */
++#define HFI1_CAP_SDMA_AHG         BIT(2) /* Enable SDMA AHG support */
++#define HFI1_CAP_EXTENDED_PSN     BIT(3) /* Enable Extended PSN support */
++#define HFI1_CAP_HDRSUPP          BIT(4) /* Enable Header Suppression */
++/* BIT(5) unused */
++#define HFI1_CAP_USE_SDMA_HEAD    BIT(6) /* DMA Hdr Q tail vs. use CSR */
++#define HFI1_CAP_MULTI_PKT_EGR    BIT(7) /* Enable multi-packet Egr buffs*/
++#define HFI1_CAP_NODROP_RHQ_FULL  BIT(8) /* Don't drop on Hdr Q full */
++#define HFI1_CAP_NODROP_EGR_FULL  BIT(9) /* Don't drop on EGR buffs full */
++#define HFI1_CAP_TID_UNMAP        BIT(10) /* Disable Expected TID caching */
++#define HFI1_CAP_PRINT_UNIMPL     BIT(11) /* Show for unimplemented feats */
++#define HFI1_CAP_ALLOW_PERM_JKEY  BIT(12) /* Allow use of permissive JKEY */
++#define HFI1_CAP_NO_INTEGRITY     BIT(13) /* Enable ctxt integrity checks */
++#define HFI1_CAP_PKEY_CHECK       BIT(14) /* Enable ctxt PKey checking */
++#define HFI1_CAP_STATIC_RATE_CTRL BIT(15) /* Allow PBC.StaticRateControl */
++/* BIT(16) unused */
++#define HFI1_CAP_SDMA_HEAD_CHECK  BIT(17) /* SDMA head checking */
++#define HFI1_CAP_EARLY_CREDIT_RETURN BIT(18) /* early credit return */
++
++#define HFI1_RCVHDR_ENTSIZE_2    BIT(0)
++#define HFI1_RCVHDR_ENTSIZE_16   BIT(1)
++#define HFI1_RCVDHR_ENTSIZE_32   BIT(2)
  
- #define HFI1_EVENT_FROZEN            BIT(_HFI1_EVENT_FROZEN_BIT)
- #define HFI1_EVENT_LINKDOWN          BIT(_HFI1_EVENT_LINKDOWN_BIT)
- #define HFI1_EVENT_LID_CHANGE        BIT(_HFI1_EVENT_LID_CHANGE_BIT)
- #define HFI1_EVENT_LMC_CHANGE        BIT(_HFI1_EVENT_LMC_CHANGE_BIT)
- #define HFI1_EVENT_SL2VL_CHANGE      BIT(_HFI1_EVENT_SL2VL_CHANGE_BIT)
-+#define HFI1_EVENT_TID_MMU_NOTIFY    BIT(_HFI1_EVENT_TID_MMU_NOTIFY_BIT)
+ /*
+  * If the unit is specified via open, HFI choice is fixed.  If port is
+@@ -149,11 +149,11 @@
+ #define _HFI1_EVENT_SL2VL_CHANGE_BIT   4
+ #define _HFI1_MAX_EVENT_BIT _HFI1_EVENT_SL2VL_CHANGE_BIT
+ 
+-#define HFI1_EVENT_FROZEN            (1UL << _HFI1_EVENT_FROZEN_BIT)
+-#define HFI1_EVENT_LINKDOWN          (1UL << _HFI1_EVENT_LINKDOWN_BIT)
+-#define HFI1_EVENT_LID_CHANGE        (1UL << _HFI1_EVENT_LID_CHANGE_BIT)
+-#define HFI1_EVENT_LMC_CHANGE        (1UL << _HFI1_EVENT_LMC_CHANGE_BIT)
+-#define HFI1_EVENT_SL2VL_CHANGE      (1UL << _HFI1_EVENT_SL2VL_CHANGE_BIT)
++#define HFI1_EVENT_FROZEN            BIT(_HFI1_EVENT_FROZEN_BIT)
++#define HFI1_EVENT_LINKDOWN          BIT(_HFI1_EVENT_LINKDOWN_BIT)
++#define HFI1_EVENT_LID_CHANGE        BIT(_HFI1_EVENT_LID_CHANGE_BIT)
++#define HFI1_EVENT_LMC_CHANGE        BIT(_HFI1_EVENT_LMC_CHANGE_BIT)
++#define HFI1_EVENT_SL2VL_CHANGE      BIT(_HFI1_EVENT_SL2VL_CHANGE_BIT)
  
  /*
   * These are the status bits readable (in ASCII form, 64bit value)
