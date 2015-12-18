@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 03/10] IB: remove support for phys MRs
-Date: Fri, 18 Dec 2015 14:54:59 +0100
-Message-ID: <1450446906-10336-4-git-send-email-hch@lst.de>
+Subject: [PATCH 04/10] IB: remove in-kernel support for memory windows
+Date: Fri, 18 Dec 2015 14:55:00 +0100
+Message-ID: <1450446906-10336-5-git-send-email-hch@lst.de>
 References: <1450446906-10336-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450446906-10336-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
@@ -10,1593 +10,822 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-We have stopped using phys MRs in the kernel a while ago, so let's
-remove all the cruft used to implement them.
+Remove the unused ib_allow_mw and ib_bind_mw functions, remove the
+unused IB_WR_BIND_MW and IB_WC_BIND_MW opcodes and move ib_dealloc_mw
+into the uverbs module.
 
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> [core]
-Reviewed-By: Devesh Sharma<devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org> [ocrdma]
 Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb3/iwch_mem.c       |  31 ---
- drivers/infiniband/hw/cxgb3/iwch_provider.c  |  69 ------
- drivers/infiniband/hw/cxgb3/iwch_provider.h  |   4 -
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h       |  11 -
- drivers/infiniband/hw/cxgb4/mem.c            | 248 ---------------------
- drivers/infiniband/hw/cxgb4/provider.c       |   2 -
- drivers/infiniband/hw/mthca/mthca_provider.c |  84 -------
- drivers/infiniband/hw/nes/nes_cm.c           |   7 +-
- drivers/infiniband/hw/nes/nes_verbs.c        |   3 +-
- drivers/infiniband/hw/nes/nes_verbs.h        |   5 +
- drivers/infiniband/hw/ocrdma/ocrdma_main.c   |   1 -
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  | 163 --------------
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.h  |   3 -
- drivers/infiniband/hw/qib/qib_mr.c           |  51 +----
- drivers/infiniband/hw/qib/qib_verbs.c        |   1 -
- drivers/infiniband/hw/qib/qib_verbs.h        |   4 -
- drivers/staging/rdma/amso1100/c2_provider.c  |   1 -
- drivers/staging/rdma/ehca/ehca_iverbs.h      |  11 -
- drivers/staging/rdma/ehca/ehca_main.c        |   2 -
- drivers/staging/rdma/ehca/ehca_mrmw.c        | 321 ---------------------------
- drivers/staging/rdma/ehca/ehca_mrmw.h        |   5 -
- drivers/staging/rdma/hfi1/mr.c               |  51 +----
- drivers/staging/rdma/hfi1/verbs.c            |   1 -
- drivers/staging/rdma/hfi1/verbs.h            |   4 -
- drivers/staging/rdma/ipath/ipath_mr.c        |  55 -----
- drivers/staging/rdma/ipath/ipath_verbs.c     |   1 -
- drivers/staging/rdma/ipath/ipath_verbs.h     |   4 -
- include/rdma/ib_verbs.h                      |  16 +-
- 28 files changed, 15 insertions(+), 1144 deletions(-)
+ Documentation/infiniband/core_locking.txt   |  2 -
+ drivers/infiniband/core/uverbs.h            |  2 +
+ drivers/infiniband/core/uverbs_cmd.c        |  4 +-
+ drivers/infiniband/core/uverbs_main.c       | 13 ++++-
+ drivers/infiniband/core/verbs.c             | 36 -------------
+ drivers/infiniband/hw/cxgb3/iwch_cq.c       |  4 --
+ drivers/infiniband/hw/cxgb3/iwch_provider.c |  1 -
+ drivers/infiniband/hw/cxgb3/iwch_provider.h |  3 --
+ drivers/infiniband/hw/cxgb3/iwch_qp.c       | 82 ----------------------------
+ drivers/infiniband/hw/cxgb4/cq.c            |  3 --
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h      |  2 -
+ drivers/infiniband/hw/cxgb4/provider.c      |  1 -
+ drivers/infiniband/hw/cxgb4/qp.c            |  5 --
+ drivers/infiniband/hw/mlx4/cq.c             |  3 --
+ drivers/infiniband/hw/mlx4/main.c           |  1 -
+ drivers/infiniband/hw/mlx4/mlx4_ib.h        |  2 -
+ drivers/infiniband/hw/mlx4/mr.c             | 22 --------
+ drivers/infiniband/hw/mlx4/qp.c             | 27 ----------
+ drivers/infiniband/hw/mlx5/cq.c             |  3 --
+ drivers/infiniband/hw/mthca/mthca_cq.c      |  3 --
+ drivers/infiniband/hw/nes/nes_verbs.c       | 75 --------------------------
+ drivers/staging/rdma/amso1100/c2_cq.c       |  3 --
+ drivers/staging/rdma/ehca/ehca_iverbs.h     |  3 --
+ drivers/staging/rdma/ehca/ehca_main.c       |  1 -
+ drivers/staging/rdma/ehca/ehca_mrmw.c       | 12 -----
+ drivers/staging/rdma/ehca/ehca_reqs.c       |  1 -
+ include/rdma/ib_verbs.h                     | 83 -----------------------------
+ 27 files changed, 16 insertions(+), 381 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_mem.c b/drivers/infiniband/hw/cxgb3/iwch_mem.c
-index 5c36ee2..3a5e27d 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_mem.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_mem.c
-@@ -75,37 +75,6 @@ int iwch_register_mem(struct iwch_dev *rhp, struct iwch_pd *php,
- 	return ret;
- }
+diff --git a/Documentation/infiniband/core_locking.txt b/Documentation/infiniband/core_locking.txt
+index e167854..4b1f36b 100644
+--- a/Documentation/infiniband/core_locking.txt
++++ b/Documentation/infiniband/core_locking.txt
+@@ -15,7 +15,6 @@ Sleeping and interrupt context
+     modify_ah
+     query_ah
+     destroy_ah
+-    bind_mw
+     post_send
+     post_recv
+     poll_cq
+@@ -31,7 +30,6 @@ Sleeping and interrupt context
+     ib_modify_ah
+     ib_query_ah
+     ib_destroy_ah
+-    ib_bind_mw
+     ib_post_send
+     ib_post_recv
+     ib_req_notify_cq
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index 94bbd8c..612ccfd 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -204,6 +204,8 @@ void ib_uverbs_event_handler(struct ib_event_handler *handler,
+ 			     struct ib_event *event);
+ void ib_uverbs_dealloc_xrcd(struct ib_uverbs_device *dev, struct ib_xrcd *xrcd);
  
--int iwch_reregister_mem(struct iwch_dev *rhp, struct iwch_pd *php,
--					struct iwch_mr *mhp,
--					int shift,
--					int npages)
++int uverbs_dealloc_mw(struct ib_mw *mw);
++
+ struct ib_uverbs_flow_spec {
+ 	union {
+ 		union {
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 1add536..48776bb 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1242,7 +1242,7 @@ err_copy:
+ 	idr_remove_uobj(&ib_uverbs_mw_idr, uobj);
+ 
+ err_unalloc:
+-	ib_dealloc_mw(mw);
++	uverbs_dealloc_mw(mw);
+ 
+ err_put:
+ 	put_pd_read(pd);
+@@ -1271,7 +1271,7 @@ ssize_t ib_uverbs_dealloc_mw(struct ib_uverbs_file *file,
+ 
+ 	mw = uobj->object;
+ 
+-	ret = ib_dealloc_mw(mw);
++	ret = uverbs_dealloc_mw(mw);
+ 	if (!ret)
+ 		uobj->live = 0;
+ 
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index e3ef288..39680ae 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -133,6 +133,17 @@ static int (*uverbs_ex_cmd_table[])(struct ib_uverbs_file *file,
+ static void ib_uverbs_add_one(struct ib_device *device);
+ static void ib_uverbs_remove_one(struct ib_device *device, void *client_data);
+ 
++int uverbs_dealloc_mw(struct ib_mw *mw)
++{
++	struct ib_pd *pd = mw->pd;
++	int ret;
++
++	ret = mw->device->dealloc_mw(mw);
++	if (!ret)
++		atomic_dec(&pd->usecnt);
++	return ret;
++}
++
+ static void ib_uverbs_release_dev(struct kobject *kobj)
+ {
+ 	struct ib_uverbs_device *dev =
+@@ -224,7 +235,7 @@ static int ib_uverbs_cleanup_ucontext(struct ib_uverbs_file *file,
+ 		struct ib_mw *mw = uobj->object;
+ 
+ 		idr_remove_uobj(&ib_uverbs_mw_idr, uobj);
+-		ib_dealloc_mw(mw);
++		uverbs_dealloc_mw(mw);
+ 		kfree(uobj);
+ 	}
+ 
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 29a3e53..2858b35 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1267,42 +1267,6 @@ struct ib_mr *ib_alloc_mr(struct ib_pd *pd,
+ }
+ EXPORT_SYMBOL(ib_alloc_mr);
+ 
+-/* Memory windows */
+-
+-struct ib_mw *ib_alloc_mw(struct ib_pd *pd, enum ib_mw_type type)
 -{
--	u32 stag;
+-	struct ib_mw *mw;
+-
+-	if (!pd->device->alloc_mw)
+-		return ERR_PTR(-ENOSYS);
+-
+-	mw = pd->device->alloc_mw(pd, type);
+-	if (!IS_ERR(mw)) {
+-		mw->device  = pd->device;
+-		mw->pd      = pd;
+-		mw->uobject = NULL;
+-		mw->type    = type;
+-		atomic_inc(&pd->usecnt);
+-	}
+-
+-	return mw;
+-}
+-EXPORT_SYMBOL(ib_alloc_mw);
+-
+-int ib_dealloc_mw(struct ib_mw *mw)
+-{
+-	struct ib_pd *pd;
 -	int ret;
 -
--	/* We could support this... */
--	if (npages > mhp->attr.pbl_size)
--		return -ENOMEM;
--
--	stag = mhp->attr.stag;
--	if (cxio_reregister_phys_mem(&rhp->rdev,
--				   &stag, mhp->attr.pdid,
--				   mhp->attr.perms,
--				   mhp->attr.zbva,
--				   mhp->attr.va_fbo,
--				   mhp->attr.len,
--				   shift - 12,
--				   mhp->attr.pbl_size, mhp->attr.pbl_addr))
--		return -ENOMEM;
--
--	ret = iwch_finish_mem_reg(mhp, stag);
--	if (ret)
--		cxio_dereg_mem(&rhp->rdev, mhp->attr.stag, mhp->attr.pbl_size,
--		       mhp->attr.pbl_addr);
+-	pd = mw->pd;
+-	ret = mw->device->dealloc_mw(mw);
+-	if (!ret)
+-		atomic_dec(&pd->usecnt);
 -
 -	return ret;
 -}
+-EXPORT_SYMBOL(ib_dealloc_mw);
 -
- int iwch_alloc_pbl(struct iwch_mr *mhp, int npages)
- {
- 	mhp->attr.pbl_addr = cxio_hal_pblpool_alloc(&mhp->rhp->rdev,
+ /* "Fast" memory regions */
+ 
+ struct ib_fmr *ib_alloc_fmr(struct ib_pd *pd,
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_cq.c b/drivers/infiniband/hw/cxgb3/iwch_cq.c
+index cfe4049..97fbfd2 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_cq.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_cq.c
+@@ -115,10 +115,6 @@ static int iwch_poll_cq_one(struct iwch_dev *rhp, struct iwch_cq *chp,
+ 		case T3_SEND_WITH_SE_INV:
+ 			wc->opcode = IB_WC_SEND;
+ 			break;
+-		case T3_BIND_MW:
+-			wc->opcode = IB_WC_BIND_MW;
+-			break;
+-
+ 		case T3_LOCAL_INV:
+ 			wc->opcode = IB_WC_LOCAL_INV;
+ 			break;
 diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-index 1567b5b..9576e15 100644
+index 9576e15..b184933 100644
 --- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
 +++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -556,73 +556,6 @@ err:
- 
- }
- 
--static int iwch_reregister_phys_mem(struct ib_mr *mr,
--				     int mr_rereg_mask,
--				     struct ib_pd *pd,
--	                             struct ib_phys_buf *buffer_list,
--	                             int num_phys_buf,
--	                             int acc, u64 * iova_start)
--{
--
--	struct iwch_mr mh, *mhp;
--	struct iwch_pd *php;
--	struct iwch_dev *rhp;
--	__be64 *page_list = NULL;
--	int shift = 0;
--	u64 total_size;
--	int npages = 0;
--	int ret;
--
--	PDBG("%s ib_mr %p ib_pd %p\n", __func__, mr, pd);
--
--	/* There can be no memory windows */
--	if (atomic_read(&mr->usecnt))
--		return -EINVAL;
--
--	mhp = to_iwch_mr(mr);
--	rhp = mhp->rhp;
--	php = to_iwch_pd(mr->pd);
--
--	/* make sure we are on the same adapter */
--	if (rhp != php->rhp)
--		return -EINVAL;
--
--	memcpy(&mh, mhp, sizeof *mhp);
--
--	if (mr_rereg_mask & IB_MR_REREG_PD)
--		php = to_iwch_pd(pd);
--	if (mr_rereg_mask & IB_MR_REREG_ACCESS)
--		mh.attr.perms = iwch_ib_to_tpt_access(acc);
--	if (mr_rereg_mask & IB_MR_REREG_TRANS) {
--		ret = build_phys_page_list(buffer_list, num_phys_buf,
--					   iova_start,
--					   &total_size, &npages,
--					   &shift, &page_list);
--		if (ret)
--			return ret;
--	}
--
--	ret = iwch_reregister_mem(rhp, php, &mh, shift, npages);
--	kfree(page_list);
--	if (ret) {
--		return ret;
--	}
--	if (mr_rereg_mask & IB_MR_REREG_PD)
--		mhp->attr.pdid = php->pdid;
--	if (mr_rereg_mask & IB_MR_REREG_ACCESS)
--		mhp->attr.perms = iwch_ib_to_tpt_access(acc);
--	if (mr_rereg_mask & IB_MR_REREG_TRANS) {
--		mhp->attr.zbva = 0;
--		mhp->attr.va_fbo = *iova_start;
--		mhp->attr.page_size = shift - 12;
--		mhp->attr.len = (u32) total_size;
--		mhp->attr.pbl_size = npages;
--	}
--
--	return 0;
--}
--
--
- static struct ib_mr *iwch_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 				      u64 virt, int acc, struct ib_udata *udata)
- {
-@@ -1414,8 +1347,6 @@ int iwch_register_device(struct iwch_dev *dev)
- 	dev->ibdev.resize_cq = iwch_resize_cq;
- 	dev->ibdev.poll_cq = iwch_poll_cq;
- 	dev->ibdev.get_dma_mr = iwch_get_dma_mr;
--	dev->ibdev.reg_phys_mr = iwch_register_phys_mem;
--	dev->ibdev.rereg_phys_mr = iwch_reregister_phys_mem;
+@@ -1350,7 +1350,6 @@ int iwch_register_device(struct iwch_dev *dev)
  	dev->ibdev.reg_user_mr = iwch_reg_user_mr;
  	dev->ibdev.dereg_mr = iwch_dereg_mr;
  	dev->ibdev.alloc_mw = iwch_alloc_mw;
+-	dev->ibdev.bind_mw = iwch_bind_mw;
+ 	dev->ibdev.dealloc_mw = iwch_dealloc_mw;
+ 	dev->ibdev.alloc_mr = iwch_alloc_mr;
+ 	dev->ibdev.map_mr_sg = iwch_map_mr_sg;
 diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.h b/drivers/infiniband/hw/cxgb3/iwch_provider.h
-index 2ac85b8..f4fa6d6 100644
+index f4fa6d6..f24df44 100644
 --- a/drivers/infiniband/hw/cxgb3/iwch_provider.h
 +++ b/drivers/infiniband/hw/cxgb3/iwch_provider.h
-@@ -341,10 +341,6 @@ void iwch_unregister_device(struct iwch_dev *dev);
- void stop_read_rep_timer(struct iwch_qp *qhp);
- int iwch_register_mem(struct iwch_dev *rhp, struct iwch_pd *php,
- 		      struct iwch_mr *mhp, int shift);
--int iwch_reregister_mem(struct iwch_dev *rhp, struct iwch_pd *php,
--					struct iwch_mr *mhp,
--					int shift,
--					int npages);
- int iwch_alloc_pbl(struct iwch_mr *mhp, int npages);
- void iwch_free_pbl(struct iwch_mr *mhp);
- int iwch_write_pbl(struct iwch_mr *mhp, __be64 *pages, int npages, int offset);
+@@ -330,9 +330,6 @@ int iwch_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 		      struct ib_send_wr **bad_wr);
+ int iwch_post_receive(struct ib_qp *ibqp, struct ib_recv_wr *wr,
+ 		      struct ib_recv_wr **bad_wr);
+-int iwch_bind_mw(struct ib_qp *qp,
+-			     struct ib_mw *mw,
+-			     struct ib_mw_bind *mw_bind);
+ int iwch_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc);
+ int iwch_post_terminate(struct iwch_qp *qhp, struct respQ_msg_t *rsp_msg);
+ int iwch_post_zb_read(struct iwch_ep *ep);
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_qp.c b/drivers/infiniband/hw/cxgb3/iwch_qp.c
+index d0548fc..d939980 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_qp.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_qp.c
+@@ -526,88 +526,6 @@ out:
+ 	return err;
+ }
+ 
+-int iwch_bind_mw(struct ib_qp *qp,
+-			     struct ib_mw *mw,
+-			     struct ib_mw_bind *mw_bind)
+-{
+-	struct iwch_dev *rhp;
+-	struct iwch_mw *mhp;
+-	struct iwch_qp *qhp;
+-	union t3_wr *wqe;
+-	u32 pbl_addr;
+-	u8 page_size;
+-	u32 num_wrs;
+-	unsigned long flag;
+-	struct ib_sge sgl;
+-	int err=0;
+-	enum t3_wr_flags t3_wr_flags;
+-	u32 idx;
+-	struct t3_swsq *sqp;
+-
+-	qhp = to_iwch_qp(qp);
+-	mhp = to_iwch_mw(mw);
+-	rhp = qhp->rhp;
+-
+-	spin_lock_irqsave(&qhp->lock, flag);
+-	if (qhp->attr.state > IWCH_QP_STATE_RTS) {
+-		spin_unlock_irqrestore(&qhp->lock, flag);
+-		return -EINVAL;
+-	}
+-	num_wrs = Q_FREECNT(qhp->wq.sq_rptr, qhp->wq.sq_wptr,
+-			    qhp->wq.sq_size_log2);
+-	if (num_wrs == 0) {
+-		spin_unlock_irqrestore(&qhp->lock, flag);
+-		return -ENOMEM;
+-	}
+-	idx = Q_PTR2IDX(qhp->wq.wptr, qhp->wq.size_log2);
+-	PDBG("%s: idx 0x%0x, mw 0x%p, mw_bind 0x%p\n", __func__, idx,
+-	     mw, mw_bind);
+-	wqe = (union t3_wr *) (qhp->wq.queue + idx);
+-
+-	t3_wr_flags = 0;
+-	if (mw_bind->send_flags & IB_SEND_SIGNALED)
+-		t3_wr_flags = T3_COMPLETION_FLAG;
+-
+-	sgl.addr = mw_bind->bind_info.addr;
+-	sgl.lkey = mw_bind->bind_info.mr->lkey;
+-	sgl.length = mw_bind->bind_info.length;
+-	wqe->bind.reserved = 0;
+-	wqe->bind.type = TPT_VATO;
+-
+-	/* TBD: check perms */
+-	wqe->bind.perms = iwch_ib_to_tpt_bind_access(
+-		mw_bind->bind_info.mw_access_flags);
+-	wqe->bind.mr_stag = cpu_to_be32(mw_bind->bind_info.mr->lkey);
+-	wqe->bind.mw_stag = cpu_to_be32(mw->rkey);
+-	wqe->bind.mw_len = cpu_to_be32(mw_bind->bind_info.length);
+-	wqe->bind.mw_va = cpu_to_be64(mw_bind->bind_info.addr);
+-	err = iwch_sgl2pbl_map(rhp, &sgl, 1, &pbl_addr, &page_size);
+-	if (err) {
+-		spin_unlock_irqrestore(&qhp->lock, flag);
+-		return err;
+-	}
+-	wqe->send.wrid.id0.hi = qhp->wq.sq_wptr;
+-	sqp = qhp->wq.sq + Q_PTR2IDX(qhp->wq.sq_wptr, qhp->wq.sq_size_log2);
+-	sqp->wr_id = mw_bind->wr_id;
+-	sqp->opcode = T3_BIND_MW;
+-	sqp->sq_wptr = qhp->wq.sq_wptr;
+-	sqp->complete = 0;
+-	sqp->signaled = (mw_bind->send_flags & IB_SEND_SIGNALED);
+-	wqe->bind.mr_pbl_addr = cpu_to_be32(pbl_addr);
+-	wqe->bind.mr_pagesz = page_size;
+-	build_fw_riwrh((void *)wqe, T3_WR_BIND, t3_wr_flags,
+-		       Q_GENBIT(qhp->wq.wptr, qhp->wq.size_log2), 0,
+-		       sizeof(struct t3_bind_mw_wr) >> 3, T3_SOPEOP);
+-	++(qhp->wq.wptr);
+-	++(qhp->wq.sq_wptr);
+-	spin_unlock_irqrestore(&qhp->lock, flag);
+-
+-	if (cxio_wq_db_enabled(&qhp->wq))
+-		ring_doorbell(qhp->wq.doorbell, qhp->wq.qpid);
+-
+-	return err;
+-}
+-
+ static inline void build_term_codes(struct respQ_msg_t *rsp_msg,
+ 				    u8 *layer_type, u8 *ecode)
+ {
+diff --git a/drivers/infiniband/hw/cxgb4/cq.c b/drivers/infiniband/hw/cxgb4/cq.c
+index de9cd69..cf21df4 100644
+--- a/drivers/infiniband/hw/cxgb4/cq.c
++++ b/drivers/infiniband/hw/cxgb4/cq.c
+@@ -744,9 +744,6 @@ static int c4iw_poll_cq_one(struct c4iw_cq *chp, struct ib_wc *wc)
+ 		case FW_RI_SEND_WITH_SE:
+ 			wc->opcode = IB_WC_SEND;
+ 			break;
+-		case FW_RI_BIND_MW:
+-			wc->opcode = IB_WC_BIND_MW;
+-			break;
+ 
+ 		case FW_RI_LOCAL_INV:
+ 			wc->opcode = IB_WC_LOCAL_INV;
 diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-index 00e55fa..dd00cf2 100644
+index dd00cf2..fb2de75 100644
 --- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
 +++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-@@ -968,17 +968,6 @@ struct ib_mr *c4iw_reg_user_mr(struct ib_pd *pd, u64 start,
- 					   u64 length, u64 virt, int acc,
- 					   struct ib_udata *udata);
- struct ib_mr *c4iw_get_dma_mr(struct ib_pd *pd, int acc);
--struct ib_mr *c4iw_register_phys_mem(struct ib_pd *pd,
--					struct ib_phys_buf *buffer_list,
--					int num_phys_buf,
--					int acc,
--					u64 *iova_start);
--int c4iw_reregister_phys_mem(struct ib_mr *mr,
--				     int mr_rereg_mask,
--				     struct ib_pd *pd,
--				     struct ib_phys_buf *buffer_list,
--				     int num_phys_buf,
--				     int acc, u64 *iova_start);
- int c4iw_dereg_mr(struct ib_mr *ib_mr);
- int c4iw_destroy_cq(struct ib_cq *ib_cq);
- struct ib_cq *c4iw_create_cq(struct ib_device *ibdev,
-diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
-index e1629ab..1eb833a 100644
---- a/drivers/infiniband/hw/cxgb4/mem.c
-+++ b/drivers/infiniband/hw/cxgb4/mem.c
-@@ -392,32 +392,6 @@ static int register_mem(struct c4iw_dev *rhp, struct c4iw_pd *php,
- 	return ret;
- }
- 
--static int reregister_mem(struct c4iw_dev *rhp, struct c4iw_pd *php,
--			  struct c4iw_mr *mhp, int shift, int npages)
--{
--	u32 stag;
--	int ret;
--
--	if (npages > mhp->attr.pbl_size)
--		return -ENOMEM;
--
--	stag = mhp->attr.stag;
--	ret = write_tpt_entry(&rhp->rdev, 0, &stag, 1, mhp->attr.pdid,
--			      FW_RI_STAG_NSMR, mhp->attr.perms,
--			      mhp->attr.mw_bind_enable, mhp->attr.zbva,
--			      mhp->attr.va_fbo, mhp->attr.len, shift - 12,
--			      mhp->attr.pbl_size, mhp->attr.pbl_addr);
--	if (ret)
--		return ret;
--
--	ret = finish_mem_reg(mhp, stag);
--	if (ret)
--		dereg_mem(&rhp->rdev, mhp->attr.stag, mhp->attr.pbl_size,
--		       mhp->attr.pbl_addr);
--
--	return ret;
--}
--
- static int alloc_pbl(struct c4iw_mr *mhp, int npages)
- {
- 	mhp->attr.pbl_addr = c4iw_pblpool_alloc(&mhp->rhp->rdev,
-@@ -431,228 +405,6 @@ static int alloc_pbl(struct c4iw_mr *mhp, int npages)
- 	return 0;
- }
- 
--static int build_phys_page_list(struct ib_phys_buf *buffer_list,
--				int num_phys_buf, u64 *iova_start,
--				u64 *total_size, int *npages,
--				int *shift, __be64 **page_list)
--{
--	u64 mask;
--	int i, j, n;
--
--	mask = 0;
--	*total_size = 0;
--	for (i = 0; i < num_phys_buf; ++i) {
--		if (i != 0 && buffer_list[i].addr & ~PAGE_MASK)
--			return -EINVAL;
--		if (i != 0 && i != num_phys_buf - 1 &&
--		    (buffer_list[i].size & ~PAGE_MASK))
--			return -EINVAL;
--		*total_size += buffer_list[i].size;
--		if (i > 0)
--			mask |= buffer_list[i].addr;
--		else
--			mask |= buffer_list[i].addr & PAGE_MASK;
--		if (i != num_phys_buf - 1)
--			mask |= buffer_list[i].addr + buffer_list[i].size;
--		else
--			mask |= (buffer_list[i].addr + buffer_list[i].size +
--				PAGE_SIZE - 1) & PAGE_MASK;
--	}
--
--	if (*total_size > 0xFFFFFFFFULL)
--		return -ENOMEM;
--
--	/* Find largest page shift we can use to cover buffers */
--	for (*shift = PAGE_SHIFT; *shift < 27; ++(*shift))
--		if ((1ULL << *shift) & mask)
--			break;
--
--	buffer_list[0].size += buffer_list[0].addr & ((1ULL << *shift) - 1);
--	buffer_list[0].addr &= ~0ull << *shift;
--
--	*npages = 0;
--	for (i = 0; i < num_phys_buf; ++i)
--		*npages += (buffer_list[i].size +
--			(1ULL << *shift) - 1) >> *shift;
--
--	if (!*npages)
--		return -EINVAL;
--
--	*page_list = kmalloc(sizeof(u64) * *npages, GFP_KERNEL);
--	if (!*page_list)
--		return -ENOMEM;
--
--	n = 0;
--	for (i = 0; i < num_phys_buf; ++i)
--		for (j = 0;
--		     j < (buffer_list[i].size + (1ULL << *shift) - 1) >> *shift;
--		     ++j)
--			(*page_list)[n++] = cpu_to_be64(buffer_list[i].addr +
--			    ((u64) j << *shift));
--
--	PDBG("%s va 0x%llx mask 0x%llx shift %d len %lld pbl_size %d\n",
--	     __func__, (unsigned long long)*iova_start,
--	     (unsigned long long)mask, *shift, (unsigned long long)*total_size,
--	     *npages);
--
--	return 0;
--
--}
--
--int c4iw_reregister_phys_mem(struct ib_mr *mr, int mr_rereg_mask,
--			     struct ib_pd *pd, struct ib_phys_buf *buffer_list,
--			     int num_phys_buf, int acc, u64 *iova_start)
--{
--
--	struct c4iw_mr mh, *mhp;
--	struct c4iw_pd *php;
--	struct c4iw_dev *rhp;
--	__be64 *page_list = NULL;
--	int shift = 0;
--	u64 total_size;
--	int npages;
--	int ret;
--
--	PDBG("%s ib_mr %p ib_pd %p\n", __func__, mr, pd);
--
--	/* There can be no memory windows */
--	if (atomic_read(&mr->usecnt))
--		return -EINVAL;
--
--	mhp = to_c4iw_mr(mr);
--	rhp = mhp->rhp;
--	php = to_c4iw_pd(mr->pd);
--
--	/* make sure we are on the same adapter */
--	if (rhp != php->rhp)
--		return -EINVAL;
--
--	memcpy(&mh, mhp, sizeof *mhp);
--
--	if (mr_rereg_mask & IB_MR_REREG_PD)
--		php = to_c4iw_pd(pd);
--	if (mr_rereg_mask & IB_MR_REREG_ACCESS) {
--		mh.attr.perms = c4iw_ib_to_tpt_access(acc);
--		mh.attr.mw_bind_enable = (acc & IB_ACCESS_MW_BIND) ==
--					 IB_ACCESS_MW_BIND;
--	}
--	if (mr_rereg_mask & IB_MR_REREG_TRANS) {
--		ret = build_phys_page_list(buffer_list, num_phys_buf,
--						iova_start,
--						&total_size, &npages,
--						&shift, &page_list);
--		if (ret)
--			return ret;
--	}
--
--	if (mr_exceeds_hw_limits(rhp, total_size)) {
--		kfree(page_list);
--		return -EINVAL;
--	}
--
--	ret = reregister_mem(rhp, php, &mh, shift, npages);
--	kfree(page_list);
--	if (ret)
--		return ret;
--	if (mr_rereg_mask & IB_MR_REREG_PD)
--		mhp->attr.pdid = php->pdid;
--	if (mr_rereg_mask & IB_MR_REREG_ACCESS)
--		mhp->attr.perms = c4iw_ib_to_tpt_access(acc);
--	if (mr_rereg_mask & IB_MR_REREG_TRANS) {
--		mhp->attr.zbva = 0;
--		mhp->attr.va_fbo = *iova_start;
--		mhp->attr.page_size = shift - 12;
--		mhp->attr.len = (u32) total_size;
--		mhp->attr.pbl_size = npages;
--	}
--
--	return 0;
--}
--
--struct ib_mr *c4iw_register_phys_mem(struct ib_pd *pd,
--				     struct ib_phys_buf *buffer_list,
--				     int num_phys_buf, int acc, u64 *iova_start)
--{
--	__be64 *page_list;
--	int shift;
--	u64 total_size;
--	int npages;
--	struct c4iw_dev *rhp;
--	struct c4iw_pd *php;
--	struct c4iw_mr *mhp;
--	int ret;
--
--	PDBG("%s ib_pd %p\n", __func__, pd);
--	php = to_c4iw_pd(pd);
--	rhp = php->rhp;
--
--	mhp = kzalloc(sizeof(*mhp), GFP_KERNEL);
--	if (!mhp)
--		return ERR_PTR(-ENOMEM);
--
--	mhp->rhp = rhp;
--
--	/* First check that we have enough alignment */
--	if ((*iova_start & ~PAGE_MASK) != (buffer_list[0].addr & ~PAGE_MASK)) {
--		ret = -EINVAL;
--		goto err;
--	}
--
--	if (num_phys_buf > 1 &&
--	    ((buffer_list[0].addr + buffer_list[0].size) & ~PAGE_MASK)) {
--		ret = -EINVAL;
--		goto err;
--	}
--
--	ret = build_phys_page_list(buffer_list, num_phys_buf, iova_start,
--					&total_size, &npages, &shift,
--					&page_list);
--	if (ret)
--		goto err;
--
--	if (mr_exceeds_hw_limits(rhp, total_size)) {
--		kfree(page_list);
--		ret = -EINVAL;
--		goto err;
--	}
--
--	ret = alloc_pbl(mhp, npages);
--	if (ret) {
--		kfree(page_list);
--		goto err;
--	}
--
--	ret = write_pbl(&mhp->rhp->rdev, page_list, mhp->attr.pbl_addr,
--			     npages);
--	kfree(page_list);
--	if (ret)
--		goto err_pbl;
--
--	mhp->attr.pdid = php->pdid;
--	mhp->attr.zbva = 0;
--
--	mhp->attr.perms = c4iw_ib_to_tpt_access(acc);
--	mhp->attr.va_fbo = *iova_start;
--	mhp->attr.page_size = shift - 12;
--
--	mhp->attr.len = (u32) total_size;
--	mhp->attr.pbl_size = npages;
--	ret = register_mem(rhp, php, mhp, shift);
--	if (ret)
--		goto err_pbl;
--
--	return &mhp->ibmr;
--
--err_pbl:
--	c4iw_pblpool_free(&mhp->rhp->rdev, mhp->attr.pbl_addr,
--			      mhp->attr.pbl_size << 3);
--
--err:
--	kfree(mhp);
--	return ERR_PTR(ret);
--
--}
--
- struct ib_mr *c4iw_get_dma_mr(struct ib_pd *pd, int acc)
- {
- 	struct c4iw_dev *rhp;
+@@ -947,8 +947,6 @@ int c4iw_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 		      struct ib_send_wr **bad_wr);
+ int c4iw_post_receive(struct ib_qp *ibqp, struct ib_recv_wr *wr,
+ 		      struct ib_recv_wr **bad_wr);
+-int c4iw_bind_mw(struct ib_qp *qp, struct ib_mw *mw,
+-		 struct ib_mw_bind *mw_bind);
+ int c4iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param);
+ int c4iw_create_listen(struct iw_cm_id *cm_id, int backlog);
+ int c4iw_destroy_listen(struct iw_cm_id *cm_id);
 diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
-index b7703bc..186319e 100644
+index 186319e..5544adc 100644
 --- a/drivers/infiniband/hw/cxgb4/provider.c
 +++ b/drivers/infiniband/hw/cxgb4/provider.c
-@@ -509,8 +509,6 @@ int c4iw_register_device(struct c4iw_dev *dev)
- 	dev->ibdev.resize_cq = c4iw_resize_cq;
- 	dev->ibdev.poll_cq = c4iw_poll_cq;
- 	dev->ibdev.get_dma_mr = c4iw_get_dma_mr;
--	dev->ibdev.reg_phys_mr = c4iw_register_phys_mem;
--	dev->ibdev.rereg_phys_mr = c4iw_reregister_phys_mem;
+@@ -512,7 +512,6 @@ int c4iw_register_device(struct c4iw_dev *dev)
  	dev->ibdev.reg_user_mr = c4iw_reg_user_mr;
  	dev->ibdev.dereg_mr = c4iw_dereg_mr;
  	dev->ibdev.alloc_mw = c4iw_alloc_mw;
-diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
-index 28d7a8b..6d0a1db 100644
---- a/drivers/infiniband/hw/mthca/mthca_provider.c
-+++ b/drivers/infiniband/hw/mthca/mthca_provider.c
-@@ -892,89 +892,6 @@ static struct ib_mr *mthca_get_dma_mr(struct ib_pd *pd, int acc)
- 	return &mr->ibmr;
+-	dev->ibdev.bind_mw = c4iw_bind_mw;
+ 	dev->ibdev.dealloc_mw = c4iw_dealloc_mw;
+ 	dev->ibdev.alloc_mr = c4iw_alloc_mr;
+ 	dev->ibdev.map_mr_sg = c4iw_map_mr_sg;
+diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+index aa515af..e99345e 100644
+--- a/drivers/infiniband/hw/cxgb4/qp.c
++++ b/drivers/infiniband/hw/cxgb4/qp.c
+@@ -933,11 +933,6 @@ int c4iw_post_receive(struct ib_qp *ibqp, struct ib_recv_wr *wr,
+ 	return err;
  }
  
--static struct ib_mr *mthca_reg_phys_mr(struct ib_pd       *pd,
--				       struct ib_phys_buf *buffer_list,
--				       int                 num_phys_buf,
--				       int                 acc,
--				       u64                *iova_start)
+-int c4iw_bind_mw(struct ib_qp *qp, struct ib_mw *mw, struct ib_mw_bind *mw_bind)
 -{
--	struct mthca_mr *mr;
--	u64 *page_list;
--	u64 total_size;
--	unsigned long mask;
--	int shift;
--	int npages;
--	int err;
--	int i, j, n;
--
--	mask = buffer_list[0].addr ^ *iova_start;
--	total_size = 0;
--	for (i = 0; i < num_phys_buf; ++i) {
--		if (i != 0)
--			mask |= buffer_list[i].addr;
--		if (i != num_phys_buf - 1)
--			mask |= buffer_list[i].addr + buffer_list[i].size;
--
--		total_size += buffer_list[i].size;
--	}
--
--	if (mask & ~PAGE_MASK)
--		return ERR_PTR(-EINVAL);
--
--	shift = __ffs(mask | 1 << 31);
--
--	buffer_list[0].size += buffer_list[0].addr & ((1ULL << shift) - 1);
--	buffer_list[0].addr &= ~0ull << shift;
--
--	mr = kmalloc(sizeof *mr, GFP_KERNEL);
--	if (!mr)
--		return ERR_PTR(-ENOMEM);
--
--	npages = 0;
--	for (i = 0; i < num_phys_buf; ++i)
--		npages += (buffer_list[i].size + (1ULL << shift) - 1) >> shift;
--
--	if (!npages)
--		return &mr->ibmr;
--
--	page_list = kmalloc(npages * sizeof *page_list, GFP_KERNEL);
--	if (!page_list) {
--		kfree(mr);
--		return ERR_PTR(-ENOMEM);
--	}
--
--	n = 0;
--	for (i = 0; i < num_phys_buf; ++i)
--		for (j = 0;
--		     j < (buffer_list[i].size + (1ULL << shift) - 1) >> shift;
--		     ++j)
--			page_list[n++] = buffer_list[i].addr + ((u64) j << shift);
--
--	mthca_dbg(to_mdev(pd->device), "Registering memory at %llx (iova %llx) "
--		  "in PD %x; shift %d, npages %d.\n",
--		  (unsigned long long) buffer_list[0].addr,
--		  (unsigned long long) *iova_start,
--		  to_mpd(pd)->pd_num,
--		  shift, npages);
--
--	err = mthca_mr_alloc_phys(to_mdev(pd->device),
--				  to_mpd(pd)->pd_num,
--				  page_list, shift, npages,
--				  *iova_start, total_size,
--				  convert_access(acc), mr);
--
--	if (err) {
--		kfree(page_list);
--		kfree(mr);
--		return ERR_PTR(err);
--	}
--
--	kfree(page_list);
--	mr->umem = NULL;
--
--	return &mr->ibmr;
+-	return -ENOSYS;
 -}
 -
- static struct ib_mr *mthca_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 				       u64 virt, int acc, struct ib_udata *udata)
+ static inline void build_term_codes(struct t4_cqe *err_cqe, u8 *layer_type,
+ 				    u8 *ecode)
  {
-@@ -1339,7 +1256,6 @@ int mthca_register_device(struct mthca_dev *dev)
- 	dev->ib_dev.destroy_cq           = mthca_destroy_cq;
- 	dev->ib_dev.poll_cq              = mthca_poll_cq;
- 	dev->ib_dev.get_dma_mr           = mthca_get_dma_mr;
--	dev->ib_dev.reg_phys_mr          = mthca_reg_phys_mr;
- 	dev->ib_dev.reg_user_mr          = mthca_reg_user_mr;
- 	dev->ib_dev.dereg_mr             = mthca_dereg_mr;
- 	dev->ib_dev.get_port_immutable   = mthca_port_immutable;
-diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
-index 8a3ad17..242c87d 100644
---- a/drivers/infiniband/hw/nes/nes_cm.c
-+++ b/drivers/infiniband/hw/nes/nes_cm.c
-@@ -3319,10 +3319,9 @@ int nes_accept(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 		ibphysbuf.addr = nesqp->ietf_frame_pbase + mpa_frame_offset;
- 		ibphysbuf.size = buff_len;
- 		tagged_offset = (u64)(unsigned long)*start_buff;
--		ibmr = nesibdev->ibdev.reg_phys_mr((struct ib_pd *)nespd,
--						   &ibphysbuf, 1,
--						   IB_ACCESS_LOCAL_WRITE,
--						   &tagged_offset);
-+		ibmr = nes_reg_phys_mr(&nespd->ibpd, &ibphysbuf, 1,
-+					IB_ACCESS_LOCAL_WRITE,
-+					&tagged_offset);
- 		if (!ibmr) {
- 			nes_debug(NES_DBG_CM, "Unable to register memory region"
- 				  "for lSMM for cm_node = %p \n",
+diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
+index b88fc8f..9f8b516 100644
+--- a/drivers/infiniband/hw/mlx4/cq.c
++++ b/drivers/infiniband/hw/mlx4/cq.c
+@@ -811,9 +811,6 @@ repoll:
+ 			wc->opcode    = IB_WC_MASKED_FETCH_ADD;
+ 			wc->byte_len  = 8;
+ 			break;
+-		case MLX4_OPCODE_BIND_MW:
+-			wc->opcode    = IB_WC_BIND_MW;
+-			break;
+ 		case MLX4_OPCODE_LSO:
+ 			wc->opcode    = IB_WC_LSO;
+ 			break;
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index e0232a2..4c18ff5 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -2313,7 +2313,6 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 	if (dev->caps.flags & MLX4_DEV_CAP_FLAG_MEM_WINDOW ||
+ 	    dev->caps.bmme_flags & MLX4_BMME_FLAG_TYPE_2_WIN) {
+ 		ibdev->ib_dev.alloc_mw = mlx4_ib_alloc_mw;
+-		ibdev->ib_dev.bind_mw = mlx4_ib_bind_mw;
+ 		ibdev->ib_dev.dealloc_mw = mlx4_ib_dealloc_mw;
+ 
+ 		ibdev->ib_dev.uverbs_cmd_mask |=
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index 1caa11e..8916e9b 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -704,8 +704,6 @@ struct ib_mr *mlx4_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 				  struct ib_udata *udata);
+ int mlx4_ib_dereg_mr(struct ib_mr *mr);
+ struct ib_mw *mlx4_ib_alloc_mw(struct ib_pd *pd, enum ib_mw_type type);
+-int mlx4_ib_bind_mw(struct ib_qp *qp, struct ib_mw *mw,
+-		    struct ib_mw_bind *mw_bind);
+ int mlx4_ib_dealloc_mw(struct ib_mw *mw);
+ struct ib_mr *mlx4_ib_alloc_mr(struct ib_pd *pd,
+ 			       enum ib_mr_type mr_type,
+diff --git a/drivers/infiniband/hw/mlx4/mr.c b/drivers/infiniband/hw/mlx4/mr.c
+index 4d1e1c6..242b94e 100644
+--- a/drivers/infiniband/hw/mlx4/mr.c
++++ b/drivers/infiniband/hw/mlx4/mr.c
+@@ -366,28 +366,6 @@ err_free:
+ 	return ERR_PTR(err);
+ }
+ 
+-int mlx4_ib_bind_mw(struct ib_qp *qp, struct ib_mw *mw,
+-		    struct ib_mw_bind *mw_bind)
+-{
+-	struct ib_bind_mw_wr  wr;
+-	struct ib_send_wr *bad_wr;
+-	int ret;
+-
+-	memset(&wr, 0, sizeof(wr));
+-	wr.wr.opcode		= IB_WR_BIND_MW;
+-	wr.wr.wr_id		= mw_bind->wr_id;
+-	wr.wr.send_flags	= mw_bind->send_flags;
+-	wr.mw			= mw;
+-	wr.bind_info		= mw_bind->bind_info;
+-	wr.rkey			= ib_inc_rkey(mw->rkey);
+-
+-	ret = mlx4_ib_post_send(qp, &wr.wr, &bad_wr);
+-	if (!ret)
+-		mw->rkey = wr.rkey;
+-
+-	return ret;
+-}
+-
+ int mlx4_ib_dealloc_mw(struct ib_mw *ibmw)
+ {
+ 	struct mlx4_ib_mw *mw = to_mmw(ibmw);
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 13eaaf4..7996536 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -115,7 +115,6 @@ static const __be32 mlx4_ib_opcode[] = {
+ 	[IB_WR_REG_MR]				= cpu_to_be32(MLX4_OPCODE_FMR),
+ 	[IB_WR_MASKED_ATOMIC_CMP_AND_SWP]	= cpu_to_be32(MLX4_OPCODE_MASKED_ATOMIC_CS),
+ 	[IB_WR_MASKED_ATOMIC_FETCH_AND_ADD]	= cpu_to_be32(MLX4_OPCODE_MASKED_ATOMIC_FA),
+-	[IB_WR_BIND_MW]				= cpu_to_be32(MLX4_OPCODE_BIND_MW),
+ };
+ 
+ static struct mlx4_ib_sqp *to_msqp(struct mlx4_ib_qp *mqp)
+@@ -2528,25 +2527,6 @@ static void set_reg_seg(struct mlx4_wqe_fmr_seg *fseg,
+ 	fseg->reserved[1]	= 0;
+ }
+ 
+-static void set_bind_seg(struct mlx4_wqe_bind_seg *bseg,
+-		struct ib_bind_mw_wr *wr)
+-{
+-	bseg->flags1 =
+-		convert_access(wr->bind_info.mw_access_flags) &
+-		cpu_to_be32(MLX4_WQE_FMR_AND_BIND_PERM_REMOTE_READ  |
+-			    MLX4_WQE_FMR_AND_BIND_PERM_REMOTE_WRITE |
+-			    MLX4_WQE_FMR_AND_BIND_PERM_ATOMIC);
+-	bseg->flags2 = 0;
+-	if (wr->mw->type == IB_MW_TYPE_2)
+-		bseg->flags2 |= cpu_to_be32(MLX4_WQE_BIND_TYPE_2);
+-	if (wr->bind_info.mw_access_flags & IB_ZERO_BASED)
+-		bseg->flags2 |= cpu_to_be32(MLX4_WQE_BIND_ZERO_BASED);
+-	bseg->new_rkey = cpu_to_be32(wr->rkey);
+-	bseg->lkey = cpu_to_be32(wr->bind_info.mr->lkey);
+-	bseg->addr = cpu_to_be64(wr->bind_info.addr);
+-	bseg->length = cpu_to_be64(wr->bind_info.length);
+-}
+-
+ static void set_local_inv_seg(struct mlx4_wqe_local_inval_seg *iseg, u32 rkey)
+ {
+ 	memset(iseg, 0, sizeof(*iseg));
+@@ -2867,13 +2847,6 @@ int mlx4_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 				size += sizeof(struct mlx4_wqe_fmr_seg) / 16;
+ 				break;
+ 
+-			case IB_WR_BIND_MW:
+-				ctrl->srcrb_flags |=
+-					cpu_to_be32(MLX4_WQE_CTRL_STRONG_ORDER);
+-				set_bind_seg(wqe, bind_mw_wr(wr));
+-				wqe  += sizeof(struct mlx4_wqe_bind_seg);
+-				size += sizeof(struct mlx4_wqe_bind_seg) / 16;
+-				break;
+ 			default:
+ 				/* No extra segments required for sends */
+ 				break;
+diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
+index 3dfd287..82f86ed 100644
+--- a/drivers/infiniband/hw/mlx5/cq.c
++++ b/drivers/infiniband/hw/mlx5/cq.c
+@@ -154,9 +154,6 @@ static void handle_good_req(struct ib_wc *wc, struct mlx5_cqe64 *cqe,
+ 		wc->opcode    = IB_WC_MASKED_FETCH_ADD;
+ 		wc->byte_len  = 8;
+ 		break;
+-	case MLX5_OPCODE_BIND_MW:
+-		wc->opcode    = IB_WC_BIND_MW;
+-		break;
+ 	case MLX5_OPCODE_UMR:
+ 		wc->opcode = get_umr_comp(wq, idx);
+ 		break;
+diff --git a/drivers/infiniband/hw/mthca/mthca_cq.c b/drivers/infiniband/hw/mthca/mthca_cq.c
+index 40ba833..a6531ff 100644
+--- a/drivers/infiniband/hw/mthca/mthca_cq.c
++++ b/drivers/infiniband/hw/mthca/mthca_cq.c
+@@ -608,9 +608,6 @@ static inline int mthca_poll_one(struct mthca_dev *dev,
+ 			entry->opcode    = IB_WC_FETCH_ADD;
+ 			entry->byte_len  = MTHCA_ATOMIC_BYTE_LEN;
+ 			break;
+-		case MTHCA_OPCODE_BIND_MW:
+-			entry->opcode    = IB_WC_BIND_MW;
+-			break;
+ 		default:
+ 			entry->opcode    = MTHCA_OPCODE_INVALID;
+ 			break;
 diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
-index 2bad036..453ebc2 100644
+index 453ebc2..640f68f 100644
 --- a/drivers/infiniband/hw/nes/nes_verbs.c
 +++ b/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -2019,7 +2019,7 @@ static int nes_reg_mr(struct nes_device *nesdev, struct nes_pd *nespd,
- /**
-  * nes_reg_phys_mr
+@@ -206,80 +206,6 @@ static int nes_dealloc_mw(struct ib_mw *ibmw)
+ }
+ 
+ 
+-/**
+- * nes_bind_mw
+- */
+-static int nes_bind_mw(struct ib_qp *ibqp, struct ib_mw *ibmw,
+-		struct ib_mw_bind *ibmw_bind)
+-{
+-	u64 u64temp;
+-	struct nes_vnic *nesvnic = to_nesvnic(ibqp->device);
+-	struct nes_device *nesdev = nesvnic->nesdev;
+-	/* struct nes_mr *nesmr = to_nesmw(ibmw); */
+-	struct nes_qp *nesqp = to_nesqp(ibqp);
+-	struct nes_hw_qp_wqe *wqe;
+-	unsigned long flags = 0;
+-	u32 head;
+-	u32 wqe_misc = 0;
+-	u32 qsize;
+-
+-	if (nesqp->ibqp_state > IB_QPS_RTS)
+-		return -EINVAL;
+-
+-	spin_lock_irqsave(&nesqp->lock, flags);
+-
+-	head = nesqp->hwqp.sq_head;
+-	qsize = nesqp->hwqp.sq_tail;
+-
+-	/* Check for SQ overflow */
+-	if (((head + (2 * qsize) - nesqp->hwqp.sq_tail) % qsize) == (qsize - 1)) {
+-		spin_unlock_irqrestore(&nesqp->lock, flags);
+-		return -ENOMEM;
+-	}
+-
+-	wqe = &nesqp->hwqp.sq_vbase[head];
+-	/* nes_debug(NES_DBG_MR, "processing sq wqe at %p, head = %u.\n", wqe, head); */
+-	nes_fill_init_qp_wqe(wqe, nesqp, head);
+-	u64temp = ibmw_bind->wr_id;
+-	set_wqe_64bit_value(wqe->wqe_words, NES_IWARP_SQ_WQE_COMP_SCRATCH_LOW_IDX, u64temp);
+-	wqe_misc = NES_IWARP_SQ_OP_BIND;
+-
+-	wqe_misc |= NES_IWARP_SQ_WQE_LOCAL_FENCE;
+-
+-	if (ibmw_bind->send_flags & IB_SEND_SIGNALED)
+-		wqe_misc |= NES_IWARP_SQ_WQE_SIGNALED_COMPL;
+-
+-	if (ibmw_bind->bind_info.mw_access_flags & IB_ACCESS_REMOTE_WRITE)
+-		wqe_misc |= NES_CQP_STAG_RIGHTS_REMOTE_WRITE;
+-	if (ibmw_bind->bind_info.mw_access_flags & IB_ACCESS_REMOTE_READ)
+-		wqe_misc |= NES_CQP_STAG_RIGHTS_REMOTE_READ;
+-
+-	set_wqe_32bit_value(wqe->wqe_words, NES_IWARP_SQ_WQE_MISC_IDX, wqe_misc);
+-	set_wqe_32bit_value(wqe->wqe_words, NES_IWARP_SQ_BIND_WQE_MR_IDX,
+-			    ibmw_bind->bind_info.mr->lkey);
+-	set_wqe_32bit_value(wqe->wqe_words, NES_IWARP_SQ_BIND_WQE_MW_IDX, ibmw->rkey);
+-	set_wqe_32bit_value(wqe->wqe_words, NES_IWARP_SQ_BIND_WQE_LENGTH_LOW_IDX,
+-			ibmw_bind->bind_info.length);
+-	wqe->wqe_words[NES_IWARP_SQ_BIND_WQE_LENGTH_HIGH_IDX] = 0;
+-	u64temp = (u64)ibmw_bind->bind_info.addr;
+-	set_wqe_64bit_value(wqe->wqe_words, NES_IWARP_SQ_BIND_WQE_VA_FBO_LOW_IDX, u64temp);
+-
+-	head++;
+-	if (head >= qsize)
+-		head = 0;
+-
+-	nesqp->hwqp.sq_head = head;
+-	barrier();
+-
+-	nes_write32(nesdev->regs+NES_WQE_ALLOC,
+-			(1 << 24) | 0x00800000 | nesqp->hwqp.qp_id);
+-
+-	spin_unlock_irqrestore(&nesqp->lock, flags);
+-
+-	return 0;
+-}
+-
+-
+ /*
+  * nes_alloc_fast_mr
   */
--static struct ib_mr *nes_reg_phys_mr(struct ib_pd *ib_pd,
-+struct ib_mr *nes_reg_phys_mr(struct ib_pd *ib_pd,
- 		struct ib_phys_buf *buffer_list, int num_phys_buf, int acc,
- 		u64 * iova_start)
- {
-@@ -3832,7 +3832,6 @@ struct nes_ib_device *nes_init_ofa_device(struct net_device *netdev)
- 	nesibdev->ibdev.destroy_cq = nes_destroy_cq;
- 	nesibdev->ibdev.poll_cq = nes_poll_cq;
- 	nesibdev->ibdev.get_dma_mr = nes_get_dma_mr;
--	nesibdev->ibdev.reg_phys_mr = nes_reg_phys_mr;
- 	nesibdev->ibdev.reg_user_mr = nes_reg_user_mr;
+@@ -3836,7 +3762,6 @@ struct nes_ib_device *nes_init_ofa_device(struct net_device *netdev)
  	nesibdev->ibdev.dereg_mr = nes_dereg_mr;
  	nesibdev->ibdev.alloc_mw = nes_alloc_mw;
-diff --git a/drivers/infiniband/hw/nes/nes_verbs.h b/drivers/infiniband/hw/nes/nes_verbs.h
-index a204b67..38e38cf 100644
---- a/drivers/infiniband/hw/nes/nes_verbs.h
-+++ b/drivers/infiniband/hw/nes/nes_verbs.h
-@@ -190,4 +190,9 @@ struct nes_qp {
- 	u8                    pau_state;
- 	__u64                 nesuqp_addr;
- };
-+
-+struct ib_mr *nes_reg_phys_mr(struct ib_pd *ib_pd,
-+		struct ib_phys_buf *buffer_list, int num_phys_buf, int acc,
-+		u64 * iova_start);
-+
- #endif			/* NES_VERBS_H */
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-index 963be66..f91131f 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-@@ -174,7 +174,6 @@ static int ocrdma_register_device(struct ocrdma_dev *dev)
- 	dev->ibdev.req_notify_cq = ocrdma_arm_cq;
+ 	nesibdev->ibdev.dealloc_mw = nes_dealloc_mw;
+-	nesibdev->ibdev.bind_mw = nes_bind_mw;
  
- 	dev->ibdev.get_dma_mr = ocrdma_get_dma_mr;
--	dev->ibdev.reg_phys_mr = ocrdma_reg_kernel_mr;
- 	dev->ibdev.dereg_mr = ocrdma_dereg_mr;
- 	dev->ibdev.reg_user_mr = ocrdma_reg_user_mr;
- 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 74cf67a..3cffab7 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -3017,169 +3017,6 @@ pl_err:
- 	return ERR_PTR(-ENOMEM);
- }
- 
--#define MAX_KERNEL_PBE_SIZE 65536
--static inline int count_kernel_pbes(struct ib_phys_buf *buf_list,
--				    int buf_cnt, u32 *pbe_size)
--{
--	u64 total_size = 0;
--	u64 buf_size = 0;
--	int i;
--	*pbe_size = roundup(buf_list[0].size, PAGE_SIZE);
--	*pbe_size = roundup_pow_of_two(*pbe_size);
--
--	/* find the smallest PBE size that we can have */
--	for (i = 0; i < buf_cnt; i++) {
--		/* first addr may not be page aligned, so ignore checking */
--		if ((i != 0) && ((buf_list[i].addr & ~PAGE_MASK) ||
--				 (buf_list[i].size & ~PAGE_MASK))) {
--			return 0;
--		}
--
--		/* if configured PBE size is greater then the chosen one,
--		 * reduce the PBE size.
--		 */
--		buf_size = roundup(buf_list[i].size, PAGE_SIZE);
--		/* pbe_size has to be even multiple of 4K 1,2,4,8...*/
--		buf_size = roundup_pow_of_two(buf_size);
--		if (*pbe_size > buf_size)
--			*pbe_size = buf_size;
--
--		total_size += buf_size;
--	}
--	*pbe_size = *pbe_size > MAX_KERNEL_PBE_SIZE ?
--	    (MAX_KERNEL_PBE_SIZE) : (*pbe_size);
--
--	/* num_pbes = total_size / (*pbe_size);  this is implemented below. */
--
--	return total_size >> ilog2(*pbe_size);
--}
--
--static void build_kernel_pbes(struct ib_phys_buf *buf_list, int ib_buf_cnt,
--			      u32 pbe_size, struct ocrdma_pbl *pbl_tbl,
--			      struct ocrdma_hw_mr *hwmr)
--{
--	int i;
--	int idx;
--	int pbes_per_buf = 0;
--	u64 buf_addr = 0;
--	int num_pbes;
--	struct ocrdma_pbe *pbe;
--	int total_num_pbes = 0;
--
--	if (!hwmr->num_pbes)
--		return;
--
--	pbe = (struct ocrdma_pbe *)pbl_tbl->va;
--	num_pbes = 0;
--
--	/* go through the OS phy regions & fill hw pbe entries into pbls. */
--	for (i = 0; i < ib_buf_cnt; i++) {
--		buf_addr = buf_list[i].addr;
--		pbes_per_buf =
--		    roundup_pow_of_two(roundup(buf_list[i].size, PAGE_SIZE)) /
--		    pbe_size;
--		hwmr->len += buf_list[i].size;
--		/* number of pbes can be more for one OS buf, when
--		 * buffers are of different sizes.
--		 * split the ib_buf to one or more pbes.
--		 */
--		for (idx = 0; idx < pbes_per_buf; idx++) {
--			/* we program always page aligned addresses,
--			 * first unaligned address is taken care by fbo.
--			 */
--			if (i == 0) {
--				/* for non zero fbo, assign the
--				 * start of the page.
--				 */
--				pbe->pa_lo =
--				    cpu_to_le32((u32) (buf_addr & PAGE_MASK));
--				pbe->pa_hi =
--				    cpu_to_le32((u32) upper_32_bits(buf_addr));
--			} else {
--				pbe->pa_lo =
--				    cpu_to_le32((u32) (buf_addr & 0xffffffff));
--				pbe->pa_hi =
--				    cpu_to_le32((u32) upper_32_bits(buf_addr));
--			}
--			buf_addr += pbe_size;
--			num_pbes += 1;
--			total_num_pbes += 1;
--			pbe++;
--
--			if (total_num_pbes == hwmr->num_pbes)
--				goto mr_tbl_done;
--			/* if the pbl is full storing the pbes,
--			 * move to next pbl.
--			 */
--			if (num_pbes == (hwmr->pbl_size/sizeof(u64))) {
--				pbl_tbl++;
--				pbe = (struct ocrdma_pbe *)pbl_tbl->va;
--				num_pbes = 0;
--			}
--		}
--	}
--mr_tbl_done:
--	return;
--}
--
--struct ib_mr *ocrdma_reg_kernel_mr(struct ib_pd *ibpd,
--				   struct ib_phys_buf *buf_list,
--				   int buf_cnt, int acc, u64 *iova_start)
--{
--	int status = -ENOMEM;
--	struct ocrdma_mr *mr;
--	struct ocrdma_pd *pd = get_ocrdma_pd(ibpd);
--	struct ocrdma_dev *dev = get_ocrdma_dev(ibpd->device);
--	u32 num_pbes;
--	u32 pbe_size = 0;
--
--	if ((acc & IB_ACCESS_REMOTE_WRITE) && !(acc & IB_ACCESS_LOCAL_WRITE))
--		return ERR_PTR(-EINVAL);
--
--	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
--	if (!mr)
--		return ERR_PTR(status);
--
--	num_pbes = count_kernel_pbes(buf_list, buf_cnt, &pbe_size);
--	if (num_pbes == 0) {
--		status = -EINVAL;
--		goto pbl_err;
--	}
--	status = ocrdma_get_pbl_info(dev, mr, num_pbes);
--	if (status)
--		goto pbl_err;
--
--	mr->hwmr.pbe_size = pbe_size;
--	mr->hwmr.fbo = *iova_start - (buf_list[0].addr & PAGE_MASK);
--	mr->hwmr.va = *iova_start;
--	mr->hwmr.local_rd = 1;
--	mr->hwmr.remote_wr = (acc & IB_ACCESS_REMOTE_WRITE) ? 1 : 0;
--	mr->hwmr.remote_rd = (acc & IB_ACCESS_REMOTE_READ) ? 1 : 0;
--	mr->hwmr.local_wr = (acc & IB_ACCESS_LOCAL_WRITE) ? 1 : 0;
--	mr->hwmr.remote_atomic = (acc & IB_ACCESS_REMOTE_ATOMIC) ? 1 : 0;
--	mr->hwmr.mw_bind = (acc & IB_ACCESS_MW_BIND) ? 1 : 0;
--
--	status = ocrdma_build_pbl_tbl(dev, &mr->hwmr);
--	if (status)
--		goto pbl_err;
--	build_kernel_pbes(buf_list, buf_cnt, pbe_size, mr->hwmr.pbl_table,
--			  &mr->hwmr);
--	status = ocrdma_reg_mr(dev, &mr->hwmr, pd->id, acc);
--	if (status)
--		goto mbx_err;
--
--	mr->ibmr.lkey = mr->hwmr.lkey;
--	if (mr->hwmr.remote_wr || mr->hwmr.remote_rd)
--		mr->ibmr.rkey = mr->hwmr.lkey;
--	return &mr->ibmr;
--
--mbx_err:
--	ocrdma_free_mr_pbl_tbl(dev, &mr->hwmr);
--pbl_err:
--	kfree(mr);
--	return ERR_PTR(status);
--}
--
- static int ocrdma_set_page(struct ib_mr *ibmr, u64 addr)
- {
- 	struct ocrdma_mr *mr = get_ocrdma_mr(ibmr);
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
-index f2ce048..82f476f 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
-@@ -115,9 +115,6 @@ int ocrdma_post_srq_recv(struct ib_srq *, struct ib_recv_wr *,
- 
- int ocrdma_dereg_mr(struct ib_mr *);
- struct ib_mr *ocrdma_get_dma_mr(struct ib_pd *, int acc);
--struct ib_mr *ocrdma_reg_kernel_mr(struct ib_pd *,
--				   struct ib_phys_buf *buffer_list,
--				   int num_phys_buf, int acc, u64 *iova_start);
- struct ib_mr *ocrdma_reg_user_mr(struct ib_pd *, u64 start, u64 length,
- 				 u64 virt, int acc, struct ib_udata *);
- struct ib_mr *ocrdma_alloc_mr(struct ib_pd *pd,
-diff --git a/drivers/infiniband/hw/qib/qib_mr.c b/drivers/infiniband/hw/qib/qib_mr.c
-index 294f5c7..5f53304 100644
---- a/drivers/infiniband/hw/qib/qib_mr.c
-+++ b/drivers/infiniband/hw/qib/qib_mr.c
-@@ -150,10 +150,7 @@ static struct qib_mr *alloc_mr(int count, struct ib_pd *pd)
- 	rval = init_qib_mregion(&mr->mr, pd, count);
- 	if (rval)
- 		goto bail;
--	/*
--	 * ib_reg_phys_mr() will initialize mr->ibmr except for
--	 * lkey and rkey.
--	 */
-+
- 	rval = qib_alloc_lkey(&mr->mr, 0);
- 	if (rval)
- 		goto bail_mregion;
-@@ -171,52 +168,6 @@ bail:
- }
- 
- /**
-- * qib_reg_phys_mr - register a physical memory region
-- * @pd: protection domain for this memory region
-- * @buffer_list: pointer to the list of physical buffers to register
-- * @num_phys_buf: the number of physical buffers to register
-- * @iova_start: the starting address passed over IB which maps to this MR
-- *
-- * Returns the memory region on success, otherwise returns an errno.
-- */
--struct ib_mr *qib_reg_phys_mr(struct ib_pd *pd,
--			      struct ib_phys_buf *buffer_list,
--			      int num_phys_buf, int acc, u64 *iova_start)
--{
--	struct qib_mr *mr;
--	int n, m, i;
--	struct ib_mr *ret;
--
--	mr = alloc_mr(num_phys_buf, pd);
--	if (IS_ERR(mr)) {
--		ret = (struct ib_mr *)mr;
--		goto bail;
--	}
--
--	mr->mr.user_base = *iova_start;
--	mr->mr.iova = *iova_start;
--	mr->mr.access_flags = acc;
--
--	m = 0;
--	n = 0;
--	for (i = 0; i < num_phys_buf; i++) {
--		mr->mr.map[m]->segs[n].vaddr = (void *) buffer_list[i].addr;
--		mr->mr.map[m]->segs[n].length = buffer_list[i].size;
--		mr->mr.length += buffer_list[i].size;
--		n++;
--		if (n == QIB_SEGSZ) {
--			m++;
--			n = 0;
--		}
--	}
--
--	ret = &mr->ibmr;
--
--bail:
--	return ret;
--}
--
--/**
-  * qib_reg_user_mr - register a userspace memory region
-  * @pd: protection domain for this memory region
-  * @start: starting userspace address
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index 9e1af0b..e56bd65 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.c
-+++ b/drivers/infiniband/hw/qib/qib_verbs.c
-@@ -2206,7 +2206,6 @@ int qib_register_ib_device(struct qib_devdata *dd)
- 	ibdev->poll_cq = qib_poll_cq;
- 	ibdev->req_notify_cq = qib_req_notify_cq;
- 	ibdev->get_dma_mr = qib_get_dma_mr;
--	ibdev->reg_phys_mr = qib_reg_phys_mr;
- 	ibdev->reg_user_mr = qib_reg_user_mr;
- 	ibdev->dereg_mr = qib_dereg_mr;
- 	ibdev->alloc_mr = qib_alloc_mr;
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
-index bc803f3..6c5e777 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.h
-+++ b/drivers/infiniband/hw/qib/qib_verbs.h
-@@ -1032,10 +1032,6 @@ int qib_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata);
- 
- struct ib_mr *qib_get_dma_mr(struct ib_pd *pd, int acc);
- 
--struct ib_mr *qib_reg_phys_mr(struct ib_pd *pd,
--			      struct ib_phys_buf *buffer_list,
--			      int num_phys_buf, int acc, u64 *iova_start);
--
- struct ib_mr *qib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 			      u64 virt_addr, int mr_access_flags,
- 			      struct ib_udata *udata);
-diff --git a/drivers/staging/rdma/amso1100/c2_provider.c b/drivers/staging/rdma/amso1100/c2_provider.c
-index ee2ff87..6c3e9cc 100644
---- a/drivers/staging/rdma/amso1100/c2_provider.c
-+++ b/drivers/staging/rdma/amso1100/c2_provider.c
-@@ -831,7 +831,6 @@ int c2_register_device(struct c2_dev *dev)
- 	dev->ibdev.destroy_cq = c2_destroy_cq;
- 	dev->ibdev.poll_cq = c2_poll_cq;
- 	dev->ibdev.get_dma_mr = c2_get_dma_mr;
--	dev->ibdev.reg_phys_mr = c2_reg_phys_mr;
- 	dev->ibdev.reg_user_mr = c2_reg_user_mr;
- 	dev->ibdev.dereg_mr = c2_dereg_mr;
- 	dev->ibdev.get_port_immutable = c2_port_immutable;
+ 	nesibdev->ibdev.alloc_mr = nes_alloc_mr;
+ 	nesibdev->ibdev.map_mr_sg = nes_map_mr_sg;
+diff --git a/drivers/staging/rdma/amso1100/c2_cq.c b/drivers/staging/rdma/amso1100/c2_cq.c
+index 3ef881f..7ad0c08 100644
+--- a/drivers/staging/rdma/amso1100/c2_cq.c
++++ b/drivers/staging/rdma/amso1100/c2_cq.c
+@@ -173,9 +173,6 @@ static inline int c2_poll_one(struct c2_dev *c2dev,
+ 	case C2_WR_TYPE_RDMA_READ:
+ 		entry->opcode = IB_WC_RDMA_READ;
+ 		break;
+-	case C2_WR_TYPE_BIND_MW:
+-		entry->opcode = IB_WC_BIND_MW;
+-		break;
+ 	case C2_WR_TYPE_RECV:
+ 		entry->byte_len = be32_to_cpu(ce->bytes_rcvd);
+ 		entry->opcode = IB_WC_RECV;
 diff --git a/drivers/staging/rdma/ehca/ehca_iverbs.h b/drivers/staging/rdma/ehca/ehca_iverbs.h
-index 4a45ca3..219f635 100644
+index 219f635..630416d 100644
 --- a/drivers/staging/rdma/ehca/ehca_iverbs.h
 +++ b/drivers/staging/rdma/ehca/ehca_iverbs.h
-@@ -79,21 +79,10 @@ int ehca_destroy_ah(struct ib_ah *ah);
- 
- struct ib_mr *ehca_get_dma_mr(struct ib_pd *pd, int mr_access_flags);
- 
--struct ib_mr *ehca_reg_phys_mr(struct ib_pd *pd,
--			       struct ib_phys_buf *phys_buf_array,
--			       int num_phys_buf,
--			       int mr_access_flags, u64 *iova_start);
--
- struct ib_mr *ehca_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 			       u64 virt, int mr_access_flags,
- 			       struct ib_udata *udata);
- 
--int ehca_rereg_phys_mr(struct ib_mr *mr,
--		       int mr_rereg_mask,
--		       struct ib_pd *pd,
--		       struct ib_phys_buf *phys_buf_array,
--		       int num_phys_buf, int mr_access_flags, u64 *iova_start);
--
- int ehca_dereg_mr(struct ib_mr *mr);
+@@ -87,9 +87,6 @@ int ehca_dereg_mr(struct ib_mr *mr);
  
  struct ib_mw *ehca_alloc_mw(struct ib_pd *pd, enum ib_mw_type type);
+ 
+-int ehca_bind_mw(struct ib_qp *qp, struct ib_mw *mw,
+-		 struct ib_mw_bind *mw_bind);
+-
+ int ehca_dealloc_mw(struct ib_mw *mw);
+ 
+ struct ib_fmr *ehca_alloc_fmr(struct ib_pd *pd,
 diff --git a/drivers/staging/rdma/ehca/ehca_main.c b/drivers/staging/rdma/ehca/ehca_main.c
-index 0be7959..ba023426 100644
+index ba023426..915e924 100644
 --- a/drivers/staging/rdma/ehca/ehca_main.c
 +++ b/drivers/staging/rdma/ehca/ehca_main.c
-@@ -511,10 +511,8 @@ static int ehca_init_device(struct ehca_shca *shca)
- 	shca->ib_device.req_notify_cq	    = ehca_req_notify_cq;
- 	/* shca->ib_device.req_ncomp_notif  = ehca_req_ncomp_notif; */
- 	shca->ib_device.get_dma_mr	    = ehca_get_dma_mr;
--	shca->ib_device.reg_phys_mr	    = ehca_reg_phys_mr;
+@@ -514,7 +514,6 @@ static int ehca_init_device(struct ehca_shca *shca)
  	shca->ib_device.reg_user_mr	    = ehca_reg_user_mr;
  	shca->ib_device.dereg_mr	    = ehca_dereg_mr;
--	shca->ib_device.rereg_phys_mr	    = ehca_rereg_phys_mr;
  	shca->ib_device.alloc_mw	    = ehca_alloc_mw;
- 	shca->ib_device.bind_mw		    = ehca_bind_mw;
+-	shca->ib_device.bind_mw		    = ehca_bind_mw;
  	shca->ib_device.dealloc_mw	    = ehca_dealloc_mw;
+ 	shca->ib_device.alloc_fmr	    = ehca_alloc_fmr;
+ 	shca->ib_device.map_phys_fmr	    = ehca_map_phys_fmr;
 diff --git a/drivers/staging/rdma/ehca/ehca_mrmw.c b/drivers/staging/rdma/ehca/ehca_mrmw.c
-index eb274c1..1c1a8dd 100644
+index 1c1a8dd..c6e3245 100644
 --- a/drivers/staging/rdma/ehca/ehca_mrmw.c
 +++ b/drivers/staging/rdma/ehca/ehca_mrmw.c
-@@ -196,120 +196,6 @@ get_dma_mr_exit0:
+@@ -413,18 +413,6 @@ alloc_mw_exit0:
  
  /*----------------------------------------------------------------------*/
  
--struct ib_mr *ehca_reg_phys_mr(struct ib_pd *pd,
--			       struct ib_phys_buf *phys_buf_array,
--			       int num_phys_buf,
--			       int mr_access_flags,
--			       u64 *iova_start)
+-int ehca_bind_mw(struct ib_qp *qp,
+-		 struct ib_mw *mw,
+-		 struct ib_mw_bind *mw_bind)
 -{
--	struct ib_mr *ib_mr;
--	int ret;
--	struct ehca_mr *e_mr;
--	struct ehca_shca *shca =
--		container_of(pd->device, struct ehca_shca, ib_device);
--	struct ehca_pd *e_pd = container_of(pd, struct ehca_pd, ib_pd);
+-	/* TODO: not supported up to now */
+-	ehca_gen_err("bind MW currently not supported by HCAD");
 -
--	u64 size;
--
--	if ((num_phys_buf <= 0) || !phys_buf_array) {
--		ehca_err(pd->device, "bad input values: num_phys_buf=%x "
--			 "phys_buf_array=%p", num_phys_buf, phys_buf_array);
--		ib_mr = ERR_PTR(-EINVAL);
--		goto reg_phys_mr_exit0;
--	}
--	if (((mr_access_flags & IB_ACCESS_REMOTE_WRITE) &&
--	     !(mr_access_flags & IB_ACCESS_LOCAL_WRITE)) ||
--	    ((mr_access_flags & IB_ACCESS_REMOTE_ATOMIC) &&
--	     !(mr_access_flags & IB_ACCESS_LOCAL_WRITE))) {
--		/*
--		 * Remote Write Access requires Local Write Access
--		 * Remote Atomic Access requires Local Write Access
--		 */
--		ehca_err(pd->device, "bad input values: mr_access_flags=%x",
--			 mr_access_flags);
--		ib_mr = ERR_PTR(-EINVAL);
--		goto reg_phys_mr_exit0;
--	}
--
--	/* check physical buffer list and calculate size */
--	ret = ehca_mr_chk_buf_and_calc_size(phys_buf_array, num_phys_buf,
--					    iova_start, &size);
--	if (ret) {
--		ib_mr = ERR_PTR(ret);
--		goto reg_phys_mr_exit0;
--	}
--	if ((size == 0) ||
--	    (((u64)iova_start + size) < (u64)iova_start)) {
--		ehca_err(pd->device, "bad input values: size=%llx iova_start=%p",
--			 size, iova_start);
--		ib_mr = ERR_PTR(-EINVAL);
--		goto reg_phys_mr_exit0;
--	}
--
--	e_mr = ehca_mr_new();
--	if (!e_mr) {
--		ehca_err(pd->device, "out of memory");
--		ib_mr = ERR_PTR(-ENOMEM);
--		goto reg_phys_mr_exit0;
--	}
--
--	/* register MR on HCA */
--	if (ehca_mr_is_maxmr(size, iova_start)) {
--		e_mr->flags |= EHCA_MR_FLAG_MAXMR;
--		ret = ehca_reg_maxmr(shca, e_mr, iova_start, mr_access_flags,
--				     e_pd, &e_mr->ib.ib_mr.lkey,
--				     &e_mr->ib.ib_mr.rkey);
--		if (ret) {
--			ib_mr = ERR_PTR(ret);
--			goto reg_phys_mr_exit1;
--		}
--	} else {
--		struct ehca_mr_pginfo pginfo;
--		u32 num_kpages;
--		u32 num_hwpages;
--		u64 hw_pgsize;
--
--		num_kpages = NUM_CHUNKS(((u64)iova_start % PAGE_SIZE) + size,
--					PAGE_SIZE);
--		/* for kernel space we try most possible pgsize */
--		hw_pgsize = ehca_get_max_hwpage_size(shca);
--		num_hwpages = NUM_CHUNKS(((u64)iova_start % hw_pgsize) + size,
--					 hw_pgsize);
--		memset(&pginfo, 0, sizeof(pginfo));
--		pginfo.type = EHCA_MR_PGI_PHYS;
--		pginfo.num_kpages = num_kpages;
--		pginfo.hwpage_size = hw_pgsize;
--		pginfo.num_hwpages = num_hwpages;
--		pginfo.u.phy.num_phys_buf = num_phys_buf;
--		pginfo.u.phy.phys_buf_array = phys_buf_array;
--		pginfo.next_hwpage =
--			((u64)iova_start & ~PAGE_MASK) / hw_pgsize;
--
--		ret = ehca_reg_mr(shca, e_mr, iova_start, size, mr_access_flags,
--				  e_pd, &pginfo, &e_mr->ib.ib_mr.lkey,
--				  &e_mr->ib.ib_mr.rkey, EHCA_REG_MR);
--		if (ret) {
--			ib_mr = ERR_PTR(ret);
--			goto reg_phys_mr_exit1;
--		}
--	}
--
--	/* successful registration of all pages */
--	return &e_mr->ib.ib_mr;
--
--reg_phys_mr_exit1:
--	ehca_mr_delete(e_mr);
--reg_phys_mr_exit0:
--	if (IS_ERR(ib_mr))
--		ehca_err(pd->device, "h_ret=%li pd=%p phys_buf_array=%p "
--			 "num_phys_buf=%x mr_access_flags=%x iova_start=%p",
--			 PTR_ERR(ib_mr), pd, phys_buf_array,
--			 num_phys_buf, mr_access_flags, iova_start);
--	return ib_mr;
--} /* end ehca_reg_phys_mr() */
+-	return -EPERM;
+-} /* end ehca_bind_mw() */
 -
 -/*----------------------------------------------------------------------*/
 -
- struct ib_mr *ehca_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 			       u64 virt, int mr_access_flags,
- 			       struct ib_udata *udata)
-@@ -437,158 +323,6 @@ reg_user_mr_exit0:
- 
- /*----------------------------------------------------------------------*/
- 
--int ehca_rereg_phys_mr(struct ib_mr *mr,
--		       int mr_rereg_mask,
--		       struct ib_pd *pd,
--		       struct ib_phys_buf *phys_buf_array,
--		       int num_phys_buf,
--		       int mr_access_flags,
--		       u64 *iova_start)
--{
--	int ret;
--
--	struct ehca_shca *shca =
--		container_of(mr->device, struct ehca_shca, ib_device);
--	struct ehca_mr *e_mr = container_of(mr, struct ehca_mr, ib.ib_mr);
--	u64 new_size;
--	u64 *new_start;
--	u32 new_acl;
--	struct ehca_pd *new_pd;
--	u32 tmp_lkey, tmp_rkey;
--	unsigned long sl_flags;
--	u32 num_kpages = 0;
--	u32 num_hwpages = 0;
--	struct ehca_mr_pginfo pginfo;
--
--	if (!(mr_rereg_mask & IB_MR_REREG_TRANS)) {
--		/* TODO not supported, because PHYP rereg hCall needs pages */
--		ehca_err(mr->device, "rereg without IB_MR_REREG_TRANS not "
--			 "supported yet, mr_rereg_mask=%x", mr_rereg_mask);
--		ret = -EINVAL;
--		goto rereg_phys_mr_exit0;
--	}
--
--	if (mr_rereg_mask & IB_MR_REREG_PD) {
--		if (!pd) {
--			ehca_err(mr->device, "rereg with bad pd, pd=%p "
--				 "mr_rereg_mask=%x", pd, mr_rereg_mask);
--			ret = -EINVAL;
--			goto rereg_phys_mr_exit0;
--		}
--	}
--
--	if ((mr_rereg_mask &
--	     ~(IB_MR_REREG_TRANS | IB_MR_REREG_PD | IB_MR_REREG_ACCESS)) ||
--	    (mr_rereg_mask == 0)) {
--		ret = -EINVAL;
--		goto rereg_phys_mr_exit0;
--	}
--
--	/* check other parameters */
--	if (e_mr == shca->maxmr) {
--		/* should be impossible, however reject to be sure */
--		ehca_err(mr->device, "rereg internal max-MR impossible, mr=%p "
--			 "shca->maxmr=%p mr->lkey=%x",
--			 mr, shca->maxmr, mr->lkey);
--		ret = -EINVAL;
--		goto rereg_phys_mr_exit0;
--	}
--	if (mr_rereg_mask & IB_MR_REREG_TRANS) { /* transl., i.e. addr/size */
--		if (e_mr->flags & EHCA_MR_FLAG_FMR) {
--			ehca_err(mr->device, "not supported for FMR, mr=%p "
--				 "flags=%x", mr, e_mr->flags);
--			ret = -EINVAL;
--			goto rereg_phys_mr_exit0;
--		}
--		if (!phys_buf_array || num_phys_buf <= 0) {
--			ehca_err(mr->device, "bad input values mr_rereg_mask=%x"
--				 " phys_buf_array=%p num_phys_buf=%x",
--				 mr_rereg_mask, phys_buf_array, num_phys_buf);
--			ret = -EINVAL;
--			goto rereg_phys_mr_exit0;
--		}
--	}
--	if ((mr_rereg_mask & IB_MR_REREG_ACCESS) &&	/* change ACL */
--	    (((mr_access_flags & IB_ACCESS_REMOTE_WRITE) &&
--	      !(mr_access_flags & IB_ACCESS_LOCAL_WRITE)) ||
--	     ((mr_access_flags & IB_ACCESS_REMOTE_ATOMIC) &&
--	      !(mr_access_flags & IB_ACCESS_LOCAL_WRITE)))) {
--		/*
--		 * Remote Write Access requires Local Write Access
--		 * Remote Atomic Access requires Local Write Access
--		 */
--		ehca_err(mr->device, "bad input values: mr_rereg_mask=%x "
--			 "mr_access_flags=%x", mr_rereg_mask, mr_access_flags);
--		ret = -EINVAL;
--		goto rereg_phys_mr_exit0;
--	}
--
--	/* set requested values dependent on rereg request */
--	spin_lock_irqsave(&e_mr->mrlock, sl_flags);
--	new_start = e_mr->start;
--	new_size = e_mr->size;
--	new_acl = e_mr->acl;
--	new_pd = container_of(mr->pd, struct ehca_pd, ib_pd);
--
--	if (mr_rereg_mask & IB_MR_REREG_TRANS) {
--		u64 hw_pgsize = ehca_get_max_hwpage_size(shca);
--
--		new_start = iova_start;	/* change address */
--		/* check physical buffer list and calculate size */
--		ret = ehca_mr_chk_buf_and_calc_size(phys_buf_array,
--						    num_phys_buf, iova_start,
--						    &new_size);
--		if (ret)
--			goto rereg_phys_mr_exit1;
--		if ((new_size == 0) ||
--		    (((u64)iova_start + new_size) < (u64)iova_start)) {
--			ehca_err(mr->device, "bad input values: new_size=%llx "
--				 "iova_start=%p", new_size, iova_start);
--			ret = -EINVAL;
--			goto rereg_phys_mr_exit1;
--		}
--		num_kpages = NUM_CHUNKS(((u64)new_start % PAGE_SIZE) +
--					new_size, PAGE_SIZE);
--		num_hwpages = NUM_CHUNKS(((u64)new_start % hw_pgsize) +
--					 new_size, hw_pgsize);
--		memset(&pginfo, 0, sizeof(pginfo));
--		pginfo.type = EHCA_MR_PGI_PHYS;
--		pginfo.num_kpages = num_kpages;
--		pginfo.hwpage_size = hw_pgsize;
--		pginfo.num_hwpages = num_hwpages;
--		pginfo.u.phy.num_phys_buf = num_phys_buf;
--		pginfo.u.phy.phys_buf_array = phys_buf_array;
--		pginfo.next_hwpage =
--			((u64)iova_start & ~PAGE_MASK) / hw_pgsize;
--	}
--	if (mr_rereg_mask & IB_MR_REREG_ACCESS)
--		new_acl = mr_access_flags;
--	if (mr_rereg_mask & IB_MR_REREG_PD)
--		new_pd = container_of(pd, struct ehca_pd, ib_pd);
--
--	ret = ehca_rereg_mr(shca, e_mr, new_start, new_size, new_acl,
--			    new_pd, &pginfo, &tmp_lkey, &tmp_rkey);
--	if (ret)
--		goto rereg_phys_mr_exit1;
--
--	/* successful reregistration */
--	if (mr_rereg_mask & IB_MR_REREG_PD)
--		mr->pd = pd;
--	mr->lkey = tmp_lkey;
--	mr->rkey = tmp_rkey;
--
--rereg_phys_mr_exit1:
--	spin_unlock_irqrestore(&e_mr->mrlock, sl_flags);
--rereg_phys_mr_exit0:
--	if (ret)
--		ehca_err(mr->device, "ret=%i mr=%p mr_rereg_mask=%x pd=%p "
--			 "phys_buf_array=%p num_phys_buf=%x mr_access_flags=%x "
--			 "iova_start=%p",
--			 ret, mr, mr_rereg_mask, pd, phys_buf_array,
--			 num_phys_buf, mr_access_flags, iova_start);
--	return ret;
--} /* end ehca_rereg_phys_mr() */
--
- int ehca_dereg_mr(struct ib_mr *mr)
+ int ehca_dealloc_mw(struct ib_mw *mw)
  {
- 	int ret = 0;
-@@ -1713,61 +1447,6 @@ ehca_dereg_internal_maxmr_exit0:
- 
- /*----------------------------------------------------------------------*/
- 
--/*
-- * check physical buffer array of MR verbs for validness and
-- * calculates MR size
-- */
--int ehca_mr_chk_buf_and_calc_size(struct ib_phys_buf *phys_buf_array,
--				  int num_phys_buf,
--				  u64 *iova_start,
--				  u64 *size)
--{
--	struct ib_phys_buf *pbuf = phys_buf_array;
--	u64 size_count = 0;
--	u32 i;
--
--	if (num_phys_buf == 0) {
--		ehca_gen_err("bad phys buf array len, num_phys_buf=0");
--		return -EINVAL;
--	}
--	/* check first buffer */
--	if (((u64)iova_start & ~PAGE_MASK) != (pbuf->addr & ~PAGE_MASK)) {
--		ehca_gen_err("iova_start/addr mismatch, iova_start=%p "
--			     "pbuf->addr=%llx pbuf->size=%llx",
--			     iova_start, pbuf->addr, pbuf->size);
--		return -EINVAL;
--	}
--	if (((pbuf->addr + pbuf->size) % PAGE_SIZE) &&
--	    (num_phys_buf > 1)) {
--		ehca_gen_err("addr/size mismatch in 1st buf, pbuf->addr=%llx "
--			     "pbuf->size=%llx", pbuf->addr, pbuf->size);
--		return -EINVAL;
--	}
--
--	for (i = 0; i < num_phys_buf; i++) {
--		if ((i > 0) && (pbuf->addr % PAGE_SIZE)) {
--			ehca_gen_err("bad address, i=%x pbuf->addr=%llx "
--				     "pbuf->size=%llx",
--				     i, pbuf->addr, pbuf->size);
--			return -EINVAL;
--		}
--		if (((i > 0) &&	/* not 1st */
--		     (i < (num_phys_buf - 1)) &&	/* not last */
--		     (pbuf->size % PAGE_SIZE)) || (pbuf->size == 0)) {
--			ehca_gen_err("bad size, i=%x pbuf->size=%llx",
--				     i, pbuf->size);
--			return -EINVAL;
--		}
--		size_count += pbuf->size;
--		pbuf++;
--	}
--
--	*size = size_count;
--	return 0;
--} /* end ehca_mr_chk_buf_and_calc_size() */
--
--/*----------------------------------------------------------------------*/
--
- /* check page list of map FMR verb for validness */
- int ehca_fmr_check_page_list(struct ehca_mr *e_fmr,
- 			     u64 *page_list,
-diff --git a/drivers/staging/rdma/ehca/ehca_mrmw.h b/drivers/staging/rdma/ehca/ehca_mrmw.h
-index 50d8b51..52bfa95 100644
---- a/drivers/staging/rdma/ehca/ehca_mrmw.h
-+++ b/drivers/staging/rdma/ehca/ehca_mrmw.h
-@@ -98,11 +98,6 @@ int ehca_reg_maxmr(struct ehca_shca *shca,
- 
- int ehca_dereg_internal_maxmr(struct ehca_shca *shca);
- 
--int ehca_mr_chk_buf_and_calc_size(struct ib_phys_buf *phys_buf_array,
--				  int num_phys_buf,
--				  u64 *iova_start,
--				  u64 *size);
--
- int ehca_fmr_check_page_list(struct ehca_mr *e_fmr,
- 			     u64 *page_list,
- 			     int list_len);
-diff --git a/drivers/staging/rdma/hfi1/mr.c b/drivers/staging/rdma/hfi1/mr.c
-index 568f185..a3f8b88 100644
---- a/drivers/staging/rdma/hfi1/mr.c
-+++ b/drivers/staging/rdma/hfi1/mr.c
-@@ -167,10 +167,7 @@ static struct hfi1_mr *alloc_mr(int count, struct ib_pd *pd)
- 	rval = init_mregion(&mr->mr, pd, count);
- 	if (rval)
- 		goto bail;
--	/*
--	 * ib_reg_phys_mr() will initialize mr->ibmr except for
--	 * lkey and rkey.
--	 */
-+
- 	rval = hfi1_alloc_lkey(&mr->mr, 0);
- 	if (rval)
- 		goto bail_mregion;
-@@ -188,52 +185,6 @@ bail:
- }
- 
- /**
-- * hfi1_reg_phys_mr - register a physical memory region
-- * @pd: protection domain for this memory region
-- * @buffer_list: pointer to the list of physical buffers to register
-- * @num_phys_buf: the number of physical buffers to register
-- * @iova_start: the starting address passed over IB which maps to this MR
-- *
-- * Returns the memory region on success, otherwise returns an errno.
-- */
--struct ib_mr *hfi1_reg_phys_mr(struct ib_pd *pd,
--			       struct ib_phys_buf *buffer_list,
--			       int num_phys_buf, int acc, u64 *iova_start)
--{
--	struct hfi1_mr *mr;
--	int n, m, i;
--	struct ib_mr *ret;
--
--	mr = alloc_mr(num_phys_buf, pd);
--	if (IS_ERR(mr)) {
--		ret = (struct ib_mr *)mr;
--		goto bail;
--	}
--
--	mr->mr.user_base = *iova_start;
--	mr->mr.iova = *iova_start;
--	mr->mr.access_flags = acc;
--
--	m = 0;
--	n = 0;
--	for (i = 0; i < num_phys_buf; i++) {
--		mr->mr.map[m]->segs[n].vaddr = (void *) buffer_list[i].addr;
--		mr->mr.map[m]->segs[n].length = buffer_list[i].size;
--		mr->mr.length += buffer_list[i].size;
--		n++;
--		if (n == HFI1_SEGSZ) {
--			m++;
--			n = 0;
--		}
--	}
--
--	ret = &mr->ibmr;
--
--bail:
--	return ret;
--}
--
--/**
-  * hfi1_reg_user_mr - register a userspace memory region
-  * @pd: protection domain for this memory region
-  * @start: starting userspace address
-diff --git a/drivers/staging/rdma/hfi1/verbs.c b/drivers/staging/rdma/hfi1/verbs.c
-index cb5b346..1b3d8d9 100644
---- a/drivers/staging/rdma/hfi1/verbs.c
-+++ b/drivers/staging/rdma/hfi1/verbs.c
-@@ -2011,7 +2011,6 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
- 	ibdev->poll_cq = hfi1_poll_cq;
- 	ibdev->req_notify_cq = hfi1_req_notify_cq;
- 	ibdev->get_dma_mr = hfi1_get_dma_mr;
--	ibdev->reg_phys_mr = hfi1_reg_phys_mr;
- 	ibdev->reg_user_mr = hfi1_reg_user_mr;
- 	ibdev->dereg_mr = hfi1_dereg_mr;
- 	ibdev->alloc_mr = hfi1_alloc_mr;
-diff --git a/drivers/staging/rdma/hfi1/verbs.h b/drivers/staging/rdma/hfi1/verbs.h
-index 041ad07..255792a 100644
---- a/drivers/staging/rdma/hfi1/verbs.h
-+++ b/drivers/staging/rdma/hfi1/verbs.h
-@@ -1012,10 +1012,6 @@ int hfi1_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata);
- 
- struct ib_mr *hfi1_get_dma_mr(struct ib_pd *pd, int acc);
- 
--struct ib_mr *hfi1_reg_phys_mr(struct ib_pd *pd,
--			       struct ib_phys_buf *buffer_list,
--			       int num_phys_buf, int acc, u64 *iova_start);
--
- struct ib_mr *hfi1_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 			       u64 virt_addr, int mr_access_flags,
- 			       struct ib_udata *udata);
-diff --git a/drivers/staging/rdma/ipath/ipath_mr.c b/drivers/staging/rdma/ipath/ipath_mr.c
-index c7278f6..b76b0ce 100644
---- a/drivers/staging/rdma/ipath/ipath_mr.c
-+++ b/drivers/staging/rdma/ipath/ipath_mr.c
-@@ -98,10 +98,6 @@ static struct ipath_mr *alloc_mr(int count,
- 	}
- 	mr->mr.mapsz = m;
- 
--	/*
--	 * ib_reg_phys_mr() will initialize mr->ibmr except for
--	 * lkey and rkey.
--	 */
- 	if (!ipath_alloc_lkey(lk_table, &mr->mr))
- 		goto bail;
- 	mr->ibmr.rkey = mr->ibmr.lkey = mr->mr.lkey;
-@@ -121,57 +117,6 @@ done:
- }
- 
- /**
-- * ipath_reg_phys_mr - register a physical memory region
-- * @pd: protection domain for this memory region
-- * @buffer_list: pointer to the list of physical buffers to register
-- * @num_phys_buf: the number of physical buffers to register
-- * @iova_start: the starting address passed over IB which maps to this MR
-- *
-- * Returns the memory region on success, otherwise returns an errno.
-- */
--struct ib_mr *ipath_reg_phys_mr(struct ib_pd *pd,
--				struct ib_phys_buf *buffer_list,
--				int num_phys_buf, int acc, u64 *iova_start)
--{
--	struct ipath_mr *mr;
--	int n, m, i;
--	struct ib_mr *ret;
--
--	mr = alloc_mr(num_phys_buf, &to_idev(pd->device)->lk_table);
--	if (mr == NULL) {
--		ret = ERR_PTR(-ENOMEM);
--		goto bail;
--	}
--
--	mr->mr.pd = pd;
--	mr->mr.user_base = *iova_start;
--	mr->mr.iova = *iova_start;
--	mr->mr.length = 0;
--	mr->mr.offset = 0;
--	mr->mr.access_flags = acc;
--	mr->mr.max_segs = num_phys_buf;
--	mr->umem = NULL;
--
--	m = 0;
--	n = 0;
--	for (i = 0; i < num_phys_buf; i++) {
--		mr->mr.map[m]->segs[n].vaddr = (void *) buffer_list[i].addr;
--		mr->mr.map[m]->segs[n].length = buffer_list[i].size;
--		mr->mr.length += buffer_list[i].size;
--		n++;
--		if (n == IPATH_SEGSZ) {
--			m++;
--			n = 0;
--		}
--	}
--
--	ret = &mr->ibmr;
--
--bail:
--	return ret;
--}
--
--/**
-  * ipath_reg_user_mr - register a userspace memory region
-  * @pd: protection domain for this memory region
-  * @start: starting userspace address
-diff --git a/drivers/staging/rdma/ipath/ipath_verbs.c b/drivers/staging/rdma/ipath/ipath_verbs.c
-index 7ab1520..02d8834 100644
---- a/drivers/staging/rdma/ipath/ipath_verbs.c
-+++ b/drivers/staging/rdma/ipath/ipath_verbs.c
-@@ -2149,7 +2149,6 @@ int ipath_register_ib_device(struct ipath_devdata *dd)
- 	dev->poll_cq = ipath_poll_cq;
- 	dev->req_notify_cq = ipath_req_notify_cq;
- 	dev->get_dma_mr = ipath_get_dma_mr;
--	dev->reg_phys_mr = ipath_reg_phys_mr;
- 	dev->reg_user_mr = ipath_reg_user_mr;
- 	dev->dereg_mr = ipath_dereg_mr;
- 	dev->alloc_fmr = ipath_alloc_fmr;
-diff --git a/drivers/staging/rdma/ipath/ipath_verbs.h b/drivers/staging/rdma/ipath/ipath_verbs.h
-index 0a90a56..6c70a89 100644
---- a/drivers/staging/rdma/ipath/ipath_verbs.h
-+++ b/drivers/staging/rdma/ipath/ipath_verbs.h
-@@ -828,10 +828,6 @@ int ipath_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata);
- 
- struct ib_mr *ipath_get_dma_mr(struct ib_pd *pd, int acc);
- 
--struct ib_mr *ipath_reg_phys_mr(struct ib_pd *pd,
--				struct ib_phys_buf *buffer_list,
--				int num_phys_buf, int acc, u64 *iova_start);
--
- struct ib_mr *ipath_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 				u64 virt_addr, int mr_access_flags,
- 				struct ib_udata *udata);
+ 	u64 h_ret;
+diff --git a/drivers/staging/rdma/ehca/ehca_reqs.c b/drivers/staging/rdma/ehca/ehca_reqs.c
+index 10e2074..11813b8 100644
+--- a/drivers/staging/rdma/ehca/ehca_reqs.c
++++ b/drivers/staging/rdma/ehca/ehca_reqs.c
+@@ -614,7 +614,6 @@ int ehca_post_srq_recv(struct ib_srq *srq,
+ static const u8 ib_wc_opcode[255] = {
+ 	[0x01] = IB_WC_RECV+1,
+ 	[0x02] = IB_WC_RECV_RDMA_WITH_IMM+1,
+-	[0x04] = IB_WC_BIND_MW+1,
+ 	[0x08] = IB_WC_FETCH_ADD+1,
+ 	[0x10] = IB_WC_COMP_SWAP+1,
+ 	[0x20] = IB_WC_RDMA_WRITE+1,
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index a2a7c22..1f4b057 100644
+index 1f4b057..ea093ee 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -1180,6 +1180,10 @@ struct ib_phys_buf {
- 	u64      size;
+@@ -706,7 +706,6 @@ enum ib_wc_opcode {
+ 	IB_WC_RDMA_READ,
+ 	IB_WC_COMP_SWAP,
+ 	IB_WC_FETCH_ADD,
+-	IB_WC_BIND_MW,
+ 	IB_WC_LSO,
+ 	IB_WC_LOCAL_INV,
+ 	IB_WC_REG_MR,
+@@ -1002,7 +1001,6 @@ enum ib_wr_opcode {
+ 	IB_WR_REG_MR,
+ 	IB_WR_MASKED_ATOMIC_CMP_AND_SWP,
+ 	IB_WR_MASKED_ATOMIC_FETCH_AND_ADD,
+-	IB_WR_BIND_MW,
+ 	IB_WR_REG_SIG_MR,
+ 	/* reserve values for low level drivers' internal use.
+ 	 * These values will not be used at all in the ib core layer.
+@@ -1037,23 +1035,6 @@ struct ib_sge {
+ 	u32	lkey;
  };
  
-+/*
-+ * XXX: these are apparently used for ->rereg_user_mr, no idea why they
-+ * are hidden here instead of a uapi header!
-+ */
- enum ib_mr_rereg_flags {
- 	IB_MR_REREG_TRANS	= 1,
- 	IB_MR_REREG_PD		= (1<<1),
-@@ -1711,11 +1715,6 @@ struct ib_device {
- 						      int wc_cnt);
- 	struct ib_mr *             (*get_dma_mr)(struct ib_pd *pd,
- 						 int mr_access_flags);
--	struct ib_mr *             (*reg_phys_mr)(struct ib_pd *pd,
--						  struct ib_phys_buf *phys_buf_array,
--						  int num_phys_buf,
--						  int mr_access_flags,
--						  u64 *iova_start);
- 	struct ib_mr *             (*reg_user_mr)(struct ib_pd *pd,
- 						  u64 start, u64 length,
- 						  u64 virt_addr,
-@@ -1735,13 +1734,6 @@ struct ib_device {
- 	int                        (*map_mr_sg)(struct ib_mr *mr,
- 						struct scatterlist *sg,
+-/**
+- * struct ib_mw_bind_info - Parameters for a memory window bind operation.
+- * @mr: A memory region to bind the memory window to.
+- * @addr: The address where the memory window should begin.
+- * @length: The length of the memory window, in bytes.
+- * @mw_access_flags: Access flags from enum ib_access_flags for the window.
+- *
+- * This struct contains the shared parameters for type 1 and type 2
+- * memory window bind operations.
+- */
+-struct ib_mw_bind_info {
+-	struct ib_mr   *mr;
+-	u64		addr;
+-	u64		length;
+-	int		mw_access_flags;
+-};
+-
+ struct ib_cqe {
+ 	void (*done)(struct ib_cq *cq, struct ib_wc *wc);
+ };
+@@ -1129,19 +1110,6 @@ static inline struct ib_reg_wr *reg_wr(struct ib_send_wr *wr)
+ 	return container_of(wr, struct ib_reg_wr, wr);
+ }
+ 
+-struct ib_bind_mw_wr {
+-	struct ib_send_wr	wr;
+-	struct ib_mw		*mw;
+-	/* The new rkey for the memory window. */
+-	u32			rkey;
+-	struct ib_mw_bind_info	bind_info;
+-};
+-
+-static inline struct ib_bind_mw_wr *bind_mw_wr(struct ib_send_wr *wr)
+-{
+-	return container_of(wr, struct ib_bind_mw_wr, wr);
+-}
+-
+ struct ib_sig_handover_wr {
+ 	struct ib_send_wr	wr;
+ 	struct ib_sig_attrs    *sig_attrs;
+@@ -1191,18 +1159,6 @@ enum ib_mr_rereg_flags {
+ 	IB_MR_REREG_SUPPORTED	= ((IB_MR_REREG_ACCESS << 1) - 1)
+ };
+ 
+-/**
+- * struct ib_mw_bind - Parameters for a type 1 memory window bind operation.
+- * @wr_id:      Work request id.
+- * @send_flags: Flags from ib_send_flags enum.
+- * @bind_info:  More parameters of the bind operation.
+- */
+-struct ib_mw_bind {
+-	u64                    wr_id;
+-	int                    send_flags;
+-	struct ib_mw_bind_info bind_info;
+-};
+-
+ struct ib_fmr_attr {
+ 	int	max_pages;
+ 	int	max_maps;
+@@ -1736,9 +1692,6 @@ struct ib_device {
  						int sg_nents);
--	int                        (*rereg_phys_mr)(struct ib_mr *mr,
--						    int mr_rereg_mask,
--						    struct ib_pd *pd,
--						    struct ib_phys_buf *phys_buf_array,
--						    int num_phys_buf,
--						    int mr_access_flags,
--						    u64 *iova_start);
  	struct ib_mw *             (*alloc_mw)(struct ib_pd *pd,
  					       enum ib_mw_type type);
- 	int                        (*bind_mw)(struct ib_qp *qp,
+-	int                        (*bind_mw)(struct ib_qp *qp,
+-					      struct ib_mw *mw,
+-					      struct ib_mw_bind *mw_bind);
+ 	int                        (*dealloc_mw)(struct ib_mw *mw);
+ 	struct ib_fmr *	           (*alloc_fmr)(struct ib_pd *pd,
+ 						int mr_access_flags,
+@@ -2900,42 +2853,6 @@ static inline u32 ib_inc_rkey(u32 rkey)
+ }
+ 
+ /**
+- * ib_alloc_mw - Allocates a memory window.
+- * @pd: The protection domain associated with the memory window.
+- * @type: The type of the memory window (1 or 2).
+- */
+-struct ib_mw *ib_alloc_mw(struct ib_pd *pd, enum ib_mw_type type);
+-
+-/**
+- * ib_bind_mw - Posts a work request to the send queue of the specified
+- *   QP, which binds the memory window to the given address range and
+- *   remote access attributes.
+- * @qp: QP to post the bind work request on.
+- * @mw: The memory window to bind.
+- * @mw_bind: Specifies information about the memory window, including
+- *   its address range, remote access rights, and associated memory region.
+- *
+- * If there is no immediate error, the function will update the rkey member
+- * of the mw parameter to its new value. The bind operation can still fail
+- * asynchronously.
+- */
+-static inline int ib_bind_mw(struct ib_qp *qp,
+-			     struct ib_mw *mw,
+-			     struct ib_mw_bind *mw_bind)
+-{
+-	/* XXX reference counting in corresponding MR? */
+-	return mw->device->bind_mw ?
+-		mw->device->bind_mw(qp, mw, mw_bind) :
+-		-ENOSYS;
+-}
+-
+-/**
+- * ib_dealloc_mw - Deallocates a memory window.
+- * @mw: The memory window to deallocate.
+- */
+-int ib_dealloc_mw(struct ib_mw *mw);
+-
+-/**
+  * ib_alloc_fmr - Allocates a unmapped fast memory region.
+  * @pd: The protection domain associated with the unmapped region.
+  * @mr_access_flags: Specifies the memory access rights.
 -- 
 1.9.1
 
