@@ -1,121 +1,50 @@
-From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v2 11/14] staging/rdma/hfi1: Add MMU notifier callback function
-Date: Thu, 17 Dec 2015 23:50:01 -0500
-Message-ID: <1450414204-13699-12-git-send-email-ira.weiny@intel.com>
+From: ira.weiny@intel.com
+Subject: [PATCH v2 02/14] uapi/rdma/hfi/hfi1_user.h: Correct comment for
+ capability bit
+Date: Thu, 17 Dec 2015 23:49:52 -0500
+Message-ID: <1450414204-13699-3-git-send-email-ira.weiny@intel.com>
 References: <1450414204-13699-1-git-send-email-ira.weiny@intel.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1450414204-13699-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <1450414204-13699-1-git-send-email-ira.weiny@intel.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org
+Cc: linux-rdma@vger.kernel.org, dledford@redhat.com, Mitko Haralanov <mitko.haralanov@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Mitko Haralanov <mitko.haralanov@intel.com>
 
-TID caching will rely on the MMU notifier to be told
-when memory is being invalidated. When the callback
-is called, the driver will find all RcvArray entries
-that span the invalidated buffer and "schedule" them
-to be freed by the PSM library.
+The HFI1_CAP_TID_UNMAP comment was incorrectly implying the
+opposite of what capability actually did. Correct this error.
 
-This function is currently unused and is being added
-in preparation for the TID caching feature.
-
-Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Signed-off-by: Mitko Haralanov <mitko.haralanov@intel.com>
 ---
- drivers/staging/rdma/hfi1/user_exp_rcv.c | 67 +++++++++++++++++++++++++++++++-
- 1 file changed, 65 insertions(+), 2 deletions(-)
+ include/uapi/rdma/hfi/hfi1_user.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/staging/rdma/hfi1/user_exp_rcv.c b/drivers/staging/rdma/hfi1/user_exp_rcv.c
-index 843023e2e2c7..1787c55d21d6 100644
---- a/drivers/staging/rdma/hfi1/user_exp_rcv.c
-+++ b/drivers/staging/rdma/hfi1/user_exp_rcv.c
-@@ -104,7 +104,7 @@ static int set_rcvarray_entry(struct file *, unsigned long, u32,
- static inline int mmu_addr_cmp(struct mmu_rb_node *, unsigned long,
- 			       unsigned long);
- static struct mmu_rb_node *mmu_rb_search_by_addr(struct rb_root *,
--						 unsigned long) __maybe_unused;
-+						 unsigned long);
- static inline struct mmu_rb_node *mmu_rb_search_by_entry(struct rb_root *,
- 							 u32);
- static int mmu_rb_insert_by_addr(struct rb_root *, struct mmu_rb_node *);
-@@ -683,7 +683,70 @@ static void mmu_notifier_mem_invalidate(struct mmu_notifier *mn,
- 					unsigned long start, unsigned long end,
- 					enum mmu_call_types type)
- {
--	/* Stub for now */
-+	struct hfi1_filedata *fd = container_of(mn, struct hfi1_filedata, mn);
-+	struct hfi1_ctxtdata *uctxt = fd->uctxt;
-+	struct rb_root *root = &fd->tid_rb_root;
-+	struct mmu_rb_node *node;
-+	unsigned long addr = start;
-+
-+	spin_lock(&fd->rb_lock);
-+	while (addr < end) {
-+		node = mmu_rb_search_by_addr(root, addr);
-+
-+		if (!node) {
-+			/*
-+			 * Didn't find a node at this address. However, the
-+			 * range could be bigger than what we have registered
-+			 * so we have to keep looking.
-+			 */
-+			addr += PAGE_SIZE;
-+			continue;
-+		}
-+
-+		/*
-+		 * The next address to be looked up is computed based
-+		 * on the node's starting address. This is due to the
-+		 * fact that the range where we start might be in the
-+		 * middle of the node's buffer so simply incrementing
-+		 * the address by the node's size would result is a
-+		 * bad address.
-+		 */
-+		addr = node->virt + (node->npages * PAGE_SIZE);
-+		if (node->freed)
-+			continue;
-+
-+		node->freed = true;
-+
-+		spin_lock(&fd->invalid_lock);
-+		if (fd->invalid_tid_idx < uctxt->expected_count) {
-+			fd->invalid_tids[fd->invalid_tid_idx] =
-+				rcventry2tidinfo(node->rcventry -
-+						 uctxt->expected_base);
-+			fd->invalid_tids[fd->invalid_tid_idx] |=
-+				EXP_TID_SET(LEN, node->npages);
-+			if (!fd->invalid_tid_idx) {
-+				unsigned long *ev;
-+
-+				/*
-+				 * hfi1_set_uevent_bits() sets a user event flag
-+				 * for all processes. Because calling into the
-+				 * driver to process TID cache invalidations is
-+				 * expensive and TID cache invalidations are
-+				 * handled on a per-process basis, we can
-+				 * optimize this to set the flag only for the
-+				 * process in question.
-+				 */
-+				ev = uctxt->dd->events +
-+					(((uctxt->ctxt -
-+					   uctxt->dd->first_user_ctxt) *
-+					  HFI1_MAX_SHARED_CTXTS) + fd->subctxt);
-+				set_bit(_HFI1_EVENT_TID_MMU_NOTIFY_BIT, ev);
-+			}
-+			fd->invalid_tid_idx++;
-+		}
-+		spin_unlock(&fd->invalid_lock);
-+	}
-+	spin_unlock(&fd->rb_lock);
- }
- 
- static inline int mmu_addr_cmp(struct mmu_rb_node *node, unsigned long addr,
+diff --git a/include/uapi/rdma/hfi/hfi1_user.h b/include/uapi/rdma/hfi/hfi1_user.h
+index 288694e422fb..cf172718e3d5 100644
+--- a/include/uapi/rdma/hfi/hfi1_user.h
++++ b/include/uapi/rdma/hfi/hfi1_user.h
+@@ -93,7 +93,7 @@
+ #define HFI1_CAP_MULTI_PKT_EGR    (1UL <<  7) /* Enable multi-packet Egr buffs*/
+ #define HFI1_CAP_NODROP_RHQ_FULL  (1UL <<  8) /* Don't drop on Hdr Q full */
+ #define HFI1_CAP_NODROP_EGR_FULL  (1UL <<  9) /* Don't drop on EGR buffs full */
+-#define HFI1_CAP_TID_UNMAP        (1UL << 10) /* Enable Expected TID caching */
++#define HFI1_CAP_TID_UNMAP        (1UL << 10) /* Disable Expected TID caching */
+ #define HFI1_CAP_PRINT_UNIMPL     (1UL << 11) /* Show for unimplemented feats */
+ #define HFI1_CAP_ALLOW_PERM_JKEY  (1UL << 12) /* Allow use of permissive JKEY */
+ #define HFI1_CAP_NO_INTEGRITY     (1UL << 13) /* Enable ctxt integrity checks */
 -- 
 1.8.2
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
