@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v2 09/14] staging/rdma/hfi1: Convert lock to mutex
-Date: Thu, 17 Dec 2015 23:49:59 -0500
-Message-ID: <1450414204-13699-10-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH v2 12/14] staging/rdma/hfi1: Add TID free/clear function bodies
+Date: Thu, 17 Dec 2015 23:50:02 -0500
+Message-ID: <1450414204-13699-13-git-send-email-ira.weiny@intel.com>
 References: <1450414204-13699-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450414204-13699-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,95 +12,148 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The exp_lock lock does not need to be a spinlock as
-all its uses are in process context and allowing the
-process to sleep when the mutex is contended might
-be benefitial.
+Up to now, the functions which cleared the programmed
+TID entries and gave PSM the list of invalidated TID entries
+were just stubs. With this commit, the bodies of these
+functions are added.
+
+This commit is a bit asymmetric as it only contains the
+free code path. This is done on purpose to help with patch
+reviews as the programming code path is much longer.
 
 Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/file_ops.c | 12 ++++++------
- drivers/staging/rdma/hfi1/hfi.h      |  2 +-
- drivers/staging/rdma/hfi1/init.c     |  2 +-
- 3 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/staging/rdma/hfi1/user_exp_rcv.c | 91 +++++++++++++++++++++++++++++---
+ 1 file changed, 85 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
-index 76fe60315bb4..b0348263b901 100644
---- a/drivers/staging/rdma/hfi1/file_ops.c
-+++ b/drivers/staging/rdma/hfi1/file_ops.c
-@@ -1611,14 +1611,14 @@ static int exp_tid_setup(struct file *fp, struct hfi1_tid_info *tinfo)
- 		 * reserved, we don't need the lock anymore since we
- 		 * are guaranteed the groups.
- 		 */
--		spin_lock(&uctxt->exp_lock);
-+		mutex_lock(&uctxt->exp_lock);
- 		if (uctxt->tidusemap[useidx] == -1ULL ||
- 		    bitidx >= BITS_PER_LONG) {
- 			/* no free groups in the set, use the next */
- 			useidx = (useidx + 1) % uctxt->tidmapcnt;
- 			idx++;
- 			bitidx = 0;
--			spin_unlock(&uctxt->exp_lock);
-+			mutex_unlock(&uctxt->exp_lock);
- 			continue;
- 		}
- 		ngroups = ((npages - mapped) / dd->rcv_entries.group_size) +
-@@ -1635,13 +1635,13 @@ static int exp_tid_setup(struct file *fp, struct hfi1_tid_info *tinfo)
- 			 * as 0 because we don't check the entire bitmap but
- 			 * we start from bitidx.
- 			 */
--			spin_unlock(&uctxt->exp_lock);
-+			mutex_unlock(&uctxt->exp_lock);
- 			continue;
- 		}
- 		bits_used = min(free, ngroups);
- 		tidmap[useidx] |= ((1ULL << bits_used) - 1) << bitidx;
- 		uctxt->tidusemap[useidx] |= tidmap[useidx];
--		spin_unlock(&uctxt->exp_lock);
-+		mutex_unlock(&uctxt->exp_lock);
+diff --git a/drivers/staging/rdma/hfi1/user_exp_rcv.c b/drivers/staging/rdma/hfi1/user_exp_rcv.c
+index 1787c55d21d6..776ce003248e 100644
+--- a/drivers/staging/rdma/hfi1/user_exp_rcv.c
++++ b/drivers/staging/rdma/hfi1/user_exp_rcv.c
+@@ -120,10 +120,8 @@ static inline void mmu_notifier_range_start(struct mmu_notifier *,
+ static int program_rcvarray(struct file *, unsigned long, struct tid_group *,
+ 			    struct tid_pageset *, unsigned, u16, struct page **,
+ 			    u32 *, unsigned *, unsigned *) __maybe_unused;
+-static int unprogram_rcvarray(struct file *, u32,
+-			      struct tid_group **) __maybe_unused;
+-static void clear_tid_node(struct hfi1_filedata *, u16,
+-			   struct mmu_rb_node *) __maybe_unused;
++static int unprogram_rcvarray(struct file *, u32, struct tid_group **);
++static void clear_tid_node(struct hfi1_filedata *, u16, struct mmu_rb_node *);
  
- 		/*
- 		 * At this point, we know where in the map we have free bits.
-@@ -1677,10 +1677,10 @@ static int exp_tid_setup(struct file *fp, struct hfi1_tid_info *tinfo)
- 			 * Let go of the bits that we reserved since we are not
- 			 * going to use them.
- 			 */
--			spin_lock(&uctxt->exp_lock);
-+			mutex_lock(&uctxt->exp_lock);
- 			uctxt->tidusemap[useidx] &=
- 				~(((1ULL << bits_used) - 1) << bitidx);
--			spin_unlock(&uctxt->exp_lock);
-+			mutex_unlock(&uctxt->exp_lock);
- 			goto done;
- 		}
- 		/*
-diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
-index 905bb40febb3..9052331ff6c5 100644
---- a/drivers/staging/rdma/hfi1/hfi.h
-+++ b/drivers/staging/rdma/hfi1/hfi.h
-@@ -258,7 +258,7 @@ struct hfi1_ctxtdata {
- 	struct exp_tid_set tid_full_list;
+ static inline u32 rcventry2tidinfo(u32 rcventry)
+ {
+@@ -264,6 +262,7 @@ int hfi1_user_exp_rcv_init(struct file *fp)
+ 	 * Make sure that we set the tid counts only after successful
+ 	 * init.
+ 	 */
++	spin_lock(&fd->tid_lock);
+ 	if (uctxt->subctxt_cnt && !HFI1_CAP_IS_USET(TID_UNMAP)) {
+ 		u16 remainder;
  
- 	/* lock protecting all Expected TID data */
--	spinlock_t exp_lock;
-+	struct mutex exp_lock;
- 	/* number of pio bufs for this ctxt (all procs, if shared) */
- 	u32 piocnt;
- 	/* first pio buffer for this ctxt */
-diff --git a/drivers/staging/rdma/hfi1/init.c b/drivers/staging/rdma/hfi1/init.c
-index db80544deb66..ee63fe977ad4 100644
---- a/drivers/staging/rdma/hfi1/init.c
-+++ b/drivers/staging/rdma/hfi1/init.c
-@@ -227,7 +227,7 @@ struct hfi1_ctxtdata *hfi1_create_ctxtdata(struct hfi1_pportdata *ppd, u32 ctxt)
- 		rcd->numa_id = numa_node_id();
- 		rcd->rcv_array_groups = dd->rcv_entries.ngroups;
+@@ -274,6 +273,7 @@ int hfi1_user_exp_rcv_init(struct file *fp)
+ 	} else {
+ 		fd->tid_limit = uctxt->expected_count;
+ 	}
++	spin_unlock(&fd->tid_lock);
+ done:
+ 	return ret;
+ }
+@@ -346,12 +346,91 @@ int hfi1_user_exp_rcv_setup(struct file *fp, struct hfi1_tid_info *tinfo)
  
--		spin_lock_init(&rcd->exp_lock);
-+		mutex_init(&rcd->exp_lock);
+ int hfi1_user_exp_rcv_clear(struct file *fp, struct hfi1_tid_info *tinfo)
+ {
+-	return -EINVAL;
++	int ret = 0;
++	struct hfi1_filedata *fd = fp->private_data;
++	struct hfi1_ctxtdata *uctxt = fd->uctxt;
++	u32 *tidinfo;
++	unsigned tididx;
++
++	tidinfo = kcalloc(tinfo->tidcnt, sizeof(*tidinfo), GFP_KERNEL);
++	if (!tidinfo)
++		return -ENOMEM;
++
++	if (copy_from_user(tidinfo, (void __user *)(unsigned long)
++			   tinfo->tidlist, sizeof(tidinfo[0]) *
++			   tinfo->tidcnt)) {
++		ret = -EFAULT;
++		goto done;
++	}
++
++	mutex_lock(&uctxt->exp_lock);
++	for (tididx = 0; tididx < tinfo->tidcnt; tididx++) {
++		ret = unprogram_rcvarray(fp, tidinfo[tididx], NULL);
++		if (ret) {
++			hfi1_cdbg(TID, "Failed to unprogram rcv array %d",
++				  ret);
++			break;
++		}
++	}
++	spin_lock(&fd->tid_lock);
++	fd->tid_used -= tididx;
++	spin_unlock(&fd->tid_lock);
++	tinfo->tidcnt = tididx;
++	mutex_unlock(&uctxt->exp_lock);
++done:
++	kfree(tidinfo);
++	return ret;
+ }
  
- 		/*
- 		 * Calculate the context's RcvArray entry starting point.
+ int hfi1_user_exp_rcv_invalid(struct file *fp, struct hfi1_tid_info *tinfo)
+ {
+-	return -EINVAL;
++	struct hfi1_filedata *fd = fp->private_data;
++	struct hfi1_ctxtdata *uctxt = fd->uctxt;
++	unsigned long *ev = uctxt->dd->events +
++		(((uctxt->ctxt - uctxt->dd->first_user_ctxt) *
++		  HFI1_MAX_SHARED_CTXTS) + fd->subctxt);
++	u32 *array;
++	int ret = 0;
++
++	if (!fd->invalid_tids)
++		return -EINVAL;
++
++	/*
++	 * copy_to_user() can sleep, which will leave the invalid_lock
++	 * locked and cause the MMU notifier to be blocked on the lock
++	 * for a long time.
++	 * Copy the data to a local buffer so we can release the lock.
++	 */
++	array = kcalloc(uctxt->expected_count, sizeof(*array), GFP_KERNEL);
++	if (!array)
++		return -EFAULT;
++
++	spin_lock(&fd->invalid_lock);
++	if (fd->invalid_tid_idx) {
++		memcpy(array, fd->invalid_tids, sizeof(*array) *
++		       fd->invalid_tid_idx);
++		memset(fd->invalid_tids, 0, sizeof(*fd->invalid_tids) *
++		       fd->invalid_tid_idx);
++		tinfo->tidcnt = fd->invalid_tid_idx;
++		fd->invalid_tid_idx = 0;
++		/*
++		 * Reset the user flag while still holding the lock.
++		 * Otherwise, PSM can miss events.
++		 */
++		clear_bit(_HFI1_EVENT_TID_MMU_NOTIFY_BIT, ev);
++	} else {
++		tinfo->tidcnt = 0;
++	}
++	spin_unlock(&fd->invalid_lock);
++
++	if (tinfo->tidcnt) {
++		if (copy_to_user((void __user *)tinfo->tidlist,
++				 array, sizeof(*array) * tinfo->tidcnt))
++			ret = -EFAULT;
++	}
++	kfree(array);
++
++	return ret;
+ }
+ 
+ static u32 find_phys_blocks(struct page **pages, unsigned npages,
 -- 
 1.8.2
 
