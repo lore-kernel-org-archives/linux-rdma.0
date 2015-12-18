@@ -1,68 +1,64 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 3/3] bject: IB Core: Display extended counter set if
- available
-Date: Fri, 18 Dec 2015 08:52:12 -0500
-Message-ID: <56740F8C.4060703@dev.mellanox.co.il>
-References: <20151217195255.334854705@linux.com>
- <20151217195312.334770847@linux.com> <567316F7.9030707@dev.mellanox.co.il>
- <alpine.DEB.2.20.1512171527060.22782@east.gentwo.org>
- <56732D97.2080303@dev.mellanox.co.il>
- <alpine.DEB.2.20.1512171649070.22782@east.gentwo.org>
- <567342F5.5090000@dev.mellanox.co.il>
- <alpine.DEB.2.20.1512180737150.32514@east.gentwo.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: [PATCH 01/10] IB: start documenting device capabilities
+Date: Fri, 18 Dec 2015 14:54:57 +0100
+Message-ID: <1450446906-10336-2-git-send-email-hch@lst.de>
+References: <1450446906-10336-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.20.1512180737150.32514-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
+In-Reply-To: <1450446906-10336-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/18/2015 8:39 AM, Christoph Lameter wrote:
-> On Thu, 17 Dec 2015, Hal Rosenstock wrote:
-> 
->>> +	if (cpi.capability_mask && IB_PMA_CLASS_CAP_EXT_WIDTH) {
->>> +		/* We have extended counters */
->>> +
->>> +		if (cpi.capability_mask && IB_PMA_CLASS_CAP_EXT_WIDTH_NOIETF)
->>> +			/* But not the IETF ones */
->>> +			return &pma_group_noietf;
->>
->> These 2 capability bits are mutually exclusive so I think it should be:
->>
->> 	if (cpi.capability_mask && IB_PMA_CLASS_CAP_EXT_WIDTH) {
->> 		/* We have extended counters */
->> 		return &pma_group_ext;
->>   	}
->>
->> 	if (cpi.capability_mask && IB_PMA_CLASS_CAP_EXT_WIDTH_NOIETF)
->> 		/* But not the IETF ones */
->> 		return &pma_group_noietf;
-> 
-> This case would then use the 64 bit counters despite of the
-> IB_PMA_CLASS_CAP_EXT_WIDTH not being set.
+Just IB_DEVICE_LOCAL_DMA_LKEY and IB_DEVICE_MEM_MGT_EXTENSIONS for now
+as I'm most familar with those.
 
-Yes, IB_PMA_CLASS_CAP_EXT_WIDTH means all extended counters including
-IETF ones whereas IB_PMA_CLASS_CAP_EXT_WIDTH_NOIETF means extended
-counters without IETF ones ([uni multi]cast [rcv xmit] pkts).
+Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-By: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+---
+ include/rdma/ib_verbs.h | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-> 
->> 	}
->>
->> 	return &pma_group;
->>
->>> +
-> 
-> The tables contain all the counters each. So we would need another table
-> of counters that has the ietf counters but not the 64 bit extended ones?
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index a7dbbfc..db4e3fe 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -122,6 +122,14 @@ enum ib_device_cap_flags {
+ 	IB_DEVICE_RC_RNR_NAK_GEN	= (1<<12),
+ 	IB_DEVICE_SRQ_RESIZE		= (1<<13),
+ 	IB_DEVICE_N_NOTIFY_CQ		= (1<<14),
++
++	/*
++	 * This device supports a per-device lkey or stag that can be
++	 * used without performing a memory registration for the local
++	 * memory.  Note that ULPs should never check this flag, but
++	 * instead of use the local_dma_lkey flag in the ib_pd structure,
++	 * which will always contain a usable lkey.
++	 */
+ 	IB_DEVICE_LOCAL_DMA_LKEY	= (1<<15),
+ 	IB_DEVICE_RESERVED		= (1<<16), /* old SEND_W_INV */
+ 	IB_DEVICE_MEM_WINDOW		= (1<<17),
+@@ -135,6 +143,16 @@ enum ib_device_cap_flags {
+ 	IB_DEVICE_UD_IP_CSUM		= (1<<18),
+ 	IB_DEVICE_UD_TSO		= (1<<19),
+ 	IB_DEVICE_XRC			= (1<<20),
++
++	/*
++	 * This device supports the IB "base memory management extension",
++	 * which includes support for fast registrations (IB_WR_REG_MR,
++	 * IB_WR_LOCAL_INV and IB_WR_SEND_WITH_INV verbs).  This flag should
++	 * also be set by any iWarp device which must support FRs to comply
++	 * to the iWarp verbs spec.  iWarp devices also support the
++	 * IB_WR_RDMA_READ_WITH_INV verb for RDMA READs that invalidate the
++	 * stag.
++	 */
+ 	IB_DEVICE_MEM_MGT_EXTENSIONS	= (1<<21),
+ 	IB_DEVICE_BLOCK_MULTICAST_LOOPBACK = (1<<22),
+ 	IB_DEVICE_MEM_WINDOW_TYPE_2A	= (1<<23),
+-- 
+1.9.1
 
-I'm not following what you mean. I thought pma_group_noietf and
-pma_group_ext take care of the 2 different options for extended counters
-(with the error counters needed from the mandatory PortCounters) and
-pma_group is when neither of the extended counter capabilities is
-indicated.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
