@@ -1,261 +1,137 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 3/3] staging/rdma/hfi1: check for ARMED->ACTIVE
- transition in receive interrupt
-Date: Fri, 18 Dec 2015 09:31:39 +0300
-Message-ID: <20151218063139.GM5284@mwanda>
-References: <1450398255-10346-1-git-send-email-jubin.john@intel.com>
- <1450398255-10346-3-git-send-email-jubin.john@intel.com>
+From: Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: [Cocci] [PATCH] staging/rdma/hfi1: Fix a possible null pointer
+ dereference
+Date: Fri, 18 Dec 2015 07:33:36 +0100 (CET)
+Message-ID: <alpine.DEB.2.02.1512180727310.2052@localhost6.localdomain6>
+References: <20151210161338.3341.95259.stgit@phlsvslse11.ph.intel.com>
+ <20151214132849.GA22053@osadl.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1450398255-10346-3-git-send-email-jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jim Snow <jim.m.snow-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <20151214132849.GA22053@osadl.at>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Nicholas Mc Guire <der.herr@hofr.at>
+Cc: devel@driverdev.osuosl.org, linux-rdma@vger.kernel.org, dledford@redhat.com, linux-next@vger.kernel.org, Cocci@systeme.lip6.fr
 List-Id: linux-rdma@vger.kernel.org
 
-Possible off by one, but mostly the whitespace makes me itch.
 
-Jim was not on the CC list.
 
-On Thu, Dec 17, 2015 at 07:24:15PM -0500, Jubin John wrote:
-> From: Jim Snow <jim.m.snow-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Mon, 14 Dec 2015, Nicholas Mc Guire wrote:
+
+> On Thu, Dec 10, 2015 at 11:13:38AM -0500, Mike Marciniszyn wrote:
+> > From: Easwar Hariharan <easwar.hariharan@intel.com>
+> > 
+> > A code inspection pointed out that kmalloc_array may return NULL and
+> > memset doesn't check the input pointer for NULL, resulting in a possible
+> > NULL dereference. This patch fixes this.
+> > 
+> > Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+> > Signed-off-by: Easwar Hariharan <easwar.hariharan@intel.com>
+> > ---
+> >  drivers/staging/rdma/hfi1/chip.c |    2 ++
+> >  1 file changed, 2 insertions(+)
+> > 
+> > diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
+> > index dc69159..49d49b2 100644
+> > --- a/drivers/staging/rdma/hfi1/chip.c
+> > +++ b/drivers/staging/rdma/hfi1/chip.c
+> > @@ -10129,6 +10129,8 @@ static void init_qos(struct hfi1_devdata *dd, u32 first_ctxt)
+> >  	if (num_vls * qpns_per_vl > dd->chip_rcv_contexts)
+> >  		goto bail;
+> >  	rsmmap = kmalloc_array(NUM_MAP_REGS, sizeof(u64), GFP_KERNEL);
+> > +	if (!rsmmap)
+> > +		goto bail;
+> >  	memset(rsmmap, rxcontext, NUM_MAP_REGS * sizeof(u64));
+> >  	/* init the local copy of the table */
+> >  	for (i = 0, ctxt = first_ctxt; i < num_vls; i++) {
+> > 
+> > --
 > 
-> The link state will transition from ARMED to ACTIVE when a non-SC15
-> packet arrives, but the driver might not notice the change.  With this
-> fix, if the slowpath receive interrupt handler sees a non-SC15 packet
-> while in the ARMED state, we queue work to call linkstate_active_work
-> from process context to promote it to ACTIVE.
+> Based on this report a generalization of unchecked use turned up one more
+> case in the current kernel (patch sent). Probably the  when  block needs 
+> some cleanup, but findings like this definitely are a case for coccinelle 
+> scanners.
 > 
-> Signed-off-by: Jim Snow <jim.m.snow-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Brendan Cunningham <brendan.cunningham-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/staging/rdma/hfi1/chip.c   |    5 ++-
->  drivers/staging/rdma/hfi1/chip.h   |    2 +
->  drivers/staging/rdma/hfi1/driver.c |   66 ++++++++++++++++++++++++++++++++++++
->  drivers/staging/rdma/hfi1/hfi.h    |   12 ++++++
->  drivers/staging/rdma/hfi1/init.c   |    1 +
->  5 files changed, 84 insertions(+), 2 deletions(-)
+> <snip>
+> /// check for missing NULL check before use                                     
+> //
+> //  missing check in: 
+> //  ./drivers/staging/rdma/hfi1/chip.c:10131 unchecked allocation
+> //  in -next-20151214
+> //  reported-by Mike Marciniszyn <mike.marciniszyn@intel.com> 
+> //
+> //  after generalization this also found:
+> //  ./drivers/clk/shmobile/clk-div6.c:197 unchecked allocation
 > 
-> diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-> index 78a5f08..f82b848 100644
-> --- a/drivers/staging/rdma/hfi1/chip.c
-> +++ b/drivers/staging/rdma/hfi1/chip.c
-> @@ -4606,7 +4606,7 @@ static inline void clear_recv_intr(struct hfi1_ctxtdata *rcd)
->  }
->  
->  /* force the receive interrupt */
-> -static inline void force_recv_intr(struct hfi1_ctxtdata *rcd)
-> +void force_recv_intr(struct hfi1_ctxtdata *rcd)
->  {
->  	write_csr(rcd->dd, CCE_INT_FORCE + (8 * rcd->ireg), rcd->imask);
->  }
-> @@ -4705,7 +4705,7 @@ u32 read_physical_state(struct hfi1_devdata *dd)
->  				& DC_DC8051_STS_CUR_STATE_PORT_MASK;
->  }
->  
-> -static u32 read_logical_state(struct hfi1_devdata *dd)
-> +u32 read_logical_state(struct hfi1_devdata *dd)
->  {
->  	u64 reg;
->  
-> @@ -6658,6 +6658,7 @@ int set_link_state(struct hfi1_pportdata *ppd, u32 state)
->  				ppd->link_enabled = 1;
->  		}
->  
-> +		set_all_slowpath(ppd->dd);
->  		ret = set_local_link_attributes(ppd);
->  		if (ret)
->  			break;
-> diff --git a/drivers/staging/rdma/hfi1/chip.h b/drivers/staging/rdma/hfi1/chip.h
-> index d74aed8..620cf08 100644
-> --- a/drivers/staging/rdma/hfi1/chip.h
-> +++ b/drivers/staging/rdma/hfi1/chip.h
-> @@ -691,6 +691,8 @@ u64 read_dev_cntr(struct hfi1_devdata *dd, int index, int vl);
->  u64 write_dev_cntr(struct hfi1_devdata *dd, int index, int vl, u64 data);
->  u64 read_port_cntr(struct hfi1_pportdata *ppd, int index, int vl);
->  u64 write_port_cntr(struct hfi1_pportdata *ppd, int index, int vl, u64 data);
-> +u32 read_logical_state(struct hfi1_devdata *dd);
-> +void force_recv_intr(struct hfi1_ctxtdata *rcd);
->  
->  /* Per VL indexes */
->  enum {
-> diff --git a/drivers/staging/rdma/hfi1/driver.c b/drivers/staging/rdma/hfi1/driver.c
-> index 4c52e78..16b1be1 100644
-> --- a/drivers/staging/rdma/hfi1/driver.c
-> +++ b/drivers/staging/rdma/hfi1/driver.c
-> @@ -862,6 +862,15 @@ static inline void set_all_dma_rtail(struct hfi1_devdata *dd)
->  			&handle_receive_interrupt_dma_rtail;
->  }
->  
-> +void set_all_slowpath(struct hfi1_devdata *dd)
-> +{
-> +	int i;
-> +
-> +	for (i = HFI1_CTRL_CTXT + 1; i < dd->first_user_ctxt; i++)
-> +		dd->rcd[i]->do_interrupt =
-> +		  &handle_receive_interrupt;
-
-This fits within the 80 character limit.
-
-We start counting from HFI1_CTRL_CTXT + 1 but in receive_interrupt_work()
-we start counting from HFI1_CTRL_CTXT.  What's the story?  It's either a
-bug or needs much better documentation.
-
-> +}
-> +
->  /*
->   * handle_receive_interrupt - receive a packet
->   * @rcd: the context
-> @@ -929,6 +938,27 @@ int handle_receive_interrupt(struct hfi1_ctxtdata *rcd, int thread)
->  			last = skip_rcv_packet(&packet, thread);
->  			skip_pkt = 0;
->  		} else {
-> +			/* Auto activate link on non-SC15 packet receive */
-> +			if (unlikely(rcd->ppd->host_link_state ==
-> +				     HLS_UP_ARMED)) {
-> +				struct work_struct *lsaw =
-> +				  &rcd->ppd->linkstate_active_work;
-> +				struct hfi1_message_header *hdr =
-> +				  hfi1_get_msgheader(packet.rcd->dd,
-> +						     packet.rhf_addr);
-> +				if (hdr2sc(hdr, packet.rhf) != 0xf) {
-> +					int hwstate = read_logical_state(dd);
-> +
-> +					if (hwstate != LSTATE_ACTIVE) {
-> +						dd_dev_info(dd, "Unexpected link state %d\n",
-> +							    hwstate);
-> +					} else {
-> +						queue_work(
-> +						  rcd->ppd->hfi1_wq, lsaw);
-> +						goto bail;
-> +					}
-> +				}
-> +			}
-
-Can we make this an inline function?
-
->  			last = process_rcv_packet(&packet, thread);
->  		}
->  
-> @@ -984,6 +1014,42 @@ bail:
->  }
->  
->  /*
-> + * We may discover in the interrupt that the hardware link state has
-> + * changed from ARMED to ACTIVE (due to the arrival of a non-SC15 packet),
-> + * and we need to update the driver's notion of the link state.  We cannot
-> + * run set_link_state from interrupt context, so we queue this function on
-> + * a workqueue.
-> + *
-> + * We delay the regular interrupt processing until after the state changes
-> + * so that the link will be in the correct state by the time any application
-> + * we wake up attempts to send a reply to any message it received.
-> + * (Subsequent receive interrupts may possibly force the wakeup before we
-> + * update the link state.)
-> + *
-> + * The rcd is freed in hfi1_free_ctxtdata after hfi1_postinit_cleanup invokes
-> + * dd->f_cleanup(dd) to disable the interrupt handler and flush workqueues,
-> + * so we're safe from use-after-free of the rcd.
-> + */
-> +void receive_interrupt_work(struct work_struct *work)
-> +{
-> +	struct hfi1_pportdata *ppd =
-> +	  container_of(work, struct hfi1_pportdata, linkstate_active_work);
-
-Normally we would put mostly on the first line.
-
-	struct hfi1_pportdata *ppd = container_of(work, struct hfi1_pportdata,
-						  linkstate_active_work);
-
-> +	struct hfi1_devdata *dd = ppd->dd;
-> +	int i;
-> +
-> +	/* Received non-SC15 packet implies neighbor_normal */
-> +	ppd->neighbor_normal = 1;
-> +	set_link_state(ppd, HLS_UP_ACTIVE);
-> +
-> +	/*
-> +	 * Interrupt all kernel contexts that could have had an
-> +	 *  interrupt during auto activation.
-
-Remove the extra space before "interrupt".
-
-> +	 */
-> +	for (i = HFI1_CTRL_CTXT; i < dd->first_user_ctxt; i++)
-> +		force_recv_intr(dd->rcd[i]);
-> +}
-> +
-> +/*
->   * Convert a given MTU size to the on-wire MAD packet enumeration.
->   * Return -1 if the size is invalid.
->   */
-> diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
-> index 54ed6b3..bfd9723 100644
-> --- a/drivers/staging/rdma/hfi1/hfi.h
-> +++ b/drivers/staging/rdma/hfi1/hfi.h
-> @@ -712,6 +712,7 @@ struct hfi1_pportdata {
->  	u8 remote_link_down_reason;
->  	/* Error events that will cause a port bounce. */
->  	u32 port_error_action;
-> +	struct work_struct linkstate_active_work;
->  };
->  
->  typedef int (*rhf_rcv_function_ptr)(struct hfi1_packet *packet);
-> @@ -1128,6 +1129,7 @@ void hfi1_free_ctxtdata(struct hfi1_devdata *, struct hfi1_ctxtdata *);
->  int handle_receive_interrupt(struct hfi1_ctxtdata *, int);
->  int handle_receive_interrupt_nodma_rtail(struct hfi1_ctxtdata *, int);
->  int handle_receive_interrupt_dma_rtail(struct hfi1_ctxtdata *, int);
-> +void set_all_slowpath(struct hfi1_devdata *dd);
->  
->  /* receive packet handler dispositions */
->  #define RCV_PKT_OK      0x0 /* keep going */
-> @@ -1148,6 +1150,16 @@ static inline u32 driver_lstate(struct hfi1_pportdata *ppd)
->  	return ppd->lstate; /* use the cached value */
->  }
->  
-> +void receive_interrupt_work(struct work_struct *work);
-> +
-> +/* extract service channel from header and rhf */
-> +static inline int hdr2sc(struct hfi1_message_header *hdr, u64 rhf)
-> +{
-> +	return
-> +		((be16_to_cpu(hdr->lrh[0]) >> 12) & 0xf) |
-> +		((!!(rhf & RHF_DC_INFO_MASK)) << 4);
-
-This should be:
-
-	return ((be16_to_cpu(hdr->lrh[0]) >> 12) & 0xf) |
-	       ((!!(rhf & RHF_DC_INFO_MASK)) << 4);
-
-> +}
-> +
->  static inline u16 generate_jkey(kuid_t uid)
->  {
->  	return from_kuid(current_user_ns(), uid) & 0xffff;
-> diff --git a/drivers/staging/rdma/hfi1/init.c b/drivers/staging/rdma/hfi1/init.c
-> index 8f13d53..ee206ae 100644
-> --- a/drivers/staging/rdma/hfi1/init.c
-> +++ b/drivers/staging/rdma/hfi1/init.c
-> @@ -498,6 +498,7 @@ void hfi1_init_pportdata(struct pci_dev *pdev, struct hfi1_pportdata *ppd,
->  	INIT_WORK(&ppd->link_downgrade_work, handle_link_downgrade);
->  	INIT_WORK(&ppd->sma_message_work, handle_sma_message);
->  	INIT_WORK(&ppd->link_bounce_work, handle_link_bounce);
-> +	INIT_WORK(&ppd->linkstate_active_work, receive_interrupt_work);
->  	mutex_init(&ppd->hls_lock);
->  	spin_lock_init(&ppd->sdma_alllock);
->  	spin_lock_init(&ppd->qsfp_info.qsfp_lock);
-> -- 
-> 1.7.1
+> virtual context
+> virtual org
+> virtual report
 > 
-> _______________________________________________
-> devel mailing list
-> devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org
-> http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> @badmemset@
+> expression mem;
+> position p;
+> statement S;
+> @@
+> 
+> <+...
+> *mem = kmalloc_array@p(...);
+>   ... when != if (!mem || ...) S
+>       when != if (... && !mem) S
+>       when != if (mem == NULL || ...) S
+>       when != if (... && mem == NULL) S
+>       when != if (unlikely(mem == NULL)) S
+>       when != if (unlikely(!mem)) S
+>       when != if (likely(!mem)) S
+>       when != if (likely(mem == NULL)) S
+>   return;
+> ...+>
+> 
+> @script:python@
+> p << badmemset.p;
+> @@
+> 
+> print "%s:%s unchecked allocation" % (p[0].file,p[0].line)
+> 
+> <snip>
+
+How about the following?  I got two hits with this, in 
+drivers/clk/shmobile/clk-div6.c and drivers/staging/rdma/hfi1/chip.c.
+
+@@
+expression mem;
+identifier f;
+@@
+
+*mem = kmalloc_array(...);
+... when != mem == NULL
+    when != mem != NULL
+(
+f(...,mem,...)
+|
+mem->f
+|
+mem[...]
+)
+
+There is a semantic patch in the kernel called kmerr that goes in this 
+direction, but it seems to be overly restrictive and it doesn't address 
+this function:
+
+/// This semantic patch looks for kmalloc etc that are not followed by a
+/// NULL check.  It only gives a report in the case where there is some
+/// error handling code later in the function, which may be helpful
+/// in determining what the error handling code for the call to kmalloc etc
+/// should be.
+
+Probably there are a lot of other functions that should be considered.
+
+julia
