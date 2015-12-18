@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v2 05/14] staging/rdma/hfi1: Add definitions needed for TID caching support
-Date: Thu, 17 Dec 2015 23:49:55 -0500
-Message-ID: <1450414204-13699-6-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH v2 11/14] staging/rdma/hfi1: Add MMU notifier callback function
+Date: Thu, 17 Dec 2015 23:50:01 -0500
+Message-ID: <1450414204-13699-12-git-send-email-ira.weiny@intel.com>
 References: <1450414204-13699-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450414204-13699-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,61 +12,106 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-In preparation for adding the TID caching support, there is a set
-of headers, structures, and variables which will be needed. This
-commit adds them to the hfi.h header file.
+TID caching will rely on the MMU notifier to be told
+when memory is being invalidated. When the callback
+is called, the driver will find all RcvArray entries
+that span the invalidated buffer and "schedule" them
+to be freed by the PSM library.
+
+This function is currently unused and is being added
+in preparation for the TID caching feature.
 
 Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/hfi.h | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ drivers/staging/rdma/hfi1/user_exp_rcv.c | 67 +++++++++++++++++++++++++++++++-
+ 1 file changed, 65 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
-index 12760bb9e056..905bb40febb3 100644
---- a/drivers/staging/rdma/hfi1/hfi.h
-+++ b/drivers/staging/rdma/hfi1/hfi.h
-@@ -179,6 +179,11 @@ struct ctxt_eager_bufs {
- 	} *rcvtids;
- };
+diff --git a/drivers/staging/rdma/hfi1/user_exp_rcv.c b/drivers/staging/rdma/hfi1/user_exp_rcv.c
+index 843023e2e2c7..1787c55d21d6 100644
+--- a/drivers/staging/rdma/hfi1/user_exp_rcv.c
++++ b/drivers/staging/rdma/hfi1/user_exp_rcv.c
+@@ -104,7 +104,7 @@ static int set_rcvarray_entry(struct file *, unsigned long, u32,
+ static inline int mmu_addr_cmp(struct mmu_rb_node *, unsigned long,
+ 			       unsigned long);
+ static struct mmu_rb_node *mmu_rb_search_by_addr(struct rb_root *,
+-						 unsigned long) __maybe_unused;
++						 unsigned long);
+ static inline struct mmu_rb_node *mmu_rb_search_by_entry(struct rb_root *,
+ 							 u32);
+ static int mmu_rb_insert_by_addr(struct rb_root *, struct mmu_rb_node *);
+@@ -683,7 +683,70 @@ static void mmu_notifier_mem_invalidate(struct mmu_notifier *mn,
+ 					unsigned long start, unsigned long end,
+ 					enum mmu_call_types type)
+ {
+-	/* Stub for now */
++	struct hfi1_filedata *fd = container_of(mn, struct hfi1_filedata, mn);
++	struct hfi1_ctxtdata *uctxt = fd->uctxt;
++	struct rb_root *root = &fd->tid_rb_root;
++	struct mmu_rb_node *node;
++	unsigned long addr = start;
++
++	spin_lock(&fd->rb_lock);
++	while (addr < end) {
++		node = mmu_rb_search_by_addr(root, addr);
++
++		if (!node) {
++			/*
++			 * Didn't find a node at this address. However, the
++			 * range could be bigger than what we have registered
++			 * so we have to keep looking.
++			 */
++			addr += PAGE_SIZE;
++			continue;
++		}
++
++		/*
++		 * The next address to be looked up is computed based
++		 * on the node's starting address. This is due to the
++		 * fact that the range where we start might be in the
++		 * middle of the node's buffer so simply incrementing
++		 * the address by the node's size would result is a
++		 * bad address.
++		 */
++		addr = node->virt + (node->npages * PAGE_SIZE);
++		if (node->freed)
++			continue;
++
++		node->freed = true;
++
++		spin_lock(&fd->invalid_lock);
++		if (fd->invalid_tid_idx < uctxt->expected_count) {
++			fd->invalid_tids[fd->invalid_tid_idx] =
++				rcventry2tidinfo(node->rcventry -
++						 uctxt->expected_base);
++			fd->invalid_tids[fd->invalid_tid_idx] |=
++				EXP_TID_SET(LEN, node->npages);
++			if (!fd->invalid_tid_idx) {
++				unsigned long *ev;
++
++				/*
++				 * hfi1_set_uevent_bits() sets a user event flag
++				 * for all processes. Because calling into the
++				 * driver to process TID cache invalidations is
++				 * expensive and TID cache invalidations are
++				 * handled on a per-process basis, we can
++				 * optimize this to set the flag only for the
++				 * process in question.
++				 */
++				ev = uctxt->dd->events +
++					(((uctxt->ctxt -
++					   uctxt->dd->first_user_ctxt) *
++					  HFI1_MAX_SHARED_CTXTS) + fd->subctxt);
++				set_bit(_HFI1_EVENT_TID_MMU_NOTIFY_BIT, ev);
++			}
++			fd->invalid_tid_idx++;
++		}
++		spin_unlock(&fd->invalid_lock);
++	}
++	spin_unlock(&fd->rb_lock);
+ }
  
-+struct exp_tid_set {
-+	struct list_head list;
-+	u32 count;
-+};
-+
- struct hfi1_ctxtdata {
- 	/* shadow the ctxt's RcvCtrl register */
- 	u64 rcvctrl;
-@@ -247,6 +252,11 @@ struct hfi1_ctxtdata {
- 	struct page **tid_pg_list;
- 	/* dma handles for exp tid pages */
- 	dma_addr_t *physshadow;
-+
-+	struct exp_tid_set tid_group_list;
-+	struct exp_tid_set tid_used_list;
-+	struct exp_tid_set tid_full_list;
-+
- 	/* lock protecting all Expected TID data */
- 	spinlock_t exp_lock;
- 	/* number of pio bufs for this ctxt (all procs, if shared) */
-@@ -1139,6 +1149,16 @@ struct hfi1_filedata {
- 	struct hfi1_user_sdma_pkt_q *pq;
- 	/* for cpu affinity; -1 if none */
- 	int rec_cpu_num;
-+	struct mmu_notifier mn;
-+	struct rb_root tid_rb_root;
-+	spinlock_t tid_lock; /* protect tid_[limit,used] counters */
-+	u32 tid_limit;
-+	u32 tid_used;
-+	spinlock_t rb_lock; /* protect tid_rb_root RB tree */
-+	u32 *invalid_tids;
-+	u32 invalid_tid_idx;
-+	spinlock_t invalid_lock; /* protect the invalid_tids array */
-+	int (*mmu_rb_insert)(struct rb_root *, struct mmu_rb_node *);
- };
- 
- extern struct list_head hfi1_dev_list;
+ static inline int mmu_addr_cmp(struct mmu_rb_node *node, unsigned long addr,
 -- 
 1.8.2
 
