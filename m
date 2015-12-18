@@ -1,26 +1,112 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH] rds: use local_dma_lkey
-Date: Fri, 18 Dec 2015 14:55:53 +0100
-Message-ID: <1450446953-18848-1-git-send-email-hch@lst.de>
+Subject: [PATCH 10/10] IB: remove the unused usecnt field from struct ib_mr
+Date: Fri, 18 Dec 2015 14:55:06 +0100
+Message-ID: <1450446906-10336-11-git-send-email-hch@lst.de>
+References: <1450446906-10336-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1450446906-10336-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-We now alwasy have a per-PD local_dma_lkey available.  Make use of that
-fact in rds and stop registering our own MR.
-
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- drivers/staging/rdma/ehca/ehca_mrmw.c |  1 -
- net/rds/iw.c                          | 19 +------------------
- net/rds/iw.h                          |  9 ---------
- net/rds/iw_cm.c                       |  6 +-----
- net/rds/iw_recv.c                     |  2 +-
- net/rds/iw_send.c                     |  7 ++++---
- 6 files changed, 7 insertions(+), 37 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c        | 6 ------
+ drivers/infiniband/core/verbs.c             | 8 +-------
+ drivers/infiniband/hw/cxgb3/iwch_provider.c | 3 ---
+ drivers/infiniband/hw/cxgb4/mem.c           | 3 ---
+ drivers/staging/rdma/ehca/ehca_mrmw.c       | 1 -
+ include/rdma/ib_verbs.h                     | 1 -
+ 6 files changed, 1 insertion(+), 21 deletions(-)
 
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 48776bb..57be54e 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -992,7 +992,6 @@ ssize_t ib_uverbs_reg_mr(struct ib_uverbs_file *file,
+ 	mr->pd      = pd;
+ 	mr->uobject = uobj;
+ 	atomic_inc(&pd->usecnt);
+-	atomic_set(&mr->usecnt, 0);
+ 
+ 	uobj->object = mr;
+ 	ret = idr_add_uobj(&ib_uverbs_mr_idr, uobj);
+@@ -1090,11 +1089,6 @@ ssize_t ib_uverbs_rereg_mr(struct ib_uverbs_file *file,
+ 		}
+ 	}
+ 
+-	if (atomic_read(&mr->usecnt)) {
+-		ret = -EBUSY;
+-		goto put_uobj_pd;
+-	}
+-
+ 	old_pd = mr->pd;
+ 	ret = mr->device->rereg_user_mr(mr, cmd.flags, cmd.start,
+ 					cmd.length, cmd.hca_va,
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 2858b35..cce080f 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1209,7 +1209,6 @@ struct ib_mr *ib_get_dma_mr(struct ib_pd *pd, int mr_access_flags)
+ 		mr->pd      = pd;
+ 		mr->uobject = NULL;
+ 		atomic_inc(&pd->usecnt);
+-		atomic_set(&mr->usecnt, 0);
+ 	}
+ 
+ 	return mr;
+@@ -1218,13 +1217,9 @@ EXPORT_SYMBOL(ib_get_dma_mr);
+ 
+ int ib_dereg_mr(struct ib_mr *mr)
+ {
+-	struct ib_pd *pd;
++	struct ib_pd *pd = mr->pd;
+ 	int ret;
+ 
+-	if (atomic_read(&mr->usecnt))
+-		return -EBUSY;
+-
+-	pd = mr->pd;
+ 	ret = mr->device->dereg_mr(mr);
+ 	if (!ret)
+ 		atomic_dec(&pd->usecnt);
+@@ -1260,7 +1255,6 @@ struct ib_mr *ib_alloc_mr(struct ib_pd *pd,
+ 		mr->pd      = pd;
+ 		mr->uobject = NULL;
+ 		atomic_inc(&pd->usecnt);
+-		atomic_set(&mr->usecnt, 0);
+ 	}
+ 
+ 	return mr;
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+index 097eb93..f806289 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+@@ -458,9 +458,6 @@ static int iwch_dereg_mr(struct ib_mr *ib_mr)
+ 	u32 mmid;
+ 
+ 	PDBG("%s ib_mr %p\n", __func__, ib_mr);
+-	/* There can be no memory windows */
+-	if (atomic_read(&ib_mr->usecnt))
+-		return -EINVAL;
+ 
+ 	mhp = to_iwch_mr(ib_mr);
+ 	kfree(mhp->pages);
+diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
+index 1eb833a..7849890 100644
+--- a/drivers/infiniband/hw/cxgb4/mem.c
++++ b/drivers/infiniband/hw/cxgb4/mem.c
+@@ -704,9 +704,6 @@ int c4iw_dereg_mr(struct ib_mr *ib_mr)
+ 	u32 mmid;
+ 
+ 	PDBG("%s ib_mr %p\n", __func__, ib_mr);
+-	/* There can be no memory windows */
+-	if (atomic_read(&ib_mr->usecnt))
+-		return -EINVAL;
+ 
+ 	mhp = to_c4iw_mr(ib_mr);
+ 	rhp = mhp->rhp;
 diff --git a/drivers/staging/rdma/ehca/ehca_mrmw.c b/drivers/staging/rdma/ehca/ehca_mrmw.c
 index 1814af7..06b832b 100644
 --- a/drivers/staging/rdma/ehca/ehca_mrmw.c
@@ -33,194 +119,18 @@ index 1814af7..06b832b 100644
  	*e_maxmr = e_mr;
  	return 0;
  
-diff --git a/net/rds/iw.c b/net/rds/iw.c
-index c74bc8b74..27e9c5e 100644
---- a/net/rds/iw.c
-+++ b/net/rds/iw.c
-@@ -71,7 +71,6 @@ static void rds_iw_add_one(struct ib_device *device)
- 
- 	spin_lock_init(&rds_iwdev->spinlock);
- 
--	rds_iwdev->dma_local_lkey = !!(device->device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY);
- 	rds_iwdev->max_wrs = device->max_qp_wr;
- 	rds_iwdev->max_sge = min(device->max_sge, RDS_IW_MAX_SGE);
- 
-@@ -80,20 +79,10 @@ static void rds_iw_add_one(struct ib_device *device)
- 	if (IS_ERR(rds_iwdev->pd))
- 		goto free_dev;
- 
--	if (!rds_iwdev->dma_local_lkey) {
--		rds_iwdev->mr = ib_get_dma_mr(rds_iwdev->pd,
--					IB_ACCESS_REMOTE_READ |
--					IB_ACCESS_REMOTE_WRITE |
--					IB_ACCESS_LOCAL_WRITE);
--		if (IS_ERR(rds_iwdev->mr))
--			goto err_pd;
--	} else
--		rds_iwdev->mr = NULL;
--
- 	rds_iwdev->mr_pool = rds_iw_create_mr_pool(rds_iwdev);
- 	if (IS_ERR(rds_iwdev->mr_pool)) {
- 		rds_iwdev->mr_pool = NULL;
--		goto err_mr;
-+		goto err_pd;
- 	}
- 
- 	INIT_LIST_HEAD(&rds_iwdev->cm_id_list);
-@@ -103,9 +92,6 @@ static void rds_iw_add_one(struct ib_device *device)
- 	ib_set_client_data(device, &rds_iw_client, rds_iwdev);
- 	return;
- 
--err_mr:
--	if (rds_iwdev->mr)
--		ib_dereg_mr(rds_iwdev->mr);
- err_pd:
- 	ib_dealloc_pd(rds_iwdev->pd);
- free_dev:
-@@ -132,9 +118,6 @@ static void rds_iw_remove_one(struct ib_device *device, void *client_data)
- 	if (rds_iwdev->mr_pool)
- 		rds_iw_destroy_mr_pool(rds_iwdev->mr_pool);
- 
--	if (rds_iwdev->mr)
--		ib_dereg_mr(rds_iwdev->mr);
--
- 	ib_dealloc_pd(rds_iwdev->pd);
- 
- 	list_del(&rds_iwdev->list);
-diff --git a/net/rds/iw.h b/net/rds/iw.h
-index 5af01d1..b0f6f46 100644
---- a/net/rds/iw.h
-+++ b/net/rds/iw.h
-@@ -111,7 +111,6 @@ struct rds_iw_connection {
- 	/* alphabet soup, IBTA style */
- 	struct rdma_cm_id	*i_cm_id;
- 	struct ib_pd		*i_pd;
--	struct ib_mr		*i_mr;
- 	struct ib_cq		*i_send_cq;
- 	struct ib_cq		*i_recv_cq;
- 
-@@ -160,7 +159,6 @@ struct rds_iw_connection {
- 
- 	/* Protocol version specific information */
- 	unsigned int		i_flowctl:1;	/* enable/disable flow ctl */
--	unsigned int		i_dma_local_lkey:1;
- 	unsigned int		i_fastreg_posted:1; /* fastreg posted on this connection */
- 	/* Batched completions */
- 	unsigned int		i_unsignaled_wrs;
-@@ -184,11 +182,9 @@ struct rds_iw_device {
- 	struct list_head	conn_list;
- 	struct ib_device	*dev;
- 	struct ib_pd		*pd;
--	struct ib_mr		*mr;
- 	struct rds_iw_mr_pool	*mr_pool;
- 	int			max_sge;
- 	unsigned int		max_wrs;
--	unsigned int		dma_local_lkey:1;
- 	spinlock_t		spinlock;	/* protect the above */
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 284916d..e45776e 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1306,7 +1306,6 @@ struct ib_mr {
+ 	u64		   iova;
+ 	u32		   length;
+ 	unsigned int	   page_size;
+-	atomic_t	   usecnt; /* count number of MWs */
  };
  
-@@ -265,11 +261,6 @@ static inline void rds_iw_dma_sync_sg_for_device(struct ib_device *dev,
- }
- #define ib_dma_sync_sg_for_device	rds_iw_dma_sync_sg_for_device
- 
--static inline u32 rds_iw_local_dma_lkey(struct rds_iw_connection *ic)
--{
--	return ic->i_dma_local_lkey ? ic->i_cm_id->device->local_dma_lkey : ic->i_mr->lkey;
--}
--
- /* ib.c */
- extern struct rds_transport rds_iw_transport;
- extern struct ib_client rds_iw_client;
-diff --git a/net/rds/iw_cm.c b/net/rds/iw_cm.c
-index aea4c91..78d5f52 100644
---- a/net/rds/iw_cm.c
-+++ b/net/rds/iw_cm.c
-@@ -269,7 +269,6 @@ static int rds_iw_setup_qp(struct rds_connection *conn)
- 
- 	/* Protection domain and memory range */
- 	ic->i_pd = rds_iwdev->pd;
--	ic->i_mr = rds_iwdev->mr;
- 
- 	ret = rds_iw_init_qp_attrs(&attr, rds_iwdev,
- 			&ic->i_send_ring, rds_iw_send_cq_comp_handler,
-@@ -341,7 +340,7 @@ static int rds_iw_setup_qp(struct rds_connection *conn)
- 	 * the posted credit count. */
- 	rds_iw_recv_refill(conn, GFP_KERNEL, GFP_HIGHUSER, 1);
- 
--	rdsdebug("conn %p pd %p mr %p cq %p %p\n", conn, ic->i_pd, ic->i_mr,
-+	rdsdebug("conn %p pd %p cq %p %p\n", conn, ic->i_pd,
- 		 ic->i_send_cq, ic->i_recv_cq);
- 
- out:
-@@ -446,7 +445,6 @@ int rds_iw_cm_handle_connect(struct rdma_cm_id *cm_id,
- 	cm_id->context = conn;
- 
- 	rds_iwdev = ib_get_client_data(cm_id->device, &rds_iw_client);
--	ic->i_dma_local_lkey = rds_iwdev->dma_local_lkey;
- 
- 	/* We got halfway through setting up the ib_connection, if we
- 	 * fail now, we have to take the long route out of this mess. */
-@@ -550,7 +548,6 @@ int rds_iw_conn_connect(struct rds_connection *conn)
- 	}
- 
- 	rds_iwdev = ib_get_client_data(ic->i_cm_id->device, &rds_iw_client);
--	ic->i_dma_local_lkey = rds_iwdev->dma_local_lkey;
- 
- 	dest.sin_family = AF_INET;
- 	dest.sin_addr.s_addr = (__force u32)conn->c_faddr;
-@@ -649,7 +646,6 @@ void rds_iw_conn_shutdown(struct rds_connection *conn)
- 
- 		ic->i_cm_id = NULL;
- 		ic->i_pd = NULL;
--		ic->i_mr = NULL;
- 		ic->i_send_cq = NULL;
- 		ic->i_recv_cq = NULL;
- 		ic->i_send_hdrs = NULL;
-diff --git a/net/rds/iw_recv.c b/net/rds/iw_recv.c
-index a66d179..d45178f 100644
---- a/net/rds/iw_recv.c
-+++ b/net/rds/iw_recv.c
-@@ -351,7 +351,7 @@ void rds_iw_recv_init_ack(struct rds_iw_connection *ic)
- 
- 	sge->addr = ic->i_ack_dma;
- 	sge->length = sizeof(struct rds_header);
--	sge->lkey = rds_iw_local_dma_lkey(ic);
-+	sge->lkey = ic->rds_iwdev->pd->local_dma_lkey;
- 
- 	wr->sg_list = sge;
- 	wr->num_sge = 1;
-diff --git a/net/rds/iw_send.c b/net/rds/iw_send.c
-index e20bd50..06c3450 100644
---- a/net/rds/iw_send.c
-+++ b/net/rds/iw_send.c
-@@ -457,7 +457,7 @@ rds_iw_xmit_populate_wr(struct rds_iw_connection *ic,
- 		sge = rds_iw_data_sge(ic, send->s_sge);
- 		sge->addr = buffer;
- 		sge->length = length;
--		sge->lkey = rds_iw_local_dma_lkey(ic);
-+		sge->lkey = ic->rds_iwdev->pd->local_dma_lkey;
- 
- 		sge = rds_iw_header_sge(ic, send->s_sge);
- 	} else {
-@@ -469,7 +469,7 @@ rds_iw_xmit_populate_wr(struct rds_iw_connection *ic,
- 
- 	sge->addr = ic->i_send_hdrs_dma + (pos * sizeof(struct rds_header));
- 	sge->length = sizeof(struct rds_header);
--	sge->lkey = rds_iw_local_dma_lkey(ic);
-+	sge->lkey = ic->rds_iwdev->pd->local_dma_lkey;
- }
- 
- /*
-@@ -903,7 +903,8 @@ int rds_iw_xmit_rdma(struct rds_connection *conn, struct rm_rdma_op *op)
- 			else {
- 				send->s_sge[j].addr = ib_sg_dma_address(ic->i_cm_id->device, scat);
- 				send->s_sge[j].length = len;
--				send->s_sge[j].lkey = rds_iw_local_dma_lkey(ic);
-+				send->s_sge[j].lkey =
-+					ic->rds_iwdev->pd->local_dma_lkey;
- 			}
- 
- 			sent += len;
+ struct ib_mw {
 -- 
 1.9.1
 
