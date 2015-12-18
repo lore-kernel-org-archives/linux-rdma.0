@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v2 12/14] staging/rdma/hfi1: Add TID free/clear function bodies
-Date: Thu, 17 Dec 2015 23:50:02 -0500
-Message-ID: <1450414204-13699-13-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH v2 03/14] uapi/rdma/hfi/hfi1_user.h: Convert definitions to use BIT() macro
+Date: Thu, 17 Dec 2015 23:49:53 -0500
+Message-ID: <1450414204-13699-4-git-send-email-ira.weiny@intel.com>
 References: <1450414204-13699-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450414204-13699-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,148 +12,89 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Up to now, the functions which cleared the programmed
-TID entries and gave PSM the list of invalidated TID entries
-were just stubs. With this commit, the bodies of these
-functions are added.
+Convert bit definitions to use BIT() macro as per checkpatch.pl
+requirements.
 
-This commit is a bit asymmetric as it only contains the
-free code path. This is done on purpose to help with patch
-reviews as the programming code path is much longer.
-
-Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/user_exp_rcv.c | 91 +++++++++++++++++++++++++++++---
- 1 file changed, 85 insertions(+), 6 deletions(-)
+ include/uapi/rdma/hfi/hfi1_user.h | 56 +++++++++++++++++++--------------------
+ 1 file changed, 28 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/user_exp_rcv.c b/drivers/staging/rdma/hfi1/user_exp_rcv.c
-index 1787c55d21d6..776ce003248e 100644
---- a/drivers/staging/rdma/hfi1/user_exp_rcv.c
-+++ b/drivers/staging/rdma/hfi1/user_exp_rcv.c
-@@ -120,10 +120,8 @@ static inline void mmu_notifier_range_start(struct mmu_notifier *,
- static int program_rcvarray(struct file *, unsigned long, struct tid_group *,
- 			    struct tid_pageset *, unsigned, u16, struct page **,
- 			    u32 *, unsigned *, unsigned *) __maybe_unused;
--static int unprogram_rcvarray(struct file *, u32,
--			      struct tid_group **) __maybe_unused;
--static void clear_tid_node(struct hfi1_filedata *, u16,
--			   struct mmu_rb_node *) __maybe_unused;
-+static int unprogram_rcvarray(struct file *, u32, struct tid_group **);
-+static void clear_tid_node(struct hfi1_filedata *, u16, struct mmu_rb_node *);
+diff --git a/include/uapi/rdma/hfi/hfi1_user.h b/include/uapi/rdma/hfi/hfi1_user.h
+index cf172718e3d5..a65f2fe17660 100644
+--- a/include/uapi/rdma/hfi/hfi1_user.h
++++ b/include/uapi/rdma/hfi/hfi1_user.h
+@@ -83,29 +83,29 @@
+  * driver features. The same set of bits are communicated to user
+  * space.
+  */
+-#define HFI1_CAP_DMA_RTAIL        (1UL <<  0) /* Use DMA'ed RTail value */
+-#define HFI1_CAP_SDMA             (1UL <<  1) /* Enable SDMA support */
+-#define HFI1_CAP_SDMA_AHG         (1UL <<  2) /* Enable SDMA AHG support */
+-#define HFI1_CAP_EXTENDED_PSN     (1UL <<  3) /* Enable Extended PSN support */
+-#define HFI1_CAP_HDRSUPP          (1UL <<  4) /* Enable Header Suppression */
+-/* 1UL << 5 unused */
+-#define HFI1_CAP_USE_SDMA_HEAD    (1UL <<  6) /* DMA Hdr Q tail vs. use CSR */
+-#define HFI1_CAP_MULTI_PKT_EGR    (1UL <<  7) /* Enable multi-packet Egr buffs*/
+-#define HFI1_CAP_NODROP_RHQ_FULL  (1UL <<  8) /* Don't drop on Hdr Q full */
+-#define HFI1_CAP_NODROP_EGR_FULL  (1UL <<  9) /* Don't drop on EGR buffs full */
+-#define HFI1_CAP_TID_UNMAP        (1UL << 10) /* Disable Expected TID caching */
+-#define HFI1_CAP_PRINT_UNIMPL     (1UL << 11) /* Show for unimplemented feats */
+-#define HFI1_CAP_ALLOW_PERM_JKEY  (1UL << 12) /* Allow use of permissive JKEY */
+-#define HFI1_CAP_NO_INTEGRITY     (1UL << 13) /* Enable ctxt integrity checks */
+-#define HFI1_CAP_PKEY_CHECK       (1UL << 14) /* Enable ctxt PKey checking */
+-#define HFI1_CAP_STATIC_RATE_CTRL (1UL << 15) /* Allow PBC.StaticRateControl */
+-/* 1UL << 16 unused */
+-#define HFI1_CAP_SDMA_HEAD_CHECK  (1UL << 17) /* SDMA head checking */
+-#define HFI1_CAP_EARLY_CREDIT_RETURN (1UL << 18) /* early credit return */
+-
+-#define HFI1_RCVHDR_ENTSIZE_2    (1UL << 0)
+-#define HFI1_RCVHDR_ENTSIZE_16   (1UL << 1)
+-#define HFI1_RCVDHR_ENTSIZE_32   (1UL << 2)
++#define HFI1_CAP_DMA_RTAIL        BIT(0) /* Use DMA'ed RTail value */
++#define HFI1_CAP_SDMA             BIT(1) /* Enable SDMA support */
++#define HFI1_CAP_SDMA_AHG         BIT(2) /* Enable SDMA AHG support */
++#define HFI1_CAP_EXTENDED_PSN     BIT(3) /* Enable Extended PSN support */
++#define HFI1_CAP_HDRSUPP          BIT(4) /* Enable Header Suppression */
++/* BIT(5) unused */
++#define HFI1_CAP_USE_SDMA_HEAD    BIT(6) /* DMA Hdr Q tail vs. use CSR */
++#define HFI1_CAP_MULTI_PKT_EGR    BIT(7) /* Enable multi-packet Egr buffs*/
++#define HFI1_CAP_NODROP_RHQ_FULL  BIT(8) /* Don't drop on Hdr Q full */
++#define HFI1_CAP_NODROP_EGR_FULL  BIT(9) /* Don't drop on EGR buffs full */
++#define HFI1_CAP_TID_UNMAP        BIT(10) /* Disable Expected TID caching */
++#define HFI1_CAP_PRINT_UNIMPL     BIT(11) /* Show for unimplemented feats */
++#define HFI1_CAP_ALLOW_PERM_JKEY  BIT(12) /* Allow use of permissive JKEY */
++#define HFI1_CAP_NO_INTEGRITY     BIT(13) /* Enable ctxt integrity checks */
++#define HFI1_CAP_PKEY_CHECK       BIT(14) /* Enable ctxt PKey checking */
++#define HFI1_CAP_STATIC_RATE_CTRL BIT(15) /* Allow PBC.StaticRateControl */
++/* BIT(16) unused */
++#define HFI1_CAP_SDMA_HEAD_CHECK  BIT(17) /* SDMA head checking */
++#define HFI1_CAP_EARLY_CREDIT_RETURN BIT(18) /* early credit return */
++
++#define HFI1_RCVHDR_ENTSIZE_2    BIT(0)
++#define HFI1_RCVHDR_ENTSIZE_16   BIT(1)
++#define HFI1_RCVDHR_ENTSIZE_32   BIT(2)
  
- static inline u32 rcventry2tidinfo(u32 rcventry)
- {
-@@ -264,6 +262,7 @@ int hfi1_user_exp_rcv_init(struct file *fp)
- 	 * Make sure that we set the tid counts only after successful
- 	 * init.
- 	 */
-+	spin_lock(&fd->tid_lock);
- 	if (uctxt->subctxt_cnt && !HFI1_CAP_IS_USET(TID_UNMAP)) {
- 		u16 remainder;
+ /*
+  * If the unit is specified via open, HFI choice is fixed.  If port is
+@@ -149,11 +149,11 @@
+ #define _HFI1_EVENT_SL2VL_CHANGE_BIT   4
+ #define _HFI1_MAX_EVENT_BIT _HFI1_EVENT_SL2VL_CHANGE_BIT
  
-@@ -274,6 +273,7 @@ int hfi1_user_exp_rcv_init(struct file *fp)
- 	} else {
- 		fd->tid_limit = uctxt->expected_count;
- 	}
-+	spin_unlock(&fd->tid_lock);
- done:
- 	return ret;
- }
-@@ -346,12 +346,91 @@ int hfi1_user_exp_rcv_setup(struct file *fp, struct hfi1_tid_info *tinfo)
+-#define HFI1_EVENT_FROZEN            (1UL << _HFI1_EVENT_FROZEN_BIT)
+-#define HFI1_EVENT_LINKDOWN          (1UL << _HFI1_EVENT_LINKDOWN_BIT)
+-#define HFI1_EVENT_LID_CHANGE        (1UL << _HFI1_EVENT_LID_CHANGE_BIT)
+-#define HFI1_EVENT_LMC_CHANGE        (1UL << _HFI1_EVENT_LMC_CHANGE_BIT)
+-#define HFI1_EVENT_SL2VL_CHANGE      (1UL << _HFI1_EVENT_SL2VL_CHANGE_BIT)
++#define HFI1_EVENT_FROZEN            BIT(_HFI1_EVENT_FROZEN_BIT)
++#define HFI1_EVENT_LINKDOWN          BIT(_HFI1_EVENT_LINKDOWN_BIT)
++#define HFI1_EVENT_LID_CHANGE        BIT(_HFI1_EVENT_LID_CHANGE_BIT)
++#define HFI1_EVENT_LMC_CHANGE        BIT(_HFI1_EVENT_LMC_CHANGE_BIT)
++#define HFI1_EVENT_SL2VL_CHANGE      BIT(_HFI1_EVENT_SL2VL_CHANGE_BIT)
  
- int hfi1_user_exp_rcv_clear(struct file *fp, struct hfi1_tid_info *tinfo)
- {
--	return -EINVAL;
-+	int ret = 0;
-+	struct hfi1_filedata *fd = fp->private_data;
-+	struct hfi1_ctxtdata *uctxt = fd->uctxt;
-+	u32 *tidinfo;
-+	unsigned tididx;
-+
-+	tidinfo = kcalloc(tinfo->tidcnt, sizeof(*tidinfo), GFP_KERNEL);
-+	if (!tidinfo)
-+		return -ENOMEM;
-+
-+	if (copy_from_user(tidinfo, (void __user *)(unsigned long)
-+			   tinfo->tidlist, sizeof(tidinfo[0]) *
-+			   tinfo->tidcnt)) {
-+		ret = -EFAULT;
-+		goto done;
-+	}
-+
-+	mutex_lock(&uctxt->exp_lock);
-+	for (tididx = 0; tididx < tinfo->tidcnt; tididx++) {
-+		ret = unprogram_rcvarray(fp, tidinfo[tididx], NULL);
-+		if (ret) {
-+			hfi1_cdbg(TID, "Failed to unprogram rcv array %d",
-+				  ret);
-+			break;
-+		}
-+	}
-+	spin_lock(&fd->tid_lock);
-+	fd->tid_used -= tididx;
-+	spin_unlock(&fd->tid_lock);
-+	tinfo->tidcnt = tididx;
-+	mutex_unlock(&uctxt->exp_lock);
-+done:
-+	kfree(tidinfo);
-+	return ret;
- }
- 
- int hfi1_user_exp_rcv_invalid(struct file *fp, struct hfi1_tid_info *tinfo)
- {
--	return -EINVAL;
-+	struct hfi1_filedata *fd = fp->private_data;
-+	struct hfi1_ctxtdata *uctxt = fd->uctxt;
-+	unsigned long *ev = uctxt->dd->events +
-+		(((uctxt->ctxt - uctxt->dd->first_user_ctxt) *
-+		  HFI1_MAX_SHARED_CTXTS) + fd->subctxt);
-+	u32 *array;
-+	int ret = 0;
-+
-+	if (!fd->invalid_tids)
-+		return -EINVAL;
-+
-+	/*
-+	 * copy_to_user() can sleep, which will leave the invalid_lock
-+	 * locked and cause the MMU notifier to be blocked on the lock
-+	 * for a long time.
-+	 * Copy the data to a local buffer so we can release the lock.
-+	 */
-+	array = kcalloc(uctxt->expected_count, sizeof(*array), GFP_KERNEL);
-+	if (!array)
-+		return -EFAULT;
-+
-+	spin_lock(&fd->invalid_lock);
-+	if (fd->invalid_tid_idx) {
-+		memcpy(array, fd->invalid_tids, sizeof(*array) *
-+		       fd->invalid_tid_idx);
-+		memset(fd->invalid_tids, 0, sizeof(*fd->invalid_tids) *
-+		       fd->invalid_tid_idx);
-+		tinfo->tidcnt = fd->invalid_tid_idx;
-+		fd->invalid_tid_idx = 0;
-+		/*
-+		 * Reset the user flag while still holding the lock.
-+		 * Otherwise, PSM can miss events.
-+		 */
-+		clear_bit(_HFI1_EVENT_TID_MMU_NOTIFY_BIT, ev);
-+	} else {
-+		tinfo->tidcnt = 0;
-+	}
-+	spin_unlock(&fd->invalid_lock);
-+
-+	if (tinfo->tidcnt) {
-+		if (copy_to_user((void __user *)tinfo->tidlist,
-+				 array, sizeof(*array) * tinfo->tidcnt))
-+			ret = -EFAULT;
-+	}
-+	kfree(array);
-+
-+	return ret;
- }
- 
- static u32 find_phys_blocks(struct page **pages, unsigned npages,
+ /*
+  * These are the status bits readable (in ASCII form, 64bit value)
 -- 
 1.8.2
 
