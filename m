@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v2 04/14] uapi/rdma/hfi/hfi1_user.h: Add command and event for TID caching
-Date: Thu, 17 Dec 2015 23:49:54 -0500
-Message-ID: <1450414204-13699-5-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH v2 09/14] staging/rdma/hfi1: Convert lock to mutex
+Date: Thu, 17 Dec 2015 23:49:59 -0500
+Message-ID: <1450414204-13699-10-git-send-email-ira.weiny@intel.com>
 References: <1450414204-13699-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450414204-13699-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,63 +12,95 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-TID caching will use a new event to signal userland that cache
-invalidation has occurred and needs a matching command code that
-will be used to read the invalidated TIDs.
-
-Add the event bit and the new command to the exported header file.
-
-The command is also added to the switch() statement in file_ops.c
-for completeness and in preparation for its usage later.
+The exp_lock lock does not need to be a spinlock as
+all its uses are in process context and allowing the
+process to sleep when the mutex is contended might
+be benefitial.
 
 Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/file_ops.c | 1 +
- include/uapi/rdma/hfi/hfi1_user.h    | 5 ++++-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ drivers/staging/rdma/hfi1/file_ops.c | 12 ++++++------
+ drivers/staging/rdma/hfi1/hfi.h      |  2 +-
+ drivers/staging/rdma/hfi1/init.c     |  2 +-
+ 3 files changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
-index d57d549052c8..c66693532be0 100644
+index 76fe60315bb4..b0348263b901 100644
 --- a/drivers/staging/rdma/hfi1/file_ops.c
 +++ b/drivers/staging/rdma/hfi1/file_ops.c
-@@ -241,6 +241,7 @@ static ssize_t hfi1_file_write(struct file *fp, const char __user *data,
- 		must_be_root = 1;	/* validate user */
- 		copy = 0;
- 		break;
-+	case HFI1_CMD_TID_INVAL_READ:
- 	default:
- 		ret = -EINVAL;
- 		goto bail;
-diff --git a/include/uapi/rdma/hfi/hfi1_user.h b/include/uapi/rdma/hfi/hfi1_user.h
-index a65f2fe17660..959204df5318 100644
---- a/include/uapi/rdma/hfi/hfi1_user.h
-+++ b/include/uapi/rdma/hfi/hfi1_user.h
-@@ -134,6 +134,7 @@
- #define HFI1_CMD_ACK_EVENT       10	/* ack & clear user status bits */
- #define HFI1_CMD_SET_PKEY        11     /* set context's pkey */
- #define HFI1_CMD_CTXT_RESET      12     /* reset context's HW send context */
-+#define HFI1_CMD_TID_INVAL_READ  13     /* read TID cache invalidations */
- /* separate EPROM commands from normal PSM commands */
- #define HFI1_CMD_EP_INFO         64      /* read EPROM device ID */
- #define HFI1_CMD_EP_ERASE_CHIP   65      /* erase whole EPROM */
-@@ -147,13 +148,15 @@
- #define _HFI1_EVENT_LID_CHANGE_BIT     2
- #define _HFI1_EVENT_LMC_CHANGE_BIT     3
- #define _HFI1_EVENT_SL2VL_CHANGE_BIT   4
--#define _HFI1_MAX_EVENT_BIT _HFI1_EVENT_SL2VL_CHANGE_BIT
-+#define _HFI1_EVENT_TID_MMU_NOTIFY_BIT 5
-+#define _HFI1_MAX_EVENT_BIT _HFI1_EVENT_TID_MMU_NOTIFY_BIT
+@@ -1611,14 +1611,14 @@ static int exp_tid_setup(struct file *fp, struct hfi1_tid_info *tinfo)
+ 		 * reserved, we don't need the lock anymore since we
+ 		 * are guaranteed the groups.
+ 		 */
+-		spin_lock(&uctxt->exp_lock);
++		mutex_lock(&uctxt->exp_lock);
+ 		if (uctxt->tidusemap[useidx] == -1ULL ||
+ 		    bitidx >= BITS_PER_LONG) {
+ 			/* no free groups in the set, use the next */
+ 			useidx = (useidx + 1) % uctxt->tidmapcnt;
+ 			idx++;
+ 			bitidx = 0;
+-			spin_unlock(&uctxt->exp_lock);
++			mutex_unlock(&uctxt->exp_lock);
+ 			continue;
+ 		}
+ 		ngroups = ((npages - mapped) / dd->rcv_entries.group_size) +
+@@ -1635,13 +1635,13 @@ static int exp_tid_setup(struct file *fp, struct hfi1_tid_info *tinfo)
+ 			 * as 0 because we don't check the entire bitmap but
+ 			 * we start from bitidx.
+ 			 */
+-			spin_unlock(&uctxt->exp_lock);
++			mutex_unlock(&uctxt->exp_lock);
+ 			continue;
+ 		}
+ 		bits_used = min(free, ngroups);
+ 		tidmap[useidx] |= ((1ULL << bits_used) - 1) << bitidx;
+ 		uctxt->tidusemap[useidx] |= tidmap[useidx];
+-		spin_unlock(&uctxt->exp_lock);
++		mutex_unlock(&uctxt->exp_lock);
  
- #define HFI1_EVENT_FROZEN            BIT(_HFI1_EVENT_FROZEN_BIT)
- #define HFI1_EVENT_LINKDOWN          BIT(_HFI1_EVENT_LINKDOWN_BIT)
- #define HFI1_EVENT_LID_CHANGE        BIT(_HFI1_EVENT_LID_CHANGE_BIT)
- #define HFI1_EVENT_LMC_CHANGE        BIT(_HFI1_EVENT_LMC_CHANGE_BIT)
- #define HFI1_EVENT_SL2VL_CHANGE      BIT(_HFI1_EVENT_SL2VL_CHANGE_BIT)
-+#define HFI1_EVENT_TID_MMU_NOTIFY    BIT(_HFI1_EVENT_TID_MMU_NOTIFY_BIT)
+ 		/*
+ 		 * At this point, we know where in the map we have free bits.
+@@ -1677,10 +1677,10 @@ static int exp_tid_setup(struct file *fp, struct hfi1_tid_info *tinfo)
+ 			 * Let go of the bits that we reserved since we are not
+ 			 * going to use them.
+ 			 */
+-			spin_lock(&uctxt->exp_lock);
++			mutex_lock(&uctxt->exp_lock);
+ 			uctxt->tidusemap[useidx] &=
+ 				~(((1ULL << bits_used) - 1) << bitidx);
+-			spin_unlock(&uctxt->exp_lock);
++			mutex_unlock(&uctxt->exp_lock);
+ 			goto done;
+ 		}
+ 		/*
+diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
+index 905bb40febb3..9052331ff6c5 100644
+--- a/drivers/staging/rdma/hfi1/hfi.h
++++ b/drivers/staging/rdma/hfi1/hfi.h
+@@ -258,7 +258,7 @@ struct hfi1_ctxtdata {
+ 	struct exp_tid_set tid_full_list;
  
- /*
-  * These are the status bits readable (in ASCII form, 64bit value)
+ 	/* lock protecting all Expected TID data */
+-	spinlock_t exp_lock;
++	struct mutex exp_lock;
+ 	/* number of pio bufs for this ctxt (all procs, if shared) */
+ 	u32 piocnt;
+ 	/* first pio buffer for this ctxt */
+diff --git a/drivers/staging/rdma/hfi1/init.c b/drivers/staging/rdma/hfi1/init.c
+index db80544deb66..ee63fe977ad4 100644
+--- a/drivers/staging/rdma/hfi1/init.c
++++ b/drivers/staging/rdma/hfi1/init.c
+@@ -227,7 +227,7 @@ struct hfi1_ctxtdata *hfi1_create_ctxtdata(struct hfi1_pportdata *ppd, u32 ctxt)
+ 		rcd->numa_id = numa_node_id();
+ 		rcd->rcv_array_groups = dd->rcv_entries.ngroups;
+ 
+-		spin_lock_init(&rcd->exp_lock);
++		mutex_init(&rcd->exp_lock);
+ 
+ 		/*
+ 		 * Calculate the context's RcvArray entry starting point.
 -- 
 1.8.2
 
