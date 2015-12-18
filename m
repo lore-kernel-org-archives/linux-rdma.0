@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next V1 7/7] IB/core: Remove ib_query_device
-Date: Fri, 18 Dec 2015 10:59:50 +0200
-Message-ID: <1450429190-5898-8-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH rdma-next V1 6/7] staging/o2iblnd: Avoid calling ib_query_device
+Date: Fri, 18 Dec 2015 10:59:49 +0200
+Message-ID: <1450429190-5898-7-git-send-email-ogerlitz@mellanox.com>
 References: <1450429190-5898-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450429190-5898-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,60 +10,51 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Anna Schumaker <Anna.Schumaker-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The copy of the attributes present on the device is now used by all consumers
-expect for uverbs in case of serving user-space query, where dev->query_device
-is called.
+Instead, use the cached copy of the attributes present on the device.
 
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/device.c | 19 -------------------
- include/rdma/ib_verbs.h          |  3 ---
- 2 files changed, 22 deletions(-)
+ drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd.c | 21 +--------------------
+ 1 file changed, 1 insertion(+), 20 deletions(-)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 568592e3..6def2f7 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -636,25 +636,6 @@ void ib_dispatch_event(struct ib_event *event)
- EXPORT_SYMBOL(ib_dispatch_event);
+diff --git a/drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd.c b/drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd.c
+index 7c730e3..7231ef8 100644
+--- a/drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd.c
++++ b/drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd.c
+@@ -2070,32 +2070,13 @@ static int kiblnd_net_init_pools(kib_net_t *net, __u32 *cpts, int ncpts)
  
- /**
-- * ib_query_device - Query IB device attributes
-- * @device:Device to query
-- * @device_attr:Device attributes
-- *
-- * ib_query_device() returns the attributes of a device through the
-- * @device_attr pointer.
-- */
--int ib_query_device(struct ib_device *device,
--		    struct ib_device_attr *device_attr)
--{
--	struct ib_udata uhw = {.outlen = 0, .inlen = 0};
+ static int kiblnd_hdev_get_attr(kib_hca_dev_t *hdev)
+ {
+-	struct ib_device_attr *attr;
+-	int rc;
 -
--	memset(device_attr, 0, sizeof(*device_attr));
--
--	return device->query_device(device, device_attr, &uhw);
--}
--EXPORT_SYMBOL(ib_query_device);
--
--/**
-  * ib_query_port - Query IB port attributes
-  * @device:Device to query
-  * @port_num:Port number to query
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 730dcfb..0567866 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1913,9 +1913,6 @@ int ib_register_event_handler  (struct ib_event_handler *event_handler);
- int ib_unregister_event_handler(struct ib_event_handler *event_handler);
- void ib_dispatch_event(struct ib_event *event);
+ 	/* It's safe to assume a HCA can handle a page size
+ 	 * matching that of the native system */
+ 	hdev->ibh_page_shift = PAGE_SHIFT;
+ 	hdev->ibh_page_size  = 1 << PAGE_SHIFT;
+ 	hdev->ibh_page_mask  = ~((__u64)hdev->ibh_page_size - 1);
  
--int ib_query_device(struct ib_device *device,
--		    struct ib_device_attr *device_attr);
+-	LIBCFS_ALLOC(attr, sizeof(*attr));
+-	if (attr == NULL) {
+-		CERROR("Out of memory\n");
+-		return -ENOMEM;
+-	}
 -
- int ib_query_port(struct ib_device *device,
- 		  u8 port_num, struct ib_port_attr *port_attr);
- 
+-	rc = ib_query_device(hdev->ibh_ibdev, attr);
+-	if (rc == 0)
+-		hdev->ibh_mr_size = attr->max_mr_size;
+-
+-	LIBCFS_FREE(attr, sizeof(*attr));
+-
+-	if (rc != 0) {
+-		CERROR("Failed to query IB device: %d\n", rc);
+-		return rc;
+-	}
+-
++	hdev->ibh_mr_size = hdev->ibh_ibdev->attrs.max_mr_size;
+ 	if (hdev->ibh_mr_size == ~0ULL) {
+ 		hdev->ibh_mr_shift = 64;
+ 		return 0;
 -- 
 2.3.7
 
