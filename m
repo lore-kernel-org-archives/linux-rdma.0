@@ -1,36 +1,42 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 0/7] dev attr cleanup (less is more)
-Date: Fri, 18 Dec 2015 15:06:37 +0100
-Message-ID: <567412ED.9070200@sandisk.com>
+Subject: Re: [PATCH rdma-next V1 3/7] IB/ulps: Avoid calling ib_query_device
+Date: Fri, 18 Dec 2015 15:10:15 +0100
+Message-ID: <567413C7.5040907@sandisk.com>
 References: <1450429190-5898-1-git-send-email-ogerlitz@mellanox.com>
+ <1450429190-5898-4-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1450429190-5898-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1450429190-5898-4-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Anna Schumaker <Anna.Schumaker-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Anna Schumaker <Anna.Schumaker-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 On 12/18/2015 09:59 AM, Or Gerlitz wrote:
-> OK, Doug, this is my suggestion for the dev attr cleanup -- it
-> has the advantages of leaving the attrs on a well defined location,
-> a field in the IB device, the ability to  get that through smaller
-> patches, avoid touching any of the HW drivers, etc.
+> Instead, use the cached copy of the attributes present on the device.
+>
+> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>   drivers/infiniband/ulp/ipoib/ipoib_cm.c      | 19 ++++-------
+>   drivers/infiniband/ulp/ipoib/ipoib_ethtool.c | 14 +++------
+>   drivers/infiniband/ulp/ipoib/ipoib_main.c    | 21 +------------
+>   drivers/infiniband/ulp/iser/iscsi_iser.c     |  4 +--
+>   drivers/infiniband/ulp/iser/iscsi_iser.h     |  2 --
+>   drivers/infiniband/ulp/iser/iser_memory.c    |  9 +++---
+>   drivers/infiniband/ulp/iser/iser_verbs.c     | 38 ++++++++++------------
+>   drivers/infiniband/ulp/isert/ib_isert.c      | 47 +++++++++-------------------
+>   drivers/infiniband/ulp/isert/ib_isert.h      |  1 -
+>   drivers/infiniband/ulp/srp/ib_srp.c          | 32 ++++++-------------
+>   drivers/infiniband/ulp/srpt/ib_srpt.c        | 15 ++++-----
+>   drivers/infiniband/ulp/srpt/ib_srpt.h        |  3 --
+>   12 files changed, 63 insertions(+), 142 deletions(-)
 
-Hello Or,
+Shouldn't this patch be split per ULP driver to make review easier ?
 
-This version of the dev attr cleanup patches (just like the previous 
-version) makes kernel code access the attrs member of struct ib_device 
-while user space code keeps calling the query_device function. If there 
-would be a bug in one of the query_device implementations, e.g. that the 
-correct data is only returned some time after device initialization has 
-finished, then user space code will see other attribute values than 
-kernel code. I think we should avoid such subtle and hard to debug 
-behavior. Hence my proposal to modify ib_uverbs_ex_query_device() such 
-that it fetches attribute information from the ib_device structure 
-instead of by calling query_device().
+If you have a look at the MAINTAINERS file then you will see that you 
+forgot to CC the SRP initiator maintainer.
 
 Bart.
 --
