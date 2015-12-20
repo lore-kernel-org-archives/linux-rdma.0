@@ -1,58 +1,36 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: [PATCH libmlx5 1/2] libmlx5: Add cross-channel primitives
-Date: Sun, 20 Dec 2015 13:23:09 +0200
-Message-ID: <1450610590-17361-2-git-send-email-leon@leon.nu>
-References: <1450610590-17361-1-git-send-email-leon@leon.nu>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 10/10] IB: remove the unused usecnt field from struct
+ ib_mr
+Date: Sun, 20 Dec 2015 13:27:51 +0200
+Message-ID: <567690B7.5020107@mellanox.com>
+References: <1450446906-10336-1-git-send-email-hch@lst.de>
+ <1450446906-10336-11-git-send-email-hch@lst.de>
+ <567657D1.5010700@mellanox.com> <5676756B.6090208@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1450610590-17361-1-git-send-email-leon-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <5676756B.6090208-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shani Michaeli <shanim-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-=46rom: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 12/20/2015 11:31 AM, Sagi Grimberg wrote:
+> However, I think that the patch from Shani 6b52a12bc3fc ("IB/uverbs:
+> Implement memory windows support in uverbs") is wrong. A memory
+> window allocation should really reference the MR and not the PD (which
+> is referenced by the MR). Otherwise the MR deregistration is allowed
+> with windows bound to it. If this is the case then this field is not
+> useless and we should fix ib_uverbs_alloc_mw()?
 
-The cross-channel feature relies on special primitives to
-send and receive work requests.
+I tend to agree, lets not remove the field this is clarified with Haggai 
+and Co
 
-* WAIT on CQ WR - This WR holds execution of subsequent
-  requests on that queue until producer index of a CQ is met.
-
-=E2=80=A2 SEND_EN WR - This WR specifies value of producer index on
-  the controlled send queue. It enables the execution of all
-  WQEs up to this producer index.
-
-=E2=80=A2 RECEIVE_EN WR - Same as SEND_EN but related to a receive
-  queue.
-
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- src/mlx5.h | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/src/mlx5.h b/src/mlx5.h
-index 0c0b0278f66e..49e3374b4439 100644
---- a/src/mlx5.h
-+++ b/src/mlx5.h
-@@ -208,6 +208,10 @@ enum {
- 	MLX5_OPCODE_LOCAL_INVAL		=3D 0x1b,
- 	MLX5_OPCODE_CONFIG_CMD		=3D 0x1f,
-=20
-+	MLX5_OPCODE_SEND_ENABLE         =3D 0x17,
-+	MLX5_OPCODE_RECV_ENABLE         =3D 0x16,
-+	MLX5_OPCODE_CQE_WAIT            =3D 0x0f,
-+
- 	MLX5_RECV_OPCODE_RDMA_WRITE_IMM	=3D 0x00,
- 	MLX5_RECV_OPCODE_SEND		=3D 0x01,
- 	MLX5_RECV_OPCODE_SEND_IMM	=3D 0x02,
---=20
-1.7.12.4
+>
+> Haggai, can you shed some light here? It's Shani's and your code. 
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
