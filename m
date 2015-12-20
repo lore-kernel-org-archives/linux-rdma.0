@@ -1,90 +1,168 @@
 From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: [PATCH libibverbs 1/3] libibverbs: Add CQ ignore overrun creation flag
-Date: Sun, 20 Dec 2015 13:22:42 +0200
-Message-ID: <1450610564-17279-2-git-send-email-leon@leon.nu>
-References: <1450610564-17279-1-git-send-email-leon@leon.nu>
+Subject: [PATCH libmlx5 2/2] libmlx5: Add CQ ignore overrun creation flag
+Date: Sun, 20 Dec 2015 13:23:10 +0200
+Message-ID: <1450610590-17361-3-git-send-email-leon@leon.nu>
+References: <1450610590-17361-1-git-send-email-leon@leon.nu>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1450610564-17279-1-git-send-email-leon-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <1450610590-17361-1-git-send-email-leon-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-A CQ overrun is checked while posting a completion, and if
-encountered, the QP is transferred to the appropriate error
-state.
+In order to use CQ for cross-channel operations, the user
+needs to configure CQ to ignore overrun creation flag.
 
-CQ update (and error discovery) are not synchronized with
-WQE execution. Thus, a positive acknowledgement can be sent
-to the remote request, and subsequently a CQ overrun may be
-detected. Hardware may not write the CQE as a result of the
-error, and the CQ will be transitioned to an error state as
-well as the QP that caused the CQ error.
-
-To avoid these errors, software usually ensures that the
-number of WQEs posted to a QP does not exceed the number
-of entries in the CQ associated with this QP. When multiple
-QPs post completions into the same CQ, this check is cumulative.
-
-CQ ignore overrun flag instructs the HW doesn't ring doorbells
-on updates of CQ consumer counter (poll for completion) or
-request completion notifications (Arm CQ).
+This patch adds support of it to libmlx5 library.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/infiniband/verbs.h |  7 ++++---
- man/ibv_create_cq_ex.3     | 10 ++++++++--
- 2 files changed, 12 insertions(+), 5 deletions(-)
+ src/mlx5-abi.h | 14 +++++++++++++
+ src/verbs.c    | 62 +++++++++++++++++++++++++++++++++++++++++++++-------------
+ 2 files changed, 62 insertions(+), 14 deletions(-)
 
-diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index c3e863850d4e..d8069d52ae13 100644
---- a/include/infiniband/verbs.h
-+++ b/include/infiniband/verbs.h
-@@ -1201,12 +1201,13 @@ struct ibv_context {
+diff --git a/src/mlx5-abi.h b/src/mlx5-abi.h
+index 769ea811d26b..85f6ee3f691e 100644
+--- a/src/mlx5-abi.h
++++ b/src/mlx5-abi.h
+@@ -91,6 +91,20 @@ struct mlx5_create_cq_resp {
+ 	__u32				cqn;
  };
  
- enum ibv_create_cq_attr {
--	IBV_CREATE_CQ_ATTR_FLAGS	= 1 << 0,
--	IBV_CREATE_CQ_ATTR_RESERVED	= 1 << 1
-+	IBV_CREATE_CQ_ATTR_FLAGS        = 1 << 0,
-+	IBV_CREATE_CQ_ATTR_RESERVED     = 1 << 1
- };
- 
- enum ibv_create_cq_attr_flags {
--	IBV_CREATE_CQ_ATTR_COMPLETION_TIMESTAMP	= 1 << 0,
-+	IBV_CREATE_CQ_ATTR_COMPLETION_TIMESTAMP = 1 << 0,
-+	IBV_CREATE_CQ_ATTR_IGNORE_OVERRUN       = 1 << 1
- };
- 
- struct ibv_create_cq_attr_ex {
-diff --git a/man/ibv_create_cq_ex.3 b/man/ibv_create_cq_ex.3
-index 9f9e049b0d43..8670bd0a828b 100644
---- a/man/ibv_create_cq_ex.3
-+++ b/man/ibv_create_cq_ex.3
-@@ -42,13 +42,19 @@ enum ibv_wc_flags_ex {
-         IBV_WC_EX_WITH_SLID                  = 1 << 7,  /* Require slid in WC */
-         IBV_WC_EX_WITH_SL                    = 1 << 8,  /* Require sl in WC */
-         IBV_WC_EX_WITH_DLID_PATH_BITS        = 1 << 9,  /* Require dlid path bits in WC */
--        IBV_WC_EX_WITH_COMPLETION_TIMESTAMP  = 1 << 10, /* Require completion timestamp in WC /*
-+        IBV_WC_EX_WITH_COMPLETION_TIMESTAMP  = 1 << 10, /* Require completion timestamp in WC */
- };
- 
-+enum ibv_create_cq_attr_flags {
-+	IBV_CREATE_CQ_ATTR_COMPLETION_TIMESTAMP	= 1 << 0,
-+	IBV_CREATE_CQ_ATTR_IGNORE_OVERRUN	= 1 << 1
++struct mlx5_create_cq_ex {
++	struct ibv_create_cq_ex		ibv_cmd;
++	__u64				buf_addr;
++	__u64				db_addr;
++	__u32				cqe_size;
++	__u32				comp_mask;
 +};
- 
- enum ibv_create_cq_attr {
--        IBV_CREATE_CQ_ATTR_FLAGS             = 1 << 0,
-+	IBV_CREATE_CQ_ATTR_FLAGS	= 1 << 0,
-+	IBV_CREATE_CQ_ATTR_RESERVED	= 1 << 1
- };
 +
- .SH "RETURN VALUE"
- .B ibv_create_cq_ex()
- returns a pointer to the CQ, or NULL if the request fails.
++struct mlx5_create_cq_resp_ex {
++	struct ibv_create_cq_resp_ex	ibv_resp;
++	__u32				cqn;
++	__u32				comp_mask;
++};
++
+ struct mlx5_create_srq {
+ 	struct ibv_create_srq		ibv_cmd;
+ 	__u64				buf_addr;
+diff --git a/src/verbs.c b/src/verbs.c
+index 1dbee60a6f9a..94a1197351a2 100644
+--- a/src/verbs.c
++++ b/src/verbs.c
+@@ -250,17 +250,31 @@ enum {
+ };
+ 
+ enum {
+-	CREATE_CQ_SUPPORTED_FLAGS = IBV_CREATE_CQ_ATTR_COMPLETION_TIMESTAMP
++	CREATE_CQ_SUPPORTED_FLAGS = IBV_CREATE_CQ_ATTR_COMPLETION_TIMESTAMP |
++		IBV_CREATE_CQ_ATTR_IGNORE_OVERRUN
++};
++
++enum cmd_type {
++	LEGACY_CMD,
++	EXTENDED_CMD
+ };
+ 
+ static struct ibv_cq *create_cq(struct ibv_context *context,
+-				const struct ibv_create_cq_attr_ex *cq_attr)
++				struct ibv_create_cq_attr_ex *cq_attr,
++				enum cmd_type ctype)
+ {
+ 	struct mlx5_create_cq		cmd;
++	struct mlx5_create_cq_ex	cmd_ex;
+ 	struct mlx5_create_cq_resp	resp;
++	struct mlx5_create_cq_resp_ex	resp_ex;
+ 	struct mlx5_cq		       *cq;
+ 	int				cqe_sz;
+-	int				ret;
++	/*
++	 * Initialize to non-zero value, because
++	 * ibv_cmd_* should set it to zero in case
++	 * of success execution.
++	 */
++	int				ret = -1;
+ 	int				ncqe;
+ #ifdef MLX5_DEBUG
+ 	FILE *fp = to_mctx(context)->dbg_fp;
+@@ -299,7 +313,6 @@ static struct ibv_cq *create_cq(struct ibv_context *context,
+ 		return NULL;
+ 	}
+ 
+-	memset(&cmd, 0, sizeof cmd);
+ 	cq->cons_index = 0;
+ 
+ 	if (mlx5_spinlock_init(&cq->lock))
+@@ -342,14 +355,30 @@ static struct ibv_cq *create_cq(struct ibv_context *context,
+ 	cq->arm_sn			= 0;
+ 	cq->cqe_sz			= cqe_sz;
+ 
+-	cmd.buf_addr = (uintptr_t) cq->buf_a.buf;
+-	cmd.db_addr  = (uintptr_t) cq->dbrec;
+-	cmd.cqe_size = cqe_sz;
++	if (ctype == LEGACY_CMD) {
++		memset(&cmd, 0, sizeof(cmd));
++		cmd.buf_addr = (uintptr_t) cq->buf_a.buf;
++		cmd.db_addr  = (uintptr_t) cq->dbrec;
++		cmd.cqe_size = cqe_sz;
++
++		ret = ibv_cmd_create_cq(context, ncqe - 1, cq_attr->channel,
++					cq_attr->comp_vector,
++					&cq->ibv_cq, &cmd.ibv_cmd, sizeof cmd,
++					&resp.ibv_resp, sizeof resp);
++	}
++	if (ctype == EXTENDED_CMD) {
++		memset(&cmd_ex, 0, sizeof(cmd_ex));
++		cmd_ex.buf_addr = (uintptr_t) cq->buf_a.buf;
++		cmd_ex.db_addr  = (uintptr_t) cq->dbrec;
++		cmd_ex.cqe_size = cqe_sz;
++
++		ret = ibv_cmd_create_cq_ex(context, cq_attr,
++					&cq->ibv_cq, &cmd_ex.ibv_cmd,
++					sizeof(cmd_ex.ibv_cmd), sizeof(cmd_ex),
++					&resp_ex.ibv_resp,
++					sizeof(resp_ex.ibv_resp), sizeof(resp_ex));
++	}
+ 
+-	ret = ibv_cmd_create_cq(context, ncqe - 1, cq_attr->channel,
+-				cq_attr->comp_vector,
+-				&cq->ibv_cq, &cmd.ibv_cmd, sizeof cmd,
+-				&resp.ibv_resp, sizeof resp);
+ 	if (ret) {
+ 		mlx5_dbg(fp, MLX5_DBG_CQ, "ret %d\n", ret);
+ 		goto err_db;
+@@ -357,7 +386,12 @@ static struct ibv_cq *create_cq(struct ibv_context *context,
+ 
+ 	cq->active_buf = &cq->buf_a;
+ 	cq->resize_buf = NULL;
+-	cq->cqn = resp.cqn;
++
++	if (ctype == LEGACY_CMD)
++		cq->cqn = resp.cqn;
++	if (ctype == EXTENDED_CMD)
++		cq->cqn = resp_ex.cqn;
++
+ 	cq->stall_enable = to_mctx(context)->stall_enable;
+ 	cq->stall_adaptive_enable = to_mctx(context)->stall_adaptive_enable;
+ 	cq->stall_cycles = to_mctx(context)->stall_cycles;
+@@ -390,13 +424,13 @@ struct ibv_cq *mlx5_create_cq(struct ibv_context *context, int cqe,
+ 						.comp_vector = comp_vector,
+ 						.wc_flags = IBV_WC_STANDARD_FLAGS};
+ 
+-	return create_cq(context, &cq_attr);
++	return create_cq(context, &cq_attr, LEGACY_CMD);
+ }
+ 
+ struct ibv_cq *mlx5_create_cq_ex(struct ibv_context *context,
+ 				 struct ibv_create_cq_attr_ex *cq_attr)
+ {
+-	return create_cq(context, cq_attr);
++	return create_cq(context, cq_attr, EXTENDED_CMD);
+ }
+ 
+ int mlx5_resize_cq(struct ibv_cq *ibcq, int cqe)
 -- 
 1.7.12.4
 
