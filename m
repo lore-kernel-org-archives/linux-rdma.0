@@ -1,32 +1,34 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH 10/10] IB: remove the unused usecnt field from struct
-	ib_mr
-Date: Sun, 20 Dec 2015 16:42:50 +0100
-Message-ID: <20151220154250.GB10351@lst.de>
-References: <1450446906-10336-1-git-send-email-hch@lst.de> <1450446906-10336-11-git-send-email-hch@lst.de> <567414B0.2050406@sandisk.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 09/10] IB: remove the struct ib_phys_buf definition
+Date: Sun, 20 Dec 2015 18:54:14 +0200
+Message-ID: <5676DD36.4020305@mellanox.com>
+References: <1450446906-10336-1-git-send-email-hch@lst.de>
+ <1450446906-10336-10-git-send-email-hch@lst.de>
+ <56765AC2.2010104@mellanox.com> <20151220154137.GA10351@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <567414B0.2050406-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20151220154137.GA10351-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Dec 18, 2015 at 03:14:08PM +0100, Bart Van Assche wrote:
-> On 12/18/2015 02:55 PM, Christoph Hellwig wrote:
->> Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
->
-> Shouldn't the description of this patch be changed into something like 
-> "Remove the usecnt field from ib_mr since it is always zero" ?
+On 12/20/2015 5:41 PM, Christoph Hellwig wrote:
 
-In software context unused for my also includes something that's
-only written to.  But I can change it to something like:
+> I can't see a useful explanation for removing an unused structure.  But if you
+> really want one and come up with a coherent sentence or two I can add it.
 
-IB: remove the write only usecnt field from struct ib_mr
+patch title - IB/core: Remove struct ib_phys_buf
 
-to be a little more precise.
+change log:
+
+Remove struct ib_phys_buf since YYY
+
+where you need to fill few words for YYY, e.g not used anywhere ever, 
+not used after you did
+cleanup ZZZ, something that can serve someone reading your patch
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
