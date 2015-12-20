@@ -1,34 +1,62 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 3/7] IB/ulps: Avoid calling ib_query_device
-Date: Sun, 20 Dec 2015 18:58:29 +0200
-Message-ID: <5676DE35.1080502@mellanox.com>
-References: <1450429190-5898-1-git-send-email-ogerlitz@mellanox.com>
- <1450429190-5898-4-git-send-email-ogerlitz@mellanox.com>
- <567413C7.5040907@sandisk.com>
+Subject: Re: [PATCH rdma-next 1/6] IB/core: Save the device attributes on the
+ device structure
+Date: Sun, 20 Dec 2015 19:05:27 +0200
+Message-ID: <5676DFD7.7020501@mellanox.com>
+References: <1450358340-19361-1-git-send-email-ogerlitz@mellanox.com>
+ <1450358340-19361-2-git-send-email-ogerlitz@mellanox.com>
+ <5672BC33.9050606@dev.mellanox.co.il>
+ <20151217174138.GB26015@obsidianresearch.com>
+ <5673BF09.7050200@mellanox.com> <20151218164909.GA7354@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <567413C7.5040907-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20151218164909.GA7354-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Anna Schumaker <Anna.Schumaker-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Anna Schumaker <Anna.Schumaker-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/18/2015 4:10 PM, Bart Van Assche wrote:
-> Shouldn't this patch be split per ULP driver to make review easier ?
-
-The patch is very simple and does the same practice in all ULPs. If it 
-helps I can spit off the srp initiator and target bits into a different 
-patch, let me know.
-
+On 12/18/2015 6:49 PM, Jason Gunthorpe wrote:
+> On Fri, Dec 18, 2015 at 10:08:41AM +0200, Or Gerlitz wrote:
+>> On 12/17/2015 7:41 PM, Jason Gunthorpe wrote:
+>>> On Thu, Dec 17, 2015 at 03:44:19PM +0200, Sagi Grimberg wrote:
+>>>>> +	ret = ib_query_device(device, &device->attrs);
+>>>>> +	if (ret) {
+>>>>> +		printk(KERN_WARNING "Couldn't query the device attributes\n");
+>>>>> +		goto out;
+>>>>> +	}
+>>>>> +
+>>>> I thought we're all for removing the call altogether aren't we?
+>>>>
+>>>> I'd say just call device->query_device() instead.
+>>> Christoph's patch even got rid of device->query_device(),
+>> Wrong.
+> Not really, lots of hunks in Christoph's patch are removing query_device ie:
 >
-> If you have a look at the MAINTAINERS file then you will see that you 
-> forgot to CC the SRP initiator maintainer. 
+> @@ -1305,7 +1299,6 @@  int mthca_register_device(struct mthca_dev *dev)
+>   	dev->ib_dev.phys_port_cnt        = dev->limits.num_ports;
+>   	dev->ib_dev.num_comp_vectors     = 1;
+>   	dev->ib_dev.dma_device           = &dev->pdev->dev;
+> -	dev->ib_dev.query_device         = mthca_query_device;
+>   	dev->ib_dev.query_port           = mthca_query_port;
 
-yes, sorry for that, will copy you on further versions if there are such.
+I know, I wanted to stress the point that under the udata architecture 
+the query_device callbacked can't be just deleted since drivers use that 
+to get/provide data to/from their user-space libraries.
+
+> Sure, it sticks around in a couple places but it isn't 'query_device'
+> anymore, it is 'query_device_udata' which is reasonable.
+>
+
+I see what you mean. But this involved somehow deeper patching to mlx4 
+which should be applied later on to any ll driver that would like to 
+expose udata for their query device entry (and return back that entry as 
+well after we delete it now in Christoph's patch).
 
 Or.
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
