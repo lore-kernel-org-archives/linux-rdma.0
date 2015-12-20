@@ -1,49 +1,51 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 09/10] IB: remove the struct ib_phys_buf definition
-Date: Sun, 20 Dec 2015 09:37:38 +0200
-Message-ID: <56765AC2.2010104@mellanox.com>
-References: <1450446906-10336-1-git-send-email-hch@lst.de>
- <1450446906-10336-10-git-send-email-hch@lst.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: [PATCH] libmlx5: Add gitignore file to the project
+Date: Sun, 20 Dec 2015 09:42:41 +0200
+Message-ID: <1450597361-11849-1-git-send-email-leon@leon.nu>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1450446906-10336-10-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/18/2015 3:55 PM, Christoph Hellwig wrote:
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-> Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-> Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> [core]
-> Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Add gitignore file to the libmlx5 project.
 
-Here, too, please avoid empty change logs to IB core patches.
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ .gitignore | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+ create mode 100644 .gitignore
 
-Or.
-> ---
->   include/rdma/ib_verbs.h | 5 -----
->   1 file changed, 5 deletions(-)
->
-> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index ea093ee..284916d 100644
-> --- a/include/rdma/ib_verbs.h
-> +++ b/include/rdma/ib_verbs.h
-> @@ -1143,11 +1143,6 @@ enum ib_access_flags {
->   	IB_ACCESS_ON_DEMAND     = (1<<6),
->   };
->   
-> -struct ib_phys_buf {
-> -	u64      addr;
-> -	u64      size;
-> -};
-> -
->   /*
->    * XXX: these are apparently used for ->rereg_user_mr, no idea why they
->    * are hidden here instead of a uapi header!
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 000000000000..be8e0f03eb93
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,20 @@
++*.o
++*.lo
++*.swp
++configure
++Makefile.in
++autom4te.cache
++aclocal.m4
++stamp-h.in
++config.h.in
++config.h.in~
++config.log
++config.h
++.libs
++.deps
++libmlx5.spec
++Makefile
++config.status
++stamp-h1
++libtool
++tags
+-- 
+1.7.12.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
