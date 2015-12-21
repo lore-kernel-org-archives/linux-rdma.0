@@ -1,100 +1,38 @@
-From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH v4 01/11] svcrdma: Do not send XDR roundup bytes for a
- write chunk
-Date: Mon, 21 Dec 2015 16:29:59 -0500
-Message-ID: <20151221212959.GE7869@fieldses.org>
-References: <20151214211951.12932.99017.stgit@klimt.1015granger.net>
- <20151214213009.12932.60521.stgit@klimt.1015granger.net>
- <20151221210708.GD7869@fieldses.org>
- <D0AD304E-0356-48DE-A68D-F9F8930D854D@oracle.com>
+From: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Subject: Re: [PATCH v2 01/13] staging/rdma/hfi1: Use BIT macro
+Date: Mon, 21 Dec 2015 13:46:13 -0800
+Message-ID: <20151221214613.GA8842@kroah.com>
+References: <1447729175-28745-1-git-send-email-jubin.john@intel.com>
+ <1447729175-28745-2-git-send-email-jubin.john@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <D0AD304E-0356-48DE-A68D-F9F8930D854D-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1447729175-28745-2-git-send-email-jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 21, 2015 at 04:15:23PM -0500, Chuck Lever wrote:
+On Mon, Nov 16, 2015 at 09:59:23PM -0500, Jubin John wrote:
+> This patch fixes the checkpatch issue:
+> CHECK: Prefer using the BIT macro
 > 
-> > On Dec 21, 2015, at 4:07 PM, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> wrote:
-> > 
-> > On Mon, Dec 14, 2015 at 04:30:09PM -0500, Chuck Lever wrote:
-> >> Minor optimization: when dealing with write chunk XDR roundup, do
-> >> not post a Write WR for the zero bytes in the pad. Simply update
-> >> the write segment in the RPC-over-RDMA header to reflect the extra
-> >> pad bytes.
-> >> 
-> >> The Reply chunk is also a write chunk, but the server does not use
-> >> send_write_chunks() to send the Reply chunk. That's OK in this case:
-> >> the server Upper Layer typically marshals the Reply chunk contents
-> >> in a single contiguous buffer, without a separate tail for the XDR
-> >> pad.
-> >> 
-> >> The comments and the variable naming refer to "chunks" but what is
-> >> really meant is "segments." The existing code sends only one
-> >> xdr_write_chunk per RPC reply.
-> >> 
-> >> The fix assumes this as well. When the XDR pad in the first write
-> >> chunk is reached, the assumption is the Write list is complete and
-> >> send_write_chunks() returns.
-> >> 
-> >> That will remain a valid assumption until the server Upper Layer can
-> >> support multiple bulk payload results per RPC.
-> >> 
-> >> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> >> ---
-> >> net/sunrpc/xprtrdma/svc_rdma_sendto.c |    7 +++++++
-> >> 1 file changed, 7 insertions(+)
-> >> 
-> >> diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-> >> index 969a1ab..bad5eaa 100644
-> >> --- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-> >> +++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-> >> @@ -342,6 +342,13 @@ static int send_write_chunks(struct svcxprt_rdma *xprt,
-> >> 						arg_ch->rs_handle,
-> >> 						arg_ch->rs_offset,
-> >> 						write_len);
-> >> +
-> >> +		/* Do not send XDR pad bytes */
-> >> +		if (chunk_no && write_len < 4) {
-> >> +			chunk_no++;
-> >> +			break;
-> > 
-> > I'm pretty lost in this code.  Why does (chunk_no && write_len < 4) mean
-> > this is xdr padding?
+> Use of BIT macro for HDRQ_INCREMENT in chip.h causes a change in
+> format specifier for error message in init.c in order to avoid a
+> build warning.
 > 
-> Chunk zero is always data. Padding is always going to be
-> after the first chunk. Any chunk after chunk zero that is
-> shorter than XDR quad alignment is going to be a pad.
+> Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-I don't really know what a chunk is....  Looking at the code:
+This patch, and a few others in this series did not apply.  Please fix
+them up and resend the ones I missed.
 
-	write_len = min(xfer_len, be32_to_cpu(arg_ch->rs_length));
+thanks,
 
-so I guess the assumption is just that those rs_length's are always a
-multiple of four?
-
---b.
-
-> 
-> Probably too clever. Is there a better way to detect
-> the XDR pad?
-> 
-> 
-> >> +		}
-> >> +
-> >> 		chunk_off = 0;
-> >> 		while (write_len) {
-> >> 			ret = send_write(xprt, rqstp,
-> 
-> --
-> Chuck Lever
-> 
-> 
-> 
+greg k-h
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
