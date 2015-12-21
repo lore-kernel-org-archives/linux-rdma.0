@@ -1,129 +1,118 @@
 From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC PATCH 00/15] staging/rdma/hfi1: Initial patches to add rdmavt support in HFI1
-Date: Mon, 21 Dec 2015 01:12:14 -0500
-Message-ID: <20151221061214.GD3860@phlsvsds.ph.intel.com>
-References: <20151214172509.11576.19722.stgit@phlsvslse11.ph.intel.com>
+Subject: Re: [PATCH V1 1/3] IB/core: Align coding style of ib_device_cap_flags structure
+Date: Mon, 21 Dec 2015 01:22:52 -0500
+Message-ID: <20151221062252.GE3860@phlsvsds.ph.intel.com>
+References: <1450606571-15877-1-git-send-email-leon@leon.nu> <1450606571-15877-2-git-send-email-leon@leon.nu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20151214172509.11576.19722.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+In-Reply-To: <1450606571-15877-2-git-send-email-leon-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Greg, Doug,
+On Sun, Dec 20, 2015 at 12:16:09PM +0200, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> Modify enum ib_device_cap_flags such that other patches which add new
+> enum values pass strict checkpatch.pl checks.
+> 
+> Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  include/rdma/ib_verbs.h | 60 ++++++++++++++++++++++++-------------------------
+>  1 file changed, 30 insertions(+), 30 deletions(-)
+> 
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> index 9a68a19..bcf40ad 100644
+> --- a/include/rdma/ib_verbs.h
+> +++ b/include/rdma/ib_verbs.h
+> @@ -105,24 +105,24 @@ enum rdma_link_layer {
+>  };
+>  
+>  enum ib_device_cap_flags {
+> -	IB_DEVICE_RESIZE_MAX_WR		= 1,
+> -	IB_DEVICE_BAD_PKEY_CNTR		= (1<<1),
+> -	IB_DEVICE_BAD_QKEY_CNTR		= (1<<2),
+> -	IB_DEVICE_RAW_MULTI		= (1<<3),
+> -	IB_DEVICE_AUTO_PATH_MIG		= (1<<4),
+> -	IB_DEVICE_CHANGE_PHY_PORT	= (1<<5),
+> -	IB_DEVICE_UD_AV_PORT_ENFORCE	= (1<<6),
+> -	IB_DEVICE_CURR_QP_STATE_MOD	= (1<<7),
+> -	IB_DEVICE_SHUTDOWN_PORT		= (1<<8),
+> -	IB_DEVICE_INIT_TYPE		= (1<<9),
+> -	IB_DEVICE_PORT_ACTIVE_EVENT	= (1<<10),
+> -	IB_DEVICE_SYS_IMAGE_GUID	= (1<<11),
+> -	IB_DEVICE_RC_RNR_NAK_GEN	= (1<<12),
+> -	IB_DEVICE_SRQ_RESIZE		= (1<<13),
+> -	IB_DEVICE_N_NOTIFY_CQ		= (1<<14),
+> -	IB_DEVICE_LOCAL_DMA_LKEY	= (1<<15),
+> -	IB_DEVICE_RESERVED		= (1<<16), /* old SEND_W_INV */
+> -	IB_DEVICE_MEM_WINDOW		= (1<<17),
+> +	IB_DEVICE_RESIZE_MAX_WR		= (1 << 0),
 
-As mentioned below, these patches depend on the new rdmavt library submitted to
-Doug on linux-rdma.
+NIT: Shouldn't we just use the BIT macro?
 
-We continue to identify (and rework) patches by our other developers which can
-be submitted without conflicts with this series.  Furthermore, We have, as much
-as possible, placed fixes directly into rdmavt such that those changes can be
-dropped from hfi1.  But at this point, we need to know if and where these are
-going to land so that we can start reworking as appropriate.
+	IB_DEVICE_RESIZE_MAX_WR		= BIT(0),
 
-Therefore, I would like to discuss plans to get hfi1 under the same maintainer
-to work through this transitional period.
-
-Basically, At what point should we stop submitting patches to Greg and start
-submitting to Doug?
-
-Should we consider the merge window itself as the swap over point and submit
-changes to Doug at that point?  If so, should we continue to submit what we can
-to Greg until then (and continue rebase'ing the series below on that work)?  Or
-given Gregs backlog, should we stop submitting to Greg sometime prior to the
-merge window?
-
-That brings up my final question, at the point of swap over I assume anything
-not accepted by Greg should be considered rejected and we need to resubmit to
-Doug?
-
-Thanks in advance for any guidance,
 Ira
 
-
-On Mon, Dec 14, 2015 at 12:27:49PM -0500, Dalessandro, Dennis wrote:
-> This patch series is being submitted as a Request For Comment only. It depends
-> on code submitted to the rdma subsystem [1].
+> +	IB_DEVICE_BAD_PKEY_CNTR		= (1 << 1),
+> +	IB_DEVICE_BAD_QKEY_CNTR		= (1 << 2),
+> +	IB_DEVICE_RAW_MULTI		= (1 << 3),
+> +	IB_DEVICE_AUTO_PATH_MIG		= (1 << 4),
+> +	IB_DEVICE_CHANGE_PHY_PORT	= (1 << 5),
+> +	IB_DEVICE_UD_AV_PORT_ENFORCE	= (1 << 6),
+> +	IB_DEVICE_CURR_QP_STATE_MOD	= (1 << 7),
+> +	IB_DEVICE_SHUTDOWN_PORT		= (1 << 8),
+> +	IB_DEVICE_INIT_TYPE		= (1 << 9),
+> +	IB_DEVICE_PORT_ACTIVE_EVENT	= (1 << 10),
+> +	IB_DEVICE_SYS_IMAGE_GUID	= (1 << 11),
+> +	IB_DEVICE_RC_RNR_NAK_GEN	= (1 << 12),
+> +	IB_DEVICE_SRQ_RESIZE		= (1 << 13),
+> +	IB_DEVICE_N_NOTIFY_CQ		= (1 << 14),
+> +	IB_DEVICE_LOCAL_DMA_LKEY	= (1 << 15),
+> +	IB_DEVICE_RESERVED		= (1 << 16), /* old SEND_W_INV */
+> +	IB_DEVICE_MEM_WINDOW		= (1 << 17),
+>  	/*
+>  	 * Devices should set IB_DEVICE_UD_IP_SUM if they support
+>  	 * insertion of UDP and TCP checksum on outgoing UD IPoIB
+> @@ -130,18 +130,18 @@ enum ib_device_cap_flags {
+>  	 * incoming messages.  Setting this flag implies that the
+>  	 * IPoIB driver may set NETIF_F_IP_CSUM for datagram mode.
+>  	 */
+> -	IB_DEVICE_UD_IP_CSUM		= (1<<18),
+> -	IB_DEVICE_UD_TSO		= (1<<19),
+> -	IB_DEVICE_XRC			= (1<<20),
+> -	IB_DEVICE_MEM_MGT_EXTENSIONS	= (1<<21),
+> -	IB_DEVICE_BLOCK_MULTICAST_LOOPBACK = (1<<22),
+> -	IB_DEVICE_MEM_WINDOW_TYPE_2A	= (1<<23),
+> -	IB_DEVICE_MEM_WINDOW_TYPE_2B	= (1<<24),
+> -	IB_DEVICE_RC_IP_CSUM		= (1<<25),
+> -	IB_DEVICE_RAW_IP_CSUM		= (1<<26),
+> -	IB_DEVICE_MANAGED_FLOW_STEERING = (1<<29),
+> -	IB_DEVICE_SIGNATURE_HANDOVER	= (1<<30),
+> -	IB_DEVICE_ON_DEMAND_PAGING	= (1<<31),
+> +	IB_DEVICE_UD_IP_CSUM		= (1 << 18),
+> +	IB_DEVICE_UD_TSO		= (1 << 19),
+> +	IB_DEVICE_XRC			= (1 << 20),
+> +	IB_DEVICE_MEM_MGT_EXTENSIONS	= (1 << 21),
+> +	IB_DEVICE_BLOCK_MULTICAST_LOOPBACK = (1 << 22),
+> +	IB_DEVICE_MEM_WINDOW_TYPE_2A	= (1 << 23),
+> +	IB_DEVICE_MEM_WINDOW_TYPE_2B	= (1 << 24),
+> +	IB_DEVICE_RC_IP_CSUM		= (1 << 25),
+> +	IB_DEVICE_RAW_IP_CSUM		= (1 << 26),
+> +	IB_DEVICE_MANAGED_FLOW_STEERING = (1 << 29),
+> +	IB_DEVICE_SIGNATURE_HANDOVER	= (1 << 30),
+> +	IB_DEVICE_ON_DEMAND_PAGING	= (1 << 31),
+>  };
+>  
+>  enum ib_signature_prot_cap {
+> -- 
+> 1.7.12.4
 > 
-> This work is the first submission aimed to satisfy the TODO item for removing
-> duplicated code in hfi1. At the time of submission hfi1 and qib contained alot
-> of duplicated verbs processing code. The qib driver is having similar changes
-> made to use rdmavt. This will result in a common code base that both drivers and
-> future drivers such as soft-roce can use.
-> 
-> Note that due to the ongoing submission of hfi1 improvement patches, there will
-> likely be a number of conflicts which will still need to be resolved.
-> 
-> We also are still faced with the issue of separate trees for this work as was
-> discussed previously [2]. The result of that conversation was to keep the
-> drivers in separate trees until the 4.5 merge window. We are hoping that after
-> this merge window a single maintainer can take control of hfi1, qib, and rdmavt
-> so that these patches can move forward and be applied.
-> 
-> For now though we would like to get feedback on these patches with more to
-> follow.
-> 
-> [1] https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg30074.html
-> [2] https://www.mail-archive.com/linux-rdma%40vger.kernel.org/msg29360.html
-> 
-> ---
-> 
-> Dennis Dalessandro (15):
->       IB/hfi1: Begin to use rdmavt for verbs
->       IB/hfi1: Add basic rdmavt capability flags for hfi1
->       IB/hfi1: Consolidate dma ops for hfi1
->       IB/hfi1: Use rdmavt protection domain
->       IB/hfi1: Remove MR data structures from hfi1
->       IB/hfi1: Remove driver specific members from hfi1 qp type
->       IB/hfi1: Add device specific info prints
->       IB/hfi1: Use correct rdmavt header files after move.
->       IB/hfi1: Use address handle in rdmavt and remove from hfi1
->       IB/hfi1: Implement hfi1 support for AH notification
->       IB/hfi1: Remove hfi1 MR and hfi1 specific qp type
->       IB/hfi1: Remove srq from hfi1
->       IB/hfi1: Remove ibport and use rdmavt version
->       IB/hfi1: Remove mmap from hfi1
->       IB/hfi1: Use rdmavt pkey verbs function
-> 
-> 
->  drivers/staging/rdma/hfi1/Kconfig       |    2 
->  drivers/staging/rdma/hfi1/Makefile      |    4 
->  drivers/staging/rdma/hfi1/chip.c        |   36 +-
->  drivers/staging/rdma/hfi1/common.h      |    2 
->  drivers/staging/rdma/hfi1/cq.c          |   20 +
->  drivers/staging/rdma/hfi1/diag.c        |   13 -
->  drivers/staging/rdma/hfi1/driver.c      |   31 +-
->  drivers/staging/rdma/hfi1/hfi.h         |   27 +-
->  drivers/staging/rdma/hfi1/init.c        |    5 
->  drivers/staging/rdma/hfi1/intr.c        |    2 
->  drivers/staging/rdma/hfi1/keys.c        |  356 ---------------------
->  drivers/staging/rdma/hfi1/mad.c         |  163 +++++-----
->  drivers/staging/rdma/hfi1/mmap.c        |  192 -----------
->  drivers/staging/rdma/hfi1/mr.c          |  522 ------------------------------
->  drivers/staging/rdma/hfi1/pio.c         |   10 -
->  drivers/staging/rdma/hfi1/qp.c          |  214 +++++++-----
->  drivers/staging/rdma/hfi1/qp.h          |   44 +--
->  drivers/staging/rdma/hfi1/rc.c          |  155 +++++----
->  drivers/staging/rdma/hfi1/ruc.c         |  161 +++++----
->  drivers/staging/rdma/hfi1/sdma.h        |    8 
->  drivers/staging/rdma/hfi1/srq.c         |   58 ++-
->  drivers/staging/rdma/hfi1/sysfs.c       |   18 +
->  drivers/staging/rdma/hfi1/trace.h       |   22 +
->  drivers/staging/rdma/hfi1/uc.c          |   19 +
->  drivers/staging/rdma/hfi1/ud.c          |   91 +++--
->  drivers/staging/rdma/hfi1/verbs.c       |  526 +++++++++++--------------------
->  drivers/staging/rdma/hfi1/verbs.h       |  531 ++++---------------------------
->  drivers/staging/rdma/hfi1/verbs_mcast.c |   36 +-
->  28 files changed, 843 insertions(+), 2425 deletions(-)
->  delete mode 100644 drivers/staging/rdma/hfi1/keys.c
->  delete mode 100644 drivers/staging/rdma/hfi1/mmap.c
->  delete mode 100644 drivers/staging/rdma/hfi1/mr.c
-> 
-> --
-> -Denny
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
