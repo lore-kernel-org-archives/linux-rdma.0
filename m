@@ -1,44 +1,87 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH 1/2] Isolate common list remove code
-Date: Mon, 21 Dec 2015 16:57:12 +0200
-Message-ID: <20151221145712.GA11603@leon.nu>
-References: <20151221144252.575119561@linux.com>
- <20151221144303.357400814@linux.com>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] IB/cma: cma_match_net_dev needs to take into account port_num
+Date: Mon, 21 Dec 2015 17:01:24 +0200
+Message-ID: <1450710084-22547-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20151221144303.357400814-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 21, 2015 at 08:42:53AM -0600, Christoph Lameter wrote:
-> Code cleanup to remove multicast specific code from ipoib_main.c
-> 
-> The removal of a list of multicast groups occurs in three places.
-> Create a new function ipoib_mcast_remove_list(). Use this new
-> function in ipoib_main.c too.
-> That in turn allows the dropping of two functions that were
-> exported from ipoib_multicast.c for expiration of mc groups.
-> 
-> Reviewed-by: Iraq Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Iraq Weiny --> Ira Weiny
+Previously, cma_match_net_dev called cma_protocol_roce which
+tried to verify that the IB device uses RoCE protocol. However,
+if rdma_id didn't have a bounded port, it used the first port
+of the device.
 
-....
-> +void ipoib_mcast_remove_list(struct net_device *dev, struct list_head *remove_list)
-Will it be beneficial to inline this function?
-> +{
-> +	struct ipoib_mcast *mcast, *tmcast;
-> +
-> +	list_for_each_entry_safe(mcast, tmcast, remove_list, list) {
-> +		ipoib_mcast_leave(dev, mcast);
-> +		ipoib_mcast_free(mcast);
-> +	}
-> +}
-> +
+In VPI systems, the first port might be an IB port while the second
+one could be an Ethernet port. This made requests for unbounded rdma_ids
+that come from the Ethernet port fail.
+Fixing this by passing the port of the request and checking this port
+of the device.
+
+Fixes: b8cab5dab15f ('IB/cma: Accept connection without a valid netdev on RoCE')
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+Hi Doug,
+
+This patch fixes a bug in VPI systems, where the first port is configured
+as IB and the second one is configured as Ethernet.
+In this case, if the rdma_id isn't bounded to a port, cma_match_net_dev
+will try to verify that the first port is a RoCE port and fail.
+This is fixed by passing the port of the incoming request.
+
+Regards,
+Matan
+
+ drivers/infiniband/core/cma.c |   16 +++++++++-------
+ 1 files changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index d2d5d00..c8a265c 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -1265,15 +1265,17 @@ static bool cma_protocol_roce(const struct rdma_cm_id *id)
+ 	return cma_protocol_roce_dev_port(device, port_num);
+ }
+ 
+-static bool cma_match_net_dev(const struct rdma_id_private *id_priv,
+-			      const struct net_device *net_dev)
++static bool cma_match_net_dev(const struct rdma_cm_id *id,
++			      const struct net_device *net_dev,
++			      u8 port_num)
+ {
+-	const struct rdma_addr *addr = &id_priv->id.route.addr;
++	const struct rdma_addr *addr = &id->route.addr;
+ 
+ 	if (!net_dev)
+ 		/* This request is an AF_IB request or a RoCE request */
+-		return addr->src_addr.ss_family == AF_IB ||
+-		       cma_protocol_roce(&id_priv->id);
++		return (!id->port_num || id->port_num == port_num) &&
++		       (addr->src_addr.ss_family == AF_IB ||
++			cma_protocol_roce_dev_port(id->device, port_num));
+ 
+ 	return !addr->dev_addr.bound_dev_if ||
+ 	       (net_eq(dev_net(net_dev), addr->dev_addr.net) &&
+@@ -1295,13 +1297,13 @@ static struct rdma_id_private *cma_find_listener(
+ 	hlist_for_each_entry(id_priv, &bind_list->owners, node) {
+ 		if (cma_match_private_data(id_priv, ib_event->private_data)) {
+ 			if (id_priv->id.device == cm_id->device &&
+-			    cma_match_net_dev(id_priv, net_dev))
++			    cma_match_net_dev(&id_priv->id, net_dev, req->port))
+ 				return id_priv;
+ 			list_for_each_entry(id_priv_dev,
+ 					    &id_priv->listen_list,
+ 					    listen_list) {
+ 				if (id_priv_dev->id.device == cm_id->device &&
+-				    cma_match_net_dev(id_priv_dev, net_dev))
++				    cma_match_net_dev(&id_priv_dev->id, net_dev, req->port))
+ 					return id_priv_dev;
+ 			}
+ 		}
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
