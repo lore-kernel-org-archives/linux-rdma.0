@@ -1,76 +1,39 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: Re: [PATCH v2 00/10] iSER support for remote invalidate
-Date: Sun, 20 Dec 2015 20:20:28 -0800
-Message-ID: <1450671628.25674.27.camel@haakon3.risingtidesystems.com>
-References: <1449663128-368-1-git-send-email-sagig@mellanox.com>
+From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Subject: Re: ocrdma failure in 4.4.0-rc5
+Date: Mon, 21 Dec 2015 09:59:31 +0530
+Message-ID: <CANjDDBiJAyfS7wFr9yYs7fAnn1-h9t1JH9s1LDf-Q8RYk=Ayyw@mail.gmail.com>
+References: <5675BA00.5060101@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1449663128-368-1-git-send-email-sagig@mellanox.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@mellanox.com>
-Cc: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, Or Gerlitz <ogerlitz@mellanox.com>, Jenny Derzhavetz <jennyf@mellanox.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5675BA00.5060101-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Sagi, Jenny & Co,
+Hi Dough,
 
-On Wed, 2015-12-09 at 14:11 +0200, Sagi Grimberg wrote:
-> Changes from v1:
-> - Fixed change-log typos
-> 
-> Changes from v0:
-> - Rebased on top of 4.4-rc2
-> - Removed iser_hello messages from the protocol header
-> - Avoided from further breaking the non-existent bidi support
-> - Fixed initiator remote invalidate support exposure only
->   for fastreg && iser_always_register
-> - Removed patch 2/10 as it's still under testing.
-> - Minor line-spacing nitpicks CR comments fixes.
-> - Added a FIXME comment to declare our debt to Or and Jason
->   on the awkward device->mr->rkey deref.
-> - Piggybacked another patch that reduces some iser code that
->   is now available by the ib_core (ib_sg_to_pages).
-> 
-> Thanks a lot to all the reviewers!
-> 
-> Code is available at:
-> git@github.com:sagigrimberg/linux.git iser-remote-inv.2
-> 
-> Jenny Derzhavetz (5):
->   IB/iser: Don't register memory for all immediate data writes
->   IB/iser: set intuitive values for mr_valid
->   iser-target: Declare correct flags when accepting a connection
->   iser-target: Support the remote invalidation exception
->   IB/iser: Support the remote invalidation exception
-> 
-> Roi Dayan (1):
->   IB/iser: Fix module init not cleaning up on error flow
-> 
-> Sagi Grimberg (4):
->   IB/iser: Reuse ib_sg_to_pages
->   iser: Have initiator and target to share protocol structures and
->     definitions
->   iser-target: Remove unused file iser_proto.h
->   IB/iser: Increment the rkey when registering and not when invalidating
-> 
->  drivers/infiniband/ulp/iser/iscsi_iser.c     |   9 +-
->  drivers/infiniband/ulp/iser/iscsi_iser.h     |  54 +++-------
->  drivers/infiniband/ulp/iser/iser_initiator.c |  70 +++++++++++--
->  drivers/infiniband/ulp/iser/iser_memory.c    | 150 +++++++++------------------
->  drivers/infiniband/ulp/iser/iser_verbs.c     |  30 ++++--
->  drivers/infiniband/ulp/isert/ib_isert.c      |  73 +++++++++----
->  drivers/infiniband/ulp/isert/ib_isert.h      |  40 ++++++-
->  drivers/infiniband/ulp/isert/isert_proto.h   |  47 ---------
->  include/scsi/iser.h                          |  78 ++++++++++++++
->  9 files changed, 322 insertions(+), 229 deletions(-)
->  delete mode 100644 drivers/infiniband/ulp/isert/isert_proto.h
->  create mode 100644 include/scsi/iser.h
-> 
+Thanks for your note.
 
-Applied to target-pending/for-next as v4.5-rc1 material, along with
-Reviewed-by tags from HCH.
+We will root cause the issue asap and get back to you with the fix.
 
-Thanks folks.
+-Regards
+Devesh
 
---nab
+On Sun, Dec 20, 2015 at 1:41 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> Hi Devesh,
+>
+> Testing 4.4.0-rc5, the ocrdma driver is failing for me (100% reliably).
+>  If you have vlans off of the main device, this is what I get from the
+> Fedora rawhide 4.4.0-rc5 kernel:
+>
+>
+> --
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>               GPG KeyID: 0E572FDD
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
