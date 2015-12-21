@@ -1,106 +1,146 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: RoCE passive side failures on 4.4-rc5
-Date: Mon, 21 Dec 2015 11:56:19 -0500
-Message-ID: <56782F33.4070902@redhat.com>
-References: <5672BF85.6080005@mellanox.com> <567658E4.6040508@mellanox.com>
- <CAAKD3BBhjP+fO6TPPTXRhtQKmUv2Tz6RJosrn4=o2s=0by5acQ@mail.gmail.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/3] Create get_perf_mad function in sysfs.c
+Date: Mon, 21 Dec 2015 12:42:09 -0500
+Message-ID: <20151221174209.GG3860@phlsvsds.ph.intel.com>
+References: <20151221142026.238104419@linux.com> <20151221142039.168096557@linux.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="UcaE3UgU8nuROjsmrM8Km8LaqSasVWqfT"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAAKD3BBhjP+fO6TPPTXRhtQKmUv2Tz6RJosrn4=o2s=0by5acQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20151221142039.168096557-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---UcaE3UgU8nuROjsmrM8Km8LaqSasVWqfT
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+On Mon, Dec 21, 2015 at 08:20:27AM -0600, Christoph Lameter wrote:
+> Create a new function to retrieve performance management
+> data from the existing code in get_pma_counter().
+> 
+> Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-On 12/21/2015 10:08 AM, Matan Barak wrote:
-> On Sun, Dec 20, 2015 at 9:29 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wro=
-te:
->> On 12/17/2015 3:58 PM, Or Gerlitz wrote:
->>>
->>> Using 4.4-rc5+ [1] and **not** applying any of the patches I sent tod=
-ay,
->>> I noted that RoCE passive side isn't working (rdma-cm, ibv_rc_pingpon=
-g
->>> works).
->>>
->>> I have two nodes in ConnectX3 VPI config (port1 IB and port2 Eth), th=
-e one
->>> with the 4.4-rc5 kernel can act as both (rping) client/server for IB =
-links
->>> but only (rping) client for RoCE.
->>>
->>> I tried both inter-node and loopback runs, in all cases, the client s=
-ide
->>> getsCM
->>> reject with reason 28, see [2], tried both iser and rping. Eth (ICMP,=
- TCP)
->>> works OK.
->>
->>
->> OK, small progress, when the force Eth link type on my IB port (using =
-mlx4
->> sysfs), things work.
->>
->> You should be able to reproduce it on your non-VPI systems the other w=
-ay
->> around, by
->> forcing IB link type on one of the Eth ports and see the failure.
->>
->> I Saw the same behavior with both 4.4-rc2 and 4.4-rc5
->>
->> Or.
->=20
-> I've posted a patch that fixes that, please take a look at [1].
->=20
-> Regards,
-> Matan
->=20
-> [1] https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg30777.ht=
-ml
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-I've been seeing this too in my 4.4-rc testing, so I'll have test
-results today.
-
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---UcaE3UgU8nuROjsmrM8Km8LaqSasVWqfT
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJWeC8zAAoJELgmozMOVy/dkKkP/iJ5nczilWnGpyKIPIygex93
-hi5Yif/GK7ROH3wykkqxJq0m8lwRSl6pvqTwueyQjm1PJBvif7OFYGTonmgW9u6T
-9MaGKNQ2s5YMYRx+SRDL0S/kaQkNdwQXvKX/Fb4yH4+wpLPHmz28tiN0TQ9vGHbB
-fXgLXpjFDmITkm1G6vOaXfsjlUSbSX2TINQU6eul4pJgHj1hu7RMy8BDT6ArZp6q
-dzz3kqbA6xzXb+HIuISv69XKUIv5C6MLJC1tzk5kLF8emYdVHgytAwJC5x0/WnIm
-24ccWP1IsFezTHbEkh2EkqLsnld73R9PmKbCH3QQr6Sr0Wu+anYRm1VVnFUuJfyr
-tx6IFVslCa/DyxmSIHpr4NCBAfl1E6nqgvdpCw2s9Ajk61Cewnp+/yt0hqjipWTg
-nIh7/eUmD01pMs9MkbxeRnespiorrj3LGIY/Obx7RbePQEoi91yzNeC8so9TGvjm
-3UjZyhNScrj35w3tfattS/RhJcUxvlTfTV50EL4312BWClttzkNondEqwL/OqPz2
-ZEnHwUP46XcWe5pg3XaqapvwbwEagnIeZghtm9eDVxrXhI04RQrpiCUrz4I6gSNj
-Wrx8WlUM2Cm35+pXW+m/FNp1cXqHy2tqJnl+ricVcJV5tjsWE0oUZkTuu/QoybSb
-sWVUh+rOAfEf5NtozZpk
-=JaLd
------END PGP SIGNATURE-----
-
---UcaE3UgU8nuROjsmrM8Km8LaqSasVWqfT--
+> Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/infiniband/core/sysfs.c | 62 ++++++++++++++++++++++++++---------------
+>  1 file changed, 40 insertions(+), 22 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+> index b1f37d4..acefe85 100644
+> --- a/drivers/infiniband/core/sysfs.c
+> +++ b/drivers/infiniband/core/sysfs.c
+> @@ -317,21 +317,21 @@ struct port_table_attribute port_pma_attr_##_name = {			\
+>  	.index = (_offset) | ((_width) << 16) | ((_counter) << 24)	\
+>  }
+>  
+> -static ssize_t show_pma_counter(struct ib_port *p, struct port_attribute *attr,
+> -				char *buf)
+> +/*
+> + * Get a Perfmgmt MAD block of data.
+> + * Returns error code or the number of bytes retrieved.
+> + */
+> +static int get_perf_mad(struct ib_device *dev, int port_num, int attr,
+> +		void *data, int offset, size_t size)
+>  {
+> -	struct port_table_attribute *tab_attr =
+> -		container_of(attr, struct port_table_attribute, attr);
+> -	int offset = tab_attr->index & 0xffff;
+> -	int width  = (tab_attr->index >> 16) & 0xff;
+> -	struct ib_mad *in_mad  = NULL;
+> -	struct ib_mad *out_mad = NULL;
+> +	struct ib_mad *in_mad;
+> +	struct ib_mad *out_mad;
+>  	size_t mad_size = sizeof(*out_mad);
+>  	u16 out_mad_pkey_index = 0;
+>  	ssize_t ret;
+>  
+> -	if (!p->ibdev->process_mad)
+> -		return sprintf(buf, "N/A (no PMA)\n");
+> +	if (!dev->process_mad)
+> +		return -ENOSYS;
+>  
+>  	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
+>  	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
+> @@ -344,12 +344,12 @@ static ssize_t show_pma_counter(struct ib_port *p, struct port_attribute *attr,
+>  	in_mad->mad_hdr.mgmt_class    = IB_MGMT_CLASS_PERF_MGMT;
+>  	in_mad->mad_hdr.class_version = 1;
+>  	in_mad->mad_hdr.method        = IB_MGMT_METHOD_GET;
+> -	in_mad->mad_hdr.attr_id       = cpu_to_be16(0x12); /* PortCounters */
+> +	in_mad->mad_hdr.attr_id       = attr;
+>  
+> -	in_mad->data[41] = p->port_num;	/* PortSelect field */
+> +	in_mad->data[41] = port_num;	/* PortSelect field */
+>  
+> -	if ((p->ibdev->process_mad(p->ibdev, IB_MAD_IGNORE_MKEY,
+> -		 p->port_num, NULL, NULL,
+> +	if ((dev->process_mad(dev, IB_MAD_IGNORE_MKEY,
+> +		 port_num, NULL, NULL,
+>  		 (const struct ib_mad_hdr *)in_mad, mad_size,
+>  		 (struct ib_mad_hdr *)out_mad, &mad_size,
+>  		 &out_mad_pkey_index) &
+> @@ -358,31 +358,49 @@ static ssize_t show_pma_counter(struct ib_port *p, struct port_attribute *attr,
+>  		ret = -EINVAL;
+>  		goto out;
+>  	}
+> +	memcpy(data, out_mad->data + offset, size);
+> +	ret = size;
+> +out:
+> +	kfree(in_mad);
+> +	kfree(out_mad);
+> +	return ret;
+> +}
+> +
+> +static ssize_t show_pma_counter(struct ib_port *p, struct port_attribute *attr,
+> +				char *buf)
+> +{
+> +	struct port_table_attribute *tab_attr =
+> +		container_of(attr, struct port_table_attribute, attr);
+> +	int offset = tab_attr->index & 0xffff;
+> +	int width  = (tab_attr->index >> 16) & 0xff;
+> +	ssize_t ret;
+> +	u8 data[8];
+> +
+> +	ret = get_perf_mad(p->ibdev, p->port_num, cpu_to_be16(0x12), &data,
+> +			40 + offset / 8, sizeof(data));
+> +	if (ret < 0)
+> +		return sprintf(buf, "N/A (no PMA)\n");
+>  
+>  	switch (width) {
+>  	case 4:
+> -		ret = sprintf(buf, "%u\n", (out_mad->data[40 + offset / 8] >>
+> +		ret = sprintf(buf, "%u\n", (*data >>
+>  					    (4 - (offset % 8))) & 0xf);
+>  		break;
+>  	case 8:
+> -		ret = sprintf(buf, "%u\n", out_mad->data[40 + offset / 8]);
+> +		ret = sprintf(buf, "%u\n", *data);
+>  		break;
+>  	case 16:
+>  		ret = sprintf(buf, "%u\n",
+> -			      be16_to_cpup((__be16 *)(out_mad->data + 40 + offset / 8)));
+> +			      be16_to_cpup((__be16 *)data));
+>  		break;
+>  	case 32:
+>  		ret = sprintf(buf, "%u\n",
+> -			      be32_to_cpup((__be32 *)(out_mad->data + 40 + offset / 8)));
+> +			      be32_to_cpup((__be32 *)data));
+>  		break;
+>  	default:
+>  		ret = 0;
+>  	}
+>  
+> -out:
+> -	kfree(in_mad);
+> -	kfree(out_mad);
+> -
+>  	return ret;
+>  }
+>  
+> -- 
+> 2.5.0
+> 
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
