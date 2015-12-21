@@ -1,128 +1,76 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v4 01/11] svcrdma: Do not send XDR roundup bytes for a write chunk
-Date: Mon, 21 Dec 2015 17:11:56 -0500
-Message-ID: <DF5B7D29-0C6C-47EF-8E3E-74BF137D7F95@oracle.com>
-References: <20151214211951.12932.99017.stgit@klimt.1015granger.net> <20151214213009.12932.60521.stgit@klimt.1015granger.net> <20151221210708.GD7869@fieldses.org> <D0AD304E-0356-48DE-A68D-F9F8930D854D@oracle.com> <20151221212959.GE7869@fieldses.org>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH V1 00/16] add Intel(R) X722 iWARP driver
+Date: Mon, 21 Dec 2015 17:13:00 -0600
+Message-ID: <1450739596-23276-1-git-send-email-faisal.latif@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151221212959.GE7869-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Cc: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-> On Dec 21, 2015, at 4:29 PM, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> wrote:
-> 
-> On Mon, Dec 21, 2015 at 04:15:23PM -0500, Chuck Lever wrote:
->> 
->>> On Dec 21, 2015, at 4:07 PM, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> wrote:
->>> 
->>> On Mon, Dec 14, 2015 at 04:30:09PM -0500, Chuck Lever wrote:
->>>> Minor optimization: when dealing with write chunk XDR roundup, do
->>>> not post a Write WR for the zero bytes in the pad. Simply update
->>>> the write segment in the RPC-over-RDMA header to reflect the extra
->>>> pad bytes.
->>>> 
->>>> The Reply chunk is also a write chunk, but the server does not use
->>>> send_write_chunks() to send the Reply chunk. That's OK in this case:
->>>> the server Upper Layer typically marshals the Reply chunk contents
->>>> in a single contiguous buffer, without a separate tail for the XDR
->>>> pad.
->>>> 
->>>> The comments and the variable naming refer to "chunks" but what is
->>>> really meant is "segments." The existing code sends only one
->>>> xdr_write_chunk per RPC reply.
->>>> 
->>>> The fix assumes this as well. When the XDR pad in the first write
->>>> chunk is reached, the assumption is the Write list is complete and
->>>> send_write_chunks() returns.
->>>> 
->>>> That will remain a valid assumption until the server Upper Layer can
->>>> support multiple bulk payload results per RPC.
->>>> 
->>>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>>> ---
->>>> net/sunrpc/xprtrdma/svc_rdma_sendto.c |    7 +++++++
->>>> 1 file changed, 7 insertions(+)
->>>> 
->>>> diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
->>>> index 969a1ab..bad5eaa 100644
->>>> --- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
->>>> +++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
->>>> @@ -342,6 +342,13 @@ static int send_write_chunks(struct svcxprt_rdma *xprt,
->>>> 						arg_ch->rs_handle,
->>>> 						arg_ch->rs_offset,
->>>> 						write_len);
->>>> +
->>>> +		/* Do not send XDR pad bytes */
->>>> +		if (chunk_no && write_len < 4) {
->>>> +			chunk_no++;
->>>> +			break;
->>> 
->>> I'm pretty lost in this code.  Why does (chunk_no && write_len < 4) mean
->>> this is xdr padding?
->> 
->> Chunk zero is always data. Padding is always going to be
->> after the first chunk. Any chunk after chunk zero that is
->> shorter than XDR quad alignment is going to be a pad.
-> 
-> I don't really know what a chunk is....  Looking at the code:
-> 
-> 	write_len = min(xfer_len, be32_to_cpu(arg_ch->rs_length));
-> 
-> so I guess the assumption is just that those rs_length's are always a
-> multiple of four?
+This (V1) series contains the addition of the i40iw.ko driver after
+incorporating the feedback from Christoph Hellwig and Joe Perches for
+initial series.
 
-The example you recently gave was a two-byte NFS READ
-that crosses a page boundary.
+This driver provides iWARP RDMA functionality for the Intel(R) X722 Ethernet
+controller for PCI Physical Functions. It also has support for Virtual
+Function driver (i40iwvf.ko), which that will be part of separate patch
+series.
 
-In that case, the NFSD would pass down an xdr_buf that
-has one byte in a page, one byte in another page, and
-a two-byte XDR pad. The logic introduced by this
-optimization would be fooled, and neither the second
-byte nor the XDR pad would be written to the client.
+It cooperates with the Intel(R) X722 base driver (i40e.ko) to allocate
+resources and program the controller.
 
-Unless you can think of a way to recognize an XDR pad
-in the xdr_buf 100% of the time, you should drop this
-patch.
+This series include 1 patch to i40e.ko to provide interface support to
+i40iw.ko. The interface provides a driver registration mechanism, resource
+allocations, and device reset coordination mechanisms.
 
-As far as I know, none of the other patches in this
-series depend on this optimization, so please merge
-them if you can.
+This patch series is based on Doug Ledford's k.o/for-4.5.
 
 
-> --b.
-> 
->> 
->> Probably too clever. Is there a better way to detect
->> the XDR pad?
->> 
->> 
->>>> +		}
->>>> +
->>>> 		chunk_off = 0;
->>>> 		while (write_len) {
->>>> 			ret = send_write(xprt, rqstp,
->> 
->> --
->> Chuck Lever
->> 
->> 
->> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Anjali Singhai Jain (1)
+net/ethernet/intel/i40e: Add support for client interface for IWARP driver
 
---
-Chuck Lever
+Faisal Latif(15):
+infiniband/hw/i40iw: add main, hdr, status
+infiniband/hw/i40iw: add connection management code
+infiniband/hw/i40iw: add puda code
+infiniband/hw/i40iw: add pble resource files
+infiniband/hw/i40iw: add hmc resource files
+infiniband/hw/i40iw: add hw and utils files
+infiniband/hw/i40iw: add files for iwarp interface
+infiniband/hw/i40iw: add file to handle cqp calls
+infiniband/hw/i40iw: add hardware related header files
+infiniband/hw/i40iw: add X722 register file
+infiniband/hw/i40iw: user kernel shared files
+infiniband/hw/i40iw: virtual channel handling files
+infiniband/hw/i40iw: Kconfig and Kbuild for iwarp module
+infiniband/hw/i40iw: Add entry for I40IW rdma_netlink.h
+infiniband/hw/i40iw: changes for build of i40iw module
 
+Changes done from initial version to V1 are following.
 
+Feedback received from Christoph Hellwig
+*Remove pointless braces -improved after code review and changing
+*kmap()/kunmap() - made it very short lived
+*less casts -improved 
+*Remove unused routine stubs - done
+*no initialize to 0 or NULL when struct field were zeroed - done
+*define UNREFERENCED_PARAMETER not needed -done
+*remove define I40eE_MASK  -done
+*rd32(), wr32() make them inline -done
+*readq() use magic in linux/io-64-nonatomic-lo-hi.h -done
+*SLEEP() define -done by removing it
+*entry in rdma_netlink.h for I40IW should be in proper location
+	and separate patch -done
 
-
+Feedback received from Joe Perches
+*series to respuun re-spun against next - done with
+	Doug's Ledford's k.o/for-4.5
+*Change to i40e client patch regarding mailing list - this is consistent
+	with other i40e files.
+*Removed error from i40iw_pr_err() -done
+*cqp_request() change from bitfields to bool -done
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
