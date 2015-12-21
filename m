@@ -1,31 +1,76 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH libibverbs 0/3] Add cross-channel support
-Date: Sun, 20 Dec 2015 11:14:49 -0700
-Message-ID: <20151220181449.GA18811@obsidianresearch.com>
-References: <1450610564-17279-1-git-send-email-leon@leon.nu>
+From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Subject: Re: [PATCH v2 00/10] iSER support for remote invalidate
+Date: Sun, 20 Dec 2015 20:20:28 -0800
+Message-ID: <1450671628.25674.27.camel@haakon3.risingtidesystems.com>
+References: <1449663128-368-1-git-send-email-sagig@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1450610564-17279-1-git-send-email-leon-2ukJVAZIZ/Y@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1449663128-368-1-git-send-email-sagig@mellanox.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Sagi Grimberg <sagig@mellanox.com>
+Cc: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, Or Gerlitz <ogerlitz@mellanox.com>, Jenny Derzhavetz <jennyf@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Dec 20, 2015 at 01:22:41PM +0200, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hi Sagi, Jenny & Co,
+
+On Wed, 2015-12-09 at 14:11 +0200, Sagi Grimberg wrote:
+> Changes from v1:
+> - Fixed change-log typos
 > 
-> This patchset adds supplementary part of cross-channel support [1]
-> to libibverbs.
+> Changes from v0:
+> - Rebased on top of 4.4-rc2
+> - Removed iser_hello messages from the protocol header
+> - Avoided from further breaking the non-existent bidi support
+> - Fixed initiator remote invalidate support exposure only
+>   for fastreg && iser_always_register
+> - Removed patch 2/10 as it's still under testing.
+> - Minor line-spacing nitpicks CR comments fixes.
+> - Added a FIXME comment to declare our debt to Or and Jason
+>   on the awkward device->mr->rkey deref.
+> - Piggybacked another patch that reduces some iser code that
+>   is now available by the ib_core (ib_sg_to_pages).
+> 
+> Thanks a lot to all the reviewers!
+> 
+> Code is available at:
+> git@github.com:sagigrimberg/linux.git iser-remote-inv.2
+> 
+> Jenny Derzhavetz (5):
+>   IB/iser: Don't register memory for all immediate data writes
+>   IB/iser: set intuitive values for mr_valid
+>   iser-target: Declare correct flags when accepting a connection
+>   iser-target: Support the remote invalidation exception
+>   IB/iser: Support the remote invalidation exception
+> 
+> Roi Dayan (1):
+>   IB/iser: Fix module init not cleaning up on error flow
+> 
+> Sagi Grimberg (4):
+>   IB/iser: Reuse ib_sg_to_pages
+>   iser: Have initiator and target to share protocol structures and
+>     definitions
+>   iser-target: Remove unused file iser_proto.h
+>   IB/iser: Increment the rkey when registering and not when invalidating
+> 
+>  drivers/infiniband/ulp/iser/iscsi_iser.c     |   9 +-
+>  drivers/infiniband/ulp/iser/iscsi_iser.h     |  54 +++-------
+>  drivers/infiniband/ulp/iser/iser_initiator.c |  70 +++++++++++--
+>  drivers/infiniband/ulp/iser/iser_memory.c    | 150 +++++++++------------------
+>  drivers/infiniband/ulp/iser/iser_verbs.c     |  30 ++++--
+>  drivers/infiniband/ulp/isert/ib_isert.c      |  73 +++++++++----
+>  drivers/infiniband/ulp/isert/ib_isert.h      |  40 ++++++-
+>  drivers/infiniband/ulp/isert/isert_proto.h   |  47 ---------
+>  include/scsi/iser.h                          |  78 ++++++++++++++
+>  9 files changed, 322 insertions(+), 229 deletions(-)
+>  delete mode 100644 drivers/infiniband/ulp/isert/isert_proto.h
+>  create mode 100644 include/scsi/iser.h
+> 
 
-All of this needs some kind of man page update
+Applied to target-pending/for-next as v4.5-rc1 material, along with
+Reviewed-by tags from HCH.
 
-And considering this is a non-standard feature it had better be a
-really good man page with examples and so forth.
+Thanks folks.
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--nab
