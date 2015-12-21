@@ -1,57 +1,128 @@
-From: "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: Re: [RFC PATCH 00/15] staging/rdma/hfi1: Initial patches to add
- rdmavt support in HFI1
-Date: Mon, 21 Dec 2015 14:02:35 -0800
-Message-ID: <20151221220235.GA14142@kroah.com>
-References: <20151214172509.11576.19722.stgit@phlsvslse11.ph.intel.com>
- <20151221061214.GD3860@phlsvsds.ph.intel.com>
-Mime-Version: 1.0
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v4 01/11] svcrdma: Do not send XDR roundup bytes for a write chunk
+Date: Mon, 21 Dec 2015 17:11:56 -0500
+Message-ID: <DF5B7D29-0C6C-47EF-8E3E-74BF137D7F95@oracle.com>
+References: <20151214211951.12932.99017.stgit@klimt.1015granger.net> <20151214213009.12932.60521.stgit@klimt.1015granger.net> <20151221210708.GD7869@fieldses.org> <D0AD304E-0356-48DE-A68D-F9F8930D854D@oracle.com> <20151221212959.GE7869@fieldses.org>
+Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20151221061214.GD3860-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <20151221212959.GE7869-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Cc: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 21, 2015 at 01:12:14AM -0500, ira.weiny wrote:
-> Greg, Doug,
-> 
-> As mentioned below, these patches depend on the new rdmavt library submitted to
-> Doug on linux-rdma.
-> 
-> We continue to identify (and rework) patches by our other developers which can
-> be submitted without conflicts with this series.  Furthermore, We have, as much
-> as possible, placed fixes directly into rdmavt such that those changes can be
-> dropped from hfi1.  But at this point, we need to know if and where these are
-> going to land so that we can start reworking as appropriate.
-> 
-> Therefore, I would like to discuss plans to get hfi1 under the same maintainer
-> to work through this transitional period.
-> 
-> Basically, At what point should we stop submitting patches to Greg and start
-> submitting to Doug?
-> 
-> Should we consider the merge window itself as the swap over point and submit
-> changes to Doug at that point?  If so, should we continue to submit what we can
-> to Greg until then (and continue rebase'ing the series below on that work)?  Or
-> given Gregs backlog, should we stop submitting to Greg sometime prior to the
-> merge window?
-> 
-> That brings up my final question, at the point of swap over I assume anything
-> not accepted by Greg should be considered rejected and we need to resubmit to
-> Doug?
 
-If Doug accepts the library changes, let me know that public git commit
-and I can pull it into the staging-next branch and you can continue to
-send me staging patches that way.
+> On Dec 21, 2015, at 4:29 PM, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> wrote:
+> 
+> On Mon, Dec 21, 2015 at 04:15:23PM -0500, Chuck Lever wrote:
+>> 
+>>> On Dec 21, 2015, at 4:07 PM, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> wrote:
+>>> 
+>>> On Mon, Dec 14, 2015 at 04:30:09PM -0500, Chuck Lever wrote:
+>>>> Minor optimization: when dealing with write chunk XDR roundup, do
+>>>> not post a Write WR for the zero bytes in the pad. Simply update
+>>>> the write segment in the RPC-over-RDMA header to reflect the extra
+>>>> pad bytes.
+>>>> 
+>>>> The Reply chunk is also a write chunk, but the server does not use
+>>>> send_write_chunks() to send the Reply chunk. That's OK in this case:
+>>>> the server Upper Layer typically marshals the Reply chunk contents
+>>>> in a single contiguous buffer, without a separate tail for the XDR
+>>>> pad.
+>>>> 
+>>>> The comments and the variable naming refer to "chunks" but what is
+>>>> really meant is "segments." The existing code sends only one
+>>>> xdr_write_chunk per RPC reply.
+>>>> 
+>>>> The fix assumes this as well. When the XDR pad in the first write
+>>>> chunk is reached, the assumption is the Write list is complete and
+>>>> send_write_chunks() returns.
+>>>> 
+>>>> That will remain a valid assumption until the server Upper Layer can
+>>>> support multiple bulk payload results per RPC.
+>>>> 
+>>>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>>> ---
+>>>> net/sunrpc/xprtrdma/svc_rdma_sendto.c |    7 +++++++
+>>>> 1 file changed, 7 insertions(+)
+>>>> 
+>>>> diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+>>>> index 969a1ab..bad5eaa 100644
+>>>> --- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+>>>> +++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+>>>> @@ -342,6 +342,13 @@ static int send_write_chunks(struct svcxprt_rdma *xprt,
+>>>> 						arg_ch->rs_handle,
+>>>> 						arg_ch->rs_offset,
+>>>> 						write_len);
+>>>> +
+>>>> +		/* Do not send XDR pad bytes */
+>>>> +		if (chunk_no && write_len < 4) {
+>>>> +			chunk_no++;
+>>>> +			break;
+>>> 
+>>> I'm pretty lost in this code.  Why does (chunk_no && write_len < 4) mean
+>>> this is xdr padding?
+>> 
+>> Chunk zero is always data. Padding is always going to be
+>> after the first chunk. Any chunk after chunk zero that is
+>> shorter than XDR quad alignment is going to be a pad.
+> 
+> I don't really know what a chunk is....  Looking at the code:
+> 
+> 	write_len = min(xfer_len, be32_to_cpu(arg_ch->rs_length));
+> 
+> so I guess the assumption is just that those rs_length's are always a
+> multiple of four?
 
-That's the easiest thing to do usually.
+The example you recently gave was a two-byte NFS READ
+that crosses a page boundary.
 
-thanks,
+In that case, the NFSD would pass down an xdr_buf that
+has one byte in a page, one byte in another page, and
+a two-byte XDR pad. The logic introduced by this
+optimization would be fooled, and neither the second
+byte nor the XDR pad would be written to the client.
 
-greg k-h
+Unless you can think of a way to recognize an XDR pad
+in the xdr_buf 100% of the time, you should drop this
+patch.
+
+As far as I know, none of the other patches in this
+series depend on this optimization, so please merge
+them if you can.
+
+
+> --b.
+> 
+>> 
+>> Probably too clever. Is there a better way to detect
+>> the XDR pad?
+>> 
+>> 
+>>>> +		}
+>>>> +
+>>>> 		chunk_off = 0;
+>>>> 		while (write_len) {
+>>>> 			ret = send_write(xprt, rqstp,
+>> 
+>> --
+>> Chuck Lever
+>> 
+>> 
+>> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--
+Chuck Lever
+
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
