@@ -1,48 +1,48 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/cma: cma_match_net_dev needs to take into account
- port_num
-Date: Tue, 22 Dec 2015 13:58:41 -0500
-Message-ID: <56799D61.9010206@redhat.com>
-References: <1450710084-22547-1-git-send-email-matanb@mellanox.com>
- <56792A4B.8060101@mellanox.com>
+Subject: Re: [PATCH V1 00/16] add Intel(R) X722 iWARP driver
+Date: Tue, 22 Dec 2015 14:09:29 -0500
+Message-ID: <56799FE9.1050305@redhat.com>
+References: <1450739596-23276-1-git-send-email-faisal.latif@intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="5Dvb8UE1koBlh8FEnlOU5Ob7hbnAUs3D4"
+ boundary="GlkQiNUs595xBF2JAel47GP2H03Ale49g"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56792A4B.8060101-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1450739596-23276-1-git-send-email-faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---5Dvb8UE1koBlh8FEnlOU5Ob7hbnAUs3D4
+--GlkQiNUs595xBF2JAel47GP2H03Ale49g
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 12/22/2015 05:47 AM, Or Gerlitz wrote:
-> On 12/21/2015 5:01 PM, Matan Barak wrote:
->> Previously, cma_match_net_dev called cma_protocol_roce which
->> tried to verify that the IB device uses RoCE protocol. However,
->> if rdma_id didn't have a bounded port, it used the first port
->> of the device.
->>
->> In VPI systems, the first port might be an IB port while the second
->> one could be an Ethernet port. This made requests for unbounded rdma_i=
-ds
->> that come from the Ethernet port fail.
->> Fixing this by passing the port of the request and checking this port
->> of the device.
->>
->> Fixes: b8cab5dab15f ('IB/cma: Accept connection without a valid netdev=
-
->> on RoCE')
->> Signed-off-by: Matan Barak<matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 12/21/2015 06:13 PM, Faisal Latif wrote:
+> This (V1) series contains the addition of the i40iw.ko driver after
+> incorporating the feedback from Christoph Hellwig and Joe Perches for
+> initial series.
 >=20
-> seems that the patch is missing from patchworks, I can't explain that.
+> This driver provides iWARP RDMA functionality for the Intel(R) X722 Eth=
+ernet
+> controller for PCI Physical Functions. It also has support for Virtual
+> Function driver (i40iwvf.ko), which that will be part of separate patch=
 
-I've already downloaded it and marked it accepted.
+> series.
+>=20
+> It cooperates with the Intel(R) X722 base driver (i40e.ko) to allocate
+> resources and program the controller.
+>=20
+> This series include 1 patch to i40e.ko to provide interface support to
+> i40iw.ko. The interface provides a driver registration mechanism, resou=
+rce
+> allocations, and device reset coordination mechanisms.
+>=20
+> This patch series is based on Doug Ledford's k.o/for-4.5.
+
+Please use shallow threading on patch submissions like this.
+
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -50,7 +50,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---5Dvb8UE1koBlh8FEnlOU5Ob7hbnAUs3D4
+--GlkQiNUs595xBF2JAel47GP2H03Ale49g
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -59,22 +59,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWeZ1hAAoJELgmozMOVy/daSYQAJQi4Htm/hEuEe+yIgoK49TA
-+40JO7BdCgzjXPg1XXhD2n+uuOFOFAvXea7DN6O4+OSDZ/pxfVnPh/xjfbPvCOpr
-eJ6A2fGMleFM6Ea6J9x09KylPCBP6iXNSMkM98WDRTWdEmysS3abzD7iRgVZ+oOB
-9pD1fHdoYUjNa0v3zjSpqF6vShybY4Z+srNHHyA/o+SMnBofFSWC1DEN+vb2llaJ
-PXb2HBbIASYtF3ygDQf6zWYtQywEjvLjP4zWZj40KM0/7VGUh9tta240XgSf9+fS
-tVWunDjfu6MpaZPYBLX6rQ8V6yPiWKhIbN0eb3QCshn1C3itNc+wa4lHAzVjA/a2
-1nsmx2A5E8hU7v8tV206yPSBk7VdJSZHT3fQcGZSb+KmExoL0wvuyd1U/eCOBkSI
-cxI50a0s8+PYQ1/pvmsGY2zoMDvlF0X/Ja4zqRkmdjoejp5lUd2ggziZiRCCVUma
-pm6c6fySxK2u6vBySVhreo+P2Mj2mHvuV+//zdGLR+lS3dPxXfSDKIUJU5ds0y7l
-8Ebir0sM9rv1PjNurFbX77prQIWI/kn5bkRmqMOOclwe0wn7/N1ocuc96SxFJUmR
-soVXicJyE+sOWb2B6xrwh83IiZxbEE2o2MGzdbxgxxNgwm3nKFLio/tA/49UUeM3
-HE/FEtyyl+H+hy/Mn2Fo
-=a7Xv
+iQIcBAEBCAAGBQJWeZ/pAAoJELgmozMOVy/dwxEP/3/k35ECWSEZMMzRvVHBtRQK
+Z9sJ8svC44HmJKK5atfdE3wTk5kbCTKQdOYzShUJy87o7dfyUWrnLyxr3WcC65/y
+hSh+w9sAnSKiuRZylwWEUXdnZRRP8HgsbMU4cQt9JVZZO6srSeR99ZsgwfFqwJZM
+8GM0yuqB8UcGQPyAuj5poD07x+J7H6nRiyRHYpHo0P2nPQvIFHqXeyyXI0uoZ9wH
+vD5ys1oIwtvHAu+MBSWARbvyen9b87Z9mqiLmN8pHgdKU1OQhcL7+p9B+hX6BM5L
+3mQx8MVVEtFpBqoy9XalgoxZNnHui0ByhIdtzfCKmyZ/DPyttAjGRgxWi0A7lGPE
+9RDOZBcwgeijR6TDLvVCuA48a/B6Ykw0knc3i4nZPcUdYQsqEsStrcl1r+PHRvNj
+nljNG7dkoYZd49PardSxUu5ERrEaRZ4Gh+oY7tQoHiRXOJ3iVTuD8sXlKwWZP8Se
+TriDrsavPXuI70lmI4/9jISGMt8vWF6gostFerN7AeKf+13ZRV5BPXIMIDpzKg+p
+ggr7wjEuay0iEoCUpMLl9G+VCxrYMsuxQsI89+BmLAcHIwlr5AA7xjnDvv1adN1q
+kGokipUV4ZPEq1gc7G6QGZBgYb6ilX1nineeSfI5eHdFD2Y+1ZkNA4HQttBt8NMs
+6N+hNahLd26h9EMeXQ5X
+=o0s8
 -----END PGP SIGNATURE-----
 
---5Dvb8UE1koBlh8FEnlOU5Ob7hbnAUs3D4--
+--GlkQiNUs595xBF2JAel47GP2H03Ale49g--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
