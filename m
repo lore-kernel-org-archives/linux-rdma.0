@@ -1,38 +1,34 @@
-From: Dave Goodell <dgoodell@cisco.com>
-Subject: Re: [PATCH] IB/usnic: delete unneeded IS_ERR test
-Date: Tue, 22 Dec 2015 10:29:03 -0500
-Message-ID: <20151222152903.GA23118@DGOODELL-M-F02A.cisco.com>
-References: <1450558139-466-1-git-send-email-Julia.Lawall@lip6.fr>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 10/11] IB: only keep a single key in struct ib_mr
+Date: Tue, 22 Dec 2015 18:58:14 +0200
+Message-ID: <56798126.9000003@dev.mellanox.co.il>
+References: <1448214409-7729-1-git-send-email-hch@lst.de>
+ <1448214409-7729-11-git-send-email-hch@lst.de>
+ <56791542.6020604@dev.mellanox.co.il> <20151222131326.GA25267@lst.de>
+ <56795514.9090704@dev.mellanox.co.il> <20151222135927.GA26311@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1450558139-466-1-git-send-email-Julia.Lawall@lip6.fr>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: Christian Benvenuti <benve@cisco.com>, kernel-janitors@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Nelson Escobar <neescoba@cisco.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151222135927.GA26311-jcswGhMUV9g@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-[copying Nelson too]
 
-On Sat, Dec 19, 2015 at 09:48:59PM +0100, Julia Lawall wrote:
-> kzalloc doesn't return ERR_PTR, so there is no need to test for it.
-> 
-> The semantic match that finds this problem is as follows:
-> (http://coccinelle.lip6.fr/)
-> 
-> // <smpl>
-> @@
-> expression x,e;
-> @@
-> 
-> * x = kzalloc(...)
-> ... when != x = e
-> * IS_ERR_OR_NULL(x)
-> // </smpl>
-> 
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+> The ULP decides if this MR is going to be used as a lkey or rkey
+> by passing IB_REG_LKEY or IB_REG_RKEY.  The HCA driver will then
+> fill mr->key by the lkey or rkey based on that and everything will
+> work fine.
 
-Reviewed-by: Dave Goodell <dgoodell@cisco.com>
-
--Dave
+But the ULP *can* register a memory buffer with local and remote
+access permissions. One example is ImmediateData or a FirstBurst
+implementation where an initiator sends the first burst of data and
+the target reads the rest of it. My concern is that a device that
+uses different keys would not be able to support that (or we make
+the ULP perform two registrations).
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
