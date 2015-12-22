@@ -1,88 +1,122 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/cma: cma_match_net_dev needs to take into account
- port_num
-Date: Tue, 22 Dec 2015 15:01:28 -0500
-Message-ID: <5679AC18.4070002@redhat.com>
-References: <1450710084-22547-1-git-send-email-matanb@mellanox.com>
- <56792A4B.8060101@mellanox.com> <56799D61.9010206@redhat.com>
- <CAAKD3BDmenFsiZTDiw8OEW-F0GqK62+zJ-TVywyYd4YDtzxrCA@mail.gmail.com>
+Subject: Re: device attr cleanup
+Date: Tue, 22 Dec 2015 15:37:48 -0500
+Message-ID: <5679B49C.8030705@redhat.com>
+References: <CAJ3xEMj2EOxX1CiA93MPOsM-FdU9ijcWCYm9tObbkLqqja0PoA@mail.gmail.com>
+ <566753E3.9060301@redhat.com>
+ <CAJ3xEMhaEnv9He7N5q8fFsRzy_j27wdE6KWSFF39UzA680udwA@mail.gmail.com>
+ <20151208225940.GB27609@obsidianresearch.com>
+ <CAJ3xEMiEYgsxiL6zR-Dia3Rxwriye1WHcadTmUjU7zV=ide1LA@mail.gmail.com>
+ <CAJ3xEMgQNMtxgTKC0zaKgy-WGugf6KwT7Ys5h3_RbN_7qd2=tg@mail.gmail.com>
+ <56706414.8010807@redhat.com> <5670FC5E.8070405@mellanox.com>
+ <CAJ3xEMiGOF79o1OSgxgk2tN+kY91uiNY5Aq+xu2U0Sur-htxpQ@mail.gmail.com>
+ <5679A254.2040809@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="CKCkrIHpDRqX8ighXEPKEUO759gWLkfEj"
+ boundary="RXS74HCXUjRLPIBbcCNeR2XGgeCRikNsE"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAAKD3BDmenFsiZTDiw8OEW-F0GqK62+zJ-TVywyYd4YDtzxrCA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <5679A254.2040809-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---CKCkrIHpDRqX8ighXEPKEUO759gWLkfEj
+--RXS74HCXUjRLPIBbcCNeR2XGgeCRikNsE
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 12/22/2015 02:26 PM, Matan Barak wrote:
-> On Tue, Dec 22, 2015 at 8:58 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wro=
-te:
->> On 12/22/2015 05:47 AM, Or Gerlitz wrote:
->>> On 12/21/2015 5:01 PM, Matan Barak wrote:
->>>> Previously, cma_match_net_dev called cma_protocol_roce which
->>>> tried to verify that the IB device uses RoCE protocol. However,
->>>> if rdma_id didn't have a bounded port, it used the first port
->>>> of the device.
->>>>
->>>> In VPI systems, the first port might be an IB port while the second
->>>> one could be an Ethernet port. This made requests for unbounded rdma=
-_ids
->>>> that come from the Ethernet port fail.
->>>> Fixing this by passing the port of the request and checking this por=
-t
->>>> of the device.
->>>>
->>>> Fixes: b8cab5dab15f ('IB/cma: Accept connection without a valid netd=
-ev
->>>> on RoCE')
->>>> Signed-off-by: Matan Barak<matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 12/22/2015 02:19 PM, Doug Ledford wrote:
+> On 12/22/2015 02:56 AM, Or Gerlitz wrote:
+>> On Wed, Dec 16, 2015 at 7:53 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wr=
+ote:
+>>> On 12/15/2015 9:03 PM, Doug Ledford wrote:
+>>
+>>>> Or, you specifically asked me to wait until this week.  I made my
+>>>> initial impressions clear (I don't necessarily like the removal of t=
+he
+>>>> attr struct, but I like the removal of all of the query calls, and I=
+'m
+>>>> inclined to take the patch in spite of not liking the removal of the=
+
+>>>> struct).  Do you have anything to add or have we beat this horse to =
+death?
+>>
+>>> Hi Doug,
+>>> Lets stop beating, both horses and people.
+>>> I do understand that
+>>> 1. you don't link the removal of the attr
+>>> 2. you do like the removal of all the query calls
 >>>
->>> seems that the patch is missing from patchworks, I can't explain that=
-=2E
+>>> I am proposing to take the path of a patch that
+>>> does exactly #2 while avoiding #1.
 >>
->> I've already downloaded it and marked it accepted.
+>> Doug,
 >>
+>> Did you look on my v1 post and the related discussion there w.r.t udat=
+a?
 >=20
-> Thanks Doug. Would you like that I'll repost the patch with the commit
-> message changed as Or suggested or is the current version good enough?
+> Yes, I did.
+>=20
+>> You didn't make any comment on my response here nor on the proposed pa=
+tches.
+>=20
+> I'm trying to find all of the emails, they aren't in a single thread in=
 
-I rewrote most of the commit message myself.  It now reads as such:
+> my mailbox (I had to do some reconstruction of my mailbox due to a
+> problem in a mail filter late last week...missing that the rule was set=
 
-commit b00a1609f845df4c75bc62f56d0d71a01fe87cc6
-Author: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Date:   Mon Dec 21 17:01:24 2015 +0200
-
-    IB/cma: cma_match_net_dev needs to take into account port_num
-
-    Previously, cma_match_net_dev called cma_protocol_roce which
-    tried to verify that the IB device uses RoCE protocol. However,
-    if rdma_id wasn't bound to a port, then the check would occur
-    against the first port of the device without regard to whether
-    that port was even of the same type as the type of port the
-    incoming packet was received on.
-
-    Fix this by passing the port of the request and only checking
-    against the same port of the device.
-
-    Fixes: b8cab5dab15f ('IB/cma: Accept connection without a valid
-netdev on RoCE')
-    Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-    Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> to "match any" when I intended "match all" and the action of the rule
+> was "delete" when I expected delete to be the same as "move to trash"
+> and it wasn't, it was delete immediately, has caused me some problems).=
 
 
-> Regarding the Ethernet loopback issue, I started looking into that,
-> but as Or stated, it's broken even before the RoCE patches.
+OK, here's part of the problem.  The udata discussion was in your
+original patch series, not the V1 series.  I don't have that in my
+mailbox at all (it was a casualty of the aforementioned mailbox event,
+and I probably could have recovered it at the time, but I didn't think I
+needed the original thread, just the V1 thread, so I didn't).  However,
+I looked things up on marc.info.  It would have been preferable to
+either remove query_device from the hardware drivers or to rename it to
+something that clearly denotes it is now a kernel internal call-in point
+(say device->init_ib_dev_attr).  Christoph's patch doesn't really get
+rid of each device's query_device, it just moves the code into each
+device's init routine and drops the call point.  As far as I'm
+concerned, leaving the code in a function and calling that function
+either from each driver's init routine or from the core registration
+function is neither here nor there to me, either would suffice.
 
-Sure, let me know if you root cause it, I'd like to get it into 4.5 if
-possible.
+>> Since we are really short in time w.r.t EOY holidays and we have the
+>> udata matter
+>> open (see [1]), could we move finalizing this discussion to the 4.6 ti=
+me-frame?
+>>
+>> If you do have the time, I think it would be fair to see a response
+>> from you on the
+>> discussion before you pick any of the two patch sets - so??
+>=20
+> I'm not inclined to take either patch set as they stand.  Your's is
+> closer to what I'm leaning towards though.  I think I can add a single
+> patch to yours to make it into what I want.  I'm going to go work on
+> that right now...
+
+After looking it over in detail, I'm not going to do what I had in mind.
+ I still think the udata issue should be resolved, but I'm willing to
+take that as a follow-on patch later on.  So, for now, I've taken in
+your v1 patchset.  I'm now going to start seeing how many of the
+patchsets I had also intended to take for 4.5 will need possible respins
+in order to apply cleanly :-/
+
+>> Or.
+>>
+>> [1] Christoph's patch doesn't remove the query_device callback from
+>> mlx4 since we
+>> report there values to libmlx4 through the udata mechanism. The
+>> query_device callback
+>> will need to be present in future/current drivers if they decide to
+>> use udata as well
+
 
 
 --=20
@@ -91,7 +125,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---CKCkrIHpDRqX8ighXEPKEUO759gWLkfEj
+--RXS74HCXUjRLPIBbcCNeR2XGgeCRikNsE
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -100,22 +134,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWeawYAAoJELgmozMOVy/dlroP/j8BvYS8xtCnEtjEAgTrJRsK
-bWlyhIn4iIhr58NuiAJHND5orCfR1Dngaj1sOsUXl7vFB6mtnnn+zM48c3ekoBNB
-7Wwn6D/oYefqW8oRQZC5FXSBNajzRGLvAYXqFe4lnThZ7BNbs9JhVNqTL3VDAsTY
-nU/jsPP0rz7wK6rpFM2L3d0/CnLt4/LnxAxxR43P+YZ2hdCmrnsogE4Cp6fdl9SJ
-uJV9mdJpHVMqOxGXTnxLGVTpS+woWZWlhMeDMrLuWB1I8HGjSOId6uost1rFahWS
-7qbKdnhDNuCbj20FDCmWNx5zptExlDzmVk5gmPstB7WgdwOipmBERyXlf67Wvu+J
-1wKeKbqf30NjKzggdX7TK21wEWNTy/6FRX4CDxpHoart4tZKZ3/fLV68L3AmnGk/
-Vy6r0GY/wNgzJTgKpSx+0sdkwiiPr0BRjOt+eEtFlyNn+UA/xAkfVvkBtuuu/V2E
-VPo5YJY5iSrTR7IKeg5ftXIekZCXevFrQTBskXRP+W2KoKiHU6Lz6in07hXkO3z7
-wWhKenRfPJBTYohuH+iWcUsAxJaWy4GgglB2P7/6i9Y5KsU3J/zsxEJYsQeazFPy
-hktpS6Q7w5n/ysAo4jmUXkGbYwGcdWK9HHeKnwz0eR8Ki/2CmogRvHPqOZ3VomcB
-p3c4atS+G5NvB+vANWII
-=iF3r
+iQIcBAEBCAAGBQJWebScAAoJELgmozMOVy/d+CEQAMU/BTEcKahHwhye02NBm3ny
+nFBPCeFpHDAqkp/9/VWq0Dc2x+7etXhB/xlJbh5/qn0Y9LA3KyuWUbo9cfyLlC+g
+hQPcSgbFBU/RmLPkvh58hyrVm9OgWcArnc37vgExmXfJXzzBfUkG3VJNVz9dMmIQ
+XfO2P9AWanQviaiv2LddsuedUxlBWQxo0mv6KJ0W1QkQY6/JW7pqPv5VlsuXO+pe
+Zf6+bf6CzqZEGPMIxpDlj9QKIJJpU37uKSpDfYhDKV2MuLP051jlPgVg4cRO/4Fj
+Iv5TyqAhj1tlpd+oK1laD0Qfdl2q2i63qwrFUXgYO6rRgbehIkq+tkPM0gWVb8WT
+kmKGGQXAN93IpSDI0Oj2dSwW2R/at1NSy1b+gWGHG3eye5ywJivViR5bxRx+3ueu
+8OJxPyM3j96c/64caldkVyoGbdRg8L1bhkEx9YIFJVRa4luSTRmLJpvk+fCRrMq8
+GC6mDXRq4ytaror8O50dWq0EgMrRWa6zS5PT58XjH/O+h6LrKibNug8P674B3KF9
+Y/7iNPWG67nIJrxfW3eYPvrTNu4iF634xHMMl8qwoTl3hM/sATtfY/fu/U01wcpq
+mH2aRKhylVi1kemOk2pz6ML/eD1LucVNCu6CcRUKrWTeO4eNrSGa6u/epcQZai/D
++vC+b/JVzLwh9LduU+Rq
+=VBtb
 -----END PGP SIGNATURE-----
 
---CKCkrIHpDRqX8ighXEPKEUO759gWLkfEj--
+--RXS74HCXUjRLPIBbcCNeR2XGgeCRikNsE--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
