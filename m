@@ -1,124 +1,104 @@
 From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v3 6/6] staging/rdma/hfi1: Remove unneeded variable index
-Date: Mon, 21 Dec 2015 21:56:19 -0500
-Message-ID: <1450752979-29650-7-git-send-email-jubin.john@intel.com>
-References: <1450752979-29650-1-git-send-email-jubin.john@intel.com>
+Subject: [PATCH v3 2/2] staging/rdma/hfi1: Fix Xmit Wait calculation
+Date: Mon, 21 Dec 2015 21:57:45 -0500
+Message-ID: <1450753065-29754-3-git-send-email-jubin.john@intel.com>
+References: <1450753065-29754-1-git-send-email-jubin.john@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1450752979-29650-1-git-send-email-jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1450753065-29754-1-git-send-email-jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Ira Weiny <iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Ira Weiny <iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-The variable "index" increments the same as dd->ndevcntrs.
-Just use the later.  Remove uneeded usage of "index" in the
-fill loop - it is not used there or later in the function.
+Total XMIT wait needs to sum the xmit wait values of all the VLs not just
+those requested in the query.  Also, make the algorithm used for both
+PortStatus and PortDataCounters the same.
 
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Arthur Kepner <arthur.kepner-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Breyer, Scott J <scott.j.breyer-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ira Weiny <iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 Changes in v2:
-	- None
+	- No changes
 
 Changes in v3:
-	- Refreshed patch against latest staging-testing
+	- Refreshed patches against latest staging-testing
 
- drivers/staging/rdma/hfi1/chip.c |   19 +++++++------------
- 1 files changed, 7 insertions(+), 12 deletions(-)
+ drivers/staging/rdma/hfi1/mad.c |   33 ++++++++++++++++++++-------------
+ 1 files changed, 20 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index f4f720d..1109049 100644
---- a/drivers/staging/rdma/hfi1/chip.c
-+++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -11592,7 +11592,7 @@ mod_timer(&dd->synth_stats_timer, jiffies + HZ * SYNTH_CNT_TIME);
- #define C_MAX_NAME 13 /* 12 chars + one for /0 */
- static int init_cntrs(struct hfi1_devdata *dd)
+diff --git a/drivers/staging/rdma/hfi1/mad.c b/drivers/staging/rdma/hfi1/mad.c
+index 4f5dbd1..bee1c0e 100644
+--- a/drivers/staging/rdma/hfi1/mad.c
++++ b/drivers/staging/rdma/hfi1/mad.c
+@@ -2279,17 +2279,23 @@ static void a0_portstatus(struct hfi1_pportdata *ppd,
  {
--	int i, rcv_ctxts, index, j;
-+	int i, rcv_ctxts, j;
- 	size_t sz;
- 	char *p;
- 	char name[C_MAX_NAME];
-@@ -11609,7 +11609,6 @@ static int init_cntrs(struct hfi1_devdata *dd)
- 	/* size names and determine how many we have*/
- 	dd->ndevcntrs = 0;
- 	sz = 0;
--	index = 0;
+ 	if (!is_bx(ppd->dd)) {
+ 		unsigned long vl;
+-		u64 max_vl_xmit_wait = 0, tmp;
++		u64 sum_vl_xmit_wait = 0;
+ 		u32 vl_all_mask = VL_MASK_ALL;
  
- 	for (i = 0; i < DEV_CNTR_LAST; i++) {
- 		hfi1_dbg_early("Init cntr %s\n", dev_cntrs[i].name);
-@@ -11620,7 +11619,7 @@ static int init_cntrs(struct hfi1_devdata *dd)
- 
- 		if (dev_cntrs[i].flags & CNTR_VL) {
- 			hfi1_dbg_early("\tProcessing VL cntr\n");
--			dev_cntrs[i].offset = index;
-+			dev_cntrs[i].offset = dd->ndevcntrs;
- 			for (j = 0; j < C_VL_COUNT; j++) {
- 				memset(name, '\0', C_MAX_NAME);
- 				snprintf(name, C_MAX_NAME, "%s%d",
-@@ -11630,13 +11629,12 @@ static int init_cntrs(struct hfi1_devdata *dd)
- 				sz++;
- 				hfi1_dbg_early("\t\t%s\n", name);
- 				dd->ndevcntrs++;
--				index++;
- 			}
- 		} else if (dev_cntrs[i].flags & CNTR_SDMA) {
- 			hfi1_dbg_early(
- 				       "\tProcessing per SDE counters chip enginers %u\n",
- 				       dd->chip_sdma_engines);
--			dev_cntrs[i].offset = index;
-+			dev_cntrs[i].offset = dd->ndevcntrs;
- 			for (j = 0; j < dd->chip_sdma_engines; j++) {
- 				memset(name, '\0', C_MAX_NAME);
- 				snprintf(name, C_MAX_NAME, "%s%d",
-@@ -11645,24 +11643,22 @@ static int init_cntrs(struct hfi1_devdata *dd)
- 				sz++;
- 				hfi1_dbg_early("\t\t%s\n", name);
- 				dd->ndevcntrs++;
--				index++;
- 			}
- 		} else {
- 			/* +1 for newline  */
- 			sz += strlen(dev_cntrs[i].name) + 1;
-+			dev_cntrs[i].offset = dd->ndevcntrs;
- 			dd->ndevcntrs++;
--			dev_cntrs[i].offset = index;
--			index++;
- 			hfi1_dbg_early("\tAdding %s\n", dev_cntrs[i].name);
+ 		for_each_set_bit(vl, (unsigned long *)&(vl_all_mask),
+ 				 8 * sizeof(vl_all_mask)) {
+-			tmp = read_port_cntr(ppd, C_TX_WAIT_VL,
+-					     idx_from_vl(vl));
+-			if (tmp > max_vl_xmit_wait)
+-				max_vl_xmit_wait = tmp;
++			u64 tmp = sum_vl_xmit_wait +
++				  read_port_cntr(ppd, C_TX_WAIT_VL,
++						 idx_from_vl(vl));
++			if (tmp < sum_vl_xmit_wait) {
++				/* we wrapped */
++				sum_vl_xmit_wait = (u64)~0;
++				break;
++			}
++			sum_vl_xmit_wait = tmp;
  		}
+-		rsp->port_xmit_wait = cpu_to_be64(max_vl_xmit_wait);
++		if (be64_to_cpu(rsp->port_xmit_wait) > sum_vl_xmit_wait)
++			rsp->port_xmit_wait = cpu_to_be64(sum_vl_xmit_wait);
+ 	}
+ }
+ 
+@@ -2491,18 +2497,19 @@ static u64 get_error_counter_summary(struct ib_device *ibdev, u8 port,
+ 	return error_counter_summary;
+ }
+ 
+-static void a0_datacounters(struct hfi1_devdata *dd, struct _port_dctrs *rsp,
++static void a0_datacounters(struct hfi1_pportdata *ppd, struct _port_dctrs *rsp,
+ 			    u32 vl_select_mask)
+ {
+-	if (!is_bx(dd)) {
++	if (!is_bx(ppd->dd)) {
+ 		unsigned long vl;
+-		int vfi = 0;
+ 		u64 sum_vl_xmit_wait = 0;
++		u32 vl_all_mask = VL_MASK_ALL;
+ 
+-		for_each_set_bit(vl, (unsigned long *)&(vl_select_mask),
+-				8 * sizeof(vl_select_mask)) {
++		for_each_set_bit(vl, (unsigned long *)&(vl_all_mask),
++				 8 * sizeof(vl_all_mask)) {
+ 			u64 tmp = sum_vl_xmit_wait +
+-				be64_to_cpu(rsp->vls[vfi++].port_vl_xmit_wait);
++				  read_port_cntr(ppd, C_TX_WAIT_VL,
++						 idx_from_vl(vl));
+ 			if (tmp < sum_vl_xmit_wait) {
+ 				/* we wrapped */
+ 				sum_vl_xmit_wait = (u64) ~0;
+@@ -2665,7 +2672,7 @@ static int pma_get_opa_datacounters(struct opa_pma_mad *pmp,
+ 		vfi++;
  	}
  
- 	/* allocate space for the counter values */
--	dd->cntrs = kcalloc(index, sizeof(u64), GFP_KERNEL);
-+	dd->cntrs = kcalloc(dd->ndevcntrs, sizeof(u64), GFP_KERNEL);
- 	if (!dd->cntrs)
- 		goto bail;
+-	a0_datacounters(dd, rsp, vl_select_mask);
++	a0_datacounters(ppd, rsp, vl_select_mask);
  
--	dd->scntrs = kcalloc(index, sizeof(u64), GFP_KERNEL);
-+	dd->scntrs = kcalloc(dd->ndevcntrs, sizeof(u64), GFP_KERNEL);
- 	if (!dd->scntrs)
- 		goto bail;
- 
-@@ -11674,7 +11670,7 @@ static int init_cntrs(struct hfi1_devdata *dd)
- 		goto bail;
- 
- 	/* fill in the names */
--	for (p = dd->cntrnames, i = 0, index = 0; i < DEV_CNTR_LAST; i++) {
-+	for (p = dd->cntrnames, i = 0; i < DEV_CNTR_LAST; i++) {
- 		if (dev_cntrs[i].flags & CNTR_DISABLED) {
- 			/* Nothing */
- 		} else {
-@@ -11704,7 +11700,6 @@ static int init_cntrs(struct hfi1_devdata *dd)
- 				p += strlen(dev_cntrs[i].name);
- 				*p++ = '\n';
- 			}
--			index++;
- 		}
- 	}
- 
+ 	if (resp_len)
+ 		*resp_len += response_data_size;
 -- 
 1.7.1
 
