@@ -1,63 +1,37 @@
-From: "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: Re: [RFC PATCH 00/15] staging/rdma/hfi1: Initial patches to add
- rdmavt support in HFI1
-Date: Mon, 21 Dec 2015 17:01:48 -0800
-Message-ID: <20151222010148.GB2145@kroah.com>
-References: <20151214172509.11576.19722.stgit@phlsvslse11.ph.intel.com>
- <20151221061214.GD3860@phlsvsds.ph.intel.com>
- <20151221220235.GA14142@kroah.com>
- <20151222001943.GM3860@phlsvsds.ph.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH V5 0/2] staging/rdma/hfi1: set Gen 3 half-swing for integrated devices.
+Date: Mon, 21 Dec 2015 20:31:51 -0500
+Message-ID: <1450747913-27399-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20151222001943.GM3860-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 21, 2015 at 07:19:43PM -0500, ira.weiny wrote:
-> On Mon, Dec 21, 2015 at 02:02:35PM -0800, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org wrote:
-> > On Mon, Dec 21, 2015 at 01:12:14AM -0500, ira.weiny wrote:
-> > > Greg, Doug,
-> > > 
-> > > As mentioned below, these patches depend on the new rdmavt library submitted to
-> > > Doug on linux-rdma.
-> > > 
-> > > We continue to identify (and rework) patches by our other developers which can
-> > > be submitted without conflicts with this series.  Furthermore, We have, as much
-> > > as possible, placed fixes directly into rdmavt such that those changes can be
-> > > dropped from hfi1.  But at this point, we need to know if and where these are
-> > > going to land so that we can start reworking as appropriate.
-> > > 
-> > > Therefore, I would like to discuss plans to get hfi1 under the same maintainer
-> > > to work through this transitional period.
-> > > 
-> > > Basically, At what point should we stop submitting patches to Greg and start
-> > > submitting to Doug?
-> > > 
-> > > Should we consider the merge window itself as the swap over point and submit
-> > > changes to Doug at that point?  If so, should we continue to submit what we can
-> > > to Greg until then (and continue rebase'ing the series below on that work)?  Or
-> > > given Gregs backlog, should we stop submitting to Greg sometime prior to the
-> > > merge window?
-> > > 
-> > > That brings up my final question, at the point of swap over I assume anything
-> > > not accepted by Greg should be considered rejected and we need to resubmit to
-> > > Doug?
-> > 
-> > If Doug accepts the library changes, let me know that public git commit
-> > and I can pull it into the staging-next branch and you can continue to
-> > send me staging patches that way.
-> 
-> Won't this cause a conflict during the merge window?
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-No, git is good :)
+This was a single patch before.  The change to dev_dbg required a precursor
+patch to add the dd_dev_dbg which is consistent with the other dev_* macros
+which automatically use struct hfi1_devdata.
 
-> How do we handle changes which affect both qib and hfi1?
+Changes from V4:
+	Fix build error which arose from other patches being accepted on the
+	list before this one.
 
-I don't know, now this gets messy...
+
+Dean Luick (1):
+  staging/rdma/hfi1: set Gen3 half-swing for integrated devices
+
+Ira Weiny (1):
+  staging/rdma/hfi1: add dd_dev_dbg
+
+ drivers/staging/rdma/hfi1/chip_registers.h | 11 ++++
+ drivers/staging/rdma/hfi1/hfi.h            |  4 ++
+ drivers/staging/rdma/hfi1/pcie.c           | 82 ++++++++++++++++++++++++++++--
+ 3 files changed, 93 insertions(+), 4 deletions(-)
+
+-- 
+1.8.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
