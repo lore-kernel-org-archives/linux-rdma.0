@@ -1,42 +1,73 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 09/10] IB: remove the struct ib_phys_buf definition
-Date: Wed, 23 Dec 2015 19:12:53 +0100
-Message-ID: <1450894374-8241-10-git-send-email-hch@lst.de>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: MR cleanups / dead code removal V2
+Date: Wed, 23 Dec 2015 13:27:50 -0500
+Message-ID: <567AE7A6.1050701@redhat.com>
 References: <1450894374-8241-1-git-send-email-hch@lst.de>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="TVGSxgx7raNu6exdiNPgTJr3D9l6I4hw0"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450894374-8241-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> [core]
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
- include/rdma/ib_verbs.h | 5 -----
- 1 file changed, 5 deletions(-)
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--TVGSxgx7raNu6exdiNPgTJr3D9l6I4hw0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 1778442..197b620 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1251,11 +1251,6 @@ enum ib_access_flags {
- 	IB_ACCESS_ON_DEMAND     = (1<<6),
- };
- 
--struct ib_phys_buf {
--	u64      addr;
--	u64      size;
--};
--
- /*
-  * XXX: these are apparently used for ->rereg_user_mr, no idea why they
-  * are hidden here instead of a uapi header!
--- 
-1.9.1
+On 12/23/2015 01:12 PM, Christoph Hellwig wrote:
+> Hi Doug,
+>=20
+> this series (on top of your k.o/for-4.5 branch) has various MR-related
+> cleanups:  starting to document the device capabilities, removing lots
+> of dead MR/MW code and removing a useless field in struct ib_mr.  This
+> should be fairly uncontroversial I hope, so I'd like to get it in befor=
+e
+> any real MR changes.
+>=20
+> Changes since V1:
+>  - rebase
+>  - updated description for the last patch
+>  - additional ACKs
+>=20
 
+Thanks for rebasing it.  Applied.
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--TVGSxgx7raNu6exdiNPgTJr3D9l6I4hw0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJWeuemAAoJELgmozMOVy/dtmwP/017jmBCp4w6MVbsVwdANWCl
+9eDtktOlBnrJ8YyRM9JMrNzYJyVYuX1Yd1PFU7ZX3wywbBHI2wl/AU/FZZnM0hFs
+czQelxdMnWRETUyf/wF9PxU/KRXm9r5diYhOUmJtV8ipSIYx8S/WcIEJpy5fVzE/
+2am6UqDB2jUe+cN++uVL2/JIz6yOAkNp2SgaX5mTcpVHqlvBjfaUtngwYsRcUAlY
+qfu/o92kXpaMfcWco2CRp/IjVRJJSio+/zfaEzPbOZLN2k+U/JLdTmBEczdoWSvl
+Tz/LauUUyTP6yRIFmt53jplARjlYbm3ugAG2n1B0jot8wCh8WA4FtpBFDH3B1UJo
+8l6kEjsoGlc29iKquGB6NM14wwSCZBDCfTRxESIzZy/kpd0vYDqNjkYv8jVg9UyO
+5Jd9TBId5sm24f61r40AOLftKT4H1j/l6cHq9474g1gu9ri6di/lmjwYZBGQRMKu
+JXmdalutlJdrrL1uYiy+kH0DceIuQBKeu3vau54tU5mBNj1MnIqPAsGdZ9xvZitn
+UZ5whLIHs9/9879NXZ+hD1hUtw0YnTJEFBHj2oSDEXsJ8U9yDpNqnF1yhyLs5Tz6
+Ad7CXXoFInxfThKeaft+/+gsksE+4ENuxbwSkfHLOPAxeEvx+gAPfZKiaVkWjV9s
+BIk1Wu2ky511CxMAhp6i
+=Sgld
+-----END PGP SIGNATURE-----
+
+--TVGSxgx7raNu6exdiNPgTJr3D9l6I4hw0--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
