@@ -1,57 +1,81 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH net-next 2/2] MAINTAINERS: Assign maintainer to Mellanox mlx4 core and IB drivers
-Date: Wed, 23 Dec 2015 18:30:58 +0200
-Message-ID: <1450888258-19557-3-git-send-email-ogerlitz@mellanox.com>
-References: <1450888258-19557-1-git-send-email-ogerlitz@mellanox.com>
+From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] IB/cma: cma_match_net_dev needs to take into account port_num
+Date: Wed, 23 Dec 2015 18:35:16 +0200
+Message-ID: <CAAKD3BAt2YBB-Y-VH29w5B7rLfbBEq2EuH6BtDwb0O3W8-PGwg@mail.gmail.com>
+References: <1450710084-22547-1-git-send-email-matanb@mellanox.com>
+	<56792A4B.8060101@mellanox.com>
+	<56799D61.9010206@redhat.com>
+	<CAAKD3BDmenFsiZTDiw8OEW-F0GqK62+zJ-TVywyYd4YDtzxrCA@mail.gmail.com>
+	<567AC6E4.3030100@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1450888258-19557-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <567AC6E4.3030100-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-XVmvHMARGATQT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The driver was written originally by Roland Dreier, currently there's
-no official maintainer. Yishai steps in as maintainer.
+On Wed, Dec 23, 2015 at 6:08 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> On 12/22/2015 02:26 PM, Matan Barak wrote:
+>> On Tue, Dec 22, 2015 at 8:58 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+>>> On 12/22/2015 05:47 AM, Or Gerlitz wrote:
+>>>> On 12/21/2015 5:01 PM, Matan Barak wrote:
+>>>>> Previously, cma_match_net_dev called cma_protocol_roce which
+>>>>> tried to verify that the IB device uses RoCE protocol. However,
+>>>>> if rdma_id didn't have a bounded port, it used the first port
+>>>>> of the device.
+>>>>>
+>>>>> In VPI systems, the first port might be an IB port while the second
+>>>>> one could be an Ethernet port. This made requests for unbounded rdma_ids
+>>>>> that come from the Ethernet port fail.
+>>>>> Fixing this by passing the port of the request and checking this port
+>>>>> of the device.
+>>>>>
+>>>>> Fixes: b8cab5dab15f ('IB/cma: Accept connection without a valid netdev
+>>>>> on RoCE')
+>>>>> Signed-off-by: Matan Barak<matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>>>
+>>>> seems that the patch is missing from patchworks, I can't explain that.
+>>>
+>>> I've already downloaded it and marked it accepted.
+>>>
+>>
+>> Thanks Doug. Would you like that I'll repost the patch with the commit
+>> message changed as Or suggested or is the current version good enough?
+>>
+>> Regarding the Ethernet loopback issue, I started looking into that,
+>> but as Or stated, it's broken even before the RoCE patches.
+>
+> Ping.  Any progress on this?
 
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-XVmvHMARGATQT0dZR+AlfA@public.gmane.org>
----
- MAINTAINERS | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+Yeah, there's some progress - the basic problem is that we don't have
+a bounded ndev and thus cma_resolve_iboe_route returns -ENODEV.
+The root cause for this is that we have to store the ndev in
+cma_bind_loopback. Even after doing that, cma_set_loopback changes the
+sgid to be the localhost GID, which doesn't exist in the GID table and
+thus will fail later in the GID lookup.
+I think that regarding loopback, we actually want to send the data on
+the link local default GID, which is guaranteed to exist. That's why I
+think we should:
+1. Change the cma_src_addr and cma_dst_addr in cma_bind_loopback to be
+the default GID.
+2. Store the associated ndev of this default GID as the bounded device.
+3. In cma_resolve_loopback, get the MAC of this bounded device and
+store it as the DMAC.
+4. In cma_resolve_iboe_route, don't try to do route resolve if the
+dGID matches the default GID.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index c7586a5..d9274ca 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -7057,6 +7057,25 @@ W:	http://linuxtv.org
- S:	Odd Fixes
- F:	drivers/media/radio/radio-miropcm20*
- 
-+MELLANOX MLX4 core VPI driver
-+M:	Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-+L:	netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+W:	http://www.mellanox.com
-+Q:	http://patchwork.ozlabs.org/project/netdev/list/
-+S:	Supported
-+F:	drivers/net/ethernet/mellanox/mlx4/
-+F:	include/linux/mlx4/
-+
-+MELLANOX MLX4 IB driver
-+M:	Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-+L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+W:	http://www.mellanox.com
-+Q:	http://patchwork.kernel.org/project/linux-rdma/list/
-+S:	Supported
-+F:	drivers/infiniband/hw/mlx4/
-+F:	include/linux/mlx4/
-+
- MELLANOX MLX5 core VPI driver
- M:	Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
- M:	Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
--- 
-2.3.7
+It's still not working though, but this is where I'm headed. What do you think?
 
+
+>
+>
+> --
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>               GPG KeyID: 0E572FDD
+>
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
