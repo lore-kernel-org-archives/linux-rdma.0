@@ -1,63 +1,49 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx4: Replace kfree with kvfree in mlx4_ib_destroy_srq
-Date: Wed, 23 Dec 2015 14:35:46 -0500
-Message-ID: <567AF792.5050207@redhat.com>
-References: <1450320855-4570-1-git-send-email-wen.gang.wang@oracle.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: completion queue abstraction V2
+Date: Wed, 23 Dec 2015 14:44:25 -0500
+Message-ID: <567AF999.5050409@redhat.com>
+References: <1449521512-22921-1-git-send-email-hch@lst.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="P8WBsD9pBhqfqtm4KFkArj3JxlHw724gh"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1450320855-4570-1-git-send-email-wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Matt-goXnUAHYgFxWk0Htik3J/w@public.gmane.org
+ boundary="gIhumQCG4xigbLhXVv2nGhokxxSNNW5xv"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1449521512-22921-1-git-send-email-hch@lst.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>, linux-rdma@vger.kernel.org
+Cc: sagig@dev.mellanox.co.il, bart.vanassche@sandisk.com, axboe@fb.com, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---P8WBsD9pBhqfqtm4KFkArj3JxlHw724gh
+--gIhumQCG4xigbLhXVv2nGhokxxSNNW5xv
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 12/16/2015 09:54 PM, Wengang Wang wrote:
-> Commit 0ef2f05c7e02ff99c0b5b583d7dee2cd12b053f2 uses vmalloc for WR buf=
-fers
-> when needed and uses kvfree to free the buffers. It missed changing kfr=
-ee
-> to kvfree in mlx4_ib_destroy_srq().
+On 12/07/2015 03:51 PM, Christoph Hellwig wrote:
+> This series adds a new RDMA core abstraction that insulated the
+> ULPs from the nitty gritty details of CQ polling.  See the individual
+> patches for more details.
 >=20
-> Reported-by: Matthew Finaly <matt-goXnUAHYgFxWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/hw/mlx4/srq.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/drivers/infiniband/hw/mlx4/srq.c b/drivers/infiniband/hw/m=
-lx4/srq.c
-> index 8d133c4..c394376 100644
-> --- a/drivers/infiniband/hw/mlx4/srq.c
-> +++ b/drivers/infiniband/hw/mlx4/srq.c
-> @@ -286,7 +286,7 @@ int mlx4_ib_destroy_srq(struct ib_srq *srq)
->  		mlx4_ib_db_unmap_user(to_mucontext(srq->uobject->context), &msrq->db=
-);
->  		ib_umem_release(msrq->umem);
->  	} else {
-> -		kfree(msrq->wrid);
-> +		kvfree(msrq->wrid);
->  		mlx4_buf_free(dev->dev, msrq->msrq.max << msrq->msrq.wqe_shift,
->  			      &msrq->buf);
->  		mlx4_db_free(dev->dev, &msrq->db);
->=20
+> Note that this series should be applied on top of my
+> "IB: merge struct ib_device_attr into struct ib_device" patch and the
+> MR cleanups.
 
-Thanks, applied.
+This has been applied, although I used the clean version from your git
+repo that didn't depend on the previous patch this one relied upon.
+
+The same comment I made to Christoph Lameter would be helpful here:
+please include the v1/v2 in your --subject-prefix you pass to git.
+Patchworks does not preserve cover letters nor propagate flags from
+cover letter to patch series :-/
+
 
 --=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Doug Ledford <dledford@redhat.com>
               GPG KeyID: 0E572FDD
 
 
 
---P8WBsD9pBhqfqtm4KFkArj3JxlHw724gh
+--gIhumQCG4xigbLhXVv2nGhokxxSNNW5xv
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -66,23 +52,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWeveSAAoJELgmozMOVy/dIi0P/00kFM2PqR8CCTiLrfUkEfN/
-6CpMg3jtmoGvGgMaF+/214cSIbms++q1mGP18RkdZK6Em1L/HGBjSoWDdHs+C0wW
-Z0w+ClWFjUsfe5yIV8n6g5ReBSqJxnx5O+6z9CLH7yauSjUBqOnKiSY3aJu8C2IL
-7K6sP+FbAKh1sjRA/KKC2aIohQHQGfdmkIW2JHnXIySIKHMep0q4g0Jh7AbhgbU5
-QF0VXfI6/+E1o2G6Ei90Op0sokCe+7U2QS60+96Z/hPnSD6OoyrVPya0Q3bd+BbK
-ZBUYY82qEbR+K6SERaSCMf1hdKzknrZ92Daj1L0LPl5TY4v4085mW0yDVRExiJ7X
-cQP5bV4dKkxwBNVfcE+3+a4w9uSS8zR/EKHu3qDXFPm3jpJ8tw+zQAlUWu95Zugr
-LIO8wZCSbER+gMRPLMc0EvAl2pyHcy5SGpo2RF+zWqmNT+qNgUkICXhzS7qgiDny
-2RQ6UntDD0N/LXAAoWQU9qnpEQhrls+AFDon+dsrbxWbrRl7TNYPjbPG+URy21EJ
-YL6j20SFpVBLM1yTHEmCJqthMEAK05qQ8iqVOV+Go9hz+dQN50OqRv6i75b0MOpP
-VOlYdjpmNGxzGvtXMgtLyvMKcS/Mdq/D5xd98aBkqBTZUMAQeLTnHVFLqI988PKs
-H+JEgOxFG0TFri/qV/4a
-=S8lD
+iQIcBAEBCAAGBQJWevmZAAoJELgmozMOVy/dOaYQAJpvqFr9NY9I/ojfLLpTImFX
+p+wnfn5Fa1lhDIyrIC6/hXrHLemralMOlIGRMrYVt1rPtHS5MMk2m7TuyNs5Xu0E
+YgWinu2JLH/tenDcsH9Gsx8ZChxY/wuIMO14v+8o3bBvh5ApGtZTN94Z93o/1PHD
+s+QuGtfuAwDG8HIHUnODu+Efaru2RV/wDosIhbf+EBkQRW/vG6dVQjEx5GqIdYDo
+cuh+dluOjYaeOAf/XkaBEvP/Cl3uBIAmsdN6f9wQcqlKOZAweKi7HP262CFBK5QZ
+hcJpQo7G2mKHhZPZeXBABlztiCxiiH9K9sxdviDuECbI5VSagIcGXsHeyR1MrxaF
+ZwH1lBeVx7W7WE4QG93YVtJ5/JQDNvVQHuY9/jYGXzVi9LZxMiYig4184GpzqHCD
+Omegu7Km6AjiEdM7ELg5ilAP2x3Cv7koOVUYNxsHQ+9xX1Tw6YKF7WyN7Xj1cU0u
+03993nW6p4KZqiQBd3kxTJTsF/JvxdUuSzhV+JtzCX2iYKZn96m9qwROML2n2uAn
+dFwsNIzu/U4YwflPj7EFxciBImMPXjI3U/xah9vzYco23F7whVAAB2XSuK4Hr2Q+
+r2z6d2NSraecSq2AEqUXSp8Iblkg4piO6WaJnu2pyhAzwdKd4zKo9B2Q4FGodZlo
+4NAhmJi7f1LPO6N0RCD6
+=0NrR
 -----END PGP SIGNATURE-----
 
---P8WBsD9pBhqfqtm4KFkArj3JxlHw724gh--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--gIhumQCG4xigbLhXVv2nGhokxxSNNW5xv--
