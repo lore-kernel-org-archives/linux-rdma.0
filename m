@@ -1,109 +1,98 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V3 06/11] IB/core: Move rdma_is_upper_dev_rcu to header file
-Date: Wed, 23 Dec 2015 14:56:52 +0200
-Message-ID: <1450875417-19262-7-git-send-email-matanb@mellanox.com>
-References: <1450875417-19262-1-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next V1 01/10] IB/mlx5: Support IB device's callback for getting the link layer
+Date: Wed, 23 Dec 2015 15:17:45 +0200
+Message-ID: <1450876674-21695-2-git-send-email-matanb@mellanox.com>
+References: <1450876674-21695-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1450875417-19262-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1450876674-21695-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In order to validate the route, we need an easy way to check if a
-net-device belongs to our RDMA device. Move this helper function
-to a header file in order to make this check easier.
+From: Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Make the existing mlx5_ib_port_link_layer() signature match
+the ib device callback signature (add port_num parameter).
+Refactor it to use a sub function so that the link layer could
+be queried also before the ibdev is created.
+
+Signed-off-by: Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/core_priv.h     |   13 +++++++++++++
- drivers/infiniband/core/roce_gid_mgmt.c |   20 ++++----------------
- 2 files changed, 17 insertions(+), 16 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c | 25 +++++++++++++++++++------
+ 1 file changed, 19 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index d531f91..3b250a2 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -96,4 +96,17 @@ int ib_cache_setup_one(struct ib_device *device);
- void ib_cache_cleanup_one(struct ib_device *device);
- void ib_cache_release_one(struct ib_device *device);
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index a51b594..de3a6b4 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -64,11 +64,9 @@ static char mlx5_version[] =
+ 	DRIVER_VERSION " (" DRIVER_RELDATE ")\n";
  
-+static inline bool rdma_is_upper_dev_rcu(struct net_device *dev,
-+					 struct net_device *upper)
-+{
-+	struct net_device *_upper = NULL;
-+	struct list_head *iter;
-+
-+	netdev_for_each_all_upper_dev_rcu(dev, _upper, iter)
-+		if (_upper == upper)
-+			break;
-+
-+	return _upper == upper;
-+}
-+
- #endif /* _CORE_PRIV_H */
-diff --git a/drivers/infiniband/core/roce_gid_mgmt.c b/drivers/infiniband/core/roce_gid_mgmt.c
-index 1e3673f..06556c3 100644
---- a/drivers/infiniband/core/roce_gid_mgmt.c
-+++ b/drivers/infiniband/core/roce_gid_mgmt.c
-@@ -139,18 +139,6 @@ static enum bonding_slave_state is_eth_active_slave_of_bonding_rcu(struct net_de
- 	return BONDING_SLAVE_STATE_NA;
+ static enum rdma_link_layer
+-mlx5_ib_port_link_layer(struct ib_device *device)
++mlx5_port_type_cap_to_rdma_ll(int port_type_cap)
+ {
+-	struct mlx5_ib_dev *dev = to_mdev(device);
+-
+-	switch (MLX5_CAP_GEN(dev->mdev, port_type)) {
++	switch (port_type_cap) {
+ 	case MLX5_CAP_PORT_TYPE_IB:
+ 		return IB_LINK_LAYER_INFINIBAND;
+ 	case MLX5_CAP_PORT_TYPE_ETH:
+@@ -78,6 +76,15 @@ mlx5_ib_port_link_layer(struct ib_device *device)
+ 	}
  }
  
--static bool is_upper_dev_rcu(struct net_device *dev, struct net_device *upper)
--{
--	struct net_device *_upper = NULL;
--	struct list_head *iter;
--
--	netdev_for_each_all_upper_dev_rcu(dev, _upper, iter)
--		if (_upper == upper)
--			break;
--
--	return _upper == upper;
--}
--
- #define REQUIRED_BOND_STATES		(BONDING_SLAVE_STATE_ACTIVE |	\
- 					 BONDING_SLAVE_STATE_NA)
- static int is_eth_port_of_netdev(struct ib_device *ib_dev, u8 port,
-@@ -168,7 +156,7 @@ static int is_eth_port_of_netdev(struct ib_device *ib_dev, u8 port,
- 	if (!real_dev)
- 		real_dev = event_ndev;
++static enum rdma_link_layer
++mlx5_ib_port_link_layer(struct ib_device *device, u8 port_num)
++{
++	struct mlx5_ib_dev *dev = to_mdev(device);
++	int port_type_cap = MLX5_CAP_GEN(dev->mdev, port_type);
++
++	return mlx5_port_type_cap_to_rdma_ll(port_type_cap);
++}
++
+ static int mlx5_use_mad_ifc(struct mlx5_ib_dev *dev)
+ {
+ 	return !dev->mdev->issi;
+@@ -94,7 +101,7 @@ static int mlx5_get_vport_access_method(struct ib_device *ibdev)
+ 	if (mlx5_use_mad_ifc(to_mdev(ibdev)))
+ 		return MLX5_VPORT_ACCESS_METHOD_MAD;
  
--	res = ((is_upper_dev_rcu(rdma_ndev, event_ndev) &&
-+	res = ((rdma_is_upper_dev_rcu(rdma_ndev, event_ndev) &&
- 	       (is_eth_active_slave_of_bonding_rcu(rdma_ndev, real_dev) &
- 		REQUIRED_BOND_STATES)) ||
- 	       real_dev == rdma_ndev);
-@@ -214,7 +202,7 @@ static int upper_device_filter(struct ib_device *ib_dev, u8 port,
- 		return 1;
+-	if (mlx5_ib_port_link_layer(ibdev) ==
++	if (mlx5_ib_port_link_layer(ibdev, 1) ==
+ 	    IB_LINK_LAYER_ETHERNET)
+ 		return MLX5_VPORT_ACCESS_METHOD_NIC;
  
- 	rcu_read_lock();
--	res = is_upper_dev_rcu(rdma_ndev, event_ndev);
-+	res = rdma_is_upper_dev_rcu(rdma_ndev, event_ndev);
- 	rcu_read_unlock();
+@@ -1306,11 +1313,16 @@ static int mlx5_port_immutable(struct ib_device *ibdev, u8 port_num,
+ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ {
+ 	struct mlx5_ib_dev *dev;
++	enum rdma_link_layer ll;
++	int port_type_cap;
+ 	int err;
+ 	int i;
  
- 	return res;
-@@ -244,7 +232,7 @@ static void enum_netdev_default_gids(struct ib_device *ib_dev,
- 	rcu_read_lock();
- 	if (!rdma_ndev ||
- 	    ((rdma_ndev != event_ndev &&
--	      !is_upper_dev_rcu(rdma_ndev, event_ndev)) ||
-+	      !rdma_is_upper_dev_rcu(rdma_ndev, event_ndev)) ||
- 	     is_eth_active_slave_of_bonding_rcu(rdma_ndev,
- 						netdev_master_upper_dev_get_rcu(rdma_ndev)) ==
- 	     BONDING_SLAVE_STATE_INACTIVE)) {
-@@ -274,7 +262,7 @@ static void bond_delete_netdev_default_gids(struct ib_device *ib_dev,
++	port_type_cap = MLX5_CAP_GEN(mdev, port_type);
++	ll = mlx5_port_type_cap_to_rdma_ll(port_type_cap);
++
+ 	/* don't create IB instance over Eth ports, no RoCE yet! */
+-	if (MLX5_CAP_GEN(mdev, port_type) == MLX5_CAP_PORT_TYPE_ETH)
++	if (ll == IB_LINK_LAYER_ETHERNET)
+ 		return NULL;
  
- 	rcu_read_lock();
+ 	printk_once(KERN_INFO "%s", mlx5_version);
+@@ -1373,6 +1385,7 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 		(1ull << IB_USER_VERBS_EX_CMD_QUERY_DEVICE);
  
--	if (is_upper_dev_rcu(rdma_ndev, event_ndev) &&
-+	if (rdma_is_upper_dev_rcu(rdma_ndev, event_ndev) &&
- 	    is_eth_active_slave_of_bonding_rcu(rdma_ndev, real_dev) ==
- 	    BONDING_SLAVE_STATE_INACTIVE) {
- 		unsigned long gid_type_mask;
+ 	dev->ib_dev.query_port		= mlx5_ib_query_port;
++	dev->ib_dev.get_link_layer	= mlx5_ib_port_link_layer;
+ 	dev->ib_dev.query_gid		= mlx5_ib_query_gid;
+ 	dev->ib_dev.query_pkey		= mlx5_ib_query_pkey;
+ 	dev->ib_dev.modify_device	= mlx5_ib_modify_device;
 -- 
-1.7.1
+2.1.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
