@@ -1,109 +1,113 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V2 04/10] net/mlx5_core: Introduce access functions to enable/disable RoCE
-Date: Wed, 23 Dec 2015 18:47:19 +0200
-Message-ID: <1450889245-30347-5-git-send-email-matanb@mellanox.com>
-References: <1450889245-30347-1-git-send-email-matanb@mellanox.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V1 15/16] i40iw: add entry in rdma_netlink
+Date: Wed, 23 Dec 2015 18:50:15 +0200
+Message-ID: <567AD0C7.3010309@mellanox.com>
+References: <1450739596-23276-1-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-2-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-3-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-4-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-5-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-6-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-7-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-8-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-9-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-10-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-11-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-12-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-13-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-14-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-15-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-16-git-send-email-faisal.latif@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1450889245-30347-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1450739596-23276-16-git-send-email-faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 12/22/2015 1:13 AM, Faisal Latif wrote:
+> Add entry for port mapper services.
+>
+> Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>   include/uapi/rdma/rdma_netlink.h | 1 +
+>   1 file changed, 1 insertion(+)
+>
+> diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
+> index c19a5dc..4fa418d 100644
+> --- a/include/uapi/rdma/rdma_netlink.h
+> +++ b/include/uapi/rdma/rdma_netlink.h
+> @@ -8,6 +8,7 @@ enum {
+>   	RDMA_NL_NES,
+>   	RDMA_NL_C4IW,
+>   	RDMA_NL_LS,	/* RDMA Local Services */
+> +	RDMA_NL_I40IW,
+>   	RDMA_NL_NUM_CLIENTS
+>   };
+>   
+Do you use this value in down-stream patches of the series? if yes, 
+change the order to have this and other IB core changes before the code 
+that use that.
 
-A mlx5 Ethernet port must be explicitly enabled for RoCE.
-When RoCE is not enabled on the port, the NIC will refuse to create
-QPs attached to it and incoming RoCE packets will be considered by the
-NIC as plain Ethernet packets.
+Why the iwarp port mapper implementationhas to be repeated in each 
+driver? can you join your code in a common place and avoid the duplication?
 
-Signed-off-by: Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/net/ethernet/mellanox/mlx5/core/vport.c | 52 +++++++++++++++++++++++++
- include/linux/mlx5/vport.h                      |  3 ++
- 2 files changed, 55 insertions(+)
+root@r-dcs58 hw]# git grep RDMA_NL_ nes
+nes/nes.c:      [RDMA_NL_IWPM_REG_PID] = {.dump = iwpm_register_pid_cb},
+nes/nes.c:      [RDMA_NL_IWPM_ADD_MAPPING] = {.dump = iwpm_add_mapping_cb},
+nes/nes.c:      [RDMA_NL_IWPM_QUERY_MAPPING] = {.dump = 
+iwpm_add_and_query_mapping_cb},
+nes/nes.c:      [RDMA_NL_IWPM_REMOTE_INFO] = {.dump = iwpm_remote_info_cb},
+nes/nes.c:      [RDMA_NL_IWPM_HANDLE_ERR] = {.dump = iwpm_mapping_error_cb},
+nes/nes.c:      [RDMA_NL_IWPM_MAPINFO] = {.dump = iwpm_mapping_info_cb},
+nes/nes.c:      [RDMA_NL_IWPM_MAPINFO_NUM] = {.dump = 
+iwpm_ack_mapping_info_cb}
+nes/nes.c:      if (ibnl_add_client(RDMA_NL_NES, RDMA_NL_IWPM_NUM_OPS, 
+nes_nl_cb_table))
+nes/nes.c:      ret = iwpm_init(RDMA_NL_NES);
+nes/nes.c:      ibnl_remove_client(RDMA_NL_NES);
+nes/nes.c:      ibnl_remove_client(RDMA_NL_NES);
+nes/nes.c:      iwpm_exit(RDMA_NL_NES);
+nes/nes_cm.c: &mapped_sockaddr, RDMA_NL_NES);
+nes/nes_cm.c:   return iwpm_remove_mapping(&local_sockaddr, RDMA_NL_NES);
+nes/nes_cm.c:                           &remote_addr, RDMA_NL_NES);
+nes/nes_cm.c:           iwpm_err = iwpm_register_pid(&pm_reg_msg, 
+RDMA_NL_NES);
+nes/nes_cm.c:                   iwpm_err = iwpm_add_mapping(&pm_msg, 
+RDMA_NL_NES);
+nes/nes_cm.c:   iwpm_err = iwpm_register_pid(&pm_reg_msg, RDMA_NL_NES);
+nes/nes_cm.c:           iwpm_err = iwpm_add_and_query_mapping(&pm_msg, 
+RDMA_NL_NES);
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/vport.c b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-index 54ab63b..245ff4a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-@@ -70,6 +70,17 @@ static int mlx5_query_nic_vport_context(struct mlx5_core_dev *mdev, u32 *out,
- 	return mlx5_cmd_exec_check_status(mdev, in, sizeof(in), out, outlen);
- }
- 
-+static int mlx5_modify_nic_vport_context(struct mlx5_core_dev *mdev, void *in,
-+					 int inlen)
-+{
-+	u32 out[MLX5_ST_SZ_DW(modify_nic_vport_context_out)];
-+
-+	MLX5_SET(modify_nic_vport_context_in, in, opcode,
-+		 MLX5_CMD_OP_MODIFY_NIC_VPORT_CONTEXT);
-+
-+	return mlx5_cmd_exec_check_status(mdev, in, inlen, out, sizeof(out));
-+}
-+
- void mlx5_query_nic_vport_mac_address(struct mlx5_core_dev *mdev, u8 *addr)
- {
- 	u32 *out;
-@@ -350,3 +361,44 @@ int mlx5_query_hca_vport_node_guid(struct mlx5_core_dev *dev,
- 	return err;
- }
- EXPORT_SYMBOL_GPL(mlx5_query_hca_vport_node_guid);
-+
-+enum mlx5_vport_roce_state {
-+	MLX5_VPORT_ROCE_DISABLED = 0,
-+	MLX5_VPORT_ROCE_ENABLED  = 1,
-+};
-+
-+static int mlx5_nic_vport_update_roce_state(struct mlx5_core_dev *mdev,
-+					    enum mlx5_vport_roce_state state)
-+{
-+	void *in;
-+	int inlen = MLX5_ST_SZ_BYTES(modify_nic_vport_context_in);
-+	int err;
-+
-+	in = mlx5_vzalloc(inlen);
-+	if (!in) {
-+		mlx5_core_warn(mdev, "failed to allocate inbox\n");
-+		return -ENOMEM;
-+	}
-+
-+	MLX5_SET(modify_nic_vport_context_in, in, field_select.roce_en, 1);
-+	MLX5_SET(modify_nic_vport_context_in, in, nic_vport_context.roce_en,
-+		 state);
-+
-+	err = mlx5_modify_nic_vport_context(mdev, in, inlen);
-+
-+	kvfree(in);
-+
-+	return err;
-+}
-+
-+int mlx5_nic_vport_enable_roce(struct mlx5_core_dev *mdev)
-+{
-+	return mlx5_nic_vport_update_roce_state(mdev, MLX5_VPORT_ROCE_ENABLED);
-+}
-+EXPORT_SYMBOL_GPL(mlx5_nic_vport_enable_roce);
-+
-+int mlx5_nic_vport_disable_roce(struct mlx5_core_dev *mdev)
-+{
-+	return mlx5_nic_vport_update_roce_state(mdev, MLX5_VPORT_ROCE_DISABLED);
-+}
-+EXPORT_SYMBOL_GPL(mlx5_nic_vport_disable_roce);
-diff --git a/include/linux/mlx5/vport.h b/include/linux/mlx5/vport.h
-index 967e0fd..4c9ac60 100644
---- a/include/linux/mlx5/vport.h
-+++ b/include/linux/mlx5/vport.h
-@@ -52,4 +52,7 @@ int mlx5_query_hca_vport_system_image_guid(struct mlx5_core_dev *dev,
- int mlx5_query_hca_vport_node_guid(struct mlx5_core_dev *dev,
- 				   u64 *node_guid);
- 
-+int mlx5_nic_vport_enable_roce(struct mlx5_core_dev *mdev);
-+int mlx5_nic_vport_disable_roce(struct mlx5_core_dev *mdev);
-+
- #endif /* __MLX5_VPORT_H__ */
--- 
-2.1.0
+[root@r-dcs58 hw]# git grep RDMA_NL_ cxgb4/
+
+cxgb4/cm.c: iwpm_remove_mapping(&ep->com.local_addr, RDMA_NL_C4IW);
+cxgb4/cm.c: &child_ep->com.remote_addr, RDMA_NL_C4IW);
+cxgb4/cm.c:     iwpm_err = iwpm_register_pid(&pm_reg_msg, RDMA_NL_C4IW);
+cxgb4/cm.c:             iwpm_err = iwpm_add_and_query_mapping(&pm_msg, 
+RDMA_NL_C4IW);
+cxgb4/cm.c: &ep->com.mapped_local_addr, RDMA_NL_C4IW)) {
+cxgb4/cm.c: iwpm_remove_mapping(&ep->com.local_addr, RDMA_NL_C4IW);
+cxgb4/cm.c:     iwpm_err = iwpm_register_pid(&pm_reg_msg, RDMA_NL_C4IW);
+cxgb4/cm.c:             iwpm_err = iwpm_add_mapping(&pm_msg, RDMA_NL_C4IW);
+cxgb4/cm.c: &ep->com.mapped_local_addr, RDMA_NL_C4IW)) {
+cxgb4/device.c: [RDMA_NL_IWPM_REG_PID] = {.dump = iwpm_register_pid_cb},
+cxgb4/device.c: [RDMA_NL_IWPM_ADD_MAPPING] = {.dump = iwpm_add_mapping_cb},
+cxgb4/device.c: [RDMA_NL_IWPM_QUERY_MAPPING] = {.dump = 
+iwpm_add_and_query_mapping_cb},
+cxgb4/device.c: [RDMA_NL_IWPM_HANDLE_ERR] = {.dump = iwpm_mapping_error_cb},
+cxgb4/device.c: [RDMA_NL_IWPM_REMOTE_INFO] = {.dump = iwpm_remote_info_cb},
+cxgb4/device.c: [RDMA_NL_IWPM_MAPINFO] = {.dump = iwpm_mapping_info_cb},
+cxgb4/device.c: [RDMA_NL_IWPM_MAPINFO_NUM] = {.dump = 
+iwpm_ack_mapping_info_cb}
+cxgb4/device.c: if (ibnl_add_client(RDMA_NL_C4IW, RDMA_NL_IWPM_NUM_OPS,
+cxgb4/device.c: err = iwpm_init(RDMA_NL_C4IW);
+cxgb4/device.c:         ibnl_remove_client(RDMA_NL_C4IW);
+cxgb4/device.c: iwpm_exit(RDMA_NL_C4IW);
+cxgb4/device.c: ibnl_remove_client(RDMA_NL_C4IW);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
