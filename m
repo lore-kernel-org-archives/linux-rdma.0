@@ -1,81 +1,84 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/usnic: Fix resource leak in error case
-Date: Wed, 23 Dec 2015 11:14:22 -0500
-Message-ID: <567AC85E.9070704@redhat.com>
-References: <1449686539-29959-5-git-send-email-neescoba@cisco.com>
+From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] IB/cma: cma_match_net_dev needs to take into account port_num
+Date: Wed, 23 Dec 2015 18:20:04 +0200
+Message-ID: <CAAKD3BAqTaiiYnSz4tOca17nWJ9po_JH5ccG=+1b-WRkPemObQ@mail.gmail.com>
+References: <1450710084-22547-1-git-send-email-matanb@mellanox.com>
+	<56792A4B.8060101@mellanox.com>
+	<56799D61.9010206@redhat.com>
+	<CAAKD3BDmenFsiZTDiw8OEW-F0GqK62+zJ-TVywyYd4YDtzxrCA@mail.gmail.com>
+	<567AC6E4.3030100@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="CQRckBG71P9cvF9uJ93WD5NwRbG4VmOxh"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1449686539-29959-5-git-send-email-neescoba-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <567AC6E4.3030100-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nelson Escobar <neescoba-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---CQRckBG71P9cvF9uJ93WD5NwRbG4VmOxh
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On Wed, Dec 23, 2015 at 6:08 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> On 12/22/2015 02:26 PM, Matan Barak wrote:
+>> On Tue, Dec 22, 2015 at 8:58 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+>>> On 12/22/2015 05:47 AM, Or Gerlitz wrote:
+>>>> On 12/21/2015 5:01 PM, Matan Barak wrote:
+>>>>> Previously, cma_match_net_dev called cma_protocol_roce which
+>>>>> tried to verify that the IB device uses RoCE protocol. However,
+>>>>> if rdma_id didn't have a bounded port, it used the first port
+>>>>> of the device.
+>>>>>
+>>>>> In VPI systems, the first port might be an IB port while the second
+>>>>> one could be an Ethernet port. This made requests for unbounded rdma_ids
+>>>>> that come from the Ethernet port fail.
+>>>>> Fixing this by passing the port of the request and checking this port
+>>>>> of the device.
+>>>>>
+>>>>> Fixes: b8cab5dab15f ('IB/cma: Accept connection without a valid netdev
+>>>>> on RoCE')
+>>>>> Signed-off-by: Matan Barak<matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>>>
+>>>> seems that the patch is missing from patchworks, I can't explain that.
+>>>
+>>> I've already downloaded it and marked it accepted.
+>>>
+>>
+>> Thanks Doug. Would you like that I'll repost the patch with the commit
+>> message changed as Or suggested or is the current version good enough?
+>>
+>> Regarding the Ethernet loopback issue, I started looking into that,
+>> but as Or stated, it's broken even before the RoCE patches.
+>
+> Ping.  Any progress on this?
 
-On 12/09/2015 01:42 PM, Nelson Escobar wrote:
-> Signed-off-by: Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-> Reviewed-by: Reese Faucette <rfaucett-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-> Reviewed-by: Xuyang Wang <xuywang-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Nelson Escobar <neescoba-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c b/drivers/in=
-finiband/hw/usnic/usnic_ib_qp_grp.c
-> index b306870..5f44b66 100644
-> --- a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-> +++ b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-> @@ -575,7 +575,7 @@ alloc_res_chunk_list(struct usnic_vnic *vnic,
->  	return res_chunk_list;
-> =20
->  out_free_res:
-> -	for (i--; i > 0; i--)
-> +	for (i--; i >=3D 0; i--)
->  		usnic_vnic_put_resources(res_chunk_list[i]);
->  	kfree(res_chunk_list);
->  	return ERR_PTR(err);
->=20
+Yeah, there's some progress - the basic problem is that we don't have
+a bounded ndev and thus cma_resolve_iboe_route returns -ENODEV.
+The root cause for this is that we have to store the ndev in
+cma_bind_loopback. Even after doing that, cma_set_loopback changes the
+sgid to be the localhost GID, which doesn't exist in the GID table and
+thus will fail later in the GID lookup.
+I think that regarding loopback, we actually want to send the data on
+the link local default GID, which is guaranteed to exist. That's why I
+think we should:
+1. Change the cma_src_addr and cma_dst_addr in cma_bind_loopback to be
+the default GID.
+2. Store the associated ndev of this default GID as the bounded device.
+3. In cma_resolve_loopback, get the MAC of this bounded device and
+store it as the DMAC.
+4. In cma_resolve_iboe_route, don't try to do route resolve if the
+dGID matches the default GID.
 
-Thanks, applied.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+It's still not working though, but this is where I'm headed. What do you think?
 
 
+>
+>
+> --
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>               GPG KeyID: 0E572FDD
+>
+>
 
---CQRckBG71P9cvF9uJ93WD5NwRbG4VmOxh
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJWesheAAoJELgmozMOVy/d3HsQAInvwYmlDa4CoBItqLkFBQtz
-OF2aMGMrAs2m7fCmhc0d5N5guksVQCNERelHgFxw46282D77C6bA82sVCQPjPhce
-fyb/+7cJiocMebGsO6LzhzhPDSIamMxwCTkO93gTOsIZuSYwZ6z8I+lb53IjFtYP
-IF4mCPXBmmptPvaOh8x+6m0lAvz6NolnW8Lqydnu+QFfkKNK0awUtPHd9ifV1vDt
-Q6t7F7mIOkYYGnmgUJBn94oN/awBXzk3BcS9moe/DXUplnr0B/4WiZ8D+mXYC/HX
-GLq69hlVyg7bfweaE17qklK0JkbFMz2pDkx37kvuTrMKuPiPaFpdd6znqfQ4iMwv
-L8nidTq9cEVdBzE3MO4TC1kwM1NgUgno1K9Z33uFfg7KFAOJZtZYEkFkvQjitq+Q
-iJoF5q/LsraESnwfxiAtxJZ6nk2QpTXxmAFT8FROnmn9ggFAIHqXGuuczlEMTbCK
-FLIHy6gVuBPpRoUiPirpZYNJnBjYc/oJCy9zFbRshdone3bomlXMcJxSwElMyKhr
-eDGIagkvwnRQ1L5N7PyHvGsdWNpScIr2xGMqY3gFmErXA/AhTMiNylWuq+YB1otR
-fCYMdsn8cdcMdW8//LEv2vULhRt6phqyAaygbvlGGOLO1s30vpPhrxsBKewN3GR4
-08MKptzBLVaV7HVhrnNO
-=j1Zw
------END PGP SIGNATURE-----
-
---CQRckBG71P9cvF9uJ93WD5NwRbG4VmOxh--
+Regards,
+Matan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
