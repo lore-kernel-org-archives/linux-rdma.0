@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V2 05/10] net/mlx5_core: Introduce access functions to query vport RoCE fields
-Date: Wed, 23 Dec 2015 18:47:20 +0200
-Message-ID: <1450889245-30347-6-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next V2 03/10] net/mlx5_core: Break down the vport mac address query function
+Date: Wed, 23 Dec 2015 18:47:18 +0200
+Message-ID: <1450889245-30347-4-git-send-email-matanb@mellanox.com>
 References: <1450889245-30347-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450889245-30347-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,126 +12,70 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Introduce access functions to query NIC vport system_image_guid,
-node_guid and qkey_viol_cntr.
+Introduce a new function called mlx5_query_nic_vport_context().
+This function gets all the NIC vport attributes from the device.
+
+The MAC address is just one of the NIC vport attributes, so
+mlx5_query_nic_vport_mac_address() is now just a wrapper function
+above mlx5_query_nic_vport_context().
+
+More NIC vport attributes will be used in following commits.
 
 Signed-off-by: Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/vport.c | 62 +++++++++++++++++++++++++
- include/linux/mlx5/mlx5_ifc.h                   | 10 +++-
- include/linux/mlx5/vport.h                      |  5 ++
- 3 files changed, 76 insertions(+), 1 deletion(-)
+ drivers/net/ethernet/mellanox/mlx5/core/vport.c | 27 ++++++++++++++++---------
+ 1 file changed, 17 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/vport.c b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-index 245ff4a..ecb274a 100644
+index b94177e..54ab63b 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/vport.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-@@ -103,6 +103,68 @@ void mlx5_query_nic_vport_mac_address(struct mlx5_core_dev *mdev, u8 *addr)
+@@ -57,12 +57,25 @@ u8 mlx5_query_vport_state(struct mlx5_core_dev *mdev, u8 opmod)
  }
- EXPORT_SYMBOL(mlx5_query_nic_vport_mac_address);
+ EXPORT_SYMBOL(mlx5_query_vport_state);
  
-+int mlx5_query_nic_vport_system_image_guid(struct mlx5_core_dev *mdev,
-+					   u64 *system_image_guid)
++static int mlx5_query_nic_vport_context(struct mlx5_core_dev *mdev, u32 *out,
++					int outlen)
 +{
-+	u32 *out;
-+	int outlen = MLX5_ST_SZ_BYTES(query_nic_vport_context_out);
++	u32 in[MLX5_ST_SZ_DW(query_nic_vport_context_in)];
 +
-+	out = mlx5_vzalloc(outlen);
-+	if (!out)
-+		return -ENOMEM;
++	memset(in, 0, sizeof(in));
 +
-+	mlx5_query_nic_vport_context(mdev, out, outlen);
++	MLX5_SET(query_nic_vport_context_in, in, opcode,
++		 MLX5_CMD_OP_QUERY_NIC_VPORT_CONTEXT);
 +
-+	*system_image_guid = MLX5_GET64(query_nic_vport_context_out, out,
-+					nic_vport_context.system_image_guid);
-+
-+	kfree(out);
-+
-+	return 0;
++	return mlx5_cmd_exec_check_status(mdev, in, sizeof(in), out, outlen);
 +}
-+EXPORT_SYMBOL_GPL(mlx5_query_nic_vport_system_image_guid);
 +
-+int mlx5_query_nic_vport_node_guid(struct mlx5_core_dev *mdev, u64 *node_guid)
-+{
-+	u32 *out;
-+	int outlen = MLX5_ST_SZ_BYTES(query_nic_vport_context_out);
-+
-+	out = mlx5_vzalloc(outlen);
-+	if (!out)
-+		return -ENOMEM;
-+
-+	mlx5_query_nic_vport_context(mdev, out, outlen);
-+
-+	*node_guid = MLX5_GET64(query_nic_vport_context_out, out,
-+				nic_vport_context.node_guid);
-+
-+	kfree(out);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(mlx5_query_nic_vport_node_guid);
-+
-+int mlx5_query_nic_vport_qkey_viol_cntr(struct mlx5_core_dev *mdev,
-+					u16 *qkey_viol_cntr)
-+{
-+	u32 *out;
-+	int outlen = MLX5_ST_SZ_BYTES(query_nic_vport_context_out);
-+
-+	out = mlx5_vzalloc(outlen);
-+	if (!out)
-+		return -ENOMEM;
-+
-+	mlx5_query_nic_vport_context(mdev, out, outlen);
-+
-+	*qkey_viol_cntr = MLX5_GET(query_nic_vport_context_out, out,
-+				   nic_vport_context.qkey_violation_counter);
-+
-+	kfree(out);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(mlx5_query_nic_vport_qkey_viol_cntr);
-+
- int mlx5_query_hca_vport_gid(struct mlx5_core_dev *dev, u8 other_vport,
- 			     u8 port_num, u16  vf_num, u16 gid_index,
- 			     union ib_gid *gid)
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 1565324..49b34c6 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -2141,7 +2141,15 @@ struct mlx5_ifc_nic_vport_context_bits {
- 	u8         reserved_0[0x1f];
- 	u8         roce_en[0x1];
+ void mlx5_query_nic_vport_mac_address(struct mlx5_core_dev *mdev, u8 *addr)
+ {
+-	u32  in[MLX5_ST_SZ_DW(query_nic_vport_context_in)];
+ 	u32 *out;
+ 	int outlen = MLX5_ST_SZ_BYTES(query_nic_vport_context_out);
+ 	u8 *out_addr;
++	int err;
  
--	u8         reserved_1[0x760];
-+	u8         reserved_1[0x120];
-+
-+	u8         system_image_guid[0x40];
-+	u8         port_guid[0x40];
-+	u8         node_guid[0x40];
-+
-+	u8         reserved_5[0x140];
-+	u8         qkey_violation_counter[0x10];
-+	u8         reserved_6[0x430];
+ 	out = mlx5_vzalloc(outlen);
+ 	if (!out)
+@@ -71,15 +84,9 @@ void mlx5_query_nic_vport_mac_address(struct mlx5_core_dev *mdev, u8 *addr)
+ 	out_addr = MLX5_ADDR_OF(query_nic_vport_context_out, out,
+ 				nic_vport_context.permanent_address);
  
- 	u8         reserved_2[0x5];
- 	u8         allowed_list_type[0x3];
-diff --git a/include/linux/mlx5/vport.h b/include/linux/mlx5/vport.h
-index 4c9ac60..dfb2d94 100644
---- a/include/linux/mlx5/vport.h
-+++ b/include/linux/mlx5/vport.h
-@@ -37,6 +37,11 @@
+-	memset(in, 0, sizeof(in));
+-
+-	MLX5_SET(query_nic_vport_context_in, in, opcode,
+-		 MLX5_CMD_OP_QUERY_NIC_VPORT_CONTEXT);
+-
+-	memset(out, 0, outlen);
+-	mlx5_cmd_exec_check_status(mdev, in, sizeof(in), out, outlen);
+-
+-	ether_addr_copy(addr, &out_addr[2]);
++	err = mlx5_query_nic_vport_context(mdev, out, outlen);
++	if (!err)
++		ether_addr_copy(addr, &out_addr[2]);
  
- u8 mlx5_query_vport_state(struct mlx5_core_dev *mdev, u8 opmod);
- void mlx5_query_nic_vport_mac_address(struct mlx5_core_dev *mdev, u8 *addr);
-+int mlx5_query_nic_vport_system_image_guid(struct mlx5_core_dev *mdev,
-+					   u64 *system_image_guid);
-+int mlx5_query_nic_vport_node_guid(struct mlx5_core_dev *mdev, u64 *node_guid);
-+int mlx5_query_nic_vport_qkey_viol_cntr(struct mlx5_core_dev *mdev,
-+					u16 *qkey_viol_cntr);
- int mlx5_query_hca_vport_gid(struct mlx5_core_dev *dev, u8 other_vport,
- 			     u8 port_num, u16  vf_num, u16 gid_index,
- 			     union ib_gid *gid);
+ 	kvfree(out);
+ }
 -- 
 2.1.0
 
