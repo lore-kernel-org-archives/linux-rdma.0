@@ -1,114 +1,368 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V3 04/11] IB/core: Add ROCE_UDP_ENCAP (RoCE V2) type
-Date: Wed, 23 Dec 2015 14:56:50 +0200
-Message-ID: <1450875417-19262-5-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next V3 10/11] IB/core: Initialize UD header structure with IP and UDP headers
+Date: Wed, 23 Dec 2015 14:56:56 +0200
+Message-ID: <1450875417-19262-11-git-send-email-matanb@mellanox.com>
 References: <1450875417-19262-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450875417-19262-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Adding RoCE v2 GID type and port type. Vendors
-which support this type will get their GID table
-populated with RoCE v2 GIDs automatically.
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
+ib_ud_header_init() is used to format InfiniBand headers
+in a buffer up to (but not with) BTH. For RoCE UDP ENCAP it is
+required that this function would be able to build also IP and UDP
+headers.
+
+Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/cache.c         |    1 +
- drivers/infiniband/core/roce_gid_mgmt.c |    3 ++-
- include/rdma/ib_verbs.h                 |   23 +++++++++++++++++++++--
- 3 files changed, 24 insertions(+), 3 deletions(-)
+ drivers/infiniband/core/ud_header.c    |  155 +++++++++++++++++++++++++++++---
+ drivers/infiniband/hw/mlx4/qp.c        |    7 +-
+ drivers/infiniband/hw/mthca/mthca_qp.c |    2 +-
+ include/rdma/ib_pack.h                 |   45 ++++++++--
+ 4 files changed, 188 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-index 566fd8f..88b4b6f 100644
---- a/drivers/infiniband/core/cache.c
-+++ b/drivers/infiniband/core/cache.c
-@@ -128,6 +128,7 @@ static void dispatch_gid_change_event(struct ib_device *ib_dev, u8 port)
+diff --git a/drivers/infiniband/core/ud_header.c b/drivers/infiniband/core/ud_header.c
+index 72feee6..96697e7 100644
+--- a/drivers/infiniband/core/ud_header.c
++++ b/drivers/infiniband/core/ud_header.c
+@@ -35,6 +35,7 @@
+ #include <linux/string.h>
+ #include <linux/export.h>
+ #include <linux/if_ether.h>
++#include <linux/ip.h>
  
- static const char * const gid_type_str[] = {
- 	[IB_GID_TYPE_IB]	= "IB/RoCE v1",
-+	[IB_GID_TYPE_ROCE_UDP_ENCAP]	= "RoCE v2",
+ #include <rdma/ib_pack.h>
+ 
+@@ -116,6 +117,72 @@ static const struct ib_field vlan_table[]  = {
+ 	  .size_bits    = 16 }
  };
  
- const char *ib_cache_gid_type_str(enum ib_gid_type gid_type)
-diff --git a/drivers/infiniband/core/roce_gid_mgmt.c b/drivers/infiniband/core/roce_gid_mgmt.c
-index 61c27a7..1e3673f 100644
---- a/drivers/infiniband/core/roce_gid_mgmt.c
-+++ b/drivers/infiniband/core/roce_gid_mgmt.c
-@@ -71,7 +71,8 @@ static const struct {
- 	bool (*is_supported)(const struct ib_device *device, u8 port_num);
- 	enum ib_gid_type gid_type;
- } PORT_CAP_TO_GID_TYPE[] = {
--	{rdma_protocol_roce,   IB_GID_TYPE_ROCE},
-+	{rdma_protocol_roce_eth_encap, IB_GID_TYPE_ROCE},
-+	{rdma_protocol_roce_udp_encap, IB_GID_TYPE_ROCE_UDP_ENCAP},
- };
- 
- #define CAP_TO_GID_TABLE_SIZE	ARRAY_SIZE(PORT_CAP_TO_GID_TYPE)
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 3f2100b..5848696 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -73,6 +73,7 @@ enum ib_gid_type {
- 	/* If link layer is Ethernet, this is RoCE V1 */
- 	IB_GID_TYPE_IB        = 0,
- 	IB_GID_TYPE_ROCE      = 0,
-+	IB_GID_TYPE_ROCE_UDP_ENCAP = 1,
- 	IB_GID_TYPE_SIZE
- };
- 
-@@ -355,6 +356,7 @@ union rdma_protocol_stats {
- #define RDMA_CORE_CAP_PROT_IB           0x00100000
- #define RDMA_CORE_CAP_PROT_ROCE         0x00200000
- #define RDMA_CORE_CAP_PROT_IWARP        0x00400000
-+#define RDMA_CORE_CAP_PROT_ROCE_UDP_ENCAP 0x00800000
- 
- #define RDMA_CORE_PORT_IBA_IB          (RDMA_CORE_CAP_PROT_IB  \
- 					| RDMA_CORE_CAP_IB_MAD \
-@@ -367,6 +369,12 @@ union rdma_protocol_stats {
- 					| RDMA_CORE_CAP_IB_CM   \
- 					| RDMA_CORE_CAP_AF_IB   \
- 					| RDMA_CORE_CAP_ETH_AH)
-+#define RDMA_CORE_PORT_IBA_ROCE_UDP_ENCAP			\
-+					(RDMA_CORE_CAP_PROT_ROCE_UDP_ENCAP \
-+					| RDMA_CORE_CAP_IB_MAD  \
-+					| RDMA_CORE_CAP_IB_CM   \
-+					| RDMA_CORE_CAP_AF_IB   \
-+					| RDMA_CORE_CAP_ETH_AH)
- #define RDMA_CORE_PORT_IWARP           (RDMA_CORE_CAP_PROT_IWARP \
- 					| RDMA_CORE_CAP_IW_CM)
- #define RDMA_CORE_PORT_INTEL_OPA       (RDMA_CORE_PORT_IBA_IB  \
-@@ -1997,6 +2005,17 @@ static inline bool rdma_protocol_ib(const struct ib_device *device, u8 port_num)
- 
- static inline bool rdma_protocol_roce(const struct ib_device *device, u8 port_num)
- {
-+	return device->port_immutable[port_num].core_cap_flags &
-+		(RDMA_CORE_CAP_PROT_ROCE | RDMA_CORE_CAP_PROT_ROCE_UDP_ENCAP);
-+}
++static const struct ib_field ip4_table[]  = {
++	{ STRUCT_FIELD(ip4, ver),
++	  .offset_words = 0,
++	  .offset_bits  = 0,
++	  .size_bits    = 4 },
++	{ STRUCT_FIELD(ip4, hdr_len),
++	  .offset_words = 0,
++	  .offset_bits  = 4,
++	  .size_bits    = 4 },
++	{ STRUCT_FIELD(ip4, tos),
++	  .offset_words = 0,
++	  .offset_bits  = 8,
++	  .size_bits    = 8 },
++	{ STRUCT_FIELD(ip4, tot_len),
++	  .offset_words = 0,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(ip4, id),
++	  .offset_words = 1,
++	  .offset_bits  = 0,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(ip4, frag_off),
++	  .offset_words = 1,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(ip4, ttl),
++	  .offset_words = 2,
++	  .offset_bits  = 0,
++	  .size_bits    = 8 },
++	{ STRUCT_FIELD(ip4, protocol),
++	  .offset_words = 2,
++	  .offset_bits  = 8,
++	  .size_bits    = 8 },
++	{ STRUCT_FIELD(ip4, check),
++	  .offset_words = 2,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(ip4, saddr),
++	  .offset_words = 3,
++	  .offset_bits  = 0,
++	  .size_bits    = 32 },
++	{ STRUCT_FIELD(ip4, daddr),
++	  .offset_words = 4,
++	  .offset_bits  = 0,
++	  .size_bits    = 32 }
++};
 +
-+static inline bool rdma_protocol_roce_udp_encap(const struct ib_device *device, u8 port_num)
-+{
-+	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_ROCE_UDP_ENCAP;
-+}
++static const struct ib_field udp_table[]  = {
++	{ STRUCT_FIELD(udp, sport),
++	  .offset_words = 0,
++	  .offset_bits  = 0,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(udp, dport),
++	  .offset_words = 0,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(udp, length),
++	  .offset_words = 1,
++	  .offset_bits  = 0,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(udp, csum),
++	  .offset_words = 1,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 }
++};
 +
-+static inline bool rdma_protocol_roce_eth_encap(const struct ib_device *device, u8 port_num)
+ static const struct ib_field grh_table[]  = {
+ 	{ STRUCT_FIELD(grh, ip_version),
+ 	  .offset_words = 0,
+@@ -213,26 +280,57 @@ static const struct ib_field deth_table[] = {
+ 	  .size_bits    = 24 }
+ };
+ 
++__be16 ib_ud_ip4_csum(struct ib_ud_header *header)
 +{
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_ROCE;
- }
- 
-@@ -2007,8 +2026,8 @@ static inline bool rdma_protocol_iwarp(const struct ib_device *device, u8 port_n
- 
- static inline bool rdma_ib_or_roce(const struct ib_device *device, u8 port_num)
- {
--	return device->port_immutable[port_num].core_cap_flags &
--		(RDMA_CORE_CAP_PROT_IB | RDMA_CORE_CAP_PROT_ROCE);
-+	return rdma_protocol_ib(device, port_num) ||
-+		rdma_protocol_roce(device, port_num);
- }
- 
++	struct iphdr iph;
++
++	iph.ihl		= 5;
++	iph.version	= 4;
++	iph.tos		= header->ip4.tos;
++	iph.tot_len	= header->ip4.tot_len;
++	iph.id		= header->ip4.id;
++	iph.frag_off	= header->ip4.frag_off;
++	iph.ttl		= header->ip4.ttl;
++	iph.protocol	= header->ip4.protocol;
++	iph.check	= 0;
++	iph.saddr	= header->ip4.saddr;
++	iph.daddr	= header->ip4.daddr;
++
++	return ip_fast_csum((u8 *)&iph, iph.ihl);
++}
++EXPORT_SYMBOL(ib_ud_ip4_csum);
++
  /**
+  * ib_ud_header_init - Initialize UD header structure
+  * @payload_bytes:Length of packet payload
+  * @lrh_present: specify if LRH is present
+  * @eth_present: specify if Eth header is present
+  * @vlan_present: packet is tagged vlan
+- * @grh_present:GRH flag (if non-zero, GRH will be included)
++ * @grh_present: GRH flag (if non-zero, GRH will be included)
++ * @ip_version: if non-zero, IP header, V4 or V6, will be included
++ * @udp_present :if non-zero, UDP header will be included
+  * @immediate_present: specify if immediate data is present
+  * @header:Structure to initialize
+  */
+-void ib_ud_header_init(int     		    payload_bytes,
+-		       int		    lrh_present,
+-		       int		    eth_present,
+-		       int		    vlan_present,
+-		       int    		    grh_present,
+-		       int		    immediate_present,
+-		       struct ib_ud_header *header)
++int ib_ud_header_init(int     payload_bytes,
++		      int    lrh_present,
++		      int    eth_present,
++		      int    vlan_present,
++		      int    grh_present,
++		      int    ip_version,
++		      int    udp_present,
++		      int    immediate_present,
++		      struct ib_ud_header *header)
+ {
++	grh_present = grh_present && !ip_version;
+ 	memset(header, 0, sizeof *header);
+ 
++	/*
++	 * UDP header without IP header doesn't make sense
++	 */
++	if (udp_present && ip_version != 4 && ip_version != 6)
++		return -EINVAL;
++
+ 	if (lrh_present) {
+ 		u16 packet_length;
+ 
+@@ -252,7 +350,7 @@ void ib_ud_header_init(int     		    payload_bytes,
+ 	if (vlan_present)
+ 		header->eth.type = cpu_to_be16(ETH_P_8021Q);
+ 
+-	if (grh_present) {
++	if (ip_version == 6 || grh_present) {
+ 		header->grh.ip_version      = 6;
+ 		header->grh.payload_length  =
+ 			cpu_to_be16((IB_BTH_BYTES     +
+@@ -260,8 +358,30 @@ void ib_ud_header_init(int     		    payload_bytes,
+ 				     payload_bytes    +
+ 				     4                + /* ICRC     */
+ 				     3) & ~3);          /* round up */
+-		header->grh.next_header     = 0x1b;
++		header->grh.next_header     = udp_present ? IPPROTO_UDP : 0x1b;
++	}
++
++	if (ip_version == 4) {
++		int udp_bytes = udp_present ? IB_UDP_BYTES : 0;
++
++		header->ip4.ver = 4; /* version 4 */
++		header->ip4.hdr_len = 5; /* 5 words */
++		header->ip4.tot_len =
++			cpu_to_be16(IB_IP4_BYTES   +
++				     udp_bytes     +
++				     IB_BTH_BYTES  +
++				     IB_DETH_BYTES +
++				     payload_bytes +
++				     4);     /* ICRC     */
++		header->ip4.protocol = IPPROTO_UDP;
+ 	}
++	if (udp_present && ip_version)
++		header->udp.length =
++			cpu_to_be16(IB_UDP_BYTES   +
++				     IB_BTH_BYTES  +
++				     IB_DETH_BYTES +
++				     payload_bytes +
++				     4);     /* ICRC     */
+ 
+ 	if (immediate_present)
+ 		header->bth.opcode           = IB_OPCODE_UD_SEND_ONLY_WITH_IMMEDIATE;
+@@ -273,8 +393,11 @@ void ib_ud_header_init(int     		    payload_bytes,
+ 	header->lrh_present = lrh_present;
+ 	header->eth_present = eth_present;
+ 	header->vlan_present = vlan_present;
+-	header->grh_present = grh_present;
++	header->grh_present = grh_present || (ip_version == 6);
++	header->ipv4_present = ip_version == 4;
++	header->udp_present = udp_present;
+ 	header->immediate_present = immediate_present;
++	return 0;
+ }
+ EXPORT_SYMBOL(ib_ud_header_init);
+ 
+@@ -311,6 +434,16 @@ int ib_ud_header_pack(struct ib_ud_header *header,
+ 			&header->grh, buf + len);
+ 		len += IB_GRH_BYTES;
+ 	}
++	if (header->ipv4_present) {
++		ib_pack(ip4_table, ARRAY_SIZE(ip4_table),
++			&header->ip4, buf + len);
++		len += IB_IP4_BYTES;
++	}
++	if (header->udp_present) {
++		ib_pack(udp_table, ARRAY_SIZE(udp_table),
++			&header->udp, buf + len);
++		len += IB_UDP_BYTES;
++	}
+ 
+ 	ib_pack(bth_table, ARRAY_SIZE(bth_table),
+ 		&header->bth, buf + len);
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 13eaaf4..6049644 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -2168,7 +2168,7 @@ static int build_sriov_qp0_header(struct mlx4_ib_sqp *sqp,
+ 	if (sqp->qp.mlx4_ib_qp_type == MLX4_IB_QPT_PROXY_SMI_OWNER)
+ 		send_size += sizeof (struct mlx4_ib_tunnel_header);
+ 
+-	ib_ud_header_init(send_size, 1, 0, 0, 0, 0, &sqp->ud_header);
++	ib_ud_header_init(send_size, 1, 0, 0, 0, 0, 0, 0, &sqp->ud_header);
+ 
+ 	if (sqp->qp.mlx4_ib_qp_type == MLX4_IB_QPT_PROXY_SMI_OWNER) {
+ 		sqp->ud_header.lrh.service_level =
+@@ -2314,7 +2314,10 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_ud_wr *wr,
+ 			is_vlan = 1;
+ 		}
+ 	}
+-	ib_ud_header_init(send_size, !is_eth, is_eth, is_vlan, is_grh, 0, &sqp->ud_header);
++	err = ib_ud_header_init(send_size, !is_eth, is_eth, is_vlan, is_grh,
++				0, 0, 0, &sqp->ud_header);
++	if (err)
++		return err;
+ 
+ 	if (!is_eth) {
+ 		sqp->ud_header.lrh.service_level =
+diff --git a/drivers/infiniband/hw/mthca/mthca_qp.c b/drivers/infiniband/hw/mthca/mthca_qp.c
+index 35fe506..96e5fb9 100644
+--- a/drivers/infiniband/hw/mthca/mthca_qp.c
++++ b/drivers/infiniband/hw/mthca/mthca_qp.c
+@@ -1485,7 +1485,7 @@ static int build_mlx_header(struct mthca_dev *dev, struct mthca_sqp *sqp,
+ 	u16 pkey;
+ 
+ 	ib_ud_header_init(256, /* assume a MAD */ 1, 0, 0,
+-			  mthca_ah_grh_present(to_mah(wr->ah)), 0,
++			  mthca_ah_grh_present(to_mah(wr->ah)), 0, 0, 0,
+ 			  &sqp->ud_header);
+ 
+ 	err = mthca_read_ah(dev, to_mah(wr->ah), &sqp->ud_header);
+diff --git a/include/rdma/ib_pack.h b/include/rdma/ib_pack.h
+index e99d8f9..a193081 100644
+--- a/include/rdma/ib_pack.h
++++ b/include/rdma/ib_pack.h
+@@ -41,6 +41,8 @@ enum {
+ 	IB_ETH_BYTES  = 14,
+ 	IB_VLAN_BYTES = 4,
+ 	IB_GRH_BYTES  = 40,
++	IB_IP4_BYTES  = 20,
++	IB_UDP_BYTES  = 8,
+ 	IB_BTH_BYTES  = 12,
+ 	IB_DETH_BYTES = 8
+ };
+@@ -223,6 +225,27 @@ struct ib_unpacked_eth {
+ 	__be16	type;
+ };
+ 
++struct ib_unpacked_ip4 {
++	u8	ver;
++	u8	hdr_len;
++	u8	tos;
++	__be16	tot_len;
++	__be16	id;
++	__be16	frag_off;
++	u8	ttl;
++	u8	protocol;
++	__be16	check;
++	__be32	saddr;
++	__be32	daddr;
++};
++
++struct ib_unpacked_udp {
++	__be16	sport;
++	__be16	dport;
++	__be16	length;
++	__be16	csum;
++};
++
+ struct ib_unpacked_vlan {
+ 	__be16  tag;
+ 	__be16  type;
+@@ -237,6 +260,10 @@ struct ib_ud_header {
+ 	struct ib_unpacked_vlan vlan;
+ 	int			grh_present;
+ 	struct ib_unpacked_grh	grh;
++	int			ipv4_present;
++	struct ib_unpacked_ip4	ip4;
++	int			udp_present;
++	struct ib_unpacked_udp	udp;
+ 	struct ib_unpacked_bth	bth;
+ 	struct ib_unpacked_deth deth;
+ 	int			immediate_present;
+@@ -253,13 +280,17 @@ void ib_unpack(const struct ib_field        *desc,
+ 	       void                         *buf,
+ 	       void                         *structure);
+ 
+-void ib_ud_header_init(int		    payload_bytes,
+-		       int		    lrh_present,
+-		       int		    eth_present,
+-		       int		    vlan_present,
+-		       int		    grh_present,
+-		       int		    immediate_present,
+-		       struct ib_ud_header *header);
++__be16 ib_ud_ip4_csum(struct ib_ud_header *header);
++
++int ib_ud_header_init(int		    payload_bytes,
++		      int		    lrh_present,
++		      int		    eth_present,
++		      int		    vlan_present,
++		      int		    grh_present,
++		      int		    ip_version,
++		      int		    udp_present,
++		      int		    immediate_present,
++		      struct ib_ud_header *header);
+ 
+ int ib_ud_header_pack(struct ib_ud_header *header,
+ 		      void                *buf);
 -- 
 1.7.1
 
