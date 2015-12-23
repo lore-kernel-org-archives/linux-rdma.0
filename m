@@ -1,106 +1,74 @@
-From: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V1 00/16] add Intel(R) X722 iWARP driver
-Date: Wed, 23 Dec 2015 10:35:49 -0600
-Message-ID: <20151223163549.GA22244@flatif-MOBL1>
-References: <1450739596-23276-1-git-send-email-faisal.latif@intel.com>
- <567AC754.5020508@redhat.com>
+From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH for-next V1 00/10] Add RoCE support to the mlx5 driver
+Date: Wed, 23 Dec 2015 18:36:53 +0200
+Message-ID: <CAAKD3BBiUhJ7OjJwAPPzscn6PAEh=hGP8WSzt+rxQNN-Dx49Kg@mail.gmail.com>
+References: <1450876674-21695-1-git-send-email-matanb@mellanox.com>
+	<567AC6C3.5070102@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <567AC754.5020508-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <567AC6C3.5070102-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 23, 2015 at 11:09:56AM -0500, Doug Ledford wrote:
-> On 12/21/2015 06:13 PM, Faisal Latif wrote:
-> > This (V1) series contains the addition of the i40iw.ko driver after
-> > incorporating the feedback from Christoph Hellwig and Joe Perches for
-> > initial series.
-> > 
-> > This driver provides iWARP RDMA functionality for the Intel(R) X722 Ethernet
-> > controller for PCI Physical Functions. It also has support for Virtual
-> > Function driver (i40iwvf.ko), which that will be part of separate patch
-> > series.
-> > 
-> > It cooperates with the Intel(R) X722 base driver (i40e.ko) to allocate
-> > resources and program the controller.
-> > 
-> > This series include 1 patch to i40e.ko to provide interface support to
-> > i40iw.ko. The interface provides a driver registration mechanism, resource
-> > allocations, and device reset coordination mechanisms.
-> > 
-> > This patch series is based on Doug Ledford's k.o/for-4.5.
-> 
-> My apologies Faisal.  I had pushed that branch to github to get 0-day
-> testing, but hadn't committed it to my k.o tree as it wasn't fully
-> finalized (I was waiting for Or to get his chance to respond to it).
-> Once Or responded, I ended up taking his patchset instead, which means
-> you need to adjust your patches accordingly.
-> 
+On Wed, Dec 23, 2015 at 6:07 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> On 12/23/2015 08:17 AM, Matan Barak wrote:
+>> Hi Doug,
+>>
+>> This patchset adds RoCE V1 and RoCE V2 support to the mlx5 device
+>> driver.
+>>
+>> This patchset was applied and tested over the third version of
+>> "Add RoCE v2 support".
+>>
+>> Regards,
+>> Achiad
+>>
+>> Changes from V0:
+>>  - Fixed using rwlock before initializing it.
+>>  - Rebased over Doug's k.o/for-4.5 branch.
+>>
+>> Achiad Shochat (10):
+>>   IB/mlx5: Support IB device's callback for getting the link layer
+>>   IB/mlx5: Support IB device's callback for getting its netdev
+>>   net/mlx5_core: Break down the vport mac address query function
+>>   net/mlx5_core: Introduce access functions to enable/disable RoCE
+>>   net/mlx5_core: Introduce access functions to query vport RoCE fields
+>>   IB/mlx5: Extend query_device/port to support RoCE
+>>   IB/mlx5: Set network_hdr_type upon RoCE responder completion
+>>   IB/mlx5: Support IB device's callbacks for adding/deleting GIDs
+>>   IB/mlx5: Add RoCE fields to Address Vector
+>>   IB/mlx5: Support RoCE
+>>
+>>  drivers/infiniband/hw/mlx5/ah.c                 |  32 ++-
+>>  drivers/infiniband/hw/mlx5/cq.c                 |  17 ++
+>>  drivers/infiniband/hw/mlx5/main.c               | 318 ++++++++++++++++++++++--
+>>  drivers/infiniband/hw/mlx5/mlx5_ib.h            |  15 +-
+>>  drivers/infiniband/hw/mlx5/qp.c                 |  42 +++-
+>>  drivers/net/ethernet/mellanox/mlx5/core/vport.c | 139 ++++++++++-
+>>  include/linux/mlx5/device.h                     |  26 ++
+>>  include/linux/mlx5/driver.h                     |   7 -
+>>  include/linux/mlx5/mlx5_ifc.h                   |  10 +-
+>>  include/linux/mlx5/qp.h                         |  21 +-
+>>  include/linux/mlx5/vport.h                      |   8 +
+>>  11 files changed, 578 insertions(+), 57 deletions(-)
+>>
+>
+> This series doesn't apply to my tree even after the GID table lock
+> series and the RoCEv2-V3 series.  I'm guessing you have some other mlx5
+> specific series in your tree?
+>
 
-Thanks Doug for the update, I will provide new patch series for latest
-k.o. Also will make sure of shallow threading for the series. I should
-have used V2 for this series instead of V1 and next series with k.o will
-make it proper with V3.
+Strange.... I'll respin them over your k.o/for-4.4-rc tree + the
+required patches. Ok?
 
-> > 
-> > Anjali Singhai Jain (1)
-> > net/ethernet/intel/i40e: Add support for client interface for IWARP driver
-> > 
-> > Faisal Latif(15):
-> > infiniband/hw/i40iw: add main, hdr, status
-> > infiniband/hw/i40iw: add connection management code
-> > infiniband/hw/i40iw: add puda code
-> > infiniband/hw/i40iw: add pble resource files
-> > infiniband/hw/i40iw: add hmc resource files
-> > infiniband/hw/i40iw: add hw and utils files
-> > infiniband/hw/i40iw: add files for iwarp interface
-> > infiniband/hw/i40iw: add file to handle cqp calls
-> > infiniband/hw/i40iw: add hardware related header files
-> > infiniband/hw/i40iw: add X722 register file
-> > infiniband/hw/i40iw: user kernel shared files
-> > infiniband/hw/i40iw: virtual channel handling files
-> > infiniband/hw/i40iw: Kconfig and Kbuild for iwarp module
-> > infiniband/hw/i40iw: Add entry for I40IW rdma_netlink.h
-> > infiniband/hw/i40iw: changes for build of i40iw module
-> > 
-> > Changes done from initial version to V1 are following.
-> > 
-> > Feedback received from Christoph Hellwig
-> > *Remove pointless braces -improved after code review and changing
-> > *kmap()/kunmap() - made it very short lived
-> > *less casts -improved 
-> > *Remove unused routine stubs - done
-> > *no initialize to 0 or NULL when struct field were zeroed - done
-> > *define UNREFERENCED_PARAMETER not needed -done
-> > *remove define I40eE_MASK  -done
-> > *rd32(), wr32() make them inline -done
-> > *readq() use magic in linux/io-64-nonatomic-lo-hi.h -done
-> > *SLEEP() define -done by removing it
-> > *entry in rdma_netlink.h for I40IW should be in proper location
-> > 	and separate patch -done
-> > 
-> > Feedback received from Joe Perches
-> > *series to respuun re-spun against next - done with
-> > 	Doug's Ledford's k.o/for-4.5
-> > *Change to i40e client patch regarding mailing list - this is consistent
-> > 	with other i40e files.
-> > *Removed error from i40iw_pr_err() -done
-> > *cqp_request() change from bitfields to bool -done
-> > 
-> 
-> 
-> -- 
+> --
 > Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 >               GPG KeyID: 0E572FDD
-> 
-> 
-
-Faisal
-
+>
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
