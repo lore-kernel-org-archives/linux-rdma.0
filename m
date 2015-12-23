@@ -1,41 +1,50 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: MR cleanups / dead code removal V2
-Date: Wed, 23 Dec 2015 13:27:50 -0500
-Message-ID: <567AE7A6.1050701@redhat.com>
-References: <1450894374-8241-1-git-send-email-hch@lst.de>
+Subject: Re: [PATCH net-next 0/2] new maintainers for Mellanox mlx4/mlx5 core
+ and IB drivers
+Date: Wed, 23 Dec 2015 13:31:06 -0500
+Message-ID: <567AE86A.50803@redhat.com>
+References: <1450888258-19557-1-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="TVGSxgx7raNu6exdiNPgTJr3D9l6I4hw0"
+ boundary="4DVVbVC7J9EUdHlKT8WJt1JcOBqmM3sRf"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1450894374-8241-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <1450888258-19557-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---TVGSxgx7raNu6exdiNPgTJr3D9l6I4hw0
+--4DVVbVC7J9EUdHlKT8WJt1JcOBqmM3sRf
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 12/23/2015 01:12 PM, Christoph Hellwig wrote:
-> Hi Doug,
+On 12/23/2015 11:30 AM, Or Gerlitz wrote:
+> Hi Dave, Doug
+> =20
+> We're happily assigning new maintainers for mlx4/mlx5 core and IB drive=
+rs.
 >=20
-> this series (on top of your k.o/for-4.5 branch) has various MR-related
-> cleanups:  starting to document the device capabilities, removing lots
-> of dead MR/MW code and removing a useless field in struct ib_mr.  This
-> should be fairly uncontroversial I hope, so I'd like to get it in befor=
-e
-> any real MR changes.
+> This is aligned with Eli (mlx5) and Roland (mlx4).
 >=20
-> Changes since V1:
->  - rebase
->  - updated description for the last patch
->  - additional ACKs
+> FWIW, I did the whole change to go through netdev.=20
+
+Hi Dave, I've picked these up.
+
+Thanks Or.
+
+> Or.
+>=20
+> Or Gerlitz (2):
+>   MAINTAINERS: Assign new maintainers to Mellanox mlx5 core and IB driv=
+ers
+>   MAINTAINERS: Assign maintainer to Mellanox mlx4 core and IB drivers
+>=20
+>  MAINTAINERS | 32 +++++++++++++++++++++++++-------
+>  1 file changed, 25 insertions(+), 7 deletions(-)
 >=20
 
-Thanks for rebasing it.  Applied.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -43,7 +52,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---TVGSxgx7raNu6exdiNPgTJr3D9l6I4hw0
+--4DVVbVC7J9EUdHlKT8WJt1JcOBqmM3sRf
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -52,22 +61,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWeuemAAoJELgmozMOVy/dtmwP/017jmBCp4w6MVbsVwdANWCl
-9eDtktOlBnrJ8YyRM9JMrNzYJyVYuX1Yd1PFU7ZX3wywbBHI2wl/AU/FZZnM0hFs
-czQelxdMnWRETUyf/wF9PxU/KRXm9r5diYhOUmJtV8ipSIYx8S/WcIEJpy5fVzE/
-2am6UqDB2jUe+cN++uVL2/JIz6yOAkNp2SgaX5mTcpVHqlvBjfaUtngwYsRcUAlY
-qfu/o92kXpaMfcWco2CRp/IjVRJJSio+/zfaEzPbOZLN2k+U/JLdTmBEczdoWSvl
-Tz/LauUUyTP6yRIFmt53jplARjlYbm3ugAG2n1B0jot8wCh8WA4FtpBFDH3B1UJo
-8l6kEjsoGlc29iKquGB6NM14wwSCZBDCfTRxESIzZy/kpd0vYDqNjkYv8jVg9UyO
-5Jd9TBId5sm24f61r40AOLftKT4H1j/l6cHq9474g1gu9ri6di/lmjwYZBGQRMKu
-JXmdalutlJdrrL1uYiy+kH0DceIuQBKeu3vau54tU5mBNj1MnIqPAsGdZ9xvZitn
-UZ5whLIHs9/9879NXZ+hD1hUtw0YnTJEFBHj2oSDEXsJ8U9yDpNqnF1yhyLs5Tz6
-Ad7CXXoFInxfThKeaft+/+gsksE+4ENuxbwSkfHLOPAxeEvx+gAPfZKiaVkWjV9s
-BIk1Wu2ky511CxMAhp6i
-=Sgld
+iQIcBAEBCAAGBQJWeuhqAAoJELgmozMOVy/dCA0P+weCWB58mFtOW2kL/e7SFo3S
+/815Q6dQmfkfamc/b1jAp372KGp9QpNkZyN5Uwm2f+XV1Ljjk6xtiKaNbE7Oyf8P
+XGsGQDGZAWdhBl7Zwe69DXtWI2eFCav8ciuZWi08t+QAqvab9CivTSQcwrvoAYTD
+4ZnrdiISIEw5N5fXykpk4cCvyUnyD3FmcxqPpZ7fGvZS6sAfhpxG9UGDV0UqGtM2
+aRPPwQuPmT0NRrgKrIRwheArAxYaodIQxsJDOC1hdlrtQulYKSsh6zD1i8W12NYM
+89FkSPeYMGNtbzq0z7PPxhEHFZfg8d4femvbdEud/LKtiyyO+uau6Ist9Dns067F
+HdlbLwe0jTcYJJy+MWoTER6uQMD2l1qqyWTs5WG3sBiWzdGn2Bopgb8BQlMUlOuL
+WXHy0uZytmeOBQQVyuJJeajF/MTN8a/grTVKcb/RhF3ntCydxDKxpdXteKAHmtAJ
+EzEaW0qMRDRV+jO0mnJoxJbqTdxAoFOS0zXv2ch6d4P84JznMrrW5nS3hn7hVXN8
+NB2OYVpRsWE1camiIhvMOLgWtFaInmPipLcXSak18i8iVzC6qcE6JhLPPQ9UiRm9
+WgRsehOY+dE6IbIb20FGsjVnHZjpnlZJUXDj4L8h4A5kUDpoy9rwp9HnPF5OzM/p
+P8yDak5aQ40Cjl29mlQO
+=M3+W
 -----END PGP SIGNATURE-----
 
---TVGSxgx7raNu6exdiNPgTJr3D9l6I4hw0--
+--4DVVbVC7J9EUdHlKT8WJt1JcOBqmM3sRf--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
