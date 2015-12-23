@@ -1,44 +1,65 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH for-next V3 01/11] IB/core: Add gid_type to gid attribute
-Date: Wed, 23 Dec 2015 17:38:49 +0200
-Message-ID: <567AC009.2030106@dev.mellanox.co.il>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next V3 00/11] Add RoCE v2 support
+Date: Wed, 23 Dec 2015 10:48:09 -0500
+Message-ID: <567AC239.8070106@redhat.com>
 References: <1450875417-19262-1-git-send-email-matanb@mellanox.com>
- <1450875417-19262-2-git-send-email-matanb@mellanox.com>
- <20151223134053.GB3599@leon.nu>
- <CAAKD3BBipJ_2vr2=UYnUZhRqFhfp=23i+rG4FRx089cZ=6rTVQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="OoV69wWLGwl2T8FCbkQSvOUD0vtj5HmTX"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAAKD3BBipJ_2vr2=UYnUZhRqFhfp=23i+rG4FRx089cZ=6rTVQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1450875417-19262-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, leon-2ukJVAZIZ/Y@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Somnath Kotur <Somnath.Kotur-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--OoV69wWLGwl2T8FCbkQSvOUD0vtj5HmTX
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
->>> +static const char * const gid_type_str[] = {
->>                     ^^ ^^
->> IMHO, The white spaces can be a little bit confusing to understand.
->>
->
-> Pay attention to the double const - I think it's more clear that way.
+On 12/23/2015 07:56 AM, Matan Barak wrote:
+> Hi Doug,
 
-I agree.
+> This patch is applied on the "Change per-entry locks in GID cache to
+> table lock" series which was sent to the mailing list.
 
->
->>> +     [IB_GID_TYPE_IB]        = "IB/RoCE v1",
->>> +};
->>> +
->>> +const char *ib_cache_gid_type_str(enum ib_gid_type gid_type)
->>> +{
->>> +     if (gid_type < ARRAY_SIZE(gid_type_str) && gid_type_str[gid_type])
->> Why do you need to check second condition?
->
-> If we want to leave a gap for an invalid GID type, we could do that.
-> Anyway, we could remove this as an incremental future patch if that's
-> really important.
+The "Change per-entry locks..." patchset emails are missing from my mail
+folder (another casualty of that mail incident).  So, consider this the
+notice that that patch set has in fact been picked up for 4.5.
 
-Leave it in, better safe than sorry...
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--OoV69wWLGwl2T8FCbkQSvOUD0vtj5HmTX
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJWesI5AAoJELgmozMOVy/d7EMP/RZgnZQbRunNKVJOjj0ssCbD
+prh2tGJ+KffX04QYgWu1LDBfIs5KwQtQ0HzEa3TvGl1TRWOkzRRxKCEGX16bboeo
+X18Zw6rrIQN6VhM0nNhdGRqkkoUxn5krv9YjsTz4FNLC7yC340AaHaTShppu7pgw
+AtBv7Q7uE1RwjALMTJenW/VOP4BrsmNgWfpR6e/OuaJdWsuNBppTP4bULkT9hdPJ
+kwlSY6NKTVtwoiRQmFWa0MCl481vv8nN5gDI1X+8IQSBvgGu1C5ecifUtEoBkoKv
+Rm4/qruV2Ytv1s/aW/MhGsZhM/DqMVIVrHyeX/MublROO2Zf+y1AyMzlDfn0caIX
+T+MEbLqVE1MkdVnFZpRUEoJ2d85gk6xmcmNX1hjsBA5Do953PFqKhZCmzpTJLHgJ
+Ii5gzW/RPUEGFcqDsCjj2zASfu5cvcm6lmXBMY17MP0tkaAGyVufS0K3ka64rTy8
+e13SZVf2+DkvmNFeqPdRNrbT4oPBVsM/yNLoocQ6wRpZbgxWu45AB37Ry7jFr8qA
+sIN7wx73FVLeMYaaEW5BYAWRxEIz1/Vvli4jgitOUfJ9/LJbg7zwNcfLSUjcHE52
+MX3T9NpmHLFjduYXVmUBd+lU3pG6KdCMfvt5YkIYUZ3VxXIrGoKXzLAD8AuQZ+6U
+vXAbc0ykkNJ8wDSTYIiv
+=RXNK
+-----END PGP SIGNATURE-----
+
+--OoV69wWLGwl2T8FCbkQSvOUD0vtj5HmTX--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
