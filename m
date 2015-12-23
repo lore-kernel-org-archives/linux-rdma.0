@@ -1,45 +1,116 @@
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH] staging: rdma: hfi1: diag: constify hfi1_filter_array
- structure
-Date: Wed, 23 Dec 2015 21:42:57 +0100
-Message-ID: <1450903377-27803-1-git-send-email-Julia.Lawall@lip6.fr>
+From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH v4 00/11] NFS/RDMA server patches for v4.5
+Date: Wed, 23 Dec 2015 16:00:15 -0500
+Message-ID: <20151223210015.GA29650@fieldses.org>
+References: <20151214211951.12932.99017.stgit@klimt.1015granger.net>
+ <CANjDDBjypu0jX22fZ-Nf-bNNeam2MM0MADaZY9C-o9ihJPiseg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Mike Marciniszyn <infinipath@intel.com>
-Cc: devel@driverdev.osuosl.org, linux-rdma@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CANjDDBjypu0jX22fZ-Nf-bNNeam2MM0MADaZY9C-o9ihJPiseg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The hfi1_filter_array structure is never modified, so declare it as const.
+On Wed, Dec 16, 2015 at 05:40:09PM +0530, Devesh Sharma wrote:
+> iozone passed on ocrdma device.
 
-Done with the help of Coccinelle.
+What other testing has there been of this patchset?
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+Connectathon, xfstests, and pynfs make more of an effort to test corner
+cases, iozone isn't much of a test of correctness.
 
----
- drivers/staging/rdma/hfi1/diag.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+--b.
 
-diff --git a/drivers/staging/rdma/hfi1/diag.c b/drivers/staging/rdma/hfi1/diag.c
-index 0c88317..e41159f 100644
---- a/drivers/staging/rdma/hfi1/diag.c
-+++ b/drivers/staging/rdma/hfi1/diag.c
-@@ -257,7 +257,7 @@ static int hfi1_filter_ib_service_level(void *ibhdr, void *packet_data,
- static int hfi1_filter_ib_pkey(void *ibhdr, void *packet_data, void *value);
- static int hfi1_filter_direction(void *ibhdr, void *packet_data, void *value);
- 
--static struct hfi1_filter_array hfi1_filters[] = {
-+static const struct hfi1_filter_array hfi1_filters[] = {
- 	{ hfi1_filter_lid },
- 	{ hfi1_filter_dlid },
- 	{ hfi1_filter_mad_mgmt_class },
+> Link bounce fails to recover iozone
+> traffic, however failure is not related to this patch series. I am in
+> processes of finding out the patch which broke it.
+> 
+> Tested-By: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+> 
+> On Tue, Dec 15, 2015 at 3:00 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> > Here are patches to support server-side bi-directional RPC/RDMA
+> > operation (to enable NFSv4.1 on RPC/RDMA transports). Thanks to
+> > all who reviewed v1, v2, and v3. This version has some significant
+> > changes since the previous one.
+> >
+> > In preparation for Doug's final topic branch, Bruce, I've rebased
+> > these on Christoph's ib_device_attr branch. There were some merge
+> > conflicts which I've fixed and tested. These are ready for your
+> > review.
+> >
+> > Also available in the "nfsd-rdma-for-4.5" topic branch of this git repo:
+> >
+> > git://git.linux-nfs.org/projects/cel/cel-2.6.git
+> >
+> > Or for browsing:
+> >
+> > http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-for-4.5
+> >
+> >
+> > Changes since v3:
+> > - Rebased on Christoph's ib_device_attr branch
+> > - Backchannel patches have been squashed together
+> > - Memory allocation overhaul to prevent blocking allocation
+> >   when sending backchannel calls
+> >
+> >
+> > Changes since v2:
+> > - Rebased on v4.4-rc4
+> > - Backchannel code in new source file to address dprintk issues
+> > - svc_rdma_get_context() now uses a pre-allocated cache
+> > - Dropped svc_rdma_send clean up
+> >
+> >
+> > Changes since v1:
+> >
+> > - Rebased on v4.4-rc3
+> > - Removed the use of CONFIG_SUNRPC_BACKCHANNEL
+> > - Fixed computation of forward and backward max_requests
+> > - Updated some comments and patch descriptions
+> > - pr_err and pr_info converted to dprintk
+> > - Simplified svc_rdma_get_context()
+> > - Dropped patch removing access_flags field
+> > - NFSv4.1 callbacks tested with for-4.5 client
+> >
+> > ---
+> >
+> > Chuck Lever (11):
+> >       svcrdma: Do not send XDR roundup bytes for a write chunk
+> >       svcrdma: Clean up rdma_create_xprt()
+> >       svcrdma: Clean up process_context()
+> >       svcrdma: Improve allocation of struct svc_rdma_op_ctxt
+> >       svcrdma: Improve allocation of struct svc_rdma_req_map
+> >       svcrdma: Remove unused req_map and ctxt kmem_caches
+> >       svcrdma: Add gfp flags to svc_rdma_post_recv()
+> >       svcrdma: Remove last two __GFP_NOFAIL call sites
+> >       svcrdma: Make map_xdr non-static
+> >       svcrdma: Define maximum number of backchannel requests
+> >       svcrdma: Add class for RDMA backwards direction transport
+> >
+> >
+> >  include/linux/sunrpc/svc_rdma.h            |   37 ++-
+> >  net/sunrpc/xprt.c                          |    1
+> >  net/sunrpc/xprtrdma/Makefile               |    2
+> >  net/sunrpc/xprtrdma/svc_rdma.c             |   41 ---
+> >  net/sunrpc/xprtrdma/svc_rdma_backchannel.c |  371 ++++++++++++++++++++++++++++
+> >  net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |   52 ++++
+> >  net/sunrpc/xprtrdma/svc_rdma_sendto.c      |   34 ++-
+> >  net/sunrpc/xprtrdma/svc_rdma_transport.c   |  284 ++++++++++++++++-----
+> >  net/sunrpc/xprtrdma/transport.c            |   30 +-
+> >  net/sunrpc/xprtrdma/xprt_rdma.h            |   20 +-
+> >  10 files changed, 730 insertions(+), 142 deletions(-)
+> >  create mode 100644 net/sunrpc/xprtrdma/svc_rdma_backchannel.c
+> >
+> > --
+> > Signature
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
