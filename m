@@ -1,67 +1,137 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/usnic: Handle 0 counts in resource allocation
-Date: Wed, 23 Dec 2015 14:48:03 -0500
-Message-ID: <567AFA73.3040609@redhat.com>
-References: <1449686539-29959-6-git-send-email-neescoba@cisco.com>
+From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH v4 01/11] svcrdma: Do not send XDR roundup bytes for a
+ write chunk
+Date: Wed, 23 Dec 2015 14:59:15 -0500
+Message-ID: <20151223195915.GB27432@fieldses.org>
+References: <20151214211951.12932.99017.stgit@klimt.1015granger.net>
+ <20151214213009.12932.60521.stgit@klimt.1015granger.net>
+ <20151221210708.GD7869@fieldses.org>
+ <D0AD304E-0356-48DE-A68D-F9F8930D854D@oracle.com>
+ <20151221212959.GE7869@fieldses.org>
+ <DF5B7D29-0C6C-47EF-8E3E-74BF137D7F95@oracle.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="E9jmi5K5MwUSTtVEM2Lmcaj6cINd8oVKj"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1449686539-29959-6-git-send-email-neescoba-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <DF5B7D29-0C6C-47EF-8E3E-74BF137D7F95-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nelson Escobar <neescoba-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---E9jmi5K5MwUSTtVEM2Lmcaj6cINd8oVKj
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On Mon, Dec 21, 2015 at 05:11:56PM -0500, Chuck Lever wrote:
+> 
+> > On Dec 21, 2015, at 4:29 PM, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> wrote:
+> > 
+> > On Mon, Dec 21, 2015 at 04:15:23PM -0500, Chuck Lever wrote:
+> >> 
+> >>> On Dec 21, 2015, at 4:07 PM, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> wrote:
+> >>> 
+> >>> On Mon, Dec 14, 2015 at 04:30:09PM -0500, Chuck Lever wrote:
+> >>>> Minor optimization: when dealing with write chunk XDR roundup, do
+> >>>> not post a Write WR for the zero bytes in the pad. Simply update
+> >>>> the write segment in the RPC-over-RDMA header to reflect the extra
+> >>>> pad bytes.
+> >>>> 
+> >>>> The Reply chunk is also a write chunk, but the server does not use
+> >>>> send_write_chunks() to send the Reply chunk. That's OK in this case:
+> >>>> the server Upper Layer typically marshals the Reply chunk contents
+> >>>> in a single contiguous buffer, without a separate tail for the XDR
+> >>>> pad.
+> >>>> 
+> >>>> The comments and the variable naming refer to "chunks" but what is
+> >>>> really meant is "segments." The existing code sends only one
+> >>>> xdr_write_chunk per RPC reply.
+> >>>> 
+> >>>> The fix assumes this as well. When the XDR pad in the first write
+> >>>> chunk is reached, the assumption is the Write list is complete and
+> >>>> send_write_chunks() returns.
+> >>>> 
+> >>>> That will remain a valid assumption until the server Upper Layer can
+> >>>> support multiple bulk payload results per RPC.
+> >>>> 
+> >>>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> >>>> ---
+> >>>> net/sunrpc/xprtrdma/svc_rdma_sendto.c |    7 +++++++
+> >>>> 1 file changed, 7 insertions(+)
+> >>>> 
+> >>>> diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+> >>>> index 969a1ab..bad5eaa 100644
+> >>>> --- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+> >>>> +++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+> >>>> @@ -342,6 +342,13 @@ static int send_write_chunks(struct svcxprt_rdma *xprt,
+> >>>> 						arg_ch->rs_handle,
+> >>>> 						arg_ch->rs_offset,
+> >>>> 						write_len);
+> >>>> +
+> >>>> +		/* Do not send XDR pad bytes */
+> >>>> +		if (chunk_no && write_len < 4) {
+> >>>> +			chunk_no++;
+> >>>> +			break;
+> >>> 
+> >>> I'm pretty lost in this code.  Why does (chunk_no && write_len < 4) mean
+> >>> this is xdr padding?
+> >> 
+> >> Chunk zero is always data. Padding is always going to be
+> >> after the first chunk. Any chunk after chunk zero that is
+> >> shorter than XDR quad alignment is going to be a pad.
+> > 
+> > I don't really know what a chunk is....  Looking at the code:
+> > 
+> > 	write_len = min(xfer_len, be32_to_cpu(arg_ch->rs_length));
+> > 
+> > so I guess the assumption is just that those rs_length's are always a
+> > multiple of four?
+> 
+> The example you recently gave was a two-byte NFS READ
+> that crosses a page boundary.
+> 
+> In that case, the NFSD would pass down an xdr_buf that
+> has one byte in a page, one byte in another page, and
+> a two-byte XDR pad. The logic introduced by this
+> optimization would be fooled, and neither the second
+> byte nor the XDR pad would be written to the client.
+> 
+> Unless you can think of a way to recognize an XDR pad
+> in the xdr_buf 100% of the time, you should drop this
+> patch.
 
-On 12/09/2015 01:42 PM, Nelson Escobar wrote:
-> Signed-off-by: Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-> Reviewed-by: Reese Faucette <rfaucett-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-> Reviewed-by: Xuyang Wang <xuywang-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Nelson Escobar <neescoba-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/usnic/usnic_vnic.c | 54 +++++++++++++++++-------=
---------
->  1 file changed, 29 insertions(+), 25 deletions(-)
+It might be best to make this explicit and mark bytes as padding somehow
+while encoding.
 
-Thanks, applied.
+> As far as I know, none of the other patches in this
+> series depend on this optimization, so please merge
+> them if you can.
 
+OK, I'll take a look at the rest, thanks.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+--b.
 
-
-
---E9jmi5K5MwUSTtVEM2Lmcaj6cINd8oVKj
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIbBAEBCAAGBQJWevpzAAoJELgmozMOVy/djhAP+K5weAFHQ7raEzwFmsCzLiJ2
-3e7VsCfMU6/NlAY1hE+NBpzXkeKkLqTXBUPV83gP8XotRESDCTzLI83pBGkoRfTn
-ccs18/VHrNLX3QJHHHrgUkLGpwLfzqDcRDtxV/sOoVHbJfaFKLhpDDdD779ROCVr
-Ur+kJNXSovd9EYnf6H+V5KCa9NhetKpr2TCSpbXMkiM+IJKp1/5R7XFSRcvSGQ/j
-ByBh+t7LtZIKedzvs9TmltvLDi6M3i6S5E5byBD35iCGS8BFxKmI1eK7YhFZckJa
-hNwe0nye3+lKr+iwXXiyB4RTPYZTBVTsgRo1Zg5+Z9sA/OjMiNRgY2LJ0ftqh9h+
-8SZD9w4DW13poTWN9vGRIcoxM6zJORRYezr3tjTWTTITSAo31OC+CubFxiQdQOg3
-+M2EsuoW4PuEeUcTpSBGzR9aR9b/aVJtNOMgWVzDA51NqdM+Sq07BKdoyFSxYT6u
-4Qgum/0aTxJYJPaXli9Gg2UMRDUsqjTjbGXSz65QGCwLZ1ZNA1hwxM3U3sDcblEq
-Rd9NYk5X2mT2tbxOqmC8TuYHx5nA1fRHtrRTFuct1TUx3GNzTxTHIAvw+qmnKxHE
-unOyy/OImV/fb8i/VsQJkKuqrixfmUWtsnTVeTAlBOtPX8y2qGMFezgRpfC7uEfL
-R/YTH4M2PwAzv67VOZI=
-=aRji
------END PGP SIGNATURE-----
-
---E9jmi5K5MwUSTtVEM2Lmcaj6cINd8oVKj--
+> >> Probably too clever. Is there a better way to detect
+> >> the XDR pad?
+> >> 
+> >> 
+> >>>> +		}
+> >>>> +
+> >>>> 		chunk_off = 0;
+> >>>> 		while (write_len) {
+> >>>> 			ret = send_write(xprt, rqstp,
+> >> 
+> >> --
+> >> Chuck Lever
+> >> 
+> >> 
+> >> 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> --
+> Chuck Lever
+> 
+> 
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
