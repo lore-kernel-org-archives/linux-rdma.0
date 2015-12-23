@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V1 10/10] IB/mlx5: Support RoCE
-Date: Wed, 23 Dec 2015 15:17:54 +0200
-Message-ID: <1450876674-21695-11-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next V1 03/10] net/mlx5_core: Break down the vport mac address query function
+Date: Wed, 23 Dec 2015 15:17:47 +0200
+Message-ID: <1450876674-21695-4-git-send-email-matanb@mellanox.com>
 References: <1450876674-21695-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450876674-21695-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,99 +12,70 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Advertise RoCE support for IB/core layer and set the hardware to
-work in RoCE mode.
+Introduce a new function called mlx5_query_nic_vport_context().
+This function gets all the NIC vport attributes from the device.
+
+The MAC address is just one of the NIC vport attributes, so
+mlx5_query_nic_vport_mac_address() is now just a wrapper function
+above mlx5_query_nic_vport_context().
+
+More NIC vport attributes will be used in following commits.
 
 Signed-off-by: Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 48 +++++++++++++++++++++++++++++++++++----
- 1 file changed, 44 insertions(+), 4 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/vport.c | 27 ++++++++++++++++---------
+ 1 file changed, 17 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 2374007..1c7c459 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1498,6 +1498,32 @@ static void destroy_dev_resources(struct mlx5_ib_resources *devr)
- 	mlx5_ib_dealloc_pd(devr->p0);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/vport.c b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
+index b94177e..54ab63b 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/vport.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
+@@ -57,12 +57,25 @@ u8 mlx5_query_vport_state(struct mlx5_core_dev *mdev, u8 opmod)
  }
+ EXPORT_SYMBOL(mlx5_query_vport_state);
  
-+static u32 get_core_cap_flags(struct ib_device *ibdev)
++static int mlx5_query_nic_vport_context(struct mlx5_core_dev *mdev, u32 *out,
++					int outlen)
 +{
-+	struct mlx5_ib_dev *dev = to_mdev(ibdev);
-+	enum rdma_link_layer ll = mlx5_ib_port_link_layer(ibdev, 1);
-+	u8 l3_type_cap = MLX5_CAP_ROCE(dev->mdev, l3_type);
-+	u8 roce_version_cap = MLX5_CAP_ROCE(dev->mdev, roce_version);
-+	u32 ret = 0;
++	u32 in[MLX5_ST_SZ_DW(query_nic_vport_context_in)];
 +
-+	if (ll == IB_LINK_LAYER_INFINIBAND)
-+		return RDMA_CORE_PORT_IBA_IB;
++	memset(in, 0, sizeof(in));
 +
-+	if (!(l3_type_cap & MLX5_ROCE_L3_TYPE_IPV4_CAP))
-+		return 0;
++	MLX5_SET(query_nic_vport_context_in, in, opcode,
++		 MLX5_CMD_OP_QUERY_NIC_VPORT_CONTEXT);
 +
-+	if (!(l3_type_cap & MLX5_ROCE_L3_TYPE_IPV6_CAP))
-+		return 0;
-+
-+	if (roce_version_cap & MLX5_ROCE_VERSION_1_CAP)
-+		ret |= RDMA_CORE_PORT_IBA_ROCE;
-+
-+	if (roce_version_cap & MLX5_ROCE_VERSION_2_CAP)
-+		ret |= RDMA_CORE_PORT_IBA_ROCE_UDP_ENCAP;
-+
-+	return ret;
++	return mlx5_cmd_exec_check_status(mdev, in, sizeof(in), out, outlen);
 +}
 +
- static int mlx5_port_immutable(struct ib_device *ibdev, u8 port_num,
- 			       struct ib_port_immutable *immutable)
+ void mlx5_query_nic_vport_mac_address(struct mlx5_core_dev *mdev, u8 *addr)
  {
-@@ -1510,7 +1536,7 @@ static int mlx5_port_immutable(struct ib_device *ibdev, u8 port_num,
- 
- 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
- 	immutable->gid_tbl_len = attr.gid_tbl_len;
--	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_IB;
-+	immutable->core_cap_flags = get_core_cap_flags(ibdev);
- 	immutable->max_mad_size = IB_MGMT_MAD_SIZE;
- 
- 	return 0;
-@@ -1518,12 +1544,27 @@ static int mlx5_port_immutable(struct ib_device *ibdev, u8 port_num,
- 
- static int mlx5_enable_roce(struct mlx5_ib_dev *dev)
- {
+-	u32  in[MLX5_ST_SZ_DW(query_nic_vport_context_in)];
+ 	u32 *out;
+ 	int outlen = MLX5_ST_SZ_BYTES(query_nic_vport_context_out);
+ 	u8 *out_addr;
 +	int err;
-+
- 	dev->roce.nb.notifier_call = mlx5_netdev_event;
--	return register_netdevice_notifier(&dev->roce.nb);
-+	err = register_netdevice_notifier(&dev->roce.nb);
-+	if (err)
-+		return err;
-+
-+	err = mlx5_nic_vport_enable_roce(dev->mdev);
-+	if (err)
-+		goto err_unregister_netdevice_notifier;
-+
-+	return 0;
-+
-+err_unregister_netdevice_notifier:
-+	unregister_netdevice_notifier(&dev->roce.nb);
-+	return err;
+ 
+ 	out = mlx5_vzalloc(outlen);
+ 	if (!out)
+@@ -71,15 +84,9 @@ void mlx5_query_nic_vport_mac_address(struct mlx5_core_dev *mdev, u8 *addr)
+ 	out_addr = MLX5_ADDR_OF(query_nic_vport_context_out, out,
+ 				nic_vport_context.permanent_address);
+ 
+-	memset(in, 0, sizeof(in));
+-
+-	MLX5_SET(query_nic_vport_context_in, in, opcode,
+-		 MLX5_CMD_OP_QUERY_NIC_VPORT_CONTEXT);
+-
+-	memset(out, 0, outlen);
+-	mlx5_cmd_exec_check_status(mdev, in, sizeof(in), out, outlen);
+-
+-	ether_addr_copy(addr, &out_addr[2]);
++	err = mlx5_query_nic_vport_context(mdev, out, outlen);
++	if (!err)
++		ether_addr_copy(addr, &out_addr[2]);
+ 
+ 	kvfree(out);
  }
- 
- static void mlx5_disable_roce(struct mlx5_ib_dev *dev)
- {
-+	mlx5_nic_vport_disable_roce(dev->mdev);
- 	unregister_netdevice_notifier(&dev->roce.nb);
- }
- 
-@@ -1538,8 +1579,7 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 	port_type_cap = MLX5_CAP_GEN(mdev, port_type);
- 	ll = mlx5_port_type_cap_to_rdma_ll(port_type_cap);
- 
--	/* don't create IB instance over Eth ports, no RoCE yet! */
--	if (ll == IB_LINK_LAYER_ETHERNET)
-+	if ((ll == IB_LINK_LAYER_ETHERNET) && !MLX5_CAP_GEN(mdev, roce))
- 		return NULL;
- 
- 	printk_once(KERN_INFO "%s", mlx5_version);
 -- 
 2.1.0
 
