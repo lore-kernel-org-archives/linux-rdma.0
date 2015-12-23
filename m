@@ -1,79 +1,125 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH V1 00/16] add Intel(R) X722 iWARP driver
-Date: Wed, 23 Dec 2015 12:24:18 -0500
-Message-ID: <567AD8C2.3040007@redhat.com>
-References: <1450739596-23276-1-git-send-email-faisal.latif@intel.com>
- <567AC754.5020508@redhat.com> <20151223163549.GA22244@flatif-MOBL1>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/cma: cma_match_net_dev needs to take into account
+ port_num
+Date: Wed, 23 Dec 2015 12:57:14 -0500
+Message-ID: <567AE07A.10003@redhat.com>
+References: <1450710084-22547-1-git-send-email-matanb@mellanox.com>
+ <56792A4B.8060101@mellanox.com> <56799D61.9010206@redhat.com>
+ <CAAKD3BDmenFsiZTDiw8OEW-F0GqK62+zJ-TVywyYd4YDtzxrCA@mail.gmail.com>
+ <567AC6E4.3030100@redhat.com>
+ <CAAKD3BAt2YBB-Y-VH29w5B7rLfbBEq2EuH6BtDwb0O3W8-PGwg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="XKR37grWts4MBFSI4q7nUxmqacEd8k3QB"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20151223163549.GA22244@flatif-MOBL1>
-Sender: netdev-owner@vger.kernel.org
-To: Faisal Latif <faisal.latif@intel.com>
-Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org, jeffrey.t.kirsher@intel.com, e1000-rdma@lists.sourceforge.net
+ boundary="nRQ7GES5D2VA3ax2UBpu67kMs4EhE9E08"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAAKD3BAt2YBB-Y-VH29w5B7rLfbBEq2EuH6BtDwb0O3W8-PGwg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---XKR37grWts4MBFSI4q7nUxmqacEd8k3QB
-Content-Type: text/plain; charset=windows-1252
+--nRQ7GES5D2VA3ax2UBpu67kMs4EhE9E08
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 12/23/2015 11:35 AM, Faisal Latif wrote:
-> On Wed, Dec 23, 2015 at 11:09:56AM -0500, Doug Ledford wrote:
->> On 12/21/2015 06:13 PM, Faisal Latif wrote:
->>> This (V1) series contains the addition of the i40iw.ko driver after
->>> incorporating the feedback from Christoph Hellwig and Joe Perches for=
-
->>> initial series.
+On 12/23/2015 11:35 AM, Matan Barak wrote:
+> On Wed, Dec 23, 2015 at 6:08 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wro=
+te:
+>> On 12/22/2015 02:26 PM, Matan Barak wrote:
+>>> On Tue, Dec 22, 2015 at 8:58 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> w=
+rote:
+>>>> On 12/22/2015 05:47 AM, Or Gerlitz wrote:
+>>>>> On 12/21/2015 5:01 PM, Matan Barak wrote:
+>>>>>> Previously, cma_match_net_dev called cma_protocol_roce which
+>>>>>> tried to verify that the IB device uses RoCE protocol. However,
+>>>>>> if rdma_id didn't have a bounded port, it used the first port
+>>>>>> of the device.
+>>>>>>
+>>>>>> In VPI systems, the first port might be an IB port while the secon=
+d
+>>>>>> one could be an Ethernet port. This made requests for unbounded rd=
+ma_ids
+>>>>>> that come from the Ethernet port fail.
+>>>>>> Fixing this by passing the port of the request and checking this p=
+ort
+>>>>>> of the device.
+>>>>>>
+>>>>>> Fixes: b8cab5dab15f ('IB/cma: Accept connection without a valid ne=
+tdev
+>>>>>> on RoCE')
+>>>>>> Signed-off-by: Matan Barak<matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>>>>
+>>>>> seems that the patch is missing from patchworks, I can't explain th=
+at.
+>>>>
+>>>> I've already downloaded it and marked it accepted.
+>>>>
 >>>
->>> This driver provides iWARP RDMA functionality for the Intel(R) X722 E=
-thernet
->>> controller for PCI Physical Functions. It also has support for Virtua=
-l
->>> Function driver (i40iwvf.ko), which that will be part of separate pat=
-ch
->>> series.
+>>> Thanks Doug. Would you like that I'll repost the patch with the commi=
+t
+>>> message changed as Or suggested or is the current version good enough=
+?
 >>>
->>> It cooperates with the Intel(R) X722 base driver (i40e.ko) to allocat=
-e
->>> resources and program the controller.
->>>
->>> This series include 1 patch to i40e.ko to provide interface support t=
-o
->>> i40iw.ko. The interface provides a driver registration mechanism, res=
-ource
->>> allocations, and device reset coordination mechanisms.
->>>
->>> This patch series is based on Doug Ledford's k.o/for-4.5.
+>>> Regarding the Ethernet loopback issue, I started looking into that,
+>>> but as Or stated, it's broken even before the RoCE patches.
 >>
->> My apologies Faisal.  I had pushed that branch to github to get 0-day
->> testing, but hadn't committed it to my k.o tree as it wasn't fully
->> finalized (I was waiting for Or to get his chance to respond to it).
->> Once Or responded, I ended up taking his patchset instead, which means=
-
->> you need to adjust your patches accordingly.
->>
+>> Ping.  Any progress on this?
 >=20
-> Thanks Doug for the update, I will provide new patch series for latest
-> k.o. Also will make sure of shallow threading for the series. I should
-> have used V2 for this series instead of V1 and next series with k.o wil=
-l
-> make it proper with V3.
+> Yeah, there's some progress - the basic problem is that we don't have
+> a bounded ndev and thus cma_resolve_iboe_route returns -ENODEV.
 
-I'm going to repush my tree in 10 or 15 minutes if you haven't done the
-rebase yet.  If so, the tree I pushed earlier this morning should be
-good enough.
+Which makes sense considering that 127.0.0.1 doesn't belong to any of
+the devs.
 
+> The root cause for this is that we have to store the ndev in
+> cma_bind_loopback. Even after doing that, cma_set_loopback changes the
+> sgid to be the localhost GID, which doesn't exist in the GID table and
+> thus will fail later in the GID lookup.
+
+Again, makes sense.
+
+> I think that regarding loopback, we actually want to send the data on
+> the link local default GID,
+
+Which link local default GID?  If you have more than one port or card,
+then that is not a unique value.
+
+> which is guaranteed to exist.
+
+And in many cases, multiple times.
+
+> That's why I
+> think we should:
+> 1. Change the cma_src_addr and cma_dst_addr in cma_bind_loopback to be
+> the default GID.
+> 2. Store the associated ndev of this default GID as the bounded device.=
+
+> 3. In cma_resolve_loopback, get the MAC of this bounded device and
+> store it as the DMAC.
+> 4. In cma_resolve_iboe_route, don't try to do route resolve if the
+> dGID matches the default GID.
+>=20
+> It's still not working though, but this is where I'm headed. What do yo=
+u think?
+
+Let's punt this until later.  It only effects the situation when you use
+127.0.0.1 as the address.  If you use the local IP address of a specific
+interface, you get the same loopback behavior, but no failures (and on
+top of that instead of getting a random device to handle the loopback
+transfer, you get a specific device of your choosing).  To me, that
+qualifies as a reasonable workaround.  The 127.0.0.1 behavior has been
+broken for a while (and I'm not sure it should have ever been relied
+upon anyway), so I don't think we have to hold things up.
 
 --=20
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
 
 
---XKR37grWts4MBFSI4q7nUxmqacEd8k3QB
+--nRQ7GES5D2VA3ax2UBpu67kMs4EhE9E08
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -82,19 +128,23 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWetjDAAoJELgmozMOVy/dCH0QAICIZc8eRniu2i4Cb8dUNDih
-zj5F+GM0De/RqlbFsVeNqx7y+fCDZ69ZnE3ASlw9qlq4H9cCgiPPm6jjJReUmuj6
-8PD0revrBC//sgbyWHszLhSQuUjo/K+xw6Evz80zOHu0wf2hNrRo2B3TZthcNerq
-HMjSM9k2vEvFNUuYYZtH3ItTplAOjB0my6p95FfsAB+C1axRIRoFJMSXtQFplvV1
-8in+6gQSTRbNlfXxfWw+/MYP0y6m4XtDFQhq8b+WMAZT+zCN56l4aPAjWjknsfW8
-F07aJGoiJG3i49ConoBSDpBzIcFCSOFmP5h8F6QSBCpHB7Ovh8RpDyVqrqWfSL3l
-0U4HzuL3C54jxeYSo6gNp0yl0Cyc2Q+uBPt/dZaFQGgU1n+WlSr2JTAbLDlseH+I
-3z2rTsledEQVo2v2hzAWJSRZo8QhzByiKgYkSNLNSAP6XL2xAjk2uFX5NOk3DCN0
-P8CiowgwTnzN+K15kzIw6U/bfN9+4UYzSJUG3K1CPGgKrPGXs/iTfInZuM6He7Z3
-m2iSF4ait2wqIsNr79d98kTGTP7Cn1qp3Upk5lijwWB1W8cMgikRb2YuQM8CqZcr
-Jp6FgOLIGf90pyMY3E2/2cFyH8jhTqYZmwd7N8kCIB5suGqB00prgwSul7Pqd3gi
-SMFGTTZa6rHtB+IVS+t7
-=z/7o
+iQIcBAEBCAAGBQJWeuB6AAoJELgmozMOVy/dKiIP/jla+I2Z6OoMO430Lkgjckzc
+wNYflcxmiypfLmSscVlYR2iyjGqxx1vhoUq4GZguK00Ni2HM2GX2k8eeg4qXyZsu
+r+0R/lWHpDYndFbv+jn6hI9I9jQVC+DxbN0oWjnRelDQWkpgiywdiFgpILS/kDPY
+DukLP46jh7KYb0tQxWKiXNhVFPVLELuojjZTYbsswUA57zGLaVnG/11FXqu7C2hS
+LwbXpPrQM+VwNOWbalUnyMc3dB6lcstZhKwlyAPwV7uOUuqhQeJVds3+B38mlOLo
+usSkSPrQDUPWCm74hoxpyfMmtVA8DHQoXBp6bExE6Fgcxdn/etsZi7J+d2mq6A9P
+H5hDDuHllXzgZcx0RAec1pTUaRNerH0/hIL4d2BMqpPpsdrSWac+hHzqf8kA6tgB
+D7Y7Vy9SxX2sOaJuG/0mxECg2QxhWHHsi1Rk7yHxI+QX1cPOJO7g5h7H31V9Bhli
+jAfOmlTfQGXGAvfc+xgFw/znY4/DiqQkgBM9hZ5VpC0nZPGwncn3UDreqFx/wl1v
+lVybp+0wQ2P7ozXXFHahRjEHIDVxR1GmaWT+PJDE5BxVvwwexW8vqYcvNHDk+ylG
+mbN1N5ELU2i6ZlxrStRwX1LG0ea8I7sMPaPaQo05eESPMLP/utWJZqWKrhvKymjK
+OMSzk/Mv39WFd6zPuMkc
+=GKzO
 -----END PGP SIGNATURE-----
 
---XKR37grWts4MBFSI4q7nUxmqacEd8k3QB--
+--nRQ7GES5D2VA3ax2UBpu67kMs4EhE9E08--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
