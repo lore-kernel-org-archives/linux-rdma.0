@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V2 06/10] IB/mlx5: Extend query_device/port to support RoCE
-Date: Wed, 23 Dec 2015 18:47:21 +0200
-Message-ID: <1450889245-30347-7-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next V2 10/10] IB/mlx5: Support RoCE
+Date: Wed, 23 Dec 2015 18:47:25 +0200
+Message-ID: <1450889245-30347-11-git-send-email-matanb@mellanox.com>
 References: <1450889245-30347-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450889245-30347-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,156 +12,99 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Using the vport access functions to retrieve the Ethernet
-specific information and return this information in
-ib_query_device and ib_query_port.
+Advertise RoCE support for IB/core layer and set the hardware to
+work in RoCE mode.
 
 Signed-off-by: Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 75 +++++++++++++++++++++++++++++++++++----
- include/linux/mlx5/driver.h       |  7 ----
- 2 files changed, 69 insertions(+), 13 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c | 48 +++++++++++++++++++++++++++++++++++----
+ 1 file changed, 44 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 8c6e144..2b6ac2e 100644
+index 3ee431a..22ae093 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -40,6 +40,7 @@
- #include <linux/io-mapping.h>
- #include <linux/sched.h>
- #include <rdma/ib_user_verbs.h>
-+#include <rdma/ib_addr.h>
- #include <linux/mlx5/vport.h>
- #include <rdma/ib_smi.h>
- #include <rdma/ib_umem.h>
-@@ -120,6 +121,50 @@ static struct net_device *mlx5_ib_get_netdev(struct ib_device *device,
- 	return ndev;
+@@ -1517,6 +1517,32 @@ static void destroy_dev_resources(struct mlx5_ib_resources *devr)
+ 	mlx5_ib_dealloc_pd(devr->p0);
  }
  
-+static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
-+				struct ib_port_attr *props)
++static u32 get_core_cap_flags(struct ib_device *ibdev)
 +{
-+	struct mlx5_ib_dev *dev = to_mdev(device);
-+	struct net_device *ndev;
-+	enum ib_mtu ndev_ib_mtu;
++	struct mlx5_ib_dev *dev = to_mdev(ibdev);
++	enum rdma_link_layer ll = mlx5_ib_port_link_layer(ibdev, 1);
++	u8 l3_type_cap = MLX5_CAP_ROCE(dev->mdev, l3_type);
++	u8 roce_version_cap = MLX5_CAP_ROCE(dev->mdev, roce_version);
++	u32 ret = 0;
 +
-+	memset(props, 0, sizeof(*props));
++	if (ll == IB_LINK_LAYER_INFINIBAND)
++		return RDMA_CORE_PORT_IBA_IB;
 +
-+	props->port_cap_flags  |= IB_PORT_CM_SUP;
-+	props->port_cap_flags  |= IB_PORT_IP_BASED_GIDS;
-+
-+	props->gid_tbl_len      = MLX5_CAP_ROCE(dev->mdev,
-+						roce_address_table_size);
-+	props->max_mtu          = IB_MTU_4096;
-+	props->max_msg_sz       = 1 << MLX5_CAP_GEN(dev->mdev, log_max_msg);
-+	props->pkey_tbl_len     = 1;
-+	props->state            = IB_PORT_DOWN;
-+	props->phys_state       = 3;
-+
-+	mlx5_query_nic_vport_qkey_viol_cntr(dev->mdev,
-+					    (u16 *)&props->qkey_viol_cntr);
-+
-+	ndev = mlx5_ib_get_netdev(device, port_num);
-+	if (!ndev)
++	if (!(l3_type_cap & MLX5_ROCE_L3_TYPE_IPV4_CAP))
 +		return 0;
 +
-+	if (netif_running(ndev) && netif_carrier_ok(ndev)) {
-+		props->state      = IB_PORT_ACTIVE;
-+		props->phys_state = 5;
-+	}
++	if (!(l3_type_cap & MLX5_ROCE_L3_TYPE_IPV6_CAP))
++		return 0;
 +
-+	ndev_ib_mtu = iboe_get_mtu(ndev->mtu);
++	if (roce_version_cap & MLX5_ROCE_VERSION_1_CAP)
++		ret |= RDMA_CORE_PORT_IBA_ROCE;
 +
-+	dev_put(ndev);
++	if (roce_version_cap & MLX5_ROCE_VERSION_2_CAP)
++		ret |= RDMA_CORE_PORT_IBA_ROCE_UDP_ENCAP;
 +
-+	props->active_mtu	= min(props->max_mtu, ndev_ib_mtu);
-+
-+	props->active_width	= IB_WIDTH_4X;  /* TODO */
-+	props->active_speed	= IB_SPEED_QDR; /* TODO */
-+
-+	return 0;
++	return ret;
 +}
 +
- static int mlx5_use_mad_ifc(struct mlx5_ib_dev *dev)
+ static int mlx5_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 			       struct ib_port_immutable *immutable)
  {
- 	return !dev->mdev->issi;
-@@ -158,13 +203,21 @@ static int mlx5_query_system_image_guid(struct ib_device *ibdev,
+@@ -1529,7 +1555,7 @@ static int mlx5_port_immutable(struct ib_device *ibdev, u8 port_num,
  
- 	case MLX5_VPORT_ACCESS_METHOD_HCA:
- 		err = mlx5_query_hca_vport_system_image_guid(mdev, &tmp);
--		if (!err)
--			*sys_image_guid = cpu_to_be64(tmp);
--		return err;
-+		break;
-+
-+	case MLX5_VPORT_ACCESS_METHOD_NIC:
-+		err = mlx5_query_nic_vport_system_image_guid(mdev, &tmp);
-+		break;
+ 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
+ 	immutable->gid_tbl_len = attr.gid_tbl_len;
+-	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_IB;
++	immutable->core_cap_flags = get_core_cap_flags(ibdev);
+ 	immutable->max_mad_size = IB_MGMT_MAD_SIZE;
  
- 	default:
- 		return -EINVAL;
- 	}
-+
-+	if (!err)
-+		*sys_image_guid = cpu_to_be64(tmp);
-+
-+	return err;
-+
- }
+ 	return 0;
+@@ -1537,12 +1563,27 @@ static int mlx5_port_immutable(struct ib_device *ibdev, u8 port_num,
  
- static int mlx5_query_max_pkeys(struct ib_device *ibdev,
-@@ -218,13 +271,20 @@ static int mlx5_query_node_guid(struct mlx5_ib_dev *dev,
- 
- 	case MLX5_VPORT_ACCESS_METHOD_HCA:
- 		err = mlx5_query_hca_vport_node_guid(dev->mdev, &tmp);
--		if (!err)
--			*node_guid = cpu_to_be64(tmp);
--		return err;
-+		break;
+ static int mlx5_enable_roce(struct mlx5_ib_dev *dev)
+ {
++	int err;
 +
-+	case MLX5_VPORT_ACCESS_METHOD_NIC:
-+		err = mlx5_query_nic_vport_node_guid(dev->mdev, &tmp);
-+		break;
- 
- 	default:
- 		return -EINVAL;
- 	}
+ 	dev->roce.nb.notifier_call = mlx5_netdev_event;
+-	return register_netdevice_notifier(&dev->roce.nb);
++	err = register_netdevice_notifier(&dev->roce.nb);
++	if (err)
++		return err;
 +
-+	if (!err)
-+		*node_guid = cpu_to_be64(tmp);
++	err = mlx5_nic_vport_enable_roce(dev->mdev);
++	if (err)
++		goto err_unregister_netdevice_notifier;
 +
++	return 0;
++
++err_unregister_netdevice_notifier:
++	unregister_netdevice_notifier(&dev->roce.nb);
 +	return err;
  }
  
- struct mlx5_reg_node_desc {
-@@ -522,6 +582,9 @@ int mlx5_ib_query_port(struct ib_device *ibdev, u8 port,
- 	case MLX5_VPORT_ACCESS_METHOD_HCA:
- 		return mlx5_query_hca_port(ibdev, port, props);
- 
-+	case MLX5_VPORT_ACCESS_METHOD_NIC:
-+		return mlx5_query_port_roce(ibdev, port, props);
-+
- 	default:
- 		return -EINVAL;
- 	}
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 5c857f2..7b9c976 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -632,13 +632,6 @@ extern struct workqueue_struct *mlx5_core_wq;
- 	.struct_offset_bytes = offsetof(struct ib_unpacked_ ## header, field),      \
- 	.struct_size_bytes   = sizeof((struct ib_unpacked_ ## header *)0)->field
- 
--struct ib_field {
--	size_t struct_offset_bytes;
--	size_t struct_size_bytes;
--	int    offset_bits;
--	int    size_bits;
--};
--
- static inline struct mlx5_core_dev *pci2mlx5_core_dev(struct pci_dev *pdev)
+ static void mlx5_disable_roce(struct mlx5_ib_dev *dev)
  {
- 	return pci_get_drvdata(pdev);
++	mlx5_nic_vport_disable_roce(dev->mdev);
+ 	unregister_netdevice_notifier(&dev->roce.nb);
+ }
+ 
+@@ -1557,8 +1598,7 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 	port_type_cap = MLX5_CAP_GEN(mdev, port_type);
+ 	ll = mlx5_port_type_cap_to_rdma_ll(port_type_cap);
+ 
+-	/* don't create IB instance over Eth ports, no RoCE yet! */
+-	if (ll == IB_LINK_LAYER_ETHERNET)
++	if ((ll == IB_LINK_LAYER_ETHERNET) && !MLX5_CAP_GEN(mdev, roce))
+ 		return NULL;
+ 
+ 	printk_once(KERN_INFO "%s", mlx5_version);
 -- 
 2.1.0
 
