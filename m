@@ -1,96 +1,57 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V2 01/10] IB/mlx5: Support IB device's callback for getting the link layer
-Date: Wed, 23 Dec 2015 18:47:16 +0200
-Message-ID: <1450889245-30347-2-git-send-email-matanb@mellanox.com>
-References: <1450889245-30347-1-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next V2 00/10] Add RoCE support to the mlx5 driver
+Date: Wed, 23 Dec 2015 18:47:15 +0200
+Message-ID: <1450889245-30347-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1450889245-30347-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hi Doug,
 
-Make the existing mlx5_ib_port_link_layer() signature match
-the ib device callback signature (add port_num parameter).
-Refactor it to use a sub function so that the link layer could
-be queried also before the ibdev is created.
+This patchset adds RoCE V1 and RoCE V2 support to the mlx5 device
+driver.
 
-Signed-off-by: Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/mlx5/main.c | 25 +++++++++++++++++++------
- 1 file changed, 19 insertions(+), 6 deletions(-)
+This patchset was applied and tested over the third version of
+"Add RoCE v2 support".
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 7e97cb5..a3295bb 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -64,11 +64,9 @@ static char mlx5_version[] =
- 	DRIVER_VERSION " (" DRIVER_RELDATE ")\n";
- 
- static enum rdma_link_layer
--mlx5_ib_port_link_layer(struct ib_device *device)
-+mlx5_port_type_cap_to_rdma_ll(int port_type_cap)
- {
--	struct mlx5_ib_dev *dev = to_mdev(device);
--
--	switch (MLX5_CAP_GEN(dev->mdev, port_type)) {
-+	switch (port_type_cap) {
- 	case MLX5_CAP_PORT_TYPE_IB:
- 		return IB_LINK_LAYER_INFINIBAND;
- 	case MLX5_CAP_PORT_TYPE_ETH:
-@@ -78,6 +76,15 @@ mlx5_ib_port_link_layer(struct ib_device *device)
- 	}
- }
- 
-+static enum rdma_link_layer
-+mlx5_ib_port_link_layer(struct ib_device *device, u8 port_num)
-+{
-+	struct mlx5_ib_dev *dev = to_mdev(device);
-+	int port_type_cap = MLX5_CAP_GEN(dev->mdev, port_type);
-+
-+	return mlx5_port_type_cap_to_rdma_ll(port_type_cap);
-+}
-+
- static int mlx5_use_mad_ifc(struct mlx5_ib_dev *dev)
- {
- 	return !dev->mdev->issi;
-@@ -94,7 +101,7 @@ static int mlx5_get_vport_access_method(struct ib_device *ibdev)
- 	if (mlx5_use_mad_ifc(to_mdev(ibdev)))
- 		return MLX5_VPORT_ACCESS_METHOD_MAD;
- 
--	if (mlx5_ib_port_link_layer(ibdev) ==
-+	if (mlx5_ib_port_link_layer(ibdev, 1) ==
- 	    IB_LINK_LAYER_ETHERNET)
- 		return MLX5_VPORT_ACCESS_METHOD_NIC;
- 
-@@ -1325,11 +1332,16 @@ static int mlx5_port_immutable(struct ib_device *ibdev, u8 port_num,
- static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- {
- 	struct mlx5_ib_dev *dev;
-+	enum rdma_link_layer ll;
-+	int port_type_cap;
- 	int err;
- 	int i;
- 
-+	port_type_cap = MLX5_CAP_GEN(mdev, port_type);
-+	ll = mlx5_port_type_cap_to_rdma_ll(port_type_cap);
-+
- 	/* don't create IB instance over Eth ports, no RoCE yet! */
--	if (MLX5_CAP_GEN(mdev, port_type) == MLX5_CAP_PORT_TYPE_ETH)
-+	if (ll == IB_LINK_LAYER_ETHERNET)
- 		return NULL;
- 
- 	printk_once(KERN_INFO "%s", mlx5_version);
-@@ -1389,6 +1401,7 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 
- 	dev->ib_dev.query_device	= mlx5_ib_query_device;
- 	dev->ib_dev.query_port		= mlx5_ib_query_port;
-+	dev->ib_dev.get_link_layer	= mlx5_ib_port_link_layer;
- 	dev->ib_dev.query_gid		= mlx5_ib_query_gid;
- 	dev->ib_dev.query_pkey		= mlx5_ib_query_pkey;
- 	dev->ib_dev.modify_device	= mlx5_ib_modify_device;
+Regards,
+Achiad and Matan
+
+Changes from V1:
+ - Rebased over Doug's k.o/for-4.4-rc branch.
+
+Changes from V0:
+ - Fixed using rwlock before initializing it.
+ - Rebased over Doug's k.o/for-4.5 branch.
+
+
+Achiad Shochat (10):
+  IB/mlx5: Support IB device's callback for getting the link layer
+  IB/mlx5: Support IB device's callback for getting its netdev
+  net/mlx5_core: Break down the vport mac address query function
+  net/mlx5_core: Introduce access functions to enable/disable RoCE
+  net/mlx5_core: Introduce access functions to query vport RoCE fields
+  IB/mlx5: Extend query_device/port to support RoCE
+  IB/mlx5: Set network_hdr_type upon RoCE responder completion
+  IB/mlx5: Support IB device's callbacks for adding/deleting GIDs
+  IB/mlx5: Add RoCE fields to Address Vector
+  IB/mlx5: Support RoCE
+
+ drivers/infiniband/hw/mlx5/ah.c                 |  32 ++-
+ drivers/infiniband/hw/mlx5/cq.c                 |  17 ++
+ drivers/infiniband/hw/mlx5/main.c               | 318 ++++++++++++++++++++++--
+ drivers/infiniband/hw/mlx5/mlx5_ib.h            |  15 +-
+ drivers/infiniband/hw/mlx5/qp.c                 |  42 +++-
+ drivers/net/ethernet/mellanox/mlx5/core/vport.c | 139 ++++++++++-
+ include/linux/mlx5/device.h                     |  26 ++
+ include/linux/mlx5/driver.h                     |   7 -
+ include/linux/mlx5/mlx5_ifc.h                   |  10 +-
+ include/linux/mlx5/qp.h                         |  21 +-
+ include/linux/mlx5/vport.h                      |   8 +
+ 11 files changed, 578 insertions(+), 57 deletions(-)
+
 -- 
 2.1.0
 
