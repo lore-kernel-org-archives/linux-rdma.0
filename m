@@ -1,12 +1,12 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH for-next V3 00/11] Add RoCE v2 support
-Date: Wed, 23 Dec 2015 10:48:09 -0500
-Message-ID: <567AC239.8070106@redhat.com>
+Date: Wed, 23 Dec 2015 10:51:59 -0500
+Message-ID: <567AC31F.4040504@redhat.com>
 References: <1450875417-19262-1-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="OoV69wWLGwl2T8FCbkQSvOUD0vtj5HmTX"
+ boundary="2mJ9Cj4V3IW7gcUFKJR41q8ndlRMR38qH"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450875417-19262-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
@@ -15,19 +15,22 @@ Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eran Ben Elisha <eranbe-
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---OoV69wWLGwl2T8FCbkQSvOUD0vtj5HmTX
+--2mJ9Cj4V3IW7gcUFKJR41q8ndlRMR38qH
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
 On 12/23/2015 07:56 AM, Matan Barak wrote:
 > Hi Doug,
+>=20
+> This series adds the support for RoCE v2. In order to support RoCE v2,
+> we add gid_type attribute to every GID. When the RoCE GID management
+> populates the GID table, it duplicates each GID with all supported type=
+s.
+> This gives the user the ability to communicate over each supported
+> type.
 
-> This patch is applied on the "Change per-entry locks in GID cache to
-> table lock" series which was sent to the mailing list.
+Thanks for rebasing Matan.  Applied for 4.5.
 
-The "Change per-entry locks..." patchset emails are missing from my mail
-folder (another casualty of that mail incident).  So, consider this the
-notice that that patch set has in fact been picked up for 4.5.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -35,7 +38,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---OoV69wWLGwl2T8FCbkQSvOUD0vtj5HmTX
+--2mJ9Cj4V3IW7gcUFKJR41q8ndlRMR38qH
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -44,22 +47,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWesI5AAoJELgmozMOVy/d7EMP/RZgnZQbRunNKVJOjj0ssCbD
-prh2tGJ+KffX04QYgWu1LDBfIs5KwQtQ0HzEa3TvGl1TRWOkzRRxKCEGX16bboeo
-X18Zw6rrIQN6VhM0nNhdGRqkkoUxn5krv9YjsTz4FNLC7yC340AaHaTShppu7pgw
-AtBv7Q7uE1RwjALMTJenW/VOP4BrsmNgWfpR6e/OuaJdWsuNBppTP4bULkT9hdPJ
-kwlSY6NKTVtwoiRQmFWa0MCl481vv8nN5gDI1X+8IQSBvgGu1C5ecifUtEoBkoKv
-Rm4/qruV2Ytv1s/aW/MhGsZhM/DqMVIVrHyeX/MublROO2Zf+y1AyMzlDfn0caIX
-T+MEbLqVE1MkdVnFZpRUEoJ2d85gk6xmcmNX1hjsBA5Do953PFqKhZCmzpTJLHgJ
-Ii5gzW/RPUEGFcqDsCjj2zASfu5cvcm6lmXBMY17MP0tkaAGyVufS0K3ka64rTy8
-e13SZVf2+DkvmNFeqPdRNrbT4oPBVsM/yNLoocQ6wRpZbgxWu45AB37Ry7jFr8qA
-sIN7wx73FVLeMYaaEW5BYAWRxEIz1/Vvli4jgitOUfJ9/LJbg7zwNcfLSUjcHE52
-MX3T9NpmHLFjduYXVmUBd+lU3pG6KdCMfvt5YkIYUZ3VxXIrGoKXzLAD8AuQZ+6U
-vXAbc0ykkNJ8wDSTYIiv
-=RXNK
+iQIcBAEBCAAGBQJWesMfAAoJELgmozMOVy/dYAEP/jqgThbEJXUClbnnRN0hfuB2
+0AFuwaNmnQBGEdv9gLuqtZqyr9BXavUZWb+aN9aUFtIOGfSv+dZeUQ1OlIX8Menj
+xJztDjQhWwvhayrFo5g2wS5x4CQo8lfiyqTQEVfC0KO/mIHGHEVMiHZ3SIpoa5qW
+UU54TJii16EynprRLk0gxCy1McrtOwQufFlsDcl887JoniCDOBffLEhYj8K+Yy09
+ZJYHP5fdrIxWgeqlMVBQRMi8u9ymdwkkXvj2WDaSFt+55sllPyESUiodXFlN5SB0
+Ybu0U5qjutWSQKHpqNElI1s40AKkYIJGbPNE5prIDZjvZY8n2oE5Zus5f5EXJB76
+oKiha1M8hgfyHGj1qeTeiCuhAvXcLRSY9vxPpxI4lHanPBKhL8jqTppLZihKLMK/
+mlbjuGLE1Fi7zPIhZbTUfEA+BgMvm+yL9DraTJkzWIJBux3Kj+kkRvJiGsSgUquw
+R3uW9mLKDMdaUySBCtbAuNAUrz16qn4YkNJ1VzdjsgPZEVw28RerqzM++k0kpSJH
+W2Ln9zy9S7jBEK56FdVsD/H1v/XZsGEgBkNxlSqDIe6Xcu6iEuUA3nPknbIqdOhl
+cse+UZ/NHfm3R9Q3txgZqYbXWGCYN7BnH4gjeSC/ZOEoQOH6EdjKPDfh9lyotMw0
+upzKaPXqfrKRh+btDX9k
+=Hozq
 -----END PGP SIGNATURE-----
 
---OoV69wWLGwl2T8FCbkQSvOUD0vtj5HmTX--
+--2mJ9Cj4V3IW7gcUFKJR41q8ndlRMR38qH--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
