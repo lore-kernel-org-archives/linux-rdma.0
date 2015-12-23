@@ -1,249 +1,107 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V3 11/11] IB/cma: Join and leave multicast groups with IGMP
-Date: Wed, 23 Dec 2015 14:56:57 +0200
-Message-ID: <1450875417-19262-12-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next V3 06/11] IB/core: Move rdma_is_upper_dev_rcu to header file
+Date: Wed, 23 Dec 2015 14:56:52 +0200
+Message-ID: <1450875417-19262-7-git-send-email-matanb@mellanox.com>
 References: <1450875417-19262-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450875417-19262-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In order to validate the route, we need an easy way to check if a
+net-device belongs to our RDMA device. Move this helper function
+to a header file in order to make this check easier.
 
-Since RoCEv2 is a protocol over IP header it is required to send IGMP
-join and leave requests to the network when joining and leaving
-multicast groups.
-
-Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c       |   96 ++++++++++++++++++++++++++++++++---
- drivers/infiniband/core/multicast.c |   17 ++++++-
- include/rdma/ib_sa.h                |    2 +
- 3 files changed, 106 insertions(+), 9 deletions(-)
+ drivers/infiniband/core/core_priv.h     |   13 +++++++++++++
+ drivers/infiniband/core/roce_gid_mgmt.c |   20 ++++----------------
+ 2 files changed, 17 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 75987b0..559ee3d 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -38,6 +38,7 @@
- #include <linux/in6.h>
- #include <linux/mutex.h>
- #include <linux/random.h>
-+#include <linux/igmp.h>
- #include <linux/idr.h>
- #include <linux/inetdevice.h>
- #include <linux/slab.h>
-@@ -304,6 +305,7 @@ struct cma_multicast {
- 	void			*context;
- 	struct sockaddr_storage	addr;
- 	struct kref		mcref;
-+	bool			igmp_joined;
- };
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index d531f91..3b250a2 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -96,4 +96,17 @@ int ib_cache_setup_one(struct ib_device *device);
+ void ib_cache_cleanup_one(struct ib_device *device);
+ void ib_cache_release_one(struct ib_device *device);
  
- struct cma_work {
-@@ -400,6 +402,26 @@ static inline void cma_set_ip_ver(struct cma_hdr *hdr, u8 ip_ver)
- 	hdr->ip_version = (ip_ver << 4) | (hdr->ip_version & 0xF);
- }
- 
-+static int cma_igmp_send(struct net_device *ndev, union ib_gid *mgid, bool join)
++static inline bool rdma_is_upper_dev_rcu(struct net_device *dev,
++					 struct net_device *upper)
 +{
-+	struct in_device *in_dev = NULL;
++	struct net_device *_upper = NULL;
++	struct list_head *iter;
 +
-+	if (ndev) {
-+		rtnl_lock();
-+		in_dev = __in_dev_get_rtnl(ndev);
-+		if (in_dev) {
-+			if (join)
-+				ip_mc_inc_group(in_dev,
-+						*(__be32 *)(mgid->raw + 12));
-+			else
-+				ip_mc_dec_group(in_dev,
-+						*(__be32 *)(mgid->raw + 12));
-+		}
-+		rtnl_unlock();
-+	}
-+	return (in_dev) ? 0 : -ENODEV;
++	netdev_for_each_all_upper_dev_rcu(dev, _upper, iter)
++		if (_upper == upper)
++			break;
++
++	return _upper == upper;
 +}
 +
- static void _cma_attach_to_dev(struct rdma_id_private *id_priv,
- 			       struct cma_device *cma_dev)
- {
-@@ -1532,8 +1554,24 @@ static void cma_leave_mc_groups(struct rdma_id_private *id_priv)
- 				      id_priv->id.port_num)) {
- 			ib_sa_free_multicast(mc->multicast.ib);
- 			kfree(mc);
--		} else
-+		} else {
-+			if (mc->igmp_joined) {
-+				struct rdma_dev_addr *dev_addr =
-+					&id_priv->id.route.addr.dev_addr;
-+				struct net_device *ndev = NULL;
-+
-+				if (dev_addr->bound_dev_if)
-+					ndev = dev_get_by_index(&init_net,
-+								dev_addr->bound_dev_if);
-+				if (ndev) {
-+					cma_igmp_send(ndev,
-+						      &mc->multicast.ib->rec.mgid,
-+						      false);
-+					dev_put(ndev);
-+				}
-+			}
- 			kref_put(&mc->mcref, release_mc);
-+		}
- 	}
+ #endif /* _CORE_PRIV_H */
+diff --git a/drivers/infiniband/core/roce_gid_mgmt.c b/drivers/infiniband/core/roce_gid_mgmt.c
+index 1e3673f..06556c3 100644
+--- a/drivers/infiniband/core/roce_gid_mgmt.c
++++ b/drivers/infiniband/core/roce_gid_mgmt.c
+@@ -139,18 +139,6 @@ static enum bonding_slave_state is_eth_active_slave_of_bonding_rcu(struct net_de
+ 	return BONDING_SLAVE_STATE_NA;
  }
  
-@@ -3645,12 +3683,23 @@ static int cma_ib_mc_handler(int status, struct ib_sa_multicast *multicast)
- 	event.status = status;
- 	event.param.ud.private_data = mc->context;
- 	if (!status) {
-+		struct rdma_dev_addr *dev_addr =
-+			&id_priv->id.route.addr.dev_addr;
-+		struct net_device *ndev =
-+			dev_get_by_index(&init_net, dev_addr->bound_dev_if);
-+		enum ib_gid_type gid_type =
-+			id_priv->cma_dev->default_gid_type[id_priv->id.port_num -
-+			rdma_start_port(id_priv->cma_dev->device)];
-+
- 		event.event = RDMA_CM_EVENT_MULTICAST_JOIN;
- 		ib_init_ah_from_mcmember(id_priv->id.device,
- 					 id_priv->id.port_num, &multicast->rec,
-+					 ndev, gid_type,
- 					 &event.param.ud.ah_attr);
- 		event.param.ud.qp_num = 0xFFFFFF;
- 		event.param.ud.qkey = be32_to_cpu(multicast->rec.qkey);
-+		if (ndev)
-+			dev_put(ndev);
- 	} else
- 		event.event = RDMA_CM_EVENT_MULTICAST_ERROR;
- 
-@@ -3783,9 +3832,10 @@ static int cma_iboe_join_multicast(struct rdma_id_private *id_priv,
- {
- 	struct iboe_mcast_work *work;
- 	struct rdma_dev_addr *dev_addr = &id_priv->id.route.addr.dev_addr;
--	int err;
-+	int err = 0;
- 	struct sockaddr *addr = (struct sockaddr *)&mc->addr;
- 	struct net_device *ndev = NULL;
-+	enum ib_gid_type gid_type;
- 
- 	if (cma_zero_addr((struct sockaddr *)&mc->addr))
- 		return -EINVAL;
-@@ -3815,9 +3865,25 @@ static int cma_iboe_join_multicast(struct rdma_id_private *id_priv,
- 	mc->multicast.ib->rec.rate = iboe_get_rate(ndev);
- 	mc->multicast.ib->rec.hop_limit = 1;
- 	mc->multicast.ib->rec.mtu = iboe_get_mtu(ndev->mtu);
-+
-+	gid_type = id_priv->cma_dev->default_gid_type[id_priv->id.port_num -
-+		   rdma_start_port(id_priv->cma_dev->device)];
-+	if (addr->sa_family == AF_INET) {
-+		if (gid_type == IB_GID_TYPE_ROCE_UDP_ENCAP)
-+			err = cma_igmp_send(ndev, &mc->multicast.ib->rec.mgid,
-+					    true);
-+		if (!err) {
-+			mc->igmp_joined = true;
-+			mc->multicast.ib->rec.hop_limit = IPV6_DEFAULT_HOPLIMIT;
-+		}
-+	} else {
-+		if (gid_type == IB_GID_TYPE_ROCE_UDP_ENCAP)
-+			err = -ENOTSUPP;
-+	}
- 	dev_put(ndev);
--	if (!mc->multicast.ib->rec.mtu) {
--		err = -EINVAL;
-+	if (err || !mc->multicast.ib->rec.mtu) {
-+		if (!err)
-+			err = -EINVAL;
- 		goto out2;
- 	}
- 	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.src_addr,
-@@ -3856,7 +3922,7 @@ int rdma_join_multicast(struct rdma_cm_id *id, struct sockaddr *addr,
- 	memcpy(&mc->addr, addr, rdma_addr_size(addr));
- 	mc->context = context;
- 	mc->id_priv = id_priv;
+-static bool is_upper_dev_rcu(struct net_device *dev, struct net_device *upper)
+-{
+-	struct net_device *_upper = NULL;
+-	struct list_head *iter;
 -
-+	mc->igmp_joined = false;
- 	spin_lock(&id_priv->lock);
- 	list_add(&mc->list, &id_priv->mc_list);
- 	spin_unlock(&id_priv->lock);
-@@ -3901,9 +3967,25 @@ void rdma_leave_multicast(struct rdma_cm_id *id, struct sockaddr *addr)
- 			if (rdma_cap_ib_mcast(id->device, id->port_num)) {
- 				ib_sa_free_multicast(mc->multicast.ib);
- 				kfree(mc);
--			} else if (rdma_protocol_roce(id->device, id->port_num))
-+			} else if (rdma_protocol_roce(id->device, id->port_num)) {
-+				if (mc->igmp_joined) {
-+					struct rdma_dev_addr *dev_addr =
-+						&id->route.addr.dev_addr;
-+					struct net_device *ndev = NULL;
-+
-+					if (dev_addr->bound_dev_if)
-+						ndev = dev_get_by_index(&init_net,
-+									dev_addr->bound_dev_if);
-+					if (ndev) {
-+						cma_igmp_send(ndev,
-+							      &mc->multicast.ib->rec.mgid,
-+							      false);
-+						dev_put(ndev);
-+					}
-+					mc->igmp_joined = false;
-+				}
- 				kref_put(&mc->mcref, release_mc);
+-	netdev_for_each_all_upper_dev_rcu(dev, _upper, iter)
+-		if (_upper == upper)
+-			break;
 -
-+			}
- 			return;
- 		}
- 	}
-diff --git a/drivers/infiniband/core/multicast.c b/drivers/infiniband/core/multicast.c
-index 6911ae6..250937c 100644
---- a/drivers/infiniband/core/multicast.c
-+++ b/drivers/infiniband/core/multicast.c
-@@ -723,14 +723,27 @@ EXPORT_SYMBOL(ib_sa_get_mcmember_rec);
+-	return _upper == upper;
+-}
+-
+ #define REQUIRED_BOND_STATES		(BONDING_SLAVE_STATE_ACTIVE |	\
+ 					 BONDING_SLAVE_STATE_NA)
+ static int is_eth_port_of_netdev(struct ib_device *ib_dev, u8 port,
+@@ -168,7 +156,7 @@ static int is_eth_port_of_netdev(struct ib_device *ib_dev, u8 port,
+ 	if (!real_dev)
+ 		real_dev = event_ndev;
  
- int ib_init_ah_from_mcmember(struct ib_device *device, u8 port_num,
- 			     struct ib_sa_mcmember_rec *rec,
-+			     struct net_device *ndev,
-+			     enum ib_gid_type gid_type,
- 			     struct ib_ah_attr *ah_attr)
- {
- 	int ret;
- 	u16 gid_index;
- 	u8 p;
+-	res = ((is_upper_dev_rcu(rdma_ndev, event_ndev) &&
++	res = ((rdma_is_upper_dev_rcu(rdma_ndev, event_ndev) &&
+ 	       (is_eth_active_slave_of_bonding_rcu(rdma_ndev, real_dev) &
+ 		REQUIRED_BOND_STATES)) ||
+ 	       real_dev == rdma_ndev);
+@@ -214,7 +202,7 @@ static int upper_device_filter(struct ib_device *ib_dev, u8 port,
+ 		return 1;
  
--	ret = ib_find_cached_gid(device, &rec->port_gid, IB_GID_TYPE_IB,
--				 NULL, &p, &gid_index);
-+	if (rdma_protocol_roce(device, port_num)) {
-+		ret = ib_find_cached_gid_by_port(device, &rec->port_gid,
-+						 gid_type, port_num,
-+						 ndev,
-+						 &gid_index);
-+	} else if (rdma_protocol_ib(device, port_num)) {
-+		ret = ib_find_cached_gid(device, &rec->port_gid,
-+					 IB_GID_TYPE_IB, NULL, &p,
-+					 &gid_index);
-+	} else {
-+		ret = -EINVAL;
-+	}
-+
- 	if (ret)
- 		return ret;
+ 	rcu_read_lock();
+-	res = is_upper_dev_rcu(rdma_ndev, event_ndev);
++	res = rdma_is_upper_dev_rcu(rdma_ndev, event_ndev);
+ 	rcu_read_unlock();
  
-diff --git a/include/rdma/ib_sa.h b/include/rdma/ib_sa.h
-index 0a40ed2..cdc1c81 100644
---- a/include/rdma/ib_sa.h
-+++ b/include/rdma/ib_sa.h
-@@ -403,6 +403,8 @@ int ib_sa_get_mcmember_rec(struct ib_device *device, u8 port_num,
-  */
- int ib_init_ah_from_mcmember(struct ib_device *device, u8 port_num,
- 			     struct ib_sa_mcmember_rec *rec,
-+			     struct net_device *ndev,
-+			     enum ib_gid_type gid_type,
- 			     struct ib_ah_attr *ah_attr);
+ 	return res;
+@@ -244,7 +232,7 @@ static void enum_netdev_default_gids(struct ib_device *ib_dev,
+ 	rcu_read_lock();
+ 	if (!rdma_ndev ||
+ 	    ((rdma_ndev != event_ndev &&
+-	      !is_upper_dev_rcu(rdma_ndev, event_ndev)) ||
++	      !rdma_is_upper_dev_rcu(rdma_ndev, event_ndev)) ||
+ 	     is_eth_active_slave_of_bonding_rcu(rdma_ndev,
+ 						netdev_master_upper_dev_get_rcu(rdma_ndev)) ==
+ 	     BONDING_SLAVE_STATE_INACTIVE)) {
+@@ -274,7 +262,7 @@ static void bond_delete_netdev_default_gids(struct ib_device *ib_dev,
  
- /**
+ 	rcu_read_lock();
+ 
+-	if (is_upper_dev_rcu(rdma_ndev, event_ndev) &&
++	if (rdma_is_upper_dev_rcu(rdma_ndev, event_ndev) &&
+ 	    is_eth_active_slave_of_bonding_rcu(rdma_ndev, real_dev) ==
+ 	    BONDING_SLAVE_STATE_INACTIVE) {
+ 		unsigned long gid_type_mask;
 -- 
 1.7.1
 
