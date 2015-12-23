@@ -1,53 +1,46 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: ocrdma failure in 4.4.0-rc5
-Date: Wed, 23 Dec 2015 12:59:04 -0500
-Message-ID: <567AE0E8.70107@redhat.com>
-References: <5675BA00.5060101@redhat.com>
- <CANjDDBiJAyfS7wFr9yYs7fAnn1-h9t1JH9s1LDf-Q8RYk=Ayyw@mail.gmail.com>
+Subject: Re: [PATCH 0/2] IB multicast cleanup patches V2
+Date: Wed, 23 Dec 2015 13:11:11 -0500
+Message-ID: <567AE3BF.6020407@redhat.com>
+References: <20151221144252.575119561@linux.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="WMTxriBfPdhgAnKQETbFnD7RnE98nJGaj"
+ boundary="TUGs7HL7SFHoPBMa6x4Pa7QLiDObq3Ffi"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CANjDDBiJAyfS7wFr9yYs7fAnn1-h9t1JH9s1LDf-Q8RYk=Ayyw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20151221144252.575119561-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---WMTxriBfPdhgAnKQETbFnD7RnE98nJGaj
-Content-Type: text/plain; charset=utf-8
+--TUGs7HL7SFHoPBMa6x4Pa7QLiDObq3Ffi
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 12/20/2015 11:29 PM, Devesh Sharma wrote:
-> Hi Dough,
+On 12/21/2015 09:42 AM, Christoph Lameter wrote:
+> V1->V2
+>  - Add Reviewed by's for first patch from Ira Weiny
+>  - Change name of ipoib_check_mcast_sendonly() to
+> 	ipoib_check_and_add_mcast_sendonly() as requested by Ira
 >=20
-> Thanks for your note.
+> This patchset cleans up the code a bit after the last round of multicas=
+t
+> patches related to the sendonly join logic. Some of the bits of code
+> landed in ipoib_main.c instead of ipoib_multicast.c.
 >=20
-> We will root cause the issue asap and get back to you with the fix.
-
-Ping.  Any update?
-
-> -Regards
-> Devesh
+> - Move the multicastbits into that file so that everything is neatly to=
+gether
+> - Reduce the number of functions exported from ipoib_multicast.c
 >=20
-> On Sun, Dec 20, 2015 at 1:41 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wro=
-te:
->> Hi Devesh,
->>
->> Testing 4.4.0-rc5, the ocrdma driver is failing for me (100% reliably)=
-=2E
->>  If you have vlans off of the main device, this is what I get from the=
+> This patchset can be retrieved from a git repo on kernel.org via
+>=20
+> git pull git://git.kernel.org/pub/scm/linux/kernel/git/christoph/rdma.g=
+it cleanup
+>=20
 
->> Fedora rawhide 4.4.0-rc5 kernel:
->>
->>
->> --
->> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->>               GPG KeyID: 0E572FDD
->>
-
+Thanks, applied (with Ira's name fixed).
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -55,7 +48,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---WMTxriBfPdhgAnKQETbFnD7RnE98nJGaj
+--TUGs7HL7SFHoPBMa6x4Pa7QLiDObq3Ffi
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -64,22 +57,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWeuDoAAoJELgmozMOVy/d/EcQAME37PmSzR/En2rJRKPjvHJo
-yAF1Xdgb7o+Zict6muyM+zYnXVIPovMRt/9PmRVDJ7rfoNNRZZIer1b70KbBowhL
-zBHuYt2G8iuywt/5MeZDIWzgxArF71XBxereBVb/bkCy4ggbUDyCJmavaeqyEknW
-DvY3lsMX84zWsf0xq3RSegkU7U8YIsxkA05MeN2a7dkBfgeEjUgn6MuYwXd8PQQD
-+shOAN8OL/iDKde7beeN+73hZ2CTm9ABJ0dUTVQJvsg4d3XzF8ZPMLHkg/tCtMr7
-Q/faQM+63NBYdNE9yxMRKQYawE4epYyyIV+WyzwxrtBnmyhMuReWC4ilx5xuEPXo
-zYlntf4dbK3zMML17DcOA6GXVgUPsvQ9w8AJX9hoQIInloGUDM/BCu5oSMDCSqKS
-b71EIZQjztbOYXk/qlyY9CHHTPTVzcnUM91+Vghowz3bnLWWlyZ7BaiRrJT9YX6o
-bKzJ45KjHJahVTfU2TAEl5dpFvyiwx0HV2ibSZ3045VYYGmyBgdi5XihrXZl9wUv
-fx6kXVQqEG0ayFx27h+5PIpxfFaMhM20s7yukMdOryOJM4BVQQB7X2ErPJuxueA0
-7S2W2zoPIb9IDznqssk7ClG/Emqh4hv3jcAHqLS8MBqPEcaxKY+VA6hEUYPoV8uZ
-eqwFP3qZ2T+CxWaO0s//
-=ANRV
+iQIcBAEBCAAGBQJWeuO/AAoJELgmozMOVy/dk+AP/i5LxfplzhCrzgOvqIrS4Ffg
+TivoGtB6Ml+WBKOu1WJe/a05SSiwwXH3UWaLM6wJn/fTUn9KZhU6R4L2llmUqDsV
+cOjsHXhGyoc/i2q506LjucTs4AJ7yWZMSYspl/PNW8kPQvFBhrlR8uwHRSRuxqsy
+fQZokSfJ23gGsiI/OvK3dcCGTgGrceTsFpLH9Rbzg2ejNICgfjKiIo1FDfIrbs1p
+10NfI7Rn5lpyGw0jRrBY4sE79zKXFqLCL6XWN8+qq92kXW6oj4bozE4lPtXJuvZA
+mfZEyM9EG0+kUbfdemjGnKp1cAv+BoAjv4GbI7IYgCZhgoHtlHrkoYgkTY361zcy
+2wlsCIRJmjnAQqeTgx+EPf6xPfyNNNO2ALqLxAPw89Fo36w1sl6cXJp6SSTw2z4t
+9EFneUv8btiwr8VSHW6B90xbrBWx7EMk8Q4C1P7NbUadS0mAno5o417TitKRC0Jw
+BeRcjbl+oYFiRAkxe/hhUh8XOpxMTU/HB5d+KDWCWJbakC0O7FFBeW9OGPe+pPUK
+CxH2yX9PvKz94J1WMME6CwRQUHdpLGrPGZO2OU8DX/atPbhyGUIY8UlhplIeRwOo
+j+KICS9Qm5N8LVbOdnVMRCYV53UFs5iuvpkeiWXbmPfWISPHQbUZ3L87d/WLwACH
+3nmUMATE1CSA3uFssLGZ
+=pxvK
 -----END PGP SIGNATURE-----
 
---WMTxriBfPdhgAnKQETbFnD7RnE98nJGaj--
+--TUGs7HL7SFHoPBMa6x4Pa7QLiDObq3Ffi--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
