@@ -1,79 +1,55 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 0/3] IB core: 64 bit counter support V3
-Date: Wed, 23 Dec 2015 14:33:24 -0500
-Message-ID: <567AF704.3020804@redhat.com>
-References: <20151221142026.238104419@linux.com>
+Subject: Re: [PATCH] IB/mlx4: Replace kfree with kvfree in mlx4_ib_destroy_srq
+Date: Wed, 23 Dec 2015 14:35:46 -0500
+Message-ID: <567AF792.5050207@redhat.com>
+References: <1450320855-4570-1-git-send-email-wen.gang.wang@oracle.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="r94CBN189K4pPVGt4XactdiVNE5xamJpU"
+ boundary="P8WBsD9pBhqfqtm4KFkArj3JxlHw724gh"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151221142026.238104419-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1450320855-4570-1-git-send-email-wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Matt-goXnUAHYgFxWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---r94CBN189K4pPVGt4XactdiVNE5xamJpU
+--P8WBsD9pBhqfqtm4KFkArj3JxlHw724gh
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 12/21/2015 09:20 AM, Christoph Lameter wrote:
-> V2->V3
->   - Also add support for NOIETF counter mode where we have 64 bit
->   	counters but not the multicast/unicast counters.
->   - Add Reviewed-by's from Hal.
+On 12/16/2015 09:54 PM, Wengang Wang wrote:
+> Commit 0ef2f05c7e02ff99c0b5b583d7dee2cd12b053f2 uses vmalloc for WR buf=
+fers
+> when needed and uses kvfree to free the buffers. It missed changing kfr=
+ee
+> to kvfree in mlx4_ib_destroy_srq().
 >=20
-> V1->V2
->   - Add detection of the capability for 64 bit counter support
->   - Lots of improvements as a result of suggestions by Hal Rosenstock.
+> Reported-by: Matthew Finaly <matt-goXnUAHYgFxWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/mlx4/srq.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >=20
-> Currently we only use 32 bits for the packet and byte counters. There h=
-ave
-> been extended countes available for some time but we have no support fo=
-r
-> those yet upstream. We keep having issues with 32 bit counters wrapping=
-=2E
-> Especially the byte counter can wrap frequently (as in multiple times p=
-er
-> minute)
->=20
-> This patch adds 4 new counters (for full extended mode) and updates 4 3=
-2
-> bit counters to use the 64 bit sizes (for NOIETF and full extended mode=
-)
-> so that they no longer wrap.
->=20
-> Should the device not support 64 bit counters then only the original 32=
-
-> bit counters will be visible.
->=20
-> This patchset can be pulled from my git repo on kernel.org
->=20
-> git pull git://git.kernel.org/pub/scm/linux/kernle/git/christoph/rdma.g=
-it counter_64bit
->=20
-> Thanks to Hal Rosenstock and Ira Weiny for reviewing this patchset.
+> diff --git a/drivers/infiniband/hw/mlx4/srq.c b/drivers/infiniband/hw/m=
+lx4/srq.c
+> index 8d133c4..c394376 100644
+> --- a/drivers/infiniband/hw/mlx4/srq.c
+> +++ b/drivers/infiniband/hw/mlx4/srq.c
+> @@ -286,7 +286,7 @@ int mlx4_ib_destroy_srq(struct ib_srq *srq)
+>  		mlx4_ib_db_unmap_user(to_mucontext(srq->uobject->context), &msrq->db=
+);
+>  		ib_umem_release(msrq->umem);
+>  	} else {
+> -		kfree(msrq->wrid);
+> +		kvfree(msrq->wrid);
+>  		mlx4_buf_free(dev->dev, msrq->msrq.max << msrq->msrq.wqe_shift,
+>  			      &msrq->buf);
+>  		mlx4_db_free(dev->dev, &msrq->db);
 >=20
 
-Hi Christoph,
-
-I've pulled this set in.  However, two things would be helpful in the
-future:
-
-1) Prepend the area you are patching to your patch subjects.  Aka, you
-put IB core: on the cover letter, but the individual patches did not
-have that.  They should (and generally I would use IB/core:).
-
-2) When assigning a V1/V2/V3, pass that as part of the --subject-prefix
-you give to git.  When you use it on the cover letter, patchworks drops
-it entirely (patchworks does not keep cover letters, and does not
-transfer v1 tags from cover letters to the subsequent patches).  This
-makes it *much* easier for me to pick out which of your patches in
-patchworks are the most recent.
-
-Thanks ;-)
+Thanks, applied.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -81,7 +57,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---r94CBN189K4pPVGt4XactdiVNE5xamJpU
+--P8WBsD9pBhqfqtm4KFkArj3JxlHw724gh
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -90,22 +66,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWevcEAAoJELgmozMOVy/d7OwQAL7GtRm/UtunLrgr0Wgib9bb
-PhJ/f6O1kiQn+n9Qlo2DfcWcSAYn2rHAtuFU1rdfVfZ18Q7ayh4OES5t5VJ4kYz+
-bSUXwV+fdVpHxJUWxk2PDlniZUMNIk002ccORqJp71ctkKbq3m/mI0JtufYoKWDE
-i3oKiNh567Ig9uE0+nK2ioGalH7o/dNQkr7jJagdDRM0TG0abz/5LZSwFP4lPv3J
-UFt9Bj1lYNbYeFrnn7GSRtKF18qAAklLB9rJc0aaYt1Ibn1y6T9mHKzFtztVRiba
-5BA9aBaWNt4VEq8DI8wLwtx/n0FtWW+OedbUdT6Fb3akbbbo5GF72SkSF61QHJpx
-bmrx8cxGMryACSJssvytgK4qhzWMoudegi2yXfXKIEg9SnYY+/841tYTCIoccBIF
-dLXSUcjb0MhYTx6iguhbG56DKqBMrCnR0s9/rbq2c40Vyb1gUbh4H5yhMXHCmw4h
-Yd0f5veemuCwhQEuCMQK9hOE1Ervlqt5xU9Vjlg0+P82C9e8kCsmM1Qyc4heM6oi
-xJrqJe7VMK8d80AmfwYq6JQY1noj1InbtvxVC4NLelqmHM0MAwAqt6ICU3Hutmsk
-odE5dIRrHDgMaPCskxOQBuvyDxa7yg6AmRJvK3kh370fl+fbA8Mtn3Qeo398fIPj
-DnX97ZhyjAH+s0RWm9d7
-=uwHW
+iQIcBAEBCAAGBQJWeveSAAoJELgmozMOVy/dIi0P/00kFM2PqR8CCTiLrfUkEfN/
+6CpMg3jtmoGvGgMaF+/214cSIbms++q1mGP18RkdZK6Em1L/HGBjSoWDdHs+C0wW
+Z0w+ClWFjUsfe5yIV8n6g5ReBSqJxnx5O+6z9CLH7yauSjUBqOnKiSY3aJu8C2IL
+7K6sP+FbAKh1sjRA/KKC2aIohQHQGfdmkIW2JHnXIySIKHMep0q4g0Jh7AbhgbU5
+QF0VXfI6/+E1o2G6Ei90Op0sokCe+7U2QS60+96Z/hPnSD6OoyrVPya0Q3bd+BbK
+ZBUYY82qEbR+K6SERaSCMf1hdKzknrZ92Daj1L0LPl5TY4v4085mW0yDVRExiJ7X
+cQP5bV4dKkxwBNVfcE+3+a4w9uSS8zR/EKHu3qDXFPm3jpJ8tw+zQAlUWu95Zugr
+LIO8wZCSbER+gMRPLMc0EvAl2pyHcy5SGpo2RF+zWqmNT+qNgUkICXhzS7qgiDny
+2RQ6UntDD0N/LXAAoWQU9qnpEQhrls+AFDon+dsrbxWbrRl7TNYPjbPG+URy21EJ
+YL6j20SFpVBLM1yTHEmCJqthMEAK05qQ8iqVOV+Go9hz+dQN50OqRv6i75b0MOpP
+VOlYdjpmNGxzGvtXMgtLyvMKcS/Mdq/D5xd98aBkqBTZUMAQeLTnHVFLqI988PKs
+H+JEgOxFG0TFri/qV/4a
+=S8lD
 -----END PGP SIGNATURE-----
 
---r94CBN189K4pPVGt4XactdiVNE5xamJpU--
+--P8WBsD9pBhqfqtm4KFkArj3JxlHw724gh--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
