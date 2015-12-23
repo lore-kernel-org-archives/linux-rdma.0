@@ -1,49 +1,43 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: completion queue abstraction V2
-Date: Wed, 23 Dec 2015 14:44:25 -0500
-Message-ID: <567AF999.5050409@redhat.com>
-References: <1449521512-22921-1-git-send-email-hch@lst.de>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/usnic: Handle 0 counts in resource allocation
+Date: Wed, 23 Dec 2015 14:48:03 -0500
+Message-ID: <567AFA73.3040609@redhat.com>
+References: <1449686539-29959-6-git-send-email-neescoba@cisco.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="gIhumQCG4xigbLhXVv2nGhokxxSNNW5xv"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1449521512-22921-1-git-send-email-hch@lst.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>, linux-rdma@vger.kernel.org
-Cc: sagig@dev.mellanox.co.il, bart.vanassche@sandisk.com, axboe@fb.com, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org
+ boundary="E9jmi5K5MwUSTtVEM2Lmcaj6cINd8oVKj"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1449686539-29959-6-git-send-email-neescoba-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nelson Escobar <neescoba-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---gIhumQCG4xigbLhXVv2nGhokxxSNNW5xv
+--E9jmi5K5MwUSTtVEM2Lmcaj6cINd8oVKj
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 12/07/2015 03:51 PM, Christoph Hellwig wrote:
-> This series adds a new RDMA core abstraction that insulated the
-> ULPs from the nitty gritty details of CQ polling.  See the individual
-> patches for more details.
->=20
-> Note that this series should be applied on top of my
-> "IB: merge struct ib_device_attr into struct ib_device" patch and the
-> MR cleanups.
+On 12/09/2015 01:42 PM, Nelson Escobar wrote:
+> Signed-off-by: Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Reese Faucette <rfaucett-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Xuyang Wang <xuywang-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Nelson Escobar <neescoba-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/usnic/usnic_vnic.c | 54 +++++++++++++++++-------=
+--------
+>  1 file changed, 29 insertions(+), 25 deletions(-)
 
-This has been applied, although I used the clean version from your git
-repo that didn't depend on the previous patch this one relied upon.
-
-The same comment I made to Christoph Lameter would be helpful here:
-please include the v1/v2 in your --subject-prefix you pass to git.
-Patchworks does not preserve cover letters nor propagate flags from
-cover letter to patch series :-/
+Thanks, applied.
 
 
 --=20
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
 
 
---gIhumQCG4xigbLhXVv2nGhokxxSNNW5xv
+--E9jmi5K5MwUSTtVEM2Lmcaj6cINd8oVKj
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -52,19 +46,23 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWevmZAAoJELgmozMOVy/dOaYQAJpvqFr9NY9I/ojfLLpTImFX
-p+wnfn5Fa1lhDIyrIC6/hXrHLemralMOlIGRMrYVt1rPtHS5MMk2m7TuyNs5Xu0E
-YgWinu2JLH/tenDcsH9Gsx8ZChxY/wuIMO14v+8o3bBvh5ApGtZTN94Z93o/1PHD
-s+QuGtfuAwDG8HIHUnODu+Efaru2RV/wDosIhbf+EBkQRW/vG6dVQjEx5GqIdYDo
-cuh+dluOjYaeOAf/XkaBEvP/Cl3uBIAmsdN6f9wQcqlKOZAweKi7HP262CFBK5QZ
-hcJpQo7G2mKHhZPZeXBABlztiCxiiH9K9sxdviDuECbI5VSagIcGXsHeyR1MrxaF
-ZwH1lBeVx7W7WE4QG93YVtJ5/JQDNvVQHuY9/jYGXzVi9LZxMiYig4184GpzqHCD
-Omegu7Km6AjiEdM7ELg5ilAP2x3Cv7koOVUYNxsHQ+9xX1Tw6YKF7WyN7Xj1cU0u
-03993nW6p4KZqiQBd3kxTJTsF/JvxdUuSzhV+JtzCX2iYKZn96m9qwROML2n2uAn
-dFwsNIzu/U4YwflPj7EFxciBImMPXjI3U/xah9vzYco23F7whVAAB2XSuK4Hr2Q+
-r2z6d2NSraecSq2AEqUXSp8Iblkg4piO6WaJnu2pyhAzwdKd4zKo9B2Q4FGodZlo
-4NAhmJi7f1LPO6N0RCD6
-=0NrR
+iQIbBAEBCAAGBQJWevpzAAoJELgmozMOVy/djhAP+K5weAFHQ7raEzwFmsCzLiJ2
+3e7VsCfMU6/NlAY1hE+NBpzXkeKkLqTXBUPV83gP8XotRESDCTzLI83pBGkoRfTn
+ccs18/VHrNLX3QJHHHrgUkLGpwLfzqDcRDtxV/sOoVHbJfaFKLhpDDdD779ROCVr
+Ur+kJNXSovd9EYnf6H+V5KCa9NhetKpr2TCSpbXMkiM+IJKp1/5R7XFSRcvSGQ/j
+ByBh+t7LtZIKedzvs9TmltvLDi6M3i6S5E5byBD35iCGS8BFxKmI1eK7YhFZckJa
+hNwe0nye3+lKr+iwXXiyB4RTPYZTBVTsgRo1Zg5+Z9sA/OjMiNRgY2LJ0ftqh9h+
+8SZD9w4DW13poTWN9vGRIcoxM6zJORRYezr3tjTWTTITSAo31OC+CubFxiQdQOg3
++M2EsuoW4PuEeUcTpSBGzR9aR9b/aVJtNOMgWVzDA51NqdM+Sq07BKdoyFSxYT6u
+4Qgum/0aTxJYJPaXli9Gg2UMRDUsqjTjbGXSz65QGCwLZ1ZNA1hwxM3U3sDcblEq
+Rd9NYk5X2mT2tbxOqmC8TuYHx5nA1fRHtrRTFuct1TUx3GNzTxTHIAvw+qmnKxHE
+unOyy/OImV/fb8i/VsQJkKuqrixfmUWtsnTVeTAlBOtPX8y2qGMFezgRpfC7uEfL
+R/YTH4M2PwAzv67VOZI=
+=aRji
 -----END PGP SIGNATURE-----
 
---gIhumQCG4xigbLhXVv2nGhokxxSNNW5xv--
+--E9jmi5K5MwUSTtVEM2Lmcaj6cINd8oVKj--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
