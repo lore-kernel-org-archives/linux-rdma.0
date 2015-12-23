@@ -1,25 +1,32 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] IB/cma: cma_match_net_dev needs to take into account
- port_num
-Date: Wed, 23 Dec 2015 10:48:55 +0200
-Message-ID: <567A5FF7.5070901@dev.mellanox.co.il>
-References: <1450710084-22547-1-git-send-email-matanb@mellanox.com>
- <56792A4B.8060101@mellanox.com> <56799D61.9010206@redhat.com>
- <CAAKD3BDmenFsiZTDiw8OEW-F0GqK62+zJ-TVywyYd4YDtzxrCA@mail.gmail.com>
- <5679AC18.4070002@redhat.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next V2 4/5] IB/mlx5: Add hca_core_clock_offset to
+ udata in init_ucontext
+Date: Wed, 23 Dec 2015 11:03:44 +0200
+Message-ID: <567A6370.1030008@mellanox.com>
+References: <1450204213-5630-1-git-send-email-matanb@mellanox.com>
+ <1450204213-5630-5-git-send-email-matanb@mellanox.com>
+ <CAJ3xEMguJeQnrHAM9WCXZf+NyNOwBGCfpka5ywUtfLHT1wL3ig@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5679AC18.4070002-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <CAJ3xEMguJeQnrHAM9WCXZf+NyNOwBGCfpka5ywUtfLHT1wL3ig-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-FWIW, looks good to me,
+On 12/22/2015 11:37 PM, Or Gerlitz wrote:
+> On Tue, Dec 15, 2015 at 8:30 PM, Matan Barak<matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>  wrote:
+>> >Pass hca_core_clock_offset to user-space is mandatory in order to
+>> >let the user-space read the free-running clock register from the
+>> >right offset in the memory mapped page.
+>> >Passing this value is done by changing the vendor's command
+>> >and response of init_ucontext to be in extensible form.
+> Is "old" (unpatched) libmlx5 still operational over "new" (patched)
+> mlx5 IB driver?
 
-Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+and same question for the other way around as well
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
