@@ -1,46 +1,47 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/usnic: Fix incorrect cast in usnic_ib_fw_string_to_u64
-Date: Wed, 23 Dec 2015 11:12:29 -0500
-Message-ID: <567AC7ED.30502@redhat.com>
-References: <1449686539-29959-2-git-send-email-neescoba@cisco.com>
+Subject: Re: [PATCH] IB/usnic: Fix message typo
+Date: Wed, 23 Dec 2015 11:12:44 -0500
+Message-ID: <567AC7FC.9010506@redhat.com>
+References: <1449686539-29959-3-git-send-email-neescoba@cisco.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="IpbpePNMQ90xcpnJJdhJQ9WgRS6VnD6Mf"
+ boundary="D7cXup8luuDeClmUoNTp52XJveCo5L6sc"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1449686539-29959-2-git-send-email-neescoba-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1449686539-29959-3-git-send-email-neescoba-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Nelson Escobar <neescoba-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---IpbpePNMQ90xcpnJJdhJQ9WgRS6VnD6Mf
+--D7cXup8luuDeClmUoNTp52XJveCo5L6sc
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
 On 12/09/2015 01:42 PM, Nelson Escobar wrote:
-> Signed-off-by: Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Reese Faucette <rfaucett-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Xuyang Wang <xuywang-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 > Signed-off-by: Nelson Escobar <neescoba-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-> Reviewed-by: Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 > ---
->  drivers/infiniband/hw/usnic/usnic_ib_verbs.c | 2 +-
+>  drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c | 2 +-
 >  1 file changed, 1 insertion(+), 1 deletion(-)
 >=20
-> diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/inf=
-iniband/hw/usnic/usnic_ib_verbs.c
-> index f8e3211..5ae6569 100644
-> --- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-> +++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-> @@ -51,7 +51,7 @@
+> diff --git a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c b/drivers/in=
+finiband/hw/usnic/usnic_ib_qp_grp.c
+> index fcea3a2..b306870 100644
+> --- a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
+> +++ b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
+> @@ -521,7 +521,7 @@ int usnic_ib_qp_grp_modify(struct usnic_ib_qp_grp *=
+qp_grp,
 > =20
->  static void usnic_ib_fw_string_to_u64(char *fw_ver_str, u64 *fw_ver)
->  {
-> -	*fw_ver =3D (u64) *fw_ver_str;
-> +	*fw_ver =3D *((u64 *)fw_ver_str);
->  }
-> =20
->  static int usnic_ib_fill_create_qp_resp(struct usnic_ib_qp_grp *qp_grp=
-,
+>  	if (!status) {
+>  		qp_grp->state =3D new_state;
+> -		usnic_info("Transistioned %u from %s to %s",
+> +		usnic_info("Transitioned %u from %s to %s",
+>  		qp_grp->grp_id,
+>  		usnic_ib_qp_grp_state_to_string(old_state),
+>  		usnic_ib_qp_grp_state_to_string(new_state));
 >=20
 
 Thanks, applied.
@@ -51,7 +52,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---IpbpePNMQ90xcpnJJdhJQ9WgRS6VnD6Mf
+--D7cXup8luuDeClmUoNTp52XJveCo5L6sc
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -60,22 +61,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWesftAAoJELgmozMOVy/dZ1gP/2WtZk9VCREe9HLzIZQln+x1
-L7sK2nDjxXwiZxkGU+tbRrnxtLW7FdfvBqmCFYu45RwNUW7dJcG7I7pQSImmSnpl
-PEJg8jbcw/y/kJKrSQcwZbOHOXamiDJQozgm9OAOj/nB5hmgSYGWqHyYfQPy5v2p
-0Cvu40C16aT1uCOvJxGkul6FX+szzwA/Z3CsotIWTApDVPovFk8V4CnlSk3AHTo2
-rSb/8TGNo0eHHfmlMfonq2J8+WG9541+Lmq6wgWVCAxzq273qVcky5DSC3gNwtqZ
-8tZ+D9UuJcZFgYBcMbJyjPdHsf+OTzOUaM7hXbik4dr6PvACLiCeva23CCcW0P/I
-9t3UK6Gx6Q4UjDf0nteKSKWX/w9gp29qIi6yWDw6vwT/rXpPJAOVzc8RtLFg/NZi
-Cw0FycESeAHe9IEHNKbyLcxaNppo1oslLNu/L2PAc1iqrBMMBdj1u8GQUMLJB/ci
-A0CaR76dkx1lTVyv0glH2DnCSCJ8NYi5phBvG86vpQ/uIf9fMp2wzk6AtXyu14Ie
-iaR+ewNErcqgu727VR6qtz34pV78rct1eVAgaurv8X2fb/EfOz4bFhXZ/IV+/8D+
-SdEO+E2JMFV7CPXXE0SGKQTpN7DvRFLZ00w/JZ5osZMN7OLVzJhlzaRqadpuaV6n
-imCiVQWI5Ar2pOf/U3Yk
-=ctaG
+iQIcBAEBCAAGBQJWesf8AAoJELgmozMOVy/dH24P+wdJToq5Svs9qPyYZQWFFbSF
+lN8Bu7ytgJaofEyY+jvicVZ+6cLK16FPXaV10zwGPG8UiIvhSJcjM+epM+uF/IkH
+2AYISU+y/S9RFkB0VYkgg2RnZFeEYC3f2aT+AzH8/sezfXPW/c9AayqPoIMQD5yu
+jvSSuDVMCtRXznZDsucy5dRp3SYO2LTiYktcaVuM+vTtxTSYsmuBojfZ4HgPZ4kG
+VG8sxEmNtn6ddXtVpKemrZ6OI8jxvsIMkNhlPiwPSu1lNgTmAEgxWwKAI+9hUUxG
+VsQzmUCy0y0sk4FB3eE1YjQslO+dRaMj867PRn4XtcKrTA8JiQf00YdDTS/F5fQN
+BMvRZHFghgi3hH668zGWxDlbo7D3jjsnkedk+biYT5xINGH4h/WiLbCls0mmorxZ
+3h9WyONmCNAKpXOm2bE/Br1pYUy/rSQLHUV3uqYsimt254IsNfV9KDVODHtkAlif
++9V3VsoOCYWrfIL4zCI3KWypc98w8JB/3DnRS/8/R7tDQIGZpJS7jjF01oL+7xHe
+gTkZBRAqB4U6UtKfZLLPrUnH3tR7kfqIwNgb3Xej0A4YAmUz0WSa/qg+ShYqdvOl
+tntHrnTFoKOlBkx8qDcsSuXLTfSESAtlKJSZQGKhjnjowr08EBDrljq+4JmbW7yP
+iB1GXZA0uGJmP2xc7e80
+=4YjJ
 -----END PGP SIGNATURE-----
 
---IpbpePNMQ90xcpnJJdhJQ9WgRS6VnD6Mf--
+--D7cXup8luuDeClmUoNTp52XJveCo5L6sc--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
