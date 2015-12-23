@@ -1,51 +1,49 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/usnic: Remove unused prototype
-Date: Wed, 23 Dec 2015 11:11:44 -0500
-Message-ID: <567AC7C0.10804@redhat.com>
-References: <1449686389-26896-1-git-send-email-neescoba@cisco.com>
+Subject: Re: [PATCH] IB/usnic: Improve a failure message
+Date: Wed, 23 Dec 2015 11:12:02 -0500
+Message-ID: <567AC7D2.6080001@redhat.com>
+References: <1449686539-29959-1-git-send-email-neescoba@cisco.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="LEhLWqDiNLRW1VexodsOgaQOIBeV01psp"
+ boundary="1QMMiiQoONEVSJ6ASLAcLX2FegEV6rS1p"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1449686389-26896-1-git-send-email-neescoba-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1449686539-29959-1-git-send-email-neescoba-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Nelson Escobar <neescoba-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---LEhLWqDiNLRW1VexodsOgaQOIBeV01psp
+--1QMMiiQoONEVSJ6ASLAcLX2FegEV6rS1p
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 12/09/2015 01:39 PM, Nelson Escobar wrote:
-> query_protocol() was added in commit 6b90a6d66b17 ("IB/Verbs:
-> Implement new callback query_protocol()") and then removed in
-> commit f9b22e355d38 ("IB/core: Convert core to use bitfield
-> for caps").
->=20
-> This left behind an unused prototype.
->=20
+On 12/09/2015 01:42 PM, Nelson Escobar wrote:
 > Signed-off-by: Nelson Escobar <neescoba-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 > Reviewed-by: Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 > ---
->  drivers/infiniband/hw/usnic/usnic_ib_verbs.h | 2 --
->  1 file changed, 2 deletions(-)
+>  drivers/infiniband/hw/usnic/usnic_debugfs.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
 >=20
-> diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.h b/drivers/inf=
-iniband/hw/usnic/usnic_ib_verbs.h
-> index 414eaa5..0d9d2e6a 100644
-> --- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
-> +++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
-> @@ -43,8 +43,6 @@ int usnic_ib_query_device(struct ib_device *ibdev,
->  			  struct ib_udata *uhw);
->  int usnic_ib_query_port(struct ib_device *ibdev, u8 port,
->  				struct ib_port_attr *props);
-> -enum rdma_protocol_type
-> -usnic_ib_query_protocol(struct ib_device *device, u8 port_num);
->  int usnic_ib_query_qp(struct ib_qp *qp, struct ib_qp_attr *qp_attr,
->  				int qp_attr_mask,
->  				struct ib_qp_init_attr *qp_init_attr);
+> diff --git a/drivers/infiniband/hw/usnic/usnic_debugfs.c b/drivers/infi=
+niband/hw/usnic/usnic_debugfs.c
+> index 5e55b8b..92dc66c 100644
+> --- a/drivers/infiniband/hw/usnic/usnic_debugfs.c
+> +++ b/drivers/infiniband/hw/usnic/usnic_debugfs.c
+> @@ -157,8 +157,9 @@ void usnic_debugfs_flow_add(struct usnic_ib_qp_grp_=
+flow *qp_flow)
+>  							qp_flow,
+>  							&flowinfo_ops);
+>  	if (IS_ERR_OR_NULL(qp_flow->dbgfs_dentry)) {
+> -		usnic_err("Failed to create dbg fs entry for flow %u\n",
+> -				qp_flow->flow->flow_id);
+> +		usnic_err("Failed to create dbg fs entry for flow %u with error %ld\=
+n",
+> +				qp_flow->flow->flow_id,
+> +				PTR_ERR(qp_flow->dbgfs_dentry));
+>  	}
+>  }
+> =20
 >=20
 
 Thanks, applied.
@@ -56,7 +54,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---LEhLWqDiNLRW1VexodsOgaQOIBeV01psp
+--1QMMiiQoONEVSJ6ASLAcLX2FegEV6rS1p
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -65,22 +63,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWesfAAAoJELgmozMOVy/d+5AP/0hSFDzTtGnhhNsHVrpzZPoV
-0OzCTjPdE1X5+N7Ppr4i+2ISTM6in0zAawPmQqmjtAR8kZWMJV7hv7R6jtP8KW7b
-4C8ctpIF7U2ELvPgn5aABgS3WiNlGlrsdESTWUWTd9iEZ1iUC74dCt4WISBiNQlA
-mAW570XEQya7xfkyOZCFMpYRbpJoST16269WGIc3l3pHP0u9fdV0xhvgD1xy8bpy
-jiYKXOcvfNPOPlDUQlaK2HKpeRxo7Tl19wqoFPyZe8CndqbgWlsuL36lT69NLiR+
-/GPSJ9vAFq6M0j2dYHBYqlHeCmCOfnjVi6x4ApmR24Bx2YompGghGUdOYdm9JZc2
-HrkQLdOMVHcsx53DxJ/0LQwu51jpbkzMRM+3L4AjDbktw2co9PC/jE5ZL/JXocIz
-oHvKVslYNb7owgcJl2vj1RwYJNoiU2f/BxMyF1kbwy+utXNtLvueNrDWHwZol1vc
-fZ8th73/A/87wIVe3YCeryLTZgtOTypXcXkJbgi2u1buLGrm79CqQIm/jrOx/BdE
-eI8t+F+Ah+nobcFS2E8CCAeg0ppqARJiHCWq+NP9JfnIJnzfc+wEygz/P53IpYfl
-46weQJMZ9/nS3X7jZQz0/0PIHAXL3A/o27aFVvyDLfZ322r8Sofgods+kyu4gYez
-lHIcMD0cyxMge+zK9ErP
-=z1Yd
+iQIcBAEBCAAGBQJWesfSAAoJELgmozMOVy/dDJsQAIj0UaqaooOkNqSUh9LL6uYZ
+HVeFT0awOVg3xJWSeZD705cpCuXYj4YSDEBttjuJ2IerBOamICkfa6cwmJO0n9+6
+0Vf6aAvuRk/qSJdmlOxfH18e9oFYZCf92OvvDxrDR1BUIjJeMm+MhtnAIuisW7rB
+OEpfMFHo9sYwJ4vgdBDMcD8jgrLOIeP9iIRO+0q9bCProVplMOMqcfll8rxRj/kg
+lDfSDWS2h/lmzsNHASUNiy1kK1lLapmvirzchYWtPvL69KU1OyiIGxVRb/9Wd/om
+Vev81KG8bZ55DwdMRd65dJOUPNzJsHC/XZYh7WqwXan7hT4u6ZslbfFiYp3hGzJt
+P6inybR4VNXSgbwqNbJ5KKmpWRW/0f7M8l50glodwOC2kayBEuCbNi4ZQRtcR4xA
+YswzJUimUjjtT4aMUCI1QnuwFLsCHJO8gE5DUmd0C2Mai0QdU6+CsnsMLsHxDlAY
+3xX/I+acV02wQZdOKZNbSJgayuYX91Uwdco6YmKVdP7aMNgU01jE2zd6VFzAdjvC
++HrX5G6rnxxsHD9iW26VFd/AsrQWSV4WW7EigzvuGIt5m7wMN0l/PolESzwhyy5C
+cpLJ7H/lcZOjhK0yGt/cZsx0QGJCOttUEtghkNxJmCEXuF4qYBfRKS0CWoJ3nJTy
+6gUkWTl1tnS/SABETSFr
+=bj7F
 -----END PGP SIGNATURE-----
 
---LEhLWqDiNLRW1VexodsOgaQOIBeV01psp--
+--1QMMiiQoONEVSJ6ASLAcLX2FegEV6rS1p--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
