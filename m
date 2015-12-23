@@ -1,137 +1,101 @@
-From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH v4 01/11] svcrdma: Do not send XDR roundup bytes for a
- write chunk
-Date: Wed, 23 Dec 2015 14:59:15 -0500
-Message-ID: <20151223195915.GB27432@fieldses.org>
-References: <20151214211951.12932.99017.stgit@klimt.1015granger.net>
- <20151214213009.12932.60521.stgit@klimt.1015granger.net>
- <20151221210708.GD7869@fieldses.org>
- <D0AD304E-0356-48DE-A68D-F9F8930D854D@oracle.com>
- <20151221212959.GE7869@fieldses.org>
- <DF5B7D29-0C6C-47EF-8E3E-74BF137D7F95@oracle.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] IB/mad: Ensure fairness in ib_mad_completion_handler
+Date: Wed, 23 Dec 2015 15:01:04 -0500
+Message-ID: <20151223200104.GR3860@phlsvsds.ph.intel.com>
+References: <1449784350-30214-1-git-send-email-ira.weiny@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <DF5B7D29-0C6C-47EF-8E3E-74BF137D7F95-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1449784350-30214-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 21, 2015 at 05:11:56PM -0500, Chuck Lever wrote:
+Doug,
+
+With your email troubles I just wanted to make sure you did not lose track of
+this patch.
+
+https://patchwork.kernel.org/patch/7822511/
+
+Thanks,
+Ira
+
+On Thu, Dec 10, 2015 at 04:52:30PM -0500, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > 
-> > On Dec 21, 2015, at 4:29 PM, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> wrote:
-> > 
-> > On Mon, Dec 21, 2015 at 04:15:23PM -0500, Chuck Lever wrote:
-> >> 
-> >>> On Dec 21, 2015, at 4:07 PM, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> wrote:
-> >>> 
-> >>> On Mon, Dec 14, 2015 at 04:30:09PM -0500, Chuck Lever wrote:
-> >>>> Minor optimization: when dealing with write chunk XDR roundup, do
-> >>>> not post a Write WR for the zero bytes in the pad. Simply update
-> >>>> the write segment in the RPC-over-RDMA header to reflect the extra
-> >>>> pad bytes.
-> >>>> 
-> >>>> The Reply chunk is also a write chunk, but the server does not use
-> >>>> send_write_chunks() to send the Reply chunk. That's OK in this case:
-> >>>> the server Upper Layer typically marshals the Reply chunk contents
-> >>>> in a single contiguous buffer, without a separate tail for the XDR
-> >>>> pad.
-> >>>> 
-> >>>> The comments and the variable naming refer to "chunks" but what is
-> >>>> really meant is "segments." The existing code sends only one
-> >>>> xdr_write_chunk per RPC reply.
-> >>>> 
-> >>>> The fix assumes this as well. When the XDR pad in the first write
-> >>>> chunk is reached, the assumption is the Write list is complete and
-> >>>> send_write_chunks() returns.
-> >>>> 
-> >>>> That will remain a valid assumption until the server Upper Layer can
-> >>>> support multiple bulk payload results per RPC.
-> >>>> 
-> >>>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> >>>> ---
-> >>>> net/sunrpc/xprtrdma/svc_rdma_sendto.c |    7 +++++++
-> >>>> 1 file changed, 7 insertions(+)
-> >>>> 
-> >>>> diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-> >>>> index 969a1ab..bad5eaa 100644
-> >>>> --- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-> >>>> +++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-> >>>> @@ -342,6 +342,13 @@ static int send_write_chunks(struct svcxprt_rdma *xprt,
-> >>>> 						arg_ch->rs_handle,
-> >>>> 						arg_ch->rs_offset,
-> >>>> 						write_len);
-> >>>> +
-> >>>> +		/* Do not send XDR pad bytes */
-> >>>> +		if (chunk_no && write_len < 4) {
-> >>>> +			chunk_no++;
-> >>>> +			break;
-> >>> 
-> >>> I'm pretty lost in this code.  Why does (chunk_no && write_len < 4) mean
-> >>> this is xdr padding?
-> >> 
-> >> Chunk zero is always data. Padding is always going to be
-> >> after the first chunk. Any chunk after chunk zero that is
-> >> shorter than XDR quad alignment is going to be a pad.
-> > 
-> > I don't really know what a chunk is....  Looking at the code:
-> > 
-> > 	write_len = min(xfer_len, be32_to_cpu(arg_ch->rs_length));
-> > 
-> > so I guess the assumption is just that those rs_length's are always a
-> > multiple of four?
+> It was found that when a process was rapidly sending MADs other processes could
+> be hung in their unregister calls.
 > 
-> The example you recently gave was a two-byte NFS READ
-> that crosses a page boundary.
+> This would happen when process A was injecting packets fast enough that the
+> single threaded workqueue was never exiting ib_mad_completion_handler.
+> Therefore when process B called flush_workqueue via the unregister call it
+> would hang until process A stopped sending MADs.
 > 
-> In that case, the NFSD would pass down an xdr_buf that
-> has one byte in a page, one byte in another page, and
-> a two-byte XDR pad. The logic introduced by this
-> optimization would be fooled, and neither the second
-> byte nor the XDR pad would be written to the client.
+> The fix is to periodically reschedule ib_mad_completion_handler after
+> processing a large number of completions.  The number of completions chosen was
+> decided based on the defaults for the recv queue size.  However, it was kept
+> fixed such that increasing those queue sizes would not adversely affect
+> fairness in the future.
 > 
-> Unless you can think of a way to recognize an XDR pad
-> in the xdr_buf 100% of the time, you should drop this
-> patch.
-
-It might be best to make this explicit and mark bytes as padding somehow
-while encoding.
-
-> As far as I know, none of the other patches in this
-> series depend on this optimization, so please merge
-> them if you can.
-
-OK, I'll take a look at the rest, thanks.
-
---b.
-
-> >> Probably too clever. Is there a better way to detect
-> >> the XDR pad?
-> >> 
-> >> 
-> >>>> +		}
-> >>>> +
-> >>>> 		chunk_off = 0;
-> >>>> 		while (write_len) {
-> >>>> 			ret = send_write(xprt, rqstp,
-> >> 
-> >> --
-> >> Chuck Lever
-> >> 
-> >> 
-> >> 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/infiniband/core/mad.c | 18 ++++++++++++++++++
+>  1 file changed, 18 insertions(+)
+> 
+> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+> index 2281de122038..d4d2a618fd66 100644
+> --- a/drivers/infiniband/core/mad.c
+> +++ b/drivers/infiniband/core/mad.c
+> @@ -61,6 +61,18 @@ MODULE_PARM_DESC(send_queue_size, "Size of send queue in number of work requests
+>  module_param_named(recv_queue_size, mad_recvq_size, int, 0444);
+>  MODULE_PARM_DESC(recv_queue_size, "Size of receive queue in number of work requests");
+>  
+> +/*
+> + * Define a limit on the number of completions which will be processed by the
+> + * worker thread in a single work item.  This ensures that other work items
+> + * (potentially from other users) are processed fairly.
+> + *
+> + * The number of completions was derived from the default queue sizes above.
+> + * We use a value which is double the larger of the 2 queues (receive @ 512)
+> + * but keep it fixed such that an increase in that value does not introduce
+> + * unfairness.
+> + */
+> +#define MAD_COMPLETION_PROC_LIMIT 1024
+> +
+>  static struct list_head ib_mad_port_list;
+>  static u32 ib_mad_client_id = 0;
+>  
+> @@ -2555,6 +2567,7 @@ static void ib_mad_completion_handler(struct work_struct *work)
+>  {
+>  	struct ib_mad_port_private *port_priv;
+>  	struct ib_wc wc;
+> +	int count = 0;
+>  
+>  	port_priv = container_of(work, struct ib_mad_port_private, work);
+>  	ib_req_notify_cq(port_priv->cq, IB_CQ_NEXT_COMP);
+> @@ -2574,6 +2587,11 @@ static void ib_mad_completion_handler(struct work_struct *work)
+>  			}
+>  		} else
+>  			mad_error_handler(port_priv, &wc);
+> +
+> +		if (++count > MAD_COMPLETION_PROC_LIMIT) {
+> +			queue_work(port_priv->wq, &port_priv->work);
+> +			break;
+> +		}
+>  	}
+>  }
+>  
+> -- 
+> 1.8.2
 > 
 > --
-> Chuck Lever
-> 
-> 
-> 
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
