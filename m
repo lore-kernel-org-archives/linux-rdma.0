@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 10/10] IB: remove the write-only usecnt field from struct ib_mr
-Date: Wed, 23 Dec 2015 19:12:54 +0100
-Message-ID: <1450894374-8241-11-git-send-email-hch@lst.de>
+Subject: [PATCH 08/10] ehca: stop using struct ib_phys_buf
+Date: Wed, 23 Dec 2015 19:12:52 +0100
+Message-ID: <1450894374-8241-9-git-send-email-hch@lst.de>
 References: <1450894374-8241-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450894374-8241-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
@@ -10,129 +10,165 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Reviewed-by: Bart Van Assche <bvanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/uverbs_cmd.c        | 6 ------
- drivers/infiniband/core/verbs.c             | 8 +-------
- drivers/infiniband/hw/cxgb3/iwch_provider.c | 3 ---
- drivers/infiniband/hw/cxgb4/mem.c           | 3 ---
- drivers/staging/rdma/ehca/ehca_mrmw.c       | 1 -
- include/rdma/ib_verbs.h                     | 1 -
- 6 files changed, 1 insertion(+), 21 deletions(-)
+And simplify the calling convention for full-memory registrations.
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 5428ebe..0a84182d 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -993,7 +993,6 @@ ssize_t ib_uverbs_reg_mr(struct ib_uverbs_file *file,
- 	mr->pd      = pd;
- 	mr->uobject = uobj;
- 	atomic_inc(&pd->usecnt);
--	atomic_set(&mr->usecnt, 0);
+Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> [core]
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+ drivers/staging/rdma/ehca/ehca_classes.h |  5 +-
+ drivers/staging/rdma/ehca/ehca_mrmw.c    | 94 +++++++++++++++-----------------
+ 2 files changed, 46 insertions(+), 53 deletions(-)
+
+diff --git a/drivers/staging/rdma/ehca/ehca_classes.h b/drivers/staging/rdma/ehca/ehca_classes.h
+index bd45e0f..e8c3387 100644
+--- a/drivers/staging/rdma/ehca/ehca_classes.h
++++ b/drivers/staging/rdma/ehca/ehca_classes.h
+@@ -316,9 +316,8 @@ struct ehca_mr_pginfo {
  
- 	uobj->object = mr;
- 	ret = idr_add_uobj(&ib_uverbs_mr_idr, uobj);
-@@ -1091,11 +1090,6 @@ ssize_t ib_uverbs_rereg_mr(struct ib_uverbs_file *file,
- 		}
- 	}
- 
--	if (atomic_read(&mr->usecnt)) {
--		ret = -EBUSY;
--		goto put_uobj_pd;
--	}
--
- 	old_pd = mr->pd;
- 	ret = mr->device->rereg_user_mr(mr, cmd.flags, cmd.start,
- 					cmd.length, cmd.hca_va,
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index c5e0f07..072b94d 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -1345,7 +1345,6 @@ struct ib_mr *ib_get_dma_mr(struct ib_pd *pd, int mr_access_flags)
- 		mr->pd      = pd;
- 		mr->uobject = NULL;
- 		atomic_inc(&pd->usecnt);
--		atomic_set(&mr->usecnt, 0);
- 	}
- 
- 	return mr;
-@@ -1354,13 +1353,9 @@ EXPORT_SYMBOL(ib_get_dma_mr);
- 
- int ib_dereg_mr(struct ib_mr *mr)
- {
--	struct ib_pd *pd;
-+	struct ib_pd *pd = mr->pd;
- 	int ret;
- 
--	if (atomic_read(&mr->usecnt))
--		return -EBUSY;
--
--	pd = mr->pd;
- 	ret = mr->device->dereg_mr(mr);
- 	if (!ret)
- 		atomic_dec(&pd->usecnt);
-@@ -1396,7 +1391,6 @@ struct ib_mr *ib_alloc_mr(struct ib_pd *pd,
- 		mr->pd      = pd;
- 		mr->uobject = NULL;
- 		atomic_inc(&pd->usecnt);
--		atomic_set(&mr->usecnt, 0);
- 	}
- 
- 	return mr;
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-index 6743e9d..2734820 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -458,9 +458,6 @@ static int iwch_dereg_mr(struct ib_mr *ib_mr)
- 	u32 mmid;
- 
- 	PDBG("%s ib_mr %p\n", __func__, ib_mr);
--	/* There can be no memory windows */
--	if (atomic_read(&ib_mr->usecnt))
--		return -EINVAL;
- 
- 	mhp = to_iwch_mr(ib_mr);
- 	kfree(mhp->pages);
-diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
-index 1eb833a..7849890 100644
---- a/drivers/infiniband/hw/cxgb4/mem.c
-+++ b/drivers/infiniband/hw/cxgb4/mem.c
-@@ -704,9 +704,6 @@ int c4iw_dereg_mr(struct ib_mr *ib_mr)
- 	u32 mmid;
- 
- 	PDBG("%s ib_mr %p\n", __func__, ib_mr);
--	/* There can be no memory windows */
--	if (atomic_read(&ib_mr->usecnt))
--		return -EINVAL;
- 
- 	mhp = to_c4iw_mr(ib_mr);
- 	rhp = mhp->rhp;
+ 	union {
+ 		struct { /* type EHCA_MR_PGI_PHYS section */
+-			int num_phys_buf;
+-			struct ib_phys_buf *phys_buf_array;
+-			u64 next_buf;
++			u64 addr;
++			u16 size;
+ 		} phy;
+ 		struct { /* type EHCA_MR_PGI_USER section */
+ 			struct ib_umem *region;
 diff --git a/drivers/staging/rdma/ehca/ehca_mrmw.c b/drivers/staging/rdma/ehca/ehca_mrmw.c
-index 1814af7..06b832b 100644
+index c6e3245..1814af7 100644
 --- a/drivers/staging/rdma/ehca/ehca_mrmw.c
 +++ b/drivers/staging/rdma/ehca/ehca_mrmw.c
-@@ -1339,7 +1339,6 @@ int ehca_reg_internal_maxmr(
- 	e_mr->ib.ib_mr.pd = &e_pd->ib_pd;
- 	e_mr->ib.ib_mr.uobject = NULL;
- 	atomic_inc(&(e_pd->ib_pd.usecnt));
--	atomic_set(&(e_mr->ib.ib_mr.usecnt), 0);
- 	*e_maxmr = e_mr;
- 	return 0;
+@@ -1289,7 +1289,6 @@ int ehca_reg_internal_maxmr(
+ 	u64 *iova_start;
+ 	u64 size_maxmr;
+ 	struct ehca_mr_pginfo pginfo;
+-	struct ib_phys_buf ib_pbuf;
+ 	u32 num_kpages;
+ 	u32 num_hwpages;
+ 	u64 hw_pgsize;
+@@ -1310,8 +1309,6 @@ int ehca_reg_internal_maxmr(
+ 	/* register internal max-MR on HCA */
+ 	size_maxmr = ehca_mr_len;
+ 	iova_start = (u64 *)ehca_map_vaddr((void *)(KERNELBASE + PHYSICAL_START));
+-	ib_pbuf.addr = 0;
+-	ib_pbuf.size = size_maxmr;
+ 	num_kpages = NUM_CHUNKS(((u64)iova_start % PAGE_SIZE) + size_maxmr,
+ 				PAGE_SIZE);
+ 	hw_pgsize = ehca_get_max_hwpage_size(shca);
+@@ -1323,8 +1320,8 @@ int ehca_reg_internal_maxmr(
+ 	pginfo.num_kpages = num_kpages;
+ 	pginfo.num_hwpages = num_hwpages;
+ 	pginfo.hwpage_size = hw_pgsize;
+-	pginfo.u.phy.num_phys_buf = 1;
+-	pginfo.u.phy.phys_buf_array = &ib_pbuf;
++	pginfo.u.phy.addr = 0;
++	pginfo.u.phy.size = size_maxmr;
  
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 197b620..36acb30 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1414,7 +1414,6 @@ struct ib_mr {
- 	u64		   iova;
- 	u32		   length;
- 	unsigned int	   page_size;
--	atomic_t	   usecnt; /* count number of MWs */
- };
+ 	ret = ehca_reg_mr(shca, e_mr, iova_start, size_maxmr, 0, e_pd,
+ 			  &pginfo, &e_mr->ib.ib_mr.lkey,
+@@ -1620,57 +1617,54 @@ static int ehca_set_pagebuf_phys(struct ehca_mr_pginfo *pginfo,
+ 				 u32 number, u64 *kpage)
+ {
+ 	int ret = 0;
+-	struct ib_phys_buf *pbuf;
++	u64 addr = pginfo->u.phy.addr;
++	u64 size = pginfo->u.phy.size;
+ 	u64 num_hw, offs_hw;
+ 	u32 i = 0;
  
- struct ib_mw {
+-	/* loop over desired phys_buf_array entries */
+-	while (i < number) {
+-		pbuf   = pginfo->u.phy.phys_buf_array + pginfo->u.phy.next_buf;
+-		num_hw  = NUM_CHUNKS((pbuf->addr % pginfo->hwpage_size) +
+-				     pbuf->size, pginfo->hwpage_size);
+-		offs_hw = (pbuf->addr & ~(pginfo->hwpage_size - 1)) /
+-			pginfo->hwpage_size;
+-		while (pginfo->next_hwpage < offs_hw + num_hw) {
+-			/* sanity check */
+-			if ((pginfo->kpage_cnt >= pginfo->num_kpages) ||
+-			    (pginfo->hwpage_cnt >= pginfo->num_hwpages)) {
+-				ehca_gen_err("kpage_cnt >= num_kpages, "
+-					     "kpage_cnt=%llx num_kpages=%llx "
+-					     "hwpage_cnt=%llx "
+-					     "num_hwpages=%llx i=%x",
+-					     pginfo->kpage_cnt,
+-					     pginfo->num_kpages,
+-					     pginfo->hwpage_cnt,
+-					     pginfo->num_hwpages, i);
+-				return -EFAULT;
+-			}
+-			*kpage = (pbuf->addr & ~(pginfo->hwpage_size - 1)) +
+-				 (pginfo->next_hwpage * pginfo->hwpage_size);
+-			if ( !(*kpage) && pbuf->addr ) {
+-				ehca_gen_err("pbuf->addr=%llx pbuf->size=%llx "
+-					     "next_hwpage=%llx", pbuf->addr,
+-					     pbuf->size, pginfo->next_hwpage);
+-				return -EFAULT;
+-			}
+-			(pginfo->hwpage_cnt)++;
+-			(pginfo->next_hwpage)++;
+-			if (PAGE_SIZE >= pginfo->hwpage_size) {
+-				if (pginfo->next_hwpage %
+-				    (PAGE_SIZE / pginfo->hwpage_size) == 0)
+-					(pginfo->kpage_cnt)++;
+-			} else
+-				pginfo->kpage_cnt += pginfo->hwpage_size /
+-					PAGE_SIZE;
+-			kpage++;
+-			i++;
+-			if (i >= number) break;
++	num_hw  = NUM_CHUNKS((addr % pginfo->hwpage_size) + size,
++				pginfo->hwpage_size);
++	offs_hw = (addr & ~(pginfo->hwpage_size - 1)) / pginfo->hwpage_size;
++
++	while (pginfo->next_hwpage < offs_hw + num_hw) {
++		/* sanity check */
++		if ((pginfo->kpage_cnt >= pginfo->num_kpages) ||
++		    (pginfo->hwpage_cnt >= pginfo->num_hwpages)) {
++			ehca_gen_err("kpage_cnt >= num_kpages, "
++				     "kpage_cnt=%llx num_kpages=%llx "
++				     "hwpage_cnt=%llx "
++				     "num_hwpages=%llx i=%x",
++				     pginfo->kpage_cnt,
++				     pginfo->num_kpages,
++				     pginfo->hwpage_cnt,
++				     pginfo->num_hwpages, i);
++			return -EFAULT;
+ 		}
+-		if (pginfo->next_hwpage >= offs_hw + num_hw) {
+-			(pginfo->u.phy.next_buf)++;
+-			pginfo->next_hwpage = 0;
++		*kpage = (addr & ~(pginfo->hwpage_size - 1)) +
++			 (pginfo->next_hwpage * pginfo->hwpage_size);
++		if ( !(*kpage) && addr ) {
++			ehca_gen_err("addr=%llx size=%llx "
++				     "next_hwpage=%llx", addr,
++				     size, pginfo->next_hwpage);
++			return -EFAULT;
+ 		}
++		(pginfo->hwpage_cnt)++;
++		(pginfo->next_hwpage)++;
++		if (PAGE_SIZE >= pginfo->hwpage_size) {
++			if (pginfo->next_hwpage %
++			    (PAGE_SIZE / pginfo->hwpage_size) == 0)
++				(pginfo->kpage_cnt)++;
++		} else
++			pginfo->kpage_cnt += pginfo->hwpage_size /
++				PAGE_SIZE;
++		kpage++;
++		i++;
++		if (i >= number) break;
++	}
++	if (pginfo->next_hwpage >= offs_hw + num_hw) {
++		pginfo->next_hwpage = 0;
+ 	}
++
+ 	return ret;
+ }
+ 
 -- 
 1.9.1
 
