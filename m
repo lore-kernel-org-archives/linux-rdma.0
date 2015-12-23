@@ -1,38 +1,45 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 00/10] iSER support for remote invalidate
-Date: Wed, 23 Dec 2015 22:53:40 +0200
-Message-ID: <CAJ3xEMjDpmQgt1RLnRuOP6b2EW=WQrER5d7A2NfQ6t5y4KCgMw@mail.gmail.com>
-References: <1449663128-368-1-git-send-email-sagig@mellanox.com>
-	<1450671628.25674.27.camel@haakon3.risingtidesystems.com>
-	<CAJ3xEMi58s6bWv7cyb+3v3H7e=4t6hRaOX0TvTyXRXLiUjxq+g@mail.gmail.com>
-	<5677FEBB.7080904@dev.mellanox.co.il>
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH] staging: rdma: hfi1: diag: constify hfi1_filter_array
+ structure
+Date: Wed, 23 Dec 2015 21:42:57 +0100
+Message-ID: <1450903377-27803-1-git-send-email-Julia.Lawall@lip6.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5677FEBB.7080904-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Mike Marciniszyn <infinipath@intel.com>
+Cc: devel@driverdev.osuosl.org, linux-rdma@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 21, 2015 at 3:29 PM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+The hfi1_filter_array structure is never modified, so declare it as const.
 
->> Sagi, are you going to spin an increment in the initiator version?
+Done with the help of Coccinelle.
 
-> I don't know if it's worth a driver version update?
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-yes, I think it does. Finally we're getting real close to the visions
-of the spec authors...  do you have some performance data showing the
-gain of remote invalidation on certain HWs and IO benchmarks patterns.
-Did we make sure to interoperate between patched initiator to
-unpatched LIO or other targets which don't have this now (SCST, TGT)
-and the other way around (unpatched initiator, patched LIO)?
+---
+ drivers/staging/rdma/hfi1/diag.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> In case we do increment, I can send an incremental patch instead of
-> re-spinning the entire series.
-
-lets do that.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/staging/rdma/hfi1/diag.c b/drivers/staging/rdma/hfi1/diag.c
+index 0c88317..e41159f 100644
+--- a/drivers/staging/rdma/hfi1/diag.c
++++ b/drivers/staging/rdma/hfi1/diag.c
+@@ -257,7 +257,7 @@ static int hfi1_filter_ib_service_level(void *ibhdr, void *packet_data,
+ static int hfi1_filter_ib_pkey(void *ibhdr, void *packet_data, void *value);
+ static int hfi1_filter_direction(void *ibhdr, void *packet_data, void *value);
+ 
+-static struct hfi1_filter_array hfi1_filters[] = {
++static const struct hfi1_filter_array hfi1_filters[] = {
+ 	{ hfi1_filter_lid },
+ 	{ hfi1_filter_dlid },
+ 	{ hfi1_filter_mad_mgmt_class },
