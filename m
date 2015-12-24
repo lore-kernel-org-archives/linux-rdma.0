@@ -1,47 +1,46 @@
-From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: [PATCH 1/4] RDMA/ocrdma: Fix vlan-id assignment in qp parameters
-Date: Thu, 24 Dec 2015 13:14:05 -0500
-Message-ID: <1450980848-18945-2-git-send-email-devesh.sharma@avagotech.com>
-References: <1450980848-18945-1-git-send-email-devesh.sharma@avagotech.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 3/3] Display extended counter set if available
+Date: Thu, 24 Dec 2015 13:45:03 -0500
+Message-ID: <20151224184503.GC22759@phlsvsds.ph.intel.com>
+References: <20151221142026.238104419@linux.com> <20151221142039.386488696@linux.com> <CAKHjkjkwneRd9kTfHbQHLYMexhtP4ibE0sdHrUeYWmV=3fvYLw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1450980848-18945-1-git-send-email-devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAKHjkjkwneRd9kTfHbQHLYMexhtP4ibE0sdHrUeYWmV=3fvYLw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: eran ben elisha <eranlinuxmellanox-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-vlan-id is wrongly getting as 0 when PFC is enabled.
-Set vlan-id configured by user in QP parameters.
-In case vlan interface is not used, flash a warning to
-user to configure vlan and assign vlan-id as 0 in qp params.
+On Thu, Dec 24, 2015 at 06:22:14PM +0200, eran ben elisha wrote:
+> On Mon, Dec 21, 2015 at 4:20 PM, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org> wrote:
 
-Fixes: dbf727de7440 ('IB/core: Use GID table in AH creation and dmac resolution')
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
----
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+[snip]
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index 30f67be..4fc2bb4 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -2515,9 +2515,10 @@ static int ocrdma_set_av_params(struct ocrdma_qp *qp,
- 	ocrdma_cpu_to_le32(&cmd->params.sgid[0], sizeof(cmd->params.sgid));
- 	cmd->params.vlan_dmac_b4_to_b5 = mac_addr[4] | (mac_addr[5] << 8);
- 
--	if (vlan_id < 0x1000) {
--		if (dev->pfc_state) {
--			vlan_id = 0;
-+	if (vlan_id == 0xFFFF)
-+		vlan_id = 0;
-+	if (vlan_id || dev->pfc_state) {
-+		if (!vlan_id) {
- 			pr_err("ocrdma%d:Using VLAN with PFC is recommended\n",
- 			       dev->id);
- 			pr_err("ocrdma%d:Using VLAN 0 for this connection\n",
--- 
-1.8.3.1
+> >
+> > +/*
+> > + * Figure out which counter table to use depending on
+> > + * the device capabilities.
+> > + */
+> > +static struct attribute_group *get_counter_table(struct ib_device *dev)
+> > +{
+> > +       struct ib_class_port_info cpi;
+> > +
+> > +       if (get_perf_mad(dev, 0, IB_PMA_CLASS_PORT_INFO,
+> 
+> Why 0, need to pass port num.
+> See proposal Matan and myself sent.
+> 
+
+Passing a port num to a ClassPortInfo query makes no sense?
+
+Your proposal sets a field which is wrong (I think it sets part of TrapGID if
+my math is correct) in the ClassPortInfo query as per the spec.
+
+I think the fix needs to be somewhere else.
+
+Ira
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
