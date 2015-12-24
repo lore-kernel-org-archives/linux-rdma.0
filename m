@@ -1,7 +1,7 @@
 From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next V2 24/32] IB/rxe: QP response handling
-Date: Thu, 24 Dec 2015 11:18:10 +0200
-Message-ID: <1450948698-13383-25-git-send-email-kamalh@mellanox.com>
+Subject: [PATCH rdma-next V2 28/32] IB/rxe: Interface to netdev stack
+Date: Thu, 24 Dec 2015 11:18:14 +0200
+Message-ID: <1450948698-13383-29-git-send-email-kamalh@mellanox.com>
 References: <1450948698-13383-1-git-send-email-kamalh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450948698-13383-1-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,21 +10,23 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-QP response logic.
+Linux netdev related code
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/staging/rdma/rxe/rxe_resp.c | 1368 +++++++++++++++++++++++++++++++++++
- 1 file changed, 1368 insertions(+)
- create mode 100644 drivers/staging/rdma/rxe/rxe_resp.c
+ drivers/staging/rdma/rxe/rxe_net.c | 729 +++++++++++++++++++++++++++++++++++++
+ drivers/staging/rdma/rxe/rxe_net.h |  78 ++++
+ 2 files changed, 807 insertions(+)
+ create mode 100644 drivers/staging/rdma/rxe/rxe_net.c
+ create mode 100644 drivers/staging/rdma/rxe/rxe_net.h
 
-diff --git a/drivers/staging/rdma/rxe/rxe_resp.c b/drivers/staging/rdma/rxe/rxe_resp.c
+diff --git a/drivers/staging/rdma/rxe/rxe_net.c b/drivers/staging/rdma/rxe/rxe_net.c
 new file mode 100644
-index 0000000..78304c6
+index 0000000..14789a9c
 --- /dev/null
-+++ b/drivers/staging/rdma/rxe/rxe_resp.c
-@@ -0,0 +1,1368 @@
++++ b/drivers/staging/rdma/rxe/rxe_net.c
+@@ -0,0 +1,729 @@
 +/*
 + * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
@@ -59,1340 +61,785 @@ index 0000000..78304c6
 + */
 +
 +#include <linux/skbuff.h>
++#include <linux/if_arp.h>
++#include <linux/netdevice.h>
++#include <linux/if.h>
++#include <linux/if_vlan.h>
++#include <net/udp_tunnel.h>
++#include <net/sch_generic.h>
++#include <linux/netfilter.h>
++#include <rdma/ib_addr.h>
 +
 +#include "rxe.h"
++#include "rxe_net.h"
 +#include "rxe_loc.h"
-+#include "rxe_queue.h"
 +
-+enum resp_states {
-+	RESPST_NONE,
-+	RESPST_GET_REQ,
-+	RESPST_CHK_PSN,
-+	RESPST_CHK_OP_SEQ,
-+	RESPST_CHK_OP_VALID,
-+	RESPST_CHK_RESOURCE,
-+	RESPST_CHK_LENGTH,
-+	RESPST_CHK_RKEY,
-+	RESPST_EXECUTE,
-+	RESPST_READ_REPLY,
-+	RESPST_COMPLETE,
-+	RESPST_ACKNOWLEDGE,
-+	RESPST_CLEANUP,
-+	RESPST_DUPLICATE_REQUEST,
-+	RESPST_ERR_MALFORMED_WQE,
-+	RESPST_ERR_UNSUPPORTED_OPCODE,
-+	RESPST_ERR_MISALIGNED_ATOMIC,
-+	RESPST_ERR_PSN_OUT_OF_SEQ,
-+	RESPST_ERR_MISSING_OPCODE_FIRST,
-+	RESPST_ERR_MISSING_OPCODE_LAST_C,
-+	RESPST_ERR_MISSING_OPCODE_LAST_D1E,
-+	RESPST_ERR_TOO_MANY_RDMA_ATM_REQ,
-+	RESPST_ERR_RNR,
-+	RESPST_ERR_RKEY_VIOLATION,
-+	RESPST_ERR_LENGTH,
-+	RESPST_ERR_CQ_OVERFLOW,
-+	RESPST_ERROR,
-+	RESPST_RESET,
-+	RESPST_DONE,
-+	RESPST_EXIT,
-+};
++/*
++ * note: this table is a replacement for a protocol specific pointer
++ * in struct net_device which exists for other ethertypes
++ * this allows us to not have to patch that data structure
++ * eventually we want to get our own when we're famous
++ */
++struct rxe_net_info net_info[RXE_MAX_IF_INDEX];
++spinlock_t net_info_lock; /* spinlock for net_info array */
++struct rxe_recv_sockets recv_sockets;
 +
-+static char *resp_state_name[] = {
-+	[RESPST_NONE]				= "NONE",
-+	[RESPST_GET_REQ]			= "GET_REQ",
-+	[RESPST_CHK_PSN]			= "CHK_PSN",
-+	[RESPST_CHK_OP_SEQ]			= "CHK_OP_SEQ",
-+	[RESPST_CHK_OP_VALID]			= "CHK_OP_VALID",
-+	[RESPST_CHK_RESOURCE]			= "CHK_RESOURCE",
-+	[RESPST_CHK_LENGTH]			= "CHK_LENGTH",
-+	[RESPST_CHK_RKEY]			= "CHK_RKEY",
-+	[RESPST_EXECUTE]			= "EXECUTE",
-+	[RESPST_READ_REPLY]			= "READ_REPLY",
-+	[RESPST_COMPLETE]			= "COMPLETE",
-+	[RESPST_ACKNOWLEDGE]			= "ACKNOWLEDGE",
-+	[RESPST_CLEANUP]			= "CLEANUP",
-+	[RESPST_DUPLICATE_REQUEST]		= "DUPLICATE_REQUEST",
-+	[RESPST_ERR_MALFORMED_WQE]		= "ERR_MALFORMED_WQE",
-+	[RESPST_ERR_UNSUPPORTED_OPCODE]		= "ERR_UNSUPPORTED_OPCODE",
-+	[RESPST_ERR_MISALIGNED_ATOMIC]		= "ERR_MISALIGNED_ATOMIC",
-+	[RESPST_ERR_PSN_OUT_OF_SEQ]		= "ERR_PSN_OUT_OF_SEQ",
-+	[RESPST_ERR_MISSING_OPCODE_FIRST]	= "ERR_MISSING_OPCODE_FIRST",
-+	[RESPST_ERR_MISSING_OPCODE_LAST_C]	= "ERR_MISSING_OPCODE_LAST_C",
-+	[RESPST_ERR_MISSING_OPCODE_LAST_D1E]	= "ERR_MISSING_OPCODE_LAST_D1E",
-+	[RESPST_ERR_TOO_MANY_RDMA_ATM_REQ]	= "ERR_TOO_MANY_RDMA_ATM_REQ",
-+	[RESPST_ERR_RNR]			= "ERR_RNR",
-+	[RESPST_ERR_RKEY_VIOLATION]		= "ERR_RKEY_VIOLATION",
-+	[RESPST_ERR_LENGTH]			= "ERR_LENGTH",
-+	[RESPST_ERR_CQ_OVERFLOW]		= "ERR_CQ_OVERFLOW",
-+	[RESPST_ERROR]				= "ERROR",
-+	[RESPST_RESET]				= "RESET",
-+	[RESPST_DONE]				= "DONE",
-+	[RESPST_EXIT]				= "EXIT",
-+};
-+
-+/* rxe_recv calls here to add a request packet to the input queue */
-+void rxe_resp_queue_pkt(struct rxe_dev *rxe, struct rxe_qp *qp,
-+			struct sk_buff *skb)
++static __be64 rxe_mac_to_eui64(struct net_device *ndev)
 +{
-+	int must_sched;
++	unsigned char *mac_addr = ndev->dev_addr;
++	__be64 eui64;
++	unsigned char *dst = (unsigned char *)&eui64;
++
++	dst[0] = mac_addr[0] ^ 2;
++	dst[1] = mac_addr[1];
++	dst[2] = mac_addr[2];
++	dst[3] = 0xff;
++	dst[4] = 0xfe;
++	dst[5] = mac_addr[3];
++	dst[6] = mac_addr[4];
++	dst[7] = mac_addr[5];
++
++	return eui64;
++}
++
++static __be64 node_guid(struct rxe_dev *rxe)
++{
++	return rxe_mac_to_eui64(rxe->ndev);
++}
++
++static __be64 port_guid(struct rxe_dev *rxe, unsigned int port_num)
++{
++	return rxe_mac_to_eui64(rxe->ndev);
++}
++
++static struct device *dma_device(struct rxe_dev *rxe)
++{
++	struct net_device *ndev;
++
++	ndev = rxe->ndev;
++
++	if (ndev->priv_flags & IFF_802_1Q_VLAN)
++		ndev = vlan_dev_real_dev(ndev);
++
++	return ndev->dev.parent;
++}
++
++static int mcast_add(struct rxe_dev *rxe, union ib_gid *mgid)
++{
++	int err;
++	unsigned char ll_addr[ETH_ALEN];
++
++	ipv6_eth_mc_map((struct in6_addr *)mgid->raw, ll_addr);
++	err = dev_mc_add(rxe->ndev, ll_addr);
++
++	return err;
++}
++
++static int mcast_delete(struct rxe_dev *rxe, union ib_gid *mgid)
++{
++	int err;
++	unsigned char ll_addr[ETH_ALEN];
++
++	ipv6_eth_mc_map((struct in6_addr *)mgid->raw, ll_addr);
++	err = dev_mc_del(rxe->ndev, ll_addr);
++
++	return err;
++}
++
++static struct rtable *rxe_find_route4(struct in_addr *saddr,
++				      struct in_addr *daddr)
++{
++	struct rtable *rt;
++	struct flowi4 fl = { { 0 } };
++
++	memset(&fl, 0, sizeof(fl));
++	memcpy(&fl.saddr, saddr, sizeof(*saddr));
++	memcpy(&fl.daddr, daddr, sizeof(*daddr));
++	fl.flowi4_proto = IPPROTO_UDP;
++
++	rt = ip_route_output_key(&init_net, &fl);
++	if (IS_ERR(rt)) {
++		pr_err("no route to %pI4\n", &daddr->s_addr);
++		return NULL;
++	}
++
++	return rt;
++}
++
++static struct dst_entry *rxe_find_route6(struct net_device *ndev,
++					 struct in6_addr *saddr,
++					 struct in6_addr *daddr)
++{
++	struct dst_entry *ndst;
++	struct flowi6 fl6 = { { 0 } };
++
++	memset(&fl6, 0, sizeof(fl6));
++	fl6.flowi6_oif = ndev->ifindex;
++	memcpy(&fl6.saddr, saddr, sizeof(*saddr));
++	memcpy(&fl6.daddr, daddr, sizeof(*daddr));
++	fl6.flowi6_proto = IPPROTO_UDP;
++
++	if (unlikely(ipv6_stub->ipv6_dst_lookup(sock_net(recv_sockets.sk6->sk),
++					recv_sockets.sk6->sk, &ndst, &fl6))) {
++		pr_err("no route to %pI6\n", daddr);
++		goto put;
++	}
++
++	if (unlikely(ndst->error)) {
++		pr_err("no route to %pI6\n", daddr);
++		goto put;
++	}
++
++	return ndst;
++put:
++	dst_release(ndst);
++	return NULL;
++}
++
++static int rxe_udp_encap_recv(struct sock *sk, struct sk_buff *skb)
++{
++	struct udphdr *udph;
++	struct net_device *ndev = skb->dev;
++	struct rxe_dev *rxe = net_to_rxe(ndev);
 +	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
 +
-+	skb_queue_tail(&qp->req_pkts, skb);
++	if (!rxe)
++		goto drop;
 +
-+	must_sched = (pkt->opcode == IB_OPCODE_RC_RDMA_READ_REQUEST) ||
-+			(skb_queue_len(&qp->req_pkts) > 1);
++	if (skb_linearize(skb)) {
++		pr_err("skb_linearize failed\n");
++		goto drop;
++	}
 +
-+	rxe_run_task(&qp->resp.task, must_sched);
++	udph = udp_hdr(skb);
++	pkt->rxe = rxe;
++	pkt->port_num = net_to_port(ndev);
++	pkt->hdr = (u8 *)(udph + 1);
++	pkt->mask = RXE_GRH_MASK;
++	pkt->paylen = be16_to_cpu(udph->len) - sizeof(*udph);
++
++	return rxe_rcv(skb);
++drop:
++	kfree_skb(skb);
++	return 0;
 +}
 +
-+static inline enum resp_states get_req(struct rxe_qp *qp,
-+				       struct rxe_pkt_info **pkt_p)
-+{
-+	struct sk_buff *skb;
-+
-+	if (qp->resp.state == QP_STATE_ERROR) {
-+		skb = skb_dequeue(&qp->req_pkts);
-+		if (skb) {
-+			/* drain request packet queue */
-+			rxe_drop_ref(qp);
-+			kfree_skb(skb);
-+			return RESPST_GET_REQ;
-+		}
-+
-+		/* go drain recv wr queue */
-+		return RESPST_CHK_RESOURCE;
-+	}
-+
-+	skb = skb_peek(&qp->req_pkts);
-+	if (!skb)
-+		return RESPST_EXIT;
-+
-+	*pkt_p = SKB_TO_PKT(skb);
-+
-+	return (qp->resp.res) ? RESPST_READ_REPLY : RESPST_CHK_PSN;
-+}
-+
-+static enum resp_states check_psn(struct rxe_qp *qp,
-+				  struct rxe_pkt_info *pkt)
-+{
-+	int diff = psn_compare(pkt->psn, qp->resp.psn);
-+
-+	switch (qp_type(qp)) {
-+	case IB_QPT_RC:
-+		if (diff > 0) {
-+			if (qp->resp.sent_psn_nak)
-+				return RESPST_CLEANUP;
-+
-+			qp->resp.sent_psn_nak = 1;
-+			return RESPST_ERR_PSN_OUT_OF_SEQ;
-+
-+		} else if (diff < 0) {
-+			return RESPST_DUPLICATE_REQUEST;
-+		}
-+
-+		if (qp->resp.sent_psn_nak)
-+			qp->resp.sent_psn_nak = 0;
-+
-+		break;
-+
-+	case IB_QPT_UC:
-+		if (qp->resp.drop_msg || diff != 0) {
-+			if (pkt->mask & RXE_START_MASK) {
-+				qp->resp.drop_msg = 0;
-+				return RESPST_CHK_OP_SEQ;
-+			}
-+
-+			qp->resp.drop_msg = 1;
-+			return RESPST_CLEANUP;
-+		}
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return RESPST_CHK_OP_SEQ;
-+}
-+
-+static enum resp_states check_op_seq(struct rxe_qp *qp,
-+				     struct rxe_pkt_info *pkt)
-+{
-+	switch (qp_type(qp)) {
-+	case IB_QPT_RC:
-+		switch (qp->resp.opcode) {
-+		case IB_OPCODE_RC_SEND_FIRST:
-+		case IB_OPCODE_RC_SEND_MIDDLE:
-+			switch (pkt->opcode) {
-+			case IB_OPCODE_RC_SEND_MIDDLE:
-+			case IB_OPCODE_RC_SEND_LAST:
-+			case IB_OPCODE_RC_SEND_LAST_WITH_IMMEDIATE:
-+			case IB_OPCODE_RC_SEND_LAST_INV:
-+				return RESPST_CHK_OP_VALID;
-+			default:
-+				return RESPST_ERR_MISSING_OPCODE_LAST_C;
-+			}
-+
-+		case IB_OPCODE_RC_RDMA_WRITE_FIRST:
-+		case IB_OPCODE_RC_RDMA_WRITE_MIDDLE:
-+			switch (pkt->opcode) {
-+			case IB_OPCODE_RC_RDMA_WRITE_MIDDLE:
-+			case IB_OPCODE_RC_RDMA_WRITE_LAST:
-+			case IB_OPCODE_RC_RDMA_WRITE_LAST_WITH_IMMEDIATE:
-+				return RESPST_CHK_OP_VALID;
-+			default:
-+				return RESPST_ERR_MISSING_OPCODE_LAST_C;
-+			}
-+
-+		default:
-+			switch (pkt->opcode) {
-+			case IB_OPCODE_RC_SEND_MIDDLE:
-+			case IB_OPCODE_RC_SEND_LAST:
-+			case IB_OPCODE_RC_SEND_LAST_WITH_IMMEDIATE:
-+			case IB_OPCODE_RC_SEND_LAST_INV:
-+			case IB_OPCODE_RC_RDMA_WRITE_MIDDLE:
-+			case IB_OPCODE_RC_RDMA_WRITE_LAST:
-+			case IB_OPCODE_RC_RDMA_WRITE_LAST_WITH_IMMEDIATE:
-+				return RESPST_ERR_MISSING_OPCODE_FIRST;
-+			default:
-+				return RESPST_CHK_OP_VALID;
-+			}
-+		}
-+		break;
-+
-+	case IB_QPT_UC:
-+		switch (qp->resp.opcode) {
-+		case IB_OPCODE_UC_SEND_FIRST:
-+		case IB_OPCODE_UC_SEND_MIDDLE:
-+			switch (pkt->opcode) {
-+			case IB_OPCODE_UC_SEND_MIDDLE:
-+			case IB_OPCODE_UC_SEND_LAST:
-+			case IB_OPCODE_UC_SEND_LAST_WITH_IMMEDIATE:
-+				return RESPST_CHK_OP_VALID;
-+			default:
-+				return RESPST_ERR_MISSING_OPCODE_LAST_D1E;
-+			}
-+
-+		case IB_OPCODE_UC_RDMA_WRITE_FIRST:
-+		case IB_OPCODE_UC_RDMA_WRITE_MIDDLE:
-+			switch (pkt->opcode) {
-+			case IB_OPCODE_UC_RDMA_WRITE_MIDDLE:
-+			case IB_OPCODE_UC_RDMA_WRITE_LAST:
-+			case IB_OPCODE_UC_RDMA_WRITE_LAST_WITH_IMMEDIATE:
-+				return RESPST_CHK_OP_VALID;
-+			default:
-+				return RESPST_ERR_MISSING_OPCODE_LAST_D1E;
-+			}
-+
-+		default:
-+			switch (pkt->opcode) {
-+			case IB_OPCODE_UC_SEND_MIDDLE:
-+			case IB_OPCODE_UC_SEND_LAST:
-+			case IB_OPCODE_UC_SEND_LAST_WITH_IMMEDIATE:
-+			case IB_OPCODE_UC_RDMA_WRITE_MIDDLE:
-+			case IB_OPCODE_UC_RDMA_WRITE_LAST:
-+			case IB_OPCODE_UC_RDMA_WRITE_LAST_WITH_IMMEDIATE:
-+				qp->resp.drop_msg = 1;
-+				return RESPST_CLEANUP;
-+			default:
-+				return RESPST_CHK_OP_VALID;
-+			}
-+		}
-+		break;
-+
-+	default:
-+		return RESPST_CHK_OP_VALID;
-+	}
-+}
-+
-+static enum resp_states check_op_valid(struct rxe_qp *qp,
-+				       struct rxe_pkt_info *pkt)
-+{
-+	switch (qp_type(qp)) {
-+	case IB_QPT_RC:
-+		if (((pkt->mask & RXE_READ_MASK) &&
-+		     !(qp->attr.qp_access_flags & IB_ACCESS_REMOTE_READ)) ||
-+		    ((pkt->mask & RXE_WRITE_MASK) &&
-+		     !(qp->attr.qp_access_flags & IB_ACCESS_REMOTE_WRITE)) ||
-+		    ((pkt->mask & RXE_ATOMIC_MASK) &&
-+		     !(qp->attr.qp_access_flags & IB_ACCESS_REMOTE_ATOMIC))) {
-+			return RESPST_ERR_UNSUPPORTED_OPCODE;
-+		}
-+
-+		if (!pkt->mask)
-+			return RESPST_ERR_UNSUPPORTED_OPCODE;
-+		break;
-+
-+	case IB_QPT_UC:
-+		if ((pkt->mask & RXE_WRITE_MASK) &&
-+		    !(qp->attr.qp_access_flags & IB_ACCESS_REMOTE_WRITE)) {
-+			qp->resp.drop_msg = 1;
-+			return RESPST_CLEANUP;
-+		}
-+
-+		if (!pkt->mask) {
-+			qp->resp.drop_msg = 1;
-+			return RESPST_CLEANUP;
-+		}
-+		break;
-+
-+	case IB_QPT_UD:
-+	case IB_QPT_SMI:
-+	case IB_QPT_GSI:
-+		if (!pkt->mask)
-+			return RESPST_CLEANUP;
-+		break;
-+
-+	default:
-+		WARN_ON(1);
-+		break;
-+	}
-+
-+	return RESPST_CHK_RESOURCE;
-+}
-+
-+static enum resp_states get_srq_wqe(struct rxe_qp *qp)
-+{
-+	struct rxe_srq *srq = qp->srq;
-+	struct rxe_queue *q = srq->rq.queue;
-+	struct rxe_recv_wqe *wqe;
-+	struct ib_event ev;
-+
-+	if (srq->error)
-+		return RESPST_ERR_RNR;
-+
-+	spin_lock_bh(&srq->rq.consumer_lock);
-+
-+	wqe = queue_head(q);
-+	if (!wqe) {
-+		spin_unlock_bh(&srq->rq.consumer_lock);
-+		return RESPST_ERR_RNR;
-+	}
-+
-+	/* note kernel and user space recv wqes have same size */
-+	memcpy(&qp->resp.srq_wqe, wqe, sizeof(qp->resp.srq_wqe));
-+
-+	qp->resp.wqe = &qp->resp.srq_wqe.wqe;
-+	advance_consumer(q);
-+
-+	if (srq->limit && srq->ibsrq.event_handler &&
-+	    (queue_count(q) < srq->limit)) {
-+		srq->limit = 0;
-+		goto event;
-+	}
-+
-+	spin_unlock_bh(&srq->rq.consumer_lock);
-+	return RESPST_CHK_LENGTH;
-+
-+event:
-+	spin_unlock_bh(&srq->rq.consumer_lock);
-+	ev.device = qp->ibqp.device;
-+	ev.element.srq = qp->ibqp.srq;
-+	ev.event = IB_EVENT_SRQ_LIMIT_REACHED;
-+	srq->ibsrq.event_handler(&ev, srq->ibsrq.srq_context);
-+	return RESPST_CHK_LENGTH;
-+}
-+
-+static enum resp_states check_resource(struct rxe_qp *qp,
-+				       struct rxe_pkt_info *pkt)
-+{
-+	struct rxe_srq *srq = qp->srq;
-+
-+	if (qp->resp.state == QP_STATE_ERROR) {
-+		if (qp->resp.wqe) {
-+			qp->resp.status = IB_WC_WR_FLUSH_ERR;
-+			return RESPST_COMPLETE;
-+		} else if (!srq) {
-+			qp->resp.wqe = queue_head(qp->rq.queue);
-+			if (qp->resp.wqe) {
-+				qp->resp.status = IB_WC_WR_FLUSH_ERR;
-+				return RESPST_COMPLETE;
-+			} else {
-+				return RESPST_EXIT;
-+			}
-+		} else {
-+			return RESPST_EXIT;
-+		}
-+	}
-+
-+	if (pkt->mask & RXE_READ_OR_ATOMIC) {
-+		/* it is the requesters job to not send
-+		   too many read/atomic ops, we just
-+		   recycle the responder resource queue */
-+		if (likely(qp->attr.max_rd_atomic > 0))
-+			return RESPST_CHK_LENGTH;
-+		else
-+			return RESPST_ERR_TOO_MANY_RDMA_ATM_REQ;
-+	}
-+
-+	if (pkt->mask & RXE_RWR_MASK) {
-+		if (srq)
-+			return get_srq_wqe(qp);
-+
-+		qp->resp.wqe = queue_head(qp->rq.queue);
-+		return (qp->resp.wqe) ? RESPST_CHK_LENGTH : RESPST_ERR_RNR;
-+	}
-+
-+	return RESPST_CHK_LENGTH;
-+}
-+
-+static enum resp_states check_length(struct rxe_qp *qp,
-+				     struct rxe_pkt_info *pkt)
-+{
-+	switch (qp_type(qp)) {
-+	case IB_QPT_RC:
-+		return RESPST_CHK_RKEY;
-+
-+	case IB_QPT_UC:
-+		return RESPST_CHK_RKEY;
-+
-+	default:
-+		return RESPST_CHK_RKEY;
-+	}
-+}
-+
-+static enum resp_states check_rkey(struct rxe_qp *qp,
-+				   struct rxe_pkt_info *pkt)
-+{
-+	struct rxe_mem *mem;
-+	u64 va;
-+	u32 rkey;
-+	u32 resid;
-+	u32 pktlen;
-+	int mtu = qp->mtu;
-+	enum resp_states state;
-+	int access;
-+
-+	if (pkt->mask & (RXE_READ_MASK | RXE_WRITE_MASK)) {
-+		if (pkt->mask & RXE_RETH_MASK) {
-+			qp->resp.va = reth_va(pkt);
-+			qp->resp.rkey = reth_rkey(pkt);
-+			qp->resp.resid = reth_len(pkt);
-+		}
-+		access = (pkt->mask & RXE_READ_MASK) ? IB_ACCESS_REMOTE_READ
-+						     : IB_ACCESS_REMOTE_WRITE;
-+	} else if (pkt->mask & RXE_ATOMIC_MASK) {
-+		qp->resp.va = atmeth_va(pkt);
-+		qp->resp.rkey = atmeth_rkey(pkt);
-+		qp->resp.resid = sizeof(u64);
-+		access = IB_ACCESS_REMOTE_ATOMIC;
-+	} else {
-+		return RESPST_EXECUTE;
-+	}
-+
-+	va	= qp->resp.va;
-+	rkey	= qp->resp.rkey;
-+	resid	= qp->resp.resid;
-+	pktlen	= payload_size(pkt);
-+
-+	mem = lookup_mem(qp->pd, access, rkey, lookup_remote);
-+	if (!mem) {
-+		state = RESPST_ERR_RKEY_VIOLATION;
-+		goto err1;
-+	}
-+
-+	if (mem_check_range(mem, va, resid)) {
-+		state = RESPST_ERR_RKEY_VIOLATION;
-+		goto err2;
-+	}
-+
-+	if (pkt->mask & RXE_WRITE_MASK)	 {
-+		if (resid > mtu) {
-+			if (pktlen != mtu || bth_pad(pkt)) {
-+				state = RESPST_ERR_LENGTH;
-+				goto err2;
-+			}
-+
-+			resid = mtu;
-+		} else {
-+			if (pktlen != resid) {
-+				state = RESPST_ERR_LENGTH;
-+				goto err2;
-+			}
-+			if ((bth_pad(pkt) != (0x3 & (-resid)))) {
-+				/* This case may not be exactly that
-+				 * but nothing else fits. */
-+				state = RESPST_ERR_LENGTH;
-+				goto err2;
-+			}
-+		}
-+	}
-+
-+	WARN_ON(qp->resp.mr);
-+
-+	qp->resp.mr = mem;
-+	return RESPST_EXECUTE;
-+
-+err2:
-+	rxe_drop_ref(mem);
-+err1:
-+	return state;
-+}
-+
-+static enum resp_states send_data_in(struct rxe_qp *qp, void *data_addr,
-+				     int data_len)
++static struct socket *rxe_setup_udp_tunnel(struct net *net, __be16 port,
++		bool ipv6)
 +{
 +	int err;
-+	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
++	struct socket *sock;
++	struct udp_port_cfg udp_cfg;
++	struct udp_tunnel_sock_cfg tnl_cfg;
 +
-+	err = copy_data(rxe, qp->pd, IB_ACCESS_LOCAL_WRITE, &qp->resp.wqe->dma,
-+			data_addr, data_len, to_mem_obj, NULL);
-+	if (unlikely(err))
-+		return (err == -ENOSPC) ? RESPST_ERR_LENGTH
-+					: RESPST_ERR_MALFORMED_WQE;
++	memset(&udp_cfg, 0, sizeof(udp_cfg));
 +
-+	return RESPST_NONE;
-+}
-+
-+static enum resp_states write_data_in(struct rxe_qp *qp,
-+				      struct rxe_pkt_info *pkt)
-+{
-+	enum resp_states rc = RESPST_NONE;
-+	int	err;
-+	int data_len = payload_size(pkt);
-+
-+	err = rxe_mem_copy(qp->resp.mr, qp->resp.va, payload_addr(pkt),
-+			   data_len, to_mem_obj, NULL);
-+	if (err) {
-+		rc = RESPST_ERR_RKEY_VIOLATION;
-+		goto out;
-+	}
-+
-+	qp->resp.va += data_len;
-+	qp->resp.resid -= data_len;
-+
-+out:
-+	return rc;
-+}
-+
-+/* Guarantee atomicity of atomic operations at the machine level. */
-+static DEFINE_SPINLOCK(atomic_ops_lock);
-+
-+static enum resp_states process_atomic(struct rxe_qp *qp,
-+				       struct rxe_pkt_info *pkt)
-+{
-+	u64 iova = atmeth_va(pkt);
-+	u64 *vaddr;
-+	enum resp_states ret;
-+	struct rxe_mem *mr = qp->resp.mr;
-+
-+	if (mr->state != RXE_MEM_STATE_VALID) {
-+		ret = RESPST_ERR_RKEY_VIOLATION;
-+		goto out;
-+	}
-+
-+	vaddr = iova_to_vaddr(mr, iova, sizeof(u64));
-+
-+	/* check vaddr is 8 bytes aligned. */
-+	if (!vaddr || (uintptr_t)vaddr & 7) {
-+		ret = RESPST_ERR_MISALIGNED_ATOMIC;
-+		goto out;
-+	}
-+
-+	spin_lock_bh(&atomic_ops_lock);
-+
-+	qp->resp.atomic_orig = *vaddr;
-+
-+	if (pkt->opcode == IB_OPCODE_RC_COMPARE_SWAP ||
-+	    pkt->opcode == IB_OPCODE_RD_COMPARE_SWAP) {
-+		if (*vaddr == atmeth_comp(pkt))
-+			*vaddr = atmeth_swap_add(pkt);
++	if (ipv6) {
++		udp_cfg.family = AF_INET6;
++		udp_cfg.ipv6_v6only = 1;
 +	} else {
-+		*vaddr += atmeth_swap_add(pkt);
++		udp_cfg.family = AF_INET;
 +	}
 +
-+	spin_unlock_bh(&atomic_ops_lock);
++	udp_cfg.local_udp_port = port;
 +
-+	ret = RESPST_NONE;
-+out:
-+	return ret;
++	/* Create UDP socket */
++	err = udp_sock_create(net, &udp_cfg, &sock);
++	if (err < 0) {
++		pr_err("failed to create udp socket. err = %d\n", err);
++		return ERR_PTR(err);
++	}
++
++	tnl_cfg.sk_user_data = NULL;
++	tnl_cfg.encap_type = 1;
++	tnl_cfg.encap_rcv = rxe_udp_encap_recv;
++	tnl_cfg.encap_destroy = NULL;
++
++	/* Setup UDP tunnel */
++	setup_udp_tunnel_sock(net, sock, &tnl_cfg);
++
++	return sock;
 +}
 +
-+static struct sk_buff *prepare_ack_packet(struct rxe_qp *qp,
-+					  struct rxe_pkt_info *pkt,
-+					  struct rxe_pkt_info *ack,
-+					  int opcode,
-+					  int payload,
-+					  u32 psn,
-+					  u8 syndrome)
++static void rxe_release_udp_tunnel(struct socket *sk)
 +{
-+	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
-+	struct sk_buff *skb;
-+	u32 crc = 0;
-+	u32 *p;
-+	int paylen;
-+	int pad;
++	udp_tunnel_sock_release(sk);
++}
++
++static struct rxe_av *get_av(struct rxe_pkt_info *pkt)
++{
++	if (qp_type(pkt->qp) == IB_QPT_RC || qp_type(pkt->qp) == IB_QPT_UC)
++		return &pkt->qp->pri_av;
++
++	return &pkt->wqe->av;
++}
++
++static void prepare_udp_hdr(struct sk_buff *skb, __be16 src_port,
++			    __be16 dst_port)
++{
++	struct udphdr *udph;
++
++	__skb_push(skb, sizeof(*udph));
++	skb_reset_transport_header(skb);
++	udph = udp_hdr(skb);
++
++	udph->dest = dst_port;
++	udph->source = src_port;
++	udph->len = htons(skb->len);
++	udph->check = 0;
++}
++
++static void prepare_ipv4_hdr(struct rtable *rt, struct sk_buff *skb,
++			     __be32 src, __be32 dst, __u8 proto,
++			     __u8 tos, __u8 ttl, __be16 df, bool xnet)
++{
++	struct iphdr *iph;
++
++	skb_scrub_packet(skb, xnet);
++
++	skb_clear_hash(skb);
++	skb_dst_set(skb, &rt->dst);
++	memset(IPCB(skb), 0, sizeof(*IPCB(skb)));
++
++	skb_push(skb, sizeof(struct iphdr));
++	skb_reset_network_header(skb);
++
++	iph = ip_hdr(skb);
++
++	iph->version	=	IPVERSION;
++	iph->ihl	=	sizeof(struct iphdr) >> 2;
++	iph->frag_off	=	df;
++	iph->protocol	=	proto;
++	iph->tos	=	tos;
++	iph->daddr	=	dst;
++	iph->saddr	=	src;
++	iph->ttl	=	ttl;
++	__ip_select_ident(dev_net(rt->dst.dev), iph,
++			  skb_shinfo(skb)->gso_segs ?: 1);
++	iph->tot_len = htons(skb->len);
++	ip_send_check(iph);
++}
++
++static void prepare_ipv6_hdr(struct dst_entry *dst, struct sk_buff *skb,
++			     struct in6_addr *saddr, struct in6_addr *daddr,
++			     __u8 proto, __u8 prio, __u8 ttl)
++{
++	struct ipv6hdr *ip6h;
++
++	memset(&(IPCB(skb)->opt), 0, sizeof(IPCB(skb)->opt));
++	IPCB(skb)->flags &= ~(IPSKB_XFRM_TUNNEL_SIZE | IPSKB_XFRM_TRANSFORMED
++			    | IPSKB_REROUTED);
++	skb_dst_set(skb, dst);
++
++	__skb_push(skb, sizeof(*ip6h));
++	skb_reset_network_header(skb);
++	ip6h		  = ipv6_hdr(skb);
++	ip6_flow_hdr(ip6h, prio, htonl(0));
++	ip6h->payload_len = htons(skb->len);
++	ip6h->nexthdr     = proto;
++	ip6h->hop_limit   = ttl;
++	ip6h->daddr	  = *daddr;
++	ip6h->saddr	  = *saddr;
++	ip6h->payload_len = htons(skb->len - sizeof(*ip6h));
++}
++
++static int prepare4(struct sk_buff *skb, struct rxe_av *av)
++{
++	struct rtable *rt;
++	bool xnet = false;
++	__be16 df = htons(IP_DF);
++	struct in_addr *saddr = &av->sgid_addr._sockaddr_in.sin_addr;
++	struct in_addr *daddr = &av->dgid_addr._sockaddr_in.sin_addr;
++
++	rt = rxe_find_route4(saddr, daddr);
++	if (!rt) {
++		pr_err("Host not reachable\n");
++		return -EHOSTUNREACH;
++	}
++
++	prepare_udp_hdr(skb, htons(RXE_ROCE_V2_SPORT),
++			htons(ROCE_V2_UDP_DPORT));
++
++	prepare_ipv4_hdr(rt, skb, saddr->s_addr, daddr->s_addr, IPPROTO_UDP,
++			 av->grh.traffic_class, av->grh.hop_limit, df, xnet);
++	return 0;
++}
++
++static int prepare6(struct rxe_dev *rxe, struct sk_buff *skb, struct rxe_av *av)
++{
++	struct dst_entry *dst;
++	struct in6_addr *saddr = &av->sgid_addr._sockaddr_in6.sin6_addr;
++	struct in6_addr *daddr = &av->dgid_addr._sockaddr_in6.sin6_addr;
++
++	dst = rxe_find_route6(rxe->ndev, saddr, daddr);
++	if (!dst) {
++		pr_err("Host not reachable\n");
++		return -EHOSTUNREACH;
++	}
++
++	prepare_udp_hdr(skb, htons(RXE_ROCE_V2_SPORT),
++			htons(ROCE_V2_UDP_DPORT));
++
++	prepare_ipv6_hdr(dst, skb, saddr, daddr, IPPROTO_UDP,
++			 av->grh.traffic_class,
++			 av->grh.hop_limit);
++	return 0;
++}
++
++static int prepare(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
++		   struct sk_buff *skb, u32 *crc)
++{
++	int err = 0;
++	struct rxe_av *av = get_av(pkt);
++
++	if (av->network_type == RDMA_NETWORK_IPV4)
++		err = prepare4(skb, av);
++	else if (av->network_type == RDMA_NETWORK_IPV6)
++		err = prepare6(rxe, skb, av);
++
++	*crc = rxe_icrc_hdr(pkt, skb);
++
++	return err;
++}
++
++static void rxe_skb_tx_dtor(struct sk_buff *skb)
++{
++	struct sock *sk = skb->sk;
++	struct rxe_qp *qp = sk->sk_user_data;
++	int skb_out = atomic_dec_return(&qp->skb_out);
++
++	if (unlikely(qp->need_req_skb &&
++		     skb_out < RXE_INFLIGHT_SKBS_PER_QP_LOW))
++		rxe_run_task(&qp->req.task, 1);
++}
++
++static int send(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
++		struct sk_buff *skb)
++{
++	struct sk_buff *nskb;
++	struct rxe_av *av;
++	int sent_bytes;
 +	int err;
 +
-+	/*
-+	 * allocate packet
-+	 */
-+	pad = (-payload) & 0x3;
-+	paylen = rxe_opcode[opcode].length + payload + pad + RXE_ICRC_SIZE;
++	av = get_av(pkt);
 +
-+	skb = rxe->ifc_ops->init_packet(rxe, &qp->pri_av, paylen, ack);
-+	if (!skb)
-+		return NULL;
++	nskb = skb_clone(skb, GFP_ATOMIC);
++	if (!nskb)
++		return -ENOMEM;
 +
-+	ack->qp = qp;
-+	ack->opcode = opcode;
-+	ack->mask |= rxe_opcode[opcode].mask;
-+	ack->offset = pkt->offset;
-+	ack->paylen = paylen;
++	nskb->destructor = rxe_skb_tx_dtor;
++	nskb->sk = pkt->qp->sk->sk;
 +
-+	/* fill in bth using the request packet headers */
-+	memcpy(ack->hdr, pkt->hdr, pkt->offset + RXE_BTH_BYTES);
-+
-+	bth_set_opcode(ack, opcode);
-+	bth_set_qpn(ack, qp->attr.dest_qp_num);
-+	bth_set_pad(ack, pad);
-+	bth_set_se(ack, 0);
-+	bth_set_psn(ack, psn);
-+	bth_set_ack(ack, 0);
-+	ack->psn = psn;
-+
-+	if (ack->mask & RXE_AETH_MASK) {
-+		aeth_set_syn(ack, syndrome);
-+		aeth_set_msn(ack, qp->resp.msn);
++	sent_bytes = nskb->len;
++	if (av->network_type == RDMA_NETWORK_IPV4) {
++		err = ip_local_out(dev_net(skb_dst(skb)->dev), nskb->sk, nskb);
++	} else if (av->network_type == RDMA_NETWORK_IPV6) {
++		err = ip6_local_out(dev_net(skb_dst(skb)->dev), nskb->sk, nskb);
++	} else {
++		pr_err("Unknown layer 3 protocol: %d\n", av->network_type);
++		kfree_skb(nskb);
++		return -EINVAL;
 +	}
 +
-+	if (ack->mask & RXE_ATMACK_MASK)
-+		atmack_set_orig(ack, qp->resp.atomic_orig);
-+
-+	err = rxe->ifc_ops->prepare(rxe, ack, skb, &crc);
-+	if (err) {
-+		kfree_skb(skb);
-+		return NULL;
++	if (unlikely(net_xmit_eval(err))) {
++		pr_debug("error sending packet: %d\n", err);
++		return -EAGAIN;
 +	}
 +
-+	p = payload_addr(ack) + payload;
-+	*p = ~crc;
++	kfree_skb(skb);
++
++	return 0;
++}
++
++static int loopback(struct sk_buff *skb)
++{
++	return rxe_rcv(skb);
++}
++
++static inline int addr_same(struct rxe_dev *rxe, struct rxe_av *av)
++{
++	int port_num = 1;
++
++	return rxe->port[port_num - 1].port_guid
++			== av->grh.dgid.global.interface_id;
++}
++
++static struct sk_buff *init_packet(struct rxe_dev *rxe, struct rxe_av *av,
++				   int paylen, struct rxe_pkt_info *pkt)
++{
++	unsigned int hdr_len;
++	struct sk_buff *skb;
++
++	if (av->network_type == RDMA_NETWORK_IPV4)
++		hdr_len = ETH_HLEN + sizeof(struct udphdr) +
++			sizeof(struct iphdr);
++	else
++		hdr_len = ETH_HLEN + sizeof(struct udphdr) +
++			sizeof(struct ipv6hdr);
++
++	skb = alloc_skb(paylen + hdr_len + LL_RESERVED_SPACE(rxe->ndev),
++			GFP_ATOMIC);
++	if (unlikely(!skb))
++		return NULL;
++
++	skb_reserve(skb, hdr_len + LL_RESERVED_SPACE(rxe->ndev));
++
++	skb->dev	= rxe->ndev;
++	if (av->network_type == RDMA_NETWORK_IPV4)
++		skb->protocol = htons(ETH_P_IP);
++	else
++		skb->protocol = htons(ETH_P_IPV6);
++
++	pkt->rxe	= rxe;
++	pkt->port_num	= 1;
++	pkt->hdr	= skb_put(skb, paylen);
++	pkt->mask	= RXE_GRH_MASK;
++
++	if (addr_same(rxe, av))
++		pkt->mask |= RXE_LOOPBACK_MASK;
 +
 +	return skb;
 +}
 +
-+/* RDMA read response. If res is not NULL, then we have a current RDMA request
-+ * being processed or replayed.
++/*
++ * this is required by rxe_cfg to match rxe devices in
++ * /sys/class/infiniband up with their underlying ethernet devices
 + */
-+static enum resp_states read_reply(struct rxe_qp *qp,
-+				   struct rxe_pkt_info *req_pkt)
++static char *parent_name(struct rxe_dev *rxe, unsigned int port_num)
 +{
-+	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
-+	struct rxe_pkt_info ack_pkt;
-+	struct sk_buff *skb;
-+	int mtu = qp->mtu;
-+	enum resp_states state;
-+	int payload;
-+	int opcode;
++	return rxe->ndev->name;
++}
++
++static enum rdma_link_layer link_layer(struct rxe_dev *rxe,
++				       unsigned int port_num)
++{
++	return IB_LINK_LAYER_ETHERNET;
++}
++
++static struct rxe_ifc_ops ifc_ops = {
++	.node_guid	= node_guid,
++	.port_guid	= port_guid,
++	.dma_device	= dma_device,
++	.mcast_add	= mcast_add,
++	.mcast_delete	= mcast_delete,
++	.prepare	= prepare,
++	.send		= send,
++	.loopback	= loopback,
++	.init_packet	= init_packet,
++	.parent_name	= parent_name,
++	.link_layer	= link_layer,
++};
++
++/* Caller must hold net_info_lock */
++int rxe_net_add(struct net_device *ndev)
++{
 +	int err;
-+	struct resp_res *res = qp->resp.res;
++	struct rxe_dev *rxe;
++	unsigned port_num;
 +
-+	if (!res) {
-+		/* This is the first time we process that request. Get a
-+		 * resource
-+		 */
-+		res = &qp->resp.resources[qp->resp.res_head];
-+
-+		free_rd_atomic_resource(qp, res);
-+		rxe_advance_resp_resource(qp);
-+
-+		res->type		= RXE_READ_MASK;
-+
-+		res->read.va		= qp->resp.va;
-+		res->read.va_org	= qp->resp.va;
-+
-+		res->first_psn		= req_pkt->psn;
-+		res->last_psn		= req_pkt->psn +
-+					  (reth_len(req_pkt) + mtu - 1) /
-+					  mtu - 1;
-+		res->cur_psn		= req_pkt->psn;
-+
-+		res->read.resid		= qp->resp.resid;
-+		res->read.length	= qp->resp.resid;
-+		res->read.rkey		= qp->resp.rkey;
-+
-+		/* note res inherits the reference to mr from qp */
-+		res->read.mr		= qp->resp.mr;
-+		qp->resp.mr		= NULL;
-+
-+		qp->resp.res		= res;
-+		res->state		= rdatm_res_state_new;
-+	}
-+
-+	if (res->state == rdatm_res_state_new) {
-+		if (res->read.resid <= mtu)
-+			opcode = IB_OPCODE_RC_RDMA_READ_RESPONSE_ONLY;
-+		else
-+			opcode = IB_OPCODE_RC_RDMA_READ_RESPONSE_FIRST;
-+	} else {
-+		if (res->read.resid > mtu)
-+			opcode = IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE;
-+		else
-+			opcode = IB_OPCODE_RC_RDMA_READ_RESPONSE_LAST;
-+	}
-+
-+	res->state = rdatm_res_state_next;
-+
-+	payload = min_t(int, res->read.resid, mtu);
-+
-+	skb = prepare_ack_packet(qp, req_pkt, &ack_pkt, opcode, payload,
-+				 res->cur_psn, AETH_ACK_UNLIMITED);
-+	if (!skb)
-+		return RESPST_ERR_RNR;
-+
-+	err = rxe_mem_copy(res->read.mr, res->read.va, payload_addr(&ack_pkt),
-+			   payload, from_mem_obj, NULL);
-+	if (err)
-+		pr_err("Failed copying memory\n");
-+
-+	err = rxe_xmit_packet(rxe, qp, &ack_pkt, skb);
-+	if (err) {
-+		pr_err("Failed sending RDMA reply.\n");
-+		kfree_skb(skb);
-+		return RESPST_ERR_RNR;
-+	}
-+
-+	res->read.va += payload;
-+	res->read.resid -= payload;
-+	res->cur_psn = (res->cur_psn + 1) & BTH_PSN_MASK;
-+
-+	if (res->read.resid > 0) {
-+		state = RESPST_DONE;
-+	} else {
-+		qp->resp.res = NULL;
-+		qp->resp.opcode = -1;
-+		qp->resp.psn = res->cur_psn;
-+		state = RESPST_CLEANUP;
-+	}
-+
-+	return state;
-+}
-+
-+/* Executes a new request. A retried request never reach that function (send
-+ * and writes are discarded, and reads and atomics are retried elsewhere.
-+ */
-+static enum resp_states execute(struct rxe_qp *qp, struct rxe_pkt_info *pkt)
-+{
-+	enum resp_states err;
-+
-+	if (pkt->mask & RXE_SEND_MASK) {
-+		if (qp_type(qp) == IB_QPT_UD ||
-+		    qp_type(qp) == IB_QPT_SMI ||
-+		    qp_type(qp) == IB_QPT_GSI) {
-+			struct ib_grh grh;
-+			struct sk_buff *skb = PKT_TO_SKB(pkt);
-+
-+			memset(&grh, 0, sizeof(struct ib_grh));
-+			if (skb->protocol == htons(ETH_P_IP)) {
-+				__u8 tos = ip_hdr(skb)->tos;
-+				struct in6_addr *s_addr =
-+					(struct in6_addr *)&grh.sgid;
-+				struct in6_addr *d_addr =
-+					(struct in6_addr *)&grh.dgid;
-+
-+				grh.version_tclass_flow =
-+					cpu_to_be32((IPVERSION << 28) |
-+						    (tos << 24));
-+				grh.paylen = ip_hdr(skb)->tot_len;
-+				grh.hop_limit = ip_hdr(skb)->ttl;
-+				grh.next_hdr = ip_hdr(skb)->protocol;
-+				ipv6_addr_set_v4mapped(ip_hdr(skb)->saddr,
-+						       s_addr);
-+				ipv6_addr_set_v4mapped(ip_hdr(skb)->daddr,
-+						       d_addr);
-+			} else if (skb->protocol == htons(ETH_P_IPV6)) {
-+				memcpy(&grh, ipv6_hdr(skb), sizeof(grh));
-+			}
-+
-+			err = send_data_in(qp, &grh, sizeof(grh));
-+			if (err)
-+				return err;
-+		}
-+		err = send_data_in(qp, payload_addr(pkt), payload_size(pkt));
-+		if (err)
-+			return err;
-+	} else if (pkt->mask & RXE_WRITE_MASK) {
-+		err = write_data_in(qp, pkt);
-+		if (err)
-+			return err;
-+	} else if (pkt->mask & RXE_READ_MASK) {
-+		/* For RDMA Read we can increment the msn now. See C9-148. */
-+		qp->resp.msn++;
-+		return RESPST_READ_REPLY;
-+	} else if (pkt->mask & RXE_ATOMIC_MASK) {
-+		err = process_atomic(qp, pkt);
-+		if (err)
-+			return err;
-+	} else
-+		/* Unreachable */
-+		WARN_ON(1);
-+
-+	/* We successfully processed this new request. */
-+	qp->resp.msn++;
-+
-+	/* next expected psn, read handles this separately */
-+	qp->resp.psn = (pkt->psn + 1) & BTH_PSN_MASK;
-+
-+	qp->resp.opcode = pkt->opcode;
-+	qp->resp.status = IB_WC_SUCCESS;
-+
-+	if (pkt->mask & RXE_COMP_MASK)
-+		return RESPST_COMPLETE;
-+	else if (qp_type(qp) == IB_QPT_RC)
-+		return RESPST_ACKNOWLEDGE;
-+	else
-+		return RESPST_CLEANUP;
-+}
-+
-+static enum resp_states do_complete(struct rxe_qp *qp,
-+				    struct rxe_pkt_info *pkt)
-+{
-+	struct rxe_cqe cqe;
-+	struct ib_wc *wc = &cqe.ibwc;
-+	struct ib_uverbs_wc *uwc = &cqe.uibwc;
-+	struct rxe_recv_wqe *wqe = qp->resp.wqe;
-+
-+	if (unlikely(!wqe))
-+		return RESPST_CLEANUP;
-+
-+	memset(&cqe, 0, sizeof(cqe));
-+
-+	wc->wr_id		= wqe->wr_id;
-+	wc->status		= qp->resp.status;
-+	wc->qp			= &qp->ibqp;
-+
-+	/* fields after status are not required for errors */
-+	if (wc->status == IB_WC_SUCCESS) {
-+		wc->opcode = (pkt->mask & RXE_IMMDT_MASK &&
-+				pkt->mask & RXE_READ_MASK) ?
-+					IB_WC_RECV_RDMA_WITH_IMM : IB_WC_RECV;
-+		wc->vendor_err = 0;
-+		wc->byte_len = wqe->dma.length - wqe->dma.resid;
-+
-+		/* fields after byte_len are offset between kernel and user
-+		 * space
-+		 */
-+		if (qp->rcq->is_user) {
-+			uwc->wc_flags		= IB_WC_GRH;
-+
-+			if (pkt->mask & RXE_IMMDT_MASK) {
-+				uwc->wc_flags |= IB_WC_WITH_IMM;
-+				uwc->ex.imm_data =
-+					(__u32 __force)immdt_imm(pkt);
-+			}
-+
-+			if (pkt->mask & RXE_IETH_MASK) {
-+				uwc->wc_flags |= IB_WC_WITH_INVALIDATE;
-+				uwc->ex.invalidate_rkey = ieth_rkey(pkt);
-+			}
-+
-+			uwc->qp_num		= qp->ibqp.qp_num;
-+
-+			if (pkt->mask & RXE_DETH_MASK)
-+				uwc->src_qp = deth_sqp(pkt);
-+
-+			uwc->port_num		= qp->attr.port_num;
-+		} else {
-+			wc->wc_flags		= IB_WC_GRH;
-+
-+			if (pkt->mask & RXE_IMMDT_MASK) {
-+				wc->wc_flags |= IB_WC_WITH_IMM;
-+				wc->ex.imm_data = immdt_imm(pkt);
-+			}
-+
-+			if (pkt->mask & RXE_IETH_MASK) {
-+				wc->wc_flags |= IB_WC_WITH_INVALIDATE;
-+				wc->ex.invalidate_rkey = ieth_rkey(pkt);
-+			}
-+
-+			wc->qp			= &qp->ibqp;
-+
-+			if (pkt->mask & RXE_DETH_MASK)
-+				wc->src_qp = deth_sqp(pkt);
-+
-+			wc->port_num		= qp->attr.port_num;
-+		}
-+	}
-+
-+	/* have copy for srq and reference for !srq */
-+	if (!qp->srq)
-+		advance_consumer(qp->rq.queue);
-+
-+	qp->resp.wqe = NULL;
-+
-+	if (rxe_cq_post(qp->rcq, &cqe, pkt ? bth_se(pkt) : 1))
-+		return RESPST_ERR_CQ_OVERFLOW;
-+
-+	if (qp->resp.state == QP_STATE_ERROR)
-+		return RESPST_CHK_RESOURCE;
-+
-+	if (!pkt)
-+		return RESPST_DONE;
-+	else if (qp_type(qp) == IB_QPT_RC)
-+		return RESPST_ACKNOWLEDGE;
-+	else
-+		return RESPST_CLEANUP;
-+}
-+
-+static int send_ack(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
-+		    u8 syndrome, u32 psn)
-+{
-+	int err = 0;
-+	struct rxe_pkt_info ack_pkt;
-+	struct sk_buff *skb;
-+	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
-+
-+	skb = prepare_ack_packet(qp, pkt, &ack_pkt, IB_OPCODE_RC_ACKNOWLEDGE,
-+				 0, psn, syndrome);
-+	if (!skb) {
++	rxe = (struct rxe_dev *)ib_alloc_device(sizeof(*rxe));
++	if (!rxe) {
 +		err = -ENOMEM;
 +		goto err1;
 +	}
 +
-+	err = rxe_xmit_packet(rxe, qp, &ack_pkt, skb);
-+	if (err) {
-+		pr_err("Failed sending ack. This flow is not handled - skb ignored\n");
-+		kfree_skb(skb);
-+	}
++	/* for now we always assign port = 1 */
++	port_num = 1;
 +
++	rxe->ifc_ops = &ifc_ops;
++
++	rxe->ndev = ndev;
++
++	err = rxe_add(rxe, ndev->mtu);
++	if (err)
++		goto err2;
++
++	pr_info("rxe: added %s to %s\n",
++		rxe->ib_dev.name, ndev->name);
++
++	net_info[ndev->ifindex].rxe = rxe;
++	net_info[ndev->ifindex].port = port_num;
++	net_info[ndev->ifindex].ndev = ndev;
++	return 0;
++
++err2:
++	ib_dealloc_device(&rxe->ib_dev);
 +err1:
 +	return err;
 +}
 +
-+static int send_atomic_ack(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
-+			   u8 syndrome)
++/* Caller must hold net_info_lock */
++void rxe_net_up(struct net_device *ndev)
++{
++	struct rxe_dev *rxe;
++	struct rxe_port *port;
++	u8 port_num;
++
++	if (ndev->ifindex >= RXE_MAX_IF_INDEX)
++		goto out;
++
++	net_info[ndev->ifindex].status = IB_PORT_ACTIVE;
++
++	rxe = net_to_rxe(ndev);
++	if (!rxe)
++		goto out;
++
++	port_num = net_to_port(ndev);
++	port = &rxe->port[port_num - 1];
++	port->attr.state = IB_PORT_ACTIVE;
++	port->attr.phys_state = IB_PHYS_STATE_LINK_UP;
++
++	pr_info("rxe: set %s active for %s\n",
++		rxe->ib_dev.name, ndev->name);
++out:
++	return;
++}
++
++/* Caller must hold net_info_lock */
++void rxe_net_down(struct net_device *ndev)
++{
++	struct rxe_dev *rxe;
++	struct rxe_port *port;
++	u8 port_num;
++
++	if (ndev->ifindex >= RXE_MAX_IF_INDEX)
++		goto out;
++
++	net_info[ndev->ifindex].status = IB_PORT_DOWN;
++
++	rxe = net_to_rxe(ndev);
++	if (!rxe)
++		goto out;
++
++	port_num = net_to_port(ndev);
++	port = &rxe->port[port_num - 1];
++	port->attr.state = IB_PORT_DOWN;
++	port->attr.phys_state = 3;
++
++	pr_info("rxe: set %s down for %s\n",
++		rxe->ib_dev.name, ndev->name);
++out:
++	return;
++}
++
++static int can_support_rxe(struct net_device *ndev)
 +{
 +	int rc = 0;
-+	struct rxe_pkt_info ack_pkt;
-+	struct sk_buff *skb;
-+	struct sk_buff *skb_copy;
-+	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
-+	struct resp_res *res;
 +
-+	skb = prepare_ack_packet(qp, pkt, &ack_pkt,
-+				 IB_OPCODE_RC_ATOMIC_ACKNOWLEDGE, 0, pkt->psn,
-+				 syndrome);
-+	if (!skb) {
-+		rc = -ENOMEM;
++	if (ndev->ifindex >= RXE_MAX_IF_INDEX) {
++		pr_debug("%s index %d: too large for rxe ndev table\n",
++			 ndev->name, ndev->ifindex);
 +		goto out;
 +	}
 +
-+	res = &qp->resp.resources[qp->resp.res_head];
-+	free_rd_atomic_resource(qp, res);
-+	rxe_advance_resp_resource(qp);
-+
-+	res->type = RXE_ATOMIC_MASK;
-+	res->atomic.skb = skb;
-+	res->first_psn = qp->resp.psn;
-+	res->last_psn = qp->resp.psn;
-+	res->cur_psn = qp->resp.psn;
-+
-+	skb_copy = skb_clone(skb, GFP_ATOMIC);
-+	if (skb_copy)
-+		rxe_add_ref(qp); /* for the new SKB */
-+	else
-+		pr_warn("Could not clone atomic response\n");
-+
-+	rc = rxe_xmit_packet(rxe, qp, &ack_pkt, skb_copy);
-+	if (rc) {
-+		pr_err("Failed sending atomic ack. This flow is not handled - skb ignored\n");
-+		rxe_drop_ref(qp);
-+		kfree_skb(skb_copy);
-+	}
++	/* Let's says we support all ethX devices */
++	if (ndev->type == ARPHRD_ETHER)
++		rc = 1;
 +
 +out:
 +	return rc;
 +}
 +
-+static enum resp_states acknowledge(struct rxe_qp *qp,
-+				    struct rxe_pkt_info *pkt)
++static int rxe_notify(struct notifier_block *not_blk,
++		      unsigned long event,
++		      void *arg)
 +{
-+	if (qp_type(qp) != IB_QPT_RC)
-+		return RESPST_CLEANUP;
++	struct rxe_dev *rxe;
++	struct net_device *ndev = netdev_notifier_info_to_dev(arg);
 +
-+	if (qp->resp.aeth_syndrome != AETH_ACK_UNLIMITED)
-+		send_ack(qp, pkt, qp->resp.aeth_syndrome, pkt->psn);
-+	else if (pkt->mask & RXE_ATOMIC_MASK)
-+		send_atomic_ack(qp, pkt, AETH_ACK_UNLIMITED);
-+	else if (bth_ack(pkt))
-+		send_ack(qp, pkt, AETH_ACK_UNLIMITED, pkt->psn);
-+
-+	return RESPST_CLEANUP;
-+}
-+
-+static enum resp_states cleanup(struct rxe_qp *qp,
-+				struct rxe_pkt_info *pkt)
-+{
-+	struct sk_buff *skb;
-+
-+	if (pkt) {
-+		skb = skb_dequeue(&qp->req_pkts);
-+		rxe_drop_ref(qp);
-+		kfree_skb(skb);
-+	}
-+
-+	if (qp->resp.mr) {
-+		rxe_drop_ref(qp->resp.mr);
-+		qp->resp.mr = NULL;
-+	}
-+
-+	return RESPST_DONE;
-+}
-+
-+static struct resp_res *find_resource(struct rxe_qp *qp, u32 psn)
-+{
-+	int i;
-+
-+	for (i = 0; i < qp->attr.max_rd_atomic; i++) {
-+		struct resp_res *res = &qp->resp.resources[i];
-+
-+		if (res->type == 0)
-+			continue;
-+
-+		if (psn_compare(psn, res->first_psn) >= 0 &&
-+		    psn_compare(psn, res->last_psn) <= 0) {
-+			return res;
-+		}
-+	}
-+
-+	return NULL;
-+}
-+
-+static enum resp_states duplicate_request(struct rxe_qp *qp,
-+					  struct rxe_pkt_info *pkt)
-+{
-+	enum resp_states rc;
-+
-+	if (pkt->mask & RXE_SEND_MASK ||
-+	    pkt->mask & RXE_WRITE_MASK) {
-+		/* SEND. Ack again and cleanup. C9-105. */
-+		if (bth_ack(pkt))
-+			send_ack(qp, pkt, AETH_ACK_UNLIMITED, qp->resp.psn - 1);
-+		rc = RESPST_CLEANUP;
++	if (!can_support_rxe(ndev))
 +		goto out;
-+	} else if (pkt->mask & RXE_READ_MASK) {
-+		struct resp_res *res;
 +
-+		res = find_resource(qp, pkt->psn);
-+		if (!res) {
-+			/* Resource not found. Class D error.  Drop the
-+			 * request.
-+			 */
-+			rc = RESPST_CLEANUP;
-+			goto out;
-+		} else {
-+			/* Ensure this new request is the same as the previous
-+			 * one or a subset of it.
-+			 */
-+			u64 iova = reth_va(pkt);
-+			u32 resid = reth_len(pkt);
-+
-+			if (iova < res->read.va_org ||
-+			    resid > res->read.length ||
-+			    (iova + resid) > (res->read.va_org +
-+					      res->read.length)) {
-+				rc = RESPST_CLEANUP;
-+				goto out;
-+			}
-+
-+			if (reth_rkey(pkt) != res->read.rkey) {
-+				rc = RESPST_CLEANUP;
-+				goto out;
-+			}
-+
-+			res->cur_psn = pkt->psn;
-+			res->state = (pkt->psn == res->first_psn) ?
-+					rdatm_res_state_new :
-+					rdatm_res_state_replay;
-+
-+			/* Reset the resource, except length. */
-+			res->read.va_org = iova;
-+			res->read.va = iova;
-+			res->read.resid = resid;
-+
-+			/* Replay the RDMA read reply. */
-+			qp->resp.res = res;
-+			rc = RESPST_READ_REPLY;
-+			goto out;
-+		}
-+	} else {
-+		struct resp_res *res;
-+
-+		WARN_ON((pkt->mask & RXE_ATOMIC_MASK) == 0);
-+
-+		/* Find the operation in our list of responder resources. */
-+		res = find_resource(qp, pkt->psn);
-+		if (res) {
-+			struct sk_buff *skb_copy;
-+
-+			skb_copy = skb_clone(res->atomic.skb, GFP_ATOMIC);
-+			if (skb_copy) {
-+				rxe_add_ref(qp); /* for the new SKB */
-+			} else {
-+				pr_warn("Couldn't clone atomic resp\n");
-+				rc = RESPST_CLEANUP;
-+				goto out;
-+			}
-+			bth_set_psn(SKB_TO_PKT(skb_copy),
-+				    qp->resp.psn - 1);
-+			/* Resend the result. */
-+			rc = rxe_xmit_packet(to_rdev(qp->ibqp.device), qp,
-+					     pkt, skb_copy);
-+			if (rc) {
-+				pr_err("Failed resending result. This flow is not handled - skb ignored\n");
-+				kfree_skb(skb_copy);
-+				rc = RESPST_CLEANUP;
-+				goto out;
-+			}
-+		}
-+
-+		/* Resource not found. Class D error. Drop the request. */
-+		rc = RESPST_CLEANUP;
-+		goto out;
-+	}
-+out:
-+	return rc;
-+}
-+
-+/* Process a class A or C. Both are treated the same in this implementation. */
-+static void do_class_ac_error(struct rxe_qp *qp, u8 syndrome,
-+			      enum ib_wc_status status)
-+{
-+	qp->resp.aeth_syndrome	= syndrome;
-+	qp->resp.status		= status;
-+
-+	/* indicate that we should go through the ERROR state */
-+	qp->resp.goto_error	= 1;
-+}
-+
-+static enum resp_states do_class_d1e_error(struct rxe_qp *qp)
-+{
-+	/* UC */
-+	if (qp->srq) {
-+		/* Class E */
-+		qp->resp.drop_msg = 1;
-+		if (qp->resp.wqe) {
-+			qp->resp.status = IB_WC_REM_INV_REQ_ERR;
-+			return RESPST_COMPLETE;
-+		} else {
-+			return RESPST_CLEANUP;
-+		}
-+	} else {
-+		/* Class D1. This packet may be the start of a
-+		 * new message and could be valid. The previous
-+		 * message is invalid and ignored. reset the
-+		 * recv wr to its original state
-+		 */
-+		if (qp->resp.wqe) {
-+			qp->resp.wqe->dma.resid = qp->resp.wqe->dma.length;
-+			qp->resp.wqe->dma.cur_sge = 0;
-+			qp->resp.wqe->dma.sge_offset = 0;
-+			qp->resp.opcode = -1;
-+		}
-+
-+		if (qp->resp.mr) {
-+			rxe_drop_ref(qp->resp.mr);
-+			qp->resp.mr = NULL;
-+		}
-+
-+		return RESPST_CLEANUP;
-+	}
-+}
-+
-+int rxe_responder(void *arg)
-+{
-+	struct rxe_qp *qp = (struct rxe_qp *)arg;
-+	enum resp_states state;
-+	struct rxe_pkt_info *pkt = NULL;
-+	int ret = 0;
-+
-+	qp->resp.aeth_syndrome = AETH_ACK_UNLIMITED;
-+
-+	if (!qp->valid) {
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
-+	switch (qp->resp.state) {
-+	case QP_STATE_RESET:
-+		state = RESPST_RESET;
++	spin_lock_bh(&net_info_lock);
++	switch (event) {
++	case NETDEV_REGISTER:
++		/* Keep a record of this NIC. */
++		net_info[ndev->ifindex].status = IB_PORT_DOWN;
++		net_info[ndev->ifindex].rxe = NULL;
++		net_info[ndev->ifindex].port = 1;
++		net_info[ndev->ifindex].ndev = ndev;
 +		break;
 +
++	case NETDEV_UNREGISTER:
++		if (net_info[ndev->ifindex].rxe) {
++			rxe = net_info[ndev->ifindex].rxe;
++			net_info[ndev->ifindex].rxe = NULL;
++			spin_unlock_bh(&net_info_lock);
++			rxe_remove(rxe);
++			spin_lock_bh(&net_info_lock);
++		}
++		net_info[ndev->ifindex].status = 0;
++		net_info[ndev->ifindex].port = 0;
++		net_info[ndev->ifindex].ndev = NULL;
++		break;
++
++	case NETDEV_UP:
++		rxe_net_up(ndev);
++		break;
++
++	case NETDEV_DOWN:
++		rxe_net_down(ndev);
++		break;
++
++	case NETDEV_CHANGEMTU:
++		rxe = net_to_rxe(ndev);
++		if (rxe) {
++			pr_info("rxe: %s changed mtu to %d\n",
++				ndev->name, ndev->mtu);
++			rxe_set_mtu(rxe, ndev->mtu, net_to_port(ndev));
++		}
++		break;
++
++	case NETDEV_REBOOT:
++	case NETDEV_CHANGE:
++	case NETDEV_GOING_DOWN:
++	case NETDEV_CHANGEADDR:
++	case NETDEV_CHANGENAME:
++	case NETDEV_FEAT_CHANGE:
 +	default:
-+		state = RESPST_GET_REQ;
++		pr_info("rxe: ignoring netdev event = %ld for %s\n",
++			event, ndev->name);
 +		break;
 +	}
++	spin_unlock_bh(&net_info_lock);
 +
-+	while (1) {
-+		pr_debug("state = %s\n", resp_state_name[state]);
-+		switch (state) {
-+		case RESPST_GET_REQ:
-+			state = get_req(qp, &pkt);
-+			break;
-+		case RESPST_CHK_PSN:
-+			state = check_psn(qp, pkt);
-+			break;
-+		case RESPST_CHK_OP_SEQ:
-+			state = check_op_seq(qp, pkt);
-+			break;
-+		case RESPST_CHK_OP_VALID:
-+			state = check_op_valid(qp, pkt);
-+			break;
-+		case RESPST_CHK_RESOURCE:
-+			state = check_resource(qp, pkt);
-+			break;
-+		case RESPST_CHK_LENGTH:
-+			state = check_length(qp, pkt);
-+			break;
-+		case RESPST_CHK_RKEY:
-+			state = check_rkey(qp, pkt);
-+			break;
-+		case RESPST_EXECUTE:
-+			state = execute(qp, pkt);
-+			break;
-+		case RESPST_COMPLETE:
-+			state = do_complete(qp, pkt);
-+			break;
-+		case RESPST_READ_REPLY:
-+			state = read_reply(qp, pkt);
-+			break;
-+		case RESPST_ACKNOWLEDGE:
-+			state = acknowledge(qp, pkt);
-+			break;
-+		case RESPST_CLEANUP:
-+			state = cleanup(qp, pkt);
-+			break;
-+		case RESPST_DUPLICATE_REQUEST:
-+			state = duplicate_request(qp, pkt);
-+			break;
-+		case RESPST_ERR_PSN_OUT_OF_SEQ:
-+			/* RC only - Class B. Drop packet. */
-+			send_ack(qp, pkt, AETH_NAK_PSN_SEQ_ERROR, qp->resp.psn);
-+			state = RESPST_CLEANUP;
-+			break;
++out:
++	return NOTIFY_OK;
++}
 +
-+		case RESPST_ERR_TOO_MANY_RDMA_ATM_REQ:
-+		case RESPST_ERR_MISSING_OPCODE_FIRST:
-+		case RESPST_ERR_MISSING_OPCODE_LAST_C:
-+		case RESPST_ERR_UNSUPPORTED_OPCODE:
-+		case RESPST_ERR_MISALIGNED_ATOMIC:
-+			/* RC Only - Class C. */
-+			do_class_ac_error(qp, AETH_NAK_INVALID_REQ,
-+					  IB_WC_REM_INV_REQ_ERR);
-+			state = RESPST_COMPLETE;
-+			break;
++static struct notifier_block rxe_net_notifier = {
++	.notifier_call = rxe_notify,
++};
 +
-+		case RESPST_ERR_MISSING_OPCODE_LAST_D1E:
-+			state = do_class_d1e_error(qp);
-+			break;
-+		case RESPST_ERR_RNR:
-+			if (qp_type(qp) == IB_QPT_RC) {
-+				/* RC - class B */
-+				send_ack(qp, pkt, AETH_RNR_NAK |
-+					 (~AETH_TYPE_MASK &
-+					 qp->attr.min_rnr_timer),
-+					 pkt->psn);
-+			} else {
-+				/* UD/UC - class D */
-+				qp->resp.drop_msg = 1;
-+			}
-+			state = RESPST_CLEANUP;
-+			break;
++int rxe_net_init(void)
++{
++	int err;
 +
-+		case RESPST_ERR_RKEY_VIOLATION:
-+			if (qp_type(qp) == IB_QPT_RC) {
-+				/* Class C */
-+				do_class_ac_error(qp, AETH_NAK_REM_ACC_ERR,
-+						  IB_WC_REM_ACCESS_ERR);
-+				state = RESPST_COMPLETE;
-+			} else {
-+				qp->resp.drop_msg = 1;
-+				if (qp->srq) {
-+					/* UC/SRQ Class D */
-+					qp->resp.status = IB_WC_REM_ACCESS_ERR;
-+					state = RESPST_COMPLETE;
-+				} else {
-+					/* UC/non-SRQ Class E. */
-+					state = RESPST_CLEANUP;
-+				}
-+			}
-+			break;
++	spin_lock_init(&net_info_lock);
 +
-+		case RESPST_ERR_LENGTH:
-+			if (qp_type(qp) == IB_QPT_RC) {
-+				/* Class C */
-+				do_class_ac_error(qp, AETH_NAK_INVALID_REQ,
-+						  IB_WC_REM_INV_REQ_ERR);
-+				state = RESPST_COMPLETE;
-+			} else if (qp->srq) {
-+				/* UC/UD - class E */
-+				qp->resp.status = IB_WC_REM_INV_REQ_ERR;
-+				state = RESPST_COMPLETE;
-+			} else {
-+				/* UC/UD - class D */
-+				qp->resp.drop_msg = 1;
-+				state = RESPST_CLEANUP;
-+			}
-+			break;
-+
-+		case RESPST_ERR_MALFORMED_WQE:
-+			/* All, Class A. */
-+			do_class_ac_error(qp, AETH_NAK_REM_OP_ERR,
-+					  IB_WC_LOC_QP_OP_ERR);
-+			state = RESPST_COMPLETE;
-+			break;
-+
-+		case RESPST_ERR_CQ_OVERFLOW:
-+			/* All - Class G */
-+			state = RESPST_ERROR;
-+			break;
-+
-+		case RESPST_DONE:
-+			if (qp->resp.goto_error) {
-+				state = RESPST_ERROR;
-+				break;
-+			}
-+
-+			goto done;
-+
-+		case RESPST_EXIT:
-+			if (qp->resp.goto_error) {
-+				state = RESPST_ERROR;
-+				break;
-+			}
-+
-+			goto exit;
-+
-+		case RESPST_RESET: {
-+			struct sk_buff *skb;
-+
-+			while ((skb = skb_dequeue(&qp->req_pkts))) {
-+				rxe_drop_ref(qp);
-+				kfree_skb(skb);
-+			}
-+
-+			while (!qp->srq && qp->rq.queue &&
-+			       queue_head(qp->rq.queue))
-+				advance_consumer(qp->rq.queue);
-+
-+			qp->resp.wqe = NULL;
-+			goto exit;
-+		}
-+
-+		case RESPST_ERROR:
-+			qp->resp.goto_error = 0;
-+			pr_warn("qp#%d moved to error state\n", qp_num(qp));
-+			rxe_qp_error(qp);
-+			goto exit;
-+
-+		default:
-+			WARN_ON(1);
-+		}
++	recv_sockets.sk6 = rxe_setup_udp_tunnel(&init_net,
++			htons(ROCE_V2_UDP_DPORT), true);
++	if (IS_ERR(recv_sockets.sk6)) {
++		recv_sockets.sk6 = NULL;
++		pr_err("rxe: Failed to create IPv6 UDP tunnel\n");
++		return -1;
 +	}
 +
-+exit:
-+	ret = -EAGAIN;
-+done:
-+	return ret;
++	recv_sockets.sk4 = rxe_setup_udp_tunnel(&init_net,
++			htons(ROCE_V2_UDP_DPORT), false);
++	if (IS_ERR(recv_sockets.sk4)) {
++		rxe_release_udp_tunnel(recv_sockets.sk6);
++		recv_sockets.sk4 = NULL;
++		recv_sockets.sk6 = NULL;
++		pr_err("rxe: Failed to create IPv4 UDP tunnel\n");
++		return -1;
++	}
++
++
++	err = register_netdevice_notifier(&rxe_net_notifier);
++	if (err) {
++		rxe_release_udp_tunnel(recv_sockets.sk6);
++		rxe_release_udp_tunnel(recv_sockets.sk4);
++		pr_err("rxe: Failed to rigister netdev notifier\n");
++	}
++
++	return err;
 +}
++
++void rxe_net_exit(void)
++{
++	if (recv_sockets.sk6)
++		rxe_release_udp_tunnel(recv_sockets.sk6);
++
++	if (recv_sockets.sk4)
++		rxe_release_udp_tunnel(recv_sockets.sk4);
++
++	unregister_netdevice_notifier(&rxe_net_notifier);
++}
+diff --git a/drivers/staging/rdma/rxe/rxe_net.h b/drivers/staging/rdma/rxe/rxe_net.h
+new file mode 100644
+index 0000000..3c50778
+--- /dev/null
++++ b/drivers/staging/rdma/rxe/rxe_net.h
+@@ -0,0 +1,78 @@
++/*
++ * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
++ * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *	- Redistributions of source code must retain the above
++ *	  copyright notice, this list of conditions and the following
++ *	  disclaimer.
++ *
++ *	- Redistributions in binary form must reproduce the above
++ *	  copyright notice, this list of conditions and the following
++ *	  disclaimer in the documentation and/or other materials
++ *	  provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef RXE_NET_H
++#define RXE_NET_H
++
++#include <net/sock.h>
++#include <net/if_inet6.h>
++#include <linux/module.h>
++
++#define RXE_MAX_IF_INDEX	(384)
++
++struct rxe_net_info {
++	struct rxe_dev		*rxe;
++	u8			port;
++	struct net_device	*ndev;
++	int			status;
++};
++
++struct rxe_recv_sockets {
++	struct socket *sk4;
++	struct socket *sk6;
++};
++
++extern struct rxe_recv_sockets recv_sockets;
++extern struct rxe_net_info net_info[RXE_MAX_IF_INDEX];
++extern spinlock_t net_info_lock;
++
++/* caller must hold net_dev_lock */
++static inline struct rxe_dev *net_to_rxe(struct net_device *ndev)
++{
++	return (ndev->ifindex >= RXE_MAX_IF_INDEX) ?
++		NULL : net_info[ndev->ifindex].rxe;
++}
++
++static inline u8 net_to_port(struct net_device *ndev)
++{
++	return net_info[ndev->ifindex].port;
++}
++
++int rxe_net_add(struct net_device *ndev);
++void rxe_net_up(struct net_device *ndev);
++void rxe_net_down(struct net_device *ndev);
++
++int rxe_net_init(void);
++void rxe_net_exit(void);
++
++#endif /* RXE_NET_H */
 -- 
 1.8.3.1
 
