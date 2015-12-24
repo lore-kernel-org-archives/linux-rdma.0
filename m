@@ -1,34 +1,34 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v2 for-next 5/7] IB/mlx4: Add IB counters table
-Date: Thu, 24 Dec 2015 14:38:46 +0200
-Message-ID: <567BE756.9050005@mellanox.com>
-References: <1444909482-17113-1-git-send-email-eranbe@mellanox.com>
- <1444909482-17113-6-git-send-email-eranbe@mellanox.com>
- <567BC52B.4030801@dev.mellanox.co.il> <567BCA3F.7050502@mellanox.com>
- <567BCBF8.30006@dev.mellanox.co.il>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next V2 00/32] Soft-RoCE driver
+Date: Thu, 24 Dec 2015 14:58:10 +0200
+Message-ID: <CAJ3xEMiR7gcgScbiCkx3YpXJpJO4LYHvUY=1kpxxwiGtudF-qw@mail.gmail.com>
+References: <1450948698-13383-1-git-send-email-kamalh@mellanox.com>
+	<20151224100228.GB21387@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <567BCBF8.30006-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20151224100228.GB21387-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/24/2015 12:42 PM, Sagi Grimberg wrote:
+On Thu, Dec 24, 2015 at 12:02 PM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
+> On Thu, Dec 24, 2015 at 11:17:46AM +0200, Kamal Heib wrote:
+>> We've located the driver in the staging subtree. This follows a requirement
+>> to implement an IB transport library - Soft RoCE is in the same boat like the hfi1
+>> driver. We need to define and implement a lib to prevent those code
+>> duplications.
 >
->>> This patch seems to generate a list corruption [1] when I test
->>> with Doug's for-4.5 tree. Eran, care to take a look at this?
->>
->> This patch is part from a series that was introduced in 4.3-rc1 [1],
->
-> Then something else broke it. Can people check their patches on doug's
-> tree? At the moment it's unusable...
+> Given the trainwreck that the staging process is it might seems more
+> sensible to get it into a stage and then merge it directly.  You'll
+> probably save yourself a lot of work that way.
 
-Yes, I checked the branch up to commit 882f3b3 "Merge branches 
-'4.5/Or-cleanup' and '4.5/rdma-cq' into k.o/for-4.5" and it works 
-(rping, ibv_rc_pingpong over top of mlx4 VPI)
+I am not sure what you mean by "get it into a stage and then merge it
+directly" --i
+is that not go through staging at all?
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
