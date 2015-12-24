@@ -1,7 +1,7 @@
 From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next V2 14/32] IB/rxe: RXE tasks handling
-Date: Thu, 24 Dec 2015 11:18:00 +0200
-Message-ID: <1450948698-13383-15-git-send-email-kamalh@mellanox.com>
+Subject: [PATCH rdma-next V2 30/32] IB/rxe: Shared objects between user and kernel
+Date: Thu, 24 Dec 2015 11:18:16 +0200
+Message-ID: <1450948698-13383-31-git-send-email-kamalh@mellanox.com>
 References: <1450948698-13383-1-git-send-email-kamalh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450948698-13383-1-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,28 +10,36 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-A 'task' is a short function that returns 0 as long as it needs to be
-called again. rxe tasks are based on the kernel's tasklet infrastructure.
+From: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+Objects used by the userspace to post work requests.
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/staging/rdma/rxe/rxe_task.c | 154 ++++++++++++++++++++++++++++++++++++
- drivers/staging/rdma/rxe/rxe_task.h |  95 ++++++++++++++++++++++
- 2 files changed, 249 insertions(+)
- create mode 100644 drivers/staging/rdma/rxe/rxe_task.c
- create mode 100644 drivers/staging/rdma/rxe/rxe_task.h
+ include/uapi/rdma/Kbuild   |   1 +
+ include/uapi/rdma/ib_rxe.h | 139 +++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 140 insertions(+)
+ create mode 100644 include/uapi/rdma/ib_rxe.h
 
-diff --git a/drivers/staging/rdma/rxe/rxe_task.c b/drivers/staging/rdma/rxe/rxe_task.c
+diff --git a/include/uapi/rdma/Kbuild b/include/uapi/rdma/Kbuild
+index 231901b..94f9401 100644
+--- a/include/uapi/rdma/Kbuild
++++ b/include/uapi/rdma/Kbuild
+@@ -6,3 +6,4 @@ header-y += ib_user_verbs.h
+ header-y += rdma_netlink.h
+ header-y += rdma_user_cm.h
+ header-y += hfi/
++header-y += ib_rxe.h
+diff --git a/include/uapi/rdma/ib_rxe.h b/include/uapi/rdma/ib_rxe.h
 new file mode 100644
-index 0000000..162fa1a
+index 0000000..fc1d9ca
 --- /dev/null
-+++ b/drivers/staging/rdma/rxe/rxe_task.c
-@@ -0,0 +1,154 @@
++++ b/include/uapi/rdma/ib_rxe.h
+@@ -0,0 +1,139 @@
 +/*
 + * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
-+ * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -39,9 +47,9 @@ index 0000000..162fa1a
 + * COPYING in the main directory of this source tree, or the
 + * OpenIB.org BSD license below:
 + *
-+ *	   Redistribution and use in source and binary forms, with or
-+ *	   without modification, are permitted provided that the following
-+ *	   conditions are met:
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
 + *
 + *	- Redistributions of source code must retain the above
 + *	  copyright notice, this list of conditions and the following
@@ -62,228 +70,113 @@ index 0000000..162fa1a
 + * SOFTWARE.
 + */
 +
-+#include <linux/kernel.h>
-+#include <linux/interrupt.h>
-+#include <linux/hardirq.h>
++#ifndef IB_RXE_H
++#define IB_RXE_H
 +
-+#include "rxe_task.h"
++#include <linux/types.h>
 +
-+int __rxe_do_task(struct rxe_task *task)
-+
-+{
-+	int ret;
-+
-+	while ((ret = task->func(task->arg)) == 0)
-+		;
-+
-+	task->ret = ret;
-+
-+	return ret;
-+}
-+
-+/*
-+ * this locking is due to a potential race where
-+ * a second caller finds the task already running
-+ * but looks just after the last call to func
-+ */
-+void rxe_do_task(unsigned long data)
-+{
-+	int cont;
-+	int ret;
-+	unsigned long flags;
-+	struct rxe_task *task = (struct rxe_task *)data;
-+
-+	spin_lock_irqsave(&task->state_lock, flags);
-+	switch (task->state) {
-+	case TASK_STATE_START:
-+		task->state = TASK_STATE_BUSY;
-+		spin_unlock_irqrestore(&task->state_lock, flags);
-+		break;
-+
-+	case TASK_STATE_BUSY:
-+		task->state = TASK_STATE_ARMED;
-+		/* fall through to */
-+	case TASK_STATE_ARMED:
-+		spin_unlock_irqrestore(&task->state_lock, flags);
-+		return;
-+
-+	default:
-+		spin_unlock_irqrestore(&task->state_lock, flags);
-+		pr_warn("bad state = %d in rxe_do_task\n", task->state);
-+		return;
-+	}
-+
-+	do {
-+		cont = 0;
-+		ret = task->func(task->arg);
-+
-+		spin_lock_irqsave(&task->state_lock, flags);
-+		switch (task->state) {
-+		case TASK_STATE_BUSY:
-+			if (ret)
-+				task->state = TASK_STATE_START;
-+			else
-+				cont = 1;
-+			break;
-+
-+		/* soneone tried to run the task since the last time we called
-+		 * func, so we will call one more time regardless of the
-+		 * return value
-+		 */
-+		case TASK_STATE_ARMED:
-+			task->state = TASK_STATE_BUSY;
-+			cont = 1;
-+			break;
-+
-+		default:
-+			pr_warn("bad state = %d in rxe_do_task\n",
-+				task->state);
-+		}
-+		spin_unlock_irqrestore(&task->state_lock, flags);
-+	} while (cont);
-+
-+	task->ret = ret;
-+}
-+
-+int rxe_init_task(void *obj, struct rxe_task *task,
-+		  void *arg, int (*func)(void *), char *name)
-+{
-+	task->obj	= obj;
-+	task->arg	= arg;
-+	task->func	= func;
-+	snprintf(task->name, sizeof(task->name), "%s", name);
-+
-+	tasklet_init(&task->tasklet, rxe_do_task, (unsigned long)task);
-+
-+	task->state = TASK_STATE_START;
-+	spin_lock_init(&task->state_lock);
-+
-+	return 0;
-+}
-+
-+void rxe_cleanup_task(struct rxe_task *task)
-+{
-+	tasklet_kill(&task->tasklet);
-+}
-+
-+void rxe_run_task(struct rxe_task *task, int sched)
-+{
-+	if (sched)
-+		tasklet_schedule(&task->tasklet);
-+	else
-+		rxe_do_task((unsigned long)task);
-+}
-+
-+void rxe_disable_task(struct rxe_task *task)
-+{
-+	tasklet_disable(&task->tasklet);
-+}
-+
-+void rxe_enable_task(struct rxe_task *task)
-+{
-+	tasklet_enable(&task->tasklet);
-+}
-diff --git a/drivers/staging/rdma/rxe/rxe_task.h b/drivers/staging/rdma/rxe/rxe_task.h
-new file mode 100644
-index 0000000..1183662
---- /dev/null
-+++ b/drivers/staging/rdma/rxe/rxe_task.h
-@@ -0,0 +1,95 @@
-+/*
-+ * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
-+ * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *	   Redistribution and use in source and binary forms, with or
-+ *	   without modification, are permitted provided that the following
-+ *	   conditions are met:
-+ *
-+ *	- Redistributions of source code must retain the above
-+ *	  copyright notice, this list of conditions and the following
-+ *	  disclaimer.
-+ *
-+ *	- Redistributions in binary form must reproduce the above
-+ *	  copyright notice, this list of conditions and the following
-+ *	  disclaimer in the documentation and/or other materials
-+ *	  provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#ifndef RXE_TASK_H
-+#define RXE_TASK_H
-+
-+enum {
-+	TASK_STATE_START	= 0,
-+	TASK_STATE_BUSY		= 1,
-+	TASK_STATE_ARMED	= 2,
++union rxe_gid {
++	__u8	raw[16];
++	struct {
++		__be64	subnet_prefix;
++		__be64	interface_id;
++	} global;
 +};
 +
-+/*
-+ * data structure to describe a 'task' which is a short
-+ * function that returns 0 as long as it needs to be
-+ * called again.
-+ */
-+struct rxe_task {
-+	void			*obj;
-+	struct tasklet_struct	tasklet;
-+	int			state;
-+	spinlock_t		state_lock; /* spinlock for task state */
-+	void			*arg;
-+	int			(*func)(void *arg);
-+	int			ret;
-+	char			name[16];
++struct rxe_global_route {
++	union rxe_gid	dgid;
++	__u32		flow_label;
++	__u8		sgid_index;
++	__u8		hop_limit;
++	__u8		traffic_class;
 +};
 +
-+/*
-+ * init rxe_task structure
-+ *	arg  => parameter to pass to fcn
-+ *	fcn  => function to call until it returns != 0
-+ */
-+int rxe_init_task(void *obj, struct rxe_task *task,
-+		  void *arg, int (*func)(void *), char *name);
++struct rxe_av {
++	__u8			port_num;
++	__u8			network_type;
++	struct rxe_global_route	grh;
++	union {
++		struct sockaddr		_sockaddr;
++		struct sockaddr_in	_sockaddr_in;
++		struct sockaddr_in6	_sockaddr_in6;
++	} sgid_addr, dgid_addr;
++};
 +
-+/* cleanup task */
-+void rxe_cleanup_task(struct rxe_task *task);
++struct rxe_send_wr {
++	__u64			wr_id;
++	__u32			num_sge;
++	__u32			opcode;
++	__u32			send_flags;
++	union {
++		__u32		imm_data;
++		__u32		invalidate_rkey;
++	} ex;
++	union {
++		struct {
++			__u64	remote_addr;
++			__u32	rkey;
++		} rdma;
++		struct {
++			__u64	remote_addr;
++			__u64	compare_add;
++			__u64	swap;
++			__u32	rkey;
++		} atomic;
++		struct {
++			__u32	remote_qpn;
++			__u32	remote_qkey;
++			__u16	pkey_index;
++		} ud;
++	} wr;
++};
 +
-+/*
-+ * raw call to func in loop without any checking
-+ * can call when tasklets are disabled
-+ */
-+int __rxe_do_task(struct rxe_task *task);
++struct rxe_sge {
++	__u64	addr;
++	__u32	length;
++	__u32	lkey;
++};
 +
-+/*
-+ * common function called by any of the main tasklets
-+ * If there is any chance that there is additional
-+ * work to do someone must reschedule the task before
-+ * leaving
-+ */
-+void rxe_do_task(unsigned long data);
++struct mminfo {
++	__u64			offset;
++	__u32			size;
++	__u32			pad;
++};
 +
-+/* run a task, else schedule it to run as a tasklet, The decision
-+ * to run or schedule tasklet is based on the parameter sched.
-+ * */
-+void rxe_run_task(struct rxe_task *task, int sched);
++struct rxe_dma_info {
++	__u32			length;
++	__u32			resid;
++	__u32			cur_sge;
++	__u32			num_sge;
++	__u32			sge_offset;
++	union {
++		__u8		inline_data[0];
++		struct rxe_sge	sge[0];
++	};
++};
 +
-+/* keep a task from scheduling */
-+void rxe_disable_task(struct rxe_task *task);
++struct rxe_send_wqe {
++	struct rxe_send_wr	wr;
++	struct rxe_av		av;
++	__u32			status;
++	__u32			state;
++	__u64			iova;
++	__u32			mask;
++	__u32			first_psn;
++	__u32			last_psn;
++	__u32			ack_length;
++	__u32			ssn;
++	__u32			has_rd_atomic;
++	struct rxe_dma_info	dma;
++};
 +
-+/* allow task to run */
-+void rxe_enable_task(struct rxe_task *task);
++struct rxe_recv_wqe {
++	__u64			wr_id;
++	__u32			num_sge;
++	__u32			padding;
++	struct rxe_dma_info	dma;
++};
 +
-+#endif /* RXE_TASK_H */
++#endif /* IB_RXE_H */
 -- 
 1.8.3.1
 
