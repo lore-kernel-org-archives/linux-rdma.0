@@ -1,212 +1,118 @@
-From: eran ben elisha <eranlinuxmellanox-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 3/3] Display extended counter set if available
-Date: Thu, 24 Dec 2015 18:22:14 +0200
-Message-ID: <CAKHjkjkwneRd9kTfHbQHLYMexhtP4ibE0sdHrUeYWmV=3fvYLw@mail.gmail.com>
-References: <20151221142026.238104419@linux.com>
-	<20151221142039.386488696@linux.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH V1 0/3] Add cross-channel support
+Date: Thu, 24 Dec 2015 11:55:20 -0500
+Message-ID: <567C2378.7060700@redhat.com>
+References: <1450606571-15877-1-git-send-email-leon@leon.nu>
+ <567BA695.8050403@mellanox.com> <20151224100001.GA21387@infradead.org>
+ <567BCBD1.708@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="Ib1VvlivvLHhmarHOLK5GDousM3l6xvJg"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151221142039.386488696-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <567BCBD1.708-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 21, 2015 at 4:20 PM, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org> wrote:
-> V2->V3: Add check for NOIETF mode and create special table
->   for that case.
->
-> Check if the extended counters are available and if so
-> create the proper extended and additional counters.
->
-> Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/core/sysfs.c | 104 +++++++++++++++++++++++++++++++++++++++-
->  include/rdma/ib_pma.h           |   1 +
->  2 files changed, 104 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-> index 34dcc23..b179fca 100644
-> --- a/drivers/infiniband/core/sysfs.c
-> +++ b/drivers/infiniband/core/sysfs.c
-> @@ -320,6 +320,13 @@ struct port_table_attribute port_pma_attr_##_name = {                      \
->         .attr_id = IB_PMA_PORT_COUNTERS ,                               \
->  }
->
-> +#define PORT_PMA_ATTR_EXT(_name, _width, _offset)                      \
-> +struct port_table_attribute port_pma_attr_ext_##_name = {              \
-> +       .attr  = __ATTR(_name, S_IRUGO, show_pma_counter, NULL),        \
-> +       .index = (_offset) | ((_width) << 16),                          \
-> +       .attr_id = IB_PMA_PORT_COUNTERS_EXT ,                           \
-> +}
-> +
->  /*
->   * Get a Perfmgmt MAD block of data.
->   * Returns error code or the number of bytes retrieved.
-> @@ -400,6 +407,11 @@ static ssize_t show_pma_counter(struct ib_port *p, struct port_attribute *attr,
->                 ret = sprintf(buf, "%u\n",
->                               be32_to_cpup((__be32 *)data));
->                 break;
-> +       case 64:
-> +               ret = sprintf(buf, "%llu\n",
-> +                               be64_to_cpup((__be64 *)data));
-> +               break;
-> +
->         default:
->                 ret = 0;
->         }
-> @@ -424,6 +436,18 @@ static PORT_PMA_ATTR(port_rcv_data             , 13, 32, 224);
->  static PORT_PMA_ATTR(port_xmit_packets             , 14, 32, 256);
->  static PORT_PMA_ATTR(port_rcv_packets              , 15, 32, 288);
->
-> +/*
-> + * Counters added by extended set
-> + */
-> +static PORT_PMA_ATTR_EXT(port_xmit_data                    , 64,  64);
-> +static PORT_PMA_ATTR_EXT(port_rcv_data             , 64, 128);
-> +static PORT_PMA_ATTR_EXT(port_xmit_packets         , 64, 192);
-> +static PORT_PMA_ATTR_EXT(port_rcv_packets          , 64, 256);
-> +static PORT_PMA_ATTR_EXT(unicast_xmit_packets      , 64, 320);
-> +static PORT_PMA_ATTR_EXT(unicast_rcv_packets       , 64, 384);
-> +static PORT_PMA_ATTR_EXT(multicast_xmit_packets            , 64, 448);
-> +static PORT_PMA_ATTR_EXT(multicast_rcv_packets     , 64, 512);
-> +
->  static struct attribute *pma_attrs[] = {
->         &port_pma_attr_symbol_error.attr.attr,
->         &port_pma_attr_link_error_recovery.attr.attr,
-> @@ -444,11 +468,65 @@ static struct attribute *pma_attrs[] = {
->         NULL
->  };
->
-> +static struct attribute *pma_attrs_ext[] = {
-> +       &port_pma_attr_symbol_error.attr.attr,
-> +       &port_pma_attr_link_error_recovery.attr.attr,
-> +       &port_pma_attr_link_downed.attr.attr,
-> +       &port_pma_attr_port_rcv_errors.attr.attr,
-> +       &port_pma_attr_port_rcv_remote_physical_errors.attr.attr,
-> +       &port_pma_attr_port_rcv_switch_relay_errors.attr.attr,
-> +       &port_pma_attr_port_xmit_discards.attr.attr,
-> +       &port_pma_attr_port_xmit_constraint_errors.attr.attr,
-> +       &port_pma_attr_port_rcv_constraint_errors.attr.attr,
-> +       &port_pma_attr_local_link_integrity_errors.attr.attr,
-> +       &port_pma_attr_excessive_buffer_overrun_errors.attr.attr,
-> +       &port_pma_attr_VL15_dropped.attr.attr,
-> +       &port_pma_attr_ext_port_xmit_data.attr.attr,
-> +       &port_pma_attr_ext_port_rcv_data.attr.attr,
-> +       &port_pma_attr_ext_port_xmit_packets.attr.attr,
-> +       &port_pma_attr_ext_port_rcv_packets.attr.attr,
-> +       &port_pma_attr_ext_unicast_rcv_packets.attr.attr,
-> +       &port_pma_attr_ext_unicast_xmit_packets.attr.attr,
-> +       &port_pma_attr_ext_multicast_rcv_packets.attr.attr,
-> +       &port_pma_attr_ext_multicast_xmit_packets.attr.attr,
-> +       NULL
-> +};
-> +
-> +static struct attribute *pma_attrs_noietf[] = {
-> +       &port_pma_attr_symbol_error.attr.attr,
-> +       &port_pma_attr_link_error_recovery.attr.attr,
-> +       &port_pma_attr_link_downed.attr.attr,
-> +       &port_pma_attr_port_rcv_errors.attr.attr,
-> +       &port_pma_attr_port_rcv_remote_physical_errors.attr.attr,
-> +       &port_pma_attr_port_rcv_switch_relay_errors.attr.attr,
-> +       &port_pma_attr_port_xmit_discards.attr.attr,
-> +       &port_pma_attr_port_xmit_constraint_errors.attr.attr,
-> +       &port_pma_attr_port_rcv_constraint_errors.attr.attr,
-> +       &port_pma_attr_local_link_integrity_errors.attr.attr,
-> +       &port_pma_attr_excessive_buffer_overrun_errors.attr.attr,
-> +       &port_pma_attr_VL15_dropped.attr.attr,
-> +       &port_pma_attr_ext_port_xmit_data.attr.attr,
-> +       &port_pma_attr_ext_port_rcv_data.attr.attr,
-> +       &port_pma_attr_ext_port_xmit_packets.attr.attr,
-> +       &port_pma_attr_ext_port_rcv_packets.attr.attr,
-> +       NULL
-> +};
-> +
->  static struct attribute_group pma_group = {
->         .name  = "counters",
->         .attrs  = pma_attrs
->  };
->
-> +static struct attribute_group pma_group_ext = {
-> +       .name  = "counters",
-> +       .attrs  = pma_attrs_ext
-> +};
-> +
-> +static struct attribute_group pma_group_noietf = {
-> +       .name  = "counters",
-> +       .attrs  = pma_attrs_noietf
-> +};
-> +
->  static void ib_port_release(struct kobject *kobj)
->  {
->         struct ib_port *p = container_of(kobj, struct ib_port, kobj);
-> @@ -521,6 +599,30 @@ err:
->         return NULL;
->  }
->
-> +/*
-> + * Figure out which counter table to use depending on
-> + * the device capabilities.
-> + */
-> +static struct attribute_group *get_counter_table(struct ib_device *dev)
-> +{
-> +       struct ib_class_port_info cpi;
-> +
-> +       if (get_perf_mad(dev, 0, IB_PMA_CLASS_PORT_INFO,
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--Ib1VvlivvLHhmarHOLK5GDousM3l6xvJg
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Why 0, need to pass port num.
-See proposal Matan and myself sent.
+On 12/24/2015 05:41 AM, Or Gerlitz wrote:
+> On 12/24/2015 12:00 PM, Christoph Hellwig wrote:
+>> On Thu, Dec 24, 2015 at 10:02:29AM +0200, Or Gerlitz wrote:
+>>> We had consensus among the reviewers that the 1st patch ("IB/core: Al=
+ign
+>>> coding style of ib_device_cap_flags structure") is wrong cleanup whic=
+h
+>>> basically is (1) unneeded (2) creates more damage (git blame and such=
+,
+>>> non-applicable to uapi, more) than benefit, etc -- finally Leon was
+>>> convinced too [1].
+>> It's not really an issue vs uapi.  Using the the wierd BIT() macro
+>> would have been, but without it I think this cleanup is ok, even if I
+>> personally wouldn't have done it.  git-blame isn't really a major
+>> issue either, as you can blame past revisions.
+>=20
+> I would personally wouldn't done cleanup either and I managed to
+> convinced Leon to drop it, so we had concensus among the developers, th=
+e
+> maintainer didn't have other opinion and he took the wrong step -- so
+> we're asking to fix, that's all.
 
-Eran
-> +                               &cpi, 40, sizeof(cpi)) >= 0) {
-> +
-> +               if (cpi.capability_mask && IB_PMA_CLASS_CAP_EXT_WIDTH)
-> +                       /* We have extended counters */
-> +                       return &pma_group_ext;
-> +
-> +               if (cpi.capability_mask && IB_PMA_CLASS_CAP_EXT_WIDTH_NOIETF)
-> +                       /* But not the IETF ones */
-> +                       return &pma_group_noietf;
-> +       }
-> +
-> +       /* Fall back to normal counters */
-> +       return &pma_group;
-> +}
-> +
->  static int add_port(struct ib_device *device, int port_num,
->                     int (*port_callback)(struct ib_device *,
->                                          u8, struct kobject *))
-> @@ -549,7 +651,7 @@ static int add_port(struct ib_device *device, int port_num,
->                 return ret;
->         }
->
-> -       ret = sysfs_create_group(&p->kobj, &pma_group);
-> +       ret = sysfs_create_group(&p->kobj, get_counter_table(device));
->         if (ret)
->                 goto err_put;
->
-> diff --git a/include/rdma/ib_pma.h b/include/rdma/ib_pma.h
-> index a5889f1..2f8a65c 100644
-> --- a/include/rdma/ib_pma.h
-> +++ b/include/rdma/ib_pma.h
-> @@ -42,6 +42,7 @@
->   */
->  #define IB_PMA_CLASS_CAP_ALLPORTSELECT  cpu_to_be16(1 << 8)
->  #define IB_PMA_CLASS_CAP_EXT_WIDTH      cpu_to_be16(1 << 9)
-> +#define IB_PMA_CLASS_CAP_EXT_WIDTH_NOIETF cpu_to_be16(1 << 10)
->  #define IB_PMA_CLASS_CAP_XMIT_WAIT      cpu_to_be16(1 << 12)
->
->  #define IB_PMA_CLASS_PORT_INFO          cpu_to_be16(0x0001)
-> --
-> 2.5.0
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+That's not true.  I didn't bother to speak up in the thread, and I read
+all of the comments.  I didn't move to BIT macros for the reason that
+Christoph thinks they are crap and I didn't bother to prove him wrong
+and took his word for it.  However, just aligning the macros in the area
+that the patch touched is reasonable (versus aligning the entire file
+just for the fun of it), and git blame will continue working fine.  My
+taking of this patch was intentional (in fact, the patch didn't apply, I
+had to redo it entirely by hand because the comment changes caused by
+Christoph's MR cleanup patches kept this patch from applying at all).
+In any case, it wasn't a mistake, and there is nothing to fix up.
+
+>>
+>>> Leon will re-spin in the coming 1-2 hours V2, could please pick it
+>>> instead
+>>> of V1, when people agree on direction X and you are not against it,
+>>> lets do
+>>> X and not Y.
+>> It would be great if we could stop rebasing whats already in the tree
+>> for the benefit of everyone building on top of this.  For example just=
+
+>> finished rebasing my series to move many constants includin this one
+>> to the uapi headers, and I'd hate to rebase it once again now that
+>> the dust has settled.
+>=20
+> The root issue here is that nothing was picked before 4.4-rc6, so we're=
+
+> in a situation where rebases are needed in the own-maintainer tree
+> (github) to make things right. No way to avoid that.
+>=20
+> We should aim that for 4.6 and onward, code for -next will start gettin=
+g
+> in around rc1-2 and then things will be more robust, etc
+>=20
+> Or.
+>=20
+> Or.
+>=20
+
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--Ib1VvlivvLHhmarHOLK5GDousM3l6xvJg
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJWfCN4AAoJELgmozMOVy/d+d4P/03bz/ENtqh0l26Z0mGZtwN4
+3xzI6/Y+881PcjPg4/Hp20oJqTjUs5AN1Qn9RTKKlEn+99fo4RrqtDNIST1C7l6b
+5yZKG/4WLN1cJnit5jt7tJZ7cuc6tzO65/TXqQJvw1HvsUux/HkMzTXs7SKUhi+G
+sGXUaQA06ctmxeHMX+fH+uq8mO+JU7ivGggBzVXmqyXPlGs81qM/AIX3AmrfJeN9
+T1RKkLgOABCi0BETJZhQ1C5HPZmbte7NHhe/L14Fm2d3ptf9LaVX/v6zR+Zx7GRp
+0C00/DZbyq7kA/GmB0sucOTkWmWMNyu1mX9GOP6Fma90Jeq7+I16rA7K808Sz/A/
+LDT0anGoRmuL0ZlmerEyIp9h5pKO1xs0gKC1HsEO8KKlGxXHfJ6uWAZsevmmIZlY
+tzimXrmMy3D3BdAfado5XTPyf/Qspgf46G1WqZmiZSkFDaJiKi0WTDYqW92IeYKU
+SL9swrwfEFOZK9d2S9xwZt65JcarrCon876a17CeEP7SPFcTqL7jJSWcgjS5O/ja
+4g4v74SL5F2kR47G3LQTwwXtGsp0jp+hPVPmLM+nrzXeY9LRWa2mei77l5Cz3LMg
+dFU3XAeMDTchSYoJQU19LiOcF38H3FiIqj1Impq3N8H+DpRcOfy+oTaub+LVSxcJ
+3xYewD92FimJy8DStKce
+=vYIt
+-----END PGP SIGNATURE-----
+
+--Ib1VvlivvLHhmarHOLK5GDousM3l6xvJg--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
