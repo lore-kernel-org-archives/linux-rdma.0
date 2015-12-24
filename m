@@ -1,87 +1,77 @@
-From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v2 for-next 5/7] IB/mlx4: Add IB counters table
-Date: Thu, 24 Dec 2015 18:09:00 +0200
-Message-ID: <CAAKD3BB5-hUC=0bDqxXxuag9TPqQEeMD74paHrAMOc-MsQwEow@mail.gmail.com>
-References: <1444909482-17113-1-git-send-email-eranbe@mellanox.com>
-	<1444909482-17113-6-git-send-email-eranbe@mellanox.com>
-	<567BC52B.4030801@dev.mellanox.co.il>
-	<567BCA3F.7050502@mellanox.com>
-	<567BCBF8.30006@dev.mellanox.co.il>
-	<567BE756.9050005@mellanox.com>
-	<CAAKD3BBsv8Qe=RZvCTOa=0kuSAqYetx4NOok_Tcp5xtUz+Ggtw@mail.gmail.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC] Generic InfiniBand transport done in software
+Date: Thu, 24 Dec 2015 11:14:16 -0500
+Message-ID: <20151224161415.GA674@phlsvsds.ph.intel.com>
+References: <CAG9sBKO=fP2Xd=JXK7hvzGFRLQmh1dF+mWDxdnhU+TqFg7YD1Q@mail.gmail.com> <20151222181905.GA742@phlsvsds.ph.intel.com> <CAG9sBKNOu+d-5f6FYTXCyTGjJU-md4dW3MFMB2-UDgRFafRdBw@mail.gmail.com> <20151223200727.GA6886@phlsvsds.ph.intel.com> <CAG9sBKNkeA2Op-OTJ_MQ=pC3BQ7=_tB4g6oV=fwDOJ7gs_y+fQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAAKD3BBsv8Qe=RZvCTOa=0kuSAqYetx4NOok_Tcp5xtUz+Ggtw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAG9sBKNkeA2Op-OTJ_MQ=pC3BQ7=_tB4g6oV=fwDOJ7gs_y+fQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 24, 2015 at 4:07 PM, Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> On Thu, Dec 24, 2015 at 2:38 PM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->> On 12/24/2015 12:42 PM, Sagi Grimberg wrote:
->>>
->>>
->>>>> This patch seems to generate a list corruption [1] when I test
->>>>> with Doug's for-4.5 tree. Eran, care to take a look at this?
->>>>
->>>>
->>>> This patch is part from a series that was introduced in 4.3-rc1 [1],
->>>
->>>
->>> Then something else broke it. Can people check their patches on doug's
->>> tree? At the moment it's unusable...
+On Thu, Dec 24, 2015 at 05:43:11PM +0200, Moni Shoua wrote:
 >>
->
-> Leon and I have checked Doug's tree with mlx4_ib disabled and we
-> didn't encounter any error.
-> We ran ucmatose over IB connection (in mlx5) and it worked flawlessly.
->
 >>
->> Yes, I checked the branch up to commit 882f3b3 "Merge branches
->> '4.5/Or-cleanup' and '4.5/rdma-cq' into k.o/for-4.5" and it works (rping,
->> ibv_rc_pingpong over top of mlx4 VPI)
+>> There were discussions, and Mellanox even contributed code to the effort.
+>> See Kamal's patches in the patch set I provided.
 >>
+>As far as I see it discussions were shallow and never produced an
+>agreement. Kamal's patches should not be considered as as such.
 
-Regarding mlx4, Eran and I analyzed it. We didn't test that, but it
-seems like the bug is introduced in the 64bit counters test. Here's a
-proposal:
+Point is others have looked at the code. No issues have been called out to 
+date as to why what is there won't work for everyone.
 
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index 539040f..8da3c83 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -714,11 +714,12 @@ err:
-  * Figure out which counter table to use depending on
-  * the device capabilities.
-  */
--static struct attribute_group *get_counter_table(struct ib_device *dev)
-+static struct attribute_group *get_counter_table(struct ib_device *dev,
-+                                          int port_num)
- {
-        struct ib_class_port_info cpi;
+>>> http://marc.info/?l=linux-rdma&m=144952098726776&w=2 presents a work
+>>> that besides keeping the name RVT is far from the immature concept I
+>>> mentioned earlier and its scope was changed from general purpose
+>>> solution to Intel and HFI/QIB only.
+>>
+>>
+>> The scope has never changed. Our goal is, and has always been to remove the
+>> code duplication between qib and hfi1. We are doing that by way of rdmavt.
+>> It is limited in scope to Intel's drivers currently for what I hope are
+>> obvious reasons.
+>>
+>So you actually agree that rdmavt was intended to be a solution to
+>Intel's specific drivers.
+>Fair, but IMO this is not what we aimed for.
+>In fact, if this is an Intel specific solution then why put it in
+>drivers/infiniband/sw and why publish it when it is not ready?
 
--   if (get_perf_mad(dev, 0, IB_PMA_CLASS_PORT_INFO,
-+ if (get_perf_mad(dev, port_num, IB_PMA_CLASS_PORT_INFO,
-                                &cpi, 40, sizeof(cpi)) >= 0) {
+Yes it is specific to Intel *now*, that doesn't mean it should stay that 
+way. Rdmavt could, and in my opinion should, be extended to support 
+soft-roce. I don't think replicating the same thing is a great idea.
 
-                if (cpi.capability_mask && IB_PMA_CLASS_CAP_EXT_WIDTH)
-@@ -776,7 +777,7 @@ static int add_port(struct ib_device *device, int port_num,
-                goto err_put;
-        }
+As to the location, where do you think it should go. drivers/infiniband/sw 
+makes the most sense to me, but open to suggestions.
 
--   p->pma_table = get_counter_table(device);
-+ p->pma_table = get_counter_table(device, port_num);
-        ret = sysfs_create_group(&p->kobj, p->pma_table);
-        if (ret)
-                goto err_put_gid_attrs;
+And for the question of why publish when it's not ready, the better question 
+is why not?  Is it not good to see the work in progress as it evolves so the 
+community can provide feedback?
 
+>> I think it makes sense that soft-roce be added as well and hope that
+>> Mellanox decides to contribute rather than reinventing the wheel.
+>>
+>> Is there something in rdmavt that would not work for soft-roce, or is
+>> something fundamental missing? I have asked this a number of times and
+>> nothing has been raised so I assume there are no issues. If there are lets
+>> discuss them.
+>>
+>Interfaces between rdmavt and its backends are missing. I consider
+>this as fundamental.
+>Concerns were raised but answers were not provided, at least not
+>satisfying answers.
 
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+No one is arguing that. It is a work in progress and will get there. More 
+details are in in Ira's response.
+
+http://marc.info/?l=linux-rdma&m=145091253118395&w=2
+
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
