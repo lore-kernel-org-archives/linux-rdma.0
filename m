@@ -1,7 +1,7 @@
 From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next V2 17/32] IB/rxe: Completion Queue (CQ) manipulation functions
-Date: Thu, 24 Dec 2015 11:18:03 +0200
-Message-ID: <1450948698-13383-18-git-send-email-kamalh@mellanox.com>
+Subject: [PATCH rdma-next V2 20/32] IB/rxe: Multicast implementation
+Date: Thu, 24 Dec 2015 11:18:06 +0200
+Message-ID: <1450948698-13383-21-git-send-email-kamalh@mellanox.com>
 References: <1450948698-13383-1-git-send-email-kamalh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450948698-13383-1-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,22 +10,22 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Functions to manipulate CQ.
+Multicast groups handling.
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/staging/rdma/rxe/rxe_cq.c | 165 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 165 insertions(+)
- create mode 100644 drivers/staging/rdma/rxe/rxe_cq.c
+ drivers/staging/rdma/rxe/rxe_mcast.c | 190 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 190 insertions(+)
+ create mode 100644 drivers/staging/rdma/rxe/rxe_mcast.c
 
-diff --git a/drivers/staging/rdma/rxe/rxe_cq.c b/drivers/staging/rdma/rxe/rxe_cq.c
+diff --git a/drivers/staging/rdma/rxe/rxe_mcast.c b/drivers/staging/rdma/rxe/rxe_mcast.c
 new file mode 100644
-index 0000000..a572e4d
+index 0000000..bcf37be
 --- /dev/null
-+++ b/drivers/staging/rdma/rxe/rxe_cq.c
-@@ -0,0 +1,165 @@
++++ b/drivers/staging/rdma/rxe/rxe_mcast.c
+@@ -0,0 +1,190 @@
 +/*
 + * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
@@ -40,14 +40,14 @@ index 0000000..a572e4d
 + *	   without modification, are permitted provided that the following
 + *	   conditions are met:
 + *
-+ *	- Redistributions of source code must retain the above
-+ *	  copyright notice, this list of conditions and the following
-+ *	  disclaimer.
++ *		- Redistributions of source code must retain the above
++ *		  copyright notice, this list of conditions and the following
++ *		  disclaimer.
 + *
-+ *	- Redistributions in binary form must reproduce the above
-+ *	  copyright notice, this list of conditions and the following
-+ *	  disclaimer in the documentation and/or other materials
-+ *	  provided with the distribution.
++ *		- Redistributions in binary form must reproduce the above
++ *		  copyright notice, this list of conditions and the following
++ *		  disclaimer in the documentation and/or other materials
++ *		  provided with the distribution.
 + *
 + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -61,135 +61,160 @@ index 0000000..a572e4d
 +
 +#include "rxe.h"
 +#include "rxe_loc.h"
-+#include "rxe_queue.h"
 +
-+int rxe_cq_chk_attr(struct rxe_dev *rxe, struct rxe_cq *cq,
-+		    int cqe, int comp_vector, struct ib_udata *udata)
++int rxe_mcast_get_grp(struct rxe_dev *rxe, union ib_gid *mgid,
++		      struct rxe_mc_grp **grp_p)
 +{
-+	int count;
++	int err;
++	struct rxe_mc_grp *grp;
 +
-+	if (cqe <= 0) {
-+		pr_warn("cqe(%d) <= 0\n", cqe);
++	if (rxe->attr.max_mcast_qp_attach == 0) {
++		err = -EINVAL;
 +		goto err1;
 +	}
 +
-+	if (cqe > rxe->attr.max_cqe) {
-+		pr_warn("cqe(%d) > max_cqe(%d)\n",
-+			cqe, rxe->attr.max_cqe);
++	grp = rxe_pool_get_key(&rxe->mc_grp_pool, mgid);
++	if (grp)
++		goto done;
++
++	grp = rxe_alloc(&rxe->mc_grp_pool);
++	if (!grp) {
++		err = -ENOMEM;
 +		goto err1;
 +	}
 +
-+	if (cq) {
-+		count = queue_count(cq->queue);
-+		if (cqe < count) {
-+			pr_warn("cqe(%d) < current # elements in queue (%d)",
-+				cqe, count);
-+			goto err1;
++	INIT_LIST_HEAD(&grp->qp_list);
++	spin_lock_init(&grp->mcg_lock);
++	grp->rxe = rxe;
++
++	rxe_add_key(grp, mgid);
++
++	err = rxe->ifc_ops->mcast_add(rxe, mgid);
++	if (err)
++		goto err2;
++
++done:
++	*grp_p = grp;
++	return 0;
++
++err2:
++	rxe_drop_ref(grp);
++err1:
++	return err;
++}
++
++int rxe_mcast_add_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
++			   struct rxe_mc_grp *grp)
++{
++	int err;
++	struct rxe_mc_elem *elem;
++
++	/* check to see of the qp is already a member of the group */
++	spin_lock_bh(&qp->grp_lock);
++	spin_lock_bh(&grp->mcg_lock);
++	list_for_each_entry(elem, &grp->qp_list, qp_list) {
++		if (elem->qp == qp) {
++			err = 0;
++			goto out;
 +		}
 +	}
 +
-+	return 0;
++	if (grp->num_qp >= rxe->attr.max_mcast_qp_attach) {
++		err = -ENOMEM;
++		goto out;
++	}
 +
++	elem = rxe_alloc(&rxe->mc_elem_pool);
++	if (!elem) {
++		err = -ENOMEM;
++		goto out;
++	}
++
++	/* each qp holds a ref on the grp */
++	rxe_add_ref(grp);
++
++	grp->num_qp++;
++	elem->qp = qp;
++	elem->grp = grp;
++
++	list_add(&elem->qp_list, &grp->qp_list);
++	list_add(&elem->grp_list, &qp->grp_list);
++
++	err = 0;
++out:
++	spin_unlock_bh(&grp->mcg_lock);
++	spin_unlock_bh(&qp->grp_lock);
++	return err;
++}
++
++int rxe_mcast_drop_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
++			    union ib_gid *mgid)
++{
++	struct rxe_mc_grp *grp;
++	struct rxe_mc_elem *elem, *tmp;
++
++	grp = rxe_pool_get_key(&rxe->mc_grp_pool, mgid);
++	if (!grp)
++		goto err1;
++
++	spin_lock_bh(&qp->grp_lock);
++	spin_lock_bh(&grp->mcg_lock);
++
++	list_for_each_entry_safe(elem, tmp, &grp->qp_list, qp_list) {
++		if (elem->qp == qp) {
++			list_del(&elem->qp_list);
++			list_del(&elem->grp_list);
++			grp->num_qp--;
++
++			spin_unlock_bh(&grp->mcg_lock);
++			spin_unlock_bh(&qp->grp_lock);
++			rxe_drop_ref(elem);
++			rxe_drop_ref(grp);	/* ref held by QP */
++			rxe_drop_ref(grp);	/* ref from get_key */
++			return 0;
++		}
++	}
++
++	spin_unlock_bh(&grp->mcg_lock);
++	spin_unlock_bh(&qp->grp_lock);
++	rxe_drop_ref(grp);			/* ref from get_key */
 +err1:
 +	return -EINVAL;
 +}
 +
-+static void rxe_send_complete(unsigned long data)
++void rxe_drop_all_mcast_groups(struct rxe_qp *qp)
 +{
-+	struct rxe_cq *cq = (struct rxe_cq *)data;
++	struct rxe_mc_grp *grp;
++	struct rxe_mc_elem *elem;
 +
-+	cq->ibcq.comp_handler(&cq->ibcq, cq->ibcq.cq_context);
-+}
-+
-+int rxe_cq_from_init(struct rxe_dev *rxe, struct rxe_cq *cq, int cqe,
-+		     int comp_vector, struct ib_ucontext *context,
-+		     struct ib_udata *udata)
-+{
-+	int err;
-+
-+	cq->queue = rxe_queue_init(rxe, &cqe,
-+				   sizeof(struct rxe_cqe));
-+	if (!cq->queue) {
-+		pr_warn("unable to create cq\n");
-+		return -ENOMEM;
-+	}
-+
-+	err = do_mmap_info(rxe, udata, false, context, cq->queue->buf,
-+			   cq->queue->buf_size, &cq->queue->ip);
-+	if (err) {
-+		kvfree(cq->queue->buf);
-+		kfree(cq->queue);
-+		return err;
-+	}
-+
-+	if (udata)
-+		cq->is_user = 1;
-+
-+	tasklet_init(&cq->comp_task, rxe_send_complete, (unsigned long)cq);
-+
-+	spin_lock_init(&cq->cq_lock);
-+	cq->ibcq.cqe = cqe;
-+	return 0;
-+}
-+
-+int rxe_cq_resize_queue(struct rxe_cq *cq, int cqe, struct ib_udata *udata)
-+{
-+	int err;
-+
-+	err = rxe_queue_resize(cq->queue, (unsigned int *)&cqe,
-+			       sizeof(struct rxe_cqe),
-+			       cq->queue->ip ? cq->queue->ip->context : NULL,
-+			       udata, NULL, &cq->cq_lock);
-+	if (!err)
-+		cq->ibcq.cqe = cqe;
-+
-+	return err;
-+}
-+
-+int rxe_cq_post(struct rxe_cq *cq, struct rxe_cqe *cqe, int solicited)
-+{
-+	struct ib_event ev;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&cq->cq_lock, flags);
-+
-+	if (unlikely(queue_full(cq->queue))) {
-+		spin_unlock_irqrestore(&cq->cq_lock, flags);
-+		if (cq->ibcq.event_handler) {
-+			ev.device = cq->ibcq.device;
-+			ev.element.cq = &cq->ibcq;
-+			ev.event = IB_EVENT_CQ_ERR;
-+			cq->ibcq.event_handler(&ev, cq->ibcq.cq_context);
++	while (1) {
++		spin_lock_bh(&qp->grp_lock);
++		if (list_empty(&qp->grp_list)) {
++			spin_unlock_bh(&qp->grp_lock);
++			break;
 +		}
++		elem = list_first_entry(&qp->grp_list, struct rxe_mc_elem,
++					grp_list);
++		list_del(&elem->grp_list);
++		spin_unlock_bh(&qp->grp_lock);
 +
-+		return -EBUSY;
++		grp = elem->grp;
++		spin_lock_bh(&grp->mcg_lock);
++		list_del(&elem->qp_list);
++		grp->num_qp--;
++		spin_unlock_bh(&grp->mcg_lock);
++		rxe_drop_ref(grp);
++		rxe_drop_ref(elem);
 +	}
-+
-+	memcpy(producer_addr(cq->queue), cqe, sizeof(*cqe));
-+
-+	/* make sure all changes to the CQ are written before we update the
-+	 * producer pointer
-+	 */
-+	smp_wmb();
-+
-+	advance_producer(cq->queue);
-+	spin_unlock_irqrestore(&cq->cq_lock, flags);
-+
-+	if ((cq->notify == IB_CQ_NEXT_COMP) ||
-+	    (cq->notify == IB_CQ_SOLICITED && solicited)) {
-+		cq->notify++;
-+		tasklet_schedule(&cq->comp_task);
-+	}
-+
-+	return 0;
 +}
 +
-+void rxe_cq_cleanup(void *arg)
++void rxe_mc_cleanup(void *arg)
 +{
-+	struct rxe_cq *cq = arg;
++	struct rxe_mc_grp *grp = arg;
++	struct rxe_dev *rxe = grp->rxe;
 +
-+	if (cq->queue)
-+		rxe_queue_cleanup(cq->queue);
++	rxe_drop_key(grp);
++	rxe->ifc_ops->mcast_delete(rxe, &grp->mgid);
 +}
 -- 
 1.8.3.1
