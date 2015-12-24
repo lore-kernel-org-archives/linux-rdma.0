@@ -1,7 +1,7 @@
 From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next V2 31/32] IB/rxe: Add Soft-RoCE to kbuild and makefiles
-Date: Thu, 24 Dec 2015 11:18:17 +0200
-Message-ID: <1450948698-13383-32-git-send-email-kamalh@mellanox.com>
+Subject: [PATCH rdma-next V2 25/32] IB/rxe: Dummy DMA callbacks for RXE device
+Date: Thu, 24 Dec 2015 11:18:11 +0200
+Message-ID: <1450948698-13383-26-git-send-email-kamalh@mellanox.com>
 References: <1450948698-13383-1-git-send-email-kamalh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450948698-13383-1-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,99 +10,188 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Kconfig and Makefiles for RXE driver
+Dummy DMA processing for RXE device.
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/staging/rdma/Kconfig      |  2 ++
- drivers/staging/rdma/Makefile     |  1 +
- drivers/staging/rdma/rxe/Kconfig  | 23 +++++++++++++++++++++++
- drivers/staging/rdma/rxe/Makefile | 24 ++++++++++++++++++++++++
- 4 files changed, 50 insertions(+)
- create mode 100644 drivers/staging/rdma/rxe/Kconfig
- create mode 100644 drivers/staging/rdma/rxe/Makefile
+ drivers/staging/rdma/rxe/rxe_dma.c | 166 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 166 insertions(+)
+ create mode 100644 drivers/staging/rdma/rxe/rxe_dma.c
 
-diff --git a/drivers/staging/rdma/Kconfig b/drivers/staging/rdma/Kconfig
-index ba87650..9f92e0d 100644
---- a/drivers/staging/rdma/Kconfig
-+++ b/drivers/staging/rdma/Kconfig
-@@ -30,4 +30,6 @@ source "drivers/staging/rdma/hfi1/Kconfig"
- 
- source "drivers/staging/rdma/ipath/Kconfig"
- 
-+source "drivers/staging/rdma/rxe/Kconfig"
-+
- endif
-diff --git a/drivers/staging/rdma/Makefile b/drivers/staging/rdma/Makefile
-index 139d78e..3648a42 100644
---- a/drivers/staging/rdma/Makefile
-+++ b/drivers/staging/rdma/Makefile
-@@ -3,3 +3,4 @@ obj-$(CONFIG_INFINIBAND_AMSO1100)	+= amso1100/
- obj-$(CONFIG_INFINIBAND_EHCA)	+= ehca/
- obj-$(CONFIG_INFINIBAND_HFI1)	+= hfi1/
- obj-$(CONFIG_INFINIBAND_IPATH)	+= ipath/
-+obj-$(CONFIG_INFINIBAND_RXE)    += rxe/
-diff --git a/drivers/staging/rdma/rxe/Kconfig b/drivers/staging/rdma/rxe/Kconfig
+diff --git a/drivers/staging/rdma/rxe/rxe_dma.c b/drivers/staging/rdma/rxe/rxe_dma.c
 new file mode 100644
-index 0000000..649b7be
+index 0000000..265b03d
 --- /dev/null
-+++ b/drivers/staging/rdma/rxe/Kconfig
-@@ -0,0 +1,23 @@
-+config INFINIBAND_RXE
-+	tristate "Software RDMA over Ethernet (RoCE) driver"
-+	depends on INET && PCI && INFINIBAND
-+	---help---
-+	This driver implements the InfiniBand RDMA transport over
-+	the Linux network stack. It enables a system with a
-+	standard Ethernet adapter to interoperate with a RoCE
-+	adapter or with another system running the RXE driver.
-+	Documentation on InfiniBand and RoCE can be downloaded at
-+	www.infinibandta.org and www.openfabrics.org. (See also
-+	siw which is a similar software driver for iWARP.)
++++ b/drivers/staging/rdma/rxe/rxe_dma.c
+@@ -0,0 +1,166 @@
++/*
++ * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
++ * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *	- Redistributions of source code must retain the above
++ *	  copyright notice, this list of conditions and the following
++ *	  disclaimer.
++ *
++ *	- Redistributions in binary form must reproduce the above
++ *	  copyright notice, this list of conditions and the following
++ *	  disclaimer in the documentation and/or other materials
++ *	  provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
 +
-+	The driver is split into two layers, one interfaces with the
-+	Linux RDMA stack and implements a kernel or user space
-+	verbs API. The user space verbs API requires a support
-+	library named librxe which is loaded by the generic user
-+	space verbs API, libibverbs. The other layer interfaces
-+	with the Linux network stack at layer 3.
++#include "rxe.h"
++#include "rxe_loc.h"
 +
-+	To configure and work with soft-RoCE driver please use the
-+	following wiki page under "configure Soft-RoCE (RXE)" section:
++#define DMA_BAD_ADDER ((u64)0)
 +
-+	https://github.com/SoftRoCE/rxe-dev/wiki/rxe-dev:-Home
-diff --git a/drivers/staging/rdma/rxe/Makefile b/drivers/staging/rdma/rxe/Makefile
-new file mode 100644
-index 0000000..7cf7774
---- /dev/null
-+++ b/drivers/staging/rdma/rxe/Makefile
-@@ -0,0 +1,24 @@
-+obj-$(CONFIG_INFINIBAND_RXE) += ib_rxe.o
++static int rxe_mapping_error(struct ib_device *dev, u64 dma_addr)
++{
++	return dma_addr == DMA_BAD_ADDER;
++}
 +
-+ib_rxe-y := \
-+	rxe.o \
-+	rxe_comp.o \
-+	rxe_req.o \
-+	rxe_resp.o \
-+	rxe_recv.o \
-+	rxe_pool.o \
-+	rxe_queue.o \
-+	rxe_verbs.o \
-+	rxe_av.o \
-+	rxe_srq.o \
-+	rxe_qp.o \
-+	rxe_cq.o \
-+	rxe_mr.o \
-+	rxe_dma.o \
-+	rxe_opcode.o \
-+	rxe_mmap.o \
-+	rxe_icrc.o \
-+	rxe_mcast.o \
-+	rxe_task.o \
-+	rxe_net.o \
-+	rxe_sysfs.o
++static u64 rxe_dma_map_single(struct ib_device *dev,
++			      void *cpu_addr, size_t size,
++			      enum dma_data_direction direction)
++{
++	WARN_ON(!valid_dma_direction(direction));
++	return (u64)cpu_addr;
++}
++
++static void rxe_dma_unmap_single(struct ib_device *dev,
++				 u64 addr, size_t size,
++				 enum dma_data_direction direction)
++{
++	WARN_ON(!valid_dma_direction(direction));
++}
++
++static u64 rxe_dma_map_page(struct ib_device *dev,
++			    struct page *page,
++			    unsigned long offset,
++			    size_t size, enum dma_data_direction direction)
++{
++	u64 addr;
++
++	WARN_ON(!valid_dma_direction(direction));
++
++	if (offset + size > PAGE_SIZE) {
++		addr = DMA_BAD_ADDER;
++		goto done;
++	}
++
++	addr = (u64)page_address(page);
++	if (addr)
++		addr += offset;
++
++done:
++	return addr;
++}
++
++static void rxe_dma_unmap_page(struct ib_device *dev,
++			       u64 addr, size_t size,
++			       enum dma_data_direction direction)
++{
++	WARN_ON(!valid_dma_direction(direction));
++}
++
++static int rxe_map_sg(struct ib_device *dev, struct scatterlist *sgl,
++		      int nents, enum dma_data_direction direction)
++{
++	struct scatterlist *sg;
++	u64 addr;
++	int i;
++	int ret = nents;
++
++	WARN_ON(!valid_dma_direction(direction));
++
++	for_each_sg(sgl, sg, nents, i) {
++		addr = (u64)page_address(sg_page(sg));
++		if (!addr) {
++			ret = 0;
++			break;
++		}
++		sg->dma_address = addr + sg->offset;
++#ifdef CONFIG_NEED_SG_DMA_LENGTH
++		sg->dma_length = sg->length;
++#endif
++	}
++
++	return ret;
++}
++
++static void rxe_unmap_sg(struct ib_device *dev,
++			 struct scatterlist *sg, int nents,
++			 enum dma_data_direction direction)
++{
++	WARN_ON(!valid_dma_direction(direction));
++}
++
++static void rxe_sync_single_for_cpu(struct ib_device *dev,
++				    u64 addr,
++				    size_t size, enum dma_data_direction dir)
++{
++}
++
++static void rxe_sync_single_for_device(struct ib_device *dev,
++				       u64 addr,
++				       size_t size, enum dma_data_direction dir)
++{
++}
++
++static void *rxe_dma_alloc_coherent(struct ib_device *dev, size_t size,
++				    u64 *dma_handle, gfp_t flag)
++{
++	struct page *p;
++	void *addr = NULL;
++
++	p = alloc_pages(flag, get_order(size));
++	if (p)
++		addr = page_address(p);
++
++	if (dma_handle)
++		*dma_handle = (u64)addr;
++
++	return addr;
++}
++
++static void rxe_dma_free_coherent(struct ib_device *dev, size_t size,
++				  void *cpu_addr, u64 dma_handle)
++{
++	free_pages((unsigned long)cpu_addr, get_order(size));
++}
++
++struct ib_dma_mapping_ops rxe_dma_mapping_ops = {
++	.mapping_error		= rxe_mapping_error,
++	.map_single		= rxe_dma_map_single,
++	.unmap_single		= rxe_dma_unmap_single,
++	.map_page		= rxe_dma_map_page,
++	.unmap_page		= rxe_dma_unmap_page,
++	.map_sg			= rxe_map_sg,
++	.unmap_sg		= rxe_unmap_sg,
++	.sync_single_for_cpu	= rxe_sync_single_for_cpu,
++	.sync_single_for_device	= rxe_sync_single_for_device,
++	.alloc_coherent		= rxe_dma_alloc_coherent,
++	.free_coherent		= rxe_dma_free_coherent
++};
 -- 
 1.8.3.1
 
