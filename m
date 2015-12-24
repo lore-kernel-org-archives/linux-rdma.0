@@ -1,7 +1,7 @@
 From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next V2 15/32] IB/rxe: Address vector manipulation functions
-Date: Thu, 24 Dec 2015 11:18:01 +0200
-Message-ID: <1450948698-13383-16-git-send-email-kamalh@mellanox.com>
+Subject: [PATCH rdma-next V2 26/32] IB/rxe: ICRC calculations
+Date: Thu, 24 Dec 2015 11:18:12 +0200
+Message-ID: <1450948698-13383-27-git-send-email-kamalh@mellanox.com>
 References: <1450948698-13383-1-git-send-email-kamalh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450948698-13383-1-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,22 +10,21 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Functions to manipulate Address Vector.
+Compute ICRC for UDP/IP/BTH headers
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/staging/rdma/rxe/rxe_av.c | 87 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 87 insertions(+)
- create mode 100644 drivers/staging/rdma/rxe/rxe_av.c
+ drivers/staging/rdma/rxe/rxe_icrc.c | 96 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 96 insertions(+)
+ create mode 100644 drivers/staging/rdma/rxe/rxe_icrc.c
 
-diff --git a/drivers/staging/rdma/rxe/rxe_av.c b/drivers/staging/rdma/rxe/rxe_av.c
+diff --git a/drivers/staging/rdma/rxe/rxe_icrc.c b/drivers/staging/rdma/rxe/rxe_icrc.c
 new file mode 100644
-index 0000000..cc4b179
+index 0000000..02b73d6
 --- /dev/null
-+++ b/drivers/staging/rdma/rxe/rxe_av.c
-@@ -0,0 +1,87 @@
++++ b/drivers/staging/rdma/rxe/rxe_icrc.c
+@@ -0,0 +1,96 @@
 +/*
 + * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
@@ -36,18 +35,18 @@ index 0000000..cc4b179
 + * COPYING in the main directory of this source tree, or the
 + * OpenIB.org BSD license below:
 + *
-+ *	   Redistribution and use in source and binary forms, with or
-+ *	   without modification, are permitted provided that the following
-+ *	   conditions are met:
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
 + *
-+ *		- Redistributions of source code must retain the above
-+ *		  copyright notice, this list of conditions and the following
-+ *		  disclaimer.
++ *	- Redistributions of source code must retain the above
++ *	  copyright notice, this list of conditions and the following
++ *	  disclaimer.
 + *
-+ *		- Redistributions in binary form must reproduce the above
-+ *		  copyright notice, this list of conditions and the following
-+ *		  disclaimer in the documentation and/or other materials
-+ *		  provided with the distribution.
++ *	- Redistributions in binary form must reproduce the above
++ *	  copyright notice, this list of conditions and the following
++ *	  disclaimer in the documentation and/or other materials
++ *	  provided with the distribution.
 + *
 + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -62,56 +61,65 @@ index 0000000..cc4b179
 +#include "rxe.h"
 +#include "rxe_loc.h"
 +
-+int rxe_av_chk_attr(struct rxe_dev *rxe, struct ib_ah_attr *attr)
++/* Compute a partial ICRC for all the IB transport headers. */
++u32 rxe_icrc_hdr(struct rxe_pkt_info *pkt, struct sk_buff *skb)
 +{
-+	struct rxe_port *port;
++	unsigned int bth_offset = 0;
++	struct iphdr *ip4h = NULL;
++	struct ipv6hdr *ip6h = NULL;
++	struct udphdr *udph;
++	struct rxe_bth *bth;
++	int crc;
++	int length;
++	int hdr_size = sizeof(struct udphdr) +
++		(skb->protocol == htons(ETH_P_IP) ?
++		sizeof(struct iphdr) : sizeof(struct ipv6hdr));
++	/* pseudo header buffer size is calculate using ipv6 header size since
++	 * it is bigger than ipv4
++	 */
++	u8 pshdr[sizeof(struct udphdr) +
++		sizeof(struct ipv6hdr) +
++		RXE_BTH_BYTES];
 +
-+	if (attr->port_num < 1 || attr->port_num > rxe->num_ports) {
-+		pr_info("rxe: invalid port_num = %d\n", attr->port_num);
-+		return -EINVAL;
++	/* This seed is the result of computing a CRC with a seed of
++	 * 0xfffffff and 8 bytes of 0xff representing a masked LRH.
++	 */
++	crc = 0xdebb20e3;
++
++	if (skb->protocol == htons(ETH_P_IP)) { /* IPv4 */
++		memcpy(pshdr, ip_hdr(skb), hdr_size);
++		ip4h = (struct iphdr *)pshdr;
++		udph = (struct udphdr *)(ip4h + 1);
++
++		ip4h->ttl = 0xff;
++		ip4h->check = CSUM_MANGLED_0;
++		ip4h->tos = 0xff;
++	} else {				/* IPv6 */
++		memcpy(pshdr, ipv6_hdr(skb), hdr_size);
++		ip6h = (struct ipv6hdr *)pshdr;
++		udph = (struct udphdr *)(ip6h + 1);
++
++		memset(ip6h->flow_lbl, 0xff, sizeof(ip6h->flow_lbl));
++		ip6h->priority = 0xf;
++		ip6h->hop_limit = 0xff;
 +	}
++	udph->check = CSUM_MANGLED_0;
 +
-+	port = &rxe->port[attr->port_num - 1];
++	bth_offset += hdr_size;
 +
-+	if (attr->ah_flags & IB_AH_GRH) {
-+		if (attr->grh.sgid_index > port->attr.gid_tbl_len) {
-+			pr_info("rxe: invalid sgid index = %d\n",
-+				attr->grh.sgid_index);
-+			return -EINVAL;
-+		}
-+	}
++	memcpy(&pshdr[bth_offset], pkt->hdr, RXE_BTH_BYTES);
++	bth = (struct rxe_bth *)&pshdr[bth_offset];
 +
-+	return 0;
-+}
++	/* exclude bth.resv8a */
++	bth->qpn |= cpu_to_be32(~BTH_QPN_MASK);
 +
-+int rxe_av_from_attr(struct rxe_dev *rxe, u8 port_num,
-+		     struct rxe_av *av, struct ib_ah_attr *attr)
-+{
-+	memset(av, 0, sizeof(*av));
-+	memcpy(&av->grh, &attr->grh, sizeof(attr->grh));
-+	av->port_num = port_num;
-+	return 0;
-+}
++	length = hdr_size + RXE_BTH_BYTES;
++	crc = crc32_le(crc, pshdr, length);
 +
-+int rxe_av_to_attr(struct rxe_dev *rxe, struct rxe_av *av,
-+		   struct ib_ah_attr *attr)
-+{
-+	memcpy(&attr->grh, &av->grh, sizeof(av->grh));
-+	attr->port_num = av->port_num;
-+	return 0;
-+}
-+
-+int rxe_av_fill_ip_info(struct rxe_dev *rxe,
-+			struct rxe_av *av,
-+			struct ib_ah_attr *attr,
-+			struct ib_gid_attr *sgid_attr,
-+			union ib_gid *sgid)
-+{
-+	rdma_gid2ip(&av->sgid_addr._sockaddr, sgid);
-+	rdma_gid2ip(&av->dgid_addr._sockaddr, &attr->grh.dgid);
-+	av->network_type = ib_gid_to_network_type(sgid_attr->gid_type, sgid);
-+
-+	return 0;
++	/* And finish to compute the CRC on the remainder of the headers. */
++	crc = crc32_le(crc, pkt->hdr + RXE_BTH_BYTES,
++		       rxe_opcode[pkt->opcode].length - RXE_BTH_BYTES);
++	return crc;
 +}
 -- 
 1.8.3.1
