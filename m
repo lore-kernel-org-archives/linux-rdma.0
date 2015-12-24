@@ -1,7 +1,7 @@
 From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next V2 27/32] IB/rxe: Module init hooks
-Date: Thu, 24 Dec 2015 11:18:13 +0200
-Message-ID: <1450948698-13383-28-git-send-email-kamalh@mellanox.com>
+Subject: [PATCH rdma-next V2 21/32] IB/rxe: Received packets handling
+Date: Thu, 24 Dec 2015 11:18:07 +0200
+Message-ID: <1450948698-13383-22-git-send-email-kamalh@mellanox.com>
 References: <1450948698-13383-1-git-send-email-kamalh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450948698-13383-1-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,23 +10,23 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Module main for ib_rxe
+Handles receiving new packets which are sent to either request or
+response processing.
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/staging/rdma/rxe/rxe.c | 436 +++++++++++++++++++++++++++++++++++++++++
- drivers/staging/rdma/rxe/rxe.h |   2 +
- 2 files changed, 438 insertions(+)
- create mode 100644 drivers/staging/rdma/rxe/rxe.c
+ drivers/staging/rdma/rxe/rxe_recv.c | 371 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 371 insertions(+)
+ create mode 100644 drivers/staging/rdma/rxe/rxe_recv.c
 
-diff --git a/drivers/staging/rdma/rxe/rxe.c b/drivers/staging/rdma/rxe/rxe.c
+diff --git a/drivers/staging/rdma/rxe/rxe_recv.c b/drivers/staging/rdma/rxe/rxe_recv.c
 new file mode 100644
-index 0000000..616b07b
+index 0000000..0944442
 --- /dev/null
-+++ b/drivers/staging/rdma/rxe/rxe.c
-@@ -0,0 +1,436 @@
++++ b/drivers/staging/rdma/rxe/rxe_recv.c
+@@ -0,0 +1,371 @@
 +/*
 + * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
@@ -60,420 +60,344 @@ index 0000000..616b07b
 + * SOFTWARE.
 + */
 +
++#include <linux/skbuff.h>
++
 +#include "rxe.h"
 +#include "rxe_loc.h"
 +
-+MODULE_AUTHOR("Bob Pearson, Frank Zago, John Groves, Kamal Heib");
-+MODULE_DESCRIPTION("Soft RDMA transport");
-+MODULE_LICENSE("Dual BSD/GPL");
-+MODULE_VERSION("0.2");
-+
-+/* free resources for all ports on a device */
-+static void rxe_cleanup_ports(struct rxe_dev *rxe)
++static int check_type_state(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
++			    struct rxe_qp *qp)
 +{
-+	unsigned int port_num;
-+	struct rxe_port *port;
++	if (unlikely(!qp->valid))
++		goto err1;
 +
-+	for (port_num = 1; port_num <= rxe->num_ports; port_num++) {
-+		port = &rxe->port[port_num - 1];
-+
-+		kfree(port->pkey_tbl);
-+		port->pkey_tbl = NULL;
++	switch (qp_type(qp)) {
++	case IB_QPT_RC:
++		if (unlikely((pkt->opcode & IB_OPCODE_RC) != 0)) {
++			pr_warn_ratelimited("bad qp type\n");
++			goto err1;
++		}
++		break;
++	case IB_QPT_UC:
++		if (unlikely(!(pkt->opcode & IB_OPCODE_UC))) {
++			pr_warn_ratelimited("bad qp type\n");
++			goto err1;
++		}
++		break;
++	case IB_QPT_UD:
++	case IB_QPT_SMI:
++	case IB_QPT_GSI:
++		if (unlikely(!(pkt->opcode & IB_OPCODE_UD))) {
++			pr_warn_ratelimited("bad qp type\n");
++			goto err1;
++		}
++		break;
++	default:
++		pr_warn_ratelimited("unsupported qp type\n");
++		goto err1;
 +	}
 +
-+	kfree(rxe->port);
-+	rxe->port = NULL;
-+}
-+
-+/* free resources for a rxe device all objects created for this device must
-+ * have been destroyed
-+ */
-+static void rxe_cleanup(struct rxe_dev *rxe)
-+{
-+	rxe_pool_cleanup(&rxe->uc_pool);
-+	rxe_pool_cleanup(&rxe->pd_pool);
-+	rxe_pool_cleanup(&rxe->ah_pool);
-+	rxe_pool_cleanup(&rxe->srq_pool);
-+	rxe_pool_cleanup(&rxe->qp_pool);
-+	rxe_pool_cleanup(&rxe->cq_pool);
-+	rxe_pool_cleanup(&rxe->mr_pool);
-+	rxe_pool_cleanup(&rxe->fmr_pool);
-+	rxe_pool_cleanup(&rxe->mw_pool);
-+	rxe_pool_cleanup(&rxe->mc_grp_pool);
-+	rxe_pool_cleanup(&rxe->mc_elem_pool);
-+
-+	rxe_cleanup_ports(rxe);
-+}
-+
-+/* called when all references have been dropped */
-+void rxe_release(struct kref *kref)
-+{
-+	struct rxe_dev *rxe = container_of(kref, struct rxe_dev, ref_cnt);
-+
-+	rxe_cleanup(rxe);
-+	ib_dealloc_device(&rxe->ib_dev);
-+}
-+
-+void rxe_dev_put(struct rxe_dev *rxe)
-+{
-+	kref_put(&rxe->ref_cnt, rxe_release);
-+}
-+EXPORT_SYMBOL_GPL(rxe_dev_put);
-+
-+/* initialize rxe device parameters */
-+static int rxe_init_device_param(struct rxe_dev *rxe)
-+{
-+	rxe->num_ports				= RXE_NUM_PORT;
-+	rxe->max_inline_data			= RXE_MAX_INLINE_DATA;
-+
-+	rxe->attr.fw_ver			= RXE_FW_VER;
-+	rxe->attr.max_mr_size			= RXE_MAX_MR_SIZE;
-+	rxe->attr.page_size_cap			= RXE_PAGE_SIZE_CAP;
-+	rxe->attr.vendor_id			= RXE_VENDOR_ID;
-+	rxe->attr.vendor_part_id		= RXE_VENDOR_PART_ID;
-+	rxe->attr.hw_ver			= RXE_HW_VER;
-+	rxe->attr.max_qp			= RXE_MAX_QP;
-+	rxe->attr.max_qp_wr			= RXE_MAX_QP_WR;
-+	rxe->attr.device_cap_flags		= RXE_DEVICE_CAP_FLAGS;
-+	rxe->attr.max_sge			= RXE_MAX_SGE;
-+	rxe->attr.max_sge_rd			= RXE_MAX_SGE_RD;
-+	rxe->attr.max_cq			= RXE_MAX_CQ;
-+	rxe->attr.max_cqe			= (1 << RXE_MAX_LOG_CQE) - 1;
-+	rxe->attr.max_mr			= RXE_MAX_MR;
-+	rxe->attr.max_pd			= RXE_MAX_PD;
-+	rxe->attr.max_qp_rd_atom		= RXE_MAX_QP_RD_ATOM;
-+	rxe->attr.max_ee_rd_atom		= RXE_MAX_EE_RD_ATOM;
-+	rxe->attr.max_res_rd_atom		= RXE_MAX_RES_RD_ATOM;
-+	rxe->attr.max_qp_init_rd_atom		= RXE_MAX_QP_INIT_RD_ATOM;
-+	rxe->attr.max_ee_init_rd_atom		= RXE_MAX_EE_INIT_RD_ATOM;
-+	rxe->attr.atomic_cap			= RXE_ATOMIC_CAP;
-+	rxe->attr.max_ee			= RXE_MAX_EE;
-+	rxe->attr.max_rdd			= RXE_MAX_RDD;
-+	rxe->attr.max_mw			= RXE_MAX_MW;
-+	rxe->attr.max_raw_ipv6_qp		= RXE_MAX_RAW_IPV6_QP;
-+	rxe->attr.max_raw_ethy_qp		= RXE_MAX_RAW_ETHY_QP;
-+	rxe->attr.max_mcast_grp			= RXE_MAX_MCAST_GRP;
-+	rxe->attr.max_mcast_qp_attach		= RXE_MAX_MCAST_QP_ATTACH;
-+	rxe->attr.max_total_mcast_qp_attach	= RXE_MAX_TOT_MCAST_QP_ATTACH;
-+	rxe->attr.max_ah			= RXE_MAX_AH;
-+	rxe->attr.max_fmr			= RXE_MAX_FMR;
-+	rxe->attr.max_map_per_fmr		= RXE_MAX_MAP_PER_FMR;
-+	rxe->attr.max_srq			= RXE_MAX_SRQ;
-+	rxe->attr.max_srq_wr			= RXE_MAX_SRQ_WR;
-+	rxe->attr.max_srq_sge			= RXE_MAX_SRQ_SGE;
-+	rxe->attr.max_fast_reg_page_list_len	= RXE_MAX_FMR_PAGE_LIST_LEN;
-+	rxe->attr.max_pkeys			= RXE_MAX_PKEYS;
-+	rxe->attr.local_ca_ack_delay		= RXE_LOCAL_CA_ACK_DELAY;
-+
-+	rxe->max_ucontext			= RXE_MAX_UCONTEXT;
++	if (pkt->mask & RXE_REQ_MASK) {
++		if (unlikely(qp->resp.state != QP_STATE_READY))
++			goto err1;
++	} else if (unlikely(qp->req.state < QP_STATE_READY ||
++			qp->req.state > QP_STATE_DRAINED))
++			goto err1;
 +
 +	return 0;
++
++err1:
++	return -EINVAL;
 +}
 +
-+/* initialize port attributes */
-+static int rxe_init_port_param(struct rxe_dev *rxe, unsigned int port_num)
++static void set_bad_pkey_cntr(struct rxe_port *port)
 +{
-+	struct rxe_port *port = &rxe->port[port_num - 1];
-+
-+	port->attr.state		= RXE_PORT_STATE;
-+	port->attr.max_mtu		= RXE_PORT_MAX_MTU;
-+	port->attr.active_mtu		= RXE_PORT_ACTIVE_MTU;
-+	port->attr.gid_tbl_len		= RXE_PORT_GID_TBL_LEN;
-+	port->attr.port_cap_flags	= RXE_PORT_PORT_CAP_FLAGS;
-+	port->attr.max_msg_sz		= RXE_PORT_MAX_MSG_SZ;
-+	port->attr.bad_pkey_cntr	= RXE_PORT_BAD_PKEY_CNTR;
-+	port->attr.qkey_viol_cntr	= RXE_PORT_QKEY_VIOL_CNTR;
-+	port->attr.pkey_tbl_len		= RXE_PORT_PKEY_TBL_LEN;
-+	port->attr.lid			= RXE_PORT_LID;
-+	port->attr.sm_lid		= RXE_PORT_SM_LID;
-+	port->attr.lmc			= RXE_PORT_LMC;
-+	port->attr.max_vl_num		= RXE_PORT_MAX_VL_NUM;
-+	port->attr.sm_sl		= RXE_PORT_SM_SL;
-+	port->attr.subnet_timeout	= RXE_PORT_SUBNET_TIMEOUT;
-+	port->attr.init_type_reply	= RXE_PORT_INIT_TYPE_REPLY;
-+	port->attr.active_width		= RXE_PORT_ACTIVE_WIDTH;
-+	port->attr.active_speed		= RXE_PORT_ACTIVE_SPEED;
-+	port->attr.phys_state		= RXE_PORT_PHYS_STATE;
-+	port->mtu_cap			=
-+				ib_mtu_enum_to_int(RXE_PORT_ACTIVE_MTU);
-+	port->subnet_prefix		= cpu_to_be64(RXE_PORT_SUBNET_PREFIX);
-+
-+	return 0;
++	spin_lock_bh(&port->port_lock);
++	port->attr.bad_pkey_cntr = min((u32)0xffff,
++				       port->attr.bad_pkey_cntr + 1);
++	spin_unlock_bh(&port->port_lock);
 +}
 +
-+/* initialize port state, note IB convention that HCA ports are always
-+ * numbered from 1
-+ */
-+static int rxe_init_ports(struct rxe_dev *rxe)
++static void set_qkey_viol_cntr(struct rxe_port *port)
 +{
-+	int err;
-+	unsigned int port_num;
-+	struct rxe_port *port;
++	spin_lock_bh(&port->port_lock);
++	port->attr.qkey_viol_cntr = min((u32)0xffff,
++					port->attr.qkey_viol_cntr + 1);
++	spin_unlock_bh(&port->port_lock);
++}
 +
-+	rxe->port = kcalloc(rxe->num_ports, sizeof(struct rxe_port),
-+			    GFP_KERNEL);
-+	if (!rxe->port)
-+		return -ENOMEM;
++static int check_keys(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
++		      u32 qpn, struct rxe_qp *qp)
++{
++	int i;
++	int found_pkey = 0;
++	struct rxe_port *port = &rxe->port[pkt->port_num - 1];
++	u16 pkey = bth_pkey(pkt);
 +
-+	for (port_num = 1; port_num <= rxe->num_ports; port_num++) {
-+		port = &rxe->port[port_num - 1];
++	pkt->pkey_index = 0;
 +
-+		rxe_init_port_param(rxe, port_num);
-+
-+		if (!port->attr.pkey_tbl_len) {
-+			err = -EINVAL;
-+			goto err1;
++	if (qpn == 1) {
++		for (i = 0; i < port->attr.pkey_tbl_len; i++) {
++			if (pkey_match(pkey, port->pkey_tbl[i])) {
++				pkt->pkey_index = i;
++				found_pkey = 1;
++				break;
++			}
 +		}
 +
-+		port->pkey_tbl = kcalloc(port->attr.pkey_tbl_len,
-+					 sizeof(*port->pkey_tbl), GFP_KERNEL);
-+		if (!port->pkey_tbl) {
-+			err = -ENOMEM;
++		if (!found_pkey) {
++			pr_warn_ratelimited("bad pkey = 0x%x\n", pkey);
++			set_bad_pkey_cntr(port);
 +			goto err1;
 +		}
-+
-+		port->pkey_tbl[0] = 0xffff;
-+
-+		if (!port->attr.gid_tbl_len) {
-+			kfree(port->pkey_tbl);
-+			err = -EINVAL;
++	} else if (qpn != 0) {
++		if (unlikely(!pkey_match(pkey,
++					 port->pkey_tbl[qp->attr.pkey_index]
++					))) {
++			pr_warn_ratelimited("bad pkey = 0x%0x\n", pkey);
++			set_bad_pkey_cntr(port);
 +			goto err1;
 +		}
++		pkt->pkey_index = qp->attr.pkey_index;
++	}
 +
-+		port->port_guid = rxe->ifc_ops->port_guid(rxe, port_num);
++	if ((qp_type(qp) == IB_QPT_UD || qp_type(qp) == IB_QPT_GSI) &&
++	    qpn != 0 && pkt->mask) {
++		u32 qkey = (qpn == 1) ? GSI_QKEY : qp->attr.qkey;
 +
-+		spin_lock_init(&port->port_lock);
++		if (unlikely(deth_qkey(pkt) != qkey)) {
++			pr_warn_ratelimited("bad qkey, got 0x%x expected 0x%x for qpn 0x%x\n",
++				deth_qkey(pkt), qkey, qpn);
++			set_qkey_viol_cntr(port);
++			goto err1;
++		}
 +	}
 +
 +	return 0;
 +
 +err1:
-+	while (--port_num >= 1) {
-+		port = &rxe->port[port_num - 1];
-+		kfree(port->pkey_tbl);
++	return -EINVAL;
++}
++
++static int check_addr(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
++		      struct rxe_qp *qp)
++{
++	struct sk_buff *skb = PKT_TO_SKB(pkt);
++
++	if (qp_type(qp) != IB_QPT_RC && qp_type(qp) != IB_QPT_UC)
++		goto done;
++
++	if (unlikely(pkt->port_num != qp->attr.port_num)) {
++		pr_warn_ratelimited("port %d != qp port %d\n",
++			pkt->port_num, qp->attr.port_num);
++		goto err1;
 +	}
 +
-+	kfree(rxe->port);
-+	return err;
-+}
++	if (skb->protocol == htons(ETH_P_IP)) {
++		struct in_addr *saddr =
++			&qp->pri_av.sgid_addr._sockaddr_in.sin_addr;
++		struct in_addr *daddr =
++			&qp->pri_av.dgid_addr._sockaddr_in.sin_addr;
 +
-+/* init pools of managed objects */
-+static int rxe_init_pools(struct rxe_dev *rxe)
-+{
-+	int err;
++		if (ip_hdr(skb)->daddr != saddr->s_addr) {
++			pr_warn_ratelimited("dst addr %pI4 != qp source addr %pI4\n",
++					    &ip_hdr(skb)->saddr,
++					    &saddr->s_addr);
++			goto err1;
++		}
 +
-+	err = rxe_pool_init(rxe, &rxe->uc_pool, RXE_TYPE_UC,
-+			    rxe->max_ucontext);
-+	if (err)
-+		goto err1;
++		if (ip_hdr(skb)->saddr != daddr->s_addr) {
++			pr_warn_ratelimited("source addr %pI4 != qp dst addr %pI4\n",
++					    &ip_hdr(skb)->daddr,
++					    &daddr->s_addr);
++			goto err1;
++		}
 +
-+	err = rxe_pool_init(rxe, &rxe->pd_pool, RXE_TYPE_PD,
-+			    rxe->attr.max_pd);
-+	if (err)
-+		goto err2;
++	} else if (skb->protocol == htons(ETH_P_IPV6)) {
++		struct in6_addr *saddr =
++			&qp->pri_av.sgid_addr._sockaddr_in6.sin6_addr;
++		struct in6_addr *daddr =
++			&qp->pri_av.dgid_addr._sockaddr_in6.sin6_addr;
 +
-+	err = rxe_pool_init(rxe, &rxe->ah_pool, RXE_TYPE_AH,
-+			    rxe->attr.max_ah);
-+	if (err)
-+		goto err3;
++		if (memcmp(&ipv6_hdr(skb)->daddr, saddr, sizeof(*saddr))) {
++			pr_warn_ratelimited("dst addr %pI6 != qp source addr %pI6\n",
++					    &ipv6_hdr(skb)->saddr, saddr);
++			goto err1;
++		}
 +
-+	err = rxe_pool_init(rxe, &rxe->srq_pool, RXE_TYPE_SRQ,
-+			    rxe->attr.max_srq);
-+	if (err)
-+		goto err4;
++		if (memcmp(&ipv6_hdr(skb)->saddr, daddr, sizeof(*daddr))) {
++			pr_warn_ratelimited("source addr %pI6 != qp dst addr %pI6\n",
++					    &ipv6_hdr(skb)->daddr, daddr);
++			goto err1;
++		}
++	}
 +
-+	err = rxe_pool_init(rxe, &rxe->qp_pool, RXE_TYPE_QP,
-+			    rxe->attr.max_qp);
-+	if (err)
-+		goto err5;
-+
-+	err = rxe_pool_init(rxe, &rxe->cq_pool, RXE_TYPE_CQ,
-+			    rxe->attr.max_cq);
-+	if (err)
-+		goto err6;
-+
-+	err = rxe_pool_init(rxe, &rxe->mr_pool, RXE_TYPE_MR,
-+			    rxe->attr.max_mr);
-+	if (err)
-+		goto err7;
-+
-+	err = rxe_pool_init(rxe, &rxe->fmr_pool, RXE_TYPE_FMR,
-+			    rxe->attr.max_fmr);
-+	if (err)
-+		goto err8;
-+
-+	err = rxe_pool_init(rxe, &rxe->mw_pool, RXE_TYPE_MW,
-+			    rxe->attr.max_mw);
-+	if (err)
-+		goto err9;
-+
-+	err = rxe_pool_init(rxe, &rxe->mc_grp_pool, RXE_TYPE_MC_GRP,
-+			    rxe->attr.max_mcast_grp);
-+	if (err)
-+		goto err10;
-+
-+	err = rxe_pool_init(rxe, &rxe->mc_elem_pool, RXE_TYPE_MC_ELEM,
-+			    rxe->attr.max_total_mcast_qp_attach);
-+	if (err)
-+		goto err11;
-+
++done:
 +	return 0;
 +
-+err11:
-+	rxe_pool_cleanup(&rxe->mc_grp_pool);
-+err10:
-+	rxe_pool_cleanup(&rxe->mw_pool);
-+err9:
-+	rxe_pool_cleanup(&rxe->fmr_pool);
-+err8:
-+	rxe_pool_cleanup(&rxe->mr_pool);
-+err7:
-+	rxe_pool_cleanup(&rxe->cq_pool);
-+err6:
-+	rxe_pool_cleanup(&rxe->qp_pool);
-+err5:
-+	rxe_pool_cleanup(&rxe->srq_pool);
-+err4:
-+	rxe_pool_cleanup(&rxe->ah_pool);
-+err3:
-+	rxe_pool_cleanup(&rxe->pd_pool);
-+err2:
-+	rxe_pool_cleanup(&rxe->uc_pool);
 +err1:
-+	return err;
++	return -EINVAL;
 +}
 +
-+/* initialize rxe device state */
-+static int rxe_init(struct rxe_dev *rxe)
++static int hdr_check(struct rxe_pkt_info *pkt)
 +{
++	struct rxe_dev *rxe = pkt->rxe;
++	struct rxe_port *port = &rxe->port[pkt->port_num - 1];
++	struct rxe_qp *qp = NULL;
++	u32 qpn = bth_qpn(pkt);
++	int index;
 +	int err;
 +
-+	/* init default device parameters */
-+	rxe_init_device_param(rxe);
-+
-+	err = rxe_init_ports(rxe);
-+	if (err)
++	if (unlikely(bth_tver(pkt) != BTH_TVER)) {
++		pr_warn_ratelimited("bad tver\n");
 +		goto err1;
++	}
 +
-+	err = rxe_init_pools(rxe);
-+	if (err)
-+		goto err2;
++	if (qpn != IB_MULTICAST_QPN) {
++		index = (qpn == 0) ? port->qp_smi_index :
++			((qpn == 1) ? port->qp_gsi_index : qpn);
++		qp = rxe_pool_get_index(&rxe->qp_pool, index);
++		if (unlikely(!qp)) {
++			pr_warn_ratelimited("no qp matches qpn 0x%x\n", qpn);
++			goto err1;
++		}
 +
-+	/* init pending mmap list */
-+	spin_lock_init(&rxe->mmap_offset_lock);
-+	spin_lock_init(&rxe->pending_lock);
-+	INIT_LIST_HEAD(&rxe->pending_mmaps);
++		err = check_type_state(rxe, pkt, qp);
++		if (unlikely(err))
++			goto err2;
 +
-+	mutex_init(&rxe->usdev_lock);
++		err = check_addr(rxe, pkt, qp);
++		if (unlikely(err))
++			goto err2;
 +
++		err = check_keys(rxe, pkt, qpn, qp);
++		if (unlikely(err))
++			goto err2;
++	} else {
++		if (unlikely((pkt->mask & RXE_GRH_MASK) == 0)) {
++			pr_warn_ratelimited("no grh for mcast qpn\n");
++			goto err1;
++		}
++	}
++
++	pkt->qp = qp;
 +	return 0;
 +
 +err2:
-+	rxe_cleanup_ports(rxe);
++	if (qp)
++		rxe_drop_ref(qp);
 +err1:
-+	return err;
++	return -EINVAL;
 +}
 +
-+int rxe_set_mtu(struct rxe_dev *rxe, unsigned int ndev_mtu,
-+		unsigned int port_num)
++static inline void rxe_rcv_pkt(struct rxe_dev *rxe,
++			       struct rxe_pkt_info *pkt,
++			       struct sk_buff *skb)
 +{
-+	struct rxe_port *port = &rxe->port[port_num - 1];
-+	enum ib_mtu mtu;
-+
-+	mtu = eth_mtu_int_to_enum(ndev_mtu);
-+
-+	/* Make sure that new MTU in range */
-+	mtu = mtu ? min_t(enum ib_mtu, mtu, RXE_PORT_MAX_MTU) : IB_MTU_256;
-+
-+	port->attr.active_mtu = mtu;
-+	port->mtu_cap = ib_mtu_enum_to_int(mtu);
-+
-+	return 0;
++	if (pkt->mask & RXE_REQ_MASK)
++		rxe_resp_queue_pkt(rxe, pkt->qp, skb);
++	else
++		rxe_comp_queue_pkt(rxe, pkt->qp, skb);
 +}
-+EXPORT_SYMBOL(rxe_set_mtu);
 +
-+/* called by ifc layer to create new rxe device. The caller should allocate memory
-+ * for rxe by calling ib_alloc_device
-+ */
-+int rxe_add(struct rxe_dev *rxe, unsigned int mtu)
++static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
 +{
-+	int err;
-+	unsigned port_num = 1;
-+
-+	kref_init(&rxe->ref_cnt);
-+
-+	err = rxe_init(rxe);
-+	if (err)
-+		goto err1;
-+
-+	err = rxe_set_mtu(rxe, mtu, port_num);
-+	if (err)
-+		goto err1;
-+
-+	err = rxe_register_device(rxe);
-+	if (err)
-+		goto err1;
-+
-+	return 0;
-+
-+err1:
-+	rxe_dev_put(rxe);
-+	return err;
-+}
-+EXPORT_SYMBOL(rxe_add);
-+
-+/* called by the ifc layer to remove a device */
-+void rxe_remove(struct rxe_dev *rxe)
-+{
-+	rxe_unregister_device(rxe);
-+
-+	rxe_dev_put(rxe);
-+}
-+EXPORT_SYMBOL(rxe_remove);
-+
-+static int __init rxe_module_init(void)
-+{
++	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
++	struct rxe_mc_grp *mcg;
++	struct sk_buff *skb_copy;
++	struct rxe_mc_elem *mce;
++	struct rxe_qp *qp;
++	union ib_gid dgid;
 +	int err;
 +
-+	/* initialize slab caches for managed objects */
-+	err = rxe_cache_init();
-+	if (err) {
-+		pr_err("rxe: unable to init object pools\n");
-+		return err;
++	if (skb->protocol == htons(ETH_P_IP))
++		ipv6_addr_set_v4mapped(ip_hdr(skb)->daddr,
++				       (struct in6_addr *)&dgid);
++	else if (skb->protocol == htons(ETH_P_IPV6))
++		memcpy(&dgid, &ipv6_hdr(skb)->daddr, sizeof(dgid));
++
++	/* lookup mcast group corresponding to mgid, takes a ref */
++	mcg = rxe_pool_get_key(&rxe->mc_grp_pool, &dgid);
++	if (!mcg)
++		goto err1;	/* mcast group not registered */
++
++	spin_lock_bh(&mcg->mcg_lock);
++
++	list_for_each_entry(mce, &mcg->qp_list, qp_list) {
++		qp = mce->qp;
++		pkt = SKB_TO_PKT(skb);
++
++		/* validate qp for incoming packet */
++		err = check_type_state(rxe, pkt, qp);
++		if (err)
++			continue;
++
++		err = check_keys(rxe, pkt, bth_qpn(pkt), qp);
++		if (err)
++			continue;
++
++		/* if *not* the last qp in the list
++		   make a copy of the skb to post to the next qp */
++		skb_copy = (mce->qp_list.next != &mcg->qp_list) ?
++				skb_clone(skb, GFP_KERNEL) : NULL;
++
++		pkt->qp = qp;
++		rxe_add_ref(qp);
++		rxe_rcv_pkt(rxe, pkt, skb);
++
++		skb = skb_copy;
++		if (!skb)
++			break;
 +	}
 +
-+	err = rxe_net_init();
-+	if (err) {
-+		pr_err("rxe: unable to init\n");
-+		rxe_cache_exit();
-+		return err;
-+	}
-+	pr_info("rxe: loaded\n");
++	spin_unlock_bh(&mcg->mcg_lock);
++
++	rxe_drop_ref(mcg);	/* drop ref from rxe_pool_get_key. */
++
++err1:
++	if (skb)
++		kfree_skb(skb);
++}
++
++/* rxe_rcv is called from the interface driver */
++int rxe_rcv(struct sk_buff *skb)
++{
++	int err;
++	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
++	struct rxe_dev *rxe = pkt->rxe;
++
++	pkt->offset = 0;
++
++	if (unlikely(skb->len < pkt->offset + RXE_BTH_BYTES))
++		goto drop;
++
++	pkt->opcode = bth_opcode(pkt);
++	pkt->psn = bth_psn(pkt);
++	pkt->qp = NULL;
++	pkt->mask |= rxe_opcode[pkt->opcode].mask;
++
++	if (unlikely(skb->len < header_size(pkt)))
++		goto drop;
++
++	err = hdr_check(pkt);
++	if (unlikely(err))
++		goto drop;
++
++	if (unlikely(bth_qpn(pkt) == IB_MULTICAST_QPN))
++		rxe_rcv_mcast_pkt(rxe, skb);
++	else
++		rxe_rcv_pkt(rxe, pkt, skb);
 +
 +	return 0;
++
++drop:
++	if (pkt->qp)
++		rxe_drop_ref(pkt->qp);
++
++	kfree_skb(skb);
++	return 0;
 +}
-+
-+static void __exit rxe_module_exit(void)
-+{
-+	rxe_net_exit();
-+	rxe_cache_exit();
-+
-+	pr_info("rxe: unloaded\n");
-+}
-+
-+module_init(rxe_module_init);
-+module_exit(rxe_module_exit);
-diff --git a/drivers/staging/rdma/rxe/rxe.h b/drivers/staging/rdma/rxe/rxe.h
-index f781619..a358379 100644
---- a/drivers/staging/rdma/rxe/rxe.h
-+++ b/drivers/staging/rdma/rxe/rxe.h
-@@ -67,4 +67,6 @@ void rxe_remove(struct rxe_dev *rxe);
- 
- int rxe_rcv(struct sk_buff *skb);
- 
-+void rxe_dev_put(struct rxe_dev *rxe);
-+
- #endif /* RXE_H */
++EXPORT_SYMBOL(rxe_rcv);
 -- 
 1.8.3.1
 
