@@ -1,58 +1,119 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V1 08/16] i40iw: add files for iwarp interface
-Date: Thu, 24 Dec 2015 10:25:08 +0200
-Message-ID: <567BABE4.8080302@mellanox.com>
-References: <1450739596-23276-1-git-send-email-faisal.latif@intel.com>
- <1450739596-23276-2-git-send-email-faisal.latif@intel.com>
- <1450739596-23276-3-git-send-email-faisal.latif@intel.com>
- <1450739596-23276-4-git-send-email-faisal.latif@intel.com>
- <1450739596-23276-5-git-send-email-faisal.latif@intel.com>
- <1450739596-23276-6-git-send-email-faisal.latif@intel.com>
- <1450739596-23276-7-git-send-email-faisal.latif@intel.com>
- <1450739596-23276-8-git-send-email-faisal.latif@intel.com>
- <1450739596-23276-9-git-send-email-faisal.latif@intel.com>
- <567ACED9.2040701@mellanox.com> <20151224073137.GB35696@flatif-MOBL1>
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: [PATCH V2 1/2] IB/core: Add cross-channel support
+Date: Thu, 24 Dec 2015 10:51:11 +0200
+Message-ID: <1450947072-9295-2-git-send-email-leon@leon.nu>
+References: <1450947072-9295-1-git-send-email-leon@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151224073137.GB35696@flatif-MOBL1>
+In-Reply-To: <1450947072-9295-1-git-send-email-leon-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Kirsher, Jeffrey T" <jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/24/2015 9:31 AM, Faisal Latif wrote:
-> On Wed, Dec 23, 2015 at 08:42:01AM -0800, Or Gerlitz wrote:
->> On 12/22/2015 1:13 AM, Faisal Latif wrote:
->>> +
->>> +enum i40iw_memreg_type {
->>> +	IW_MEMREG_TYPE_MEM = 0x0000,
->>> +	IW_MEMREG_TYPE_QP = 0x0001,
->>> +	IW_MEMREG_TYPE_CQ = 0x0002,
->>> +	IW_MEMREG_TYPE_MW = 0x0003,
->>> +	IW_MEMREG_TYPE_FMR = 0x0004,
->>> +	IW_MEMREG_TYPE_FMEM = 0x0005,
->>> +};
->> Can't you re-use IB core values or derive that from the actual uverbs
->> command?
-> I did not see anything which will have types that I needed.
+=46rom: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-what do you need? what is the role of this enum?
+The cross-channel feature allows to execute WQEs that involve
+synchronization of IO operations=E2=80=99 on different QPs.
 
-> It will be confusing otherwise.
+This capability enables to program complex flows with a single
+function call, hereby significantly reducing overhead associated
+with IO processing.
 
+The queue pairs can be configured to work as a =E2=80=9Csync master que=
+ue=E2=80=9D
+or =E2=80=9Csync slave queues=E2=80=9D.
 
-> I will be reducing number of types from here though.
+The added flags are:
 
-so why some of it can go? is that deal values which aren't used by the code
+1. Device capability flag IB_DEVICE_CROSS_CHANNEL for the
+   devices that can perform cross-channel operations.
 
-Or.
+2. CQ property flag IB_CQ_FLAGS_IGNORE_OVERRUN to disable CQ overrun
+   check. In cross-channel mode, the send/receive queues will forward
+   their completions to managing QP.
 
-> Thanks
-> Faisal
+3. QP property flags to indicate if queues are slave or master:
+   * IB_QP_CREATE_MANAGED_SEND indicates that posted send work requests
+     will not be executed immediately and requires enabling.
+   * IB_QP_CREATE_MANAGED_RECV indicates that posted receive work
+     requests will not be executed immediately and requires enabling.
+   * IB_QP_CREATE_CROSS_CHANNEL declares the QP to work in cross-channe=
+l
+     mode. If IB_QP_CREATE_MANAGED_SEND and IB_QP_CREATE_MANAGED_RECV a=
+re
+     not provided, this QP will be sync master queue, else it will be s=
+ync
+     slave.
+
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/uverbs_cmd.c |  5 ++++-
+ include/rdma/ib_verbs.h              | 11 +++++++++++
+ 2 files changed, 15 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/=
+core/uverbs_cmd.c
+index 1add53653825..63ddd6a122b0 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1829,7 +1829,10 @@ static int create_qp(struct ib_uverbs_file *file=
+,
+ 		      sizeof(cmd->create_flags))
+ 		attr.create_flags =3D cmd->create_flags;
+=20
+-	if (attr.create_flags & ~IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK) {
++	if (attr.create_flags & ~(IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK |
++				IB_QP_CREATE_CROSS_CHANNEL |
++				IB_QP_CREATE_MANAGED_SEND |
++				IB_QP_CREATE_MANAGED_RECV)) {
+ 		ret =3D -EINVAL;
+ 		goto err_put;
+ 	}
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index a7dbbfc9d202..d00f3e2e39ac 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -141,6 +141,13 @@ enum ib_device_cap_flags {
+ 	IB_DEVICE_MEM_WINDOW_TYPE_2B	=3D (1<<24),
+ 	IB_DEVICE_RC_IP_CSUM		=3D (1<<25),
+ 	IB_DEVICE_RAW_IP_CSUM		=3D (1<<26),
++	/*
++	 * Devices should set IB_DEVICE_CROSS_CHANNEL if they
++	 * support execution of WQEs that involve synchronization
++	 * of I/O operations with single completion queue managed
++	 * by hardware.
++	 */
++	IB_DEVICE_CROSS_CHANNEL		=3D (1<<27),
+ 	IB_DEVICE_MANAGED_FLOW_STEERING =3D (1<<29),
+ 	IB_DEVICE_SIGNATURE_HANDOVER	=3D (1<<30),
+ 	IB_DEVICE_ON_DEMAND_PAGING	=3D (1<<31),
+@@ -186,6 +193,7 @@ struct ib_odp_caps {
+=20
+ enum ib_cq_creation_flags {
+ 	IB_CQ_FLAGS_TIMESTAMP_COMPLETION   =3D 1 << 0,
++	IB_CQ_FLAGS_IGNORE_OVERRUN	   =3D 1 << 1,
+ };
+=20
+ struct ib_cq_init_attr {
+@@ -823,6 +831,9 @@ enum ib_qp_type {
+ enum ib_qp_create_flags {
+ 	IB_QP_CREATE_IPOIB_UD_LSO		=3D 1 << 0,
+ 	IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK	=3D 1 << 1,
++	IB_QP_CREATE_CROSS_CHANNEL              =3D 1 << 2,
++	IB_QP_CREATE_MANAGED_SEND               =3D 1 << 3,
++	IB_QP_CREATE_MANAGED_RECV               =3D 1 << 4,
+ 	IB_QP_CREATE_NETIF_QP			=3D 1 << 5,
+ 	IB_QP_CREATE_SIGNATURE_EN		=3D 1 << 6,
+ 	IB_QP_CREATE_USE_GFP_NOIO		=3D 1 << 7,
+--=20
+1.7.12.4
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
