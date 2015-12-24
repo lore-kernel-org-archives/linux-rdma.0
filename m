@@ -1,50 +1,57 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next V2 0/5] User-space time-stamping support for
- mlx5_ib
-Date: Wed, 23 Dec 2015 23:35:36 -0500
-Message-ID: <567B7618.5000106@redhat.com>
-References: <1450204213-5630-1-git-send-email-matanb@mellanox.com>
- <CAJ3xEMiJJ0HcxDn_xfPDRK8V1cfN5HNVm9dt6gPaw2iJwD8jhA@mail.gmail.com>
+Subject: Re: [PATCH V1 0/3] Add cross-channel support
+Date: Wed, 23 Dec 2015 23:42:56 -0500
+Message-ID: <567B77D0.9090400@redhat.com>
+References: <1450606571-15877-1-git-send-email-leon@leon.nu>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="5tGTigFdapqwotBreqdC7wSpKKmqfOP4P"
+ boundary="3SJ1nGX3lLX6jgFE6uCJRt8ewWjua52gO"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMiJJ0HcxDn_xfPDRK8V1cfN5HNVm9dt6gPaw2iJwD8jhA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1450606571-15877-1-git-send-email-leon-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---5tGTigFdapqwotBreqdC7wSpKKmqfOP4P
+--3SJ1nGX3lLX6jgFE6uCJRt8ewWjua52gO
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 12/23/2015 12:16 PM, Or Gerlitz wrote:
-> On Tue, Dec 15, 2015 at 8:30 PM, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrot=
-e:
+On 12/20/2015 05:16 AM, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >=20
->> This patch-set adds user-space support for time-stamping in mlx5_ib.
->> It implements the necessary API:
->> (a) ib_create_cq_ex - Add support for CQ creation flags
->> (b) ib_query_device - return timestamp_mask and hca_core_clock.
+> This patchset adds cross-channel support.
 >=20
->> We also add support for mmaping the HCA's free running clock.
->> In order to do so, we use the response of the vendor's extended
->> part in init_ucontext. This allows us to pass the page offset
->> of the free running clock register to the user-space driver.
->> In order to implement it in a future extensible manner, we  use the
->> same mechanism of verbs extensions to the mlx5 vendor part as well.
+> The cross-channel feature allows to execute WQEs that involve
+> synchronization of I/O operations=E2=80=99 on different QPs.
 >=20
-> Hi Doug,
+> This capability enables to program complex flows with a single
+> function call, hereby significantly reducing overhead associated
+> with I/O processing.
 >=20
-> As Matan is now the maintainer of the mlx5_ib driver and this series
-> doesn't add any IB/core changes, we see no reason that it can't go
-> into 4.5. make sense?
+> Changes from v0:
+>   * Set UAR to be the same for QP and CQ.
+>=20
+> Leon Romanovsky (3):
+>   IB/core: Align coding style of ib_device_cap_flags structure
+>   IB/core: Add cross-channel support
+>   IB/mlx5: Add driver cross-channel support
+>=20
+>  drivers/infiniband/core/uverbs_cmd.c |  5 ++-
+>  drivers/infiniband/hw/mlx5/cq.c      |  7 +++-
+>  drivers/infiniband/hw/mlx5/main.c    |  3 ++
+>  drivers/infiniband/hw/mlx5/mlx5_ib.h | 16 ++++++++
+>  drivers/infiniband/hw/mlx5/qp.c      | 54 ++++++++++++++++++++++-----
+>  include/linux/mlx5/qp.h              |  3 ++
+>  include/rdma/ib_verbs.h              | 71 +++++++++++++++++++++-------=
+--------
+>  7 files changed, 117 insertions(+), 42 deletions(-)
+>=20
 
-I didn't see anything wrong with the set.  It's been picked up for 4.5.
-
+I took the series as is.  Please make sure to resubmit the libibverbs
+portion of these changes with the requested man page updates.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -52,7 +59,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---5tGTigFdapqwotBreqdC7wSpKKmqfOP4P
+--3SJ1nGX3lLX6jgFE6uCJRt8ewWjua52gO
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -61,22 +68,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWe3YYAAoJELgmozMOVy/dAn4QAIz9lop4AxE2gbj+Jd9z7w/w
-k1N8gSJetWORGN6xXhKe747+qsgeRUG8lcl/yoZlU4p7W7I+4d/wSSnxV/ckvKnO
-r8AgX9wdrPZVqe33VxxajWm2Kyok/RobpkHy+3R1p36tR6OH46AJIKgoAP+YQ3wi
-X9ankTeBvaxjUMGFs7N+lGktsoLa3A4L9iGkOnlz9i07/FBfRZ2klvVr8juyFeq9
-A7FGYy8Ax4XEJQ3nWQPAQ5nX53IUDoEc19ICBw9zpu0c1d7MEdJWDk1FIzvqHpGy
-T6eKJ6bACfsVvsXcDk7tyhAbYEN3KGwlHw5FM9I93dLQtX2zwBKuf/fe+njyMmYr
-bmJNhTXhdfiq/Hp5QuC8QuNHisGqN7dewHAFxNBzfxS8JhK2zoicTKzkp8UVj38z
-FVP5sqH+DREqrE93KveYJXuVuqbedNVDqrYkgBNAiZB/RJ8wv4xx05u6Sso3bQjJ
-hhrCwffq+/HgXarAJGolLr9qJUSPNNhN38pv4PygxE+MEncc4/yqxfEaPb2OdjUg
-Iap3APo58WTp0xHEbsY0mG3+zOU5vuLgGVebP4OAvH3PdT1wpka2nqF2PcAtzPbR
-CtOa9Yt3x9no9KLeBe5apB869Xt8VDaVXyG3wCmE8ACDp/KY2E0jbNeNJJoP8IWf
-1rIRbNZtYnW+70OXxQmP
-=IWId
+iQIcBAEBCAAGBQJWe3fQAAoJELgmozMOVy/dvr4P/iIaQxXloQljLzyTNA7aYQtt
+wZVWmRcy08T18f3tcDhbdQebONkaHdIipIIZYdTG+learoWzQovOZcqvd+t70YRh
+033FitovFfd8+1hQiU01vZx6nvvCYNYdZ50oc9C10ejwvYmUC0XvYq3Du2pOldpM
+ZQQL4z/aZUlR+XJ8dObF6C4QnNgpcsRK/lALMES3BQGa1D1pvctYJ8XN34O0aBhu
+SdnXucCPJPT8KhpBPOH4ZCnF3zRn3IH5j6AWvjgC/YilpOOiXIXFcSpT3/nH026w
+kFbY/wR6wa3ccVrfcRQPFTZ1B2NVGI7VqYO9IwRhqMPg3x6P7O9ziUKUOJCGh4uQ
+HNbQKb2YUEew+GIoPUBHZnn6KMiRh7+zcsxEDCMA2IMJhG2yijVBdGdTryl+FK34
++LXe2zKuUrsBJhSU+otIhlRU+vhsXE94B0tJE1HwnmgSSda34PdY9UEp27F4/aA5
+y+jn8R67SNtMLM2JOt7aSMusAkCA4TT3RSsrNw45kz+xjQh+yqK2gIwTeZBmUKB+
+YxALPoHpF/SLgmsslN653WOQq2Bwu3U19TzRwyADE0fMSI5mkp1O6mHy6E5xmtNN
+n7nsaRFHQRsZK5VyL6NiH5Ibd6grTtxVXjZGHMCr4x3iJEX+GLDgM9aW9AakgDXg
+x8h45PDV4sTLUa3YjRyq
+=XruX
 -----END PGP SIGNATURE-----
 
---5tGTigFdapqwotBreqdC7wSpKKmqfOP4P--
+--3SJ1nGX3lLX6jgFE6uCJRt8ewWjua52gO--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
