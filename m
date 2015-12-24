@@ -1,78 +1,130 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: FW: [PATCH for-next v1 0/2] Advertise atomic operations support
- in mlx5
-Date: Thu, 24 Dec 2015 00:21:04 -0500
-Message-ID: <567B80C0.6090103@redhat.com>
-References: <1450103650-16857-1-git-send-email-eranbe@mellanox.com>
- <567AC682.1020601@redhat.com>
- <AM3PR05MB1331CF3889813C3975A62A6CBAE60@AM3PR05MB1331.eurprd05.prod.outlook.com>
- <CAKHjkjkcr5pH5+HeBSVq0c5Vp8xypNeSvWSAjnw1_joPj4Tx6A@mail.gmail.com>
+Subject: Re: [PATCH] IB/mad: Ensure fairness in ib_mad_completion_handler
+Date: Thu, 24 Dec 2015 00:21:26 -0500
+Message-ID: <567B80D6.803@redhat.com>
+References: <1449784350-30214-1-git-send-email-ira.weiny@intel.com>
+ <20151223200104.GR3860@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="SgHeM5lp4vxaKEa85j7FNHM8t6xnBPgsm"
+ boundary="PVJgH8oemNxvj8jB2bxpHaAtlrgKa2oej"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAKHjkjkcr5pH5+HeBSVq0c5Vp8xypNeSvWSAjnw1_joPj4Tx6A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20151223200104.GR3860-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: eran ben elisha <eranlinuxmellanox-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---SgHeM5lp4vxaKEa85j7FNHM8t6xnBPgsm
-Content-Type: text/plain; charset=utf-8
+--PVJgH8oemNxvj8jB2bxpHaAtlrgKa2oej
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 12/23/2015 12:05 PM, eran ben elisha wrote:
->>>
->>> If the firmware supports host endianness, try to configure the
->>> hardware to work this way, and on success propagate this capability t=
-o
->>> the upper layers, otherwise advertise that atomic operations aren't s=
-upported.
->>
->> If you are not going to allow any support except for host endian, then=
- why bother with all of the BE stuff, can't you just list it as supported=
- or not?
+On 12/23/2015 03:01 PM, ira.weiny wrote:
+> Doug,
 >=20
-> The HW default state is BE reply, need to change it's mode internally.
-> The user will never know about this, it do listed as supported/not.
+> With your email troubles I just wanted to make sure you did not lose tr=
+ack of
+> this patch.
+>=20
+> https://patchwork.kernel.org/patch/7822511/
 
-Ok, I've pulled this in.
+I've got it, thanks.
 
->>
->>> Thanks, Eran
->>>
->>> Changes from v0:
->>>       - Rewrite the commit message of the second patch in the series
->>>
->>>
->>> Eran Ben Elisha (2):
->>>   net/mlx5_core: Configure HW to support atomic request in host
->>>     endianness
->>
->> I can fix this up, but generally try to keep your subject of patches s=
-hort enough to fit in the generally accepted length.
+> Thanks,
+> Ira
 >=20
-> Sure, will keep this in mind for next time.
->=20
+> On Thu, Dec 10, 2015 at 04:52:30PM -0500, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+>> From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 >>
->>>   IB/mlx5: Advertise atomic capabilities in query device
->>>
->>>  drivers/infiniband/hw/mlx5/main.c              | 28 ++++++++++++-
->>>  drivers/net/ethernet/mellanox/mlx5/core/main.c | 57 ++++++++++++++++=
-+++++++++-
->>>  include/linux/mlx5/driver.h                    |  5 +++
->>>  include/linux/mlx5/mlx5_ifc.h                  | 22 ++++++----
->>>  4 files changed, 102 insertions(+), 10 deletions(-)
->>>
+>> It was found that when a process was rapidly sending MADs other proces=
+ses could
+>> be hung in their unregister calls.
 >>
+>> This would happen when process A was injecting packets fast enough tha=
+t the
+>> single threaded workqueue was never exiting ib_mad_completion_handler.=
+
+>> Therefore when process B called flush_workqueue via the unregister cal=
+l it
+>> would hang until process A stopped sending MADs.
+>>
+>> The fix is to periodically reschedule ib_mad_completion_handler after
+>> processing a large number of completions.  The number of completions c=
+hosen was
+>> decided based on the defaults for the recv queue size.  However, it wa=
+s kept
+>> fixed such that increasing those queue sizes would not adversely affec=
+t
+>> fairness in the future.
+>>
+>> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>> Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>> ---
+>>  drivers/infiniband/core/mad.c | 18 ++++++++++++++++++
+>>  1 file changed, 18 insertions(+)
+>>
+>> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/m=
+ad.c
+>> index 2281de122038..d4d2a618fd66 100644
+>> --- a/drivers/infiniband/core/mad.c
+>> +++ b/drivers/infiniband/core/mad.c
+>> @@ -61,6 +61,18 @@ MODULE_PARM_DESC(send_queue_size, "Size of send que=
+ue in number of work requests
+>>  module_param_named(recv_queue_size, mad_recvq_size, int, 0444);
+>>  MODULE_PARM_DESC(recv_queue_size, "Size of receive queue in number of=
+ work requests");
+>> =20
+>> +/*
+>> + * Define a limit on the number of completions which will be processe=
+d by the
+>> + * worker thread in a single work item.  This ensures that other work=
+ items
+>> + * (potentially from other users) are processed fairly.
+>> + *
+>> + * The number of completions was derived from the default queue sizes=
+ above.
+>> + * We use a value which is double the larger of the 2 queues (receive=
+ @ 512)
+>> + * but keep it fixed such that an increase in that value does not int=
+roduce
+>> + * unfairness.
+>> + */
+>> +#define MAD_COMPLETION_PROC_LIMIT 1024
+>> +
+>>  static struct list_head ib_mad_port_list;
+>>  static u32 ib_mad_client_id =3D 0;
+>> =20
+>> @@ -2555,6 +2567,7 @@ static void ib_mad_completion_handler(struct wor=
+k_struct *work)
+>>  {
+>>  	struct ib_mad_port_private *port_priv;
+>>  	struct ib_wc wc;
+>> +	int count =3D 0;
+>> =20
+>>  	port_priv =3D container_of(work, struct ib_mad_port_private, work);
+>>  	ib_req_notify_cq(port_priv->cq, IB_CQ_NEXT_COMP);
+>> @@ -2574,6 +2587,11 @@ static void ib_mad_completion_handler(struct wo=
+rk_struct *work)
+>>  			}
+>>  		} else
+>>  			mad_error_handler(port_priv, &wc);
+>> +
+>> +		if (++count > MAD_COMPLETION_PROC_LIMIT) {
+>> +			queue_work(port_priv->wq, &port_priv->work);
+>> +			break;
+>> +		}
+>>  	}
+>>  }
+>> =20
+>> --=20
+>> 1.8.2
 >>
 >> --
->> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->>               GPG KeyID: 0E572FDD
->>
->>
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" =
+in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
 --=20
@@ -81,7 +133,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---SgHeM5lp4vxaKEa85j7FNHM8t6xnBPgsm
+--PVJgH8oemNxvj8jB2bxpHaAtlrgKa2oej
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -90,22 +142,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWe4DAAAoJELgmozMOVy/djLEP/ia0D5pzn2qjFdHduAu31ULF
-sURLe+S7Ykm/9bfBB/038tbh+4eb4FXYTV3JC3/7HRv6YMeFNdQTcqjuFQlGIkn6
-V9oOabeIQ7pbbjrLK3bv6u5Lr1s1b2ts3h+ZkSmo2m8rm18JPKiMA26yJ/K2Bp/Q
-28ZQ7M+4msIzY/c63isGlsmOXvBueUlguJ3uN7LYtAfShYaeVYOcn0xVjMW81sFq
-nh2nocIvYsr5wh8SfLE/tNJQpUcdhva9S+XWs/9v72VgJn6HkUydVH6ma1rutAQH
-VINCPA3OEQbXHhQwOxYxFun6gc6eDuKD+ghSg/He9DcFjFFAyL2esA6wpSxNYhFd
-CrPltp5XDkvBzopu3nDTvVTjccdoITZXaG93NudG6/Wq0FefwyF39eDKiU1b73x1
-7JhcSsMuMvvAlMQz3zCaQzrF0b2GqE0e/BoJG0fED3P0TVe+FPaJFtWoC10S4ZAP
-Z+Fxm+1R3XlrIph0Ts14V/4heDTuGxVSdLxrJC3TX9+pM18IV8va81FMKMSjjfHU
-OpBsUbUSzdReOQaNgxaIdR2b8tuvv1DedgJMuCCMUU2/XzkKnzOV4M5oJiRiI0ea
-BSsLnqFtYDeUrOBkhocFuBvxUuyENJII61C+onbQGTZnnB3u0CZLAlNPOI+0udCj
-KZ2Bn691bgCuWEoJxFDQ
-=6mVW
+iQIcBAEBCAAGBQJWe4DXAAoJELgmozMOVy/dzP0P/1jZhXnq5cn0BERxALQVbNW4
+B20hGiN5L8SAmyb0qEUS7ApGK49bYJxolKmj7xa1au2PLsE+LtMURTDjFOx2i87v
+/5sN4/lLn3KWtDpHAssDH0ipP6kzxNHG1p+2w+0AlzErsBEog3/jn3QBK+LRV/51
+sxKze3CFs/xZp5VjrGe37NwEty/JQ6KXHYfexPHhqdO0ADJPfjxgcNyTAg7rkEfj
+dVADrF3Cq+AgEKm1a7Zzmx8SO4r3b/RQH4ogVSflaLqH5Wu6cikUacCtDy1UlvDi
+Bkti/QOi5nMz0imeas90PecwliJ8tALyQUa3V+TtQb+wILRu2ARdcFnwTTQnbA4R
+YTLE5GKHuHknRXdbxFzJ38gqY17paxiDJnmYwxoY0cLrpDRZBv3WcNmXjvzzZC4C
+TB2Ctc9jwp2cKb8f767C+rO+qfXqXQNqTh6pxRo2sv8NVVTRPxsTJxlRqW0kCP53
+AXJiH/cavaXfVN2rh69VAc2oTl+ef/1InVY7A03V5koKdSDKrIqPq3fUUx2pDXz0
+ci4ZrKcC5Y5Z1TUT1nWY6Ip7EG7bfH6Bnl2+q7r3UD/fgoKfWZe0WZtnZu09lD4v
+lUW3XPL4wl2k3M+cB2jGbpRyo8T/0Y9BiUqhcM4MnmPZXpvUbeQgLxWExx78D8oY
+3FvHu7RMPvbHyayuhyua
+=TfTt
 -----END PGP SIGNATURE-----
 
---SgHeM5lp4vxaKEa85j7FNHM8t6xnBPgsm--
+--PVJgH8oemNxvj8jB2bxpHaAtlrgKa2oej--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
