@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 3/6] IB/uapi: expose uverbs WC opcodes
-Date: Thu, 24 Dec 2015 15:39:24 +0100
-Message-ID: <1450967967-12479-4-git-send-email-hch@lst.de>
+Subject: [PATCH 5/6] IB/uapi: expose uverbs WC status codes
+Date: Thu, 24 Dec 2015 15:39:26 +0100
+Message-ID: <1450967967-12479-6-git-send-email-hch@lst.de>
 References: <1450967967-12479-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450967967-12479-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
@@ -10,77 +10,101 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This exposes the WC opcodes supported by uverbs as part of the uapi
+This exposes the WC status codes supported by uverbs as part of the uapi
 headers.  It follows the same scheme as the WR opcodes.
 
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- include/rdma/ib_verbs.h      | 29 +++++++++++++----------------
- include/uapi/rdma/ib_verbs.h | 16 ++++++++++++++++
- 2 files changed, 29 insertions(+), 16 deletions(-)
+ include/rdma/ib_verbs.h      | 44 ++++++++++++++++++++++----------------------
+ include/uapi/rdma/ib_verbs.h | 25 +++++++++++++++++++++++++
+ 2 files changed, 47 insertions(+), 22 deletions(-)
 
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 5dccc6a..7dce204 100644
+index 337db70..48bfcf5 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -819,22 +819,19 @@ enum ib_wc_status {
- const char *__attribute_const__ ib_wc_status_msg(enum ib_wc_status status);
- 
- enum ib_wc_opcode {
--	IB_WC_SEND,
--	IB_WC_RDMA_WRITE,
--	IB_WC_RDMA_READ,
--	IB_WC_COMP_SWAP,
--	IB_WC_FETCH_ADD,
--	IB_WC_LSO,
--	IB_WC_LOCAL_INV,
--	IB_WC_REG_MR,
--	IB_WC_MASKED_COMP_SWAP,
--	IB_WC_MASKED_FETCH_ADD,
--/*
-- * Set value of IB_WC_RECV so consumers can test if a completion is a
-- * receive by testing (opcode & IB_WC_RECV).
-- */
--	IB_WC_RECV			= 1 << 7,
--	IB_WC_RECV_RDMA_WITH_IMM
-+	IB_WC_SEND		= IB_UVERBS_WC_SEND,
-+	IB_WC_RDMA_WRITE	= IB_UVERBS_WC_RDMA_WRITE,
-+	IB_WC_RDMA_READ		= IB_UVERBS_WC_RDMA_READ,
-+	IB_WC_COMP_SWAP		= IB_UVERBS_WC_COMP_SWAP,
-+	IB_WC_FETCH_ADD		= IB_UVERBS_WC_FETCH_ADD,
-+	IB_WC_LSO		= IB_UVERBS_WC_SEND_END,
-+	IB_WC_LOCAL_INV		= IB_UVERBS_WC_SEND_END + 1,
-+	IB_WC_REG_MR		= IB_UVERBS_WC_SEND_END + 2,
-+	IB_WC_MASKED_COMP_SWAP	= IB_UVERBS_WC_SEND_END + 3,
-+	IB_WC_MASKED_FETCH_ADD	= IB_UVERBS_WC_SEND_END + 4,
-+
-+	IB_WC_RECV		= IB_UVERBS_WC_RECV,
-+	IB_WC_RECV_RDMA_WITH_IMM = IB_UVERBS_WC_RECV_END,
+@@ -792,28 +792,28 @@ struct ib_ah_attr {
  };
  
- enum ib_wc_flags {
+ enum ib_wc_status {
+-	IB_WC_SUCCESS,
+-	IB_WC_LOC_LEN_ERR,
+-	IB_WC_LOC_QP_OP_ERR,
+-	IB_WC_LOC_EEC_OP_ERR,
+-	IB_WC_LOC_PROT_ERR,
+-	IB_WC_WR_FLUSH_ERR,
+-	IB_WC_MW_BIND_ERR,
+-	IB_WC_BAD_RESP_ERR,
+-	IB_WC_LOC_ACCESS_ERR,
+-	IB_WC_REM_INV_REQ_ERR,
+-	IB_WC_REM_ACCESS_ERR,
+-	IB_WC_REM_OP_ERR,
+-	IB_WC_RETRY_EXC_ERR,
+-	IB_WC_RNR_RETRY_EXC_ERR,
+-	IB_WC_LOC_RDD_VIOL_ERR,
+-	IB_WC_REM_INV_RD_REQ_ERR,
+-	IB_WC_REM_ABORT_ERR,
+-	IB_WC_INV_EECN_ERR,
+-	IB_WC_INV_EEC_STATE_ERR,
+-	IB_WC_FATAL_ERR,
+-	IB_WC_RESP_TIMEOUT_ERR,
+-	IB_WC_GENERAL_ERR
++	IB_WC_SUCCESS		= IB_UVERBS_WC_SUCCESS,
++	IB_WC_LOC_LEN_ERR	= IB_UVERBS_WC_LOC_LEN_ERR,
++	IB_WC_LOC_QP_OP_ERR	= IB_UVERBS_WC_LOC_QP_OP_ERR,
++	IB_WC_LOC_EEC_OP_ERR	= IB_UVERBS_WC_LOC_EEC_OP_ERR,
++	IB_WC_LOC_PROT_ERR	= IB_UVERBS_WC_LOC_PROT_ERR,
++	IB_WC_WR_FLUSH_ERR	= IB_UVERBS_WC_WR_FLUSH_ERR,
++	IB_WC_MW_BIND_ERR	= IB_UVERBS_WC_MW_BIND_ERR,
++	IB_WC_BAD_RESP_ERR	= IB_UVERBS_WC_BAD_RESP_ERR,
++	IB_WC_LOC_ACCESS_ERR	= IB_UVERBS_WC_LOC_ACCESS_ERR,
++	IB_WC_REM_INV_REQ_ERR	= IB_UVERBS_WC_REM_INV_REQ_ERR,
++	IB_WC_REM_ACCESS_ERR	= IB_UVERBS_WC_REM_ACCESS_ERR,
++	IB_WC_REM_OP_ERR	= IB_UVERBS_WC_REM_OP_ERR,
++	IB_WC_RETRY_EXC_ERR	= IB_UVERBS_WC_RETRY_EXC_ERR,
++	IB_WC_RNR_RETRY_EXC_ERR	= IB_UVERBS_WC_RNR_RETRY_EXC_ERR,
++	IB_WC_LOC_RDD_VIOL_ERR	= IB_UVERBS_WC_LOC_RDD_VIOL_ERR,
++	IB_WC_REM_INV_RD_REQ_ERR= IB_UVERBS_WC_REM_INV_RD_REQ_ERR,
++	IB_WC_REM_ABORT_ERR	= IB_UVERBS_WC_REM_ABORT_ERR,
++	IB_WC_INV_EECN_ERR	= IB_UVERBS_WC_INV_EECN_ERR,
++	IB_WC_INV_EEC_STATE_ERR = IB_UVERBS_WC_INV_EEC_STATE_ERR,
++	IB_WC_FATAL_ERR		= IB_UVERBS_WC_FATAL_ERR,
++	IB_WC_RESP_TIMEOUT_ERR	= IB_UVERBS_WC_RESP_TIMEOUT_ERR,
++	IB_WC_GENERAL_ERR	= IB_UVERBS_WC_GENERAL_ERR,
+ };
+ 
+ const char *__attribute_const__ ib_wc_status_msg(enum ib_wc_status status);
 diff --git a/include/uapi/rdma/ib_verbs.h b/include/uapi/rdma/ib_verbs.h
-index 3be3152..fd7a393 100644
+index c40c00b..fbadb29 100644
 --- a/include/uapi/rdma/ib_verbs.h
 +++ b/include/uapi/rdma/ib_verbs.h
-@@ -29,4 +29,20 @@ enum ib_uverbs_send_flags {
- 	IB_UVERBS_SEND_END			= (1 << 5),
+@@ -55,4 +55,29 @@ enum ib_uverbs_wc_flags {
+ 	IB_UVERBS_WC_WITH_NETWORK_HDR_TYPE	= (1 << 6),
  };
  
-+enum ib_uverbs_wc_opcode {
-+	IB_UVERBS_WC_SEND			= 0,
-+	IB_UVERBS_WC_RDMA_WRITE			= 1,
-+	IB_UVERBS_WC_RDMA_READ			= 2,
-+	IB_UVERBS_WC_COMP_SWAP			= 3,
-+	IB_UVERBS_WC_FETCH_ADD			= 4,
-+	IB_UVERBS_WC_SEND_END			= 5,
-+
-+	/*
-+	 * Set value of IB_WC_RECV so consumers can test if a completion is a
-+	 * receive by testing (opcode & IB_WC_RECV).
-+	 */
-+	IB_UVERBS_WC_RECV			= 1 << 7,
-+	IB_UVERBS_WC_RECV_END			= (1 << 7) + 1,
++enum ib_uverbs_wc_status {
++	IB_UVERBS_WC_SUCCESS,
++	IB_UVERBS_WC_LOC_LEN_ERR,
++	IB_UVERBS_WC_LOC_QP_OP_ERR,
++	IB_UVERBS_WC_LOC_EEC_OP_ERR,
++	IB_UVERBS_WC_LOC_PROT_ERR,
++	IB_UVERBS_WC_WR_FLUSH_ERR,
++	IB_UVERBS_WC_MW_BIND_ERR,
++	IB_UVERBS_WC_BAD_RESP_ERR,
++	IB_UVERBS_WC_LOC_ACCESS_ERR,
++	IB_UVERBS_WC_REM_INV_REQ_ERR,
++	IB_UVERBS_WC_REM_ACCESS_ERR,
++	IB_UVERBS_WC_REM_OP_ERR,
++	IB_UVERBS_WC_RETRY_EXC_ERR,
++	IB_UVERBS_WC_RNR_RETRY_EXC_ERR,
++	IB_UVERBS_WC_LOC_RDD_VIOL_ERR,
++	IB_UVERBS_WC_REM_INV_RD_REQ_ERR,
++	IB_UVERBS_WC_REM_ABORT_ERR,
++	IB_UVERBS_WC_INV_EECN_ERR,
++	IB_UVERBS_WC_INV_EEC_STATE_ERR,
++	IB_UVERBS_WC_FATAL_ERR,
++	IB_UVERBS_WC_RESP_TIMEOUT_ERR,
++	IB_UVERBS_WC_GENERAL_ERR
 +};
 +
  #endif /* _UAPI_RDMA_IB_VERBS_H */
