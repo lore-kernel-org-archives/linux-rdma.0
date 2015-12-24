@@ -1,38 +1,73 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] IB/cma: cma_match_net_dev needs to take into account
- port_num
-Date: Thu, 24 Dec 2015 10:18:39 +0200
-Message-ID: <567BAA5F.8000507@mellanox.com>
-References: <1450710084-22547-1-git-send-email-matanb@mellanox.com>
- <56792A4B.8060101@mellanox.com> <56799D61.9010206@redhat.com>
- <CAAKD3BDmenFsiZTDiw8OEW-F0GqK62+zJ-TVywyYd4YDtzxrCA@mail.gmail.com>
- <567AC6E4.3030100@redhat.com>
- <CAAKD3BAt2YBB-Y-VH29w5B7rLfbBEq2EuH6BtDwb0O3W8-PGwg@mail.gmail.com>
- <567AE07A.10003@redhat.com>
- <CAAKD3BADP_Jf2zNJDcx8YOv1zt4=pp5V+eYugfn-tBuVgFxBCw@mail.gmail.com>
+Subject: Re: [PATCH V1 15/16] i40iw: add entry in rdma_netlink
+Date: Thu, 24 Dec 2015 10:24:02 +0200
+Message-ID: <567BABA2.6060401@mellanox.com>
+References: <1450739596-23276-8-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-9-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-10-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-11-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-12-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-13-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-14-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-15-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-16-git-send-email-faisal.latif@intel.com>
+ <567AD0C7.3010309@mellanox.com> <20151224070551.GA13684@flatif-MOBL1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAAKD3BADP_Jf2zNJDcx8YOv1zt4=pp5V+eYugfn-tBuVgFxBCw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20151224070551.GA13684@flatif-MOBL1>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Kirsher, Jeffrey T" <jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/24/2015 9:57 AM, Matan Barak wrote:
-> I totally agree that it's better to use the local IP address and not
-> just get a random device by using 127.0.0.1. You could get a specific
-> device by binding it, but then - use its local IP instead of
-> 127.0.0.1.
+On 12/24/2015 9:05 AM, Faisal Latif wrote:
+>>
+>> >Why the iwarp port mapper implementationhas to be repeated in each
+>> >driver? can you join your code in a common place and avoid the duplication?
+>> >
+>> >root@r-dcs58 hw]# git grep RDMA_NL_ nes
+>> >nes/nes.c:      [RDMA_NL_IWPM_REG_PID] = {.dump = iwpm_register_pid_cb},
+>> >nes/nes.c:      [RDMA_NL_IWPM_ADD_MAPPING] = {.dump = iwpm_add_mapping_cb},
+>> >nes/nes.c:      [RDMA_NL_IWPM_QUERY_MAPPING] = {.dump =
+>> >iwpm_add_and_query_mapping_cb},
+>> >nes/nes.c:      [RDMA_NL_IWPM_REMOTE_INFO] = {.dump = iwpm_remote_info_cb},
+>> >nes/nes.c:      [RDMA_NL_IWPM_HANDLE_ERR] = {.dump = iwpm_mapping_error_cb},
+>> >nes/nes.c:      [RDMA_NL_IWPM_MAPINFO] = {.dump = iwpm_mapping_info_cb},
+>> >nes/nes.c:      [RDMA_NL_IWPM_MAPINFO_NUM] = {.dump =
+>> >iwpm_ack_mapping_info_cb}
+>> >nes/nes.c:      if (ibnl_add_client(RDMA_NL_NES, RDMA_NL_IWPM_NUM_OPS,
+>> >nes_nl_cb_table))
+>> >nes/nes.c:      ret = iwpm_init(RDMA_NL_NES);
+>> >nes/nes.c:      ibnl_remove_client(RDMA_NL_NES);
+>> >nes/nes.c:      ibnl_remove_client(RDMA_NL_NES);
+>> >nes/nes.c:      iwpm_exit(RDMA_NL_NES);
+>> >nes/nes_cm.c: &mapped_sockaddr, RDMA_NL_NES);
+>> >nes/nes_cm.c:   return iwpm_remove_mapping(&local_sockaddr, RDMA_NL_NES);
+>> >nes/nes_cm.c:                           &remote_addr, RDMA_NL_NES);
+>> >nes/nes_cm.c:           iwpm_err = iwpm_register_pid(&pm_reg_msg,
+>> >RDMA_NL_NES);
+>> >nes/nes_cm.c:                   iwpm_err = iwpm_add_mapping(&pm_msg,
+>> >RDMA_NL_NES);
+>> >nes/nes_cm.c:   iwpm_err = iwpm_register_pid(&pm_reg_msg, RDMA_NL_NES);
+>> >nes/nes_cm.c:           iwpm_err = iwpm_add_and_query_mapping(&pm_msg,
+>> >RDMA_NL_NES);
+>> >
 
-Yes guys, it might be better but the user can do that. However, loopback 
-ala 127.0.0.1 is working in the rdma-cm since the 2.6.18 day one and was 
-broken recently when Eth ports are around.
+>> i40iw iwarp driver registers with port mapper and uses its services. Beside that it is not the scope of the patch series.
 
-Lets fix.
 
-Indeed, this is 4.5 and not 4.4 material.
+You are asked a question by reviewer and your reply is
+
+(1) YES, I did C & P from driver X to my driver
+
+(2) explaining why C&P is right goes beyond the scope of reviewing my driver
+
+This isn't how things work in upstream.
+
+If needed, talk to the upstream Intel networking folks, they can assist 
+you catching up on upstream practices.
 
 Or.
 --
