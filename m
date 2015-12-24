@@ -1,53 +1,63 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC PATCH 00/15] staging/rdma/hfi1: Initial patches to add rdmavt support in HFI1
-Date: Thu, 24 Dec 2015 12:50:37 -0500
-Message-ID: <20151224175037.GB22759@phlsvsds.ph.intel.com>
-References: <20151214172509.11576.19722.stgit@phlsvslse11.ph.intel.com> <20151221061214.GD3860@phlsvsds.ph.intel.com> <20151221220235.GA14142@kroah.com> <20151222001943.GM3860@phlsvsds.ph.intel.com> <20151222010148.GB2145@kroah.com> <20151222191508.GO3860@phlsvsds.ph.intel.com> <20151223022757.GA5562@kroah.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Subject: [PATCH 2/4] RDMA/ocrdma: Dispatch only port event when port state changes
+Date: Thu, 24 Dec 2015 13:14:06 -0500
+Message-ID: <1450980848-18945-3-git-send-email-devesh.sharma@avagotech.com>
+References: <1450980848-18945-1-git-send-email-devesh.sharma@avagotech.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20151223022757.GA5562-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1450980848-18945-1-git-send-email-devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Padmanabh Ratnakar <padmanabh.ratnakar-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 22, 2015 at 06:27:57PM -0800, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org wrote:
-> On Tue, Dec 22, 2015 at 02:15:08PM -0500, ira.weiny wrote:
-> > On Mon, Dec 21, 2015 at 05:01:48PM -0800, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org wrote:
+Dispatch only port event to IB stack when port state changes.
+Don't explicitly modify qps to error. Let application listen to
+port events on async event queue or let QP fail with retry-exceeded
+completion error.
 
-[snip]
+Signed-off-by: Padmanabh Ratnakar <padmanabh.ratnakar-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Signed-off-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+---
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c | 23 -----------------------
+ 1 file changed, 23 deletions(-)
 
-> > > 
-> > > No, git is good :)
-> > > 
-> > > > How do we handle changes which affect both qib and hfi1?
-> > > 
-> > > I don't know, now this gets messy...
-> > > 
-> > 
-> > Agreed and this is what we are worried about.
-> > 
-> > Can we do what Dan and Doug have proposed in the past and have Doug take over
-> > the staging/rdma sub-tree?
-> > 
-> > http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/2015-November/081922.html
-> > 
-> > I think the upcoming merge window is a reasonable time for him to do that.
-> 
-> Ok, but keeping on top of all of the generic staging patches that come
-> in is a tough thing to do, that's up to Doug, if he is ready for it...
-> 
-
-To help this process, once the change over happens, we will help to monitor
-driverdev-devel for anything submitted to staging/rdma.  If something is
-submitted which was not to Doug and linux-rdma we can handle alerting the
-submitter to make sure it gets submitted to Doug as per the current MAINTAINERS
-file.
-
-Hope this helps,
-Ira
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+index 62b7009..ebe40b4 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+@@ -386,30 +386,7 @@ static int ocrdma_open(struct ocrdma_dev *dev)
+ 
+ static int ocrdma_close(struct ocrdma_dev *dev)
+ {
+-	int i;
+-	struct ocrdma_qp *qp, **cur_qp;
+ 	struct ib_event err_event;
+-	struct ib_qp_attr attrs;
+-	int attr_mask = IB_QP_STATE;
+-
+-	attrs.qp_state = IB_QPS_ERR;
+-	mutex_lock(&dev->dev_lock);
+-	if (dev->qp_tbl) {
+-		cur_qp = dev->qp_tbl;
+-		for (i = 0; i < OCRDMA_MAX_QP; i++) {
+-			qp = cur_qp[i];
+-			if (qp && qp->ibqp.qp_type != IB_QPT_GSI) {
+-				/* change the QP state to ERROR */
+-				_ocrdma_modify_qp(&qp->ibqp, &attrs, attr_mask);
+-
+-				err_event.event = IB_EVENT_QP_FATAL;
+-				err_event.element.qp = &qp->ibqp;
+-				err_event.device = &dev->ibdev;
+-				ib_dispatch_event(&err_event);
+-			}
+-		}
+-	}
+-	mutex_unlock(&dev->dev_lock);
+ 
+ 	err_event.event = IB_EVENT_PORT_ERR;
+ 	err_event.element.port_num = 1;
+-- 
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
