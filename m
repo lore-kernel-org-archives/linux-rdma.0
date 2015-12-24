@@ -1,7 +1,7 @@
 From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next V2 05/32] IB/rxe: Default rxe device and port parameters
-Date: Thu, 24 Dec 2015 11:17:51 +0200
-Message-ID: <1450948698-13383-6-git-send-email-kamalh@mellanox.com>
+Subject: [PATCH rdma-next V2 09/32] IB/rxe: Work request's opcode information table
+Date: Thu, 24 Dec 2015 11:17:55 +0200
+Message-ID: <1450948698-13383-10-git-send-email-kamalh@mellanox.com>
 References: <1450948698-13383-1-git-send-email-kamalh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1450948698-13383-1-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,22 +10,23 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Default/initial rxe device parameter settings.
+Useful information about work request opcodes and pkt opcodes in table
+form.
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/staging/rdma/rxe/rxe_param.h | 177 +++++++++++++++++++++++++++++++++++
- 1 file changed, 177 insertions(+)
- create mode 100644 drivers/staging/rdma/rxe/rxe_param.h
+ drivers/staging/rdma/rxe/rxe_opcode.c | 961 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 961 insertions(+)
+ create mode 100644 drivers/staging/rdma/rxe/rxe_opcode.c
 
-diff --git a/drivers/staging/rdma/rxe/rxe_param.h b/drivers/staging/rdma/rxe/rxe_param.h
+diff --git a/drivers/staging/rdma/rxe/rxe_opcode.c b/drivers/staging/rdma/rxe/rxe_opcode.c
 new file mode 100644
-index 0000000..320b8e5
+index 0000000..359b75f
 --- /dev/null
-+++ b/drivers/staging/rdma/rxe/rxe_param.h
-@@ -0,0 +1,177 @@
++++ b/drivers/staging/rdma/rxe/rxe_opcode.c
+@@ -0,0 +1,961 @@
 +/*
 + * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
@@ -59,150 +60,934 @@ index 0000000..320b8e5
 + * SOFTWARE.
 + */
 +
-+#ifndef RXE_PARAM_H
-+#define RXE_PARAM_H
++#include <rdma/ib_pack.h>
++#include "rxe_opcode.h"
++#include "rxe_hdr.h"
 +
-+static inline enum ib_mtu rxe_mtu_int_to_enum(int mtu)
-+{
-+	if (mtu < 256)
-+		return 0;
-+	else if (mtu < 512)
-+		return IB_MTU_256;
-+	else if (mtu < 1024)
-+		return IB_MTU_512;
-+	else if (mtu < 2048)
-+		return IB_MTU_1024;
-+	else if (mtu < 4096)
-+		return IB_MTU_2048;
-+	else
-+		return IB_MTU_4096;
-+}
-+
-+/* Find the IB mtu for a given network MTU. */
-+static inline enum ib_mtu eth_mtu_int_to_enum(int mtu)
-+{
-+	mtu -= RXE_MAX_HDR_LENGTH;
-+
-+	return rxe_mtu_int_to_enum(mtu);
-+}
-+
-+/* default/initial rxe device parameter settings */
-+enum rxe_device_param {
-+	RXE_FW_VER			= 0,
-+	RXE_MAX_MR_SIZE			= -1ull,
-+	RXE_PAGE_SIZE_CAP		= 0xfffff000,
-+	RXE_VENDOR_ID			= 0,
-+	RXE_VENDOR_PART_ID		= 0,
-+	RXE_HW_VER			= 0,
-+	RXE_MAX_QP			= 0x10000,
-+	RXE_MAX_QP_WR			= 0x4000,
-+	RXE_MAX_INLINE_DATA		= 400,
-+	RXE_DEVICE_CAP_FLAGS		= IB_DEVICE_BAD_PKEY_CNTR
-+					| IB_DEVICE_BAD_QKEY_CNTR
-+					| IB_DEVICE_AUTO_PATH_MIG
-+					| IB_DEVICE_CHANGE_PHY_PORT
-+					| IB_DEVICE_UD_AV_PORT_ENFORCE
-+					| IB_DEVICE_PORT_ACTIVE_EVENT
-+					| IB_DEVICE_SYS_IMAGE_GUID
-+					| IB_DEVICE_RC_RNR_NAK_GEN
-+					| IB_DEVICE_SRQ_RESIZE,
-+	RXE_MAX_SGE			= 27,
-+	RXE_MAX_SGE_RD			= 0,
-+	RXE_MAX_CQ			= 16384,
-+	RXE_MAX_LOG_CQE			= 13,
-+	RXE_MAX_MR			= 2 * 1024,
-+	RXE_MAX_PD			= 0x7ffc,
-+	RXE_MAX_QP_RD_ATOM		= 128,
-+	RXE_MAX_EE_RD_ATOM		= 0,
-+	RXE_MAX_RES_RD_ATOM		= 0x3f000,
-+	RXE_MAX_QP_INIT_RD_ATOM		= 128,
-+	RXE_MAX_EE_INIT_RD_ATOM		= 0,
-+	RXE_ATOMIC_CAP			= 1,
-+	RXE_MAX_EE			= 0,
-+	RXE_MAX_RDD			= 0,
-+	RXE_MAX_MW			= 0,
-+	RXE_MAX_RAW_IPV6_QP		= 0,
-+	RXE_MAX_RAW_ETHY_QP		= 0,
-+	RXE_MAX_MCAST_GRP		= 8192,
-+	RXE_MAX_MCAST_QP_ATTACH		= 56,
-+	RXE_MAX_TOT_MCAST_QP_ATTACH	= 0x70000,
-+	RXE_MAX_AH			= 100,
-+	RXE_MAX_FMR			= 2 * 1024,
-+	RXE_MAX_MAP_PER_FMR		= 100,
-+	RXE_MAX_SRQ			= 960,
-+	RXE_MAX_SRQ_WR			= 0x4000,
-+	RXE_MIN_SRQ_WR			= 1,
-+	RXE_MAX_SRQ_SGE			= 27,
-+	RXE_MIN_SRQ_SGE			= 1,
-+	RXE_MAX_FMR_PAGE_LIST_LEN	= 0,
-+	RXE_MAX_PKEYS			= 64,
-+	RXE_LOCAL_CA_ACK_DELAY		= 15,
-+
-+	RXE_MAX_UCONTEXT		= 512,
-+
-+	RXE_NUM_PORT			= 1,
-+	RXE_NUM_COMP_VECTORS		= 1,
-+
-+	RXE_MIN_QP_INDEX		= 16,
-+	RXE_MAX_QP_INDEX		= 0x00020000,
-+
-+	RXE_MIN_SRQ_INDEX		= 0x00020001,
-+	RXE_MAX_SRQ_INDEX		= 0x00040000,
-+
-+	RXE_MIN_MR_INDEX		= 0x00000001,
-+	RXE_MAX_MR_INDEX		= 0x00020000,
-+	RXE_MIN_FMR_INDEX		= 0x00020001,
-+	RXE_MAX_FMR_INDEX		= 0x00040000,
-+	RXE_MIN_MW_INDEX		= 0x00040001,
-+	RXE_MAX_MW_INDEX		= 0x00060000,
-+	RXE_MAX_PKT_PER_ACK		= 64,
-+
-+	/* PSN window in RC, to prevent mixing new packets PSN with
-+	 * old ones. According to IB SPEC this number is half of
-+	 * the PSN range (2^24).
-+	 */
-+	RXE_MAX_UNACKED_PSNS		= 0x800000,
-+
-+	/* Max inflight SKBs per queue pair */
-+	RXE_INFLIGHT_SKBS_PER_QP_HIGH	= 64,
-+	RXE_INFLIGHT_SKBS_PER_QP_LOW	= 16,
-+
-+	/* Delay before calling arbiter timer */
-+	RXE_NSEC_ARB_TIMER_DELAY	= 200,
++/* useful information about work request opcodes and pkt opcodes in
++ * table form
++ */
++struct rxe_wr_opcode_info rxe_wr_opcode_info[] = {
++	[IB_WR_RDMA_WRITE]				= {
++		.name	= "IB_WR_RDMA_WRITE",
++		.mask	= {
++			[IB_QPT_RC]	= WR_INLINE_MASK | WR_WRITE_MASK,
++			[IB_QPT_UC]	= WR_INLINE_MASK | WR_WRITE_MASK,
++		},
++	},
++	[IB_WR_RDMA_WRITE_WITH_IMM]			= {
++		.name	= "IB_WR_RDMA_WRITE_WITH_IMM",
++		.mask	= {
++			[IB_QPT_RC]	= WR_INLINE_MASK | WR_WRITE_MASK,
++			[IB_QPT_UC]	= WR_INLINE_MASK | WR_WRITE_MASK,
++		},
++	},
++	[IB_WR_SEND]					= {
++		.name	= "IB_WR_SEND",
++		.mask	= {
++			[IB_QPT_SMI]	= WR_INLINE_MASK | WR_SEND_MASK,
++			[IB_QPT_GSI]	= WR_INLINE_MASK | WR_SEND_MASK,
++			[IB_QPT_RC]	= WR_INLINE_MASK | WR_SEND_MASK,
++			[IB_QPT_UC]	= WR_INLINE_MASK | WR_SEND_MASK,
++			[IB_QPT_UD]	= WR_INLINE_MASK | WR_SEND_MASK,
++		},
++	},
++	[IB_WR_SEND_WITH_IMM]				= {
++		.name	= "IB_WR_SEND_WITH_IMM",
++		.mask	= {
++			[IB_QPT_SMI]	= WR_INLINE_MASK | WR_SEND_MASK,
++			[IB_QPT_GSI]	= WR_INLINE_MASK | WR_SEND_MASK,
++			[IB_QPT_RC]	= WR_INLINE_MASK | WR_SEND_MASK,
++			[IB_QPT_UC]	= WR_INLINE_MASK | WR_SEND_MASK,
++			[IB_QPT_UD]	= WR_INLINE_MASK | WR_SEND_MASK,
++		},
++	},
++	[IB_WR_RDMA_READ]				= {
++		.name	= "IB_WR_RDMA_READ",
++		.mask	= {
++			[IB_QPT_RC]	= WR_READ_MASK,
++		},
++	},
++	[IB_WR_ATOMIC_CMP_AND_SWP]			= {
++		.name	= "IB_WR_ATOMIC_CMP_AND_SWP",
++		.mask	= {
++			[IB_QPT_RC]	= WR_ATOMIC_MASK,
++		},
++	},
++	[IB_WR_ATOMIC_FETCH_AND_ADD]			= {
++		.name	= "IB_WR_ATOMIC_FETCH_AND_ADD",
++		.mask	= {
++			[IB_QPT_RC]	= WR_ATOMIC_MASK,
++		},
++	},
++	[IB_WR_LSO]					= {
++		.name	= "IB_WR_LSO",
++		.mask	= {
++			/* not supported */
++		},
++	},
++	[IB_WR_SEND_WITH_INV]				= {
++		.name	= "IB_WR_SEND_WITH_INV",
++		.mask	= {
++			[IB_QPT_RC]	= WR_INLINE_MASK | WR_SEND_MASK,
++			[IB_QPT_UC]	= WR_INLINE_MASK | WR_SEND_MASK,
++			[IB_QPT_UD]	= WR_INLINE_MASK | WR_SEND_MASK,
++		},
++	},
++	[IB_WR_RDMA_READ_WITH_INV]			= {
++		.name	= "IB_WR_RDMA_READ_WITH_INV",
++		.mask	= {
++			[IB_QPT_RC]	= WR_READ_MASK,
++		},
++	},
++	[IB_WR_LOCAL_INV]				= {
++		.name	= "IB_WR_LOCAL_INV",
++		.mask	= {
++			/* not supported */
++		},
++	},
++	[IB_WR_REG_MR]					= {
++		.name	= "IB_WR_REG_MR",
++		.mask	= {
++			/* not supported */
++		},
++	},
 +};
 +
-+/* default/initial rxe port parameters */
-+enum rxe_port_param {
-+	RXE_PORT_STATE			= IB_PORT_DOWN,
-+	RXE_PORT_MAX_MTU		= IB_MTU_4096,
-+	RXE_PORT_ACTIVE_MTU		= IB_MTU_256,
-+	RXE_PORT_GID_TBL_LEN		= 32,
-+	RXE_PORT_PORT_CAP_FLAGS		= RDMA_CORE_CAP_PROT_ROCE_UDP_ENCAP,
-+	RXE_PORT_MAX_MSG_SZ		= 0x800000,
-+	RXE_PORT_BAD_PKEY_CNTR		= 0,
-+	RXE_PORT_QKEY_VIOL_CNTR		= 0,
-+	RXE_PORT_LID			= 0,
-+	RXE_PORT_SM_LID			= 0,
-+	RXE_PORT_SM_SL			= 0,
-+	RXE_PORT_LMC			= 0,
-+	RXE_PORT_MAX_VL_NUM		= 1,
-+	RXE_PORT_SUBNET_TIMEOUT		= 0,
-+	RXE_PORT_INIT_TYPE_REPLY	= 0,
-+	RXE_PORT_ACTIVE_WIDTH		= IB_WIDTH_1X,
-+	RXE_PORT_ACTIVE_SPEED		= 1,
-+	RXE_PORT_PKEY_TBL_LEN		= 64,
-+	RXE_PORT_PHYS_STATE		= 2,
-+	RXE_PORT_SUBNET_PREFIX		= 0xfe80000000000000ULL,
-+};
++struct rxe_opcode_info rxe_opcode[RXE_NUM_OPCODE] = {
++	[IB_OPCODE_RC_SEND_FIRST]			= {
++		.name	= "IB_OPCODE_RC_SEND_FIRST",
++		.mask	= RXE_PAYLOAD_MASK | RXE_REQ_MASK | RXE_RWR_MASK
++				| RXE_SEND_MASK | RXE_START_MASK,
++		.length = RXE_BTH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES,
++		}
++	},
++	[IB_OPCODE_RC_SEND_MIDDLE]		= {
++		.name	= "IB_OPCODE_RC_SEND_MIDDLE]",
++		.mask	= RXE_PAYLOAD_MASK | RXE_REQ_MASK | RXE_SEND_MASK
++				| RXE_MIDDLE_MASK,
++		.length = RXE_BTH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES,
++		}
++	},
++	[IB_OPCODE_RC_SEND_LAST]			= {
++		.name	= "IB_OPCODE_RC_SEND_LAST",
++		.mask	= RXE_PAYLOAD_MASK | RXE_REQ_MASK | RXE_COMP_MASK
++				| RXE_SEND_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES,
++		}
++	},
++	[IB_OPCODE_RC_SEND_LAST_WITH_IMMEDIATE]		= {
++		.name	= "IB_OPCODE_RC_SEND_LAST_WITH_IMMEDIATE",
++		.mask	= RXE_IMMDT_MASK | RXE_PAYLOAD_MASK | RXE_REQ_MASK
++				| RXE_COMP_MASK | RXE_SEND_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_IMMDT_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_IMMDT]	= RXE_BTH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_IMMDT_BYTES,
++		}
++	},
++	[IB_OPCODE_RC_SEND_ONLY]			= {
++		.name	= "IB_OPCODE_RC_SEND_ONLY",
++		.mask	= RXE_PAYLOAD_MASK | RXE_REQ_MASK | RXE_COMP_MASK
++				| RXE_RWR_MASK | RXE_SEND_MASK
++				| RXE_START_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES,
++		}
++	},
++	[IB_OPCODE_RC_SEND_ONLY_WITH_IMMEDIATE]		= {
++		.name	= "IB_OPCODE_RC_SEND_ONLY_WITH_IMMEDIATE",
++		.mask	= RXE_IMMDT_MASK | RXE_PAYLOAD_MASK | RXE_REQ_MASK
++				| RXE_COMP_MASK | RXE_RWR_MASK | RXE_SEND_MASK
++				| RXE_START_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_IMMDT_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_IMMDT]	= RXE_BTH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_IMMDT_BYTES,
++		}
++	},
++	[IB_OPCODE_RC_RDMA_WRITE_FIRST]		= {
++		.name	= "IB_OPCODE_RC_RDMA_WRITE_FIRST",
++		.mask	= RXE_RETH_MASK | RXE_PAYLOAD_MASK | RXE_REQ_MASK
++				| RXE_WRITE_MASK | RXE_START_MASK,
++		.length = RXE_BTH_BYTES + RXE_RETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RETH]	= RXE_BTH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_RETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RC_RDMA_WRITE_MIDDLE]		= {
++		.name	= "IB_OPCODE_RC_RDMA_WRITE_MIDDLE",
++		.mask	= RXE_PAYLOAD_MASK | RXE_REQ_MASK | RXE_WRITE_MASK
++				| RXE_MIDDLE_MASK,
++		.length = RXE_BTH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES,
++		}
++	},
++	[IB_OPCODE_RC_RDMA_WRITE_LAST]			= {
++		.name	= "IB_OPCODE_RC_RDMA_WRITE_LAST",
++		.mask	= RXE_PAYLOAD_MASK | RXE_REQ_MASK | RXE_WRITE_MASK
++				| RXE_END_MASK,
++		.length = RXE_BTH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES,
++		}
++	},
++	[IB_OPCODE_RC_RDMA_WRITE_LAST_WITH_IMMEDIATE]		= {
++		.name	= "IB_OPCODE_RC_RDMA_WRITE_LAST_WITH_IMMEDIATE",
++		.mask	= RXE_IMMDT_MASK | RXE_PAYLOAD_MASK | RXE_REQ_MASK
++				| RXE_WRITE_MASK | RXE_COMP_MASK | RXE_RWR_MASK
++				| RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_IMMDT_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_IMMDT]	= RXE_BTH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_IMMDT_BYTES,
++		}
++	},
++	[IB_OPCODE_RC_RDMA_WRITE_ONLY]			= {
++		.name	= "IB_OPCODE_RC_RDMA_WRITE_ONLY",
++		.mask	= RXE_RETH_MASK | RXE_PAYLOAD_MASK | RXE_REQ_MASK
++				| RXE_WRITE_MASK | RXE_START_MASK
++				| RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_RETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RETH]	= RXE_BTH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_RETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RC_RDMA_WRITE_ONLY_WITH_IMMEDIATE]		= {
++		.name	= "IB_OPCODE_RC_RDMA_WRITE_ONLY_WITH_IMMEDIATE",
++		.mask	= RXE_RETH_MASK | RXE_IMMDT_MASK | RXE_PAYLOAD_MASK
++				| RXE_REQ_MASK | RXE_WRITE_MASK
++				| RXE_COMP_MASK | RXE_RWR_MASK
++				| RXE_START_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_IMMDT_BYTES + RXE_RETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RETH]	= RXE_BTH_BYTES,
++			[RXE_IMMDT]	= RXE_BTH_BYTES
++						+ RXE_RETH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_RETH_BYTES
++						+ RXE_IMMDT_BYTES,
++		}
++	},
++	[IB_OPCODE_RC_RDMA_READ_REQUEST]			= {
++		.name	= "IB_OPCODE_RC_RDMA_READ_REQUEST",
++		.mask	= RXE_RETH_MASK | RXE_REQ_MASK | RXE_READ_MASK
++				| RXE_START_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_RETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RETH]	= RXE_BTH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_RETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RC_RDMA_READ_RESPONSE_FIRST]		= {
++		.name	= "IB_OPCODE_RC_RDMA_READ_RESPONSE_FIRST",
++		.mask	= RXE_AETH_MASK | RXE_PAYLOAD_MASK | RXE_ACK_MASK
++				| RXE_START_MASK,
++		.length = RXE_BTH_BYTES + RXE_AETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_AETH]	= RXE_BTH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_AETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE]		= {
++		.name	= "IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE",
++		.mask	= RXE_PAYLOAD_MASK | RXE_ACK_MASK | RXE_MIDDLE_MASK,
++		.length = RXE_BTH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES,
++		}
++	},
++	[IB_OPCODE_RC_RDMA_READ_RESPONSE_LAST]		= {
++		.name	= "IB_OPCODE_RC_RDMA_READ_RESPONSE_LAST",
++		.mask	= RXE_AETH_MASK | RXE_PAYLOAD_MASK | RXE_ACK_MASK
++				| RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_AETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_AETH]	= RXE_BTH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_AETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RC_RDMA_READ_RESPONSE_ONLY]		= {
++		.name	= "IB_OPCODE_RC_RDMA_READ_RESPONSE_ONLY",
++		.mask	= RXE_AETH_MASK | RXE_PAYLOAD_MASK | RXE_ACK_MASK
++				| RXE_START_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_AETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_AETH]	= RXE_BTH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_AETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RC_ACKNOWLEDGE]			= {
++		.name	= "IB_OPCODE_RC_ACKNOWLEDGE",
++		.mask	= RXE_AETH_MASK | RXE_ACK_MASK | RXE_START_MASK
++				| RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_AETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_AETH]	= RXE_BTH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_AETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RC_ATOMIC_ACKNOWLEDGE]			= {
++		.name	= "IB_OPCODE_RC_ATOMIC_ACKNOWLEDGE",
++		.mask	= RXE_AETH_MASK | RXE_ATMACK_MASK | RXE_ACK_MASK
++				| RXE_START_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_ATMACK_BYTES + RXE_AETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_AETH]	= RXE_BTH_BYTES,
++			[RXE_ATMACK]	= RXE_BTH_BYTES
++						+ RXE_AETH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++					+ RXE_ATMACK_BYTES + RXE_AETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RC_COMPARE_SWAP]			= {
++		.name	= "IB_OPCODE_RC_COMPARE_SWAP",
++		.mask	= RXE_ATMETH_MASK | RXE_REQ_MASK | RXE_ATOMIC_MASK
++				| RXE_START_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_ATMETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_ATMETH]	= RXE_BTH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_ATMETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RC_FETCH_ADD]			= {
++		.name	= "IB_OPCODE_RC_FETCH_ADD",
++		.mask	= RXE_ATMETH_MASK | RXE_REQ_MASK | RXE_ATOMIC_MASK
++				| RXE_START_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_ATMETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_ATMETH]	= RXE_BTH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_ATMETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RC_SEND_LAST_INV]		= {
++		.name	= "IB_OPCODE_RC_SEND_LAST_INV",
++		.mask	= RXE_IETH_MASK | RXE_PAYLOAD_MASK | RXE_REQ_MASK
++				| RXE_COMP_MASK | RXE_SEND_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_IETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_IETH]	= RXE_BTH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_IETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RC_SEND_ONLY_INV]		= {
++		.name	= "IB_OPCODE_RC_SEND_ONLY_INV",
++		.mask	= RXE_IETH_MASK | RXE_PAYLOAD_MASK | RXE_REQ_MASK
++				| RXE_COMP_MASK | RXE_RWR_MASK | RXE_SEND_MASK
++				| RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_IETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_IETH]	= RXE_BTH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_IETH_BYTES,
++		}
++	},
 +
-+/* default/initial port info parameters */
-+enum rxe_port_info_param {
-+	RXE_PORT_INFO_VL_CAP		= 4,	/* 1-8 */
-+	RXE_PORT_INFO_MTU_CAP		= 5,	/* 4096 */
-+	RXE_PORT_INFO_OPER_VL		= 1,	/* 1 */
-+};
++	/* UC */
++	[IB_OPCODE_UC_SEND_FIRST]			= {
++		.name	= "IB_OPCODE_UC_SEND_FIRST",
++		.mask	= RXE_PAYLOAD_MASK | RXE_REQ_MASK | RXE_RWR_MASK
++				| RXE_SEND_MASK | RXE_START_MASK,
++		.length = RXE_BTH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES,
++		}
++	},
++	[IB_OPCODE_UC_SEND_MIDDLE]		= {
++		.name	= "IB_OPCODE_UC_SEND_MIDDLE",
++		.mask	= RXE_PAYLOAD_MASK | RXE_REQ_MASK | RXE_SEND_MASK
++				| RXE_MIDDLE_MASK,
++		.length = RXE_BTH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES,
++		}
++	},
++	[IB_OPCODE_UC_SEND_LAST]			= {
++		.name	= "IB_OPCODE_UC_SEND_LAST",
++		.mask	= RXE_PAYLOAD_MASK | RXE_REQ_MASK | RXE_COMP_MASK
++				| RXE_SEND_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES,
++		}
++	},
++	[IB_OPCODE_UC_SEND_LAST_WITH_IMMEDIATE]		= {
++		.name	= "IB_OPCODE_UC_SEND_LAST_WITH_IMMEDIATE",
++		.mask	= RXE_IMMDT_MASK | RXE_PAYLOAD_MASK | RXE_REQ_MASK
++				| RXE_COMP_MASK | RXE_SEND_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_IMMDT_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_IMMDT]	= RXE_BTH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_IMMDT_BYTES,
++		}
++	},
++	[IB_OPCODE_UC_SEND_ONLY]			= {
++		.name	= "IB_OPCODE_UC_SEND_ONLY",
++		.mask	= RXE_PAYLOAD_MASK | RXE_REQ_MASK | RXE_COMP_MASK
++				| RXE_RWR_MASK | RXE_SEND_MASK
++				| RXE_START_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES,
++		}
++	},
++	[IB_OPCODE_UC_SEND_ONLY_WITH_IMMEDIATE]		= {
++		.name	= "IB_OPCODE_UC_SEND_ONLY_WITH_IMMEDIATE",
++		.mask	= RXE_IMMDT_MASK | RXE_PAYLOAD_MASK | RXE_REQ_MASK
++				| RXE_COMP_MASK | RXE_RWR_MASK | RXE_SEND_MASK
++				| RXE_START_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_IMMDT_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_IMMDT]	= RXE_BTH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_IMMDT_BYTES,
++		}
++	},
++	[IB_OPCODE_UC_RDMA_WRITE_FIRST]		= {
++		.name	= "IB_OPCODE_UC_RDMA_WRITE_FIRST",
++		.mask	= RXE_RETH_MASK | RXE_PAYLOAD_MASK | RXE_REQ_MASK
++				| RXE_WRITE_MASK | RXE_START_MASK,
++		.length = RXE_BTH_BYTES + RXE_RETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RETH]	= RXE_BTH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_RETH_BYTES,
++		}
++	},
++	[IB_OPCODE_UC_RDMA_WRITE_MIDDLE]		= {
++		.name	= "IB_OPCODE_UC_RDMA_WRITE_MIDDLE",
++		.mask	= RXE_PAYLOAD_MASK | RXE_REQ_MASK | RXE_WRITE_MASK
++				| RXE_MIDDLE_MASK,
++		.length = RXE_BTH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES,
++		}
++	},
++	[IB_OPCODE_UC_RDMA_WRITE_LAST]			= {
++		.name	= "IB_OPCODE_UC_RDMA_WRITE_LAST",
++		.mask	= RXE_PAYLOAD_MASK | RXE_REQ_MASK | RXE_WRITE_MASK
++				| RXE_END_MASK,
++		.length = RXE_BTH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES,
++		}
++	},
++	[IB_OPCODE_UC_RDMA_WRITE_LAST_WITH_IMMEDIATE]		= {
++		.name	= "IB_OPCODE_UC_RDMA_WRITE_LAST_WITH_IMMEDIATE",
++		.mask	= RXE_IMMDT_MASK | RXE_PAYLOAD_MASK | RXE_REQ_MASK
++				| RXE_WRITE_MASK | RXE_COMP_MASK | RXE_RWR_MASK
++				| RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_IMMDT_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_IMMDT]	= RXE_BTH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_IMMDT_BYTES,
++		}
++	},
++	[IB_OPCODE_UC_RDMA_WRITE_ONLY]			= {
++		.name	= "IB_OPCODE_UC_RDMA_WRITE_ONLY",
++		.mask	= RXE_RETH_MASK | RXE_PAYLOAD_MASK | RXE_REQ_MASK
++				| RXE_WRITE_MASK | RXE_START_MASK
++				| RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_RETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RETH]	= RXE_BTH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_RETH_BYTES,
++		}
++	},
++	[IB_OPCODE_UC_RDMA_WRITE_ONLY_WITH_IMMEDIATE]		= {
++		.name	= "IB_OPCODE_UC_RDMA_WRITE_ONLY_WITH_IMMEDIATE",
++		.mask	= RXE_RETH_MASK | RXE_IMMDT_MASK | RXE_PAYLOAD_MASK
++				| RXE_REQ_MASK | RXE_WRITE_MASK
++				| RXE_COMP_MASK | RXE_RWR_MASK
++				| RXE_START_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_IMMDT_BYTES + RXE_RETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RETH]	= RXE_BTH_BYTES,
++			[RXE_IMMDT]	= RXE_BTH_BYTES
++						+ RXE_RETH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_RETH_BYTES
++						+ RXE_IMMDT_BYTES,
++		}
++	},
 +
-+#endif /* RXE_PARAM_H */
++	/* RD */
++	[IB_OPCODE_RD_SEND_FIRST]			= {
++		.name	= "IB_OPCODE_RD_SEND_FIRST",
++		.mask	= RXE_RDETH_MASK | RXE_DETH_MASK | RXE_PAYLOAD_MASK
++				| RXE_REQ_MASK | RXE_RWR_MASK | RXE_SEND_MASK
++				| RXE_START_MASK,
++		.length = RXE_BTH_BYTES + RXE_DETH_BYTES + RXE_RDETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RDETH]	= RXE_BTH_BYTES,
++			[RXE_DETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_DETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RD_SEND_MIDDLE]		= {
++		.name	= "IB_OPCODE_RD_SEND_MIDDLE",
++		.mask	= RXE_RDETH_MASK | RXE_DETH_MASK | RXE_PAYLOAD_MASK
++				| RXE_REQ_MASK | RXE_SEND_MASK
++				| RXE_MIDDLE_MASK,
++		.length = RXE_BTH_BYTES + RXE_DETH_BYTES + RXE_RDETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RDETH]	= RXE_BTH_BYTES,
++			[RXE_DETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_DETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RD_SEND_LAST]			= {
++		.name	= "IB_OPCODE_RD_SEND_LAST",
++		.mask	= RXE_RDETH_MASK | RXE_DETH_MASK | RXE_PAYLOAD_MASK
++				| RXE_REQ_MASK | RXE_COMP_MASK | RXE_SEND_MASK
++				| RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_DETH_BYTES + RXE_RDETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RDETH]	= RXE_BTH_BYTES,
++			[RXE_DETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_DETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RD_SEND_LAST_WITH_IMMEDIATE]		= {
++		.name	= "IB_OPCODE_RD_SEND_LAST_WITH_IMMEDIATE",
++		.mask	= RXE_RDETH_MASK | RXE_DETH_MASK | RXE_IMMDT_MASK
++				| RXE_PAYLOAD_MASK | RXE_REQ_MASK
++				| RXE_COMP_MASK | RXE_SEND_MASK
++				| RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_IMMDT_BYTES + RXE_DETH_BYTES
++				+ RXE_RDETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RDETH]	= RXE_BTH_BYTES,
++			[RXE_DETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES,
++			[RXE_IMMDT]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_DETH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_DETH_BYTES
++						+ RXE_IMMDT_BYTES,
++		}
++	},
++	[IB_OPCODE_RD_SEND_ONLY]			= {
++		.name	= "IB_OPCODE_RD_SEND_ONLY",
++		.mask	= RXE_RDETH_MASK | RXE_DETH_MASK | RXE_PAYLOAD_MASK
++				| RXE_REQ_MASK | RXE_COMP_MASK | RXE_RWR_MASK
++				| RXE_SEND_MASK | RXE_START_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_DETH_BYTES + RXE_RDETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RDETH]	= RXE_BTH_BYTES,
++			[RXE_DETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_DETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RD_SEND_ONLY_WITH_IMMEDIATE]		= {
++		.name	= "IB_OPCODE_RD_SEND_ONLY_WITH_IMMEDIATE",
++		.mask	= RXE_RDETH_MASK | RXE_DETH_MASK | RXE_IMMDT_MASK
++				| RXE_PAYLOAD_MASK | RXE_REQ_MASK
++				| RXE_COMP_MASK | RXE_RWR_MASK | RXE_SEND_MASK
++				| RXE_START_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_IMMDT_BYTES + RXE_DETH_BYTES
++				+ RXE_RDETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RDETH]	= RXE_BTH_BYTES,
++			[RXE_DETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES,
++			[RXE_IMMDT]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_DETH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_DETH_BYTES
++						+ RXE_IMMDT_BYTES,
++		}
++	},
++	[IB_OPCODE_RD_RDMA_WRITE_FIRST]		= {
++		.name	= "IB_OPCODE_RD_RDMA_WRITE_FIRST",
++		.mask	= RXE_RDETH_MASK | RXE_DETH_MASK | RXE_RETH_MASK
++				| RXE_PAYLOAD_MASK | RXE_REQ_MASK
++				| RXE_WRITE_MASK | RXE_START_MASK,
++		.length = RXE_BTH_BYTES + RXE_RETH_BYTES + RXE_DETH_BYTES
++				+ RXE_RDETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RDETH]	= RXE_BTH_BYTES,
++			[RXE_DETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES,
++			[RXE_RETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_DETH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_DETH_BYTES
++						+ RXE_RETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RD_RDMA_WRITE_MIDDLE]		= {
++		.name	= "IB_OPCODE_RD_RDMA_WRITE_MIDDLE",
++		.mask	= RXE_RDETH_MASK | RXE_DETH_MASK | RXE_PAYLOAD_MASK
++				| RXE_REQ_MASK | RXE_WRITE_MASK
++				| RXE_MIDDLE_MASK,
++		.length = RXE_BTH_BYTES + RXE_DETH_BYTES + RXE_RDETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RDETH]	= RXE_BTH_BYTES,
++			[RXE_DETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_DETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RD_RDMA_WRITE_LAST]			= {
++		.name	= "IB_OPCODE_RD_RDMA_WRITE_LAST",
++		.mask	= RXE_RDETH_MASK | RXE_DETH_MASK | RXE_PAYLOAD_MASK
++				| RXE_REQ_MASK | RXE_WRITE_MASK
++				| RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_DETH_BYTES + RXE_RDETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RDETH]	= RXE_BTH_BYTES,
++			[RXE_DETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_DETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RD_RDMA_WRITE_LAST_WITH_IMMEDIATE]		= {
++		.name	= "IB_OPCODE_RD_RDMA_WRITE_LAST_WITH_IMMEDIATE",
++		.mask	= RXE_RDETH_MASK | RXE_DETH_MASK | RXE_IMMDT_MASK
++				| RXE_PAYLOAD_MASK | RXE_REQ_MASK
++				| RXE_WRITE_MASK | RXE_COMP_MASK | RXE_RWR_MASK
++				| RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_IMMDT_BYTES + RXE_DETH_BYTES
++				+ RXE_RDETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RDETH]	= RXE_BTH_BYTES,
++			[RXE_DETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES,
++			[RXE_IMMDT]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_DETH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_DETH_BYTES
++						+ RXE_IMMDT_BYTES,
++		}
++	},
++	[IB_OPCODE_RD_RDMA_WRITE_ONLY]			= {
++		.name	= "IB_OPCODE_RD_RDMA_WRITE_ONLY",
++		.mask	= RXE_RDETH_MASK | RXE_DETH_MASK | RXE_RETH_MASK
++				| RXE_PAYLOAD_MASK | RXE_REQ_MASK
++				| RXE_WRITE_MASK | RXE_START_MASK
++				| RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_RETH_BYTES + RXE_DETH_BYTES
++				+ RXE_RDETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RDETH]	= RXE_BTH_BYTES,
++			[RXE_DETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES,
++			[RXE_RETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_DETH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_DETH_BYTES
++						+ RXE_RETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RD_RDMA_WRITE_ONLY_WITH_IMMEDIATE]		= {
++		.name	= "IB_OPCODE_RD_RDMA_WRITE_ONLY_WITH_IMMEDIATE",
++		.mask	= RXE_RDETH_MASK | RXE_DETH_MASK | RXE_RETH_MASK
++				| RXE_IMMDT_MASK | RXE_PAYLOAD_MASK
++				| RXE_REQ_MASK | RXE_WRITE_MASK
++				| RXE_COMP_MASK | RXE_RWR_MASK
++				| RXE_START_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_IMMDT_BYTES + RXE_RETH_BYTES
++				+ RXE_DETH_BYTES + RXE_RDETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RDETH]	= RXE_BTH_BYTES,
++			[RXE_DETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES,
++			[RXE_RETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_DETH_BYTES,
++			[RXE_IMMDT]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_DETH_BYTES
++						+ RXE_RETH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_DETH_BYTES
++						+ RXE_RETH_BYTES
++						+ RXE_IMMDT_BYTES,
++		}
++	},
++	[IB_OPCODE_RD_RDMA_READ_REQUEST]			= {
++		.name	= "IB_OPCODE_RD_RDMA_READ_REQUEST",
++		.mask	= RXE_RDETH_MASK | RXE_DETH_MASK | RXE_RETH_MASK
++				| RXE_REQ_MASK | RXE_READ_MASK
++				| RXE_START_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_RETH_BYTES + RXE_DETH_BYTES
++				+ RXE_RDETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RDETH]	= RXE_BTH_BYTES,
++			[RXE_DETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES,
++			[RXE_RETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_DETH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_RETH_BYTES
++						+ RXE_DETH_BYTES
++						+ RXE_RDETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RD_RDMA_READ_RESPONSE_FIRST]		= {
++		.name	= "IB_OPCODE_RD_RDMA_READ_RESPONSE_FIRST",
++		.mask	= RXE_RDETH_MASK | RXE_AETH_MASK
++				| RXE_PAYLOAD_MASK | RXE_ACK_MASK
++				| RXE_START_MASK,
++		.length = RXE_BTH_BYTES + RXE_AETH_BYTES + RXE_RDETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RDETH]	= RXE_BTH_BYTES,
++			[RXE_AETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_AETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RD_RDMA_READ_RESPONSE_MIDDLE]		= {
++		.name	= "IB_OPCODE_RD_RDMA_READ_RESPONSE_MIDDLE",
++		.mask	= RXE_RDETH_MASK | RXE_PAYLOAD_MASK | RXE_ACK_MASK
++				| RXE_MIDDLE_MASK,
++		.length = RXE_BTH_BYTES + RXE_RDETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RDETH]	= RXE_BTH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RD_RDMA_READ_RESPONSE_LAST]		= {
++		.name	= "IB_OPCODE_RD_RDMA_READ_RESPONSE_LAST",
++		.mask	= RXE_RDETH_MASK | RXE_AETH_MASK | RXE_PAYLOAD_MASK
++				| RXE_ACK_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_AETH_BYTES + RXE_RDETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RDETH]	= RXE_BTH_BYTES,
++			[RXE_AETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_AETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RD_RDMA_READ_RESPONSE_ONLY]		= {
++		.name	= "IB_OPCODE_RD_RDMA_READ_RESPONSE_ONLY",
++		.mask	= RXE_RDETH_MASK | RXE_AETH_MASK | RXE_PAYLOAD_MASK
++				| RXE_ACK_MASK | RXE_START_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_AETH_BYTES + RXE_RDETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RDETH]	= RXE_BTH_BYTES,
++			[RXE_AETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_AETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RD_ACKNOWLEDGE]			= {
++		.name	= "IB_OPCODE_RD_ACKNOWLEDGE",
++		.mask	= RXE_RDETH_MASK | RXE_AETH_MASK | RXE_ACK_MASK
++				| RXE_START_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_AETH_BYTES + RXE_RDETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RDETH]	= RXE_BTH_BYTES,
++			[RXE_AETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RD_ATOMIC_ACKNOWLEDGE]			= {
++		.name	= "IB_OPCODE_RD_ATOMIC_ACKNOWLEDGE",
++		.mask	= RXE_RDETH_MASK | RXE_AETH_MASK | RXE_ATMACK_MASK
++				| RXE_ACK_MASK | RXE_START_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_ATMACK_BYTES + RXE_AETH_BYTES
++				+ RXE_RDETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RDETH]	= RXE_BTH_BYTES,
++			[RXE_AETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES,
++			[RXE_ATMACK]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_AETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RD_COMPARE_SWAP]			= {
++		.name	= "RD_COMPARE_SWAP",
++		.mask	= RXE_RDETH_MASK | RXE_DETH_MASK | RXE_ATMETH_MASK
++				| RXE_REQ_MASK | RXE_ATOMIC_MASK
++				| RXE_START_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_ATMETH_BYTES + RXE_DETH_BYTES
++				+ RXE_RDETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RDETH]	= RXE_BTH_BYTES,
++			[RXE_DETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES,
++			[RXE_ATMETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_DETH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES +
++						+ RXE_ATMETH_BYTES
++						+ RXE_DETH_BYTES +
++						+ RXE_RDETH_BYTES,
++		}
++	},
++	[IB_OPCODE_RD_FETCH_ADD]			= {
++		.name	= "IB_OPCODE_RD_FETCH_ADD",
++		.mask	= RXE_RDETH_MASK | RXE_DETH_MASK | RXE_ATMETH_MASK
++				| RXE_REQ_MASK | RXE_ATOMIC_MASK
++				| RXE_START_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_ATMETH_BYTES + RXE_DETH_BYTES
++				+ RXE_RDETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_RDETH]	= RXE_BTH_BYTES,
++			[RXE_DETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES,
++			[RXE_ATMETH]	= RXE_BTH_BYTES
++						+ RXE_RDETH_BYTES
++						+ RXE_DETH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES +
++						+ RXE_ATMETH_BYTES
++						+ RXE_DETH_BYTES +
++						+ RXE_RDETH_BYTES,
++		}
++	},
++
++	/* UD */
++	[IB_OPCODE_UD_SEND_ONLY]			= {
++		.name	= "IB_OPCODE_UD_SEND_ONLY",
++		.mask	= RXE_DETH_MASK | RXE_PAYLOAD_MASK | RXE_REQ_MASK
++				| RXE_COMP_MASK | RXE_RWR_MASK | RXE_SEND_MASK
++				| RXE_START_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_DETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_DETH]	= RXE_BTH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_DETH_BYTES,
++		}
++	},
++	[IB_OPCODE_UD_SEND_ONLY_WITH_IMMEDIATE]		= {
++		.name	= "IB_OPCODE_UD_SEND_ONLY_WITH_IMMEDIATE",
++		.mask	= RXE_DETH_MASK | RXE_IMMDT_MASK | RXE_PAYLOAD_MASK
++				| RXE_REQ_MASK | RXE_COMP_MASK | RXE_RWR_MASK
++				| RXE_SEND_MASK | RXE_START_MASK | RXE_END_MASK,
++		.length = RXE_BTH_BYTES + RXE_IMMDT_BYTES + RXE_DETH_BYTES,
++		.offset = {
++			[RXE_BTH]	= 0,
++			[RXE_DETH]	= RXE_BTH_BYTES,
++			[RXE_IMMDT]	= RXE_BTH_BYTES
++						+ RXE_DETH_BYTES,
++			[RXE_PAYLOAD]	= RXE_BTH_BYTES
++						+ RXE_DETH_BYTES
++						+ RXE_IMMDT_BYTES,
++		}
++	},
++
++};
 -- 
 1.8.3.1
 
