@@ -1,28 +1,35 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: libmlx5 : Maintainer/Git change
-Date: Thu, 24 Dec 2015 12:59:45 +0200
-Message-ID: <567BD021.2080308@dev.mellanox.co.il>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v2 for-next 5/7] IB/mlx4: Add IB counters table
+Date: Thu, 24 Dec 2015 14:38:46 +0200
+Message-ID: <567BE756.9050005@mellanox.com>
+References: <1444909482-17113-1-git-send-email-eranbe@mellanox.com>
+ <1444909482-17113-6-git-send-email-eranbe@mellanox.com>
+ <567BC52B.4030801@dev.mellanox.co.il> <567BCA3F.7050502@mellanox.com>
+ <567BCBF8.30006@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <567BCBF8.30006-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I=E2=80=99m taking the responsibility from Mellanox side on libmlx5, th=
-e formal=20
-tree to be used: git://openfabrics.org/~yishaih/libmlx5.git
+On 12/24/2015 12:42 PM, Sagi Grimberg wrote:
+>
+>>> This patch seems to generate a list corruption [1] when I test
+>>> with Doug's for-4.5 tree. Eran, care to take a look at this?
+>>
+>> This patch is part from a series that was introduced in 4.3-rc1 [1],
+>
+> Then something else broke it. Can people check their patches on doug's
+> tree? At the moment it's unusable...
 
-Thanks Eli for creating and maintaining it from day one.
-
-Yishai
-
-
+Yes, I checked the branch up to commit 882f3b3 "Merge branches 
+'4.5/Or-cleanup' and '4.5/rdma-cq' into k.o/for-4.5" and it works 
+(rping, ibv_rc_pingpong over top of mlx4 VPI)
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
