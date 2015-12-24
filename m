@@ -1,202 +1,129 @@
-From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next V2 29/32] IB/rxe: sysfs interface to RXE
-Date: Thu, 24 Dec 2015 11:18:15 +0200
-Message-ID: <1450948698-13383-30-git-send-email-kamalh@mellanox.com>
-References: <1450948698-13383-1-git-send-email-kamalh@mellanox.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v4 00/11] NFS/RDMA server patches for v4.5
+Date: Thu, 24 Dec 2015 09:57:01 +0000
+Message-ID: <5A2D6A9F-5A7C-43DB-ACEC-7D7EEE793FE6@oracle.com>
+References: <20151214211951.12932.99017.stgit@klimt.1015granger.net> <CANjDDBjypu0jX22fZ-Nf-bNNeam2MM0MADaZY9C-o9ihJPiseg@mail.gmail.com> <20151223210015.GA29650@fieldses.org>
+Mime-Version: 1.0 (1.0)
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1450948698-13383-1-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20151223210015.GA29650-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Cc: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-sysfs interface for ib_rxe
+My functional test suite includes Cthon, iozone, dbench, fio,
+multi-threaded builds of git and the Linux kernel, and xfstests.
 
-Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/staging/rdma/rxe/rxe_sysfs.c | 168 +++++++++++++++++++++++++++++++++++
- 1 file changed, 168 insertions(+)
- create mode 100644 drivers/staging/rdma/rxe/rxe_sysfs.c
+This patch series passes with NFSv3, NFSv4.0, and now NFSv4.1.
 
-diff --git a/drivers/staging/rdma/rxe/rxe_sysfs.c b/drivers/staging/rdma/rxe/rxe_sysfs.c
-new file mode 100644
-index 0000000..35bc299
---- /dev/null
-+++ b/drivers/staging/rdma/rxe/rxe_sysfs.c
-@@ -0,0 +1,168 @@
-+/*
-+ * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
-+ * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *	- Redistributions of source code must retain the above
-+ *	  copyright notice, this list of conditions and the following
-+ *	  disclaimer.
-+ *
-+ *	- Redistributions in binary form must reproduce the above
-+ *	  copyright notice, this list of conditions and the following
-+ *	  disclaimer in the documentation and/or other materials
-+ *	  provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include "rxe.h"
-+#include "rxe_net.h"
-+
-+/* Copy argument and remove trailing CR. Return the new length. */
-+static int sanitize_arg(const char *val, char *intf, int intf_len)
-+{
-+	int len;
-+
-+	if (!val)
-+		return 0;
-+
-+	/* Remove newline. */
-+	for (len = 0; len < intf_len - 1 && val[len] && val[len] != '\n'; len++)
-+		intf[len] = val[len];
-+	intf[len] = 0;
-+
-+	if (len == 0 || (val[len] != 0 && val[len] != '\n'))
-+		return 0;
-+
-+	return len;
-+}
-+
-+/* Caller must hold net_info_lock */
-+static void rxe_set_port_state(struct net_device *ndev)
-+{
-+	struct rxe_dev *rxe;
-+
-+	rxe = net_to_rxe(ndev);
-+	if (!rxe)
-+		goto out;
-+
-+	if (net_info[ndev->ifindex].status == IB_PORT_ACTIVE)
-+		rxe_net_up(ndev);
-+	else
-+		rxe_net_down(ndev); /* down for unknown state */
-+out:
-+	return;
-+}
-+
-+static int rxe_param_set_add(const char *val, struct kernel_param *kp)
-+{
-+	int i, len, err;
-+	char intf[32];
-+
-+	len = sanitize_arg(val, intf, sizeof(intf));
-+	if (!len) {
-+		pr_err("rxe: add: invalid interface name\n");
-+		return -EINVAL;
-+	}
-+
-+	spin_lock_bh(&net_info_lock);
-+	for (i = 0; i < RXE_MAX_IF_INDEX; i++) {
-+		struct net_device *ndev = net_info[i].ndev;
-+
-+		if (ndev && (0 == strncmp(intf, ndev->name, len))) {
-+			spin_unlock_bh(&net_info_lock);
-+			if (net_info[i].rxe)
-+				pr_info("rxe: already configured on %s\n",
-+					intf);
-+			else {
-+				err = rxe_net_add(ndev);
-+				if (!err && net_info[i].rxe) {
-+					rxe_set_port_state(ndev);
-+				} else {
-+					pr_err("rxe: add appears to have failed for %s (index %d)\n",
-+					       intf, i);
-+				}
-+			}
-+			return 0;
-+		}
-+	}
-+	spin_unlock_bh(&net_info_lock);
-+
-+	pr_warn("interface %s not found\n", intf);
-+
-+	return 0;
-+}
-+
-+static void rxe_remove_all(void)
-+{
-+	int i;
-+	struct rxe_dev *rxe;
-+
-+	for (i = 0; i < RXE_MAX_IF_INDEX; i++) {
-+		if (net_info[i].rxe) {
-+			spin_lock_bh(&net_info_lock);
-+			rxe = net_info[i].rxe;
-+			net_info[i].rxe = NULL;
-+			spin_unlock_bh(&net_info_lock);
-+
-+			rxe_remove(rxe);
-+		}
-+	}
-+}
-+
-+static int rxe_param_set_remove(const char *val, struct kernel_param *kp)
-+{
-+	int i, len;
-+	char intf[32];
-+	struct rxe_dev *rxe;
-+
-+	len = sanitize_arg(val, intf, sizeof(intf));
-+	if (!len) {
-+		pr_err("rxe: remove: invalid interface name\n");
-+		return -EINVAL;
-+	}
-+
-+	if (strncmp("all", intf, len) == 0) {
-+		pr_info("rxe_sys: remove all");
-+		rxe_remove_all();
-+		return 0;
-+	}
-+
-+	spin_lock_bh(&net_info_lock);
-+	for (i = 0; i < RXE_MAX_IF_INDEX; i++) {
-+		if (!net_info[i].rxe || !net_info[i].ndev)
-+			continue;
-+
-+		if (0 == strncmp(intf, net_info[i].rxe->ib_dev.name, len)) {
-+			rxe = net_info[i].rxe;
-+			net_info[i].rxe = NULL;
-+			spin_unlock_bh(&net_info_lock);
-+
-+			rxe_remove(rxe);
-+			return 0;
-+		}
-+	}
-+	spin_unlock_bh(&net_info_lock);
-+	pr_warn("rxe_sys: instance %s not found\n", intf);
-+
-+	return 0;
-+}
-+
-+module_param_call(add, rxe_param_set_add, NULL, NULL, 0200);
-+module_param_call(remove, rxe_param_set_remove, NULL, NULL, 0200);
--- 
-1.8.3.1
+--
+Chuck Lever
 
+> On Dec 23, 2015, at 21:00, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> wrote:
+> 
+>> On Wed, Dec 16, 2015 at 05:40:09PM +0530, Devesh Sharma wrote:
+>> iozone passed on ocrdma device.
+> 
+> What other testing has there been of this patchset?
+> 
+> Connectathon, xfstests, and pynfs make more of an effort to test corner
+> cases, iozone isn't much of a test of correctness.
+> 
+> --b.
+> 
+>> Link bounce fails to recover iozone
+>> traffic, however failure is not related to this patch series. I am in
+>> processes of finding out the patch which broke it.
+>> 
+>> Tested-By: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+>> 
+>>> On Tue, Dec 15, 2015 at 3:00 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+>>> Here are patches to support server-side bi-directional RPC/RDMA
+>>> operation (to enable NFSv4.1 on RPC/RDMA transports). Thanks to
+>>> all who reviewed v1, v2, and v3. This version has some significant
+>>> changes since the previous one.
+>>> 
+>>> In preparation for Doug's final topic branch, Bruce, I've rebased
+>>> these on Christoph's ib_device_attr branch. There were some merge
+>>> conflicts which I've fixed and tested. These are ready for your
+>>> review.
+>>> 
+>>> Also available in the "nfsd-rdma-for-4.5" topic branch of this git repo:
+>>> 
+>>> git://git.linux-nfs.org/projects/cel/cel-2.6.git
+>>> 
+>>> Or for browsing:
+>>> 
+>>> http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-for-4.5
+>>> 
+>>> 
+>>> Changes since v3:
+>>> - Rebased on Christoph's ib_device_attr branch
+>>> - Backchannel patches have been squashed together
+>>> - Memory allocation overhaul to prevent blocking allocation
+>>>  when sending backchannel calls
+>>> 
+>>> 
+>>> Changes since v2:
+>>> - Rebased on v4.4-rc4
+>>> - Backchannel code in new source file to address dprintk issues
+>>> - svc_rdma_get_context() now uses a pre-allocated cache
+>>> - Dropped svc_rdma_send clean up
+>>> 
+>>> 
+>>> Changes since v1:
+>>> 
+>>> - Rebased on v4.4-rc3
+>>> - Removed the use of CONFIG_SUNRPC_BACKCHANNEL
+>>> - Fixed computation of forward and backward max_requests
+>>> - Updated some comments and patch descriptions
+>>> - pr_err and pr_info converted to dprintk
+>>> - Simplified svc_rdma_get_context()
+>>> - Dropped patch removing access_flags field
+>>> - NFSv4.1 callbacks tested with for-4.5 client
+>>> 
+>>> ---
+>>> 
+>>> Chuck Lever (11):
+>>>      svcrdma: Do not send XDR roundup bytes for a write chunk
+>>>      svcrdma: Clean up rdma_create_xprt()
+>>>      svcrdma: Clean up process_context()
+>>>      svcrdma: Improve allocation of struct svc_rdma_op_ctxt
+>>>      svcrdma: Improve allocation of struct svc_rdma_req_map
+>>>      svcrdma: Remove unused req_map and ctxt kmem_caches
+>>>      svcrdma: Add gfp flags to svc_rdma_post_recv()
+>>>      svcrdma: Remove last two __GFP_NOFAIL call sites
+>>>      svcrdma: Make map_xdr non-static
+>>>      svcrdma: Define maximum number of backchannel requests
+>>>      svcrdma: Add class for RDMA backwards direction transport
+>>> 
+>>> 
+>>> include/linux/sunrpc/svc_rdma.h            |   37 ++-
+>>> net/sunrpc/xprt.c                          |    1
+>>> net/sunrpc/xprtrdma/Makefile               |    2
+>>> net/sunrpc/xprtrdma/svc_rdma.c             |   41 ---
+>>> net/sunrpc/xprtrdma/svc_rdma_backchannel.c |  371 ++++++++++++++++++++++++++++
+>>> net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |   52 ++++
+>>> net/sunrpc/xprtrdma/svc_rdma_sendto.c      |   34 ++-
+>>> net/sunrpc/xprtrdma/svc_rdma_transport.c   |  284 ++++++++++++++++-----
+>>> net/sunrpc/xprtrdma/transport.c            |   30 +-
+>>> net/sunrpc/xprtrdma/xprt_rdma.h            |   20 +-
+>>> 10 files changed, 730 insertions(+), 142 deletions(-)
+>>> create mode 100644 net/sunrpc/xprtrdma/svc_rdma_backchannel.c
+>>> 
+>>> --
+>>> Signature
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
