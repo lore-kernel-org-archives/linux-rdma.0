@@ -1,48 +1,62 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 3/3] Display extended counter set if available
-Date: Thu, 24 Dec 2015 13:45:03 -0500
-Message-ID: <20151224184503.GC22759@phlsvsds.ph.intel.com>
-References: <20151221142026.238104419@linux.com> <20151221142039.386488696@linux.com> <CAKHjkjkwneRd9kTfHbQHLYMexhtP4ibE0sdHrUeYWmV=3fvYLw@mail.gmail.com>
+From: Faisal Latif <faisal.latif@intel.com>
+Subject: Re: [PATCH V1 08/16] i40iw: add files for iwarp interface
+Date: Thu, 24 Dec 2015 13:36:33 -0600
+Message-ID: <20151224193633.GA19560@flatif-MOBL1>
+References: <1450739596-23276-3-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-4-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-5-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-6-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-7-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-8-git-send-email-faisal.latif@intel.com>
+ <1450739596-23276-9-git-send-email-faisal.latif@intel.com>
+ <567ACED9.2040701@mellanox.com>
+ <20151224073137.GB35696@flatif-MOBL1>
+ <567BABE4.8080302@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAKHjkjkwneRd9kTfHbQHLYMexhtP4ibE0sdHrUeYWmV=3fvYLw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: eran ben elisha <eranlinuxmellanox-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <567BABE4.8080302@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: Or Gerlitz <ogerlitz@mellanox.com>
+Cc: "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Kirsher, Jeffrey T" <jeffrey.t.kirsher@intel.com>, "e1000-rdma@lists.sourceforge.net" <e1000-rdma@lists.sourceforge.net>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 24, 2015 at 06:22:14PM +0200, eran ben elisha wrote:
-> On Mon, Dec 21, 2015 at 4:20 PM, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org> wrote:
-
-[snip]
-
-> >
-> > +/*
-> > + * Figure out which counter table to use depending on
-> > + * the device capabilities.
-> > + */
-> > +static struct attribute_group *get_counter_table(struct ib_device *dev)
-> > +{
-> > +       struct ib_class_port_info cpi;
-> > +
-> > +       if (get_perf_mad(dev, 0, IB_PMA_CLASS_PORT_INFO,
+On Thu, Dec 24, 2015 at 10:25:08AM +0200, Or Gerlitz wrote:
+> On 12/24/2015 9:31 AM, Faisal Latif wrote:
+> >On Wed, Dec 23, 2015 at 08:42:01AM -0800, Or Gerlitz wrote:
+> >>On 12/22/2015 1:13 AM, Faisal Latif wrote:
+> >>>+
+> >>>+enum i40iw_memreg_type {
+> >>>+	IW_MEMREG_TYPE_MEM = 0x0000,
+> >>>+	IW_MEMREG_TYPE_QP = 0x0001,
+> >>>+	IW_MEMREG_TYPE_CQ = 0x0002,
+> >>>+	IW_MEMREG_TYPE_MW = 0x0003,
+> >>>+	IW_MEMREG_TYPE_FMR = 0x0004,
+> >>>+	IW_MEMREG_TYPE_FMEM = 0x0005,
+> >>>+};
+> >>Can't you re-use IB core values or derive that from the actual uverbs
+> >>command?
+> >I did not see anything which will have types that I needed.
 > 
-> Why 0, need to pass port num.
-> See proposal Matan and myself sent.
+> what do you need? what is the role of this enum?
+
+We register register memory from user library for qp and cq rings as well
+as user memory registration and do need to distinguish in the driver.
+
 > 
+> >It will be confusing otherwise.
+> 
+> 
+> >I will be reducing number of types from here though.
+> 
+> so why some of it can go? is that deal values which aren't used by the code
 
-Passing a port num to a ClassPortInfo query makes no sense?
-
-Your proposal sets a field which is wrong (I think it sets part of TrapGID if
-my math is correct) in the ClassPortInfo query as per the spec.
-
-I think the fix needs to be somewhere else.
-
-Ira
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes, had added all different types for user requests. But For the time being, we will
+just keep MEM, CQ, QP and add other as needed like Memory Windows.
+> 
+> Or.
+> 
+> >Thanks
+> >Faisal
+> 
