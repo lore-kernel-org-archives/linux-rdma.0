@@ -1,61 +1,46 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 6/6] InfiniBand-ocrdma: Delete an unnecessary variable in
- ocrdma_dealloc_pd()
-Date: Sat, 26 Dec 2015 19:51:21 +0100
-Message-ID: <567EE1A9.9000101@users.sourceforge.net>
-References: <566ABCD9.1060404@users.sourceforge.net>
- <567EDED5.4040201@users.sourceforge.net>
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH 1/6] InfiniBand-ocrdma: One variable and jump label less
+ in ocrdma_alloc_ucontext_pd()
+Date: Sun, 27 Dec 2015 03:41:48 +0800
+Message-ID: <201512270304.PMbiMdOa%fengguang.wu@intel.com>
+References: <567EDFDF.5000801@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <567EDED5.4040201@users.sourceforge.net>
+Content-Disposition: inline
+In-Reply-To: <567EDFDF.5000801@users.sourceforge.net>
 Sender: kernel-janitors-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, Devesh Sharma <devesh.sharma@avagotech.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mitesh Ahuja <mitesh.ahuja@avagotech.com>, Sean Hefty <sean.hefty@intel.com>, Selvin Xavier <selvin.xavier@avagotech.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: kbuild-all@01.org, linux-rdma@vger.kernel.org, Devesh Sharma <devesh.sharma@avagotech.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mitesh Ahuja <mitesh.ahuja@avagotech.com>, Sean Hefty <sean.hefty@intel.com>, Selvin Xavier <selvin.xavier@avagotech.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 26 Dec 2015 19:09:23 +0100
+[if your patch is applied to the wrong git tree, please drop us a note to help improving the system]
+Hi Markus,
 
-1. Return zero in one case directly.
+[auto build test WARNING on v4.4-rc6]
+[also build test WARNING on next-20151223]
 
-2. Return the value from a call of the _ocrdma_dealloc_pd() function
-   without using an extra assignment for the local variable.
+url:    https://github.com/0day-ci/linux/commits/SF-Markus-Elfring/InfiniBand-ocrdma-Fine-tuning-for-some-function-implementations/20151227-025304
 
-3. Remove the variable "status" in this function then.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+coccinelle warnings: (new ones prefixed by >>)
+
+>> drivers/infiniband/hw/ocrdma/ocrdma_verbs.c:489:9-16: ERROR: PTR_ERR applied after initialization to constant on line 488
+
+vim +489 drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+
+   482	static int ocrdma_alloc_ucontext_pd(struct ocrdma_dev *dev,
+   483					    struct ocrdma_ucontext *uctx,
+   484					    struct ib_udata *udata)
+   485	{
+   486		uctx->cntxt_pd = _ocrdma_alloc_pd(dev, uctx, udata);
+   487		if (IS_ERR(uctx->cntxt_pd)) {
+ > 488			uctx->cntxt_pd = NULL;
+ > 489			return PTR_ERR(uctx->cntxt_pd);
+   490		}
+   491	
+   492		uctx->cntxt_pd->uctx = uctx;
+
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 7bedf44..0f79a01 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -750,7 +750,6 @@ int ocrdma_dealloc_pd(struct ib_pd *ibpd)
- 	struct ocrdma_pd *pd = get_ocrdma_pd(ibpd);
- 	struct ocrdma_dev *dev = get_ocrdma_dev(ibpd->device);
- 	struct ocrdma_ucontext *uctx = NULL;
--	int status = 0;
- 	u64 usr_db;
- 
- 	uctx = pd->uctx;
-@@ -764,11 +763,10 @@ int ocrdma_dealloc_pd(struct ib_pd *ibpd)
- 
- 		if (is_ucontext_pd(uctx, pd)) {
- 			ocrdma_release_ucontext_pd(uctx);
--			return status;
-+			return 0;
- 		}
- 	}
--	status = _ocrdma_dealloc_pd(dev, pd);
--	return status;
-+	return _ocrdma_dealloc_pd(dev, pd);
- }
- 
- static int ocrdma_alloc_lkey(struct ocrdma_dev *dev, struct ocrdma_mr *mr,
--- 
-2.6.3
-
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
