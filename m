@@ -1,8 +1,8 @@
 From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: [PATCH 3/6] InfiniBand-ocrdma: Returning only value constants in
- ocrdma_qp_state_change()
-Date: Sat, 26 Dec 2015 19:47:17 +0100
-Message-ID: <567EE0B5.5020707@users.sourceforge.net>
+Subject: [PATCH 4/6] InfiniBand-ocrdma: Return a value from a function call in
+ _ocrdma_modify_qp() directly
+Date: Sat, 26 Dec 2015 19:49:11 +0100
+Message-ID: <567EE127.5080209@users.sourceforge.net>
 References: <566ABCD9.1060404@users.sourceforge.net>
  <567EDED5.4040201@users.sourceforge.net>
 Mime-Version: 1.0
@@ -16,36 +16,31 @@ Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors
 List-Id: linux-rdma@vger.kernel.org
 
 From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Date: Sat, 26 Dec 2015 18:28:35 +0100
+Date: Sat, 26 Dec 2015 18:40:43 +0100
 
-Return zero at the end without using the local variable "status".
+Return the value from a call of the ocrdma_mbx_modify_qp() function
+without using an extra assignment for the local variable "status".
 
 Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index 6647aa6..9a2b153 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -2110,7 +2110,6 @@ int ocrdma_qp_state_change(struct ocrdma_qp *qp, enum ib_qp_state new_ib_state,
- 			   enum ib_qp_state *old_ib_state)
- {
- 	unsigned long flags;
--	int status = 0;
- 	enum ocrdma_qp_state new_state;
- 	new_state = get_ocrdma_qp_state(new_ib_state);
- 
-@@ -2135,7 +2134,7 @@ int ocrdma_qp_state_change(struct ocrdma_qp *qp, enum ib_qp_state new_ib_state,
- 	qp->state = new_state;
- 
- 	spin_unlock_irqrestore(&qp->q_lock, flags);
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index aba1b5a..2de39d3 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -1491,9 +1491,7 @@ int _ocrdma_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 	 */
+ 	if (status < 0)
+ 		return status;
+-	status = ocrdma_mbx_modify_qp(dev, qp, attr, attr_mask);
+-
 -	return status;
-+	return 0;
++	return ocrdma_mbx_modify_qp(dev, qp, attr, attr_mask);
  }
  
- static u32 ocrdma_set_create_qp_mbx_access_flags(struct ocrdma_qp *qp)
+ int ocrdma_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
 -- 
 2.6.3
 
