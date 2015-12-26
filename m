@@ -1,61 +1,153 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 1/6] InfiniBand-ocrdma: One variable and jump label less in
- ocrdma_alloc_ucontext_pd()
-Date: Sat, 26 Dec 2015 19:43:43 +0100
-Message-ID: <567EDFDF.5000801@users.sourceforge.net>
+From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Subject: [PATCH 2/6] InfiniBand-ocrdma: Delete unnecessary variable
+ initialisations in 11 functions
+Date: Sat, 26 Dec 2015 19:45:20 +0100
+Message-ID: <567EE040.4020700@users.sourceforge.net>
 References: <566ABCD9.1060404@users.sourceforge.net>
  <567EDED5.4040201@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <567EDED5.4040201@users.sourceforge.net>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, Devesh Sharma <devesh.sharma@avagotech.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mitesh Ahuja <mitesh.ahuja@avagotech.com>, Sean Hefty <sean.hefty@intel.com>, Selvin Xavier <selvin.xavier@avagotech.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <567EDED5.4040201-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mitesh Ahuja <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 26 Dec 2015 17:16:00 +0100
+From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Date: Sat, 26 Dec 2015 18:18:18 +0100
 
-This issue was detected by using the Coccinelle software.
+The variable "status" will be set to an appropriate value a bit later.
+Thus let us omit the explicit initialisation at the beginning.
 
-* Let us return directly if a call of the _ocrdma_alloc_pd()
-  function failed.
-
-* Delete the jump label "err" and the local variable "status" then.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.c    |  2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |  4 ++--
+ drivers/infiniband/hw/ocrdma/ocrdma_stats.c |  4 ++--
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 12 ++++++------
+ 4 files changed, 11 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 583001b..374c839 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -483,19 +483,15 @@ static int ocrdma_alloc_ucontext_pd(struct ocrdma_dev *dev,
- 				    struct ocrdma_ucontext *uctx,
- 				    struct ib_udata *udata)
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
+index 9820074..98c0abd 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
+@@ -59,7 +59,7 @@ static inline int set_av_attr(struct ocrdma_dev *dev, struct ocrdma_ah *ah,
+ 			struct ib_ah_attr *attr, union ib_gid *sgid,
+ 			int pdid, bool *isvlan, u16 vlan_tag)
  {
 -	int status = 0;
--
- 	uctx->cntxt_pd = _ocrdma_alloc_pd(dev, uctx, udata);
- 	if (IS_ERR(uctx->cntxt_pd)) {
--		status = PTR_ERR(uctx->cntxt_pd);
- 		uctx->cntxt_pd = NULL;
--		goto err;
-+		return PTR_ERR(uctx->cntxt_pd);
- 	}
++	int status;
+ 	struct ocrdma_eth_vlan eth;
+ 	struct ocrdma_grh grh;
+ 	int eth_sz;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+index 30f67be..6647aa6 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+@@ -1089,7 +1089,7 @@ mbx_err:
+ static int ocrdma_nonemb_mbx_cmd(struct ocrdma_dev *dev, struct ocrdma_mqe *mqe,
+ 				 void *payload_va)
+ {
+-	int status = 0;
++	int status;
+ 	struct ocrdma_mbx_rsp *rsp = payload_va;
  
- 	uctx->cntxt_pd->uctx = uctx;
- 	uctx->cntxt_pd->ibpd.device = &dev->ibdev;
--err:
--	return status;
-+	return 0;
- }
+ 	if ((mqe->hdr.spcl_sge_cnt_emb & OCRDMA_MQE_HDR_EMB_MASK) >>
+@@ -2842,7 +2842,7 @@ int ocrdma_mbx_destroy_srq(struct ocrdma_dev *dev, struct ocrdma_srq *srq)
+ static int ocrdma_mbx_get_dcbx_config(struct ocrdma_dev *dev, u32 ptype,
+ 				      struct ocrdma_dcbx_cfg *dcbxcfg)
+ {
+-	int status = 0;
++	int status;
+ 	dma_addr_t pa;
+ 	struct ocrdma_mqe cmd;
  
- static int ocrdma_dealloc_ucontext_pd(struct ocrdma_ucontext *uctx)
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_stats.c b/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
+index 86c303a..119baa3 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
+@@ -608,7 +608,7 @@ static char *ocrdma_driver_dbg_stats(struct ocrdma_dev *dev)
+ static void ocrdma_update_stats(struct ocrdma_dev *dev)
+ {
+ 	ulong now = jiffies, secs;
+-	int status = 0;
++	int status;
+ 	struct ocrdma_rdma_stats_resp *rdma_stats =
+ 		      (struct ocrdma_rdma_stats_resp *)dev->stats_mem.va;
+ 	struct ocrdma_rsrc_stats *rsrc_stats = &rdma_stats->act_rsrc_stats;
+@@ -639,7 +639,7 @@ static ssize_t ocrdma_dbgfs_ops_write(struct file *filp,
+ {
+ 	char tmp_str[32];
+ 	long reset;
+-	int status = 0;
++	int status;
+ 	struct ocrdma_stats *pstats = filp->private_data;
+ 	struct ocrdma_dev *dev = pstats->dev;
+ 
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index 374c839..aba1b5a 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -419,7 +419,7 @@ static struct ocrdma_pd *_ocrdma_alloc_pd(struct ocrdma_dev *dev,
+ 					  struct ib_udata *udata)
+ {
+ 	struct ocrdma_pd *pd = NULL;
+-	int status = 0;
++	int status;
+ 
+ 	pd = kzalloc(sizeof(*pd), GFP_KERNEL);
+ 	if (!pd)
+@@ -468,7 +468,7 @@ static inline int is_ucontext_pd(struct ocrdma_ucontext *uctx,
+ static int _ocrdma_dealloc_pd(struct ocrdma_dev *dev,
+ 			      struct ocrdma_pd *pd)
+ {
+-	int status = 0;
++	int status;
+ 
+ 	if (dev->pd_mgr->pd_prealloc_valid)
+ 		status = ocrdma_put_pd_num(dev, pd->id, pd->dpp_enabled);
+@@ -592,7 +592,7 @@ map_err:
+ 
+ int ocrdma_dealloc_ucontext(struct ib_ucontext *ibctx)
+ {
+-	int status = 0;
++	int status;
+ 	struct ocrdma_mm *mm, *tmp;
+ 	struct ocrdma_ucontext *uctx = get_ocrdma_ucontext(ibctx);
+ 	struct ocrdma_dev *dev = get_ocrdma_dev(ibctx->device);
+@@ -619,7 +619,7 @@ int ocrdma_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
+ 	unsigned long vm_page = vma->vm_pgoff << PAGE_SHIFT;
+ 	u64 unmapped_db = (u64) dev->nic_info.unmapped_db;
+ 	unsigned long len = (vma->vm_end - vma->vm_start);
+-	int status = 0;
++	int status;
+ 	bool found;
+ 
+ 	if (vma->vm_start & (PAGE_SIZE - 1))
+@@ -1282,7 +1282,7 @@ static int ocrdma_copy_qp_uresp(struct ocrdma_qp *qp,
+ 				struct ib_udata *udata, int dpp_offset,
+ 				int dpp_credit_lmt, int srq)
+ {
+-	int status = 0;
++	int status;
+ 	u64 usr_db;
+ 	struct ocrdma_create_qp_uresp uresp;
+ 	struct ocrdma_pd *pd = qp->pd;
+@@ -1946,7 +1946,7 @@ int ocrdma_modify_srq(struct ib_srq *ibsrq,
+ 		      enum ib_srq_attr_mask srq_attr_mask,
+ 		      struct ib_udata *udata)
+ {
+-	int status = 0;
++	int status;
+ 	struct ocrdma_srq *srq;
+ 
+ 	srq = get_ocrdma_srq(ibsrq);
 -- 
 2.6.3
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
