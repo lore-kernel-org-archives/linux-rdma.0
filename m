@@ -1,46 +1,66 @@
-From: kbuild test robot <lkp@intel.com>
-Subject: Re: [PATCH 1/6] InfiniBand-ocrdma: One variable and jump label less
- in ocrdma_alloc_ucontext_pd()
-Date: Sun, 27 Dec 2015 03:41:48 +0800
-Message-ID: <201512270304.PMbiMdOa%fengguang.wu@intel.com>
-References: <567EDFDF.5000801@users.sourceforge.net>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH v2 1/6] InfiniBand-ocrdma: One jump label less in
+ ocrdma_alloc_ucontext_pd()
+Date: Sat, 26 Dec 2015 22:28:44 +0100
+Message-ID: <567F068C.9060507@users.sourceforge.net>
+References: <201512270304.PMbiMdOa%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <kernel-janitors-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <567EDFDF.5000801@users.sourceforge.net>
+In-Reply-To: <201512270304.PMbiMdOa%fengguang.wu@intel.com>
 Sender: kernel-janitors-owner@vger.kernel.org
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: kbuild-all@01.org, linux-rdma@vger.kernel.org, Devesh Sharma <devesh.sharma@avagotech.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mitesh Ahuja <mitesh.ahuja@avagotech.com>, Sean Hefty <sean.hefty@intel.com>, Selvin Xavier <selvin.xavier@avagotech.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
+To: linux-rdma@vger.kernel.org, Devesh Sharma <devesh.sharma@avagotech.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mitesh Ahuja <mitesh.ahuja@avagotech.com>, Sean Hefty <sean.hefty@intel.com>, Selvin Xavier <selvin.xavier@avagotech.com>
+Cc: kbuild-all@01.org, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
 List-Id: linux-rdma@vger.kernel.org
 
-[if your patch is applied to the wrong git tree, please drop us a note to help improving the system]
-Hi Markus,
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 26 Dec 2015 22:18:38 +0100
 
-[auto build test WARNING on v4.4-rc6]
-[also build test WARNING on next-20151223]
+This issue was detected by using the Coccinelle software.
 
-url:    https://github.com/0day-ci/linux/commits/SF-Markus-Elfring/InfiniBand-ocrdma-Fine-tuning-for-some-function-implementations/20151227-025304
+* Let us return directly if a call of the _ocrdma_alloc_pd()
+  function failed.
 
+* Reduce the scope for the local variable "status" to one case
+  of an if statement.
 
-coccinelle warnings: (new ones prefixed by >>)
+* Delete the jump label "err" then.
 
->> drivers/infiniband/hw/ocrdma/ocrdma_verbs.c:489:9-16: ERROR: PTR_ERR applied after initialization to constant on line 488
+* Return zero as a constant at the end.
 
-vim +489 drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-
-   482	static int ocrdma_alloc_ucontext_pd(struct ocrdma_dev *dev,
-   483					    struct ocrdma_ucontext *uctx,
-   484					    struct ib_udata *udata)
-   485	{
-   486		uctx->cntxt_pd = _ocrdma_alloc_pd(dev, uctx, udata);
-   487		if (IS_ERR(uctx->cntxt_pd)) {
- > 488			uctx->cntxt_pd = NULL;
- > 489			return PTR_ERR(uctx->cntxt_pd);
-   490		}
-   491	
-   492		uctx->cntxt_pd->uctx = uctx;
-
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index 583001b..7f10cc47 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -483,19 +483,16 @@ static int ocrdma_alloc_ucontext_pd(struct ocrdma_dev *dev,
+ 				    struct ocrdma_ucontext *uctx,
+ 				    struct ib_udata *udata)
+ {
+-	int status = 0;
+-
+ 	uctx->cntxt_pd = _ocrdma_alloc_pd(dev, uctx, udata);
+ 	if (IS_ERR(uctx->cntxt_pd)) {
+-		status = PTR_ERR(uctx->cntxt_pd);
++		int status = PTR_ERR(uctx->cntxt_pd);
+ 		uctx->cntxt_pd = NULL;
+-		goto err;
++		return status;
+ 	}
+ 
+ 	uctx->cntxt_pd->uctx = uctx;
+ 	uctx->cntxt_pd->ibpd.device = &dev->ibdev;
+-err:
+-	return status;
++	return 0;
+ }
+ 
+ static int ocrdma_dealloc_ucontext_pd(struct ocrdma_ucontext *uctx)
+-- 
+2.6.3
+
