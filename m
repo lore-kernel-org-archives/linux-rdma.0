@@ -1,68 +1,48 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 2/2] InfiniBand-iSER-target: One jump label less in
- isert_reg_sig_mr()
-Date: Sun, 27 Dec 2015 13:41:46 +0100
-Message-ID: <567FDC8A.6000602@users.sourceforge.net>
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: Re: [PATCH 0/2] InfiniBand-iSER: Refactoring for two function
+ implementations
+Date: Sun, 27 Dec 2015 14:43:23 +0200
+Message-ID: <20151227124323.GF8501@leon.nu>
 References: <566ABCD9.1060404@users.sourceforge.net>
  <567FDB4E.2040000@users.sourceforge.net>
+Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <567FDB4E.2040000@users.sourceforge.net>
-Sender: target-devel-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Or Gerlitz <ogerlitz@mellanox.com>, Roi Dayan <roid@mellanox.com>, Sagi Grimberg <sagig@mellanox.com>, Sean Hefty <sean.hefty@intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <567FDB4E.2040000-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 27 Dec 2015 12:54:52 +0100
+On Sun, Dec 27, 2015 at 01:36:30PM +0100, SF Markus Elfring wrote:
+> From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+> Date: Sun, 27 Dec 2015 13:12:10 +0100
+> Subject: [PATCH 0/2] InfiniBand-iSER: Refactoring for two function implementations
+Just a note for the future submissions (no need to respin), we are using
+different subject line: InfiniBand-iSER: --> IB/iser:
 
-This issue was detected by using the Coccinelle software.
-
-1. Let us return directly if a call of the function "isert_set_sig_attrs"
-   or "ib_post_send" failed.
-
-2. Delete the jump label "err" then.
-
-3. Return zero as a constant at the end.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/infiniband/ulp/isert/ib_isert.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index 8a51c3b..9b22db0 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -2660,7 +2660,7 @@ isert_reg_sig_mr(struct isert_conn *isert_conn,
- 	memset(&sig_attrs, 0, sizeof(sig_attrs));
- 	ret = isert_set_sig_attrs(se_cmd, &sig_attrs);
- 	if (ret)
--		goto err;
-+		return ret;
- 
- 	sig_attrs.check_mask = isert_set_prot_checks(se_cmd->prot_checks);
- 
-@@ -2688,7 +2688,7 @@ isert_reg_sig_mr(struct isert_conn *isert_conn,
- 	ret = ib_post_send(isert_conn->qp, wr, &bad_wr);
- 	if (ret) {
- 		isert_err("fast registration failed, ret:%d\n", ret);
--		goto err;
-+		return ret;
- 	}
- 	fr_desc->ind &= ~ISERT_SIG_KEY_VALID;
- 
-@@ -2706,8 +2706,7 @@ isert_reg_sig_mr(struct isert_conn *isert_conn,
- 	isert_dbg("sig_sge: addr: 0x%llx  length: %u lkey: %x\n",
- 		  rdma_wr->ib_sg[SIG].addr, rdma_wr->ib_sg[SIG].length,
- 		  rdma_wr->ib_sg[SIG].lkey);
--err:
--	return ret;
-+	return 0;
- }
- 
- static int
--- 
-2.6.3
+> 
+> I suggest to return directly instead of using the jump label "err"
+> in two functions (which are working without clean-up there).
+> 
+> Markus Elfring (2):
+>   One jump label less in iser_reg_sig_mr()
+>   One jump label less in isert_reg_sig_mr()
+> 
+>  drivers/infiniband/ulp/iser/iser_memory.c | 5 ++---
+>  drivers/infiniband/ulp/isert/ib_isert.c   | 7 +++----
+>  2 files changed, 5 insertions(+), 7 deletions(-)
+> 
+> -- 
+> 2.6.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
