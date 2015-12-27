@@ -1,8 +1,8 @@
 From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
 Subject: Re: [PATCH 0/2] InfiniBand-iSER: Refactoring for two function
  implementations
-Date: Sun, 27 Dec 2015 14:43:23 +0200
-Message-ID: <20151227124323.GF8501@leon.nu>
+Date: Sun, 27 Dec 2015 14:52:02 +0200
+Message-ID: <20151227125202.GG8501@leon.nu>
 References: <566ABCD9.1060404@users.sourceforge.net>
  <567FDB4E.2040000@users.sourceforge.net>
 Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
@@ -20,9 +20,6 @@ On Sun, Dec 27, 2015 at 01:36:30PM +0100, SF Markus Elfring wrote:
 > From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 > Date: Sun, 27 Dec 2015 13:12:10 +0100
 > Subject: [PATCH 0/2] InfiniBand-iSER: Refactoring for two function implementations
-Just a note for the future submissions (no need to respin), we are using
-different subject line: InfiniBand-iSER: --> IB/iser:
-
 > 
 > I suggest to return directly instead of using the jump label "err"
 > in two functions (which are working without clean-up there).
@@ -30,6 +27,9 @@ different subject line: InfiniBand-iSER: --> IB/iser:
 > Markus Elfring (2):
 >   One jump label less in iser_reg_sig_mr()
 >   One jump label less in isert_reg_sig_mr()
+Looks good,
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
 > 
 >  drivers/infiniband/ulp/iser/iser_memory.c | 5 ++---
 >  drivers/infiniband/ulp/isert/ib_isert.c   | 7 +++----
