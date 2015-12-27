@@ -1,7 +1,8 @@
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 1/2] InfiniBand-iSER: One jump label less in iser_reg_sig_mr()
-Date: Sun, 27 Dec 2015 13:40:13 +0100
-Message-ID: <567FDC2D.2090706@users.sourceforge.net>
+Subject: [PATCH 2/2] InfiniBand-iSER-target: One jump label less in
+ isert_reg_sig_mr()
+Date: Sun, 27 Dec 2015 13:41:46 +0100
+Message-ID: <567FDC8A.6000602@users.sourceforge.net>
 References: <566ABCD9.1060404@users.sourceforge.net>
  <567FDB4E.2040000@users.sourceforge.net>
 Mime-Version: 1.0
@@ -15,12 +16,12 @@ Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia 
 List-Id: linux-rdma@vger.kernel.org
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 27 Dec 2015 11:41:42 +0100
+Date: Sun, 27 Dec 2015 12:54:52 +0100
 
 This issue was detected by using the Coccinelle software.
 
-1. Let us return directly if a call of the iser_set_sig_attrs()
-   function failed.
+1. Let us return directly if a call of the function "isert_set_sig_attrs"
+   or "ib_post_send" failed.
 
 2. Delete the jump label "err" then.
 
@@ -28,31 +29,40 @@ This issue was detected by using the Coccinelle software.
 
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/infiniband/ulp/iser/iser_memory.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/infiniband/ulp/isert/ib_isert.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index ea765fb..14e08b3 100644
---- a/drivers/infiniband/ulp/iser/iser_memory.c
-+++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -443,7 +443,7 @@ iser_reg_sig_mr(struct iscsi_iser_task *iser_task,
- 	memset(sig_attrs, 0, sizeof(*sig_attrs));
- 	ret = iser_set_sig_attrs(iser_task->sc, sig_attrs);
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index 8a51c3b..9b22db0 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -2660,7 +2660,7 @@ isert_reg_sig_mr(struct isert_conn *isert_conn,
+ 	memset(&sig_attrs, 0, sizeof(sig_attrs));
+ 	ret = isert_set_sig_attrs(se_cmd, &sig_attrs);
  	if (ret)
 -		goto err;
 +		return ret;
  
- 	iser_set_prot_checks(iser_task->sc, &sig_attrs->check_mask);
+ 	sig_attrs.check_mask = isert_set_prot_checks(se_cmd->prot_checks);
  
-@@ -475,8 +475,7 @@ iser_reg_sig_mr(struct iscsi_iser_task *iser_task,
- 	iser_dbg("lkey=0x%x rkey=0x%x addr=0x%llx length=%u\n",
- 		 sig_reg->sge.lkey, sig_reg->rkey, sig_reg->sge.addr,
- 		 sig_reg->sge.length);
+@@ -2688,7 +2688,7 @@ isert_reg_sig_mr(struct isert_conn *isert_conn,
+ 	ret = ib_post_send(isert_conn->qp, wr, &bad_wr);
+ 	if (ret) {
+ 		isert_err("fast registration failed, ret:%d\n", ret);
+-		goto err;
++		return ret;
+ 	}
+ 	fr_desc->ind &= ~ISERT_SIG_KEY_VALID;
+ 
+@@ -2706,8 +2706,7 @@ isert_reg_sig_mr(struct isert_conn *isert_conn,
+ 	isert_dbg("sig_sge: addr: 0x%llx  length: %u lkey: %x\n",
+ 		  rdma_wr->ib_sg[SIG].addr, rdma_wr->ib_sg[SIG].length,
+ 		  rdma_wr->ib_sg[SIG].lkey);
 -err:
 -	return ret;
 +	return 0;
  }
  
- static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
+ static int
 -- 
 2.6.3
