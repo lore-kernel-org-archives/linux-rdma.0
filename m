@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 16/36] IB/rdmavt: Add process MAD stub
-Date: Mon, 28 Dec 2015 13:10:38 -0800
-Message-ID: <20151228211019.29850.82891.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v2 17/36] IB/rdmavt: Add mmap stub
+Date: Mon, 28 Dec 2015 13:11:12 -0800
+Message-ID: <20151228211043.29850.49267.stgit@scvm10.sc.intel.com>
 References: <20151228205612.29850.7328.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,36 +13,40 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This adds the stub for process mad. More study is needed to determine the
-final MAD interaction between the driver and rvt.
+Adds the stub for the mmap verbs call.
 
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/Makefile |    2 -
- drivers/infiniband/sw/rdmavt/mad.c    |   85 +++++++++++++++++++++++++++++++++
- drivers/infiniband/sw/rdmavt/mad.h    |   59 +++++++++++++++++++++++
- 3 files changed, 145 insertions(+), 1 deletions(-)
- create mode 100644 drivers/infiniband/sw/rdmavt/mad.c
- create mode 100644 drivers/infiniband/sw/rdmavt/mad.h
+Changes since v1:
+Change stubs to return EOPNOTSUPP
+
+ drivers/infiniband/sw/rdmavt/Makefile |    2 +
+ drivers/infiniband/sw/rdmavt/mmap.c   |   60 +++++++++++++++++++++++++++++++++
+ drivers/infiniband/sw/rdmavt/mmap.h   |   55 ++++++++++++++++++++++++++++++
+ drivers/infiniband/sw/rdmavt/vt.c     |    1 +
+ drivers/infiniband/sw/rdmavt/vt.h     |    1 +
+ 5 files changed, 118 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/infiniband/sw/rdmavt/mmap.c
+ create mode 100644 drivers/infiniband/sw/rdmavt/mmap.h
 
 diff --git a/drivers/infiniband/sw/rdmavt/Makefile b/drivers/infiniband/sw/rdmavt/Makefile
-index d2af114..fe65410 100644
+index fe65410..6f530d1 100644
 --- a/drivers/infiniband/sw/rdmavt/Makefile
 +++ b/drivers/infiniband/sw/rdmavt/Makefile
 @@ -7,4 +7,4 @@
  #
  obj-$(CONFIG_INFINIBAND_RDMAVT) += rdmavt.o
  
--rdmavt-y := vt.o ah.o dma.o mcast.o mr.o pd.o qp.o srq.o
-+rdmavt-y := vt.o ah.o dma.o mad.o mcast.o mr.o pd.o qp.o srq.o
-diff --git a/drivers/infiniband/sw/rdmavt/mad.c b/drivers/infiniband/sw/rdmavt/mad.c
+-rdmavt-y := vt.o ah.o dma.o mad.o mcast.o mr.o pd.o qp.o srq.o
++rdmavt-y := vt.o ah.o dma.o mad.o mcast.o mmap.o mr.o pd.o qp.o srq.o
+diff --git a/drivers/infiniband/sw/rdmavt/mmap.c b/drivers/infiniband/sw/rdmavt/mmap.c
 new file mode 100644
-index 0000000..eef7029
+index 0000000..d09f3a0
 --- /dev/null
-+++ b/drivers/infiniband/sw/rdmavt/mad.c
-@@ -0,0 +1,85 @@
++++ b/drivers/infiniband/sw/rdmavt/mmap.c
+@@ -0,0 +1,60 @@
 +/*
 + * Copyright(c) 2015 Intel Corporation.
 + *
@@ -90,52 +94,27 @@ index 0000000..eef7029
 + *
 + */
 +
-+#include "mad.h"
++#include <linux/slab.h>
++#include "mmap.h"
 +
 +/**
-+ * rvt_process_mad - process an incoming MAD packet
-+ * @ibdev: the infiniband device this packet came in on
-+ * @mad_flags: MAD flags
-+ * @port: the port number this packet came in on
-+ * @in_wc: the work completion entry for this packet
-+ * @in_grh: the global route header for this packet
-+ * @in_mad: the incoming MAD
-+ * @out_mad: any outgoing MAD reply
-+ *
-+ * Returns IB_MAD_RESULT_SUCCESS if this is a MAD that we are not
-+ * interested in processing.
-+ *
-+ * Note that the verbs framework has already done the MAD sanity checks,
-+ * and hop count/pointer updating for IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE
-+ * MADs.
-+ *
-+ * This is called by the ib_mad module.
++ * rvt_mmap - create a new mmap region
++ * @context: the IB user context of the process making the mmap() call
++ * @vma: the VMA to be initialized
++ * Return zero if the mmap is OK. Otherwise, return an errno.
 + */
-+int rvt_process_mad(struct ib_device *ibdev, int mad_flags, u8 port,
-+		    const struct ib_wc *in_wc, const struct ib_grh *in_grh,
-+		    const struct ib_mad_hdr *in, size_t in_mad_size,
-+		    struct ib_mad_hdr *out, size_t *out_mad_size,
-+		    u16 *out_mad_pkey_index)
++int rvt_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
 +{
-+	/*
-+	 * Drivers will need to provide a number of things. For exmaple counters
-+	 * will need to be maintained by the driver but shoud live in the rvt
-+	 * structure. More study will be needed to finalize the interface
-+	 * between drivers and rvt for mad packets.
-+	 *
-+	 *VT-DRIVER-API: ????
-+	 *
-+	 */
-+	return IB_MAD_RESULT_FAILURE;
++	return -EOPNOTSUPP;
 +}
-diff --git a/drivers/infiniband/sw/rdmavt/mad.h b/drivers/infiniband/sw/rdmavt/mad.h
+diff --git a/drivers/infiniband/sw/rdmavt/mmap.h b/drivers/infiniband/sw/rdmavt/mmap.h
 new file mode 100644
-index 0000000..ee740e9
+index 0000000..94f6377
 --- /dev/null
-+++ b/drivers/infiniband/sw/rdmavt/mad.h
-@@ -0,0 +1,59 @@
-+#ifndef DEF_RVTMAD_H
-+#define DEF_RVTMAD_H
++++ b/drivers/infiniband/sw/rdmavt/mmap.h
+@@ -0,0 +1,55 @@
++#ifndef DEF_RDMAVTMMAP_H
++#define DEF_RDMAVTMMAP_H
 +
 +/*
 + * Copyright(c) 2015 Intel Corporation.
@@ -186,13 +165,32 @@ index 0000000..ee740e9
 +
 +#include <rdma/rdma_vt.h>
 +
-+int rvt_process_mad(struct ib_device *ibdev, int mad_flags, u8 port,
-+		    const struct ib_wc *in_wc, const struct ib_grh *in_grh,
-+		    const struct ib_mad_hdr *in, size_t in_mad_size,
-+		    struct ib_mad_hdr *out, size_t *out_mad_size,
-+		    u16 *out_mad_pkey_index);
++int rvt_mmap(struct ib_ucontext *context, struct vm_area_struct *vma);
 +
-+#endif          /* DEF_RVTMAD_H */
++#endif          /* DEF_RDMAVTMMAP_H */
+diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
+index 09e0865..a889ec4 100644
+--- a/drivers/infiniband/sw/rdmavt/vt.c
++++ b/drivers/infiniband/sw/rdmavt/vt.c
+@@ -252,6 +252,7 @@ int rvt_register_device(struct rvt_dev_info *rdi)
+ 	CHECK_DRIVER_OVERRIDE(rdi, map_phys_fmr);
+ 	CHECK_DRIVER_OVERRIDE(rdi, unmap_fmr);
+ 	CHECK_DRIVER_OVERRIDE(rdi, dealloc_fmr);
++	CHECK_DRIVER_OVERRIDE(rdi, mmap);
+ 
+ 	/* DMA Operations */
+ 	rdi->ibdev.dma_ops =
+diff --git a/drivers/infiniband/sw/rdmavt/vt.h b/drivers/infiniband/sw/rdmavt/vt.h
+index 02e1212..6a5f5bf 100644
+--- a/drivers/infiniband/sw/rdmavt/vt.h
++++ b/drivers/infiniband/sw/rdmavt/vt.h
+@@ -56,5 +56,6 @@
+ #include "mr.h"
+ #include "srq.h"
+ #include "mcast.h"
++#include "mmap.h"
+ 
+ #endif          /* DEF_RDMAVT_H */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
