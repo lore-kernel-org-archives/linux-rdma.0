@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 04/36] IB/rdmavt: Add ib core device attributes to rvt
- driver params list
-Date: Mon, 28 Dec 2015 13:02:00 -0800
-Message-ID: <20151228210130.29850.68479.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v2 05/36] IB/rdmavt: Macroize override checks during driver
+ registration
+Date: Mon, 28 Dec 2015 13:02:46 -0800
+Message-ID: <20151228210205.29850.3900.stgit@scvm10.sc.intel.com>
 References: <20151228205612.29850.7328.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,112 +14,62 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Instead of trying to handle each parameter separately, add ib_device_attr
-to rvt_driver_params. This means drivers will fill this in and pass to the
-rvt registration function.
+Add a macro to cut down on writing the same lines over and over again for
+what will be a large number of functions that will be supported.
 
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 Changes since v1:
-remove comment on alternative design for private data
+Change CDR macro to CHECK_DRIVER_OVERRIDE to be more clear
 
- drivers/infiniband/sw/rdmavt/pd.c |    2 +
- include/rdma/rdma_vt.h            |   57 ++++++++++++++++++++++++++++++++++++-
- 2 files changed, 56 insertions(+), 3 deletions(-)
+ drivers/infiniband/sw/rdmavt/vt.c |   22 +++++++++-------------
+ 1 files changed, 9 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rdmavt/pd.c b/drivers/infiniband/sw/rdmavt/pd.c
-index e6e153f..f8dba88 100644
---- a/drivers/infiniband/sw/rdmavt/pd.c
-+++ b/drivers/infiniband/sw/rdmavt/pd.c
-@@ -69,7 +69,7 @@ struct ib_pd *rvt_alloc_pd(struct ib_device *ibdev,
- 	 */
+diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
+index b65cde4..8bd25c3 100644
+--- a/drivers/infiniband/sw/rdmavt/vt.c
++++ b/drivers/infiniband/sw/rdmavt/vt.c
+@@ -64,29 +64,25 @@ static void rvt_cleanup(void)
+ }
+ module_exit(rvt_cleanup);
  
- 	spin_lock(&dev->n_pds_lock);
--	if (dev->n_pds_allocated == dev->dparms.max_pds) {
-+	if (dev->n_pds_allocated == dev->dparms.props.max_pd) {
- 		spin_unlock(&dev->n_pds_lock);
- 		kfree(pd);
- 		ret = ERR_PTR(-ENOMEM);
-diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
-index 6bf5fd4..2990e03 100644
---- a/include/rdma/rdma_vt.h
-+++ b/include/rdma/rdma_vt.h
-@@ -59,7 +59,45 @@
-  * Things that are driver specific, module parameters in hfi1 and qib
-  */
- struct rvt_driver_params {
--	int max_pds;
-+	/*
-+	 * driver required fields:
-+	 *	node_guid
-+	 *	phys_port_cnt
-+	 *	dma_device
-+	 *	owner
-+	 * driver optional fields (rvt will provide generic value if blank):
-+	 *	name
-+	 *	node_desc
-+	 * rvt fields, driver value ignored:
-+	 *	uverbs_abi_ver
-+	 *	node_type
-+	 *	num_comp_vectors
-+	 *	uverbs_cmd_mask
-+	 */
-+	struct ib_device_attr props;
++/*
++ * Check driver override. If driver passes a value use it, otherwise we use our
++ * own value.
++ */
++#define CHECK_DRIVER_OVERRIDE(rdi, x) \
++	rdi->ibdev.x = rdi->ibdev.x ? : rvt_ ##x
 +
-+	/*
-+	 * Drivers will need to support a number of notifications to rvt in
-+	 * accordance with certain events. This structure should contain a mask
-+	 * of the supported events. Such events that the rvt may need to know
-+	 * about include:
-+	 * port errors
-+	 * port active
-+	 * lid change
-+	 * sm change
-+	 * client reregister
-+	 * pkey change
-+	 *
-+	 * There may also be other events that the rvt layers needs to know
-+	 * about this is not an exhaustive list. Some events though rvt does not
-+	 * need to rely on the driver for such as completion queue error.
-+	 */
-+	 int rvt_signal_supported;
-+
-+	/*
-+	 * Anything driver specific that is not covered by props
-+	 * For instance special module parameters. Goes here.
-+	 */
- };
+ int rvt_register_device(struct rvt_dev_info *rdi)
+ {
+ 	if (!rdi)
+ 		return -EINVAL;
  
- /* Protection domain */
-@@ -69,10 +107,25 @@ struct rvt_pd {
- };
+-	/*
+-	 * Drivers have the option to override anything in the ibdev that they
+-	 * want to specifically handle. VT needs to check for things it supports
+-	 * and if the driver wants to handle that functionality let it. We may
+-	 * come up with a better mechanism that simplifies the code at some
+-	 * point.
+-	 */
+-
+ 	/* DMA Operations */
+ 	rdi->ibdev.dma_ops =
+ 		rdi->ibdev.dma_ops ? : &rvt_default_dma_mapping_ops;
  
- struct rvt_dev_info {
-+	/*
-+	 * Prior to calling for registration the driver will be responsible for
-+	 * allocating space for this structure.
-+	 *
-+	 * The driver will also be responsible for filling in certain members of
-+	 * dparms.props
-+	 */
-+
- 	struct ib_device ibdev;
+ 	/* Protection Domain */
+-	rdi->ibdev.alloc_pd =
+-		rdi->ibdev.alloc_pd ? : rvt_alloc_pd;
+-	rdi->ibdev.dealloc_pd =
+-		rdi->ibdev.dealloc_pd ? : rvt_dealloc_pd;
+-
++	CHECK_DRIVER_OVERRIDE(rdi, alloc_pd);
++	CHECK_DRIVER_OVERRIDE(rdi, dealloc_pd);
+ 	spin_lock_init(&rdi->n_pds_lock);
+ 	rdi->n_pds_allocated = 0;
  
--	/* Driver specific */
-+	/* Driver specific properties */
- 	struct rvt_driver_params dparms;
-+
-+	/*
-+	 * The work to create port files in /sys/class Infiniband is different
-+	 * depending on the driver. This should not be extracted away and
-+	 * instead drivers are responsible for setting the correct callback for
-+	 * this.
-+	 */
- 	int (*port_callback)(struct ib_device *, u8, struct kobject *);
- 
- 	/* Internal use */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
