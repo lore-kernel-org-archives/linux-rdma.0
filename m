@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 06/36] IB/rdmavt: Add query and modify device stubs
-Date: Mon, 28 Dec 2015 13:03:35 -0800
-Message-ID: <20151228210251.29850.4148.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v2 07/36] IB/rdmavt: Add query and modify port stubs
+Date: Mon, 28 Dec 2015 13:04:29 -0800
+Message-ID: <20151228210340.29850.47887.stgit@scvm10.sc.intel.com>
 References: <20151228205612.29850.7328.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,51 +13,72 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Adds the stubs which will handle the query and modify device functions. At
-this time the only intention is to support changing the node desc and the
-guid via these calls.
+This patch adds the query and modify port stubs. The query will mostly
+entail the driver returning everything in the ib_port_attr which will get
+handed back to the verbs layer. The modify will need some API helpers in
+the driver. The send_trap and post_mad_send are still issues to address.
 
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 Changes since v1:
-Change stubs to return EOPNOTSUPP
+Fix comment style for rvt_query_port
+Change all stubs to return EOPNOTSUPP
 
- drivers/infiniband/sw/rdmavt/vt.c |   31 +++++++++++++++++++++++++++++++
- 1 files changed, 31 insertions(+), 0 deletions(-)
+ drivers/infiniband/sw/rdmavt/vt.c |   48 +++++++++++++++++++++++++++++++++++++
+ 1 files changed, 48 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-index 8bd25c3..db14646 100644
+index db14646..5ac241c 100644
 --- a/drivers/infiniband/sw/rdmavt/vt.c
 +++ b/drivers/infiniband/sw/rdmavt/vt.c
-@@ -64,6 +64,33 @@ static void rvt_cleanup(void)
+@@ -91,6 +91,52 @@ static int rvt_modify_device(struct ib_device *device,
+ 	return -EOPNOTSUPP;
  }
- module_exit(rvt_cleanup);
  
-+static int rvt_query_device(struct ib_device *ibdev,
-+			    struct ib_device_attr *props,
-+			    struct ib_udata *uhw)
++/**
++ * rvt_query_port: Passes the query port call to the driver
++ * @ibdev: Verbs IB dev
++ * @port: port number
++ * @props: structure to hold returned properties
++ *
++ * Returns 0 on success
++ */
++static int rvt_query_port(struct ib_device *ibdev, u8 port,
++			  struct ib_port_attr *props)
 +{
 +	/*
-+	 * Return rvt_dev_info.props contents
++	 * VT-DRIVER-API: query_port_state()
++	 * driver returns pretty much everything in ib_port_attr
 +	 */
 +	return -EOPNOTSUPP;
 +}
 +
-+static int rvt_modify_device(struct ib_device *device,
-+			     int device_modify_mask,
-+			     struct ib_device_modify *device_modify)
++/**
++ * rvt_modify_port
++ * @ibdev: Verbs IB dev
++ * @port: Port number
++ * @port_modify_mask: How to change the port
++ * @props: Structure to fill in
++ *
++ * Returns 0 on success
++ */
++static int rvt_modify_port(struct ib_device *ibdev, u8 port,
++			   int port_modify_mask, struct ib_port_modify *props)
 +{
 +	/*
-+	 * Change dev props. Planned support is for node desc change and sys
-+	 * guid change only. This matches hfi1 and qib behavior. Other drivers
-+	 * that support existing modifications will need to add their support.
-+	 */
-+
-+	/*
-+	 * VT-DRIVER-API: node_desc_change()
-+	 * VT-DRIVER-API: sys_guid_change()
++	 * VT-DRIVER-API: set_link_state()
++	 * driver will set the link state using the IB enumeration
++	 *
++	 * VT-DRIVER-API: clear_qkey_violations()
++	 * clears driver private qkey counter
++	 *
++	 * VT-DRIVER-API: get_lid()
++	 * driver needs to return the LID
++	 *
++	 * TBD: send_trap() and post_mad_send() need examined to see where they
++	 * fit in.
 +	 */
 +	return -EOPNOTSUPP;
 +}
@@ -65,17 +86,15 @@ index 8bd25c3..db14646 100644
  /*
   * Check driver override. If driver passes a value use it, otherwise we use our
   * own value.
-@@ -76,6 +103,10 @@ int rvt_register_device(struct rvt_dev_info *rdi)
- 	if (!rdi)
- 		return -EINVAL;
+@@ -106,6 +152,8 @@ int rvt_register_device(struct rvt_dev_info *rdi)
+ 	/* Dev Ops */
+ 	CHECK_DRIVER_OVERRIDE(rdi, query_device);
+ 	CHECK_DRIVER_OVERRIDE(rdi, modify_device);
++	CHECK_DRIVER_OVERRIDE(rdi, query_port);
++	CHECK_DRIVER_OVERRIDE(rdi, modify_port);
  
-+	/* Dev Ops */
-+	CHECK_DRIVER_OVERRIDE(rdi, query_device);
-+	CHECK_DRIVER_OVERRIDE(rdi, modify_device);
-+
  	/* DMA Operations */
  	rdi->ibdev.dma_ops =
- 		rdi->ibdev.dma_ops ? : &rvt_default_dma_mapping_ops;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
