@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 01/36] IB/rdmavt: Create module framework and handle
- driver registration
-Date: Mon, 28 Dec 2015 12:59:45 -0800
-Message-ID: <20151228205825.29850.23290.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v2 02/36] IB/rdmavt: Consolidate dma ops in rdmavt.
+Date: Mon, 28 Dec 2015 13:00:39 -0800
+Message-ID: <20151228205950.29850.54040.stgit@scvm10.sc.intel.com>
 References: <20151228205612.29850.7328.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,119 +13,42 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch introduces the basics for a new module called rdma_vt. This new
-driver is a software implementation of the InfiniBand verbs and aims to
-replace the multiple implementations that exist and duplicate each others'
-code.
-
-While the call to actually register the device with the IB core happens in
-rdma_vt, most of the work is still done in the drivers themselves. This
-will be changing in a follow on patch this is just laying the groundwork
-for this infrastructure.
+This patch adds dma functions to rdmavt. The source is hfi1's version of
+dma.c which will be removed by a subsequent hfi1 patch.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 Changes since v1:
-remove rdmavt specific driver version
-move copyright above license text
+return 0 in rvt_map_sg instead of BAD_DMA_ADDRESS
+remove include of dma.h from dma.c
 
- MAINTAINERS                           |    6 ++
- drivers/infiniband/Kconfig            |    2 +
- drivers/infiniband/Makefile           |    1 
- drivers/infiniband/sw/Makefile        |    1 
- drivers/infiniband/sw/rdmavt/Kconfig  |    6 ++
- drivers/infiniband/sw/rdmavt/Makefile |   10 ++++
- drivers/infiniband/sw/rdmavt/vt.c     |   83 +++++++++++++++++++++++++++++++++
- drivers/infiniband/sw/rdmavt/vt.h     |   53 +++++++++++++++++++++
- include/rdma/rdma_vt.h                |   70 ++++++++++++++++++++++++++++
- 9 files changed, 232 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/sw/Makefile
- create mode 100644 drivers/infiniband/sw/rdmavt/Kconfig
- create mode 100644 drivers/infiniband/sw/rdmavt/Makefile
- create mode 100644 drivers/infiniband/sw/rdmavt/vt.c
- create mode 100644 drivers/infiniband/sw/rdmavt/vt.h
- create mode 100644 include/rdma/rdma_vt.h
+ drivers/infiniband/sw/rdmavt/Makefile |    2 
+ drivers/infiniband/sw/rdmavt/dma.c    |  182 +++++++++++++++++++++++++++++++++
+ drivers/infiniband/sw/rdmavt/dma.h    |   53 ++++++++++
+ drivers/infiniband/sw/rdmavt/vt.c     |   10 ++
+ drivers/infiniband/sw/rdmavt/vt.h     |    1 
+ 5 files changed, 247 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/infiniband/sw/rdmavt/dma.c
+ create mode 100644 drivers/infiniband/sw/rdmavt/dma.h
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 69c8a9c..37fc192 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8880,6 +8880,12 @@ L:	rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org (moderated for non-subscribers)
- S:	Supported
- F:	net/rds/
- 
-+RDMAVT - RDMA verbs software
-+M:	Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-+L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+S:	Supported
-+F:	drivers/infiniband/sw/rdmavt
-+
- READ-COPY UPDATE (RCU)
- M:	"Paul E. McKenney" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
- M:	Josh Triplett <josh-iaAMLnmF4UmaiuxdJuQwMA@public.gmane.org>
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index aa26f3c..1b00bb8 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -72,4 +72,6 @@ source "drivers/infiniband/ulp/srpt/Kconfig"
- source "drivers/infiniband/ulp/iser/Kconfig"
- source "drivers/infiniband/ulp/isert/Kconfig"
- 
-+source "drivers/infiniband/sw/rdmavt/Kconfig"
-+
- endif # INFINIBAND
-diff --git a/drivers/infiniband/Makefile b/drivers/infiniband/Makefile
-index dc21836..fad0b44 100644
---- a/drivers/infiniband/Makefile
-+++ b/drivers/infiniband/Makefile
-@@ -1,3 +1,4 @@
- obj-$(CONFIG_INFINIBAND)		+= core/
- obj-$(CONFIG_INFINIBAND)		+= hw/
- obj-$(CONFIG_INFINIBAND)		+= ulp/
-+obj-$(CONFIG_INFINIBAND)		+= sw/
-diff --git a/drivers/infiniband/sw/Makefile b/drivers/infiniband/sw/Makefile
-new file mode 100644
-index 0000000..988b6a0
---- /dev/null
-+++ b/drivers/infiniband/sw/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_INFINIBAND_RDMAVT)		+= rdmavt/
-diff --git a/drivers/infiniband/sw/rdmavt/Kconfig b/drivers/infiniband/sw/rdmavt/Kconfig
-new file mode 100644
-index 0000000..11aa6a3
---- /dev/null
-+++ b/drivers/infiniband/sw/rdmavt/Kconfig
-@@ -0,0 +1,6 @@
-+config INFINIBAND_RDMAVT
-+	tristate "RDMA verbs transport library"
-+	depends on 64BIT
-+	default m
-+	---help---
-+	This is a common software verbs provider for RDMA networks.
 diff --git a/drivers/infiniband/sw/rdmavt/Makefile b/drivers/infiniband/sw/rdmavt/Makefile
-new file mode 100644
-index 0000000..98a664d
---- /dev/null
+index 98a664d..134d2d0 100644
+--- a/drivers/infiniband/sw/rdmavt/Makefile
 +++ b/drivers/infiniband/sw/rdmavt/Makefile
-@@ -0,0 +1,10 @@
-+#
-+# rdmavt driver
-+#
-+#
-+#
-+# Called from the kernel module build system.
-+#
-+obj-$(CONFIG_INFINIBAND_RDMAVT) += rdmavt.o
-+
-+rdmavt-y := vt.o
-diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
+@@ -7,4 +7,4 @@
+ #
+ obj-$(CONFIG_INFINIBAND_RDMAVT) += rdmavt.o
+ 
+-rdmavt-y := vt.o
++rdmavt-y := vt.o dma.o
+diff --git a/drivers/infiniband/sw/rdmavt/dma.c b/drivers/infiniband/sw/rdmavt/dma.c
 new file mode 100644
-index 0000000..aa325db
+index 0000000..8fd7955
 --- /dev/null
-+++ b/drivers/infiniband/sw/rdmavt/vt.c
-@@ -0,0 +1,83 @@
++++ b/drivers/infiniband/sw/rdmavt/dma.c
+@@ -0,0 +1,182 @@
 +/*
 + * Copyright(c) 2015 Intel Corporation.
 + *
@@ -173,178 +95,233 @@ index 0000000..aa325db
 + * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + */
++#include <linux/types.h>
++#include <linux/scatterlist.h>
++#include <rdma/ib_verbs.h>
 +
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include "vt.h"
-+
-+MODULE_LICENSE("Dual BSD/GPL");
-+MODULE_DESCRIPTION("RDMA Verbs Transport Library");
-+
-+static int rvt_init(void)
-+{
-+	/* Do any work needed prior to drivers calling for registration*/
-+	return 0;
-+}
-+module_init(rvt_init);
-+
-+static void rvt_cleanup(void)
-+{
-+}
-+module_exit(rvt_cleanup);
-+
-+int rvt_register_device(struct rvt_dev_info *rdi)
-+{
-+	if (!rdi)
-+		return -EINVAL;
-+
-+	return ib_register_device(&rdi->ibdev, rdi->port_callback);
-+}
-+EXPORT_SYMBOL(rvt_register_device);
-+
-+void rvt_unregister_device(struct rvt_dev_info *rdi)
-+{
-+	if (!rdi)
-+		return;
-+
-+	ib_unregister_device(&rdi->ibdev);
-+}
-+EXPORT_SYMBOL(rvt_unregister_device);
-diff --git a/drivers/infiniband/sw/rdmavt/vt.h b/drivers/infiniband/sw/rdmavt/vt.h
-new file mode 100644
-index 0000000..0a39448
---- /dev/null
-+++ b/drivers/infiniband/sw/rdmavt/vt.h
-@@ -0,0 +1,53 @@
-+#ifndef DEF_RDMAVT_H
-+#define DEF_RDMAVT_H
++#define BAD_DMA_ADDRESS ((u64)0)
 +
 +/*
-+ * Copyright(c) 2015 Intel Corporation.
++ * The following functions implement driver specific replacements
++ * for the ib_dma_*() functions.
 + *
-+ * This file is provided under a dual BSD/GPLv2 license.  When using or
-+ * redistributing this file, you may do so under either license.
-+ *
-+ * GPL LICENSE SUMMARY
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * BSD LICENSE
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ *  - Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *  - Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *  - Neither the name of Intel Corporation nor the names of its
-+ *    contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
++ * These functions return kernel virtual addresses instead of
++ * device bus addresses since the driver uses the CPU to copy
++ * data instead of using hardware DMA.
 + */
 +
-+#include <rdma/rdma_vt.h>
++static int rvt_mapping_error(struct ib_device *dev, u64 dma_addr)
++{
++	return dma_addr == BAD_DMA_ADDRESS;
++}
 +
-+#endif          /* DEF_RDMAVT_H */
-diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
-new file mode 100644
-index 0000000..0438bf2
---- /dev/null
-+++ b/include/rdma/rdma_vt.h
-@@ -0,0 +1,70 @@
-+#ifndef DEF_RDMA_VT_H
-+#define DEF_RDMA_VT_H
++static u64 rvt_dma_map_single(struct ib_device *dev, void *cpu_addr,
++			      size_t size, enum dma_data_direction direction)
++{
++	if (WARN_ON(!valid_dma_direction(direction)))
++		return BAD_DMA_ADDRESS;
 +
-+/*
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * This file is provided under a dual BSD/GPLv2 license.  When using or
-+ * redistributing this file, you may do so under either license.
-+ *
-+ * GPL LICENSE SUMMARY
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * BSD LICENSE
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ *  - Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *  - Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *  - Neither the name of Intel Corporation nor the names of its
-+ *    contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ */
++	return (u64)cpu_addr;
++}
 +
-+/*
-+ * Structure that low level drivers will populate in order to register with the
-+ * rdmavt layer.
-+ */
++static void rvt_dma_unmap_single(struct ib_device *dev, u64 addr, size_t size,
++				 enum dma_data_direction direction)
++{
++	/* This is a stub, nothing to be done here */
++}
 +
-+#include "ib_verbs.h"
-+struct rvt_dev_info {
-+	struct ib_device ibdev;
-+	int (*port_callback)(struct ib_device *, u8, struct kobject *);
++static u64 rvt_dma_map_page(struct ib_device *dev, struct page *page,
++			    unsigned long offset, size_t size,
++			    enum dma_data_direction direction)
++{
++	u64 addr;
 +
-+	/*
-+	 * TODO:
-+	 *	need to reflect module parameters that may vary by dev
-+	 */
++	if (WARN_ON(!valid_dma_direction(direction)))
++		return BAD_DMA_ADDRESS;
++
++	if (offset + size > PAGE_SIZE)
++		return BAD_DMA_ADDRESS;
++
++	addr = (u64)page_address(page);
++	if (addr)
++		addr += offset;
++
++	return addr;
++}
++
++static void rvt_dma_unmap_page(struct ib_device *dev, u64 addr, size_t size,
++			       enum dma_data_direction direction)
++{
++	/* This is a stub, nothing to be done here */
++}
++
++static int rvt_map_sg(struct ib_device *dev, struct scatterlist *sgl,
++		      int nents, enum dma_data_direction direction)
++{
++	struct scatterlist *sg;
++	u64 addr;
++	int i;
++	int ret = nents;
++
++	if (WARN_ON(!valid_dma_direction(direction)))
++		return 0;
++
++	for_each_sg(sgl, sg, nents, i) {
++		addr = (u64)page_address(sg_page(sg));
++		if (!addr) {
++			ret = 0;
++			break;
++		}
++		sg->dma_address = addr + sg->offset;
++#ifdef CONFIG_NEED_SG_DMA_LENGTH
++		sg->dma_length = sg->length;
++#endif
++	}
++	return ret;
++}
++
++static void rvt_unmap_sg(struct ib_device *dev,
++			 struct scatterlist *sg, int nents,
++			 enum dma_data_direction direction)
++{
++	/* This is a stub, nothing to be done here */
++}
++
++static void rvt_sync_single_for_cpu(struct ib_device *dev, u64 addr,
++				    size_t size, enum dma_data_direction dir)
++{
++}
++
++static void rvt_sync_single_for_device(struct ib_device *dev, u64 addr,
++				       size_t size,
++				       enum dma_data_direction dir)
++{
++}
++
++static void *rvt_dma_alloc_coherent(struct ib_device *dev, size_t size,
++				    u64 *dma_handle, gfp_t flag)
++{
++	struct page *p;
++	void *addr = NULL;
++
++	p = alloc_pages(flag, get_order(size));
++	if (p)
++		addr = page_address(p);
++	if (dma_handle)
++		*dma_handle = (u64)addr;
++	return addr;
++}
++
++static void rvt_dma_free_coherent(struct ib_device *dev, size_t size,
++				  void *cpu_addr, u64 dma_handle)
++{
++	free_pages((unsigned long)cpu_addr, get_order(size));
++}
++
++struct ib_dma_mapping_ops rvt_default_dma_mapping_ops = {
++	.mapping_error = rvt_mapping_error,
++	.map_single = rvt_dma_map_single,
++	.unmap_single = rvt_dma_unmap_single,
++	.map_page = rvt_dma_map_page,
++	.unmap_page = rvt_dma_unmap_page,
++	.map_sg = rvt_map_sg,
++	.unmap_sg = rvt_unmap_sg,
++	.sync_single_for_cpu = rvt_sync_single_for_cpu,
++	.sync_single_for_device = rvt_sync_single_for_device,
++	.alloc_coherent = rvt_dma_alloc_coherent,
++	.free_coherent = rvt_dma_free_coherent
 +};
+diff --git a/drivers/infiniband/sw/rdmavt/dma.h b/drivers/infiniband/sw/rdmavt/dma.h
+new file mode 100644
+index 0000000..a80cc35
+--- /dev/null
++++ b/drivers/infiniband/sw/rdmavt/dma.h
+@@ -0,0 +1,53 @@
++#ifndef DEF_RDMAVTDMA_H
++#define DEF_RDMAVTDMA_H
 +
-+int rvt_register_device(struct rvt_dev_info *rvd);
-+void rvt_unregister_device(struct rvt_dev_info *rvd);
++/*
++ * Copyright(c) 2015 Intel Corporation.
++ *
++ * This file is provided under a dual BSD/GPLv2 license.  When using or
++ * redistributing this file, you may do so under either license.
++ *
++ * GPL LICENSE SUMMARY
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * BSD LICENSE
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ *  - Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ *  - Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *  - Neither the name of Intel Corporation nor the names of its
++ *    contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ */
 +
-+#endif          /* DEF_RDMA_VT_H */
++extern struct ib_dma_mapping_ops rvt_default_dma_mapping_ops;
++
++#endif          /* DEF_RDMAVTDMA_H */
+diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
+index aa325db..d82fdda 100644
+--- a/drivers/infiniband/sw/rdmavt/vt.c
++++ b/drivers/infiniband/sw/rdmavt/vt.c
+@@ -69,6 +69,16 @@ int rvt_register_device(struct rvt_dev_info *rdi)
+ 	if (!rdi)
+ 		return -EINVAL;
+ 
++	/*
++	 * Drivers have the option to override anything in the ibdev that they
++	 * want to specifically handle. VT needs to check for things it supports
++	 * and if the driver wants to handle that functionality let it. We may
++	 * come up with a better mechanism that simplifies the code at some
++	 * point.
++	 */
++	rdi->ibdev.dma_ops =
++		rdi->ibdev.dma_ops ? : &rvt_default_dma_mapping_ops;
++
+ 	return ib_register_device(&rdi->ibdev, rdi->port_callback);
+ }
+ EXPORT_SYMBOL(rvt_register_device);
+diff --git a/drivers/infiniband/sw/rdmavt/vt.h b/drivers/infiniband/sw/rdmavt/vt.h
+index 0a39448..cfe59a7 100644
+--- a/drivers/infiniband/sw/rdmavt/vt.h
++++ b/drivers/infiniband/sw/rdmavt/vt.h
+@@ -49,5 +49,6 @@
+  */
+ 
+ #include <rdma/rdma_vt.h>
++#include "dma.h"
+ 
+ #endif          /* DEF_RDMAVT_H */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
