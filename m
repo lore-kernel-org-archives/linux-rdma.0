@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 23/36] IB/rdmavt: Move driver helper functions to a
- common structure
-Date: Mon, 28 Dec 2015 13:15:15 -0800
-Message-ID: <20151228211508.29850.38387.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v2 24/36] IB/rdmavt: Add device specific info prints
+Date: Mon, 28 Dec 2015 13:15:25 -0800
+Message-ID: <20151228211520.29850.62503.stgit@scvm10.sc.intel.com>
 References: <20151228205612.29850.7328.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,76 +13,118 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Drivers are going to need to provide multiple functions for rdmavt to
-call in to. We already have one, so go ahead and push this into a
-data structure designated for driver supplied functions.
+Follow hfi1's example for printing information about the driver and
+incorporate into rdmavt. This requires two new functions to be
+provided by the driver, one to get_card_name and one to get_pci_dev.
 
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/vt.c |    6 +++++-
- include/rdma/rdma_vt.h            |   22 +++++++++++++++-------
- 2 files changed, 20 insertions(+), 8 deletions(-)
+ drivers/infiniband/sw/rdmavt/vt.c |   13 ++++++++++---
+ drivers/infiniband/sw/rdmavt/vt.h |   28 ++++++++++++++++++++++++++++
+ include/rdma/rdma_vt.h            |    3 +++
+ 3 files changed, 41 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-index 0cf80d1..e4881ca 100644
+index e4881ca..1279c03 100644
 --- a/drivers/infiniband/sw/rdmavt/vt.c
 +++ b/drivers/infiniband/sw/rdmavt/vt.c
-@@ -281,8 +281,12 @@ int rvt_register_device(struct rvt_dev_info *rdi)
+@@ -213,9 +213,18 @@ static int rvt_get_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 
+ int rvt_register_device(struct rvt_dev_info *rdi)
+ {
++	/* Validate that drivers have provided the right information */
+ 	if (!rdi)
+ 		return -EINVAL;
+ 
++	if ((!rdi->driver_f.port_callback) ||
++	    (!rdi->driver_f.get_card_name) ||
++	    (!rdi->driver_f.get_pci_dev)) {
++		return -EINVAL;
++	}
++
++	/* Once we get past here we can use the rvt_pr macros */
++
+ 	/* Dev Ops */
+ 	CHECK_DRIVER_OVERRIDE(rdi, query_device);
+ 	CHECK_DRIVER_OVERRIDE(rdi, modify_device);
+@@ -281,9 +290,7 @@ int rvt_register_device(struct rvt_dev_info *rdi)
  	spin_lock_init(&rdi->n_pds_lock);
  	rdi->n_pds_allocated = 0;
  
-+	/* Validate that drivers have provided the right functions */
-+	if (!rdi->driver_f.port_callback)
-+		return -EINVAL;
-+
- 	/* We are now good to announce we exist */
--	return ib_register_device(&rdi->ibdev, rdi->port_callback);
-+	return ib_register_device(&rdi->ibdev, rdi->driver_f.port_callback);
- }
- EXPORT_SYMBOL(rvt_register_device);
+-	/* Validate that drivers have provided the right functions */
+-	if (!rdi->driver_f.port_callback)
+-		return -EINVAL;
++	rvt_pr_info(rdi, "Registration with rdmavt done.\n");
  
+ 	/* We are now good to announce we exist */
+ 	return ib_register_device(&rdi->ibdev, rdi->driver_f.port_callback);
+diff --git a/drivers/infiniband/sw/rdmavt/vt.h b/drivers/infiniband/sw/rdmavt/vt.h
+index fdb52a8..54ee05a 100644
+--- a/drivers/infiniband/sw/rdmavt/vt.h
++++ b/drivers/infiniband/sw/rdmavt/vt.h
+@@ -49,6 +49,7 @@
+  */
+ 
+ #include <rdma/rdma_vt.h>
++#include <linux/pci.h>
+ #include "dma.h"
+ #include "pd.h"
+ #include "qp.h"
+@@ -59,4 +60,31 @@
+ #include "mmap.h"
+ #include "cq.h"
+ 
++#define rvt_pr_info(rdi, fmt, ...) \
++	__rvt_pr_info(rdi->driver_f.get_pci_dev(rdi), \
++		      rdi->driver_f.get_card_name(rdi), \
++		      fmt, \
++		      ##__VA_ARGS__)
++
++#define rvt_pr_warn(rdi, fmt, ...) \
++	__rvt_pr_warn(rdi->driver_f.get_pci_dev(rdi), \
++		      rdi->driver_f.get_card_name(rdi), \
++		      fmt, \
++		      ##__VA_ARGS__)
++
++#define rvt_pr_err(rdi, fmt, ...) \
++	__rvt_pr_err(rdi->driver_f.get_pci_dev(rdi), \
++		     rdi->driver_f.get_card_name(rdi), \
++		     fmt, \
++		     ##__VA_ARGS__)
++
++#define __rvt_pr_info(pdev, name, fmt, ...) \
++	dev_info(&pdev->dev, "%s: " fmt, name, ##__VA_ARGS__)
++
++#define __rvt_pr_warn(pdev, name, fmt, ...) \
++	dev_warn(&pdev->dev, "%s: " fmt, name, ##__VA_ARGS__)
++
++#define __rvt_pr_err(pdev, name, fmt, ...) \
++	dev_err(&pdev->dev, "%s: " fmt, name, ##__VA_ARGS__)
++
+ #endif          /* DEF_RDMAVT_H */
 diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
-index 9baa7f0..e0beedc 100644
+index e0beedc..4b83770 100644
 --- a/include/rdma/rdma_vt.h
 +++ b/include/rdma/rdma_vt.h
-@@ -383,6 +383,19 @@ struct rvt_driver_params {
+@@ -386,6 +386,7 @@ struct rvt_driver_params {
+ /*
+  * Functions that drivers are required to support
+  */
++struct rvt_dev_info;
+ struct rvt_driver_provided {
+ 	/*
+ 	 * The work to create port files in /sys/class Infiniband is different
+@@ -394,6 +395,8 @@ struct rvt_driver_provided {
+ 	 * this.
  	 */
+ 	int (*port_callback)(struct ib_device *, u8, struct kobject *);
++	const char * (*get_card_name)(struct rvt_dev_info *rdi);
++	struct pci_dev * (*get_pci_dev)(struct rvt_dev_info *rdi);
  };
  
-+/*
-+ * Functions that drivers are required to support
-+ */
-+struct rvt_driver_provided {
-+	/*
-+	 * The work to create port files in /sys/class Infiniband is different
-+	 * depending on the driver. This should not be extracted away and
-+	 * instead drivers are responsible for setting the correct callback for
-+	 * this.
-+	 */
-+	int (*port_callback)(struct ib_device *, u8, struct kobject *);
-+};
-+
  /* Protection domain */
- struct rvt_pd {
- 	struct ib_pd ibpd;
-@@ -407,13 +420,8 @@ struct rvt_dev_info {
- 
- 	/* PKey Table goes here */
- 
--	/*
--	 * The work to create port files in /sys/class Infiniband is different
--	 * depending on the driver. This should not be extracted away and
--	 * instead drivers are responsible for setting the correct callback for
--	 * this.
--	 */
--	int (*port_callback)(struct ib_device *, u8, struct kobject *);
-+	/* Driver specific helper functions */
-+	struct rvt_driver_provided driver_f;
- 
- 	/* Internal use */
- 	int n_pds_allocated;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
