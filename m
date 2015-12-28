@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 05/10] IB/qib: Use rdmavt lid defines in qib
-Date: Mon, 28 Dec 2015 13:21:56 -0800
-Message-ID: <20151228212155.23885.70031.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v2 07/10] IB/qib: Add device specific info prints
+Date: Mon, 28 Dec 2015 13:22:07 -0800
+Message-ID: <20151228212207.23885.94291.stgit@scvm10.sc.intel.com>
 References: <20151228212024.23885.75458.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,70 +10,74 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20151228212024.23885.75458.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Original patch for AH changes from Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, split
-apart from original. This patch also removes the qib specific multicast
-lid base and permissive lid defines since they are no longer needed.
+Implement get_card_name and get_pci_dev helper functions for rdmavt
+for qib.
 
-Use common LID defines in qib driver.
-
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_common.h |    2 --
- drivers/infiniband/hw/qib/qib_qp.c     |    1 +
- drivers/infiniband/hw/qib/qib_verbs.c  |    4 ++--
- 3 files changed, 3 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/qib/qib.h        |    2 ++
+ drivers/infiniband/hw/qib/qib_driver.c |   16 ++++++++++++++++
+ drivers/infiniband/hw/qib/qib_verbs.c  |    2 ++
+ 3 files changed, 20 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_common.h b/drivers/infiniband/hw/qib/qib_common.h
-index 4fb78ab..1d87ec0 100644
---- a/drivers/infiniband/hw/qib/qib_common.h
-+++ b/drivers/infiniband/hw/qib/qib_common.h
-@@ -742,14 +742,12 @@ struct qib_tid_session_member {
- #define SIZE_OF_CRC 1
+diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
+index 0e68e1f..e610eaf 100644
+--- a/drivers/infiniband/hw/qib/qib.h
++++ b/drivers/infiniband/hw/qib/qib.h
+@@ -1455,6 +1455,8 @@ u64 qib_sps_ints(void);
+ dma_addr_t qib_map_page(struct pci_dev *, struct page *, unsigned long,
+ 			  size_t, int);
+ const char *qib_get_unit_name(int unit);
++const char *qib_get_card_name(struct rvt_dev_info *rdi);
++struct pci_dev *qib_get_pci_dev(struct rvt_dev_info *rdi);
  
- #define QIB_DEFAULT_P_KEY 0xFFFF
--#define QIB_PERMISSIVE_LID 0xFFFF
- #define QIB_AETH_CREDIT_SHIFT 24
- #define QIB_AETH_CREDIT_MASK 0x1F
- #define QIB_AETH_CREDIT_INVAL 0x1F
- #define QIB_PSN_MASK 0xFFFFFF
- #define QIB_MSN_MASK 0xFFFFFF
- #define QIB_QPN_MASK 0xFFFFFF
--#define QIB_MULTICAST_LID_BASE 0xC000
- #define QIB_EAGER_TID_ID QLOGIC_IB_I_TID_MASK
- #define QIB_MULTICAST_QPN 0xFFFFFF
+ /*
+  * Flush write combining store buffers (if present) and perform a write
+diff --git a/drivers/infiniband/hw/qib/qib_driver.c b/drivers/infiniband/hw/qib/qib_driver.c
+index 57b19ea..ae5a725 100644
+--- a/drivers/infiniband/hw/qib/qib_driver.c
++++ b/drivers/infiniband/hw/qib/qib_driver.c
+@@ -90,6 +90,22 @@ const char *qib_get_unit_name(int unit)
+ 	return iname;
+ }
  
-diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
-index e6544dc..116d323 100644
---- a/drivers/infiniband/hw/qib/qib_qp.c
-+++ b/drivers/infiniband/hw/qib/qib_qp.c
-@@ -35,6 +35,7 @@
- #include <linux/err.h>
- #include <linux/vmalloc.h>
- #include <linux/jhash.h>
-+#include <rdma/rdma_vt.h>
- #ifdef CONFIG_DEBUG_FS
- #include <linux/seq_file.h>
- #endif
++const char *qib_get_card_name(struct rvt_dev_info *rdi)
++{
++	struct qib_ibdev *ibdev = container_of(rdi, struct qib_ibdev, rdi);
++	struct qib_devdata *dd = container_of(ibdev,
++					      struct qib_devdata, verbs_dev);
++	return qib_get_unit_name(dd->unit);
++}
++
++struct pci_dev *qib_get_pci_dev(struct rvt_dev_info *rdi)
++{
++	struct qib_ibdev *ibdev = container_of(rdi, struct qib_ibdev, rdi);
++	struct qib_devdata *dd = container_of(ibdev,
++					      struct qib_devdata, verbs_dev);
++	return dd->pcidev;
++}
++
+ /*
+  * Return count of units with at least one port ACTIVE.
+  */
 diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index c64e054..c93ace0 100644
+index 32c2811..b7e03ae 100644
 --- a/drivers/infiniband/hw/qib/qib_verbs.c
 +++ b/drivers/infiniband/hw/qib/qib_verbs.c
-@@ -1754,8 +1754,8 @@ static int qib_query_gid(struct ib_device *ibdev, u8 port,
- int qib_check_ah(struct ib_device *ibdev, struct ib_ah_attr *ah_attr)
- {
- 	/* A multicast address requires a GRH (see ch. 8.4.1). */
--	if (ah_attr->dlid >= QIB_MULTICAST_LID_BASE &&
--	    ah_attr->dlid != QIB_PERMISSIVE_LID &&
-+	if (ah_attr->dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE) &&
-+	    ah_attr->dlid != be16_to_cpu(IB_LID_PERMISSIVE) &&
- 	    !(ah_attr->ah_flags & IB_AH_GRH))
- 		goto bail;
- 	if ((ah_attr->ah_flags & IB_AH_GRH) &&
+@@ -2240,6 +2240,8 @@ int qib_register_ib_device(struct qib_devdata *dd)
+ 	 * Fill in rvt info object.
+ 	 */
+ 	dd->verbs_dev.rdi.driver_f.port_callback = qib_create_port_files;
++	dd->verbs_dev.rdi.driver_f.get_card_name = qib_get_card_name;
++	dd->verbs_dev.rdi.driver_f.get_pci_dev = qib_get_pci_dev;
+ 	dd->verbs_dev.rdi.dparms.props.max_pd = ib_qib_max_pds;
+ 	dd->verbs_dev.rdi.flags = (RVT_FLAG_MR_INIT_DRIVER |
+ 				   RVT_FLAG_QP_INIT_DRIVER |
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
