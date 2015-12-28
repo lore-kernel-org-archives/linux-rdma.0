@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 05/36] IB/rdmavt: Macroize override checks during driver
- registration
-Date: Mon, 28 Dec 2015 13:02:46 -0800
-Message-ID: <20151228210205.29850.3900.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v2 06/36] IB/rdmavt: Add query and modify device stubs
+Date: Mon, 28 Dec 2015 13:03:35 -0800
+Message-ID: <20151228210251.29850.4148.stgit@scvm10.sc.intel.com>
 References: <20151228205612.29850.7328.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,62 +13,69 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add a macro to cut down on writing the same lines over and over again for
-what will be a large number of functions that will be supported.
+Adds the stubs which will handle the query and modify device functions. At
+this time the only intention is to support changing the node desc and the
+guid via these calls.
 
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 Changes since v1:
-Change CDR macro to CHECK_DRIVER_OVERRIDE to be more clear
+Change stubs to return EOPNOTSUPP
 
- drivers/infiniband/sw/rdmavt/vt.c |   22 +++++++++-------------
- 1 files changed, 9 insertions(+), 13 deletions(-)
+ drivers/infiniband/sw/rdmavt/vt.c |   31 +++++++++++++++++++++++++++++++
+ 1 files changed, 31 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-index b65cde4..8bd25c3 100644
+index 8bd25c3..db14646 100644
 --- a/drivers/infiniband/sw/rdmavt/vt.c
 +++ b/drivers/infiniband/sw/rdmavt/vt.c
-@@ -64,29 +64,25 @@ static void rvt_cleanup(void)
+@@ -64,6 +64,33 @@ static void rvt_cleanup(void)
  }
  module_exit(rvt_cleanup);
  
-+/*
-+ * Check driver override. If driver passes a value use it, otherwise we use our
-+ * own value.
-+ */
-+#define CHECK_DRIVER_OVERRIDE(rdi, x) \
-+	rdi->ibdev.x = rdi->ibdev.x ? : rvt_ ##x
++static int rvt_query_device(struct ib_device *ibdev,
++			    struct ib_device_attr *props,
++			    struct ib_udata *uhw)
++{
++	/*
++	 * Return rvt_dev_info.props contents
++	 */
++	return -EOPNOTSUPP;
++}
 +
- int rvt_register_device(struct rvt_dev_info *rdi)
- {
++static int rvt_modify_device(struct ib_device *device,
++			     int device_modify_mask,
++			     struct ib_device_modify *device_modify)
++{
++	/*
++	 * Change dev props. Planned support is for node desc change and sys
++	 * guid change only. This matches hfi1 and qib behavior. Other drivers
++	 * that support existing modifications will need to add their support.
++	 */
++
++	/*
++	 * VT-DRIVER-API: node_desc_change()
++	 * VT-DRIVER-API: sys_guid_change()
++	 */
++	return -EOPNOTSUPP;
++}
++
+ /*
+  * Check driver override. If driver passes a value use it, otherwise we use our
+  * own value.
+@@ -76,6 +103,10 @@ int rvt_register_device(struct rvt_dev_info *rdi)
  	if (!rdi)
  		return -EINVAL;
  
--	/*
--	 * Drivers have the option to override anything in the ibdev that they
--	 * want to specifically handle. VT needs to check for things it supports
--	 * and if the driver wants to handle that functionality let it. We may
--	 * come up with a better mechanism that simplifies the code at some
--	 * point.
--	 */
--
++	/* Dev Ops */
++	CHECK_DRIVER_OVERRIDE(rdi, query_device);
++	CHECK_DRIVER_OVERRIDE(rdi, modify_device);
++
  	/* DMA Operations */
  	rdi->ibdev.dma_ops =
  		rdi->ibdev.dma_ops ? : &rvt_default_dma_mapping_ops;
- 
- 	/* Protection Domain */
--	rdi->ibdev.alloc_pd =
--		rdi->ibdev.alloc_pd ? : rvt_alloc_pd;
--	rdi->ibdev.dealloc_pd =
--		rdi->ibdev.dealloc_pd ? : rvt_dealloc_pd;
--
-+	CHECK_DRIVER_OVERRIDE(rdi, alloc_pd);
-+	CHECK_DRIVER_OVERRIDE(rdi, dealloc_pd);
- 	spin_lock_init(&rdi->n_pds_lock);
- 	rdi->n_pds_allocated = 0;
- 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
