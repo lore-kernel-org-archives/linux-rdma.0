@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 02/10] IB/qib: Remove dma.c and use rdmavt version of dma
- functions
-Date: Mon, 28 Dec 2015 13:21:39 -0800
-Message-ID: <20151228212139.23885.58635.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v2 03/10] IB/qib: Use rdmavt protection domain
+Date: Mon, 28 Dec 2015 13:21:45 -0800
+Message-ID: <20151228212144.23885.84160.stgit@scvm10.sc.intel.com>
 References: <20151228212024.23885.75458.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,62 +13,231 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch removes the qib_dma.c file and uses the version which has been
-added to rdmavt.
+Remove protection domain datastructure from qib and use rdmavts version.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/Makefile    |    2 +-
- drivers/infiniband/hw/qib/qib_verbs.c |    3 ++-
- drivers/infiniband/hw/qib/qib_verbs.h |    2 --
- 3 files changed, 3 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/qib/qib_keys.c  |    6 ++-
+ drivers/infiniband/hw/qib/qib_mr.c    |    2 +
+ drivers/infiniband/hw/qib/qib_ruc.c   |    4 +-
+ drivers/infiniband/hw/qib/qib_verbs.c |   66 +++------------------------------
+ drivers/infiniband/hw/qib/qib_verbs.h |   13 +------
+ 5 files changed, 12 insertions(+), 79 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/Makefile b/drivers/infiniband/hw/qib/Makefile
-index 57f8103..8a8f892 100644
---- a/drivers/infiniband/hw/qib/Makefile
-+++ b/drivers/infiniband/hw/qib/Makefile
-@@ -1,6 +1,6 @@
- obj-$(CONFIG_INFINIBAND_QIB) += ib_qib.o
+diff --git a/drivers/infiniband/hw/qib/qib_keys.c b/drivers/infiniband/hw/qib/qib_keys.c
+index d725c56..04fa272 100644
+--- a/drivers/infiniband/hw/qib/qib_keys.c
++++ b/drivers/infiniband/hw/qib/qib_keys.c
+@@ -152,7 +152,7 @@ out:
+  * Check the IB SGE for validity and initialize our internal version
+  * of it.
+  */
+-int qib_lkey_ok(struct qib_lkey_table *rkt, struct qib_pd *pd,
++int qib_lkey_ok(struct qib_lkey_table *rkt, struct rvt_pd *pd,
+ 		struct qib_sge *isge, struct ib_sge *sge, int acc)
+ {
+ 	struct qib_mregion *mr;
+@@ -263,7 +263,7 @@ int qib_rkey_ok(struct qib_qp *qp, struct qib_sge *sge,
+ 	 */
+ 	rcu_read_lock();
+ 	if (rkey == 0) {
+-		struct qib_pd *pd = to_ipd(qp->ibqp.pd);
++		struct rvt_pd *pd = ibpd_to_rvtpd(qp->ibqp.pd);
+ 		struct qib_ibdev *dev = to_idev(pd->ibpd.device);
  
--ib_qib-y := qib_cq.o qib_diag.o qib_dma.o qib_driver.o qib_eeprom.o \
-+ib_qib-y := qib_cq.o qib_diag.o qib_driver.o qib_eeprom.o \
- 	qib_file_ops.o qib_fs.o qib_init.o qib_intr.o qib_keys.o \
- 	qib_mad.o qib_mmap.o qib_mr.o qib_pcie.o qib_pio_copy.o \
- 	qib_qp.o qib_qsfp.o qib_rc.o qib_ruc.o qib_sdma.o qib_srq.o \
+ 		if (pd->user)
+@@ -341,7 +341,7 @@ bail:
+ int qib_reg_mr(struct qib_qp *qp, struct ib_reg_wr *wr)
+ {
+ 	struct qib_lkey_table *rkt = &to_idev(qp->ibqp.device)->lk_table;
+-	struct qib_pd *pd = to_ipd(qp->ibqp.pd);
++	struct rvt_pd *pd = ibpd_to_rvtpd(qp->ibqp.pd);
+ 	struct qib_mr *mr = to_imr(wr->mr);
+ 	struct qib_mregion *mrg;
+ 	u32 key = wr->key;
+diff --git a/drivers/infiniband/hw/qib/qib_mr.c b/drivers/infiniband/hw/qib/qib_mr.c
+index 294f5c7..7fe4159 100644
+--- a/drivers/infiniband/hw/qib/qib_mr.c
++++ b/drivers/infiniband/hw/qib/qib_mr.c
+@@ -99,7 +99,7 @@ struct ib_mr *qib_get_dma_mr(struct ib_pd *pd, int acc)
+ 	struct ib_mr *ret;
+ 	int rval;
+ 
+-	if (to_ipd(pd)->user) {
++	if (ibpd_to_rvtpd(pd)->user) {
+ 		ret = ERR_PTR(-EPERM);
+ 		goto bail;
+ 	}
+diff --git a/drivers/infiniband/hw/qib/qib_ruc.c b/drivers/infiniband/hw/qib/qib_ruc.c
+index b1aa21b..425c8c2 100644
+--- a/drivers/infiniband/hw/qib/qib_ruc.c
++++ b/drivers/infiniband/hw/qib/qib_ruc.c
+@@ -84,11 +84,11 @@ static int qib_init_sge(struct qib_qp *qp, struct qib_rwqe *wqe)
+ 	int i, j, ret;
+ 	struct ib_wc wc;
+ 	struct qib_lkey_table *rkt;
+-	struct qib_pd *pd;
++	struct rvt_pd *pd;
+ 	struct qib_sge_state *ss;
+ 
+ 	rkt = &to_idev(qp->ibqp.device)->lk_table;
+-	pd = to_ipd(qp->ibqp.srq ? qp->ibqp.srq->pd : qp->ibqp.pd);
++	pd = ibpd_to_rvtpd(qp->ibqp.srq ? qp->ibqp.srq->pd : qp->ibqp.pd);
+ 	ss = &qp->r_sge;
+ 	ss->sg_list = qp->r_sg_list;
+ 	qp->r_len = 0;
 diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index 9c721aa..fb4f045 100644
+index fb4f045..7711d64 100644
 --- a/drivers/infiniband/hw/qib/qib_verbs.c
 +++ b/drivers/infiniband/hw/qib/qib_verbs.c
-@@ -41,6 +41,7 @@
- #include <linux/mm.h>
- #include <linux/random.h>
- #include <linux/vmalloc.h>
-+#include <rdma/rdma_vt.h>
+@@ -346,7 +346,7 @@ static int qib_post_one_send(struct qib_qp *qp, struct ib_send_wr *wr,
+ 	int ret;
+ 	unsigned long flags;
+ 	struct qib_lkey_table *rkt;
+-	struct qib_pd *pd;
++	struct rvt_pd *pd;
  
- #include "qib.h"
- #include "qib_common.h"
-@@ -2269,7 +2270,7 @@ int qib_register_ib_device(struct qib_devdata *dd)
- 	ibdev->detach_mcast = qib_multicast_detach;
- 	ibdev->process_mad = qib_process_mad;
- 	ibdev->mmap = qib_mmap;
--	ibdev->dma_ops = &qib_dma_mapping_ops;
-+	ibdev->dma_ops = NULL;
- 	ibdev->get_port_immutable = qib_port_immutable;
+ 	spin_lock_irqsave(&qp->s_lock, flags);
  
- 	snprintf(ibdev->node_desc, sizeof(ibdev->node_desc),
+@@ -396,7 +396,7 @@ static int qib_post_one_send(struct qib_qp *qp, struct ib_send_wr *wr,
+ 	}
+ 
+ 	rkt = &to_idev(qp->ibqp.device)->lk_table;
+-	pd = to_ipd(qp->ibqp.pd);
++	pd = ibpd_to_rvtpd(qp->ibqp.pd);
+ 	wqe = get_swqe_ptr(qp, qp->s_head);
+ 
+ 	if (qp->ibqp.qp_type != IB_QPT_UC &&
+@@ -1599,7 +1599,7 @@ static int qib_query_device(struct ib_device *ibdev, struct ib_device_attr *prop
+ 	props->max_mr = dev->lk_table.max;
+ 	props->max_fmr = dev->lk_table.max;
+ 	props->max_map_per_fmr = 32767;
+-	props->max_pd = ib_qib_max_pds;
++	props->max_pd = dev->rdi.dparms.props.max_pd;
+ 	props->max_qp_rd_atom = QIB_MAX_RDMA_ATOMIC;
+ 	props->max_qp_init_rd_atom = 255;
+ 	/* props->max_res_rd_atom */
+@@ -1751,61 +1751,6 @@ static int qib_query_gid(struct ib_device *ibdev, u8 port,
+ 	return ret;
+ }
+ 
+-static struct ib_pd *qib_alloc_pd(struct ib_device *ibdev,
+-				  struct ib_ucontext *context,
+-				  struct ib_udata *udata)
+-{
+-	struct qib_ibdev *dev = to_idev(ibdev);
+-	struct qib_pd *pd;
+-	struct ib_pd *ret;
+-
+-	/*
+-	 * This is actually totally arbitrary.  Some correctness tests
+-	 * assume there's a maximum number of PDs that can be allocated.
+-	 * We don't actually have this limit, but we fail the test if
+-	 * we allow allocations of more than we report for this value.
+-	 */
+-
+-	pd = kmalloc(sizeof(*pd), GFP_KERNEL);
+-	if (!pd) {
+-		ret = ERR_PTR(-ENOMEM);
+-		goto bail;
+-	}
+-
+-	spin_lock(&dev->n_pds_lock);
+-	if (dev->n_pds_allocated == ib_qib_max_pds) {
+-		spin_unlock(&dev->n_pds_lock);
+-		kfree(pd);
+-		ret = ERR_PTR(-ENOMEM);
+-		goto bail;
+-	}
+-
+-	dev->n_pds_allocated++;
+-	spin_unlock(&dev->n_pds_lock);
+-
+-	/* ib_alloc_pd() will initialize pd->ibpd. */
+-	pd->user = udata != NULL;
+-
+-	ret = &pd->ibpd;
+-
+-bail:
+-	return ret;
+-}
+-
+-static int qib_dealloc_pd(struct ib_pd *ibpd)
+-{
+-	struct qib_pd *pd = to_ipd(ibpd);
+-	struct qib_ibdev *dev = to_idev(ibpd->device);
+-
+-	spin_lock(&dev->n_pds_lock);
+-	dev->n_pds_allocated--;
+-	spin_unlock(&dev->n_pds_lock);
+-
+-	kfree(pd);
+-
+-	return 0;
+-}
+-
+ int qib_check_ah(struct ib_device *ibdev, struct ib_ah_attr *ah_attr)
+ {
+ 	/* A multicast address requires a GRH (see ch. 8.4.1). */
+@@ -2110,7 +2055,6 @@ int qib_register_ib_device(struct qib_devdata *dd)
+ 
+ 	/* Only need to initialize non-zero fields. */
+ 	spin_lock_init(&dev->qpt_lock);
+-	spin_lock_init(&dev->n_pds_lock);
+ 	spin_lock_init(&dev->n_ahs_lock);
+ 	spin_lock_init(&dev->n_cqs_lock);
+ 	spin_lock_init(&dev->n_qps_lock);
+@@ -2234,8 +2178,8 @@ int qib_register_ib_device(struct qib_devdata *dd)
+ 	ibdev->query_gid = qib_query_gid;
+ 	ibdev->alloc_ucontext = qib_alloc_ucontext;
+ 	ibdev->dealloc_ucontext = qib_dealloc_ucontext;
+-	ibdev->alloc_pd = qib_alloc_pd;
+-	ibdev->dealloc_pd = qib_dealloc_pd;
++	ibdev->alloc_pd = NULL;
++	ibdev->dealloc_pd = NULL;
+ 	ibdev->create_ah = qib_create_ah;
+ 	ibdev->destroy_ah = qib_destroy_ah;
+ 	ibdev->modify_ah = qib_modify_ah;
 diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
-index 1e43fda..8487914 100644
+index 8487914..9873268 100644
 --- a/drivers/infiniband/hw/qib/qib_verbs.h
 +++ b/drivers/infiniband/hw/qib/qib_verbs.h
-@@ -1186,6 +1186,4 @@ extern unsigned int ib_qib_max_srq_wrs;
+@@ -222,12 +222,6 @@ struct qib_mcast {
+ 	int n_attached;
+ };
  
- extern const u32 ib_qib_rnr_table[];
- 
--extern struct ib_dma_mapping_ops qib_dma_mapping_ops;
+-/* Protection domain */
+-struct qib_pd {
+-	struct ib_pd ibpd;
+-	int user;               /* non-zero if created from user space */
+-};
 -
- #endif                          /* QIB_VERBS_H */
+ /* Address Handle */
+ struct qib_ah {
+ 	struct ib_ah ibah;
+@@ -819,11 +813,6 @@ static inline struct qib_mr *to_imr(struct ib_mr *ibmr)
+ 	return container_of(ibmr, struct qib_mr, ibmr);
+ }
+ 
+-static inline struct qib_pd *to_ipd(struct ib_pd *ibpd)
+-{
+-	return container_of(ibpd, struct qib_pd, ibpd);
+-}
+-
+ static inline struct qib_ah *to_iah(struct ib_ah *ibah)
+ {
+ 	return container_of(ibah, struct qib_ah, ibah);
+@@ -994,7 +983,7 @@ int qib_alloc_lkey(struct qib_mregion *mr, int dma_region);
+ 
+ void qib_free_lkey(struct qib_mregion *mr);
+ 
+-int qib_lkey_ok(struct qib_lkey_table *rkt, struct qib_pd *pd,
++int qib_lkey_ok(struct qib_lkey_table *rkt, struct rvt_pd *pd,
+ 		struct qib_sge *isge, struct ib_sge *sge, int acc);
+ 
+ int qib_rkey_ok(struct qib_qp *qp, struct qib_sge *sge,
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
