@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 34/36] IB/rdmavt: Initialize and teardown of qpn table
-Date: Mon, 28 Dec 2015 13:18:22 -0800
-Message-ID: <20151228211819.29850.85479.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v2 33/36] IB/rdmavt: Break rdma_vt main include header file
+ up
+Date: Mon, 28 Dec 2015 13:18:14 -0800
+Message-ID: <20151228211810.29850.87205.stgit@scvm10.sc.intel.com>
 References: <20151228205612.29850.7328.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,390 +14,791 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add table init as well as teardown for handling qpn maps. Drivers can still
-provide this functionality by setting the QP_INIT_DRIVER bit.
+Until all functionality is moved over to rdmavt drivers still need to
+access a number of fields in data structures that are predominantly
+meant to be used by rdmavt. Once these rdmavt_<ibta_object>.h header
+files are no longer being touched by drivers their content should be
+moved to rdmavt/<ibta_object>.h. While here move a couple #defines
+over to more general IB verbs header files because they fit better.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/qp.c |  197 +++++++++++++++++++++++++++++++++++++
- drivers/infiniband/sw/rdmavt/qp.h |    2 
- drivers/infiniband/sw/rdmavt/vt.c |   35 ++++---
- include/rdma/rdma_vt.h            |    9 ++
- include/rdma/rdmavt_qp.h          |   33 ++++++
- 5 files changed, 263 insertions(+), 13 deletions(-)
+ drivers/infiniband/sw/rdmavt/ah.c |    4 
+ include/rdma/ib_verbs.h           |    1 
+ include/rdma/rdma_vt.h            |  309 -------------------------------------
+ include/rdma/rdmavt_mr.h          |  130 ++++++++++++++++
+ include/rdma/rdmavt_qp.h          |  262 +++++++++++++++++++++++++++++++
+ 5 files changed, 398 insertions(+), 308 deletions(-)
+ create mode 100644 include/rdma/rdmavt_mr.h
+ create mode 100644 include/rdma/rdmavt_qp.h
 
-diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
-index 23a5f68..17dd6ab 100644
---- a/drivers/infiniband/sw/rdmavt/qp.c
-+++ b/drivers/infiniband/sw/rdmavt/qp.c
-@@ -45,8 +45,205 @@
-  *
-  */
- 
-+#include <linux/bitops.h>
-+#include <linux/lockdep.h>
-+#include "vt.h"
- #include "qp.h"
- 
-+static void get_map_page(struct rvt_qpn_table *qpt, struct rvt_qpn_map *map)
-+{
-+	unsigned long page = get_zeroed_page(GFP_KERNEL);
-+
-+	/*
-+	 * Free the page if someone raced with us installing it.
-+	 */
-+
-+	spin_lock(&qpt->lock);
-+	if (map->page)
-+		free_page(page);
-+	else
-+		map->page = (void *)page;
-+	spin_unlock(&qpt->lock);
-+}
-+
-+/**
-+ * init_qpn_table - initialize the QP number table for a device
-+ * @qpt: the QPN table
-+ */
-+static int init_qpn_table(struct rvt_dev_info *rdi, struct rvt_qpn_table *qpt)
-+{
-+	u32 offset, i;
-+	struct rvt_qpn_map *map;
-+	int ret = 0;
-+
-+	if (!(rdi->dparms.qpn_res_end > rdi->dparms.qpn_res_start))
-+		return -EINVAL;
-+
-+	spin_lock_init(&qpt->lock);
-+
-+	qpt->last = rdi->dparms.qpn_start;
-+	qpt->incr = rdi->dparms.qpn_inc << rdi->dparms.qos_shift;
-+
-+	/*
-+	 * Drivers may want some QPs beyond what we need for verbs let them use
-+	 * our qpn table. No need for two. Lets go ahead and mark the bitmaps
-+	 * for those. The reserved range must be *after* the range which verbs
-+	 * will pick from.
-+	 */
-+
-+	/* Figure out number of bit maps needed before reserved range */
-+	qpt->nmaps = rdi->dparms.qpn_res_start / RVT_BITS_PER_PAGE;
-+
-+	/* This should always be zero */
-+	offset = rdi->dparms.qpn_res_start & RVT_BITS_PER_PAGE_MASK;
-+
-+	/* Starting with the first reserved bit map */
-+	map = &qpt->map[qpt->nmaps];
-+
-+	rvt_pr_info(rdi, "Reserving QPNs from 0x%x to 0x%x for non-verbs use\n",
-+		    rdi->dparms.qpn_res_start, rdi->dparms.qpn_res_end);
-+	for (i = rdi->dparms.qpn_res_start; i < rdi->dparms.qpn_res_end; i++) {
-+		if (!map->page) {
-+			get_map_page(qpt, map);
-+			if (!map->page) {
-+				ret = -ENOMEM;
-+				break;
-+			}
-+		}
-+		set_bit(offset, map->page);
-+		offset++;
-+		if (offset == RVT_BITS_PER_PAGE) {
-+			/* next page */
-+			qpt->nmaps++;
-+			map++;
-+			offset = 0;
-+		}
-+	}
-+	return ret;
-+}
-+
-+/**
-+ * free_qpn_table - free the QP number table for a device
-+ * @qpt: the QPN table
-+ */
-+static void free_qpn_table(struct rvt_qpn_table *qpt)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(qpt->map); i++)
-+		free_page((unsigned long)qpt->map[i].page);
-+}
-+
-+int rvt_driver_qp_init(struct rvt_dev_info *rdi)
-+{
-+	int i;
-+	int ret = -ENOMEM;
-+
-+	if (rdi->flags & RVT_FLAG_QP_INIT_DRIVER) {
-+		rvt_pr_info(rdi, "Driver is doing QP init.\n");
-+		return 0;
-+	}
-+
-+	if (!rdi->dparms.qp_table_size)
-+		return -EINVAL;
-+
-+	/*
-+	 * If driver is not doing any QP allocation then make sure it is
-+	 * providing the necessary QP functions.
-+	 */
-+	if (!rdi->driver_f.free_all_qps)
-+		return -EINVAL;
-+
-+	/* allocate parent object */
-+	rdi->qp_dev = kzalloc(sizeof(*rdi->qp_dev), GFP_KERNEL);
-+	if (!rdi->qp_dev)
-+		return -ENOMEM;
-+
-+	/* allocate hash table */
-+	rdi->qp_dev->qp_table_size = rdi->dparms.qp_table_size;
-+	rdi->qp_dev->qp_table_bits = ilog2(rdi->dparms.qp_table_size);
-+	rdi->qp_dev->qp_table =
-+		kmalloc(rdi->qp_dev->qp_table_size *
-+			sizeof(*rdi->qp_dev->qp_table),
-+			GFP_KERNEL);
-+	if (!rdi->qp_dev->qp_table)
-+		goto no_qp_table;
-+
-+	for (i = 0; i < rdi->qp_dev->qp_table_size; i++)
-+		RCU_INIT_POINTER(rdi->qp_dev->qp_table[i], NULL);
-+
-+	spin_lock_init(&rdi->qp_dev->qpt_lock);
-+
-+	/* initialize qpn map */
-+	if (init_qpn_table(rdi, &rdi->qp_dev->qpn_table))
-+		goto fail_table;
-+
-+	return ret;
-+
-+fail_table:
-+	kfree(rdi->qp_dev->qp_table);
-+	free_qpn_table(&rdi->qp_dev->qpn_table);
-+
-+no_qp_table:
-+	kfree(rdi->qp_dev);
-+
-+	return ret;
-+}
-+
-+/**
-+ * free_all_qps - check for QPs still in use
-+ * @qpt: the QP table to empty
-+ *
-+ * There should not be any QPs still in use.
-+ * Free memory for table.
-+ */
-+static unsigned free_all_qps(struct rvt_dev_info *rdi)
-+{
-+	unsigned long flags;
-+	struct rvt_qp *qp;
-+	unsigned n, qp_inuse = 0;
-+	spinlock_t *ql; /* work around too long line below */
-+
-+	rdi->driver_f.free_all_qps(rdi);
-+
-+	if (!rdi->qp_dev)
-+		return 0;
-+
-+	ql = &rdi->qp_dev->qpt_lock;
-+	spin_lock_irqsave(&rdi->qp_dev->qpt_lock, flags);
-+	for (n = 0; n < rdi->qp_dev->qp_table_size; n++) {
-+		qp = rcu_dereference_protected(rdi->qp_dev->qp_table[n],
-+					       lockdep_is_held(ql));
-+		RCU_INIT_POINTER(rdi->qp_dev->qp_table[n], NULL);
-+		qp =  rcu_dereference_protected(qp->next,
-+						lockdep_is_held(ql));
-+		while (qp) {
-+			qp_inuse++;
-+			qp =  rcu_dereference_protected(qp->next,
-+							lockdep_is_held(ql));
-+		}
-+	}
-+	spin_unlock_irqrestore(ql, flags);
-+	synchronize_rcu();
-+	return qp_inuse;
-+}
-+
-+void rvt_qp_exit(struct rvt_dev_info *rdi)
-+{
-+	u32 qps_inuse = free_all_qps(rdi);
-+
-+	qps_inuse = free_all_qps(rdi);
-+	if (qps_inuse)
-+		rvt_pr_err(rdi, "QP memory leak! %u still in use\n",
-+			   qps_inuse);
-+	if (!rdi->qp_dev)
-+		return;
-+
-+	kfree(rdi->qp_dev->qp_table);
-+	free_qpn_table(&rdi->qp_dev->qpn_table);
-+	kfree(rdi->qp_dev);
-+}
-+
- /**
-  * rvt_create_qp - create a queue pair for a device
-  * @ibpd: the protection domain who's device we create the queue pair for
-diff --git a/drivers/infiniband/sw/rdmavt/qp.h b/drivers/infiniband/sw/rdmavt/qp.h
-index 9c2999d..f438809 100644
---- a/drivers/infiniband/sw/rdmavt/qp.h
-+++ b/drivers/infiniband/sw/rdmavt/qp.h
-@@ -50,6 +50,8 @@
- 
- #include <rdma/rdma_vt.h>
- 
-+int rvt_driver_qp_init(struct rvt_dev_info *rdi);
-+void rvt_qp_exit(struct rvt_dev_info *rdi);
- struct ib_qp *rvt_create_qp(struct ib_pd *ibpd,
- 			    struct ib_qp_init_attr *init_attr,
- 			    struct ib_udata *udata);
-diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-index 44de280..f2d995d 100644
---- a/drivers/infiniband/sw/rdmavt/vt.c
-+++ b/drivers/infiniband/sw/rdmavt/vt.c
-@@ -223,9 +223,23 @@ int rvt_register_device(struct rvt_dev_info *rdi)
- 	    (!rdi->driver_f.get_card_name) ||
- 	    (!rdi->driver_f.get_pci_dev) ||
- 	    (!rdi->driver_f.check_ah)) {
-+		pr_err("Driver not supporting req func\n");
- 		return -EINVAL;
+diff --git a/drivers/infiniband/sw/rdmavt/ah.c b/drivers/infiniband/sw/rdmavt/ah.c
+index 621afc3..c194d9d 100644
+--- a/drivers/infiniband/sw/rdmavt/ah.c
++++ b/drivers/infiniband/sw/rdmavt/ah.c
+@@ -78,8 +78,8 @@ int rvt_check_ah(struct ib_device *ibdev,
+ 	if (link != IB_LINK_LAYER_ETHERNET) {
+ 		if (ah_attr->dlid == 0)
+ 			return -EINVAL;
+-		if (ah_attr->dlid >= RVT_MULTICAST_LID_BASE &&
+-		    ah_attr->dlid != RVT_PERMISSIVE_LID &&
++		if (ah_attr->dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE) &&
++		    ah_attr->dlid != be16_to_cpu(IB_LID_PERMISSIVE) &&
+ 		    !(ah_attr->ah_flags & IB_AH_GRH))
+ 			return -EINVAL;
  	}
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 120da1d..db40d9f 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -524,6 +524,7 @@ enum {
+ };
  
-+	if (!rdi->dparms.nports) {
-+		rvt_pr_err(rdi, "Driver says it has no ports.\n");
-+		return -EINVAL;
-+	}
-+
-+	rdi->ports = kcalloc(rdi->dparms.nports,
-+			     sizeof(struct rvt_ibport **),
-+			     GFP_KERNEL);
-+	if (!rdi->ports) {
-+		rvt_pr_err(rdi, "Could not allocate port mem.\n");
-+		return -ENOMEM;
-+	}
-+
- 	/* Once we get past here we can use the rvt_pr macros */
+ #define IB_LID_PERMISSIVE	cpu_to_be16(0xFFFF)
++#define IB_MULTICAST_LID_BASE	cpu_to_be16(0xC000)
  
- 	/* Dev Ops */
-@@ -240,6 +254,12 @@ int rvt_register_device(struct rvt_dev_info *rdi)
- 	CHECK_DRIVER_OVERRIDE(rdi, get_port_immutable);
- 
- 	/* Queue Pairs */
-+	ret = rvt_driver_qp_init(rdi);
-+	if (ret) {
-+		pr_err("Error in driver QP init.\n");
-+		return -EINVAL;
-+	}
-+
- 	CHECK_DRIVER_OVERRIDE(rdi, create_qp);
- 	CHECK_DRIVER_OVERRIDE(rdi, modify_qp);
- 	CHECK_DRIVER_OVERRIDE(rdi, destroy_qp);
-@@ -300,19 +320,6 @@ int rvt_register_device(struct rvt_dev_info *rdi)
- 	spin_lock_init(&rdi->n_pds_lock);
- 	rdi->n_pds_allocated = 0;
- 
--	if (rdi->dparms.nports) {
--		rdi->ports = kcalloc(rdi->dparms.nports,
--				     sizeof(struct rvt_ibport **),
--				     GFP_KERNEL);
--		if (!rdi->ports) {
--			rvt_pr_err(rdi, "Could not allocate port mem.\n");
--			ret = -ENOMEM;
--			goto bail_mr;
--		}
--	} else {
--		rvt_pr_warn(rdi, "Driver says it has no ports.\n");
--	}
--
- 	/* We are now good to announce we exist */
- 	ret =  ib_register_device(&rdi->ibdev, rdi->driver_f.port_callback);
- 	if (ret) {
-@@ -327,6 +334,8 @@ bail_mr:
- 	rvt_mr_exit(rdi);
- 
- bail_no_mr:
-+	rvt_qp_exit(rdi);
-+
- 	return ret;
- }
- EXPORT_SYMBOL(rvt_register_device);
+ enum ib_ah_flags {
+ 	IB_AH_GRH	= 1
 diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
-index 79da8ee..950c291 100644
+index ef66d2b..79da8ee 100644
 --- a/include/rdma/rdma_vt.h
 +++ b/include/rdma/rdma_vt.h
-@@ -172,7 +172,13 @@ struct rvt_driver_params {
- 	 * For instance special module parameters. Goes here.
- 	 */
- 	unsigned int lkey_table_size;
-+	unsigned int qp_table_size;
-+	int qpn_start;
-+	int qpn_inc;
-+	int qpn_res_start;
-+	int qpn_res_end;
- 	int nports;
-+	u8 qos_shift;
- };
+@@ -55,10 +55,9 @@
  
- /* Protection domain */
-@@ -205,6 +211,7 @@ struct rvt_driver_provided {
- 	int (*port_callback)(struct ib_device *, u8, struct kobject *);
- 	const char * (*get_card_name)(struct rvt_dev_info *rdi);
- 	struct pci_dev * (*get_pci_dev)(struct rvt_dev_info *rdi);
-+	void (*free_all_qps)(struct rvt_dev_info *rdi);
+ #include <linux/spinlock.h>
+ #include <linux/list.h>
+-#include "ib_verbs.h"
+-
+-#define RVT_MULTICAST_LID_BASE 0xC000
+-#define RVT_PERMISSIVE_LID 0xFFFF
++#include <rdma/ib_verbs.h>
++#include <rdma/rdmavt_mr.h>
++#include <rdma/rdmavt_qp.h>
  
- 	/*--------------------*/
- 	/* Optional functions */
-@@ -245,6 +252,8 @@ struct rvt_dev_info {
+ /*
+  * For some of the IBTA objects there will likely be some
+@@ -70,297 +69,6 @@
+ #define RVT_FLAG_QP_INIT_DRIVER BIT(2)
+ #define RVT_FLAG_CQ_INIT_DRIVER BIT(3)
  
- 	int flags;
- 	struct rvt_ibport **ports;
-+
-+	struct rvt_qp_ibdev *qp_dev;
- };
+-/*
+- * For Memory Regions. This stuff should probably be moved into rdmavt/mr.h once
+- * drivers no longer need access to the MR directly.
+- */
+-
+-/*
+- * A segment is a linear region of low physical memory.
+- * Used by the verbs layer.
+- */
+-struct rvt_seg {
+-	void *vaddr;
+-	size_t length;
+-};
+-
+-/* The number of rvt_segs that fit in a page. */
+-#define RVT_SEGSZ     (PAGE_SIZE / sizeof(struct rvt_seg))
+-
+-struct rvt_segarray {
+-	struct rvt_seg segs[RVT_SEGSZ];
+-};
+-
+-struct rvt_mregion {
+-	struct ib_pd *pd;       /* shares refcnt of ibmr.pd */
+-	u64 user_base;          /* User's address for this region */
+-	u64 iova;               /* IB start address of this region */
+-	size_t length;
+-	u32 lkey;
+-	u32 offset;             /* offset (bytes) to start of region */
+-	int access_flags;
+-	u32 max_segs;           /* number of rvt_segs in all the arrays */
+-	u32 mapsz;              /* size of the map array */
+-	u8  page_shift;         /* 0 - non unform/non powerof2 sizes */
+-	u8  lkey_published;     /* in global table */
+-	struct completion comp; /* complete when refcount goes to zero */
+-	atomic_t refcount;
+-	struct rvt_segarray *map[0];    /* the segments */
+-};
+-
+-#define RVT_MAX_LKEY_TABLE_BITS 23
+-
+-struct rvt_lkey_table {
+-	spinlock_t lock; /* protect changes in this struct */
+-	u32 next;               /* next unused index (speeds search) */
+-	u32 gen;                /* generation count */
+-	u32 max;                /* size of the table */
+-	struct rvt_mregion __rcu **table;
+-};
+-
+-/* End Memmory Region */
+-
+-/*
+- * Things needed for the Queue Pair definition. Like the MR stuff above the
+- * following should probably get moved to qp.h once drivers stop trying to make
+- * and manipulate thier own QPs. For the few instnaces where a driver may need
+- * to look into a queue pair there should be a pointer to a driver priavte data
+- * structure that they can look at.
+- */
+-
+-/*
+- * These keep track of the copy progress within a memory region.
+- * Used by the verbs layer.
+- */
+-struct rvt_sge {
+-	struct rvt_mregion *mr;
+-	void *vaddr;            /* kernel virtual address of segment */
+-	u32 sge_length;         /* length of the SGE */
+-	u32 length;             /* remaining length of the segment */
+-	u16 m;                  /* current index: mr->map[m] */
+-	u16 n;                  /* current index: mr->map[m]->segs[n] */
+-};
+-
+-/*
+- * Send work request queue entry.
+- * The size of the sg_list is determined when the QP is created and stored
+- * in qp->s_max_sge.
+- */
+-struct rvt_swqe {
+-	union {
+-		struct ib_send_wr wr;   /* don't use wr.sg_list */
+-		struct ib_ud_wr ud_wr;
+-		struct ib_reg_wr reg_wr;
+-		struct ib_rdma_wr rdma_wr;
+-		struct ib_atomic_wr atomic_wr;
+-	};
+-	u32 psn;                /* first packet sequence number */
+-	u32 lpsn;               /* last packet sequence number */
+-	u32 ssn;                /* send sequence number */
+-	u32 length;             /* total length of data in sg_list */
+-	struct rvt_sge sg_list[0];
+-};
+-
+-/*
+- * Receive work request queue entry.
+- * The size of the sg_list is determined when the QP (or SRQ) is created
+- * and stored in qp->r_rq.max_sge (or srq->rq.max_sge).
+- */
+-struct rvt_rwqe {
+-	u64 wr_id;
+-	u8 num_sge;
+-	struct ib_sge sg_list[0];
+-};
+-
+-/*
+- * This structure is used to contain the head pointer, tail pointer,
+- * and receive work queue entries as a single memory allocation so
+- * it can be mmap'ed into user space.
+- * Note that the wq array elements are variable size so you can't
+- * just index into the array to get the N'th element;
+- * use get_rwqe_ptr() instead.
+- */
+-struct rvt_rwq {
+-	u32 head;               /* new work requests posted to the head */
+-	u32 tail;               /* receives pull requests from here. */
+-	struct rvt_rwqe wq[0];
+-};
+-
+-struct rvt_rq {
+-	struct rvt_rwq *wq;
+-	u32 size;               /* size of RWQE array */
+-	u8 max_sge;
+-	/* protect changes in this struct */
+-	spinlock_t lock ____cacheline_aligned_in_smp;
+-};
+-
+-/*
+- * This structure is used by rvt_mmap() to validate an offset
+- * when an mmap() request is made.  The vm_area_struct then uses
+- * this as its vm_private_data.
+- */
+-struct rvt_mmap_info {
+-	struct list_head pending_mmaps;
+-	struct ib_ucontext *context;
+-	void *obj;
+-	__u64 offset;
+-	struct kref ref;
+-	unsigned size;
+-};
+-
+-#define RVT_MAX_RDMA_ATOMIC	16
+-
+-/*
+- * This structure holds the information that the send tasklet needs
+- * to send a RDMA read response or atomic operation.
+- */
+-struct rvt_ack_entry {
+-	u8 opcode;
+-	u8 sent;
+-	u32 psn;
+-	u32 lpsn;
+-	union {
+-		struct rvt_sge rdma_sge;
+-		u64 atomic_data;
+-	};
+-};
+-
+-struct rvt_sge_state {
+-	struct rvt_sge *sg_list;      /* next SGE to be used if any */
+-	struct rvt_sge sge;   /* progress state for the current SGE */
+-	u32 total_len;
+-	u8 num_sge;
+-};
+-
+-/*
+- * Variables prefixed with s_ are for the requester (sender).
+- * Variables prefixed with r_ are for the responder (receiver).
+- * Variables prefixed with ack_ are for responder replies.
+- *
+- * Common variables are protected by both r_rq.lock and s_lock in that order
+- * which only happens in modify_qp() or changing the QP 'state'.
+- */
+-struct rvt_qp {
+-	struct ib_qp ibqp;
+-	void *priv; /* Driver private data */
+-	/* read mostly fields above and below */
+-	struct ib_ah_attr remote_ah_attr;
+-	struct ib_ah_attr alt_ah_attr;
+-	struct rvt_qp __rcu *next;           /* link list for QPN hash table */
+-	struct rvt_swqe *s_wq;  /* send work queue */
+-	struct rvt_mmap_info *ip;
+-
+-	unsigned long timeout_jiffies;  /* computed from timeout */
+-
+-	enum ib_mtu path_mtu;
+-	int srate_mbps;		/* s_srate (below) converted to Mbit/s */
+-	u32 remote_qpn;
+-	u32 pmtu;		/* decoded from path_mtu */
+-	u32 qkey;               /* QKEY for this QP (for UD or RD) */
+-	u32 s_size;             /* send work queue size */
+-	u32 s_rnr_timeout;      /* number of milliseconds for RNR timeout */
+-	u32 s_ahgpsn;           /* set to the psn in the copy of the header */
+-
+-	u8 state;               /* QP state */
+-	u8 allowed_ops;		/* high order bits of allowed opcodes */
+-	u8 qp_access_flags;
+-	u8 alt_timeout;         /* Alternate path timeout for this QP */
+-	u8 timeout;             /* Timeout for this QP */
+-	u8 s_srate;
+-	u8 s_mig_state;
+-	u8 port_num;
+-	u8 s_pkey_index;        /* PKEY index to use */
+-	u8 s_alt_pkey_index;    /* Alternate path PKEY index to use */
+-	u8 r_max_rd_atomic;     /* max number of RDMA read/atomic to receive */
+-	u8 s_max_rd_atomic;     /* max number of RDMA read/atomic to send */
+-	u8 s_retry_cnt;         /* number of times to retry */
+-	u8 s_rnr_retry_cnt;
+-	u8 r_min_rnr_timer;     /* retry timeout value for RNR NAKs */
+-	u8 s_max_sge;           /* size of s_wq->sg_list */
+-	u8 s_draining;
+-
+-	/* start of read/write fields */
+-	atomic_t refcount ____cacheline_aligned_in_smp;
+-	wait_queue_head_t wait;
+-
+-	struct rvt_ack_entry s_ack_queue[RVT_MAX_RDMA_ATOMIC + 1]
+-		____cacheline_aligned_in_smp;
+-	struct rvt_sge_state s_rdma_read_sge;
+-
+-	spinlock_t r_lock ____cacheline_aligned_in_smp;      /* used for APM */
+-	unsigned long r_aflags;
+-	u64 r_wr_id;            /* ID for current receive WQE */
+-	u32 r_ack_psn;          /* PSN for next ACK or atomic ACK */
+-	u32 r_len;              /* total length of r_sge */
+-	u32 r_rcv_len;          /* receive data len processed */
+-	u32 r_psn;              /* expected rcv packet sequence number */
+-	u32 r_msn;              /* message sequence number */
+-
+-	u8 r_state;             /* opcode of last packet received */
+-	u8 r_flags;
+-	u8 r_head_ack_queue;    /* index into s_ack_queue[] */
+-
+-	struct list_head rspwait;       /* link for waiting to respond */
+-
+-	struct rvt_sge_state r_sge;     /* current receive data */
+-	struct rvt_rq r_rq;             /* receive work queue */
+-
+-	spinlock_t s_lock ____cacheline_aligned_in_smp;
+-	struct rvt_sge_state *s_cur_sge;
+-	u32 s_flags;
+-	struct rvt_swqe *s_wqe;
+-	struct rvt_sge_state s_sge;     /* current send request data */
+-	struct rvt_mregion *s_rdma_mr;
+-	struct sdma_engine *s_sde; /* current sde */
+-	u32 s_cur_size;         /* size of send packet in bytes */
+-	u32 s_len;              /* total length of s_sge */
+-	u32 s_rdma_read_len;    /* total length of s_rdma_read_sge */
+-	u32 s_next_psn;         /* PSN for next request */
+-	u32 s_last_psn;         /* last response PSN processed */
+-	u32 s_sending_psn;      /* lowest PSN that is being sent */
+-	u32 s_sending_hpsn;     /* highest PSN that is being sent */
+-	u32 s_psn;              /* current packet sequence number */
+-	u32 s_ack_rdma_psn;     /* PSN for sending RDMA read responses */
+-	u32 s_ack_psn;          /* PSN for acking sends and RDMA writes */
+-	u32 s_head;             /* new entries added here */
+-	u32 s_tail;             /* next entry to process */
+-	u32 s_cur;              /* current work queue entry */
+-	u32 s_acked;            /* last un-ACK'ed entry */
+-	u32 s_last;             /* last completed entry */
+-	u32 s_ssn;              /* SSN of tail entry */
+-	u32 s_lsn;              /* limit sequence number (credit) */
+-	u16 s_hdrwords;         /* size of s_hdr in 32 bit words */
+-	u16 s_rdma_ack_cnt;
+-	s8 s_ahgidx;
+-	u8 s_state;             /* opcode of last packet sent */
+-	u8 s_ack_state;         /* opcode of packet to ACK */
+-	u8 s_nak_state;         /* non-zero if NAK is pending */
+-	u8 r_nak_state;         /* non-zero if NAK is pending */
+-	u8 s_retry;             /* requester retry counter */
+-	u8 s_rnr_retry;         /* requester RNR retry counter */
+-	u8 s_num_rd_atomic;     /* number of RDMA read/atomic pending */
+-	u8 s_tail_ack_queue;    /* index into s_ack_queue[] */
+-
+-	struct rvt_sge_state s_ack_rdma_sge;
+-	struct timer_list s_timer;
+-
+-	/*
+-	 * This sge list MUST be last. Do not add anything below here.
+-	 */
+-	struct rvt_sge r_sg_list[0] /* verified SGEs */
+-		____cacheline_aligned_in_smp;
+-};
+-
+-struct rvt_srq {
+-	struct ib_srq ibsrq;
+-	struct rvt_rq rq;
+-	struct rvt_mmap_info *ip;
+-	/* send signal when number of RWQEs < limit */
+-	u32 limit;
+-};
+-
+-/* End QP section */
+-
+ struct rvt_ibport {
+ 	struct rvt_qp __rcu *qp[2];
+ 	struct ib_mad_agent *send_agent;	/* agent for SMI (traps) */
+@@ -554,17 +262,6 @@ static inline struct rvt_dev_info *ib_to_rvt(struct ib_device *ibdev)
+ 	return  container_of(ibdev, struct rvt_dev_info, ibdev);
+ }
  
- static inline struct rvt_pd *ibpd_to_rvtpd(struct ib_pd *ibpd)
-diff --git a/include/rdma/rdmavt_qp.h b/include/rdma/rdmavt_qp.h
-index f33fbb0..e6a7d17 100644
---- a/include/rdma/rdmavt_qp.h
-+++ b/include/rdma/rdmavt_qp.h
-@@ -259,4 +259,37 @@ struct rvt_srq {
- 	u32 limit;
- };
- 
-+#define RVT_QPN_MAX                 BIT(24)
-+#define RVT_QPNMAP_ENTRIES          (RVT_QPN_MAX / PAGE_SIZE / BITS_PER_BYTE)
-+#define RVT_BITS_PER_PAGE           (PAGE_SIZE * BITS_PER_BYTE)
-+#define RVT_BITS_PER_PAGE_MASK      (RVT_BITS_PER_PAGE - 1)
+-static inline void rvt_put_mr(struct rvt_mregion *mr)
+-{
+-	if (unlikely(atomic_dec_and_test(&mr->refcount)))
+-		complete(&mr->comp);
+-}
+-
+-static inline void rvt_get_mr(struct rvt_mregion *mr)
+-{
+-	atomic_inc(&mr->refcount);
+-}
+-
+ static inline struct rvt_srq *ibsrq_to_rvtsrq(struct ib_srq *ibsrq)
+ {
+ 	return container_of(ibsrq, struct rvt_srq, ibsrq);
+diff --git a/include/rdma/rdmavt_mr.h b/include/rdma/rdmavt_mr.h
+new file mode 100644
+index 0000000..ea60476
+--- /dev/null
++++ b/include/rdma/rdmavt_mr.h
+@@ -0,0 +1,130 @@
++#ifndef DEF_RDMAVT_INCMR_H
++#define DEF_RDMAVT_INCMR_H
 +
 +/*
-+ * QPN-map pages start out as NULL, they get allocated upon
-+ * first use and are never deallocated. This way,
-+ * large bitmaps are not allocated unless large numbers of QPs are used.
++ * Copyright(c) 2015 Intel Corporation.
++ *
++ * This file is provided under a dual BSD/GPLv2 license.  When using or
++ * redistributing this file, you may do so under either license.
++ *
++ * GPL LICENSE SUMMARY
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * BSD LICENSE
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ *  - Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ *  - Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *  - Neither the name of Intel Corporation nor the names of its
++ *    contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
 + */
-+struct rvt_qpn_map {
-+	void *page;
++
++/*
++ * For Memory Regions. This stuff should probably be moved into rdmavt/mr.h once
++ * drivers no longer need access to the MR directly.
++ */
++
++/*
++ * A segment is a linear region of low physical memory.
++ * Used by the verbs layer.
++ */
++struct rvt_seg {
++	void *vaddr;
++	size_t length;
 +};
 +
-+struct rvt_qpn_table {
-+	spinlock_t lock; /* protect changes to the qp table */
-+	unsigned flags;         /* flags for QP0/1 allocated for each port */
-+	u32 last;               /* last QP number allocated */
-+	u32 nmaps;              /* size of the map table */
-+	u16 limit;
-+	u8  incr;
-+	/* bit map of free QP numbers other than 0/1 */
-+	struct rvt_qpn_map map[RVT_QPNMAP_ENTRIES];
++/* The number of rvt_segs that fit in a page. */
++#define RVT_SEGSZ     (PAGE_SIZE / sizeof(struct rvt_seg))
++
++struct rvt_segarray {
++	struct rvt_seg segs[RVT_SEGSZ];
 +};
 +
-+struct rvt_qp_ibdev {
-+	u32 qp_table_size;
-+	u32 qp_table_bits;
-+	struct rvt_qp __rcu **qp_table;
-+	spinlock_t qpt_lock; /* qptable lock */
-+	struct rvt_qpn_table qpn_table;
++struct rvt_mregion {
++	struct ib_pd *pd;       /* shares refcnt of ibmr.pd */
++	u64 user_base;          /* User's address for this region */
++	u64 iova;               /* IB start address of this region */
++	size_t length;
++	u32 lkey;
++	u32 offset;             /* offset (bytes) to start of region */
++	int access_flags;
++	u32 max_segs;           /* number of rvt_segs in all the arrays */
++	u32 mapsz;              /* size of the map array */
++	u8  page_shift;         /* 0 - non unform/non powerof2 sizes */
++	u8  lkey_published;     /* in global table */
++	struct completion comp; /* complete when refcount goes to zero */
++	atomic_t refcount;
++	struct rvt_segarray *map[0];    /* the segments */
 +};
 +
- #endif          /* DEF_RDMAVT_INCQP_H */
++#define RVT_MAX_LKEY_TABLE_BITS 23
++
++struct rvt_lkey_table {
++	spinlock_t lock; /* protect changes in this struct */
++	u32 next;               /* next unused index (speeds search) */
++	u32 gen;                /* generation count */
++	u32 max;                /* size of the table */
++	struct rvt_mregion __rcu **table;
++};
++
++/*
++ * These keep track of the copy progress within a memory region.
++ * Used by the verbs layer.
++ */
++struct rvt_sge {
++	struct rvt_mregion *mr;
++	void *vaddr;            /* kernel virtual address of segment */
++	u32 sge_length;         /* length of the SGE */
++	u32 length;             /* remaining length of the segment */
++	u16 m;                  /* current index: mr->map[m] */
++	u16 n;                  /* current index: mr->map[m]->segs[n] */
++};
++
++struct rvt_sge_state {
++	struct rvt_sge *sg_list;      /* next SGE to be used if any */
++	struct rvt_sge sge;   /* progress state for the current SGE */
++	u32 total_len;
++	u8 num_sge;
++};
++
++static inline void rvt_put_mr(struct rvt_mregion *mr)
++{
++	if (unlikely(atomic_dec_and_test(&mr->refcount)))
++		complete(&mr->comp);
++}
++
++static inline void rvt_get_mr(struct rvt_mregion *mr)
++{
++	atomic_inc(&mr->refcount);
++}
++
++#endif          /* DEF_RDMAVT_INCMRH */
+diff --git a/include/rdma/rdmavt_qp.h b/include/rdma/rdmavt_qp.h
+new file mode 100644
+index 0000000..f33fbb0
+--- /dev/null
++++ b/include/rdma/rdmavt_qp.h
+@@ -0,0 +1,262 @@
++#ifndef DEF_RDMAVT_INCQP_H
++#define DEF_RDMAVT_INCQP_H
++
++/*
++ * Copyright(c) 2015 Intel Corporation.
++ *
++ * This file is provided under a dual BSD/GPLv2 license.  When using or
++ * redistributing this file, you may do so under either license.
++ *
++ * GPL LICENSE SUMMARY
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * BSD LICENSE
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ *  - Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ *  - Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *  - Neither the name of Intel Corporation nor the names of its
++ *    contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ */
++
++/*
++ * Send work request queue entry.
++ * The size of the sg_list is determined when the QP is created and stored
++ * in qp->s_max_sge.
++ */
++struct rvt_swqe {
++	union {
++		struct ib_send_wr wr;   /* don't use wr.sg_list */
++		struct ib_ud_wr ud_wr;
++		struct ib_reg_wr reg_wr;
++		struct ib_rdma_wr rdma_wr;
++		struct ib_atomic_wr atomic_wr;
++	};
++	u32 psn;                /* first packet sequence number */
++	u32 lpsn;               /* last packet sequence number */
++	u32 ssn;                /* send sequence number */
++	u32 length;             /* total length of data in sg_list */
++	struct rvt_sge sg_list[0];
++};
++
++/*
++ * Receive work request queue entry.
++ * The size of the sg_list is determined when the QP (or SRQ) is created
++ * and stored in qp->r_rq.max_sge (or srq->rq.max_sge).
++ */
++struct rvt_rwqe {
++	u64 wr_id;
++	u8 num_sge;
++	struct ib_sge sg_list[0];
++};
++
++/*
++ * This structure is used to contain the head pointer, tail pointer,
++ * and receive work queue entries as a single memory allocation so
++ * it can be mmap'ed into user space.
++ * Note that the wq array elements are variable size so you can't
++ * just index into the array to get the N'th element;
++ * use get_rwqe_ptr() instead.
++ */
++struct rvt_rwq {
++	u32 head;               /* new work requests posted to the head */
++	u32 tail;               /* receives pull requests from here. */
++	struct rvt_rwqe wq[0];
++};
++
++struct rvt_rq {
++	struct rvt_rwq *wq;
++	u32 size;               /* size of RWQE array */
++	u8 max_sge;
++	/* protect changes in this struct */
++	spinlock_t lock ____cacheline_aligned_in_smp;
++};
++
++/*
++ * This structure is used by rvt_mmap() to validate an offset
++ * when an mmap() request is made.  The vm_area_struct then uses
++ * this as its vm_private_data.
++ */
++struct rvt_mmap_info {
++	struct list_head pending_mmaps;
++	struct ib_ucontext *context;
++	void *obj;
++	__u64 offset;
++	struct kref ref;
++	unsigned size;
++};
++
++#define RVT_MAX_RDMA_ATOMIC	16
++
++/*
++ * This structure holds the information that the send tasklet needs
++ * to send a RDMA read response or atomic operation.
++ */
++struct rvt_ack_entry {
++	u8 opcode;
++	u8 sent;
++	u32 psn;
++	u32 lpsn;
++	union {
++		struct rvt_sge rdma_sge;
++		u64 atomic_data;
++	};
++};
++
++/*
++ * Variables prefixed with s_ are for the requester (sender).
++ * Variables prefixed with r_ are for the responder (receiver).
++ * Variables prefixed with ack_ are for responder replies.
++ *
++ * Common variables are protected by both r_rq.lock and s_lock in that order
++ * which only happens in modify_qp() or changing the QP 'state'.
++ */
++struct rvt_qp {
++	struct ib_qp ibqp;
++	void *priv; /* Driver private data */
++	/* read mostly fields above and below */
++	struct ib_ah_attr remote_ah_attr;
++	struct ib_ah_attr alt_ah_attr;
++	struct rvt_qp __rcu *next;           /* link list for QPN hash table */
++	struct rvt_swqe *s_wq;  /* send work queue */
++	struct rvt_mmap_info *ip;
++
++	unsigned long timeout_jiffies;  /* computed from timeout */
++
++	enum ib_mtu path_mtu;
++	int srate_mbps;		/* s_srate (below) converted to Mbit/s */
++	u32 remote_qpn;
++	u32 pmtu;		/* decoded from path_mtu */
++	u32 qkey;               /* QKEY for this QP (for UD or RD) */
++	u32 s_size;             /* send work queue size */
++	u32 s_rnr_timeout;      /* number of milliseconds for RNR timeout */
++	u32 s_ahgpsn;           /* set to the psn in the copy of the header */
++
++	u8 state;               /* QP state */
++	u8 allowed_ops;		/* high order bits of allowed opcodes */
++	u8 qp_access_flags;
++	u8 alt_timeout;         /* Alternate path timeout for this QP */
++	u8 timeout;             /* Timeout for this QP */
++	u8 s_srate;
++	u8 s_mig_state;
++	u8 port_num;
++	u8 s_pkey_index;        /* PKEY index to use */
++	u8 s_alt_pkey_index;    /* Alternate path PKEY index to use */
++	u8 r_max_rd_atomic;     /* max number of RDMA read/atomic to receive */
++	u8 s_max_rd_atomic;     /* max number of RDMA read/atomic to send */
++	u8 s_retry_cnt;         /* number of times to retry */
++	u8 s_rnr_retry_cnt;
++	u8 r_min_rnr_timer;     /* retry timeout value for RNR NAKs */
++	u8 s_max_sge;           /* size of s_wq->sg_list */
++	u8 s_draining;
++
++	/* start of read/write fields */
++	atomic_t refcount ____cacheline_aligned_in_smp;
++	wait_queue_head_t wait;
++
++	struct rvt_ack_entry s_ack_queue[RVT_MAX_RDMA_ATOMIC + 1]
++		____cacheline_aligned_in_smp;
++	struct rvt_sge_state s_rdma_read_sge;
++
++	spinlock_t r_lock ____cacheline_aligned_in_smp;      /* used for APM */
++	unsigned long r_aflags;
++	u64 r_wr_id;            /* ID for current receive WQE */
++	u32 r_ack_psn;          /* PSN for next ACK or atomic ACK */
++	u32 r_len;              /* total length of r_sge */
++	u32 r_rcv_len;          /* receive data len processed */
++	u32 r_psn;              /* expected rcv packet sequence number */
++	u32 r_msn;              /* message sequence number */
++
++	u8 r_state;             /* opcode of last packet received */
++	u8 r_flags;
++	u8 r_head_ack_queue;    /* index into s_ack_queue[] */
++
++	struct list_head rspwait;       /* link for waiting to respond */
++
++	struct rvt_sge_state r_sge;     /* current receive data */
++	struct rvt_rq r_rq;             /* receive work queue */
++
++	spinlock_t s_lock ____cacheline_aligned_in_smp;
++	struct rvt_sge_state *s_cur_sge;
++	u32 s_flags;
++	struct rvt_swqe *s_wqe;
++	struct rvt_sge_state s_sge;     /* current send request data */
++	struct rvt_mregion *s_rdma_mr;
++	struct sdma_engine *s_sde; /* current sde */
++	u32 s_cur_size;         /* size of send packet in bytes */
++	u32 s_len;              /* total length of s_sge */
++	u32 s_rdma_read_len;    /* total length of s_rdma_read_sge */
++	u32 s_next_psn;         /* PSN for next request */
++	u32 s_last_psn;         /* last response PSN processed */
++	u32 s_sending_psn;      /* lowest PSN that is being sent */
++	u32 s_sending_hpsn;     /* highest PSN that is being sent */
++	u32 s_psn;              /* current packet sequence number */
++	u32 s_ack_rdma_psn;     /* PSN for sending RDMA read responses */
++	u32 s_ack_psn;          /* PSN for acking sends and RDMA writes */
++	u32 s_head;             /* new entries added here */
++	u32 s_tail;             /* next entry to process */
++	u32 s_cur;              /* current work queue entry */
++	u32 s_acked;            /* last un-ACK'ed entry */
++	u32 s_last;             /* last completed entry */
++	u32 s_ssn;              /* SSN of tail entry */
++	u32 s_lsn;              /* limit sequence number (credit) */
++	u16 s_hdrwords;         /* size of s_hdr in 32 bit words */
++	u16 s_rdma_ack_cnt;
++	s8 s_ahgidx;
++	u8 s_state;             /* opcode of last packet sent */
++	u8 s_ack_state;         /* opcode of packet to ACK */
++	u8 s_nak_state;         /* non-zero if NAK is pending */
++	u8 r_nak_state;         /* non-zero if NAK is pending */
++	u8 s_retry;             /* requester retry counter */
++	u8 s_rnr_retry;         /* requester RNR retry counter */
++	u8 s_num_rd_atomic;     /* number of RDMA read/atomic pending */
++	u8 s_tail_ack_queue;    /* index into s_ack_queue[] */
++
++	struct rvt_sge_state s_ack_rdma_sge;
++	struct timer_list s_timer;
++
++	/*
++	 * This sge list MUST be last. Do not add anything below here.
++	 */
++	struct rvt_sge r_sg_list[0] /* verified SGEs */
++		____cacheline_aligned_in_smp;
++};
++
++struct rvt_srq {
++	struct ib_srq ibsrq;
++	struct rvt_rq rq;
++	struct rvt_mmap_info *ip;
++	/* send signal when number of RWQEs < limit */
++	u32 limit;
++};
++
++#endif          /* DEF_RDMAVT_INCQP_H */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
