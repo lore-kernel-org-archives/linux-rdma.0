@@ -1,59 +1,154 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC] Generic InfiniBand transport done in software
-Date: Mon, 28 Dec 2015 15:32:51 -0500
-Message-ID: <20151228203249.GA4213@phlsvsds.ph.intel.com>
-References: <CAG9sBKO=fP2Xd=JXK7hvzGFRLQmh1dF+mWDxdnhU+TqFg7YD1Q@mail.gmail.com> <20151222181905.GA742@phlsvsds.ph.intel.com> <CAG9sBKNOu+d-5f6FYTXCyTGjJU-md4dW3MFMB2-UDgRFafRdBw@mail.gmail.com> <20151223200727.GA6886@phlsvsds.ph.intel.com> <CAG9sBKNkeA2Op-OTJ_MQ=pC3BQ7=_tB4g6oV=fwDOJ7gs_y+fQ@mail.gmail.com> <20151224161415.GA674@phlsvsds.ph.intel.com> <CAG9sBKNBDC=YymoYMLjW+RceChQXfNMXcc8UzJJVhqBuW5jGAQ@mail.gmail.com>
+Subject: [PATCH v2 00/36] Add rdma verbs transport library
+Date: Mon, 28 Dec 2015 12:58:20 -0800
+Message-ID: <20151228205612.29850.7328.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAG9sBKNBDC=YymoYMLjW+RceChQXfNMXcc8UzJJVhqBuW5jGAQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Dec 27, 2015 at 07:54:46PM +0200, Moni Shoua wrote:
->>
->> Point is others have looked at the code. No issues have been called out to
->> date as to why what is there won't work for everyone.
->>
->http://marc.info/?l=linux-rdma&m=144968107508268&w=2
->Your answer to the send() issue is first an agreement with the comment
->and later says that it can't be done because of how PIO and SDMA
->(Intel specific implementation)
->This is an example for a discussion that never ended with an agreement.
+The following series implements rdmavt. This is the rdma verbs transport
+software library which will help to solve the problem of code duplication
+between hardware drivers when it comes to a verbs implementation.
 
-No. PIO and SDMA is driver specific and lives in the driver. Rdmavt has no 
-concept of this. I'm agreeing that the send will be generic and have no hw 
-specific stuff.
+Rdmavt is basically just another verbs provider and lives in the Infiniband tree
+in a new sw directory. It provides a software implementation of the Infiniband
+verbs API. More details can be found in the following threads:
 
->> Yes it is specific to Intel *now*, that doesn't mean it should stay that
->> way. Rdmavt could, and in my opinion should, be extended to support
->> soft-roce. I don't think replicating the same thing is a great idea.
->>
->But you post *now* a so called generic driver so it must now fit any
->possible driver (including Soft RoCE)
+http://www.spinics.net/lists/linux-rdma/msg29064.html
+http://www.spinics.net/lists/linux-rdma/msg29922.html
 
-As I've stated a number of times across multiple threads: It must not do 
-anything that would prevent another driver from using it.
+This patch series is based on what appears to be the latest branch on Doug's
+kernel.org repo (k.o/for-4.4-rc). I can rebase onto something else if needed.
 
->> As to the location, where do you think it should go. drivers/infiniband/sw
->> makes the most sense to me, but open to suggestions.
->>
->> And for the question of why publish when it's not ready, the better question
->> is why not?  Is it not good to see the work in progress as it evolves so the
->> community can provide feedback?
->>
->What kind of a feedback you expect when I don't have an idea about
->your plans for rdmavt
->Interfaces, flows, data structures... all is missing from the
->documentation to rdmavt.
+Changes since v1:
+Removed driver specific version
+Fixed license text to remove copyright and put on top
+Return 0 in rvt_map_sg instead of BAD_DMA_AGGRESS
+Remove #include of dma.h from dma.c
+Update comment about protection domain limit
+Remove comment on alternative design for private data
+Rename CDR macro to CHECK_DRIVER_OVERRIDE    
+Change all the stubs to return EOPNOTSUPP
+Fix comment style for rvt_query_port
+Fix typo in subject
+Rename rdi.lk_table to rdi.lkey_table
+Rename rvt_sge.m => rvt_sge.cur_map (Sean)
+Rename rvt_sge.n => rvt_sge.cur_seg (Sean)
+Remove rvt_reg_phys_mr
+Drop support for commit 38071a461f0a ("IB/qib: Support the new memory
+				       registration API")
 
-I expect feedback based on the code submissions. More will be coming 
-shortly. I have taken all the feedback from the first post and will be 
-sending a v2 shortly.
+---
 
+Dennis Dalessandro (34):
+      IB/rdmavt: Create module framework and handle driver registration
+      IB/rdmavt: Consolidate dma ops in rdmavt.
+      IB/rdmavt: Add protection domain to rdmavt.
+      IB/rdmavt: Add ib core device attributes to rvt driver params list
+      IB/rdmavt: Macroize override checks during driver registration
+      IB/rdmavt: Add query and modify device stubs
+      IB/rdmavt: Add query and modify port stubs
+      IB/rdmavt: Add pkey query stub
+      IB/rdmavt: Add query gid stub
+      IB/rdmavt: Alloc and dealloc ucontexts
+      IB/rdmavt: Add queue pair function stubs
+      IB/rdmavt: Add address handle stubs
+      IB/rdmavt: Add memory region stubs
+      IB/rdmavt: Add SRQ stubs
+      IB/rdmavt: Add multicast stubs
+      IB/rdmavt: Add process MAD stub
+      IB/rdmavt: Add mmap stub
+      IB/rdmavt: Add get port immutable stub
+      IB/rdmavt: Add completion queue function stubs
+      IB/rdmavt: Add post send and recv stubs
+      IB/rdmavt: Move MR datastructures into rvt
+      IB/rdmavt: Add queue pair data structure to rdmavt
+      IB/rdmavt: Move driver helper functions to a common structure
+      IB/rdmavt: Add device specific info prints
+      IB/rdmavt: Add the start of capability flags
+      IB/rdmavt: Move memory registration into rdmavt
+      IB/rdmavt: Do not use rvt prints which rely on driver too early
+      IB/rdmavt: Move SRQ data structure into rdmavt
+      IB/rdmavt: Add an ibport data structure to rdmavt
+      IB/rdmavt: Add driver notification for new AH
+      IB/rdmavt: Break rdma_vt main include header file up
+      IB/rdmavt: Initialize and teardown of qpn table
+      IB/rdmavt: Add mmap related functions
+      IB/rdmavt: Add pkey support
+
+Kamal Heib (2):
+      IB/rdmavt: Add common LID defines to rdmavt
+      IB/rdmavt: Add AH to rdmavt
+
+
+ MAINTAINERS                           |    6 
+ drivers/infiniband/Kconfig            |    2 
+ drivers/infiniband/Makefile           |    1 
+ drivers/infiniband/sw/Makefile        |    1 
+ drivers/infiniband/sw/rdmavt/Kconfig  |    6 
+ drivers/infiniband/sw/rdmavt/Makefile |   10 
+ drivers/infiniband/sw/rdmavt/ah.c     |  169 +++++++
+ drivers/infiniband/sw/rdmavt/ah.h     |   59 ++
+ drivers/infiniband/sw/rdmavt/cq.c     |  113 +++++
+ drivers/infiniband/sw/rdmavt/cq.h     |   62 ++
+ drivers/infiniband/sw/rdmavt/dma.c    |  182 +++++++
+ drivers/infiniband/sw/rdmavt/dma.h    |   53 ++
+ drivers/infiniband/sw/rdmavt/mad.c    |   85 +++
+ drivers/infiniband/sw/rdmavt/mad.h    |   59 ++
+ drivers/infiniband/sw/rdmavt/mcast.c  |   58 ++
+ drivers/infiniband/sw/rdmavt/mcast.h  |   56 ++
+ drivers/infiniband/sw/rdmavt/mmap.c   |  198 ++++++++
+ drivers/infiniband/sw/rdmavt/mmap.h   |   55 ++
+ drivers/infiniband/sw/rdmavt/mr.c     |  824 +++++++++++++++++++++++++++++++++
+ drivers/infiniband/sw/rdmavt/mr.h     |   95 ++++
+ drivers/infiniband/sw/rdmavt/pd.c     |  103 ++++
+ drivers/infiniband/sw/rdmavt/pd.h     |   58 ++
+ drivers/infiniband/sw/rdmavt/qp.c     |  379 +++++++++++++++
+ drivers/infiniband/sw/rdmavt/qp.h     |   69 +++
+ drivers/infiniband/sw/rdmavt/srq.c    |   86 +++
+ drivers/infiniband/sw/rdmavt/srq.h    |   61 ++
+ drivers/infiniband/sw/rdmavt/vt.c     |  377 +++++++++++++++
+ drivers/infiniband/sw/rdmavt/vt.h     |   90 ++++
+ include/rdma/ib_verbs.h               |    1 
+ include/rdma/rdma_vt.h                |  333 +++++++++++++
+ include/rdma/rdmavt_mr.h              |  130 +++++
+ include/rdma/rdmavt_qp.h              |  295 ++++++++++++
+ 32 files changed, 4076 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/sw/Makefile
+ create mode 100644 drivers/infiniband/sw/rdmavt/Kconfig
+ create mode 100644 drivers/infiniband/sw/rdmavt/Makefile
+ create mode 100644 drivers/infiniband/sw/rdmavt/ah.c
+ create mode 100644 drivers/infiniband/sw/rdmavt/ah.h
+ create mode 100644 drivers/infiniband/sw/rdmavt/cq.c
+ create mode 100644 drivers/infiniband/sw/rdmavt/cq.h
+ create mode 100644 drivers/infiniband/sw/rdmavt/dma.c
+ create mode 100644 drivers/infiniband/sw/rdmavt/dma.h
+ create mode 100644 drivers/infiniband/sw/rdmavt/mad.c
+ create mode 100644 drivers/infiniband/sw/rdmavt/mad.h
+ create mode 100644 drivers/infiniband/sw/rdmavt/mcast.c
+ create mode 100644 drivers/infiniband/sw/rdmavt/mcast.h
+ create mode 100644 drivers/infiniband/sw/rdmavt/mmap.c
+ create mode 100644 drivers/infiniband/sw/rdmavt/mmap.h
+ create mode 100644 drivers/infiniband/sw/rdmavt/mr.c
+ create mode 100644 drivers/infiniband/sw/rdmavt/mr.h
+ create mode 100644 drivers/infiniband/sw/rdmavt/pd.c
+ create mode 100644 drivers/infiniband/sw/rdmavt/pd.h
+ create mode 100644 drivers/infiniband/sw/rdmavt/qp.c
+ create mode 100644 drivers/infiniband/sw/rdmavt/qp.h
+ create mode 100644 drivers/infiniband/sw/rdmavt/srq.c
+ create mode 100644 drivers/infiniband/sw/rdmavt/srq.h
+ create mode 100644 drivers/infiniband/sw/rdmavt/vt.c
+ create mode 100644 drivers/infiniband/sw/rdmavt/vt.h
+ create mode 100644 include/rdma/rdma_vt.h
+ create mode 100644 include/rdma/rdmavt_mr.h
+ create mode 100644 include/rdma/rdmavt_qp.h
+
+-- 
 -Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
