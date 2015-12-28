@@ -1,55 +1,35 @@
-From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] IB/mad: Ensure fairness in ib_mad_completion_handler
-Date: Mon, 28 Dec 2015 18:51:30 +0200
-Message-ID: <20151228165130.GA13150@x-vnc01.mtx.labs.mlnx>
-References: <1449784350-30214-1-git-send-email-ira.weiny@intel.com>
+From: "Jeff Skoll" <verna.viajar-6jlb+pvLGhfpy9IuCEGcwoQuADTiUCJX@public.gmane.org>
+Subject: Charity Donation
+Date: Mon, 28 Dec 2015 13:16:30 -0500
+Message-ID: <auto-000004996996@mailadmin.uni-kassel.de>
+Reply-To: jeff.skoll-aj9EiHWJibxFWb1O811qSg@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1449784350-30214-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Description: Mail message body
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Me <verna.viajar-6jlb+pvLGhfpy9IuCEGcwoQuADTiUCJX@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 10, 2015 at 04:52:30PM -0500, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
->  
-> @@ -2555,6 +2567,7 @@ static void ib_mad_completion_handler(struct work_struct *work)
->  {
->  	struct ib_mad_port_private *port_priv;
->  	struct ib_wc wc;
-> +	int count = 0;
->  
->  	port_priv = container_of(work, struct ib_mad_port_private, work);
->  	ib_req_notify_cq(port_priv->cq, IB_CQ_NEXT_COMP);
+Hi,
+My name is Jeffrey Skoll, a philanthropist and the founder of one of th=
+e largest private foundations in the world. I believe strongly in =E2=80=
+=98giving while living.=E2=80=99 I had one idea that never changed in m=
+y mind =E2=80=94 that you should use your wealth to help people and I h=
+ave decided to secretly give USD2.498 Million to a randomly selected in=
+dividual. On receipt of this email, you should count yourself as the in=
+dividual. Kindly get back to me at your earliest convenience, so I know=
+ your email address is valid.
 
-I think you shoudld push the call to ib_req_notify_cq outside the
-while loop. You don't need to arm the CQ if you re-queued the work.
-Only when you have drained the CQ should you re-arm.
+Visit the web page to know more about me: http://www.theglobeandmail.co=
+m/news/national/meet-the-canadian-billionaire-whos-giving-it-all-away/a=
+rticle4209888/ or you can read an article of me on Wikipedia.
 
-> @@ -2574,6 +2587,11 @@ static void ib_mad_completion_handler(struct work_struct *work)
->  			}
->  		} else
->  			mad_error_handler(port_priv, &wc);
-> +
-> +		if (++count > MAD_COMPLETION_PROC_LIMIT) {
-> +			queue_work(port_priv->wq, &port_priv->work);
-> +			break;
-> +		}
->  	}
->  }
->  
-> -- 
-> 1.8.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Jeffrey Skoll.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
