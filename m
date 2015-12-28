@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 07/36] IB/rdmavt: Add query and modify port stubs
-Date: Mon, 28 Dec 2015 13:04:29 -0800
-Message-ID: <20151228210340.29850.47887.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v2 08/36] IB/rdmavt: Add pkey query stub
+Date: Mon, 28 Dec 2015 13:04:44 -0800
+Message-ID: <20151228210434.29850.71801.stgit@scvm10.sc.intel.com>
 References: <20151228205612.29850.7328.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,88 +13,76 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds the query and modify port stubs. The query will mostly
-entail the driver returning everything in the ib_port_attr which will get
-handed back to the verbs layer. The modify will need some API helpers in
-the driver. The send_trap and post_mad_send are still issues to address.
+The pkey table will reside in the rvt structure but it will be modified
+only when the driver requests then rvt will simply read the value to return
+in the query.
 
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
-Changes since v1:
-Fix comment style for rvt_query_port
-Change all stubs to return EOPNOTSUPP
-
- drivers/infiniband/sw/rdmavt/vt.c |   48 +++++++++++++++++++++++++++++++++++++
- 1 files changed, 48 insertions(+), 0 deletions(-)
+ drivers/infiniband/sw/rdmavt/vt.c |   21 +++++++++++++++++++++
+ include/rdma/rdma_vt.h            |    3 ++-
+ 2 files changed, 23 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-index db14646..5ac241c 100644
+index 5ac241c..fc5372d 100644
 --- a/drivers/infiniband/sw/rdmavt/vt.c
 +++ b/drivers/infiniband/sw/rdmavt/vt.c
-@@ -91,6 +91,52 @@ static int rvt_modify_device(struct ib_device *device,
+@@ -137,6 +137,26 @@ static int rvt_modify_port(struct ib_device *ibdev, u8 port,
  	return -EOPNOTSUPP;
  }
  
 +/**
-+ * rvt_query_port: Passes the query port call to the driver
-+ * @ibdev: Verbs IB dev
-+ * @port: port number
-+ * @props: structure to hold returned properties
-+ *
-+ * Returns 0 on success
-+ */
-+static int rvt_query_port(struct ib_device *ibdev, u8 port,
-+			  struct ib_port_attr *props)
-+{
-+	/*
-+	 * VT-DRIVER-API: query_port_state()
-+	 * driver returns pretty much everything in ib_port_attr
-+	 */
-+	return -EOPNOTSUPP;
-+}
-+
-+/**
-+ * rvt_modify_port
++ * rvt_query_pkey - Return a pkey from the table at a given index
 + * @ibdev: Verbs IB dev
 + * @port: Port number
-+ * @port_modify_mask: How to change the port
-+ * @props: Structure to fill in
++ * @intex: Index into pkey table
 + *
-+ * Returns 0 on success
++ * Returns 0 on failure pkey otherwise
 + */
-+static int rvt_modify_port(struct ib_device *ibdev, u8 port,
-+			   int port_modify_mask, struct ib_port_modify *props)
++static int rvt_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
++			  u16 *pkey)
 +{
 +	/*
-+	 * VT-DRIVER-API: set_link_state()
-+	 * driver will set the link state using the IB enumeration
-+	 *
-+	 * VT-DRIVER-API: clear_qkey_violations()
-+	 * clears driver private qkey counter
-+	 *
-+	 * VT-DRIVER-API: get_lid()
-+	 * driver needs to return the LID
-+	 *
-+	 * TBD: send_trap() and post_mad_send() need examined to see where they
-+	 * fit in.
++	 * Driver will be responsible for keeping rvt_dev_info.pkey_table up to
++	 * date. This function will just return that value. There is no need to
++	 * lock, if a stale value is read and sent to the user so be it there is
++	 * no way to protect against that anyway.
 +	 */
-+	return -EOPNOTSUPP;
++	return 0;
 +}
 +
  /*
   * Check driver override. If driver passes a value use it, otherwise we use our
   * own value.
-@@ -106,6 +152,8 @@ int rvt_register_device(struct rvt_dev_info *rdi)
- 	/* Dev Ops */
- 	CHECK_DRIVER_OVERRIDE(rdi, query_device);
+@@ -154,6 +174,7 @@ int rvt_register_device(struct rvt_dev_info *rdi)
  	CHECK_DRIVER_OVERRIDE(rdi, modify_device);
-+	CHECK_DRIVER_OVERRIDE(rdi, query_port);
-+	CHECK_DRIVER_OVERRIDE(rdi, modify_port);
+ 	CHECK_DRIVER_OVERRIDE(rdi, query_port);
+ 	CHECK_DRIVER_OVERRIDE(rdi, modify_port);
++	CHECK_DRIVER_OVERRIDE(rdi, query_pkey);
  
  	/* DMA Operations */
  	rdi->ibdev.dma_ops =
+diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
+index 2990e03..bf072a4 100644
+--- a/include/rdma/rdma_vt.h
++++ b/include/rdma/rdma_vt.h
+@@ -114,12 +114,13 @@ struct rvt_dev_info {
+ 	 * The driver will also be responsible for filling in certain members of
+ 	 * dparms.props
+ 	 */
+-
+ 	struct ib_device ibdev;
+ 
+ 	/* Driver specific properties */
+ 	struct rvt_driver_params dparms;
+ 
++	/* PKey Table goes here */
++
+ 	/*
+ 	 * The work to create port files in /sys/class Infiniband is different
+ 	 * depending on the driver. This should not be extracted away and
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
