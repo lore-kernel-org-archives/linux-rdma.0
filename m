@@ -1,51 +1,54 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC] Generic InfiniBand transport done in software
-Date: Sun, 27 Dec 2015 19:54:46 +0200
-Message-ID: <CAG9sBKNBDC=YymoYMLjW+RceChQXfNMXcc8UzJJVhqBuW5jGAQ@mail.gmail.com>
-References: <CAG9sBKO=fP2Xd=JXK7hvzGFRLQmh1dF+mWDxdnhU+TqFg7YD1Q@mail.gmail.com>
-	<20151222181905.GA742@phlsvsds.ph.intel.com>
-	<CAG9sBKNOu+d-5f6FYTXCyTGjJU-md4dW3MFMB2-UDgRFafRdBw@mail.gmail.com>
-	<20151223200727.GA6886@phlsvsds.ph.intel.com>
-	<CAG9sBKNkeA2Op-OTJ_MQ=pC3BQ7=_tB4g6oV=fwDOJ7gs_y+fQ@mail.gmail.com>
-	<20151224161415.GA674@phlsvsds.ph.intel.com>
+From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] IB/mad: Ensure fairness in ib_mad_completion_handler
+Date: Mon, 28 Dec 2015 18:51:30 +0200
+Message-ID: <20151228165130.GA13150@x-vnc01.mtx.labs.mlnx>
+References: <1449784350-30214-1-git-send-email-ira.weiny@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151224161415.GA674-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1449784350-30214-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->
-> Point is others have looked at the code. No issues have been called out to
-> date as to why what is there won't work for everyone.
->
-http://marc.info/?l=linux-rdma&m=144968107508268&w=2
-Your answer to the send() issue is first an agreement with the comment
-and later says that it can't be done because of how PIO and SDMA
-(Intel specific implementation)
-This is an example for a discussion that never ended with an agreement.
+On Thu, Dec 10, 2015 at 04:52:30PM -0500, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+>  
+> @@ -2555,6 +2567,7 @@ static void ib_mad_completion_handler(struct work_struct *work)
+>  {
+>  	struct ib_mad_port_private *port_priv;
+>  	struct ib_wc wc;
+> +	int count = 0;
+>  
+>  	port_priv = container_of(work, struct ib_mad_port_private, work);
+>  	ib_req_notify_cq(port_priv->cq, IB_CQ_NEXT_COMP);
 
+I think you shoudld push the call to ib_req_notify_cq outside the
+while loop. You don't need to arm the CQ if you re-queued the work.
+Only when you have drained the CQ should you re-arm.
 
->
-> Yes it is specific to Intel *now*, that doesn't mean it should stay that
-> way. Rdmavt could, and in my opinion should, be extended to support
-> soft-roce. I don't think replicating the same thing is a great idea.
->
-But you post *now* a so called generic driver so it must now fit any
-possible driver (including Soft RoCE)
-> As to the location, where do you think it should go. drivers/infiniband/sw
-> makes the most sense to me, but open to suggestions.
->
-> And for the question of why publish when it's not ready, the better question
-> is why not?  Is it not good to see the work in progress as it evolves so the
-> community can provide feedback?
->
-What kind of a feedback you expect when I don't have an idea about
-your plans for rdmavt
-Interfaces, flows, data structures... all is missing from the
-documentation to rdmavt.
+> @@ -2574,6 +2587,11 @@ static void ib_mad_completion_handler(struct work_struct *work)
+>  			}
+>  		} else
+>  			mad_error_handler(port_priv, &wc);
+> +
+> +		if (++count > MAD_COMPLETION_PROC_LIMIT) {
+> +			queue_work(port_priv->wq, &port_priv->work);
+> +			break;
+> +		}
+>  	}
+>  }
+>  
+> -- 
+> 1.8.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
