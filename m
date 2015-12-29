@@ -1,27 +1,30 @@
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: Re: completion queue abstraction V2
-Date: Tue, 29 Dec 2015 10:51:13 +0100
-Message-ID: <56825791.9040709@sandisk.com>
-References: <1449521512-22921-1-git-send-email-hch@lst.de>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] IB/mad: Ensure fairness in ib_mad_completion_handler
+Date: Tue, 29 Dec 2015 11:51:19 +0200
+Message-ID: <56825797.5030008@dev.mellanox.co.il>
+References: <1449784350-30214-1-git-send-email-ira.weiny@intel.com>
+ <20151229091730.GA8445@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <1449521512-22921-1-git-send-email-hch@lst.de>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>, linux-rdma@vger.kernel.org
-Cc: sagig@dev.mellanox.co.il, bart.vanassche@sandisk.com, axboe@fb.com, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151229091730.GA8445-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/07/2015 09:51 PM, Christoph Hellwig wrote:
-> This series adds a new RDMA core abstraction that insulated the
-> ULPs from the nitty gritty details of CQ polling.  See the individual
-> patches for more details.
 
-Hello Christoph,
+> Please just convert the mad handler to the new CQ API in
+> drivers/infiniband/core/cq.c.  If you have any question about it I'd be
+> glad to help you.
 
-After having tested the SRP initiator and target drivers with this patch 
-series applied I have further feedback about this patch series. I will 
-provide that feedback as replies to the individual patches.
++1 on this suggestion.
 
-Bart.
+We had these sorts of questions in our ULPs as well. The CQ API should
+take care of all that for you and leaves you to just handle the
+completions...
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
