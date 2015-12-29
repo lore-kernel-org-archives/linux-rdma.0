@@ -1,202 +1,77 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH v2 01/36] IB/rdmavt: Create module framework and handle
- driver registration
-Date: Tue, 29 Dec 2015 07:23:36 +0200
-Message-ID: <20151229052336.GA17694@leon.nu>
-References: <20151228205612.29850.7328.stgit@scvm10.sc.intel.com>
- <20151228205825.29850.23290.stgit@scvm10.sc.intel.com>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] IB/core: sysfs.c: Fix PerfMgt ClassPortInfo handling
+Date: Tue, 29 Dec 2015 10:55:36 +0200
+Message-ID: <CAAKD3BBRNMbdB+qEO_4zhSEYUpJQUuSpWMby=a-1DFkO37yFww@mail.gmail.com>
+References: <5681AF4E.8060604@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20151228205825.29850.23290.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <5681AF4E.8060604-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 28, 2015 at 12:59:45PM -0800, Dennis Dalessandro wrote:
-> This patch introduces the basics for a new module called rdma_vt. This new
-> driver is a software implementation of the InfiniBand verbs and aims to
-> replace the multiple implementations that exist and duplicate each others'
-> code.
-> 
-> While the call to actually register the device with the IB core happens in
-> rdma_vt, most of the work is still done in the drivers themselves. This
-> will be changing in a follow on patch this is just laying the groundwork
-> for this infrastructure.
-> 
-> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Mon, Dec 28, 2015 at 11:53 PM, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+>
+> Port number is not part of ClassPortInfo attribute but is
+> still needed as a parameter when invoking process_mad.
+>
+> To properly handle this attribute, port_num is added as a
+> parameter to get_counter_table and get_perf_mad was changed
+> not to store port_num in the attribute itself when it's
+> querying the ClassPortInfo attribute.
+>
+> This handles issue pointed out by Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+>
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Acked-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
-> Changes since v1:
-> remove rdmavt specific driver version
-> move copyright above license text
-> 
->  MAINTAINERS                           |    6 ++
->  drivers/infiniband/Kconfig            |    2 +
->  drivers/infiniband/Makefile           |    1 
->  drivers/infiniband/sw/Makefile        |    1 
->  drivers/infiniband/sw/rdmavt/Kconfig  |    6 ++
->  drivers/infiniband/sw/rdmavt/Makefile |   10 ++++
->  drivers/infiniband/sw/rdmavt/vt.c     |   83 +++++++++++++++++++++++++++++++++
->  drivers/infiniband/sw/rdmavt/vt.h     |   53 +++++++++++++++++++++
->  include/rdma/rdma_vt.h                |   70 ++++++++++++++++++++++++++++
->  9 files changed, 232 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/infiniband/sw/Makefile
->  create mode 100644 drivers/infiniband/sw/rdmavt/Kconfig
->  create mode 100644 drivers/infiniband/sw/rdmavt/Makefile
->  create mode 100644 drivers/infiniband/sw/rdmavt/vt.c
->  create mode 100644 drivers/infiniband/sw/rdmavt/vt.h
->  create mode 100644 include/rdma/rdma_vt.h
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 69c8a9c..37fc192 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -8880,6 +8880,12 @@ L:	rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org (moderated for non-subscribers)
->  S:	Supported
->  F:	net/rds/
->  
-> +RDMAVT - RDMA verbs software
-> +M:	Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> +L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> +S:	Supported
-> +F:	drivers/infiniband/sw/rdmavt
-> +
->  READ-COPY UPDATE (RCU)
->  M:	"Paul E. McKenney" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
->  M:	Josh Triplett <josh-iaAMLnmF4UmaiuxdJuQwMA@public.gmane.org>
-> diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-> index aa26f3c..1b00bb8 100644
-> --- a/drivers/infiniband/Kconfig
-> +++ b/drivers/infiniband/Kconfig
-> @@ -72,4 +72,6 @@ source "drivers/infiniband/ulp/srpt/Kconfig"
->  source "drivers/infiniband/ulp/iser/Kconfig"
->  source "drivers/infiniband/ulp/isert/Kconfig"
->  
-> +source "drivers/infiniband/sw/rdmavt/Kconfig"
-> +
->  endif # INFINIBAND
-> diff --git a/drivers/infiniband/Makefile b/drivers/infiniband/Makefile
-> index dc21836..fad0b44 100644
-> --- a/drivers/infiniband/Makefile
-> +++ b/drivers/infiniband/Makefile
-> @@ -1,3 +1,4 @@
->  obj-$(CONFIG_INFINIBAND)		+= core/
->  obj-$(CONFIG_INFINIBAND)		+= hw/
->  obj-$(CONFIG_INFINIBAND)		+= ulp/
-> +obj-$(CONFIG_INFINIBAND)		+= sw/
-> diff --git a/drivers/infiniband/sw/Makefile b/drivers/infiniband/sw/Makefile
-> new file mode 100644
-> index 0000000..988b6a0
-> --- /dev/null
-> +++ b/drivers/infiniband/sw/Makefile
-> @@ -0,0 +1 @@
-> +obj-$(CONFIG_INFINIBAND_RDMAVT)		+= rdmavt/
-> diff --git a/drivers/infiniband/sw/rdmavt/Kconfig b/drivers/infiniband/sw/rdmavt/Kconfig
-> new file mode 100644
-> index 0000000..11aa6a3
-> --- /dev/null
-> +++ b/drivers/infiniband/sw/rdmavt/Kconfig
-> @@ -0,0 +1,6 @@
-> +config INFINIBAND_RDMAVT
-> +	tristate "RDMA verbs transport library"
-> +	depends on 64BIT
-> +	default m
-> +	---help---
-> +	This is a common software verbs provider for RDMA networks.
-> diff --git a/drivers/infiniband/sw/rdmavt/Makefile b/drivers/infiniband/sw/rdmavt/Makefile
-> new file mode 100644
-> index 0000000..98a664d
-> --- /dev/null
-> +++ b/drivers/infiniband/sw/rdmavt/Makefile
-> @@ -0,0 +1,10 @@
-> +#
-> +# rdmavt driver
-> +#
-> +#
-> +#
-> +# Called from the kernel module build system.
-> +#
-> +obj-$(CONFIG_INFINIBAND_RDMAVT) += rdmavt.o
-> +
-> +rdmavt-y := vt.o
-> diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-> new file mode 100644
-> index 0000000..aa325db
-> --- /dev/null
-> +++ b/drivers/infiniband/sw/rdmavt/vt.c
-> @@ -0,0 +1,83 @@
-> +/*
-> + * Copyright(c) 2015 Intel Corporation.
-> + *
-> + * This file is provided under a dual BSD/GPLv2 license.  When using or
-> + * redistributing this file, you may do so under either license.
-> + *
-> + * GPL LICENSE SUMMARY
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of version 2 of the GNU General Public License as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * BSD LICENSE
-> + *
-> + * Redistribution and use in source and binary forms, with or without
-> + * modification, are permitted provided that the following conditions
-> + * are met:
-> + *
-> + *  - Redistributions of source code must retain the above copyright
-> + *    notice, this list of conditions and the following disclaimer.
-> + *  - Redistributions in binary form must reproduce the above copyright
-> + *    notice, this list of conditions and the following disclaimer in
-> + *    the documentation and/or other materials provided with the
-> + *    distribution.
-> + *  - Neither the name of Intel Corporation nor the names of its
-> + *    contributors may be used to endorse or promote products derived
-> + *    from this software without specific prior written permission.
-> + *
-> + * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-> + * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-> + * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-> + * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-> + * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-> + * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-> + * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-> + * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-> + * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-> + * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-> + * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-> + *
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/kernel.h>
-> +#include "vt.h"
-> +
-> +MODULE_LICENSE("Dual BSD/GPL");
-> +MODULE_DESCRIPTION("RDMA Verbs Transport Library");
-> +
-> +static int rvt_init(void)
-> +{
-> +	/* Do any work needed prior to drivers calling for registration*/
-> +	return 0;
-> +}
-> +module_init(rvt_init);
-> +
-> +static void rvt_cleanup(void)
-rvt_cleanup() ---> rvt_exit()
-> +{
-> +}
-> +module_exit(rvt_cleanup);
-> +
+> diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+> index 539040f..2daf832 100644
+> --- a/drivers/infiniband/core/sysfs.c
+> +++ b/drivers/infiniband/core/sysfs.c
+> @@ -438,7 +438,8 @@ static int get_perf_mad(struct ib_device *dev, int port_num, int attr,
+>         in_mad->mad_hdr.method        = IB_MGMT_METHOD_GET;
+>         in_mad->mad_hdr.attr_id       = attr;
+>
+> -       in_mad->data[41] = port_num;    /* PortSelect field */
+> +       if (attr != IB_PMA_CLASS_PORT_INFO)
+> +               in_mad->data[41] = port_num;    /* PortSelect field */
+>
+>         if ((dev->process_mad(dev, IB_MAD_IGNORE_MKEY,
+>                  port_num, NULL, NULL,
+> @@ -714,11 +715,12 @@ err:
+>   * Figure out which counter table to use depending on
+>   * the device capabilities.
+>   */
+> -static struct attribute_group *get_counter_table(struct ib_device *dev)
+> +static struct attribute_group *get_counter_table(struct ib_device *dev,
+> +                                                int port_num)
+>  {
+>         struct ib_class_port_info cpi;
+>
+> -       if (get_perf_mad(dev, 0, IB_PMA_CLASS_PORT_INFO,
+> +       if (get_perf_mad(dev, port_num, IB_PMA_CLASS_PORT_INFO,
+>                                 &cpi, 40, sizeof(cpi)) >= 0) {
+>
+>                 if (cpi.capability_mask && IB_PMA_CLASS_CAP_EXT_WIDTH)
+> @@ -776,7 +778,7 @@ static int add_port(struct ib_device *device, int port_num,
+>                 goto err_put;
+>         }
+>
+> -       p->pma_table = get_counter_table(device);
+> +       p->pma_table = get_counter_table(device, port_num);
+>         ret = sysfs_create_group(&p->kobj, p->pma_table);
+>         if (ret)
+>                 goto err_put_gid_attrs;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Please just add:
+Fixes: 145d9c541032 ('IB/core: Display extended counter set if available')
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
