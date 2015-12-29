@@ -1,77 +1,21 @@
-From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] IB/core: sysfs.c: Fix PerfMgt ClassPortInfo handling
-Date: Tue, 29 Dec 2015 10:55:36 +0200
-Message-ID: <CAAKD3BBRNMbdB+qEO_4zhSEYUpJQUuSpWMby=a-1DFkO37yFww@mail.gmail.com>
-References: <5681AF4E.8060604@dev.mellanox.co.il>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH] IB/mad: Ensure fairness in ib_mad_completion_handler
+Date: Tue, 29 Dec 2015 01:17:30 -0800
+Message-ID: <20151229091730.GA8445@infradead.org>
+References: <1449784350-30214-1-git-send-email-ira.weiny@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5681AF4E.8060604-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1449784350-30214-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 28, 2015 at 11:53 PM, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->
-> Port number is not part of ClassPortInfo attribute but is
-> still needed as a parameter when invoking process_mad.
->
-> To properly handle this attribute, port_num is added as a
-> parameter to get_counter_table and get_perf_mad was changed
-> not to store port_num in the attribute itself when it's
-> querying the ClassPortInfo attribute.
->
-> This handles issue pointed out by Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
->
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Acked-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
-> diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-> index 539040f..2daf832 100644
-> --- a/drivers/infiniband/core/sysfs.c
-> +++ b/drivers/infiniband/core/sysfs.c
-> @@ -438,7 +438,8 @@ static int get_perf_mad(struct ib_device *dev, int port_num, int attr,
->         in_mad->mad_hdr.method        = IB_MGMT_METHOD_GET;
->         in_mad->mad_hdr.attr_id       = attr;
->
-> -       in_mad->data[41] = port_num;    /* PortSelect field */
-> +       if (attr != IB_PMA_CLASS_PORT_INFO)
-> +               in_mad->data[41] = port_num;    /* PortSelect field */
->
->         if ((dev->process_mad(dev, IB_MAD_IGNORE_MKEY,
->                  port_num, NULL, NULL,
-> @@ -714,11 +715,12 @@ err:
->   * Figure out which counter table to use depending on
->   * the device capabilities.
->   */
-> -static struct attribute_group *get_counter_table(struct ib_device *dev)
-> +static struct attribute_group *get_counter_table(struct ib_device *dev,
-> +                                                int port_num)
->  {
->         struct ib_class_port_info cpi;
->
-> -       if (get_perf_mad(dev, 0, IB_PMA_CLASS_PORT_INFO,
-> +       if (get_perf_mad(dev, port_num, IB_PMA_CLASS_PORT_INFO,
->                                 &cpi, 40, sizeof(cpi)) >= 0) {
->
->                 if (cpi.capability_mask && IB_PMA_CLASS_CAP_EXT_WIDTH)
-> @@ -776,7 +778,7 @@ static int add_port(struct ib_device *device, int port_num,
->                 goto err_put;
->         }
->
-> -       p->pma_table = get_counter_table(device);
-> +       p->pma_table = get_counter_table(device, port_num);
->         ret = sysfs_create_group(&p->kobj, p->pma_table);
->         if (ret)
->                 goto err_put_gid_attrs;
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-Please just add:
-Fixes: 145d9c541032 ('IB/core: Display extended counter set if available')
+Please just convert the mad handler to the new CQ API in
+drivers/infiniband/core/cq.c.  If you have any question about it I'd be
+glad to help you.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
