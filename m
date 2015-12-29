@@ -1,99 +1,218 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next 4/7] net/mlx4_core: Add handlning of RoCE v2 over
- IPV4 in attach_flow
-Date: Tue, 29 Dec 2015 16:28:18 +0200
-Message-ID: <56829882.8040700@mellanox.com>
+Subject: Re: [PATCH for-next 3/7] IB/mlx4: Configure device to work in RoCEv2
+Date: Tue, 29 Dec 2015 16:37:36 +0200
+Message-ID: <56829AB0.3080805@mellanox.com>
 References: <1451395447-5198-1-git-send-email-matanb@mellanox.com>
- <1451395447-5198-5-git-send-email-matanb@mellanox.com>
+ <1451395447-5198-4-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1451395447-5198-5-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1451395447-5198-4-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 On 12/29/2015 3:24 PM, Matan Barak wrote:
-> From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-s/handlning/handling/
-
+> From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >
-> When attaching multicast for RoCE v2, we need to be able to steer
-> packets to the QPs. Hence, we add support for IPV4 over IB steering.
-
-not sure to follow on the change-log, can you clarify it little further...
-
+> Some mlx4 adapters are RoCEv2 capable. To enable this feature some
+> hardware configuration is required. This is
 >
-> Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 1. Set port general parameters
+> 2. Configure the outgoing UDP destination port
+> 3. Configure the QP that work with RoCEv2
+>
+> Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
->   drivers/net/ethernet/mellanox/mlx4/mcg.c | 14 ++++++++++++--
->   include/linux/mlx4/device.h              |  6 ++++++
->   2 files changed, 18 insertions(+), 2 deletions(-)
+>   drivers/infiniband/hw/mlx4/main.c         | 19 ++++++++++++++---
+>   drivers/infiniband/hw/mlx4/qp.c           | 35 ++++++++++++++++++++++++++++---
+>   drivers/net/ethernet/mellanox/mlx4/fw.c   | 16 +++++++++++++-
+>   drivers/net/ethernet/mellanox/mlx4/mlx4.h |  7 +++++--
+>   drivers/net/ethernet/mellanox/mlx4/port.c |  8 +++++++
+>   drivers/net/ethernet/mellanox/mlx4/qp.c   | 28 +++++++++++++++++++++++++
+>   include/linux/mlx4/device.h               |  1 +
+>   include/linux/mlx4/qp.h                   | 15 +++++++++++--
+>   include/rdma/ib_verbs.h                   |  2 ++
+>   9 files changed, 120 insertions(+), 11 deletions(-)
+
+Better put (please do...) functionality which is plain mlx4 corish (such 
+as new/modified FW commands, new SW/FW fields of structs and such) into 
+mlx4_core patch.
+
 >
-> diff --git a/drivers/net/ethernet/mellanox/mlx4/mcg.c b/drivers/net/ethernet/mellanox/mlx4/mcg.c
-> index 1d4e2e0..834e60e 100644
-> --- a/drivers/net/ethernet/mellanox/mlx4/mcg.c
-> +++ b/drivers/net/ethernet/mellanox/mlx4/mcg.c
-> @@ -858,7 +858,9 @@ static int parse_trans_rule(struct mlx4_dev *dev, struct mlx4_spec_list *spec,
->   		break;
+> diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+> index 988fa33..44e5699 100644
+> --- a/drivers/infiniband/hw/mlx4/main.c
+> +++ b/drivers/infiniband/hw/mlx4/main.c
+> @@ -384,6 +384,7 @@ int mlx4_ib_gid_index_to_real_index(struct mlx4_ib_dev *ibdev,
+>   	int i;
+>   	int ret;
+>   	unsigned long flags;
+> +	struct ib_gid_attr attr;
 >   
->   	case MLX4_NET_TRANS_RULE_ID_IB:
-> -		rule_hw->ib.l3_qpn = spec->ib.l3_qpn;
-> +		rule_hw->ib.l3_qpn = spec->ib.l3_qpn |
-> +			(spec->ib.roce_type == MLX4_FLOW_SPEC_IB_ROCE_TYPE_IPV4 ?
-> +			 (__force __be32)0x80 : (__force __be32)0);
-
-maybe avoid using hard coded constants and get meaningful name for them?
-
->   		rule_hw->ib.qpn_mask = spec->ib.qpn_msk;
->   		memcpy(&rule_hw->ib.dst_gid, &spec->ib.dst_gid, 16);
->   		memcpy(&rule_hw->ib.dst_gid_msk, &spec->ib.dst_gid_msk, 16);
-> @@ -1384,10 +1386,18 @@ int mlx4_trans_to_dmfs_attach(struct mlx4_dev *dev, struct mlx4_qp *qp,
->   			memcpy(spec.eth.dst_mac_msk, &mac_mask, ETH_ALEN);
->   			break;
+>   	if (port_num > MLX4_MAX_PORTS)
+>   		return -EINVAL;
+> @@ -394,10 +395,13 @@ int mlx4_ib_gid_index_to_real_index(struct mlx4_ib_dev *ibdev,
+>   	if (!rdma_cap_roce_gid_table(&ibdev->ib_dev, port_num))
+>   		return index;
 >   
-> +		case MLX4_PROT_IB_IPV4:
-> +			spec.id = MLX4_NET_TRANS_RULE_ID_IB;
-> +			memcpy(spec.ib.dst_gid + 12, gid + 12, 4);
-> +			memset(spec.ib.dst_gid_msk + 12, 0xff, 4);
-> +			spec.ib.roce_type = MLX4_FLOW_SPEC_IB_ROCE_TYPE_IPV4;
-> +			break;
+> -	ret = ib_get_cached_gid(&ibdev->ib_dev, port_num, index, &gid, NULL);
+> +	ret = ib_get_cached_gid(&ibdev->ib_dev, port_num, index, &gid, &attr);
+>   	if (ret)
+>   		return ret;
+>   
+> +	if (attr.ndev)
+> +		dev_put(attr.ndev);
 > +
->   		case MLX4_PROT_IB_IPV6:
->   			spec.id = MLX4_NET_TRANS_RULE_ID_IB;
->   			memcpy(spec.ib.dst_gid, gid, 16);
-> -			memset(&spec.ib.dst_gid_msk, 0xff, 16);
-> +			memset(spec.ib.dst_gid_msk, 0xff, 16);
-> +			spec.ib.roce_type = MLX4_FLOW_SPEC_IB_ROCE_TYPE_IPV6;
->   			break;
->   		default:
->   			return -EINVAL;
-> diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-> index 0d873f1ae..cdc75b2 100644
-> --- a/include/linux/mlx4/device.h
-> +++ b/include/linux/mlx4/device.h
-> @@ -391,6 +391,11 @@ enum mlx4_protocol {
->   	MLX4_PROT_FCOE
->   };
+>   	if (!memcmp(&gid, &zgid, sizeof(gid)))
+>   		return -EINVAL;
 >   
-> +enum mlx4_flow_roce_type {
-> +	MLX4_FLOW_SPEC_IB_ROCE_TYPE_IPV6 = 0,
-> +	MLX4_FLOW_SPEC_IB_ROCE_TYPE_IPV4
+> @@ -405,7 +409,8 @@ int mlx4_ib_gid_index_to_real_index(struct mlx4_ib_dev *ibdev,
+>   	port_gid_table = &iboe->gids[port_num - 1];
+>   
+>   	for (i = 0; i < MLX4_MAX_PORT_GIDS; ++i)
+> -		if (!memcmp(&port_gid_table->gids[i].gid, &gid, sizeof(gid))) {
+> +		if (!memcmp(&port_gid_table->gids[i].gid, &gid, sizeof(gid)) &&
+> +		    attr.gid_type == port_gid_table->gids[i].gid_type) {
+>   			ctx = port_gid_table->gids[i].ctx;
+>   			break;
+>   		}
+> @@ -2481,7 +2486,8 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+>   	if (mlx4_ib_init_sriov(ibdev))
+>   		goto err_mad;
+>   
+> -	if (dev->caps.flags & MLX4_DEV_CAP_FLAG_IBOE) {
+> +	if (dev->caps.flags & MLX4_DEV_CAP_FLAG_IBOE ||
+> +	    dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2) {
+>   		if (!iboe->nb.notifier_call) {
+>   			iboe->nb.notifier_call = mlx4_ib_netdev_event;
+>   			err = register_netdevice_notifier(&iboe->nb);
+> @@ -2490,6 +2496,13 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+>   				goto err_notif;
+>   			}
+>   		}
+> +		if (!mlx4_is_slave(dev) &&
+> +		    dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2) {
+> +			err = mlx4_config_roce_v2_port(dev, ROCE_V2_UDP_DPORT);
+> +			if (err) {
+> +				goto err_notif;
+> +			}
+> +		}
+>   	}
+>   
+>   	for (j = 0; j < ARRAY_SIZE(mlx4_class_attributes); ++j) {
+> diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+> index 8d28059..c0dee79 100644
+> --- a/drivers/infiniband/hw/mlx4/qp.c
+> +++ b/drivers/infiniband/hw/mlx4/qp.c
+> @@ -1508,6 +1508,24 @@ static int create_qp_lb_counter(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp)
+>   	return 0;
+>   }
+>   
+> +enum {
+> +	MLX4_QPC_ROCE_MODE_1 = 0,
+> +	MLX4_QPC_ROCE_MODE_2 = 2,
+> +	MLX4_QPC_ROCE_MODE_MAX = 0xff
 > +};
 > +
->   enum {
->   	MLX4_MTT_FLAG_PRESENT		= 1
+> +static u8 gid_type_to_qpc(enum ib_gid_type gid_type)
+> +{
+> +	switch (gid_type) {
+> +	case IB_GID_TYPE_ROCE:
+> +		return MLX4_QPC_ROCE_MODE_1;
+> +	case IB_GID_TYPE_ROCE_UDP_ENCAP:
+> +		return MLX4_QPC_ROCE_MODE_2;
+> +	default:
+> +		return MLX4_QPC_ROCE_MODE_MAX;
+> +	}
+> +}
+> +
+>   static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+>   			       const struct ib_qp_attr *attr, int attr_mask,
+>   			       enum ib_qp_state cur_state, enum ib_qp_state new_state)
+> @@ -1651,9 +1669,10 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+>   		u16 vlan = 0xffff;
+>   		u8 smac[ETH_ALEN];
+>   		int status = 0;
+> +		int is_eth = rdma_cap_eth_ah(&dev->ib_dev, port_num) &&
+> +			attr->ah_attr.ah_flags & IB_AH_GRH;
+>   
+> -		if (rdma_cap_eth_ah(&dev->ib_dev, port_num) &&
+> -		    attr->ah_attr.ah_flags & IB_AH_GRH) {
+> +		if (is_eth && attr->ah_attr.ah_flags & IB_AH_GRH) {
+>   			int index = attr->ah_attr.grh.sgid_index;
+>   
+>   			status = ib_get_cached_gid(ibqp->device, port_num,
+> @@ -1675,6 +1694,16 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+>   
+>   		optpar |= (MLX4_QP_OPTPAR_PRIMARY_ADDR_PATH |
+>   			   MLX4_QP_OPTPAR_SCHED_QUEUE);
+> +
+> +		if (is_eth &&
+> +		    (cur_state == IB_QPS_INIT && new_state == IB_QPS_RTR)) {
+> +			u8 qpc_roce_mode = gid_type_to_qpc(gid_attr.gid_type);
+> +
+> +			if (qpc_roce_mode == MLX4_QPC_ROCE_MODE_MAX)
+> +				goto out;
+> +			context->rlkey_roce_mode |= (qpc_roce_mode << 6);
+> +		}
+> +
+>   	}
+>   
+>   	if (attr_mask & IB_QP_TIMEOUT) {
+> @@ -1846,7 +1875,7 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+>   		sqd_event = 0;
+>   
+>   	if (!ibqp->uobject && cur_state == IB_QPS_RESET && new_state == IB_QPS_INIT)
+> -		context->rlkey |= (1 << 4);
+> +		context->rlkey_roce_mode |= (1 << 4);
+>   
+>   	/*
+>   	 * Before passing a kernel QP to the HW, make sure that the
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/fw.c b/drivers/net/ethernet/mellanox/mlx4/fw.c
+> index bdd6822..c8a0c3f 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/fw.c
+> +++ b/drivers/net/ethernet/mellanox/mlx4/fw.c
+> @@ -2232,7 +2232,8 @@ struct mlx4_config_dev {
+>   	__be32	rsvd1[3];
+>   	__be16	vxlan_udp_dport;
+>   	__be16	rsvd2;
+> -	__be32	rsvd3;
+> +	__be16  roce_v2_entropy;
+> +	__be16  roce_v2_udp_dport;
+>   	__be32	roce_flags;
+>   	__be32	rsvd4[25];
+>   	__be16	rsvd5;
+> @@ -2241,6 +2242,7 @@ struct mlx4_config_dev {
 >   };
-> @@ -1197,6 +1202,7 @@ struct mlx4_spec_ipv4 {
->   struct mlx4_spec_ib {
->   	__be32  l3_qpn;
->   	__be32	qpn_msk;
-> +	enum    mlx4_flow_roce_type roce_type;
->   	u8	dst_gid[16];
->   	u8	dst_gid_msk[16];
->   };
+>   
+>   #define MLX4_VXLAN_UDP_DPORT (1 << 0)
+> +#define MLX4_ROCE_V2_UDP_DPORT BIT(3)
+>   #define MLX4_DISABLE_RX_PORT BIT(18)
+>   
+>   static int mlx4_CONFIG_DEV_set(struct mlx4_dev *dev, struct mlx4_config_dev *config_dev)
+> @@ -2358,6 +2360,18 @@ int mlx4_disable_rx_port_check(struct mlx4_dev *dev, bool dis)
+>   	return mlx4_CONFIG_DEV_set(dev, &config_dev);
+>   }
+>   
+> +int mlx4_config_roce_v2_port(struct mlx4_dev *dev, u16 udp_port)
+> +{
+> +	struct mlx4_config_dev config_dev;
+> +
+> +	memset(&config_dev, 0, sizeof(config_dev));
+> +	config_dev.update_flags    = cpu_to_be32(MLX4_ROCE_V2_UDP_DPORT);
+> +	config_dev.roce_v2_udp_dport = cpu_to_be16(udp_port);
+> +
+> +	return mlx4_CONFIG_DEV_set(dev, &config_dev);
+> +}
+> +EXPORT_SYMBOL_GPL(mlx4_config_roce_v2_port);
+
+I didn't see a patch to the resource tracker, did you make sure that VFs 
+can't attempt to configure the UDP port?
+
+Or.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
