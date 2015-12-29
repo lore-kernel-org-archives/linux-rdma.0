@@ -1,73 +1,52 @@
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: Re: [PATCH 08/13] IB/srpt: chain RDMA READ/WRITE requests
-Date: Tue, 29 Dec 2015 10:58:24 +0100
-Message-ID: <56825940.5070404@sandisk.com>
-References: <1449521512-22921-1-git-send-email-hch@lst.de>
- <1449521512-22921-9-git-send-email-hch@lst.de>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH] IB/core: Remove a set-but-not-used variable from
+ ib_sg_to_pages()
+Date: Tue, 29 Dec 2015 10:45:03 +0100
+Message-ID: <5682561F.7000400@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <1449521512-22921-9-git-send-email-hch@lst.de>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>, linux-rdma@vger.kernel.org
-Cc: sagig@dev.mellanox.co.il, bart.vanassche@sandisk.com, axboe@fb.com, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/07/2015 09:51 PM, Christoph Hellwig wrote:
-> Remove struct rdma_iu and instead allocate the struct ib_rdma_wr array
-> early and fill out directly.  This allows us to chain the WRs, and thus
-> archive both less lock contention on the HCA workqueue as well as much
-> simpler error handling.
+Detected this by building the IB core with W=1. See also patch
+"IB core: Fix ib_sg_to_pages()" (commit 8f5ba10ed40a).
 
-Please consider folding the patch below into this patch.
-
-Thanks,
-
-Bart.
-
-[PATCH] IB/srpt: Fix a recently introduced kernel crash
-
-BUG: unable to handle kernel paging request at 0000000100000198
-IP: [<ffffffff810a4ea2>] __lock_acquire+0xa2/0x560
-Call Trace:
- [<ffffffff810a53c2>] lock_acquire+0x62/0x80
- [<ffffffff8151bd33>] _raw_spin_lock_irqsave+0x43/0x60
- [<ffffffffa04fd437>] srpt_rdma_read_done+0x57/0x120 [ib_srpt]
- [<ffffffffa0144dd3>] __ib_process_cq+0x43/0xc0 [ib_core]
- [<ffffffffa0145115>] ib_cq_poll_work+0x25/0x70 [ib_core]
- [<ffffffff8107184d>] process_one_work+0x1bd/0x460
- [<ffffffff81073148>] worker_thread+0x118/0x420
- [<ffffffff81078454>] kthread+0xe4/0x100
- [<ffffffff8151cbbf>] ret_from_fork+0x3f/0x70
-
+Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/verbs.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 8068aff..3daab39 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -1395,7 +1395,7 @@ static void srpt_rdma_read_done(struct ib_cq *cq, struct ib_wc *wc)
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 545906d..c90ed29 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1530,7 +1530,7 @@ int ib_sg_to_pages(struct ib_mr *mr,
+ 		   int (*set_page)(struct ib_mr *, u64))
  {
- 	struct srpt_rdma_ch *ch = cq->cq_context;
- 	struct srpt_send_ioctx *ioctx =
--		container_of(wc->wr_cqe, struct srpt_send_ioctx, ioctx.cqe);
-+		container_of(wc->wr_cqe, struct srpt_send_ioctx, rdma_cqe);
+ 	struct scatterlist *sg;
+-	u64 last_end_dma_addr = 0, last_page_addr = 0;
++	u64 last_end_dma_addr = 0;
+ 	unsigned int last_page_off = 0;
+ 	u64 page_mask = ~((u64)mr->page_size - 1);
+ 	int i, ret;
+@@ -1572,7 +1572,6 @@ next_page:
  
- 	WARN_ON(ioctx->n_rdma <= 0);
- 	atomic_add(ioctx->n_rdma, &ch->sq_wr_avail);
-@@ -1418,7 +1418,7 @@ static void srpt_rdma_read_done(struct ib_cq *cq, struct ib_wc *wc)
- static void srpt_rdma_write_done(struct ib_cq *cq, struct ib_wc *wc)
- {
- 	struct srpt_send_ioctx *ioctx =
--		container_of(wc->wr_cqe, struct srpt_send_ioctx, ioctx.cqe);
-+		container_of(wc->wr_cqe, struct srpt_send_ioctx, rdma_cqe);
+ 		mr->length += dma_len;
+ 		last_end_dma_addr = end_dma_addr;
+-		last_page_addr = end_dma_addr & page_mask;
+ 		last_page_off = end_dma_addr & ~page_mask;
+ 	}
  
- 	if (unlikely(wc->status != IB_WC_SUCCESS)) {
- 		pr_info("RDMA_WRITE for ioctx 0x%p failed with status %d\n",
 -- 
 2.1.4
 
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
