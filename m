@@ -1,76 +1,74 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: [PATCH] IB/mlx5: Unify CQ create flags check
-Date: Tue, 29 Dec 2015 12:23:24 +0200
-Message-ID: <1451384604-9315-1-git-send-email-leon@leon.nu>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH v2] IB/core: sysfs.c: Fix PerfMgt ClassPortInfo handling
+Date: Tue, 29 Dec 2015 05:43:43 -0500
+Message-ID: <568263DF.6020505@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The create_cq() can receive creation flags which were used
-differently by two following commits [1] and [2].
+Port number is not part of ClassPortInfo attribute but is
+still needed as a parameter when invoking process_mad.
 
-This patch unifies the check into one function and one return
-error code.
+To properly handle this attribute, port_num is added as a
+parameter to get_counter_table and get_perf_mad was changed
+not to store port_num in the attribute itself when it's
+querying the ClassPortInfo attribute.
 
-[1] commit 972ecb821379 ("IB/mlx5: Add create_cq extended command")
-[2] commit 051f263098a9 ("IB/mlx5: Add driver cross-channel support")
+This handles issue pointed out by Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Fixes: 145d9c541032 ('IB/core: Display extended counter set if available')
+
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Acked-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Acked-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/cq.c      | 9 +--------
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 3 ++-
- 2 files changed, 3 insertions(+), 9 deletions(-)
+Change from v1:
+Added fixes line to description
 
-diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index b14316603e44..7ddc790b1819 100644
---- a/drivers/infiniband/hw/mlx5/cq.c
-+++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -757,10 +757,6 @@ static void destroy_cq_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_cq *cq)
- 	mlx5_db_free(dev->mdev, &cq->db);
- }
+diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+index 539040f..2daf832 100644
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -438,7 +438,8 @@ static int get_perf_mad(struct ib_device *dev, int port_num, int attr,
+ 	in_mad->mad_hdr.method        = IB_MGMT_METHOD_GET;
+ 	in_mad->mad_hdr.attr_id       = attr;
  
--enum {
--	CQ_CREATE_FLAGS_SUPPORTED = IB_CQ_FLAGS_TIMESTAMP_COMPLETION
--};
--
- struct ib_cq *mlx5_ib_create_cq(struct ib_device *ibdev,
- 				const struct ib_cq_init_attr *attr,
- 				struct ib_ucontext *context,
-@@ -778,13 +774,10 @@ struct ib_cq *mlx5_ib_create_cq(struct ib_device *ibdev,
- 	int eqn;
- 	int err;
+-	in_mad->data[41] = port_num;	/* PortSelect field */
++	if (attr != IB_PMA_CLASS_PORT_INFO)
++		in_mad->data[41] = port_num;	/* PortSelect field */
  
--	if (check_cq_create_flags(attr->flags))
--		return ERR_PTR(-EINVAL);
--
- 	if (entries < 0)
- 		return ERR_PTR(-EINVAL);
+ 	if ((dev->process_mad(dev, IB_MAD_IGNORE_MKEY,
+ 		 port_num, NULL, NULL,
+@@ -714,11 +715,12 @@ err:
+  * Figure out which counter table to use depending on
+  * the device capabilities.
+  */
+-static struct attribute_group *get_counter_table(struct ib_device *dev)
++static struct attribute_group *get_counter_table(struct ib_device *dev,
++						 int port_num)
+ {
+ 	struct ib_class_port_info cpi;
  
--	if (attr->flags & ~CQ_CREATE_FLAGS_SUPPORTED)
-+	if (check_cq_create_flags(attr->flags))
- 		return ERR_PTR(-EOPNOTSUPP);
+-	if (get_perf_mad(dev, 0, IB_PMA_CLASS_PORT_INFO,
++	if (get_perf_mad(dev, port_num, IB_PMA_CLASS_PORT_INFO,
+ 				&cpi, 40, sizeof(cpi)) >= 0) {
  
- 	entries = roundup_pow_of_two(entries + 1);
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index d4b227126265..fbf14a768105 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -692,6 +692,7 @@ static inline u32 check_cq_create_flags(u32 flags)
- 	 * It returns non-zero value for unsupported CQ
- 	 * create flags, otherwise it returns zero.
- 	 */
--	return (flags & ~IB_CQ_FLAGS_IGNORE_OVERRUN);
-+	return (flags & ~(IB_CQ_FLAGS_IGNORE_OVERRUN |
-+			  IB_CQ_FLAGS_TIMESTAMP_COMPLETION));
- }
- #endif /* MLX5_IB_H */
--- 
-1.7.12.4
-
+ 		if (cpi.capability_mask && IB_PMA_CLASS_CAP_EXT_WIDTH)
+@@ -776,7 +778,7 @@ static int add_port(struct ib_device *device, int port_num,
+ 		goto err_put;
+ 	}
+ 
+-	p->pma_table = get_counter_table(device);
++	p->pma_table = get_counter_table(device, port_num);
+ 	ret = sysfs_create_group(&p->kobj, p->pma_table);
+ 	if (ret)
+ 		goto err_put_gid_attrs;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
