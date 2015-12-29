@@ -1,82 +1,50 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: [PATCH V2] IB/mlx5: Unify CQ create flags check
-Date: Tue, 29 Dec 2015 13:34:44 +0200
-Message-ID: <1451388884-11673-1-git-send-email-leon@leon.nu>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v2] IB/core: sysfs.c: Fix PerfMgt ClassPortInfo handling
+Date: Tue, 29 Dec 2015 14:21:11 +0200
+Message-ID: <56827AB7.50508@mellanox.com>
+References: <568263DF.6020505@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <568263DF.6020505-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 12/29/2015 12:43 PM, Hal Rosenstock wrote:
+> Port number is not part of ClassPortInfo attribute but is
+> still needed as a parameter when invoking process_mad.
 
-The create_cq() can receive creation flags which were used
-differently by two following commits [1] and [2]. The current
-code caused to not accept any flags at all.
+Please remove the blank line above your 1st sentence.
 
-This patch unifies the check into one function and one return
-error code.
+>
+> To properly handle this attribute, port_num is added as a
+> parameter to get_counter_table and get_perf_mad was changed
+> not to store port_num in the attribute itself when it's
+> querying the ClassPortInfo attribute.
+>
+> This handles issue pointed out by Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+>
+> Fixes: 145d9c541032 ('IB/core: Display extended counter set if available')
+>
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+again, remove the blank line after the fixes tag.
 
-Fixes: 972ecb821379 ("IB/mlx5: Add create_cq extended command")
-Fixes: 051f263098a9 ("IB/mlx5: Add driver cross-channel support")
+Also,  I am not that the way Doug is setting the branch for pull would 
+preserve commit IDs when
+the offending patch landed in Linus tree. If this is the case, we should 
+put your patch in 2nd pull
+request and have the right commit ID there. Please check with Doug.
+> Acked-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Acked-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+> Change from v1:
+> Added fixes line to description
 
-[1] http://www.spinics.net/lists/linux-rdma/msg31430.html
-[2] http://www.spinics.net/lists/linux-rdma/msg31658.html
-
-Changes from v0:
-  * Add Fixes tag
-
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/mlx5/cq.c      | 9 +--------
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 3 ++-
- 2 files changed, 3 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index b14316603e44..7ddc790b1819 100644
---- a/drivers/infiniband/hw/mlx5/cq.c
-+++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -757,10 +757,6 @@ static void destroy_cq_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_cq *cq)
- 	mlx5_db_free(dev->mdev, &cq->db);
- }
- 
--enum {
--	CQ_CREATE_FLAGS_SUPPORTED = IB_CQ_FLAGS_TIMESTAMP_COMPLETION
--};
--
- struct ib_cq *mlx5_ib_create_cq(struct ib_device *ibdev,
- 				const struct ib_cq_init_attr *attr,
- 				struct ib_ucontext *context,
-@@ -778,13 +774,10 @@ struct ib_cq *mlx5_ib_create_cq(struct ib_device *ibdev,
- 	int eqn;
- 	int err;
- 
--	if (check_cq_create_flags(attr->flags))
--		return ERR_PTR(-EINVAL);
--
- 	if (entries < 0)
- 		return ERR_PTR(-EINVAL);
- 
--	if (attr->flags & ~CQ_CREATE_FLAGS_SUPPORTED)
-+	if (check_cq_create_flags(attr->flags))
- 		return ERR_PTR(-EOPNOTSUPP);
- 
- 	entries = roundup_pow_of_two(entries + 1);
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index d4b227126265..fbf14a768105 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -692,6 +692,7 @@ static inline u32 check_cq_create_flags(u32 flags)
- 	 * It returns non-zero value for unsupported CQ
- 	 * create flags, otherwise it returns zero.
- 	 */
--	return (flags & ~IB_CQ_FLAGS_IGNORE_OVERRUN);
-+	return (flags & ~(IB_CQ_FLAGS_IGNORE_OVERRUN |
-+			  IB_CQ_FLAGS_TIMESTAMP_COMPLETION));
- }
- #endif /* MLX5_IB_H */
--- 
-1.7.12.4
+So this patch makes mlx4 IB driver on Eth ports workable with the 
+4.5-rc1 proposed bits?
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
