@@ -1,55 +1,100 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH V2] IB/mlx5: Unify CQ create flags check
-Date: Tue, 29 Dec 2015 16:03:41 +0200
-Message-ID: <20151229140341.GE17694@leon.nu>
-References: <1451388884-11673-1-git-send-email-leon@leon.nu>
- <56828FF3.7010904@dev.mellanox.co.il>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next 4/7] net/mlx4_core: Add handlning of RoCE v2 over
+ IPV4 in attach_flow
+Date: Tue, 29 Dec 2015 16:28:18 +0200
+Message-ID: <56829882.8040700@mellanox.com>
+References: <1451395447-5198-1-git-send-email-matanb@mellanox.com>
+ <1451395447-5198-5-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <56828FF3.7010904-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1451395447-5198-5-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 29, 2015 at 03:51:47PM +0200, Sagi Grimberg wrote:
-> >From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >
-> >The create_cq() can receive creation flags which were used
-> >differently by two following commits [1] and [2]. The current
-> >code caused to not accept any flags at all.
-> 
-> We can skip referencing the linux-rdma mailing list.
-> 
-> >
-> >This patch unifies the check into one function and one return
-> >error code.
-> >
-> >Fixes: 972ecb821379 ("IB/mlx5: Add create_cq extended command")
-> >Fixes: 051f263098a9 ("IB/mlx5: Add driver cross-channel support")
-> >
-> >[1] http://www.spinics.net/lists/linux-rdma/msg31430.html
-> >[2] http://www.spinics.net/lists/linux-rdma/msg31658.html
-> >
-> >Changes from v0:
-> >   * Add Fixes tag
-> 
-> Umm, the above ([1], [2], Changes) usually go under the "---"
-> separator so we won't see them in git log forever.
+On 12/29/2015 3:24 PM, Matan Barak wrote:
+> From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+s/handlning/handling/
 
-Doug,
-Do you want me resend the patch?
+>
+> When attaching multicast for RoCE v2, we need to be able to steer
+> packets to the QPs. Hence, we add support for IPV4 over IB steering.
 
-> 
-> >
-> >Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >---
-> >  drivers/infiniband/hw/mlx5/cq.c      | 9 +--------
-> >  drivers/infiniband/hw/mlx5/mlx5_ib.h | 3 ++-
-> >  2 files changed, 3 insertions(+), 9 deletions(-)
+not sure to follow on the change-log, can you clarify it little further...
+
+>
+> Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>   drivers/net/ethernet/mellanox/mlx4/mcg.c | 14 ++++++++++++--
+>   include/linux/mlx4/device.h              |  6 ++++++
+>   2 files changed, 18 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/mcg.c b/drivers/net/ethernet/mellanox/mlx4/mcg.c
+> index 1d4e2e0..834e60e 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/mcg.c
+> +++ b/drivers/net/ethernet/mellanox/mlx4/mcg.c
+> @@ -858,7 +858,9 @@ static int parse_trans_rule(struct mlx4_dev *dev, struct mlx4_spec_list *spec,
+>   		break;
+>   
+>   	case MLX4_NET_TRANS_RULE_ID_IB:
+> -		rule_hw->ib.l3_qpn = spec->ib.l3_qpn;
+> +		rule_hw->ib.l3_qpn = spec->ib.l3_qpn |
+> +			(spec->ib.roce_type == MLX4_FLOW_SPEC_IB_ROCE_TYPE_IPV4 ?
+> +			 (__force __be32)0x80 : (__force __be32)0);
+
+maybe avoid using hard coded constants and get meaningful name for them?
+
+>   		rule_hw->ib.qpn_mask = spec->ib.qpn_msk;
+>   		memcpy(&rule_hw->ib.dst_gid, &spec->ib.dst_gid, 16);
+>   		memcpy(&rule_hw->ib.dst_gid_msk, &spec->ib.dst_gid_msk, 16);
+> @@ -1384,10 +1386,18 @@ int mlx4_trans_to_dmfs_attach(struct mlx4_dev *dev, struct mlx4_qp *qp,
+>   			memcpy(spec.eth.dst_mac_msk, &mac_mask, ETH_ALEN);
+>   			break;
+>   
+> +		case MLX4_PROT_IB_IPV4:
+> +			spec.id = MLX4_NET_TRANS_RULE_ID_IB;
+> +			memcpy(spec.ib.dst_gid + 12, gid + 12, 4);
+> +			memset(spec.ib.dst_gid_msk + 12, 0xff, 4);
+> +			spec.ib.roce_type = MLX4_FLOW_SPEC_IB_ROCE_TYPE_IPV4;
+> +			break;
+> +
+>   		case MLX4_PROT_IB_IPV6:
+>   			spec.id = MLX4_NET_TRANS_RULE_ID_IB;
+>   			memcpy(spec.ib.dst_gid, gid, 16);
+> -			memset(&spec.ib.dst_gid_msk, 0xff, 16);
+> +			memset(spec.ib.dst_gid_msk, 0xff, 16);
+> +			spec.ib.roce_type = MLX4_FLOW_SPEC_IB_ROCE_TYPE_IPV6;
+>   			break;
+>   		default:
+>   			return -EINVAL;
+> diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+> index 0d873f1ae..cdc75b2 100644
+> --- a/include/linux/mlx4/device.h
+> +++ b/include/linux/mlx4/device.h
+> @@ -391,6 +391,11 @@ enum mlx4_protocol {
+>   	MLX4_PROT_FCOE
+>   };
+>   
+> +enum mlx4_flow_roce_type {
+> +	MLX4_FLOW_SPEC_IB_ROCE_TYPE_IPV6 = 0,
+> +	MLX4_FLOW_SPEC_IB_ROCE_TYPE_IPV4
+> +};
+> +
+>   enum {
+>   	MLX4_MTT_FLAG_PRESENT		= 1
+>   };
+> @@ -1197,6 +1202,7 @@ struct mlx4_spec_ipv4 {
+>   struct mlx4_spec_ib {
+>   	__be32  l3_qpn;
+>   	__be32	qpn_msk;
+> +	enum    mlx4_flow_roce_type roce_type;
+>   	u8	dst_gid[16];
+>   	u8	dst_gid_msk[16];
+>   };
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
