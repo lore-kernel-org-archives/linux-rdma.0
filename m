@@ -1,50 +1,75 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH] IB/core: Remove a set-but-not-used variable from
- ib_sg_to_pages()
-Date: Tue, 29 Dec 2015 10:45:03 +0100
-Message-ID: <5682561F.7000400@sandisk.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: [PATCH] IB/mlx5: Unify CQ create flags check
+Date: Tue, 29 Dec 2015 12:23:24 +0200
+Message-ID: <1451384604-9315-1-git-send-email-leon@leon.nu>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Detected this by building the IB core with W=1. See also patch
-"IB core: Fix ib_sg_to_pages()" (commit 8f5ba10ed40a).
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+The create_cq() can receive creation flags which were used
+differently by two following commits [1] and [2].
+
+This patch unifies the check into one function and one return
+error code.
+
+[1] commit 972ecb821379 ("IB/mlx5: Add create_cq extended command")
+[2] commit 051f263098a9 ("IB/mlx5: Add driver cross-channel support")
+
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/infiniband/hw/mlx5/cq.c      | 9 +--------
+ drivers/infiniband/hw/mlx5/mlx5_ib.h | 3 ++-
+ 2 files changed, 3 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 545906d..c90ed29 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -1530,7 +1530,7 @@ int ib_sg_to_pages(struct ib_mr *mr,
- 		   int (*set_page)(struct ib_mr *, u64))
- {
- 	struct scatterlist *sg;
--	u64 last_end_dma_addr = 0, last_page_addr = 0;
-+	u64 last_end_dma_addr = 0;
- 	unsigned int last_page_off = 0;
- 	u64 page_mask = ~((u64)mr->page_size - 1);
- 	int i, ret;
-@@ -1572,7 +1572,6 @@ next_page:
+diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
+index b14316603e44..7ddc790b1819 100644
+--- a/drivers/infiniband/hw/mlx5/cq.c
++++ b/drivers/infiniband/hw/mlx5/cq.c
+@@ -757,10 +757,6 @@ static void destroy_cq_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_cq *cq)
+ 	mlx5_db_free(dev->mdev, &cq->db);
+ }
  
- 		mr->length += dma_len;
- 		last_end_dma_addr = end_dma_addr;
--		last_page_addr = end_dma_addr & page_mask;
- 		last_page_off = end_dma_addr & ~page_mask;
- 	}
+-enum {
+-	CQ_CREATE_FLAGS_SUPPORTED = IB_CQ_FLAGS_TIMESTAMP_COMPLETION
+-};
+-
+ struct ib_cq *mlx5_ib_create_cq(struct ib_device *ibdev,
+ 				const struct ib_cq_init_attr *attr,
+ 				struct ib_ucontext *context,
+@@ -778,13 +774,10 @@ struct ib_cq *mlx5_ib_create_cq(struct ib_device *ibdev,
+ 	int eqn;
+ 	int err;
  
+-	if (check_cq_create_flags(attr->flags))
+-		return ERR_PTR(-EINVAL);
+-
+ 	if (entries < 0)
+ 		return ERR_PTR(-EINVAL);
+ 
+-	if (attr->flags & ~CQ_CREATE_FLAGS_SUPPORTED)
++	if (check_cq_create_flags(attr->flags))
+ 		return ERR_PTR(-EOPNOTSUPP);
+ 
+ 	entries = roundup_pow_of_two(entries + 1);
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index d4b227126265..fbf14a768105 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -692,6 +692,7 @@ static inline u32 check_cq_create_flags(u32 flags)
+ 	 * It returns non-zero value for unsupported CQ
+ 	 * create flags, otherwise it returns zero.
+ 	 */
+-	return (flags & ~IB_CQ_FLAGS_IGNORE_OVERRUN);
++	return (flags & ~(IB_CQ_FLAGS_IGNORE_OVERRUN |
++			  IB_CQ_FLAGS_TIMESTAMP_COMPLETION));
+ }
+ #endif /* MLX5_IB_H */
 -- 
-2.1.4
+1.7.12.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
