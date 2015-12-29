@@ -1,85 +1,54 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 4/7] net/mlx4_core: Add handlning of RoCE v2 over IPV4 in attach_flow
-Date: Tue, 29 Dec 2015 15:24:04 +0200
-Message-ID: <1451395447-5198-5-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next 7/7] IB/mlx4: Advertise RoCE support
+Date: Tue, 29 Dec 2015 15:24:07 +0200
+Message-ID: <1451395447-5198-8-git-send-email-matanb@mellanox.com>
 References: <1451395447-5198-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1451395447-5198-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Advertise RoCE support in port_immutable according to the hardware
+capabilities. This enables the verbs stack to use RoCE v2 mode.
 
-When attaching multicast for RoCE v2, we need to be able to steer
-packets to the QPs. Hence, we add support for IPV4 over IB steering.
-
-Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx4/mcg.c | 14 ++++++++++++--
- include/linux/mlx4/device.h              |  6 ++++++
- 2 files changed, 18 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/mcg.c b/drivers/net/ethernet/mellanox/mlx4/mcg.c
-index 1d4e2e0..834e60e 100644
---- a/drivers/net/ethernet/mellanox/mlx4/mcg.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/mcg.c
-@@ -858,7 +858,9 @@ static int parse_trans_rule(struct mlx4_dev *dev, struct mlx4_spec_list *spec,
- 		break;
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 44e5699..8cf2575 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -2183,6 +2183,7 @@ static int mlx4_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 			       struct ib_port_immutable *immutable)
+ {
+ 	struct ib_port_attr attr;
++	struct mlx4_ib_dev *mdev = to_mdev(ibdev);
+ 	int err;
  
- 	case MLX4_NET_TRANS_RULE_ID_IB:
--		rule_hw->ib.l3_qpn = spec->ib.l3_qpn;
-+		rule_hw->ib.l3_qpn = spec->ib.l3_qpn |
-+			(spec->ib.roce_type == MLX4_FLOW_SPEC_IB_ROCE_TYPE_IPV4 ?
-+			 (__force __be32)0x80 : (__force __be32)0);
- 		rule_hw->ib.qpn_mask = spec->ib.qpn_msk;
- 		memcpy(&rule_hw->ib.dst_gid, &spec->ib.dst_gid, 16);
- 		memcpy(&rule_hw->ib.dst_gid_msk, &spec->ib.dst_gid_msk, 16);
-@@ -1384,10 +1386,18 @@ int mlx4_trans_to_dmfs_attach(struct mlx4_dev *dev, struct mlx4_qp *qp,
- 			memcpy(spec.eth.dst_mac_msk, &mac_mask, ETH_ALEN);
- 			break;
+ 	err = mlx4_ib_query_port(ibdev, port_num, &attr);
+@@ -2192,10 +2193,15 @@ static int mlx4_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
+ 	immutable->gid_tbl_len = attr.gid_tbl_len;
  
-+		case MLX4_PROT_IB_IPV4:
-+			spec.id = MLX4_NET_TRANS_RULE_ID_IB;
-+			memcpy(spec.ib.dst_gid + 12, gid + 12, 4);
-+			memset(spec.ib.dst_gid_msk + 12, 0xff, 4);
-+			spec.ib.roce_type = MLX4_FLOW_SPEC_IB_ROCE_TYPE_IPV4;
-+			break;
-+
- 		case MLX4_PROT_IB_IPV6:
- 			spec.id = MLX4_NET_TRANS_RULE_ID_IB;
- 			memcpy(spec.ib.dst_gid, gid, 16);
--			memset(&spec.ib.dst_gid_msk, 0xff, 16);
-+			memset(spec.ib.dst_gid_msk, 0xff, 16);
-+			spec.ib.roce_type = MLX4_FLOW_SPEC_IB_ROCE_TYPE_IPV6;
- 			break;
- 		default:
- 			return -EINVAL;
-diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-index 0d873f1ae..cdc75b2 100644
---- a/include/linux/mlx4/device.h
-+++ b/include/linux/mlx4/device.h
-@@ -391,6 +391,11 @@ enum mlx4_protocol {
- 	MLX4_PROT_FCOE
- };
+-	if (mlx4_ib_port_link_layer(ibdev, port_num) == IB_LINK_LAYER_INFINIBAND)
++	if (mlx4_ib_port_link_layer(ibdev, port_num) == IB_LINK_LAYER_INFINIBAND) {
+ 		immutable->core_cap_flags = RDMA_CORE_PORT_IBA_IB;
+-	else
+-		immutable->core_cap_flags = RDMA_CORE_PORT_IBA_ROCE;
++	} else {
++		if (mdev->dev->caps.flags & MLX4_DEV_CAP_FLAG_IBOE)
++			immutable->core_cap_flags = RDMA_CORE_PORT_IBA_ROCE;
++		if (mdev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2)
++			immutable->core_cap_flags = RDMA_CORE_PORT_IBA_ROCE |
++				RDMA_CORE_PORT_IBA_ROCE_UDP_ENCAP;
++	}
  
-+enum mlx4_flow_roce_type {
-+	MLX4_FLOW_SPEC_IB_ROCE_TYPE_IPV6 = 0,
-+	MLX4_FLOW_SPEC_IB_ROCE_TYPE_IPV4
-+};
-+
- enum {
- 	MLX4_MTT_FLAG_PRESENT		= 1
- };
-@@ -1197,6 +1202,7 @@ struct mlx4_spec_ipv4 {
- struct mlx4_spec_ib {
- 	__be32  l3_qpn;
- 	__be32	qpn_msk;
-+	enum    mlx4_flow_roce_type roce_type;
- 	u8	dst_gid[16];
- 	u8	dst_gid_msk[16];
- };
+ 	immutable->max_mad_size = IB_MGMT_MAD_SIZE;
+ 
 -- 
 2.1.0
 
