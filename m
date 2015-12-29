@@ -1,26 +1,35 @@
-From: "Zahra Robert" <jakonyvtar-v1d7l9VOqKc@public.gmane.org>
-Subject: Assalam o Alaikum
-Date: Tue, 29 Dec 2015 03:03:21 +0100
-Message-ID: <471c2eeb9dd637bb3189011857b1b52b.squirrel__27283.7907345549$1451354648$gmane$org@oldwebmail.prtelecom.hu>
-Reply-To: zahrarobert-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
+From: "Jeff Skoll" <verna.viajar-6jlb+pvLGhfpy9IuCEGcwoQuADTiUCJX@public.gmane.org>
+Subject: Charity/Donation
+Date: Mon, 28 Dec 2015 20:21:31 -0500
+Message-ID: <auto-000005565391@mailadmin.uni-kassel.de>
+Reply-To: jeff.skoll-aj9EiHWJibxFWb1O811qSg@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Description: Mail message body
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: jakonyvtar-v1d7l9VOqKc@public.gmane.org
+To: Me <verna.viajar-6jlb+pvLGhfpy9IuCEGcwoQuADTiUCJX@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi,
+My name is Jeffrey Skoll, a philanthropist and the founder of one of th=
+e largest private foundations in the world. I believe strongly in =E2=80=
+=98giving while living.=E2=80=99 I had one idea that never changed in m=
+y mind =E2=80=94 that you should use your wealth to help people and I h=
+ave decided to secretly give USD2.498 Million to a randomly selected in=
+dividual. On receipt of this email, you should count yourself as the in=
+dividual. Kindly get back to me at your earliest convenience, so I know=
+ your email address is valid.
 
+Visit the web page to know more about me: http://www.theglobeandmail.co=
+m/news/national/meet-the-canadian-billionaire-whos-giving-it-all-away/a=
+rticle4209888/ or you can read an article of me on Wikipedia.
 
-
-Cordial greeting message from Eva Zahra, I am seeking for your help,I will
-be very glad if you do assist me to relocate a sum of (US$4 Million
-Dollars)into your Bank account in your country for the benefit of both of
-us i want to use this money for investment. I will give you more details
-as you reply Yours Eva Zahra Robert
-
+Regards,
+Jeffrey Skoll.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
