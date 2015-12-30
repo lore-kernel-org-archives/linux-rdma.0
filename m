@@ -1,61 +1,37 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next V3 00/11] Add RoCE v2 support
-Date: Wed, 30 Dec 2015 13:14:50 +0200
-Message-ID: <5683BCAA.80301@mellanox.com>
-References: <1450875417-19262-1-git-send-email-matanb@mellanox.com>
- <568373E4.2080409@mellanox.com> <5683B662.4070609@mellanox.com>
- <5683BA79.2000406@mellanox.com>
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: Re: [PATCH 3/6] IB/uapi: expose uverbs WC opcodes
+Date: Wed, 30 Dec 2015 13:28:03 +0200
+Message-ID: <20151230112803.GA10271@leon.nu>
+References: <1450967967-12479-1-git-send-email-hch@lst.de>
+ <1450967967-12479-4-git-send-email-hch@lst.de>
+ <20151227061202.GB8501@leon.nu>
+ <5682685E.90700@dev.mellanox.co.il>
+ <20151230094429.GD12904@lst.de>
+Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5683BA79.2000406-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20151230094429.GD12904-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Dec 30, 2015 at 10:44:29AM +0100, Christoph Hellwig wrote:
+> On Tue, Dec 29, 2015 at 01:02:54PM +0200, Sagi Grimberg wrote:
+> >> As you did it in the first patch, just don't assign after IB_WC_LOCAL_INV.
+> >> Compiler will handle IB_UVERS_WC_SEND_END + X calculations by itself.
+> >
+> > I disagree, I'd say its better to keep the code verbosity level here...
+> 
+> I really don't like enum auto assignment for constants that are fixe
+> as part of an ABI.  There is too much chance of things going wrong.
 
+It is up to you, just be constant in your enums assignments.
 
-On 12/30/2015 1:05 PM, Or Gerlitz wrote:
-> On 12/30/2015 12:48 PM, Matan Barak wrote:
->>
->>
->> On 12/30/2015 8:04 AM, Or Gerlitz wrote:
->>> Hi Matan,
->>>
->>> I see these two smatch complaints on code added with this series, can
->>> you please take a look?
->>>
->>> drivers/infiniband/core/addr.c:503 rdma_resolve_ip_route() warn:
->>> variable dereferenced before check 'src_addr' (see line 500)
->>> drivers/infiniband/core/cma_configfs.c:172 make_cma_ports() warn: double
->>> check that we're allocating correct size: 8 vs 128
->>>
->>
->> I'll send fixes for both of them. Thanks for posting this.
->
-> when the same smatch runs on older gcc, it produces more warnings, are
-> they false-positives?
->
->
+Thanks.
 
-Yeah, false positives - cma_configfs_params_get returns 0 iff both 
-cma_dev and group are valid.
-
->> drivers/infiniband/core/cma_configfs.c: In function
->> ?default_roce_mode_store?:
->> drivers/infiniband/core/cma_configfs.c:123: warning: ?cma_dev? may be
->> used uninitialized in this function
->> drivers/infiniband/core/cma_configfs.c:124: warning: ?group? may be
->> used uninitialized in this function
->> drivers/infiniband/core/cma_configfs.c: In function
->> ?default_roce_mode_show?:
->> drivers/infiniband/core/cma_configfs.c:102: warning: ?cma_dev? may be
->> used uninitialized in this function
->> drivers/infiniband/core/cma_configfs.c:103: warning: ?group? may be
->> used uninitialized in this function
->
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
