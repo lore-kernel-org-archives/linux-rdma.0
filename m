@@ -1,72 +1,58 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next 2/7] IB/mlx4: Add RoCE per GID support for
- add_gid and del_gid
-Date: Wed, 30 Dec 2015 12:21:05 +0200
-Message-ID: <5683B011.7090207@mellanox.com>
-References: <1451395447-5198-1-git-send-email-matanb@mellanox.com>
- <1451395447-5198-3-git-send-email-matanb@mellanox.com>
- <5682A5AA.9040709@mellanox.com>
+Subject: Re: [PATCH for-next V3 10/11] IB/core: Initialize UD header structure
+ with IP and UDP headers
+Date: Wed, 30 Dec 2015 12:35:03 +0200
+Message-ID: <5683B357.2090703@mellanox.com>
+References: <1450875417-19262-1-git-send-email-matanb@mellanox.com>
+ <1450875417-19262-11-git-send-email-matanb@mellanox.com>
+ <56837252.70705@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5682A5AA.9040709-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <56837252.70705-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-On 12/29/2015 5:24 PM, Or Gerlitz wrote:
-> On 12/29/2015 3:24 PM, Matan Barak wrote:
->> [...] We use a new firmware command in order to populate the GID table
->> and store the type along with the GID value.
+On 12/30/2015 7:57 AM, Or Gerlitz wrote:
+> On 12/23/2015 2:56 PM, Matan Barak wrote:
+>> +__be16 ib_ud_ip4_csum(struct ib_ud_header *header)
+>> +{
+>> +    struct iphdr iph;
+>> +
+>> +    iph.ihl        = 5;
+>> +    iph.version    = 4;
+>> +    iph.tos        = header->ip4.tos;
+>> +    iph.tot_len    = header->ip4.tot_len;
+>> +    iph.id        = header->ip4.id;
+>> +    iph.frag_off    = header->ip4.frag_off;
+>> +    iph.ttl        = header->ip4.ttl;
+>> +    iph.protocol    = header->ip4.protocol;
+>> +    iph.check    = 0;
+>> +    iph.saddr    = header->ip4.saddr;
+>> +    iph.daddr    = header->ip4.daddr;
+>> +
+>> +    return ip_fast_csum((u8 *)&iph, iph.ihl);
+>> +}
+>> +EXPORT_SYMBOL(ib_ud_ip4_csum);
 >
-> Its a new value to existing command.. so better say we use a new value
-> to the SET_PORT firmware command to do X
->
-
-Ok
-
-> Also here, break out mlx4_core new functionality e.g the changes to
-> include/linux/mlx4/cmd.h into mlx4_core only patch. You don't need any
-> change to mlx4_core to have it's own patch, I guess one up to three mlx4
-> core patches would be OK.
->
-
-I'll split mlx4_core logically.
-
-> Did you make sure (at the resource tracker) that VFs can't do this new
-> set port command flavor?
->
-
-In mlx4_common_set_port:
-if (slave != dev->caps.function &&
-     in_modifier != MLX4_SET_PORT_GENERAL &&
-      in_modifier != MLX4_SET_PORT_GID_TABLE) {
-	mlx4_warn(dev, "denying SET_PORT for slave:%d\n", slave);
-	return -EINVAL;
-}
-
-
-
-> Also find some spot to put blank line in the change-log, it's hard to
-> read this way.
+> You have introduced here this sparse warning, please fix
 >
 
-No problem
+Thanks, we'll fix this.
 
+> drivers/infiniband/core/ud_header.c:299:28: warning: incorrect type in
+> return expression (different base types)
+> drivers/infiniband/core/ud_header.c:299:28:    expected restricted __be16
+> drivers/infiniband/core/ud_header.c:299:28:    got restricted __sum16
+>
 > Or.
 
 Matan
-
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
