@@ -1,55 +1,66 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next 3/7] IB/mlx4: Configure device to work in RoCEv2
-Date: Wed, 30 Dec 2015 10:46:43 +0200
-Message-ID: <568399F3.1090502@mellanox.com>
+Subject: Re: [PATCH for-next 1/7] IB/mlx4: Query RoCE support
+Date: Wed, 30 Dec 2015 10:44:46 +0200
+Message-ID: <5683997E.9090307@mellanox.com>
 References: <1451395447-5198-1-git-send-email-matanb@mellanox.com>
- <1451395447-5198-4-git-send-email-matanb@mellanox.com>
- <56829AB0.3080805@mellanox.com> <56839469.3070508@mellanox.com>
+ <1451395447-5198-2-git-send-email-matanb@mellanox.com>
+ <5682A499.9040701@mellanox.com> <5683957B.1070401@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56839469.3070508-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <5683957B.1070401-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/30/2015 10:23 AM, Matan Barak wrote:
+On 12/30/2015 10:27 AM, Matan Barak wrote:
 >
-> int mlx4_CONFIG_DEV_wrapper(struct mlx4_dev *dev, int slave,
->                             struct mlx4_vhcr *vhcr,
->                             struct mlx4_cmd_mailbox *inbox,
->                             struct mlx4_cmd_mailbox *outbox,
->                             struct mlx4_cmd_info *cmd)
-> {
->         int err;
->         u8 get = vhcr->op_modifier;
 >
->         if (get != 1)
->                 return -EPERM;
+> On 12/29/2015 5:19 PM, Or Gerlitz wrote:
+>> On 12/29/2015 3:24 PM, Matan Barak wrote:
+>>> @@ -905,6 +906,8 @@ int mlx4_QUERY_DEV_CAP(struct mlx4_dev *dev,
+>>> struct mlx4_dev_cap *dev_cap)
+>>>           dev_cap->flags2 |= MLX4_DEV_CAP_FLAG2_EQE_STRIDE;
+>>>       MLX4_GET(dev_cap->bmme_flags, outbox,
+>>>            QUERY_DEV_CAP_BMME_FLAGS_OFFSET);
+>>> +    if (dev_cap->bmme_flags & MLX4_FLAG_ROCE_V1_V2)
+>>> +        dev_cap->flags2 |= MLX4_DEV_CAP_FLAG2_ROCE_V1_V2;
+>>
+>> Did you make sure that the query dev cap wrapper unsets this bit when
+>> proxing VF queries?
 >
->         err = mlx4_DMA_wrapper(dev, slave, vhcr, inbox, outbox, cmd);
->
->         return err;
-> }
->
-> Only "get" is permitted in multi-function setups.
-
-good, thanks for clarifying this out.
-
->
-> Anyway, mlx4_config_roce_v2_port is not called for these setups 
-> because of this condition:
+> In mlx4_dev_cap:
 > if (mlx4_is_mfunc(dev)) {
 >     dev->caps.flags &= ~MLX4_DEV_CAP_FLAG_SENSE_SUPPORT;
 >     dev_cap->flags2 &= ~MLX4_DEV_CAP_FLAG2_ROCE_V1_V2;
 >     mlx4_dbg(dev, "RoCE V2 is not supported when SR-IOV is enabled\n");
-> } 
+> }
+>
+> mlx4_slave_cap calls mlx4_dev_cap and uses the dev_caps it queried, so 
+> we should be safe here.
 
-wrong again, you assume your Linux VF driver, but the VM can run other 
-driver.
+mlx4_slave_cap is part of the Linux VF driver flow, right?
 
+So...  NO, this is the Linux implementation.
+
+You should make things robust against any guest driver.
+
+The only way to do that is patch the command wrapper used by the PF
+to filter out unwanted cap bits, see other filtering we do in 
+mlx4_QUERY_DEV_CAP_wrapper
+
+Or.
+
+
+>
+>>
+>>>       if (dev_cap->bmme_flags & MLX4_FLAG_PORT_REMAP)
+>>>           dev_cap->flags2 |= MLX4_DEV_CAP_FLAG2_PORT_REMAP;
+>>>       MLX4_GET(field, outbox, QUERY_DEV_CAP_CONFIG_DEV_OFFSET);
+>>
+>>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
