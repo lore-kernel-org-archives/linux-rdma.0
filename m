@@ -1,55 +1,57 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 3/3] IB/srpt: Fix a race condition related to SRP login
-Date: Thu, 31 Dec 2015 09:57:58 +0100
-Message-ID: <5684EE16.8070701@sandisk.com>
-References: <5684ED4B.2010303@sandisk.com>
+From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: SoftRoCE V1
+Date: Thu, 31 Dec 2015 11:04:40 +0200
+Message-ID: <CANvqgxArCoXV7tbq79Gofj5-PzjpYv3seACLMxxZcoXYLD6Kvw@mail.gmail.com>
+References: <CAEnvTt1KBHXYzjfHKmWkQtUs1J-ABhY_maQibR5LE9t+F25sYQ@mail.gmail.com>
+	<5684EBDD.8070204@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5684ED4B.2010303-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <5684EBDD.8070204-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Wenda Ni <wonda.ni-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Since patch "IB/srpt: chain RDMA READ/WRITE requests" there are
-two loops that process the command wait list. ch->cmd_wait_list
-is accessed without locking which means that all code that
-accesses this list must be serialized. Since processing of the
-RTU event happens from another context than IB WC processing,
-remove the wait list processing code from the RTU handler.
+On Thu, Dec 31, 2015 at 10:48 AM, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> On 29/12/2015 18:01, Wenda Ni wrote:
+>> Hi experts,
+>>
+>> We have several Mellanox RoCE V1 NIC cards, and would like to try
+>> communicating with SoftRoCE V1.
+>>
+>> We are using branch rxe-3.0 from https://github.com/SoftRoCE/rxe-dev
+>> according to the Soft-RoCE README Rev 1.0 issued from Mellanox last
+>> year.
+>>
+>>
+>> Testing using pingpong examples from libibverbs (hardware RoCE <->
+>> SoftRoCE) already shows a bug in Ethernet CRC generation. We expect
+>> further bugs along the way.
+>>
+>> So we would like to know for SoftRoCE V1, are we using the latest
+>> branch? Also, is it still tied to SLES11 SP3 OS?
+> Kamal can correct me if I'm wrong, but I think the updated branch is rxe_submission-v2.
+> However it doesn't support RoCE v1, only RoCE v2.
+>
 
-Fixes: commit a42d985bd5b2 ("ib_srpt: Initial SRP Target merge for v3.3-rc1").
-Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
----
- drivers/infiniband/ulp/srpt/ib_srpt.c | 8 --------
- 1 file changed, 8 deletions(-)
+Correct, We support only RoCEv2 in the latest version of Soft-RoCE.
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index b42cf0d..48b27dc 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -2540,15 +2540,7 @@ static void srpt_cm_rtu_recv(struct ib_cm_id *cm_id)
- 	BUG_ON(!ch);
- 
- 	if (srpt_test_and_set_ch_state(ch, CH_CONNECTING, CH_LIVE)) {
--		struct srpt_recv_ioctx *ioctx, *ioctx_tmp;
--
- 		ret = srpt_ch_qp_rts(ch, ch->qp);
--
--		list_for_each_entry_safe(ioctx, ioctx_tmp, &ch->cmd_wait_list,
--					 wait_list) {
--			list_del(&ioctx->wait_list);
--			srpt_handle_new_iu(ch, ioctx, NULL);
--		}
- 		if (ret)
- 			srpt_close_ch(ch);
- 	}
--- 
-2.1.4
+>> There are very few documentations we can find, so we hope this is the
+>> right place to ask such questions.
+> I can't think of a better place.
+>
+Agree.
 
+> Regards,
+> Haggai
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Thanks,
+Kamal
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
