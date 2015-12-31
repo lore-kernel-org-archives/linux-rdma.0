@@ -1,44 +1,43 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re:
- git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git/k.o/for-4.5
- crash during boot
-Date: Thu, 31 Dec 2015 09:48:05 +0100
-Message-ID: <5684EBC5.6040702@sandisk.com>
-References: <5683C863.4040209@sandisk.com> <5683CC7F.5020301@mellanox.com>
- <20151230123428.GB10271@leon.nu>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: SoftRoCE V1
+Date: Thu, 31 Dec 2015 10:48:29 +0200
+Message-ID: <5684EBDD.8070204@mellanox.com>
+References: <CAEnvTt1KBHXYzjfHKmWkQtUs1J-ABhY_maQibR5LE9t+F25sYQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151230123428.GB10271-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <CAEnvTt1KBHXYzjfHKmWkQtUs1J-ABhY_maQibR5LE9t+F25sYQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Wenda Ni <wonda.ni-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/30/2015 01:34 PM, Leon Romanovsky wrote:
-> On Wed, Dec 30, 2015 at 02:22:23PM +0200, Or Gerlitz wrote:
->> On 12/30/2015 2:04 PM, Bart Van Assche wrote:
->>> Hello Christoph,
->>>
->>> Can you check whether the branch in the subject of this e-mail works fine
->>> on your setup (commit 59caaed7a7) ? On my test setup (Dell R430 with two
->>> ConnectX-3 adapters) this branch crashes during boot in
->>> get_counter_table() (see also the attached screenshot).
->>
->> Can you please check with Hal's fix that was posted here 1-2 days ago,
->> hopefully this should make your system to work
->
-> Or referenced to this patch [1], it should fix your crash.
->
-> [1] https://patchwork.kernel.org/patch/7929551/
+On 29/12/2015 18:01, Wenda Ni wrote:
+> Hi experts,
+> 
+> We have several Mellanox RoCE V1 NIC cards, and would like to try
+> communicating with SoftRoCE V1.
+> 
+> We are using branch rxe-3.0 from https://github.com/SoftRoCE/rxe-dev
+> according to the Soft-RoCE README Rev 1.0 issued from Mellanox last
+> year.
+> 
+> 
+> Testing using pingpong examples from libibverbs (hardware RoCE <->
+> SoftRoCE) already shows a bug in Ethernet CRC generation. We expect
+> further bugs along the way.
+> 
+> So we would like to know for SoftRoCE V1, are we using the latest
+> branch? Also, is it still tied to SLES11 SP3 OS?
+Kamal can correct me if I'm wrong, but I think the updated branch is rxe_submission-v2.
+However it doesn't support RoCE v1, only RoCE v2.
 
-Hello Or and Leon,
+> There are very few documentations we can find, so we hope this is the
+> right place to ask such questions.
+I can't think of a better place.
 
-That patch indeed fixes the crash I had reported.
-
-Thanks,
-
-Bart.
+Regards,
+Haggai
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
