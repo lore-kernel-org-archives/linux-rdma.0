@@ -1,130 +1,130 @@
-From: james harvey <jamespharvey20-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: How to determine hex address for srpt acls, its not /sys/class/infiniband/mlx4_0/ports/1/gids/0
-Date: Thu, 31 Dec 2015 22:06:48 -0500
-Message-ID: <CA+X5Wn7hu=0kGv1tb+4YRQFocrQ9CdWU=_P0hmLiiEZG7G94bg@mail.gmail.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH] IB/cm: Fix a recently introduced deadlock
+Date: Fri, 1 Jan 2016 13:17:46 +0100
+Message-ID: <56866E6A.8040503@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I'm at a loss on how to get the hex address to go underneath acls when
-setting up srpt.  If I use the fe80 prefix I see everywhere including
-/sys, it gets rejected.  If I use the prefix shown in the kernel
-rejection method, which I can't find anywhere else, it works fine.
+ib_send_cm_drep() calls cm_enter_timewait() while holding a spinlock
+that can be locked from inside an interrupt handler. Hence do not
+enable interrupts inside cm_enter_timewait() if called with interrupts
+disabled.
 
-targetcli configuration:
+This patch fixes e.g. the following deadlock:
 
-/> ls
-o- / .........................................................................................................................
-[...]
-  o- backstores
-..............................................................................................................
-[...]
-  | o- block ..................................................................................................
-[Storage Objects: 3]
-  | | o- kvm1 ....................................................................
-[/dev/disk1/kvm1 (100.0GiB) write-thru activated]
-  | | o- kvm2 ....................................................................
-[/dev/disk2/kvm2 (100.0GiB) write-thru activated]
-  | | o- kvm3 ....................................................................
-[/dev/disk3/kvm3 (100.0GiB) write-thru activated]
-  | o- fileio .................................................................................................
-[Storage Objects: 0]
-  | o- pscsi ..................................................................................................
-[Storage Objects: 0]
-  | o- ramdisk ................................................................................................
-[Storage Objects: 0]
-  o- iscsi ............................................................................................................
-[Targets: 0]
-  o- loopback .........................................................................................................
-[Targets: 0]
-  o- sbp ..............................................................................................................
-[Targets: 0]
-  o- srpt .............................................................................................................
-[Targets: 1]
-  | o- ib.fe800000000000000002c90300001679
-...........................................................................
-[no-gen-acls]
-  |   o- acls ............................................................................................................
-[ACLs: 1]
-  |   | o- ib.fe800000000000000002c90300001e79
-....................................................................
-[Mapped LUNs: 3]
-  |   |   o- mapped_lun0
-....................................................................................
-[lun0 block/kvm1 (rw)]
-  |   |   o- mapped_lun1
-....................................................................................
-[lun1 block/kvm2 (rw)]
-  |   |   o- mapped_lun2
-....................................................................................
-[lun2 block/kvm3 (rw)]
-  |   o- luns ............................................................................................................
-[LUNs: 3]
-  |     o- lun0
-.....................................................................................
-[block/kvm1 (/dev/disk1/kvm1)]
-  |     o- lun1
-.....................................................................................
-[block/kvm2 (/dev/disk2/kvm2)]
-  |     o- lun2
-.....................................................................................
-[block/kvm3 (/dev/disk3/kvm3)]
-  o- vhost ............................................................................................................
-[Targets: 0]
-  o- xen_pvscsi
-.......................................................................................................
-[Targets: 0]
+=================================
+[ INFO: inconsistent lock state ]
+4.4.0-rc7+ #1 Tainted: G            E
+---------------------------------
+inconsistent {HARDIRQ-ON-W} -> {IN-HARDIRQ-W} usage.
+swapper/8/0 [HC1[1]:SC0[0]:HE0:SE1] takes:
+(&(&cm_id_priv->lock)->rlock){?.+...}, at: [<ffffffffa036eec4>] cm_establish+0x
+74/0x1b0 [ib_cm]
+{HARDIRQ-ON-W} state was registered at:
+  [<ffffffff810a3c11>] mark_held_locks+0x71/0x90
+  [<ffffffff810a3e87>] trace_hardirqs_on_caller+0xa7/0x1c0
+  [<ffffffff810a3fad>] trace_hardirqs_on+0xd/0x10
+  [<ffffffff8151c40b>] _raw_spin_unlock_irq+0x2b/0x40
+  [<ffffffffa036ea8e>] cm_enter_timewait+0xae/0x100 [ib_cm]
+  [<ffffffffa036ff76>] ib_send_cm_drep+0xb6/0x190 [ib_cm]
+  [<ffffffffa052ed08>] srp_cm_handler+0x128/0x1a0 [ib_srp]
+  [<ffffffffa0370340>] cm_process_work+0x20/0xf0 [ib_cm]
+  [<ffffffffa0371335>] cm_dreq_handler+0x135/0x2c0 [ib_cm]
+  [<ffffffffa03733c5>] cm_work_handler+0x75/0xd0 [ib_cm]
+  [<ffffffff8107184d>] process_one_work+0x1bd/0x460
+  [<ffffffff81073148>] worker_thread+0x118/0x420
+  [<ffffffff81078454>] kthread+0xe4/0x100
+  [<ffffffff8151cbbf>] ret_from_fork+0x3f/0x70
+irq event stamp: 1672286
+hardirqs last  enabled at (1672283): [<ffffffff81408ec0>] poll_idle+0x10/0x80
+hardirqs last disabled at (1672284): [<ffffffff8151d304>] common_interrupt+0x84/0x89
+softirqs last  enabled at (1672286): [<ffffffff8105b4dc>] _local_bh_enable+0x1c/0x50
+softirqs last disabled at (1672285): [<ffffffff8105b697>] irq_enter+0x47/0x70
 
-NOTE my InfiniBand cards have similar IDs, and only differ by one
-character -- compare the end, 1679 vs 1e79.
+other info that might help us debug this:
+ Possible unsafe locking scenario:
 
-On the target (host):
-$ cat /sys/class/infiniband/mlx4_0/ports/1/gids/0
-fe80:0000:0000:0000:0002:c903:0000:1679
-{It's my understanding this should be used underneath srpt, as the wwn}
+       CPU0
+       ----
+  lock(&(&cm_id_priv->lock)->rlock);
+  <Interrupt>
+    lock(&(&cm_id_priv->lock)->rlock);
 
-On the initiator (client):
-$ cat /sys/class/infiniband/mlx4_0/ports/1/gids/0
-fe80:0000:0000:0000:0002:c903:0000:1e79
-{It's my understanding this should be used underneath acls, and mapped
-with the luns}
-# ibsrpdm -c
-id_ext=0002c90300001678,ioc_guid=0002c90300001678,dgid=fe800000000000000002c90300001679,pkey=ffff,service_id=0002c90300001678
-{so, its /etc/srp_daemon.conf is just comments and the line}
-a id_ext=0002c90300001678,ioc_guid=0002c90300001678,dgid=fe800000000000000002c90300001679,pkey=ffff,service_id=0002c90300001678
+ *** DEADLOCK ***
 
-But, after starting service target on the target, and service
-srpdaemon on the initiator, dmesg on target shows:
-[  849.710278] ib_srpt Received SRP_LOGIN_REQ with i_port_id
-0x7916000003c90200:0x2c90300001e79, t_port_id
-0x2c90300001678:0x2c90300001678 and it_iu_len 260 on port 1
-(guid=0xfe80000000000000:0x2c90300001679)
-[  849.714528] ib_srpt Session : kernel thread ib_srpt_compl (PID 24481) started
-[  849.714601] ib_srpt Rejected login because no ACL has been
-configured yet for initiator 0x7916000003c902000002c90300001e79.
-[  849.714613] ib_srpt Session 0x7916000003c902000002c90300001e79:
-kernel thread ib_srpt_compl (PID 24481) stopped
+no locks held by swapper/8/0.
 
-And, dmesg on initiator shows:
-[  976.616221] scsi host11: ib_srp: REJ received
-[  976.616229] scsi host11: ib_srp: SRP LOGIN from
-fe80:0000:0000:0000:0002:c903:0000:1e79 to
-fe80:0000:0000:0000:0002:c903:0000:1679 REJECTED, reason 0x00010001
-[  976.616269] scsi host11: ib_srp: Connection 0/4 failed
-[  976.616276] scsi host11: ib_srp: Sending CM DREQ failed
+stack backtrace:
+CPU: 8 PID: 0 Comm: swapper/8 Tainted: G            E   4.4.0-rc7+ #1
+Hardware name: Dell Inc. PowerEdge R430/03XKDV, BIOS 1.0.2 11/17/2014
+ ffff88045af5e950 ffff88046e503a88 ffffffff81251c1b 0000000000000007
+ 0000000000000006 0000000000000003 ffff88045af5ddc0 ffff88046e503ad8
+ ffffffff810a32f4 0000000000000000 0000000000000000 0000000000000001
+Call Trace:
+ <IRQ>  [<ffffffff81251c1b>] dump_stack+0x4f/0x74
+ [<ffffffff810a32f4>] print_usage_bug+0x184/0x190
+ [<ffffffff810a36e2>] mark_lock_irq+0xf2/0x290
+ [<ffffffff810a3995>] mark_lock+0x115/0x1b0
+ [<ffffffff810a3b8c>] mark_irqflags+0x15c/0x170
+ [<ffffffff810a4fef>] __lock_acquire+0x1ef/0x560
+ [<ffffffff810a53c2>] lock_acquire+0x62/0x80
+ [<ffffffff8151bd33>] _raw_spin_lock_irqsave+0x43/0x60
+ [<ffffffffa036eec4>] cm_establish+0x74/0x1b0 [ib_cm]
+ [<ffffffffa036f031>] ib_cm_notify+0x31/0x100 [ib_cm]
+ [<ffffffffa0637f24>] srpt_qp_event+0x54/0xd0 [ib_srpt]
+ [<ffffffffa0196052>] mlx4_ib_qp_event+0x72/0xc0 [mlx4_ib]
+ [<ffffffffa00775b9>] mlx4_qp_event+0x69/0xd0 [mlx4_core]
+ [<ffffffffa006000e>] mlx4_eq_int+0x51e/0xd50 [mlx4_core]
+ [<ffffffffa006084f>] mlx4_msi_x_interrupt+0xf/0x20 [mlx4_core]
+ [<ffffffff810b67b0>] handle_irq_event_percpu+0x40/0x110
+ [<ffffffff810b68bf>] handle_irq_event+0x3f/0x70
+ [<ffffffff810ba7f9>] handle_edge_irq+0x79/0x120
+ [<ffffffff81007f3d>] handle_irq+0x5d/0x130
+ [<ffffffff810071fd>] do_IRQ+0x6d/0x130
+ [<ffffffff8151d309>] common_interrupt+0x89/0x89
+ <EOI>  [<ffffffff8140895f>] cpuidle_enter_state+0xcf/0x200
+ [<ffffffff81408aa2>] cpuidle_enter+0x12/0x20
+ [<ffffffff810990d6>] call_cpuidle+0x36/0x60
+ [<ffffffff81099163>] cpuidle_idle_call+0x63/0x110
+ [<ffffffff8109930a>] cpu_idle_loop+0xfa/0x130
+ [<ffffffff8109934e>] cpu_startup_entry+0xe/0x10
+ [<ffffffff8103c443>] start_secondary+0x83/0x90
 
-Why is the target machine, in the srp context only, seeing the ports
-as starting with 0x7916000003c90200 and 0x2c90300001678, and the
-client machine seeing the ports as starting with fe80:0000:0000:0000?
-What are these 0x7916... and 0x2c90... prefixes, and how can I find
-them besides getting a rejection and looking at the kernel logs?  I
-haven't seen these prefixes anywhere else on either system.
+Fixes: commit be4b499323bf ("IB/cm: Do not queue work to a device that's going away")
+Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: stable <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+---
+ drivers/infiniband/core/cm.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-In targetcli, if I use acls with 0x7916000003c902000002c90300001e79,
-then everything works great.
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 0a26dd6..d6d2b35 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -782,11 +782,11 @@ static void cm_enter_timewait(struct cm_id_private *cm_id_priv)
+ 	wait_time = cm_convert_to_ms(cm_id_priv->av.timeout);
+ 
+ 	/* Check if the device started its remove_one */
+-	spin_lock_irq(&cm.lock);
++	spin_lock_irqsave(&cm.lock, flags);
+ 	if (!cm_dev->going_down)
+ 		queue_delayed_work(cm.wq, &cm_id_priv->timewait_info->work.work,
+ 				   msecs_to_jiffies(wait_time));
+-	spin_unlock_irq(&cm.lock);
++	spin_unlock_irqrestore(&cm.lock, flags);
+ 
+ 	cm_id_priv->timewait_info = NULL;
+ }
+-- 
+2.1.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
