@@ -1,109 +1,130 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] IB/ipoib: Expose ioctl command to retrieve SGID of a
- given socket
-Date: Thu, 31 Dec 2015 17:34:03 +0200
-Message-ID: <56854AEB.50802@mellanox.com>
-References: <1451572875-24961-1-git-send-email-yuval.shaia@oracle.com>
+From: james harvey <jamespharvey20-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: How to determine hex address for srpt acls, its not /sys/class/infiniband/mlx4_0/ports/1/gids/0
+Date: Thu, 31 Dec 2015 22:06:48 -0500
+Message-ID: <CA+X5Wn7hu=0kGv1tb+4YRQFocrQ9CdWU=_P0hmLiiEZG7G94bg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1451572875-24961-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 31/12/2015 16:41, Yuval Shaia wrote:
-> To support security applications, that need to filter out connections based
-> on SGID, an ioctl command to retrieve SGID of a given socket is added.
+I'm at a loss on how to get the hex address to go underneath acls when
+setting up srpt.  If I use the fe80 prefix I see everywhere including
+/sys, it gets rejected.  If I use the prefix shown in the kernel
+rejection method, which I can't find anywhere else, it works fine.
 
-Could you elaborate on the security applications? How do you see this ioctl 
-being used?
+targetcli configuration:
 
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ioctl.c b/drivers/infiniband/ulp/ipoib/ipoib_ioctl.c
-> new file mode 100644
-> index 0000000..124d545
-> --- /dev/null
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_ioctl.c
+/> ls
+o- / .........................................................................................................................
+[...]
+  o- backstores
+..............................................................................................................
+[...]
+  | o- block ..................................................................................................
+[Storage Objects: 3]
+  | | o- kvm1 ....................................................................
+[/dev/disk1/kvm1 (100.0GiB) write-thru activated]
+  | | o- kvm2 ....................................................................
+[/dev/disk2/kvm2 (100.0GiB) write-thru activated]
+  | | o- kvm3 ....................................................................
+[/dev/disk3/kvm3 (100.0GiB) write-thru activated]
+  | o- fileio .................................................................................................
+[Storage Objects: 0]
+  | o- pscsi ..................................................................................................
+[Storage Objects: 0]
+  | o- ramdisk ................................................................................................
+[Storage Objects: 0]
+  o- iscsi ............................................................................................................
+[Targets: 0]
+  o- loopback .........................................................................................................
+[Targets: 0]
+  o- sbp ..............................................................................................................
+[Targets: 0]
+  o- srpt .............................................................................................................
+[Targets: 1]
+  | o- ib.fe800000000000000002c90300001679
+...........................................................................
+[no-gen-acls]
+  |   o- acls ............................................................................................................
+[ACLs: 1]
+  |   | o- ib.fe800000000000000002c90300001e79
+....................................................................
+[Mapped LUNs: 3]
+  |   |   o- mapped_lun0
+....................................................................................
+[lun0 block/kvm1 (rw)]
+  |   |   o- mapped_lun1
+....................................................................................
+[lun1 block/kvm2 (rw)]
+  |   |   o- mapped_lun2
+....................................................................................
+[lun2 block/kvm3 (rw)]
+  |   o- luns ............................................................................................................
+[LUNs: 3]
+  |     o- lun0
+.....................................................................................
+[block/kvm1 (/dev/disk1/kvm1)]
+  |     o- lun1
+.....................................................................................
+[block/kvm2 (/dev/disk2/kvm2)]
+  |     o- lun2
+.....................................................................................
+[block/kvm3 (/dev/disk3/kvm3)]
+  o- vhost ............................................................................................................
+[Targets: 0]
+  o- xen_pvscsi
+.......................................................................................................
+[Targets: 0]
 
-> +static int ipoib_get_sguid(struct net_device *dev, int fd, u64 *sgid,
-> +			   u64 *subnet_prefix)
-A GID is composed of a GUID and a subnet prefix.
+NOTE my InfiniBand cards have similar IDs, and only differ by one
+character -- compare the end, 1679 vs 1e79.
 
-> +{
-> +	struct socket *sock;
-> +	struct inet_sock *inetsock;
-> +	struct neighbour *neigh;
-> +	int rc = 0;
-> +	union ib_gid *gid;
-> +	struct list_head *dev_list = 0;
-> +	struct ipoib_dev_priv *priv = netdev_priv(dev);
-> +	u16 pkey_index = priv->pkey_index;
-> +	struct ipoib_dev_priv *child_priv;
-> +
-> +	sock = sockfd_lookup(fd, &rc);
-> +	if (IS_ERR_OR_NULL(sock))
-> +		return -EINVAL;
-> +
-> +	inetsock = inet_sk(sock->sk);
-> +
-> +	neigh = neigh_lookup(&arp_tbl, &inetsock->inet_daddr, dev);
+On the target (host):
+$ cat /sys/class/infiniband/mlx4_0/ports/1/gids/0
+fe80:0000:0000:0000:0002:c903:0000:1679
+{It's my understanding this should be used underneath srpt, as the wwn}
 
-Also, isn't inet_daddr the destination address? But the function claims 
-to return the SGID. I guess these can be ambiguous but still it seems 
-confusing.
+On the initiator (client):
+$ cat /sys/class/infiniband/mlx4_0/ports/1/gids/0
+fe80:0000:0000:0000:0002:c903:0000:1e79
+{It's my understanding this should be used underneath acls, and mapped
+with the luns}
+# ibsrpdm -c
+id_ext=0002c90300001678,ioc_guid=0002c90300001678,dgid=fe800000000000000002c90300001679,pkey=ffff,service_id=0002c90300001678
+{so, its /etc/srp_daemon.conf is just comments and the line}
+a id_ext=0002c90300001678,ioc_guid=0002c90300001678,dgid=fe800000000000000002c90300001679,pkey=ffff,service_id=0002c90300001678
 
-> +	if (!IS_ERR_OR_NULL(neigh))
-> +		goto found;
-> +
-> +	/* If not found try in all other ipoib devices */
-> +	dev_list = ipoib_get_dev_list(priv->ca);
-> +	if (!dev_list)
-> +		return -EINVAL;
-> +
-> +	list_for_each_entry(priv, dev_list, list) {
-This list can contain devices that belong to a different namespace. It
-doesn't make sense to do a neighbor lookup on these. Also, you can simply use 
-neigh_lookup_nodev if you don't care about the device.
+But, after starting service target on the target, and service
+srpdaemon on the initiator, dmesg on target shows:
+[  849.710278] ib_srpt Received SRP_LOGIN_REQ with i_port_id
+0x7916000003c90200:0x2c90300001e79, t_port_id
+0x2c90300001678:0x2c90300001678 and it_iu_len 260 on port 1
+(guid=0xfe80000000000000:0x2c90300001679)
+[  849.714528] ib_srpt Session : kernel thread ib_srpt_compl (PID 24481) started
+[  849.714601] ib_srpt Rejected login because no ACL has been
+configured yet for initiator 0x7916000003c902000002c90300001e79.
+[  849.714613] ib_srpt Session 0x7916000003c902000002c90300001e79:
+kernel thread ib_srpt_compl (PID 24481) stopped
 
-> +		if (priv->pkey_index == pkey_index) {
-> +			neigh = neigh_lookup(&arp_tbl, &inetsock->inet_daddr,
-> +					     priv->dev);
-> +			if (!IS_ERR_OR_NULL(neigh))
-> +				goto found;
-> +		}
-> +		list_for_each_entry(child_priv, &priv->child_intfs, list) {
-> +			if (child_priv->pkey_index == pkey_index) {
-> +				neigh = neigh_lookup(&arp_tbl,
-> +						     &inetsock->inet_daddr,
-> +						     child_priv->dev);
-> +				if (!IS_ERR_OR_NULL(neigh))
-> +					goto found;
-> +			}
-> +		}
-> +	}
-> +
-> +	return -ENODEV;
-> +
-> +found:
-> +	if (!(neigh->nud_state & NUD_VALID))
-> +		return -EINVAL;
-> +
-> +	gid = (union ib_gid *)(neigh->ha + 4);
-If you just take the GID from the hardware address why not do that from userspace?
-Why do you need a new ioctl to do that for you?
+And, dmesg on initiator shows:
+[  976.616221] scsi host11: ib_srp: REJ received
+[  976.616229] scsi host11: ib_srp: SRP LOGIN from
+fe80:0000:0000:0000:0002:c903:0000:1e79 to
+fe80:0000:0000:0000:0002:c903:0000:1679 REJECTED, reason 0x00010001
+[  976.616269] scsi host11: ib_srp: Connection 0/4 failed
+[  976.616276] scsi host11: ib_srp: Sending CM DREQ failed
 
-> +	*sgid = be64_to_cpu(gid->global.interface_id);
-> +	*subnet_prefix = be64_to_cpu(gid->global.subnet_prefix);
-> +
-> +	neigh_release(neigh);
-> +
-> +	return 0;
-> +}
+Why is the target machine, in the srp context only, seeing the ports
+as starting with 0x7916000003c90200 and 0x2c90300001678, and the
+client machine seeing the ports as starting with fe80:0000:0000:0000?
+What are these 0x7916... and 0x2c90... prefixes, and how can I find
+them besides getting a rejection and looking at the kernel logs?  I
+haven't seen these prefixes anywhere else on either system.
 
-Regards,
-Haggai
-
+In targetcli, if I use acls with 0x7916000003c902000002c90300001e79,
+then everything works great.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
