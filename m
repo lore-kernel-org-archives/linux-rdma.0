@@ -1,34 +1,35 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/ipoib: Expose ioctl command to retrieve SGID of a
- given socket
-Date: Sun, 3 Jan 2016 09:53:34 +0200
-Message-ID: <20160103075333.GB5515@yuval-ThinkPad-X220>
-References: <1451572875-24961-1-git-send-email-yuval.shaia@oracle.com>
- <56854A60.6040202@mellanox.com>
+From: "Jeff Skoll" <s_w9gc9x-uCjPqYABYO6OPzg9A3tDVg@public.gmane.org>
+Subject: Charity Donation
+Date: Sun, 03 Jan 2016 04:39:53 -0500
+Message-ID: <auto-000000709460@mailadmin.uni-kassel.de>
+Reply-To: jeff.skoll-aj9EiHWJibxFWb1O811qSg@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <56854A60.6040202-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Description: Mail message body
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Me <s_w9gc9x-uCjPqYABYO6OPzg9A3tDVg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 31, 2015 at 05:31:44PM +0200, Or Gerlitz wrote:
-> 
-> wait (2nd)
-> 
-> what prevents you from getting this info in user space through
-> netlink from the kernel rtnl routing/neighbour services?
-Thanks.
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi,
+My name is Jeffrey Skoll, a philanthropist and the founder of one of th=
+e largest private foundations in the world. I believe strongly in =E2=80=
+=98giving while living.=E2=80=99 I had one idea that never changed in m=
+y mind =E2=80=94 that you should use your wealth to help people and I h=
+ave decided to secretly give USD2.498 Million to a randomly selected in=
+dividual. On receipt of this email, you should count yourself as the in=
+dividual. Kindly get back to me at your earliest convenience, so I know=
+ your email address is valid.
+
+Visit the web page to know more about me: http://www.theglobeandmail.co=
+m/news/national/meet-the-canadian-billionaire-whos-giving-it-all-away/a=
+rticle4209888/ or you can read an article of me on Wikipedia.
+
+Regards,
+Jeffrey Skoll.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
