@@ -1,51 +1,39 @@
-From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH] IB/sysfs: Fix sparse warning on attr_id
-Date: Sun,  3 Jan 2016 22:44:25 -0500
-Message-ID: <1451879065-6513-1-git-send-email-ira.weiny@intel.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/3] IB Core: Create get_perf_mad function in sysfs.c
+Date: Sun, 3 Jan 2016 22:47:23 -0500
+Message-ID: <20160104034723.GD329@phlsvsds.ph.intel.com>
+References: <20151217195255.334854705@linux.com> <20151217195312.126391272@linux.com> <5684E027.4040006@sandisk.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5684E027.4040006-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Thu, Dec 31, 2015 at 08:58:31AM +0100, Bart Van Assche wrote:
+> On 12/17/2015 08:52 PM, Christoph Lameter wrote:
+> >-	in_mad->mad_hdr.attr_id       = cpu_to_be16(0x12); /* PortCounters */
+> >+	in_mad->mad_hdr.attr_id       = attr;
+> 
+> Hello Christoph,
+> 
+> sparse reports an endianness mismatch for this and similar assignments 
+> (make M=drivers/infiniband/core C=2 CF=-D__CHECK_ENDIAN__). Can you have 
+> a look at this ?
 
-Attributed ID was declared as an int while the value should really be big
-endian 16.
+quick patch sent:
 
-Fixes: 35c4cbb17811 ("IB/core: Create get_perf_mad function in sysfs.c")
+https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg31257.html
 
-Reported-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/core/sysfs.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Ira
 
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index 2daf83276cdf..3de93517efe4 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -77,7 +77,7 @@ struct port_table_attribute {
- 	struct port_attribute	attr;
- 	char			name[8];
- 	int			index;
--	int			attr_id;
-+	__be16			attr_id;
- };
- 
- static ssize_t port_attr_show(struct kobject *kobj,
-@@ -413,7 +413,7 @@ struct port_table_attribute port_pma_attr_ext_##_name = {		\
-  * Get a Perfmgmt MAD block of data.
-  * Returns error code or the number of bytes retrieved.
-  */
--static int get_perf_mad(struct ib_device *dev, int port_num, int attr,
-+static int get_perf_mad(struct ib_device *dev, int port_num, __be16 attr,
- 		void *data, int offset, size_t size)
- {
- 	struct ib_mad *in_mad;
--- 
-1.8.2
-
+> 
+> Thanks,
+> 
+> Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
