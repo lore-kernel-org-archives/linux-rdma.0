@@ -1,32 +1,40 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
-Subject: RE: [PATCH] staging: rdma: hfi1: diag: constify hfi1_filter_array
- structure
-Date: Mon, 4 Jan 2016 15:48:54 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC259E41B4@fmsmsx120.amr.corp.intel.com>
-References: <1450903377-27803-1-git-send-email-Julia.Lawall@lip6.fr>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH TRIVIAL] IB/core: ib_mad.h ib_mad_snoop_handler documentation
+ fix
+Date: Mon, 4 Jan 2016 11:04:53 -0500
+Message-ID: <568A9825.3070806@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1450903377-27803-1-git-send-email-Julia.Lawall@lip6.fr>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Doug Ledford <dledford@redhat.com>, "Hefty, Sean" <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> From: devel [mailto:driverdev-devel-bounces@linuxdriverproject.org] On
-> Behalf Of Julia Lawall
-> Subject: [PATCH] staging: rdma: hfi1: diag: constify hfi1_filter_array
-> structure
-> 
-> The hfi1_filter_array structure is never modified, so declare it as const.
-> 
-> Done with the help of Coccinelle.
-> 
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-> 
+ib_mad_snoop_handler ues send_buf rather than send_wr
 
-Thanks for the patch!
-
-Acked-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
+index ec9b44d..2b3573d 100644
+--- a/include/rdma/ib_mad.h
++++ b/include/rdma/ib_mad.h
+@@ -424,11 +424,11 @@ typedef void (*ib_mad_send_handler)(struct ib_mad_agent *mad_agent,
+ /**
+  * ib_mad_snoop_handler - Callback handler for snooping sent MADs.
+  * @mad_agent: MAD agent that snooped the MAD.
+- * @send_wr: Work request information on the sent MAD.
++ * @send_buf: send MAD data buffer.
+  * @mad_send_wc: Work completion information on the sent MAD.  Valid
+  *   only for snooping that occurs on a send completion.
+  *
+- * Clients snooping MADs should not modify data referenced by the @send_wr
++ * Clients snooping MADs should not modify data referenced by the @send_buf
+  * or @mad_send_wc.
+  */
+ typedef void (*ib_mad_snoop_handler)(struct ib_mad_agent *mad_agent,
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
