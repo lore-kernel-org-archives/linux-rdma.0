@@ -1,8 +1,8 @@
-From: Vlastimil Babka <vbabka-AlSwsSmVLrQ@public.gmane.org>
+From: Vlastimil Babka <vbabka@suse.cz>
 Subject: Re: [RFC contig pages support 1/2] IB: Supports contiguous memory
  operations
-Date: Mon, 4 Jan 2016 15:43:59 +0100
-Message-ID: <568A852F.6080806@suse.cz>
+Date: Mon, 4 Jan 2016 15:44:43 +0100
+Message-ID: <568A855B.7060509@suse.cz>
 References: <1449587707-24214-1-git-send-email-yishaih@mellanox.com>
  <1449587707-24214-2-git-send-email-yishaih@mellanox.com>
  <20151208151852.GA6688@infradead.org>
@@ -15,12 +15,14 @@ References: <1449587707-24214-1-git-send-email-yishaih@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AM4PR05MB14603CF21CB493086BDEE026DCE60-n5Jp0YuYvM1n/kQvjoF5G9qRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <AM4PR05MB14603CF21CB493086BDEE026DCE60@AM4PR05MB1460.eurprd05.prod.outlook.com>
+Sender: owner-linux-mm@kvack.org
+To: Shachar Raindel <raindel@mellanox.com>, Christoph Hellwig <hch@infradead.org>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Yishai Hadas <yishaih@mellanox.com>, "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Or Gerlitz <ogerlitz@mellanox.com>, Tal Alon <talal@mellanox.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Minchan Kim <minchan@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
+
+[Sorry for resending, forgot to CC Minchan]
 
 On 12/23/2015 05:30 PM, Shachar Raindel wrote:
  >>>
@@ -104,12 +106,13 @@ thread could be provided by mm.
  >
  > --
  > To unsubscribe, send a message with 'unsubscribe linux-mm' in
- > the body to majordomo-Bw31MaZKKs0EbZ0PF+XxCw@public.gmane.org  For more info on Linux MM,
+ > the body to majordomo@kvack.org.  For more info on Linux MM,
  > see: http://www.linux-mm.org/ .
- > Don't email: <a href=ilto:"dont-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org"> email-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org </a>
+ > Don't email: <a href=ilto:"dont@kvack.org"> email@kvack.org </a>
  >
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
