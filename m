@@ -1,181 +1,114 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 1/2] IB/mad: pass ib_mad_send_buf explicitly to the
- recv_handler
-Date: Mon, 4 Jan 2016 09:07:17 -0500
-Message-ID: <568A7C95.7090406@dev.mellanox.co.il>
-References: <1451913359-25074-1-git-send-email-hch@lst.de>
- <1451913359-25074-2-git-send-email-hch@lst.de>
+From: Vlastimil Babka <vbabka-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: [RFC contig pages support 1/2] IB: Supports contiguous memory
+ operations
+Date: Mon, 4 Jan 2016 15:43:59 +0100
+Message-ID: <568A852F.6080806@suse.cz>
+References: <1449587707-24214-1-git-send-email-yishaih@mellanox.com>
+ <1449587707-24214-2-git-send-email-yishaih@mellanox.com>
+ <20151208151852.GA6688@infradead.org>
+ <20151208171542.GB13549@obsidianresearch.com>
+ <AM4PR05MB146005B448BEA876519335CDDCE80@AM4PR05MB1460.eurprd05.prod.outlook.com>
+ <20151209183940.GA4522@infradead.org>
+ <AM4PR05MB14603FC8169D50AD2A8F5AA3DCEC0@AM4PR05MB1460.eurprd05.prod.outlook.com>
+ <56796538.9040906@suse.cz>
+ <AM4PR05MB14603CF21CB493086BDEE026DCE60@AM4PR05MB1460.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1451913359-25074-2-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <AM4PR05MB14603CF21CB493086BDEE026DCE60-n5Jp0YuYvM1n/kQvjoF5G9qRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/4/2016 8:15 AM, Christoph Hellwig wrote:
-> Stop abusing wr_id and just pass the parameter explicitly.
-> 
-> Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+On 12/23/2015 05:30 PM, Shachar Raindel wrote:
+ >>>
+ >>> I completely agree, and this RFC was sent in order to start discussion
+ >>> on this subject.
+ >>>
+ >>> Dear MM people, can you please advise on the subject?
+ >>>
+ >>> Multiple HW vendors, from different fields, ranging between embedded
+ >> SoC
+ >>> devices (TI) and HPC (Mellanox) are looking for a solution to allocate
+ >>> blocks of contiguous memory to user space applications, without using
+ >> huge
+ >>> pages.
+ >>>
+ >>> What should be the API to expose such feature?
+ >>>
+ >>> Should we create a virtual FS that allows the user to create "files"
+ >>> representing memory allocations, and define the contiguous level we
+ >>> attempt to allocate using folders (similar to hugetlbfs)?
+ >>>
+ >>> Should we patch hugetlbfs to allow allocation of contiguous memory
+ >> chunks,
+ >>> without creating larger memory mapping in the CPU page tables?
+ >>>
+ >>> Should we create a special "allocator" virtual device, that will hand
+ >> out
+ >>> memory in contiguous chunks via a call to mmap with an FD connected to
+ >> the
+ >>> device?
+ >>
+ >> How much memory do you assume to be used like this?
+ >
+ > Depends on the use case. Most likely several MBs/core, used for 
+interfacing
+ > with the HW (packet rings, frame buffers, etc.).
+ >
+ > Some applications might want to perform calculations in such memory, to
+ > optimize communication time, especially in the HPC market.
 
-Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+OK.
 
-> ---
->  drivers/infiniband/core/cm.c          |  1 +
->  drivers/infiniband/core/mad.c         | 18 ++++++++++--------
->  drivers/infiniband/core/sa_query.c    |  7 ++++---
->  drivers/infiniband/core/user_mad.c    |  1 +
->  drivers/infiniband/ulp/srpt/ib_srpt.c |  1 +
->  include/rdma/ib_mad.h                 |  2 ++
->  6 files changed, 19 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-> index e3a95d1..ad3726d 100644
-> --- a/drivers/infiniband/core/cm.c
-> +++ b/drivers/infiniband/core/cm.c
-> @@ -3503,6 +3503,7 @@ int ib_cm_notify(struct ib_cm_id *cm_id, enum ib_event_type event)
->  EXPORT_SYMBOL(ib_cm_notify);
->  
->  static void cm_recv_handler(struct ib_mad_agent *mad_agent,
-> +			    struct ib_mad_send_buf *send_buf,
->  			    struct ib_mad_recv_wc *mad_recv_wc)
->  {
->  	struct cm_port *port = mad_agent->context;
-> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-> index d4d2a61..cbe232a 100644
-> --- a/drivers/infiniband/core/mad.c
-> +++ b/drivers/infiniband/core/mad.c
-> @@ -693,7 +693,7 @@ static void snoop_recv(struct ib_mad_qp_info *qp_info,
->  
->  		atomic_inc(&mad_snoop_priv->refcount);
->  		spin_unlock_irqrestore(&qp_info->snoop_lock, flags);
-> -		mad_snoop_priv->agent.recv_handler(&mad_snoop_priv->agent,
-> +		mad_snoop_priv->agent.recv_handler(&mad_snoop_priv->agent, NULL,
->  						   mad_recv_wc);
->  		deref_snoop_agent(mad_snoop_priv);
->  		spin_lock_irqsave(&qp_info->snoop_lock, flags);
-> @@ -1994,9 +1994,9 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
->  				/* user rmpp is in effect
->  				 * and this is an active RMPP MAD
->  				 */
-> -				mad_recv_wc->wc->wr_id = 0;
-> -				mad_agent_priv->agent.recv_handler(&mad_agent_priv->agent,
-> -								   mad_recv_wc);
-> +				mad_agent_priv->agent.recv_handler(
-> +						&mad_agent_priv->agent, NULL,
-> +						mad_recv_wc);
->  				atomic_dec(&mad_agent_priv->refcount);
->  			} else {
->  				/* not user rmpp, revert to normal behavior and
-> @@ -2010,9 +2010,10 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
->  			spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
->  
->  			/* Defined behavior is to complete response before request */
-> -			mad_recv_wc->wc->wr_id = (unsigned long) &mad_send_wr->send_buf;
-> -			mad_agent_priv->agent.recv_handler(&mad_agent_priv->agent,
-> -							   mad_recv_wc);
-> +			mad_agent_priv->agent.recv_handler(
-> +					&mad_agent_priv->agent,
-> +					&mad_send_wr->send_buf,
-> +					mad_recv_wc);
->  			atomic_dec(&mad_agent_priv->refcount);
->  
->  			mad_send_wc.status = IB_WC_SUCCESS;
-> @@ -2021,7 +2022,7 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
->  			ib_mad_complete_send_wr(mad_send_wr, &mad_send_wc);
->  		}
->  	} else {
-> -		mad_agent_priv->agent.recv_handler(&mad_agent_priv->agent,
-> +		mad_agent_priv->agent.recv_handler(&mad_agent_priv->agent, NULL,
->  						   mad_recv_wc);
->  		deref_mad_agent(mad_agent_priv);
->  	}
-> @@ -2762,6 +2763,7 @@ static void local_completions(struct work_struct *work)
->  					   IB_MAD_SNOOP_RECVS);
->  			recv_mad_agent->agent.recv_handler(
->  						&recv_mad_agent->agent,
-> +						&local->mad_send_wr->send_buf,
->  						&local->mad_priv->header.recv_wc);
->  			spin_lock_irqsave(&recv_mad_agent->lock, flags);
->  			atomic_dec(&recv_mad_agent->refcount);
-> diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-> index e364a42..1f91b6e 100644
-> --- a/drivers/infiniband/core/sa_query.c
-> +++ b/drivers/infiniband/core/sa_query.c
-> @@ -1669,14 +1669,15 @@ static void send_handler(struct ib_mad_agent *agent,
->  }
->  
->  static void recv_handler(struct ib_mad_agent *mad_agent,
-> +			 struct ib_mad_send_buf *send_buf,
->  			 struct ib_mad_recv_wc *mad_recv_wc)
->  {
->  	struct ib_sa_query *query;
-> -	struct ib_mad_send_buf *mad_buf;
->  
-> -	mad_buf = (void *) (unsigned long) mad_recv_wc->wc->wr_id;
-> -	query = mad_buf->context[0];
-> +	if (!send_buf)
-> +		return;
->  
-> +	query = send_buf->context[0];
->  	if (query->callback) {
->  		if (mad_recv_wc->wc->status == IB_WC_SUCCESS)
->  			query->callback(query,
-> diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-> index 57f281f..415a318 100644
-> --- a/drivers/infiniband/core/user_mad.c
-> +++ b/drivers/infiniband/core/user_mad.c
-> @@ -210,6 +210,7 @@ static void send_handler(struct ib_mad_agent *agent,
->  }
->  
->  static void recv_handler(struct ib_mad_agent *agent,
-> +			 struct ib_mad_send_buf *send_buf,
->  			 struct ib_mad_recv_wc *mad_recv_wc)
->  {
->  	struct ib_umad_file *file = agent->context;
-> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> index 105512d..1d78de1 100644
-> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> @@ -455,6 +455,7 @@ static void srpt_mad_send_handler(struct ib_mad_agent *mad_agent,
->   * srpt_mad_recv_handler() - MAD reception callback function.
->   */
->  static void srpt_mad_recv_handler(struct ib_mad_agent *mad_agent,
-> +				  struct ib_mad_send_buf *send_buf,
->  				  struct ib_mad_recv_wc *mad_wc)
->  {
->  	struct srpt_port *sport = (struct srpt_port *)mad_agent->context;
-> diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
-> index ec9b44d..61c5baa 100644
-> --- a/include/rdma/ib_mad.h
-> +++ b/include/rdma/ib_mad.h
-> @@ -438,6 +438,7 @@ typedef void (*ib_mad_snoop_handler)(struct ib_mad_agent *mad_agent,
->  /**
->   * ib_mad_recv_handler - callback handler for a received MAD.
->   * @mad_agent: MAD agent requesting the received MAD.
-> + * @send_buf: Send buffer if found, else NULL
->   * @mad_recv_wc: Received work completion information on the received MAD.
->   *
->   * MADs received in response to a send request operation will be handed to
-> @@ -447,6 +448,7 @@ typedef void (*ib_mad_snoop_handler)(struct ib_mad_agent *mad_agent,
->   * modify the data referenced by @mad_recv_wc.
->   */
->  typedef void (*ib_mad_recv_handler)(struct ib_mad_agent *mad_agent,
-> +			 	    struct ib_mad_send_buf *send_buf,
->  				    struct ib_mad_recv_wc *mad_recv_wc);
+ >
+ >> Is this memory
+ >> supposed to be swappable, migratable, etc? I.e. on LRU lists?
+ >
+ > Most likely not. In many of the relevant applications (embedded, HPC),
+ > there is no swap and the application threads are pinned to specific cores
+ > and NUMA nodes.
+ > The biggest pain here is that these memory pages will not be eligible for
+ > compaction, making it harder to handle fragmentations and CMA allocation
+ > requests.
 
-Nit: remove the following text from ib_mad_recv_wc which is no longer valid:
+There was a patch set to enable compaction on such pages, see 
+https://lwn.net/Articles/650917/
+Minchan was going to pick this after Gioh left, and then it should be 
+possible. But it requires careful driver-specific cooperation, i.e. when 
+a page can be isolated for the migration, see 
+http://article.gmane.org/gmane.linux.kernel.mm/136457
 
- * For received response, the wr_id contains a pointer to the ib_mad_send_buf
- *   for the corresponding send request.
+ >> Allocating a lot of memory (e.g. most of userspace memory) that's not
+ >> LRU wouldn't be nice. But LRU operations are not prepared to work witch
+ >> such non-standard-sized allocations, regardless of what API you use.  So
+ >> I think that's the more fundamental questions here.
+ >
+ > I agree that there are fundamental questions here.
+ >
+ > That being said, there is a clear need for an API allowing
+ > allocation, to the user space, limited size of memory that
+ > is composed of large contiguous blocks.
+ >
+ > What will be the best way to implement such solution?
 
-although there's one vestige of this left in local_completions where build_smp_wc is called which is removed in your subsequent patch "IB/mad: use CQ abstraction".
+Given the likely driver-specific constraints/handling of the page 
+migration, I'm not sure if some completely universal API is feasible.
+Maybe some reusable parts of the functionality in the patch in this 
+thread could be provided by mm.
 
->  
->  /**
-> 
+ > Thanks,
+ > --Shachar
+ >
+ > --
+ > To unsubscribe, send a message with 'unsubscribe linux-mm' in
+ > the body to majordomo-Bw31MaZKKs0EbZ0PF+XxCw@public.gmane.org  For more info on Linux MM,
+ > see: http://www.linux-mm.org/ .
+ > Don't email: <a href=ilto:"dont-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org"> email-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org </a>
+ >
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
