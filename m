@@ -1,42 +1,54 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCHv2 TRIVIAL] IB/core: ib_mad.h ib_mad_snoop_handler
- documentation fix
-Date: Mon, 4 Jan 2016 15:44:15 -0500
-Message-ID: <568AD99F.7040009@dev.mellanox.co.il>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: re: iser-target: Add iSCSI Extensions for RDMA (iSER) target driver
+Date: Tue, 5 Jan 2016 00:07:32 +0300
+Message-ID: <20160104210732.GA8675@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-ib_mad_snoop_handler uses send_buf rather than send_wr
+Hello Nicholas Bellinger,
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-Change since v1:
-Fixed typo in patch description
+The patch b8d26b3be8b3: "iser-target: Add iSCSI Extensions for RDMA
+(iSER) target driver" from Mar 7, 2013, leads to the following static
+checker warning:
 
-diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
-index ec9b44d..2b3573d 100644
---- a/include/rdma/ib_mad.h
-+++ b/include/rdma/ib_mad.h
-@@ -424,11 +424,11 @@ typedef void (*ib_mad_send_handler)(struct ib_mad_agent *mad_agent,
- /**
-  * ib_mad_snoop_handler - Callback handler for snooping sent MADs.
-  * @mad_agent: MAD agent that snooped the MAD.
-- * @send_wr: Work request information on the sent MAD.
-+ * @send_buf: send MAD data buffer.
-  * @mad_send_wc: Work completion information on the sent MAD.  Valid
-  *   only for snooping that occurs on a send completion.
-  *
-- * Clients snooping MADs should not modify data referenced by the @send_wr
-+ * Clients snooping MADs should not modify data referenced by the @send_buf
-  * or @mad_send_wc.
-  */
- typedef void (*ib_mad_snoop_handler)(struct ib_mad_agent *mad_agent,
+	drivers/infiniband/ulp/isert/ib_isert.c:423 isert_device_get()
+	error: passing non negative 1 to ERR_PTR
+
+drivers/infiniband/ulp/isert/ib_isert.c
+   417  
+   418          device->ib_device = cma_id->device;
+   419          ret = isert_create_device_ib_res(device);
+   420          if (ret) {
+   421                  kfree(device);
+   422                  mutex_unlock(&device_list_mutex);
+   423                  return ERR_PTR(ret);
+
+The warning here is because isert_create_device_ib_res() returns either
+a negative error code, zero or one.  The documentation is not clear what
+that means.  AHAHAHAHAHAHAHAH.  I joke.  There is no documentation.
+
+Anyway, it's definitely a bug and it leads to a NULL dereference in the
+caller.
+
+   424          }
+   425  
+   426          device->refcount++;
+   427          list_add_tail(&device->dev_node, &device_list);
+   428          isert_info("Created a new iser device %p refcount %d\n",
+   429                     device, device->refcount);
+   430          mutex_unlock(&device_list_mutex);
+   431  
+   432          return device;
+   433  }
+
+regards,
+dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
