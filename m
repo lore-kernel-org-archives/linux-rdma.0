@@ -1,81 +1,83 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCHv1 3/6] rdmacg: implements rdma cgroup
-Date: Tue, 5 Jan 2016 17:01:28 -0500
-Message-ID: <20160105220128.GJ5995@mtj.duckdns.org>
-References: <1452020286-9508-1-git-send-email-pandit.parav@gmail.com>
- <1452020286-9508-4-git-send-email-pandit.parav@gmail.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCHv4 TRIVIAL] IB/core: Documentation fix to the snoop handler in the MAD header file
+Date: Tue, 5 Jan 2016 17:03:42 -0500
+Message-ID: <20160105220342.GD12703@phlsvsds.ph.intel.com>
+References: <568C1107.2060203@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-security-module-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1452020286-9508-4-git-send-email-pandit.parav@gmail.com>
-Sender: owner-linux-security-module@vger.kernel.org
-To: Parav Pandit <pandit.parav@gmail.com>
-Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, lizefan@huawei.com, hannes@cmpxchg.org, dledford@redhat.com, liranl@mellanox.com, sean.hefty@intel.com, jgunthorpe@obsidianresearch.com, haggaie@mellanox.com, corbet@lwn.net, james.l.morris@oracle.com, serge@hallyn.com, ogerlitz@mellanox.com, matanb@mellanox.com, raindel@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
+In-Reply-To: <568C1107.2060203-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
+On Tue, Jan 05, 2016 at 01:52:55PM -0500, Hal Rosenstock wrote:
+> In ib_mad.h, ib_mad_snoop_handler uses send_buf rather than send_wr
+> 
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-On Wed, Jan 06, 2016 at 12:28:03AM +0530, Parav Pandit wrote:
-> +/* hash table to keep map of tgid to owner cgroup */
-> +DEFINE_HASHTABLE(pid_cg_map_tbl, 7);
-> +DEFINE_SPINLOCK(pid_cg_map_lock);	/* lock to protect hash table access */
-> +
-> +/* Keeps mapping of pid to its owning cgroup at rdma level,
-> + * This mapping doesn't change, even if process migrates from one to other
-> + * rdma cgroup.
-> + */
-> +struct pid_cg_map {
-> +	struct pid *pid;		/* hash key */
-> +	struct rdma_cgroup *cg;
-> +
-> +	struct hlist_node hlist;	/* pid to cgroup hash table link */
-> +	atomic_t refcnt;		/* count active user tasks to figure out
-> +					 * when to free the memory
-> +					 */
-> +};
+First off I have to say; this comment is wrong and should be fixed.
 
-Ugh, there's something clearly wrong here.  Why does the rdma
-controller need to keep track of pid cgroup membership?
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-> +static void _dealloc_cg_rpool(struct rdma_cgroup *cg,
-> +			      struct cg_resource_pool *rpool)
-> +{
-> +	spin_lock(&cg->cg_list_lock);
-> +
-> +	/* if its started getting used by other task,
-> +	 * before we take the spin lock, then skip,
-> +	 * freeing it.
-> +	 */
+That said.
 
-Please follow CodingStyle.
+I agree with Sean that the snoop interface should be removed.
 
-> +	if (atomic_read(&rpool->refcnt) == 0) {
-> +		list_del_init(&rpool->cg_list);
-> +		spin_unlock(&cg->cg_list_lock);
-> +
-> +		_free_cg_rpool(rpool);
-> +		return;
-> +	}
-> +	spin_unlock(&cg->cg_list_lock);
-> +}
-> +
-> +static void dealloc_cg_rpool(struct rdma_cgroup *cg,
-> +			     struct cg_resource_pool *rpool)
-> +{
-> +	/* Don't free the resource pool which is created by the
-> +	 * user, otherwise we miss the configured limits. We don't
-> +	 * gain much either by splitting storage of limit and usage.
-> +	 * So keep it around until user deletes the limits.
-> +	 */
-> +	if (atomic_read(&rpool->creator) == RDMACG_RPOOL_CREATOR_DEFAULT)
-> +		_dealloc_cg_rpool(cg, rpool);
+I don't know the specific reason madeye was not accepted upstream back in the
+day.  However, I _think_ it was because it implements a non-standard tracing
+mechanism.
 
-I'm pretty sure you can get away with an fixed length array of
-counters.  Please keep it simple.  It's a simple hard limit enforcer.
-There's no need to create a massive dynamic infrastrucure.
+For this reason I have explored the use of the standard tracing infrastructure
+within the mad stack.  The series I sent for general comment [1] implemented
+tracing at a number of levels (umad and mad) as well as tracing of registered
+agents.  This IMO give more insight into what is going on within the MAD stack
+than the madeye module.
 
-Thanks.
+I'll see what I can do to update the tracing code.  In the mean time if others
+want to look at the tracing code I have so far I pushed a branch to my github.
 
--- 
-tejun
+https://github.com/weiny2/linux-kernel  doug-fn-mad-trace
+
+Ira
+
+[1] https://www.mail-archive.com/linux-rdma%40vger.kernel.org/msg28188.html
+
+> ---
+> Change since v3:
+> Fixed title to not include function name
+> 
+> Change since v2:
+> Changed title to use "higher" language
+> 
+> Change since v1:
+> Fixed typo in patch description
+> 
+> diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
+> index ec9b44d..2b3573d 100644
+> --- a/include/rdma/ib_mad.h
+> +++ b/include/rdma/ib_mad.h
+> @@ -424,11 +424,11 @@ typedef void (*ib_mad_send_handler)(struct ib_mad_agent *mad_agent,
+>  /**
+>   * ib_mad_snoop_handler - Callback handler for snooping sent MADs.
+>   * @mad_agent: MAD agent that snooped the MAD.
+> - * @send_wr: Work request information on the sent MAD.
+> + * @send_buf: send MAD data buffer.
+>   * @mad_send_wc: Work completion information on the sent MAD.  Valid
+>   *   only for snooping that occurs on a send completion.
+>   *
+> - * Clients snooping MADs should not modify data referenced by the @send_wr
+> + * Clients snooping MADs should not modify data referenced by the @send_buf
+>   * or @mad_send_wc.
+>   */
+>  typedef void (*ib_mad_snoop_handler)(struct ib_mad_agent *mad_agent,
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
