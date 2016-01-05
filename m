@@ -1,47 +1,43 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 10/11] IB: only keep a single key in struct ib_mr
-Date: Tue, 5 Jan 2016 10:46:36 -0700
-Message-ID: <20160105174636.GD16269@obsidianresearch.com>
-References: <1448214409-7729-11-git-send-email-hch@lst.de>
- <56791542.6020604@dev.mellanox.co.il>
- <20151222131326.GA25267@lst.de>
- <56795514.9090704@dev.mellanox.co.il>
- <20151222135927.GA26311@lst.de>
- <56798126.9000003@dev.mellanox.co.il>
- <20151222210939.GA8212@obsidianresearch.com>
- <7sikrilf3ik3fjsgppqxh9gn.1451043246057@email.android.com>
- <CAMHdiBDv9mScD+5o90OQ_tmAKw9o48_jfao6W+EBOZkUg+wReA@mail.gmail.com>
- <CAMHdiBC75n+u9BSMsKxJwcaBnGL68_3UBeQQtHp_CD5KGcUTnQ@mail.gmail.com>
+From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2] staging/rdma/hfi1: check for ARMED->ACTIVE transition in receive interrupt
+Date: Tue, 5 Jan 2016 13:48:17 -0500
+Message-ID: <20160105184814.GA9152@phlsvsds.ph.intel.com>
+References: <1451924479-26205-1-git-send-email-jubin.john@intel.com> <20160104202346.GC18146@leon.nu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAMHdiBC75n+u9BSMsKxJwcaBnGL68_3UBeQQtHp_CD5KGcUTnQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20160104202346.GC18146-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Liran Liss <liss.liran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Jim Snow <jim.m.snow-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Brendan Cunningham <brendan.cunningham-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Dec 25, 2015 at 06:46:07PM +0200, Liran Liss wrote:
-> > From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+On Mon, Jan 04, 2016 at 10:23:46PM +0200, Leon Romanovsky wrote:
+> On Mon, Jan 04, 2016 at 11:21:19AM -0500, Jubin John wrote:
+> > From: Jim Snow <jim.m.snow-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > 
+> >  		} else {
+> > +			/* Auto activate link on non-SC15 packet receive */
+> > +			if (unlikely(rcd->ppd->host_link_state ==
+> > +				     HLS_UP_ARMED))
+> > +				if (set_armed_to_active(rcd, packet, dd))
+> > +					goto bail;
 > 
-> > > >fill mr->key by the lkey or rkey based on that and everything will
-> > > >work fine.
-> > >
-> > > But the ULP *can* register a memory buffer with local and remote
-> > > access permissions.
-> > Not in the new API.
-> >
-> > If a ULP ever comes along that does need that then they can start with
-> > two MRs and then eventually upgrade the kapi to have some kind of
-> > efficient bidir MR mode.
+> What is the advantage of double "if" over one "if"?
+> Something like that
+> + if (unlikely(rcd->ppd->host_link_state == HLS_UP_ARMED) && (set_armed_to_active(rcd, packet, dd))
+> +		goto bail;
+
+I don't think there is an advantage to the double if, so I will change
+it to the single if in v3.
+
 > 
-> ULPs are *already* using the same registrations for both local and
-> remote access.
-
-Where? Out of tree?
-
-Jason
+> >  			last = process_rcv_packet(&packet, thread);
+> >  		}
+> >  
+> > @@ -984,6 +1020,42 @@ bail:
+> >  }
+> >  
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
