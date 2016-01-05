@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 11/15] IB/srpt: Fix how aborted commands are processed
-Date: Tue, 5 Jan 2016 15:25:49 +0100
-Message-ID: <568BD26D.9080003@sandisk.com>
+Subject: [PATCH 12/15] IB/srpt: Eliminate srpt_find_channel()
+Date: Tue, 5 Jan 2016 15:26:22 +0100
+Message-ID: <568BD28E.40302@sandisk.com>
 References: <568BD0FC.70207@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,140 +13,232 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-srpt_abort_cmd() must not be called in state SRPT_STATE_DATA_IN. Issue
-a warning if this occurs.
-
-srpt_abort_cmd() must not invoke target_put_sess_cmd() for commands
-in state SRPT_STATE_DONE because the srpt_abort_cmd() callers already
-do this when necessary. Hence remove this call.
-
-If an RDMA read fails the corresponding SCSI command must fail. Hence
-add a transport_generic_request_failure() call.
-
-Remove an incorrect srpt_abort_cmd() call from srpt_rdma_write_done().
-
-Avoid that srpt_send_done() calls srpt_abort_cmd() for finished SCSI
-commands.
+In the CM REQ message handler, store the channel pointer in
+cm_id->context such that the function srpt_find_channel() is no
+longer needed. Additionally, make the CM event messages more
+informative.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 39 ++++++++++++++---------------------
- 1 file changed, 15 insertions(+), 24 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 113 +++++++++++++---------------------
+ 1 file changed, 43 insertions(+), 70 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 395bc1b..2ae3c1b 100644
+index 2ae3c1b..6ec130d 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -1273,25 +1273,17 @@ static int srpt_abort_cmd(struct srpt_send_ioctx *ioctx)
- 	case SRPT_STATE_NEED_DATA:
- 		ioctx->state = SRPT_STATE_DATA_IN;
- 		break;
--	case SRPT_STATE_DATA_IN:
- 	case SRPT_STATE_CMD_RSP_SENT:
- 	case SRPT_STATE_MGMT_RSP_SENT:
- 		ioctx->state = SRPT_STATE_DONE;
- 		break;
- 	default:
-+		WARN_ONCE(true, "%s: unexpected I/O context state %d\n",
-+			  __func__, state);
- 		break;
- 	}
- 	spin_unlock_irqrestore(&ioctx->spinlock, flags);
+@@ -1893,25 +1893,14 @@ static int srpt_shutdown_session(struct se_session *se_sess)
+  * ib_destroy_cm_id(), which locks the cm_id spinlock and hence waits until
+  * this function has finished).
+  */
+-static void srpt_drain_channel(struct ib_cm_id *cm_id)
++static void srpt_drain_channel(struct srpt_rdma_ch *ch)
+ {
+-	struct srpt_device *sdev;
+-	struct srpt_rdma_ch *ch;
+ 	int ret;
+ 	bool do_reset = false;
  
--	if (state == SRPT_STATE_DONE) {
--		struct srpt_rdma_ch *ch = ioctx->ch;
--
--		BUG_ON(ch->sess == NULL);
--
--		target_put_sess_cmd(&ioctx->cmd);
--		goto out;
+ 	WARN_ON_ONCE(irqs_disabled());
+ 
+-	sdev = cm_id->context;
+-	BUG_ON(!sdev);
+-	spin_lock_irq(&sdev->spinlock);
+-	list_for_each_entry(ch, &sdev->rch_list, list) {
+-		if (ch->cm_id == cm_id) {
+-			do_reset = srpt_set_ch_state(ch, CH_DRAINING);
+-			break;
+-		}
 -	}
--
- 	pr_debug("Aborting cmd with state %d and tag %lld\n", state,
- 		 ioctx->cmd.tag);
+-	spin_unlock_irq(&sdev->spinlock);
++	do_reset = srpt_set_ch_state(ch, CH_DRAINING);
  
-@@ -1299,14 +1291,16 @@ static int srpt_abort_cmd(struct srpt_send_ioctx *ioctx)
- 	case SRPT_STATE_NEW:
- 	case SRPT_STATE_DATA_IN:
- 	case SRPT_STATE_MGMT:
-+	case SRPT_STATE_DONE:
- 		/*
- 		 * Do nothing - defer abort processing until
- 		 * srpt_queue_response() is invoked.
- 		 */
--		WARN_ON(!(ioctx->cmd.transport_state & CMD_T_ABORTED));
- 		break;
- 	case SRPT_STATE_NEED_DATA:
--		/* DMA_TO_DEVICE (write) - RDMA read error. */
-+		pr_debug("tag %#llx: RDMA read error\n", ioctx->cmd.tag);
-+		transport_generic_request_failure(&ioctx->cmd,
-+					TCM_CHECK_CONDITION_ABORT_CMD);
- 		break;
- 	case SRPT_STATE_CMD_RSP_SENT:
- 		/*
-@@ -1314,18 +1308,16 @@ static int srpt_abort_cmd(struct srpt_send_ioctx *ioctx)
- 		 * not been received in time.
- 		 */
- 		srpt_unmap_sg_to_ib_sge(ioctx->ch, ioctx);
--		target_put_sess_cmd(&ioctx->cmd);
-+		transport_generic_free_cmd(&ioctx->cmd, 0);
- 		break;
- 	case SRPT_STATE_MGMT_RSP_SENT:
--		srpt_set_cmd_state(ioctx, SRPT_STATE_DONE);
--		target_put_sess_cmd(&ioctx->cmd);
-+		transport_generic_free_cmd(&ioctx->cmd, 0);
- 		break;
- 	default:
- 		WARN(1, "Unexpected command state (%d)", state);
- 		break;
- 	}
- 
--out:
- 	return state;
+ 	if (do_reset) {
+ 		if (ch->sess)
+@@ -1925,34 +1914,6 @@ static void srpt_drain_channel(struct ib_cm_id *cm_id)
  }
  
-@@ -1365,9 +1357,14 @@ static void srpt_rdma_write_done(struct ib_cq *cq, struct ib_wc *wc)
- 		container_of(wc->wr_cqe, struct srpt_send_ioctx, rdma_cqe);
+ /**
+- * srpt_find_channel() - Look up an RDMA channel.
+- * @cm_id: Pointer to the CM ID of the channel to be looked up.
+- *
+- * Return NULL if no matching RDMA channel has been found.
+- */
+-static struct srpt_rdma_ch *srpt_find_channel(struct srpt_device *sdev,
+-					      struct ib_cm_id *cm_id)
+-{
+-	struct srpt_rdma_ch *ch;
+-	bool found;
+-
+-	WARN_ON_ONCE(irqs_disabled());
+-	BUG_ON(!sdev);
+-
+-	found = false;
+-	spin_lock_irq(&sdev->spinlock);
+-	list_for_each_entry(ch, &sdev->rch_list, list) {
+-		if (ch->cm_id == cm_id) {
+-			found = true;
+-			break;
+-		}
+-	}
+-	spin_unlock_irq(&sdev->spinlock);
+-
+-	return found ? ch : NULL;
+-}
+-
+-/**
+  * srpt_release_channel() - Release channel resources.
+  *
+  * Schedules the actual release because:
+@@ -2160,6 +2121,7 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 	memcpy(ch->t_port_id, req->target_port_id, 16);
+ 	ch->sport = &sdev->port[param->port - 1];
+ 	ch->cm_id = cm_id;
++	cm_id->context = ch;
+ 	/*
+ 	 * Avoid QUEUE_FULL conditions by limiting the number of buffers used
+ 	 * for the SRP protocol to the command queue size.
+@@ -2304,10 +2266,23 @@ out:
+ 	return ret;
+ }
  
- 	if (unlikely(wc->status != IB_WC_SUCCESS)) {
-+		/*
-+		 * Note: if an RDMA write error completion is received that
-+		 * means that a SEND also has been posted. Defer further
-+		 * processing of the associated command until the send error
-+		 * completion has been received.
-+		 */
- 		pr_info("RDMA_WRITE for ioctx 0x%p failed with status %d\n",
- 			ioctx, wc->status);
--		srpt_abort_cmd(ioctx);
+-static void srpt_cm_rej_recv(struct ib_cm_id *cm_id)
++static void srpt_cm_rej_recv(struct srpt_rdma_ch *ch,
++			     enum ib_cm_rej_reason reason,
++			     const u8 *private_data,
++			     u8 private_data_len)
+ {
+-	pr_info("Received IB REJ for cm_id %p.\n", cm_id);
+-	srpt_drain_channel(cm_id);
++	char *priv = kmalloc(private_data_len * 3 + 1, GFP_KERNEL);
++	int i;
++
++	if (priv) {
++		priv[0] = '\0';
++		for (i = 0; i < private_data_len; i++)
++			sprintf(priv + 3 * i, "%02x ", private_data[i]);
++	}
++	pr_info("Received CM REJ for ch %s-%d; reason %d; private data %s.\n",
++		ch->sess_name, ch->qp->qp_num, reason, priv ? : "(?)");
++	kfree(priv);
++	srpt_drain_channel(ch);
+ }
+ 
+ /**
+@@ -2316,14 +2291,10 @@ static void srpt_cm_rej_recv(struct ib_cm_id *cm_id)
+  * An IB_CM_RTU_RECEIVED message indicates that the connection is established
+  * and that the recipient may begin transmitting (RTU = ready to use).
+  */
+-static void srpt_cm_rtu_recv(struct ib_cm_id *cm_id)
++static void srpt_cm_rtu_recv(struct srpt_rdma_ch *ch)
+ {
+-	struct srpt_rdma_ch *ch;
+ 	int ret;
+ 
+-	ch = srpt_find_channel(cm_id->context, cm_id);
+-	BUG_ON(!ch);
+-
+ 	if (srpt_set_ch_state(ch, CH_LIVE)) {
+ 		struct srpt_recv_ioctx *ioctx, *ioctx_tmp;
+ 
+@@ -2339,31 +2310,30 @@ static void srpt_cm_rtu_recv(struct ib_cm_id *cm_id)
  	}
  }
  
-@@ -1716,15 +1713,10 @@ static void srpt_send_done(struct ib_cq *cq, struct ib_wc *wc)
+-static void srpt_cm_timewait_exit(struct ib_cm_id *cm_id)
++static void srpt_cm_timewait_exit(struct srpt_rdma_ch *ch)
+ {
+-	pr_info("Received IB TimeWait exit for cm_id %p.\n", cm_id);
+-	srpt_drain_channel(cm_id);
++	pr_info("Received CM TimeWait exit for ch %s-%d.\n", ch->sess_name,
++		ch->qp->qp_num);
++	srpt_drain_channel(ch);
+ }
  
- 	atomic_inc(&ch->sq_wr_avail);
+-static void srpt_cm_rep_error(struct ib_cm_id *cm_id)
++static void srpt_cm_rep_error(struct srpt_rdma_ch *ch)
+ {
+-	pr_info("Received IB REP error for cm_id %p.\n", cm_id);
+-	srpt_drain_channel(cm_id);
++	pr_info("Received CM REP error for ch %s-%d.\n", ch->sess_name,
++		ch->qp->qp_num);
++	srpt_drain_channel(ch);
+ }
  
--	if (wc->status != IB_WC_SUCCESS) {
-+	if (wc->status != IB_WC_SUCCESS)
- 		pr_info("sending response for ioctx 0x%p failed"
- 			" with status %d\n", ioctx, wc->status);
+ /**
+  * srpt_cm_dreq_recv() - Process reception of a DREQ message.
+  */
+-static void srpt_cm_dreq_recv(struct ib_cm_id *cm_id)
++static void srpt_cm_dreq_recv(struct srpt_rdma_ch *ch)
+ {
+-	struct srpt_rdma_ch *ch;
+ 	unsigned long flags;
+ 	bool send_drep = false;
  
--		atomic_dec(&ch->req_lim);
--		srpt_abort_cmd(ioctx);
--		goto out;
--	}
+-	ch = srpt_find_channel(cm_id->context, cm_id);
+-	BUG_ON(!ch);
 -
- 	if (state != SRPT_STATE_DONE) {
- 		srpt_unmap_sg_to_ib_sge(ch, ioctx);
- 		transport_generic_free_cmd(&ioctx->cmd, 0);
-@@ -1733,7 +1725,6 @@ static void srpt_send_done(struct ib_cq *cq, struct ib_wc *wc)
- 		       " wr_id = %u.\n", ioctx->ioctx.index);
- 	}
+-	pr_debug("cm_id= %p ch->state= %d\n", cm_id, ch->state);
++	pr_debug("ch %s-%d state %d\n", ch->sess_name, ch->qp->qp_num,
++		 ch->state);
  
--out:
- 	while (!list_empty(&ch->cmd_wait_list) &&
- 	       ch->state == CH_LIVE &&
- 	       (ioctx = srpt_get_send_ioctx(ch)) != NULL) {
+ 	spin_lock_irqsave(&ch->spinlock, flags);
+ 	switch (ch->state) {
+@@ -2391,10 +2361,10 @@ static void srpt_cm_dreq_recv(struct ib_cm_id *cm_id)
+ /**
+  * srpt_cm_drep_recv() - Process reception of a DREP message.
+  */
+-static void srpt_cm_drep_recv(struct ib_cm_id *cm_id)
++static void srpt_cm_drep_recv(struct srpt_rdma_ch *ch)
+ {
+-	pr_info("Received InfiniBand DREP message for cm_id %p.\n", cm_id);
+-	srpt_drain_channel(cm_id);
++	pr_info("Received InfiniBand DREP message for cm_id %p.\n", ch->cm_id);
++	srpt_drain_channel(ch);
+ }
+ 
+ /**
+@@ -2409,6 +2379,7 @@ static void srpt_cm_drep_recv(struct ib_cm_id *cm_id)
+  */
+ static int srpt_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
+ {
++	struct srpt_rdma_ch *ch = cm_id->context;
+ 	int ret;
+ 
+ 	ret = 0;
+@@ -2418,23 +2389,25 @@ static int srpt_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
+ 				       event->private_data);
+ 		break;
+ 	case IB_CM_REJ_RECEIVED:
+-		srpt_cm_rej_recv(cm_id);
++		srpt_cm_rej_recv(ch, event->param.rej_rcvd.reason,
++				 event->private_data,
++				 IB_CM_REJ_PRIVATE_DATA_SIZE);
+ 		break;
+ 	case IB_CM_RTU_RECEIVED:
+ 	case IB_CM_USER_ESTABLISHED:
+-		srpt_cm_rtu_recv(cm_id);
++		srpt_cm_rtu_recv(ch);
+ 		break;
+ 	case IB_CM_DREQ_RECEIVED:
+-		srpt_cm_dreq_recv(cm_id);
++		srpt_cm_dreq_recv(ch);
+ 		break;
+ 	case IB_CM_DREP_RECEIVED:
+-		srpt_cm_drep_recv(cm_id);
++		srpt_cm_drep_recv(ch);
+ 		break;
+ 	case IB_CM_TIMEWAIT_EXIT:
+-		srpt_cm_timewait_exit(cm_id);
++		srpt_cm_timewait_exit(ch);
+ 		break;
+ 	case IB_CM_REP_ERROR:
+-		srpt_cm_rep_error(cm_id);
++		srpt_cm_rep_error(ch);
+ 		break;
+ 	case IB_CM_DREQ_ERROR:
+ 		pr_info("Received IB DREQ ERROR event.\n");
 -- 
 2.1.4
 
