@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 06/15] IB/srpt: Simplify srpt_handle_tsk_mgmt()
-Date: Tue, 5 Jan 2016 15:23:14 +0100
-Message-ID: <568BD1D2.1030609@sandisk.com>
+Subject: [PATCH 07/15] IB/srpt: Simplify channel state management
+Date: Tue, 5 Jan 2016 15:23:45 +0100
+Message-ID: <568BD1F1.5050107@sandisk.com>
 References: <568BD0FC.70207@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,96 +13,99 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Let the target core check task existence instead of the SRP target
-driver.
+The only allowed channel state changes are those that change
+the channel state into a state with a higher numerical value.
+This allows to merge the functions srpt_set_ch_state() and
+srpt_test_and_set_ch_state() into a single function.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 54 ++---------------------------------
- 1 file changed, 2 insertions(+), 52 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 42 +++++++++--------------------------
+ 1 file changed, 10 insertions(+), 32 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index fc19203..9cb1a14 100644
+index 9cb1a14..a27414d 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -1554,47 +1554,6 @@ send_sense:
- 	return -1;
- }
+@@ -96,37 +96,21 @@ static int srpt_queue_status(struct se_cmd *cmd);
+ static void srpt_recv_done(struct ib_cq *cq, struct ib_wc *wc);
+ static void srpt_send_done(struct ib_cq *cq, struct ib_wc *wc);
  
--/**
-- * srpt_rx_mgmt_fn_tag() - Process a task management function by tag.
-- * @ch: RDMA channel of the task management request.
-- * @fn: Task management function to perform.
-- * @req_tag: Tag of the SRP task management request.
-- * @mgmt_ioctx: I/O context of the task management request.
-- *
-- * Returns zero if the target core will process the task management
-- * request asynchronously.
-- *
-- * Note: It is assumed that the initiator serializes tag-based task management
-- * requests.
-- */
--static int srpt_rx_mgmt_fn_tag(struct srpt_send_ioctx *ioctx, u64 tag)
--{
--	struct srpt_device *sdev;
--	struct srpt_rdma_ch *ch;
--	struct srpt_send_ioctx *target;
--	int ret, i;
--
--	ret = -EINVAL;
--	ch = ioctx->ch;
--	BUG_ON(!ch);
--	BUG_ON(!ch->sport);
--	sdev = ch->sport->sdev;
--	BUG_ON(!sdev);
--	spin_lock_irq(&sdev->spinlock);
--	for (i = 0; i < ch->rq_size; ++i) {
--		target = ch->ioctx_ring[i];
--		if (target->cmd.se_lun == ioctx->cmd.se_lun &&
--		    target->cmd.tag == tag &&
--		    srpt_get_cmd_state(target) != SRPT_STATE_DONE) {
--			ret = 0;
--			/* now let the target core abort &target->cmd; */
--			break;
--		}
--	}
--	spin_unlock_irq(&sdev->spinlock);
--	return ret;
+-static enum rdma_ch_state
+-srpt_set_ch_state(struct srpt_rdma_ch *ch, enum rdma_ch_state new_state)
++static bool srpt_set_ch_state(struct srpt_rdma_ch *ch, enum rdma_ch_state new)
+ {
+ 	unsigned long flags;
+ 	enum rdma_ch_state prev;
++	bool changed = false;
+ 
+ 	spin_lock_irqsave(&ch->spinlock, flags);
+ 	prev = ch->state;
+-	ch->state = new_state;
+-	spin_unlock_irqrestore(&ch->spinlock, flags);
+-	return prev;
 -}
 -
- static int srp_tmr_to_tcm(int fn)
- {
- 	switch (fn) {
-@@ -1628,7 +1587,6 @@ static void srpt_handle_tsk_mgmt(struct srpt_rdma_ch *ch,
- 	struct srp_tsk_mgmt *srp_tsk;
- 	struct se_cmd *cmd;
- 	struct se_session *sess = ch->sess;
--	uint32_t tag = 0;
- 	int tcm_tmr;
- 	int rc;
+-/**
+- * srpt_test_and_set_ch_state() - Test and set the channel state.
+- *
+- * Returns true if and only if the channel state has been set to the new state.
+- */
+-static bool
+-srpt_test_and_set_ch_state(struct srpt_rdma_ch *ch, enum rdma_ch_state old,
+-			   enum rdma_ch_state new)
+-{
+-	unsigned long flags;
+-	enum rdma_ch_state prev;
+-
+-	spin_lock_irqsave(&ch->spinlock, flags);
+-	prev = ch->state;
+-	if (prev == old)
++	if (new > prev) {
+ 		ch->state = new;
++		changed = true;
++	}
+ 	spin_unlock_irqrestore(&ch->spinlock, flags);
+-	return prev == old;
++
++	return changed;
+ }
  
-@@ -1649,18 +1607,10 @@ static void srpt_handle_tsk_mgmt(struct srpt_rdma_ch *ch,
- 			TMR_TASK_MGMT_FUNCTION_NOT_SUPPORTED;
- 		goto fail;
+ /**
+@@ -199,8 +183,7 @@ static void srpt_qp_event(struct ib_event *event, struct srpt_rdma_ch *ch)
+ 		ib_cm_notify(ch->cm_id, event->event);
+ 		break;
+ 	case IB_EVENT_QP_LAST_WQE_REACHED:
+-		if (srpt_test_and_set_ch_state(ch, CH_DRAINING,
+-					       CH_RELEASING))
++		if (srpt_set_ch_state(ch, CH_RELEASING))
+ 			srpt_release_channel(ch);
+ 		else
+ 			pr_debug("%s: state %d - ignored LAST_WQE.\n",
+@@ -1946,12 +1929,7 @@ static void srpt_drain_channel(struct ib_cm_id *cm_id)
+ 	spin_lock_irq(&sdev->spinlock);
+ 	list_for_each_entry(ch, &sdev->rch_list, list) {
+ 		if (ch->cm_id == cm_id) {
+-			do_reset = srpt_test_and_set_ch_state(ch,
+-					CH_CONNECTING, CH_DRAINING) ||
+-				   srpt_test_and_set_ch_state(ch,
+-					CH_LIVE, CH_DRAINING) ||
+-				   srpt_test_and_set_ch_state(ch,
+-					CH_DISCONNECTING, CH_DRAINING);
++			do_reset = srpt_set_ch_state(ch, CH_DRAINING);
+ 			break;
+ 		}
  	}
--	if (srp_tsk->tsk_mgmt_func == SRP_TSK_ABORT_TASK) {
--		rc = srpt_rx_mgmt_fn_tag(send_ioctx, srp_tsk->task_tag);
--		if (rc < 0) {
--			send_ioctx->cmd.se_tmr_req->response =
--					TMR_TASK_DOES_NOT_EXIST;
--			goto fail;
--		}
--		tag = srp_tsk->task_tag;
--	}
- 	rc = target_submit_tmr(&send_ioctx->cmd, sess, NULL,
- 			       scsilun_to_int(&srp_tsk->lun), srp_tsk, tcm_tmr,
--			       GFP_KERNEL, tag, TARGET_SCF_ACK_KREF);
-+			       GFP_KERNEL, srp_tsk->task_tag,
-+			       TARGET_SCF_ACK_KREF);
- 	if (rc != 0) {
- 		send_ioctx->cmd.se_tmr_req->response = TMR_FUNCTION_REJECTED;
- 		goto fail;
+@@ -2368,7 +2346,7 @@ static void srpt_cm_rtu_recv(struct ib_cm_id *cm_id)
+ 	ch = srpt_find_channel(cm_id->context, cm_id);
+ 	BUG_ON(!ch);
+ 
+-	if (srpt_test_and_set_ch_state(ch, CH_CONNECTING, CH_LIVE)) {
++	if (srpt_set_ch_state(ch, CH_LIVE)) {
+ 		struct srpt_recv_ioctx *ioctx, *ioctx_tmp;
+ 
+ 		ret = srpt_ch_qp_rts(ch, ch->qp);
 -- 
 2.1.4
 
