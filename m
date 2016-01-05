@@ -1,82 +1,72 @@
 From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv4 TRIVIAL] IB/core: Documentation fix to the snoop handler in the MAD header file
-Date: Tue, 5 Jan 2016 17:03:42 -0500
-Message-ID: <20160105220342.GD12703@phlsvsds.ph.intel.com>
-References: <568C1107.2060203@dev.mellanox.co.il>
+Subject: Re: [RFC PATCH 00/15] staging/rdma/hfi1: Initial patches to add rdmavt support in HFI1
+Date: Tue, 5 Jan 2016 17:50:52 -0500
+Message-ID: <20160105225052.GA2122@phlsvsds.ph.intel.com>
+References: <20151214172509.11576.19722.stgit@phlsvslse11.ph.intel.com> <20151221061214.GD3860@phlsvsds.ph.intel.com> <20151221220235.GA14142@kroah.com> <20151222001943.GM3860@phlsvsds.ph.intel.com> <20151222010148.GB2145@kroah.com> <20151222191508.GO3860@phlsvsds.ph.intel.com> <20151223022757.GA5562@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <568C1107.2060203-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20151223022757.GA5562-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 05, 2016 at 01:52:55PM -0500, Hal Rosenstock wrote:
-> In ib_mad.h, ib_mad_snoop_handler uses send_buf rather than send_wr
+> > > > > 
+> > > > > If Doug accepts the library changes, let me know that public git commit
+> > > > > and I can pull it into the staging-next branch and you can continue to
+> > > > > send me staging patches that way.
+> > > > 
+> > > > Won't this cause a conflict during the merge window?
+> > > 
+> > > No, git is good :)
+> > > 
+> > > > How do we handle changes which affect both qib and hfi1?
+> > > 
+> > > I don't know, now this gets messy...
+> > > 
+> > 
+> > Agreed and this is what we are worried about.
+> > 
+> > Can we do what Dan and Doug have proposed in the past and have Doug take over
+> > the staging/rdma sub-tree?
+> > 
+> > http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/2015-November/081922.html
+> > 
+> > I think the upcoming merge window is a reasonable time for him to do that.
 > 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Ok, but keeping on top of all of the generic staging patches that come
+> in is a tough thing to do, that's up to Doug, if he is ready for it...
+> 
 
-First off I have to say; this comment is wrong and should be fixed.
+Greg,
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Forgive me for not knowing how multiple maintainers deal with hand offs like
+this.  I'm hoping you, and/or Doug, can answer some questions for me.
 
-That said.
+Am I correct in assuming the merge window will be open on Monday?  If so, when
+will Linus pull the staging tree?  Then at what point will Doug get the hfi1
+changes which have already been accepted?
 
-I agree with Sean that the snoop interface should be removed.
+Are you going to be able to review the outstanding patches for
+staging/rdma/hfi1 before the merge window?  Or should we consider them dropped
+and resubmit to Doug to apply after he has merged the latest hfi1 code from
+Linus?
 
-I don't know the specific reason madeye was not accepted upstream back in the
-day.  However, I _think_ it was because it implements a non-standard tracing
-mechanism.
 
-For this reason I have explored the use of the standard tracing infrastructure
-within the mad stack.  The series I sent for general comment [1] implemented
-tracing at a number of levels (umad and mad) as well as tracing of registered
-agents.  This IMO give more insight into what is going on within the MAD stack
-than the madeye module.
+Doug,
 
-I'll see what I can do to update the tracing code.  In the mean time if others
-want to look at the tracing code I have so far I pushed a branch to my github.
+At what point should we start submitting additional patches to you which we
+have queued up but are not yet submitted to Greg?
 
-https://github.com/weiny2/linux-kernel  doug-fn-mad-trace
+So far we have been cross posting to linux-rdma for feedback and I see that the
+patches have been dropped from patchworks.  I assume you dropped them from
+patchworks because you knew that Greg was handling them?
 
+Thanks,
 Ira
 
-[1] https://www.mail-archive.com/linux-rdma%40vger.kernel.org/msg28188.html
-
-> ---
-> Change since v3:
-> Fixed title to not include function name
-> 
-> Change since v2:
-> Changed title to use "higher" language
-> 
-> Change since v1:
-> Fixed typo in patch description
-> 
-> diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
-> index ec9b44d..2b3573d 100644
-> --- a/include/rdma/ib_mad.h
-> +++ b/include/rdma/ib_mad.h
-> @@ -424,11 +424,11 @@ typedef void (*ib_mad_send_handler)(struct ib_mad_agent *mad_agent,
->  /**
->   * ib_mad_snoop_handler - Callback handler for snooping sent MADs.
->   * @mad_agent: MAD agent that snooped the MAD.
-> - * @send_wr: Work request information on the sent MAD.
-> + * @send_buf: send MAD data buffer.
->   * @mad_send_wc: Work completion information on the sent MAD.  Valid
->   *   only for snooping that occurs on a send completion.
->   *
-> - * Clients snooping MADs should not modify data referenced by the @send_wr
-> + * Clients snooping MADs should not modify data referenced by the @send_buf
->   * or @mad_send_wc.
->   */
->  typedef void (*ib_mad_snoop_handler)(struct ib_mad_agent *mad_agent,
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
