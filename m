@@ -1,30 +1,121 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCHv3 TRIVIAL] IB/core: Documentation fix to
- ib_mad_snoop_handler in the MAD header file
-Date: Tue, 5 Jan 2016 19:00:16 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AAFF51A5@ORSMSX109.amr.corp.intel.com>
-References: <568B98A6.3010908@dev.mellanox.co.il>
- <1828884A29C6694DAF28B7E6B8A82373AAFF512F@ORSMSX109.amr.corp.intel.com>
- <568C1028.3090309@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <568C1028.3090309-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Parav Pandit <pandit.parav@gmail.com>
+Subject: [PATCHv1 1/6] rdmacg: Added rdma cgroup header file
+Date: Wed,  6 Jan 2016 00:28:01 +0530
+Message-ID: <1452020286-9508-2-git-send-email-pandit.parav@gmail.com>
+References: <1452020286-9508-1-git-send-email-pandit.parav@gmail.com>
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1452020286-9508-1-git-send-email-pandit.parav@gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, tj@kernel.org, lizefan@huawei.com, hannes@cmpxchg.org, dledford@redhat.com, liranl@mellanox.com, sean.hefty@intel.com, jgunthorpe@obsidianresearch.com, haggaie@mellanox.com
+Cc: corbet@lwn.net, james.l.morris@oracle.com, serge@hallyn.com, ogerlitz@mellanox.com, matanb@mellanox.com, raindel@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org, pandit.parav@gmail.com
 List-Id: linux-rdma@vger.kernel.org
 
-PiA+IFRoZXJlIGFyZSBubyBpbiB0cmVlIHVzZXJzIGFuZCB0aGUgb25seSBhdHRlbXB0IGF0IGFk
-ZGluZyBvbmUgd2FzDQo+IHJlamVjdGVkLg0KPiANCj4gVGhlcmUgYXJlIG5vIGluIHRyZWUgdXNl
-cnMgb2YgdGhpcyBidXQgdGhlcmUgaXMgeW91ciBtYWRleWUgdG9vbCAod2hpY2gNCj4gaXMgb3V0
-IG9mIHRyZWUpLiBUaGlzIGlzIHN0aWxsIGEgdXNlZnVsIGRlYnVnIHRvb2wgZm9yIE1BRHMgYW5k
-IHRoZXJlDQo+IGFyZSBwZW9wbGUgd2hvIHN0aWxsIHVzZSB0aGF0Lg0KDQpJdCdzIGFuIG91dCBv
-ZiB0cmVlIHRvb2wuICBNYWludGFpbiB0aGUgc25vb3BpbmcgaG9va3MgaW50byB0aGUgbWFkIGxh
-eWVyIG91dCBvZiB0cmVlIGFzIHdlbGwuDQo=
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Added rdma cgroup header file which defines its APIs to perform
+charing/uncharing functionality.
+
+Signed-off-by: Parav Pandit <pandit.parav@gmail.com>
+---
+ include/linux/cgroup_rdma.h | 91 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 91 insertions(+)
+ create mode 100644 include/linux/cgroup_rdma.h
+
+diff --git a/include/linux/cgroup_rdma.h b/include/linux/cgroup_rdma.h
+new file mode 100644
+index 0000000..01d220f
+--- /dev/null
++++ b/include/linux/cgroup_rdma.h
+@@ -0,0 +1,91 @@
++#ifndef _CGROUP_RDMA_H
++#define _CGROUP_RDMA_H
++
++/*
++ * This file is subject to the terms and conditions of version 2 of the GNU
++ * General Public License.  See the file COPYING in the main directory of the
++ * Linux distribution for more details.
++ */
++
++enum rdmacg_resource_pool_type {
++	RDMACG_RESOURCE_POOL_VERB,
++	RDMACG_RESOURCE_POOL_HW,
++	RDMACG_RESOURCE_POOL_TYPE_MAX,
++};
++
++struct ib_device;
++struct pid;
++struct match_token;
++
++#ifdef CONFIG_CGROUP_RDMA
++#define RDMACG_MAX_RESOURCE_INDEX (64)
++
++struct rdmacg_pool_info {
++	struct match_token *resource_table;
++	int resource_count;
++};
++
++struct rdmacg_resource_pool_ops {
++	struct rdmacg_pool_info*
++		(*get_resource_pool_tokens)(struct ib_device *);
++};
++
++/* APIs for RDMA/IB subsystem to publish when a device wants to
++ * participate in resource accounting
++ */
++void rdmacg_register_ib_device(struct ib_device *device);
++void rdmacg_unregister_ib_device(struct ib_device *device);
++
++/* APIs for RDMA/IB subsystem to charge/uncharge pool specific resources */
++int rdmacg_try_charge_resource(struct ib_device *device,
++			       struct pid *pid,
++			       enum rdmacg_resource_pool_type type,
++			       int resource_index,
++			       int num);
++void rdmacg_uncharge_resource(struct ib_device *device,
++			      struct pid *pid,
++			      enum rdmacg_resource_pool_type type,
++			      int resource_index,
++			      int num);
++
++void rdmacg_set_rpool_ops(struct ib_device *device,
++			  enum rdmacg_resource_pool_type pool_type,
++			  struct rdmacg_resource_pool_ops *ops);
++void rdmacg_clear_rpool_ops(struct ib_device *device,
++			    enum rdmacg_resource_pool_type pool_type);
++int rdmacg_query_resource_limit(struct ib_device *device,
++				struct pid *pid,
++				enum rdmacg_resource_pool_type type,
++				int *limits, int max_count);
++#else
++/* APIs for RDMA/IB subsystem to charge/uncharge device specific resources */
++static inline
++int rdmacg_try_charge_resource(struct ib_device *device,
++			       struct pid *pid,
++			       enum rdmacg_resource_pool_type type,
++			       int resource_index,
++			       int num)
++{ return 0; }
++
++static inline void rdmacg_uncharge_resource(struct ib_device *device,
++					    struct pid *pid,
++					    enum rdmacg_resource_pool_type type,
++					    int resource_index,
++					    int num)
++{ }
++
++static inline
++int rdmacg_query_resource_limit(struct ib_device *device,
++				struct pid *pid,
++				enum rdmacg_resource_pool_type type,
++				int *limits, int max_count)
++{
++	int i;
++
++	for (i = 0; i < max_count; i++)
++		limits[i] = S32_MAX;
++
++	return 0;
++}
++#endif	/* CONFIG_CGROUP_RDMA */
++#endif	/* _CGROUP_RDMA_H */
+-- 
+1.8.3.1
+
