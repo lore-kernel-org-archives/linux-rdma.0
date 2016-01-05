@@ -1,24 +1,47 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCHv3 TRIVIAL] IB/core: Documentation fix to
- ib_mad_snoop_handler in the MAD header file
-Date: Tue, 5 Jan 2016 17:38:58 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AAFF512F@ORSMSX109.amr.corp.intel.com>
-References: <568B98A6.3010908@dev.mellanox.co.il>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 10/11] IB: only keep a single key in struct ib_mr
+Date: Tue, 5 Jan 2016 10:46:36 -0700
+Message-ID: <20160105174636.GD16269@obsidianresearch.com>
+References: <1448214409-7729-11-git-send-email-hch@lst.de>
+ <56791542.6020604@dev.mellanox.co.il>
+ <20151222131326.GA25267@lst.de>
+ <56795514.9090704@dev.mellanox.co.il>
+ <20151222135927.GA26311@lst.de>
+ <56798126.9000003@dev.mellanox.co.il>
+ <20151222210939.GA8212@obsidianresearch.com>
+ <7sikrilf3ik3fjsgppqxh9gn.1451043246057@email.android.com>
+ <CAMHdiBDv9mScD+5o90OQ_tmAKw9o48_jfao6W+EBOZkUg+wReA@mail.gmail.com>
+ <CAMHdiBC75n+u9BSMsKxJwcaBnGL68_3UBeQQtHp_CD5KGcUTnQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <568B98A6.3010908-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <CAMHdiBC75n+u9BSMsKxJwcaBnGL68_3UBeQQtHp_CD5KGcUTnQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Liran Liss <liss.liran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBJbiBpYl9tYWQuaCwgaWJfbWFkX3Nub29wX2hhbmRsZXIgdXNlcyBzZW5kX2J1ZiByYXRoZXIg
-dGhhbiBzZW5kX3dyDQoNClRoZSBNQUQgc25vb3Bpbmcgc2hvdWxkIGJlIHJlbW92ZWQgZnJvbSB0
-aGUgbWFkIHN0YWNrLiAgVGhlcmUgYXJlIG5vIGluIHRyZWUgdXNlcnMgYW5kIHRoZSBvbmx5IGF0
-dGVtcHQgYXQgYWRkaW5nIG9uZSB3YXMgcmVqZWN0ZWQuDQo=
+On Fri, Dec 25, 2015 at 06:46:07PM +0200, Liran Liss wrote:
+> > From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> 
+> > > >fill mr->key by the lkey or rkey based on that and everything will
+> > > >work fine.
+> > >
+> > > But the ULP *can* register a memory buffer with local and remote
+> > > access permissions.
+> > Not in the new API.
+> >
+> > If a ULP ever comes along that does need that then they can start with
+> > two MRs and then eventually upgrade the kapi to have some kind of
+> > efficient bidir MR mode.
+> 
+> ULPs are *already* using the same registrations for both local and
+> remote access.
+
+Where? Out of tree?
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
