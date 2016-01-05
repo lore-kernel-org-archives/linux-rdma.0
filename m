@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 14/15] IB/srpt: Fix srpt_write_pending()
-Date: Tue, 5 Jan 2016 15:27:14 +0100
-Message-ID: <568BD2C2.6090808@sandisk.com>
+Subject: [PATCH 15/15] IB/srpt: Fix a rare crash in srpt_close_session()
+Date: Tue, 5 Jan 2016 15:27:45 +0100
+Message-ID: <568BD2E1.1060701@sandisk.com>
 References: <568BD0FC.70207@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,66 +13,37 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The only allowed return values for the write_pending() callback
-function are 0, -EAGAIN and -ENOMEM. Since attempting to perform
-RDMA over a disconnecting channel will result in an IB error
-completion anyway, remove the code that checks the channel state
-from srpt_write_pending().
+Keep the ib_srpt session as long as srpt_close_session() may
+access it.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 33 ++++-----------------------------
- 1 file changed, 4 insertions(+), 29 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index cacb697..669ae5c 100644
+index 669ae5c..7548bd5 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -2522,39 +2522,14 @@ out_unmap:
-  */
- static int srpt_write_pending(struct se_cmd *se_cmd)
- {
--	struct srpt_rdma_ch *ch;
--	struct srpt_send_ioctx *ioctx;
-+	struct srpt_send_ioctx *ioctx =
-+		container_of(se_cmd, struct srpt_send_ioctx, cmd);
-+	struct srpt_rdma_ch *ch = ioctx->ch;
- 	enum srpt_command_state new_state;
--	int ret;
--
--	ioctx = container_of(se_cmd, struct srpt_send_ioctx, cmd);
+@@ -2228,6 +2228,8 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 	pr_debug("Establish connection sess=%p name=%s cm_id=%p\n", ch->sess,
+ 		 ch->sess_name, ch->cm_id);
  
- 	new_state = srpt_set_cmd_state(ioctx, SRPT_STATE_NEED_DATA);
- 	WARN_ON(new_state == SRPT_STATE_DONE);
--
--	ch = ioctx->ch;
--	BUG_ON(!ch);
--
--	switch (ch->state) {
--	case CH_CONNECTING:
--		WARN(true, "unexpected channel state %d\n", ch->state);
--		ret = -EINVAL;
--		goto out;
--	case CH_LIVE:
--		break;
--	case CH_DISCONNECTING:
--	case CH_DRAINING:
--	case CH_DISCONNECTED:
--		pr_debug("cmd with tag %lld: channel disconnecting\n",
--			 ioctx->cmd.tag);
--		srpt_set_cmd_state(ioctx, SRPT_STATE_DATA_IN);
--		ret = -EINVAL;
--		goto out;
--	}
--	ret = srpt_xfer_data(ch, ioctx);
--
--out:
--	return ret;
-+	return srpt_xfer_data(ch, ioctx);
- }
++	kref_get(&ch->kref);
++
+ 	/* create srp_login_response */
+ 	rsp->opcode = SRP_LOGIN_RSP;
+ 	rsp->tag = req->tag;
+@@ -2991,6 +2993,8 @@ static void srpt_close_session(struct se_session *se_sess)
  
- static u8 tcm_to_srp_tsk_mgmt_status(const int tcm_mgmt_status)
+ 	srpt_disconnect_ch(ch);
+ 
++	kref_put(&ch->kref, srpt_free_ch);
++
+ 	if (!wait)
+ 		return;
+ 
 -- 
 2.1.4
 
