@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 09/15] IB/srpt: Fix srpt_close_session()
-Date: Tue, 5 Jan 2016 15:24:49 +0100
-Message-ID: <568BD231.10205@sandisk.com>
+Subject: [PATCH 10/15] IB/srpt: Fix srpt_handle_cmd() error paths
+Date: Tue, 5 Jan 2016 15:25:13 +0100
+Message-ID: <568BD249.1000100@sandisk.com>
 References: <568BD0FC.70207@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,83 +13,72 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Avoid that srpt_close_session() waits if it doesn't have to wait.
-Additionally, increase the time during which srpt_close_session()
-waits until closing a session has finished. This makes it easier
-to detect session shutdown bugs.
+The target core function that should be called if target_submit_cmd()
+fails is target_put_sess_cmd(). Additionally, change the return type
+of srpt_handle_cmd() from int into void.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 31 ++++++++++++++++---------------
- 1 file changed, 16 insertions(+), 15 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 0ff4ed6..1857d17 100644
+index 1857d17..395bc1b 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -1981,8 +1981,8 @@ static void srpt_release_channel_work(struct work_struct *w)
- 	struct se_session *se_sess;
- 
- 	ch = container_of(w, struct srpt_rdma_ch, release_work);
--	pr_debug("ch = %p; ch->sess = %p; release_done = %p\n", ch, ch->sess,
--		 ch->release_done);
-+	pr_debug("%s: %s-%d; release_done = %p\n", __func__, ch->sess_name,
-+		 ch->qp->qp_num, ch->release_done);
- 
- 	sdev = ch->sport->sdev;
- 	BUG_ON(!sdev);
-@@ -2006,11 +2006,10 @@ static void srpt_release_channel_work(struct work_struct *w)
- 			     ch->rsp_size, DMA_TO_DEVICE);
- 
- 	spin_lock_irq(&sdev->spinlock);
--	list_del(&ch->list);
--	spin_unlock_irq(&sdev->spinlock);
--
-+	list_del_init(&ch->list);
- 	if (ch->release_done)
- 		complete(ch->release_done);
-+	spin_unlock_irq(&sdev->spinlock);
- 
- 	wake_up(&sdev->ch_releaseQ);
- 
-@@ -3033,24 +3032,26 @@ static void srpt_release_cmd(struct se_cmd *se_cmd)
- static void srpt_close_session(struct se_session *se_sess)
+@@ -1482,15 +1482,14 @@ static int srpt_check_stop_free(struct se_cmd *cmd)
+ /**
+  * srpt_handle_cmd() - Process SRP_CMD.
+  */
+-static int srpt_handle_cmd(struct srpt_rdma_ch *ch,
+-			   struct srpt_recv_ioctx *recv_ioctx,
+-			   struct srpt_send_ioctx *send_ioctx)
++static void srpt_handle_cmd(struct srpt_rdma_ch *ch,
++			    struct srpt_recv_ioctx *recv_ioctx,
++			    struct srpt_send_ioctx *send_ioctx)
  {
- 	DECLARE_COMPLETION_ONSTACK(release_done);
--	struct srpt_rdma_ch *ch;
--	struct srpt_device *sdev;
--	unsigned long res;
--
--	ch = se_sess->fabric_sess_ptr;
--	WARN_ON(ch->sess != se_sess);
-+	struct srpt_rdma_ch *ch = se_sess->fabric_sess_ptr;
-+	struct srpt_device *sdev = ch->sport->sdev;
-+	bool wait;
+ 	struct se_cmd *cmd;
+ 	struct srp_cmd *srp_cmd;
+ 	u64 data_len;
+ 	enum dma_data_direction dir;
+-	sense_reason_t ret;
+ 	int rc;
  
--	pr_debug("ch %p state %d\n", ch, ch->state);
-+	pr_debug("ch %s-%d state %d\n", ch->sess_name, ch->qp->qp_num,
-+		 ch->state);
+ 	BUG_ON(!send_ioctx);
+@@ -1518,8 +1517,7 @@ static int srpt_handle_cmd(struct srpt_rdma_ch *ch,
+ 	if (srpt_get_desc_tbl(send_ioctx, srp_cmd, &dir, &data_len)) {
+ 		pr_err("0x%llx: parsing SRP descriptor table failed.\n",
+ 		       srp_cmd->tag);
+-		ret = TCM_INVALID_CDB_FIELD;
+-		goto send_sense;
++		goto put;
+ 	}
  
--	sdev = ch->sport->sdev;
- 	spin_lock_irq(&sdev->spinlock);
- 	BUG_ON(ch->release_done);
- 	ch->release_done = &release_done;
-+	wait = !list_empty(&ch->list);
- 	__srpt_close_ch(ch);
- 	spin_unlock_irq(&sdev->spinlock);
+ 	rc = target_submit_cmd(cmd, ch->sess, srp_cmd->cdb,
+@@ -1527,14 +1525,16 @@ static int srpt_handle_cmd(struct srpt_rdma_ch *ch,
+ 			       scsilun_to_int(&srp_cmd->lun), data_len,
+ 			       TCM_SIMPLE_TAG, dir, TARGET_SCF_ACK_KREF);
+ 	if (rc != 0) {
+-		ret = TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
+-		goto send_sense;
++		pr_debug("target_submit_cmd() returned %d for tag %#llx\n", rc,
++			 srp_cmd->tag);
++		goto put;
+ 	}
+-	return 0;
++	return;
  
--	res = wait_for_completion_timeout(&release_done, 60 * HZ);
--	WARN_ON(res == 0);
-+	if (!wait)
-+		return;
-+
-+	while (wait_for_completion_timeout(&release_done, 180 * HZ) == 0)
-+		pr_info("%s(%s-%d state %d): still waiting ...\n", __func__,
-+			ch->sess_name, ch->qp->qp_num, ch->state);
+-send_sense:
+-	transport_send_check_condition_and_sense(cmd, ret, 0);
+-	return -1;
++put:
++	send_ioctx->state = SRPT_STATE_DONE;
++	target_put_sess_cmd(cmd);
++	return;
  }
  
- /**
+ static int srp_tmr_to_tcm(int fn)
 -- 
 2.1.4
 
