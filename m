@@ -1,42 +1,41 @@
-From: Kamal Mostafa <kamal@canonical.com>
-Subject: Re: [PATCH][v4.2.y-ckt] net/mlx5e: Max mtu comparison fix
-Date: Tue, 05 Jan 2016 13:13:46 -0800
-Message-ID: <1452028426.7370.6.camel@fourier>
-References: <568C2F10.9040707@canonical.com>
+From: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCHv1 6/6] rdmacg: Added documentation for rdma controller.
+Date: Tue, 5 Jan 2016 16:53:09 -0500
+Message-ID: <20160105215309.GG5995@mtj.duckdns.org>
+References: <1452020286-9508-1-git-send-email-pandit.parav@gmail.com>
+ <1452020286-9508-7-git-send-email-pandit.parav@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <568C2F10.9040707@canonical.com>
-Sender: stable-owner@vger.kernel.org
-To: Joseph Salisbury <joseph.salisbury@canonical.com>
-Cc: Kamal Mostafa <kamal.mostafa@canonical.com>, doront@mellanox.com, saeedm@mellanox.com, ogerlitz@mellanox.com, "davem@davemloft.net" <davem@davemloft.net>, eli@mellanox.com, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1452020286-9508-7-git-send-email-pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, corbet-T1hC0tSOHrs@public.gmane.org, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2016-01-05 at 16:01 -0500, Joseph Salisbury wrote:
-> Hello,
-> 
-> Please consider including mainline commit
-> 50a9eea694ab8e0779069e0a4e0b12e145521468 in the next v4.2.y-ckt
-> release.  It was
-> included in the mainline tree as of v4.4-rc2.  It has been tested and
-> confirmed to resolve:
-> http://bugs.launchpad.net/bugs/1528466
+Hello,
 
+On Wed, Jan 06, 2016 at 12:28:06AM +0530, Parav Pandit wrote:
+> +5-4-1. RDMA Interface Files
+> +
+> +  rdma.resource.verb.list
+> +  rdma.resource.verb.limit
+> +  rdma.resource.verb.usage
+> +  rdma.resource.verb.failcnt
+> +  rdma.resource.hw.list
+> +  rdma.resource.hw.limit
+> +  rdma.resource.hw.usage
+> +  rdma.resource.hw.failcnt
 
-Yes, I'll queue this up for 4.2.8-ckt1.  Thanks, Joseph!
+Can you please read the rest of cgroup.txt and put the interface in
+line with the common conventions followed by other controllers?
 
- -Kamal
+Thanks.
 
-> commit 50a9eea694ab8e0779069e0a4e0b12e145521468
-> Author: Doron Tsur <doront@mellanox.com>
-> Date:   Thu Nov 12 19:35:27 2015 +0200
-> 
->     net/mlx5e: Max mtu comparison fix
-> 
-> 
-> Sincerely,
-> 
-> Joseph Salisbury
-> 
-> 
+-- 
+tejun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
