@@ -1,36 +1,48 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCHv3 TRIVIAL] IB/core: Documentation fix to
- ib_mad_snoop_handler in the MAD header file
-Date: Tue, 5 Jan 2016 13:49:12 -0500
-Message-ID: <568C1028.3090309@dev.mellanox.co.il>
-References: <568B98A6.3010908@dev.mellanox.co.il>
- <1828884A29C6694DAF28B7E6B8A82373AAFF512F@ORSMSX109.amr.corp.intel.com>
+Subject: [PATCHv4 TRIVIAL] IB/core: Documentation fix to the snoop handler in
+ the MAD header file
+Date: Tue, 5 Jan 2016 13:52:55 -0500
+Message-ID: <568C1107.2060203@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AAFF512F-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/5/2016 12:38 PM, Hefty, Sean wrote:
->> In ib_mad.h, ib_mad_snoop_handler uses send_buf rather than send_wr
-> 
-> The MAD snooping should be removed from the mad stack.  
+In ib_mad.h, ib_mad_snoop_handler uses send_buf rather than send_wr
 
-This last discussed on linux-rdma list back in late September when Ira
-posted a partial RFC patch to do this.
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+Change since v3:
+Fixed title to not include function name
 
-> There are no in tree users and the only attempt at adding one was rejected.
+Change since v2:
+Changed title to use "higher" language
 
-There are no in tree users of this but there is your madeye tool (which
-is out of tree). This is still a useful debug tool for MADs and there
-are people who still use that.
+Change since v1:
+Fixed typo in patch description
 
-Ira posted the start of MAD stack tracing but AFAIT it was not
-equivalent and that thread died out.
+diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
+index ec9b44d..2b3573d 100644
+--- a/include/rdma/ib_mad.h
++++ b/include/rdma/ib_mad.h
+@@ -424,11 +424,11 @@ typedef void (*ib_mad_send_handler)(struct ib_mad_agent *mad_agent,
+ /**
+  * ib_mad_snoop_handler - Callback handler for snooping sent MADs.
+  * @mad_agent: MAD agent that snooped the MAD.
+- * @send_wr: Work request information on the sent MAD.
++ * @send_buf: send MAD data buffer.
+  * @mad_send_wc: Work completion information on the sent MAD.  Valid
+  *   only for snooping that occurs on a send completion.
+  *
+- * Clients snooping MADs should not modify data referenced by the @send_wr
++ * Clients snooping MADs should not modify data referenced by the @send_buf
+  * or @mad_send_wc.
+  */
+ typedef void (*ib_mad_snoop_handler)(struct ib_mad_agent *mad_agent,
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
