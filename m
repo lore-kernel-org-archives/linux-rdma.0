@@ -1,49 +1,90 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCHv4 TRIVIAL] IB/core: Documentation fix to the snoop handler in
- the MAD header file
-Date: Tue, 5 Jan 2016 13:52:55 -0500
-Message-ID: <568C1107.2060203@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Parav Pandit <pandit.parav@gmail.com>
+Subject: [PATCHv1 0/6] rdma controller support
+Date: Wed,  6 Jan 2016 00:28:00 +0530
+Message-ID: <1452020286-9508-1-git-send-email-pandit.parav@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, tj@kernel.org, lizefan@huawei.com, hannes@cmpxchg.org, dledford@redhat.com, liranl@mellanox.com, sean.hefty@intel.com, jgunthorpe@obsidianresearch.com, haggaie@mellanox.com
+Cc: corbet@lwn.net, james.l.morris@oracle.com, serge@hallyn.com, ogerlitz@mellanox.com, matanb@mellanox.com, raindel@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org, pandit.parav@gmail.com
 List-Id: linux-rdma@vger.kernel.org
 
-In ib_mad.h, ib_mad_snoop_handler uses send_buf rather than send_wr
+This patchset adds support for RDMA cgroup by addressing review comments
+of [1] by implementing published RFC [2].
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-Change since v3:
-Fixed title to not include function name
+Overview:
+Currently user space applications can easily take away all the rdma
+device specific resources such as AH, CQ, QP, MR etc. Due to which other
+applications in other cgroup or kernel space ULPs may not even get chance
+to allocate any rdma resources. This results into service unavailibility.
 
-Change since v2:
-Changed title to use "higher" language
+RDMA cgroup addresses this issue by allowing resource accounting,
+limit enforcement on per cgroup, per rdma device basis.
 
-Change since v1:
-Fixed typo in patch description
+Resources are not defined by the RDMA cgroup. Resources are defined
+by RDMA/IB stack & optionally by HCA vendor device drivers.
+This allows rdma cgroup to remain constant while RDMA/IB
+stack can evolve without the need of rdma cgroup update. A new
+resource can be easily added by the RDMA/IB stack without touching
+rdma cgroup.
 
-diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
-index ec9b44d..2b3573d 100644
---- a/include/rdma/ib_mad.h
-+++ b/include/rdma/ib_mad.h
-@@ -424,11 +424,11 @@ typedef void (*ib_mad_send_handler)(struct ib_mad_agent *mad_agent,
- /**
-  * ib_mad_snoop_handler - Callback handler for snooping sent MADs.
-  * @mad_agent: MAD agent that snooped the MAD.
-- * @send_wr: Work request information on the sent MAD.
-+ * @send_buf: send MAD data buffer.
-  * @mad_send_wc: Work completion information on the sent MAD.  Valid
-  *   only for snooping that occurs on a send completion.
-  *
-- * Clients snooping MADs should not modify data referenced by the @send_wr
-+ * Clients snooping MADs should not modify data referenced by the @send_buf
-  * or @mad_send_wc.
-  */
- typedef void (*ib_mad_snoop_handler)(struct ib_mad_agent *mad_agent,
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+RDMA uverbs layer will enforce limits on well defined RDMA verb
+resources without any HCA vendor device driver involvement.
+
+RDMA uverbs layer will not do accounting of hw vendor specific resources.
+Instead rdma cgroup provides set of APIs through which vendor specific 
+drivers can define their own resources (upto 64) that can be accounted by
+rdma cgroup.
+
+Resource limit enforcement is hierarchical.
+
+When process is migrated with active RDMA resources, rdma cgroup
+continues to charge original cgroup.
+
+Changes from v0:
+(To address comments from Haggai, Doug, Liran, Tejun, Sean, Jason)
+ * Redesigned to support per device per cgroup limit settings by bringing
+   concept of resource pool.
+ * Redesigned to let IB stack define the resources instead of rdma controller
+   using resource template.
+ * Redesigned to support hw vendor specific limits setting (optional to drivers).
+ * Created new rdma controller instead of piggyback on device cgroup.
+ * Fixed race conditions for multiple tasks sharing rdma resources.
+ * Removed dependency on the task_struct.
+
+[1] https://lkml.org/lkml/2015/9/7/476
+[2] https://lkml.org/lkml/2015/10/28/144
+
+This patchset is for Tejun's for-4.5 branch.
+It is not attempted on Doug's rdma tree yet, which I will do once I receive
+comments for this pathset.
+
+Parav Pandit (6):
+  rdmacg: Added rdma cgroup header file
+  IB/core: Added members to support rdma cgroup
+  rdmacg: implements rdma cgroup
+  IB/core: rdmacg support infrastructure APIs
+  IB/core: use rdma cgroup for resource accounting
+  rdmacg: Added documentation for rdma controller.
+
+ Documentation/cgroup-legacy/rdma.txt  |  129 ++++
+ Documentation/cgroup.txt              |   79 +++
+ drivers/infiniband/core/Makefile      |    1 +
+ drivers/infiniband/core/cgroup.c      |   80 +++
+ drivers/infiniband/core/core_priv.h   |    5 +
+ drivers/infiniband/core/device.c      |    8 +
+ drivers/infiniband/core/uverbs_cmd.c  |  244 ++++++-
+ drivers/infiniband/core/uverbs_main.c |   30 +
+ include/linux/cgroup_rdma.h           |   91 +++
+ include/linux/cgroup_subsys.h         |    4 +
+ include/rdma/ib_verbs.h               |   20 +
+ init/Kconfig                          |   12 +
+ kernel/Makefile                       |    1 +
+ kernel/cgroup_rdma.c                  | 1220 +++++++++++++++++++++++++++++++++
+ 14 files changed, 1907 insertions(+), 17 deletions(-)
+ create mode 100644 Documentation/cgroup-legacy/rdma.txt
+ create mode 100644 drivers/infiniband/core/cgroup.c
+ create mode 100644 include/linux/cgroup_rdma.h
+ create mode 100644 kernel/cgroup_rdma.c
+
+-- 
+1.8.3.1
