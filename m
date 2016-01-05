@@ -1,43 +1,36 @@
-From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2] staging/rdma/hfi1: check for ARMED->ACTIVE transition in receive interrupt
-Date: Tue, 5 Jan 2016 13:48:17 -0500
-Message-ID: <20160105184814.GA9152@phlsvsds.ph.intel.com>
-References: <1451924479-26205-1-git-send-email-jubin.john@intel.com> <20160104202346.GC18146@leon.nu>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCHv3 TRIVIAL] IB/core: Documentation fix to
+ ib_mad_snoop_handler in the MAD header file
+Date: Tue, 5 Jan 2016 13:49:12 -0500
+Message-ID: <568C1028.3090309@dev.mellanox.co.il>
+References: <568B98A6.3010908@dev.mellanox.co.il>
+ <1828884A29C6694DAF28B7E6B8A82373AAFF512F@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160104202346.GC18146-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AAFF512F-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Jim Snow <jim.m.snow-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Brendan Cunningham <brendan.cunningham-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jan 04, 2016 at 10:23:46PM +0200, Leon Romanovsky wrote:
-> On Mon, Jan 04, 2016 at 11:21:19AM -0500, Jubin John wrote:
-> > From: Jim Snow <jim.m.snow-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > 
-> >  		} else {
-> > +			/* Auto activate link on non-SC15 packet receive */
-> > +			if (unlikely(rcd->ppd->host_link_state ==
-> > +				     HLS_UP_ARMED))
-> > +				if (set_armed_to_active(rcd, packet, dd))
-> > +					goto bail;
+On 1/5/2016 12:38 PM, Hefty, Sean wrote:
+>> In ib_mad.h, ib_mad_snoop_handler uses send_buf rather than send_wr
 > 
-> What is the advantage of double "if" over one "if"?
-> Something like that
-> + if (unlikely(rcd->ppd->host_link_state == HLS_UP_ARMED) && (set_armed_to_active(rcd, packet, dd))
-> +		goto bail;
+> The MAD snooping should be removed from the mad stack.  
 
-I don't think there is an advantage to the double if, so I will change
-it to the single if in v3.
+This last discussed on linux-rdma list back in late September when Ira
+posted a partial RFC patch to do this.
 
-> 
-> >  			last = process_rcv_packet(&packet, thread);
-> >  		}
-> >  
-> > @@ -984,6 +1020,42 @@ bail:
-> >  }
-> >  
+> There are no in tree users and the only attempt at adding one was rejected.
+
+There are no in tree users of this but there is your madeye tool (which
+is out of tree). This is still a useful debug tool for MADs and there
+are people who still use that.
+
+Ira posted the start of MAD stack tracing but AFAIT it was not
+equivalent and that thread died out.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
