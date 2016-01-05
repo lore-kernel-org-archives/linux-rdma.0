@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 02/15] IB/srpt: Inline srpt_sdev_name()
-Date: Tue, 5 Jan 2016 15:21:19 +0100
-Message-ID: <568BD15F.6010909@sandisk.com>
+Subject: [PATCH 03/15] IB/srpt: Inline srpt_get_ch_state()
+Date: Tue, 5 Jan 2016 15:21:53 +0100
+Message-ID: <568BD181.5040009@sandisk.com>
 References: <568BD0FC.70207@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,53 +13,148 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-srpt_sdev_name() is too trivial to keep it as a separate function.
+The callers of srpt_get_ch_state() can access ch->state safely without
+using locking. Hence inline this function.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 14 ++------------
- 1 file changed, 2 insertions(+), 12 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 42 ++++++++++-------------------------
+ 1 file changed, 12 insertions(+), 30 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index fe9474f..7abad26 100644
+index 7abad26..cbcc73e 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -109,16 +109,6 @@ enum dma_data_direction opposite_dma_dir(enum dma_data_direction dir)
+@@ -109,17 +109,6 @@ enum dma_data_direction opposite_dma_dir(enum dma_data_direction dir)
  	}
  }
  
--/**
-- * srpt_sdev_name() - Return the name associated with the HCA.
-- *
-- * Examples are ib0, ib1, ...
-- */
--static inline const char *srpt_sdev_name(struct srpt_device *sdev)
+-static enum rdma_ch_state srpt_get_ch_state(struct srpt_rdma_ch *ch)
 -{
--	return sdev->device->name;
+-	unsigned long flags;
+-	enum rdma_ch_state state;
+-
+-	spin_lock_irqsave(&ch->spinlock, flags);
+-	state = ch->state;
+-	spin_unlock_irqrestore(&ch->spinlock, flags);
+-	return state;
 -}
 -
- static enum rdma_ch_state srpt_get_ch_state(struct srpt_rdma_ch *ch)
+ static enum rdma_ch_state
+ srpt_set_ch_state(struct srpt_rdma_ch *ch, enum rdma_ch_state new_state)
  {
- 	unsigned long flags;
-@@ -182,7 +172,7 @@ static void srpt_event_handler(struct ib_event_handler *handler,
- 		return;
- 
- 	pr_debug("ASYNC event= %d on device= %s\n", event->event,
--		 srpt_sdev_name(sdev));
-+		 sdev->device->name);
+@@ -216,7 +205,7 @@ static void srpt_srq_event(struct ib_event *event, void *ctx)
+ static void srpt_qp_event(struct ib_event *event, struct srpt_rdma_ch *ch)
+ {
+ 	pr_debug("QP event %d on cm_id=%p sess_name=%s state=%d\n",
+-		 event->event, ch->cm_id, ch->sess_name, srpt_get_ch_state(ch));
++		 event->event, ch->cm_id, ch->sess_name, ch->state);
  
  	switch (event->event) {
- 	case IB_EVENT_PORT_ERR:
-@@ -3089,7 +3079,7 @@ static void srpt_add_one(struct ib_device *device)
+ 	case IB_EVENT_COMM_EST:
+@@ -228,7 +217,7 @@ static void srpt_qp_event(struct ib_event *event, struct srpt_rdma_ch *ch)
+ 			srpt_release_channel(ch);
+ 		else
+ 			pr_debug("%s: state %d - ignored LAST_WQE.\n",
+-				 ch->sess_name, srpt_get_ch_state(ch));
++				 ch->sess_name, ch->state);
+ 		break;
+ 	default:
+ 		pr_err("received unrecognized IB QP event %d\n", event->event);
+@@ -1784,7 +1773,6 @@ static void srpt_handle_new_iu(struct srpt_rdma_ch *ch,
+ 			       struct srpt_send_ioctx *send_ioctx)
+ {
+ 	struct srp_cmd *srp_cmd;
+-	enum rdma_ch_state ch_state;
  
- 		if (srpt_refresh_port(sport)) {
- 			pr_err("MAD registration failed for %s-%d.\n",
--			       srpt_sdev_name(sdev), i);
-+			       sdev->device->name, i);
- 			goto err_ring;
- 		}
- 		snprintf(sport->port_guid, sizeof(sport->port_guid),
+ 	BUG_ON(!ch);
+ 	BUG_ON(!recv_ioctx);
+@@ -1793,13 +1781,12 @@ static void srpt_handle_new_iu(struct srpt_rdma_ch *ch,
+ 				   recv_ioctx->ioctx.dma, srp_max_req_size,
+ 				   DMA_FROM_DEVICE);
+ 
+-	ch_state = srpt_get_ch_state(ch);
+-	if (unlikely(ch_state == CH_CONNECTING)) {
++	if (unlikely(ch->state == CH_CONNECTING)) {
+ 		list_add_tail(&recv_ioctx->wait_list, &ch->cmd_wait_list);
+ 		goto out;
+ 	}
+ 
+-	if (unlikely(ch_state != CH_LIVE))
++	if (unlikely(ch->state != CH_LIVE))
+ 		goto out;
+ 
+ 	srp_cmd = recv_ioctx->ioctx.buf;
+@@ -1908,7 +1895,7 @@ static void srpt_send_done(struct ib_cq *cq, struct ib_wc *wc)
+ 
+ out:
+ 	while (!list_empty(&ch->cmd_wait_list) &&
+-	       srpt_get_ch_state(ch) == CH_LIVE &&
++	       ch->state == CH_LIVE &&
+ 	       (ioctx = srpt_get_send_ioctx(ch)) != NULL) {
+ 		struct srpt_recv_ioctx *recv_ioctx;
+ 
+@@ -2314,17 +2301,14 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 			    && param->port == ch->sport->port
+ 			    && param->listen_id == ch->sport->sdev->cm_id
+ 			    && ch->cm_id) {
+-				enum rdma_ch_state ch_state;
+-
+-				ch_state = srpt_get_ch_state(ch);
+-				if (ch_state != CH_CONNECTING
+-				    && ch_state != CH_LIVE)
++				if (ch->state != CH_CONNECTING
++				    && ch->state != CH_LIVE)
+ 					continue;
+ 
+ 				/* found an existing channel */
+ 				pr_debug("Found existing channel %s"
+ 					 " cm_id= %p state= %d\n",
+-					 ch->sess_name, ch->cm_id, ch_state);
++					 ch->sess_name, ch->cm_id, ch->state);
+ 
+ 				__srpt_close_ch(ch);
+ 
+@@ -2566,7 +2550,7 @@ static void srpt_cm_dreq_recv(struct ib_cm_id *cm_id)
+ 	ch = srpt_find_channel(cm_id->context, cm_id);
+ 	BUG_ON(!ch);
+ 
+-	pr_debug("cm_id= %p ch->state= %d\n", cm_id, srpt_get_ch_state(ch));
++	pr_debug("cm_id= %p ch->state= %d\n", cm_id, ch->state);
+ 
+ 	spin_lock_irqsave(&ch->spinlock, flags);
+ 	switch (ch->state) {
+@@ -2750,7 +2734,6 @@ static int srpt_write_pending(struct se_cmd *se_cmd)
+ 	struct srpt_rdma_ch *ch;
+ 	struct srpt_send_ioctx *ioctx;
+ 	enum srpt_command_state new_state;
+-	enum rdma_ch_state ch_state;
+ 	int ret;
+ 
+ 	ioctx = container_of(se_cmd, struct srpt_send_ioctx, cmd);
+@@ -2761,10 +2744,9 @@ static int srpt_write_pending(struct se_cmd *se_cmd)
+ 	ch = ioctx->ch;
+ 	BUG_ON(!ch);
+ 
+-	ch_state = srpt_get_ch_state(ch);
+-	switch (ch_state) {
++	switch (ch->state) {
+ 	case CH_CONNECTING:
+-		WARN(true, "unexpected channel state %d\n", ch_state);
++		WARN(true, "unexpected channel state %d\n", ch->state);
+ 		ret = -EINVAL;
+ 		goto out;
+ 	case CH_LIVE:
+@@ -3235,7 +3217,7 @@ static void srpt_close_session(struct se_session *se_sess)
+ 	ch = se_sess->fabric_sess_ptr;
+ 	WARN_ON(ch->sess != se_sess);
+ 
+-	pr_debug("ch %p state %d\n", ch, srpt_get_ch_state(ch));
++	pr_debug("ch %p state %d\n", ch, ch->state);
+ 
+ 	sdev = ch->sport->sdev;
+ 	spin_lock_irq(&sdev->spinlock);
 -- 
 2.1.4
 
