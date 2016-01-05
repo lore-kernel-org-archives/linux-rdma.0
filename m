@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 08/15] IB/srpt: Simplify srpt_shutdown_session()
-Date: Tue, 5 Jan 2016 15:24:15 +0100
-Message-ID: <568BD20F.7020101@sandisk.com>
+Subject: [PATCH 09/15] IB/srpt: Fix srpt_close_session()
+Date: Tue, 5 Jan 2016 15:24:49 +0100
+Message-ID: <568BD231.10205@sandisk.com>
 References: <568BD0FC.70207@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,62 +13,81 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The target core guarantees that shutdown_session() is only invoked
-once per session. This means that the ib_srpt target driver doesn't
-have to track whether or not shutdown_session() has been called.
-Additionally, ensure that target_sess_cmd_list_set_waiting() is
-called before target_wait_for_sess_cmds() by moving it into
-srpt_release_channel_work().
+Avoid that srpt_close_session() waits if it doesn't have to wait.
+Additionally, increase the time during which srpt_close_session()
+waits until closing a session has finished. This makes it easier
+to detect session shutdown bugs.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 14 +-------------
- drivers/infiniband/ulp/srpt/ib_srpt.h |  1 -
- 2 files changed, 1 insertion(+), 14 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 31 ++++++++++++++++---------------
+ 1 file changed, 16 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index a27414d..0ff4ed6 100644
+index 0ff4ed6..1857d17 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -1887,19 +1887,6 @@ static void srpt_close_ch(struct srpt_rdma_ch *ch)
-  */
- static int srpt_shutdown_session(struct se_session *se_sess)
+@@ -1981,8 +1981,8 @@ static void srpt_release_channel_work(struct work_struct *w)
+ 	struct se_session *se_sess;
+ 
+ 	ch = container_of(w, struct srpt_rdma_ch, release_work);
+-	pr_debug("ch = %p; ch->sess = %p; release_done = %p\n", ch, ch->sess,
+-		 ch->release_done);
++	pr_debug("%s: %s-%d; release_done = %p\n", __func__, ch->sess_name,
++		 ch->qp->qp_num, ch->release_done);
+ 
+ 	sdev = ch->sport->sdev;
+ 	BUG_ON(!sdev);
+@@ -2006,11 +2006,10 @@ static void srpt_release_channel_work(struct work_struct *w)
+ 			     ch->rsp_size, DMA_TO_DEVICE);
+ 
+ 	spin_lock_irq(&sdev->spinlock);
+-	list_del(&ch->list);
+-	spin_unlock_irq(&sdev->spinlock);
+-
++	list_del_init(&ch->list);
+ 	if (ch->release_done)
+ 		complete(ch->release_done);
++	spin_unlock_irq(&sdev->spinlock);
+ 
+ 	wake_up(&sdev->ch_releaseQ);
+ 
+@@ -3033,24 +3032,26 @@ static void srpt_release_cmd(struct se_cmd *se_cmd)
+ static void srpt_close_session(struct se_session *se_sess)
  {
--	struct srpt_rdma_ch *ch = se_sess->fabric_sess_ptr;
--	unsigned long flags;
+ 	DECLARE_COMPLETION_ONSTACK(release_done);
+-	struct srpt_rdma_ch *ch;
+-	struct srpt_device *sdev;
+-	unsigned long res;
 -
--	spin_lock_irqsave(&ch->spinlock, flags);
--	if (ch->in_shutdown) {
--		spin_unlock_irqrestore(&ch->spinlock, flags);
--		return true;
--	}
--
--	ch->in_shutdown = true;
--	target_sess_cmd_list_set_waiting(se_sess);
--	spin_unlock_irqrestore(&ch->spinlock, flags);
--
- 	return true;
+-	ch = se_sess->fabric_sess_ptr;
+-	WARN_ON(ch->sess != se_sess);
++	struct srpt_rdma_ch *ch = se_sess->fabric_sess_ptr;
++	struct srpt_device *sdev = ch->sport->sdev;
++	bool wait;
+ 
+-	pr_debug("ch %p state %d\n", ch, ch->state);
++	pr_debug("ch %s-%d state %d\n", ch->sess_name, ch->qp->qp_num,
++		 ch->state);
+ 
+-	sdev = ch->sport->sdev;
+ 	spin_lock_irq(&sdev->spinlock);
+ 	BUG_ON(ch->release_done);
+ 	ch->release_done = &release_done;
++	wait = !list_empty(&ch->list);
+ 	__srpt_close_ch(ch);
+ 	spin_unlock_irq(&sdev->spinlock);
+ 
+-	res = wait_for_completion_timeout(&release_done, 60 * HZ);
+-	WARN_ON(res == 0);
++	if (!wait)
++		return;
++
++	while (wait_for_completion_timeout(&release_done, 180 * HZ) == 0)
++		pr_info("%s(%s-%d state %d): still waiting ...\n", __func__,
++			ch->sess_name, ch->qp->qp_num, ch->state);
  }
- 
-@@ -2003,6 +1990,7 @@ static void srpt_release_channel_work(struct work_struct *w)
- 	se_sess = ch->sess;
- 	BUG_ON(!se_sess);
- 
-+	target_sess_cmd_list_set_waiting(se_sess);
- 	target_wait_for_sess_cmds(se_sess);
- 
- 	transport_deregister_session_configfs(se_sess);
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
-index a98b86b..d0de468 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.h
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
-@@ -288,7 +288,6 @@ struct srpt_rdma_ch {
- 	u8			sess_name[36];
- 	struct work_struct	release_work;
- 	struct completion	*release_done;
--	bool			in_shutdown;
- };
  
  /**
 -- 
