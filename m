@@ -1,46 +1,38 @@
 From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Subject: Re: [PATCH v2 00/10] iSER support for remote invalidate
-Date: Wed, 06 Jan 2016 10:43:16 -0800
-Message-ID: <1452105796.26125.28.camel@haakon3.risingtidesystems.com>
-References: <1449663128-368-1-git-send-email-sagig@mellanox.com>
-	 <1450671628.25674.27.camel@haakon3.risingtidesystems.com>
-	 <20151224101514.GB6438@infradead.org> <567BC782.7090501@dev.mellanox.co.il>
+Subject: Re: [PATCH 0/2] InfiniBand-iSER: Refactoring for two function
+ implementations
+Date: Wed, 06 Jan 2016 10:47:17 -0800
+Message-ID: <1452106037.26125.29.camel@haakon3.risingtidesystems.com>
+References: <566ABCD9.1060404@users.sourceforge.net>
+	 <567FDB4E.2040000@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <567BC782.7090501-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <567FDB4E.2040000-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2015-12-24 at 12:22 +0200, Sagi Grimberg wrote:
-> >> Applied to target-pending/for-next as v4.5-rc1 material, along with
-> >> Reviewed-by tags from HCH.
-> >
-> > So this is both in your and Dougs now it seems.  Given the non-trivial
-> > merge with the other RDMA updates I'd suggest to drop it from the
-> > target tree as Doug already sorted out the merge.
+On Sun, 2015-12-27 at 13:36 +0100, SF Markus Elfring wrote:
+> From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+> Date: Sun, 27 Dec 2015 13:12:10 +0100
+> Subject: [PATCH 0/2] InfiniBand-iSER: Refactoring for two function implementations
 > 
-> Yea, this conflicts with the CQ API stuff. Doug and I sorting it out.
+> I suggest to return directly instead of using the jump label "err"
+> in two functions (which are working without clean-up there).
+> 
+> Markus Elfring (2):
+>   One jump label less in iser_reg_sig_mr()
+>   One jump label less in isert_reg_sig_mr()
+> 
+>  drivers/infiniband/ulp/iser/iser_memory.c | 5 ++---
+>  drivers/infiniband/ulp/isert/ib_isert.c   | 7 +++----
+>  2 files changed, 5 insertions(+), 7 deletions(-)
 > 
 
-FYI, the only conflict as reported in linux-next last week is with nfsd
-tree and "IB: merge struct ib_device_attr into struct ib_device" here:
-
-http://marc.info/?l=linux-next&m=145155049101826&w=2
-
-It looks like there is ongoing discussion this morning wrt rdma + nfsd
-trees..
-
-Do you still want this series dropped from target-pending/for-next..?
-
-
-
-
-
-
+Doug, are you going to pick these two minor patches up, or shall I..?
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
