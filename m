@@ -1,60 +1,32 @@
-From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv1 0/6] rdma controller support
-Date: Thu, 7 Jan 2016 04:43:20 +0530
-Message-ID: <CAG53R5XQaUz=vJCEqLwGt93CC1YMnVQ=k4DuRU0nspcb_-+_6g@mail.gmail.com>
+From: Parav Pandit <pandit.parav@gmail.com>
+Subject: Re: [PATCHv1 2/6] IB/core: Added members to support rdma cgroup
+Date: Thu, 7 Jan 2016 04:46:19 +0530
+Message-ID: <CAG53R5VVK4jhyXJT9XLFdjz-amzkLGhugvozWzoYNcBua-KsNg@mail.gmail.com>
 References: <1452020286-9508-1-git-send-email-pandit.parav@gmail.com>
-	<20160105215623.GH5995@mtj.duckdns.org>
+	<1452020286-9508-3-git-send-email-pandit.parav@gmail.com>
+	<20160105215656.GI5995@mtj.duckdns.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160105215623.GH5995-qYNAdHglDFBN0TnZuCh8vA@public.gmane.org>
-Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20160105215656.GI5995@mtj.duckdns.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, lizefan@huawei.com, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, raindel@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Tejun,
-
-On Wed, Jan 6, 2016 at 3:26 AM, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> Hello,
+On Wed, Jan 6, 2016 at 3:26 AM, Tejun Heo <tj@kernel.org> wrote:
+> On Wed, Jan 06, 2016 at 12:28:02AM +0530, Parav Pandit wrote:
+>> Added function pointer table to store resource pool specific
+>> operation for each resource type (verb and hw).
+>> Added list node to link device to rdma cgroup so that it can
+>> participate in resource accounting and limit configuration.
 >
-> On Wed, Jan 06, 2016 at 12:28:00AM +0530, Parav Pandit wrote:
->> Resources are not defined by the RDMA cgroup. Resources are defined
->> by RDMA/IB stack & optionally by HCA vendor device drivers.
+> Is there any point in splitting patches 1 and 2 from 3?
 >
-> As I wrote before, I don't think this is a good idea.  Drivers will
-> inevitably add non-sensical "resources" which don't make any sense
-> without much scrutiny.
+Patch 2 is in IB stack, so I separated that patch out from 1. That
+makes it 3 patches.
+If you think single patch is easier to review, let me know, I can
+respin to have one patch for these 3 smaller patches.
 
-In our last discussion on v0 patch,
-http://lkml.iu.edu/hypermail/linux/kernel/1509.1/04331.html
-
-The direction was, that vendor should be able to define their own resources.
-> If different controllers can't agree upon the
-> same set of resources, which probably is a pretty good sign that this
-> isn't too well thought out to begin with,
-
-When you said "different controller" you meant "different hw vendors", right?
-Or you meant, rdma, mem, cpu as controller here?
-
-> at least make all resource
-> types defined by the controller itself and let the controllers enable
-> them selectively.
->
-In this V1 patch, resource is defined by the IB stack and rdma cgroup
-is facilitator for same.
-By doing so, IB stack modules can define new resource without really
-making changes to cgroup.
-This design also allows hw vendors to define their own resources which
-will be reviewed in rdma mailing list anway.
-The idea is different hw versions can have different resource support,
-so the whole intention is not about defining different resource but
-rather enabling it.
-But yes, I equally agree that by doing so, different hw controller
-vendors can define different hw resources.
-
-
-> Thanks.
->
 > --
 > tejun
