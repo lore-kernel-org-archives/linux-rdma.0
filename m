@@ -1,76 +1,76 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v3 00/10] Begin to use rdmavt for qib
-Date: Wed, 06 Jan 2016 10:07:24 -0800
-Message-ID: <20160106180541.15836.58173.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v3 02/10] IB/qib: Remove dma.c and use rdmavt version of dma
+ functions
+Date: Wed, 06 Jan 2016 10:07:40 -0800
+Message-ID: <20160106180738.15836.50802.stgit@scvm10.sc.intel.com>
+References: <20160106180541.15836.58173.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160106180541.15836.58173.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The following series implements the beginning support of rdmavt in the qib
-driver. The memory registration and protection domain functionality has been
-moved out of the driver as well as critical qp data structures. More patches
-will follow to incrementally remove code from qib and use the rdmavt
-implementation.
+This patch removes the qib_dma.c file and uses the version which has been
+added to rdmavt.
 
-This patchset builds on the v3 "Add rdma verbs transport library" patchset.
-
-Changes since v1:
-Rebased onto what appears to be the latest branch on Doug's kernel.org repo
- (k.o/for-4.4-rc). I can rebase onto something else if needed.
-
-Changes since v2:
-Rebased onto k.o/for-4.5 commit: 59caae
-Handle removal of rvt_reg_phys_mr()
-
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
+ drivers/infiniband/hw/qib/Makefile    |    2 +-
+ drivers/infiniband/hw/qib/qib_verbs.c |    3 ++-
+ drivers/infiniband/hw/qib/qib_verbs.h |    2 --
+ 3 files changed, 3 insertions(+), 4 deletions(-)
 
-Dennis Dalessandro (10):
-      IB/qib: Begin to use rdmavt for verbs
-      IB/qib: Remove dma.c and use rdmavt version of dma functions
-      IB/qib: Use rdmavt protection domain
-      IB/qib: Remove most uses of QIB_PERMISSIVE_LID and QIB_MULTICAST_LID_BASE
-      IB/qib: Use rdmavt lid defines in qib
-      IB/qib: Remove driver specific members from qib qp type
-      IB/qib: Add device specific info prints
-      IB/qib: Remove qp and mr functionality from qib
-      IB/qib: Use address handle in rdmavt and remove from qib
-      IB/qib: Remove srq from qib
+diff --git a/drivers/infiniband/hw/qib/Makefile b/drivers/infiniband/hw/qib/Makefile
+index 57f8103..8a8f892 100644
+--- a/drivers/infiniband/hw/qib/Makefile
++++ b/drivers/infiniband/hw/qib/Makefile
+@@ -1,6 +1,6 @@
+ obj-$(CONFIG_INFINIBAND_QIB) += ib_qib.o
+ 
+-ib_qib-y := qib_cq.o qib_diag.o qib_dma.o qib_driver.o qib_eeprom.o \
++ib_qib-y := qib_cq.o qib_diag.o qib_driver.o qib_eeprom.o \
+ 	qib_file_ops.o qib_fs.o qib_init.o qib_intr.o qib_keys.o \
+ 	qib_mad.o qib_mmap.o qib_mr.o qib_pcie.o qib_pio_copy.o \
+ 	qib_qp.o qib_qsfp.o qib_rc.o qib_ruc.o qib_sdma.o qib_srq.o \
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
+index c3af43d..fb6ef2c 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.c
++++ b/drivers/infiniband/hw/qib/qib_verbs.c
+@@ -41,6 +41,7 @@
+ #include <linux/mm.h>
+ #include <linux/random.h>
+ #include <linux/vmalloc.h>
++#include <rdma/rdma_vt.h>
+ 
+ #include "qib.h"
+ #include "qib_common.h"
+@@ -2268,7 +2269,7 @@ int qib_register_ib_device(struct qib_devdata *dd)
+ 	ibdev->detach_mcast = qib_multicast_detach;
+ 	ibdev->process_mad = qib_process_mad;
+ 	ibdev->mmap = qib_mmap;
+-	ibdev->dma_ops = &qib_dma_mapping_ops;
++	ibdev->dma_ops = NULL;
+ 	ibdev->get_port_immutable = qib_port_immutable;
+ 
+ 	snprintf(ibdev->node_desc, sizeof(ibdev->node_desc),
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
+index e175301..8ac0724 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.h
++++ b/drivers/infiniband/hw/qib/qib_verbs.h
+@@ -1182,6 +1182,4 @@ extern unsigned int ib_qib_max_srq_wrs;
+ 
+ extern const u32 ib_qib_rnr_table[];
+ 
+-extern struct ib_dma_mapping_ops qib_dma_mapping_ops;
+-
+ #endif                          /* QIB_VERBS_H */
 
-
- drivers/infiniband/hw/qib/Kconfig           |    2 
- drivers/infiniband/hw/qib/Makefile          |    6 
- drivers/infiniband/hw/qib/qib.h             |   17 +
- drivers/infiniband/hw/qib/qib_common.h      |    2 
- drivers/infiniband/hw/qib/qib_cq.c          |    2 
- drivers/infiniband/hw/qib/qib_driver.c      |   22 +
- drivers/infiniband/hw/qib/qib_iba7322.c     |    2 
- drivers/infiniband/hw/qib/qib_init.c        |    5 
- drivers/infiniband/hw/qib/qib_intr.c        |    2 
- drivers/infiniband/hw/qib/qib_keys.c        |  186 +---------
- drivers/infiniband/hw/qib/qib_mad.c         |   11 -
- drivers/infiniband/hw/qib/qib_mmap.c        |   18 -
- drivers/infiniband/hw/qib/qib_mr.c          |  490 ---------------------------
- drivers/infiniband/hw/qib/qib_qp.c          |  161 +++++----
- drivers/infiniband/hw/qib/qib_rc.c          |  105 +++---
- drivers/infiniband/hw/qib/qib_ruc.c         |   84 ++---
- drivers/infiniband/hw/qib/qib_sdma.c        |   25 +
- drivers/infiniband/hw/qib/qib_srq.c         |   38 +-
- drivers/infiniband/hw/qib/qib_sysfs.c       |   20 +
- drivers/infiniband/hw/qib/qib_uc.c          |   15 -
- drivers/infiniband/hw/qib/qib_ud.c          |   53 ++-
- drivers/infiniband/hw/qib/qib_verbs.c       |  449 ++++++++-----------------
- drivers/infiniband/hw/qib/qib_verbs.h       |  484 ++++-----------------------
- drivers/infiniband/hw/qib/qib_verbs_mcast.c |    8 
- 24 files changed, 545 insertions(+), 1662 deletions(-)
- delete mode 100644 drivers/infiniband/hw/qib/qib_mr.c
-
--- 
--Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
