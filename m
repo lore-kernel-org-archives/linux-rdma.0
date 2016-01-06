@@ -1,95 +1,140 @@
-From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: Unable to establish rdma connection, breaks rdma basic
- functionality
-Date: Wed, 6 Jan 2016 16:50:45 +0530
-Message-ID: <20160106112043.GA2086@hari-Latitude-E5550>
-References: <26E3F92EC670BD429DB5CB319D773C13C4452BD0@nice.asicdesigners.com>
- <CAAKD3BD3oj7kBgHrpkoVFVXtFAUHgkkSHP3vBSWRZCc+VCC++g@mail.gmail.com>
+From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] IB/cm: Fix a recently introduced deadlock
+Date: Wed, 6 Jan 2016 13:35:59 +0200
+Message-ID: <CAAk-MO8KhiEzgackTEouhdzY+bff8o_m+_dtdGavp4Umj2QvsQ@mail.gmail.com>
+References: <56866E6A.8040503@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAAKD3BD3oj7kBgHrpkoVFVXtFAUHgkkSHP3vBSWRZCc+VCC++g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <56866E6A.8040503-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Nirranjan Kirubaharan <nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 06, 2016 at 12:33:09 +0200, Matan Barak wrote:
-> On Wed, Jan 6, 2016 at 6:43 AM, Hariprasad S <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org> wrote:
-> >
-> > Hi Doug,
-> >
-> > I am trying to rping server, but it fails when bound to any address other then IF_ANY.
-> > # rping -s -a 102.1.1.129 -C1 -p 9999 -vd
-> > created cm_id 0x23d7800
-> > rdma_bind_addr: No such file or directory
-> > destroy cm_id 0x23d7800
-> >
-> > If bound to IF_ANY address, server starts but client fails to establish connection.
-> > # rping -s -C1 -p 9999 -vvvd
-> > created cm_id 0xc34800
-> > rdma_bind_addr successful
-> > rdma_listen
-> >
-> > And the commit which introduced this regression is
-> >
-> > commit abae1b71dd37bab506b14a6cf6ba7148f4d57232
-> > Author: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Date:   Thu Oct 15 18:38:49 2015 +0300
-> >
-> >     IB/cma: cma_validate_port should verify the port and netdevice
-> >
-> >     Previously, cma_validate_port searched for GIDs in IB cache and then
-> >     tried to verify the found port. This could fail when there are
-> >     identical GIDs on both ports. In addition, netdevice should be taken
-> >     into account when searching the GID table.
-> >     Fixing cma_validate_port to search only the relevant port's cache
-> >     and netdevice.
-> >
-> >     Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >     Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-> >
-> >
-> > The bug is easily reproducible with latest rc and breaks basic rdma functionality.
-> > Since 4.4 is already in -rc8, can we have a quick fix.
-> >
-> > Thanks,
-> > Hari--
-> 
-> Hi,
-> 
-> I don't have a iwarp server, so could you please test this simple fix:
-> 
-> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-> index 2cbf9c9..351e835 100644
-> --- a/drivers/infiniband/core/cma.c
-> +++ b/drivers/infiniband/core/cma.c
-> @@ -439,7 +439,7 @@ static inline int cma_validate_port(struct
-> ib_device *device, u8 port,
->         if ((dev_type != ARPHRD_INFINIBAND) && rdma_protocol_ib(device, port))
->                 return ret;
-> 
-> -       if (dev_type == ARPHRD_ETHER)
-> +       if (dev_type == ARPHRD_ETHER && rdma_protocol_roce(device, port))
->                 ndev = dev_get_by_index(&init_net, bound_if_index);
-> 
->         ret = ib_find_cached_gid_by_port(device, gid, port, ndev, NULL);
-> 
-> Regards,
-> Matan
+On Fri, Jan 1, 2016 at 2:17 PM, Bart Van Assche
+<bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
+> ib_send_cm_drep() calls cm_enter_timewait() while holding a spinlock
+> that can be locked from inside an interrupt handler. Hence do not
+> enable interrupts inside cm_enter_timewait() if called with interrupts
+> disabled.
+>
+> This patch fixes e.g. the following deadlock:
+>
+> =================================
+> [ INFO: inconsistent lock state ]
+> 4.4.0-rc7+ #1 Tainted: G            E
+> ---------------------------------
+> inconsistent {HARDIRQ-ON-W} -> {IN-HARDIRQ-W} usage.
+> swapper/8/0 [HC1[1]:SC0[0]:HE0:SE1] takes:
+> (&(&cm_id_priv->lock)->rlock){?.+...}, at: [<ffffffffa036eec4>] cm_establish+0x
+> 74/0x1b0 [ib_cm]
+> {HARDIRQ-ON-W} state was registered at:
+>   [<ffffffff810a3c11>] mark_held_locks+0x71/0x90
+>   [<ffffffff810a3e87>] trace_hardirqs_on_caller+0xa7/0x1c0
+>   [<ffffffff810a3fad>] trace_hardirqs_on+0xd/0x10
+>   [<ffffffff8151c40b>] _raw_spin_unlock_irq+0x2b/0x40
+>   [<ffffffffa036ea8e>] cm_enter_timewait+0xae/0x100 [ib_cm]
+>   [<ffffffffa036ff76>] ib_send_cm_drep+0xb6/0x190 [ib_cm]
+>   [<ffffffffa052ed08>] srp_cm_handler+0x128/0x1a0 [ib_srp]
+>   [<ffffffffa0370340>] cm_process_work+0x20/0xf0 [ib_cm]
+>   [<ffffffffa0371335>] cm_dreq_handler+0x135/0x2c0 [ib_cm]
+>   [<ffffffffa03733c5>] cm_work_handler+0x75/0xd0 [ib_cm]
+>   [<ffffffff8107184d>] process_one_work+0x1bd/0x460
+>   [<ffffffff81073148>] worker_thread+0x118/0x420
+>   [<ffffffff81078454>] kthread+0xe4/0x100
+>   [<ffffffff8151cbbf>] ret_from_fork+0x3f/0x70
+> irq event stamp: 1672286
+> hardirqs last  enabled at (1672283): [<ffffffff81408ec0>] poll_idle+0x10/0x80
+> hardirqs last disabled at (1672284): [<ffffffff8151d304>] common_interrupt+0x84/0x89
+> softirqs last  enabled at (1672286): [<ffffffff8105b4dc>] _local_bh_enable+0x1c/0x50
+> softirqs last disabled at (1672285): [<ffffffff8105b697>] irq_enter+0x47/0x70
+>
+> other info that might help us debug this:
+>  Possible unsafe locking scenario:
+>
+>        CPU0
+>        ----
+>   lock(&(&cm_id_priv->lock)->rlock);
+>   <Interrupt>
+>     lock(&(&cm_id_priv->lock)->rlock);
+>
+>  *** DEADLOCK ***
+>
+> no locks held by swapper/8/0.
+>
+> stack backtrace:
+> CPU: 8 PID: 0 Comm: swapper/8 Tainted: G            E   4.4.0-rc7+ #1
+> Hardware name: Dell Inc. PowerEdge R430/03XKDV, BIOS 1.0.2 11/17/2014
+>  ffff88045af5e950 ffff88046e503a88 ffffffff81251c1b 0000000000000007
+>  0000000000000006 0000000000000003 ffff88045af5ddc0 ffff88046e503ad8
+>  ffffffff810a32f4 0000000000000000 0000000000000000 0000000000000001
+> Call Trace:
+>  <IRQ>  [<ffffffff81251c1b>] dump_stack+0x4f/0x74
+>  [<ffffffff810a32f4>] print_usage_bug+0x184/0x190
+>  [<ffffffff810a36e2>] mark_lock_irq+0xf2/0x290
+>  [<ffffffff810a3995>] mark_lock+0x115/0x1b0
+>  [<ffffffff810a3b8c>] mark_irqflags+0x15c/0x170
+>  [<ffffffff810a4fef>] __lock_acquire+0x1ef/0x560
+>  [<ffffffff810a53c2>] lock_acquire+0x62/0x80
+>  [<ffffffff8151bd33>] _raw_spin_lock_irqsave+0x43/0x60
+>  [<ffffffffa036eec4>] cm_establish+0x74/0x1b0 [ib_cm]
+>  [<ffffffffa036f031>] ib_cm_notify+0x31/0x100 [ib_cm]
+>  [<ffffffffa0637f24>] srpt_qp_event+0x54/0xd0 [ib_srpt]
+>  [<ffffffffa0196052>] mlx4_ib_qp_event+0x72/0xc0 [mlx4_ib]
+>  [<ffffffffa00775b9>] mlx4_qp_event+0x69/0xd0 [mlx4_core]
+>  [<ffffffffa006000e>] mlx4_eq_int+0x51e/0xd50 [mlx4_core]
+>  [<ffffffffa006084f>] mlx4_msi_x_interrupt+0xf/0x20 [mlx4_core]
+>  [<ffffffff810b67b0>] handle_irq_event_percpu+0x40/0x110
+>  [<ffffffff810b68bf>] handle_irq_event+0x3f/0x70
+>  [<ffffffff810ba7f9>] handle_edge_irq+0x79/0x120
+>  [<ffffffff81007f3d>] handle_irq+0x5d/0x130
+>  [<ffffffff810071fd>] do_IRQ+0x6d/0x130
+>  [<ffffffff8151d309>] common_interrupt+0x89/0x89
+>  <EOI>  [<ffffffff8140895f>] cpuidle_enter_state+0xcf/0x200
+>  [<ffffffff81408aa2>] cpuidle_enter+0x12/0x20
+>  [<ffffffff810990d6>] call_cpuidle+0x36/0x60
+>  [<ffffffff81099163>] cpuidle_idle_call+0x63/0x110
+>  [<ffffffff8109930a>] cpu_idle_loop+0xfa/0x130
+>  [<ffffffff8109934e>] cpu_startup_entry+0xe/0x10
+>  [<ffffffff8103c443>] start_secondary+0x83/0x90
+>
+> Fixes: commit be4b499323bf ("IB/cm: Do not queue work to a device that's going away")
+> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 
-Hi Matan,
+Acked-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Thanks. It worked for me.
-
-Regards,
-Hari
-
-> 
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: stable <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+> ---
+>  drivers/infiniband/core/cm.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+> index 0a26dd6..d6d2b35 100644
+> --- a/drivers/infiniband/core/cm.c
+> +++ b/drivers/infiniband/core/cm.c
+> @@ -782,11 +782,11 @@ static void cm_enter_timewait(struct cm_id_private *cm_id_priv)
+>         wait_time = cm_convert_to_ms(cm_id_priv->av.timeout);
+>
+>         /* Check if the device started its remove_one */
+> -       spin_lock_irq(&cm.lock);
+> +       spin_lock_irqsave(&cm.lock, flags);
+>         if (!cm_dev->going_down)
+>                 queue_delayed_work(cm.wq, &cm_id_priv->timewait_info->work.work,
+>                                    msecs_to_jiffies(wait_time));
+> -       spin_unlock_irq(&cm.lock);
+> +       spin_unlock_irqrestore(&cm.lock, flags);
+>
+>         cm_id_priv->timewait_info = NULL;
+>  }
+> --
+> 2.1.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
