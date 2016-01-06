@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 5/6] IB/rdmavt: Allow reserving just one qpn
-Date: Wed, 06 Jan 2016 10:15:21 -0800
-Message-ID: <20160106181521.3238.96805.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 1/6] IB/rdmavt: Add IB user context allocation and
+ de-alloction functions
+Date: Wed, 06 Jan 2016 10:15:00 -0800
+Message-ID: <20160106181500.3238.75268.stgit@scvm10.sc.intel.com>
 References: <20160106181226.3238.98769.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,42 +11,66 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160106181226.3238.98769.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-qib needs to reserve only one qpn for non-verbs stuff. Also fixed the for
-loop to reserve the end qpn.
+Adding IB user context alloc and dealloc functions to rdmavt so that the
+drivers that use rdmavt can use these functions instead of defining their
+own functions.
 
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/qp.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/sw/rdmavt/vt.c |   20 ++++++++++++++++++--
+ 1 files changed, 18 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
-index 44485ad..ee19eae 100644
---- a/drivers/infiniband/sw/rdmavt/qp.c
-+++ b/drivers/infiniband/sw/rdmavt/qp.c
-@@ -79,7 +79,7 @@ static int init_qpn_table(struct rvt_dev_info *rdi, struct rvt_qpn_table *qpt)
- 	struct rvt_qpn_map *map;
- 	int ret = 0;
+diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
+index 18b5f43..df2df36 100644
+--- a/drivers/infiniband/sw/rdmavt/vt.c
++++ b/drivers/infiniband/sw/rdmavt/vt.c
+@@ -189,6 +189,16 @@ static int rvt_query_gid(struct ib_device *ibdev, u8 port,
+ 	return -EOPNOTSUPP;
+ }
  
--	if (!(rdi->dparms.qpn_res_end > rdi->dparms.qpn_res_start))
-+	if (!(rdi->dparms.qpn_res_end >= rdi->dparms.qpn_res_start))
- 		return -EINVAL;
++struct rvt_ucontext {
++	struct ib_ucontext ibucontext;
++};
++
++static inline struct rvt_ucontext *to_iucontext(struct ib_ucontext
++						*ibucontext)
++{
++	return container_of(ibucontext, struct rvt_ucontext, ibucontext);
++}
++
+ /**
+  * rvt_alloc_ucontext - Allocate a user context
+  * @ibdev: Vers IB dev
+@@ -197,7 +207,12 @@ static int rvt_query_gid(struct ib_device *ibdev, u8 port,
+ static struct ib_ucontext *rvt_alloc_ucontext(struct ib_device *ibdev,
+ 					      struct ib_udata *udata)
+ {
+-	return ERR_PTR(-EOPNOTSUPP);
++	struct rvt_ucontext *context;
++
++	context = kmalloc(sizeof(*context), GFP_KERNEL);
++	if (!context)
++		return ERR_PTR(-ENOMEM);
++	return &context->ibucontext;
+ }
  
- 	spin_lock_init(&qpt->lock);
-@@ -105,7 +105,7 @@ static int init_qpn_table(struct rvt_dev_info *rdi, struct rvt_qpn_table *qpt)
+ /**
+@@ -206,7 +221,8 @@ static struct ib_ucontext *rvt_alloc_ucontext(struct ib_device *ibdev,
+  */
+ static int rvt_dealloc_ucontext(struct ib_ucontext *context)
+ {
+-	return -EOPNOTSUPP;
++	kfree(to_iucontext(context));
++	return 0;
+ }
  
- 	rvt_pr_info(rdi, "Reserving QPNs from 0x%x to 0x%x for non-verbs use\n",
- 		    rdi->dparms.qpn_res_start, rdi->dparms.qpn_res_end);
--	for (i = rdi->dparms.qpn_res_start; i < rdi->dparms.qpn_res_end; i++) {
-+	for (i = rdi->dparms.qpn_res_start; i <= rdi->dparms.qpn_res_end; i++) {
- 		if (!map->page) {
- 			get_map_page(qpt, map);
- 			if (!map->page) {
+ static int rvt_get_port_immutable(struct ib_device *ibdev, u8 port_num,
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
