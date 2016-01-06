@@ -1,18 +1,18 @@
 From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 2/2 v2] IB/mad: use CQ abstraction
-Date: Wed, 6 Jan 2016 11:35:01 +0200
-Message-ID: <568CDFC5.1080709@dev.mellanox.co.il>
+Subject: Re: [PATCH 1/2] IB/mad: pass ib_mad_send_buf explicitly to the
+ recv_handler
+Date: Wed, 6 Jan 2016 11:34:49 +0200
+Message-ID: <568CDFB9.4030400@dev.mellanox.co.il>
 References: <1451913359-25074-1-git-send-email-hch@lst.de>
- <1451913359-25074-3-git-send-email-hch@lst.de>
- <20160106064612.GA8192@infradead.org>
+ <1451913359-25074-2-git-send-email-hch@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160106064612.GA8192-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <1451913359-25074-2-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 Looks good,
