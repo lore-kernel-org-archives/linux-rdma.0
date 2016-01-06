@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v3 19/36] IB/rdmavt: Add completion queue function stubs
-Date: Wed, 06 Jan 2016 10:00:42 -0800
-Message-ID: <20160106175943.8747.10516.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v3 21/36] IB/rdmavt: Move MR datastructures into rvt
+Date: Wed, 06 Jan 2016 10:01:42 -0800
+Message-ID: <20160106180122.8747.8793.stgit@scvm10.sc.intel.com>
 References: <20160106174638.8747.47197.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,254 +10,96 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160106174638.8747.47197.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Create stubs for completion queue creation, polling,
-resizing, calling for notification, and destroying.
+This patch adds the MR datastructures based on hfi1 into rvt. For now the
+data structures are defined in include/rdma/rdma_vt.h but once all MR
+functionality has been moved from the drivers into rvt these should move to
+rdmavt/mr.h
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 Changes since v1:
-Change stubs to return EOPNOTSUPP
+Rename rdi.lk_table => rdi.lkey_table
 
- drivers/infiniband/sw/rdmavt/Makefile |    2 -
- drivers/infiniband/sw/rdmavt/cq.c     |  113 +++++++++++++++++++++++++++++++++
- drivers/infiniband/sw/rdmavt/cq.h     |   62 ++++++++++++++++++
- drivers/infiniband/sw/rdmavt/vt.c     |    7 ++
- drivers/infiniband/sw/rdmavt/vt.h     |    1 
- 5 files changed, 184 insertions(+), 1 deletions(-)
- create mode 100644 drivers/infiniband/sw/rdmavt/cq.c
- create mode 100644 drivers/infiniband/sw/rdmavt/cq.h
+ include/rdma/rdma_vt.h |   53 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 53 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rdmavt/Makefile b/drivers/infiniband/sw/rdmavt/Makefile
-index 6f530d1..00f0188 100644
---- a/drivers/infiniband/sw/rdmavt/Makefile
-+++ b/drivers/infiniband/sw/rdmavt/Makefile
-@@ -7,4 +7,4 @@
- #
- obj-$(CONFIG_INFINIBAND_RDMAVT) += rdmavt.o
+diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
+index bf072a4..f232e39 100644
+--- a/include/rdma/rdma_vt.h
++++ b/include/rdma/rdma_vt.h
+@@ -56,6 +56,56 @@
+ #include "ib_verbs.h"
  
--rdmavt-y := vt.o ah.o dma.o mad.o mcast.o mmap.o mr.o pd.o qp.o srq.o
-+rdmavt-y := vt.o ah.o cq.o dma.o mad.o mcast.o mmap.o mr.o pd.o qp.o srq.o
-diff --git a/drivers/infiniband/sw/rdmavt/cq.c b/drivers/infiniband/sw/rdmavt/cq.c
-new file mode 100644
-index 0000000..8d96194
---- /dev/null
-+++ b/drivers/infiniband/sw/rdmavt/cq.c
-@@ -0,0 +1,113 @@
-+/*
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * This file is provided under a dual BSD/GPLv2 license.  When using or
-+ * redistributing this file, you may do so under either license.
-+ *
-+ * GPL LICENSE SUMMARY
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * BSD LICENSE
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ *  - Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *  - Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *  - Neither the name of Intel Corporation nor the names of its
-+ *    contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
+ /*
++ * For Memory Regions. This stuff should probably be moved into rdmavt/mr.h once
++ * drivers no longer need access to the MR directly.
 + */
-+
-+#include "cq.h"
-+
-+/**
-+ * rvt_create_cq - create a completion queue
-+ * @ibdev: the device this completion queue is attached to
-+ * @attr: creation attributes
-+ * @context: unused by the QLogic_IB driver
-+ * @udata: user data for libibverbs.so
-+ *
-+ * Returns a pointer to the completion queue or negative errno values
-+ * for failure.
-+ *
-+ * Called by ib_create_cq() in the generic verbs code.
-+ */
-+struct ib_cq *rvt_create_cq(struct ib_device *ibdev,
-+			    const struct ib_cq_init_attr *attr,
-+			    struct ib_ucontext *context,
-+			    struct ib_udata *udata)
-+{
-+	return ERR_PTR(-EOPNOTSUPP);
-+}
-+
-+/**
-+ * rvt_destroy_cq - destroy a completion queue
-+ * @ibcq: the completion queue to destroy.
-+ *
-+ * Returns 0 for success.
-+ *
-+ * Called by ib_destroy_cq() in the generic verbs code.
-+ */
-+int rvt_destroy_cq(struct ib_cq *ibcq)
-+{
-+	return -EOPNOTSUPP;
-+}
-+
-+int rvt_req_notify_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags notify_flags)
-+{
-+	return -EOPNOTSUPP;
-+}
-+
-+/**
-+ * rvt_resize_cq - change the size of the CQ
-+ * @ibcq: the completion queue
-+ *
-+ * Returns 0 for success.
-+ */
-+int rvt_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata)
-+{
-+	return -EOPNOTSUPP;
-+}
-+
-+/**
-+ * rvt_poll_cq - poll for work completion entries
-+ * @ibcq: the completion queue to poll
-+ * @num_entries: the maximum number of entries to return
-+ * @entry: pointer to array where work completions are placed
-+ *
-+ * Returns the number of completion entries polled.
-+ *
-+ * This may be called from interrupt context.  Also called by ib_poll_cq()
-+ * in the generic verbs code.
-+ */
-+int rvt_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *entry)
-+{
-+	return -EOPNOTSUPP;
-+}
-diff --git a/drivers/infiniband/sw/rdmavt/cq.h b/drivers/infiniband/sw/rdmavt/cq.h
-new file mode 100644
-index 0000000..63a517d
---- /dev/null
-+++ b/drivers/infiniband/sw/rdmavt/cq.h
-@@ -0,0 +1,62 @@
-+#ifndef DEF_RVTCQ_H
-+#define DEF_RVTCQ_H
 +
 +/*
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * This file is provided under a dual BSD/GPLv2 license.  When using or
-+ * redistributing this file, you may do so under either license.
-+ *
-+ * GPL LICENSE SUMMARY
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * BSD LICENSE
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ *  - Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *  - Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *  - Neither the name of Intel Corporation nor the names of its
-+ *    contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
++ * A segment is a linear region of low physical memory.
++ * Used by the verbs layer.
 + */
++struct rvt_seg {
++	void *vaddr;
++	size_t length;
++};
 +
-+#include <rdma/rdma_vt.h>
++/* The number of rvt_segs that fit in a page. */
++#define RVT_SEGSZ     (PAGE_SIZE / sizeof(struct rvt_seg))
 +
-+struct ib_cq *rvt_create_cq(struct ib_device *ibdev,
-+			    const struct ib_cq_init_attr *attr,
-+			    struct ib_ucontext *context,
-+			    struct ib_udata *udata);
-+int rvt_destroy_cq(struct ib_cq *ibcq);
-+int rvt_req_notify_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags notify_flags);
-+int rvt_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata);
-+int rvt_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *entry);
++struct rvt_segarray {
++	struct rvt_seg segs[RVT_SEGSZ];
++};
 +
-+#endif          /* DEF_RVTCQ_H */
-diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-index a122ee8..7fd879f 100644
---- a/drivers/infiniband/sw/rdmavt/vt.c
-+++ b/drivers/infiniband/sw/rdmavt/vt.c
-@@ -260,6 +260,13 @@ int rvt_register_device(struct rvt_dev_info *rdi)
- 	CHECK_DRIVER_OVERRIDE(rdi, dealloc_fmr);
- 	CHECK_DRIVER_OVERRIDE(rdi, mmap);
++struct rvt_mregion {
++	struct ib_pd *pd;       /* shares refcnt of ibmr.pd */
++	u64 user_base;          /* User's address for this region */
++	u64 iova;               /* IB start address of this region */
++	size_t length;
++	u32 lkey;
++	u32 offset;             /* offset (bytes) to start of region */
++	int access_flags;
++	u32 max_segs;           /* number of rvt_segs in all the arrays */
++	u32 mapsz;              /* size of the map array */
++	u8  page_shift;         /* 0 - non unform/non powerof2 sizes */
++	u8  lkey_published;     /* in global table */
++	struct completion comp; /* complete when refcount goes to zero */
++	atomic_t refcount;
++	struct rvt_segarray *map[0];    /* the segments */
++};
++
++#define RVT_MAX_LKEY_TABLE_BITS 23
++
++struct rvt_lkey_table {
++	spinlock_t lock; /* protect changes in this struct */
++	u32 next;               /* next unused index (speeds search) */
++	u32 gen;                /* generation count */
++	u32 max;                /* size of the table */
++	struct rvt_mregion __rcu **table;
++};
++
++/* End Memmory Region */
++
++/*
+  * Things that are driver specific, module parameters in hfi1 and qib
+  */
+ struct rvt_driver_params {
+@@ -119,6 +169,9 @@ struct rvt_dev_info {
+ 	/* Driver specific properties */
+ 	struct rvt_driver_params dparms;
  
-+	/* Completion queues */
-+	CHECK_DRIVER_OVERRIDE(rdi, create_cq);
-+	CHECK_DRIVER_OVERRIDE(rdi, destroy_cq);
-+	CHECK_DRIVER_OVERRIDE(rdi, poll_cq);
-+	CHECK_DRIVER_OVERRIDE(rdi, req_notify_cq);
-+	CHECK_DRIVER_OVERRIDE(rdi, resize_cq);
++	struct rvt_mregion __rcu *dma_mr;
++	struct rvt_lkey_table lkey_table;
 +
- 	/* DMA Operations */
- 	rdi->ibdev.dma_ops =
- 		rdi->ibdev.dma_ops ? : &rvt_default_dma_mapping_ops;
-diff --git a/drivers/infiniband/sw/rdmavt/vt.h b/drivers/infiniband/sw/rdmavt/vt.h
-index 6a5f5bf..fdb52a8 100644
---- a/drivers/infiniband/sw/rdmavt/vt.h
-+++ b/drivers/infiniband/sw/rdmavt/vt.h
-@@ -57,5 +57,6 @@
- #include "srq.h"
- #include "mcast.h"
- #include "mmap.h"
-+#include "cq.h"
+ 	/* PKey Table goes here */
  
- #endif          /* DEF_RDMAVT_H */
+ 	/*
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
