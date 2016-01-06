@@ -1,53 +1,52 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/ipoib: Expose ioctl command to retrieve SGID of a
- given socket
-Date: Wed, 6 Jan 2016 15:10:19 +0200
-Message-ID: <20160106131019.GC5070@yuval-ThinkPad-X220>
-References: <1451572875-24961-1-git-send-email-yuval.shaia@oracle.com>
- <56854AEB.50802@mellanox.com>
- <20160106110344.GB5070@yuval-ThinkPad-X220>
- <568D07D0.8080404@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] IB/cma: Fix RDMA port validation for iWarp
+Date: Wed,  6 Jan 2016 15:06:19 +0200
+Message-ID: <1452085579-7421-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <568D07D0.8080404-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 06, 2016 at 02:25:52PM +0200, Haggai Eran wrote:
-> On 06/01/2016 13:03, Yuval Shaia wrote:
-> > On Thu, Dec 31, 2015 at 05:34:03PM +0200, Haggai Eran wrote:
-> >>> +	sock = sockfd_lookup(fd, &rc);
-> >>> +	if (IS_ERR_OR_NULL(sock))
-> >>> +		return -EINVAL;
-> >>> +
-> >>> +	inetsock = inet_sk(sock->sk);
-> >>> +
-> >>> +	neigh = neigh_lookup(&arp_tbl, &inetsock->inet_daddr, dev);
-> >>
-> >> Also, isn't inet_daddr the destination address? But the function claims 
-> >> to return the SGID. I guess these can be ambiguous but still it seems 
-> >> confusing.
-> > Per description in include/net/inet_sock.h looks like that inet_daddr is
-> > the address of source peer of the socket.
-> > * @inet_daddr - Foreign IPv4 addr
-> >>
-> 
-> I meant it was confusing to have the foreign address in the socket designated 
-> by "daddr" while the function you proposed returned the foreign GID as SGID.
-I see.
-Function was meant to extract GID of source peer of the socket.
-Anyway, i gave up this this patch so we only talking semantics here :)
-> 
-> Haggai
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+cma_validate_port wrongly assumed that Ethernet devices are RoCE
+devices and thus their ndev should be matched in the GID table.
+This broke the iWrap support. Fixing that matching the ndev only if
+we work on a RoCE port.
+
+Fixes: abae1b71dd37 ('IB/cma: cma_validate_port should verify the port
+		     and netdevice')
+Reported-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Tested-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+
+Hi Doug,
+
+This patch fixes an iWarp issue that was introduced in the RoCE
+refactoring series.
+
+Regards,
+Matan
+
+ drivers/infiniband/core/cma.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 2d762a2..17a15c5 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -453,7 +453,7 @@ static inline int cma_validate_port(struct ib_device *device, u8 port,
+ 	if ((dev_type != ARPHRD_INFINIBAND) && rdma_protocol_ib(device, port))
+ 		return ret;
+ 
+-	if (dev_type == ARPHRD_ETHER)
++	if (dev_type == ARPHRD_ETHER && rdma_protocol_roce(device, port))
+ 		ndev = dev_get_by_index(&init_net, bound_if_index);
+ 
+ 	ret = ib_find_cached_gid_by_port(device, gid, port, ndev, NULL);
+-- 
+2.1.0
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
