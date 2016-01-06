@@ -1,20 +1,25 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: iser-target: Add iSCSI Extensions for RDMA (iSER) target driver
-Date: Wed, 6 Jan 2016 23:22:34 +0300
-Message-ID: <20160106202234.GZ5177@mwanda>
-References: <20160104210732.GA8675@mwanda>
- <20160106202025.GY5177@mwanda>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: NULL pointer deref in k.o/for-4.5
+Date: Thu, 7 Jan 2016 00:25:06 +0200
+Message-ID: <CAJ3xEMiu+Tzz_abeEGjP1LXa04mmY69qeqCLZDWteMqGxQtHsQ@mail.gmail.com>
+References: <C52C1CEA-9DC4-4594-9D7C-942C25116414@oracle.com>
+	<C7F286E4-D17E-45A5-AC31-B7AC1491F72A@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <target-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160106202025.GY5177@mwanda>
-Sender: target-devel-owner@vger.kernel.org
-To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Cc: linux-rdma@vger.kernel.org, target-devel <target-devel@vger.kernel.org>, Sagi Grimberg <sagig@mellanox.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <C7F286E4-D17E-45A5-AC31-B7AC1491F72A-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I see now that there is documentation in ib_req_notify_cq().
+On Wed, Jan 6, 2016 at 9:20 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> And appears to be 100% reproducible. Any debugging
+> advice welcome!
 
-regards,
-dan carpenter
+was reported here 2-3 times, this fixes that
+https://patchwork.kernel.org/patch/7929551
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
