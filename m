@@ -1,183 +1,314 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v3 36/36] IB/rdmavt: Add pkey support
-Date: Wed, 06 Jan 2016 10:05:12 -0800
-Message-ID: <20160106180502.8747.27566.stgit@scvm10.sc.intel.com>
-References: <20160106174638.8747.47197.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v3 01/10] IB/qib: Begin to use rdmavt for verbs
+Date: Wed, 06 Jan 2016 10:07:33 -0800
+Message-ID: <20160106180729.15836.7776.stgit@scvm10.sc.intel.com>
+References: <20160106180541.15836.58173.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160106174638.8747.47197.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <20160106180541.15836.58173.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add pkey table in rdi per port data structure. Also bring in related pkey
-functions. Drivers will still be responsible for allocating and
-maintaining the pkey table. However they need to tell rdmavt where to find
-the pkey table. We can not move the pkey table up into rdmavt because
-drivers need to manipulate this long before registering with it.
+This patch begins to make use of rdmavt by registering with it and
+providing access to the header files. This is just the beginning of
+rdmavt support in qib.
+
+Most functionality is still being done in the driver, set flags so that
+rdmavt will let qib continue to handle mr, qp, and cq init.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/vt.c |   46 ++++++++++++++++++++++++-------------
- include/rdma/rdma_vt.h            |   38 +++++++++++++++++++++++++++----
- 2 files changed, 64 insertions(+), 20 deletions(-)
+ drivers/infiniband/hw/qib/Kconfig     |    2 +-
+ drivers/infiniband/hw/qib/qib.h       |    1 +
+ drivers/infiniband/hw/qib/qib_init.c  |    5 +++--
+ drivers/infiniband/hw/qib/qib_intr.c  |    2 +-
+ drivers/infiniband/hw/qib/qib_mad.c   |    5 +++--
+ drivers/infiniband/hw/qib/qib_sysfs.c |   20 ++++++++++----------
+ drivers/infiniband/hw/qib/qib_verbs.c |   19 ++++++++++++++-----
+ drivers/infiniband/hw/qib/qib_verbs.h |    8 ++++++--
+ 8 files changed, 39 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-index ab4105a..18b5f43 100644
---- a/drivers/infiniband/sw/rdmavt/vt.c
-+++ b/drivers/infiniband/sw/rdmavt/vt.c
-@@ -154,6 +154,17 @@ static int rvt_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
- 	 * lock, if a stale value is read and sent to the user so be it there is
- 	 * no way to protect against that anyway.
- 	 */
-+	struct rvt_dev_info *rdi = ib_to_rvt(ibdev);
-+	int port_index;
-+
-+	if (index >= rvt_get_npkeys(rdi))
-+		return -EINVAL;
-+
-+	port_index = port - 1; /* IB ports start at 1 our array at 0 */
-+	if ((port_index < 0) || (port_index >= rdi->dparms.nports))
-+		return -EINVAL;
-+
-+	*pkey = rvt_get_pkey(rdi, port_index, index);
- 	return 0;
+diff --git a/drivers/infiniband/hw/qib/Kconfig b/drivers/infiniband/hw/qib/Kconfig
+index 495be09..e0fdb92 100644
+--- a/drivers/infiniband/hw/qib/Kconfig
++++ b/drivers/infiniband/hw/qib/Kconfig
+@@ -1,6 +1,6 @@
+ config INFINIBAND_QIB
+ 	tristate "Intel PCIe HCA support"
+-	depends on 64BIT
++	depends on 64BIT && INFINIBAND_RDMAVT
+ 	---help---
+ 	This is a low-level driver for Intel PCIe QLE InfiniBand host
+ 	channel adapters.  This driver does not support the Intel
+diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
+index 7df16f7..0e68e1f 100644
+--- a/drivers/infiniband/hw/qib/qib.h
++++ b/drivers/infiniband/hw/qib/qib.h
+@@ -52,6 +52,7 @@
+ #include <linux/kref.h>
+ #include <linux/sched.h>
+ #include <linux/kthread.h>
++#include <rdma/rdma_vt.h>
+ 
+ #include "qib_common.h"
+ #include "qib_verbs.h"
+diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
+index 4ff340f..47190f1 100644
+--- a/drivers/infiniband/hw/qib/qib_init.c
++++ b/drivers/infiniband/hw/qib/qib_init.c
+@@ -42,6 +42,7 @@
+ #ifdef CONFIG_INFINIBAND_QIB_DCA
+ #include <linux/dca.h>
+ #endif
++#include <rdma/rdma_vt.h>
+ 
+ #include "qib.h"
+ #include "qib_common.h"
+@@ -1081,7 +1082,7 @@ void qib_free_devdata(struct qib_devdata *dd)
+ 	qib_dbg_ibdev_exit(&dd->verbs_dev);
+ #endif
+ 	free_percpu(dd->int_counter);
+-	ib_dealloc_device(&dd->verbs_dev.ibdev);
++	ib_dealloc_device(&dd->verbs_dev.rdi.ibdev);
  }
  
-@@ -227,19 +238,6 @@ int rvt_register_device(struct rvt_dev_info *rdi)
- 		return -EINVAL;
+ u64 qib_int_counter(struct qib_devdata *dd)
+@@ -1171,7 +1172,7 @@ struct qib_devdata *qib_alloc_devdata(struct pci_dev *pdev, size_t extra)
+ bail:
+ 	if (!list_empty(&dd->list))
+ 		list_del_init(&dd->list);
+-	ib_dealloc_device(&dd->verbs_dev.ibdev);
++	ib_dealloc_device(&dd->verbs_dev.rdi.ibdev);
+ 	return ERR_PTR(ret);
+ }
+ 
+diff --git a/drivers/infiniband/hw/qib/qib_intr.c b/drivers/infiniband/hw/qib/qib_intr.c
+index 086616d..a014fd4 100644
+--- a/drivers/infiniband/hw/qib/qib_intr.c
++++ b/drivers/infiniband/hw/qib/qib_intr.c
+@@ -74,7 +74,7 @@ static void signal_ib_event(struct qib_pportdata *ppd, enum ib_event_type ev)
+ 	struct ib_event event;
+ 	struct qib_devdata *dd = ppd->dd;
+ 
+-	event.device = &dd->verbs_dev.ibdev;
++	event.device = &dd->verbs_dev.rdi.ibdev;
+ 	event.element.port_num = ppd->port;
+ 	event.event = ev;
+ 	ib_dispatch_event(&event);
+diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
+index 9625e7c..c65d3aa 100644
+--- a/drivers/infiniband/hw/qib/qib_mad.c
++++ b/drivers/infiniband/hw/qib/qib_mad.c
+@@ -1028,7 +1028,7 @@ static int set_pkeys(struct qib_devdata *dd, u8 port, u16 *pkeys)
+ 		(void) dd->f_set_ib_cfg(ppd, QIB_IB_CFG_PKEYS, 0);
+ 
+ 		event.event = IB_EVENT_PKEY_CHANGE;
+-		event.device = &dd->verbs_dev.ibdev;
++		event.device = &dd->verbs_dev.rdi.ibdev;
+ 		event.element.port_num = port;
+ 		ib_dispatch_event(&event);
  	}
+@@ -2483,7 +2483,8 @@ int qib_create_agents(struct qib_ibdev *dev)
  
--	if (!rdi->dparms.nports) {
--		rvt_pr_err(rdi, "Driver says it has no ports.\n");
--		return -EINVAL;
--	}
--
--	rdi->ports = kcalloc(rdi->dparms.nports,
--			     sizeof(struct rvt_ibport **),
--			     GFP_KERNEL);
--	if (!rdi->ports) {
--		rvt_pr_err(rdi, "Could not allocate port mem.\n");
--		return -ENOMEM;
--	}
--
- 	/* Once we get past here we can use the rvt_pr macros */
- 	rvt_mmap_init(rdi);
- 
-@@ -355,9 +353,25 @@ EXPORT_SYMBOL(rvt_unregister_device);
-  * Keep track of a list of ports. No need to have a detach port.
-  * They persist until the driver goes away.
-  */
--void rvt_attach_port(struct rvt_dev_info *rdi, struct rvt_ibport *port,
--		     int portnum)
-+int rvt_init_port(struct rvt_dev_info *rdi, struct rvt_ibport *port,
-+		  int portnum, u16 *pkey_table)
+ 	for (p = 0; p < dd->num_pports; p++) {
+ 		ibp = &dd->pport[p].ibport_data;
+-		agent = ib_register_mad_agent(&dev->ibdev, p + 1, IB_QPT_SMI,
++		agent = ib_register_mad_agent(&dev->rdi.ibdev, p + 1,
++					      IB_QPT_SMI,
+ 					      NULL, 0, send_handler,
+ 					      NULL, NULL, 0);
+ 		if (IS_ERR(agent)) {
+diff --git a/drivers/infiniband/hw/qib/qib_sysfs.c b/drivers/infiniband/hw/qib/qib_sysfs.c
+index 81f56cd..72a160e 100644
+--- a/drivers/infiniband/hw/qib/qib_sysfs.c
++++ b/drivers/infiniband/hw/qib/qib_sysfs.c
+@@ -502,7 +502,7 @@ static ssize_t show_rev(struct device *device, struct device_attribute *attr,
+ 			char *buf)
  {
-+	if (!rdi->dparms.nports) {
-+		rvt_pr_err(rdi, "Driver says it has no ports.\n");
-+		return -EINVAL;
-+	}
-+
-+	rdi->ports = kcalloc(rdi->dparms.nports,
-+			     sizeof(struct rvt_ibport **),
-+			     GFP_KERNEL);
-+	if (!rdi->ports) {
-+		rvt_pr_err(rdi, "Could not allocate port mem.\n");
-+		return -ENOMEM;
-+	}
-+
- 	rdi->ports[portnum] = port;
-+	rdi->ports[portnum]->pkey_table = pkey_table;
-+
-+	return 0;
+ 	struct qib_ibdev *dev =
+-		container_of(device, struct qib_ibdev, ibdev.dev);
++		container_of(device, struct qib_ibdev, rdi.ibdev.dev);
+ 
+ 	return sprintf(buf, "%x\n", dd_from_dev(dev)->minrev);
  }
--EXPORT_SYMBOL(rvt_attach_port);
-+EXPORT_SYMBOL(rvt_init_port);
-diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
-index fd25d23..3a78f20 100644
---- a/include/rdma/rdma_vt.h
-+++ b/include/rdma/rdma_vt.h
-@@ -69,6 +69,8 @@
- #define RVT_FLAG_QP_INIT_DRIVER BIT(2)
- #define RVT_FLAG_CQ_INIT_DRIVER BIT(3)
+@@ -511,7 +511,7 @@ static ssize_t show_hca(struct device *device, struct device_attribute *attr,
+ 			char *buf)
+ {
+ 	struct qib_ibdev *dev =
+-		container_of(device, struct qib_ibdev, ibdev.dev);
++		container_of(device, struct qib_ibdev, rdi.ibdev.dev);
+ 	struct qib_devdata *dd = dd_from_dev(dev);
+ 	int ret;
  
-+#define RVT_MAX_PKEY_VALUES 16
-+
- struct rvt_ibport {
- 	struct rvt_qp __rcu *qp[2];
- 	struct ib_mad_agent *send_agent;	/* agent for SMI (traps) */
-@@ -125,6 +127,14 @@ struct rvt_ibport {
+@@ -533,7 +533,7 @@ static ssize_t show_boardversion(struct device *device,
+ 				 struct device_attribute *attr, char *buf)
+ {
+ 	struct qib_ibdev *dev =
+-		container_of(device, struct qib_ibdev, ibdev.dev);
++		container_of(device, struct qib_ibdev, rdi.ibdev.dev);
+ 	struct qib_devdata *dd = dd_from_dev(dev);
  
- 	void *priv; /* driver private data */
+ 	/* The string printed here is already newline-terminated. */
+@@ -545,7 +545,7 @@ static ssize_t show_localbus_info(struct device *device,
+ 				  struct device_attribute *attr, char *buf)
+ {
+ 	struct qib_ibdev *dev =
+-		container_of(device, struct qib_ibdev, ibdev.dev);
++		container_of(device, struct qib_ibdev, rdi.ibdev.dev);
+ 	struct qib_devdata *dd = dd_from_dev(dev);
  
+ 	/* The string printed here is already newline-terminated. */
+@@ -557,7 +557,7 @@ static ssize_t show_nctxts(struct device *device,
+ 			   struct device_attribute *attr, char *buf)
+ {
+ 	struct qib_ibdev *dev =
+-		container_of(device, struct qib_ibdev, ibdev.dev);
++		container_of(device, struct qib_ibdev, rdi.ibdev.dev);
+ 	struct qib_devdata *dd = dd_from_dev(dev);
+ 
+ 	/* Return the number of user ports (contexts) available. */
+@@ -572,7 +572,7 @@ static ssize_t show_nfreectxts(struct device *device,
+ 			   struct device_attribute *attr, char *buf)
+ {
+ 	struct qib_ibdev *dev =
+-		container_of(device, struct qib_ibdev, ibdev.dev);
++		container_of(device, struct qib_ibdev, rdi.ibdev.dev);
+ 	struct qib_devdata *dd = dd_from_dev(dev);
+ 
+ 	/* Return the number of free user ports (contexts) available. */
+@@ -583,7 +583,7 @@ static ssize_t show_serial(struct device *device,
+ 			   struct device_attribute *attr, char *buf)
+ {
+ 	struct qib_ibdev *dev =
+-		container_of(device, struct qib_ibdev, ibdev.dev);
++		container_of(device, struct qib_ibdev, rdi.ibdev.dev);
+ 	struct qib_devdata *dd = dd_from_dev(dev);
+ 
+ 	buf[sizeof(dd->serial)] = '\0';
+@@ -597,7 +597,7 @@ static ssize_t store_chip_reset(struct device *device,
+ 				size_t count)
+ {
+ 	struct qib_ibdev *dev =
+-		container_of(device, struct qib_ibdev, ibdev.dev);
++		container_of(device, struct qib_ibdev, rdi.ibdev.dev);
+ 	struct qib_devdata *dd = dd_from_dev(dev);
+ 	int ret;
+ 
+@@ -618,7 +618,7 @@ static ssize_t show_tempsense(struct device *device,
+ 			      struct device_attribute *attr, char *buf)
+ {
+ 	struct qib_ibdev *dev =
+-		container_of(device, struct qib_ibdev, ibdev.dev);
++		container_of(device, struct qib_ibdev, rdi.ibdev.dev);
+ 	struct qib_devdata *dd = dd_from_dev(dev);
+ 	int ret;
+ 	int idx;
+@@ -778,7 +778,7 @@ bail:
+  */
+ int qib_verbs_register_sysfs(struct qib_devdata *dd)
+ {
+-	struct ib_device *dev = &dd->verbs_dev.ibdev;
++	struct ib_device *dev = &dd->verbs_dev.rdi.ibdev;
+ 	int i, ret;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(qib_attributes); ++i) {
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
+index 0e020e2..c3af43d 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.c
++++ b/drivers/infiniband/hw/qib/qib_verbs.c
+@@ -2086,7 +2086,7 @@ static int qib_port_immutable(struct ib_device *ibdev, u8 port_num,
+ int qib_register_ib_device(struct qib_devdata *dd)
+ {
+ 	struct qib_ibdev *dev = &dd->verbs_dev;
+-	struct ib_device *ibdev = &dev->ibdev;
++	struct ib_device *ibdev = &dev->rdi.ibdev;
+ 	struct qib_pportdata *ppd = dd->pport;
+ 	unsigned i, lk_tab_size;
+ 	int ret;
+@@ -2274,7 +2274,17 @@ int qib_register_ib_device(struct qib_devdata *dd)
+ 	snprintf(ibdev->node_desc, sizeof(ibdev->node_desc),
+ 		 "Intel Infiniband HCA %s", init_utsname()->nodename);
+ 
+-	ret = ib_register_device(ibdev, qib_create_port_files);
 +	/*
-+	 * The pkey table is allocated and maintained by the driver. Drivers
-+	 * need to have access to this before registering with rdmav. However
-+	 * rdmavt will need access to it so drivers need to proviee this during
-+	 * the attach port API call.
++	 * Fill in rvt info object.
 +	 */
-+	u16 *pkey_table;
++	dd->verbs_dev.rdi.driver_f.port_callback = qib_create_port_files;
++	dd->verbs_dev.rdi.dparms.props.max_pd = ib_qib_max_pds;
++	dd->verbs_dev.rdi.flags = (RVT_FLAG_MR_INIT_DRIVER |
++				   RVT_FLAG_QP_INIT_DRIVER |
++				   RVT_FLAG_CQ_INIT_DRIVER);
 +
- 	/* TODO: Move sm_ah and smi_ah into here as well*/
- };
++
++	ret = rvt_register_device(&dd->verbs_dev.rdi);
+ 	if (ret)
+ 		goto err_reg;
  
-@@ -178,6 +188,7 @@ struct rvt_driver_params {
- 	int qpn_res_start;
- 	int qpn_res_end;
- 	int nports;
-+	int npkeys;
- 	u8 qos_shift;
- };
+@@ -2291,7 +2301,7 @@ int qib_register_ib_device(struct qib_devdata *dd)
+ err_class:
+ 	qib_free_agents(dev);
+ err_agents:
+-	ib_unregister_device(ibdev);
++	rvt_unregister_device(&dd->verbs_dev.rdi);
+ err_reg:
+ err_tx:
+ 	while (!list_empty(&dev->txreq_free)) {
+@@ -2320,7 +2330,6 @@ bail:
+ void qib_unregister_ib_device(struct qib_devdata *dd)
+ {
+ 	struct qib_ibdev *dev = &dd->verbs_dev;
+-	struct ib_device *ibdev = &dev->ibdev;
+ 	u32 qps_inuse;
+ 	unsigned lk_tab_size;
  
-@@ -238,8 +249,6 @@ struct rvt_dev_info {
- 	struct rvt_mregion __rcu *dma_mr;
- 	struct rvt_lkey_table lkey_table;
+@@ -2328,7 +2337,7 @@ void qib_unregister_ib_device(struct qib_devdata *dd)
  
--	/* PKey Table goes here */
--
- 	/* Driver specific helper functions */
- 	struct rvt_driver_provided driver_f;
+ 	qib_free_agents(dev);
  
-@@ -282,11 +291,32 @@ static inline struct rvt_srq *ibsrq_to_rvtsrq(struct ib_srq *ibsrq)
- 	return container_of(ibsrq, struct rvt_srq, ibsrq);
+-	ib_unregister_device(ibdev);
++	rvt_unregister_device(&dd->verbs_dev.rdi);
+ 
+ 	if (!list_empty(&dev->piowait))
+ 		qib_dev_err(dd, "piowait list not empty!\n");
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
+index 6c5e777..e175301 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.h
++++ b/drivers/infiniband/hw/qib/qib_verbs.h
+@@ -45,6 +45,7 @@
+ #include <linux/completion.h>
+ #include <rdma/ib_pack.h>
+ #include <rdma/ib_user_verbs.h>
++#include <rdma/rdma_vt.h>
+ 
+ struct qib_ctxtdata;
+ struct qib_pportdata;
+@@ -752,7 +753,7 @@ struct qib_ibport {
+ 
+ 
+ struct qib_ibdev {
+-	struct ib_device ibdev;
++	struct rvt_dev_info rdi;
+ 	struct list_head pending_mmaps;
+ 	spinlock_t mmap_offset_lock; /* protect mmap_offset */
+ 	u32 mmap_offset;
+@@ -845,7 +846,10 @@ static inline struct qib_qp *to_iqp(struct ib_qp *ibqp)
+ 
+ static inline struct qib_ibdev *to_idev(struct ib_device *ibdev)
+ {
+-	return container_of(ibdev, struct qib_ibdev, ibdev);
++	struct rvt_dev_info *rdi;
++
++	rdi = container_of(ibdev, struct rvt_dev_info, ibdev);
++	return container_of(rdi, struct qib_ibdev, rdi);
  }
  
-+static inline unsigned rvt_get_npkeys(struct rvt_dev_info *rdi)
-+{
-+	/*
-+	 * All ports have same number of pkeys.
-+	 */
-+	return rdi->dparms.npkeys;
-+}
-+
-+/*
-+ * Return the indexed PKEY from the port PKEY table.
-+ */
-+static inline u16 rvt_get_pkey(struct rvt_dev_info *rdi,
-+			       int port_index,
-+			       unsigned index)
-+{
-+	if (index >= rvt_get_npkeys(rdi))
-+		return 0;
-+	else
-+		return rdi->ports[port_index]->pkey_table[index];
-+}
-+
- int rvt_register_device(struct rvt_dev_info *rvd);
- void rvt_unregister_device(struct rvt_dev_info *rvd);
- int rvt_check_ah(struct ib_device *ibdev, struct ib_ah_attr *ah_attr);
--void rvt_attach_port(struct rvt_dev_info *rdi, struct rvt_ibport *port,
--		     int portnum);
-+int rvt_init_port(struct rvt_dev_info *rdi, struct rvt_ibport *port,
-+		  int portnum, u16 *pkey_table);
- int rvt_rkey_ok(struct rvt_qp *qp, struct rvt_sge *sge,
- 		u32 len, u64 vaddr, u32 rkey, int acc);
- int rvt_lkey_ok(struct rvt_lkey_table *rkt, struct rvt_pd *pd,
+ /*
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
